@@ -9,15 +9,28 @@
 \usepackage{siunitx}
 \usepackage{amsmath, amssymb}
 \usepackage{csquotes}
-
+\usepackage{mathtools} % to get text over symbol
 \usepackage{multicol} % for mini-pages
 \usepackage{enumitem} % customised lists
 \usepackage[square, sort&compress, numbers]{natbib}
 \usepackage{listings}
+\usepackage{tensor}
 
 
 % define R packages and use R code
 \newcommand{\CRANpkg}[1]{\href{https://CRAN.R-project.org/package=#1}{\textbf{#1}}}
+
+
+
+% define the generalised tensor product
+\newcommand{\cdotT}[1]{\stackrel{\mathclap{
+#1}}{\quad \cdot \quad}}
+% examples
+% $$
+% A \cdotT{i_1=i_3} B \quad
+% A \quad \stackrel{\mathclap{i_1=i_3}}{\cdot} \quad B
+% $$
+% \stackrel{\mathclap{\text{def}}}{=}
 
 \usepackage[svgnames]{xcolor} % with the set of colors to be used
 \lstset{language=R,                                     % set programming language
@@ -70,7 +83,7 @@
 %% Authors can be followed by \inst{<n>} macro.
 %% The <n> parameter of the \inst macro should correspond to the <n>th institution
 %% (see macro \institute below).
-\author{Bastien \textsc{CHASSAGNOL}\inst{1, 2}  \and Yufei \textsc{Luo}\inst{1} \and Antoine \textsc{BICHAT}\inst{1} \and Gregory \textsc{Nuel}\inst{2} \and Etienne \textsc{Becht}\inst{1}}
+\author{Bastien \textsc{CHASSAGNOL}\inst{1, 2}  \and Yufei \textsc{Luo}\inst{1} \and Gregory \textsc{Nuel}\inst{2} \and Etienne \textsc{Becht}\inst{1}}
 
 %% List of institutions (separated by the macro \and).
 \institute{
@@ -110,7 +123,7 @@ We highlight that not only the distance between centroids (namely the mean diffe
 
 The analysis of the bulk transcriptome using high-throughput sequencing methods provided new insights on the mechanisms involved in the development of diseases. However, such methods obliterate the intrinsic heterogeneous nature of biological samples and thus reveal generally worthless to identify the causal sources of the variability observed between individuals. 
 
-Indeed, on par with the technical noise or the phenotypical environment, the cell composition plays a crucial role on the evolution of disease conditions. For instance, the tumoral micro environment encompasses a large variety of cell populations, whose interactions will directly impact the tumoral growth, cancer progression and henceforth the patient outcome (1). Furthermore, the expression profiles of a given cell population can even significantly differ within the same individual, driven by signalling pathways which induce \textit{cell motility} and \textit{cell differentiation} \cite{shoemaker_etal12}. 
+Indeed, on par with the technical noise or the phenotypical environment, the cell composition plays a crucial role on the evolution of disease conditions. For instance, the tumoral micro environment encompasses a large variety of cell populations, whose interactions will directly impact the tumoral growth, cancer progression and henceforth the patient outcome). Furthermore, the expression profiles of a given cell population can even significantly differ within the same individual, driven by signalling pathways which induce \textit{cell motility} and \textit{cell differentiation} \cite{shoemaker_etal12}. 
 
 Not accounting for changes of the cell composition as one of the biological drivers as a confounding signal in downstream analyses, particularly in differential analysis, is likely to result in a loss of \textit{specificity} (genes wrongly identified as differentially expressed, while they only reflect an increase of the cell population naturally producing them) and \textit{sensibility} (genes expressed by minor cell populations are amenable to be masked by the expression and high-variability of dominant cell populations), which in turn prevents from identifying the true causal drivers of the change of gene dysregulation \footnote{\cite{whitney_etal03} shows that most of the inter-variability of gene expression within healthy patients was brought by variations of the neutrophils population, the major population of blood samples, making up for up to \qty{70}{\percent} of the nuclear-equipped cells}.
 
@@ -227,11 +240,16 @@ By considering a multivariate point of view to describe the transcriptomic expre
 
 
 
-For the derivation of the log-likelihood, we first \textit{plug-in} the mean and covariance parameters $\zeta_j=\left(\boldsymbol{\mu}_{.j}, \boldsymbol{\Sigma}_j\right)$ for each purified cell population (\sectionname~\ref{subsec:signature-matrix}, $\boldsymbol{\zeta}$ being its multidimensional counterpart, indexing in a $G \times J$ matrix the mean expression of the $J$ purified cell populations and in a $G \times G \times J$ 3D-cuboid tensor the corresponding covariance matrices) and aim at estimating the unknown cellular ratios $\boldsymbol{p}$. Then, considering the matricial relation \equationname ~\ref{eq:deconvolution-problem}, the conditional probability of the bulk admixture given the individual mean and covariance parameters of each purified cellular expression, $\boldsymbol{y}|\boldsymbol{\zeta}$, which is as a sum of random variables, the \textit{convolution product} of independent multivariate Gaussian variables, follows a multivariate Gaussian distribution. Indeed, the \textit{affine invariant} property of Gaussian distributions enable to derive an explicit form of the multivariate probability condition (\equationname~\ref{eq:conditional-multivariate-distribution}):
+
+For the derivation of the log-likelihood, we first \textit{plug-in} the mean and covariance parameters $\zeta_j=\left(\boldsymbol{\mu}_{.j}, \boldsymbol{\Sigma}_j\right)$ for each purified cell population (\sectionname~\ref{subsec:signature-matrix}). Instead, $\boldsymbol{\zeta}$ stores the parameters of the resulting Gaussian multivariate conditional distribution, with $\boldsymbol{\mu} \in \mathcal{M}_{G \times J}$ the concatenated matrix of the mean expression of the $J$ purified cell populations and in $\boldsymbol{\Sigma} \mathcal{M}_{G \times G}$ the global covariance matrix of the conditional distribution $\boldsymbol{y}|(\boldsymbol{\zeta}, \boldsymbol{p})$. 
+
+The unknown parameters to infer are the cellular ratios $\boldsymbol{p}$. Then, considering the matricial relation \equationname ~\ref{eq:deconvolution-problem}, the conditional probability of the bulk admixture given the individual mean and covariance parameters of each purified cellular expression, $\boldsymbol{y}|\boldsymbol{\zeta}$, which is as a sum of random variables, the \textit{convolution product} of independent multivariate Gaussian variables, follows a multivariate Gaussian distribution. Indeed, the \textit{affine invariant} property of Gaussian distributions enable to derive an explicit form of the multivariate probability condition (\equationname~\ref{eq:conditional-multivariate-distribution}):
 \begin{equation}
 \label{eq:conditional-multivariate-distribution}
-\boldsymbol{y}|\boldsymbol{\zeta} \sim \mathcal{N}_G(\boldsymbol{\mu} \boldsymbol{p}, \boldsymbol{\Sigma}) \text{ with } \boldsymbol{\mu} = (\boldsymbol{\mu}_{.j})_{j \in \widetilde{J}}, \quad \boldsymbol {p}=(p_1, \ldots, p_j) \text{ and } \boldsymbol{\Sigma}=\sum_{j=1}^J p_{j}^2\boldsymbol{\Sigma}_{j}
+\boldsymbol{y}|(\boldsymbol{\zeta}, \boldsymbol{p}) \sim \mathcal{N}_G(\boldsymbol{\mu} \boldsymbol{p}, \boldsymbol{\Sigma}) \text{ with } \boldsymbol{\mu} = (\boldsymbol{\mu}_{.j})_{j \in \widetilde{J}}, \quad \boldsymbol {p}=(p_1, \ldots, p_J) \text{ and } \boldsymbol{\Sigma}=\sum_{j=1}^J p_{j}^2\boldsymbol{\Sigma}_{j}=
+\boldsymbol{p}_{j_1}^2 \cdotT{j_1=j_2} \boldsymbol{\Sigma}\indices{_{ik}^{j_2}}
 \end{equation}
+with $\cdotT{j_1=i_3}$ the generalised tensor product (\definitionname~\ref{def:tensor-product}) between the vector of proportions, $\boldsymbol{p}$, along the third dimension $j_2$ of the three-dimensional array, $\boldsymbol{\Sigma}\indices{_{ik}^{j_2}}, \quad (i, k)\in \widetilde{G}^2, \, j_2 \in \widetilde{J}$, storing the respective covariance matrices of each purified cell population (we used the Einstein summation convention for that last equation, see \definitionname~\ref{def:einstein-summation}). 
 Finally, from \equationname~\ref{eq:conditional-multivariate-distribution}, we readily compute the log-likelihood:
 
 \begin{equation}
@@ -260,13 +278,12 @@ From the covariance matrix of the multivariate conditional distribution (\equati
 \section{Results}
 \label{sec:results}
 
-\subsection{Impact of multicollinearity}
-\label{subsec:multicollinearity}
+\subsection{Toy example on synthetic mixtures}
+\label{subsec:sim-idealised}
 
 To highlight the counter-intuitive effect of the multicollinearity between gene observations, we simply design a toy example with two genes and two cell proportions, the simplex constraint amounting to estimate a single free parameter. Interestingly, playing over the correlation between the two genes within a cell population and the distance between the two centroids (here, the two-dimensional mean expression vectors of each cell population), we illustrate with that really simple example that no direct relationship between the pairwise correlation between the transcripts and the overall quality estimation could be established. Rather, the level of overlap between two cell populations distributions was a much better proxy of the quality of the estimation: the less the two cell populations distributions overlie, the better the sensibility of the deconvolution. We also showcase that our method, accounting for the covariance structure, systematically performs better compared to a traditional least squares regression method that assumes independent observations. 
 
-\subsection{Simulation on synthetic idealised mixtures}
-\label{subsec:sim-idealised}
+
 
 \subsection{Performance on real biological use case}
 \label{subsec:sim-real}
@@ -455,6 +472,12 @@ $$
 \end{enumerate}
 \end{multicols}
 
+If the first-order derivatives of our matrix $\boldsymbol{A}$ are symmetric, equation $(a)$ further simplifies to:
+
+\begin{equation*}
+    \frac{\partial^2 \boldsymbol{A}^{-1}}{\partial p_i \partial p_j} =  \boldsymbol{A}^{-1} \left( 2 \frac{\partial \boldsymbol{A}}{\partial p_i } \boldsymbol{A}^{-1} \frac{\partial \boldsymbol{A}}{\partial p_j} - \frac{\partial^2 \boldsymbol{A}}{\partial p_i \partial p_j} \right) \boldsymbol{A}^{-1}
+\end{equation*}
+
 Combining the derivative formula for the inverse of a matrix, given in \propertyname~\ref{pr:matrix-calculus-first-order} with the linearity of the trace operator and the chain rule formula yields in particular:
 \begin{equation*}
     \frac{\partial^2 \log \left(\DET (\boldsymbol{A})\right)}{\partial^2 p} = - \Tr  \left[\boldsymbol{A}^{-1}\frac{\partial^2 \boldsymbol{A}}{\partial^2 p_i}\right] +
@@ -539,7 +562,7 @@ This mapping function is a $C^2$ diffeomorphism, since it is an \textit{isomorph
 \end{equation}
 with $i$ indexing vector-valued $\boldsymbol{p}$ and $j$ indexing the first-order order partial derivatives of the mapping function \footnote{We follow the general order convention, namely that the existing dimensions of the vector-valued function $\boldsymbol{psi}$ are to be read by row, and so the derivative along an input dimension are indexed by column.}, $A=\sum_{j' < J} \,e^{\theta_{j'}} \, +  \, 1$ the sum over exponential (denominator of the mapping function) and $B=A - e^{\theta_{i}}$ the same sum, but deprived of the exponential with the same index $i$ as the corresponding component $p_i$.
 
-Before displaying the Hessian, we need to introduce the \textbf{tensors} concept. They are generalisation of multidimensional arrays, $\boldsymbol{x}[i_1, \ldots, i_n]$,  with the number of indices, $n$, being the \textit{level} of the tensor (a vector is hence of level 1, while standard matrices are level 2), while the value $i_j, j \in \{1, \ldots, n\}$ denotes the rank (number of rows or columns) at a given position. 
+Before displaying the Hessian, we need to introduce the \textbf{tensors} concept. We consider their definition as multidimensional arrays, $\boldsymbol{X}[i_1, \ldots, i_n]$,  with the number of distinct indices used to index the elements of the array, $n$, being the \textit{level} of the tensor (a vector is hence of level 1, while standard matrices are level 2), while the value $i_j, j \in \{1, \ldots, n\}$ denotes the number of rows or columns at a given position. 
 
 We return the Hessian of the vectorial mapping function $\boldsymbol{\psi (\theta)}$ as the following third-order tensor of rank $(J-1)(J-1)J$ in \equationname~\ref{eq:mapping-function-hessian}:
 
