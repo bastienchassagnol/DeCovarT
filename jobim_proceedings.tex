@@ -472,15 +472,9 @@ $$
 \end{enumerate}
 \end{multicols}
 
-If the first-order derivatives of our matrix $\boldsymbol{A}$ are symmetric, equation $(a)$ further simplifies to:
-
-\begin{equation*}
-    \frac{\partial^2 \boldsymbol{A}^{-1}}{\partial p_i \partial p_j} =  \boldsymbol{A}^{-1} \left( 2 \frac{\partial \boldsymbol{A}}{\partial p_i } \boldsymbol{A}^{-1} \frac{\partial \boldsymbol{A}}{\partial p_j} - \frac{\partial^2 \boldsymbol{A}}{\partial p_i \partial p_j} \right) \boldsymbol{A}^{-1}
-\end{equation*}
-
 Combining the derivative formula for the inverse of a matrix, given in \propertyname~\ref{pr:matrix-calculus-first-order} with the linearity of the trace operator and the chain rule formula yields in particular:
 \begin{equation*}
-    \frac{\partial^2 \log \left(\DET (\boldsymbol{A})\right)}{\partial^2 p} = - \Tr  \left[\boldsymbol{A}^{-1}\frac{\partial^2 \boldsymbol{A}}{\partial^2 p_i}\right] +
+    \frac{\partial^2 \log \left(\DET (\boldsymbol{A}^{-1})\right)}{\partial^2 p} = - \Tr  \left[\boldsymbol{A}^{-1}\frac{\partial^2 \boldsymbol{A}}{\partial^2 p_i}\right] +
 \Tr  \left[\left(\boldsymbol{A}^{-1}\frac{\partial \boldsymbol{A}}{\partial p_i}\right)^2\right]
 \end{equation*}
 
@@ -502,19 +496,46 @@ The second derivative order, corresponding to the Hessian matrix of the log-like
 \mathbf{H}(\ell(\boldsymbol{p})) &= \mathbf{J}\left( \nabla \ell (\boldsymbol{p})\right)\\
 \mathbf{H}_{i,i}& =
    \frac{\partial^2 \ell}{\partial^2 p_i} =
-\textcolor{red}{-2\Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\right) + 4p_j^2 \Tr \left(\left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\right)^2\right)} 
-\textcolor{blue}{-2p_j(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \boldsymbol{\Sigma}_j \boldsymbol{\Theta} \boldsymbol{\mu_{.j}}\, - \boldsymbol{\mu}_{.j}^\top\boldsymbol{\Theta} \boldsymbol{\mu_{.j}}} \, + \\
-& \textcolor{green}{2p_j \boldsymbol{\mu}_{.j}^\top\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})\, + 
-(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \left(4p_j^2 \boldsymbol{\Sigma}_j \boldsymbol{\Theta} \boldsymbol{\Sigma}_j + 2 \boldsymbol{\Sigma}_j \right)\boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})}, \quad i \in \widetilde{J} \\
+\textcolor{red}{-2\Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i\right) + 4p_i^2 \Tr \left(\left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i\right)^2\right)} 
+\textcolor{blue}{-2p_i(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\mu_{.i}}\, - \boldsymbol{\mu}_{.i}^\top\boldsymbol{\Theta} \boldsymbol{\mu_{.i}}} \, - \\
+& \textcolor{green}{2p_i (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top \boldsymbol{\Theta}\boldsymbol{\Sigma}_i\boldsymbol{\Theta}\boldsymbol{\mu}_{.i} \, - 
+(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \left(4p_i^2 \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\Sigma}_i - \boldsymbol{\Sigma}_i \right)\boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})}, \quad i \in \widetilde{J} \\
+& = -2\Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i\right) + 4p_i^2 \Tr \left(\left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i\right)^2\right) 
+-4p_i(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\mu_{.i}}\, - \boldsymbol{\mu}_{.i}^\top\boldsymbol{\Theta} \boldsymbol{\mu_{.i}} \, - \\
+& (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \left(4p_i^2 \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\Sigma}_i - \boldsymbol{\Sigma}_i \right)\boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})\\
 \mathbf{H}_{i,j} &=
    \frac{\partial^2 \ell}{\partial p_i \partial p_j} =
 \textcolor{red}{4p_j p_i \Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j \boldsymbol{\Theta}\boldsymbol{\Sigma}_i \right)}
-\textcolor{blue}{-2p_i(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\mu_{.j}} - \boldsymbol{\mu}_{.i}^\top\boldsymbol{\Theta} \boldsymbol{\mu_{.j}}} \, + \\
-& \textcolor{green}{2p_i \boldsymbol{\mu}_{.i}^\top\boldsymbol{\Theta}\boldsymbol{\Sigma}_i\boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})\, + 
-4p_ip_j(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \left(\boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\Sigma}_j + \boldsymbol{\Sigma}_j \boldsymbol{\Theta} \boldsymbol{\Sigma}_i \right)\boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})}, \quad (i,j) \in \widetilde{J}^2, i \neq j
+\textcolor{blue}{-2p_i(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\mu_{.j}} - \boldsymbol{\mu}_{.i}^\top\boldsymbol{\Theta} \boldsymbol{\mu_{.j}}} \, - \\
+& \textcolor{green}{2p_j (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top \boldsymbol{\Theta}\boldsymbol{\Sigma}_j\boldsymbol{\Theta} \boldsymbol{\mu}_{.i}\, - 
+4p_ip_j(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta}\boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\Sigma}_j \boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})}, \quad (i,j) \in \widetilde{J}^2, i \neq j
   \end{aligned}
 \end{equation}
-in which the coloured sections pair one by one with the corresponding coloured sections of the gradient, given in \equationname~\ref{eq:gradient-general}.
+in which the coloured sections pair one by one with the corresponding coloured sections of the gradient, given in \equationname~\ref{eq:gradient-general} \footnote{The cyclic permutation, $\Tr(\boldsymbol{A}\boldsymbol{B}\boldsymbol{C}\boldsymbol{D})=\Tr(\boldsymbol{C}\boldsymbol{D}\boldsymbol{A}\boldsymbol{B})$, and transpose invariant, $\Tr(\boldsymbol{A}^\top)=\Tr(\boldsymbol{A})$, properties of the trace operator guarantees indeed the symmetry of the Hessian matrix, $\Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j \boldsymbol{\Theta}\boldsymbol{\Sigma}_i \right)=\Tr \left( \boldsymbol{\Theta}\boldsymbol{\Sigma}_i \boldsymbol{\Theta}\boldsymbol{\Sigma}_j \right)$. Additionally, using the linear algebra properties recalled in \propertyname~\ref{pr:linear-algebra}, we get:
+\begin{equation*}
+    \begin{aligned}
+    (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta}\boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\Sigma}_j \boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})=
+(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\Sigma}_j \boldsymbol{\Theta}\right)^\top 
+(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})=
+(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta}\boldsymbol{\Sigma}_j \boldsymbol{\Theta} \boldsymbol{\Sigma}_i \boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})
+\end{aligned}
+\end{equation*}, ensuring that we can switch the order of the derivation without modifying the final result.}.
+
+Additionally, if we consider specific parametrisation to the structure of the covariance matrix such that $\boldsymbol{A}\boldsymbol{B}=\boldsymbol{B}\boldsymbol{A}=(\boldsymbol{A}\boldsymbol{B})^\top$ , for instance by considering pairwise correlation (the off-diagonal terms of the covariance matrix), we considerably simplify the notation of the Hessian matrix, since any permutation of the same-dimensional matrices is possible: 
+\begin{equation*}
+    \begin{aligned}
+ \frac{\partial^2 \ell}{\partial^2 p_i}& =
+-2\Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i\right) + 4p_i^2 \Tr \left(\left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i\right)^2\right) 
+-4p_i(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta}^2 \boldsymbol{\Sigma}_i  \boldsymbol{\mu_{.i}}\, - \boldsymbol{\mu}_{.i}^\top\boldsymbol{\Theta} \boldsymbol{\mu_{.i}} \, - \\
+&4p_i^2 (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top \boldsymbol{\Theta}^3  \boldsymbol{\Sigma}_i^2 (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p}) + (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top \boldsymbol{\Theta}^2  \boldsymbol{\Sigma}_i  (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})\\
+\frac{\partial^2 \ell}{\partial p_i \partial p_j} &=
+4p_j p_i \Tr \left(\boldsymbol{\Sigma}_j \boldsymbol{\Theta}^2\boldsymbol{\Sigma}_i \right)
+-2p_i(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta}^2 \boldsymbol{\Sigma}_i  \boldsymbol{\mu_{.j}} - \boldsymbol{\mu}_{.i}^\top\boldsymbol{\Theta} \boldsymbol{\mu_{.j}} \, - \\
+& 2p_j (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top \boldsymbol{\Theta}^2 \boldsymbol{\Sigma}_j \boldsymbol{\mu}_{.i}\, -
+4p_ip_j(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta}^3\boldsymbol{\Sigma}_i \boldsymbol{\Sigma}_j (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})
+  \end{aligned}
+\end{equation*}
+
 
 \subsection{First and second-order derivation of the constrained DeCoVart log-likelihood function}
 \label{subsubsec:contrained-optimisation}
@@ -554,13 +575,13 @@ This mapping function is a $C^2$ diffeomorphism, since it is an \textit{isomorph
 \mathbf{J}_{i,j} =
    \frac{\partial p_i}{\partial \theta_{j}} &=
 \begin{cases}
-\frac{e^{\theta_i}B}{A^2 },\quad i = j, \, i < J\\
+\frac{e^{\theta_i}B_i}{A^2 },\quad i = j, \, i < J\\
 \frac{-e^{\theta_j}e^{\theta_i}}{A^2 }, \quad i \neq j, \, i < J\\
 \frac{-e^{\theta_j}}{A^2}, \quad i=J
 \end{cases}
   \end{aligned}
 \end{equation}
-with $i$ indexing vector-valued $\boldsymbol{p}$ and $j$ indexing the first-order order partial derivatives of the mapping function \footnote{We follow the general order convention, namely that the existing dimensions of the vector-valued function $\boldsymbol{psi}$ are to be read by row, and so the derivative along an input dimension are indexed by column.}, $A=\sum_{j' < J} \,e^{\theta_{j'}} \, +  \, 1$ the sum over exponential (denominator of the mapping function) and $B=A - e^{\theta_{i}}$ the same sum, but deprived of the exponential with the same index $i$ as the corresponding component $p_i$.
+with $i$ indexing vector-valued $\boldsymbol{p}$ and $j$ indexing the first-order order partial derivatives of the mapping function \footnote{We follow the general order convention, namely that the existing dimensions of the vector-valued function $\boldsymbol{psi}$ are to be read by row, and so the derivative along an input dimension are indexed by column.}, $A=\sum_{j' < J} \,e^{\theta_{j'}} \, +  \, 1$ the sum over exponential (denominator of the mapping function) and $B_i=A - e^{\theta_{i}}$ the same sum, but deprived of the exponential with the same index $i$ as the corresponding component $p_i$.
 
 Before displaying the Hessian, we need to introduce the \textbf{tensors} concept. We consider their definition as multidimensional arrays, $\boldsymbol{X}[i_1, \ldots, i_n]$,  with the number of distinct indices used to index the elements of the array, $n$, being the \textit{level} of the tensor (a vector is hence of level 1, while standard matrices are level 2), while the value $i_j, j \in \{1, \ldots, n\}$ denotes the number of rows or columns at a given position. 
 
@@ -579,17 +600,18 @@ We return the Hessian of the vectorial mapping function $\boldsymbol{\psi (\thet
 \end{bmatrix}_{j < J, k < J}^{i \in \widetilde{J}}\\        
    \frac{\partial^2 p_i}{\partial k \partial j} &=
 \begin{cases}
-\frac{e^{\theta_i} e^{\theta_l} \left (-B + e^{\theta_l}\right)}{A^3},\, i<J, \, (i\neq j) \oplus(i\neq k) \quad (a)\\
-\frac{2 e^{\theta_i} e^{\theta_j} e^{\theta_k} }{A^3}, \, i<J, \, i \neq j \neq k  \quad (b)\\
-\frac{e^{\theta_i} e^{\theta_j} \left (-A + 2e^{\theta_j}\right)}{A^3}, \, i<J, \, j=k\neq i  \quad (c)\\
-\frac{B e^{\theta_i} \left( B -  e^{\theta_i}\right)}{A^3}, \, i<J, j = k = i  \quad (d)\\
-\frac{e^{\theta_j} \left( -A + 2 e^{\theta_j}\right)}{A^3}, \, i=J, j = k  \quad (e)\\
-\frac{2 e^{\theta_j} e^{\theta_k}}{A^3}, \, i=J, j \neq k  \quad (f)
+\frac{e^{\theta_i} e^{\theta_l} \left (-B_i + e^{\theta_i}\right)}{A^3},\, (i<J) \land \left((i\neq j) \oplus(i\neq k)\right) \quad (a)\\
+\frac{2 e^{\theta_i} e^{\theta_j} e^{\theta_k} }{A^3}, \, (i<J) \land  (i \neq j \neq k)  \quad (b)\\
+\frac{e^{\theta_i} e^{\theta_j} \left (-A + 2e^{\theta_j}\right)}{A^3}, \, (i<J) \land (j=k\neq i)  \quad (c)\\
+\frac{B_i e^{\theta_i} \left( B_i -  e^{\theta_i}\right)}{A^3}, \, (i<J) \land (j = k = i)  \quad (d)\\
+\frac{e^{\theta_j} \left( -A + 2 e^{\theta_j}\right)}{A^3}, \, (i=J) \land (j = k)  \quad (e)\\
+\frac{2 e^{\theta_j} e^{\theta_k}}{A^3}, \, (i=J) \land (j \neq k)  \quad (f)
 \end{cases}
   \end{aligned}
 \end{equation}
 
-with $i$ indexing $\boldsymbol{p}$, $j$ and $k$ respectively indexing the first-order and second-order partial derivatives of the mapping function with respect to $\boldsymbol{\theta}$. In line $(a)$, $\oplus$ refers to the Boolean XOR operator and $l \leftarrow \left((i=j)\, ?\, k\,: \,j\right)$ designs the corresponding derivative index different from the index of the multivariate mapping function $i$ \footnote{As a first check-out of the correctness of our calculations, note out that the second-order partial derivatives only differ by the factor $e^{\theta^i}$ between respectively lines $(b)$ and $(f)$, and $(c)$ and $(e)$, as expected from derivation of the Jacobian matrix reported in \equationname~\ref{eq:mapping-function-gradient}. Additionally, the resulting Hessian matrix is symmetric (the order of partial derivatives can be be switched without changing the result), an expected result under continuability conditions stated in the Schwarz's theorem.}: 
+
+with $i$ indexing $\boldsymbol{p}$, $j$ and $k$ respectively indexing the first-order and second-order partial derivatives of the mapping function with respect to $\boldsymbol{\theta}$. In line $(a)$, $\oplus$ refers to the Boolean XOR operator, $\land$ to the AND operator and $l=\{j,k\} \setminus i$ \footnote{As a first check-out of the correctness of our calculations, note out that the second-order partial derivatives only differ by the factor $e^{\theta^i}$ between respectively lines $(b)$ and $(f)$, and $(c)$ and $(e)$, as expected from derivation of the Jacobian matrix reported in \equationname~\ref{eq:mapping-function-gradient}. Additionally, the resulting Hessian matrix is symmetric (the order of partial derivatives can be be switched without changing the result), an expected result under continuability conditions stated in the Schwarz's theorem.}
 
 
 To derive the log-likelihood function in \equationname~\ref{eq:derivative-log-likelihood-unconstrained} by reparametrising $\boldsymbol{p}$ to  $\boldsymbol{\theta}$, the \textit{chain rule formula}, first used by Leibniz and further generalised to any order of derivation with the \textit{Faà di Bruno's identity} is certainly the easiest and most computationally efficient manner. 
