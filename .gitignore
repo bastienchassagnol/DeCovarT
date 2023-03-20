@@ -233,6 +233,5 @@ TSWLatexianTemp*
 *.lpz
 # xwatermark package
 *.xwm
-jobim_proceedings.tex
 .Rhistory
 inst/doc
