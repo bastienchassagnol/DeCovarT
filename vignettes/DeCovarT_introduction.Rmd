@@ -20,3 +20,5 @@ library(DeCovarT)
 
 
 add somme code
+
+git remote set-url origin https://github.com/bastienchassagnol/DeCovarT
