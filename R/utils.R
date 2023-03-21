@@ -4,7 +4,7 @@ isConstant <- function(x) {
 
 is_continuous <- function(var) {
   return (any(c(is(var, "numeric"), is(var, "integer"), is(var, "Date"),
-            is(var, "POSIXct"), is(var, "POSIXt")))) 
+            is(var, "POSIXct"), is(var, "POSIXt"))))
 }
 
 compute_interval <- function(x) {
@@ -13,7 +13,7 @@ compute_interval <- function(x) {
 
 is_positive_definite <- function(expression, tol=1e-6) {
   eigen_values <- eigen(expression, symmetric = TRUE)$values # already sorted by decreasing order
-  return(all(eigen_values >= -tol * abs(eigen_values[1]))) 
+  return(all(eigen_values >= -tol * abs(eigen_values[1])))
 }
 
 # trace operator
@@ -57,56 +57,36 @@ compute_shannon_entropy <- function(ratios) {
   if (min(ratios) < 0 | max(ratios) > 1) {
     stop("Probabilities must be stricly included between 0 and 1")
   }
-  
+
   # normalization process + remove NULL components, as information fisher is not modified by empty classes
   ratios <- ratios[ratios != 0]
   ratios <- ratios / sum(ratios)
-  
+
   # entropy included between 0 (one component storing all information) and 1 (uniform distribution, balanced classes)
   return(-sum(ratios * logb(ratios, base = length(ratios))))
 }
 
 
-# equals 0 when two distances are equal, and 1 when they have distinct support
-hellinger <- function (mu1, Sigma1, mu2, Sigma2) {
-  Sigma1 <- p1^2*Sigma1; Sigma2 <- p2^2*Sigma2
-  p <- length(mu1);   d <- mu1 - mu2
-  vars <- (Sigma1 + Sigma2)/2
+#' Compute the Hellinger distance
+#' @param mu1,Sigma1 mean and (co)variance of the first Gaussian distribution (can be either univariate or multivariate)
+#' @param mu2,Sigma2 mean and (co)variance of the second Gaussian distribution
+#' @return the Hellinger distance between two multivariate Gaussian distributions
+hellinger <- function(mu1, Sigma1, mu2, Sigma2) {
+  p <- length(mu1)
+  d <- mu1 - mu2
   # in univariate dimension
   if (p == 1) {
-    if (abs(Sigma1) < .Machine$double.eps | abs(Sigma2) < 
-        .Machine$double.eps) {
-      stop("At least one variance is zero")
-    }
-    d <- sqrt(Sigma1 * Sigma2/ vars) * 
-      exp((-1/4) * d^2/(2*vars))
-    return(sqrt(1 - d))
+    vars <- Sigma1^2 + Sigma2^2
+    bc <- sqrt(2 * Sigma1 * Sigma2 / vars) * exp((-1 / 4) * d^2 / vars) # Bhattacharyya coefficient
+    return(sqrt(abs(1 - bc)))
   }
   # in multivariate dimension
   else {
-    if (abs(det(Sigma1)) < .Machine$double.eps | abs(det(Sigma2)) < 
-        .Machine$double.eps) {
-      stop("One of the sample variances is degenerate")
-    }
-    hell_dist <- det(Sigma1)^(1/4) * det(Sigma2)^(1/4) / det(vars)^(1/2) * 
-      exp((-1/8) * maha(d, vars))  
+    vars <- (Sigma1 + Sigma2) / 2
+    hell_dist <- det(Sigma1)^(1 / 4) * det(Sigma2)^(1 / 4) / det(vars)^(1 / 2) *
+      exp((-1 / 8) * .maha_distance(d, vars))
     return(sqrt(1 - hell_dist) %>% as.numeric())
   }
-}
-
-# same result as Hellinger function, but borrowed from gaussDiff package
-hellinger_v2 <- function(mu1,Sigma1,mu2,Sigma2,s=0.5){
-  N <- nrow(Sigma1)
-  I <- diag(1,N)
-  inv.Sigma1 <- solve(Sigma1)
-  inv.Sigma2 <- solve(Sigma2)
-  sig1inv.sig2 <- inv.Sigma1%*%Sigma2
-  sig2inv.sig1 <- inv.Sigma2%*%Sigma1
-  d <- det(s*I+(1-s)*sig1inv.sig2)**(-s/2)*
-    det((1-s)*I+s*sig2inv.sig1)**(-(1-s)/2)*
-    exp(0.5*(maha(s*inv.Sigma2%*%mu2+(1-s)*inv.Sigma1%*%mu1,s*inv.Sigma2+(1-s)*inv.Sigma1)-
-               s*maha(mu2,Sigma2)-(1-s)*maha(mu1,Sigma1)))
-  return(as.vector(1-d) %>% sqrt())
 }
 
 hellinger_average <- function(p, signature_matrix, cov_matrix) {
@@ -120,6 +100,42 @@ hellinger_average <- function(p, signature_matrix, cov_matrix) {
     }
   }
   return(mean(pairwise_hellinger))
+}
+
+
+#' Compute average overlap between components
+#'
+#' Internally, it is the function MixSim::overlap which is used to generate an approximate pairwise
+#' probability to wrongfully assign one component to another. Unfortunately, this function does not
+#' the global overlap that we approximate there by averaging pairwise overlaps + compute the overlap
+#' between two components accounting for their respective proportions in the mixture
+#'
+#' @author Bastien CHASSAGNOL
+#'
+#' @param true_theta the parameters of the GMM
+#' @param k the number of components
+#' @return the average overlap
+#'
+#' @export
+
+
+compute_average_overlap <- function(true_theta, k = length(true_theta$p)) {
+  # generate relevant values for the computation of the overlap
+  misclassif_mat <- MixSim::overlap(
+    Pi = true_theta$p,
+    Mu = as.matrix(true_theta$mu),
+    S = as.matrix(true_theta$sigma)
+  )$OmegaMap
+  pairwise_overlap <- c()
+  p <- true_theta$p
+
+  # generate the average of pairwise overlaps
+  for (i in 1:(k - 1)) {
+    for (j in (i + 1):k) {
+      pairwise_overlap <- c(pairwise_overlap, misclassif_mat[i, j] * p[i] + misclassif_mat[j, i] * p[j])
+    }
+  }
+  return(mean(pairwise_overlap))
 }
 
 
