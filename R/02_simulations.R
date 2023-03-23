@@ -66,8 +66,9 @@ simulate_bulk_mixture <- function(signature_matrix, cov_tensor,
 #' @export
 
 
-benchmark_deconvolution_algorithms <- function(proportions=list("balanced"=c(0.5, 0.5), "small unbalanced"=c(0.6, 0.4),"highly unbalanced"=c(0.05, 0.95)),
+benchmark_deconvolution_algorithms_two_genes <- function(proportions=list("balanced"=c(0.5, 0.5), "small unbalanced"=c(0.6, 0.4),"highly unbalanced"=c(0.05, 0.95)),
                                                signature_matrix=matrix(c(20, 25, 25, 20), nrow = 2), corr_sequence = seq(-0.8, 0.8, 0.2),
+                                               diagonal_terms = list("homoscedasctic"= diag(c(1, 1)), "heteroscedastic" = diag(c(1, 2) %>% sqrt())), 
                                                deconvolution_functions=list("lm" = list(FUN=deconvolute_ratios_abbas,additionnal_parameters=NULL)),
                                                n=200, scaled=FALSE) {
   ##################################################################
@@ -77,65 +78,48 @@ benchmark_deconvolution_algorithms <- function(proportions=list("balanced"=c(0.5
   dimnames(signature_matrix) <- list(paste0("gene_", 1:num_genes), paste0("celltype_", 1:num_celltypes))
 
   simulations <- purrr::imap_dfr(proportions, function(p, name_scenario) {
-    corr_names <- tidyr::crossing(paste0("correlation_celltype1_", corr_sequence), paste0("_celltype2_", corr_sequence))
-    corr_names <- paste0(corr_names[[1]], corr_names[[2]])
-    simulations_dp <- tibble::tibble();     simulation_metrics <- tibble::tibble()
+    simulation_metrics <- tibble::tibble()
     for (corr_celltype1 in corr_sequence) {
       print(paste("We are at scenario", name_scenario, "with correlation for celltype 1:", corr_celltype1, "."))
       for (corr_celltype2 in corr_sequence) {
-        ##################################################################
-        ##                     homoscedastic case                       ##
-        ##################################################################
-        ##------------------------------
-        ##  generate covariance matrix
-        ##------------------------------
-        corr_matrix <- array(0, dim = c(num_genes,num_genes,num_celltypes),
-                             dimnames = list(paste0("gene_", 1:num_genes),
-                                             paste0("gene_", 1:num_genes),
-                                             paste0("celltype_", 1:num_celltypes)))
-        cov_tensor <- corr_matrix
-        corr_matrix[,,1] <- corr_celltype1; corr_matrix[,,2] <- corr_celltype2
-        for (j in 1:num_celltypes) {
-          diag(corr_matrix[,,j]) <- 1 # correlation between the same gene is always one
-          cov_tensor[,,j] <- diag(c(1, 1)) %*% corr_matrix[,,j] %*% diag(c(1, 1))  # cov(X) = diag(var(X))^1/2 * corr(X) * diag(var(X))^1/2
-        }
-        simulated_data <- simulate_bulk_mixture (signature_matrix, cov_tensor, p, n=n); Y <- simulated_data$Y
-        ##-------------------------
-        ##  distribution features
-        ##-------------------------
-        overlap_homoscedastic <- compute_average_overlap (list(p=p, mu=signature_matrix,sigma=cov_tensor)) %>% round(digits = 3)
-        hellinger_homoscedastic <- hellinger_average(p, signature_matrix, cov_tensor) %>% round(digits = 4)
-
-
-        estimated_ratios <- deconvolute_ratios (signature_matrix, Y, scaled=scaled, true_ratios=p, Sigma=cov_tensor,
-                                                deconvolution_functions=deconvolution_functions)
         simulation_metrics <- simulation_metrics %>% dplyr::bind_rows(
-          tibble::tibble(proportions=name_scenario, correlation_celltype1=corr_celltype1, correlation_celltype2=corr_celltype2,
-                         variance="homoscedastic", overlap=overlap_homoscedastic, hellinger=hellinger_homoscedastic) %>%
-            dplyr::bind_cols(estimated_ratios))
-        ##################################################################
-        ##                     heteroscedastic scenario         ##
-        ##################################################################
-
-        for (j in 1:num_celltypes) {
-          cov_tensor[,,j] <- diag(c(1, sqrt(2))) %*% corr_matrix[,,j] %*% diag(c(1, sqrt(2)))  # some genes have var 1, others var 2
-        }
-        overlap_heteroscedastic <- MixSim::overlapGOM(Pi = p, Mu = signature_matrix, S = cov_tensor) %>% round(digits = 3)
-        hellinger_heteroscedastic <- hellinger_average(p, signature_matrix, cov_tensor) %>% round(digits = 4)
-
-        simulated_data <- simulate_bulk_mixture (signature_matrix, cov_tensor, p, n=n); Y <- simulated_data$Y
-        estimated_ratios <- deconvolute_ratios (signature_matrix, Y, scaled=F, true_ratios=p, Sigma=cov_tensor,
-                                                deconvolution_functions=deconvolution_functions)
-        simulation_metrics <- simulation_metrics %>% dplyr::bind_rows(
-          tibble::tibble(proportions=name_scenario, correlation_celltype1=corr_celltype1,
-                         overlap=overlap_heteroscedastic, hellinger=hellinger_heteroscedastic,
-                         correlation_celltype2=corr_celltype2,variance="heteroscedastic") %>%
-            dplyr::bind_cols(estimated_ratios))
-
+          purrr::imap_dfr(diagonal_terms, function(.diag, .name) {
+            ##------------------------------
+            ##  generate covariance matrix
+            ##------------------------------
+            corr_matrix <- array(0, dim = c(num_genes,num_genes,num_celltypes),
+                                 dimnames = list(paste0("gene_", 1:num_genes),
+                                                 paste0("gene_", 1:num_genes),
+                                                 paste0("celltype_", 1:num_celltypes)))
+            cov_tensor <- corr_matrix
+            corr_matrix[,,1] <- corr_celltype1; corr_matrix[,,2] <- corr_celltype2
+            for (j in 1:num_celltypes) {
+              diag(corr_matrix[,,j]) <- 1 # correlation between the same gene is always one
+              cov_tensor[,,j] <- .diag %*% corr_matrix[,,j] %*% .diag  # cov(X) = diag(var(X))^1/2 * corr(X) * diag(var(X))^1/2
+            }
+            simulated_data <- simulate_bulk_mixture (signature_matrix, cov_tensor, p, n=n); Y <- simulated_data$Y
+            
+            
+            ##-------------------------
+            ##  estimate ratios
+            ##-------------------------
+            overlap<- compute_average_overlap (list(p=p, mu=signature_matrix,sigma=cov_tensor)) %>% round(digits = 3)
+            hellinger <- hellinger_average(p, signature_matrix, cov_tensor) %>% round(digits = 4)
+            
+            estimated_ratios <- deconvolute_ratios (signature_matrix, Y, scaled=scaled, true_ratios=p, Sigma=cov_tensor,
+                                                    deconvolution_functions=deconvolution_functions)
+            simulation_metrics_per_config <- tibble::tibble(proportions=name_scenario, 
+                                                            correlation_celltype1=corr_celltype1, correlation_celltype2=corr_celltype2,
+                                                            variance=.name, overlap=overlap, hellinger=hellinger) %>%
+              dplyr::bind_cols(estimated_ratios)
+            
+            return(simulation_metrics_per_config)
+          }) # end loop scenario variance
+        ) 
       }  # end loop correlation second gene
     } # end loop correlation first gene
-    entropy <- compute_shannon_entropy(p) %>% round(digits = 3)
-    simulation_metrics <- simulation_metrics %>% dplyr::mutate(entropy=entropy)
+    simulation_metrics <- simulation_metrics %>%
+      dplyr::mutate(entropy=compute_shannon_entropy(p) %>% round(digits = 3))
     return(simulation_metrics)
   })
 

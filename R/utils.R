@@ -1,3 +1,23 @@
+#' Check whether the estimation has been trapped in the boundary space
+#'
+#' * Function `check_parameters` asserts at each step of the maximisation,
+#' we do not fall in a degenerate case or a non invertible. This especially occurs when one of 
+#' the ratios converge to 0 or 1, implying to decrease by a factor 1 the dimension.
+#'
+#' @param p the ratios estimated
+
+#' @export
+
+check_parameters <- function(p) {
+  machine_limit <- .Machine$double.eps
+  if (any(p < 10 * machine_limit | p > 1 - 10 * machine_limit)) {
+    warning(paste0("Cell ratio with index ", which(p < 10 * machine_limit), "has been dropped."))
+    p[p < 10 * machine_limit] <- 0; p[p > 1 - 10 * machine_limit] <- 1; p <- p/sum(p)
+  }
+  return(p)
+}
+
+
 isConstant <- function(x) {
   return(length(unique(x))==1)
 }

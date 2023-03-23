@@ -11,10 +11,27 @@
 #################################################################
 
 # mapping function, from theta to ratios p
+#' Title
+#'
+#' @param theta 
+#'
+#' @return
+#' @export
+#'
+
 mapping_function <- function(theta) {
   p <- c(exp(theta[1:length(theta)]),1)
   return (p/sum(p))
 }
+
+#' Title
+#'
+#' @param theta 
+#' @param index 
+#'
+#' @return
+#' @export
+#'
 
 mapping_function_univariate <- function(theta, index=1) {
   return(mapping_function(theta)[index])
@@ -56,8 +73,8 @@ inverse_mapping_function <- function(p) {
   global_cov <- tensor::tensor(p^2, Sigma, alongA = 1, alongB = 3)
 
   # check the validity of the covariance computed
-  if (!is_positive_definite(global_cov) | det(global_cov) ==0)
-    stop("Global covariance matrix is either not invertible or not positive definite")
+  # if (!is_positive_definite(global_cov) | det(global_cov) ==0)
+  #   stop("Global covariance matrix is either not invertible or not positive definite")
   # with tensor
   return(global_cov)
 }
@@ -69,6 +86,7 @@ inverse_mapping_function <- function(p) {
 
 # log-likelihood multivariate function
 loglik_multivariate <- function(p, y, X, Sigma) {
+  # print(paste("estimated value of p is ", p))
   global_cov_matrix <- .compute_global_variance(p, Sigma)
   # print(global_cov_matrix); print("\n\n")
   log_lik <- -log(det(global_cov_matrix)) - 1/2 * .maha_distance(y - X %*% p, global_cov_matrix) %>% as.numeric()
@@ -224,13 +242,25 @@ hessian_loglik_constrained <- function (theta, y, X, Sigma) {
 #################################################################
 
 # deconvolution, using simulated annealing function
+#' Title
+#'
+#' @param y 
+#' @param X 
+#' @param Sigma 
+#' @param true_ratios 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+
 deconvolute_ratios_simulated_annealing <- function(y, X, Sigma, true_ratios=NULL, ...) {
   initial_p <- rep(1/ncol(X), ncol(X)) # consider by hypothesis equi-balanced proportions between cell populations
   initial_theta <- inverse_mapping_function(initial_p)
   # gr is not used in the simulated annealing approach
   estimated_theta <- optim(par=initial_theta,fn=loglik_multivariate_constrained, y=y, X=X, Sigma=Sigma,
                             control=list(fnscale=-1, maxit=10000),method="SANN")$par
-  estimated_p <- mapping_function(estimated_theta) |> stats::setNames(colnames(X))
+  estimated_p <- mapping_function(estimated_theta) %>% stats::setNames(colnames(X))
 
   metrics_scores <- compute_benchmark_metrics(y, X, estimated_p, true_ratios) %>%
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
@@ -239,6 +269,18 @@ deconvolute_ratios_simulated_annealing <- function(y, X, Sigma, true_ratios=NULL
 
 
 # deconvolution, using L-BFGS-B function
+#' Title
+#'
+#' @param y 
+#' @param X 
+#' @param Sigma 
+#' @param true_ratios 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+
 deconvolute_ratios_LBFGS <- function(y, X, Sigma, true_ratios=NULL, ...) {
   initial_p <- rep(1/ncol(X), ncol(X)) # consider by hypothesis equi-balanced proportions between cell populations
   estimated_p <- optim(par=initial_p,fn=loglik_multivariate, gr=gradient_loglik_unconstrained,
@@ -253,6 +295,19 @@ deconvolute_ratios_LBFGS <- function(y, X, Sigma, true_ratios=NULL, ...) {
 }
 
 # deconvolution, using constrained barrier
+#' Title
+#'
+#' @param y 
+#' @param X 
+#' @param Sigma 
+#' @param true_ratios 
+#' @param epsilon 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+
 deconvolute_ratios_constrOptim <- function(y, X, Sigma, true_ratios=NULL, epsilon=10^-8, ...) {
   initial_p <- rep(1/ncol(X), ncol(X)) # consider by hypothesis equi-balanced proportions between cell populations
 
@@ -277,6 +332,18 @@ deconvolute_ratios_constrOptim <- function(y, X, Sigma, true_ratios=NULL, epsilo
 
 
 # deconvolution, using standard constrained Newton-Raphson approach
+#' Title
+#'
+#' @param y 
+#' @param X 
+#' @param Sigma 
+#' @param true_ratios 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+
 deconvolute_ratios_nlm <- function(y, X, Sigma, true_ratios=NULL, ...) {
   initial_p <- rep(1/ncol(X), ncol(X)) # consider by hypothesis equi-balanced proportions between cell populations
   initial_theta <- inverse_mapping_function(initial_p)
@@ -306,16 +373,38 @@ deconvolute_ratios_nlm <- function(y, X, Sigma, true_ratios=NULL, ...) {
 
 
 # deconvolution, using constrained LM parametrisation
+#' Title
+#'
+#' @param y 
+#' @param X 
+#' @param Sigma 
+#' @param true_ratios 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+
 deconvolute_ratios_DeCoVarT <- function(y, X, Sigma, true_ratios=NULL, ...) {
   initial_p <- rep(1/ncol(X), ncol(X)) # consider by hypothesis equi-balanced proportions between cell populations
   initial_theta <- inverse_mapping_function(initial_p)
-  # set minimize to false
+  # set minimize to false; partialH=2
   estimated_theta <- marqLevAlg::marqLevAlg(b=initial_theta, fn=loglik_multivariate_constrained,
                                             gr=gradient_loglik_constrained, hess = hessian_loglik_constrained,
                                             epsa=1e-04, epsb = 1e-04, epsd = 1e-04, minimize=FALSE, multipleTry = 10,
                                             y=y, X=X, Sigma=Sigma)$b
+  if (is.na(estimated_theta)) {
+    output_lm <- capture.output(marqLevAlg::marqLevAlg(b=initial_theta, fn=loglik_multivariate_constrained,
+                                                       gr=gradient_loglik_constrained, hess = hessian_loglik_constrained,
+                                                       epsa=1e-04, epsb = 1e-04, epsd = 1e-04, minimize=FALSE, multipleTry = 10,
+                                                       y=y, X=X, Sigma=Sigma)) # add partialH and blinding?
+    
+    estimated_theta <- output_lm[3] %>% stringr::str_match_all("[0-9,\\.]+") %>% 
+      unlist %>% as.numeric # retrieve last estimae then
+  }
   estimated_p <- mapping_function(estimated_theta) %>%
-    stats::setNames(colnames(X)) # ensure non-negativity constraint
+    stats::setNames(colnames(X)) %>% 
+    check_parameters() # ensure non-negativity constraint and remove numerical underflow
 
   metrics_scores <- compute_benchmark_metrics(y, X, estimated_p, true_ratios) %>%
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
@@ -324,6 +413,18 @@ deconvolute_ratios_DeCoVarT <- function(y, X, Sigma, true_ratios=NULL, ...) {
 
 
 # deconvolution, using the most basic optimisation approach
+#' Title
+#'
+#' @param y 
+#' @param X 
+#' @param Sigma 
+#' @param true_ratios 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+
 deconvolute_ratios_basic_optim <- function(y, X, Sigma, true_ratios=NULL, ...) {
   initial_p <- rep(1/ncol(X), ncol(X)) # consider by hypothesis equi-balanced proportions between cell populations
 
@@ -332,6 +433,35 @@ deconvolute_ratios_basic_optim <- function(y, X, Sigma, true_ratios=NULL, ...) {
                                             y=y, X=X, Sigma=Sigma, method="BFGS",
                                   control=list(fnscale=-1,maxit=200, reltol=1e-4,lmm=10, factr=1e-3))$par %>%
     stats::setNames(colnames(X))
+
+  metrics_scores <- compute_benchmark_metrics(y, X, estimated_p, true_ratios) %>%
+    dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
+  return(metrics_scores)
+}
+
+
+# deconvolution, using the constrained gradient approach
+#' Title
+#'
+#' @param y 
+#' @param X 
+#' @param Sigma 
+#' @param true_ratios 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+
+deconvolute_ratios_constrained_optim <- function(y, X, Sigma, true_ratios=NULL, ...) {
+  initial_p <- rep(1/ncol(X), ncol(X)) # consider by hypothesis equi-balanced proportions between cell populations
+  
+  initial_theta <- inverse_mapping_function(initial_p)
+  
+  estimated_theta <- stats::optim(par=initial_theta,fn=loglik_multivariate_constrained, gr = NULL, y=y, X=X, Sigma=Sigma,
+                           control=list(fnscale=-1, maxit=200, reltol=1e-4,lmm=10, factr=1e-3, maxit=200),method="BFGS")$par
+  estimated_p <- mapping_function(estimated_theta) %>% stats::setNames(colnames(X))
+  
 
   metrics_scores <- compute_benchmark_metrics(y, X, estimated_p, true_ratios) %>%
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
@@ -353,6 +483,17 @@ deconvolute_ratios_basic_optim <- function(y, X, Sigma, true_ratios=NULL, ...) {
 ############################################################################
 
 # Core algorithm (where svm regression is performed for each mixture)
+#' Title
+#'
+#' @param y 
+#' @param X 
+#' @param true_ratios 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+
 deconvolute_ratios_CIBERSORT <- function(y, X, true_ratios=NULL, ...){
      #the set of nu values tested for best performance
     range.nu<-seq(0.2, 0.8, 0.3)
@@ -375,6 +516,17 @@ deconvolute_ratios_CIBERSORT <- function(y, X, true_ratios=NULL, ...){
 }
 
 # linear regression
+#' Title
+#'
+#' @param y 
+#' @param X 
+#' @param true_ratios 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+
 deconvolute_ratios_abbas <- function(y, X, true_ratios=NULL, ...) {
   estimated_p <- stats::lsfit(X, y, intercept = F)$coefficients
 
@@ -386,6 +538,17 @@ deconvolute_ratios_abbas <- function(y, X, true_ratios=NULL, ...) {
 }
 
 # robust linear regression
+#' Title
+#'
+#' @param y 
+#' @param X 
+#' @param true_ratios 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+
 deconvolute_ratios_monaco <- function(y, X, true_ratios=NULL, ...) {
   estimated_p <- MASS::rlm(y ~ X+ 0, method = c("M"))$coefficients; names(estimated_p) <- colnames(X)
 
@@ -398,6 +561,17 @@ deconvolute_ratios_monaco <- function(y, X, true_ratios=NULL, ...) {
 
 
 # quadratic programming (lsei function, other possibility is to use lsqlin function)
+#' Title
+#'
+#' @param y 
+#' @param X 
+#' @param true_ratios 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 deconvolute_ratios_deconRNASeq <- function(y, X, true_ratios=NULL, ...) {
 
 EE <- rep(1, ncol(X)); FF <- 1 # encode the sum-to-one constraint
@@ -410,6 +584,17 @@ return(metrics_scores)
 }
 
 # nnls scoring
+#' Title
+#'
+#' @param y 
+#' @param X 
+#' @param true_ratios 
+#' @param ... 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 deconvolute_ratios_nnls <- function(y, X, true_ratios=NULL, ...) {
   estimated_p <- nnls::nnls(X, y)$x
 
@@ -434,6 +619,17 @@ deconvolute_ratios_nnls <- function(y, X, true_ratios=NULL, ...) {
 
 
 # compute summary scores
+#' Title
+#'
+#' @param y 
+#' @param X 
+#' @param estimated_p 
+#' @param true_ratios 
+#'
+#' @return
+#' @export
+#'
+
 compute_benchmark_metrics <- function(y, X, estimated_p, true_ratios=NULL) {
   n <- nrow(X); k <- ncol(X)
   df_res <- n - k + 1 # number of free parameters: only k - 1 parameters must be learnt, with sum-to-one constraint
@@ -465,62 +661,82 @@ compute_benchmark_metrics <- function(y, X, estimated_p, true_ratios=NULL) {
 
 
 # main function, launching all deconvolution algorithms
+#' Title
+#'
+#' @param signature_matrix 
+#' @param bulk_expression 
+#' @param scaled 
+#' @param true_ratios 
+#' @param Sigma 
+#' @param deconvolution_functions 
+#'
+#' @return
+#' @export
+#'
+
 deconvolute_ratios <- function(signature_matrix, bulk_expression, scaled=F, true_ratios=NULL, Sigma=NULL,
+                               cores = getOption("mc.cores", parallel::detectCores()), verbose=FALSE,
                                deconvolution_functions=list("QP" =list(FUN=deconvolute_ratios_deconRNASeq,additionnal_parameters=NULL),
-                                                           "lm" = list(FUN=deconvolute_ratios_abbas,additionnal_parameters=NULL),
-                                                           "rlm"=list(FUN=deconvolute_ratios_monaco,additionnal_parameters=NULL),
-                                                           "nnls" = list(FUN=deconvolute_ratios_nnls,additionnal_parameters=NULL))){
-    #read in data
-    if (!is.matrix (signature_matrix) | is.null(row.names (signature_matrix)))
-      stop ("required format for signature is expression matrix, with rownames as genes")
-    X <- tibble::as_tibble(signature_matrix, rownames="GENE_SYMBOL")
-    if (!is.matrix (bulk_expression) | is.null(row.names (bulk_expression)))
-      stop ("required format for mixture is expression matrix, with rownames as genes")
-    Y <- tibble::as_tibble(bulk_expression, rownames="GENE_SYMBOL")
-
-    # remove potential missing data from Y database
-    Y <- Y %>% tidyr::drop_na()
-
-    # intersect genes (we only keep genes that are common to both data bases)
-    common_genes<-intersect(X$GENE_SYMBOL, Y$GENE_SYMBOL)
-
-    if (length(common_genes)/dim(X)[1]<0.5) {
-      stop (paste("Only", length(common_genes)/dim(X)[1],"fraction of genes are used in the signature matrix\n.
+                                                            "lm" = list(FUN=deconvolute_ratios_abbas,additionnal_parameters=NULL),
+                                                            "rlm"=list(FUN=deconvolute_ratios_monaco,additionnal_parameters=NULL),
+                                                            "nnls" = list(FUN=deconvolute_ratios_nnls,additionnal_parameters=NULL))){
+  #read in data
+  if (!is.matrix (signature_matrix) | is.null(row.names (signature_matrix)))
+    stop ("required format for signature is expression matrix, with rownames as genes")
+  X <- tibble::as_tibble(signature_matrix, rownames="GENE_SYMBOL")
+  if (!is.matrix (bulk_expression) | is.null(row.names (bulk_expression)))
+    stop ("required format for mixture is expression matrix, with rownames as genes")
+  Y <- tibble::as_tibble(bulk_expression, rownames="GENE_SYMBOL")
+  
+  # remove potential missing data from Y database
+  Y <- Y %>% tidyr::drop_na()
+  
+  # intersect genes (we only keep genes that are common to both data bases)
+  common_genes<-intersect(X$GENE_SYMBOL, Y$GENE_SYMBOL)
+  
+  if (length(common_genes)/dim(X)[1]<0.5) {
+    stop (paste("Only", length(common_genes)/dim(X)[1],"fraction of genes are used in the signature matrix\n.
                   Half of common genes are required at least"))}
-    X <- X %>% dplyr::filter(GENE_SYMBOL %in% common_genes) %>%
-      dplyr::arrange(GENE_SYMBOL) %>%
-      dplyr::select(where(is.numeric)) %>%
-      as.matrix()
-    Y <- Y %>% dplyr::filter(GENE_SYMBOL %in% common_genes) %>%
-      dplyr::arrange(GENE_SYMBOL) %>%
-      dplyr::select(where(is.numeric))
-
-    # estimation itself
-    deconvolution_estimates <- purrr::imap_dfr(deconvolution_functions, function(deconvolution_function, deconvolution_name) {
-      additionnal_parameters <- deconvolution_function$additionnal_parameters
-      metric_scores <- tibble::tibble()
-      for (i in 1:ncol(Y)) {
-        success_estimation <- tryCatch({
-          estimated_p <- do.call(deconvolution_function$FUN, c(list("y"=Y[,i] |> as.matrix(), "X"=X, "Sigma"=Sigma, "true_ratios"=true_ratios),
-                                                                    additionnal_parameters))
-        },
-        error = function(e) {
-          saveRDS(list("y"=Y[,i] |> as.matrix(), "X"=X, "Sigma"=Sigma, "error"=e,
-                                 "function_name" = deconvolution_name, "function_role"=deconvolution_function),
-                            file = paste0("./simulations/erreurs/erreur_", i,"_function_", deconvolution_name, ".rds"))
-          return(e)
-        })
-        if (!inherits(success_estimation, "error")) {
-          metric_scores <- metric_scores |> dplyr::bind_rows(estimated_p)
+  X <- X %>% dplyr::filter(GENE_SYMBOL %in% common_genes) %>%
+    dplyr::arrange(GENE_SYMBOL) %>%
+    dplyr::select(where(is.numeric)) %>%
+    as.matrix()
+  Y <- Y %>% dplyr::filter(GENE_SYMBOL %in% common_genes) %>%
+    dplyr::arrange(GENE_SYMBOL) %>%
+    dplyr::select(where(is.numeric))
+  
+  # estimation itself
+  deconvolution_estimates <- purrr::imap_dfr(deconvolution_functions, function(deconvolution_function, deconvolution_name) {
+    additionnal_parameters <- deconvolution_function$additionnal_parameters
+    metric_scores <- parallel::mclapply(1:ncol(Y), function(i) {
+      # metric_scores <- tibble::tibble(); for (i in 1:ncol(Y)) {
+      success_estimation <- tryCatch({
+        estimated_p <- do.call(deconvolution_function$FUN, c(list("y"=Y[,i] %>% as.matrix(), "X"=X, "Sigma"=Sigma, "true_ratios"=true_ratios),
+                                                             additionnal_parameters))
+      },
+      error = function(e) {
+       # dir.create("/home/bncl_cb/rstudio/working/DeCovarT/simulations/erreurs", showWarnings = F)
+        if (verbose) {
+          print(e)
+          saveRDS(list("y"=Y[,i] %>% as.matrix(), "X"=X, "Sigma"=Sigma, "error"=e,
+                       "function_name" = deconvolution_name, "function_role"=deconvolution_function),
+                  file = paste0("/home/bncl_cb/rstudio/working/DeCovarT/simulations/erreurs/erreur_",
+                                i,"_function_", deconvolution_name, ".rds"))
         }
+        
+        return(e)
+      })
+      if (!inherits(success_estimation, "error")) {
+        return(estimated_p)
       }
-      if (nrow(metric_scores)!=0) {
-        metric_scores <- metric_scores |> dplyr::mutate(
-          OMIC_ID=paste0("sample_", 1:nrow(metric_scores)), deconvolution_name=deconvolution_name)
-      }
-      return(metric_scores)
-    })
-    return (deconvolution_estimates)
+    }, mc.cores = cores) %>% dplyr::bind_rows()  # one estimation with a given deconvolution algorithm terminated
+    
+    if (nrow(metric_scores)!=0) {
+      metric_scores <- metric_scores %>% dplyr::mutate(
+        OMIC_ID=paste0("sample_", 1:nrow(metric_scores)), deconvolution_name=deconvolution_name)
+    }
+    return(metric_scores)})
+  return (deconvolution_estimates)
 }
 
 

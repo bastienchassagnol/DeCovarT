@@ -13,7 +13,7 @@ test_that("small simulation testing", {
 })
 
 test_that("test performance of several deconvolution algorithms", {
-  two_genes_small_OVL_benchmark <- benchmark_deconvolution_algorithms(proportions=list("balanced"=c(0.5, 0.5)), n = 4,
+  two_genes_small_OVL_benchmark <- benchmark_deconvolution_algorithms_two_genes(proportions=list("balanced"=c(0.5, 0.5)), n = 4,
                                                             signature_matrix=matrix(c(20, 40, 40, 20), nrow = 2),
                                                             deconvolution_functions = list("lm"=list(FUN=deconvolute_ratios_abbas)))
 
@@ -21,57 +21,57 @@ test_that("test performance of several deconvolution algorithms", {
                                                                          dimnames = list(paste0("genes_", 1:2), paste0("cell_type_", 1:2))),
                                                  cov_tensor=array(c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2), dim = c(2,2,2),
                                                                   dimnames = list(paste0("genes_", 1:2), paste0("genes_", 1:2), paste0("cell_type_", 1:2))), n=1)
+  
+  
 
-
-  estimated_p_DeCoVarT <- deconvolute_ratios_DeCoVarT(y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] |> as.matrix(),
+ 
+  estimated_p_DeCoVarT <- deconvolute_ratios_DeCoVarT(y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] %>% as.matrix(),
                                              Sigma = array(c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2), dim = c(2,2,2)), true_ratios = c(0.5, 0.5))
-  estimated_p_optim <- deconvolute_ratios_basic_optim(y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] |> as.matrix(),
+  estimated_p_optim <- deconvolute_ratios_basic_optim(y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] %>% as.matrix(),
+                                                      Sigma = array(c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2), dim = c(2,2,2)), true_ratios = c(0.5, 0.5))
+  estimated_p_tricky_optim <- deconvolute_ratios_constrained_optim(y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] %>% as.matrix(),
                                                       Sigma = array(c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2), dim = c(2,2,2)), true_ratios = c(0.5, 0.5))
 
-  estimated_p_constr<- deconvolute_ratios_constrOptim(y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] |> as.matrix(),
+  estimated_p_constr<- deconvolute_ratios_constrOptim(y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] %>% as.matrix(),
                                                 Sigma = array(c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2), dim = c(2,2,2)), true_ratios = c(0.5, 0.5))
-  estimated_p_LBFGS <- deconvolute_ratios_LBFGS(y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] |> as.matrix(),
+  estimated_p_LBFGS <- deconvolute_ratios_LBFGS(y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] %>% as.matrix(),
                                                       Sigma = array(c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2), dim = c(2,2,2)), true_ratios = c(0.5, 0.5))
 
-  estimated_p_nlm <- deconvolute_ratios_nlm(y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] |> as.matrix(),
+  estimated_p_nlm <- deconvolute_ratios_nlm(y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] %>% as.matrix(),
                                                 Sigma = array(c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2), dim = c(2,2,2)), true_ratios = c(0.5, 0.5))
-  estimated_p_SA <- deconvolute_ratios_simulated_annealing(y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] |> as.matrix(),
+  estimated_p_SA <- deconvolute_ratios_simulated_annealing(y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] %>% as.matrix(),
                                             Sigma = array(c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2), dim = c(2,2,2)), true_ratios = c(0.5, 0.5))
 
 
 
-  estimated_p_abbas <- deconvolute_ratios_abbas  (y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] |> as.matrix(),
+  estimated_p_abbas <- deconvolute_ratios_abbas  (y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] %>% as.matrix(),
                                                  Sigma = array(c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2), dim = c(2,2,2)), true_ratios = c(0.5, 0.5))
-  estimated_p_deconRNASeq <- deconvolute_ratios_deconRNASeq  (y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] |> as.matrix(),
+  estimated_p_deconRNASeq <- deconvolute_ratios_deconRNASeq  (y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] %>% as.matrix(),
                                                   Sigma = array(c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2), dim = c(2,2,2)), true_ratios = c(0.5, 0.5))
-  estimated_p_monaco <- deconvolute_ratios_monaco  (y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] |> as.matrix(),
+  estimated_p_monaco <- deconvolute_ratios_monaco  (y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] %>% as.matrix(),
                                                   Sigma = array(c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2), dim = c(2,2,2)), true_ratios = c(0.5, 0.5))
-  estimated_p_nnls <- deconvolute_ratios_nnls  (y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] |> as.matrix(),
+  estimated_p_nnls <- deconvolute_ratios_nnls  (y = simulation_two_genes$Y, X=simulation_two_genes$X[,,1] %>% as.matrix(),
                                                   Sigma = array(c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2), dim = c(2,2,2)), true_ratios = c(0.5, 0.5))
 
 })
 
 
 test_that("understand mistakes", {
-  set.seed(3);
-  erreur_output <- readRDS("./simulations/erreurs/erreur_1_function_LBFGS.rds")
-  wrong_estimate <- do.call(deconvolute_ratios_LBFGS, erreur_output)
+  erreur_output <- readRDS("./simulations/erreurs/erreur_1_function_DeCoVarT.rds")
+  wrong_estimate <- do.call(deconvolute_ratios_DeCoVarT, erreur_output)
 })
 
 test_that("benchmark deconvolution", {
-  set.seed(3);
-  easy_scenario <- benchmark_deconvolution_algorithms(proportions=list("balanced"=c(0.5, 0.5)), n = 500,
-                                                      signature_matrix=matrix(c(20, 40, 40, 20), nrow = 2),
-                                                      deconvolution_functions = list("LBFGS"=list(FUN=deconvolute_ratios_LBFGS),
-                                                                                     "lsei"=list(FUN=deconvolute_ratios_deconRNASeq),
-                                                                                     "optim"=list(FUN=deconvolute_ratios_basic_optim),
-                                                                                     "barrier"=list(FUN=deconvolute_ratios_constrOptim),
-                                                                                     "DeCoVarT"=list(FUN=deconvolute_ratios_DeCoVarT),
-                                                                                     "NLM"=list(FUN=deconvolute_ratios_nlm),
-                                                                                     "SA"=list(FUN=deconvolute_ratios_simulated_annealing)))
-  saveRDS(easy_scenario, "./simulations/results/easy_scenario.rds")
+  RNGkind("L'Ecuyer-CMRG"); set.seed(3) # set an unique core
+  complex_scenario <- benchmark_deconvolution_algorithms_two_genes(proportions=list("unbalanced"=c(0.95, 0.05)), n = 4, 
+                                                                corr_sequence = c(-0.8,  0.8),
+                                                                signature_matrix=matrix(c(20, 22, 22, 20), nrow = 2),
+                                                                deconvolution_functions = list("DeCoVarT"=list(FUN=deconvolute_ratios_DeCoVarT)))
+  
+  
+  saveRDS(easy_scenario, "./simulations/results/toy_example_easy_scenario.rds")
 
-  complex_scenario <- benchmark_deconvolution_algorithms(proportions=list("highly_unbalanced"=c(0.95, 0.05)), n = 500,
+  complex_scenario <- benchmark_deconvolution_algorithms_two_genes(proportions=list("highly_unbalanced"=c(0.95, 0.05)), n = 500,
                                                       signature_matrix=matrix(c(20, 40, 40, 20), nrow = 2),
                                                       deconvolution_functions = list("lsei"=list(FUN=deconvolute_ratios_deconRNASeq),
                                                                                      "optim"=list(FUN=deconvolute_ratios_basic_optim),
@@ -82,7 +82,7 @@ test_that("benchmark deconvolution", {
                                                                                      "SA"=list(FUN=deconvolute_ratios_simulated_annealing)))
   saveRDS(complex_scenario, "./simulations/results/complex_scenario.rds")
 
-  small_overlap <- benchmark_deconvolution_algorithms(proportions=list("balanced"=c(0.5, 0.5), "highly_unbalanced"=c(0.95, 0.05)), n = 500,
+  small_overlap <- benchmark_deconvolution_algorithms_two_genes(proportions=list("balanced"=c(0.5, 0.5), "highly_unbalanced"=c(0.95, 0.05)), n = 500,
                                                       signature_matrix=matrix(c(20, 40, 40, 20), nrow = 2),
                                                       deconvolution_functions = list("abbas"=list(FUN=deconvolute_ratios_abbas),
                                                                                      "nnls"=list(FUN=deconvolute_ratios_nnls),
@@ -92,7 +92,7 @@ test_that("benchmark deconvolution", {
   saveRDS(small_overlap, "./simulations/results/small_overlap.rds")
 
 
-  high_overlap <- benchmark_deconvolution_algorithms(proportions=list("balanced"=c(0.5, 0.5), "highly_unbalanced"=c(0.95, 0.05)), n = 500,
+  high_overlap <- benchmark_deconvolution_algorithms_two_genes(proportions=list("balanced"=c(0.5, 0.5), "highly_unbalanced"=c(0.95, 0.05)), n = 500,
                                                      signature_matrix=matrix(c(20, 24, 24, 20), nrow = 2),
                                                      deconvolution_functions = list("abbas"=list(FUN=deconvolute_ratios_abbas),
                                                                                     "nnls"=list(FUN=deconvolute_ratios_nnls),
@@ -145,7 +145,7 @@ ggsave("../results/density_plots/dp_small_OVL_balanced_two_genes.pdf", dp_plots_
 
 
 # simulation with high OVL
-two_genes_heteroscedastic_high_OVL <- benchmark_deconvolution_algorithms(proportions=list("balanced"=c(0.5, 0.5), "small unbalanced"=c(0.75, 0.25),"highly unbalanced"=c(0.95, 0.05)), n = 2000,
+two_genes_heteroscedastic_high_OVL <- benchmark_deconvolution_algorithms_two_genes(proportions=list("balanced"=c(0.5, 0.5), "small unbalanced"=c(0.75, 0.25),"highly unbalanced"=c(0.95, 0.05)), n = 2000,
                                                                          signature_matrix=matrix(c(20, 22, 22, 20), nrow = 2),
                                                                          deconvolution_functions = list("lm" = list(FUN=deconvolute_ratios_abbas,additionnal_parameters=NULL)))
 

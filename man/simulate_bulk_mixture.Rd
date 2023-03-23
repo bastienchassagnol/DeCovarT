@@ -2,21 +2,23 @@
 % Please edit documentation in R/02_simulations.R
 \name{simulate_bulk_mixture}
 \alias{simulate_bulk_mixture}
-\title{Simulate a bulk mixture with two cell ratios}
+\title{Simulate n bulk mixtures, knowing p, mu and cov individual variances}
 \usage{
 simulate_bulk_mixture(
   signature_matrix,
-  cov_matrix,
+  cov_tensor,
   proportions = rep(1/ncol(signature_matrix), ncol(signature_matrix)),
   n = 500
 )
 }
 \arguments{
-\item{n}{}
+\item{proportions}{respective proportions of cell types}
+
+\item{n}{number of samples}
 }
 \value{
 list with X: simulated purified expression profiles (as an array) and Y: the reconstituted bulk mixtures
 }
 \description{
-Simulate a bulk mixture with two cell ratios
+Simulate n bulk mixtures, knowing p, mu and cov individual variances
 }

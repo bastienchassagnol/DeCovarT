@@ -3,6 +3,7 @@
 .Rproj.user
 *.zip
 build*
+simulations/
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
@@ -235,3 +236,4 @@ TSWLatexianTemp*
 *.xwm
 .Rhistory
 inst/doc
+simulation_*
