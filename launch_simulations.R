@@ -54,6 +54,7 @@ high_overlap <- DeCovarT::benchmark_deconvolution_algorithms_two_genes(proportio
                                                                                   "DeCoVarT"=list(FUN=DeCovarT::deconvolute_ratios_DeCoVarT),
                                                                                   "tricky optim"=list(FUN=DeCovarT::deconvolute_ratios_constrained_optim),
                                                                                   "SA"=list(FUN=DeCovarT::deconvolute_ratios_simulated_annealing)))
+
 saveRDS(high_overlap, "/home/bncl_cb/rstudio/working/DeCovarT/simulations/results/high_overlap_version2.rds")
 
 

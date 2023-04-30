@@ -110,6 +110,47 @@ ggsave("./figs/Heatmap_highly_overlapping.pdf",
        gridExtra::marrangeGrob(grobs=highly_overlapping_simulation_heatmap, top="", ncol = 1, nrow = 2), width = 12, height = 20,dpi = 300)
 
 
+#################################################################
+##                    generate JOBIM figure                    ##
+#################################################################
+
+highly_overlapping_simulation <- readRDS("./simulations/results/high_overlap_version2.rds")
+
+
+data <- highly_overlapping_simulation %>% 
+  dplyr::filter(proportions=="balanced" & variance=="homoscedasctic") %>% 
+  plot_correlation_Heatmap(score_variable = "model_mse")
+data1 <- data$lsei@matrix; data2 <- data$`tricky optim`@matrix
+
+
+common_min = min(c(data1, data2)); common_max = max(c(data1, data2))
+col_fun = circlize::colorRamp2(c(common_min, common_max), c("blue", "red"))
+
+global_heatmap <- ComplexHeatmap::Heatmap(data1, col=col_fun, 
+                                          heatmap_legend_param = list(title = "MSE"),
+                                          row_title="Corr cell type 1", cluster_rows = F, row_names_gp = grid::gpar(fontsize = 8),
+                                          row_labels = colnames(data1), row_title_gp = grid::gpar(fontsize = 10), 
+                                          column_names_rot = 0, cluster_columns = F, column_names_gp = grid::gpar(fontsize = 8),
+                                          column_labels = colnames(data1), width = unit(8, "cm"), height = unit(8, "cm"),
+                                          column_title_gp = grid::gpar(fontsize = 10), column_title="Corr cell type 2") + 
+  ComplexHeatmap::Heatmap(data2, col=col_fun, show_heatmap_legend = F,
+                          heatmap_legend_param = list(title = "MSE"),
+                          row_title="Corr cell type 1", cluster_rows = F, row_names_gp = grid::gpar(fontsize = 8),
+                          row_labels = colnames(data2), row_title_gp = grid::gpar(fontsize = 10), 
+                          column_names_rot = 0, cluster_columns = F, column_names_gp = grid::gpar(fontsize = 8),
+                          column_labels = colnames(data2), width = unit(8, "cm"), height = unit(8, "cm"),
+                          column_title_gp = grid::gpar(fontsize = 10), column_title="Corr cell type 2") 
+
+p2 <- grid::grid.grabExpr(ComplexHeatmap::draw(global_heatmap))
+cowplot_p2 <- cowplot::plot_grid(p2, nrow = 1, ncol=1)
+)
+global_heatmap <- global_heatmap %>%  ComplexHeatmap::draw() %>% grid::grid.grabExpr()
+
+
+
+
+
+
 
 # test <- highly_overlapping_simulation %>% 
 #   filter(deconvolution_name=="DeCoVarT") %>% 
@@ -120,7 +161,5 @@ ggsave("./figs/Heatmap_highly_overlapping.pdf",
 
 
 
-non_overlapping_simulation %>% group_by(deconvolution_name) %>% 
-  summarise(num_simulations=n())
 
   
