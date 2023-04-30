@@ -4,7 +4,7 @@
 *.zip
 build*
 simulations/*
-vignettes/*
+vignettes/
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
