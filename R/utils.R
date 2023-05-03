@@ -1,3 +1,18 @@
+#' Pipe operator
+#'
+#' See \code{magrittr::\link[magrittr:pipe]{\%>\%}} for details.
+#'
+#' @name %>%
+#' @rdname pipe
+#' @keywords internal
+#' @export
+#' @importFrom magrittr %>%
+#' @usage lhs \%>\% rhs
+#' @param lhs A value or the magrittr placeholder.
+#' @param rhs A function call using the magrittr semantics.
+#' @return The result of calling `rhs(lhs)`.
+NULL
+
 #' Check whether the estimation has been trapped in the boundary space
 #'
 #' * Function `check_parameters` asserts at each step of the maximisation,
@@ -27,9 +42,9 @@ is_continuous <- function(var) {
             is(var, "POSIXct"), is(var, "POSIXt"))))
 }
 
-compute_interval <- function(x) {
-  return(purrr::map_dbl(strsplit(x, split = " to "), ~as.numeric(.x) %>% mean() %>% round()))
-}
+# compute_interval <- function(x) {
+#   return(purrr::map_dbl(strsplit(x, split = " to "), ~as.numeric(.x) %>% mean() %>% round()))
+# }
 
 is_positive_definite <- function(expression, tol=1e-6) {
   eigen_values <- eigen(expression, symmetric = TRUE)$values # already sorted by decreasing order

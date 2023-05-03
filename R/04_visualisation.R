@@ -36,8 +36,5 @@ plot_correlation_Heatmap <- function(distribution_metrics, score_variable = "mod
 
 
 
-# dp <-  plot_multivariate_density(simulated_data$X) +
-#   ggtitle(paste(title_dp, "in hetero scenario"), subtitle = paste("overlap:", overlap_heteroscedastic,
-#                                                                   "hellinger:", hellinger_heteroscedastic))
 
 

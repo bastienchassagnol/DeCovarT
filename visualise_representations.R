@@ -142,8 +142,6 @@ global_heatmap <- ComplexHeatmap::Heatmap(data1, col=col_fun,
                           column_title_gp = grid::gpar(fontsize = 10), column_title="Corr cell type 2") 
 
 p2 <- grid::grid.grabExpr(ComplexHeatmap::draw(global_heatmap))
-cowplot_p2 <- cowplot::plot_grid(p2, nrow = 1, ncol=1)
-)
 global_heatmap <- global_heatmap %>%  ComplexHeatmap::draw() %>% grid::grid.grabExpr()
 
 

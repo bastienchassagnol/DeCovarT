@@ -72,15 +72,5 @@ plot_multivariate_density <- function(X, n=dim(X)[3]) {
 
 # corr_names <- tidyr::crossing(paste0("correlation_celltype1_", corr_sequence), paste0("_celltype2_", corr_sequence))
 # corr_names <- paste0(corr_names[[1]], corr_names[[2]])
-
-
-# anti-log if max < 50 in mixture or signature file
-# if(max (X)<50) {X=2**X; warning ("Log-scale spotted for reference signature")}
-# if(max (Y)<50) {Y=2**Y; warning ("Log-scale spotted for mixture profile")}
-
-# standardize both matrix, not really advised in benchmarking papers
-# if (scaled) {
-#   X <- scale(X);  Y <- scale(Y)
-# }
 # cibersort_ratios <- purrr::map_dfr(Y, ~ deconvolute_ratios_CIBERSORT(., X=X)) %>%
 #     dplyr::mutate(OMIC_ID=colnames(Y))
