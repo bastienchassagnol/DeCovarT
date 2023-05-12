@@ -54,19 +54,17 @@ test_that("assert numerically tensor product", {
 })
 
 
-test_that("assert numerically Hessian of the reparametrised function", {
-  ##----------------------------------------------------------------
-  ##                  test gradient log-likelihood                 -
-  ##----------------------------------------------------------------
-  
-  
+test_that("assert numerically gradient and Hessian of the reparametrised function", {
+  set.seed(3); library(tensorA)
   X <- matrix(c(20, 40, 40, 20), nrow = 2); p <- c(0.5, 0.5)
   num_genes <- nrow(X); num_celltypes <- ncol(X)
   y <- X %*% p + rnorm(nrow(X)) # global gene expression, as linear combination
   Sigma <- array(c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2), 
                  dim = c(num_genes,num_genes,num_celltypes))
-  
-  
+  theta <- inverse_mapping_function(p)
+  ##----------------------------------------------------------------
+  ##                  test gradient log-likelihood                 -
+  ##----------------------------------------------------------------
   jacobian_mapping_numerical <- numDeriv::grad(loglik_multivariate, p, 
                                                method="Richardson", method.args=list(eps=1e-4, r=6),
                                                y=y, X=X, Sigma=Sigma) # additional arguments
@@ -77,22 +75,6 @@ test_that("assert numerically Hessian of the reparametrised function", {
   #################################################################
   ##               test constrained log-likelihood               ##
   #################################################################
-  set.seed(3); library(tensorA)
-  X <- matrix(c(20, 40, 40, 20), nrow = 2); p <- c(0.5, 0.5)
-  num_genes <- nrow(X); num_celltypes <- ncol(X)
-  y <- X %*% p + rnorm(nrow(X)) # global gene expression, as linear combination
-  Sigma <- array(c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2), 
-                 dim = c(num_genes,num_genes,num_celltypes))
-  theta <- inverse_mapping_function(p)
-  
-  Sigma_global <- .compute_global_variance(p, Sigma)
-  
-  theta_vect <- seq(-30, 30, 0.5)
-  log_vect <- purrr::map_dbl(theta_vect, loglik_multivariate_constrained, y=y, X=X, Sigma=Sigma)
-  plot(log_vect ~theta_vect)
-  
-  loglik_multivariate_constrained(theta_vect[1], )
-  
   # matrix product of the gradient unconstrained evaluated in p times Jacobian of p
   grad_constrained_mapping_numerical <- numDeriv::grad(loglik_multivariate_constrained, theta, 
                                                        method="Richardson", method.args=list(eps=1e-4, r=6),
@@ -103,65 +85,92 @@ test_that("assert numerically Hessian of the reparametrised function", {
 ##################################################################
 ##                 loglik_hessian_unconstrained                 ##
 ##################################################################
-library(dplyr); source("R/utils.R")
-
-set.seed(3)
-X <- matrix(c(20, 40, 50, 10, 40, 20, 60, 40, 25), nrow = 3); p <- c(0.2, 0.3, 0.5)
-num_genes <- nrow(X); num_celltypes <- ncol(X)
-y <- X %*% p + rnorm(nrow(X))# global gene expression, as linear combination
-# y <- X %*% p # global gene expression, as linear combination
-Sigma <- array(c(1, 0.8, 0.4, 0.8, 1, 0.2, 0.4, 0.2, 1, 
-                 2, -0.2, -0.2, -0.2, 2, -0.2, -0.2, -0.2, 2,
-                 1, 0.4, 0.4, 0.4, 1, 0.4, 0.4, 0.4, 1), 
-               dim = c(num_genes,num_genes,num_celltypes))
-
 hessian_loglik_numerical <- numDeriv::hessian(loglik_multivariate, p, 
                                               method="Richardson", method.args=list(eps=1e-12, r=4),
                                               y=y, X=X, Sigma=Sigma) # additional arguments
-# jacobian_grad_numerical <- numDeriv::jacobian(gradient_loglik_unconstrained, p, 
-#                                               method="Richardson", method.args=list(eps=1e-12, r=4),
-#                                               y=y, X=X, Sigma=Sigma)
-# testthat::expect_equal(hessian_loglik_numerical, jacobian_grad_numerical)
-
-
+jacobian_grad_numerical <- numDeriv::jacobian(gradient_loglik_unconstrained, p,
+                                              method="Richardson", method.args=list(eps=1e-12, r=4),
+                                              y=y, X=X, Sigma=Sigma)
+testthat::expect_equal(hessian_loglik_numerical, jacobian_grad_numerical)
 hessian_loglik_theoretical <- hessian_loglik_unconstrained (p, y, X, Sigma)
-
-
-set.seed(3)
-X <- matrix(c(20, 40, 40, 20), nrow = 2); p <- c(0.5, 0.5)
-num_genes <- nrow(X); num_celltypes <- ncol(X)
-y <- X %*% p + rnorm(nrow(X)) # global gene expression, as linear combination
-# y <- X %*% p
-Sigma <- array(c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2), 
-               dim = c(num_genes,num_genes,num_celltypes))
-
-hessian_loglik_theoretical <- hessian_loglik_unconstrained (p, y, X, Sigma)
-numDeriv::hessian(loglik_multivariate, p, 
-                  method="Richardson", method.args=list(eps=1e-12, r=4),
-                  y=y, X=X, Sigma=Sigma) 
 
 ##################################################################
 ##                 loglik_hessian_constrained                 ##
 ##################################################################
-library(dplyr); source("R/utils.R")
-source("R/03_01_deconvolution_algorithms.R"); source("R/03_01_bis_deconvolution_algorithms.R")
-
-set.seed(3)
-X <- matrix(c(20, 40, 50, 10, 40, 20, 60, 40, 25), nrow = 3); p <- c(0.2, 0.3, 0.5)
-theta <- inverse_mapping_function(p)
-num_genes <- nrow(X); num_celltypes <- ncol(X)
-# y <- X %*% p + rnorm(nrow(X))# global gene expression, as linear combination
-y <- X %*% p # global gene expression, as linear combination
-Sigma <- array(c(1, 0.8, 0.4, 0.8, 1, 0.2, 0.4, 0.2, 1, 
-                 2, -0.2, -0.2, -0.2, 2, -0.2, -0.2, -0.2, 2,
-                 1, 0.4, 0.4, 0.4, 1, 0.4, 0.4, 0.4, 1), 
-               dim = c(num_genes,num_genes,num_celltypes))
-
-
-
 hessian_constrained_mapping_numerical <- numDeriv::hessian(loglik_multivariate_constrained, theta, 
                                                            method="Richardson", method.args=list(eps=1e-12, r=4),
                                                            y=y, X=X, Sigma=Sigma) # additional arguments
 hessian_constrained_mapping_theoretical <- hessian_loglik_constrained (theta, y, X, Sigma)
 testthat::expect_equal(hessian_constrained_mapping_numerical, hessian_constrained_mapping_theoretical)
 })
+
+
+test_that("compare the performance of several algorithms", {
+  set.seed(3); library(dplyr)
+  X <- matrix(c(20, 40, 40, 20), nrow = 2, dimnames = list(paste0("gene_", 1:2), paste0("celltype_", 1:2)))
+  p <- c(0.5, 0.5)
+  num_genes <- nrow(X); num_celltypes <- ncol(X)
+  y <- X %*% p + rnorm(nrow(X)); y <- as.vector(y) # global gene expression, as linear combination
+  Sigma <- array(c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2), 
+                 dim = c(num_genes,num_genes,num_celltypes))
+  theta <- inverse_mapping_function(p)
+  
+  ###  compare the estimation of several estimation methods   
+  basic_estimates <- deconvolute_ratios_basic_optim (y, X, Sigma)
+  nnls_estimates <- deconvolute_ratios_nnls(y, X)
+  
+  
+  
+  ###  understand recurrent mistakes   
+  decovart_error_estimates <- do.call(deconvolute_ratios_DeCoVarT, erreur_1_function_DeCoVarT)
+  
+  
+  
+  # high dimensional simulations
+  set.seed(3)
+  highly_overlapping_parameter <- MixSim::MixSim(BarOmega = 0.01,
+                                                 K=2, p=20, sph = FALSE, hom = FALSE,
+                                                 ecc = 0.9, PiLow = 0.05, int = c(3, 50))
+  highly_overlapping_parameter_formatted <- list(p=highly_overlapping_parameter$Pi,
+                                                 mu=t(highly_overlapping_parameter$Mu),
+                                                 sigma=highly_overlapping_parameter$S) %>% 
+    enforce_parameter_identifiability()
+  
+  X <- highly_overlapping_parameter_formatted$mu; 
+  colnames(X) <- paste0("celltype_", 1:ncol(X)); row.names(X) <- paste0("gene_", 1:nrow(X))
+  # p <- c(0.05, 0.9, 0.05)
+  Sigma <- highly_overlapping_parameter_formatted$sigma; dimnames(Sigma) <- list(NULL, NULL, paste0("celltype_", 1:ncol(X)))
+  p <- highly_overlapping_parameter_formatted$p
+  y <- X %*% p + rnorm(nrow(X)); y <- as.vector(y) # global gene expression, as linear combination
+  theta <- inverse_mapping_function(p)
+  
+  nnls_estimates <- deconvolute_ratios_nnls(y, X)
+  decovart_error_estimates <- deconvolute_ratios_DeCoVarT (y, X, Sigma)
+  deconvolute_ratios_constrOptim(y, X, Sigma)
+  
+  
+  
+  simulated_data <- simulate_bulk_mixture (X, Sigma, proportions=p, n=10^4)
+  global_mu <- p[1]*X[,1] + p[2]*X[,2]
+  global_sigma <- p[1]^2*Sigma[,,1] + p[2]^2*Sigma[,,2]
+  
+  y_simu <- simulated_data$Y; X_simu <- simulated_data$X
+  
+  # test_metrics_Decovart <- purrr::map_dfr(y_simu[,1:10] %>% dplyr::as_tibble(), 
+  #                                         deconvolute_ratios_DeCoVarT, X, Sigma)
+  test_metrics_nlm <- purrr::map_dfr(y_simu[,1:10] %>% dplyr::as_tibble(), 
+                                          deconvolute_ratios_nlm, X, Sigma)
+  test_metrics_lsei <- purrr::map_dfr(y_simu[,1:10] %>% dplyr::as_tibble(), 
+                                          deconvolute_ratios_deconRNASeq, X)
+  
+  
+  mapping_tested <- seq(-4, 4, by = 0.01)
+  log_lik_vect <- purrr::map_dbl(mapping_tested, loglik_multivariate_constrained, y_simu[,4], X, Sigma)
+  plot(log_lik_vect ~ mapping_tested, pch=1)
+    
+    
+  
+  
+  
+  
+  })

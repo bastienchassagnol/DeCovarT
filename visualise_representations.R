@@ -6,34 +6,6 @@
 ###########################################################################
 ###########################################################################
 
-
-##################################################################
-##          compare own deconvolution in easy scenario          ##
-##################################################################
-
-
-easy_simulation <- readRDS("./simulations/results/easy_scenario.rds")
-
-easy_simulation_heatmap <- list()
-for (scen_prop in unique(easy_simulation$proportions)) {
-  for (scen_var in unique(easy_simulation$variance)) {
-    name_scenario <- paste0(scen_var, " with ", scen_prop, " ratios") %>% stringr::str_to_title()
-    heatmap_list <- easy_simulation %>% 
-      dplyr::filter(proportions==scen_prop & variance==scen_var) %>% 
-      plot_correlation_Heatmap()
-    heatmap_page <- purrr::imap(heatmap_list,   ~ ComplexHeatmap::draw(.x, padding=unit(c(0, 0, 0, 0), "cm"),
-                                                                       column_title= .y, column_title_gp = grid::gpar(fontsize = 12, fontface="bold")) %>% 
-                                  grid::grid.grabExpr())
-    easy_simulation_heatmap[[name_scenario]] <- gridExtra::arrangeGrob(grobs = heatmap_page, ncol = 2,  padding = unit(0.1, "line"),
-                                                                      top=ggpubr::text_grob(name_scenario, size = 18, face = "bold"))
-  }
-}
-
-ggsave("./figs/Heatmap_easy_example.pdf", 
-       gridExtra::marrangeGrob(grobs=easy_simulation_heatmap, top="", ncol = 1, nrow = 1), width = 12, height = 20,dpi = 300)
-
-
-
 #################################################################
 ##        compare own deconvolution in complex scenario        ##
 #################################################################
@@ -57,57 +29,46 @@ for (scen_prop in unique(complex_simulation$proportions)) {
 ggsave("./figs/Heatmap_complex_example.pdf", 
        gridExtra::marrangeGrob(grobs=complex_simulation_heatmap, top="", ncol = 1, nrow = 1), width = 12, height = 20,dpi = 300)
 
-
 ##################################################################
-##       the true benchmarks, in non-overlapping scenario       ##
-##################################################################
-
-
-non_overlapping_simulation <- readRDS("./simulations/results/small_overlap_version2.rds")
-
-non_overlapping_simulation_heatmap <- list()
-for (scen_prop in unique(non_overlapping_simulation$proportions)) {
-  for (scen_var in unique(non_overlapping_simulation$variance)) {
-    name_scenario <- paste0(scen_var, " with ", scen_prop, " ratios") %>% stringr::str_to_title()
-    heatmap_list <- non_overlapping_simulation %>% 
-      dplyr::filter(proportions==scen_prop & variance==scen_var) %>% 
-      plot_correlation_Heatmap(score_variable = "model_mse")
-    heatmap_page <- purrr::imap(heatmap_list,   ~ ComplexHeatmap::draw(.x, padding=unit(c(0, 0, 0, 0), "cm"),
-                                                                       column_title= .y, column_title_gp = grid::gpar(fontsize = 12, fontface="bold")) %>% 
-                                  grid::grid.grabExpr())
-    non_overlapping_simulation_heatmap[[name_scenario]] <- gridExtra::arrangeGrob(grobs = heatmap_page, ncol = 2,  padding = unit(0.1, "line"),
-                                                                          top=ggpubr::text_grob(name_scenario, size = 18, face = "bold"))
-  }
-}
-
-ggsave("./figs/Heatmap_non_overlapping_example_2.pdf", 
-       gridExtra::marrangeGrob(grobs=non_overlapping_simulation_heatmap, top="", ncol = 1, nrow = 1), width = 12, height = 20,dpi = 300)
-
-
-##################################################################
-##       the true benchmarks, in highly-overlapping scenario       ##
+##      generate WABi general complexHeatmap       ##
 ##################################################################
 
 
-highly_overlapping_simulation <- readRDS("./simulations/results/high_overlap.rds")
+bivariate_simulation <- readRDS("./simulations/results/bivariate_scenario.rds")
 
-highly_overlapping_simulation_heatmap <- list()
-for (scen_prop in unique(highly_overlapping_simulation$proportions)) {
-  for (scen_var in unique(highly_overlapping_simulation$variance)) {
-    name_scenario <- paste0(scen_var, " with ", scen_prop, " ratios") %>% stringr::str_to_title()
-    heatmap_list <- highly_overlapping_simulation %>% 
-      dplyr::filter(proportions==scen_prop & variance==scen_var) %>% 
-      plot_correlation_Heatmap(score_variable = "model_mse")
-    heatmap_page <- purrr::imap(heatmap_list,   ~ ComplexHeatmap::draw(.x, padding=unit(c(0, 0, 0, 0), "cm"),
-                                                                       column_title= .y, column_title_gp = grid::gpar(fontsize = 12, fontface="bold")) %>% 
-                                  grid::grid.grabExpr())
-    highly_overlapping_simulation_heatmap[[name_scenario]] <- gridExtra::arrangeGrob(grobs = heatmap_page, ncol = 2,  padding = unit(0.1, "line"),
-                                                                                  top=ggpubr::text_grob(name_scenario, size = 18, face = "bold"))
-  }
-}
+bivariate_simulation_test <- bivariate_simulation %>%
+  mutate(ID = case_when(
+    proportions == "balanced" & centroids=="small CLD" ~ "B1_",
+    proportions == "highly_unbalanced" & centroids=="small CLD" ~ "B2_",
+    proportions == "balanced" & centroids=="high CLD" ~ "B3_",
+    proportions == "highly_unbalanced" & centroids=="high CLD" ~ "B4_",
+    TRUE                      ~ as.character(ID) )) %>% 
+  dplyr::mutate(ID = dplyr::if_else(variance=="homoscedasctic", paste0(ID, "Ho"), paste0(ID, "He")))
+saveRDS(bivariate_simulation_test, "./simulations/results/bivariate_scenario.rds")
 
-ggsave("./figs/Heatmap_highly_overlapping.pdf", 
-       gridExtra::marrangeGrob(grobs=highly_overlapping_simulation_heatmap, top="", ncol = 1, nrow = 2), width = 12, height = 20,dpi = 300)
+bivariate_simulation_heatmap <- list()
+
+
+
+
+# for (scen_prop in unique(highly_overlapping_simulation$proportions)) {
+#   for (scen_var in unique(highly_overlapping_simulation$variance)) {
+
+splitted_heatmap <- split(x = bivariate_simulation_test, f = bivariate_simulation_test$ID)
+bivariate_simulation_heatmap <- purrr::imap(splitted_heatmap, function (.data, .name_scenario) {
+  print(paste("Name scenario is ", .name_scenario))
+  heatmap_per_scenario <- plot_correlation_Heatmap(.data)
+  heatmap_page <- purrr::imap(heatmap_per_scenario,   ~ ComplexHeatmap::draw(.x, padding=unit(c(0, 0, 0, 0), "cm"),
+                                                                     column_title= .y, column_title_gp = grid::gpar(fontsize = 12, fontface="bold")) %>%
+                                grid::grid.grabExpr())
+  heatmap_page <- gridExtra::arrangeGrob(grobs = heatmap_page, ncol = 3,  padding = unit(0.1, "line"),
+                                         top=ggpubr::text_grob(.name_scenario, size = 18, face = "bold"))
+  return(heatmap_page)
+})
+
+
+ggsave("./figs/bivariate_Heatmaps.pdf", 
+       gridExtra::marrangeGrob(grobs=bivariate_simulation_heatmap, top="", ncol = 1, nrow = 1), width = 12, height = 12,dpi = 300)
 
 
 #################################################################
@@ -144,18 +105,6 @@ global_heatmap <- ComplexHeatmap::Heatmap(data1, col=col_fun,
 p2 <- grid::grid.grabExpr(ComplexHeatmap::draw(global_heatmap))
 global_heatmap <- global_heatmap %>%  ComplexHeatmap::draw() %>% grid::grid.grabExpr()
 
-
-
-
-
-
-
-# test <- highly_overlapping_simulation %>% 
-#   filter(deconvolution_name=="DeCoVarT") %>% 
-#   group_by(proportions, correlation_celltype1, correlation_celltype2) %>% 
-#   summarise(num_simulations=n()) %>% 
-#   filter(num_simulations!=500) %>% 
-#   arrange(num_simulations)
 
 
 

@@ -11,6 +11,7 @@ deconvolute_ratios(
   true_ratios = NULL,
   Sigma = NULL,
   cores = getOption("mc.cores", parallel::detectCores()),
+  verbose = FALSE,
   deconvolution_functions = list(QP = list(FUN = deconvolute_ratios_deconRNASeq,
     additionnal_parameters = NULL), lm = list(FUN = deconvolute_ratios_abbas,
     additionnal_parameters = NULL), rlm = list(FUN = deconvolute_ratios_monaco,

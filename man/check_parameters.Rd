@@ -9,6 +9,9 @@ check_parameters(p)
 \arguments{
 \item{p}{the ratios estimated}
 }
+\value{
+a boolean, set to FALSE whenever one of the ratios is numerically NULL
+}
 \description{
 \itemize{
 \item Function \code{check_parameters} asserts at each step of the maximisation,

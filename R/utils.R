@@ -15,22 +15,77 @@ NULL
 
 #' Check whether the estimation has been trapped in the boundary space
 #'
-#' * Function `check_parameters` asserts at each step of the maximisation,
-#' we do not fall in a degenerate case or a non invertible. This especially occurs when one of 
-#' the ratios converge to 0 or 1, implying to decrease by a factor 1 the dimension.
+#' * Function `enforce_identifiability` normalises the ratios to sum to 1, 
+#' and set ratios close to zero or 1, to the limits of the boundary space
 #'
 #' @param p the ratios estimated
 
 #' @export
 
-check_parameters <- function(p) {
+enforce_identifiability <- function(p) {
   machine_limit <- .Machine$double.eps
-  if (any(p < 10 * machine_limit | p > 1 - 10 * machine_limit)) {
-    warning(paste0("Cell ratio with index ", which(p < 10 * machine_limit), "has been dropped."))
-    p[p < 10 * machine_limit] <- 0; p[p > 1 - 10 * machine_limit] <- 1; p <- p/sum(p)
+  if (any(p < 100 * machine_limit | p > 1 - 100 * machine_limit)) {
+    p[p < 100 * machine_limit] <- 0; p[p > 1 - 100 * machine_limit] <- 1; p <- p/sum(p)
   }
   return(p)
 }
+
+
+#' Control parameters output
+#'
+#' This step ensures that the estimates returned are uniquely ordered by
+#' partial ordering on the means, and that the sum-o-one constraint, that may
+#' be violated by numerical artefacts, is enforced
+#'
+#'
+#' @param theta estimation of the parameters returned either by an initialisation
+#' algorithm or by an EM algorithm on an univariate or multivariate GMM MLE estimation
+#' * The proportions `p`: \eqn{p} of each component (must be included between 0 and 1, and sum to one overall)
+#' * The mean matrix `mu`: \eqn{\mathrm{\mu}=(\mu_{i,j}) \in \mathbb{R}^{n \times k}}, with each column
+#' giving the mean values of the variables within a given component
+#' * The 3-dimensional covariance matrix array `sigma`: \eqn{\mathrm{\sigma}=(\sigma_{i,j,l}) \in \mathbb{R}^{n \times n \times k}}, with each matrix
+#' \eqn{\sigma_{..l}, l \in \{ 1, \ldots, k\}} storing the covariance matrix of a given component,
+#' whose diagonal terms correspond to the variance of each variable, and off-terms diagonal elements return the covariance matrix
+#'
+#' @return a list of the estimates, uniquely identified, by ranking each component
+#' based on the ordering of their means
+
+enforce_parameter_identifiability <- function(theta) {
+  k <- length(theta$p)
+  # first component = one whose means are smaller on the first dimension
+  # if equality, redirect to second column, etc...
+  ordered_components <- do.call(order, t(theta$mu) %>% as.data.frame())
+  ordered_theta <- list(
+    p = theta$p[ordered_components],
+    mu = theta$mu[, ordered_components],
+    sigma = theta$sigma[, , ordered_components]  )
+  
+  # enforce sum-to-one constraint
+  ordered_theta$p <- ordered_theta$p / sum(ordered_theta$p) # ordered_theta$p[k] <- 1 - sum(ordered_theta$p[-k])
+  return(ordered_theta)
+}
+
+
+#' Check whether the estimation has been trapped in the boundary space
+#'
+#' * Function `check_parameters` asserts at each step of the maximisation,
+#' we do not fall in a degenerate case or a non invertible. This especially occurs when one of 
+#' the ratios converge to 0 or 1, implying to decrease by a factor 1 the dimension.
+#'
+#' @param p the ratios estimated
+#' @return a boolean, set to FALSE whenever one of the ratios is numerically NULL
+
+#' @export
+
+check_parameters <- function(p) {
+  machine_limit <- .Machine$double.eps
+  if (any(p < 100 * machine_limit | p > 1 - 100 * machine_limit)) {
+    warning(paste0("Cell ratio with index ", which(p < 100 * machine_limit), " is missing in the sample."))
+    return(FALSE)
+  }
+  else {return(TRUE)}
+}
+
 
 
 isConstant <- function(x) {

@@ -4,7 +4,7 @@
 \alias{deconvolute_ratios_deconRNASeq}
 \title{Title}
 \usage{
-deconvolute_ratios_deconRNASeq(y, X, true_ratios = NULL, ...)
+deconvolute_ratios_deconRNASeq(y, X, true_ratios = NULL)
 }
 \arguments{
 \item{y}{}

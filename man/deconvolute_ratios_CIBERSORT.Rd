@@ -4,7 +4,7 @@
 \alias{deconvolute_ratios_CIBERSORT}
 \title{Title}
 \usage{
-deconvolute_ratios_CIBERSORT(y, X, true_ratios = NULL, ...)
+deconvolute_ratios_CIBERSORT(y, X, true_ratios = NULL)
 }
 \arguments{
 \item{y}{}

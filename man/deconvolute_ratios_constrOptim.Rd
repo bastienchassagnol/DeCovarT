@@ -9,8 +9,8 @@ deconvolute_ratios_constrOptim(
   X,
   Sigma,
   true_ratios = NULL,
-  epsilon = 10^-8,
-  ...
+  epsilon = 10^-4,
+  itmax = 200
 )
 }
 \arguments{

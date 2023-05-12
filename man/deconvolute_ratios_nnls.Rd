@@ -4,7 +4,7 @@
 \alias{deconvolute_ratios_nnls}
 \title{Title}
 \usage{
-deconvolute_ratios_nnls(y, X, true_ratios = NULL, ...)
+deconvolute_ratios_nnls(y, X, true_ratios = NULL)
 }
 \arguments{
 \item{y}{}

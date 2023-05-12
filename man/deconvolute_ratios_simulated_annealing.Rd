@@ -4,7 +4,14 @@
 \alias{deconvolute_ratios_simulated_annealing}
 \title{Title}
 \usage{
-deconvolute_ratios_simulated_annealing(y, X, Sigma, true_ratios = NULL, ...)
+deconvolute_ratios_simulated_annealing(
+  y,
+  X,
+  Sigma,
+  true_ratios = NULL,
+  epsilon = 10^-4,
+  itmax = 200
+)
 }
 \arguments{
 \item{y}{}

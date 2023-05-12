@@ -4,7 +4,7 @@
 \alias{deconvolute_ratios_monaco}
 \title{Title}
 \usage{
-deconvolute_ratios_monaco(y, X, true_ratios = NULL, ...)
+deconvolute_ratios_monaco(y, X, true_ratios = NULL)
 }
 \arguments{
 \item{y}{}
