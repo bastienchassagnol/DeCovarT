@@ -1,0 +1,23 @@
+---
+title: "RevBayes with DeCoVart"
+author: "bastien"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(Revticulate)
+knitRev()
+```
+
+## RevBayes simulations
+
+
+```{rb gamma-illustration}
+alpha_morpho ~ dnUniform( 0, 1E6 );
+rates_morpho := fnDiscretizeGamma( alpha_morpho, alpha_morpho, 4 )
+alpha_morpho
+```
+
+

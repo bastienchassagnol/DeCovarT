@@ -4,7 +4,6 @@
 *.zip
 build*
 simulations/*
-vignettes/
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
@@ -235,6 +234,8 @@ TSWLatexianTemp*
 *.lpz
 # xwatermark package
 *.xwm
+# specific R files
 .Rhistory
 inst/doc
 simulation_*
+older_functions/
