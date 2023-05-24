@@ -53,7 +53,7 @@ ggsave("./figs/bivariate_Heatmaps_test.pdf",
        width = 12, height = 12,dpi = 300)
 
 library(dplyr)
-bivariate_formatted <- readRDS("./data/bivariate/bivariate_parameters.rds") %>% 
+bivariate_formatted <- readRDS("./data/bivariate/bivariate_parameters.rds") 
   
 saveRDS(bivariate_formatted %>% dplyr::mutate(across(where(is.numeric), signif, 4)) %>% 
           dplyr::select(-c("model_rmse", "model_mae")),
