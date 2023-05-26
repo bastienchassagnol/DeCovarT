@@ -1,0 +1,300 @@
+---
+title: "How to use DeCovarT: a toy example with two genes and two cell populations"
+output: 
+  # rmarkdown::html_vignette:
+  #  code_folding: show
+  #  df_print: kable
+  # bookdown::gitbook:
+  #   lib_dir: assets
+  #   split_by: section
+  #   config:
+  #     toolbar:
+  #       position: static
+  bookdown::html_document2:
+    number_sections: false
+    code_folding: hide
+    df_print: kable
+    includes:
+      in_header: auxiliary/ga.html
+      before_body: auxiliary/macros.html
+  bookdown::pdf_document2:
+    keep_tex: true
+    extra_dependencies: ["amsmath", "amssymb", "caption", "subcaption", "hyperref"]
+    includes:
+      in_header: auxiliary/macros.tex
+    toc: false
+    number_sections: true
+vignette: >
+  %\VignetteIndexEntry{DeCovarT-use-cases}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+# indent: true
+bibliography: "`r rbbt::bbt_write_bib('DeCovarT_vignette.bib', overwrite = TRUE)`" 
+biblio-style: "apalike"
+link-citations: true
+csl: ieee.csl
+author:  
+  - name: Bastien Chassagnol
+    affiliation: Laboratoire de Probabilités, Statistiques et Modélisation (LPSM), UMR CNRS 8001
+    address:
+    - 4 Place Jussieu Sorbonne Université
+    - 75005, Paris, France
+    orcid: 0000-0002-8955-2391
+    email:  bastien_chassagnol@laposte.net
+  - name: Gregory Nuel
+    affiliation: Laboratoire de Probabilités, Statistiques et Modélisation (LPSM), UMR CNRS 8001
+    address:
+    - 4 Place Jussieu Sorbonne Université
+    - 75005, Paris, France
+    url: http://nuel.perso.math.cnrs.fr/
+    orcid: 0000-0001-9910-2354
+    email:  Gregory.Nuel@math.cnrs.fr
+  - name: Etienne Becht
+    affiliation: Les Laboratoires Servier
+    address:
+    - 50 Rue Carnot
+    - 92150, Suresnes, France
+    orcid: 0000-0003-1859-9202
+    email: etienne.becht@servier.com
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+# Objectives
+
+
+```{r html-output-config, include = FALSE, eval=knitr::is_html_output()}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.align = "center",
+  fig.fullwidth = TRUE,
+  # We use the implementation available in the
+  # message = FALSE,
+  # warning = FALSE,
+  cache = FALSE, lazy.cache = FALSE
+)
+options(rmarkdown.html_vignette.check_title = FALSE) # generate customised vignette title
+# rmarkdown::render("DeCoVart-use-cases.Rmd", output_format = 'all'))
+```
+
+```{r pdf-output-config, include = FALSE, eval=knitr::is_latex_output()}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.align = "center",
+  out.width = "90%",
+  message = FALSE,
+  warning = FALSE,
+  echo=FALSE,
+  cache = FALSE, lazy.cache = FALSE
+)
+```
+
+```{r setup}
+html_ouput <- knitr::is_html_output() # store which type is asked as an output
+library(DeCovarT)
+library(ggplot2)
+library(dplyr)
+library(pkgdown) # generate automated links to R packages and functions
+```
+
+## Rationale of the new generative model
+
+As in most traditional deconvolution models, we assume that the overall measured gene expression can be reconstructed by summing the individual contributions of each cell population weighted by its frequency. Formally, let $\boldsymbol{X}=(x_{gj}) \in \mathcal{M}_{\RR^{G\times J}}$ the signature matrix representing the purified transcriptomic profiles of $J$ cell populations and $\boldsymbol{p}=(p_{ji})\in ]0, 1[^{J \times N}$ the unknown relative proportions of cell populations in $N$ samples, then the linear relation relating the bulk expression $(\boldsymbol{y}=(y_{gi}) \in \mathbb{R}_+^{G\times N}$ to the individual cell expression profiles is given by the matrix product: $\boldsymbol{y}=\boldsymbol{X} \times \boldsymbol{p}$. In addition, we consider unit simplex constraint on the cellular ratios (Eq. \@ref(eq:positive-ratios)):
+
+```{=tex}
+\begin{equation}
+\begin{cases}
+\sum_{j=1}^J p_{j}=1\\
+\forall j \in \widetilde{J} \quad p_j\ge 0
+\end{cases}
+(\#eq:positive-ratios)
+\end{equation} 
+```
+
+
+
+However, in real conditions with technical and environmental variability, the strict linearity of the deconvolution does not strictly hold. Thus, an additional error term is usually added, assumed to follow a *homoscedastic* zero-centred Gaussian distribution and with pairwise independent response measures while the exogenous variables (here, the purified expression profiles) are supposed determined: this set of conditions is referred to as the Gaussian-Markow assumptions. In that configuration, the MLE (maximum likelihood estimate) that bast describes this standard linear model is equal to the ordinary least squares (OLS) estimate. 
+
+
+In contrast to this canonical approach, in DeCovarT, we relax the *exogeneity* property by treating exogenous variables $\boldsymbol{X}$ as random variables rather than determined measures, in a process close to the approach of the DSection algorithm [@erkkila_etal10]. However, to our knowledge, we are the first to weaken the independence assumption between observations by explicitly incorporating the intrinsic covariance structure of the transcriptome of each purified cell population.
+To do so, we conjecture that the $G$-dimensional vector $\boldsymbol{x}_j$ characterising the transcriptomic expression of each cell population follows a multivariate Gaussian distribution: $\boldsymbol{x}_j \sim \mathcal{N}_G(\boldsymbol{\mu}_{.j}, \boldsymbol{\Sigma}_{j})$, with $\boldsymbol{\mu}_{.j}$ the mean purified transcriptomic expression and $\boldsymbol{\Sigma}_{j}$ the covariance matrix, that we constrain to be positive-definite and of full rank and that is inferred using the output of the gLasso algorithm [@mazumder_hastie11]. We display respectively the graphical models associated to the standard linear deconvolution model and our new innovative generative model used by the DeCovarT algorithm in subfigures a) and b), in Fig.`r knitr::asis_output(ifelse(knitr::is_html_output(), '\\@ref(fig:load-DAG-html)', '\\@ref(fig:load-DAG-pdf)'))`.
+
+```{r load-DAG-html, echo = FALSE, fig.cap="We use the standard graphical convention of graphical models, as depicted in [RevBayes](https://revbayes.github.io/tutorials/intro/graph_models.html) webpage. For identifiability reasons, we conjecture that all variability arises from the stochastic nature of the covariates.", fig.show = "hold", eval=knitr::is_html_output(), out.width="45%"}
+knitr::include_graphics("figs/DAG_model_linear_representation.png")
+knitr::include_graphics("figs/DAG_model_decovart_representation.png")
+knitr::include_graphics("figs/DAG_legend.png")
+```
+
+
+```{r load-DAG-pdf, echo = FALSE, fig.cap="We use the standard graphical convention of graphical models, as depicted in \\href{https://revbayes.github.io/tutorials/intro/graph_models.html}{RevBayes} webpage. For identifiability reasons, we conjecture that all variability arises from the stochastic nature of the covariates.", fig.subcap=c("Visual representation of the linear regression graphical model", "Visual representation of the graphical model underlying the DeCovarT generative model", "Legend displaying the main symbols and laws used in a graphical model."), out.width="40%", fig.ncol = 2, eval=knitr::is_latex_output()}
+knitr::include_graphics("figs/DAG_model_linear_representation.png")
+knitr::include_graphics("figs/DAG_model_decovart_representation.png")
+knitr::include_graphics("figs/DAG_legend.png")
+```
+
+## Derivation of the log-likelihood
+
+First, we *plugged-in* the mean and covariance parameters $\zeta_j=\left(\boldsymbol{\mu}_{.j}, \boldsymbol{\Sigma}_j\right)$ inferred in the previous step. 
+Then, by letting $\boldsymbol{\zeta}=(\boldsymbol{\mu}, \boldsymbol{\Sigma}), \quad \boldsymbol{\mu}=(\boldsymbol{\mu}_{.j})_{j \in \widetilde{J}} \in \mathcal{M}_{G \times J}, \quad \boldsymbol{\Sigma} \in \mathcal{M}_{G \times G}$ the known parameters and $\boldsymbol{p}$ the unknown cellular ratios, the conditional distribution $\boldsymbol{y}|(\boldsymbol{\zeta}, \boldsymbol{p})$ is the convolution of pairwise independent multivariate Gaussian distributions, which is also a multivariate Gaussian distribution (Eq.\@ref(eq:conditional-multivariate-distribution)), deduced from the *affine invariant* property of Gaussian distributions.
+
+```{=tex}
+\begin{equation}
+\boldsymbol{y}|(\boldsymbol{\zeta}, \boldsymbol{p}) \sim \mathcal{N}_G(\boldsymbol{\mu} \boldsymbol{p}, \boldsymbol{\Sigma}) \text{ with } \boldsymbol{\mu} = (\boldsymbol{\mu}_{.j})_{j \in \widetilde{J}}, \quad \boldsymbol {p}=(p_1, \ldots, p_J) \text{ and } \boldsymbol{\Sigma}=\sum_{j=1}^J p_{j}^2\boldsymbol{\Sigma}_{j}
+(\#eq:conditional-multivariate-distribution)
+\end{equation}
+```
+
+From Eq.\@ref(eq:conditional-multivariate-distribution), we readily compute the associated conditional log-likelihood (Eq.\@ref(eq:loglikelihood-multivariate-gaussian)):
+
+```{=tex}
+\begin{equation}
+\ell_{\boldsymbol{y} | \boldsymbol{\zeta}}(\boldsymbol{p})=C + \log\left(\DET \left(\sum_{j=1}^J p_{j}^2\boldsymbol{\Sigma}_{j}\right)^{-1}\right) - \frac{1}{2} (\boldsymbol{y} - \boldsymbol{p} \boldsymbol{\mu})^\top \left(\sum_{j=1}^J p_{j}^2\boldsymbol{\Sigma}_{j}\right)^{-1} (\boldsymbol{y} - \boldsymbol{p}\boldsymbol{\mu})
+(\#eq:loglikelihood-multivariate-gaussian)
+\end{equation}
+```
+
+## First and second-order derivation of the unconstrained DeCovarT log-likelihood function
+
+The stationary points of a function and notably maxima, are given by the roots (the values at which the function crosses the $x$-axis) of its gradient, in our context, the vector: $\nabla \ell: \RR^J \to \RR^J$ evaluated at point $\nabla \ell (\boldsymbol{p}): ]0, 1[^J \to \RR^J$. Since the computation is the same for any cell ratio $p_j$, we give an explicit formula for only one of them (Eq.\@ref(eq:derivative-log-likelihood-unconstrained)):
+
+```{=tex}
+\begin{equation}
+\begin{split}
+ \frac{\partial \ell_{\boldsymbol{y} | \boldsymbol{\zeta}}(\boldsymbol{p})}{\partial p_j} =& \scriptstyle \frac{\partial \log\left(\DET(\boldsymbol{\Theta})\right)}{\partial p_j} -\frac{1}{2} \left[\frac{\partial (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top}{\partial p_j}\boldsymbol{\Theta}(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p}) + (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\frac{\partial\boldsymbol{\Theta}}{\partial p_j}(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p}) + (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \frac{\partial (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})}{\partial p_j} \right]\\
+=&  \scriptstyle -\Tr \left(\boldsymbol{\Theta} \frac{\partial \boldsymbol{\Sigma}}{\partial p_j} \right) - \frac{1}{2} \left[ - \boldsymbol{\mu}_{.j}^\top\boldsymbol{\Theta}(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p}) - (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\Theta\frac{\partial \Sigma}{\partial p_j}\Theta(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p}) - (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta}  \boldsymbol{\mu}_{.j} \right] \\
+=& -2p_j \Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\right) +
+(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta}  \boldsymbol{\mu}_{.j} \, +
+p_j (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \Sigma_j \boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})
+\end{split}
+(\#eq:derivative-log-likelihood-unconstrained)
+\end{equation}
+```
+
+
+Since the solution to $\nabla \left( \ell_{\boldsymbol{y} | \boldsymbol{\zeta}}(\boldsymbol{p}) \right) =0$ is not closed, we had to approximate the MLE using iterated numerical optimisation methods. Some of them, such as the Levenberg–Marquardt algorithm, require a second-order approximation of the function, which needs the computation of the Hessian matrix. Deriving once more Eq.\@ref(eq:hessian-log-likelihood-unconstrained) yields the Hessian matrix,  $\mathbf{H} \in \mathcal{M}_{J \times J}$ is given by: 
+
+```{=tex}
+\begin{equation}
+\begin{aligned}
+\mathbf{H}_{i,i}& =
+   \frac{\partial^2 \ell}{\partial^2 p_i} =
+-2\Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i\right) + 4p_i^2 \Tr \left(\left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i\right)^2\right)
+-2p_i(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\mu_{.i}}\, - \boldsymbol{\mu}_{.i}^\top\boldsymbol{\Theta} \boldsymbol{\mu_{.i}} \, - \\
+& 2p_i (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top \boldsymbol{\Theta}\boldsymbol{\Sigma}_i\boldsymbol{\Theta}\boldsymbol{\mu}_{.i \, -
+(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \left(4p_i^2 \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\Sigma}_i - \boldsymbol{\Sigma}_i \right)\boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})}, \quad i \in \widetilde{J} \\
+\mathbf{H}_{i,j} &=
+   \frac{\partial^2 \ell}{\partial p_i \partial p_j} =
+4p_j p_i \Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j \boldsymbol{\Theta}\boldsymbol{\Sigma}_i \right)
+-2p_i(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\mu_{.j}} - \boldsymbol{\mu}_{.i}^\top\boldsymbol{\Theta} \boldsymbol{\mu_{.j}} \, - \\
+& 2p_j (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top \boldsymbol{\Theta}\boldsymbol{\Sigma}_j\boldsymbol{\Theta} \boldsymbol{\mu}_{.i\, -
+4p_ip_j(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta}\boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\Sigma}_j \boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})}, \quad (i,j) \in \widetilde{J}^2, i \neq j
+  \end{aligned}
+(\#eq:hessian-log-likelihood-unconstrained)
+\end{equation}
+```
+
+
+in which the coloured sections pair one by one with the corresponding coloured sections of the gradient, given in Eq.\@ref(eq:derivative-log-likelihood-unconstrained). Matrix calculus can largely ease the derivation of complex algebraic expressions, thus we remind in Appendix [Matrix calculus](#matrix-calculus) relevant matrix properties and derivations ^[The numerical consistency of these derivatives was asserted with the `r knitr::asis_output(ifelse(knitr::is_html_output(), downlit::autolink("numDeriv::genD"),   '\\CRANpkg{numDeriv}'))` \CRANpkg{numDeriv} package, using the more stable Richardson’s extrapolation].
+
+However, the explicit formulas for the gradient and the Hessian matrix of the log-likelihood function, given in Eq.\@ref(eq:derivative-log-likelihood-unconstrained) and Eq.\@ref(eq:hessian-log-likelihood-unconstrained) respectively, do not take into account the simplex constraint assigned to the ratios. While some optimisation methods use heuristic methods to solve this problem, we consider alternatively a reparametrised version of the problem, detailed comprehensively in Appendix [Reparametrised log-likelihood](#constrained-optimisation).
+
+## Iterated optimisation
+
+The MLE is traditionally retrieved from the roots of the gradient of the log-likelihood. However, in our generative framework, cancelling the gradient of Equation \@ref(eq:loglikelihood-multivariate-gaussian) reveals a non-closed form. Instead, iterated numerical optimisation algorithms can be used to proxy the roots, most of them considering first or second-order approximations of the function to optimise. 
+
+The *Levenberg-Marquardt algorithm* bridges the gap between between the steepest descent method (first-order) and the Newton-Raphson method (second-order) by inflating the diagonal terms of the Hessian matrix. Away from the endpoint, a second-order descent is favoured for its faster convergence pace, while the steepest approach is privileged close to the extremum, as it allows careful refinement of the step size. We use function `r knitr::asis_output(ifelse(knitr::is_html_output(), downlit::autolink("marqLevAlg::marqLevAlg"),   '\\CRANpkg{marqLevAlg}'))`, since it notably introduces a stringent convergence criteria, the relative distance to the maximum (RDM), which sets apart extrema from spurious saddle points [@prague_etal13].
+
+
+We provide additional theoretical results, such as analytical formulas for the Gradient and the Hessian in their constrained and unconstrained versions as well as simulation outputs in the vignette of the [DeCovarT](https://github.com/bastienchassagnol/DeCovarT) Github webpage.
+
+# References {.unnumbered}
+
+<div id="refs"></div>
+
+\appendix
+
+# Theoretical details {.appendix}
+
+## First and second-order derivation of the constrained DeCovarT log-likelihood function{.unnumbered #constrained-optimisation}
+
+To reparametrise the log-likelihood function (Eq.\@ref(eq:loglikelihood-multivariate-gaussian)) in order to explicitly handling the unit simplex constraint (Eq.\@ref(eq:positive-ratios)), we consider the following mapping function: $\boldsymbol{\psi}:\boldsymbol{\theta}  \to  \boldsymbol{p} \, | \quad  \boldsymbol{\theta} \in \RR^{J-1} , \, \boldsymbol{p} \in ]0, 1[^{J}$ (Eq.\@ref(eq:mapping-function)):
+
+```{=tex}
+\begin{equation}
+\begin{aligned}
+\boldsymbol{p} = \boldsymbol{\psi} (\boldsymbol{\theta}) =
+\begin{cases}
+p_j =  \frac{e^{\theta_j}}{\sum_{k < J} e^{\theta_k} \, + \, 1}, \, j < J\\
+p_J =  \frac{1}{\sum_{k < J} e^{\theta_j} + 1}
+\end{cases} & \qquad
+\boldsymbol{\theta} = \boldsymbol{\psi}^{-1} (\boldsymbol{p}) = \left(\ln{\left( \frac{p_j}{p_J}\right)} \right)_{j \in \{ 1, \ldots, J -1\}}
+\end{aligned}
+(\#eq:mapping-function) 
+\end{equation}
+```
+
+that is a $C^2$-diffeomorphism, since $\boldsymbol{\psi}$ is a bijection between $\boldsymbol{p}$ and $\boldsymbol{\theta}$ twice differentiable. 
+
+Its Jacobian, $\mathbf{J}_{\boldsymbol{\psi}} \in \mathcal{M}_{J \times (J-1)}$ is given by Eq.\@ref(eq:mapping-function-gradient): 
+
+```{=tex}
+\begin{equation}
+\mathbf{J}_{i,j} =
+   \frac{\partial p_i}{\partial \theta_{j}} =
+\begin{cases}
+\frac{e^{\theta_i}B_i}{A^2 },\quad i = j, \, i < J\\
+\frac{-e^{\theta_j}e^{\theta_i}}{A^2 }, \quad i \neq j, \, i < J\\
+\frac{-e^{\theta_j}}{A^2}, \quad i=J
+\end{cases}
+(\#eq:mapping-function-gradient) 
+\end{equation}
+```
+
+with $i$ indexing vector-valued $\boldsymbol{p}$ and $j$ indexing the first-order order partial derivatives of the mapping function, $A=\sum_{j' < J} \,e^{\theta_{j'}} \, +  \, 1$ the sum over exponential (denominator of the mapping function) and $B=A - e^{\theta_{i}}$ the sum over ratios minus the exponential indexed with the currently considered index $i$. 
+
+The Hessian (which fortunately is symmetric for each component $j$, as expected according to the Schwarz's theorem) of the vectorial mapping function $\boldsymbol{\psi (\theta)}$ is a third-order tensor of rank $(J-1)(J-1)J$, given by Eq.\@ref(eq:mapping-function-hessian):
+
+```{=tex}
+\begin{equation}
+\begin{aligned}
+\frac{\partial^2 p_i}{\partial k \partial j} &=
+\begin{cases}
+\frac{e^{\theta_i} e^{\theta_l} \left (-B_i + e^{\theta_i}\right)}{A^3},\, (i<J) \land \left((i\neq j) \oplus(i\neq k)\right) \quad (a)\\
+\frac{2 e^{\theta_i} e^{\theta_j} e^{\theta_k} }{A^3}, \, (i<J) \land  (i \neq j \neq k)  \quad (b)\\
+\frac{e^{\theta_i} e^{\theta_j} \left (-A + 2e^{\theta_j}\right)}{A^3}, \, (i<J) \land (j=k\neq i)  \quad (c)\\
+\frac{B_i e^{\theta_i} \left( B_i -  e^{\theta_i}\right)}{A^3}, \, (i<J) \land (j = k = i)  \quad (d)\\
+\frac{e^{\theta_j} \left( -A + 2 e^{\theta_j}\right)}{A^3}, \, (i=J) \land (j = k)  \quad (e)\\
+\frac{2 e^{\theta_j} e^{\theta_k}}{A^3}, \, (i=J) \land (j \neq k)  \quad (f)
+\end{cases}
+\end{aligned}
+(\#eq:mapping-function-hessian)
+\end{equation}
+```
+
+with $i$ indexing $\boldsymbol{p}$, $j$ and $k$ respectively indexing the first-order and second-order partial derivatives of the mapping function with respect to $\boldsymbol{\theta}$. In line $(a)$, $\oplus$ refers to the Boolean XOR operator, $\land$ to the AND operator and $l=\{j,k\} \setminus i$.
+
+
+To derive the log-likelihood function in Eq.\@ref(eq:derivative-log-likelihood-unconstrained), we reparametrise $\boldsymbol{p}$ to  $\boldsymbol{\theta}$, using a standard \textit{chain rule formula). Considering the original log-likelihood function, Eq.\@ref(eq:loglikelihood-multivariate-gaussian), and the mapping function, Eq.\@ref(eq:mapping-function), the differential at the first order and at the second order is given by Eq.\@ref(eq:chain-rule-first-order) and Eq.\@ref(eq:chain-rule-second-order), respectively defined in $\RR^{J-1}$ and $\mathcal{M}_{(J-1)\times(J-1)}$:
+
+```{=tex}
+\begin{equation}
+\begin{bmatrix}
+\frac{\partial \ell_{\boldsymbol{y} | \boldsymbol{\zeta}}}{\partial \theta_j}
+\end{bmatrix}_{j < J}
+  =  \sum_{i=1}^J \frac{\partial \ell_{\boldsymbol{y} | \boldsymbol{\zeta}}}{\partial p_i} \frac{\partial p_i}{\partial \theta_j} 
+(\#eq:chain-rule-first-order)
+\end{equation}
+```
+
+```{=tex}
+\begin{equation}
+\begin{bmatrix}   
+\frac{\partial \ell_{\boldsymbol{y}|\boldsymbol{\zeta}}^2 }{\partial \theta_k \theta_j} 
+\end{bmatrix}_{j < J, \, k < J}   = 
+\sum_{i=1}^J \sum_{l=1}^J \left(  \frac{\partial p_i }{\partial \theta_j} \frac{\partial^2 \ell_{\boldsymbol{y}|\boldsymbol{\zeta}} }{\partial p_i \partial p_l} \frac{\partial p_l }{\partial \theta_k}\right)  \, + \,  \sum_{i=1}^J  \left( \frac{\partial \ell_{\boldsymbol{y}|\boldsymbol{\zeta}} }{\partial p_i} \frac{\partial^2 p_i }{\partial \theta_k \theta_j}\right) \quad (d) 
+(\#eq:chain-rule-second-order)
+\end{equation}
+```
