@@ -671,7 +671,8 @@ compute_benchmark_metrics <- function(y, X, estimated_p, true_ratios=NULL) {
 #'
 
 deconvolute_ratios <- function(signature_matrix, bulk_expression, scaled=F, true_ratios=NULL, Sigma=NULL,
-                               cores = getOption("mc.cores", parallel::detectCores()), deconvolution_functions=NULL){
+                               cores = ifelse (.Platform$OS.type == "unix",  getOption("mc.cores", parallel::detectCores()), 1), 
+                               deconvolution_functions=NULL){
   #read in data
   if (!is.matrix (signature_matrix) | is.null(row.names (signature_matrix)))
     stop ("required format for signature is expression matrix, with rownames as genes")

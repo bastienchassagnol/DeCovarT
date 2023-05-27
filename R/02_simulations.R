@@ -72,7 +72,7 @@ simulate_bulk_mixture <- function(signature_matrix, cov_tensor,
 
 benchmark_deconvolution_algorithms_two_genes <- function(proportions=list("balanced"=c(0.5, 0.5), "small unbalanced"=c(0.6, 0.4),"highly unbalanced"=c(0.05, 0.95)),
                                                          signature_matrices=list("small OVL" = matrix(c(20, 40, 40, 20), nrow = 2)), corr_sequence = seq(-0.8, 0.8, 0.2),
-                                                         diagonal_terms = list("homoscedasctic"= diag(c(1, 1)), "heteroscedastic" = diag(c(1, 2) %>% sqrt())), 
+                                                         diagonal_terms = list("homoscedastic"= diag(c(1, 1)), "heteroscedastic" = diag(c(1, 2) %>% sqrt())), 
                                                          deconvolution_functions=list("lm" = list(FUN=deconvolute_ratios_abbas,additionnal_parameters=NULL)),
                                                          n=200, scaled=FALSE) {
   ##################################################################
@@ -83,7 +83,7 @@ benchmark_deconvolution_algorithms_two_genes <- function(proportions=list("balan
     dimnames(.x) <- list(paste0("gene_", 1:num_genes), paste0("celltype_", 1:num_celltypes))
     return(.x)
   })
-  id_scenario <- 1 # initiate ID scenario
+  id_scenario <- 1 ; id_tibble <- tibble::tibble() # initiate ID scenario
   simulations <- purrr::imap_dfr(signature_matrices, function(mu, name_distance_centroids) {
     simulations_per_ratios <- purrr::imap_dfr(proportions, function(p, name_balance) {
       simulation_metrics <- tibble::tibble()
@@ -113,30 +113,32 @@ benchmark_deconvolution_algorithms_two_genes <- function(proportions=list("balan
               true_theta <- list(p = p, mu = mu, sigma = cov_tensor) %>% enforce_parameter_identifiability()
               overlap <- MixSim::overlap(Pi=p, Mu=t(mu), S=cov_tensor)$BarOmega %>% signif(digits = 3)
               # hellinger <- hellinger_average(p, mu, cov_tensor) %>% round(digits = 4)
-              suffix_scenario <- ifelse (.name=="homoscedasctic", "Ho", "He")
               
               estimated_ratios <- suppressWarnings(deconvolute_ratios (mu, Y, scaled=scaled, true_ratios=p, Sigma=cov_tensor,
                                                       deconvolution_functions=deconvolution_functions))
-              simulation_metrics_per_config <- tibble::tibble(proportions=name_balance, true_parameters = list(as.list(true_theta)),
-                                                              correlation_celltype1=corr_celltype1, correlation_celltype2=corr_celltype2,
-                                                              variance=.name, overlap=overlap, ID = paste0("B", id_scenario, "_", suffix_scenario)) %>%
+              name_id <- paste0("B", id_scenario, "_", ifelse(.name=="homoscedastic", "Ho", "He"))
+              simulation_metrics_per_config <- tibble::tibble(ID=name_id, correlation_celltype1=corr_celltype1, 
+                                                              correlation_celltype2=corr_celltype2) %>%
                 dplyr::bind_cols(estimated_ratios)
+              id_tibble_temp <- tibble::tibble(ID = name_id, 
+                overlap=overlap, entropy = compute_shannon_entropy(p) %>% round(digits = 3),
+                proportions=name_balance, variance=.name, centroids=name_distance_centroids,
+                true_parameters = list(as.list(true_theta)), nobservations = n)
+              id_tibble <<- id_tibble %>% dplyr::bind_rows(id_tibble_temp)
               
               return(simulation_metrics_per_config)
             }) # end loop scenario variance
           ) 
         }  # end loop correlation second gene
       } # end loop correlation first gene
-      simulation_metrics <- simulation_metrics %>%
-        dplyr::mutate(entropy=compute_shannon_entropy(p) %>% round(digits = 3))
       dir.create("./simulations/results", showWarnings = F, recursive = TRUE)
       saveRDS(simulation_metrics, file = file.path("./simulations/results", paste0("temp_bivariate_", id_scenario, ".rds")))
-      id_scenario <- id_scenario + 1
+      
+      id_scenario <<- id_scenario + 1; message("One scenario has been ended.\n\n")
       return(simulation_metrics)
     }) # end loop ratios
-    message("One scenario has been ended.\n\n")
-    return(simulations_per_ratios %>% tibble::add_column(centroids=name_distance_centroids))
+    return(simulations_per_ratios)
   }) # end loop mean signatures
   
-  return(simulations)
+  return(list("simulations" = simulations, "config" = id_tibble))
 }
