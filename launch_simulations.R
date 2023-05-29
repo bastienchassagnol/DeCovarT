@@ -34,8 +34,8 @@ test_bivariate_scenario <- benchmark_deconvolution_algorithms_two_genes(proporti
 bivariate_scenario <- suppressWarnings(benchmark_deconvolution_algorithms_two_genes(proportions=list("balanced"=c(0.50, 0.50), 
                                                                                                      "highly_unbalanced"=c(0.95, 0.05)), n = 2000, 
                                                               corr_sequence = seq(-0.75, 0.75, 0.25),
-                                                              signature_matrices=list("small CLD" = matrix(c(20, 22, 22, 20), nrow = 2),
-                                                                                      "high CLD" = matrix(c(20, 40, 40, 20), nrow = 2)),
+                                                              signature_matrices=list("small ICD" = matrix(c(20, 22, 22, 20), nrow = 2),
+                                                                                      "high ICD" = matrix(c(20, 40, 40, 20), nrow = 2)),
                                                               deconvolution_functions = deconvolution_functions))
 saveRDS(bivariate_scenario, "/home/bncl_cb/rstudio/working/DeCovarT/simulations/results/bivariate_scenario.rds")
 
