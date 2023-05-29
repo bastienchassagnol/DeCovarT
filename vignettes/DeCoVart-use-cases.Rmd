@@ -19,7 +19,7 @@ output:
       before_body: auxiliary/macros.html
   bookdown::pdf_document2:
     keep_tex: true
-    extra_dependencies: ["amsmath", "amssymb", "caption", "subcaption", "hyperref"]
+    extra_dependencies: ["caption", "subcaption", "adjustbox", "multirow","float", "colortbl", "makecell", "hhline"]
     includes:
       in_header: auxiliary/macros.tex
     toc: false
@@ -61,7 +61,7 @@ editor_options:
     wrap: 72
 ---
 
-# Objectives
+# Model
 
 
 ```{r html-output-config, include = FALSE, eval=knitr::is_html_output()}
@@ -76,7 +76,7 @@ knitr::opts_chunk$set(
   cache = FALSE, lazy.cache = FALSE
 )
 options(rmarkdown.html_vignette.check_title = FALSE) # generate customised vignette title
-# rmarkdown::render("DeCoVart-use-cases.Rmd", output_format = 'all'))
+# rmarkdown::render("DeCoVart-use-cases.Rmd", output_format = 'all')
 ```
 
 ```{r pdf-output-config, include = FALSE, eval=knitr::is_latex_output()}
@@ -98,11 +98,35 @@ library(DeCovarT)
 library(ggplot2)
 library(dplyr)
 library(pkgdown) # generate automated links to R packages and functions
+library(kableExtra)
+
+# define function to automaticaly colour some sections, with respect to the output of the document
+colorize <- function(x, color) {
+  if (knitr::is_latex_output()) {
+    sprintf("\\textcolor{%s}{%s}", color, x)
+  } else {
+    sprintf("<span style='color: %s;'>%s</span>", color, x)
+  } 
+}
 ```
 
-## Rationale of the new generative model
 
-As in most traditional deconvolution models, we assume that the overall measured gene expression can be reconstructed by summing the individual contributions of each cell population weighted by its frequency. Formally, let $\boldsymbol{X}=(x_{gj}) \in \mathcal{M}_{\RR^{G\times J}}$ the signature matrix representing the purified transcriptomic profiles of $J$ cell populations and $\boldsymbol{p}=(p_{ji})\in ]0, 1[^{J \times N}$ the unknown relative proportions of cell populations in $N$ samples, then the linear relation relating the bulk expression $(\boldsymbol{y}=(y_{gi}) \in \mathbb{R}_+^{G\times N}$ to the individual cell expression profiles is given by the matrix product: $\boldsymbol{y}=\boldsymbol{X} \times \boldsymbol{p}$. In addition, we consider unit simplex constraint on the cellular ratios (Eq. \@ref(eq:positive-ratios)):
+We introduce the following notations:
+
+* $(\boldsymbol{y}=(y_{gi}) \in \mathbb{R}_+^{G\times N}$ is the global bulk transcriptomic expression, measured in $N$ individuals.
+*  $\boldsymbol{X}=(x_{gj}) \in \mathcal{M}_{\RR^{G\times J}}$ the signature matrix of the mean expression of $G$ genes in $J$ purified cell populations.
+* $\boldsymbol{p}=(p_{ji})\in ]0, 1[^{J \times N}$ the unknown relative proportions of cell populations in $N$ samples
+
+As in most traditional deconvolution models, we assume that the total bulk expression can be reconstructed by summing the individual contributions of each cell population weighted by its frequency, as stated explicitly in the following linear matricial relationship (Eq.\@ref(eq:deconvolution-problem)):
+
+```{=tex}
+\begin{equation}
+\boldsymbol{y}=\boldsymbol{X} \times \boldsymbol{p}
+(\#eq:deconvolution-problem)
+\end{equation} 
+```
+
+In addition, we consider the following unit simplex constraint on the cellular ratios (Eq.\@ref(eq:positive-ratios)):
 
 ```{=tex}
 \begin{equation}
@@ -114,7 +138,7 @@ As in most traditional deconvolution models, we assume that the overall measured
 \end{equation} 
 ```
 
-
+## Rationale of the new generative model
 
 However, in real conditions with technical and environmental variability, the strict linearity of the deconvolution does not strictly hold. Thus, an additional error term is usually added, assumed to follow a *homoscedastic* zero-centred Gaussian distribution and with pairwise independent response measures while the exogenous variables (here, the purified expression profiles) are supposed determined: this set of conditions is referred to as the Gaussian-Markow assumptions. In that configuration, the MLE (maximum likelihood estimate) that bast describes this standard linear model is equal to the ordinary least squares (OLS) estimate. 
 
@@ -210,13 +234,73 @@ The *Levenberg-Marquardt algorithm* bridges the gap between between the steepest
 
 We provide additional theoretical results, such as analytical formulas for the Gradient and the Hessian in their constrained and unconstrained versions as well as simulation outputs in the vignette of the [DeCovarT](https://github.com/bastienchassagnol/DeCovarT) Github webpage.
 
+# Simulations
+
+## Simulation of a convolution of multivariate Gaussian mixtures
+
+To assert numerically the relevance of accounting the correlation between expressed transcripts, we designed a simple toy example with two genes and two cell populations. Hence, using the simplex constraint (Eq.\@ref(eq:positive-ratios)), we only have to estimate one free unconstrained parameter, $\theta_1$, and then converts it back to the original ratio space using the mapping function (Eq.\@ref(eq:mapping-function)). 
+
+We simulated "virtual" bulk mixture, $\boldsymbol{y} \in \mathcal{M}_{G \times N}$, for a set of artificial samples $N=500$, with the following generative model: 
+
+* We tested two levels of cellular ratios, one with equi-balanced proportions ($\boldsymbol{p} = (p_1, p_2=1-p_1)=(\frac{1}{2}, \frac{1}{2})$ and one with highly unbalanced cell populations: $\boldsymbol{p} =(0.95, 0.05)$. 
+    
+* Then, each purified transcriptomic profile of the two cell populations is drawn from a bivariate Gaussian distribution. We compared two scenarios, playing on the mean distance of centroids, respectively $\mu_{.1}=(20, 22), \mu_{.2}=(22, 20)$ and $\mu_{.2}=(20, 40), \mu_{.2}=(40, 20)$) and building the covariance matrix,  $\mathbf{\Sigma} \in \mathcal{M}_{2 \times 2}$ by assuming equal individual variances for each gene  (the diagonal terms of the covariance matrix, $\diag(\boldsymbol{\Sigma_1})=\diag(\boldsymbol{\Sigma_1})=\boldsymbol{I}_2$) but varying the pairwise correlation between gene 1 and gene 2, $\CC{x_{1,2}}$, on the following set of values: $\{-0.8, -0.6, \ldots, 0.8\}$ for each of the cell population.
+
+* As stated in Eq.\@ref(eq:deconvolution-problem), we assume that bulk mixture, $\mathbf{y}_{.i}$ could be directly reconstructed by summing up the individual cellular contributions weighted by their abundance, without additional noise.
+
+
+Precisely, we tested the following general 8 parameters configurations listed in Table below (\@ref(tab:parameter-configuration-bivariate)) in this bivariate benchmark:
+
+
+```{r parameter-configuration-bivariate, layout = "l-body-outset"}
+
+reduced_bivariate_configuration <- DeCovarT::bivariate_configuration %>% 
+  mutate(ID=factor(ID, levels= unique(bivariate_configuration$ID))) %>% group_by(ID) %>% 
+  reframe(ID=stringr::str_replace_all(ID, "_", "-"),Entropy = mean(entropy), 
+          OVL = mean(signif(overlap, digits = 3)),
+          Proportions = purrr::map_chr(true_parameters, ~ paste(.x$p, collapse = " / ")),
+          Means = purrr::map_chr(true_parameters, ~ paste0("(", paste0(.x$mu[, 1], collapse = ","), ");(", paste0(.x$mu[, 2], collapse = ","), ")")),
+          Variance = purrr::map_chr(true_parameters, ~ paste(c(.x$sigma[1, 1, 1], .x$sigma[2, 2, 1]), collapse = " / "))) %>% 
+  dplyr::distinct()
+
+reduced_bivariate_configuration %>%  kbl(
+    booktabs = T, caption = "The 8 general scenarios tested to compare the performance of DeCovarT
+    vs standard linear deconvolution model", escape = F, align = "c") %>% 
+  kable_styling(latex_options = c("hold_position", "scale_down")) %>%
+  row_spec(0, bold = T) %>%
+  row_spec(1:8, hline_after = T) %>%
+  kable_styling(bootstrap_options = c("hover", "condensed"))
+
+```
+
+## Results
+We compared the performance of DeCovarT algorithm with the outcome of a quadratic algorithm that specifically addresses the unit simplex constraint: the negative least squares algorithm (NNLS, @haskell_hanson81). 
+
+Even with a limited toy example including two cell populations characterised only by two genes, we observe that the overlap was a good proxy of the quality of the estimation: the less the two cell distributions overlap, the better the quality of the estimation is (Fig. \@ref(fig:mse-complex-heatmap)):
+
+```{r prepare-legend-complex-heatmap, echo=FALSE}
+complex_heatmap_legend_html <- "We used package [ComplexHeatmap](https://jokergoo.github.io/ComplexHeatmap-reference/book/) to display the mean square error (MSE) of the estimated cell ratios, comparing the output of the deconRNASEQ algorithm [@gong_szustakowski13], in Panel **A**, with our newly implemented DeCovarT algorithm, in Panel **B**. The lower the MSE, the least noisy and biased the estimates. In addition, we added two-dimensional density plots of the central scenario, parametrised by a diagonal covariance matrix, and most extreme scenarios, with the highest gene pairwise correlation. The ellipsoids represent for each cell population the 95 % confidence region and the red spherical and green triangular shapes represent respectively the centroids of cell population 1 and cell population 2."
+  
+complex_heatmap_legend_pdf <- "We used the package \\CRANpkg{ComplexHeatmap} to display the mean square error (MSE) of the estimated cell ratios, comparing the output of the deconRNASEQ algorithm (\\cite{gong_szustakowski13}), in Panel \\textbf{A}, with our newly implemented DeCovarT algorithm, in Panel \\textbf{B}. The lower the MSE, the least noisy and biased the estimates. n addition, we added two-dimensional density plots of the central scenario, parametrised by a diagonal covariance matrix, and most extreme scenarios, with the highest gene pairwise correlation. The ellipsoids represent for each cell population the $95\\%$ confidence region and the red spherical and green triangular shapes represent respectively the centroids of cell population 1 and cell population 2."
+```
+
+
+```{r mse-complex-heatmap, fig.cap=if (knitr::is_html_output()) complex_heatmap_legend_html else complex_heatmap_legend_pdf}
+knitr::include_graphics("figs/deconvolution_Heatmap.png")
+```
+
+
+
+The package used to generate the simulations and infer ratios from virtual or real biological mixtures with the DeCovarT algorithm is implemented on personal Github account [DeCovarT](https://github.com/bastienchassagnol/DeCovarT).
+
+
 # References {.unnumbered}
 
 <div id="refs"></div>
 
 \appendix
 
-# Theoretical details {.appendix}
+# Appendix A: Theoretical details {.appendix}
 
 ## First and second-order derivation of the constrained DeCovarT log-likelihood function{.unnumbered #constrained-optimisation}
 
@@ -277,7 +361,7 @@ The Hessian (which fortunately is symmetric for each component $j$, as expected 
 with $i$ indexing $\boldsymbol{p}$, $j$ and $k$ respectively indexing the first-order and second-order partial derivatives of the mapping function with respect to $\boldsymbol{\theta}$. In line $(a)$, $\oplus$ refers to the Boolean XOR operator, $\land$ to the AND operator and $l=\{j,k\} \setminus i$.
 
 
-To derive the log-likelihood function in Eq.\@ref(eq:derivative-log-likelihood-unconstrained), we reparametrise $\boldsymbol{p}$ to  $\boldsymbol{\theta}$, using a standard \textit{chain rule formula). Considering the original log-likelihood function, Eq.\@ref(eq:loglikelihood-multivariate-gaussian), and the mapping function, Eq.\@ref(eq:mapping-function), the differential at the first order and at the second order is given by Eq.\@ref(eq:chain-rule-first-order) and Eq.\@ref(eq:chain-rule-second-order), respectively defined in $\RR^{J-1}$ and $\mathcal{M}_{(J-1)\times(J-1)}$:
+To derive the log-likelihood function in Eq.\@ref(eq:derivative-log-likelihood-unconstrained), we reparametrise $\boldsymbol{p}$ to  $\boldsymbol{\theta}$, using a standard *chain rule formula*). Considering the original log-likelihood function, Eq.\@ref(eq:loglikelihood-multivariate-gaussian), and the mapping function, Eq.\@ref(eq:mapping-function), the differential at the first order and at the second order is given by Eq.\@ref(eq:chain-rule-first-order) and Eq.\@ref(eq:chain-rule-second-order), respectively defined in $\RR^{J-1}$ and $\mathcal{M}_{(J-1)\times(J-1)}$:
 
 ```{=tex}
 \begin{equation}

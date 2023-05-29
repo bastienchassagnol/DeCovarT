@@ -8,13 +8,6 @@ RNGkind("L'Ecuyer-CMRG"); set.seed(3) # set an unique core
 deconvolution_functions <- list("lm"=list(FUN=deconvolute_ratios_abbas),
                                 "nnls"=list(FUN=deconvolute_ratios_nnls),
                                 "lsei"=list(FUN=deconvolute_ratios_deconRNASeq),
-                                # with the new log-likelihood function
-                                "optim"=list(FUN=deconvolute_ratios_basic_optim, 
-                                             additionnal_parameters = list(epsilon = 10^-3, itmax = 200)),
-                                "barrier"=list(FUN=deconvolute_ratios_constrOptim,
-                                               additionnal_parameters = list(epsilon = 10^-3, itmax = 200)),
-                                "SA"=list(FUN=deconvolute_ratios_simulated_annealing,
-                                          additionnal_parameters = list(epsilon = 10^-3, itmax = 200)),
                                 # "LBFGS"=list(FUN=deconvolute_ratios_LBFGS,
                                 #              additionnal_parameters = list(epsilon = 10^-3, itmax = 200)),
                                 
@@ -23,7 +16,14 @@ deconvolution_functions <- list("lm"=list(FUN=deconvolute_ratios_abbas),
                                 "hessian"=list(FUN=deconvolute_ratios_second_order,
                                                additionnal_parameters = list(epsilon = 10^-3, itmax = 200)),
                                 "DeCoVarT"=list(FUN=deconvolute_ratios_DeCoVarT,
-                                                additionnal_parameters = list(epsilon = 10^-3, itmax = 200)))
+                                                additionnal_parameters = list(epsilon = 10^-3, itmax = 200)),
+                                # with the new log-likelihood function
+                                "optim"=list(FUN=deconvolute_ratios_basic_optim, 
+                                             additionnal_parameters = list(epsilon = 10^-3, itmax = 200)),
+                                "barrier"=list(FUN=deconvolute_ratios_constrOptim,
+                                               additionnal_parameters = list(epsilon = 10^-3, itmax = 200)),
+                                "SA"=list(FUN=deconvolute_ratios_simulated_annealing,
+                                          additionnal_parameters = list(epsilon = 10^-3, itmax = 200)))
 
 test_bivariate_scenario <- benchmark_deconvolution_algorithms_two_genes(proportions=list("balanced"=c(0.50, 0.50)),
                                                                         n = 1, corr_sequence = c(-0.75, 0.75),

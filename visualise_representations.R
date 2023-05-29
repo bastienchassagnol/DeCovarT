@@ -11,13 +11,14 @@
 ##################################################################
 
 library(dplyr)
-bivariate_simulation <- readRDS("./simulations/results/bivariate_scenario.rds")
+bivariate_simulation <- readRDS("./simulations/bivariate_scenario.rds")
 bivariate_simulation_test <- bivariate_simulation %>%
   mutate(algorithm=factor(algorithm, levels = c("lm", "nnls", "lsei",
                                                 "gradient", "hessian", "DeCoVarT",
                                                 "optim", "barrier", "SA"))) %>%
   mutate(algorithm=forcats::fct_recode(algorithm, Levenberg = "DeCoVarT") %>% 
            forcats::fct_relevel())
+
 saveRDS(bivariate_simulation_test %>% dplyr::select(-c("proportions", "true_parameters",
                                                        "variance", "overlap", "model_coef_determination", 
                                                        "model_coef_determination_adjusted", "model_cor",
