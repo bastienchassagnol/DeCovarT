@@ -2,7 +2,18 @@
 % Please edit documentation in R/03_deconvolution_algorithms.R
 \name{deconvolute_ratios_DeCoVarT}
 \alias{deconvolute_ratios_DeCoVarT}
-\title{Title}
+\alias{deconvolute_ratios_simulated_annealing}
+\alias{deconvolute_ratios_LBFGS}
+\alias{deconvolute_ratios_constrOptim}
+\alias{deconvolute_ratios_second_order}
+\alias{deconvolute_ratios_basic_optim}
+\alias{deconvolute_ratios_first_order}
+\alias{deconvolute_ratios_CIBERSORT}
+\alias{deconvolute_ratios_abbas}
+\alias{deconvolute_ratios_monaco}
+\alias{deconvolute_ratios_nnls}
+\alias{deconvolute_ratios_deconRNASeq}
+\title{Deconvolution algorithm itself, for a given sample.}
 \usage{
 deconvolute_ratios_DeCoVarT(
   y,
@@ -12,21 +23,157 @@ deconvolute_ratios_DeCoVarT(
   epsilon = 10^-4,
   itmax = 200
 )
+
+deconvolute_ratios_simulated_annealing(
+  y,
+  X,
+  Sigma,
+  true_ratios = NULL,
+  epsilon = 10^-4,
+  itmax = 200
+)
+
+deconvolute_ratios_LBFGS(
+  y,
+  X,
+  Sigma,
+  true_ratios = NULL,
+  epsilon = 10^-4,
+  itmax = 200
+)
+
+deconvolute_ratios_constrOptim(
+  y,
+  X,
+  Sigma,
+  true_ratios = NULL,
+  epsilon = 10^-4,
+  itmax = 200
+)
+
+deconvolute_ratios_second_order(
+  y,
+  X,
+  Sigma,
+  true_ratios = NULL,
+  epsilon = 10^-4,
+  itmax = 200
+)
+
+deconvolute_ratios_basic_optim(
+  y,
+  X,
+  Sigma,
+  true_ratios = NULL,
+  epsilon = 10^-4,
+  itmax = 200
+)
+
+deconvolute_ratios_first_order(
+  y,
+  X,
+  Sigma,
+  true_ratios = NULL,
+  epsilon = 10^-4,
+  itmax = 200
+)
+
+deconvolute_ratios_CIBERSORT(y, X, true_ratios = NULL)
+
+deconvolute_ratios_abbas(y, X, true_ratios = NULL)
+
+deconvolute_ratios_monaco(y, X, true_ratios = NULL)
+
+deconvolute_ratios_nnls(y, X, true_ratios = NULL)
+
+deconvolute_ratios_deconRNASeq(y, X, true_ratios = NULL)
 }
 \arguments{
-\item{y}{}
+\item{y}{Parameter \code{y}: \eqn{\boldsymbol{y}=(y_{g}) \in \mathbb{R}^{G}},
+storing the measured expression of the \code{G} genes in the heterogeneous sample}
 
-\item{X}{}
+\item{X}{Parameter \code{mu}: \eqn{\boldsymbol{\mu}=(\mu_{g,j}) \in \mathbb{R}^{G \times J}},
+storing in each each column the averaged expression of the \code{G} genes of the \code{J} cell populations.}
 
-\item{Sigma}{}
+\item{Sigma}{Optional, the 3-dimensional covariance matrix array:
+\eqn{\mathrm{\Sigma}=(\Sigma_{l, k, j}) \in \mathbb{R}^{G \times G \times J}}, with each matrix
+\eqn{\Sigma_{..j}, j \in \{ 1, \ldots, J\}} storing the covariance matrix
+describing the covariance transcriptomic structure of a given cell population \eqn{j}}
 
-\item{true_ratios}{}
+\item{true_ratios}{Optional,  vector of size \eqn{J}, storing the normalised proportions
+of the cell populations supposed present in the sample. If provided, summary metrics
+will then be computed against the ones returned by the deconvolution algorithms provided.}
 
-\item{...}{}
+\item{epsilon, itmax}{Stopping criterion of the deconvolution algorithm,
+respectively measuring the absolute convergence of the log-likelihood and
+constraining the maximal number of iterations that the deconvolution algorithm performs}
 }
 \value{
-
+A \code{tibble}, with the following scores:
+\itemize{
+\item mse and rmse, for respectively \emph{mean} and \emph{root mean squared error}. See also the \code{\link[Metrics:mse]{Metrics::mse()}} function.
+\item mae, for \emph{mean absolute error}. See also the \code{\link[Metrics:mae]{Metrics::mae()}} function.
+\item \eqn{R^2} and adjusted \eqn{R^2}, corresponding to the percentage of variance
+captured by the linear regression model. See also the \code{\link[Metrics:rse]{Metrics::rse()}} function.
+\item cor, for the Pearson correlation between the estimated and true cellular ratios
+giving the mean values of the variables within a given component. See also the \code{\link[stats:cor]{stats::cor()}} function.
+}
 }
 \description{
-Title
+Deconvolution algorithm itself, for a given sample.
 }
+\section{Functions}{
+\itemize{
+\item \code{deconvolute_ratios_simulated_annealing()}: Uses SA (for simulated annealing)  to infer the simulated
+ratios, see also \link[stats:optim]{stats::optim} with \code{method="SANN"} for more details
+
+\item \code{deconvolute_ratios_LBFGS()}: A variant of the standard BFGS quasi-Newton method,
+that allows addtional box constraints (here we impose the ratios to be strictly included between 0 and 1)
+when inferring the simulated ratios, see also \link[stats:optim]{stats::optim} with \code{method="L-BFGS-B"} for more details
+
+\item \code{deconvolute_ratios_constrOptim()}: An adaptive barrier algorithm enforcing linear inequality constraints.
+See also \link[stats:constrOptim]{stats::constrOptim} for more details. Unfortunately, strict equality constraints coupled with inequality boxes
+are not possible in this method, so we just impose that that the ratios are included between 0 and 1, and
+that the sum should be inferior to the actual observed global bulk expression.
+
+\item \code{deconvolute_ratios_second_order()}: A standard second-order descent based algorithm,
+which reveals equivalent to perform a Newton's Raphson algorithm to retrieve the roots of the
+gradient.  See also \link[stats:nlminb]{stats::nlminb} for more details.
+
+\item \code{deconvolute_ratios_basic_optim()}: The most basic optimisation approach possible,
+implemented as a standard of the expected worst case, and to check whether computing and reparametrising the
+log-likelihood function was indeed worthy.
+To do so, we perform simply a basic BFGS descent on the original, non-constrained log-likelihood function,
+without even providing an explicit formula of the gradient or the hessian. However, we map back the returned estimates
+to the unit simplex constraint.
+
+\item \code{deconvolute_ratios_first_order()}: A standard first-order descent based algorithm,
+using the BFGS algorithm, see also \link[stats:optim]{stats::optim} with option \verb{method="BFGS}. We provide an explicit formula
+of the reparametrised log-likelihood function, as well as its gradient.
+
+\item \code{deconvolute_ratios_CIBERSORT()}: From this algorithm, providing
+any explicit prior of the covariance matrix is pointless, since we are,
+to our knowledge, the first ones to account for it explicitly. Here,
+a custom implementation of the CIBERSORT algorithm.
+
+\item \code{deconvolute_ratios_abbas()}: Here,
+a standard linear approach, as performed by Abbas, as it can be computed
+with function \code{\link[stats:lsfit]{stats::lsfit()}}. Nevertheless, similar to any other deconvolution methods,
+inferred ratios are normalised back to the unit simplex space.
+
+\item \code{deconvolute_ratios_monaco()}: Here,
+a robust linear approach, as performed in Monaco paper, as it can be computed
+with function \code{\link[MASS:rlm]{MASS::rlm()}}.
+
+\item \code{deconvolute_ratios_nnls()}: Here, function \code{\link[nnls:nnls]{nnls::nnls()}}
+is used as an interface to the Lawson-Hanson NNLS implementation, with the additional
+constraints that the raturned ratios can not be negative. It is thus less restrictive than function
+\link{deconvolute_ratios_deconRNASeq}.
+
+\item \code{deconvolute_ratios_deconRNASeq()}: Here,
+standard linear least squares optimisation, but accounting for
+the two equality and inequality constraints of the unit simplex. Similar to the implementation
+of the \code{deconRNASeq} algorithm, see also \code{\link[limSolve:lsei]{limSolve::lsei()}}
+or the \code{lsqlin} function in Matlab for additional details.
+
+}}

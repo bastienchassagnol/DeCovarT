@@ -10,14 +10,19 @@
 ##                      utility functions                      ##
 #################################################################
 
-# mapping function, from theta to ratios p
-#' Title
+
+#' @title Mapping function
+#' 
+#' @description The mapping function from unconstrained parameter \eqn{theta},
+#' living in \eqn{\mathbb{R}^{J-1}} to parameter vector of the cellular ratios
+#' \eqn{p}, subjected to the unit simplex constraint.
 #'
 #' @param theta 
 #'
-#' @return
+#' @return The numeric vector of size \eqn{J}, 
+#' storing the constrained ratios.
 #' @export
-#'
+
 
 mapping_function <- function(theta) {
   p <- c(exp(theta[1:length(theta)]),1)
@@ -228,26 +233,66 @@ hessian_loglik_constrained <- function (theta, y, X, Sigma) {
 ##                    iterated descent algorithms              ##
 #################################################################
 
-# deconvolution, using simulated annealing function
-#' Title
+
+#' Deconvolution algorithm itself, for a given sample.
 #'
-#' @param y 
-#' @param X 
-#' @param Sigma 
-#' @param true_ratios 
-#' @param ... 
+#' @param y Parameter `y`: \eqn{\boldsymbol{y}=(y_{g}) \in \mathbb{R}^{G}}, 
+#' storing the measured expression of the `G` genes in the heterogeneous sample
+#' @param X Parameter `mu`: \eqn{\boldsymbol{\mu}=(\mu_{g,j}) \in \mathbb{R}^{G \times J}}, 
+#' storing in each each column the averaged expression of the `G` genes of the `J` cell populations.
+#' @param Sigma Optional, the 3-dimensional covariance matrix array: 
+#'  \eqn{\mathrm{\Sigma}=(\Sigma_{l, k, j}) \in \mathbb{R}^{G \times G \times J}}, with each matrix
+#' \eqn{\Sigma_{..j}, j \in \{ 1, \ldots, J\}} storing the covariance matrix 
+#' describing the covariance transcriptomic structure of a given cell population \eqn{j}
+#' @param true_ratios Optional,  vector of size \eqn{J}, storing the normalised proportions 
+#' of the cell populations supposed present in the sample. If provided, summary metrics
+#' will then be computed against the ones returned by the deconvolution algorithms provided.
+#' @param epsilon,itmax Stopping criterion of the deconvolution algorithm, 
+#' respectively measuring the absolute convergence of the log-likelihood and 
+#' constraining the maximal number of iterations that the deconvolution algorithm performs  
 #'
-#' @return
+#' @inherit compute_benchmark_metrics return
 #' @export
-#'
+
+
+deconvolute_ratios_DeCoVarT <- function(y, X, Sigma, true_ratios=NULL, 
+                                        epsilon = 10^-4, itmax = 200) {
+  initial_p <- rep(1/ncol(X), ncol(X)) # consider by hypothesis equi-balanced proportions between cell populations
+  initial_theta <- inverse_mapping_function(initial_p)
+  # set minimize to false; partialH=2
+  invisible(utils::capture.output(estimated_theta <- marqLevAlg::marqLevAlg(b=initial_theta, fn=loglik_multivariate_constrained,
+                                                                            gr=gradient_loglik_constrained, hess = hessian_loglik_constrained,
+                                                                            epsa=epsilon, epsb = epsilon, epsd = epsilon, minimize=FALSE, multipleTry = 1,
+                                                                            y=y, X=X, Sigma=Sigma, maxiter=itmax)$b))
+  if (all(is.na(estimated_theta))) { # retrieve the last non missing estimate
+    output_lm <- capture.output(marqLevAlg::marqLevAlg(b=initial_theta, fn=loglik_multivariate_constrained,
+                                                       gr=gradient_loglik_constrained, hess = hessian_loglik_constrained,
+                                                       epsa=epsilon, epsb = epsilon, epsd = epsilon, minimize=FALSE, multipleTry = 1,
+                                                       y=y, X=X, Sigma=Sigma, maxiter=itmax)) # add partialH and blinding?
+    
+    estimated_theta <- output_lm[ grep("b : ", output_lm, value = F)] %>% stringr::str_match_all("[0-9,\\.]+") %>% 
+      unlist() %>% as.numeric() # retrieve last estimate before failure
+  }
+  estimated_p <- mapping_function(estimated_theta) %>%
+    enforce_identifiability() %>% # ensure non-negativity constraint and remove numerical underflow
+    stats::setNames(colnames(X)) 
+  
+  metrics_scores <- compute_benchmark_metrics(y, X, estimated_p, true_ratios) %>%
+    dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
+  return(metrics_scores)
+}
+
+
+#' @describeIn deconvolute_ratios_DeCoVarT Uses SA (for simulated annealing)  to infer the simulated
+#' ratios, see also [stats::optim] with `method="SANN"` for more details
 
 deconvolute_ratios_simulated_annealing <- function(y, X, Sigma, true_ratios=NULL,
                                                    epsilon = 10^-4, itmax = 200) {
   initial_p <- rep(1/ncol(X), ncol(X)) # consider by hypothesis equi-balanced proportions between cell populations
   initial_theta <- inverse_mapping_function(initial_p)
   # gr is not used in the simulated annealing approach
-  # In SANNN, maxit is the total number of point evaluations,and not the maxium number of iterations
-  estimated_theta <- optim(par=initial_theta,fn=loglik_multivariate_constrained, y=y, X=X, Sigma=Sigma,
+  # In SANNN, maxit is the total number of point evaluations, and not the maximum number of iterations
+  estimated_theta <- stats::optim(par=initial_theta,fn=loglik_multivariate_constrained, y=y, X=X, Sigma=Sigma,
                             control=list(fnscale=-1, maxit=itmax),method="SANN")$par 
   estimated_p <- mapping_function(estimated_theta) %>% stats::setNames(colnames(X))
 
@@ -256,19 +301,9 @@ deconvolute_ratios_simulated_annealing <- function(y, X, Sigma, true_ratios=NULL
   return(metrics_scores)
 }
 
-
-# deconvolution, using L-BFGS-B function
-#' Title
-#'
-#' @param y 
-#' @param X 
-#' @param Sigma 
-#' @param true_ratios 
-#' @param ... 
-#'
-#' @return
-#' @export
-#'
+#' @describeIn deconvolute_ratios_DeCoVarT A variant of the standard BFGS quasi-Newton method, 
+#' that allows addtional box constraints (here we impose the ratios to be strictly included between 0 and 1)
+#' when inferring the simulated ratios, see also [stats::optim] with `method="L-BFGS-B"` for more details
 
 deconvolute_ratios_LBFGS <- function(y, X, Sigma, true_ratios=NULL, 
                                      epsilon = 10^-4, itmax = 200) {
@@ -284,19 +319,10 @@ deconvolute_ratios_LBFGS <- function(y, X, Sigma, true_ratios=NULL,
   return(metrics_scores)
 }
 
-# deconvolution, using constrained barrier
-#' Title
-#'
-#' @param y 
-#' @param X 
-#' @param Sigma 
-#' @param true_ratios 
-#' @param epsilon 
-#' @param ... 
-#'
-#' @return
-#' @export
-#'
+#' @describeIn deconvolute_ratios_DeCoVarT An adaptive barrier algorithm enforcing linear inequality constraints. 
+#' See also [stats::constrOptim] for more details. Unfortunately, strict equality constraints coupled with inequality boxes
+#' are not possible in this method, so we just impose that that the ratios are included between 0 and 1, and
+#' that the sum should be inferior to the actual observed global bulk expression.
 
 deconvolute_ratios_constrOptim <- function(y, X, Sigma, true_ratios=NULL, 
                                            epsilon = 10^-4, itmax = 200) {
@@ -322,17 +348,9 @@ deconvolute_ratios_constrOptim <- function(y, X, Sigma, true_ratios=NULL,
 }
 
 
-# deconvolution, using standard constrained Newton-Raphson approach
-#' Title
-#'
-#' @param y 
-#' @param X 
-#' @param Sigma 
-#' @param true_ratios 
-#'
-#' @return
-#' @export
-#'
+#' @describeIn deconvolute_ratios_DeCoVarT A standard second-order descent based algorithm, 
+#' which reveals equivalent to perform a Newton's Raphson algorithm to retrieve the roots of the 
+#' gradient.  See also [stats::nlminb] for more details. 
 
 deconvolute_ratios_second_order <- function(y, X, Sigma, true_ratios=NULL, 
                                    epsilon = 10^-4, itmax = 200) {
@@ -361,61 +379,12 @@ deconvolute_ratios_second_order <- function(y, X, Sigma, true_ratios=NULL,
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
   return(metrics_scores)}
 
-
-
-# deconvolution, using constrained LM parametrisation
-#' Title
-#'
-#' @param y 
-#' @param X 
-#' @param Sigma 
-#' @param true_ratios 
-#' @param ... 
-#'
-#' @return
-#' @export
-#'
-
-deconvolute_ratios_DeCoVarT <- function(y, X, Sigma, true_ratios=NULL, 
-                                        epsilon = 10^-4, itmax = 200) {
-  initial_p <- rep(1/ncol(X), ncol(X)) # consider by hypothesis equi-balanced proportions between cell populations
-  initial_theta <- inverse_mapping_function(initial_p)
-  # set minimize to false; partialH=2
-  invisible(utils::capture.output(estimated_theta <- marqLevAlg::marqLevAlg(b=initial_theta, fn=loglik_multivariate_constrained,
-                                            gr=gradient_loglik_constrained, hess = hessian_loglik_constrained,
-                                            epsa=epsilon, epsb = epsilon, epsd = epsilon, minimize=FALSE, multipleTry = 1,
-                                            y=y, X=X, Sigma=Sigma, maxiter=itmax)$b))
-  if (all(is.na(estimated_theta))) { # retrieve the last non missing estimate
-      output_lm <- capture.output(marqLevAlg::marqLevAlg(b=initial_theta, fn=loglik_multivariate_constrained,
-                                          gr=gradient_loglik_constrained, hess = hessian_loglik_constrained,
-                                          epsa=epsilon, epsb = epsilon, epsd = epsilon, minimize=FALSE, multipleTry = 1,
-                                          y=y, X=X, Sigma=Sigma, maxiter=itmax)) # add partialH and blinding?
-    
-    estimated_theta <- output_lm[ grep("b : ", output_lm, value = F)] %>% stringr::str_match_all("[0-9,\\.]+") %>% 
-      unlist() %>% as.numeric() # retrieve last estimate before failure
-  }
-  estimated_p <- mapping_function(estimated_theta) %>%
-    enforce_identifiability() %>% # ensure non-negativity constraint and remove numerical underflow
-    stats::setNames(colnames(X)) 
-  
-  metrics_scores <- compute_benchmark_metrics(y, X, estimated_p, true_ratios) %>%
-    dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
-  return(metrics_scores)
-}
-
-
-# deconvolution, using the most basic optimisation approach
-#' Title
-#'
-#' @param y 
-#' @param X 
-#' @param Sigma 
-#' @param true_ratios 
-#' @param ... 
-#'
-#' @return
-#' @export
-#'
+#' @describeIn deconvolute_ratios_DeCoVarT The most basic optimisation approach possible, 
+#' implemented as a standard of the expected worst case, and to check whether computing and reparametrising the
+#' log-likelihood function was indeed worthy. 
+#' To do so, we perform simply a basic BFGS descent on the original, non-constrained log-likelihood function,
+#' without even providing an explicit formula of the gradient or the hessian. However, we map back the returned estimates
+#' to the unit simplex constraint.
 
 deconvolute_ratios_basic_optim <- function(y, X, Sigma, true_ratios=NULL, 
                                            epsilon = 10^-4, itmax = 200) {
@@ -434,18 +403,9 @@ deconvolute_ratios_basic_optim <- function(y, X, Sigma, true_ratios=NULL,
 }
 
 
-# deconvolution, using the constrained gradient approach
-#' Title
-#'
-#' @param y 
-#' @param X 
-#' @param Sigma 
-#' @param true_ratios 
-#' @param ... 
-#'
-#' @return
-#' @export
-#'
+#' @describeIn deconvolute_ratios_DeCoVarT A standard first-order descent based algorithm, 
+#' using the BFGS algorithm, see also [stats::optim] with option `method="BFGS`. We provide an explicit formula
+#' of the reparametrised log-likelihood function, as well as its gradient.
 
 deconvolute_ratios_first_order <- function(y, X, Sigma, true_ratios=NULL, 
                                            epsilon = 10^-4, itmax = 200) {
@@ -465,10 +425,6 @@ deconvolute_ratios_first_order <- function(y, X, Sigma, true_ratios=NULL,
 
 
 
-
-
-
-
 ############################################################################
 ############################################################################
 ###                                                                      ###
@@ -477,17 +433,10 @@ deconvolute_ratios_first_order <- function(y, X, Sigma, true_ratios=NULL,
 ############################################################################
 ############################################################################
 
-# Core algorithm (where svm regression is performed for each mixture)
-#' Title
-#'
-#' @param y 
-#' @param X 
-#' @param true_ratios 
-#' @param ... 
-#'
-#' @return
-#' @export
-#'
+#' @describeIn deconvolute_ratios_DeCoVarT From this algorithm, providing
+#' any explicit prior of the covariance matrix is pointless, since we are,
+#' to our knowledge, the first ones to account for it explicitly. Here, 
+#' a custom implementation of the CIBERSORT algorithm. 
 
 deconvolute_ratios_CIBERSORT <- function(y, X, true_ratios=NULL){
      #the set of nu values tested for best performance
@@ -510,17 +459,10 @@ deconvolute_ratios_CIBERSORT <- function(y, X, true_ratios=NULL){
     return(metrics_scores)
 }
 
-# linear regression
-#' Title
-#'
-#' @param y 
-#' @param X 
-#' @param true_ratios 
-#' @param ... 
-#'
-#' @return
-#' @export
-#'
+#' @describeIn deconvolute_ratios_DeCoVarT  Here, 
+#' a standard linear approach, as performed by Abbas, as it can be computed
+#' with function [stats::lsfit()]. Nevertheless, similar to any other deconvolution methods,
+#' inferred ratios are normalised back to the unit simplex space.
 
 deconvolute_ratios_abbas <- function(y, X, true_ratios=NULL) {
   estimated_p <- stats::lsfit(X, y, intercept = F)$coefficients
@@ -532,17 +474,9 @@ deconvolute_ratios_abbas <- function(y, X, true_ratios=NULL) {
   return(metrics_scores)
 }
 
-# robust linear regression
-#' Title
-#'
-#' @param y 
-#' @param X 
-#' @param true_ratios 
-#' @param ... 
-#'
-#' @return
-#' @export
-#'
+#' @describeIn deconvolute_ratios_DeCoVarT  Here, 
+#' a robust linear approach, as performed in Monaco paper, as it can be computed
+#' with function [MASS::rlm()]. 
 
 deconvolute_ratios_monaco <- function(y, X, true_ratios=NULL) {
   estimated_p <- MASS::rlm(y ~ X+ 0, method = c("M"))$coefficients; names(estimated_p) <- colnames(X)
@@ -554,18 +488,27 @@ deconvolute_ratios_monaco <- function(y, X, true_ratios=NULL) {
   return(metrics_scores)
 }
 
+#' @describeIn deconvolute_ratios_DeCoVarT Here, function [nnls::nnls()]
+#' is used as an interface to the Lawson-Hanson NNLS implementation, with the additional 
+#' constraints that the raturned ratios can not be negative. It is thus less restrictive than function 
+#' [deconvolute_ratios_deconRNASeq]. 
 
-# quadratic programming (lsei function, other possibility is to use lsqlin function)
-#' Title
-#'
-#' @param y 
-#' @param X 
-#' @param true_ratios 
-#' @param ... 
-#'
-#' @return
-#' @export
-#'
+deconvolute_ratios_nnls <- function(y, X, true_ratios=NULL) {
+  estimated_p <- nnls::nnls(X, y)$x
+  
+  # normalize coefficients (sum to 1, as non-negativity is already enforced)
+  estimated_p <- estimated_p/sum(estimated_p); names(estimated_p) <- colnames(X)
+  metrics_scores <- compute_benchmark_metrics(y, X, estimated_p, true_ratios) %>%
+    dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
+  return(metrics_scores)
+}
+
+
+#' @describeIn deconvolute_ratios_DeCoVarT  Here, 
+#' standard linear least squares optimisation, but accounting for 
+#' the two equality and inequality constraints of the unit simplex. Similar to the implementation
+#' of the `deconRNASeq` algorithm, see also [limSolve::lsei()]
+#' or the `lsqlin` function in Matlab for additional details. 
 
 deconvolute_ratios_deconRNASeq <- function(y, X, true_ratios=NULL) {
 
@@ -578,52 +521,25 @@ metrics_scores <- compute_benchmark_metrics(y, X, estimated_p, true_ratios) %>%
 return(metrics_scores)
 }
 
-# nnls scoring
-#' Title
+
+
+#' @title Compute summary metrics evaluating the quality of the estimate
+#' 
+#' @description Compute metrics, either comparing th estimated ratios with a gold standard
+#' or the divergence between the reconstituted virtual mixture, 
+#' using deterministic rule \eqn{\boldsymbol{\hat{y}}=\boldsymbol{X} \times \hat{\boldsymbol{p}}}
+#'and the actual measured one
 #'
-#' @param y 
-#' @param X 
-#' @param true_ratios 
-#' @param ... 
+#' @inheritParams deconvolute_ratios_DeCoVarT 
 #'
-#' @return
+#' @return A `tibble`, with the following scores:
+#' * mse and rmse, for respectively \emph{mean} and \emph{root mean squared error}. See also the [Metrics::mse()] function.
+#' * mae, for \emph{mean absolute error}. See also the [Metrics::mae()] function.
+#' * \eqn{R^2} and adjusted \eqn{R^2}, corresponding to the percentage of variance
+#' captured by the linear regression model. See also the [Metrics::rse()] function.
+#' * cor, for the Pearson correlation between the estimated and true cellular ratios
+#' giving the mean values of the variables within a given component. See also the [stats::cor()] function.
 #' @export
-#'
-
-deconvolute_ratios_nnls <- function(y, X, true_ratios=NULL) {
-  estimated_p <- nnls::nnls(X, y)$x
-
-  # normalize coefficients (sum to 1, as non-negativity is already enforced)
-  estimated_p <- estimated_p/sum(estimated_p); names(estimated_p) <- colnames(X)
-  metrics_scores <- compute_benchmark_metrics(y, X, estimated_p, true_ratios) %>%
-    dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
-  return(metrics_scores)
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# compute summary scores
-#' Title
-#'
-#' @param y 
-#' @param X 
-#' @param estimated_p 
-#' @param true_ratios 
-#'
-#' @return
-#' @export
-#'
 
 compute_benchmark_metrics <- function(y, X, estimated_p, true_ratios=NULL) {
   n <- nrow(X); k <- ncol(X)
@@ -635,7 +551,7 @@ compute_benchmark_metrics <- function(y, X, estimated_p, true_ratios=NULL) {
                              model_mae = Metrics::mae(true_ratios, estimated_p),
                              model_coef_determination = max(0, 1 - Metrics::rse(true_ratios, estimated_p)),
                              model_coef_determination_adjusted=max(0, 1 - (1-model_coef_determination) * df_tot/df_res),
-                             model_cor = suppressWarnings(cor(true_ratios, estimated_p, method = "pearson")))
+                             model_cor = suppressWarnings(stats::cor(true_ratios, estimated_p, method = "pearson")))
 
   }
   else { # when they are unknown
@@ -653,22 +569,28 @@ compute_benchmark_metrics <- function(y, X, estimated_p, true_ratios=NULL) {
   return(scores)
 }
 
-
-
-
-# main function, launching all deconvolution algorithms
-#' Title
+#' Main function of the package: deconvolute in parallel mixture samples
+#' 
+#' @author Bastien CHASSAGNOL
 #'
-#' @param signature_matrix 
-#' @param bulk_expression 
-#' @param scaled 
-#' @param true_ratios 
-#' @param Sigma 
-#' @param deconvolution_functions 
+#' @param signature_matrix Parameter `mu`: \eqn{\boldsymbol{\mu}=(\mu_{g,j}) \in \mathbb{R}^{G \times J}}, 
+#' storing in each each column the averaged expression of the `G` genes used to deconvolve all cell populations.
+#' Name your `colnames` as the cell populations, and provide `rownames` argument for the name of the genes. 
+#' By convention, we use HGNC symbols.
+#' @param bulk_expression Parameter `y`: \eqn{\boldsymbol{y}=(\mu_{g,i}) \in \mathbb{R}^{G \times I}}, 
+#' storing in each each column the measured expression of the `G` genes in a heterogeneous sample, using any RNASeq or microarray technology.
+#' Provide the sample ID for each of your samples in column, and the name of your genes in rownames.
+#' @param scaled Whether we should scale or not the dataset. By default, we consider that the provided dataset is in its original raw space,
+#' and we do not scale the dataset, since our deconvolution algorithm assumes a multivariate Gaussian distribution on the raw counts themselves.
+#' @param true_ratios If available (for instance, in the context of a virtual benchmark, or if some standard cytometry techniques provide them), 
+#' vector of size \eqn{J}, storing the normalised proportions of the cell populations supposed present in the sample. Summary metrics
+#' will then be computed against the ones returned by the deconvolution algorithms provided.
+#' @param Sigma Only relevant for deconvolution algorithms which require a prior estimate 
+#' of the transcriptomic  covariance for each of the purified cell populations
+#' @param deconvolution_functions The deconvolution functions themselves, as reported in 
 #'
-#' @return
+#' @return A `tibble` storing for each row the measured cell proportions, as well as some summary metrics
 #' @export
-#'
 
 deconvolute_ratios <- function(signature_matrix, bulk_expression, scaled=F, true_ratios=NULL, Sigma=NULL,
                                cores = ifelse (.Platform$OS.type == "unix",  getOption("mc.cores", parallel::detectCores()), 1), 

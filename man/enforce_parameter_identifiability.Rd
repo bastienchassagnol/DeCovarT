@@ -13,8 +13,8 @@ algorithm or by an EM algorithm on an univariate or multivariate GMM MLE estimat
 \item The proportions \code{p}: \eqn{p} of each component (must be included between 0 and 1, and sum to one overall)
 \item The mean matrix \code{mu}: \eqn{\mathrm{\mu}=(\mu_{i,j}) \in \mathbb{R}^{n \times k}}, with each column
 giving the mean values of the variables within a given component
-\item The 3-dimensional covariance matrix array \code{Sigma}: \eqn{\mathrm{\Sigma}=(\Sigma_{i,j,l}) \in \mathbb{R}^{n \times n \times k}}, with each matrix
-\eqn{\Sigma_{..l}, l \in \{ 1, \ldots, k\}} storing the covariance matrix of a given component,
+\item The 3-dimensional covariance matrix array \code{sigma}: \eqn{\mathrm{\sigma}=(\sigma_{i,j,l}) \in \mathbb{R}^{n \times n \times k}}, with each matrix
+\eqn{\sigma_{..l}, l \in \{ 1, \ldots, k\}} storing the covariance matrix of a given component,
 whose diagonal terms correspond to the variance of each variable, and off-terms diagonal elements return the covariance matrix
 }}
 }

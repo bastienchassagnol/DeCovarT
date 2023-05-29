@@ -4,12 +4,21 @@
 \alias{plot_correlation_Heatmap}
 \title{Plot Correlation Heatmap}
 \usage{
-plot_correlation_Heatmap(distribution_metrics, score_variable = "model_rmse")
+plot_correlation_Heatmap(
+  distribution_metrics,
+  score_variable = "model_mse",
+  n_break = 20,
+  uni_scale = TRUE
+)
 }
 \arguments{
 \item{distribution_metrics}{A tibble with the metric scores}
 
 \item{score_variable}{The name of the metric to plot on the Heatmap}
+
+\item{n_break}{the number of breaks allowed to generate the Heatmap}
+
+\item{uni_scale}{if FALSE, each Heatmap is plotted with its own scale}
 }
 \description{
 For each deconvolution algorithm, plot the metric selected over the range of selected ratios

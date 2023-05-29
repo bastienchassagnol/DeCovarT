@@ -2,7 +2,7 @@
 % Please edit documentation in R/03_deconvolution_algorithms.R
 \name{deconvolute_ratios}
 \alias{deconvolute_ratios}
-\title{Title}
+\title{Main function of the package: deconvolute in parallel mixture samples}
 \usage{
 deconvolute_ratios(
   signature_matrix,
@@ -10,31 +10,39 @@ deconvolute_ratios(
   scaled = F,
   true_ratios = NULL,
   Sigma = NULL,
-  cores = getOption("mc.cores", parallel::detectCores()),
-  verbose = FALSE,
-  deconvolution_functions = list(QP = list(FUN = deconvolute_ratios_deconRNASeq,
-    additionnal_parameters = NULL), lm = list(FUN = deconvolute_ratios_abbas,
-    additionnal_parameters = NULL), rlm = list(FUN = deconvolute_ratios_monaco,
-    additionnal_parameters = NULL), nnls = list(FUN = deconvolute_ratios_nnls,
-    additionnal_parameters = NULL))
+  cores = ifelse(.Platform$OS.type == "unix", getOption("mc.cores",
+    parallel::detectCores()), 1),
+  deconvolution_functions = NULL
 )
 }
 \arguments{
-\item{signature_matrix}{}
+\item{signature_matrix}{Parameter \code{mu}: \eqn{\boldsymbol{\mu}=(\mu_{g,j}) \in \mathbb{R}^{G \times J}},
+storing in each each column the averaged expression of the \code{G} genes used to deconvolve all cell populations.
+Name your \code{colnames} as the cell populations, and provide \code{rownames} argument for the name of the genes.
+By convention, we use HGNC symbols.}
 
-\item{bulk_expression}{}
+\item{bulk_expression}{Parameter \code{y}: \eqn{\boldsymbol{y}=(\mu_{g,i}) \in \mathbb{R}^{G \times I}},
+storing in each each column the measured expression of the \code{G} genes in a heterogeneous sample, using any RNASeq or microarray technology.
+Provide the sample ID for each of your samples in column, and the name of your genes in rownames.}
 
-\item{scaled}{}
+\item{scaled}{Whether we should scale or not the dataset. By default, we consider that the provided dataset is in its original raw space,
+and we do not scale the dataset, since our deconvolution algorithm assumes a multivariate Gaussian distribution on the raw counts themselves.}
 
-\item{true_ratios}{}
+\item{true_ratios}{If available (for instance, in the context of a virtual benchmark, or if some standard cytometry techniques provide them),
+vector of size \eqn{J}, storing the normalised proportions of the cell populations supposed present in the sample. Summary metrics
+will then be computed against the ones returned by the deconvolution algorithms provided.}
 
-\item{Sigma}{}
+\item{Sigma}{Only relevant for deconvolution algorithms which require a prior estimate
+of the transcriptomic  covariance for each of the purified cell populations}
 
-\item{deconvolution_functions}{}
+\item{deconvolution_functions}{The deconvolution functions themselves, as reported in}
 }
 \value{
-
+A \code{tibble} storing for each row the measured cell proportions, as well as some summary metrics
 }
 \description{
-Title
+Main function of the package: deconvolute in parallel mixture samples
+}
+\author{
+Bastien CHASSAGNOL
 }

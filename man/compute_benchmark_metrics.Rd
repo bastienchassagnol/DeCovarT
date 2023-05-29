@@ -2,22 +2,35 @@
 % Please edit documentation in R/03_deconvolution_algorithms.R
 \name{compute_benchmark_metrics}
 \alias{compute_benchmark_metrics}
-\title{Title}
+\title{Compute summary metrics evaluating the quality of the estimate}
 \usage{
 compute_benchmark_metrics(y, X, estimated_p, true_ratios = NULL)
 }
 \arguments{
-\item{y}{}
+\item{y}{Parameter \code{y}: \eqn{\boldsymbol{y}=(y_{g}) \in \mathbb{R}^{G}},
+storing the measured expression of the \code{G} genes in the heterogeneous sample}
 
-\item{X}{}
+\item{X}{Parameter \code{mu}: \eqn{\boldsymbol{\mu}=(\mu_{g,j}) \in \mathbb{R}^{G \times J}},
+storing in each each column the averaged expression of the \code{G} genes of the \code{J} cell populations.}
 
-\item{estimated_p}{}
-
-\item{true_ratios}{}
+\item{true_ratios}{Optional,  vector of size \eqn{J}, storing the normalised proportions
+of the cell populations supposed present in the sample. If provided, summary metrics
+will then be computed against the ones returned by the deconvolution algorithms provided.}
 }
 \value{
-
+A \code{tibble}, with the following scores:
+\itemize{
+\item mse and rmse, for respectively \emph{mean} and \emph{root mean squared error}. See also the \code{\link[Metrics:mse]{Metrics::mse()}} function.
+\item mae, for \emph{mean absolute error}. See also the \code{\link[Metrics:mae]{Metrics::mae()}} function.
+\item \eqn{R^2} and adjusted \eqn{R^2}, corresponding to the percentage of variance
+captured by the linear regression model. See also the \code{\link[Metrics:rse]{Metrics::rse()}} function.
+\item cor, for the Pearson correlation between the estimated and true cellular ratios
+giving the mean values of the variables within a given component. See also the \code{\link[stats:cor]{stats::cor()}} function.
+}
 }
 \description{
-Title
+Compute metrics, either comparing th estimated ratios with a gold standard
+or the divergence between the reconstituted virtual mixture,
+using deterministic rule \eqn{\boldsymbol{\hat{y}}=\boldsymbol{X} \times \hat{\boldsymbol{p}}}
+and the actual measured one
 }

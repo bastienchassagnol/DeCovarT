@@ -5,11 +5,11 @@
 \title{Benchmark two-component cell populations}
 \usage{
 benchmark_deconvolution_algorithms_two_genes(
-  proportions = list(balanced = c(0.5, 0.5), `small unbalanced` = c(0.6, 0.4), `highly
-    unbalanced` = c(0.05, 0.95)),
-  signature_matrix = matrix(c(20, 25, 25, 20), nrow = 2),
+  proportions = list(balanced = c(0.5, 0.5), `small unbalanced` = c(0.6, 0.4),
+    `highly unbalanced` = c(0.05, 0.95)),
+  signature_matrices = list(`small OVL` = matrix(c(20, 40, 40, 20), nrow = 2)),
   corr_sequence = seq(-0.8, 0.8, 0.2),
-  diagonal_terms = list(homoscedasctic = diag(c(1, 1)), heteroscedastic = diag(c(1, 2)
+  diagonal_terms = list(homoscedastic = diag(c(1, 1)), heteroscedastic = diag(c(1, 2)
     \%>\% sqrt())),
   deconvolution_functions = list(lm = list(FUN = deconvolute_ratios_abbas,
     additionnal_parameters = NULL)),
@@ -19,9 +19,6 @@ benchmark_deconvolution_algorithms_two_genes(
 }
 \arguments{
 \item{deconvolution_functions}{}
-}
-\value{
-
 }
 \description{
 Benchmark two-component cell populations

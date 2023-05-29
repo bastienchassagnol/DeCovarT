@@ -2,7 +2,7 @@
 % Please edit documentation in R/03_deconvolution_algorithms.R
 \name{mapping_function}
 \alias{mapping_function}
-\title{Title}
+\title{Mapping function}
 \usage{
 mapping_function(theta)
 }
@@ -10,8 +10,11 @@ mapping_function(theta)
 \item{theta}{}
 }
 \value{
-
+The numeric vector of size \eqn{J},
+storing the constrained ratios.
 }
 \description{
-Title
+The mapping function from unconstrained parameter \eqn{theta},
+living in \eqn{\mathbb{R}^{J-1}} to parameter vector of the cellular ratios
+\eqn{p}, subjected to the unit simplex constraint.
 }
