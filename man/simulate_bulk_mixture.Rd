@@ -2,7 +2,7 @@
 % Please edit documentation in R/02_simulations.R
 \name{simulate_bulk_mixture}
 \alias{simulate_bulk_mixture}
-\title{Simulate n bulk mixtures, knowing p, mu and cov individual variances}
+\title{Simulate bulk mixtures}
 \usage{
 simulate_bulk_mixture(
   signature_matrix,
@@ -12,13 +12,27 @@ simulate_bulk_mixture(
 )
 }
 \arguments{
-\item{proportions}{respective proportions of cell types}
-
-\item{n}{number of samples}
+\item{signature_matrix}{Parameter \code{mu}: \eqn{\boldsymbol{\mu}=(\mu_{g,j}) \in \mathbb{R}^{G \times J}},
+storing in each each column the averaged expression of the \code{G} genes used to deconvolve all cell populations.
+Name your \code{colnames} as the cell populations, and provide \code{rownames} argument for the name of the genes.
+By convention, we use HGNC symbols.}
 }
 \value{
-list with X: simulated purified expression profiles (as an array) and Y: the reconstituted bulk mixtures
+list with two items:
+\itemize{
+\item \eqn{\boldsymbol{X}:\left(x_{g,j,i}\right)_{1\le g\le G, 1\le j \le J, 1\le i \le N}}:
+the simulated purified expression profiles, stored in
+a three-dimensional array, each array storing the simulated expression of the
+\eqn{J} cell populations for a given individual \eqn{i}
+\item \eqn{\boldsymbol{Y} \in \mathcal{M}_{G \times N}^+}: a two-dimensional matrix storing the virtually
+simulated bulk mixtures. Each column \eqn{\boldsymbol{y_{.i}}} stores for individual \eqn{i}
+the expression value of the \eqn{G} genes, while attribute row.names is used
+to uniquely identy each of them.
+}
 }
 \description{
-Simulate n bulk mixtures, knowing p, mu and cov individual variances
+Using user defined parameters \eqn{p}, \eqn{\boldsymbol{X}} and
+\eqn{\boldsymbol{cov}}, simulate virtual bulk mixtures, using standard linear
+constraint of deconvolution algorithms, namely:
+\deqn{\boldsymbol{\hat{y}}=\boldsymbol{X} \times \hat{\boldsymbol{p}}}
 }

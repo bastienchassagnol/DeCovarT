@@ -14,9 +14,9 @@ plot_correlation_Heatmap(
 \arguments{
 \item{distribution_metrics}{A tibble with the metric scores}
 
-\item{score_variable}{The name of the metric to plot on the Heatmap}
+\item{score_variable}{The name of the metric to be represented on the Heatmap}
 
-\item{n_break}{the number of breaks allowed to generate the Heatmap}
+\item{n_break}{the continous number of breaks allowed to generate the Heatmap}
 
 \item{uni_scale}{if FALSE, each Heatmap is plotted with its own scale}
 }

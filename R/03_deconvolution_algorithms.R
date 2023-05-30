@@ -461,8 +461,7 @@ deconvolute_ratios_CIBERSORT <- function(y, X, true_ratios=NULL){
 
 #' @importFrom Rdpack reprompt
 #' @describeIn deconvolute_ratios_DeCoVarT  Here, 
-#' a standard linear approach, as performed in [abbas_etal09](https://doi.org/10.1371/journal.pone.0006098),
-#' \insertCite{abbas_etal09;textual}{DeCovarT} as it can be computed 
+#' a standard linear approach, as performed in \insertCite{abbas_etal09;textual}{DeCovarT} as it can be computed 
 #' with function [stats::lsfit()]. Nevertheless, similar to any other deconvolution methods,
 #' inferred ratios are normalised back to the unit simplex space.
 
@@ -477,8 +476,8 @@ deconvolute_ratios_abbas <- function(y, X, true_ratios=NULL) {
 }
 
 #' @describeIn deconvolute_ratios_DeCoVarT  Here, 
-#' a robust linear approach, as performed in [monaco_etal19](https://doi.org/10.1016/j.celrep.2019.01.041),
-#' \insertCite{monaco_etal19}{DeCovarT} as it can be computed with function [MASS::rlm()]. 
+#' a robust linear approach, as performed in \insertCite{monaco_etal19;textual}{DeCovarT} 
+#' as it can be computed with function [MASS::rlm()]. 
 
 deconvolute_ratios_monaco <- function(y, X, true_ratios=NULL) {
   estimated_p <- MASS::rlm(y ~ X+ 0, method = c("M"))$coefficients; names(estimated_p) <- colnames(X)

@@ -157,14 +157,13 @@ to our knowledge, the first ones to account for it explicitly. Here,
 a custom implementation of the CIBERSORT algorithm.
 
 \item \code{deconvolute_ratios_abbas()}: Here,
-a standard linear approach, as performed in \href{https://doi.org/10.1371/journal.pone.0006098}{abbas_etal09},
-\insertCite{abbas_etal09;textual}{DeCovarT} as it can be computed
+a standard linear approach, as performed in \insertCite{abbas_etal09;textual}{DeCovarT} as it can be computed
 with function \code{\link[stats:lsfit]{stats::lsfit()}}. Nevertheless, similar to any other deconvolution methods,
 inferred ratios are normalised back to the unit simplex space.
 
 \item \code{deconvolute_ratios_monaco()}: Here,
-a robust linear approach, as performed in \href{https://doi.org/10.1016/j.celrep.2019.01.041}{monaco_etal19},
-\insertCite{monaco_etal19}{DeCovarT} as it can be computed with function \code{\link[MASS:rlm]{MASS::rlm()}}.
+a robust linear approach, as performed in \insertCite{monaco_etal19;textual}{DeCovarT}
+as it can be computed with function \code{\link[MASS:rlm]{MASS::rlm()}}.
 
 \item \code{deconvolute_ratios_nnls()}: Here, function \code{\link[nnls:nnls]{nnls::nnls()}}
 is used as an interface to the Lawson-Hanson NNLS implementation, with the additional

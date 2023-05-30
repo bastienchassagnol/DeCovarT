@@ -3,8 +3,8 @@
 #' For each deconvolution algorithm, plot the metric selected over the range of selected ratios
 #'
 #' @param distribution_metrics A tibble with the metric scores
-#' @param score_variable The name of the metric to plot on the Heatmap
-#' @param n_break the number of breaks allowed to generate the Heatmap
+#' @param score_variable The name of the metric to be represented on the Heatmap
+#' @param n_break the continous number of breaks allowed to generate the Heatmap
 #' @param uni_scale if FALSE, each Heatmap is plotted with its own scale
 #'
 #' @export
@@ -34,8 +34,11 @@ plot_correlation_Heatmap <- function(distribution_metrics, score_variable = "mod
                          values_from = .data[[score_variable]],values_fn = mean) %>%
       tibble::column_to_rownames("correlation_celltype1") %>% as.matrix()
     
-    if (!uni_scale) col <- circlize::colorRamp2(c(min(cor_matrix_per_algo), median(cor_matrix_per_algo), max(cor_matrix_per_algo)),
-                                                c("blue", "white", "red"))
+    # if (!uni_scale) col <- circlize::colorRamp2(c(min(cor_matrix_per_algo), median(cor_matrix_per_algo), max(cor_matrix_per_algo)),
+    #                                             c("blue", "white", "red"))
+    
+    if (!uni_scale) col <-circlize::colorRamp2(c(min(cor_matrix_per_algo), median(cor_matrix_per_algo), max(cor_matrix_per_algo)), 
+                         viridis::viridis(n_break))
     
     complex_heatmap_per_algo <- ComplexHeatmap::Heatmap(cor_matrix_per_algo, col=col, name=gsub("model_", "", score_variable),
                                                         heatmap_legend_param = list(title = gsub("model_", "", score_variable) %>% toupper),
