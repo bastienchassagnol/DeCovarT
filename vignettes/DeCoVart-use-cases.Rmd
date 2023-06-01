@@ -10,16 +10,16 @@ output:
   #   config:
   #     toolbar:
   #       position: static
-  bookdown::html_document2:
-    number_sections: false
-    code_folding: hide
-    df_print: kable
-    includes:
-      in_header: auxiliary/ga.html
-      before_body: auxiliary/macros.html
+  # bookdown::html_document2:
+  #   number_sections: false
+  #   code_folding: hide
+  #   df_print: kable
+  #   includes:
+  #     in_header: auxiliary/ga.html
+  #     before_body: auxiliary/macros.html
   bookdown::pdf_document2:
     keep_tex: true
-    extra_dependencies: ["caption", "subcaption", "adjustbox", "multirow","float", "colortbl", "makecell", "hhline"]
+    extra_dependencies: ["caption", "subcaption", "adjustbox", "multirow","float", "colortbl", "makecell", "hhline","fvextra"]
     includes:
       in_header: auxiliary/macros.tex
     toc: false
@@ -87,7 +87,7 @@ knitr::opts_chunk$set(
   out.width = "90%",
   message = FALSE,
   warning = FALSE,
-  echo=FALSE,
+  echo = FALSE,
   cache = FALSE, lazy.cache = FALSE
 )
 ```
@@ -99,6 +99,7 @@ library(ggplot2)
 library(dplyr)
 library(pkgdown) # generate automated links to R packages and functions
 library(kableExtra)
+library(flextable)
 
 # define function to automaticaly colour some sections, with respect to the output of the document
 colorize <- function(x, color) {
@@ -106,7 +107,7 @@ colorize <- function(x, color) {
     sprintf("\\textcolor{%s}{%s}", color, x)
   } else {
     sprintf("<span style='color: %s;'>%s</span>", color, x)
-  } 
+  }
 }
 ```
 
@@ -221,7 +222,7 @@ Since the solution to $\nabla \left( \ell_{\boldsymbol{y} | \boldsymbol{\zeta}}(
 ```
 
 
-in which the coloured sections pair one by one with the corresponding coloured sections of the gradient, given in Eq.\@ref(eq:derivative-log-likelihood-unconstrained). Matrix calculus can largely ease the derivation of complex algebraic expressions, thus we remind in Appendix [Matrix calculus](#matrix-calculus) relevant matrix properties and derivations ^[The numerical consistency of these derivatives was asserted with the `r knitr::asis_output(ifelse(knitr::is_html_output(), downlit::autolink("numDeriv::genD"),   '\\CRANpkg{numDeriv}'))` \CRANpkg{numDeriv} package, using the more stable Richardson’s extrapolation].
+in which the coloured sections pair one by one with the corresponding coloured sections of the gradient, given in Eq.\@ref(eq:derivative-log-likelihood-unconstrained). Matrix calculus can largely ease the derivation of complex algebraic expressions, thus we remind in Appendix [Matrix calculus](#matrix-calculus) relevant matrix properties and derivations ^[The numerical consistency of these derivatives was asserted with the `r knitr::asis_output(ifelse(knitr::is_html_output(), downlit::autolink("numDeriv::genD"),   '\\CRANpkg{numDeriv}'))` package, using the more stable Richardson’s extrapolation].
 
 However, the explicit formulas for the gradient and the Hessian matrix of the log-likelihood function, given in Eq.\@ref(eq:derivative-log-likelihood-unconstrained) and Eq.\@ref(eq:hessian-log-likelihood-unconstrained) respectively, do not take into account the simplex constraint assigned to the ratios. While some optimisation methods use heuristic methods to solve this problem, we consider alternatively a reparametrised version of the problem, detailed comprehensively in Appendix [Reparametrised log-likelihood](#constrained-optimisation).
 
@@ -253,34 +254,202 @@ Precisely, we tested the following general 8 parameters configurations listed in
 
 
 ```{r parameter-configuration-bivariate, layout = "l-body-outset"}
-
-reduced_bivariate_configuration <- DeCovarT::bivariate_configuration %>% 
-  mutate(ID=factor(ID, levels= unique(bivariate_configuration$ID))) %>% group_by(ID) %>% 
-  reframe(ID=stringr::str_replace_all(ID, "_", "-"),Entropy = mean(entropy), 
-          OVL = mean(signif(overlap, digits = 3)),
-          Proportions = purrr::map_chr(true_parameters, ~ paste(.x$p, collapse = " / ")),
-          Means = purrr::map_chr(true_parameters, ~ paste0("(", paste0(.x$mu[, 1], collapse = ","), ");(", paste0(.x$mu[, 2], collapse = ","), ")")),
-          Variance = purrr::map_chr(true_parameters, ~ paste(c(.x$sigma[1, 1, 1], .x$sigma[2, 2, 1]), collapse = " / "))) %>% 
+reduced_bivariate_configuration <- DeCovarT::bivariate_configuration %>%
+  mutate(ID = factor(ID, levels = unique(bivariate_configuration$ID))) %>%
+  group_by(ID) %>%
+  reframe(
+    ID = stringr::str_replace_all(ID, "_", "-"), Entropy = mean(entropy),
+    OVL = mean(signif(overlap, digits = 3)),
+    Proportions = purrr::map_chr(true_parameters, ~ paste(.x$p, collapse = " / ")),
+    Means = purrr::map_chr(true_parameters, ~ paste0("(", paste0(.x$mu[, 1], collapse = ","), ");(", paste0(.x$mu[, 2], collapse = ","), ")")),
+    Variance = purrr::map_chr(true_parameters, ~ paste(c(.x$sigma[1, 1, 1], .x$sigma[2, 2, 1]), collapse = " / "))
+  ) %>%
   dplyr::distinct()
 
-reduced_bivariate_configuration %>%  kbl(
+reduced_bivariate_configuration %>%
+  kbl(
     booktabs = T, caption = "The 8 general scenarios tested to compare the performance of DeCovarT
-    vs standard linear deconvolution model", escape = F, align = "c") %>% 
+    vs standard linear deconvolution model", escape = F, align = "c"
+  ) %>%
   kable_styling(latex_options = c("hold_position", "scale_down")) %>%
   row_spec(0, bold = T) %>%
   row_spec(1:8, hline_after = T) %>%
   kable_styling(bootstrap_options = c("hover", "condensed"))
+```
+## Practical implementation
+
+In practice, to generate a sample with the probabilistic framework described in subfigure b) (Fig.`r knitr::asis_output(ifelse(knitr::is_html_output(), '\\@ref(fig:load-DAG-html)', '\\@ref(fig:load-DAG-pdf)'))`), 
+you can take benefit from function you may use the natively
+provided DeCovarT function `simulate_bulk_mixture()` (click-on link, to access automatically to its documentation).
+
+
+To compare automatically the quality of the output and the performance 
+of several deconvolution algorithms, you may directly use function `deconvolute_ratios()`, which, in addition to infer in a parallel fashion the individual cellular ratios of $n$ independent samples, performs the following normalisation and pre-processing tasks^[Note that Window users can not unfortunately perform parallel computation with a R interface, slowing considerably the operations compared to a Linux user. Additionally, with that function, we assume that the reference profile used is the same for all individuals.]:
+
+1. Remove genes from both reference signature matrices and bulk profiles, 
+presenting at least a missing value for respectively a cell population, 
+or an individual biological sample. In the mean time, we control that the
+provided transcriptomic expressions are in numeric format.
+
+2. Ensure that at least $50\%$ of the provided genes are common between the 
+purified reference profiles and bulk mixture^[For the moment, you may use any `rownames` argument,
+however, in a near future, we plan to add automated control whether they are 
+known and valid HGNC symbols]. We also check if valid `colnames` are provided for the
+purified reference matrices (in a near time, we would control that they match ontology
+terms, as the ones returned by R function `r knitr::asis_output(ifelse(knitr::is_html_output(), downlit::autolink("ontoProc::getCellOnto"),   '\\CRANpkg{ontoProc}'))`).
+
+3. Ensure that both reference and bulk profiles are provided as raw counts (or possibly
+non-logged TPMs), since the DeCovarT model and its variants assume a convolution of 
+parametric distributions on the original parameter space.
+
+Alternatively, you may directly use any of the implemented deconvolution functions, 
+providing at least the two required parameters `y` (individual bulk profile) and `X` 
+(individual or global purified reference profiles), but we do not perform again the regular pre-control
+and processing steps described above. The main characteristics of some of the most relevant deconvolution algorithms implemented are reported in Table `r knitr::asis_output(ifelse(knitr::is_html_output(), '\\@ref(tab:deconvolution-decovart-html)', '\\@ref(tab:deconvolution-decovart-pdf)'))` below:
+
+```{r deconvolution-decovart-pdf, eval = knitr::is_latex_output(), fig.pos="!ht"}
+readr::read_delim("./tables/decovart_methods.csv", delim = ";", show_col_types = F) %>%
+    mutate(`DeCovarT function`=paste0("\\Verb|", `DeCovarT function`,"|")) %>% 
+  kbl(booktabs = T, caption = "Main characteristics of the benchmarked packages in our toy example. 
+  \\textit{DeCovarT function} refers to the R function of our package, used to implement 
+      the corresponding algorithm labelled in column 1. When different from the default values of the hyper-parameters,
+      we detail their reviewed values in column \\textit{Hyper-parameters}",escape = F) %>% 
+  row_spec(0, bold = T, align = "c", hline_after = T) %>%
+  kable_styling(latex_options = c("hold_position", "scale_down")) %>%
+  column_spec(column = 1:4, latex_valign = "m", width = c("4cm", "6cm", "6cm", "5cm")) %>%
+  column_spec(column = 1, bold = T) %>% 
+  add_footnote("Most optimisation methods implemented in R, by default, aim at minimising a given quantity/function,
+               since, most of them were designed at first to minimise the squared error residuals. Howver, maximising a function
+               is equivalent to minimise its negative counterpart, which can easily be done in optimisation algorithms,
+               by assigning parameter `fnscale` to 1.")
+```
+
+```{r deconvolution-decovart-html, eval = knitr::is_html_output()}
+readr::read_delim("./tables/decovart_methods.csv", delim = ";", show_col_types = F) %>% flextable() %>%
+  set_caption(
+    caption = "Main characteristics of the benchmarked packages in our toy example. 
+  *DeCovarT function* refers to the R function of our package, used to implement 
+      the corresponding algorithm labelled in column 1. When different from the default values of the hyper-parameters,
+      we detail their reviewed values in column *Hyper-parameters*", html_escape = F ) %>%
+  theme_vanilla() %>%
+  align(align = "center", part = "header") %>% # centre align header
+  bold(j = "Algorithm", bold = TRUE, part = "body") %>% 
+  flextable::autofit() %>% 
+  flextable::footnote(i = 6:10,
+    j = 4,
+    value= as_paragraph("Most optimisation methods implemented in R, by default, aim at minimising a given quantity/function, 
+    since, most of them were designed at first to minimise the squared error residuals. Howver, maximising a function
+    is equivalent to minimise its negative counterpart, which can easily be done in optimisation algorithms,
+    by assigning parameter `fnscale` to 1."), ref_symbols = c("a"))
 
 ```
 
-## Results
+
+Finally, to reproduce the results of the benchmark, you can use the highly specific function `benchmark_deconvolution_algorithms_two_genes()`: 
+a highly specific wrapper, used as a toy example to automatically benchmark 
+for a given number of observations $n$ the performance 
+of several deconvolution algorithms, as a function of the level of entropy (play on
+the parameter `proportions`) and overlap (play on parameter `signature_matrices` 
+to control the average proximity of *centroids*= the averaged expression profiles, and
+parameters `diagonal_terms,corr_sequence` to control the topological configuration
+of the bivariate Gaussian distribution, playing on the parametrisation of the covariance 
+matrix.) and `plot_correlation_Heatmap()` to visualise in a row the performance of several deconvolution
+algorithms (each Heatmap should be associated to one scenario of homoscedascity, entropy and average distance to centroids, then used to compare the performance, measured for a given metric, 
+of a deconvolution algorithm). For instance, to reproduce the results provided 
+in document [Heatmaps associated to bivariate scenario](https://github.com/bastienchassagnol/DeCovarT/blob/main/figs/bivariate_Heatmaps.pdf), we execute the following code snippet:
+
+```{r scenario-bivariate, echo=TRUE, eval=FALSE}
+library(DeCovarT)
+library(dplyr)
+
+##################################################################
+##               execute the bivariate simulation               ##
+##################################################################
+
+RNGkind("L'Ecuyer-CMRG")
+set.seed(3) # set an unique core (only for Linux users, to enable reproducible results)
+deconvolution_functions <- list(
+  "lm" = list(FUN = deconvolute_ratios_abbas),
+  "nnls" = list(FUN = deconvolute_ratios_nnls),
+  "lsei" = list(FUN = deconvolute_ratios_deconRNASeq),
+  # with the new log-likelihood function and explicit gradient or Hessian
+  "gradient" = list(
+    FUN = deconvolute_ratios_first_order,
+    additional_parameters = list(epsilon = 10^-3, itmax = 200)
+  ),
+  "hessian" = list(
+    FUN = deconvolute_ratios_second_order,
+    additional_parameters = list(epsilon = 10^-3, itmax = 200)
+  ),
+  "DeCoVarT" = list(
+    FUN = deconvolute_ratios_DeCoVarT,
+    additional_parameters = list(epsilon = 10^-3, itmax = 200)
+  ),
+  # with the new log-likelihood function, but stochastic estimation of the gradient
+  "optim" = list(
+    FUN = deconvolute_ratios_basic_optim,
+    additional_parameters = list(epsilon = 10^-3, itmax = 200)
+  ),
+  "barrier" = list(
+    FUN = deconvolute_ratios_constrOptim,
+    additional_parameters = list(epsilon = 10^-3, itmax = 200)
+  ),
+  "SA" = list(
+    FUN = deconvolute_ratios_simulated_annealing,
+    additional_parameters = list(epsilon = 10^-3, itmax = 200)
+  )
+)
+# retrieve the estimated, benchmarked parameters
+bivariate_simulation <- benchmark_deconvolution_algorithms_two_genes(
+  proportions = list(
+    "balanced" = c(0.50, 0.50),
+    "highly_unbalanced" = c(0.95, 0.05)
+  ),
+  signature_matrices = list(
+    "small ICD" = matrix(c(20, 22, 22, 20), nrow = 2),
+    "high ICD" = matrix(c(20, 40, 40, 20), nrow = 2)
+  ),
+  corr_sequence = seq(-0.75, 0.75, 0.25),
+  diagonal_terms = list("homoscedastic" = c(1, 1), "heteroscedastic" = c(1, 2)),
+  deconvolution_functions = deconvolution_functions, n = 2000, scaled = FALSE
+) %>% magrittr::extract2("simulations")
+
+
+##################################################################
+##                 plot the associated Heatmaps                 ##
+##################################################################
+splitted_parameters <- split(x = bivariate_simulation, f = bivariate_simulation$ID)
+bivariate_simulation_heatmap <- purrr::imap(splitted_parameters, function(.data, .name_scenario) {
+  heatmap_per_scenario <- plot_correlation_Heatmap(.data) # actual call to the associated DeCovarT function
+  heatmap_page <- purrr::imap(heatmap_per_scenario, ~ ComplexHeatmap::draw(.x,
+    padding = unit(c(0, 0, 0, 0), "cm"),
+    column_title = .y, column_title_gp = grid::gpar(fontsize = 12, fontface = "bold")
+  ) %>%
+    grid::grid.grabExpr())
+  # general organisation: 3 deconvolution algorithms per column
+  heatmap_page <- gridExtra::arrangeGrob(
+    grobs = heatmap_page, ncol = 3, padding = unit(0.1, "line"),
+    top = ggpubr::text_grob(.name_scenario, size = 18, face = "bold")
+  )
+  return(heatmap_page)
+})
+
+# save the actual output
+ggsave("./figs/bivariate_Heatmaps.pdf",
+  gridExtra::marrangeGrob(grobs = bivariate_simulation_heatmap, top = "", ncol = 1, nrow = 1),
+  width = 12, height = 12, dpi = 300
+)
+```
+
+
+## Results on toy example
 We compared the performance of DeCovarT algorithm with the outcome of a quadratic algorithm that specifically addresses the unit simplex constraint: the negative least squares algorithm (NNLS, @haskell_hanson81). 
 
 Even with a limited toy example including two cell populations characterised only by two genes, we observe that the overlap was a good proxy of the quality of the estimation: the less the two cell distributions overlap, the better the quality of the estimation is (Fig. \@ref(fig:mse-complex-heatmap)):
 
 ```{r prepare-legend-complex-heatmap, echo=FALSE}
 complex_heatmap_legend_html <- "We used package [ComplexHeatmap](https://jokergoo.github.io/ComplexHeatmap-reference/book/) to display the mean square error (MSE) of the estimated cell ratios, comparing the output of the deconRNASEQ algorithm [@gong_szustakowski13], in Panel **A**, with our newly implemented DeCovarT algorithm, in Panel **B**. The lower the MSE, the least noisy and biased the estimates. In addition, we added two-dimensional density plots of the central scenario, parametrised by a diagonal covariance matrix, and most extreme scenarios, with the highest gene pairwise correlation. The ellipsoids represent for each cell population the 95 % confidence region and the red spherical and green triangular shapes represent respectively the centroids of cell population 1 and cell population 2."
-  
+
 complex_heatmap_legend_pdf <- "We used the package \\CRANpkg{ComplexHeatmap} to display the mean square error (MSE) of the estimated cell ratios, comparing the output of the deconRNASEQ algorithm (\\cite{gong_szustakowski13}), in Panel \\textbf{A}, with our newly implemented DeCovarT algorithm, in Panel \\textbf{B}. The lower the MSE, the least noisy and biased the estimates. n addition, we added two-dimensional density plots of the central scenario, parametrised by a diagonal covariance matrix, and most extreme scenarios, with the highest gene pairwise correlation. The ellipsoids represent for each cell population the $95\\%$ confidence region and the red spherical and green triangular shapes represent respectively the centroids of cell population 1 and cell population 2."
 ```
 
@@ -293,6 +462,68 @@ knitr::include_graphics("figs/deconvolution_Heatmap.png")
 
 The package used to generate the simulations and infer ratios from virtual or real biological mixtures with the DeCovarT algorithm is implemented on personal Github account [DeCovarT](https://github.com/bastienchassagnol/DeCovarT).
 
+## Results on real datasets
+
+The whole list of benchmarked packages is described, with their main parameters and a summary of the method used, in Table `r knitr::asis_output(ifelse(knitr::is_html_output(), '\\@ref(tab:deconvolution-table-html)', '\\@ref(tab:deconvolution-table-pdf)'))` below:
+
+```{r deconvolution-table-pdf, eval = knitr::is_latex_output(), fig.pos="!ht"}
+readr::read_delim("./tables/deconvolution_methods.csv", delim = ";", show_col_types = F) %>%
+  slice (1:14L) %>% select(-c("Online method")) %>% 
+  mutate(# `DeCovarT function`=gsub("_", "\\_", `DeCovarT function`),
+         `DeCovarT function`=dplyr::if_else(`DeCovarT function`=="redcross", "redcross", paste0("\\Verb|", `DeCovarT function`,"|")),
+         dplyr::across(everything(), ~ gsub(pattern = "redcross", "\\\\redcross", .x)),
+         # across(.cols = where(is.character), kableExtra::linebreak, linebreaker = "\\\\n")
+         ) %>%
+  kbl(
+    booktabs = T, caption = "Features of some gold-standard deconvolution algorithms, benchmarked in this package.
+               \\textit{Family} returns the general type of each deconvolution algorithm, among these three classes:
+               \\textit{supervised} algorithms, which use either a reference profile or assume a marker-based approach, 
+               in which genes are considered expressed only in one cell population. When avalaible, direct website link
+               is indexed in \\textit{Online method}, and when implemented in our package, we give the name associated 
+               to the closely avalaible implemented function, in column \\textit{DeCovarT function}", escape = F, ) %>% 
+  row_spec(0, bold = T, align = "c", hline_after = T) %>%
+  row_spec(1:14,  hline_after = T) %>%
+  kable_styling(latex_options = c("hold_position", "scale_down")) %>% 
+  column_spec(column = 1:5, latex_valign = "m", width = c("2cm", "3cm", "8cm", "3cm", "5cm")) %>%
+  column_spec(column = 1, bold = T, border_right = T)
+```
+
+```{r deconvolution-table-html, eval = knitr::is_html_output()}
+data <- readr::read_delim("./tables/deconvolution_methods.csv", delim = ";", show_col_types = F) %>%
+  slice (1:14L) %>% 
+  mutate(`DeCovarT function`=dplyr::if_else(`DeCovarT function`=="redcross", "redcross", paste0("`", `DeCovarT function`,"`")),
+         dplyr::across(.cols = everything(), ~ gsub(pattern = "redcross", "./figs/red_cross.png", .x))) 
+
+flex_data <- data %>% flextable()
+for (i in 1:nrow(data)) {
+  red_index <- grep("red_cross", data[i, ] %>% unlist())
+  flex_data <- flex_data %>%
+    flextable::mk_par(
+      i = i, j = red_index,
+      value = flextable::as_paragraph(flextable::as_image(
+        src = "./figs/red_cross.png",
+        width = 0.5, height = 0.5, unit = "cm"
+      ))
+    )
+}
+
+flex_data %>%
+  set_caption(
+    caption = "Features of some gold-standard deconvolution algorithms, benchmarked in this package.
+               *Family* returns the general type of each deconvolution algorithm, among these three classes:
+               *supervised* algorithms, which use either a reference profile or assume a marker-based approach, 
+               in which genes are considered expressed only in one cell population. When avalaible, direct website link
+               is indexed in  *Online method*, and when implemented in our package, we give the name associated 
+               to the closely avalaible implemented function, in column *DeCovarT function*",
+    html_escape = F
+  ) %>%
+  theme_vanilla() %>%
+  align(align = "center", part = "header") %>% # centre align header
+  bold(j = "Algorithm", bold = TRUE, part = "body") %>% 
+  vline(j = "Algorithm",  part = "body") %>% 
+  flextable::autofit() 
+
+```
 
 # References {.unnumbered}
 

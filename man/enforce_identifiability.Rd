@@ -7,7 +7,11 @@
 enforce_identifiability(p)
 }
 \arguments{
-\item{p}{the ratios estimated}
+\item{p}{the estimated ratios}
+}
+\value{
+a numeric vector of size \eqn{J}, but assuring that negative
+ratios were set to 0, and the unit simplex constraint is endorsed
 }
 \description{
 \itemize{

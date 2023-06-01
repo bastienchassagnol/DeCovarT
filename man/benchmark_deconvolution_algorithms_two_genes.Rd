@@ -11,7 +11,7 @@ benchmark_deconvolution_algorithms_two_genes(
   corr_sequence = seq(-0.8, 0.8, 0.2),
   diagonal_terms = list(homoscedastic = c(1, 1), heteroscedastic = c(1, 2)),
   deconvolution_functions = list(lm = list(FUN = deconvolute_ratios_abbas,
-    additionnal_parameters = NULL)),
+    additional_parameters = NULL)),
   n = 200,
   scaled = FALSE
 )
@@ -47,7 +47,14 @@ its respective covariance matrix:
 \deqn{\text{Cov}(\boldsymbol{X}) = \text{diag}\left[(\text{Var}(\boldsymbol{X})\right]^{1/2} \times \text{Cor}(\boldsymbol{X}) \times \text{diag}\left[(\text{Var}(\boldsymbol{X})\right]^{1/2}}
 }}
 
-\item{deconvolution_functions}{The deconvolution functions themselves, as reported in}
+\item{deconvolution_functions}{The deconvolution functions themselves, a list
+with for each item two attributes to be filled with:
+\itemize{
+\item \code{FUN}: the function itself (not a string, but indeed any deconvolution function
+integrating the default parameters listed in )
+\code{additional_parameters} by default, set to NULL. If your deconvolution function
+integrates any specific, additional parameter.
+}}
 
 \item{scaled}{Whether we should scale or not the dataset. By default, we consider that the provided dataset is in its original raw space,
 and we do not scale the dataset, since our deconvolution algorithm assumes a multivariate Gaussian distribution on the raw counts themselves.}

@@ -35,13 +35,25 @@ will then be computed against the ones returned by the deconvolution algorithms 
 \item{Sigma}{Only relevant for deconvolution algorithms which require a prior estimate
 of the transcriptomic  covariance for each of the purified cell populations}
 
-\item{deconvolution_functions}{The deconvolution functions themselves, as reported in}
+\item{deconvolution_functions}{The deconvolution functions themselves, a list
+with for each item two attributes to be filled with:
+\itemize{
+\item \code{FUN}: the function itself (not a string, but indeed any deconvolution function
+integrating the default parameters listed in )
+\code{additional_parameters} by default, set to NULL. If your deconvolution function
+integrates any specific, additional parameter.
+}}
 }
 \value{
-A \code{tibble} storing for each row the measured cell proportions, as well as some summary metrics
+A \code{tibble} storing for each row the measured cell proportions, as well as some summary metrics.
+We ensure for each deconvolution algorithm that the returned estimates respect the unit simplex constraint,
+with function \code{\link[=enforce_identifiability]{enforce_identifiability()}}.
 }
 \description{
 Main function of the package: deconvolute in parallel mixture samples
+}
+\seealso{
+\code{\link[=deconvolute_ratios_DeCoVarT]{deconvolute_ratios_DeCoVarT()}}, to deconvolve a single, already normalised sample
 }
 \author{
 Bastien CHASSAGNOL

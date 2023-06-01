@@ -294,7 +294,9 @@ deconvolute_ratios_simulated_annealing <- function(y, X, Sigma, true_ratios=NULL
   # In SANNN, maxit is the total number of point evaluations, and not the maximum number of iterations
   estimated_theta <- stats::optim(par=initial_theta,fn=loglik_multivariate_constrained, y=y, X=X, Sigma=Sigma,
                             control=list(fnscale=-1, maxit=itmax),method="SANN")$par 
-  estimated_p <- mapping_function(estimated_theta) %>% stats::setNames(colnames(X))
+  estimated_p <- mapping_function(estimated_theta) %>% 
+    stats::setNames(colnames(X)) %>% enforce_identifiability()
+  
 
   metrics_scores <- compute_benchmark_metrics(y, X, estimated_p, true_ratios) %>%
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
@@ -312,7 +314,7 @@ deconvolute_ratios_LBFGS <- function(y, X, Sigma, true_ratios=NULL,
                        y=y, X=X, Sigma=Sigma,
                        control=list(fnscale=-1,maxit=itmax, lmm=1, factr=epsilon * 10),method="L-BFGS-B",
                        lower=rep(0, length(initial_p)), upper=rep(1, length(initial_p)))$par %>%
-    stats::setNames(colnames(X)) # ensure non-negativity constraint + set fnscale to -1, since maximization is searched for
+    stats::setNames(colnames(X)) %>% enforce_identifiability()
 
   metrics_scores <- compute_benchmark_metrics(y, X, estimated_p, true_ratios) %>%
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
@@ -340,7 +342,7 @@ deconvolute_ratios_constrOptim <- function(y, X, Sigma, true_ratios=NULL,
   estimated_p <- stats::constrOptim(theta=initial_p + epsilon,f=loglik_multivariate, grad=gradient_loglik_unconstrained,
                                     ui=ui, ci=ci, control=list(fnscale=-1,maxit=itmax, reltol=epsilon, abstol=epsilon),
                                     method="BFGS", outer.iterations=itmax, outer.eps=epsilon,  y=y, X=X, Sigma=Sigma)$par %>%
-    stats::setNames(colnames(X))
+    stats::setNames(colnames(X)) %>% enforce_identifiability()
 
   metrics_scores <- compute_benchmark_metrics(y, X, estimated_p, true_ratios) %>%
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
@@ -373,7 +375,7 @@ deconvolute_ratios_second_order <- function(y, X, Sigma, true_ratios=NULL,
                                    control=list(eval.max=1,iter.max=itmax, rel.tol=epsilon, x.tol=epsilon, xf.tol=epsilon, abs.tol=epsilon))$par
 
   estimated_p <- mapping_function(estimated_theta) %>%
-    stats::setNames(colnames(X)) # ensure non-negativity constraint
+    stats::setNames(colnames(X)) %>% enforce_identifiability() 
 
   metrics_scores <- compute_benchmark_metrics(y, X, estimated_p, true_ratios) %>%
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
@@ -415,7 +417,8 @@ deconvolute_ratios_first_order <- function(y, X, Sigma, true_ratios=NULL,
   
   estimated_theta <- stats::optim(par=initial_theta,fn=loglik_multivariate_constrained, gr = gradient_loglik_constrained, y=y, X=X, Sigma=Sigma,
                            control=list(fnscale=-1, reltol=epsilon, abstol=epsilon, maxit=itmax),method="BFGS")$par
-  estimated_p <- mapping_function(estimated_theta) %>% stats::setNames(colnames(X))
+  estimated_p <- mapping_function(estimated_theta) %>% stats::setNames(colnames(X)) %>% 
+    enforce_identifiability()
   
 
   metrics_scores <- compute_benchmark_metrics(y, X, estimated_p, true_ratios) %>%
@@ -441,7 +444,7 @@ deconvolute_ratios_first_order <- function(y, X, Sigma, true_ratios=NULL,
 deconvolute_ratios_CIBERSORT <- function(y, X, true_ratios=NULL){
      #the set of nu values tested for best performance
     range.nu<-seq(0.2, 0.8, 0.3)
-    model<-e1071::best.svm(X,y, type="nu-regression",kenel="linear",scale=F,
+    model<-e1071::best.svm(X,y, type="nu-regression",kernel="linear",scale=F,
                       nu = range.nu, tunecontrol=e1071::tune.control(sampling = "fix", fix=0.75)) #determine best fitted model
 
     e1071::tune.svm(X,y,type="nu-regression",kernel="linear",scale=F,
@@ -450,9 +453,7 @@ deconvolute_ratios_CIBERSORT <- function(y, X, true_ratios=NULL){
     model <- e1071::svm(X, y=y)
 
     #get and normalize coefficients (sum to 1 and no negative coefficients)
-    estimated_p <- t(model$coefs) %*% model$SV
-    estimated_p[which(estimated_p<0)]<-0
-    estimated_p <- estimated_p/sum(estimated_p)
+    estimated_p <- t(model$coefs) %*% model$SV %>% enforce_identifiability(); names(estimated_p) <- colnames(X)
 
     metrics_scores <- compute_benchmark_metrics(y, X, estimated_p, true_ratios) %>%
       dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
@@ -469,7 +470,7 @@ deconvolute_ratios_abbas <- function(y, X, true_ratios=NULL) {
   estimated_p <- stats::lsfit(X, y, intercept = F)$coefficients
 
   # normalize coefficients (sum to 1 and no negative coefficients)
-  estimated_p[which(estimated_p<0)]<-0; estimated_p <- estimated_p/sum(estimated_p)
+  estimated_p <- estimated_p %>% enforce_identifiability()
   metrics_scores <- compute_benchmark_metrics(y, X, estimated_p, true_ratios) %>%
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
   return(metrics_scores)
@@ -483,7 +484,7 @@ deconvolute_ratios_monaco <- function(y, X, true_ratios=NULL) {
   estimated_p <- MASS::rlm(y ~ X+ 0, method = c("M"))$coefficients; names(estimated_p) <- colnames(X)
 
   # normalize coefficients (sum to 1 and no negative coefficients)
-  estimated_p[which(estimated_p<0)]<-0; estimated_p <- estimated_p/sum(estimated_p)
+  estimated_p <- estimated_p %>% enforce_identifiability()
   metrics_scores <- compute_benchmark_metrics(y, X, estimated_p, true_ratios) %>%
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
   return(metrics_scores)
@@ -495,10 +496,10 @@ deconvolute_ratios_monaco <- function(y, X, true_ratios=NULL) {
 #' [deconvolute_ratios_deconRNASeq]. 
 
 deconvolute_ratios_nnls <- function(y, X, true_ratios=NULL) {
-  estimated_p <- nnls::nnls(X, y)$x
+  estimated_p <- nnls::nnls(X, y)$x; names(estimated_p) <- colnames(X)
   
   # normalize coefficients (sum to 1, as non-negativity is already enforced)
-  estimated_p <- estimated_p/sum(estimated_p); names(estimated_p) <- colnames(X)
+  estimated_p <- estimated_p %>% enforce_identifiability()
   metrics_scores <- compute_benchmark_metrics(y, X, estimated_p, true_ratios) %>%
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
   return(metrics_scores)
@@ -518,7 +519,7 @@ deconvolute_ratios_deconRNASeq <- function(y, X, true_ratios=NULL) {
 EE <- rep(1, ncol(X)); FF <- 1 # encode the sum-to-one constraint
 GG <- diag(nrow=ncol(X)); HH <- rep(0, ncol(X)) # encode the non-negativity constraint
 
-estimated_p <- limSolve::lsei(X, y, EE, FF, GG, HH)$X
+estimated_p <- limSolve::lsei(X, y, EE, FF, GG, HH)$X %>% enforce_identifiability(); names(estimated_p) <- colnames(X)
 metrics_scores <- compute_benchmark_metrics(y, X, estimated_p, true_ratios) %>%
   dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
 return(metrics_scores)
@@ -590,10 +591,18 @@ compute_benchmark_metrics <- function(y, X, estimated_p, true_ratios=NULL) {
 #' will then be computed against the ones returned by the deconvolution algorithms provided.
 #' @param Sigma Only relevant for deconvolution algorithms which require a prior estimate 
 #' of the transcriptomic  covariance for each of the purified cell populations
-#' @param deconvolution_functions The deconvolution functions themselves, as reported in 
-#'
-#' @return A `tibble` storing for each row the measured cell proportions, as well as some summary metrics
+#' @param deconvolution_functions The deconvolution functions themselves, a list 
+#' with for each item two attributes to be filled with: 
+#' * `FUN`: the function itself (not a string, but indeed any deconvolution function
+#' integrating the default parameters listed in )
+#' `additional_parameters` by default, set to NULL. If your deconvolution function
+#' integrates any specific, additional parameter.
+#' @return A `tibble` storing for each row the measured cell proportions, as well as some summary metrics.
+#' We ensure for each deconvolution algorithm that the returned estimates respect the unit simplex constraint,
+#' with function [enforce_identifiability()].
 #' @export
+#' 
+#' @seealso [deconvolute_ratios_DeCoVarT()], to deconvolve a single, already normalised sample
 
 deconvolute_ratios <- function(signature_matrix, bulk_expression, scaled=F, true_ratios=NULL, Sigma=NULL,
                                cores = ifelse (.Platform$OS.type == "unix",  getOption("mc.cores", parallel::detectCores()), 1), 
@@ -623,13 +632,16 @@ deconvolute_ratios <- function(signature_matrix, bulk_expression, scaled=F, true
     dplyr::arrange(GENE_SYMBOL) %>%
     dplyr::select(where(is.numeric))
   
+  if (scaled) # log-2 normalise
+    Y <- log2(Y); X <- log2(X)
+  
   # estimation itself
   deconvolution_estimates <- purrr::imap_dfr(deconvolution_functions, function(deconvolution_function, algorithm) {
-    additionnal_parameters <- deconvolution_function$additionnal_parameters
+    additional_parameters <- deconvolution_function$additional_parameters
     metric_scores <- parallel::mclapply(1:ncol(Y), function(i) {
       # metric_scores <- tibble::tibble(); for (i in 1:ncol(Y)) {
       success_estimation <- tryCatch({
-        list_arguments <- c(list("y"=Y[,i] %>% as.matrix(), "X"=X, "Sigma"=Sigma, "true_ratios"=true_ratios), additionnal_parameters)
+        list_arguments <- c(list("y"=Y[,i] %>% as.matrix(), "X"=X, "Sigma"=Sigma, "true_ratios"=true_ratios), additional_parameters)
         # we only keep the arguments needed by the required function
         estimated_p <- do.call(deconvolution_function$FUN, list_arguments[formalArgs(deconvolution_function$FUN)])
       },

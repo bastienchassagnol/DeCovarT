@@ -239,3 +239,4 @@ TSWLatexianTemp*
 inst/doc
 simulation_*
 older_functions/
+tests/testthat/simulations/

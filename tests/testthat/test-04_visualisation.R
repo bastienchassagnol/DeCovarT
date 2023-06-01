@@ -1,8 +1,6 @@
 test_that("test visualisations", {
-  overlapping_unbalanced <- readRDS(test_path("fixtures", "temp_bivariate_1.rds"))
-  overlapping_unbalanced <- overlapping_unbalanced %>% dplyr::select(-c(proportions, true_parameters, 
-                                                                        overlap, variance, entropy))
+  bivariate_estimation <- readRDS(testthat::test_path("fixtures", "bivariate_estimation.rds"))
+  heatmap_overlapping_unbalanced <- plot_correlation_Heatmap (bivariate_estimation %>% dplyr::filter(ID=="B1_Ho"))
   
-  heatmap_overlapping_unbalanced <- plot_correlation_Heatmap (overlapping_unbalanced)
-
+  vdiffr::expect_doppelganger("Correlation heatmap plot", heatmap_overlapping_unbalanced$lm)
 })

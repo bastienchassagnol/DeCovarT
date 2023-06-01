@@ -31,7 +31,7 @@ plot_correlation_Heatmap <- function(distribution_metrics, score_variable = "mod
   complex_heatmap_list <- purrr::imap(split(distribution_metrics, distribution_metrics[["algorithm"]]), function(.x, .y) {
     cor_matrix_per_algo <- .x %>% dplyr::select(-"algorithm") %>% 
       tidyr::pivot_wider(names_from = c(correlation_celltype2), 
-                         values_from = .data[[score_variable]],values_fn = mean) %>%
+                         values_from = dplyr::all_of(score_variable),values_fn = mean) %>%
       tibble::column_to_rownames("correlation_celltype1") %>% as.matrix()
     
     # if (!uni_scale) col <- circlize::colorRamp2(c(min(cor_matrix_per_algo), median(cor_matrix_per_algo), max(cor_matrix_per_algo)),

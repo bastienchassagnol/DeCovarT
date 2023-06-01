@@ -127,7 +127,7 @@ simulate_bulk_mixture <- function(signature_matrix, cov_tensor,
 benchmark_deconvolution_algorithms_two_genes <- function(proportions=list("balanced"=c(0.5, 0.5), "small unbalanced"=c(0.6, 0.4),"highly unbalanced"=c(0.05, 0.95)),
                                                          signature_matrices=list("small OVL" = matrix(c(20, 40, 40, 20), nrow = 2)), corr_sequence = seq(-0.8, 0.8, 0.2),
                                                          diagonal_terms = list("homoscedastic"= c(1, 1), "heteroscedastic" = c(1, 2)), 
-                                                         deconvolution_functions=list("lm" = list(FUN=deconvolute_ratios_abbas,additionnal_parameters=NULL)),
+                                                         deconvolution_functions=list("lm" = list(FUN=deconvolute_ratios_abbas,additional_parameters=NULL)),
                                                          n=200, scaled=FALSE) {
   ##################################################################
   ##            iterate over covariance structures            ##

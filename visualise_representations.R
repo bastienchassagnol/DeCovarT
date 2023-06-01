@@ -73,22 +73,29 @@ saveRDS(reduced_bivariate_simulation, file = "./data/bivariate/bivariate_paramet
 ##################################################################
 ##      generate WABi general complexHeatmap       ##
 ##################################################################
+load("./data/bivariate_parameters.rda")
 
-splitted_heatmap <- split(x = reduced_bivariate_simulation, f = reduced_bivariate_simulation$ID)
-bivariate_simulation_heatmap <- purrr::imap(splitted_heatmap, function (.data, .name_scenario) {
-  print(paste("Name scenario is ", .name_scenario))
-  heatmap_per_scenario <- plot_correlation_Heatmap(.data)
-  heatmap_page <- purrr::imap(heatmap_per_scenario,   ~ ComplexHeatmap::draw(.x, padding=unit(c(0, 0, 0, 0), "cm"),
-                                                                     column_title= .y, column_title_gp = grid::gpar(fontsize = 12, fontface="bold")) %>%
-                                grid::grid.grabExpr())
-  heatmap_page <- gridExtra::arrangeGrob(grobs = heatmap_page, ncol = 3,  padding = unit(0.1, "line"),
-                                         top=ggpubr::text_grob(.name_scenario, size = 18, face = "bold"))
+splitted_parameters <- split(x = bivariate_parameters, f = bivariate_parameters$ID)
+bivariate_simulation_heatmap <- purrr::imap(splitted_parameters, function(.data, .name_scenario) {
+  heatmap_per_scenario <- plot_correlation_Heatmap(.data) # actual call to the associated DeCovarT function
+  heatmap_page <- purrr::imap(heatmap_per_scenario, ~ ComplexHeatmap::draw(.x,
+                                                                           padding = unit(c(0, 0, 0, 0), "cm"),
+                                                                           column_title = .y, column_title_gp = grid::gpar(fontsize = 12, fontface = "bold")
+  ) %>%
+    grid::grid.grabExpr())
+  # general organisation: 3 deconvolution algorithms per column
+  heatmap_page <- gridExtra::arrangeGrob(
+    grobs = heatmap_page, ncol = 3, padding = unit(0.1, "line"),
+    top = ggpubr::text_grob(.name_scenario, size = 18, face = "bold")
+  )
   return(heatmap_page)
 })
 
-ggsave("./figs/bivariate_Heatmaps_test.pdf", 
-       gridExtra::marrangeGrob(grobs=bivariate_simulation_heatmap, top="", ncol = 1, nrow = 1),
-       width = 12, height = 12,dpi = 300)
+# save the actual output
+ggsave("./figs/bivariate_Heatmaps_test.pdf",
+       gridExtra::marrangeGrob(grobs = bivariate_simulation_heatmap, top = "", ncol = 1, nrow = 1),
+       width = 12, height = 12, dpi = 300
+)
 
 #################################################################
 ##                    generate JOBIM figure                    ##

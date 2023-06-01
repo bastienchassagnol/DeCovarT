@@ -18,15 +18,17 @@ NULL
 #' * Function `enforce_identifiability` normalises the ratios to sum to 1, 
 #' and set ratios close to zero or 1, to the limits of the boundary space
 #'
-#' @param p the ratios estimated
+#' @param p the estimated ratios
+#' 
+#' @return a numeric vector of size \eqn{J}, but assuring that negative 
+#' ratios were set to 0, and the unit simplex constraint is endorsed
 
 #' @export
 
 enforce_identifiability <- function(p) {
   machine_limit <- .Machine$double.eps
-  if (any(p < 100 * machine_limit | p > 1 - 100 * machine_limit)) {
-    p[p < 100 * machine_limit] <- 0; p[p > 1 - 100 * machine_limit] <- 1; p <- p/sum(p)
-  }
+  p[p < 100 * machine_limit] <- 0 # remove negative ratios
+  p <- p/sum(p); p[p > 1 - 100 * machine_limit] <- 1 # ensure unit simplex constraint
   return(p)
 }
 
