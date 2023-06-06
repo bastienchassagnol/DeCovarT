@@ -1,8 +1,8 @@
-﻿Algorithm;Key feature and inspiration;DeCovarT function;Hyper-parameters
+Algorithm;Key feature and inspiration;DeCovarT function;Hyper-parameters
 lm;Standard OLS (ordinary least squares) using function stats::lsfit, then renormalising the ratios to enforce the unit simplex constraint;deconvolute_ratios_abbas;intercept =FALSE
 nnls;Non-negative linear squared optimisation method, using the Lawson-Hanson algorithm (in R, package nnls::nnls());deconvolute_ratios_nnls;"""-"""
 lsei;Quadratic programming (QP) to account for the unit simplex constraint, used for isntance by deconvolution algorithm DeconRNASeq;deconvolute_ratios_deconRNASeq;"""-"""
-RLR;Variants of robust linear regression (RLR)have been used by the ABIS algorithm ( \cite{monaco_etal19}), and by the FARDEEP allgorithm (\cite{hao_etal19}). We used function MASS::rlm() to that purpose. ;deconvolute_ratios_monaco;method = M
+RLR;Variants of robust linear regression (RLR)have been used by the ABIS algorithm (Monaco et al., 2019), and by the FARDEEP allgorithm (Hao et al, 2018). We used function MASS::rlm() to that purpose. ;deconvolute_ratios_monaco;method = M
 CIBERSORT;$\nu$-SVR with linear kernel, enabling further feature selection, and removing some noise. In R, use of function e1071::best.svm;deconvolute_ratios_CIBERSORT;range.nu = (0.2, 0.5, 0.8) // fix=0.75
 optim;First-order iterated descent optimisation algorithm, on the unconstrained log-likelihood function and without explicit formula of the gradient.;deconvolute_ratios_basic_optim;maxit = 2000, abstol=reltol = $10^{-6}$ 
 barrier;Variant of the previously described algorithm, but with the additional possibility to provide linear restrictions on the estimated parameters. Use of method stats::constrOptim();deconvolute_ratios_constrOptim;outer.iterations = 2000,outer.eps = reltol=abstol=$10^{-6}$ 

@@ -125,14 +125,14 @@ Deconvolution algorithm itself, for a given sample.
 \section{Functions}{
 \itemize{
 \item \code{deconvolute_ratios_simulated_annealing()}: Uses SA (for simulated annealing)  to infer the simulated
-ratios, see also \link[stats:optim]{stats::optim} with \code{method="SANN"} for more details
+ratios, see also \code{\link[stats:optim]{stats::optim()}} with \code{method="SANN"} for more details
 
 \item \code{deconvolute_ratios_LBFGS()}: A variant of the standard BFGS quasi-Newton method,
 that allows addtional box constraints (here we impose the ratios to be strictly included between 0 and 1)
-when inferring the simulated ratios, see also \link[stats:optim]{stats::optim} with \code{method="L-BFGS-B"} for more details
+when inferring the simulated ratios, see also \code{\link[stats:optim]{stats::optim()}} with \code{method="L-BFGS-B"} for more details
 
 \item \code{deconvolute_ratios_constrOptim()}: An adaptive barrier algorithm enforcing linear inequality constraints.
-See also \link[stats:constrOptim]{stats::constrOptim} for more details. Unfortunately, strict equality constraints coupled with inequality boxes
+See also \code{\link[stats:constrOptim]{stats::constrOptim()}} for more details. Unfortunately, strict equality constraints coupled with inequality boxes
 are not possible in this method, so we just impose that that the ratios are included between 0 and 1, and
 that the sum should be inferior to the actual observed global bulk expression.
 

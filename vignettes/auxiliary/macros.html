@@ -1,27 +1,28 @@
 <script type="text/x-mathjax-config">
 MathJax.Hub.Config({
   TeX: {
+    extensions: ["color.js", "cancel.js", "AMSmath.js", "AMSsymbols.js"],
     Macros: {
         NN: "{\\mathbb{N}}",
         ZZ: "{\\mathbb{Z}}",
         QQ: "{\\mathbb{Q}}",
         RR: "{\\mathbb{R}}",
         indic: "{\\unicode{x1D7D9}}",
-        prob: "\\mathop{\\mathbb{P}}",
-        esp: "\\mathop{\\mathbb{E}}",
-        cov: "\\mathop{\\mathbb{C}\\text{ov}}",
+        prob: "\\DeclareMathOperator{\\mathbb{P}}",
+        esp: "\\DeclareMathOperator{\\mathbb{E}}",
+        cov: "\\DeclareMathOperator{\\mathbb{C}\\text{ov}}",
         PP: ["{\\prob\\left({#1}\\right)}", 1],
         EE: ["{\\esp\\left[{#1}\\right]}", 1],
         VV: ["{\\var\\left[{#1}\\right]}", 1],
         CC: ["{\\cov\\left[{#1}\\right]}", 1],
         normal: ["{\\mathcal{N}\\left({#1},{#2}\\right)}", 2],
         unif: ["{\\mathcal{U}\\left({#1}\\right)}", 1],
-        argmin: "\\mathop{\\mathrm{arg\,min}}",
-        argmax: "\\mathop{\\mathrm{arg\,max}}",
-        diag: "\\mathop{\\mathrm{Diag}}",
-        DET: "\\mathop{\\mathrm{Det}}",
-        Tr: "\\mathop{\\mathrm{Tr}}",
-        rank: "\\mathop{\\mathrm{Rank}}"
+        argmin: "\\DeclareMathOperator{\\mathrm{arg\,min}}",
+        argmax: "\\DeclareMathOperator{\\mathrm{arg\,max}}",
+        diag: "\\DeclareMathOperator{\\mathrm{Diag}}",
+        DET: "\\DeclareMathOperator{\\mathrm{Det}}",
+        Tr: "\\DeclareMathOperator{\\mathrm{Tr}}",
+        rank: "\\DeclareMathOperator{\\mathrm{Rank}}"
     }
   }
 });

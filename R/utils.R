@@ -15,12 +15,12 @@ NULL
 
 #' Check whether the estimation has been trapped in the boundary space
 #'
-#' * Function `enforce_identifiability` normalises the ratios to sum to 1, 
+#' * Function `enforce_identifiability` normalises the ratios to sum to 1,
 #' and set ratios close to zero or 1, to the limits of the boundary space
 #'
 #' @param p the estimated ratios
-#' 
-#' @return a numeric vector of size \eqn{J}, but assuring that negative 
+#'
+#' @return a numeric vector of size \eqn{J}, but assuring that negative
 #' ratios were set to 0, and the unit simplex constraint is endorsed
 
 #' @export
@@ -28,7 +28,8 @@ NULL
 enforce_identifiability <- function(p) {
   machine_limit <- .Machine$double.eps
   p[p < 100 * machine_limit] <- 0 # remove negative ratios
-  p <- p/sum(p); p[p > 1 - 100 * machine_limit] <- 1 # ensure unit simplex constraint
+  p <- p / sum(p)
+  p[p > 1 - 100 * machine_limit] <- 1 # ensure unit simplex constraint
   return(p)
 }
 
@@ -60,8 +61,9 @@ enforce_parameter_identifiability <- function(theta) {
   ordered_theta <- list(
     p = theta$p[ordered_components],
     mu = theta$mu[, ordered_components],
-    sigma = theta$sigma[, , ordered_components]  )
-  
+    sigma = theta$sigma[, , ordered_components]
+  )
+
   # enforce sum-to-one constraint
   ordered_theta$p <- ordered_theta$p / sum(ordered_theta$p) # ordered_theta$p[k] <- 1 - sum(ordered_theta$p[-k])
   return(ordered_theta)
@@ -71,7 +73,7 @@ enforce_parameter_identifiability <- function(theta) {
 #' Check whether the estimation has been trapped in the boundary space
 #'
 #' * Function `check_parameters` asserts at each step of the maximisation,
-#' we do not fall in a degenerate case or a non invertible. This especially occurs when one of 
+#' we do not fall in a degenerate case or a non invertible. This especially occurs when one of
 #' the ratios converge to 0 or 1, implying to decrease by a factor 1 the dimension.
 #'
 #' @param p the ratios estimated
@@ -84,26 +86,27 @@ check_parameters <- function(p) {
   if (any(p < 100 * machine_limit | p > 1 - 100 * machine_limit)) {
     warning(paste0("Cell ratio with index ", which(p < 100 * machine_limit), " is missing in the sample."))
     return(FALSE)
+  } else {
+    return(TRUE)
   }
-  else {return(TRUE)}
 }
 
 
 
 isConstant <- function(x) {
-  return(length(unique(x))==1)
+  return(length(unique(x)) == 1)
 }
 
-is_continuous <- function(var) {
-  return (any(c(is(var, "numeric"), is(var, "integer"), is(var, "Date"),
-            is(var, "POSIXct"), is(var, "POSIXt"))))
-}
+# is_continuous <- function(var) {
+#   return (any(c(is(var, "numeric"), is(var, "integer"), is(var, "Date"),
+#             is(var, "POSIXct"), is(var, "POSIXt"))))
+# }
 
 # compute_interval <- function(x) {
 #   return(purrr::map_dbl(strsplit(x, split = " to "), ~as.numeric(.x) %>% mean() %>% round()))
 # }
 
-is_positive_definite <- function(expression, tol=1e-6) {
+is_positive_definite <- function(expression, tol = 1e-6) {
   eigen_values <- eigen(expression, symmetric = TRUE)$values # already sorted by decreasing order
   return(all(eigen_values >= -tol * abs(eigen_values[1])))
 }
@@ -115,11 +118,10 @@ tr <- function(A) {
 
 # matrix raised to power, R operator
 `%^%` <- function(A, int_pow) {
-  if(!is.integer(int_pow)) {
+  if (!is.integer(int_pow)) {
     stop("Power must be an integer")
-  }
-  else {
-    for (i in 1:(int_pow-1)) {
+  } else {
+    for (i in 1:(int_pow - 1)) {
       A <- A %*% A
     }
   }
@@ -130,11 +132,11 @@ tr <- function(A) {
 
 
 # get the true stand deviation of a sample
-theoric_sd<- function(x) {
-  n <- length(x)
-  standard_deviation <- ifelse(n==1, 0, sd(x) * sqrt((n-1)/n))
-  return(standard_deviation)
-}
+# theoric_sd<- function(x) {
+#   n <- length(x)
+#   standard_deviation <- ifelse(n==1, 0, stats::sd(x) * sqrt((n-1)/n))
+#   return(standard_deviation)
+# }
 
 #' Compute the shannon entropy of a discrete distribution, normalised from 0 to 1 (equibalanced classes)
 #'
@@ -183,11 +185,13 @@ hellinger <- function(mu1, Sigma1, mu2, Sigma2) {
 
 hellinger_average <- function(p, signature_matrix, cov_matrix) {
   pairwise_hellinger <- c()
-  for (i in 1:(ncol(signature_matrix)-1)) {
-    for (j in (i+1):ncol(signature_matrix)) {
+  for (i in 1:(ncol(signature_matrix) - 1)) {
+    for (j in (i + 1):ncol(signature_matrix)) {
       # compute Hellinger distance between component i and component j, weighted by their respective proportion
-      hellinger_value <- hellinger(mu1 = p[i] * signature_matrix[, i], Sigma1 = p[i]^2 * cov_matrix[,,i],
-                                   mu2 = p[j] * signature_matrix[, j], Sigma2 = p[j]^2 * cov_matrix[,,j])
+      hellinger_value <- hellinger(
+        mu1 = p[i] * signature_matrix[, i], Sigma1 = p[i]^2 * cov_matrix[, , i],
+        mu2 = p[j] * signature_matrix[, j], Sigma2 = p[j]^2 * cov_matrix[, , j]
+      )
       pairwise_hellinger <- c(pairwise_hellinger, hellinger_value)
     }
   }
@@ -229,9 +233,3 @@ compute_average_overlap <- function(true_theta, k = length(true_theta$p)) {
   }
   return(mean(pairwise_overlap))
 }
-
-
-
-
-
-

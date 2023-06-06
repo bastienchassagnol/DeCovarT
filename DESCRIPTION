@@ -5,22 +5,46 @@ Authors@R:
     person("Bastien", "Chassagnol", , "bastien_chassagnol@laposte.net", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
 Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+License: CC BY 4.0
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Suggests: 
+    flextable,
+    kableExtra,
     knitr,
+    pkgdown,
+    readr,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    vdiffr,
+    withr
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Imports: 
+    circlize,
+    ComplexHeatmap,
+    dplyr,
+    e1071,
+    ggplot2,
+    limSolve,
     magrittr,
-    Rdpack (>= 0.7)
+    marqLevAlg,
+    MASS,
+    methods,
+    Metrics,
+    MixSim,
+    nnls,
+    purrr,
+    Rdpack (>= 0.7),
+    stringr,
+    tensor,
+    tibble,
+    tidyr,
+    viridis
 Depends: 
-    R (>= 2.10)
+    R (>= 3.5.0)
 LazyData: true
+LazyDataCompression: gzip
 RdMacros: Rdpack
 Language: en_GB

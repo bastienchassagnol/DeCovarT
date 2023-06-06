@@ -7,7 +7,7 @@
 mapping_function(theta)
 }
 \arguments{
-\item{theta}{}
+\item{theta}{The unconstrained parameter, living in \eqn{\mathbb{R}^{J-1}}}
 }
 \value{
 The numeric vector of size \eqn{J},

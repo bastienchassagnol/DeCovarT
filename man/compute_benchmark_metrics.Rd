@@ -13,6 +13,8 @@ storing the measured expression of the \code{G} genes in the heterogeneous sampl
 \item{X}{Parameter \code{mu}: \eqn{\boldsymbol{\mu}=(\mu_{g,j}) \in \mathbb{R}^{G \times J}},
 storing in each each column the averaged expression of the \code{G} genes of the \code{J} cell populations.}
 
+\item{estimated_p}{The ratios estimated by your favourite deconvolution algorithm}
+
 \item{true_ratios}{Optional,  vector of size \eqn{J}, storing the normalised proportions
 of the cell populations supposed present in the sample. If provided, summary metrics
 will then be computed against the ones returned by the deconvolution algorithms provided.}

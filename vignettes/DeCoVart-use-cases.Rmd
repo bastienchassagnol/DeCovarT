@@ -1,5 +1,5 @@
 ---
-title: "How to use DeCovarT: a toy example with two genes and two cell populations"
+title: "DeCoVart-use-cases"
 output: 
   # rmarkdown::html_vignette:
   #  code_folding: show
@@ -10,52 +10,32 @@ output:
   #   config:
   #     toolbar:
   #       position: static
-  # bookdown::html_document2:
-  #   number_sections: false
-  #   code_folding: hide
-  #   df_print: kable
-  #   includes:
-  #     in_header: auxiliary/ga.html
-  #     before_body: auxiliary/macros.html
+  bookdown::html_document2:
+    number_sections: false
+    code_folding: hide
+    df_print: kable
+    includes:
+      in_header: auxiliary/ga.html
+      before_body: auxiliary/macros.html
   bookdown::pdf_document2:
     keep_tex: true
-    extra_dependencies: ["caption", "subcaption", "adjustbox", "multirow","float", "colortbl", "makecell", "hhline","fvextra"]
+    extra_dependencies: ["caption", "subcaption", "adjustbox", "multirow","float", "colortbl", "makecell", "hhline","fvextra", "cancel"]
     includes:
       in_header: auxiliary/macros.tex
     toc: false
-    number_sections: true
+    number_sections: false
 vignette: >
   %\VignetteIndexEntry{DeCovarT-use-cases}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-# indent: true
-bibliography: "`r rbbt::bbt_write_bib('DeCovarT_vignette.bib', overwrite = TRUE)`" 
+bibliography: DeCovarT-use-cases.bib
 biblio-style: "apalike"
 link-citations: true
 csl: ieee.csl
 author:  
-  - name: Bastien Chassagnol
-    affiliation: Laboratoire de Probabilités, Statistiques et Modélisation (LPSM), UMR CNRS 8001
-    address:
-    - 4 Place Jussieu Sorbonne Université
-    - 75005, Paris, France
-    orcid: 0000-0002-8955-2391
-    email:  bastien_chassagnol@laposte.net
-  - name: Gregory Nuel
-    affiliation: Laboratoire de Probabilités, Statistiques et Modélisation (LPSM), UMR CNRS 8001
-    address:
-    - 4 Place Jussieu Sorbonne Université
-    - 75005, Paris, France
-    url: http://nuel.perso.math.cnrs.fr/
-    orcid: 0000-0001-9910-2354
-    email:  Gregory.Nuel@math.cnrs.fr
-  - name: Etienne Becht
-    affiliation: Les Laboratoires Servier
-    address:
-    - 50 Rue Carnot
-    - 92150, Suresnes, France
-    orcid: 0000-0003-1859-9202
-    email: etienne.becht@servier.com
+  - Bastien Chassagnol^[Laboratoire de Probabilités, Statistiques et Modélisation (LPSM), UMR CNRS 8001, bastien\_chassagnol@laposte.net, 0000-0002-8955-2391]
+  - Gregory Nuel^[Laboratoire de Probabilités, Statistiques et Modélisation (LPSM), UMR CNRS 8001, Gregory.Nuel@math.cnrs.fr, 0000-0001-9910-2354]
+  - Etienne Becht^[Les Laboratoires Servier(IRIS), etienne.becht@servier.com, 0000-0003-1859-9202]
 editor_options: 
   markdown: 
     wrap: 72
@@ -63,8 +43,8 @@ editor_options:
 
 # Model
 
-
 ```{r html-output-config, include = FALSE, eval=knitr::is_html_output()}
+# bibliography: "`r rbbt::bbt_write_bib('DeCovarT_vignette_bbt.bib', overwrite = TRUE)`
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -77,6 +57,7 @@ knitr::opts_chunk$set(
 )
 options(rmarkdown.html_vignette.check_title = FALSE) # generate customised vignette title
 # rmarkdown::render("DeCoVart-use-cases.Rmd", output_format = 'all')
+# extensions: ["color.js", "cancel.js", "AMSmath.js", "AMSsymbols.js"]
 ```
 
 ```{r pdf-output-config, include = FALSE, eval=knitr::is_latex_output()}
@@ -88,7 +69,8 @@ knitr::opts_chunk$set(
   message = FALSE,
   warning = FALSE,
   echo = FALSE,
-  cache = FALSE, lazy.cache = FALSE
+  cache = FALSE, lazy.cache = FALSE,
+  fig.pos = "H"
 )
 ```
 
@@ -111,6 +93,24 @@ colorize <- function(x, color) {
 }
 ```
 
+```{css, echo=FALSE}
+p.caption {
+  font-size: 0.6em;
+}
+
+.blackbox {
+  padding: 1em;
+  background: #DBDBDB;
+  color: black;
+  border: 4px solid black;
+  border-radius: 10px;
+}
+.center {
+  text-align: center;
+}
+
+.cols {display: flex; }
+```
 
 We introduce the following notations:
 
@@ -124,8 +124,9 @@ As in most traditional deconvolution models, we assume that the total bulk expre
 \begin{equation}
 \boldsymbol{y}=\boldsymbol{X} \times \boldsymbol{p}
 (\#eq:deconvolution-problem)
-\end{equation} 
+\end{equation}
 ```
+
 
 In addition, we consider the following unit simplex constraint on the cellular ratios (Eq.\@ref(eq:positive-ratios)):
 
@@ -136,12 +137,13 @@ In addition, we consider the following unit simplex constraint on the cellular r
 \forall j \in \widetilde{J} \quad p_j\ge 0
 \end{cases}
 (\#eq:positive-ratios)
-\end{equation} 
+\end{equation}
 ```
+
 
 ## Rationale of the new generative model
 
-However, in real conditions with technical and environmental variability, the strict linearity of the deconvolution does not strictly hold. Thus, an additional error term is usually added, assumed to follow a *homoscedastic* zero-centred Gaussian distribution and with pairwise independent response measures while the exogenous variables (here, the purified expression profiles) are supposed determined: this set of conditions is referred to as the Gaussian-Markow assumptions. In that configuration, the MLE (maximum likelihood estimate) that bast describes this standard linear model is equal to the ordinary least squares (OLS) estimate. 
+However, in real conditions with technical and environmental variability, the strict linearity of the deconvolution does not strictly hold. Thus, an additional error term is usually added, assumed to follow a *homoscedastic* zero-centred Gaussian distribution and with pairwise independent response measures while the exogenous variables (here, the purified expression profiles) are supposed determined: this set of conditions is referred to as the Gaussian-Markow assumptions. In that configuration, the MLE (maximum likelihood estimate) that bast describes this standard linear model is equal to the ordinary least squares (OLS) estimate.
 
 
 In contrast to this canonical approach, in DeCovarT, we relax the *exogeneity* property by treating exogenous variables $\boldsymbol{X}$ as random variables rather than determined measures, in a process close to the approach of the DSection algorithm [@erkkila_etal10]. However, to our knowledge, we are the first to weaken the independence assumption between observations by explicitly incorporating the intrinsic covariance structure of the transcriptome of each purified cell population.
@@ -162,7 +164,7 @@ knitr::include_graphics("figs/DAG_legend.png")
 
 ## Derivation of the log-likelihood
 
-First, we *plugged-in* the mean and covariance parameters $\zeta_j=\left(\boldsymbol{\mu}_{.j}, \boldsymbol{\Sigma}_j\right)$ inferred in the previous step. 
+First, we *plugged-in* the mean and covariance parameters $\zeta_j=\left(\boldsymbol{\mu}_{.j}, \boldsymbol{\Sigma}_j\right)$ inferred in the previous step.
 Then, by letting $\boldsymbol{\zeta}=(\boldsymbol{\mu}, \boldsymbol{\Sigma}), \quad \boldsymbol{\mu}=(\boldsymbol{\mu}_{.j})_{j \in \widetilde{J}} \in \mathcal{M}_{G \times J}, \quad \boldsymbol{\Sigma} \in \mathcal{M}_{G \times G}$ the known parameters and $\boldsymbol{p}$ the unknown cellular ratios, the conditional distribution $\boldsymbol{y}|(\boldsymbol{\zeta}, \boldsymbol{p})$ is the convolution of pairwise independent multivariate Gaussian distributions, which is also a multivariate Gaussian distribution (Eq.\@ref(eq:conditional-multivariate-distribution)), deduced from the *affine invariant* property of Gaussian distributions.
 
 ```{=tex}
@@ -199,7 +201,7 @@ p_j (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \
 ```
 
 
-Since the solution to $\nabla \left( \ell_{\boldsymbol{y} | \boldsymbol{\zeta}}(\boldsymbol{p}) \right) =0$ is not closed, we had to approximate the MLE using iterated numerical optimisation methods. Some of them, such as the Levenberg–Marquardt algorithm, require a second-order approximation of the function, which needs the computation of the Hessian matrix. Deriving once more Eq.\@ref(eq:hessian-log-likelihood-unconstrained) yields the Hessian matrix,  $\mathbf{H} \in \mathcal{M}_{J \times J}$ is given by: 
+Since the solution to $\nabla \left( \ell_{\boldsymbol{y} | \boldsymbol{\zeta}}(\boldsymbol{p}) \right) =0$ is not closed, we had to approximate the MLE using iterated numerical optimisation methods. Some of them, such as the Levenberg–Marquardt algorithm, require a second-order approximation of the function, which needs the computation of the Hessian matrix. Deriving once more Eq.\@ref(eq:hessian-log-likelihood-unconstrained) yields the Hessian matrix,  $\mathbf{H} \in \mathcal{M}_{J \times J}$ is given by:
 
 ```{=tex}
 \begin{equation}
@@ -228,7 +230,7 @@ However, the explicit formulas for the gradient and the Hessian matrix of the lo
 
 ## Iterated optimisation
 
-The MLE is traditionally retrieved from the roots of the gradient of the log-likelihood. However, in our generative framework, cancelling the gradient of Equation \@ref(eq:loglikelihood-multivariate-gaussian) reveals a non-closed form. Instead, iterated numerical optimisation algorithms can be used to proxy the roots, most of them considering first or second-order approximations of the function to optimise. 
+The MLE is traditionally retrieved from the roots of the gradient of the log-likelihood. However, in our generative framework, cancelling the gradient of Equation \@ref(eq:loglikelihood-multivariate-gaussian) reveals a non-closed form. Instead, iterated numerical optimisation algorithms can be used to proxy the roots, most of them considering first or second-order approximations of the function to optimise.
 
 The *Levenberg-Marquardt algorithm* bridges the gap between between the steepest descent method (first-order) and the Newton-Raphson method (second-order) by inflating the diagonal terms of the Hessian matrix. Away from the endpoint, a second-order descent is favoured for its faster convergence pace, while the steepest approach is privileged close to the extremum, as it allows careful refinement of the step size. We use function `r knitr::asis_output(ifelse(knitr::is_html_output(), downlit::autolink("marqLevAlg::marqLevAlg"),   '\\CRANpkg{marqLevAlg}'))`, since it notably introduces a stringent convergence criteria, the relative distance to the maximum (RDM), which sets apart extrema from spurious saddle points [@prague_etal13].
 
@@ -239,12 +241,12 @@ We provide additional theoretical results, such as analytical formulas for the G
 
 ## Simulation of a convolution of multivariate Gaussian mixtures
 
-To assert numerically the relevance of accounting the correlation between expressed transcripts, we designed a simple toy example with two genes and two cell populations. Hence, using the simplex constraint (Eq.\@ref(eq:positive-ratios)), we only have to estimate one free unconstrained parameter, $\theta_1$, and then converts it back to the original ratio space using the mapping function (Eq.\@ref(eq:mapping-function)). 
+To assert numerically the relevance of accounting the correlation between expressed transcripts, we designed a simple toy example with two genes and two cell populations. Hence, using the simplex constraint (Eq.\@ref(eq:positive-ratios)), we only have to estimate one free unconstrained parameter, $\rho_1$, and then converts it back to the original ratio space using the mapping function (Eq.\@ref(eq:mapping-function)).
 
-We simulated "virtual" bulk mixture, $\boldsymbol{y} \in \mathcal{M}_{G \times N}$, for a set of artificial samples $N=500$, with the following generative model: 
+We simulated "virtual" bulk mixture, $\boldsymbol{y} \in \mathcal{M}_{G \times N}$, for a set of artificial samples $N=500$, with the following generative model:
 
-* We tested two levels of cellular ratios, one with equi-balanced proportions ($\boldsymbol{p} = (p_1, p_2=1-p_1)=(\frac{1}{2}, \frac{1}{2})$ and one with highly unbalanced cell populations: $\boldsymbol{p} =(0.95, 0.05)$. 
-    
+* We tested two levels of cellular ratios, one with equi-balanced proportions ($\boldsymbol{p} = (p_1, p_2=1-p_1)=(\frac{1}{2}, \frac{1}{2})$ and one with highly unbalanced cell populations: $\boldsymbol{p} =(0.95, 0.05)$.
+
 * Then, each purified transcriptomic profile of the two cell populations is drawn from a bivariate Gaussian distribution. We compared two scenarios, playing on the mean distance of centroids, respectively $\mu_{.1}=(20, 22), \mu_{.2}=(22, 20)$ and $\mu_{.2}=(20, 40), \mu_{.2}=(40, 20)$) and building the covariance matrix,  $\mathbf{\Sigma} \in \mathcal{M}_{2 \times 2}$ by assuming equal individual variances for each gene  (the diagonal terms of the covariance matrix, $\diag(\boldsymbol{\Sigma_1})=\diag(\boldsymbol{\Sigma_1})=\boldsymbol{I}_2$) but varying the pairwise correlation between gene 1 and gene 2, $\CC{x_{1,2}}$, on the following set of values: $\{-0.8, -0.6, \ldots, 0.8\}$ for each of the cell population.
 
 * As stated in Eq.\@ref(eq:deconvolution-problem), we assume that bulk mixture, $\mathbf{y}_{.i}$ could be directly reconstructed by summing up the individual cellular contributions weighted by their abundance, without additional noise.
@@ -271,53 +273,53 @@ reduced_bivariate_configuration %>%
     booktabs = T, caption = "The 8 general scenarios tested to compare the performance of DeCovarT
     vs standard linear deconvolution model", escape = F, align = "c"
   ) %>%
-  kable_styling(latex_options = c("hold_position", "scale_down")) %>%
+  kable_styling(latex_options = c("HOLD_position", "scale_down")) %>%
   row_spec(0, bold = T) %>%
   row_spec(1:8, hline_after = T) %>%
   kable_styling(bootstrap_options = c("hover", "condensed"))
 ```
 ## Practical implementation
 
-In practice, to generate a sample with the probabilistic framework described in subfigure b) (Fig.`r knitr::asis_output(ifelse(knitr::is_html_output(), '\\@ref(fig:load-DAG-html)', '\\@ref(fig:load-DAG-pdf)'))`), 
+In practice, to generate a sample with the probabilistic framework described in subfigure b) (Fig.`r knitr::asis_output(ifelse(knitr::is_html_output(), '\\@ref(fig:load-DAG-html)', '\\@ref(fig:load-DAG-pdf)'))`),
 you can take benefit from function you may use the natively
 provided DeCovarT function `simulate_bulk_mixture()` (click-on link, to access automatically to its documentation).
 
 
-To compare automatically the quality of the output and the performance 
+To compare automatically the quality of the output and the performance
 of several deconvolution algorithms, you may directly use function `deconvolute_ratios()`, which, in addition to infer in a parallel fashion the individual cellular ratios of $n$ independent samples, performs the following normalisation and pre-processing tasks^[Note that Window users can not unfortunately perform parallel computation with a R interface, slowing considerably the operations compared to a Linux user. Additionally, with that function, we assume that the reference profile used is the same for all individuals.]:
 
-1. Remove genes from both reference signature matrices and bulk profiles, 
-presenting at least a missing value for respectively a cell population, 
+1. Remove genes from both reference signature matrices and bulk profiles,
+presenting at least a missing value for respectively a cell population,
 or an individual biological sample. In the mean time, we control that the
 provided transcriptomic expressions are in numeric format.
 
-2. Ensure that at least $50\%$ of the provided genes are common between the 
+2. Ensure that at least $50\%$ of the provided genes are common between the
 purified reference profiles and bulk mixture^[For the moment, you may use any `rownames` argument,
-however, in a near future, we plan to add automated control whether they are 
+however, in a near future, we plan to add automated control whether they are
 known and valid HGNC symbols]. We also check if valid `colnames` are provided for the
 purified reference matrices (in a near time, we would control that they match ontology
 terms, as the ones returned by R function `r knitr::asis_output(ifelse(knitr::is_html_output(), downlit::autolink("ontoProc::getCellOnto"),   '\\CRANpkg{ontoProc}'))`).
 
 3. Ensure that both reference and bulk profiles are provided as raw counts (or possibly
-non-logged TPMs), since the DeCovarT model and its variants assume a convolution of 
+non-logged TPMs), since the DeCovarT model and its variants assume a convolution of
 parametric distributions on the original parameter space.
 
-Alternatively, you may directly use any of the implemented deconvolution functions, 
-providing at least the two required parameters `y` (individual bulk profile) and `X` 
+Alternatively, you may directly use any of the implemented deconvolution functions,
+providing at least the two required parameters `y` (individual bulk profile) and `X`
 (individual or global purified reference profiles), but we do not perform again the regular pre-control
 and processing steps described above. The main characteristics of some of the most relevant deconvolution algorithms implemented are reported in Table `r knitr::asis_output(ifelse(knitr::is_html_output(), '\\@ref(tab:deconvolution-decovart-html)', '\\@ref(tab:deconvolution-decovart-pdf)'))` below:
 
-```{r deconvolution-decovart-pdf, eval = knitr::is_latex_output(), fig.pos="!ht"}
+```{r deconvolution-decovart-pdf, eval = knitr::is_latex_output()}
 readr::read_delim("./tables/decovart_methods.csv", delim = ";", show_col_types = F) %>%
-    mutate(`DeCovarT function`=paste0("\\Verb|", `DeCovarT function`,"|")) %>% 
-  kbl(booktabs = T, caption = "Main characteristics of the benchmarked packages in our toy example. 
-  \\textit{DeCovarT function} refers to the R function of our package, used to implement 
+  mutate(`DeCovarT function` = paste0("\\Verb|", `DeCovarT function`, "|")) %>%
+  kbl(booktabs = T, caption = "Main characteristics of the benchmarked packages in our toy example.
+  \\textit{DeCovarT function} refers to the R function of our package, used to implement
       the corresponding algorithm labelled in column 1. When different from the default values of the hyper-parameters,
-      we detail their reviewed values in column \\textit{Hyper-parameters}",escape = F) %>% 
+      we detail their reviewed values in column \\textit{Hyper-parameters}", escape = F) %>%
   row_spec(0, bold = T, align = "c", hline_after = T) %>%
-  kable_styling(latex_options = c("hold_position", "scale_down")) %>%
+  kable_styling(latex_options = c("HOLD_position", "scale_down")) %>%
   column_spec(column = 1:4, latex_valign = "m", width = c("4cm", "6cm", "6cm", "5cm")) %>%
-  column_spec(column = 1, bold = T) %>% 
+  column_spec(column = 1, bold = T) %>%
   add_footnote("Most optimisation methods implemented in R, by default, aim at minimising a given quantity/function,
                since, most of them were designed at first to minimise the squared error residuals. Howver, maximising a function
                is equivalent to minimise its negative counterpart, which can easily be done in optimisation algorithms,
@@ -325,37 +327,40 @@ readr::read_delim("./tables/decovart_methods.csv", delim = ";", show_col_types =
 ```
 
 ```{r deconvolution-decovart-html, eval = knitr::is_html_output()}
-readr::read_delim("./tables/decovart_methods.csv", delim = ";", show_col_types = F) %>% flextable() %>%
+readr::read_delim("./tables/decovart_methods.csv", delim = ";", show_col_types = F) %>%
+  flextable() %>%
   set_caption(
-    caption = "Main characteristics of the benchmarked packages in our toy example. 
-  *DeCovarT function* refers to the R function of our package, used to implement 
+    caption = "Main characteristics of the benchmarked packages in our toy example.
+  *DeCovarT function* refers to the R function of our package, used to implement
       the corresponding algorithm labelled in column 1. When different from the default values of the hyper-parameters,
-      we detail their reviewed values in column *Hyper-parameters*", html_escape = F ) %>%
+      we detail their reviewed values in column *Hyper-parameters*", html_escape = F
+  ) %>%
   theme_vanilla() %>%
   align(align = "center", part = "header") %>% # centre align header
-  bold(j = "Algorithm", bold = TRUE, part = "body") %>% 
-  flextable::autofit() %>% 
-  flextable::footnote(i = 6:10,
+  bold(j = "Algorithm", bold = TRUE, part = "body") %>%
+  flextable::autofit() %>%
+  flextable::footnote(
+    i = 6:10,
     j = 4,
-    value= as_paragraph("Most optimisation methods implemented in R, by default, aim at minimising a given quantity/function, 
+    value = as_paragraph("Most optimisation methods implemented in R, by default, aim at minimising a given quantity/function,
     since, most of them were designed at first to minimise the squared error residuals. Howver, maximising a function
     is equivalent to minimise its negative counterpart, which can easily be done in optimisation algorithms,
-    by assigning parameter `fnscale` to 1."), ref_symbols = c("a"))
-
+    by assigning parameter `fnscale` to 1."), ref_symbols = c("a")
+  )
 ```
 
 
-Finally, to reproduce the results of the benchmark, you can use the highly specific function `benchmark_deconvolution_algorithms_two_genes()`: 
-a highly specific wrapper, used as a toy example to automatically benchmark 
-for a given number of observations $n$ the performance 
+Finally, to reproduce the results of the benchmark, you can use the highly specific function `benchmark_deconvolution_algorithms_two_genes()`:
+a highly specific wrapper, used as a toy example to automatically benchmark
+for a given number of observations $n$ the performance
 of several deconvolution algorithms, as a function of the level of entropy (play on
-the parameter `proportions`) and overlap (play on parameter `signature_matrices` 
+the parameter `proportions`) and overlap (play on parameter `signature_matrices`
 to control the average proximity of *centroids*= the averaged expression profiles, and
 parameters `diagonal_terms,corr_sequence` to control the topological configuration
-of the bivariate Gaussian distribution, playing on the parametrisation of the covariance 
+of the bivariate Gaussian distribution, playing on the parametrisation of the covariance
 matrix.) and `plot_correlation_Heatmap()` to visualise in a row the performance of several deconvolution
-algorithms (each Heatmap should be associated to one scenario of homoscedascity, entropy and average distance to centroids, then used to compare the performance, measured for a given metric, 
-of a deconvolution algorithm). For instance, to reproduce the results provided 
+algorithms (each Heatmap should be associated to one scenario of homoscedascity, entropy and average distance to centroids, then used to compare the performance, measured for a given metric,
+of a deconvolution algorithm). For instance, to reproduce the results provided
 in document [Heatmaps associated to bivariate scenario](https://github.com/bastienchassagnol/DeCovarT/blob/main/figs/bivariate_Heatmaps.pdf), we execute the following code snippet:
 
 ```{r scenario-bivariate, echo=TRUE, eval=FALSE}
@@ -419,20 +424,24 @@ bivariate_simulation <- benchmark_deconvolution_algorithms_two_genes(
 ##                 plot the associated Heatmaps                 ##
 ##################################################################
 splitted_parameters <- split(x = bivariate_simulation, f = bivariate_simulation$ID)
-bivariate_simulation_heatmap <- purrr::imap(splitted_parameters, function(.data, .name_scenario) {
-  heatmap_per_scenario <- plot_correlation_Heatmap(.data) # actual call to the associated DeCovarT function
-  heatmap_page <- purrr::imap(heatmap_per_scenario, ~ ComplexHeatmap::draw(.x,
-    padding = unit(c(0, 0, 0, 0), "cm"),
-    column_title = .y, column_title_gp = grid::gpar(fontsize = 12, fontface = "bold")
-  ) %>%
-    grid::grid.grabExpr())
-  # general organisation: 3 deconvolution algorithms per column
-  heatmap_page <- gridExtra::arrangeGrob(
-    grobs = heatmap_page, ncol = 3, padding = unit(0.1, "line"),
-    top = ggpubr::text_grob(.name_scenario, size = 18, face = "bold")
-  )
-  return(heatmap_page)
-})
+bivariate_simulation_heatmap <- purrr::imap(
+  splitted_parameters,
+  function(.data, .name_scenario) {
+    # actual call to DeCovarT function
+    heatmap_per_scenario <- plot_correlation_Heatmap(.data)
+    heatmap_page <- purrr::imap(heatmap_per_scenario, ~ ComplexHeatmap::draw(.x,
+      padding = unit(c(0, 0, 0, 0), "cm"),
+      column_title = .y, column_title_gp = grid::gpar(fontsize = 12, fontface = "bold")
+    ) %>%
+      grid::grid.grabExpr())
+    # general organisation: 3 deconvolution algorithms per column
+    heatmap_page <- gridExtra::arrangeGrob(
+      grobs = heatmap_page, ncol = 3, padding = unit(0.1, "line"),
+      top = ggpubr::text_grob(.name_scenario, size = 18, face = "bold")
+    )
+    return(heatmap_page)
+  }
+)
 
 # save the actual output
 ggsave("./figs/bivariate_Heatmaps.pdf",
@@ -443,22 +452,16 @@ ggsave("./figs/bivariate_Heatmaps.pdf",
 
 
 ## Results on toy example
-We compared the performance of DeCovarT algorithm with the outcome of a quadratic algorithm that specifically addresses the unit simplex constraint: the negative least squares algorithm (NNLS, @haskell_hanson81). 
+We compared the performance of DeCovarT algorithm with the outcome of a quadratic algorithm that specifically addresses the unit simplex constraint: the negative least squares algorithm (NNLS, @haskell_hanson81).
 
 Even with a limited toy example including two cell populations characterised only by two genes, we observe that the overlap was a good proxy of the quality of the estimation: the less the two cell distributions overlap, the better the quality of the estimation is (Fig. \@ref(fig:mse-complex-heatmap)):
 
-```{r prepare-legend-complex-heatmap, echo=FALSE}
-complex_heatmap_legend_html <- "We used package [ComplexHeatmap](https://jokergoo.github.io/ComplexHeatmap-reference/book/) to display the mean square error (MSE) of the estimated cell ratios, comparing the output of the deconRNASEQ algorithm [@gong_szustakowski13], in Panel **A**, with our newly implemented DeCovarT algorithm, in Panel **B**. The lower the MSE, the least noisy and biased the estimates. In addition, we added two-dimensional density plots of the central scenario, parametrised by a diagonal covariance matrix, and most extreme scenarios, with the highest gene pairwise correlation. The ellipsoids represent for each cell population the 95 % confidence region and the red spherical and green triangular shapes represent respectively the centroids of cell population 1 and cell population 2."
-
-complex_heatmap_legend_pdf <- "We used the package \\CRANpkg{ComplexHeatmap} to display the mean square error (MSE) of the estimated cell ratios, comparing the output of the deconRNASEQ algorithm (\\cite{gong_szustakowski13}), in Panel \\textbf{A}, with our newly implemented DeCovarT algorithm, in Panel \\textbf{B}. The lower the MSE, the least noisy and biased the estimates. n addition, we added two-dimensional density plots of the central scenario, parametrised by a diagonal covariance matrix, and most extreme scenarios, with the highest gene pairwise correlation. The ellipsoids represent for each cell population the $95\\%$ confidence region and the red spherical and green triangular shapes represent respectively the centroids of cell population 1 and cell population 2."
-```
+(ref:gong) We used package [ComplexHeatmap](https://jokergoo.github.io/ComplexHeatmap-reference/book/) to display the mean square error (MSE) of the estimated cell ratios, comparing the output of the deconRNASEQ algorithm [@gong_szustakowski13], in Panel **A**, with our newly implemented DeCovarT algorithm, in Panel **B**. The lower the MSE, the least noisy and biased the estimates. In addition, we added two-dimensional density plots of the central scenario, parametrised by a diagonal covariance matrix, and most extreme scenarios, with the highest gene pairwise correlation. The ellipsoids represent for each cell population the $95\%$ confidence region and the red spherical and green triangular shapes represent respectively the centroids of cell population 1 and cell population 2.
 
 
-```{r mse-complex-heatmap, fig.cap=if (knitr::is_html_output()) complex_heatmap_legend_html else complex_heatmap_legend_pdf}
+```{r mse-complex-heatmap, fig.cap='(ref:gong)'}
 knitr::include_graphics("figs/deconvolution_Heatmap.png")
 ```
-
-
 
 The package used to generate the simulations and infer ratios from virtual or real biological mixtures with the DeCovarT algorithm is implemented on personal Github account [DeCovarT](https://github.com/bastienchassagnol/DeCovarT).
 
@@ -466,33 +469,37 @@ The package used to generate the simulations and infer ratios from virtual or re
 
 The whole list of benchmarked packages is described, with their main parameters and a summary of the method used, in Table `r knitr::asis_output(ifelse(knitr::is_html_output(), '\\@ref(tab:deconvolution-table-html)', '\\@ref(tab:deconvolution-table-pdf)'))` below:
 
-```{r deconvolution-table-pdf, eval = knitr::is_latex_output(), fig.pos="!ht"}
+```{r deconvolution-table-pdf, eval = knitr::is_latex_output()}
 readr::read_delim("./tables/deconvolution_methods.csv", delim = ";", show_col_types = F) %>%
-  slice (1:14L) %>% select(-c("Online method")) %>% 
-  mutate(# `DeCovarT function`=gsub("_", "\\_", `DeCovarT function`),
-         `DeCovarT function`=dplyr::if_else(`DeCovarT function`=="redcross", "redcross", paste0("\\Verb|", `DeCovarT function`,"|")),
-         dplyr::across(everything(), ~ gsub(pattern = "redcross", "\\\\redcross", .x)),
-         # across(.cols = where(is.character), kableExtra::linebreak, linebreaker = "\\\\n")
-         ) %>%
+  slice(1:14L) %>%
+  select(-c("Online method")) %>%
+  mutate( # `DeCovarT function`=gsub("_", "\\_", `DeCovarT function`),
+    `DeCovarT function` = dplyr::if_else(`DeCovarT function` == "redcross", "redcross", paste0("\\Verb|", `DeCovarT function`, "|")),
+    dplyr::across(everything(), ~ gsub(pattern = "redcross", "\\\\redcross", .x)),
+    # across(.cols = where(is.character), kableExtra::linebreak, linebreaker = "\\\\n")
+  ) %>%
   kbl(
     booktabs = T, caption = "Features of some gold-standard deconvolution algorithms, benchmarked in this package.
                \\textit{Family} returns the general type of each deconvolution algorithm, among these three classes:
-               \\textit{supervised} algorithms, which use either a reference profile or assume a marker-based approach, 
+               \\textit{supervised} algorithms, which use either a reference profile or assume a marker-based approach,
                in which genes are considered expressed only in one cell population. When avalaible, direct website link
-               is indexed in \\textit{Online method}, and when implemented in our package, we give the name associated 
-               to the closely avalaible implemented function, in column \\textit{DeCovarT function}", escape = F, ) %>% 
+               is indexed in \\textit{Online method}, and when implemented in our package, we give the name associated
+               to the closely avalaible implemented function, in column \\textit{DeCovarT function}", escape = F,
+  ) %>%
   row_spec(0, bold = T, align = "c", hline_after = T) %>%
-  row_spec(1:14,  hline_after = T) %>%
-  kable_styling(latex_options = c("hold_position", "scale_down")) %>% 
+  row_spec(1:14, hline_after = T) %>%
+  kable_styling(latex_options = c("HOLD_position", "scale_down")) %>%
   column_spec(column = 1:5, latex_valign = "m", width = c("2cm", "3cm", "8cm", "3cm", "5cm")) %>%
   column_spec(column = 1, bold = T, border_right = T)
 ```
 
 ```{r deconvolution-table-html, eval = knitr::is_html_output()}
 data <- readr::read_delim("./tables/deconvolution_methods.csv", delim = ";", show_col_types = F) %>%
-  slice (1:14L) %>% 
-  mutate(`DeCovarT function`=dplyr::if_else(`DeCovarT function`=="redcross", "redcross", paste0("`", `DeCovarT function`,"`")),
-         dplyr::across(.cols = everything(), ~ gsub(pattern = "redcross", "./figs/red_cross.png", .x))) 
+  slice(1:14L) %>%
+  mutate(
+    `DeCovarT function` = dplyr::if_else(`DeCovarT function` == "redcross", "redcross", paste0("`", `DeCovarT function`, "`")),
+    dplyr::across(.cols = everything(), ~ gsub(pattern = "redcross", "./figs/red_cross.png", .x))
+  )
 
 flex_data <- data %>% flextable()
 for (i in 1:nrow(data)) {
@@ -511,18 +518,17 @@ flex_data %>%
   set_caption(
     caption = "Features of some gold-standard deconvolution algorithms, benchmarked in this package.
                *Family* returns the general type of each deconvolution algorithm, among these three classes:
-               *supervised* algorithms, which use either a reference profile or assume a marker-based approach, 
+               *supervised* algorithms, which use either a reference profile or assume a marker-based approach,
                in which genes are considered expressed only in one cell population. When avalaible, direct website link
-               is indexed in  *Online method*, and when implemented in our package, we give the name associated 
+               is indexed in  *Online method*, and when implemented in our package, we give the name associated
                to the closely avalaible implemented function, in column *DeCovarT function*",
     html_escape = F
   ) %>%
   theme_vanilla() %>%
   align(align = "center", part = "header") %>% # centre align header
-  bold(j = "Algorithm", bold = TRUE, part = "body") %>% 
-  vline(j = "Algorithm",  part = "body") %>% 
-  flextable::autofit() 
-
+  bold(j = "Algorithm", bold = TRUE, part = "body") %>%
+  vline(j = "Algorithm", part = "body") %>%
+  flextable::autofit()
 ```
 
 # References {.unnumbered}
@@ -535,81 +541,289 @@ flex_data %>%
 
 ## First and second-order derivation of the constrained DeCovarT log-likelihood function{.unnumbered #constrained-optimisation}
 
-To reparametrise the log-likelihood function (Eq.\@ref(eq:loglikelihood-multivariate-gaussian)) in order to explicitly handling the unit simplex constraint (Eq.\@ref(eq:positive-ratios)), we consider the following mapping function: $\boldsymbol{\psi}:\boldsymbol{\theta}  \to  \boldsymbol{p} \, | \quad  \boldsymbol{\theta} \in \RR^{J-1} , \, \boldsymbol{p} \in ]0, 1[^{J}$ (Eq.\@ref(eq:mapping-function)):
+To reparametrise the log-likelihood function (Eq.\@ref(eq:loglikelihood-multivariate-gaussian)) in order to explicitly handling the unit simplex constraint (Eq.\@ref(eq:positive-ratios)), we consider the following mapping function: $\boldsymbol{\psi}:\boldsymbol{\rho}  \to  \boldsymbol{p} \, | \quad  \boldsymbol{\rho} \in \RR^{J-1} , \, \boldsymbol{p} \in ]0, 1[^{J}$ (Eq.\@ref(eq:mapping-function)):
 
 ```{=tex}
 \begin{equation}
 \begin{aligned}
-\boldsymbol{p} = \boldsymbol{\psi} (\boldsymbol{\theta}) =
+\boldsymbol{p} = \boldsymbol{\psi} (\boldsymbol{\rho}) =
 \begin{cases}
-p_j =  \frac{e^{\theta_j}}{\sum_{k < J} e^{\theta_k} \, + \, 1}, \, j < J\\
-p_J =  \frac{1}{\sum_{k < J} e^{\theta_j} + 1}
+p_j =  \frac{e^{\rho_j}}{\sum_{k < J} e^{\rho_k} \, + \, 1}, \, j < J\\
+p_J =  \frac{1}{\sum_{k < J} e^{\rho_j} + 1}
 \end{cases} & \qquad
-\boldsymbol{\theta} = \boldsymbol{\psi}^{-1} (\boldsymbol{p}) = \left(\ln{\left( \frac{p_j}{p_J}\right)} \right)_{j \in \{ 1, \ldots, J -1\}}
+\boldsymbol{\rho} = \boldsymbol{\psi}^{-1} (\boldsymbol{p}) = \left(\ln{\left( \frac{p_j}{p_J}\right)} \right)_{j \in \{ 1, \ldots, J -1\}}
 \end{aligned}
-(\#eq:mapping-function) 
+(\#eq:mapping-function)
 \end{equation}
 ```
 
-that is a $C^2$-diffeomorphism, since $\boldsymbol{\psi}$ is a bijection between $\boldsymbol{p}$ and $\boldsymbol{\theta}$ twice differentiable. 
+that is a $C^2$-diffeomorphism, since $\boldsymbol{\psi}$ is a bijection between $\boldsymbol{p}$ and $\boldsymbol{\rho}$ twice differentiable.
 
-Its Jacobian, $\mathbf{J}_{\boldsymbol{\psi}} \in \mathcal{M}_{J \times (J-1)}$ is given by Eq.\@ref(eq:mapping-function-gradient): 
+Its Jacobian, $\mathbf{J}_{\boldsymbol{\psi}} \in \mathcal{M}_{J \times (J-1)}$ is given by Eq.\@ref(eq:mapping-function-gradient):
 
 ```{=tex}
 \begin{equation}
 \mathbf{J}_{i,j} =
-   \frac{\partial p_i}{\partial \theta_{j}} =
+   \frac{\partial p_i}{\partial \rho_{j}} =
 \begin{cases}
-\frac{e^{\theta_i}B_i}{A^2 },\quad i = j, \, i < J\\
-\frac{-e^{\theta_j}e^{\theta_i}}{A^2 }, \quad i \neq j, \, i < J\\
-\frac{-e^{\theta_j}}{A^2}, \quad i=J
+\frac{e^{\rho_i}B_i}{A^2 },\quad i = j, \, i < J\\
+\frac{-e^{\rho_j}e^{\rho_i}}{A^2 }, \quad i \neq j, \, i < J\\
+\frac{-e^{\rho_j}}{A^2}, \quad i=J
 \end{cases}
-(\#eq:mapping-function-gradient) 
+(\#eq:mapping-function-gradient)
 \end{equation}
 ```
 
-with $i$ indexing vector-valued $\boldsymbol{p}$ and $j$ indexing the first-order order partial derivatives of the mapping function, $A=\sum_{j' < J} \,e^{\theta_{j'}} \, +  \, 1$ the sum over exponential (denominator of the mapping function) and $B=A - e^{\theta_{i}}$ the sum over ratios minus the exponential indexed with the currently considered index $i$. 
+with $i$ indexing vector-valued $\boldsymbol{p}$ and $j$ indexing the first-order order partial derivatives of the mapping function, $A=\sum_{j' < J} \,e^{\rho_{j'}} \, +  \, 1$ the sum over exponential (denominator of the mapping function) and $B=A - e^{\rho_{i}}$ the sum over ratios minus the exponential indexed with the currently considered index $i$.
 
-The Hessian (which fortunately is symmetric for each component $j$, as expected according to the Schwarz's theorem) of the vectorial mapping function $\boldsymbol{\psi (\theta)}$ is a third-order tensor of rank $(J-1)(J-1)J$, given by Eq.\@ref(eq:mapping-function-hessian):
+The Hessian (which fortunately is symmetric for each component $j$, as expected according to the Schwarz's theorem) of the vectorial mapping function $\boldsymbol{\psi (\rho)}$ is a third-order tensor of rank $(J-1)(J-1)J$, given by Eq.\@ref(eq:mapping-function-hessian):
 
 ```{=tex}
 \begin{equation}
 \begin{aligned}
 \frac{\partial^2 p_i}{\partial k \partial j} &=
 \begin{cases}
-\frac{e^{\theta_i} e^{\theta_l} \left (-B_i + e^{\theta_i}\right)}{A^3},\, (i<J) \land \left((i\neq j) \oplus(i\neq k)\right) \quad (a)\\
-\frac{2 e^{\theta_i} e^{\theta_j} e^{\theta_k} }{A^3}, \, (i<J) \land  (i \neq j \neq k)  \quad (b)\\
-\frac{e^{\theta_i} e^{\theta_j} \left (-A + 2e^{\theta_j}\right)}{A^3}, \, (i<J) \land (j=k\neq i)  \quad (c)\\
-\frac{B_i e^{\theta_i} \left( B_i -  e^{\theta_i}\right)}{A^3}, \, (i<J) \land (j = k = i)  \quad (d)\\
-\frac{e^{\theta_j} \left( -A + 2 e^{\theta_j}\right)}{A^3}, \, (i=J) \land (j = k)  \quad (e)\\
-\frac{2 e^{\theta_j} e^{\theta_k}}{A^3}, \, (i=J) \land (j \neq k)  \quad (f)
+\frac{e^{\rho_i} e^{\rho_l} \left (-B_i + e^{\rho_i}\right)}{A^3},\, (i<J) \land \left((i\neq j) \oplus(i\neq k)\right) \quad (a)\\
+\frac{2 e^{\rho_i} e^{\rho_j} e^{\rho_k} }{A^3}, \, (i<J) \land  (i \neq j \neq k)  \quad (b)\\
+\frac{e^{\rho_i} e^{\rho_j} \left (-A + 2e^{\rho_j}\right)}{A^3}, \, (i<J) \land (j=k\neq i)  \quad (c)\\
+\frac{B_i e^{\rho_i} \left( B_i -  e^{\rho_i}\right)}{A^3}, \, (i<J) \land (j = k = i)  \quad (d)\\
+\frac{e^{\rho_j} \left( -A + 2 e^{\rho_j}\right)}{A^3}, \, (i=J) \land (j = k)  \quad (e)\\
+\frac{2 e^{\rho_j} e^{\rho_k}}{A^3}, \, (i=J) \land (j \neq k)  \quad (f)
 \end{cases}
 \end{aligned}
 (\#eq:mapping-function-hessian)
 \end{equation}
 ```
 
-with $i$ indexing $\boldsymbol{p}$, $j$ and $k$ respectively indexing the first-order and second-order partial derivatives of the mapping function with respect to $\boldsymbol{\theta}$. In line $(a)$, $\oplus$ refers to the Boolean XOR operator, $\land$ to the AND operator and $l=\{j,k\} \setminus i$.
+with $i$ indexing $\boldsymbol{p}$, $j$ and $k$ respectively indexing the first-order and second-order partial derivatives of the mapping function with respect to $\boldsymbol{\rho}$. In line $(a)$, $\oplus$ refers to the Boolean XOR operator, $\land$ to the AND operator and $l=\{j,k\} \setminus i$.
 
 
-To derive the log-likelihood function in Eq.\@ref(eq:derivative-log-likelihood-unconstrained), we reparametrise $\boldsymbol{p}$ to  $\boldsymbol{\theta}$, using a standard *chain rule formula*). Considering the original log-likelihood function, Eq.\@ref(eq:loglikelihood-multivariate-gaussian), and the mapping function, Eq.\@ref(eq:mapping-function), the differential at the first order and at the second order is given by Eq.\@ref(eq:chain-rule-first-order) and Eq.\@ref(eq:chain-rule-second-order), respectively defined in $\RR^{J-1}$ and $\mathcal{M}_{(J-1)\times(J-1)}$:
+To derive the log-likelihood function in Eq.\@ref(eq:derivative-log-likelihood-unconstrained), we reparametrise $\boldsymbol{p}$ to  $\boldsymbol{\rho}$, using a standard *chain rule formula*). Considering the original log-likelihood function, Eq.\@ref(eq:loglikelihood-multivariate-gaussian), and the mapping function, Eq.\@ref(eq:mapping-function), the differential at the first order and at the second order is given by Eq.\@ref(eq:chain-rule-first-order) and Eq.\@ref(eq:chain-rule-second-order), respectively defined in $\RR^{J-1}$ and $\mathcal{M}_{(J-1)\times(J-1)}$:
 
 ```{=tex}
 \begin{equation}
 \begin{bmatrix}
-\frac{\partial \ell_{\boldsymbol{y} | \boldsymbol{\zeta}}}{\partial \theta_j}
+\frac{\partial \ell_{\boldsymbol{y} | \boldsymbol{\zeta}}}{\partial \rho_j}
 \end{bmatrix}_{j < J}
-  =  \sum_{i=1}^J \frac{\partial \ell_{\boldsymbol{y} | \boldsymbol{\zeta}}}{\partial p_i} \frac{\partial p_i}{\partial \theta_j} 
+  =  \sum_{i=1}^J \frac{\partial \ell_{\boldsymbol{y} | \boldsymbol{\zeta}}}{\partial p_i} \frac{\partial p_i}{\partial \rho_j}
 (\#eq:chain-rule-first-order)
 \end{equation}
 ```
 
 ```{=tex}
 \begin{equation}
-\begin{bmatrix}   
-\frac{\partial \ell_{\boldsymbol{y}|\boldsymbol{\zeta}}^2 }{\partial \theta_k \theta_j} 
-\end{bmatrix}_{j < J, \, k < J}   = 
-\sum_{i=1}^J \sum_{l=1}^J \left(  \frac{\partial p_i }{\partial \theta_j} \frac{\partial^2 \ell_{\boldsymbol{y}|\boldsymbol{\zeta}} }{\partial p_i \partial p_l} \frac{\partial p_l }{\partial \theta_k}\right)  \, + \,  \sum_{i=1}^J  \left( \frac{\partial \ell_{\boldsymbol{y}|\boldsymbol{\zeta}} }{\partial p_i} \frac{\partial^2 p_i }{\partial \theta_k \theta_j}\right) \quad (d) 
+\begin{bmatrix}
+\frac{\partial \ell_{\boldsymbol{y}|\boldsymbol{\zeta}}^2 }{\partial \rho_k \rho_j}
+\end{bmatrix}_{j < J, \, k < J}   =
+\sum_{i=1}^J \sum_{l=1}^J \left(  \frac{\partial p_i }{\partial \rho_j} \frac{\partial^2 \ell_{\boldsymbol{y}|\boldsymbol{\zeta}} }{\partial p_i \partial p_l} \frac{\partial p_l }{\partial \rho_k}\right)  \, + \,  \sum_{i=1}^J  \left( \frac{\partial \ell_{\boldsymbol{y}|\boldsymbol{\zeta}} }{\partial p_i} \frac{\partial^2 p_i }{\partial \rho_k \rho_j}\right) \quad (d)
 (\#eq:chain-rule-second-order)
 \end{equation}
 ```
+
+# Appendix B: Natural extension towards a truly Bayesian framework
+
+We review below in more details some papers that inspire our work as well as natural extensions of the already implemented framework in Fig.`r knitr::asis_output(ifelse(knitr::is_html_output(), '\\@ref(fig:load-DAG-html)', '\\@ref(fig:load-DAG-pdf)'))`.
+
+(ref:erkkila) Graphical represention of the DSection generative model [@erkkila_etal10]
+
+(ref:ahn) Graphical represention of the DemixT generative model [@ahn_etal13; @wang_etal18]
+
+(ref:chion) Graphical represention of [@chion18] generative model
+
+
+```{r bayesian-model-html, echo = FALSE, fig.cap="To compare the generative framework across several deconvolution algorithms, we homogenise indexes and parameters, and represent dependency links using the [RevBayes](https://revbayes.github.io/tutorials/intro/graph_models.html) convention. The density functions describing the distribution of the observations, conditioned on the estimated parameters, are written in green, the prior distributions of the parameters to estimate are written in red (themselves possibly conditioned on other unknown parameters, or constant, fixed-value priors), and finally, the resulting posterior distribution parameters, conditioned on both prior and likelihood functions, following the Bayes rules, are written in blue.", fig.show = "hold", eval=knitr::is_html_output(), out.width="45%"}
+knitr::include_graphics("figs/DAG_model_Demixt.png")
+knitr::include_graphics("figs/DAG_model_Dsection.png")
+knitr::include_graphics("figs/DAG_model_mi4p.png")
+knitr::include_graphics("figs/DAG_model_updated_decovart_representation.png")
+knitr::include_graphics("figs/DAG_legend_updated.png")
+```
+
+
+```{r bayesian-model-pdf, echo = FALSE, fig.cap="To compare the generative framework across several deconvolution algorithms, we homogenise indexes and parameters, and represent dependency links using the \\href{https://revbayes.github.io/tutorials/intro/graph_models.html}{RevBayes} convention. The density functions describing the distribution of the observations, conditioned on the estimated parameters, are written in green, the prior distributions of the parameters to estimate are written in red (themselves possibly conditioned on other unknown parameters, or constant, fixed-value priors), and finally, the resulting posterior distribution parameters, conditioned on both prior and likelihood functions, following the Bayes rules, are written in blue.", fig.subcap=c("(ref:ahn)", '(ref:erkkila)', "(ref:chion)", "Graphical representation of the DeCovarT generative model, in an extended Bayesian framework", "Legend used in the graphical model"), out.width="40%", fig.ncol = 2, eval=knitr::is_latex_output()}
+knitr::include_graphics("figs/DAG_model_Demixt.png")
+knitr::include_graphics("figs/DAG_model_Dsection.png")
+knitr::include_graphics("figs/DAG_model_mi4p.png")
+knitr::include_graphics("figs/DAG_model_updated_decovart_representation.png")
+knitr::include_graphics("figs/DAG_legend_updated.png")
+```
+
+
+We characterise in further details these models below:
+
+a.  Model a) in Fig.`r knitr::asis_output(ifelse(knitr::is_html_output(), '\\@ref(fig:load-DAG-html)', '\\@ref(fig:load-DAG-pdf)'))` was first theorised in paper [@ahn_etal13] to infer the proportion and characteristics of the unknown tumoral content in biological samples with mixed tumoral and normal stromal cells. It was then slightly generalised to a model with three cell proportions, still looking for the same purpose of inferring the tumoral content in sampled individuals. Briefly, in the Demix(T) model, the distribution of the bulk expression for each gene is modelled independently as the sum of univariate, cell-specific  $\log_2$ Normal distributions, weighted by the cellular ratios. Additionally, they suppose that the mean and individual gene variance of each of the healthy cell populations (then excluding actually the tumoral cells, since generally tumoral expressions are highly specific to an individual, disease condition and tumoral cell line) have been characterised on physically separated, purified samples. However, in contrast with the DeCovarT model (Eq.\@ref(eq:conditional-multivariate-distribution)), the log-likelihood (or probability distribution) characterising a convolution of $\log_2$ Normal distributions is not closed. The estimation of the parameters is a two-step protocol:
+
+    + The unknown, general parameters of interest, namely the cellular proportions subjected to the unit simplex constraint, as well as the individual mean and variance of the tumoral gene expression, are the ones maximising the log-likelihood of the observed, bulk transcriptomic expressions, conditioned on the previously inferred, known individual mean and variance of purified, healthy cell populations. When the log-likelihood form is not available, it is approximated by numerical integration and a corresponding maximum is obtained using a Nelder-Mead procedure. Overall, this procedure is similar to the iterated conditional modes (ICM) approach of (Besag, 1986), since they do not maximise simultaneously all parameters, but rather proceeds by iteratively maximising a set of variables conditional on the rest.
+    + In a second time, individual references profiles are reconstituted by plugging-in the parameters estimated in the previous step, including the transcriptomic expression of normal cell populations in each sample. With a two-component model, by injecting the general linear constraint of deconvolution models (Eq.\@ref(eq:deconvolution-problem)), it turns out that only one parameter, either the tumoral or the healthy content, must be inferred (see Eq. 2 in [@ahn_etal13]).
+`r colorize("Globally same framework as the one I developped, but instead considering an univariate framework. Notably, the way they account for the unknown expression of tumoral content by writing it as a function of the other variables is comparable to the proposal distribution we were looking at", "green")`. Unlike a convolution of $\log_2$ Normal distributions, a convolution (applying beforehand a $\log_2$ normalisation) of Normal distributions can be related to a Normal distribution, thus obtaining a close form of the corresponding log-likelihood is straightforward. Such a model with two components only is also described in the original paper of [@ahn_etal13]^[`r colorize("It is not a Bayesian framework, but so close to my original representation, that I feel the need to quote it here.", "green")`].
+
+b.  Model b) in Fig.`r knitr::asis_output(ifelse(knitr::is_html_output(), '\\@ref(fig:load-DAG-html)', '\\@ref(fig:load-DAG-pdf)'))` is a full Bayesian framework, in which the bulk expression of each gene in each sample, $y_{gi}$, follows a Normal distribution whose parameters are stochastic variables themselves rather than fixed, point-estimates. Precisely, the distribution of the inverse of the variance, what we referred to *precision*, is assumed following a Gamma distribution^[Alternatively, other probabilistic configurations directly parametrise the variance itself, by applying to it the so-called inverse Gamma distribution], the cellular ratios, prior to observations, follows a Dirichlet distribution^[Its main advantage is that the sampled space explored respects the unit-simplex constraint (Eq.\@ref(eq:positive-ratios)), and integrating strong prior hypothetical knowledge, such as equi-balanced cell proportions, is rather straightforward. Indeed, cellular ratios that had been estimated using standard FACS methods prior to the deconvolution, can be directly plugged in the model, as vector $\boldsymbol{\rho}_{0i}$, while uncertainty on the quality of the estimate, can be directly described by unique multiplicative weight $\omega_{0i}$.] and the individual purified cell expressions, whose sum weighted by the cellular proportions, is assumed to equal the averaged bulk expression of the genes measured, are themselves described independently for each gene and each experimental condition by an univariate Gaussian distribution. However, while the posterior distribution of the individual, cell-specific expressions and individual bulk gene variance is *conjugated* with their respective prior distribution, the posterior distribution, since computing the normalising constant is infeasible, of the cellular ratios, can not be related to a known density distribution. To retrieve the posterior distributions, a combination of Gibbs iterations, when at least the posterior distribution of a subset of the parameters, conditioned on the currently remaining estimates, is known, and Metropolis-Hasting (MH), when the posterior distribution is only known up to a normalising constant,  are performed on the parameter space `r colorize("Compared to the previous model, variability of the cell-specific genes and the total variability measured in bulk are considered indepedent, and so the resulting bulk observed is not described by a convolution.", "green")`.
+
+c.  Model c), developed by [@chion18], details a generative model to quantify the uncertainty for differential analysis, and more precisely evaluate whether the proteomic expression, accounting for the underlying network structure, *meaningfully* diverges between two experimental conditions. The main purpose is then to derive analytically an explicit form of the posterior distribution for the difference of mean peptide intensity, from which computing a *p*-value and *confidence intervals* is straightforward.
+To do so, they propose both an univariate model (where each gene is supposed to express independently) and a multivariate model (where as in DeCovarT, the interactions between the genes are described by the covariance matrix of a multivariate Gaussian distribution.)
+In the multivariate setting, one major difficulty is that the variance and the mean estimates are not anymore independent, thus, when computing their corresponding posterior distributions, we have to marginalise out the parameter of interest, over the joint posterior probability of the mean and variance, conditioned on the observed values.
+Fortunately, [@chion18] shows that the posterior distribution of the mean, namely $f(\boldsymbol{\mu}|.)$, could be directly related to a multivariate $t$-distribution (see Proposition 5.1 to get the parameters).
+`r colorize("Adapater ce travail à une hypothèse marker-based, où on sait que chaque gène n'est exprimé que par une population cellulaire, et il faudrait juste rajouter une constante mutliplicative, semble relativement faisable. L'adapter au cas plus général où les gènes sont potentiellement exprimés par toutes les populations cellulaires, semble en revanche beau plus dure. A discuter!", "green")`.
+
+d. Finally, in our extended, Bayesian framework of the DecoVarT algorithm, we still assume that prior parameters for both the mean and covariance parameters are available, while an uninformative prior is assumed on the cellular ratios, considering equi-balanced cell populations.
+Additionally, to handle easily the unit simplex constraint, we directly sample on the space of parameters reparametrised using the *mapping function* described in Eq.\@ref(eq:mapping-function). Hence, assuming no correlation between the cell proportions, a simple Gaussian distribution with a diagonal covariance matrix and null mean value (with our function, considering equi-balanced proportions, namely equal to $\frac{1}{J}$, on the original space $\boldsymbol{p}$ is equivalent to initiate all cell proportions to a null vector $\boldsymbol{0}^{J-1}$), while the prior variance set on the cell proportions $\sigma_0$ can be directly related to the multiplicative noise constant $\omega_0$ of the DSection framework [@erkkila_etal10].
+
+
+
+### Addtional details on extended DeCovarT Bayesian framework
+
+Integrating over the sampling space to compute the normalising constant of the posterior distribution of the ratios, $f(\boldsymbol{p} | .)$, and the individual cellular expressions, $f(\boldsymbol{X_j} | .), \, j \in \{ 1, \ldots, J\}$, is intractable `r colorize("assertion to be checked!", "green")`, thus we combine the possibilities enabled by the Metropolis-Hasting (MH) algorithm (to get rid of the normalising constant) and the Gibbs sampling algorithm (instead of sampling simultaneously the complete parameter space, we subset only a relevant part of it, conditioned on the current update of the remaining ones)  to compute a MCMC estimation of the posterior distribution of these parameters. We describe below a possible pseudo-code for doing so (Algo. \\ref{algo:Decovart-pseudo-code}):
+
+
+```{=latex}
+\begin{algorithm}[ht]
+\DontPrintSemicolon
+\SetAlgoLined
+\KwResult{MAP (Maximum a posteriori) estimates of the \textit{purified cellular expression profiles}, $\boldsymbol{X}_{c(i)} \in \mathcal{M}_{\mathbb{R}^+_{G \times J}}, \, c(i) \in \{ 1, \ldots, C\}$ and the \textit{cellular ratios}, $\boldsymbol{p}_{i} \in ]0, 1[^J, \, i \in \{ 1, \ldots, N\}$}
+\SetKwInOut{Input}{Input}\SetKwInOut{Output}{Output}
+\Input{ \begin{itemize}
+    \item Prior estimates on the mean expression of the ratios ( $[\frac{1}{J}]^J$ on the original, unit simplex space $\boldsymbol{p}$, or $[0]^{J -1}$ on the reparametrised space $\boldsymbol{\rho}$, and unique variance describing the uncertainty on the estimated cellular ratios ($\sigma_0$ as the constant diagonal term of the covariance of corresponding prior Normal distribution)
+    \item Prior estimates, possibly phenotype-dependent, of the mean,$\left[\boldsymbol{\mu}_{j(c(i))} \in \mathbb{R}^G\right], \, j \in \{ 1, \ldots, J\}$ and covariance estimates, $\left[\boldsymbol{\Sigma}_{j(c(i))} \in \mathcal{M}_{\mathbb{R}^{G \times G}} \right], \, j \in \{ 1, \ldots, J\}$ of each purified cell population.
+    \item In addition, initial estimates of cellular ratios, $\boldsymbol{p}_{0i}$, and purified cell expression profiles, $\boldsymbol{X}_{0i}$, for each individual, such that both the general linear deconvolution constraint, namely $\boldsymbol{y}_i=\boldsymbol{X}_i \times \boldsymbol{p}_i$, and the unit simplex constraint over the ratios are respected. For instance, the estimate returned by R implemented function: \href{https://www.rdocumentation.org/packages/limSolve/versions/1.5.6/topics/lsei}{lsei::limSolve()}.
+\end{itemize}}
+\Output{MCMC distributions of the estimated ratios (and possibly of the purified expression profiles, if not too big in terms of memory storage)}
+\BlankLine
+\For{$q \gets 1$ \KwTo $(B+Q)$}{
+\For{$i=1:N$}{
+$\boldsymbol{\rho}_i^{(*)}  = \boldsymbol{\rho}_i^{(q - 1)} + \epsilon, \, \epsilon \sim \mathcal{N}_{J-1}(0, \sigma_0^2 \, \text{I}_{J-1})$\;
+\For{$j=1:(J-1)$}{
+$u \sim \mathbb{U}(0, 1)$\;
+\eIf{$u < \min \left(1, K_{\rho} \left(\rho_j^{(q-1)} \to \rho_j^{(*)} \right)\right)$}{
+$\rho_{ji}^{(q)} \gets \rho_{ji}^{(*)}$ \;
+} {
+$\rho_{ji}^{(q)} \gets \rho_{ji}^{(q-1)}$\;
+}
+$\boldsymbol{p}_i^{(q)} = \boldsymbol{\psi} (\boldsymbol{\rho}_i^{(q)})$\; \qquad (A)
+$\text{MCMC.}\boldsymbol{p_{i}} \gets \boldsymbol{p}_i^{(q)}$\;
+$\boldsymbol{X}_{i}^{(q-1)} \gets \diag_J\left(\frac{\boldsymbol{p}_{i}^{(q-1)}}{\boldsymbol{p}_{i}^{(q)}}  \right) \boldsymbol{X}_{i}^{(q -1)}  \qquad (i)$\;
+} % end for j loop
+
+\For{$j=1:(J-1)$}{
+$\boldsymbol{x}_{ji}^{(*)} = \boldsymbol{x}_{ji}^{(q-1)} + \varepsilon_{ji}, \quad
+\varepsilon_{ji} \sim  \mathcal{N} \left(0, \diag \left(\boldsymbol{\Sigma}_{ji}\right) \right)$\;
+$u \sim \mathbb{U}(0, 1)$\;
+\eIf{$u < \min \left(1, K_{\boldsymbol{x}} \left(\boldsymbol{x}_{ji}^{(q-1)} \to \boldsymbol{x}_{ji}^{(*)} \right)\right)$}{
+     $\boldsymbol{x}_{ji}^{(q)} \gets \boldsymbol{x}_{ji}^{(*)}$\;
+}{
+$\boldsymbol{x}_{ji}^{(q)} \gets \boldsymbol{x}_{ji}^{(q-1)}$\;
+}
+} % end for second j loop
+$\boldsymbol{x}_{iJ}^{(q)} \gets  \boldsymbol{x}_{iJ}^{(q - 1)} - \frac{\sum_{j< J} p_{ji}^{(q)} \varepsilon_{ji}}{p_{ji}^{(q)}} \qquad (ii)$ \;
+$\text{MCMC.}\boldsymbol{X}_{i} \gets \boldsymbol{X}_{i}^{(q)}$\;
+} % end for i loop
+}
+\caption{Pseudo-code of the generative process for our extended DeCovarT algorithm. Variable $q$ is the sampling running index, with $B$ the number of \textit{burn-in} iterations to be discarded after sampling, and $Q$ the actual length of the resulting Markov chain.}
+\label{algo:Decovart-pseudo-code}
+\end{algorithm}
+```
+
+```{r decovart-extended-algorithm-html, eval = knitr::is_html_output(), echo=FALSE, out.width="80%"}
+knitr::include_graphics("figs/Decovart-pseudo-code.png")
+```
+
+We detail in Box below the general process of the Metropolis-Hasting (MH) algorithm.
+
+
+:::: {.blackbox data-latex="{\\textbf{Metropolis-Hasting algorithm}}"}
+
+Consider the following definitions:
+
+- Function $f(\theta | .)$ is called the *target distribution*, in our specific context, the posterior distribution of both the ratios and the individual cellular expression profiles^[Actually, since the acceptance probability function is the ratio of two density functions, any multiplicative constant, that reveals often intractable to compute, cancel out].
+
+- The distribution $q(\theta | \theta^{(q-1)})$ is called alternatively the **proposal distribution** or the **transition kernel**, while the transient value $\theta^{(*)}$ is called the **proposal**.
+
+- The value returned by function $K$ is called the **acceptance probability**.
+
+
+Then, equipped with such functions and usual MCMC vocabulary, each iteration $(q)$ of the MH algorithm can be decomposed as the following steps:
+
+1. Draw a proposal parameter $\theta^{(*)}$ from conditional distribution $q(\theta | \theta^{(q-1)})$.
+
+2. Determine the probability of accepting this new value, computed as such:
+$$
+K (\theta) = \min \left( \frac{f(\theta^{(*)} | .)}{f(\theta^{(q-1)} | .)} \frac{q(\theta | \theta^{(q-1)})}{q( \theta^{(q-1)}| \theta )}, \, 1 \right)
+$$
+
+3. Draw $u \sim \text{Unif}[0, 1]$.
+
+4. Apply the following updating rule, as a function of a draw of the uniform distribution with success probability parameter $K (\theta)$:
+$$
+\theta^{(q)} =
+\begin{cases}
+\theta^{(*)}, & \, u \le K (\theta)\\
+\theta^{(q-1)}, & \, u > K (\theta)\\
+\end{cases}
+$$
+In the first case, we say that the proposal is *accepted*, while in the second case, it is *rejected*.
+
+However, the specific way we design the *kernel distribution*, by updating previous parameter estimates adding them a multivariate Gaussian noise (namely $\theta^{(*)}=\theta^{(q-1)} + \epsilon$), simplifies even further the acceptance probability function.
+Indeed, using first,
+$$
+\begin{aligned}
+q(\theta^{(*)} | \theta^{(q-1)}) &= q (\epsilon) \\
+q(\theta^{(q-1)} | \theta^{*}) &= q (-\epsilon)
+\end{aligned}
+$$
+and then deducing from the symmetric property of the multivariate Gaussian distribution that $q (\epsilon)=q (-\epsilon)$, the acceptance probability simplifies to:
+$$
+K (\theta) = \min \left( \frac{f(\theta^{(q-1)} + \epsilon| .)}{f(\theta^{(q-1)} | .)}, \, 1 \right)
+$$
+This specific design is referred to as [Random walk Metropolis-Hastings](https://www.statlect.com/fundamentals-of-statistics/Metropolis-Hastings-algorithm) and described in further details in [@taboga21a].
+::::
+
+
+We detail in Box below the general process of the Gibbs sampling algorithm, applied to the specific DeCovarT framework:
+
+:::: {.blackbox data-latex="{\\textbf{Gibbs sampling algorithm}}"}
+Consider the *target distribution* $f(\boldsymbol{p}, \boldsymbol{X}| \boldsymbol{\zeta}, \mathcal{D})$ , the joint density of the posterior parameters of interest, conditioned on constant, user-defined parameters $\boldsymbol{\zeta}$ and observed distribution $\mathcal{D}$, here the measured bulk estimates $\boldsymbol{Y}$. Suppose now that while we do know the joint distribution $f(\boldsymbol{p}, \boldsymbol{X}| \boldsymbol{\zeta}, \mathcal{D})$, we are however able to compute the posterior distribution, at least up to a multiplicative constant, of respectively the posterior distributions of the cellular ratios, $f(\boldsymbol{p} | \boldsymbol{X}, \boldsymbol{\zeta}, \mathcal{D})$ and the purified individual cell expression profiles,
+$f(\boldsymbol{X}  |\boldsymbol{p} , \boldsymbol{\zeta}, \mathcal{D})$. Whenever you are able to decompose your parameters into meaningful sets, you may apply Gibbs sampling, and such distributions are referred to as *full conditional*.
+
+In that case, the Gibbs algorithm will perform the following updated iterations:
+
+
+1. Draw a proposal from $f(\boldsymbol{p}^{(q)} |\boldsymbol{X}^{(q-1)} , \boldsymbol{\zeta}, \mathcal{D})$ for the cellular ratios.
+
+2. Use the updated cellular proportions to generate a new proposal for the purified cellular expressions: $f(\boldsymbol{X}^{(q)} |\boldsymbol{p}^{(q)} , \boldsymbol{\zeta}, \mathcal{D})$.
+
+Generally, the idea of the Gibbs sampling is to decompose the set of parameters to sample into independent blocks, and update each of them in the same iteration, conditioned on the most updated version of the remaining parameter subsets.
+::::
+
+Finally, when designing the proposal distribution, we must ensure it could generate any value belonging to the *support* of the target distribution, noted $R_f$, in other words, that $q(\theta^{(*)}|\theta^{(q-1)}) > 0$. This technical condition is indeed required for the validity of the *balance condition*, required for the *ergodicity* and the convergence to a stationary distribution of the MCMC sample. In addition, the deconvolution framework requires two additional linear constraints over the parameters:
+
+
+1. First, the estimated cellular ratios are required to respect the unit simplex constraint, (Eq.\@ref(eq:positive-ratios)), handled by reparametrising the parameters using the mapping function (step (A) of Algo. \\ref{algo:Decovart-pseudo-code} and Eq.\@ref(eq:mapping-function)).
+
+2. Secondly, we must verify that the weighted sum of the purified cell expression profiles indeed reconstitute the bulk mixture, in other words, that Eq.\@ref(eq:deconvolution-problem) holds. We can show by *induction* that our algorithm preserves indeed these conditions:
+
+    i. First, consider that at step $q-1$, linear constraint $\boldsymbol{y}_i=\boldsymbol{X}^{(q-1)}_i \times \boldsymbol{p}^{(q-1)}_i$ holds.
+
+    ii. When updating the cellular ratios in Algo \\ref{algo:Decovart-pseudo-code}, conditioned on the observations and the other set of parameters, Equation (i) sets for any sample $i$ and any cellular profile $j$ that $\boldsymbol{x}_{ji}^{(*)}p_{ji}^{(q)} = p_{ji}^{(q-1)}  \boldsymbol{x}_{ji}^{(q -1)}$, it is straightforward to show that summing over $J$ these weighted cellular profiles is still equal to $\boldsymbol{y}_i$.
+
+    iii. Updating the purified cellular expression profiles, conditioned by previously updated cell ratios, underscores that one of the cellular expression profiles can be rewritten as a combination of the others (in other words, that it is not a free parameter), considering $\boldsymbol{y}_i$ as a constant variable. Namely, this is equivalent to solve the following equality (Eq. \@ref(eq:MCMC-constraint)):
+```{=tex}
+\begin{equation}
+\begin{aligned}
+\sum_{j<J} p_{ji}^{(q)} \boldsymbol{x}_{ji}^{(q)} + p_{Ji}^{(q)} \boldsymbol{x}_{Ji}^{(q)}  &= \sum_{j<J} p_{ji}^{(q-1)} \boldsymbol{x}_{ji}^{(q-1)} + p_{Ji}^{(q-1)} \boldsymbol{x}_{Ji}^{(q-1)} = \boldsymbol{y}_i\\
+& \Longleftrightarrow \\
+\sum_{j<J} \left( \cancel{p_{ji}^{(q)}\boldsymbol{x}_{ji}^{(*)}} + p_{ji}^{(q)} \boldsymbol{\varepsilon}_{ji}^{(q)} \right)+ p_{Ji}^{(q)} \boldsymbol{x}_{Ji}^{(q)} & = \cancel{\sum_{j<J} p_{ji}^{(q-1)} \boldsymbol{x}_{ji}^{(q-1)}} + p_{Ji}^{(q-1)} \boldsymbol{x}_{Ji}^{(q-1)} \quad (1) \\
+& \Longleftrightarrow \\
+\boldsymbol{x}_{Ji}^{(q)} &= \underbrace{\frac{p_{Ji}^{(q-1)} \boldsymbol{x}_{Ji}^{(q-1)}}{p_{Ji}^{(q)}}}_{\boldsymbol{x}_{Ji}^{(*)}} - \frac{\sum_{j<J}  p_{ji}^{(q)} \boldsymbol{\varepsilon}_{ji}^{(q-1)}}{p_{Ji}^{(q)}}
+\end{aligned}
+(\#eq:MCMC-constraint)
+\end{equation}
+```
+
+
+\color{green}
+Ou alors, sans passer par un update temporaire des profils cellulaires, et en partant directement des valeurs de $\boldsymbol{x}_{Ji}^{(q-1)}$ stockées dans la chaine MCMC??, puisque l'étape A de l'ago consiste juste à mettre à jour les ratios cellulaires, et que modifier les expressions purifiées ne changent pas temporaiement la valeur des ratios!! Si tu n'es pas d'accord, que doit-on faire avec ces "valeurs temporaires" de $\boldsymbol{X}_{Ji}^{'}$, les stocker dans la chaine MCMC, mais dans ce cas, on aurait deux fois plus d'échantillons indépendants que pour les ratios cellulaires?
+$$
+\boldsymbol{x}_{Ji}^{(q)} = \boldsymbol{x}_{Ji}^{'} + \frac{\sum_{j<J}  x_{ji}^{(q-1)} \left(p_{ji}^{(q-1)} - p_{ji}^{(q)}\right) - p_{ji}^{(q)} \boldsymbol{\varepsilon}_{ji}^{(q)}}{p_{Ji}^{(q)}}
+$$
+"Si on est d'accord sur les équations précédentes, ne resterait plus qu'à déterminer les lois a posteriori de $\rho$ et $\boldsymbol{X}$, à la constante de normalisation près"??
+\color{black}
+

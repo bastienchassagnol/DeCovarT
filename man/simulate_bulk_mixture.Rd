@@ -6,8 +6,8 @@
 \usage{
 simulate_bulk_mixture(
   signature_matrix,
-  cov_tensor,
-  proportions = rep(1/ncol(signature_matrix), ncol(signature_matrix)),
+  Sigma,
+  p = rep(1/ncol(signature_matrix), ncol(signature_matrix)),
   n = 500
 )
 }
@@ -16,6 +16,17 @@ simulate_bulk_mixture(
 storing in each each column the averaged expression of the \code{G} genes used to deconvolve all cell populations.
 Name your \code{colnames} as the cell populations, and provide \code{rownames} argument for the name of the genes.
 By convention, we use HGNC symbols.}
+
+\item{Sigma}{Only relevant for deconvolution algorithms which require a prior estimate
+of the transcriptomic  covariance for each of the purified cell populations.
+A 3-dimensional covariance matrix array is expected:
+\eqn{\mathrm{\Sigma}=(\Sigma_{l, k, j}) \in \mathbb{R}^{G \times G \times J}} to
+parametrise the covariance transcriptomic structure of the \eqn{J} cell populations estimated.}
+
+\item{p}{The ratios to estimate (by default, equi-balanced cellular
+proportions are simulated)}
+
+\item{n}{The integer number of samples to generate}
 }
 \value{
 list with two items:
@@ -27,7 +38,7 @@ a three-dimensional array, each array storing the simulated expression of the
 \item \eqn{\boldsymbol{Y} \in \mathcal{M}_{G \times N}^+}: a two-dimensional matrix storing the virtually
 simulated bulk mixtures. Each column \eqn{\boldsymbol{y_{.i}}} stores for individual \eqn{i}
 the expression value of the \eqn{G} genes, while attribute row.names is used
-to uniquely identy each of them.
+to uniquely identify each of them.
 }
 }
 \description{

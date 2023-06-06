@@ -7,12 +7,12 @@
 deconvolute_ratios(
   signature_matrix,
   bulk_expression,
-  scaled = F,
   true_ratios = NULL,
   Sigma = NULL,
+  deconvolution_functions = NULL,
+  scaled = FALSE,
   cores = ifelse(.Platform$OS.type == "unix", getOption("mc.cores",
-    parallel::detectCores()), 1),
-  deconvolution_functions = NULL
+    parallel::detectCores()), 1)
 )
 }
 \arguments{
@@ -23,17 +23,17 @@ By convention, we use HGNC symbols.}
 
 \item{bulk_expression}{Parameter \code{y}: \eqn{\boldsymbol{y}=(\mu_{g,i}) \in \mathbb{R}^{G \times I}},
 storing in each each column the measured expression of the \code{G} genes in a heterogeneous sample, using any RNASeq or microarray technology.
-Provide the sample ID for each of your samples in column, and the name of your genes in rownames.}
-
-\item{scaled}{Whether we should scale or not the dataset. By default, we consider that the provided dataset is in its original raw space,
-and we do not scale the dataset, since our deconvolution algorithm assumes a multivariate Gaussian distribution on the raw counts themselves.}
+Provide the sample ID for each of your samples in column, and the name of your genes in \code{rownames}.}
 
 \item{true_ratios}{If available (for instance, in the context of a virtual benchmark, or if some standard cytometry techniques provide them),
 vector of size \eqn{J}, storing the normalised proportions of the cell populations supposed present in the sample. Summary metrics
 will then be computed against the ones returned by the deconvolution algorithms provided.}
 
 \item{Sigma}{Only relevant for deconvolution algorithms which require a prior estimate
-of the transcriptomic  covariance for each of the purified cell populations}
+of the transcriptomic  covariance for each of the purified cell populations.
+A 3-dimensional covariance matrix array is expected:
+\eqn{\mathrm{\Sigma}=(\Sigma_{l, k, j}) \in \mathbb{R}^{G \times G \times J}} to
+parametrise the covariance transcriptomic structure of the \eqn{J} cell populations estimated.}
 
 \item{deconvolution_functions}{The deconvolution functions themselves, a list
 with for each item two attributes to be filled with:
@@ -43,6 +43,14 @@ integrating the default parameters listed in )
 \code{additional_parameters} by default, set to NULL. If your deconvolution function
 integrates any specific, additional parameter.
 }}
+
+\item{scaled}{Whether we should scale or not the dataset. By default, we consider that the provided dataset is in its original raw space,
+and we do not scale the dataset, since our deconvolution algorithm assumes a multivariate Gaussian distribution on the raw counts themselves.}
+
+\item{cores}{For a parallel estimation of ratios in a series of bulk samples,
+assign a number of cores strictly inferior to the number of cores avalaible
+on your machine. By default, the maximum, minus in Unix systems, and for
+OS compatibility, only one on Windows machines}
 }
 \value{
 A \code{tibble} storing for each row the measured cell proportions, as well as some summary metrics.

@@ -13,7 +13,9 @@ benchmark_deconvolution_algorithms_two_genes(
   deconvolution_functions = list(lm = list(FUN = deconvolute_ratios_abbas,
     additional_parameters = NULL)),
   n = 200,
-  scaled = FALSE
+  scaled = FALSE,
+  cores = ifelse(.Platform$OS.type == "unix", getOption("mc.cores",
+    parallel::detectCores()), 1)
 )
 }
 \arguments{
@@ -56,8 +58,16 @@ integrating the default parameters listed in )
 integrates any specific, additional parameter.
 }}
 
+\item{n}{The number of samples to generate (an integer, but upon request, we may
+update the function to accept a numerical vector instead)}
+
 \item{scaled}{Whether we should scale or not the dataset. By default, we consider that the provided dataset is in its original raw space,
 and we do not scale the dataset, since our deconvolution algorithm assumes a multivariate Gaussian distribution on the raw counts themselves.}
+
+\item{cores}{For a parallel estimation of ratios in a series of bulk samples,
+assign a number of cores strictly inferior to the number of cores avalaible
+on your machine. By default, the maximum, minus in Unix systems, and for
+OS compatibility, only one on Windows machines}
 }
 \value{
 a two-entry list, with:
