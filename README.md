@@ -1,4 +1,4 @@
 # Links to the paper
 
-- [Overleaf repository](https://www.overleaf.com/read/qqmxspkyvrjb#6842d0)
+- [Overleaf repository, shared with Anais Baudot](https://www.overleaf.com/project/697398ed149e81845cb5208e)
 - [Hal Archive](https://arxiv.org/pdf/2309.09557)
