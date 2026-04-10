@@ -130,5 +130,44 @@ global_heatmap <- ComplexHeatmap::Heatmap(data1, col=col_fun,
 
 
 
+##################################################################
+##                    log-likelihood plot                       ##
+##################################################################
+library(DeCovarT); library(dplyr); library(ggplot2)
+p <- c(0.50, 0.50); correlation <- -0.8
+X <- matrix(c(20, 22, 22, 20), nrow = 2)
+Sigma <- array(rep(c(1, correlation, correlation, 1), 2),
+                      dim = c(2, 2, 2))
+y <- X %*% p
 
+# generate values
+log_lik_tibble <- tibble::tibble(x = seq(-10, 10, 0.01),
+                                 y = purrr::map_dbl(x, DeCovarT:::loglik_multivariate_constrained, 
+                                                    y = y, X=X, Sigma=Sigma))
+
+# plot corresponding result
+# |  \\mathbf{X}, \\Sigma}(\\mathbf{p})
+library(latex2exp)
+# tikzDevice::tikz(file = "./figs/log_plot.tex", width = 6, height = 6)
+log_plot <- ggplot(log_lik_tibble, aes(x=x, y =y)) +
+  geom_line(linewidth=1.5) + 
+  theme_minimal() +
+  # xlab(TeX(r"($\rho$)")) + 
+  xlab(TeX(r'($\rho$)')) +
+  ylab("\u2113(\u03C1)") +  
+  theme(axis.title = element_text(angle = 0),
+        #axis.text.x=element_blank(), #remove x axis labels
+        # axis.ticks.x=element_blank(), #remove x axis ticks
+        axis.text.y=element_blank(),  #remove y axis labels
+        axis.ticks.y=element_blank()) +
+  geom_vline(xintercept = 0, color = "blue", linewidth=1.5) +
+  annotate( "label", 
+            x = 6, y = 2, label = TeX(r'($\hat{\rho}^{MLE} = 0$)', 
+                                      output = "character"),  parse = TRUE ) +
+  annotate( "label", 
+            x = 6, y = 1.5, label = TeX(r'($\hat{p}_1^{MLE} = \hat{p}_2^{MLE} =0.5$)', 
+                                      output = "character"),  parse = TRUE ) +
+  ggtitle("Curve representation of \u2113(\u03C1)")
+
+ggsave("./figs/log-likehood-function.png", log_plot, width=3.5, height=2.6)
   

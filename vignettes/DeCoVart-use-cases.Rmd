@@ -29,7 +29,6 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 bibliography: DeCovarT-use-cases.bib
-biblio-style: "apalike"
 link-citations: true
 csl: ieee.csl
 author:  
@@ -624,11 +623,11 @@ To derive the log-likelihood function in Eq.\@ref(eq:derivative-log-likelihood-u
 
 We review below in more details some papers that inspire our work as well as natural extensions of the already implemented framework in Fig.`r knitr::asis_output(ifelse(knitr::is_html_output(), '\\@ref(fig:load-DAG-html)', '\\@ref(fig:load-DAG-pdf)'))`.
 
-(ref:erkkila) Graphical represention of the DSection generative model [@erkkila_etal10]
+(ref:erkkila) Graphical representation of the DSection generative model [@erkkila_etal10]
 
-(ref:ahn) Graphical represention of the DemixT generative model [@ahn_etal13; @wang_etal18]
+(ref:ahn) Graphical representation of the DemixT generative model [@ahn_etal13; @wang_etal18]
 
-(ref:chion) Graphical represention of [@chion18] generative model
+(ref:chion) Graphical representation of [@chion18] generative model
 
 
 ```{r bayesian-model-html, echo = FALSE, fig.cap="To compare the generative framework across several deconvolution algorithms, we homogenise indexes and parameters, and represent dependency links using the [RevBayes](https://revbayes.github.io/tutorials/intro/graph_models.html) convention. The density functions describing the distribution of the observations, conditioned on the estimated parameters, are written in green, the prior distributions of the parameters to estimate are written in red (themselves possibly conditioned on other unknown parameters, or constant, fixed-value priors), and finally, the resulting posterior distribution parameters, conditioned on both prior and likelihood functions, following the Bayes rules, are written in blue.", fig.show = "hold", eval=knitr::is_html_output(), out.width="45%"}
@@ -670,7 +669,7 @@ Additionally, to handle easily the unit simplex constraint, we directly sample o
 
 
 
-### Addtional details on extended DeCovarT Bayesian framework
+### Additional details on extended DeCovarT Bayesian framework
 
 Integrating over the sampling space to compute the normalising constant of the posterior distribution of the ratios, $f(\boldsymbol{p} | .)$, and the individual cellular expressions, $f(\boldsymbol{X_j} | .), \, j \in \{ 1, \ldots, J\}$, is intractable `r colorize("assertion to be checked!", "green")`, thus we combine the possibilities enabled by the Metropolis-Hasting (MH) algorithm (to get rid of the normalising constant) and the Gibbs sampling algorithm (instead of sampling simultaneously the complete parameter space, we subset only a relevant part of it, conditioned on the current update of the remaining ones)  to compute a MCMC estimation of the posterior distribution of these parameters. We describe below a possible pseudo-code for doing so (Algo. \\ref{algo:Decovart-pseudo-code}):
 
@@ -790,7 +789,7 @@ In that case, the Gibbs algorithm will perform the following updated iterations:
 
 2. Use the updated cellular proportions to generate a new proposal for the purified cellular expressions: $f(\boldsymbol{X}^{(q)} |\boldsymbol{p}^{(q)} , \boldsymbol{\zeta}, \mathcal{D})$.
 
-Generally, the idea of the Gibbs sampling is to decompose the set of parameters to sample into independent blocks, and update each of them in the same iteration, conditioned on the most updated version of the remaining parameter subsets.
+Generally, the idea of the Gibbs sampling is to decompose the set of parameters to sample into independent blocks, and update each of them in the same iteration, conditioned on the most updated version of the remaining parameter subsets. Retrieve more details on [Gibbs sampling](https://www.statlect.com/fundamentals-of-statistics/Markov-Chain-Monte-Carlo).
 ::::
 
 Finally, when designing the proposal distribution, we must ensure it could generate any value belonging to the *support* of the target distribution, noted $R_f$, in other words, that $q(\theta^{(*)}|\theta^{(q-1)}) > 0$. This technical condition is indeed required for the validity of the *balance condition*, required for the *ergodicity* and the convergence to a stationary distribution of the MCMC sample. In addition, the deconvolution framework requires two additional linear constraints over the parameters:
