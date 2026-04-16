@@ -478,8 +478,8 @@ simulate_hierarchical_grn_moments <- function(
       call. = FALSE
     )
   }
-  if (library_size <= 0) {
-    stop("'library_size' must be positive.", call. = FALSE)
+  if (library_size < 0) {
+    stop("'library_size' must be positive, or null", call. = FALSE)
   }
   if (alpha <= 0) {
     stop("'alpha' must be positive.", call. = FALSE)
@@ -510,6 +510,7 @@ simulate_hierarchical_grn_moments <- function(
   ## --- step 1: hierarchical mean profiles ------------------------------
 
   mean_profiles <- generate_mean_profiles(
+    n_expressed_genes = n_expressed_genes,
     n_expressed_genes = n_expressed_genes,
     mean_lower_expressed = mean_lower_expressed,
     mean_upper_expressed = mean_upper_expressed,
