@@ -2,27 +2,32 @@
 ##                   bivariate simulations                   ##
 ##################################################################
 
-
 test_that("small simulation testing", {
   simulation_two_genes <- withr::with_seed(
     seed = 3L,
     simulate_bulk_mixture(
-      signature_matrix = matrix(c(20, 40, 40, 20),
+      signature_matrix = matrix(
+        c(20, 40, 40, 20),
         nrow = 2,
         dimnames = list(paste0("genes_", 1:2), paste0("cell_type_", 1:2))
       ),
-      Sigma = array(c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2),
+      Sigma = array(
+        c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2),
         dim = c(2, 2, 2),
         dimnames = list(
-          paste0("genes_", 1:2), paste0("genes_", 1:2),
+          paste0("genes_", 1:2),
+          paste0("genes_", 1:2),
           paste0("cell_type_", 1:2)
         )
-      ), n = 10
+      ),
+      n = 10
     ),
     .rng_kind = "L'Ecuyer-CMRG"
   )
-  expect_equal(simulation_two_genes$Y[, 1:2],
-    matrix(c(30.16652, 29.72223, 30.31822, 29.41423),
+  expect_equal(
+    simulation_two_genes$Y[, 1:2],
+    matrix(
+      c(30.16652, 29.72223, 30.31822, 29.41423),
       nrow = 2,
       dimnames = list(paste0("genes_", 1:2), paste0("sample_", 1:2))
     ),
@@ -71,14 +76,23 @@ test_that("benchmark deconvolution", {
     seed = 3L,
     suppressMessages(benchmark_deconvolution_algorithms_two_genes(
       proportions = list("balanced" = c(0.50, 0.50)),
-      n = 2, corr_sequence = c(-0.75, 0.75),
-      signature_matrices = list("small CLD" = matrix(c(20, 22, 22, 20), nrow = 2)),
+      n = 2,
+      corr_sequence = c(-0.75, 0.75),
+      signature_matrices = list(
+        "small CLD" = matrix(c(20, 22, 22, 20), nrow = 2)
+      ),
       deconvolution_functions = deconvolution_functions
     )),
     .rng_kind = "L'Ecuyer-CMRG"
   )
-  bivariate_configuraton <- readRDS(testthat::test_path("fixtures", "bivariate_configuraton.rds"))
-  bivariate_estimation <- readRDS(testthat::test_path("fixtures", "bivariate_estimation.rds"))
+  bivariate_configuraton <- readRDS(testthat::test_path(
+    "fixtures",
+    "bivariate_configuraton.rds"
+  ))
+  bivariate_estimation <- readRDS(testthat::test_path(
+    "fixtures",
+    "bivariate_estimation.rds"
+  ))
 
   expect_equal(bivariate_configuraton, bivariate_scenario$config)
   expect_equal(bivariate_estimation, bivariate_scenario$simulations)

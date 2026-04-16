@@ -14,7 +14,6 @@
 "bivariate_configuration"
 
 
-
 #' Bivariate parameter configuration
 #'
 #' The complete parameter configurations used to model the bivariate framework
