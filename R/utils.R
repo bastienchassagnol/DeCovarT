@@ -2,11 +2,11 @@
 #'
 #' See \code{magrittr::\link[magrittr:pipe]{\%>\%}} for details.
 #'
-#' @name %>%
+#' @name |>
 #' @rdname pipe
 #' @keywords internal
 #' @export
-#' @importFrom magrittr %>%
+#' @importFrom magrittr |>
 #' @usage lhs \%>\% rhs
 #' @param lhs A value or the magrittr placeholder.
 #' @param rhs A function call using the magrittr semantics.
@@ -57,7 +57,7 @@ enforce_parameter_identifiability <- function(theta) {
   k <- length(theta$p)
   # first component = one whose means are smaller on the first dimension
   # if equality, redirect to second column, etc...
-  ordered_components <- do.call(order, t(theta$mu) %>% as.data.frame())
+  ordered_components <- do.call(order, t(theta$mu) |> as.data.frame())
   ordered_theta <- list(
     p = theta$p[ordered_components],
     mu = theta$mu[, ordered_components],
@@ -103,7 +103,7 @@ isConstant <- function(x) {
 # }
 
 # compute_interval <- function(x) {
-#   return(purrr::map_dbl(strsplit(x, split = " to "), ~as.numeric(.x) %>% mean() %>% round()))
+#   return(purrr::map_dbl(strsplit(x, split = " to "), ~as.numeric(.x) |> mean() |> round()))
 # }
 
 is_positive_definite <- function(expression, tol = 1e-6) {
@@ -179,7 +179,7 @@ hellinger <- function(mu1, Sigma1, mu2, Sigma2) {
     vars <- (Sigma1 + Sigma2) / 2
     hell_dist <- det(Sigma1)^(1 / 4) * det(Sigma2)^(1 / 4) / det(vars)^(1 / 2) *
       exp((-1 / 8) * .maha_distance(d, vars))
-    return(sqrt(1 - hell_dist) %>% as.numeric())
+    return(sqrt(1 - hell_dist) |> as.numeric())
   }
 }
 

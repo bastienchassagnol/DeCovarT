@@ -27,13 +27,13 @@ inverse_mapping_function <- function(p) {
 # compute the mahalabonis distance
 .maha_distance <- function(x, A) {
   d <- t(x) %*% solve(A) %*% x # solve A returns the reverted function
-  return(d %>% as.numeric()) # supposed to be a scalar
+  return(d |> as.numeric()) # supposed to be a scalar
 }
 
 # compute a dot product
 .dot_product <- function(x, A, y = x) {
   d <- t(x) %*% A %*% y # solve A returns the reverted function
-  return(d %>% as.numeric()) # supposed to be a scalar
+  return(d |> as.numeric()) # supposed to be a scalar
 }
 
 .compute_global_variance <- function(p, Sigma) {
@@ -57,7 +57,7 @@ inverse_mapping_function <- function(p) {
 loglik_multivariate <- function(p, y, X, Sigma) {
   global_cov_matrix <- .compute_global_variance(p, Sigma)
   log_lik <- -log(det(global_cov_matrix)) -
-    1 / 2 * .maha_distance(y - X %*% p, global_cov_matrix) %>% as.numeric()
+    1 / 2 * .maha_distance(y - X %*% p, global_cov_matrix) |> as.numeric()
   return(log_lik)
 }
 
@@ -211,7 +211,7 @@ hessian_mapping_function <- function(theta) {
 hessian_loglik_unconstrained <- function(p, y, X, Sigma) {
   num_celltypes <- length(p)
   hessian_unconstrained <- matrix(0, nrow = num_celltypes, ncol = num_celltypes)
-  global_precision_matrix <- .compute_global_variance(p, Sigma) %>% solve()
+  global_precision_matrix <- .compute_global_variance(p, Sigma) |> solve()
   for (i in 1:num_celltypes) {
     for (j in i:num_celltypes) {
       hessian_unconstrained[i, j] <- 4 *
@@ -281,7 +281,7 @@ hessian_loglik_constrained <- function(theta, y, X, Sigma) {
       B = hessian_mapping_function(theta),
       alongA = 1,
       alongB = 3
-    ) %>%
+    ) |>
       as.matrix()
   return(hessian_constrained)
 }
@@ -357,13 +357,13 @@ deconvolute_ratios_DeCoVarT <- function(
       maxiter = itmax
     )) # add partialH and blinding?
 
-    estimated_theta <- output_lm[grep("b : ", output_lm, value = F)] %>%
-      stringr::str_match_all("[0-9,\\.]+") %>%
-      unlist() %>%
+    estimated_theta <- output_lm[grep("b : ", output_lm, value = F)] |>
+      stringr::str_match_all("[0-9,\\.]+") |>
+      unlist() |>
       as.numeric() # retrieve last estimate before failure
   }
-  estimated_p <- mapping_function(estimated_theta) %>%
-    enforce_identifiability() %>% # ensure non-negativity constraint and remove numerical underflow
+  estimated_p <- mapping_function(estimated_theta) |>
+    enforce_identifiability() |> # ensure non-negativity constraint and remove numerical underflow
     stats::setNames(colnames(X))
 
   metrics_scores <- compute_benchmark_metrics(
@@ -371,7 +371,7 @@ deconvolute_ratios_DeCoVarT <- function(
     X,
     estimated_p,
     true_ratios
-  ) %>%
+  ) |>
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
   return(metrics_scores)
 }
@@ -401,8 +401,8 @@ deconvolute_ratios_simulated_annealing <- function(
     control = list(fnscale = -1, maxit = itmax),
     method = "SANN"
   )$par
-  estimated_p <- mapping_function(estimated_theta) %>%
-    stats::setNames(colnames(X)) %>%
+  estimated_p <- mapping_function(estimated_theta) |>
+    stats::setNames(colnames(X)) |>
     enforce_identifiability()
 
   metrics_scores <- compute_benchmark_metrics(
@@ -410,7 +410,7 @@ deconvolute_ratios_simulated_annealing <- function(
     X,
     estimated_p,
     true_ratios
-  ) %>%
+  ) |>
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
   return(metrics_scores)
 }
@@ -439,8 +439,8 @@ deconvolute_ratios_LBFGS <- function(
     method = "L-BFGS-B",
     lower = rep(0, length(initial_p)),
     upper = rep(1, length(initial_p))
-  )$par %>%
-    stats::setNames(colnames(X)) %>%
+  )$par |>
+    stats::setNames(colnames(X)) |>
     enforce_identifiability()
 
   metrics_scores <- compute_benchmark_metrics(
@@ -448,7 +448,7 @@ deconvolute_ratios_LBFGS <- function(
     X,
     estimated_p,
     true_ratios
-  ) %>%
+  ) |>
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
   return(metrics_scores)
 }
@@ -496,8 +496,8 @@ deconvolute_ratios_constrOptim <- function(
     y = y,
     X = X,
     Sigma = Sigma
-  )$par %>%
-    stats::setNames(colnames(X)) %>%
+  )$par |>
+    stats::setNames(colnames(X)) |>
     enforce_identifiability()
 
   metrics_scores <- compute_benchmark_metrics(
@@ -505,7 +505,7 @@ deconvolute_ratios_constrOptim <- function(
     X,
     estimated_p,
     true_ratios
-  ) %>%
+  ) |>
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
   return(metrics_scores)
 }
@@ -551,8 +551,8 @@ deconvolute_ratios_Newton_Raphson <- function(
     )
   )$par
 
-  estimated_p <- mapping_function(estimated_theta) %>%
-    stats::setNames(colnames(X)) %>%
+  estimated_p <- mapping_function(estimated_theta) |>
+    stats::setNames(colnames(X)) |>
     enforce_identifiability()
 
   metrics_scores <- compute_benchmark_metrics(
@@ -560,7 +560,7 @@ deconvolute_ratios_Newton_Raphson <- function(
     X,
     estimated_p,
     true_ratios
-  ) %>%
+  ) |>
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
   return(metrics_scores)
 }
@@ -569,7 +569,7 @@ deconvolute_ratios_Newton_Raphson <- function(
 #' using the BFGS algorithm, see also [stats::optim] with option `method="BFGS`. We provide an explicit formula
 #' of the reparametrised log-likelihood function, as well as its gradient.
 
-deconvolute_ratios_first_order <- function(
+deconvolute_ratios_gradient_descent <- function(
   y,
   X,
   Sigma,
@@ -596,8 +596,8 @@ deconvolute_ratios_first_order <- function(
     ),
     method = "BFGS"
   )$par
-  estimated_p <- mapping_function(estimated_theta) %>%
-    stats::setNames(colnames(X)) %>%
+  estimated_p <- mapping_function(estimated_theta) |>
+    stats::setNames(colnames(X)) |>
     enforce_identifiability()
 
   metrics_scores <- compute_benchmark_metrics(
@@ -605,7 +605,7 @@ deconvolute_ratios_first_order <- function(
     X,
     estimated_p,
     true_ratios
-  ) %>%
+  ) |>
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
   return(metrics_scores)
 }

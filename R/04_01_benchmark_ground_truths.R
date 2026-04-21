@@ -132,7 +132,7 @@ deconvolute_ratios <- function(
   Y <- tibble::as_tibble(bulk_expression, rownames = "GENE_SYMBOL")
   
   # remove potential missing data from Y database
-  Y <- Y %>% tidyr::drop_na()
+  Y <- Y |> tidyr::drop_na()
   
   # intersect genes (we only keep genes that are common to both data bases)
   common_genes <- intersect(X$GENE_SYMBOL, Y$GENE_SYMBOL)
@@ -145,14 +145,14 @@ deconvolute_ratios <- function(
                   Half of common genes are required at least"
     ))
   }
-  X <- X %>%
-    dplyr::filter(.data$GENE_SYMBOL %in% common_genes) %>%
-    dplyr::arrange(.data$GENE_SYMBOL) %>%
-    dplyr::select(dplyr::where(is.numeric)) %>%
+  X <- X |>
+    dplyr::filter(.data$GENE_SYMBOL %in% common_genes) |>
+    dplyr::arrange(.data$GENE_SYMBOL) |>
+    dplyr::select(dplyr::where(is.numeric)) |>
     as.matrix()
-  Y <- Y %>%
-    dplyr::filter(.data$GENE_SYMBOL %in% common_genes) %>%
-    dplyr::arrange(.data$GENE_SYMBOL) %>%
+  Y <- Y |>
+    dplyr::filter(.data$GENE_SYMBOL %in% common_genes) |>
+    dplyr::arrange(.data$GENE_SYMBOL) |>
     dplyr::select(dplyr::where(is.numeric))
   
   if (scaled) {
@@ -174,7 +174,7 @@ deconvolute_ratios <- function(
             {
               list_arguments <- c(
                 list(
-                  "y" = Y[, i] %>% as.matrix(),
+                  "y" = Y[, i] |> as.matrix(),
                   "X" = X,
                   "Sigma" = Sigma,
                   "true_ratios" = true_ratios
@@ -195,7 +195,7 @@ deconvolute_ratios <- function(
                 showWarnings = F,
                 recursive = TRUE
               )
-              # "y"=Y[,i] %>% as.matrix(), "X"=X, "Sigma"=Sigma,
+              # "y"=Y[,i] |> as.matrix(), "X"=X, "Sigma"=Sigma,
               saveRDS(
                 c(
                   list_arguments[methods::formalArgs(
@@ -228,11 +228,11 @@ deconvolute_ratios <- function(
           }
         },
         mc.cores = cores
-      ) %>%
+      ) |>
         dplyr::bind_rows() # one estimation with a given deconvolution algorithm terminated
       
       if (nrow(metric_scores) != 0) {
-        metric_scores <- metric_scores %>%
+        metric_scores <- metric_scores |>
           dplyr::mutate(
             OMIC_ID = paste0("sample_", 1:nrow(metric_scores)),
             algorithm = algorithm

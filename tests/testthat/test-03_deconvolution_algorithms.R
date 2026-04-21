@@ -24,17 +24,17 @@
 #   hess_base <- matrix(0, nrow = 2, ncol = 2, dimnames = )
 #   for (i in 1:3) {
 #     hess_base <- hess_base +
-#       (J_log[i] %>% as.numeric()) * (H_psi[,,i] %>% to.matrix.tensor(j="I2"))
+#       (J_log[i] |> as.numeric()) * (H_psi[,,i] |> to.matrix.tensor(j="I2"))
 #   }
 #
 #
 #
 #   # check that all these elements are equal
-#   testthat::expect_equal(hess_rieman, hess_tensor %>% to.tensor()) # pass
+#   testthat::expect_equal(hess_rieman, hess_tensor |> to.tensor()) # pass
 #   testthat::expect_equal(hess_rieman, hess_tensor_product) # pass
 #   # pass but requires cumbersome operation
-#   testthat::expect_equal(hess_rieman, hess_base %>%
-#                            to.tensor() %>% extract2(I1 =~"j", I2 =~"k"))
+#   testthat::expect_equal(hess_rieman, hess_base |>
+#                            to.tensor() |> extract2(I1 =~"j", I2 =~"k"))
 #
 #   ##################################################################
 #   ##                  second part of the Hessian                  ##
@@ -50,7 +50,7 @@
 #   # with the Einstein summation (needs an index change)
 #   hess_einstein_second <- J_psi %e% H_log %e% J_psi[[i =~"l", j =~"k"]]
 #   testthat::expect_equal(hess_base_R,
-#                          hess_einstein_second %>% matrix(nrow=2, ncol=2)) # pass
+#                          hess_einstein_second |> matrix(nrow=2, ncol=2)) # pass
 # })
 #
 #
@@ -80,7 +80,7 @@
 #                                                        method="Richardson", method.args=list(eps=1e-4, r=6),
 #                                                        y=y, X=X, Sigma=Sigma) # additional arguments
 #   grad_constrained_mapping_theoretical <- gradient_loglik_constrained (theta, y, X, Sigma)
-#   testthat::expect_equal(grad_constrained_mapping_numerical, grad_constrained_mapping_theoretical %>% as.numeric())
+#   testthat::expect_equal(grad_constrained_mapping_numerical, grad_constrained_mapping_theoretical |> as.numeric())
 #
 # ##################################################################
 # ##                 loglik_hessian_unconstrained                 ##
@@ -133,7 +133,7 @@
 #                                                  ecc = 0.9, PiLow = 0.05, int = c(3, 50))
 #   highly_overlapping_parameter_formatted <- list(p=highly_overlapping_parameter$Pi,
 #                                                  mu=t(highly_overlapping_parameter$Mu),
-#                                                  sigma=highly_overlapping_parameter$S) %>%
+#                                                  sigma=highly_overlapping_parameter$S) |>
 #     enforce_parameter_identifiability()
 #
 #   X <- highly_overlapping_parameter_formatted$mu;
@@ -156,11 +156,11 @@
 #
 #   y_simu <- simulated_data$Y; X_simu <- simulated_data$X
 #
-#   # test_metrics_Decovart <- purrr::map_dfr(y_simu[,1:10] %>% dplyr::as_tibble(),
+#   # test_metrics_Decovart <- purrr::map_dfr(y_simu[,1:10] |> dplyr::as_tibble(),
 #   #                                         deconvolute_ratios_DeCoVarT, X, Sigma)
-#   test_metrics_nlm <- purrr::map_dfr(y_simu[,1:10] %>% dplyr::as_tibble(),
+#   test_metrics_nlm <- purrr::map_dfr(y_simu[,1:10] |> dplyr::as_tibble(),
 #                                           deconvolute_ratios_nlm, X, Sigma)
-#   test_metrics_lsei <- purrr::map_dfr(y_simu[,1:10] %>% dplyr::as_tibble(),
+#   test_metrics_lsei <- purrr::map_dfr(y_simu[,1:10] |> dplyr::as_tibble(),
 #                                           deconvolute_ratios_deconRNASeq, X)
 #
 #

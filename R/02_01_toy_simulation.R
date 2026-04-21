@@ -50,16 +50,16 @@ simulate_bulk_mixture <- function(
   # first remove all cell types associated to a undefinite cov matrix
   valid_celltypes <- purrr::discard(
     colnames(signature_matrix),
-    ~ Sigma %>%
-      magrittr::extract(,, .x) %>%
-      is.na() %>%
+    ~ Sigma |>
+      magrittr::extract(,, .x) |>
+      is.na() |>
       any()
   )
   # second, remove all cell types associated to a non-positive definite matrix
   valid_celltypes <- purrr::keep(
     valid_celltypes,
-    ~ Sigma %>%
-      magrittr::extract(,, .x) %>%
+    ~ Sigma |>
+      magrittr::extract(,, .x) |>
       is_positive_definite()
   )
   # only keep cell_types associated to sound covariance structures
@@ -214,7 +214,7 @@ benchmark_deconvolution_algorithms_two_genes <- function(
               "."
             ))
             for (corr_celltype2 in corr_sequence) {
-              simulation_metrics <- simulation_metrics %>%
+              simulation_metrics <- simulation_metrics |>
                 dplyr::bind_rows(
                   purrr::imap_dfr(diagonal_terms, function(.diag, .name) {
                     ## ------------------------------
@@ -248,15 +248,15 @@ benchmark_deconvolution_algorithms_two_genes <- function(
                     ## -------------------------
                     ##  estimate ratios
                     ## -------------------------
-                    true_theta <- list(p = p, mu = mu, sigma = Sigma) %>%
+                    true_theta <- list(p = p, mu = mu, sigma = Sigma) |>
                       enforce_parameter_identifiability()
                     overlap <- MixSim::overlap(
                       Pi = p,
                       Mu = t(mu),
                       S = Sigma
-                    )$BarOmega %>%
+                    )$BarOmega |>
                       signif(digits = 3)
-                    # hellinger <- hellinger_average(p, mu, Sigma) %>% round(digits = 4)
+                    # hellinger <- hellinger_average(p, mu, Sigma) |> round(digits = 4)
 
                     estimated_ratios <- suppressWarnings(deconvolute_ratios(
                       signature_matrix = mu,
@@ -277,12 +277,12 @@ benchmark_deconvolution_algorithms_two_genes <- function(
                       ID = name_id,
                       correlation_celltype1 = corr_celltype1,
                       correlation_celltype2 = corr_celltype2
-                    ) %>%
+                    ) |>
                       dplyr::bind_cols(estimated_ratios)
                     id_tibble_temp <- tibble::tibble(
                       ID = name_id,
                       overlap = overlap,
-                      entropy = compute_shannon_entropy(p) %>%
+                      entropy = compute_shannon_entropy(p) |>
                         round(digits = 3),
                       proportions = name_balance,
                       variance = .name,
@@ -290,7 +290,7 @@ benchmark_deconvolution_algorithms_two_genes <- function(
                       true_parameters = list(as.list(true_theta)),
                       nobservations = n
                     )
-                    id_tibble <<- id_tibble %>% dplyr::bind_rows(id_tibble_temp)
+                    id_tibble <<- id_tibble |> dplyr::bind_rows(id_tibble_temp)
 
                     return(simulation_metrics_per_config)
                   }) # end loop scenario variance

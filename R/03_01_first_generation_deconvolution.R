@@ -38,7 +38,7 @@ deconvolute_ratios_CIBERSORT <- function(y, X, true_ratios = NULL) {
   model <- e1071::svm(X, y = y)
   
   # get and normalize coefficients (sum to 1 and no negative coefficients)
-  estimated_p <- t(model$coefs) %*% model$SV %>% enforce_identifiability()
+  estimated_p <- t(model$coefs) %*% model$SV |> enforce_identifiability()
   names(estimated_p) <- colnames(X)
   
   metrics_scores <- compute_benchmark_metrics(
@@ -46,7 +46,7 @@ deconvolute_ratios_CIBERSORT <- function(y, X, true_ratios = NULL) {
     X,
     estimated_p,
     true_ratios
-  ) %>%
+  ) |>
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
   return(metrics_scores)
 }
@@ -61,13 +61,13 @@ deconvolute_ratios_abbas <- function(y, X, true_ratios = NULL) {
   estimated_p <- stats::lsfit(X, y, intercept = F)$coefficients
   
   # normalize coefficients (sum to 1 and no negative coefficients)
-  estimated_p <- estimated_p %>% enforce_identifiability()
+  estimated_p <- estimated_p |> enforce_identifiability()
   metrics_scores <- compute_benchmark_metrics(
     y,
     X,
     estimated_p,
     true_ratios
-  ) %>%
+  ) |>
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
   return(metrics_scores)
 }
@@ -81,13 +81,13 @@ deconvolute_ratios_monaco <- function(y, X, true_ratios = NULL) {
   names(estimated_p) <- colnames(X)
   
   # normalize coefficients (sum to 1 and no negative coefficients)
-  estimated_p <- estimated_p %>% enforce_identifiability()
+  estimated_p <- estimated_p |> enforce_identifiability()
   metrics_scores <- compute_benchmark_metrics(
     y,
     X,
     estimated_p,
     true_ratios
-  ) %>%
+  ) |>
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
   return(metrics_scores)
 }
@@ -102,13 +102,13 @@ deconvolute_ratios_nnls <- function(y, X, true_ratios = NULL) {
   names(estimated_p) <- colnames(X)
   
   # normalize coefficients (sum to 1, as non-negativity is already enforced)
-  estimated_p <- estimated_p %>% enforce_identifiability()
+  estimated_p <- estimated_p |> enforce_identifiability()
   metrics_scores <- compute_benchmark_metrics(
     y,
     X,
     estimated_p,
     true_ratios
-  ) %>%
+  ) |>
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
   return(metrics_scores)
 }
@@ -128,7 +128,7 @@ deconvolute_ratios_deconRNASeq <- function(y, X, true_ratios = NULL) {
   GG <- diag(nrow = ncol(X))
   HH <- rep(0, ncol(X)) # encode the non-negativity constraint
   
-  estimated_p <- limSolve::lsei(X, y, EE, FF, GG, HH)$X %>%
+  estimated_p <- limSolve::lsei(X, y, EE, FF, GG, HH)$X |>
     enforce_identifiability()
   names(estimated_p) <- colnames(X)
   metrics_scores <- compute_benchmark_metrics(
@@ -136,7 +136,7 @@ deconvolute_ratios_deconRNASeq <- function(y, X, true_ratios = NULL) {
     X,
     estimated_p,
     true_ratios
-  ) %>%
+  ) |>
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
   return(metrics_scores)
 }

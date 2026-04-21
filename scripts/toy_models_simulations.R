@@ -13,22 +13,22 @@
 library(dplyr)
 library(kableExtra)
 
-# bivariate_simulation <- bivariate_simulation %>%
+# bivariate_simulation <- bivariate_simulation |>
 #   mutate(ID = case_when(
 #     proportions == "balanced" & centroids=="small CLD" ~ "B1_",
 #     proportions == "highly_unbalanced" & centroids=="small CLD" ~ "B2_",
 #     proportions == "balanced" & centroids=="high CLD" ~ "B3_",
 #     proportions == "highly_unbalanced" & centroids=="high CLD" ~ "B4_",
-#     TRUE                      ~ as.character(ID) )) %>%
+#     TRUE                      ~ as.character(ID) )) |>
 #   dplyr::mutate(ID = dplyr::if_else(variance=="homoscedasctic", paste0(ID, "Ho"), paste0(ID, "He")))
 # saveRDS(bivariate_simulation, "./simulations/results/bivariate_scenario.rds")
-# saveRDS(bivariate_formatted %>% dplyr::mutate(across(where(is.numeric), signif, 4)) %>%
+# saveRDS(bivariate_formatted |> dplyr::mutate(across(where(is.numeric), signif, 4)) |>
 #           dplyr::select(-c("model_rmse", "model_mae")),
 #         "./data/bivariate/bivariate_parameters.rds")
 
 bivariate_simulation <- readRDS("./simulations/results/bivariate_scenario.rds")
 
-bivariate_configuration <- bivariate_simulation %>%
+bivariate_configuration <- bivariate_simulation |>
   select(c(
     "ID",
     "overlap",
@@ -37,17 +37,17 @@ bivariate_configuration <- bivariate_simulation %>%
     "variance",
     "centroids",
     "true_parameters"
-  )) %>%
-  dplyr::distinct() %>%
+  )) |>
+  dplyr::distinct() |>
   dplyr::mutate(centroids = stringr::str_replace_all(centroids, "CLD", "ICD"))
 saveRDS(
   bivariate_configuration,
   "./simulations/results/complete_bivariate_configuration.rds"
 )
 
-reduced_bivariate_configuration <- bivariate_configuration %>%
-  mutate(ID = factor(ID, levels = unique(bivariate_configuration$ID))) %>%
-  group_by(ID) %>%
+reduced_bivariate_configuration <- bivariate_configuration |>
+  mutate(ID = factor(ID, levels = unique(bivariate_configuration$ID))) |>
+  group_by(ID) |>
   summarise(
     Entropy = entropy,
     OVL = mean(overlap),
@@ -69,31 +69,31 @@ reduced_bivariate_configuration <- bivariate_configuration %>%
       true_parameters,
       ~ paste(c(.x$sigma[1, 1, 1], .x$sigma[2, 2, 1]), collapse = " / ")
     )
-  ) %>%
+  ) |>
   dplyr::distinct()
 saveRDS(
   reduced_bivariate_configuration,
   "./simulations/results/reduced_bivariate_configuration.rds"
 )
 
-reduced_bivariate_configuration %>%
+reduced_bivariate_configuration |>
   kbl(
     booktabs = T,
     caption = "The 8 general scenarios tested to compare the performance of DeCovarT
     vs standard linear deconvolution model",
     escape = F,
     align = "c"
-  ) %>%
-  kable_styling(latex_options = c("hold_position", "scale_down")) %>%
-  row_spec(0, bold = T) %>%
-  row_spec(1:8, hline_after = T) %>%
+  ) |>
+  kable_styling(latex_options = c("hold_position", "scale_down")) |>
+  row_spec(0, bold = T) |>
+  row_spec(1:8, hline_after = T) |>
   kable_styling(bootstrap_options = c("hover", "condensed"))
 
 ##################################################################
 ##          reduce size of the parameter boostrap file          ##
 ##################################################################
 
-reduced_bivariate_simulation <- bivariate_simulation %>%
+reduced_bivariate_simulation <- bivariate_simulation |>
   mutate(
     algorithm = factor(
       algorithm,
@@ -109,12 +109,12 @@ reduced_bivariate_simulation <- bivariate_simulation %>%
         "SA"
       )
     )
-  ) %>%
+  ) |>
   mutate(
-    algorithm = forcats::fct_recode(algorithm, Levenberg = "DeCoVarT") %>%
+    algorithm = forcats::fct_recode(algorithm, Levenberg = "DeCoVarT") |>
       forcats::fct_relevel()
-  ) %>%
-  mutate(across(where(is.numeric), signif(digits = 4))) %>%
+  ) |>
+  mutate(across(where(is.numeric), signif(digits = 4))) |>
   select(
     -c(
       "proportions",
@@ -127,8 +127,8 @@ reduced_bivariate_simulation <- bivariate_simulation %>%
       "entropy",
       "centroids"
     )
-  ) %>%
-  dplyr::relocate("ID", .before = "correlation_celltype1") %>%
+  ) |>
+  dplyr::relocate("ID", .before = "correlation_celltype1") |>
   dplyr::rename_with(~ gsub("celltype_", "p", .x))
 
 saveRDS(
@@ -156,7 +156,7 @@ bivariate_simulation_heatmap <- purrr::imap(
         padding = unit(c(0, 0, 0, 0), "cm"),
         column_title = .y,
         column_title_gp = grid::gpar(fontsize = 12, fontface = "bold")
-      ) %>%
+      ) |>
         grid::grid.grabExpr()
     )
     # general organisation: 3 deconvolution algorithms per column
@@ -193,8 +193,8 @@ highly_overlapping_simulation <- readRDS(
 )
 
 
-data <- highly_overlapping_simulation %>%
-  dplyr::filter(proportions == "balanced" & variance == "homoscedasctic") %>%
+data <- highly_overlapping_simulation |>
+  dplyr::filter(proportions == "balanced" & variance == "homoscedasctic") |>
   plot_correlation_Heatmap(score_variable = "model_mse")
 data1 <- data$lsei@matrix
 data2 <- data$`tricky optim`@matrix
