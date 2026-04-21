@@ -462,7 +462,6 @@ simulate_hierarchical_grn_moments <- function(
   ) {
     stop("'n_expressed_genes' must be a single integer >= 2.", call. = FALSE)
   }
-  n_expressed_genes <- as.integer(n_expressed_genes)
 
   if (mean_lower_expressed >= mean_upper_expressed) {
     stop(
@@ -510,7 +509,6 @@ simulate_hierarchical_grn_moments <- function(
   ## --- step 1: hierarchical mean profiles ------------------------------
 
   mean_profiles <- generate_mean_profiles(
-    n_expressed_genes = n_expressed_genes,
     n_expressed_genes = n_expressed_genes,
     mean_lower_expressed = mean_lower_expressed,
     mean_upper_expressed = mean_upper_expressed,
