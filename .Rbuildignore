@@ -24,3 +24,4 @@
 ^\.github$
 ^vignettes/\.quarto$
 ^vignettes/*_files$
+^\.pre-commit-config\.yaml$

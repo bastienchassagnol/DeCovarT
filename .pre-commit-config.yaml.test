@@ -1,0 +1,60 @@
+# All available hooks: https://pre-commit.com/hooks.html
+# R specific hooks: https://lorenzwalthert.github.io/precommit/articles/available-hooks.html
+repos:
+    - repo: https://github.com/lorenzwalthert/precommit
+      rev: v0.4.3
+      hooks:
+          - id: style-files
+            args: [ --style_pkg=styler, --style_fun=tidyverse_style, --cache-root=styler ]
+          - id: roxygenize
+          # codemeta-description-updated must be above use-tidy-description when both are used
+          # -   id: codemeta-description-updated
+          - id: use-tidy-description
+          - id: spell-check
+            args: [ --lang=en-GB ]
+            exclude: >
+                (?x)^( .*\.[rR]| .*\.feather| .*\.jpeg| .*\.pdf| .*\.png|
+                .*\.py| .*\.qmd| .*\.RData| .*\.rds| .*\.Rds| .*\.Rproj| .*\.sh|
+                (.*/|)\.gitignore| (.*/|)\.pre-commit-.*| (.*/|)\.Rbuildignore|
+                (.*/|)\.Renviron| (.*/|)\.Rprofile| (.*/|)NAMESPACE|
+                (.*/|)renv/settings\.dcf| (.*/|)renv\.lock| (.*/|)WORDLIST|
+                \.github/workflows/.*| data/.*| scripts/.*| )$
+          - id: lintr
+          - id: readme-rmd-rendered
+          - id: parsable-R
+          - id: no-browser-statement
+          - id: no-print-statement
+          - id: no-debug-statement
+          - id: deps-in-desc
+          - id: pkgdown
+
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v5.0.0
+      hooks:
+          - id: check-added-large-files
+            args: [ "--maxkb=200" ]
+          - id: check-yaml
+          - id: mixed-line-ending
+            args: [ "--fix=lf" ]
+          - id: file-contents-sorter
+            files: "^\\.Rbuildignore$"
+          - id: end-of-file-fixer
+            exclude: "\\.Rd$"
+
+    - repo: https://github.com/pre-commit-ci/pre-commit-ci-config
+      rev: v1.6.1
+      hooks:
+          - id: check-pre-commit-ci-config
+
+    - repo: local
+      hooks:
+          - id: forbid-to-commit
+            name: Don't commit common R artifacts
+            entry: Cannot commit .Rhistory, .RData, .Rds or .rds.
+            language: fail
+            files: "\\.(Rhistory|RData|Rds|rds)$"
+            # `exclude: <regex>` to allow committing specific files
+
+ci:
+    autoupdate_schedule: monthly
+    skip: [ roxygenize, pkgdown ]

@@ -1,9 +1,15 @@
 url: https://bastienchassagnol.github.io/DeCovarT/
 
+template:
+  bootstrap: 5
+
+development:
+  mode: auto
+
 navbar:
   structure:
     left: [ home, reference, articles, news ]
-    right: [ github ]
+    right: [ search, github ]
   components:
     home: ~
     articles:
@@ -14,15 +20,46 @@ navbar:
         - text: "DeCovarT use cases"
           href: articles/DeCoVart-use-cases.html
 
+home:
+  links:
+    - text: Report a bug
+      href: https://github.com/bastienchassagnol/DeCovarT/issues
+
 reference:
 
-  - title: "DeCovarT algorithm"
+  - title: "Main deconvolution function"
     desc: >
-      Core covariance-aware deconvolution algorithm (Marquardt–Levenberg
-      optimiser) together with its variants and the underlying mapping function
-      between the unconstrained parameter space and the unit simplex.
+      Top-level function to deconvolve a matrix of bulk expression samples using
+      any combination of deconvolution algorithms in parallel.
+    contents:
+      - "`deconvolute_ratios`"
+
+  - title: "DeCovarT algorithm"
+
+  - subtitle: "Core optimiser"
+    desc: >
+      Covariance-aware Marquardt–Levenberg deconvolution algorithm and its
+      optimisation variants (gradient descent, Newton–Raphson, L-BFGS-B,
+      simulated annealing, constrained optimisation).
     contents:
       - "`deconvolute_ratios_Marquardt_Levenberg`"
+
+  - subtitle: "Parametrisation"
+    desc: >
+      Mapping function between the unconstrained parameter space
+      \(\mathbb{R}^{J-1}\) and the unit simplex \(\Delta^{J-1}\).
+    contents:
+      - "`mapping_function`"
+
+  - title: "First-generation deconvolution algorithms"
+    desc: >
+      Reference implementations of established covariance-agnostic methods
+      (CIBERSORT, Abbas/OLS, Monaco/RLM, NNLS, deconRNASeq) provided for
+      benchmarking purposes. All share the interface of
+      `deconvolute_ratios_Marquardt_Levenberg()`.
+    contents:
+      - starts_with('deconvolute_ratios_')
+
   - title: "Benchmark and evaluation"
     desc: >
       Functions to compute quality metrics comparing estimated and true cellular
@@ -31,15 +68,18 @@ reference:
       - "`compute_benchmark_metrics`"
       - "`benchmark_deconvolution_algorithms_two_genes`"
 
-  - title: "Simulation — synthetic GRN-based scenarios"
+  - title: "Simulation"
+
+  - subtitle: "Toy bulk mixtures"
     desc: >
       Hierarchical generative model producing mean profiles and
       graph-constrained covariance matrices for synthetic benchmarks.
     contents:
       - "`simulate_bulk_mixture`"
+      - "`simulate_bulk_mixture`"
       - "`simulate_hierarchical_grn_moments`"
 
-  - title: "Data sets"
-    desc: >
-      Reference datasets bundled with the package for illustration and
-      reproducible benchmarking.
+news:
+  releases:
+    - text: "Version 0.0.0.9000 (development)"
+      href: https://github.com/bastienchassagnol/DeCovarT/blob/main/NEWS.md
