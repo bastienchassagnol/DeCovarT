@@ -1,9 +1,9 @@
 #' Simulate bulk mixtures
 #'
-#' @description Using user defined parameters \eqn{p}, \eqn{\boldsymbol{X}} and
+#' @description Using user defined parameters \eqn{p}, \eqn{\boldsymbol{mean_signature_matrix}} and
 #' \eqn{\boldsymbol{cov}}, simulate virtual bulk mixtures, using standard linear
 #' constraint of deconvolution algorithms, namely:
-#' \deqn{\boldsymbol{\hat{y}}=\boldsymbol{X} \times \hat{\boldsymbol{p}}}
+#' \deqn{\boldsymbol{\hat{y}}=\boldsymbol{mean_signature_matrix} \times \hat{\boldsymbol{p}}}
 #'
 #' @inheritParams deconvolute_ratios
 #' @param p The ratios to estimate (by default, equi-balanced cellular
@@ -12,7 +12,7 @@
 #'
 #' @import ggplot2
 #' @return list with two items:
-#' * \eqn{\boldsymbol{X}:\left(x_{g,j,i}\right)_{1\le g\le G, 1\le j \le J, 1\le i \le N}}:
+#' * \eqn{\boldsymbol{mean_signature_matrix}:\left(x_{g,j,i}\right)_{1\le g\le G, 1\le j \le J, 1\le i \le N}}:
 #' the simulated purified expression profiles, stored in
 #' a three-dimensional array, each array storing the simulated expression of the
 #' \eqn{J} cell populations for a given individual \eqn{i}
@@ -47,24 +47,24 @@ simulate_bulk_mixture <- function(
   ##################################################################
   ##            remove undefined covariance structures            ##
   ##################################################################
-  # first remove all cell types associated to a undefinite cov matrix
-  valid_celltypes <- purrr::discard(
-    colnames(signature_matrix),
-    ~ Sigma |>
-      magrittr::extract(,, .x) |>
-      is.na() |>
-      any()
-  )
-  # second, remove all cell types associated to a non-positive definite matrix
-  valid_celltypes <- purrr::keep(
-    valid_celltypes,
-    ~ Sigma |>
-      magrittr::extract(,, .x) |>
-      is_positive_definite()
-  )
-  # only keep cell_types associated to sound covariance structures
-  Sigma <- Sigma[,, valid_celltypes]
-  signature_matrix <- signature_matrix[, valid_celltypes]
+  # # first remove all cell types associated to a undefinite cov matrix
+  # valid_celltypes <- purrr::discard(
+  #   colnames(signature_matrix),
+  #   ~ Sigma |>
+  #     magrittr::extract(,, .mean_signature_matrix) |>
+  #     is.na() |>
+  #     any()
+  # )
+  # # second, remove all cell types associated to a non-positive definite matrix
+  # valid_celltypes <- purrr::keep(
+  #   valid_celltypes,
+  #   ~ Sigma |>
+  #     magrittr::extract(,, .mean_signature_matrix) |>
+  #     is_positive_definite()
+  # )
+  # # only keep cell_types associated to sound covariance structures
+  # Sigma <- Sigma[,, valid_celltypes]
+  # signature_matrix <- signature_matrix[, valid_celltypes]
 
   ##### simulation
   valid_celltypes <- colnames(signature_matrix)
@@ -75,7 +75,7 @@ simulate_bulk_mixture <- function(
     ncol = n,
     dimnames = list(names_genes, paste0("sample_", 1:n))
   )
-  X <- array(
+  mean_signature_matrix <- array(
     0,
     c(nrow(signature_matrix), ncol(signature_matrix), n),
     dimnames = list(names_genes, valid_celltypes, colnames(Y))
@@ -92,16 +92,16 @@ simulate_bulk_mixture <- function(
       tol = 1e-12,
       empirical = FALSE
     ) # simulate a draw from the covariance matrix
-    X[, cell_name, ] <- t(expression_per_celltype)
+    mean_signature_matrix[, cell_name, ] <- t(expression_per_celltype)
   }
 
   # Y_test <- matrix(0, nrow = nrow(signature_matrix), ncol = n, dimnames = list(names_genes, paste0("sample_", 1:n)))
   # for (i in 1:n) {
-  #   Y_test[,i] <- X[,,i] %*% proportions
+  #   Y_test[,i] <- mean_signature_matrix[,,i] %*% proportions
   # }
 
-  Y <- tensor::tensor(p, B = X, alongA = 1, alongB = 2) # tensor product does directly the computation X %*% p
-  return(list(X = X, Y = Y))
+  Y <- tensor::tensor(p, B = mean_signature_matrix, alongA = 1, alongB = 2) # tensor product does directly the computation mean_signature_matrix %*% p
+  return(list(mean_signature_matrix = mean_signature_matrix, Y = Y))
 }
 
 
@@ -148,7 +148,7 @@ simulate_bulk_mixture <- function(
 #' matrix is computed and normalised back to integrate both constraints, using
 #' following matricial relationship, linking the value of a correlation matrix with
 #' its respective covariance matrix:
-#' \deqn{\text{Cov}(\boldsymbol{X}) = \text{diag}\left[(\text{Var}(\boldsymbol{X})\right]^{1/2} \times \text{Cor}(\boldsymbol{X}) \times \text{diag}\left[(\text{Var}(\boldsymbol{X})\right]^{1/2}}
+#' \deqn{\text{Cov}(\boldsymbol{mean_signature_matrix}) = \text{diag}\left[(\text{Var}(\boldsymbol{mean_signature_matrix})\right]^{1/2} \times \text{Cor}(\boldsymbol{mean_signature_matrix}) \times \text{diag}\left[(\text{Var}(\boldsymbol{mean_signature_matrix})\right]^{1/2}}
 #' @param n The number of samples to generate (an integer, but upon request, we may
 #' update the function to accept a numerical vector instead)
 #'
@@ -187,12 +187,12 @@ benchmark_deconvolution_algorithms_two_genes <- function(
   ##################################################################
   num_celltypes <- ncol(signature_matrices[[1]])
   num_genes <- nrow(signature_matrices[[1]])
-  signature_matrices <- purrr::map(signature_matrices, function(.x) {
-    dimnames(.x) <- list(
+  signature_matrices <- purrr::map(signature_matrices, function(.mean_signature_matrix) {
+    dimnames(.mean_signature_matrix) <- list(
       paste0("gene_", 1:num_genes),
       paste0("celltype_", 1:num_celltypes)
     )
-    return(.x)
+    return(.mean_signature_matrix)
   })
   id_scenario <- 1
   id_tibble <- tibble::tibble() # initiate ID scenario
@@ -236,7 +236,7 @@ benchmark_deconvolution_algorithms_two_genes <- function(
                       diag(corr_matrix[,, j]) <- 1 # correlation between the same gene is always one
                       Sigma[,, j] <- sqrt(diag(.diag)) %*%
                         corr_matrix[,, j] %*%
-                        sqrt(diag(.diag)) # cov(X) = diag(var(X))^1/2 * corr(X) * diag(var(X))^1/2
+                        sqrt(diag(.diag)) # cov(mean_signature_matrix) = diag(var(mean_signature_matrix))^1/2 * corr(mean_signature_matrix) * diag(var(mean_signature_matrix))^1/2
                     }
                     simulated_data <- simulate_bulk_mixture(
                       signature_matrix = mu,

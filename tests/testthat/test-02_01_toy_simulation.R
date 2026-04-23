@@ -54,7 +54,7 @@ test_that("benchmark deconvolution", {
       additional_parameters = list(epsilon = 10^-3, itmax = 200)
     ),
     "DeCoVarT" = list(
-      FUN = deconvolute_ratios_DeCoVarT,
+      FUN = deconvolute_ratios_Marquardt_Levenberg,
       additional_parameters = list(epsilon = 10^-3, itmax = 200)
     ),
     # with the new log-likelihood function

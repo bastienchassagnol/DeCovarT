@@ -133,10 +133,10 @@ child_var_data <- do.call(rbind, lapply(
   }
 ))
 
-ggplot(child_var_data, aes(x = mean, y = variance)) +
+ggplot(child_var_data, aes(mean_signature_matrix = mean, y = variance)) +
   geom_point(size = 0.8, alpha = 0.6) +
   facet_wrap(~child, nrow = 2, ncol = 2) +
-  labs(x = expression(mu[g]), y = expression(sigma[g]^2)) +
+  labs(mean_signature_matrix = expression(mu[g]), y = expression(sigma[g]^2)) +
   theme_minimal(base_size = 11) +
   theme(
     strip.text = element_text(face = "bold"),

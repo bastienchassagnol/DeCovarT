@@ -46,7 +46,7 @@ a variance of 2 for gene 2, for both cell populations. Finally, the covariance
 matrix is computed and normalised back to integrate both constraints, using
 following matricial relationship, linking the value of a correlation matrix with
 its respective covariance matrix:
-\deqn{\text{Cov}(\boldsymbol{X}) = \text{diag}\left[(\text{Var}(\boldsymbol{X})\right]^{1/2} \times \text{Cor}(\boldsymbol{X}) \times \text{diag}\left[(\text{Var}(\boldsymbol{X})\right]^{1/2}}
+\deqn{\text{Cov}(\boldsymbol{mean_signature_matrix}) = \text{diag}\left[(\text{Var}(\boldsymbol{mean_signature_matrix})\right]^{1/2} \times \text{Cor}(\boldsymbol{mean_signature_matrix}) \times \text{diag}\left[(\text{Var}(\boldsymbol{mean_signature_matrix})\right]^{1/2}}
 }}
 
 \item{deconvolution_functions}{The deconvolution functions themselves, a list

@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{check_parameters}
 \alias{check_parameters}
-\title{Check whether the estimation has been trapped in the boundary space}
+\title{Check if the estimation has been trapped in the boundary space}
 \usage{
 check_parameters(p)
 }

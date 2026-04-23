@@ -53,21 +53,21 @@ reduced_bivariate_configuration <- bivariate_configuration |>
     OVL = mean(overlap),
     Proportions = purrr::map_chr(
       true_parameters,
-      ~ paste(.x$p, collapse = " / ")
+      ~ paste(.mean_signature_matrix$p, collapse = " / ")
     ),
     Means = purrr::map_chr(
       true_parameters,
       ~ paste0(
         "(",
-        paste0(.x$mu[, 1], collapse = ","),
+        paste0(.mean_signature_matrix$mu[, 1], collapse = ","),
         ");(",
-        paste0(.x$mu[, 2], collapse = ","),
+        paste0(.mean_signature_matrix$mu[, 2], collapse = ","),
         ")"
       )
     ),
     Variance = purrr::map_chr(
       true_parameters,
-      ~ paste(c(.x$sigma[1, 1, 1], .x$sigma[2, 2, 1]), collapse = " / ")
+      ~ paste(c(.mean_signature_matrix$sigma[1, 1, 1], .mean_signature_matrix$sigma[2, 2, 1]), collapse = " / ")
     )
   ) |>
   dplyr::distinct()
@@ -129,7 +129,7 @@ reduced_bivariate_simulation <- bivariate_simulation |>
     )
   ) |>
   dplyr::relocate("ID", .before = "correlation_celltype1") |>
-  dplyr::rename_with(~ gsub("celltype_", "p", .x))
+  dplyr::rename_with(~ gsub("celltype_", "p", .mean_signature_matrix))
 
 saveRDS(
   reduced_bivariate_simulation,
@@ -142,7 +142,7 @@ saveRDS(
 load("./data/bivariate_parameters.rda")
 
 splitted_parameters <- split(
-  x = bivariate_parameters,
+  mean_signature_matrix = bivariate_parameters,
   f = bivariate_parameters$ID
 )
 bivariate_simulation_heatmap <- purrr::imap(
@@ -152,7 +152,7 @@ bivariate_simulation_heatmap <- purrr::imap(
     heatmap_page <- purrr::imap(
       heatmap_per_scenario,
       ~ ComplexHeatmap::draw(
-        .x,
+        .mean_signature_matrix,
         padding = unit(c(0, 0, 0, 0), "cm"),
         column_title = .y,
         column_title_gp = grid::gpar(fontsize = 12, fontface = "bold")
@@ -251,27 +251,27 @@ library(dplyr)
 library(ggplot2)
 p <- c(0.50, 0.50)
 correlation <- -0.8
-X <- matrix(c(20, 22, 22, 20), nrow = 2)
+mean_signature_matrix <- matrix(c(20, 22, 22, 20), nrow = 2)
 Sigma <- array(rep(c(1, correlation, correlation, 1), 2), dim = c(2, 2, 2))
-y <- X %*% p
+y <- mean_signature_matrix %*% p
 
 # generate values
 log_lik_tibble <- tibble::tibble(
-  x = seq(-10, 10, 0.01),
+  mean_signature_matrix = seq(-10, 10, 0.01),
   y = purrr::map_dbl(
-    x,
+    mean_signature_matrix,
     DeCovarT:::loglik_multivariate_constrained,
     y = y,
-    X = X,
+    mean_signature_matrix = mean_signature_matrix,
     Sigma = Sigma
   )
 )
 
 # plot corresponding result
-# |  \\mathbf{X}, \\Sigma}(\\mathbf{p})
+# |  \\mathbf{mean_signature_matrix}, \\Sigma}(\\mathbf{p})
 library(latex2exp)
 # tikzDevice::tikz(file = "./figs/log_plot.tex", width = 6, height = 6)
-log_plot <- ggplot(log_lik_tibble, aes(x = x, y = y)) +
+log_plot <- ggplot(log_lik_tibble, aes(mean_signature_matrix = mean_signature_matrix, y = y)) +
   geom_line(linewidth = 1.5) +
   theme_minimal() +
   # xlab(TeX(r"($\rho$)")) +
@@ -279,22 +279,22 @@ log_plot <- ggplot(log_lik_tibble, aes(x = x, y = y)) +
   ylab("\u2113(\u03C1)") +
   theme(
     axis.title = element_text(angle = 0),
-    #axis.text.x=element_blank(), #remove x axis labels
-    # axis.ticks.x=element_blank(), #remove x axis ticks
+    #axis.text.mean_signature_matrix=element_blank(), #remove mean_signature_matrix axis labels
+    # axis.ticks.mean_signature_matrix=element_blank(), #remove mean_signature_matrix axis ticks
     axis.text.y = element_blank(), #remove y axis labels
     axis.ticks.y = element_blank()
   ) +
   geom_vline(xintercept = 0, color = "blue", linewidth = 1.5) +
   annotate(
     "label",
-    x = 6,
+    mean_signature_matrix = 6,
     y = 2,
     label = TeX(r'($\hat{\rho}^{MLE} = 0$)', output = "character"),
     parse = TRUE
   ) +
   annotate(
     "label",
-    x = 6,
+    mean_signature_matrix = 6,
     y = 1.5,
     label = TeX(
       r'($\hat{p}_1^{MLE} = \hat{p}_2^{MLE} =0.5$)',

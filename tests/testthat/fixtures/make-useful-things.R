@@ -7,20 +7,15 @@ deconvolution_functions <- list(
     additional_parameters = list(epsilon = 10^-3, itmax = 200)
   ),
   "gradient" = list(
-    FUN = deconvolute_ratios_first_order,
+    FUN = deconvolute_ratios_gradient_descent,
     additional_parameters = list(epsilon = 10^-3, itmax = 200)
   ),
   "hessian" = list(
-    FUN = deconvolute_ratios_second_order,
+    FUN = deconvolute_ratios_Newton_Raphson,
     additional_parameters = list(epsilon = 10^-3, itmax = 200)
   ),
   "DeCoVarT" = list(
-    FUN = deconvolute_ratios_DeCoVarT,
-    additional_parameters = list(epsilon = 10^-3, itmax = 200)
-  ),
-  # with the new log-likelihood function
-  "optim" = list(
-    FUN = deconvolute_ratios_basic_optim,
+    FUN = deconvolute_ratios_Marquardt_Levenberg,
     additional_parameters = list(epsilon = 10^-3, itmax = 200)
   ),
   "barrier" = list(

@@ -1,18 +1,3 @@
-#' Pipe operator
-#'
-#' See \code{magrittr::\link[magrittr:pipe]{\%>\%}} for details.
-#'
-#' @name |>
-#' @rdname pipe
-#' @keywords internal
-#' @export
-#' @importFrom magrittr |>
-#' @usage lhs \%>\% rhs
-#' @param lhs A value or the magrittr placeholder.
-#' @param rhs A function call using the magrittr semantics.
-#' @return The result of calling `rhs(lhs)`.
-NULL
-
 #' Check whether the estimation has been trapped in the boundary space
 #'
 #' * Function `enforce_identifiability` normalises the ratios to sum to 1,
@@ -70,7 +55,7 @@ enforce_parameter_identifiability <- function(theta) {
 }
 
 
-#' Check whether the estimation has been trapped in the boundary space
+#' Check if the estimation has been trapped in the boundary space
 #'
 #' * Function `check_parameters` asserts at each step of the maximisation,
 #' we do not fall in a degenerate case or a non invertible. This especially occurs when one of
@@ -93,19 +78,6 @@ check_parameters <- function(p) {
 
 
 
-isConstant <- function(x) {
-  return(length(unique(x)) == 1)
-}
-
-# is_continuous <- function(var) {
-#   return (any(c(is(var, "numeric"), is(var, "integer"), is(var, "Date"),
-#             is(var, "POSIXct"), is(var, "POSIXt"))))
-# }
-
-# compute_interval <- function(x) {
-#   return(purrr::map_dbl(strsplit(x, split = " to "), ~as.numeric(.x) |> mean() |> round()))
-# }
-
 is_positive_definite <- function(expression, tol = 1e-6) {
   eigen_values <- eigen(expression, symmetric = TRUE)$values # already sorted by decreasing order
   return(all(eigen_values >= -tol * abs(eigen_values[1])))
@@ -115,28 +87,6 @@ is_positive_definite <- function(expression, tol = 1e-6) {
 tr <- function(A) {
   return(sum(diag(A)))
 }
-
-# matrix raised to power, R operator
-`%^%` <- function(A, int_pow) {
-  if (!is.integer(int_pow)) {
-    stop("Power must be an integer")
-  } else {
-    for (i in 1:(int_pow - 1)) {
-      A <- A %*% A
-    }
-  }
-  return(A)
-}
-
-
-
-
-# get the true stand deviation of a sample
-# theoric_sd<- function(x) {
-#   n <- length(x)
-#   standard_deviation <- ifelse(n==1, 0, stats::sd(x) * sqrt((n-1)/n))
-#   return(standard_deviation)
-# }
 
 #' Compute the shannon entropy of a discrete distribution, normalised from 0 to 1 (equibalanced classes)
 #'

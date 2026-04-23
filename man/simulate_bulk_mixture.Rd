@@ -31,7 +31,7 @@ proportions are simulated)}
 \value{
 list with two items:
 \itemize{
-\item \eqn{\boldsymbol{X}:\left(x_{g,j,i}\right)_{1\le g\le G, 1\le j \le J, 1\le i \le N}}:
+\item \eqn{\boldsymbol{mean_signature_matrix}:\left(x_{g,j,i}\right)_{1\le g\le G, 1\le j \le J, 1\le i \le N}}:
 the simulated purified expression profiles, stored in
 a three-dimensional array, each array storing the simulated expression of the
 \eqn{J} cell populations for a given individual \eqn{i}
@@ -42,8 +42,8 @@ to uniquely identify each of them.
 }
 }
 \description{
-Using user defined parameters \eqn{p}, \eqn{\boldsymbol{X}} and
+Using user defined parameters \eqn{p}, \eqn{\boldsymbol{mean_signature_matrix}} and
 \eqn{\boldsymbol{cov}}, simulate virtual bulk mixtures, using standard linear
 constraint of deconvolution algorithms, namely:
-\deqn{\boldsymbol{\hat{y}}=\boldsymbol{X} \times \hat{\boldsymbol{p}}}
+\deqn{\boldsymbol{\hat{y}}=\boldsymbol{mean_signature_matrix} \times \hat{\boldsymbol{p}}}
 }

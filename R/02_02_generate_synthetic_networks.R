@@ -24,8 +24,8 @@
 #' @param parent_names Character vector of length 2.
 #' @param child_names Character vector of length 4.
 #'
-#' @return A named list with elements \code{parent_means} (2 x p matrix)
-#'   and \code{child_means} (4 x p matrix).
+#' @return A named list with elements \code{parent_means} (2 mean_signature_matrix p matrix)
+#'   and \code{child_means} (4 mean_signature_matrix p matrix).
 #'
 #' @keywords internal
 #' @noRd
@@ -105,7 +105,7 @@ generate_mean_profiles <- function(
 #' \eqn{\alpha = 2} this reduces to the classical negative-binomial
 #' variance--mean relationship.
 #'
-#' @param mean_matrix Numeric matrix (populations x genes).
+#' @param mean_matrix Numeric matrix (populations mean_signature_matrix genes).
 #' @param library_size Positive numeric scalar.
 #' @param alpha Positive numeric scalar, power parameter.
 #'
@@ -133,7 +133,7 @@ compute_marginal_variances <- function(mean_matrix, library_size, alpha) {
 #' @param graph_params Named list of model-specific parameters (see
 #'   \code{\link{simulate_hierarchical_grn_moments}} for details).
 #'
-#' @return A symmetric integer matrix of dimension \code{n_genes x
+#' @return A symmetric integer matrix of dimension \code{n_genes mean_signature_matrix
 #'   n_genes} with zero diagonal.
 #'
 #' @keywords internal
@@ -253,14 +253,14 @@ build_normalised_precision <- function(
 #' \eqn{D_k = \mathrm{diag}(\sigma_{k,1}^2, \ldots, \sigma_{k,p}^2)}.
 #'
 #' @param normalised_precision Symmetric positive-definite matrix
-#'   (p x p).
-#' @param variance_matrix Numeric matrix (n_populations x p) of
+#'   (p mean_signature_matrix p).
+#' @param variance_matrix Numeric matrix (n_populations mean_signature_matrix p) of
 #'   marginal variances.
 #' @param population_names Character vector of population identifiers.
 #' @param gene_names Character vector of gene identifiers.
 #'
 #' @return A three-dimensional numeric array of dimension
-#'   (p x p x n_populations).
+#'   (p mean_signature_matrix p mean_signature_matrix n_populations).
 #'
 #' @keywords internal
 #' @noRd
@@ -381,20 +381,20 @@ build_precision_matrix <- function(
 #'     \item{\code{parent_parameters}}{A named list containing:
 #'       \describe{
 #'         \item{\code{mean_profiles}}{Numeric matrix
-#'           (2 x \code{2 * n_expressed_genes}).  Rows: \code{parent_1},
+#'           (2 mean_signature_matrix \code{2 * n_expressed_genes}).  Rows: \code{parent_1},
 #'           \code{parent_2}; columns: \code{gene_1}, \ldots}
 #'         \item{\code{covariance_matrices}}{Three-dimensional array
-#'           (\code{2n x 2n x 2}), third axis indexed by parent name.}
+#'           (\code{2n mean_signature_matrix 2n mean_signature_matrix 2}), third axis indexed by parent name.}
 #'       }
 #'     }
 #'     \item{\code{child_parameters}}{A named list containing:
 #'       \describe{
 #'         \item{\code{mean_profiles}}{Numeric matrix
-#'           (4 x \code{2 * n_expressed_genes}).  Rows:
+#'           (4 mean_signature_matrix \code{2 * n_expressed_genes}).  Rows:
 #'           \code{parent_1_child_a}, \code{parent_1_child_b},
 #'           \code{parent_2_child_a}, \code{parent_2_child_b}.}
 #'         \item{\code{covariance_matrices}}{Three-dimensional array
-#'           (\code{2n x 2n x 4}), third axis indexed by child name.}
+#'           (\code{2n mean_signature_matrix 2n mean_signature_matrix 4}), third axis indexed by child name.}
 #'       }
 #'     }
 #'     \item{\code{graph_structure}}{A named list containing:

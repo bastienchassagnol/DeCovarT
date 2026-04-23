@@ -4,10 +4,10 @@
 #'
 #' @description Compute metrics, either comparing th estimated ratios with a gold standard
 #' or the divergence between the reconstituted virtual mixture,
-#' using deterministic rule \eqn{\boldsymbol{\hat{y}}=\boldsymbol{X} \times \hat{\boldsymbol{p}}}
+#' using deterministic rule \eqn{\boldsymbol{\hat{y}}=\boldsymbol{mean_signature_matrix} \times \hat{\boldsymbol{p}}}
 #' and the actual measured one
 #'
-#' @inheritParams deconvolute_ratios_DeCoVarT
+#' @inheritParams deconvolute_ratios_Marquardt_Levenberg
 #' @param estimated_p The ratios estimated by your favourite deconvolution algorithm
 #'
 #' @return A `tibble`, with the following scores:
@@ -19,9 +19,9 @@
 #' giving the mean values of the variables within a given component. See also the [stats::cor()] function.
 #' @export
 
-compute_benchmark_metrics <- function(y, X, estimated_p, true_ratios = NULL) {
-  n <- nrow(X)
-  k <- ncol(X)
+compute_benchmark_metrics <- function(y, mean_signature_matrix, estimated_p, true_ratios = NULL) {
+  n <- nrow(mean_signature_matrix)
+  k <- ncol(mean_signature_matrix)
   df_res <- n - k + 1 # number of free parameters: only k - 1 parameters must be learnt, with sum-to-one constraint
   df_tot <- n - 1 # no intercept for the moment, in the model (so n-1, or n?)
   if (!is.null(true_ratios)) {
@@ -46,7 +46,7 @@ compute_benchmark_metrics <- function(y, X, estimated_p, true_ratios = NULL) {
     )
   } else {
     # when they are unknown
-    predicted_values <- as.vector(X %*% estimated_p)
+    predicted_values <- as.vector(mean_signature_matrix %*% estimated_p)
     scores <- tibble::tibble(
       model_mse = Metrics::mse(y, predicted_values),
       model_rmse = Metrics::rmse(y, predicted_values),
@@ -94,7 +94,7 @@ compute_benchmark_metrics <- function(y, X, estimated_p, true_ratios = NULL) {
 #' @param scaled Whether we should scale or not the dataset. By default, we consider that the provided dataset is in its original raw space,
 #' and we do not scale the dataset, since our deconvolution algorithm assumes a multivariate Gaussian distribution on the raw counts themselves.
 #' @param cores For a parallel estimation of ratios in a series of bulk samples,
-#' assign a number of cores strictly inferior to the number of cores avalaible
+#' assign a number of cores strictly inferior to the number of cores available
 #' on your machine. By default, the maximum, minus in Unix systems, and for
 #' OS compatibility, only one on Windows machines
 #' @return A `tibble` storing for each row the measured cell proportions, as well as some summary metrics.
@@ -102,7 +102,7 @@ compute_benchmark_metrics <- function(y, X, estimated_p, true_ratios = NULL) {
 #' with function [enforce_identifiability()].
 #' @export
 #'
-#' @seealso [deconvolute_ratios_DeCoVarT()], to deconvolve a single, already normalised sample
+#' @seealso [deconvolute_ratios_Marquardt_Levenberg()], to deconvolve a single, already normalised sample
 
 deconvolute_ratios <- function(
     signature_matrix,
@@ -123,7 +123,7 @@ deconvolute_ratios <- function(
       "required format for signature is expression matrix, with rownames as genes"
     )
   }
-  X <- tibble::as_tibble(signature_matrix, rownames = "GENE_SYMBOL")
+  mean_signature_matrix <- tibble::as_tibble(signature_matrix, rownames = "GENE_SYMBOL")
   if (!is.matrix(bulk_expression) | is.null(row.names(bulk_expression))) {
     stop(
       "required format for mixture is expression matrix, with rownames as genes"
@@ -135,17 +135,17 @@ deconvolute_ratios <- function(
   Y <- Y |> tidyr::drop_na()
   
   # intersect genes (we only keep genes that are common to both data bases)
-  common_genes <- intersect(X$GENE_SYMBOL, Y$GENE_SYMBOL)
+  common_genes <- intersect(mean_signature_matrix$GENE_SYMBOL, Y$GENE_SYMBOL)
   
-  if (length(common_genes) / dim(X)[1] < 0.5) {
+  if (length(common_genes) / dim(mean_signature_matrix)[1] < 0.5) {
     stop(paste(
       "Only",
-      length(common_genes) / dim(X)[1],
+      length(common_genes) / dim(mean_signature_matrix)[1],
       "fraction of genes are used in the signature matrix\n.
                   Half of common genes are required at least"
     ))
   }
-  X <- X |>
+  mean_signature_matrix <- mean_signature_matrix |>
     dplyr::filter(.data$GENE_SYMBOL %in% common_genes) |>
     dplyr::arrange(.data$GENE_SYMBOL) |>
     dplyr::select(dplyr::where(is.numeric)) |>
@@ -159,7 +159,7 @@ deconvolute_ratios <- function(
     # log-2 normalise
     Y <- log2(Y)
   }
-  X <- log2(X)
+  mean_signature_matrix <- log2(mean_signature_matrix)
   
   # estimation itself
   deconvolution_estimates <- purrr::imap_dfr(
@@ -175,7 +175,7 @@ deconvolute_ratios <- function(
               list_arguments <- c(
                 list(
                   "y" = Y[, i] |> as.matrix(),
-                  "X" = X,
+                  "mean_signature_matrix" = mean_signature_matrix,
                   "Sigma" = Sigma,
                   "true_ratios" = true_ratios
                 ),
@@ -195,7 +195,7 @@ deconvolute_ratios <- function(
                 showWarnings = F,
                 recursive = TRUE
               )
-              # "y"=Y[,i] |> as.matrix(), "X"=X, "Sigma"=Sigma,
+              # "y"=Y[,i] |> as.matrix(), "mean_signature_matrix"=mean_signature_matrix, "Sigma"=Sigma,
               saveRDS(
                 c(
                   list_arguments[methods::formalArgs(

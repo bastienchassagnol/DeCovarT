@@ -64,8 +64,8 @@ plot_correlation_Heatmap <- function(
 
   complex_heatmap_list <- purrr::imap(
     split(distribution_metrics, distribution_metrics[["algorithm"]]),
-    function(.x, .y) {
-      cor_matrix_per_algo <- .x |>
+    function(.mean_signature_matrix, .y) {
+      cor_matrix_per_algo <- .mean_signature_matrix |>
         dplyr::select(-"algorithm") |>
         tidyr::pivot_wider(
           names_from = dplyr::all_of("correlation_celltype2"),

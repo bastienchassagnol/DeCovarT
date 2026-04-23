@@ -82,20 +82,20 @@ A named list with three elements:
 \item{\code{parent_parameters}}{A named list containing:
 \describe{
 \item{\code{mean_profiles}}{Numeric matrix
-(2 x \code{2 * n_expressed_genes}).  Rows: \code{parent_1},
+(2 mean_signature_matrix \code{2 * n_expressed_genes}).  Rows: \code{parent_1},
 \code{parent_2}; columns: \code{gene_1}, \ldots}
 \item{\code{covariance_matrices}}{Three-dimensional array
-(\code{2n x 2n x 2}), third axis indexed by parent name.}
+(\code{2n mean_signature_matrix 2n mean_signature_matrix 2}), third axis indexed by parent name.}
 }
 }
 \item{\code{child_parameters}}{A named list containing:
 \describe{
 \item{\code{mean_profiles}}{Numeric matrix
-(4 x \code{2 * n_expressed_genes}).  Rows:
+(4 mean_signature_matrix \code{2 * n_expressed_genes}).  Rows:
 \code{parent_1_child_a}, \code{parent_1_child_b},
 \code{parent_2_child_a}, \code{parent_2_child_b}.}
 \item{\code{covariance_matrices}}{Three-dimensional array
-(\code{2n x 2n x 4}), third axis indexed by child name.}
+(\code{2n mean_signature_matrix 2n mean_signature_matrix 4}), third axis indexed by child name.}
 }
 }
 \item{\code{graph_structure}}{A named list containing:

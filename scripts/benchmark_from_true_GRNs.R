@@ -11,7 +11,7 @@ GSE229513_gastruloids_seurat <- readRDS(
 )
 
 dim(GSE229513_gastruloids_seurat)
-levels(x = GSE229513_gastruloids_seurat)
+levels(mean_signature_matrix = GSE229513_gastruloids_seurat)
 table(Seurat::Idents(GSE229513_gastruloids_seurat))
 
 
@@ -20,7 +20,7 @@ table(Seurat::Idents(GSE229513_gastruloids_seurat))
 # ==========================================================================
 
 GSE229513_120h <- Seurat::subset(
-  x = GSE229513_gastruloids_seurat,
+  mean_signature_matrix = GSE229513_gastruloids_seurat,
   idents = "120h"
 )
 
@@ -41,7 +41,7 @@ raw_counts <- SeuratObject::GetAssayData(
   assay  = "RNA",
   layer   = "counts"
 )
-cat("Raw counts (RNA):    ", nrow(raw_counts), "genes x",
+cat("Raw counts (RNA):    ", nrow(raw_counts), "genes mean_signature_matrix",
     ncol(raw_counts), "cells\n")
 
 # --- 3b. Normalised data (RNA assay) --------------------------------------
@@ -159,11 +159,11 @@ marker_table <- tinytable::tt(
 ) |>
   tinytable::format_tt(
     j = "Log2 FC",
-    fn = function(x) formatC(x, digits = 2, format = "f")
+    fn = function(mean_signature_matrix) formatC(mean_signature_matrix, digits = 2, format = "f")
   ) |>
   tinytable::format_tt(
     j = "Adj. p",
-    fn = function(x) formatC(x, digits = 2, format = "e")
+    fn = function(mean_signature_matrix) formatC(mean_signature_matrix, digits = 2, format = "e")
   ) |>
   tinytable::style_tt(
     i    = which(marker_summary$`Adj. p` < 0.01),
