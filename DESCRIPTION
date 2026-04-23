@@ -49,3 +49,5 @@ LazyData: true
 LazyDataCompression: gzip
 RdMacros: Rdpack
 Language: en_GB
+URL: https://github.com/bastienchassagnol/DeCovarT
+BugReports: https://github.com/bastienchassagnol/DeCovarT/issues
