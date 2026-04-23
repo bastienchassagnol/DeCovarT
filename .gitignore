@@ -16,3 +16,5 @@ tests/testthat/simulations/
 # my folders
 slides/
 data/raw-data/
+docs
+**/.quarto/

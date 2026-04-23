@@ -1,0 +1,16 @@
+---
+title: "Generate semi-synthetic pseudo bulks for bencharmling purposes"
+vignette: >
+  %\VignetteIndexEntry{Generate semi-synthetic pseudo bulks for bencharmling purposes}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: '#>'
+---
+
+```{r}
+#| label: setup
+library(DeCovarT)
+```

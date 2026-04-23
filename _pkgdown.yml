@@ -1,0 +1,45 @@
+url: https://bastienchassagnol.github.io/DeCovarT/
+
+navbar:
+  structure:
+    left: [ home, reference, articles, news ]
+    right: [ github ]
+  components:
+    home: ~
+    articles:
+      text: "Vignettes"
+      menu:
+        - text: "Generate semi-synthetic pseudo bulks"
+          href: articles/synthetic-scenarios.html
+        - text: "DeCovarT use cases"
+          href: articles/DeCoVart-use-cases.html
+
+reference:
+
+  - title: "DeCovarT algorithm"
+    desc: >
+      Core covariance-aware deconvolution algorithm (Marquardt–Levenberg
+      optimiser) together with its variants and the underlying mapping function
+      between the unconstrained parameter space and the unit simplex.
+    contents:
+      - "`deconvolute_ratios_Marquardt_Levenberg`"
+  - title: "Benchmark and evaluation"
+    desc: >
+      Functions to compute quality metrics comparing estimated and true cellular
+      proportions, and to run the bivariate toy benchmark.
+    contents:
+      - "`compute_benchmark_metrics`"
+      - "`benchmark_deconvolution_algorithms_two_genes`"
+
+  - title: "Simulation — synthetic GRN-based scenarios"
+    desc: >
+      Hierarchical generative model producing mean profiles and
+      graph-constrained covariance matrices for synthetic benchmarks.
+    contents:
+      - "`simulate_bulk_mixture`"
+      - "`simulate_hierarchical_grn_moments`"
+
+  - title: "Data sets"
+    desc: >
+      Reference datasets bundled with the package for illustration and
+      reproducible benchmarking.

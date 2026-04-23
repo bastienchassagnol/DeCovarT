@@ -18,3 +18,9 @@
 ^visualise_representations\.R$
 ^\./vignettes/DeCoVart-use-cases\.pdf$
 ^\./vignettes/DeCoVart-use-cases\.R$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^\.github$
+^vignettes/\.quarto$
+^vignettes/*_files$

@@ -4,7 +4,7 @@ Version: 0.0.0.9000
 Authors@R: 
     person("Bastien", "Chassagnol", , "bastien_chassagnol@laposte.net", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-8955-2391"))
-Description: What the package does (one paragraph).
+Description: Implements the first deconvolution algorithm for bulk transcriptome that accounts for the interactions between genes. 
 License: CC BY 4.0
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -14,12 +14,13 @@ Suggests:
     kableExtra,
     knitr,
     pkgdown,
+    quarto,
     readr,
     rmarkdown,
     testthat (>= 3.0.0),
     vdiffr,
     withr
-VignetteBuilder: knitr
+VignetteBuilder: knitr, quarto
 Config/testthat/edition: 3
 Imports: 
     circlize,
@@ -49,5 +50,5 @@ LazyData: true
 LazyDataCompression: gzip
 RdMacros: Rdpack
 Language: en_GB
-URL: https://github.com/bastienchassagnol/DeCovarT
+URL: https://github.com/bastienchassagnol/DeCovarT, https://bastienchassagnol.github.io/DeCovarT/
 BugReports: https://github.com/bastienchassagnol/DeCovarT/issues
