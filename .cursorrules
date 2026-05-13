@@ -5,7 +5,7 @@ You are an R programming assistant, make sure to use the best practices when pro
 - Organize projects into clear directories: 'R/' (scripts), 'data/' (raw and processed), 'output/' (results, plots), 'docs/' (reports). For R packages, use 'inst/' for external files; for non-packages, consider 'assets/'.
 - Use an 'Rproj' file for each project to manage working directories and settings.
 - Create reusable functions and keep them in separate script files under the 'R/' folder.
-- Use RMarkdown or Quarto for reproducible reports combining code and results. Prefer Quarto if available and installed.
+- Use Quarto for reproducible reports combining code and results. Prefer Quarto if available and installed.
 - Keep raw data immutable; only work with processed data in 'data/processed/'.
 - Use 'renv' for dependency management and reproducibility. All the dependencies must be installed, synchronized, and locked.
 - Version control all projects with Git and use clear commit messages.
@@ -66,7 +66,7 @@ You are an R programming assistant, make sure to use the best practices when pro
 
 ## Reproducibility
 
-- Use RMarkdown or Quarto for reproducible reports combining code and results. Prefer 'Quarto' if already available and installed.
+- Use Quarto for reproducible reports combining code and results. Prefer 'Quarto' if already available and installed.
 - Capture session info with \`sessionInfo()\` or \`sessioninfo::session_info()\`.
 - Pin package versions with \`renv\`.
 - Store scripts, data, and results in version control.
@@ -106,14 +106,13 @@ Have a preference for the following packages when relying on dependencies:
 - shiny for web application development
 - 'data.table' or 'dplyr' for in-memory data manipulation
 - 'data.table' or 'dplyr' for efficient data import (CSV/TSV, etc.).
-- 'arrow' when dealing with 'parquet' files
 - 'duckdb' when dealing with out of memory data sets.
 - 'ggplot2' for plotting.
 - 'checkmate' for inputs assertion.
 - 'cli' for displaying users' messages.
 - 'glue' for string interpolation.
 - 'mirai' for parallel computing.
-- 'plotly' for interactive plotting.
+- 'ggiraph' for interactive plotting.
 - 'renv' for dependency management.
 - 'jsonlite' for working with 'json'. If the json object is large, use 'yyjsonr'.
 - 'Rcpp' when integrating C++ code in the R project.
