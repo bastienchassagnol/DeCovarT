@@ -20,7 +20,7 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       NUMBER: ${{ github.event.issue.number }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Check issue metadata
         run: bash .github/workflows/check-issues.sh
 
@@ -32,6 +32,6 @@ jobs:
       NUMBER: ${{ github.event.pull_request.number }}
       EVENT: ${{ github.event.action }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Check pull request metadata
         run: bash .github/workflows/check-pull-requests.sh
