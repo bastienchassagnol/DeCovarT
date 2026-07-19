@@ -333,7 +333,7 @@ if (requireNamespace("compositions", quietly = TRUE)) {
 # Checking the closed forms
 
 The analytic derivatives are validated against Richardson extrapolation in `R`
-(@lst-check-r) and reverse-mode autodiff in `PyTorch` (@lst-check-torch).
+(@lst-check-r).
 
 ```{#lst-check-r .r lst-cap="Validation with numDeriv" eval=true}
 rho <- c(0.4, -1.1)

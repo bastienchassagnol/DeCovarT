@@ -35,7 +35,7 @@
 #'   `additive_log_ratio()` on this help page.
 #' @export
 additive_logistic <- function(rho) {
-  p <- c(exp(rho[1:length(rho)]), 1)
+  p <- c(exp(rho[seq_along(rho)]), 1)
   return(p / sum(p))
 }
 
@@ -208,25 +208,11 @@ loglik_multivariate_constrained <- function(
 #'
 #' @keywords internal
 jacobian_additive_logistic <- function(rho) {
-  denominator <- (sum(exp(rho)) + 1)^2
-  size_var <- length(rho)
-  jacobian_matrix <- matrix(0, nrow = size_var, ncol = size_var)
-  for (i in 1:size_var) {
-    for (j in i:size_var) {
-      # diagonal elements
-      if (i == j) {
-        jacobian_matrix[i, j] <- (exp(rho[i]) * (sum(exp(rho[-i])) + 1))
-      } else {
-        jacobian_matrix[i, j] <- -exp(rho[i]) * exp(rho[j])
-      }
-    }
-  }
-  # ensure symmetry
-  jacobian_matrix[lower.tri(jacobian_matrix)] <- jacobian_matrix[upper.tri(
-    jacobian_matrix
-  )]
-  jacobian_matrix <- rbind(jacobian_matrix, -exp(rho))
-  return(jacobian_matrix / denominator)
+  p <- additive_logistic(rho)
+  num_celltypes <- length(p)
+  # softmax Jacobian diag(p) - p p^T, reference column dropped
+  jacobian_matrix <- diag(p) - tcrossprod(p)
+  return(jacobian_matrix[, -num_celltypes, drop = FALSE])
 }
 
 #' Gradient \eqn{\nabla_{\boldsymbol{p}}\ell} of the unconstrained log-likelihood
@@ -348,63 +334,19 @@ gradient_loglik_constrained <- function(
 #'
 #' @keywords internal
 hessian_additive_logistic <- function(rho) {
-  A <- sum(exp(rho)) + 1
-  denominator <- A^3
-  size_var <- length(rho)
-  J <- size_var + 1
-  hessian_array <- array(0, dim = c(size_var, size_var, J))
-  for (i in 1:size_var) {
-    B <- sum(exp(rho[-i])) + 1
-    # other p_j, j< J Hessian derivation
-    for (j in 1:size_var) {
-      for (k in j:size_var) {
-        # diagonal elements
-        if (j == k) {
-          if (i == j) {
-            hessian_array[i, i, i] <- B * exp(rho[i]) * (B - exp(rho[i])) # condition d)
-          } else {
-            hessian_array[j, j, i] <- exp(rho[i]) *
-              exp(rho[j]) *
-              (-A + 2 * exp(rho[j])) # condition c)
-          }
-        } else {
-          # off diagonal terms
-          if (!length(intersect(i, c(j, k)))) {
-            # all indexes are different, situation b)
-            # alternative condition setting: (i!=j)!=k
-            hessian_array[j, k, i] <- 2 *
-              exp(rho[i]) *
-              exp(rho[j]) *
-              exp(rho[k])
-          } else {
-            l <- setdiff(c(j, k), i) # situation a), l is the operator, either k or j, different from i
-            hessian_array[j, k, i] <- exp(rho[i]) *
-              exp(rho[l]) *
-              (-B + exp(rho[i]))
-          }
-        }
-      }
-    }
-    # ensure symmetry
-    hessian_array[,, i][lower.tri(hessian_array[,, i])] <- hessian_array[,,
-      i
-    ][upper.tri(hessian_array[,, i])]
+  p <- additive_logistic(rho)
+  num_celltypes <- length(p)
+  size_var <- num_celltypes - 1
+  # softmax Jacobian, reused across output slices
+  softmax_jacobian <- diag(p) - tcrossprod(p)
+  hessian_array <- array(0, dim = c(size_var, size_var, num_celltypes))
+  for (i in seq_len(num_celltypes)) {
+    # H^{(i)} = p_i [ (e_i - p)(e_i - p)^T - (diag(p) - p p^T) ], restricted
+    basis_residual <- (seq_len(num_celltypes) == i) - p
+    slice <- p[i] * (tcrossprod(basis_residual) - softmax_jacobian)
+    hessian_array[,, i] <- slice[-num_celltypes, -num_celltypes]
   }
-  # last p_J Hessian component
-  for (j in 1:size_var) {
-    for (k in j:size_var) {
-      # diagonal elements
-      if (j == k) {
-        hessian_array[j, j, J] <- exp(rho[j]) * (-A + 2 * exp(rho[j])) # condition e)
-      } else {
-        hessian_array[j, k, J] <- 2 * exp(rho[j]) * exp(rho[k]) # condition f)
-      }
-    }
-  }
-  hessian_array[,, J][lower.tri(hessian_array[,, J])] <- hessian_array[,,
-    J
-  ][upper.tri(hessian_array[,, J])]
-  return(hessian_array / denominator)
+  return(hessian_array)
 }
 
 #' Hessian \eqn{\mathbf{H}} of the unconstrained log-likelihood
