@@ -3,6 +3,20 @@
 - [Overleaf repository, shared with Anais Baudot](https://www.overleaf.com/project/697398ed149e81845cb5208e)
 - [Hal Archive](https://arxiv.org/pdf/2309.09557)
 
+# Compiling the LaTeX article
+
+Source file: `article/main.tex` (bibliography: `article/decovart_library.bib`).
+
+From the repository root, generate `article/main.pdf` with:
+
+```sh
+cd article
+latexmk -pdf -interaction=nonstopmode -file-line-error -synctex=1 main.tex
+```
+
+In Cursor / VS Code with **LaTeX Workshop**, use the default recipe **latexmk** (configured in `.vscode/settings.json`), or run **“LaTeX Workshop: Build with recipe”**.
+
+In **LaTeX Workshop**, auxiliaries are removed automatically after a **successful** build (`latex-workshop.latex.autoClean.run`: `onSucceeded`). The PDF is kept. Manual clean: Command Palette → **“LaTeX Workshop: Clean up auxiliary files”**.
 # Github actions
 
   <!-- badges: start -->
