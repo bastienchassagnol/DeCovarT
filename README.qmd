@@ -54,12 +54,8 @@ $$
 ```{r}
 #| echo: false
 #| results: asis
-cat(
-  "```mermaid\n",
-  readLines("man/figures/decovart_constrained_dag.mmd"),
-  "\n```\n",
-  sep = "\n"
-)
+mmd <- paste(readLines("man/figures/decovart_constrained_dag.mmd"), collapse = "\n")
+cat("```mermaid\n", mmd, "\n```\n", sep = "")
 ```
 
 Forward map

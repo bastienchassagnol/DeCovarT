@@ -35,8 +35,7 @@ $$
 \Bigr).
 $$
 
-``` mermaid
-
+```mermaid
 %%{init: {
   "theme": "base",
   "themeVariables": {
@@ -46,33 +45,33 @@ $$
     "lineColor": "#475569",
     "fontSize": "14px"
   },
-  "flowchart": { "curve": "basis", "htmlLabels": true }
+  "flowchart": { "curve": "basis" }
 }}%%
 flowchart TB
-  subgraph plateJ["j ∈ {1,…,J}"]
+  subgraph plateJ["j = 1,...,J"]
     direction TB
-    mu["$$\boldsymbol{\mu}_j$$"]
-    Sj["$$\boldsymbol{\Sigma}_j$$"]
-    xj(("$$\boldsymbol{x}_j$$"))
+    mu["μ_j"]
+    Sj["Σ_j"]
+    xj(("x_j"))
     mu --> xj
     Sj --> xj
   end
 
-  subgraph plateI["i ∈ {1,…,N}"]
+  subgraph plateI["i = 1,...,N"]
     direction TB
-    theta(("$$\boldsymbol{\theta}_i$$"))
-    p{{"$$\boldsymbol{p}_i = \psi(\boldsymbol{\theta}_i)$$"}}
-    y(["$$\boldsymbol{y}_i$$"])
-    theta -->|"$$\psi$$ soft-max"| p
+    theta(("θ_i"))
+    p["p_i = ψ(θ_i)"]
+    y(["y_i"])
+    theta -->|"ψ soft-max"| p
     p -.-> y
   end
 
-  xj -.->|"$$\boldsymbol{y}_i = \boldsymbol{\mu}\boldsymbol{p}_i$$"| y
+  xj -.->|"y_i = μ p_i"| y
 
   classDef param fill:#ffffff,stroke:#0f172a,stroke-width:1.5px;
   classDef latent fill:#ffffff,stroke:#0f172a,stroke-width:1.5px;
-  classDef det fill:#ffffff,stroke:#0f172a,stroke-width:1.5px,stroke-dasharray: 4 3;
-  classDef obs fill:#cbd5e1,stroke:#0f172a,stroke-width:1.5px,stroke-dasharray: 4 3;
+  classDef det fill:#ffffff,stroke:#0f172a,stroke-width:1.5px,stroke-dasharray:5 3;
+  classDef obs fill:#cbd5e1,stroke:#0f172a,stroke-width:1.5px,stroke-dasharray:5 3;
 
   class mu,Sj param;
   class theta,xj latent;
@@ -97,7 +96,7 @@ DAG panels in Fig.~DAG-model are drawn with [`tikz-bayesnet`](https://ctan.org/p
 
 From the repository root, generate `article/main.pdf` with:
 
-``` sh
+```sh
 cd article
 latexmk -pdf -interaction=nonstopmode -file-line-error -synctex=1 main.tex
 ```
@@ -113,7 +112,7 @@ Auxiliaries are removed automatically after a successful build
 
 Edit `README.qmd` (and optionally `man/figures/decovart_constrained_dag.mmd`), then run:
 
-``` sh
+```sh
 quarto render README.qmd
 ./scripts/fix_readme_fences.sh README.md
 ```
@@ -126,7 +125,7 @@ language tags (needed for GitHub Mermaid rendering).
 
 Package function call graph (DeCovarT → DeCovarT edges only):
 
-``` html
+```html
 <iframe
   src="output/package_network/decovart_function_network.html"
   title="DeCovarT function call graph"
