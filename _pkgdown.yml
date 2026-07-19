@@ -46,10 +46,11 @@ reference:
 
   - subtitle: "Parametrisation"
     desc: >
-      Mapping function between the unconstrained parameter space
-      \(\mathbb{R}^{J-1}\) and the unit simplex \(\Delta^{J-1}\).
+      Additive logistic transform (and its additive log-ratio inverse) between
+      the unconstrained parameter space \(\mathbb{R}^{J-1}\) and the unit
+      simplex \(\Delta^{J-1}\).
     contents:
-      - "`mapping_function`"
+      - "`additive_logistic`"
 
   - title: "First-generation deconvolution algorithms"
     desc: >

@@ -1,13 +1,16 @@
 # Algebraic operations ------------------------------------------------------
 
-#' Softmax mapping from unconstrained parameters to the simplex
+#' Additive logistic transform (unconstrained coordinates to the simplex)
 #'
 #' @description
 #' Implements the reparametrisation
 #' \eqn{\boldsymbol{\psi}:\boldsymbol{\rho}\mapsto\boldsymbol{p}} used in the
 #' article, sending unconstrained coordinates
 #' \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}} to cellular proportions
-#' \eqn{\boldsymbol{p}\in\Delta^{J-1}}.
+#' \eqn{\boldsymbol{p}\in\Delta^{J-1}}. This is the *additive logistic
+#' transform* of Aitchison, i.e. the inverse additive log-ratio map
+#' (\eqn{\mathrm{alr}^{-1}}), equivalently a softmax with the last category
+#' \eqn{J} pinned as reference (\eqn{\rho_J\equiv 0}).
 #'
 #' @details
 #' With \eqn{A=\sum_{k=1}^{J-1}\mathrm{e}^{\rho_k}+1},
@@ -19,6 +22,8 @@
 #' \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})} with
 #' \eqn{\boldsymbol{\psi}(\boldsymbol{\rho})\propto
 #' (\mathrm{e}^{\rho_1},\ldots,\mathrm{e}^{\rho_{J-1}},1)^{\mathsf{T}}}.
+#' See [compositions::alrInv()] for a general implementation and the
+#' package vignette on additive log-ratio derivatives.
 #'
 #' @param rho Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
 #'
@@ -26,25 +31,29 @@
 #'   simplex (\eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1},
 #'   \eqn{\boldsymbol{p}\ge\mathbf{0}}).
 #'
-#' @seealso The inverse map is documented as `inverse_mapping_function()`
-#'   on this help page.
+#' @seealso The inverse map (additive log-ratio) is documented as
+#'   `additive_log_ratio()` on this help page.
 #' @export
-mapping_function <- function(rho) {
+additive_logistic <- function(rho) {
   p <- c(exp(rho[1:length(rho)]), 1)
   return(p / sum(p))
 }
 
-#' Inverse simplex mapping \eqn{\boldsymbol{p}\mapsto\boldsymbol{\rho}}
+#' Additive log-ratio transform \eqn{\boldsymbol{p}\mapsto\boldsymbol{\rho}}
 #'
-#' Recovers \eqn{\rho_j=\ln(p_j/p_J)} for \eqn{j=1,\ldots,J-1}.
+#' Recovers the unconstrained additive log-ratio coordinates
+#' \eqn{\rho_j=\ln(p_j/p_J)} for \eqn{j=1,\ldots,J-1}, with the last part
+#' \eqn{p_J} as reference. This is Aitchison's additive log-ratio
+#' (\eqn{\mathrm{alr}}) transform, equivalently the multinomial-logit link
+#' with reference category \eqn{J} (see [compositions::alr()]).
 #'
 #' @param p Numeric vector \eqn{\boldsymbol{p}} on the open simplex.
 #'
 #' @return Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
 #'
-#' @rdname mapping_function
+#' @rdname additive_logistic
 #' @keywords internal
-inverse_mapping_function <- function(p) {
+additive_log_ratio <- function(p) {
   num_cells <- length(p)
   return(log(p[1:num_cells - 1] / p[num_cells]))
 }
@@ -135,7 +144,7 @@ inverse_mapping_function <- function(p) {
 #' @return Scalar log-likelihood value.
 #'
 #' @keywords internal
-#' @seealso [gradient_loglik_unconstrained()], [mapping_function()]
+#' @seealso [gradient_loglik_unconstrained()], [additive_logistic()]
 loglik_multivariate <- function(p, y, mean_signature_matrix, Sigma) {
   global_cov_matrix <- .compute_global_variance(p, Sigma)
   log_lik <- -log(det(global_cov_matrix)) -
@@ -151,7 +160,7 @@ loglik_multivariate <- function(p, y, mean_signature_matrix, Sigma) {
 #' \eqn{\ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{\psi}(\boldsymbol{\rho}))}
 #'
 #' @description
-#' Composes [loglik_multivariate()] with [mapping_function()], so that
+#' Composes [loglik_multivariate()] with [additive_logistic()], so that
 #' optimisation may be performed over
 #' \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
 #'
@@ -168,7 +177,7 @@ loglik_multivariate_constrained <- function(
   Sigma
 ) {
   # switch from variable
-  p <- mapping_function(rho)
+  p <- additive_logistic(rho)
   log_lik <- loglik_multivariate(p, y, mean_signature_matrix, Sigma)
   if (any(p < 100 * .Machine$double.eps | p > 1 - 100 * .Machine$double.eps)) {
     # if the ratios returned present numerical underflows
@@ -185,10 +194,10 @@ loglik_multivariate_constrained <- function(
 
 # First-order derivatives -------------------------------------------------
 
-#' Jacobian \eqn{\mathbf{J}_{\boldsymbol{\psi}}} of the simplex mapping
+#' Jacobian \eqn{\mathbf{J}_{\boldsymbol{\psi}}} of the additive logistic map
 #'
 #' @description
-#' Returns
+#' Returns the Jacobian of [additive_logistic()],
 #' \eqn{\mathbf{J}_{\boldsymbol{\psi}}\in\mathcal{M}_{J\times(J-1)}} with
 #' entries
 #' \eqn{(\mathbf{J}_{\boldsymbol{\psi}})_{i,j}=\partial p_i/\partial\rho_j}.
@@ -198,7 +207,7 @@ loglik_multivariate_constrained <- function(
 #' @return Numeric matrix of size \eqn{J\times(J-1)}.
 #'
 #' @keywords internal
-jacobian_mapping_function <- function(rho) {
+jacobian_additive_logistic <- function(rho) {
   denominator <- (sum(exp(rho)) + 1)^2
   size_var <- length(rho)
   jacobian_matrix <- matrix(0, nrow = size_var, ncol = size_var)
@@ -312,24 +321,24 @@ gradient_loglik_constrained <- function(
   mean_signature_matrix,
   Sigma
 ) {
-  p <- mapping_function(rho)
+  p <- additive_logistic(rho)
   gradient_constrained <- gradient_loglik_unconstrained(
     p,
     y,
     mean_signature_matrix,
     Sigma
   ) %*%
-    jacobian_mapping_function(rho)
+    jacobian_additive_logistic(rho)
   return(gradient_constrained)
 }
 
 
 # Second-order derivatives ------------------------------------------------
 
-#' Second derivatives of \eqn{\boldsymbol{\psi}}
+#' Second derivatives (Hessian tensor) of the additive logistic map
 #'
 #' @description
-#' Tensor of mixed partials
+#' Tensor of mixed partials of [additive_logistic()],
 #' \eqn{\partial^{2}p_i/(\partial\rho_k\partial\rho_j)}, stored as an
 #' array of size \eqn{(J-1)\times(J-1)\times J}.
 #'
@@ -338,7 +347,7 @@ gradient_loglik_constrained <- function(
 #' @return Numeric array used in the constrained Hessian chain rule.
 #'
 #' @keywords internal
-hessian_mapping_function <- function(rho) {
+hessian_additive_logistic <- function(rho) {
   A <- sum(exp(rho)) + 1
   denominator <- A^3
   size_var <- length(rho)
@@ -499,14 +508,14 @@ hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
 #'
 #' @keywords internal
 hessian_loglik_constrained <- function(rho, y, mean_signature_matrix, Sigma) {
-  p <- mapping_function(rho)
+  p <- additive_logistic(rho)
   # t(J_psi) mean_signature_matrix H_log mean_signature_matrix J_psi + sum over number of ratios of grad_log mean_signature_matrix H_psi
-  hessian_constrained <- t(jacobian_mapping_function(rho)) %*%
+  hessian_constrained <- t(jacobian_additive_logistic(rho)) %*%
     hessian_loglik_unconstrained(p, y, mean_signature_matrix, Sigma) %*%
-    jacobian_mapping_function(rho) +
+    jacobian_additive_logistic(rho) +
     tensor::tensor(
       A = gradient_loglik_unconstrained(p, y, mean_signature_matrix, Sigma),
-      B = hessian_mapping_function(rho),
+      B = hessian_additive_logistic(rho),
       alongA = 1,
       alongB = 3
     ) |>
@@ -552,7 +561,7 @@ hessian_loglik_constrained <- function(rho, y, mean_signature_matrix, Sigma) {
 #'
 #' @inherit compute_benchmark_metrics return
 #' @export
-#' @seealso [deconvolute_ratios()], [mapping_function()]
+#' @seealso [deconvolute_ratios()], [additive_logistic()]
 deconvolute_ratios_Marquardt_Levenberg <- function(
   y,
   mean_signature_matrix,
@@ -562,7 +571,7 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
   itmax = 200
 ) {
   initial_p <- rep(1 / ncol(mean_signature_matrix), ncol(mean_signature_matrix)) # consider by hypothesis equi-balanced proportions between cell populations
-  initial_rho <- inverse_mapping_function(initial_p)
+  initial_rho <- additive_log_ratio(initial_p)
   # set minimize to false; partialH=2
   invisible(utils::capture.output(
     estimated_rho <- marqLevAlg::marqLevAlg(
@@ -604,7 +613,7 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
       unlist() |>
       as.numeric() # retrieve last estimate before failure
   }
-  estimated_p <- mapping_function(estimated_rho) |>
+  estimated_p <- additive_logistic(estimated_rho) |>
     enforce_identifiability() |> # ensure non-negativity constraint and remove numerical underflow
     stats::setNames(colnames(mean_signature_matrix))
 
@@ -631,7 +640,7 @@ deconvolute_ratios_simulated_annealing <- function(
   itmax = 200
 ) {
   initial_p <- rep(1 / ncol(mean_signature_matrix), ncol(mean_signature_matrix)) # consider by hypothesis equi-balanced proportions between cell populations
-  initial_rho <- inverse_mapping_function(initial_p)
+  initial_rho <- additive_log_ratio(initial_p)
   # gr is not used in the simulated annealing approach
   # In SANNN, maxit is the total number of point evaluations, and not the maximum number of iterations
   estimated_rho <- stats::optim(
@@ -643,7 +652,7 @@ deconvolute_ratios_simulated_annealing <- function(
     control = list(fnscale = -1, maxit = itmax),
     method = "SANN"
   )$par
-  estimated_p <- mapping_function(estimated_rho) |>
+  estimated_p <- additive_logistic(estimated_rho) |>
     stats::setNames(colnames(mean_signature_matrix)) |>
     enforce_identifiability()
 
@@ -707,7 +716,7 @@ deconvolute_ratios_Newton_Raphson <- function(
   itmax = 200
 ) {
   initial_p <- rep(1 / ncol(mean_signature_matrix), ncol(mean_signature_matrix)) # consider by hypothesis equi-balanced proportions between cell populations
-  initial_rho <- inverse_mapping_function(initial_p)
+  initial_rho <- additive_log_ratio(initial_p)
 
   # with nlmimb package method (outdated, but works well for our scenario)
   estimated_rho <- stats::nlminb(
@@ -734,7 +743,7 @@ deconvolute_ratios_Newton_Raphson <- function(
     )
   )$par
 
-  estimated_p <- mapping_function(estimated_rho) |>
+  estimated_p <- additive_logistic(estimated_rho) |>
     stats::setNames(colnames(mean_signature_matrix)) |>
     enforce_identifiability()
 
@@ -761,7 +770,7 @@ deconvolute_ratios_gradient_descent <- function(
 ) {
   initial_p <- rep(1 / ncol(mean_signature_matrix), ncol(mean_signature_matrix)) # consider by hypothesis equi-balanced proportions between cell populations
 
-  initial_rho <- inverse_mapping_function(initial_p)
+  initial_rho <- additive_log_ratio(initial_p)
 
   estimated_rho <- stats::optim(
     par = initial_rho,
@@ -778,7 +787,7 @@ deconvolute_ratios_gradient_descent <- function(
     ),
     method = "BFGS"
   )$par
-  estimated_p <- mapping_function(estimated_rho) |>
+  estimated_p <- additive_logistic(estimated_rho) |>
     stats::setNames(colnames(mean_signature_matrix)) |>
     enforce_identifiability()
 

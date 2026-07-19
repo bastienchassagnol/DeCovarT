@@ -9,8 +9,3 @@ knitr:
     collapse: true
     comment: '#>'
 ---
-
-```{r}
-#| label: setup
-library(DeCovarT)
-```

@@ -107,7 +107,7 @@ test_that("Benchmark standard deconvolution algorithms against DeCovarT", {
     "nnls" = list(FUN = deconvolute_ratios_nnls),
     "lsei" = list(FUN = deconvolute_ratios_deconRNASeq),
     "LBFGS" = list(
-      FUN = deconvolute_ratios_LBFGS,
+      FUN = deconvolute_ratios_L_BFGS_B,
       additional_parameters = list(epsilon = 10^-3, itmax = 200)
     ),
     "gradient" = list(

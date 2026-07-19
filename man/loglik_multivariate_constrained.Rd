@@ -23,7 +23,7 @@ loglik_multivariate_constrained(rho, y, mean_signature_matrix, Sigma)
 Scalar log-likelihood on the constrained manifold.
 }
 \description{
-Composes \code{\link[=loglik_multivariate]{loglik_multivariate()}} with \code{\link[=mapping_function]{mapping_function()}}, so that
+Composes \code{\link[=loglik_multivariate]{loglik_multivariate()}} with \code{\link[=additive_logistic]{additive_logistic()}}, so that
 optimisation may be performed over
 \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
 }

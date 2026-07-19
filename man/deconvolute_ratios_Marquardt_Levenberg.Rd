@@ -150,5 +150,5 @@ on \eqn{\boldsymbol{\rho}} (\code{\link[stats:optim]{stats::optim()}} \code{meth
 \insertAllCited{}
 }
 \seealso{
-\code{\link[=deconvolute_ratios]{deconvolute_ratios()}}, \code{\link[=mapping_function]{mapping_function()}}
+\code{\link[=deconvolute_ratios]{deconvolute_ratios()}}, \code{\link[=additive_logistic]{additive_logistic()}}
 }

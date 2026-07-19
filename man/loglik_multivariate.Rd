@@ -49,6 +49,6 @@ Up to an additive constant independent of \eqn{\boldsymbol{p}},
 Argument \code{mean_signature_matrix} stores \eqn{\boldsymbol{\mu}}.
 }
 \seealso{
-\code{\link[=gradient_loglik_unconstrained]{gradient_loglik_unconstrained()}}, \code{\link[=mapping_function]{mapping_function()}}
+\code{\link[=gradient_loglik_unconstrained]{gradient_loglik_unconstrained()}}, \code{\link[=additive_logistic]{additive_logistic()}}
 }
 \keyword{internal}
