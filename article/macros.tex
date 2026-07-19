@@ -1,0 +1,41 @@
+%%%% maths operators
+% Sets
+\newcommand \NN {\mathbb{N}}
+\newcommand \ZZ {\mathbb{Z}}
+\newcommand \QQ {\mathbb{Q}}
+\newcommand \RR {\mathbb{R}}
+
+% Indicator
+\newcommand \indic {\mathbbm{1}}
+
+% Probability Operators
+\DeclareMathOperator*{\prob}{\mathbb{P}}
+\DeclareMathOperator*{\esp}{\mathbb{E}}
+\DeclareMathOperator*{\var}{\mathbb{V}\text{ar}}
+\DeclareMathOperator*{\cov}{\mathbb{C}\text{ov}}
+\newcommand \PP [1]{\prob\left({#1}\right)}
+\newcommand \EE [1]{\esp\left[{#1}\right]}
+\newcommand \VV [1]{\var\left[{#1}\right]}
+\newcommand \CC [1]{\cov\left[{#1}\right]}
+% Law
+\newcommand \unif [1] {\mathcal{U}\left({#1}\right)}
+\newcommand \normal [2] {\mathcal{N}\left({#1},{#2}\right)}
+
+% Operators
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+% Matrix
+\DeclareMathOperator*{\diag}{Diag}
+\DeclareMathOperator*{\rank}{Rank}
+\DeclareMathOperator*{\DET}{Det}
+\DeclareMathOperator*{\Tr}{Tr}
+\DeclareMathOperator*{\ES}{ES} 
+\DeclareMathOperator*{\COV}{Cov}
+\DeclareMathOperator*{\Spectrum}{Spectrum}
+
+% To name R packages
+\newcommand{\CRANpkg}[1]{\href{https://CRAN.R-project.org/package=#1}{\textbf{#1}}}
+\newcommand{\strong}[1]{\texorpdfstring%
+{{\normalfont\fontseries{b}\selectfont #1}}%
+{#1}}
+\newcommand{\code}[1]{\verb|#1|}
