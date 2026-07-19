@@ -108,6 +108,47 @@ jacobian_mapping_function <- function(theta) {
   return(jacobian_matrix / denominator)
 }
 
+#' Gradient of the unconstrained multivariate Gaussian log-likelihood
+#'
+#' @description
+#' Analytic gradient of `loglik_multivariate()` with respect to the cellular
+#' proportions \eqn{\boldsymbol{p}}.
+#'
+#' @details
+#' Unit tests compare this analytic gradient to a numerical reference obtained
+#' with [numDeriv::grad()] applied to `loglik_multivariate()`. For that check,
+#' the Richardson method is preferred; the main tuning knobs are passed through
+#' `method.args`:
+#' \describe{
+#'   \item{\code{eps}}{Initial finite-difference step size (default
+#'   \code{1e-4}). Smaller values reduce truncation error but amplify
+#'   floating-point noise; increase if the likelihood surface is poorly scaled.}
+#'   \item{\code{r}}{Number of Richardson extrapolation iterations (default
+#'   \code{4}). Raising \code{r} (e.g. to \code{6} in the package tests)
+#'   usually improves accuracy more safely than shrinking \code{eps} alone,
+#'   at the cost of more likelihood evaluations.}
+#'   \item{\code{d}, \code{v}}{Relative step factor and geometric reduction of
+#'   the step between extrapolations (default \code{v = 2}). Rarely need
+#'   changing for smooth objectives.}
+#'   \item{\code{zero.tol}, \code{show.details}}{Tolerance near zero and optional
+#'   verbose diagnostics; see \code{?numDeriv::grad}.}
+#' }
+#' Alternative \code{method} values are \code{"simple"} (one-sided differences,
+#' cheaper but less accurate) and \code{"complex"} (complex-step derivative,
+#' very accurate when the objective supports complex arithmetic).
+#'
+#' @param p Numeric vector of cellular proportions.
+#' @param y Numeric vector (or one-column matrix) of bulk expression.
+#' @param mean_signature_matrix Numeric matrix of purified mean expression
+#'   profiles (genes \eqn{\times} cell types).
+#' @param Sigma Three-dimensional array of cell-type-specific covariance
+#'   matrices.
+#'
+#' @return Numeric vector of partial derivatives
+#'   \eqn{\partial \ell / \partial p_j}.
+#'
+#' @keywords internal
+#' @seealso [numDeriv::grad()]
 gradient_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
   # compute general covariance and its reverse
   global_cov_matrix <- .compute_global_variance(p, Sigma)

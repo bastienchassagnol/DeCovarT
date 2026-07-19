@@ -1,5 +1,4 @@
 test_that("Check Maximum a Posteriori computation", {
-  set.seed(3)
   # Define simulation parameters --------------------------------------------
   mean_signature_matrix <- matrix(
     c(20, 40, 40, 20),
@@ -20,11 +19,14 @@ test_that("Check Maximum a Posteriori computation", {
   )
 
   # Simulate accordingly ----------------------------------------------------
-  simulated_data <- simulate_bulk_mixture(
-    signature_matrix = mean_signature_matrix,
-    Sigma,
-    p = c(0.5, 0.5),
-    n = 1
+  simulated_data <- withr::with_seed(
+    3L,
+    simulate_bulk_mixture(
+      signature_matrix = mean_signature_matrix,
+      Sigma,
+      p = c(0.5, 0.5),
+      n = 1
+    )
   )
   y_simu <- simulated_data$Y
   X_simu <- simulated_data$mean_signature_matrix

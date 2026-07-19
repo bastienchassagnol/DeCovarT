@@ -3,6 +3,7 @@
 ##################################################################
 
 test_that("small simulation testing", {
+
   simulation_two_genes <- withr::with_seed(
     seed = 3L,
     simulate_bulk_mixture(

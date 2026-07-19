@@ -26,8 +26,7 @@ run_default <- function(...) {
 # ---- output structure (power-law graph) ----------------------------------
 
 test_that("output has the expected top-level structure", {
-  set.seed(1)
-  res <- run_default()
+  res <- withr::with_seed(1L, run_default())
 
   expect_type(res, "list")
   expect_named(
@@ -43,9 +42,8 @@ test_that("output has the expected top-level structure", {
 })
 
 test_that("mean profiles have correct dimensions and names", {
-  set.seed(2)
   n <- 5L
-  res <- run_default(n_expressed_genes = n)
+  res <- withr::with_seed(2L, run_default(n_expressed_genes = n))
   p <- 2L * n
   gene_names <- paste0("gene_", seq_len(p))
 
@@ -69,9 +67,8 @@ test_that("mean profiles have correct dimensions and names", {
 })
 
 test_that("covariance arrays have correct dimensions and names", {
-  set.seed(3)
   n <- 5L
-  res <- run_default(n_expressed_genes = n)
+  res <- withr::with_seed(3L, run_default(n_expressed_genes = n))
   p <- 2L * n
   gene_names <- paste0("gene_", seq_len(p))
 
@@ -95,9 +92,8 @@ test_that("covariance arrays have correct dimensions and names", {
 })
 
 test_that("adjacency and precision matrices have correct dimensions", {
-  set.seed(4)
   n <- 5L
-  res <- run_default(n_expressed_genes = n)
+  res <- withr::with_seed(4L, run_default(n_expressed_genes = n))
   p <- 2L * n
   gene_names <- paste0("gene_", seq_len(p))
 
@@ -112,8 +108,7 @@ test_that("adjacency and precision matrices have correct dimensions", {
 
 
 test_that("normalised precision is symmetric positive-definite", {
-  set.seed(9)
-  res <- run_default()
+  res <- withr::with_seed(9L, run_default())
   prec <- res$graph_structure$normalised_precision
   expect_equal(prec, t(prec))
   eigenvalues <- eigen(prec, symmetric = TRUE, only.values = TRUE)$values
@@ -121,8 +116,7 @@ test_that("normalised precision is symmetric positive-definite", {
 })
 
 test_that("all child covariance matrices are symmetric positive-definite", {
-  set.seed(11)
-  res <- run_default()
+  res <- withr::with_seed(11L, run_default())
   ccov <- res$child_parameters$covariance_matrices
   for (k in seq_len(dim(ccov)[3])) {
     mat <- ccov[,, k]
@@ -131,4 +125,3 @@ test_that("all child covariance matrices are symmetric positive-definite", {
     expect_true(all(ev > 0))
   }
 })
-

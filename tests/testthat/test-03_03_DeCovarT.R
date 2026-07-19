@@ -1,32 +1,45 @@
 test_that("Use numDeriv to check numerically derivative values", {
-  set.seed(3)
-  mean_signature_matrix <- matrix(c(20, 40, 40, 20), nrow = 2)
-  p <- c(0.5, 0.5)
-  num_genes <- nrow(mean_signature_matrix)
-  num_celltypes <- ncol(mean_signature_matrix)
-  y <- mean_signature_matrix %*% p + rnorm(nrow(mean_signature_matrix)) # global gene expression, as linear combination
-  Sigma <- array(
-    c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2),
-    dim = c(num_genes, num_genes, num_celltypes)
-  )
+  ## numDeriv::grad core options used below (method = "Richardson"):
+  ## - eps: initial finite-difference step size (here 1e-4).
+  ## - r: number of Richardson extrapolation iterations (here 6; default 4).
+  ##   Larger r improves accuracy at the cost of more function evaluations
+  ##   zero.tol, show.details. See ?numDeriv::grad.
+  setup <- withr::with_seed(3L, {
+    mean_signature_matrix <- matrix(c(20, 40, 40, 20), nrow = 2)
+    p <- c(0.5, 0.5)
+    num_genes <- nrow(mean_signature_matrix)
+    num_celltypes <- ncol(mean_signature_matrix)
+    y <- mean_signature_matrix %*% p + rnorm(nrow(mean_signature_matrix))
+    Sigma <- array(
+      c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2),
+      dim = c(num_genes, num_genes, num_celltypes)
+    )
+    list(
+      mean_signature_matrix = mean_signature_matrix,
+      p = p,
+      y = y,
+      Sigma = Sigma
+    )
+  })
+
   ##----------------------------------------------------------------
   ##                  test gradient log-likelihood                 -
   ##----------------------------------------------------------------
   jacobian_mapping_numerical <- numDeriv::grad(
     loglik_multivariate,
-    p,
+    setup$p,
     method = "Richardson",
     method.args = list(eps = 1e-4, r = 6),
-    y = y,
-    mean_signature_matrix = mean_signature_matrix,
-    Sigma = Sigma
-  ) # additional arguments
+    y = setup$y,
+    mean_signature_matrix = setup$mean_signature_matrix,
+    Sigma = setup$Sigma
+  )
 
   jacobian_mapping_theoretical <- gradient_loglik_unconstrained(
-    p,
-    y,
-    mean_signature_matrix,
-    Sigma
+    setup$p,
+    setup$y,
+    setup$mean_signature_matrix,
+    setup$Sigma
   )
   testthat::expect_equal(
     jacobian_mapping_numerical,
@@ -36,7 +49,6 @@ test_that("Use numDeriv to check numerically derivative values", {
 
 
 test_that("Vefiy that the DeCovarT algorithm is working, using a toy example", {
-  set.seed(3)
   # Define simulation parameters --------------------------------------------
   mean_signature_matrix <- matrix(
     c(20, 40, 40, 20),
@@ -56,12 +68,16 @@ test_that("Vefiy that the DeCovarT algorithm is working, using a toy example", {
     )
   )
 
-  # Simulate the bulk mixture as a convolution of bivariate Gaussian distributions ----------------------------------------------------
-  simulated_data <- simulate_bulk_mixture(
-    signature_matrix = mean_signature_matrix,
-    Sigma,
-    p = c(0.5, 0.5),
-    n = 2000
+  # Simulate the bulk mixture as a convolution of bivariate Gaussian
+  # distributions ----------------------------------------------------
+  simulated_data <- withr::with_seed(
+    3L,
+    simulate_bulk_mixture(
+      signature_matrix = mean_signature_matrix,
+      Sigma,
+      p = c(0.5, 0.5),
+      n = 2000
+    )
   )
   y_simu <- simulated_data$Y
   X_simu <- simulated_data$mean_signature_matrix
@@ -107,7 +123,7 @@ test_that("Benchmark standard deconvolution algorithms against DeCovarT", {
 
   bivariate_scenario <- withr::with_seed(
     seed = 3L,
-    benchmark_deconvolution_algorithms_two_genes(
+    benchmark_bivariate_gaussian_convolutions(
       proportions = list("balanced" = c(0.50, 0.50)),
       n = 2,
       corr_sequence = c(-0.75, 0.75),

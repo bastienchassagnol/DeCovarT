@@ -73,7 +73,6 @@ simulate_bulk_mixture <- function(
     mean_signature_matrix[, cell_name, ] <- t(expression_per_celltype)
   }
 
-
   Y <- tensor::tensor(p, B = mean_signature_matrix, alongA = 1, alongB = 2) # tensor product does directly the computation mean_signature_matrix %*% p
   return(list(mean_signature_matrix = mean_signature_matrix, Y = Y))
 }
@@ -136,7 +135,7 @@ simulate_bulk_mixture <- function(
 #' @seealso [deconvolute_ratios()]
 #' @export
 
-benchmark_deconvolution_algorithms_two_genes <- function(
+benchmark_bivariate_gaussian_convolutions <- function(
   proportions = list(
     "balanced" = c(0.5, 0.5),
     "small unbalanced" = c(0.6, 0.4),
@@ -161,13 +160,16 @@ benchmark_deconvolution_algorithms_two_genes <- function(
   ##################################################################
   num_celltypes <- ncol(signature_matrices[[1]])
   num_genes <- nrow(signature_matrices[[1]])
-  signature_matrices <- purrr::map(signature_matrices, function(.mean_signature_matrix) {
-    dimnames(.mean_signature_matrix) <- list(
-      paste0("gene_", 1:num_genes),
-      paste0("celltype_", 1:num_celltypes)
-    )
-    return(.mean_signature_matrix)
-  })
+  signature_matrices <- purrr::map(
+    signature_matrices,
+    function(.mean_signature_matrix) {
+      dimnames(.mean_signature_matrix) <- list(
+        paste0("gene_", 1:num_genes),
+        paste0("celltype_", 1:num_celltypes)
+      )
+      return(.mean_signature_matrix)
+    }
+  )
   id_scenario <- 1
   id_tibble <- tibble::tibble() # initiate ID scenario
   simulations <- purrr::imap_dfr(

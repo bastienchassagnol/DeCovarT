@@ -13,6 +13,7 @@ Suggests:
     flextable,
     kableExtra,
     knitr,
+    numDeriv,
     pkgdown,
     quarto,
     readr,
