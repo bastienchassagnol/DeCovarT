@@ -25,3 +25,15 @@
 ^vignettes/\.quarto$
 ^vignettes/*_files$
 ^\.pre-commit-config\.yaml$
+^README\.qmd$
+^air\.toml$
+^article$
+^codecov\.yml$
+^output$
+^scripts$
+^slides$
+^\.cursorrules$
+^\.cursorignore$
+^\.vscode$
+^\.quarto$
+^\.cursor$

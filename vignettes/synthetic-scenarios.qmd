@@ -1,7 +1,7 @@
 ---
-title: "Generate semi-synthetic pseudo bulks for bencharmling purposes"
+title: "Simulating semi-synthetic pseudo-bulk mixtures for benchmarking"
 vignette: >
-  %\VignetteIndexEntry{Generate semi-synthetic pseudo bulks for bencharmling purposes}
+  %\VignetteIndexEntry{Simulating semi-synthetic pseudo-bulk mixtures for benchmarking}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 knitr:

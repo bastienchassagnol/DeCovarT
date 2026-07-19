@@ -1,11 +1,10 @@
-test_that("Check Maximum a Posteriori computation", {
+test_that("MAP purified profiles reconstruct the observed bulk signal", {
   # Define simulation parameters --------------------------------------------
   mean_signature_matrix <- matrix(
     c(20, 40, 40, 20),
     nrow = 2,
     dimnames = list(paste0("gene_", 1:2), paste0("celltype_", 1:2))
   )
-  p <- c(0.5, 0.5)
   num_genes <- nrow(mean_signature_matrix)
   num_celltypes <- ncol(mean_signature_matrix)
   Sigma <- array(
@@ -18,7 +17,7 @@ test_that("Check Maximum a Posteriori computation", {
     )
   )
 
-  # Simulate accordingly ----------------------------------------------------
+  # Simulate a single bulk sample -------------------------------------------
   simulated_data <- withr::with_seed(
     3L,
     simulate_bulk_mixture(
@@ -29,18 +28,21 @@ test_that("Check Maximum a Posteriori computation", {
     )
   )
   y_simu <- simulated_data$Y
-  X_simu <- simulated_data$mean_signature_matrix
-  rm(simulated_data)
 
-  # Compute MAP gaussian ----------------------------------------------------
-  MAP_two_ratios <- .map_gaussian_convolution(
+  # Compute the cell-type-specific MAP profiles -----------------------------
+  map_profiles <- .map_gaussian_convolution(
     y = y_simu,
     mean_signature_matrix,
     Sigma
   )
 
+  testthat::expect_length(map_profiles, num_celltypes)
+
+  # The MAP purified profiles of the Gaussian convolution partition the bulk
+  # signal exactly: summing them across cell types recovers y.
   testthat::expect_equal(
-    jacobian_mapping_numerical,
-    jacobian_mapping_theoretical
+    Reduce(`+`, map_profiles),
+    matrix(as.numeric(y_simu), ncol = 1),
+    ignore_attr = TRUE
   )
 })

@@ -2,6 +2,10 @@
 title: "Numerically stable softmax and additive log-ratio derivatives"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteIndexEntry{Numerically stable softmax and additive log-ratio derivatives}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
 knitr:
   opts_chunk:
     collapse: true

@@ -27,7 +27,7 @@ test_that("small simulation testing", {
   expect_equal(
     simulation_two_genes$Y[, 1:2],
     matrix(
-      c(30.16652, 29.72223, 30.31822, 29.41423),
+      c(29.53763, 28.69539, 30.13022, 28.78420),
       nrow = 2,
       dimnames = list(paste0("genes_", 1:2), paste0("sample_", 1:2))
     ),

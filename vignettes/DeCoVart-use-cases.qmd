@@ -1,9 +1,9 @@
 ---
-title: "Data importation in PLNmodels"
-author: "Bastien chassagnol"
+title: "Deconvolution use cases with DeCovarT"
+author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
 vignette: >
-  %\VignetteIndexEntry{Generate semi-synthetic pseudo bulks for bencharmling purposes}
+  %\VignetteIndexEntry{Deconvolution use cases with DeCovarT}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 knitr:

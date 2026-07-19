@@ -15,6 +15,7 @@
 #'
 #' @return A `tibble` with mse/rmse/mae, optionally
 #'   \eqn{R^{2}} / adjusted \eqn{R^{2}}, and Pearson correlation.
+#' @importFrom rlang .data
 #' @export
 compute_benchmark_metrics <- function(y, mean_signature_matrix, estimated_p, true_ratios = NULL) {
   n <- nrow(mean_signature_matrix)
@@ -23,17 +24,18 @@ compute_benchmark_metrics <- function(y, mean_signature_matrix, estimated_p, tru
   df_tot <- n - 1 # no intercept for the moment, in the model (so n-1, or n?)
   if (!is.null(true_ratios)) {
     # when the true parameters are known
+    model_coef_determination <- max(
+      0,
+      1 - Metrics::rse(true_ratios, estimated_p)
+    )
     scores <- tibble::tibble(
       model_mse = Metrics::mse(true_ratios, estimated_p),
       model_rmse = Metrics::rmse(true_ratios, estimated_p),
       model_mae = Metrics::mae(true_ratios, estimated_p),
-      model_coef_determination = max(
-        0,
-        1 - Metrics::rse(true_ratios, estimated_p)
-      ),
+      model_coef_determination = model_coef_determination,
       model_coef_determination_adjusted = max(
         0,
-        1 - (1 - .data$model_coef_determination) * df_tot / df_res
+        1 - (1 - model_coef_determination) * df_tot / df_res
       ),
       model_cor = suppressWarnings(stats::cor(
         true_ratios,
@@ -89,6 +91,7 @@ compute_benchmark_metrics <- function(y, mean_signature_matrix, estimated_p, tru
 #'
 #' @return A `tibble` of estimated \eqn{\hat{\boldsymbol{p}}} and metrics,
 #'   after [enforce_identifiability()].
+#' @importFrom rlang .data
 #' @export
 #' @seealso [deconvolute_ratios_Marquardt_Levenberg()]
 deconvolute_ratios <- function(

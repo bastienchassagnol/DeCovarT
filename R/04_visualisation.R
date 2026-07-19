@@ -9,6 +9,7 @@
 #' @param n_break Number of colour breaks.
 #' @param uni_scale If `FALSE`, each panel uses its own colour scale.
 #'
+#' @importFrom rlang .data
 #' @export
 plot_correlation_Heatmap <- function(
   distribution_metrics,
@@ -36,17 +37,22 @@ plot_correlation_Heatmap <- function(
       score_variable
     ))) |>
     dplyr::mutate(
-      algorithm = factor(.data$algorithm, levels = unique(.data$algorithm))
+      algorithm = factor(
+        .data[["algorithm"]],
+        levels = unique(.data[["algorithm"]])
+      )
     )
 
   # design the scaling colour
   mean_distribution_metrics <- distribution_metrics |>
     dplyr::group_by(
-      .data$correlation_celltype1,
-      .data$correlation_celltype2,
-      .data$algorithm
+      .data[["correlation_celltype1"]],
+      .data[["correlation_celltype2"]],
+      .data[["algorithm"]]
     ) |>
-    dplyr::summarise(mean_metric = mean(.data[[score_variable]], na.rm = TRUE)) # we remove missing cases
+    dplyr::summarise(
+      mean_metric = mean(.data[[score_variable]], na.rm = TRUE)
+    )
 
   min_metric <- min(
     mean_distribution_metrics |> dplyr::pull("mean_metric"),
@@ -105,8 +111,8 @@ plot_correlation_Heatmap <- function(
         column_title_gp = grid::gpar(fontsize = 10),
         column_title = "Corr cell type 2",
         column_labels = colnames(cor_matrix_per_algo),
-        width = unit(6, "cm"),
-        height = unit(6, "cm")
+        width = grid::unit(6, "cm"),
+        height = grid::unit(6, "cm")
       )
       return(complex_heatmap_per_algo)
     }
