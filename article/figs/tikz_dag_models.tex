@@ -1,0 +1,118 @@
+% TikZ–bayesnet DAGs for DeCovarT (input from main.tex)
+% Panel (a): linear gold-standard; (b) unconstrained; (c) constrained
+% Use explicit \draw (not bayesnet \edge) to avoid nullfont `;' warnings.
+\tikzset{
+  param/.style={
+      rectangle, draw=black, thick, minimum size=18pt, inner sep=2pt,
+      font=\small
+    },
+  detcirc/.style={
+      circle, draw=black, dashed, thick, fill=white, minimum size=22pt,
+      inner sep=1pt, font=\small
+    },
+  obsdashed/.style={
+      circle, draw=black, dashed, thick, fill=gray!30, minimum size=22pt,
+      inner sep=1pt, font=\small
+    },
+  dagplate/.style={
+      draw, dashed, thick, rounded corners=2pt, inner sep=8pt
+    },
+  eqtext/.style={font=\scriptsize, text=black, align=center}
+}
+
+% -------------------- (a) Linear model --------------------
+\begin{tikzpicture}[x=1.2cm, y=1.15cm, >=stealth]
+  \node[param] (p) at (0, 1.2) {$\boldsymbol{p}_{i}$};
+  \node[param] (sig) at (0, 0) {$\sigma_{i}$};
+  % Wider gutters: left (params → gene plate) and right (gene plate → $x_{gj}$)
+  \node[obs] (y) at (3.0, 0.6) {$\boldsymbol{y}_{gi}$};
+  \node[param] (x) at (6.2, 0.6) {$x_{gj}$};
+
+  \draw[->] (p) -- (y);
+  \draw[->] (sig) -- (y);
+  \draw[->] (x) -- (y);
+
+  \node[above=0.35cm of y, eqtext]
+  (ylik) {%
+    $\boldsymbol{y}_{gi\,|\,\cdot}
+    \sim\mathcal{N}\!\bigl(\sum_{j}x_{gj}p_{ji},\,\sigma_{i}^{2}\bigr)$%
+  };
+
+  \plate[dagplate, inner sep=12pt]{plateG}{(y)(ylik)}{$g\in\{1,\ldots,G\}$};
+  \plate[dagplate, inner sep=16pt, inner xsep=22pt]
+    {plateN}{(p)(sig)(plateG)}{$i\in\{1,\ldots,N\}$};
+
+  \node[font=\footnotesize\bfseries, text=black, below=0.75cm of plateN.south]
+  {\textbf{a} Standard linear deconvolution (gold-standard template).};
+\end{tikzpicture}
+
+\vspace{1.6em}
+
+% -------------------- (b) Unconstrained DeCovarT --------------------
+\begin{tikzpicture}[x=1.1cm, y=1.05cm, >=stealth, font=\small]
+  \node[detcirc] (p) at (0, 0.9) {$\boldsymbol{p}_{i}$};
+  \node[obsdashed] (y) at (0, -0.6) {$\boldsymbol{y}_{i}$};
+  \draw[->, dashed] (p) -- (y);
+
+  \node[latent] (xj) at (4.2, 0.9) {$\boldsymbol{x}_{j}$};
+  \node[param] (mu) at (3.3, 2.3) {$\boldsymbol{\mu}_{j}$};
+  \node[param] (Sj) at (5.1, 2.3) {$\boldsymbol{\Sigma}_{j}$};
+  \draw[->] (mu) -- (xj);
+  \draw[->] (Sj) -- (xj);
+  \draw[->, dashed] (xj) -- (y);
+
+  \node[above=0.25cm of xj, eqtext]
+  {$\boldsymbol{x}_{j}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{j},
+    \boldsymbol{\Sigma}_{j})$};
+
+  \node[left=0.12cm of y, eqtext, align=right]
+  {%
+    $\boldsymbol{y}_{i\,|\,\cdot}\sim\mathcal{N}_{G}\!\bigl(
+    \boldsymbol{\mu}\boldsymbol{p}_{i},
+    \sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}\bigr)$%
+  };
+
+  \node[eqtext] at ($(xj)!0.55!(y)+(0.25,-0.3)$)
+  {$\boldsymbol{y}_{i}=\boldsymbol{\mu}\boldsymbol{p}_{i}$};
+
+  \plate[dagplate]{plateI}{(p)(y)}{$i\in\{1,\ldots,N\}$};
+  \plate[dagplate]{plateJ}{(xj)(mu)(Sj)}{$j\in\{1,\ldots,J\}$};
+
+  \node[font=\footnotesize\bfseries, text=black,
+    below=0.75cm of plateI.south west, anchor=north west]
+  {\textbf{b} Unconstrained DeCovarT generative model.};
+\end{tikzpicture}
+
+\vspace{1.6em}
+
+% -------------------- (c) Constrained DeCovarT --------------------
+\begin{tikzpicture}[x=1.1cm, y=1.0cm, >=stealth, font=\small]
+  \node[latent] (th) at (0, 2.1) {$\boldsymbol{\theta}_{i}$};
+  \node[detcirc] (p) at (0, 0.9) {$\boldsymbol{p}_{i}$};
+  \node[obsdashed] (y) at (0, -0.55) {$\boldsymbol{y}_{i}$};
+  \draw[->] (th) -- (p);
+  \draw[->, dashed] (p) -- (y);
+
+  \node[latent] (xj) at (4.2, 0.9) {$\boldsymbol{x}_{j}$};
+  \node[param] (mu) at (3.3, 2.3) {$\boldsymbol{\mu}_{j}$};
+  \node[param] (Sj) at (5.1, 2.3) {$\boldsymbol{\Sigma}_{j}$};
+  \draw[->] (mu) -- (xj);
+  \draw[->] (Sj) -- (xj);
+  \draw[->, dashed] (xj) -- (y);
+
+  \node[left=0.12cm of y, eqtext, align=right]
+  {%
+    $\boldsymbol{y}_{i\,|\,\cdot}\sim\mathcal{N}_{G}\!\bigl(
+    \boldsymbol{\mu}\boldsymbol{p}_{i},
+    \sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}\bigr)$%
+  };
+
+  \plate[dagplate]{plateIc}{(th)(p)(y)}{$i\in\{1,\ldots,N\}$};
+  \plate[dagplate]{plateJc}{(xj)(mu)(Sj)}{$j\in\{1,\ldots,J\}$};
+
+  \node[font=\footnotesize\bfseries, text=black,
+    below=0.75cm of plateIc.south west, anchor=north west]
+  {\textbf{c} Constrained DeCovarT (regularised soft-max on the simplex).};
+\end{tikzpicture}
+
+\vspace{1.2em}

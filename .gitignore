@@ -6,6 +6,41 @@
 build*
 simulations/*
 
+# LaTeX / pdflatex / latexmk intermediates (keep sources and PDFs)
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex
+*.synctex(busy)
+*.nav
+*.snm
+*.vrb
+*.bcf
+*.run.xml
+*.idx
+*.ind
+*.ilg
+*.acn
+*.acr
+*.alg
+*.glg
+*.glo
+*.gls
+*.ist
+*.xdy
+*.spl
+*.dvi
+*.ps
+*-blx.bib
+_minted*/
+
 # specific R files
 .Rhistory
 inst/doc

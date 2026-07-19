@@ -1,11 +1,27 @@
-
+---
+format:
+  gfm:
+    wrap: preserve
+execute:
+  echo: false
+  warning: false
+---
 
 <!-- README.md is generated from README.qmd. Please edit that file. -->
+
+```{r}
+#| include: false
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
 
 # DeCovarT <a href="https://bastienchassagnol.github.io/DeCovarT/"><img src="man/figures/logo.svg" alt="DeCovarT logo" align="right" height="139"/></a>
 
 <!-- badges: start -->
-
 [![R-CMD-check](https://github.com/bastienchassagnol/DeCovarT/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bastienchassagnol/DeCovarT/actions/workflows/R-CMD-check.yaml)
 [![Codecov test coverage](https://codecov.io/gh/bastienchassagnol/DeCovarT/graph/badge.svg)](https://app.codecov.io/gh/bastienchassagnol/DeCovarT)
 <!-- badges: end -->
@@ -35,49 +51,15 @@ $$
 \Bigr).
 $$
 
-``` mermaid
-
-%%{init: {
-  "theme": "base",
-  "themeVariables": {
-    "primaryColor": "#f5f7fa",
-    "primaryBorderColor": "#334155",
-    "primaryTextColor": "#0f172a",
-    "lineColor": "#475569",
-    "fontSize": "14px"
-  },
-  "flowchart": { "curve": "basis", "htmlLabels": true }
-}}%%
-flowchart TB
-  subgraph plateJ["j ∈ {1,…,J}"]
-    direction TB
-    mu["$$\boldsymbol{\mu}_j$$"]
-    Sj["$$\boldsymbol{\Sigma}_j$$"]
-    xj(("$$\boldsymbol{x}_j$$"))
-    mu --> xj
-    Sj --> xj
-  end
-
-  subgraph plateI["i ∈ {1,…,N}"]
-    direction TB
-    theta(("$$\boldsymbol{\theta}_i$$"))
-    p{{"$$\boldsymbol{p}_i = \psi(\boldsymbol{\theta}_i)$$"}}
-    y(["$$\boldsymbol{y}_i$$"])
-    theta -->|"$$\psi$$ soft-max"| p
-    p -.-> y
-  end
-
-  xj -.->|"$$\boldsymbol{y}_i = \boldsymbol{\mu}\boldsymbol{p}_i$$"| y
-
-  classDef param fill:#ffffff,stroke:#0f172a,stroke-width:1.5px;
-  classDef latent fill:#ffffff,stroke:#0f172a,stroke-width:1.5px;
-  classDef det fill:#ffffff,stroke:#0f172a,stroke-width:1.5px,stroke-dasharray: 4 3;
-  classDef obs fill:#cbd5e1,stroke:#0f172a,stroke-width:1.5px,stroke-dasharray: 4 3;
-
-  class mu,Sj param;
-  class theta,xj latent;
-  class p det;
-  class y obs;
+```{r}
+#| echo: false
+#| results: asis
+cat(
+  "```mermaid\n",
+  readLines("man/figures/decovart_constrained_dag.mmd"),
+  "\n```\n",
+  sep = "\n"
+)
 ```
 
 Forward map
@@ -97,7 +79,7 @@ DAG panels in Fig.~DAG-model are drawn with [`tikz-bayesnet`](https://ctan.org/p
 
 From the repository root, generate `article/main.pdf` with:
 
-``` sh
+```sh
 cd article
 latexmk -pdf -interaction=nonstopmode -file-line-error -synctex=1 main.tex
 ```
@@ -113,7 +95,7 @@ Auxiliaries are removed automatically after a successful build
 
 Edit `README.qmd` (and optionally `man/figures/decovart_constrained_dag.mmd`), then run:
 
-``` sh
+```sh
 quarto render README.qmd
 ./scripts/fix_readme_fences.sh README.md
 ```
@@ -126,7 +108,7 @@ language tags (needed for GitHub Mermaid rendering).
 
 Package function call graph (DeCovarT → DeCovarT edges only):
 
-``` html
+```html
 <iframe
   src="output/package_network/decovart_function_network.html"
   title="DeCovarT function call graph"

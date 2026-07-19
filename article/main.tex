@@ -17,6 +17,8 @@
 \usepackage{algpseudocode}%
 \usepackage{listings}%
 \usepackage{enumitem}%
+\usepackage{tikz}%
+\usetikzlibrary{bayesnet,positioning,fit,calc}%
 
 \theoremstyle{thmstyleone}%
 \newtheorem{theorem}{Theorem}%
@@ -419,9 +421,10 @@
     mean and covariance parameters
     $\zeta_{j}=\left(\boldsymbol{\mu}_{.j}, \boldsymbol{\Sigma}_{j}\right)$
     estimated for each cell population in the previous step. Then, setting
-    $\boldsymbol{\zeta}=(\boldsymbol{\mu}, \boldsymbol{\Sigma}), \quad \boldsymbol
-    {\mu}=(\boldsymbol{\mu}_{.j})_{j \in \widetilde{J}}\in \mathcal{M}_{G \times
-    J}, \quad \boldsymbol{\Sigma}\in \mathcal{M}_{G \times G}$
+    $\boldsymbol{\zeta}=(\boldsymbol{\mu}, \boldsymbol{\Sigma}), \quad
+    \boldsymbol{\mu}=(\boldsymbol{\mu}_{.j})_{j \in \widetilde{J}}\in
+    \mathcal{M}_{G \times J}, \quad
+    \boldsymbol{\Sigma}\in \mathcal{M}_{G \times G}$
     the known parameters and $\boldsymbol{p}$ the unknown cellular ratios, we show
     that the conditional distribution of the observed bulk mixture, conditioned
     on the individual purified expression profiles and their ratios in the
@@ -437,32 +440,41 @@
         =(p_{1}, \ldots, p_{J}) \text{ and }\boldsymbol{\Sigma}=\sum_{j=1}^{J} p_{j}
         ^{2}\boldsymbol{\Sigma}_{j}\label{eq-conditional-multivariate-distribution}
     \end{equation}
-    The DAG associated to this modelling framework is shown in the right panel of
-    Fig.~\ref{fig:DAG-model}.
+    The directed graphical models associated with this framework are shown in
+    Fig.~\ref{fig:DAG-model}: panel~\textbf{a} recalls the classical linear
+    deconvolution template; panel~\textbf{b} is the unconstrained DeCovarT
+    generative model; panel~\textbf{c} adds the regularised soft-max mapping
+    $\boldsymbol{\psi}$ that enforces the unit-simplex constraint on
+    $\boldsymbol{p}$.
 
-    \begin{figure}
+    \begin{figure}[t]
         \centering
-        \begin{minipage}{0.8\textwidth}
-            \centering
-            \includegraphics[width=\textwidth]{
-                figs/DAG_model_linear_representation.pdf
-            }
-
-            \small\textbf{a} Standard linear model representation.
-        \end{minipage}
-        \begin{minipage}{0.8\textwidth}
-            \centering
-            \includegraphics[width=\textwidth]{
-                figs/DAG_model_DeCovarT_representation.pdf
-            }
-
-            \small\textbf{b} The generative model used for the DeCovarT
-            framework.
-        \end{minipage}
-        \caption[DAG model]{We use the standard graphical convention of
-        graphical models, as depicted in \href{https://revbayes.github.io/tutorials/intro/graph_models.html}{RevBayes}
-        webpage. For identifiability reasons, we conjecture that all variability
-        proceeds from the stochastic nature of the covariates.}
+        \input{figs/tikz_dag_models}
+        \caption[DAG models for linear and DeCovarT deconvolution]{%
+            Directed graphical models (plate notation), following the conventions
+            of \href{https://revbayes.github.io/tutorials/intro/graph_models.html}{RevBayes}.
+            Shaded nodes are observed; square nodes are fixed (plug-in) parameters;
+            dashed circles denote deterministic or constrained quantities.
+            \textbf{a}~Gold-standard linear model
+            $\boldsymbol{y}_{gi\,|\,\cdot}\sim\mathcal{N}(\sum_{j}x_{gj}p_{ji},
+            \sigma_{i}^{2})$.
+            \textbf{b}~Unconstrained DeCovarT convolution
+            $\boldsymbol{y}_{i\,|\,\cdot}\sim\mathcal{N}_{G}(\boldsymbol{\mu}
+            \boldsymbol{p}_{i},\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j})$ with
+            $\boldsymbol{x}_{j}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{j},
+            \boldsymbol{\Sigma}_{j})$.
+            \textbf{c}~Constrained DeCovarT: unconstrained coordinates
+            $\boldsymbol{\theta}_{i}\in\mathbb{R}^{J-1}$ are mapped to the open
+            simplex by the $C^{2}$-diffeomorphism
+            $\boldsymbol{\psi}:\boldsymbol{\theta}\mapsto\boldsymbol{p}$ with
+            $p_{j}=e^{\theta_{j}}/(\sum_{k<J}e^{\theta_{k}}+1)$ for $j<J$,
+            $p_{J}=1/(\sum_{k<J}e^{\theta_{k}}+1)$, and inverse
+            $\boldsymbol{\psi}^{-1}(\boldsymbol{p})=
+            \bigl(\ln(p_{j}/p_{J})\bigr)_{j<J}$
+            (Eq.~\ref{eq-mapping-function}).
+            For identifiability we treat variability as arising from the stochastic
+            covariates $\boldsymbol{x}_{j}$.%
+        }
         \label{fig:DAG-model}
     \end{figure}
 
