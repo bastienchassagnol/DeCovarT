@@ -1,80 +1,131 @@
-test_that("Use numDeriv to check numerically derviative values", {
+test_that("Use numDeriv to check numerically derivative values", {
   set.seed(3)
-  library(tensorA)
-  mean_signature_matrix <- matrix(c(20, 40, 40, 20), nrow = 2); p <- c(0.5, 0.5)
-  num_genes <- nrow(mean_signature_matrix); num_celltypes <- ncol(mean_signature_matrix)
+  mean_signature_matrix <- matrix(c(20, 40, 40, 20), nrow = 2)
+  p <- c(0.5, 0.5)
+  num_genes <- nrow(mean_signature_matrix)
+  num_celltypes <- ncol(mean_signature_matrix)
   y <- mean_signature_matrix %*% p + rnorm(nrow(mean_signature_matrix)) # global gene expression, as linear combination
-  Sigma <- array(c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2),
-                 dim = c(num_genes,num_genes,num_celltypes))
+  Sigma <- array(
+    c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2),
+    dim = c(num_genes, num_genes, num_celltypes)
+  )
   ##----------------------------------------------------------------
   ##                  test gradient log-likelihood                 -
   ##----------------------------------------------------------------
-  jacobian_mapping_numerical <- numDeriv::grad(loglik_multivariate, p,
-                                               method="Richardson", method.args=list(eps=1e-4, r=6),
-                                               y=y, mean_signature_matrix=mean_signature_matrix, Sigma=Sigma) # additional arguments
+  jacobian_mapping_numerical <- numDeriv::grad(
+    loglik_multivariate,
+    p,
+    method = "Richardson",
+    method.args = list(eps = 1e-4, r = 6),
+    y = y,
+    mean_signature_matrix = mean_signature_matrix,
+    Sigma = Sigma
+  ) # additional arguments
 
-  jacobian_mapping_theoretical <- gradient_loglik_unconstrained (p, y, mean_signature_matrix, Sigma)
-  testthat::expect_equal(jacobian_mapping_numerical, jacobian_mapping_theoretical)
+  jacobian_mapping_theoretical <- gradient_loglik_unconstrained(
+    p,
+    y,
+    mean_signature_matrix,
+    Sigma
+  )
+  testthat::expect_equal(
+    jacobian_mapping_numerical,
+    jacobian_mapping_theoretical
+  )
 })
 
 
-test_that("Check Maximum a posterior computation", {
+test_that("Vefiy that the DeCovarT algorithm is working, using a toy example", {
   set.seed(3)
   # Define simulation parameters --------------------------------------------
-  mean_signature_matrix <- matrix(c(20, 40, 40, 20), nrow = 2, 
-                                  dimnames = list(paste0("gene_", 1:2), paste0("celltype_", 1:2)))
+  mean_signature_matrix <- matrix(
+    c(20, 40, 40, 20),
+    nrow = 2,
+    dimnames = list(paste0("gene_", 1:2), paste0("celltype_", 1:2))
+  )
   p <- c(0.5, 0.5)
-  num_genes <- nrow(mean_signature_matrix); num_celltypes <- ncol(mean_signature_matrix)
-  Sigma <- array(c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2),
-                 dim = c(num_genes,num_genes,num_celltypes), 
-                 dimnames = list(paste0("gene_", 1:2), paste0("gene_", 1:2), paste0("celltype_", 1:2)))
+  num_genes <- nrow(mean_signature_matrix)
+  num_celltypes <- ncol(mean_signature_matrix)
+  Sigma <- array(
+    c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2),
+    dim = c(num_genes, num_genes, num_celltypes),
+    dimnames = list(
+      paste0("gene_", 1:2),
+      paste0("gene_", 1:2),
+      paste0("celltype_", 1:2)
+    )
+  )
 
-  # Simulate accordingly ----------------------------------------------------
-  simulated_data <- simulate_bulk_mixture ( signature_matrix = mean_signature_matrix,
-                                            Sigma,
-                                            p = c(0.5, 0.5),
-                                            n = 1)
-  y_simu <- simulated_data$Y; X_simu <- simulated_data$mean_signature_matrix
-  rm(simulated_data)
+  # Simulate the bulk mixture as a convolution of bivariate Gaussian distributions ----------------------------------------------------
+  simulated_data <- simulate_bulk_mixture(
+    signature_matrix = mean_signature_matrix,
+    Sigma,
+    p = c(0.5, 0.5),
+    n = 2000
+  )
+  y_simu <- simulated_data$Y
+  X_simu <- simulated_data$mean_signature_matrix
 
-# Compute MAP gaussian ----------------------------------------------------
-MAP_two_ratios <- .map_gaussian_convolution (y = y_simu,
-                                             mean_signature_matrix, 
-                                             Sigma)
-  
-  
-  testthat::expect_equal(jacobian_mapping_numerical, jacobian_mapping_theoretical)
-})
-
-test_that("compare the performance of several algorithms", {
-  set.seed(3)
-  library(dplyr)
-  
-
-# Define simulation parameters --------------------------------------------
-  mean_signature_matrix <- matrix(c(20, 40, 40, 20), nrow = 2, 
-                                  dimnames = list(paste0("gene_", 1:2), paste0("celltype_", 1:2)))
-  p <- c(0.5, 0.5)
-  num_genes <- nrow(mean_signature_matrix); num_celltypes <- ncol(mean_signature_matrix)
-  Sigma <- array(c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2),
-                 dim = c(num_genes,num_genes,num_celltypes), 
-                 dimnames = list(paste0("gene_", 1:2), paste0("gene_", 1:2), paste0("celltype_", 1:2)))
-
-# Simulate accordingly ----------------------------------------------------
-  simulated_data <- simulate_bulk_mixture ( signature_matrix = mean_signature_matrix,
-                                            Sigma,
-                                            p = c(0.5, 0.5),
-                                            n = 2000)
-  y_simu <- simulated_data$Y; X_simu <- simulated_data$mean_signature_matrix
-
-# Deconvolution of synthetic data -------------------
+  # Deconvolution of synthetic data -------------------
   inferred_ratios <- deconvolute_ratios_Newton_Raphson(
-    y = y_simu[, 2, drop=FALSE],
+    y = y_simu[, 2, drop = FALSE],
     mean_signature_matrix = mean_signature_matrix,
     Sigma = Sigma,
     true_ratios = c(0.5, 0.5),
     epsilon = 10^-4,
     itmax = 200
   )
+})
 
-  })
+
+test_that("Benchmark standard deconvolution algorithms against DeCovarT", {
+  deconvolution_functions <- list(
+    "lm" = list(FUN = deconvolute_ratios_abbas),
+    "nnls" = list(FUN = deconvolute_ratios_nnls),
+    "lsei" = list(FUN = deconvolute_ratios_deconRNASeq),
+    "LBFGS" = list(
+      FUN = deconvolute_ratios_LBFGS,
+      additional_parameters = list(epsilon = 10^-3, itmax = 200)
+    ),
+    "gradient" = list(
+      FUN = deconvolute_ratios_first_order,
+      additional_parameters = list(epsilon = 10^-3, itmax = 200)
+    ),
+    "Newton-Raphson" = list(
+      FUN = deconvolute_ratios_second_order,
+      additional_parameters = list(epsilon = 10^-3, itmax = 200)
+    ),
+    "Marquardt-Levenberg" = list(
+      FUN = deconvolute_ratios_Marquardt_Levenberg,
+      additional_parameters = list(epsilon = 10^-3, itmax = 200)
+    ),
+    "SA" = list(
+      FUN = deconvolute_ratios_simulated_annealing,
+      additional_parameters = list(epsilon = 10^-3, itmax = 200)
+    )
+  )
+
+  bivariate_scenario <- withr::with_seed(
+    seed = 3L,
+    benchmark_deconvolution_algorithms_two_genes(
+      proportions = list("balanced" = c(0.50, 0.50)),
+      n = 2,
+      corr_sequence = c(-0.75, 0.75),
+      signature_matrices = list(
+        "small CLD" = matrix(c(20, 22, 22, 20), nrow = 2)
+      )
+    ),
+    .rng_kind = "L'Ecuyer-CMRG"
+  )
+  bivariate_configuraton <- readRDS(testthat::test_path(
+    "fixtures",
+    "bivariate_configuraton.rds"
+  ))
+  bivariate_estimation <- readRDS(testthat::test_path(
+    "fixtures",
+    "bivariate_estimation.rds"
+  ))
+
+  expect_equal(bivariate_configuraton, bivariate_scenario$config)
+  expect_equal(bivariate_estimation, bivariate_scenario$simulations)
+})

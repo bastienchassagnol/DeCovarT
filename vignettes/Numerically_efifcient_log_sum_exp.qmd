@@ -2,10 +2,6 @@
 title: "Numerically efficient log-sum-exp"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
-vignette: >
-  %\VignetteIndexEntry{Numerically efficient log-sum-exp}
-  %\VignetteEngine{quarto::html}
-  %\VignetteEncoding{UTF-8}
 knitr:
   opts_chunk:
     collapse: true
@@ -16,6 +12,9 @@ link-citations: true
 crossref:
   eq-prefix: "Eq."
   lst-prefix: "Listing"
+format:
+  html:
+    embed-resources: true
 ---
 
 
@@ -57,7 +56,7 @@ $$
 J_{\mathrm{softmax}}=\operatorname{diag}(p)-pp^\top.
 $$ {#eq-softmax-jac}
 
-@eq-softmax-jac coincides with the Hessian of log-sum-exp (@eq-lse-hess). See @lst-softmax-jac and @lst-softmax-jac-batch.
+@eq-softmax-jac coincides with the Hessian of log-sum-exp. See @lst-softmax-jac and @lst-softmax-jac-batch.
 
 ```{#lst-softmax-jac .python lst-cap="Softmax Jacobian (single vector)"}
 def softmax_jacobian(logits: torch.Tensor) -> torch.Tensor:

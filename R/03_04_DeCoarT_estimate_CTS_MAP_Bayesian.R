@@ -1,4 +1,3 @@
-
 #' Compute the maximum a posteriori for a sum of Gaussian variables
 #'
 #' @param y Parameter `y`: \eqn{\boldsymbol{y}=(y_{g}) \in \mathbb{R}^{G}},
