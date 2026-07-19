@@ -4,10 +4,10 @@
 \alias{jacobian_mapping_function}
 \title{Jacobian \eqn{\mathbf{J}_{\boldsymbol{\psi}}} of the simplex mapping}
 \usage{
-jacobian_mapping_function(theta)
+jacobian_mapping_function(rho)
 }
 \arguments{
-\item{theta}{Numeric vector \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.}
+\item{rho}{Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.}
 }
 \value{
 Numeric matrix of size \eqn{J\times(J-1)}.
@@ -16,6 +16,6 @@ Numeric matrix of size \eqn{J\times(J-1)}.
 Returns
 \eqn{\mathbf{J}_{\boldsymbol{\psi}}\in\mathcal{M}_{J\times(J-1)}} with
 entries
-\eqn{(\mathbf{J}_{\boldsymbol{\psi}})_{i,j}=\partial p_i/\partial\theta_j}.
+\eqn{(\mathbf{J}_{\boldsymbol{\psi}})_{i,j}=\partial p_i/\partial\rho_j}.
 }
 \keyword{internal}

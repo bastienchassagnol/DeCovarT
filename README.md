@@ -21,7 +21,7 @@ gene–gene covariance structure in purified reference populations.
 ## The generative model of DeCovarT
 
 Constrained DeCovarT maps unconstrained coordinates
-$\boldsymbol{\theta}_{i}\in\mathbb{R}^{J-1}$ to cellular proportions
+$\boldsymbol{\rho}_{i}\in\mathbb{R}^{J-1}$ to cellular proportions
 $\boldsymbol{p}_{i}$ on the open simplex via a regularised soft-max
 $\boldsymbol{\psi}$, then forms the bulk observation as a Gaussian convolution
 of cell-type profiles
@@ -59,10 +59,10 @@ flowchart TB
 
   subgraph plateI["i = 1,...,N"]
     direction TB
-    theta(("θ_i"))
-    p["p_i = ψ(θ_i)"]
+    rho(("ρ_i"))
+    p["p_i = ψ(ρ_i)"]
     y(["y_i"])
-    theta -->|"ψ soft-max"| p
+    rho -->|"ψ soft-max"| p
     p -.-> y
   end
 
@@ -74,18 +74,18 @@ flowchart TB
   classDef obs fill:#cbd5e1,stroke:#0f172a,stroke-width:1.5px,stroke-dasharray:5 3;
 
   class mu,Sj param;
-  class theta,xj latent;
+  class rho,xj latent;
   class p det;
   class y obs;
 ```
 
 Forward map
-$\boldsymbol{\psi}:\boldsymbol{\theta}\mapsto\boldsymbol{p}$
+$\boldsymbol{\psi}:\boldsymbol{\rho}\mapsto\boldsymbol{p}$
 ($C^{2}$-diffeomorphism):
 
 $$
-p_{j}=\frac{e^{\theta_{j}}}{\sum_{k<J}e^{\theta_{k}}+1}\ (j<J),\qquad
-p_{J}=\frac{1}{\sum_{k<J}e^{\theta_{k}}+1},\qquad
+p_{j}=\frac{e^{\rho_{j}}}{\sum_{k<J}e^{\rho_{k}}+1}\ (j<J),\qquad
+p_{J}=\frac{1}{\sum_{k<J}e^{\rho_{k}}+1},\qquad
 \boldsymbol{\psi}^{-1}(\boldsymbol{p})=\bigl(\ln(p_{j}/p_{J})\bigr)_{j<J}.
 $$
 

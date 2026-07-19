@@ -4,10 +4,10 @@
 \alias{hessian_loglik_constrained}
 \title{Constrained Hessian of \eqn{\ell\circ\boldsymbol{\psi}}}
 \usage{
-hessian_loglik_constrained(theta, y, mean_signature_matrix, Sigma)
+hessian_loglik_constrained(rho, y, mean_signature_matrix, Sigma)
 }
 \arguments{
-\item{theta}{Numeric vector \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.}
+\item{rho}{Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.}
 
 \item{y}{Numeric vector (or one-column matrix)
 \eqn{\boldsymbol{y}\in\mathbb{R}^{G}}.}
@@ -24,14 +24,14 @@ Symmetric matrix in \eqn{\mathcal{M}_{(J-1)\times(J-1)}}.
 \description{
 Second-order chain rule
 \deqn{
-  \mathbf{H}_{\boldsymbol{\theta}}
+  \mathbf{H}_{\boldsymbol{\rho}}
   =
   \mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}
   \mathbf{H}_{\boldsymbol{p}}
   \mathbf{J}_{\boldsymbol{\psi}}
   +\sum_{i=1}^{J}
   \frac{\partial\ell}{\partial p_i}\,
-  \frac{\partial^{2}p_i}{\partial\boldsymbol{\theta}\partial\boldsymbol{\theta}^{\mathsf{T}}}.
+  \frac{\partial^{2}p_i}{\partial\boldsymbol{\rho}\partial\boldsymbol{\rho}^{\mathsf{T}}}.
 }
 }
 \keyword{internal}

@@ -21,7 +21,7 @@ simulate_bulk_mixture(
 \item{p}{Proportion vector \eqn{\boldsymbol{p}\in\Delta^{J-1}}
 (default: uniform).}
 
-\item{n}{Number of bulk samples \eqn{N}.}
+\item{n}{Number of bulk samples \eqn{n}.}
 }
 \value{
 A list with:

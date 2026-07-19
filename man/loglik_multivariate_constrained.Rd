@@ -3,12 +3,12 @@
 \name{loglik_multivariate_constrained}
 \alias{loglik_multivariate_constrained}
 \title{Constrained log-likelihood
-\eqn{\ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{\psi}(\boldsymbol{\theta}))}}
+\eqn{\ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{\psi}(\boldsymbol{\rho}))}}
 \usage{
-loglik_multivariate_constrained(theta, y, mean_signature_matrix, Sigma)
+loglik_multivariate_constrained(rho, y, mean_signature_matrix, Sigma)
 }
 \arguments{
-\item{theta}{Numeric vector \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.}
+\item{rho}{Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.}
 
 \item{y}{Numeric vector (or one-column matrix)
 \eqn{\boldsymbol{y}\in\mathbb{R}^{G}}.}
@@ -25,6 +25,6 @@ Scalar log-likelihood on the constrained manifold.
 \description{
 Composes \code{\link[=loglik_multivariate]{loglik_multivariate()}} with \code{\link[=mapping_function]{mapping_function()}}, so that
 optimisation may be performed over
-\eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.
+\eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
 }
 \keyword{internal}

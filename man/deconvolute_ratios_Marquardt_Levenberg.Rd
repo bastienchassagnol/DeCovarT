@@ -106,7 +106,7 @@ Gaussian convolution model
 subject to the simplex constraint
 \eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1}, \eqn{\boldsymbol{p}\ge\mathbf{0}}.
 Optimisation is performed in unconstrained coordinates
-\eqn{\boldsymbol{\theta}} via \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\theta})}
+\eqn{\boldsymbol{\rho}} via \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})}
 (Marquardt–Levenberg default; see other methods below).
 }
 \section{Functions}{
@@ -133,17 +133,17 @@ inequality-constrained least squares on the simplex
 (\code{\link[limSolve:lsei]{limSolve::lsei()}}), in the spirit of \code{deconRNASeq}.
 
 \item \code{deconvolute_ratios_simulated_annealing()}: Simulated annealing on
-\eqn{\boldsymbol{\theta}} (\code{\link[stats:optim]{stats::optim()}} with \code{method = "SANN"}).
+\eqn{\boldsymbol{\rho}} (\code{\link[stats:optim]{stats::optim()}} with \code{method = "SANN"}).
 
 \item \code{deconvolute_ratios_L_BFGS_B()}: Box-constrained L-BFGS-B
 directly in \eqn{\boldsymbol{p}} (\code{\link[stats:optim]{stats::optim()}} \code{method = "L-BFGS-B"}).
 
 \item \code{deconvolute_ratios_Newton_Raphson()}: Newton–Raphson /
-\code{nlminb} on \eqn{\boldsymbol{\theta}} using analytic gradient and Hessian
+\code{nlminb} on \eqn{\boldsymbol{\rho}} using analytic gradient and Hessian
 (\code{\link[stats:nlminb]{stats::nlminb()}}).
 
 \item \code{deconvolute_ratios_gradient_descent()}: BFGS quasi-Newton ascent
-on \eqn{\boldsymbol{\theta}} (\code{\link[stats:optim]{stats::optim()}} \code{method = "BFGS"}).
+on \eqn{\boldsymbol{\rho}} (\code{\link[stats:optim]{stats::optim()}} \code{method = "BFGS"}).
 
 }}
 \references{

@@ -4,17 +4,17 @@
 \alias{hessian_mapping_function}
 \title{Second derivatives of \eqn{\boldsymbol{\psi}}}
 \usage{
-hessian_mapping_function(theta)
+hessian_mapping_function(rho)
 }
 \arguments{
-\item{theta}{Numeric vector \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.}
+\item{rho}{Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.}
 }
 \value{
 Numeric array used in the constrained Hessian chain rule.
 }
 \description{
 Tensor of mixed partials
-\eqn{\partial^{2}p_i/(\partial\theta_k\partial\theta_j)}, stored as an
+\eqn{\partial^{2}p_i/(\partial\rho_k\partial\rho_j)}, stored as an
 array of size \eqn{(J-1)\times(J-1)\times J}.
 }
 \keyword{internal}

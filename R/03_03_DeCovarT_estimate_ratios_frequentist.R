@@ -4,23 +4,23 @@
 #'
 #' @description
 #' Implements the reparametrisation
-#' \eqn{\boldsymbol{\psi}:\boldsymbol{\theta}\mapsto\boldsymbol{p}} used in the
+#' \eqn{\boldsymbol{\psi}:\boldsymbol{\rho}\mapsto\boldsymbol{p}} used in the
 #' article, sending unconstrained coordinates
-#' \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}} to cellular proportions
+#' \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}} to cellular proportions
 #' \eqn{\boldsymbol{p}\in\Delta^{J-1}}.
 #'
 #' @details
-#' With \eqn{A=\sum_{k=1}^{J-1}\mathrm{e}^{\theta_k}+1},
+#' With \eqn{A=\sum_{k=1}^{J-1}\mathrm{e}^{\rho_k}+1},
 #' \deqn{
-#'   p_j=\frac{\mathrm{e}^{\theta_j}}{A}\quad(j<J),\qquad
+#'   p_j=\frac{\mathrm{e}^{\rho_j}}{A}\quad(j<J),\qquad
 #'   p_J=\frac{1}{A}.
 #' }
 #' Equivalently,
-#' \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\theta})} with
-#' \eqn{\boldsymbol{\psi}(\boldsymbol{\theta})\propto
-#' (\mathrm{e}^{\theta_1},\ldots,\mathrm{e}^{\theta_{J-1}},1)^{\mathsf{T}}}.
+#' \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})} with
+#' \eqn{\boldsymbol{\psi}(\boldsymbol{\rho})\propto
+#' (\mathrm{e}^{\rho_1},\ldots,\mathrm{e}^{\rho_{J-1}},1)^{\mathsf{T}}}.
 #'
-#' @param theta Numeric vector \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.
+#' @param rho Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
 #'
 #' @return Numeric vector \eqn{\boldsymbol{p}\in\mathbb{R}^{J}} on the unit
 #'   simplex (\eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1},
@@ -29,18 +29,18 @@
 #' @seealso The inverse map is documented as `inverse_mapping_function()`
 #'   on this help page.
 #' @export
-mapping_function <- function(theta) {
-  p <- c(exp(theta[1:length(theta)]), 1)
+mapping_function <- function(rho) {
+  p <- c(exp(rho[1:length(rho)]), 1)
   return(p / sum(p))
 }
 
-#' Inverse simplex mapping \eqn{\boldsymbol{p}\mapsto\boldsymbol{\theta}}
+#' Inverse simplex mapping \eqn{\boldsymbol{p}\mapsto\boldsymbol{\rho}}
 #'
-#' Recovers \eqn{\theta_j=\ln(p_j/p_J)} for \eqn{j=1,\ldots,J-1}.
+#' Recovers \eqn{\rho_j=\ln(p_j/p_J)} for \eqn{j=1,\ldots,J-1}.
 #'
 #' @param p Numeric vector \eqn{\boldsymbol{p}} on the open simplex.
 #'
-#' @return Numeric vector \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.
+#' @return Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
 #'
 #' @rdname mapping_function
 #' @keywords internal
@@ -148,27 +148,27 @@ loglik_multivariate <- function(p, y, mean_signature_matrix, Sigma) {
 
 
 #' Constrained log-likelihood
-#' \eqn{\ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{\psi}(\boldsymbol{\theta}))}
+#' \eqn{\ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{\psi}(\boldsymbol{\rho}))}
 #'
 #' @description
 #' Composes [loglik_multivariate()] with [mapping_function()], so that
 #' optimisation may be performed over
-#' \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.
+#' \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
 #'
 #' @inheritParams loglik_multivariate
-#' @param theta Numeric vector \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.
+#' @param rho Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
 #'
 #' @return Scalar log-likelihood on the constrained manifold.
 #'
 #' @keywords internal
 loglik_multivariate_constrained <- function(
-  theta,
+  rho,
   y,
   mean_signature_matrix,
   Sigma
 ) {
   # switch from variable
-  p <- mapping_function(theta)
+  p <- mapping_function(rho)
   log_lik <- loglik_multivariate(p, y, mean_signature_matrix, Sigma)
   if (any(p < 100 * .Machine$double.eps | p > 1 - 100 * .Machine$double.eps)) {
     # if the ratios returned present numerical underflows
@@ -191,24 +191,24 @@ loglik_multivariate_constrained <- function(
 #' Returns
 #' \eqn{\mathbf{J}_{\boldsymbol{\psi}}\in\mathcal{M}_{J\times(J-1)}} with
 #' entries
-#' \eqn{(\mathbf{J}_{\boldsymbol{\psi}})_{i,j}=\partial p_i/\partial\theta_j}.
+#' \eqn{(\mathbf{J}_{\boldsymbol{\psi}})_{i,j}=\partial p_i/\partial\rho_j}.
 #'
-#' @param theta Numeric vector \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.
+#' @param rho Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
 #'
 #' @return Numeric matrix of size \eqn{J\times(J-1)}.
 #'
 #' @keywords internal
-jacobian_mapping_function <- function(theta) {
-  denominator <- (sum(exp(theta)) + 1)^2
-  size_var <- length(theta)
+jacobian_mapping_function <- function(rho) {
+  denominator <- (sum(exp(rho)) + 1)^2
+  size_var <- length(rho)
   jacobian_matrix <- matrix(0, nrow = size_var, ncol = size_var)
   for (i in 1:size_var) {
     for (j in i:size_var) {
       # diagonal elements
       if (i == j) {
-        jacobian_matrix[i, j] <- (exp(theta[i]) * (sum(exp(theta[-i])) + 1))
+        jacobian_matrix[i, j] <- (exp(rho[i]) * (sum(exp(rho[-i])) + 1))
       } else {
-        jacobian_matrix[i, j] <- -exp(theta[i]) * exp(theta[j])
+        jacobian_matrix[i, j] <- -exp(rho[i]) * exp(rho[j])
       }
     }
   }
@@ -216,7 +216,7 @@ jacobian_mapping_function <- function(theta) {
   jacobian_matrix[lower.tri(jacobian_matrix)] <- jacobian_matrix[upper.tri(
     jacobian_matrix
   )]
-  jacobian_matrix <- rbind(jacobian_matrix, -exp(theta))
+  jacobian_matrix <- rbind(jacobian_matrix, -exp(rho))
   return(jacobian_matrix / denominator)
 }
 
@@ -293,10 +293,10 @@ gradient_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
 #' @description
 #' Returns
 #' \deqn{
-#'   \nabla_{\boldsymbol{\theta}}\ell
+#'   \nabla_{\boldsymbol{\rho}}\ell
 #'   =
 #'   \bigl(\nabla_{\boldsymbol{p}}\ell\bigr)^{\mathsf{T}}
-#'   \mathbf{J}_{\boldsymbol{\psi}}(\boldsymbol{\theta}),
+#'   \mathbf{J}_{\boldsymbol{\psi}}(\boldsymbol{\rho}),
 #' }
 #' i.e. first-order chain rule for
 #' \eqn{\ell\circ\boldsymbol{\psi}}.
@@ -307,19 +307,19 @@ gradient_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
 #'
 #' @keywords internal
 gradient_loglik_constrained <- function(
-  theta,
+  rho,
   y,
   mean_signature_matrix,
   Sigma
 ) {
-  p <- mapping_function(theta)
+  p <- mapping_function(rho)
   gradient_constrained <- gradient_loglik_unconstrained(
     p,
     y,
     mean_signature_matrix,
     Sigma
   ) %*%
-    jacobian_mapping_function(theta)
+    jacobian_mapping_function(rho)
   return(gradient_constrained)
 }
 
@@ -330,33 +330,33 @@ gradient_loglik_constrained <- function(
 #'
 #' @description
 #' Tensor of mixed partials
-#' \eqn{\partial^{2}p_i/(\partial\theta_k\partial\theta_j)}, stored as an
+#' \eqn{\partial^{2}p_i/(\partial\rho_k\partial\rho_j)}, stored as an
 #' array of size \eqn{(J-1)\times(J-1)\times J}.
 #'
-#' @param theta Numeric vector \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.
+#' @param rho Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
 #'
 #' @return Numeric array used in the constrained Hessian chain rule.
 #'
 #' @keywords internal
-hessian_mapping_function <- function(theta) {
-  A <- sum(exp(theta)) + 1
+hessian_mapping_function <- function(rho) {
+  A <- sum(exp(rho)) + 1
   denominator <- A^3
-  size_var <- length(theta)
+  size_var <- length(rho)
   J <- size_var + 1
   hessian_array <- array(0, dim = c(size_var, size_var, J))
   for (i in 1:size_var) {
-    B <- sum(exp(theta[-i])) + 1
+    B <- sum(exp(rho[-i])) + 1
     # other p_j, j< J Hessian derivation
     for (j in 1:size_var) {
       for (k in j:size_var) {
         # diagonal elements
         if (j == k) {
           if (i == j) {
-            hessian_array[i, i, i] <- B * exp(theta[i]) * (B - exp(theta[i])) # condition d)
+            hessian_array[i, i, i] <- B * exp(rho[i]) * (B - exp(rho[i])) # condition d)
           } else {
-            hessian_array[j, j, i] <- exp(theta[i]) *
-              exp(theta[j]) *
-              (-A + 2 * exp(theta[j])) # condition c)
+            hessian_array[j, j, i] <- exp(rho[i]) *
+              exp(rho[j]) *
+              (-A + 2 * exp(rho[j])) # condition c)
           }
         } else {
           # off diagonal terms
@@ -364,14 +364,14 @@ hessian_mapping_function <- function(theta) {
             # all indexes are different, situation b)
             # alternative condition setting: (i!=j)!=k
             hessian_array[j, k, i] <- 2 *
-              exp(theta[i]) *
-              exp(theta[j]) *
-              exp(theta[k])
+              exp(rho[i]) *
+              exp(rho[j]) *
+              exp(rho[k])
           } else {
             l <- setdiff(c(j, k), i) # situation a), l is the operator, either k or j, different from i
-            hessian_array[j, k, i] <- exp(theta[i]) *
-              exp(theta[l]) *
-              (-B + exp(theta[i]))
+            hessian_array[j, k, i] <- exp(rho[i]) *
+              exp(rho[l]) *
+              (-B + exp(rho[i]))
           }
         }
       }
@@ -386,9 +386,9 @@ hessian_mapping_function <- function(theta) {
     for (k in j:size_var) {
       # diagonal elements
       if (j == k) {
-        hessian_array[j, j, J] <- exp(theta[j]) * (-A + 2 * exp(theta[j])) # condition e)
+        hessian_array[j, j, J] <- exp(rho[j]) * (-A + 2 * exp(rho[j])) # condition e)
       } else {
-        hessian_array[j, k, J] <- 2 * exp(theta[j]) * exp(theta[k]) # condition f)
+        hessian_array[j, k, J] <- 2 * exp(rho[j]) * exp(rho[k]) # condition f)
       }
     }
   }
@@ -483,14 +483,14 @@ hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
 #' @description
 #' Second-order chain rule
 #' \deqn{
-#'   \mathbf{H}_{\boldsymbol{\theta}}
+#'   \mathbf{H}_{\boldsymbol{\rho}}
 #'   =
 #'   \mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}
 #'   \mathbf{H}_{\boldsymbol{p}}
 #'   \mathbf{J}_{\boldsymbol{\psi}}
 #'   +\sum_{i=1}^{J}
 #'   \frac{\partial\ell}{\partial p_i}\,
-#'   \frac{\partial^{2}p_i}{\partial\boldsymbol{\theta}\partial\boldsymbol{\theta}^{\mathsf{T}}}.
+#'   \frac{\partial^{2}p_i}{\partial\boldsymbol{\rho}\partial\boldsymbol{\rho}^{\mathsf{T}}}.
 #' }
 #'
 #' @inheritParams loglik_multivariate_constrained
@@ -498,15 +498,15 @@ hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
 #' @return Symmetric matrix in \eqn{\mathcal{M}_{(J-1)\times(J-1)}}.
 #'
 #' @keywords internal
-hessian_loglik_constrained <- function(theta, y, mean_signature_matrix, Sigma) {
-  p <- mapping_function(theta)
+hessian_loglik_constrained <- function(rho, y, mean_signature_matrix, Sigma) {
+  p <- mapping_function(rho)
   # t(J_psi) mean_signature_matrix H_log mean_signature_matrix J_psi + sum over number of ratios of grad_log mean_signature_matrix H_psi
-  hessian_constrained <- t(jacobian_mapping_function(theta)) %*%
+  hessian_constrained <- t(jacobian_mapping_function(rho)) %*%
     hessian_loglik_unconstrained(p, y, mean_signature_matrix, Sigma) %*%
-    jacobian_mapping_function(theta) +
+    jacobian_mapping_function(rho) +
     tensor::tensor(
       A = gradient_loglik_unconstrained(p, y, mean_signature_matrix, Sigma),
-      B = hessian_mapping_function(theta),
+      B = hessian_mapping_function(rho),
       alongA = 1,
       alongB = 3
     ) |>
@@ -534,7 +534,7 @@ hessian_loglik_constrained <- function(theta, y, mean_signature_matrix, Sigma) {
 #' subject to the simplex constraint
 #' \eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1}, \eqn{\boldsymbol{p}\ge\mathbf{0}}.
 #' Optimisation is performed in unconstrained coordinates
-#' \eqn{\boldsymbol{\theta}} via \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\theta})}
+#' \eqn{\boldsymbol{\rho}} via \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})}
 #' (Marquardt–Levenberg default; see other methods below).
 #'
 #' @param y Bulk expression vector
@@ -562,11 +562,11 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
   itmax = 200
 ) {
   initial_p <- rep(1 / ncol(mean_signature_matrix), ncol(mean_signature_matrix)) # consider by hypothesis equi-balanced proportions between cell populations
-  initial_theta <- inverse_mapping_function(initial_p)
+  initial_rho <- inverse_mapping_function(initial_p)
   # set minimize to false; partialH=2
   invisible(utils::capture.output(
-    estimated_theta <- marqLevAlg::marqLevAlg(
-      b = initial_theta,
+    estimated_rho <- marqLevAlg::marqLevAlg(
+      b = initial_rho,
       fn = loglik_multivariate_constrained,
       gr = gradient_loglik_constrained,
       hess = hessian_loglik_constrained,
@@ -581,10 +581,10 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
       maxiter = itmax
     )$b
   ))
-  if (all(is.na(estimated_theta))) {
+  if (all(is.na(estimated_rho))) {
     # retrieve the last non missing estimate
     output_lm <- utils::capture.output(marqLevAlg::marqLevAlg(
-      b = initial_theta,
+      b = initial_rho,
       fn = loglik_multivariate_constrained,
       gr = gradient_loglik_constrained,
       hess = hessian_loglik_constrained,
@@ -599,12 +599,12 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
       maxiter = itmax
     )) # add partialH and blinding?
 
-    estimated_theta <- output_lm[grep("b : ", output_lm, value = F)] |>
+    estimated_rho <- output_lm[grep("b : ", output_lm, value = F)] |>
       stringr::str_match_all("[0-9,\\.]+") |>
       unlist() |>
       as.numeric() # retrieve last estimate before failure
   }
-  estimated_p <- mapping_function(estimated_theta) |>
+  estimated_p <- mapping_function(estimated_rho) |>
     enforce_identifiability() |> # ensure non-negativity constraint and remove numerical underflow
     stats::setNames(colnames(mean_signature_matrix))
 
@@ -620,7 +620,7 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
 
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Simulated annealing on
-#'   \eqn{\boldsymbol{\theta}} ([stats::optim()] with `method = "SANN"`).
+#'   \eqn{\boldsymbol{\rho}} ([stats::optim()] with `method = "SANN"`).
 
 deconvolute_ratios_simulated_annealing <- function(
   y,
@@ -631,11 +631,11 @@ deconvolute_ratios_simulated_annealing <- function(
   itmax = 200
 ) {
   initial_p <- rep(1 / ncol(mean_signature_matrix), ncol(mean_signature_matrix)) # consider by hypothesis equi-balanced proportions between cell populations
-  initial_theta <- inverse_mapping_function(initial_p)
+  initial_rho <- inverse_mapping_function(initial_p)
   # gr is not used in the simulated annealing approach
   # In SANNN, maxit is the total number of point evaluations, and not the maximum number of iterations
-  estimated_theta <- stats::optim(
-    par = initial_theta,
+  estimated_rho <- stats::optim(
+    par = initial_rho,
     fn = loglik_multivariate_constrained,
     y = y,
     mean_signature_matrix = mean_signature_matrix,
@@ -643,7 +643,7 @@ deconvolute_ratios_simulated_annealing <- function(
     control = list(fnscale = -1, maxit = itmax),
     method = "SANN"
   )$par
-  estimated_p <- mapping_function(estimated_theta) |>
+  estimated_p <- mapping_function(estimated_rho) |>
     stats::setNames(colnames(mean_signature_matrix)) |>
     enforce_identifiability()
 
@@ -695,7 +695,7 @@ deconvolute_ratios_L_BFGS_B <- function(
 }
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Newton–Raphson /
-#'   `nlminb` on \eqn{\boldsymbol{\theta}} using analytic gradient and Hessian
+#'   `nlminb` on \eqn{\boldsymbol{\rho}} using analytic gradient and Hessian
 #'   ([stats::nlminb()]).
 
 deconvolute_ratios_Newton_Raphson <- function(
@@ -707,11 +707,11 @@ deconvolute_ratios_Newton_Raphson <- function(
   itmax = 200
 ) {
   initial_p <- rep(1 / ncol(mean_signature_matrix), ncol(mean_signature_matrix)) # consider by hypothesis equi-balanced proportions between cell populations
-  initial_theta <- inverse_mapping_function(initial_p)
+  initial_rho <- inverse_mapping_function(initial_p)
 
   # with nlmimb package method (outdated, but works well for our scenario)
-  estimated_theta <- stats::nlminb(
-    start = initial_theta,
+  estimated_rho <- stats::nlminb(
+    start = initial_rho,
     objective = function(p, y, mean_signature_matrix, Sigma) {
       -loglik_multivariate_constrained(p, y, mean_signature_matrix, Sigma)
     },
@@ -734,7 +734,7 @@ deconvolute_ratios_Newton_Raphson <- function(
     )
   )$par
 
-  estimated_p <- mapping_function(estimated_theta) |>
+  estimated_p <- mapping_function(estimated_rho) |>
     stats::setNames(colnames(mean_signature_matrix)) |>
     enforce_identifiability()
 
@@ -749,7 +749,7 @@ deconvolute_ratios_Newton_Raphson <- function(
 }
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg BFGS quasi-Newton ascent
-#'   on \eqn{\boldsymbol{\theta}} ([stats::optim()] `method = "BFGS"`).
+#'   on \eqn{\boldsymbol{\rho}} ([stats::optim()] `method = "BFGS"`).
 
 deconvolute_ratios_gradient_descent <- function(
   y,
@@ -761,10 +761,10 @@ deconvolute_ratios_gradient_descent <- function(
 ) {
   initial_p <- rep(1 / ncol(mean_signature_matrix), ncol(mean_signature_matrix)) # consider by hypothesis equi-balanced proportions between cell populations
 
-  initial_theta <- inverse_mapping_function(initial_p)
+  initial_rho <- inverse_mapping_function(initial_p)
 
-  estimated_theta <- stats::optim(
-    par = initial_theta,
+  estimated_rho <- stats::optim(
+    par = initial_rho,
     fn = loglik_multivariate_constrained,
     gr = gradient_loglik_constrained,
     y = y,
@@ -778,7 +778,7 @@ deconvolute_ratios_gradient_descent <- function(
     ),
     method = "BFGS"
   )$par
-  estimated_p <- mapping_function(estimated_theta) |>
+  estimated_p <- mapping_function(estimated_rho) |>
     stats::setNames(colnames(mean_signature_matrix)) |>
     enforce_identifiability()
 

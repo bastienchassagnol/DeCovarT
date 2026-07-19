@@ -21,10 +21,10 @@ flowchart TB
 
   subgraph plateI["i = 1,...,N"]
     direction TB
-    theta(("θ_i"))
-    p["p_i = ψ(θ_i)"]
+    rho(("ρ_i"))
+    p["p_i = ψ(ρ_i)"]
     y(["y_i"])
-    theta -->|"ψ soft-max"| p
+    rho -->|"ψ soft-max"| p
     p -.-> y
   end
 
@@ -36,6 +36,6 @@ flowchart TB
   classDef obs fill:#cbd5e1,stroke:#0f172a,stroke-width:1.5px,stroke-dasharray:5 3;
 
   class mu,Sj param;
-  class theta,xj latent;
+  class rho,xj latent;
   class p det;
   class y obs;

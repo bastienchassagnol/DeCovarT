@@ -4,10 +4,10 @@
 \alias{gradient_loglik_constrained}
 \title{Constrained gradient via the chain rule}
 \usage{
-gradient_loglik_constrained(theta, y, mean_signature_matrix, Sigma)
+gradient_loglik_constrained(rho, y, mean_signature_matrix, Sigma)
 }
 \arguments{
-\item{theta}{Numeric vector \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.}
+\item{rho}{Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.}
 
 \item{y}{Numeric vector (or one-column matrix)
 \eqn{\boldsymbol{y}\in\mathbb{R}^{G}}.}
@@ -24,10 +24,10 @@ Numeric vector in \eqn{\mathbb{R}^{J-1}}.
 \description{
 Returns
 \deqn{
-  \nabla_{\boldsymbol{\theta}}\ell
+  \nabla_{\boldsymbol{\rho}}\ell
   =
   \bigl(\nabla_{\boldsymbol{p}}\ell\bigr)^{\mathsf{T}}
-  \mathbf{J}_{\boldsymbol{\psi}}(\boldsymbol{\theta}),
+  \mathbf{J}_{\boldsymbol{\psi}}(\boldsymbol{\rho}),
 }
 i.e. first-order chain rule for
 \eqn{\ell\circ\boldsymbol{\psi}}.

@@ -5,12 +5,12 @@
 \alias{inverse_mapping_function}
 \title{Softmax mapping from unconstrained parameters to the simplex}
 \usage{
-mapping_function(theta)
+mapping_function(rho)
 
 inverse_mapping_function(p)
 }
 \arguments{
-\item{theta}{Numeric vector \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.}
+\item{rho}{Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.}
 
 \item{p}{Numeric vector \eqn{\boldsymbol{p}} on the open simplex.}
 }
@@ -19,27 +19,27 @@ Numeric vector \eqn{\boldsymbol{p}\in\mathbb{R}^{J}} on the unit
 simplex (\eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1},
 \eqn{\boldsymbol{p}\ge\mathbf{0}}).
 
-Numeric vector \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.
+Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
 }
 \description{
 Implements the reparametrisation
-\eqn{\boldsymbol{\psi}:\boldsymbol{\theta}\mapsto\boldsymbol{p}} used in the
+\eqn{\boldsymbol{\psi}:\boldsymbol{\rho}\mapsto\boldsymbol{p}} used in the
 article, sending unconstrained coordinates
-\eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}} to cellular proportions
+\eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}} to cellular proportions
 \eqn{\boldsymbol{p}\in\Delta^{J-1}}.
 
-Recovers \eqn{\theta_j=\ln(p_j/p_J)} for \eqn{j=1,\ldots,J-1}.
+Recovers \eqn{\rho_j=\ln(p_j/p_J)} for \eqn{j=1,\ldots,J-1}.
 }
 \details{
-With \eqn{A=\sum_{k=1}^{J-1}\mathrm{e}^{\theta_k}+1},
+With \eqn{A=\sum_{k=1}^{J-1}\mathrm{e}^{\rho_k}+1},
 \deqn{
-  p_j=\frac{\mathrm{e}^{\theta_j}}{A}\quad(j<J),\qquad
+  p_j=\frac{\mathrm{e}^{\rho_j}}{A}\quad(j<J),\qquad
   p_J=\frac{1}{A}.
 }
 Equivalently,
-\eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\theta})} with
-\eqn{\boldsymbol{\psi}(\boldsymbol{\theta})\propto
-(\mathrm{e}^{\theta_1},\ldots,\mathrm{e}^{\theta_{J-1}},1)^{\mathsf{T}}}.
+\eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})} with
+\eqn{\boldsymbol{\psi}(\boldsymbol{\rho})\propto
+(\mathrm{e}^{\rho_1},\ldots,\mathrm{e}^{\rho_{J-1}},1)^{\mathsf{T}}}.
 }
 \seealso{
 The inverse map is documented as \code{inverse_mapping_function()}

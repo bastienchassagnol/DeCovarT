@@ -94,6 +94,13 @@ test_that("Vefiy that the DeCovarT algorithm is working, using a toy example", {
 })
 
 
+
+
+
+
+
+
+
 test_that("Benchmark standard deconvolution algorithms against DeCovarT", {
   deconvolution_functions <- list(
     "lm" = list(FUN = deconvolute_ratios_abbas),

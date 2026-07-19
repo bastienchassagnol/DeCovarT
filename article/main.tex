@@ -188,7 +188,7 @@
     To assert numerically the relevance of accounting for the correlation
     between expressed transcripts, we designed a simple toy example with two genes
     and two cell proportions. Hence, using the simplex constraint (\ref{eq-simplex-constraint}),
-    we only have to estimate one free unconstrained parameter, $\theta_{1}$, and
+    we only have to estimate one free unconstrained parameter, $\rho_{1}$, and
     then uses the mapping function, defined in Appendix A.3 to recover the
     ratios in their original space.
 
@@ -464,11 +464,11 @@
             $\boldsymbol{x}_{j}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{j},
             \boldsymbol{\Sigma}_{j})$.
             \textbf{c}~Constrained DeCovarT: unconstrained coordinates
-            $\boldsymbol{\theta}_{i}\in\mathbb{R}^{J-1}$ are mapped to the open
+            $\boldsymbol{\rho}_{i}\in\mathbb{R}^{J-1}$ are mapped to the open
             simplex by the $C^{2}$-diffeomorphism
-            $\boldsymbol{\psi}:\boldsymbol{\theta}\mapsto\boldsymbol{p}$ with
-            $p_{j}=e^{\theta_{j}}/(\sum_{k<J}e^{\theta_{k}}+1)$ for $j<J$,
-            $p_{J}=1/(\sum_{k<J}e^{\theta_{k}}+1)$, and inverse
+            $\boldsymbol{\psi}:\boldsymbol{\rho}\mapsto\boldsymbol{p}$ with
+            $p_{j}=e^{\rho_{j}}/(\sum_{k<J}e^{\rho_{k}}+1)$ for $j<J$,
+            $p_{J}=1/(\sum_{k<J}e^{\rho_{k}}+1)$, and inverse
             $\boldsymbol{\psi}^{-1}(\boldsymbol{p})=
             \bigl(\ln(p_{j}/p_{J})\bigr)_{j<J}$
             (Eq.~\ref{eq-mapping-function}).
@@ -1290,7 +1290,7 @@
         To reparametrise the log-likelihood function (\ref{eq-loglikelihood-multivariate-gaussian})
         in order to explicitly handling the unit simplex constraint (\ref{eq-simplex-constraint}),
         we consider the following mapping function: $\boldsymbol{\psi}:\boldsymbol
-        {\theta}\to \boldsymbol{p}\, | \quad \boldsymbol{\theta}\in \RR^{J-1}, \,
+        {\rho}\to \boldsymbol{p}\, | \quad \boldsymbol{\rho}\in \RR^{J-1}, \,
         \boldsymbol{p}\in ]0, 1[^{J}$ (\ref{eq-mapping-function}):
 
         \begin{multicols}{2}
@@ -1298,20 +1298,20 @@
                 \item
                     \begin{equation}
                         \label{eq-mapping-function}\boldsymbol{p}= \boldsymbol{\psi}
-                        (\boldsymbol{\theta}) =
+                        (\boldsymbol{\rho}) =
                         \begin{cases}
-                            p_{j} = \frac{e^{\theta_j}}{\sum_{k < J} e^{\theta_k} \, + \, 1}, \, j < J \\
-                            p_{J} = \frac{1}{\sum_{k < J} e^{\theta_j} + 1}
+                            p_{j} = \frac{e^{\rho_j}}{\sum_{k < J} e^{\rho_k} \, + \, 1}, \, j < J \\
+                            p_{J} = \frac{1}{\sum_{k < J} e^{\rho_j} + 1}
                         \end{cases}
                     \end{equation}
 
-                \item $\boldsymbol{\theta}= \boldsymbol{\psi}^{-1}(\boldsymbol{p}
+                \item $\boldsymbol{\rho}= \boldsymbol{\psi}^{-1}(\boldsymbol{p}
                     ) = \left(\ln{\left( \frac{p_{j}}{p_{J}}\right)}\right)_{j
                     \in \{ 1, \ldots, J -1\}}$
             \end{enumerate}
         \end{multicols}
         that is a $C^{2}$-diffeomorphism, since $\boldsymbol{\psi}$ is a
-        bijection between $\boldsymbol{p}$ and $\boldsymbol{\theta}$ twice
+        bijection between $\boldsymbol{p}$ and $\boldsymbol{\rho}$ twice
         differentiable.
 
         Its Jacobian, $\mathbf{J}_{\boldsymbol{\psi}}\in \mathcal{M}_{J \times (J-1)}$
@@ -1319,21 +1319,21 @@
 
         \begin{equation}
             \label{eq-mapping-function-gradient}\mathbf{J}_{i,j}= \frac{\partial
-            p_{i}}{\partial \theta_{j}}=
+            p_{i}}{\partial \rho_{j}}=
             \begin{cases}
-                \frac{e^{\theta_i}B_{i}}{A^{2} },\quad i = j, \, i < J             \\
-                \frac{-e^{\theta_j}e^{\theta_i}}{A^{2} }, \quad i \neq j, \, i < J \\
-                \frac{-e^{\theta_j}}{A^{2}}, \quad i=J
+                \frac{e^{\rho_i}B_{i}}{A^{2} },\quad i = j, \, i < J             \\
+                \frac{-e^{\rho_j}e^{\rho_i}}{A^{2} }, \quad i \neq j, \, i < J \\
+                \frac{-e^{\rho_j}}{A^{2}}, \quad i=J
             \end{cases}
         \end{equation}
 
         with $i$ indexing vector-valued $\boldsymbol{p}$ and $j$ indexing the
         first-order order partial derivatives of the mapping function, $A=\sum_{j'
-        < J}\,e^{\theta_{j'}}\, + \, 1$ the sum over exponential (denominator of
-        the mapping function) and $B=A - e^{\theta_{i}}$ the sum over ratios minus
+        < J}\,e^{\rho_{j'}}\, + \, 1$ the sum over exponential (denominator of
+        the mapping function) and $B=A - e^{\rho_{i}}$ the sum over ratios minus
         the exponential indexed with the currently considered index $i$.
 
-        The Hessian of the multi-dimensional mapping function $\boldsymbol{\psi (\theta)}$
+        The Hessian of the multi-dimensional mapping function $\boldsymbol{\psi}(\boldsymbol{\rho})$
         exhibits symmetry for each cell ratio component $j$, as anticipated in
         accordance with Schwarz's theorem. It is is a third-order tensor of rank
         $(J-1)(J-1)J$, given by \ref{eq-mapping-function-hessian}:
@@ -1341,18 +1341,18 @@
         \begin{equation}
             \label{eq-mapping-function-hessian}
             \begin{aligned}
-                \frac{\partial^{2} p_{i}}{\partial k \partial j} & = \begin{cases}\frac{e^{\theta_i}e^{\theta_l}\left (-B_{i} + e^{\theta_i}\right)}{A^{3}},\, (i<J) \land \left((i\neq j) \oplus(i\neq k)\right) \quad (a)\\ \frac{2 e^{\theta_i}e^{\theta_j}e^{\theta_k}}{A^{3}}, \, (i<J) \land (i \neq j \neq k) \quad (b)\\ \frac{e^{\theta_i}e^{\theta_j}\left (-A + 2e^{\theta_j}\right)}{A^{3}}, \, (i<J) \land (j=k\neq i) \quad (c)\\ \frac{B_{i} e^{\theta_i}\left( B_{i} - e^{\theta_i}\right)}{A^{3}}, \, (i<J) \land (j = k = i) \quad (d)\\ \frac{e^{\theta_j}\left( -A + 2 e^{\theta_j}\right)}{A^{3}}, \, (i=J) \land (j = k) \quad (e)\\ \frac{2 e^{\theta_j}e^{\theta_k}}{A^{3}}, \, (i=J) \land (j \neq k) \quad (f)\end{cases}
+                \frac{\partial^{2} p_{i}}{\partial k \partial j} & = \begin{cases}\frac{e^{\rho_i}e^{\rho_l}\left (-B_{i} + e^{\rho_i}\right)}{A^{3}},\, (i<J) \land \left((i\neq j) \oplus(i\neq k)\right) \quad (a)\\ \frac{2 e^{\rho_i}e^{\rho_j}e^{\rho_k}}{A^{3}}, \, (i<J) \land (i \neq j \neq k) \quad (b)\\ \frac{e^{\rho_i}e^{\rho_j}\left (-A + 2e^{\rho_j}\right)}{A^{3}}, \, (i<J) \land (j=k\neq i) \quad (c)\\ \frac{B_{i} e^{\rho_i}\left( B_{i} - e^{\rho_i}\right)}{A^{3}}, \, (i<J) \land (j = k = i) \quad (d)\\ \frac{e^{\rho_j}\left( -A + 2 e^{\rho_j}\right)}{A^{3}}, \, (i=J) \land (j = k) \quad (e)\\ \frac{2 e^{\rho_j}e^{\rho_k}}{A^{3}}, \, (i=J) \land (j \neq k) \quad (f)\end{cases}
             \end{aligned}
         \end{equation}
 
         with $i$ indexing $\boldsymbol{p}$, $j$ and $k$ respectively indexing
         the first-order and second-order partial derivatives of the mapping
-        function with respect to $\boldsymbol{\theta}$. In line $(a)$, $\oplus$
+        function with respect to $\boldsymbol{\rho}$. In line $(a)$, $\oplus$
         refers to the Boolean XOR operator, $\land$ to the AND operator and $l=\{
         j,k\} \setminus i$.
 
         To derive the log-likelihood function in \ref{eq-derivative-log-likelihood-unconstrained},
-        we reparametrise $\boldsymbol{p}$ to $\boldsymbol{\theta}$, using a standard
+        we reparametrise $\boldsymbol{p}$ to $\boldsymbol{\rho}$, using a standard
         \textit{chain rule formula}. Considering the original log-likelihood function,
         \ref{eq-loglikelihood-multivariate-gaussian}, and the mapping function,
         \ref{eq-mapping-function}, the differential at the first order and at the
@@ -1362,21 +1362,21 @@
         \begin{equation}
             \label{eq-chain-rule-first-order}
             \begin{bmatrix}
-                \frac{\partial \ell_{\boldsymbol{y} | \boldsymbol{\zeta}}}{\partial \theta_{j}}
+                \frac{\partial \ell_{\boldsymbol{y} | \boldsymbol{\zeta}}}{\partial \rho_{j}}
             \end{bmatrix}_{j < J}= \sum_{i=1}^{J} \frac{\partial \ell_{\boldsymbol{y}
             | \boldsymbol{\zeta}}}{\partial p_{i}}\frac{\partial p_{i}}{\partial
-            \theta_{j}}
+            \rho_{j}}
         \end{equation}
 
         \begin{equation}
             \label{eq-chain-rule-second-order}
             \begin{bmatrix}
-                \frac{\partial \ell_{\boldsymbol{y}|\boldsymbol{\zeta}}^{2} }{\partial \theta_{k} \theta_{j}}
+                \frac{\partial \ell_{\boldsymbol{y}|\boldsymbol{\zeta}}^{2} }{\partial \rho_{k} \rho_{j}}
             \end{bmatrix}_{j < J, \, k < J}= \sum_{i=1}^{J} \sum_{l=1}^{J} \left(
-            \frac{\partial p_{i} }{\partial \theta_{j}}\frac{\partial^{2} \ell_{\boldsymbol{y}|\boldsymbol{\zeta}}}{\partial
-            p_{i} \partial p_{l}}\frac{\partial p_{l} }{\partial \theta_{k}}\right
+            \frac{\partial p_{i} }{\partial \rho_{j}}\frac{\partial^{2} \ell_{\boldsymbol{y}|\boldsymbol{\zeta}}}{\partial
+            p_{i} \partial p_{l}}\frac{\partial p_{l} }{\partial \rho_{k}}\right
             ) \, + \, \sum_{i=1}^{J} \left( \frac{\partial \ell_{\boldsymbol{y}|\boldsymbol{\zeta}}}{\partial
-            p_{i}}\frac{\partial^{2} p_{i} }{\partial \theta_{k} \theta_{j}}\right
+            p_{i}}\frac{\partial^{2} p_{i} }{\partial \rho_{k} \rho_{j}}\right
             ) \quad (d)
         \end{equation}
 
