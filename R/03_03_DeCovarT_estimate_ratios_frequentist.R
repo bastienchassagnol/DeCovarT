@@ -1,4 +1,3 @@
-
 # Algebraic operations ------------------------------------------------------
 
 #' @title Mapping function
@@ -48,25 +47,30 @@ inverse_mapping_function <- function(p) {
   return(global_cov)
 }
 
-
-# First-order derivatives -------------------------------------------------
-
-
+# Log-likelihood function, aka the objective function -------------------------------------------------
 
 # log-likelihood multivariate function
 loglik_multivariate <- function(p, y, mean_signature_matrix, Sigma) {
   global_cov_matrix <- .compute_global_variance(p, Sigma)
   log_lik <- -log(det(global_cov_matrix)) -
-    1 / 2 * .maha_distance(y - mean_signature_matrix %*% p, global_cov_matrix) |> as.numeric()
+    1 /
+      2 *
+      .maha_distance(y - mean_signature_matrix %*% p, global_cov_matrix) |>
+        as.numeric()
   return(log_lik)
 }
 
 
-loglik_multivariate_constrained <- function(theta, y, mean_signature_matrix, Sigma) {
+loglik_multivariate_constrained <- function(
+  theta,
+  y,
+  mean_signature_matrix,
+  Sigma
+) {
   # switch from variable
   p <- mapping_function(theta)
   log_lik <- loglik_multivariate(p, y, mean_signature_matrix, Sigma)
-  if (!check_parameters(p)) {
+  if (any(p < 100 * .Machine$double.eps | p > 1 - 100 * .Machine$double.eps)) {
     # if the ratios returned present numerical underflows
     warning(paste(
       "Thee ratios are given by",
@@ -74,16 +78,12 @@ loglik_multivariate_constrained <- function(theta, y, mean_signature_matrix, Sig
       "and loglik is: ",
       log_lik
     ))
-    # if (length(theta) > 1) {
-    #   # more than two components, then we can drop the minimal index
-    #   irrelevant_ratios <- which(p < 100 * .Machine$double.eps)
-    #   p <- p[-irrelevant_ratios]; mean_signature_matrix <- mean_signature_matrix[, -irrelevant_ratios]; Sigma <- Sigma[,,-irrelevant_ratios]
-    #   log_lik <- loglik_multivariate(p, y, mean_signature_matrix, Sigma) # update with modified parameters
-    # }
   }
   return(log_lik)
 }
 
+
+# First-order derivatives -------------------------------------------------
 
 # Jacobian mapping function
 jacobian_mapping_function <- function(theta) {
@@ -120,8 +120,12 @@ gradient_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
       gradient_unconstrained,
       -2 *
         p[j] *
-        tr(global_precision_matrix %*% Sigma[,, j]) +
-        .dot_product(y - mean_signature_matrix %*% p, global_precision_matrix, mean_signature_matrix[, j]) +
+        sum(diag(global_precision_matrix %*% Sigma[,, j])) +
+        .dot_product(
+          y - mean_signature_matrix %*% p,
+          global_precision_matrix,
+          mean_signature_matrix[, j]
+        ) +
         p[j] *
           .dot_product(
             y - mean_signature_matrix %*% p,
@@ -133,19 +137,25 @@ gradient_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
 }
 
 
-## Actual first-order likelihood cancelled out -------------------------------------------
-
-gradient_loglik_constrained <- function(theta, y, mean_signature_matrix, Sigma) {
+gradient_loglik_constrained <- function(
+  theta,
+  y,
+  mean_signature_matrix,
+  Sigma
+) {
   p <- mapping_function(theta)
-  gradient_constrained <- gradient_loglik_unconstrained(p, y, mean_signature_matrix, Sigma) %*%
+  gradient_constrained <- gradient_loglik_unconstrained(
+    p,
+    y,
+    mean_signature_matrix,
+    Sigma
+  ) %*%
     jacobian_mapping_function(theta)
   return(gradient_constrained)
 }
 
 
-
 # Second-order derivatives ------------------------------------------------
-
 
 # Hessian mapping function
 hessian_mapping_function <- function(theta) {
@@ -217,13 +227,17 @@ hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
       hessian_unconstrained[i, j] <- 4 *
         p[i] *
         p[j] *
-        tr(
+        sum(diag(
           global_precision_matrix %*%
             Sigma[,, i] %*%
             global_precision_matrix %*%
             Sigma[,, j]
+        )) -
+        .dot_product(
+          mean_signature_matrix[, i],
+          global_precision_matrix,
+          mean_signature_matrix[, j]
         ) -
-        .dot_product(mean_signature_matrix[, i], global_precision_matrix, mean_signature_matrix[, j]) -
         2 *
           p[i] *
           .dot_product(
@@ -252,7 +266,7 @@ hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
       if (i == j) {
         # add diagonal terms
         hessian_unconstrained[i, i] <- hessian_unconstrained[i, i] -
-          2 * tr(global_precision_matrix %*% Sigma[,, i]) +
+          2 * sum(diag(global_precision_matrix %*% Sigma[,, i])) +
           .dot_product(
             y - mean_signature_matrix %*% p,
             global_precision_matrix %*% Sigma[,, i] %*% global_precision_matrix
@@ -267,8 +281,6 @@ hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
   return(hessian_unconstrained)
 }
 
-
-## Actual second-order function optimised ------------------------------------------------
 
 hessian_loglik_constrained <- function(theta, y, mean_signature_matrix, Sigma) {
   p <- mapping_function(theta)
@@ -287,9 +299,7 @@ hessian_loglik_constrained <- function(theta, y, mean_signature_matrix, Sigma) {
 }
 
 
-
 # DeCovarT core optimisation algorithms -----------------------------------
-
 
 #' Deconvolution algorithm itself, for a given sample.
 #'
@@ -419,7 +429,7 @@ deconvolute_ratios_simulated_annealing <- function(
 #' that allows addtional box constraints (here we impose the ratios to be strictly included between 0 and 1)
 #' when inferring the simulated ratios, see also [stats::optim()] with `method="L-BFGS-B"` for more details
 
-deconvolute_ratios_LBFGS <- function(
+deconvolute_ratios_L_BFGS_B <- function(
   y,
   mean_signature_matrix,
   Sigma,
@@ -452,64 +462,6 @@ deconvolute_ratios_LBFGS <- function(
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
   return(metrics_scores)
 }
-
-#' @describeIn deconvolute_ratios_Marquardt_Levenberg An adaptive barrier algorithm enforcing linear inequality constraints.
-#' See also [stats::constrOptim()] for more details. Unfortunately, strict equality constraints coupled with inequality boxes
-#' are not possible in this method, so we just impose that that the ratios are included between 0 and 1, and
-#' that the sum should be inferior to the actual observed global bulk expression.
-
-deconvolute_ratios_constrOptim <- function(
-  y,
-  mean_signature_matrix,
-  Sigma,
-  true_ratios = NULL,
-  epsilon = 10^-4,
-  itmax = 200
-) {
-  initial_p <- rep(1 / ncol(mean_signature_matrix), ncol(mean_signature_matrix)) # consider by hypothesis equi-balanced proportions between cell populations
-
-  ui <- diag(nrow = length(initial_p))
-  ci <- rep(0, length(initial_p)) # encode the non-negativity constraint
-
-  # encode the sum-to-one constraint, converting inequality into equality
-  # ui <- diag(nrow=length(initial_p)-1); ci <- rep(0, length(initial_p))
-  # ui <- rbind(ui, rep(1, length(initial_p)), rep(-1, length(initial_p))); ci <- c(ci,1,-1)
-  ui <- rbind(ui, rep(1, length(initial_p)))
-  ci <- c(ci, 1) # can not make an exact equality
-
-  # add some perturbation to start the iteration
-  estimated_p <- stats::constrOptim(
-    theta = initial_p + epsilon,
-    f = loglik_multivariate,
-    grad = gradient_loglik_unconstrained,
-    ui = ui,
-    ci = ci,
-    control = list(
-      fnscale = -1,
-      maxit = itmax,
-      reltol = epsilon,
-      abstol = epsilon
-    ),
-    method = "BFGS",
-    outer.iterations = itmax,
-    outer.eps = epsilon,
-    y = y,
-    mean_signature_matrix = mean_signature_matrix,
-    Sigma = Sigma
-  )$par |>
-    stats::setNames(colnames(mean_signature_matrix)) |>
-    enforce_identifiability()
-
-  metrics_scores <- compute_benchmark_metrics(
-    y,
-    mean_signature_matrix,
-    estimated_p,
-    true_ratios
-  ) |>
-    dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
-  return(metrics_scores)
-}
-
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg A standard second-order descent based algorithm,
 #' which reveals equivalent to perform a Newton's Raphson algorithm to retrieve the roots of the
@@ -566,8 +518,7 @@ deconvolute_ratios_Newton_Raphson <- function(
 }
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg A standard first-order descent based algorithm,
-#' using the BFGS algorithm, see also [stats::optim] with option `method="BFGS`. We provide an explicit formula
-#' of the reparametrised log-likelihood function, as well as its gradient.
+#' using the BFGS algorithm, see also [stats::optim] with option `method="BFGS`.
 
 deconvolute_ratios_gradient_descent <- function(
   y,
@@ -609,34 +560,3 @@ deconvolute_ratios_gradient_descent <- function(
     dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
   return(metrics_scores)
 }
-
-
-#' Compute the maximum a posteriori for a sum of Gaussian variables
-#'
-#' @param y Parameter `y`: \eqn{\boldsymbol{y}=(y_{g}) \in \mathbb{R}^{G}},
-#' storing the measured expression of the `G` genes in the heterogeneous sample
-#' @param mean_signature_matrix Parameter `mu`: \eqn{\boldsymbol{\mu}=(\mu_{g,j}) \in \mathbb{R}^{G \times J}},
-#' storing in each each column the averaged expression of the `G` genes of the `J` cell populations.
-#' @param Sigma A tensor storing for each cell type the GRN structure:
-#'  \eqn{\mathrm{\Sigma}=(\Sigma_{l, k, j}) \in \mathbb{R}^{G \times G \times J}}, with each matrix
-#' \eqn{\Sigma_{..j}, j \in \{ 1, \ldots, J\}} storing the covariance matrix
-#' describing the covariance transcriptomic structure of a given cell population \eqn{j}
-
-.map_gaussian_convolution <- function(y, mean_signature_matrix, Sigma) {
-  
-  J <- ncol(mean_signature_matrix)
-# compute intermediate calculations ---------------------------------------
-  global_variance <- .compute_global_variance(p = c(1, 1),
-                                              Sigma = Sigma)
-  residual <- y - rowSums(mean_signature_matrix)
-  global_precision_matrix <- solve(global_variance)
-
-
-# MAP, aka cell type specific expression, for each cell type --------------
-  map_multivariate_gaussian <- lapply(seq_len(J), function(j) {
-    mean_signature_matrix[,j, drop = FALSE] + Sigma[, ,j] %*% global_precision_matrix %*% residual
-  })
-  
-  return(map_multivariate_gaussian)
-}
-

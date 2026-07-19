@@ -33,6 +33,7 @@ Imports:
     magrittr,
     marqLevAlg,
     MASS,
+    Matrix,
     methods,
     Metrics,
     MixSim,

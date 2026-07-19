@@ -44,28 +44,6 @@ simulate_bulk_mixture <- function(
     stop("Cell types differ between expected and covariance expression")
   }
 
-  ##################################################################
-  ##            remove undefined covariance structures            ##
-  ##################################################################
-  # # first remove all cell types associated to a undefinite cov matrix
-  # valid_celltypes <- purrr::discard(
-  #   colnames(signature_matrix),
-  #   ~ Sigma |>
-  #     magrittr::extract(,, .mean_signature_matrix) |>
-  #     is.na() |>
-  #     any()
-  # )
-  # # second, remove all cell types associated to a non-positive definite matrix
-  # valid_celltypes <- purrr::keep(
-  #   valid_celltypes,
-  #   ~ Sigma |>
-  #     magrittr::extract(,, .mean_signature_matrix) |>
-  #     is_positive_definite()
-  # )
-  # # only keep cell_types associated to sound covariance structures
-  # Sigma <- Sigma[,, valid_celltypes]
-  # signature_matrix <- signature_matrix[, valid_celltypes]
-
   ##### simulation
   valid_celltypes <- colnames(signature_matrix)
   names_genes <- row.names(signature_matrix)
@@ -95,10 +73,6 @@ simulate_bulk_mixture <- function(
     mean_signature_matrix[, cell_name, ] <- t(expression_per_celltype)
   }
 
-  # Y_test <- matrix(0, nrow = nrow(signature_matrix), ncol = n, dimnames = list(names_genes, paste0("sample_", 1:n)))
-  # for (i in 1:n) {
-  #   Y_test[,i] <- mean_signature_matrix[,,i] %*% proportions
-  # }
 
   Y <- tensor::tensor(p, B = mean_signature_matrix, alongA = 1, alongB = 2) # tensor product does directly the computation mean_signature_matrix %*% p
   return(list(mean_signature_matrix = mean_signature_matrix, Y = Y))
@@ -256,7 +230,6 @@ benchmark_deconvolution_algorithms_two_genes <- function(
                       S = Sigma
                     )$BarOmega |>
                       signif(digits = 3)
-                    # hellinger <- hellinger_average(p, mu, Sigma) |> round(digits = 4)
 
                     estimated_ratios <- suppressWarnings(deconvolute_ratios(
                       signature_matrix = mu,

@@ -65,7 +65,7 @@ update the function to accept a numerical vector instead)}
 and we do not scale the dataset, since our deconvolution algorithm assumes a multivariate Gaussian distribution on the raw counts themselves.}
 
 \item{cores}{For a parallel estimation of ratios in a series of bulk samples,
-assign a number of cores strictly inferior to the number of cores avalaible
+assign a number of cores strictly inferior to the number of cores available
 on your machine. By default, the maximum, minus in Unix systems, and for
 OS compatibility, only one on Windows machines}
 }

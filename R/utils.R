@@ -46,7 +46,7 @@ enforce_parameter_identifiability <- function(theta) {
   ordered_theta <- list(
     p = theta$p[ordered_components],
     mu = theta$mu[, ordered_components],
-    sigma = theta$sigma[, , ordered_components]
+    sigma = theta$sigma[,, ordered_components]
   )
 
   # enforce sum-to-one constraint
@@ -55,37 +55,9 @@ enforce_parameter_identifiability <- function(theta) {
 }
 
 
-#' Check if the estimation has been trapped in the boundary space
-#'
-#' * Function `check_parameters` asserts at each step of the maximisation,
-#' we do not fall in a degenerate case or a non invertible. This especially occurs when one of
-#' the ratios converge to 0 or 1, implying to decrease by a factor 1 the dimension.
-#'
-#' @param p the ratios estimated
-#' @return a boolean, set to FALSE whenever one of the ratios is numerically NULL
-
-#' @export
-
-check_parameters <- function(p) {
-  machine_limit <- .Machine$double.eps
-  if (any(p < 100 * machine_limit | p > 1 - 100 * machine_limit)) {
-    warning(paste0("Cell ratio with index ", which(p < 100 * machine_limit), " is missing in the sample."))
-    return(FALSE)
-  } else {
-    return(TRUE)
-  }
-}
-
-
-
 is_positive_definite <- function(expression, tol = 1e-6) {
   eigen_values <- eigen(expression, symmetric = TRUE)$values # already sorted by decreasing order
   return(all(eigen_values >= -tol * abs(eigen_values[1])))
-}
-
-# trace operator
-tr <- function(A) {
-  return(sum(diag(A)))
 }
 
 #' Compute the shannon entropy of a discrete distribution, normalised from 0 to 1 (equibalanced classes)
@@ -95,7 +67,6 @@ tr <- function(A) {
 #' @param ratios vector of the proportions of the mixture
 #' @return the entropy score
 #' @export
-
 
 compute_shannon_entropy <- function(ratios) {
   if (min(ratios) < 0 | max(ratios) > 1) {
@@ -109,45 +80,6 @@ compute_shannon_entropy <- function(ratios) {
   # entropy included between 0 (one component storing all information) and 1 (uniform distribution, balanced classes)
   return(-sum(ratios * logb(ratios, base = length(ratios))))
 }
-
-
-#' Compute the Hellinger distance
-#' @param mu1,Sigma1 mean and (co)variance of the first Gaussian distribution (can be either univariate or multivariate)
-#' @param mu2,Sigma2 mean and (co)variance of the second Gaussian distribution
-#' @return the Hellinger distance between two multivariate Gaussian distributions
-hellinger <- function(mu1, Sigma1, mu2, Sigma2) {
-  p <- length(mu1)
-  d <- mu1 - mu2
-  # in univariate dimension
-  if (p == 1) {
-    vars <- Sigma1^2 + Sigma2^2
-    bc <- sqrt(2 * Sigma1 * Sigma2 / vars) * exp((-1 / 4) * d^2 / vars) # Bhattacharyya coefficient
-    return(sqrt(abs(1 - bc)))
-  }
-  # in multivariate dimension
-  else {
-    vars <- (Sigma1 + Sigma2) / 2
-    hell_dist <- det(Sigma1)^(1 / 4) * det(Sigma2)^(1 / 4) / det(vars)^(1 / 2) *
-      exp((-1 / 8) * .maha_distance(d, vars))
-    return(sqrt(1 - hell_dist) |> as.numeric())
-  }
-}
-
-hellinger_average <- function(p, signature_matrix, cov_matrix) {
-  pairwise_hellinger <- c()
-  for (i in 1:(ncol(signature_matrix) - 1)) {
-    for (j in (i + 1):ncol(signature_matrix)) {
-      # compute Hellinger distance between component i and component j, weighted by their respective proportion
-      hellinger_value <- hellinger(
-        mu1 = p[i] * signature_matrix[, i], Sigma1 = p[i]^2 * cov_matrix[, , i],
-        mu2 = p[j] * signature_matrix[, j], Sigma2 = p[j]^2 * cov_matrix[, , j]
-      )
-      pairwise_hellinger <- c(pairwise_hellinger, hellinger_value)
-    }
-  }
-  return(mean(pairwise_hellinger))
-}
-
 
 #' Compute average overlap between components
 #'
@@ -164,7 +96,6 @@ hellinger_average <- function(p, signature_matrix, cov_matrix) {
 #'
 #' @export
 
-
 compute_average_overlap <- function(true_theta, k = length(true_theta$p)) {
   # generate relevant values for the computation of the overlap
   misclassif_mat <- MixSim::overlap(
@@ -178,7 +109,10 @@ compute_average_overlap <- function(true_theta, k = length(true_theta$p)) {
   # generate the average of pairwise overlaps
   for (i in 1:(k - 1)) {
     for (j in (i + 1):k) {
-      pairwise_overlap <- c(pairwise_overlap, misclassif_mat[i, j] * p[i] + misclassif_mat[j, i] * p[j])
+      pairwise_overlap <- c(
+        pairwise_overlap,
+        misclassif_mat[i, j] * p[i] + misclassif_mat[j, i] * p[j]
+      )
     }
   }
   return(mean(pairwise_overlap))
