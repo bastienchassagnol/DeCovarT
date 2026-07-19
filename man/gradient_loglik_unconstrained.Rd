@@ -2,53 +2,57 @@
 % Please edit documentation in R/03_03_DeCovarT_estimate_ratios_frequentist.R
 \name{gradient_loglik_unconstrained}
 \alias{gradient_loglik_unconstrained}
-\title{Gradient of the unconstrained multivariate Gaussian log-likelihood}
+\title{Gradient \eqn{\nabla_{\boldsymbol{p}}\ell} of the unconstrained log-likelihood}
 \usage{
 gradient_loglik_unconstrained(p, y, mean_signature_matrix, Sigma)
 }
 \arguments{
-\item{p}{Numeric vector of cellular proportions.}
+\item{p}{Numeric vector \eqn{\boldsymbol{p}\in\mathbb{R}^{J}}.}
 
-\item{y}{Numeric vector (or one-column matrix) of bulk expression.}
+\item{y}{Numeric vector (or one-column matrix)
+\eqn{\boldsymbol{y}\in\mathbb{R}^{G}}.}
 
-\item{mean_signature_matrix}{Numeric matrix of purified mean expression
-profiles (genes \eqn{\times} cell types).}
+\item{mean_signature_matrix}{Numeric matrix
+\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}}.}
 
-\item{Sigma}{Three-dimensional array of cell-type-specific covariance
-matrices.}
+\item{Sigma}{Array of cell-type covariances in
+\eqn{\mathcal{M}_{G\times G\times J}}.}
 }
 \value{
-Numeric vector of partial derivatives
-\eqn{\partial \ell / \partial p_j}.
+Numeric vector
+\eqn{\nabla_{\boldsymbol{p}}\ell\in\mathbb{R}^{J}}.
 }
 \description{
-Analytic gradient of \code{loglik_multivariate()} with respect to the cellular
-proportions \eqn{\boldsymbol{p}}.
+Analytic gradient of \code{\link[=loglik_multivariate]{loglik_multivariate()}} with respect to
+\eqn{\boldsymbol{p}}. Writing
+\eqn{\boldsymbol{\Theta}=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}} and
+\eqn{\boldsymbol{r}=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}}, the
+\eqn{j}-th coordinate is
+\deqn{
+  \frac{\partial\ell}{\partial p_j}
+  =
+  -2p_j\,\mathrm{Tr}\!\bigl(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\bigr)
+  +\boldsymbol{r}^{\mathsf{T}}\boldsymbol{\Theta}\boldsymbol{\mu}_{\cdot j}
+  +p_j\,\boldsymbol{r}^{\mathsf{T}}
+  \boldsymbol{\Theta}\boldsymbol{\Sigma}_j\boldsymbol{\Theta}\boldsymbol{r}.
+}
 }
 \details{
-Unit tests compare this analytic gradient to a numerical reference obtained
-with \code{\link[numDeriv:grad]{numDeriv::grad()}} applied to \code{loglik_multivariate()}. For that check,
-the Richardson method is preferred; the main tuning knobs are passed through
-\code{method.args}:
+Unit tests compare this analytic gradient to a numerical reference from
+\code{\link[numDeriv:grad]{numDeriv::grad()}} applied to \code{\link[=loglik_multivariate]{loglik_multivariate()}}. For that check the
+Richardson method is preferred; main \code{method.args} knobs:
 \describe{
-\item{\code{eps}}{Initial finite-difference step size (default
-\code{1e-4}). Smaller values reduce truncation error but amplify
-floating-point noise; increase if the likelihood surface is poorly scaled.}
-\item{\code{r}}{Number of Richardson extrapolation iterations (default
-\code{4}). Raising \code{r} (e.g. to \code{6} in the package tests)
-usually improves accuracy more safely than shrinking \code{eps} alone,
-at the cost of more likelihood evaluations.}
-\item{\code{d}, \code{v}}{Relative step factor and geometric reduction of
-the step between extrapolations (default \code{v = 2}). Rarely need
-changing for smooth objectives.}
-\item{\code{zero.tol}, \code{show.details}}{Tolerance near zero and optional
-verbose diagnostics; see \code{?numDeriv::grad}.}
+\item{\code{eps}}{Initial finite-difference step (default \code{1e-4}).}
+\item{\code{r}}{Number of Richardson extrapolations (default \code{4}; tests
+use \code{6}). Raising \code{r} usually improves accuracy more safely than
+shrinking \code{eps} alone.}
+\item{\code{d}, \code{v}}{Relative step factor and geometric reduction
+between extrapolations (default \code{v = 2}).}
+\item{\code{zero.tol}, \code{show.details}}{See \code{?numDeriv::grad}.}
 }
-Alternative \code{method} values are \code{"simple"} (one-sided differences,
-cheaper but less accurate) and \code{"complex"} (complex-step derivative,
-very accurate when the objective supports complex arithmetic).
+Alternative \code{method} values: \code{"simple"} and \code{"complex"}.
 }
 \seealso{
-\code{\link[numDeriv:grad]{numDeriv::grad()}}
+\code{\link[numDeriv:grad]{numDeriv::grad()}}, \code{\link[=hessian_loglik_unconstrained]{hessian_loglik_unconstrained()}}
 }
 \keyword{internal}

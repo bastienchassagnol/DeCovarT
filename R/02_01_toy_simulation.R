@@ -1,27 +1,38 @@
-#' Simulate bulk mixtures
+#' Simulate bulk mixtures from a Gaussian convolution
 #'
-#' @description Using user defined parameters \eqn{p}, \eqn{\boldsymbol{mean_signature_matrix}} and
-#' \eqn{\boldsymbol{cov}}, simulate virtual bulk mixtures, using standard linear
-#' constraint of deconvolution algorithms, namely:
-#' \deqn{\boldsymbol{\hat{y}}=\boldsymbol{mean_signature_matrix} \times \hat{\boldsymbol{p}}}
+#' @description
+#' Draws purified profiles
+#' \eqn{\boldsymbol{x}_j\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},
+#' \boldsymbol{\Sigma}_j)} independently for each cell type and forms bulk
+#' observations by the linear mixture
+#' \deqn{
+#'   \boldsymbol{y}_{\cdot i}
+#'   =\boldsymbol{\mu}^{(i)}\boldsymbol{p}
+#'   =\sum_{j=1}^{J}p_j\,\boldsymbol{x}_j^{(i)},
+#' }
+#' matching the article's conditional model
+#' \eqn{\boldsymbol{y}\,|\,(\boldsymbol{\zeta},\boldsymbol{p})\sim
+#' \mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},
+#' \boldsymbol{\Sigma}(\boldsymbol{p}))} with
+#' \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}\boldsymbol{\Sigma}_j}.
 #'
-#' @inheritParams deconvolute_ratios
-#' @param p The ratios to estimate (by default, equi-balanced cellular
-#' proportions are simulated)
-#' @param n The integer number of samples to generate
+#' @param signature_matrix Mean matrix
+#'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}}.
+#' @param Sigma Array of covariances
+#'   \eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}}.
+#' @param p Proportion vector \eqn{\boldsymbol{p}\in\Delta^{J-1}}
+#'   (default: uniform).
+#' @param n Number of bulk samples \eqn{n}.
 #'
-#' @import ggplot2
-#' @return list with two items:
-#' * \eqn{\boldsymbol{mean_signature_matrix}:\left(x_{g,j,i}\right)_{1\le g\le G, 1\le j \le J, 1\le i \le N}}:
-#' the simulated purified expression profiles, stored in
-#' a three-dimensional array, each array storing the simulated expression of the
-#' \eqn{J} cell populations for a given individual \eqn{i}
-#' * \eqn{\boldsymbol{Y} \in \mathcal{M}_{G \times N}^+}: a two-dimensional matrix storing the virtually
-#' simulated bulk mixtures. Each column \eqn{\boldsymbol{y_{.i}}} stores for individual \eqn{i}
-#' the expression value of the \eqn{G} genes, while attribute row.names is used
-#' to uniquely identify each of them.
+#' @return A list with:
+#' * `mean_signature_matrix`: array
+#'   \eqn{(x_{gji})\in\mathcal{M}_{G\times J\times N}} of simulated purified
+#'   profiles;
+#' * `Y`: matrix \eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}} whose columns
+#'   are bulk vectors \eqn{\boldsymbol{y}_{\cdot i}}.
+#'
 #' @export
-
+#' @seealso [deconvolute_ratios()], [benchmark_bivariate_gaussian_convolutions()]
 simulate_bulk_mixture <- function(
   signature_matrix,
   Sigma,
@@ -78,63 +89,38 @@ simulate_bulk_mixture <- function(
 }
 
 
-#' Benchmark two-component cell populations
+#' Benchmark bivariate Gaussian convolutions
 #'
-#' @description It is a highly specific wrapper function, used to reproduce the results
-#' for the bivariate toy example provided in the paper associated to this package.
-#' Precisely, it has been designed to predict the performance of a variety of deconvolution
-#' algorithms, in the specific framework where two cell populations are characterised
-#' by two genes.
+#' @description
+#' Wrapper reproducing the bivariate (\eqn{G=2}, \eqn{J=2}) toy study of the
+#' article: for each scenario it builds
+#' \eqn{\boldsymbol{\mu}} and
+#' \eqn{(\boldsymbol{\Sigma}_j)_{j}}, simulates
+#' \eqn{\boldsymbol{Y}} via [simulate_bulk_mixture()], and deconvolves with the
+#' supplied algorithms. Performance is summarised against entropy of
+#' \eqn{\boldsymbol{p}} and overlap of the Gaussian mixture.
 #'
-#' @details Purpose of this toy example was to evaluate the quality of the benchmark
-#' with respect to the level of entropy (the global population disequilibrium)
-#' and the overlap, in a two dimensional convolution of Gaussian mixture distributions.
+#' @details
+#' Designed for two cell types and two genes. Larger \eqn{(G,J)} with only
+#' bivariate observations is prone to non-identifiability.
 #'
+#' @param proportions List of simplex vectors \eqn{\boldsymbol{p}}.
+#' @param signature_matrices List of mean matrices
+#'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{2\times 2}^{+}}.
+#' @param corr_sequence,diagonal_terms Correlation sequence and diagonal
+#'   variance templates used to assemble
+#'   \eqn{\boldsymbol{\Sigma}_j=\mathrm{D}_{j}^{1/2}\mathbf{R}_j\mathrm{D}_{j}^{1/2}}.
+#' @param deconvolution_functions Named list of deconvolution callables
+#'   (each with `FUN` and optional `additional_parameters`).
+#' @param n Number of bulk replicates \eqn{N} per scenario.
+#' @param scaled Logical; whether to log-scale inputs before estimation.
+#' @param cores Parallel workers for [deconvolute_ratios()].
 #'
-#' @note In a near future, we would provide an additional and more flexible
-#' benchmark, however, till now, we strongly do not recommend to benchmark
-#' virtual mixtures with more than two populations, since, with only two genes,
-#' you are likely to come across strong identifiability issues.
+#' @return A list with `config` (design + entropy/overlap) and `simulations`
+#'   (estimation tibble).
 #'
-#' @inheritParams deconvolute_ratios
-#' @param proportions A list of numerical vectors, assumed each to respect the unit
-#' simplex constraint:
-#' \deqn{\begin{cases} \sum_{j=1}^J p_{j}=1\\ \forall j \in \widetilde{J} \quad p_j\ge 0 \end{cases}}
-#' @param signature_matrices A list of bivariate matrices, in \eqn{\mathcal{M}_{G \times J}^+}
-#'  storing the purified expression profiles of the \eqn{J} cell populations of the sample.
-#'  This parameter is especially useful to assert the performance of the deconvolution
-#'  algorithms, as a function of the proximity of the respective centroids (mean
-#'  expression profiles) of the evaluated cell populations.
-#' @param diagonal_terms,corr_sequence Together, these parameters control the
-#' characteristics of the array of covariance matrices used to model the transcriptomic
-#' network structure of each cell population:
-#' * A numeric vector, strictly included between -1 and 1, is expected for
-#' param `corr_sequence`. Each paired arrangement of correlation for both cell
-#' populations will be used to describe the pairwise correlation level between
-#' gene 1 and gene 2.
-#' * A list of numeric vectors, used to parametrise the diagonal terms of
-#' the covariance matrix, is expected for param `diagonal_terms`. Explicit
-#' names can be given as well to properly identify a scenario.  By default,
-#' we compare a standard \emph{homoscedastic} scenario, in which we assume a constant diagonal term
-#' of 1 for both genes, with a \emph{heteroscedastic} scenario, in which we assign
-#' a variance of 2 for gene 2, for both cell populations. Finally, the covariance
-#' matrix is computed and normalised back to integrate both constraints, using
-#' following matricial relationship, linking the value of a correlation matrix with
-#' its respective covariance matrix:
-#' \deqn{\text{Cov}(\boldsymbol{mean_signature_matrix}) = \text{diag}\left[(\text{Var}(\boldsymbol{mean_signature_matrix})\right]^{1/2} \times \text{Cor}(\boldsymbol{mean_signature_matrix}) \times \text{diag}\left[(\text{Var}(\boldsymbol{mean_signature_matrix})\right]^{1/2}}
-#' @param n The number of samples to generate (an integer, but upon request, we may
-#' update the function to accept a numerical vector instead)
-#'
-#' @return a two-entry list, with:
-#' * `config`: the complete parameter configuration used to generate the benchmark
-#' including the list of parameters, as well as some general metrics, such as the
-#' overlap and the entropy of the convolution of GMMs used
-#' * `simulations`: the results of the simulations themselves,
-#' mostly similar to the output of [deconvolute_ratios]
-#'
-#' @seealso [deconvolute_ratios()]
 #' @export
-
+#' @seealso [simulate_bulk_mixture()], [deconvolute_ratios()]
 benchmark_bivariate_gaussian_convolutions <- function(
   proportions = list(
     "balanced" = c(0.5, 0.5),

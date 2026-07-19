@@ -3,24 +3,24 @@
 \docType{data}
 \name{bivariate_configuration}
 \alias{bivariate_configuration}
-\title{Bivariate parameter configuration}
+\title{Bivariate simulation design grid}
 \format{
-\subsection{\code{who}}{
-
 A data frame with 392 rows and 7 columns:
 \describe{
-\item{ID}{The unique ID identifying each general bivariate configuration tested}
-\item{overlap}{The average overlap}
-\item{entropy}{The Shannon entropy computed using the respective proportions of the two populations tested}
-\item{proportions, variance, centroids}{General descriptions about each parameter configuration}
-\item{true_parameters}{The actual list of parameters, p, mu and sigma, used to model the scenario}
-}
+\item{ID}{Scenario identifier}
+\item{overlap}{Average pairwise overlap}
+\item{entropy}{Normalised Shannon entropy of \eqn{\boldsymbol{p}}}
+\item{proportions, variance, centroids}{Scenario factors}
+\item{true_parameters}{List with \code{p}, \code{mu}, \code{sigma}}
 }
 }
 \usage{
 bivariate_configuration
 }
 \description{
-The complete parameter configurations used to model the bivariate framework
+Parameter configurations for the bivariate (\eqn{G=2}, \eqn{J=2}) Gaussian
+convolution benchmark: each row stores entropy of \eqn{\boldsymbol{p}},
+mixture overlap, and the GMM triple
+\eqn{(\boldsymbol{p},\boldsymbol{\mu},\{\boldsymbol{\Sigma}_j\})}.
 }
 \keyword{datasets}

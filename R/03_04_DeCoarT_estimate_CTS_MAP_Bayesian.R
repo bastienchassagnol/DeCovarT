@@ -1,14 +1,20 @@
-#' Compute the maximum a posteriori for a sum of Gaussian variables
+#' Maximum a posteriori purified profiles under a Gaussian convolution
 #'
-#' @param y Parameter `y`: \eqn{\boldsymbol{y}=(y_{g}) \in \mathbb{R}^{G}},
-#' storing the measured expression of the `G` genes in the heterogeneous sample
-#' @param mean_signature_matrix Parameter `mu`: \eqn{\boldsymbol{\mu}=(\mu_{g,j}) \in \mathbb{R}^{G \times J}},
-#' storing in each each column the averaged expression of the `G` genes of the `J` cell populations.
-#' @param Sigma A tensor storing for each cell type the GRN structure:
-#'  \eqn{\mathrm{\Sigma}=(\Sigma_{l, k, j}) \in \mathbb{R}^{G \times G \times J}}, with each matrix
-#' \eqn{\Sigma_{..j}, j \in \{ 1, \ldots, J\}} storing the covariance matrix
-#' describing the covariance transcriptomic structure of a given cell population \eqn{j}
-
+#' @description
+#' For fixed plug-in
+#' \eqn{\boldsymbol{\zeta}=(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_j\})} and a
+#' bulk vector \eqn{\boldsymbol{y}}, returns cell-type-specific MAP estimates of
+#' the latent purified profiles in the additive Gaussian model of the article.
+#'
+#' @param y Bulk vector \eqn{\boldsymbol{y}\in\mathbb{R}^{G}}.
+#' @param mean_signature_matrix Mean matrix
+#'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}}.
+#' @param Sigma Array
+#'   \eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}}.
+#'
+#' @return List of length \eqn{J} with MAP vectors in \eqn{\mathbb{R}^{G}}.
+#'
+#' @keywords internal
 .map_gaussian_convolution <- function(y, mean_signature_matrix, Sigma) {
   J <- ncol(mean_signature_matrix)
   # compute intermediate calculations ---------------------------------------

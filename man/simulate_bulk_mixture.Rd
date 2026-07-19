@@ -2,7 +2,7 @@
 % Please edit documentation in R/02_01_toy_simulation.R
 \name{simulate_bulk_mixture}
 \alias{simulate_bulk_mixture}
-\title{Simulate bulk mixtures}
+\title{Simulate bulk mixtures from a Gaussian convolution}
 \usage{
 simulate_bulk_mixture(
   signature_matrix,
@@ -12,38 +12,43 @@ simulate_bulk_mixture(
 )
 }
 \arguments{
-\item{signature_matrix}{Parameter \code{mu}: \eqn{\boldsymbol{\mu}=(\mu_{g,j}) \in \mathbb{R}^{G \times J}},
-storing in each each column the averaged expression of the \code{G} genes used to deconvolve all cell populations.
-Name your \code{colnames} as the cell populations, and provide \code{rownames} argument for the name of the genes.
-By convention, we use HGNC symbols.}
+\item{signature_matrix}{Mean matrix
+\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}}.}
 
-\item{Sigma}{Only relevant for deconvolution algorithms which require a prior estimate
-of the transcriptomic  covariance for each of the purified cell populations.
-A 3-dimensional covariance matrix array is expected:
-\eqn{\mathrm{\Sigma}=(\Sigma_{l, k, j}) \in \mathbb{R}^{G \times G \times J}} to
-parametrise the covariance transcriptomic structure of the \eqn{J} cell populations estimated.}
+\item{Sigma}{Array of covariances
+\eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}}.}
 
-\item{p}{The ratios to estimate (by default, equi-balanced cellular
-proportions are simulated)}
+\item{p}{Proportion vector \eqn{\boldsymbol{p}\in\Delta^{J-1}}
+(default: uniform).}
 
-\item{n}{The integer number of samples to generate}
+\item{n}{Number of bulk samples \eqn{N}.}
 }
 \value{
-list with two items:
+A list with:
 \itemize{
-\item \eqn{\boldsymbol{mean_signature_matrix}:\left(x_{g,j,i}\right)_{1\le g\le G, 1\le j \le J, 1\le i \le N}}:
-the simulated purified expression profiles, stored in
-a three-dimensional array, each array storing the simulated expression of the
-\eqn{J} cell populations for a given individual \eqn{i}
-\item \eqn{\boldsymbol{Y} \in \mathcal{M}_{G \times N}^+}: a two-dimensional matrix storing the virtually
-simulated bulk mixtures. Each column \eqn{\boldsymbol{y_{.i}}} stores for individual \eqn{i}
-the expression value of the \eqn{G} genes, while attribute row.names is used
-to uniquely identify each of them.
+\item \code{mean_signature_matrix}: array
+\eqn{(x_{gji})\in\mathcal{M}_{G\times J\times N}} of simulated purified
+profiles;
+\item \code{Y}: matrix \eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}} whose columns
+are bulk vectors \eqn{\boldsymbol{y}_{\cdot i}}.
 }
 }
 \description{
-Using user defined parameters \eqn{p}, \eqn{\boldsymbol{mean_signature_matrix}} and
-\eqn{\boldsymbol{cov}}, simulate virtual bulk mixtures, using standard linear
-constraint of deconvolution algorithms, namely:
-\deqn{\boldsymbol{\hat{y}}=\boldsymbol{mean_signature_matrix} \times \hat{\boldsymbol{p}}}
+Draws purified profiles
+\eqn{\boldsymbol{x}_j\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},
+\boldsymbol{\Sigma}_j)} independently for each cell type and forms bulk
+observations by the linear mixture
+\deqn{
+  \boldsymbol{y}_{\cdot i}
+  =\boldsymbol{\mu}^{(i)}\boldsymbol{p}
+  =\sum_{j=1}^{J}p_j\,\boldsymbol{x}_j^{(i)},
+}
+matching the article's conditional model
+\eqn{\boldsymbol{y}\,|\,(\boldsymbol{\zeta},\boldsymbol{p})\sim
+\mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},
+\boldsymbol{\Sigma}(\boldsymbol{p}))} with
+\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}\boldsymbol{\Sigma}_j}.
+}
+\seealso{
+\code{\link[=deconvolute_ratios]{deconvolute_ratios()}}, \code{\link[=benchmark_bivariate_gaussian_convolutions]{benchmark_bivariate_gaussian_convolutions()}}
 }

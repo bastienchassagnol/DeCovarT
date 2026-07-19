@@ -12,7 +12,7 @@
 \alias{deconvolute_ratios_L_BFGS_B}
 \alias{deconvolute_ratios_Newton_Raphson}
 \alias{deconvolute_ratios_gradient_descent}
-\title{Deconvolution algorithm itself, for a given sample.}
+\title{DeCovarT MLE of cellular proportions for one bulk sample}
 \usage{
 deconvolute_ratios_CIBERSORT(y, mean_signature_matrix, true_ratios = NULL)
 
@@ -70,80 +70,85 @@ deconvolute_ratios_gradient_descent(
 )
 }
 \arguments{
-\item{y}{Parameter \code{y}: \eqn{\boldsymbol{y}=(y_{g}) \in \mathbb{R}^{G}},
-storing the measured expression of the \code{G} genes in the heterogeneous sample}
+\item{y}{Bulk expression vector
+\eqn{\boldsymbol{y}\in\mathbb{R}^{G}} (one heterogeneous sample).}
 
-\item{mean_signature_matrix}{Parameter \code{mu}: \eqn{\boldsymbol{\mu}=(\mu_{g,j}) \in \mathbb{R}^{G \times J}},
-storing in each each column the averaged expression of the \code{G} genes of the \code{J} cell populations.}
+\item{mean_signature_matrix}{Mean signature
+\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (columns = cell types).}
 
-\item{true_ratios}{Optional,  vector of size \eqn{J}, storing the normalised proportions
-of the cell populations supposed present in the sample. If provided, summary metrics
-will then be computed against the ones returned by the deconvolution algorithms provided.}
+\item{true_ratios}{Optional ground-truth
+\eqn{\boldsymbol{p}^{\star}\in\mathbb{R}^{J}} used only for
+benchmark scores.}
 
-\item{Sigma}{Optional, the 3-dimensional covariance matrix array:
-\eqn{\mathrm{\Sigma}=(\Sigma_{l, k, j}) \in \mathbb{R}^{G \times G \times J}}, with each matrix
-\eqn{\Sigma_{..j}, j \in \{ 1, \ldots, J\}} storing the covariance matrix
-describing the covariance transcriptomic structure of a given cell population \eqn{j}}
+\item{Sigma}{Array
+\eqn{(\boldsymbol{\Sigma}_j)_{j=1}^{J}\in\mathcal{M}_{G\times G\times J}}
+of cell-type covariances.}
 
-\item{epsilon, itmax}{Stopping criterion of the deconvolution algorithm,
-respectively measuring the absolute convergence of the log-likelihood and
-constraining the maximal number of iterations that the deconvolution algorithm performs}
+\item{epsilon, itmax}{Absolute convergence tolerance and maximum number of
+iterations for the optimiser.}
 }
 \value{
-A \code{tibble}, with the following scores:
-\itemize{
-\item mse and rmse, for respectively \emph{mean} and \emph{root mean squared error}. See also the \code{\link[Metrics:mse]{Metrics::mse()}} function.
-\item mae, for \emph{mean absolute error}. See also the \code{\link[Metrics:mae]{Metrics::mae()}} function.
-\item \eqn{R^2} and adjusted \eqn{R^2}, corresponding to the percentage of variance
-captured by the linear regression model. See also the \code{\link[Metrics:rse]{Metrics::rse()}} function.
-\item cor, for the Pearson correlation between the estimated and true cellular ratios
-giving the mean values of the variables within a given component. See also the \code{\link[stats:cor]{stats::cor()}} function.
-}
+A \code{tibble} with mse/rmse/mae, optionally
+\eqn{R^{2}} / adjusted \eqn{R^{2}}, and Pearson correlation.
 }
 \description{
-Deconvolution algorithm itself, for a given sample.
+Estimates
+\eqn{\hat{\boldsymbol{p}}=\arg\max_{\boldsymbol{p}}
+\ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{p})} under the
+Gaussian convolution model
+\deqn{
+  \boldsymbol{y}\,|\,(\boldsymbol{\zeta},\boldsymbol{p})
+  \sim\mathcal{N}_{G}\!\bigl(\boldsymbol{\mu}\boldsymbol{p},\,
+  \boldsymbol{\Sigma}(\boldsymbol{p})\bigr),
+  \qquad
+  \boldsymbol{\Sigma}(\boldsymbol{p})=\sum_{j=1}^{J}p_j^{2}\boldsymbol{\Sigma}_j,
+}
+subject to the simplex constraint
+\eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1}, \eqn{\boldsymbol{p}\ge\mathbf{0}}.
+Optimisation is performed in unconstrained coordinates
+\eqn{\boldsymbol{\theta}} via \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\theta})}
+(Marquardt–Levenberg default; see other methods below).
 }
 \section{Functions}{
 \itemize{
-\item \code{deconvolute_ratios_CIBERSORT()}: From this algorithm, providing
-any explicit prior of the covariance matrix is pointless, since we are,
-to our knowledge, the first ones to account for it explicitly. Here,
-a custom implementation of the CIBERSORT algorithm.
+\item \code{deconvolute_ratios_CIBERSORT()}: Linear baseline
+\eqn{\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}} via nu-SVR
+(CIBERSORT-style); no covariance prior is used.
 
-\item \code{deconvolute_ratios_abbas()}: Here,
-a standard linear approach, as performed in \insertCite{abbas_etal09;textual}{DeCovarT} as it can be computed
-with function \code{\link[stats:lsfit]{stats::lsfit()}}. Nevertheless, similar to any other deconvolution methods,
-inferred ratios are normalised back to the unit simplex space.
+\item \code{deconvolute_ratios_abbas()}: Ordinary least squares
+for \eqn{\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}}
+(\code{\link[stats:lsfit]{stats::lsfit()}}), following \insertCite{abbas_etal09;textual}{DeCovarT};
+estimates are projected back onto the simplex.
 
-\item \code{deconvolute_ratios_monaco()}: Here,
-a robust linear approach, as performed in \insertCite{monaco_etal19;textual}{DeCovarT}
-as it can be computed with function \code{\link[MASS:rlm]{MASS::rlm()}}.
+\item \code{deconvolute_ratios_monaco()}: Robust linear model
+\eqn{\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}}
+(\code{\link[MASS:rlm]{MASS::rlm()}}), as in \insertCite{monaco_etal19;textual}{DeCovarT}.
 
-\item \code{deconvolute_ratios_nnls()}: Here, function \code{\link[nnls:nnls]{nnls::nnls()}}
-is used as an interface to the Lawson-Hanson NNLS implementation, with the additional
-constraints that the returned ratios can not be negative.
+\item \code{deconvolute_ratios_nnls()}: Non-negative least squares
+for \eqn{\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}}
+(\code{\link[nnls:nnls]{nnls::nnls()}}), then simplex projection.
 
-\item \code{deconvolute_ratios_deconRNASeq()}: Here,
-standard linear least squares optimisation, but accounting for
-the two equality and inequality constraints of the unit simplex. Similar to the implementation
-of the \code{deconRNASeq} algorithm, see also \code{\link[limSolve:lsei]{limSolve::lsei()}}
-or the \code{lsqlin} function in Matlab for additional details.
+\item \code{deconvolute_ratios_deconRNASeq()}: Equality- and
+inequality-constrained least squares on the simplex
+(\code{\link[limSolve:lsei]{limSolve::lsei()}}), in the spirit of \code{deconRNASeq}.
 
-\item \code{deconvolute_ratios_simulated_annealing()}: Uses SA (for simulated annealing)  to infer the simulated
-ratios, see also \code{\link[stats:optim]{stats::optim()}} with \code{method="SANN"} for more details
+\item \code{deconvolute_ratios_simulated_annealing()}: Simulated annealing on
+\eqn{\boldsymbol{\theta}} (\code{\link[stats:optim]{stats::optim()}} with \code{method = "SANN"}).
 
-\item \code{deconvolute_ratios_L_BFGS_B()}: A variant of the standard BFGS quasi-Newton method,
-that allows addtional box constraints (here we impose the ratios to be strictly included between 0 and 1)
-when inferring the simulated ratios, see also \code{\link[stats:optim]{stats::optim()}} with \code{method="L-BFGS-B"} for more details
+\item \code{deconvolute_ratios_L_BFGS_B()}: Box-constrained L-BFGS-B
+directly in \eqn{\boldsymbol{p}} (\code{\link[stats:optim]{stats::optim()}} \code{method = "L-BFGS-B"}).
 
-\item \code{deconvolute_ratios_Newton_Raphson()}: A standard second-order descent based algorithm,
-which reveals equivalent to perform a Newton's Raphson algorithm to retrieve the roots of the
-gradient.  See also \link[stats:nlminb]{stats::nlminb} for more details.
+\item \code{deconvolute_ratios_Newton_Raphson()}: Newton–Raphson /
+\code{nlminb} on \eqn{\boldsymbol{\theta}} using analytic gradient and Hessian
+(\code{\link[stats:nlminb]{stats::nlminb()}}).
 
-\item \code{deconvolute_ratios_gradient_descent()}: A standard first-order descent based algorithm,
-using the BFGS algorithm, see also \link[stats:optim]{stats::optim} with option \verb{method="BFGS}.
+\item \code{deconvolute_ratios_gradient_descent()}: BFGS quasi-Newton ascent
+on \eqn{\boldsymbol{\theta}} (\code{\link[stats:optim]{stats::optim()}} \code{method = "BFGS"}).
 
 }}
 \references{
 \insertAllCited{}
+}
+\seealso{
+\code{\link[=deconvolute_ratios]{deconvolute_ratios()}}, \code{\link[=mapping_function]{mapping_function()}}
 }

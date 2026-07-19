@@ -1,40 +1,86 @@
 # Algebraic operations ------------------------------------------------------
 
-#' @title Mapping function
+#' Softmax mapping from unconstrained parameters to the simplex
 #'
-#' @description The mapping function from unconstrained parameter \eqn{theta},
-#' living in \eqn{\mathbb{R}^{J-1}} to parameter vector of the cellular ratios
-#' \eqn{p}, subjected to the unit simplex constraint.
+#' @description
+#' Implements the reparametrisation
+#' \eqn{\boldsymbol{\psi}:\boldsymbol{\theta}\mapsto\boldsymbol{p}} used in the
+#' article, sending unconstrained coordinates
+#' \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}} to cellular proportions
+#' \eqn{\boldsymbol{p}\in\Delta^{J-1}}.
 #'
-#' @param theta The unconstrained parameter, living in \eqn{\mathbb{R}^{J-1}}
+#' @details
+#' With \eqn{A=\sum_{k=1}^{J-1}\mathrm{e}^{\theta_k}+1},
+#' \deqn{
+#'   p_j=\frac{\mathrm{e}^{\theta_j}}{A}\quad(j<J),\qquad
+#'   p_J=\frac{1}{A}.
+#' }
+#' Equivalently,
+#' \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\theta})} with
+#' \eqn{\boldsymbol{\psi}(\boldsymbol{\theta})\propto
+#' (\mathrm{e}^{\theta_1},\ldots,\mathrm{e}^{\theta_{J-1}},1)^{\mathsf{T}}}.
 #'
-#' @return The numeric vector of size \eqn{J},
-#' storing the constrained ratios.
+#' @param theta Numeric vector \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.
+#'
+#' @return Numeric vector \eqn{\boldsymbol{p}\in\mathbb{R}^{J}} on the unit
+#'   simplex (\eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1},
+#'   \eqn{\boldsymbol{p}\ge\mathbf{0}}).
+#'
+#' @seealso The inverse map is documented as `inverse_mapping_function()`
+#'   on this help page.
 #' @export
-
 mapping_function <- function(theta) {
   p <- c(exp(theta[1:length(theta)]), 1)
   return(p / sum(p))
 }
 
-# reciprocal of the mapping function
+#' Inverse simplex mapping \eqn{\boldsymbol{p}\mapsto\boldsymbol{\theta}}
+#'
+#' Recovers \eqn{\theta_j=\ln(p_j/p_J)} for \eqn{j=1,\ldots,J-1}.
+#'
+#' @param p Numeric vector \eqn{\boldsymbol{p}} on the open simplex.
+#'
+#' @return Numeric vector \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.
+#'
+#' @rdname mapping_function
+#' @keywords internal
 inverse_mapping_function <- function(p) {
   num_cells <- length(p)
   return(log(p[1:num_cells - 1] / p[num_cells]))
 }
 
-# compute the mahalabonis distance
+#' @keywords internal
+#' @noRd
 .maha_distance <- function(mean_signature_matrix, A) {
   d <- t(mean_signature_matrix) %*% solve(A) %*% mean_signature_matrix # solve A returns the reverted function
   return(d |> as.numeric()) # supposed to be a scalar
 }
 
-# compute a dot product
+#' @keywords internal
+#' @noRd
 .dot_product <- function(mean_signature_matrix, A, y = mean_signature_matrix) {
   d <- t(mean_signature_matrix) %*% A %*% y # solve A returns the reverted function
   return(d |> as.numeric()) # supposed to be a scalar
 }
 
+#' Bulk mixture covariance \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}
+#'
+#' @description
+#' Assembles the conditional covariance of the Gaussian convolution
+#' \deqn{
+#'   \boldsymbol{\Sigma}(\boldsymbol{p})
+#'   =\sum_{j=1}^{J}p_j^{2}\,\boldsymbol{\Sigma}_j,
+#' }
+#' stored as slices of the array `Sigma`.
+#'
+#' @param p Numeric vector \eqn{\boldsymbol{p}\in\mathbb{R}^{J}}.
+#' @param Sigma Array in \eqn{\mathcal{M}_{G\times G\times J}} whose slice
+#'   \eqn{\boldsymbol{\Sigma}_j=} `Sigma[,, j]` is the cell-type covariance.
+#'
+#' @return Symmetric matrix
+#'   \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})\in\mathcal{M}_{G\times G}}.
+#'
+#' @keywords internal
 .compute_global_variance <- function(p, Sigma) {
   ###  Sigma and TensorA packages
   # global_cov <- matrix(0, nrow = dim(Sigma)[1], ncol=dim(Sigma)[2])
@@ -47,9 +93,49 @@ inverse_mapping_function <- function(p) {
   return(global_cov)
 }
 
-# Log-likelihood function, aka the objective function -------------------------------------------------
+# Log-likelihood function, aka the objective function ----------------------
 
-# log-likelihood multivariate function
+#' Unconstrained DeCovarT log-likelihood
+#'
+#' @description
+#' Evaluates the conditional log-likelihood
+#' \eqn{\ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{p})} of a bulk
+#' profile under the Gaussian convolution model of the article,
+#' \deqn{
+#'   \boldsymbol{y}\,|\,(\boldsymbol{\zeta},\boldsymbol{p})
+#'   \sim\mathcal{N}_{G}\!\bigl(\boldsymbol{\mu}\boldsymbol{p},\,
+#'   \boldsymbol{\Sigma}(\boldsymbol{p})\bigr),
+#' }
+#' with plug-in parameters
+#' \eqn{\boldsymbol{\zeta}=(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_j\}_{j=1}^{J})}
+#' and mixture covariance
+#' \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_{j}p_j^{2}\boldsymbol{\Sigma}_j}.
+#'
+#' @details
+#' Up to an additive constant independent of \eqn{\boldsymbol{p}},
+#' \deqn{
+#'   \ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{p})
+#'   =
+#'   -\log\det\boldsymbol{\Sigma}(\boldsymbol{p})
+#'   -\tfrac{1}{2}
+#'   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\mathsf{T}}
+#'   \boldsymbol{\Sigma}(\boldsymbol{p})^{-1}
+#'   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}).
+#' }
+#' Argument `mean_signature_matrix` stores \eqn{\boldsymbol{\mu}}.
+#'
+#' @param p Numeric vector \eqn{\boldsymbol{p}\in\mathbb{R}^{J}}.
+#' @param y Numeric vector (or one-column matrix)
+#'   \eqn{\boldsymbol{y}\in\mathbb{R}^{G}}.
+#' @param mean_signature_matrix Numeric matrix
+#'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}}.
+#' @param Sigma Array of cell-type covariances in
+#'   \eqn{\mathcal{M}_{G\times G\times J}}.
+#'
+#' @return Scalar log-likelihood value.
+#'
+#' @keywords internal
+#' @seealso [gradient_loglik_unconstrained()], [mapping_function()]
 loglik_multivariate <- function(p, y, mean_signature_matrix, Sigma) {
   global_cov_matrix <- .compute_global_variance(p, Sigma)
   log_lik <- -log(det(global_cov_matrix)) -
@@ -61,6 +147,20 @@ loglik_multivariate <- function(p, y, mean_signature_matrix, Sigma) {
 }
 
 
+#' Constrained log-likelihood
+#' \eqn{\ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{\psi}(\boldsymbol{\theta}))}
+#'
+#' @description
+#' Composes [loglik_multivariate()] with [mapping_function()], so that
+#' optimisation may be performed over
+#' \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.
+#'
+#' @inheritParams loglik_multivariate
+#' @param theta Numeric vector \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.
+#'
+#' @return Scalar log-likelihood on the constrained manifold.
+#'
+#' @keywords internal
 loglik_multivariate_constrained <- function(
   theta,
   y,
@@ -85,7 +185,19 @@ loglik_multivariate_constrained <- function(
 
 # First-order derivatives -------------------------------------------------
 
-# Jacobian mapping function
+#' Jacobian \eqn{\mathbf{J}_{\boldsymbol{\psi}}} of the simplex mapping
+#'
+#' @description
+#' Returns
+#' \eqn{\mathbf{J}_{\boldsymbol{\psi}}\in\mathcal{M}_{J\times(J-1)}} with
+#' entries
+#' \eqn{(\mathbf{J}_{\boldsymbol{\psi}})_{i,j}=\partial p_i/\partial\theta_j}.
+#'
+#' @param theta Numeric vector \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.
+#'
+#' @return Numeric matrix of size \eqn{J\times(J-1)}.
+#'
+#' @keywords internal
 jacobian_mapping_function <- function(theta) {
   denominator <- (sum(exp(theta)) + 1)^2
   size_var <- length(theta)
@@ -108,47 +220,45 @@ jacobian_mapping_function <- function(theta) {
   return(jacobian_matrix / denominator)
 }
 
-#' Gradient of the unconstrained multivariate Gaussian log-likelihood
+#' Gradient \eqn{\nabla_{\boldsymbol{p}}\ell} of the unconstrained log-likelihood
 #'
 #' @description
-#' Analytic gradient of `loglik_multivariate()` with respect to the cellular
-#' proportions \eqn{\boldsymbol{p}}.
+#' Analytic gradient of [loglik_multivariate()] with respect to
+#' \eqn{\boldsymbol{p}}. Writing
+#' \eqn{\boldsymbol{\Theta}=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}} and
+#' \eqn{\boldsymbol{r}=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}}, the
+#' \eqn{j}-th coordinate is
+#' \deqn{
+#'   \frac{\partial\ell}{\partial p_j}
+#'   =
+#'   -2p_j\,\mathrm{Tr}\!\bigl(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\bigr)
+#'   +\boldsymbol{r}^{\mathsf{T}}\boldsymbol{\Theta}\boldsymbol{\mu}_{\cdot j}
+#'   +p_j\,\boldsymbol{r}^{\mathsf{T}}
+#'   \boldsymbol{\Theta}\boldsymbol{\Sigma}_j\boldsymbol{\Theta}\boldsymbol{r}.
+#' }
 #'
 #' @details
-#' Unit tests compare this analytic gradient to a numerical reference obtained
-#' with [numDeriv::grad()] applied to `loglik_multivariate()`. For that check,
-#' the Richardson method is preferred; the main tuning knobs are passed through
-#' `method.args`:
+#' Unit tests compare this analytic gradient to a numerical reference from
+#' [numDeriv::grad()] applied to [loglik_multivariate()]. For that check the
+#' Richardson method is preferred; main `method.args` knobs:
 #' \describe{
-#'   \item{\code{eps}}{Initial finite-difference step size (default
-#'   \code{1e-4}). Smaller values reduce truncation error but amplify
-#'   floating-point noise; increase if the likelihood surface is poorly scaled.}
-#'   \item{\code{r}}{Number of Richardson extrapolation iterations (default
-#'   \code{4}). Raising \code{r} (e.g. to \code{6} in the package tests)
-#'   usually improves accuracy more safely than shrinking \code{eps} alone,
-#'   at the cost of more likelihood evaluations.}
-#'   \item{\code{d}, \code{v}}{Relative step factor and geometric reduction of
-#'   the step between extrapolations (default \code{v = 2}). Rarely need
-#'   changing for smooth objectives.}
-#'   \item{\code{zero.tol}, \code{show.details}}{Tolerance near zero and optional
-#'   verbose diagnostics; see \code{?numDeriv::grad}.}
+#'   \item{\code{eps}}{Initial finite-difference step (default `1e-4`).}
+#'   \item{\code{r}}{Number of Richardson extrapolations (default `4`; tests
+#'   use `6`). Raising `r` usually improves accuracy more safely than
+#'   shrinking `eps` alone.}
+#'   \item{\code{d}, \code{v}}{Relative step factor and geometric reduction
+#'   between extrapolations (default `v = 2`).}
+#'   \item{\code{zero.tol}, \code{show.details}}{See `?numDeriv::grad`.}
 #' }
-#' Alternative \code{method} values are \code{"simple"} (one-sided differences,
-#' cheaper but less accurate) and \code{"complex"} (complex-step derivative,
-#' very accurate when the objective supports complex arithmetic).
+#' Alternative `method` values: `"simple"` and `"complex"`.
 #'
-#' @param p Numeric vector of cellular proportions.
-#' @param y Numeric vector (or one-column matrix) of bulk expression.
-#' @param mean_signature_matrix Numeric matrix of purified mean expression
-#'   profiles (genes \eqn{\times} cell types).
-#' @param Sigma Three-dimensional array of cell-type-specific covariance
-#'   matrices.
+#' @inheritParams loglik_multivariate
 #'
-#' @return Numeric vector of partial derivatives
-#'   \eqn{\partial \ell / \partial p_j}.
+#' @return Numeric vector
+#'   \eqn{\nabla_{\boldsymbol{p}}\ell\in\mathbb{R}^{J}}.
 #'
 #' @keywords internal
-#' @seealso [numDeriv::grad()]
+#' @seealso [numDeriv::grad()], [hessian_loglik_unconstrained()]
 gradient_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
   # compute general covariance and its reverse
   global_cov_matrix <- .compute_global_variance(p, Sigma)
@@ -178,6 +288,24 @@ gradient_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
 }
 
 
+#' Constrained gradient via the chain rule
+#'
+#' @description
+#' Returns
+#' \deqn{
+#'   \nabla_{\boldsymbol{\theta}}\ell
+#'   =
+#'   \bigl(\nabla_{\boldsymbol{p}}\ell\bigr)^{\mathsf{T}}
+#'   \mathbf{J}_{\boldsymbol{\psi}}(\boldsymbol{\theta}),
+#' }
+#' i.e. first-order chain rule for
+#' \eqn{\ell\circ\boldsymbol{\psi}}.
+#'
+#' @inheritParams loglik_multivariate_constrained
+#'
+#' @return Numeric vector in \eqn{\mathbb{R}^{J-1}}.
+#'
+#' @keywords internal
 gradient_loglik_constrained <- function(
   theta,
   y,
@@ -198,7 +326,18 @@ gradient_loglik_constrained <- function(
 
 # Second-order derivatives ------------------------------------------------
 
-# Hessian mapping function
+#' Second derivatives of \eqn{\boldsymbol{\psi}}
+#'
+#' @description
+#' Tensor of mixed partials
+#' \eqn{\partial^{2}p_i/(\partial\theta_k\partial\theta_j)}, stored as an
+#' array of size \eqn{(J-1)\times(J-1)\times J}.
+#'
+#' @param theta Numeric vector \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.
+#'
+#' @return Numeric array used in the constrained Hessian chain rule.
+#'
+#' @keywords internal
 hessian_mapping_function <- function(theta) {
   A <- sum(exp(theta)) + 1
   denominator <- A^3
@@ -259,6 +398,22 @@ hessian_mapping_function <- function(theta) {
   return(hessian_array / denominator)
 }
 
+#' Hessian \eqn{\mathbf{H}} of the unconstrained log-likelihood
+#'
+#' @description
+#' Analytic Hessian
+#' \eqn{\mathbf{H}\in\mathcal{M}_{J\times J}} with entries
+#' \eqn{\mathbf{H}_{i,j}=\partial^{2}\ell/(\partial p_i\partial p_j)},
+#' matching the matricial formulae of the article (quadratic forms in
+#' \eqn{\boldsymbol{\Theta}}, \eqn{\boldsymbol{\Sigma}_i},
+#' \eqn{\boldsymbol{\mu}_{\cdot i}} and residual
+#' \eqn{\boldsymbol{r}=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}}).
+#'
+#' @inheritParams loglik_multivariate
+#'
+#' @return Symmetric numeric matrix \eqn{\mathbf{H}}.
+#'
+#' @keywords internal
 hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
   num_celltypes <- length(p)
   hessian_unconstrained <- matrix(0, nrow = num_celltypes, ncol = num_celltypes)
@@ -323,6 +478,26 @@ hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
 }
 
 
+#' Constrained Hessian of \eqn{\ell\circ\boldsymbol{\psi}}
+#'
+#' @description
+#' Second-order chain rule
+#' \deqn{
+#'   \mathbf{H}_{\boldsymbol{\theta}}
+#'   =
+#'   \mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}
+#'   \mathbf{H}_{\boldsymbol{p}}
+#'   \mathbf{J}_{\boldsymbol{\psi}}
+#'   +\sum_{i=1}^{J}
+#'   \frac{\partial\ell}{\partial p_i}\,
+#'   \frac{\partial^{2}p_i}{\partial\boldsymbol{\theta}\partial\boldsymbol{\theta}^{\mathsf{T}}}.
+#' }
+#'
+#' @inheritParams loglik_multivariate_constrained
+#'
+#' @return Symmetric matrix in \eqn{\mathcal{M}_{(J-1)\times(J-1)}}.
+#'
+#' @keywords internal
 hessian_loglik_constrained <- function(theta, y, mean_signature_matrix, Sigma) {
   p <- mapping_function(theta)
   # t(J_psi) mean_signature_matrix H_log mean_signature_matrix J_psi + sum over number of ratios of grad_log mean_signature_matrix H_psi
@@ -342,26 +517,42 @@ hessian_loglik_constrained <- function(theta, y, mean_signature_matrix, Sigma) {
 
 # DeCovarT core optimisation algorithms -----------------------------------
 
-#' Deconvolution algorithm itself, for a given sample.
+#' DeCovarT MLE of cellular proportions for one bulk sample
 #'
-#' @param y Parameter `y`: \eqn{\boldsymbol{y}=(y_{g}) \in \mathbb{R}^{G}},
-#' storing the measured expression of the `G` genes in the heterogeneous sample
-#' @param mean_signature_matrix Parameter `mu`: \eqn{\boldsymbol{\mu}=(\mu_{g,j}) \in \mathbb{R}^{G \times J}},
-#' storing in each each column the averaged expression of the `G` genes of the `J` cell populations.
-#' @param Sigma Optional, the 3-dimensional covariance matrix array:
-#'  \eqn{\mathrm{\Sigma}=(\Sigma_{l, k, j}) \in \mathbb{R}^{G \times G \times J}}, with each matrix
-#' \eqn{\Sigma_{..j}, j \in \{ 1, \ldots, J\}} storing the covariance matrix
-#' describing the covariance transcriptomic structure of a given cell population \eqn{j}
-#' @param true_ratios Optional,  vector of size \eqn{J}, storing the normalised proportions
-#' of the cell populations supposed present in the sample. If provided, summary metrics
-#' will then be computed against the ones returned by the deconvolution algorithms provided.
-#' @param epsilon,itmax Stopping criterion of the deconvolution algorithm,
-#' respectively measuring the absolute convergence of the log-likelihood and
-#' constraining the maximal number of iterations that the deconvolution algorithm performs
+#' @description
+#' Estimates
+#' \eqn{\hat{\boldsymbol{p}}=\arg\max_{\boldsymbol{p}}
+#' \ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{p})} under the
+#' Gaussian convolution model
+#' \deqn{
+#'   \boldsymbol{y}\,|\,(\boldsymbol{\zeta},\boldsymbol{p})
+#'   \sim\mathcal{N}_{G}\!\bigl(\boldsymbol{\mu}\boldsymbol{p},\,
+#'   \boldsymbol{\Sigma}(\boldsymbol{p})\bigr),
+#'   \qquad
+#'   \boldsymbol{\Sigma}(\boldsymbol{p})=\sum_{j=1}^{J}p_j^{2}\boldsymbol{\Sigma}_j,
+#' }
+#' subject to the simplex constraint
+#' \eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1}, \eqn{\boldsymbol{p}\ge\mathbf{0}}.
+#' Optimisation is performed in unconstrained coordinates
+#' \eqn{\boldsymbol{\theta}} via \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\theta})}
+#' (Marquardt–Levenberg default; see other methods below).
+#'
+#' @param y Bulk expression vector
+#'   \eqn{\boldsymbol{y}\in\mathbb{R}^{G}} (one heterogeneous sample).
+#' @param mean_signature_matrix Mean signature
+#'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (columns = cell types).
+#' @param Sigma Array
+#'   \eqn{(\boldsymbol{\Sigma}_j)_{j=1}^{J}\in\mathcal{M}_{G\times G\times J}}
+#'   of cell-type covariances.
+#' @param true_ratios Optional ground-truth
+#'   \eqn{\boldsymbol{p}^{\star}\in\mathbb{R}^{J}} used only for
+#'   benchmark scores.
+#' @param epsilon,itmax Absolute convergence tolerance and maximum number of
+#'   iterations for the optimiser.
 #'
 #' @inherit compute_benchmark_metrics return
 #' @export
-
+#' @seealso [deconvolute_ratios()], [mapping_function()]
 deconvolute_ratios_Marquardt_Levenberg <- function(
   y,
   mean_signature_matrix,
@@ -428,8 +619,8 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
 }
 
 
-#' @describeIn deconvolute_ratios_Marquardt_Levenberg Uses SA (for simulated annealing)  to infer the simulated
-#' ratios, see also [stats::optim()] with `method="SANN"` for more details
+#' @describeIn deconvolute_ratios_Marquardt_Levenberg Simulated annealing on
+#'   \eqn{\boldsymbol{\theta}} ([stats::optim()] with `method = "SANN"`).
 
 deconvolute_ratios_simulated_annealing <- function(
   y,
@@ -466,9 +657,8 @@ deconvolute_ratios_simulated_annealing <- function(
   return(metrics_scores)
 }
 
-#' @describeIn deconvolute_ratios_Marquardt_Levenberg A variant of the standard BFGS quasi-Newton method,
-#' that allows addtional box constraints (here we impose the ratios to be strictly included between 0 and 1)
-#' when inferring the simulated ratios, see also [stats::optim()] with `method="L-BFGS-B"` for more details
+#' @describeIn deconvolute_ratios_Marquardt_Levenberg Box-constrained L-BFGS-B
+#'   directly in \eqn{\boldsymbol{p}} ([stats::optim()] `method = "L-BFGS-B"`).
 
 deconvolute_ratios_L_BFGS_B <- function(
   y,
@@ -504,9 +694,9 @@ deconvolute_ratios_L_BFGS_B <- function(
   return(metrics_scores)
 }
 
-#' @describeIn deconvolute_ratios_Marquardt_Levenberg A standard second-order descent based algorithm,
-#' which reveals equivalent to perform a Newton's Raphson algorithm to retrieve the roots of the
-#' gradient.  See also [stats::nlminb] for more details.
+#' @describeIn deconvolute_ratios_Marquardt_Levenberg Newton–Raphson /
+#'   `nlminb` on \eqn{\boldsymbol{\theta}} using analytic gradient and Hessian
+#'   ([stats::nlminb()]).
 
 deconvolute_ratios_Newton_Raphson <- function(
   y,
@@ -558,8 +748,8 @@ deconvolute_ratios_Newton_Raphson <- function(
   return(metrics_scores)
 }
 
-#' @describeIn deconvolute_ratios_Marquardt_Levenberg A standard first-order descent based algorithm,
-#' using the BFGS algorithm, see also [stats::optim] with option `method="BFGS`.
+#' @describeIn deconvolute_ratios_Marquardt_Levenberg BFGS quasi-Newton ascent
+#'   on \eqn{\boldsymbol{\theta}} ([stats::optim()] `method = "BFGS"`).
 
 deconvolute_ratios_gradient_descent <- function(
   y,

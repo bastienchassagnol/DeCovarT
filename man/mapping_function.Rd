@@ -2,19 +2,47 @@
 % Please edit documentation in R/03_03_DeCovarT_estimate_ratios_frequentist.R
 \name{mapping_function}
 \alias{mapping_function}
-\title{Mapping function}
+\alias{inverse_mapping_function}
+\title{Softmax mapping from unconstrained parameters to the simplex}
 \usage{
 mapping_function(theta)
+
+inverse_mapping_function(p)
 }
 \arguments{
-\item{theta}{The unconstrained parameter, living in \eqn{\mathbb{R}^{J-1}}}
+\item{theta}{Numeric vector \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.}
+
+\item{p}{Numeric vector \eqn{\boldsymbol{p}} on the open simplex.}
 }
 \value{
-The numeric vector of size \eqn{J},
-storing the constrained ratios.
+Numeric vector \eqn{\boldsymbol{p}\in\mathbb{R}^{J}} on the unit
+simplex (\eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1},
+\eqn{\boldsymbol{p}\ge\mathbf{0}}).
+
+Numeric vector \eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}}.
 }
 \description{
-The mapping function from unconstrained parameter \eqn{theta},
-living in \eqn{\mathbb{R}^{J-1}} to parameter vector of the cellular ratios
-\eqn{p}, subjected to the unit simplex constraint.
+Implements the reparametrisation
+\eqn{\boldsymbol{\psi}:\boldsymbol{\theta}\mapsto\boldsymbol{p}} used in the
+article, sending unconstrained coordinates
+\eqn{\boldsymbol{\theta}\in\mathbb{R}^{J-1}} to cellular proportions
+\eqn{\boldsymbol{p}\in\Delta^{J-1}}.
+
+Recovers \eqn{\theta_j=\ln(p_j/p_J)} for \eqn{j=1,\ldots,J-1}.
 }
+\details{
+With \eqn{A=\sum_{k=1}^{J-1}\mathrm{e}^{\theta_k}+1},
+\deqn{
+  p_j=\frac{\mathrm{e}^{\theta_j}}{A}\quad(j<J),\qquad
+  p_J=\frac{1}{A}.
+}
+Equivalently,
+\eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\theta})} with
+\eqn{\boldsymbol{\psi}(\boldsymbol{\theta})\propto
+(\mathrm{e}^{\theta_1},\ldots,\mathrm{e}^{\theta_{J-1}},1)^{\mathsf{T}}}.
+}
+\seealso{
+The inverse map is documented as \code{inverse_mapping_function()}
+on this help page.
+}
+\keyword{internal}

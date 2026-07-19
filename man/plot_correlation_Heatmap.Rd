@@ -2,7 +2,7 @@
 % Please edit documentation in R/04_visualisation.R
 \name{plot_correlation_Heatmap}
 \alias{plot_correlation_Heatmap}
-\title{Plot Correlation Heatmap}
+\title{Plot deconvolution metric heatmaps}
 \usage{
 plot_correlation_Heatmap(
   distribution_metrics,
@@ -12,14 +12,15 @@ plot_correlation_Heatmap(
 )
 }
 \arguments{
-\item{distribution_metrics}{A tibble with the metric scores}
+\item{distribution_metrics}{Tibble of metric scores from a benchmark.}
 
-\item{score_variable}{The name of the metric to be represented on the Heatmap}
+\item{score_variable}{Column name of the metric to display.}
 
-\item{n_break}{the continous number of breaks allowed to generate the Heatmap}
+\item{n_break}{Number of colour breaks.}
 
-\item{uni_scale}{if FALSE, each Heatmap is plotted with its own scale}
+\item{uni_scale}{If \code{FALSE}, each panel uses its own colour scale.}
 }
 \description{
-For each deconvolution algorithm, plot the metric selected over the range of selected ratios
+For each algorithm, visualises a selected score over the design grid of
+simulated \eqn{\boldsymbol{p}} (and related scenario factors).
 }

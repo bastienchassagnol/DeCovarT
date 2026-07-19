@@ -1,15 +1,14 @@
-#' Check whether the estimation has been trapped in the boundary space
+#' Project estimated proportions onto the unit simplex
 #'
-#' * Function `enforce_identifiability` normalises the ratios to sum to 1,
-#' and set ratios close to zero or 1, to the limits of the boundary space
+#' @description
+#' Clips numerical under/overflow and renormalises so that
+#' \eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1} and
+#' \eqn{\boldsymbol{p}\ge\mathbf{0}}.
 #'
-#' @param p the estimated ratios
+#' @param p Numeric vector \eqn{\boldsymbol{p}\in\mathbb{R}^{J}}.
 #'
-#' @return a numeric vector of size \eqn{J}, but assuring that negative
-#' ratios were set to 0, and the unit simplex constraint is endorsed
-
+#' @return Numeric vector on the simplex \eqn{\Delta^{J-1}}.
 #' @export
-
 enforce_identifiability <- function(p) {
   machine_limit <- .Machine$double.eps
   p[p < 100 * machine_limit] <- 0 # remove negative ratios
@@ -19,25 +18,19 @@ enforce_identifiability <- function(p) {
 }
 
 
-#' Control parameters output
+#' Order GMM parameters for unique labelling
 #'
-#' This step ensures that the estimates returned are uniquely ordered by
-#' partial ordering on the means, and that the sum-o-one constraint, that may
-#' be violated by numerical artefacts, is enforced
+#' @description
+#' Lexicographically orders mixture components by columns of
+#' \eqn{\boldsymbol{\mu}} and renormalises \eqn{\boldsymbol{p}}.
 #'
+#' @param theta List with elements `p` (\eqn{\boldsymbol{p}}), `mu`
+#'   (\eqn{\boldsymbol{\mu}}), and `sigma` (array of
+#'   \eqn{\boldsymbol{\Sigma}_j}).
 #'
-#' @param theta estimation of the parameters returned either by an initialisation
-#' algorithm or by an EM algorithm on an univariate or multivariate GMM MLE estimation
-#' * The proportions `p`: \eqn{p} of each component (must be included between 0 and 1, and sum to one overall)
-#' * The mean matrix `mu`: \eqn{\mathrm{\mu}=(\mu_{i,j}) \in \mathbb{R}^{n \times k}}, with each column
-#' giving the mean values of the variables within a given component
-#' * The 3-dimensional covariance matrix array `sigma`: \eqn{\mathrm{\sigma}=(\sigma_{i,j,l}) \in \mathbb{R}^{n \times n \times k}}, with each matrix
-#' \eqn{\sigma_{..l}, l \in \{ 1, \ldots, k\}} storing the covariance matrix of a given component,
-#' whose diagonal terms correspond to the variance of each variable, and off-terms diagonal elements return the covariance matrix
+#' @return Relabelled list with the same structure.
 #'
-#' @return a list of the estimates, uniquely identified, by ranking each component
-#' based on the ordering of their means
-
+#' @keywords internal
 enforce_parameter_identifiability <- function(theta) {
   k <- length(theta$p)
   # first component = one whose means are smaller on the first dimension
@@ -60,14 +53,21 @@ is_positive_definite <- function(expression, tol = 1e-6) {
   return(all(eigen_values >= -tol * abs(eigen_values[1])))
 }
 
-#' Compute the shannon entropy of a discrete distribution, normalised from 0 to 1 (equibalanced classes)
+#' Normalised Shannon entropy of a discrete distribution
 #'
-#' @author Bastien CHASSAGNOL
+#' @description
+#' For \eqn{\boldsymbol{p}} on the simplex (after dropping zeros),
+#' \deqn{
+#'   H(\boldsymbol{p})
+#'   =
+#'   -\sum_{j}p_j\log_{J'}p_j
+#'   \in[0,1],
+#' }
+#' with \eqn{J'} the number of positive masses (1 = uniform).
 #'
-#' @param ratios vector of the proportions of the mixture
-#' @return the entropy score
+#' @param ratios Numeric vector \eqn{\boldsymbol{p}}.
+#' @return Scalar entropy in \eqn{[0,1]}.
 #' @export
-
 compute_shannon_entropy <- function(ratios) {
   if (min(ratios) < 0 | max(ratios) > 1) {
     stop("Probabilities must be stricly included between 0 and 1")
@@ -81,21 +81,18 @@ compute_shannon_entropy <- function(ratios) {
   return(-sum(ratios * logb(ratios, base = length(ratios))))
 }
 
-#' Compute average overlap between components
+#' Average pairwise overlap of a Gaussian mixture
 #'
-#' Internally, it is the function MixSim::overlap which is used to generate an approximate pairwise
-#' probability to wrongfully assign one component to another. Unfortunately, this function does not
-#' the global overlap that we approximate there by averaging pairwise overlaps + compute the overlap
-#' between two components accounting for their respective proportions in the mixture
+#' @description
+#' Approximates mixture overlap from pairwise misclassification probabilities
+#' returned by [MixSim::overlap()], weighted by
+#' \eqn{p_i\Omega_{ij}+p_j\Omega_{ji}} and averaged over pairs.
 #'
-#' @author Bastien CHASSAGNOL
-#'
-#' @param true_theta the parameters of the GMM
-#' @param k the number of components
-#' @return the average overlap
-#'
+#' @param true_theta List with `p`, `mu`, `sigma` as in a GMM
+#'   \eqn{(\boldsymbol{p},\boldsymbol{\mu},\{\boldsymbol{\Sigma}_j\})}.
+#' @param k Number of components \eqn{J} (default `length(true_theta$p)`).
+#' @return Scalar average overlap.
 #' @export
-
 compute_average_overlap <- function(true_theta, k = length(true_theta$p)) {
   # generate relevant values for the computation of the overlap
   misclassif_mat <- MixSim::overlap(

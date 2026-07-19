@@ -1,14 +1,15 @@
-#' Plot Correlation Heatmap
+#' Plot deconvolution metric heatmaps
 #'
-#' For each deconvolution algorithm, plot the metric selected over the range of selected ratios
+#' @description
+#' For each algorithm, visualises a selected score over the design grid of
+#' simulated \eqn{\boldsymbol{p}} (and related scenario factors).
 #'
-#' @param distribution_metrics A tibble with the metric scores
-#' @param score_variable The name of the metric to be represented on the Heatmap
-#' @param n_break the continous number of breaks allowed to generate the Heatmap
-#' @param uni_scale if FALSE, each Heatmap is plotted with its own scale
+#' @param distribution_metrics Tibble of metric scores from a benchmark.
+#' @param score_variable Column name of the metric to display.
+#' @param n_break Number of colour breaks.
+#' @param uni_scale If `FALSE`, each panel uses its own colour scale.
 #'
 #' @export
-
 plot_correlation_Heatmap <- function(
   distribution_metrics,
   score_variable = "model_mse",

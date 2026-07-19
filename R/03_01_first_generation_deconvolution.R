@@ -6,10 +6,9 @@
 ############################################################################
 ############################################################################
 
-#' @describeIn deconvolute_ratios_Marquardt_Levenberg From this algorithm, providing
-#' any explicit prior of the covariance matrix is pointless, since we are,
-#' to our knowledge, the first ones to account for it explicitly. Here,
-#' a custom implementation of the CIBERSORT algorithm.
+#' @describeIn deconvolute_ratios_Marquardt_Levenberg Linear baseline
+#'   \eqn{\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}} via nu-SVR
+#'   (CIBERSORT-style); no covariance prior is used.
 
 deconvolute_ratios_CIBERSORT <- function(
   y,
@@ -55,10 +54,10 @@ deconvolute_ratios_CIBERSORT <- function(
 }
 
 #' @importFrom Rdpack reprompt
-#' @describeIn deconvolute_ratios_Marquardt_Levenberg  Here,
-#' a standard linear approach, as performed in \insertCite{abbas_etal09;textual}{DeCovarT} as it can be computed
-#' with function [stats::lsfit()]. Nevertheless, similar to any other deconvolution methods,
-#' inferred ratios are normalised back to the unit simplex space.
+#' @describeIn deconvolute_ratios_Marquardt_Levenberg Ordinary least squares
+#'   for \eqn{\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}}
+#'   ([stats::lsfit()]), following \insertCite{abbas_etal09;textual}{DeCovarT};
+#'   estimates are projected back onto the simplex.
 
 deconvolute_ratios_abbas <- function(
   y,
@@ -83,9 +82,9 @@ deconvolute_ratios_abbas <- function(
   return(metrics_scores)
 }
 
-#' @describeIn deconvolute_ratios_Marquardt_Levenberg  Here,
-#' a robust linear approach, as performed in \insertCite{monaco_etal19;textual}{DeCovarT}
-#' as it can be computed with function [MASS::rlm()].
+#' @describeIn deconvolute_ratios_Marquardt_Levenberg Robust linear model
+#'   \eqn{\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}}
+#'   ([MASS::rlm()]), as in \insertCite{monaco_etal19;textual}{DeCovarT}.
 
 deconvolute_ratios_monaco <- function(
   y,
@@ -110,9 +109,9 @@ deconvolute_ratios_monaco <- function(
   return(metrics_scores)
 }
 
-#' @describeIn deconvolute_ratios_Marquardt_Levenberg Here, function [nnls::nnls()]
-#' is used as an interface to the Lawson-Hanson NNLS implementation, with the additional
-#' constraints that the returned ratios can not be negative.
+#' @describeIn deconvolute_ratios_Marquardt_Levenberg Non-negative least squares
+#'   for \eqn{\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}}
+#'   ([nnls::nnls()]), then simplex projection.
 
 deconvolute_ratios_nnls <- function(
   y,
@@ -135,11 +134,9 @@ deconvolute_ratios_nnls <- function(
 }
 
 
-#' @describeIn deconvolute_ratios_Marquardt_Levenberg  Here,
-#' standard linear least squares optimisation, but accounting for
-#' the two equality and inequality constraints of the unit simplex. Similar to the implementation
-#' of the `deconRNASeq` algorithm, see also [limSolve::lsei()]
-#' or the `lsqlin` function in Matlab for additional details.
+#' @describeIn deconvolute_ratios_Marquardt_Levenberg Equality- and
+#'   inequality-constrained least squares on the simplex
+#'   ([limSolve::lsei()]), in the spirit of `deconRNASeq`.
 #' @references
 #' \insertAllCited{}
 

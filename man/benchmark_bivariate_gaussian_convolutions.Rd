@@ -2,7 +2,7 @@
 % Please edit documentation in R/02_01_toy_simulation.R
 \name{benchmark_bivariate_gaussian_convolutions}
 \alias{benchmark_bivariate_gaussian_convolutions}
-\title{Benchmark two-component cell populations}
+\title{Benchmark bivariate Gaussian convolutions}
 \usage{
 benchmark_bivariate_gaussian_convolutions(
   proportions = list(balanced = c(0.5, 0.5), `small unbalanced` = c(0.6, 0.4),
@@ -19,84 +19,41 @@ benchmark_bivariate_gaussian_convolutions(
 )
 }
 \arguments{
-\item{proportions}{A list of numerical vectors, assumed each to respect the unit
-simplex constraint:
-\deqn{\begin{cases} \sum_{j=1}^J p_{j}=1\\ \forall j \in \widetilde{J} \quad p_j\ge 0 \end{cases}}}
+\item{proportions}{List of simplex vectors \eqn{\boldsymbol{p}}.}
 
-\item{signature_matrices}{A list of bivariate matrices, in \eqn{\mathcal{M}_{G \times J}^+}
-storing the purified expression profiles of the \eqn{J} cell populations of the sample.
-This parameter is especially useful to assert the performance of the deconvolution
-algorithms, as a function of the proximity of the respective centroids (mean
-expression profiles) of the evaluated cell populations.}
+\item{signature_matrices}{List of mean matrices
+\eqn{\boldsymbol{\mu}\in\mathcal{M}_{2\times 2}^{+}}.}
 
-\item{diagonal_terms, corr_sequence}{Together, these parameters control the
-characteristics of the array of covariance matrices used to model the transcriptomic
-network structure of each cell population:
-\itemize{
-\item A numeric vector, strictly included between -1 and 1, is expected for
-param \code{corr_sequence}. Each paired arrangement of correlation for both cell
-populations will be used to describe the pairwise correlation level between
-gene 1 and gene 2.
-\item A list of numeric vectors, used to parametrise the diagonal terms of
-the covariance matrix, is expected for param \code{diagonal_terms}. Explicit
-names can be given as well to properly identify a scenario.  By default,
-we compare a standard \emph{homoscedastic} scenario, in which we assume a constant diagonal term
-of 1 for both genes, with a \emph{heteroscedastic} scenario, in which we assign
-a variance of 2 for gene 2, for both cell populations. Finally, the covariance
-matrix is computed and normalised back to integrate both constraints, using
-following matricial relationship, linking the value of a correlation matrix with
-its respective covariance matrix:
-\deqn{\text{Cov}(\boldsymbol{mean_signature_matrix}) = \text{diag}\left[(\text{Var}(\boldsymbol{mean_signature_matrix})\right]^{1/2} \times \text{Cor}(\boldsymbol{mean_signature_matrix}) \times \text{diag}\left[(\text{Var}(\boldsymbol{mean_signature_matrix})\right]^{1/2}}
-}}
+\item{corr_sequence, diagonal_terms}{Correlation sequence and diagonal
+variance templates used to assemble
+\eqn{\boldsymbol{\Sigma}_j=\mathrm{D}_{j}^{1/2}\mathbf{R}_j\mathrm{D}_{j}^{1/2}}.}
 
-\item{deconvolution_functions}{The deconvolution functions themselves, a list
-with for each item two attributes to be filled with:
-\itemize{
-\item \code{FUN}: the function itself (not a string, but indeed any deconvolution function
-integrating the default parameters listed in )
-\code{additional_parameters} by default, set to NULL. If your deconvolution function
-integrates any specific, additional parameter.
-}}
+\item{deconvolution_functions}{Named list of deconvolution callables
+(each with \code{FUN} and optional \code{additional_parameters}).}
 
-\item{n}{The number of samples to generate (an integer, but upon request, we may
-update the function to accept a numerical vector instead)}
+\item{n}{Number of bulk replicates \eqn{N} per scenario.}
 
-\item{scaled}{Whether we should scale or not the dataset. By default, we consider that the provided dataset is in its original raw space,
-and we do not scale the dataset, since our deconvolution algorithm assumes a multivariate Gaussian distribution on the raw counts themselves.}
+\item{scaled}{Logical; whether to log-scale inputs before estimation.}
 
-\item{cores}{For a parallel estimation of ratios in a series of bulk samples,
-assign a number of cores strictly inferior to the number of cores available
-on your machine. By default, the maximum, minus in Unix systems, and for
-OS compatibility, only one on Windows machines}
+\item{cores}{Parallel workers for \code{\link[=deconvolute_ratios]{deconvolute_ratios()}}.}
 }
 \value{
-a two-entry list, with:
-\itemize{
-\item \code{config}: the complete parameter configuration used to generate the benchmark
-including the list of parameters, as well as some general metrics, such as the
-overlap and the entropy of the convolution of GMMs used
-\item \code{simulations}: the results of the simulations themselves,
-mostly similar to the output of \link{deconvolute_ratios}
-}
+A list with \code{config} (design + entropy/overlap) and \code{simulations}
+(estimation tibble).
 }
 \description{
-It is a highly specific wrapper function, used to reproduce the results
-for the bivariate toy example provided in the paper associated to this package.
-Precisely, it has been designed to predict the performance of a variety of deconvolution
-algorithms, in the specific framework where two cell populations are characterised
-by two genes.
+Wrapper reproducing the bivariate (\eqn{G=2}, \eqn{J=2}) toy study of the
+article: for each scenario it builds
+\eqn{\boldsymbol{\mu}} and
+\eqn{(\boldsymbol{\Sigma}_j)_{j}}, simulates
+\eqn{\boldsymbol{Y}} via \code{\link[=simulate_bulk_mixture]{simulate_bulk_mixture()}}, and deconvolves with the
+supplied algorithms. Performance is summarised against entropy of
+\eqn{\boldsymbol{p}} and overlap of the Gaussian mixture.
 }
 \details{
-Purpose of this toy example was to evaluate the quality of the benchmark
-with respect to the level of entropy (the global population disequilibrium)
-and the overlap, in a two dimensional convolution of Gaussian mixture distributions.
-}
-\note{
-In a near future, we would provide an additional and more flexible
-benchmark, however, till now, we strongly do not recommend to benchmark
-virtual mixtures with more than two populations, since, with only two genes,
-you are likely to come across strong identifiability issues.
+Designed for two cell types and two genes. Larger \eqn{(G,J)} with only
+bivariate observations is prone to non-identifiability.
 }
 \seealso{
-\code{\link[=deconvolute_ratios]{deconvolute_ratios()}}
+\code{\link[=simulate_bulk_mixture]{simulate_bulk_mixture()}}, \code{\link[=deconvolute_ratios]{deconvolute_ratios()}}
 }

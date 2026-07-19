@@ -2,7 +2,7 @@
 % Please edit documentation in R/02_02_generate_synthetic_networks.R
 \name{simulate_hierarchical_grn_moments}
 \alias{simulate_hierarchical_grn_moments}
-\title{Simulate hierarchical gene regulatory network moments}
+\title{Simulate hierarchical GRN first- and second-order moments}
 \usage{
 simulate_hierarchical_grn_moments(
   n_expressed_genes,
@@ -20,125 +20,48 @@ simulate_hierarchical_grn_moments(
 )
 }
 \arguments{
-\item{n_expressed_genes}{Integer, strictly positive.  Number of genes
-considered expressed per parent population.  The total gene count is
-\code{2 * n_expressed_genes} (one expressed block + one background
-block per parent).}
+\item{n_expressed_genes}{Integer; expressed genes per parent block
+(total dimension \eqn{G=2\times} \code{n_expressed_genes}).}
 
-\item{mean_lower_expressed}{Numeric.  Lower bound of the uniform
-distribution for expressed-gene means.}
+\item{mean_lower_expressed, mean_upper_expressed}{Uniform bounds for expressed
+block means.}
 
-\item{mean_upper_expressed}{Numeric.  Upper bound of the uniform
-distribution for expressed-gene means.}
+\item{mean_lower_background, mean_upper_background}{Uniform bounds for
+background block means.}
 
-\item{mean_lower_background}{Numeric.  Lower bound of the uniform
-distribution for background-gene means.}
+\item{library_size}{Positive scalar \eqn{L} in the mean–variance law.}
 
-\item{mean_upper_background}{Numeric.  Upper bound of the uniform
-distribution for background-gene means.}
+\item{alpha}{Positive power in \eqn{\mu_g^{\alpha}/L} (\code{2} recovers a
+classical NB-like law).}
 
-\item{library_size}{Numeric, positive.  Scaling factor in the
-mean--variance relationship
-\eqn{\sigma_g^2 = \mu_g + \mu_g^\alpha / L}.}
+\item{precision_shift, precision_scale}{Diagonal shift \eqn{u} and off-diagonal
+scale \eqn{v} used to build \eqn{\boldsymbol{\Omega}}.}
 
-\item{alpha}{Numeric, positive.  Power parameter in the
-mean--variance relationship.  Setting \code{alpha = 2} recovers
-the classical negative-binomial variance.}
+\item{child_perturbation_sd}{Standard deviation \eqn{\sigma_\delta}.}
 
-\item{precision_shift}{Numeric, positive.  Additive diagonal shift
-\eqn{u} ensuring positive-definiteness of the precision matrix.}
+\item{graph_model}{\code{"power_law"} or \code{"stochastic_block_model"}.}
 
-\item{precision_scale}{Numeric, positive.  Multiplicative scale
-\eqn{v} applied to off-diagonal precision entries.}
-
-\item{child_perturbation_sd}{Numeric, positive (typically small).
-Standard deviation of the centred Gaussian perturbation added to
-parent means to create child subpopulation means.}
-
-\item{graph_model}{Character.  Random graph generator to use; one of
-\code{"power_law"} (Barabási--Albert preferential attachment) or
-\code{"stochastic_block_model"}.}
-
-\item{graph_params}{Named list of model-specific parameters:
-\describe{
-\item{For \code{"power_law"}:}{
-\code{power} (numeric, default 1) — attachment exponent;
-\code{edges_per_node} (integer, default 1) — edges added per
-new node.
-}
-\item{For \code{"stochastic_block_model"}:}{
-\code{block_prob} (numeric vector, default
-\code{c(0.5, 0.25, 0.25)}) — block-membership probabilities;
-\code{p_within} (numeric, default 0.25) — within-block edge
-probability;
-\code{p_between} (numeric, default 0.01) — between-block edge
-probability.
-}
-}}
+\item{graph_params}{Named list of generator parameters (see Details in source
+for \code{power} / \code{edges_per_node} or \code{block_prob} / \code{p_within} / \code{p_between}).}
 }
 \value{
-A named list with three elements:
-\describe{
-\item{\code{parent_parameters}}{A named list containing:
-\describe{
-\item{\code{mean_profiles}}{Numeric matrix
-(2 mean_signature_matrix \code{2 * n_expressed_genes}).  Rows: \code{parent_1},
-\code{parent_2}; columns: \code{gene_1}, \ldots}
-\item{\code{covariance_matrices}}{Three-dimensional array
-(\code{2n mean_signature_matrix 2n mean_signature_matrix 2}), third axis indexed by parent name.}
-}
-}
-\item{\code{child_parameters}}{A named list containing:
-\describe{
-\item{\code{mean_profiles}}{Numeric matrix
-(4 mean_signature_matrix \code{2 * n_expressed_genes}).  Rows:
-\code{parent_1_child_a}, \code{parent_1_child_b},
-\code{parent_2_child_a}, \code{parent_2_child_b}.}
-\item{\code{covariance_matrices}}{Three-dimensional array
-(\code{2n mean_signature_matrix 2n mean_signature_matrix 4}), third axis indexed by child name.}
-}
-}
-\item{\code{graph_structure}}{A named list containing:
-\describe{
-\item{\code{adjacency_matrix}}{Binary symmetric matrix
-encoding the GRN topology.}
-\item{\code{normalised_precision}}{Positive-definite precision
-matrix derived from the adjacency matrix.}
-}
-}
-}
+Named list with \code{parent_parameters}, \code{child_parameters} (each holding
+\code{mean_profiles} \eqn{\boldsymbol{\mu}} and \code{covariance_matrices}
+\eqn{(\boldsymbol{\Sigma}_j)}), and \code{graph_structure}
+(\code{adjacency_matrix}, \code{normalised_precision} \eqn{\boldsymbol{\Omega}}).
 }
 \description{
-Generates a complete set of first- and second-order moments for a
-hierarchical cell-population model.  Two parent cell lines are
-defined with complementary expression profiles (block structure);
-each parent gives rise to two child subpopulations via small Gaussian
-perturbations.  Gene--gene dependencies are encoded in a
-graph-constrained precision matrix, and marginal variances follow a
-negative-binomial-like mean--variance law.
-}
-\details{
-The simulation proceeds in four stages:
-\enumerate{
-\item \strong{Mean profiles.}
-Parent means are drawn from uniform distributions with distinct
-ranges for expressed and background genes.
-Child means are obtained by adding a centred Gaussian perturbation
-\eqn{\delta^{(k)} \sim \mathcal{N}(0, \sigma_\delta^2 I)} to
-the corresponding parent mean.
-\item \strong{Marginal variances.}
-Gene-wise variances are computed via
-\eqn{\sigma_g^2 = \mu_g + \mu_g^\alpha / L}, inspiring from the
-mean-variance relationship of a Negative Binomial distirbution
-\item \strong{Graph topology.}
-A random graph is sampled (power-law or stochastic block model)
-and converted to a binary adjacency matrix \eqn{A}.
-\item \strong{Covariance matrices.}
-A normalised precision matrix is built as
-\eqn{\Omega = A \odot v + (\lvert\lambda_{\min}\rvert + u)\,I},
-then inverted and scaled by population-specific variances to
-yield full covariance matrices.
-}
+Builds mean matrices \eqn{\boldsymbol{\mu}} and covariance arrays
+\eqn{(\boldsymbol{\Sigma}_j)} for parent/child cell populations under a
+graph-constrained precision model. Parent means use complementary block
+structure; child means are
+\eqn{\boldsymbol{\mu}^{(k)}=\boldsymbol{\mu}^{(\mathrm{parent})}+\boldsymbol{\delta}^{(k)}}
+with \eqn{\boldsymbol{\delta}^{(k)}\sim\mathcal{N}(\mathbf{0},\sigma_\delta^{2}\mathbf{I})}.
+Marginal variances follow
+\eqn{\sigma_g^{2}=\mu_g+\mu_g^{\alpha}/L}; covariances are obtained from a
+shared normalised precision \eqn{\boldsymbol{\Omega}} via
+\eqn{\boldsymbol{\Sigma}_k=\mathbf{D}_k^{1/2}\mathbf{R}\mathbf{D}_k^{1/2}} with
+\eqn{\mathbf{R}=\mathrm{cov2cor}(\boldsymbol{\Omega}^{-1})}.
 }
 \examples{
 set.seed(42)

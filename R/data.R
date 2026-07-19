@@ -1,33 +1,37 @@
-#' Bivariate parameter configuration
+#' Bivariate simulation design grid
 #'
-#' The complete parameter configurations used to model the bivariate framework
+#' Parameter configurations for the bivariate (\eqn{G=2}, \eqn{J=2}) Gaussian
+#' convolution benchmark: each row stores entropy of \eqn{\boldsymbol{p}},
+#' mixture overlap, and the GMM triple
+#' \eqn{(\boldsymbol{p},\boldsymbol{\mu},\{\boldsymbol{\Sigma}_j\})}.
 #'
-#' @format ## `who`
-#' A data frame with 392 rows and 7 columns:
+#' @format A data frame with 392 rows and 7 columns:
 #' \describe{
-#'   \item{ID}{The unique ID identifying each general bivariate configuration tested}
-#'   \item{overlap}{The average overlap}
-#'   \item{entropy}{The Shannon entropy computed using the respective proportions of the two populations tested}
-#'   \item{proportions, variance, centroids}{General descriptions about each parameter configuration}
-#'   \item{true_parameters}{The actual list of parameters, p, mu and sigma, used to model the scenario}
+#'   \item{ID}{Scenario identifier}
+#'   \item{overlap}{Average pairwise overlap}
+#'   \item{entropy}{Normalised Shannon entropy of \eqn{\boldsymbol{p}}}
+#'   \item{proportions, variance, centroids}{Scenario factors}
+#'   \item{true_parameters}{List with `p`, `mu`, `sigma`}
 #' }
 "bivariate_configuration"
 
 
-#' Bivariate parameter configuration
+#' Bivariate deconvolution benchmark results
 #'
-#' The complete parameter configurations used to model the bivariate framework
+#' Long-format scores from deconvolving simulated
+#' \eqn{\boldsymbol{Y}} under the bivariate design in
+#' [bivariate_configuration].
 #'
-#' @format ## `bivariate_parameters`
-#' A data frame with 7,838,260 rows and 8 columns:
+#' @format A data frame with many rows and 8 columns:
 #' \describe{
-#'   \item{ID}{The unique ID identifying each general bivariate configuration tested}
-#'   \item{correlation_celltype1,correlation_celltype2}{The pairwise correlation between the two genes, respectively
-#'   for population 1 and 2}
-#'   \item{model_mse,...}{Some general metrics comparing the performance of the deconvolution algorithm
-#'   in inferring the cellular ratios, with respect to the ones provided in the simulation}
-#'   \item{p1,p2}{Proportions of the two cell populations}
-#'   \item{OMIC_ID}{ID characterinsg the sample}
-#'   \item{algorithm}{The deconvolution algorithm used to infer the ratios}
+#'   \item{ID}{Links to [bivariate_configuration]}
+#'   \item{correlation_celltype1, correlation_celltype2}{Off-diagonal
+#'     correlations entering \eqn{\boldsymbol{\Sigma}_1},
+#'     \eqn{\boldsymbol{\Sigma}_2}}
+#'   \item{model_mse, \ldots}{Estimation metrics for
+#'     \eqn{\hat{\boldsymbol{p}}} versus \eqn{\boldsymbol{p}^{\star}}}
+#'   \item{p1, p2}{Coordinates of \eqn{\boldsymbol{p}}}
+#'   \item{OMIC_ID}{Sample identifier}
+#'   \item{algorithm}{Deconvolution method}
 #' }
 "bivariate_parameters"

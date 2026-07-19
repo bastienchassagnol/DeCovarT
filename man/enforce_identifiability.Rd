@@ -2,20 +2,18 @@
 % Please edit documentation in R/utils.R
 \name{enforce_identifiability}
 \alias{enforce_identifiability}
-\title{Check whether the estimation has been trapped in the boundary space}
+\title{Project estimated proportions onto the unit simplex}
 \usage{
 enforce_identifiability(p)
 }
 \arguments{
-\item{p}{the estimated ratios}
+\item{p}{Numeric vector \eqn{\boldsymbol{p}\in\mathbb{R}^{J}}.}
 }
 \value{
-a numeric vector of size \eqn{J}, but assuring that negative
-ratios were set to 0, and the unit simplex constraint is endorsed
+Numeric vector on the simplex \eqn{\Delta^{J-1}}.
 }
 \description{
-\itemize{
-\item Function \code{enforce_identifiability} normalises the ratios to sum to 1,
-and set ratios close to zero or 1, to the limits of the boundary space
-}
+Clips numerical under/overflow and renormalises so that
+\eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1} and
+\eqn{\boldsymbol{p}\ge\mathbf{0}}.
 }

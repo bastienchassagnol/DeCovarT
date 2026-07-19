@@ -2,7 +2,7 @@
 % Please edit documentation in R/04_01_benchmark_ground_truths.R
 \name{deconvolute_ratios}
 \alias{deconvolute_ratios}
-\title{Main function of the package: deconvolute in parallel mixture samples}
+\title{Parallel deconvolution of a bulk expression matrix}
 \usage{
 deconvolute_ratios(
   signature_matrix,
@@ -16,53 +16,38 @@ deconvolute_ratios(
 )
 }
 \arguments{
-\item{signature_matrix}{Parameter \code{mu}: \eqn{\boldsymbol{\mu}=(\mu_{g,j}) \in \mathbb{R}^{G \times J}},
-storing in each each column the averaged expression of the \code{G} genes used to deconvolve all cell populations.
-Name your \code{colnames} as the cell populations, and provide \code{rownames} argument for the name of the genes.
-By convention, we use HGNC symbols.}
+\item{signature_matrix}{Mean signature
+\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (rownames = genes,
+colnames = cell types).}
 
-\item{bulk_expression}{Parameter \code{y}: \eqn{\boldsymbol{y}=(\mu_{g,i}) \in \mathbb{R}^{G \times I}},
-storing in each each column the measured expression of the \code{G} genes in a heterogeneous sample, using any RNASeq or microarray technology.
-Provide the sample ID for each of your samples in column, and the name of your genes in \code{rownames}.}
+\item{bulk_expression}{Bulk matrix
+\eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}}.}
 
-\item{true_ratios}{If available (for instance, in the context of a virtual benchmark, or if some standard cytometry techniques provide them),
-vector of size \eqn{J}, storing the normalised proportions of the cell populations supposed present in the sample. Summary metrics
-will then be computed against the ones returned by the deconvolution algorithms provided.}
+\item{true_ratios}{Optional ground-truth proportions for scoring.}
 
-\item{Sigma}{Only relevant for deconvolution algorithms which require a prior estimate
-of the transcriptomic  covariance for each of the purified cell populations.
-A 3-dimensional covariance matrix array is expected:
-\eqn{\mathrm{\Sigma}=(\Sigma_{l, k, j}) \in \mathbb{R}^{G \times G \times J}} to
-parametrise the covariance transcriptomic structure of the \eqn{J} cell populations estimated.}
+\item{Sigma}{Optional array
+\eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}}.}
 
-\item{deconvolution_functions}{The deconvolution functions themselves, a list
-with for each item two attributes to be filled with:
-\itemize{
-\item \code{FUN}: the function itself (not a string, but indeed any deconvolution function
-integrating the default parameters listed in )
-\code{additional_parameters} by default, set to NULL. If your deconvolution function
-integrates any specific, additional parameter.
-}}
+\item{deconvolution_functions}{Named list; each element has \code{FUN} and
+optional \code{additional_parameters}.}
 
-\item{scaled}{Whether we should scale or not the dataset. By default, we consider that the provided dataset is in its original raw space,
-and we do not scale the dataset, since our deconvolution algorithm assumes a multivariate Gaussian distribution on the raw counts themselves.}
+\item{scaled}{If \code{TRUE}, apply a log2 transform before estimation.}
 
-\item{cores}{For a parallel estimation of ratios in a series of bulk samples,
-assign a number of cores strictly inferior to the number of cores available
-on your machine. By default, the maximum, minus in Unix systems, and for
-OS compatibility, only one on Windows machines}
+\item{cores}{Number of parallel workers.}
 }
 \value{
-A \code{tibble} storing for each row the measured cell proportions, as well as some summary metrics.
-We ensure for each deconvolution algorithm that the returned estimates respect the unit simplex constraint,
-with function \code{\link[=enforce_identifiability]{enforce_identifiability()}}.
+A \code{tibble} of estimated \eqn{\hat{\boldsymbol{p}}} and metrics,
+after \code{\link[=enforce_identifiability]{enforce_identifiability()}}.
 }
 \description{
-Main function of the package: deconvolute in parallel mixture samples
+For each column \eqn{\boldsymbol{y}_{\cdot i}} of the bulk matrix
+\eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}}, estimates
+\eqn{\hat{\boldsymbol{p}}_{\cdot i}} with every supplied algorithm. When
+covariance information is provided, DeCovarT methods maximise
+\eqn{\ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{p})} under
+\eqn{\boldsymbol{y}\,|\,(\boldsymbol{\zeta},\boldsymbol{p})\sim
+\mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},\boldsymbol{\Sigma}(\boldsymbol{p}))}.
 }
 \seealso{
-\code{\link[=deconvolute_ratios_Marquardt_Levenberg]{deconvolute_ratios_Marquardt_Levenberg()}}, to deconvolve a single, already normalised sample
-}
-\author{
-Bastien CHASSAGNOL
+\code{\link[=deconvolute_ratios_Marquardt_Levenberg]{deconvolute_ratios_Marquardt_Levenberg()}}
 }

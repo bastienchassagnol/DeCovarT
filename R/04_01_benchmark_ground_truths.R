@@ -1,24 +1,21 @@
 
 
-#' @title Compute summary metrics evaluating the quality of the estimate
+#' Compute summary metrics for estimated proportions
 #'
-#' @description Compute metrics, either comparing th estimated ratios with a gold standard
-#' or the divergence between the reconstituted virtual mixture,
-#' using deterministic rule \eqn{\boldsymbol{\hat{y}}=\boldsymbol{mean_signature_matrix} \times \hat{\boldsymbol{p}}}
-#' and the actual measured one
+#' @description
+#' When a ground truth \eqn{\boldsymbol{p}^{\star}} is supplied, scores compare
+#' \eqn{\hat{\boldsymbol{p}}} to \eqn{\boldsymbol{p}^{\star}}. Otherwise scores
+#' compare the reconstituted bulk
+#' \eqn{\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}} to the
+#' observed \eqn{\boldsymbol{y}}.
 #'
 #' @inheritParams deconvolute_ratios_Marquardt_Levenberg
-#' @param estimated_p The ratios estimated by your favourite deconvolution algorithm
+#' @param estimated_p Estimated proportions
+#'   \eqn{\hat{\boldsymbol{p}}\in\mathbb{R}^{J}}.
 #'
-#' @return A `tibble`, with the following scores:
-#' * mse and rmse, for respectively \emph{mean} and \emph{root mean squared error}. See also the [Metrics::mse()] function.
-#' * mae, for \emph{mean absolute error}. See also the [Metrics::mae()] function.
-#' * \eqn{R^2} and adjusted \eqn{R^2}, corresponding to the percentage of variance
-#' captured by the linear regression model. See also the [Metrics::rse()] function.
-#' * cor, for the Pearson correlation between the estimated and true cellular ratios
-#' giving the mean values of the variables within a given component. See also the [stats::cor()] function.
+#' @return A `tibble` with mse/rmse/mae, optionally
+#'   \eqn{R^{2}} / adjusted \eqn{R^{2}}, and Pearson correlation.
 #' @export
-
 compute_benchmark_metrics <- function(y, mean_signature_matrix, estimated_p, true_ratios = NULL) {
   n <- nrow(mean_signature_matrix)
   k <- ncol(mean_signature_matrix)
@@ -66,44 +63,34 @@ compute_benchmark_metrics <- function(y, mean_signature_matrix, estimated_p, tru
   return(scores)
 }
 
-#' Main function of the package: deconvolute in parallel mixture samples
+#' Parallel deconvolution of a bulk expression matrix
 #'
-#' @author Bastien CHASSAGNOL
+#' @description
+#' For each column \eqn{\boldsymbol{y}_{\cdot i}} of the bulk matrix
+#' \eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}}, estimates
+#' \eqn{\hat{\boldsymbol{p}}_{\cdot i}} with every supplied algorithm. When
+#' covariance information is provided, DeCovarT methods maximise
+#' \eqn{\ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{p})} under
+#' \eqn{\boldsymbol{y}\,|\,(\boldsymbol{\zeta},\boldsymbol{p})\sim
+#' \mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},\boldsymbol{\Sigma}(\boldsymbol{p}))}.
 #'
-#' @param signature_matrix Parameter `mu`: \eqn{\boldsymbol{\mu}=(\mu_{g,j}) \in \mathbb{R}^{G \times J}},
-#' storing in each each column the averaged expression of the `G` genes used to deconvolve all cell populations.
-#' Name your `colnames` as the cell populations, and provide `rownames` argument for the name of the genes.
-#' By convention, we use HGNC symbols.
-#' @param bulk_expression Parameter `y`: \eqn{\boldsymbol{y}=(\mu_{g,i}) \in \mathbb{R}^{G \times I}},
-#' storing in each each column the measured expression of the `G` genes in a heterogeneous sample, using any RNASeq or microarray technology.
-#' Provide the sample ID for each of your samples in column, and the name of your genes in `rownames`.
-#' @param true_ratios If available (for instance, in the context of a virtual benchmark, or if some standard cytometry techniques provide them),
-#' vector of size \eqn{J}, storing the normalised proportions of the cell populations supposed present in the sample. Summary metrics
-#' will then be computed against the ones returned by the deconvolution algorithms provided.
-#' @param Sigma Only relevant for deconvolution algorithms which require a prior estimate
-#' of the transcriptomic  covariance for each of the purified cell populations.
-#' A 3-dimensional covariance matrix array is expected:
-#'  \eqn{\mathrm{\Sigma}=(\Sigma_{l, k, j}) \in \mathbb{R}^{G \times G \times J}} to
-#' parametrise the covariance transcriptomic structure of the \eqn{J} cell populations estimated.
-#' @param deconvolution_functions The deconvolution functions themselves, a list
-#' with for each item two attributes to be filled with:
-#' * `FUN`: the function itself (not a string, but indeed any deconvolution function
-#' integrating the default parameters listed in )
-#' `additional_parameters` by default, set to NULL. If your deconvolution function
-#' integrates any specific, additional parameter.
-#' @param scaled Whether we should scale or not the dataset. By default, we consider that the provided dataset is in its original raw space,
-#' and we do not scale the dataset, since our deconvolution algorithm assumes a multivariate Gaussian distribution on the raw counts themselves.
-#' @param cores For a parallel estimation of ratios in a series of bulk samples,
-#' assign a number of cores strictly inferior to the number of cores available
-#' on your machine. By default, the maximum, minus in Unix systems, and for
-#' OS compatibility, only one on Windows machines
-#' @return A `tibble` storing for each row the measured cell proportions, as well as some summary metrics.
-#' We ensure for each deconvolution algorithm that the returned estimates respect the unit simplex constraint,
-#' with function [enforce_identifiability()].
+#' @param signature_matrix Mean signature
+#'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (rownames = genes,
+#'   colnames = cell types).
+#' @param bulk_expression Bulk matrix
+#'   \eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}}.
+#' @param true_ratios Optional ground-truth proportions for scoring.
+#' @param Sigma Optional array
+#'   \eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}}.
+#' @param deconvolution_functions Named list; each element has `FUN` and
+#'   optional `additional_parameters`.
+#' @param scaled If `TRUE`, apply a log2 transform before estimation.
+#' @param cores Number of parallel workers.
+#'
+#' @return A `tibble` of estimated \eqn{\hat{\boldsymbol{p}}} and metrics,
+#'   after [enforce_identifiability()].
 #' @export
-#'
-#' @seealso [deconvolute_ratios_Marquardt_Levenberg()], to deconvolve a single, already normalised sample
-
+#' @seealso [deconvolute_ratios_Marquardt_Levenberg()]
 deconvolute_ratios <- function(
     signature_matrix,
     bulk_expression,

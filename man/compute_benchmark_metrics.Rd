@@ -2,7 +2,7 @@
 % Please edit documentation in R/04_01_benchmark_ground_truths.R
 \name{compute_benchmark_metrics}
 \alias{compute_benchmark_metrics}
-\title{Compute summary metrics evaluating the quality of the estimate}
+\title{Compute summary metrics for estimated proportions}
 \usage{
 compute_benchmark_metrics(
   y,
@@ -12,32 +12,27 @@ compute_benchmark_metrics(
 )
 }
 \arguments{
-\item{y}{Parameter \code{y}: \eqn{\boldsymbol{y}=(y_{g}) \in \mathbb{R}^{G}},
-storing the measured expression of the \code{G} genes in the heterogeneous sample}
+\item{y}{Bulk expression vector
+\eqn{\boldsymbol{y}\in\mathbb{R}^{G}} (one heterogeneous sample).}
 
-\item{mean_signature_matrix}{Parameter \code{mu}: \eqn{\boldsymbol{\mu}=(\mu_{g,j}) \in \mathbb{R}^{G \times J}},
-storing in each each column the averaged expression of the \code{G} genes of the \code{J} cell populations.}
+\item{mean_signature_matrix}{Mean signature
+\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (columns = cell types).}
 
-\item{estimated_p}{The ratios estimated by your favourite deconvolution algorithm}
+\item{estimated_p}{Estimated proportions
+\eqn{\hat{\boldsymbol{p}}\in\mathbb{R}^{J}}.}
 
-\item{true_ratios}{Optional,  vector of size \eqn{J}, storing the normalised proportions
-of the cell populations supposed present in the sample. If provided, summary metrics
-will then be computed against the ones returned by the deconvolution algorithms provided.}
+\item{true_ratios}{Optional ground-truth
+\eqn{\boldsymbol{p}^{\star}\in\mathbb{R}^{J}} used only for
+benchmark scores.}
 }
 \value{
-A \code{tibble}, with the following scores:
-\itemize{
-\item mse and rmse, for respectively \emph{mean} and \emph{root mean squared error}. See also the \code{\link[Metrics:mse]{Metrics::mse()}} function.
-\item mae, for \emph{mean absolute error}. See also the \code{\link[Metrics:mae]{Metrics::mae()}} function.
-\item \eqn{R^2} and adjusted \eqn{R^2}, corresponding to the percentage of variance
-captured by the linear regression model. See also the \code{\link[Metrics:rse]{Metrics::rse()}} function.
-\item cor, for the Pearson correlation between the estimated and true cellular ratios
-giving the mean values of the variables within a given component. See also the \code{\link[stats:cor]{stats::cor()}} function.
-}
+A \code{tibble} with mse/rmse/mae, optionally
+\eqn{R^{2}} / adjusted \eqn{R^{2}}, and Pearson correlation.
 }
 \description{
-Compute metrics, either comparing th estimated ratios with a gold standard
-or the divergence between the reconstituted virtual mixture,
-using deterministic rule \eqn{\boldsymbol{\hat{y}}=\boldsymbol{mean_signature_matrix} \times \hat{\boldsymbol{p}}}
-and the actual measured one
+When a ground truth \eqn{\boldsymbol{p}^{\star}} is supplied, scores compare
+\eqn{\hat{\boldsymbol{p}}} to \eqn{\boldsymbol{p}^{\star}}. Otherwise scores
+compare the reconstituted bulk
+\eqn{\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}} to the
+observed \eqn{\boldsymbol{y}}.
 }

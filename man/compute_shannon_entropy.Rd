@@ -2,19 +2,23 @@
 % Please edit documentation in R/utils.R
 \name{compute_shannon_entropy}
 \alias{compute_shannon_entropy}
-\title{Compute the shannon entropy of a discrete distribution, normalised from 0 to 1 (equibalanced classes)}
+\title{Normalised Shannon entropy of a discrete distribution}
 \usage{
 compute_shannon_entropy(ratios)
 }
 \arguments{
-\item{ratios}{vector of the proportions of the mixture}
+\item{ratios}{Numeric vector \eqn{\boldsymbol{p}}.}
 }
 \value{
-the entropy score
+Scalar entropy in \eqn{[0,1]}.
 }
 \description{
-Compute the shannon entropy of a discrete distribution, normalised from 0 to 1 (equibalanced classes)
+For \eqn{\boldsymbol{p}} on the simplex (after dropping zeros),
+\deqn{
+  H(\boldsymbol{p})
+  =
+  -\sum_{j}p_j\log_{J'}p_j
+  \in[0,1],
 }
-\author{
-Bastien CHASSAGNOL
+with \eqn{J'} the number of positive masses (1 = uniform).
 }

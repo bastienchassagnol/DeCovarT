@@ -2,24 +2,21 @@
 % Please edit documentation in R/utils.R
 \name{compute_average_overlap}
 \alias{compute_average_overlap}
-\title{Compute average overlap between components}
+\title{Average pairwise overlap of a Gaussian mixture}
 \usage{
 compute_average_overlap(true_theta, k = length(true_theta$p))
 }
 \arguments{
-\item{true_theta}{the parameters of the GMM}
+\item{true_theta}{List with \code{p}, \code{mu}, \code{sigma} as in a GMM
+\eqn{(\boldsymbol{p},\boldsymbol{\mu},\{\boldsymbol{\Sigma}_j\})}.}
 
-\item{k}{the number of components}
+\item{k}{Number of components \eqn{J} (default \code{length(true_theta$p)}).}
 }
 \value{
-the average overlap
+Scalar average overlap.
 }
 \description{
-Internally, it is the function MixSim::overlap which is used to generate an approximate pairwise
-probability to wrongfully assign one component to another. Unfortunately, this function does not
-the global overlap that we approximate there by averaging pairwise overlaps + compute the overlap
-between two components accounting for their respective proportions in the mixture
-}
-\author{
-Bastien CHASSAGNOL
+Approximates mixture overlap from pairwise misclassification probabilities
+returned by \code{\link[MixSim:overlap]{MixSim::overlap()}}, weighted by
+\eqn{p_i\Omega_{ij}+p_j\Omega_{ji}} and averaged over pairs.
 }

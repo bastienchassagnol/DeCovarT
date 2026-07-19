@@ -2,22 +2,26 @@
 % Please edit documentation in R/03_04_DeCoarT_estimate_CTS_MAP_Bayesian.R
 \name{.map_gaussian_convolution}
 \alias{.map_gaussian_convolution}
-\title{Compute the maximum a posteriori for a sum of Gaussian variables}
+\title{Maximum a posteriori purified profiles under a Gaussian convolution}
 \usage{
 .map_gaussian_convolution(y, mean_signature_matrix, Sigma)
 }
 \arguments{
-\item{y}{Parameter \code{y}: \eqn{\boldsymbol{y}=(y_{g}) \in \mathbb{R}^{G}},
-storing the measured expression of the \code{G} genes in the heterogeneous sample}
+\item{y}{Bulk vector \eqn{\boldsymbol{y}\in\mathbb{R}^{G}}.}
 
-\item{mean_signature_matrix}{Parameter \code{mu}: \eqn{\boldsymbol{\mu}=(\mu_{g,j}) \in \mathbb{R}^{G \times J}},
-storing in each each column the averaged expression of the \code{G} genes of the \code{J} cell populations.}
+\item{mean_signature_matrix}{Mean matrix
+\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}}.}
 
-\item{Sigma}{A tensor storing for each cell type the GRN structure:
-\eqn{\mathrm{\Sigma}=(\Sigma_{l, k, j}) \in \mathbb{R}^{G \times G \times J}}, with each matrix
-\eqn{\Sigma_{..j}, j \in \{ 1, \ldots, J\}} storing the covariance matrix
-describing the covariance transcriptomic structure of a given cell population \eqn{j}}
+\item{Sigma}{Array
+\eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}}.}
+}
+\value{
+List of length \eqn{J} with MAP vectors in \eqn{\mathbb{R}^{G}}.
 }
 \description{
-Compute the maximum a posteriori for a sum of Gaussian variables
+For fixed plug-in
+\eqn{\boldsymbol{\zeta}=(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_j\})} and a
+bulk vector \eqn{\boldsymbol{y}}, returns cell-type-specific MAP estimates of
+the latent purified profiles in the additive Gaussian model of the article.
 }
+\keyword{internal}

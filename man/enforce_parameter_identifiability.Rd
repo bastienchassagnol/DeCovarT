@@ -2,28 +2,20 @@
 % Please edit documentation in R/utils.R
 \name{enforce_parameter_identifiability}
 \alias{enforce_parameter_identifiability}
-\title{Control parameters output}
+\title{Order GMM parameters for unique labelling}
 \usage{
 enforce_parameter_identifiability(theta)
 }
 \arguments{
-\item{theta}{estimation of the parameters returned either by an initialisation
-algorithm or by an EM algorithm on an univariate or multivariate GMM MLE estimation
-\itemize{
-\item The proportions \code{p}: \eqn{p} of each component (must be included between 0 and 1, and sum to one overall)
-\item The mean matrix \code{mu}: \eqn{\mathrm{\mu}=(\mu_{i,j}) \in \mathbb{R}^{n \times k}}, with each column
-giving the mean values of the variables within a given component
-\item The 3-dimensional covariance matrix array \code{sigma}: \eqn{\mathrm{\sigma}=(\sigma_{i,j,l}) \in \mathbb{R}^{n \times n \times k}}, with each matrix
-\eqn{\sigma_{..l}, l \in \{ 1, \ldots, k\}} storing the covariance matrix of a given component,
-whose diagonal terms correspond to the variance of each variable, and off-terms diagonal elements return the covariance matrix
-}}
+\item{theta}{List with elements \code{p} (\eqn{\boldsymbol{p}}), \code{mu}
+(\eqn{\boldsymbol{\mu}}), and \code{sigma} (array of
+\eqn{\boldsymbol{\Sigma}_j}).}
 }
 \value{
-a list of the estimates, uniquely identified, by ranking each component
-based on the ordering of their means
+Relabelled list with the same structure.
 }
 \description{
-This step ensures that the estimates returned are uniquely ordered by
-partial ordering on the means, and that the sum-o-one constraint, that may
-be violated by numerical artefacts, is enforced
+Lexicographically orders mixture components by columns of
+\eqn{\boldsymbol{\mu}} and renormalises \eqn{\boldsymbol{p}}.
 }
+\keyword{internal}
