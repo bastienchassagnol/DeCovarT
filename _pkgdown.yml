@@ -1,86 +1,92 @@
 url: https://bastienchassagnol.github.io/DeCovarT/
-
 template:
   bootstrap: 5
-
 development:
   mode: auto
-
 navbar:
   structure:
-    left: [ home, reference, articles, news ]
-    right: [ search, github ]
+    left:
+      - home
+      - reference
+      - articles
+      - news
+    right:
+      - search
+      - github
   components:
     home: ~
     articles:
-      text: "Vignettes"
+      text: Vignettes
       menu:
-        - text: "Generate semi-synthetic pseudo bulks"
+        - text: Simulating semi-synthetic pseudo-bulk mixtures
           href: articles/synthetic-scenarios.html
-        - text: "DeCovarT use cases"
+        - text: Deconvolution use cases with DeCovarT
           href: articles/DeCoVart-use-cases.html
-
+        - text: Simplex coordinate maps (ALR / additive logistic)
+          href: articles/DeCovarT-numerical-derivatives.html
+        - text: Softmax and ALR derivatives
+          href: articles/softmax-alr-derivatives.html
 home:
   links:
     - text: Report a bug
       href: https://github.com/bastienchassagnol/DeCovarT/issues
-
 reference:
-
-  - title: "Main deconvolution function"
-    desc: >
-      Top-level function to deconvolve a matrix of bulk expression samples using
-      any combination of deconvolution algorithms in parallel.
+  - title: Main deconvolution function
+    desc: |
+      Top-level function to deconvolve a matrix of bulk expression samples
+      using any combination of deconvolution algorithms in parallel.
     contents:
-      - "`deconvolute_ratios`"
-
-  - title: "DeCovarT algorithm"
-
-  - subtitle: "Core optimiser"
-    desc: >
-      Covariance-aware Marquardt–Levenberg deconvolution algorithm and its
-      optimisation variants (gradient descent, Newton–Raphson, L-BFGS-B,
-      simulated annealing, constrained optimisation).
+      - deconvolute_ratios
+  - title: DeCovarT algorithm
+    desc: |
+      Covariance-aware optimisation of cellular ratios under a multivariate
+      Gaussian convolution model.
+  - subtitle: Core optimiser
+    desc: |
+      Marquardt–Levenberg deconvolution (exported entry point). Related
+      first- and second-order variants live in
+      `R/03_03_DeCovarT_estimate_ratios_frequentist.R`.
     contents:
-      - "`deconvolute_ratios_Marquardt_Levenberg`"
-
-  - subtitle: "Parametrisation"
-    desc: >
-      Additive logistic transform (and its additive log-ratio inverse) between
-      the unconstrained parameter space \(\mathbb{R}^{J-1}\) and the unit
-      simplex \(\Delta^{J-1}\).
+      - deconvolute_ratios_Marquardt_Levenberg
+  - subtitle: Parametrisation
+    desc: |
+      Additive logistic transform between the unconstrained parameter space
+      \(\mathbb{R}^{J-1}\) and the unit simplex \(\Delta^{J-1}\).
     contents:
-      - "`additive_logistic`"
-
-  - title: "First-generation deconvolution algorithms"
-    desc: >
-      Reference implementations of established covariance-agnostic methods
-      (CIBERSORT, Abbas/OLS, Monaco/RLM, NNLS, deconRNASeq) provided for
-      benchmarking purposes. All share the interface of
-      `deconvolute_ratios_Marquardt_Levenberg()`.
+      - additive_logistic
+  - title: Benchmark and evaluation
+    desc: |
+      Quality metrics for estimated proportions, and the bivariate toy
+      convolution benchmark.
     contents:
-      - starts_with('deconvolute_ratios_')
-
-  - title: "Benchmark and evaluation"
-    desc: >
-      Functions to compute quality metrics comparing estimated and true cellular
-      proportions, and to run the bivariate toy benchmark.
+      - compute_benchmark_metrics
+      - benchmark_bivariate_gaussian_convolutions
+      - plot_correlation_Heatmap
+  - title: Simulation
+  - subtitle: Toy bulk mixtures
+    desc: |
+      Simulate bulk mixtures as convolutions of multivariate Gaussians, and
+      hierarchical GRN moments with graph-constrained covariances.
     contents:
-      - "`compute_benchmark_metrics`"
-      - "`benchmark_deconvolution_algorithms_two_genes`"
-
-  - title: "Simulation"
-
-  - subtitle: "Toy bulk mixtures"
-    desc: >
-      Hierarchical generative model producing mean profiles and
-      graph-constrained covariance matrices for synthetic benchmarks.
+      - simulate_bulk_mixture
+      - simulate_hierarchical_grn_moments
+  - title: Utilities
+    desc: |
+      Simplex projection, Shannon entropy, and average pairwise overlap used
+      when designing synthetic scenarios.
     contents:
-      - "`simulate_bulk_mixture`"
-      - "`simulate_bulk_mixture`"
-      - "`simulate_hierarchical_grn_moments`"
-
+      - enforce_identifiability
+      - compute_shannon_entropy
+      - compute_average_overlap
+articles:
+  - title: Vignettes
+    navbar: ~
+    contents:
+      - synthetic-scenarios
+      - DeCoVart-use-cases
+      - DeCovarT-numerical-derivatives
+      - softmax-alr-derivatives
 news:
   releases:
-    - text: "Version 0.0.0.9000 (development)"
+    - text: Version 0.0.0.9000 (development)
       href: https://github.com/bastienchassagnol/DeCovarT/blob/main/NEWS.md
