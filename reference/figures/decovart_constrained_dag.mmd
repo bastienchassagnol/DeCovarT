@@ -1,0 +1,41 @@
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "primaryColor": "#f5f7fa",
+    "primaryBorderColor": "#334155",
+    "primaryTextColor": "#0f172a",
+    "lineColor": "#475569",
+    "fontSize": "14px"
+  },
+  "flowchart": { "curve": "basis" }
+}}%%
+flowchart TB
+  subgraph plateJ["j = 1,...,J"]
+    direction TB
+    mu["μ_j"]
+    Sj["Σ_j"]
+    xj(("x_j"))
+    mu --> xj
+    Sj --> xj
+  end
+
+  subgraph plateI["i = 1,...,N"]
+    direction TB
+    rho(("ρ_i"))
+    p["p_i = ψ(ρ_i)"]
+    y(["y_i"])
+    rho -->|"ψ soft-max"| p
+    p -.-> y
+  end
+
+  xj -.->|"y_i = μ p_i"| y
+
+  classDef param fill:#ffffff,stroke:#0f172a,stroke-width:1.5px;
+  classDef latent fill:#ffffff,stroke:#0f172a,stroke-width:1.5px;
+  classDef det fill:#ffffff,stroke:#0f172a,stroke-width:1.5px,stroke-dasharray:5 3;
+  classDef obs fill:#cbd5e1,stroke:#0f172a,stroke-width:1.5px,stroke-dasharray:5 3;
+
+  class mu,Sj param;
+  class rho,xj latent;
+  class p det;
+  class y obs;
