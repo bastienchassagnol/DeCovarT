@@ -2,6 +2,7 @@
 # - Excludes R/zzz.R and R/data.R
 # - Edges only between DeCovarT-defined functions (no base/stats/pkg:: calls)
 # - One colour per source file; node tooltips include formal parameters
+# see also https://pkgmap.app to list dependencies assoicated with a package
 #
 # Run from the package root: Rscript scripts/generate_package_network.R
 

@@ -1,0 +1,102 @@
+# R-hub v2 workflow (CRAN package name is still {rhub} >= 2.0).
+# Generated/updated with: rhub::rhub_setup()
+# Canonical template: https://github.com/r-hub/actions/blob/v1/workflows/rhub.yaml
+#
+# Default platforms for DeCovarT: Ubuntu + Windows only (no macOS).
+# Trigger manually from the Actions tab, or via:
+#   rhub::rhub_check(platforms = c("linux", "windows"))
+#
+# Requires a GitHub PAT with Actions write access for the repo
+# (see rhub::rhub_doctor()).
+
+name: R-hub
+run-name: >-
+  ${{ github.event.inputs.id || format('Manual run by @{0}', github.triggering_actor) }}:
+  ${{ github.event.inputs.name || github.event.inputs.config }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      config:
+        description: >-
+          Comma-separated R-hub platforms. Defaults to linux,windows.
+          Full list: https://r-hub.github.io/containers/
+        type: string
+        default: "linux,windows"
+      name:
+        description: "Run name. You can leave this empty."
+        type: string
+      id:
+        description: "Unique ID. You can leave this empty."
+        type: string
+
+jobs:
+
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      containers: ${{ steps.rhub-setup.outputs.containers }}
+      platforms: ${{ steps.rhub-setup.outputs.platforms }}
+
+    steps:
+      # NO NEED TO CHECKOUT HERE
+      - uses: r-hub/actions/setup@v1
+        with:
+          config: ${{ github.event.inputs.config || 'linux,windows' }}
+        id: rhub-setup
+
+  linux-containers:
+    needs: setup
+    if: ${{ needs.setup.outputs.containers != '[]' }}
+    runs-on: ubuntu-latest
+    name: ${{ matrix.config.label }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config: ${{ fromJson(needs.setup.outputs.containers) }}
+    container:
+      image: ${{ matrix.config.container }}
+
+    steps:
+      - uses: r-hub/actions/checkout@v1
+      - uses: r-hub/actions/platform-info@v1
+        with:
+          token: ${{ secrets.RHUB_TOKEN }}
+          job-config: ${{ matrix.config.job-config }}
+      - uses: r-hub/actions/setup-deps@v1
+        with:
+          token: ${{ secrets.RHUB_TOKEN }}
+          job-config: ${{ matrix.config.job-config }}
+      - uses: r-hub/actions/run-check@v1
+        with:
+          token: ${{ secrets.RHUB_TOKEN }}
+          job-config: ${{ matrix.config.job-config }}
+
+  other-platforms:
+    needs: setup
+    if: ${{ needs.setup.outputs.platforms != '[]' }}
+    runs-on: ${{ matrix.config.os }}
+    name: ${{ matrix.config.label }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config: ${{ fromJson(needs.setup.outputs.platforms) }}
+
+    steps:
+      - uses: r-hub/actions/checkout@v1
+      - uses: r-hub/actions/setup-r@v1
+        with:
+          job-config: ${{ matrix.config.job-config }}
+          token: ${{ secrets.RHUB_TOKEN }}
+      - uses: r-hub/actions/platform-info@v1
+        with:
+          token: ${{ secrets.RHUB_TOKEN }}
+          job-config: ${{ matrix.config.job-config }}
+      - uses: r-hub/actions/setup-deps@v1
+        with:
+          job-config: ${{ matrix.config.job-config }}
+          token: ${{ secrets.RHUB_TOKEN }}
+      - uses: r-hub/actions/run-check@v1
+        with:
+          job-config: ${{ matrix.config.job-config }}
+          token: ${{ secrets.RHUB_TOKEN }}

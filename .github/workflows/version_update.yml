@@ -1,0 +1,157 @@
+# Automatically bump the package version in DESCRIPTION (and README badges
+# when present), using conventional-commit-style clues or a manual trigger.
+# Adapted from WangLabCSU/SigBridgeR for DeCovarT (Quarto README, R-aware bumps).
+name: Update R package version
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: "Version bump type"
+        required: false
+        default: "patch"
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+          - none
+      custom_version:
+        description: "Custom version (optional; overrides version_type)"
+        required: false
+        type: string
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - name: Install desc
+        run: install.packages("desc", repos = "https://cloud.r-project.org")
+        shell: Rscript {0}
+
+      - name: Configure Git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine version bump type
+        id: version_bump
+        run: |
+          INPUT_TYPE="${{ github.event.inputs.version_type }}"
+          CUSTOM_VERSION="${{ github.event.inputs.custom_version }}"
+          BUMP_TYPE="none"
+
+          if [ -n "$CUSTOM_VERSION" ]; then
+            echo "Using custom version: $CUSTOM_VERSION"
+            echo "type=custom" >> "$GITHUB_OUTPUT"
+            echo "custom_version=$CUSTOM_VERSION" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ -n "$INPUT_TYPE" ] && [ "$INPUT_TYPE" != "none" ]; then
+            BUMP_TYPE="$INPUT_TYPE"
+            echo "Bump type from workflow input: $BUMP_TYPE"
+          else
+            # Infer from the latest commit message (conventional commits).
+            commit_msg=$(git log -1 --pretty=%B 2>/dev/null | tr '[:upper:]' '[:lower:]')
+            if echo "$commit_msg" | grep -qE '(^|[^a-z])(major|breaking)([^a-z]|$)|feat!'; then
+              BUMP_TYPE="major"
+            elif echo "$commit_msg" | grep -qE '(^|[^a-z])(feat|feature|minor)([^a-z]|$)'; then
+              BUMP_TYPE="minor"
+            elif echo "$commit_msg" | grep -qE '(^|[^a-z])(patch|fix|bug|docs|chore)([^a-z]|$)'; then
+              BUMP_TYPE="patch"
+            fi
+            echo "Bump type from commit message: $BUMP_TYPE"
+          fi
+
+          # Avoid recursive bumps from this workflow's own commits.
+          if git log -1 --pretty=%B | grep -qi '\[ci skip\]'; then
+            BUMP_TYPE="none"
+            echo "Skipping bump: previous commit marked [ci skip]"
+          fi
+
+          echo "type=$BUMP_TYPE" >> "$GITHUB_OUTPUT"
+
+      - name: Update version in DESCRIPTION
+        id: update_version
+        if: steps.version_bump.outputs.type != 'none'
+        run: |
+          CURRENT_VERSION=$(Rscript -e 'cat(as.character(desc::desc_get_version()))')
+          echo "Current version: $CURRENT_VERSION"
+
+          BUMP_TYPE="${{ steps.version_bump.outputs.type }}"
+          CUSTOM_VERSION="${{ steps.version_bump.outputs.custom_version }}"
+
+          if [ "$BUMP_TYPE" = "custom" ] && [ -n "$CUSTOM_VERSION" ]; then
+            NEW_VERSION="$CUSTOM_VERSION"
+            Rscript -e "desc::desc_set_version('$NEW_VERSION')"
+          else
+            Rscript -e "desc::desc_bump_version('$BUMP_TYPE')"
+            NEW_VERSION=$(Rscript -e 'cat(as.character(desc::desc_get_version()))')
+          fi
+
+          echo "New version: $NEW_VERSION"
+          echo "NEW_VERSION=$NEW_VERSION" >> "$GITHUB_ENV"
+
+      - name: Update version badges in README sources
+        if: steps.version_bump.outputs.type != 'none'
+        run: |
+          # Optional shields.io-style badge: badge/devel%20version-X.Y.Z
+          for f in README.md README.qmd README.Rmd; do
+            if [ -f "$f" ]; then
+              if grep -q 'badge/devel%20version-' "$f"; then
+                sed -i "s/\(badge\/devel%20version-\)[0-9.]\+/\1${NEW_VERSION}/g" "$f"
+                echo "Updated $f version badge to $NEW_VERSION"
+              else
+                echo "No devel-version badge pattern in $f; skipping."
+              fi
+            fi
+          done
+
+      - name: Commit and tag version update
+        if: steps.version_bump.outputs.type != 'none'
+        run: |
+          git add DESCRIPTION
+          for f in README.md README.qmd README.Rmd; do
+            [ -f "$f" ] && git add "$f" || true
+          done
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "Bump version to ${NEW_VERSION} [ci skip]"
+
+          if git rev-parse "v${NEW_VERSION}" >/dev/null 2>&1; then
+            echo "Tag v${NEW_VERSION} already exists; skipping."
+          else
+            git tag -a "v${NEW_VERSION}" -m "Version ${NEW_VERSION}"
+          fi
+
+      - name: Push changes and tags
+        if: steps.version_bump.outputs.type != 'none'
+        run: |
+          git push origin HEAD:"${GITHUB_REF_NAME}"
+          if git rev-parse "v${NEW_VERSION}" >/dev/null 2>&1; then
+            git push origin "v${NEW_VERSION}" || true
+          fi
