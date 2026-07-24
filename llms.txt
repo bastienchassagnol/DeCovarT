@@ -1,5 +1,8 @@
 # DeCovarT
 
+![R](https://img.shields.io/badge/R-Statistical%20Computing-276DC3?style=flat-square&logo=r&logoColor=white)![tidyverse](https://img.shields.io/badge/R-dplyr%20%7C%20purrr%20%7C%20tidyr-276DC3?style=flat-square&logo=r&logoColor=white)![Optimisation](https://img.shields.io/badge/Optim-marqLevAlg%20%7C%20limSolve-0F766E?style=flat-square)![Bulk
+RNA-seq](https://img.shields.io/badge/Data-bulk%20RNA--seq-16A34A?style=flat-square)
+
 ## Overview
 
 **DeCovarT** is an R package for bulk transcriptomic deconvolution that
@@ -12,6 +15,35 @@ The main entry point is
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md),
 which runs one or more solvers in parallel and returns estimated
 proportions plus optional benchmark metrics.
+
+## Pipeline Architecture
+
+``` mermaid
+flowchart TD
+    A["Bulk RNA-seq mixture<br/>Genes × Samples"] --> C["Gene intersection,<br/>optional scaling"]
+    B["Cell-type reference<br/>Means μ_j + covariances Σ_j"] --> C
+
+    C --> D["deconvolute_ratios()<br/>Parallel solvers"]
+
+    D --> E["DeCovarT<br/>Covariance-aware MLE<br/>ALR + marqLevAlg"]
+    D --> F["First-generation methods<br/>lsfit · NNLS · QP · rlm · ν-SVR"]
+
+    E --> G["Proportion estimates<br/>on the simplex"]
+    F --> G
+
+    G --> H["Optional benchmark metrics<br/>vs true ratios"]
+    G --> I["Correlation heatmaps<br/>and visualisation"]
+
+    H --> J["Comparative evaluation"]
+    I --> J
+```
+
+> This package combines **Gaussian mixture convolution modelling,
+> simplex reparametrisation (ALR / soft-max), analytic likelihood
+> derivatives, and classical linear deconvolution baselines** on bulk
+> transcriptomic mixtures. Solver outputs remain method-specific; shared
+> evaluation uses standardised proportion tables and optional
+> ground-truth ratios from simulations.
 
 ### Built-in deconvolution algorithms
 

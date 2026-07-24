@@ -89,11 +89,37 @@
 </div>
 <!-- badges: start -->
 
+<p>
+<img src="https://img.shields.io/badge/R-Statistical%20Computing-276DC3?style=flat-square&amp;logo=r&amp;logoColor=white" alt="R"><img src="https://img.shields.io/badge/R-dplyr%20%7C%20purrr%20%7C%20tidyr-276DC3?style=flat-square&amp;logo=r&amp;logoColor=white" alt="tidyverse"><img src="https://img.shields.io/badge/Optim-marqLevAlg%20%7C%20limSolve-0F766E?style=flat-square" alt="Optimisation"><img src="https://img.shields.io/badge/Data-bulk%20RNA--seq-16A34A?style=flat-square" alt="Bulk RNA-seq"></p>
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
 <p><strong>DeCovarT</strong> is an R package for bulk transcriptomic deconvolution that accounts for gene–gene covariance in purified reference populations. Bulk observations are modelled as Gaussian convolutions of cell-type means and covariances, with cellular proportions recovered on the open simplex via an unconstrained (additive logistic) parametrisation.</p>
 <p>The main entry point is <code><a href="reference/deconvolute_ratios.html">deconvolute_ratios()</a></code>, which runs one or more solvers in parallel and returns estimated proportions plus optional benchmark metrics.</p>
+</div>
+<div class="section level2">
+<h2 id="pipeline-architecture">Pipeline Architecture<a class="anchor" aria-label="anchor" href="#pipeline-architecture"></a>
+</h2>
+<pre class="mermaid"><code>flowchart TD
+    A["Bulk RNA-seq mixture&lt;br/&gt;Genes × Samples"] --&gt; C["Gene intersection,&lt;br/&gt;optional scaling"]
+    B["Cell-type reference&lt;br/&gt;Means μ_j + covariances Σ_j"] --&gt; C
+
+    C --&gt; D["deconvolute_ratios()&lt;br/&gt;Parallel solvers"]
+
+    D --&gt; E["DeCovarT&lt;br/&gt;Covariance-aware MLE&lt;br/&gt;ALR + marqLevAlg"]
+    D --&gt; F["First-generation methods&lt;br/&gt;lsfit · NNLS · QP · rlm · ν-SVR"]
+
+    E --&gt; G["Proportion estimates&lt;br/&gt;on the simplex"]
+    F --&gt; G
+
+    G --&gt; H["Optional benchmark metrics&lt;br/&gt;vs true ratios"]
+    G --&gt; I["Correlation heatmaps&lt;br/&gt;and visualisation"]
+
+    H --&gt; J["Comparative evaluation"]
+    I --&gt; J</code></pre>
+<blockquote>
+<p>This package combines <strong>Gaussian mixture convolution modelling, simplex reparametrisation (ALR / soft-max), analytic likelihood derivatives, and classical linear deconvolution baselines</strong> on bulk transcriptomic mixtures. Solver outputs remain method-specific; shared evaluation uses standardised proportion tables and optional ground-truth ratios from simulations.</p>
+</blockquote>
 <div class="section level3">
 <h3 id="built-in-deconvolution-algorithms">Built-in deconvolution algorithms<a class="anchor" aria-label="anchor" href="#built-in-deconvolution-algorithms"></a>
 </h3>
@@ -162,7 +188,7 @@
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <p>Install the development version from GitHub with <a href="https://pak.r-lib.org/" class="external-link">{pak}</a>:</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"pak"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span></span>
 <span>    <span class="st">"pak"</span>,</span>
@@ -176,20 +202,20 @@
 <span><span class="op">}</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pkg_install.html" class="external-link">pkg_install</a></span><span class="op">(</span><span class="st">"bastienchassagnol/DeCovarT"</span><span class="op">)</span></span></code></pre></div>
 <p>Alternatively with <a href="https://remotes.r-lib.org" class="external-link">remotes</a>:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"bastienchassagnol/DeCovarT"</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="developer-setup-pre-commit">Developer setup (pre-commit)<a class="anchor" aria-label="anchor" href="#developer-setup-pre-commit"></a>
 </h3>
 <p>Contributors should install <a href="https://pre-commit.com" class="external-link">pre-commit</a> hooks (Air formatting, {lintr}, parsable R, README sync). From R:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages(c("precommit", "lintr"))</span></span>
 <span><span class="fu">precommit</span><span class="fu">::</span><span class="fu">install_precommit</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu">precommit</span><span class="fu">::</span><span class="fu">use_precommit</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>Or from the shell (after <code>pre-commit</code> is on <code>PATH</code>):</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="ex">pre-commit</span> install</span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="ex">pre-commit</span> run <span class="at">--all-files</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="ex">pre-commit</span> install</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="ex">pre-commit</span> run <span class="at">--all-files</span></span></code></pre></div>
 <p>See <a href=".github/CONTRIBUTING.MD"><code>.github/CONTRIBUTING.MD</code></a> for the full contributor guide.</p>
 </div>
 <div class="section level3">
@@ -297,8 +323,8 @@ p_{J}=\frac{1}{\sum_{k&lt;J}e^{\rho_{k}}+1},\qquad
 </h2>
 <p>Source file: <code>article/main.tex</code> (bibliography: <code>article/decovart_library.bib</code>). DAG panels in Fig.~DAG-model are drawn with <a href="https://ctan.org/pkg/tikz-bayesnet" class="external-link"><code>tikz-bayesnet</code></a>.</p>
 <p>From the repository root, generate <code>article/main.pdf</code> with:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="bu">cd</span> article</span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="ex">latexmk</span> <span class="at">-pdf</span> <span class="at">-interaction</span><span class="op">=</span>nonstopmode <span class="at">-file-line-error</span> <span class="at">-synctex</span><span class="op">=</span>1 main.tex</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="bu">cd</span> article</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="ex">latexmk</span> <span class="at">-pdf</span> <span class="at">-interaction</span><span class="op">=</span>nonstopmode <span class="at">-file-line-error</span> <span class="at">-synctex</span><span class="op">=</span>1 main.tex</span></code></pre></div>
 <p>In Cursor / VS Code with <strong>LaTeX Workshop</strong>, use the default recipe <strong>latexmk</strong> (configured in <code>.vscode/settings.json</code>), or run <strong>“LaTeX Workshop: Build with recipe”</strong>.</p>
 <p>Auxiliaries are removed automatically after a successful build (<code>latex-workshop.latex.autoClean.run</code>: <code>onSucceeded</code>). Manual clean: Command Palette → <strong>“LaTeX Workshop: Clean up auxiliary files”</strong>.</p>
 </div>
@@ -306,21 +332,21 @@ p_{J}=\frac{1}{\sum_{k&lt;J}e^{\rho_{k}}+1},\qquad
 <h2 id="regenerating-this-readme">Regenerating this README<a class="anchor" aria-label="anchor" href="#regenerating-this-readme"></a>
 </h2>
 <p>Edit <code>README.qmd</code> (and optionally <code>man/figures/decovart_constrained_dag.mmd</code>), then run:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">quarto</span> render README.qmd</span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="ex">./scripts/fix_readme_fences.sh</span> README.md</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="ex">quarto</span> render README.qmd</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="ex">./scripts/fix_readme_fences.sh</span> README.md</span></code></pre></div>
 <p>This overwrites <code>README.md</code> (GitHub Flavoured Markdown). The fence-fix script removes the space Pandoc inserts after code-fence language tags (needed for GitHub Mermaid rendering).</p>
 </div>
 <div class="section level2">
 <h2 id="project-structure">Project structure<a class="anchor" aria-label="anchor" href="#project-structure"></a>
 </h2>
 <p>Package function call graph (DeCovarT → DeCovarT edges only):</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode html"><code class="sourceCode html"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">iframe</span></span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="ot">  src</span><span class="op">=</span><span class="st">"output/package_network/decovart_function_network.html"</span></span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="ot">  title</span><span class="op">=</span><span class="st">"DeCovarT function call graph"</span></span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="ot">  width</span><span class="op">=</span><span class="st">"100%"</span></span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="ot">  height</span><span class="op">=</span><span class="st">"720"</span></span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="ot">  style</span><span class="op">=</span><span class="st">"border: none;"</span></span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="dt">&gt;&lt;/</span><span class="kw">iframe</span><span class="dt">&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode html"><code class="sourceCode html"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">iframe</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="ot">  src</span><span class="op">=</span><span class="st">"output/package_network/decovart_function_network.html"</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="ot">  title</span><span class="op">=</span><span class="st">"DeCovarT function call graph"</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="ot">  width</span><span class="op">=</span><span class="st">"100%"</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="ot">  height</span><span class="op">=</span><span class="st">"720"</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="ot">  style</span><span class="op">=</span><span class="st">"border: none;"</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="dt">&gt;&lt;/</span><span class="kw">iframe</span><span class="dt">&gt;</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
