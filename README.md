@@ -14,6 +14,14 @@
 [![Codecov test coverage](https://codecov.io/gh/bastienchassagnol/DeCovarT/graph/badge.svg)](https://app.codecov.io/gh/bastienchassagnol/DeCovarT)
 <!-- badges: end -->
 
+<p>
+
+<img src="https://img.shields.io/badge/R-Statistical%20Computing-276DC3?style=flat-square&logo=r&logoColor=white" alt="R">
+<img src="https://img.shields.io/badge/R-dplyr%20%7C%20purrr%20%7C%20tidyr-276DC3?style=flat-square&logo=r&logoColor=white" alt="tidyverse">
+<img src="https://img.shields.io/badge/Optim-marqLevAlg%20%7C%20limSolve-0F766E?style=flat-square" alt="Optimisation">
+<img src="https://img.shields.io/badge/Data-bulk%20RNA--seq-16A34A?style=flat-square" alt="Bulk RNA-seq">
+</p>
+
 ## Overview
 
 **DeCovarT** is an R package for bulk transcriptomic deconvolution that accounts
@@ -24,6 +32,34 @@ cellular proportions recovered on the open simplex via an unconstrained
 
 The main entry point is `deconvolute_ratios()`, which runs one or more solvers
 in parallel and returns estimated proportions plus optional benchmark metrics.
+
+## Pipeline Architecture
+
+```mermaid
+flowchart TD
+    A["Bulk RNA-seq mixture<br/>Genes × Samples"] --> C["Gene intersection,<br/>optional scaling"]
+    B["Cell-type reference<br/>Means μ_j + covariances Σ_j"] --> C
+
+    C --> D["deconvolute_ratios()<br/>Parallel solvers"]
+
+    D --> E["DeCovarT<br/>Covariance-aware MLE<br/>ALR + marqLevAlg"]
+    D --> F["First-generation methods<br/>lsfit · NNLS · QP · rlm · ν-SVR"]
+
+    E --> G["Proportion estimates<br/>on the simplex"]
+    F --> G
+
+    G --> H["Optional benchmark metrics<br/>vs true ratios"]
+    G --> I["Correlation heatmaps<br/>and visualisation"]
+
+    H --> J["Comparative evaluation"]
+    I --> J
+```
+
+> This package combines **Gaussian mixture convolution modelling, simplex
+> reparametrisation (ALR / soft-max), analytic likelihood derivatives, and
+> classical linear deconvolution baselines** on bulk transcriptomic mixtures.
+> Solver outputs remain method-specific; shared evaluation uses standardised
+> proportion tables and optional ground-truth ratios from simulations.
 
 ### Built-in deconvolution algorithms
 
@@ -47,7 +83,7 @@ All of the above ship with the package (no extra method packages required).
 
 Install the development version from GitHub with [{pak}](https://pak.r-lib.org/):
 
-``` r
+```r
 if (!requireNamespace("pak", quietly = TRUE)) {
   install.packages(
     "pak",
@@ -64,7 +100,7 @@ pak::pkg_install("bastienchassagnol/DeCovarT")
 
 Alternatively with `{remotes}`:
 
-``` r
+```r
 # install.packages("remotes")
 remotes::install_github("bastienchassagnol/DeCovarT")
 ```
@@ -74,7 +110,7 @@ remotes::install_github("bastienchassagnol/DeCovarT")
 Contributors should install [pre-commit](https://pre-commit.com) hooks (Air
 formatting, {lintr}, parsable R, README sync). From R:
 
-``` r
+```r
 # install.packages(c("precommit", "lintr"))
 precommit::install_precommit()
 precommit::use_precommit()
@@ -82,7 +118,7 @@ precommit::use_precommit()
 
 Or from the shell (after `pre-commit` is on `PATH`):
 
-``` bash
+```bash
 pre-commit install
 pre-commit run --all-files
 ```
@@ -141,7 +177,7 @@ $$
 \Bigr).
 $$
 
-``` mermaid
+```mermaid
 %%{init: {
   "theme": "base",
   "themeVariables": {
@@ -202,7 +238,7 @@ DAG panels in Fig.~DAG-model are drawn with [`tikz-bayesnet`](https://ctan.org/p
 
 From the repository root, generate `article/main.pdf` with:
 
-``` sh
+```sh
 cd article
 latexmk -pdf -interaction=nonstopmode -file-line-error -synctex=1 main.tex
 ```
@@ -218,7 +254,7 @@ Auxiliaries are removed automatically after a successful build
 
 Edit `README.qmd` (and optionally `man/figures/decovart_constrained_dag.mmd`), then run:
 
-``` sh
+```sh
 quarto render README.qmd
 ./scripts/fix_readme_fences.sh README.md
 ```
@@ -231,7 +267,7 @@ language tags (needed for GitHub Mermaid rendering).
 
 Package function call graph (DeCovarT → DeCovarT edges only):
 
-``` html
+```html
 <iframe
   src="output/package_network/decovart_function_network.html"
   title="DeCovarT function call graph"
