@@ -35,8 +35,12 @@ compute_benchmark_metrics(
 
 - true_ratios:
 
-  Optional ground-truth \\\boldsymbol{p}^{\star}\in\mathbb{R}^{J}\\ used
-  only for benchmark scores.
+  Optional ground-truth proportions
+  \\\boldsymbol{p}^{\star}\in\mathbb{R}^{J}\\. When supplied, metrics
+  compare \\\hat{\boldsymbol{p}}\\ to \\\boldsymbol{p}^{\star}\\;
+  otherwise they compare
+  \\\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}\\ to
+  \\\boldsymbol{y}\\.
 
 ## Value
 

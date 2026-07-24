@@ -17,21 +17,20 @@ unconstrained coordinates \\\boldsymbol{\rho}\\ via
 ## Usage
 
 ``` r
-deconvolute_ratios_CIBERSORT(y, mean_signature_matrix, true_ratios = NULL)
+deconvolute_ratios_cibersort(y, mean_signature_matrix)
 
-deconvolute_ratios_abbas(y, mean_signature_matrix, true_ratios = NULL)
+deconvolute_ratios_lsfit(y, mean_signature_matrix)
 
-deconvolute_ratios_monaco(y, mean_signature_matrix, true_ratios = NULL)
+deconvolute_ratios_rlm(y, mean_signature_matrix)
 
-deconvolute_ratios_nnls(y, mean_signature_matrix, true_ratios = NULL)
+deconvolute_ratios_nnls(y, mean_signature_matrix)
 
-deconvolute_ratios_deconRNASeq(y, mean_signature_matrix, true_ratios = NULL)
+deconvolute_ratios_deconrnaseq(y, mean_signature_matrix)
 
 deconvolute_ratios_Marquardt_Levenberg(
   y,
   mean_signature_matrix,
   Sigma,
-  true_ratios = NULL,
   epsilon = 10^-4,
   itmax = 200
 )
@@ -40,7 +39,6 @@ deconvolute_ratios_simulated_annealing(
   y,
   mean_signature_matrix,
   Sigma,
-  true_ratios = NULL,
   epsilon = 10^-4,
   itmax = 200
 )
@@ -49,7 +47,6 @@ deconvolute_ratios_L_BFGS_B(
   y,
   mean_signature_matrix,
   Sigma,
-  true_ratios = NULL,
   epsilon = 10^-4,
   itmax = 200
 )
@@ -58,7 +55,6 @@ deconvolute_ratios_Newton_Raphson(
   y,
   mean_signature_matrix,
   Sigma,
-  true_ratios = NULL,
   epsilon = 10^-4,
   itmax = 200
 )
@@ -67,7 +63,6 @@ deconvolute_ratios_gradient_descent(
   y,
   mean_signature_matrix,
   Sigma,
-  true_ratios = NULL,
   epsilon = 10^-4,
   itmax = 200
 )
@@ -85,11 +80,6 @@ deconvolute_ratios_gradient_descent(
   Mean signature \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\
   (columns = cell types).
 
-- true_ratios:
-
-  Optional ground-truth \\\boldsymbol{p}^{\star}\in\mathbb{R}^{J}\\ used
-  only for benchmark scores.
-
 - Sigma:
 
   Array \\(\boldsymbol{\Sigma}\_j)\_{j=1}^{J}\in\mathcal{M}\_{G\times
@@ -102,21 +92,22 @@ deconvolute_ratios_gradient_descent(
 
 ## Value
 
-A `tibble` with mse/rmse/mae, optionally \\R^{2}\\ / adjusted \\R^{2}\\,
-and Pearson correlation.
+Named numeric vector \\\hat{\boldsymbol{p}}\\ on the simplex. Benchmark
+metrics are computed by
+[`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md).
 
 ## Functions
 
-- `deconvolute_ratios_CIBERSORT()`: Linear baseline
+- `deconvolute_ratios_cibersort()`: Linear baseline
   \\\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}\\ via
   nu-SVR (CIBERSORT-style); no covariance prior is used.
 
-- `deconvolute_ratios_abbas()`: Ordinary least squares for
+- `deconvolute_ratios_lsfit()`: Ordinary least squares for
   \\\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}\\
   ([`stats::lsfit()`](https://rdrr.io/r/stats/lsfit.html)), following
   Abbas et al. (2009) ; estimates are projected back onto the simplex.
 
-- `deconvolute_ratios_monaco()`: Robust linear model
+- `deconvolute_ratios_rlm()`: Robust linear model
   \\\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}\\
   ([`MASS::rlm()`](https://rdrr.io/pkg/MASS/man/rlm.html)), as in Monaco
   et al. (2019) .
@@ -126,7 +117,7 @@ and Pearson correlation.
   ([`nnls::nnls()`](https://rdrr.io/pkg/nnls/man/nnls.html)), then
   simplex projection.
 
-- `deconvolute_ratios_deconRNASeq()`: Equality- and
+- `deconvolute_ratios_deconrnaseq()`: Equality- and
   inequality-constrained least squares on the simplex
   ([`limSolve::lsei()`](https://rdrr.io/pkg/limSolve/man/lsei.html)), in
   the spirit of `deconRNASeq`.

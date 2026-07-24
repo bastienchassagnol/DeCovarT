@@ -49,7 +49,7 @@ observed \(\boldsymbol{y}\)."><meta property="og:image" content="https://bastien
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Compute summary metrics for estimated proportions</h1>
-      <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/04_01_benchmark_ground_truths.R" class="external-link"><code>R/04_01_benchmark_ground_truths.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/04_01_benchmarktoy_model.R" class="external-link"><code>R/04_01_benchmarktoy_model.R</code></a></small>
       <div class="d-none name"><code>compute_benchmark_metrics.Rd</code></div>
     </div>
 
@@ -91,9 +91,12 @@ observed \(\boldsymbol{y}\).</p>
 
 
 <dt id="arg-true-ratios">true_ratios<a class="anchor" aria-label="anchor" href="#arg-true-ratios"></a></dt>
-<dd><p>Optional ground-truth
-\(\boldsymbol{p}^{\star}\in\mathbb{R}^{J}\) used only for
-benchmark scores.</p></dd>
+<dd><p>Optional ground-truth proportions
+\(\boldsymbol{p}^{\star}\in\mathbb{R}^{J}\). When supplied, metrics
+compare \(\hat{\boldsymbol{p}}\) to \(\boldsymbol{p}^{\star}\);
+otherwise they compare
+\(\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}\) to
+\(\boldsymbol{y}\).</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -17,7 +17,7 @@ benchmark_bivariate_gaussian_convolutions(
   signature_matrices = list(`small OVL` = matrix(c(20, 40, 40, 20), nrow = 2)),
   corr_sequence = seq(-0.8, 0.8, 0.2),
   diagonal_terms = list(homoscedastic = c(1, 1), heteroscedastic = c(1, 2)),
-  deconvolution_functions = list(lm = list(FUN = deconvolute_ratios_abbas,
+  deconvolution_functions = list(lsfit = list(FUN = deconvolute_ratios_lsfit,
     additional_parameters = NULL)),
   n = 200,
   scaled = FALSE,
@@ -69,6 +69,12 @@ A list with `config` (design + entropy/overlap) and `simulations`
 
 Designed for two cell types and two genes. Larger \\(G,J)\\ with only
 bivariate observations is prone to non-identifiability.
+
+Scenarios are enumerated with
+[`tidyr::expand_grid()`](https://tidyr.tidyverse.org/reference/expand_grid.html)
+and tagged with a unique `ID` via
+[`dplyr::row_number()`](https://dplyr.tidyverse.org/reference/row_number.html),
+so no side-effect mutation is needed while looping over the design.
 
 ## See also
 
