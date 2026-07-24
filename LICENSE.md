@@ -52,7 +52,7 @@ wiki.creativecommons.org/Considerations_for_licensors
  such as asking that all changes be marked or described.
  Although not required by our licenses, you are encouraged to
  respect those requests where reasonable. More considerations
- for the public: 
+ for the public:
 wiki.creativecommons.org/Considerations_for_licensees
 ```
 
