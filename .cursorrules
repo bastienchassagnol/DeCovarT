@@ -283,3 +283,120 @@ Follow
 
 Match `DESCRIPTION` Imports when adding package code; do not introduce
 unused Suggests/Imports without need.
+
+---
+
+# Scientific writing (`article/` and `vignettes/`)
+
+Target venue for the manuscript: **Nature Methods** *Article*
+(novel method or tool; full technical description; strong validation;
+reproducibility; potential to enable new biology). Apply the same
+editorial discipline to package vignettes when they present scientific
+claims, methods, or benchmarks—not only to `article/`.
+
+LaTeX: use the Springer Nature journal template already in
+`article/` (`sn-jnl` / `sn-nature`). Author support:
+<https://www.springernature.com/gp/authors/campaigns/latex-author-support>.
+
+## Nature Methods Article constraints
+
+When drafting or editing the main paper (and when vignettes mirror paper
+claims), respect these limits unless the user explicitly overrides them:
+
+| Element | Limit |
+|---------|--------|
+| Abstract | ≤ **150 words**, **unreferenced** |
+| Main text | ~**3,000 words** (up to ~5,000 with editorial discretion); excludes abstract, Methods, references, and figure/table legends |
+| Footnotes | **None** in the main article |
+| References | ≤ **50** |
+| Display items | ≤ **6** figures and/or tables combined |
+
+**Article content expectations**
+
+- Lead with the biological / methodological **problem**, then the
+  **contribution**, then evidence—not with marketing language.
+- Methods must be complete enough for independent reimplementation
+  (or point clearly to package vignettes / code for detail that cannot
+  fit the word budget).
+- Validation must be **comparative** (baselines, ablation, or controls)
+  and include reproducibility artefacts (seeds, software versions,
+  data availability).
+- Do not invent “potential for new biology”; state concrete enabling
+  use cases only when supported by results or clearly marked as outlook.
+- Prefer TikZ / vector figures for model DAGs and mathematical panels;
+  Mermaid is fine in vignettes/README, not as a substitute for article
+  display items unless exported to a journal-ready figure.
+
+**Vignettes**
+
+- Prefer Quarto; British English; precise, cited scientific prose.
+- Document pre-processing of inputs and non-obvious numerical / mathematical
+  devices (ALR, analytic gradients, constrained optimisers) when they
+  matter for understanding or speed.
+- Keep vignettes reproducible; avoid duplicating the full Article word
+  budget—cross-link the paper and package help pages.
+
+## Scientific voice and self-review (no Consensus required)
+
+When editing `article/` or `vignettes/`, write like a careful methods
+reviewer would want to read—and self-check before claiming novelty.
+
+### Anti-slop and wording
+
+- Prefer concrete nouns and verbs: name the estimator, the loss, the
+  dataset, the baseline, the metric.
+- Avoid AI-flavoured filler: “delve”, “leverage”, “robust framework”,
+  “comprehensive suite”, “powerful paradigm”, “in today’s landscape”,
+  “it is worth noting that”, “plays a crucial role”, empty “novel”
+  / “seamless” / “cutting-edge” without a precise claim.
+- Avoid stacked hedges (“may potentially suggest”) and false precision.
+- Prefer short sentences; one claim per sentence when arguing.
+- Define symbols on first use; keep notation consistent with the package
+  and TikZ figures.
+- Do not anthropomorphise methods (“the model understands”).
+- Citations support load-bearing claims; do not cite for decoration.
+  Stay within the Article’s ~50-reference budget by prioritising
+  seminal methods, direct baselines, and essential datasets.
+
+### Integrity (literature and claims)
+
+- **Never invent papers, DOIs, quotes, or “Consensus” hits.** If a
+  citation is uncertain, flag it for the user rather than guessing.
+- Label claims clearly: established fact (with citation), result of
+  *this* work, limitation, or speculation/outlook.
+- Flag load-bearing intro assertions that lack a citation.
+- Do not overclaim primacy (“first”, “only”) unless the user confirms
+  and a defensible search narrative exists.
+- Surface gaps honestly: missing baseline, missing negative control,
+  metric not standard in the field—do not paper over them with prose.
+
+### Self-review checklist (use when asked to critique or polish)
+
+Calibrate tone: constructive for a strong core idea; direct if a flaw
+undermines conclusions. Prefer **1–4 major** and **2–6 minor** issues—
+specific remedies, not padded criticism. Acknowledge strengths when earned.
+
+1. **Summary** — What the text claims to introduce; one-line overall
+   impression (specific, not generic praise).
+2. **Background claims** — For each load-bearing intro claim: supported /
+   partially supported / needs citation / overstated.
+3. **Citation hygiene** — Missing *obvious* baselines or method papers
+   the user should consider (suggest *search queries* or known
+   canonical names; do not fabricate full references). Stay mindful of
+   the ≤50 reference cap.
+4. **Methods currency** — Is the approach described as current practice
+   with acknowledged limitations, or does the text ignore better-known
+   alternatives without justification?
+5. **Validation** — Are comparisons fair (same genes, same mixtures,
+   same metrics)? Are reproducibility details present?
+6. **Nature Methods fit** — Word counts, abstract length, display-item
+   count, no footnotes; does the narrative match an Article (method +
+   validation) rather than a software note alone?
+7. **Recommendation** (when reviewing): Accept / Minor revision /
+   Major revision / Reject-style verdict for *internal* use only, with
+   one justifying sentence tied to the major concerns.
+
+When literature verification is needed and no Consensus account is
+available, propose precise search queries (OpenAlex, Google Scholar,
+PubMed, Semantic Scholar) for the user to run, and integrate only
+results they confirm.
