@@ -1,5 +1,3 @@
-
-
 #' Compute summary metrics for estimated proportions
 #'
 #' @description
@@ -12,12 +10,23 @@
 #' @inheritParams deconvolute_ratios_Marquardt_Levenberg
 #' @param estimated_p Estimated proportions
 #'   \eqn{\hat{\boldsymbol{p}}\in\mathbb{R}^{J}}.
+#' @param true_ratios Optional ground-truth proportions
+#'   \eqn{\boldsymbol{p}^{\star}\in\mathbb{R}^{J}}. When supplied, metrics
+#'   compare \eqn{\hat{\boldsymbol{p}}} to \eqn{\boldsymbol{p}^{\star}};
+#'   otherwise they compare
+#'   \eqn{\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}} to
+#'   \eqn{\boldsymbol{y}}.
 #'
 #' @return A `tibble` with mse/rmse/mae, optionally
 #'   \eqn{R^{2}} / adjusted \eqn{R^{2}}, and Pearson correlation.
 #' @importFrom rlang .data
 #' @export
-compute_benchmark_metrics <- function(y, mean_signature_matrix, estimated_p, true_ratios = NULL) {
+compute_benchmark_metrics <- function(
+  y,
+  mean_signature_matrix,
+  estimated_p,
+  true_ratios = NULL
+) {
   n <- nrow(mean_signature_matrix)
   k <- ncol(mean_signature_matrix)
   df_res <- n - k + 1 # number of free parameters: only k - 1 parameters must be learnt, with sum-to-one constraint
@@ -56,11 +65,6 @@ compute_benchmark_metrics <- function(y, mean_signature_matrix, estimated_p, tru
         method = "pearson"
       ))
     )
-    
-    # invisible(utils::capture.output
-    # model_coef_determination = max(0, 1 - Metrics::rse(true_ratios, estimated_p)),
-    # model_coef_determination_adjusted=max(0, 1 - (1-model_coef_determination) * df_tot/df_res),
-    # # model_ccc= epiR::epi.ccc(y, predicted_values)
   }
   return(scores)
 }
@@ -95,17 +99,17 @@ compute_benchmark_metrics <- function(y, mean_signature_matrix, estimated_p, tru
 #' @export
 #' @seealso [deconvolute_ratios_Marquardt_Levenberg()]
 deconvolute_ratios <- function(
-    signature_matrix,
-    bulk_expression,
-    true_ratios = NULL,
-    Sigma = NULL,
-    deconvolution_functions = NULL,
-    scaled = FALSE,
-    cores = ifelse(
-      .Platform$OS.type == "unix",
-      getOption("mc.cores", parallel::detectCores()),
-      1
-    )
+  signature_matrix,
+  bulk_expression,
+  true_ratios = NULL,
+  Sigma = NULL,
+  deconvolution_functions = NULL,
+  scaled = FALSE,
+  cores = ifelse(
+    .Platform$OS.type == "unix",
+    getOption("mc.cores", parallel::detectCores()),
+    1
+  )
 ) {
   # read in data
   if (!is.matrix(signature_matrix) | is.null(row.names(signature_matrix))) {
@@ -113,20 +117,23 @@ deconvolute_ratios <- function(
       "required format for signature is expression matrix, with rownames as genes"
     )
   }
-  mean_signature_matrix <- tibble::as_tibble(signature_matrix, rownames = "GENE_SYMBOL")
+  mean_signature_matrix <- tibble::as_tibble(
+    signature_matrix,
+    rownames = "GENE_SYMBOL"
+  )
   if (!is.matrix(bulk_expression) | is.null(row.names(bulk_expression))) {
     stop(
       "required format for mixture is expression matrix, with rownames as genes"
     )
   }
   Y <- tibble::as_tibble(bulk_expression, rownames = "GENE_SYMBOL")
-  
+
   # remove potential missing data from Y database
   Y <- Y |> tidyr::drop_na()
-  
+
   # intersect genes (we only keep genes that are common to both data bases)
   common_genes <- intersect(mean_signature_matrix$GENE_SYMBOL, Y$GENE_SYMBOL)
-  
+
   if (length(common_genes) / dim(mean_signature_matrix)[1] < 0.5) {
     stop(paste(
       "Only",
@@ -144,13 +151,13 @@ deconvolute_ratios <- function(
     dplyr::filter(.data$GENE_SYMBOL %in% common_genes) |>
     dplyr::arrange(.data$GENE_SYMBOL) |>
     dplyr::select(dplyr::where(is.numeric))
-  
+
   if (scaled) {
     # log-2 normalise
     Y <- log2(Y)
+    mean_signature_matrix <- log2(mean_signature_matrix)
   }
-  mean_signature_matrix <- log2(mean_signature_matrix)
-  
+
   # estimation itself
   deconvolution_estimates <- purrr::imap_dfr(
     deconvolution_functions,
@@ -160,67 +167,42 @@ deconvolute_ratios <- function(
         1:ncol(Y),
         function(i) {
           # metric_scores <- tibble::tibble(); for (i in 1:ncol(Y)) {
-          success_estimation <- tryCatch(
-            {
               list_arguments <- c(
                 list(
-                  "y" = Y[, i] |> as.matrix(),
+                  "y" = as.numeric(Y[[i]]),
                   "mean_signature_matrix" = mean_signature_matrix,
-                  "Sigma" = Sigma,
-                  "true_ratios" = true_ratios
+                  "Sigma" = Sigma
                 ),
                 additional_parameters
               )
-              # we only keep the arguments needed by the required function
+          formal_args <- methods::formalArgs(deconvolution_function$FUN)
+          success_estimation <- tryCatch(
+            {
               estimated_p <- do.call(
                 deconvolution_function$FUN,
-                list_arguments[methods::formalArgs(deconvolution_function$FUN)]
+                list_arguments[names(list_arguments) %in% formal_args]
               )
+              compute_benchmark_metrics(
+                y = as.numeric(Y[[i]]),
+                mean_signature_matrix = mean_signature_matrix,
+                estimated_p = estimated_p,
+                true_ratios = true_ratios
+              ) |>
+                dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
             },
             error = function(e) {
-              # dir.create("/home/bncl_cb/rstudio/working/DeCovarT/simulations/erreurs", showWarnings = F)
               warning(paste(e, "\n"))
-              dir.create(
-                "./simulations/erreurs",
-                showWarnings = F,
-                recursive = TRUE
-              )
-              # "y"=Y[,i] |> as.matrix(), "mean_signature_matrix"=mean_signature_matrix, "Sigma"=Sigma,
-              saveRDS(
-                c(
-                  list_arguments[methods::formalArgs(
-                    deconvolution_function$FUN
-                  )],
-                  list(
-                    "CALL" = call(
-                      algorithm,
-                      list_arguments[methods::formalArgs(
-                        deconvolution_function$FUN
-                      )]
-                    ),
-                    "error" = e,
-                    "function_name" = algorithm
-                  )
-                ),
-                file = paste0(
-                  "/home/bncl_cb/rstudio/working/DeCovarT/simulations/erreurs/erreur_",
-                  i,
-                  "_function_",
-                  algorithm,
-                  ".rds"
-                )
-              )
               return(e)
             }
           )
           if (!inherits(success_estimation, "error")) {
-            return(estimated_p)
+            return(success_estimation)
           }
         },
         mc.cores = cores
       ) |>
         dplyr::bind_rows() # one estimation with a given deconvolution algorithm terminated
-      
+
       if (nrow(metric_scores) != 0) {
         metric_scores <- metric_scores |>
           dplyr::mutate(

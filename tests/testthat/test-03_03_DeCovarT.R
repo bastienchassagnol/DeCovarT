@@ -27,19 +27,15 @@
   })
 }
 
-# Richardson extrapolation is the most stable finite-difference scheme for
-# validating the closed-form derivatives (see ?numDeriv::grad).
-.richardson_args <- list(eps = 1e-4, r = 6)
 
-
-test_that("Unconstrained gradient and Hessian of the objective match numDeriv", {
+test_that("Unconstrained objective gradient/Hessian match numDeriv", {
   setup <- .decovart_deriv_setup()
 
   gradient_numerical <- numDeriv::grad(
     loglik_multivariate,
     setup$p,
     method = "Richardson",
-    method.args = .richardson_args,
+    method.args = list(eps = 1e-4, r = 6),
     y = setup$y,
     mean_signature_matrix = setup$mean_signature_matrix,
     Sigma = setup$Sigma
@@ -60,7 +56,7 @@ test_that("Unconstrained gradient and Hessian of the objective match numDeriv", 
     loglik_multivariate,
     setup$p,
     method = "Richardson",
-    method.args = .richardson_args,
+    method.args = list(eps = 1e-4, r = 6),
     y = setup$y,
     mean_signature_matrix = setup$mean_signature_matrix,
     Sigma = setup$Sigma
@@ -86,7 +82,7 @@ test_that("Constrained gradient and Hessian of the objective match numDeriv", {
     loglik_multivariate_constrained,
     setup$rho,
     method = "Richardson",
-    method.args = .richardson_args,
+    method.args = list(eps = 1e-4, r = 6),
     y = setup$y,
     mean_signature_matrix = setup$mean_signature_matrix,
     Sigma = setup$Sigma
@@ -107,7 +103,7 @@ test_that("Constrained gradient and Hessian of the objective match numDeriv", {
     loglik_multivariate_constrained,
     setup$rho,
     method = "Richardson",
-    method.args = .richardson_args,
+    method.args = list(eps = 1e-4, r = 6),
     y = setup$y,
     mean_signature_matrix = setup$mean_signature_matrix,
     Sigma = setup$Sigma
@@ -153,95 +149,161 @@ test_that("Additive logistic Jacobian and Hessian match numDeriv", {
 })
 
 
-test_that("Every deconvolute_ratios_* solver returns a valid simplex on the challenging 3-component scenario", {
+test_that("All deconvolute_ratios_* solvers return a valid simplex", {
   setup <- .decovart_deriv_setup()
-
-  # All frequentist DeCovarT solvers exported from
-  # R/03_03_DeCovarT_estimate_ratios_frequentist.R.
-  deconvolution_solvers <- list(
-    Marquardt_Levenberg = deconvolute_ratios_Marquardt_Levenberg,
-    simulated_annealing = deconvolute_ratios_simulated_annealing,
-    L_BFGS_B = deconvolute_ratios_L_BFGS_B,
-    Newton_Raphson = deconvolute_ratios_Newton_Raphson,
-    gradient_descent = deconvolute_ratios_gradient_descent
-  )
-  celltype_names <- colnames(setup$mean_signature_matrix)
-
-  for (solver_name in names(deconvolution_solvers)) {
-    inferred <- withr::with_seed(
-      3L,
-      suppressWarnings(
-        deconvolution_solvers[[solver_name]](
-          y = setup$y,
-          mean_signature_matrix = setup$mean_signature_matrix,
-          Sigma = setup$Sigma,
-          true_ratios = setup$p,
-          epsilon = 10^-4,
-          itmax = 200
-        )
-      )
-    )
-
-    estimated_ratios <- unlist(inferred[celltype_names], use.names = FALSE)
-
+  expect_valid_simplex <- function(estimated_ratios, label) {
     testthat::expect_length(estimated_ratios, length(setup$p))
-    testthat::expect_false(anyNA(estimated_ratios), info = solver_name)
+    testthat::expect_false(anyNA(estimated_ratios), info = label)
     testthat::expect_true(
       all(estimated_ratios >= 0 & estimated_ratios <= 1),
-      info = solver_name
+      info = label
     )
-    testthat::expect_equal(sum(estimated_ratios), 1, tolerance = 1e-6)
+    testthat::expect_equal(
+      sum(estimated_ratios),
+      1,
+      tolerance = 1e-6,
+      info = label
+    )
   }
+
+  # ------------------------------------------------------------------ #
+  # Marquardt–Levenberg (damped Newton on unconstrained rho)           #
+  # ------------------------------------------------------------------ #
+  inferred_ml <- withr::with_seed(
+    3L,
+    suppressWarnings(
+      deconvolute_ratios_Marquardt_Levenberg(
+        y = setup$y,
+        mean_signature_matrix = setup$mean_signature_matrix,
+        Sigma = setup$Sigma,
+        epsilon = 10^-4,
+        itmax = 200
+      )
+    )
+  )
+  expect_valid_simplex(as.numeric(inferred_ml), "ML")
+
+  # ------------------------------------------------------------------ #
+  # Simulated annealing (zeroth-order on unconstrained rho)            #
+  # ------------------------------------------------------------------ #
+  inferred_sa <- withr::with_seed(
+    3L,
+    suppressWarnings(
+      deconvolute_ratios_simulated_annealing(
+        y = setup$y,
+        mean_signature_matrix = setup$mean_signature_matrix,
+        Sigma = setup$Sigma,
+        epsilon = 10^-4,
+        itmax = 200
+      )
+    )
+  )
+  expect_valid_simplex(as.numeric(inferred_sa), "SANN")
+
+  # ------------------------------------------------------------------ #
+  # L-BFGS-B (first-order, box-constrained in p-space)                 #
+  # ------------------------------------------------------------------ #
+  inferred_lbfgs <- withr::with_seed(
+    3L,
+    suppressWarnings(
+      deconvolute_ratios_L_BFGS_B(
+        y = setup$y,
+        mean_signature_matrix = setup$mean_signature_matrix,
+        Sigma = setup$Sigma,
+        epsilon = 10^-4,
+        itmax = 200
+      )
+    )
+  )
+  expect_valid_simplex(as.numeric(inferred_lbfgs), "L-BFGS-B")
+
+  # ------------------------------------------------------------------ #
+  # Newton–Raphson (second-order on unconstrained rho)                 #
+  # ------------------------------------------------------------------ #
+  inferred_nr <- withr::with_seed(
+    3L,
+    suppressWarnings(
+      deconvolute_ratios_Newton_Raphson(
+        y = setup$y,
+        mean_signature_matrix = setup$mean_signature_matrix,
+        Sigma = setup$Sigma,
+        epsilon = 10^-4,
+        itmax = 200
+      )
+    )
+  )
+  expect_valid_simplex(as.numeric(inferred_nr), "Newton")
+
+  # ------------------------------------------------------------------ #
+  # BFGS / gradient ascent (first-order on unconstrained rho)          #
+  # ------------------------------------------------------------------ #
+  inferred_gd <- withr::with_seed(
+    3L,
+    suppressWarnings(
+      deconvolute_ratios_gradient_descent(
+        y = setup$y,
+        mean_signature_matrix = setup$mean_signature_matrix,
+        Sigma = setup$Sigma,
+        epsilon = 10^-4,
+        itmax = 200
+      )
+    )
+  )
+  expect_valid_simplex(as.numeric(inferred_gd), "BFGS")
 })
 
-# test_that("Benchmark standard deconvolution algorithms against DeCovarT", {
-#   deconvolution_functions <- list(
-#     "lm" = list(FUN = deconvolute_ratios_abbas),
-#     "nnls" = list(FUN = deconvolute_ratios_nnls),
-#     "lsei" = list(FUN = deconvolute_ratios_deconRNASeq),
-#     "LBFGS" = list(
-#       FUN = deconvolute_ratios_L_BFGS_B,
-#       additional_parameters = list(epsilon = 10^-3, itmax = 200)
-#     ),
-#     "gradient" = list(
-#       FUN = deconvolute_ratios_first_order,
-#       additional_parameters = list(epsilon = 10^-3, itmax = 200)
-#     ),
-#     "Newton-Raphson" = list(
-#       FUN = deconvolute_ratios_second_order,
-#       additional_parameters = list(epsilon = 10^-3, itmax = 200)
-#     ),
-#     "Marquardt-Levenberg" = list(
-#       FUN = deconvolute_ratios_Marquardt_Levenberg,
-#       additional_parameters = list(epsilon = 10^-3, itmax = 200)
-#     ),
-#     "SA" = list(
-#       FUN = deconvolute_ratios_simulated_annealing,
-#       additional_parameters = list(epsilon = 10^-3, itmax = 200)
-#     )
-#   )
+test_that("Benchmark standard deconvolution algorithms against DeCovarT", {
+  # Fast single-scenario bivariate benchmark: one correlation, one variance
+  # template, two bulk samples, and at most 10 iterations per descent method.
+  deconvolution_functions <- list(
+    "nnls" = list(FUN = deconvolute_ratios_nnls),
+    "lsei" = list(FUN = deconvolute_ratios_deconrnaseq),
+    "LBFGS" = list(
+      FUN = deconvolute_ratios_L_BFGS_B,
+      additional_parameters = list(epsilon = 10^-3, itmax = 10)
+    ),
+    "gradient" = list(
+      FUN = deconvolute_ratios_gradient_descent,
+      additional_parameters = list(epsilon = 10^-3, itmax = 10)
+    ),
+    "Newton-Raphson" = list(
+      FUN = deconvolute_ratios_Newton_Raphson,
+      additional_parameters = list(epsilon = 10^-3, itmax = 10)
+    ),
+    "Marquardt-Levenberg" = list(
+      FUN = deconvolute_ratios_Marquardt_Levenberg,
+      additional_parameters = list(epsilon = 10^-3, itmax = 10)
+    ),
+    "SA" = list(
+      FUN = deconvolute_ratios_simulated_annealing,
+      additional_parameters = list(epsilon = 10^-3, itmax = 10)
+    )
+  )
 
-#   bivariate_scenario <- withr::with_seed(
-#     seed = 3L,
-#     benchmark_bivariate_gaussian_convolutions(
-#       proportions = list("balanced" = c(0.50, 0.50)),
-#       n = 2,
-#       corr_sequence = c(-0.75, 0.75),
-#       signature_matrices = list(
-#         "small CLD" = matrix(c(20, 22, 22, 20), nrow = 2)
-#       )
-#     ),
-#     .rng_kind = "L'Ecuyer-CMRG"
-#   )
-#   bivariate_configuraton <- readRDS(testthat::test_path(
-#     "fixtures",
-#     "bivariate_configuraton.rds"
-#   ))
-#   bivariate_estimation <- readRDS(testthat::test_path(
-#     "fixtures",
-#     "bivariate_estimation.rds"
-#   ))
+  bivariate_scenario <- withr::with_seed(
+    seed = 3L,
+    benchmark_bivariate_gaussian_convolutions(
+      proportions = list("balanced" = c(0.50, 0.50)),
+      n = 2,
+      corr_sequence = 0,
+      diagonal_terms = list("homoscedastic" = c(1, 1)),
+      signature_matrices = list(
+        "small CLD" = matrix(c(20, 22, 22, 20), nrow = 2)
+      ),
+      deconvolution_functions = deconvolution_functions,
+      cores = 1
+    )
+  )
 
-#   expect_equal(bivariate_configuraton, bivariate_scenario$config)
-#   expect_equal(bivariate_estimation, bivariate_scenario$simulations)
-# })
+  bivariate_configuration <- readRDS(testthat::test_path(
+    "fixtures",
+    "bivariate_configuration.rds"
+  ))
+  bivariate_estimation <- readRDS(testthat::test_path(
+    "fixtures",
+    "bivariate_estimation.rds"
+  ))
+
+  expect_equal(bivariate_configuration, bivariate_scenario$config)
+  expect_equal(bivariate_estimation, bivariate_scenario$simulations)
+})

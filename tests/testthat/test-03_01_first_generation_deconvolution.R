@@ -1,0 +1,87 @@
+# Shared 2-gene / 2-celltype scenario for first-generation solvers.
+.first_gen_setup <- function() {
+  mean_signature_matrix <- matrix(
+    c(20, 40, 40, 20),
+    nrow = 2,
+    dimnames = list(paste0("gene_", 1:2), paste0("celltype_", 1:2))
+  )
+  Sigma <- array(
+    c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2),
+    dim = c(2, 2, 2),
+    dimnames = list(
+      paste0("gene_", 1:2),
+      paste0("gene_", 1:2),
+      paste0("celltype_", 1:2)
+    )
+  )
+  simulated_data <- withr::with_seed(
+    3L,
+    simulate_bulk_mixture(
+      signature_matrix = mean_signature_matrix,
+      Sigma = Sigma,
+      p = c(0.5, 0.5),
+      n = 1
+    )
+  )
+  list(
+    mean_signature_matrix = mean_signature_matrix,
+    y = simulated_data$Y[, 1, drop = TRUE],
+    p = c(0.5, 0.5)
+  )
+}
+
+.expect_valid_simplex <- function(estimated_ratios, true_p, label) {
+  testthat::expect_length(estimated_ratios, length(true_p))
+  testthat::expect_false(anyNA(estimated_ratios), info = label)
+  testthat::expect_true(
+    all(estimated_ratios >= 0 & estimated_ratios <= 1),
+    info = label
+  )
+  testthat::expect_equal(
+    sum(estimated_ratios),
+    1,
+    tolerance = 1e-6,
+    info = label
+  )
+}
+
+
+test_that("First-generation deconvolution solvers return a valid simplex", {
+  setup <- .first_gen_setup()
+
+  # ------------------------------------------------------------------ #
+  # Ordinary least squares (lsfit / Abbas-style)                       #
+  # ------------------------------------------------------------------ #
+  estimated_lsfit <- deconvolute_ratios_lsfit(
+    y = setup$y,
+    mean_signature_matrix = setup$mean_signature_matrix
+  )
+  .expect_valid_simplex(estimated_lsfit, setup$p, "lsfit")
+
+  # ------------------------------------------------------------------ #
+  # Robust linear model (rlm / Monaco-style)                           #
+  # ------------------------------------------------------------------ #
+  estimated_rlm <- deconvolute_ratios_rlm(
+    y = setup$y,
+    mean_signature_matrix = setup$mean_signature_matrix
+  )
+  .expect_valid_simplex(estimated_rlm, setup$p, "rlm")
+
+  # ------------------------------------------------------------------ #
+  # Non-negative least squares (nnls)                                  #
+  # ------------------------------------------------------------------ #
+  estimated_nnls <- deconvolute_ratios_nnls(
+    y = setup$y,
+    mean_signature_matrix = setup$mean_signature_matrix
+  )
+  .expect_valid_simplex(estimated_nnls, setup$p, "nnls")
+
+  # ------------------------------------------------------------------ #
+  # Constrained least squares (lsei / deconRNASeq-style)               #
+  # ------------------------------------------------------------------ #
+  estimated_lsei <- deconvolute_ratios_deconrnaseq(
+    y = setup$y,
+    mean_signature_matrix = setup$mean_signature_matrix
+  )
+  .expect_valid_simplex(estimated_lsei, setup$p, "deconrnaseq")
+})

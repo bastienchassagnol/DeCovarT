@@ -37,3 +37,4 @@
 ^\.vscode$
 ^\.quarto$
 ^\.cursor$
+^\.nojekyll$

@@ -104,6 +104,10 @@ simulate_bulk_mixture <- function(
 #' Designed for two cell types and two genes. Larger \eqn{(G,J)} with only
 #' bivariate observations is prone to non-identifiability.
 #'
+#' Scenarios are enumerated with [tidyr::expand_grid()] and tagged with a
+#' unique `ID` via [dplyr::row_number()], so no side-effect mutation is needed
+#' while looping over the design.
+#'
 #' @param proportions List of simplex vectors \eqn{\boldsymbol{p}}.
 #' @param signature_matrices List of mean matrices
 #'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{2\times 2}^{+}}.
@@ -119,6 +123,7 @@ simulate_bulk_mixture <- function(
 #' @return A list with `config` (design + entropy/overlap) and `simulations`
 #'   (estimation tibble).
 #'
+#' @importFrom rlang .data
 #' @export
 #' @seealso [simulate_bulk_mixture()], [deconvolute_ratios()]
 benchmark_bivariate_gaussian_convolutions <- function(
@@ -131,7 +136,7 @@ benchmark_bivariate_gaussian_convolutions <- function(
   corr_sequence = seq(-0.8, 0.8, 0.2),
   diagonal_terms = list("homoscedastic" = c(1, 1), "heteroscedastic" = c(1, 2)),
   deconvolution_functions = list(
-    "lm" = list(FUN = deconvolute_ratios_abbas, additional_parameters = NULL)
+    "lsfit" = list(FUN = deconvolute_ratios_lsfit, additional_parameters = NULL)
   ),
   n = 200,
   scaled = FALSE,
@@ -141,9 +146,6 @@ benchmark_bivariate_gaussian_convolutions <- function(
     1
   )
 ) {
-  ##################################################################
-  ##            iterate over covariance structures            ##
-  ##################################################################
   num_celltypes <- ncol(signature_matrices[[1]])
   num_genes <- nrow(signature_matrices[[1]])
   signature_matrices <- purrr::map(
@@ -153,132 +155,118 @@ benchmark_bivariate_gaussian_convolutions <- function(
         paste0("gene_", 1:num_genes),
         paste0("celltype_", 1:num_celltypes)
       )
-      return(.mean_signature_matrix)
+      .mean_signature_matrix
     }
   )
-  id_scenario <- 1
-  id_tibble <- tibble::tibble() # initiate ID scenario
-  simulations <- purrr::imap_dfr(
-    signature_matrices,
-    function(mu, name_distance_centroids) {
-      simulations_per_ratios <- purrr::imap_dfr(
-        proportions,
-        function(p, name_balance) {
-          simulation_metrics <- tibble::tibble()
-          for (corr_celltype1 in corr_sequence) {
-            message(paste0(
-              "We are at equilibrium scenario: ",
-              name_balance,
-              " with correlation for celltype 1: ",
-              corr_celltype1,
-              " and distance to centroids: ",
-              name_distance_centroids,
-              "."
-            ))
-            for (corr_celltype2 in corr_sequence) {
-              simulation_metrics <- simulation_metrics |>
-                dplyr::bind_rows(
-                  purrr::imap_dfr(diagonal_terms, function(.diag, .name) {
-                    ## ------------------------------
-                    ##  generate covariance matrix
-                    ## ------------------------------
-                    corr_matrix <- array(
-                      0,
-                      dim = c(num_genes, num_genes, num_celltypes),
-                      dimnames = list(
-                        paste0("gene_", 1:num_genes),
-                        paste0("gene_", 1:num_genes),
-                        paste0("celltype_", 1:num_celltypes)
-                      )
-                    )
-                    Sigma <- corr_matrix
-                    corr_matrix[,, 1] <- corr_celltype1
-                    corr_matrix[,, 2] <- corr_celltype2
-                    for (j in 1:num_celltypes) {
-                      diag(corr_matrix[,, j]) <- 1 # correlation between the same gene is always one
-                      Sigma[,, j] <- sqrt(diag(.diag)) %*%
-                        corr_matrix[,, j] %*%
-                        sqrt(diag(.diag)) # cov(mean_signature_matrix) = diag(var(mean_signature_matrix))^1/2 * corr(mean_signature_matrix) * diag(var(mean_signature_matrix))^1/2
-                    }
-                    simulated_data <- simulate_bulk_mixture(
-                      signature_matrix = mu,
-                      Sigma = Sigma,
-                      p = p,
-                      n = n
-                    )
-                    Y <- simulated_data$Y
-                    ## -------------------------
-                    ##  estimate ratios
-                    ## -------------------------
-                    true_theta <- list(p = p, mu = mu, sigma = Sigma) |>
-                      enforce_parameter_identifiability()
-                    overlap <- MixSim::overlap(
-                      Pi = p,
-                      Mu = t(mu),
-                      S = Sigma
-                    )$BarOmega |>
-                      signif(digits = 3)
 
-                    estimated_ratios <- suppressWarnings(deconvolute_ratios(
-                      signature_matrix = mu,
-                      bulk_expression = Y,
-                      true_ratios = p,
-                      Sigma = Sigma,
-                      deconvolution_functions = deconvolution_functions,
-                      scaled = scaled,
-                      cores = cores
-                    ))
-                    name_id <- paste0(
-                      "B",
-                      id_scenario,
-                      "_",
-                      ifelse(.name == "homoscedastic", "Ho", "He")
-                    )
-                    simulation_metrics_per_config <- tibble::tibble(
-                      ID = name_id,
-                      correlation_celltype1 = corr_celltype1,
-                      correlation_celltype2 = corr_celltype2
-                    ) |>
-                      dplyr::bind_cols(estimated_ratios)
-                    id_tibble_temp <- tibble::tibble(
-                      ID = name_id,
-                      overlap = overlap,
-                      entropy = compute_shannon_entropy(p) |>
-                        round(digits = 3),
-                      proportions = name_balance,
-                      variance = .name,
-                      centroids = name_distance_centroids,
-                      true_parameters = list(as.list(true_theta)),
-                      nobservations = n
-                    )
-                    id_tibble <<- id_tibble |> dplyr::bind_rows(id_tibble_temp)
+  proportion_list <- proportions
+  design <- tidyr::expand_grid(
+    centroids = names(signature_matrices),
+    proportion_name = names(proportion_list),
+    correlation_celltype1 = corr_sequence,
+    correlation_celltype2 = corr_sequence,
+    variance = names(diagonal_terms)
+  ) |>
+    dplyr::mutate(
+      scenario_idx = dplyr::row_number(),
+      ID = paste0(
+        "B",
+        .data$scenario_idx,
+        "_",
+        ifelse(.data$variance == "homoscedastic", "Ho", "He")
+      )
+    )
 
-                    return(simulation_metrics_per_config)
-                  }) # end loop scenario variance
-                )
-            } # end loop correlation second gene
-          } # end loop correlation first gene
-          dir.create(
-            "./simulations/results",
-            showWarnings = F,
-            recursive = TRUE
-          )
-          saveRDS(
-            simulation_metrics,
-            file = file.path(
-              "./simulations/results",
-              paste0("temp_bivariate_", id_scenario, ".rds")
-            )
-          )
+  scenario_results <- purrr::pmap(
+    design,
+    function(
+      centroids,
+      proportion_name,
+      correlation_celltype1,
+      correlation_celltype2,
+      variance,
+      scenario_idx,
+      ID
+    ) {
+      message(paste0(
+        "Scenario ", ID, ": ", proportion_name,
+        ", corr=(", correlation_celltype1, ", ",
+        correlation_celltype2, "), centroids=", centroids,
+        ", variance=", variance, "."
+      ))
 
-          id_scenario <<- id_scenario + 1
-          message("One scenario has been ended.\n\n")
-          return(simulation_metrics)
-        }
-      ) # end loop ratios
-      return(simulations_per_ratios)
+      mu <- signature_matrices[[centroids]]
+      p <- proportion_list[[proportion_name]]
+      diag_terms <- diagonal_terms[[variance]]
+
+      corr_matrix <- array(
+        0,
+        dim = c(num_genes, num_genes, num_celltypes),
+        dimnames = list(
+          paste0("gene_", 1:num_genes),
+          paste0("gene_", 1:num_genes),
+          paste0("celltype_", 1:num_celltypes)
+        )
+      )
+      Sigma <- corr_matrix
+      corr_matrix[,, 1] <- correlation_celltype1
+      corr_matrix[,, 2] <- correlation_celltype2
+      for (j in seq_len(num_celltypes)) {
+        diag(corr_matrix[,, j]) <- 1
+        Sigma[,, j] <- sqrt(diag(diag_terms)) %*%
+          corr_matrix[,, j] %*%
+          sqrt(diag(diag_terms))
+      }
+
+      simulated_data <- simulate_bulk_mixture(
+        signature_matrix = mu,
+        Sigma = Sigma,
+        p = p,
+        n = n
+      )
+      true_theta <- list(p = p, mu = mu, sigma = Sigma) |>
+        enforce_parameter_identifiability()
+      overlap <- MixSim::overlap(
+        Pi = p,
+        Mu = t(mu),
+        S = Sigma
+      )$BarOmega |>
+        signif(digits = 3)
+
+      estimated_ratios <- suppressWarnings(deconvolute_ratios(
+        signature_matrix = mu,
+        bulk_expression = simulated_data$Y,
+        true_ratios = p,
+        Sigma = Sigma,
+        deconvolution_functions = deconvolution_functions,
+        scaled = scaled,
+        cores = cores
+      ))
+
+      simulations <- tibble::tibble(
+        ID = ID,
+        correlation_celltype1 = correlation_celltype1,
+        correlation_celltype2 = correlation_celltype2
+      ) |>
+        dplyr::bind_cols(estimated_ratios)
+
+      config <- tibble::tibble(
+        ID = ID,
+        overlap = overlap,
+        entropy = round(compute_shannon_entropy(p), digits = 3),
+        proportions = proportion_name,
+        variance = variance,
+        centroids = centroids,
+        true_parameters = list(as.list(true_theta)),
+        nobservations = n
+      )
+
+      list(simulations = simulations, config = config)
     }
-  ) # end loop mean signatures
+  )
 
-  return(list("simulations" = simulations, "config" = id_tibble))
+  list(
+    simulations = dplyr::bind_rows(purrr::map(scenario_results, "simulations")),
+    config = dplyr::bind_rows(purrr::map(scenario_results, "config"))
+  )
 }

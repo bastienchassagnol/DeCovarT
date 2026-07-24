@@ -10,7 +10,7 @@ benchmark_bivariate_gaussian_convolutions(
   signature_matrices = list(`small OVL` = matrix(c(20, 40, 40, 20), nrow = 2)),
   corr_sequence = seq(-0.8, 0.8, 0.2),
   diagonal_terms = list(homoscedastic = c(1, 1), heteroscedastic = c(1, 2)),
-  deconvolution_functions = list(lm = list(FUN = deconvolute_ratios_abbas,
+  deconvolution_functions = list(lsfit = list(FUN = deconvolute_ratios_lsfit,
     additional_parameters = NULL)),
   n = 200,
   scaled = FALSE,
@@ -53,6 +53,10 @@ supplied algorithms. Performance is summarised against entropy of
 \details{
 Designed for two cell types and two genes. Larger \eqn{(G,J)} with only
 bivariate observations is prone to non-identifiability.
+
+Scenarios are enumerated with \code{\link[tidyr:expand_grid]{tidyr::expand_grid()}} and tagged with a
+unique \code{ID} via \code{\link[dplyr:row_number]{dplyr::row_number()}}, so no side-effect mutation is needed
+while looping over the design.
 }
 \seealso{
 \code{\link[=simulate_bulk_mixture]{simulate_bulk_mixture()}}, \code{\link[=deconvolute_ratios]{deconvolute_ratios()}}

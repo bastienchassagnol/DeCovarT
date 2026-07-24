@@ -495,20 +495,17 @@ hessian_loglik_constrained <- function(rho, y, mean_signature_matrix, Sigma) {
 #' @param Sigma Array
 #'   \eqn{(\boldsymbol{\Sigma}_j)_{j=1}^{J}\in\mathcal{M}_{G\times G\times J}}
 #'   of cell-type covariances.
-#' @param true_ratios Optional ground-truth
-#'   \eqn{\boldsymbol{p}^{\star}\in\mathbb{R}^{J}} used only for
-#'   benchmark scores.
 #' @param epsilon,itmax Absolute convergence tolerance and maximum number of
 #'   iterations for the optimiser.
 #'
-#' @inherit compute_benchmark_metrics return
+#' @return Named numeric vector \eqn{\hat{\boldsymbol{p}}} on the simplex.
+#'   Benchmark metrics are computed by [deconvolute_ratios()].
 #' @export
 #' @seealso [deconvolute_ratios()], [additive_logistic()]
 deconvolute_ratios_Marquardt_Levenberg <- function(
   y,
   mean_signature_matrix,
   Sigma,
-  true_ratios = NULL,
   epsilon = 10^-4,
   itmax = 200
 ) {
@@ -558,15 +555,7 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
   estimated_p <- additive_logistic(estimated_rho) |>
     enforce_identifiability() |> # ensure non-negativity constraint and remove numerical underflow
     stats::setNames(colnames(mean_signature_matrix))
-
-  metrics_scores <- compute_benchmark_metrics(
-    y,
-    mean_signature_matrix,
-    estimated_p,
-    true_ratios
-  ) |>
-    dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
-  return(metrics_scores)
+  estimated_p
 }
 
 
@@ -577,7 +566,6 @@ deconvolute_ratios_simulated_annealing <- function(
   y,
   mean_signature_matrix,
   Sigma,
-  true_ratios = NULL,
   epsilon = 10^-4,
   itmax = 200
 ) {
@@ -597,15 +585,7 @@ deconvolute_ratios_simulated_annealing <- function(
   estimated_p <- additive_logistic(estimated_rho) |>
     stats::setNames(colnames(mean_signature_matrix)) |>
     enforce_identifiability()
-
-  metrics_scores <- compute_benchmark_metrics(
-    y,
-    mean_signature_matrix,
-    estimated_p,
-    true_ratios
-  ) |>
-    dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
-  return(metrics_scores)
+  estimated_p
 }
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Box-constrained L-BFGS-B
@@ -615,15 +595,25 @@ deconvolute_ratios_L_BFGS_B <- function(
   y,
   mean_signature_matrix,
   Sigma,
-  true_ratios = NULL,
   epsilon = 10^-4,
   itmax = 200
 ) {
   initial_p <- rep(1 / ncol(mean_signature_matrix), ncol(mean_signature_matrix)) # consider by hypothesis equi-balanced proportions between cell populations
+  # Box constraints alone do not keep sum(p)=1, so Sigma(p) can become
+  # singular during the line search. Guard the objective and fall back to a
+  # finite penalty; use numerical gradients for consistency with that guard.
+  safe_loglik <- function(p, y, mean_signature_matrix, Sigma) {
+    if (sum(p) < 1e-8) {
+      return(-1e12)
+    }
+    tryCatch(
+      loglik_multivariate(p, y, mean_signature_matrix, Sigma),
+      error = function(e) -1e12
+    )
+  }
   estimated_p <- stats::optim(
     par = initial_p,
-    fn = loglik_multivariate,
-    gr = gradient_loglik_unconstrained,
+    fn = safe_loglik,
     y = y,
     mean_signature_matrix = mean_signature_matrix,
     Sigma = Sigma,
@@ -634,15 +624,7 @@ deconvolute_ratios_L_BFGS_B <- function(
   )$par |>
     stats::setNames(colnames(mean_signature_matrix)) |>
     enforce_identifiability()
-
-  metrics_scores <- compute_benchmark_metrics(
-    y,
-    mean_signature_matrix,
-    estimated_p,
-    true_ratios
-  ) |>
-    dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
-  return(metrics_scores)
+  estimated_p
 }
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Newton–Raphson /
@@ -653,7 +635,6 @@ deconvolute_ratios_Newton_Raphson <- function(
   y,
   mean_signature_matrix,
   Sigma,
-  true_ratios = NULL,
   epsilon = 10^-4,
   itmax = 200
 ) {
@@ -688,15 +669,7 @@ deconvolute_ratios_Newton_Raphson <- function(
   estimated_p <- additive_logistic(estimated_rho) |>
     stats::setNames(colnames(mean_signature_matrix)) |>
     enforce_identifiability()
-
-  metrics_scores <- compute_benchmark_metrics(
-    y,
-    mean_signature_matrix,
-    estimated_p,
-    true_ratios
-  ) |>
-    dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
-  return(metrics_scores)
+  estimated_p
 }
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg BFGS quasi-Newton ascent
@@ -706,7 +679,6 @@ deconvolute_ratios_gradient_descent <- function(
   y,
   mean_signature_matrix,
   Sigma,
-  true_ratios = NULL,
   epsilon = 10^-4,
   itmax = 200
 ) {
@@ -732,13 +704,5 @@ deconvolute_ratios_gradient_descent <- function(
   estimated_p <- additive_logistic(estimated_rho) |>
     stats::setNames(colnames(mean_signature_matrix)) |>
     enforce_identifiability()
-
-  metrics_scores <- compute_benchmark_metrics(
-    y,
-    mean_signature_matrix,
-    estimated_p,
-    true_ratios
-  ) |>
-    dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
-  return(metrics_scores)
+  estimated_p
 }
