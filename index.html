@@ -11,9 +11,17 @@
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" sizes="any" href="favicon.ico">
 <link rel="manifest" href="site.webmanifest">
-<script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- mathjax math --><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script><script>
+  window.MathJax = {
+    chtml: {
+      fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
+    }
+  };
+</script><script src="lightswitch.js"></script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/Source_Sans_3-0.4.10/font.css" rel="stylesheet">
+<link href="deps/Source_Code_Pro-0.4.10/font.css" rel="stylesheet">
+<link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="What the Package Does (One Line, Title Case)">
 <meta name="description" content="Implements the first deconvolution algorithm for bulk transcriptome that accounts for the interactions between genes.">
@@ -24,11 +32,11 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top " aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="index.html">DeCovarT</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Unreleased version">0.0.0.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -37,31 +45,35 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+<li class="active nav-item"><a class="nav-link" href="index.html"><span class="fa fa-home"></span> Home</a></li>
+<li class="nav-item"><a class="nav-link" href="reference/index.html"><span class="fa fa-code"></span> Functions</a></li>
 <li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-vignettes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Vignettes</button>
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-vignettes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true"><span class="fa fa-book-open"></span> Vignettes</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-vignettes">
-<li><a class="dropdown-item" href="articles/synthetic-scenarios.html">Simulating semi-synthetic pseudo-bulk mixtures</a></li>
-    <li><a class="dropdown-item" href="articles/DeCoVart-use-cases.html">Deconvolution use cases with DeCovarT</a></li>
-    <li><a class="dropdown-item" href="articles/DeCovarT-numerical-derivatives.html">Simplex coordinate maps (ALR / additive logistic)</a></li>
-    <li><a class="dropdown-item" href="articles/softmax-alr-derivatives.html">Softmax and ALR derivatives</a></li>
-  </ul>
-</li>
-<li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-news" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">News</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-news">
-<li><h6 class="dropdown-header" data-toc-skip>Releases</h6></li>
-    <li><a class="external-link dropdown-item" href="https://github.com/bastienchassagnol/DeCovarT/blob/main/NEWS.md">Version 0.0.0.9000 (development)</a></li>
+<li><h6 class="dropdown-header" data-toc-skip>Getting started</h6></li>
+    <li><a class="dropdown-item" href="articles/synthetic-scenarios.html"><span class="fa fa-flask"></span> Simulating semi-synthetic pseudo-bulk mixtures</a></li>
+    <li><a class="dropdown-item" href="articles/DeCoVart-use-cases.html"><span class="fa fa-chart-pie"></span> Deconvolution use cases with DeCovarT</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="news/index.html">Changelog</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
+    <li><a class="dropdown-item" href="articles/DeCovarT-numerical-derivatives.html"><span class="fa fa-calculator"></span> Simplex coordinate maps (ALR / additive logistic)</a></li>
+    <li><a class="dropdown-item" href="articles/softmax-alr-derivatives.html"><span class="fa fa-square-root-variable"></span> Softmax and ALR derivatives</a></li>
   </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="news/index.html"><span class="fa fa-newspaper"></span> News</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/bastienchassagnol/DeCovarT/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/bastienchassagnol/DeCovarT/" aria-label="GitHub"><span class="fa fa-github"></span></a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
+  <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
+<li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="dark"><span class="fa fa-moon"></span> Dark</button></li>
+    <li><button class="dropdown-item" data-bs-theme-value="auto"><span class="fa fa-adjust"></span> Auto</button></li>
+  </ul>
+</li>
       </ul>
 </div>
 
@@ -77,26 +89,161 @@
 </div>
 <!-- badges: start -->
 
-<p>DeCovarT is an R package for bulk transcriptomic deconvolution that accounts for gene–gene covariance structure in purified reference populations.</p>
 <div class="section level2">
-<h2 id="links-to-the-paper">Links to the paper<a class="anchor" aria-label="anchor" href="#links-to-the-paper"></a>
+<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
+<p><strong>DeCovarT</strong> is an R package for bulk transcriptomic deconvolution that accounts for gene–gene covariance in purified reference populations. Bulk observations are modelled as Gaussian convolutions of cell-type means and covariances, with cellular proportions recovered on the open simplex via an unconstrained (additive logistic) parametrisation.</p>
+<p>The main entry point is <code><a href="reference/deconvolute_ratios.html">deconvolute_ratios()</a></code>, which runs one or more solvers in parallel and returns estimated proportions plus optional benchmark metrics.</p>
+<div class="section level3">
+<h3 id="built-in-deconvolution-algorithms">Built-in deconvolution algorithms<a class="anchor" aria-label="anchor" href="#built-in-deconvolution-algorithms"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
+<thead><tr>
+<th align="left">Algorithm</th>
+<th align="left">Interface</th>
+<th align="left">Notes / upstream</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">
+<strong>DeCovarT</strong> (Marquardt–Levenberg)</td>
+<td align="left"><code>deconvolute_ratios_Marquardt_Levenberg</code></td>
+<td align="left">Covariance-aware MLE <a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link"><img src="https://img.shields.io/badge/GitHub-181717.svg?logo=github&amp;logoColor=white"></a>
+</td>
+</tr>
+<tr>
+<td align="left">Ordinary least squares (<code>lsfit</code>)</td>
+<td align="left"><code>deconvolute_ratios_lsfit</code></td>
+<td align="left">Abbas / TIMER-style OLS (base R <code><a href="https://rdrr.io/r/stats/lsfit.html" class="external-link">stats::lsfit</a></code>)</td>
+</tr>
+<tr>
+<td align="left">Non-negative least squares</td>
+<td align="left"><code>deconvolute_ratios_nnls</code></td>
+<td align="left">Lawson–Hanson NNLS <a href="https://github.com/cran/nnls" class="external-link"><img src="https://img.shields.io/badge/GitHub-181717.svg?logo=github&amp;logoColor=white"></a>
+</td>
+</tr>
+<tr>
+<td align="left">DeconRNASeq-style QP</td>
+<td align="left"><code>deconvolute_ratios_deconrnaseq</code></td>
+<td align="left">Simplex QP via {limSolve} <a href="https://github.com/cran/limSolve" class="external-link"><img src="https://img.shields.io/badge/GitHub-181717.svg?logo=github&amp;logoColor=white"></a>
+</td>
+</tr>
+<tr>
+<td align="left">Robust linear model (<code>rlm</code>)</td>
+<td align="left"><code>deconvolute_ratios_rlm</code></td>
+<td align="left">ABIS / Monaco-style RLR <a href="https://github.com/cran/MASS" class="external-link"><img src="https://img.shields.io/badge/GitHub-181717.svg?logo=github&amp;logoColor=white"></a>
+</td>
+</tr>
+<tr>
+<td align="left">CIBERSORT-style <span class="math inline">\(\nu\)</span>-SVR</td>
+<td align="left"><code>deconvolute_ratios_cibersort</code></td>
+<td align="left">Linear-kernel SVR via {e1071} <a href="https://github.com/cran/e1071" class="external-link"><img src="https://img.shields.io/badge/GitHub-181717.svg?logo=github&amp;logoColor=white"></a>
+</td>
+</tr>
+</tbody>
+</table>
+<p>All of the above ship with the package (no extra method packages required).</p>
+</div>
+<div class="section level3">
+<h3 id="links-to-the-paper">Links to the paper<a class="anchor" aria-label="anchor" href="#links-to-the-paper"></a>
+</h3>
 <ul>
 <li><a href="https://www.overleaf.com/project/697398ed149e81845cb5208e" class="external-link">Overleaf repository (shared with Anaïs Baudot)</a></li>
 <li><a href="https://arxiv.org/pdf/2309.09557" class="external-link">HAL / arXiv archive</a></li>
 </ul>
 </div>
+</div>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<p>Install the development version from GitHub with <a href="https://pak.r-lib.org/" class="external-link">{pak}</a>:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"pak"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span></span>
+<span>    <span class="st">"pak"</span>,</span>
+<span>    repos <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span></span>
+<span>      <span class="st">"https://r-lib.github.io/p/pak/stable/%s/%s/%s"</span>,</span>
+<span>      <span class="va">.Platform</span><span class="op">$</span><span class="va">pkgType</span>,</span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/base/Version.html" class="external-link">R.Version</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">os</span>,</span>
+<span>      <span class="fu"><a href="https://rdrr.io/r/base/Version.html" class="external-link">R.Version</a></span><span class="op">(</span><span class="op">)</span><span class="op">$</span><span class="va">arch</span></span>
+<span>    <span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pkg_install.html" class="external-link">pkg_install</a></span><span class="op">(</span><span class="st">"bastienchassagnol/DeCovarT"</span><span class="op">)</span></span></code></pre></div>
+<p>Alternatively with <a href="https://remotes.r-lib.org" class="external-link">remotes</a>:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"bastienchassagnol/DeCovarT"</span><span class="op">)</span></span></code></pre></div>
+<div class="section level3">
+<h3 id="developer-setup-pre-commit">Developer setup (pre-commit)<a class="anchor" aria-label="anchor" href="#developer-setup-pre-commit"></a>
+</h3>
+<p>Contributors should install <a href="https://pre-commit.com" class="external-link">pre-commit</a> hooks (Air formatting, {lintr}, parsable R, README sync). From R:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages(c("precommit", "lintr"))</span></span>
+<span><span class="fu">precommit</span><span class="fu">::</span><span class="fu">install_precommit</span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu">precommit</span><span class="fu">::</span><span class="fu">use_precommit</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>Or from the shell (after <code>pre-commit</code> is on <code>PATH</code>):</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="ex">pre-commit</span> install</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="ex">pre-commit</span> run <span class="at">--all-files</span></span></code></pre></div>
+<p>See <a href=".github/CONTRIBUTING.MD"><code>.github/CONTRIBUTING.MD</code></a> for the full contributor guide.</p>
+</div>
+<div class="section level3">
+<h3 id="continuous-integration">Continuous integration<a class="anchor" aria-label="anchor" href="#continuous-integration"></a>
+</h3>
+<p>GitHub Actions on this repository currently cover:</p>
+<ul>
+<li>
+<strong>R-CMD-check</strong> — <code>R CMD check</code> on push / pull requests</li>
+<li>
+<strong>pre-commit</strong> — the same local hooks on CI</li>
+<li>
+<strong>test-coverage</strong> — Codecov reporting</li>
+<li>
+<strong>pkgdown</strong> — documentation site on GitHub Pages</li>
+<li>
+<strong>R-hub</strong> — optional Ubuntu + Windows checks (<code>workflow_dispatch</code>)</li>
+<li>
+<strong>version update</strong> — optional DESCRIPTION bumps from commit messages or manual dispatch</li>
+</ul>
+</div>
+</div>
+<div class="section level2">
+<h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
+</h2>
+<p>Package website: <a href="https://bastienchassagnol.github.io/DeCovarT/" class="uri">https://bastienchassagnol.github.io/DeCovarT/</a></p>
+<p><strong>Vignettes</strong></p>
+<ul>
+<li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html">Simulating semi-synthetic pseudo-bulk mixtures</a></li>
+<li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.html">Deconvolution use cases with DeCovarT</a></li>
+<li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-numerical-derivatives.html">Simplex coordinate maps (ALR / additive logistic)</a></li>
+<li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.html">Softmax and ALR derivatives</a></li>
+</ul>
+<p>In an R session, use <code><a href="reference/deconvolute_ratios.html">?DeCovarT::deconvolute_ratios</a></code> (or any other exported function) for help pages.</p>
+<p><strong>Troubleshooting and issues</strong></p>
+<ul>
+<li>Contributor guidance and common development pitfalls: <a href=".github/CONTRIBUTING.MD"><code>.github/CONTRIBUTING.MD</code></a>
+</li>
+<li>Bug reports and feature requests: <a href="https://github.com/bastienchassagnol/DeCovarT/issues" class="external-link">GitHub issues</a>
+</li>
+</ul>
+<p>Pull requests are welcome.</p>
+</div>
 <div class="section level2">
 <h2 id="the-generative-model-of-decovart">The generative model of DeCovarT<a class="anchor" aria-label="anchor" href="#the-generative-model-of-decovart"></a>
 </h2>
-<p>Constrained DeCovarT maps unconstrained coordinates <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝛒</mi><mi>i</mi></msub><mo>∈</mo><msup><mi>ℝ</mi><mrow><mi>J</mi><mo>−</mo><mn>1</mn></mrow></msup></mrow><annotation encoding="application/x-tex">\boldsymbol{\rho}_{i}\in\mathbb{R}^{J-1}</annotation></semantics></math> to cellular proportions <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>𝐩</mi><mi>i</mi></msub><annotation encoding="application/x-tex">\boldsymbol{p}_{i}</annotation></semantics></math> on the open simplex via a regularised soft-max <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>𝛙</mi><annotation encoding="application/x-tex">\boldsymbol{\psi}</annotation></semantics></math>, then forms the bulk observation as a Gaussian convolution of cell-type profiles <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐱</mi><mi>j</mi></msub><mo>∼</mo><msub><mi>𝒩</mi><mi>G</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>𝛍</mi><mi>j</mi></msub><mo>,</mo><msub><mi>𝚺</mi><mi>j</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\boldsymbol{x}_{j}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{j},\boldsymbol{\Sigma}_{j})</annotation></semantics></math>:</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>𝐲</mi><mi>i</mi></msub><mspace width="0.167em"></mspace><mo stretchy="false" form="prefix">|</mo><mspace width="0.167em"></mspace><mi>⋅</mi><mo>∼</mo><msub><mi>𝒩</mi><mi>G</mi></msub><mspace width="-0.167em"></mspace><mo minsize="180%" maxsize="180%" stretchy="true" form="prefix">(</mo><mi>𝛍</mi><msub><mi>𝐩</mi><mi>i</mi></msub><mo>,</mo><mspace width="0.278em"></mspace><munderover><mo>∑</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>J</mi></munderover><msubsup><mi>p</mi><mrow><mi>j</mi><mi>i</mi></mrow><mn>2</mn></msubsup><msub><mi>𝚺</mi><mi>j</mi></msub><mo minsize="180%" maxsize="180%" stretchy="true" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p>Constrained DeCovarT maps unconstrained coordinates <span class="math inline">\(\boldsymbol{\rho}_{i}\in\mathbb{R}^{J-1}\)</span> to cellular proportions <span class="math inline">\(\boldsymbol{p}_{i}\)</span> on the open simplex via a regularised soft-max <span class="math inline">\(\boldsymbol{\psi}\)</span>, then forms the bulk observation as a Gaussian convolution of cell-type profiles <span class="math inline">\(\boldsymbol{x}_{j}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{j},\boldsymbol{\Sigma}_{j})\)</span>:</p>
+<p><span class="math display">\[
 \boldsymbol{y}_{i}\,|\,\cdot
 \sim\mathcal{N}_{G}\!\Bigl(
   \boldsymbol{\mu}\boldsymbol{p}_{i},\;
   \sum_{j=1}^{J}p_{ji}^{2}\boldsymbol{\Sigma}_{j}
 \Bigr).
-</annotation></semantics></math></p>
+\]</span></p>
 <pre class="mermaid"><code>%%{init: {
   "theme": "base",
   "themeVariables": {
@@ -138,20 +285,20 @@ flowchart TB
   class rho,xj latent;
   class p det;
   class y obs;</code></pre>
-<p>Forward map <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝛙</mi><mo>:</mo><mi>𝛒</mi><mo>↦</mo><mi>𝐩</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{\psi}:\boldsymbol{\rho}\mapsto\boldsymbol{p}</annotation></semantics></math> (<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msup><mi>C</mi><mn>2</mn></msup><annotation encoding="application/x-tex">C^{2}</annotation></semantics></math>-diffeomorphism):</p>
-<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mi>j</mi></msub><mo>=</mo><mfrac><msup><mi>e</mi><msub><mi>ρ</mi><mi>j</mi></msub></msup><mrow><munder><mo>∑</mo><mrow><mi>k</mi><mo>&lt;</mo><mi>J</mi></mrow></munder><msup><mi>e</mi><msub><mi>ρ</mi><mi>k</mi></msub></msup><mo>+</mo><mn>1</mn></mrow></mfrac><mspace width="0.222em"></mspace><mo stretchy="false" form="prefix">(</mo><mi>j</mi><mo>&lt;</mo><mi>J</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>p</mi><mi>J</mi></msub><mo>=</mo><mfrac><mn>1</mn><mrow><munder><mo>∑</mo><mrow><mi>k</mi><mo>&lt;</mo><mi>J</mi></mrow></munder><msup><mi>e</mi><msub><mi>ρ</mi><mi>k</mi></msub></msup><mo>+</mo><mn>1</mn></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><msup><mi>𝛙</mi><mrow><mi>−</mi><mn>1</mn></mrow></msup><mo stretchy="false" form="prefix">(</mo><mi>𝐩</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mo minsize="120%" maxsize="120%" stretchy="true" form="prefix">(</mo><mrow><mi mathvariant="normal">ln</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>p</mi><mi>j</mi></msub><mi>/</mi><msub><mi>p</mi><mi>J</mi></msub><mo stretchy="false" form="postfix">)</mo><msub><mo minsize="120%" maxsize="120%" stretchy="true" form="postfix">)</mo><mrow><mi>j</mi><mo>&lt;</mo><mi>J</mi></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">
+<p>Forward map <span class="math inline">\(\boldsymbol{\psi}:\boldsymbol{\rho}\mapsto\boldsymbol{p}\)</span> (<span class="math inline">\(C^{2}\)</span>-diffeomorphism):</p>
+<p><span class="math display">\[
 p_{j}=\frac{e^{\rho_{j}}}{\sum_{k&lt;J}e^{\rho_{k}}+1}\ (j&lt;J),\qquad
 p_{J}=\frac{1}{\sum_{k&lt;J}e^{\rho_{k}}+1},\qquad
 \boldsymbol{\psi}^{-1}(\boldsymbol{p})=\bigl(\ln(p_{j}/p_{J})\bigr)_{j&lt;J}.
-</annotation></semantics></math></p>
+\]</span></p>
 </div>
 <div class="section level2">
 <h2 id="compiling-the-latex-article">Compiling the LaTeX article<a class="anchor" aria-label="anchor" href="#compiling-the-latex-article"></a>
 </h2>
 <p>Source file: <code>article/main.tex</code> (bibliography: <code>article/decovart_library.bib</code>). DAG panels in Fig.~DAG-model are drawn with <a href="https://ctan.org/pkg/tikz-bayesnet" class="external-link"><code>tikz-bayesnet</code></a>.</p>
 <p>From the repository root, generate <code>article/main.pdf</code> with:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="bu">cd</span> article</span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="ex">latexmk</span> <span class="at">-pdf</span> <span class="at">-interaction</span><span class="op">=</span>nonstopmode <span class="at">-file-line-error</span> <span class="at">-synctex</span><span class="op">=</span>1 main.tex</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="bu">cd</span> article</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="ex">latexmk</span> <span class="at">-pdf</span> <span class="at">-interaction</span><span class="op">=</span>nonstopmode <span class="at">-file-line-error</span> <span class="at">-synctex</span><span class="op">=</span>1 main.tex</span></code></pre></div>
 <p>In Cursor / VS Code with <strong>LaTeX Workshop</strong>, use the default recipe <strong>latexmk</strong> (configured in <code>.vscode/settings.json</code>), or run <strong>“LaTeX Workshop: Build with recipe”</strong>.</p>
 <p>Auxiliaries are removed automatically after a successful build (<code>latex-workshop.latex.autoClean.run</code>: <code>onSucceeded</code>). Manual clean: Command Palette → <strong>“LaTeX Workshop: Clean up auxiliary files”</strong>.</p>
 </div>
@@ -159,21 +306,21 @@ p_{J}=\frac{1}{\sum_{k&lt;J}e^{\rho_{k}}+1},\qquad
 <h2 id="regenerating-this-readme">Regenerating this README<a class="anchor" aria-label="anchor" href="#regenerating-this-readme"></a>
 </h2>
 <p>Edit <code>README.qmd</code> (and optionally <code>man/figures/decovart_constrained_dag.mmd</code>), then run:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="ex">quarto</span> render README.qmd</span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="ex">./scripts/fix_readme_fences.sh</span> README.md</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">quarto</span> render README.qmd</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="ex">./scripts/fix_readme_fences.sh</span> README.md</span></code></pre></div>
 <p>This overwrites <code>README.md</code> (GitHub Flavoured Markdown). The fence-fix script removes the space Pandoc inserts after code-fence language tags (needed for GitHub Mermaid rendering).</p>
 </div>
 <div class="section level2">
 <h2 id="project-structure">Project structure<a class="anchor" aria-label="anchor" href="#project-structure"></a>
 </h2>
 <p>Package function call graph (DeCovarT → DeCovarT edges only):</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode html"><code class="sourceCode html"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">iframe</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="ot">  src</span><span class="op">=</span><span class="st">"output/package_network/decovart_function_network.html"</span></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="ot">  title</span><span class="op">=</span><span class="st">"DeCovarT function call graph"</span></span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="ot">  width</span><span class="op">=</span><span class="st">"100%"</span></span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="ot">  height</span><span class="op">=</span><span class="st">"720"</span></span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="ot">  style</span><span class="op">=</span><span class="st">"border: none;"</span></span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="dt">&gt;&lt;/</span><span class="kw">iframe</span><span class="dt">&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode html"><code class="sourceCode html"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="dt">&lt;</span><span class="kw">iframe</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="ot">  src</span><span class="op">=</span><span class="st">"output/package_network/decovart_function_network.html"</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="ot">  title</span><span class="op">=</span><span class="st">"DeCovarT function call graph"</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="ot">  width</span><span class="op">=</span><span class="st">"100%"</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="ot">  height</span><span class="op">=</span><span class="st">"720"</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="ot">  style</span><span class="op">=</span><span class="st">"border: none;"</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="dt">&gt;&lt;/</span><span class="kw">iframe</span><span class="dt">&gt;</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
@@ -208,13 +355,7 @@ p_{J}=\frac{1}{\sum_{k&lt;J}e^{\rho_{k}}+1},\qquad
 </ul>
 </div>
 
-<div class="dev-status">
-<h2 data-toc-skip>Dev status</h2>
-<ul class="list-unstyled">
-<li><a href="https://github.com/bastienchassagnol/DeCovarT/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/bastienchassagnol/DeCovarT/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
-<li><a href="https://app.codecov.io/gh/bastienchassagnol/DeCovarT" class="external-link"><img src="https://codecov.io/gh/bastienchassagnol/DeCovarT/graph/badge.svg" alt="Codecov test coverage"></a></li>
-</ul>
-</div>
+
 
   </aside>
 </div>
