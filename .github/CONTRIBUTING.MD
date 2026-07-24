@@ -37,3 +37,29 @@ Areas where contributions are especially welcome include:
 4. Add or update [testthat](https://cran.r-project.org/package=testthat) tests under `tests/testthat/`. Contributions with test coverage are much easier to review and accept.
 5. Run `devtools::check()` and ensure there are no `ERROR` or `WARNING` messages before submitting.
 6. For user-facing changes, add a bullet point to the top of `NEWS.md` (below the current development version header) describing what changed, followed by your GitHub username and links to the relevant issue(s) or PR(s).
+
+## Pre-commit hooks
+
+DeCovarT uses [pre-commit](https://pre-commit.com) with the R helpers from [{precommit}](https://lorenzwalthert.github.io/precommit/) (same pattern as [ropensci/skimr](https://github.com/ropensci/skimr)). Hooks format R code with [Air](https://posit-dev.github.io/air/), lint with {lintr}, keep roxygen docs in sync, and ensure `README.qmd` is rendered to `README.md`.
+
+### One-time setup
+
+```r
+# install.packages(c("precommit", "lintr"))  # if needed
+precommit::install_precommit()  # installs the pre-commit framework
+precommit::use_precommit()      # wires .git/hooks using .pre-commit-config.yaml
+```
+
+Or from the shell (after `pre-commit` is on `PATH`):
+
+```bash
+pre-commit install
+pre-commit run --all-files
+```
+
+Configuration lives in `.pre-commit-config.yaml` and `.lintr` at the package root.
+GitHub Actions runs the same hooks on pull requests (see `.github/workflows/pre-commit.yaml`).
+
+### Optional Cursor / VS Code extension
+
+Install **[pre-commit-helper](https://marketplace.visualstudio.com/items?itemName=elagil.pre-commit-helper)** (`elagil.pre-commit-helper`) to run hooks from the command palette or on save. Hooks still run automatically on `git commit` once installed.

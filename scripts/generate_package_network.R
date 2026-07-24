@@ -8,7 +8,11 @@
 stop_if_missing <- function(pkg) {
   if (!requireNamespace(pkg, quietly = TRUE)) {
     stop(
-      "Missing package '", pkg, "'. Install with e.g. pak::pak(\"", pkg, "\").",
+      "Missing package '",
+      pkg,
+      "'. Install with e.g. pak::pak(\"",
+      pkg,
+      "\").",
       call. = FALSE
     )
   }
@@ -87,7 +91,11 @@ extract_function_metadata <- function(file_path) {
     lapply(function_calls, function(expr) {
       fname <- as.character(expr[[2]])
       fparams <- function_formal_names(expr[[3]])
-      params_label <- if (length(fparams) == 0) "<none>" else paste(fparams, collapse = ", ")
+      params_label <- if (length(fparams) == 0) {
+        "<none>"
+      } else {
+        paste(fparams, collapse = ", ")
+      }
       data.frame(
         function_name = fname,
         file = basename(file_path),
@@ -99,7 +107,9 @@ extract_function_metadata <- function(file_path) {
 }
 
 internal_functions <- do.call(rbind, lapply(r_files, extract_function_metadata))
-internal_functions <- internal_functions[!duplicated(internal_functions$function_name), ]
+internal_functions <- internal_functions[
+  !duplicated(internal_functions$function_name),
+]
 
 if (nrow(internal_functions) == 0L) {
   stop("No top-level functions found in R/ (after exclusions).", call. = FALSE)
@@ -146,7 +156,10 @@ message("Call edges (DeCovarT to DeCovarT only): ", nrow(edges))
 # -----------------------------------------------------------------------------
 
 file_levels <- unique(internal_functions$file)
-palette <- grDevices::hcl.colors(max(1L, length(file_levels)), palette = "Set 2")
+palette <- grDevices::hcl.colors(
+  max(1L, length(file_levels)),
+  palette = "Set 2"
+)
 file_colours <- stats::setNames(palette, file_levels)
 
 nodes <- data.frame(
@@ -161,9 +174,14 @@ nodes$shape <- "ellipse"
 nodes$color.background <- unname(file_colours[nodes$file])
 nodes$color.border <- "#2f3e4f"
 nodes$title <- paste0(
-  "<b>", nodes$id, "</b><br/>",
-  "File: ", nodes$file, "<br/>",
-  "Parameters: ", nodes$parameters
+  "<b>",
+  nodes$id,
+  "</b><br/>",
+  "File: ",
+  nodes$file,
+  "<br/>",
+  "Parameters: ",
+  nodes$parameters
 )
 
 # -----------------------------------------------------------------------------
@@ -192,16 +210,31 @@ if (nrow(edges) == 0L) {
   message("No internal-to-internal edges; plotting isolated nodes only.")
 }
 
-visnetwork_plot <- visNetwork::visNetwork(nodes = nodes, edges = edges, width = "100%", height = "800px") |>
+visnetwork_plot <- visNetwork::visNetwork(
+  nodes = nodes,
+  edges = edges,
+  width = "100%",
+  height = "800px"
+) |>
   visNetwork::visLegend(
     useGroups = FALSE,
     addNodes = legend_nodes,
-    addEdges = data.frame(label = "Function call", color = "#8ea0b3", stringsAsFactors = FALSE)
+    addEdges = data.frame(
+      label = "Function call",
+      color = "#8ea0b3",
+      stringsAsFactors = FALSE
+    )
   ) |>
   visNetwork::visInteraction(navigationButtons = TRUE) |>
   visNetwork::visOptions(manipulation = TRUE, highlightNearest = TRUE) |>
-  visNetwork::visHierarchicalLayout(direction = "LR", levelSeparation = 220, nodeSpacing = 140) |>
-  visNetwork::visEdges(smooth = list(enabled = TRUE, type = "cubicBezier", roundness = 0.35))
+  visNetwork::visHierarchicalLayout(
+    direction = "LR",
+    levelSeparation = 220,
+    nodeSpacing = 140
+  ) |>
+  visNetwork::visEdges(
+    smooth = list(enabled = TRUE, type = "cubicBezier", roundness = 0.35)
+  )
 
 visNetwork::visSave(visnetwork_plot, html_path)
 message("Wrote: ", html_path)

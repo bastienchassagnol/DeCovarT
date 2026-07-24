@@ -112,7 +112,7 @@ deconvolute_ratios <- function(
   )
 ) {
   # read in data
-  if (!is.matrix(signature_matrix) | is.null(row.names(signature_matrix))) {
+  if (!is.matrix(signature_matrix) || is.null(row.names(signature_matrix))) {
     stop(
       "required format for signature is expression matrix, with rownames as genes"
     )
@@ -121,7 +121,7 @@ deconvolute_ratios <- function(
     signature_matrix,
     rownames = "GENE_SYMBOL"
   )
-  if (!is.matrix(bulk_expression) | is.null(row.names(bulk_expression))) {
+  if (!is.matrix(bulk_expression) || is.null(row.names(bulk_expression))) {
     stop(
       "required format for mixture is expression matrix, with rownames as genes"
     )
@@ -164,17 +164,17 @@ deconvolute_ratios <- function(
     function(deconvolution_function, algorithm) {
       additional_parameters <- deconvolution_function$additional_parameters
       metric_scores <- parallel::mclapply(
-        1:ncol(Y),
+        seq_len(ncol(Y)),
         function(i) {
           # metric_scores <- tibble::tibble(); for (i in 1:ncol(Y)) {
-              list_arguments <- c(
-                list(
-                  "y" = as.numeric(Y[[i]]),
-                  "mean_signature_matrix" = mean_signature_matrix,
-                  "Sigma" = Sigma
-                ),
-                additional_parameters
-              )
+          list_arguments <- c(
+            list(
+              "y" = as.numeric(Y[[i]]),
+              "mean_signature_matrix" = mean_signature_matrix,
+              "Sigma" = Sigma
+            ),
+            additional_parameters
+          )
           formal_args <- methods::formalArgs(deconvolution_function$FUN)
           success_estimation <- tryCatch(
             {
@@ -206,7 +206,7 @@ deconvolute_ratios <- function(
       if (nrow(metric_scores) != 0) {
         metric_scores <- metric_scores |>
           dplyr::mutate(
-            OMIC_ID = paste0("sample_", 1:nrow(metric_scores)),
+            OMIC_ID = paste0("sample_", seq_len(nrow(metric_scores))),
             algorithm = algorithm
           )
       }

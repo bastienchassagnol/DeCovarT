@@ -97,7 +97,7 @@ You are an R programming assistant, make sure to use the best practices when pro
 - Automate workflows with \`targets\` for reproducible pipelines.
 - Containerize environments with Docker for deployment.
 - Use CI/CD (GitHub Actions, GitLab CI) to test and deploy R projects.
-  
+
 ## Dependencies
 
 Have a preference for the following packages when relying on dependencies:

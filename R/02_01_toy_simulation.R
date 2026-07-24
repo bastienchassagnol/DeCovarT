@@ -189,10 +189,19 @@ benchmark_bivariate_gaussian_convolutions <- function(
       ID
     ) {
       message(paste0(
-        "Scenario ", ID, ": ", proportion_name,
-        ", corr=(", correlation_celltype1, ", ",
-        correlation_celltype2, "), centroids=", centroids,
-        ", variance=", variance, "."
+        "Scenario ",
+        ID,
+        ": ",
+        proportion_name,
+        ", corr=(",
+        correlation_celltype1,
+        ", ",
+        correlation_celltype2,
+        "), centroids=",
+        centroids,
+        ", variance=",
+        variance,
+        "."
       ))
 
       mu <- signature_matrices[[centroids]]

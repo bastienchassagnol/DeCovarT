@@ -261,7 +261,7 @@ gradient_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
 
   # compute the gradient itself
   gradient_unconstrained <- c()
-  for (j in 1:length(p)) {
+  for (j in seq_along(p)) {
     gradient_unconstrained <- c(
       gradient_unconstrained,
       -2 *
@@ -547,7 +547,7 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
       maxiter = itmax
     )) # add partialH and blinding?
 
-    estimated_rho <- output_lm[grep("b : ", output_lm, value = F)] |>
+    estimated_rho <- output_lm[grep("b : ", output_lm, value = FALSE)] |>
       stringr::str_match_all("[0-9,\\.]+") |>
       unlist() |>
       as.numeric() # retrieve last estimate before failure

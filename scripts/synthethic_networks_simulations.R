@@ -68,14 +68,17 @@ prec_mat <- synthethic_networks_structure$graph_structure$normalised_precision
 edges_idx <- which(adj_mat == 1 & upper.tri(adj_mat), arr.ind = TRUE)
 parent_assignment <- ifelse(
   seq_len(nrow(adj_mat)) <= ncol(parent_means) / 2,
-  "parent_1", "parent_2"
+  "parent_1",
+  "parent_2"
 )
 nodes <- data.frame(
   id = seq_len(nrow(adj_mat)),
   label = rownames(adj_mat),
   group = parent_assignment,
   title = paste0(
-    rownames(adj_mat), "<br>Block: ", parent_assignment
+    rownames(adj_mat),
+    "<br>Block: ",
+    parent_assignment
   ),
   stringsAsFactors = FALSE
 )
@@ -96,8 +99,10 @@ visNetwork(nodes, edges_unweighted, main = "Adjacency graph") |>
 
 ## ---- i. plot weighted graph ----
 prec_weights <- abs(prec_mat[edges_idx])
-scaled_weights <- 1 + 9 * (prec_weights - min(prec_weights)) /
-  (max(prec_weights) - min(prec_weights) + .Machine$double.eps)
+scaled_weights <- 1 +
+  9 *
+    (prec_weights - min(prec_weights)) /
+    (max(prec_weights) - min(prec_weights) + .Machine$double.eps)
 
 edges_weighted <- data.frame(
   from = edges_idx[, "row"],
@@ -120,18 +125,23 @@ visNetwork(nodes, edges_weighted, main = "Precision-weighted graph") |>
 
 # ---- 3. Mean-variance facet plot for child marginal variances ------------
 
-child_var_data <- do.call(rbind, lapply(
-  seq_len(nrow(child_means)),
-  function(k) {
-    mu_k <- child_means[k, ]
-    cov_k <- synthethic_networks_structure$child_parameters$covariance_matrices[,, k]
-    data.frame(
-      child = rownames(child_means)[k],
-      mean = mu_k,
-      variance = diag(cov_k)
-    )
-  }
-))
+child_var_data <- do.call(
+  rbind,
+  lapply(
+    seq_len(nrow(child_means)),
+    function(k) {
+      mu_k <- child_means[k, ]
+      cov_k <- synthethic_networks_structure$child_parameters$covariance_matrices[,,
+        k
+      ]
+      data.frame(
+        child = rownames(child_means)[k],
+        mean = mu_k,
+        variance = diag(cov_k)
+      )
+    }
+  )
+)
 
 ggplot(child_var_data, aes(mean_signature_matrix = mean, y = variance)) +
   geom_point(size = 0.8, alpha = 0.6) +
@@ -142,4 +152,3 @@ ggplot(child_var_data, aes(mean_signature_matrix = mean, y = variance)) +
     strip.text = element_text(face = "bold"),
     panel.grid.minor = element_blank()
   )
-

@@ -5,7 +5,6 @@
 ^README\.Rmd$
 ^README-.*\.png$
 ^.*\.Rproj$
-^\.Rproj\.user$
 ^CONTRIBUTING\.md$
 ^LICENSE\.md$
 ^additional_functions\.R$
@@ -38,3 +37,4 @@
 ^\.quarto$
 ^\.cursor$
 ^\.nojekyll$
+^\.lintr$

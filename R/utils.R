@@ -69,7 +69,7 @@ is_positive_definite <- function(expression, tol = 1e-6) {
 #' @return Scalar entropy in \eqn{[0,1]}.
 #' @export
 compute_shannon_entropy <- function(ratios) {
-  if (min(ratios) < 0 | max(ratios) > 1) {
+  if (min(ratios) < 0 || max(ratios) > 1) {
     stop("Probabilities must be stricly included between 0 and 1")
   }
 

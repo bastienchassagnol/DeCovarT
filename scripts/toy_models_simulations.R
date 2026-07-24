@@ -67,7 +67,13 @@ reduced_bivariate_configuration <- bivariate_configuration |>
     ),
     Variance = purrr::map_chr(
       true_parameters,
-      ~ paste(c(.mean_signature_matrix$sigma[1, 1, 1], .mean_signature_matrix$sigma[2, 2, 1]), collapse = " / ")
+      ~ paste(
+        c(
+          .mean_signature_matrix$sigma[1, 1, 1],
+          .mean_signature_matrix$sigma[2, 2, 1]
+        ),
+        collapse = " / "
+      )
     )
   ) |>
   dplyr::distinct()
@@ -200,9 +206,9 @@ data1 <- data$lsei@matrix
 data2 <- data$`tricky optim`@matrix
 
 
-common_min = min(c(data1, data2))
-common_max = max(c(data1, data2))
-col_fun = circlize::colorRamp2(c(common_min, common_max), c("blue", "red"))
+common_min <- min(c(data1, data2))
+common_max <- max(c(data1, data2))
+col_fun <- circlize::colorRamp2(c(common_min, common_max), c("blue", "red"))
 
 global_heatmap <- ComplexHeatmap::Heatmap(
   data1,
@@ -271,7 +277,10 @@ log_lik_tibble <- tibble::tibble(
 # |  \\mathbf{mean_signature_matrix}, \\Sigma}(\\mathbf{p})
 library(latex2exp)
 # tikzDevice::tikz(file = "./figs/log_plot.tex", width = 6, height = 6)
-log_plot <- ggplot(log_lik_tibble, aes(mean_signature_matrix = mean_signature_matrix, y = y)) +
+log_plot <- ggplot(
+  log_lik_tibble,
+  aes(mean_signature_matrix = mean_signature_matrix, y = y)
+) +
   geom_line(linewidth = 1.5) +
   theme_minimal() +
   # xlab(TeX(r"($\rho$)")) +

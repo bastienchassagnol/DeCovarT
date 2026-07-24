@@ -3,66 +3,66 @@
 if (!Array.from) {
   Array.from = (function () {
     var toStr = Object.prototype.toString;
-    var isCallable = function (fn) { 
+    var isCallable = function (fn) {
       return typeof fn === 'function' || toStr.call(fn) === '[object Function]';
     };
-    var toInteger = function (value) { 
-      var number = Number(value); 
+    var toInteger = function (value) {
+      var number = Number(value);
       if (isNaN(number)) { return 0; }
       if (number === 0 || !isFinite(number)) { return number; }
-      return (number > 0 ? 1 : -1) * Math.floor(Math.abs(number)); 
+      return (number > 0 ? 1 : -1) * Math.floor(Math.abs(number));
     };
     var maxSafeInteger = Math.pow(2, 53) - 1;
-    var toLength = function (value) { 
+    var toLength = function (value) {
       var len = toInteger(value);
       return Math.min(Math.max(len, 0), maxSafeInteger);
-    }; 
-  
+    };
+
     // La propriété length de la méthode vaut 1.
-    return function from(arrayLike/*, mapFn, thisArg */) { 
+    return function from(arrayLike/*, mapFn, thisArg */) {
       // 1. Soit C, la valeur this
       var C = this;
-      
+
       // 2. Soit items le ToObject(arrayLike).
-      var items = Object(arrayLike); 
-      
+      var items = Object(arrayLike);
+
       // 3. ReturnIfAbrupt(items).
-      if (arrayLike == null) { 
+      if (arrayLike == null) {
         throw new TypeError("Array.from doit utiliser un objet semblable à un tableau - null ou undefined ne peuvent pas être utilisés");
       }
-    
+
       // 4. Si mapfn est undefined, le mapping sera false.
       var mapFn = arguments.length > 1 ? arguments[1] : void undefined;
       var T;
-      if (typeof mapFn !== 'undefined') {  
-        // 5. sinon      
+      if (typeof mapFn !== 'undefined') {
+        // 5. sinon
         // 5. a. si IsCallable(mapfn) est false, on lève une TypeError.
-        if (!isCallable(mapFn)) { 
-          throw new TypeError('Array.from: lorsqu il est utilisé le deuxième argument doit être une fonction'); 
+        if (!isCallable(mapFn)) {
+          throw new TypeError('Array.from: lorsqu il est utilisé le deuxième argument doit être une fonction');
         }
-     
+
         // 5. b. si thisArg a été fourni, T sera thisArg ; sinon T sera undefined.
-        if (arguments.length > 2) { 
+        if (arguments.length > 2) {
           T = arguments[2];
         }
       }
-    
+
       // 10. Soit lenValue pour Get(items, "length").
       // 11. Soit len pour ToLength(lenValue).
-      var len = toLength(items.length);  
-     
+      var len = toLength(items.length);
+
       // 13. Si IsConstructor(C) vaut true, alors
       // 13. a. Soit A le résultat de l'appel à la méthode interne [[Construct]] avec une liste en argument qui contient l'élément len.
       // 14. a. Sinon, soit A le résultat de ArrayCreate(len).
       var A = isCallable(C) ? Object(new C(len)) : new Array(len);
-   
+
       // 16. Soit k égal à 0.
-      var k = 0;  // 17. On répète tant que k < len… 
+      var k = 0;  // 17. On répète tant que k < len…
       var kValue;
       while (k < len) {
-        kValue = items[k]; 
+        kValue = items[k];
         if (mapFn) {
-          A[k] = typeof T === 'undefined' ? mapFn(kValue, k) : mapFn.call(T, kValue, k); 
+          A[k] = typeof T === 'undefined' ? mapFn(kValue, k) : mapFn.call(T, kValue, k);
         } else {
           A[k] = kValue;
         }
@@ -119,7 +119,7 @@ if (!Array.prototype.includes) {
         if (sameValueZero(o[k], searchElement)) {
           return true;
         }
-        // c. Augmenter la valeur de k de 1. 
+        // c. Augmenter la valeur de k de 1.
         k++;
       }
 
@@ -138,7 +138,7 @@ if (!Function.prototype.bind) {
       // closest thing possible to the ECMAScript 5 internal IsCallable function
       throw new TypeError("Function.prototype.bind - what is trying to be bound is not callable");
     }
-    
+
     var aArgs = Array.prototype.slice.call(arguments, 1),
     fToBind = this,
     fNOP = function () {},
@@ -148,10 +148,10 @@ if (!Function.prototype.bind) {
                            : oThis,
                            aArgs.concat(Array.prototype.slice.call(arguments)));
     };
-    
+
     fNOP.prototype = this.prototype;
     fBound.prototype = new fNOP();
-    
+
     return fBound;
   };
 }
@@ -163,18 +163,18 @@ if (!Function.prototype.bind) {
 // for edges
 function edgeAsHardToRead(edge, hideColor1, hideColor2, network, type){
   //console.info("edgeAsHardToRead")
-  
+
   if(type === "edge"){
     //console.info("edge")
     //console.info(edge.id)
-    
+
     // saving color information (if we have)
     if (edge.hiddenColor === undefined && edge.color !== hideColor1 && edge.color !== hideColor2) {
       edge.hiddenColor = edge.color;
     }
     // set "hard to read" color
     edge.color = hideColor1;
-    
+
     // reset and save label
     if (edge.hiddenLabel === undefined) {
       edge.hiddenLabel = edge.label;
@@ -205,14 +205,14 @@ function edgeAsHardToRead(edge, hideColor1, hideColor2, network, type){
 }
 
 function resetOneEdge(edge, hideColor1, hideColor2, type){
-  
+
   /*console.info("resetOneEdge")
   console.info(type)
-  console.info(edge.id) 
+  console.info(edge.id)
   console.info(edge)
   console.info("edge.hiddenColor")
   console.info(edge.hiddenColor)*/
-  
+
   var treat_egde = false;
   if(type === "cluster"){
     if(edge.isHardToRead !== undefined){ // we have to reset this node
@@ -224,7 +224,7 @@ function resetOneEdge(edge, hideColor1, hideColor2, type){
     } else if(edge.color.color === hideColor1 || edge.color.color === hideColor2){
       treat_egde = true;
     }
-    
+
     if(treat_egde){
       // get back color
       if (edge.hiddenColor !== undefined) {
@@ -233,7 +233,7 @@ function resetOneEdge(edge, hideColor1, hideColor2, type){
       }else{
         delete edge.color;
       }
-        
+
       // finally, get back label
       if (edge.hiddenLabel !== undefined) {
         edge.label = edge.hiddenLabel;
@@ -249,7 +249,7 @@ function resetOneEdge(edge, hideColor1, hideColor2, type){
     }else{
       edge.color = null;
     }
-    
+
     // finally, get back label
     if (edge.hiddenLabel !== undefined) {
       edge.label = edge.hiddenLabel;
@@ -260,7 +260,7 @@ function resetOneEdge(edge, hideColor1, hideColor2, type){
 }
 
 function resetAllEdges(edges, hideColor1, hideColor2, network){
-  
+
   var edgesToReset = edges.get({
     fields: ['id', 'color', 'hiddenColor', 'label', 'hiddenLabel'],
     filter: function (item) {
@@ -280,7 +280,7 @@ function resetAllEdges(edges, hideColor1, hideColor2, network){
       edges_in_clusters = [];
     }
   }
-  
+
   var treat_edges_in_clusters = [];
   // all edges get their own color and their label back
   for (var i = 0; i < edgesToReset.length; i++) {
@@ -296,7 +296,7 @@ function resetAllEdges(edges, hideColor1, hideColor2, network){
       }
     }
   }
-  
+
   // some misunderstood bug on some cluster edges... so have a (bad) fix...
   var edges_in_clusters_ctrl = edges_in_clusters.filter(function(word,index){
     if(word.match(/^clusterEdge/i)){
@@ -305,12 +305,12 @@ function resetAllEdges(edges, hideColor1, hideColor2, network){
       } else {
         return false;
       }
-        
+
     }else{
         return false;
     }
   });
-  
+
   if(is_cluster_edges){
     if(edges_in_clusters_ctrl.length > 0){
        for (var j = 0; j < edges_in_clusters_ctrl.length; j++) {
@@ -357,7 +357,7 @@ function simpleResetNode(node, type){
 
 // for icon node
 function simpleIconResetNode(node, type){
-  if(type === "node"){  
+  if(type === "node"){
     // icon color
     node.icon.color = node.hiddenColor;
     node.hiddenColor = undefined;
@@ -388,7 +388,7 @@ function simpleIconResetNode(node, type){
 
 // for image node
 function simpleImageResetNode(node, imageType, type){
-  if(type === "node"){  
+  if(type === "node"){
     // get back color
     if (node.hiddenColor !== undefined) {
       node.color = node.hiddenColor;
@@ -450,7 +450,7 @@ function resetOneCluster(node, options, network){
         } else if(shape_options){
           final_shape = options.nodes.shape;
         }
-        
+
         node.setOptions({bodyHiddenColor : network.body.nodes[node.id].options.color});
         // and call good reset function
         if(final_shape === "icon"){
@@ -506,7 +506,7 @@ function resetOneNode(node, options, network){
         } else if(shape_options){
           final_shape = options.nodes.shape;
         }
-        
+
         // reset body information
         network.body.nodes[node.id].options.color = node.bodyHiddenColor;
 
@@ -533,7 +533,7 @@ function resetOneNode(node, options, network){
 
 // Global function to reset all node
 function resetAllNodes(nodes, update, options, network, all){
-  
+
   if(all === false){
       var nodesToReset = nodes.get({
       filter: function (item) {
@@ -544,7 +544,7 @@ function resetAllNodes(nodes, update, options, network, all){
   } else {
       var nodesToReset = nodes.get({returnType :'Array'});
   }
-  
+
   var have_cluster_nodes = false;
   var nodes_in_clusters;
   if(network !== undefined){
@@ -591,7 +591,7 @@ function simpleNodeAsHardToRead(node, hideColor1, hideColor2, type){
     if (node.hiddenColor === undefined && node.color !== hideColor1 && node.color !== hideColor2) {
       node.hiddenColor = node.color;
     }
-  
+
     // set "hard to read" color
     node.color = hideColor1;
     // reset and save label
@@ -599,7 +599,7 @@ function simpleNodeAsHardToRead(node, hideColor1, hideColor2, type){
       node.hiddenLabel = node.label;
       node.label = undefined;
     }
-  // cluster  
+  // cluster
   } else {
     // saving color information (if we have)
     if (node.options.hiddenColor === undefined && node.options.color !== hideColor1 && node.options.color !== hideColor2) {
@@ -738,14 +738,14 @@ function nodeAsHardToRead(node, options, hideColor1, hideColor2, network, type){
     } else if(shape_options){
       final_shape = options.nodes.shape;
     }
-    
+
     // information save in body nodes
     if(type === "node"){
       node.bodyHiddenColor = clone(network.body.nodes[node.id].options.color);
     } else {
       node.setOptions({bodyHiddenColor : clone(network.body.nodes[node.id].options.color)});
     }
-  
+
     // and call good function
     if(final_shape === "icon"){
       // find color for icon
@@ -757,7 +757,7 @@ function nodeAsHardToRead(node, options, hideColor1, hideColor2, network, type){
           icon_color = node.icon.color;
           find_color = true;
         }
-      } 
+      }
       // or in group ?
       if(find_color === false && is_group && options.groups !== undefined && options.groups[node.group].icon !== undefined){
         if(options.groups[node.group].icon.color !== undefined){
@@ -770,7 +770,7 @@ function nodeAsHardToRead(node, options, hideColor1, hideColor2, network, type){
         if(options.nodes.icon.color !== undefined){
           icon_color = options.nodes.icon.color;
         }
-      } 
+      }
       iconsNodeAsHardToRead(node, hideColor1, hideColor2, icon_color, type);
     } else if(final_shape === "image"){
       imageNodeAsHardToRead(node, "image", hideColor1, hideColor2, type);
@@ -779,14 +779,14 @@ function nodeAsHardToRead(node, options, hideColor1, hideColor2, network, type){
     } else {
       simpleNodeAsHardToRead(node, hideColor1, hideColor2, type);
     }
-    
+
     // finally set isHardToRead
     if(type === "node"){
       node.isHardToRead = true;
     } else {
       node.setOptions({isHardToRead : true});
     }
-  // special case of just to label  
+  // special case of just to label
   } else if(node.isHardToRead === true && node.label !== undefined){
     if(type === "node"){
       node.hiddenLabel = node.label;
@@ -806,13 +806,13 @@ function visNetworkdataframeToD3(df, type) {
   // variables we have specially to control
   /*var nodesctrl = ["color", "fixed", "font", "icon", "shadow", "scaling", "shapeProperties", "chosen", "heightConstraint", "image", "margin", "widthConstraint"];
   var edgesctrl = ["color", "font", "arrows", "shadow", "smooth", "scaling", "chosen", "widthConstraint"];*/
-  
+
   var names = [];
   var colnames = [];
   var length;
   var toctrl;
   var ctrlname;
-  
+
   for (var name in df) {
     if (df.hasOwnProperty(name))
       colnames.push(name);
@@ -897,7 +897,7 @@ function visNetworkdataframeToD3(df, type) {
 
 //----------------------------------------------------------------
 // Some utils functions
-//---------------------------------------------------------------- 
+//----------------------------------------------------------------
 
 //unique element in array
 function uniqueArray(arr, exclude_cluster, network) {
@@ -916,17 +916,17 @@ function uniqueArray(arr, exclude_cluster, network) {
 }
 
 function uniqueShiny(arr) {
-  return arr.filter(function (value, index, self) { 
+  return arr.filter(function (value, index, self) {
     return self.indexOf(value) === index;
   });
 };
 // clone an object
 function clone(obj) {
     if(obj === null || typeof(obj) != 'object')
-        return obj;    
-    var temp = new obj.constructor(); 
+        return obj;
+    var temp = new obj.constructor();
     for(var key in obj)
-        temp[key] = clone(obj[key]);    
+        temp[key] = clone(obj[key]);
     return temp;
 }
 // update a list
@@ -975,7 +975,7 @@ function setNodeIdList(selectList, params, nodes){
     selectList.setAttribute('style', params.style);
   }
   selectList.style.display = 'inline';
-      
+
   option = document.createElement("option");
   option.value = "";
   if(params.main === undefined){
@@ -983,9 +983,9 @@ function setNodeIdList(selectList, params, nodes){
   } else {
     option.text = params.main;
   }
-  
+
   selectList.appendChild(option);
-      
+
   // have to set for all nodes ?
   if(params.values === undefined){
     var info_node_list = nodes.get({
@@ -1028,7 +1028,7 @@ function setNodeIdList(selectList, params, nodes){
 
 //----------------------------------------------------------------
 // Collapsed function
-//---------------------------------------------------------------- 
+//----------------------------------------------------------------
 
 function networkOpenCluster(params){
   if (params.nodes.length === 1) {
@@ -1036,9 +1036,9 @@ function networkOpenCluster(params){
       var elid = this.body.container.id.substring(5);
       var fit = document.getElementById(elid).collapseFit;
       var resetHighlight = document.getElementById(elid).collapseResetHighlight;
-      
+
       if(document.getElementById(elid).collapseKeepCoord){
-        this.openCluster(params.nodes[0], 
+        this.openCluster(params.nodes[0],
         {releaseFunction : function(clusterPosition, containedNodesPositions) {
               return containedNodesPositions;
             }
@@ -1047,7 +1047,7 @@ function networkOpenCluster(params){
         this.openCluster(params.nodes[0]);
       }
 
-      
+
       if(resetHighlight){
         document.getElementById("nodeSelect"+elid).value = "";
         document.getElementById("nodeSelect"+elid).onchange();
@@ -1060,20 +1060,20 @@ function networkOpenCluster(params){
 }
 
 function collapsedNetwork(nodes, fit, resetHighlight, clusterParams, labelSuffix, treeParams, network, elid) {
-  
+
   var set_position = true;
   var selectedNode;
   var j;
-  
+
   if(nodes[0] !== undefined){
-    
+
     for (var inodes = 0; inodes < nodes.length; inodes++) {
-      
+
       selectedNode = nodes[inodes];
       if(selectedNode !== undefined){
         if(network.isCluster(selectedNode)){
           //network.openCluster(selectedNode)
-          /*instance.network.openCluster(selectedNode, 
+          /*instance.network.openCluster(selectedNode,
           {releaseFunction : function(clusterPosition, containedNodesPositions) {
             return tmp_position;
           }})*/
@@ -1082,13 +1082,13 @@ function collapsedNetwork(nodes, fit, resetHighlight, clusterParams, labelSuffix
           var firstLevelNodes = [];
           var otherLevelNodes = [];
           var connectedToNodes = [];
-      
+
           item = network.body.data.nodes.get({
             filter: function (item) {
               return item.id == selectedNode;
             }
           });
-            
+
           connectedToNodes = network.body.data.edges.get({
           fields: ['id','to'],
             filter: function (item) {
@@ -1096,13 +1096,13 @@ function collapsedNetwork(nodes, fit, resetHighlight, clusterParams, labelSuffix
             },
             returnType :'Array'
           });
-          
-          
-          
+
+
+
           for (j = 0; j < connectedToNodes.length; j++) {
             firstLevelNodes = firstLevelNodes.concat(connectedToNodes[j].to);
           }
-    
+
           var currentConnectedToNodes = firstLevelNodes;
           while(currentConnectedToNodes.length !== 0){
             connectedToNodes = network.body.data.edges.get({
@@ -1112,7 +1112,7 @@ function collapsedNetwork(nodes, fit, resetHighlight, clusterParams, labelSuffix
                 },
                 returnType :'Array'
             });
-                
+
             currentConnectedToNodes = [];
             var currentlength = otherLevelNodes.length;
             for (j = 0; j < connectedToNodes.length; j++) {
@@ -1121,7 +1121,7 @@ function collapsedNetwork(nodes, fit, resetHighlight, clusterParams, labelSuffix
             }
             if (otherLevelNodes.length === currentlength) { break; }
           }
-              
+
           var finalFirstLevelNodes = [];
           for (j = 0; j < firstLevelNodes.length; j++) {
             var findnode = network.clustering.findNode(firstLevelNodes[j])
@@ -1131,7 +1131,7 @@ function collapsedNetwork(nodes, fit, resetHighlight, clusterParams, labelSuffix
               finalFirstLevelNodes = finalFirstLevelNodes.concat(findnode[0]);
             }
           }
-          
+
           var finalClusterNodes = [];
           for (j = 0; j < otherLevelNodes.length; j++) {
             var findnode = network.clustering.findNode(otherLevelNodes[j])
@@ -1142,14 +1142,14 @@ function collapsedNetwork(nodes, fit, resetHighlight, clusterParams, labelSuffix
             }
           }
 
-          if(set_position){ 
+          if(set_position){
             network.storePositions();
           }
-    
+
           var clusterOptions = {
             joinCondition: function (nodesOptions) {
-              return nodesOptions.id === selectedNode || indexOf.call(finalFirstLevelNodes, nodesOptions.id, true) > -1 || 
-                  indexOf.call(finalClusterNodes, nodesOptions.id, true) > -1; 
+              return nodesOptions.id === selectedNode || indexOf.call(finalFirstLevelNodes, nodesOptions.id, true) > -1 ||
+                  indexOf.call(finalClusterNodes, nodesOptions.id, true) > -1;
               },
               processProperties: function(clusterOptions, childNodes) {
                 var click_node = network.body.data.nodes.get({
@@ -1158,12 +1158,12 @@ function collapsedNetwork(nodes, fit, resetHighlight, clusterParams, labelSuffix
                   },
                   returnType :'Array'
                 });
-                
+
                 var is_hard_to_read = false;
                 if(click_node[0].isHardToRead !== undefined){
                   is_hard_to_read = click_node[0].isHardToRead;
                 }
-                
+
                 for (var i in click_node[0]) {
                   if(i !== "id" && i !== "isHardToRead"){
                     if(i === "label" && is_hard_to_read){
@@ -1175,7 +1175,7 @@ function collapsedNetwork(nodes, fit, resetHighlight, clusterParams, labelSuffix
                     }
                   }
                 }
-                        
+
                 // gestion des tree
                 if(treeParams !== undefined){
                   if(treeParams.updateShape){
@@ -1184,19 +1184,19 @@ function collapsedNetwork(nodes, fit, resetHighlight, clusterParams, labelSuffix
                     clusterOptions.shape = treeParams.shapeY
                   }
                 }
-                        
+
                 if(clusterOptions.label !== undefined){
                   clusterOptions.label = clusterOptions.label + " " + labelSuffix;
                 } else {
                   clusterOptions.label =  labelSuffix;
                 }
-                        
+
                 if(clusterOptions.borderWidth !== undefined){
                   clusterOptions.borderWidth = clusterOptions.borderWidth * 3;
                 } else {
                   clusterOptions.borderWidth =  3;
                 }
-                        
+
                 if(set_position){
                   if(click_node[0].x !== undefined){
                     clusterOptions.x = click_node[0].x;
@@ -1205,13 +1205,13 @@ function collapsedNetwork(nodes, fit, resetHighlight, clusterParams, labelSuffix
                     clusterOptions.y = click_node[0].y;
                   }
                 }
-                      
+
                 if(clusterParams !== undefined){
                   for (var j in clusterParams) {
                     clusterOptions[j]=  clusterParams[j];
                   }
                 }
-                    
+
               return clusterOptions;
             },
             clusterNodeProperties: {
@@ -1221,7 +1221,7 @@ function collapsedNetwork(nodes, fit, resetHighlight, clusterParams, labelSuffix
           network.cluster(clusterOptions);
         }
       }
-      
+
     }
     if(resetHighlight){
       document.getElementById("nodeSelect"+elid).value = "";
@@ -1238,14 +1238,14 @@ function uncollapsedNetwork(nodes, fit, resetHighlight, keepCoord, network, elid
   var j;
   var arr_nodes = [];
   var cluster_node;
-  
+
   var nodes_in_clusters = network.body.modules.clustering.clusteredNodes;
   if(Object.keys(nodes_in_clusters).length > 0){
     nodes_in_clusters = Object.keys(nodes_in_clusters);
   } else {
     nodes_in_clusters = []
   }
-    
+
   if(nodes !== undefined && nodes !== null){
     arr_nodes = nodes
   } else {
@@ -1257,7 +1257,7 @@ function uncollapsedNetwork(nodes, fit, resetHighlight, keepCoord, network, elid
     if(selectedNode !== undefined){
         if(network.isCluster(selectedNode)){
           if(keepCoord){
-            network.openCluster(selectedNode, 
+            network.openCluster(selectedNode,
               {releaseFunction : function(clusterPosition, containedNodesPositions) {
                     return containedNodesPositions;
                   }
@@ -1272,7 +1272,7 @@ function uncollapsedNetwork(nodes, fit, resetHighlight, keepCoord, network, elid
               cluster_node = network.clustering.findNode(selectedNode)[0];
               if(network.isCluster(cluster_node)){
                 if(keepCoord){
-                  network.openCluster(cluster_node, 
+                  network.openCluster(cluster_node,
                     {releaseFunction : function(clusterPosition, containedNodesPositions) {
                           return containedNodesPositions;
                         }
@@ -1283,7 +1283,7 @@ function uncollapsedNetwork(nodes, fit, resetHighlight, keepCoord, network, elid
               }
             }
           }
-        } 
+        }
       }
     }
   if(resetHighlight){
@@ -1297,9 +1297,9 @@ function uncollapsedNetwork(nodes, fit, resetHighlight, keepCoord, network, elid
 
 //----------------------------------------------------------------
 // All available functions/methods with visNetworkProxy
-//--------------------------------------------------------------- 
+//---------------------------------------------------------------
 if (HTMLWidgets.shinyMode){
-  
+
   // collapsed method
   Shiny.addCustomMessageHandler('visShinyCollapse', function(data){
       // get container id
@@ -1308,7 +1308,7 @@ if (HTMLWidgets.shinyMode){
         collapsedNetwork(data.nodes, data.fit, data.resetHighlight, data.clusterOptions, data.labelSuffix, undefined, el.chart, data.id)
       }
   });
-  
+
   // uncollapsed method
   Shiny.addCustomMessageHandler('visShinyUncollapse', function(data){
       // get container id
@@ -1324,7 +1324,7 @@ if (HTMLWidgets.shinyMode){
       var el = document.getElementById("graph"+data.id);
       if(el){
         var network = el.chart;
-        
+
         if(data.type === "once"){
           for (var key in data.events) {
             eval('network.once("' + key + '",' + data.events[key] + ')');
@@ -1340,7 +1340,7 @@ if (HTMLWidgets.shinyMode){
         }
       }
   });
-  
+
   // moveNode method
   Shiny.addCustomMessageHandler('visShinyMoveNode', function(data){
       // get container id
@@ -1350,32 +1350,32 @@ if (HTMLWidgets.shinyMode){
         network.moveNode(data.nodeId, data.x, data.y);
       }
   });
-  
+
   // unselectAll method
   Shiny.addCustomMessageHandler('visShinyUnselectAll', function(data){
       // get container id
       var el = document.getElementById("graph"+data.id);
       if(el){
         var network = el.chart;
-        
+
         // reset selection
         document.getElementById("nodeSelect"+data.id).value = "";
         document.getElementById("nodeSelect"+data.id).onchange();
-        
+
         if(document.getElementById(data.id).selectActive === true){
             document.getElementById("selectedBy"+data.id).value = "";
             document.getElementById("selectedBy"+data.id).onchange();
         }
-        
+
         network.unselectAll();
       }
   });
-  
+
   // updateOptions in the network
   Shiny.addCustomMessageHandler('visShinyOptions', function(data){
       // get container id
       var el = document.getElementById("graph"+data.id);
-      
+
       if(el){
         var network = el.chart;
         var options = el.options;
@@ -1390,7 +1390,7 @@ if (HTMLWidgets.shinyMode){
             }
           }
         }
-    
+
         //*************************
         // pre-treatment for icons (unicode)
         //*************************
@@ -1411,7 +1411,7 @@ if (HTMLWidgets.shinyMode){
             }
           }
         }
-        
+
         if(data.options.nodes){
           if(data.options.nodes.icon){
             if(data.options.nodes.icon.code){
@@ -1428,12 +1428,12 @@ if (HTMLWidgets.shinyMode){
           }
         }
 
-        
+
         update(options, data.options);
         network.setOptions(options);
       }
   });
-  
+
   // setData the network
   Shiny.addCustomMessageHandler('visShinySetData', function(data){
       // get container id
@@ -1442,7 +1442,7 @@ if (HTMLWidgets.shinyMode){
         var network = el.chart;
         var newnodes = new vis.DataSet();
         var newedges = new vis.DataSet();
-		
+
         newnodes.add(visNetworkdataframeToD3(data.nodes, "nodes"));
         newedges.add(visNetworkdataframeToD3(data.edges, "edges"));
         var newdata = {
@@ -1452,7 +1452,7 @@ if (HTMLWidgets.shinyMode){
         network.setData(newdata);
       }
   });
-  
+
   // fit to a specific node
   Shiny.addCustomMessageHandler('visShinyFit', function(data){
     // get container id
@@ -1462,7 +1462,7 @@ if (HTMLWidgets.shinyMode){
         network.fit(data.options);
       }
   });
-  
+
   // focus on a node in the network
   Shiny.addCustomMessageHandler('visShinyFocus', function(data){
       // get container id
@@ -1472,7 +1472,7 @@ if (HTMLWidgets.shinyMode){
         network.focus(data.focusId, data.options);
       }
   });
-  
+
   // stabilize the network
   Shiny.addCustomMessageHandler('visShinyStabilize', function(data){
       // get container id
@@ -1492,7 +1492,7 @@ if (HTMLWidgets.shinyMode){
         network.startSimulation();
       }
   });
-  
+
   // stopSimulation on network
   Shiny.addCustomMessageHandler('visShinyStopSimulation', function(data){
       // get container id
@@ -1502,7 +1502,7 @@ if (HTMLWidgets.shinyMode){
         network.stopSimulation();
       }
   });
-  
+
   // get positions of the network
   Shiny.addCustomMessageHandler('visShinyGetPositions', function(data){
       // get container id
@@ -1510,7 +1510,7 @@ if (HTMLWidgets.shinyMode){
       if(el){
         var network = el.chart;
         var pos;
-        
+
         if(data.nodes !== undefined){
           pos = network.getPositions(data.nodes);
         }else{
@@ -1520,7 +1520,7 @@ if (HTMLWidgets.shinyMode){
         Shiny.onInputChange(data.input, pos);
       }
   });
-  
+
   // get edges data
   Shiny.addCustomMessageHandler('visShinyGetEdges', function(data){
       // get container id
@@ -1530,7 +1530,7 @@ if (HTMLWidgets.shinyMode){
         Shiny.onInputChange(data.input, el.edges.get({returnType:"Object"}));
       }
   });
-  
+
   // get nodes data
   Shiny.addCustomMessageHandler('visShinyGetNodes', function(data){
       // get container id
@@ -1543,7 +1543,7 @@ if (HTMLWidgets.shinyMode){
         Shiny.onInputChange(data.input, el.nodes.get({returnType:"Object"}));
       }
   });
-  
+
   // get selected edges
   Shiny.addCustomMessageHandler('visShinyGetSelectedEdges', function(data){
       // get container id
@@ -1555,7 +1555,7 @@ if (HTMLWidgets.shinyMode){
         Shiny.onInputChange(data.input, pos);
       }
   });
-  
+
   // get selected nodes
   Shiny.addCustomMessageHandler('visShinyGetSelectedNodes', function(data){
       // get container id
@@ -1567,7 +1567,7 @@ if (HTMLWidgets.shinyMode){
         Shiny.onInputChange(data.input, pos);
       }
   });
-  
+
   // getConnectedEdges
   Shiny.addCustomMessageHandler('visShinyGetConnectedEdges', function(data){
       // get container id
@@ -1579,7 +1579,7 @@ if (HTMLWidgets.shinyMode){
         Shiny.onInputChange(data.input, pos);
       }
   });
-  
+
   // getConnectedNodes
   Shiny.addCustomMessageHandler('visShinyGetConnectedNodes', function(data){
       // get container id
@@ -1591,7 +1591,7 @@ if (HTMLWidgets.shinyMode){
         Shiny.onInputChange(data.input, pos);
       }
   });
-  
+
   // getBoundingBox
   Shiny.addCustomMessageHandler('visShinyGetBoundingBox', function(data){
       // get container id
@@ -1603,7 +1603,7 @@ if (HTMLWidgets.shinyMode){
         Shiny.onInputChange(data.input, pos);
       }
   });
-  
+
   // get selection
   Shiny.addCustomMessageHandler('visShinyGetSelection', function(data){
       // get container id
@@ -1611,14 +1611,14 @@ if (HTMLWidgets.shinyMode){
       if(el){
         var network = el.chart;
         var pos;
-        
+
         pos = network.getSelection();
 
 		    // return  in shiny
         Shiny.onInputChange(data.input, pos);
       }
   });
-  
+
   // get scale
   Shiny.addCustomMessageHandler('visShinyGetScale', function(data){
       // get container id
@@ -1626,14 +1626,14 @@ if (HTMLWidgets.shinyMode){
       if(el){
         var network = el.chart;
         var pos;
-        
+
         pos = network.getScale();
 
 		    // return  in shiny
         Shiny.onInputChange(data.input, pos);
       }
   });
-  
+
   // store positions
   Shiny.addCustomMessageHandler('visShinyStorePositions', function(data){
       // get container id
@@ -1643,7 +1643,7 @@ if (HTMLWidgets.shinyMode){
         network.storePositions();
       }
   });
-  
+
   // get view position
   Shiny.addCustomMessageHandler('visShinyGetViewPosition', function(data){
       // get container id
@@ -1651,14 +1651,14 @@ if (HTMLWidgets.shinyMode){
       if(el){
         var network = el.chart;
         var pos;
-        
+
         pos = network.getViewPosition();
 
 		    // return  in shiny
         Shiny.onInputChange(data.input, pos);
       }
   });
-  
+
   // get view position
   Shiny.addCustomMessageHandler('visShinyGetOptionsFromConfigurator', function(data){
       // get container id
@@ -1669,7 +1669,7 @@ if (HTMLWidgets.shinyMode){
         Shiny.onInputChange(data.input, network.getOptionsFromConfigurator());
       }
   });
-  
+
   // Redraw the network
   Shiny.addCustomMessageHandler('visShinyRedraw', function(data){
       // get container id
@@ -1678,7 +1678,7 @@ if (HTMLWidgets.shinyMode){
         el.chart.redraw();
       }
   });
-  
+
   // select nodes
   Shiny.addCustomMessageHandler('visShinySelectNodes', function(data){
       // get container id
@@ -1697,7 +1697,7 @@ if (HTMLWidgets.shinyMode){
         }
       }
   });
-  
+
   // select edges
   Shiny.addCustomMessageHandler('visShinySelectEdges', function(data){
       // get container id
@@ -1709,7 +1709,7 @@ if (HTMLWidgets.shinyMode){
         }
       }
   });
-  
+
   // set selection
   Shiny.addCustomMessageHandler('visShinySetSelection', function(data){
       // get container id
@@ -1723,12 +1723,12 @@ if (HTMLWidgets.shinyMode){
           if(data.selection.nodes !== null){
             el.myclick({nodes : data.selection.nodes});
           } else {
-           el.myclick({nodes : []}); 
+           el.myclick({nodes : []});
           }
         }
       }
   });
-  
+
   function updateVisOptions(data){
         // get container id
         var graph = document.getElementById("graph"+data.id);
@@ -1738,7 +1738,7 @@ if (HTMLWidgets.shinyMode){
         var selectList2;
         var selectList;
         var reset = false;
-        
+
         if(graph){
           // reset nodes before ?
           if(document.getElementById(el.id).highlight){
@@ -1751,7 +1751,7 @@ if (HTMLWidgets.shinyMode){
             document.getElementById("nodeSelect"+data.id).value = "";
             document.getElementById("nodeSelect"+data.id).onchange();
           }
-          
+
           // collapse init
           if(data.options.collapse !== undefined){
             el.collapse = data.options.collapse.enabled;
@@ -1761,7 +1761,7 @@ if (HTMLWidgets.shinyMode){
             el.collapseLabelSuffix = data.options.collapse.labelSuffix;
             el.clusterOptions = data.options.collapse.clusterOptions;
           }
-          
+
           // highlight init
           if(data.options.highlight !== undefined){
             el.highlight = data.options.highlight.enabled;
@@ -1785,7 +1785,7 @@ if (HTMLWidgets.shinyMode){
               el.byselectionHighlight = data.options.byselection.highlight;
             }
           }
-          
+
           if(data.options.byselection !== undefined){
             selectList2 = document.getElementById("selectedBy"+data.id)
             selectList2.options.length = 0;
@@ -1797,9 +1797,9 @@ if (HTMLWidgets.shinyMode){
               } else {
                 option2.text = data.options.byselection.main;
               }
-              
+
               selectList2.appendChild(option2);
-      
+
               if(data.options.byselection.values !== undefined){
                 for (var i = 0; i < data.options.byselection.values.length; i++) {
                   option2 = document.createElement("option");
@@ -1834,7 +1834,7 @@ if (HTMLWidgets.shinyMode){
               document.getElementById("selectedBy"+data.id).onchange();
             }
           }
-          
+
           if(do_loop_by){
               var allNodes = graph.nodes.get({returnType:"Object"});
               var byselection_values = [];
@@ -1856,9 +1856,9 @@ if (HTMLWidgets.shinyMode){
                     }
                   }
                 }
-              } 
+              }
           }
-          
+
           // node id selection init
           if(data.options.idselection !== undefined){
             selectList = document.getElementById("nodeSelect"+data.id)
@@ -1874,7 +1874,7 @@ if (HTMLWidgets.shinyMode){
               el.idselection_useLabels = data.options.idselection.useLabels
             }
           }
-          
+
           if(data.options.idselection !== undefined){
             if(data.options.idselection.enabled === true && data.options.idselection.selected !== undefined){
               document.getElementById("nodeSelect"+data.id).value = data.options.idselection.selected;
@@ -1883,27 +1883,27 @@ if (HTMLWidgets.shinyMode){
           }
         }
   };
-      
+
   Shiny.addCustomMessageHandler('visShinyCustomOptions', updateVisOptions);
-  
+
   // udpate nodes data
   Shiny.addCustomMessageHandler('visShinyUpdateNodes', function(data){
       // get container id
       var el = document.getElementById("graph"+data.id);
       var main_el = document.getElementById(data.id);
-      
+
       if(data.legend === false){
         if(el){
           // get & transform nodes object
           var tmpnodes = visNetworkdataframeToD3(data.nodes, "nodes");
-          
+
           // reset some parameters / data before
           if (main_el.selectActive === true | main_el.highlightActive === true) {
 
             //reset nodes
             resetAllEdges(el.edges, el.highlightColor, el.byselectionColor, el.chart);
             resetAllNodes(el.nodes, true, el.options, el.chart, false);
-            
+
             if (main_el.selectActive === true){
               main_el.selectActive = false;
               resetList('selectedBy', data.id, 'selectedBy');
@@ -1915,25 +1915,25 @@ if (HTMLWidgets.shinyMode){
           }
           // update nodes
           el.nodes.update(tmpnodes);
-          
+
           // update options ?
           if(data.updateOptions){
             var dataOptions = {};
             dataOptions.options = {};
-          
+
             var updateOpts = false;
             if(document.getElementById("nodeSelect"+data.id).style.display === 'inline'){
               updateOpts = true;
               dataOptions.id  = data.id;
               dataOptions.options.idselection = {enabled : true, useLabels : main_el.idselection_useLabels};
             }
-      
+
             if(document.getElementById("selectedBy"+data.id).style.display === 'inline'){
               updateOpts = true;
               dataOptions.id  = data.id;
               dataOptions.options.byselection = {enabled : true, variable : main_el.byselection_variable, multiple : main_el.byselection_multiple};
             }
-          
+
             if(updateOpts){
               updateVisOptions(dataOptions);
             }
@@ -1976,7 +1976,7 @@ if (HTMLWidgets.shinyMode){
         }
       }
   });
-  
+
   // remove nodes
   Shiny.addCustomMessageHandler('visShinyRemoveNodes', function(data){
       // get container id
@@ -1988,7 +1988,7 @@ if (HTMLWidgets.shinyMode){
           if (main_el.selectActive === true | main_el.highlightActive === true) {
             //reset nodes
             resetAllNodes(el.nodes, true, el.options, el.chart, false);
-            
+
             if (main_el.selectActive === true){
               main_el.selectActive = false;
               resetList('selectedBy', data.id, 'selectedBy');
@@ -2000,25 +2000,25 @@ if (HTMLWidgets.shinyMode){
           }
           // remove nodes
           el.nodes.remove(data.rmid);
-  
+
           // update options ?
           if(data.updateOptions){
             var dataOptions = {};
             dataOptions.options = {};
-          
+
             var updateOpts = false;
             if(document.getElementById("nodeSelect"+data.id).style.display === 'inline'){
               updateOpts = true;
               dataOptions.id  = data.id;
               dataOptions.options.idselection = {enabled : true, useLabels : main_el.idselection_useLabels};
             }
-      
+
             if(document.getElementById("selectedBy"+data.id).style.display === 'inline'){
               updateOpts = true;
               dataOptions.id  = data.id;
               dataOptions.options.byselection = {enabled : true, variable : main_el.byselection_variable, multiple : main_el.byselection_multiple};
             }
-          
+
             if(updateOpts){
               updateVisOptions(dataOptions);
             }
@@ -2034,7 +2034,7 @@ if (HTMLWidgets.shinyMode){
         }
       }
   });
-  
+
   // remove edges
   Shiny.addCustomMessageHandler('visShinyRemoveEdges', function(data){
       // get container id
@@ -2055,7 +2055,7 @@ if (HTMLWidgets.shinyMode){
         }
       }
   });
-  
+
   // remove edges
   Shiny.addCustomMessageHandler('visShinySetTitle', function(data){
     if(data.main !== null){
@@ -2081,7 +2081,7 @@ if (HTMLWidgets.shinyMode){
             }
           }
           div_title.style.display = 'block';
-        } 
+        }
       }
     }
     if(data.submain !== null){
@@ -2133,7 +2133,7 @@ if (HTMLWidgets.shinyMode){
             }
           }
           div_footer.style.display = 'block';
-        } 
+        }
       }
     }
   });
@@ -2160,18 +2160,18 @@ if (HTMLWidgets.shinyMode){
 
 //----------------------------------------------------------------
 // HTMLWidgets.widget Definition
-//--------------------------------------------------------------- 
+//---------------------------------------------------------------
 HTMLWidgets.widget({
-  
+
   name: 'visNetwork',
-  
+
   type: 'output',
-  
+
   initialize: function(el, width, height) {
     return {
     };
   },
-  
+
   renderValue: function(el, x, instance) {
     var data;
     var nodes;
@@ -2184,25 +2184,25 @@ HTMLWidgets.widget({
     var lastClusterZoomLevel = 0;
     var clusterFactor;
     var ctrlwait = 0;
-    
+
     // legend control
     var addlegend = false;
 
     // main div el.id
     var el_id = document.getElementById(el.id);
-    
+
     // test background
     el_id.style.background = x.background;
-    
+
     // clear el.id (for shiny...)
-    el_id.innerHTML = "";  
-    
+    el_id.innerHTML = "";
+
     // shared control with proxy function (is there a better way ?)
     el_id.highlightActive = false;
     el_id.selectActive = false;
     el_id.idselection = x.idselection.enabled;
     el_id.byselection = x.byselection.enabled;
-    
+
     if(x.highlight !== undefined){
       el_id.highlight = x.highlight.enabled;
       el_id.highlightColor = x.highlight.hideColor;
@@ -2226,13 +2226,13 @@ HTMLWidgets.widget({
       el_id.byselectionColor = 'rgba(200,200,200,0.5)';
       el_id.byselectionHighlight = false;
     }
-    
+
     if(x.idselection.enabled){
       el_id.idselection_useLabels = true;
     } else {
       el_id.idselection_useLabels = false;
     }
-    
+
     if(x.collapse !== undefined){
       if(x.collapse.enabled){
         el_id.collapse = true;
@@ -2250,7 +2250,7 @@ HTMLWidgets.widget({
       el_id.collapseLabelSuffix = " (cluster)";
       el_id.clusterOptions = undefined;
     }
-    
+
     if(x.tree !== undefined){
       el_id.tree = x.tree;
     }
@@ -2266,11 +2266,11 @@ HTMLWidgets.widget({
         }
       }
     }
-    
+
     var changeInput = function(id, data) {
             Shiny.onInputChange(el.id + '_' + id, data);
     };
-          
+
     //*************************
     //title
     //*************************
@@ -2278,13 +2278,13 @@ HTMLWidgets.widget({
     div_title.id = "title"+el.id;
     div_title.setAttribute('style','font-family:Georgia, Times New Roman, Times, serif;font-weight:bold;font-size:20px;text-align:center;');
     div_title.style.display = 'none';
-    el_id.appendChild(div_title);  
+    el_id.appendChild(div_title);
     if(x.main !== null){
       div_title.innerHTML = x.main.text;
       div_title.setAttribute('style',  x.main.style + ";background-color: inherit;");
       div_title.style.display = 'block';
     }
-    
+
     //*************************
     //subtitle
     //*************************
@@ -2292,13 +2292,13 @@ HTMLWidgets.widget({
     div_subtitle.id = "subtitle"+el.id;
     div_subtitle.setAttribute('style',  'font-family:Georgia, Times New Roman, Times, serif;font-size:12px;text-align:center;');
     div_subtitle.style.display = 'none';
-    el_id.appendChild(div_subtitle); 
+    el_id.appendChild(div_subtitle);
     if(x.submain !== null){
       div_subtitle.innerHTML = x.submain.text;
       div_subtitle.setAttribute('style',  x.submain.style + ";background-color: inherit;");
       div_title.style.display = 'block';
     }
- 
+
     //*************************
     //init idselection
     //*************************
@@ -2331,7 +2331,7 @@ HTMLWidgets.widget({
         resetList('selectedBy', el.id, 'selectedBy');
       }
     }
-      
+
     // id nodes selection : add a list on top left
     // actually only with nodes + edges data (not dot and gephi)
     var idList = document.createElement("select");
@@ -2339,17 +2339,17 @@ HTMLWidgets.widget({
     idList.style.display = 'none';
     idList.id = "nodeSelect"+el.id;
     el_id.appendChild(idList);
-      
+
     idList.onchange =  function(){
       if(instance.network){
         onIdChange(document.getElementById("nodeSelect"+el.id).value, false);
       }
     };
-      
+
     var hr = document.createElement("hr");
     hr.setAttribute('style', 'height:0px; visibility:hidden; margin-bottom:-1px;');
-    el_id.appendChild(hr);  
-      
+    el_id.appendChild(hr);
+
     //*************************
     //selectedBy
     //*************************
@@ -2364,7 +2364,7 @@ HTMLWidgets.widget({
           resetList('nodeSelect', el.id, 'selected');
         }
     }
-    
+
     // selectedBy : add a list on top left
     // actually only with nodes + edges data (not dot and gephi)
     //Create and append select list
@@ -2377,19 +2377,19 @@ HTMLWidgets.widget({
     byList.onchange =  function(){
       onByChange(document.getElementById("selectedBy"+el.id).value);
     };
-      
+
     if(el_id.byselection){
 
       el_id.byselection_values = x.byselection.values;
       el_id.byselection_variable = x.byselection.variable;
       el_id.byselection_multiple = x.byselection.multiple;
       var option2;
-      
+
       //Create and append select list
       var selectList2 = document.getElementById("selectedBy"+el.id);
       selectList2.setAttribute('style', x.byselection.style);
       selectList2.style.display = 'inline';
-      
+
       option2 = document.createElement("option");
       option2.value = "";
       if(x.byselection.main === undefined){
@@ -2399,7 +2399,7 @@ HTMLWidgets.widget({
       }
 
       selectList2.appendChild(option2);
-      
+
       //Create and append the options
       for (var i2 = 0; i2 < x.byselection.values.length; i2++) {
         option2 = document.createElement("option");
@@ -2407,12 +2407,12 @@ HTMLWidgets.widget({
         option2.text = x.byselection.values[i2];
         selectList2.appendChild(option2);
       }
-      
+
       if (window.Shiny){
         changeInput('selectedBy', document.getElementById("selectedBy"+el.id).value);
       }
     }
-    
+
     //*************************
     // pre-treatment for icons (unicode)
     //*************************
@@ -2433,7 +2433,7 @@ HTMLWidgets.widget({
         }
       }
     }
-    
+
     if(x.options.nodes.icon){
         if(x.options.nodes.icon.code){
           x.options.nodes.icon.code = JSON.parse( '"'+'\\u' + x.options.nodes.icon.code + '"');
@@ -2447,72 +2447,72 @@ HTMLWidgets.widget({
           x.options.nodes.color = x.options.nodes.icon.color;
         }
     }
-    
+
     //*************************
     //page structure
     //*************************
-    
+
     // divide page
     var maindiv  = document.createElement('div');
     maindiv.id = "maindiv"+el.id;
     maindiv.setAttribute('style', 'height:95%;background-color: inherit;');
     el_id.appendChild(maindiv);
-    
+
     var graph = document.createElement('div');
     graph.id = "graph"+el.id;
-    
+
     if(x.legend !== undefined){
       if((x.groups && x.legend.useGroups) || (x.legend.nodes !== undefined) || (x.legend.edges !== undefined)){
         addlegend = true;
       }
     }
-    
+
     //legend
     if(addlegend){
       var legendwidth = x.legend.width*100;
       var legend = document.createElement('div');
-      
+
       var pos = x.legend.position;
       var pos2 = "right";
       if(pos == "right"){
         pos2 = "left";
       }
-      
+
       legend.id = "legend"+el.id;
       legend.setAttribute('style', 'float:' + pos + '; width:'+legendwidth+'%;height:100%');
-      
+
       //legend title
       if(x.legend.main !== undefined){
         var legend_title = document.createElement('div');
         legend_title.innerHTML = x.legend.main.text;
         legend_title.setAttribute('style',  x.legend.main.style);
-        legend.appendChild(legend_title);  
-        
+        legend.appendChild(legend_title);
+
         legend.id = "legend_main"+el.id;
         var legend_network = document.createElement('div');
         legend_network.id = "legend"+el.id;
         legend_network.setAttribute('style', 'height:100%');
-        legend.appendChild(legend_network); 
+        legend.appendChild(legend_network);
       }
-      
+
       document.getElementById("maindiv"+el.id).appendChild(legend);
       graph.setAttribute('style', 'float:' + pos2 + '; width:'+(100-legendwidth)+'%;height:100%;background-color: inherit;');
     }else{
       graph.setAttribute('style', 'float:right; width:100%;height:100%;background-color: inherit;');
     }
-    
+
     document.getElementById("maindiv"+el.id).appendChild(graph);
-    
+
     //*************************
     //legend definition
     //*************************
     if(addlegend){
-      
+
       var legendnodes = new vis.DataSet();
       var legendedges = null;
       var datalegend;
       var tmpnodes;
-      
+
       // set some options
       var optionslegend = {
         interaction:{
@@ -2525,7 +2525,7 @@ HTMLWidgets.widget({
           stabilization: false
         }
       };
-      
+
       function range(start, length, step, rep){
         var a=[], b=start;
         while(a.length < length){
@@ -2539,7 +2539,7 @@ HTMLWidgets.widget({
         }
         return a;
       };
-      
+
       var mynetwork = document.getElementById('legend'+el.id);
       var lx = mynetwork.clientWidth / 2 + 50;
       var ly = mynetwork.clientHeight / 2 + 50;
@@ -2554,7 +2554,7 @@ HTMLWidgets.widget({
       if(tmp_lx === 0){
         tmp_lx = 1
       }
-      
+
       // construct nodes data if needed
       if(x.legend.nodes !== undefined){
         if(x.legend.nodesToDataframe){ // data in data.frame
@@ -2562,13 +2562,13 @@ HTMLWidgets.widget({
         } else { // data in list
           tmpnodes = x.legend.nodes;
         }
-        // only one element   
+        // only one element
         if(tmpnodes.length === undefined){
           tmpnodes = new Array(tmpnodes);
         }
       }
-      
-      // array of y position 
+
+      // array of y position
       if(x.groups && x.legend.useGroups && x.legend.nodes !== undefined){
         all_tmp_y = range(ly, x.groups.length + tmpnodes.length, step_y, ncol);
       } else if(x.groups && x.legend.useGroups && x.legend.nodes === undefined){
@@ -2576,23 +2576,23 @@ HTMLWidgets.widget({
       } else if(x.legend.useGroups === false && x.legend.nodes !== undefined){
         all_tmp_y = range(ly, tmpnodes.length, step_y, ncol);
       }
-      
+
       // want to view groups in legend
       if(x.groups && x.legend.useGroups){
         // create data
         for (var g1 = 0; g1 < x.groups.length; g1++){
-          
+
           if(g1 === 0){
             tmp_lx = lx;
           } else {
             tmp_lx = lx + g1%ncol * step_x;
           }
-          
+
           tmp_ly = all_tmp_y[g1];
           if(tmp_ly === 0){
             tmp_ly = 1
           }
-          
+
           legendnodes.add({id: null, x : tmp_lx, y : tmp_ly, label: x.groups[g1], group: x.groups[g1], value: 1, mass:1});
           edge_ly = tmp_ly;
         }
@@ -2608,7 +2608,7 @@ HTMLWidgets.widget({
       }
       // want to add custom nodes
       if(x.legend.nodes !== undefined){
-        
+
         // control icon
         for (var nd in tmpnodes){
           if(tmpnodes[nd].icon  && !x.legend.nodesToDataframe){
@@ -2632,7 +2632,7 @@ HTMLWidgets.widget({
           } else {
             tmp_lx = lx + (g+legendnodes.length)%ncol * step_x;
           }
-          
+
           tmp_ly = all_tmp_y[add_gr_y + g];
           if(tmp_lx === 0){
             tmp_lx = 1
@@ -2642,7 +2642,7 @@ HTMLWidgets.widget({
           }
           tmpnodes[g].x = tmp_lx;
           tmpnodes[g].y = tmp_ly;
-          
+
           if(tmpnodes[g].value === undefined && tmpnodes[g].size === undefined){
             tmpnodes[g].value = 1;
           }
@@ -2661,14 +2661,14 @@ HTMLWidgets.widget({
         } else {  // data in list
           legendedges = x.legend.edges;
         }
-        // only one element 
+        // only one element
         if(legendedges.length === undefined){
           legendedges = new Array(legendedges);
         }
 
         // set coordinates and options
         for (var edg = 0; edg < (legendedges.length); edg++){
-          
+
           var tmp_int = Math.floor(Math.random() * 1001);
           legendedges[edg].from = edg + "tmp_leg_edges_" + tmp_int + "_1";
           legendedges[edg].to = edg + "tmp_leg_edges_" + tmp_int + "_2";
@@ -2679,7 +2679,7 @@ HTMLWidgets.widget({
           if(legendedges[edg].arrows === undefined){
             legendedges[edg].arrows = 'to';
           }
-          
+
           if(legendedges[edg].width === undefined){
             legendedges[edg].width = 1;
           }
@@ -2688,7 +2688,7 @@ HTMLWidgets.widget({
           if(tmp_ly === 0){
             tmp_ly = 1
           }
-          
+
           if(ncol === 1){
             tmp_lx = lx - mynetwork.clientWidth/3;
             tmp_lx2 = lx + mynetwork.clientWidth/3;
@@ -2696,52 +2696,52 @@ HTMLWidgets.widget({
             tmp_lx = lx;
             tmp_lx2 = lx + (ncol-1) * step_x;
           }
-          
+
           if(tmp_lx === 0){
             tmp_lx = 1
           }
-          
+
           if(tmp_lx2 === 0){
             tmp_lx2 = 1
           }
-          
+
           legendnodes.add({id: edg + "tmp_leg_edges_" + tmp_int + "_1", x : tmp_lx, y : tmp_ly, size : 0.0001, hidden : false, shape : "square", mass:1});
           legendnodes.add({id: edg + "tmp_leg_edges_" + tmp_int + "_2", x : tmp_lx2, y : tmp_ly, size : 0.0001, hidden : false, shape : "square", mass:1});
         }
       }
-      
+
       // render legend network
       datalegend = {
-        nodes: legendnodes, 
-        edges: legendedges       
+        nodes: legendnodes,
+        edges: legendedges
       };
 
-      
+
       instance.legend = new vis.Network(document.getElementById("legend"+el.id), datalegend, optionslegend);
       //link network for update for re-use and update
       document.getElementById("legend"+el.id).network = instance.legend;
     }
-    
+
     //*************************
     // Main Network rendering
     //*************************
     if(x.nodes){
-      
+
       // network
       nodes = new vis.DataSet();
       edges = new vis.DataSet();
-      
+
       var tmpnodes;
       if(x.nodesToDataframe){ // data in data.frame
         tmpnodes = visNetworkdataframeToD3(x.nodes, "nodes")
       } else { // data in list
         tmpnodes = x.nodes;
       }
-      // only one element   
+      // only one element
       if(tmpnodes.length === undefined){
         tmpnodes = new Array(tmpnodes);
       }
-        
+
       // update coordinates if igraph
       if(x.igraphlayout !== undefined){
         // to improved
@@ -2749,7 +2749,7 @@ HTMLWidgets.widget({
         var igclientWidth = document.getElementById("graph"+el.id).clientWidth;
         var scalex = 100;
         var scaley = 100;
-        
+
         // current div visibled
         if(igclientWidth !== 0){
           var factor = igclientWidth / 1890;
@@ -2772,15 +2772,15 @@ HTMLWidgets.widget({
             }
           }
         }
-        
+
         for (var nd in tmpnodes) {
           tmpnodes[nd].x = tmpnodes[nd].x * scalex;
           tmpnodes[nd].y = tmpnodes[nd].y * scaley;
         }
       }
-      
+
       nodes.add(tmpnodes);
-      
+
       var tmpedges;
       if(x.edgesToDataframe){ // data in data.frame
         tmpedges = visNetworkdataframeToD3(x.edges, "edges")
@@ -2792,17 +2792,17 @@ HTMLWidgets.widget({
         if(tmpedges.length === undefined){
           tmpedges = new Array(tmpedges);
         }
-        edges.add(tmpedges);  
+        edges.add(tmpedges);
       }
-      
+
       // reset tmpnodes
       tmpnodes = null;
-      
+
       data = {
         nodes: nodes,
         edges: edges
       };
-      
+
       //save data for re-use and update
       document.getElementById("graph"+el.id).nodes = nodes;
       document.getElementById("graph"+el.id).edges = edges;
@@ -2815,8 +2815,8 @@ HTMLWidgets.widget({
       data = {
         gephi: x.gephi
       };
-    } 
-    
+    }
+
     var options = x.options;
 
     //*************************
@@ -2840,13 +2840,13 @@ HTMLWidgets.widget({
       div_editnode.classList.add('network-popUp');
       div_editnode.innerHTML = x.opts_manipulation.tab_edit_node;
       el_id.appendChild(div_editnode);
-      
+
       var div_editedge = document.createElement('div');
       div_editedge.id = 'editedge-popUp';
       div_editedge.classList.add('network-popUp');
       div_editedge.innerHTML = x.opts_manipulation.tab_edit_edge;
       el_id.appendChild(div_editedge);
-      
+
       if(x.options.manipulation.addNode === undefined){
         options.manipulation.addNode = function(data, callback) {
           document.getElementById('addnode-operation').innerHTML = "Add Node";
@@ -2904,7 +2904,7 @@ HTMLWidgets.widget({
       } else {
         options.manipulation.editNode = x.options.manipulation.editNode;
       }
-  
+
       if(x.options.manipulation.deleteNode === undefined){
         options.manipulation.deleteNode = function(data, callback) {
             var r = confirm("Do you want to delete " + data.nodes.length + " node(s) and " + data.edges.length + " edges ?");
@@ -3041,35 +3041,35 @@ HTMLWidgets.widget({
         options.manipulation.editEdge = x.options.manipulation.editEdge;
       }
     }
-    
+
     // create network
     instance.network = new vis.Network(document.getElementById("graph"+el.id), data, options);
     if (window.Shiny){
       Shiny.onInputChange(el.id + '_initialized', true);
     }
-    
+
     //*************************
     //add values to idselection
     //*************************
-    
-    if(el_id.idselection){  
+
+    if(el_id.idselection){
       var selectList = document.getElementById("nodeSelect"+el.id)
       setNodeIdList(selectList, x.idselection, nodes)
-      
+
       if (window.Shiny){
         changeInput('selected', document.getElementById("nodeSelect"+el.id).value);
       }
     }
-      
-    //console.info(instance.network)  
+
+    //console.info(instance.network)
     //save data for re-use and update
     document.getElementById("graph"+el.id).chart = instance.network;
     document.getElementById("graph"+el.id).options = options;
-    
+
     /////////
     // popup
     /////////
-    
+
     // Temporary variables to hold mouse x-y pos.s
     var tempX = 0
     var tempY = 0
@@ -3091,15 +3091,15 @@ HTMLWidgets.widget({
     var popupState = false;
     var popupTimeout = null;
     var vispopup = document.createElement("div");
-   
-    // disable vis.js tooltip 
+
+    // disable vis.js tooltip
     var style = document.createElement('style');
     style.type = 'text/css';
     style.innerHTML = 'div.vis-tooltip {display : none}';
     document.getElementsByTagName('head')[0].appendChild(style);
 
     var popupStyle = 'position: fixed;visibility:hidden;padding: 5px;font-family: verdana;font-size:14px;font-color:#000000;background-color: #f5f4ed;-moz-border-radius: 3px;-webkit-border-radius: 3px;border-radius: 3px;border: 1px solid #808074;box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);max-width:400px;word-break: break-all'
-    
+
     if(x.tooltipStyle !== undefined){
       popupStyle = x.tooltipStyle
     }
@@ -3108,9 +3108,9 @@ HTMLWidgets.widget({
       popupStay = x.tooltipStay
     }
     vispopup.setAttribute('style', popupStyle)
-    
+
     document.getElementById("graph"+el.id).appendChild(vispopup);
-    
+
     // add some event listeners to avoid it disappearing when the mouse if over it.
     vispopup.addEventListener('mouseover',function () {
       if (popupTimeout !== null) {
@@ -3118,20 +3118,20 @@ HTMLWidgets.widget({
         popupTimeout = null;
       }
     });
-  
+
     // set the timeout when the mouse leaves it.
     vispopup.addEventListener('mouseout',function () {
       if (popupTimeout === null) {
         myHidePopup(100);
       }
     });
-    
+
     // use the popup event to show
     instance.network.on("showPopup", function(params) {
-      popupState = true;  
+      popupState = true;
       myShowPopup(params);
     })
-  
+
     // use the hide event to hide it
     instance.network.on("hidePopup", function(params) {
       // avoid double firing of this event, bug in 4.2.0
@@ -3140,18 +3140,18 @@ HTMLWidgets.widget({
         myHidePopup(popupStay);
       }
     })
-  
+
     // hiding the popup through css and a timeout
     function myHidePopup(delay) {
       popupTimeout = setTimeout(function() {vispopup.style.visibility = 'hidden';}, delay);
     }
-  
+
     // showing the popup
     function myShowPopup(id) {
       // get the data from the vis.DataSet
       var nodeData = nodes.get([id]);
       var edgeData = edges.get([id]);
-      
+
       // a node ?
       if(nodeData[0] !== null && nodeData[0] !== undefined){
         vispopup.innerHTML = nodeData[0].title;
@@ -3159,7 +3159,7 @@ HTMLWidgets.widget({
         vispopup.style.visibility = 'visible';
         vispopup.style.top = tempY - 20 +  "px";
         vispopup.style.left = tempX + 5 + "px";
-        
+
       } else if(edgeData[0] !== null && edgeData[0] !== undefined){
         // so it's perhaps a edge ?
         vispopup.innerHTML = edgeData[0].title;
@@ -3178,7 +3178,7 @@ HTMLWidgets.widget({
           vispopup.style.left = tempX + 5 + "px";
         }
       }
-      
+
       // for sparkline. Eval script...
       var any_script= vispopup.getElementsByTagName('script')
       for (var n = 0; n < any_script.length; n++){
@@ -3187,7 +3187,7 @@ HTMLWidgets.widget({
         }
       }
     }
-  
+
     //*************************
     // Events
     //*************************
@@ -3202,7 +3202,7 @@ HTMLWidgets.widget({
           instance.network.once(key, x.OnceEvents[key]);
       }
     }
-    
+
     if(x.ResetEvents !== undefined){
       for (var key in x.ResetEvents) {
           instance.network.off(key);
@@ -3215,11 +3215,11 @@ HTMLWidgets.widget({
     function selectedHighlight(value) {
       // get current nodes
       var allNodes = nodes.get({returnType:"Object"});
-       
+
       // first resetEdges
       resetAllEdges(edges, el_id.byselectionColor, el_id.highlightColor, instance.network);
-      var connectedNodes = [];  
-      
+      var connectedNodes = [];
+
       // get variable
       var sel = el_id.byselection_variable;
       // need to make an update?
@@ -3228,7 +3228,7 @@ HTMLWidgets.widget({
       if (value !== "") {
         var updateArray = [];
         el_id.selectActive = true;
-        
+
         // mark all nodes as hard to read.
         for (var nodeId in allNodes) {
           var value_in = false;
@@ -3288,9 +3288,9 @@ HTMLWidgets.widget({
             edgeAsHardToRead(edgesHardToRead[i], el_id.byselectionColor, el_id.highlightColor, instance.network, type = "edge")
           }
           edges.update(edgesHardToRead);
-            
+
           nodes.update(updateArray);
-          
+
           // select for highlight
           if(el_id.highlight && x.nodes && el_id.byselectionHighlight){
               neighbourhoodHighlight(connectedNodes, "click", el_id.highlightAlgorithm, false);
@@ -3303,14 +3303,14 @@ HTMLWidgets.widget({
         resetAllNodes(nodes, update, options, instance.network, false)
         el_id.selectActive = false
       }
-    } 
-  
+    }
+
     //*************************
     //Highlight
     //*************************
     var is_hovered = false;
     var is_clicked = false;
-    
+
     function neighbourhoodHighlight(params, action_type, algorithm, reset_selectedBy) {
 
       var nodes_in_clusters = instance.network.body.modules.clustering.clusteredNodes;
@@ -3323,26 +3323,26 @@ HTMLWidgets.widget({
         nodes_in_clusters = [];
         edges_in_clusters = [];
       }
-      
+
       var selectNode;
       // get nodes data
       var allNodes = nodes.get({returnType:"Object"});
 
       // cluster
       var array_cluster_id;
-      
-      // update 
+
+      // update
       var update = !(el_id.highlightActive === false && params.length === 0) | (el_id.selectActive === true && params.length === 0);
 
       if(!(action_type == "hover" && is_clicked)){
-        
+
         // first resetEdges
         resetAllEdges(edges, el_id.highlightColor, el_id.byselectionColor, instance.network);
 
         if (params.length > 0) {
           var is_cluster = instance.network.isCluster(params[0]);
           var selectedNode;
-          
+
           if(is_cluster){
             selectedNode = instance.network.getNodesInCluster(params[0]);
           } else {
@@ -3367,11 +3367,11 @@ HTMLWidgets.widget({
               }
             }
           }
-          
+
           el_id.highlightActive = true;
           var i,j;
           var degrees = el_id.degree;
-          
+
           // mark all nodes as hard to read.
           for (var nodeId in instance.network.body.nodes) {
             if(instance.network.isCluster(nodeId)){
@@ -3385,7 +3385,7 @@ HTMLWidgets.widget({
               }
             }
           }
- 
+
           if(algorithm === "all"){
             var connectedNodes;
             if(degrees > 0){
@@ -3397,7 +3397,7 @@ HTMLWidgets.widget({
             }else{
               connectedNodes = selectedNode;
             }
-            
+
             var allConnectedNodes = [];
             // get the nodes to color
             if(degrees >= 2){
@@ -3425,13 +3425,13 @@ HTMLWidgets.widget({
                   allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
                   if(have_cluster_nodes){
                     if(indexOf.call(nodes_in_clusters, allConnectedNodes[i], true) > -1){
-  
+
                       array_cluster_id = array_cluster_id.concat(instance.network.clustering.findNode(allConnectedNodes[i])[0]);
                     }
                   }
                 }
               }
-  
+
               if(array_cluster_id.length > 0){
                 array_cluster_id = uniqueArray(array_cluster_id, false, instance.network);
                 for (i = 0; i < array_cluster_id.length; i++) {
@@ -3442,7 +3442,7 @@ HTMLWidgets.widget({
 
             // all in degree nodes get their own color and their label back + main nodes
             connectedNodes = connectedNodes.concat(selectedNode);
-            
+
             if (window.Shiny){
               Shiny.onInputChange(el.id + '_highlight_color_id', uniqueShiny(connectedNodes));
             }
@@ -3450,8 +3450,8 @@ HTMLWidgets.widget({
               if (window.Shiny){
                 Shiny.onInputChange(el.id + '_highlight_label_id', allConnectedNodes.filter(function(x){ return !connectedNodes.includes(x)}));
               }
-            }  
-   
+            }
+
             array_cluster_id = [];
             for (i = 0; i < connectedNodes.length; i++) {
               resetOneNode(allNodes[connectedNodes[i]], options, instance.network);
@@ -3461,14 +3461,14 @@ HTMLWidgets.widget({
                 }
               }
             }
-            
+
             if(array_cluster_id.length > 0){
               array_cluster_id = uniqueArray(array_cluster_id, false, instance.network);
               for (i = 0; i < array_cluster_id.length; i++) {
                 resetOneCluster(instance.network.body.nodes[array_cluster_id[i]], options, instance.network);
               }
             }
-            
+
             // set some edges as hard to read
             var edgesHardToRead = edges.get({
               fields: ['id', 'color', 'hiddenColor', 'hiddenLabel', 'label'],
@@ -3492,7 +3492,7 @@ HTMLWidgets.widget({
                 }
               }
             }
-            
+
             if(array_cluster_id.length > 0){
               array_cluster_id = uniqueArray(array_cluster_id, false, instance.network);
               for (i = 0; i < array_cluster_id.length; i++) {
@@ -3501,17 +3501,17 @@ HTMLWidgets.widget({
             }
             edges.update(edgesHardToRead);
           } else if(algorithm === "hierarchical"){
-            
+
             var degree_from = degrees.from;
             var degree_to = degrees.to;
             degrees = Math.max(degree_from, degree_to);
-            
+
             var allConnectedNodes = [];
             var currentConnectedFromNodes = [];
             var currentConnectedToNodes = [];
             var connectedFromNodes = [];
             var connectedToNodes = [];
-            
+
             if(degree_from > 0){
               connectedFromNodes = edges.get({
                 fields: ['from'],
@@ -3535,15 +3535,15 @@ HTMLWidgets.widget({
                 allConnectedNodes = allConnectedNodes.concat(connectedFromNodes[j].from);
                 currentConnectedFromNodes = currentConnectedFromNodes.concat(connectedFromNodes[j].from);
             }
-            
+
             for (j = 0; j < connectedToNodes.length; j++) {
                 allConnectedNodes = allConnectedNodes.concat(connectedToNodes[j].to);
                 currentConnectedToNodes = currentConnectedToNodes.concat(connectedToNodes[j].to);
             }
-            
+
             var go_from;
             var go_to;
-                
+
             if(degrees > 1){
               for (i = 2; i <= degrees; i++) {
                 go_from = false;
@@ -3583,13 +3583,13 @@ HTMLWidgets.widget({
                   for (j = 0; j < connectedToNodes.length; j++) {
                     allConnectedNodes = allConnectedNodes.concat(connectedToNodes[j].to);
                     currentConnectedToNodes = currentConnectedToNodes.concat(connectedToNodes[j].to);
-                  } 
+                  }
                 }
-                
+
                 if (go_from === false &&  go_to === false) { break;}
               }
             }
-            
+
             allConnectedNodes = uniqueArray(allConnectedNodes, true, instance.network).concat(selectedNode);
 
             var nodesWithLabel = [];
@@ -3599,7 +3599,7 @@ HTMLWidgets.widget({
                 for (j = 0; j < currentConnectedToNodes.length; j++) {
                     nodesWithLabel = nodesWithLabel.concat(instance.network.getConnectedNodes(currentConnectedToNodes[j]));
                 }
-                
+
                 for (j = 0; j < currentConnectedFromNodes.length; j++) {
                     nodesWithLabel = nodesWithLabel.concat(instance.network.getConnectedNodes(currentConnectedFromNodes[j]));
                 }
@@ -3623,7 +3623,7 @@ HTMLWidgets.widget({
                 }
               }
             }
-            
+
             if(array_cluster_id.length > 0){
               array_cluster_id = uniqueArray(array_cluster_id, false, instance.network);
               for (i = 0; i < array_cluster_id.length; i++) {
@@ -3641,23 +3641,23 @@ HTMLWidgets.widget({
                 }
               }
             }
-            
+
             if(array_cluster_id.length > 0){
               array_cluster_id = uniqueArray(array_cluster_id, false, instance.network);
               for (i = 0; i < array_cluster_id.length; i++) {
                  resetOneCluster(instance.network.body.nodes[array_cluster_id[i]], options, instance.network);
               }
             }
-             
-            if (window.Shiny){ 
+
+            if (window.Shiny){
               Shiny.onInputChange(el.id + '_highlight_color_id', uniqueShiny(allConnectedNodes));
             }
             if(el_id.highlightLabelOnly === true){
               if (window.Shiny){
                 Shiny.onInputChange(el.id + '_highlight_label_id', nodesWithLabel.filter(function(x) {return !allConnectedNodes.includes(x)}));
               }
-            }  
-            
+            }
+
             // set some edges as hard to read
             var edgesHardToRead = edges.get({
               fields: ['id', 'color', 'hiddenColor', 'hiddenLabel', 'label'],
@@ -3686,9 +3686,9 @@ HTMLWidgets.widget({
                  edgeAsHardToRead(instance.network.body.edges[array_cluster_id[i]].options, el_id.highlightColor, el_id.byselectionColor, instance.network, type = "cluster");
               }
             }
-            
+
             edges.update(edgesHardToRead);
-            
+
           }
 
           if(update){
@@ -3706,7 +3706,7 @@ HTMLWidgets.widget({
           }else{
             is_clicked = false;
           }
-        
+
         }
         else if (el_id.highlightActive === true | el_id.selectActive === true) {
           // reset nodeSelect list if actived
@@ -3717,7 +3717,7 @@ HTMLWidgets.widget({
           resetAllNodes(nodes, update, options, instance.network, false)
           el_id.highlightActive = false;
           is_clicked = false;
-          
+
           if (window.Shiny){
             Shiny.onInputChange(el.id + '_highlight_label_id', null)
             Shiny.onInputChange(el.id + '_highlight_color_id', null)
@@ -3729,7 +3729,7 @@ HTMLWidgets.widget({
         resetList("selectedBy", el.id, 'selectedBy');
       }
     }
-    
+
     function onClickIDSelection(selectedItems) {
       var selectNode;
       if(el_id.idselection){
@@ -3749,7 +3749,7 @@ HTMLWidgets.widget({
           }
         }else{
           resetList("nodeSelect", el.id, 'selected');
-        } 
+        }
       }
       if(el_id.byselection){
         // reset selectedBy list if actived
@@ -3759,7 +3759,7 @@ HTMLWidgets.widget({
         }
       }
     }
-    
+
     // shared click function (selectedNodes)
     document.getElementById("graph"+el.id).myclick = function(params){
         if(el_id.highlight && x.nodes){
@@ -3768,43 +3768,43 @@ HTMLWidgets.widget({
           onClickIDSelection(params)
         }
     };
-    
-    // Set event in relation with highlightNearest      
+
+    // Set event in relation with highlightNearest
     instance.network.on("click", function(params){
         if(el_id.highlight && x.nodes){
           neighbourhoodHighlight(params.nodes, "click", el_id.highlightAlgorithm, true);
         }else if((el_id.idselection || el_id.byselection) && x.nodes){
           onClickIDSelection(params)
-        } 
+        }
     });
-    
+
     instance.network.on("hoverNode", function(params){
       if(el_id.hoverNearest && x.nodes){
         neighbourhoodHighlight([params.node], "hover", el_id.highlightAlgorithm, true);
-      } 
+      }
     });
 
     instance.network.on("blurNode", function(params){
       if(el_id.hoverNearest && x.nodes){
         neighbourhoodHighlight([], "hover", el_id.highlightAlgorithm, true);
-      }      
+      }
     });
-    
+
     //*************************
     //collapse
     //*************************
     instance.network.on("doubleClick", function(params){
       if(el_id.collapse){
-        collapsedNetwork(params.nodes, el_id.collapseFit, el_id.collapseResetHighlight, 
+        collapsedNetwork(params.nodes, el_id.collapseFit, el_id.collapseResetHighlight,
           el_id.clusterOptions, el_id.collapseLabelSuffix,
-          el_id.tree, instance.network, el.id) 
+          el_id.tree, instance.network, el.id)
       }
-    }); 
-    
+    });
+
     if(el_id.collapse){
       instance.network.on("doubleClick", networkOpenCluster);
     }
-    
+
     //*************************
     //footer
     //*************************
@@ -3813,34 +3813,34 @@ HTMLWidgets.widget({
     div_footer.setAttribute('style',  'font-family:Georgia, Times New Roman, Times, serif;font-size:12px;text-align:center;background-color: inherit;');
     div_footer.style.display = 'none';
 
-    document.getElementById("graph" + el.id).appendChild(div_footer);  
+    document.getElementById("graph" + el.id).appendChild(div_footer);
     if(x.footer !== null){
       div_footer.innerHTML = x.footer.text;
       div_footer.setAttribute('style',  x.footer.style + ';background-color: inherit;');
-      div_footer.style.display = 'block'; 
+      div_footer.style.display = 'block';
     }
-    
+
     //*************************
     // export
     //*************************
     if(x.export !== undefined){
-      
+
       var downloaddiv = document.createElement('div');
       downloaddiv.setAttribute('style', 'float:right; width:100%;background-color: inherit;');
-      
+
       var downloadbutton = document.createElement("button");
       downloadbutton.setAttribute('style', x.export.css);
       downloadbutton.style.position = "relative";
       downloadbutton.id = "download"+el.id;
-      downloadbutton.appendChild(document.createTextNode(x.export.label)); 
+      downloadbutton.appendChild(document.createTextNode(x.export.label));
       downloaddiv.appendChild(downloadbutton);
-      
+
       var hr = document.createElement("hr");
       hr.setAttribute('style', 'height:5px; visibility:hidden; margin-bottom:-1px;');
-      downloaddiv.appendChild(hr);  
-      
+      downloaddiv.appendChild(hr);
+
       document.getElementById("maindiv"+el.id).appendChild(downloaddiv);
-      
+
       document.getElementById("download"+el.id).onclick = function() {
 
       // height control for export
@@ -3862,7 +3862,7 @@ HTMLWidgets.widget({
       if(x.background !== "transparent" && x.background !== "rgba(0, 0, 0, 0)"){
         export_background = x.background
       }
-      
+
       if(x.export.type !== "pdf"){
         html2canvas(el_id, {
           background: export_background,
@@ -3880,11 +3880,11 @@ HTMLWidgets.widget({
           onrendered: function(canvas) {
             var myImage = canvas.toDataURL("image/png", 1.0);
             //var imgWidth = (canvas.width * 25.4) / 24;
-            //var imgHeight = (canvas.height * 25.4) / 24; 
+            //var imgHeight = (canvas.height * 25.4) / 24;
             var table = new jsPDF('l', 'pt', [canvas.width, canvas.height]);
             table.addImage(myImage, 'JPEG', 0, 0, canvas.width, canvas.height);
             table.save(x.export.name);
-          } 
+          }
         });
       }
 
@@ -3907,7 +3907,7 @@ HTMLWidgets.widget({
         document.getElementById('editnode-cancelButton').onclick = null;
         document.getElementById('editnode-popUp').style.display = 'none';
       }
-      
+
       if(x.opts_manipulation.tab_edit_edge){
         document.getElementById('editedge-saveButton').onclick = null;
         document.getElementById('editedge-cancelButton').onclick = null;
@@ -3941,7 +3941,7 @@ HTMLWidgets.widget({
       update_obj.x = data.x;
       update_obj.y = data.y;
       nodes.update(update_obj);
-      
+
       if (window.Shiny){
         obj.cmd = cmd;
         Shiny.onInputChange(el.id + '_graphChange', obj);
@@ -4000,19 +4000,19 @@ HTMLWidgets.widget({
       clearPopUp();
       callback(null);
     }
-    
+
     //*************************
     // CLUSTERING
     //*************************
     if(x.clusteringGroup || x.clusteringColor || x.clusteringHubsize || x.clusteringConnection){
-      
+
       var clusterbutton = document.createElement("input");
       clusterbutton.id = "backbtn"+el.id;
-      clusterbutton.setAttribute('type', 'button');  
-      clusterbutton.setAttribute('value', 'Reinitialize clustering'); 
+      clusterbutton.setAttribute('type', 'button');
+      clusterbutton.setAttribute('value', 'Reinitialize clustering');
       clusterbutton.setAttribute('style', 'background-color:#FFFFFF;border: none');
       el_id.appendChild(clusterbutton);
-      
+
       clusterbutton.onclick =  function(){
         // reset some parameters / data before
         if (el_id.selectActive === true | el_id.highlightActive === true) {
@@ -4043,7 +4043,7 @@ HTMLWidgets.widget({
         instance.network.fit();
       }
     }
-    
+
     if(x.clusteringGroup || x.clusteringColor || x.clusteringOutliers || x.clusteringHubsize || x.clusteringConnection){
       // if we click on a node, we want to open it up!
       instance.network.on("doubleClick", function (params){
@@ -4065,7 +4065,7 @@ HTMLWidgets.widget({
                 },
                 returnType :'Array'
               });
-            
+
               clusterByGroup([array_group[0].group]);
             }
           }
@@ -4076,7 +4076,7 @@ HTMLWidgets.widget({
     //clustering Connection
     //*************************
     if(x.clusteringConnection){
-      
+
       function clusterByConnection() {
         for (var i = 0; i < x.clusteringConnection.nodes.length; i++) {
           instance.network.clusterByConnection(x.clusteringConnection.nodes[i])
@@ -4084,12 +4084,12 @@ HTMLWidgets.widget({
       }
       clusterByConnection();
     }
-    
+
     //*************************
     //clustering hubsize
     //*************************
     if(x.clusteringHubsize){
-      
+
       function clusterByHubsize() {
         var clusterOptionsByData = {
           processProperties: function(clusterOptions, childNodes) {
@@ -4125,12 +4125,12 @@ HTMLWidgets.widget({
           instance.network.clusterByHubsize(undefined, clusterOptionsByData);
         }
       }
-      
+
       clusterByHubsize();
     }
-    
+
     if(x.clusteringColor){
-      
+
     //*************************
     //clustering color
     //*************************
@@ -4177,7 +4177,7 @@ HTMLWidgets.widget({
           instance.network.cluster(clusterOptionsByData);
         }
       }
-      
+
       clusterByColor();
     }
 
@@ -4185,7 +4185,7 @@ HTMLWidgets.widget({
     //clustering groups
     //*************************
     if(x.clusteringGroup){
-      
+
       function clusterByGroup(groups) {
         var clusterOptionsByData;
         for (var i = 0; i < groups.length; i++) {
@@ -4196,7 +4196,7 @@ HTMLWidgets.widget({
             var sh = x.clusteringGroup.shape[j];
             var force = x.clusteringGroup.force[j];
             var sc_size = x.clusteringGroup.scale_size[j];
-            
+
             clusterOptionsByData = {
                 joinCondition: function (childOptions) {
                     return childOptions.group == group; //
@@ -4243,14 +4243,14 @@ HTMLWidgets.widget({
       }
       clusterByGroup(x.clusteringGroup.groups);
     }
-  
+
     //*************************
     //clustering by zoom
     //*************************
     if(x.clusteringOutliers){
-      
+
       clusterFactor = x.clusteringOutliers.clusterFactor;
-      
+
       // set the first initial zoom level
       instance.network.on('initRedraw', function() {
         if (lastClusterZoomLevel === 0) {
@@ -4293,7 +4293,7 @@ HTMLWidgets.widget({
                 clusterOptions.font = {size: childrenCount*5+30}
                 clusterOptions.id = 'cluster:' + clusterIndex;
                 clusters.push({id:'cluster:' + clusterIndex, scale:scale});
-                
+
                 if(cluster_level !== 9999999){
                   clusterOptions.level = cluster_level
                 }
@@ -4329,20 +4329,20 @@ HTMLWidgets.widget({
         };
         ctrlwait = 0;
     }
-    
+
     //******************
     // init selection
     //******************
-    if(el_id.idselection && x.nodes && x.idselection.selected !== undefined){ 
+    if(el_id.idselection && x.nodes && x.idselection.selected !== undefined){
       onIdChange(''+ x.idselection.selected, true);
     }
-      
-    if(el_id.byselection && x.nodes && x.byselection.selected !== undefined){ 
+
+    if(el_id.byselection && x.nodes && x.byselection.selected !== undefined){
       onByChange(x.byselection.selected);
       selectNode = document.getElementById('selectedBy'+el.id);
       selectNode.value = x.byselection.selected;
     }
-    
+
     // try to fix icons loading css bug...
     function iconsRedraw() {
       setTimeout(function(){
@@ -4352,20 +4352,20 @@ HTMLWidgets.widget({
           instance.legend.redraw();
       }, 250);
     };
-    
+
     if(x.iconsRedraw !== undefined){
       if(x.iconsRedraw){
         iconsRedraw();
         instance.network.once("stabilized", function(){iconsRedraw();})
       }
     }
-  }, 
-  
+  },
+
   resize: function(el, width, height, instance) {
       if(instance.network)
         instance.network.fit();
       if(instance.legend)
         instance.legend.fit();
   }
-  
+
 });
