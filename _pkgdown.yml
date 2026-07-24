@@ -1,8 +1,51 @@
 url: https://bastienchassagnol.github.io/DeCovarT/
-template:
-  bootstrap: 5
+
+title: DeCovarT
+description: >-
+  Bulk transcriptomic deconvolution that accounts for gene–gene covariance
+  in purified reference populations.
+
 development:
   mode: auto
+
+template:
+  bootstrap: 5
+  light-switch: true
+  # Prefer MathJax over MathML for equation-heavy vignettes
+  math-rendering: mathjax
+  theme: tango
+  theme-dark: nord
+  bslib:
+    # Light theme (Stan pkgdown-config palette)
+    bg: "#FEFBF2"
+    fg: "#052744"
+    primary: "#3E8EBC"
+    link-color: "#3E8EBC"
+    code-bg: "#FEFCF9"
+    code-color: "#053A42"
+    body-secondary-color: "#053A42"
+    navbar-light-bg: "#052744"
+    navbar-light-color: "#F2E5BD"
+    navbar-light-hover-color: "#F2E5BD"
+    navbar-light-active-color: "#93B0F1"
+    navbar-light-brand-color: "#F2E5BD"
+    navbar-light-brand-hover-color: "#F2E5BD"
+    # Dark theme
+    body-bg-dark: "#181818"
+    body-color-dark: "#FAF1E4"
+    link-color-dark: "#AED1E4"
+    code-bg-dark: "#242424"
+    code-color-dark: "#FEFCF9"
+    navbar-dark-bg: "#303030"
+    navbar-dark-color: "#FAF1E4"
+    navbar-dark-hover-color: "#FAF1E4"
+    navbar-dark-active-color: "#AED1E4"
+    navbar-dark-brand-color: "#FAF1E4"
+    navbar-dark-brand-hover-color: "#FAF1E4"
+    base_font: {google: "Source Sans 3"}
+    heading_font: {google: "Source Sans 3"}
+    code_font: {google: "Source Code Pro"}
+
 navbar:
   structure:
     left:
@@ -13,23 +56,49 @@ navbar:
     right:
       - search
       - github
+      - lightswitch
   components:
-    home: ~
+    home:
+      text: Home
+      icon: fa-home
+      href: index.html
+    reference:
+      text: Functions
+      icon: fa-code
+      href: reference/index.html
     articles:
       text: Vignettes
+      icon: fa-book-open
       menu:
+        - text: Getting started
         - text: Simulating semi-synthetic pseudo-bulk mixtures
+          icon: fa-flask
           href: articles/synthetic-scenarios.html
         - text: Deconvolution use cases with DeCovarT
+          icon: fa-chart-pie
           href: articles/DeCoVart-use-cases.html
+        - text: -------
+        - text: Mathematics
         - text: Simplex coordinate maps (ALR / additive logistic)
+          icon: fa-calculator
           href: articles/DeCovarT-numerical-derivatives.html
         - text: Softmax and ALR derivatives
+          icon: fa-square-root-variable
           href: articles/softmax-alr-derivatives.html
+    news:
+      text: News
+      icon: fa-newspaper
+      href: news/index.html
+    github:
+      icon: fa-github
+      href: https://github.com/bastienchassagnol/DeCovarT/
+      aria-label: GitHub
+
 home:
   links:
     - text: Report a bug
       href: https://github.com/bastienchassagnol/DeCovarT/issues
+
 reference:
   - title: Main deconvolution function
     desc: |
@@ -78,15 +147,19 @@ reference:
       - enforce_identifiability
       - compute_shannon_entropy
       - compute_average_overlap
+
 articles:
-  - title: Vignettes
+  - title: Getting started
     navbar: ~
     contents:
       - synthetic-scenarios
       - DeCoVart-use-cases
+  - title: Mathematics
+    contents:
       - DeCovarT-numerical-derivatives
       - softmax-alr-derivatives
+
 news:
   releases:
-    - text: Version 0.0.0.9000 (development)
+    - text: Version 0.1.0 (development)
       href: https://github.com/bastienchassagnol/DeCovarT/blob/main/NEWS.md

@@ -1,8 +1,5 @@
-# DeCovarT
+# DeCovarT 0.1.0
 
-## Development version
-
-### Unreleased changes
-
-* CI: add automatic DESCRIPTION version bumps and R-hub v2 checks
-  (Ubuntu + Windows).
+* First official release of DeCovarT: bulk transcriptomic deconvolution
+  that accounts for gene–gene covariance in purified reference
+  populations.
