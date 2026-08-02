@@ -1,5 +1,23 @@
 # DeCovarT
 
+- [DeCovarT](#decovart-) [![DeCovarT
+  logo](reference/figures/logo.svg)](https://bastienchassagnol.github.io/DeCovarT/)
+  - [Overview](#overview)
+  - [Pipeline Architecture](#pipeline-architecture)
+    - [Built-in deconvolution
+      algorithms](#built-in-deconvolution-algorithms)
+    - [Links to the paper](#links-to-the-paper)
+  - [Installation](#installation)
+    - [Developer setup (pre-commit)](#developer-setup-pre-commit)
+    - [Continuous integration](#continuous-integration)
+  - [Documentation](#documentation)
+  - [The generative model of
+    DeCovarT](#the-generative-model-of-decovart)
+  - [Compiling the LaTeX article](#compiling-the-latex-article)
+  - [Project structure](#project-structure)
+  - [Speed up computation with
+    AutoZyme](#speed-up-computation-with-autozyme)
+
 ![R](https://img.shields.io/badge/R-Statistical%20Computing-276DC3?style=flat-square&logo=r&logoColor=white)![tidyverse](https://img.shields.io/badge/R-dplyr%20%7C%20purrr%20%7C%20tidyr-276DC3?style=flat-square&logo=r&logoColor=white)![Optimisation](https://img.shields.io/badge/Optim-marqLevAlg%20%7C%20limSolve-0F766E?style=flat-square)![Bulk
 RNA-seq](https://img.shields.io/badge/Data-bulk%20RNA--seq-16A34A?style=flat-square)
 
@@ -97,7 +115,7 @@ remotes::install_github("bastienchassagnol/DeCovarT")
 ### Developer setup (pre-commit)
 
 Contributors should install [pre-commit](https://pre-commit.com) hooks
-(Air formatting, {lintr}, parsable R, README sync). From R:
+(Air formatting, {lintr}, parsable R). From R:
 
 ``` r
 
@@ -113,6 +131,20 @@ pre-commit install
 pre-commit run --all-files
 ```
 
+Edit `README.qmd`, then regenerate GitHub Flavoured Markdown locally:
+
+``` bash
+quarto render README.qmd
+git add README.qmd README.md
+```
+
+CI fails the pull request if committed `README.md` is stale relative to
+`README.qmd` (see `.github/workflows/render-readme.yaml`). On `main`,
+the same workflow can commit a fresh render when needed, following the
+[quarto-ext
+render-readme](https://github.com/quarto-ext/.github/blob/main/.github/workflows/render-readme.yaml)
+pattern.
+
 See
 [`.github/CONTRIBUTING.MD`](https://bastienchassagnol.github.io/DeCovarT/.github/CONTRIBUTING.MD)
 for the full contributor guide.
@@ -123,6 +155,7 @@ GitHub Actions on this repository currently cover:
 
 - **R-CMD-check** — `R CMD check` on push / pull requests
 - **pre-commit** — the same local hooks on CI
+- **render-readme** — Quarto GFM render; verify on PRs, commit on `main`
 - **test-coverage** — Codecov reporting
 - **pkgdown** — documentation site on GitHub Pages
 - **R-hub** — optional Ubuntu + Windows checks (`workflow_dispatch`)
@@ -243,7 +276,7 @@ Auxiliaries are removed automatically after a successful build
 (`latex-workshop.latex.autoClean.run`: `onSucceeded`). Manual clean:
 Command Palette → **“LaTeX Workshop: Clean up auxiliary files”**.
 
-# Project structure
+## Project structure
 
 Package function call graph (DeCovarT → DeCovarT edges only):
 
@@ -265,9 +298,14 @@ in the [patch catalog](https://autozyme.com/docs/users/patch-catalog/)).
 It is installed locally but **off by default**
 (`options(autozyme.disabled = TRUE)` → `AUTOZYME_DISABLED=1`).
 
-\`\`\`r \# List patches, enable, activate, then check what is bound to
-the fast path options(autozyme.disabled = FALSE)
-Sys.unsetenv(“AUTOZYME_DISABLED”) library(autozyme)
-autozyme::list_patches(installed = TRUE) autozyme::activate(c(“seurat”,
-“wgcna”)) autozyme::inspect(“seurat”) \# Off again:
-Sys.setenv(AUTOZYME_DISABLED = “1”)
+``` r
+
+# List patches, enable, activate, then check what is bound to the fast path
+options(autozyme.disabled = FALSE)
+Sys.unsetenv("AUTOZYME_DISABLED")
+library(autozyme)
+autozyme::list_patches(installed = TRUE)
+autozyme::activate(c("seurat", "wgcna"))
+autozyme::inspect("seurat")
+# Off again: Sys.setenv(AUTOZYME_DISABLED = "1")
+```
