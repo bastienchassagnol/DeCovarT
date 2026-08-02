@@ -74,6 +74,9 @@ navbar:
         - text: Simulating semi-synthetic pseudo-bulk mixtures
           icon: fa-flask
           href: articles/synthetic-scenarios.html
+        - text: In silico GRN inference
+          icon: fa-project-diagram
+          href: articles/network-inference.html
         - text: Deconvolution use cases with DeCovarT
           icon: fa-chart-pie
           href: articles/DeCoVart-use-cases.html
@@ -153,6 +156,7 @@ articles:
     navbar: ~
     contents:
       - synthetic-scenarios
+      - network-inference
       - DeCoVart-use-cases
   - title: Mathematics
     contents:
