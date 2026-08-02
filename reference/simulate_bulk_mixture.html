@@ -18,7 +18,21 @@ matching the article's conditional model
 \(\boldsymbol{y}\,|\,(\boldsymbol{\zeta},\boldsymbol{p})\sim
 \mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},
 \boldsymbol{\Sigma}(\boldsymbol{p}))\) with
-\(\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}\boldsymbol{\Sigma}_j\)."><meta property="og:description" content="Draws purified profiles
+\(\boldsymbol{\Sigma}(\boldsymbol{p})=
+\sum_j p_j^{2}\boldsymbol{\Sigma}_j\).
+Equivalently, stacking the purified draws into the three-way array
+\(\mathcal{X}=(x_{gji})\in\mathcal{M}_{G\times J\times N}\), the bulk
+matrix is the mode-2 tensor–vector contraction
+$$
+  \boldsymbol{Y}
+  =\mathcal{X}\times_{2}\boldsymbol{p},
+  \qquad
+  y_{gi}=\sum_{j=1}^{J}x_{gji}\,p_{j}
+  \quad(g=1,\ldots,G;\; i=1,\ldots,N),
+$$
+which for each sample recovers the matrix–vector product
+\(\boldsymbol{y}_{\cdot i}=\boldsymbol{X}_{\cdot\cdot i}\,\boldsymbol{p}\)
+with \(\boldsymbol{X}_{\cdot\cdot i}\in\mathcal{M}_{G\times J}\)."><meta property="og:description" content="Draws purified profiles
 \(\boldsymbol{x}_j\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},
 \boldsymbol{\Sigma}_j)\) independently for each cell type and forms bulk
 observations by the linear mixture
@@ -31,7 +45,21 @@ matching the article's conditional model
 \(\boldsymbol{y}\,|\,(\boldsymbol{\zeta},\boldsymbol{p})\sim
 \mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},
 \boldsymbol{\Sigma}(\boldsymbol{p}))\) with
-\(\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}\boldsymbol{\Sigma}_j\)."><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
+\(\boldsymbol{\Sigma}(\boldsymbol{p})=
+\sum_j p_j^{2}\boldsymbol{\Sigma}_j\).
+Equivalently, stacking the purified draws into the three-way array
+\(\mathcal{X}=(x_{gji})\in\mathcal{M}_{G\times J\times N}\), the bulk
+matrix is the mode-2 tensor–vector contraction
+$$
+  \boldsymbol{Y}
+  =\mathcal{X}\times_{2}\boldsymbol{p},
+  \qquad
+  y_{gi}=\sum_{j=1}^{J}x_{gji}\,p_{j}
+  \quad(g=1,\ldots,G;\; i=1,\ldots,N),
+$$
+which for each sample recovers the matrix–vector product
+\(\boldsymbol{y}_{\cdot i}=\boldsymbol{X}_{\cdot\cdot i}\,\boldsymbol{p}\)
+with \(\boldsymbol{X}_{\cdot\cdot i}\in\mathcal{M}_{G\times J}\)."><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -95,7 +123,21 @@ matching the article's conditional model
 \(\boldsymbol{y}\,|\,(\boldsymbol{\zeta},\boldsymbol{p})\sim
 \mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},
 \boldsymbol{\Sigma}(\boldsymbol{p}))\) with
-\(\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}\boldsymbol{\Sigma}_j\).</p>
+\(\boldsymbol{\Sigma}(\boldsymbol{p})=
+\sum_j p_j^{2}\boldsymbol{\Sigma}_j\).</p>
+<p>Equivalently, stacking the purified draws into the three-way array
+\(\mathcal{X}=(x_{gji})\in\mathcal{M}_{G\times J\times N}\), the bulk
+matrix is the mode-2 tensor–vector contraction
+$$
+  \boldsymbol{Y}
+  =\mathcal{X}\times_{2}\boldsymbol{p},
+  \qquad
+  y_{gi}=\sum_{j=1}^{J}x_{gji}\,p_{j}
+  \quad(g=1,\ldots,G;\; i=1,\ldots,N),
+$$
+which for each sample recovers the matrix–vector product
+\(\boldsymbol{y}_{\cdot i}=\boldsymbol{X}_{\cdot\cdot i}\,\boldsymbol{p}\)
+with \(\boldsymbol{X}_{\cdot\cdot i}\in\mathcal{M}_{G\times J}\).</p>
     </div>
 
     <div class="section level2">
@@ -134,14 +176,16 @@ matching the article's conditional model
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list with:</p><ul><li><p><code>mean_signature_matrix</code>: array
-\((x_{gji})\in\mathcal{M}_{G\times J\times N}\) of simulated purified
-profiles;</p></li>
+\(\mathcal{X}=(x_{gji})\in\mathcal{M}_{G\times J\times N}\) of simulated
+purified profiles;</p></li>
 <li><p><code>Y</code>: matrix \(\boldsymbol{Y}\in\mathcal{M}_{G\times N}\) whose columns
-are bulk vectors \(\boldsymbol{y}_{\cdot i}\).</p></li>
+are bulk vectors \(\boldsymbol{y}_{\cdot i}\), obtained as
+\(\mathcal{X}\times_{2}\boldsymbol{p}\).</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="deconvolute_ratios.html">deconvolute_ratios()</a></code>, <code><a href="benchmark_bivariate_gaussian_convolutions.html">benchmark_bivariate_gaussian_convolutions()</a></code></p></div>
+    <div class="dont-index"><p><code><a href="deconvolute_ratios.html">deconvolute_ratios()</a></code>,
+<code><a href="benchmark_bivariate_gaussian_convolutions.html">benchmark_bivariate_gaussian_convolutions()</a></code></p></div>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

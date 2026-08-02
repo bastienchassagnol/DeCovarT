@@ -63,7 +63,7 @@ hierarchical GRN moments with graph-constrained covariances.
 - [`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md)
   : Simulate bulk mixtures from a Gaussian convolution
 - [`simulate_hierarchical_grn_moments()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_hierarchical_grn_moments.md)
-  : Simulate hierarchical GRN first- and second-order moments
+  : Simulate GRN first- and second-order moments
 
 ## Utilities
 

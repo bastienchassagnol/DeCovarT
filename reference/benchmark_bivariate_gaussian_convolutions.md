@@ -40,7 +40,8 @@ benchmark_bivariate_gaussian_convolutions(
 - corr_sequence, diagonal_terms:
 
   Correlation sequence and diagonal variance templates used to assemble
-  \\\boldsymbol{\Sigma}\_j=\mathrm{D}\_{j}^{1/2}\mathbf{R}\_j\mathrm{D}\_{j}^{1/2}\\.
+  \\\boldsymbol{\Sigma}\_j=
+  \mathrm{D}\_{j}^{1/2}\mathbf{R}\_j\mathrm{D}\_{j}^{1/2}\\.
 
 - deconvolution_functions:
 

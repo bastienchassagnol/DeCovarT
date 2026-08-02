@@ -265,15 +265,9 @@ in the [patch catalog](https://autozyme.com/docs/users/patch-catalog/)).
 It is installed locally but **off by default**
 (`options(autozyme.disabled = TRUE)` → `AUTOZYME_DISABLED=1`).
 
-``` r
-
-# List patches, enable, activate, then check what is bound to the fast path
-options(autozyme.disabled = FALSE)
-Sys.unsetenv("AUTOZYME_DISABLED")
-library(autozyme)
-autozyme::list_patches(installed = TRUE)
-autozyme::activate(c("seurat", "wgcna"))
-autozyme::inspect("seurat")
-# Off again: Sys.setenv(AUTOZYME_DISABLED = "1")
-#            or autozyme::with_disabled({ ... })  # see usage guide §6
-```
+\`\`\`r \# List patches, enable, activate, then check what is bound to
+the fast path options(autozyme.disabled = FALSE)
+Sys.unsetenv(“AUTOZYME_DISABLED”) library(autozyme)
+autozyme::list_patches(installed = TRUE) autozyme::activate(c(“seurat”,
+“wgcna”)) autozyme::inspect(“seurat”) \# Off again:
+Sys.setenv(AUTOZYME_DISABLED = “1”)

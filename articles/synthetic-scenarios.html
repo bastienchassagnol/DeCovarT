@@ -84,8 +84,8 @@
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Simulating semi-synthetic pseudo-bulk mixtures for benchmarking</h1>
 
-
-
+      <p class="author">Bastien Chassagnol</p>
+      <p class="date">2026-08-02</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/synthetic-scenarios.qmd" class="external-link"><code>vignettes/synthetic-scenarios.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -96,10 +96,186 @@
 
 
 
+    <section class="section level2"><h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
+</h2>
+<p>This vignette documents the synthetic first- and second-order moment generator <code><a href="../reference/simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments()</a></code> and how its outputs feed bulk mixture simulation. Mean profiles are constructed so that pairwise collinearity and centroid separation can be dialled independently, following the AutoGeneS multi-objective rationale of <span class="citation" data-cites="aliee_theis21">Aliee and Theis (<a href="#ref-aliee_theis21" role="doc-biblioref">2021</a>)</span>: minimise correlation (here, cosine similarity) between cell-type columns of <span class="math inline">\(\boldsymbol{\mu}\)</span> while maximising their pairwise Euclidean distances. Covariances share a graph-constrained precision <span class="math inline">\(\boldsymbol{\Omega}\)</span>, mapped to <span class="math inline">\(\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}^{-1}\)</span>.</p>
+</section><section class="section level2"><h2 id="pipeline-api">Pipeline API<a class="anchor" aria-label="anchor" href="#pipeline-api"></a>
+</h2>
+<p>The exported entry point orchestrates internal helpers and returns moments that can be passed to <code><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code> and then to any deconvolution routine exposed by <code><a href="../reference/deconvolute_ratios.html">deconvolute_ratios()</a></code>.</p>
+<pre class="mermaid"><code>flowchart TD
+  subgraph means ["Mean profiles (AutoGeneS-inspired)"]
+    P1["target_cosine ρ / mean_scale s"] --&gt; GM["generate_mean_signature_matrix()"]
+    GM --&gt; MU["μ"]
+    MU --&gt; OBJ["compute_mean_profile_objectives()"]
+    OBJ --&gt; SCORE["mean |cosine| and Euclidean distances"]
+  end
 
+  subgraph network ["Graph-constrained second order"]
+    P2["graph_model / graph_params"] --&gt; SK["generate_random_network_skeleton()"]
+    SK --&gt; A["A binary adjacency"]
+    A --&gt; BP["build_normalised_precision(u, v)"]
+    BP --&gt; OM["Omega positive definite"]
+    OM --&gt; CV["build_shared_covariance_array()"]
+    CV --&gt; SIG["Sigma_j = Omega inverse"]
+  end
 
-
-<script id="quarto-html-after-body" type="application/javascript">
+  MU --&gt; MAIN["simulate_hierarchical_grn_moments()"]
+  SIG --&gt; MAIN
+  SCORE --&gt; MAIN
+  MAIN --&gt; MOM["moments: mu, Sigma, Omega, A"]
+  MOM --&gt; BULK["simulate_bulk_mixture()"]
+  BULK --&gt; Y["Y bulk matrix"]
+  Y --&gt; DEC["deconvolute_ratios()"]</code></pre>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">DeCovarT</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
+<span><span class="va">moments</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments</a></span><span class="op">(</span></span>
+<span>  n_genes <span class="op">=</span> <span class="fl">40L</span>,</span>
+<span>  n_celltypes <span class="op">=</span> <span class="fl">3L</span>,</span>
+<span>  mean_scale <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  target_cosine <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  precision_shift <span class="op">=</span> <span class="fl">0.1</span>,</span>
+<span>  precision_scale <span class="op">=</span> <span class="fl">0.3</span>,</span>
+<span>  graph_model <span class="op">=</span> <span class="st">"power_law"</span>,</span>
+<span>  graph_params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>power <span class="op">=</span> <span class="fl">1</span>, edges_per_node <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">moments</span><span class="op">$</span><span class="va">objectives</span></span>
+<span><span class="co">#&gt; $mean_abs_cosine</span></span>
+<span><span class="co">#&gt; [1] 0.4144044</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $sum_euclidean_distance</span></span>
+<span><span class="co">#&gt; [1] 32.46647</span></span>
+<span></span>
+<span><span class="va">bulk</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture</a></span><span class="op">(</span></span>
+<span>  signature_matrix <span class="op">=</span> <span class="va">moments</span><span class="op">$</span><span class="va">mean_profiles</span>,</span>
+<span>  Sigma <span class="op">=</span> <span class="va">moments</span><span class="op">$</span><span class="va">covariance_matrices</span>,</span>
+<span>  p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.3</span>, <span class="fl">0.2</span><span class="op">)</span>,</span>
+<span>  n <span class="op">=</span> <span class="fl">20</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">bulk</span><span class="op">$</span><span class="va">Y</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 40 20</span></span></code></pre></div>
+</div>
+<p>Selecting genes (or, here, designing <span class="math inline">\(\boldsymbol{\mu}\)</span>) by cosine alone is insufficient for stable deconvolution <span class="citation" data-cites="aliee_theis21">(<a href="#ref-aliee_theis21" role="doc-biblioref">Aliee and Theis 2021</a>)</span>: low Euclidean separation makes ratio estimates noise-sensitive, and collinear centroids inflate variance of <span class="math inline">\(\hat{\boldsymbol{p}}\)</span>. The two knobs <code>target_cosine</code> and <code>mean_scale</code> map onto that trade-off without running a genetic algorithm at simulation time.</p>
+</section><section class="section level2"><h2 id="mathematical-roles-of-the-generators">Mathematical roles of the generators<a class="anchor" aria-label="anchor" href="#mathematical-roles-of-the-generators"></a>
+</h2>
+<section class="level2"><h3 id="mean-signature-generate_mean_signature_matrix">Mean signature: <code>generate_mean_signature_matrix()</code>
+<a class="anchor" aria-label="anchor" href="#mean-signature-generate_mean_signature_matrix"></a>
+</h3>
+<p>Each column <span class="math inline">\(\boldsymbol{\mu}_{\cdot j}\)</span> is a normalised blend of a shared direction <span class="math inline">\(\boldsymbol{u}\)</span> (uniform over genes) and a private marker block <span class="math inline">\(\boldsymbol{v}_{j}\)</span> (high on a gene partition for type <span class="math inline">\(j\)</span>, low elsewhere):</p>
+<p><span class="math display">\[
+\boldsymbol{\mu}_{\cdot j}
+=
+s\,
+\frac{
+  \sqrt{\rho}\,\boldsymbol{u}
+  +\sqrt{1-\rho}\,\boldsymbol{v}_{j}
+}{
+  \bigl\|
+    \sqrt{\rho}\,\boldsymbol{u}
+    +\sqrt{1-\rho}\,\boldsymbol{v}_{j}
+  \bigr\|_2
+},
+\qquad
+j=1,\ldots,J.
+\]</span></p>
+<p>Here <span class="math inline">\(\rho\in[0,1]\)</span> is <code>target_cosine</code> and <span class="math inline">\(s&gt;0\)</span> is <code>mean_scale</code>. Small <span class="math inline">\(\rho\)</span> yields complementary centroids; <span class="math inline">\(\rho\to 1\)</span> recovers a shared direction (cosine one, vanishing Euclidean gap). Small <span class="math inline">\(s\)</span> places centroids near the origin and shrinks pairwise distances while preserving angles.</p>
+</section><section class="level2"><h3 id="objectives-compute_mean_profile_objectives">Objectives: <code>compute_mean_profile_objectives()</code>
+<a class="anchor" aria-label="anchor" href="#objectives-compute_mean_profile_objectives"></a>
+</h3>
+<p>For columns of <span class="math inline">\(\boldsymbol{\mu}\)</span>,</p>
+<p><span class="math display">\[
+\overline{\lvert\cos\rvert}
+=
+\frac{2}{J(J-1)}
+\sum_{1\le j&lt;k\le J}
+\Biggl|
+  \frac{
+    \boldsymbol{\mu}_{\cdot j}^{\mathsf{T}}
+    \boldsymbol{\mu}_{\cdot k}
+  }{
+    \|\boldsymbol{\mu}_{\cdot j}\|_2\,
+    \|\boldsymbol{\mu}_{\cdot k}\|_2
+  }
+\Biggr|,
+\]</span></p>
+<p><span class="math display">\[
+D_{\mathrm{Euc}}
+=
+\sum_{1\le j&lt;k\le J}
+\|\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\|_2.
+\]</span></p>
+<p>AutoGeneS treats the first as a quantity to minimise and the second as a quantity to maximise <span class="citation" data-cites="aliee_theis21">(<a href="#ref-aliee_theis21" role="doc-biblioref">Aliee and Theis 2021</a>)</span>. Cosine is preferred to Pearson correlation so that collinear but unequally scaled profiles remain penalised.</p>
+</section><section class="level2"><h3 id="network-skeleton-generate_random_network_skeleton">Network skeleton: <code>generate_random_network_skeleton()</code>
+<a class="anchor" aria-label="anchor" href="#network-skeleton-generate_random_network_skeleton"></a>
+</h3>
+<p>A binary adjacency <span class="math inline">\(\boldsymbol{A}\in\{0,1\}^{G\times G}\)</span> is drawn from either a preferential-attachment (power-law / hub) model or a stochastic block model (community structure). Both return an undirected graph with zero diagonal; they encode presence of partial-correlation edges, not their strengths.</p>
+</section><section class="level2"><h3 id="positive-definite-precision-build_normalised_precision">Positive-definite precision: <code>build_normalised_precision()</code>
+<a class="anchor" aria-label="anchor" href="#positive-definite-precision-build_normalised_precision"></a>
+</h3>
+<p>Edge weights enter through an affine spectral shift of <span class="math inline">\(\boldsymbol{A}\)</span>, matching the construction used in the manuscript:</p>
+<p><span class="math display">\[
+\tilde{\boldsymbol{\Omega}}
+=
+\boldsymbol{A}\,v,
+\qquad
+\boldsymbol{\Omega}
+=
+\tilde{\boldsymbol{\Omega}}
++
+\bigl(
+  \lvert\lambda_{\min}(\tilde{\boldsymbol{\Omega}})\rvert + u
+\bigr)
+\mathbf{I},
+\]</span></p>
+<p>with off-diagonal scale <span class="math inline">\(v\)</span> (<code>precision_scale</code>) and diagonal cushion <span class="math inline">\(u\)</span> (<code>precision_shift</code>). Larger <span class="math inline">\(v\)</span> strengthens interactions and spreads the spectrum; larger <span class="math inline">\(u\)</span> improves conditioning. The map <span class="math inline">\(Y=aX+bI\)</span> leaves eigenvectors unchanged and transforms eigenvalues as <span class="math inline">\(\lambda_i(Y)=a\lambda_i(X)+b\)</span>; choosing <span class="math inline">\(b=\lvert\lambda_{\min}(\tilde{\boldsymbol{\Omega}})\rvert+u\)</span> with <span class="math inline">\(a=1\)</span> therefore guarantees <span class="math inline">\(\boldsymbol{\Omega}\succ 0\)</span> while preserving the sparsity pattern of <span class="math inline">\(\boldsymbol{A}\)</span> off the diagonal.</p>
+</section><section class="level2"><h3 id="shared-covariances-build_shared_covariance_array">Shared covariances: <code>build_shared_covariance_array()</code>
+<a class="anchor" aria-label="anchor" href="#shared-covariances-build_shared_covariance_array"></a>
+</h3>
+<p>Cell types share the same second-order structure,</p>
+<p><span class="math display">\[
+\boldsymbol{\Sigma}_j
+=
+\boldsymbol{\Omega}^{-1},
+\qquad
+j=1,\ldots,J,
+\]</span></p>
+<p>stacked as an array in <span class="math inline">\(\mathcal{M}_{G\times G\times J}\)</span>. Downstream bulk simulation uses the Gaussian convolution <span class="math inline">\(\boldsymbol{y}\mid(\boldsymbol{\zeta},\boldsymbol{p})\sim
+\mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},
+\sum_j p_j^{2}\boldsymbol{\Sigma}_j)\)</span>.</p>
+</section></section><section class="section level2"><h2 id="perspectives-a-single-geometric-score-for-boldsymbolmu">Perspectives: a single geometric score for <span class="math inline">\(\boldsymbol{\mu}\)</span>
+<a class="anchor" aria-label="anchor" href="#perspectives-a-single-geometric-score-for-boldsymbolmu"></a>
+</h2>
+<p>The present API exposes two AutoGeneS-style objectives. A natural refinement is to replace them by one scalar that jointly rewards large column norms (and hence Euclidean separation) and penalises alignment.</p>
+<p>Two candidates are immediate. The Gram determinant</p>
+<p><span class="math display">\[
+V(\boldsymbol{\mu})
+=
+\sqrt{
+  \det\bigl(
+    \boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu}
+  \bigr)
+}
+\]</span></p>
+<p>is the volume of the parallelepiped spanned by the columns of <span class="math inline">\(\boldsymbol{\mu}\)</span>. It vanishes under exact collinearity and grows when columns lengthen or become more orthogonal—precisely the desired MOO trade-off in one number.</p>
+<p>Equivalently, the reciprocal condition number</p>
+<p><span class="math display">\[
+\kappa_2(\boldsymbol{\mu})^{-1}
+=
+\frac{\sigma_{\min}(\boldsymbol{\mu})}{\sigma_{\max}(\boldsymbol{\mu})},
+\]</span></p>
+<p>available in R via <code>kappa(mean_profiles, exact = TRUE)</code> (or <code>1 / kappa(...)</code>), measures how ill-posed linear recovery of <span class="math inline">\(\boldsymbol{p}\)</span> from <span class="math inline">\(\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}\)</span> is. Maximising <span class="math inline">\(\kappa_2(\boldsymbol{\mu})^{-1}\)</span> (or minimising <span class="math inline">\(\kappa_2(\boldsymbol{\mu})\)</span>) collapses cosine and distance into a deconvolution-centric criterion without a Pareto front.</p>
+<p>A practical next step is to expose an optional <code>mean_objective = c("autogenes", "volume", "condition")</code> in <code><a href="../reference/simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments()</a></code>, keep the constructive <span class="math inline">\((\rho,s)\)</span> generator for controllable scenarios, and report the chosen scalar alongside the existing pairwise diagnostics.</p>
+</section><section class="section level2"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-aliee_theis21" class="csl-entry" role="listitem">
+Aliee, Hananeh, and Fabian J. Theis. 2021. <span>‘<span class="nocase">AutoGeneS: Automatic Gene Selection Using Multi-Objective Optimization for RNA-seq Deconvolution</span>’</span>. <em>Cell Systems</em> 12 (7): 706–15. <a href="https://doi.org/10.1016/j.cels.2021.05.006" class="external-link">https://doi.org/10.1016/j.cels.2021.05.006</a>.
+</div>
+</div>
+</section><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
@@ -182,7 +358,8 @@
       }
     }
   });
-  </script></main>
+  </script></main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 

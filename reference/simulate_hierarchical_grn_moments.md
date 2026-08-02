@@ -1,32 +1,27 @@
-# Simulate hierarchical GRN first- and second-order moments
+# Simulate GRN first- and second-order moments
 
-Builds mean matrices \\\boldsymbol{\mu}\\ and covariance arrays
-\\(\boldsymbol{\Sigma}\_j)\\ for parent/child cell populations under a
-graph-constrained precision model. Parent means use complementary block
-structure; child means are
-\\\boldsymbol{\mu}^{(k)}=\boldsymbol{\mu}^{(\mathrm{parent})}+\boldsymbol{\delta}^{(k)}\\
-with
-\\\boldsymbol{\delta}^{(k)}\sim\mathcal{N}(\mathbf{0},\sigma\_\delta^{2}\mathbf{I})\\.
-Marginal variances follow \\\sigma_g^{2}=\mu_g+\mu_g^{\alpha}/L\\;
-covariances are obtained from a shared normalised precision
-\\\boldsymbol{\Omega}\\ via
-\\\boldsymbol{\Sigma}\_k=\mathbf{D}\_k^{1/2}\mathbf{R}\mathbf{D}\_k^{1/2}\\
-with \\\mathbf{R}=\mathrm{cov2cor}(\boldsymbol{\Omega}^{-1})\\.
+Builds a mean matrix \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\ and
+a shared covariance array \\(\boldsymbol{\Sigma}\_j)\_{j}\\ under a
+graph-constrained precision model. Means follow the AutoGeneS-inspired
+construction of `generate_mean_signature_matrix()` with target pairwise
+cosine similarity \\\rho\\ and column scale \\s\\, so that one can dial
+collinearity (minimise cosine) against centroid separation (maximise
+Euclidean distance). The adjacency \\\boldsymbol{A}\\ is drawn from a
+random-graph model; the precision \\\boldsymbol{\Omega}\\ is obtained
+via the affine spectral shift of `build_normalised_precision()`, and
+each cell type shares
+\\\boldsymbol{\Sigma}\_j=\boldsymbol{\Omega}^{-1}\\.
 
 ## Usage
 
 ``` r
 simulate_hierarchical_grn_moments(
-  n_expressed_genes,
-  mean_lower_expressed,
-  mean_upper_expressed,
-  mean_lower_background,
-  mean_upper_background,
-  library_size,
-  alpha,
+  n_genes,
+  n_celltypes = 2L,
+  mean_scale = 10,
+  target_cosine = 0,
   precision_shift,
   precision_scale,
-  child_perturbation_sd,
   graph_model = c("power_law", "stochastic_block_model"),
   graph_params = list()
 )
@@ -34,36 +29,27 @@ simulate_hierarchical_grn_moments(
 
 ## Arguments
 
-- n_expressed_genes:
+- n_genes:
 
-  Integer; expressed genes per parent block (total dimension
-  \\G=2\times\\ `n_expressed_genes`).
+  Integer; number of genes \\G\\.
 
-- mean_lower_expressed, mean_upper_expressed:
+- n_celltypes:
 
-  Uniform bounds for expressed block means.
+  Integer; number of cell types \\J\\ (default 2).
 
-- mean_lower_background, mean_upper_background:
+- mean_scale:
 
-  Uniform bounds for background block means.
+  Positive scalar \\s\\ for centroid norms.
 
-- library_size:
+- target_cosine:
 
-  Positive scalar \\L\\ in the mean–variance law.
-
-- alpha:
-
-  Positive power in \\\mu_g^{\alpha}/L\\ (`2` recovers a classical
-  NB-like law).
+  Numeric in \\\[0,1\]\\; target pairwise cosine similarity between
+  columns of \\\boldsymbol{\mu}\\.
 
 - precision_shift, precision_scale:
 
   Diagonal shift \\u\\ and off-diagonal scale \\v\\ used to build
   \\\boldsymbol{\Omega}\\.
-
-- child_perturbation_sd:
-
-  Standard deviation \\\sigma\_\delta\\.
 
 - graph_model:
 
@@ -71,56 +57,56 @@ simulate_hierarchical_grn_moments(
 
 - graph_params:
 
-  Named list of generator parameters (see Details in source for `power`
-  / `edges_per_node` or `block_prob` / `p_within` / `p_between`).
+  Named list of generator parameters: `power` / `edges_per_node`
+  (power-law) or `block_prob` / `p_within` / `p_between` (SBM).
 
 ## Value
 
-Named list with `parent_parameters`, `child_parameters` (each holding
-`mean_profiles` \\\boldsymbol{\mu}\\ and `covariance_matrices`
-\\(\boldsymbol{\Sigma}\_j)\\), and `graph_structure`
-(`adjacency_matrix`, `normalised_precision` \\\boldsymbol{\Omega}\\).
+Named list with:
+
+- `mean_profiles`: matrix \\\boldsymbol{\mu}\\;
+
+- `covariance_matrices`: array
+  \\(\boldsymbol{\Sigma}\_j)\_{j}\in\mathcal{M}\_{G\times G\times J}\\;
+
+- `graph_structure`: `adjacency_matrix` and `normalised_precision`
+  \\\boldsymbol{\Omega}\\;
+
+- `objectives`: `mean_abs_cosine` and `sum_euclidean_distance`.
 
 ## Examples
 
 ``` r
 set.seed(42)
 moments <- simulate_hierarchical_grn_moments(
-    n_expressed_genes     = 50,
-    mean_lower_expressed  = 2,
-    mean_upper_expressed  = 6,
-    mean_lower_background = 0.1,
-    mean_upper_background = 0.5,
-    library_size          = 10000,
-    alpha                 = 2,
-    precision_shift       = 0.1,
-    precision_scale       = 0.3,
-    child_perturbation_sd = 0.1,
-    graph_model           = "power_law",
-    graph_params          = list(power = 1, edges_per_node = 2)
+  n_genes = 40L,
+  n_celltypes = 3L,
+  mean_scale = 10,
+  target_cosine = 0.1,
+  precision_shift = 0.1,
+  precision_scale = 0.3,
+  graph_model = "power_law",
+  graph_params = list(power = 1, edges_per_node = 2)
 )
 str(moments, max.level = 2)
-#> List of 3
-#>  $ parent_parameters:List of 2
-#>   ..$ mean_profiles      : num [1:2, 1:100] 5.659 0.35 5.748 0.187 3.145 ...
+#> List of 4
+#>  $ mean_profiles      : num [1:40, 1:3] 2.57 2.57 2.57 2.57 2.57 ...
+#>   ..- attr(*, "dimnames")=List of 2
+#>  $ covariance_matrices: num [1:40, 1:40, 1:3] 1.773 -0.8118 -0.4864 1.1831 0.0232 ...
+#>   ..- attr(*, "dimnames")=List of 3
+#>  $ graph_structure    :List of 2
+#>   ..$ adjacency_matrix    : num [1:40, 1:40] 0 1 1 0 0 0 1 0 0 0 ...
 #>   .. ..- attr(*, "dimnames")=List of 2
-#>   ..$ covariance_matrices: num [1:100, 1:100, 1:2] 5.662 -3.114 -0.286 -2.775 2.177 ...
-#>   .. ..- attr(*, "dimnames")=List of 3
-#>  $ child_parameters :List of 2
-#>   ..$ mean_profiles      : num [1:4, 1:100] 5.779 5.459 0.35 0.484 5.853 ...
+#>   ..$ normalised_precision: num [1:40, 1:40] 1.32 0.3 0.3 0 0 ...
 #>   .. ..- attr(*, "dimnames")=List of 2
-#>   ..$ covariance_matrices: num [1:100, 1:100, 1:4] 5.783 -3.175 -0.284 -2.853 2.184 ...
-#>   .. ..- attr(*, "dimnames")=List of 3
-#>  $ graph_structure  :List of 2
-#>   ..$ adjacency_matrix    : num [1:100, 1:100] 0 1 1 1 0 1 0 0 0 0 ...
-#>   .. ..- attr(*, "dimnames")=List of 2
-#>   ..$ normalised_precision: num [1:100, 1:100] 1.68 0.3 0.3 0.3 0 ...
-#>   .. ..- attr(*, "dimnames")=List of 2
+#>  $ objectives         :List of 2
+#>   ..$ mean_abs_cosine       : num 0.414
+#>   ..$ sum_euclidean_distance: num 32.5
 
-## Verify positive-definiteness of a child covariance
+## Verify positive-definiteness of the shared covariance
 eigen_vals <- eigen(
-    moments$child_parameters$covariance_matrices[, , 1],
-    only.values = TRUE
+  moments$covariance_matrices[, , 1],
+  only.values = TRUE
 )$values
 stopifnot(all(eigen_vals > 0))
 ```

@@ -344,16 +344,7 @@ p_{J}=\frac{1}{\sum_{k&lt;J}e^{\rho_{k}}+1},\qquad
 <h2 id="speed-up-computation-with-autozyme">Speed up computation with AutoZyme<a class="anchor" aria-label="anchor" href="#speed-up-computation-with-autozyme"></a>
 </h2>
 <p><a href="https://autozyme.com/docs/users/usage-guide/" class="external-link">AutoZyme</a> ships drop-in accelerators for common scientific R packages (Seurat, WGCNA, and others in the <a href="https://autozyme.com/docs/users/patch-catalog/" class="external-link">patch catalog</a>). It is installed locally but <strong>off by default</strong> (<code>options(autozyme.disabled = TRUE)</code> → <code>AUTOZYME_DISABLED=1</code>).</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># List patches, enable, activate, then check what is bound to the fast path</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>autozyme.disabled <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.unsetenv</a></span><span class="op">(</span><span class="st">"AUTOZYME_DISABLED"</span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">autozyme</span><span class="op">)</span></span>
-<span><span class="fu">autozyme</span><span class="fu">::</span><span class="fu">list_patches</span><span class="op">(</span>installed <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="fu">autozyme</span><span class="fu">::</span><span class="fu">activate</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"seurat"</span>, <span class="st">"wgcna"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu">autozyme</span><span class="fu">::</span><span class="fu">inspect</span><span class="op">(</span><span class="st">"seurat"</span><span class="op">)</span></span>
-<span><span class="co"># Off again: Sys.setenv(AUTOZYME_DISABLED = "1")</span></span>
-<span><span class="co">#            or autozyme::with_disabled({ ... })  # see usage guide §6</span></span></code></pre></div>
+<p>```r # List patches, enable, activate, then check what is bound to the fast path options(autozyme.disabled = FALSE) Sys.unsetenv(“AUTOZYME_DISABLED”) library(autozyme) autozyme::list_patches(installed = TRUE) autozyme::activate(c(“seurat”, “wgcna”)) autozyme::inspect(“seurat”) # Off again: Sys.setenv(AUTOZYME_DISABLED = “1”)</p>
 </div>
 </div>
 
