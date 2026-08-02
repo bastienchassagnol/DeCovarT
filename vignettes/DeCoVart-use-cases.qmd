@@ -10,7 +10,7 @@ knitr:
   opts_chunk:
     collapse: true
     comment: '#>'
-bibliography: DeCovarT-use-cases.bib
+bibliography: ../inst/REFERENCES.bib
 link-citations: true
 ---
 

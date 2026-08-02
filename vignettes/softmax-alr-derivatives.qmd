@@ -11,7 +11,7 @@ knitr:
     collapse: true
     comment: "#>"
     eval: false
-bibliography: DeCovarT-use-cases.bib
+bibliography: ../inst/REFERENCES.bib
 link-citations: true
 crossref:
   eq-prefix: "Eq."
