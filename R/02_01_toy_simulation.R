@@ -14,7 +14,22 @@
 #' \eqn{\boldsymbol{y}\,|\,(\boldsymbol{\zeta},\boldsymbol{p})\sim
 #' \mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},
 #' \boldsymbol{\Sigma}(\boldsymbol{p}))} with
-#' \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}\boldsymbol{\Sigma}_j}.
+#' \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=
+#' \sum_j p_j^{2}\boldsymbol{\Sigma}_j}.
+#'
+#' Equivalently, stacking the purified draws into the three-way array
+#' \eqn{\mathcal{X}=(x_{gji})\in\mathcal{M}_{G\times J\times N}}, the bulk
+#' matrix is the mode-2 tensor–vector contraction
+#' \deqn{
+#'   \boldsymbol{Y}
+#'   =\mathcal{X}\times_{2}\boldsymbol{p},
+#'   \qquad
+#'   y_{gi}=\sum_{j=1}^{J}x_{gji}\,p_{j}
+#'   \quad(g=1,\ldots,G;\; i=1,\ldots,N),
+#' }
+#' which for each sample recovers the matrix–vector product
+#' \eqn{\boldsymbol{y}_{\cdot i}=\boldsymbol{X}_{\cdot\cdot i}\,\boldsymbol{p}}
+#' with \eqn{\boldsymbol{X}_{\cdot\cdot i}\in\mathcal{M}_{G\times J}}.
 #'
 #' @param signature_matrix Mean matrix
 #'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}}.
@@ -26,13 +41,15 @@
 #'
 #' @return A list with:
 #' * `mean_signature_matrix`: array
-#'   \eqn{(x_{gji})\in\mathcal{M}_{G\times J\times N}} of simulated purified
-#'   profiles;
+#'   \eqn{\mathcal{X}=(x_{gji})\in\mathcal{M}_{G\times J\times N}} of simulated
+#'   purified profiles;
 #' * `Y`: matrix \eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}} whose columns
-#'   are bulk vectors \eqn{\boldsymbol{y}_{\cdot i}}.
+#'   are bulk vectors \eqn{\boldsymbol{y}_{\cdot i}}, obtained as
+#'   \eqn{\mathcal{X}\times_{2}\boldsymbol{p}}.
 #'
 #' @export
-#' @seealso [deconvolute_ratios()], [benchmark_bivariate_gaussian_convolutions()]
+#' @seealso [deconvolute_ratios()],
+#'   [benchmark_bivariate_gaussian_convolutions()]
 simulate_bulk_mixture <- function(
   signature_matrix,
   Sigma,
@@ -49,7 +66,10 @@ simulate_bulk_mixture <- function(
     )
   ) {
     stop(
-      "Some of the genes are distinct between expected and covariance expression"
+      paste(
+        "Some of the genes are distinct between expected",
+        "and covariance expression"
+      )
     )
   } else if (!all.equal(colnames(signature_matrix), dimnames(Sigma)[[3]])) {
     stop("Cell types differ between expected and covariance expression")
@@ -84,7 +104,8 @@ simulate_bulk_mixture <- function(
     mean_signature_matrix[, cell_name, ] <- t(expression_per_celltype)
   }
 
-  Y <- tensor::tensor(p, B = mean_signature_matrix, alongA = 1, alongB = 2) # tensor product does directly the computation mean_signature_matrix %*% p
+  ## Mode-2 contraction: Y = X ×_2 p, i.e. y_{gi} = Σ_j x_{gji} p_j
+  Y <- tensor::tensor(p, B = mean_signature_matrix, alongA = 1, alongB = 2)
   return(list(mean_signature_matrix = mean_signature_matrix, Y = Y))
 }
 
@@ -113,7 +134,8 @@ simulate_bulk_mixture <- function(
 #'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{2\times 2}^{+}}.
 #' @param corr_sequence,diagonal_terms Correlation sequence and diagonal
 #'   variance templates used to assemble
-#'   \eqn{\boldsymbol{\Sigma}_j=\mathrm{D}_{j}^{1/2}\mathbf{R}_j\mathrm{D}_{j}^{1/2}}.
+#'   \eqn{\boldsymbol{\Sigma}_j=
+#'   \mathrm{D}_{j}^{1/2}\mathbf{R}_j\mathrm{D}_{j}^{1/2}}.
 #' @param deconvolution_functions Named list of deconvolution callables
 #'   (each with `FUN` and optional `additional_parameters`).
 #' @param n Number of bulk replicates \eqn{N} per scenario.

@@ -2,89 +2,80 @@
 % Please edit documentation in R/02_02_generate_synthetic_networks.R
 \name{simulate_hierarchical_grn_moments}
 \alias{simulate_hierarchical_grn_moments}
-\title{Simulate hierarchical GRN first- and second-order moments}
+\title{Simulate GRN first- and second-order moments}
 \usage{
 simulate_hierarchical_grn_moments(
-  n_expressed_genes,
-  mean_lower_expressed,
-  mean_upper_expressed,
-  mean_lower_background,
-  mean_upper_background,
-  library_size,
-  alpha,
+  n_genes,
+  n_celltypes = 2L,
+  mean_scale = 10,
+  target_cosine = 0,
   precision_shift,
   precision_scale,
-  child_perturbation_sd,
   graph_model = c("power_law", "stochastic_block_model"),
   graph_params = list()
 )
 }
 \arguments{
-\item{n_expressed_genes}{Integer; expressed genes per parent block
-(total dimension \eqn{G=2\times} \code{n_expressed_genes}).}
+\item{n_genes}{Integer; number of genes \eqn{G}.}
 
-\item{mean_lower_expressed, mean_upper_expressed}{Uniform bounds for expressed
-block means.}
+\item{n_celltypes}{Integer; number of cell types \eqn{J} (default 2).}
 
-\item{mean_lower_background, mean_upper_background}{Uniform bounds for
-background block means.}
+\item{mean_scale}{Positive scalar \eqn{s} for centroid norms.}
 
-\item{library_size}{Positive scalar \eqn{L} in the mean–variance law.}
+\item{target_cosine}{Numeric in \eqn{[0,1]}; target pairwise cosine
+similarity between columns of \eqn{\boldsymbol{\mu}}.}
 
-\item{alpha}{Positive power in \eqn{\mu_g^{\alpha}/L} (\code{2} recovers a
-classical NB-like law).}
-
-\item{precision_shift, precision_scale}{Diagonal shift \eqn{u} and off-diagonal
-scale \eqn{v} used to build \eqn{\boldsymbol{\Omega}}.}
-
-\item{child_perturbation_sd}{Standard deviation \eqn{\sigma_\delta}.}
+\item{precision_shift, precision_scale}{Diagonal shift \eqn{u} and
+off-diagonal scale \eqn{v} used to build \eqn{\boldsymbol{\Omega}}.}
 
 \item{graph_model}{\code{"power_law"} or \code{"stochastic_block_model"}.}
 
-\item{graph_params}{Named list of generator parameters (see Details in source
-for \code{power} / \code{edges_per_node} or \code{block_prob} / \code{p_within} / \code{p_between}).}
+\item{graph_params}{Named list of generator parameters:
+\code{power} / \code{edges_per_node} (power-law) or
+\code{block_prob} / \code{p_within} / \code{p_between} (SBM).}
 }
 \value{
-Named list with \code{parent_parameters}, \code{child_parameters} (each holding
-\code{mean_profiles} \eqn{\boldsymbol{\mu}} and \code{covariance_matrices}
-\eqn{(\boldsymbol{\Sigma}_j)}), and \code{graph_structure}
-(\code{adjacency_matrix}, \code{normalised_precision} \eqn{\boldsymbol{\Omega}}).
+Named list with:
+\itemize{
+\item \code{mean_profiles}: matrix \eqn{\boldsymbol{\mu}};
+\item \code{covariance_matrices}: array
+\eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}};
+\item \code{graph_structure}: \code{adjacency_matrix} and \code{normalised_precision}
+\eqn{\boldsymbol{\Omega}};
+\item \code{objectives}: \code{mean_abs_cosine} and \code{sum_euclidean_distance}.
+}
 }
 \description{
-Builds mean matrices \eqn{\boldsymbol{\mu}} and covariance arrays
-\eqn{(\boldsymbol{\Sigma}_j)} for parent/child cell populations under a
-graph-constrained precision model. Parent means use complementary block
-structure; child means are
-\eqn{\boldsymbol{\mu}^{(k)}=\boldsymbol{\mu}^{(\mathrm{parent})}+\boldsymbol{\delta}^{(k)}}
-with \eqn{\boldsymbol{\delta}^{(k)}\sim\mathcal{N}(\mathbf{0},\sigma_\delta^{2}\mathbf{I})}.
-Marginal variances follow
-\eqn{\sigma_g^{2}=\mu_g+\mu_g^{\alpha}/L}; covariances are obtained from a
-shared normalised precision \eqn{\boldsymbol{\Omega}} via
-\eqn{\boldsymbol{\Sigma}_k=\mathbf{D}_k^{1/2}\mathbf{R}\mathbf{D}_k^{1/2}} with
-\eqn{\mathbf{R}=\mathrm{cov2cor}(\boldsymbol{\Omega}^{-1})}.
+Builds a mean matrix \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}}
+and a shared covariance array \eqn{(\boldsymbol{\Sigma}_j)_{j}} under a
+graph-constrained precision model. Means follow the AutoGeneS-inspired
+construction of \code{generate_mean_signature_matrix()} with target pairwise
+cosine similarity \eqn{\rho} and column scale \eqn{s}, so that one can
+dial collinearity (minimise cosine) against centroid separation
+(maximise Euclidean distance). The adjacency
+\eqn{\boldsymbol{A}} is drawn from a random-graph model; the precision
+\eqn{\boldsymbol{\Omega}} is obtained via the affine spectral shift
+of \code{build_normalised_precision()}, and each cell type shares
+\eqn{\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}^{-1}}.
 }
 \examples{
 set.seed(42)
 moments <- simulate_hierarchical_grn_moments(
-    n_expressed_genes     = 50,
-    mean_lower_expressed  = 2,
-    mean_upper_expressed  = 6,
-    mean_lower_background = 0.1,
-    mean_upper_background = 0.5,
-    library_size          = 10000,
-    alpha                 = 2,
-    precision_shift       = 0.1,
-    precision_scale       = 0.3,
-    child_perturbation_sd = 0.1,
-    graph_model           = "power_law",
-    graph_params          = list(power = 1, edges_per_node = 2)
+  n_genes = 40L,
+  n_celltypes = 3L,
+  mean_scale = 10,
+  target_cosine = 0.1,
+  precision_shift = 0.1,
+  precision_scale = 0.3,
+  graph_model = "power_law",
+  graph_params = list(power = 1, edges_per_node = 2)
 )
 str(moments, max.level = 2)
 
-## Verify positive-definiteness of a child covariance
+## Verify positive-definiteness of the shared covariance
 eigen_vals <- eigen(
-    moments$child_parameters$covariance_matrices[, , 1],
-    only.values = TRUE
+  moments$covariance_matrices[, , 1],
+  only.values = TRUE
 )$values
 stopifnot(all(eigen_vals > 0))
 

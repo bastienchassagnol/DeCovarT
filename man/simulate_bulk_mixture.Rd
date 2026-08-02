@@ -27,10 +27,11 @@ simulate_bulk_mixture(
 A list with:
 \itemize{
 \item \code{mean_signature_matrix}: array
-\eqn{(x_{gji})\in\mathcal{M}_{G\times J\times N}} of simulated purified
-profiles;
+\eqn{\mathcal{X}=(x_{gji})\in\mathcal{M}_{G\times J\times N}} of simulated
+purified profiles;
 \item \code{Y}: matrix \eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}} whose columns
-are bulk vectors \eqn{\boldsymbol{y}_{\cdot i}}.
+are bulk vectors \eqn{\boldsymbol{y}_{\cdot i}}, obtained as
+\eqn{\mathcal{X}\times_{2}\boldsymbol{p}}.
 }
 }
 \description{
@@ -47,8 +48,24 @@ matching the article's conditional model
 \eqn{\boldsymbol{y}\,|\,(\boldsymbol{\zeta},\boldsymbol{p})\sim
 \mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},
 \boldsymbol{\Sigma}(\boldsymbol{p}))} with
-\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}\boldsymbol{\Sigma}_j}.
+\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=
+\sum_j p_j^{2}\boldsymbol{\Sigma}_j}.
+
+Equivalently, stacking the purified draws into the three-way array
+\eqn{\mathcal{X}=(x_{gji})\in\mathcal{M}_{G\times J\times N}}, the bulk
+matrix is the mode-2 tensor–vector contraction
+\deqn{
+  \boldsymbol{Y}
+  =\mathcal{X}\times_{2}\boldsymbol{p},
+  \qquad
+  y_{gi}=\sum_{j=1}^{J}x_{gji}\,p_{j}
+  \quad(g=1,\ldots,G;\; i=1,\ldots,N),
+}
+which for each sample recovers the matrix–vector product
+\eqn{\boldsymbol{y}_{\cdot i}=\boldsymbol{X}_{\cdot\cdot i}\,\boldsymbol{p}}
+with \eqn{\boldsymbol{X}_{\cdot\cdot i}\in\mathcal{M}_{G\times J}}.
 }
 \seealso{
-\code{\link[=deconvolute_ratios]{deconvolute_ratios()}}, \code{\link[=benchmark_bivariate_gaussian_convolutions]{benchmark_bivariate_gaussian_convolutions()}}
+\code{\link[=deconvolute_ratios]{deconvolute_ratios()}},
+\code{\link[=benchmark_bivariate_gaussian_convolutions]{benchmark_bivariate_gaussian_convolutions()}}
 }

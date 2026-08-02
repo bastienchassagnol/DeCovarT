@@ -99,6 +99,8 @@ stacks (e.g. PyTorch) for this R package.
 
 # R — package and tooling (DeCovarT)
 
+> Always run the local pre-commit file after bringing changes to the GitHub repository
+
 ## Project roles
 
 - Reusable package code lives in `R/`.

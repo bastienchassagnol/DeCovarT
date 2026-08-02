@@ -24,6 +24,7 @@ repos:
       - id: lintr
         args: [--warn_only]
         verbose: true
+        exclude: '^(vignettes/)'
       - id: parsable-R
       - id: no-browser-statement
       - id: use-tidy-description

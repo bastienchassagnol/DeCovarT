@@ -1,129 +1,174 @@
-## =========================================================================
-## simulate_synthetic_GRNs.R
+# ---- simulate_synthetic_GRNs.R --------------------------------------------
 ##
-## Hierarchical generative model for Gaussian-based gene regulatory
-## networks with structured mean profiles, negative-binomial-like
-## marginal variances, and graph-constrained precision matrices.
-## =========================================================================
+## Generative model for Gaussian-based gene regulatory networks with
+## AutoGeneS-inspired mean profiles and graph-constrained precision
+## matrices.
 
-#' Generate hierarchical mean profiles for parent and child populations
+#' Score mean profiles with AutoGeneS-style objectives
 #'
-#' Constructs two complementary parent mean vectors — one with high
-#' expression in the first gene block and background in the second, the
-#' other with the inverse pattern — then perturbs each parent mean to
-#' produce two child subpopulations.
+#' Computes the two objectives used by AutoGeneS for signature quality:
+#' mean absolute pairwise cosine similarity between cell-type columns of
+#' \eqn{\boldsymbol{\mu}} (to minimise) and the sum of pairwise Euclidean
+#' distances between those columns (to maximise).
 #'
-#' @param n_expressed_genes Integer, number of expressed genes per block.
-#' @param mean_lower_expressed,mean_upper_expressed Numeric bounds for
-#'   the uniform distribution of expressed-gene means.
-#' @param mean_lower_background,mean_upper_background Numeric bounds for
-#'   the uniform distribution of background-gene means.
-#' @param child_perturbation_sd Numeric, standard deviation of the
-#'   centred Gaussian perturbation applied to parent means.
-#' @param gene_names Character vector of gene identifiers.
-#' @param parent_names Character vector of length 2.
-#' @param child_names Character vector of length 4.
+#' @param mean_signature_matrix Numeric matrix
+#'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (columns = cell types).
 #'
-#' @return A named list with elements \code{parent_means} (2 mean_signature_matrix p matrix)
-#'   and \code{child_means} (4 mean_signature_matrix p matrix).
+#' @return A named list with \code{mean_abs_cosine} and
+#'   \code{sum_euclidean_distance}.
 #'
 #' @keywords internal
 #' @noRd
-generate_mean_profiles <- function(
-  n_expressed_genes,
-  mean_lower_expressed,
-  mean_upper_expressed,
-  mean_lower_background,
-  mean_upper_background,
-  child_perturbation_sd,
-  gene_names,
-  parent_names,
-  child_names
-) {
-  n_total_genes <- 2L * n_expressed_genes
-  block_1 <- seq_len(n_expressed_genes)
-  block_2 <- n_expressed_genes + seq_len(n_expressed_genes)
-
-  parent_1_mean <- numeric(n_total_genes)
-  parent_2_mean <- numeric(n_total_genes)
-
-  parent_1_mean[block_1] <- stats::runif(
-    n_expressed_genes,
-    mean_lower_expressed,
-    mean_upper_expressed
-  )
-  parent_1_mean[block_2] <- stats::runif(
-    n_expressed_genes,
-    mean_lower_background,
-    mean_upper_background
-  )
-  parent_2_mean[block_1] <- stats::runif(
-    n_expressed_genes,
-    mean_lower_background,
-    mean_upper_background
-  )
-  parent_2_mean[block_2] <- stats::runif(
-    n_expressed_genes,
-    mean_lower_expressed,
-    mean_upper_expressed
-  )
-
-  parent_means <- rbind(parent_1_mean, parent_2_mean)
-  rownames(parent_means) <- parent_names
-  colnames(parent_means) <- gene_names
-
-  child_means <- matrix(
-    NA_real_,
-    nrow = length(child_names),
-    ncol = n_total_genes,
-    dimnames = list(child_names, gene_names)
-  )
-
-  parent_index <- c(1L, 1L, 2L, 2L)
-  for (i in seq_along(child_names)) {
-    perturbation <- stats::rnorm(
-      n_total_genes,
-      mean = 0,
-      sd = child_perturbation_sd
-    )
-    child_means[i, ] <- parent_means[parent_index[i], ] + perturbation
+compute_mean_profile_objectives <- function(mean_signature_matrix) {
+  n_celltypes <- ncol(mean_signature_matrix)
+  if (n_celltypes < 2L) {
+    stop("`mean_signature_matrix` must have at least two columns.")
   }
 
-  child_means <- pmax(child_means, .Machine$double.eps)
+  mean_abs_cosine <- 0
+  sum_euclidean_distance <- 0
+  n_pairs <- 0L
+
+  for (j in seq_len(n_celltypes - 1L)) {
+    for (k in (j + 1L):n_celltypes) {
+      mu_j <- mean_signature_matrix[, j]
+      mu_k <- mean_signature_matrix[, k]
+      norms <- sqrt(sum(mu_j^2) * sum(mu_k^2))
+      cosine_jk <- if (norms < .Machine$double.eps) {
+        0
+      } else {
+        sum(mu_j * mu_k) / norms
+      }
+      mean_abs_cosine <- mean_abs_cosine + abs(cosine_jk)
+      sum_euclidean_distance <- sum_euclidean_distance +
+        sqrt(sum((mu_j - mu_k)^2))
+      n_pairs <- n_pairs + 1L
+    }
+  }
 
   list(
-    parent_means = parent_means,
-    child_means = child_means
+    mean_abs_cosine = mean_abs_cosine / n_pairs,
+    sum_euclidean_distance = sum_euclidean_distance
   )
 }
 
 
-#' Compute gene-wise marginal variances via a NB-like mean--variance law
+#' Generate mean profiles with controlled cosine similarity
 #'
-#' Applies \eqn{\sigma_g^2 = \mu_g + \mu_g^\alpha / L} where \eqn{L}
-#' is the library size and \eqn{\alpha} the power parameter.  When
-#' \eqn{\alpha = 2} this reduces to the classical negative-binomial
-#' variance--mean relationship.
+#' Builds positive \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} by
+#' blending cell-type-private marker blocks with a shared background
+#' direction,
+#' \deqn{
+#'   \boldsymbol{\mu}_{\cdot j}
+#'   = s\,
+#'   \frac{
+#'     \sqrt{\rho}\,\boldsymbol{u}
+#'     +\sqrt{1-\rho}\,\boldsymbol{v}_{j}
+#'   }{
+#'     \bigl\|
+#'       \sqrt{\rho}\,\boldsymbol{u}
+#'       +\sqrt{1-\rho}\,\boldsymbol{v}_{j}
+#'     \bigr\|_2
+#'   },
+#' }
+#' where \eqn{\boldsymbol{v}_{j}} is high on the gene block of type \eqn{j}
+#' and low elsewhere, \eqn{\boldsymbol{u}} is the shared (uniform) direction,
+#' \eqn{\rho\in[0,1]} is \code{target_cosine}, and \eqn{s>0} is
+#' \code{mean_scale}. Small \eqn{\rho} yields nearly complementary centroids;
+#' large \eqn{\rho} recovers collinear profiles; small \eqn{s} recovers the
+#' noise-sensitive low-distance regime.
 #'
-#' @param mean_matrix Numeric matrix (populations mean_signature_matrix genes).
-#' @param library_size Positive numeric scalar.
-#' @param alpha Positive numeric scalar, power parameter.
+#' @param n_genes Integer \eqn{G}; must be at least \code{n_celltypes}.
+#' @param n_celltypes Integer \eqn{J\ge 2}.
+#' @param mean_scale Positive scalar \eqn{s} controlling centroid norms
+#'   (hence Euclidean separation).
+#' @param target_cosine Numeric in \eqn{[0,1]}, collinearity dial
+#'   \eqn{\rho}.
+#' @param gene_names Optional character vector of length \eqn{G}.
+#' @param celltype_names Optional character vector of length \eqn{J}.
+#' @param background_level Positive background level on non-marker genes
+#'   within each private direction (default \code{0.05}).
 #'
-#' @return A numeric matrix of the same dimensions as \code{mean_matrix}.
+#' @return Numeric matrix \eqn{\boldsymbol{\mu}} with dimensions
+#'   \eqn{G\times J}.
 #'
 #' @keywords internal
 #' @noRd
-compute_marginal_variances <- function(mean_matrix, library_size, alpha) {
-  variance_matrix <- mean_matrix + (mean_matrix^alpha) / library_size
-  variance_matrix <- pmax(variance_matrix, .Machine$double.eps)
-  dimnames(variance_matrix) <- dimnames(mean_matrix)
-  variance_matrix
+generate_mean_signature_matrix <- function(
+  n_genes,
+  n_celltypes,
+  mean_scale,
+  target_cosine = 0,
+  gene_names = NULL,
+  celltype_names = NULL,
+  background_level = 0.05
+) {
+  if (n_genes < n_celltypes) {
+    stop("`n_genes` must be at least `n_celltypes`.")
+  }
+  if (n_celltypes < 2L) {
+    stop("`n_celltypes` must be at least 2.")
+  }
+  if (mean_scale <= 0) {
+    stop("`mean_scale` must be positive.")
+  }
+  if (target_cosine < 0 || target_cosine > 1) {
+    stop("`target_cosine` must lie in [0, 1].")
+  }
+  if (background_level <= 0) {
+    stop("`background_level` must be positive.")
+  }
+
+  if (is.null(gene_names)) {
+    gene_names <- paste0("gene_", seq_len(n_genes))
+  }
+  if (is.null(celltype_names)) {
+    celltype_names <- paste0("celltype_", seq_len(n_celltypes))
+  }
+
+  shared_direction <- rep(1 / sqrt(n_genes), n_genes)
+
+  block_size <- n_genes %/% n_celltypes
+  remainder <- n_genes - block_size * n_celltypes
+  private_directions <- matrix(
+    background_level,
+    nrow = n_genes,
+    ncol = n_celltypes
+  )
+  start_idx <- 1L
+  for (j in seq_len(n_celltypes)) {
+    len_j <- block_size + if (j <= remainder) 1L else 0L
+    idx <- start_idx:(start_idx + len_j - 1L)
+    private_directions[idx, j] <- 1
+    private_directions[, j] <- private_directions[, j] /
+      sqrt(sum(private_directions[, j]^2))
+    start_idx <- start_idx + len_j
+  }
+
+  sqrt_rho <- sqrt(target_cosine)
+  sqrt_one_minus_rho <- sqrt(1 - target_cosine)
+
+  mean_signature_matrix <- matrix(
+    NA_real_,
+    nrow = n_genes,
+    ncol = n_celltypes,
+    dimnames = list(gene_names, celltype_names)
+  )
+  for (j in seq_len(n_celltypes)) {
+    direction <- sqrt_rho *
+      shared_direction +
+      sqrt_one_minus_rho * private_directions[, j]
+    direction <- direction / sqrt(sum(direction^2))
+    mean_signature_matrix[, j] <- mean_scale * direction
+  }
+
+  mean_signature_matrix
 }
 
 
 #' Sample a symmetric adjacency matrix from a random graph model
 #'
-#' Wraps \pkg{igraph} generators for either a Barabási--Albert
+#' Wraps \pkg{igraph} generators for either a Barabási–Albert
 #' (preferential-attachment / power-law) graph or a stochastic block
 #' model.
 #'
@@ -133,8 +178,8 @@ compute_marginal_variances <- function(mean_matrix, library_size, alpha) {
 #' @param graph_params Named list of model-specific parameters (see
 #'   \code{\link{simulate_hierarchical_grn_moments}} for details).
 #'
-#' @return A symmetric integer matrix of dimension \code{n_genes mean_signature_matrix
-#'   n_genes} with zero diagonal.
+#' @return A symmetric integer matrix of dimension \eqn{G\times G} with
+#'   zero diagonal.
 #'
 #' @keywords internal
 #' @noRd
@@ -217,8 +262,11 @@ generate_random_network_skeleton <- function(
 #' Applies an affine transformation to the adjacency matrix so that the
 #' resulting precision matrix is symmetric positive-definite:
 #' \deqn{
-#'   \tilde\Omega = A \odot v, \quad
-#'   \Omega = \tilde\Omega + (\lvert\lambda_{\min}(\tilde\Omega)\rvert + u)\,I
+#'   \tilde{\boldsymbol{\Omega}} = \boldsymbol{A} \odot v, \quad
+#'   \boldsymbol{\Omega}
+#'   = \tilde{\boldsymbol{\Omega}}
+#'   + \bigl(\lvert\lambda_{\min}(\tilde{\boldsymbol{\Omega}})\rvert + u\bigr)
+#'     \mathbf{I}
 #' }
 #'
 #' @param adjacency_matrix Symmetric binary matrix.
@@ -243,270 +291,170 @@ build_normalised_precision <- function(
 }
 
 
-#' Scale a shared correlation structure by population-specific variances
+#' Replicate a shared precision as cell-type covariances
 #'
-#' Given a normalised precision matrix \eqn{\Omega} (shared across
-#' populations), computes the correlation matrix
-#' \eqn{R = \mathrm{cov2cor}(\Omega^{-1})} and then builds
-#' population-specific covariance matrices
-#' \eqn{\Sigma_k = D_k^{1/2}\,R\,D_k^{1/2}} where
-#' \eqn{D_k = \mathrm{diag}(\sigma_{k,1}^2, \ldots, \sigma_{k,p}^2)}.
+#' Inverts \eqn{\boldsymbol{\Omega}} to
+#' \eqn{\boldsymbol{\Sigma}=\boldsymbol{\Omega}^{-1}} and stacks the same
+#' covariance for each of the \eqn{J} cell types, matching the article's
+#' shared graph-constrained second-order structure.
 #'
-#' @param normalised_precision Symmetric positive-definite matrix
-#'   (p mean_signature_matrix p).
-#' @param variance_matrix Numeric matrix (n_populations mean_signature_matrix p) of
-#'   marginal variances.
-#' @param population_names Character vector of population identifiers.
-#' @param gene_names Character vector of gene identifiers.
+#' @param normalised_precision Symmetric positive-definite
+#'   \eqn{\boldsymbol{\Omega}\in\mathcal{M}_{G\times G}}.
+#' @param celltype_names Character vector of length \eqn{J}.
+#' @param gene_names Character vector of length \eqn{G}.
 #'
-#' @return A three-dimensional numeric array of dimension
-#'   (p mean_signature_matrix p mean_signature_matrix n_populations).
+#' @return Numeric array of dimension \eqn{G\times G\times J}.
 #'
 #' @keywords internal
 #' @noRd
-build_precision_matrix <- function(
+build_shared_covariance_array <- function(
   normalised_precision,
-  variance_matrix,
-  population_names,
+  celltype_names,
   gene_names
 ) {
   n_genes <- nrow(normalised_precision)
-  n_populations <- nrow(variance_matrix)
-
-  correlation_matrix <- stats::cov2cor(solve(normalised_precision))
+  n_celltypes <- length(celltype_names)
+  sigma <- solve(normalised_precision)
+  sigma <- (sigma + t(sigma)) / 2
 
   covariance_array <- array(
     NA_real_,
-    dim = c(n_genes, n_genes, n_populations),
-    dimnames = list(gene_names, gene_names, population_names)
+    dim = c(n_genes, n_genes, n_celltypes),
+    dimnames = list(gene_names, gene_names, celltype_names)
   )
-
-  for (k in seq_len(n_populations)) {
-    sd_vector <- sqrt(variance_matrix[k, ])
-    scale_matrix <- diag(sd_vector, nrow = n_genes)
-    cov_k <- scale_matrix %*% correlation_matrix %*% scale_matrix
-    cov_k <- (cov_k + t(cov_k)) / 2
-    min_ev <- min(eigen(cov_k, symmetric = TRUE, only.values = TRUE)$values)
-    if (min_ev < .Machine$double.eps) {
-      diag(cov_k) <- diag(cov_k) + (abs(min_ev) + .Machine$double.eps)
-    }
-    covariance_array[,, k] <- cov_k
+  for (j in seq_len(n_celltypes)) {
+    covariance_array[,, j] <- sigma
   }
-
   covariance_array
 }
 
 
-# ---- main exported function ----------------------------------------------
-
-#' Simulate hierarchical GRN first- and second-order moments
+#' Simulate GRN first- and second-order moments
 #'
 #' @description
-#' Builds mean matrices \eqn{\boldsymbol{\mu}} and covariance arrays
-#' \eqn{(\boldsymbol{\Sigma}_j)} for parent/child cell populations under a
-#' graph-constrained precision model. Parent means use complementary block
-#' structure; child means are
-#' \eqn{\boldsymbol{\mu}^{(k)}=\boldsymbol{\mu}^{(\mathrm{parent})}+\boldsymbol{\delta}^{(k)}}
-#' with \eqn{\boldsymbol{\delta}^{(k)}\sim\mathcal{N}(\mathbf{0},\sigma_\delta^{2}\mathbf{I})}.
-#' Marginal variances follow
-#' \eqn{\sigma_g^{2}=\mu_g+\mu_g^{\alpha}/L}; covariances are obtained from a
-#' shared normalised precision \eqn{\boldsymbol{\Omega}} via
-#' \eqn{\boldsymbol{\Sigma}_k=\mathbf{D}_k^{1/2}\mathbf{R}\mathbf{D}_k^{1/2}} with
-#' \eqn{\mathbf{R}=\mathrm{cov2cor}(\boldsymbol{\Omega}^{-1})}.
+#' Builds a mean matrix \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}}
+#' and a shared covariance array \eqn{(\boldsymbol{\Sigma}_j)_{j}} under a
+#' graph-constrained precision model. Means follow the AutoGeneS-inspired
+#' construction of `generate_mean_signature_matrix()` with target pairwise
+#' cosine similarity \eqn{\rho} and column scale \eqn{s}, so that one can
+#' dial collinearity (minimise cosine) against centroid separation
+#' (maximise Euclidean distance). The adjacency
+#' \eqn{\boldsymbol{A}} is drawn from a random-graph model; the precision
+#' \eqn{\boldsymbol{\Omega}} is obtained via the affine spectral shift
+#' of `build_normalised_precision()`, and each cell type shares
+#' \eqn{\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}^{-1}}.
 #'
-#' @param n_expressed_genes Integer; expressed genes per parent block
-#'   (total dimension \eqn{G=2\times} `n_expressed_genes`).
-#' @param mean_lower_expressed,mean_upper_expressed Uniform bounds for expressed
-#'   block means.
-#' @param mean_lower_background,mean_upper_background Uniform bounds for
-#'   background block means.
-#' @param library_size Positive scalar \eqn{L} in the mean–variance law.
-#' @param alpha Positive power in \eqn{\mu_g^{\alpha}/L} (`2` recovers a
-#'   classical NB-like law).
-#' @param precision_shift,precision_scale Diagonal shift \eqn{u} and off-diagonal
-#'   scale \eqn{v} used to build \eqn{\boldsymbol{\Omega}}.
-#' @param child_perturbation_sd Standard deviation \eqn{\sigma_\delta}.
+#' @param n_genes Integer; number of genes \eqn{G}.
+#' @param n_celltypes Integer; number of cell types \eqn{J} (default 2).
+#' @param mean_scale Positive scalar \eqn{s} for centroid norms.
+#' @param target_cosine Numeric in \eqn{[0,1]}; target pairwise cosine
+#'   similarity between columns of \eqn{\boldsymbol{\mu}}.
+#' @param precision_shift,precision_scale Diagonal shift \eqn{u} and
+#'   off-diagonal scale \eqn{v} used to build \eqn{\boldsymbol{\Omega}}.
 #' @param graph_model `"power_law"` or `"stochastic_block_model"`.
-#' @param graph_params Named list of generator parameters (see Details in source
-#'   for `power` / `edges_per_node` or `block_prob` / `p_within` / `p_between`).
+#' @param graph_params Named list of generator parameters:
+#'   `power` / `edges_per_node` (power-law) or
+#'   `block_prob` / `p_within` / `p_between` (SBM).
 #'
-#' @return Named list with `parent_parameters`, `child_parameters` (each holding
-#'   `mean_profiles` \eqn{\boldsymbol{\mu}} and `covariance_matrices`
-#'   \eqn{(\boldsymbol{\Sigma}_j)}), and `graph_structure`
-#'   (`adjacency_matrix`, `normalised_precision` \eqn{\boldsymbol{\Omega}}).
+#' @return Named list with:
+#' * `mean_profiles`: matrix \eqn{\boldsymbol{\mu}};
+#' * `covariance_matrices`: array
+#'   \eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}};
+#' * `graph_structure`: `adjacency_matrix` and `normalised_precision`
+#'   \eqn{\boldsymbol{\Omega}};
+#' * `objectives`: `mean_abs_cosine` and `sum_euclidean_distance`.
 #'
 #' @examples
 #' set.seed(42)
 #' moments <- simulate_hierarchical_grn_moments(
-#'     n_expressed_genes     = 50,
-#'     mean_lower_expressed  = 2,
-#'     mean_upper_expressed  = 6,
-#'     mean_lower_background = 0.1,
-#'     mean_upper_background = 0.5,
-#'     library_size          = 10000,
-#'     alpha                 = 2,
-#'     precision_shift       = 0.1,
-#'     precision_scale       = 0.3,
-#'     child_perturbation_sd = 0.1,
-#'     graph_model           = "power_law",
-#'     graph_params          = list(power = 1, edges_per_node = 2)
+#'   n_genes = 40L,
+#'   n_celltypes = 3L,
+#'   mean_scale = 10,
+#'   target_cosine = 0.1,
+#'   precision_shift = 0.1,
+#'   precision_scale = 0.3,
+#'   graph_model = "power_law",
+#'   graph_params = list(power = 1, edges_per_node = 2)
 #' )
 #' str(moments, max.level = 2)
 #'
-#' ## Verify positive-definiteness of a child covariance
+#' ## Verify positive-definiteness of the shared covariance
 #' eigen_vals <- eigen(
-#'     moments$child_parameters$covariance_matrices[, , 1],
-#'     only.values = TRUE
+#'   moments$covariance_matrices[, , 1],
+#'   only.values = TRUE
 #' )$values
 #' stopifnot(all(eigen_vals > 0))
 #'
 #' @importFrom igraph sample_pa sample_sbm as_adjacency_matrix
 #'   as_undirected
-#' @importFrom stats runif rnorm rmultinom cov2cor
+#' @importFrom stats rmultinom
 #'
 #' @export
 simulate_hierarchical_grn_moments <- function(
-  n_expressed_genes,
-  mean_lower_expressed,
-  mean_upper_expressed,
-  mean_lower_background,
-  mean_upper_background,
-  library_size,
-  alpha,
+  n_genes,
+  n_celltypes = 2L,
+  mean_scale = 10,
+  target_cosine = 0,
   precision_shift,
   precision_scale,
-  child_perturbation_sd,
   graph_model = c("power_law", "stochastic_block_model"),
   graph_params = list()
 ) {
-  ## --- input validation ------------------------------------------------
-
   graph_model <- match.arg(graph_model)
+  n_genes <- as.integer(n_genes)
+  n_celltypes <- as.integer(n_celltypes)
 
-  if (
-    !is.numeric(n_expressed_genes) ||
-      length(n_expressed_genes) != 1L ||
-      n_expressed_genes < 2L
-  ) {
-    stop("'n_expressed_genes' must be a single integer >= 2.", call. = FALSE)
-  }
-
-  if (mean_lower_expressed >= mean_upper_expressed) {
-    stop(
-      "'mean_lower_expressed' must be strictly less than ",
-      "'mean_upper_expressed'.",
-      call. = FALSE
-    )
-  }
-  if (mean_lower_background >= mean_upper_background) {
-    stop(
-      "'mean_lower_background' must be strictly less than ",
-      "'mean_upper_background'.",
-      call. = FALSE
-    )
-  }
-  if (library_size < 0) {
-    stop("'library_size' must be positive, or null", call. = FALSE)
-  }
-  if (alpha <= 0) {
-    stop("'alpha' must be positive.", call. = FALSE)
+  if (n_genes < n_celltypes) {
+    stop("`n_genes` must be at least `n_celltypes`.")
   }
   if (precision_shift <= 0 || precision_scale <= 0) {
-    stop(
-      "'precision_shift' and 'precision_scale' must both be ",
-      "positive.",
-      call. = FALSE
-    )
-  }
-  if (child_perturbation_sd <= 0) {
-    stop("'child_perturbation_sd' must be positive.", call. = FALSE)
+    stop("`precision_shift` and `precision_scale` must be positive.")
   }
 
-  ## --- identifiers -----------------------------------------------------
+  gene_names <- paste0("gene_", seq_len(n_genes))
+  celltype_names <- paste0("celltype_", seq_len(n_celltypes))
 
-  n_total_genes <- 2L * n_expressed_genes
-  gene_names <- paste0("gene_", seq_len(n_total_genes))
-  parent_names <- c("parent_1", "parent_2")
-  child_names <- c(
-    "parent_1_child_a",
-    "parent_1_child_b",
-    "parent_2_child_a",
-    "parent_2_child_b"
-  )
-
-  ## --- step 1: hierarchical mean profiles ------------------------------
-
-  mean_profiles <- generate_mean_profiles(
-    n_expressed_genes = n_expressed_genes,
-    mean_lower_expressed = mean_lower_expressed,
-    mean_upper_expressed = mean_upper_expressed,
-    mean_lower_background = mean_lower_background,
-    mean_upper_background = mean_upper_background,
-    child_perturbation_sd = child_perturbation_sd,
+  ## --- step 1: AutoGeneS-inspired mean profiles ------------------------
+  mean_profiles <- generate_mean_signature_matrix(
+    n_genes = n_genes,
+    n_celltypes = n_celltypes,
+    mean_scale = mean_scale,
+    target_cosine = target_cosine,
     gene_names = gene_names,
-    parent_names = parent_names,
-    child_names = child_names
+    celltype_names = celltype_names
   )
+  objectives <- compute_mean_profile_objectives(mean_profiles)
 
-  ## --- step 2: NB-like marginal variances ------------------------------
-
-  parent_variances <- compute_marginal_variances(
-    mean_matrix = mean_profiles$parent_means,
-    library_size = library_size,
-    alpha = alpha
-  )
-  child_variances <- compute_marginal_variances(
-    mean_matrix = mean_profiles$child_means,
-    library_size = library_size,
-    alpha = alpha
-  )
-
-  ## --- step 3: random graph adjacency matrix ---------------------------
-
+  ## --- step 2: random-graph adjacency ----------------------------------
   adjacency_matrix <- generate_random_network_skeleton(
-    n_genes = n_total_genes,
+    n_genes = n_genes,
     graph_model = graph_model,
     graph_params = graph_params
   )
   rownames(adjacency_matrix) <- gene_names
   colnames(adjacency_matrix) <- gene_names
 
-  ## --- step 4: normalised precision → covariance arrays ----------------
-
+  ## --- step 3: normalised precision and shared covariances -------------
   normalised_precision <- build_normalised_precision(
     adjacency_matrix = adjacency_matrix,
     precision_shift = precision_shift,
     precision_scale = precision_scale
   )
+  dimnames(normalised_precision) <- list(gene_names, gene_names)
 
-  parent_covariances <- build_precision_matrix(
+  covariance_matrices <- build_shared_covariance_array(
     normalised_precision = normalised_precision,
-    variance_matrix = parent_variances,
-    population_names = parent_names,
+    celltype_names = celltype_names,
     gene_names = gene_names
   )
-
-  child_covariances <- build_precision_matrix(
-    normalised_precision = normalised_precision,
-    variance_matrix = child_variances,
-    population_names = child_names,
-    gene_names = gene_names
-  )
-
-  ## --- assemble output -------------------------------------------------
 
   list(
-    parent_parameters = list(
-      mean_profiles = mean_profiles$parent_means,
-      covariance_matrices = parent_covariances
-    ),
-    child_parameters = list(
-      mean_profiles = mean_profiles$child_means,
-      covariance_matrices = child_covariances
-    ),
+    mean_profiles = mean_profiles,
+    covariance_matrices = covariance_matrices,
     graph_structure = list(
       adjacency_matrix = adjacency_matrix,
       normalised_precision = normalised_precision
-    )
+    ),
+    objectives = objectives
   )
 }

@@ -1,0 +1,24 @@
+flowchart TD
+  subgraph means ["Mean profiles (AutoGeneS-inspired)"]
+    P1["target_cosine ρ / mean_scale s"] --> GM["generate_mean_signature_matrix()"]
+    GM --> MU["μ"]
+    MU --> OBJ["compute_mean_profile_objectives()"]
+    OBJ --> SCORE["mean |cosine| and Euclidean distances"]
+  end
+
+  subgraph network ["Graph-constrained second order"]
+    P2["graph_model / graph_params"] --> SK["generate_random_network_skeleton()"]
+    SK --> A["A binary adjacency"]
+    A --> BP["build_normalised_precision(u, v)"]
+    BP --> OM["Omega positive definite"]
+    OM --> CV["build_shared_covariance_array()"]
+    CV --> SIG["Sigma_j = Omega inverse"]
+  end
+
+  MU --> MAIN["simulate_hierarchical_grn_moments()"]
+  SIG --> MAIN
+  SCORE --> MAIN
+  MAIN --> MOM["moments: mu, Sigma, Omega, A"]
+  MOM --> BULK["simulate_bulk_mixture()"]
+  BULK --> Y["Y bulk matrix"]
+  Y --> DEC["deconvolute_ratios()"]

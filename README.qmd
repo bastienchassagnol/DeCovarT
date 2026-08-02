@@ -195,7 +195,10 @@ $$
 ```{r}
 #| echo: false
 #| results: asis
-mmd <- paste(readLines("man/figures/decovart_constrained_dag.mmd"), collapse = "\n")
+mmd <- paste(
+  readLines("man/figures/decovart_constrained_dag.mmd"),
+  collapse = "\n"
+)
 cat("```mermaid\n", mmd, "\n```\n", sep = "")
 ```
 
@@ -255,5 +258,3 @@ autozyme::list_patches(installed = TRUE)
 autozyme::activate(c("seurat", "wgcna"))
 autozyme::inspect("seurat")
 # Off again: Sys.setenv(AUTOZYME_DISABLED = "1")
-#            or autozyme::with_disabled({ ... })  # see usage guide §6
-```
