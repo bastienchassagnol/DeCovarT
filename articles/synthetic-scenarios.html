@@ -99,7 +99,7 @@
 
     <section class="section level2"><h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p>This vignette documents the synthetic first- and second-order moment generator <code><a href="../reference/simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments()</a></code> and how its outputs feed bulk mixture simulation. Mean profiles are constructed so that pairwise collinearity and centroid separation can be dialled independently, following the AutoGeneS multi-objective rationale of <span class="citation" data-cites="aliee_theis21">Aliee and Theis (<a href="#ref-aliee_theis21" role="doc-biblioref">2021</a>)</span>: minimise correlation (here, cosine similarity) between cell-type columns of <span class="math inline">\(\boldsymbol{\mu}\)</span> while maximising their pairwise Euclidean distances. Covariances share a graph-constrained precision <span class="math inline">\(\boldsymbol{\Omega}\)</span>, mapped to <span class="math inline">\(\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}^{-1}\)</span>.</p>
+<p>This vignette documents the synthetic first- and second-order moment generator <code><a href="../reference/simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments()</a></code> and how its outputs feed bulk mixture simulation. Mean profiles are constructed so that pairwise collinearity and centroid separation can be dialled independently, following the AutoGeneS multi-objective rationale of <span class="citation" data-cites="aliee_theis21">Aliee, Hananeh and Theis, Fabian J. (<a href="#ref-aliee_theis21" role="doc-biblioref">2021</a>)</span>: minimise correlation (here, cosine similarity) between cell-type columns of <span class="math inline">\(\boldsymbol{\mu}\)</span> while maximising their pairwise Euclidean distances. Covariances share a graph-constrained precision <span class="math inline">\(\boldsymbol{\Omega}\)</span>, mapped to <span class="math inline">\(\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}^{-1}\)</span>.</p>
 </section><section class="section level2"><h2 id="pipeline-api">Pipeline API<a class="anchor" aria-label="anchor" href="#pipeline-api"></a>
 </h2>
 <p>The exported entry point orchestrates internal helpers and returns moments that can be passed to <code><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code> and then to any deconvolution routine exposed by <code><a href="../reference/deconvolute_ratios.html">deconvolute_ratios()</a></code>.</p>
@@ -159,7 +159,7 @@
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">bulk</span><span class="op">$</span><span class="va">Y</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 40 20</span></span></code></pre></div>
 </div>
-<p>Selecting genes (or, here, designing <span class="math inline">\(\boldsymbol{\mu}\)</span>) by cosine alone is insufficient for stable deconvolution <span class="citation" data-cites="aliee_theis21">(<a href="#ref-aliee_theis21" role="doc-biblioref">Aliee and Theis 2021</a>)</span>: low Euclidean separation makes ratio estimates noise-sensitive, and collinear centroids inflate variance of <span class="math inline">\(\hat{\boldsymbol{p}}\)</span>. The two knobs <code>target_cosine</code> and <code>mean_scale</code> map onto that trade-off without running a genetic algorithm at simulation time.</p>
+<p>Selecting genes (or, here, designing <span class="math inline">\(\boldsymbol{\mu}\)</span>) by cosine alone is insufficient for stable deconvolution <span class="citation" data-cites="aliee_theis21">(<a href="#ref-aliee_theis21" role="doc-biblioref">Aliee, Hananeh and Theis, Fabian J. 2021</a>)</span>: low Euclidean separation makes ratio estimates noise-sensitive, and collinear centroids inflate variance of <span class="math inline">\(\hat{\boldsymbol{p}}\)</span>. The two knobs <code>target_cosine</code> and <code>mean_scale</code> map onto that trade-off without running a genetic algorithm at simulation time.</p>
 </section><section class="section level2"><h2 id="mathematical-roles-of-the-generators">Mathematical roles of the generators<a class="anchor" aria-label="anchor" href="#mathematical-roles-of-the-generators"></a>
 </h2>
 <section class="level2"><h3 id="mean-signature-generate_mean_signature_matrix">Mean signature: <code>generate_mean_signature_matrix()</code>
@@ -208,7 +208,7 @@ D_{\mathrm{Euc}}
 \sum_{1\le j&lt;k\le J}
 \|\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\|_2.
 \]</span></p>
-<p>AutoGeneS treats the first as a quantity to minimise and the second as a quantity to maximise <span class="citation" data-cites="aliee_theis21">(<a href="#ref-aliee_theis21" role="doc-biblioref">Aliee and Theis 2021</a>)</span>. Cosine is preferred to Pearson correlation so that collinear but unequally scaled profiles remain penalised.</p>
+<p>AutoGeneS treats the first as a quantity to minimise and the second as a quantity to maximise <span class="citation" data-cites="aliee_theis21">(<a href="#ref-aliee_theis21" role="doc-biblioref">Aliee, Hananeh and Theis, Fabian J. 2021</a>)</span>. Cosine is preferred to Pearson correlation so that collinear but unequally scaled profiles remain penalised.</p>
 </section><section class="level2"><h3 id="network-skeleton-generate_random_network_skeleton">Network skeleton: <code>generate_random_network_skeleton()</code>
 <a class="anchor" aria-label="anchor" href="#network-skeleton-generate_random_network_skeleton"></a>
 </h3>
@@ -273,7 +273,7 @@ V(\boldsymbol{\mu})
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-aliee_theis21" class="csl-entry" role="listitem">
-Aliee, Hananeh, and Fabian J. Theis. 2021. <span>‘<span class="nocase">AutoGeneS: Automatic Gene Selection Using Multi-Objective Optimization for RNA-seq Deconvolution</span>’</span>. <em>Cell Systems</em> 12 (7): 706–15. <a href="https://doi.org/10.1016/j.cels.2021.05.006" class="external-link">https://doi.org/10.1016/j.cels.2021.05.006</a>.
+Aliee, Hananeh and Theis, Fabian J. 2021. <span>‘<span class="nocase">AutoGeneS: Automatic Gene Selection Using Multi-Objective Optimization for RNA-seq Deconvolution</span>’</span>. <em><span>Cell Systems</span></em>, ahead of print. <a href="https://doi.org/10.1016/j.cels.2021.05.006" class="external-link">https://doi.org/10.1016/j.cels.2021.05.006</a>.
 </div>
 </div>
 </section><script id="quarto-html-after-body" type="application/javascript">

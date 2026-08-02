@@ -105,7 +105,8 @@ metrics are computed by
 - `deconvolute_ratios_lsfit()`: Ordinary least squares for
   \\\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}\\
   ([`stats::lsfit()`](https://rdrr.io/r/stats/lsfit.html)), following
-  Abbas et al. (2009) ; estimates are projected back onto the simplex.
+  Abbas, Alexander R. and Wolslegel, Kristen and others (2009) ;
+  estimates are projected back onto the simplex.
 
 - `deconvolute_ratios_rlm()`: Robust linear model
   \\\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}\\
@@ -143,18 +144,18 @@ metrics are computed by
 
 ## References
 
-Abbas AR, Wolslegel K, Seshasayee D, Modrusan Z, Clark HF (2009).
-“Deconvolution of blood microarray data identifies cellular activation
-patterns in systemic lupus erythematosus.” *PloS One*.
+Abbas, Alexander R. and Wolslegel, Kristen and others (2009).
+“Deconvolution of Blood Microarray Data Identifies Cellular Activation
+Patterns in Systemic Lupus Erythematosus.” *PloS One*.
 [doi:10.1371/journal.pone.0006098](https://doi.org/10.1371/journal.pone.0006098)
-. <http://www.ncbi.nlm.nih.gov/pubmed/19568420>.  
+.  
   
-Monaco G, Lee B, Xu W, Mustafah S, Hwang YY, Carré C, Burdin N, Visan L,
-Ceccarelli M, Poidinger M, Zippelius A, Pedro de Magalhães J, Larbi A
+Monaco G, Lee B, Xu W, Mustafah S, Hwang YY, Carre C, Burdin N, Visan L,
+Ceccarelli M, Poidinger M, Zippelius A, Pedro de Magalhaes J, Larbi A
 (2019). “RNA-Seq Signatures Normalized by mRNA Abundance Allow Absolute
 Deconvolution of Human Immune Cell Types.” *Cell Reports*.
 [doi:10.1016/j.celrep.2019.01.041](https://doi.org/10.1016/j.celrep.2019.01.041)
-. <https://www.sciencedirect.com/science/article/pii/S2211124719300592>.
+.
 
 ## See also
 

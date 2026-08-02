@@ -49,8 +49,9 @@ Two practical workflows appear repeatedly:
 
 1.  **Seeds then expand** — select a small discriminating gene set
     (e.g. low condition number / high centroid separation, in the spirit
-    of Aliee and Theis ([2021](#ref-aliee_theis21))), then grow a
-    prior-informed network with tools such as NeKo ([Ruscone et al.
+    of Aliee, Hananeh and Theis, Fabian J.
+    ([2021](#ref-aliee_theis21))), then grow a prior-informed network
+    with tools such as NeKo ([Ruscone et al.
     2025](#ref-ruscone_etal25)).
 2.  **Structure then parameters** — estimate a sparse skeleton (glasso,
     NeighbourNet, CeSpGRN), then fit continuous weights, possibly under
@@ -180,9 +181,9 @@ increasing ambition:
 
 ## References
 
-Aliee, Hananeh, and Fabian J. Theis. 2021. ‘AutoGeneS: Automatic Gene
-Selection Using Multi-Objective Optimization for RNA-Seq Deconvolution’.
-*Cell Systems* 12 (7): 706–15.
+Aliee, Hananeh and Theis, Fabian J. 2021. ‘AutoGeneS: Automatic Gene
+Selection Using Multi-Objective Optimization for RNA-seq Deconvolution’.
+*Cell Systems*, ahead of print.
 <https://doi.org/10.1016/j.cels.2021.05.006>.
 
 Badia-i-Mompel, Pau, Lorna Wessels, Sophia Müller-Dott, et al. 2023.

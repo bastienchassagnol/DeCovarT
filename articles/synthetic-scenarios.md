@@ -8,9 +8,9 @@ generator
 and how its outputs feed bulk mixture simulation. Mean profiles are
 constructed so that pairwise collinearity and centroid separation can be
 dialled independently, following the AutoGeneS multi-objective rationale
-of Aliee and Theis ([2021](#ref-aliee_theis21)): minimise correlation
-(here, cosine similarity) between cell-type columns of
-\\\boldsymbol{\mu}\\ while maximising their pairwise Euclidean
+of Aliee, Hananeh and Theis, Fabian J. ([2021](#ref-aliee_theis21)):
+minimise correlation (here, cosine similarity) between cell-type columns
+of \\\boldsymbol{\mu}\\ while maximising their pairwise Euclidean
 distances. Covariances share a graph-constrained precision
 \\\boldsymbol{\Omega}\\, mapped to
 \\\boldsymbol{\Sigma}\_j=\boldsymbol{\Omega}^{-1}\\.
@@ -84,12 +84,12 @@ dim(bulk$Y)
 ```
 
 Selecting genes (or, here, designing \\\boldsymbol{\mu}\\) by cosine
-alone is insufficient for stable deconvolution ([Aliee and Theis
-2021](#ref-aliee_theis21)): low Euclidean separation makes ratio
-estimates noise-sensitive, and collinear centroids inflate variance of
-\\\hat{\boldsymbol{p}}\\. The two knobs `target_cosine` and `mean_scale`
-map onto that trade-off without running a genetic algorithm at
-simulation time.
+alone is insufficient for stable deconvolution ([Aliee, Hananeh and
+Theis, Fabian J. 2021](#ref-aliee_theis21)): low Euclidean separation
+makes ratio estimates noise-sensitive, and collinear centroids inflate
+variance of \\\hat{\boldsymbol{p}}\\. The two knobs `target_cosine` and
+`mean_scale` map onto that trade-off without running a genetic algorithm
+at simulation time.
 
 ## Mathematical roles of the generators
 
@@ -124,9 +124,9 @@ For columns of \\\boldsymbol{\mu}\\,
 j}-\boldsymbol{\mu}\_{\cdot k}\\\_2. \\
 
 AutoGeneS treats the first as a quantity to minimise and the second as a
-quantity to maximise ([Aliee and Theis 2021](#ref-aliee_theis21)).
-Cosine is preferred to Pearson correlation so that collinear but
-unequally scaled profiles remain penalised.
+quantity to maximise ([Aliee, Hananeh and Theis, Fabian J.
+2021](#ref-aliee_theis21)). Cosine is preferred to Pearson correlation
+so that collinear but unequally scaled profiles remain penalised.
 
 ### Network skeleton: `generate_random_network_skeleton()`
 
@@ -207,7 +207,7 @@ diagnostics.
 
 ## References
 
-Aliee, Hananeh, and Fabian J. Theis. 2021. ‘AutoGeneS: Automatic Gene
+Aliee, Hananeh and Theis, Fabian J. 2021. ‘AutoGeneS: Automatic Gene
 Selection Using Multi-Objective Optimization for RNA-seq Deconvolution’.
-*Cell Systems* 12 (7): 706–15.
+*Cell Systems*, ahead of print.
 <https://doi.org/10.1016/j.cels.2021.05.006>.
