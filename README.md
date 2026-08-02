@@ -35,7 +35,7 @@ in parallel and returns estimated proportions plus optional benchmark metrics.
 
 ## Pipeline Architecture
 
-```mermaid
+``` mermaid
 flowchart TD
     A["Bulk RNA-seq mixture<br/>Genes × Samples"] --> C["Gene intersection,<br/>optional scaling"]
     B["Cell-type reference<br/>Means μ_j + covariances Σ_j"] --> C
@@ -83,7 +83,7 @@ All of the above ship with the package (no extra method packages required).
 
 Install the development version from GitHub with [{pak}](https://pak.r-lib.org/):
 
-```r
+``` r
 if (!requireNamespace("pak", quietly = TRUE)) {
   install.packages(
     "pak",
@@ -100,7 +100,7 @@ pak::pkg_install("bastienchassagnol/DeCovarT")
 
 Alternatively with `{remotes}`:
 
-```r
+``` r
 # install.packages("remotes")
 remotes::install_github("bastienchassagnol/DeCovarT")
 ```
@@ -110,7 +110,7 @@ remotes::install_github("bastienchassagnol/DeCovarT")
 Contributors should install [pre-commit](https://pre-commit.com) hooks (Air
 formatting, {lintr}, parsable R, README sync). From R:
 
-```r
+``` r
 # install.packages(c("precommit", "lintr"))
 precommit::install_precommit()
 precommit::use_precommit()
@@ -118,7 +118,7 @@ precommit::use_precommit()
 
 Or from the shell (after `pre-commit` is on `PATH`):
 
-```bash
+``` bash
 pre-commit install
 pre-commit run --all-files
 ```
@@ -177,7 +177,7 @@ $$
 \Bigr).
 $$
 
-```mermaid
+``` mermaid
 %%{init: {
   "theme": "base",
   "themeVariables": {
@@ -238,7 +238,7 @@ DAG panels in Fig.~DAG-model are drawn with [`tikz-bayesnet`](https://ctan.org/p
 
 From the repository root, generate `article/main.pdf` with:
 
-```sh
+``` sh
 cd article
 latexmk -pdf -interaction=nonstopmode -file-line-error -synctex=1 main.tex
 ```
@@ -250,24 +250,11 @@ Auxiliaries are removed automatically after a successful build
 (`latex-workshop.latex.autoClean.run`: `onSucceeded`). Manual clean: Command Palette
 → **“LaTeX Workshop: Clean up auxiliary files”**.
 
-## Regenerating this README
-
-Edit `README.qmd` (and optionally `man/figures/decovart_constrained_dag.mmd`), then run:
-
-```sh
-quarto render README.qmd
-./scripts/fix_readme_fences.sh README.md
-```
-
-This overwrites `README.md` (GitHub Flavoured Markdown).
-The fence-fix script removes the space Pandoc inserts after code-fence
-language tags (needed for GitHub Mermaid rendering).
-
-## Project structure
+# Project structure
 
 Package function call graph (DeCovarT → DeCovarT edges only):
 
-```html
+``` html
 <iframe
   src="output/package_network/decovart_function_network.html"
   title="DeCovarT function call graph"
@@ -275,4 +262,20 @@ Package function call graph (DeCovarT → DeCovarT edges only):
   height="720"
   style="border: none;"
 ></iframe>
+```
+
+## Speed up computation with AutoZyme
+
+[AutoZyme](https://autozyme.com/docs/users/usage-guide/) ships drop-in accelerators for common scientific R packages (Seurat, WGCNA, and others in the [patch catalog](https://autozyme.com/docs/users/patch-catalog/)). It is installed locally but **off by default** (`options(autozyme.disabled = TRUE)` → `AUTOZYME_DISABLED=1`).
+
+``` r
+# List patches, enable, activate, then check what is bound to the fast path
+options(autozyme.disabled = FALSE)
+Sys.unsetenv("AUTOZYME_DISABLED")
+library(autozyme)
+autozyme::list_patches(installed = TRUE)
+autozyme::activate(c("seurat", "wgcna"))
+autozyme::inspect("seurat")
+# Off again: Sys.setenv(AUTOZYME_DISABLED = "1")
+#            or autozyme::with_disabled({ ... })  # see usage guide §6
 ```
