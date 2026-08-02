@@ -29,7 +29,7 @@ This vignette documents the synthetic first- and second-order moment generator
 `simulate_hierarchical_grn_moments()` and how its outputs feed bulk mixture
 simulation. Mean profiles are constructed so that pairwise collinearity and
 centroid separation can be dialled independently, following the AutoGeneS
-multi-objective rationale of @aliee_theis21: minimise correlation (here,
+multi-objective rationale of @alieeAutoGeneSAutomaticGene2021: minimise correlation (here,
 cosine similarity) between cell-type columns of
 $\boldsymbol{\mu}$ while maximising their pairwise Euclidean distances.
 Covariances share a graph-constrained precision
@@ -78,7 +78,7 @@ dim(bulk$Y)
 ```
 
 Selecting genes (or, here, designing $\boldsymbol{\mu}$) by cosine alone is
-insufficient for stable deconvolution [@aliee_theis21]: low Euclidean
+insufficient for stable deconvolution [@alieeAutoGeneSAutomaticGene2021]: low Euclidean
 separation makes ratio estimates noise-sensitive, and collinear centroids
 inflate variance of $\hat{\boldsymbol{p}}$. The two knobs `target_cosine`
 and `mean_scale` map onto that trade-off without running a genetic algorithm
@@ -142,7 +142,7 @@ D_{\mathrm{Euc}}
 $$
 
 AutoGeneS treats the first as a quantity to minimise and the second as a
-quantity to maximise [@aliee_theis21]. Cosine is preferred to Pearson
+quantity to maximise [@alieeAutoGeneSAutomaticGene2021]. Cosine is preferred to Pearson
 correlation so that collinear but unequally scaled profiles remain penalised.
 
 ## Network skeleton: `generate_random_network_skeleton()`

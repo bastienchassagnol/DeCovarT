@@ -290,6 +290,93 @@ unused Suggests/Imports without need.
 
 ---
 
+# Bibliography (Zotero → Better BibTeX → Git)
+
+**Source of truth for literature metadata and citekeys** is the author's
+[Zotero library](https://www.zotero.org/bastienchassagnol/library) with
+**Better BibTeX (BBT)** citation keys. Do **not** invent BibTeX entries or
+citekeys in the repo; add the item in Zotero first, then export.
+
+**.cursorrules alone do not enforce this.** Enforcement is
+`scripts/check_bibliography.py`, wired as the pre-commit hook
+`check-bibliography` (see `.pre-commit-config.yaml`). The hook always
+runs (global `exclude` skips `article/` for other hooks).
+
+```bash
+# After a Zotero export into article/decovart_library.bib:
+python3 scripts/check_bibliography.py --clean   # trim, DOI-dedupe, sync both copies
+python3 scripts/check_bibliography.py            # validate (also run by pre-commit)
+python3 scripts/check_bibliography.py --check-qmd  # optional vignette @citekeys
+```
+
+The check fails on: disallowed BibTeX fields; duplicate DOIs / citekeys;
+`article/decovart_library.bib` ≠ `inst/REFERENCES.bib`; unresolved
+`\cite{…}` keys in `article/main.tex`. It does **not** invent missing
+entries—add them in Zotero, re-export, then `--clean`.
+
+## Exactly two `.bib` files (independent copies, kept in sync)
+
+| Path | Consumer |
+|------|----------|
+| `article/decovart_library.bib` | LaTeX manuscript (`\bibliography{decovart_library}`) |
+| `inst/REFERENCES.bib` | Package / Quarto vignettes (`bibliography: ../inst/REFERENCES.bib`) |
+
+- Do **not** add vignette-local or third `.bib` files.
+- After every Zotero export, run `--clean` so **both** copies match.
+- `article/` is Rbuild-ignored; vignettes must keep using `inst/REFERENCES.bib`.
+
+## Allowed BibTeX fields only
+
+When cleaning an export, **preserve only**:
+
+`title`, `author`, `year`, `journal` **or** `howpublished` (venue /
+“published”), `doi`, `volume`, `isbn`.
+
+Strip everything else (`abstract`, `file`, `pages`, `month`, `urldate`,
+`keywords`, `publisher` when a journal/`howpublished` exists, etc.).
+Map `journaltitle` → `journal`; map `booktitle` / lone `publisher` →
+`howpublished` when no journal is present.
+
+## Deduplicate by DOI
+
+On export / merge, remove duplicate entries by **normalised DOI**
+(strip `https://doi.org/` / `http://dx.doi.org/`, lower-case). If two
+entries share a DOI, keep one (prefer the BBT key from Zotero). If no DOI,
+dedupe by citekey.
+
+## Citation resolution
+
+- **`article/main.tex`:** every `\cite{…}` / `\citep{…}` key must exist in
+  `article/decovart_library.bib` (enforced by pre-commit).
+- **`.qmd` vignettes:** every `@citekey` must exist in
+  `inst/REFERENCES.bib`. Prefer BBT keys from the current export. Run
+  with `--check-qmd` when editing vignette citations (optional in the
+  default pre-commit pass so temporary DOI Markdown links do not block
+  unrelated commits).
+- GitHub issue prose is not machine-checked; use the DOI bridge below.
+- If a paper is **missing from Zotero**, do **not** fabricate a `.bib`
+  entry: flag it, or use a temporary Markdown DOI link in `.qmd` until
+  the item is added and re-exported.
+
+## GitHub issues — DOI bridge (loose coupling)
+
+Issue checklists should prefer:
+
+```markdown
+- [ ] [Paper title](https://doi.org/10.xxxx/xxxxx) — `@citekey`
+```
+
+- **DOI URL** — stable for humans / browsers (survives citekey renames).
+- **`@citekey`** — machine check against `.bib` / Zotero.
+- Do **not** rely on title-only bullets for sync.
+
+**New paper workflow:** add to Zotero with a BBT key → export into
+`article/decovart_library.bib` → `python3 scripts/check_bibliography.py
+--clean` → cite in issues as `[Title](doi) — @key`, in `.qmd` as `@key`,
+and in `main.tex` as `\citep{key}`.
+
+---
+
 # Scientific writing (`article/` and `vignettes/`)
 
 Target venue for the manuscript: **Nature Methods** *Article*
@@ -364,8 +451,10 @@ reviewer would want to read—and self-check before claiming novelty.
 
 ### Integrity (literature and claims)
 
-- **Never invent papers, DOIs, quotes, or “Consensus” hits.** If a
-  citation is uncertain, flag it for the user rather than guessing.
+- **Never invent papers, DOIs, quotes, BibTeX entries, or “Consensus”
+  hits.** Citekeys for `.qmd` must come from the Zotero/BBT export in
+  the two allowed `.bib` files. If a citation is uncertain or missing
+  from Zotero, flag it for the user rather than guessing.
 - Label claims clearly: established fact (with citation), result of
   *this* work, limitation, or speculation/outlook.
 - Flag load-bearing intro assertions that lack a citation.

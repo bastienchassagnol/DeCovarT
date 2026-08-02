@@ -41,3 +41,15 @@ repos:
         exclude: '\.Rd$'
       - id: trailing-whitespace
         exclude: '\.Rd$'
+
+  # Bibliography hygiene (Zotero/BBT). always_run because global exclude
+  # skips article/; the script still reads article/ + inst/ on disk.
+  - repo: local
+    hooks:
+      - id: check-bibliography
+        name: check-bibliography
+        entry: python3 scripts/check_bibliography.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        verbose: true

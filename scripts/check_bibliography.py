@@ -1,0 +1,380 @@
+#!/usr/bin/env python3
+"""Enforce DeCovarT bibliography hygiene (Zotero / Better BibTeX export).
+
+Checks (and optionally cleans) the two allowed .bib copies:
+
+  - article/decovart_library.bib  — LaTeX manuscript
+  - inst/REFERENCES.bib          — package / Quarto vignettes
+
+Rules (see .cursorrules):
+  - allowed fields only
+  - DOI-dedupe (normalised DOI)
+  - independent copies must stay identical after cleaning
+  - article/main.tex \\cite{} keys must resolve in article/.bib
+  - vignettes/*.qmd @citekeys must resolve in inst/REFERENCES.bib
+    (optional; enabled with --check-qmd)
+
+Usage:
+  python3 scripts/check_bibliography.py           # validate only
+  python3 scripts/check_bibliography.py --clean   # trim, dedupe, sync, then validate
+  python3 scripts/check_bibliography.py --check-qmd
+"""
+
+from __future__ import annotations
+
+import argparse
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+ARTICLE_BIB = ROOT / "article" / "decovart_library.bib"
+INST_BIB = ROOT / "inst" / "REFERENCES.bib"
+MAIN_TEX = ROOT / "article" / "main.tex"
+VIGNETTES = ROOT / "vignettes"
+
+ALLOWED_FIELDS = {
+    "title",
+    "author",
+    "year",
+    "journal",
+    "howpublished",
+    "doi",
+    "volume",
+    "isbn",
+}
+
+HEADER = """\
+% DeCovarT bibliography — exported from Zotero (Better BibTeX).
+% Source of truth for metadata/citekeys: the author's Zotero library + BBT.
+% Allowed fields only: title, author, year, journal|howpublished, doi,
+% volume, isbn. Duplicates removed by normalised DOI (else citekey).
+% Maintain two independent copies in sync:
+%   - article/decovart_library.bib  (LaTeX manuscript)
+%   - inst/REFERENCES.bib          (package / Quarto vignettes)
+% Do not add further .bib files under vignettes/.
+% Clean / check with: python3 scripts/check_bibliography.py [--clean]
+"""
+
+CITE_CMD_RE = re.compile(
+    r"\\(?:cite|citep|citepp|citet|citepalt|citepauthor|citepyear)\*?\{([^}]+)\}"
+)
+QMD_CITE_RE = re.compile(r"(?<![\w\\])@([A-Za-z][\w:-]*)")
+SKIP_QMD_PREFIXES = ("eq-", "fig-", "lst-", "tbl-", "sec-", "ref-")
+SKIP_QMD_KEYS = {
+    "r",
+    "echo",
+    "include",
+    "setup",
+    "citekey",
+    "param",
+    "return",
+    "examples",
+}
+
+
+def norm_doi(raw: str) -> str:
+    d = raw.strip().strip("{}").strip('"').rstrip(",").strip()
+    d = re.sub(r"^https?://(dx\.)?doi\.org/", "", d, flags=re.I)
+    return d.lower()
+
+
+def parse_entries(text: str) -> list[dict]:
+    parts = re.split(r"(?=@\w+\{)", text)
+    entries: list[dict] = []
+    for part in parts:
+        raw = part.strip()
+        if not raw.startswith("@"):
+            continue
+        hm = re.match(r"@(\w+)\s*\{\s*([^,]+)\s*,(.*)", raw, re.S)
+        if not hm:
+            continue
+        typ, key, body = hm.group(1), hm.group(2).strip(), hm.group(3)
+        body = re.sub(r"\}\s*$", "", body.strip())
+        fields: dict[str, str] = {}
+        i = 0
+        while i < len(body):
+            while i < len(body) and body[i] in " \t\n\r,":
+                i += 1
+            if i >= len(body):
+                break
+            m = re.match(r"([a-zA-Z][a-zA-Z0-9_]*)\s*=\s*", body[i:])
+            if not m:
+                break
+            name = m.group(1)
+            i += m.end()
+            if i < len(body) and body[i] == "{":
+                depth = 0
+                j = i
+                while j < len(body):
+                    if body[j] == "{":
+                        depth += 1
+                    elif body[j] == "}":
+                        depth -= 1
+                        if depth == 0:
+                            j += 1
+                            break
+                    j += 1
+                val = body[i + 1 : j - 1]
+                i = j
+            elif i < len(body) and body[i] == '"':
+                j = i + 1
+                while j < len(body) and body[j] != '"':
+                    j += 1
+                val = body[i + 1 : j]
+                i = j + 1
+            else:
+                m2 = re.match(r"([^,\n]+)", body[i:])
+                val = m2.group(1).strip() if m2 else ""
+                i += len(val)
+            fields[name.lower()] = val.strip()
+
+        if "journaltitle" in fields and "journal" not in fields:
+            fields["journal"] = fields.pop("journaltitle")
+        if (
+            "booktitle" in fields
+            and "howpublished" not in fields
+            and "journal" not in fields
+        ):
+            fields["howpublished"] = fields.pop("booktitle")
+        if (
+            "publisher" in fields
+            and "howpublished" not in fields
+            and "journal" not in fields
+        ):
+            fields["howpublished"] = fields.pop("publisher")
+
+        doi = norm_doi(fields["doi"]) if "doi" in fields else None
+        if doi:
+            fields["doi"] = doi
+        if not fields.get("title"):
+            continue
+        entries.append(
+            {
+                "type": typ,
+                "key": key,
+                "fields": fields,
+                "doi": doi,
+            }
+        )
+    return entries
+
+
+def clean_entries(entries: list[dict]) -> tuple[list[dict], list[str]]:
+    notes: list[str] = []
+    kept: list[dict] = []
+    by_doi: dict[str, str] = {}
+    by_key: dict[str, dict] = {}
+    for e in entries:
+        cleaned = {k: v for k, v in e["fields"].items() if k in ALLOWED_FIELDS}
+        e = {**e, "fields": cleaned}
+        if e["doi"]:
+            if e["doi"] in by_doi:
+                notes.append(
+                    f"DOI duplicate dropped {e['key']!r} "
+                    f"(kept {by_doi[e['doi']]!r}; doi={e['doi']})"
+                )
+                continue
+            by_doi[e["doi"]] = e["key"]
+        if e["key"] in by_key:
+            notes.append(f"citekey duplicate dropped {e['key']!r}")
+            continue
+        by_key[e["key"]] = e
+        kept.append(e)
+    kept.sort(key=lambda x: x["key"].lower())
+    return kept, notes
+
+
+def format_bib(entries: list[dict]) -> str:
+    blocks = [HEADER.rstrip(), ""]
+    order = [
+        "title",
+        "author",
+        "year",
+        "journal",
+        "howpublished",
+        "volume",
+        "isbn",
+        "doi",
+    ]
+    for e in entries:
+        lines = [f"@{e['type']}{{{e['key']},"]
+        for name in order:
+            if name in e["fields"]:
+                lines.append(f"  {name} = {{{e['fields'][name]}}},")
+        if lines[-1].endswith(","):
+            lines[-1] = lines[-1][:-1]
+        lines.append("}")
+        blocks.append("\n".join(lines))
+        blocks.append("")
+    return "\n".join(blocks).rstrip() + "\n"
+
+
+def bib_keys(path: Path) -> set[str]:
+    text = path.read_text(encoding="utf-8", errors="replace")
+    return set(re.findall(r"^@\w+\{([^,]+),", text, re.M))
+
+
+def validate_bib_file(path: Path) -> list[str]:
+    errors: list[str] = []
+    if not path.is_file():
+        return [f"missing bibliography file: {path.relative_to(ROOT)}"]
+    text = path.read_text(encoding="utf-8", errors="replace")
+    entries = parse_entries(text)
+    if not entries:
+        errors.append(f"{path.relative_to(ROOT)}: no BibTeX entries parsed")
+        return errors
+
+    seen_doi: dict[str, str] = {}
+    seen_key: set[str] = set()
+    for e in entries:
+        rel = path.relative_to(ROOT)
+        disallowed = sorted(set(e["fields"]) - ALLOWED_FIELDS)
+        if disallowed:
+            errors.append(
+                f"{rel}: {e['key']}: disallowed fields {', '.join(disallowed)}"
+            )
+        if e["key"] in seen_key:
+            errors.append(f"{rel}: duplicate citekey {e['key']!r}")
+        seen_key.add(e["key"])
+        if e["doi"]:
+            if e["doi"] in seen_doi:
+                errors.append(
+                    f"{rel}: duplicate DOI {e['doi']} "
+                    f"({seen_doi[e['doi']]!r} vs {e['key']!r})"
+                )
+            else:
+                seen_doi[e["doi"]] = e["key"]
+        # Entries that are not misc/online should preferably have a DOI,
+        # but do not hard-fail: many theses / manuals lack one.
+    return errors
+
+
+def check_copies_identical() -> list[str]:
+    if not ARTICLE_BIB.is_file() or not INST_BIB.is_file():
+        return []
+    a = ARTICLE_BIB.read_text(encoding="utf-8", errors="replace")
+    b = INST_BIB.read_text(encoding="utf-8", errors="replace")
+    if a != b:
+        return [
+            "article/decovart_library.bib and inst/REFERENCES.bib differ; "
+            "re-export from Zotero then run: "
+            "python3 scripts/check_bibliography.py --clean"
+        ]
+    return []
+
+
+def check_main_tex() -> list[str]:
+    errors: list[str] = []
+    if not MAIN_TEX.is_file():
+        return [f"missing {MAIN_TEX.relative_to(ROOT)}"]
+    if not ARTICLE_BIB.is_file():
+        return [f"missing {ARTICLE_BIB.relative_to(ROOT)}"]
+    keys = bib_keys(ARTICLE_BIB)
+    tex = MAIN_TEX.read_text(encoding="utf-8", errors="replace")
+    cited: set[str] = set()
+    for m in CITE_CMD_RE.finditer(tex):
+        for part in m.group(1).split(","):
+            k = part.strip()
+            if k:
+                cited.add(k)
+    missing = sorted(cited - keys)
+    for k in missing:
+        errors.append(f"article/main.tex: unresolved citation {k!r}")
+    return errors
+
+
+def check_qmd() -> list[str]:
+    errors: list[str] = []
+    if not INST_BIB.is_file():
+        return [f"missing {INST_BIB.relative_to(ROOT)}"]
+    keys = bib_keys(INST_BIB)
+    for qmd in sorted(VIGNETTES.glob("*.qmd")):
+        text = qmd.read_text(encoding="utf-8", errors="replace")
+        prose = "\n".join(re.split(r"```.*?```", text, flags=re.S)[::2])
+        for m in QMD_CITE_RE.finditer(prose):
+            k = m.group(1)
+            if k.lower() in SKIP_QMD_KEYS or k.startswith(SKIP_QMD_PREFIXES):
+                continue
+            if k not in keys:
+                errors.append(f"{qmd.relative_to(ROOT)}: unresolved @{k}")
+    return errors
+
+
+def clean_and_sync(source: Path) -> list[str]:
+    notes: list[str] = []
+    if not source.is_file():
+        return [f"cannot clean missing file {source}"]
+    entries = parse_entries(source.read_text(encoding="utf-8", errors="replace"))
+    kept, drop_notes = clean_entries(entries)
+    notes.extend(drop_notes)
+    out = format_bib(kept)
+    ARTICLE_BIB.parent.mkdir(parents=True, exist_ok=True)
+    INST_BIB.parent.mkdir(parents=True, exist_ok=True)
+    ARTICLE_BIB.write_text(out, encoding="utf-8")
+    INST_BIB.write_text(out, encoding="utf-8")
+    notes.append(
+        f"wrote {len(kept)} entries to "
+        f"{ARTICLE_BIB.relative_to(ROOT)} and {INST_BIB.relative_to(ROOT)}"
+    )
+    return notes
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--clean",
+        action="store_true",
+        help="trim allowed fields, DOI-dedupe, sync both .bib copies",
+    )
+    parser.add_argument(
+        "--check-qmd",
+        action="store_true",
+        help="also require vignettes/*.qmd @citekeys to resolve",
+    )
+    parser.add_argument(
+        "--skip-main-tex",
+        action="store_true",
+        help="do not validate article/main.tex citations",
+    )
+    args = parser.parse_args(argv)
+
+    messages: list[str] = []
+    if args.clean:
+        # Prefer the article export as upstream when it exists and is newer /
+        # larger; otherwise fall back to inst.
+        source = ARTICLE_BIB if ARTICLE_BIB.is_file() else INST_BIB
+        for note in clean_and_sync(source):
+            print(f"clean: {note}")
+
+    errors: list[str] = []
+    errors.extend(validate_bib_file(ARTICLE_BIB))
+    errors.extend(validate_bib_file(INST_BIB))
+    errors.extend(check_copies_identical())
+    if not args.skip_main_tex:
+        errors.extend(check_main_tex())
+    if args.check_qmd:
+        errors.extend(check_qmd())
+
+    if errors:
+        print("bibliography check failed:", file=sys.stderr)
+        for err in errors:
+            print(f"  - {err}", file=sys.stderr)
+        return 1
+
+    print("bibliography check passed")
+    if not args.skip_main_tex and MAIN_TEX.is_file():
+        cited = {
+            p.strip()
+            for m in CITE_CMD_RE.finditer(
+                MAIN_TEX.read_text(encoding="utf-8", errors="replace")
+            )
+            for p in m.group(1).split(",")
+            if p.strip()
+        }
+        print(f"  article/main.tex: {len(cited)} citation keys resolved")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

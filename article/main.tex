@@ -161,7 +161,7 @@
     displaying high phenotypic proximity. Indeed, most of them assume that purified
     cell expression profiles are fixed observations, omitting the variability
     and intrinsically interconnected structure of the transcriptome. For instance,
-    the gold-standard deconvolution algorithm \emph{CIBERSORT} \cite{newman_etal15}
+    the gold-standard deconvolution algorithm \emph{CIBERSORT} \cite{newmanRobustEnumerationCell2015}
     applies nu-support vector regression ($\nu$-SVR) to recover the minimal subset
     of the most informative genes in the purified signature matrix. However, this
     machine learning approach assumes that the transcriptomic expressions are independent.
@@ -220,7 +220,7 @@
     \end{itemize}
 
     We compared the performance of DeCovarT algorithm with DeconRNASeq algorithm
-    (\cite{gong_szustakowski13}).
+    (\cite{gongDeconRNASeqStatisticalFramework2013}).
 
     Even with a limited toy example including two cell populations characterised
     only by two genes, we observe that the overlap was a good proxy of the quality
@@ -234,7 +234,7 @@
         }
         \caption{We used the package \CRANpkg{ComplexHeatmap} to display the mean
         square error (MSE) of the estimated cell ratios, comparing the NNLS
-        output, as implemented in the DeconRNASeq algorithm (\cite{gong_szustakowski13}),
+        output, as implemented in the DeconRNASeq algorithm (\cite{gongDeconRNASeqStatisticalFramework2013}),
         in Panel \textbf{A}, with our newly implemented DeCovarT algorithm, in Panel
         \textbf{B}. The lower the MSE, the least noisy and biased the estimates.
         In addition, we added the two-dimensional density plot for the
@@ -310,7 +310,7 @@
     easy to compute with the Cholesky decomposition. However, since its primary
     focus is on the covariance, the framework can only be used to encode local dependencies
     (and not global, accounting for all higher-order interactions, as for the
-    precision matrix) \cite{batardiereEvaluatingParameterUncertainty2024, ogierduterrailFedECAFederatedExternal2025}.
+    precision matrix) \cite{batardiereEvaluatingParameterUncertainty2024,ogierduterrailFedECAFederatedExternal2025}.
 
     The \CRANpkg{mixSim} package, developed by \cite{melnykovMixSimPackageSimulating2012},
     and the \CRANpkg{clusterGeneration}, developed by
@@ -407,7 +407,7 @@
         \item $\boldsymbol{\Sigma}_{j}$, the covariance matrix of each cell
             population, constrained to be \textit{positive-definite} (see Appendix
             A.1). Precisely, we retrieve it from inferring its inverse, known as
-            the precision matrix, through the gLasso \cite{mazumder_hastie11} algorithm.
+            the precision matrix, through the gLasso \cite{mazumderGraphicalLassoNew2011} algorithm.
             We define
             $\boldsymbol{\Theta}_{j} \equiv \boldsymbol{\Sigma}_{j}^{-1}$ the
             corresponding \textit{precision matrix}, whose inputs, after normalisation,
@@ -559,7 +559,7 @@
     expressions, thus we remind in Appendices A.1 and A.2 relevant matrix properties
     and derivations. The numerical consistency of these derivatives was asserted
     with the \CRANpkg{numDeriv} package, using the more stable Richardson’s
-    extrapolation (\cite{DBLP:journals/toms/Fornberg81}).
+    extrapolation
 
     However, the explicit formulas for the gradient and the hessian matrix of the
     log-likelihood function, given in
@@ -591,11 +591,11 @@
 
     The next phase of our evaluation involves real-world experiments,
     encompassing both blood and solid tumoral samples. To that end, we could
-    start from the Kassandra benchmark, by \cite{zaitsev_etal22}. This large-scale
+    start from the Kassandra benchmark, by \cite{zaitsevPreciseReconstructionTME2022}. This large-scale
     project evaluates the performance of five established gold-standard and
-    signature-based deconvolution algorithms, including EPIC \cite{racle_etal17},
-    CIBERSORT \cite{newman_etal15}, CIBERSORTx \cite{newman_etal19}, quanTIseq
-    \cite{finotello_etal19}, and ABIS \cite{monaco_etal19}. The evaluation
+    signature-based deconvolution algorithms, including EPIC \cite{racleSimultaneousEnumerationCancer2017},
+    CIBERSORT \cite{newmanRobustEnumerationCell2015}, CIBERSORTx \cite{newmanDeterminingCellType2019}, quanTIseq
+    \cite{finotello_etal19}, and ABIS \cite{monacoRNASeqSignaturesNormalized2019}. The evaluation
     involves deconvolving six publicly available datasets annotated with both
     flow cytometry and bulk RNA-seq expression.
 
@@ -603,8 +603,8 @@
     \label{para:one-vs-all-deconvolution}
 
     All the popular differential gene expression analyses, such as \textit{limma
-    + voom} (\cite{ritchie_etal15}), \textit{EdgeR} (\cite{robinson_etal10}) and
-    \textit{Deseq2} (\cite{varet_etal16}), tend to overlook gene-gene
+    + voom} (\cite{ritchieLimmaPowersDifferential2015a}), \textit{EdgeR} (\cite{robinsonEdgeRBioconductorPackage2010}) and
+    \textit{Deseq2} (\cite{loveModeratedEstimationFold2014a}), tend to overlook gene-gene
     interactions, comparing independently the expression between two conditions for
     each gene. The usual univariate approach of DGEAs additionally underlies the
     need of adjusting $p-$ values, as numerous genes are examined simultaneously,
@@ -612,22 +612,9 @@
     false positives increases.
 
     \bigskip
-    To account for correlations among observations, two consecutive papers, by \cite{chion_leroy23}
-    and \cite{chion_etal22}, present an innovative Bayesian framework which
-    models proteomic expression across diverse biological conditions as
-    multivariate Gaussian distributions. Insightful discussions with the main author,
-    Marie Chion, suggest a straightforward extension of the method to transcriptomic
-    expression, given the close relationship between two kinds of omics, both depicting
-    counts.
 
-    While the methodology was originally designed to delineate differentially expressed
-    genes between two conditions, the method can be readily extended to
-    incorporate a \textit{one-vs-all strategy}. This extension allows for the
-    identification of markers specific to a particular cell population in
-    comparison to all others. Furthermore, the generative model aligns closely
-    with our deconvolution framework, leveraging the same distributions to describe
-    cellular omic profiles. Alternatively, differential network approaches, such
-    as INDEED, by \cite{zuo_etal16}, implement heuristic and dual-optimisation
+    Differential network approaches, such
+    as INDEED, by \cite{zuoINDEEDIntegratedDifferential2016}, implement heuristic and dual-optimisation
     approaches, finding the sweet spot between maximising the mean differences between
     purified expression profiles and differentiating the neighbourhood network structure.
 
@@ -661,7 +648,7 @@
 
     To further refine the final set of genes able to delineating any cell population
     included in the signature matrix, \textit{AutoGeneS}, by
-    \cite{aliee_theis21}, introduces a greedy genetic approach coupled with a dual
+    \cite{alieeAutoGeneSAutomaticGene2021}, introduces a greedy genetic approach coupled with a dual
     optimisation approach \footnote{In standard approaches that rely on linear
     regression, the condition number serves as the gold-standard metric for assessing
     the level of precision of the linear model achievable with the design matrix}.
@@ -804,8 +791,7 @@
                 edges are generated independently between each pair of nodes
                 with a fixed probability, leading to a homogeneous random graph.
 
-            \item In the preferential attachment model (\cite{newmanStructureDynamicsNetworks2011,
-                lima-mendezPowerfulLawPower2009}), nodes are iteratively added, favouring
+            \item In the preferential attachment model (\cite{newmanStructureDynamicsNetworks2011,lima-mendezPowerfulLawPower2009}), nodes are iteratively added, favouring
                 connection to the most well-connected nodes. This kind of
                 framewrok is compliant with the scale-free network property, often
                 looked for in biological systems, and resulting in the emergence
@@ -938,14 +924,14 @@
 
         In a perfect system without noise as modelled in \ref{eq-3}, the number of
         solutions is given by the ``Rouché--Capelli'' theorem
-        \cite{shafarevich_remizov13}. Briefly, uniqueness of the solution
+        \cite{shafarevichLinearEquations2013}. Briefly, uniqueness of the solution
         implies that the number of genes $N$ is equal to the number of cell
         types $J$. Secondly, any expression of an individual gene can not be
         rewritten as a linear combination of the remaining genes (multicollinearity)
         expressed in the sample (alternatively, this implies that the reference
         matrix $\boldsymbol{X}$ is invertible and of full rank $J$). If the
         number of genes measured exceeds those of proportions, the system is said
-        to be \emph{overdetermined} \cite{abbas_etal09}.
+        to be \emph{overdetermined} \cite{abbasDeconvolutionBloodMicroarray2009}.
 
         In real conditions, observed data $\mathcal{D}$ may not fit exactly the system
         of linear equations \ref{eq-3}, which is dealt with by most of the
@@ -1043,7 +1029,7 @@
             To prove part 1 of \ref{th:MLE-estimate-univariate}, we assume
             additionally independence of the bulk expression between samples:$1 \le
             j \le N, \quad 1 \le k \le N, \forall j \neq k, \quad\text{cov}(\boldsymbol
-            {y}_{j}, \boldsymbol{y}_{k})=0$, even though \cite{efron09} tends to
+            {y}_{j}, \boldsymbol{y}_{k})=0$, even though \cite{efronAreSetMicroarrays2009} tends to
             deny this IID assumption. Besides, we suppose that the cellular proportions
             vary from an individual to another (estimation is performed
             independently on each sample).
@@ -1390,7 +1376,7 @@
         approximations of the function to optimise are used to approximate the
         roots.
 
-        The \textit{Levenberg-Marquardt (LM)} algorithm (\cite{levenberg44}) bridges
+        The \textit{Levenberg-Marquardt (LM)} algorithm \cite{marquardtAlgorithmLeastSquaresEstimation1963} bridges
         the gap between between the steepest descent method (first-order) and the
         Newton-Raphson method (second-order) by inflating the diagonal terms of the
         Hessian matrix. Far from the endpoint, a second-order descent is favoured
@@ -1399,7 +1385,7 @@
         the step size. Specially, we used the LM implementation of R package
         \href{https://CRAN.R-project.org/package=marqLevAlg}{\texttt{marqLevAlg}}
         to infer estimates of the cellular ratios from the bootstrap simulations
-        (\cite{philipps_etal21}). It notably includes an additional convergence criteria,
+        (\cite{philippsRobustEfficientOptimization2021}). It notably includes an additional convergence criteria,
         the relative distance to the maximum (RDM), that sets apart extrema from
         spurious saddle points.
 
@@ -1575,10 +1561,6 @@
                 $\sigma_{0(\boldsymbol{X})}$ of the additional residual terms
                 added to each cellular ratio and each individual cell profile of
                 the \textit{transition kernel}, respectively \Statex
-                \hspace{\algorithmicindent} \cite{siems_koeppel19}, \cite{andrieu_etal18},
-                \cite{vogrinc_kendall21} and \cite{marnissi_etal20} suggest
-                tuning these hyper-parameters such that the long-run acceptance
-                rates remain between $0.234$ and $0.574$ \For{$q = 1$ to $B + Q$}
                 \For{$i = 1$ to $N$} \State
                 $\epsilon_{i(\boldsymbol{\rho})}\sim \mathcal{N}_{J-1}(0, \sigma_{0(\boldsymbol{\rho})}
                 ^{2} \, \mathbb{I}_{J-1})$

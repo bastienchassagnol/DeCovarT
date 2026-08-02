@@ -31,6 +31,10 @@ precision matrices \(\boldsymbol{\Omega}\) (and hence
 [GitHub issue \#1](https://github.com/bastienchassagnol/DeCovarT/issues/1); here
 we summarise the same layout with bibliographic cross-references.
 
+Pandoc `@citekey` citations below resolve only against the Zotero/BBT export
+in `inst/REFERENCES.bib`. Papers not yet in that library are linked by DOI
+(Markdown) until they are added to Zotero and re-exported.
+
 DeCovarT’s synthetic pipeline already builds a graph-constrained
 \(\boldsymbol{\Omega}\) from a random adjacency
 ([synthetic scenarios vignette](synthetic-scenarios.html)). Empirical
@@ -44,12 +48,17 @@ cell-type programmes, and common stimuli induce correlation without a direct
 edge; time lags and nonlinear kinetics can hide true edges. Conditional
 graphical models target **direct** dependence via the precision
 \(\boldsymbol{\Omega}\), while causal / interventional designs are needed for
-direction and mechanism [@badia_etal23; @nuzzo_etal26; @saint_antoine_singh20].
+direction and mechanism
+([Gene regulatory network inference in the era of single-cell multi-omics](https://doi.org/10.1038/s41576-023-00618-5);
+@svininCausalNetworkAnalysis2025;
+[Network inference in systems biology](https://doi.org/10.1016/j.copbio.2019.12.002)).
 
-@badia_etal23 review single-cell multi-omics GRN tools and prior databases.
-@nuzzo_etal26 place association, prior-informed, and causal network analyses
-in one taxonomy (see figures in issue \#1). Together they motivate separating
-undirected skeletons (**ii**) from DAG / perturbation work (**iii**).
+[Badia-i-Mompel *et al.* (2023)](https://doi.org/10.1038/s41576-023-00618-5)
+review single-cell multi-omics GRN tools and prior databases.
+@svininCausalNetworkAnalysis2025 place association, prior-informed, and causal
+network analyses in one taxonomy (see figures in issue \#1). Together they
+motivate separating undirected skeletons (**ii**) from DAG / perturbation work
+(**iii**).
 
 # ii) Undirected probabilistic strategies
 
@@ -57,24 +66,31 @@ undirected skeletons (**ii**) from DAG / perturbation work (**iii**).
 
 Gaussian graphical models (GGMs) encode conditional independence in
 \(\boldsymbol{\Omega}\). The MLE exists only under sample-size / chordality
-conditions formalised by @uhler_etal12: if \(n\) is too small relative to
-clique size, the covariance MLE fails. Sparse \(\ell_1\) estimation
-(graphical lasso; @friedman_etal08) is the workhorse when \(p\gg n\)
-[@chiquet15; @menendez_etal10].
+conditions formalised by
+[Uhler *et al.* (2012)](https://doi.org/10.1214/11-AOS957): if \(n\) is too
+small relative to clique size, the covariance MLE fails. Sparse \(\ell_1\)
+estimation (graphical lasso; @friedmanSparseInverseCovariance2008) is the
+workhorse when \(p\gg n\)
+[@chiquetContributionsSparseMethods2015;
+@menendezGeneRegulatoryNetworks2010].
 
 Two practical workflows appear repeatedly:
 
 1. **Seeds then expand** — select a small discriminating gene set (e.g. low
    condition number / high centroid separation, in the spirit of
-   @aliee_theis21), then grow a prior-informed network with tools such as
-   NeKo [@ruscone_etal25].
+   @alieeAutoGeneSAutomaticGene2021), then grow a prior-informed network with
+   tools such as
+   [NeKo](https://doi.org/10.1371/journal.pcbi.1013300).
 2. **Structure then parameters** — estimate a sparse skeleton (glasso,
    NeighbourNet, CeSpGRN), then fit continuous weights, possibly under hard
    zeros on \(\Theta_{ij}\) for \((i,j)\notin E\).
 
 Count-aware extensions replace the Gaussian likelihood by Poisson–log-normal
-(PLN) or copula models [@chiquet_etal19_pln; @zhang_etal25_cespgrn], which
-matters when DeCovarT moves from Gaussian convolutions to sequencing counts.
+(PLN) or copula models
+[@chiquetPoissonLognormalModelVersatile2021;
+@chiquetVariationalInferenceSparse2018], and
+[CeSpGRN](https://doi.org/10.1093/bioinformatics/btag324), which matters when
+DeCovarT moves from Gaussian convolutions to sequencing counts.
 
 ## ii.b) Regularisation and topological constraints
 
@@ -96,25 +112,31 @@ $$
 $$
 
 (edge-specific / hybrid penalties); and structured group or fused graphical
-lasso for hubs, modules, or shared biological constraints [@chiquet15].
-Trees and chordal graphs remain PD-friendly [@uhler_etal12]. DeCovarT’s
+lasso for hubs, modules, or shared biological constraints
+[@chiquetContributionsSparseMethods2015].
+Trees and chordal graphs remain PD-friendly
+([Uhler *et al.* (2012)](https://doi.org/10.1214/11-AOS957)). DeCovarT’s
 affine spectral shift of a binary adjacency is a constructive PD completion
 compatible with hard zeros off \(E\).
 
 ## ii.c) Algorithm unrolling and deep / structured variational inference
 
 Algorithm unrolling turns iterative sparse-precision solvers into trainable
-layers [@monga_etal21_unrolling; @shrivastava_etal19_glad]. For hierarchical
-count ecosystems, @chaussard_etal24 introduce **PLN-Tree**: a tree-structured
-extension of PLN with backward Markov variational inference and
-identifiability results—an attractive route when taxonomy or gene modules
-should inform \(\boldsymbol{\Omega}\).
+layers
+([Monga *et al.* (2021)](https://doi.org/10.1109/MSP.2020.3016905);
+[GLAD](https://arxiv.org/abs/1906.00271)). For hierarchical count ecosystems,
+[Chaussard *et al.* (2024)](https://hal.science/hal-04622671v1) introduce
+**PLN-Tree**: a tree-structured extension of PLN with backward Markov
+variational inference and identifiability results—an attractive route when
+taxonomy or gene modules should inform \(\boldsymbol{\Omega}\).
 
 ## ii.d) Prior knowledge and PPI as precision weights
 
 Priors from TF–target, chromatin, and PPI databases can enter as
 \(\lambda_{ij}\) masks or as Bayesian edge probabilities
-[@badia_etal23; @nuzzo_etal26; @ruscone_etal25]. This is the undirected
+([Badia-i-Mompel *et al.* (2023)](https://doi.org/10.1038/s41576-023-00618-5);
+@svininCausalNetworkAnalysis2025;
+[NeKo](https://doi.org/10.1371/journal.pcbi.1013300)). This is the undirected
 analogue of pathway contextualisation in **iii**: association graphs become
 biologically constrained without claiming full causality.
 
@@ -122,11 +144,12 @@ biologically constrained without claiming full causality.
 
 Gaussian Bayesian networks orient edges under Markov and faithfulness
 assumptions; interventions (Perturb-seq and related CRISPR screens) supply
-the environments needed for stronger causal claims [@peters_etal16;
-@nuzzo_etal26]. Pathway tools (NPA, SignalingProfiler, LIONESS/PANDA,
-NLBayes) contextualise expression on signed graphs but often stop short of a
-full weighted GRN MLE—treat them as priors or downstream scorers rather than
-drop-in replacements for \(\boldsymbol{\Omega}\).
+the environments needed for stronger causal claims
+([Peters *et al.* (2016)](https://doi.org/10.1111/rssb.12167);
+@svininCausalNetworkAnalysis2025). Pathway tools (NPA, SignalingProfiler,
+LIONESS/PANDA, NLBayes) contextualise expression on signed graphs but often
+stop short of a full weighted GRN MLE—treat them as priors or downstream
+scorers rather than drop-in replacements for \(\boldsymbol{\Omega}\).
 
 ::: {.callout-note}
 ## From factorised Gaussian BNs to a joint multivariate normal
@@ -136,7 +159,7 @@ For each node,
 Stacking these linear structural equations yields a unique joint
 \(\boldsymbol{X}\sim\mathcal{N}_G(\boldsymbol{\mu},\boldsymbol{\Sigma})\).
 In R, `bnlearn::gbn2mvnorm()` returns that mean and covariance from a fitted
-Gaussian BN [@bnlearn]—the directed counterpart of
+Gaussian BN—the directed counterpart of
 \(\boldsymbol{\Sigma}=\boldsymbol{\Omega}^{-1}\) in an undirected GGM.
 :::
 
@@ -144,10 +167,12 @@ Gaussian BN [@bnlearn]—the directed counterpart of
 
 Comparative reverse-engineering studies and DREAM-style challenges remain the
 default yardsticks for undirected and directed GRN callers
-[@penfold_wild11; @saint_antoine_singh20; @menendez_etal10]. Emulation tests
-for TF–target function complement topological accuracy when gold-standard
-DAGs are incomplete. Any DeCovarT-related network estimator should report
-against these protocols before biological claims.
+([Penfold & Wild (2011)](https://doi.org/10.1098/rsfs.2011.0053);
+[Network inference in systems biology](https://doi.org/10.1016/j.copbio.2019.12.002);
+@menendezGeneRegulatoryNetworks2010). Emulation tests for TF–target function
+complement topological accuracy when gold-standard DAGs are incomplete. Any
+DeCovarT-related network estimator should report against these protocols
+before biological claims.
 
 # v) Perspectives
 
@@ -168,14 +193,16 @@ Gaussian convolution.
 ## v.iii) Dynamics and real-time capture
 
 Static snapshots average over regulatory delays. Time-series reviews
-[@natalia_etal23_ts], Dictys [@wang_etal23_dictys], and related dynamic
-biomarker methods target \(\boldsymbol{\Omega}_t\) along trajectories. Real-time
-or densely time-stamped assays would further reduce confounding between
-co-expression and causation.
+([Natalia *et al.* (2023)](https://doi.org/10.1371/journal.pcbi.1011254)),
+[Dictys](https://doi.org/10.1038/s41592-023-01971-3), and related dynamic
+biomarker methods target \(\boldsymbol{\Omega}_t\) along trajectories.
+Real-time or densely time-stamped assays would further reduce confounding
+between co-expression and causation.
 
 ## v.iv) Graph neural networks
 
-OOD-robust GNNs and invariant causal prediction [@peters_etal16] address
+OOD-robust GNNs and invariant causal prediction
+([Peters *et al.* (2016)](https://doi.org/10.1111/rssb.12167)) address
 batch / cell-type shift when message-passing replaces classical glasso.
 Unrolling (**ii.c**) remains preferable when interpretability of each layer as
 an optimisation step matters for statistical GRN recovery.
