@@ -243,21 +243,7 @@ Auxiliaries are removed automatically after a successful build
 (`latex-workshop.latex.autoClean.run`: `onSucceeded`). Manual clean:
 Command Palette → **“LaTeX Workshop: Clean up auxiliary files”**.
 
-## Regenerating this README
-
-Edit `README.qmd` (and optionally
-`man/figures/decovart_constrained_dag.mmd`), then run:
-
-``` sh
-quarto render README.qmd
-./scripts/fix_readme_fences.sh README.md
-```
-
-This overwrites `README.md` (GitHub Flavoured Markdown). The fence-fix
-script removes the space Pandoc inserts after code-fence language tags
-(needed for GitHub Mermaid rendering).
-
-## Project structure
+# Project structure
 
 Package function call graph (DeCovarT → DeCovarT edges only):
 
@@ -269,6 +255,27 @@ Package function call graph (DeCovarT → DeCovarT edges only):
   height="720"
   style="border: none;"
 ></iframe>
+```
+
+## Speed up computation with AutoZyme
+
+[AutoZyme](https://autozyme.com/docs/users/usage-guide/) ships drop-in
+accelerators for common scientific R packages (Seurat, WGCNA, and others
+in the [patch catalog](https://autozyme.com/docs/users/patch-catalog/)).
+It is installed locally but **off by default**
+(`options(autozyme.disabled = TRUE)` → `AUTOZYME_DISABLED=1`).
+
+``` r
+
+# List patches, enable, activate, then check what is bound to the fast path
+options(autozyme.disabled = FALSE)
+Sys.unsetenv("AUTOZYME_DISABLED")
+library(autozyme)
+autozyme::list_patches(installed = TRUE)
+autozyme::activate(c("seurat", "wgcna"))
+autozyme::inspect("seurat")
+# Off again: Sys.setenv(AUTOZYME_DISABLED = "1")
+#            or autozyme::with_disabled({ ... })  # see usage guide §6
 ```
 
 # Package index
