@@ -1,6 +1,20 @@
 
 
-<!-- README.md is generated from README.qmd. Please edit that file. -->
+- [DeCovarT <a href="https://bastienchassagnol.github.io/DeCovarT/"><img src="man/figures/logo.svg" alt="DeCovarT logo" align="right" height="139"/></a>](#decovart-)
+  - [Overview](#overview)
+  - [Pipeline Architecture](#pipeline-architecture)
+    - [Built-in deconvolution algorithms](#built-in-deconvolution-algorithms)
+    - [Links to the paper](#links-to-the-paper)
+  - [Installation](#installation)
+    - [Developer setup (pre-commit)](#developer-setup-pre-commit)
+    - [Continuous integration](#continuous-integration)
+  - [Documentation](#documentation)
+  - [The generative model of DeCovarT](#the-generative-model-of-decovart)
+  - [Compiling the LaTeX article](#compiling-the-latex-article)
+  - [Project structure](#project-structure)
+  - [Speed up computation with AutoZyme](#speed-up-computation-with-autozyme)
+
+<!-- README.md is generated from README.qmd. Do not edit README.md manually. -->
 
 # DeCovarT <a href="https://bastienchassagnol.github.io/DeCovarT/"><img src="man/figures/logo.svg" alt="DeCovarT logo" align="right" height="139"/></a>
 
@@ -12,6 +26,7 @@
 [![Devel version](https://img.shields.io/badge/devel%20version-0.1.0-blue.svg)](https://github.com/bastienchassagnol/DeCovarT)
 [![R-CMD-check](https://github.com/bastienchassagnol/DeCovarT/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bastienchassagnol/DeCovarT/actions/workflows/R-CMD-check.yaml)
 [![Codecov test coverage](https://codecov.io/gh/bastienchassagnol/DeCovarT/graph/badge.svg)](https://app.codecov.io/gh/bastienchassagnol/DeCovarT)
+[![Check README](https://github.com/bastienchassagnol/DeCovarT/actions/workflows/render-readme.yaml/badge.svg)](https://github.com/bastienchassagnol/DeCovarT/actions/workflows/render-readme.yaml)
 <!-- badges: end -->
 
 <p>
@@ -108,7 +123,7 @@ remotes::install_github("bastienchassagnol/DeCovarT")
 ### Developer setup (pre-commit)
 
 Contributors should install [pre-commit](https://pre-commit.com) hooks (Air
-formatting, {lintr}, parsable R, README sync). From R:
+formatting, {lintr}, parsable R). From R:
 
 ``` r
 # install.packages(c("precommit", "lintr"))
@@ -123,6 +138,19 @@ pre-commit install
 pre-commit run --all-files
 ```
 
+Edit `README.qmd`, then regenerate GitHub Flavoured Markdown locally:
+
+``` bash
+quarto render README.qmd
+git add README.qmd README.md
+```
+
+CI fails the pull request if committed `README.md` is stale relative to
+`README.qmd` (see `.github/workflows/render-readme.yaml`). On `main`, the same
+workflow can commit a fresh render when needed, following the
+[quarto-ext render-readme](https://github.com/quarto-ext/.github/blob/main/.github/workflows/render-readme.yaml)
+pattern.
+
 See [`.github/CONTRIBUTING.MD`](.github/CONTRIBUTING.MD) for the full
 contributor guide.
 
@@ -132,6 +160,7 @@ GitHub Actions on this repository currently cover:
 
 - **R-CMD-check** — `R CMD check` on push / pull requests
 - **pre-commit** — the same local hooks on CI
+- **render-readme** — Quarto GFM render; verify on PRs, commit on `main`
 - **test-coverage** — Codecov reporting
 - **pkgdown** — documentation site on GitHub Pages
 - **R-hub** — optional Ubuntu + Windows checks (`workflow_dispatch`)
@@ -250,7 +279,7 @@ Auxiliaries are removed automatically after a successful build
 (`latex-workshop.latex.autoClean.run`: `onSucceeded`). Manual clean: Command Palette
 → **“LaTeX Workshop: Clean up auxiliary files”**.
 
-# Project structure
+## Project structure
 
 Package function call graph (DeCovarT → DeCovarT edges only):
 
@@ -266,14 +295,19 @@ Package function call graph (DeCovarT → DeCovarT edges only):
 
 ## Speed up computation with AutoZyme
 
-[AutoZyme](https://autozyme.com/docs/users/usage-guide/) ships drop-in accelerators for common scientific R packages (Seurat, WGCNA, and others in the [patch catalog](https://autozyme.com/docs/users/patch-catalog/)). It is installed locally but **off by default** (`options(autozyme.disabled = TRUE)` → `AUTOZYME_DISABLED=1`).
+[AutoZyme](https://autozyme.com/docs/users/usage-guide/) ships drop-in
+accelerators for common scientific R packages (Seurat, WGCNA, and others in the
+[patch catalog](https://autozyme.com/docs/users/patch-catalog/)). It is
+installed locally but **off by default**
+(`options(autozyme.disabled = TRUE)` → `AUTOZYME_DISABLED=1`).
 
-\`\`\`r
-\# List patches, enable, activate, then check what is bound to the fast path
+``` r
+# List patches, enable, activate, then check what is bound to the fast path
 options(autozyme.disabled = FALSE)
-Sys.unsetenv(“AUTOZYME_DISABLED”)
+Sys.unsetenv("AUTOZYME_DISABLED")
 library(autozyme)
 autozyme::list_patches(installed = TRUE)
-autozyme::activate(c(“seurat”, “wgcna”))
-autozyme::inspect(“seurat”)
-\# Off again: Sys.setenv(AUTOZYME_DISABLED = “1”)
+autozyme::activate(c("seurat", "wgcna"))
+autozyme::inspect("seurat")
+# Off again: Sys.setenv(AUTOZYME_DISABLED = "1")
+```

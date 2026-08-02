@@ -41,13 +41,3 @@ repos:
         exclude: '\.Rd$'
       - id: trailing-whitespace
         exclude: '\.Rd$'
-
-  # Ensure README.qmd is rendered to README.md before commit
-  - repo: local
-    hooks:
-      - id: readme-qmd-rendered
-        name: README.qmd must be older than README.md
-        language: system
-        entry: Rscript scripts/check_readme_qmd_rendered.R
-        files: '^README\.(qmd|md)$'
-        pass_filenames: false

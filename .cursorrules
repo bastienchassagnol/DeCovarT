@@ -121,7 +121,8 @@ This repo uses **[Air](https://posit-dev.github.io/air/)** (`air.toml`) and
 - Prefer Air over styler for formatting.
 - Run / respect pre-commit hooks: `air-format`, `lintr` (warn-only),
   `parsable-R`, `no-browser-statement`, `use-tidy-description`,
-  `deps-in-desc`, large-file check, README.qmd ↔ README.md sync.
+  `deps-in-desc`, large-file check. README sync is enforced in CI via
+  `.github/workflows/render-readme.yaml` (`quarto render README.qmd`).
 - Keep line length ≤ 80 characters.
 
 ## Package structure
@@ -236,7 +237,8 @@ Follow
 - Pin packages with `renv` when used; otherwise lock via DESCRIPTION /
   CI.
 - Document analysis steps in README (from `README.qmd`) and vignettes.
-  Edit `README.qmd`, then render to `README.md`.
+  Edit `README.qmd`, then `quarto render README.qmd` (CI verifies /
+  re-renders via `.github/workflows/render-readme.yaml`).
 
 ## Collaboration and documentation
 

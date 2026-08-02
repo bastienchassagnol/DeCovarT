@@ -40,7 +40,9 @@ Areas where contributions are especially welcome include:
 
 ## Pre-commit hooks
 
-DeCovarT uses [pre-commit](https://pre-commit.com) with the R helpers from [{precommit}](https://lorenzwalthert.github.io/precommit/) (same pattern as [ropensci/skimr](https://github.com/ropensci/skimr)). Hooks format R code with [Air](https://posit-dev.github.io/air/), lint with {lintr}, keep roxygen docs in sync, and ensure `README.qmd` is rendered to `README.md`.
+DeCovarT uses [pre-commit](https://pre-commit.com) with the R helpers from [{precommit}](https://lorenzwalthert.github.io/precommit/) (same pattern as [ropensci/skimr](https://github.com/ropensci/skimr)). Hooks format R code with [Air](https://posit-dev.github.io/air/), lint with {lintr}, and check parsable R / DESCRIPTION hygiene.
+
+Edit `README.qmd` (not `README.md`). Render locally with `quarto render README.qmd`, then commit both files. Pull requests are checked by `.github/workflows/render-readme.yaml` (stale `README.md` fails the job); pushes to `main` may auto-commit a fresh render.
 
 ### One-time setup
 
