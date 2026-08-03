@@ -24,41 +24,19 @@ and then to any deconvolution routine exposed by
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md).
 
 ``` mermaid
-flowchart TD
-  subgraph means ["Mean profiles (AutoGeneS-inspired)"]
-    P1["target_cosine ρ / mean_scale s"] --> GM["generate_mean_signature_matrix()"]
-    GM --> MU["μ"]
-    MU --> OBJ["compute_mean_profile_objectives()"]
-    OBJ --> SCORE["mean |cosine| and Euclidean distances"]
-  end
-
-  subgraph network ["Graph-constrained second order"]
-    P2["graph_model / graph_params"] --> SK["generate_random_network_skeleton()"]
-    SK --> A["A binary adjacency"]
-    A --> BP["build_normalised_precision(u, v)"]
-    BP --> OM["Omega positive definite"]
-    OM --> CV["build_shared_covariance_array()"]
-    CV --> SIG["Sigma_j = Omega inverse"]
-  end
-
-  MU --> MAIN["simulate_hierarchical_grn_moments()"]
-  SIG --> MAIN
-  SCORE --> MAIN
-  MAIN --> MOM["moments: mu, Sigma, Omega, A"]
-  MOM --> BULK["simulate_bulk_mixture()"]
-  BULK --> Y["Y bulk matrix"]
-  Y --> DEC["deconvolute_ratios()"]
+flowchart LR
+  A["Graph G"] --> B["Weights W(G)"]
+  B --> C["Precision Ω ≻ 0"]
+  C --> D["Σ = Ω⁻¹"]
+  E["Means μ_j\n(AutoGeneS-style ρ)"] --> F["simulate_hierarchical_grn_moments()"]
+  D --> F
+  F --> G["simulate_bulk_mixture()"]
+  G --> H["deconvolute_ratios()"]
 ```
 
 ``` r
 
-if (requireNamespace("DeCovarT", quietly = TRUE)) {
-  library(DeCovarT)
-} else if (requireNamespace("pkgload", quietly = TRUE)) {
-  pkgload::load_all("..", export_all = FALSE, quiet = TRUE)
-} else {
-  stop("Package 'DeCovarT' is not installed and 'pkgload' is unavailable.")
-}
+library(DeCovarT)
 
 set.seed(42)
 moments <- simulate_hierarchical_grn_moments(

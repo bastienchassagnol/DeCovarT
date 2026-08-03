@@ -3,6 +3,7 @@
 - [DeCovarT](#decovart-) [![DeCovarT
   logo](reference/figures/logo.svg)](https://bastienchassagnol.github.io/DeCovarT/)
   - [Overview](#overview)
+    - [Seminar slides (iframe)](#seminar-slides-iframe)
   - [Pipeline Architecture](#pipeline-architecture)
     - [Built-in deconvolution
       algorithms](#built-in-deconvolution-algorithms)
@@ -33,6 +34,12 @@ The main entry point is
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md),
 which runs one or more solvers in parallel and returns estimated
 proportions plus optional benchmark metrics.
+
+### Seminar slides (iframe)
+
+Doctorants seminar overview (Quarto reveal.js). Prefer [full
+screen](https://bastienchassagnol.github.io/DeCovarT/slides/index.html)
+when presenting.
 
 ## Pipeline Architecture
 

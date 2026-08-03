@@ -45,7 +45,9 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-vignettes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true"><span class="fa fa-book-open"></span> Vignettes</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-vignettes">
-<li><h6 class="dropdown-header" data-toc-skip>Getting started</h6></li>
+<li><a class="dropdown-item" href="articles/deconvolution-seminar-slides.html"><span class="fa fa-chalkboard-user"></span> Doctorants seminar slides (embedded)</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Getting started</h6></li>
     <li><a class="dropdown-item" href="articles/synthetic-scenarios.html"><span class="fa fa-flask"></span> Simulating semi-synthetic pseudo-bulk mixtures</a></li>
     <li><a class="dropdown-item" href="articles/random-network-generation.html"><span class="fa fa-share-alt"></span> Random Gaussian Markov network generation</a></li>
     <li><a class="dropdown-item" href="articles/network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
@@ -82,7 +84,12 @@
 <li>
 <a href="#decovart-">DeCovarT </a><a href="https://bastienchassagnol.github.io/DeCovarT/"><img src="reference/figures/logo.svg" alt="DeCovarT logo" align="right" height="139"></a>
 <ul>
-<li><a href="#overview">Overview</a></li>
+<li>
+<a href="#overview">Overview</a>
+<ul>
+<li><a href="#seminar-slides-iframe">Seminar slides (iframe)</a></li>
+</ul>
+</li>
 <li>
 <a href="#pipeline-architecture">Pipeline Architecture</a>
 <ul>
@@ -120,6 +127,13 @@
 </h2>
 <p><strong>DeCovarT</strong> is an R package for bulk transcriptomic deconvolution that accounts for gene–gene covariance in purified reference populations. Bulk observations are modelled as Gaussian convolutions of cell-type means and covariances, with cellular proportions recovered on the open simplex via an unconstrained (additive logistic) parametrisation.</p>
 <p>The main entry point is <code><a href="reference/deconvolute_ratios.html">deconvolute_ratios()</a></code>, which runs one or more solvers in parallel and returns estimated proportions plus optional benchmark metrics.</p>
+<div class="section level3">
+<h3 id="seminar-slides-iframe">Seminar slides (iframe)<a class="anchor" aria-label="anchor" href="#seminar-slides-iframe"></a>
+</h3>
+<p>Doctorants seminar overview (Quarto reveal.js). Prefer <a href="https://bastienchassagnol.github.io/DeCovarT/slides/index.html">full screen</a> when presenting.</p>
+<iframe class="slides" src="https://bastienchassagnol.github.io/DeCovarT/slides/index.html" title="DeCovarT doctorants deconvolution slides" width="100%" height="520" style="border: 1px solid #ccc; border-radius: 4px;" allowfullscreen>
+</iframe>
+</div>
 </div>
 <div class="section level2">
 <h2 id="pipeline-architecture">Pipeline Architecture<a class="anchor" aria-label="anchor" href="#pipeline-architecture"></a>

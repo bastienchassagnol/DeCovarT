@@ -449,10 +449,8 @@ run (seeded).
 
 if (requireNamespace("DeCovarT", quietly = TRUE)) {
   library(DeCovarT)
-} else if (requireNamespace("pkgload", quietly = TRUE)) {
-  pkgload::load_all("..", export_all = FALSE, quiet = TRUE)
 } else {
-  stop("Package 'DeCovarT' is not installed and 'pkgload' is unavailable.")
+  stop("Package 'DeCovarT' is not installed.")
 }
 
 G <- 60L

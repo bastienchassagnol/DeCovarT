@@ -1,5 +1,10 @@
 # Articles
 
+### Presentations
+
+- [Doctorants seminar slides
+  (embedded)](https://bastienchassagnol.github.io/DeCovarT/articles/deconvolution-seminar-slides.md):
+
 ### Getting started
 
 - [Simulating semi-synthetic pseudo-bulk mixtures for
