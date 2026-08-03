@@ -27,22 +27,11 @@ knitr::opts_chunk$set(
 
 # Overview
 
-This vignette documents the synthetic first- and second-order moment generator
-`simulate_hierarchical_grn_moments()` and how its outputs feed bulk mixture
-simulation. Mean profiles are constructed so that pairwise collinearity and
-centroid separation can be dialled independently, following the AutoGeneS
-multi-objective rationale of @alieeAutoGeneSAutomaticGene2021: minimise correlation (here,
-cosine similarity) between cell-type columns of
-$\boldsymbol{\mu}$ while maximising their pairwise Euclidean distances.
-Covariances share a graph-constrained precision
-$\boldsymbol{\Omega}$, mapped to
-$\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}^{-1}$.
+This vignette documents the synthetic first- and second-order moment generator `simulate_hierarchical_grn_moments()` and how its outputs feed bulk mixture simulation. Mean profiles follow an AutoGeneS-inspired construction [@alieeAutoGeneSAutomaticGene2021] in which a single dial $\rho$ (`target_cosine`) sets pairwise collinearity between cell-type columns of $\boldsymbol{\mu}$, while a fixed scale $s$ (`mean_scale`) sets column norms. Prefer varying $\rho$ across scenarios when precision weights already control second-order dependence. Covariances share a graph-constrained signed precision $\boldsymbol{\Omega}$, mapped to $\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}^{-1}$.
 
 # Pipeline API
 
-The exported entry point orchestrates internal helpers and returns moments that
-can be passed to `simulate_bulk_mixture()` and then to any deconvolution
-routine exposed by `deconvolute_ratios()`.
+The exported entry point orchestrates internal helpers and returns moments that can be passed to `simulate_bulk_mixture()` and then to any deconvolution routine exposed by `deconvolute_ratios()`.
 
 ```{r pipeline-mermaid, echo=FALSE, results='asis'}
 mmd_path <- "figures/synthetic_grn_pipeline.mmd"
@@ -64,8 +53,8 @@ moments <- simulate_hierarchical_grn_moments(
   target_cosine = 0.1,
   precision_shift = 0.1,
   precision_scale = 0.3,
-  graph_model = "power_law",
-  graph_params = list(power = 1, edges_per_node = 2)
+  prop_inhibitory = 0.5,
+  graph_model = "scale_free"
 )
 
 moments$objectives
@@ -79,42 +68,49 @@ bulk <- simulate_bulk_mixture(
 dim(bulk$Y)
 ```
 
-Selecting genes (or, here, designing $\boldsymbol{\mu}$) by cosine alone is
-insufficient for stable deconvolution [@alieeAutoGeneSAutomaticGene2021]: low Euclidean
-separation makes ratio estimates noise-sensitive, and collinear centroids
-inflate variance of $\hat{\boldsymbol{p}}$. The two knobs `target_cosine`
-and `mean_scale` map onto that trade-off without running a genetic algorithm
-at simulation time.
+Selecting genes (or, here, designing $\boldsymbol{\mu}$) by cosine alone is insufficient for stable deconvolution [@alieeAutoGeneSAutomaticGene2021] when centroids also collapse toward the origin. In the scenarios of this package we therefore **hold `mean_scale` fixed** and dial only `target_cosine`, so that Euclidean norms (and second-order precision weights) stay comparable across runs.
 
 # Mathematical roles of the generators
 
 ## Mean signature: `generate_mean_signature_matrix()`
 
-Each column $\boldsymbol{\mu}_{\cdot j}$ is a normalised blend of a shared
-direction $\boldsymbol{u}$ (uniform over genes) and a private marker block
-$\boldsymbol{v}_{j}$ (high on a gene partition for type $j$, low elsewhere):
+Each column is a normalised blend of a shared unit direction
+$\boldsymbol{u}$ and a private marker direction $\boldsymbol{v}_{j}$
+(supported on a gene partition for type $j$):
 
 $$
+\tilde{\boldsymbol{\mu}}_{\cdot j}
+=
+\sqrt{\rho}\,\boldsymbol{u}
++\sqrt{1-\rho}\,\boldsymbol{v}_{j},
+\qquad
 \boldsymbol{\mu}_{\cdot j}
 =
 s\,
-\frac{
-  \sqrt{\rho}\,\boldsymbol{u}
-  +\sqrt{1-\rho}\,\boldsymbol{v}_{j}
-}{
-  \bigl\|
-    \sqrt{\rho}\,\boldsymbol{u}
-    +\sqrt{1-\rho}\,\boldsymbol{v}_{j}
-  \bigr\|_2
+\frac{\tilde{\boldsymbol{\mu}}_{\cdot j}}{
+  \|\tilde{\boldsymbol{\mu}}_{\cdot j}\|_2
 },
 \qquad
 j=1,\ldots,J.
+$$ {#eq-mean-cosine}
+
+The private vectors are nearly orthogonal after normalisation, so
+
+$$
+\tilde{\boldsymbol{\mu}}_{\cdot j}^{\mathsf{T}}
+\tilde{\boldsymbol{\mu}}_{\cdot k}
+\approx
+\rho
+\qquad (j\neq k),
 $$
 
-Here $\rho\in[0,1]$ is `target_cosine` and $s>0$ is `mean_scale`. Small
-$\rho$ yields complementary centroids; $\rho\to 1$ recovers a shared
-direction (cosine one, vanishing Euclidean gap). Small $s$ places centroids
-near the origin and shrinks pairwise distances while preserving angles.
+and the pairwise cosines of $\boldsymbol{\mu}$ therefore track
+$\rho\in[0,1]$ (`target_cosine`). The scale $s$ (`mean_scale`) sets column
+norms without changing angles:
+$\|\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\|_2\propto s$ at
+fixed $\rho$. When comparing collinearity alone (as in the nine Markov
+scenarios), keep $s$ fixed and vary only $\rho$
+[@alieeAutoGeneSAutomaticGene2021].
 
 ## Objectives: `compute_mean_profile_objectives()`
 
@@ -143,45 +139,28 @@ D_{\mathrm{Euc}}
 \|\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\|_2.
 $$
 
-AutoGeneS treats the first as a quantity to minimise and the second as a
-quantity to maximise [@alieeAutoGeneSAutomaticGene2021]. Cosine is preferred to Pearson
-correlation so that collinear but unequally scaled profiles remain penalised.
+AutoGeneS treats the first as a quantity to minimise and the second as a quantity to maximise [@alieeAutoGeneSAutomaticGene2021]. Cosine is preferred to Pearson correlation so that collinear but unequally scaled profiles remain penalised.
 
 ## Network skeleton: `generate_random_network_skeleton()`
 
-A binary adjacency $\boldsymbol{A}\in\{0,1\}^{G\times G}$ is drawn from either
-a preferential-attachment (power-law / hub) model or a stochastic block model
-(community structure). Both return an undirected graph with zero diagonal;
-they encode presence of partial-correlation edges, not their strengths.
+A binary adjacency $\boldsymbol{A}\in\{0,1\}^{G\times G}$ is drawn from one of three undirected families: scale-free preferential attachment and cluster / SBM via `huge::huge.generator()` [@R-huge; @zhangSILGGMExtensivePackage2018], or an internal Watts–Strogatz small-world construction. Edges encode presence of partial-correlation links, not their strengths. i.i.d. signs with inhibitory fraction `prop_inhibitory` then form the weighted matrix $\boldsymbol{W}$ before the spectral SPD completion.
 
 ## Positive-definite precision: `build_normalised_precision()`
 
-Edge weights enter through an affine spectral shift of $\boldsymbol{A}$,
-matching the construction used in the manuscript:
+Signed edge weights enter through an affine spectral shift of $\boldsymbol{W}$,
 
 $$
-\tilde{\boldsymbol{\Omega}}
-=
-\boldsymbol{A}\,v,
-\qquad
 \boldsymbol{\Omega}
 =
-\tilde{\boldsymbol{\Omega}}
+\boldsymbol{W}
 +
 \bigl(
-  \lvert\lambda_{\min}(\tilde{\boldsymbol{\Omega}})\rvert + u
+  \lvert\lambda_{\min}(\boldsymbol{W})\rvert + u
 \bigr)
 \mathbf{I},
 $$
 
-with off-diagonal scale $v$ (`precision_scale`) and diagonal cushion $u$
-(`precision_shift`). Larger $v$ strengthens interactions and spreads the
-spectrum; larger $u$ improves conditioning. The map
-$Y=aX+bI$ leaves eigenvectors unchanged and transforms eigenvalues as
-$\lambda_i(Y)=a\lambda_i(X)+b$; choosing
-$b=\lvert\lambda_{\min}(\tilde{\boldsymbol{\Omega}})\rvert+u$ with $a=1$
-therefore guarantees $\boldsymbol{\Omega}\succ 0$ while preserving the
-sparsity pattern of $\boldsymbol{A}$ off the diagonal.
+with magnitude $v$ (`precision_scale`) baked into $\boldsymbol{W}$ and diagonal cushion $u$ (`precision_shift`). The shift preserves off-diagonal signs and support while guaranteeing $\boldsymbol{\Omega}\succ 0$.
 
 ## Shared covariances: `build_shared_covariance_array()`
 
@@ -195,17 +174,13 @@ $$
 j=1,\ldots,J,
 $$
 
-stacked as an array in $\mathcal{M}_{G\times G\times J}$. Downstream bulk
-simulation uses the Gaussian convolution
-$\boldsymbol{y}\mid(\boldsymbol{\zeta},\boldsymbol{p})\sim
+stacked as an array in $\mathcal{M}_{G\times G\times J}$. Downstream bulk simulation uses the Gaussian convolution $\boldsymbol{y}\mid(\boldsymbol{\zeta},\boldsymbol{p})\sim
 \mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},
 \sum_j p_j^{2}\boldsymbol{\Sigma}_j)$.
 
 # Perspectives: a single geometric score for $\boldsymbol{\mu}$
 
-The present API exposes two AutoGeneS-style objectives. A natural refinement
-is to replace them by one scalar that jointly rewards large column norms
-(and hence Euclidean separation) and penalises alignment.
+The present API exposes two AutoGeneS-style objectives. A natural refinement is to replace them by one scalar that jointly rewards large column norms (and hence Euclidean separation) and penalises alignment.
 
 Two candidates are immediate. The Gram determinant
 
@@ -219,10 +194,7 @@ V(\boldsymbol{\mu})
 }
 $$
 
-is the volume of the parallelepiped spanned by the columns of
-$\boldsymbol{\mu}$. It vanishes under exact collinearity and grows when
-columns lengthen or become more orthogonal—precisely the desired MOO
-trade-off in one number.
+is the volume of the parallelepiped spanned by the columns of $\boldsymbol{\mu}$. It vanishes under exact collinearity and grows when columns lengthen or become more orthogonal—precisely the desired MOO trade-off in one number.
 
 Equivalently, the reciprocal condition number
 
@@ -232,16 +204,8 @@ $$
 \frac{\sigma_{\min}(\boldsymbol{\mu})}{\sigma_{\max}(\boldsymbol{\mu})},
 $$
 
-available in R via `kappa(mean_profiles, exact = TRUE)` (or
-`1 / kappa(...)`), measures how ill-posed linear recovery of
-$\boldsymbol{p}$ from $\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}$
-is. Maximising $\kappa_2(\boldsymbol{\mu})^{-1}$ (or minimising
-$\kappa_2(\boldsymbol{\mu})$) collapses cosine and distance into a
-deconvolution-centric criterion without a Pareto front.
+available in R via `kappa(mean_profiles, exact = TRUE)` (or `1 / kappa(...)`), measures how ill-posed linear recovery of $\boldsymbol{p}$ from $\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}$ is. Maximising $\kappa_2(\boldsymbol{\mu})^{-1}$ (or minimising $\kappa_2(\boldsymbol{\mu})$) collapses cosine and distance into a deconvolution-centric criterion without a Pareto front.
 
-A practical next step is to expose an optional `mean_objective = c("autogenes",
-"volume", "condition")` in `simulate_hierarchical_grn_moments()`, keep the
-constructive $(\rho,s)$ generator for controllable scenarios, and report the
-chosen scalar alongside the existing pairwise diagnostics.
+A practical next step is to expose an optional `mean_objective = c("autogenes", "volume", "condition")` in `simulate_hierarchical_grn_moments()`, keep the constructive $(\rho,s)$ generator for controllable scenarios, and report the chosen scalar alongside the existing pairwise diagnostics.
 
 # References

@@ -52,7 +52,9 @@ flowchart LR
   Latent -.-> Obs
 ```
 
-# Evidence from the literature
+# Graph structure generators
+
+## Evidence from the literature
 
 @tbl-studies summarises how recent simulation studies combine topology, precision construction, and mean / observation models.
 
@@ -78,7 +80,6 @@ $$
 -\frac{\Omega_{jk}}{\sqrt{\Omega_{jj}\Omega_{kk}}}
 $$ {#eq-partial-cor}
 
-# Graph structure generators
 
 @tbl-topologies compares the main **undirected** topology families used in GGM benchmarks, with R entry points. @fig-topologies sketches the six families most often used in random-like network structure generation.
 
@@ -87,18 +88,45 @@ $$ {#eq-partial-cor}
 | **Erdős–Rényi** | Each edge present independently with probability $q$; $q=d_{\mathrm{avg}}/(p-1)$ targets average degree | `huge::huge.generator(graph="random")` [@R-huge]; `BDgraph::graph.sim(graph="random")` [@R-BDgraph] | Exact sparsity control in expectation; few nuisance parameters | Narrow degree distribution; little modular organisation |
 | **Band / AR** | Edge $j$–$k$ if $1\le\lvert j-k\rvert\le b$ | `huge.generator(graph="band")` [@R-huge]; `BDgraph::bdgraph.sim(graph="AR(1)")` / `"AR(2)"` [@R-BDgraph] | Local dependence and controlled max degree | Artificial gene ordering; no hubs or modules |
 | **Hub / star** | $g$ groups; one centre linked to remaining members | `huge.generator(graph="hub")` [@R-huge]; `graph.sim(graph="hub")` / `"star"` [@R-BDgraph] | Stress-tests high-degree regulators | Pure stars omit cross-talk |
-| **Scale-free** | Preferential attachment (e.g. Barabási–Albert with $m$ edges per new node) | `huge.generator(graph="scale-free")` [@R-huge]; `graph.sim(graph="scale-free")` [@R-BDgraph]; DeCovarT `graph_model = "power_law"` | Heterogeneous degrees | Weak modularity under plain BA growth |
-| **Cluster / SBM** | Within-block edge probability exceeds between-block | `huge.generator(graph="cluster")` [@R-huge]; `graph.sim(graph="cluster")` [@R-BDgraph]; DeCovarT `graph_model = "stochastic_block_model"` | Pathway / module structure | Equal blocks and homogeneous $P$ can be unrealistically regular |
-| **Small-world / lattice / circle** | High clustering with short paths, or fixed neighbourhoods | `graph.sim(graph="smallworld")`, `"lattice"`, `"circle"` [@R-BDgraph] | Local modules and spatial organisation | Narrow degrees; needs a defensible ordering |
+| **Scale-free** | Preferential attachment (e.g. Barabási–Albert with $m$ edges per new node) | `huge.generator(graph="scale-free")` [@R-huge]; DeCovarT `graph_model = "scale_free"` | Heterogeneous degrees | Weak modularity under plain BA growth |
+| **Cluster / SBM** | Within-block edge probability exceeds between-block | `huge.generator(graph="cluster")` [@R-huge]; DeCovarT `graph_model = "stochastic_block_model"` | Pathway / module structure | Equal blocks can be unrealistically regular |
+| **Small-world / lattice / circle** | High clustering with short paths, or fixed neighbourhoods | DeCovarT `graph_model = "small_world"` (Watts–Strogatz); `BDgraph::graph.sim(graph="smallworld")` [@R-BDgraph] | Local modules and spatial organisation | Narrow degrees; needs a defensible ordering |
 
 : Topology families for undirected GGM simulation (R-focused). {#tbl-topologies}
+
+## Biological relevance of the six families
+
+Not every topology is equally useful as a **gene-regulatory** prior. The three
+simulation studies in @tbl-studies, together with classical network biology,
+suggest the following reading.
+
+| Family | Biological reading | Why it matters for DeCovarT |
+|--------|--------------------|-----------------------------|
+| **Star / hub** | Master-regulator TF with many targets; one-to-many signalling | Stress-tests recovery of a few high-degree hubs that dominate partial correlations [@wuEstimatingHeterogeneousGene2022; @federicoStructureLearningGene2023] |
+| **Scale-free (BA)** | Preferential attachment; heavy-tailed degree, several hubs [@barabasiEmergenceScalingRandom1999] | Standard high-dimensional GGM stress test used by SILGGM via `huge` [@zhangSILGGMExtensivePackage2018]; captures heterogeneous connectivity without modular blocks |
+| **Cluster / SBM** | Co-regulated modules / pathways with dense within-block links | Matches pathway organisation; BLGGM’s global block partition is SBM-like before finer within-block motifs [@wuEstimatingHeterogeneousGene2022] |
+| **Small-world** | High local clustering with short paths (ring + shortcuts) | Local co-expression neighbourhoods plus long-range regulatory shortcuts; useful when modularity is soft rather than hard blocks [@federicoStructureLearningGene2023] |
+| **Band / AR** | Ordered local dependence only | Useful numerical control, but gene indices rarely encode a natural order—limited biological fidelity [@zhangSILGGMExtensivePackage2018] |
+| **Erdős–Rényi** | Homogeneous random wiring | Null / baseline sparsity; little pathway or hub structure [@zhangSILGGMExtensivePackage2018] |
+
+: Biological interpretability of undirected topology families. {#tbl-bio-topologies}
+
+**BLGGM as a hybrid.** Wu and Luo combine an SBM-like **global** gene partition
+with **local** dense, circle, star, or signed modules inside blocks
+[@wuEstimatingHeterogeneousGene2022]. Distinct local motifs can stand for
+distinct processes (e.g. master-regulator stars vs dense co-expression
+programmes). DeCovarT’s exported generators currently expose the three
+families most useful as standalone benchmarks: `scale_free`,
+`stochastic_block_model`, and `small_world`.
 
 ## Package roles (R)
 
 -   **`huge`** [@R-huge] — compact end-to-end GGM benchmark via `huge.generator()`: topology, SPD precision, covariance, and $\mathcal{N}_p$ samples. Supports random, hub, cluster, band, and scale-free graphs [@zhangSILGGMExtensivePackage2018].
 -   **`BDgraph`** [@R-BDgraph; @BDgraph2019] — broadest undirected simulation surface: `graph.sim()` for topologies; `bdgraph.sim()` for data (including a `mean` argument and non-Gaussian families); `rgwish()` for G-Wishart draws that respect graph-constrained zeros.
 
-![Six undirected topology families used in GGM simulation: Erdős–Rényi, Barabási–Albert (preferential attachment / scale-free), stochastic block (cluster), band / AR, star / hub, and small-world (Watts–Strogatz).](figures/fig_network_topologies_six.png){#fig-topologies}
+![Six undirected topology families used in GGM simulation: Erdős–Rényi, Barabási–Albert (preferential attachment / scale-free), stochastic block (cluster), band / AR, star / hub, and small-world (Watts–Strogatz).\
+\
+](figures/fig_network_topologies_six.png){#fig-topologies}
 
 # Weight design and random signs
 
@@ -206,7 +234,7 @@ Large loading yields a well-conditioned but weakly dependent network; loading on
 
 # Conclusions
 
-> DeCovarT uses `power_law` and `stochastic_block_model` skeletons for undirected network structure, then a spectral-shift completion to guarantee $\Omega\succ 0$. Random signs are not yet exposed in the package API; the weight-design strategies above are the natural extensions.
+> DeCovarT draws `scale_free` and `stochastic_block_model` skeletons with `huge`, `small_world` with an internal Watts–Strogatz step, then i.i.d. signed weights (`prop_inhibitory`) and a spectral shift to guarantee $\Omega\succ 0$.
 
 ## Further high-dimensional designs
 
@@ -277,7 +305,7 @@ $$
 $$ {#eq-benchmark-pipe}
 
 | Axis | Suggested levels |
-|----------------------|--------------------------------------------------|
+|-----------------------|-------------------------------------------------|
 | Dimension, namely number of variables (here, genes) | $p \in \{100,500,1000\}$ |
 | Topology | ER, band, hub, scale-free, SBM, small-world |
 | Expected degree | $\approx 2,4,8$ (keep graphs sparse) |
@@ -288,5 +316,178 @@ $$ {#eq-benchmark-pipe}
 : Compact factorial axes for a reproducible undirected GGM simulation study. {#tbl-benchmark}
 
 **Main insights.** Prefer the uniform spectral shift (@eq-spectral-shift) or partial-correlation scaling (@eq-partial-scale) when support and signs must be exact; add the mean layer **independently** of graph generation.
+
+# Nine factorial simulation scenarios
+
+The script `scripts/generate_random_network_skeleton.R` builds a $3\times 3$
+grid of undirected Markov-network moments. Notation matches the manuscript:
+$G$ genes and $N$ bulk samples for $\boldsymbol{Y}\in\mathcal{M}_{G\times N}$.
+
+$$
+\begin{aligned}
+\text{topology}
+&\in
+\{\text{scale-free (A)},\
+\text{SBM (B)},\
+\text{small-world (C)}\},
+\\
+\rho
+&\in
+\{0.05,\,0.35,\,0.70\}
+\quad\text{(cosine levels 1–3)},
+\\
+\text{prop. inhibitory edges}
+&=
+\tfrac12,
+\qquad
+\text{target }\kappa(\boldsymbol{\Omega})
+\approx
+50.
+\end{aligned}
+$$ {#eq-scenario-grid}
+
+Scenario IDs are $\mathtt{A1}$–$\mathtt{C3}$ (topology letter × cosine level).
+@tbl-scenarios reports realised diagnostics for each run (seeded).
+
+```{r}
+#| label: tbl-scenarios
+#| tbl-cap: "Nine undirected Markov-network scenarios (3 topologies × 3 cosine levels)."
+#| warning: false
+#| message: false
+
+library(DeCovarT)
+
+G <- 60L
+N <- 80L
+n_celltypes <- 3L
+mean_scale <- 10
+precision_scale <- 0.3
+prop_inhibitory <- 0.5
+target_kappa <- 50
+cosine_levels <- c(0.05, 0.35, 0.70)
+
+topology_specs <- list(
+  A = list(
+    topology = "scale_free",
+    graph_model = "scale_free",
+    graph_params = list()
+  ),
+  B = list(
+    topology = "stochastic_block_model",
+    graph_model = "stochastic_block_model",
+    graph_params = list(n_blocks = 3L)
+  ),
+  C = list(
+    topology = "small_world",
+    graph_model = "small_world",
+    graph_params = list(nei = 2L, p = 0.05)
+  )
+)
+
+calibrate_u <- function(adjacency) {
+  shifts <- c(0.05, 0.1, 0.2, 0.5, 1, 2, 5)
+  best_u <- shifts[[1]]
+  best_gap <- Inf
+  for (u in shifts) {
+    W <- DeCovarT:::assign_iid_signed_weights(
+      adjacency,
+      prop_inhibitory = prop_inhibitory,
+      weight_magnitude = precision_scale
+    )
+    Omega <- DeCovarT:::build_normalised_precision(W, u)
+    gap <- abs(log(kappa(Omega, exact = TRUE)) - log(target_kappa))
+    if (gap < best_gap) {
+      best_gap <- gap
+      best_u <- u
+    }
+  }
+  best_u
+}
+
+rows <- list()
+seed0 <- 100L
+for (t_idx in seq_along(topology_specs)) {
+  t_code <- names(topology_specs)[[t_idx]]
+  spec <- topology_specs[[t_code]]
+  for (c_idx in seq_along(cosine_levels)) {
+    scenario_id <- paste0(t_code, c_idx)
+    set.seed(seed0 + 10L * t_idx + c_idx)
+    A <- DeCovarT:::generate_random_network_skeleton(
+      n_genes = G,
+      graph_model = spec$graph_model,
+      graph_params = spec$graph_params
+    )
+    u <- calibrate_u(A)
+    set.seed(seed0 + 10L * t_idx + c_idx)
+    moments <- simulate_hierarchical_grn_moments(
+      n_genes = G,
+      n_celltypes = n_celltypes,
+      mean_scale = mean_scale,
+      target_cosine = cosine_levels[[c_idx]],
+      precision_shift = u,
+      precision_scale = precision_scale,
+      prop_inhibitory = prop_inhibitory,
+      graph_model = spec$graph_model,
+      graph_params = spec$graph_params
+    )
+    Omega <- moments$graph_structure$normalised_precision
+    W <- moments$graph_structure$weighted_adjacency
+    mu <- moments$mean_profiles
+    evals <- eigen(Omega, symmetric = TRUE, only.values = TRUE)$values
+    upper_w <- W[upper.tri(W) & A == 1]
+    rows[[scenario_id]] <- data.frame(
+      ID = scenario_id,
+      topology = spec$topology,
+      rho = cosine_levels[[c_idx]],
+      lambda_min = min(evals),
+      lambda_max = max(evals),
+      kappa_Omega = max(evals) / min(evals),
+      prop_inhib = if (length(upper_w)) mean(upper_w > 0) else NA_real_,
+      mean_abs_cos = moments$objectives$mean_abs_cosine,
+      recip_kappa_mu = 1 / kappa(mu, exact = TRUE),
+      gram_det = sqrt(max(0, det(crossprod(mu)))),
+      stringsAsFactors = FALSE
+    )
+  }
+}
+
+scenario_df <- do.call(rbind, rows)
+rownames(scenario_df) <- NULL
+
+if (requireNamespace("tinytable", quietly = TRUE)) {
+  scenario_df |>
+    tinytable::tt(digits = 3) |>
+    tinytable::group_tt(
+      i = c(
+        rep("A <U+2014> scale-free (Barab<U+00E1>si<U+2013>Albert)", 3L),
+        rep("B <U+2014> stochastic block model", 3L),
+        rep("C <U+2014> small-world (Watts<U+2013>Strogatz)", 3L)
+      )
+    ) |>
+    tinytable::format_tt(
+      j = c(
+        "rho",
+        "lambda_min",
+        "lambda_max",
+        "kappa_Omega",
+        "prop_inhib",
+        "mean_abs_cos",
+        "recip_kappa_mu",
+        "gram_det"
+      ),
+      digits = 3
+    )
+} else {
+  knitr::kable(scenario_df, digits = 3)
+}
+```
+
+Column guide: $\lambda_{\min}$, $\lambda_{\max}$, and
+$\kappa(\boldsymbol{\Omega})=\lambda_{\max}/\lambda_{\min}$ summarise the
+precision spectrum; `prop_inhib` is the realised fraction of inhibitory
+precision edges; `mean_abs_cos` is the AutoGeneS cosine objective on
+$\boldsymbol{\mu}$; `recip_kappa_mu` is
+$\kappa_2(\boldsymbol{\mu})^{-1}$; `gram_det` is
+$\sqrt{\det(\boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu})}$.
 
 # References

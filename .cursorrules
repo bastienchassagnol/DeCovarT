@@ -99,7 +99,18 @@ stacks (e.g. PyTorch) for this R package.
 
 # R — package and tooling (DeCovarT)
 
-> Always run the local pre-commit file after bringing changes to the GitHub repository
+> Always run the local pre-commit hooks after bringing changes to the
+> GitHub repository. Before any `pre-commit run` (including
+> `--all-files`), clear the hook cache first so hooks and environments
+> are not stale:
+>
+> ```bash
+> pre-commit clean
+> pre-commit run --all-files
+> ```
+>
+> Prefer `pre-commit clean` (clears the pre-commit cache) over skipping
+> hooks. Do not use `--no-verify` unless the user explicitly requests it.
 
 ## Project roles
 
@@ -121,8 +132,12 @@ This repo uses **[Air](https://posit-dev.github.io/air/)** (`air.toml`) and
 - Prefer Air over styler for formatting.
 - Run / respect pre-commit hooks: `air-format`, `lintr` (warn-only),
   `parsable-R`, `no-browser-statement`, `use-tidy-description`,
-  `deps-in-desc`, large-file check. README sync is enforced in CI via
-  `.github/workflows/render-readme.yaml` (`quarto render README.qmd`).
+  `deps-in-desc`, large-file check, `check-bibliography`. README sync
+  is enforced in CI via `.github/workflows/render-readme.yaml`
+  (`quarto render README.qmd`).
+- Before any `pre-commit run`, always clear the cache first:
+  `pre-commit clean`, then `pre-commit run --all-files` (or the
+  narrower hook set requested).
 - Keep line length ≤ 80 characters.
 
 ## Package structure
@@ -135,6 +150,22 @@ This repo uses **[Air](https://posit-dev.github.io/air/)** (`air.toml`) and
 - Validate with `devtools::check()` (notes OK; avoid warnings/errors).
 - Prefer **usethis** and **devtools** workflows for package tasks
   (tests, docs, DESCRIPTION, GitHub Actions helpers, etc.).
+
+### Roxygen: `@keywords internal` vs `@noRd`
+
+- Unexported helpers may use **`@keywords internal`** so they stay off
+  the pkgdown reference index / user-facing “see also” surfaces while
+  still generating help pages when documented.
+- Use **`@noRd` if and only if** the object has **no** substantive
+  roxygen documentation (no title / description / `@param` /
+  `@return` worth installing). Bare `@keywords internal` + `@noRd`
+  is appropriate for tiny undocumented helpers (e.g. `.maha_distance`).
+- If you write real roxygen (title, maths, arguments, return value),
+  **do not** add `@noRd`: install the `.Rd` so `?fn` and
+  `?pkg:::fn` work after `devtools::document()` / install. Keep
+  `@keywords internal` when the function remains unexported.
+- Never use `@noRd` merely because a function is internal—that hides
+  documentation you already wrote.
 
 ## Naming conventions
 

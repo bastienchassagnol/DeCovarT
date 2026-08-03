@@ -42,7 +42,8 @@ deconvolute_ratios_cibersort <- function(y, mean_signature_matrix) {
 #' @importFrom Rdpack reprompt
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Ordinary least squares
 #'   for \eqn{\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}}
-#'   ([stats::lsfit()]), following \insertCite{abbas_etal09;textual}{DeCovarT};
+#'   ([stats::lsfit()]), following
+#'   \insertCite{abbasDeconvolutionBloodMicroarray2009;textual}{DeCovarT};
 #'   estimates are projected back onto the simplex.
 deconvolute_ratios_lsfit <- function(y, mean_signature_matrix) {
   estimated_p <- stats::lsfit(
@@ -56,7 +57,8 @@ deconvolute_ratios_lsfit <- function(y, mean_signature_matrix) {
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Robust linear model
 #'   \eqn{\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}}
-#'   ([MASS::rlm()]), as in \insertCite{monaco_etal19;textual}{DeCovarT}.
+#'   ([MASS::rlm()]), as in
+#'   \insertCite{monacoRNASeqSignaturesNormalized2019;textual}{DeCovarT}.
 deconvolute_ratios_rlm <- function(y, mean_signature_matrix) {
   estimated_p <- MASS::rlm(
     y ~ mean_signature_matrix + 0,

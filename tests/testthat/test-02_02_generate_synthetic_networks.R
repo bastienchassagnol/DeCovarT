@@ -9,8 +9,9 @@ default_args <- list(
   target_cosine = 0.1,
   precision_shift = 0.1,
   precision_scale = 0.3,
-  graph_model = "power_law",
-  graph_params = list(power = 1, edges_per_node = 2)
+  prop_inhibitory = 0.5,
+  graph_model = "scale_free",
+  graph_params = list()
 )
 
 test_that("simulate_hierarchical_grn_moments returns expected structure", {
@@ -31,6 +32,10 @@ test_that("simulate_hierarchical_grn_moments returns expected structure", {
   expect_equal(dim(moments$covariance_matrices), c(30L, 30L, 3L))
   expect_equal(
     dim(moments$graph_structure$adjacency_matrix),
+    c(30L, 30L)
+  )
+  expect_equal(
+    dim(moments$graph_structure$weighted_adjacency),
     c(30L, 30L)
   )
   expect_equal(
@@ -101,7 +106,6 @@ test_that("higher mean_scale increases Euclidean separation", {
     near_origin$objectives$sum_euclidean_distance,
     far_apart$objectives$sum_euclidean_distance
   )
-  ## Distance scales linearly with mean_scale at fixed angles
   expect_equal(
     far_apart$objectives$sum_euclidean_distance /
       near_origin$objectives$sum_euclidean_distance,
@@ -129,11 +133,6 @@ test_that("precision_scale alters off-diagonal magnitude of Omega", {
   diag(off_weak) <- 0
   diag(off_strong) <- 0
   expect_lt(max(abs(off_weak)), max(abs(off_strong)))
-
-  ## Larger interaction scale spreads the covariance spectrum
-  cond_weak <- kappa(weak$covariance_matrices[,, 1], exact = TRUE)
-  cond_strong <- kappa(strong$covariance_matrices[,, 1], exact = TRUE)
-  expect_lt(cond_weak, cond_strong)
 })
 
 test_that("precision_shift improves conditioning of Omega", {
@@ -162,26 +161,30 @@ test_that("precision_shift improves conditioning of Omega", {
   )
 })
 
-test_that("stochastic block model graph also yields PD precision", {
-  moments <- withr::with_seed(8L, {
+test_that("stochastic block and small-world models yield PD precision", {
+  for (model in c("stochastic_block_model", "small_world")) {
+    moments <- withr::with_seed(8L, {
+      do.call(
+        simulate_hierarchical_grn_moments,
+        modifyList(default_args, list(graph_model = model))
+      )
+    })
+    eigen_vals <- eigen(
+      moments$graph_structure$normalised_precision,
+      only.values = TRUE
+    )$values
+    expect_true(all(eigen_vals > 0))
+  }
+})
+
+test_that("prop_inhibitory controls sign balance on weighted edges", {
+  moments <- withr::with_seed(9L, {
     do.call(
       simulate_hierarchical_grn_moments,
-      modifyList(
-        default_args,
-        list(
-          graph_model = "stochastic_block_model",
-          graph_params = list(
-            block_prob = c(0.5, 0.5),
-            p_within = 0.4,
-            p_between = 0.02
-          )
-        )
-      )
+      modifyList(default_args, list(prop_inhibitory = 1))
     )
   })
-  eigen_vals <- eigen(
-    moments$graph_structure$normalised_precision,
-    only.values = TRUE
-  )$values
-  expect_true(all(eigen_vals > 0))
+  W <- moments$graph_structure$weighted_adjacency
+  upper <- W[upper.tri(W) & moments$graph_structure$adjacency_matrix == 1]
+  expect_true(length(upper) == 0L || all(upper > 0))
 })

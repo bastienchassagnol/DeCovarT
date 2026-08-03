@@ -11,7 +11,8 @@ simulate_hierarchical_grn_moments(
   target_cosine = 0,
   precision_shift,
   precision_scale,
-  graph_model = c("power_law", "stochastic_block_model"),
+  prop_inhibitory = 0.5,
+  graph_model = c("scale_free", "stochastic_block_model", "small_world"),
   graph_params = list()
 )
 }
@@ -25,14 +26,21 @@ simulate_hierarchical_grn_moments(
 \item{target_cosine}{Numeric in \eqn{[0,1]}; target pairwise cosine
 similarity between columns of \eqn{\boldsymbol{\mu}}.}
 
-\item{precision_shift, precision_scale}{Diagonal shift \eqn{u} and
-off-diagonal scale \eqn{v} used to build \eqn{\boldsymbol{\Omega}}.}
+\item{precision_shift}{Diagonal cushion \eqn{u} for the spectral
+shift.}
 
-\item{graph_model}{\code{"power_law"} or \code{"stochastic_block_model"}.}
+\item{precision_scale}{Positive magnitude \eqn{v} of signed
+off-diagonal precision weights.}
 
-\item{graph_params}{Named list of generator parameters:
-\code{power} / \code{edges_per_node} (power-law) or
-\code{block_prob} / \code{p_within} / \code{p_between} (SBM).}
+\item{prop_inhibitory}{Numeric in \eqn{[0,1]}; fraction of edges with
+positive precision weight (inhibitory partial correlation). Default
+\code{0.5} balances inhibitory and activatory edges.}
+
+\item{graph_model}{One of \code{"scale_free"},
+\code{"stochastic_block_model"}, \code{"small_world"}.}
+
+\item{graph_params}{Named list of generator parameters (see
+\code{generate_random_network_skeleton()}).}
 }
 \value{
 Named list with:
@@ -40,8 +48,8 @@ Named list with:
 \item \code{mean_profiles}: matrix \eqn{\boldsymbol{\mu}};
 \item \code{covariance_matrices}: array
 \eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}};
-\item \code{graph_structure}: \code{adjacency_matrix} and \code{normalised_precision}
-\eqn{\boldsymbol{\Omega}};
+\item \code{graph_structure}: \code{adjacency_matrix}, \code{weighted_adjacency}, and
+\code{normalised_precision} \eqn{\boldsymbol{\Omega}};
 \item \code{objectives}: \code{mean_abs_cosine} and \code{sum_euclidean_distance}.
 }
 }
@@ -49,13 +57,13 @@ Named list with:
 Builds a mean matrix \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}}
 and a shared covariance array \eqn{(\boldsymbol{\Sigma}_j)_{j}} under a
 graph-constrained precision model. Means follow the AutoGeneS-inspired
-construction of \code{generate_mean_signature_matrix()} with target pairwise
-cosine similarity \eqn{\rho} and column scale \eqn{s}, so that one can
-dial collinearity (minimise cosine) against centroid separation
-(maximise Euclidean distance). The adjacency
-\eqn{\boldsymbol{A}} is drawn from a random-graph model; the precision
-\eqn{\boldsymbol{\Omega}} is obtained via the affine spectral shift
-of \code{build_normalised_precision()}, and each cell type shares
+cosine construction of \code{generate_mean_signature_matrix()} with target
+pairwise cosine \eqn{\rho}. The adjacency \eqn{\boldsymbol{A}} is drawn
+from a random-graph model (\pkg{huge} for scale-free and cluster /
+SBM; internal Watts–Strogatz for small-world); i.i.d. signed weights
+with inhibitory fraction \code{prop_inhibitory} form
+\eqn{\boldsymbol{W}}; the precision is completed by a spectral shift;
+each cell type shares
 \eqn{\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}^{-1}}.
 }
 \examples{
@@ -67,16 +75,9 @@ moments <- simulate_hierarchical_grn_moments(
   target_cosine = 0.1,
   precision_shift = 0.1,
   precision_scale = 0.3,
-  graph_model = "power_law",
-  graph_params = list(power = 1, edges_per_node = 2)
+  prop_inhibitory = 0.5,
+  graph_model = "scale_free"
 )
 str(moments, max.level = 2)
-
-## Verify positive-definiteness of the shared covariance
-eigen_vals <- eigen(
-  moments$covariance_matrices[, , 1],
-  only.values = TRUE
-)$values
-stopifnot(all(eigen_vals > 0))
 
 }

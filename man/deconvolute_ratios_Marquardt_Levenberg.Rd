@@ -108,12 +108,14 @@ Optimisation is performed in unconstrained coordinates
 
 \item \code{deconvolute_ratios_lsfit()}: Ordinary least squares
 for \eqn{\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}}
-(\code{\link[stats:lsfit]{stats::lsfit()}}), following \insertCite{abbas_etal09;textual}{DeCovarT};
+(\code{\link[stats:lsfit]{stats::lsfit()}}), following
+\insertCite{abbasDeconvolutionBloodMicroarray2009;textual}{DeCovarT};
 estimates are projected back onto the simplex.
 
 \item \code{deconvolute_ratios_rlm()}: Robust linear model
 \eqn{\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}}
-(\code{\link[MASS:rlm]{MASS::rlm()}}), as in \insertCite{monaco_etal19;textual}{DeCovarT}.
+(\code{\link[MASS:rlm]{MASS::rlm()}}), as in
+\insertCite{monacoRNASeqSignaturesNormalized2019;textual}{DeCovarT}.
 
 \item \code{deconvolute_ratios_nnls()}: Non-negative least squares
 for \eqn{\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}}
