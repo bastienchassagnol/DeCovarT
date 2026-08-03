@@ -5,9 +5,9 @@ to move between the unconstrained coordinates
 \\\boldsymbol{\rho}\in\mathbb{R}^{J-1}\\ and the cellular ratios
 \\\boldsymbol{p}\in\Delta^{J-1}\\. For every map we give the explicit
 tensor formula, an efficient base-`R` implementation (evaluated and
-checked against
-[`numDeriv`](https://cran.r-project.org/package=numDeriv)), and a
-batched `PyTorch` counterpart. The naming follows the DeCovarT API:
+checked against **numDeriv** ([Gilbert and Varadhan
+2019](#ref-R-numDeriv))), and a batched `PyTorch` counterpart. The
+naming follows the DeCovarT API:
 [`additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
 for \\\boldsymbol{\rho}\mapsto\boldsymbol{p}\\ and
 [`additive_log_ratio()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
@@ -306,11 +306,9 @@ PyTorch
 
 ## Reference implementations
 
-Both transforms are standard in compositional data analysis. In `R`, the
-[`compositions`](https://cran.r-project.org/web/packages/compositions/refman/compositions.html#alr)
-package exposes `alr()` / `alrInv()`. In `Python`,
-[`scikit-bio`](https://scikit.bio/docs/dev/generated/skbio.stats.composition.alr_inv.html)
-provides `skbio.stats.composition.alr()` and `alr_inv()`. DeCovarT’s
+Both transforms are standard in compositional data analysis. In R, the
+**compositions** package ([van den Boogaart et al.
+2025](#ref-R-compositions)) exposes `alr()` / `alrInv()`. DeCovarT’s
 [`additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
 and
 [`additive_log_ratio()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
@@ -363,3 +361,10 @@ c(logistic_jacobian = isTRUE(jac_ok),
 ```
 
 Listing 12: Validation with numDeriv
+
+Gilbert, Paul, and Ravi Varadhan. 2019. *numDeriv: Accurate Numerical
+Derivatives*. <http://optimizer.r-forge.r-project.org/>.
+
+van den Boogaart, K. Gerald, Raimon Tolosana-Delgado, and Matevz Bren.
+2025. *Compositions: Compositional Data Analysis*.
+<http://www.stat.boogaart.de/compositions/>.

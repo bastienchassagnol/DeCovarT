@@ -5,13 +5,14 @@
 This vignette documents the synthetic first- and second-order moment
 generator
 [`simulate_hierarchical_grn_moments()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_hierarchical_grn_moments.md)
-and how its outputs feed bulk mixture simulation. Mean profiles are
-constructed so that pairwise collinearity and centroid separation can be
-dialled independently, following the AutoGeneS multi-objective rationale
-of Aliee, Hananeh and Theis, Fabian J. ([2021](#ref-aliee_theis21)):
-minimise correlation (here, cosine similarity) between cell-type columns
-of \\\boldsymbol{\mu}\\ while maximising their pairwise Euclidean
-distances. Covariances share a graph-constrained precision
+and how its outputs feed bulk mixture simulation. Mean profiles follow
+an AutoGeneS-inspired construction ([Aliee and Theis
+2021](#ref-alieeAutoGeneSAutomaticGene2021)) in which a single dial
+\\\rho\\ (`target_cosine`) sets pairwise collinearity between cell-type
+columns of \\\boldsymbol{\mu}\\, while a fixed scale \\s\\
+(`mean_scale`) sets column norms. Prefer varying \\\rho\\ across
+scenarios when precision weights already control second-order
+dependence. Covariances share a graph-constrained signed precision
 \\\boldsymbol{\Omega}\\, mapped to
 \\\boldsymbol{\Sigma}\_j=\boldsymbol{\Omega}^{-1}\\.
 
@@ -52,7 +53,13 @@ flowchart TD
 
 ``` r
 
-library(DeCovarT)
+if (requireNamespace("DeCovarT", quietly = TRUE)) {
+  library(DeCovarT)
+} else if (requireNamespace("pkgload", quietly = TRUE)) {
+  pkgload::load_all("..", export_all = FALSE, quiet = TRUE)
+} else {
+  stop("Package 'DeCovarT' is not installed and 'pkgload' is unavailable.")
+}
 
 set.seed(42)
 moments <- simulate_hierarchical_grn_moments(
@@ -62,16 +69,16 @@ moments <- simulate_hierarchical_grn_moments(
   target_cosine = 0.1,
   precision_shift = 0.1,
   precision_scale = 0.3,
-  graph_model = "power_law",
-  graph_params = list(power = 1, edges_per_node = 2)
+  prop_inhibitory = 0.5,
+  graph_model = "scale_free"
 )
 
 moments$objectives
 #> $mean_abs_cosine
-#> [1] 0.4144044
+#> [1] 0.3315284
 #> 
 #> $sum_euclidean_distance
-#> [1] 32.46647
+#> [1] 34.68786
 
 bulk <- simulate_bulk_mixture(
   signature_matrix = moments$mean_profiles,
@@ -84,32 +91,199 @@ dim(bulk$Y)
 ```
 
 Selecting genes (or, here, designing \\\boldsymbol{\mu}\\) by cosine
-alone is insufficient for stable deconvolution ([Aliee, Hananeh and
-Theis, Fabian J. 2021](#ref-aliee_theis21)): low Euclidean separation
-makes ratio estimates noise-sensitive, and collinear centroids inflate
-variance of \\\hat{\boldsymbol{p}}\\. The two knobs `target_cosine` and
-`mean_scale` map onto that trade-off without running a genetic algorithm
-at simulation time.
+alone is insufficient for stable deconvolution ([Aliee and Theis
+2021](#ref-alieeAutoGeneSAutomaticGene2021)) when centroids also
+collapse toward the origin. In the scenarios of this package we
+therefore **hold `mean_scale` fixed** and dial only `target_cosine`, so
+that Euclidean norms (and second-order precision weights) stay
+comparable across runs.
 
 ## Mathematical roles of the generators
 
 ### Mean signature: `generate_mean_signature_matrix()`
 
-Each column \\\boldsymbol{\mu}\_{\cdot j}\\ is a normalised blend of a
-shared direction \\\boldsymbol{u}\\ (uniform over genes) and a private
-marker block \\\boldsymbol{v}\_{j}\\ (high on a gene partition for type
-\\j\\, low elsewhere):
+Notation: \\G\\ genes, \\J\\ cell types indexed by \\j=1,\ldots,J\\, and
+columns \\\boldsymbol{\mu}\_{\cdot j}\in\mathbb{R}^{G}\\ of the mean
+signature. Fix the column scale \\s\\ (`mean_scale`, default \\10\\ in
+the nine-scenario grid) and dial only the target cosine
+\\\rho\in\[0,1\]\\ (`target_cosine`).
 
-\\ \boldsymbol{\mu}\_{\cdot j} = s\\ \frac{ \sqrt{\rho}\\\boldsymbol{u}
-+\sqrt{1-\rho}\\\boldsymbol{v}\_{j} }{ \bigl\\
-\sqrt{\rho}\\\boldsymbol{u} +\sqrt{1-\rho}\\\boldsymbol{v}\_{j}
-\bigr\\\_2 }, \qquad j=1,\ldots,J. \\
+Let \\\boldsymbol{u}=G^{-1/2}\mathbf{1}\_{G}\\ be the shared unit
+direction and let \\\boldsymbol{v}\_{j}\\ be the \\\ell_2\\-normalised
+indicator of the gene block assigned to type \\j\\ (disjoint partition
+of \\\\1,\ldots,G\\\\). Then
+\\\boldsymbol{v}\_{j}^{\mathsf{T}}\boldsymbol{v}\_{k}=0\\ for \\j\neq
+k\\. Each column is the normalised blend
 
-Here \\\rho\in\[0,1\]\\ is `target_cosine` and \\s\>0\\ is `mean_scale`.
-Small \\\rho\\ yields complementary centroids; \\\rho\to 1\\ recovers a
-shared direction (cosine one, vanishing Euclidean gap). Small \\s\\
-places centroids near the origin and shrinks pairwise distances while
-preserving angles.
+\\ \tilde{\boldsymbol{\mu}}\_{\cdot j} = \sqrt{\rho}\\\boldsymbol{u}
++\sqrt{1-\rho}\\\boldsymbol{v}\_{j}, \qquad \boldsymbol{\mu}\_{\cdot j}
+= s\\ \frac{\tilde{\boldsymbol{\mu}}\_{\cdot j}}{
+\\\tilde{\boldsymbol{\mu}}\_{\cdot j}\\\_2 }, \qquad j=1,\ldots,J.
+\tag{1}\\
+
+Expanding the un-normalised inner product for \\j\neq k\\ gives the
+exact identity
+
+\\ \tilde{\boldsymbol{\mu}}\_{\cdot j}^{\mathsf{T}}
+\tilde{\boldsymbol{\mu}}\_{\cdot k} = \rho + \sqrt{\rho(1-\rho)}\\
+\bigl( \boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}\_{j} +
+\boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}\_{k} \bigr), \tag{2}\\
+
+because \\\boldsymbol{u}^{\mathsf{T}}\boldsymbol{u}=1\\ and
+\\\boldsymbol{v}\_{j}^{\mathsf{T}}\boldsymbol{v}\_{k}=0\\. The cross
+terms \\\boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}\_{j}\\ equal the
+(positive) mass of the shared direction on block \\j\\; they vanish in
+the idealised case where each \\\boldsymbol{v}\_{j}\\ is taken
+orthogonal to \\\boldsymbol{u}\\, in which [Equation 2](#eq-mean-inner)
+collapses to \\\rho\\ and, since \\\\\tilde{\boldsymbol{\mu}}\_{\cdot
+j}\\\_2=1\\, the cosine of \\\boldsymbol{\mu}\\ equals \\\rho\\ exactly.
+With block indicators the cross terms are of order \\J^{-1/2}\\, so
+after the column renormalisation in [Equation 1](#eq-mean-cosine) the
+realised pairwise cosine tracks \\\rho\\ closely once each block
+contains many genes.
+
+The scale \\s\\ sets column norms without changing angles:
+\\\\\boldsymbol{\mu}\_{\cdot j}-\boldsymbol{\mu}\_{\cdot k}\\\_2\propto
+s\\ at fixed \\\rho\\. We keep \\s=10\\ across scenarios and only vary
+\\\rho\\.
+
+#### Toy illustration: \\J=2\\ cell types, \\G=2\\ genes
+
+Take equal blocks so \\\boldsymbol{v}\_{1}=(1,0)^{\mathsf{T}}\\,
+\\\boldsymbol{v}\_{2}=(0,1)^{\mathsf{T}}\\, and
+\\\boldsymbol{u}=2^{-1/2}(1,1)^{\mathsf{T}}\\. Then
+\\\boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}\_{j}=2^{-1/2}\\ and
+[Equation 2](#eq-mean-inner) becomes
+
+\\ \tilde{\boldsymbol{\mu}}\_{\cdot 1}^{\mathsf{T}}
+\tilde{\boldsymbol{\mu}}\_{\cdot 2} = \rho + \sqrt{2\rho(1-\rho)}. \\
+
+After renormalisation the cosine of \\(\boldsymbol{\mu}\_{\cdot 1},
+\boldsymbol{\mu}\_{\cdot 2})\\ still rises monotonically with \\\rho\\.
+The chunk below reports the realised cosine at the three operating
+points used in the nine-scenario grid (\\\rho\in\\0,\\0.3,\\1\\\\;
+intermediate collinearity near \\0.3\\):
+
+``` r
+
+rhos <- c(low = 0, mid = 0.3, high = 1)
+toy <- lapply(rhos, function(rho) {
+  mu <- DeCovarT:::generate_mean_signature_matrix(
+    n_genes = 2L,
+    n_celltypes = 2L,
+    mean_scale = 10,
+    target_cosine = rho,
+    gene_names = c("g1", "g2"),
+    celltype_names = c("j=1", "j=2")
+  )
+  cos_12 <- sum(mu[, 1] * mu[, 2]) /
+    sqrt(sum(mu[, 1]^2) * sum(mu[, 2]^2))
+  data.frame(
+    rho_target = rho,
+    cos_realised = cos_12,
+    mu_j1_g1 = mu[1, 1],
+    mu_j1_g2 = mu[2, 1],
+    mu_j2_g1 = mu[1, 2],
+    mu_j2_g2 = mu[2, 2]
+  )
+})
+do.call(rbind, toy)
+#>      rho_target cos_realised  mu_j1_g1 mu_j1_g2 mu_j2_g1  mu_j2_g2
+#> low         0.0    0.0000000 10.000000 0.000000 0.000000 10.000000
+#> mid         0.3    0.5752618  9.534069 3.016875 3.016875  9.534069
+#> high        1.0    1.0000000  7.071068 7.071068 7.071068  7.071068
+```
+
+With only two genes the cross terms in [Equation 2](#eq-mean-inner) are
+large, so the realised cosine is a warped but strictly increasing map of
+\\\rho\\ (near \\0\\ when \\\rho=0\\, intermediate near \\\rho=0.3\\,
+and \\1\\ when \\\rho=1\\). In the \\G=80\\ simulation grid the same
+dial sits much closer to the nominal target.
+
+**?@fig-cosine-geometry** makes the construction geometric for the same
+three operating points (the cosine levels shared by scenarios A1–C1,
+A2–C2 and A3–C3). In the plane of the two genes, each panel draws:
+
+1.  the shared unit direction \\\boldsymbol{u}\\ and the private markers
+    \\\boldsymbol{v}\_{1}\\, \\\boldsymbol{v}\_{2}\\;
+2.  the un-normalised blends \\\tilde{\boldsymbol{\mu}}\_{\cdot
+    j}=\sqrt{\rho}\\\boldsymbol{u}+\sqrt{1-\rho}\\\boldsymbol{v}\_{j}\\
+    (dashed);
+3.  the final columns \\\boldsymbol{\mu}\_{\cdot j}\\ after
+    \\\ell_2\\-normalisation and scaling by \\s\\ (solid), with the
+    angle between them labelled by the realised cosine.
+
+The sequence
+\\\boldsymbol{v}\_{j}\rightarrow\tilde{\boldsymbol{\mu}}\_{\cdot
+j}\rightarrow\boldsymbol{\mu}\_{\cdot j}\\ is the one-shot constructive
+counterpart of AutoGeneS-style search for a target collinearity: rather
+than iterating a multi-objective optimiser,
+[Equation 1](#eq-mean-cosine) places the two cell-type profiles at a
+controlled angle in a single pass ([Aliee and Theis
+2021](#ref-alieeAutoGeneSAutomaticGene2021)).
+
+\#\| label: fig-cosine-geometry \#\| fig-cap: “Constructive cosine dial
+for \\J=2\\ cell types and \\G=2\\ genes. Panels correspond to the three
+scenario levels \\\\rho\\in\\{0,\\,0.3,\\,1\\}\\ (suffixes 1–3 in
+A1–C3). Shared direction \\\\boldsymbol{u}\\ (grey), private markers
+\\\\boldsymbol{v}\_{j}\\ (open arrows), blends
+\\\\tilde{\\boldsymbol{\\mu}}\_{\\cdot j}\\ (dashed), and scaled
+profiles \\\\boldsymbol{\\mu}\_{\\cdot j}\\ (solid).” \#\| fig-width: 9
+\#\| fig-height: 3.4 \#\| echo: false \#\| warning: false \#\| message:
+false if (!requireNamespace(“ggplot2”, quietly = TRUE)) { cat(“Install
+ggplot2 to render **?@fig-cosine-geometry**.”) } else { rhos_fig \<-
+c(0, 0.3, 1) s_fig \<- 10 u \<- c(1, 1) / sqrt(2) v1 \<- c(1, 0) v2 \<-
+c(0, 1)
+
+arrow_df \<- list() label_df \<- list() for (rho in rhos_fig) { tilde1
+\<- sqrt(rho) \* u + sqrt(1 - rho) \* v1 tilde2 \<- sqrt(rho) \* u +
+sqrt(1 - rho) \* v2 mu1 \<- s_fig \* tilde1 / sqrt(sum(tilde1^2)) mu2
+\<- s_fig \* tilde2 / sqrt(sum(tilde2^2)) tilde1_u \<- tilde1 /
+sqrt(sum(tilde1^2)) tilde2_u \<- tilde2 / sqrt(sum(tilde2^2)) mu1_u \<-
+mu1 / s_fig mu2_u \<- mu2 / s_fig cos_hat \<- sum(mu1 \* mu2) / (s_fig
+\* s_fig)
+
+panel \<- sprintf( “rho = %s (realised cos = %.2f)”, format(rho, nsmall
+= 1), cos_hat ) arrow_df\[\[length(arrow_df) + 1L\]\] \<- data.frame(
+panel = panel, rho = rho, name = c( “u”, “v1”, “v2”, “tilde1”, “tilde2”,
+“mu1”, “mu2” ), kind = c( “shared”, “private”, “private”, “blend”,
+“blend”, “profile”, “profile” ), x0 = 0, y0 = 0, x1 = c(u\[1\], v1\[1\],
+v2\[1\], tilde1_u\[1\], tilde2_u\[1\], mu1_u\[1\], mu2_u\[1\]), y1 =
+c(u\[2\], v1\[2\], v2\[2\], tilde1_u\[2\], tilde2_u\[2\], mu1_u\[2\],
+mu2_u\[2\]), stringsAsFactors = FALSE ) label_df\[\[length(label_df) +
+1L\]\] \<- data.frame( panel = panel, label = sprintf(“realised cosine =
+%.2f”, cos_hat), x = 0.05, y = 1.12, stringsAsFactors = FALSE ) } arrows
+\<- do.call(rbind, arrow_df) labels \<- do.call(rbind, label_df)
+arrows\\panel \<- factor(arrows\\panel, levels = unique(arrows\\panel))
+labels\\panel \<- factor(labels\\panel, levels = levels(arrows\\panel))
+
+print( ggplot2::ggplot() + ggplot2::geom_hline(yintercept = 0, colour =
+“grey85”, linewidth = 0.3) + ggplot2::geom_vline(xintercept = 0, colour
+= “grey85”, linewidth = 0.3) + ggplot2::geom_segment( data =
+arrows\[arrows\\kind == "shared", \], ggplot2::aes(x = x0, y = y0, xend
+= x1, yend = y1), colour = "grey40", linewidth = 0.7, arrow =
+ggplot2::arrow(length = grid::unit(0.18, "cm")) ) +
+ggplot2::geom_segment( data = arrows\[arrows\\kind == “private”, \],
+ggplot2::aes(x = x0, y = y0, xend = x1, yend = y1), colour = “#1B9E77”,
+linewidth = 0.7, linetype = “22”, arrow = ggplot2::arrow(length =
+grid::unit(0.18, “cm”)) ) + ggplot2::geom_segment( data =
+arrows\[arrows\\kind == "blend", \], ggplot2::aes(x = x0, y = y0, xend =
+x1, yend = y1), colour = "#D95F02", linewidth = 0.65, linetype =
+"dashed", arrow = ggplot2::arrow(length = grid::unit(0.18, "cm")) ) +
+ggplot2::geom_segment( data = arrows\[arrows\\kind == “profile”, \],
+ggplot2::aes(x = x0, y = y0, xend = x1, yend = y1, colour = name),
+linewidth = 1.05, arrow = ggplot2::arrow(length = grid::unit(0.22,
+“cm”)) ) + ggplot2::geom_text( data = labels, ggplot2::aes(x = x, y = y,
+label = label), hjust = 0, size = 3, colour = “grey20” ) +
+ggplot2::scale_colour_manual( values = c(mu1 = “#7570B3”, mu2 =
+“#E7298A”), labels = c( expression(bold(mu)\[· \* 1\]),
+expression(bold(mu)\[· \* 2\]) ), name = NULL ) +
+ggplot2::coord_equal(xlim = c(-0.15, 1.2), ylim = c(-0.15, 1.25)) +
+ggplot2::facet_wrap(~panel, nrow = 1) + ggplot2::labs(x = “gene 1”, y =
+“gene 2”) + ggplot2::theme_bw(base_size = 11) + ggplot2::theme(
+legend.position = “bottom”, panel.grid.minor = ggplot2::element_blank(),
+strip.background = ggplot2::element_rect( fill = “grey95”, colour =
+“grey70” ) ) ) }
 
 ### Objectives: `compute_mean_profile_objectives()`
 
@@ -124,36 +298,39 @@ For columns of \\\boldsymbol{\mu}\\,
 j}-\boldsymbol{\mu}\_{\cdot k}\\\_2. \\
 
 AutoGeneS treats the first as a quantity to minimise and the second as a
-quantity to maximise ([Aliee, Hananeh and Theis, Fabian J.
-2021](#ref-aliee_theis21)). Cosine is preferred to Pearson correlation
-so that collinear but unequally scaled profiles remain penalised.
+quantity to maximise ([Aliee and Theis
+2021](#ref-alieeAutoGeneSAutomaticGene2021)). Cosine is preferred to
+Pearson correlation so that collinear but unequally scaled profiles
+remain penalised.
 
 ### Network skeleton: `generate_random_network_skeleton()`
 
 A binary adjacency \\\boldsymbol{A}\in\\0,1\\^{G\times G}\\ is drawn
-from either a preferential-attachment (power-law / hub) model or a
-stochastic block model (community structure). Both return an undirected
-graph with zero diagonal; they encode presence of partial-correlation
-edges, not their strengths.
+from one of three undirected families via : scale-free preferential
+attachment
+([`igraph::sample_pa()`](https://r.igraph.org/reference/sample_pa.html)),
+a stochastic block model
+([`igraph::sample_sbm()`](https://r.igraph.org/reference/sample_sbm.html)),
+or Watts–Strogatz small-world
+([`igraph::sample_smallworld()`](https://r.igraph.org/reference/sample_smallworld.html))
+([Csárdi et al. 2026](#ref-R-igraph); [Barabási and Albert
+1999](#ref-barabasiEmergenceScalingRandom1999)). Edges encode presence
+of partial-correlation links, not their strengths. i.i.d. signs with
+inhibitory fraction `prop_inhibitory` then form the weighted matrix
+\\\boldsymbol{W}\\ before the spectral SPD completion.
 
 ### Positive-definite precision: `build_normalised_precision()`
 
-Edge weights enter through an affine spectral shift of
-\\\boldsymbol{A}\\, matching the construction used in the manuscript:
+Signed edge weights enter through an affine spectral shift of
+\\\boldsymbol{W}\\,
 
-\\ \tilde{\boldsymbol{\Omega}} = \boldsymbol{A}\\v, \qquad
-\boldsymbol{\Omega} = \tilde{\boldsymbol{\Omega}} + \bigl(
-\lvert\lambda\_{\min}(\tilde{\boldsymbol{\Omega}})\rvert + u \bigr)
-\mathbf{I}, \\
+\\ \boldsymbol{\Omega} = \boldsymbol{W} + \bigl(
+\lvert\lambda\_{\min}(\boldsymbol{W})\rvert + u \bigr) \mathbf{I}, \\
 
-with off-diagonal scale \\v\\ (`precision_scale`) and diagonal cushion
-\\u\\ (`precision_shift`). Larger \\v\\ strengthens interactions and
-spreads the spectrum; larger \\u\\ improves conditioning. The map
-\\Y=aX+bI\\ leaves eigenvectors unchanged and transforms eigenvalues as
-\\\lambda_i(Y)=a\lambda_i(X)+b\\; choosing
-\\b=\lvert\lambda\_{\min}(\tilde{\boldsymbol{\Omega}})\rvert+u\\ with
-\\a=1\\ therefore guarantees \\\boldsymbol{\Omega}\succ 0\\ while
-preserving the sparsity pattern of \\\boldsymbol{A}\\ off the diagonal.
+with magnitude \\v\\ (`precision_scale`) baked into \\\boldsymbol{W}\\
+and diagonal cushion \\u\\ (`precision_shift`). The shift preserves
+off-diagonal signs and support while guaranteeing
+\\\boldsymbol{\Omega}\succ 0\\.
 
 ### Shared covariances: `build_shared_covariance_array()`
 
@@ -207,7 +384,13 @@ diagnostics.
 
 ## References
 
-Aliee, Hananeh and Theis, Fabian J. 2021. ‘AutoGeneS: Automatic Gene
+Aliee, Hananeh, and Fabian J. Theis. 2021. ‘AutoGeneS: Automatic Gene
 Selection Using Multi-Objective Optimization for RNA-seq Deconvolution’.
-*Cell Systems*, ahead of print.
-<https://doi.org/10.1016/j.cels.2021.05.006>.
+*Cell Systems* 12. <https://doi.org/10.1016/j.cels.2021.05.006>.
+
+Barabási, Albert-László, and Réka Albert. 1999. ‘Emergence of Scaling in
+Random Networks’. *Science* 286.
+<https://doi.org/10.1126/science.286.5439.509>.
+
+Csárdi, Gábor, Tamás Nepusz, Vincent Traag, et al. 2026. *Igraph:
+Network Analysis and Visualization*. <https://r.igraph.org/>.

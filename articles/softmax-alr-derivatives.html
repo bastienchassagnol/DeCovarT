@@ -52,6 +52,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-vignettes">
 <li><h6 class="dropdown-header" data-toc-skip>Getting started</h6></li>
     <li><a class="dropdown-item" href="../articles/synthetic-scenarios.html"><span class="fa fa-flask"></span> Simulating semi-synthetic pseudo-bulk mixtures</a></li>
+    <li><a class="dropdown-item" href="../articles/random-network-generation.html"><span class="fa fa-share-alt"></span> Random Gaussian Markov network generation</a></li>
     <li><a class="dropdown-item" href="../articles/network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
     <li><a class="dropdown-item" href="../articles/DeCoVart-use-cases.html"><span class="fa fa-chart-pie"></span> Deconvolution use cases with DeCovarT</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -86,7 +87,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Numerically stable softmax and additive log-ratio derivatives</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-08-02</p>
+      <p class="date">2026-08-03</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/softmax-alr-derivatives.qmd" class="external-link"><code>vignettes/softmax-alr-derivatives.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -97,7 +98,7 @@
 
 
 
-    <p>This vignette collects the closed-form derivatives that DeCovarT needs to move between the unconstrained coordinates <span class="math inline">\(\boldsymbol{\rho}\in\mathbb{R}^{J-1}\)</span> and the cellular ratios <span class="math inline">\(\boldsymbol{p}\in\Delta^{J-1}\)</span>. For every map we give the explicit tensor formula, an efficient base-<code>R</code> implementation (evaluated and checked against <a href="https://cran.r-project.org/package=numDeriv" class="external-link"><code>numDeriv</code></a>), and a batched <code>PyTorch</code> counterpart. The naming follows the DeCovarT API: <code><a href="../reference/additive_logistic.html">additive_logistic()</a></code> for <span class="math inline">\(\boldsymbol{\rho}\mapsto\boldsymbol{p}\)</span> and <code><a href="../reference/additive_logistic.html">additive_log_ratio()</a></code> for <span class="math inline">\(\boldsymbol{p}\mapsto\boldsymbol{\rho}\)</span>.</p>
+    <p>This vignette collects the closed-form derivatives that DeCovarT needs to move between the unconstrained coordinates <span class="math inline">\(\boldsymbol{\rho}\in\mathbb{R}^{J-1}\)</span> and the cellular ratios <span class="math inline">\(\boldsymbol{p}\in\Delta^{J-1}\)</span>. For every map we give the explicit tensor formula, an efficient base-<code>R</code> implementation (evaluated and checked against <strong>numDeriv</strong> <span class="citation" data-cites="R-numDeriv">(<a href="#ref-R-numDeriv" role="doc-biblioref">Gilbert and Varadhan 2019</a>)</span>), and a batched <code>PyTorch</code> counterpart. The naming follows the DeCovarT API: <code><a href="../reference/additive_logistic.html">additive_logistic()</a></code> for <span class="math inline">\(\boldsymbol{\rho}\mapsto\boldsymbol{p}\)</span> and <code><a href="../reference/additive_logistic.html">additive_log_ratio()</a></code> for <span class="math inline">\(\boldsymbol{p}\mapsto\boldsymbol{\rho}\)</span>.</p>
 <section class="section level2"><h2 id="log-sum-exp-and-softmax">Log-sum-exp and softmax<a class="anchor" aria-label="anchor" href="#log-sum-exp-and-softmax"></a>
 </h2>
 <p>The softmax of a score vector <span class="math inline">\(\boldsymbol{z}\in\mathbb{R}^{K}\)</span> is evaluated through the log-sum-exp (LSE) to avoid overflow,</p>
@@ -387,7 +388,7 @@ Listing 10: Jacobian and Hessian of the additive log-ratio map in PyTorch
 </div>
 </section></section><section class="section level2"><h2 id="reference-implementations">Reference implementations<a class="anchor" aria-label="anchor" href="#reference-implementations"></a>
 </h2>
-<p>Both transforms are standard in compositional data analysis. In <code>R</code>, the <a href="https://cran.r-project.org/web/packages/compositions/refman/compositions.html#alr" class="external-link"><code>compositions</code></a> package exposes <code>alr()</code> / <code>alrInv()</code>. In <code>Python</code>, <a href="https://scikit.bio/docs/dev/generated/skbio.stats.composition.alr_inv.html" class="external-link"><code>scikit-bio</code></a> provides <code>skbio.stats.composition.alr()</code> and <code>alr_inv()</code>. DeCovarT’s <code><a href="../reference/additive_logistic.html">additive_logistic()</a></code> and <code><a href="../reference/additive_logistic.html">additive_log_ratio()</a></code> are the same maps with the last part fixed as reference.</p>
+<p>Both transforms are standard in compositional data analysis. In R, the <strong>compositions</strong> package <span class="citation" data-cites="R-compositions">(<a href="#ref-R-compositions" role="doc-biblioref"><span class="nocase">van den Boogaart et al.</span> 2025</a>)</span> exposes <code>alr()</code> / <code>alrInv()</code>. DeCovarT’s <code><a href="../reference/additive_logistic.html">additive_logistic()</a></code> and <code><a href="../reference/additive_logistic.html">additive_log_ratio()</a></code> are the same maps with the last part fixed as reference.</p>
 <div id="lst-compositions-r" class="r listing quarto-float quarto-figure quarto-figure-left" data-eval="true">
 <figure class="quarto-float quarto-float-lst"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-compositions-r-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing 11: Cross-check against the compositions package
@@ -437,6 +438,14 @@ Listing 12: Validation with numDeriv
 <span>  alr_jacobian <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Logic.html" class="external-link">isTRUE</a></span><span class="op">(</span><span class="va">alr_jac_ok</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 </figure>
+</div>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-R-numDeriv" class="csl-entry" role="listitem">
+Gilbert, Paul, and Ravi Varadhan. 2019. <em>numDeriv: Accurate Numerical Derivatives</em>. <a href="http://optimizer.r-forge.r-project.org/" class="external-link">http://optimizer.r-forge.r-project.org/</a>.
+</div>
+<div id="ref-R-compositions" class="csl-entry" role="listitem">
+<span class="nocase">van den Boogaart, K. Gerald, Raimon Tolosana-Delgado, and Matevz Bren</span>. 2025. <em>Compositions: Compositional Data Analysis</em>. <a href="http://www.stat.boogaart.de/compositions/" class="external-link">http://www.stat.boogaart.de/compositions/</a>.
+</div>
 </div>
 </section><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {

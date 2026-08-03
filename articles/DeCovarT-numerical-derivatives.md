@@ -48,14 +48,14 @@ Table 1: DeCovarT simplex coordinate maps and their equivalents.
 
 ## The `compositions` R package
 
-The [`compositions`](https://cran.r-project.org/package=compositions)
-package provides a general toolbox for Aitchison geometry on the
-simplex. Beyond the additive log-ratio pair `alr()` / `alrInv()` used
-here, it implements the centred log-ratio `clr()` / `clrInv()` and the
-isometric log-ratio `ilr()` / `ilrInv()`, together with composition
-classes (`acomp()`, `rcomp()`) and the perturbation and powering
-operations of the Aitchison simplex. DeCovarT relies only on the
-additive log-ratio pair because it yields the sparsest
+The **compositions** package ([van den Boogaart et al.
+2025](#ref-R-compositions)) provides a general toolbox for Aitchison
+geometry on the simplex. Beyond the additive log-ratio pair `alr()` /
+`alrInv()` used here, it implements the centred log-ratio `clr()` /
+`clrInv()` and the isometric log-ratio `ilr()` / `ilrInv()`, together
+with composition classes (`acomp()`, `rcomp()`) and the perturbation and
+powering operations of the Aitchison simplex. DeCovarT relies only on
+the additive log-ratio pair because it yields the sparsest
 \\(J-1)\\-dimensional parametrisation with an interpretable reference
 category, but any of the alternative bases would define an equally valid
 unconstrained coordinate system.
@@ -63,3 +63,7 @@ unconstrained coordinate system.
 The closed-form Jacobians and Hessians of these maps, together with
 efficient `R` and `Python` implementations, are derived in the companion
 vignette on softmax and additive log-ratio derivatives.
+
+van den Boogaart, K. Gerald, Raimon Tolosana-Delgado, and Matevz Bren.
+2025. *Compositions: Compositional Data Analysis*.
+<http://www.stat.boogaart.de/compositions/>.

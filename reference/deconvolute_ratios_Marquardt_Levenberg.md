@@ -105,8 +105,7 @@ metrics are computed by
 - `deconvolute_ratios_lsfit()`: Ordinary least squares for
   \\\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}\\
   ([`stats::lsfit()`](https://rdrr.io/r/stats/lsfit.html)), following
-  Abbas, Alexander R. and Wolslegel, Kristen and others (2009) ;
-  estimates are projected back onto the simplex.
+  Abbas et al. (2009) ; estimates are projected back onto the simplex.
 
 - `deconvolute_ratios_rlm()`: Robust linear model
   \\\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}\\
@@ -144,16 +143,16 @@ metrics are computed by
 
 ## References
 
-Abbas, Alexander R. and Wolslegel, Kristen and others (2009).
+Abbas AR, Wolslegel K, Seshasayee D, Modrusan Z, Clark HF (2009).
 “Deconvolution of Blood Microarray Data Identifies Cellular Activation
-Patterns in Systemic Lupus Erythematosus.” *PloS One*.
+Patterns in Systemic Lupus Erythematosus.” *PloS One*, **4**.
 [doi:10.1371/journal.pone.0006098](https://doi.org/10.1371/journal.pone.0006098)
 .  
   
-Monaco G, Lee B, Xu W, Mustafah S, Hwang YY, Carre C, Burdin N, Visan L,
-Ceccarelli M, Poidinger M, Zippelius A, Pedro de Magalhaes J, Larbi A
+Monaco G, Lee B, Xu W, Mustafah S, Hwang YY, Carré C, Burdin N, Visan L,
+Ceccarelli M, Poidinger M, Zippelius A, Pedro de Magalhães J, Larbi A
 (2019). “RNA-Seq Signatures Normalized by mRNA Abundance Allow Absolute
-Deconvolution of Human Immune Cell Types.” *Cell Reports*.
+Deconvolution of Human Immune Cell Types.” *Cell Reports*, **26**.
 [doi:10.1016/j.celrep.2019.01.041](https://doi.org/10.1016/j.celrep.2019.01.041)
 .
 

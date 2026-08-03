@@ -52,6 +52,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-vignettes">
 <li><h6 class="dropdown-header" data-toc-skip>Getting started</h6></li>
     <li><a class="dropdown-item" href="../articles/synthetic-scenarios.html"><span class="fa fa-flask"></span> Simulating semi-synthetic pseudo-bulk mixtures</a></li>
+    <li><a class="dropdown-item" href="../articles/random-network-generation.html"><span class="fa fa-share-alt"></span> Random Gaussian Markov network generation</a></li>
     <li><a class="dropdown-item" href="../articles/network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
     <li><a class="dropdown-item" href="../articles/DeCoVart-use-cases.html"><span class="fa fa-chart-pie"></span> Deconvolution use cases with DeCovarT</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -155,8 +156,13 @@ Table 1: DeCovarT simplex coordinate maps and their equivalents.
 </div>
 </section><section class="level2"><h2 id="the-compositions-r-package">The <code>compositions</code> R package<a class="anchor" aria-label="anchor" href="#the-compositions-r-package"></a>
 </h2>
-<p>The <a href="https://cran.r-project.org/package=compositions" class="external-link"><code>compositions</code></a> package provides a general toolbox for Aitchison geometry on the simplex. Beyond the additive log-ratio pair <code>alr()</code> / <code>alrInv()</code> used here, it implements the centred log-ratio <code>clr()</code> / <code>clrInv()</code> and the isometric log-ratio <code>ilr()</code> / <code>ilrInv()</code>, together with composition classes (<code>acomp()</code>, <code>rcomp()</code>) and the perturbation and powering operations of the Aitchison simplex. DeCovarT relies only on the additive log-ratio pair because it yields the sparsest <span class="math inline">\((J-1)\)</span>-dimensional parametrisation with an interpretable reference category, but any of the alternative bases would define an equally valid unconstrained coordinate system.</p>
+<p>The <strong>compositions</strong> package <span class="citation" data-cites="R-compositions">(<a href="#ref-R-compositions" role="doc-biblioref"><span class="nocase">van den Boogaart et al.</span> 2025</a>)</span> provides a general toolbox for Aitchison geometry on the simplex. Beyond the additive log-ratio pair <code>alr()</code> / <code>alrInv()</code> used here, it implements the centred log-ratio <code>clr()</code> / <code>clrInv()</code> and the isometric log-ratio <code>ilr()</code> / <code>ilrInv()</code>, together with composition classes (<code>acomp()</code>, <code>rcomp()</code>) and the perturbation and powering operations of the Aitchison simplex. DeCovarT relies only on the additive log-ratio pair because it yields the sparsest <span class="math inline">\((J-1)\)</span>-dimensional parametrisation with an interpretable reference category, but any of the alternative bases would define an equally valid unconstrained coordinate system.</p>
 <p>The closed-form Jacobians and Hessians of these maps, together with efficient <code>R</code> and <code>Python</code> implementations, are derived in the companion vignette on softmax and additive log-ratio derivatives.</p>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-R-compositions" class="csl-entry" role="listitem">
+<span class="nocase">van den Boogaart, K. Gerald, Raimon Tolosana-Delgado, and Matevz Bren</span>. 2025. <em>Compositions: Compositional Data Analysis</em>. <a href="http://www.stat.boogaart.de/compositions/" class="external-link">http://www.stat.boogaart.de/compositions/</a>.
+</div>
+</div>
 </section><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);

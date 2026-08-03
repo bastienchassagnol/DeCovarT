@@ -8,23 +8,23 @@
 </script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/Source_Sans_3-0.4.10/font.css" rel="stylesheet"><link href="../deps/Source_Code_Pro-0.4.10/font.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Simulate GRN first- and second-order moments — simulate_hierarchical_grn_moments"><meta name="description" content="Builds a mean matrix \(\boldsymbol{\mu}\in\mathcal{M}_{G\times J}\)
 and a shared covariance array \((\boldsymbol{\Sigma}_j)_{j}\) under a
 graph-constrained precision model. Means follow the AutoGeneS-inspired
-construction of generate_mean_signature_matrix() with target pairwise
-cosine similarity \(\rho\) and column scale \(s\), so that one can
-dial collinearity (minimise cosine) against centroid separation
-(maximise Euclidean distance). The adjacency
-\(\boldsymbol{A}\) is drawn from a random-graph model; the precision
-\(\boldsymbol{\Omega}\) is obtained via the affine spectral shift
-of build_normalised_precision(), and each cell type shares
+cosine construction of generate_mean_signature_matrix() with target
+pairwise cosine \(\rho\). The adjacency \(\boldsymbol{A}\) is drawn
+from a random-graph model (igraph: scale-free, stochastic
+block, or Watts–Strogatz small-world); i.i.d. signed weights
+with inhibitory fraction prop_inhibitory form
+\(\boldsymbol{W}\); the precision is completed by a spectral shift;
+each cell type shares
 \(\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}^{-1}\)."><meta property="og:description" content="Builds a mean matrix \(\boldsymbol{\mu}\in\mathcal{M}_{G\times J}\)
 and a shared covariance array \((\boldsymbol{\Sigma}_j)_{j}\) under a
 graph-constrained precision model. Means follow the AutoGeneS-inspired
-construction of generate_mean_signature_matrix() with target pairwise
-cosine similarity \(\rho\) and column scale \(s\), so that one can
-dial collinearity (minimise cosine) against centroid separation
-(maximise Euclidean distance). The adjacency
-\(\boldsymbol{A}\) is drawn from a random-graph model; the precision
-\(\boldsymbol{\Omega}\) is obtained via the affine spectral shift
-of build_normalised_precision(), and each cell type shares
+cosine construction of generate_mean_signature_matrix() with target
+pairwise cosine \(\rho\). The adjacency \(\boldsymbol{A}\) is drawn
+from a random-graph model (igraph: scale-free, stochastic
+block, or Watts–Strogatz small-world); i.i.d. signed weights
+with inhibitory fraction prop_inhibitory form
+\(\boldsymbol{W}\); the precision is completed by a spectral shift;
+each cell type shares
 \(\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}^{-1}\)."><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -47,6 +47,7 @@ of build_normalised_precision(), and each cell type shares
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-vignettes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true"><span class="fa fa-book-open"></span> Vignettes</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-vignettes"><li><h6 class="dropdown-header" data-toc-skip>Getting started</h6></li>
     <li><a class="dropdown-item" href="../articles/synthetic-scenarios.html"><span class="fa fa-flask"></span> Simulating semi-synthetic pseudo-bulk mixtures</a></li>
+    <li><a class="dropdown-item" href="../articles/random-network-generation.html"><span class="fa fa-share-alt"></span> Random Gaussian Markov network generation</a></li>
     <li><a class="dropdown-item" href="../articles/network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
     <li><a class="dropdown-item" href="../articles/DeCoVart-use-cases.html"><span class="fa fa-chart-pie"></span> Deconvolution use cases with DeCovarT</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -80,13 +81,13 @@ of build_normalised_precision(), and each cell type shares
     <p>Builds a mean matrix \(\boldsymbol{\mu}\in\mathcal{M}_{G\times J}\)
 and a shared covariance array \((\boldsymbol{\Sigma}_j)_{j}\) under a
 graph-constrained precision model. Means follow the AutoGeneS-inspired
-construction of <code>generate_mean_signature_matrix()</code> with target pairwise
-cosine similarity \(\rho\) and column scale \(s\), so that one can
-dial collinearity (minimise cosine) against centroid separation
-(maximise Euclidean distance). The adjacency
-\(\boldsymbol{A}\) is drawn from a random-graph model; the precision
-\(\boldsymbol{\Omega}\) is obtained via the affine spectral shift
-of <code>build_normalised_precision()</code>, and each cell type shares
+cosine construction of <code><a href="generate_mean_signature_matrix.html">generate_mean_signature_matrix()</a></code> with target
+pairwise cosine \(\rho\). The adjacency \(\boldsymbol{A}\) is drawn
+from a random-graph model (<span class="pkg">igraph</span>: scale-free, stochastic
+block, or Watts–Strogatz small-world); i.i.d. signed weights
+with inhibitory fraction <code>prop_inhibitory</code> form
+\(\boldsymbol{W}\); the precision is completed by a spectral shift;
+each cell type shares
 \(\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}^{-1}\).</p>
     </div>
 
@@ -99,7 +100,8 @@ of <code>build_normalised_precision()</code>, and each cell type shares
 <span>  target_cosine <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  <span class="va">precision_shift</span>,</span>
 <span>  <span class="va">precision_scale</span>,</span>
-<span>  graph_model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"power_law"</span>, <span class="st">"stochastic_block_model"</span><span class="op">)</span>,</span>
+<span>  prop_inhibitory <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  graph_model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"scale_free"</span>, <span class="st">"stochastic_block_model"</span>, <span class="st">"small_world"</span><span class="op">)</span>,</span>
 <span>  graph_params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -117,7 +119,8 @@ of <code>build_normalised_precision()</code>, and each cell type shares
 
 
 <dt id="arg-mean-scale">mean_scale<a class="anchor" aria-label="anchor" href="#arg-mean-scale"></a></dt>
-<dd><p>Positive scalar \(s\) for centroid norms.</p></dd>
+<dd><p>Positive scalar \(s\) for centroid norms
+(default <code>10</code>, as in the nine-scenario grid).</p></dd>
 
 
 <dt id="arg-target-cosine">target_cosine<a class="anchor" aria-label="anchor" href="#arg-target-cosine"></a></dt>
@@ -125,19 +128,30 @@ of <code>build_normalised_precision()</code>, and each cell type shares
 similarity between columns of \(\boldsymbol{\mu}\).</p></dd>
 
 
-<dt id="arg-precision-shift-precision-scale">precision_shift, precision_scale<a class="anchor" aria-label="anchor" href="#arg-precision-shift-precision-scale"></a></dt>
-<dd><p>Diagonal shift \(u\) and
-off-diagonal scale \(v\) used to build \(\boldsymbol{\Omega}\).</p></dd>
+<dt id="arg-precision-shift">precision_shift<a class="anchor" aria-label="anchor" href="#arg-precision-shift"></a></dt>
+<dd><p>Diagonal cushion \(u\) for the spectral
+shift.</p></dd>
+
+
+<dt id="arg-precision-scale">precision_scale<a class="anchor" aria-label="anchor" href="#arg-precision-scale"></a></dt>
+<dd><p>Positive magnitude \(v\) of signed
+off-diagonal precision weights.</p></dd>
+
+
+<dt id="arg-prop-inhibitory">prop_inhibitory<a class="anchor" aria-label="anchor" href="#arg-prop-inhibitory"></a></dt>
+<dd><p>Numeric in \([0,1]\); fraction of edges with
+positive precision weight (inhibitory partial correlation). Default
+<code>0.5</code> balances inhibitory and activatory edges.</p></dd>
 
 
 <dt id="arg-graph-model">graph_model<a class="anchor" aria-label="anchor" href="#arg-graph-model"></a></dt>
-<dd><p><code>"power_law"</code> or <code>"stochastic_block_model"</code>.</p></dd>
+<dd><p>One of <code>"scale_free"</code>,
+<code>"stochastic_block_model"</code>, <code>"small_world"</code>.</p></dd>
 
 
 <dt id="arg-graph-params">graph_params<a class="anchor" aria-label="anchor" href="#arg-graph-params"></a></dt>
-<dd><p>Named list of generator parameters:
-<code>power</code> / <code>edges_per_node</code> (power-law) or
-<code>block_prob</code> / <code>p_within</code> / <code>p_between</code> (SBM).</p></dd>
+<dd><p>Named list of generator parameters (see
+<code><a href="generate_random_network_skeleton.html">generate_random_network_skeleton()</a></code>).</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -145,8 +159,8 @@ off-diagonal scale \(v\) used to build \(\boldsymbol{\Omega}\).</p></dd>
     <p>Named list with:</p><ul><li><p><code>mean_profiles</code>: matrix \(\boldsymbol{\mu}\);</p></li>
 <li><p><code>covariance_matrices</code>: array
 \((\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}\);</p></li>
-<li><p><code>graph_structure</code>: <code>adjacency_matrix</code> and <code>normalised_precision</code>
-\(\boldsymbol{\Omega}\);</p></li>
+<li><p><code>graph_structure</code>: <code>adjacency_matrix</code>, <code>weighted_adjacency</code>, and
+<code>normalised_precision</code> \(\boldsymbol{\Omega}\);</p></li>
 <li><p><code>objectives</code>: <code>mean_abs_cosine</code> and <code>sum_euclidean_distance</code>.</p></li>
 </ul></div>
 
@@ -160,30 +174,25 @@ off-diagonal scale \(v\) used to build \(\boldsymbol{\Omega}\).</p></dd>
 <span class="r-in"><span>  target_cosine <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
 <span class="r-in"><span>  precision_shift <span class="op">=</span> <span class="fl">0.1</span>,</span></span>
 <span class="r-in"><span>  precision_scale <span class="op">=</span> <span class="fl">0.3</span>,</span></span>
-<span class="r-in"><span>  graph_model <span class="op">=</span> <span class="st">"power_law"</span>,</span></span>
-<span class="r-in"><span>  graph_params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>power <span class="op">=</span> <span class="fl">1</span>, edges_per_node <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  prop_inhibitory <span class="op">=</span> <span class="fl">0.5</span>,</span></span>
+<span class="r-in"><span>  graph_model <span class="op">=</span> <span class="st">"scale_free"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">moments</span>, max.level <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> List of 4</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ mean_profiles      : num [1:40, 1:3] 2.57 2.57 2.57 2.57 2.57 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ mean_profiles      : num [1:40, 1:3] 2.61 2.61 2.61 2.61 2.61 ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..- attr(*, "dimnames")=List of 2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ covariance_matrices: num [1:40, 1:40, 1:3] 1.773 -0.8118 -0.4864 1.1831 0.0232 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ covariance_matrices: num [1:40, 1:40, 1:3] 1.809 1.376 -0.62 0.372 -0.535 ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   ..- attr(*, "dimnames")=List of 3</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  $ graph_structure    :List of 2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ adjacency_matrix    : num [1:40, 1:40] 0 1 1 0 0 0 1 0 0 0 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  $ graph_structure    :List of 3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ adjacency_matrix    : int [1:40, 1:40] 0 1 0 0 0 0 0 0 0 0 ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   .. ..- attr(*, "dimnames")=List of 2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ normalised_precision: num [1:40, 1:40] 1.32 0.3 0.3 0 0 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ weighted_adjacency  : num [1:40, 1:40] 0 -0.3 0 0 0 0 0 0 0 0 ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   .. ..- attr(*, "dimnames")=List of 2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ normalised_precision: num [1:40, 1:40] 0.967 -0.3 0 0 0 ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   .. ..- attr(*, "dimnames")=List of 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  $ objectives         :List of 2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ mean_abs_cosine       : num 0.414</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ sum_euclidean_distance: num 32.5</span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="co">## Verify positive-definiteness of the shared covariance</span></span></span>
-<span class="r-in"><span><span class="va">eigen_vals</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/eigen.html" class="external-link">eigen</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  <span class="va">moments</span><span class="op">$</span><span class="va">covariance_matrices</span><span class="op">[</span>, , <span class="fl">1</span><span class="op">]</span>,</span></span>
-<span class="r-in"><span>  only.values <span class="op">=</span> <span class="cn">TRUE</span></span></span>
-<span class="r-in"><span><span class="op">)</span><span class="op">$</span><span class="va">values</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">eigen_vals</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ mean_abs_cosine       : num 0.332</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   ..$ sum_euclidean_distance: num 34.7</span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

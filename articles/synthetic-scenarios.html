@@ -52,6 +52,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-vignettes">
 <li><h6 class="dropdown-header" data-toc-skip>Getting started</h6></li>
     <li><a class="dropdown-item" href="../articles/synthetic-scenarios.html"><span class="fa fa-flask"></span> Simulating semi-synthetic pseudo-bulk mixtures</a></li>
+    <li><a class="dropdown-item" href="../articles/random-network-generation.html"><span class="fa fa-share-alt"></span> Random Gaussian Markov network generation</a></li>
     <li><a class="dropdown-item" href="../articles/network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
     <li><a class="dropdown-item" href="../articles/DeCoVart-use-cases.html"><span class="fa fa-chart-pie"></span> Deconvolution use cases with DeCovarT</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -86,7 +87,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Simulating semi-synthetic pseudo-bulk mixtures for benchmarking</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-08-02</p>
+      <p class="date">2026-08-03</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/synthetic-scenarios.qmd" class="external-link"><code>vignettes/synthetic-scenarios.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -99,7 +100,7 @@
 
     <section class="section level2"><h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p>This vignette documents the synthetic first- and second-order moment generator <code><a href="../reference/simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments()</a></code> and how its outputs feed bulk mixture simulation. Mean profiles are constructed so that pairwise collinearity and centroid separation can be dialled independently, following the AutoGeneS multi-objective rationale of <span class="citation" data-cites="aliee_theis21">Aliee, Hananeh and Theis, Fabian J. (<a href="#ref-aliee_theis21" role="doc-biblioref">2021</a>)</span>: minimise correlation (here, cosine similarity) between cell-type columns of <span class="math inline">\(\boldsymbol{\mu}\)</span> while maximising their pairwise Euclidean distances. Covariances share a graph-constrained precision <span class="math inline">\(\boldsymbol{\Omega}\)</span>, mapped to <span class="math inline">\(\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}^{-1}\)</span>.</p>
+<p>This vignette documents the synthetic first- and second-order moment generator <code><a href="../reference/simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments()</a></code> and how its outputs feed bulk mixture simulation. Mean profiles follow an AutoGeneS-inspired construction <span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">(<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">Aliee and Theis 2021</a>)</span> in which a single dial <span class="math inline">\(\rho\)</span> (<code>target_cosine</code>) sets pairwise collinearity between cell-type columns of <span class="math inline">\(\boldsymbol{\mu}\)</span>, while a fixed scale <span class="math inline">\(s\)</span> (<code>mean_scale</code>) sets column norms. Prefer varying <span class="math inline">\(\rho\)</span> across scenarios when precision weights already control second-order dependence. Covariances share a graph-constrained signed precision <span class="math inline">\(\boldsymbol{\Omega}\)</span>, mapped to <span class="math inline">\(\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}^{-1}\)</span>.</p>
 </section><section class="section level2"><h2 id="pipeline-api">Pipeline API<a class="anchor" aria-label="anchor" href="#pipeline-api"></a>
 </h2>
 <p>The exported entry point orchestrates internal helpers and returns moments that can be passed to <code><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code> and then to any deconvolution routine exposed by <code><a href="../reference/deconvolute_ratios.html">deconvolute_ratios()</a></code>.</p>
@@ -129,7 +130,13 @@
   Y --&gt; DEC["deconvolute_ratios()"]</code></pre>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">DeCovarT</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"DeCovarT"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">DeCovarT</a></span><span class="op">)</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"pkgload"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu">pkgload</span><span class="fu">::</span><span class="fu"><a href="https://pkgload.r-lib.org/reference/load_all.html" class="external-link">load_all</a></span><span class="op">(</span><span class="st">".."</span>, export_all <span class="op">=</span> <span class="cn">FALSE</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/stop.html" class="external-link">stop</a></span><span class="op">(</span><span class="st">"Package 'DeCovarT' is not installed and 'pkgload' is unavailable."</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span><span class="va">moments</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments</a></span><span class="op">(</span></span>
@@ -139,16 +146,16 @@
 <span>  target_cosine <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  precision_shift <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>  precision_scale <span class="op">=</span> <span class="fl">0.3</span>,</span>
-<span>  graph_model <span class="op">=</span> <span class="st">"power_law"</span>,</span>
-<span>  graph_params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>power <span class="op">=</span> <span class="fl">1</span>, edges_per_node <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span>  prop_inhibitory <span class="op">=</span> <span class="fl">0.5</span>,</span>
+<span>  graph_model <span class="op">=</span> <span class="st">"scale_free"</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">moments</span><span class="op">$</span><span class="va">objectives</span></span>
 <span><span class="co">#&gt; $mean_abs_cosine</span></span>
-<span><span class="co">#&gt; [1] 0.4144044</span></span>
+<span><span class="co">#&gt; [1] 0.3315284</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $sum_euclidean_distance</span></span>
-<span><span class="co">#&gt; [1] 32.46647</span></span>
+<span><span class="co">#&gt; [1] 34.68786</span></span>
 <span></span>
 <span><span class="va">bulk</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture</a></span><span class="op">(</span></span>
 <span>  signature_matrix <span class="op">=</span> <span class="va">moments</span><span class="op">$</span><span class="va">mean_profiles</span>,</span>
@@ -159,31 +166,116 @@
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">bulk</span><span class="op">$</span><span class="va">Y</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 40 20</span></span></code></pre></div>
 </div>
-<p>Selecting genes (or, here, designing <span class="math inline">\(\boldsymbol{\mu}\)</span>) by cosine alone is insufficient for stable deconvolution <span class="citation" data-cites="aliee_theis21">(<a href="#ref-aliee_theis21" role="doc-biblioref">Aliee, Hananeh and Theis, Fabian J. 2021</a>)</span>: low Euclidean separation makes ratio estimates noise-sensitive, and collinear centroids inflate variance of <span class="math inline">\(\hat{\boldsymbol{p}}\)</span>. The two knobs <code>target_cosine</code> and <code>mean_scale</code> map onto that trade-off without running a genetic algorithm at simulation time.</p>
+<p>Selecting genes (or, here, designing <span class="math inline">\(\boldsymbol{\mu}\)</span>) by cosine alone is insufficient for stable deconvolution <span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">(<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">Aliee and Theis 2021</a>)</span> when centroids also collapse toward the origin. In the scenarios of this package we therefore <strong>hold <code>mean_scale</code> fixed</strong> and dial only <code>target_cosine</code>, so that Euclidean norms (and second-order precision weights) stay comparable across runs.</p>
 </section><section class="section level2"><h2 id="mathematical-roles-of-the-generators">Mathematical roles of the generators<a class="anchor" aria-label="anchor" href="#mathematical-roles-of-the-generators"></a>
 </h2>
 <section class="level2"><h3 id="mean-signature-generate_mean_signature_matrix">Mean signature: <code>generate_mean_signature_matrix()</code>
 <a class="anchor" aria-label="anchor" href="#mean-signature-generate_mean_signature_matrix"></a>
 </h3>
-<p>Each column <span class="math inline">\(\boldsymbol{\mu}_{\cdot j}\)</span> is a normalised blend of a shared direction <span class="math inline">\(\boldsymbol{u}\)</span> (uniform over genes) and a private marker block <span class="math inline">\(\boldsymbol{v}_{j}\)</span> (high on a gene partition for type <span class="math inline">\(j\)</span>, low elsewhere):</p>
-<p><span class="math display">\[
+<p>Notation: <span class="math inline">\(G\)</span> genes, <span class="math inline">\(J\)</span> cell types indexed by <span class="math inline">\(j=1,\ldots,J\)</span>, and columns <span class="math inline">\(\boldsymbol{\mu}_{\cdot j}\in\mathbb{R}^{G}\)</span> of the mean signature. Fix the column scale <span class="math inline">\(s\)</span> (<code>mean_scale</code>, default <span class="math inline">\(10\)</span> in the nine-scenario grid) and dial only the target cosine <span class="math inline">\(\rho\in[0,1]\)</span> (<code>target_cosine</code>).</p>
+<p>Let <span class="math inline">\(\boldsymbol{u}=G^{-1/2}\mathbf{1}_{G}\)</span> be the shared unit direction and let <span class="math inline">\(\boldsymbol{v}_{j}\)</span> be the <span class="math inline">\(\ell_2\)</span>-normalised indicator of the gene block assigned to type <span class="math inline">\(j\)</span> (disjoint partition of <span class="math inline">\(\{1,\ldots,G\}\)</span>). Then <span class="math inline">\(\boldsymbol{v}_{j}^{\mathsf{T}}\boldsymbol{v}_{k}=0\)</span> for <span class="math inline">\(j\neq k\)</span>. Each column is the normalised blend</p>
+<p><span id="eq-mean-cosine"><span class="math display">\[
+\tilde{\boldsymbol{\mu}}_{\cdot j}
+=
+\sqrt{\rho}\,\boldsymbol{u}
++\sqrt{1-\rho}\,\boldsymbol{v}_{j},
+\qquad
 \boldsymbol{\mu}_{\cdot j}
 =
 s\,
-\frac{
-  \sqrt{\rho}\,\boldsymbol{u}
-  +\sqrt{1-\rho}\,\boldsymbol{v}_{j}
-}{
-  \bigl\|
-    \sqrt{\rho}\,\boldsymbol{u}
-    +\sqrt{1-\rho}\,\boldsymbol{v}_{j}
-  \bigr\|_2
+\frac{\tilde{\boldsymbol{\mu}}_{\cdot j}}{
+  \|\tilde{\boldsymbol{\mu}}_{\cdot j}\|_2
 },
 \qquad
 j=1,\ldots,J.
+\tag{1}\]</span></span></p>
+<p>Expanding the un-normalised inner product for <span class="math inline">\(j\neq k\)</span> gives the exact identity</p>
+<p><span id="eq-mean-inner"><span class="math display">\[
+\tilde{\boldsymbol{\mu}}_{\cdot j}^{\mathsf{T}}
+\tilde{\boldsymbol{\mu}}_{\cdot k}
+=
+\rho
++
+\sqrt{\rho(1-\rho)}\,
+\bigl(
+  \boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}_{j}
+  +
+  \boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}_{k}
+\bigr),
+\tag{2}\]</span></span></p>
+<p>because <span class="math inline">\(\boldsymbol{u}^{\mathsf{T}}\boldsymbol{u}=1\)</span> and <span class="math inline">\(\boldsymbol{v}_{j}^{\mathsf{T}}\boldsymbol{v}_{k}=0\)</span>. The cross terms <span class="math inline">\(\boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}_{j}\)</span> equal the (positive) mass of the shared direction on block <span class="math inline">\(j\)</span>; they vanish in the idealised case where each <span class="math inline">\(\boldsymbol{v}_{j}\)</span> is taken orthogonal to <span class="math inline">\(\boldsymbol{u}\)</span>, in which <a href="#eq-mean-inner" class="quarto-xref">Equation 2</a> collapses to <span class="math inline">\(\rho\)</span> and, since <span class="math inline">\(\|\tilde{\boldsymbol{\mu}}_{\cdot j}\|_2=1\)</span>, the cosine of <span class="math inline">\(\boldsymbol{\mu}\)</span> equals <span class="math inline">\(\rho\)</span> exactly. With block indicators the cross terms are of order <span class="math inline">\(J^{-1/2}\)</span>, so after the column renormalisation in <a href="#eq-mean-cosine" class="quarto-xref">Equation 1</a> the realised pairwise cosine tracks <span class="math inline">\(\rho\)</span> closely once each block contains many genes.</p>
+<p>The scale <span class="math inline">\(s\)</span> sets column norms without changing angles: <span class="math inline">\(\|\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\|_2\propto s\)</span> at fixed <span class="math inline">\(\rho\)</span>. We keep <span class="math inline">\(s=10\)</span> across scenarios and only vary <span class="math inline">\(\rho\)</span>.</p>
+<section class="level3"><h4 id="toy-illustration-j2-cell-types-g2-genes">Toy illustration: <span class="math inline">\(J=2\)</span> cell types, <span class="math inline">\(G=2\)</span> genes<a class="anchor" aria-label="anchor" href="#toy-illustration-j2-cell-types-g2-genes"></a>
+</h4>
+<p>Take equal blocks so <span class="math inline">\(\boldsymbol{v}_{1}=(1,0)^{\mathsf{T}}\)</span>, <span class="math inline">\(\boldsymbol{v}_{2}=(0,1)^{\mathsf{T}}\)</span>, and <span class="math inline">\(\boldsymbol{u}=2^{-1/2}(1,1)^{\mathsf{T}}\)</span>. Then <span class="math inline">\(\boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}_{j}=2^{-1/2}\)</span> and <a href="#eq-mean-inner" class="quarto-xref">Equation 2</a> becomes</p>
+<p><span class="math display">\[
+\tilde{\boldsymbol{\mu}}_{\cdot 1}^{\mathsf{T}}
+\tilde{\boldsymbol{\mu}}_{\cdot 2}
+=
+\rho
++
+\sqrt{2\rho(1-\rho)}.
 \]</span></p>
-<p>Here <span class="math inline">\(\rho\in[0,1]\)</span> is <code>target_cosine</code> and <span class="math inline">\(s&gt;0\)</span> is <code>mean_scale</code>. Small <span class="math inline">\(\rho\)</span> yields complementary centroids; <span class="math inline">\(\rho\to 1\)</span> recovers a shared direction (cosine one, vanishing Euclidean gap). Small <span class="math inline">\(s\)</span> places centroids near the origin and shrinks pairwise distances while preserving angles.</p>
-</section><section class="level2"><h3 id="objectives-compute_mean_profile_objectives">Objectives: <code>compute_mean_profile_objectives()</code>
+<p>After renormalisation the cosine of <span class="math inline">\((\boldsymbol{\mu}_{\cdot 1},
+\boldsymbol{\mu}_{\cdot 2})\)</span> still rises monotonically with <span class="math inline">\(\rho\)</span>. The chunk below reports the realised cosine at the three operating points used in the nine-scenario grid (<span class="math inline">\(\rho\in\{0,\,0.3,\,1\}\)</span>; intermediate collinearity near <span class="math inline">\(0.3\)</span>):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rhos</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>low <span class="op">=</span> <span class="fl">0</span>, mid <span class="op">=</span> <span class="fl">0.3</span>, high <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">toy</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">rhos</span>, <span class="kw">function</span><span class="op">(</span><span class="va">rho</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">mu</span> <span class="op">&lt;-</span> <span class="fu">DeCovarT</span><span class="fu">:::</span><span class="fu"><a href="../reference/generate_mean_signature_matrix.html">generate_mean_signature_matrix</a></span><span class="op">(</span></span>
+<span>    n_genes <span class="op">=</span> <span class="fl">2L</span>,</span>
+<span>    n_celltypes <span class="op">=</span> <span class="fl">2L</span>,</span>
+<span>    mean_scale <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>    target_cosine <span class="op">=</span> <span class="va">rho</span>,</span>
+<span>    gene_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"g1"</span>, <span class="st">"g2"</span><span class="op">)</span>,</span>
+<span>    celltype_names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"j=1"</span>, <span class="st">"j=2"</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="va">cos_12</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">mu</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span> <span class="op">*</span> <span class="va">mu</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">)</span> <span class="op">/</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">mu</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">mu</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>    rho_target <span class="op">=</span> <span class="va">rho</span>,</span>
+<span>    cos_realised <span class="op">=</span> <span class="va">cos_12</span>,</span>
+<span>    mu_j1_g1 <span class="op">=</span> <span class="va">mu</span><span class="op">[</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">]</span>,</span>
+<span>    mu_j1_g2 <span class="op">=</span> <span class="va">mu</span><span class="op">[</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">]</span>,</span>
+<span>    mu_j2_g1 <span class="op">=</span> <span class="va">mu</span><span class="op">[</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">]</span>,</span>
+<span>    mu_j2_g2 <span class="op">=</span> <span class="va">mu</span><span class="op">[</span><span class="fl">2</span>, <span class="fl">2</span><span class="op">]</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="va">toy</span><span class="op">)</span></span>
+<span><span class="co">#&gt;      rho_target cos_realised  mu_j1_g1 mu_j1_g2 mu_j2_g1  mu_j2_g2</span></span>
+<span><span class="co">#&gt; low         0.0    0.0000000 10.000000 0.000000 0.000000 10.000000</span></span>
+<span><span class="co">#&gt; mid         0.3    0.5752618  9.534069 3.016875 3.016875  9.534069</span></span>
+<span><span class="co">#&gt; high        1.0    1.0000000  7.071068 7.071068 7.071068  7.071068</span></span></code></pre></div>
+</div>
+<p>With only two genes the cross terms in <a href="#eq-mean-inner" class="quarto-xref">Equation 2</a> are large, so the realised cosine is a warped but strictly increasing map of <span class="math inline">\(\rho\)</span> (near <span class="math inline">\(0\)</span> when <span class="math inline">\(\rho=0\)</span>, intermediate near <span class="math inline">\(\rho=0.3\)</span>, and <span class="math inline">\(1\)</span> when <span class="math inline">\(\rho=1\)</span>). In the <span class="math inline">\(G=80\)</span> simulation grid the same dial sits much closer to the nominal target.</p>
+<p><strong>?@fig-cosine-geometry</strong> makes the construction geometric for the same three operating points (the cosine levels shared by scenarios A1–C1, A2–C2 and A3–C3). In the plane of the two genes, each panel draws:</p>
+<ol type="1">
+<li>the shared unit direction <span class="math inline">\(\boldsymbol{u}\)</span> and the private markers <span class="math inline">\(\boldsymbol{v}_{1}\)</span>, <span class="math inline">\(\boldsymbol{v}_{2}\)</span>;</li>
+<li>the un-normalised blends <span class="math inline">\(\tilde{\boldsymbol{\mu}}_{\cdot j}=\sqrt{\rho}\,\boldsymbol{u}+\sqrt{1-\rho}\,\boldsymbol{v}_{j}\)</span> (dashed);</li>
+<li>the final columns <span class="math inline">\(\boldsymbol{\mu}_{\cdot j}\)</span> after <span class="math inline">\(\ell_2\)</span>-normalisation and scaling by <span class="math inline">\(s\)</span> (solid), with the angle between them labelled by the realised cosine.</li>
+</ol>
+<p>The sequence <span class="math inline">\(\boldsymbol{v}_{j}\rightarrow\tilde{\boldsymbol{\mu}}_{\cdot j}\rightarrow\boldsymbol{\mu}_{\cdot j}\)</span> is the one-shot constructive counterpart of AutoGeneS-style search for a target collinearity: rather than iterating a multi-objective optimiser, <a href="#eq-mean-cosine" class="quarto-xref">Equation 1</a> places the two cell-type profiles at a controlled angle in a single pass <span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">(<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">Aliee and Theis 2021</a>)</span>.</p>
+<p>#| label: fig-cosine-geometry #| fig-cap: “Constructive cosine dial for <span class="math inline">\(J=2\)</span> cell types and <span class="math inline">\(G=2\)</span> genes. Panels correspond to the three scenario levels <span class="math inline">\(\\rho\\in\\{0,\\,0.3,\\,1\\}\)</span> (suffixes 1–3 in A1–C3). Shared direction <span class="math inline">\(\\boldsymbol{u}\)</span> (grey), private markers <span class="math inline">\(\\boldsymbol{v}_{j}\)</span> (open arrows), blends <span class="math inline">\(\\tilde{\\boldsymbol{\\mu}}_{\\cdot j}\)</span> (dashed), and scaled profiles <span class="math inline">\(\\boldsymbol{\\mu}_{\\cdot j}\)</span> (solid).” #| fig-width: 9 #| fig-height: 3.4 #| echo: false #| warning: false #| message: false if (!requireNamespace(“ggplot2”, quietly = TRUE)) { cat(“Install ggplot2 to render <strong>?@fig-cosine-geometry</strong>.”) } else { rhos_fig &lt;- c(0, 0.3, 1) s_fig &lt;- 10 u &lt;- c(1, 1) / sqrt(2) v1 &lt;- c(1, 0) v2 &lt;- c(0, 1)</p>
+<p>arrow_df &lt;- list() label_df &lt;- list() for (rho in rhos_fig) { tilde1 &lt;- sqrt(rho) * u + sqrt(1 - rho) * v1 tilde2 &lt;- sqrt(rho) * u + sqrt(1 - rho) * v2 mu1 &lt;- s_fig * tilde1 / sqrt(sum(tilde1^2)) mu2 &lt;- s_fig * tilde2 / sqrt(sum(tilde2^2)) tilde1_u &lt;- tilde1 / sqrt(sum(tilde1^2)) tilde2_u &lt;- tilde2 / sqrt(sum(tilde2^2)) mu1_u &lt;- mu1 / s_fig mu2_u &lt;- mu2 / s_fig cos_hat &lt;- sum(mu1 * mu2) / (s_fig * s_fig)</p>
+<p>panel &lt;- sprintf( “rho = %s (realised cos = %.2f)”, format(rho, nsmall = 1), cos_hat ) arrow_df[[length(arrow_df) + 1L]] &lt;- data.frame( panel = panel, rho = rho, name = c( “u”, “v1”, “v2”, “tilde1”, “tilde2”, “mu1”, “mu2” ), kind = c( “shared”, “private”, “private”, “blend”, “blend”, “profile”, “profile” ), x0 = 0, y0 = 0, x1 = c(u[1], v1[1], v2[1], tilde1_u[1], tilde2_u[1], mu1_u[1], mu2_u[1]), y1 = c(u[2], v1[2], v2[2], tilde1_u[2], tilde2_u[2], mu1_u[2], mu2_u[2]), stringsAsFactors = FALSE ) label_df[[length(label_df) + 1L]] &lt;- data.frame( panel = panel, label = sprintf(“realised cosine = %.2f”, cos_hat), x = 0.05, y = 1.12, stringsAsFactors = FALSE ) } arrows &lt;- do.call(rbind, arrow_df) labels &lt;- do.call(rbind, label_df) arrows<span class="math inline">\(panel &lt;- factor(arrows\)</span>panel, levels = unique(arrows<span class="math inline">\(panel))
+labels\)</span>panel &lt;- factor(labels<span class="math inline">\(panel, levels = levels(arrows\)</span>panel))</p>
+<p>print( ggplot2::ggplot() + ggplot2::geom_hline(yintercept = 0, colour = “grey85”, linewidth = 0.3) + ggplot2::geom_vline(xintercept = 0, colour = “grey85”, linewidth = 0.3) + ggplot2::geom_segment( data = arrows[arrows<span class="math inline">\(kind == "shared", ],
+      ggplot2::aes(x = x0, y = y0, xend = x1, yend = y1),
+      colour = "grey40",
+      linewidth = 0.7,
+      arrow = ggplot2::arrow(length = grid::unit(0.18, "cm"))
+    ) +
+    ggplot2::geom_segment(
+      data = arrows[arrows\)</span>kind == “private”, ], ggplot2::aes(x = x0, y = y0, xend = x1, yend = y1), colour = “#1B9E77”, linewidth = 0.7, linetype = “22”, arrow = ggplot2::arrow(length = grid::unit(0.18, “cm”)) ) + ggplot2::geom_segment( data = arrows[arrows<span class="math inline">\(kind == "blend", ],
+      ggplot2::aes(x = x0, y = y0, xend = x1, yend = y1),
+      colour = "#D95F02",
+      linewidth = 0.65,
+      linetype = "dashed",
+      arrow = ggplot2::arrow(length = grid::unit(0.18, "cm"))
+    ) +
+    ggplot2::geom_segment(
+      data = arrows[arrows\)</span>kind == “profile”, ], ggplot2::aes(x = x0, y = y0, xend = x1, yend = y1, colour = name), linewidth = 1.05, arrow = ggplot2::arrow(length = grid::unit(0.22, “cm”)) ) + ggplot2::geom_text( data = labels, ggplot2::aes(x = x, y = y, label = label), hjust = 0, size = 3, colour = “grey20” ) + ggplot2::scale_colour_manual( values = c(mu1 = “#7570B3”, mu2 = “#E7298A”), labels = c( expression(bold(mu)[· * 1]), expression(bold(mu)[· * 2]) ), name = NULL ) + ggplot2::coord_equal(xlim = c(-0.15, 1.2), ylim = c(-0.15, 1.25)) + ggplot2::facet_wrap(~panel, nrow = 1) + ggplot2::labs(x = “gene 1”, y = “gene 2”) + ggplot2::theme_bw(base_size = 11) + ggplot2::theme( legend.position = “bottom”, panel.grid.minor = ggplot2::element_blank(), strip.background = ggplot2::element_rect( fill = “grey95”, colour = “grey70” ) ) ) }</p>
+</section></section><section class="level2"><h3 id="objectives-compute_mean_profile_objectives">Objectives: <code>compute_mean_profile_objectives()</code>
 <a class="anchor" aria-label="anchor" href="#objectives-compute_mean_profile_objectives"></a>
 </h3>
 <p>For columns of <span class="math inline">\(\boldsymbol{\mu}\)</span>,</p>
@@ -208,30 +300,26 @@ D_{\mathrm{Euc}}
 \sum_{1\le j&lt;k\le J}
 \|\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\|_2.
 \]</span></p>
-<p>AutoGeneS treats the first as a quantity to minimise and the second as a quantity to maximise <span class="citation" data-cites="aliee_theis21">(<a href="#ref-aliee_theis21" role="doc-biblioref">Aliee, Hananeh and Theis, Fabian J. 2021</a>)</span>. Cosine is preferred to Pearson correlation so that collinear but unequally scaled profiles remain penalised.</p>
+<p>AutoGeneS treats the first as a quantity to minimise and the second as a quantity to maximise <span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">(<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">Aliee and Theis 2021</a>)</span>. Cosine is preferred to Pearson correlation so that collinear but unequally scaled profiles remain penalised.</p>
 </section><section class="level2"><h3 id="network-skeleton-generate_random_network_skeleton">Network skeleton: <code>generate_random_network_skeleton()</code>
 <a class="anchor" aria-label="anchor" href="#network-skeleton-generate_random_network_skeleton"></a>
 </h3>
-<p>A binary adjacency <span class="math inline">\(\boldsymbol{A}\in\{0,1\}^{G\times G}\)</span> is drawn from either a preferential-attachment (power-law / hub) model or a stochastic block model (community structure). Both return an undirected graph with zero diagonal; they encode presence of partial-correlation edges, not their strengths.</p>
+<p>A binary adjacency <span class="math inline">\(\boldsymbol{A}\in\{0,1\}^{G\times G}\)</span> is drawn from one of three undirected families via : scale-free preferential attachment (<code><a href="https://r.igraph.org/reference/sample_pa.html" class="external-link">igraph::sample_pa()</a></code>), a stochastic block model (<code><a href="https://r.igraph.org/reference/sample_sbm.html" class="external-link">igraph::sample_sbm()</a></code>), or Watts–Strogatz small-world (<code><a href="https://r.igraph.org/reference/sample_smallworld.html" class="external-link">igraph::sample_smallworld()</a></code>) <span class="citation" data-cites="R-igraph barabasiEmergenceScalingRandom1999">(<a href="#ref-R-igraph" role="doc-biblioref">Csárdi et al. 2026</a>; <a href="#ref-barabasiEmergenceScalingRandom1999" role="doc-biblioref">Barabási and Albert 1999</a>)</span>. Edges encode presence of partial-correlation links, not their strengths. i.i.d. signs with inhibitory fraction <code>prop_inhibitory</code> then form the weighted matrix <span class="math inline">\(\boldsymbol{W}\)</span> before the spectral SPD completion.</p>
 </section><section class="level2"><h3 id="positive-definite-precision-build_normalised_precision">Positive-definite precision: <code>build_normalised_precision()</code>
 <a class="anchor" aria-label="anchor" href="#positive-definite-precision-build_normalised_precision"></a>
 </h3>
-<p>Edge weights enter through an affine spectral shift of <span class="math inline">\(\boldsymbol{A}\)</span>, matching the construction used in the manuscript:</p>
+<p>Signed edge weights enter through an affine spectral shift of <span class="math inline">\(\boldsymbol{W}\)</span>,</p>
 <p><span class="math display">\[
-\tilde{\boldsymbol{\Omega}}
-=
-\boldsymbol{A}\,v,
-\qquad
 \boldsymbol{\Omega}
 =
-\tilde{\boldsymbol{\Omega}}
+\boldsymbol{W}
 +
 \bigl(
-  \lvert\lambda_{\min}(\tilde{\boldsymbol{\Omega}})\rvert + u
+  \lvert\lambda_{\min}(\boldsymbol{W})\rvert + u
 \bigr)
 \mathbf{I},
 \]</span></p>
-<p>with off-diagonal scale <span class="math inline">\(v\)</span> (<code>precision_scale</code>) and diagonal cushion <span class="math inline">\(u\)</span> (<code>precision_shift</code>). Larger <span class="math inline">\(v\)</span> strengthens interactions and spreads the spectrum; larger <span class="math inline">\(u\)</span> improves conditioning. The map <span class="math inline">\(Y=aX+bI\)</span> leaves eigenvectors unchanged and transforms eigenvalues as <span class="math inline">\(\lambda_i(Y)=a\lambda_i(X)+b\)</span>; choosing <span class="math inline">\(b=\lvert\lambda_{\min}(\tilde{\boldsymbol{\Omega}})\rvert+u\)</span> with <span class="math inline">\(a=1\)</span> therefore guarantees <span class="math inline">\(\boldsymbol{\Omega}\succ 0\)</span> while preserving the sparsity pattern of <span class="math inline">\(\boldsymbol{A}\)</span> off the diagonal.</p>
+<p>with magnitude <span class="math inline">\(v\)</span> (<code>precision_scale</code>) baked into <span class="math inline">\(\boldsymbol{W}\)</span> and diagonal cushion <span class="math inline">\(u\)</span> (<code>precision_shift</code>). The shift preserves off-diagonal signs and support while guaranteeing <span class="math inline">\(\boldsymbol{\Omega}\succ 0\)</span>.</p>
 </section><section class="level2"><h3 id="shared-covariances-build_shared_covariance_array">Shared covariances: <code>build_shared_covariance_array()</code>
 <a class="anchor" aria-label="anchor" href="#shared-covariances-build_shared_covariance_array"></a>
 </h3>
@@ -272,8 +360,14 @@ V(\boldsymbol{\mu})
 </section><section class="section level2"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
-<div id="ref-aliee_theis21" class="csl-entry" role="listitem">
-Aliee, Hananeh and Theis, Fabian J. 2021. <span>‘<span class="nocase">AutoGeneS: Automatic Gene Selection Using Multi-Objective Optimization for RNA-seq Deconvolution</span>’</span>. <em><span>Cell Systems</span></em>, ahead of print. <a href="https://doi.org/10.1016/j.cels.2021.05.006" class="external-link">https://doi.org/10.1016/j.cels.2021.05.006</a>.
+<div id="ref-alieeAutoGeneSAutomaticGene2021" class="csl-entry" role="listitem">
+Aliee, Hananeh, and Fabian J. Theis. 2021. <span>‘<span>AutoGeneS</span>: <span>Automatic</span> Gene Selection Using Multi-Objective Optimization for <span class="nocase">RNA-seq</span> Deconvolution’</span>. <em>Cell Systems</em> 12. <a href="https://doi.org/10.1016/j.cels.2021.05.006" class="external-link">https://doi.org/10.1016/j.cels.2021.05.006</a>.
+</div>
+<div id="ref-barabasiEmergenceScalingRandom1999" class="csl-entry" role="listitem">
+Barabási, Albert-László, and Réka Albert. 1999. <span>‘Emergence of <span>Scaling</span> in <span>Random Networks</span>’</span>. <em>Science</em> 286. <a href="https://doi.org/10.1126/science.286.5439.509" class="external-link">https://doi.org/10.1126/science.286.5439.509</a>.
+</div>
+<div id="ref-R-igraph" class="csl-entry" role="listitem">
+Csárdi, Gábor, Tamás Nepusz, Vincent Traag, et al. 2026. <em>Igraph: Network Analysis and Visualization</em>. <a href="https://r.igraph.org/" class="external-link">https://r.igraph.org/</a>.
 </div>
 </div>
 </section><script id="quarto-html-after-body" type="application/javascript">
