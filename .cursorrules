@@ -510,3 +510,174 @@ When literature verification is needed and no Consensus account is
 available, propose precise search queries (OpenAlex, Google Scholar,
 PubMed, Semantic Scholar) for the user to run, and integrate only
 results they confirm.
+
+---
+
+# Quarto reveal.js slides (Slidecrafting)
+
+Whenever the user asks to create, restyle, animate, or present
+**Quarto reveal.js** slides (`format: revealjs` in a `.qmd`, or work
+under `slides/` / similar deck folders), follow this workflow.
+
+## 1. Ensure the global slidecrafting skills are installed
+
+Expected personal Cursor skills (from
+[EmilHvitfeldt/slidecrafting-book.com](https://github.com/EmilHvitfeldt/slidecrafting-book.com)):
+
+- `~/.cursor/skills/quarto-revealjs/SKILL.md` (main router)
+- `~/.cursor/skills/quarto-revealjs-fragment/SKILL.md` (optional; custom fragments)
+- `~/.cursor/skills/auto-animate-elements/SKILL.md` (optional; auto-animate casts)
+
+Also acceptable mirrors: `~/.agents/skills/<same-names>/`.
+
+**If `quarto-revealjs` is missing**, stop designing slides from scratch
+and **suggest installing** the global skill first, e.g.:
+
+```bash
+npx skills add emilhvitfeldt/slidecrafting.com --skill quarto-revealjs
+# or all three:
+npx skills add emilhvitfeldt/slidecrafting.com
+```
+
+(Requires Node ≥ 22.20.) Then continue after the skill is present.
+
+## 2. Always use the skill for reveal.js decks
+
+1. **Read** `~/.cursor/skills/quarto-revealjs/SKILL.md` (or the
+   `~/.agents/skills/` copy) **before** writing or heavily editing a
+   reveal.js deck.
+2. Open the matching `references/*.md` file(s) the skill points to
+   (theme, layout, code/plots, fragments, auto-animate, presenting).
+3. Prefer Slidecrafting conventions over generic Quarto/reveal.js
+   improvisation: theme SCSS, columns/absolute layout, fragment and
+   auto-animate patterns, speaker notes / PDF export as documented
+   there and at <https://slidecrafting-book.com>.
+4. For custom fragment CSS/JS or multi-slide auto-animate element
+   casts, also read `quarto-revealjs-fragment` and/or
+   `auto-animate-elements` when those skills are installed.
+
+Do **not** invent ad-hoc slide CSS/layout systems when the skill
+already covers the pattern.
+
+## 3. Slide design lessons
+
+Adapted from
+[VibePresenting — Slide Design Lessons](https://github.com/jiadongm/VibePresenting/blob/main/SKILL.md#slide-design-lessons)
+for Quarto reveal.js. Where these conflict with Slidecrafting
+(`quarto-revealjs` and its `references/`), **Slidecrafting wins** for
+theme, layout primitives, fragments, and auto-animate.
+
+### Content principles
+
+- One headline claim per slide. Prefer bullet points over full sentences.
+- Prefer diagrams and simple tables over dense equations.
+- Use equations only after the intuition is clear. Add dimensions to
+  matrix equations when introducing factorisation.
+- Keep language concrete before technical notation. Introduce every new
+  concept with one concrete example before any notation.
+- When using paper figures, preserve aspect ratio and crop/resize for
+  the message of the slide.
+
+### Overflow is the primary failure mode
+
+Reveal.js slides have a fixed viewport. Content that exceeds it
+overflows with little or no render-time warning.
+
+- **Always render after edits** (`quarto render …`) and visually check
+  the changed slide. Do not assume content will fit.
+- When combining a diagram with content below it, budget vertical space
+  explicitly. Tighten margins, padding, and font sizes on the upper
+  element to leave room.
+- If a slide overflows, cut content or tighten spacing — do not shrink
+  fonts below readability.
+
+### Font-size hierarchy
+
+For information-dense slides, keep a consistent hierarchy:
+
+| Element | Size |
+|---|---|
+| Diagram node labels | 18–20px |
+| Card / section headers | 14–16px |
+| Supporting detail, bullet text | 12–13px |
+| Affiliations, metadata, attributions | 10–11px |
+
+Going below 10px is unreadable from the back of a seminar room. If you
+need smaller text to fit, the slide has too much content.
+
+### Styles: Slidecrafting first, then reuse rules
+
+- Prefer Slidecrafting / Quarto reveal.js layout and theme patterns
+  (columns, absolute positioning, SCSS theme variables) over inventing
+  new systems.
+- Use the deck’s existing CSS classes first.
+- For **one-off** adjustments on a single slide, inline `style` is fine;
+  do not add a new CSS class for something used once.
+- Add a new CSS class only when a style is reused across three or more
+  slides. Do not churn global SCSS/CSS for one slide.
+
+### Collaborator / comparison grids
+
+For collaborator panels, comparison cards, and multi-item rows, CSS
+grid is acceptable when Slidecrafting layout primitives are a poor fit:
+
+```html
+<div style="display:grid; grid-template-columns: repeat(N, 1fr); gap:12px; text-align:center;">
+  <div>
+    <img src="figs/people/Name.jpg"
+         style="height:72px; width:72px; object-fit:cover; border-radius:50%;">
+    <div style="font-size:14px; margin-top:4px;">Name</div>
+    <div style="font-size:11px; color:#5f6b7a;">Affiliation</div>
+    <div style="font-size:11px; color:#5f6b7a;">Role</div>
+  </div>
+</div>
+```
+
+For missing headshots, use a grey circle with initials:
+
+```html
+<div style="height:72px; width:72px; border-radius:50%; background:#d0d5dd;
+            display:flex; align-items:center; justify-content:center;
+            margin:0 auto; font-size:24px; color:#6b7280;">AB</div>
+```
+
+### Backbone diagrams as navigation
+
+When a talk has a unifying programme diagram, show it at the opening,
+re-show a compact version at major section transitions, and close with
+it.
+
+- On first appearance, build in stages if order matters (fragments /
+  auto-animate via Slidecrafting). On re-appearances, show it static.
+- Colour-code methods in the diagram and reuse those colours when
+  referencing the same methods later.
+
+### Figures and attribution
+
+- Check whether requested assets already exist locally before creating
+  new ones.
+- Use local relative paths from the slide source directory.
+- Keep figure attributions short and visually quiet:
+
+```html
+<div style="font-size:8px; color:#5f6b7a; text-align:right;">
+Author et al., Journal, Year
+</div>
+```
+
+### Editing guardrails
+
+- Do not replace a figure with a placeholder unless the user asks.
+- Do not change slide count, section structure, or title/abstract
+  without explicit instruction.
+- Do not silently remove citations or attributions.
+- Keep unrelated existing content intact.
+- Preserve the deck’s British English spelling, citation style, and
+  colour palette.
+- Treat user comments and recent manual edits as primary specifications;
+  do not rewrite locked sections unless the user reopens them.
+- Hide executed code on slides unless the user wants it shown
+  (`echo: false` / Quarto chunk options).
+- When in doubt, simplify the slide source rather than adding
+  abstraction.
+
