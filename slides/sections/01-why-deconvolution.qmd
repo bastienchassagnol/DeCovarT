@@ -1,39 +1,73 @@
 ## Quantify components of biological systems
 
 Bulk tissues mix cell populations. Autoimmunity and cancer change both
-**composition** and **state** of those populations.
+**composition** and **state** of those populations
+[@schnellImmune2020].
+
+![Immune balance as a seesaw between regulation and inflammation.](images/figures/fig-immune-balance.png){#fig-immune-balance fig-alt="Three seesaws: healthy balance, cancer under-reaction, inflammatory over-reaction."}
 
 ::: {.attribution}
-Schnell et al., *Nature*, 2020 —
-[doi:10.1038/s41422-020-0277-x](https://doi.org/10.1038/s41422-020-0277-x)
+@schnellImmune2020
+:::
+
+## Immune balance (schematic)
+
+Complementary schematic of @fig-immune-balance:
+
+```{mermaid}
+%%| fig-cap: "Healthy balance vs under- and over-reaction."
+%%| label: fig-immune-balance-mermaid
+flowchart TB
+  H["Balanced<br/>Regulation ≈ Inflammation<br/>Healthy"]
+  U["Under-reaction<br/>Regulation ≫ Inflammation<br/>Cancer risk"]
+  O["Over-reaction<br/>Inflammation ≫ Regulation<br/>Autoimmunity"]
+  H -->|"imbalance?"| U
+  H -->|"imbalance?"| O
+```
+
+::: {.attribution}
+@schnellImmune2020
 :::
 
 ## Holistic complexity
 
 Genes cooperate in pathways; metabolites and cell populations interact
 in bio-molecular networks. Deconvolution alone is not enough — we need
-**structure** on the gene side as well.
+**structure** on the gene side as well [@schnellImmune2020].
+
+![Holistic view: transcriptome and cell populations feed immune balance.](images/figures/fig-holistic-networks.png){#fig-holistic fig-alt="Seesaw diagram with transcriptome and cell-population inputs."}
 
 ::: {.attribution}
-Schnell et al., *Nature*, 2020 —
-[doi:10.1038/s41422-020-0277-x](https://doi.org/10.1038/s41422-020-0277-x)
+@schnellImmune2020
 :::
 
 ## Why bulk is limited for biomarkers
 
-Shoemaker et al. (2012): the same bulk fold-change can come from
+@shoemakerCTenWebbasedPlatform2012: the same bulk fold-change can come
+from
 
 ::: incremental
 - **Scenario A** — activation within an existing cell type
-- **Scenario B** — arrival of a new cell population
+  (@fig-bulk-a)
+- **Scenario B** — arrival of a new cell population (@fig-bulk-b)
 :::
 
+::::: columns
+::: {.column width="50%"}
+![Scenario A: within-type activation.](images/figures/fig-bulk-scenario-a.png){#fig-bulk-a fig-alt="Scenario A diagram from the doctorants talk."}
+:::
+::: {.column width="50%"}
+![Scenario B: new population.](images/figures/fig-bulk-scenario-b.png){#fig-bulk-b fig-alt="Scenario B diagram from the doctorants talk."}
+:::
+:::::
+
 ::: {.attribution}
-Shoemaker et al., *BMC Genomics*, 2012 —
-[doi:10.1186/1471-2164-13-460](https://doi.org/10.1186/1471-2164-13-460)
+@shoemakerCTenWebbasedPlatform2012
 :::
 
 ## Technical alternatives
+
+![Bulk versus single-cell trade-offs.](images/figures/fig-bulk-vs-sc.png){#fig-bulk-vs-sc fig-alt="Comparison of bulk RNA-seq and single-cell / spatial assays."}
 
 ::::: columns
 ::: {.column width="50%"}

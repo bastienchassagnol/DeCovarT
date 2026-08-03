@@ -17,6 +17,7 @@ Suggests:
     numDeriv,
     pkgdown,
     quarto,
+    reactable (>= 0.4.4),
     readr,
     rmarkdown,
     testthat (>= 3.0.0),

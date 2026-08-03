@@ -14,6 +14,12 @@ from: markdown+emoji
 slide-level: 2
 slide-number: true
 footer: "DeCovarT — doctorants seminar"
+bibliography: ../inst/REFERENCES.bib
+citeproc: true
+crossref:
+  fig-title: "Figure"
+  tbl-title: "Table"
+  eq-title: "Equation"
 format:
   revealjs:
     embed-resources: true
@@ -42,10 +48,13 @@ format:
     css: styles.css
     mermaid:
       theme: neutral
+filters:
+  - editable
 revealjs-plugins:
   - spotlight
   - quiz
   - attribution
+  - editable
 execute:
   echo: false
   warning: false
@@ -136,7 +145,12 @@ Slides: [GitHub](https://github.com/bastienchassagnol/DeCovarT/tree/main/slides)
 
 ::: incremental
 - Bulk mixes cell types; deconvolution recovers proportions $p$.
-- Reference-based methods need a signature $X$; unsupervised methods need strong priors.
-- DeCovarT models gene–gene covariance via multivariate Gaussian convolutions.
+- Reference-based methods need a signature $X$; unsupervised methods need strong priors (@tbl-methods).
+- DeCovarT models gene–gene covariance via multivariate Gaussian convolutions (@eq-bulk-gauss).
 - Always validate with aliquots (bulk + FACS / scRNA-seq) when possible.
+:::
+
+## References {.smaller}
+
+::: {#refs}
 :::

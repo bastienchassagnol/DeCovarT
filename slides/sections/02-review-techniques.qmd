@@ -1,10 +1,14 @@
 ## The ecosystem of algorithms
 
-Shen-Orr & Gannett (2013) taxonomy:
+Taxonomy after Shen-Orr & Gannett (2013) and reviews such as
+@avilacobosComputationalDeconvolutionTranscriptomics2018,
+@gaspard-boulincCelltypeDeconvolutionMethods2025:
 
 ::: incremental
-- **Partial deconvolution** — estimate proportions $p$ given signature $X$
-- **Complete deconvolution** — jointly infer $p$ and $X$ (ill-posed without priors)
+- **Partial deconvolution** — estimate proportions $p$ given signature
+  $X$
+- **Complete deconvolution** — jointly infer $p$ and $X$ (ill-posed
+  without priors)
 :::
 
 ## Granularity
@@ -17,13 +21,71 @@ Deconvolution targets vary:
 
 ## Reference-based principle
 
+![Signature $X$, bulk $y$, proportions $p$.](images/figures/fig-deconv-principle-2.png){#fig-deconv-principle fig-alt="Reference-based deconvolution schematic."}
+
 1. Purified cellular profiles (signature matrix $X$)
 2. Bulk mixture $y$
 3. Estimate proportions $p$ (often with simplex constraints)
 
-Classic tools: DeconRNASeq, CIBERSORT, EPIC, quanTIseq, FARDEEP, …
+Classic tools include DeconRNASeq [@gongDeconRNASeqStatisticalFramework2013],
+CIBERSORT [@newmanRobustEnumerationCell2015], and EPIC
+[@racleSimultaneousEnumerationCancer2017].
 
-## Signature-based families
+::: {.attribution}
+@avilacobosComputationalDeconvolutionTranscriptomics2018
+:::
+
+## Signature-based families {#tbl-methods-slide}
+
+Compact survey of common reference-based tools (@tbl-methods):
+
+```{r}
+#| label: tbl-methods
+#| tbl-cap: "Selected reference-based deconvolution methods."
+methods_tbl <- data.frame(
+  method = c(
+    "DeconRNASeq", "CIBERSORT", "EPIC", "quanTIseq", "FARDEEP"
+  ),
+  family = c(
+    "QP / least squares",
+    "SVR (robust)",
+    "Weighted QP",
+    "Weighted QP",
+    "Robust regression"
+  ),
+  citation = c(
+    "Gong & Szustakowski, 2013",
+    "Newman et al., 2015",
+    "Racle et al., 2017",
+    "Finotello et al., 2018",
+    "Hao et al., 2019"
+  ),
+  stringsAsFactors = FALSE
+)
+
+reactable::reactable(
+  methods_tbl,
+  columns = list(
+    method = reactable::colDef(name = "Method", minWidth = 110),
+    family = reactable::colDef(name = "Family", minWidth = 140),
+    citation = reactable::colDef(name = "Citation", minWidth = 160)
+  ),
+  bordered = TRUE,
+  highlight = TRUE,
+  wrap = FALSE,
+  pagination = FALSE,
+  defaultPageSize = 8,
+  style = list(fontSize = "0.85rem"),
+  theme = reactable::reactableTheme(
+    borderColor = "#d0d7de",
+    headerStyle = list(
+      backgroundColor = "#053660",
+      color = "#ffffff",
+      fontWeight = 600
+    )
+  )
+)
+```
 
 ::::: columns
 ::: {.column width="50%"}

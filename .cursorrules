@@ -319,6 +319,7 @@ Follow
 | Tabular data | `dplyr`, `tidyr`, `tibble` (`data.table` if needed) |
 | Out-of-memory data | `duckdb` |
 | Plotting | `ggplot2`; heatmaps: `ComplexHeatmap`; interactive: `ggiraph` |
+| Slide / HTML tables | `reactable` (prefer over static Markdown tables in reveal.js) |
 | Discrete ggplot scales | named vectors via `stats::setNames()` |
 | Input checks | `checkmate` |
 | Messages | `cli` |
@@ -544,8 +545,6 @@ Expected personal Cursor skills (from
 - `~/.cursor/skills/quarto-revealjs-fragment/SKILL.md` (optional; custom fragments)
 - `~/.cursor/skills/auto-animate-elements/SKILL.md` (optional; auto-animate casts)
 
-Also acceptable mirrors: `~/.agents/skills/<same-names>/`.
-
 **If `quarto-revealjs` is missing**, stop designing slides from scratch
 and **suggest installing** the global skill first, e.g.:
 
@@ -580,37 +579,73 @@ npx skills add emilhvitfeldt/slidecrafting.com
 Do **not** invent ad-hoc slide CSS/layout systems when the skill
 already covers the pattern.
 
+### Live editing (editable extension)
+
+For decks under `slides/`, keep the
+[quarto-revealjs-editable](https://emilhvitfeldt.github.io/quarto-revealjs-editable/)
+extension installed (`quarto add emilhvitfeldt/quarto-revealjs-editable`
+from the deck directory). Wire both the filter and the plugin:
+
+```yaml
+filters:
+  - editable
+revealjs-plugins:
+  - editable
+```
+
+Use `quarto preview` so the Modify / Save UI can write layout tweaks
+back to the `.qmd`. Optionally mark elements with `{.editable}` for
+immediate editability without entering Modify mode first.
+
 ### Converting legacy decks (PDF / PPTX / Markdown)
 
 Source materials often exist as PDF, PowerPoint, and Markdown of the
-same talk. Prefer **Markdown** for Quarto authoring when the text is
-already structured; use **PDF** when you need visual fidelity or when
-Markdown was a lossy export; use **PPTX** mainly to recover embedded
-figures. They are complementary, not interchangeable.
+same talk. Prefer this order:
 
-To turn a PDF into Markdown, use Stephen Turner’s **pdfdown** web API:
-<https://stephenturner.github.io/pdfdown/> (then clean headings and
-rebuild as Quarto reveal.js with Slidecrafting patterns).
+1. **Markdown** — structure and wording for Quarto authoring.
+2. **PDF** — recover missing figures and layout (page screenshots via
+   `pdftoppm`, or Stephen Turner’s **pdfdown**:
+   <https://stephenturner.github.io/pdfdown/>).
+3. **PPTX** — extract embedded graphics when PDF rasterisation is poor.
 
+Rebuild as Quarto reveal.js with Slidecrafting patterns; do not ship
+raw PDF/PPTX as the live deck.
 
 ## 3. Slide design lessons
-
-Adapted from
-[VibePresenting — Slide Design Lessons](https://github.com/jiadongm/VibePresenting/blob/main/SKILL.md#slide-design-lessons)
-for Quarto reveal.js. Where these conflict with Slidecrafting
-(`quarto-revealjs` and its `references/`), **Slidecrafting wins** for
-theme, layout primitives, fragments, and auto-animate.
 
 ### Content principles
 
 - One headline claim per slide. Prefer bullet points over full sentences.
-- Prefer diagrams and simple tables over dense equations.
-- Use equations only after the intuition is clear. Add dimensions to
-  matrix equations when introducing factorisation.
-- Keep language concrete before technical notation. Introduce every new
-  concept with one concrete example before any notation.
-- When using paper figures, preserve aspect ratio and crop/resize for
-  the message of the slide.
+- Prefer **Mermaid** or **Excalidraw** for conceptual diagrams; fall
+  back to curated PDF/PPTX page images when the original graphic is
+  essential and hard to redraw.
+- For tables in slides, use **reactable** (interactive HTML), not static
+  Markdown / knitr tables, unless the user asks otherwise. Keep tables
+  small enough for the viewport (`pagination`, compact columns).
+- For equations, always define indexes and other notation on the slide
+  (or on the previous slide).
+
+### Citations and cross-references
+
+- Cite from `inst/REFERENCES.bib` (or a deck-local `.bib` that mirrors
+  those keys). Wire the deck YAML with e.g.
+  `bibliography: ../inst/REFERENCES.bib` and use Quarto cite syntax
+  (`@key`, `[@key]`).
+- Label figures, tables, and equations for Quarto cross-references
+  (`#fig-…`, `#tbl-…`, `#eq-…`) and refer to them with `@fig-…` /
+  `@tbl-…` / `@eq-…`. See
+  <https://quarto.org/docs/authoring/cross-references.html>.
+- Do not silently drop citations when converting legacy slides.
+
+### Tables with reactable
+
+- Add `reactable` under **Suggests** (with a minimum version) when the
+  package uses it in slides / vignettes.
+- Prefer compact options suitable for reveal.js, e.g.
+  `reactable::reactable(..., pagination = FALSE, defaultPageSize = 8,
+  bordered = TRUE, highlight = TRUE, wrap = FALSE)` and a modest
+  `style` / `theme` so text stays readable.
+- Set `echo: false` for table chunks unless the user wants code shown.
 
 ### Overflow is the primary failure mode
 
@@ -624,6 +659,9 @@ overflows with little or no render-time warning.
   element to leave room.
 - If a slide overflows, cut content or tighten spacing — do not shrink
   fonts below readability.
+- Use the deck’s existing CSS classes first.
+- Add a new CSS class only when a style is reused across three or more
+  slides. Do not churn global SCSS/CSS for one slide.
 
 ### Font-size hierarchy
 
@@ -639,42 +677,6 @@ For information-dense slides, keep a consistent hierarchy:
 Going below 10px is unreadable from the back of a seminar room. If you
 need smaller text to fit, the slide has too much content.
 
-### Styles: Slidecrafting first, then reuse rules
-
-- Prefer Slidecrafting / Quarto reveal.js layout and theme patterns
-  (columns, absolute positioning, SCSS theme variables) over inventing
-  new systems.
-- Use the deck’s existing CSS classes first.
-- For **one-off** adjustments on a single slide, inline `style` is fine;
-  do not add a new CSS class for something used once.
-- Add a new CSS class only when a style is reused across three or more
-  slides. Do not churn global SCSS/CSS for one slide.
-
-### Collaborator / comparison grids
-
-For collaborator panels, comparison cards, and multi-item rows, CSS
-grid is acceptable when Slidecrafting layout primitives are a poor fit:
-
-```html
-<div style="display:grid; grid-template-columns: repeat(N, 1fr); gap:12px; text-align:center;">
-  <div>
-    <img src="figs/people/Name.jpg"
-         style="height:72px; width:72px; object-fit:cover; border-radius:50%;">
-    <div style="font-size:14px; margin-top:4px;">Name</div>
-    <div style="font-size:11px; color:#5f6b7a;">Affiliation</div>
-    <div style="font-size:11px; color:#5f6b7a;">Role</div>
-  </div>
-</div>
-```
-
-For missing headshots, use a grey circle with initials:
-
-```html
-<div style="height:72px; width:72px; border-radius:50%; background:#d0d5dd;
-            display:flex; align-items:center; justify-content:center;
-            margin:0 auto; font-size:24px; color:#6b7280;">AB</div>
-```
-
 ### Backbone diagrams as navigation
 
 When a talk has a unifying programme diagram, show it at the opening,
@@ -689,29 +691,39 @@ it.
 ### Figures and attribution
 
 - Check whether requested assets already exist locally before creating
-  new ones.
-- Use local relative paths from the slide source directory.
-- Keep figure attributions short and visually quiet:
+  new ones. Prefer `slides/images/` (or `slides/images/figures/`) with
+  relative paths from the slide source.
+- Enable the **attribution** reveal.js plugin
+  (`quarto-ext/attribution`) in YAML:
 
-```html
-<div style="font-size:8px; color:#5f6b7a; text-align:right;">
-Author et al., Journal, Year
-</div>
+```yaml
+revealjs-plugins:
+  - attribution
+```
+
+- Place a short credit on the slide with the vertical right-edge
+  attribution block (compact by design — do **not** invent HTML
+  footers that duplicate it):
+
+```markdown
+::: {.attribution}
+@schnellImmune2020 — [doi](https://doi.org/10.1038/s41422-020-0277-x)
+:::
+```
+
+- Pair attributions with labelled figures when the image is the main
+  content:
+
+```markdown
+![Immune balance seesaw](images/figures/fig-immune-balance.png){#fig-immune-balance}
 ```
 
 ### Editing guardrails
 
-- Do not replace a figure with a placeholder unless the user asks.
 - Do not change slide count, section structure, or title/abstract
   without explicit instruction.
 - Do not silently remove citations or attributions.
-- Keep unrelated existing content intact.
-- Preserve the deck’s British English spelling, citation style, and
-  colour palette.
-- Treat user comments and recent manual edits as primary specifications;
-  do not rewrite locked sections unless the user reopens them.
+- Use British English spelling.
+- Preserve the citation style and colour palette.
 - Hide executed code on slides unless the user wants it shown
   (`echo: false` / Quarto chunk options).
-- When in doubt, simplify the slide source rather than adding
-  abstraction.
-

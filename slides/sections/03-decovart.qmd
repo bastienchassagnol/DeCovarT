@@ -1,20 +1,21 @@
 ## Global pipeline
 
+![From references to biological exploitation.](images/figures/fig-global-pipeline.png){#fig-pipeline fig-alt="Global DeCovarT analysis pipeline."}
+
 1. Collect / curate cell-type datasets
 2. Learn features & GRN structure
 3. **DeCovarT** estimation of $p$
 4. Biological exploitation
 
 ::: {.attribution}
-Pipeline framing inspired by Avila Cobos et al., *Genome Biology*, 2018 —
-[doi:10.1186/s13059-018-1479-0](https://doi.org/10.1186/s13059-018-1479-0)
+@avilacobosComputationalDeconvolutionTranscriptomics2018
 :::
 
 ## Multivariate Gaussian convolution
 
 Cell type $j$: $x_j \sim \mathcal{N}_G(\mu_j, \Sigma_j)$.
 
-Bulk observation:
+Bulk observation (@eq-bulk-gauss):
 
 $$
 y \mid p \;\sim\;
@@ -22,10 +23,17 @@ y \mid p \;\sim\;
   \mu p,\;
   \sum_j p_j^{2}\,\Sigma_j
 \Bigr).
-$$
+$$ {#eq-bulk-gauss}
+
+- $G$: number of genes (dimension of $y$)
+- $J$: number of cell types; $p \in \Delta^{J-1}$
+- $\mu$: $G \times J$ mean signature; $\Sigma_j$: gene–gene covariance
+  of type $j$
 
 Covariance structure enters the likelihood — gene–gene dependence is
 first-class, not noise.
+
+![Another view of the convolution principle.](images/figures/fig-deconv-principle-4.png){#fig-deconv-gauss fig-alt="Gaussian mixture / convolution schematic from the talk."}
 
 ## Unit-simplex constraint
 
@@ -37,7 +45,17 @@ $C^{2}$-diffeomorphism, then optimises with Marquardt–Levenberg.
 
 Bivariate convolutions make the geometry visible: entropy of $p$,
 overlap of $\Sigma_j$, and solver behaviour (DeconRNASeq vs DeCovarT).
+See @fig-toy-model and @fig-toy-results.
 
-See package vignettes
+::::: columns
+::: {.column width="50%"}
+![Toy bivariate setup.](images/figures/fig-toy-model.png){#fig-toy-model fig-alt="Two-cell two-gene toy model."}
+:::
+::: {.column width="50%"}
+![Toy estimation results.](images/figures/fig-toy-results.png){#fig-toy-results fig-alt="Comparison of estimators on the toy model."}
+:::
+:::::
+
+Package vignettes:
 [synthetic scenarios](../vignettes/synthetic-scenarios.qmd) and
 [`benchmark_bivariate_gaussian_convolutions()`](https://bastienchassagnol.github.io/DeCovarT/reference/benchmark_bivariate_gaussian_convolutions.html).
