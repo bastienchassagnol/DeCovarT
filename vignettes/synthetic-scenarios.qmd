@@ -43,7 +43,13 @@ cat("```mermaid\n", mmd, "\n```\n", sep = "")
 ```
 
 ```{r moments-example}
-library(DeCovarT)
+if (requireNamespace("DeCovarT", quietly = TRUE)) {
+  library(DeCovarT)
+} else if (requireNamespace("pkgload", quietly = TRUE)) {
+  pkgload::load_all("..", export_all = FALSE, quiet = TRUE)
+} else {
+  stop("Package 'DeCovarT' is not installed and 'pkgload' is unavailable.")
+}
 
 set.seed(42)
 moments <- simulate_hierarchical_grn_moments(

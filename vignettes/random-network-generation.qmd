@@ -413,7 +413,13 @@ Scenario IDs are $\mathtt{A1}$–$\mathtt{C3}$ (topology letter × cosine level)
 #| warning: false
 #| message: false
 
-library(DeCovarT)
+if (requireNamespace("DeCovarT", quietly = TRUE)) {
+  library(DeCovarT)
+} else if (requireNamespace("pkgload", quietly = TRUE)) {
+  pkgload::load_all("..", export_all = FALSE, quiet = TRUE)
+} else {
+  stop("Package 'DeCovarT' is not installed and 'pkgload' is unavailable.")
+}
 
 G <- 60L
 N <- 80L
