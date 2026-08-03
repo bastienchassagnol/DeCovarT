@@ -75,13 +75,13 @@ when DeCovarT moves from Gaussian convolutions to sequencing counts.
 
 Three standard devices:
 
-\\ \max\_{\Theta \succ 0} \log\det\Theta - \operatorname{tr}(S\Theta)
-\quad\text{s.t.}\quad \Theta\_{ij}=0\\\forall\\(i,j)\notin E \\
+\max\_{\Theta \succ 0} \log\det\Theta - \operatorname{tr}(S\Theta)
+\quad\text{s.t.}\quad \Theta\_{ij}=0\\\forall\\(i,j)\notin E
 
 (hard covariance selection);
 
-\\ \max\_{\Theta \succ 0} \log\det\Theta - \operatorname{tr}(S\Theta) -
-\sum\_{i\neq j}\lambda\_{ij}\\\|\Theta\_{ij}\| \\
+\max\_{\Theta \succ 0} \log\det\Theta - \operatorname{tr}(S\Theta) -
+\sum\_{i\neq j}\lambda\_{ij}\\\|\Theta\_{ij}\|
 
 (edge-specific / hybrid penalties); and structured group or fused
 graphical lasso for hubs, modules, or shared biological constraints

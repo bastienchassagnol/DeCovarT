@@ -11,13 +11,8 @@
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
 <link rel="icon" sizes="any" href="../favicon.ico">
 <link rel="manifest" href="../site.webmanifest">
-<!-- mathjax math --><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script><script>
-  window.MathJax = {
-    chtml: {
-      fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
-    }
-  };
-</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/Source_Sans_3-0.4.10/font.css" rel="stylesheet">
 <link href="../deps/Source_Code_Pro-0.4.10/font.css" rel="stylesheet">
@@ -37,7 +32,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -102,13 +97,13 @@
     <section class="section level2"><h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
 <p>A Gaussian Markov network simulation has four conceptually separate layers (<a href="#eq-pipeline" class="quarto-xref">Equation 1</a>). For non-Gaussian expression data, a fifth observation layer can be added (e.g. Poisson–log-normal counts or zero-inflated measurements).</p>
-<p><span id="eq-pipeline"><span class="math display">\[
+<p><span id="eq-pipeline"><span class="math display">
 G \longrightarrow W(G) \longrightarrow \Omega \succ 0
 \longrightarrow X_i \sim \mathcal{N}_p(\mu_i,\Omega^{-1})
-\tag{1}\]</span></span></p>
-<p>Here <span class="math inline">\(G\)</span> is an <strong>undirected</strong> graph, <span class="math inline">\(W(G)\)</span> a symmetric weighted matrix with the same off-diagonal support, <span class="math inline">\(\Omega\)</span> a strictly positive-definite precision, and <span class="math inline">\(X_i\)</span> an expression profile. The <strong>graph</strong> and the <strong>precision</strong> must not be conflated: a binary adjacency is almost never itself positive definite, so a separate weighting and regularisation step is required.</p>
+\tag{1}</span></span></p>
+<p>Here <span class="math inline">G</span> is an <strong>undirected</strong> graph, <span class="math inline">W(G)</span> a symmetric weighted matrix with the same off-diagonal support, <span class="math inline">\Omega</span> a strictly positive-definite precision, and <span class="math inline">X_i</span> an expression profile. The <strong>graph</strong> and the <strong>precision</strong> must not be conflated: a binary adjacency is almost never itself positive definite, so a separate weighting and regularisation step is required.</p>
 <p>This vignette covers <strong>undirected</strong> Gaussian Markov / precision-graph simulation only.</p>
-<p>DeCovarT’s synthetic helpers follow the same split (<a href="synthetic-scenarios.html">synthetic scenarios vignette</a>): <code><a href="../reference/generate_random_network_skeleton.html">generate_random_network_skeleton()</a></code> draws <span class="math inline">\(G\)</span>, and <code>build_normalised_precision()</code> completes it to <span class="math inline">\(\Omega\succ 0\)</span> by an affine spectral shift.</p>
+<p>DeCovarT’s synthetic helpers follow the same split (<a href="synthetic-scenarios.html">synthetic scenarios vignette</a>): <code><a href="../reference/generate_random_network_skeleton.html">generate_random_network_skeleton()</a></code> draws <span class="math inline">G</span>, and <code>build_normalised_precision()</code> completes it to <span class="math inline">\Omega\succ 0</span> by an affine spectral shift.</p>
 <div class="cell" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-pipeline" class="quarto-float quarto-figure quarto-figure-center">
@@ -159,8 +154,8 @@ Table 1: Literature survey of undirected graph → precision → observation de
 <td>PLNnetwork <span class="citation" data-cites="chiquetVariationalInferenceSparse2018">(<a href="#ref-chiquetVariationalInferenceSparse2018" role="doc-biblioref">Chiquet et al. 2018</a>)</span>
 </td>
 <td>Erdős–Rényi, preferential attachment, affiliation</td>
-<td><span class="math inline">\(\Omega = vG + \operatorname{diag}(\lvert\lambda_{\min}(vG)\rvert + u)\)</span></td>
-<td>Latent log-abundance <span class="math inline">\(XB\)</span>; compositional / multinomial counts</td>
+<td><span class="math inline">\Omega = vG + \operatorname{diag}(\lvert\lambda_{\min}(vG)\rvert + u)</span></td>
+<td>Latent log-abundance <span class="math inline">XB</span>; compositional / multinomial counts</td>
 <td>Count-network estimators under compositionality</td>
 </tr>
 <tr class="even">
@@ -170,14 +165,14 @@ Table 1: Literature survey of undirected graph → precision → observation de
 </td>
 <td>Package covariance / precision simulation</td>
 <td>Centred Gaussian; focus on precision entries</td>
-<td>Large-<span class="math inline">\(p\)</span> inferential and computational stress tests</td>
+<td>Large-<span class="math inline">p</span> inferential and computational stress tests</td>
 </tr>
 <tr class="odd">
 <td>BLGGM <span class="citation" data-cites="wuEstimatingHeterogeneousGene2022">(<a href="#ref-wuEstimatingHeterogeneousGene2022" role="doc-biblioref">Wu and Luo 2022</a>)</span>
 </td>
 <td>Block mixtures of dense, circle, star, signed modules</td>
 <td>Module matrices with structured signed off-diagonals</td>
-<td>Cell-type-specific <span class="math inline">\(\mu_k\)</span>, <span class="math inline">\(\Omega_k\)</span>; expression-dependent dropout</td>
+<td>Cell-type-specific <span class="math inline">\mu_k</span>, <span class="math inline">\Omega_k</span>; expression-dependent dropout</td>
 <td>Joint clustering, heterogeneous networks, zero inflation</td>
 </tr>
 <tr class="even">
@@ -185,7 +180,7 @@ Table 1: Literature survey of undirected graph → precision → observation de
 </td>
 <td>Modular and related hierarchical graphs</td>
 <td>GGM linked to each graph</td>
-<td>Shared structure across related networks; <span class="math inline">\(n\ll p\)</span>
+<td>Shared structure across related networks; <span class="math inline">n\ll p</span>
 </td>
 <td>Modular constraints and information sharing</td>
 </tr>
@@ -198,16 +193,16 @@ Table 1: Literature survey of undirected graph → precision → observation de
 <ol type="1">
 <li>
 <strong>Band</strong> is not intrinsically a random-graph model: its support is usually deterministic once the bandwidth is fixed (edge weights and signs may still be random). Hub constructions are often partly deterministic as well. Erdős–Rényi, preferential attachment, and stochastic block models are genuinely stochastic.</li>
-<li>A positive off-diagonal entry in <span class="math inline">\(\Omega\)</span> encodes a <strong>negative</strong> partial correlation (<a href="#eq-partial-cor" class="quarto-xref">Equation 2</a>). Uniformly positive precision weights therefore induce uniformly negative edgewise partial correlations; random or signed biological weights are needed when activation-like and inhibition-like associations matter.</li>
+<li>A positive off-diagonal entry in <span class="math inline">\Omega</span> encodes a <strong>negative</strong> partial correlation (<a href="#eq-partial-cor" class="quarto-xref">Equation 2</a>). Uniformly positive precision weights therefore induce uniformly negative edgewise partial correlations; random or signed biological weights are needed when activation-like and inhibition-like associations matter.</li>
 <li>These models target <strong>undirected</strong> conditional dependence. Federico and colleagues prefer a Markov-network representation when observational data do not justify edge directionality <span class="citation" data-cites="federicoStructureLearningGene2023">(<a href="#ref-federicoStructureLearningGene2023" role="doc-biblioref">Federico et al. 2023</a>)</span>.</li>
 <li>
 <strong>BLGGM as a hybrid topology design.</strong> Wu and Luo’s simulation can be read as two nested layers <span class="citation" data-cites="wuEstimatingHeterogeneousGene2022">(<a href="#ref-wuEstimatingHeterogeneousGene2022" role="doc-biblioref">Wu and Luo 2022</a>)</span>. At the <strong>global</strong> scale, genes are partitioned into blocks (a stochastic-block–like partition). Within each block, a <strong>finer</strong> local topology is specified—dense clique-like modules, circles, stars / hubs, or signed dense substructures—so that different blocks can stand for distinct regulatory regimes (e.g. dense co-expression programmes, cyclic signalling motifs, master-regulator hubs). Signs can also differ across modules or cell types. This is richer than a flat ER draw, yet still fully undirected.</li>
 </ol>
-<p><span id="eq-partial-cor"><span class="math display">\[
+<p><span id="eq-partial-cor"><span class="math display">
 \rho_{jk\mid -\{j,k\}}
 =
 -\frac{\Omega_{jk}}{\sqrt{\Omega_{jj}\Omega_{kk}}}
-\tag{2}\]</span></span></p>
+\tag{2}</span></span></p>
 <p><a href="#tbl-topologies" class="quarto-xref">Table 2</a> compares the main <strong>undirected</strong> topology families used in GGM benchmarks, with R entry points. <a href="#fig-topologies" class="quarto-xref">Figure 2</a> sketches the six families most often used in random-like network structure generation.</p>
 <div id="tbl-topologies" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-topologies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -231,7 +226,7 @@ Table 2: Topology families for undirected GGM simulation (R-focused).
 <tbody>
 <tr class="odd">
 <td><strong>Erdős–Rényi</strong></td>
-<td>Each edge present independently with probability <span class="math inline">\(q\)</span>; <span class="math inline">\(q=d_{\mathrm{avg}}/(p-1)\)</span> targets average degree</td>
+<td>Each edge present independently with probability <span class="math inline">q</span>; <span class="math inline">q=d_{\mathrm{avg}}/(p-1)</span> targets average degree</td>
 <td>
 <code>huge::huge.generator(graph="random")</code> <span class="citation" data-cites="R-huge">(<a href="#ref-R-huge" role="doc-biblioref">Jiang et al. 2026</a>)</span>; <code>BDgraph::graph.sim(graph="random")</code> <span class="citation" data-cites="R-BDgraph">(<a href="#ref-R-BDgraph" role="doc-biblioref">Mohammadi and Wit 2025</a>)</span>
 </td>
@@ -240,7 +235,7 @@ Table 2: Topology families for undirected GGM simulation (R-focused).
 </tr>
 <tr class="even">
 <td><strong>Band / AR</strong></td>
-<td>Edge <span class="math inline">\(j\)</span>–<span class="math inline">\(k\)</span> if <span class="math inline">\(1\le\lvert j-k\rvert\le b\)</span>
+<td>Edge <span class="math inline">j</span>–<span class="math inline">k</span> if <span class="math inline">1\le\lvert j-k\rvert\le b</span>
 </td>
 <td>
 <code>huge.generator(graph="band")</code> <span class="citation" data-cites="R-huge">(<a href="#ref-R-huge" role="doc-biblioref">Jiang et al. 2026</a>)</span>; <code>BDgraph::bdgraph.sim(graph="AR(1)")</code> / <code>"AR(2)"</code> <span class="citation" data-cites="R-BDgraph">(<a href="#ref-R-BDgraph" role="doc-biblioref">Mohammadi and Wit 2025</a>)</span>
@@ -251,7 +246,7 @@ Table 2: Topology families for undirected GGM simulation (R-focused).
 <tr class="odd">
 <td><strong>Hub / star</strong></td>
 <td>
-<span class="math inline">\(g\)</span> groups; one centre linked to remaining members</td>
+<span class="math inline">g</span> groups; one centre linked to remaining members</td>
 <td>
 <code>huge.generator(graph="hub")</code> <span class="citation" data-cites="R-huge">(<a href="#ref-R-huge" role="doc-biblioref">Jiang et al. 2026</a>)</span>; <code>graph.sim(graph="hub")</code> / <code>"star"</code> <span class="citation" data-cites="R-BDgraph">(<a href="#ref-R-BDgraph" role="doc-biblioref">Mohammadi and Wit 2025</a>)</span>
 </td>
@@ -260,7 +255,7 @@ Table 2: Topology families for undirected GGM simulation (R-focused).
 </tr>
 <tr class="even">
 <td><strong>Scale-free</strong></td>
-<td>Preferential attachment (e.g. Barabási–Albert with <span class="math inline">\(m\)</span> edges per new node)</td>
+<td>Preferential attachment (e.g. Barabási–Albert with <span class="math inline">m</span> edges per new node)</td>
 <td>
 <code>huge.generator(graph="scale-free")</code> <span class="citation" data-cites="R-huge">(<a href="#ref-R-huge" role="doc-biblioref">Jiang et al. 2026</a>)</span>; DeCovarT <code>graph_model = "scale_free"</code>
 </td>
@@ -351,7 +346,7 @@ Table 3: Biological interpretability of undirected topology families.
 </div>
 <section class="level3"><h4 id="the-scale-free-hypothesis-a-useful-stress-test-not-a-biological-default">The scale-free hypothesis: a useful stress test, not a biological default<a class="anchor" aria-label="anchor" href="#the-scale-free-hypothesis-a-useful-stress-test-not-a-biological-default"></a>
 </h4>
-<p>The phrase <em>scale-free network</em> usually means that the degree distribution follows a power law, <span class="math inline">\(\Pr(K=k)\propto k^{-\alpha}\)</span>, at least above a lower cut-off. This statistical statement is distinct from the Barabási–Albert (BA) growth mechanism. Preferential attachment can generate a power law, but observing a heavy-tailed degree distribution does not establish preferential attachment; other mechanisms can produce similar tails, and variants of preferential attachment need not produce a pure power law <span class="citation" data-cites="lima-mendezPowerfulLawPower2009 broidoScalefreeNetworksAre2019">(<a href="#ref-lima-mendezPowerfulLawPower2009" role="doc-biblioref"><span class="nocase">Lima-Mendez and van Helden</span> 2009</a>; <a href="#ref-broidoScalefreeNetworksAre2019" role="doc-biblioref">Broido and Clauset 2019</a>)</span>.</p>
+<p>The phrase <em>scale-free network</em> usually means that the degree distribution follows a power law, <span class="math inline">\Pr(K=k)\propto k^{-\alpha}</span>, at least above a lower cut-off. This statistical statement is distinct from the Barabási–Albert (BA) growth mechanism. Preferential attachment can generate a power law, but observing a heavy-tailed degree distribution does not establish preferential attachment; other mechanisms can produce similar tails, and variants of preferential attachment need not produce a pure power law <span class="citation" data-cites="lima-mendezPowerfulLawPower2009 broidoScalefreeNetworksAre2019">(<a href="#ref-lima-mendezPowerfulLawPower2009" role="doc-biblioref"><span class="nocase">Lima-Mendez and van Helden</span> 2009</a>; <a href="#ref-broidoScalefreeNetworksAre2019" role="doc-biblioref">Broido and Clauset 2019</a>)</span>.</p>
 <p>Whether biological networks are scale-free has therefore remained contested. Early claims often relied on approximately straight log–log degree plots. Such plots are not goodness-of-fit tests: binning, the plotting scale, a small number of hubs, and incomplete or biased sampling can all make non-power-law distributions appear linear. The underlying graph representation matters as well. For example, pool metabolites can become artificial hubs in metabolic graphs, while protein-interaction networks depend strongly on the assay and sampling scheme <span class="citation" data-cites="lima-mendezPowerfulLawPower2009">(<a href="#ref-lima-mendezPowerfulLawPower2009" role="doc-biblioref"><span class="nocase">Lima-Mendez and van Helden</span> 2009</a>)</span>. A power law should instead be fitted to the discrete degree data, tested for plausibility, and compared on the same support with alternatives such as log-normal, exponential, stretched-exponential, and power-law-with-cut-off distributions.</p>
 <p>The evidence is not uniformly negative. Using adjacency-spectrum distributions rather than degree alone, Takahashi and colleagues classified eight protein–protein interaction networks as scale-free <span class="citation" data-cites="takahashiDiscriminatingDifferentClasses2012">(<a href="#ref-takahashiDiscriminatingDifferentClasses2012" role="doc-biblioref">Takahashi et al. 2012</a>)</span>. Importantly, this was a relative model-selection result: BA-like networks fitted better than the two candidate alternatives, Erdős–Rényi and Watts–Strogatz networks. It did not show that a power law was an adequate absolute model, that preferential attachment generated the observed networks, or that unobserved interactions would preserve the classification. The authors explicitly noted both the restricted candidate set and possible sampling artefacts.</p>
 <p>A broader test of 928 real-world network data sets reached a more cautious conclusion <span class="citation" data-cites="broidoScalefreeNetworksAre2019">(<a href="#ref-broidoScalefreeNetworksAre2019" role="doc-biblioref">Broido and Clauset 2019</a>)</span>. Across all domains, only 4% met the strongest scale-free criterion, whereas a log-normal distribution fitted as well as or better than a power law for 88% of degree distributions. Among the biological networks, 63% showed neither direct nor indirect evidence of scale-free structure, although 6% met the strongest criterion, principally metabolic networks. These proportions depend on the network corpus and the operational definition of scale-freeness, but they reject a universal scale-free law rather than excluding scale-free structure from every biological system.</p>
@@ -363,7 +358,7 @@ Table 3: Biological interpretability of undirected topology families.
 <li>
 <strong><code>igraph</code></strong> <span class="citation" data-cites="R-igraph">(<a href="#ref-R-igraph" role="doc-biblioref">Csárdi et al. 2026</a>)</span> — DeCovarT draws the three undirected skeletons used in simulation (<code>scale_free</code> via <code>sample_pa()</code>, <code>stochastic_block_model</code> via <code>sample_sbm()</code>, <code>small_world</code> via <code>sample_smallworld()</code>).</li>
 <li>
-<strong><code>huge</code></strong> <span class="citation" data-cites="R-huge">(<a href="#ref-R-huge" role="doc-biblioref">Jiang et al. 2026</a>)</span> — compact end-to-end GGM benchmark via <code>huge.generator()</code>: topology, SPD precision, covariance, and <span class="math inline">\(\mathcal{N}_p\)</span> samples. Supports random, hub, cluster, band, and scale-free graphs <span class="citation" data-cites="zhangSILGGMExtensivePackage2018">(<a href="#ref-zhangSILGGMExtensivePackage2018" role="doc-biblioref">Zhang et al. 2018</a>)</span>; useful as a literature comparator, not the DeCovarT skeleton backend.</li>
+<strong><code>huge</code></strong> <span class="citation" data-cites="R-huge">(<a href="#ref-R-huge" role="doc-biblioref">Jiang et al. 2026</a>)</span> — compact end-to-end GGM benchmark via <code>huge.generator()</code>: topology, SPD precision, covariance, and <span class="math inline">\mathcal{N}_p</span> samples. Supports random, hub, cluster, band, and scale-free graphs <span class="citation" data-cites="zhangSILGGMExtensivePackage2018">(<a href="#ref-zhangSILGGMExtensivePackage2018" role="doc-biblioref">Zhang et al. 2018</a>)</span>; useful as a literature comparator, not the DeCovarT skeleton backend.</li>
 <li>
 <strong><code>BDgraph</code></strong> <span class="citation" data-cites="R-BDgraph">(<a href="#ref-R-BDgraph" role="doc-biblioref">Mohammadi and Wit 2025</a>)</span> — <code>graph.sim()</code> / <code>bdgraph.sim()</code> cover overlapping families plus small-world and scale-free; <code>rgwish()</code> samples G-Wishart precisions on a fixed graph.</li>
 <li>
@@ -379,12 +374,12 @@ Figure 2: Six undirected topology families used in GGM simulation: Erdős–Ré
 </div>
 </section></section><section class="section level2"><h2 id="weight-design-and-random-signs">Weight design and random signs<a class="anchor" aria-label="anchor" href="#weight-design-and-random-signs"></a>
 </h2>
-<p>Topology generators return a binary undirected support <span class="math inline">\(E\)</span>. <strong>Signs and magnitudes</strong> are a separate design layer <span class="math inline">\(W(G)\)</span> in <a href="#eq-pipeline" class="quarto-xref">Equation 1</a>: they are assigned <em>after</em> (or jointly with) the skeleton, then completed to an SPD precision. Remember that</p>
-<p><span id="eq-sign-flip"><span class="math display">\[
+<p>Topology generators return a binary undirected support <span class="math inline">E</span>. <strong>Signs and magnitudes</strong> are a separate design layer <span class="math inline">W(G)</span> in <a href="#eq-pipeline" class="quarto-xref">Equation 1</a>: they are assigned <em>after</em> (or jointly with) the skeleton, then completed to an SPD precision. Remember that</p>
+<p><span id="eq-sign-flip"><span class="math display">
 \operatorname{sign}(\rho_{jk\mid -\{j,k\}})
 =
 -\operatorname{sign}(\Omega_{jk})
-\tag{3}\]</span></span></p>
+\tag{3}</span></span></p>
 <p>(<a href="#eq-partial-cor" class="quarto-xref">Equation 2</a>), so a positive precision weight is an inhibitory partial correlation. <a href="#tbl-weights" class="quarto-xref">Table 4</a> contrasts three standard undirected strategies.</p>
 <div id="tbl-weights" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-weights-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -400,31 +395,31 @@ Table 4: Three undirected strategies for signed / random edge weights after a f
 <thead><tr class="header">
 <th>Approach</th>
 <th>What is randomised</th>
-<th>How <span class="math inline">\(\Omega\)</span> is obtained</th>
+<th>How <span class="math inline">\Omega</span> is obtained</th>
 <th>When to use</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td><strong>i.i.d. edge signs</strong></td>
-<td>For each <span class="math inline">\(\{j,k\}\in E\)</span>, draw <span class="math inline">\(s_{jk}\in\{-1,+1\}\)</span> (e.g. fair coin or <span class="math inline">\(\mathbb{P}(+)=\pi\)</span>) and magnitude <span class="math inline">\(m_{jk}&gt;0\)</span>; set <span class="math inline">\(W_{jk}=W_{kj}=s_{jk}m_{jk}\)</span>
+<td>For each <span class="math inline">\{j,k\}\in E</span>, draw <span class="math inline">s_{jk}\in\{-1,+1\}</span> (e.g. fair coin or <span class="math inline">\mathbb{P}(+)=\pi</span>) and magnitude <span class="math inline">m_{jk}&gt;0</span>; set <span class="math inline">W_{jk}=W_{kj}=s_{jk}m_{jk}</span>
 </td>
-<td>Support-preserving SPD map of <span class="math inline">\(W\)</span> (spectral shift, diagonal dominance, …)</td>
+<td>Support-preserving SPD map of <span class="math inline">W</span> (spectral shift, diagonal dominance, …)</td>
 <td>Simple signed ER / hub / SBM benchmarks; explicit control of the inhibitory fraction</td>
 </tr>
 <tr class="even">
 <td><strong>Partial-correlation scaling</strong></td>
-<td>Fill a symmetric matrix <span class="math inline">\(R\)</span> with <span class="math inline">\(R_{jk}=0\)</span> off <span class="math inline">\(E\)</span> and <span class="math inline">\(R_{jk}\in(-1,1)\)</span> (signed) on <span class="math inline">\(E\)</span>; ensure <span class="math inline">\(\rho(R)&lt;1\)</span>
+<td>Fill a symmetric matrix <span class="math inline">R</span> with <span class="math inline">R_{jk}=0</span> off <span class="math inline">E</span> and <span class="math inline">R_{jk}\in(-1,1)</span> (signed) on <span class="math inline">E</span>; ensure <span class="math inline">\rho(R)&lt;1</span>
 </td>
 <td>
-<span class="math inline">\(\Omega = D^{1/2}(I-R)D^{1/2}\)</span> (<a href="#eq-partial-scale" class="quarto-xref">Equation 6</a>)</td>
+<span class="math inline">\Omega = D^{1/2}(I-R)D^{1/2}</span> (<a href="#eq-partial-scale" class="quarto-xref">Equation 6</a>)</td>
 <td>Direct control of partial-correlation signs and strengths</td>
 </tr>
 <tr class="odd">
 <td>
 <strong>G-Wishart</strong> (<code>BDgraph::rgwish()</code>)</td>
-<td>Continuous random <span class="math inline">\(\Omega\)</span> on the fixed graph zeros</td>
+<td>Continuous random <span class="math inline">\Omega</span> on the fixed graph zeros</td>
 <td>
-<span class="math inline">\(\Omega\sim W_G(b,D)\)</span> already SPD <span class="citation" data-cites="R-BDgraph BDgraph2019">(<a href="#ref-R-BDgraph" role="doc-biblioref">Mohammadi and Wit 2025</a>, <a href="#ref-BDgraph2019" role="doc-biblioref">2019</a>)</span>
+<span class="math inline">\Omega\sim W_G(b,D)</span> already SPD <span class="citation" data-cites="R-BDgraph BDgraph2019">(<a href="#ref-R-BDgraph" role="doc-biblioref">Mohammadi and Wit 2025</a>, <a href="#ref-BDgraph2019" role="doc-biblioref">2019</a>)</span>
 </td>
 <td>Heterogeneous random weights without hand-tuned magnitudes; Bayesian-style replicates</td>
 </tr>
@@ -435,19 +430,19 @@ Table 4: Three undirected strategies for signed / random edge weights after a f
 </div>
 <section class="level2"><h3 id="i-i-d--signs-on-a-fixed-skeleton">i.i.d. signs on a fixed skeleton<a class="anchor" aria-label="anchor" href="#i-i-d--signs-on-a-fixed-skeleton"></a>
 </h3>
-<p>Draw <span class="math inline">\(G\)</span> (ER, band, hub, …). Independently for each undirected edge,</p>
-<p><span id="eq-iid-signs"><span class="math display">\[
+<p>Draw <span class="math inline">G</span> (ER, band, hub, …). Independently for each undirected edge,</p>
+<p><span id="eq-iid-signs"><span class="math display">
 W_{jk}=W_{kj}=s_{jk}\,m_{jk},
 \qquad
 s_{jk}\in\{-1,+1\},
 \quad m_{jk}&gt;0,
-\tag{4}\]</span></span></p>
-<p>then apply a support-preserving SPD completion (next section). Uniform positive loadings <span class="math inline">\(W=vG\)</span> are the special case <span class="math inline">\(s_{jk}\equiv +1\)</span> used by PLN-style and many <code>huge</code> simulations <span class="citation" data-cites="chiquetVariationalInferenceSparse2018">(<a href="#ref-chiquetVariationalInferenceSparse2018" role="doc-biblioref">Chiquet et al. 2018</a>)</span>—all partial correlations then share the same sign.</p>
-</section><section class="level2"><h3 id="partial-correlation-scaling-and-why-i-r">Partial-correlation scaling and why <span class="math inline">\(I-R\)</span>
+\tag{4}</span></span></p>
+<p>then apply a support-preserving SPD completion (next section). Uniform positive loadings <span class="math inline">W=vG</span> are the special case <span class="math inline">s_{jk}\equiv +1</span> used by PLN-style and many <code>huge</code> simulations <span class="citation" data-cites="chiquetVariationalInferenceSparse2018">(<a href="#ref-chiquetVariationalInferenceSparse2018" role="doc-biblioref">Chiquet et al. 2018</a>)</span>—all partial correlations then share the same sign.</p>
+</section><section class="level2"><h3 id="partial-correlation-scaling-and-why-i-r">Partial-correlation scaling and why <span class="math inline">I-R</span>
 <a class="anchor" aria-label="anchor" href="#partial-correlation-scaling-and-why-i-r"></a>
 </h3>
-<p>In a Gaussian Markov model the <strong>matrix of partial correlations</strong> (with ones on the diagonal) relates to the precision by a diagonal congruence. Write the off-diagonal partial correlations as a symmetric matrix <span class="math inline">\(R\)</span> with</p>
-<p><span id="eq-R-support"><span class="math display">\[
+<p>In a Gaussian Markov model the <strong>matrix of partial correlations</strong> (with ones on the diagonal) relates to the precision by a diagonal congruence. Write the off-diagonal partial correlations as a symmetric matrix <span class="math inline">R</span> with</p>
+<p><span id="eq-R-support"><span class="math display">
 R_{jj}=0,
 \qquad
 R_{jk}
@@ -456,21 +451,21 @@ R_{jk}
 \rho_{jk\mid -\{j,k\}} &amp; \{j,k\}\in E,\\
 0 &amp; \{j,k\}\notin E,
 \end{cases}
-\tag{5}\]</span></span></p>
-<p>and choose magnitudes so that the spectral radius satisfies <span class="math inline">\(\rho(R)&lt;1\)</span>. Then</p>
-<p><span id="eq-partial-scale"><span class="math display">\[
+\tag{5}</span></span></p>
+<p>and choose magnitudes so that the spectral radius satisfies <span class="math inline">\rho(R)&lt;1</span>. Then</p>
+<p><span id="eq-partial-scale"><span class="math display">
 \Omega
 =
 D^{1/2}(I-R)D^{1/2}
-\tag{6}\]</span></span></p>
-<p>for a positive diagonal <span class="math inline">\(D\)</span> (often <span class="math inline">\(D=I\)</span> after standardising margins).</p>
-<p><strong>Why subtract from the identity?</strong> The precision encodes <em>conditional</em> dependence. For a correlation-type matrix, <span class="math inline">\(I-R\)</span> places <strong>ones on the diagonal</strong> (self-precision after scaling) and <strong>negatives of the partial correlations</strong> off the diagonal, matching <a href="#eq-sign-flip" class="quarto-xref">Equation 3</a>: if <span class="math inline">\(R_{jk}&gt;0\)</span> (positively partially correlated variables), then <span class="math inline">\((I-R)_{jk}&lt;0\)</span>, hence <span class="math inline">\(\Omega_{jk}&lt;0\)</span>.</p>
+\tag{6}</span></span></p>
+<p>for a positive diagonal <span class="math inline">D</span> (often <span class="math inline">D=I</span> after standardising margins).</p>
+<p><strong>Why subtract from the identity?</strong> The precision encodes <em>conditional</em> dependence. For a correlation-type matrix, <span class="math inline">I-R</span> places <strong>ones on the diagonal</strong> (self-precision after scaling) and <strong>negatives of the partial correlations</strong> off the diagonal, matching <a href="#eq-sign-flip" class="quarto-xref">Equation 3</a>: if <span class="math inline">R_{jk}&gt;0</span> (positively partially correlated variables), then <span class="math inline">(I-R)_{jk}&lt;0</span>, hence <span class="math inline">\Omega_{jk}&lt;0</span>.</p>
 </section><section class="level2"><h3 id="g-wishart-draws-on-a-fixed-graph">G-Wishart draws on a fixed graph<a class="anchor" aria-label="anchor" href="#g-wishart-draws-on-a-fixed-graph"></a>
 </h3>
-<p>Given adjacency <span class="math inline">\(G\)</span>, <code>BDgraph::rgwish()</code> samples <span class="math inline">\(\Omega\sim W_G(b,D)\)</span> already positive definite and with <span class="math inline">\(\Omega_{jk}=0\)</span> whenever <span class="math inline">\((j,k)\notin E\)</span> <span class="citation" data-cites="R-BDgraph BDgraph2019">(<a href="#ref-R-BDgraph" role="doc-biblioref">Mohammadi and Wit 2025</a>, <a href="#ref-BDgraph2019" role="doc-biblioref">2019</a>)</span>. Signs and magnitudes arise from the continuous distribution rather than from an explicit coin-flip layer. This is the most “automatic” signed-weight generator once the skeleton is fixed; the trade-off is less direct control of the inhibitory fraction than <a href="#eq-iid-signs" class="quarto-xref">Equation 4</a> or <a href="#eq-partial-scale" class="quarto-xref">Equation 6</a>.</p>
+<p>Given adjacency <span class="math inline">G</span>, <code>BDgraph::rgwish()</code> samples <span class="math inline">\Omega\sim W_G(b,D)</span> already positive definite and with <span class="math inline">\Omega_{jk}=0</span> whenever <span class="math inline">(j,k)\notin E</span> <span class="citation" data-cites="R-BDgraph BDgraph2019">(<a href="#ref-R-BDgraph" role="doc-biblioref">Mohammadi and Wit 2025</a>, <a href="#ref-BDgraph2019" role="doc-biblioref">2019</a>)</span>. Signs and magnitudes arise from the continuous distribution rather than from an explicit coin-flip layer. This is the most “automatic” signed-weight generator once the skeleton is fixed; the trade-off is less direct control of the inhibitory fraction than <a href="#eq-iid-signs" class="quarto-xref">Equation 4</a> or <a href="#eq-partial-scale" class="quarto-xref">Equation 6</a>.</p>
 </section></section><section class="section level2"><h2 id="positive-definiteness-strategies">Positive-definiteness strategies<a class="anchor" aria-label="anchor" href="#positive-definiteness-strategies"></a>
 </h2>
-<p><a href="#tbl-pd" class="quarto-xref">Table 5</a> contrasts constructions that turn a weighted support <span class="math inline">\(W\)</span> (or a partial-correlation design) into <span class="math inline">\(\Omega\succ 0\)</span>.</p>
+<p><a href="#tbl-pd" class="quarto-xref">Table 5</a> contrasts constructions that turn a weighted support <span class="math inline">W</span> (or a partial-correlation design) into <span class="math inline">\Omega\succ 0</span>.</p>
 <div id="tbl-pd" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-pd-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table 5: Positive-definiteness constructions for graph-constrained precisions.
@@ -493,7 +488,7 @@ Table 5: Positive-definiteness constructions for graph-constrained precisions.
 <tbody>
 <tr class="odd">
 <td>Uniform spectral shift</td>
-<td><span class="math inline">\(\Omega=W+\max(0,\varepsilon-\lambda_{\min}(W))I\)</span></td>
+<td><span class="math inline">\Omega=W+\max(0,\varepsilon-\lambda_{\min}(W))I</span></td>
 <td style="text-align: right;">Yes</td>
 <td style="text-align: right;">Yes</td>
 <td>Same shift on every eigenvalue; off-diagonals (hence signs) unchanged</td>
@@ -501,18 +496,18 @@ Table 5: Positive-definiteness constructions for graph-constrained precisions.
 <tr class="even">
 <td>
 <code>huge</code> / PLN-style loading</td>
-<td>Diagonal load from <span class="math inline">\(\lvert\lambda_{\min}\rvert\)</span>, baseline, and <span class="math inline">\(u\)</span>
+<td>Diagonal load from <span class="math inline">\lvert\lambda_{\min}\rvert</span>, baseline, and <span class="math inline">u</span>
 </td>
 <td style="text-align: right;">Yes</td>
 <td style="text-align: right;">Yes</td>
 <td>
-<span class="math inline">\(v\)</span> sets edge magnitude; loading sets conditioning <span class="citation" data-cites="chiquetVariationalInferenceSparse2018">(<a href="#ref-chiquetVariationalInferenceSparse2018" role="doc-biblioref">Chiquet et al. 2018</a>)</span>
+<span class="math inline">v</span> sets edge magnitude; loading sets conditioning <span class="citation" data-cites="chiquetVariationalInferenceSparse2018">(<a href="#ref-chiquetVariationalInferenceSparse2018" role="doc-biblioref">Chiquet et al. 2018</a>)</span>
 </td>
 </tr>
 <tr class="odd">
 <td>Partial-correlation scaling</td>
 <td>
-<span class="math inline">\(\Omega=D^{1/2}(I-R)D^{1/2}\)</span> with <span class="math inline">\(\rho(R)&lt;1\)</span>
+<span class="math inline">\Omega=D^{1/2}(I-R)D^{1/2}</span> with <span class="math inline">\rho(R)&lt;1</span>
 </td>
 <td style="text-align: right;">Yes</td>
 <td style="text-align: right;">Yes</td>
@@ -520,14 +515,14 @@ Table 5: Positive-definiteness constructions for graph-constrained precisions.
 </tr>
 <tr class="even">
 <td>Graph Laplacian / M-matrix</td>
-<td><span class="math inline">\(\Omega=L_G+\varepsilon I\)</span></td>
+<td><span class="math inline">\Omega=L_G+\varepsilon I</span></td>
 <td style="text-align: right;">Yes</td>
 <td style="text-align: right;">Yes</td>
 <td>Off-diagonals non-positive ⇒ all edgewise partial correlations positive</td>
 </tr>
 <tr class="odd">
 <td>G-Wishart</td>
-<td><span class="math inline">\(\Omega\sim W_G(b,D)\)</span></td>
+<td><span class="math inline">\Omega\sim W_G(b,D)</span></td>
 <td style="text-align: right;">Yes</td>
 <td style="text-align: right;">Yes</td>
 <td>Heterogeneous random weights; <code>BDgraph::rgwish()</code> <span class="citation" data-cites="R-BDgraph">(<a href="#ref-R-BDgraph" role="doc-biblioref">Mohammadi and Wit 2025</a>)</span>
@@ -535,7 +530,7 @@ Table 5: Positive-definiteness constructions for graph-constrained precisions.
 </tr>
 <tr class="even">
 <td>Eigenvalue clipping</td>
-<td>Clip <span class="math inline">\(\Lambda\)</span> then reconstruct <span class="math inline">\(Q\Lambda Q^{\top}\)</span>
+<td>Clip <span class="math inline">\Lambda</span> then reconstruct <span class="math inline">Q\Lambda Q^{\top}</span>
 </td>
 <td style="text-align: right;">Yes</td>
 <td style="text-align: right;"><strong>No</strong></td>
@@ -557,24 +552,24 @@ Table 5: Positive-definiteness constructions for graph-constrained precisions.
 </div>
 <section class="level2"><h3 id="why-the-uniform-spectral-shift-is-attractive">Why the uniform spectral shift is attractive<a class="anchor" aria-label="anchor" href="#why-the-uniform-spectral-shift-is-attractive"></a>
 </h3>
-<p>If <span class="math inline">\(W=Q\Lambda Q^{\top}\)</span>, then (<a href="#eq-spectral-shift" class="quarto-xref">Equation 7</a>)</p>
-<p><span id="eq-spectral-shift"><span class="math display">\[
+<p>If <span class="math inline">W=Q\Lambda Q^{\top}</span>, then (<a href="#eq-spectral-shift" class="quarto-xref">Equation 7</a>)</p>
+<p><span id="eq-spectral-shift"><span class="math display">
 W+cI = Q(\Lambda+cI)Q^{\top}.
-\tag{7}\]</span></span></p>
-<p>Every eigenvalue increases by <span class="math inline">\(c\)</span>, while every off-diagonal of <span class="math inline">\(W\)</span> is unchanged, so the edge set</p>
-<p><span id="eq-edge-set"><span class="math display">\[
+\tag{7}</span></span></p>
+<p>Every eigenvalue increases by <span class="math inline">c</span>, while every off-diagonal of <span class="math inline">W</span> is unchanged, so the edge set</p>
+<p><span id="eq-edge-set"><span class="math display">
 E=\{(j,k):j&lt;k,\ \Omega_{jk}\neq 0\}
-\tag{8}\]</span></span></p>
-<p>is identical before and after loading—and <strong>signs of</strong> <span class="math inline">\(W\)</span> are preserved.</p>
-<p>The floor <span class="math inline">\(\varepsilon\)</span> also controls the condition number</p>
-<p><span id="eq-kappa"><span class="math display">\[
+\tag{8}</span></span></p>
+<p>is identical before and after loading—and <strong>signs of</strong> <span class="math inline">W</span> are preserved.</p>
+<p>The floor <span class="math inline">\varepsilon</span> also controls the condition number</p>
+<p><span id="eq-kappa"><span class="math display">
 \kappa(\Omega)=\frac{\lambda_{\max}(\Omega)}{\lambda_{\min}(\Omega)}.
-\tag{9}\]</span></span></p>
-<p>Large loading yields a well-conditioned but weakly dependent network; loading only slightly above <span class="math inline">\(-\lambda_{\min}\)</span> strengthens dependence but can make estimation fragile. Benchmarks should report partial-correlation distributions and <span class="math inline">\(\kappa(\Omega)\)</span>, not only the adjacency.</p>
+\tag{9}</span></span></p>
+<p>Large loading yields a well-conditioned but weakly dependent network; loading only slightly above <span class="math inline">-\lambda_{\min}</span> strengthens dependence but can make estimation fragile. Benchmarks should report partial-correlation distributions and <span class="math inline">\kappa(\Omega)</span>, not only the adjacency.</p>
 </section></section><section class="section level2"><h2 id="conclusions">Conclusions<a class="anchor" aria-label="anchor" href="#conclusions"></a>
 </h2>
 <blockquote>
-<p>DeCovarT draws <code>scale_free</code>, <code>stochastic_block_model</code>, and <code>small_world</code> skeletons with , then i.i.d. signed weights (<code>prop_inhibitory</code>) and a spectral shift to guarantee <span class="math inline">\(\Omega\succ 0\)</span>.</p>
+<p>DeCovarT draws <code>scale_free</code>, <code>stochastic_block_model</code>, and <code>small_world</code> skeletons with , then i.i.d. signed weights (<code>prop_inhibitory</code>) and a spectral shift to guarantee <span class="math inline">\Omega\succ 0</span>.</p>
 </blockquote>
 <section class="level2"><h3 id="further-high-dimensional-designs">Further high-dimensional designs<a class="anchor" aria-label="anchor" href="#further-high-dimensional-designs"></a>
 </h3>
@@ -587,9 +582,9 @@ E=\{(j,k):j&lt;k,\ \Omega_{jk}\neq 0\}
 <li>
 <strong>Differential networks:</strong>
 <ul>
-<li>Start from a shared base <span class="math inline">\(G_0\)</span>
+<li>Start from a shared base <span class="math inline">G_0</span>
 </li>
-<li>Control the differential shift <span class="math inline">\(\Omega_k=\Omega_0+\Delta_k\)</span>
+<li>Control the differential shift <span class="math inline">\Omega_k=\Omega_0+\Delta_k</span>
 </li>
 <li>Ensure the SPD step</li>
 <li>Alternatively, vary the <em>support, weight, and sign</em> separately <span class="citation" data-cites="federicoStructureLearningGene2023 wuEstimatingHeterogeneousGene2022">(<a href="#ref-federicoStructureLearningGene2023" role="doc-biblioref">Federico et al. 2023</a>; <a href="#ref-wuEstimatingHeterogeneousGene2022" role="doc-biblioref">Wu and Luo 2022</a>)</span>.</li>
@@ -599,31 +594,31 @@ E=\{(j,k):j&lt;k,\ \Omega_{jk}\neq 0\}
 <strong>Other distributions,</strong> using the GGM layer as a parameter:
 <ul>
 <li>
-<strong>Latent-variable GGMs</strong> — sparse <span class="math inline">\(\Omega_S\)</span> plus low-rank confounding <span class="math inline">\(Bf_i\)</span>.</li>
+<strong>Latent-variable GGMs</strong> — sparse <span class="math inline">\Omega_S</span> plus low-rank confounding <span class="math inline">Bf_i</span>.</li>
 <li>
 <strong>Nonparanormal / Gaussian-copula</strong> margins on a latent Gaussian graph.</li>
 <li>
 <strong>Poisson–log-normal / compositional</strong> observation layers on latent log-abundances <span class="citation" data-cites="chiquetVariationalInferenceSparse2018">(<a href="#ref-chiquetVariationalInferenceSparse2018" role="doc-biblioref">Chiquet et al. 2018</a>)</span>.</li>
 <li>
-<strong>Zero-inflated mixture GGMs</strong> with cell-type-specific <span class="math inline">\((\mu_k,\Omega_k)\)</span> and expression-dependent dropout <span class="citation" data-cites="wuEstimatingHeterogeneousGene2022">(<a href="#ref-wuEstimatingHeterogeneousGene2022" role="doc-biblioref">Wu and Luo 2022</a>)</span>.</li>
+<strong>Zero-inflated mixture GGMs</strong> with cell-type-specific <span class="math inline">(\mu_k,\Omega_k)</span> and expression-dependent dropout <span class="citation" data-cites="wuEstimatingHeterogeneousGene2022">(<a href="#ref-wuEstimatingHeterogeneousGene2022" role="doc-biblioref">Wu and Luo 2022</a>)</span>.</li>
 </ul>
 </li>
 </ul></section><section class="level2"><h3 id="when-mean-variation-should-not-be-omitted">When mean variation should not be omitted<a class="anchor" aria-label="anchor" href="#when-mean-variation-should-not-be-omitted"></a>
 </h3>
-<p>For <span class="math inline">\(X\sim\mathcal{N}_p(\mu,\Omega^{-1})\)</span>,</p>
-<p><span id="eq-ci"><span class="math display">\[
+<p>For <span class="math inline">X\sim\mathcal{N}_p(\mu,\Omega^{-1})</span>,</p>
+<p><span id="eq-ci"><span class="math display">
 X_j \perp X_k \mid X_{-\{j,k\}}
 \quad\Longleftrightarrow\quad
 \Omega_{jk}=0.
-\tag{10}\]</span></span></p>
-<p>The mean does not appear in <a href="#eq-ci" class="quarto-xref">Equation 10</a>, so pure support-recovery studies often set <span class="math inline">\(\mu=0\)</span> after centring <span class="citation" data-cites="zhangSILGGMExtensivePackage2018">(<a href="#ref-zhangSILGGMExtensivePackage2018" role="doc-biblioref">Zhang et al. 2018</a>)</span>. That is inadequate when the simulation should mimic expression: pooling groups with distinct <span class="math inline">\(\mu_{g(i)}\)</span> induces between-group covariance</p>
-<p><span id="eq-law-total-cov"><span class="math display">\[
+\tag{10}</span></span></p>
+<p>The mean does not appear in <a href="#eq-ci" class="quarto-xref">Equation 10</a>, so pure support-recovery studies often set <span class="math inline">\mu=0</span> after centring <span class="citation" data-cites="zhangSILGGMExtensivePackage2018">(<a href="#ref-zhangSILGGMExtensivePackage2018" role="doc-biblioref">Zhang et al. 2018</a>)</span>. That is inadequate when the simulation should mimic expression: pooling groups with distinct <span class="math inline">\mu_{g(i)}</span> induces between-group covariance</p>
+<p><span id="eq-law-total-cov"><span class="math display">
 \operatorname{Cov}(X)
 =
 \operatorname{E}\{\operatorname{Cov}(X\mid g)\}
 +
 \operatorname{Cov}\{\operatorname{E}(X\mid g)\},
-\tag{11}\]</span></span></p>
+\tag{11}</span></span></p>
 <p>which can be mistaken for network structure. PLNnetwork therefore includes covariates / offsets, and BLGGM jointly models cell-type means, precisions, and dropout <span class="citation" data-cites="chiquetVariationalInferenceSparse2018 wuEstimatingHeterogeneousGene2022">(<a href="#ref-chiquetVariationalInferenceSparse2018" role="doc-biblioref">Chiquet et al. 2018</a>; <a href="#ref-wuEstimatingHeterogeneousGene2022" role="doc-biblioref">Wu and Luo 2022</a>)</span>.</p>
 <p><a href="#tbl-means" class="quarto-xref">Table 6</a> crosses mean variations with network changes:</p>
 <div id="tbl-means" class="quarto-float quarto-figure quarto-figure-center">
@@ -644,7 +639,7 @@ Table 6: Mean designs to cross with topology/precision factors.
 <tbody>
 <tr class="odd">
 <td>Null mean</td>
-<td><span class="math inline">\(\mu_i=0\)</span></td>
+<td><span class="math inline">\mu_i=0</span></td>
 <td>Pure graph / precision recovery</td>
 </tr>
 <tr class="even">
@@ -654,12 +649,12 @@ Table 6: Mean designs to cross with topology/precision factors.
 </tr>
 <tr class="odd">
 <td>Dense low-rank</td>
-<td><span class="math inline">\(\mu_i = Bz_i\)</span></td>
+<td><span class="math inline">\mu_i = Bz_i</span></td>
 <td>Batch / cell-state confounding</td>
 </tr>
 <tr class="even">
 <td>Mean <strong>and</strong> network heterogeneity</td>
-<td>Both <span class="math inline">\(\mu_k\)</span> and <span class="math inline">\(\Omega_k\)</span> vary</td>
+<td>Both <span class="math inline">\mu_k</span> and <span class="math inline">\Omega_k</span> vary</td>
 <td>Separating DE from differential connectivity</td>
 </tr>
 </tbody>
@@ -670,7 +665,7 @@ Table 6: Mean designs to cross with topology/precision factors.
 </section><section class="level2"><h3 id="recommended-benchmark-specification">Recommended benchmark specification<a class="anchor" aria-label="anchor" href="#recommended-benchmark-specification"></a>
 </h3>
 <p>Use one pipeline for every topology (<a href="#eq-benchmark-pipe" class="quarto-xref">Equation 12</a>, <a href="#fig-pipeline" class="quarto-xref">Figure 1</a>):</p>
-<p><span id="eq-benchmark-pipe"><span class="math display">\[
+<p><span id="eq-benchmark-pipe"><span class="math display">
 \text{topology}
 \rightarrow
 \text{signed weights}
@@ -682,7 +677,7 @@ Table 6: Mean designs to cross with topology/precision factors.
 \text{latent Gaussian}
 \rightarrow
 \text{observation model}
-\tag{12}\]</span></span></p>
+\tag{12}</span></span></p>
 <div id="tbl-benchmark" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-benchmark-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table 7: Compact factorial axes for a reproducible undirected GGM simulation study.
@@ -699,7 +694,7 @@ Table 7: Compact factorial axes for a reproducible undirected GGM simulation st
 <tbody>
 <tr class="odd">
 <td>Dimension, namely number of variables (here, genes)</td>
-<td><span class="math inline">\(p \in \{100,500,1000\}\)</span></td>
+<td><span class="math inline">p \in \{100,500,1000\}</span></td>
 </tr>
 <tr class="even">
 <td>Topology</td>
@@ -708,7 +703,7 @@ Table 7: Compact factorial axes for a reproducible undirected GGM simulation st
 <tr class="odd">
 <td>Expected degree</td>
 <td>
-<span class="math inline">\(\approx 2,4,8\)</span> (keep graphs sparse)</td>
+<span class="math inline">\approx 2,4,8</span> (keep graphs sparse)</td>
 </tr>
 <tr class="even">
 <td>Edge weights</td>
@@ -716,12 +711,12 @@ Table 7: Compact factorial axes for a reproducible undirected GGM simulation st
 </tr>
 <tr class="odd">
 <td>Conditioning</td>
-<td>Report <span class="math inline">\(\lambda_{\min}\)</span>, <span class="math inline">\(\lambda_{\max}\)</span>, <span class="math inline">\(\kappa(\Omega)\)</span>
+<td>Report <span class="math inline">\lambda_{\min}</span>, <span class="math inline">\lambda_{\max}</span>, <span class="math inline">\kappa(\Omega)</span>
 </td>
 </tr>
 <tr class="even">
 <td>Means</td>
-<td>Zero; sparse group shifts, driven by cell-type; joint <span class="math inline">\(\mu\)</span>–<span class="math inline">\(\Omega\)</span> heterogeneity, for example playing on the <em>cosine similarity</em>, or the <em>condition number</em>, of the mean profile</td>
+<td>Zero; sparse group shifts, driven by cell-type; joint <span class="math inline">\mu</span>–<span class="math inline">\Omega</span> heterogeneity, for example playing on the <em>cosine similarity</em>, or the <em>condition number</em>, of the mean profile</td>
 </tr>
 </tbody>
 </table>
@@ -731,8 +726,8 @@ Table 7: Compact factorial axes for a reproducible undirected GGM simulation st
 <p><strong>Main insights.</strong> Prefer the uniform spectral shift (<a href="#eq-spectral-shift" class="quarto-xref">Equation 7</a>) or partial-correlation scaling (<a href="#eq-partial-scale" class="quarto-xref">Equation 6</a>) when support and signs must be exact; add the mean layer <strong>independently</strong> of graph generation.</p>
 </section></section><section class="section level2"><h2 id="nine-factorial-simulation-scenarios">Nine factorial simulation scenarios<a class="anchor" aria-label="anchor" href="#nine-factorial-simulation-scenarios"></a>
 </h2>
-<p>The script <code>scripts/generate_random_network_skeleton.R</code> builds a <span class="math inline">\(3\times 3\)</span> grid of undirected Markov-network moments. Notation matches the manuscript: <span class="math inline">\(G\)</span> genes and <span class="math inline">\(N\)</span> bulk samples for <span class="math inline">\(\boldsymbol{Y}\in\mathcal{M}_{G\times N}\)</span>.</p>
-<p><span id="eq-scenario-grid"><span class="math display">\[
+<p>The script <code>scripts/generate_random_network_skeleton.R</code> builds a <span class="math inline">3\times 3</span> grid of undirected Markov-network moments. Notation matches the manuscript: <span class="math inline">G</span> genes and <span class="math inline">N</span> bulk samples for <span class="math inline">\boldsymbol{Y}\in\mathcal{M}_{G\times N}</span>.</p>
+<p><span id="eq-scenario-grid"><span class="math display">
 \begin{aligned}
 \text{topology}
 &amp;\in
@@ -753,8 +748,8 @@ Table 7: Compact factorial axes for a reproducible undirected GGM simulation st
 \approx
 50.
 \end{aligned}
-\tag{13}\]</span></span></p>
-<p>Scenario IDs are <span class="math inline">\(\mathtt{A1}\)</span>–<span class="math inline">\(\mathtt{C3}\)</span> (topology letter × cosine level). <a href="#tbl-scenarios" class="quarto-xref">Table 8</a> reports realised diagnostics for each run (seeded).</p>
+\tag{13}</span></span></p>
+<p>Scenario IDs are <span class="math inline">\mathtt{A1}</span>–<span class="math inline">\mathtt{C3}</span> (topology letter × cosine level). <a href="#tbl-scenarios" class="quarto-xref">Table 8</a> reports realised diagnostics for each run (seeded).</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"DeCovarT"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
@@ -1120,7 +1115,7 @@ Table 8: Nine undirected Markov-network scenarios (3 topologies × 3 cosine lev
 </figure>
 </div>
 </div>
-<p>Column guide: <span class="math inline">\(\lambda_{\min}\)</span>, <span class="math inline">\(\lambda_{\max}\)</span>, and <span class="math inline">\(\kappa(\boldsymbol{\Omega})=\lambda_{\max}/\lambda_{\min}\)</span> summarise the precision spectrum; <code>prop_inhib</code> is the realised fraction of inhibitory precision edges; <code>mean_abs_cos</code> is the AutoGeneS cosine objective on <span class="math inline">\(\boldsymbol{\mu}\)</span>; <code>recip_kappa_mu</code> is <span class="math inline">\(\kappa_2(\boldsymbol{\mu})^{-1}\)</span>; <code>gram_det</code> is <span class="math inline">\(\sqrt{\det(\boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu})}\)</span>.</p>
+<p>Column guide: <span class="math inline">\lambda_{\min}</span>, <span class="math inline">\lambda_{\max}</span>, and <span class="math inline">\kappa(\boldsymbol{\Omega})=\lambda_{\max}/\lambda_{\min}</span> summarise the precision spectrum; <code>prop_inhib</code> is the realised fraction of inhibitory precision edges; <code>mean_abs_cos</code> is the AutoGeneS cosine objective on <span class="math inline">\boldsymbol{\mu}</span>; <code>recip_kappa_mu</code> is <span class="math inline">\kappa_2(\boldsymbol{\mu})^{-1}</span>; <code>gram_det</code> is <span class="math inline">\sqrt{\det(\boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu})}</span>.</p>
 </section><section class="section level2"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">

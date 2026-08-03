@@ -2,27 +2,26 @@
 
 This vignette collects the closed-form derivatives that DeCovarT needs
 to move between the unconstrained coordinates
-\\\boldsymbol{\rho}\in\mathbb{R}^{J-1}\\ and the cellular ratios
-\\\boldsymbol{p}\in\Delta^{J-1}\\. For every map we give the explicit
-tensor formula, an efficient base-`R` implementation (evaluated and
-checked against **numDeriv** ([Gilbert and Varadhan
-2019](#ref-R-numDeriv))), and a batched `PyTorch` counterpart. The
-naming follows the DeCovarT API:
+\boldsymbol{\rho}\in\mathbb{R}^{J-1} and the cellular ratios
+\boldsymbol{p}\in\Delta^{J-1}. For every map we give the explicit tensor
+formula, an efficient base-`R` implementation (evaluated and checked
+against **numDeriv** ([Gilbert and Varadhan 2019](#ref-R-numDeriv))),
+and a batched `PyTorch` counterpart. The naming follows the DeCovarT
+API:
 [`additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
-for \\\boldsymbol{\rho}\mapsto\boldsymbol{p}\\ and
+for \boldsymbol{\rho}\mapsto\boldsymbol{p} and
 [`additive_log_ratio()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
-for \\\boldsymbol{p}\mapsto\boldsymbol{\rho}\\.
+for \boldsymbol{p}\mapsto\boldsymbol{\rho}.
 
 ## Log-sum-exp and softmax
 
-The softmax of a score vector \\\boldsymbol{z}\in\mathbb{R}^{K}\\ is
+The softmax of a score vector \boldsymbol{z}\in\mathbb{R}^{K} is
 evaluated through the log-sum-exp (LSE) to avoid overflow,
 
-\\
 s_i=\operatorname{softmax}(\boldsymbol{z})\_i=\frac{e^{z_i}}{\sum\_{k}e^{z_k}}
 =e^{z_i-\operatorname{LSE}(\boldsymbol{z})}, \qquad
 \operatorname{LSE}(\boldsymbol{z})=m+\log\\\sum\_{k}e^{z_k-m}, \quad
-m=\max_k z_k. \tag{1}\\
+m=\max_k z_k. \tag{1}
 
 ``` r
 
@@ -58,30 +57,29 @@ Listing 2: Softmax and log-sum-exp in PyTorch
 The softmax Jacobian is the difference between a diagonal and a rank-one
 term,
 
-\\ \frac{\partial s_i}{\partial z_j}=s_i(\delta\_{ij}-s_j), \qquad
+\frac{\partial s_i}{\partial z_j}=s_i(\delta\_{ij}-s_j), \qquad
 \mathbf{J}\_{\mathrm{softmax}}=\operatorname{diag}(\boldsymbol{s})
--\boldsymbol{s}\boldsymbol{s}^{\top}. \tag{2}\\
+-\boldsymbol{s}\boldsymbol{s}^{\top}. \tag{2}
 
 This matrix also equals the Hessian of the log-sum-exp,
-\\\nabla^2\operatorname{LSE}(\boldsymbol{z})=\operatorname{diag}(\boldsymbol{s})
--\boldsymbol{s}\boldsymbol{s}^{\top}\\. Because softmax is
-vector-valued, its second derivative is a third-order tensor
-\\H\_{ijk}=\partial^2 s_i/(\partial z_j\partial z_k)\\,
+\nabla^2\operatorname{LSE}(\boldsymbol{z})=\operatorname{diag}(\boldsymbol{s})
+-\boldsymbol{s}\boldsymbol{s}^{\top}. Because softmax is vector-valued,
+its second derivative is a third-order tensor H\_{ijk}=\partial^2
+s_i/(\partial z_j\partial z_k),
 
-\\
 H\_{ijk}=s_i\bigl\[(\delta\_{ij}-s_j)(\delta\_{ik}-s_k)-s_j(\delta\_{jk}-s_k)\bigr\],
-\tag{3}\\
+\tag{3}
 
 which, slice by slice, is the rank-one correction
 
-\\ \mathbf{H}^{(i)}=s_i\Bigl\[(\boldsymbol{e}\_i-\boldsymbol{s})
+\mathbf{H}^{(i)}=s_i\Bigl\[(\boldsymbol{e}\_i-\boldsymbol{s})
 (\boldsymbol{e}\_i-\boldsymbol{s})^{\top}
 -\bigl(\operatorname{diag}(\boldsymbol{s})-\boldsymbol{s}\boldsymbol{s}^{\top}\bigr)
-\Bigr\], \tag{4}\\
+\Bigr\], \tag{4}
 
-with \\\boldsymbol{e}\_i\\ the \\i\\-th canonical basis vector.
+with \boldsymbol{e}\_i the i-th canonical basis vector.
 [Listing 3](#lst-softmax-deriv-r) materialises [Eq. 2](#eq-softmax-jac)
-and [Eq. 4](#eq-softmax-hess-slice) in \\O(K^2)\\ per slice.
+and [Eq. 4](#eq-softmax-hess-slice) in O(K^2) per slice.
 
 ``` r
 
@@ -126,22 +124,20 @@ Listing 4: Batched softmax Jacobian and Hessian in PyTorch
 
 ## Additive log-ratio coordinates
 
-Let \\\boldsymbol{p}=(p_1,\ldots,p_J)\\ be a composition with \\p_j\>0\\
-and \\\sum_j p_j=1\\, and take the last part \\J\\ as reference. The
-*additive log-ratio* (alr) transform sends the composition to
-\\\mathbb{R}^{J-1}\\,
+Let \boldsymbol{p}=(p_1,\ldots,p_J) be a composition with p_j\>0 and
+\sum_j p_j=1, and take the last part J as reference. The *additive
+log-ratio* (alr) transform sends the composition to \mathbb{R}^{J-1},
 
-\\ \rho_i=\log\\\Bigl(\frac{p_i}{p_J}\Bigr),\qquad i=1,\ldots,J-1,
-\tag{5}\\
+\rho_i=\log\\\Bigl(\frac{p_i}{p_J}\Bigr),\qquad i=1,\ldots,J-1, \tag{5}
 
-and its inverse, the *additive logistic* transform
-(\\\mathrm{alr}^{-1}\\), pins a reference logit at zero,
-\\\tilde{\boldsymbol{\rho}}=(\rho_1,\ldots,\rho\_{J-1},0)\\, and applies
-a softmax,
+and its inverse, the *additive logistic* transform (\mathrm{alr}^{-1}),
+pins a reference logit at zero,
+\tilde{\boldsymbol{\rho}}=(\rho_1,\ldots,\rho\_{J-1},0), and applies a
+softmax,
 
-\\ \boldsymbol{p}=\operatorname{softmax}(\tilde{\boldsymbol{\rho}}),
-\qquad p_i=\frac{e^{\rho_i}}{1+\sum\_{j\<J}e^{\rho_j}}\\ (i\<J), \qquad
-p_J=\frac{1}{1+\sum\_{j\<J}e^{\rho_j}}. \tag{6}\\
+\boldsymbol{p}=\operatorname{softmax}(\tilde{\boldsymbol{\rho}}), \qquad
+p_i=\frac{e^{\rho_i}}{1+\sum\_{j\<J}e^{\rho_j}}\\ (i\<J), \qquad
+p_J=\frac{1}{1+\sum\_{j\<J}e^{\rho_j}}. \tag{6}
 
 ``` r
 
@@ -174,27 +170,27 @@ def additive_log_ratio(p: torch.Tensor) -> torch.Tensor:
 
 Listing 6: Additive logistic and additive log-ratio maps in PyTorch
 
-### Derivatives of the additive logistic map (\\\boldsymbol{\rho}\mapsto\boldsymbol{p}\\)
+### Derivatives of the additive logistic map (\boldsymbol{\rho}\mapsto\boldsymbol{p})
 
-The additive logistic map is the softmax restricted to the first \\J-1\\
+The additive logistic map is the softmax restricted to the first J-1
 inputs, so its Jacobian
-\\\mathbf{J}\_{\boldsymbol{\psi}}\in\mathcal{M}\_{J\times(J-1)}\\ is the
+\mathbf{J}\_{\boldsymbol{\psi}}\in\mathcal{M}\_{J\times(J-1)} is the
 softmax Jacobian with the reference column dropped,
 
-\\ \frac{\partial p_i}{\partial\rho_a}=p_i(\delta\_{ia}-p_a), \qquad
+\frac{\partial p_i}{\partial\rho_a}=p_i(\delta\_{ia}-p_a), \qquad
 \mathbf{J}\_{\boldsymbol{\psi}}
 =\bigl\[\operatorname{diag}(\boldsymbol{p})
 -\boldsymbol{p}\boldsymbol{p}^{\top}\bigr\]\_{:,\\1:(J-1)}, \qquad
-a=1,\ldots,J-1. \tag{7}\\
+a=1,\ldots,J-1. \tag{7}
 
 Its Hessian is a tensor
-\\\mathbf{H}\_{\boldsymbol{\psi}}\in\mathcal{M}\_{J\times(J-1)\times(J-1)}\\,
+\mathbf{H}\_{\boldsymbol{\psi}}\in\mathcal{M}\_{J\times(J-1)\times(J-1)},
 the softmax Hessian [Eq. 4](#eq-softmax-hess-slice) restricted to the
-first \\J-1\\ input indices,
+first J-1 input indices,
 
-\\ \frac{\partial^2 p_i}{\partial\rho_a\partial\rho_b}
+\frac{\partial^2 p_i}{\partial\rho_a\partial\rho_b}
 =p_i\bigl\[(\delta\_{ia}-p_a)(\delta\_{ib}-p_b)-p_a(\delta\_{ab}-p_b)\bigr\],
-\qquad a,b=1,\ldots,J-1. \tag{8}\\
+\qquad a,b=1,\ldots,J-1. \tag{8}
 
 ``` r
 
@@ -236,25 +232,25 @@ def additive_logistic_hessian(rho: torch.Tensor) -> torch.Tensor:
 
 Listing 8: Jacobian and Hessian of the additive logistic map in PyTorch
 
-### Derivatives of the additive log-ratio map (\\\boldsymbol{p}\mapsto\boldsymbol{\rho}\\)
+### Derivatives of the additive log-ratio map (\boldsymbol{p}\mapsto\boldsymbol{\rho})
 
-Treating \\\boldsymbol{p}\\ as ambient coordinates in \\\mathbb{R}^{J}\\
-(admissible tangent directions satisfy \\\sum_i \mathrm{d}p_i=0\\), the
-alr Jacobian \\\mathbf{J}\_{\mathrm{alr}}\in\mathcal{M}\_{(J-1)\times
-J}\\ is sparse,
+Treating \boldsymbol{p} as ambient coordinates in \mathbb{R}^{J}
+(admissible tangent directions satisfy \sum_i \mathrm{d}p_i=0), the alr
+Jacobian \mathbf{J}\_{\mathrm{alr}}\in\mathcal{M}\_{(J-1)\times J} is
+sparse,
 
-\\ \frac{\partial\rho_i}{\partial
+\frac{\partial\rho_i}{\partial
 p_j}=\frac{\delta\_{ij}}{p_i}-\frac{\delta\_{jJ}}{p_J}, \qquad
 \mathbf{J}\_{\mathrm{alr}}
 =\Bigl\[\operatorname{diag}\\\bigl(p_1^{-1},\ldots,p\_{J-1}^{-1}\bigr)
-\\ \big\|\\ -p_J^{-1}\boldsymbol{1}\_{J-1}\Bigr\], \tag{9}\\
+\\ \big\|\\ -p_J^{-1}\boldsymbol{1}\_{J-1}\Bigr\], \tag{9}
 
-and its Hessian \\\mathbf{H}\_{\mathrm{alr}}\in\mathcal{M}\_{(J-1)\times
-J\times J}\\ is diagonal in the last two modes,
+and its Hessian \mathbf{H}\_{\mathrm{alr}}\in\mathcal{M}\_{(J-1)\times
+J\times J} is diagonal in the last two modes,
 
-\\ \frac{\partial^2\rho_i}{\partial p_j\partial p_k}
+\frac{\partial^2\rho_i}{\partial p_j\partial p_k}
 =-\frac{\delta\_{ij}\delta\_{ik}}{p_i^{2}}
-+\frac{\delta\_{jJ}\delta\_{kJ}}{p_J^{2}}. \tag{10}\\
++\frac{\delta\_{jJ}\delta\_{kJ}}{p_J^{2}}. \tag{10}
 
 ``` r
 

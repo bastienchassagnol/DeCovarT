@@ -11,13 +11,8 @@
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
 <link rel="icon" sizes="any" href="../favicon.ico">
 <link rel="manifest" href="../site.webmanifest">
-<!-- mathjax math --><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script><script>
-  window.MathJax = {
-    chtml: {
-      fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
-    }
-  };
-</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/Source_Sans_3-0.4.10/font.css" rel="stylesheet">
 <link href="../deps/Source_Code_Pro-0.4.10/font.css" rel="stylesheet">
@@ -36,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -98,17 +93,17 @@
 
 
 
-    <p>This vignette collects the closed-form derivatives that DeCovarT needs to move between the unconstrained coordinates <span class="math inline">\(\boldsymbol{\rho}\in\mathbb{R}^{J-1}\)</span> and the cellular ratios <span class="math inline">\(\boldsymbol{p}\in\Delta^{J-1}\)</span>. For every map we give the explicit tensor formula, an efficient base-<code>R</code> implementation (evaluated and checked against <strong>numDeriv</strong> <span class="citation" data-cites="R-numDeriv">(<a href="#ref-R-numDeriv" role="doc-biblioref">Gilbert and Varadhan 2019</a>)</span>), and a batched <code>PyTorch</code> counterpart. The naming follows the DeCovarT API: <code><a href="../reference/additive_logistic.html">additive_logistic()</a></code> for <span class="math inline">\(\boldsymbol{\rho}\mapsto\boldsymbol{p}\)</span> and <code><a href="../reference/additive_logistic.html">additive_log_ratio()</a></code> for <span class="math inline">\(\boldsymbol{p}\mapsto\boldsymbol{\rho}\)</span>.</p>
+    <p>This vignette collects the closed-form derivatives that DeCovarT needs to move between the unconstrained coordinates <span class="math inline">\boldsymbol{\rho}\in\mathbb{R}^{J-1}</span> and the cellular ratios <span class="math inline">\boldsymbol{p}\in\Delta^{J-1}</span>. For every map we give the explicit tensor formula, an efficient base-<code>R</code> implementation (evaluated and checked against <strong>numDeriv</strong> <span class="citation" data-cites="R-numDeriv">(<a href="#ref-R-numDeriv" role="doc-biblioref">Gilbert and Varadhan 2019</a>)</span>), and a batched <code>PyTorch</code> counterpart. The naming follows the DeCovarT API: <code><a href="../reference/additive_logistic.html">additive_logistic()</a></code> for <span class="math inline">\boldsymbol{\rho}\mapsto\boldsymbol{p}</span> and <code><a href="../reference/additive_logistic.html">additive_log_ratio()</a></code> for <span class="math inline">\boldsymbol{p}\mapsto\boldsymbol{\rho}</span>.</p>
 <section class="section level2"><h2 id="log-sum-exp-and-softmax">Log-sum-exp and softmax<a class="anchor" aria-label="anchor" href="#log-sum-exp-and-softmax"></a>
 </h2>
-<p>The softmax of a score vector <span class="math inline">\(\boldsymbol{z}\in\mathbb{R}^{K}\)</span> is evaluated through the log-sum-exp (LSE) to avoid overflow,</p>
-<p><span id="eq-softmax"><span class="math display">\[
+<p>The softmax of a score vector <span class="math inline">\boldsymbol{z}\in\mathbb{R}^{K}</span> is evaluated through the log-sum-exp (LSE) to avoid overflow,</p>
+<p><span id="eq-softmax"><span class="math display">
 s_i=\operatorname{softmax}(\boldsymbol{z})_i=\frac{e^{z_i}}{\sum_{k}e^{z_k}}
 =e^{z_i-\operatorname{LSE}(\boldsymbol{z})},
 \qquad
 \operatorname{LSE}(\boldsymbol{z})=m+\log\!\sum_{k}e^{z_k-m},
 \quad m=\max_k z_k.
-\tag{1}\]</span></span></p>
+\tag{1}</span></span></p>
 <div id="lst-lse-r" class="r listing quarto-float quarto-figure quarto-figure-left" data-eval="true">
 <figure class="quarto-float quarto-float-lst"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-lse-r-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing 1: Stable log-sum-exp and softmax in R
@@ -145,25 +140,25 @@ Listing 2: Softmax and log-sum-exp in PyTorch
 <section class="level2"><h3 id="softmax-jacobian-and-hessian">Softmax Jacobian and Hessian<a class="anchor" aria-label="anchor" href="#softmax-jacobian-and-hessian"></a>
 </h3>
 <p>The softmax Jacobian is the difference between a diagonal and a rank-one term,</p>
-<p><span id="eq-softmax-jac"><span class="math display">\[
+<p><span id="eq-softmax-jac"><span class="math display">
 \frac{\partial s_i}{\partial z_j}=s_i(\delta_{ij}-s_j),
 \qquad
 \mathbf{J}_{\mathrm{softmax}}=\operatorname{diag}(\boldsymbol{s})
 -\boldsymbol{s}\boldsymbol{s}^{\top}.
-\tag{2}\]</span></span></p>
-<p>This matrix also equals the Hessian of the log-sum-exp, <span class="math inline">\(\nabla^2\operatorname{LSE}(\boldsymbol{z})=\operatorname{diag}(\boldsymbol{s})
--\boldsymbol{s}\boldsymbol{s}^{\top}\)</span>. Because softmax is vector-valued, its second derivative is a third-order tensor <span class="math inline">\(H_{ijk}=\partial^2 s_i/(\partial z_j\partial z_k)\)</span>,</p>
-<p><span id="eq-softmax-hess"><span class="math display">\[
+\tag{2}</span></span></p>
+<p>This matrix also equals the Hessian of the log-sum-exp, <span class="math inline">\nabla^2\operatorname{LSE}(\boldsymbol{z})=\operatorname{diag}(\boldsymbol{s})
+-\boldsymbol{s}\boldsymbol{s}^{\top}</span>. Because softmax is vector-valued, its second derivative is a third-order tensor <span class="math inline">H_{ijk}=\partial^2 s_i/(\partial z_j\partial z_k)</span>,</p>
+<p><span id="eq-softmax-hess"><span class="math display">
 H_{ijk}=s_i\bigl[(\delta_{ij}-s_j)(\delta_{ik}-s_k)-s_j(\delta_{jk}-s_k)\bigr],
-\tag{3}\]</span></span></p>
+\tag{3}</span></span></p>
 <p>which, slice by slice, is the rank-one correction</p>
-<p><span id="eq-softmax-hess-slice"><span class="math display">\[
+<p><span id="eq-softmax-hess-slice"><span class="math display">
 \mathbf{H}^{(i)}=s_i\Bigl[(\boldsymbol{e}_i-\boldsymbol{s})
 (\boldsymbol{e}_i-\boldsymbol{s})^{\top}
 -\bigl(\operatorname{diag}(\boldsymbol{s})-\boldsymbol{s}\boldsymbol{s}^{\top}\bigr)
 \Bigr],
-\tag{4}\]</span></span></p>
-<p>with <span class="math inline">\(\boldsymbol{e}_i\)</span> the <span class="math inline">\(i\)</span>-th canonical basis vector. <a href="#lst-softmax-deriv-r" class="quarto-xref">Listing 3</a> materialises <a href="#eq-softmax-jac" class="quarto-xref">Eq. 2</a> and <a href="#eq-softmax-hess-slice" class="quarto-xref">Eq. 4</a> in <span class="math inline">\(O(K^2)\)</span> per slice.</p>
+\tag{4}</span></span></p>
+<p>with <span class="math inline">\boldsymbol{e}_i</span> the <span class="math inline">i</span>-th canonical basis vector. <a href="#lst-softmax-deriv-r" class="quarto-xref">Listing 3</a> materialises <a href="#eq-softmax-jac" class="quarto-xref">Eq. 2</a> and <a href="#eq-softmax-hess-slice" class="quarto-xref">Eq. 4</a> in <span class="math inline">O(K^2)</span> per slice.</p>
 <div id="lst-softmax-deriv-r" class="r listing quarto-float quarto-figure quarto-figure-left" data-eval="true">
 <figure class="quarto-float quarto-float-lst"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-softmax-deriv-r-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing 3: Softmax Jacobian and Hessian tensor in R
@@ -211,18 +206,18 @@ Listing 4: Batched softmax Jacobian and Hessian in PyTorch
 </div>
 </section></section><section class="section level2"><h2 id="additive-log-ratio-coordinates">Additive log-ratio coordinates<a class="anchor" aria-label="anchor" href="#additive-log-ratio-coordinates"></a>
 </h2>
-<p>Let <span class="math inline">\(\boldsymbol{p}=(p_1,\ldots,p_J)\)</span> be a composition with <span class="math inline">\(p_j&gt;0\)</span> and <span class="math inline">\(\sum_j p_j=1\)</span>, and take the last part <span class="math inline">\(J\)</span> as reference. The <em>additive log-ratio</em> (alr) transform sends the composition to <span class="math inline">\(\mathbb{R}^{J-1}\)</span>,</p>
-<p><span id="eq-alr"><span class="math display">\[
+<p>Let <span class="math inline">\boldsymbol{p}=(p_1,\ldots,p_J)</span> be a composition with <span class="math inline">p_j&gt;0</span> and <span class="math inline">\sum_j p_j=1</span>, and take the last part <span class="math inline">J</span> as reference. The <em>additive log-ratio</em> (alr) transform sends the composition to <span class="math inline">\mathbb{R}^{J-1}</span>,</p>
+<p><span id="eq-alr"><span class="math display">
 \rho_i=\log\!\Bigl(\frac{p_i}{p_J}\Bigr),\qquad i=1,\ldots,J-1,
-\tag{5}\]</span></span></p>
-<p>and its inverse, the <em>additive logistic</em> transform (<span class="math inline">\(\mathrm{alr}^{-1}\)</span>), pins a reference logit at zero, <span class="math inline">\(\tilde{\boldsymbol{\rho}}=(\rho_1,\ldots,\rho_{J-1},0)\)</span>, and applies a softmax,</p>
-<p><span id="eq-alr-inv"><span class="math display">\[
+\tag{5}</span></span></p>
+<p>and its inverse, the <em>additive logistic</em> transform (<span class="math inline">\mathrm{alr}^{-1}</span>), pins a reference logit at zero, <span class="math inline">\tilde{\boldsymbol{\rho}}=(\rho_1,\ldots,\rho_{J-1},0)</span>, and applies a softmax,</p>
+<p><span id="eq-alr-inv"><span class="math display">
 \boldsymbol{p}=\operatorname{softmax}(\tilde{\boldsymbol{\rho}}),
 \qquad
 p_i=\frac{e^{\rho_i}}{1+\sum_{j&lt;J}e^{\rho_j}}\ (i&lt;J),
 \qquad
 p_J=\frac{1}{1+\sum_{j&lt;J}e^{\rho_j}}.
-\tag{6}\]</span></span></p>
+\tag{6}</span></span></p>
 <div id="lst-alr-maps-r" class="r listing quarto-float quarto-figure quarto-figure-left" data-eval="true">
 <figure class="quarto-float quarto-float-lst"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-alr-maps-r-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing 5: Additive logistic and additive log-ratio maps in R
@@ -258,23 +253,23 @@ Listing 6: Additive logistic and additive log-ratio maps in PyTorch
 </div>
 </figure>
 </div>
-<section class="level2"><h3 id="derivatives-of-the-additive-logistic-map-boldsymbolrhomapstoboldsymbolp">Derivatives of the additive logistic map (<span class="math inline">\(\boldsymbol{\rho}\mapsto\boldsymbol{p}\)</span>)<a class="anchor" aria-label="anchor" href="#derivatives-of-the-additive-logistic-map-boldsymbolrhomapstoboldsymbolp"></a>
+<section class="level2"><h3 id="derivatives-of-the-additive-logistic-map-boldsymbolrhomapstoboldsymbolp">Derivatives of the additive logistic map (<span class="math inline">\boldsymbol{\rho}\mapsto\boldsymbol{p}</span>)<a class="anchor" aria-label="anchor" href="#derivatives-of-the-additive-logistic-map-boldsymbolrhomapstoboldsymbolp"></a>
 </h3>
-<p>The additive logistic map is the softmax restricted to the first <span class="math inline">\(J-1\)</span> inputs, so its Jacobian <span class="math inline">\(\mathbf{J}_{\boldsymbol{\psi}}\in\mathcal{M}_{J\times(J-1)}\)</span> is the softmax Jacobian with the reference column dropped,</p>
-<p><span id="eq-alr-inv-jac"><span class="math display">\[
+<p>The additive logistic map is the softmax restricted to the first <span class="math inline">J-1</span> inputs, so its Jacobian <span class="math inline">\mathbf{J}_{\boldsymbol{\psi}}\in\mathcal{M}_{J\times(J-1)}</span> is the softmax Jacobian with the reference column dropped,</p>
+<p><span id="eq-alr-inv-jac"><span class="math display">
 \frac{\partial p_i}{\partial\rho_a}=p_i(\delta_{ia}-p_a),
 \qquad
 \mathbf{J}_{\boldsymbol{\psi}}
 =\bigl[\operatorname{diag}(\boldsymbol{p})
 -\boldsymbol{p}\boldsymbol{p}^{\top}\bigr]_{:,\,1:(J-1)},
 \qquad a=1,\ldots,J-1.
-\tag{7}\]</span></span></p>
-<p>Its Hessian is a tensor <span class="math inline">\(\mathbf{H}_{\boldsymbol{\psi}}\in\mathcal{M}_{J\times(J-1)\times(J-1)}\)</span>, the softmax Hessian <a href="#eq-softmax-hess-slice" class="quarto-xref">Eq. 4</a> restricted to the first <span class="math inline">\(J-1\)</span> input indices,</p>
-<p><span id="eq-alr-inv-hess"><span class="math display">\[
+\tag{7}</span></span></p>
+<p>Its Hessian is a tensor <span class="math inline">\mathbf{H}_{\boldsymbol{\psi}}\in\mathcal{M}_{J\times(J-1)\times(J-1)}</span>, the softmax Hessian <a href="#eq-softmax-hess-slice" class="quarto-xref">Eq. 4</a> restricted to the first <span class="math inline">J-1</span> input indices,</p>
+<p><span id="eq-alr-inv-hess"><span class="math display">
 \frac{\partial^2 p_i}{\partial\rho_a\partial\rho_b}
 =p_i\bigl[(\delta_{ia}-p_a)(\delta_{ib}-p_b)-p_a(\delta_{ab}-p_b)\bigr],
 \qquad a,b=1,\ldots,J-1.
-\tag{8}\]</span></span></p>
+\tag{8}</span></span></p>
 <div id="lst-alr-inv-deriv-r" class="r listing quarto-float quarto-figure quarto-figure-left" data-eval="true">
 <figure class="quarto-float quarto-float-lst"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-alr-inv-deriv-r-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing 7: Jacobian and Hessian of the additive logistic map in R
@@ -319,22 +314,22 @@ Listing 8: Jacobian and Hessian of the additive logistic map in PyTorch
 </div>
 </figure>
 </div>
-</section><section class="level2"><h3 id="derivatives-of-the-additive-log-ratio-map-boldsymbolpmapstoboldsymbolrho">Derivatives of the additive log-ratio map (<span class="math inline">\(\boldsymbol{p}\mapsto\boldsymbol{\rho}\)</span>)<a class="anchor" aria-label="anchor" href="#derivatives-of-the-additive-log-ratio-map-boldsymbolpmapstoboldsymbolrho"></a>
+</section><section class="level2"><h3 id="derivatives-of-the-additive-log-ratio-map-boldsymbolpmapstoboldsymbolrho">Derivatives of the additive log-ratio map (<span class="math inline">\boldsymbol{p}\mapsto\boldsymbol{\rho}</span>)<a class="anchor" aria-label="anchor" href="#derivatives-of-the-additive-log-ratio-map-boldsymbolpmapstoboldsymbolrho"></a>
 </h3>
-<p>Treating <span class="math inline">\(\boldsymbol{p}\)</span> as ambient coordinates in <span class="math inline">\(\mathbb{R}^{J}\)</span> (admissible tangent directions satisfy <span class="math inline">\(\sum_i \mathrm{d}p_i=0\)</span>), the alr Jacobian <span class="math inline">\(\mathbf{J}_{\mathrm{alr}}\in\mathcal{M}_{(J-1)\times J}\)</span> is sparse,</p>
-<p><span id="eq-alr-fwd-jac"><span class="math display">\[
+<p>Treating <span class="math inline">\boldsymbol{p}</span> as ambient coordinates in <span class="math inline">\mathbb{R}^{J}</span> (admissible tangent directions satisfy <span class="math inline">\sum_i \mathrm{d}p_i=0</span>), the alr Jacobian <span class="math inline">\mathbf{J}_{\mathrm{alr}}\in\mathcal{M}_{(J-1)\times J}</span> is sparse,</p>
+<p><span id="eq-alr-fwd-jac"><span class="math display">
 \frac{\partial\rho_i}{\partial p_j}=\frac{\delta_{ij}}{p_i}-\frac{\delta_{jJ}}{p_J},
 \qquad
 \mathbf{J}_{\mathrm{alr}}
 =\Bigl[\operatorname{diag}\!\bigl(p_1^{-1},\ldots,p_{J-1}^{-1}\bigr)
 \ \big|\ -p_J^{-1}\boldsymbol{1}_{J-1}\Bigr],
-\tag{9}\]</span></span></p>
-<p>and its Hessian <span class="math inline">\(\mathbf{H}_{\mathrm{alr}}\in\mathcal{M}_{(J-1)\times J\times J}\)</span> is diagonal in the last two modes,</p>
-<p><span id="eq-alr-fwd-hess"><span class="math display">\[
+\tag{9}</span></span></p>
+<p>and its Hessian <span class="math inline">\mathbf{H}_{\mathrm{alr}}\in\mathcal{M}_{(J-1)\times J\times J}</span> is diagonal in the last two modes,</p>
+<p><span id="eq-alr-fwd-hess"><span class="math display">
 \frac{\partial^2\rho_i}{\partial p_j\partial p_k}
 =-\frac{\delta_{ij}\delta_{ik}}{p_i^{2}}
 +\frac{\delta_{jJ}\delta_{kJ}}{p_J^{2}}.
-\tag{10}\]</span></span></p>
+\tag{10}</span></span></p>
 <div id="lst-alr-fwd-deriv-r" class="r listing quarto-float quarto-figure quarto-figure-left" data-eval="true">
 <figure class="quarto-float quarto-float-lst"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-alr-fwd-deriv-r-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing 9: Jacobian and Hessian of the additive log-ratio map in R

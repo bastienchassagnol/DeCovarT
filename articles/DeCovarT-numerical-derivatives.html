@@ -11,13 +11,8 @@
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
 <link rel="icon" sizes="any" href="../favicon.ico">
 <link rel="manifest" href="../site.webmanifest">
-<!-- mathjax math --><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js" integrity="sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI=" crossorigin="anonymous"></script><script>
-  window.MathJax = {
-    chtml: {
-      fontURL: "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/output/chtml/fonts/woff-v2"
-    }
-  };
-</script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- katex math --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous" onload="renderMathInElement(document.body);"></script><script src="../katex-auto.js"></script><script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/Source_Sans_3-0.4.10/font.css" rel="stylesheet">
 <link href="../deps/Source_Code_Pro-0.4.10/font.css" rel="stylesheet">
@@ -36,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -98,20 +93,20 @@
 
 
 
-    <p>DeCovarT estimates the cellular ratios <span class="math inline">\(\boldsymbol{p}\in\Delta^{J-1}\)</span> of a bulk sample by maximising a log-likelihood over an <em>unconstrained</em> parameter <span class="math inline">\(\boldsymbol{\rho}\in\mathbb{R}^{J-1}\)</span>. Two reciprocal maps move between the two representations, and both are standard transforms from the analysis of compositional data.</p>
+    <p>DeCovarT estimates the cellular ratios <span class="math inline">\boldsymbol{p}\in\Delta^{J-1}</span> of a bulk sample by maximising a log-likelihood over an <em>unconstrained</em> parameter <span class="math inline">\boldsymbol{\rho}\in\mathbb{R}^{J-1}</span>. Two reciprocal maps move between the two representations, and both are standard transforms from the analysis of compositional data.</p>
 <section class="level2"><h2 id="the-two-maps">The two maps<a class="anchor" aria-label="anchor" href="#the-two-maps"></a>
 </h2>
-<p>The forward map <a href="../reference/additive_logistic.html"><code>additive_logistic()</code></a> sends unconstrained coordinates <span class="math inline">\(\boldsymbol{\rho}\)</span> to the open simplex,</p>
-<p><span id="eq-additive-logistic"><span class="math display">\[
+<p>The forward map <a href="../reference/additive_logistic.html"><code>additive_logistic()</code></a> sends unconstrained coordinates <span class="math inline">\boldsymbol{\rho}</span> to the open simplex,</p>
+<p><span id="eq-additive-logistic"><span class="math display">
 p_j=\frac{e^{\rho_j}}{\sum_{k&lt;J}e^{\rho_k}+1}\ (j&lt;J),\qquad
 p_J=\frac{1}{\sum_{k&lt;J}e^{\rho_k}+1}.
-\tag{1}\]</span></span></p>
-<p><a href="#eq-additive-logistic" class="quarto-xref">Eq. 1</a> is a softmax in which the last category <span class="math inline">\(J\)</span> is pinned as a reference (<span class="math inline">\(\rho_J\equiv 0\)</span>); in Aitchison’s framework it is the <em>additive logistic transform</em>, i.e. the inverse additive log-ratio map (<span class="math inline">\(\mathrm{alr}^{-1}\)</span>).</p>
-<p>The inverse map <a href="../reference/additive_logistic.html"><code>additive_log_ratio()</code></a> sends a composition back to <span class="math inline">\(\mathbb{R}^{J-1}\)</span>,</p>
-<p><span id="eq-additive-log-ratio"><span class="math display">\[
+\tag{1}</span></span></p>
+<p><a href="#eq-additive-logistic" class="quarto-xref">Eq. 1</a> is a softmax in which the last category <span class="math inline">J</span> is pinned as a reference (<span class="math inline">\rho_J\equiv 0</span>); in Aitchison’s framework it is the <em>additive logistic transform</em>, i.e. the inverse additive log-ratio map (<span class="math inline">\mathrm{alr}^{-1}</span>).</p>
+<p>The inverse map <a href="../reference/additive_logistic.html"><code>additive_log_ratio()</code></a> sends a composition back to <span class="math inline">\mathbb{R}^{J-1}</span>,</p>
+<p><span id="eq-additive-log-ratio"><span class="math display">
 \rho_j=\log\!\left(\frac{p_j}{p_J}\right),\qquad j=1,\ldots,J-1.
-\tag{2}\]</span></span></p>
-<p><a href="#eq-additive-log-ratio" class="quarto-xref">Eq. 2</a> is the <em>additive log-ratio</em> (<span class="math inline">\(\mathrm{alr}\)</span>) transform with reference part <span class="math inline">\(p_J\)</span>, equivalently the multinomial-logit link with reference category <span class="math inline">\(J\)</span>.</p>
+\tag{2}</span></span></p>
+<p><a href="#eq-additive-log-ratio" class="quarto-xref">Eq. 2</a> is the <em>additive log-ratio</em> (<span class="math inline">\mathrm{alr}</span>) transform with reference part <span class="math inline">p_J</span>, equivalently the multinomial-logit link with reference category <span class="math inline">J</span>.</p>
 </section><section class="level2"><h2 id="correspondence-with-compositional-transforms">Correspondence with compositional transforms<a class="anchor" aria-label="anchor" href="#correspondence-with-compositional-transforms"></a>
 </h2>
 <p><a href="#tbl-coordinate-maps" class="quarto-xref">Table 1</a> summarises the two DeCovarT helpers, the direction of each map, and their equivalent names across the statistical, machine-learning, and compositional-data-analysis literatures.</p>
@@ -136,17 +131,17 @@ Table 1: DeCovarT simplex coordinate maps and their equivalents.
 <tr class="odd">
 <td style="text-align: left;"><code><a href="../reference/additive_logistic.html">additive_logistic()</a></code></td>
 <td style="text-align: left;">
-<span class="math inline">\(\boldsymbol{\rho}\mapsto\boldsymbol{p}\)</span> (to <span class="math inline">\(\Delta^{J-1}\)</span>)</td>
-<td style="text-align: left;">inverse additive log-ratio (<span class="math inline">\(\mathrm{alr}^{-1}\)</span>)</td>
-<td style="text-align: left;">softmax with reference category <span class="math inline">\(J\)</span>; <code><a href="https://rdrr.io/pkg/compositions/man/alr.html" class="external-link">compositions::alrInv()</a></code>; <code>skbio.stats.composition.alr_inv()</code>
+<span class="math inline">\boldsymbol{\rho}\mapsto\boldsymbol{p}</span> (to <span class="math inline">\Delta^{J-1}</span>)</td>
+<td style="text-align: left;">inverse additive log-ratio (<span class="math inline">\mathrm{alr}^{-1}</span>)</td>
+<td style="text-align: left;">softmax with reference category <span class="math inline">J</span>; <code><a href="https://rdrr.io/pkg/compositions/man/alr.html" class="external-link">compositions::alrInv()</a></code>; <code>skbio.stats.composition.alr_inv()</code>
 </td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><code><a href="../reference/additive_logistic.html">additive_log_ratio()</a></code></td>
 <td style="text-align: left;">
-<span class="math inline">\(\boldsymbol{p}\mapsto\boldsymbol{\rho}\)</span> (to <span class="math inline">\(\mathbb{R}^{J-1}\)</span>)</td>
-<td style="text-align: left;">additive log-ratio (<span class="math inline">\(\mathrm{alr}\)</span>)</td>
-<td style="text-align: left;">multinomial-logit link (reference <span class="math inline">\(J\)</span>); <code><a href="https://rdrr.io/pkg/compositions/man/alr.html" class="external-link">compositions::alr()</a></code>; <code>skbio.stats.composition.alr()</code>
+<span class="math inline">\boldsymbol{p}\mapsto\boldsymbol{\rho}</span> (to <span class="math inline">\mathbb{R}^{J-1}</span>)</td>
+<td style="text-align: left;">additive log-ratio (<span class="math inline">\mathrm{alr}</span>)</td>
+<td style="text-align: left;">multinomial-logit link (reference <span class="math inline">J</span>); <code><a href="https://rdrr.io/pkg/compositions/man/alr.html" class="external-link">compositions::alr()</a></code>; <code>skbio.stats.composition.alr()</code>
 </td>
 </tr>
 </tbody>
@@ -156,7 +151,7 @@ Table 1: DeCovarT simplex coordinate maps and their equivalents.
 </div>
 </section><section class="level2"><h2 id="the-compositions-r-package">The <code>compositions</code> R package<a class="anchor" aria-label="anchor" href="#the-compositions-r-package"></a>
 </h2>
-<p>The <strong>compositions</strong> package <span class="citation" data-cites="R-compositions">(<a href="#ref-R-compositions" role="doc-biblioref"><span class="nocase">van den Boogaart et al.</span> 2025</a>)</span> provides a general toolbox for Aitchison geometry on the simplex. Beyond the additive log-ratio pair <code>alr()</code> / <code>alrInv()</code> used here, it implements the centred log-ratio <code>clr()</code> / <code>clrInv()</code> and the isometric log-ratio <code>ilr()</code> / <code>ilrInv()</code>, together with composition classes (<code>acomp()</code>, <code>rcomp()</code>) and the perturbation and powering operations of the Aitchison simplex. DeCovarT relies only on the additive log-ratio pair because it yields the sparsest <span class="math inline">\((J-1)\)</span>-dimensional parametrisation with an interpretable reference category, but any of the alternative bases would define an equally valid unconstrained coordinate system.</p>
+<p>The <strong>compositions</strong> package <span class="citation" data-cites="R-compositions">(<a href="#ref-R-compositions" role="doc-biblioref"><span class="nocase">van den Boogaart et al.</span> 2025</a>)</span> provides a general toolbox for Aitchison geometry on the simplex. Beyond the additive log-ratio pair <code>alr()</code> / <code>alrInv()</code> used here, it implements the centred log-ratio <code>clr()</code> / <code>clrInv()</code> and the isometric log-ratio <code>ilr()</code> / <code>ilrInv()</code>, together with composition classes (<code>acomp()</code>, <code>rcomp()</code>) and the perturbation and powering operations of the Aitchison simplex. DeCovarT relies only on the additive log-ratio pair because it yields the sparsest <span class="math inline">(J-1)</span>-dimensional parametrisation with an interpretable reference category, but any of the alternative bases would define an equally valid unconstrained coordinate system.</p>
 <p>The closed-form Jacobians and Hessians of these maps, together with efficient <code>R</code> and <code>Python</code> implementations, are derived in the companion vignette on softmax and additive log-ratio derivatives.</p>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-R-compositions" class="csl-entry" role="listitem">

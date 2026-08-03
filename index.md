@@ -72,7 +72,7 @@ flowchart TD
 | Non-negative least squares | `deconvolute_ratios_nnls` | Lawson–Hanson NNLS [![](https://img.shields.io/badge/GitHub-181717.svg?logo=github&logoColor=white)](https://github.com/cran/nnls) |
 | DeconRNASeq-style QP | `deconvolute_ratios_deconrnaseq` | Simplex QP via {limSolve} [![](https://img.shields.io/badge/GitHub-181717.svg?logo=github&logoColor=white)](https://github.com/cran/limSolve) |
 | Robust linear model (`rlm`) | `deconvolute_ratios_rlm` | ABIS / Monaco-style RLR [![](https://img.shields.io/badge/GitHub-181717.svg?logo=github&logoColor=white)](https://github.com/cran/MASS) |
-| CIBERSORT-style \\\nu\\-SVR | `deconvolute_ratios_cibersort` | Linear-kernel SVR via {e1071} [![](https://img.shields.io/badge/GitHub-181717.svg?logo=github&logoColor=white)](https://github.com/cran/e1071) |
+| CIBERSORT-style \nu-SVR | `deconvolute_ratios_cibersort` | Linear-kernel SVR via {e1071} [![](https://img.shields.io/badge/GitHub-181717.svg?logo=github&logoColor=white)](https://github.com/cran/e1071) |
 
 All of the above ship with the package (no extra method packages
 required).
@@ -193,15 +193,15 @@ Pull requests are welcome.
 ## The generative model of DeCovarT
 
 Constrained DeCovarT maps unconstrained coordinates
-\\\boldsymbol{\rho}\_{i}\in\mathbb{R}^{J-1}\\ to cellular proportions
-\\\boldsymbol{p}\_{i}\\ on the open simplex via a regularised soft-max
-\\\boldsymbol{\psi}\\, then forms the bulk observation as a Gaussian
+\boldsymbol{\rho}\_{i}\in\mathbb{R}^{J-1} to cellular proportions
+\boldsymbol{p}\_{i} on the open simplex via a regularised soft-max
+\boldsymbol{\psi}, then forms the bulk observation as a Gaussian
 convolution of cell-type profiles
-\\\boldsymbol{x}\_{j}\sim\mathcal{N}\_{G}(\boldsymbol{\mu}\_{j},\boldsymbol{\Sigma}\_{j})\\:
+\boldsymbol{x}\_{j}\sim\mathcal{N}\_{G}(\boldsymbol{\mu}\_{j},\boldsymbol{\Sigma}\_{j}):
 
-\\ \boldsymbol{y}\_{i}\\\|\\\cdot \sim\mathcal{N}\_{G}\\\Bigl(
+\boldsymbol{y}\_{i}\\\|\\\cdot \sim\mathcal{N}\_{G}\\\Bigl(
 \boldsymbol{\mu}\boldsymbol{p}\_{i},\\
-\sum\_{j=1}^{J}p\_{ji}^{2}\boldsymbol{\Sigma}\_{j} \Bigr). \\
+\sum\_{j=1}^{J}p\_{ji}^{2}\boldsymbol{\Sigma}\_{j} \Bigr).
 
 ``` mermaid
 %%{init: {
@@ -247,13 +247,12 @@ flowchart TB
   class y obs;
 ```
 
-Forward map \\\boldsymbol{\psi}:\boldsymbol{\rho}\mapsto\boldsymbol{p}\\
-(\\C^{2}\\-diffeomorphism):
+Forward map \boldsymbol{\psi}:\boldsymbol{\rho}\mapsto\boldsymbol{p}
+(C^{2}-diffeomorphism):
 
-\\ p\_{j}=\frac{e^{\rho\_{j}}}{\sum\_{k\<J}e^{\rho\_{k}}+1}\\
-(j\<J),\qquad p\_{J}=\frac{1}{\sum\_{k\<J}e^{\rho\_{k}}+1},\qquad
+p\_{j}=\frac{e^{\rho\_{j}}}{\sum\_{k\<J}e^{\rho\_{k}}+1}\\ (j\<J),\qquad
+p\_{J}=\frac{1}{\sum\_{k\<J}e^{\rho\_{k}}+1},\qquad
 \boldsymbol{\psi}^{-1}(\boldsymbol{p})=\bigl(\ln(p\_{j}/p\_{J})\bigr)\_{j\<J}.
-\\
 
 ## Compiling the LaTeX article
 
