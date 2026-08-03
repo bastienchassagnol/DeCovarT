@@ -11,7 +11,9 @@ knitr:
     collapse: true
     comment: "#>"
     eval: false
-bibliography: ../inst/REFERENCES.bib
+bibliography:
+  - ../inst/packages.bib
+  - ../inst/REFERENCES.bib
 link-citations: true
 crossref:
   eq-prefix: "Eq."
@@ -26,7 +28,7 @@ This vignette collects the closed-form derivatives that DeCovarT needs to move
 between the unconstrained coordinates $\boldsymbol{\rho}\in\mathbb{R}^{J-1}$ and
 the cellular ratios $\boldsymbol{p}\in\Delta^{J-1}$. For every map we give the
 explicit tensor formula, an efficient base-`R` implementation (evaluated and
-checked against [`numDeriv`](https://cran.r-project.org/package=numDeriv)), and
+checked against **numDeriv** [@R-numDeriv]), and
 a batched `PyTorch` counterpart. The naming follows the DeCovarT API:
 `additive_logistic()` for $\boldsymbol{\rho}\mapsto\boldsymbol{p}$ and
 `additive_log_ratio()` for $\boldsymbol{p}\mapsto\boldsymbol{\rho}$.
@@ -314,12 +316,9 @@ def additive_log_ratio_hessian(p: torch.Tensor) -> torch.Tensor:
 
 # Reference implementations
 
-Both transforms are standard in compositional data analysis. In `R`, the
-[`compositions`](https://cran.r-project.org/web/packages/compositions/refman/compositions.html#alr)
-package exposes `alr()` / `alrInv()`. In `Python`,
-[`scikit-bio`](https://scikit.bio/docs/dev/generated/skbio.stats.composition.alr_inv.html)
-provides `skbio.stats.composition.alr()` and `alr_inv()`. DeCovarT's
-`additive_logistic()` and `additive_log_ratio()` are the same maps with the last
+Both transforms are standard in compositional data analysis. In R, the
+**compositions** package [@R-compositions] exposes `alr()` / `alrInv()`.
+DeCovarT's `additive_logistic()` and `additive_log_ratio()` are the same maps with the last
 part fixed as reference.
 
 ```{#lst-compositions-r .r lst-cap="Cross-check against the compositions package" eval=true}

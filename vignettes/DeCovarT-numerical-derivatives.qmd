@@ -11,6 +11,10 @@ knitr:
 crossref:
   tbl-prefix: "Table"
   eq-prefix: "Eq."
+bibliography:
+  - ../inst/packages.bib
+  - ../inst/REFERENCES.bib
+link-citations: true
 format:
   html:
     embed-resources: true
@@ -64,7 +68,7 @@ compositional-data-analysis literatures.
 
 ## The `compositions` R package
 
-The [`compositions`](https://cran.r-project.org/package=compositions) package
+The **compositions** package [@R-compositions]
 provides a general toolbox for Aitchison geometry on the simplex. Beyond the
 additive log-ratio pair `alr()` / `alrInv()` used here, it implements the
 centred log-ratio `clr()` / `clrInv()` and the isometric log-ratio `ilr()` /

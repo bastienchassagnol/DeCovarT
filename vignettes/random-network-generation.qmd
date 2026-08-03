@@ -10,7 +10,9 @@ knitr:
   opts_chunk:
     collapse: true
     comment: '#>'
-bibliography: ../inst/REFERENCES.bib
+bibliography:
+  - ../inst/packages.bib
+  - ../inst/REFERENCES.bib
 link-citations: true
 ---
 
@@ -81,19 +83,25 @@ $$ {#eq-partial-cor}
 
 | Structure | Definition and controls | R entry points | Advantages | Limitations |
 |---------------|---------------|---------------|---------------|---------------|
-| **Erdős–Rényi** | Each edge present independently with probability $q$; $q=d_{\mathrm{avg}}/(p-1)$ targets average degree | [`huge.generator(graph="random")`](https://search.r-project.org/CRAN/refmans/huge/html/huge.generator.html); [`BDgraph::graph.sim(graph="random")`](https://search.r-project.org/CRAN/refmans/BDgraph/html/graph.sim.html) | Exact sparsity control in expectation; few nuisance parameters | Narrow degree distribution; little modular organisation |
-| **Band / AR** | Edge $j$–$k$ if $1\le\lvert j-k\rvert\le b$ | `huge.generator(graph="band")`; `BDgraph::bdgraph.sim(graph="AR(1)")` / `"AR(2)"` | Local dependence and controlled max degree | Artificial gene ordering; no hubs or modules |
-| **Hub / star** | $g$ groups; one centre linked to remaining members | `huge.generator(graph="hub")`; `graph.sim(graph="hub")` / `"star"` | Stress-tests high-degree regulators | Pure stars omit cross-talk |
-| **Scale-free** | Preferential attachment (e.g. Barabási–Albert with $m$ edges per new node) | `huge.generator(graph="scale-free")`; `graph.sim(graph="scale-free")`; DeCovarT `graph_model = "power_law"` | Heterogeneous degrees | Weak modularity under plain BA growth |
-| **Cluster / SBM** | Within-block edge probability exceeds between-block | `huge.generator(graph="cluster")`; `graph.sim(graph="cluster")`; DeCovarT `graph_model = "stochastic_block_model"` | Pathway / module structure | Equal blocks and homogeneous $P$ can be unrealistically regular |
-| **Small-world / lattice / circle** | High clustering with short paths, or fixed neighbourhoods | `graph.sim(graph="smallworld")`, `"lattice"`, `"circle"` | Local modules and spatial organisation | Narrow degrees; needs a defensible ordering |
+| **Erdős–Rényi** | Each edge present independently with probability $q$; $q=d_{\mathrm{avg}}/(p-1)$ targets average degree | `huge::huge.generator(graph="random")` [@R-huge]; `BDgraph::graph.sim(graph="random")` [@R-BDgraph] | Exact sparsity control in expectation; few nuisance parameters | Narrow degree distribution; little modular organisation |
+| **Band / AR** | Edge $j$–$k$ if $1\le\lvert j-k\rvert\le b$ | `huge.generator(graph="band")` [@R-huge]; `BDgraph::bdgraph.sim(graph="AR(1)")` / `"AR(2)"` [@R-BDgraph] | Local dependence and controlled max degree | Artificial gene ordering; no hubs or modules |
+| **Hub / star** | $g$ groups; one centre linked to remaining members | `huge.generator(graph="hub")` [@R-huge]; `graph.sim(graph="hub")` / `"star"` [@R-BDgraph] | Stress-tests high-degree regulators | Pure stars omit cross-talk |
+| **Scale-free** | Preferential attachment (e.g. Barabási–Albert with $m$ edges per new node) | `huge.generator(graph="scale-free")` [@R-huge]; `graph.sim(graph="scale-free")` [@R-BDgraph]; DeCovarT `graph_model = "power_law"` | Heterogeneous degrees | Weak modularity under plain BA growth |
+| **Cluster / SBM** | Within-block edge probability exceeds between-block | `huge.generator(graph="cluster")` [@R-huge]; `graph.sim(graph="cluster")` [@R-BDgraph]; DeCovarT `graph_model = "stochastic_block_model"` | Pathway / module structure | Equal blocks and homogeneous $P$ can be unrealistically regular |
+| **Small-world / lattice / circle** | High clustering with short paths, or fixed neighbourhoods | `graph.sim(graph="smallworld")`, `"lattice"`, `"circle"` [@R-BDgraph] | Local modules and spatial organisation | Narrow degrees; needs a defensible ordering |
 
 : Topology families for undirected GGM simulation (R-focused). {#tbl-topologies}
 
 ## Package roles (R)
 
--   **`huge`** — compact end-to-end GGM benchmark via [`huge.generator()`](https://search.r-project.org/CRAN/refmans/huge/html/huge.generator.html): topology, SPD precision, covariance, and $\mathcal{N}_p$ samples. Supports random, hub, cluster, band, and scale-free graphs [@zhangSILGGMExtensivePackage2018].
--   **`BDgraph`** — broadest undirected simulation surface: [`graph.sim()`](https://search.r-project.org/CRAN/refmans/BDgraph/html/graph.sim.html) for topologies; [`bdgraph.sim()`](https://search.r-project.org/CRAN/refmans/BDgraph/html/bdgraph.sim.html) for data (including a `mean` argument and non-Gaussian families); [`rgwish()`](https://search.r-project.org/CRAN/refmans/BDgraph/html/rgwish.html) for G-Wishart draws that respect graph-constrained zeros.
+-   **`huge`** [@R-huge] — compact end-to-end GGM benchmark via
+    `huge.generator()`: topology, SPD precision, covariance, and
+    $\mathcal{N}_p$ samples. Supports random, hub, cluster, band, and
+    scale-free graphs [@zhangSILGGMExtensivePackage2018].
+-   **`BDgraph`** [@R-BDgraph; @BDgraph2019] — broadest undirected
+    simulation surface: `graph.sim()` for topologies; `bdgraph.sim()` for
+    data (including a `mean` argument and non-Gaussian families);
+    `rgwish()` for G-Wishart draws that respect graph-constrained zeros.
 
 # Positive-definiteness strategies
 
@@ -104,9 +112,9 @@ $$ {#eq-partial-cor}
 | Uniform spectral shift | $\Omega=W+\max(0,\varepsilon-\lambda_{\min}(W))I$ | Yes | Yes | Same shift on every eigenvalue; off-diagonals unchanged |
 | `huge` / PLN-style loading | Diagonal load from $\lvert\lambda_{\min}\rvert$, baseline, and $u$ | Yes | Yes | $v$ sets edge magnitude; loading sets conditioning [@chiquetVariationalInferenceSparse2018] |
 | Graph Laplacian / M-matrix | $\Omega=L_G+\varepsilon I$ | Yes | Yes | Off-diagonals non-positive ⇒ all edgewise partial correlations positive |
-| G-Wishart | $\Omega\sim W_G(b,D)$ | Yes | Yes | Heterogeneous random weights; `BDgraph::rgwish()` |
+| G-Wishart | $\Omega\sim W_G(b,D)$ | Yes | Yes | Heterogeneous random weights; `BDgraph::rgwish()` [@R-BDgraph] |
 | Eigenvalue clipping | Clip $\Lambda$ then reconstruct $Q\Lambda Q^{\top}$ | Yes | **No** | Fills structural zeros |
-| Nearest PD projection | e.g. [`Matrix::nearPD()`](https://stat.ethz.ch/R-manual/R-devel/library/Matrix/html/nearPD.html) | Yes | **No** (in general) | Repair tool, not a support-preserving truth |
+| Nearest PD projection | e.g. `Matrix::nearPD()` [@R-Matrix] | Yes | **No** (in general) | Repair tool, not a support-preserving truth |
 
 : Positive-definiteness constructions for graph-constrained precisions. {#tbl-pd}
 

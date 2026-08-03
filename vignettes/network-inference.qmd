@@ -10,7 +10,9 @@ knitr:
   opts_chunk:
     collapse: true
     comment: '#>'
-bibliography: ../inst/REFERENCES.bib
+bibliography:
+  - ../inst/packages.bib
+  - ../inst/REFERENCES.bib
 link-citations: true
 ---
 
@@ -158,7 +160,7 @@ For each node,
 \(X_i\mid\mathrm{Pa}(i)\sim\mathcal{N}\bigl(\mu_i+\sum_{j\in\mathrm{Pa}(i)}\beta_{ij}X_j,\,\sigma_i^2\bigr)\).
 Stacking these linear structural equations yields a unique joint
 \(\boldsymbol{X}\sim\mathcal{N}_G(\boldsymbol{\mu},\boldsymbol{\Sigma})\).
-In R, `bnlearn::gbn2mvnorm()` returns that mean and covariance from a fitted
+In R, `bnlearn::gbn2mvnorm()` [@R-bnlearn] returns that mean and covariance from a fitted
 Gaussian BN—the directed counterpart of
 \(\boldsymbol{\Sigma}=\boldsymbol{\Omega}^{-1}\) in an undirected GGM.
 :::

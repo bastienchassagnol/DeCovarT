@@ -290,90 +290,74 @@ unused Suggests/Imports without need.
 
 ---
 
-# Bibliography (Zotero → Better BibTeX → Git)
+# Bibliography
 
-**Source of truth for literature metadata and citekeys** is the author's
+DeCovarT keeps **two separate citation streams**. Do not mix them.
+
+## A. Literature (Zotero → Better BibTeX → Git)
+
+**Source of truth** for papers / books / theses is the author's
 [Zotero library](https://www.zotero.org/bastienchassagnol/library) with
 **Better BibTeX (BBT)** citation keys. Do **not** invent BibTeX entries or
-citekeys in the repo; add the item in Zotero first, then export.
-
-**.cursorrules alone do not enforce this.** Enforcement is
-`scripts/check_bibliography.py`, wired as the pre-commit hook
-`check-bibliography` (see `.pre-commit-config.yaml`). The hook always
-runs (global `exclude` skips `article/` for other hooks).
-
-```bash
-# After a Zotero export into article/decovart_library.bib:
-python3 scripts/check_bibliography.py --clean   # trim, DOI-dedupe, sync both copies
-python3 scripts/check_bibliography.py            # validate (also run by pre-commit)
-python3 scripts/check_bibliography.py --check-qmd  # optional vignette @citekeys
-```
-
-The check fails on: disallowed BibTeX fields; duplicate DOIs / citekeys;
-`article/decovart_library.bib` ≠ `inst/REFERENCES.bib`; unresolved
-`\cite{…}` keys in `article/main.tex`. It does **not** invent missing
-entries—add them in Zotero, re-export, then `--clean`.
-
-## Exactly two `.bib` files (independent copies, kept in sync)
+citekeys; add the item in Zotero first, then export.
 
 | Path | Consumer |
 |------|----------|
-| `article/decovart_library.bib` | LaTeX manuscript (`\bibliography{decovart_library}`) |
-| `inst/REFERENCES.bib` | Package / Quarto vignettes (`bibliography: ../inst/REFERENCES.bib`) |
+| `article/decovart_library.bib` | LaTeX manuscript |
+| `inst/REFERENCES.bib` | Quarto vignettes (literature half) |
 
-- Do **not** add vignette-local or third `.bib` files.
-- After every Zotero export, run `--clean` so **both** copies match.
-- `article/` is Rbuild-ignored; vignettes must keep using `inst/REFERENCES.bib`.
+- Exactly these two literature copies (independent, kept in sync).
+- After every Zotero export: `python3 scripts/check_bibliography.py --clean`
+  (allowed fields only; DOI-dedupe; sync both copies).
+- Allowed fields: `title`, `author`, `year`, `journal` **or**
+  `howpublished`, `doi`, `volume`, `isbn`. Strip everything else.
+- Pre-commit hook `check-bibliography` validates literature hygiene and
+  `article/main.tex` citekeys (against literature **and** `packages.bib`).
 
-## Allowed BibTeX fields only
-
-When cleaning an export, **preserve only**:
-
-`title`, `author`, `year`, `journal` **or** `howpublished` (venue /
-“published”), `doi`, `volume`, `isbn`.
-
-Strip everything else (`abstract`, `file`, `pages`, `month`, `urldate`,
-`keywords`, `publisher` when a journal/`howpublished` exists, etc.).
-Map `journaltitle` → `journal`; map `booktitle` / lone `publisher` →
-`howpublished` when no journal is present.
-
-## Deduplicate by DOI
-
-On export / merge, remove duplicate entries by **normalised DOI**
-(strip `https://doi.org/` / `http://dx.doi.org/`, lower-case). If two
-entries share a DOI, keep one (prefer the BBT key from Zotero). If no DOI,
-dedupe by citekey.
-
-## Citation resolution
-
-- **`article/main.tex`:** every `\cite{…}` / `\citep{…}` key must exist in
-  `article/decovart_library.bib` (enforced by pre-commit).
-- **`.qmd` vignettes:** every `@citekey` must exist in
-  `inst/REFERENCES.bib`. Prefer BBT keys from the current export. Run
-  with `--check-qmd` when editing vignette citations (optional in the
-  default pre-commit pass so temporary DOI Markdown links do not block
-  unrelated commits).
-- GitHub issue prose is not machine-checked; use the DOI bridge below.
-- If a paper is **missing from Zotero**, do **not** fabricate a `.bib`
-  entry: flag it, or use a temporary Markdown DOI link in `.qmd` until
-  the item is added and re-exported.
-
-## GitHub issues — DOI bridge (loose coupling)
-
-Issue checklists should prefer:
+GitHub issues — DOI bridge:
 
 ```markdown
 - [ ] [Paper title](https://doi.org/10.xxxx/xxxxx) — `@citekey`
 ```
 
-- **DOI URL** — stable for humans / browsers (survives citekey renames).
-- **`@citekey`** — machine check against `.bib` / Zotero.
-- Do **not** rely on title-only bullets for sync.
+## B. Software / tools (`packages.bib` — not Zotero)
 
-**New paper workflow:** add to Zotero with a BBT key → export into
-`article/decovart_library.bib` → `python3 scripts/check_bibliography.py
---clean` → cite in issues as `[Title](doi) — @key`, in `.qmd` as `@key`,
-and in `main.tex` as `\citep{key}`.
+R, Bioconductor, and similar **software** citations are generated
+automatically into a standalone bibliography — **not** stored in Zotero.
+
+| Path | Consumer |
+|------|----------|
+| `inst/packages.bib` | Quarto vignettes (software half) |
+| `article/packages.bib` | LaTeX (synced copy) |
+
+Regenerate (from repository root):
+
+```bash
+Rscript scripts/generate_packages_bib.R
+```
+
+That script discovers packages used in **`vignettes/`** and **`article/`**
+only (CRANpkg macros, `library()` / `pkg::`, plus an explicit software
+allowlist for prose-only mentions such as `huge`). It does **not** dump
+DESCRIPTION Imports/Suggests or the whole package dependency tree.
+
+## C. Quarto vignette YAML (always two bibliographies)
+
+Every `vignettes/*.qmd` must declare **both** files:
+
+```yaml
+bibliography:
+  - ../inst/packages.bib
+  - ../inst/REFERENCES.bib
+link-citations: true
+```
+
+Example citations: literature `@wuEstimatingHeterogeneousGene2022`;
+software `@R-huge`, `@R-BDgraph`, `@R-base`.
+
+```bash
+python3 scripts/check_bibliography.py --check-qmd
+```
 
 ---
 
@@ -452,9 +436,11 @@ reviewer would want to read—and self-check before claiming novelty.
 ### Integrity (literature and claims)
 
 - **Never invent papers, DOIs, quotes, BibTeX entries, or “Consensus”
-  hits.** Citekeys for `.qmd` must come from the Zotero/BBT export in
-  the two allowed `.bib` files. If a citation is uncertain or missing
-  from Zotero, flag it for the user rather than guessing.
+  hits.** Literature citekeys for `.qmd` must come from the Zotero/BBT
+  export (`REFERENCES.bib` / `decovart_library.bib`). Software citekeys
+  (`@R-huge`, etc.) come from `packages.bib` via
+  `scripts/generate_packages_bib.R`. If a literature citation is uncertain
+  or missing from Zotero, flag it for the user rather than guessing.
 - Label claims clearly: established fact (with citation), result of
   *this* work, limitation, or speculation/outlook.
 - Flag load-bearing intro assertions that lack a citation.
