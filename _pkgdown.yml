@@ -71,6 +71,10 @@ navbar:
       text: Vignettes
       icon: fa-book-open
       menu:
+        - text: Doctorants seminar slides (embedded)
+          icon: fa-chalkboard-user
+          href: articles/deconvolution-seminar-slides.html
+        - text: -------
         - text: Getting started
         - text: Simulating semi-synthetic pseudo-bulk mixtures
           icon: fa-flask
@@ -156,6 +160,9 @@ reference:
       - compute_average_overlap
 
 articles:
+  - title: Presentations
+    contents:
+      - deconvolution-seminar-slides
   - title: Getting started
     navbar: ~
     contents:

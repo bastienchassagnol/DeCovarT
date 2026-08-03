@@ -1,0 +1,56 @@
+## Quantify components of biological systems
+
+Bulk tissues mix cell populations. Autoimmunity and cancer change both
+**composition** and **state** of those populations.
+
+::: {.attribution}
+Schnell et al., *Nature*, 2020 —
+[doi:10.1038/s41422-020-0277-x](https://doi.org/10.1038/s41422-020-0277-x)
+:::
+
+## Holistic complexity
+
+Genes cooperate in pathways; metabolites and cell populations interact
+in bio-molecular networks. Deconvolution alone is not enough — we need
+**structure** on the gene side as well.
+
+::: {.attribution}
+Schnell et al., *Nature*, 2020 —
+[doi:10.1038/s41422-020-0277-x](https://doi.org/10.1038/s41422-020-0277-x)
+:::
+
+## Why bulk is limited for biomarkers
+
+Shoemaker et al. (2012): the same bulk fold-change can come from
+
+::: incremental
+- **Scenario A** — activation within an existing cell type
+- **Scenario B** — arrival of a new cell population
+:::
+
+::: {.attribution}
+Shoemaker et al., *BMC Genomics*, 2012 —
+[doi:10.1186/1471-2164-13-460](https://doi.org/10.1186/1471-2164-13-460)
+:::
+
+## Technical alternatives
+
+::::: columns
+::: {.column width="50%"}
+**Bulk RNA-seq**
+
+- Cheaper, larger cohorts
+- Longitudinal studies
+- Aggregates heterogeneous signals
+:::
+::: {.column width="50%"}
+**Single-cell / spatial**
+
+- Resolve rare types & lineages
+- Costly, noisy, heavy compute
+- Complements bulk rather than replaces it
+:::
+:::::
+
+Deconvolution recovers cell-type proportions from bulk when single-cell
+is impractical at scale.

@@ -1,0 +1,36 @@
+## Sjögren’s disease
+
+Transcriptomic patient clusters and IFN modules motivate composition-aware
+analysis of immune infiltration.
+
+::: {.attribution}
+Soret et al., *Nature Communications*, 2021 —
+[doi:10.1038/s41467-021-23949-4](https://doi.org/10.1038/s41467-021-23949-4)
+:::
+
+## DTOO / gastruloid perspectives
+
+Digital twins and multimodal gastruloid maps need deconvolution across
+bulk, single-cell, and ATAC layers — composition + covariance again.
+
+## Spatial deconvolution (outlook)
+
+Emerging toolkits mix:
+
+- Graph / optimal transport pairing of cells to spots
+- Bayesian count models (NB, Poisson–gamma, topic models)
+- Regression with simplex / robust / ensemble constraints
+
+::: {.attribution}
+Gaspard-Boulinc & Cavalli, *Nature Reviews Genetics*, 2025 —
+[doi:10.1038/s41576-025-00845-y](https://doi.org/10.1038/s41576-025-00845-y)
+:::
+
+## Perspectives for DeCovarT
+
+::: incremental
+- Rare / unknown cell content and spillover
+- Multi-omics and spatio-temporal resolution
+- Hierarchical ontologies (coarse vs fine labels)
+- Compositional statistics on $p$
+:::

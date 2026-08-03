@@ -100,17 +100,30 @@ stacks (e.g. PyTorch) for this R package.
 # R — package and tooling (DeCovarT)
 
 > Always run the local pre-commit hooks after bringing changes to the
-> GitHub repository. Before any `pre-commit run` (including
-> `--all-files`), clear the hook cache first so hooks and environments
-> are not stale:
+> GitHub repository. **Before every commit or `pre-commit run`**, clear
+> the hook cache so environments are not stale:
 >
 > ```bash
 > pre-commit clean
-> pre-commit run --all-files
+> git add -u   # and add new paths as needed — stage EVERYTHING you mean to commit
+> pre-commit run   # or: pre-commit run --all-files
+> git add -u       # re-stage if autofix hooks (EOF / whitespace) modified files
+> git commit
 > ```
 >
-> Prefer `pre-commit clean` (clears the pre-commit cache) over skipping
-> hooks. Do not use `--no-verify` unless the user explicitly requests it.
+> Autofix hooks (`end-of-file-fixer`, `trailing-whitespace`) **fail once**
+> while rewriting files; that is expected — re-stage and commit again.
+> Do **not** leave unstaged edits during `git commit`: pre-commit stashes
+> them, and if they conflict with autofixes the hook **rolls back** the
+> fixes (`Stashed changes conflicted with hook auto-fixes`).
+>
+> Prefer `pre-commit clean` over skipping hooks. Do not use `--no-verify`
+> unless the user explicitly requests it.
+> Vendor Quarto extensions under `slides/_extensions/` are excluded from
+> EOF/whitespace hooks. This project does **not** use `renv`; lintr hooks
+> set `RENV_CONFIG_AUTOLOADER_ENABLED=FALSE` to avoid false “out-of-sync”
+> messages.
+
 
 ## Project roles
 
@@ -135,9 +148,12 @@ This repo uses **[Air](https://posit-dev.github.io/air/)** (`air.toml`) and
   `deps-in-desc`, large-file check, `check-bibliography`. README sync
   is enforced in CI via `.github/workflows/render-readme.yaml`
   (`quarto render README.qmd`).
-- Before any `pre-commit run`, always clear the cache first:
-  `pre-commit clean`, then `pre-commit run --all-files` (or the
-  narrower hook set requested).
+- Before any `pre-commit run` or commit, always:
+  1. `pre-commit clean`
+  2. Stage **all** intended files (`git add …`) — no leftover unstaged
+     edits (avoids stash/autofix rollback failures)
+  3. `pre-commit run` (or `--all-files`), then `git add -u` if hooks
+     rewrote files, then commit
 - Keep line length ≤ 80 characters.
 
 ## Package structure
@@ -552,12 +568,30 @@ npx skills add emilhvitfeldt/slidecrafting.com
    improvisation: theme SCSS, columns/absolute layout, fragment and
    auto-animate patterns, speaker notes / PDF export as documented
    there and at <https://slidecrafting-book.com>.
-4. For custom fragment CSS/JS or multi-slide auto-animate element
+4. Cross-check features against official Quarto reveal.js docs
+   (<https://quarto.org/docs/presentations/revealjs/>) **and** the
+   Slidecrafting book (<https://slidecrafting-book.com/>) when choosing
+   YAML options, extensions, layout, or animation patterns. Prefer
+   documented Quarto / Slidecrafting features over ad-hoc HTML/CSS.
+5. For custom fragment CSS/JS or multi-slide auto-animate element
    casts, also read `quarto-revealjs-fragment` and/or
    `auto-animate-elements` when those skills are installed.
 
 Do **not** invent ad-hoc slide CSS/layout systems when the skill
 already covers the pattern.
+
+### Converting legacy decks (PDF / PPTX / Markdown)
+
+Source materials often exist as PDF, PowerPoint, and Markdown of the
+same talk. Prefer **Markdown** for Quarto authoring when the text is
+already structured; use **PDF** when you need visual fidelity or when
+Markdown was a lossy export; use **PPTX** mainly to recover embedded
+figures. They are complementary, not interchangeable.
+
+To turn a PDF into Markdown, use Stephen Turner’s **pdfdown** web API:
+<https://stephenturner.github.io/pdfdown/> (then clean headings and
+rebuild as Quarto reveal.js with Slidecrafting patterns).
+
 
 ## 3. Slide design lessons
 

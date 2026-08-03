@@ -1,0 +1,42 @@
+## The ecosystem of algorithms
+
+Shen-Orr & Gannett (2013) taxonomy:
+
+::: incremental
+- **Partial deconvolution** — estimate proportions $p$ given signature $X$
+- **Complete deconvolution** — jointly infer $p$ and $X$ (ill-posed without priors)
+:::
+
+## Granularity
+
+Deconvolution targets vary:
+
+- Mixtures of **cell populations** (e.g. immune fractions)
+- Mixtures of **tissues** (e.g. tumour purity)
+- Mixtures of **cell-cycle phases**
+
+## Reference-based principle
+
+1. Purified cellular profiles (signature matrix $X$)
+2. Bulk mixture $y$
+3. Estimate proportions $p$ (often with simplex constraints)
+
+Classic tools: DeconRNASeq, CIBERSORT, EPIC, quanTIseq, FARDEEP, …
+
+## Signature-based families
+
+::::: columns
+::: {.column width="50%"}
+**Regression**
+
+- Quadratic programming (DeconRNASeq)
+- Robust / SVR (CIBERSORT, FARDEEP)
+- Weighted QP (EPIC, quanTIseq)
+:::
+::: {.column width="50%"}
+**Probabilistic**
+
+- Continuous: DSection, DeMix
+- Discrete: PERT, TEMT
+:::
+:::::

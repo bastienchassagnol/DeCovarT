@@ -120,7 +120,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: quarto-dev/quarto-actions/setup@v2
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: r-lib/actions/setup-pandoc@v2
 
@@ -137,13 +140,35 @@ jobs:
       - name: Generate function call network
         run: Rscript scripts/generate_package_network_functions.R
 
-      - name: Build site
+      # 1) Reveal.js deck first (COPASI-style: slides before the rest of Quarto)
+      - name: Render Quarto reveal.js slides
+        uses: quarto-dev/quarto-actions/render@v2
+        with:
+          to: revealjs
+          path: slides/index.qmd
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload slides HTML artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: slides-generation
+          path: slides/index.html
+          if-no-files-found: error
+
+      # 2) Remaining Quarto (pkgdown vignettes / articles) + site
+      - name: Build pkgdown site
         run: >-
           pkgdown::build_site_github_pages(
             new_process = FALSE,
             install = FALSE
           )
         shell: Rscript {0}
+
+      - name: Copy slides into pkgdown docs
+        run: |
+          mkdir -p docs/slides
+          cp -a slides/index.html docs/slides/index.html
 
       - name: Deploy to GitHub Pages
         if: github.event_name != 'pull_request'
