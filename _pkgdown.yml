@@ -11,8 +11,9 @@ development:
 template:
   bootstrap: 5
   light-switch: true
-  # Prefer MathJax over MathML for equation-heavy vignettes
-  math-rendering: mathjax
+  # KaTeX supports the AMS-style maths used throughout the vignettes,
+  # including \boldsymbol, without additional runtime macro configuration.
+  math-rendering: katex
   theme: tango
   theme-dark: nord
   bslib:
