@@ -70,6 +70,7 @@ Several conclusions follow.
 1.  **Band** is not intrinsically a random-graph model: its support is usually deterministic once the bandwidth is fixed (edge weights and signs may still be random). Hub constructions are often partly deterministic as well. Erdős–Rényi, preferential attachment, and stochastic block models are genuinely stochastic.
 2.  A positive off-diagonal entry in $\Omega$ encodes a **negative** partial correlation (@eq-partial-cor). Uniformly positive precision weights therefore induce uniformly negative edgewise partial correlations; random or signed biological weights are needed when activation-like and inhibition-like associations matter.
 3.  These models target **undirected** conditional dependence. Federico and colleagues prefer a Markov-network representation when observational data do not justify edge directionality [@federicoStructureLearningGene2023].
+4.  **BLGGM as a hybrid topology design.** Wu and Luo’s simulation can be read as two nested layers [@wuEstimatingHeterogeneousGene2022]. At the **global** scale, genes are partitioned into blocks (a stochastic-block–like partition). Within each block, a **finer** local topology is specified—dense clique-like modules, circles, stars / hubs, or signed dense substructures—so that different blocks can stand for distinct regulatory regimes (e.g. dense co-expression programmes, cyclic signalling motifs, master-regulator hubs). Signs can also differ across modules or cell types. This is richer than a flat ER draw, yet still fully undirected.
 
 $$
 \rho_{jk\mid -\{j,k\}}
@@ -79,7 +80,7 @@ $$ {#eq-partial-cor}
 
 # Graph structure generators
 
-@tbl-topologies compares the main **undirected** topology families used in GGM benchmarks, with R entry points.
+@tbl-topologies compares the main **undirected** topology families used in GGM benchmarks, with R entry points. @fig-topologies sketches the six families most often used in random-like network structure generation.
 
 | Structure | Definition and controls | R entry points | Advantages | Limitations |
 |---------------|---------------|---------------|---------------|---------------|
@@ -94,23 +95,84 @@ $$ {#eq-partial-cor}
 
 ## Package roles (R)
 
--   **`huge`** [@R-huge] — compact end-to-end GGM benchmark via
-    `huge.generator()`: topology, SPD precision, covariance, and
-    $\mathcal{N}_p$ samples. Supports random, hub, cluster, band, and
-    scale-free graphs [@zhangSILGGMExtensivePackage2018].
--   **`BDgraph`** [@R-BDgraph; @BDgraph2019] — broadest undirected
-    simulation surface: `graph.sim()` for topologies; `bdgraph.sim()` for
-    data (including a `mean` argument and non-Gaussian families);
-    `rgwish()` for G-Wishart draws that respect graph-constrained zeros.
+-   **`huge`** [@R-huge] — compact end-to-end GGM benchmark via `huge.generator()`: topology, SPD precision, covariance, and $\mathcal{N}_p$ samples. Supports random, hub, cluster, band, and scale-free graphs [@zhangSILGGMExtensivePackage2018].
+-   **`BDgraph`** [@R-BDgraph; @BDgraph2019] — broadest undirected simulation surface: `graph.sim()` for topologies; `bdgraph.sim()` for data (including a `mean` argument and non-Gaussian families); `rgwish()` for G-Wishart draws that respect graph-constrained zeros.
+
+![Six undirected topology families used in GGM simulation: Erdős–Rényi, Barabási–Albert (preferential attachment / scale-free), stochastic block (cluster), band / AR, star / hub, and small-world (Watts–Strogatz).](figures/fig_network_topologies_six.png){#fig-topologies}
+
+# Weight design and random signs
+
+Topology generators return a binary undirected support $E$. **Signs and magnitudes** are a separate design layer $W(G)$ in @eq-pipeline: they are assigned *after* (or jointly with) the skeleton, then completed to an SPD precision. Remember that
+
+$$
+\operatorname{sign}(\rho_{jk\mid -\{j,k\}})
+=
+-\operatorname{sign}(\Omega_{jk})
+$$ {#eq-sign-flip}
+
+(@eq-partial-cor), so a positive precision weight is an inhibitory partial correlation. @tbl-weights contrasts three standard undirected strategies.
+
+| Approach | What is randomised | How $\Omega$ is obtained | When to use |
+|------------------|------------------|------------------|------------------|
+| **i.i.d. edge signs** | For each $\{j,k\}\in E$, draw $s_{jk}\in\{-1,+1\}$ (e.g. fair coin or $\mathbb{P}(+)=\pi$) and magnitude $m_{jk}>0$; set $W_{jk}=W_{kj}=s_{jk}m_{jk}$ | Support-preserving SPD map of $W$ (spectral shift, diagonal dominance, …) | Simple signed ER / hub / SBM benchmarks; explicit control of the inhibitory fraction |
+| **Partial-correlation scaling** | Fill a symmetric matrix $R$ with $R_{jk}=0$ off $E$ and $R_{jk}\in(-1,1)$ (signed) on $E$; ensure $\rho(R)<1$ | $\Omega = D^{1/2}(I-R)D^{1/2}$ (@eq-partial-scale) | Direct control of partial-correlation signs and strengths |
+| **G-Wishart** (`BDgraph::rgwish()`) | Continuous random $\Omega$ on the fixed graph zeros | $\Omega\sim W_G(b,D)$ already SPD [@R-BDgraph; @BDgraph2019] | Heterogeneous random weights without hand-tuned magnitudes; Bayesian-style replicates |
+
+: Three undirected strategies for signed / random edge weights after a fixed skeleton. {#tbl-weights}
+
+## i.i.d. signs on a fixed skeleton
+
+Draw $G$ (ER, band, hub, …). Independently for each undirected edge,
+
+$$
+W_{jk}=W_{kj}=s_{jk}\,m_{jk},
+\qquad
+s_{jk}\in\{-1,+1\},
+\quad m_{jk}>0,
+$$ {#eq-iid-signs}
+
+then apply a support-preserving SPD completion (next section). Uniform positive loadings $W=vG$ are the special case $s_{jk}\equiv +1$ used by PLN-style and many `huge` simulations [@chiquetVariationalInferenceSparse2018]—all partial correlations then share the same sign.
+
+## Partial-correlation scaling and why $I-R$
+
+In a Gaussian Markov model the **matrix of partial correlations** (with ones on the diagonal) relates to the precision by a diagonal congruence. Write the off-diagonal partial correlations as a symmetric matrix $R$ with
+
+$$
+R_{jj}=0,
+\qquad
+R_{jk}
+=
+\begin{cases}
+\rho_{jk\mid -\{j,k\}} & \{j,k\}\in E,\\
+0 & \{j,k\}\notin E,
+\end{cases}
+$$ {#eq-R-support}
+
+and choose magnitudes so that the spectral radius satisfies $\rho(R)<1$. Then
+
+$$
+\Omega
+=
+D^{1/2}(I-R)D^{1/2}
+$$ {#eq-partial-scale}
+
+for a positive diagonal $D$ (often $D=I$ after standardising margins).
+
+**Why subtract from the identity?** The precision encodes *conditional* dependence. For a correlation-type matrix, $I-R$ places **ones on the diagonal** (self-precision after scaling) and **negatives of the partial correlations** off the diagonal, matching @eq-sign-flip: if $R_{jk}>0$ (positively partially correlated variables), then $(I-R)_{jk}<0$, hence $\Omega_{jk}<0$.
+
+## G-Wishart draws on a fixed graph
+
+Given adjacency $G$, `BDgraph::rgwish()` samples $\Omega\sim W_G(b,D)$ already positive definite and with $\Omega_{jk}=0$ whenever $(j,k)\notin E$ [@R-BDgraph; @BDgraph2019]. Signs and magnitudes arise from the continuous distribution rather than from an explicit coin-flip layer. This is the most “automatic” signed-weight generator once the skeleton is fixed; the trade-off is less direct control of the inhibitory fraction than @eq-iid-signs or @eq-partial-scale.
 
 # Positive-definiteness strategies
 
-@tbl-pd contrasts constructions that turn a weighted support $W$ into $\Omega\succ 0$.
+@tbl-pd contrasts constructions that turn a weighted support $W$ (or a partial-correlation design) into $\Omega\succ 0$.
 
 | Construction | Formula | SPD? | Preserves exact support? | Behaviour |
-|--------------|--------------|-------------:|----------------:|--------------|
-| Uniform spectral shift | $\Omega=W+\max(0,\varepsilon-\lambda_{\min}(W))I$ | Yes | Yes | Same shift on every eigenvalue; off-diagonals unchanged |
+|---------------|---------------|--------------:|--------------:|---------------|
+| Uniform spectral shift | $\Omega=W+\max(0,\varepsilon-\lambda_{\min}(W))I$ | Yes | Yes | Same shift on every eigenvalue; off-diagonals (hence signs) unchanged |
 | `huge` / PLN-style loading | Diagonal load from $\lvert\lambda_{\min}\rvert$, baseline, and $u$ | Yes | Yes | $v$ sets edge magnitude; loading sets conditioning [@chiquetVariationalInferenceSparse2018] |
+| Partial-correlation scaling | $\Omega=D^{1/2}(I-R)D^{1/2}$ with $\rho(R)<1$ | Yes | Yes | Signs and strengths set on the partial-correlation scale (@eq-partial-scale) |
 | Graph Laplacian / M-matrix | $\Omega=L_G+\varepsilon I$ | Yes | Yes | Off-diagonals non-positive ⇒ all edgewise partial correlations positive |
 | G-Wishart | $\Omega\sim W_G(b,D)$ | Yes | Yes | Heterogeneous random weights; `BDgraph::rgwish()` [@R-BDgraph] |
 | Eigenvalue clipping | Clip $\Lambda$ then reconstruct $Q\Lambda Q^{\top}$ | Yes | **No** | Fills structural zeros |
@@ -132,7 +194,7 @@ $$
 E=\{(j,k):j<k,\ \Omega_{jk}\neq 0\}
 $$ {#eq-edge-set}
 
-is identical before and after loading.
+is identical before and after loading—and **signs of** $W$ are preserved.
 
 The floor $\varepsilon$ also controls the condition number
 
@@ -144,7 +206,7 @@ Large loading yields a well-conditioned but weakly dependent network; loading on
 
 # Conclusions
 
-> DeCovarT uses `power_law` and `stochastic_block_model` skeletons for undirected network structure, then a spectral-shift completion to guarantee $\Omega\succ 0$.
+> DeCovarT uses `power_law` and `stochastic_block_model` skeletons for undirected network structure, then a spectral-shift completion to guarantee $\Omega\succ 0$. Random signs are not yet exposed in the package API; the weight-design strategies above are the natural extensions.
 
 ## Further high-dimensional designs
 
@@ -154,9 +216,9 @@ Beyond the families in @tbl-topologies:
 -   **Spatial / geometric** graphs suit spatial transcriptomics or chromatin neighbourhoods.
 -   **Differential networks:**
     -   Start from a shared base $G_0$
-    -   Controll the differential shift $\Omega_k=\Omega_0+\Delta_k$
+    -   Control the differential shift $\Omega_k=\Omega_0+\Delta_k$
     -   Ensure the SPD step
-    -   Alternatively,you may vary the *support, weight, and sign* separately [@federicoStructureLearningGene2023; @wuEstimatingHeterogeneousGene2022].
+    -   Alternatively, vary the *support, weight, and sign* separately [@federicoStructureLearningGene2023; @wuEstimatingHeterogeneousGene2022].
 -   **Other distributions,** using the GGM layer as a parameter:
     -   **Latent-variable GGMs** — sparse $\Omega_S$ plus low-rank confounding $Bf_i$.
     -   **Nonparanormal / Gaussian-copula** margins on a latent Gaussian graph.
@@ -215,16 +277,16 @@ $$
 $$ {#eq-benchmark-pipe}
 
 | Axis | Suggested levels |
-|--------------------|----------------------------------------------------|
+|----------------------|--------------------------------------------------|
 | Dimension, namely number of variables (here, genes) | $p \in \{100,500,1000\}$ |
-| Topology | ER, band, hub, scale-free, SBM |
+| Topology | ER, band, hub, scale-free, SBM, small-world |
 | Expected degree | $\approx 2,4,8$ (keep graphs sparse) |
-| Edge weights | Constant; signed uniform; G-Wishart |
+| Edge weights | Constant; i.i.d. signed; partial-correlation scaling; G-Wishart |
 | Conditioning | Report $\lambda_{\min}$, $\lambda_{\max}$, $\kappa(\Omega)$ |
 | Means | Zero; sparse group shifts, driven by cell-type; joint $\mu$–$\Omega$ heterogeneity, for example playing on the *cosine similarity*, or the *condition number*, of the mean profile |
 
 : Compact factorial axes for a reproducible undirected GGM simulation study. {#tbl-benchmark}
 
-**Main insights.** Prefer the uniform spectral shift (@eq-spectral-shift) as the primary SPD step; and add the mean layer **independently** of graph generation.
+**Main insights.** Prefer the uniform spectral shift (@eq-spectral-shift) or partial-correlation scaling (@eq-partial-scale) when support and signs must be exact; add the mean layer **independently** of graph generation.
 
 # References
