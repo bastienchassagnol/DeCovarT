@@ -1,6 +1,6 @@
 Package: DeCovarT
 Title: What the Package Does (One Line, Title Case)
-Version: 0.1.1
+Version: 0.1.2
 Authors@R:
     person("Bastien", "Chassagnol", , "bastien_chassagnol@laposte.net", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-8955-2391"))
