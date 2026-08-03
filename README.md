@@ -2,6 +2,7 @@
 
 - [DeCovarT <a href="https://bastienchassagnol.github.io/DeCovarT/"><img src="man/figures/logo.svg" alt="DeCovarT logo" align="right" height="139"/></a>](#decovart-)
   - [Overview](#overview)
+    - [Seminar slides (iframe)](#seminar-slides-iframe)
   - [Pipeline Architecture](#pipeline-architecture)
     - [Built-in deconvolution algorithms](#built-in-deconvolution-algorithms)
     - [Links to the paper](#links-to-the-paper)
@@ -47,6 +48,22 @@ cellular proportions recovered on the open simplex via an unconstrained
 
 The main entry point is `deconvolute_ratios()`, which runs one or more solvers
 in parallel and returns estimated proportions plus optional benchmark metrics.
+
+### Seminar slides (iframe)
+
+Doctorants seminar overview (Quarto reveal.js). Prefer
+[full screen](https://bastienchassagnol.github.io/DeCovarT/slides/index.html)
+when presenting.
+
+<iframe
+  class="slides"
+  src="https://bastienchassagnol.github.io/DeCovarT/slides/index.html"
+  title="DeCovarT doctorants deconvolution slides"
+  width="100%"
+  height="520"
+  style="border: 1px solid #ccc; border-radius: 4px;"
+  allowfullscreen
+></iframe>
 
 ## Pipeline Architecture
 

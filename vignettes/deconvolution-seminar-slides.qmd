@@ -1,0 +1,43 @@
+---
+title: "Doctorants seminar slides (embedded)"
+vignette: >
+  %\VignetteIndexEntry{Doctorants seminar slides (embedded)}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+format:
+  html:
+    embed-resources: true
+    toc: true
+---
+
+# Overview
+
+This page embeds the Quarto reveal.js deck built from the doctorants
+deconvolution seminar (sources under `slides/` in the repository).
+Pattern inspired by
+[GTBioSS_slides.qmd](https://github.com/bastienchassagnol/COPASI_Team216_Lo2016/blob/master/vignettes/GTBioSS_slides.qmd)
+and the
+[quarto-webr slide-embed example](https://quarto-webr.thecoatlessprofessor.com/examples/book/slide-embed.html#presentation).
+
+[Open the deck full screen](https://bastienchassagnol.github.io/DeCovarT/slides/index.html).
+
+```{=html}
+<iframe
+  class="slides"
+  src="https://bastienchassagnol.github.io/DeCovarT/slides/index.html"
+  title="DeCovarT doctorants deconvolution slides"
+  width="100%"
+  height="600"
+  style="border: 1px solid #ccc;"
+  allowfullscreen
+></iframe>
+```
+
+```{=html}
+<style>
+iframe.slides {
+  aspect-ratio: 16 / 9;
+  min-height: 480px;
+}
+</style>
+```

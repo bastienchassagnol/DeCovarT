@@ -1,0 +1,142 @@
+---
+title: "Cellular deconvolution with DeCovarT"
+subtitle: "A network-centric view of bulk mixtures"
+author:
+  - Bastien Chassagnol
+  - Gregory Nuel
+  - Etienne Becht
+  - Anaïs Baudot
+institute:
+  - MMG / LPSM / INSERM
+date: today
+lang: en-GB
+from: markdown+emoji
+slide-level: 2
+slide-number: true
+footer: "DeCovarT — doctorants seminar"
+format:
+  revealjs:
+    embed-resources: true
+    transition: fade
+    auto-animate-easing: ease-in-out
+    auto-animate-duration: 0.8
+    lightbox: true
+    preview-links: true
+    slide-number: true
+    chalkboard: false
+    spotlight:
+      size: 60
+      lockPointerInsideOverlay: false
+      toggleSpotlightOnMouseDown: true
+      spotlightCursor: "none"
+      presentingCursor: "default"
+    quiz:
+      checkKey: "c"
+      resetKey: "q"
+      shuffleOptions: true
+      defaultCorrect: "Correct!"
+      defaultIncorrect: "Not quite — try again."
+      includeScore: true
+    theme:
+      - meds-slides-styles.scss
+    css: styles.css
+    mermaid:
+      theme: neutral
+revealjs-plugins:
+  - spotlight
+  - quiz
+  - attribution
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+## {#title-slide data-menu-title="Title" background="#053660"}
+
+[Cellular deconvolution]{.custom-title}
+
+[DeCovarT: a network-centric approach to bulk mixtures]{.custom-subtitle2}
+
+<hr class="hr-teal">
+
+::::: columns
+::: {.column width="25%"}
+[Bastien Chassagnol]{.custom-subtitle3}<br>
+[*MMG*]{.body-text-xs}
+:::
+::: {.column width="25%"}
+[Gregory Nuel]{.custom-subtitle3}<br>
+[*LPSM*]{.body-text-xs}
+:::
+::: {.column width="25%"}
+[Etienne Becht]{.custom-subtitle3}<br>
+[*INSERM*]{.body-text-xs}
+:::
+::: {.column width="25%"}
+[Anaïs Baudot]{.custom-subtitle3}<br>
+[*MMG*]{.body-text-xs}
+:::
+:::::
+
+Slides: [GitHub](https://github.com/bastienchassagnol/DeCovarT/tree/main/slides) · Full screen after render: `slides/index.html`
+
+## Outline {.slide-title}
+
+::: incremental
+1. Why deconvolution?
+2. A review of deconvolution techniques
+3. DeCovarT: a network-centric approach
+4. Biological applications and perspectives
+5. Quiz
+:::
+
+# Why deconvolution? {#why .section data-menu-title="Why deconvolution?"}
+
+{{< include sections/01-why-deconvolution.qmd >}}
+
+# Review of techniques {#review .section data-menu-title="Review of techniques"}
+
+{{< include sections/02-review-techniques.qmd >}}
+
+# DeCovarT {#decovart .section data-menu-title="DeCovarT"}
+
+{{< include sections/03-decovart.qmd >}}
+
+# Applications & perspectives {#apps .section data-menu-title="Applications"}
+
+{{< include sections/04-applications.qmd >}}
+
+# Quiz {#quiz .section data-menu-title="Quiz"}
+
+{{< include sections/05-quiz.qmd >}}
+
+# Acknowledgements {#thanks .section data-menu-title="Thanks"}
+
+## Thanks
+
+::::: columns
+::: {.column width="50%"}
+**Supervision & co-authors**
+
+- Anaïs Baudot
+- Gregory Nuel
+- Etienne Becht
+- Marielle Péré
+:::
+::: {.column width="50%"}
+**Collaborators**
+
+- SysBioMed / MMG colleagues
+- Doctorants seminar organisers
+:::
+:::::
+
+## Take-away messages
+
+::: incremental
+- Bulk mixes cell types; deconvolution recovers proportions $p$.
+- Reference-based methods need a signature $X$; unsupervised methods need strong priors.
+- DeCovarT models gene–gene covariance via multivariate Gaussian convolutions.
+- Always validate with aliquots (bulk + FACS / scRNA-seq) when possible.
+:::

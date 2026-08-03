@@ -50,7 +50,15 @@ tests/testthat/simulations/
 
 
 # my folders
-slides/
+# Track Quarto slide sources; ignore bulky legacy decks and render output
+slides/**/*.pdf
+slides/**/*.pptx
+slides/**/*.docx
+slides/**/*.html
+slides/.quarto/
 data/raw-data/
 docs
 **/.quarto/
+
+# LibreOffice lock files
+**/.~lock.*

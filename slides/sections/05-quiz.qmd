@@ -1,0 +1,22 @@
+## What does reference-based deconvolution estimate? {.quiz-question}
+
+- Gene regulatory network topology only
+- [Cell-type proportions $p$ given a signature $X$]{.correct}
+- Single-cell UMAP embeddings
+- Batch-correction factors alone
+
+## Which statement about DeCovarT is true? {.quiz-question}
+
+- It ignores gene–gene covariance
+- [It models bulk as a Gaussian convolution with covariance $\sum_j p_j^2\Sigma_j$]{.correct}
+- It only works on DNA methylation
+- It requires spatial coordinates for every cell
+
+## Scenario A vs B (Shoemaker 2012) {.quiz-question}
+
+A bulk gene increases. Scenario B means:
+
+- The same cell type up-regulates the gene
+- [A new cell population arrives in the mixture]{.correct}
+- Sequencing depth doubled
+- The gene was a spike-in control

@@ -1,0 +1,43 @@
+## Global pipeline
+
+1. Collect / curate cell-type datasets
+2. Learn features & GRN structure
+3. **DeCovarT** estimation of $p$
+4. Biological exploitation
+
+::: {.attribution}
+Pipeline framing inspired by Avila Cobos et al., *Genome Biology*, 2018 —
+[doi:10.1186/s13059-018-1479-0](https://doi.org/10.1186/s13059-018-1479-0)
+:::
+
+## Multivariate Gaussian convolution
+
+Cell type $j$: $x_j \sim \mathcal{N}_G(\mu_j, \Sigma_j)$.
+
+Bulk observation:
+
+$$
+y \mid p \;\sim\;
+\mathcal{N}_G\!\Bigl(
+  \mu p,\;
+  \sum_j p_j^{2}\,\Sigma_j
+\Bigr).
+$$
+
+Covariance structure enters the likelihood — gene–gene dependence is
+first-class, not noise.
+
+## Unit-simplex constraint
+
+Proportions live on $\Delta^{J-1}$. DeCovarT uses an unconstrained map
+$\rho \mapsto p$ (additive logistic / soft-max) that is a
+$C^{2}$-diffeomorphism, then optimises with Marquardt–Levenberg.
+
+## Toy model (2 cells × 2 genes)
+
+Bivariate convolutions make the geometry visible: entropy of $p$,
+overlap of $\Sigma_j$, and solver behaviour (DeconRNASeq vs DeCovarT).
+
+See package vignettes
+[synthetic scenarios](../vignettes/synthetic-scenarios.qmd) and
+[`benchmark_bivariate_gaussian_convolutions()`](https://bastienchassagnol.github.io/DeCovarT/reference/benchmark_bivariate_gaussian_convolutions.html).

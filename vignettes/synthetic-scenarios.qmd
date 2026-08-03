@@ -14,6 +14,10 @@ bibliography:
   - ../inst/packages.bib
   - ../inst/REFERENCES.bib
 link-citations: true
+format:
+  html:
+    embed-resources: true
+    toc: true
 ---
 
 ```{r setup, include=FALSE}
@@ -34,22 +38,34 @@ This vignette documents the synthetic first- and second-order moment generator `
 The exported entry point orchestrates internal helpers and returns moments that can be passed to `simulate_bulk_mixture()` and then to any deconvolution routine exposed by `deconvolute_ratios()`.
 
 ```{r pipeline-mermaid, echo=FALSE, results='asis'}
-mmd_path <- "figures/synthetic_grn_pipeline.mmd"
-if (!file.exists(mmd_path)) {
-  mmd_path <- file.path("vignettes", mmd_path)
+mmd_candidates <- c(
+  "figures/synthetic_grn_pipeline.mmd",
+  file.path("vignettes", "figures", "synthetic_grn_pipeline.mmd"),
+  system.file(
+    "vignettes",
+    "figures",
+    "synthetic_grn_pipeline.mmd",
+    package = "DeCovarT"
+  )
+)
+mmd_path <- mmd_candidates[file.exists(mmd_candidates)][1]
+if (is.na(mmd_path) || !nzchar(mmd_path)) {
+  cat(
+    "```mermaid\n",
+    "flowchart LR\n",
+    "  moments[simulate_hierarchical_grn_moments] --> bulk[simulate_bulk_mixture]\n",
+    "  bulk --> deconv[deconvolute_ratios]\n",
+    "```\n",
+    sep = ""
+  )
+} else {
+  mmd <- paste(readLines(mmd_path, warn = FALSE), collapse = "\n")
+  cat("```mermaid\n", mmd, "\n```\n", sep = "")
 }
-mmd <- paste(readLines(mmd_path), collapse = "\n")
-cat("```mermaid\n", mmd, "\n```\n", sep = "")
 ```
 
 ```{r moments-example}
-if (requireNamespace("DeCovarT", quietly = TRUE)) {
-  library(DeCovarT)
-} else if (requireNamespace("pkgload", quietly = TRUE)) {
-  pkgload::load_all("..", export_all = FALSE, quiet = TRUE)
-} else {
-  stop("Package 'DeCovarT' is not installed and 'pkgload' is unavailable.")
-}
+library(DeCovarT)
 
 set.seed(42)
 moments <- simulate_hierarchical_grn_moments(
