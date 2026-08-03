@@ -103,13 +103,68 @@ suggest the following reading.
 | Family | Biological reading | Why it matters for DeCovarT |
 |--------|--------------------|-----------------------------|
 | **Star / hub** | Master-regulator TF with many targets; one-to-many signalling | Stress-tests recovery of a few high-degree hubs that dominate partial correlations [@wuEstimatingHeterogeneousGene2022; @federicoStructureLearningGene2023] |
-| **Scale-free (BA)** | Preferential attachment; heavy-tailed degree, several hubs [@barabasiEmergenceScalingRandom1999] | Standard high-dimensional GGM stress test used by SILGGM via `huge` [@zhangSILGGMExtensivePackage2018]; captures heterogeneous connectivity without modular blocks |
+| **Scale-free (BA)** | Preferential attachment produces a heavy-tailed degree distribution and several hubs [@barabasiEmergenceScalingRandom1999] | Standard high-dimensional GGM stress test used by SILGGM via `huge` [@zhangSILGGMExtensivePackage2018]; useful for testing degree heterogeneity, but not a default empirical model of gene regulation |
 | **Cluster / SBM** | Co-regulated modules / pathways with dense within-block links | Matches pathway organisation; BLGGM’s global block partition is SBM-like before finer within-block motifs [@wuEstimatingHeterogeneousGene2022] |
 | **Small-world** | High local clustering with short paths (ring + shortcuts) | Local co-expression neighbourhoods plus long-range regulatory shortcuts; useful when modularity is soft rather than hard blocks [@federicoStructureLearningGene2023] |
 | **Band / AR** | Ordered local dependence only | Useful numerical control, but gene indices rarely encode a natural order—limited biological fidelity [@zhangSILGGMExtensivePackage2018] |
 | **Erdős–Rényi** | Homogeneous random wiring | Null / baseline sparsity; little pathway or hub structure [@zhangSILGGMExtensivePackage2018] |
 
 : Biological interpretability of undirected topology families. {#tbl-bio-topologies}
+
+### The scale-free hypothesis: a useful stress test, not a biological default
+
+The phrase *scale-free network* usually means that the degree distribution
+follows a power law, $\Pr(K=k)\propto k^{-\alpha}$, at least above a lower
+cut-off. This statistical statement is distinct from the Barabási–Albert
+(BA) growth mechanism. Preferential attachment can generate a power law, but
+observing a heavy-tailed degree distribution does not establish preferential
+attachment; other mechanisms can produce similar tails, and variants of
+preferential attachment need not produce a pure power law
+[@lima-mendezPowerfulLawPower2009;
+@broidoScalefreeNetworksAre2019].
+
+Whether biological networks are scale-free has therefore remained contested.
+Early claims often relied on approximately straight log–log degree plots.
+Such plots are not goodness-of-fit tests: binning, the plotting scale, a small
+number of hubs, and incomplete or biased sampling can all make non-power-law
+distributions appear linear. The underlying graph representation matters as
+well. For example, pool metabolites can become artificial hubs in metabolic
+graphs, while protein-interaction networks depend strongly on the assay and
+sampling scheme [@lima-mendezPowerfulLawPower2009]. A power law should instead
+be fitted to the discrete degree data, tested for plausibility, and compared
+on the same support with alternatives such as log-normal, exponential,
+stretched-exponential, and power-law-with-cut-off distributions.
+
+The evidence is not uniformly negative. Using adjacency-spectrum
+distributions rather than degree alone, Takahashi and colleagues classified
+eight protein–protein interaction networks as scale-free
+[@takahashiDiscriminatingDifferentClasses2012]. Importantly, this was a
+relative model-selection result: BA-like networks fitted better than the two
+candidate alternatives, Erdős–Rényi and Watts–Strogatz networks. It did not
+show that a power law was an adequate absolute model, that preferential
+attachment generated the observed networks, or that unobserved interactions
+would preserve the classification. The authors explicitly noted both the
+restricted candidate set and possible sampling artefacts.
+
+A broader test of 928 real-world network data sets reached a more cautious
+conclusion [@broidoScalefreeNetworksAre2019]. Across all domains, only 4% met
+the strongest scale-free criterion, whereas a log-normal distribution fitted
+as well as or better than a power law for 88% of degree distributions. Among
+the biological networks, 63% showed neither direct nor indirect evidence of
+scale-free structure, although 6% met the strongest criterion, principally
+metabolic networks. These proportions depend on the network corpus and the
+operational definition of scale-freeness, but they reject a universal
+scale-free law rather than excluding scale-free structure from every
+biological system.
+
+For DeCovarT, a BA graph should consequently be interpreted as a deliberately
+demanding **hub-heterogeneity benchmark**. It tests whether covariance
+estimation and deconvolution recover a few high-degree vertices without
+claiming that a gene-regulatory network grew by preferential attachment.
+Results should be compared with density-matched SBM, small-world, star, and
+Erdős–Rényi scenarios. Conclusions that depend only on the BA scenario should
+be labelled topology-specific; hub recovery, robustness to vertex removal,
+and biological realism do not follow from a fitted heavy tail alone.
 
 **BLGGM as a hybrid.** Wu and Luo combine an SBM-like **global** gene partition
 with **local** dense, circle, star, or signed modules inside blocks
@@ -121,8 +176,11 @@ families most useful as standalone benchmarks: `scale_free`,
 
 ## Package roles (R)
 
--   **`huge`** [@R-huge] — compact end-to-end GGM benchmark via `huge.generator()`: topology, SPD precision, covariance, and $\mathcal{N}_p$ samples. Supports random, hub, cluster, band, and scale-free graphs [@zhangSILGGMExtensivePackage2018].
--   **`BDgraph`** [@R-BDgraph; @BDgraph2019] — broadest undirected simulation surface: `graph.sim()` for topologies; `bdgraph.sim()` for data (including a `mean` argument and non-Gaussian families); `rgwish()` for G-Wishart draws that respect graph-constrained zeros.
+-   **`igraph`** [@R-igraph] — DeCovarT draws the three undirected skeletons used in simulation (`scale_free` via `sample_pa()`, `stochastic_block_model` via `sample_sbm()`, `small_world` via `sample_smallworld()`).
+-   **`huge`** [@R-huge] — compact end-to-end GGM benchmark via `huge.generator()`: topology, SPD precision, covariance, and $\mathcal{N}_p$ samples. Supports random, hub, cluster, band, and scale-free graphs [@zhangSILGGMExtensivePackage2018]; useful as a literature comparator, not the DeCovarT skeleton backend.
+-   **`BDgraph`** [@R-BDgraph] — `graph.sim()` / `bdgraph.sim()` cover overlapping families plus small-world and scale-free; `rgwish()` samples G-Wishart precisions on a fixed graph.
+-   **`bnlearn`** [@R-bnlearn] — directed / DAG and some undirected structure learning; helpful when the scientific story is causal or when comparing directed versus undirected ground truths.
+-   Prefer keeping the **same** topology → weight → SPD → mean pipeline when swapping generators, so differences reflect the graph family rather than an incidental change of SPD or sampling code.
 
 ![Six undirected topology families used in GGM simulation: Erdős–Rényi, Barabási–Albert (preferential attachment / scale-free), stochastic block (cluster), band / AR, star / hub, and small-world (Watts–Strogatz).\
 \
@@ -234,7 +292,7 @@ Large loading yields a well-conditioned but weakly dependent network; loading on
 
 # Conclusions
 
-> DeCovarT draws `scale_free` and `stochastic_block_model` skeletons with `huge`, `small_world` with an internal Watts–Strogatz step, then i.i.d. signed weights (`prop_inhibitory`) and a spectral shift to guarantee $\Omega\succ 0$.
+> DeCovarT draws `scale_free`, `stochastic_block_model`, and `small_world` skeletons with \pkg{igraph}, then i.i.d. signed weights (`prop_inhibitory`) and a spectral shift to guarantee $\Omega\succ 0$.
 
 ## Further high-dimensional designs
 
@@ -375,7 +433,7 @@ topology_specs <- list(
   B = list(
     topology = "stochastic_block_model",
     graph_model = "stochastic_block_model",
-    graph_params = list(n_blocks = 3L)
+    graph_params = list(block_prob = c(0.5, 0.25, 0.25))
   ),
   C = list(
     topology = "small_world",

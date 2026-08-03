@@ -29,7 +29,7 @@ Imports:
     ComplexHeatmap,
     dplyr,
     e1071,
-    huge,
+    igraph,
     limSolve,
     marqLevAlg,
     MASS,

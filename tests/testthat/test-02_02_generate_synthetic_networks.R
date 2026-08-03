@@ -42,7 +42,7 @@ test_that("simulate_hierarchical_grn_moments returns expected structure", {
     dim(moments$graph_structure$normalised_precision),
     c(30L, 30L)
   )
-  expect_true(all(moments$mean_profiles > 0))
+  expect_true(all(moments$mean_profiles >= 0))
   expect_named(
     moments$objectives,
     c("mean_abs_cosine", "sum_euclidean_distance")

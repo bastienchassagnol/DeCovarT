@@ -7,11 +7,10 @@
 generate_mean_signature_matrix(
   n_genes,
   n_celltypes,
-  mean_scale,
+  mean_scale = 10,
   target_cosine = 0,
   gene_names = NULL,
-  celltype_names = NULL,
-  background_level = 0.05
+  celltype_names = NULL
 )
 }
 \arguments{
@@ -19,8 +18,9 @@ generate_mean_signature_matrix(
 
 \item{n_celltypes}{Integer \eqn{J\ge 2}.}
 
-\item{mean_scale}{Positive scalar \eqn{s} (centroid norms). Hold
-fixed when studying cosine / collinearity alone.}
+\item{mean_scale}{Positive scalar \eqn{s} (centroid norms). Default
+\code{10}, as in the nine factorial scenarios. Hold fixed when
+studying cosine / collinearity alone.}
 
 \item{target_cosine}{Numeric in \eqn{[0,1]}, the collinearity dial
 \eqn{\rho}.}
@@ -28,19 +28,16 @@ fixed when studying cosine / collinearity alone.}
 \item{gene_names}{Optional character vector of length \eqn{G}.}
 
 \item{celltype_names}{Optional character vector of length \eqn{J}.}
-
-\item{background_level}{Positive background on non-marker genes in
-each private direction (default \code{0.05}).}
 }
 \value{
 Numeric matrix \eqn{\boldsymbol{\mu}} with dimensions
 \eqn{G\times J}.
 }
 \description{
-Builds positive
+Builds
 \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} by blending a shared
-unit direction \eqn{\boldsymbol{u}} with cell-type-private nearly
-orthogonal marker directions \eqn{\boldsymbol{v}_{j}}:
+unit direction \eqn{\boldsymbol{u}} with cell-type-private orthogonal
+marker directions \eqn{\boldsymbol{v}_{j}}:
 \deqn{
   \tilde{\boldsymbol{\mu}}_{\cdot j}
   =
@@ -55,25 +52,33 @@ orthogonal marker directions \eqn{\boldsymbol{v}_{j}}:
   }.
 }
 Here \eqn{\rho\in[0,1]} is \code{target_cosine} and \eqn{s>0} is
-\code{mean_scale}. The private vectors \eqn{\boldsymbol{v}_{j}} are
-supported on a partition of the \eqn{G} genes (high on the block of
-type \eqn{j}, small background elsewhere) and then
-\eqn{\ell_2}-normalised, so
-\eqn{\boldsymbol{v}_{j}^{\mathsf{T}}\boldsymbol{v}_{k}\approx 0} for
+\code{mean_scale} (default \code{10}, matching the nine-scenario
+simulation grid). The private vectors \eqn{\boldsymbol{v}_{j}} are
+indicator directions on a partition of the \eqn{G} genes (type
+\eqn{j} only) and then \eqn{\ell_2}-normalised, so
+\eqn{\boldsymbol{v}_{j}^{\mathsf{T}}\boldsymbol{v}_{k}=0} for
 \eqn{j\neq k}. With a shared unit \eqn{\boldsymbol{u}},
 \deqn{
   \tilde{\boldsymbol{\mu}}_{\cdot j}^{\mathsf{T}}
   \tilde{\boldsymbol{\mu}}_{\cdot k}
-  \approx
+  =
   \rho
-  \qquad (j\neq k),
+  +
+  \sqrt{\rho(1-\rho)}\,
+  \bigl(
+    \boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}_{j}
+    +
+    \boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}_{k}
+  \bigr)
+  \qquad (j\neq k).
 }
-and after column normalisation the pairwise cosines of
-\eqn{\boldsymbol{\mu}} therefore track \eqn{\rho} (exactly in the
-ideal orthonormal limit; approximately with a small background
-level). The global scale \eqn{s} sets column norms (and hence
-Euclidean separation) without changing angles: for fixed
-\eqn{\rho},
+After column normalisation the pairwise cosines of
+\eqn{\boldsymbol{\mu}} therefore track \eqn{\rho} closely when the
+cross terms
+\eqn{\boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}_{j}} are small relative
+to the leading \eqn{\rho} (many genes per block). The global scale
+\eqn{s} sets column norms (and hence Euclidean separation) without
+changing angles: for fixed \eqn{\rho},
 \eqn{\|\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\|_2
 \propto s}. Prefer dialling \eqn{\rho} when second-order precision
 weights already control interaction strength; keep \eqn{s} fixed

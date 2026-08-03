@@ -54,10 +54,10 @@ compute_mean_profile_objectives <- function(mean_signature_matrix) {
 
 #' Generate mean profiles with a target pairwise cosine
 #'
-#' Builds positive
+#' Builds
 #' \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} by blending a shared
-#' unit direction \eqn{\boldsymbol{u}} with cell-type-private nearly
-#' orthogonal marker directions \eqn{\boldsymbol{v}_{j}}:
+#' unit direction \eqn{\boldsymbol{u}} with cell-type-private orthogonal
+#' marker directions \eqn{\boldsymbol{v}_{j}}:
 #' \deqn{
 #'   \tilde{\boldsymbol{\mu}}_{\cdot j}
 #'   =
@@ -72,25 +72,33 @@ compute_mean_profile_objectives <- function(mean_signature_matrix) {
 #'   }.
 #' }
 #' Here \eqn{\rho\in[0,1]} is \code{target_cosine} and \eqn{s>0} is
-#' \code{mean_scale}. The private vectors \eqn{\boldsymbol{v}_{j}} are
-#' supported on a partition of the \eqn{G} genes (high on the block of
-#' type \eqn{j}, small background elsewhere) and then
-#' \eqn{\ell_2}-normalised, so
-#' \eqn{\boldsymbol{v}_{j}^{\mathsf{T}}\boldsymbol{v}_{k}\approx 0} for
+#' \code{mean_scale} (default \code{10}, matching the nine-scenario
+#' simulation grid). The private vectors \eqn{\boldsymbol{v}_{j}} are
+#' indicator directions on a partition of the \eqn{G} genes (type
+#' \eqn{j} only) and then \eqn{\ell_2}-normalised, so
+#' \eqn{\boldsymbol{v}_{j}^{\mathsf{T}}\boldsymbol{v}_{k}=0} for
 #' \eqn{j\neq k}. With a shared unit \eqn{\boldsymbol{u}},
 #' \deqn{
 #'   \tilde{\boldsymbol{\mu}}_{\cdot j}^{\mathsf{T}}
 #'   \tilde{\boldsymbol{\mu}}_{\cdot k}
-#'   \approx
+#'   =
 #'   \rho
-#'   \qquad (j\neq k),
+#'   +
+#'   \sqrt{\rho(1-\rho)}\,
+#'   \bigl(
+#'     \boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}_{j}
+#'     +
+#'     \boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}_{k}
+#'   \bigr)
+#'   \qquad (j\neq k).
 #' }
-#' and after column normalisation the pairwise cosines of
-#' \eqn{\boldsymbol{\mu}} therefore track \eqn{\rho} (exactly in the
-#' ideal orthonormal limit; approximately with a small background
-#' level). The global scale \eqn{s} sets column norms (and hence
-#' Euclidean separation) without changing angles: for fixed
-#' \eqn{\rho},
+#' After column normalisation the pairwise cosines of
+#' \eqn{\boldsymbol{\mu}} therefore track \eqn{\rho} closely when the
+#' cross terms
+#' \eqn{\boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}_{j}} are small relative
+#' to the leading \eqn{\rho} (many genes per block). The global scale
+#' \eqn{s} sets column norms (and hence Euclidean separation) without
+#' changing angles: for fixed \eqn{\rho},
 #' \eqn{\|\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\|_2
 #' \propto s}. Prefer dialling \eqn{\rho} when second-order precision
 #' weights already control interaction strength; keep \eqn{s} fixed
@@ -99,14 +107,13 @@ compute_mean_profile_objectives <- function(mean_signature_matrix) {
 #'
 #' @param n_genes Integer \eqn{G}; must be at least \code{n_celltypes}.
 #' @param n_celltypes Integer \eqn{J\ge 2}.
-#' @param mean_scale Positive scalar \eqn{s} (centroid norms). Hold
-#'   fixed when studying cosine / collinearity alone.
+#' @param mean_scale Positive scalar \eqn{s} (centroid norms). Default
+#'   \code{10}, as in the nine factorial scenarios. Hold fixed when
+#'   studying cosine / collinearity alone.
 #' @param target_cosine Numeric in \eqn{[0,1]}, the collinearity dial
 #'   \eqn{\rho}.
 #' @param gene_names Optional character vector of length \eqn{G}.
 #' @param celltype_names Optional character vector of length \eqn{J}.
-#' @param background_level Positive background on non-marker genes in
-#'   each private direction (default \code{0.05}).
 #'
 #' @return Numeric matrix \eqn{\boldsymbol{\mu}} with dimensions
 #'   \eqn{G\times J}.
@@ -115,11 +122,10 @@ compute_mean_profile_objectives <- function(mean_signature_matrix) {
 generate_mean_signature_matrix <- function(
   n_genes,
   n_celltypes,
-  mean_scale,
+  mean_scale = 10,
   target_cosine = 0,
   gene_names = NULL,
-  celltype_names = NULL,
-  background_level = 0.05
+  celltype_names = NULL
 ) {
   if (n_genes < n_celltypes) {
     stop("`n_genes` must be at least `n_celltypes`.")
@@ -132,9 +138,6 @@ generate_mean_signature_matrix <- function(
   }
   if (target_cosine < 0 || target_cosine > 1) {
     stop("`target_cosine` must lie in [0, 1].")
-  }
-  if (background_level <= 0) {
-    stop("`background_level` must be positive.")
   }
 
   if (is.null(gene_names)) {
@@ -149,7 +152,7 @@ generate_mean_signature_matrix <- function(
   block_size <- n_genes %/% n_celltypes
   remainder <- n_genes - block_size * n_celltypes
   private_directions <- matrix(
-    background_level,
+    0,
     nrow = n_genes,
     ncol = n_celltypes
   )
@@ -184,77 +187,24 @@ generate_mean_signature_matrix <- function(
 }
 
 
-#' Watts–Strogatz small-world adjacency (undirected)
-#'
-#' Ring lattice with each node linked to \code{nei} neighbours on each
-#' side, then undirected edge rewiring with probability \code{p}.
-#' Used because \pkg{huge} does not expose a small-world generator.
-#'
-#' @keywords internal
-.sample_small_world_adjacency <- function(n_genes, nei = 2L, p = 0.05) {
-  n_genes <- as.integer(n_genes)
-  nei <- as.integer(nei)
-  if (nei < 1L || 2L * nei >= n_genes) {
-    stop("`nei` must satisfy 1 <= nei < n_genes / 2.")
-  }
-  if (p < 0 || p > 1) {
-    stop("`p` must lie in [0, 1].")
-  }
-
-  adjacency <- matrix(0L, n_genes, n_genes)
-  for (i in seq_len(n_genes)) {
-    for (d in seq_len(nei)) {
-      j <- ((i - 1L + d) %% n_genes) + 1L
-      adjacency[i, j] <- 1L
-      adjacency[j, i] <- 1L
-    }
-  }
-
-  upper <- which(upper.tri(adjacency) & adjacency == 1L, arr.ind = TRUE)
-  if (nrow(upper) == 0L) {
-    return(adjacency)
-  }
-
-  for (e in seq_len(nrow(upper))) {
-    if (stats::runif(1L) > p) {
-      next
-    }
-    i <- upper[e, 1L]
-    j <- upper[e, 2L]
-    candidates <- which(adjacency[i, ] == 0L & seq_len(n_genes) != i)
-    if (length(candidates) == 0L) {
-      next
-    }
-    k <- candidates[[sample.int(length(candidates), 1L)]]
-    adjacency[i, j] <- 0L
-    adjacency[j, i] <- 0L
-    adjacency[i, k] <- 1L
-    adjacency[k, i] <- 1L
-  }
-
-  diag(adjacency) <- 0L
-  adjacency
-}
-
-
 #' Sample a symmetric adjacency from a random-graph family
 #'
-#' Preferential-attachment (scale-free) and cluster / stochastic-block
-#' skeletons are drawn with \code{huge::huge.generator()}
-#' \insertCite{zhangSILGGMExtensivePackage2018}{DeCovarT}. Small-world
-#' graphs use an internal Watts–Strogatz construction because \pkg{huge}
-#' does not expose that family.
+#' Draws undirected skeletons with \pkg{igraph}: Barabási–Albert
+#' preferential attachment (\code{scale_free}), a stochastic block
+#' model (\code{stochastic_block_model}), or Watts–Strogatz small-world
+#' (\code{small_world}) \insertCite{barabasiEmergenceScalingRandom1999}{DeCovarT}.
 #'
 #' @param n_genes Integer \eqn{G}, number of nodes (genes).
 #' @param graph_model One of \code{"scale_free"},
 #'   \code{"stochastic_block_model"}, \code{"small_world"}.
 #' @param graph_params Named list of generator parameters:
 #'   \describe{
-#'     \item{\code{scale_free}}{\code{verbose} (logical)}
-#'     \item{\code{stochastic_block_model}}{\code{n_blocks} (passed as
-#'       \code{g} to \code{huge.generator}), \code{verbose}}
+#'     \item{\code{scale_free}}{\code{power}, \code{edges_per_node}
+#'       (\code{m} in \code{igraph::sample_pa()})}
+#'     \item{\code{stochastic_block_model}}{\code{block_prob},
+#'       \code{p_within}, \code{p_between}}
 #'     \item{\code{small_world}}{\code{nei}, \code{p} (rewiring
-#'       probability)}
+#'       probability) for \code{igraph::sample_smallworld()}}
 #'   }
 #'
 #' @return Symmetric integer matrix \eqn{G\times G} with zero diagonal.
@@ -271,37 +221,64 @@ generate_random_network_skeleton <- function(
     c("scale_free", "stochastic_block_model", "small_world")
   )
 
-  adjacency <- switch(
+  graph <- switch(
     graph_model,
 
     scale_free = {
-      verbose <- isTRUE(graph_params$verbose)
-      sim <- huge::huge.generator(
-        n = max(2L, n_genes),
-        d = n_genes,
-        graph = "scale-free",
-        vis = FALSE,
-        verbose = verbose
+      power <- if (is.null(graph_params$power)) {
+        1
+      } else {
+        graph_params$power
+      }
+      edges_per_node <- if (is.null(graph_params$edges_per_node)) {
+        1L
+      } else {
+        as.integer(graph_params$edges_per_node)
+      }
+      igraph::sample_pa(
+        n_genes,
+        power = power,
+        m = edges_per_node,
+        directed = FALSE
       )
-      as.matrix(sim$theta)
     },
 
     stochastic_block_model = {
-      n_blocks <- if (is.null(graph_params$n_blocks)) {
-        3L
+      block_prob <- if (is.null(graph_params$block_prob)) {
+        c(0.5, 0.25, 0.25)
       } else {
-        as.integer(graph_params$n_blocks)
+        graph_params$block_prob
       }
-      verbose <- isTRUE(graph_params$verbose)
-      sim <- huge::huge.generator(
-        n = max(2L, n_genes),
-        d = n_genes,
-        graph = "cluster",
-        g = n_blocks,
-        vis = FALSE,
-        verbose = verbose
+      p_within <- if (is.null(graph_params$p_within)) {
+        0.25
+      } else {
+        graph_params$p_within
+      }
+      p_between <- if (is.null(graph_params$p_between)) {
+        0.01
+      } else {
+        graph_params$p_between
+      }
+
+      n_blocks <- length(block_prob)
+      pref_matrix <- matrix(p_between, n_blocks, n_blocks)
+      diag(pref_matrix) <- p_within
+
+      block_sizes <- as.integer(
+        c(stats::rmultinom(1L, n_genes, block_prob))
       )
-      as.matrix(sim$theta)
+      block_sizes <- pmax(block_sizes, 1L)
+      size_diff <- n_genes - sum(block_sizes)
+      if (size_diff != 0L) {
+        idx <- which.max(block_sizes)
+        block_sizes[idx] <- block_sizes[idx] + size_diff
+      }
+
+      igraph::sample_sbm(
+        n_genes,
+        pref.matrix = pref_matrix,
+        block.sizes = block_sizes
+      )
     },
 
     small_world = {
@@ -315,17 +292,19 @@ generate_random_network_skeleton <- function(
       } else {
         graph_params$p
       }
-      .sample_small_world_adjacency(
-        n_genes = n_genes,
+      igraph::sample_smallworld(
+        dim = 1L,
+        size = n_genes,
         nei = nei,
         p = p_rewire
       )
     }
   )
 
+  adjacency <- as.matrix(
+    igraph::as_adjacency_matrix(igraph::as_undirected(graph))
+  )
   storage.mode(adjacency) <- "integer"
-  adjacency <- (adjacency + t(adjacency))
-  adjacency[adjacency > 0L] <- 1L
   diag(adjacency) <- 0L
   adjacency
 }
@@ -468,8 +447,8 @@ build_shared_covariance_array <- function(
 #' graph-constrained precision model. Means follow the AutoGeneS-inspired
 #' cosine construction of `generate_mean_signature_matrix()` with target
 #' pairwise cosine \eqn{\rho}. The adjacency \eqn{\boldsymbol{A}} is drawn
-#' from a random-graph model (\pkg{huge} for scale-free and cluster /
-#' SBM; internal Watts–Strogatz for small-world); i.i.d. signed weights
+#' from a random-graph model (\pkg{igraph}: scale-free, stochastic
+#' block, or Watts–Strogatz small-world); i.i.d. signed weights
 #' with inhibitory fraction \code{prop_inhibitory} form
 #' \eqn{\boldsymbol{W}}; the precision is completed by a spectral shift;
 #' each cell type shares
@@ -477,7 +456,8 @@ build_shared_covariance_array <- function(
 #'
 #' @param n_genes Integer; number of genes \eqn{G}.
 #' @param n_celltypes Integer; number of cell types \eqn{J} (default 2).
-#' @param mean_scale Positive scalar \eqn{s} for centroid norms.
+#' @param mean_scale Positive scalar \eqn{s} for centroid norms
+#'   (default \code{10}, as in the nine-scenario grid).
 #' @param target_cosine Numeric in \eqn{[0,1]}; target pairwise cosine
 #'   similarity between columns of \eqn{\boldsymbol{\mu}}.
 #' @param precision_shift Diagonal cushion \eqn{u} for the spectral
@@ -513,8 +493,6 @@ build_shared_covariance_array <- function(
 #'   graph_model = "scale_free"
 #' )
 #' str(moments, max.level = 2)
-#'
-#' @importFrom stats runif
 #'
 #' @export
 simulate_hierarchical_grn_moments <- function(

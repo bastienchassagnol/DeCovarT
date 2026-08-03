@@ -21,7 +21,8 @@ simulate_hierarchical_grn_moments(
 
 \item{n_celltypes}{Integer; number of cell types \eqn{J} (default 2).}
 
-\item{mean_scale}{Positive scalar \eqn{s} for centroid norms.}
+\item{mean_scale}{Positive scalar \eqn{s} for centroid norms
+(default \code{10}, as in the nine-scenario grid).}
 
 \item{target_cosine}{Numeric in \eqn{[0,1]}; target pairwise cosine
 similarity between columns of \eqn{\boldsymbol{\mu}}.}
@@ -59,8 +60,8 @@ and a shared covariance array \eqn{(\boldsymbol{\Sigma}_j)_{j}} under a
 graph-constrained precision model. Means follow the AutoGeneS-inspired
 cosine construction of \code{generate_mean_signature_matrix()} with target
 pairwise cosine \eqn{\rho}. The adjacency \eqn{\boldsymbol{A}} is drawn
-from a random-graph model (\pkg{huge} for scale-free and cluster /
-SBM; internal Watts–Strogatz for small-world); i.i.d. signed weights
+from a random-graph model (\pkg{igraph}: scale-free, stochastic
+block, or Watts–Strogatz small-world); i.i.d. signed weights
 with inhibitory fraction \code{prop_inhibitory} form
 \eqn{\boldsymbol{W}}; the precision is completed by a spectral shift;
 each cell type shares

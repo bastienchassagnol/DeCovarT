@@ -14,21 +14,21 @@ generate_random_network_skeleton(n_genes, graph_model, graph_params = list())
 
 \item{graph_params}{Named list of generator parameters:
 \describe{
-\item{\code{scale_free}}{\code{verbose} (logical)}
-\item{\code{stochastic_block_model}}{\code{n_blocks} (passed as
-\code{g} to \code{huge.generator}), \code{verbose}}
+\item{\code{scale_free}}{\code{power}, \code{edges_per_node}
+(\code{m} in \code{igraph::sample_pa()})}
+\item{\code{stochastic_block_model}}{\code{block_prob},
+\code{p_within}, \code{p_between}}
 \item{\code{small_world}}{\code{nei}, \code{p} (rewiring
-probability)}
+probability) for \code{igraph::sample_smallworld()}}
 }}
 }
 \value{
 Symmetric integer matrix \eqn{G\times G} with zero diagonal.
 }
 \description{
-Preferential-attachment (scale-free) and cluster / stochastic-block
-skeletons are drawn with \code{huge::huge.generator()}
-\insertCite{zhangSILGGMExtensivePackage2018}{DeCovarT}. Small-world
-graphs use an internal Watts–Strogatz construction because \pkg{huge}
-does not expose that family.
+Draws undirected skeletons with \pkg{igraph}: Barabási–Albert
+preferential attachment (\code{scale_free}), a stochastic block
+model (\code{stochastic_block_model}), or Watts–Strogatz small-world
+(\code{small_world}) \insertCite{barabasiEmergenceScalingRandom1999}{DeCovarT}.
 }
 \keyword{internal}
