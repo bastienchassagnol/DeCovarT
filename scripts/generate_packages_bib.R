@@ -36,7 +36,12 @@ SOFTWARE_TOOLS <- c(
   "ComplexHeatmap",
   "MixSim",
   "clusterGeneration",
-  "limSolve"
+  "limSolve",
+  "glmnet",
+  "AlgDesign",
+  "GenSA",
+  "GA",
+  "expm"
 )
 
 # Never treat these as citable analysis tools for packages.bib.
