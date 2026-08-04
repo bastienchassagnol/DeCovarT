@@ -26,7 +26,7 @@ Etienne Becht
 
 Anaïs Baudot
 
-2026-08-03
+2026-08-04
 
 ## 
 
@@ -78,6 +78,7 @@ Schnell et al. ([2020](#/references))
 Complementary schematic of [Figure 1](#/fig-immune-balance):
 
 ``` mermaid
+%%{init: {"theme": "sandstone"}}%%
 flowchart TB
   H["Balanced<br/>Regulation ≈ Inflammation<br/>Healthy"]
   U["Under-reaction<br/>Regulation ≫ Inflammation<br/>Cancer risk"]

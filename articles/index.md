@@ -9,6 +9,8 @@
 
 - [Simulating semi-synthetic pseudo-bulk mixtures for
   benchmarking](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.md):
+- [Feature selection for reference-based
+  deconvolution](https://bastienchassagnol.github.io/DeCovarT/articles/feature-selection.md):
 - [Simulating high-dimensional Gaussian Markov regulatory
   networks](https://bastienchassagnol.github.io/DeCovarT/articles/random-network-generation.md):
 - [In silico inference of gene regulatory

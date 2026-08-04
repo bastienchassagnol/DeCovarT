@@ -64,6 +64,8 @@
 
       <dl><dt><a href="synthetic-scenarios.html">Simulating semi-synthetic pseudo-bulk mixtures for benchmarking</a></dt>
         <dd>
+        </dd><dt><a href="feature-selection.html">Feature selection for reference-based deconvolution</a></dt>
+        <dd>
         </dd><dt><a href="random-network-generation.html">Simulating high-dimensional Gaussian Markov regulatory networks</a></dt>
         <dd>
         </dd><dt><a href="network-inference.html">In silico inference of gene regulatory networks</a></dt>
@@ -96,7 +98,45 @@
 
 
 
-
-
-  </body></html>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script>
+(function () {
+  function blocks() {
+    return Array.from(
+      document.querySelectorAll(
+        "pre code.language-mermaid, pre code.mermaid, pre code[class*='language-mermaid']"
+      )
+    );
+  }
+  function rewrite(nodes) {
+    return nodes.map(function (code, i) {
+      var pre = code.closest("pre");
+      if (!pre) return null;
+      var div = document.createElement("div");
+      div.className = "mermaid";
+      div.id = "pkgdown-mermaid-" + i;
+      div.textContent = code.textContent || "";
+      pre.replaceWith(div);
+      return div;
+    }).filter(Boolean);
+  }
+  async function run() {
+    if (!window.mermaid) return;
+    var m = blocks();
+    if (!m.length) return;
+    var nodes = rewrite(m);
+    window.mermaid.initialize({
+      startOnLoad: false,
+      theme: "sandstone",
+      securityLevel: "loose"
+    });
+    try { await window.mermaid.run({ nodes: nodes }); }
+    catch (e) { console.warn("Mermaid render failed:", e); }
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", run);
+  } else {
+    run();
+  }
+})();
+</script></body></html>
 

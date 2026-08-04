@@ -214,6 +214,8 @@ across scenarios that compare mean collinearity alone
 <span>  <span class="va">n_celltypes</span>,</span>
 <span>  mean_scale <span class="op">=</span> <span class="fl">10</span>,</span>
 <span>  target_cosine <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  direction_noise_sd <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  random_seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  gene_names <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  celltype_names <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -240,6 +242,18 @@ studying cosine / collinearity alone.</p></dd>
 <dt id="arg-target-cosine">target_cosine<a class="anchor" aria-label="anchor" href="#arg-target-cosine"></a></dt>
 <dd><p>Numeric in \([0,1]\), the collinearity dial
 \(\rho\).</p></dd>
+
+
+<dt id="arg-direction-noise-sd">direction_noise_sd<a class="anchor" aria-label="anchor" href="#arg-direction-noise-sd"></a></dt>
+<dd><p>Non-negative scalar. Standard deviation of a
+Gaussian perturbation added to each cell-type direction before
+normalisation. Use small values (e.g. <code>0.01</code>–<code>0.05</code>) to add
+mild biological variability; default <code>0</code> keeps deterministic columns.</p></dd>
+
+
+<dt id="arg-random-seed">random_seed<a class="anchor" aria-label="anchor" href="#arg-random-seed"></a></dt>
+<dd><p>Optional integer seed used only within this function
+when <code>direction_noise_sd &gt; 0</code>.</p></dd>
 
 
 <dt id="arg-gene-names">gene_names<a class="anchor" aria-label="anchor" href="#arg-gene-names"></a></dt>
@@ -272,7 +286,45 @@ studying cosine / collinearity alone.</p></dd>
 
 
 
-
-
-  </body></html>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script>
+(function () {
+  function blocks() {
+    return Array.from(
+      document.querySelectorAll(
+        "pre code.language-mermaid, pre code.mermaid, pre code[class*='language-mermaid']"
+      )
+    );
+  }
+  function rewrite(nodes) {
+    return nodes.map(function (code, i) {
+      var pre = code.closest("pre");
+      if (!pre) return null;
+      var div = document.createElement("div");
+      div.className = "mermaid";
+      div.id = "pkgdown-mermaid-" + i;
+      div.textContent = code.textContent || "";
+      pre.replaceWith(div);
+      return div;
+    }).filter(Boolean);
+  }
+  async function run() {
+    if (!window.mermaid) return;
+    var m = blocks();
+    if (!m.length) return;
+    var nodes = rewrite(m);
+    window.mermaid.initialize({
+      startOnLoad: false,
+      theme: "sandstone",
+      securityLevel: "loose"
+    });
+    try { await window.mermaid.run({ nodes: nodes }); }
+    catch (e) { console.warn("Mermaid render failed:", e); }
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", run);
+  } else {
+    run();
+  }
+})();
+</script></body></html>
 

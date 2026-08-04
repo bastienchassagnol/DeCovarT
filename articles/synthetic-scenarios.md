@@ -24,15 +24,18 @@ and then to any deconvolution routine exposed by
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md).
 
 ``` mermaid
+%%{init: {"theme": "sandstone"}}%%
 flowchart LR
   A["Graph G"] --> B["Weights W(G)"]
   B --> C["Precision Ω ≻ 0"]
-  C --> D["Σ = Ω⁻¹"]
+  C --> D["Σ = Ω^{-1}"]
   E["Means μ_j\n(AutoGeneS-style ρ)"] --> F["simulate_hierarchical_grn_moments()"]
   D --> F
   F --> G["simulate_bulk_mixture()"]
   G --> H["deconvolute_ratios()"]
 ```
+
+Figure 1: Pipeline from synthetic moment generation to deconvolution.
 
 ``` r
 
@@ -69,11 +72,10 @@ dim(bulk$Y)
 
 Selecting genes (or, here, designing \boldsymbol{\mu}) by cosine alone
 is insufficient for stable deconvolution ([Aliee and Theis
-2021](#ref-alieeAutoGeneSAutomaticGene2021)) when centroids also
-collapse toward the origin. In the scenarios of this package we
-therefore **hold `mean_scale` fixed** and dial only `target_cosine`, so
-that Euclidean norms (and second-order precision weights) stay
-comparable across runs.
+2021](#ref-alieeAutoGeneSAutomaticGene2021)). In the scenarios of this
+package we therefore **hold `mean_scale` fixed** and dial only
+`target_cosine`, so first-order scale and second-order precision weights
+stay comparable across runs.
 
 ## Mathematical roles of the generators
 
@@ -120,115 +122,25 @@ The scale s sets column norms without changing angles:
 \\\boldsymbol{\mu}\_{\cdot j}-\boldsymbol{\mu}\_{\cdot k}\\\_2\propto s
 at fixed \rho. We keep s=10 across scenarios and only vary \rho.
 
-#### Toy illustration: J=2 cell types, G=2 genes
+#### Visualising the cosine construction
 
-Take equal blocks so \boldsymbol{v}\_{1}=(1,0)^{\mathsf{T}},
-\boldsymbol{v}\_{2}=(0,1)^{\mathsf{T}}, and
-\boldsymbol{u}=2^{-1/2}(1,1)^{\mathsf{T}}. Then
-\boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}\_{j}=2^{-1/2} and
-[Equation 2](#eq-mean-inner) becomes
+[Figure 2](#fig-cosine-geometry) visualises the same three operating
+points (\rho\in\\0,\\0.3,\\1\\) in a two-gene projection sampled from a
+G=200 construction. We add small Gaussian perturbations to emulate
+biological dispersion around each cell-type centroid while preserving
+the targeted cosine geometry.
 
-\tilde{\boldsymbol{\mu}}\_{\cdot 1}^{\mathsf{T}}
-\tilde{\boldsymbol{\mu}}\_{\cdot 2} = \rho + \sqrt{2\rho(1-\rho)}.
-
-After renormalisation the cosine of (\boldsymbol{\mu}\_{\cdot 1},
-\boldsymbol{\mu}\_{\cdot 2}) still rises monotonically with \rho. The
-chunk below reports the realised cosine at the three operating points
-used in the nine-scenario grid (\rho\in\\0,\\0.3,\\1\\; intermediate
-collinearity near 0.3):
-
-``` r
-
-rhos <- c(low = 0, mid = 0.3, high = 1)
-toy <- lapply(rhos, function(rho) {
-  mu <- DeCovarT:::generate_mean_signature_matrix(
-    n_genes = 2L,
-    n_celltypes = 2L,
-    mean_scale = 10,
-    target_cosine = rho,
-    gene_names = c("g1", "g2"),
-    celltype_names = c("j=1", "j=2")
-  )
-  cos_12 <- sum(mu[, 1] * mu[, 2]) /
-    sqrt(sum(mu[, 1]^2) * sum(mu[, 2]^2))
-  data.frame(
-    rho_target = rho,
-    cos_realised = cos_12,
-    mu_j1_g1 = mu[1, 1],
-    mu_j1_g2 = mu[2, 1],
-    mu_j2_g1 = mu[1, 2],
-    mu_j2_g2 = mu[2, 2]
-  )
-})
-do.call(rbind, toy)
-#>      rho_target cos_realised  mu_j1_g1 mu_j1_g2 mu_j2_g1  mu_j2_g2
-#> low         0.0    0.0000000 10.000000 0.000000 0.000000 10.000000
-#> mid         0.3    0.5752618  9.534069 3.016875 3.016875  9.534069
-#> high        1.0    1.0000000  7.071068 7.071068 7.071068  7.071068
-```
-
-The two-gene toy above is useful for geometry, but it overstates
-finite-G effects. In this construction the shared direction contributes
-through an arithmetic average across genes, so concentration improves
-quickly as G grows under gene-wise independence.
-
-| Genes (G) | Target cosine | Realised cosine |
-|----------:|--------------:|----------------:|
-|         2 |           0.0 |           0.000 |
-|         2 |           0.3 |           0.575 |
-|         2 |           0.6 |           0.764 |
-|         2 |           0.9 |           0.930 |
-|         2 |           1.0 |           1.000 |
-|        80 |           0.0 |           0.000 |
-|        80 |           0.3 |           0.575 |
-|        80 |           0.6 |           0.764 |
-|        80 |           0.9 |           0.930 |
-|        80 |           1.0 |           1.000 |
-|       200 |           0.0 |           0.000 |
-|       200 |           0.3 |           0.575 |
-|       200 |           0.6 |           0.764 |
-|       200 |           0.9 |           0.930 |
-|       200 |           1.0 |           1.000 |
-
-Table 1: Realised cosine approaches the target as the number of genes
-increases.
-
-With only two genes the cross terms in [Equation 2](#eq-mean-inner) are
-large, so the realised cosine is a warped but strictly increasing map of
-\rho. At G=200, realised cosine is much closer to target levels, which
-is the high-dimensional regime assumed by the synthetic generator.
-
-[Figure 1](#fig-cosine-geometry) makes the construction geometric for
-the same three operating points (the cosine levels shared by scenarios
-A1–C1, A2–C2 and A3–C3). In the plane of two selected genes (a visual
-projection), each panel draws:
-
-1.  the shared unit direction \boldsymbol{u} and the private markers
-    \boldsymbol{v}\_{1}, \boldsymbol{v}\_{2};
-2.  the un-normalised blends \tilde{\boldsymbol{\mu}}\_{\cdot
-    j}=\sqrt{\rho}\\\boldsymbol{u}+\sqrt{1-\rho}\\\boldsymbol{v}\_{j}
-    (dashed);
-3.  the final columns \boldsymbol{\mu}\_{\cdot j} after
-    \ell_2-normalisation and scaling by s (solid), with the angle
-    between them labelled by the realised cosine.
-
-The sequence
-\boldsymbol{v}\_{j}\rightarrow\tilde{\boldsymbol{\mu}}\_{\cdot
-j}\rightarrow\boldsymbol{\mu}\_{\cdot j} is the one-shot constructive
-counterpart of AutoGeneS-style search for a target collinearity: rather
-than iterating a multi-objective optimiser,
-[Equation 1](#eq-mean-cosine) places the two cell-type profiles at a
-controlled angle in a single pass ([Aliee and Theis
-2021](#ref-alieeAutoGeneSAutomaticGene2021)).
+This illustration is inspired by panel B in the AutoGeneS paper ([Aliee
+and Theis 2021](#ref-alieeAutoGeneSAutomaticGene2021)), but focuses here
+on the cosine-angle control induced by [Equation 1](#eq-mean-cosine)
+(without modelling centroid-distance optimisation).
 
 ![](synthetic-scenarios_files/figure-html/fig-cosine-geometry-1.png)
 
-Figure 1: Constructive cosine dial for J=2 cell types in a two-gene
-projection. Panels correspond to the three scenario levels
-\rho\in\\0,\\0.3,\\1\\ (suffixes 1–3 in A1–C3). Shared direction
-\boldsymbol{u} (grey), private markers \boldsymbol{v}\_{j} (open
-arrows), blends \tilde{\boldsymbol{\mu}}\_{\cdot j} (dashed), and scaled
-profiles \boldsymbol{\mu}\_{\cdot j} (solid).
+Figure 2: Cosine-control toy for J=2 cell types with G=200 genes. Each
+panel shows noisy point clouds around centroids (stars), with realised
+angle and cosine. Styling is inspired by panel B of AutoGeneS (Aliee and
+Theis ([2021](#ref-alieeAutoGeneSAutomaticGene2021))).
 
 ### Objectives: `compute_mean_profile_objectives()`
 

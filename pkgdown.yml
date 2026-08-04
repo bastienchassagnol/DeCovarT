@@ -5,11 +5,12 @@ articles:
   deconvolution-seminar-slides: deconvolution-seminar-slides.html
   DeCovarT-numerical-derivatives: DeCovarT-numerical-derivatives.html
   DeCoVart-use-cases: DeCoVart-use-cases.html
+  feature-selection: feature-selection.html
   network-inference: network-inference.html
   random-network-generation: random-network-generation.html
   softmax-alr-derivatives: softmax-alr-derivatives.html
   synthetic-scenarios: synthetic-scenarios.html
-last_built: 2026-08-04T09:28Z
+last_built: 2026-08-04T13:55Z
 urls:
   reference: https://bastienchassagnol.github.io/DeCovarT/reference
   article: https://bastienchassagnol.github.io/DeCovarT/articles

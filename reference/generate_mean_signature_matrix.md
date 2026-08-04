@@ -36,6 +36,8 @@ generate_mean_signature_matrix(
   n_celltypes,
   mean_scale = 10,
   target_cosine = 0,
+  direction_noise_sd = 0,
+  random_seed = NULL,
   gene_names = NULL,
   celltype_names = NULL
 )
@@ -60,6 +62,18 @@ generate_mean_signature_matrix(
 - target_cosine:
 
   Numeric in \\\[0,1\]\\, the collinearity dial \\\rho\\.
+
+- direction_noise_sd:
+
+  Non-negative scalar. Standard deviation of a Gaussian perturbation
+  added to each cell-type direction before normalisation. Use small
+  values (e.g. `0.01`–`0.05`) to add mild biological variability;
+  default `0` keeps deterministic columns.
+
+- random_seed:
+
+  Optional integer seed used only within this function when
+  `direction_noise_sd > 0`.
 
 - gene_names:
 
