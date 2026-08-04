@@ -43,10 +43,12 @@ proportions $\boldsymbol{p}$ from a bulk mixture using a purified
 expression design matrix
 [@gaspard-boulincCelltypeDeconvolutionMethods2025;
 @avilacobosComputationalDeconvolutionTranscriptomics2018;
-@sturmComprehensiveEvaluationTranscriptomebased2019]. We deliberately
-exclude **marker-based** abundance scoring (enrichment / GSEA-style
-modules), which returns proxies of presence rather than a consensual
-gene panel suited to linear or probabilistic mixture models
+@sturmComprehensiveEvaluationTranscriptomebased2019]. Feature selection
+itself is a classical pre-modelling filter
+[@guyonIntroductionVariableFeature2003]. We deliberately exclude
+**marker-based** abundance scoring (enrichment / GSEA-style modules),
+which returns proxies of presence rather than a consensual gene panel
+suited to linear or probabilistic mixture models
 [@aranXCellDigitallyPortraying2017; @zhang_etal17].
 
 The focus is **second-generation** signatures built from single-cell
@@ -55,7 +57,9 @@ pseudobulks (CIBERSORTx, MuSiC, DWLS, Kassandra and related pipelines)
 @tsoucasAccurateEstimationCelltype2019;
 @zaitsevPreciseReconstructionTME2022], where the selected genes must
 discriminate **all** cell types in the signature jointly, not only
-one-versus-rest markers.
+one-versus-rest markers. Correlation-aware compact panels such as
+DUBStepR illustrate the same goal from a single-cell feature-selection
+angle [@ranjanDUBStepRScalableCorrelationbased2021].
 
 Interactive signature refinement utilities (zero filtering,
 specificity binning, Gini / entropy compaction) are implemented in
@@ -120,7 +124,9 @@ instability [@gongDeconRNASeqStatisticalFramework2013;
 Before scoring genes:
 
 1. Aggregate **donor-level** cell-type pseudobulks (not individual
-   cells as independent replicates).
+   cells as independent replicates). Pseudobulking reduces sparsity and
+   avoids treating cells as independent biological replicates in
+   differential testing [@squairConfrontingFalseDiscoveries2021].
 2. Estimate gene–cell-type means $\mu_{gj}$ and variance components on
    a **linear** scale (counts, CPM, or TPM). Log-space breaks the
    mixture linearity in @eq-mixture
@@ -131,7 +137,8 @@ Before scoring genes:
    after pseudobulking, strong donor instability, or systematic
    sc–bulk discordance.
 4. When the biological target is **cell number** rather than RNA mass,
-   correct transcriptome-size differences across cell types.
+   correct transcriptome-size differences across cell types
+   [@luTranscriptomeSizeMatters2025].
 5. Apply the **same** normalisation to bulk and signature
    [@jinBenchmarkRNAseqDeconvolution2021; @racleSimultaneousEnumerationCancer2017].
 
@@ -228,18 +235,21 @@ $\mathcal{G}$ to minimise $\kappa(\boldsymbol{\mu}_{\mathcal{G}})$
 sum-to-one direction
 [@abbasDeconvolutionBloodMicroarray2009;
 @gongDeconRNASeqStatisticalFramework2013;
-@newmanRobustEnumerationCell2015]. This is the historical gold-standard
-metric for LM22-style panels and remains the default in many
-second-generation pipelines.
+@newmanRobustEnumerationCell2015;
+@boldinaA2SignAgnosticAlgorithms2022]. This is the historical
+gold-standard metric for LM22-style panels and remains the default in
+many second-generation pipelines.
 
 ### Genetic algorithms (AutoGeneS)
 
 AutoGeneS searches gene subsets with a multi-objective genetic
 algorithm that **minimises inter-population correlation** while
 **maximising centroid distance**
-[@alieeAutoGeneSAutomaticGene2021]. It is explicitly all-versus-all:
-the loss is defined on the full $J$-column signature rather than on
-independent one-versus-rest lists.
+[@alieeAutoGeneSAutomaticGene2021]. Related multi-objective genetic
+searches appear in network module discovery (e.g. MOGAMUN)
+[@novoa-del-toroMultiobjectiveGeneticAlgorithm2021]. AutoGeneS is
+explicitly all-versus-all: the loss is defined on the full $J$-column
+signature rather than on independent one-versus-rest lists.
 
 DeCovarT replaces that dual objective with a single **global overlap**
 criterion on the Gaussian mixture
@@ -276,10 +286,12 @@ estimated by graphical lasso are shrunk; non-zero partial correlations
 are typically underestimated. A practical mitigation is to take the
 gLasso **support** as topological constraints and re-estimate by
 constrained MLE when the graph is chordal (otherwise the mapping is
-non-trivial). Cooperative / sign-coherent group lasso penalties can
-encode pathway modules and PPI-informed edge weights
-[@chiquetSparsitySigncoherentGroups2012]. PPI priors also shrink the
-combinatorial space of undirected graphs explored per cell type.
+non-trivial)
+[@dahlMaximumLikelihoodEstimation2005]. Cooperative / sign-coherent
+group lasso penalties can encode pathway modules and PPI-informed edge
+weights [@chiquetSparsitySigncoherentGroups2012]. PPI priors also
+shrink the combinatorial space of undirected graphs explored per cell
+type.
 
 ::: {.callout-warning}
 ## From one-versus-others networks to a panel
@@ -464,13 +476,15 @@ biologically plausible supports rather than purely statistical markers.
 Many tissues are better described by **continua** (differentiation
 trajectories, activation gradients) than by discrete labels. In that
 regime, a finite $J$-column signature is a piecewise approximation of
-an archetype or potency geometry: genes should separate extreme
-vertices **and** resolve interior mixtures along trajectories. Open
-directions include replacing hard one-versus-others contrasts with
-scores along inferred latent axes, and evaluating overlap / Fisher
-information on continuous rather than categorical components. Until
-such methods mature, hierarchical discrete panels (lineage → subtype)
-remain a pragmatic compromise [@wangBulkTissueCell2019].
+an archetype geometry [@hartInferringBiologicalTasks2015] or a potency
+axis [@gulatiSinglecellTranscriptionalDiversity2020]: genes should
+separate extreme vertices **and** resolve interior mixtures along
+trajectories. Open directions include replacing hard one-versus-others
+contrasts with scores along inferred latent axes, and evaluating
+overlap / Fisher information on continuous rather than categorical
+components. Until such methods mature, hierarchical discrete panels
+(lineage → subtype) remain a pragmatic compromise
+[@wangBulkTissueCell2019].
 
 # Software notes
 

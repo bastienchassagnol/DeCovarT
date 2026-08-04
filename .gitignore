@@ -64,6 +64,14 @@ docs
 scripts/bib_enrich/.venv/
 *.bib.bak
 .cursor/bib-enrichment.json
+# Ad-hoc Zotero collection exports (merge into inst/REFERENCES.bib)
+IV) build signature matrix.bib
 
 # LibreOffice lock files
 **/.~lock.*
+
+# zotcurate local credentials (never commit)
+.zotc/
+.venv-zotcurate/
+output/zotero/
+__pycache__/

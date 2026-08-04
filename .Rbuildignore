@@ -38,3 +38,6 @@
 ^\.cursor$
 ^\.nojekyll$
 ^\.lintr$
+^\.zotc$
+^\.venv-zotcurate$
+^output$

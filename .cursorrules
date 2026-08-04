@@ -353,14 +353,70 @@ unused Suggests/Imports without need.
 
 DeCovarT keeps **two separate citation streams**. Do not mix them.
 
-## A. Literature (Zotero → Better BibTeX → Git)
+## A. Literature (Zotero → citation keys → Git)
 
 **Source of truth** for papers / books / theses is the author's
-[Zotero library](https://www.zotero.org/bastienchassagnol/library) with
-**Better BibTeX (BBT)** citation keys. Do **not** invent BibTeX entries,
-citekeys, or DOIs; add the item in Zotero first, then export. Missing
-metadata may be completed only via the deterministic Crossref enrichment
-CLI below (never by unconstrained LLM guessing).
+[Zotero library](https://www.zotero.org/bastienchassagnol/library).
+Do **not** invent BibTeX entries, citekeys, or DOIs; add the item in
+Zotero first, then export. Missing metadata may be completed only via
+the deterministic Crossref enrichment CLI below (never by unconstrained
+LLM guessing).
+
+### Citation keys: Zotero 8+ native vs Better BibTeX
+
+From **Zotero 8 onward** (this machine runs **Zotero 9**), citation keys
+are a first-class field in `zotero.sqlite`
+(`fields.fieldName = 'citationKey'`). That is enough for `zotc` and for
+stable citekeys when the same formula is set under
+Edit → Settings → Cite → Citation Key.
+
+**Better BibTeX (BBT) is optional** once native keys are populated. Keep
+BBT only for extras (auto-export on change, rich formulas, Better
+BibLaTeX, pull export). Otherwise export with Zotero’s built-in BibTeX
+into `inst/REFERENCES.bib` / `article/decovart_library.bib`, then
+`python3 scripts/check_bibliography.py --clean`. Prefer **native**
+`citationKey` over a legacy `better-bibtex.sqlite` table; copy or open
+the DB with `immutable=1` when the desktop app holds a lock.
+
+### Zotcurate (`zotc`) — collection curation from documents
+
+Use **[zotcurate](https://github.com/jeetsukumaran/zotcurate)** to bridge
+`.bib` / `.qmd` / CSV citation keys and Zotero collections. Prefer **CSV**
+for tabular outputs; prefer **YAML** for collection-hierarchy snapshots.
+
+```bash
+sudo chown -R "$(whoami):$(whoami)" ~/.local ~/.zotc ~/.venvs   # once if needed
+bash scripts/install_zotcurate_home.sh
+```
+
+| Path | Role |
+|------|------|
+| `~/.local/bin/zotc` | Wrapper with `-z ~/Zotero/zotero.sqlite` |
+| `~/.zotc/*` | Credentials (chmod 600; never commit) |
+| `~/Zotero/zotero.sqlite` | Desktop DB + native citation keys |
+
+Library ID: `7172053`.
+
+**Collection membership (leaf only):** assign **exactly one** collection —
+the **most specific leaf** matching the paper (e.g.
+`…/3) feature selection: one-vs-all/ii) multivariate approaches`).
+Do **not** also attach the parent or higher ancestors. Prefer one
+accurate leaf over parent+child duplicates.
+
+**Inputs for missing-citation checks:** `.bib`, `.tex`, `.qmd` (and CSV
+for collection sync). Ad-hoc collection exports such as
+`IV) build signature matrix.bib` are merge sources only — keep them
+gitignored at the repo root; after merging run `--clean`.
+
+**Both directions:**
+
+1. **Zotero → Git:** export → `check_bibliography.py --clean` (article
+   copy is the `--clean` upstream when both files exist).
+2. **Git/docs → Zotero:** `zotc keys extract` then
+   `collection add|create` (dry-run first); new items via Web API /
+   desktop → **leaf only** → native citekey → re-export → `--clean`.
+3. Software tools → `packages.bib`, not Zotero literature.
+
 
 | Path | Consumer |
 |------|----------|

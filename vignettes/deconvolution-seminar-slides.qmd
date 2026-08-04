@@ -8,6 +8,10 @@ format:
   html:
     embed-resources: true
     toc: true
+bibliography:
+  - ../inst/packages.bib
+  - ../inst/REFERENCES.bib
+link-citations: true
 ---
 
 # Overview
