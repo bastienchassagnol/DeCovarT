@@ -53,7 +53,6 @@ filters:
 revealjs-plugins:
   - spotlight
   - quiz
-  - attribution
   - editable
 execute:
   echo: false

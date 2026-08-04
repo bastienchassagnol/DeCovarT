@@ -1,0 +1,487 @@
+---
+title: "Feature selection for reference-based deconvolution"
+author: "Bastien Chassagnol"
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteIndexEntry{Feature selection for reference-based deconvolution}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: '#>'
+bibliography:
+  - ../inst/packages.bib
+  - ../inst/REFERENCES.bib
+link-citations: true
+format:
+  html:
+    embed-resources: true
+    toc: true
+    number-sections: true
+crossref:
+  fig-title: "Figure"
+  tbl-title: "Table"
+  eq-title: "Equation"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  message = FALSE,
+  warning = FALSE,
+  echo = FALSE
+)
+```
+
+# Scope
+
+This vignette surveys **feature selection for reference-based
+(signature-based) deconvolution**—methods that recover cellular
+proportions $\boldsymbol{p}$ from a bulk mixture using a purified
+expression design matrix
+[@gaspard-boulincCelltypeDeconvolutionMethods2025;
+@avilacobosComputationalDeconvolutionTranscriptomics2018;
+@sturmComprehensiveEvaluationTranscriptomebased2019]. We deliberately
+exclude **marker-based** abundance scoring (enrichment / GSEA-style
+modules), which returns proxies of presence rather than a consensual
+gene panel suited to linear or probabilistic mixture models
+[@aranXCellDigitallyPortraying2017; @zhang_etal17].
+
+The focus is **second-generation** signatures built from single-cell
+pseudobulks (CIBERSORTx, MuSiC, DWLS, Kassandra and related pipelines)
+[@newmanDeterminingCellType2019; @wangBulkTissueCell2019;
+@tsoucasAccurateEstimationCelltype2019;
+@zaitsevPreciseReconstructionTME2022], where the selected genes must
+discriminate **all** cell types in the signature jointly, not only
+one-versus-rest markers.
+
+Interactive signature refinement utilities (zero filtering,
+specificity binning, Gini / entropy compaction) are implemented in
+[DeconvExplorer](https://github.com/omnideconv/deconvExplorer)
+(omnideconv ecosystem; cite as software once added to
+`packages.bib`).
+
+```{mermaid}
+%%| label: fig-feature-selection-layout
+%%| fig-cap: "Layout of this vignette: univariate and multivariate selection, each split into one-versus-others then all-versus-all, followed by perspectives for continuous cell states."
+%%{init: {"theme": "sandstone"}}%%
+flowchart TD
+  A["Reference μ, Σ from sc / bulk"] --> B["Univariate"]
+  A --> C["Multivariate"]
+  B --> B1["One vs others"]
+  B --> B2["All vs all"]
+  C --> C1["One vs others\n(GGM / DiffNet)"]
+  C --> C2["All vs all\n(κ, D/E-opt, overlap)"]
+  B2 --> D["Consensual panel G"]
+  C2 --> D
+  D --> E["Perspectives:\nmechanistic / potency / archetypes"]
+```
+
+# Notation
+
+We align notation with the DeCovarT generative model. Let
+$G$ genes and $J$ cell types index the purified means
+$\boldsymbol{\mu}=(\boldsymbol{\mu}_{.j})_{j=1}^{J}\in\mathbb{R}^{G\times J}$
+and (optional) covariances
+$\{\boldsymbol{\Sigma}_{j}\}_{j=1}^{J}$. A bulk observation obeys
+
+$$
+\boldsymbol{y}\mid(\boldsymbol{\zeta},\boldsymbol{p})
+\sim
+\mathcal{N}_{G}\!\left(
+\boldsymbol{\mu}\boldsymbol{p},\,
+\sum_{j=1}^{J}p_{j}^{2}\boldsymbol{\Sigma}_{j}
+\right),
+\quad
+\boldsymbol{p}\in\Delta^{J-1},
+$$ {#eq-mixture}
+
+with $\boldsymbol{\zeta}=(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})$
+and simplex
+$\Delta^{J-1}=\{\boldsymbol{p}:p_{j}\ge 0,\sum_{j}p_{j}=1\}$. For a
+gene subset $\mathcal{G}\subseteq\{1,\ldots,G\}$, write
+$\boldsymbol{\mu}_{\mathcal{G}}$ for the corresponding rows. The
+condition number of a design matrix $\boldsymbol{X}$ is
+
+$$
+\kappa(\boldsymbol{X})
+=
+\frac{\lambda_{\max}(\boldsymbol{X})}{\lambda_{\min}(\boldsymbol{X})},
+$$ {#eq-condition-number}
+
+with large $\kappa$ indicating multicollinearity and numerical
+instability [@gongDeconRNASeqStatisticalFramework2013;
+@newmanRobustEnumerationCell2015].
+
+# Preprocessing shared by all strategies
+
+Before scoring genes:
+
+1. Aggregate **donor-level** cell-type pseudobulks (not individual
+   cells as independent replicates).
+2. Estimate gene–cell-type means $\mu_{gj}$ and variance components on
+   a **linear** scale (counts, CPM, or TPM). Log-space breaks the
+   mixture linearity in @eq-mixture
+   [@sturmComprehensiveEvaluationTranscriptomebased2019;
+   @jinBenchmarkRNAseqDeconvolution2021;
+   @hoffmannRobustComputationalReconstitution2006].
+3. Filter genes with poor bulk detectability, extreme zero inflation
+   after pseudobulking, strong donor instability, or systematic
+   sc–bulk discordance.
+4. When the biological target is **cell number** rather than RNA mass,
+   correct transcriptome-size differences across cell types.
+5. Apply the **same** normalisation to bulk and signature
+   [@jinBenchmarkRNAseqDeconvolution2021; @racleSimultaneousEnumerationCancer2017].
+
+# Univariate approaches
+
+Univariate selectors score each gene marginally (or with a simple
+contrast) and ignore partial correlations among genes.
+
+## One versus others
+
+Classical signature pipelines score gene $g$ for cell type $j$ against
+the remaining types, then concatenate per-type shortlists
+[@abbasDeconvolutionBloodMicroarray2009;
+@newmanRobustEnumerationCell2015; @finotello_etal19].
+
+### Differential expression and fold-change ranks
+
+Limma–voom, edgeR and DESeq2 remain the workhorses for
+one-versus-rest contrasts
+[@ritchieLimmaPowersDifferential2015a;
+@robinsonEdgeRBioconductorPackage2010;
+@loveModeratedEstimationFold2014a]. CIBERSORT retains genes with
+adjusted $p\le 0.3$ ordered by decreasing fold-change before a global
+condition-number prune [@newmanRobustEnumerationCell2015]. Abbas et
+al. keep genes that exceed the second- and third-ranked cell types,
+then choose the panel with smallest $\kappa$
+[@abbasDeconvolutionBloodMicroarray2009]. quanTIseq / xCell-style
+filters further drop non-haematopoietic contaminants
+[@finotello_etal19; @aranXCellDigitallyPortraying2017].
+
+### ANOVA $F$-test
+
+Wang et al. rank genes by the nested-model $F$ statistic comparing a
+cell-type factor to an intercept-only model
+[@wangSilicoEstimatesTissue2010]. For gene $g$ with expression
+$x_{gi}$ in sample $i$ and cell-type labels $z_{i}\in\{1,\ldots,J\}$,
+
+$$
+F_{g}
+=
+\frac{
+\bigl(\mathrm{SSR}_{0}-\mathrm{SSR}_{1}\bigr)/(J-1)
+}{
+\mathrm{SSR}_{1}/(n-J)
+},
+$$ {#eq-anova-f}
+
+where $\mathrm{SSR}_{0}=\sum_{i}(x_{gi}-\bar{x}_{g})^{2}$ and
+$\mathrm{SSR}_{1}=\sum_{j}\sum_{i:z_{i}=j}(x_{gi}-\bar{x}_{gj})^{2}$.
+Large $F_{g}$ indicates that cell-type means explain a substantial
+share of gene variance.
+
+### Gini and entropy specificity
+
+BioQC and DeconvExplorer compact signatures with Gini or entropy
+scores over the row $\boldsymbol{\mu}_{g\cdot}$
+[@zhang_etal17]. With relative shares
+$q_{gj}=\mu_{gj}/\sum_{\ell}\mu_{g\ell}$,
+
+$$
+\mathrm{Gini}(g)
+=
+\frac{J}{J-1}
+\left(
+1-2\sum_{j=1}^{J}
+\frac{J-j+\tfrac{1}{2}}{J}\,q_{g(j)}
+\right),
+\quad
+H(g)
+=
+-\sum_{j=1}^{J}q_{gj}\log q_{gj},
+$$ {#eq-gini-entropy}
+
+where $q_{g(j)}$ are the ordered shares. High Gini (or low entropy)
+flags genes concentrated in few cell types—useful for one-versus-rest
+compaction, but prone to redundancy when panels are concatenated.
+
+::: {.callout-note}
+## Limitation of one-versus-rest concatenation
+Union of per-type markers often yields a multicollinear
+$\boldsymbol{\mu}_{\mathcal{G}}$ that is still too large for stable
+NNLS / SVR / GLS [@newmanRobustEnumerationCell2015;
+@avilacobosComputationalDeconvolutionTranscriptomics2018]. A global
+all-versus-all refinement is therefore required.
+:::
+
+## All versus all
+
+### Condition-number pruning
+
+After candidate generation, regression-based methods select
+$\mathcal{G}$ to minimise $\kappa(\boldsymbol{\mu}_{\mathcal{G}})$
+(@eq-condition-number), optionally after projecting out the
+sum-to-one direction
+[@abbasDeconvolutionBloodMicroarray2009;
+@gongDeconRNASeqStatisticalFramework2013;
+@newmanRobustEnumerationCell2015]. This is the historical gold-standard
+metric for LM22-style panels and remains the default in many
+second-generation pipelines.
+
+### Genetic algorithms (AutoGeneS)
+
+AutoGeneS searches gene subsets with a multi-objective genetic
+algorithm that **minimises inter-population correlation** while
+**maximising centroid distance**
+[@alieeAutoGeneSAutomaticGene2021]. It is explicitly all-versus-all:
+the loss is defined on the full $J$-column signature rather than on
+independent one-versus-rest lists.
+
+DeCovarT replaces that dual objective with a single **global overlap**
+criterion on the Gaussian mixture
+$\{(p_{j},\boldsymbol{\mu}_{.j},\boldsymbol{\Sigma}_{j})\}$ (see
+@eq-overlap below and the synthetic-scenarios vignette).
+
+# Multivariate approaches
+
+Multivariate selectors use joint dependence—covariance, precision, or
+information matrices—so that a gene is scored by how it improves
+identifiability of $\boldsymbol{p}$ under @eq-mixture.
+
+## One versus others
+
+Univariate DGE ignores gene–gene interactions and therefore requires
+aggressive multiple-testing correction without modelling network
+rewiring. Differential-network and GGM methods address that gap.
+
+### Differential networks (INDEED and related)
+
+INDEED combines mean (fold-change) evidence with bootstrap tests of
+changes in partial correlation, ranking genes that both shift in mean
+**and** rewire neighbourhood structure
+[@zuoINDEEDIntegratedDifferential2016]. Related ideas appear in
+weighted graphical lasso pipelines that incorporate PPI priors and
+differential-network scores (DNS). Relative to pure DGE, these methods
+favour genes whose local Markov blanket differs between a focal cell
+type and the rest.
+
+### Sparse GGMs and cooperative penalties
+
+Cell-type precision matrices $\boldsymbol{\Omega}_{j}=\boldsymbol{\Sigma}_{j}^{-1}$
+estimated by graphical lasso are shrunk; non-zero partial correlations
+are typically underestimated. A practical mitigation is to take the
+gLasso **support** as topological constraints and re-estimate by
+constrained MLE when the graph is chordal (otherwise the mapping is
+non-trivial). Cooperative / sign-coherent group lasso penalties can
+encode pathway modules and PPI-informed edge weights
+[@chiquetSparsitySigncoherentGroups2012]. PPI priors also shrink the
+combinatorial space of undirected graphs explored per cell type.
+
+::: {.callout-warning}
+## From one-versus-others networks to a panel
+Network-based one-versus-others lists still concatenate into a
+redundant design. They are best treated as **candidate generators** for
+the all-versus-all stage below.
+:::
+
+## All versus all
+
+### Variance-weighted condition number
+
+With gene-specific uncertainties $\tau_{g}^{2}$ (biological + sampling +
+optional sc–bulk discordance), standardise rows and evaluate
+conditioning in the $(J-1)$-dimensional contrast space induced by
+$\sum_{j}p_{j}=1$:
+
+$$
+\widetilde{\mu}_{gj}
+=
+\frac{\mu_{gj}-\bar{\mu}_{g}}{\tau_{g}},
+\qquad
+\kappa\!\left(
+\boldsymbol{W}_{\mathcal{G}}^{1/2}\boldsymbol{\mu}_{\mathcal{G}}\boldsymbol{C}
+\right),
+$$ {#eq-weighted-kappa}
+
+where
+$\boldsymbol{W}_{\mathcal{G}}=\mathrm{diag}(1/\tau_{g}^{2})$ and
+$\boldsymbol{C}$ removes the common-expression direction. Unweighted
+$\kappa(\boldsymbol{\mu}_{\mathcal{G}})$ alone can favour quiet but
+biased genes [@gongDeconRNASeqStatisticalFramework2013].
+
+### D- / E- / A-optimal design
+
+Under approximately Gaussian errors
+$\boldsymbol{y}_{\mathcal{G}}\mid\boldsymbol{p}\sim\mathcal{N}(\boldsymbol{\mu}_{\mathcal{G}}\boldsymbol{p},\boldsymbol{\Sigma}_{\mathcal{G}})$,
+the information for $\boldsymbol{p}$ (after the simplex constraint) is
+
+$$
+\mathcal{I}_{\mathcal{G}}
+=
+\boldsymbol{\mu}_{\mathcal{G}}^{\top}
+\boldsymbol{\Sigma}_{\mathcal{G}}^{-1}
+\boldsymbol{\mu}_{\mathcal{G}}.
+$$ {#eq-fisher}
+
+Common criteria are
+
+$$
+\max_{\mathcal{G}}\log\det(\mathcal{I}_{\mathcal{G}}+\lambda\boldsymbol{I})
+\quad\text{(D)},
+\qquad
+\max_{\mathcal{G}}\lambda_{\min}(\mathcal{I}_{\mathcal{G}})
+\quad\text{(E)},
+\qquad
+\min_{\mathcal{G}}\operatorname{tr}(\mathcal{I}_{\mathcal{G}}^{-1})
+\quad\text{(A)}.
+$$ {#eq-optimal-design}
+
+E-optimality is closely related to protecting the hardest cell-type
+contrast; unweighted condition-number minimisation is a rough E-proxy
+without an explicit noise model. In practice use diagonal or shrinkage
+$\boldsymbol{\Sigma}_{\mathcal{G}}$.
+
+### Pairwise Gaussian separation with redundancy control
+
+A cheap multivariate screen scores each gene by standardised pairwise
+separation
+
+$$
+d_{g,jl}^{2}
+=
+\frac{(\mu_{gj}-\mu_{gl})^{2}}
+{\sigma_{gj}^{2}+\sigma_{gl}^{2}+\varepsilon}
+$$ {#eq-pairwise-sep}
+
+and solves a set-cover-like objective with diminishing returns and a
+redundancy penalty. Recursive / hierarchical selection (broad lineage
+then subtypes) mirrors MuSiC’s motivation for correlated cell types
+[@wangBulkTissueCell2019]. Follow with @eq-fisher or @eq-weighted-kappa
+for the final panel.
+
+### Global overlap (DeCovarT proposal)
+
+AutoGeneS optimises correlation and centroid distance separately
+[@alieeAutoGeneSAutomaticGene2021]. We instead minimise the **average
+pairwise overlap** of the purified Gaussians, which folds mean
+separation **and** covariance structure into one interpretable
+probability: the chance of mis-assigning a draw under a MAP rule.
+With MixSim-style pairwise misclassification masses
+$\Omega_{jl}$ [@R-MixSim],
+
+$$
+\overline{\Omega}
+=
+\frac{2}{J(J-1)}
+\sum_{1\le j<l\le J}
+\bigl(p_{j}\Omega_{jl}+p_{l}\Omega_{lj}\bigr).
+$$ {#eq-overlap}
+
+Package helper `compute_average_overlap()` implements @eq-overlap.
+Lower $\overline{\Omega}$ corresponds to better-separated purified
+profiles and, empirically, to more accurate recovery of
+$\boldsymbol{p}$.
+
+### Wrapper optimisation on pseudo-bulks and matched bulks
+
+When matched sc/bulk aliquots exist (e.g. Kassandra-style benchmarks)
+[@zaitsevPreciseReconstructionTME2022], evaluate candidate panels by
+running the **intended** deconvolution algorithm on held-out mixtures
+and scoring RMSE / worst-type error / rare-cell recall under nested
+**donor-level** cross-validation. Use the one-standard-error rule to
+prefer the smallest panel statistically indistinguishable from the
+best. Wrappers overfit the mixture simulator if real matched bulks are
+omitted [@sturmComprehensiveEvaluationTranscriptomebased2019;
+@jinBenchmarkRNAseqDeconvolution2021].
+
+```{r}
+#| label: tbl-strategy-summary
+#| tbl-cap: "Compact map from selection strategy to typical role in a reference-based pipeline."
+
+strategies <- data.frame(
+  Stage = c(
+    "Univariate · 1 vs others",
+    "Univariate · all vs all",
+    "Multivariate · 1 vs others",
+    "Multivariate · all vs all",
+    "Wrapper"
+  ),
+  Examples = c(
+    "DE / F-test / Gini–entropy",
+    "κ pruning; AutoGeneS",
+    "INDEED; sparse GGM",
+    "Weighted κ; D/E-opt; overlap",
+    "Nested CV on matched bulks"
+  ),
+  Role = c(
+    "Candidate generation",
+    "Panel compaction",
+    "Network-aware candidates",
+    "Identifiability of p",
+    "Empirical size selection"
+  )
+)
+
+knitr::kable(strategies)
+```
+
+# Recommended pipeline
+
+1. **Reference moments.** Donor-level pseudobulks; estimate
+   $\boldsymbol{\mu}$ and variance components on a linear scale.
+2. **Reliability filter.** Drop unstable / undetectable / discordant
+   genes; optionally inflate $\tau_{g}^{2}$ by observed sc–bulk
+   discrepancy.
+3. **Candidates.** Union of stable one-versus-others DE, high
+   $d_{g,jl}^{2}$, and (optionally) differential-network hits → roughly
+   $10^{2}$–$10^{3}$ genes.
+4. **Information-optimal subset.** Greedy D- or E-optimal selection
+   (@eq-optimal-design) or weighted $\kappa$ (@eq-weighted-kappa), with
+   overlap (@eq-overlap) as a secondary monitor.
+5. **Wrapper prune.** Evaluate panel sizes along the path under nested
+   donor CV and matched bulks; keep the smallest competitive panel.
+
+The distinctive contribution for DeCovarT-style second-generation
+models is a **bulk-calibrated, variance-weighted information criterion
+plus overlap**, exploiting paired sc/bulk designs when available.
+
+# Perspectives
+
+## Mechanistic priors
+
+PPI / TF networks and pathway modules can regularise both GGM
+estimation and cooperative penalties
+[@chiquetSparsitySigncoherentGroups2012;
+@zuoINDEEDIntegratedDifferential2016], shrinking the search toward
+biologically plausible supports rather than purely statistical markers.
+
+## Continuous states, potency and archetypes
+
+Many tissues are better described by **continua** (differentiation
+trajectories, activation gradients) than by discrete labels. In that
+regime, a finite $J$-column signature is a piecewise approximation of
+an archetype or potency geometry: genes should separate extreme
+vertices **and** resolve interior mixtures along trajectories. Open
+directions include replacing hard one-versus-others contrasts with
+scores along inferred latent axes, and evaluating overlap / Fisher
+information on continuous rather than categorical components. Until
+such methods mature, hierarchical discrete panels (lineage → subtype)
+remain a pragmatic compromise [@wangBulkTissueCell2019].
+
+# Software notes
+
+- DeCovarT helpers: `generate_mean_signature_matrix()`,
+  `compute_average_overlap()`, `simulate_hierarchical_grn_moments()`.
+- Signature QC / compaction patterns: DeconvExplorer
+  (`removePercentZeros`, `removeUnspecificGenes`,
+  `selectGenesByScore` with Gini or entropy).
+- Gold-standard reference-based estimators for downstream validation:
+  CIBERSORT / CIBERSORTx, EPIC, quanTIseq, ABIS, MuSiC, DWLS
+  [@newmanRobustEnumerationCell2015; @newmanDeterminingCellType2019;
+  @racleSimultaneousEnumerationCancer2017; @finotello_etal19;
+  @monacoRNASeqSignaturesNormalized2019; @wangBulkTissueCell2019;
+  @tsoucasAccurateEstimationCelltype2019].

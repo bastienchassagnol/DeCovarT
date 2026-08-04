@@ -37,31 +37,18 @@ This vignette documents the synthetic first- and second-order moment generator `
 
 The exported entry point orchestrates internal helpers and returns moments that can be passed to `simulate_bulk_mixture()` and then to any deconvolution routine exposed by `deconvolute_ratios()`.
 
-```{r pipeline-mermaid, echo=FALSE, results='asis'}
-mmd_candidates <- c(
-  "figures/synthetic_grn_pipeline.mmd",
-  file.path("vignettes", "figures", "synthetic_grn_pipeline.mmd"),
-  system.file(
-    "vignettes",
-    "figures",
-    "synthetic_grn_pipeline.mmd",
-    package = "DeCovarT"
-  )
-)
-mmd_path <- mmd_candidates[file.exists(mmd_candidates)][1]
-if (is.na(mmd_path) || !nzchar(mmd_path)) {
-  cat(
-    "```mermaid\n",
-    "flowchart LR\n",
-    "  moments[simulate_hierarchical_grn_moments] --> bulk[simulate_bulk_mixture]\n",
-    "  bulk --> deconv[deconvolute_ratios]\n",
-    "```\n",
-    sep = ""
-  )
-} else {
-  mmd <- paste(readLines(mmd_path, warn = FALSE), collapse = "\n")
-  cat("```mermaid\n", mmd, "\n```\n", sep = "")
-}
+```{mermaid}
+%%| label: fig-pipeline-api
+%%| fig-cap: "Pipeline from synthetic moment generation to deconvolution."
+%%{init: {"theme": "sandstone"}}%%
+flowchart LR
+  A["Graph G"] --> B["Weights W(G)"]
+  B --> C["Precision Ω ≻ 0"]
+  C --> D["Σ = Ω^{-1}"]
+  E["Means μ_j\n(AutoGeneS-style ρ)"] --> F["simulate_hierarchical_grn_moments()"]
+  D --> F
+  F --> G["simulate_bulk_mixture()"]
+  G --> H["deconvolute_ratios()"]
 ```
 
 ```{r moments-example}
@@ -90,7 +77,11 @@ bulk <- simulate_bulk_mixture(
 dim(bulk$Y)
 ```
 
-Selecting genes (or, here, designing $\boldsymbol{\mu}$) by cosine alone is insufficient for stable deconvolution [@alieeAutoGeneSAutomaticGene2021] when centroids also collapse toward the origin. In the scenarios of this package we therefore **hold `mean_scale` fixed** and dial only `target_cosine`, so that Euclidean norms (and second-order precision weights) stay comparable across runs.
+Selecting genes (or, here, designing $\boldsymbol{\mu}$) by cosine alone is
+insufficient for stable deconvolution [@alieeAutoGeneSAutomaticGene2021]. In
+the scenarios of this package we therefore **hold `mean_scale` fixed** and
+dial only `target_cosine`, so first-order scale and second-order precision
+weights stay comparable across runs.
 
 # Mathematical roles of the generators
 
@@ -157,248 +148,140 @@ The scale $s$ sets column norms without changing angles:
 $\|\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\|_2\propto s$ at
 fixed $\rho$. We keep $s=10$ across scenarios and only vary $\rho$.
 
-### Toy illustration: $J=2$ cell types, $G=2$ genes
+### Visualising the cosine construction
 
-Take equal blocks so
-$\boldsymbol{v}_{1}=(1,0)^{\mathsf{T}}$,
-$\boldsymbol{v}_{2}=(0,1)^{\mathsf{T}}$, and
-$\boldsymbol{u}=2^{-1/2}(1,1)^{\mathsf{T}}$. Then
-$\boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}_{j}=2^{-1/2}$ and @eq-mean-inner
-becomes
+@fig-cosine-geometry visualises the same three operating points
+($\rho\in\{0,\,0.3,\,1\}$) in a two-gene projection sampled from a
+$G=200$ construction. We add small Gaussian perturbations to emulate
+biological dispersion around each cell-type centroid while preserving the
+targeted cosine geometry.
 
-$$
-\tilde{\boldsymbol{\mu}}_{\cdot 1}^{\mathsf{T}}
-\tilde{\boldsymbol{\mu}}_{\cdot 2}
-=
-\rho
-+
-\sqrt{2\rho(1-\rho)}.
-$$
-
-After renormalisation the cosine of $(\boldsymbol{\mu}_{\cdot 1},
-\boldsymbol{\mu}_{\cdot 2})$ still rises monotonically with $\rho$. The
-chunk below reports the realised cosine at the three operating points
-used in the nine-scenario grid ($\rho\in\{0,\,0.3,\,1\}$; intermediate
-collinearity near $0.3$):
-
-```{r cosine-toy-2x2}
-rhos <- c(low = 0, mid = 0.3, high = 1)
-toy <- lapply(rhos, function(rho) {
-  mu <- DeCovarT:::generate_mean_signature_matrix(
-    n_genes = 2L,
-    n_celltypes = 2L,
-    mean_scale = 10,
-    target_cosine = rho,
-    gene_names = c("g1", "g2"),
-    celltype_names = c("j=1", "j=2")
-  )
-  cos_12 <- sum(mu[, 1] * mu[, 2]) /
-    sqrt(sum(mu[, 1]^2) * sum(mu[, 2]^2))
-  data.frame(
-    rho_target = rho,
-    cos_realised = cos_12,
-    mu_j1_g1 = mu[1, 1],
-    mu_j1_g2 = mu[2, 1],
-    mu_j2_g1 = mu[1, 2],
-    mu_j2_g2 = mu[2, 2]
-  )
-})
-do.call(rbind, toy)
-```
-
-The two-gene toy above is useful for geometry, but it overstates finite-$G$
-effects. In this construction the shared direction contributes through an
-arithmetic average across genes, so concentration improves quickly as $G$
-grows under gene-wise independence.
-
-```{r}
-#| label: tbl-cosine-concentration
-#| tbl-cap: "Realised cosine approaches the target as the number of genes increases."
-#| echo: false
-rhos_check <- c(0, 0.3, 0.6, 0.9, 1)
-G_values <- c(2, 80, 200)
-
-cosine_concentration <- do.call(
-  rbind,
-  lapply(G_values, function(G) {
-    do.call(
-      rbind,
-      lapply(rhos_check, function(rho) {
-        mu <- DeCovarT::generate_mean_signature_matrix(
-          n_genes = G,
-          n_celltypes = 2L,
-          mean_scale = 10,
-          target_cosine = rho
-        )
-        cos_hat <- sum(mu[, 1] * mu[, 2]) /
-          sqrt(sum(mu[, 1]^2) * sum(mu[, 2]^2))
-        data.frame(G = G, rho_target = rho, cos_realised = cos_hat)
-      })
-    )
-  })
-)
-
-knitr::kable(
-  cosine_concentration,
-  digits = 3,
-  col.names = c("Genes (G)", "Target cosine", "Realised cosine")
-)
-```
-
-With only two genes the cross terms in @eq-mean-inner are large, so the
-realised cosine is a warped but strictly increasing map of $\rho$. At
-$G=200$, realised cosine is much closer to target levels, which is the
-high-dimensional regime assumed by the synthetic generator.
-
-@fig-cosine-geometry makes the construction geometric for the same three
-operating points (the cosine levels shared by scenarios A1–C1, A2–C2 and
-A3–C3). In the plane of two selected genes (a visual projection), each
-panel draws:
-
-1. the shared unit direction $\boldsymbol{u}$ and the private markers
-   $\boldsymbol{v}_{1}$, $\boldsymbol{v}_{2}$;
-2. the un-normalised blends
-   $\tilde{\boldsymbol{\mu}}_{\cdot j}=\sqrt{\rho}\,\boldsymbol{u}+\sqrt{1-\rho}\,\boldsymbol{v}_{j}$
-   (dashed);
-3. the final columns $\boldsymbol{\mu}_{\cdot j}$ after
-   $\ell_2$-normalisation and scaling by $s$ (solid), with the angle
-   between them labelled by the realised cosine.
-
-The sequence $\boldsymbol{v}_{j}\rightarrow\tilde{\boldsymbol{\mu}}_{\cdot j}\rightarrow\boldsymbol{\mu}_{\cdot j}$
-is the one-shot constructive counterpart of AutoGeneS-style search for a
-target collinearity: rather than iterating a multi-objective optimiser,
-@eq-mean-cosine places the two cell-type profiles at a controlled angle
-in a single pass [@alieeAutoGeneSAutomaticGene2021].
+This illustration is inspired by panel B in the AutoGeneS paper
+[@alieeAutoGeneSAutomaticGene2021], but focuses here on the cosine-angle
+control induced by @eq-mean-cosine (without modelling centroid-distance
+optimisation).
 
 ```{r}
 #| label: fig-cosine-geometry
 #| fig-cap: >-
-#|   Constructive cosine dial for $J=2$ cell types in a two-gene projection.
-#|   Panels correspond to the three scenario levels
-#|   $\rho\in\{0,\,0.3,\,1\}$ (suffixes 1–3 in A1–C3). Shared direction
-#|   $\boldsymbol{u}$ (grey), private markers $\boldsymbol{v}_{j}$
-#|   (open arrows), blends $\tilde{\boldsymbol{\mu}}_{\cdot j}$ (dashed),
-#|   and scaled profiles $\boldsymbol{\mu}_{\cdot j}$ (solid).
+#|   Cosine-control toy for $J=2$ cell types with $G=200$ genes.
+#|   Each panel shows noisy point clouds around centroids (stars), with
+#|   realised angle and cosine. Styling is inspired by panel B of AutoGeneS
+#|   (@alieeAutoGeneSAutomaticGene2021).
 #| fig-width: 9
-#| fig-height: 3.4
+#| fig-height: 4.6
 #| echo: false
 #| warning: false
 #| message: false
 #| eval: true
 rhos_fig <- c(0, 0.3, 1)
+set.seed(20260804)
+g_total <- 200L
 s_fig <- 10
-u <- c(1, 1) / sqrt(2)
-v1 <- c(1, 0)
-v2 <- c(0, 1)
+n_points <- 35L
+direction_noise_sd <- 0.02
+point_noise_sd <- 0.33
+gene_pairs <- list(c(11L, 12L), c(71L, 72L), c(151L, 152L))
 
-arrow_df <- list()
+scatter_df <- list()
+centroid_df <- list()
 label_df <- list()
-for (rho in rhos_fig) {
-  tilde1 <- sqrt(rho) * u + sqrt(1 - rho) * v1
-  tilde2 <- sqrt(rho) * u + sqrt(1 - rho) * v2
-  mu1 <- s_fig * tilde1 / sqrt(sum(tilde1^2))
-  mu2 <- s_fig * tilde2 / sqrt(sum(tilde2^2))
-  tilde1_u <- tilde1 / sqrt(sum(tilde1^2))
-  tilde2_u <- tilde2 / sqrt(sum(tilde2^2))
-  mu1_u <- mu1 / s_fig
-  mu2_u <- mu2 / s_fig
-  cos_hat <- sum(mu1 * mu2) / (s_fig * s_fig)
 
+for (k in seq_along(rhos_fig)) {
+  rho <- rhos_fig[[k]]
+  mu <- DeCovarT::generate_mean_signature_matrix(
+    n_genes = g_total,
+    n_celltypes = 2L,
+    mean_scale = s_fig,
+    target_cosine = rho,
+    direction_noise_sd = direction_noise_sd,
+    random_seed = 100 + k
+  )
+  cos_hat <- sum(mu[, 1] * mu[, 2]) /
+    sqrt(sum(mu[, 1]^2) * sum(mu[, 2]^2))
+  angle_deg <- acos(max(-1, min(1, cos_hat))) * 180 / pi
+  pair <- gene_pairs[[k]]
+  g_x <- pair[[1]]
+  g_y <- pair[[2]]
   panel <- sprintf(
-    "rho = %s  (realised cos = %.2f)",
-    format(rho, nsmall = 1),
-    cos_hat
+    "rho = %s",
+    format(rho, nsmall = 1)
   )
-  arrow_df[[length(arrow_df) + 1L]] <- data.frame(
-    panel = panel,
-    rho = rho,
-    name = c(
-      "u", "v1", "v2",
-      "tilde1", "tilde2",
-      "mu1", "mu2"
-    ),
-    kind = c(
-      "shared", "private", "private",
-      "blend", "blend",
-      "profile", "profile"
-    ),
-    x0 = 0, y0 = 0,
-    x1 = c(u[1], v1[1], v2[1], tilde1_u[1], tilde2_u[1], mu1_u[1], mu2_u[1]),
-    y1 = c(u[2], v1[2], v2[2], tilde1_u[2], tilde2_u[2], mu1_u[2], mu2_u[2]),
-    stringsAsFactors = FALSE
-  )
+
+  for (j in 1:2) {
+    scatter_df[[length(scatter_df) + 1L]] <- data.frame(
+      panel = panel,
+      celltype = paste0("cell_", j),
+      x = stats::rnorm(n_points, mean = mu[g_x, j], sd = point_noise_sd),
+      y = stats::rnorm(n_points, mean = mu[g_y, j], sd = point_noise_sd)
+    )
+    centroid_df[[length(centroid_df) + 1L]] <- data.frame(
+      panel = panel,
+      celltype = paste0("cell_", j),
+      x = mu[g_x, j],
+      y = mu[g_y, j]
+    )
+  }
   label_df[[length(label_df) + 1L]] <- data.frame(
     panel = panel,
-    label = sprintf("realised cosine = %.2f", cos_hat),
-    x = 0.05,
-    y = 1.12,
-    stringsAsFactors = FALSE
+    x = min(mu[g_x, ]) - 0.7,
+    y = max(mu[g_y, ]) + 0.8,
+    label = sprintf("realised cos = %.2f\nangle = %.1f°", cos_hat, angle_deg)
   )
 }
-arrows <- do.call(rbind, arrow_df)
+
+points_df <- do.call(rbind, scatter_df)
+centroids <- do.call(rbind, centroid_df)
 labels <- do.call(rbind, label_df)
-arrows$panel <- factor(arrows$panel, levels = unique(arrows$panel))
-labels$panel <- factor(labels$panel, levels = levels(arrows$panel))
+panel_levels <- sprintf("rho = %s", format(rhos_fig, nsmall = 1))
+points_df$panel <- factor(points_df$panel, levels = panel_levels)
+centroids$panel <- factor(centroids$panel, levels = panel_levels)
+labels$panel <- factor(labels$panel, levels = panel_levels)
 
 print(
-  ggplot2::ggplot() +
-    ggplot2::geom_hline(yintercept = 0, colour = "grey85", linewidth = 0.3) +
-    ggplot2::geom_vline(xintercept = 0, colour = "grey85", linewidth = 0.3) +
-    ggplot2::geom_segment(
-      data = arrows[arrows$kind == "shared", ],
-      ggplot2::aes(x = x0, y = y0, xend = x1, yend = y1),
-      colour = "grey40",
-      linewidth = 0.7,
-      arrow = ggplot2::arrow(length = grid::unit(0.18, "cm"))
+  ggplot2::ggplot(points_df, ggplot2::aes(x = x, y = y, colour = celltype)) +
+    ggplot2::geom_hline(yintercept = 0, colour = "grey88", linewidth = 0.3) +
+    ggplot2::geom_vline(xintercept = 0, colour = "grey88", linewidth = 0.3) +
+    ggplot2::geom_point(alpha = 0.75, size = 2.1) +
+    ggplot2::geom_point(
+      data = centroids,
+      ggplot2::aes(x = x, y = y),
+      shape = 8,
+      size = 3.3,
+      colour = "black",
+      inherit.aes = FALSE
     ) +
-    ggplot2::geom_segment(
-      data = arrows[arrows$kind == "private", ],
-      ggplot2::aes(x = x0, y = y0, xend = x1, yend = y1),
-      colour = "#1B9E77",
-      linewidth = 0.7,
-      linetype = "22",
-      arrow = ggplot2::arrow(length = grid::unit(0.18, "cm"))
-    ) +
-    ggplot2::geom_segment(
-      data = arrows[arrows$kind == "blend", ],
-      ggplot2::aes(x = x0, y = y0, xend = x1, yend = y1),
-      colour = "#D95F02",
-      linewidth = 0.65,
-      linetype = "dashed",
-      arrow = ggplot2::arrow(length = grid::unit(0.18, "cm"))
-    ) +
-    ggplot2::geom_segment(
-      data = arrows[arrows$kind == "profile", ],
-      ggplot2::aes(x = x0, y = y0, xend = x1, yend = y1, colour = name),
-      linewidth = 1.05,
-      arrow = ggplot2::arrow(length = grid::unit(0.22, "cm"))
-    ) +
-    ggplot2::geom_text(
+    ggplot2::geom_label(
       data = labels,
       ggplot2::aes(x = x, y = y, label = label),
+      inherit.aes = FALSE,
       hjust = 0,
-      size = 3,
-      colour = "grey20"
+      vjust = 1,
+      size = 3.2,
+      colour = "grey15",
+      fill = "#fffbe9",
+      label.size = 0.15
     ) +
     ggplot2::scale_colour_manual(
-      values = c(mu1 = "#7570B3", mu2 = "#E7298A"),
-      labels = c(
-        expression(bold(mu)[plain("\u00b7") * 1]),
-        expression(bold(mu)[plain("\u00b7") * 2])
-      ),
-      name = NULL
+      values = c(cell_1 = "#2B8C99", cell_2 = "#F4B400"),
+      labels = c("Cell type 1", "Cell type 2"),
+      name = "Population"
     ) +
-    ggplot2::coord_equal(xlim = c(-0.15, 1.2), ylim = c(-0.15, 1.25)) +
+    ggplot2::coord_equal() +
     ggplot2::facet_wrap(~panel, nrow = 1) +
-    ggplot2::labs(x = "gene 1", y = "gene 2") +
-    ggplot2::theme_bw(base_size = 11) +
+    ggplot2::labs(
+      x = "Expression of selected gene x",
+      y = "Expression of selected gene y"
+    ) +
+    ggplot2::theme_bw(base_size = 11.5) +
     ggplot2::theme(
       legend.position = "bottom",
       panel.grid.minor = ggplot2::element_blank(),
       strip.background = ggplot2::element_rect(
-        fill = "grey95",
-        colour = "grey70"
-      )
+        fill = "#f8f8f8",
+        colour = "grey75"
+      ),
+      strip.text = ggplot2::element_text(face = "bold")
     )
 )
 ```

@@ -9,6 +9,8 @@ generate_mean_signature_matrix(
   n_celltypes,
   mean_scale = 10,
   target_cosine = 0,
+  direction_noise_sd = 0,
+  random_seed = NULL,
   gene_names = NULL,
   celltype_names = NULL
 )
@@ -24,6 +26,14 @@ studying cosine / collinearity alone.}
 
 \item{target_cosine}{Numeric in \eqn{[0,1]}, the collinearity dial
 \eqn{\rho}.}
+
+\item{direction_noise_sd}{Non-negative scalar. Standard deviation of a
+Gaussian perturbation added to each cell-type direction before
+normalisation. Use small values (e.g. \code{0.01}--\code{0.05}) to add
+mild biological variability; default \code{0} keeps deterministic columns.}
+
+\item{random_seed}{Optional integer seed used only within this function
+when \code{direction_noise_sd > 0}.}
 
 \item{gene_names}{Optional character vector of length \eqn{G}.}
 

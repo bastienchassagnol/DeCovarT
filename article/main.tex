@@ -607,17 +607,7 @@
     \textit{Deseq2} (\cite{loveModeratedEstimationFold2014a}), tend to overlook gene-gene
     interactions, comparing independently the expression between two conditions for
     each gene. The usual univariate approach of DGEAs additionally underlies the
-    need of adjusting $p-$ values, as numerous genes are examined simultaneously,
-    and without accounting for interactions between them, the probability of observing
-    false positives increases.
-
-    \bigskip
-
-    Differential network approaches, such
-    as INDEED, by \cite{zuoINDEEDIntegratedDifferential2016}, implement heuristic and dual-optimisation
-    approaches, finding the sweet spot between maximising the mean differences between
-    purified expression profiles and differentiating the neighbourhood network structure.
-
+    need of a
     \bigskip
     The gLasso algorithm used to derive the precision matrix associated to each purified
     cell profile is subjected to \textit{parameter shrinkage}, like any penalty regularisation
@@ -637,7 +627,15 @@
     relationships between transcription factors, retrieved from Protein-Protein
     Interaction (PPI) networks, can help reduce the exponential space of undirected
     graphs to explore.
+djusting $p-$ values, as numerous genes are examined simultaneously,
+    and without accounting for interactions between them, the probability of observing
+    false positives increases.
 
+    \bigskip
+
+    Differential network approaches, such
+    as INDEED, by \cite{zuoINDEEDIntegratedDifferential2016}, implement heuristic and dual-optimisation
+    approache
     \paragraph{Enhanced Inference and Integration of Co-Expression Networks}
 
     All the methods outlined in \ref{para:one-vs-all-deconvolution} yield a subset
