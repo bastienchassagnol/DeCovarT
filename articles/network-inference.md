@@ -199,7 +199,7 @@ Selection Using Multi-Objective Optimization for RNA-seq Deconvolution’.
 *Cell Systems* 12. <https://doi.org/10.1016/j.cels.2021.05.006>.
 
 Chiquet, Julien. 2015. ‘Contributions to Sparse Methods for Complex Data
-Analysis’. PhD thesis.
+Analysis’. PhD thesis, Université Paris-Saclay / AgroParisTech.
 
 Chiquet, Julien, Mahendra Mariadassou, and Stéphane Robin. 2018.
 *Variational Inference for Sparse Network Reconstruction from Count

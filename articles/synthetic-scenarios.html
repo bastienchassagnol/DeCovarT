@@ -84,7 +84,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Simulating semi-synthetic pseudo-bulk mixtures for benchmarking</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-08-03</p>
+      <p class="date">2026-08-04</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/synthetic-scenarios.qmd" class="external-link"><code>vignettes/synthetic-scenarios.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -222,8 +222,104 @@ j=1,\ldots,J.
 <span><span class="co">#&gt; mid         0.3    0.5752618  9.534069 3.016875 3.016875  9.534069</span></span>
 <span><span class="co">#&gt; high        1.0    1.0000000  7.071068 7.071068 7.071068  7.071068</span></span></code></pre></div>
 </div>
-<p>With only two genes the cross terms in <a href="#eq-mean-inner" class="quarto-xref">Equation 2</a> are large, so the realised cosine is a warped but strictly increasing map of <span class="math inline">\rho</span> (near <span class="math inline">0</span> when <span class="math inline">\rho=0</span>, intermediate near <span class="math inline">\rho=0.3</span>, and <span class="math inline">1</span> when <span class="math inline">\rho=1</span>). In the <span class="math inline">G=80</span> simulation grid the same dial sits much closer to the nominal target.</p>
-<p><a href="#fig-cosine-geometry" class="quarto-xref">Figure 1</a> makes the construction geometric for the same three operating points (the cosine levels shared by scenarios A1–C1, A2–C2 and A3–C3). In the plane of the two genes, each panel draws:</p>
+<p>The two-gene toy above is useful for geometry, but it overstates finite-<span class="math inline">G</span> effects. In this construction the shared direction contributes through an arithmetic average across genes, so concentration improves quickly as <span class="math inline">G</span> grows under gene-wise independence.</p>
+<div class="cell">
+<div id="tbl-cosine-concentration" class="cell quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-cosine-concentration-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 1: Realised cosine approaches the target as the number of genes increases.
+</figcaption><div aria-describedby="tbl-cosine-concentration-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<table class="table cell caption-top">
+<thead><tr class="header">
+<th style="text-align: right;">Genes (G)</th>
+<th style="text-align: right;">Target cosine</th>
+<th style="text-align: right;">Realised cosine</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0.3</td>
+<td style="text-align: right;">0.575</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0.6</td>
+<td style="text-align: right;">0.764</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0.9</td>
+<td style="text-align: right;">0.930</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">1.000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">80</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">80</td>
+<td style="text-align: right;">0.3</td>
+<td style="text-align: right;">0.575</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">80</td>
+<td style="text-align: right;">0.6</td>
+<td style="text-align: right;">0.764</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">80</td>
+<td style="text-align: right;">0.9</td>
+<td style="text-align: right;">0.930</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">80</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">1.000</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">200</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.000</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">200</td>
+<td style="text-align: right;">0.3</td>
+<td style="text-align: right;">0.575</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">200</td>
+<td style="text-align: right;">0.6</td>
+<td style="text-align: right;">0.764</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">200</td>
+<td style="text-align: right;">0.9</td>
+<td style="text-align: right;">0.930</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">200</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">1.000</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>With only two genes the cross terms in <a href="#eq-mean-inner" class="quarto-xref">Equation 2</a> are large, so the realised cosine is a warped but strictly increasing map of <span class="math inline">\rho</span>. At <span class="math inline">G=200</span>, realised cosine is much closer to target levels, which is the high-dimensional regime assumed by the synthetic generator.</p>
+<p><a href="#fig-cosine-geometry" class="quarto-xref">Figure 1</a> makes the construction geometric for the same three operating points (the cosine levels shared by scenarios A1–C1, A2–C2 and A3–C3). In the plane of two selected genes (a visual projection), each panel draws:</p>
 <ol type="1">
 <li>the shared unit direction <span class="math inline">\boldsymbol{u}</span> and the private markers <span class="math inline">\boldsymbol{v}_{1}</span>, <span class="math inline">\boldsymbol{v}_{2}</span>;</li>
 <li>the un-normalised blends <span class="math inline">\tilde{\boldsymbol{\mu}}_{\cdot j}=\sqrt{\rho}\,\boldsymbol{u}+\sqrt{1-\rho}\,\boldsymbol{v}_{j}</span> (dashed);</li>
@@ -237,7 +333,7 @@ j=1,\ldots,J.
 <img src="synthetic-scenarios_files/figure-html/fig-cosine-geometry-1.png" width="864">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cosine-geometry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 1: Constructive cosine dial for <span class="math inline">J=2</span> cell types and <span class="math inline">G=2</span> genes. Panels correspond to the three scenario levels <span class="math inline">\rho\in\{0,\,0.3,\,1\}</span> (suffixes 1–3 in A1–C3). Shared direction <span class="math inline">\boldsymbol{u}</span> (grey), private markers <span class="math inline">\boldsymbol{v}_{j}</span> (open arrows), blends <span class="math inline">\tilde{\boldsymbol{\mu}}_{\cdot j}</span> (dashed), and scaled profiles <span class="math inline">\boldsymbol{\mu}_{\cdot j}</span> (solid).
+Figure 1: Constructive cosine dial for <span class="math inline">J=2</span> cell types in a two-gene projection. Panels correspond to the three scenario levels <span class="math inline">\rho\in\{0,\,0.3,\,1\}</span> (suffixes 1–3 in A1–C3). Shared direction <span class="math inline">\boldsymbol{u}</span> (grey), private markers <span class="math inline">\boldsymbol{v}_{j}</span> (open arrows), blends <span class="math inline">\tilde{\boldsymbol{\mu}}_{\cdot j}</span> (dashed), and scaled profiles <span class="math inline">\boldsymbol{\mu}_{\cdot j}</span> (solid).
 </figcaption></figure>
 </div>
 </div>

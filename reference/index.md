@@ -60,6 +60,8 @@ convolution benchmark.
 Simulate bulk mixtures as convolutions of multivariate Gaussians, and
 hierarchical GRN moments with graph-constrained covariances.
 
+- [`generate_mean_signature_matrix()`](https://bastienchassagnol.github.io/DeCovarT/reference/generate_mean_signature_matrix.md)
+  : Generate mean profiles with a target pairwise cosine
 - [`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md)
   : Simulate bulk mixtures from a Gaussian convolution
 - [`simulate_hierarchical_grn_moments()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_hierarchical_grn_moments.md)

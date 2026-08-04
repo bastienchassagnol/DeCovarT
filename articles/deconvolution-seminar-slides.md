@@ -65,31 +65,62 @@ Slides:
 ## Quantify components of biological systems
 
 Bulk tissues mix cell populations. Autoimmunity and cancer change both
-**composition** and **state** of those populations.
+**composition** and **state** of those populations ([Schnell et al.
+2020](#/references)).
 
-Schnell et al., *Nature*, 2020 —
-[doi:10.1038/s41422-020-0277-x](https://doi.org/10.1038/s41422-020-0277-x)
+Figure 1: Immune balance as a seesaw between regulation and
+inflammation.
+
+Schnell et al. ([2020](#/references))
+
+## Immune balance (schematic)
+
+Complementary schematic of [Figure 1](#/fig-immune-balance):
+
+``` mermaid
+flowchart TB
+  H["Balanced<br/>Regulation ≈ Inflammation<br/>Healthy"]
+  U["Under-reaction<br/>Regulation ≫ Inflammation<br/>Cancer risk"]
+  O["Over-reaction<br/>Inflammation ≫ Regulation<br/>Autoimmunity"]
+  H -->|"imbalance?"| U
+  H -->|"imbalance?"| O
+```
+
+Figure 2: Healthy balance vs under- and over-reaction.
+
+Schnell et al. ([2020](#/references))
 
 ## Holistic complexity
 
 Genes cooperate in pathways; metabolites and cell populations interact
 in bio-molecular networks. Deconvolution alone is not enough — we need
-**structure** on the gene side as well.
+**structure** on the gene side as well ([Schnell et al.
+2020](#/references)).
 
-Schnell et al., *Nature*, 2020 —
-[doi:10.1038/s41422-020-0277-x](https://doi.org/10.1038/s41422-020-0277-x)
+Figure 3: Holistic view: transcriptome and cell populations feed immune
+balance.
+
+Schnell et al. ([2020](#/references))
 
 ## Why bulk is limited for biomarkers
 
-Shoemaker et al. (2012): the same bulk fold-change can come from
+Shoemaker et al. ([2012](#/references)): the same bulk fold-change can
+come from
 
 - **Scenario A** — activation within an existing cell type
+  1.  
 - **Scenario B** — arrival of a new cell population
+  ([Figure 5](#/fig-bulk-b))
 
-Shoemaker et al., *BMC Genomics*, 2012 —
-[doi:10.1186/1471-2164-13-460](https://doi.org/10.1186/1471-2164-13-460)
+Figure 4: Scenario A: within-type activation.
+
+Figure 5: Scenario B: new population.
+
+Shoemaker et al. ([2012](#/references))
 
 ## Technical alternatives
+
+Figure 6: Bulk versus single-cell trade-offs.
 
 **Bulk RNA-seq**
 
@@ -110,7 +141,9 @@ is impractical at scale.
 
 ## The ecosystem of algorithms
 
-Shen-Orr & Gannett (2013) taxonomy:
+Taxonomy after Shen-Orr & Gannett (2013) and reviews such as Avila Cobos
+et al. ([2018](#/references)), Gaspard-Boulinc et al.
+([2025](#/references)):
 
 - **Partial deconvolution** — estimate proportions \\p\\ given signature
   \\X\\
@@ -127,13 +160,24 @@ Deconvolution targets vary:
 
 ## Reference-based principle
 
+Figure 7: Signature \\X\\, bulk \\y\\, proportions \\p\\.
+
 1.  Purified cellular profiles (signature matrix \\X\\)
 2.  Bulk mixture \\y\\
 3.  Estimate proportions \\p\\ (often with simplex constraints)
 
-Classic tools: DeconRNASeq, CIBERSORT, EPIC, quanTIseq, FARDEEP, …
+Classic tools include DeconRNASeq ([Gong and Szustakowski
+2013](#/references)), CIBERSORT ([Newman et al. 2015](#/references)),
+and EPIC ([Racle et al. 2017](#/references)).
+
+Avila Cobos et al. ([2018](#/references))
 
 ## Signature-based families
+
+Compact survey of common reference-based tools
+([Table 1](#/tbl-methods)):
+
+Table 1: Selected reference-based deconvolution methods.
 
 **Regression**
 
@@ -150,26 +194,33 @@ Classic tools: DeconRNASeq, CIBERSORT, EPIC, quanTIseq, FARDEEP, …
 
 ## Global pipeline
 
+Figure 8: From references to biological exploitation.
+
 1.  Collect / curate cell-type datasets
 2.  Learn features & GRN structure
 3.  **DeCovarT** estimation of \\p\\
 4.  Biological exploitation
 
-Pipeline framing inspired by Avila Cobos et al., *Genome Biology*, 2018
-—
-[doi:10.1186/s13059-018-1479-0](https://doi.org/10.1186/s13059-018-1479-0)
+Avila Cobos et al. ([2018](#/references))
 
 ## Multivariate Gaussian convolution
 
 Cell type \\j\\: \\x_j \sim \mathcal{N}\_G(\mu_j, \Sigma_j)\\.
 
-Bulk observation:
+Bulk observation ([Equation 1](#/eq-bulk-gauss)):
 
 \\ y \mid p \\\sim\\ \mathcal{N}\_G\\\Bigl( \mu p,\\ \sum_j
-p_j^{2}\\\Sigma_j \Bigr). \\
+p_j^{2}\\\Sigma_j \Bigr). \tag{1}\\
+
+- \\G\\: number of genes (dimension of \\y\\)
+- \\J\\: number of cell types; \\p \in \Delta^{J-1}\\
+- \\\mu\\: \\G \times J\\ mean signature; \\\Sigma_j\\: gene–gene
+  covariance of type \\j\\
 
 Covariance structure enters the likelihood — gene–gene dependence is
 first-class, not noise.
+
+Figure 9: Another view of the convolution principle.
 
 ## Unit-simplex constraint
 
@@ -181,8 +232,13 @@ Proportions live on \\\Delta^{J-1}\\. DeCovarT uses an unconstrained map
 
 Bivariate convolutions make the geometry visible: entropy of \\p\\,
 overlap of \\\Sigma_j\\, and solver behaviour (DeconRNASeq vs DeCovarT).
+See [Figure 10](#/fig-toy-model) and [Figure 11](#/fig-toy-results).
 
-See package vignettes [synthetic
+Figure 10: Toy bivariate setup.
+
+Figure 11: Toy estimation results.
+
+Package vignettes: [synthetic
 scenarios](../vignettes/synthetic-scenarios.qmd) and
 [`benchmark_bivariate_gaussian_convolutions()`](https://bastienchassagnol.github.io/DeCovarT/reference/benchmark_bivariate_gaussian_convolutions.html).
 
@@ -191,10 +247,12 @@ scenarios](../vignettes/synthetic-scenarios.qmd) and
 ## Sjögren’s disease
 
 Transcriptomic patient clusters and IFN modules motivate
-composition-aware analysis of immune infiltration.
+composition-aware analysis of immune infiltration ([Soret et al.
+2021](#/references)).
 
-Soret et al., *Nature Communications*, 2021 —
-[doi:10.1038/s41467-021-23949-4](https://doi.org/10.1038/s41467-021-23949-4)
+Figure 12: Sjögren patient stratification motivating deconvolution.
+
+Soret et al. ([2021](#/references))
 
 ## DTOO / gastruloid perspectives
 
@@ -203,14 +261,13 @@ bulk, single-cell, and ATAC layers — composition + covariance again.
 
 ## Spatial deconvolution (outlook)
 
-Emerging toolkits mix:
+Emerging toolkits mix ([Gaspard-Boulinc et al. 2025](#/references)):
 
 - Graph / optimal transport pairing of cells to spots
 - Bayesian count models (NB, Poisson–gamma, topic models)
 - Regression with simplex / robust / ensemble constraints
 
-Gaspard-Boulinc & Cavalli, *Nature Reviews Genetics*, 2025 —
-[doi:10.1038/s41576-025-00845-y](https://doi.org/10.1038/s41576-025-00845-y)
+Gaspard-Boulinc et al. ([2025](#/references))
 
 ## Perspectives for DeCovarT
 
@@ -265,9 +322,50 @@ A bulk gene increases. Scenario B means:
 
 - Bulk mixes cell types; deconvolution recovers proportions \\p\\.
 - Reference-based methods need a signature \\X\\; unsupervised methods
-  need strong priors.
+  need strong priors ([Table 1](#/tbl-methods)).
 - DeCovarT models gene–gene covariance via multivariate Gaussian
-  convolutions.
+  convolutions ([Equation 1](#/eq-bulk-gauss)).
 - Always validate with aliquots (bulk + FACS / scRNA-seq) when possible.
+
+## References
+
+Avila Cobos, Francisco, Jo Vandesompele, Pieter Mestdagh, and Katleen De
+Preter. 2018. ‘Computational Deconvolution of Transcriptomics Data from
+Mixed Cell Populations’. *Bioinformatics (Oxford, England)* 34.
+<https://doi.org/10.1093/bioinformatics/bty019>.
+
+Gaspard-Boulinc, Lucie C., Luca Gortana, Thomas Walter, Emmanuel
+Barillot, and Florence M. G. Cavalli. 2025. ‘Cell-Type Deconvolution
+Methods for Spatial Transcriptomics’. *Nature Reviews Genetics* 26.
+<https://doi.org/10.1038/s41576-025-00845-y>.
+
+Gong, Ting, and Joseph D. Szustakowski. 2013. ‘DeconRNASeq: A
+Statistical Framework for Deconvolution of Heterogeneous Tissue Samples
+Based on mRNA-Seq Data’. *Bioinformatics (Oxford, England)* 29.
+<https://doi.org/10.1093/bioinformatics/btt090>.
+
+Newman, Aaron, Chih Liu, Michael Green, et al. 2015. ‘Robust Enumeration
+of Cell Subsets from Tissue Expression Profiles’. *Nature Methods* 12.
+<https://doi.org/10.1038/nmeth.3337>.
+
+Racle, Julien, Kaat de Jonge, Petra Baumgaertner, Daniel E Speiser, and
+David Gfeller. 2017. ‘Simultaneous Enumeration of Cancer and Immune Cell
+Types from Bulk Tumor Gene Expression Data’. *eLife* 6.
+<https://doi.org/10.7554/elife.26476>.
+
+Schnell, Alexandra, Lloyd Bod, Asaf Madi, and Vijay K. Kuchroo. 2020.
+‘The Yin and Yang of Co-Inhibitory Receptors: Toward Anti-Tumor Immunity
+Without Autoimmunity’. *Cell Research* 30.
+<https://doi.org/10.1038/s41422-020-0277-x>.
+
+Shoemaker, Jason E., Tiago JS Lopes, Samik Ghosh, Yukiko Matsuoka,
+Yoshihiro Kawaoka, and Hiroaki Kitano. 2012. ‘CTen: A Web-Based Platform
+for Identifying Enriched Cell Types from Heterogeneous Microarray Data’.
+*BMC Genomics* 13. <https://doi.org/10.1186/1471-2164-13-460>.
+
+Soret, Perrine, Christelle Le Dantec, Emiko Desvaux, et al. 2021. ‘A New
+Molecular Classification to Drive Precision Treatment Strategies in
+Primary Sjögren’s Syndrome’. *Nature Communications* 12.
+<https://doi.org/10.1038/s41467-021-23949-4>.
 
 DeCovarT — doctorants seminar

@@ -167,16 +167,41 @@ do.call(rbind, toy)
 #> high        1.0    1.0000000  7.071068 7.071068 7.071068  7.071068
 ```
 
+The two-gene toy above is useful for geometry, but it overstates
+finite-G effects. In this construction the shared direction contributes
+through an arithmetic average across genes, so concentration improves
+quickly as G grows under gene-wise independence.
+
+| Genes (G) | Target cosine | Realised cosine |
+|----------:|--------------:|----------------:|
+|         2 |           0.0 |           0.000 |
+|         2 |           0.3 |           0.575 |
+|         2 |           0.6 |           0.764 |
+|         2 |           0.9 |           0.930 |
+|         2 |           1.0 |           1.000 |
+|        80 |           0.0 |           0.000 |
+|        80 |           0.3 |           0.575 |
+|        80 |           0.6 |           0.764 |
+|        80 |           0.9 |           0.930 |
+|        80 |           1.0 |           1.000 |
+|       200 |           0.0 |           0.000 |
+|       200 |           0.3 |           0.575 |
+|       200 |           0.6 |           0.764 |
+|       200 |           0.9 |           0.930 |
+|       200 |           1.0 |           1.000 |
+
+Table 1: Realised cosine approaches the target as the number of genes
+increases.
+
 With only two genes the cross terms in [Equation 2](#eq-mean-inner) are
 large, so the realised cosine is a warped but strictly increasing map of
-\rho (near 0 when \rho=0, intermediate near \rho=0.3, and 1 when
-\rho=1). In the G=80 simulation grid the same dial sits much closer to
-the nominal target.
+\rho. At G=200, realised cosine is much closer to target levels, which
+is the high-dimensional regime assumed by the synthetic generator.
 
 [Figure 1](#fig-cosine-geometry) makes the construction geometric for
 the same three operating points (the cosine levels shared by scenarios
-A1–C1, A2–C2 and A3–C3). In the plane of the two genes, each panel
-draws:
+A1–C1, A2–C2 and A3–C3). In the plane of two selected genes (a visual
+projection), each panel draws:
 
 1.  the shared unit direction \boldsymbol{u} and the private markers
     \boldsymbol{v}\_{1}, \boldsymbol{v}\_{2};
@@ -198,12 +223,12 @@ controlled angle in a single pass ([Aliee and Theis
 
 ![](synthetic-scenarios_files/figure-html/fig-cosine-geometry-1.png)
 
-Figure 1: Constructive cosine dial for J=2 cell types and G=2 genes.
-Panels correspond to the three scenario levels \rho\in\\0,\\0.3,\\1\\
-(suffixes 1–3 in A1–C3). Shared direction \boldsymbol{u} (grey), private
-markers \boldsymbol{v}\_{j} (open arrows), blends
-\tilde{\boldsymbol{\mu}}\_{\cdot j} (dashed), and scaled profiles
-\boldsymbol{\mu}\_{\cdot j} (solid).
+Figure 1: Constructive cosine dial for J=2 cell types in a two-gene
+projection. Panels correspond to the three scenario levels
+\rho\in\\0,\\0.3,\\1\\ (suffixes 1–3 in A1–C3). Shared direction
+\boldsymbol{u} (grey), private markers \boldsymbol{v}\_{j} (open
+arrows), blends \tilde{\boldsymbol{\mu}}\_{\cdot j} (dashed), and scaled
+profiles \boldsymbol{\mu}\_{\cdot j} (solid).
 
 ### Objectives: `compute_mean_profile_objectives()`
 

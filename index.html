@@ -138,7 +138,8 @@
 <div class="section level2">
 <h2 id="pipeline-architecture">Pipeline Architecture<a class="anchor" aria-label="anchor" href="#pipeline-architecture"></a>
 </h2>
-<pre class="mermaid"><code>flowchart TD
+<pre class="mermaid"><code>%%{init: {"theme": "sandstone"}}%%
+flowchart TD
     A["Bulk RNA-seq mixture&lt;br/&gt;Genes × Samples"] --&gt; C["Gene intersection,&lt;br/&gt;optional scaling"]
     B["Cell-type reference&lt;br/&gt;Means μ_j + covariances Σ_j"] --&gt; C
 
@@ -155,6 +156,7 @@
 
     H --&gt; J["Comparative evaluation"]
     I --&gt; J</code></pre>
+<p>The diagram above summarises the end-to-end workflow.</p>
 <blockquote>
 <p>This package combines <strong>Gaussian mixture convolution modelling, simplex reparametrisation (ALR / soft-max), analytic likelihood derivatives, and classical linear deconvolution baselines</strong> on bulk transcriptomic mixtures. Solver outputs remain method-specific; shared evaluation uses standardised proportion tables and optional ground-truth ratios from simulations.</p>
 </blockquote>
@@ -316,14 +318,7 @@
 \Bigr).
 </span></p>
 <pre class="mermaid"><code>%%{init: {
-  "theme": "base",
-  "themeVariables": {
-    "primaryColor": "#f5f7fa",
-    "primaryBorderColor": "#334155",
-    "primaryTextColor": "#0f172a",
-    "lineColor": "#475569",
-    "fontSize": "14px"
-  },
+  "theme": "sandstone",
   "flowchart": { "curve": "basis" }
 }}%%
 flowchart TB
@@ -356,6 +351,7 @@ flowchart TB
   class rho,xj latent;
   class p det;
   class y obs;</code></pre>
+<p>The diagram above shows the constrained graphical model.</p>
 <p>Forward map <span class="math inline">\boldsymbol{\psi}:\boldsymbol{\rho}\mapsto\boldsymbol{p}</span> (<span class="math inline">C^{2}</span>-diffeomorphism):</p>
 <p><span class="math display">
 p_{j}=\frac{e^{\rho_{j}}}{\sum_{k&lt;J}e^{\rho_{k}}+1}\ (j&lt;J),\qquad
