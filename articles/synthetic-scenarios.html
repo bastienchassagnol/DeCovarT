@@ -198,8 +198,8 @@ j=1,\ldots,J.
 <p>The scale <span class="math inline">s</span> sets column norms without changing angles: <span class="math inline">\|\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\|_2\propto s</span> at fixed <span class="math inline">\rho</span>. We keep <span class="math inline">s=10</span> across scenarios and only vary <span class="math inline">\rho</span>.</p>
 <section class="level3"><h4 id="visualising-the-cosine-construction">Visualising the cosine construction<a class="anchor" aria-label="anchor" href="#visualising-the-cosine-construction"></a>
 </h4>
-<p><a href="#fig-cosine-geometry" class="quarto-xref">Figure 2</a> visualises the same three operating points (<span class="math inline">\rho\in\{0,\,0.3,\,1\}</span>) in a two-gene projection sampled from a <span class="math inline">G=200</span> construction. We add small Gaussian perturbations to emulate biological dispersion around each cell-type centroid while preserving the targeted cosine geometry.</p>
-<p>This illustration is inspired by panel B in the AutoGeneS paper <span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">(<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">Aliee and Theis 2021</a>)</span>, but focuses here on the cosine-angle control induced by <a href="#eq-mean-cosine" class="quarto-xref">Equation 1</a> (without modelling centroid-distance optimisation).</p>
+<p><a href="#fig-cosine-geometry" class="quarto-xref">Figure 2</a> visualises the same three operating points (<span class="math inline">\rho\in\{0,\,0.3,\,1\}</span>) for <span class="math inline">G=2</span> genes and <span class="math inline">J=2</span> cell types. The centroids are the deterministic columns of <code><a href="../reference/generate_mean_signature_matrix.html">generate_mean_signature_matrix()</a></code>; independent Gaussian noise is added <em>only in this vignette chunk</em> around each centroid (<span class="math inline">N=20</span> i.i.d. draws per population) to emulate within-type dispersion under an independence assumption, without altering the mean-signature generator itself.</p>
+<p>This illustration is inspired by panel B in the AutoGeneS paper <span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">(<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">Aliee and Theis 2021</a>)</span>, but focuses here on the cosine-angle control induced by <a href="#eq-mean-cosine" class="quarto-xref">Equation 1</a> (without modelling centroid-distance optimisation). With only two genes the cross terms in <a href="#eq-mean-inner" class="quarto-xref">Equation 2</a> are large, so the realised cosine is a warped but strictly increasing map of <span class="math inline">\rho</span>.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div id="fig-cosine-geometry" class="quarto-float quarto-figure quarto-figure-center">
@@ -207,7 +207,7 @@ j=1,\ldots,J.
 <img src="synthetic-scenarios_files/figure-html/fig-cosine-geometry-1.png" width="864">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cosine-geometry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 2: Cosine-control toy for <span class="math inline">J=2</span> cell types with <span class="math inline">G=200</span> genes. Each panel shows noisy point clouds around centroids (stars), with realised angle and cosine. Styling is inspired by panel B of AutoGeneS (<span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">Aliee and Theis (<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">2021</a>)</span>).
+Figure 2: Cosine-control toy for <span class="math inline">J=2</span> cell types and <span class="math inline">G=2</span> genes. Each panel shows <span class="math inline">N=20</span> i.i.d. Gaussian draws around the deterministic centroids (stars), with realised angle and cosine. Styling is inspired by panel B of AutoGeneS (<span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">Aliee and Theis (<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">2021</a>)</span>).
 </figcaption></figure>
 </div>
 </div>
@@ -271,12 +271,12 @@ j=1,\ldots,J,
 <p>stacked as an array in <span class="math inline">\mathcal{M}_{G\times G\times J}</span>. Downstream bulk simulation uses the Gaussian convolution <span class="math inline">\boldsymbol{y}\mid(\boldsymbol{\zeta},\boldsymbol{p})\sim
 \mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},
 \sum_j p_j^{2}\boldsymbol{\Sigma}_j)</span>.</p>
-</section></section><section class="section level2"><h2 id="perspectives-a-single-geometric-score-for-boldsymbolmu">Perspectives: a single geometric score for <span class="math inline">\boldsymbol{\mu}</span>
-<a class="anchor" aria-label="anchor" href="#perspectives-a-single-geometric-score-for-boldsymbolmu"></a>
+</section></section><section class="section level2"><h2 id="sec-geometric-score">Perspectives: a single geometric score for <span class="math inline">\boldsymbol{\mu}</span>
+<a class="anchor" aria-label="anchor" href="#sec-geometric-score"></a>
 </h2>
 <p>The present API exposes two AutoGeneS-style objectives. A natural refinement is to replace them by one scalar that jointly rewards large column norms (and hence Euclidean separation) and penalises alignment.</p>
 <p>Two candidates are immediate. The Gram determinant</p>
-<p><span class="math display">
+<p><span id="eq-gram-volume"><span class="math display">
 V(\boldsymbol{\mu})
 =
 \sqrt{
@@ -284,14 +284,14 @@ V(\boldsymbol{\mu})
     \boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu}
   \bigr)
 }
-</span></p>
+\tag{3}</span></span></p>
 <p>is the volume of the parallelepiped spanned by the columns of <span class="math inline">\boldsymbol{\mu}</span>. It vanishes under exact collinearity and grows when columns lengthen or become more orthogonal—precisely the desired MOO trade-off in one number.</p>
 <p>Equivalently, the reciprocal condition number</p>
-<p><span class="math display">
+<p><span id="eq-reciprocal-kappa"><span class="math display">
 \kappa_2(\boldsymbol{\mu})^{-1}
 =
 \frac{\sigma_{\min}(\boldsymbol{\mu})}{\sigma_{\max}(\boldsymbol{\mu})},
-</span></p>
+\tag{4}</span></span></p>
 <p>available in R via <code>kappa(mean_profiles, exact = TRUE)</code> (or <code>1 / kappa(...)</code>), measures how ill-posed linear recovery of <span class="math inline">\boldsymbol{p}</span> from <span class="math inline">\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}</span> is. Maximising <span class="math inline">\kappa_2(\boldsymbol{\mu})^{-1}</span> (or minimising <span class="math inline">\kappa_2(\boldsymbol{\mu})</span>) collapses cosine and distance into a deconvolution-centric criterion without a Pareto front.</p>
 <p>A practical next step is to expose an optional <code>mean_objective = c("autogenes", "volume", "condition")</code> in <code><a href="../reference/simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments()</a></code>, keep the constructive <span class="math inline">(\rho,s)</span> generator for controllable scenarios, and report the chosen scalar alongside the existing pairwise diagnostics.</p>
 </section><section class="section level2"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

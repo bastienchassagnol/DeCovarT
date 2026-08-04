@@ -125,22 +125,28 @@ at fixed \rho. We keep s=10 across scenarios and only vary \rho.
 #### Visualising the cosine construction
 
 [Figure 2](#fig-cosine-geometry) visualises the same three operating
-points (\rho\in\\0,\\0.3,\\1\\) in a two-gene projection sampled from a
-G=200 construction. We add small Gaussian perturbations to emulate
-biological dispersion around each cell-type centroid while preserving
-the targeted cosine geometry.
+points (\rho\in\\0,\\0.3,\\1\\) for G=2 genes and J=2 cell types. The
+centroids are the deterministic columns of
+[`generate_mean_signature_matrix()`](https://bastienchassagnol.github.io/DeCovarT/reference/generate_mean_signature_matrix.md);
+independent Gaussian noise is added *only in this vignette chunk* around
+each centroid (N=20 i.i.d. draws per population) to emulate within-type
+dispersion under an independence assumption, without altering the
+mean-signature generator itself.
 
 This illustration is inspired by panel B in the AutoGeneS paper ([Aliee
 and Theis 2021](#ref-alieeAutoGeneSAutomaticGene2021)), but focuses here
 on the cosine-angle control induced by [Equation 1](#eq-mean-cosine)
-(without modelling centroid-distance optimisation).
+(without modelling centroid-distance optimisation). With only two genes
+the cross terms in [Equation 2](#eq-mean-inner) are large, so the
+realised cosine is a warped but strictly increasing map of \rho.
 
 ![](synthetic-scenarios_files/figure-html/fig-cosine-geometry-1.png)
 
-Figure 2: Cosine-control toy for J=2 cell types with G=200 genes. Each
-panel shows noisy point clouds around centroids (stars), with realised
-angle and cosine. Styling is inspired by panel B of AutoGeneS (Aliee and
-Theis ([2021](#ref-alieeAutoGeneSAutomaticGene2021))).
+Figure 2: Cosine-control toy for J=2 cell types and G=2 genes. Each
+panel shows N=20 i.i.d. Gaussian draws around the deterministic
+centroids (stars), with realised angle and cosine. Styling is inspired
+by panel B of AutoGeneS (Aliee and Theis
+([2021](#ref-alieeAutoGeneSAutomaticGene2021))).
 
 ### Objectives: `compute_mean_profile_objectives()`
 
@@ -209,7 +215,7 @@ column norms (and hence Euclidean separation) and penalises alignment.
 Two candidates are immediate. The Gram determinant
 
 V(\boldsymbol{\mu}) = \sqrt{ \det\bigl(
-\boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu} \bigr) }
+\boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu} \bigr) } \tag{3}
 
 is the volume of the parallelepiped spanned by the columns of
 \boldsymbol{\mu}. It vanishes under exact collinearity and grows when
@@ -220,6 +226,7 @@ Equivalently, the reciprocal condition number
 
 \kappa_2(\boldsymbol{\mu})^{-1} =
 \frac{\sigma\_{\min}(\boldsymbol{\mu})}{\sigma\_{\max}(\boldsymbol{\mu})},
+\tag{4}
 
 available in R via `kappa(mean_profiles, exact = TRUE)` (or
 `1 / kappa(...)`), measures how ill-posed linear recovery of

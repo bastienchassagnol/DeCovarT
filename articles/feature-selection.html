@@ -96,8 +96,8 @@
 
 
 
-    <section class="section level2" data-number="1"><h2 data-number="1" id="scope">
-<span class="header-section-number">1</span> Scope<a class="anchor" aria-label="anchor" href="#scope"></a>
+    <section class="section level2" data-number="1"><h2 data-number="1" id="sec-scope">
+<span class="header-section-number">1</span> Scope<a class="anchor" aria-label="anchor" href="#sec-scope"></a>
 </h2>
 <p>This vignette surveys <strong>feature selection for reference-based (signature-based) deconvolution</strong>—methods that recover cellular proportions <span class="math inline">\boldsymbol{p}</span> from a bulk mixture using a purified expression design matrix <span class="citation" data-cites="gaspard-boulincCelltypeDeconvolutionMethods2025 avilacobosComputationalDeconvolutionTranscriptomics2018 sturmComprehensiveEvaluationTranscriptomebased2019">(<a href="#ref-gaspard-boulincCelltypeDeconvolutionMethods2025" role="doc-biblioref">Gaspard-Boulinc et al. 2025</a>; <a href="#ref-avilacobosComputationalDeconvolutionTranscriptomics2018" role="doc-biblioref">Avila Cobos et al. 2018</a>; <a href="#ref-sturmComprehensiveEvaluationTranscriptomebased2019" role="doc-biblioref">Sturm et al. 2019</a>)</span>. Feature selection itself is a classical pre-modelling filter <span class="citation" data-cites="guyonIntroductionVariableFeature2003">(<a href="#ref-guyonIntroductionVariableFeature2003" role="doc-biblioref">Guyon and Elisseeff 2003</a>)</span>. We deliberately exclude <strong>marker-based</strong> abundance scoring (enrichment / GSEA-style modules), which returns proxies of presence rather than a consensual gene panel suited to linear or probabilistic mixture models <span class="citation" data-cites="aranXCellDigitallyPortraying2017 zhang_etal17">(<a href="#ref-aranXCellDigitallyPortraying2017" role="doc-biblioref">Aran et al. 2017</a>; <a href="#ref-zhang_etal17" role="doc-biblioref">Zhang et al. 2017</a>)</span>.</p>
 <p>The focus is <strong>second-generation</strong> signatures built from single-cell pseudobulks (CIBERSORTx, MuSiC, DWLS, Kassandra and related pipelines) <span class="citation" data-cites="newmanDeterminingCellType2019 wangBulkTissueCell2019 tsoucasAccurateEstimationCelltype2019 zaitsevPreciseReconstructionTME2022">(<a href="#ref-newmanDeterminingCellType2019" role="doc-biblioref">Newman et al. 2019</a>; <a href="#ref-wangBulkTissueCell2019" role="doc-biblioref">Wang et al. 2019</a>; <a href="#ref-tsoucasAccurateEstimationCelltype2019" role="doc-biblioref">Tsoucas et al. 2019</a>; <a href="#ref-zaitsevPreciseReconstructionTME2022" role="doc-biblioref">Zaitsev et al. 2022</a>)</span>, where the selected genes must discriminate <strong>all</strong> cell types in the signature jointly, not only one-versus-rest markers. Correlation-aware compact panels such as DUBStepR illustrate the same goal from a single-cell feature-selection angle <span class="citation" data-cites="ranjanDUBStepRScalableCorrelationbased2021">(<a href="#ref-ranjanDUBStepRScalableCorrelationbased2021" role="doc-biblioref">Ranjan et al. 2021</a>)</span>.</p>
@@ -127,8 +127,9 @@ Figure 1: Layout of this vignette: univariate and multivariate selection, each 
 </div>
 </div>
 </div>
-</section><section class="section level2" data-number="2"><h2 data-number="2" id="notation">
-<span class="header-section-number">2</span> Notation<a class="anchor" aria-label="anchor" href="#notation"></a>
+<p>Sections are cross-linked below: <a href="#sec-preprocess" class="quarto-xref">Section 3</a> builds moments; <a href="#sec-univariate" class="quarto-xref">Section 4</a> and <a href="#sec-multivariate" class="quarto-xref">Section 5</a> score genes; <a href="#sec-wrapper" class="quarto-xref">Section 6</a> and <a href="#sec-recommended" class="quarto-xref">Section 7</a> assemble a pipeline; <a href="#sec-perspectives" class="quarto-xref">Section 8</a> covers continua and Markov blankets.</p>
+</section><section class="section level2" data-number="2"><h2 data-number="2" id="sec-notation">
+<span class="header-section-number">2</span> Notation<a class="anchor" aria-label="anchor" href="#sec-notation"></a>
 </h2>
 <p>We align notation with the DeCovarT generative model. Let <span class="math inline">G</span> genes and <span class="math inline">J</span> cell types index the purified means <span class="math inline">\boldsymbol{\mu}=(\boldsymbol{\mu}_{.j})_{j=1}^{J}\in\mathbb{R}^{G\times J}</span> and (optional) covariances <span class="math inline">\{\boldsymbol{\Sigma}_{j}\}_{j=1}^{J}</span>. A bulk observation obeys</p>
 <p><span id="eq-mixture"><span class="math display">
@@ -147,31 +148,66 @@ Figure 1: Layout of this vignette: univariate and multivariate selection, each 
 =
 \frac{\lambda_{\max}(\boldsymbol{X})}{\lambda_{\min}(\boldsymbol{X})},
 \tag{2}</span></span></p>
-<p>with large <span class="math inline">\kappa</span> indicating multicollinearity and numerical instability <span class="citation" data-cites="gongDeconRNASeqStatisticalFramework2013 newmanRobustEnumerationCell2015">(<a href="#ref-gongDeconRNASeqStatisticalFramework2013" role="doc-biblioref">Gong and Szustakowski 2013</a>; <a href="#ref-newmanRobustEnumerationCell2015" role="doc-biblioref">Newman et al. 2015</a>)</span>.</p>
-</section><section class="section level2" data-number="3"><h2 data-number="3" id="preprocessing-shared-by-all-strategies">
-<span class="header-section-number">3</span> Preprocessing shared by all strategies<a class="anchor" aria-label="anchor" href="#preprocessing-shared-by-all-strategies"></a>
+<p>with large <span class="math inline">\kappa</span> indicating multicollinearity and numerical instability <span class="citation" data-cites="gongDeconRNASeqStatisticalFramework2013 newmanRobustEnumerationCell2015">(<a href="#ref-gongDeconRNASeqStatisticalFramework2013" role="doc-biblioref">Gong and Szustakowski 2013</a>; <a href="#ref-newmanRobustEnumerationCell2015" role="doc-biblioref">Newman et al. 2015</a>)</span>. Singular-value form <span class="math inline">\kappa_2(\boldsymbol{X})=\sigma_{\max}(\boldsymbol{X})/\sigma_{\min}(\boldsymbol{X})</span> is used interchangeably when <span class="math inline">\boldsymbol{X}</span> is rectangular (see also the <a href="synthetic-scenarios.html#sec-geometric-score">synthetic scenarios</a> vignette).</p>
+</section><section class="section level2" data-number="3"><h2 data-number="3" id="sec-preprocess">
+<span class="header-section-number">3</span> Preprocessing shared by all strategies<a class="anchor" aria-label="anchor" href="#sec-preprocess"></a>
 </h2>
 <p>Before scoring genes:</p>
+<ul>
+<li>① Aggregate <strong>donor-level</strong> cell-type pseudobulks (not individual cells as independent replicates). Pseudobulking reduces sparsity and avoids treating cells as independent biological replicates in differential testing <span class="citation" data-cites="squairConfrontingFalseDiscoveries2021">(<a href="#ref-squairConfrontingFalseDiscoveries2021" role="doc-biblioref">Squair et al. 2021</a>)</span>.</li>
+<li>② Estimate gene–cell-type means <span class="math inline">\mu_{gj}</span> and variance components on a <strong>linear</strong> scale (counts, CPM, or TPM). Log-space breaks the mixture linearity in <a href="#eq-mixture" class="quarto-xref">Equation 1</a>. Variance stabilisation for <em>single-cell</em> QC is handled separately below (see <a href="#sec-sctransform" class="quarto-xref">Section 3.1</a>).</li>
+<li>③ Filter genes with poor bulk detectability, extreme zero inflation after pseudobulking, strong donor instability, or systematic sc–bulk discordance.</li>
+<li>④ When the biological target is <strong>cell number</strong> rather than RNA mass, correct transcriptome-size differences across cell types <span class="citation" data-cites="luTranscriptomeSizeMatters2025">(<a href="#ref-luTranscriptomeSizeMatters2025" role="doc-biblioref">Lu et al. 2025</a>)</span>.</li>
+<li>⑤ Apply the <strong>same</strong> normalisation to bulk and signature <span class="citation" data-cites="jinBenchmarkRNAseqDeconvolution2021 racleSimultaneousEnumerationCancer2017">(<a href="#ref-jinBenchmarkRNAseqDeconvolution2021" role="doc-biblioref">Jin and Liu 2021</a>; <a href="#ref-racleSimultaneousEnumerationCancer2017" role="doc-biblioref"><span class="nocase">Racle et al.</span> 2017</a>)</span>.</li>
+</ul>
+<section class="level2" data-number="3.1"><h3 data-number="3.1" id="sec-sctransform">
+<span class="header-section-number">3.1</span> Variance stabilisation and highly variable genes<a class="anchor" aria-label="anchor" href="#sec-sctransform"></a>
+</h3>
+<p>Single-cell count matrices mix <strong>technical</strong> depth noise with <strong>biological</strong> cell-type variability. Regularised negative-binomial regression as in <code>Seurat::SCTransform</code> / <code>sctransform</code> separates the two via <strong>Pearson residuals</strong> <span class="citation" data-cites="hafemeisterNormalizationVarianceStabilization2019">(<a href="#ref-hafemeisterNormalizationVarianceStabilization2019" role="doc-biblioref">Hafemeister and Satija 2019</a>)</span>:</p>
 <ol type="1">
-<li>Aggregate <strong>donor-level</strong> cell-type pseudobulks (not individual cells as independent replicates). Pseudobulking reduces sparsity and avoids treating cells as independent biological replicates in differential testing <span class="citation" data-cites="squairConfrontingFalseDiscoveries2021">(<a href="#ref-squairConfrontingFalseDiscoveries2021" role="doc-biblioref">Squair et al. 2021</a>)</span>.</li>
-<li>Estimate gene–cell-type means <span class="math inline">\mu_{gj}</span> and variance components on a <strong>linear</strong> scale (counts, CPM, or TPM). Log-space breaks the mixture linearity in <a href="#eq-mixture" class="quarto-xref">Equation 1</a>.</li>
-<li>Filter genes with poor bulk detectability, extreme zero inflation after pseudobulking, strong donor instability, or systematic sc–bulk discordance.</li>
-<li>When the biological target is <strong>cell number</strong> rather than RNA mass, correct transcriptome-size differences across cell types <span class="citation" data-cites="luTranscriptomeSizeMatters2025">(<a href="#ref-luTranscriptomeSizeMatters2025" role="doc-biblioref">Lu et al. 2025</a>)</span>.</li>
-<li>Apply the <strong>same</strong> normalisation to bulk and signature <span class="citation" data-cites="jinBenchmarkRNAseqDeconvolution2021 racleSimultaneousEnumerationCancer2017">(<a href="#ref-jinBenchmarkRNAseqDeconvolution2021" role="doc-biblioref">Jin and Liu 2021</a>; <a href="#ref-racleSimultaneousEnumerationCancer2017" role="doc-biblioref"><span class="nocase">Racle et al.</span> 2017</a>)</span>.</li>
-</ol></section><section class="section level2" data-number="4"><h2 data-number="4" id="univariate-approaches">
-<span class="header-section-number">4</span> Univariate approaches<a class="anchor" aria-label="anchor" href="#univariate-approaches"></a>
+<li>Infer a depth-aware mean <span class="math inline">\hat{\mu}_{ig}</span> for cell <span class="math inline">i</span> and gene <span class="math inline">g</span> (library size enters as an offset; optional covariates can be included in the design).</li>
+<li>Infer a gene-wise dispersion <span class="math inline">\hat{\theta}_{g}</span> with empirical-Bayes shrinkage and a local mean–dispersion trend across genes.</li>
+<li>Form Pearson residuals <span id="eq-pearson-residual"><span class="math display">
+r_{ig}
+=
+\frac{y_{ig}-\hat{\mu}_{ig}}
+{\sqrt{\hat{\mu}_{ig}+\hat{\mu}_{ig}^{2}/\hat{\theta}_{g}}},
+\tag{3}</span></span> which are approximately homoscedastic and closer to Gaussian than raw counts—useful for PCA / HVG ranking, <strong>not</strong> as the linear mixture scale in <a href="#eq-mixture" class="quarto-xref">Equation 1</a>.</li>
+</ol>
+<p><a href="#fig-sc-transform" class="quarto-xref">Figure 2</a> summarises the negative-binomial observation model, depth regression, residualisation, and empirical-Bayes shrinkage.</p>
+<div id="fig-sc-transform" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-sc-transform-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/sc_transform.png">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-sc-transform-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 2: SCTransform workflow: negative-binomial mean–variance model, depth regression, Pearson residuals, and empirical-Bayes regularisation across genes.
+</figcaption></figure>
+</div>
+<p>After residualisation, retain a compact <strong>highly variable gene (HVG)</strong> universe before signature scoring. A practical design that emphasises cell-type structure (rather than a global intercept) is</p>
+<p><span class="math display">
+\sim\ \texttt{CellType}
+</span></p>
+<p><strong>without intercept</strong>, so the estimated coefficients contrast each labelled type against the <strong>global mean expression across cell types and samples</strong>. Rank genes by residual variance (or the corresponding model <span class="math inline">F</span> / deviance explained) and keep the top <span class="math inline">2{,}000</span> HVGs as the working universe for the selectors in <a href="#sec-univariate" class="quarto-xref">Section 4</a> and <a href="#sec-multivariate" class="quarto-xref">Section 5</a>. Downstream deconvolution still uses <strong>linear-scale</strong> <span class="math inline">\mu_{gj}</span> on that gene set <span class="citation" data-cites="sturmComprehensiveEvaluationTranscriptomebased2019">(<a href="#ref-sturmComprehensiveEvaluationTranscriptomebased2019" role="doc-biblioref">Sturm et al. 2019</a>)</span>.</p>
+<div id="nte-sctransform-check">
+<blockquote>
+<p><strong>Tip 1: <span class="emoji" data-emoji="information_source">ℹ️</span> Sanity check after SCTransform</strong></p>
+<p>Per gene, residual histograms and mean–variance plots of <span class="math inline">r_{ig}</span> should look roughly Gaussian and flat. Strong remaining depth trends or heavy tails indicate that the offset / covariate design is misspecified before any marker ranking.</p>
+</blockquote>
+</div>
+</section></section><section class="section level2" data-number="4"><h2 data-number="4" id="sec-univariate">
+<span class="header-section-number">4</span> Univariate approaches<a class="anchor" aria-label="anchor" href="#sec-univariate"></a>
 </h2>
 <p>Univariate selectors score each gene marginally (or with a simple contrast) and ignore partial correlations among genes.</p>
-<section class="level2" data-number="4.1"><h3 data-number="4.1" id="one-versus-others">
-<span class="header-section-number">4.1</span> One versus others<a class="anchor" aria-label="anchor" href="#one-versus-others"></a>
+<section class="level2" data-number="4.1"><h3 data-number="4.1" id="sec-univ-one-vs-others">
+<span class="header-section-number">4.1</span> One versus others<a class="anchor" aria-label="anchor" href="#sec-univ-one-vs-others"></a>
 </h3>
 <p>Classical signature pipelines score gene <span class="math inline">g</span> for cell type <span class="math inline">j</span> against the remaining types, then concatenate per-type shortlists <span class="citation" data-cites="abbasDeconvolutionBloodMicroarray2009 newmanRobustEnumerationCell2015 finotello_etal19">(<a href="#ref-abbasDeconvolutionBloodMicroarray2009" role="doc-biblioref">Abbas et al. 2009</a>; <a href="#ref-newmanRobustEnumerationCell2015" role="doc-biblioref">Newman et al. 2015</a>; <a href="#ref-finotello_etal19" role="doc-biblioref"><span class="nocase">Finotello et al.</span> 2019</a>)</span>.</p>
 <section class="level3" data-number="4.1.1"><h4 data-number="4.1.1" id="differential-expression-and-fold-change-ranks">
 <span class="header-section-number">4.1.1</span> Differential expression and fold-change ranks<a class="anchor" aria-label="anchor" href="#differential-expression-and-fold-change-ranks"></a>
 </h4>
 <p>Limma–voom, edgeR and DESeq2 remain the workhorses for one-versus-rest contrasts <span class="citation" data-cites="ritchieLimmaPowersDifferential2015a robinsonEdgeRBioconductorPackage2010 loveModeratedEstimationFold2014a">(<a href="#ref-ritchieLimmaPowersDifferential2015a" role="doc-biblioref">Ritchie et al. 2015</a>; <a href="#ref-robinsonEdgeRBioconductorPackage2010" role="doc-biblioref">Robinson et al. 2010</a>; <a href="#ref-loveModeratedEstimationFold2014a" role="doc-biblioref">Love et al. 2014</a>)</span>. CIBERSORT retains genes with adjusted <span class="math inline">p\le 0.3</span> ordered by decreasing fold-change before a global condition-number prune <span class="citation" data-cites="newmanRobustEnumerationCell2015">(<a href="#ref-newmanRobustEnumerationCell2015" role="doc-biblioref">Newman et al. 2015</a>)</span>. Abbas et al. keep genes that exceed the second- and third-ranked cell types, then choose the panel with smallest <span class="math inline">\kappa</span> <span class="citation" data-cites="abbasDeconvolutionBloodMicroarray2009">(<a href="#ref-abbasDeconvolutionBloodMicroarray2009" role="doc-biblioref">Abbas et al. 2009</a>)</span>. quanTIseq / xCell-style filters further drop non-haematopoietic contaminants <span class="citation" data-cites="finotello_etal19 aranXCellDigitallyPortraying2017">(<a href="#ref-finotello_etal19" role="doc-biblioref"><span class="nocase">Finotello et al.</span> 2019</a>; <a href="#ref-aranXCellDigitallyPortraying2017" role="doc-biblioref">Aran et al. 2017</a>)</span>.</p>
-</section><section class="level3" data-number="4.1.2"><h4 data-number="4.1.2" id="anova-f-test">
-<span class="header-section-number">4.1.2</span> ANOVA <span class="math inline">F</span>-test<a class="anchor" aria-label="anchor" href="#anova-f-test"></a>
+</section><section class="level3" data-number="4.1.2"><h4 data-number="4.1.2" id="sec-anova-f">
+<span class="header-section-number">4.1.2</span> ANOVA <span class="math inline">F</span>-test<a class="anchor" aria-label="anchor" href="#sec-anova-f"></a>
 </h4>
 <p>Wang et al. rank genes by the nested-model <span class="math inline">F</span> statistic comparing a cell-type factor to an intercept-only model <span class="citation" data-cites="wangSilicoEstimatesTissue2010">(<a href="#ref-wangSilicoEstimatesTissue2010" role="doc-biblioref">Wang et al. 2010</a>)</span>. For gene <span class="math inline">g</span> with expression <span class="math inline">x_{gi}</span> in sample <span class="math inline">i</span> and cell-type labels <span class="math inline">z_{i}\in\{1,\ldots,J\}</span>,</p>
 <p><span id="eq-anova-f"><span class="math display">
@@ -182,12 +218,27 @@ F_{g}
 }{
 \mathrm{SSR}_{1}/(n-J)
 },
-\tag{3}</span></span></p>
+\tag{4}</span></span></p>
 <p>where <span class="math inline">\mathrm{SSR}_{0}=\sum_{i}(x_{gi}-\bar{x}_{g})^{2}</span> and <span class="math inline">\mathrm{SSR}_{1}=\sum_{j}\sum_{i:z_{i}=j}(x_{gi}-\bar{x}_{gj})^{2}</span>. Large <span class="math inline">F_{g}</span> indicates that cell-type means explain a substantial share of gene variance.</p>
-</section><section class="level3" data-number="4.1.3"><h4 data-number="4.1.3" id="gini-and-entropy-specificity">
-<span class="header-section-number">4.1.3</span> Gini and entropy specificity<a class="anchor" aria-label="anchor" href="#gini-and-entropy-specificity"></a>
+<p>Classical ANOVA inference for <a href="#eq-anova-f" class="quarto-xref">Equation 4</a> assumes, among other things:</p>
+<ul>
+<li>independent observations (hence donor-level pseudobulks rather than cells as replicates; <a href="#sec-preprocess" class="quarto-xref">Section 3</a>);</li>
+<li>roughly <strong>Gaussian conditional residuals</strong> <span class="math inline">x_{gi}\mid z_{i}=j\sim\mathcal{N}(\mu_{gj},\sigma_{g}^{2})</span> with common within-type variance (homoscedasticity);</li>
+<li>no strong outliers or unmodelled batch structure.</li>
+</ul>
+<p>When residuals are heavy-tailed or variance scales with the mean, prefer a GLM / limma–voom pipeline <span class="citation" data-cites="ritchieLimmaPowersDifferential2015a">(<a href="#ref-ritchieLimmaPowersDifferential2015a" role="doc-biblioref">Ritchie et al. 2015</a>)</span> and treat <span class="math inline">F_{g}</span> as a ranking score rather than a calibrated <span class="math inline">p</span>-value.</p>
+</section><section class="level3" data-number="4.1.3"><h4 data-number="4.1.3" id="sec-gini-entropy">
+<span class="header-section-number">4.1.3</span> Gini and entropy specificity<a class="anchor" aria-label="anchor" href="#sec-gini-entropy"></a>
 </h4>
-<p>BioQC and DeconvExplorer compact signatures with Gini or entropy scores over the row <span class="math inline">\boldsymbol{\mu}_{g\cdot}</span> <span class="citation" data-cites="zhang_etal17">(<a href="#ref-zhang_etal17" role="doc-biblioref">Zhang et al. 2017</a>)</span>. With relative shares <span class="math inline">q_{gj}=\mu_{gj}/\sum_{\ell}\mu_{g\ell}</span>,</p>
+<p>BioQC and DeconvExplorer compact signatures with Gini or entropy scores over the row <span class="math inline">\boldsymbol{\mu}_{g\cdot}</span> <span class="citation" data-cites="zhang_etal17">(<a href="#ref-zhang_etal17" role="doc-biblioref">Zhang et al. 2017</a>)</span>. Write non-negative mean expression as relative <strong>shares</strong></p>
+<p><span id="eq-shares"><span class="math display">
+q_{gj}
+=
+\frac{\mu_{gj}}{\sum_{\ell=1}^{J}\mu_{g\ell}},
+\qquad
+\sum_{j}q_{gj}=1,
+\tag{5}</span></span></p>
+<p>so <span class="math inline">\boldsymbol{q}_{g}</span> is a discrete distribution over cell types. The <strong>Gini coefficient</strong> of inequality among ordered shares <span class="math inline">q_{g(1)}\le\cdots\le q_{g(J)}</span> and the <strong>Shannon entropy</strong> are</p>
 <p><span id="eq-gini-entropy"><span class="math display">
 \mathrm{Gini}(g)
 =
@@ -199,54 +250,129 @@ F_{g}
 \quad
 H(g)
 =
--\sum_{j=1}^{J}q_{gj}\log q_{gj},
-\tag{4}</span></span></p>
-<p>where <span class="math inline">q_{g(j)}</span> are the ordered shares. High Gini (or low entropy) flags genes concentrated in few cell types—useful for one-versus-rest compaction, but prone to redundancy when panels are concatenated.</p>
-<div>
+-\sum_{j=1}^{J}q_{gj}\log q_{gj}.
+\tag{6}</span></span></p>
+<p>High Gini (or low entropy) flags genes whose mass concentrates on few types—useful for one-versus-rest compaction. <a href="#fig-gini-entropy" class="quarto-xref">Figure 3</a> contrasts the two scores.</p>
+<div id="fig-gini-entropy" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-gini-entropy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/gini_vs_entropy_specificity.png">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-gini-entropy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 3: Gini versus Shannon entropy for cell-type specificity: formulas, simplified share plots, and panel-wise pros/cons for one-versus-rest compaction.
+</figcaption></figure>
+</div>
+<p>“Redundancy when panels are concatenated” means the following. A gene with high Gini for type <span class="math inline">A</span> and another with high Gini for type <span class="math inline">B</span> may still be <strong>nearly collinear</strong> as rows of <span class="math inline">\boldsymbol{\mu}</span> if both types co-express correlated programmes (shared lineage, activation axis). Concatenating the top-<span class="math inline">k</span> genes per type therefore inflates <span class="math inline">|\mathcal{G}|</span> without improving the geometry of <span class="math inline">\boldsymbol{\mu}_{\mathcal{G}}</span>: <span class="math inline">\kappa(\boldsymbol{\mu}_{\mathcal{G}})</span> stays large and NNLS / SVR / GLS remain unstable <span class="citation" data-cites="newmanRobustEnumerationCell2015">(<a href="#ref-newmanRobustEnumerationCell2015" role="doc-biblioref">Newman et al. 2015</a>)</span>. That is why <a href="#sec-univ-one-vs-others" class="quarto-xref">Section 4.1</a> must be followed by an all-versus-all stage (see <a href="#sec-univ-all-vs-all" class="quarto-xref">Section 4.2</a>, <a href="#sec-multi-all-vs-all" class="quarto-xref">Section 5.3</a>).</p>
+<div id="nte-ovr-concat">
 <blockquote>
-<p><strong>Limitation of one-versus-rest concatenation</strong></p>
-<p>Union of per-type markers often yields a multicollinear <span class="math inline">\boldsymbol{\mu}_{\mathcal{G}}</span> that is still too large for stable NNLS / SVR / GLS <span class="citation" data-cites="newmanRobustEnumerationCell2015 avilacobosComputationalDeconvolutionTranscriptomics2018">(<a href="#ref-newmanRobustEnumerationCell2015" role="doc-biblioref">Newman et al. 2015</a>; <a href="#ref-avilacobosComputationalDeconvolutionTranscriptomics2018" role="doc-biblioref">Avila Cobos et al. 2018</a>)</span>. A global all-versus-all refinement is therefore required.</p>
+<p><strong>Warning 2: <span class="emoji" data-emoji="warning">⚠️</span> Limitation of one-versus-rest concatenation</strong></p>
+<p>Union of per-type markers often yields a multicollinear <span class="math inline">\boldsymbol{\mu}_{\mathcal{G}}</span> that is still too large for stable NNLS / SVR / GLS <span class="citation" data-cites="newmanRobustEnumerationCell2015 avilacobosComputationalDeconvolutionTranscriptomics2018">(<a href="#ref-newmanRobustEnumerationCell2015" role="doc-biblioref">Newman et al. 2015</a>; <a href="#ref-avilacobosComputationalDeconvolutionTranscriptomics2018" role="doc-biblioref">Avila Cobos et al. 2018</a>)</span>. A global all-versus-all refinement is therefore required (see <a href="#sec-multi-all-vs-all" class="quarto-xref">Section 5.3</a>).</p>
 </blockquote>
 </div>
-</section></section><section class="level2" data-number="4.2"><h3 data-number="4.2" id="all-versus-all">
-<span class="header-section-number">4.2</span> All versus all<a class="anchor" aria-label="anchor" href="#all-versus-all"></a>
+</section></section><section class="level2" data-number="4.2"><h3 data-number="4.2" id="sec-univ-all-vs-all">
+<span class="header-section-number">4.2</span> All versus all<a class="anchor" aria-label="anchor" href="#sec-univ-all-vs-all"></a>
 </h3>
-<section class="level3" data-number="4.2.1"><h4 data-number="4.2.1" id="condition-number-pruning">
-<span class="header-section-number">4.2.1</span> Condition-number pruning<a class="anchor" aria-label="anchor" href="#condition-number-pruning"></a>
-</h4>
-<p>After candidate generation, regression-based methods select <span class="math inline">\mathcal{G}</span> to minimise <span class="math inline">\kappa(\boldsymbol{\mu}_{\mathcal{G}})</span> (<a href="#eq-condition-number" class="quarto-xref">Equation 2</a>), optionally after projecting out the sum-to-one direction <span class="citation" data-cites="abbasDeconvolutionBloodMicroarray2009 gongDeconRNASeqStatisticalFramework2013 newmanRobustEnumerationCell2015 boldinaA2SignAgnosticAlgorithms2022">(<a href="#ref-abbasDeconvolutionBloodMicroarray2009" role="doc-biblioref">Abbas et al. 2009</a>; <a href="#ref-gongDeconRNASeqStatisticalFramework2013" role="doc-biblioref">Gong and Szustakowski 2013</a>; <a href="#ref-newmanRobustEnumerationCell2015" role="doc-biblioref">Newman et al. 2015</a>; <a href="#ref-boldinaA2SignAgnosticAlgorithms2022" role="doc-biblioref">Boldina et al. 2022</a>)</span>. This is the historical gold-standard metric for LM22-style panels and remains the default in many second-generation pipelines.</p>
-</section><section class="level3" data-number="4.2.2"><h4 data-number="4.2.2" id="genetic-algorithms-autogenes">
-<span class="header-section-number">4.2.2</span> Genetic algorithms (AutoGeneS)<a class="anchor" aria-label="anchor" href="#genetic-algorithms-autogenes"></a>
+<section class="level3" data-number="4.2.1"><h4 data-number="4.2.1" id="genetic-algorithms-autogenes">
+<span class="header-section-number">4.2.1</span> Genetic algorithms (AutoGeneS)<a class="anchor" aria-label="anchor" href="#genetic-algorithms-autogenes"></a>
 </h4>
 <p>AutoGeneS searches gene subsets with a multi-objective genetic algorithm that <strong>minimises inter-population correlation</strong> while <strong>maximising centroid distance</strong> <span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">(<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">Aliee and Theis 2021</a>)</span>. Related multi-objective genetic searches appear in network module discovery (e.g. MOGAMUN) <span class="citation" data-cites="novoa-del-toroMultiobjectiveGeneticAlgorithm2021">(<a href="#ref-novoa-del-toroMultiobjectiveGeneticAlgorithm2021" role="doc-biblioref">Novoa-del-Toro et al. 2021</a>)</span>. AutoGeneS is explicitly all-versus-all: the loss is defined on the full <span class="math inline">J</span>-column signature rather than on independent one-versus-rest lists.</p>
-<p>DeCovarT replaces that dual objective with a single <strong>global overlap</strong> criterion on the Gaussian mixture <span class="math inline">\{(p_{j},\boldsymbol{\mu}_{.j},\boldsymbol{\Sigma}_{j})\}</span> (see <a href="#eq-overlap" class="quarto-xref">Equation 9</a> below and the synthetic-scenarios vignette).</p>
-</section></section></section><section class="section level2" data-number="5"><h2 data-number="5" id="multivariate-approaches">
-<span class="header-section-number">5</span> Multivariate approaches<a class="anchor" aria-label="anchor" href="#multivariate-approaches"></a>
+<p>DeCovarT replaces that dual objective with a single <strong>global overlap</strong> criterion on the Gaussian mixture <span class="math inline">\{(p_{j},\boldsymbol{\mu}_{.j},\boldsymbol{\Sigma}_{j})\}</span> (see <a href="#eq-overlap" class="quarto-xref">Equation 13</a> and 1).</p>
+</section></section></section><section class="section level2" data-number="5"><h2 data-number="5" id="sec-multivariate">
+<span class="header-section-number">5</span> Multivariate approaches<a class="anchor" aria-label="anchor" href="#sec-multivariate"></a>
 </h2>
 <p>Multivariate selectors use joint dependence—covariance, precision, or information matrices—so that a gene is scored by how it improves identifiability of <span class="math inline">\boldsymbol{p}</span> under <a href="#eq-mixture" class="quarto-xref">Equation 1</a>.</p>
-<section class="level2" data-number="5.1"><h3 data-number="5.1" id="one-versus-others-1">
-<span class="header-section-number">5.1</span> One versus others<a class="anchor" aria-label="anchor" href="#one-versus-others-1"></a>
+<section class="level2" data-number="5.1"><h3 data-number="5.1" id="sec-kappa-limits">
+<span class="header-section-number">5.1</span> Limitations of mean-only condition numbers<a class="anchor" aria-label="anchor" href="#sec-kappa-limits"></a>
 </h3>
-<p>Univariate DGE ignores gene–gene interactions and therefore requires aggressive multiple-testing correction without modelling network rewiring. Differential-network and GGM methods address that gap.</p>
-<section class="level3" data-number="5.1.1"><h4 data-number="5.1.1" id="differential-networks-indeed-and-related">
-<span class="header-section-number">5.1.1</span> Differential networks (INDEED and related)<a class="anchor" aria-label="anchor" href="#differential-networks-indeed-and-related"></a>
-</h4>
-<p>INDEED combines mean (fold-change) evidence with bootstrap tests of changes in partial correlation, ranking genes that both shift in mean <strong>and</strong> rewire neighbourhood structure <span class="citation" data-cites="zuoINDEEDIntegratedDifferential2016">(<a href="#ref-zuoINDEEDIntegratedDifferential2016" role="doc-biblioref">Zuo et al. 2016</a>)</span>. Related ideas appear in weighted graphical lasso pipelines that incorporate PPI priors and differential-network scores (DNS). Relative to pure DGE, these methods favour genes whose local Markov blanket differs between a focal cell type and the rest.</p>
-</section><section class="level3" data-number="5.1.2"><h4 data-number="5.1.2" id="sparse-ggms-and-cooperative-penalties">
-<span class="header-section-number">5.1.2</span> Sparse GGMs and cooperative penalties<a class="anchor" aria-label="anchor" href="#sparse-ggms-and-cooperative-penalties"></a>
-</h4>
-<p>Cell-type precision matrices <span class="math inline">\boldsymbol{\Omega}_{j}=\boldsymbol{\Sigma}_{j}^{-1}</span> estimated by graphical lasso are shrunk; non-zero partial correlations are typically underestimated. A practical mitigation is to take the gLasso <strong>support</strong> as topological constraints and re-estimate by constrained MLE when the graph is chordal (otherwise the mapping is non-trivial) <span class="citation" data-cites="dahlMaximumLikelihoodEstimation2005">(<a href="#ref-dahlMaximumLikelihoodEstimation2005" role="doc-biblioref">Dahl et al. 2005</a>)</span>. Cooperative / sign-coherent group lasso penalties can encode pathway modules and PPI-informed edge weights <span class="citation" data-cites="chiquetSparsitySigncoherentGroups2012">(<a href="#ref-chiquetSparsitySigncoherentGroups2012" role="doc-biblioref">Chiquet et al. 2012</a>)</span>. PPI priors also shrink the combinatorial space of undirected graphs explored per cell type.</p>
-<div>
+<p>Condition-number pruning (see <a href="#eq-condition-number" class="quarto-xref">Equation 2</a>) operates almost exclusively on the <strong>mean</strong> signature <span class="math inline">\boldsymbol{\mu}_{\mathcal{G}}</span>. It does not see covariance rewiring: two closely related types can share nearly collinear means yet differ in their precision graphs <span class="math inline">\boldsymbol{\Omega}_{j}=\boldsymbol{\Sigma}_{j}^{-1}</span>. In <strong>continua</strong>—gastruloids, differentiation trajectories, activation gradients—neighbouring states are transcriptionally similar by construction, so <span class="math inline">\kappa(\boldsymbol{\mu})</span> is intrinsically large. Aggressive <span class="math inline">\kappa</span>-minimisation then tends to keep a few dominant lineage representatives and drop genes that separate neighbours only through <strong>network rewiring</strong> rather than large mean fold-changes <span class="citation" data-cites="tsoucasAccurateEstimationCelltype2019 wangBulkTissueCell2019">(<a href="#ref-tsoucasAccurateEstimationCelltype2019" role="doc-biblioref">Tsoucas et al. 2019</a>; <a href="#ref-wangBulkTissueCell2019" role="doc-biblioref">Wang et al. 2019</a>)</span>.</p>
+<p><a href="#fig-kappa-gastruloid" class="quarto-xref">Figure 4</a> illustrates this failure mode for a gastruloid lineage continuum: mean-conditioned DWLS-style selection can under-represent adjacent or low-abundance states relative to methods that retain softer, covariance-aware allocation.</p>
+<div id="fig-kappa-gastruloid" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-kappa-gastruloid-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/condition_number_poor_performance_correlated_cell_types.png">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-kappa-gastruloid-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 4: Condition-number pruning on correlated developmental cell types (gastruloid continuum). Mean-only <span class="math inline">\kappa</span> filtering can concentrate signal in dominant collinear lineages and shrink closely related states.
+</figcaption></figure>
+</div>
+<div id="nte-kappa-means">
 <blockquote>
-<p><strong>From one-versus-others networks to a panel</strong></p>
-<p>Network-based one-versus-others lists still concatenate into a redundant design. They are best treated as <strong>candidate generators</strong> for the all-versus-all stage below.</p>
+<p><strong>Important 3: <span class="emoji" data-emoji="warning">⚠️</span> When <span class="math inline">\kappa(\boldsymbol{\mu})</span> is not enough</strong></p>
+<p>Use <span class="math inline">\kappa</span> as a <strong>diagnostic</strong> of mean geometry, not as the sole selector, whenever cell states form a continuum or when discriminatory signal lives in <span class="math inline">\boldsymbol{\Sigma}_{j}</span> (see <a href="#sec-indeed" class="quarto-xref">Section 5.2.1</a> and <a href="#sec-optimal-design" class="quarto-xref">Section 5.3.2</a>). Pair it with overlap (see <a href="#eq-overlap" class="quarto-xref">Equation 13</a>), Fisher information (see <a href="#eq-fisher" class="quarto-xref">Equation 10</a>), or differential-network candidates.</p>
 </blockquote>
 </div>
-</section></section><section class="level2" data-number="5.2"><h3 data-number="5.2" id="all-versus-all-1">
-<span class="header-section-number">5.2</span> All versus all<a class="anchor" aria-label="anchor" href="#all-versus-all-1"></a>
+</section><section class="level2" data-number="5.2"><h3 data-number="5.2" id="sec-multi-one-vs-others">
+<span class="header-section-number">5.2</span> One versus others<a class="anchor" aria-label="anchor" href="#sec-multi-one-vs-others"></a>
 </h3>
-<section class="level3" data-number="5.2.1"><h4 data-number="5.2.1" id="variance-weighted-condition-number">
-<span class="header-section-number">5.2.1</span> Variance-weighted condition number<a class="anchor" aria-label="anchor" href="#variance-weighted-condition-number"></a>
+<p>Univariate DGE ignores gene–gene interactions and therefore requires aggressive multiple-testing correction without modelling network rewiring. Differential-network and GGM methods address that gap.</p>
+<section class="level3" data-number="5.2.1"><h4 data-number="5.2.1" id="sec-indeed">
+<span class="header-section-number">5.2.1</span> Differential networks (INDEED and related)<a class="anchor" aria-label="anchor" href="#sec-indeed"></a>
+</h4>
+<p>INDEED combines mean (fold-change) evidence with tests of changes in <strong>partial correlation</strong>, ranking genes that both shift in mean <strong>and</strong> rewire neighbourhood structure <span class="citation" data-cites="zuoINDEEDIntegratedDifferential2016">(<a href="#ref-zuoINDEEDIntegratedDifferential2016" role="doc-biblioref">Zuo et al. 2016</a>)</span>. <a href="#fig-indeed" class="quarto-xref">Figure 5</a> summarises the graphical abstract and computational pipeline.</p>
+<div id="fig-indeed" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-indeed-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-indeed" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-indeed-abstract" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-subfloat-fig"><div aria-describedby="fig-indeed-abstract-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/INDEED_graphical_abstract.png" data-ref-parent="fig-indeed">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-indeed-abstract-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) INDEED graphical abstract: parallel differential expression and differential-network tracks merged into an activity-ranked biomarker list (adapted from <span class="citation" data-cites="zuoINDEEDIntegratedDifferential2016">Zuo et al. (<a href="#ref-zuoINDEEDIntegratedDifferential2016" role="doc-biblioref">2016</a>)</span>).
+</figcaption></figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-indeed" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-indeed-pipeline" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-subfloat-fig"><div aria-describedby="fig-indeed-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/INDEED_pipeline.png" data-ref-parent="fig-indeed">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-indeed-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b) INDEED pipeline: group-wise graphical lasso, differential partial correlations <span class="math inline">\Delta\mathrm{pc}</span> with permutation filtering, DE <span class="math inline">p</span>-values, and activity-score prioritisation (adapted from <span class="citation" data-cites="zuoINDEEDIntegratedDifferential2016">Zuo et al. (<a href="#ref-zuoINDEEDIntegratedDifferential2016" role="doc-biblioref">2016</a>)</span>).
+</figcaption></figure>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-indeed-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 5: INDEED integrates differential expression with differential network structure to prioritise biomolecules.
+</figcaption></figure>
+</div>
+<p>For groups <span class="math inline">k\in\{1,2\}</span> (e.g. focal cell type versus the rest), let <span class="math inline">\boldsymbol{\Omega}^{(k)}</span> be a sparse precision estimate from graphical lasso. Partial correlations are</p>
+<p><span id="eq-indeed-dpc"><span class="math display">
+\mathrm{pc}_{gg'}^{(k)}
+=
+-\frac{\omega_{gg'}^{(k)}}
+{\sqrt{\omega_{gg}^{(k)}\,\omega_{g'g'}^{(k)}}},
+\qquad
+\Delta\mathrm{pc}_{gg'}
+=
+\mathrm{pc}_{gg'}^{(1)}-\mathrm{pc}_{gg'}^{(2)}.
+\tag{7}</span></span></p>
+<p>Significant edges are retained after a permutation (or bootstrap) null on <span class="math inline">\Delta\mathrm{pc}_{gg'}</span>. With a differential-expression <span class="math inline">p</span>-value <span class="math inline">p_{g}^{\mathrm{DE}}</span> for gene <span class="math inline">g</span>, INDEED forms an <strong>activity score</strong> that multiplies mean evidence by differential connectivity, schematically</p>
+<p><span id="eq-indeed-as"><span class="math display">
+\mathrm{AS}_{g}
+=
+\bigl(-\log p_{g}^{\mathrm{DE}}\bigr)
+\sum_{g'\neq g}
+\bigl\lvert\Delta\mathrm{pc}_{gg'}\bigr\rvert
+\,
+\mathbf{1}\!\left\{\Delta\mathrm{pc}_{gg'}\ \text{significant}\right\},
+\tag{8}</span></span></p>
+<p>and ranks genes by <span class="math inline">\mathrm{AS}_{g}</span> <span class="citation" data-cites="zuoINDEEDIntegratedDifferential2016">(<a href="#ref-zuoINDEEDIntegratedDifferential2016" role="doc-biblioref">Zuo et al. 2016</a>)</span>. Relative to pure DGE, this favours genes whose local <strong>undirected</strong> neighbourhood (Markov boundary in the GGM sense; <a href="#sec-markov-seeds" class="quarto-xref">Section 8.3</a>) differs between the focal type and the rest. Related ideas appear in weighted graphical-lasso pipelines with PPI priors and differential-network scores (DNS).</p>
+</section><section class="level3" data-number="5.2.2"><h4 data-number="5.2.2" id="sec-sparse-ggm">
+<span class="header-section-number">5.2.2</span> Sparse GGMs and cooperative penalties<a class="anchor" aria-label="anchor" href="#sec-sparse-ggm"></a>
+</h4>
+<p>Cell-type precision matrices <span class="math inline">\boldsymbol{\Omega}_{j}=\boldsymbol{\Sigma}_{j}^{-1}</span> estimated by graphical lasso are shrunk; non-zero partial correlations are typically underestimated. A practical mitigation is to take the gLasso <strong>support</strong> as topological constraints and re-estimate by constrained MLE when the graph is chordal (otherwise the mapping is non-trivial) <span class="citation" data-cites="dahlMaximumLikelihoodEstimation2005">(<a href="#ref-dahlMaximumLikelihoodEstimation2005" role="doc-biblioref">Dahl et al. 2005</a>)</span>. Cooperative / sign-coherent group lasso penalties can encode pathway modules and PPI-informed edge weights <span class="citation" data-cites="chiquetSparsitySigncoherentGroups2012">(<a href="#ref-chiquetSparsitySigncoherentGroups2012" role="doc-biblioref">Chiquet et al. 2012</a>)</span>. PPI priors also shrink the combinatorial space of undirected graphs explored per cell type.</p>
+<div id="nte-network-candidates">
+<blockquote>
+<p><strong>Warning 4: <span class="emoji" data-emoji="warning">⚠️</span> From one-versus-others networks to a panel</strong></p>
+<p>Network-based one-versus-others lists still concatenate into a redundant design (see <a href="#nte-ovr-concat" class="quarto-xref">Note 2</a>). Treat them as <strong>candidate generators</strong> for the all-versus-all stage in <a href="#sec-multi-all-vs-all" class="quarto-xref">Section 5.3</a>.</p>
+</blockquote>
+</div>
+</section></section><section class="level2" data-number="5.3"><h3 data-number="5.3" id="sec-multi-all-vs-all">
+<span class="header-section-number">5.3</span> All versus all<a class="anchor" aria-label="anchor" href="#sec-multi-all-vs-all"></a>
+</h3>
+<section class="level3" data-number="5.3.1"><h4 data-number="5.3.1" id="sec-weighted-kappa">
+<span class="header-section-number">5.3.1</span> Variance-weighted condition number<a class="anchor" aria-label="anchor" href="#sec-weighted-kappa"></a>
 </h4>
 <p>With gene-specific uncertainties <span class="math inline">\tau_{g}^{2}</span> (biological + sampling + optional sc–bulk discordance), standardise rows and evaluate conditioning in the <span class="math inline">(J-1)</span>-dimensional contrast space induced by <span class="math inline">\sum_{j}p_{j}=1</span>:</p>
 <p><span id="eq-weighted-kappa"><span class="math display">
@@ -257,20 +383,24 @@ H(g)
 \kappa\!\left(
 \boldsymbol{W}_{\mathcal{G}}^{1/2}\boldsymbol{\mu}_{\mathcal{G}}\boldsymbol{C}
 \right),
-\tag{5}</span></span></p>
-<p>where <span class="math inline">\boldsymbol{W}_{\mathcal{G}}=\mathrm{diag}(1/\tau_{g}^{2})</span> and <span class="math inline">\boldsymbol{C}</span> removes the common-expression direction. Unweighted <span class="math inline">\kappa(\boldsymbol{\mu}_{\mathcal{G}})</span> alone can favour quiet but biased genes <span class="citation" data-cites="gongDeconRNASeqStatisticalFramework2013">(<a href="#ref-gongDeconRNASeqStatisticalFramework2013" role="doc-biblioref">Gong and Szustakowski 2013</a>)</span>.</p>
-</section><section class="level3" data-number="5.2.2"><h4 data-number="5.2.2" id="d--e--a-optimal-design">
-<span class="header-section-number">5.2.2</span> D- / E- / A-optimal design<a class="anchor" aria-label="anchor" href="#d--e--a-optimal-design"></a>
+\tag{9}</span></span></p>
+<p>where <span class="math inline">\boldsymbol{W}_{\mathcal{G}}=\mathrm{diag}(1/\tau_{g}^{2})</span> and <span class="math inline">\boldsymbol{C}</span> removes the common-expression direction. Unweighted <span class="math inline">\kappa(\boldsymbol{\mu}_{\mathcal{G}})</span> alone can favour quiet but biased genes <span class="citation" data-cites="gongDeconRNASeqStatisticalFramework2013">(<a href="#ref-gongDeconRNASeqStatisticalFramework2013" role="doc-biblioref">Gong and Szustakowski 2013</a>)</span>; see also <a href="#sec-kappa-limits" class="quarto-xref">Section 5.1</a>.</p>
+</section><section class="level3" data-number="5.3.2"><h4 data-number="5.3.2" id="sec-optimal-design">
+<span class="header-section-number">5.3.2</span> D- / E- / A-optimal design<a class="anchor" aria-label="anchor" href="#sec-optimal-design"></a>
 </h4>
-<p>Under approximately Gaussian errors <span class="math inline">\boldsymbol{y}_{\mathcal{G}}\mid\boldsymbol{p}\sim\mathcal{N}(\boldsymbol{\mu}_{\mathcal{G}}\boldsymbol{p},\boldsymbol{\Sigma}_{\mathcal{G}})</span>, the information for <span class="math inline">\boldsymbol{p}</span> (after the simplex constraint) is</p>
+<p>Under approximately Gaussian errors <span class="math inline">\boldsymbol{y}_{\mathcal{G}}\mid\boldsymbol{p}
+\sim\mathcal{N}(\boldsymbol{\mu}_{\mathcal{G}}\boldsymbol{p},
+\boldsymbol{\Sigma}_{\mathcal{G}})</span>, the <strong>Fisher information</strong> for the proportions (after removing the simplex null direction) is the <span class="math inline">J\times J</span> Gram matrix of the whitened means</p>
 <p><span id="eq-fisher"><span class="math display">
 \mathcal{I}_{\mathcal{G}}
 =
 \boldsymbol{\mu}_{\mathcal{G}}^{\top}
 \boldsymbol{\Sigma}_{\mathcal{G}}^{-1}
-\boldsymbol{\mu}_{\mathcal{G}}.
-\tag{6}</span></span></p>
-<p>Common criteria are</p>
+\boldsymbol{\mu}_{\mathcal{G}}
+\in\mathbb{R}^{J\times J}.
+\tag{10}</span></span></p>
+<p>Here <span class="math inline">\boldsymbol{\Sigma}_{\mathcal{G}}</span> is the bulk (or pseudobulk) covariance on genes <span class="math inline">\mathcal{G}</span>—diagonal or shrinkage estimators are typical in practice. Large eigenvalues of <span class="math inline">\mathcal{I}_{\mathcal{G}}</span> correspond to well-informed contrasts of <span class="math inline">\boldsymbol{p}</span>; a vanishing <span class="math inline">\lambda_{\min}(\mathcal{I}_{\mathcal{G}})</span> means at least one cell-type contrast is unidentifiable from the panel.</p>
+<p>Classical alphabetical criteria <span class="citation" data-cites="atkinsonOptimumExperimentalDesigns1992 pukelsheimOptimalDesignExperiments2006">(<a href="#ref-atkinsonOptimumExperimentalDesigns1992" role="doc-biblioref">Atkinson and Donev 1992</a>; <a href="#ref-pukelsheimOptimalDesignExperiments2006" role="doc-biblioref">Pukelsheim 2006</a>)</span> are</p>
 <p><span id="eq-optimal-design"><span class="math display">
 \max_{\mathcal{G}}\log\det(\mathcal{I}_{\mathcal{G}}+\lambda\boldsymbol{I})
 \quad\text{(D)},
@@ -280,34 +410,58 @@ H(g)
 \qquad
 \min_{\mathcal{G}}\operatorname{tr}(\mathcal{I}_{\mathcal{G}}^{-1})
 \quad\text{(A)}.
-\tag{7}</span></span></p>
-<p>E-optimality is closely related to protecting the hardest cell-type contrast; unweighted condition-number minimisation is a rough E-proxy without an explicit noise model. In practice use diagonal or shrinkage <span class="math inline">\boldsymbol{\Sigma}_{\mathcal{G}}</span>.</p>
-</section><section class="level3" data-number="5.2.3"><h4 data-number="5.2.3" id="pairwise-gaussian-separation-with-redundancy-control">
-<span class="header-section-number">5.2.3</span> Pairwise Gaussian separation with redundancy control<a class="anchor" aria-label="anchor" href="#pairwise-gaussian-separation-with-redundancy-control"></a>
-</h4>
-<p>A cheap multivariate screen scores each gene by standardised pairwise separation</p>
-<p><span id="eq-pairwise-sep"><span class="math display">
-d_{g,jl}^{2}
+\tag{11}</span></span></p>
+<p><a href="#fig-dea-design" class="quarto-xref">Figure 6</a> recalls the three criteria geometrically.</p>
+<div id="fig-dea-design" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-dea-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/dea_optimal_design_comparison.png">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-dea-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 6: D-, E- and A-optimal design for gene-panel selection: shared Fisher information <span class="math inline">\mathcal{I}_{\mathcal{G}}</span>, confidence-ellipse intuition, and links to condition number / Gram volume.
+</figcaption></figure>
+</div>
+<div id="nte-dea-proscons">
+<blockquote>
+<p><strong>Note 5: <span class="emoji" data-emoji="information_source">ℹ️</span> Pros and cons of D / E / A</strong></p>
+<ul>
+<li>
+<strong>D-optimality</strong> (<span class="math inline">\log\det</span>): shrinks the volume of the asymptotic confidence ellipsoid for <span class="math inline">\boldsymbol{p}</span>. Efficient in an average sense; can still leave one weak contrast if other directions improve.</li>
+<li>
+<strong>E-optimality</strong> (<span class="math inline">\lambda_{\min}</span>): protects the <strong>worst</strong> contrast. Closest in spirit to minimising <span class="math inline">\kappa(\mathcal{I}_{\mathcal{G}})</span> or maximising <span class="math inline">\lambda_{\min}/\lambda_{\max}</span>. Conservative when several contrasts are already strong.</li>
+<li>
+<strong>A-optimality</strong> (<span class="math inline">\operatorname{tr}\mathcal{I}^{-1}</span>): minimises average parameter variance (MSE under the Gaussian approximation). Interpretable, but less geometric than D/E.</li>
+</ul>
+<p>In practice prefer shrinkage <span class="math inline">\boldsymbol{\Sigma}_{\mathcal{G}}</span> and a ridge <span class="math inline">\lambda\boldsymbol{I}</span> for D when <span class="math inline">|\mathcal{G}|</span> is moderate and <span class="math inline">J</span> is not tiny.</p>
+</blockquote>
+</div>
+<p><strong>Relation to <span class="math inline">\kappa</span> and the Gram volume.</strong> If one pretends <span class="math inline">\boldsymbol{\Sigma}_{\mathcal{G}}=\boldsymbol{I}</span>, then <span class="math inline">\mathcal{I}_{\mathcal{G}}=\boldsymbol{\mu}_{\mathcal{G}}^{\top}\boldsymbol{\mu}_{\mathcal{G}}</span> and D-optimality maximises <span class="math inline">\log\det(\boldsymbol{\mu}_{\mathcal{G}}^{\top}\boldsymbol{\mu}_{\mathcal{G}})</span>, i.e. the log <strong>Gram volume</strong> of the mean columns. E-optimality maximises <span class="math inline">\lambda_{\min}</span> of that Gram matrix and is therefore a direct cousin of minimising <span class="math inline">\kappa_2(\boldsymbol{\mu}_{\mathcal{G}})</span> (see <a href="#eq-condition-number" class="quarto-xref">Equation 2</a>). The <a href="synthetic-scenarios.html#sec-geometric-score">synthetic scenarios</a> vignette discusses the same objects as AutoGeneS-style scalar summaries of <span class="math inline">\boldsymbol{\mu}</span> (Gram determinant <span class="math inline">V(\boldsymbol{\mu})</span> and reciprocal condition number <span class="math inline">\kappa_2(\boldsymbol{\mu})^{-1}</span>). Weighted / information-optimal criteria here extend those mean-only scores by inserting <span class="math inline">\boldsymbol{\Sigma}_{\mathcal{G}}^{-1}</span>.</p>
+<p><strong>Relation to overlap and Wasserstein geometry.</strong> The MixSim-style <strong>average overlap</strong> <span class="math inline">\overline{\Omega}</span> (see <a href="#eq-overlap" class="quarto-xref">Equation 13</a>) is a <em>probabilistic</em> separation score for the purified Gaussians <span class="math inline">\mathcal{N}(\boldsymbol{\mu}_{.j},\boldsymbol{\Sigma}_{j})</span>: it answers how often a MAP rule confuses type <span class="math inline">j</span> with <span class="math inline">\ell</span>. D/E/A instead optimise <strong>estimation</strong> of <span class="math inline">\boldsymbol{p}</span> under a single bulk covariance. They need not agree: a panel can have small confidence ellipsoids for <span class="math inline">\boldsymbol{p}</span> yet still high pairwise overlap if priors <span class="math inline">p_{j}</span> or class-conditional covariances differ. A related geometric alternative is the <strong>2-Wasserstein</strong> distance between purified Gaussians,</p>
+<p><span id="eq-wasserstein"><span class="math display">
+W_{2}^{2}\bigl(
+\mathcal{N}(\boldsymbol{\mu}_{.j},\boldsymbol{\Sigma}_{j}),
+\mathcal{N}(\boldsymbol{\mu}_{.\ell},\boldsymbol{\Sigma}_{\ell})
+\bigr)
 =
-\frac{(\mu_{gj}-\mu_{gl})^{2}}
-{\sigma_{gj}^{2}+\sigma_{gl}^{2}+\varepsilon}
-\tag{8}</span></span></p>
-<p>and solves a set-cover-like objective with diminishing returns and a redundancy penalty. Recursive / hierarchical selection (broad lineage then subtypes) mirrors MuSiC’s motivation for correlated cell types <span class="citation" data-cites="wangBulkTissueCell2019">(<a href="#ref-wangBulkTissueCell2019" role="doc-biblioref">Wang et al. 2019</a>)</span>. Follow with <a href="#eq-fisher" class="quarto-xref">Equation 6</a> or <a href="#eq-weighted-kappa" class="quarto-xref">Equation 5</a> for the final panel.</p>
-</section><section class="level3" data-number="5.2.4"><h4 data-number="5.2.4" id="global-overlap-decovart-proposal">
-<span class="header-section-number">5.2.4</span> Global overlap (DeCovarT proposal)<a class="anchor" aria-label="anchor" href="#global-overlap-decovart-proposal"></a>
+\lVert\boldsymbol{\mu}_{.j}-\boldsymbol{\mu}_{.\ell}\rVert_{2}^{2}
++
+\mathfrak{B}^{2}(\boldsymbol{\Sigma}_{j},\boldsymbol{\Sigma}_{\ell}),
+\tag{12}</span></span></p>
+<p>with <span class="math inline">\mathfrak{B}^{2}</span> the Bures metric on covariances. <span class="math inline">W_{2}</span> (and overlap) treat each purified law symmetrically; Fisher information treats the mixture regression for <span class="math inline">\boldsymbol{p}</span>. Use D/E/A for panel design under <a href="#eq-mixture" class="quarto-xref">Equation 1</a>, and overlap / <span class="math inline">W_{2}</span> as interpretable monitors of class separation <span class="citation" data-cites="R-MixSim alieeAutoGeneSAutomaticGene2021">(<a href="#ref-R-MixSim" role="doc-biblioref">Melnykov et al. 2024</a>; <a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">Aliee and Theis 2021</a>)</span>.</p>
+</section><section class="level3" data-number="5.3.3"><h4 data-number="5.3.3" id="sec-overlap">
+<span class="header-section-number">5.3.3</span> Global overlap (DeCovarT proposal)<a class="anchor" aria-label="anchor" href="#sec-overlap"></a>
 </h4>
 <p>AutoGeneS optimises correlation and centroid distance separately <span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">(<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">Aliee and Theis 2021</a>)</span>. We instead minimise the <strong>average pairwise overlap</strong> of the purified Gaussians, which folds mean separation <strong>and</strong> covariance structure into one interpretable probability: the chance of mis-assigning a draw under a MAP rule. With MixSim-style pairwise misclassification masses <span class="math inline">\Omega_{jl}</span> <span class="citation" data-cites="R-MixSim">(<a href="#ref-R-MixSim" role="doc-biblioref">Melnykov et al. 2024</a>)</span>,</p>
 <p><span id="eq-overlap"><span class="math display">
 \overline{\Omega}
 =
 \frac{2}{J(J-1)}
-\sum_{1\le j&lt;l\le J}
-\bigl(p_{j}\Omega_{jl}+p_{l}\Omega_{lj}\bigr).
-\tag{9}</span></span></p>
-<p>Package helper <code><a href="../reference/compute_average_overlap.html">compute_average_overlap()</a></code> implements <a href="#eq-overlap" class="quarto-xref">Equation 9</a>. Lower <span class="math inline">\overline{\Omega}</span> corresponds to better-separated purified profiles and, empirically, to more accurate recovery of <span class="math inline">\boldsymbol{p}</span>.</p>
-</section><section class="level3" data-number="5.2.5"><h4 data-number="5.2.5" id="wrapper-optimisation-on-pseudo-bulks-and-matched-bulks">
-<span class="header-section-number">5.2.5</span> Wrapper optimisation on pseudo-bulks and matched bulks<a class="anchor" aria-label="anchor" href="#wrapper-optimisation-on-pseudo-bulks-and-matched-bulks"></a>
-</h4>
+\sum_{1\le j&lt;\ell\le J}
+\bigl(p_{j}\Omega_{j\ell}+p_{\ell}\Omega_{\ell j}\bigr).
+\tag{13}</span></span></p>
+<p>Package helper <code><a href="../reference/compute_average_overlap.html">compute_average_overlap()</a></code> implements <a href="#eq-overlap" class="quarto-xref">Equation 13</a>. Lower <span class="math inline">\overline{\Omega}</span> corresponds to better-separated purified profiles and, empirically, to more accurate recovery of <span class="math inline">\boldsymbol{p}</span>.</p>
+</section></section></section><section class="section level2" data-number="6"><h2 data-number="6" id="sec-wrapper">
+<span class="header-section-number">6</span> Wrapper optimisation on pseudo-bulks and matched bulks<a class="anchor" aria-label="anchor" href="#sec-wrapper"></a>
+</h2>
 <p>When matched sc/bulk aliquots exist (e.g. Kassandra-style benchmarks) <span class="citation" data-cites="zaitsevPreciseReconstructionTME2022">(<a href="#ref-zaitsevPreciseReconstructionTME2022" role="doc-biblioref">Zaitsev et al. 2022</a>)</span>, evaluate candidate panels by running the <strong>intended</strong> deconvolution algorithm on held-out mixtures and scoring RMSE / worst-type error / rare-cell recall under nested <strong>donor-level</strong> cross-validation. Use the one-standard-error rule to prefer the smallest panel statistically indistinguishable from the best. Wrappers overfit the mixture simulator if real matched bulks are omitted <span class="citation" data-cites="sturmComprehensiveEvaluationTranscriptomebased2019 jinBenchmarkRNAseqDeconvolution2021">(<a href="#ref-sturmComprehensiveEvaluationTranscriptomebased2019" role="doc-biblioref">Sturm et al. 2019</a>; <a href="#ref-jinBenchmarkRNAseqDeconvolution2021" role="doc-biblioref">Jin and Liu 2021</a>)</span>.</p>
 <div class="cell">
 <div id="tbl-strategy-summary" class="cell quarto-float quarto-figure quarto-figure-center">
@@ -317,9 +471,9 @@ Table 1: Compact map from selection strategy to typical role in a reference-bas
 <div class="cell-output-display">
 <table class="table cell caption-top">
 <colgroup>
-<col style="width: 33%">
-<col style="width: 35%">
-<col style="width: 30%">
+<col style="width: 28%">
+<col style="width: 43%">
+<col style="width: 28%">
 </colgroup>
 <thead><tr class="header">
 <th style="text-align: left;">Stage</th>
@@ -328,23 +482,23 @@ Table 1: Compact map from selection strategy to typical role in a reference-bas
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">Univariate · 1 vs others</td>
-<td style="text-align: left;">DE / F-test / Gini–entropy</td>
+<td style="text-align: left;">Univariate 1 vs others</td>
+<td style="text-align: left;">DE / F-test / Gini entropy</td>
 <td style="text-align: left;">Candidate generation</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Univariate · all vs all</td>
-<td style="text-align: left;">κ pruning; AutoGeneS</td>
+<td style="text-align: left;">Univariate all vs all</td>
+<td style="text-align: left;">AutoGeneS</td>
 <td style="text-align: left;">Panel compaction</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">Multivariate · 1 vs others</td>
+<td style="text-align: left;">Multivariate 1 vs others</td>
 <td style="text-align: left;">INDEED; sparse GGM</td>
 <td style="text-align: left;">Network-aware candidates</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">Multivariate · all vs all</td>
-<td style="text-align: left;">Weighted κ; D/E-opt; overlap</td>
+<td style="text-align: left;">Multivariate all vs all</td>
+<td style="text-align: left;">Weighted &lt;U+03BA&gt;; D/E/A-opt; overlap</td>
 <td style="text-align: left;">Identifiability of p</td>
 </tr>
 <tr class="odd">
@@ -359,44 +513,57 @@ Table 1: Compact map from selection strategy to typical role in a reference-bas
 </figure>
 </div>
 </div>
-</section></section></section><section class="section level2" data-number="6"><h2 data-number="6" id="recommended-pipeline">
-<span class="header-section-number">6</span> Recommended pipeline<a class="anchor" aria-label="anchor" href="#recommended-pipeline"></a>
-</h2>
-<ol type="1">
-<li>
-<strong>Reference moments.</strong> Donor-level pseudobulks; estimate <span class="math inline">\boldsymbol{\mu}</span> and variance components on a linear scale.</li>
-<li>
-<strong>Reliability filter.</strong> Drop unstable / undetectable / discordant genes; optionally inflate <span class="math inline">\tau_{g}^{2}</span> by observed sc–bulk discrepancy.</li>
-<li>
-<strong>Candidates.</strong> Union of stable one-versus-others DE, high <span class="math inline">d_{g,jl}^{2}</span>, and (optionally) differential-network hits → roughly <span class="math inline">10^{2}</span>–<span class="math inline">10^{3}</span> genes.</li>
-<li>
-<strong>Information-optimal subset.</strong> Greedy D- or E-optimal selection
-<ol class="example" type="1">
-<li>or weighted <span class="math inline">\kappa</span> (<a href="#eq-weighted-kappa" class="quarto-xref">Equation 5</a>), with overlap (<a href="#eq-overlap" class="quarto-xref">Equation 9</a>) as a secondary monitor.</li>
-</ol>
-</li>
-<li>
-<strong>Wrapper prune.</strong> Evaluate panel sizes along the path under nested donor CV and matched bulks; keep the smallest competitive panel.</li>
-</ol>
-<p>The distinctive contribution for DeCovarT-style second-generation models is a <strong>bulk-calibrated, variance-weighted information criterion plus overlap</strong>, exploiting paired sc/bulk designs when available.</p>
-</section><section class="section level2" data-number="7"><h2 data-number="7" id="perspectives">
-<span class="header-section-number">7</span> Perspectives<a class="anchor" aria-label="anchor" href="#perspectives"></a>
-</h2>
-<section class="level2" data-number="7.1"><h3 data-number="7.1" id="mechanistic-priors">
-<span class="header-section-number">7.1</span> Mechanistic priors<a class="anchor" aria-label="anchor" href="#mechanistic-priors"></a>
-</h3>
-<p>PPI / TF networks and pathway modules can regularise both GGM estimation and cooperative penalties <span class="citation" data-cites="chiquetSparsitySigncoherentGroups2012 zuoINDEEDIntegratedDifferential2016">(<a href="#ref-chiquetSparsitySigncoherentGroups2012" role="doc-biblioref">Chiquet et al. 2012</a>; <a href="#ref-zuoINDEEDIntegratedDifferential2016" role="doc-biblioref">Zuo et al. 2016</a>)</span>, shrinking the search toward biologically plausible supports rather than purely statistical markers.</p>
-</section><section class="level2" data-number="7.2"><h3 data-number="7.2" id="continuous-states-potency-and-archetypes">
-<span class="header-section-number">7.2</span> Continuous states, potency and archetypes<a class="anchor" aria-label="anchor" href="#continuous-states-potency-and-archetypes"></a>
-</h3>
-<p>Many tissues are better described by <strong>continua</strong> (differentiation trajectories, activation gradients) than by discrete labels. In that regime, a finite <span class="math inline">J</span>-column signature is a piecewise approximation of an archetype geometry <span class="citation" data-cites="hartInferringBiologicalTasks2015">(<a href="#ref-hartInferringBiologicalTasks2015" role="doc-biblioref">Hart et al. 2015</a>)</span> or a potency axis <span class="citation" data-cites="gulatiSinglecellTranscriptionalDiversity2020">(<a href="#ref-gulatiSinglecellTranscriptionalDiversity2020" role="doc-biblioref">Gulati et al. 2020</a>)</span>: genes should separate extreme vertices <strong>and</strong> resolve interior mixtures along trajectories. Open directions include replacing hard one-versus-others contrasts with scores along inferred latent axes, and evaluating overlap / Fisher information on continuous rather than categorical components. Until such methods mature, hierarchical discrete panels (lineage → subtype) remain a pragmatic compromise <span class="citation" data-cites="wangBulkTissueCell2019">(<a href="#ref-wangBulkTissueCell2019" role="doc-biblioref">Wang et al. 2019</a>)</span>.</p>
-</section></section><section class="section level2" data-number="8"><h2 data-number="8" id="software-notes">
-<span class="header-section-number">8</span> Software notes<a class="anchor" aria-label="anchor" href="#software-notes"></a>
+</section><section class="section level2" data-number="7"><h2 data-number="7" id="sec-recommended">
+<span class="header-section-number">7</span> Recommended pipeline<a class="anchor" aria-label="anchor" href="#sec-recommended"></a>
 </h2>
 <ul>
-<li>DeCovarT helpers: <code><a href="../reference/generate_mean_signature_matrix.html">generate_mean_signature_matrix()</a></code>, <code><a href="../reference/compute_average_overlap.html">compute_average_overlap()</a></code>, <code><a href="../reference/simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments()</a></code>.</li>
+<li>① <strong>Reference moments</strong> (see <a href="#sec-preprocess" class="quarto-xref">Section 3</a>). Donor-level pseudobulks; estimate <span class="math inline">\boldsymbol{\mu}</span> and variance components on a linear scale; optional SCTransform / top-<span class="math inline">2{,}000</span> HVGs (see <a href="#sec-sctransform" class="quarto-xref">Section 3.1</a>) to define the gene universe.</li>
+<li>② <strong>Reliability filter.</strong> Drop unstable / undetectable / discordant genes; optionally inflate <span class="math inline">\tau_{g}^{2}</span> by observed sc–bulk discrepancy.</li>
+<li>③ <strong>Candidates.</strong> Union of stable one-versus-others DE (see <a href="#sec-univ-one-vs-others" class="quarto-xref">Section 4.1</a>), high Gini / low entropy (see <a href="#sec-gini-entropy" class="quarto-xref">Section 4.1.3</a>), and (optionally) differential-network hits (see <a href="#sec-indeed" class="quarto-xref">Section 5.2.1</a>) → roughly <span class="math inline">10^{2}</span>–<span class="math inline">10^{3}</span> genes.</li>
+<li>④ <strong>Information-optimal subset.</strong> Greedy D- or E-optimal selection (see <a href="#eq-optimal-design" class="quarto-xref">Equation 11</a>) or weighted <span class="math inline">\kappa</span> (see <a href="#eq-weighted-kappa" class="quarto-xref">Equation 9</a>), with overlap (see <a href="#eq-overlap" class="quarto-xref">Equation 13</a>) as a secondary monitor; heed <a href="#sec-kappa-limits" class="quarto-xref">Section 5.1</a> on continua.</li>
+<li>⑤ <strong>Wrapper prune</strong> (see <a href="#sec-wrapper" class="quarto-xref">Section 6</a>). Evaluate panel sizes along the path under nested donor CV and matched bulks; keep the smallest competitive panel.</li>
+</ul>
+<p>The distinctive contribution for DeCovarT-style second-generation models is a <strong>bulk-calibrated, variance-weighted information criterion plus overlap</strong>, exploiting paired sc/bulk designs when available.</p>
+</section><section class="section level2" data-number="8"><h2 data-number="8" id="sec-perspectives">
+<span class="header-section-number">8</span> Perspectives<a class="anchor" aria-label="anchor" href="#sec-perspectives"></a>
+</h2>
+<section class="level2" data-number="8.1"><h3 data-number="8.1" id="sec-mechanistic">
+<span class="header-section-number">8.1</span> Mechanistic priors<a class="anchor" aria-label="anchor" href="#sec-mechanistic"></a>
+</h3>
+<p>PPI / TF networks and pathway modules can regularise both GGM estimation and cooperative penalties <span class="citation" data-cites="chiquetSparsitySigncoherentGroups2012 zuoINDEEDIntegratedDifferential2016">(<a href="#ref-chiquetSparsitySigncoherentGroups2012" role="doc-biblioref">Chiquet et al. 2012</a>; <a href="#ref-zuoINDEEDIntegratedDifferential2016" role="doc-biblioref">Zuo et al. 2016</a>)</span>, shrinking the search toward biologically plausible supports rather than purely statistical markers.</p>
+</section><section class="level2" data-number="8.2"><h3 data-number="8.2" id="sec-continua">
+<span class="header-section-number">8.2</span> Continuous states, potency and archetypes<a class="anchor" aria-label="anchor" href="#sec-continua"></a>
+</h3>
+<p>Many tissues are better described by <strong>continua</strong> (differentiation trajectories, activation gradients) than by discrete labels. In that regime, a finite <span class="math inline">J</span>-column signature is a piecewise approximation of an archetype geometry <span class="citation" data-cites="hartInferringBiologicalTasks2015">(<a href="#ref-hartInferringBiologicalTasks2015" role="doc-biblioref">Hart et al. 2015</a>)</span> or a potency axis <span class="citation" data-cites="gulatiSinglecellTranscriptionalDiversity2020">(<a href="#ref-gulatiSinglecellTranscriptionalDiversity2020" role="doc-biblioref">Gulati et al. 2020</a>)</span>: genes should separate extreme vertices <strong>and</strong> resolve interior mixtures along trajectories. Open directions include replacing hard one-versus-others contrasts with scores along inferred latent axes, and evaluating overlap / Fisher information on continuous rather than categorical components. Until such methods mature, hierarchical discrete panels (lineage → subtype) remain a pragmatic compromise <span class="citation" data-cites="wangBulkTissueCell2019">(<a href="#ref-wangBulkTissueCell2019" role="doc-biblioref">Wang et al. 2019</a>)</span>. See also <a href="#sec-kappa-limits" class="quarto-xref">Section 5.1</a>.</p>
+</section><section class="level2" data-number="8.3"><h3 data-number="8.3" id="sec-markov-seeds">
+<span class="header-section-number">8.3</span> Seeds and undirected Markov boundaries<a class="anchor" aria-label="anchor" href="#sec-markov-seeds"></a>
+</h3>
+<p>A complementary panel-expansion strategy starts from a small set of <strong>seeds</strong>—genes that are already highly discriminatory for <span class="math inline">\boldsymbol{p}</span> under <a href="#eq-mixture" class="quarto-xref">Equation 1</a> or <a href="#eq-indeed-as" class="quarto-xref">Equation 8</a>—then grows each seed by its <strong>Markov boundary</strong> in a cell-type (or differential) GGM.</p>
+<p>In an undirected graphical model, a Markov blanket of gene <span class="math inline">g</span> is any set <span class="math inline">S</span> such that <span class="math inline">g</span> is conditionally independent of all other genes given <span class="math inline">S</span>; a <strong>Markov boundary</strong> is a minimal such set <span class="citation" data-cites="pearlProbabilisticReasoningIntelligent1988">(<a href="#ref-pearlProbabilisticReasoningIntelligent1988" role="doc-biblioref">Pearl 1988</a>)</span>. For a Gaussian Markov random field / GGM, the Markov boundary of <span class="math inline">g</span> coincides with its graph neighbours: the indices <span class="math inline">g'</span> with <span class="math inline">\omega_{gg'}\neq 0</span> in <span class="math inline">\boldsymbol{\Omega}</span> <span class="citation" data-cites="bolinExplicitLinkGraphical2026">(<a href="#ref-bolinExplicitLinkGraphical2026" role="doc-biblioref">Bolin et al. 2026</a>)</span>. Expanding seeds by these neighbours therefore adds genes that are <strong>not</strong> redundant once the seed is conditioned on—they carry residual information about the local dependency structure.</p>
+<div id="nte-u-vs-dsep">
+<blockquote>
+<p><strong>Important 6: <span class="emoji" data-emoji="warning">⚠️</span> Undirected (<span class="math inline">U</span>) separation, not <span class="math inline">d</span>-separation</strong></p>
+<p>This construction uses the <strong>undirected</strong> Markov property (conditioning on neighbours in <span class="math inline">\boldsymbol{\Omega}</span>). Classical <span class="math inline">d</span>-separation applies to <strong>directed</strong> acyclic Gaussian Bayesian networks and is the wrong language for GGM / glasso supports. Do not treat directed path blocking rules as interchangeable with undirected Markov boundaries <span class="citation" data-cites="pearlProbabilisticReasoningIntelligent1988 bolinExplicitLinkGraphical2026">(<a href="#ref-pearlProbabilisticReasoningIntelligent1988" role="doc-biblioref">Pearl 1988</a>; <a href="#ref-bolinExplicitLinkGraphical2026" role="doc-biblioref">Bolin et al. 2026</a>)</span>.</p>
+</blockquote>
+</div>
+<p>Operational sketch:</p>
+<ul>
+<li>① Select seeds by mean separation, INDEED activity (see <a href="#eq-indeed-as" class="quarto-xref">Equation 8</a>), or high contribution to <span class="math inline">\mathcal{I}_{\mathcal{G}}</span> (see <a href="#eq-fisher" class="quarto-xref">Equation 10</a>).</li>
+<li>② Estimate <span class="math inline">\boldsymbol{\Omega}_{j}</span> (or a differential precision) on the HVG universe (see <a href="#sec-sctransform" class="quarto-xref">Section 3.1</a>).</li>
+<li>③ For each seed <span class="math inline">g</span>, add its undirected neighbours <span class="math inline">\{g':\omega_{gg'}\neq 0\}</span> (the Markov boundary).</li>
+<li>④ Re-run all-versus-all compaction (see <a href="#sec-optimal-design" class="quarto-xref">Section 5.3.2</a>,
+<ol class="example" type="1">
+<li>so that boundary expansion does not reintroduce mean-collinear bulk (see <a href="#nte-ovr-concat" class="quarto-xref">Note 2</a>).</li>
+</ol>
+</li>
+</ul></section></section><section class="section level2" data-number="9"><h2 data-number="9" id="sec-software">
+<span class="header-section-number">9</span> Software notes<a class="anchor" aria-label="anchor" href="#sec-software"></a>
+</h2>
+<ul>
+<li>Variance stabilisation / Pearson residuals: <code>sctransform</code> / <code>Seurat::SCTransform</code> <span class="citation" data-cites="hafemeisterNormalizationVarianceStabilization2019">(<a href="#ref-hafemeisterNormalizationVarianceStabilization2019" role="doc-biblioref">Hafemeister and Satija 2019</a>)</span>.</li>
 <li>Signature QC / compaction patterns: DeconvExplorer (<code>removePercentZeros</code>, <code>removeUnspecificGenes</code>, <code>selectGenesByScore</code> with Gini or entropy).</li>
 <li>Gold-standard reference-based estimators for downstream validation: CIBERSORT / CIBERSORTx, EPIC, quanTIseq, ABIS, MuSiC, DWLS <span class="citation" data-cites="newmanRobustEnumerationCell2015 newmanDeterminingCellType2019 racleSimultaneousEnumerationCancer2017 finotello_etal19 monacoRNASeqSignaturesNormalized2019 wangBulkTissueCell2019 tsoucasAccurateEstimationCelltype2019">(<a href="#ref-newmanRobustEnumerationCell2015" role="doc-biblioref">Newman et al. 2015</a>; <a href="#ref-newmanDeterminingCellType2019" role="doc-biblioref">Newman et al. 2019</a>; <a href="#ref-racleSimultaneousEnumerationCancer2017" role="doc-biblioref"><span class="nocase">Racle et al.</span> 2017</a>; <a href="#ref-finotello_etal19" role="doc-biblioref"><span class="nocase">Finotello et al.</span> 2019</a>; <a href="#ref-monacoRNASeqSignaturesNormalized2019" role="doc-biblioref">Monaco et al. 2019</a>; <a href="#ref-wangBulkTissueCell2019" role="doc-biblioref">Wang et al. 2019</a>; <a href="#ref-tsoucasAccurateEstimationCelltype2019" role="doc-biblioref">Tsoucas et al. 2019</a>)</span>.</li>
+<li>Optimal-design background: <span class="citation" data-cites="atkinsonOptimumExperimentalDesigns1992 pukelsheimOptimalDesignExperiments2006">(<a href="#ref-atkinsonOptimumExperimentalDesigns1992" role="doc-biblioref">Atkinson and Donev 1992</a>; <a href="#ref-pukelsheimOptimalDesignExperiments2006" role="doc-biblioref">Pukelsheim 2006</a>)</span>.</li>
 </ul>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-abbasDeconvolutionBloodMicroarray2009" class="csl-entry" role="listitem">
@@ -408,11 +575,14 @@ Aliee, Hananeh, and Fabian J. Theis. 2021. <span>‘<span>AutoGeneS</span>: <spa
 <div id="ref-aranXCellDigitallyPortraying2017" class="csl-entry" role="listitem">
 Aran, Dvir, Zicheng Hu, and Atul Butte. 2017. <span>‘<span class="nocase">xCell</span>: <span>Digitally</span> Portraying the Tissue Cellular Heterogeneity Landscape’</span>. <em>Genome Biology</em> 18. <a href="https://doi.org/10.1186/s13059-017-1349-1" class="external-link">https://doi.org/10.1186/s13059-017-1349-1</a>.
 </div>
+<div id="ref-atkinsonOptimumExperimentalDesigns1992" class="csl-entry" role="listitem">
+Atkinson, A C, and A N Donev. 1992. <em>Optimum Experimental Designs</em>. Oxford University Press. <a href="https://doi.org/10.1093/oso/9780198522546.001.0001" class="external-link">https://doi.org/10.1093/oso/9780198522546.001.0001</a>.
+</div>
 <div id="ref-avilacobosComputationalDeconvolutionTranscriptomics2018" class="csl-entry" role="listitem">
 Avila Cobos, Francisco, Jo Vandesompele, Pieter Mestdagh, and Katleen De Preter. 2018. <span>‘Computational Deconvolution of Transcriptomics Data from Mixed Cell Populations’</span>. <em>Bioinformatics (Oxford, England)</em> 34. <a href="https://doi.org/10.1093/bioinformatics/bty019" class="external-link">https://doi.org/10.1093/bioinformatics/bty019</a>.
 </div>
-<div id="ref-boldinaA2SignAgnosticAlgorithms2022" class="csl-entry" role="listitem">
-Boldina, Galina, Paul Fogel, Corinne Rocher, Charles Bettembourg, George Luta, and Franck Augé. 2022. <span>‘<span>A2Sign</span>: <span>Agnostic Algorithms</span> for <span>Signatures</span>—a Universal Method for Identifying Molecular Signatures from Transcriptomic Datasets Prior to Cell-Type Deconvolution’</span>. <em>Bioinformatics</em> 38 (4): 1015–21. <a href="https://doi.org/10.1093/bioinformatics/btab773" class="external-link">https://doi.org/10.1093/bioinformatics/btab773</a>.
+<div id="ref-bolinExplicitLinkGraphical2026" class="csl-entry" role="listitem">
+Bolin, David, Alexandre B. Simas, and Jonas Wallin. 2026. <span>‘An Explicit Link Between Graphical Models and Gaussian Markov Random Fields on Metric Graphs’</span>. <em>Stochastic Processes and Their Applications</em> 196: 104925. <a href="https://doi.org/10.1016/j.spa.2026.104925" class="external-link">https://doi.org/10.1016/j.spa.2026.104925</a>.
 </div>
 <div id="ref-chiquetSparsitySigncoherentGroups2012" class="csl-entry" role="listitem">
 Chiquet, Julien, Yves Grandvalet, and Camille Charbonnier. 2012. <span>‘Sparsity with Sign-Coherent Groups of Variables via the Cooperative-<span>Lasso</span>’</span>. <em>The Annals of Applied Statistics</em> 6. <a href="https://doi.org/10.1214/11-aoas520" class="external-link">https://doi.org/10.1214/11-aoas520</a>.
@@ -434,6 +604,9 @@ Gulati, Gunsagar S., Shaheen S. Sikandar, Daniel J. Wesche, et al. 2020. <span>�
 </div>
 <div id="ref-guyonIntroductionVariableFeature2003" class="csl-entry" role="listitem">
 Guyon, Isabelle, and André Elisseeff. 2003. <span>‘An <span>Introduction</span> to <span>Variable</span> and <span>Feature Selection</span>’</span>. <em>Journal of Machine Learning Research</em> 3: 1157–82.
+</div>
+<div id="ref-hafemeisterNormalizationVarianceStabilization2019" class="csl-entry" role="listitem">
+Hafemeister, Christoph, and Rahul Satija. 2019. <span>‘Normalization and Variance Stabilization of Single-Cell RNA-Seq Data Using Regularized Negative Binomial Regression’</span>. <em>Genome Biology</em> 20 (1): 296. <a href="https://doi.org/10.1186/s13059-019-1874-1" class="external-link">https://doi.org/10.1186/s13059-019-1874-1</a>.
 </div>
 <div id="ref-hartInferringBiologicalTasks2015" class="csl-entry" role="listitem">
 Hart, Yuval, Hila Sheftel, Jean Hausser, et al. 2015. <span>‘Inferring Biological Tasks Using <span>Pareto</span> Analysis of High-Dimensional Data’</span>. <em>Nature Methods</em> 12 (3): 233–35. <a href="https://doi.org/10.1038/nmeth.3254" class="external-link">https://doi.org/10.1038/nmeth.3254</a>.
@@ -461,6 +634,12 @@ Newman, Aaron, Chih Liu, Michael Green, et al. 2015. <span>‘Robust Enumeration
 </div>
 <div id="ref-novoa-del-toroMultiobjectiveGeneticAlgorithm2021" class="csl-entry" role="listitem">
 Novoa-del-Toro, Elva María, Efrén Mezura-Montes, Matthieu Vignes, et al. 2021. <span>‘A Multi-Objective Genetic Algorithm to Find Active Modules in Multiplex Biological Networks’</span>. <em>PLOS Computational Biology</em> 17 (8): e1009263. <a href="https://doi.org/10.1371/journal.pcbi.1009263" class="external-link">https://doi.org/10.1371/journal.pcbi.1009263</a>.
+</div>
+<div id="ref-pearlProbabilisticReasoningIntelligent1988" class="csl-entry" role="listitem">
+Pearl, Judea. 1988. <em>Probabilistic Reasoning in Intelligent Systems: Networks of Plausible Inference</em>. Morgan Kaufmann.
+</div>
+<div id="ref-pukelsheimOptimalDesignExperiments2006" class="csl-entry" role="listitem">
+Pukelsheim, Friedrich. 2006. <em>Optimal Design of Experiments</em>. Society for Industrial; Applied Mathematics. <a href="https://doi.org/10.1137/1.9780898719109" class="external-link">https://doi.org/10.1137/1.9780898719109</a>.
 </div>
 <div id="ref-racleSimultaneousEnumerationCancer2017" class="csl-entry" role="listitem">
 <span class="nocase">Racle, Julien, Kaat de Jonge, Petra Baumgaertner, Daniel E Speiser, and David Gfeller</span>. 2017. <span>‘Simultaneous Enumeration of Cancer and Immune Cell Types from Bulk Tumor Gene Expression Data’</span>. <em>eLife</em> 6. <a href="https://doi.org/10.7554/elife.26476" class="external-link">https://doi.org/10.7554/elife.26476</a>.
