@@ -32,7 +32,7 @@ format:
     chalkboard: false
     spotlight:
       size: 60
-      lockPointerInsideOverlay: false
+      lockPointerInsideCanvas: false
       toggleSpotlightOnMouseDown: true
       spotlightCursor: "none"
       presentingCursor: "default"
