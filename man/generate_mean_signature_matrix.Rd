@@ -85,4 +85,3 @@ weights already control interaction strength; keep \eqn{s} fixed
 across scenarios that compare mean collinearity alone
 \insertCite{alieeAutoGeneSAutomaticGene2021}{DeCovarT}.
 }
-\keyword{internal}

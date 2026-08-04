@@ -20,6 +20,11 @@ Usage:
   python3 scripts/check_bibliography.py           # validate literature
   python3 scripts/check_bibliography.py --clean   # trim/dedupe/sync literature
   python3 scripts/check_bibliography.py --check-qmd
+
+Enrichment companion (home user environment, no repo-local .venv):
+  python3 scripts/bib_enrich.py inst/REFERENCES.bib --write --backup \
+    --min-score 92 --report .cursor/bib-enrichment.json
+  # dependencies installed once with uv under ~/.venvs/bib-enrich
 """
 
 from __future__ import annotations
@@ -40,24 +45,48 @@ VIGNETTES = ROOT / "vignettes"
 ALLOWED_FIELDS = {
     "title",
     "author",
+    "editor",
     "year",
     "journal",
+    "booktitle",
+    "publisher",
     "howpublished",
     "doi",
     "volume",
+    "number",
+    "pages",
     "isbn",
+    "issn",
+    "edition",
+    "school",
+    "institution",
+    "url",
+}
+
+# Minimum fields expected by utils::as.bibentry / Rdpack when building Rd.
+REQUIRED_BY_TYPE = {
+    "article": {"title", "author", "year", "journal"},
+    "book": {"title", "year", "publisher"},  # author or editor
+    "incollection": {"title", "author", "year", "booktitle", "publisher"},
+    "inproceedings": {"title", "author", "year", "booktitle"},
+    "phdthesis": {"title", "author", "year", "school"},
+    "mastersthesis": {"title", "author", "year", "school"},
+    "techreport": {"title", "author", "year", "institution"},
 }
 
 HEADER = """\
 % DeCovarT bibliography — exported from Zotero (Better BibTeX).
 % Source of truth for metadata/citekeys: the author's Zotero library + BBT.
-% Allowed fields only: title, author, year, journal|howpublished, doi,
-% volume, isbn. Duplicates removed by normalised DOI (else citekey).
+% Allowed fields: title, author, editor, year, journal, booktitle,
+% publisher, howpublished, doi, volume, number, pages, isbn, issn,
+% edition, school, institution, url.
+% Duplicates removed by normalised DOI (else citekey).
 % Maintain two independent copies in sync:
 %   - article/decovart_library.bib  (LaTeX manuscript)
 %   - inst/REFERENCES.bib          (package / Quarto vignettes)
 % Software tools belong in packages.bib (see generate_packages_bib.R),
 % not in this file. Do not add vignette-local .bib files.
+% Enrich incomplete entries (default home environment): python3 scripts/bib_enrich.py
 % Clean / check with: python3 scripts/check_bibliography.py [--clean]
 """
 
@@ -136,18 +165,9 @@ def parse_entries(text: str) -> list[dict]:
 
         if "journaltitle" in fields and "journal" not in fields:
             fields["journal"] = fields.pop("journaltitle")
-        if (
-            "booktitle" in fields
-            and "howpublished" not in fields
-            and "journal" not in fields
-        ):
-            fields["howpublished"] = fields.pop("booktitle")
-        if (
-            "publisher" in fields
-            and "howpublished" not in fields
-            and "journal" not in fields
-        ):
-            fields["howpublished"] = fields.pop("publisher")
+        # Keep booktitle / publisher as first-class fields (needed by
+        # Rdpack / utils::bibentry for @book / @incollection). Do not
+        # collapse them into howpublished.
 
         doi = norm_doi(fields["doi"]) if "doi" in fields else None
         if doi:
@@ -195,12 +215,22 @@ def format_bib(entries: list[dict]) -> str:
     order = [
         "title",
         "author",
+        "editor",
         "year",
         "journal",
+        "booktitle",
+        "publisher",
         "howpublished",
         "volume",
+        "number",
+        "pages",
+        "edition",
+        "school",
+        "institution",
         "isbn",
+        "issn",
         "doi",
+        "url",
     ]
     for e in entries:
         lines = [f"@{e['type']}{{{e['key']},"]
@@ -250,6 +280,22 @@ def validate_bib_file(path: Path) -> list[str]:
                 )
             else:
                 seen_doi[e["doi"]] = e["key"]
+        etype = e["type"].lower()
+        required = set(REQUIRED_BY_TYPE.get(etype, ()))
+        if etype == "book":
+            if not (e["fields"].get("author") or e["fields"].get("editor")):
+                errors.append(
+                    f"{rel}: {e['key']}: book requires author or editor"
+                )
+            required -= {"author", "editor"}
+        missing_req = sorted(
+            f for f in required if not (e["fields"].get(f) or "").strip()
+        )
+        if missing_req:
+            errors.append(
+                f"{rel}: {e['key']}: missing required fields "
+                f"{', '.join(missing_req)}"
+            )
         # Entries that are not misc/online should preferably have a DOI,
         # but do not hard-fail: many theses / manuals lack one.
     return errors

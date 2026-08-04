@@ -1,12 +1,15 @@
 % DeCovarT bibliography — exported from Zotero (Better BibTeX).
 % Source of truth for metadata/citekeys: the author's Zotero library + BBT.
-% Allowed fields only: title, author, year, journal|howpublished, doi,
-% volume, isbn. Duplicates removed by normalised DOI (else citekey).
+% Allowed fields: title, author, editor, year, journal, booktitle,
+% publisher, howpublished, doi, volume, number, pages, isbn, issn,
+% edition, school, institution, url.
+% Duplicates removed by normalised DOI (else citekey).
 % Maintain two independent copies in sync:
 %   - article/decovart_library.bib  (LaTeX manuscript)
 %   - inst/REFERENCES.bib          (package / Quarto vignettes)
 % Software tools belong in packages.bib (see generate_packages_bib.R),
 % not in this file. Do not add vignette-local .bib files.
+% Enrich incomplete entries: scripts/bib_enrich.py
 % Clean / check with: python3 scripts/check_bibliography.py [--clean]
 
 @misc{aatbioTSAWorkFlowpng2974x12542020,
@@ -278,7 +281,10 @@
   title = {35 - {{Flow Cytometry}}},
   author = {Blair, Thomas A. and Frelinger, Andrew L. and Michelson, Alan D.},
   year = {2019},
+  booktitle = {Platelets},
+  publisher = {Elsevier},
   howpublished = {Platelets ({{Fourth Edition}})},
+  pages = {627--651},
   isbn = {978-0-12-813456-6},
   doi = {10.1016/b978-0-12-813456-6.00035-7}
 }
@@ -323,8 +329,11 @@
   title = {Convex {{Optimization}}},
   author = {Boyd, Stephen and Boyd, Stephen P. and Vandenberghe, Lieven},
   year = {2004},
+  publisher = {Cambridge University Press},
   howpublished = {Cambridge University Press},
-  isbn = {978-0-521-83378-3}
+  edition = {1},
+  isbn = {978-0-521-83378-3},
+  doi = {10.1017/cbo9780511804441}
 }
 
 @misc{brehmConsiderationsDeconvolutionCase2022,
@@ -345,9 +354,11 @@
 }
 
 @book{cainBiology9thEdition2011,
-  title = {Biology, 9th Edition},
-  author = {Cain, N.A. and MINORSKY, M.L.},
+  title = {Campbell Biology},
+  author = {Reece, Jane B. and Urry, Lisa A. and Cain, Michael L. and Wasserman, Steven A. and Minorsky, Peter V. and Jackson, Robert B.},
   year = {2011},
+  publisher = {Benjamin Cummings},
+  edition = {9},
   isbn = {0-321-55823-5}
 }
 
@@ -388,7 +399,9 @@
 @book{chaconHigherOrderDifferential2020,
   title = {Higher Order Differential Analysis with Vectorized Derivatives},
   author = {Chac{\'o}n, Jos{\'e} and Duong, Tarn},
-  year = {2020}
+  year = {2020},
+  publisher = {Self-published monograph / preprint},
+  howpublished = {Preprint}
 }
 
 @misc{changICTDSemisupervisedCell2019,
@@ -399,9 +412,11 @@
   doi = {10.1101/426593}
 }
 
-@article{changIntroductionGraphicalLasso,
+@misc{changIntroductionGraphicalLasso,
   title = {An {{Introduction}} to {{Graphical Lasso}}},
-  author = {Chang, Bo}
+  author = {Chang, Bo},
+  year = {2016},
+  howpublished = {Lecture notes}
 }
 
 @article{charoentongPancancerImmunogenomicAnalyses2017,
@@ -511,14 +526,18 @@
 @phdthesis{chiquetContributionsSparseMethods2015,
   title = {Contributions to {{Sparse Methods}} for {{Complex Data Analysis}}},
   author = {Chiquet, Julien},
-  year = {2015}
+  year = {2015},
+  school = {Universit{\'e} Paris-Saclay / AgroParisTech}
 }
 
 @incollection{chiquetMultiattributeGaussianGraphical2019,
   title = {A {{Multiattribute Gaussian Graphical Model}} for {{Inferring Multiscale Regulatory Networks}}: {{An Application}} in {{Breast Cancer}}},
   author = {Chiquet, Julien and Rigaill, Guillem and Sundqvist, Martina},
   year = {2019},
+  booktitle = {Methods in Molecular Biology},
+  publisher = {Springer New York},
   howpublished = {Gene {{Regulatory Networks}}: {{Methods}} and {{Protocols}}},
+  pages = {143--160},
   isbn = {978-1-4939-8882-2},
   doi = {10.1007/978-1-4939-8882-2_6}
 }
@@ -592,10 +611,12 @@
   doi = {10.1038/s44318-025-00558-2}
 }
 
-@article{dahl_etal05,
+@techreport{dahl_etal05,
   title = {Maximum Likelihood Estimation of Gaussian Graphical Models: Numerical Implementation and Topology Selection},
   author = {Dahl, Joachim and Roychowdhury, Vwani and Vandenberghe, Lieven},
-  year = {2005}
+  year = {2005},
+  howpublished = {Technical report},
+  institution = {University of California, Los Angeles}
 }
 
 @article{daiGuideTranscriptomicDeconvolution2025,
@@ -725,8 +746,10 @@
 
 @article{faComprehensiveBenchmarkingComputational2020,
   title = {Comprehensive Benchmarking of Computational Deconvolution of Transcriptomics Data},
-  author = {Fa, Cobos and J, Alquicira-Hernandez and J, Powell and P, Mestdagh and K, De Preter},
+  author = {Avila Cobos, Francisco and Alquicira-Hernandez, Jos{\'e} and Powell, Joseph and Mestdagh, Pieter and De Preter, Katleen},
   year = {2020},
+  journal = {bioRxiv},
+  publisher = {openRxiv},
   doi = {10.1101/2020.01.10.897116}
 }
 
@@ -1106,7 +1129,9 @@
   title = {Chapter 1 - {{Transcriptomic}} Analysis of Genes: Expression and Regulation},
   author = {Horta, Maria Augusta C. and Pimenta, Ricardo Jos{\'e} Gonzaga and Almeida, D{\'e}borah Aires and Rosolen, Rafaela Rossi and Aono, Alexandre Hild and Filho, Jaire F. and {de Oliveira}, Fernanda Ancelmo and Niederauer, Guilherme Francio and Ferreira, Rebecca Caroline Ulbricht and Bajay, Stephanie Karenina and Goldman, Gustavo H. and {de Souza}, Anete P.},
   year = {2023},
-  howpublished = {Transcriptome {{Profiling}}},
+  booktitle = {Transcriptome Profiling},
+  publisher = {Elsevier},
+  pages = {1--41},
   isbn = {978-0-323-91810-7},
   doi = {10.1016/b978-0-323-91810-7.00017-0}
 }
@@ -1238,8 +1263,10 @@
 
 @techreport{kaareMatrixCookbook2012,
   title = {The {{Matrix Cookbook}}},
-  author = {Kaare, Brandt Petersen},
-  year = {2012}
+  author = {Petersen, Kaare Brandt and Pedersen, Michael Syskind},
+  year = {2012},
+  institution = {Technical University of Denmark},
+  url = {https://www2.compute.dtu.dk/pubdb/pubs/3274-full.html}
 }
 
 @article{kanehisaKEGGNewPerspectives2017,
@@ -1291,7 +1318,7 @@
   title = {Probabilistic {{Graphical Models}}: {{Principles}} and {{Techniques}}},
   author = {Koller, Daphne and Friedman, Nir},
   year = {2009},
-  howpublished = {MIT Press},
+  publisher = {MIT Press},
   isbn = {978-0-262-01319-2}
 }
 
@@ -1537,9 +1564,13 @@
 
 @article{LowHeterogeneityMelanomasAre2019,
   title = {Low-{{Heterogeneity Melanomas Are More Immunogenic}} and {{Less Aggressive}}},
+  author = {{{Cancer Discovery}}},
   year = {2019},
   journal = {Cancer Discovery},
+  publisher = {American Association for Cancer Research (AACR)},
   volume = {9},
+  number = {11},
+  pages = {1483--1483},
   doi = {10.1158/2159-8290.cd-rw2019-144}
 }
 
@@ -1619,7 +1650,10 @@
   title = {Laser {{Capture Microdissection}} on {{Frozen Sections}} for {{Extraction}} of {{High-Quality Nucleic Acids}}},
   author = {Maurer, H. Carlo and Olive, Kenneth P.},
   year = {2019},
+  booktitle = {Methods in Molecular Biology},
+  publisher = {Springer New York},
   howpublished = {Pancreatic {{Cancer}}: {{Methods}} and {{Protocols}}},
+  pages = {253--259},
   isbn = {978-1-4939-8879-2},
   doi = {10.1007/978-1-4939-8879-2_23}
 }
@@ -1757,8 +1791,10 @@
   title = {The {{Structure}} and {{Dynamics}} of {{Networks}}},
   author = {Newman, Mark and Barab{\'a}si, Albert-L{\'a}szl{\'o} and Watts, Duncan J.},
   year = {2011},
+  publisher = {Princeton University Press},
   howpublished = {Princeton University Press},
-  isbn = {978-1-4008-4135-6}
+  isbn = {978-1-4008-4135-6},
+  doi = {10.1515/9781400841356}
 }
 
 @article{nirmalImmuneCellGene2018,
@@ -1867,10 +1903,11 @@
   doi = {10.32614/rj-2021-089}
 }
 
-@article{picardMixThresMixtureModels2008,
+@techreport{picardMixThresMixtureModels2008,
   title = {{{MixThres}}: Mixture Models to Define a Hybridization Threshold in {{DNA}} Microarray Experiments,},
   author = {Picard, F and Colot, V. and Aubert, Julie},
-  year = {2008}
+  year = {2008},
+  institution = {INRA / AgroParisTech}
 }
 
 @article{picelli_etal13,
@@ -2003,7 +2040,9 @@
   title = {{{FACS Analysis}} of {{Endothelial Cells}}},
   author = {Reiss, Yvonne and Engelhardt, Britta},
   year = {2004},
-  howpublished = {Methods in {{Endothelial Cell Biology}}},
+  booktitle = {Methods in Endothelial Cell Biology},
+  publisher = {Springer Berlin Heidelberg},
+  pages = {157--165},
   isbn = {978-3-642-18725-4},
   doi = {10.1007/978-3-642-18725-4_15}
 }
@@ -2092,6 +2131,7 @@
   title = {Multidimensional Transcriptomics Provides Detailed Information about Immune Cell Distribution and Identity in {{HER2}}+ Breast Tumors},
   author = {Salm{\'e}n, Fredrik and Vickovic, Sanja and Larsson, Ludvig and Stenbeck, Linnea and {Vallon-Christersson}, Johan and Ehinger, Anna and Hakkinen, Jari and Borg, Ake and Frisen, Jonas and St{\aa}hl, Patrik and Lundeberg, Joakim},
   year = {2018},
+  publisher = {openRxiv},
   doi = {10.1101/358937}
 }
 
@@ -2135,7 +2175,9 @@
   title = {Linear {{Equations}}},
   author = {Shafarevich, Igor R. and Remizov, Alexey O.},
   year = {2013},
-  howpublished = {Linear {{Algebra}} and {{Geometry}}},
+  booktitle = {Linear Algebra and Geometry},
+  publisher = {Springer Berlin Heidelberg},
+  pages = {1--23},
   isbn = {978-3-642-30994-6},
   doi = {10.1007/978-3-642-30994-6_1}
 }
@@ -2214,14 +2256,16 @@
 @book{skorskiChainRulesHessian2019,
   title = {Chain {{Rules}} for {{Hessian}} and {{Higher Derivatives Made Easy}} by {{Tensor Calculus}}},
   author = {Skorski, Maciej},
-  year = {2019}
+  year = {2019},
+  publisher = {Self-published monograph / preprint},
+  howpublished = {Preprint}
 }
 
 @book{solomonNumericalAlgorithmsMethods2015,
   title = {Numerical {{Algorithms}}: {{Methods}} for {{Computer Vision}}, {{Machine Learning}}, and {{Graphics}}},
   author = {Solomon, Justin},
   year = {2015},
-  howpublished = {CRC Press},
+  publisher = {CRC Press},
   isbn = {978-1-4822-5189-0}
 }
 
@@ -2254,7 +2298,10 @@
   title = {Guidelines for {{Gating Flow Cytometry Data}} for {{Immunological Assays}}},
   author = {Staats, Janet and Divekar, Anagha and McCoy, J. Philip and Maecker, Holden T.},
   year = {2019},
+  booktitle = {Methods in Molecular Biology},
+  publisher = {Springer New York},
   howpublished = {Immunophenotyping: {{Methods}} and {{Protocols}}},
+  pages = {81--104},
   isbn = {978-1-4939-9650-6},
   doi = {10.1007/978-1-4939-9650-6_5}
 }
@@ -2272,6 +2319,7 @@
   title = {Benchmarking {{scRNA-seq}} Imputation Tools with Respect to Network Inference Highlights Deficits in Performance at High Levels of Sparsity},
   author = {Steinheuer, Lisa and Canzler, Sebastian and Hackerm{\"u}ller, J{\"o}rg},
   year = {2021},
+  publisher = {openRxiv},
   doi = {10.1101/2021.04.02.438193}
 }
 
@@ -2324,7 +2372,10 @@
   title = {In {{Silico Cell-Type Deconvolution Methods}} in {{Cancer Immunotherapy}}},
   author = {Sturm, Gregor and Finotello, Francesca and List, Markus},
   year = {2020},
+  booktitle = {Methods in Molecular Biology},
+  publisher = {Springer US},
   howpublished = {Bioinformatics for {{Cancer Immunotherapy}}: {{Methods}} and {{Protocols}}},
+  pages = {213--222},
   isbn = {978-1-0716-0327-7},
   doi = {10.1007/978-1-0716-0327-7_15}
 }
@@ -2566,6 +2617,8 @@
   title = {Bayesian Estimation of Cell-Type-Specific Gene Expression per Bulk Sample with Prior Derived from Single-Cell Data},
   author = {Wang, Jiebiao and Roeder, Kathryn and Devlin, Bernie},
   year = {2020},
+  publisher = {openRxiv},
+  institution = {openRxiv},
   doi = {10.1101/2020.08.05.238949}
 }
 
@@ -2706,7 +2759,10 @@
   title = {Estimation of {{Tumor Immune Signatures}} from {{Transcriptomics Data}}},
   author = {Yu, Xiaoqing},
   year = {2022},
+  booktitle = {Springer Handbooks of Computational Statistics},
+  publisher = {Springer Berlin Heidelberg},
   howpublished = {Handbook of {{Statistical Bioinformatics}}},
+  pages = {311--338},
   isbn = {978-3-662-65902-1},
   doi = {10.1007/978-3-662-65902-1_16}
 }
@@ -2776,7 +2832,10 @@
   title = {Laser {{Capture Microdissection}} of {{Vascular Endothelial CellsVascular}} Endothelial Cells from {{Frozen Heart Tissues}}},
   author = {Zhou, Tianhao and Wang, Jian},
   year = {2021},
+  booktitle = {Methods in Molecular Biology},
+  publisher = {Springer US},
   howpublished = {Cardiovascular {{Development}}: {{Methods}} and {{Protocols}}},
+  pages = {105--110},
   isbn = {978-1-0716-1480-8},
   doi = {10.1007/978-1-0716-1480-8_12}
 }

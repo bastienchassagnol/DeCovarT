@@ -346,8 +346,10 @@ DeCovarT keeps **two separate citation streams**. Do not mix them.
 
 **Source of truth** for papers / books / theses is the author's
 [Zotero library](https://www.zotero.org/bastienchassagnol/library) with
-**Better BibTeX (BBT)** citation keys. Do **not** invent BibTeX entries or
-citekeys; add the item in Zotero first, then export.
+**Better BibTeX (BBT)** citation keys. Do **not** invent BibTeX entries,
+citekeys, or DOIs; add the item in Zotero first, then export. Missing
+metadata may be completed only via the deterministic Crossref enrichment
+CLI below (never by unconstrained LLM guessing).
 
 | Path | Consumer |
 |------|----------|
@@ -357,10 +359,68 @@ citekeys; add the item in Zotero first, then export.
 - Exactly these two literature copies (independent, kept in sync).
 - After every Zotero export: `python3 scripts/check_bibliography.py --clean`
   (allowed fields only; DOI-dedupe; sync both copies).
-- Allowed fields: `title`, `author`, `year`, `journal` **or**
-  `howpublished`, `doi`, `volume`, `isbn`. Strip everything else.
+- Allowed fields (whitelist enforced by `scripts/check_bibliography.py`):
+  `title`, `author`, `editor`, `year`, `journal`, `booktitle`,
+  `publisher`, `howpublished`, `doi`, `volume`, `number`, `pages`,
+  `isbn`, `issn`, `edition`, `school`, `institution`, `url`.
+  Strip everything else.
+- Required fields by type (Rdpack / `utils::bibentry`):
+  - `@article` — `title`, `author`, `year`, `journal`
+  - `@book` — `title`, `year`, `publisher`, plus `author` **or** `editor`
+  - `@incollection` — `title`, `author`, `year`, `booktitle`, `publisher`
+  - `@phdthesis` / `@mastersthesis` — `title`, `author`, `year`, `school`
+  - `@techreport` — `title`, `author`, `year`, `institution`
 - Pre-commit hook `check-bibliography` validates literature hygiene and
   `article/main.tex` citekeys (against literature **and** `packages.bib`).
+
+### Completing missing fields (Crossref + bibtex-tidy)
+
+When BibTeX / Rdpack validation fails because metadata is incomplete:
+
+1. Enrich incomplete entries with the repo CLI (DOI-first, then
+   title/author/year Crossref search; merge **missing fields only**;
+   never overwrite existing values; never invent DOIs):
+
+```bash
+python3 scripts/bib_enrich.py \
+  inst/REFERENCES.bib --write --backup \
+  --min-score 92 --report .cursor/bib-enrichment.json
+```
+
+2. Review `.cursor/bib-enrichment.json` and the git diff. Reject records
+   marked `ambiguous`. Manually verify any `unresolved` / `partial`
+   entries (prefer Zotero correction, then re-export).
+3. Normalise formatting with `bibtex-tidy`:
+
+```bash
+npx bibtex-tidy@1.14.0 inst/REFERENCES.bib \
+  --modify --curly --numeric --sort=key
+```
+
+If `bibtex-tidy@latest` is stable on your machine, prefer latest. If it
+crashes (e.g. current Node 22 edge cases), pin to `@1.14.0` and/or
+upgrade Node.js to the latest LTS release.
+
+4. Sync both literature copies and validate:
+
+```bash
+python3 scripts/check_bibliography.py --clean
+python3 scripts/check_bibliography.py
+```
+
+Install once (user-level with `uv`, no sudo; keeps tooling in home
+directory instead of this repository):
+
+```bash
+uv venv ~/.venvs/bib-enrich
+uv pip install --python ~/.venvs/bib-enrich/bin/python \
+  bibtexparser httpx rapidfuzz typer rich
+~/.venvs/bib-enrich/bin/python -c \
+  "import bibtexparser, httpx, rapidfuzz, typer, rich; print('OK')"
+# then run:
+# python3 scripts/bib_enrich.py ...
+# bibtex-tidy via npx; prefer latest Node.js LTS
+```
 
 GitHub issues — DOI bridge:
 

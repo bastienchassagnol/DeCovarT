@@ -224,12 +224,11 @@ cosine_concentration <- do.call(
     do.call(
       rbind,
       lapply(rhos_check, function(rho) {
-        mu <- DeCovarT::generate_mean_profiles(
-          G = G,
-          J = 2,
+        mu <- DeCovarT::generate_mean_signature_matrix(
+          n_genes = G,
+          n_celltypes = 2L,
           mean_scale = 10,
-          target_cosine = rho,
-          random_seed = 123
+          target_cosine = rho
         )
         cos_hat <- sum(mu[, 1] * mu[, 2]) /
           sqrt(sum(mu[, 1]^2) * sum(mu[, 2]^2))

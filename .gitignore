@@ -60,5 +60,10 @@ data/raw-data/
 docs
 **/.quarto/
 
+# Bib enrichment tooling / backups
+scripts/bib_enrich/.venv/
+*.bib.bak
+.cursor/bib-enrichment.json
+
 # LibreOffice lock files
 **/.~lock.*
