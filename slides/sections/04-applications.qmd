@@ -4,7 +4,7 @@ Transcriptomic patient clusters and IFN modules motivate
 composition-aware analysis of immune infiltration
 [@soretStratification2021].
 
-![Sjögren patient stratification motivating deconvolution.](images/figures/fig-sjogren.png){#fig-sjogren fig-alt="Sjögren disease transcriptomic stratification slide."}
+![Sjögren patient stratification motivating deconvolution.](images/sjogren.png){#fig-sjogren fig-alt="Sjögren disease transcriptomic stratification slide."}
 
 ::: {.attribution}
 @soretStratification2021

@@ -68,6 +68,7 @@ when presenting.
 ## Pipeline Architecture
 
 ``` mermaid
+%%{init: {"theme": "sandstone"}}%%
 flowchart TD
     A["Bulk RNA-seq mixture<br/>Genes × Samples"] --> C["Gene intersection,<br/>optional scaling"]
     B["Cell-type reference<br/>Means μ_j + covariances Σ_j"] --> C
@@ -86,6 +87,8 @@ flowchart TD
     H --> J["Comparative evaluation"]
     I --> J
 ```
+
+The diagram above summarises the end-to-end workflow.
 
 > This package combines **Gaussian mixture convolution modelling, simplex
 > reparametrisation (ALR / soft-max), analytic likelihood derivatives, and
@@ -225,14 +228,7 @@ $$
 
 ``` mermaid
 %%{init: {
-  "theme": "base",
-  "themeVariables": {
-    "primaryColor": "#f5f7fa",
-    "primaryBorderColor": "#334155",
-    "primaryTextColor": "#0f172a",
-    "lineColor": "#475569",
-    "fontSize": "14px"
-  },
+  "theme": "sandstone",
   "flowchart": { "curve": "basis" }
 }}%%
 flowchart TB
@@ -266,6 +262,8 @@ flowchart TB
   class p det;
   class y obs;
 ```
+
+The diagram above shows the constrained graphical model.
 
 Forward map
 $\boldsymbol{\psi}:\boldsymbol{\rho}\mapsto\boldsymbol{p}$

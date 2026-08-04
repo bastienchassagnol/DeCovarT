@@ -21,7 +21,7 @@ Deconvolution targets vary:
 
 ## Reference-based principle
 
-![Signature $X$, bulk $y$, proportions $p$.](images/figures/fig-deconv-principle-2.png){#fig-deconv-principle fig-alt="Reference-based deconvolution schematic."}
+![Signature $X$, bulk $y$, proportions $p$.](images/deconv-principle-2.png){#fig-deconv-principle fig-alt="Reference-based deconvolution schematic."}
 
 1. Purified cellular profiles (signature matrix $X$)
 2. Bulk mixture $y$

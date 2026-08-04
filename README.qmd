@@ -71,7 +71,10 @@ when presenting.
 
 ## Pipeline Architecture
 
-```mermaid
+```{mermaid}
+%%| label: fig-readme-pipeline
+%%| fig-cap: "DeCovarT pipeline from bulk mixtures and references to comparative evaluation."
+%%{init: {"theme": "sandstone"}}%%
 flowchart TD
     A["Bulk RNA-seq mixture<br/>Genes × Samples"] --> C["Gene intersection,<br/>optional scaling"]
     B["Cell-type reference<br/>Means μ_j + covariances Σ_j"] --> C
@@ -90,6 +93,8 @@ flowchart TD
     H --> J["Comparative evaluation"]
     I --> J
 ```
+
+The diagram above summarises the end-to-end workflow.
 
 > This package combines **Gaussian mixture convolution modelling, simplex
 > reparametrisation (ALR / soft-max), analytic likelihood derivatives, and
@@ -227,15 +232,46 @@ $$
 \Bigr).
 $$
 
-```{r}
-#| echo: false
-#| results: asis
-mmd <- paste(
-  readLines("man/figures/decovart_constrained_dag.mmd"),
-  collapse = "\n"
-)
-cat("```mermaid\n", mmd, "\n```\n", sep = "")
+```{mermaid}
+%%| label: fig-readme-generative-model
+%%| fig-cap: "Generative model of DeCovarT with latent profiles, simplex mapping, and bulk observations."
+%%{init: {
+  "theme": "sandstone",
+  "flowchart": { "curve": "basis" }
+}}%%
+flowchart TB
+  subgraph plateJ["j = 1,...,J"]
+    direction TB
+    mu["μ_j"]
+    Sj["Σ_j"]
+    xj(("x_j"))
+    mu --> xj
+    Sj --> xj
+  end
+
+  subgraph plateI["i = 1,...,N"]
+    direction TB
+    rho(("ρ_i"))
+    p["p_i = ψ(ρ_i)"]
+    y(["y_i"])
+    rho -->|"ψ soft-max"| p
+    p -.-> y
+  end
+
+  xj -.->|"y_i = μ p_i"| y
+
+  classDef param fill:#ffffff,stroke:#0f172a,stroke-width:1.5px;
+  classDef latent fill:#ffffff,stroke:#0f172a,stroke-width:1.5px;
+  classDef det fill:#ffffff,stroke:#0f172a,stroke-width:1.5px,stroke-dasharray:5 3;
+  classDef obs fill:#cbd5e1,stroke:#0f172a,stroke-width:1.5px,stroke-dasharray:5 3;
+
+  class mu,Sj param;
+  class rho,xj latent;
+  class p det;
+  class y obs;
 ```
+
+The diagram above shows the constrained graphical model.
 
 Forward map
 $\boldsymbol{\psi}:\boldsymbol{\rho}\mapsto\boldsymbol{p}$

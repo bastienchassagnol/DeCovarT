@@ -625,6 +625,44 @@ raw PDF/PPTX as the live deck.
 - For equations, always define indexes and other notation on the slide
   (or on the previous slide).
 
+### High-quality scientific images (Nature Methods target)
+
+- Aim for **Nature Methods** visual style: clear scientific message,
+  minimal decorative effects, high contrast, and consistent typography.
+- Prefer equations and mathematically precise notation when concepts are
+  model-based; export equation-heavy diagrams as vector assets (SVG/PDF)
+  whenever possible.
+- Use multi-panel layouts (`A`, `B`, `C`, …) when several concepts are
+  needed to explain one claim; each panel should answer one precise
+  question.
+- Keep style minimalist and interpretation-first: avoid visual clutter,
+  3D effects, and ornamental graphics that do not support inference.
+- When creating or revising generated illustrations in `slides/index.qmd`
+  and included section files, apply this same panel and readability
+  discipline.
+
+### Mermaid rendering constraints (README, vignettes, slides)
+
+- Do **not** use plain code fences like ```` ``` mermaid ```` for figures
+  intended to render in Quarto outputs; use executable Mermaid chunks.
+  Minimal pattern:
+  - opening fence: ```` ```{mermaid} ````
+  - options: `%%| label: fig-example` and
+    `%%| fig-cap: "Example caption."`
+  - diagram body: e.g. `flowchart TD` then `A --> B`
+  - closing fence: ```` ``` ````
+
+- Cross-reference Mermaid figures with Quarto labels (`@fig-...`), as
+  documented at
+  <https://quarto.org/docs/authoring/diagrams.html#cross-references>.
+- Set Mermaid theme to **sandstone** for consistency unless a slide
+  context explicitly requires another documented theme.
+- For reveal.js decks, keep Mermaid configured under `format: revealjs:`
+  and verify rendering in both `quarto preview` and `quarto render`.
+- For PDF/Word paths using Mermaid, use the installed
+  `chrome-headless-shell` backend and verify rendered output rather than
+  raw diagram source.
+
 ### Citations and cross-references
 
 - Cite from `inst/REFERENCES.bib` (or a deck-local `.bib` that mirrors
@@ -691,8 +729,8 @@ it.
 ### Figures and attribution
 
 - Check whether requested assets already exist locally before creating
-  new ones. Prefer `slides/images/` (or `slides/images/figures/`) with
-  relative paths from the slide source.
+  new ones. Prefer `slides/images/` with relative paths from the slide
+  source.
 - Enable the **attribution** reveal.js plugin
   (`quarto-ext/attribution`) in YAML:
 
@@ -715,7 +753,7 @@ revealjs-plugins:
   content:
 
 ```markdown
-![Immune balance seesaw](images/figures/fig-immune-balance.png){#fig-immune-balance}
+![Immune balance seesaw](images/immune-balance.png){#fig-immune-balance}
 ```
 
 ### Editing guardrails

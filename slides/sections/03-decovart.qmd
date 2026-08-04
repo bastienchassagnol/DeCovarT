@@ -1,6 +1,6 @@
 ## Global pipeline
 
-![From references to biological exploitation.](images/figures/fig-global-pipeline.png){#fig-pipeline fig-alt="Global DeCovarT analysis pipeline."}
+![From references to biological exploitation.](images/global-pipeline.png){#fig-pipeline fig-alt="Global DeCovarT analysis pipeline."}
 
 1. Collect / curate cell-type datasets
 2. Learn features & GRN structure
@@ -33,7 +33,7 @@ $$ {#eq-bulk-gauss}
 Covariance structure enters the likelihood — gene–gene dependence is
 first-class, not noise.
 
-![Another view of the convolution principle.](images/figures/fig-deconv-principle-4.png){#fig-deconv-gauss fig-alt="Gaussian mixture / convolution schematic from the talk."}
+![Another view of the convolution principle.](images/deconv-principle-4.png){#fig-deconv-gauss fig-alt="Gaussian mixture / convolution schematic from the talk."}
 
 ## Unit-simplex constraint
 
@@ -49,10 +49,10 @@ See @fig-toy-model and @fig-toy-results.
 
 ::::: columns
 ::: {.column width="50%"}
-![Toy bivariate setup.](images/figures/fig-toy-model.png){#fig-toy-model fig-alt="Two-cell two-gene toy model."}
+![Toy bivariate setup.](images/toy-model.png){#fig-toy-model fig-alt="Two-cell two-gene toy model."}
 :::
 ::: {.column width="50%"}
-![Toy estimation results.](images/figures/fig-toy-results.png){#fig-toy-results fig-alt="Comparison of estimators on the toy model."}
+![Toy estimation results.](images/toy-results.png){#fig-toy-results fig-alt="Comparison of estimators on the toy model."}
 :::
 :::::
 
