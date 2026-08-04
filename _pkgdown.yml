@@ -148,6 +148,7 @@ reference:
       Simulate bulk mixtures as convolutions of multivariate Gaussians, and
       hierarchical GRN moments with graph-constrained covariances.
     contents:
+      - generate_mean_signature_matrix
       - simulate_bulk_mixture
       - simulate_hierarchical_grn_moments
   - title: Utilities

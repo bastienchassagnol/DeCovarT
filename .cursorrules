@@ -164,6 +164,9 @@ This repo uses **[Air](https://posit-dev.github.io/air/)** (`air.toml`) and
 - Document with **roxygen2**; run `devtools::document()`.
 - Before interactive testing: `devtools::load_all()`.
 - Validate with `devtools::check()` (notes OK; avoid warnings/errors).
+- Before committing or pushing changes that touch exported functions,
+  pkgdown config (`_pkgdown.yml`), vignettes, or docs workflows, run a
+  local pkgdown build (`pkgdown::build_site()`) and fix failures first.
 - Prefer **usethis** and **devtools** workflows for package tasks
   (tests, docs, DESCRIPTION, GitHub Actions helpers, etc.).
 
