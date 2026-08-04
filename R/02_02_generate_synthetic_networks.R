@@ -112,12 +112,6 @@ compute_mean_profile_objectives <- function(mean_signature_matrix) {
 #'   studying cosine / collinearity alone.
 #' @param target_cosine Numeric in \eqn{[0,1]}, the collinearity dial
 #'   \eqn{\rho}.
-#' @param direction_noise_sd Non-negative scalar. Standard deviation of a
-#'   Gaussian perturbation added to each cell-type direction before
-#'   normalisation. Use small values (e.g. \code{0.01}--\code{0.05}) to add
-#'   mild biological variability; default \code{0} keeps deterministic columns.
-#' @param random_seed Optional integer seed used only within this function
-#'   when \code{direction_noise_sd > 0}.
 #' @param gene_names Optional character vector of length \eqn{G}.
 #' @param celltype_names Optional character vector of length \eqn{J}.
 #'
@@ -130,8 +124,6 @@ generate_mean_signature_matrix <- function(
   n_celltypes,
   mean_scale = 10,
   target_cosine = 0,
-  direction_noise_sd = 0,
-  random_seed = NULL,
   gene_names = NULL,
   celltype_names = NULL
 ) {
@@ -146,9 +138,6 @@ generate_mean_signature_matrix <- function(
   }
   if (target_cosine < 0 || target_cosine > 1) {
     stop("`target_cosine` must lie in [0, 1].")
-  }
-  if (direction_noise_sd < 0) {
-    stop("`direction_noise_sd` must be non-negative.")
   }
 
   if (is.null(gene_names)) {
@@ -186,38 +175,10 @@ generate_mean_signature_matrix <- function(
     ncol = n_celltypes,
     dimnames = list(gene_names, celltype_names)
   )
-  if (!is.null(random_seed)) {
-    old_seed <- if (exists(".Random.seed", envir = .GlobalEnv)) {
-      get(".Random.seed", envir = .GlobalEnv)
-    } else {
-      NULL
-    }
-    on.exit(
-      {
-        if (is.null(old_seed)) {
-          if (exists(".Random.seed", envir = .GlobalEnv)) {
-            rm(".Random.seed", envir = .GlobalEnv)
-          }
-        } else {
-          assign(".Random.seed", old_seed, envir = .GlobalEnv)
-        }
-      },
-      add = TRUE
-    )
-    set.seed(as.integer(random_seed))
-  }
   for (j in seq_len(n_celltypes)) {
     direction <- sqrt_rho *
       shared_direction +
       sqrt_one_minus_rho * private_directions[, j]
-    if (direction_noise_sd > 0) {
-      direction <- direction +
-        stats::rnorm(
-          n_genes,
-          mean = 0,
-          sd = direction_noise_sd
-        )
-    }
     direction <- direction / sqrt(sum(direction^2))
     mean_signature_matrix[, j] <- mean_scale * direction
   }

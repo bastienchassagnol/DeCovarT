@@ -94,7 +94,7 @@ CITE_CMD_RE = re.compile(
     r"\\(?:cite|citep|citepp|citet|citepalt|citepauthor|citepyear)\*?\{([^}]+)\}"
 )
 QMD_CITE_RE = re.compile(r"(?<![\w\\])@([A-Za-z][\w:-]*)")
-SKIP_QMD_PREFIXES = ("eq-", "fig-", "lst-", "tbl-", "sec-", "ref-")
+SKIP_QMD_PREFIXES = ("eq-", "fig-", "lst-", "tbl-", "sec-", "ref-", "nte-")
 SKIP_QMD_KEYS = {
     "r",
     "echo",

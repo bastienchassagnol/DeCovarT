@@ -151,23 +151,27 @@ fixed $\rho$. We keep $s=10$ across scenarios and only vary $\rho$.
 ### Visualising the cosine construction
 
 @fig-cosine-geometry visualises the same three operating points
-($\rho\in\{0,\,0.3,\,1\}$) in a two-gene projection sampled from a
-$G=200$ construction. We add small Gaussian perturbations to emulate
-biological dispersion around each cell-type centroid while preserving the
-targeted cosine geometry.
+($\rho\in\{0,\,0.3,\,1\}$) for $G=2$ genes and $J=2$ cell types. The
+centroids are the deterministic columns of
+`generate_mean_signature_matrix()`; independent Gaussian noise is added
+*only in this vignette chunk* around each centroid ($N=20$ i.i.d. draws
+per population) to emulate within-type dispersion under an independence
+assumption, without altering the mean-signature generator itself.
 
 This illustration is inspired by panel B in the AutoGeneS paper
 [@alieeAutoGeneSAutomaticGene2021], but focuses here on the cosine-angle
 control induced by @eq-mean-cosine (without modelling centroid-distance
-optimisation).
+optimisation). With only two genes the cross terms in @eq-mean-inner are
+large, so the realised cosine is a warped but strictly increasing map of
+$\rho$.
 
 ```{r}
 #| label: fig-cosine-geometry
 #| fig-cap: >-
-#|   Cosine-control toy for $J=2$ cell types with $G=200$ genes.
-#|   Each panel shows noisy point clouds around centroids (stars), with
-#|   realised angle and cosine. Styling is inspired by panel B of AutoGeneS
-#|   (@alieeAutoGeneSAutomaticGene2021).
+#|   Cosine-control toy for $J=2$ cell types and $G=2$ genes.
+#|   Each panel shows $N=20$ i.i.d. Gaussian draws around the deterministic
+#|   centroids (stars), with realised angle and cosine. Styling is inspired
+#|   by panel B of AutoGeneS (@alieeAutoGeneSAutomaticGene2021).
 #| fig-width: 9
 #| fig-height: 4.6
 #| echo: false
@@ -176,12 +180,11 @@ optimisation).
 #| eval: true
 rhos_fig <- c(0, 0.3, 1)
 set.seed(20260804)
-g_total <- 200L
+n_genes_fig <- 2L
+n_celltypes_fig <- 2L
+n_samples <- 20L
 s_fig <- 10
-n_points <- 35L
-direction_noise_sd <- 0.02
-point_noise_sd <- 0.33
-gene_pairs <- list(c(11L, 12L), c(71L, 72L), c(151L, 152L))
+point_noise_sd <- 0.85
 
 scatter_df <- list()
 centroid_df <- list()
@@ -190,42 +193,39 @@ label_df <- list()
 for (k in seq_along(rhos_fig)) {
   rho <- rhos_fig[[k]]
   mu <- DeCovarT::generate_mean_signature_matrix(
-    n_genes = g_total,
-    n_celltypes = 2L,
+    n_genes = n_genes_fig,
+    n_celltypes = n_celltypes_fig,
     mean_scale = s_fig,
     target_cosine = rho,
-    direction_noise_sd = direction_noise_sd,
-    random_seed = 100 + k
+    gene_names = c("gene_1", "gene_2"),
+    celltype_names = c("cell_1", "cell_2")
   )
   cos_hat <- sum(mu[, 1] * mu[, 2]) /
     sqrt(sum(mu[, 1]^2) * sum(mu[, 2]^2))
   angle_deg <- acos(max(-1, min(1, cos_hat))) * 180 / pi
-  pair <- gene_pairs[[k]]
-  g_x <- pair[[1]]
-  g_y <- pair[[2]]
   panel <- sprintf(
     "rho = %s",
     format(rho, nsmall = 1)
   )
 
-  for (j in 1:2) {
+  for (j in seq_len(n_celltypes_fig)) {
     scatter_df[[length(scatter_df) + 1L]] <- data.frame(
       panel = panel,
-      celltype = paste0("cell_", j),
-      x = stats::rnorm(n_points, mean = mu[g_x, j], sd = point_noise_sd),
-      y = stats::rnorm(n_points, mean = mu[g_y, j], sd = point_noise_sd)
+      celltype = colnames(mu)[[j]],
+      x = stats::rnorm(n_samples, mean = mu[1L, j], sd = point_noise_sd),
+      y = stats::rnorm(n_samples, mean = mu[2L, j], sd = point_noise_sd)
     )
     centroid_df[[length(centroid_df) + 1L]] <- data.frame(
       panel = panel,
-      celltype = paste0("cell_", j),
-      x = mu[g_x, j],
-      y = mu[g_y, j]
+      celltype = colnames(mu)[[j]],
+      x = mu[1L, j],
+      y = mu[2L, j]
     )
   }
   label_df[[length(label_df) + 1L]] <- data.frame(
     panel = panel,
-    x = min(mu[g_x, ]) - 0.7,
-    y = max(mu[g_y, ]) + 0.8,
+    x = min(mu[1L, ]) - 1.2,
+    y = max(mu[2L, ]) + 1.4,
     label = sprintf("realised cos = %.2f\nangle = %.1f°", cos_hat, angle_deg)
   )
 }
@@ -270,8 +270,8 @@ print(
     ggplot2::coord_equal() +
     ggplot2::facet_wrap(~panel, nrow = 1) +
     ggplot2::labs(
-      x = "Expression of selected gene x",
-      y = "Expression of selected gene y"
+      x = "Expression of gene 1",
+      y = "Expression of gene 2"
     ) +
     ggplot2::theme_bw(base_size = 11.5) +
     ggplot2::theme(
@@ -352,7 +352,7 @@ stacked as an array in $\mathcal{M}_{G\times G\times J}$. Downstream bulk simula
 \mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},
 \sum_j p_j^{2}\boldsymbol{\Sigma}_j)$.
 
-# Perspectives: a single geometric score for $\boldsymbol{\mu}$
+# Perspectives: a single geometric score for $\boldsymbol{\mu}$ {#sec-geometric-score}
 
 The present API exposes two AutoGeneS-style objectives. A natural refinement is to replace them by one scalar that jointly rewards large column norms (and hence Euclidean separation) and penalises alignment.
 
@@ -366,7 +366,7 @@ V(\boldsymbol{\mu})
     \boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu}
   \bigr)
 }
-$$
+$$ {#eq-gram-volume}
 
 is the volume of the parallelepiped spanned by the columns of $\boldsymbol{\mu}$. It vanishes under exact collinearity and grows when columns lengthen or become more orthogonal—precisely the desired MOO trade-off in one number.
 
@@ -376,7 +376,7 @@ $$
 \kappa_2(\boldsymbol{\mu})^{-1}
 =
 \frac{\sigma_{\min}(\boldsymbol{\mu})}{\sigma_{\max}(\boldsymbol{\mu})},
-$$
+$$ {#eq-reciprocal-kappa}
 
 available in R via `kappa(mean_profiles, exact = TRUE)` (or `1 / kappa(...)`), measures how ill-posed linear recovery of $\boldsymbol{p}$ from $\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}$ is. Maximising $\kappa_2(\boldsymbol{\mu})^{-1}$ (or minimising $\kappa_2(\boldsymbol{\mu})$) collapses cosine and distance into a deconvolution-centric criterion without a Pareto front.
 

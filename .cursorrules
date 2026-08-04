@@ -586,6 +586,40 @@ claims), respect these limits unless the user explicitly overrides them:
 - Keep vignettes reproducible; avoid duplicating the full Article word
   budget—cross-link the paper and package help pages.
 
+### Quarto Markdown conventions (vignettes and `.qmd`)
+
+Prefer constructs that render cleanly in HTML / pkgdown and stay
+readable in source. Follow Quarto
+[cross-references](https://quarto.org/docs/authoring/cross-references.html)
+for figures, tables, equations, sections, and callouts.
+
+- Use **only simple bulleted lists** (`- item`). Do **not** use
+  Markdown task / checkbox lists (`- [ ]`, `- [x]`).
+- Do **not** use Pandoc **example lists** (`(@)`, `(@label)` at the
+  start of a line or list item). Quarto equation / figure cross-refs
+  wrapped as `(@eq-...)` are parsed as example lists — write
+  `see @eq-...` or keep `@eq-...` mid-sentence instead.
+- Prefer unicode markers inside plain bullets for ordered steps
+  (e.g. `- ① …`, `- ② …`) rather than Markdown ordered lists when a
+  stable visual order matters in Visual Editor.
+- **Warnings / notes:** prefer labelled Quarto callouts with
+  cross-references (e.g. `::: {#nte-foo .callout-warning}` … `:::` then
+  `@nte-foo`), not raw blockquotes with pasted emoji glyphs. See
+  [callout cross-references](https://quarto.org/docs/authoring/cross-references.html#callouts).
+- **Emoji / icons:** when an emoji shortcode is needed in Markdown,
+  use GitHub-style `:name:` tokens from
+  [rxaviers/emoji-cheat-sheet](https://gist.github.com/rxaviers/7360908)
+  (e.g. `:warning:`, `:information_source:`), not literal unicode
+  emoji characters typed into the source. Enable Quarto emoji support
+  in the document YAML when shortcodes must render (`from: markdown+emoji`
+  or the project’s established emoji setup).
+- Label major headings with `{#sec-…}` and cross-link with `@sec-…`
+  within a document; across vignettes use pkgdown HTML links
+  (e.g. `[synthetic scenarios](synthetic-scenarios.html#sec-…)`).
+- Keep Visual Editor–hostile syntax out of vignettes unless a feature
+  (callouts, shortcodes) is intentionally required for the published
+  HTML and documented here.
+
 ## Scientific voice and self-review (no Consensus required)
 
 When editing `article/` or `vignettes/`, write like a careful methods

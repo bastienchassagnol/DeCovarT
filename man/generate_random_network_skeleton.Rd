@@ -28,7 +28,8 @@ Symmetric integer matrix \eqn{G\times G} with zero diagonal.
 \description{
 Draws undirected skeletons with \pkg{igraph}: Barabási–Albert
 preferential attachment (\code{scale_free}), a stochastic block
-model (\code{stochastic_block_model}), or Watts–Strogatz small-world
-(\code{small_world}) \insertCite{barabasiEmergenceScalingRandom1999}{DeCovarT}.
+model (\code{stochastic_block_model}), or Watts–Strogatz
+small-world (\code{small_world})
+\insertCite{barabasiEmergenceScalingRandom1999}{DeCovarT}.
 }
 \keyword{internal}

@@ -189,47 +189,29 @@ test_that("prop_inhibitory controls sign balance on weighted edges", {
   expect_true(length(upper) == 0L || all(upper > 0))
 })
 
-test_that("generate_mean_signature_matrix supports direction noise", {
-  base <- generate_mean_signature_matrix(
-    n_genes = 80L,
+test_that("generate_mean_signature_matrix is deterministic and scaled", {
+  mu_a <- generate_mean_signature_matrix(
+    n_genes = 2L,
     n_celltypes = 2L,
     mean_scale = 10,
     target_cosine = 0.3
   )
-  noisy_a <- generate_mean_signature_matrix(
-    n_genes = 80L,
+  mu_b <- generate_mean_signature_matrix(
+    n_genes = 2L,
     n_celltypes = 2L,
     mean_scale = 10,
-    target_cosine = 0.3,
-    direction_noise_sd = 0.02,
-    random_seed = 123
-  )
-  noisy_b <- generate_mean_signature_matrix(
-    n_genes = 80L,
-    n_celltypes = 2L,
-    mean_scale = 10,
-    target_cosine = 0.3,
-    direction_noise_sd = 0.02,
-    random_seed = 123
+    target_cosine = 0.3
   )
 
-  expect_equal(dim(noisy_a), c(80L, 2L))
-  expect_equal(noisy_a, noisy_b)
-  expect_false(isTRUE(all.equal(base, noisy_a)))
+  expect_equal(dim(mu_a), c(2L, 2L))
+  expect_equal(mu_a, mu_b)
   expect_equal(
-    unname(sqrt(colSums(noisy_a^2))),
+    unname(sqrt(colSums(mu_a^2))),
     rep(10, 2),
     tolerance = 1e-8
   )
-})
-
-test_that("generate_mean_signature_matrix validates direction_noise_sd", {
-  expect_error(
-    generate_mean_signature_matrix(
-      n_genes = 10L,
-      n_celltypes = 2L,
-      direction_noise_sd = -0.1
-    ),
-    "direction_noise_sd"
-  )
+  cos_hat <- sum(mu_a[, 1] * mu_a[, 2]) /
+    sqrt(sum(mu_a[, 1]^2) * sum(mu_a[, 2]^2))
+  expect_gt(cos_hat, 0)
+  expect_lt(cos_hat, 1)
 })
