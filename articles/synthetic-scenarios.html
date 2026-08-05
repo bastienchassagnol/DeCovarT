@@ -85,7 +85,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Simulating semi-synthetic pseudo-bulk mixtures for benchmarking</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-08-04</p>
+      <p class="date">2026-08-05</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/synthetic-scenarios.qmd" class="external-link"><code>vignettes/synthetic-scenarios.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -198,7 +198,7 @@ j=1,\ldots,J.
 <p>The scale <span class="math inline">s</span> sets column norms without changing angles: <span class="math inline">\|\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\|_2\propto s</span> at fixed <span class="math inline">\rho</span>. We keep <span class="math inline">s=10</span> across scenarios and only vary <span class="math inline">\rho</span>.</p>
 <section class="level3"><h4 id="visualising-the-cosine-construction">Visualising the cosine construction<a class="anchor" aria-label="anchor" href="#visualising-the-cosine-construction"></a>
 </h4>
-<p><a href="#fig-cosine-geometry" class="quarto-xref">Figure 2</a> visualises the same three operating points (<span class="math inline">\rho\in\{0,\,0.3,\,1\}</span>) for <span class="math inline">G=2</span> genes and <span class="math inline">J=2</span> cell types. The centroids are the deterministic columns of <code><a href="../reference/generate_mean_signature_matrix.html">generate_mean_signature_matrix()</a></code>; independent Gaussian noise is added <em>only in this vignette chunk</em> around each centroid (<span class="math inline">N=20</span> i.i.d. draws per population) to emulate within-type dispersion under an independence assumption, without altering the mean-signature generator itself.</p>
+<p><a href="#fig-cosine-geometry" class="quarto-xref">Figure 2</a> visualises the same three operating points (<span class="math inline">\rho\in\{0,\,0.3,\,1\}</span>) for <span class="math inline">G=2</span> genes and <span class="math inline">J=2</span> cell types. The centroids are the deterministic columns of <code><a href="../reference/generate_mean_signature_matrix.html">generate_mean_signature_matrix()</a></code>; independent Gaussian noise is added <em>only in this vignette chunk</em> around each centroid (<span class="math inline">N=20</span> i.i.d. draws per population) to emulate within-type dispersion under an independence assumption, without altering the mean-signature generator itself. Coloured arrows mark each type’s mean direction; a thicker black arrow lies along their angular bisector with length scaled by the realised cosine; the shaded wedge is the angle between the two means.</p>
 <p>This illustration is inspired by panel B in the AutoGeneS paper <span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">(<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">Aliee and Theis 2021</a>)</span>, but focuses here on the cosine-angle control induced by <a href="#eq-mean-cosine" class="quarto-xref">Equation 1</a> (without modelling centroid-distance optimisation). With only two genes the cross terms in <a href="#eq-mean-inner" class="quarto-xref">Equation 2</a> are large, so the realised cosine is a warped but strictly increasing map of <span class="math inline">\rho</span>.</p>
 <div class="cell">
 <div class="cell-output-display">
@@ -207,7 +207,7 @@ j=1,\ldots,J.
 <img src="synthetic-scenarios_files/figure-html/fig-cosine-geometry-1.png" width="864">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cosine-geometry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 2: Cosine-control toy for <span class="math inline">J=2</span> cell types and <span class="math inline">G=2</span> genes. Each panel shows <span class="math inline">N=20</span> i.i.d. Gaussian draws around the deterministic centroids (stars), with realised angle and cosine. Styling is inspired by panel B of AutoGeneS (<span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">Aliee and Theis (<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">2021</a>)</span>).
+Figure 2: Cosine-control toy for <span class="math inline">J=2</span> cell types and <span class="math inline">G=2</span> genes. Coloured arrows: mean directions of each type; thick black arrow: average direction scaled by the realised cosine; shaded wedge: angle between the two means. Points are <span class="math inline">N=20</span> i.i.d. Gaussian draws around each centroid (stars). Styling is inspired by panel B of <code>AutoGeneS</code> (<span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">Aliee and Theis (<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">2021</a>)</span>).
 </figcaption></figure>
 </div>
 </div>

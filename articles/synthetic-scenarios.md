@@ -131,7 +131,10 @@ centroids are the deterministic columns of
 independent Gaussian noise is added *only in this vignette chunk* around
 each centroid (N=20 i.i.d. draws per population) to emulate within-type
 dispersion under an independence assumption, without altering the
-mean-signature generator itself.
+mean-signature generator itself. Coloured arrows mark each type’s mean
+direction; a thicker black arrow lies along their angular bisector with
+length scaled by the realised cosine; the shaded wedge is the angle
+between the two means.
 
 This illustration is inspired by panel B in the AutoGeneS paper ([Aliee
 and Theis 2021](#ref-alieeAutoGeneSAutomaticGene2021)), but focuses here
@@ -142,10 +145,11 @@ realised cosine is a warped but strictly increasing map of \rho.
 
 ![](synthetic-scenarios_files/figure-html/fig-cosine-geometry-1.png)
 
-Figure 2: Cosine-control toy for J=2 cell types and G=2 genes. Each
-panel shows N=20 i.i.d. Gaussian draws around the deterministic
-centroids (stars), with realised angle and cosine. Styling is inspired
-by panel B of AutoGeneS (Aliee and Theis
+Figure 2: Cosine-control toy for J=2 cell types and G=2 genes. Coloured
+arrows: mean directions of each type; thick black arrow: average
+direction scaled by the realised cosine; shaded wedge: angle between the
+two means. Points are N=20 i.i.d. Gaussian draws around each centroid
+(stars). Styling is inspired by panel B of `AutoGeneS` (Aliee and Theis
 ([2021](#ref-alieeAutoGeneSAutomaticGene2021))).
 
 ### Objectives: `compute_mean_profile_objectives()`
