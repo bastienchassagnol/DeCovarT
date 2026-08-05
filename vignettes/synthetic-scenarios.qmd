@@ -157,6 +157,9 @@ centroids are the deterministic columns of
 *only in this vignette chunk* around each centroid ($N=20$ i.i.d. draws
 per population) to emulate within-type dispersion under an independence
 assumption, without altering the mean-signature generator itself.
+Coloured arrows mark each type's mean direction; a thicker black arrow
+lies along their angular bisector with length scaled by the realised
+cosine; the shaded wedge is the angle between the two means.
 
 This illustration is inspired by panel B in the AutoGeneS paper
 [@alieeAutoGeneSAutomaticGene2021], but focuses here on the cosine-angle
@@ -169,9 +172,11 @@ $\rho$.
 #| label: fig-cosine-geometry
 #| fig-cap: >-
 #|   Cosine-control toy for $J=2$ cell types and $G=2$ genes.
-#|   Each panel shows $N=20$ i.i.d. Gaussian draws around the deterministic
-#|   centroids (stars), with realised angle and cosine. Styling is inspired
-#|   by panel B of AutoGeneS (@alieeAutoGeneSAutomaticGene2021).
+#|   Coloured arrows: mean directions of each type; thick black arrow:
+#|   average direction scaled by the realised cosine; shaded wedge: angle
+#|   between the two means. Points are $N=20$ i.i.d. Gaussian draws around
+#|   each centroid (stars). Styling is inspired by panel B of `AutoGeneS`
+#|   (@alieeAutoGeneSAutomaticGene2021).
 #| fig-width: 9
 #| fig-height: 4.6
 #| echo: false
@@ -185,9 +190,15 @@ n_celltypes_fig <- 2L
 n_samples <- 20L
 s_fig <- 10
 point_noise_sd <- 0.85
+arc_n <- 80L
+pop_cols <- c(cell_1 = "#2B8C99", cell_2 = "#F4B400")
 
 scatter_df <- list()
 centroid_df <- list()
+arrow_df <- list()
+avg_arrow_df <- list()
+wedge_df <- list()
+arc_df <- list()
 label_df <- list()
 
 for (k in seq_along(rhos_fig)) {
@@ -202,11 +213,30 @@ for (k in seq_along(rhos_fig)) {
   )
   cos_hat <- sum(mu[, 1] * mu[, 2]) /
     sqrt(sum(mu[, 1]^2) * sum(mu[, 2]^2))
-  angle_deg <- acos(max(-1, min(1, cos_hat))) * 180 / pi
+  cos_hat <- max(-1, min(1, cos_hat))
+  angle_deg <- acos(cos_hat) * 180 / pi
   panel <- sprintf(
     "rho = %s",
     format(rho, nsmall = 1)
   )
+
+  ang1 <- atan2(mu[2L, 1L], mu[1L, 1L])
+  ang2 <- atan2(mu[2L, 2L], mu[1L, 2L])
+  # Shortest signed turn from ang1 to ang2 in (-pi, pi]
+  d_ang <- (ang2 - ang1 + pi) %% (2 * pi) - pi
+  ang_seq <- ang1 + seq(0, d_ang, length.out = arc_n)
+  r_arc <- 0.42 * min(sqrt(colSums(mu^2)))
+
+  u1 <- mu[, 1L] / sqrt(sum(mu[, 1L]^2))
+  u2 <- mu[, 2L] / sqrt(sum(mu[, 2L]^2))
+  bis <- u1 + u2
+  bis_n <- sqrt(sum(bis^2))
+  # Average direction scaled by realised cosine (collapses when cos ≈ 0)
+  if (bis_n > 1e-8 && abs(cos_hat) > 1e-8) {
+    avg_vec <- (bis / bis_n) * (s_fig * abs(cos_hat))
+  } else {
+    avg_vec <- c(0, 0)
+  }
 
   for (j in seq_len(n_celltypes_fig)) {
     scatter_df[[length(scatter_df) + 1L]] <- data.frame(
@@ -221,7 +251,35 @@ for (k in seq_along(rhos_fig)) {
       x = mu[1L, j],
       y = mu[2L, j]
     )
+    arrow_df[[length(arrow_df) + 1L]] <- data.frame(
+      panel = panel,
+      celltype = colnames(mu)[[j]],
+      x = 0,
+      y = 0,
+      xend = mu[1L, j],
+      yend = mu[2L, j]
+    )
   }
+
+  avg_arrow_df[[length(avg_arrow_df) + 1L]] <- data.frame(
+    panel = panel,
+    x = 0,
+    y = 0,
+    xend = avg_vec[[1L]],
+    yend = avg_vec[[2L]]
+  )
+
+  wedge_df[[length(wedge_df) + 1L]] <- data.frame(
+    panel = panel,
+    x = c(0, r_arc * cos(ang_seq), 0),
+    y = c(0, r_arc * sin(ang_seq), 0)
+  )
+  arc_df[[length(arc_df) + 1L]] <- data.frame(
+    panel = panel,
+    x = r_arc * cos(ang_seq),
+    y = r_arc * sin(ang_seq)
+  )
+
   label_df[[length(label_df) + 1L]] <- data.frame(
     panel = panel,
     x = min(mu[1L, ]) - 1.2,
@@ -232,17 +290,72 @@ for (k in seq_along(rhos_fig)) {
 
 points_df <- do.call(rbind, scatter_df)
 centroids <- do.call(rbind, centroid_df)
+arrows <- do.call(rbind, arrow_df)
+avg_arrows <- do.call(rbind, avg_arrow_df)
+wedges <- do.call(rbind, wedge_df)
+arcs <- do.call(rbind, arc_df)
 labels <- do.call(rbind, label_df)
 panel_levels <- sprintf("rho = %s", format(rhos_fig, nsmall = 1))
-points_df$panel <- factor(points_df$panel, levels = panel_levels)
-centroids$panel <- factor(centroids$panel, levels = panel_levels)
-labels$panel <- factor(labels$panel, levels = panel_levels)
+for (nm in c(
+  "points_df", "centroids", "arrows", "avg_arrows", "wedges", "arcs", "labels"
+)) {
+  df <- get(nm)
+  df$panel <- factor(df$panel, levels = panel_levels)
+  assign(nm, df)
+}
 
 print(
-  ggplot2::ggplot(points_df, ggplot2::aes(x = x, y = y, colour = celltype)) +
+  ggplot2::ggplot() +
     ggplot2::geom_hline(yintercept = 0, colour = "grey88", linewidth = 0.3) +
     ggplot2::geom_vline(xintercept = 0, colour = "grey88", linewidth = 0.3) +
-    ggplot2::geom_point(alpha = 0.75, size = 2.1) +
+    ggplot2::geom_polygon(
+      data = wedges,
+      ggplot2::aes(x = x, y = y, group = panel),
+      fill = "grey35",
+      alpha = 0.12,
+      colour = NA
+    ) +
+    ggplot2::geom_path(
+      data = arcs,
+      ggplot2::aes(x = x, y = y, group = panel),
+      colour = "grey25",
+      linewidth = 0.55,
+      lineend = "round"
+    ) +
+    ggplot2::geom_segment(
+      data = arrows,
+      ggplot2::aes(
+        x = x,
+        y = y,
+        xend = xend,
+        yend = yend,
+        colour = celltype
+      ),
+      linewidth = 0.95,
+      arrow = grid::arrow(
+        length = grid::unit(0.22, "cm"),
+        type = "closed"
+      )
+    ) +
+    ggplot2::geom_segment(
+      data = avg_arrows,
+      ggplot2::aes(x = x, y = y, xend = xend, yend = yend),
+      colour = "black",
+      linewidth = 1.45,
+      arrow = grid::arrow(
+        length = grid::unit(0.26, "cm"),
+        type = "closed"
+      )
+    ) +
+    ggplot2::geom_point(
+      data = points_df,
+      ggplot2::aes(x = x, y = y, fill = celltype),
+      shape = 21,
+      colour = "grey20",
+      stroke = 0.35,
+      alpha = 0.85,
+      size = 2.15
+    ) +
     ggplot2::geom_point(
       data = centroids,
       ggplot2::aes(x = x, y = y),
@@ -263,7 +376,12 @@ print(
       label.size = 0.15
     ) +
     ggplot2::scale_colour_manual(
-      values = c(cell_1 = "#2B8C99", cell_2 = "#F4B400"),
+      values = pop_cols,
+      labels = c("Cell type 1", "Cell type 2"),
+      name = "Population"
+    ) +
+    ggplot2::scale_fill_manual(
+      values = pop_cols,
       labels = c("Cell type 1", "Cell type 2"),
       name = "Population"
     ) +

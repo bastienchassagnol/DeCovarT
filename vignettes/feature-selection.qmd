@@ -87,9 +87,10 @@ flowchart TD
 ```
 
 Sections are cross-linked below: @sec-preprocess builds moments;
-@sec-univariate and @sec-multivariate score genes; @sec-cv-selection and
-@sec-recommended assemble a pipeline; @sec-perspectives covers
-continua, Markov blankets, mechanistic priors
+@sec-precision-timing places sparse $\boldsymbol{\Omega}_{j}$ estimation
+after gene filtering; @sec-univariate and @sec-multivariate score genes;
+@sec-cv-selection and @sec-recommended assemble a pipeline;
+@sec-perspectives covers continua, Markov blankets, mechanistic priors
 (see @sec-mechanistic), and information-optimal design as an extension
 (see @sec-optimal-design).
 
@@ -229,6 +230,34 @@ should look roughly Gaussian and flat. Strong remaining depth trends
 or heavy tails indicate that the offset / covariate design is
 misspecified before any marker ranking.
 :::
+
+# When to estimate sparse precision matrices {#sec-precision-timing}
+
+Sparse cell-type precision matrices $\boldsymbol{\Omega}_{j}$ (and the
+implied covariances $\boldsymbol{\Sigma}_{j}=\boldsymbol{\Omega}_{j}^{-1}$)
+are inputs to multivariate selectors, overlap monitors and Fisher-design
+extensions (@sec-indeed, @sec-overlap, @sec-optimal-design,
+@sec-markov-seeds). They should **not** be estimated on the full
+transcriptome first.
+
+Even with graphical lasso / glasso, $G\gg n$ after donor-level
+pseudobulk aggregation makes support recovery unstable and
+computationally heavy. Prefer this order:
+
+1. Drop noisy, undetectable or technically unreliable genes
+   (@sec-preprocess).
+2. Restrict to a compact informative universe—typically the top HVGs
+   after `SCTransform` (@sec-sctransform), optionally refined by
+   univariate candidate scores (@sec-univ-one-vs-others,
+   @sec-gini-entropy)—before fitting per-type sparse $\boldsymbol{\Omega}_{j}$.
+3. Use the resulting sparse $\boldsymbol{\Omega}_{j}$ /
+   $\boldsymbol{\Sigma}_{j}$ in the multivariate and all-versus-all
+   stages that require them; univariate mean-only ranks do not need a
+   full precision estimate.
+
+In short: **filter and subset first, then estimate networks**; keep the
+sparse second-moment objects for every subsequent step that uses
+covariance or partial correlation.
 
 # Univariate approaches {#sec-univariate}
 
