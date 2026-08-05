@@ -41,7 +41,24 @@ SOFTWARE_TOOLS <- c(
   "AlgDesign",
   "GenSA",
   "GA",
+  "mco",
   "expm"
+)
+
+# GitHub / non-CRAN Manual entries appended after knitr::write_bib().
+EXTRA_MANUALS <- c(
+  paste(
+    "@Manual{R-pipeML,",
+    "  title = {pipeML: A flexible and modular machine learning framework",
+    "designed to support leakage-free model training through custom",
+    "cross-validation fold construction},",
+    "  author = {Marcelo Hurtado and Vera Pancaldi},",
+    "  year = {2026},",
+    "  note = {R package version 0.0.1},",
+    "  url = {https://github.com/VeraPancaldiLab/pipeML},",
+    "}",
+    sep = "\n"
+  )
 )
 
 # Never treat these as citable analysis tools for packages.bib.
@@ -203,6 +220,9 @@ header <- paste(
 tmp <- tempfile(fileext = ".bib")
 knitr::write_bib(to_write, file = tmp)
 body <- paste(readLines(tmp, warn = FALSE), collapse = "\n")
+if (length(EXTRA_MANUALS)) {
+  body <- paste(c(body, EXTRA_MANUALS), collapse = "\n\n")
+}
 # Exactly one trailing newline (end-of-file-fixer / sync-safe).
 text <- paste0(header, "\n\n", body)
 text <- paste0(sub("\n+$", "", text), "\n")
