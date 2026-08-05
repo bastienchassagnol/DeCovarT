@@ -5,6 +5,7 @@
   - [Overview](#overview)
     - [Seminar slides (iframe)](#seminar-slides-iframe)
   - [Pipeline Architecture](#pipeline-architecture)
+    - [Interactive package structure](#interactive-package-structure)
     - [Built-in deconvolution
       algorithms](#built-in-deconvolution-algorithms)
     - [Links to the paper](#links-to-the-paper)
@@ -55,7 +56,7 @@ Etienne Becht
 
 Anaïs Baudot
 
-2026-08-04
+2026-08-05
 
 ## 
 
@@ -432,6 +433,22 @@ The diagram above summarises the end-to-end workflow.
 > evaluation uses standardised proportion tables and optional
 > ground-truth ratios from simulations.
 
+### Interactive package structure
+
+Regenerate the DeCovarT → DeCovarT function call graph (via
+[`pkgapi`](https://github.com/r-lib/pkgapi) +
+[`visNetwork`](https://datastorm-open.github.io/visNetwork/)) from the
+repository root:
+
+``` r
+
+source("scripts/generate_package_network_functions.R")
+```
+
+This writes `output/package_network/decovart_function_network.html` (and
+`decovart_functions.csv`). On the pkgdown site the graph is copied to
+`package_network/` next to the home page:
+
 ### Built-in deconvolution algorithms
 
 | Algorithm | Interface | Notes / upstream |
@@ -641,17 +658,8 @@ Command Palette → **“LaTeX Workshop: Clean up auxiliary files”**.
 
 ## Project structure
 
-Package function call graph (DeCovarT → DeCovarT edges only):
-
-``` html
-<iframe
-  src="output/package_network/decovart_function_network.html"
-  title="DeCovarT function call graph"
-  width="100%"
-  height="720"
-  style="border: none;"
-></iframe>
-```
+See [Interactive package structure](#interactive-package-structure) for
+the regenerable `visNetwork` call graph under `output/package_network/`.
 
 ## Speed up computation with AutoZyme
 
