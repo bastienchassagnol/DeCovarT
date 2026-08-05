@@ -132,6 +132,9 @@ navbar:
         - text: Deconvolution use cases with DeCovarT
           icon: fa-chart-pie
           href: articles/DeCoVart-use-cases.html
+        - text: Feature selection for reference-based deconvolution
+          icon: fa-filter
+          href: articles/feature-selection.html
         - text: -------
         - text: Mathematics
         - text: Simplex coordinate maps (ALR / additive logistic)
