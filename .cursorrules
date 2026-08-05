@@ -330,7 +330,8 @@ Follow
 | Tabular data | `dplyr`, `tidyr`, `tibble` (`data.table` if needed) |
 | Out-of-memory data | `duckdb` |
 | Plotting | `ggplot2`; heatmaps: `ComplexHeatmap`; interactive: `ggiraph` |
-| Slide / HTML tables | `reactable` (prefer over static Markdown tables in reveal.js) |
+| Static tables (vignettes / Quarto HTML) | `tinytable` (prefer over `knitr::kable`, `kableExtra`, `flextable`) |
+| Slide / HTML interactive tables | `reactable` (prefer over static Markdown tables in reveal.js) |
 | Discrete ggplot scales | named vectors via `stats::setNames()` |
 | Input checks | `checkmate` |
 | Messages | `cli` |
@@ -585,6 +586,14 @@ claims), respect these limits unless the user explicitly overrides them:
   matter for understanding or speed.
 - Keep vignettes reproducible; avoid duplicating the full Article word
   budget—cross-link the paper and package help pages.
+- For **static** tables in vignettes / Quarto HTML, prefer
+  [`tinytable`](https://vincentarelbundock.github.io/tinytable/)
+  (`tinytable::tt()`) over `knitr::kable()`, `kableExtra`, or
+  `flextable`. Embed maths in cells with `$...$` (double backslashes in
+  R strings) as in the
+  [tinytable math section](https://vincentarelbundock.github.io/tinytable/vignettes/format.html#math);
+  set `options(tinytable_html_mathjax = TRUE)` in the setup chunk when
+  needed. Keep `reactable` for interactive slide / dashboard tables.
 
 ### Quarto Markdown conventions (vignettes and `.qmd`)
 
@@ -593,15 +602,56 @@ readable in source. Follow Quarto
 [cross-references](https://quarto.org/docs/authoring/cross-references.html)
 for figures, tables, equations, sections, and callouts.
 
-- Use **only simple bulleted lists** (`- item`). Do **not** use
-  Markdown task / checkbox lists (`- [ ]`, `- [x]`).
-- Do **not** use Pandoc **example lists** (`(@)`, `(@label)` at the
-  start of a line or list item). Quarto equation / figure cross-refs
-  wrapped as `(@eq-...)` are parsed as example lists — write
-  `see @eq-...` or keep `@eq-...` mid-sentence instead.
-- Prefer unicode markers inside plain bullets for ordered steps
-  (e.g. `- ① …`, `- ② …`) rather than Markdown ordered lists when a
-  stable visual order matters in Visual Editor.
+### Package and method names (backticks)
+
+In `.qmd` / `.Rmd` prose, put **package**, **software tool**, and
+**named method** labels in inline code spans so they stand out from
+ordinary English:
+
+```markdown
+`limma`, `edgeR`, `DESeq2`, `BioQC`, `AutoGeneS`, `INDEED`,
+`MixSim`, `CARNIVAL`, `CORNETO`, `SCTransform`
+```
+
+- Prefer `` `limma` `` over bare Limma / limma in running text.
+- Keep citation keys (`@R-limma`) and mathematical notation unchanged.
+- Do not backtick generic statistical terms (ANOVA, Gini coefficient,
+  Shannon entropy, nested CV) unless they are a software product name.
+- Mermaid node labels may keep short plain names for readability.
+
+### Lists (Visual Editor–safe; Quarto basics only)
+
+Use **only** the basic Quarto / Pandoc list forms documented at
+[Markdown Basics — Lists](https://quarto.org/docs/authoring/markdown-basics.html#lists):
+
+```markdown
+* unordered list
+  + sub-item 1
+  + sub-item 2
+    - sub-sub-item 1
+
+1. ordered list
+2. item 2
+   - sub-item nested under 2
+```
+
+Rules for every `.qmd` / `.Rmd` / `.md` document in this repo:
+
+- **Allowed:** unordered lists (`-`, `*`, `+`) and ordered lists
+  (`1.`, `2.`, …), including nesting as above.
+- **Forbidden:** Pandoc **example lists** (`(@)`, `(@label)`, or any
+  line that Pandoc parses as Example-style). In particular:
+  - never write `(@eq-…)`, `(@fig-…)`, `(@sec-…)` as a list marker;
+  - never hard-wrap a parenthetical so the next line begins with
+    `@label)` (e.g. `(see @sec-foo,` / newline / `  @sec-bar) …`) —
+    that is parsed as an example list and blocks Visual Mode
+    (“Document contains example lists…”). Keep such cites on one line
+    or rephrase as `see @sec-foo and @sec-bar`.
+- **Forbidden:** Markdown task / checkbox lists (`- [ ]`, `- [x]`).
+- **Do not** use unicode step markers (`- ① …`, `- ② …`) as a
+  substitute for ordered lists; use real `1.` / `2.` lists instead.
+- Cross-references stay mid-sentence: `see @eq-…`, `see @sec-…`
+  (never wrapped as `(@eq-…)`).
 - **Warnings / notes:** prefer labelled Quarto callouts with
   cross-references (e.g. `::: {#nte-foo .callout-warning}` … `:::` then
   `@nte-foo`), not raw blockquotes with pasted emoji glyphs. See
@@ -782,8 +832,10 @@ parsing review PDFs or other literature PDFs into vignette drafts.
   back to curated PDF/PPTX page images when the original graphic is
   essential and hard to redraw.
 - For tables in slides, use **reactable** (interactive HTML), not static
-  Markdown / knitr tables, unless the user asks otherwise. Keep tables
-  small enough for the viewport (`pagination`, compact columns).
+  Markdown / knitr / tinytable tables, unless the user asks otherwise.
+  Keep tables small enough for the viewport (`pagination`, compact
+  columns). For **vignette** static tables, prefer `tinytable` instead
+  (see Preferred R dependencies and Tables: tinytable vs reactable).
 - For equations, always define indexes and other notation on the slide
   (or on the previous slide).
 
@@ -836,6 +888,20 @@ parsing review PDFs or other literature PDFs into vignette drafts.
   `@tbl-…` / `@eq-…`. See
   <https://quarto.org/docs/authoring/cross-references.html>.
 - Do not silently drop citations when converting legacy slides.
+
+### Tables: tinytable (static) vs reactable (interactive)
+
+- **Vignettes / static Quarto HTML:** use `tinytable::tt()` by default.
+  Do not introduce `knitr::kable()`, `kableExtra`, or `flextable` for
+  new static tables unless the user asks. For maths in cells, write
+  `$\\kappa_2$`-style strings (double backslashes) and follow
+  <https://vincentarelbundock.github.io/tinytable/vignettes/format.html#math>;
+  enable `options(tinytable_html_mathjax = TRUE)` in setup when HTML
+  needs inline MathJax for table cells.
+- **Reveal.js slides / interactive HTML:** prefer `reactable` over
+  static Markdown / knitr / tinytable tables unless the user asks
+  otherwise. Keep tables small enough for the viewport
+  (`pagination`, compact columns).
 
 ### Tables with reactable
 
