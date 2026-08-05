@@ -109,9 +109,10 @@ source("scripts/generate_package_network_functions.R")
 ```
 
 This writes `output/package_network/decovart_function_network.html` (and
-`decovart_functions.csv`). The live graph:
+`decovart_functions.csv`). On the pkgdown site the graph is copied to
+`package_network/` next to the home page:
 
-<iframe src="output/package_network/decovart_function_network.html" title="DeCovarT function call graph" width="100%" height="720" style="border: none;">
+<iframe src="package_network/decovart_function_network.html" title="DeCovarT function call graph" width="100%" height="720" style="border: none;">
 
 </iframe>
 

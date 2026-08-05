@@ -186,6 +186,12 @@ jobs:
           mkdir -p docs/slides
           cp -a slides/index.html docs/slides/index.html
 
+      - name: Copy function network into pkgdown docs
+        run: |
+          mkdir -p docs/package_network
+          cp -a output/package_network/. docs/package_network/
+          test -f docs/package_network/decovart_function_network.html
+
       - name: Deploy to GitHub Pages
         if: github.event_name != 'pull_request'
         uses: JamesIves/github-pages-deploy-action@v4.8.0
