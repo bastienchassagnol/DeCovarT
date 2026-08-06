@@ -20,7 +20,7 @@
   }
 
   msg <- c(
-    paste0("DeCovarT ", ver, " — covariance-aware bulk deconvolution."),
+    paste0("DeCovarT ", ver, " - covariance-aware bulk deconvolution."),
     "Estimate cellular proportions from bulk RNA-seq using Gaussian",
     "convolutions of purified means and covariances (ALR + MLE).",
     "Main entry point: deconvolute_ratios().",

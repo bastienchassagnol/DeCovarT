@@ -81,8 +81,8 @@ repair_simplex <- function(p, tolerance = 100 * .Machine$double.eps) {
 #' @return Scalar normalised entropy \eqn{H^{\star}\in[0,1]}.
 #' @export
 #' @examples
-#' compute_shannon_entropy(c(1, 0, 0)) # Dirac → 0
-#' compute_shannon_entropy(rep(1 / 3, 3)) # uniform → 1
+#' compute_shannon_entropy(c(1, 0, 0)) # Dirac -> 0
+#' compute_shannon_entropy(rep(1 / 3, 3)) # uniform -> 1
 compute_shannon_entropy <- function(ratios) {
   if (!is.numeric(ratios) || length(ratios) == 0L || anyNA(ratios)) {
     stop("`ratios` must be a non-empty numeric vector without missing values.")
