@@ -84,9 +84,6 @@ navbar:
         - text: Simulating semi-synthetic pseudo-bulk mixtures
           icon: fa-flask
           href: articles/synthetic-scenarios.html
-        - text: Random Gaussian Markov network generation
-          icon: fa-share-alt
-          href: articles/random-network-generation.html
         - text: In silico GRN inference
           icon: fa-project-diagram
           href: articles/network-inference.html
@@ -181,12 +178,12 @@ articles:
     contents:
       - synthetic-scenarios
       - feature-selection
-      - random-network-generation
       - network-inference
       - DeCoVart-use-cases
   - title: Mathematics
     contents:
       - softmax-alr-derivatives
+      - DeCovarT-reminders-OLS
 
 news:
   releases:

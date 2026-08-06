@@ -79,3 +79,4 @@ __pycache__/
 # Generated manuals and article PDF (CI / local latexmk)
 article/*.pdf
 output/manual/
+diffrential_mean_generator.bib
