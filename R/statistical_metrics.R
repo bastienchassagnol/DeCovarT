@@ -316,6 +316,19 @@ compute_glmnet_gene_scores <- function(
 #' @param sigma_j,sigma_l Numeric \eqn{G\times G} covariances.
 #'
 #' @return Non-negative scalar Jeffreys divergence.
+#'
+#' @references
+#' Kullback S, Leibler RA (1951).
+#' "On Information and Sufficiency."
+#' \emph{The Annals of Mathematical Statistics} 22(1), 79--86.
+#' \doi{10.1214/aoms/1177729694}.
+#'
+#' Multivariate normal KL closed form:
+#' \url{https://statproofbook.github.io/P/mvn-kl.html}.
+#'
+#' Symmetrised (Jeffreys) divergence:
+#' \url{https://en.wikipedia.org/wiki/Kullback\%E2\%80\%93Leibler_divergence#Symmetrised_divergence}.
+#'
 #' @keywords internal
 .jeffreys_gaussian <- function(mu_j, mu_l, sigma_j, sigma_l) {
   mu_j <- as.numeric(mu_j)

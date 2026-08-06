@@ -22,4 +22,16 @@ D_{\mathrm{KL}}(f_{\ell}\parallel f_{j})} for
 and likewise for \eqn{\ell}, using the closed form in the feature-selection
 vignette.
 }
+\references{
+Kullback S, Leibler RA (1951).
+"On Information and Sufficiency."
+\emph{The Annals of Mathematical Statistics} 22(1), 79--86.
+\doi{10.1214/aoms/1177729694}.
+
+Multivariate normal KL closed form:
+\url{https://statproofbook.github.io/P/mvn-kl.html}.
+
+Symmetrised (Jeffreys) divergence:
+\url{https://en.wikipedia.org/wiki/Kullback\%E2\%80\%93Leibler_divergence#Symmetrised_divergence}.
+}
 \keyword{internal}
