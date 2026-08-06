@@ -36,7 +36,6 @@
 "deconvolute_ratios","04_01_benchmarktoy_model.R","signature_matrix, bulk_expression, true_ratios, Sigma, deconvolution_functions, scaled, cores"
 "plot_correlation_Heatmap","04_visualisation.R","distribution_metrics, score_variable, n_break, uni_scale"
 "enforce_identifiability","utils.R","p"
-"enforce_parameter_identifiability","utils.R","theta"
 "is_positive_definite","utils.R","expression, tol"
 "compute_shannon_entropy","utils.R","ratios"
 "compute_average_overlap","utils.R","true_theta, k"
