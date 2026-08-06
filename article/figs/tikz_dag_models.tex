@@ -22,11 +22,11 @@
 
 % -------------------- (a) Linear model --------------------
 \begin{tikzpicture}[x=1.2cm, y=1.15cm, >=stealth]
-  \node[param] (p) at (0, 1.2) {$\boldsymbol{p}_{i}$};
+  \node[param] (p) at (0, 1.2) {$\boldsymbol{p}_{\cdot i}$};
   \node[param] (sig) at (0, 0) {$\sigma_{i}$};
-  % Wider gutters: left (params → gene plate) and right (gene plate → $x_{gj}$)
-  \node[obs] (y) at (3.0, 0.6) {$\boldsymbol{y}_{gi}$};
-  \node[param] (x) at (6.2, 0.6) {$x_{gj}$};
+  % Wider gutters: left (params → gene plate) and right (gene plate → $\mu_{gj}$)
+  \node[obs] (y) at (3.0, 0.6) {$y_{gi}$};
+  \node[param] (x) at (6.2, 0.6) {$\mu_{gj}$};
 
   \draw[->] (p) -- (y);
   \draw[->] (sig) -- (y);
@@ -34,8 +34,8 @@
 
   \node[above=0.35cm of y, eqtext]
   (ylik) {%
-    $\boldsymbol{y}_{gi\,|\,\cdot}
-    \sim\mathcal{N}\!\bigl(\sum_{j}x_{gj}p_{ji},\,\sigma_{i}^{2}\bigr)$%
+    $y_{gi\,|\,\cdot}
+    \sim\mathcal{N}\!\bigl(\sum_{j}\mu_{gj}p_{ji},\,\sigma_{i}^{2}\bigr)$%
   };
 
   \plate[dagplate, inner sep=12pt]{plateG}{(y)(ylik)}{$g\in\{1,\ldots,G\}$};
@@ -50,30 +50,30 @@
 
 % -------------------- (b) Unconstrained DeCovarT --------------------
 \begin{tikzpicture}[x=1.1cm, y=1.05cm, >=stealth, font=\small]
-  \node[detcirc] (p) at (0, 0.9) {$\boldsymbol{p}_{i}$};
-  \node[obsdashed] (y) at (0, -0.6) {$\boldsymbol{y}_{i}$};
+  \node[detcirc] (p) at (0, 0.9) {$\boldsymbol{p}_{\cdot i}$};
+  \node[obsdashed] (y) at (0, -0.6) {$\boldsymbol{y}_{\cdot i}$};
   \draw[->, dashed] (p) -- (y);
 
-  \node[latent] (xj) at (4.2, 0.9) {$\boldsymbol{x}_{j}$};
-  \node[param] (mu) at (3.3, 2.3) {$\boldsymbol{\mu}_{j}$};
+  \node[latent] (xj) at (4.2, 0.9) {$\boldsymbol{x}_{\cdot j}$};
+  \node[param] (mu) at (3.3, 2.3) {$\boldsymbol{\mu}_{\cdot j}$};
   \node[param] (Sj) at (5.1, 2.3) {$\boldsymbol{\Sigma}_{j}$};
   \draw[->] (mu) -- (xj);
   \draw[->] (Sj) -- (xj);
   \draw[->, dashed] (xj) -- (y);
 
   \node[above=0.25cm of xj, eqtext]
-  {$\boldsymbol{x}_{j}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{j},
+  {$\boldsymbol{x}_{\cdot j}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},
     \boldsymbol{\Sigma}_{j})$};
 
   \node[left=0.12cm of y, eqtext, align=right]
   {%
-    $\boldsymbol{y}_{i\,|\,\cdot}\sim\mathcal{N}_{G}\!\bigl(
-    \boldsymbol{\mu}\boldsymbol{p}_{i},
+    $\boldsymbol{y}_{\cdot i\,|\,\cdot}\sim\mathcal{N}_{G}\!\bigl(
+    \boldsymbol{\mu}\boldsymbol{p}_{\cdot i},
     \sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}\bigr)$%
   };
 
   \node[eqtext] at ($(xj)!0.55!(y)+(0.25,-0.3)$)
-  {$\boldsymbol{y}_{i}=\boldsymbol{\mu}\boldsymbol{p}_{i}$};
+  {$\boldsymbol{y}_{\cdot i}=\boldsymbol{\mu}\boldsymbol{p}_{\cdot i}$};
 
   \plate[dagplate]{plateI}{(p)(y)}{$i\in\{1,\ldots,N\}$};
   \plate[dagplate]{plateJ}{(xj)(mu)(Sj)}{$j\in\{1,\ldots,J\}$};
@@ -88,13 +88,13 @@
 % -------------------- (c) Constrained DeCovarT --------------------
 \begin{tikzpicture}[x=1.1cm, y=1.0cm, >=stealth, font=\small]
   \node[latent] (th) at (0, 2.1) {$\boldsymbol{\rho}_{i}$};
-  \node[detcirc] (p) at (0, 0.9) {$\boldsymbol{p}_{i}$};
-  \node[obsdashed] (y) at (0, -0.55) {$\boldsymbol{y}_{i}$};
+  \node[detcirc] (p) at (0, 0.9) {$\boldsymbol{p}_{\cdot i}$};
+  \node[obsdashed] (y) at (0, -0.55) {$\boldsymbol{y}_{\cdot i}$};
   \draw[->] (th) -- (p);
   \draw[->, dashed] (p) -- (y);
 
-  \node[latent] (xj) at (4.2, 0.9) {$\boldsymbol{x}_{j}$};
-  \node[param] (mu) at (3.3, 2.3) {$\boldsymbol{\mu}_{j}$};
+  \node[latent] (xj) at (4.2, 0.9) {$\boldsymbol{x}_{\cdot j}$};
+  \node[param] (mu) at (3.3, 2.3) {$\boldsymbol{\mu}_{\cdot j}$};
   \node[param] (Sj) at (5.1, 2.3) {$\boldsymbol{\Sigma}_{j}$};
   \draw[->] (mu) -- (xj);
   \draw[->] (Sj) -- (xj);
@@ -102,8 +102,8 @@
 
   \node[left=0.12cm of y, eqtext, align=right]
   {%
-    $\boldsymbol{y}_{i\,|\,\cdot}\sim\mathcal{N}_{G}\!\bigl(
-    \boldsymbol{\mu}\boldsymbol{p}_{i},
+    $\boldsymbol{y}_{\cdot i\,|\,\cdot}\sim\mathcal{N}_{G}\!\bigl(
+    \boldsymbol{\mu}\boldsymbol{p}_{\cdot i},
     \sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}\bigr)$%
   };
 

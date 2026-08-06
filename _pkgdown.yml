@@ -101,6 +101,9 @@ navbar:
         - text: Simplex maps and softmax / ALR derivatives
           icon: fa-square-root-variable
           href: articles/softmax-alr-derivatives.html
+        - text: OLS reminders for linear deconvolution
+          icon: fa-equals
+          href: articles/DeCovarT-reminders-OLS.html
     news:
       text: News
       icon: fa-newspaper

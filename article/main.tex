@@ -342,110 +342,116 @@
 
     \subsection{DeCovarT model set-up}
 
-    % see file:///home/bastien/Downloads/2023.11.09.566355v2.full.pdf for model notations
-
     In this section, we recall the paradigm underlying most deconvolution
-    algorithms, relating the linear transcriptomic expression in bulk tissues,
-    and cell type-specific gene expressions. To that end, we introduce the
-    following notations:
+    algorithms, relating bulk transcriptomic expression to cell type-specific
+    gene expression. Indices are fixed throughout: gene $g=1,\ldots,G$;
+    cell type $j=1,\ldots,J$; sample (subject) $i=1,\ldots,N$ (independence
+    across samples). Column and row slices use the conventional dot notation
+    ($\boldsymbol{\mu}_{\cdot j}$, $\boldsymbol{y}_{\cdot i}$). Analogously to
+    MuSiC \cite{wangBulkTissueCell2019}, the signature stores
+    \emph{cross-sample mean} profiles rather than a single draw of latent
+    expression. Notations:
     \begin{itemize}
-        \item $(\boldsymbol{y}=(y_{gi}) \in \mathbb{R}_{+}^{G\times N}$ is the total
-            bulk transcriptomic expression, measured in $N$ individuals.
+        \item $\boldsymbol{y}=(y_{gi})\in\mathbb{R}_{+}^{G\times N}$: bulk
+            expression; $\boldsymbol{y}_{\cdot i}\in\mathbb{R}_{+}^{G}$ is the
+            profile of sample $i$.
 
-        \item $\boldsymbol{X}=(x_{gj}) \in \mathcal{M}_{\RR^{G\times J}}$ the signature
-            matrix of the mean expression of $G$ genes in $J$ purified cell populations.
+        \item $\boldsymbol{\mu}=(\mu_{gj})\in\mathbb{R}^{G\times J}$: mean
+            signature; $\boldsymbol{\mu}_{\cdot j}\in\mathbb{R}^{G}$ is the
+            mean profile of cell type $j$ (averaged over reference samples /
+            cells, as in MuSiC).
 
-        \item $\boldsymbol{p}=(p_{ji})\in ]0, 1[^{J \times N}$ the unknown relative
-            proportions of cell populations in $N$ samples
+        \item $\boldsymbol{p}=(p_{ji})\in\,]0,1[^{J\times N}$: unknown relative
+            proportions; $\boldsymbol{p}_{\cdot i}\in\,]0,1[^{J}$ is the
+            composition of sample $i$.
+
+        \item $\boldsymbol{\Sigma}_{j}\in\mathbb{R}^{G\times G}$ and
+            $\boldsymbol{\Theta}_{j}\equiv\boldsymbol{\Sigma}_{j}^{-1}$:
+            covariance and precision of cell type $j$. Stacking over $j$
+            yields third-order tensors of size $G\times G\times J$
+            (one $G\times G$ network per cell type).
     \end{itemize}
 
-    As in most traditional deconvolution models, we assume that the total bulk expression
-    can be reconstructed by summing the individual contributions of each cell population
-    weighted by its frequency, as stated explicitly in the following linear
-    matricial relationship (\ref{eq-linear-deconvolution}):
-
+    As in most traditional deconvolution models, bulk expression is the linear
+    combination of mean cell-type profiles weighted by proportions
+    (\ref{eq-linear-deconvolution}):
     \begin{equation}
-        \label{eq-linear-deconvolution}\boldsymbol{y}=\boldsymbol{X}\times \boldsymbol
-        {p}
+        \label{eq-linear-deconvolution}
+        \boldsymbol{y}=\boldsymbol{\mu}\,\boldsymbol{p}
+        \quad\text{(equivalently }
+        \boldsymbol{y}_{\cdot i}=\boldsymbol{\mu}\,\boldsymbol{p}_{\cdot i}
+        \text{ for each }i\text{)}.
     \end{equation}
 
-    In addition, we consider unit simplex constraint on the cellular ratios, $\boldsymbol
-    {p}$ (\ref{eq-simplex-constraint}):
+    In addition, each composition lies on the unit simplex
+    (\ref{eq-simplex-constraint}):
     \begin{equation}
         \label{eq-simplex-constraint}
         \begin{cases}
-            \sum_{j=1}^{J} p_{j}=1                      \\
-            \forall j \in \widetilde{J}\quad p_{j}\ge 0
+            \sum_{j=1}^{J} p_{ji}=1                      \\
+            \forall j \in \widetilde{J}\quad p_{ji}\ge 0
         \end{cases}
+        \qquad (i=1,\ldots,N).
     \end{equation}
 
     \subsection{Model assumptions}
 
-    In contrast to standard linear regression models, we relax in the DeCovarT modelling
-    framework the \emph{exogeneity} assumption, by considering the set of covariates
-    $\boldsymbol{X}$ as random variables rather than fixed measures, in a
-    process close to the approach of DSection algorithm and DeMixt algorithms. However,
-    to our knowledge, we are the first to weaken the independence assumption between
-    observations by explicitly considering a multivariate distribution and integrating
-    the intrinsic covariance structure of the transcriptome of each purified cell
-    population.
+    In contrast to standard linear regression, DeCovarT relaxes
+    \emph{exogeneity} by treating latent cell-type expression profiles as
+    random rather than fixed (as in DSection and DeMixt). We further weaken
+    gene-wise independence by modelling the full $G\times G$ covariance of
+    each purified cell type.
 
-    To do so, we conjecture that the $G$-dimensional vector $\boldsymbol{x}_{j}$
-    characterising the transcriptomic expression of each cell population follows
-    a multivariate Gaussian distribution, given by \ref{eq-multivariate-gaussian}:
+    Latent profile $\boldsymbol{x}_{\cdot j}\in\mathbb{R}^{G}$ of cell type
+    $j$ is multivariate Gaussian (\ref{eq-multivariate-gaussian}):
     \begin{equation}
-        \label{eq-multivariate-gaussian}\DET(2\pi\boldsymbol{\Sigma}_{j})^{-\frac{1}{2}}
-        \exp\left( -\frac{1}{2}(\boldsymbol{x}_{j}- \boldsymbol{\mu}_{.j}) \boldsymbol
-        {\Sigma}_{j}^{-1}(\boldsymbol{x}_{j} - \boldsymbol{\mu}_{.j})^{\top}\right
-        )
+        \label{eq-multivariate-gaussian}
+        \DET(2\pi\boldsymbol{\Sigma}_{j})^{-\frac{1}{2}}
+        \exp\!\Bigl(
+        -\tfrac{1}{2}
+        (\boldsymbol{x}_{\cdot j}-\boldsymbol{\mu}_{\cdot j})^{\top}
+        \boldsymbol{\Theta}_{j}
+        (\boldsymbol{x}_{\cdot j}-\boldsymbol{\mu}_{\cdot j})
+        \Bigr),
     \end{equation}
-    and parametrised by:
+    with parameters:
     \begin{itemize}
-        \item $\boldsymbol{\mu}_{.j}$, the mean purified transcriptomic
-            expression of cell population $j$
+        \item $\boldsymbol{\mu}_{\cdot j}$: mean purified transcriptomic
+            profile of cell type $j$ (column of $\boldsymbol{\mu}$);
 
-        \item $\boldsymbol{\Sigma}_{j}$, the covariance matrix of each cell
-            population, constrained to be \textit{positive-definite} (see Appendix
-            A.1). Precisely, we retrieve it from inferring its inverse, known as
-            the precision matrix, through the gLasso \cite{mazumderGraphicalLassoNew2011} algorithm.
-            We define
-            $\boldsymbol{\Theta}_{j} \equiv \boldsymbol{\Sigma}_{j}^{-1}$ the
-            corresponding \textit{precision matrix}, whose inputs, after normalisation,
-            store the partial correlation between two genes, conditioned on all the
-            others. Notably, pairwise gene interactions whose corresponding off-diagonal
-            terms in the precision matrix are null are considered statistically spurious,
-            and discarded.
+        \item $\boldsymbol{\Sigma}_{j}$: positive-definite covariance
+            (Appendix~\ref{def:positive-definite}), recovered via its inverse
+            with \texttt{gLasso}
+            \cite{mazumderGraphicalLassoNew2011}. We set
+            $\boldsymbol{\Theta}_{j}\equiv\boldsymbol{\Sigma}_{j}^{-1}$;
+            after normalisation, off-diagonal entries are partial
+            correlations. Null off-diagonals are treated as absent edges.
     \end{itemize}
 
-    To derive the log-likelihood of our model, first we \textit{plugged-in} the
-    mean and covariance parameters
-    $\zeta_{j}=\left(\boldsymbol{\mu}_{.j}, \boldsymbol{\Sigma}_{j}\right)$
-    estimated for each cell population in the previous step. Then, setting
-    $\boldsymbol{\zeta}=(\boldsymbol{\mu}, \boldsymbol{\Sigma}), \quad
-    \boldsymbol{\mu}=(\boldsymbol{\mu}_{.j})_{j \in \widetilde{J}}\in
-    \mathcal{M}_{G \times J}, \quad
-    \boldsymbol{\Sigma}\in \mathcal{M}_{G \times G}$
-    the known parameters and $\boldsymbol{p}$ the unknown cellular ratios, we show
-    that the conditional distribution of the observed bulk mixture, conditioned
-    on the individual purified expression profiles and their ratios in the
-    sample, $\boldsymbol{y}|(\boldsymbol{\zeta}, \boldsymbol{p})$, is the
-    convolution of pairwise independent multivariate Gaussian distributions. Using
-    the \textit{affine invariance} property of Gaussian distributions, we can show
-    that this convolution is also a multivariate Gaussian distribution, given by
-    \ref{eq-conditional-multivariate-distribution}.
+    Plug-in estimates
+    $\zeta_{j}=(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j})$ yield
+    known
+    $\boldsymbol{\zeta}=(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\}_{j=1}^{J})$
+    with $\boldsymbol{\mu}=(\boldsymbol{\mu}_{\cdot j})_{j\in\widetilde{J}}$.
+    Conditionally on $(\boldsymbol{\zeta},\boldsymbol{p}_{\cdot i})$, the bulk
+    $\boldsymbol{y}_{\cdot i}$ is a Gaussian convolution
+    (\ref{eq-conditional-multivariate-distribution}):
     \begin{equation}
-        \boldsymbol{y}|(\boldsymbol{\zeta}, \boldsymbol{p}) \sim \mathcal{N}_{G}(
-        \boldsymbol{\mu}\boldsymbol{p}, \boldsymbol{\Sigma}) \text{ with }\boldsymbol
-        {\mu}= (\boldsymbol{\mu}_{.j})_{j \in \widetilde{J}}, \quad \boldsymbol{p}
-        =(p_{1}, \ldots, p_{J}) \text{ and }\boldsymbol{\Sigma}=\sum_{j=1}^{J} p_{j}
-        ^{2}\boldsymbol{\Sigma}_{j}\label{eq-conditional-multivariate-distribution}
+        \boldsymbol{y}_{\cdot i}\,|\,(\boldsymbol{\zeta},\boldsymbol{p}_{\cdot i})
+        \sim\mathcal{N}_{G}\!\bigl(
+        \boldsymbol{\mu}\,\boldsymbol{p}_{\cdot i},\,
+        \textstyle\sum_{j=1}^{J}p_{ji}^{2}\boldsymbol{\Sigma}_{j}
+        \bigr)
+        \label{eq-conditional-multivariate-distribution}
     \end{equation}
     The directed graphical models associated with this framework are shown in
     Fig.~\ref{fig:DAG-model}: panel~\textbf{a} recalls the classical linear
     deconvolution template; panel~\textbf{b} is the unconstrained DeCovarT
     generative model; panel~\textbf{c} adds the regularised soft-max mapping
     $\boldsymbol{\psi}$ that enforces the unit-simplex constraint on
-    $\boldsymbol{p}$.
+    $\boldsymbol{p}$. Classical OLS and Gauss--Markov reminders (Article length)
+    are deferred to the package vignette
+    \texttt{DeCovarT-reminders-OLS}.
 
     \begin{figure}[t]
         \centering
@@ -456,12 +462,12 @@
             Shaded nodes are observed; square nodes are fixed (plug-in) parameters;
             dashed circles denote deterministic or constrained quantities.
             \textbf{a}~Gold-standard linear model
-            $\boldsymbol{y}_{gi\,|\,\cdot}\sim\mathcal{N}(\sum_{j}x_{gj}p_{ji},
+            $y_{gi\,|\,\cdot}\sim\mathcal{N}(\sum_{j}\mu_{gj}p_{ji},
             \sigma_{i}^{2})$.
             \textbf{b}~Unconstrained DeCovarT convolution
-            $\boldsymbol{y}_{i\,|\,\cdot}\sim\mathcal{N}_{G}(\boldsymbol{\mu}
-            \boldsymbol{p}_{i},\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j})$ with
-            $\boldsymbol{x}_{j}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{j},
+            $\boldsymbol{y}_{\cdot i\,|\,\cdot}\sim\mathcal{N}_{G}(\boldsymbol{\mu}
+            \boldsymbol{p}_{\cdot i},\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j})$ with
+            $\boldsymbol{x}_{\cdot j}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},
             \boldsymbol{\Sigma}_{j})$.
             \textbf{c}~Constrained DeCovarT: unconstrained coordinates
             $\boldsymbol{\rho}_{i}\in\mathbb{R}^{J-1}$ are mapped to the open
@@ -472,8 +478,8 @@
             $\boldsymbol{\psi}^{-1}(\boldsymbol{p})=
             \bigl(\ln(p_{j}/p_{J})\bigr)_{j<J}$
             (Eq.~\ref{eq-mapping-function}).
-            For identifiability we treat variability as arising from the stochastic
-            covariates $\boldsymbol{x}_{j}$.%
+            Variability is attributed to latent covariates
+            $\boldsymbol{x}_{\cdot j}$.%
         }
         \label{fig:DAG-model}
     \end{figure}
@@ -491,9 +497,9 @@
     \begin{equation}
         \ell_{\boldsymbol{y} | \boldsymbol{\zeta}}(\boldsymbol{p})=C + \log\left(
         \DET \left(\sum_{j=1}^{J} p_{j}^{2}\boldsymbol{\Sigma}_{j}\right)^{-1}\right
-        ) - \frac{1}{2}(\boldsymbol{y}- \boldsymbol{p}\boldsymbol{\mu})^{\top} \left
+        ) - \frac{1}{2}(\boldsymbol{y}- \boldsymbol{\mu}\boldsymbol{p})^{\top} \left
         (\sum_{j=1}^{J} p_{j}^{2}\boldsymbol{\Sigma}_{j}\right)^{-1}(\boldsymbol{y}
-        - \boldsymbol{p}\boldsymbol{\mu}) \label{eq-loglikelihood-multivariate-gaussian}
+        - \boldsymbol{\mu}\boldsymbol{p}) \label{eq-loglikelihood-multivariate-gaussian}
     \end{equation}
 
     \subsection{First and second-order derivation of the unconstrained DeCovarT
@@ -521,14 +527,14 @@
             ]\\
             =&\scriptstyle -\Tr \left(\boldsymbol{\Theta}\frac{\partial
             \boldsymbol{\Sigma}}{\partial p_{j}}\right) - \frac{1}{2}\left[ - \boldsymbol
-            {\mu}_{.j}^{\top}\boldsymbol{\Theta}(\boldsymbol{y}- \boldsymbol{\mu}
+            {\mu}_{\cdot j}^{\top}\boldsymbol{\Theta}(\boldsymbol{y}- \boldsymbol{\mu}
             \boldsymbol{p}) - (\boldsymbol{y}- \boldsymbol{\mu}\boldsymbol{p})^{\top}
             \Theta\frac{\partial \Sigma}{\partial p_{j}}\Theta(\boldsymbol{y}- \boldsymbol
             {\mu}\boldsymbol{p}) - (\boldsymbol{y}- \boldsymbol{\mu}\boldsymbol{p}
-            )^{\top}\boldsymbol{\Theta}\boldsymbol{\mu}_{.j}\right] \\
+            )^{\top}\boldsymbol{\Theta}\boldsymbol{\mu}_{\cdot j}\right] \\
             =&\textcolor{purple}{-2p_j \Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\right)
             }+ \textcolor{blue}{(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta}
-            \boldsymbol{\mu}_{.j}}\, + \textcolor{orange}{p_j (\boldsymbol{y} -
+            \boldsymbol{\mu}_{\cdot j}}\, + \textcolor{orange}{p_j (\boldsymbol{y} -
             \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \Sigma_j
             \boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})
             }
@@ -545,10 +551,10 @@
     \begin{equation}
         \label{eq-hessian-log-likelihood-unconstrained}
         \begin{aligned}
-            \mathbf{H}_{i,i} & = \frac{\partial^2 \ell}{\partial^2 p_i}= \textcolor{purple}{-2\Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i\right) + 4p_i^2 \Tr \left(\left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i\right)^2\right)}\textcolor{blue}{-2p_i(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\mu_{.i}}\, - \boldsymbol{\mu}_{.i}^\top\boldsymbol{\Theta} \boldsymbol{\mu_{.i}}}\, -        \\
-                             & \textcolor{orange}{2p_i (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top \boldsymbol{\Theta}\boldsymbol{\Sigma}_i\boldsymbol{\Theta}\boldsymbol{\mu}_{.i} \, - (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \left(4p_i^2 \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\Sigma}_i - \boldsymbol{\Sigma}_i \right)\boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})}, \quad i \in \widetilde{J} \\
-            \mathbf{H}_{i,j} & = \frac{\partial^2 \ell}{\partial p_i \partial p_j}= \textcolor{purple}{4p_j p_i \Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j \boldsymbol{\Theta}\boldsymbol{\Sigma}_i \right)}\textcolor{blue}{-2p_i(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\mu_{.j}} - \boldsymbol{\mu}_{.i}^\top\boldsymbol{\Theta} \boldsymbol{\mu_{.j}}}\, -                                \\
-                             & \textcolor{orange}{2p_j (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top \boldsymbol{\Theta}\boldsymbol{\Sigma}_j\boldsymbol{\Theta} \boldsymbol{\mu}_{.i}\, - 4p_ip_j(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta}\boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\Sigma}_j \boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})}, \quad (i,j) \in \widetilde{J}^{2}, i \neq j
+            \mathbf{H}_{i,i} & = \frac{\partial^2 \ell}{\partial^2 p_i}= \textcolor{purple}{-2\Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i\right) + 4p_i^2 \Tr \left(\left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i\right)^2\right)}\textcolor{blue}{-2p_i(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\mu}_{\cdot i}\, - \boldsymbol{\mu}_{\cdot i}^\top\boldsymbol{\Theta} \boldsymbol{\mu}_{\cdot i}}\, -        \\
+                             & \textcolor{orange}{2p_i (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top \boldsymbol{\Theta}\boldsymbol{\Sigma}_i\boldsymbol{\Theta}\boldsymbol{\mu}_{\cdot i} \, - (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \left(4p_i^2 \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\Sigma}_i - \boldsymbol{\Sigma}_i \right)\boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})}, \quad i \in \widetilde{J} \\
+            \mathbf{H}_{i,j} & = \frac{\partial^2 \ell}{\partial p_i \partial p_j}= \textcolor{purple}{4p_j p_i \Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j \boldsymbol{\Theta}\boldsymbol{\Sigma}_i \right)}\textcolor{blue}{-2p_i(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\mu}_{\cdot j} - \boldsymbol{\mu}_{\cdot i}^\top\boldsymbol{\Theta} \boldsymbol{\mu}_{\cdot j}}\, -                                \\
+                             & \textcolor{orange}{2p_j (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top \boldsymbol{\Theta}\boldsymbol{\Sigma}_j\boldsymbol{\Theta} \boldsymbol{\mu}_{\cdot i}\, - 4p_ip_j(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta}\boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\Sigma}_j \boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})}, \quad (i,j) \in \widetilde{J}^{2}, i \neq j
         \end{aligned}
     \end{equation}
     in which the coloured sections pair one by one with the corresponding coloured
@@ -609,17 +615,17 @@
     each gene. The usual univariate approach of DGEAs additionally underlies the
     need of a
     \bigskip
-    The gLasso algorithm used to derive the precision matrix associated to each purified
+    The \texttt{gLasso} algorithm used to derive the precision matrix associated to each purified
     cell profile is subjected to \textit{parameter shrinkage}, like any penalty regularisation
     approach. Notably, in our setting, shrinkage tends to systematically
     underestimate the non-zero partial correlations of the precision matrix.
 
     To mitigate this issue, one approach is to incorporate the \textit{support}
-    (indicating non-null inputs), derived from the gLasso output, into a
+    (indicating non-null inputs), derived from the \texttt{gLasso} output, into a
     conventional Maximum Likelihood Estimation (MLE) framework. The general concept
     is to utilising the true "zeros" to impose topological constraints on the final
     Gaussian Graphical Model (GGM). However, it's important to note that unless the
-    undirected Markov network obtained from the gLasso output is a \textit{chordal
+    undirected Markov network obtained from the \texttt{gLasso} output is a \textit{chordal
     graph}, there is usually no straightforward mapping between the two topological
     spaces.
 
@@ -673,20 +679,7 @@ djusting $p-$ values, as numerous genes are examined simultaneously,
     \paragraph{Joint Estimation of purified Expression Profiles and Cellular
     Ratios}
 
-    We detail in Appendix B a Gibbs sampler to approximate the target distribution,
-    here the joint value of the purified profiles and the cellular ratios. In addition,
-    MCMC sampling allows for straightforward incorporation of prior knowledge, and
-    streamlines the derivation of Maximum a Posteriori (MAP) estimates and \textit{credible
-    intervals}.
-
-    Precisely, by coupling Gibbs and Metropolis Hasting samplers, we ensure at
-    each iteration that the estimated parameters adhered to the ``balance
-    condition'', an essential property guaranteeing the convergence of MCMC chains
-    to a stationary distribution identifiable to the target distribution.
-
     \section{Code availability}
-
-    \subsection{Computational environment}
 
     All analyses were performed on ... high-performance computing infrastructure
     using StdEnv/2020. Core statistical analyses and deconvolution bench-marking
@@ -713,70 +706,6 @@ djusting $p-$ values, as numerous genes are examined simultaneously,
     \section{Author contribution}
 
     \backmatter
-
-    \section{Theorem examples from Nature Communication}
-    A fast exponentiation procedure:
-
-    \begin{algorithm}
-        \caption{Calculate $y = x^{n}$}
-        \label{algo1}
-        \begin{algorithmic}
-            [1] \Require $n \geq 0 \vee x \neq 0$ \Ensure $y = x^{n}$ \State $y \Leftarrow
-            1$ \If{$n < 0$}\label{algln2} \State $X \Leftarrow 1 / x$ \State $N \Leftarrow
-            -n$ \Else \State $X \Leftarrow x$ \State $N \Leftarrow n$ \EndIf \While{$N \neq 0$}
-            \If{$N$ is even} \State $X \Leftarrow X \times X$ \State $N \Leftarrow
-            N / 2$ \Else[$N$ is odd] \State $y \Leftarrow y \times X$ \State
-            $N \Leftarrow N - 1$ \EndIf \EndWhile
-        \end{algorithmic}
-    \end{algorithm}
-
-    \begin{theorem}[Theorem subhead]
-        \label{thm1} Example theorem text. Example theorem text. Example theorem
-        text. Example theorem text. Example theorem text. Example theorem text. Example
-        theorem text. Example theorem text. Example theorem text. Example
-        theorem text. Example theorem text.
-    \end{theorem}
-
-    \begin{proposition}
-        Example proposition text. Example proposition text. Example proposition text.
-        Example proposition text. Example proposition text. Example proposition
-        text. Example proposition text. Example proposition text. Example proposition
-        text. Example proposition text.
-    \end{proposition}
-
-    \begin{example}
-        Phasellus adipiscing semper elit. Proin fermentum massa ac quam. Sed diam
-        turpis, molestie vitae, placerat a, molestie nec, leo. Maecenas lacinia.
-        Nam ipsum ligula, eleifend at, accumsan nec, suscipit a, ipsum. Morbi
-        blandit ligula feugiat magna. Nunc eleifend consequat lorem.
-    \end{example}
-
-    \begin{remark}
-        Phasellus adipiscing semper elit. Proin fermentum massa ac quam. Sed diam
-        turpis, molestie vitae, placerat a, molestie nec, leo. Maecenas lacinia.
-        Nam ipsum ligula, eleifend at, accumsan nec, suscipit a, ipsum. Morbi
-        blandit ligula feugiat magna. Nunc eleifend consequat lorem.
-    \end{remark}
-
-    \begin{definition}[Definition sub head]
-        Example definition text. Example definition text. Example definition text.
-        Example definition text. Example definition text. Example definition
-        text. Example definition text. Example definition text.
-    \end{definition}
-
-    \begin{proof}[Proof of Theorem~{\upshape\ref{thm1}}]
-        Example for proof text. Example for proof text. Example for proof text.
-        Example for proof text. Example for proof text. Example for proof text. Example
-        for proof text. Example for proof text. Example for proof text. Example
-        for proof text.
-    \end{proof}
-
-    \begin{quote}
-        Quoted text example. Aliquam porttitor quam a lacus. Praesent vel arcu ut
-        tortor cursus volutpat. In vitae pede quis diam bibendum placerat. Fusce
-        elementum convallis neque. Sed dolor orci, scelerisque ac, dapibus nec, ultricies
-        ut, mi. Duis nec dui quis leo sagittis commodo.
-    \end{quote}
 
     \begin{appendices}
         \section{Synthetic network simulation}
@@ -820,265 +749,12 @@ djusting $p-$ values, as numerous genes are examined simultaneously,
             by $a$ (larger range if $a$ is above 1).
         \end{theorem}
 
-        % \section{Reminders}
-
-        % We recall for readability motivations the log-likelihood of DeCovarT's non-constrained generative model, conditioned on the purified and global bulk expression profiles, along with its gradient and its Hessian.
-
-        % The conditional log-likelihood is readily computed and given by \ref{eq-loglikelihood-multivariate-gaussian}:
-
-        % \begin{equation}
-        % \ell_{\boldsymbol{y} | \boldsymbol{\zeta}}(\boldsymbol{p})=C + \log\left(\DET \left(\sum_{j=1}^J p_{j}^2\boldsymbol{\Sigma}_{j}\right)^{-1}\right) - \frac{1}{2} (\boldsymbol{y} - \boldsymbol{p} \boldsymbol{\mu})^\top \left(\sum_{j=1}^J p_{j}^2\boldsymbol{\Sigma}_{j}\right)^{-1} (\boldsymbol{y} - \boldsymbol{p}\boldsymbol{\mu})
-        % \end{equation}
-
-        % The Jacobian is given by \ref{eq-derivative-log-likelihood-unconstrained}:
-
-        % \begin{equation}
-        %  \frac{\partial \ell_{\boldsymbol{y} | \boldsymbol{\zeta}}(\boldsymbol{p})}{\partial p_j} = -2p_j \Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\right) +
-        % (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta}  \boldsymbol{\mu}_{.j} \, +
-        % p_j (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \Sigma_j \boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})
-        % \end{equation}
-
-        % The Hessian, $\mathbf{H} \in \mathcal{M}_{J \times J}$, is given by \ref{eq-hessian-log-likelihood-unconstrained}:
-
-        % \begin{equation}
-        % \begin{aligned}
-        % \mathbf{H}_{i,i}& =
-        %    \frac{\partial^2 \ell}{\partial^2 p_i} =
-        % -2\Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i\right) + 4p_i^2 \Tr \left(\left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i\right)^2\right)
-        % -2p_i(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\mu_{.i}}\, - \boldsymbol{\mu}_{.i}^\top\boldsymbol{\Theta} \boldsymbol{\mu_{.i}} \, - \\
-        % & 2p_i (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top \boldsymbol{\Theta}\boldsymbol{\Sigma}_i\boldsymbol{\Theta}\boldsymbol{\mu}_{.i} \, -
-        % (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \left(4p_i^2 \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\Sigma}_i - \boldsymbol{\Sigma}_i \right)\boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p}), \quad i \in \widetilde{J} \\
-        % \mathbf{H}_{i,j} &=
-        %    \frac{\partial^2 \ell}{\partial p_i \partial p_j} =
-        % 4p_j p_i \Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j \boldsymbol{\Theta}\boldsymbol{\Sigma}_i \right)
-        % -2p_i(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\mu_{.j}} - \boldsymbol{\mu}_{.i}^\top\boldsymbol{\Theta} \boldsymbol{\mu_{.j}}\, - \\
-        % & 2p_j (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top \boldsymbol{\Theta}\boldsymbol{\Sigma}_j\boldsymbol{\Theta} \boldsymbol{\mu}_{.i}\, -
-        % 4p_ip_j(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta}\boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\Sigma}_j \boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p}), \quad (i,j) \in \widetilde{J}^2, i \neq j
-        %   \end{aligned}
-        % \end{equation}
-
         \section{Optimisation and calculus}
 
-        \subsection{Standard linear deconvolution model}
+        \subsection{Multivariate Gaussian reminders}
         \label{subsec:ols-assumptions}
-
-        However, in real conditions with technical and environmental variability,
-        strict linearity of the deconvolution does not usually hold. Thus, an
-        additional error term is usually considered, and without further assumption
-        on the distribution of this error term, the usual approach to retrieve
-        the best of parameters is by minimising the squared error term between
-        the mixture expressions predicted by the linear model and the actual
-        observed response. This optimisation task is achieved through the ordinary
-        least squares (OLS) approach (\ref{eq-OLS-task}),
-
-        \begin{equation}
-            \label{eq-OLS-task}\boldsymbol{\hat{p}}_{i}^{\text{OLS}}\equiv \argmin
-            _{\boldsymbol{p}_i}||\hat{\boldsymbol{y}_i}- \boldsymbol{y}_{i}||^{2}
-            = \argmin_{\boldsymbol{p}_i}||\boldsymbol{X}\boldsymbol{p}_{i} - \boldsymbol
-            {y}_{i}||^{2} = \sum_{g=1}^{G} \left( y_{gi}- \sum_{j=1}^{J} x_{gj}p_{ji}
-            \right)
-        \end{equation}
-
-        If we additionally assume that the stochastic error term follows a \emph{homoscedastic}
-        zero-centred Gaussian distribution and that the value of the observed covariates
-        (here, the purified expression profiles) is determined (see the standard
-        linear model representation in the left panel of Fig.~\ref{fig:DAG-model}
-        and the set of equations describing it in \ref{eq-white-gaussian-noise}),
-        \begin{equation}
-            \label{eq-white-gaussian-noise}y_{gi}= \sum_{j=1}^{J} x_{gj}p_{ji}+ \epsilon
-            _{i}, \quad y_{gi}\sim \mathcal{N}\left(\sum_{j=1}^{J} x_{gj}p_{ji},
-            \sigma_{i}^{2} \right), \quad \epsilon_{i} \sim \mathcal{N}(0, \sigma
-            _{i}^{2})
-        \end{equation}
-        then, the MLE is equal to the OLS, which, in this framework, is given
-        explicitly by \ref{eq-OLS-estimate}:
-        \begin{equation}
-            \label{eq-OLS-estimate}\boldsymbol{\hat{p}}_{i}^{\text{OLS}}= (\boldsymbol
-            {X}^{\top}\boldsymbol{X})^{-1}\boldsymbol{X}^{\top} \boldsymbol{y}_{i}
-        \end{equation}
-
-        and is known under the the Gauss-Markov theorem
-        \ref{th:MLE-estimate-univariate},.
-
-        In all what follows, we suppose that the number of cell types composing
-        the biological sample, $J$ is known. In idealized conditions, standard deconvolution
-        analyses assume that each transcript expression is expressed (without
-        noise, no unknown cellular component, \ldots) as the linear combination of
-        each raw cell population expression contribution, weighted by their
-        corresponding proportions. Accordingly, the relation linking the global
-        transcriptomic expression, $y_{g, i, c(i)}$, with each individual cell
-        contribution is given, for tissue sample $i$, under phenotypical
-        condition $c(i)$, is given by \ref{eq-2}:
-        \begin{equation}
-            \label{eq-2}y_{g, i, c(i)}= \sum_{j=1}^{J} x_{gjc(i)}\times p_{ji}
-        \end{equation}
-        This yields, for each individual $i$, a system of $G$ linear equations
-        to solve, that can be represented as the following product of matrix,
-        for a given condition $c(i)$ \ref{eq-3}:
-        \begin{equation}
-            \label{eq-3}\boldsymbol{y_{i,c(i)}}=\boldsymbol{X_{c(i)}}\times \boldsymbol
-            {p_i}
-        \end{equation}
-
-        In a perfect system without noise as modelled in \ref{eq-3}, the number of
-        solutions is given by the ``Rouché--Capelli'' theorem
-        \cite{shafarevichLinearEquations2013}. Briefly, uniqueness of the solution
-        implies that the number of genes $N$ is equal to the number of cell
-        types $J$. Secondly, any expression of an individual gene can not be
-        rewritten as a linear combination of the remaining genes (multicollinearity)
-        expressed in the sample (alternatively, this implies that the reference
-        matrix $\boldsymbol{X}$ is invertible and of full rank $J$). If the
-        number of genes measured exceeds those of proportions, the system is said
-        to be \emph{overdetermined} \cite{abbasDeconvolutionBloodMicroarray2009}.
-
-        In real conditions, observed data $\mathcal{D}$ may not fit exactly the system
-        of linear equations \ref{eq-3}, which is dealt with by most of the
-        deconvolution algorithms by adding a residual noise parameter
-        $\epsilon_{gi}$ to \ref{eq-2}. To account for noise, some methods focus
-        on minimising the squared residual between the observed values
-        $\boldsymbol{y_i}$ and predicted values $\boldsymbol{\hat{y_i}}$ (\textit{ordinary
-        least squares} method). In the context of linear regression, we denote $\boldsymbol
-        {p}$ as the unknown \textit{coefficients} of the linear model to
-        estimate, $\boldsymbol{Y}$ the \textit{predicted or response variable}, and
-        $\boldsymbol{X}$ as the design matrix associated to the \textit{independent
-        variables}. Formally, the OLS estimate minimises the following quantity
-        \ref{eq-4}:
-        \begin{equation}
-            \label{eq-4}\hat{p}_{i}^{\text{OLS}}= \arg \min_{\hat{p_i}}||\hat{y_i}
-            - y_{i}||^{2} = \arg \min_{\hat{p_i}}||\boldsymbol{X}\hat{p_i}- y_{i}
-            ||^{2} = \sum_{g=1}^{G} \left( y_{gi}- \sum_{j=1}^{J} x_{gj}\hat{p_{ji}}
-            \right)
-        \end{equation}.
-
-        \begin{theorem}[Normal Equations]
-            \label{th:normal-equations} The \textbf{Normal equations}, regardless
-            of the distribution of the error term, supply the following OLS
-            estimate, as solution of \ref{eq-4}:
-            \begin{equation}
-                \label{eq-ols_estimate}\hat{p}_{i}^{\text{OLS}}= (\boldsymbol{X}^{\top}
-                \boldsymbol{X})^{-1}\boldsymbol{X}^{\top} y_{i}
-            \end{equation}
-            whose existence implies that an inverse of the design matrix
-            $\boldsymbol{X}$ does exist. \footnote{This especially implies that
-            no expression of a cell population can be written as the linear
-            combination of the expression of several children cell lines. In addition
-            with the assumption that the cell populations could be partitioned in
-            non non-overlapping categories, it implies that we can't evaluate
-            simultaneously the ratio of parent and child cell lines.}
-        \end{theorem}
-
-        Instead, a generative model can be used to model the observed data $\mathcal{D}$,
-        in which we use a probability density function to model the distribution
-        of the error term. Classically, the parameter is then retrieved using
-        the \textit{maximum likelihood estimation} (MLE) method. It consists in
-        estimating the distribution parameters by maximising the likelihood, or equivalently
-        the log-likelihood of observed data,
-        $\ell(\theta|\mathcal{D})=\mathbb{P}_{\theta}(\boldsymbol{Y}|\boldsymbol{X}
-        )$, with $\theta=(\boldsymbol{p}, \boldsymbol{\sigma})$ the vector of parameters,
-        respectively the proportions and standard deviations, to estimate.
-
-        \begin{theorem}[Gauss-Markov theorem]
-            \label{th:MLE-estimate-univariate}
-
-            Under the following assumptions, \textbf{weak exogeneity}: the cell type-specific
-            expression profiles are considered fixed and not drawn from probability
-            distributions. Accordingly, we suppose that the expression of each gene
-            within a cell population is constant. Biologically, these hypotheses
-            imply that the cellular expression profiles are uncorrelated:
-            $1 \le i \le J, \quad 1 \le k \le J, \forall i \neq k, \quad \text{cov}
-            (x_{gi}, x_{gk})=0$. \textbf{homoscedasticity}: the variance associated
-            to the measured error is fixed for the set of genes, formally
-            $\text{var}\left(\epsilon_{gi}\right)=\sigma_{i}^{2}, \quad \forall g
-            \in \widetilde{G}$
-            \textbf{null expected value of the error term}:
-            $1 \le g \le G, \quad \mathbb{E}(\epsilon_{gi})=0$, implying biologically
-            there's no other generation source for the bulk expression data than
-            the set of cell populations referenced in the signature matrix,
-            $\widetilde{J}$. Statistically, this also implies that the variance
-            of the measured gene expression does not depend on the predictors. The
-            two previous assumptions are commonly met by using a white Gaussian distribution
-            to model the residual distribution:
-            $\epsilon_{gi}\sim \mathcal{N}(0, \sigma_{i})$ \textbf{independence
-            of the predicted values}:
-            $1 \le i \le G, \quad 1 \le j \le G, \forall i \neq j, \quad \text{cov}
-            (\epsilon_{i}, \epsilon_{j})=0$, which implies independence between the
-            bulk measures: $\text{cov}(y_{i}, y_{j})=0$ using the weak
-            exogeneity property. \footnote{The last four hypotheses are
-            generally known as the \emph{Gaussian-Markov} hypotheses. The use of
-            a distribution of null average imply that no additional cell
-            population, acting as a \emph{latent variable}, is present in the bulk
-            mixture.} then the MLE estimate and the OLS estimate share the following
-            properties:
-            \begin{enumerate}
-                \item the OLS estimate, as defined in \ref{eq-4} and the MLE
-                    estimate, $\hat{\boldsymbol{p}}=\arg \max (\ell(\theta|X))$ are
-                    the same.
-
-                \item The MLE estimate is unique and the point for which the global
-                    maximum of the log-likelihood function is reached.
-
-                \item It is the BLUE (best linear unbiased estimator) estimate,
-                    i.e. the unbiased estimator (no expected difference between
-                    the estimate and the true value) associated to the lowest variance.
-            \end{enumerate}
-        \end{theorem}
-
-        \begin{proof}[Proof of Gauss-Markov theorem]
-            To prove part 1 of \ref{th:MLE-estimate-univariate}, we assume
-            additionally independence of the bulk expression between samples:$1 \le
-            j \le N, \quad 1 \le k \le N, \forall j \neq k, \quad\text{cov}(\boldsymbol
-            {y}_{j}, \boldsymbol{y}_{k})=0$, even though \cite{efronAreSetMicroarrays2009} tends to
-            deny this IID assumption. Besides, we suppose that the cellular proportions
-            vary from an individual to another (estimation is performed
-            independently on each sample).
-
-            Then, we can show that the conditional distribution of each data
-            point $y_{gi}$ to $\boldsymbol{x_{g, c(i)}}$ follows a Gaussian
-            distribution \ref{eq-5}:
-            \begin{equation}
-                \label{eq-5}\mathbb{P}_{\theta_i}(y_{gic(i)}| \boldsymbol{x}_{g,
-                c(i)}) = \varphi(y_{gic(i)}| \boldsymbol{x}_{g, c(i)},\mathbb{p}_{i}
-                ,\sigma_{i})=\frac{1}{\sqrt{2\pi}\sigma_{i}}e^{-
-                \frac{\left(y_{gic(i)}- \sum_{j=1}^{J} x_{gjc(i)}\times p_{ji}\right)^{2}}{2
-                \sigma_{i}^{2}}}
-            \end{equation}
-            using the closeness property of Gaussian distributions under linear transformation
-            and the independence assumption between the response variable and the
-            residual.
-
-            Using the several independence assumptions, the global log-likelihood
-            is given by \ref{eq-6}:
-            \begin{equation}
-                \begin{split}
-                    \label{eq-6}\hat{\theta}&= \arg \max \ell (\theta | \mathcal{D}
-                    )\\
-                    &=\log (\mathbb{P}(\boldsymbol{Y}|\theta, \boldsymbol{X}))\\
-                    &=\log \left( \mathrm{P}i_{c=1}^{C} \mathrm{P}i_{i=1}^{N} \mathrm{P}
-                    i_{g=1}^{G} \mathbb{P}_{\sigma_i, \boldsymbol{p}_i}(y_{gic(i)}
-                    |\boldsymbol{x}_{g, c(i)}) \right)\\
-                    &=K - G \sum_{i=1}^{N} \log (\sigma_{i}) - \sum_{c=1}^{C} \sum
-                    _{i=1}^{N} \sum_{g=1}^{G}\left(\frac{(y_{gic(i)}- \sum_{j=1}^{J}
-                    x_{gjc(i)}\times p_{ji})^{2}}{2\sigma_{i}^{2}}\right)\boldsymbol
-                    {1}_{c(i)=c}
-                \end{split}
-            \end{equation}
-            with $K=-\frac{G \times N}{2}\log(2\pi)$, a constant. Finding the values
-            for which the derivative of the log-likelihood cancels yield the same
-            estimate for each individual $\mathbb{p_i}$ as returned by the OLS method
-            \ref{eq-4}. The MLE estimate provides additionally an estimate of
-            the standard deviations, as the expected value of sum-of-squared residuals:
-            $\sigma_{i}^{2} = \frac{1}{G}\sum_{g=1}^{G} \hat{\epsilon_{gi}}^{2}$,
-            with $\hat{\epsilon_{gi}}=y_{gic(i)}- \sum_{j=1}^{J} x_{gjc(i)}\times
-            \hat{p_{ji}}$ the estimated residual for each individual.\\
-
-            For part 2, to prove that the estimate $\boldsymbol{p}$ is indeed the
-            local minima of the OLS problem in \ref{eq-4} or the local maxima of
-            the log-likelihood function \ref{eq-6}, we need to differentiate
-            once more to obtain the Hessian matrix and show that it is positive
-            definite, a result proven by the \textit{Gauss–Markov theorem}.
-        \end{proof}
-
-        \subsection{Multivariate distributions and basic algebra properties}
+        % Classical OLS / Gauss--Markov material lives in the package vignette
+        % vignettes/DeCovarT-reminders-OLS.qmd (kept out of the Article word budget).
 
         \begin{definition}[Multivariate Gaussian distributions]
             \label{def:multivariate-gaussian} If random vector $\boldsymbol{X}$ of
@@ -1387,277 +1063,7 @@ djusting $p-$ values, as numerous genes are examined simultaneously,
         the relative distance to the maximum (RDM), that sets apart extrema from
         spurious saddle points.
 
-        \subsection{Heuristic accelerated convergence towards optimal cellular
-        composition}
-
-        In this section, we \textit{plug-in} the averaged transcriptomic
-        expression per cell type $\boldsymbol{\mu}$ as a rough estimate of the
-        hidden sample-specific purified expression profile $\boldsymbol{X}_{.i}$.
-
-        \section{Bayesian extension for Modelling the Joint Distribution of
-        Purified Profiles and Ratios}
-        \label{sec:gibbs-sampler}
-
-        We introduce two variations of the MCMC algorithm, namely the \textit{Metropolis-Hasting}
-        and the \textit{Gibbs sampling} algorithms. They are respectively tailored
-        to approximate distributions for which no explicit form is known (\ref{def:MH-algo})
-        or streamline the optimisation of strongly dependent parameters (\ref{def:Gibbs}).
-
-        \subsection{An Introduction to Gibbs and Metropolis Hasting Samplers}
-
-        \begin{definition}[Metropolis-Hasting algorithm]
-            \label{def:MH-algo}
-
-            First of all, we introduce some key notations:
-
-            \begin{itemize}
-                \item Function $f(\theta | .)$ is the \textit{target
-                    distribution}, usually the posterior distribution that encompasses
-                    both prior knowledge and new data.
-
-                \item The distribution $q(\theta | \theta^{(q-1)})$ is the \textit{proposal
-                    distribution}, alternatively known as the \textit{transition
-                    kernel}, and the transient value sampled from it,
-                    $\theta^{(*)}$, is the \textit{proposal} estimate.
-
-                \item The probability of accepting the proposal is naturally called
-                    the \textit{acceptance probability}.
-            \end{itemize}
-
-            Each iteration, indexed by $(q)$, of the MH algorithm includes the
-            following steps:
-
-            \begin{enumerate}
-                \item Draw a proposal, $\theta^{(*)}$, from conditional distribution
-                    $q(\theta | \theta^{(q-1)})$.
-
-                \item Compute the acceptance probability parameter, noted
-                    $\alpha$:
-                    \begin{equation}
-                        \label{eq-acceptance-probability}K(\theta^{(*)}) = \min \left
-                        ( \frac{f(\theta^{(*)}| .)}{f(\theta^{(q-1)}| .)}\frac{q(\theta
-                        | \theta^{(q-1)})}{q( \theta^{(q-1)}| \theta )}, \, 1 \right
-                        )
-                    \end{equation}
-                    Typically, choices of the acceptance probability and the
-                    kernel distribution are tailored to satisfy the balance
-                    condition of the MCMC chains and ensure that the chain
-                    behaviour reproduces the sampling pattern of the desired
-                    distribution.
-
-                \item The decision of whether to accept or reject the new state proposal
-                    is determined by the previously computed acceptance probability
-                    parameter, denoted as $\alpha$. This parameter sets the threshold
-                    for accepting a value drawn from a standard Uniform distribution,
-                    $u \sim \mathbb{U}\left[ 0, 1\right]$. This mathematical protocol
-                    is further described in \ref{eq-MH-protocol}:
-
-                    \begin{equation}
-                        \theta^{(q)}=
-                        \begin{cases}
-                            \theta^{(*)},   & \, u \le K(\theta^{(*)}) \\
-                            \theta^{(q-1)}, & \, u > K(\theta^{(*)})   \\
-                        \end{cases}
-                        \label{eq-MH-protocol}
-                    \end{equation}
-                    In the first case, we say that the proposal is \emph{accepted},
-                    while in the second case, it is \emph{rejected}.
-            \end{enumerate}
-
-            One of the major advantages of the Metropolis-Hastings (MH) algorithm
-            lies in the design of its acceptance probability function, denoted
-            as $K(\theta^{(*)})$. Indeed, by involving the computation of a
-            ratio between two density functions, the normalisation constant,
-            which represents the value of the marginal likelihood and is usually
-            intractable to compute is naturally cancelled out.
-        \end{definition}
-
-        In our modelling framework, the acceptance function further simplifies
-        with the choice of proposing a new proposal by adding an error term
-        following a null-centred, multivariate and symmetric distribution (\ref{pr:rw-MH}):
-
-        \begin{remark}[Random walk Metropolis-Hastings]
-            \label{pr:rw-MH}
-
-            Indeed, from the analytical properties of the kernel distribution (\ref{eq-rw-MH-part1}
-            and \ref{eq-rw-MH-part2}):
-
-            \begin{equation}
-                \begin{aligned}
-                    q(\theta^{(*)}| \theta^{(q-1)}) & = q (\epsilon)  \\
-                    q(\theta^{(q-1)}| \theta^{*})   & = q (-\epsilon)
-                \end{aligned}
-                \label{eq-rw-MH-part1}
-            \end{equation}
-
-            \begin{equation}
-                q(\epsilon)=q (-\epsilon) \label{eq-rw-MH-part2}
-            \end{equation},
-
-            the acceptance probability function simplifies to
-            \ref{eq-acceptance-probability-simplified}:
-            \begin{equation}
-                K(\theta^{(*)}) = \min \left( \frac{f(\theta^{(*)}| .)}{f(\theta^{(q-1)}|
-                .)}, \, 1 \right) \label{eq-acceptance-probability-simplified}
-            \end{equation}
-        \end{remark}
-
-        \begin{definition}[Gibbs sampling]
-            \label{def:Gibbs} The fundamental concept behind Gibbs sampling is to
-            break down the joint posterior distribution of the parameters, into
-            a product of conditional distributions of the parameters. To that end,
-            it is generally assumed that there exists a natural partition of the
-            hidden parameters allowing them to factorise in a meaningful way.
-
-            \bigskip
-            It is usually implemented when the joint conditional posterior
-            distribution is intractable to compute, whereas the conditional distribution
-            for a subset of the parameters, conditioned on all others, is rather
-            straightforward to derive. This is especially the case when the set
-            of hidden parameters is linked to each other, and that numerous numerical
-            constraints linking them must be endorsed.
-
-            \bigskip
-            Using our notations, the following joint posterior distribution
-            $f(\boldsymbol{p}, \boldsymbol{X}| \mathcal{D})$, with $\mathcal{D}$
-            denoting the observed data, here $\boldsymbol{y}$ is analytically
-            complex to derive, while $f(\boldsymbol{p}| \boldsymbol{X}, \mathcal{D}
-            )$ and $f(\boldsymbol{X}|\boldsymbol{p}, \mathcal{D})$, the
-            posterior cellular ratios and purified individual cell expression
-            profiles, respectively, can be simply computed. In practice, like
-            any MCMC framework, you start to initiate the values for all the parameters.
-            Then, the iterated Gibbs process samples each parameter (or subset
-            of parameters), one at a time, and updates its value conditioned on the
-            other parameters at their current values. It can be proven that
-            after a sufficient number of iterations, the corresponding Markov chain
-            of parameters converges and approximates well the desired joint distribution.
-            % This factorisation into conditional blocks is known as \emph{full conditional}, and is based on the same principle underlying the \emph{Mean-Field approximation}, notably employed in Variational Bayesian statistical modelling.
-        \end{definition}
-
-        \subsection{Pseudo-code Gibbs sampler}
-        We detail below the pseudo-code to generate MCMC chains of the joint distribution
-        of the parameters of interest, in which variable $q$ denotes the running
-        index, $B$ the number of \textit{burn-in} iterations to be discarded
-        after sampling, and $Q$ the actual length of the resulting Markov chain.
-
-        \begin{algorithm}
-            [H]
-            \caption{Pseudo-code of the iterated optimisation method, to retrieve
-            the parameters of DeCovarT's generative model.}
-            \label{algo:DeCovarT-pseudo-code}
-            \begin{algorithmic}
-                [1] \Require Prior estimates of the mean,
-                $\left[\boldsymbol{\mu}_{ji}\in \mathbb{R}^{G}\right]$, and covariance,
-                $\left[\boldsymbol{\Sigma}_{ji}\in \mathcal{M}_{\mathbb{R}^{G \times G}}
-                \right]$, for each cell population $j \in \{1, \ldots, J\}$ \Require
-                Initial estimates of cellular ratios, $\boldsymbol{p}_{0i}$, and
-                purified cell expression profiles, $\boldsymbol{X}_{0i}$, for each
-                individual, satisfying both the fundamental linear deconvolution
-                assumption (\ref{eq-linear-deconvolution}) and the unit-simplex
-                constraint (\ref{eq-simplex-constraint}) \Require Standard
-                deviations $\sigma_{0(\boldsymbol{\rho})}$ and
-                $\sigma_{0(\boldsymbol{X})}$ of the additional residual terms
-                added to each cellular ratio and each individual cell profile of
-                the \textit{transition kernel}, respectively \Statex
-                \For{$i = 1$ to $N$} \State
-                $\epsilon_{i(\boldsymbol{\rho})}\sim \mathcal{N}_{J-1}(0, \sigma_{0(\boldsymbol{\rho})}
-                ^{2} \, \mathbb{I}_{J-1})$
-                \State
-                $\boldsymbol{\rho}_{i}^{(*)}\gets \boldsymbol{\rho}_{i}^{(q - 1)}
-                + \epsilon_{i(\boldsymbol{\rho})}$
-                \For{$j = 1$ to $J - 1$} \State $u \sim \mathbb{U}(0, 1)$ \If{$u < \min \left(1, K_{\rho}\left(\rho_{j}^{(q-1)}\to \rho_{j}^{(*)}\right)\right)$}
-                \State $\rho_{ji}^{(q)}\gets \rho_{ji}^{(*)}$ \Else \State
-                $\rho_{ji}^{(q)}\gets \rho_{ji}^{(q-1)}$ \EndIf \State
-                $\boldsymbol{p}_{i}^{(q)}\gets \boldsymbol{\psi}(\boldsymbol{\rho}
-                _{i}^{(q)}) \qquad \text{(i)}$
-                \State
-                $\text{MCMC.}\boldsymbol{p}_{i}\gets \boldsymbol{p}_{i}^{(q)}$
-                \EndFor \For{$j = 1$ to $J - 1$} \State $\varepsilon_{ji(\boldsymbol{X})}
-                \sim \mathcal{N}_{G}(0, \sigma_{0(\boldsymbol{X})}^{2} \, \mathbb{I}
-                _{G})$ \State $\boldsymbol{x}_{ji}^{(*)}\gets \boldsymbol{x}_{ji}
-                ^{(q-1)}+ \varepsilon_{ji(\boldsymbol{X})}$ \State $u \sim \mathbb{U}
-                (0, 1)$ \If{$u < \min \left(1, K_{\boldsymbol{x}}\left(\boldsymbol{x}_{ji}^{(q-1)}\to \boldsymbol{x}_{ji}^{(*)}\right)\right)$}
-                \State
-                $\boldsymbol{x}_{ji}^{(q)}\gets \boldsymbol{x}_{ji}^{(*)}$ \Else
-                \State
-                $\boldsymbol{x}_{ji}^{(q)}\gets \boldsymbol{x}_{ji}^{(q-1)}$
-                \EndIf \EndFor \State
-                $\boldsymbol{x}_{Ji}^{(q)}\gets \frac{\boldsymbol{y}_{i}- \sum_{j
-                =1}^{J-1}\boldsymbol{x}_{ji}^{(q)}p_{ji}^{(q)}}{p_{Ji}^{(q)}}\qquad
-                \text{(ii)}$
-                \State
-                $\text{MCMC.}\boldsymbol{X}_{i}\gets \boldsymbol{X}_{i}^{(q)}$
-                \EndFor \EndFor
-            \end{algorithmic}
-        \end{algorithm}
-
-        We implemented two reparametrisations at each global iteration (outer loop)
-        to ensure that the kernel distribution generates proposals that fall
-        within the ``support'' of the target distribution, and notably the adhesion
-        to the fundamental linear deconvolution relation (\ref{eq-linear-deconvolution})
-        and the unit-simplex constraint over the cellular ratios (\ref{eq-simplex-constraint}):
-        \begin{enumerate}
-            \item First, the mapping function, described in $(i)$ and in \ref{eq-mapping-function},
-                enforces that the estimated cellular ratios adhere to the unit-simplex
-                constraint (\ref{eq-simplex-constraint}).
-
-            \item Second, the fundamental linearity of deconvolution, \ref{eq-linear-deconvolution},
-                is endorsed by the update formula $(ii)$. Formula \ref{eq-linear-deconvolution}
-                implies that the last $J$ cellular expression profile,
-                $\boldsymbol{x}_{.j}$ is not a free parameter, and can be rewritten
-                as a combination of the others, given by
-                \ref{eq-MCMC-constraint}:
-                \begin{equation}
-                    \begin{aligned}
-                        \boldsymbol{y}_{i}        & =\sum_{j=1}^{J-1}p_{ji}^{(q)}\boldsymbol{x}_{ji}^{(q)}+ p_{Ji}^{(q)}\boldsymbol{x}_{Ji}^{(q)}= \sum_{j=1}^{J} p_{ji}^{(q-1)}\boldsymbol{x}_{ji}^{(q-1)} \\
-                                                  & \Longleftrightarrow                                                                                                                                     \\
-                        \boldsymbol{x}_{Ji}^{(q)} & = \frac{\boldsymbol{y}_{i}- \sum_{j =1}^{J-1} \boldsymbol{x}_{ji}^{(q)} p_{ji}^{(q)} }{p_{Ji}^{(q)}}                                                    \\
-                    \end{aligned}
-                    \label{eq-MCMC-constraint}
-                \end{equation}
-        \end{enumerate}
-
-        \subsection{Derivation of the Acceptance Probability Function}
-
-        By utilising a Random Walk MH approach, additionally cancelling out the normalisation
-        constant (\ref{eq-acceptance-probability-simplified}), the acceptance
-        probability function to compute is simply the product of the prior
-        distributions and the likelihood of the observed data, $f(\boldsymbol{\theta}
-        ) \times f(\mathcal{D}| \boldsymbol{\theta})$.
-
-        To simplify further this product of distributions, we preliminary
-        suppose that the density distribution characterising the priors is
-        improper, in other words, that $f(\boldsymbol{\theta})$ is always equal
-        to 1 on $\boldsymbol{\Theta}$. As we provide a closed form of the log-likelihood
-        of our generative model (\ref{eq-loglikelihood-multivariate-gaussian}),
-        and not the likelihood, we need to apply an exponential transformation to
-        recover the desired acceptance probability (\ref{eq-scenario1-acceptance}):
-
-        \begin{equation}
-            K(\theta^{(*)}) = \min \left( 1, \, \exp \left( \ell(\theta^{(*)}| .)
-            - \ell(\theta^{(q-1)}| .)\right) \right) \label{eq-scenario1-acceptance}
-        \end{equation}
-
-        with:
-        \begin{itemize}
-            \item $\boldsymbol{\theta}^{(*)}$, the current proposal (either $\boldsymbol
-                {p}^{(*)}$ or $\boldsymbol{X}^{(*)}$)
-
-            \item $\ell(\boldsymbol{\theta}^{(*)}| .) = \log \left(f(\boldsymbol{Y}
-                | \boldsymbol{\theta}^{(*)}, \boldsymbol{\zeta})\right)$, the
-                log-likelihood of the currently observed data, conditioned on the
-                current values of the latent parameters to estimate and the user-defined
-                parameters $\boldsymbol{\zeta}$, given in our generative model
-                by \ref{eq-loglikelihood-multivariate-gaussian}.
-
-            \item $\boldsymbol{\zeta}=(\boldsymbol{\mu}, \boldsymbol{\Sigma}), \quad
-                \boldsymbol{\mu}=(\boldsymbol{\mu}_{.j})_{j \in \widetilde{J}}\in
-                \mathcal{M}_{G \times J}, \quad \boldsymbol{\Sigma}=\sum_{j=1}^{J}
-                p_{j}^{2}\boldsymbol{\Sigma}_{j}\in \mathcal{M}_{G \times G}$ denote
-                the parameters provided by the user before conducting the study.
-        \end{itemize}
-
-        \section{Miscellaneous studies}
+    \section{Special cases of the generative model}
 
         \subsection{Simplifications adopting the marker-based paradigm}
 
