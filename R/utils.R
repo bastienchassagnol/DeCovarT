@@ -17,39 +17,8 @@ enforce_identifiability <- function(p) {
   return(p)
 }
 
-
-#' Order GMM parameters for unique labelling
-#'
-#' @description
-#' Lexicographically orders mixture components by columns of
-#' \eqn{\boldsymbol{\mu}} and renormalises \eqn{\boldsymbol{p}}.
-#'
-#' @param theta List with elements `p` (\eqn{\boldsymbol{p}}), `mu`
-#'   (\eqn{\boldsymbol{\mu}}), and `sigma` (array of
-#'   \eqn{\boldsymbol{\Sigma}_j}).
-#'
-#' @return Relabelled list with the same structure.
-#'
-#' @keywords internal
-enforce_parameter_identifiability <- function(theta) {
-  k <- length(theta$p)
-  # first component = one whose means are smaller on the first dimension
-  # if equality, redirect to second column, etc...
-  ordered_components <- do.call(order, t(theta$mu) |> as.data.frame())
-  ordered_theta <- list(
-    p = theta$p[ordered_components],
-    mu = theta$mu[, ordered_components],
-    sigma = theta$sigma[,, ordered_components]
-  )
-
-  # enforce sum-to-one constraint
-  ordered_theta$p <- ordered_theta$p / sum(ordered_theta$p) # ordered_theta$p[k] <- 1 - sum(ordered_theta$p[-k])
-  return(ordered_theta)
-}
-
-
 is_positive_definite <- function(expression, tol = 1e-6) {
-  eigen_values <- eigen(expression, symmetric = TRUE)$values # already sorted by decreasing order
+  eigen_values <- eigen(expression, symmetric = TRUE)$values
   return(all(eigen_values >= -tol * abs(eigen_values[1])))
 }
 

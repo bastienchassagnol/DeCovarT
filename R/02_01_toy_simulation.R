@@ -255,8 +255,7 @@ benchmark_bivariate_gaussian_convolutions <- function(
         p = p,
         n = n
       )
-      true_theta <- list(p = p, mu = mu, sigma = Sigma) |>
-        enforce_parameter_identifiability()
+      true_theta <- list(p = p, mu = mu, sigma = Sigma)
       overlap <- MixSim::overlap(
         Pi = p,
         Mu = t(mu),
