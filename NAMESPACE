@@ -2,8 +2,10 @@
 
 export(additive_logistic)
 export(benchmark_bivariate_gaussian_convolutions)
+export(compute_average_jeffreys)
 export(compute_average_overlap)
 export(compute_benchmark_metrics)
+export(compute_glmnet_gene_scores)
 export(compute_shannon_entropy)
 export(deconvolute_ratios)
 export(deconvolute_ratios_Marquardt_Levenberg)

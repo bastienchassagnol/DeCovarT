@@ -162,12 +162,14 @@ reference:
       - simulate_hierarchical_grn_moments
   - title: Statistical metrics
     desc: |
-      Simplex repair, normalised Shannon entropy, and MixSim average pairwise
-      overlap used when designing and scoring synthetic scenarios.
+      Simplex repair, Shannon entropy, MixSim overlap, Jeffreys divergence,
+      and glmnet gene scores for signature design.
     contents:
       - repair_simplex
       - compute_shannon_entropy
       - compute_average_overlap
+      - compute_average_jeffreys
+      - compute_glmnet_gene_scores
 
 articles:
   - title: Presentations

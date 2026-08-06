@@ -498,7 +498,7 @@ tinytable::tt(metrics) |>
 
 Overlap / Jeffreys / Chernoff / $W_{2}$ monitor **class separation** of purified laws. Information-optimal (D/E/A) criteria in @eq-optimal-design instead target **estimation** of $\boldsymbol{p}$ under @eq-mixture (@sec-optimal-design); the two families need not agree. Prefer overlap for an interpretable error rate, Jeffreys for a closed-form divergence, Chernoff when a single discriminability index is desired, and $W_{2}$ when covariance shape matters [@R-MixSim; @alieeAutoGeneSAutomaticGene2021].
 
-## Conclusion: refined selection offour complementary scores {#sec-four-scores}
+## Conclusion: refined selection of four complementary scores {#sec-four-scores}
 
 For a first rough candidate pool we retain **four** complementary screens rather than the full metric zoo. Two are **label-aware** selectors on pseudobulks; two are **distributional** discrepancies between purified Gaussians:
 

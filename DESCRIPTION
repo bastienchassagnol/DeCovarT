@@ -39,6 +39,7 @@ Imports:
     Metrics,
     MixSim,
     nnls,
+    glmnet,
     purrr,
     Rdpack (>= 0.7),
     rlang,
