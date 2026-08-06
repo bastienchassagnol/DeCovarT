@@ -28,6 +28,31 @@
 }
 
 
+test_that(".bilinear_form and .squared_mahalanobis_distance match closed forms", {
+  x <- c(1, 2)
+  y <- c(3, -1)
+  a <- matrix(c(2, 0.5, 0.5, 3), 2L)
+  center <- c(0.2, -0.4)
+
+  expect_equal(
+    .bilinear_form(x, a, y),
+    as.numeric(t(x) %*% a %*% y)
+  )
+  expect_equal(
+    .bilinear_form(x, a),
+    as.numeric(t(x) %*% a %*% x)
+  )
+  expect_equal(
+    .squared_mahalanobis_distance(x, center = center, covariance = a),
+    as.numeric(t(x - center) %*% solve(a) %*% (x - center))
+  )
+  expect_equal(
+    .squared_mahalanobis_distance(x, covariance = a),
+    as.numeric(t(x) %*% solve(a) %*% x)
+  )
+})
+
+
 test_that("Unconstrained objective gradient/Hessian match numDeriv", {
   setup <- .decovart_deriv_setup()
 

@@ -1,9 +1,9 @@
 ---
-title: "Numerically stable softmax and additive log-ratio derivatives"
+title: "Simplex maps and numerically stable softmax / ALR derivatives"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
 vignette: >
-  %\VignetteIndexEntry{Numerically stable softmax and additive log-ratio derivatives}
+  %\VignetteIndexEntry{Simplex maps and numerically stable softmax / ALR derivatives}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 knitr:
@@ -17,6 +17,7 @@ bibliography:
 link-citations: true
 crossref:
   eq-prefix: "Eq."
+  tbl-prefix: "Table"
   lst-prefix: "Listing"
 format:
   html:
@@ -24,14 +25,117 @@ format:
     toc: true
 ---
 
-This vignette collects the closed-form derivatives that DeCovarT needs to move
-between the unconstrained coordinates $\boldsymbol{\rho}\in\mathbb{R}^{J-1}$ and
-the cellular ratios $\boldsymbol{p}\in\Delta^{J-1}$. For every map we give the
-explicit tensor formula, an efficient base-`R` implementation (evaluated and
-checked against **numDeriv** [@R-numDeriv]), and
-a batched `PyTorch` counterpart. The naming follows the DeCovarT API:
-`additive_logistic()` for $\boldsymbol{\rho}\mapsto\boldsymbol{p}$ and
-`additive_log_ratio()` for $\boldsymbol{p}\mapsto\boldsymbol{\rho}$.
+```{r}
+#| label: setup
+#| include: false
+#| eval: true
+options(tinytable_html_mathjax = TRUE)
+```
+
+DeCovarT estimates cellular ratios $\boldsymbol{p}\in\Delta^{J-1}$ by
+maximising a Gaussian-convolution log-likelihood over an *unconstrained*
+parameter $\boldsymbol{\rho}\in\mathbb{R}^{J-1}$. This vignette collects the
+simplex coordinate maps, the matrix-algebra vocabulary used in the analytic
+gradients, and the closed-form softmax / additive log-ratio derivatives
+needed for efficient optimisation. For every map we give the explicit tensor
+formula, a base-`R` implementation (checked against **numDeriv**
+[@R-numDeriv]), and a batched `PyTorch` counterpart. Naming follows the
+DeCovarT API: `additive_logistic()` for
+$\boldsymbol{\rho}\mapsto\boldsymbol{p}$ and `additive_log_ratio()` for
+$\boldsymbol{p}\mapsto\boldsymbol{\rho}$.
+
+# Simplex coordinate maps
+
+The forward map [`additive_logistic()`](../reference/additive_logistic.html)
+sends unconstrained coordinates $\boldsymbol{\rho}$ to the open simplex,
+
+$$
+p_j=\frac{e^{\rho_j}}{\sum_{k<J}e^{\rho_k}+1}\ (j<J),\qquad
+p_J=\frac{1}{\sum_{k<J}e^{\rho_k}+1}.
+$$ {#eq-additive-logistic-intro}
+
+@eq-additive-logistic-intro is a softmax in which the last category $J$ is
+pinned as a reference ($\rho_J\equiv 0$); in Aitchison's framework it is the
+*additive logistic transform*, i.e. the inverse additive log-ratio map
+($\mathrm{alr}^{-1}$).
+
+The inverse map [`additive_log_ratio()`](../reference/additive_logistic.html)
+sends a composition back to $\mathbb{R}^{J-1}$,
+
+$$
+\rho_j=\log\!\left(\frac{p_j}{p_J}\right),\qquad j=1,\ldots,J-1.
+$$ {#eq-additive-log-ratio-intro}
+
+@eq-additive-log-ratio-intro is the *additive log-ratio* ($\mathrm{alr}$)
+transform with reference part $p_J$, equivalently the multinomial-logit link
+with reference category $J$.
+
+@tbl-coordinate-maps summarises the two helpers and their equivalents across
+statistical, machine-learning, and compositional-data-analysis literatures.
+
+| DeCovarT function | Direction | Transform | Equivalent formulations |
+|:--|:--|:--|:--|
+| `additive_logistic()` | $\boldsymbol{\rho}\mapsto\boldsymbol{p}$ (to $\Delta^{J-1}$) | inverse additive log-ratio ($\mathrm{alr}^{-1}$) | softmax with reference category $J$; `compositions::alrInv()`; `skbio.stats.composition.alr_inv()` |
+| `additive_log_ratio()` | $\boldsymbol{p}\mapsto\boldsymbol{\rho}$ (to $\mathbb{R}^{J-1}$) | additive log-ratio ($\mathrm{alr}$) | multinomial-logit link (reference $J$); `compositions::alr()`; `skbio.stats.composition.alr()` |
+
+: DeCovarT simplex coordinate maps and their equivalents. {#tbl-coordinate-maps}
+
+# Matrix-induced scalar products {#sec-bilinear-forms}
+
+The DeCovarT log-likelihood and its derivatives evaluate several
+matrix-induced scalar products involving a symmetric positive-definite
+covariance or precision matrix $\boldsymbol{A}$ (non-degenerate Gaussian
+laws). @tbl-bilinear-forms records the standard terminology; a quadratic form
+is the bilinear form evaluated on the same vector twice,
+$q(\boldsymbol{x})=b(\boldsymbol{x},\boldsymbol{x})$.
+
+```{r}
+#| label: tbl-bilinear-forms
+#| tbl-cap: "Standard algebraic operations induced by a matrix $\\boldsymbol{A}$."
+#| echo: false
+#| eval: true
+tinytable::tt(
+  data.frame(
+    Expression = c(
+      "$\\boldsymbol{x}^{\\mathsf{T}}\\boldsymbol{y}$",
+      "$\\boldsymbol{x}^{\\mathsf{T}}\\boldsymbol{A}\\boldsymbol{y}$",
+      "$\\boldsymbol{x}^{\\mathsf{T}}\\boldsymbol{A}\\boldsymbol{x}$",
+      "$\\boldsymbol{x}^{\\mathsf{T}}\\boldsymbol{A}^{-1}\\boldsymbol{x}$",
+      paste0(
+        "$(\\boldsymbol{x}-\\boldsymbol{\\mu})^{\\mathsf{T}}",
+        "\\boldsymbol{\\Sigma}^{-1}",
+        "(\\boldsymbol{x}-\\boldsymbol{\\mu})$"
+      ),
+      paste0(
+        "$\\sqrt{(\\boldsymbol{x}-\\boldsymbol{\\mu})^{\\mathsf{T}}",
+        "\\boldsymbol{\\Sigma}^{-1}",
+        "(\\boldsymbol{x}-\\boldsymbol{\\mu})}$"
+      )
+    ),
+    Terminology = c(
+      "Dot product / Euclidean inner product",
+      paste0(
+        "Bilinear form (inner product if $\\boldsymbol{A}$ is SPD)"
+      ),
+      "Quadratic form",
+      "Quadratic form induced by $\\boldsymbol{A}^{-1}$",
+      "Squared Mahalanobis distance",
+      "Mahalanobis distance"
+    )
+  )
+)
+```
+
+Package helpers `.bilinear_form()` and `.squared_mahalanobis_distance()`
+implement the middle rows of @tbl-bilinear-forms. The second solves
+$\boldsymbol{\Sigma}\boldsymbol{z}=\boldsymbol{\delta}$ rather than forming
+$\boldsymbol{\Sigma}^{-1}$ explicitly. Calling
+$\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{y}$ a "dot product" is
+misleading unless $\boldsymbol{A}=\boldsymbol{I}$; see also the
+[dot product](https://en.wikipedia.org/wiki/Dot_product) and
+[inner product space](https://en.wikipedia.org/wiki/Inner_product_space)
+articles for the Euclidean special case
+$\langle\boldsymbol{x},\boldsymbol{y}\rangle=\boldsymbol{x}^{\mathsf{T}}\boldsymbol{y}$.
 
 # Log-sum-exp and softmax
 
@@ -314,12 +418,20 @@ def additive_log_ratio_hessian(p: torch.Tensor) -> torch.Tensor:
     return hessian
 ```
 
-# Reference implementations
+# The `compositions` package and closed-form checks {#sec-compositions-checks}
 
-Both transforms are standard in compositional data analysis. In R, the
-**compositions** package [@R-compositions] exposes `alr()` / `alrInv()`.
-DeCovarT's `additive_logistic()` and `additive_log_ratio()` are the same maps with the last
-part fixed as reference.
+The **compositions** package [@R-compositions] provides a general toolbox for
+Aitchison geometry on the simplex. Beyond the additive log-ratio pair
+`alr()` / `alrInv()` used here, it implements the centred log-ratio
+`clr()` / `clrInv()` and the isometric log-ratio `ilr()` / `ilrInv()`,
+together with composition classes (`acomp()`, `rcomp()`) and the
+perturbation and powering operations of the Aitchison simplex. DeCovarT
+relies only on the additive log-ratio pair because it yields the sparsest
+$(J-1)$-dimensional parametrisation with an interpretable reference
+category, but any of the alternative bases would define an equally valid
+unconstrained coordinate system. DeCovarT's `additive_logistic()` and
+`additive_log_ratio()` match `alrInv()` / `alr()` with the last part fixed as
+reference (@lst-compositions-r).
 
 ```{#lst-compositions-r .r lst-cap="Cross-check against the compositions package" eval=true}
 p <- c(0.2, 0.3, 0.5)
@@ -333,10 +445,8 @@ if (requireNamespace("compositions", quietly = TRUE)) {
 }
 ```
 
-# Checking the closed forms
-
-The analytic derivatives are validated against Richardson extrapolation in `R`
-(@lst-check-r).
+The analytic Jacobians and Hessians are validated against Richardson
+extrapolation in `R` (@lst-check-r).
 
 ```{#lst-check-r .r lst-cap="Validation with numDeriv" eval=true}
 rho <- c(0.4, -1.1)

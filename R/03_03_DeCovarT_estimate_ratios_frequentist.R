@@ -58,18 +58,77 @@ additive_log_ratio <- function(p) {
   return(log(p[1:num_cells - 1] / p[num_cells]))
 }
 
+#' Evaluate a matrix-induced bilinear form
+#'
+#' Computes \eqn{\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{y}}.
+#' When \eqn{\boldsymbol{A}} is symmetric positive definite (as for a
+#' non-degenerate Gaussian covariance or precision), this is the
+#' \eqn{\boldsymbol{A}}-inner product. Prefer this name over "dot product",
+#' which is reserved for \eqn{\boldsymbol{x}^{\mathsf{T}}\boldsymbol{y}}.
+#'
+#' @param x Numeric vector.
+#' @param A Numeric square matrix, compatible with `x` and `y`.
+#' @param y Numeric vector of the same length as `x` (default `x`,
+#'   which yields the quadratic form
+#'   \eqn{\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{x}}).
+#'
+#' @return Numeric scalar.
 #' @keywords internal
-#' @noRd
-.maha_distance <- function(mean_signature_matrix, A) {
-  d <- t(mean_signature_matrix) %*% solve(A) %*% mean_signature_matrix # solve A returns the reverted function
-  return(d |> as.numeric()) # supposed to be a scalar
+.bilinear_form <- function(x, A, y = x) {
+  x <- as.numeric(x)
+  y <- as.numeric(y)
+  A <- as.matrix(A)
+  p <- length(x)
+
+  if (length(y) != p) {
+    stop("`x` and `y` must have the same length.", call. = FALSE)
+  }
+  if (!identical(dim(A), c(p, p))) {
+    stop(
+      "`A` must be a square matrix compatible with `x` and `y`.",
+      call. = FALSE
+    )
+  }
+
+  drop(crossprod(x, A %*% y))
 }
 
+#' Squared Mahalanobis distance
+#'
+#' Computes
+#' \eqn{(\boldsymbol{x}-\boldsymbol{m})^{\mathsf{T}}
+#' \boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{m})}
+#' for a symmetric positive-definite covariance (or scatter) matrix
+#' \eqn{\boldsymbol{\Sigma}}. This is the squared distance; take the square
+#' root for the Mahalanobis distance itself. Solves
+#' \eqn{\boldsymbol{\Sigma}\boldsymbol{z}=\boldsymbol{\delta}} instead of
+#' forming \eqn{\boldsymbol{\Sigma}^{-1}} explicitly.
+#'
+#' @param x Numeric vector.
+#' @param center Numeric centre \eqn{\boldsymbol{m}} (default the origin).
+#' @param covariance Symmetric positive-definite \eqn{G\times G} matrix.
+#'
+#' @return Non-negative numeric scalar.
 #' @keywords internal
-#' @noRd
-.dot_product <- function(mean_signature_matrix, A, y = mean_signature_matrix) {
-  d <- t(mean_signature_matrix) %*% A %*% y # solve A returns the reverted function
-  return(d |> as.numeric()) # supposed to be a scalar
+.squared_mahalanobis_distance <- function(
+  x,
+  center = numeric(length(x)),
+  covariance
+) {
+  delta <- as.numeric(x) - as.numeric(center)
+  covariance <- as.matrix(covariance)
+  p <- length(delta)
+
+  if (length(center) != p) {
+    stop("`x` and `center` must have the same length.", call. = FALSE)
+  }
+  if (!identical(dim(covariance), c(p, p))) {
+    stop("`covariance` has incompatible dimensions.", call. = FALSE)
+  }
+
+  # Solve covariance %*% z = delta; avoid forming the inverse.
+  z <- solve(covariance, delta)
+  drop(crossprod(delta, z))
 }
 
 #' Bulk mixture covariance \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}
@@ -150,8 +209,11 @@ loglik_multivariate <- function(p, y, mean_signature_matrix, Sigma) {
   log_lik <- -log(det(global_cov_matrix)) -
     1 /
       2 *
-      .maha_distance(y - mean_signature_matrix %*% p, global_cov_matrix) |>
-        as.numeric()
+      .squared_mahalanobis_distance(
+        y,
+        center = drop(mean_signature_matrix %*% p),
+        covariance = global_cov_matrix
+      )
   return(log_lik)
 }
 
@@ -267,13 +329,13 @@ gradient_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
       -2 *
         p[j] *
         sum(diag(global_precision_matrix %*% Sigma[,, j])) +
-        .dot_product(
+        .bilinear_form(
           y - mean_signature_matrix %*% p,
           global_precision_matrix,
           mean_signature_matrix[, j]
         ) +
         p[j] *
-          .dot_product(
+          .bilinear_form(
             y - mean_signature_matrix %*% p,
             global_precision_matrix %*% Sigma[,, j] %*% global_precision_matrix
           )
@@ -380,21 +442,21 @@ hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
             global_precision_matrix %*%
             Sigma[,, j]
         )) -
-        .dot_product(
+        .bilinear_form(
           mean_signature_matrix[, i],
           global_precision_matrix,
           mean_signature_matrix[, j]
         ) -
         2 *
           p[i] *
-          .dot_product(
+          .bilinear_form(
             y - mean_signature_matrix %*% p,
             global_precision_matrix %*% Sigma[,, i] %*% global_precision_matrix,
             mean_signature_matrix[, j]
           ) -
         2 *
           p[j] *
-          .dot_product(
+          .bilinear_form(
             y - mean_signature_matrix %*% p,
             global_precision_matrix %*% Sigma[,, j] %*% global_precision_matrix,
             mean_signature_matrix[, i]
@@ -402,7 +464,7 @@ hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
         4 *
           p[i] *
           p[j] *
-          .dot_product(
+          .bilinear_form(
             y - mean_signature_matrix %*% p,
             global_precision_matrix %*%
               Sigma[,, j] %*%
@@ -414,7 +476,7 @@ hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
         # add diagonal terms
         hessian_unconstrained[i, i] <- hessian_unconstrained[i, i] -
           2 * sum(diag(global_precision_matrix %*% Sigma[,, i])) +
-          .dot_product(
+          .bilinear_form(
             y - mean_signature_matrix %*% p,
             global_precision_matrix %*% Sigma[,, i] %*% global_precision_matrix
           )

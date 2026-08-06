@@ -152,10 +152,7 @@ navbar:
           href: articles/feature-selection.html
         - text: -------
         - text: Mathematics
-        - text: Simplex coordinate maps (ALR / additive logistic)
-          icon: fa-calculator
-          href: articles/DeCovarT-numerical-derivatives.html
-        - text: Softmax and ALR derivatives
+        - text: Simplex maps and softmax / ALR derivatives
           icon: fa-square-root-variable
           href: articles/softmax-alr-derivatives.html
     news:
@@ -236,7 +233,6 @@ articles:
       - DeCoVart-use-cases
   - title: Mathematics
     contents:
-      - DeCovarT-numerical-derivatives
       - softmax-alr-derivatives
 
 news:

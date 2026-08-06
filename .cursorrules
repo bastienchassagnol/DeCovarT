@@ -186,7 +186,7 @@ This repo uses **[Air](https://posit-dev.github.io/air/)** (`air.toml`) and
 - Use **`@noRd` if and only if** the object has **no** substantive
   roxygen documentation (no title / description / `@param` /
   `@return` worth installing). Bare `@keywords internal` + `@noRd`
-  is appropriate for tiny undocumented helpers (e.g. `.maha_distance`).
+  is appropriate for tiny undocumented helpers (e.g. `.bilinear_form`).
 - If you write real roxygen (title, maths, arguments, return value),
   **do not** add `@noRd`: install the `.Rd` so `?fn` and
   `?pkg:::fn` work after `devtools::document()` / install. Keep

@@ -214,8 +214,7 @@ Package website: <https://bastienchassagnol.github.io/DeCovarT/>
 
 - [Simulating semi-synthetic pseudo-bulk mixtures](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html)
 - [Deconvolution use cases with DeCovarT](https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.html)
-- [Simplex coordinate maps (ALR / additive logistic)](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-numerical-derivatives.html)
-- [Softmax and ALR derivatives](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.html)
+- [Simplex maps and softmax / ALR derivatives](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.html)
 
 In an R session, use `?DeCovarT::deconvolute_ratios` (or any other exported
 function) for help pages.
