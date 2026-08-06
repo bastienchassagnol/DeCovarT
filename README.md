@@ -303,7 +303,7 @@ Source file: `article/main.tex` (bibliography: `article/decovart_library.bib`).
 DAG panels in Fig.~DAG-model are drawn with [`tikz-bayesnet`](https://ctan.org/pkg/tikz-bayesnet).
 
 **Published PDF** (when the latest `main` commit message contains
-`article generation`):\
+`article generation`):
 [article/main.pdf](https://bastienchassagnol.github.io/DeCovarT/article/main.pdf)
 on the pkgdown site (also uploaded as a GitHub Actions artifact
 `article-main-pdf`).
