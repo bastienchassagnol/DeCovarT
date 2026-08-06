@@ -75,3 +75,7 @@ IV) build signature matrix.bib
 .venv-zotcurate/
 output/zotero/
 __pycache__/
+
+# Generated manuals and article PDF (CI / local latexmk)
+article/*.pdf
+output/manual/

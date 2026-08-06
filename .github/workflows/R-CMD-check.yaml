@@ -192,6 +192,53 @@ jobs:
           cp -a output/package_network/. docs/package_network/
           test -f docs/package_network/decovart_function_network.html
 
+      # Optional: Nature Methods article PDF when the commit message asks for it
+      - name: Install TeX Live (article generation)
+        if: >-
+          github.event_name == 'push' &&
+          contains(github.event.head_commit.message, 'article generation')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            latexmk \
+            texlive-latex-base \
+            texlive-latex-recommended \
+            texlive-latex-extra \
+            texlive-science \
+            texlive-fonts-recommended \
+            texlive-pictures \
+            texlive-bibtex-extra \
+            biber
+
+      - name: Build article PDF with latexmk
+        if: >-
+          github.event_name == 'push' &&
+          contains(github.event.head_commit.message, 'article generation')
+        working-directory: article
+        run: |
+          latexmk -pdf -f -interaction=nonstopmode -file-line-error \
+            -synctex=1 main.tex
+          test -f main.pdf
+
+      - name: Upload article PDF artifact
+        if: >-
+          github.event_name == 'push' &&
+          contains(github.event.head_commit.message, 'article generation')
+        uses: actions/upload-artifact@v5
+        with:
+          name: article-main-pdf
+          path: article/main.pdf
+          if-no-files-found: error
+
+      - name: Copy article PDF into pkgdown docs
+        if: >-
+          github.event_name == 'push' &&
+          contains(github.event.head_commit.message, 'article generation')
+        run: |
+          mkdir -p docs/article
+          cp -a article/main.pdf docs/article/main.pdf
+          test -f docs/article/main.pdf
+
       - name: Deploy to GitHub Pages
         if: github.event_name != 'pull_request'
         uses: JamesIves/github-pages-deploy-action@v4.8.0

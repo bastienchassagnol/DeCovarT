@@ -178,6 +178,36 @@ This repo uses **[Air](https://posit-dev.github.io/air/)** (`air.toml`) and
 - Prefer **usethis** and **devtools** workflows for package tasks
   (tests, docs, DESCRIPTION, GitHub Actions helpers, etc.).
 
+### pkgdown site customisation
+
+- Prefer **external shared includes** under `pkgdown/` over raw HTML/JS
+  embedded in `_pkgdown.yml` (e.g. `template.includes.after_body:
+  after_body.html`). Use pkgdown’s `{{#site}}{{root}}{{/site}}` prefix
+  for root-relative asset URLs.
+- Put static assets in `pkgdown/assets/` (copied to the site root).
+- Prefer **Sass** (`pkgdown/extra.scss`) over ad-hoc CSS for layout and
+  theming (see [Slidecrafting SCSS](https://slidecrafting-book.com/scss)
+  and [pkgdown customise](https://pkgdown.r-lib.org/articles/customise.html)).
+- Keep the article TOC / reference sidebar collapsed to full width via
+  SCSS unless a page truly needs an on-page TOC; tighten container
+  gutters rather than inventing one-off inline styles.
+- For wide embeds on the home page (network graph, slides), wrap in a
+  shared CSS class (e.g. `.decovart-fullwidth`) and offer a full-screen
+  link, mirroring the seminar-slides iframe pattern in `README.qmd`.
+- Conditional CI: commit message containing `test coverage` triggers
+  Codecov; `article generation` triggers `latexmk` for
+  `article/main.tex`, uploads artifact `article-main-pdf`, and publishes
+  `docs/article/main.pdf` on GitHub Pages.
+
+### Package load hooks (`R/zzz.R`)
+
+- Use `.onLoad()` for silent package options / registration.
+- Use `.onAttach()` for a short welcome (`packageStartupMessage`),
+  purpose of the package, main entry point, and notes on likely
+  attach-order conflicts (e.g. `MASS::select` vs `dplyr::select`).
+- Keep `_PACKAGE` docs in `R/DeCovarT-package.R`; regenerate PDF/HTML
+  manuals with `scripts/generate_package_manual.R` when needed.
+
 ### Roxygen: `@keywords internal` vs `@noRd`
 
 - Unexported helpers may use **`@keywords internal`** so they stay off

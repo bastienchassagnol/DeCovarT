@@ -1,27 +1,51 @@
-CheckLazyDataCompression <- function(pkg) {
-  pkg_name <- sub("_.*", "", pkg)
-  lib <- tempfile()
-  dir.create(lib)
-  zs <- c("gzip", "bzip2", "xz")
-  res <- integer(3)
-  names(res) <- zs
-  for (z in zs) {
-    opts <- c(
-      paste0("--data-compress=", z),
-      "--no-libs",
-      "--no-help",
-      "--no-demo",
-      "--no-exec",
-      "--no-test-load"
-    )
-    utils::install.packages(
-      pkg,
-      lib,
-      INSTALL_opts = opts,
-      repos = NULL,
-      quiet = TRUE
-    )
-    res[z] <- file.size(file.path(lib, pkg_name, "data", "Rdata.rdb"))
+# Package load / attach hooks -----------------------------------------------
+
+#' @keywords internal
+.onLoad <- function(libname, pkgname) {
+  # Reserved for package-level options (none required yet).
+  invisible()
+}
+
+#' @keywords internal
+.onAttach <- function(libname, pkgname) {
+  ver <- utils::packageVersion(pkgname)
+  imports <- tryCatch(
+    utils::packageDescription(pkgname, fields = "Imports"),
+    error = function(e) NA_character_
+  )
+  import_pkgs <- character()
+  if (!is.na(imports) && nzchar(imports)) {
+    import_pkgs <- trimws(strsplit(imports, ",", fixed = TRUE)[[1L]])
+    import_pkgs <- sub("\\s*\\(.*$", "", import_pkgs)
   }
-  ceiling(res / 1024)
+
+  msg <- c(
+    paste0("DeCovarT ", ver, " — covariance-aware bulk deconvolution."),
+    "Estimate cellular proportions from bulk RNA-seq using Gaussian",
+    "convolutions of purified means and covariances (ALR + MLE).",
+    "Main entry point: deconvolute_ratios().",
+    "Website: https://bastienchassagnol.github.io/DeCovarT/"
+  )
+  if (length(import_pkgs)) {
+    msg <- c(
+      msg,
+      paste0(
+        "Imports (loaded with the package): ",
+        paste(import_pkgs, collapse = ", "),
+        "."
+      )
+    )
+  }
+
+  # Highlight a common masking risk when MASS is attached after tidyselect APIs.
+  attached <- paste0("package:", search())
+  if ("package:MASS" %in% attached && "package:dplyr" %in% attached) {
+    msg <- c(
+      msg,
+      "Note: both MASS and dplyr are attached; dplyr::select() may be masked",
+      "by MASS::select(). Prefer dplyr::select() / MASS::select() explicitly."
+    )
+  }
+
+  packageStartupMessage(paste(msg, collapse = "\n"))
 }

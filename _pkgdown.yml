@@ -12,64 +12,8 @@ template:
   bootstrap: 5
   light-switch: true
   includes:
-    after_body: |
-      <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
-      <script>
-      (function () {
-        // pkgdown/README: <pre class="mermaid"><code>…</code></pre>
-        // Quarto articles: <pre class="mermaid mermaid-js">…</pre>
-        function collect() {
-          var out = [];
-          document.querySelectorAll("pre.mermaid, pre.mermaid-js").forEach(function (pre) {
-            if (pre.querySelector("svg")) return;
-            out.push(pre);
-          });
-          document.querySelectorAll(
-            "pre code.language-mermaid, pre code.mermaid, pre code[class*='language-mermaid']"
-          ).forEach(function (code) {
-            var pre = code.closest("pre");
-            if (!pre || pre.querySelector("svg")) return;
-            if (out.indexOf(pre) === -1) out.push(pre);
-          });
-          return out;
-        }
-        function textOf(pre) {
-          var code = pre.querySelector("code");
-          return (code ? code.textContent : pre.textContent) || "";
-        }
-        async function run() {
-          if (!window.mermaid) return;
-          var pres = collect();
-          if (!pres.length) return;
-          // Core mermaid themes: default | dark | forest | neutral | base
-          // (Quarto's "sandstone" is not a mermaid.js theme.)
-          window.mermaid.initialize({
-            startOnLoad: false,
-            theme: "neutral",
-            securityLevel: "loose",
-            flowchart: { htmlLabels: true, curve: "basis" }
-          });
-          var nodes = pres.map(function (pre, i) {
-            var div = document.createElement("div");
-            div.className = "mermaid";
-            div.id = "pkgdown-mermaid-" + i;
-            div.textContent = textOf(pre);
-            pre.replaceWith(div);
-            return div;
-          });
-          try {
-            await window.mermaid.run({ nodes: nodes });
-          } catch (e) {
-            console.warn("Mermaid render failed:", e);
-          }
-        }
-        if (document.readyState === "loading") {
-          document.addEventListener("DOMContentLoaded", run);
-        } else {
-          run();
-        }
-      })();
-      </script>
+    # External shared include (not inline YAML); see pkgdown/after_body.html
+    after_body: after_body.html
   # KaTeX supports the AMS-style maths used throughout the vignettes,
   # including \boldsymbol, without additional runtime macro configuration.
   math-rendering: katex
@@ -102,6 +46,8 @@ template:
     navbar-dark-active-color: "#AED1E4"
     navbar-dark-brand-color: "#FAF1E4"
     navbar-dark-brand-hover-color: "#FAF1E4"
+    # Widen content: sidebar width handled in pkgdown/extra.scss (set to 0).
+    # Slightly tighter default container padding (~20% less side margin).
     base_font: {google: "Source Sans 3"}
     heading_font: {google: "Source Sans 3"}
     code_font: {google: "Source Code Pro"}
@@ -168,6 +114,10 @@ home:
   links:
     - text: Report a bug
       href: https://github.com/bastienchassagnol/DeCovarT/issues
+    - text: Article PDF (when published)
+      href: article/main.pdf
+    - text: Function call network
+      href: package_network/decovart_function_network.html
 
 reference:
   - title: Main deconvolution function

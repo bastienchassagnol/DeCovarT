@@ -1,9 +1,7 @@
-// Adapted from stan-dev/pkgdown-config (inst/pkgdown/extra.scss).
-// Local copy so DeCovarT can share the visual language without depending
-// on the Stan-only pkgdownconfig package.
+# Adapted from stan-dev/pkgdown-config (inst/pkgdown/extra.scss).
+# Prefer SCSS over ad-hoc CSS for pkgdown theming (see slidecrafting SCSS notes).
 
 html[data-bs-theme="light"] {
-
   div.sourceCode > pre,
   pre.sourceCode,
   pre.downlit,
@@ -23,7 +21,6 @@ html[data-bs-theme="light"] {
 }
 
 html[data-bs-theme="dark"] {
-
   div.sourceCode > pre,
   pre.sourceCode,
   pre.downlit,
@@ -49,4 +46,64 @@ pre {
   margin-left: 0.4rem;
   line-height: 1;
   font-weight: 800;
+}
+
+// ---------------------------------------------------------------------------
+// Full-width body layout: zero the article TOC sidebar; tighten side margins
+// (~20% narrower gutters) so reference / article pages use more of the screen.
+// Inspired by Quarto page-layout full / screen-column patterns.
+// ---------------------------------------------------------------------------
+
+@media (min-width: 768px) {
+  .row > aside.col-md-3,
+  .template-article .row > aside.col-md-3,
+  .template-reference-topic .row > aside.col-md-3,
+  .template-reference-index .row > aside.col-md-3 {
+    display: none !important;
+    width: 0 !important;
+    max-width: 0 !important;
+    flex: 0 0 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .row > main.col-md-9,
+  .template-article .row > main.col-md-9,
+  .template-reference-topic .row > main.col-md-9,
+  .template-reference-index .row > main.col-md-9 {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+}
+
+// Default Bootstrap gutter is 1.5rem; 0.8 × that ≈ 20% reduction.
+.container,
+.container-fluid,
+.container-xxl,
+.container-xl,
+.container-lg,
+.container-md,
+.container-sm {
+  --bs-gutter-x: 1.2rem;
+  padding-right: calc(var(--bs-gutter-x) * 0.5);
+  padding-left: calc(var(--bs-gutter-x) * 0.5);
+}
+
+// Home-page full-bleed embeds (function network, slides).
+.decovart-fullwidth {
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding-left: 1rem;
+  padding-right: 1rem;
+  box-sizing: border-box;
+}
+
+.decovart-fullwidth iframe {
+  display: block;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
