@@ -75,6 +75,7 @@ bulk <- simulate_bulk_mixture(
   n = 20
 )
 dim(bulk$Y)
+dim(bulk$latent_profiles) # G x J x N latent draws; input mu is shared
 ```
 
 Selecting genes (or, here, designing $\boldsymbol{\mu}$) by cosine alone is

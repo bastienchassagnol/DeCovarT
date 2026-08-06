@@ -7,7 +7,8 @@
 compute_shannon_entropy(ratios)
 }
 \arguments{
-\item{ratios}{Numeric vector \eqn{\boldsymbol{p}} of length \eqn{J}.}
+\item{ratios}{Numeric vector of cellular proportions
+\eqn{\boldsymbol{p}\in\Delta^{J-1}} (length \eqn{J}).}
 }
 \value{
 Scalar normalised entropy \eqn{H^{\star}\in[0,1]}.
@@ -50,6 +51,6 @@ classes.
 }
 
 \examples{
-compute_shannon_entropy(c(1, 0, 0)) # Dirac → 0
-compute_shannon_entropy(rep(1 / 3, 3)) # uniform → 1
+compute_shannon_entropy(c(1, 0, 0)) # Dirac -> 0
+compute_shannon_entropy(rep(1 / 3, 3)) # uniform -> 1
 }

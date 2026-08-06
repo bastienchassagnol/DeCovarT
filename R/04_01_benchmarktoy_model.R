@@ -27,10 +27,11 @@ compute_benchmark_metrics <- function(
   estimated_p,
   true_ratios = NULL
 ) {
-  n <- nrow(mean_signature_matrix)
-  k <- ncol(mean_signature_matrix)
-  df_res <- n - k + 1 # number of free parameters: only k - 1 parameters must be learnt, with sum-to-one constraint
-  df_tot <- n - 1 # no intercept for the moment, in the model (so n-1, or n?)
+  G <- nrow(mean_signature_matrix)
+  J <- ncol(mean_signature_matrix)
+  # free parameters: J - 1 proportions (simplex); residual df uses G genes
+  df_res <- G - J + 1
+  df_tot <- G - 1
   if (!is.null(true_ratios)) {
     # when the true parameters are known
     model_coef_determination <- max(
@@ -82,7 +83,8 @@ compute_benchmark_metrics <- function(
 #'
 #' @param signature_matrix Mean signature
 #'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (rownames = genes,
-#'   colnames = cell types).
+#'   colnames = cell types). Used as a frequentist **plug-in** for unobserved
+#'   latent cell-type profiles \eqn{\boldsymbol{x}_{\cdot j}}.
 #' @param bulk_expression Bulk matrix
 #'   \eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}}.
 #' @param true_ratios Optional ground-truth proportions for scoring.

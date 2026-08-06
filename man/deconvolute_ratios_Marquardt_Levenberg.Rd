@@ -69,7 +69,8 @@ deconvolute_ratios_gradient_descent(
 \eqn{\boldsymbol{y}\in\mathbb{R}^{G}} (one heterogeneous sample).}
 
 \item{mean_signature_matrix}{Mean signature
-\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (columns = cell types).}
+\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (columns = cell types;
+plug-in for latent profiles).}
 
 \item{Sigma}{Array
 \eqn{(\boldsymbol{\Sigma}_j)_{j=1}^{J}\in\mathcal{M}_{G\times G\times J}}
@@ -97,8 +98,17 @@ Gaussian convolution model
 subject to the simplex constraint
 \eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1}, \eqn{\boldsymbol{p}\ge\mathbf{0}}.
 Optimisation is performed in unconstrained coordinates
-\eqn{\boldsymbol{\rho}} via \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})}
-(Marquardt–Levenberg default; see other methods below).
+\eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}} via
+\eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})}
+(Marquardt–Levenberg default; see other methods below and
+\code{vignette("softmax-alr-derivatives", package = "DeCovarT")}).
+}
+\details{
+\strong{Plug-in signature.} Argument \code{mean_signature_matrix} is the mean
+\eqn{\boldsymbol{\mu}}, used as a proxy for the unobserved cell-type
+profiles \eqn{\boldsymbol{x}_{\cdot j}}. This is the frequentist plug-in;
+recovering sample-specific latents is a Bayesian / MAP problem
+(\code{.map_gaussian_convolution()}).
 }
 \section{Functions}{
 \itemize{

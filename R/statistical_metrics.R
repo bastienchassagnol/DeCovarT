@@ -77,7 +77,8 @@ repair_simplex <- function(p, tolerance = 100 * .Machine$double.eps) {
 #'   alt="Gini versus Shannon entropy"}}
 #' \if{latex}{\figure{gini_vs_entropy_specificity.png}{options: width=5.5in}}
 #'
-#' @param ratios Numeric vector \eqn{\boldsymbol{p}} of length \eqn{J}.
+#' @param ratios Numeric vector of cellular proportions
+#'   \eqn{\boldsymbol{p}\in\Delta^{J-1}} (length \eqn{J}).
 #' @return Scalar normalised entropy \eqn{H^{\star}\in[0,1]}.
 #' @export
 #' @examples
@@ -91,15 +92,16 @@ compute_shannon_entropy <- function(ratios) {
     stop("Probabilities must be strictly included between 0 and 1.")
   }
 
-  j_classes <- length(ratios)
-  if (j_classes == 1L) {
+  # J = number of cell types in the full panel (before dropping zeros)
+  J <- length(ratios)
+  if (J == 1L) {
     return(0)
   }
 
   ratios <- ratios[ratios > 0]
   ratios <- ratios / sum(ratios)
-  # Pielou evenness: H / log(J), J = number of cell types
-  -sum(ratios * log(ratios)) / log(j_classes)
+  # Pielou evenness: H / log(J)
+  -sum(ratios * log(ratios)) / log(J)
 }
 
 #' Average pairwise overlap of a Gaussian mixture
@@ -125,8 +127,8 @@ compute_shannon_entropy <- function(ratios) {
 #'   mean matrix) and `sigma` (\eqn{G\times G\times J} covariance array),
 #'   as in a GMM
 #'   \eqn{(\boldsymbol{p},\boldsymbol{\mu},\{\boldsymbol{\Sigma}_j\})}.
-#' @param k Number of components \eqn{J} (kept for compatibility;
-#'   MixSim uses `length(true_theta$p)`).
+#' @param J Number of cell types (components). Defaults to
+#'   `length(true_theta$p)`.
 #' @return Scalar average pairwise overlap (MixSim `BarOmega`).
 #' @export
 #' @examples
@@ -137,29 +139,29 @@ compute_shannon_entropy <- function(ratios) {
 #'   sigma = array(c(diag(2), diag(2)), dim = c(2, 2, 2))
 #' )
 #' compute_average_overlap(theta)
-compute_average_overlap <- function(true_theta, k = length(true_theta$p)) {
+compute_average_overlap <- function(true_theta, J = length(true_theta$p)) {
   stopifnot(is.list(true_theta))
   p <- true_theta$p
   mu <- as.matrix(true_theta$mu)
   sigma <- true_theta$sigma
 
-  if (length(p) != k) {
-    stop("`k` must equal length(true_theta$p).")
+  if (length(p) != J) {
+    stop("`J` must equal length(true_theta$p).")
   }
   if (is.null(dim(sigma)) || length(dim(sigma)) != 3L) {
     stop("`true_theta$sigma` must be a G x G x J array.")
   }
 
-  g <- dim(sigma)[[1L]]
-  j <- dim(sigma)[[3L]]
-  if (dim(sigma)[[2L]] != g || j != length(p)) {
+  G <- dim(sigma)[[1L]]
+  n_celltypes <- dim(sigma)[[3L]]
+  if (dim(sigma)[[2L]] != G || n_celltypes != length(p)) {
     stop("`sigma` dims must be G x G x J with J = length(p).")
   }
 
   # DeCovarT stores mu as G x J; MixSim::overlap expects Mu as J x G
-  if (nrow(mu) == g && ncol(mu) == j) {
+  if (nrow(mu) == G && ncol(mu) == n_celltypes) {
     mu_mixsim <- t(mu)
-  } else if (nrow(mu) == j && ncol(mu) == g) {
+  } else if (nrow(mu) == n_celltypes && ncol(mu) == G) {
     mu_mixsim <- mu
   } else {
     stop("`true_theta$mu` must be G x J (or J x G).")

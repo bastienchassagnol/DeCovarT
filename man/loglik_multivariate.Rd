@@ -13,7 +13,7 @@ loglik_multivariate(p, y, mean_signature_matrix, Sigma)
 \eqn{\boldsymbol{y}\in\mathbb{R}^{G}}.}
 
 \item{mean_signature_matrix}{Numeric matrix
-\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}}.}
+\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (plug-in means).}
 
 \item{Sigma}{Array of cell-type covariances in
 \eqn{\mathcal{M}_{G\times G\times J}}.}
@@ -46,7 +46,12 @@ Up to an additive constant independent of \eqn{\boldsymbol{p}},
   \boldsymbol{\Sigma}(\boldsymbol{p})^{-1}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}).
 }
-Argument \code{mean_signature_matrix} stores \eqn{\boldsymbol{\mu}}.
+Argument \code{mean_signature_matrix} stores the plug-in mean signature
+\eqn{\boldsymbol{\mu}}. Latent sample-specific profiles
+\eqn{\boldsymbol{x}_{\cdot j}} are \strong{not} observed; the frequentist
+likelihood treats \eqn{\boldsymbol{\mu}} as a fixed proxy. Estimating those
+latents jointly with \eqn{\boldsymbol{p}} requires a Bayesian / MAP step
+(see \code{.map_gaussian_convolution()}).
 }
 \seealso{
 \code{\link[=gradient_loglik_unconstrained]{gradient_loglik_unconstrained()}}, \code{\link[=additive_logistic]{additive_logistic()}}

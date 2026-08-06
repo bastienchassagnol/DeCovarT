@@ -10,7 +10,9 @@ additive_logistic(rho)
 additive_log_ratio(p)
 }
 \arguments{
-\item{rho}{Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.}
+\item{rho}{Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}} of
+unconstrained additive log-ratio coordinates (reference cell type
+\eqn{J}).}
 
 \item{p}{Numeric vector \eqn{\boldsymbol{p}} on the open simplex.}
 }
@@ -35,7 +37,8 @@ Recovers the unconstrained additive log-ratio coordinates
 \eqn{\rho_j=\ln(p_j/p_J)} for \eqn{j=1,\ldots,J-1}, with the last part
 \eqn{p_J} as reference. This is Aitchison's additive log-ratio
 (\eqn{\mathrm{alr}}) transform, equivalently the multinomial-logit link
-with reference category \eqn{J} (see \code{\link[compositions:alr]{compositions::alr()}}).
+with reference category \eqn{J} (see \code{\link[compositions:alr]{compositions::alr()}} and
+\code{vignette("softmax-alr-derivatives", package = "DeCovarT")}).
 }
 \details{
 With \eqn{A=\sum_{k=1}^{J-1}\mathrm{e}^{\rho_k}+1},
@@ -47,8 +50,9 @@ Equivalently,
 \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})} with
 \eqn{\boldsymbol{\psi}(\boldsymbol{\rho})\propto
 (\mathrm{e}^{\rho_1},\ldots,\mathrm{e}^{\rho_{J-1}},1)^{\mathsf{T}}}.
-See \code{\link[compositions:alr]{compositions::alrInv()}} for a general implementation and the
-package vignette on additive log-ratio derivatives.
+Jacobians and Hessians of both maps are derived in the package vignette
+\code{vignette("softmax-alr-derivatives", package = "DeCovarT")}.
+See also \code{\link[compositions:alr]{compositions::alrInv()}}.
 }
 \seealso{
 The inverse map (additive log-ratio) is documented as

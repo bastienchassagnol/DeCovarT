@@ -1,14 +1,15 @@
-#' Simulate bulk mixtures from a Gaussian convolution
+#' Simulate bulk mixtures from a multivariate Gaussian convolution
 #'
 #' @description
-#' Draws purified profiles
-#' \eqn{\boldsymbol{x}_j\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},
-#' \boldsymbol{\Sigma}_j)} independently for each cell type and forms bulk
-#' observations by the linear mixture
+#' For each bootstrap sample \eqn{i=1,\ldots,N}, draws **latent** purified
+#' profiles
+#' \eqn{\boldsymbol{x}_{\cdot j}^{(i)}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},
+#' \boldsymbol{\Sigma}_j)} independently for each cell type
+#' \eqn{j=1,\ldots,J}, then forms the bulk by the linear convolution
 #' \deqn{
 #'   \boldsymbol{y}_{\cdot i}
-#'   =\boldsymbol{\mu}^{(i)}\boldsymbol{p}
-#'   =\sum_{j=1}^{J}p_j\,\boldsymbol{x}_j^{(i)},
+#'   =\boldsymbol{X}^{(i)}\boldsymbol{p}
+#'   =\sum_{j=1}^{J}p_j\,\boldsymbol{x}_{\cdot j}^{(i)},
 #' }
 #' matching the article's conditional model
 #' \eqn{\boldsymbol{y}\,|\,(\boldsymbol{\zeta},\boldsymbol{p})\sim
@@ -17,7 +18,9 @@
 #' \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=
 #' \sum_j p_j^{2}\boldsymbol{\Sigma}_j}.
 #'
-#' Equivalently, stacking the purified draws into the three-way array
+#' The mean signature \eqn{\boldsymbol{\mu}} is shared across samples; only the
+#' latent draws \eqn{\boldsymbol{x}_{\cdot j}^{(i)}} vary with \eqn{i}. Stacking
+#' those draws into the three-way array
 #' \eqn{\mathcal{X}=(x_{gji})\in\mathcal{M}_{G\times J\times N}}, the bulk
 #' matrix is the mode-2 tensor–vector contraction
 #' \deqn{
@@ -27,22 +30,24 @@
 #'   y_{gi}=\sum_{j=1}^{J}x_{gji}\,p_{j}
 #'   \quad(g=1,\ldots,G;\; i=1,\ldots,N),
 #' }
-#' which for each sample recovers the matrix–vector product
-#' \eqn{\boldsymbol{y}_{\cdot i}=\boldsymbol{X}_{\cdot\cdot i}\,\boldsymbol{p}}
-#' with \eqn{\boldsymbol{X}_{\cdot\cdot i}\in\mathcal{M}_{G\times J}}.
+#' which for each sample recovers
+#' \eqn{\boldsymbol{y}_{\cdot i}=\boldsymbol{X}^{(i)}\,\boldsymbol{p}}
+#' with \eqn{\boldsymbol{X}^{(i)}\in\mathcal{M}_{G\times J}}.
 #'
-#' @param signature_matrix Mean matrix
-#'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}}.
+#' @param signature_matrix Mean signature
+#'   \eqn{\boldsymbol{\mu}=(\mu_{gj})\in\mathcal{M}_{G\times J}} (shared across
+#'   samples; not the latent profiles).
 #' @param Sigma Array of covariances
 #'   \eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}}.
 #' @param p Proportion vector \eqn{\boldsymbol{p}\in\Delta^{J-1}}
 #'   (default: uniform).
-#' @param n Number of bulk samples \eqn{n}.
+#' @param n Number of bulk / bootstrap samples \eqn{N}.
 #'
 #' @return A list with:
-#' * `mean_signature_matrix`: array
-#'   \eqn{\mathcal{X}=(x_{gji})\in\mathcal{M}_{G\times J\times N}} of simulated
-#'   purified profiles;
+#' * `latent_profiles`: array
+#'   \eqn{\mathcal{X}=(x_{gji})\in\mathcal{M}_{G\times J\times N}} of
+#'   **unobserved** cell-type-specific draws (one \eqn{G\times J} slice per
+#'   sample \eqn{i});
 #' * `Y`: matrix \eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}} whose columns
 #'   are bulk vectors \eqn{\boldsymbol{y}_{\cdot i}}, obtained as
 #'   \eqn{\mathcal{X}\times_{2}\boldsymbol{p}}.
@@ -84,14 +89,15 @@ simulate_bulk_mixture <- function(
     ncol = n,
     dimnames = list(names_genes, paste0("sample_", 1:n))
   )
-  mean_signature_matrix <- array(
+  # Latent purified profiles X: G x J x N (not the mean signature mu)
+  latent_profiles <- array(
     0,
     c(nrow(signature_matrix), ncol(signature_matrix), n),
     dimnames = list(names_genes, valid_celltypes, colnames(Y))
-  ) # store cell-type specific expression
+  )
 
   for (cell_name in valid_celltypes) {
-    # generate individually each cell distribution
+    # Draw x_{·j}^{(i)} ~ N(mu_{·j}, Sigma_j) for i = 1, ..., N
     mean_parameter <- signature_matrix[, cell_name]
     covariance_parameter <- Sigma[,, cell_name]
     expression_per_celltype <- MASS::mvrnorm(
@@ -100,13 +106,13 @@ simulate_bulk_mixture <- function(
       Sigma = covariance_parameter,
       tol = 1e-12,
       empirical = FALSE
-    ) # simulate a draw from the covariance matrix
-    mean_signature_matrix[, cell_name, ] <- t(expression_per_celltype)
+    )
+    latent_profiles[, cell_name, ] <- t(expression_per_celltype)
   }
 
   ## Mode-2 contraction: Y = X ×_2 p, i.e. y_{gi} = Σ_j x_{gji} p_j
-  Y <- tensor::tensor(p, B = mean_signature_matrix, alongA = 1, alongB = 2)
-  return(list(mean_signature_matrix = mean_signature_matrix, Y = Y))
+  Y <- tensor::tensor(p, B = latent_profiles, alongA = 1, alongB = 2)
+  return(list(latent_profiles = latent_profiles, Y = Y))
 }
 
 

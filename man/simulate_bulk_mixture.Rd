@@ -2,7 +2,7 @@
 % Please edit documentation in R/02_01_toy_simulation.R
 \name{simulate_bulk_mixture}
 \alias{simulate_bulk_mixture}
-\title{Simulate bulk mixtures from a Gaussian convolution}
+\title{Simulate bulk mixtures from a multivariate Gaussian convolution}
 \usage{
 simulate_bulk_mixture(
   signature_matrix,
@@ -12,8 +12,9 @@ simulate_bulk_mixture(
 )
 }
 \arguments{
-\item{signature_matrix}{Mean matrix
-\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}}.}
+\item{signature_matrix}{Mean signature
+\eqn{\boldsymbol{\mu}=(\mu_{gj})\in\mathcal{M}_{G\times J}} (shared across
+samples; not the latent profiles).}
 
 \item{Sigma}{Array of covariances
 \eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}}.}
@@ -21,28 +22,30 @@ simulate_bulk_mixture(
 \item{p}{Proportion vector \eqn{\boldsymbol{p}\in\Delta^{J-1}}
 (default: uniform).}
 
-\item{n}{Number of bulk samples \eqn{n}.}
+\item{n}{Number of bulk / bootstrap samples \eqn{N}.}
 }
 \value{
 A list with:
 \itemize{
-\item \code{mean_signature_matrix}: array
-\eqn{\mathcal{X}=(x_{gji})\in\mathcal{M}_{G\times J\times N}} of simulated
-purified profiles;
+\item \code{latent_profiles}: array
+\eqn{\mathcal{X}=(x_{gji})\in\mathcal{M}_{G\times J\times N}} of
+\strong{unobserved} cell-type-specific draws (one \eqn{G\times J} slice per
+sample \eqn{i});
 \item \code{Y}: matrix \eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}} whose columns
 are bulk vectors \eqn{\boldsymbol{y}_{\cdot i}}, obtained as
 \eqn{\mathcal{X}\times_{2}\boldsymbol{p}}.
 }
 }
 \description{
-Draws purified profiles
-\eqn{\boldsymbol{x}_j\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},
-\boldsymbol{\Sigma}_j)} independently for each cell type and forms bulk
-observations by the linear mixture
+For each bootstrap sample \eqn{i=1,\ldots,N}, draws \strong{latent} purified
+profiles
+\eqn{\boldsymbol{x}_{\cdot j}^{(i)}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},
+\boldsymbol{\Sigma}_j)} independently for each cell type
+\eqn{j=1,\ldots,J}, then forms the bulk by the linear convolution
 \deqn{
   \boldsymbol{y}_{\cdot i}
-  =\boldsymbol{\mu}^{(i)}\boldsymbol{p}
-  =\sum_{j=1}^{J}p_j\,\boldsymbol{x}_j^{(i)},
+  =\boldsymbol{X}^{(i)}\boldsymbol{p}
+  =\sum_{j=1}^{J}p_j\,\boldsymbol{x}_{\cdot j}^{(i)},
 }
 matching the article's conditional model
 \eqn{\boldsymbol{y}\,|\,(\boldsymbol{\zeta},\boldsymbol{p})\sim
@@ -51,7 +54,9 @@ matching the article's conditional model
 \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=
 \sum_j p_j^{2}\boldsymbol{\Sigma}_j}.
 
-Equivalently, stacking the purified draws into the three-way array
+The mean signature \eqn{\boldsymbol{\mu}} is shared across samples; only the
+latent draws \eqn{\boldsymbol{x}_{\cdot j}^{(i)}} vary with \eqn{i}. Stacking
+those draws into the three-way array
 \eqn{\mathcal{X}=(x_{gji})\in\mathcal{M}_{G\times J\times N}}, the bulk
 matrix is the mode-2 tensor–vector contraction
 \deqn{
@@ -61,9 +66,9 @@ matrix is the mode-2 tensor–vector contraction
   y_{gi}=\sum_{j=1}^{J}x_{gji}\,p_{j}
   \quad(g=1,\ldots,G;\; i=1,\ldots,N),
 }
-which for each sample recovers the matrix–vector product
-\eqn{\boldsymbol{y}_{\cdot i}=\boldsymbol{X}_{\cdot\cdot i}\,\boldsymbol{p}}
-with \eqn{\boldsymbol{X}_{\cdot\cdot i}\in\mathcal{M}_{G\times J}}.
+which for each sample recovers
+\eqn{\boldsymbol{y}_{\cdot i}=\boldsymbol{X}^{(i)}\,\boldsymbol{p}}
+with \eqn{\boldsymbol{X}^{(i)}\in\mathcal{M}_{G\times J}}.
 }
 \seealso{
 \code{\link[=deconvolute_ratios]{deconvolute_ratios()}},

@@ -4,7 +4,7 @@
 \alias{compute_average_overlap}
 \title{Average pairwise overlap of a Gaussian mixture}
 \usage{
-compute_average_overlap(true_theta, k = length(true_theta$p))
+compute_average_overlap(true_theta, J = length(true_theta$p))
 }
 \arguments{
 \item{true_theta}{List with \code{p} (length \eqn{J}), \code{mu} (\eqn{G\times J}
@@ -12,8 +12,8 @@ mean matrix) and \code{sigma} (\eqn{G\times G\times J} covariance array),
 as in a GMM
 \eqn{(\boldsymbol{p},\boldsymbol{\mu},\{\boldsymbol{\Sigma}_j\})}.}
 
-\item{k}{Number of components \eqn{J} (kept for compatibility;
-MixSim uses \code{length(true_theta$p)}).}
+\item{J}{Number of cell types (components). Defaults to
+\code{length(true_theta$p)}.}
 }
 \value{
 Scalar average pairwise overlap (MixSim \code{BarOmega}).

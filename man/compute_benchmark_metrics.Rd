@@ -16,7 +16,8 @@ compute_benchmark_metrics(
 \eqn{\boldsymbol{y}\in\mathbb{R}^{G}} (one heterogeneous sample).}
 
 \item{mean_signature_matrix}{Mean signature
-\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (columns = cell types).}
+\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (columns = cell types;
+plug-in for latent profiles).}
 
 \item{estimated_p}{Estimated proportions
 \eqn{\hat{\boldsymbol{p}}\in\mathbb{R}^{J}}.}

@@ -18,7 +18,8 @@ deconvolute_ratios(
 \arguments{
 \item{signature_matrix}{Mean signature
 \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (rownames = genes,
-colnames = cell types).}
+colnames = cell types). Used as a frequentist \strong{plug-in} for unobserved
+latent cell-type profiles \eqn{\boldsymbol{x}_{\cdot j}}.}
 
 \item{bulk_expression}{Bulk matrix
 \eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}}.}

@@ -25,4 +25,10 @@ non-degenerate Gaussian covariance or precision), this is the
 \eqn{\boldsymbol{A}}-inner product. Prefer this name over "dot product",
 which is reserved for \eqn{\boldsymbol{x}^{\mathsf{T}}\boldsymbol{y}}.
 }
+\details{
+Implementation uses \code{\link[base:crossprod]{base::crossprod()}} as
+\code{drop(crossprod(x, A \%*\% y))}, which is the standard efficient route to
+a bilinear / quadratic form in R (avoids an explicit transpose of
+\eqn{\boldsymbol{x}} and a temporary outer product).
+}
 \keyword{internal}

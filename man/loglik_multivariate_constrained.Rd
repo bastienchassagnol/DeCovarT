@@ -14,7 +14,7 @@ loglik_multivariate_constrained(rho, y, mean_signature_matrix, Sigma)
 \eqn{\boldsymbol{y}\in\mathbb{R}^{G}}.}
 
 \item{mean_signature_matrix}{Numeric matrix
-\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}}.}
+\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (plug-in means).}
 
 \item{Sigma}{Array of cell-type covariances in
 \eqn{\mathcal{M}_{G\times G\times J}}.}

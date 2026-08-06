@@ -22,10 +22,13 @@
 #' \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})} with
 #' \eqn{\boldsymbol{\psi}(\boldsymbol{\rho})\propto
 #' (\mathrm{e}^{\rho_1},\ldots,\mathrm{e}^{\rho_{J-1}},1)^{\mathsf{T}}}.
-#' See [compositions::alrInv()] for a general implementation and the
-#' package vignette on additive log-ratio derivatives.
+#' Jacobians and Hessians of both maps are derived in the package vignette
+#' `vignette("softmax-alr-derivatives", package = "DeCovarT")`.
+#' See also [compositions::alrInv()].
 #'
-#' @param rho Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
+#' @param rho Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}} of
+#'   unconstrained additive log-ratio coordinates (reference cell type
+#'   \eqn{J}).
 #'
 #' @return Numeric vector \eqn{\boldsymbol{p}\in\mathbb{R}^{J}} on the unit
 #'   simplex (\eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1},
@@ -45,7 +48,8 @@ additive_logistic <- function(rho) {
 #' \eqn{\rho_j=\ln(p_j/p_J)} for \eqn{j=1,\ldots,J-1}, with the last part
 #' \eqn{p_J} as reference. This is Aitchison's additive log-ratio
 #' (\eqn{\mathrm{alr}}) transform, equivalently the multinomial-logit link
-#' with reference category \eqn{J} (see [compositions::alr()]).
+#' with reference category \eqn{J} (see [compositions::alr()] and
+#' `vignette("softmax-alr-derivatives", package = "DeCovarT")`).
 #'
 #' @param p Numeric vector \eqn{\boldsymbol{p}} on the open simplex.
 #'
@@ -65,6 +69,11 @@ additive_log_ratio <- function(p) {
 #' non-degenerate Gaussian covariance or precision), this is the
 #' \eqn{\boldsymbol{A}}-inner product. Prefer this name over "dot product",
 #' which is reserved for \eqn{\boldsymbol{x}^{\mathsf{T}}\boldsymbol{y}}.
+#'
+#' Implementation uses [base::crossprod()] as
+#' `drop(crossprod(x, A %*% y))`, which is the standard efficient route to
+#' a bilinear / quadratic form in R (avoids an explicit transpose of
+#' \eqn{\boldsymbol{x}} and a temporary outer product).
 #'
 #' @param x Numeric vector.
 #' @param A Numeric square matrix, compatible with `x` and `y`.
@@ -190,13 +199,18 @@ additive_log_ratio <- function(p) {
 #'   \boldsymbol{\Sigma}(\boldsymbol{p})^{-1}
 #'   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}).
 #' }
-#' Argument `mean_signature_matrix` stores \eqn{\boldsymbol{\mu}}.
+#' Argument `mean_signature_matrix` stores the plug-in mean signature
+#' \eqn{\boldsymbol{\mu}}. Latent sample-specific profiles
+#' \eqn{\boldsymbol{x}_{\cdot j}} are **not** observed; the frequentist
+#' likelihood treats \eqn{\boldsymbol{\mu}} as a fixed proxy. Estimating those
+#' latents jointly with \eqn{\boldsymbol{p}} requires a Bayesian / MAP step
+#' (see `.map_gaussian_convolution()`).
 #'
 #' @param p Numeric vector \eqn{\boldsymbol{p}\in\mathbb{R}^{J}}.
 #' @param y Numeric vector (or one-column matrix)
 #'   \eqn{\boldsymbol{y}\in\mathbb{R}^{G}}.
 #' @param mean_signature_matrix Numeric matrix
-#'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}}.
+#'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (plug-in means).
 #' @param Sigma Array of cell-type covariances in
 #'   \eqn{\mathcal{M}_{G\times G\times J}}.
 #'
@@ -547,13 +561,23 @@ hessian_loglik_constrained <- function(rho, y, mean_signature_matrix, Sigma) {
 #' subject to the simplex constraint
 #' \eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1}, \eqn{\boldsymbol{p}\ge\mathbf{0}}.
 #' Optimisation is performed in unconstrained coordinates
-#' \eqn{\boldsymbol{\rho}} via \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})}
-#' (Marquardt–Levenberg default; see other methods below).
+#' \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}} via
+#' \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})}
+#' (Marquardt–Levenberg default; see other methods below and
+#' `vignette("softmax-alr-derivatives", package = "DeCovarT")`).
+#'
+#' @details
+#' **Plug-in signature.** Argument `mean_signature_matrix` is the mean
+#' \eqn{\boldsymbol{\mu}}, used as a proxy for the unobserved cell-type
+#' profiles \eqn{\boldsymbol{x}_{\cdot j}}. This is the frequentist plug-in;
+#' recovering sample-specific latents is a Bayesian / MAP problem
+#' (`.map_gaussian_convolution()`).
 #'
 #' @param y Bulk expression vector
 #'   \eqn{\boldsymbol{y}\in\mathbb{R}^{G}} (one heterogeneous sample).
 #' @param mean_signature_matrix Mean signature
-#'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (columns = cell types).
+#'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (columns = cell types;
+#'   plug-in for latent profiles).
 #' @param Sigma Array
 #'   \eqn{(\boldsymbol{\Sigma}_j)_{j=1}^{J}\in\mathcal{M}_{G\times G\times J}}
 #'   of cell-type covariances.
