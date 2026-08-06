@@ -94,7 +94,7 @@ compute_benchmark_metrics <- function(
 #' @param cores Number of parallel workers.
 #'
 #' @return A `tibble` of estimated \eqn{\hat{\boldsymbol{p}}} and metrics,
-#'   after [enforce_identifiability()].
+#'   after [repair_simplex()].
 #' @importFrom rlang .data
 #' @export
 #' @seealso [deconvolute_ratios_Marquardt_Levenberg()]

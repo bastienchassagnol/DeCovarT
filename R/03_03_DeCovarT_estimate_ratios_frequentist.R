@@ -553,7 +553,7 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
       as.numeric() # retrieve last estimate before failure
   }
   estimated_p <- additive_logistic(estimated_rho) |>
-    enforce_identifiability() |> # ensure non-negativity constraint and remove numerical underflow
+    repair_simplex() |> # ensure non-negativity constraint and remove numerical underflow
     stats::setNames(colnames(mean_signature_matrix))
   estimated_p
 }
@@ -584,7 +584,7 @@ deconvolute_ratios_simulated_annealing <- function(
   )$par
   estimated_p <- additive_logistic(estimated_rho) |>
     stats::setNames(colnames(mean_signature_matrix)) |>
-    enforce_identifiability()
+    repair_simplex()
   estimated_p
 }
 
@@ -623,7 +623,7 @@ deconvolute_ratios_L_BFGS_B <- function(
     upper = rep(1, length(initial_p))
   )$par |>
     stats::setNames(colnames(mean_signature_matrix)) |>
-    enforce_identifiability()
+    repair_simplex()
   estimated_p
 }
 
@@ -668,7 +668,7 @@ deconvolute_ratios_Newton_Raphson <- function(
 
   estimated_p <- additive_logistic(estimated_rho) |>
     stats::setNames(colnames(mean_signature_matrix)) |>
-    enforce_identifiability()
+    repair_simplex()
   estimated_p
 }
 
@@ -703,6 +703,6 @@ deconvolute_ratios_gradient_descent <- function(
   )$par
   estimated_p <- additive_logistic(estimated_rho) |>
     stats::setNames(colnames(mean_signature_matrix)) |>
-    enforce_identifiability()
+    repair_simplex()
   estimated_p
 }

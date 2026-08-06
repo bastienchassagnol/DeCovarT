@@ -328,9 +328,7 @@ Auxiliaries are removed automatically after a successful build
 
 ## Project structure
 
-See [Interactive package structure](#interactive-package-structure) for
-the regenerable `visNetwork` call graph under
-`output/package_network/`.
+I've used [`generate_package_network_functions`](scripts/generate_package_network_functions.R) script to generate the package structure. For an interactive visualisation, see [Interactive package structure](#interactive-package-structure).
 
 ## Speed up computation with AutoZyme
 

@@ -37,7 +37,7 @@ optional \code{additional_parameters}.}
 }
 \value{
 A \code{tibble} of estimated \eqn{\hat{\boldsymbol{p}}} and metrics,
-after \code{\link[=enforce_identifiability]{enforce_identifiability()}}.
+after \code{\link[=repair_simplex]{repair_simplex()}}.
 }
 \description{
 For each column \eqn{\boldsymbol{y}_{\cdot i}} of the bulk matrix

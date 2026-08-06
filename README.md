@@ -1,6 +1,6 @@
 
 
-- [DeCovarT <a href="https://bastienchassagnol.github.io/DeCovarT/"><img src="man/figures/logo.svg" alt="DeCovarT logo" align="right" height="139"/></a>](#decovart-)
+- [DeCovarT ](#decovart-)
   - [Overview](#overview)
     - [Seminar slides (iframe)](#seminar-slides-iframe)
   - [Pipeline Architecture](#pipeline-architecture)

@@ -381,30 +381,30 @@ D- / E- / A-optimal criteria based on the mixture Fisher information, including 
 ::: {#nte-separation-metrics .callout-note}
 ## :information_source: Probabilistic separation metrics
 
-**`MixSim` pairwise overlap.** For densities $f_{j}$ and $f_{\ell}$, the one-sided mass $\omega_{j\mid\ell}=\Pr_{X\sim f_{j}}(f_{\ell}(X)>f_{j}(X))$ yields the pairwise overlap
+**`MixSim` pairwise overlap.** For densities $f_{j}$ and $f_{\ell}$, the one-sided directional mass $\Omega_{j\ell}=\Pr_{X\sim f_{j}}(X\text{ classified as }\ell)$ (Bayes / MAP rule) yields the pairwise overlap
 
 $$
 \omega_{j\ell}
 =
-\omega_{j\mid\ell}+\omega_{\ell\mid j}
-=
-\int\min\bigl(f_{j}(x),f_{\ell}(x)\bigr)\,dx
-\in[0,1],
+\Omega_{j\ell}+\Omega_{\ell j}
+\in[0,1]
 $$ {#eq-pairwise-overlap}
 
-with $0$ for perfectly separable Gaussians and $1$ for identical laws [@melnykovMixSimPackageSimulating2012; @R-MixSim]. Mixture proportions enter the MAP rule inside `MixSim`; they should not be multiplied into $\omega_{j\mid\ell}$ a second time when reporting pairwise overlap. The unweighted average $\overline{\omega}=\tfrac{2}{J(J-1)}\sum_{j<\ell}\omega_{j\ell}$ is a natural panel monitor.
+(with the equal-prior geometric reading $\omega_{j\ell}=\int\min(f_{j},f_{\ell})$ as a special case), taking the value $0$ for perfectly separable Gaussians and approaching $1$ for identical laws [@melnykovMixSimPackageSimulating2012; @R-MixSim]. Mixture proportions $\boldsymbol{p}$ already enter the MAP rule inside `MixSim::overlap()`; they must **not** be multiplied into $\Omega_{j\ell}$ a second time when reporting pairwise overlap (that double-counts the prior and no longer matches MixSim's `BarOmega`).
 
-Package helper `compute_average_overlap()` instead returns a **proportion-weighted** average of `MixSim`'s directional masses,
+Package helper `compute_average_overlap()` returns MixSim's unweighted average of pairwise overlaps,
 
 $$
-\overline{\Omega}
+\overline{\omega}
 =
 \frac{2}{J(J-1)}
 \sum_{1\le j<\ell\le J}
-\bigl(p_{j}\Omega_{j\ell}+p_{\ell}\Omega_{\ell j}\bigr),
+\bigl(\Omega_{j\ell}+\Omega_{\ell j}\bigr)
+=
+\texttt{BarOmega},
 $$ {#eq-overlap}
 
-which emphasises abundant types in the mixture prior. Lower values of either summary correspond to better-separated purified profiles.
+which is the natural panel-separation monitor. Lower values correspond to better-separated purified profiles.
 
 **Jeffreys (symmetric KL) divergence.** With $J(f_{j},f_{\ell})=D_{\mathrm{KL}}(f_{j}\parallel f_{\ell})+D_{\mathrm{KL}}(f_{\ell}\parallel f_{j})$ and multivariate normals,
 

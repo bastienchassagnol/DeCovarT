@@ -213,12 +213,12 @@ reference:
       - generate_mean_signature_matrix
       - simulate_bulk_mixture
       - simulate_hierarchical_grn_moments
-  - title: Utilities
+  - title: Statistical metrics
     desc: |
-      Simplex projection, Shannon entropy, and average pairwise overlap used
-      when designing synthetic scenarios.
+      Simplex repair, normalised Shannon entropy, and MixSim average pairwise
+      overlap used when designing and scoring synthetic scenarios.
     contents:
-      - enforce_identifiability
+      - repair_simplex
       - compute_shannon_entropy
       - compute_average_overlap
 
