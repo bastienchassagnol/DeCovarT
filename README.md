@@ -13,9 +13,6 @@
   - [Documentation](#documentation)
   - [The generative model of DeCovarT](#the-generative-model-of-decovart)
   - [Compiling the LaTeX article](#compiling-the-latex-article)
-    - [Package reference manuals](#package-reference-manuals)
-  - [Project structure](#project-structure)
-  - [Speed up computation with AutoZyme](#speed-up-computation-with-autozyme)
 
 <!-- README.md is generated from README.qmd. Do not edit README.md manually. -->
 
@@ -315,38 +312,13 @@ cd article
 latexmk -pdf -interaction=nonstopmode -file-line-error -synctex=1 main.tex
 ```
 
-In Cursor / VS Code with **LaTeX Workshop**, use the default recipe **latexmk**
-(configured in `.vscode/settings.json`), or run **“LaTeX Workshop: Build with recipe”**.
-
-Auxiliaries are removed automatically after a successful build
-(`latex-workshop.latex.autoClean.run`: `onSucceeded`). Manual clean: Command Palette
-→ **“LaTeX Workshop: Clean up auxiliary files”**.
-
-### Package reference manuals
-
-CRAN-style PDF and HTML function manuals (cf. dplyr’s
-[`devtools::build_manual()`](https://devtools.r-lib.org/reference/build_manual.html)):
-
-``` r
-source("scripts/auxiliary/generate_package_manual.R")
-```
-
-Outputs land in `output/manual/` (`DeCovarT.pdf`, `index.html`, and per-topic
-HTML under `html/`).
-
-## Project structure
-
-I’ve used [`generate_package_network_functions`](scripts/generate_package_network_functions.R) script to generate the package structure. For an interactive visualisation, see [Interactive package structure](#interactive-package-structure).
-
-## Speed up computation with AutoZyme
-
-[AutoZyme](https://autozyme.com/docs/users/usage-guide/) ships drop-in
+<!-- ## Speed up computation with AutoZyme
+&#10;[AutoZyme](https://autozyme.com/docs/users/usage-guide/) ships drop-in
 accelerators for common scientific R packages (Seurat, WGCNA, and others in the
 [patch catalog](https://autozyme.com/docs/users/patch-catalog/)). It is
 installed locally but **off by default**
 (`options(autozyme.disabled = TRUE)` → `AUTOZYME_DISABLED=1`).
-
-``` r
+&#10;```r
 # List patches, enable, activate, then check what is bound to the fast path
 options(autozyme.disabled = FALSE)
 Sys.unsetenv("AUTOZYME_DISABLED")
@@ -355,4 +327,4 @@ autozyme::list_patches(installed = TRUE)
 autozyme::activate(c("seurat", "wgcna"))
 autozyme::inspect("seurat")
 # Off again: Sys.setenv(AUTOZYME_DISABLED = "1")
-```
+``` -->
