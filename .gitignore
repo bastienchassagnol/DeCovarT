@@ -79,7 +79,12 @@ __pycache__/
 # Generated manuals and article PDF (CI / local latexmk)
 article/*.pdf
 output/manual/
-diffrential_mean_generator.bib
 
 # Local experimental R helpers (not part of the package build)
 R/experimental/
+
+# scripts/generate_random_markov_network.R: exploratory outputs (gene
+# summary CSV, heatmap, interactive visNetwork widgets + dependency
+# folders). The single static counterpart embedded by the pkgdown
+# vignette lives at vignettes/figures/fig_network_topologies.png (tracked).
+output/random_markov_network/
