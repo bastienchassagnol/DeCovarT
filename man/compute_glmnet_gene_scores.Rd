@@ -5,50 +5,55 @@
 \title{Gene scores from multinomial elastic-net cell-type classification}
 \usage{
 compute_glmnet_gene_scores(
-  mu,
+  expression_profiles,
+  celltype_labels,
   alpha = 0.5,
-  n_rep = 20L,
-  noise_sd = NULL,
-  nfolds = NULL,
+  lambda = NULL,
   ...
 )
 }
 \arguments{
-\item{mu}{Numeric mean signature \eqn{\boldsymbol{\mu}} with genes in rows
-and cell types in columns (\eqn{G\times J}).}
+\item{expression_profiles}{Numeric array
+\eqn{G\times J\times N} of purified profiles.}
+
+\item{celltype_labels}{Character or factor labels of length \eqn{J}
+(one per cell-type slice).}
 
 \item{alpha}{Elastic-net mixing parameter in \eqn{[0,1]} (default \code{0.5}).}
 
-\item{n_rep}{Number of noisy replicates per cell-type mean (default \code{20L}).}
+\item{lambda}{Optional penalty value at which coefficients are extracted.
+When \code{NULL}, uses the smallest \eqn{\lambda} on the fitted path.}
 
-\item{noise_sd}{Isotropic Gaussian noise sd for replicates. Default is
-\code{1e-3} times the mean absolute column scale of \code{mu}.}
-
-\item{nfolds}{Number of CV folds (default \code{min(10L, n_rep)}).}
-
-\item{...}{Additional arguments forwarded to \code{\link[glmnet:cv.glmnet]{glmnet::cv.glmnet()}}.}
+\item{...}{Additional arguments forwarded to \code{\link[glmnet:glmnet]{glmnet::glmnet()}}.}
 }
 \value{
 Named numeric vector of length \eqn{G} (gene scores; larger means
 stronger multinomial signal).
 }
 \description{
-Fits a multinomial elastic net (\code{\link[glmnet:cv.glmnet]{glmnet::cv.glmnet()}}) that predicts cell
-type from expression features, using only the mean signature
-\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (no covariances). Each
-column \eqn{\boldsymbol{\mu}_{\cdot j}} is expanded into \code{n_rep} isotropic
-Gaussian perturbations so that cross-validation is well-defined with one
-prototype per type. Gene scores are the sum over classes of absolute
-coefficients at \code{lambda.min} (intercept excluded).
-
-This is the \code{glmnet} screen in the four-score shortlist of the feature-selection
-vignette (paired with Jeffreys, MixSim overlap and DEGs).
+Fits a multinomial (or binomial) elastic net (\code{\link[glmnet:glmnet]{glmnet::glmnet()}}) that
+predicts cell type from expression features. Inputs are purified
+expression profiles
+\eqn{\boldsymbol{X}\in\mathcal{M}_{G\times J\times N}} (genes \eqn{\times}
+cell types \eqn{\times} samples) and length-\eqn{J} cell-type labels.
+Variability across samples replaces synthetic isotropic noise. Gene scores
+are the sum over classes of absolute coefficients at a chosen
+\eqn{\lambda} (intercept excluded). For nested / CV selection of
+\eqn{\lambda}, see the experimental
+\code{compute_glmnet_gene_scores_cv()} helper (not shipped in the package
+build).
 }
 \examples{
 set.seed(1)
-mu <- cbind(c(0, 0, 5), c(5, 0, 0), c(0, 5, 0))
-rownames(mu) <- paste0("g", seq_len(nrow(mu)))
-scores <- compute_glmnet_gene_scores(mu)
+G <- 4L
+J <- 3L
+N <- 12L
+profiles <- array(0, dim = c(G, J, N))
+for (j in seq_len(J)) {
+  profiles[j, j, ] <- 5 + stats::rnorm(N, sd = 0.2)
+}
+labels <- paste0("ct", seq_len(J))
+scores <- compute_glmnet_gene_scores(profiles, labels)
 names(scores)[which.max(scores)]
 }
 \seealso{

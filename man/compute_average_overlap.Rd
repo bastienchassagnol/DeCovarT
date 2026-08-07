@@ -4,16 +4,15 @@
 \alias{compute_average_overlap}
 \title{Average pairwise overlap of a Gaussian mixture}
 \usage{
-compute_average_overlap(true_theta, J = length(true_theta$p))
+compute_average_overlap(true_theta, J = NULL)
 }
 \arguments{
-\item{true_theta}{List with \code{p} (length \eqn{J}), \code{mu} (\eqn{G\times J}
-mean matrix) and \code{sigma} (\eqn{G\times G\times J} covariance array),
-as in a GMM
-\eqn{(\boldsymbol{p},\boldsymbol{\mu},\{\boldsymbol{\Sigma}_j\})}.}
+\item{true_theta}{List validated by \code{\link[=check_true_theta]{check_true_theta()}}: \code{p} (length
+\eqn{J} or \eqn{J\times N}), \code{mu} (\eqn{G\times J}), \code{sigma}
+(\eqn{G\times G\times J}).}
 
-\item{J}{Number of cell types (components). Defaults to
-\code{length(true_theta$p)}.}
+\item{J}{Number of cell types (components). Defaults to the third
+dimension of \code{sigma}.}
 }
 \value{
 Scalar average pairwise overlap (MixSim \code{BarOmega}).
@@ -43,4 +42,7 @@ theta <- list(
   sigma = array(c(diag(2), diag(2)), dim = c(2, 2, 2))
 )
 compute_average_overlap(theta)
+}
+\seealso{
+\code{\link[=check_true_theta]{check_true_theta()}}
 }

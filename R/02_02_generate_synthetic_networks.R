@@ -6,10 +6,36 @@
 
 #' Score mean profiles with AutoGeneS-style objectives
 #'
-#' Computes the two objectives used by AutoGeneS for signature quality:
-#' mean absolute pairwise cosine similarity between cell-type columns of
-#' \eqn{\boldsymbol{\mu}} (to minimise) and the sum of pairwise Euclidean
-#' distances between those columns (to maximise).
+#' Computes the two objectives used by AutoGeneS for signature quality.
+#' For columns \eqn{\boldsymbol{\mu}_{\cdot j},\boldsymbol{\mu}_{\cdot k}}
+#' of \eqn{\boldsymbol{\mu}}, the **cosine** (angle similarity, akin to
+#' Pearson correlation of centred, unit-norm vectors but here without
+#' mean-centring—only \eqn{\ell_2} normalisation) is
+#' \deqn{
+#'   \cos(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\mu}_{\cdot k})
+#'   =
+#'   \frac{
+#'     \boldsymbol{\mu}_{\cdot j}^{\mathsf{T}}
+#'     \boldsymbol{\mu}_{\cdot k}
+#'   }{
+#'     \|\boldsymbol{\mu}_{\cdot j}\|_2\,
+#'     \|\boldsymbol{\mu}_{\cdot k}\|_2
+#'   },
+#' }
+#' and the **Euclidean** separation is
+#' \deqn{
+#'   \|\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\|_2
+#'   =
+#'   \sqrt{
+#'     \|\boldsymbol{\mu}_{\cdot j}\|_2^{2}
+#'     +\|\boldsymbol{\mu}_{\cdot k}\|_2^{2}
+#'     -2\,
+#'     \boldsymbol{\mu}_{\cdot j}^{\mathsf{T}}
+#'     \boldsymbol{\mu}_{\cdot k}
+#'   }.
+#' }
+#' The returned scores are the mean absolute pairwise cosine (to minimise)
+#' and the sum of pairwise Euclidean distances (to maximise).
 #'
 #' @param mean_signature_matrix Numeric matrix
 #'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (columns = cell types).
@@ -33,6 +59,7 @@ compute_mean_profile_objectives <- function(mean_signature_matrix) {
       mu_j <- mean_signature_matrix[, j]
       mu_k <- mean_signature_matrix[, k]
       norms <- sqrt(sum(mu_j^2) * sum(mu_k^2))
+      # Cosine = <mu_j, mu_k> / (||mu_j|| ||mu_k||); 0 if a column is null.
       cosine_jk <- if (norms < .Machine$double.eps) {
         0
       } else {
@@ -71,9 +98,7 @@ compute_mean_profile_objectives <- function(mean_signature_matrix) {
 #'     \|\tilde{\boldsymbol{\mu}}_{\cdot j}\|_2
 #'   }.
 #' }
-#' Here \eqn{\rho\in[0,1]} is \code{target_cosine} and \eqn{s>0} is
-#' \code{mean_scale} (default \code{10}, matching the nine-scenario
-#' simulation grid). The private vectors \eqn{\boldsymbol{v}_{j}} are
+#' The private vectors \eqn{\boldsymbol{v}_{j}} are
 #' indicator directions on a partition of the \eqn{G} genes (type
 #' \eqn{j} only) and then \eqn{\ell_2}-normalised, so
 #' \eqn{\boldsymbol{v}_{j}^{\mathsf{T}}\boldsymbol{v}_{k}=0} for
@@ -104,6 +129,19 @@ compute_mean_profile_objectives <- function(mean_signature_matrix) {
 #' weights already control interaction strength; keep \eqn{s} fixed
 #' across scenarios that compare mean collinearity alone
 #' \insertCite{alieeAutoGeneSAutomaticGene2021}{DeCovarT}.
+#'
+#' @details
+#' **Private marker blocks.** Genes are partitioned into \eqn{J} nearly equal
+#' contiguous blocks. Type \eqn{j}'s private direction \eqn{\boldsymbol{v}_{j}}
+#' is the indicator of its block, then \eqn{\ell_2}-normalised. Distinct blocks
+#' are orthogonal, so type-specific signal does not leak across columns before
+#' the shared component is added.
+#'
+#' **Shared–private blend.** With unit shared direction
+#' \eqn{\boldsymbol{u}=G^{-1/2}\mathbf{1}}, each column is
+#' \eqn{\sqrt{\rho}\,\boldsymbol{u}+\sqrt{1-\rho}\,\boldsymbol{v}_{j}},
+#' re-normalised, then scaled by \eqn{s}. Thus \eqn{\rho} dials collinearity
+#' while \eqn{s} dials Euclidean separation without changing angles.
 #'
 #' @param n_genes Integer \eqn{G}; must be at least \code{n_celltypes}.
 #' @param n_celltypes Integer \eqn{J\ge 2}.
@@ -149,6 +187,8 @@ generate_mean_signature_matrix <- function(
 
   shared_direction <- rep(1 / sqrt(n_genes), n_genes)
 
+  # Partition genes into J contiguous blocks; each block yields an orthogonal
+  # private unit vector v_j (type-specific markers).
   block_size <- n_genes %/% n_celltypes
   remainder <- n_genes - block_size * n_celltypes
   private_directions <- matrix(
@@ -175,6 +215,7 @@ generate_mean_signature_matrix <- function(
     ncol = n_celltypes,
     dimnames = list(gene_names, celltype_names)
   )
+  # Blend shared u and private v_j, then unit-normalise and scale by s.
   for (j in seq_len(n_celltypes)) {
     direction <- sqrt_rho *
       shared_direction +
@@ -189,17 +230,25 @@ generate_mean_signature_matrix <- function(
 
 #' Sample a symmetric adjacency from a random-graph family
 #'
-#' Draws undirected skeletons with \pkg{igraph}: Barabási–Albert
-#' preferential attachment (\code{scale_free}), a stochastic block
-#' model (\code{stochastic_block_model}), or Watts–Strogatz
-#' small-world (\code{small_world})
+#' Draws undirected skeletons with \pkg{igraph}: Erdős–Rényi
+#' (\code{erdos_renyi}), hub / star modules (\code{hub}), Barabási–Albert
+#' preferential attachment (\code{scale_free}), a stochastic block model
+#' (\code{stochastic_block_model}), or Watts–Strogatz small-world
+#' (\code{small_world})
 #' \insertCite{barabasiEmergenceScalingRandom1999}{DeCovarT}.
 #'
 #' @param n_genes Integer \eqn{G}, number of nodes (genes).
-#' @param graph_model One of \code{"scale_free"},
-#'   \code{"stochastic_block_model"}, \code{"small_world"}.
+#' @param graph_model One of \code{"erdos_renyi"}, \code{"hub"},
+#'   \code{"scale_free"}, \code{"stochastic_block_model"},
+#'   \code{"small_world"}.
 #' @param graph_params Named list of generator parameters:
 #'   \describe{
+#'     \item{\code{erdos_renyi}}{\code{p} edge probability for
+#'       \code{igraph::sample_gnp()} (default targets average degree
+#'       about 2)}
+#'     \item{\code{hub}}{\code{n_hubs}: partition nodes into that many
+#'       groups and connect each group's hub to all other members (star
+#'       modules)}
 #'     \item{\code{scale_free}}{\code{power}, \code{edges_per_node}
 #'       (\code{m} in \code{igraph::sample_pa()})}
 #'     \item{\code{stochastic_block_model}}{\code{block_prob},
@@ -219,11 +268,62 @@ generate_random_network_skeleton <- function(
   n_genes <- as.integer(n_genes)
   graph_model <- match.arg(
     graph_model,
-    c("scale_free", "stochastic_block_model", "small_world")
+    c(
+      "erdos_renyi",
+      "hub",
+      "star",
+      "scale_free",
+      "stochastic_block_model",
+      "small_world"
+    )
   )
+  if (identical(graph_model, "star")) {
+    graph_model <- "hub"
+  }
 
   graph <- switch(
     graph_model,
+
+    erdos_renyi = {
+      p_edge <- if (is.null(graph_params$p)) {
+        # Expected average degree ≈ 2 (sparse ER baseline).
+        min(1, 2 / max(n_genes - 1L, 1L))
+      } else {
+        graph_params$p
+      }
+      igraph::sample_gnp(n_genes, p = p_edge, directed = FALSE)
+    },
+
+    hub = {
+      n_hubs <- if (is.null(graph_params$n_hubs)) {
+        max(1L, as.integer(round(sqrt(n_genes))))
+      } else {
+        as.integer(graph_params$n_hubs)
+      }
+      n_hubs <- max(1L, min(n_hubs, n_genes))
+      # Equal-ish groups; first node of each group is the hub (star).
+      block_sizes <- rep(n_genes %/% n_hubs, n_hubs)
+      rem_hubs <- n_genes %% n_hubs
+      if (rem_hubs > 0L) {
+        block_sizes[seq_len(rem_hubs)] <-
+          block_sizes[seq_len(rem_hubs)] + 1L
+      }
+      g <- igraph::make_empty_graph(n = n_genes, directed = FALSE)
+      start <- 1L
+      for (h in seq_len(n_hubs)) {
+        members <- start:(start + block_sizes[[h]] - 1L)
+        hub_node <- members[[1L]]
+        leaves <- members[-1L]
+        if (length(leaves) > 0L) {
+          g <- igraph::add_edges(
+            g,
+            as.vector(rbind(hub_node, leaves))
+          )
+        }
+        start <- start + block_sizes[[h]]
+      }
+      g
+    },
 
     scale_free = {
       power <- if (is.null(graph_params$power)) {
@@ -468,8 +568,9 @@ build_shared_covariance_array <- function(
 #' @param prop_inhibitory Numeric in \eqn{[0,1]}; fraction of edges with
 #'   positive precision weight (inhibitory partial correlation). Default
 #'   \code{0.5} balances inhibitory and activatory edges.
-#' @param graph_model One of \code{"scale_free"},
-#'   \code{"stochastic_block_model"}, \code{"small_world"}.
+#' @param graph_model One of \code{"erdos_renyi"}, \code{"hub"},
+#'   \code{"scale_free"}, \code{"stochastic_block_model"},
+#'   \code{"small_world"}.
 #' @param graph_params Named list of generator parameters (see
 #'   \code{generate_random_network_skeleton()}).
 #'
@@ -505,6 +606,9 @@ simulate_hierarchical_grn_moments <- function(
   precision_scale,
   prop_inhibitory = 0.5,
   graph_model = c(
+    "erdos_renyi",
+    "hub",
+    "star",
     "scale_free",
     "stochastic_block_model",
     "small_world"
@@ -512,6 +616,9 @@ simulate_hierarchical_grn_moments <- function(
   graph_params = list()
 ) {
   graph_model <- match.arg(graph_model)
+  if (identical(graph_model, "star")) {
+    graph_model <- "hub"
+  }
   n_genes <- as.integer(n_genes)
   n_celltypes <- as.integer(n_celltypes)
 

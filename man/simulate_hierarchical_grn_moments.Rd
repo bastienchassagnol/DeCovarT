@@ -12,7 +12,8 @@ simulate_hierarchical_grn_moments(
   precision_shift,
   precision_scale,
   prop_inhibitory = 0.5,
-  graph_model = c("scale_free", "stochastic_block_model", "small_world"),
+  graph_model = c("erdos_renyi", "hub", "star", "scale_free", "stochastic_block_model",
+    "small_world"),
   graph_params = list()
 )
 }
@@ -37,8 +38,9 @@ off-diagonal precision weights.}
 positive precision weight (inhibitory partial correlation). Default
 \code{0.5} balances inhibitory and activatory edges.}
 
-\item{graph_model}{One of \code{"scale_free"},
-\code{"stochastic_block_model"}, \code{"small_world"}.}
+\item{graph_model}{One of \code{"erdos_renyi"}, \code{"hub"},
+\code{"scale_free"}, \code{"stochastic_block_model"},
+\code{"small_world"}.}
 
 \item{graph_params}{Named list of generator parameters (see
 \code{generate_random_network_skeleton()}).}

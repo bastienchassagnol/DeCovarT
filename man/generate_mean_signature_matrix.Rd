@@ -51,9 +51,7 @@ marker directions \eqn{\boldsymbol{v}_{j}}:
     \|\tilde{\boldsymbol{\mu}}_{\cdot j}\|_2
   }.
 }
-Here \eqn{\rho\in[0,1]} is \code{target_cosine} and \eqn{s>0} is
-\code{mean_scale} (default \code{10}, matching the nine-scenario
-simulation grid). The private vectors \eqn{\boldsymbol{v}_{j}} are
+The private vectors \eqn{\boldsymbol{v}_{j}} are
 indicator directions on a partition of the \eqn{G} genes (type
 \eqn{j} only) and then \eqn{\ell_2}-normalised, so
 \eqn{\boldsymbol{v}_{j}^{\mathsf{T}}\boldsymbol{v}_{k}=0} for
@@ -84,4 +82,17 @@ changing angles: for fixed \eqn{\rho},
 weights already control interaction strength; keep \eqn{s} fixed
 across scenarios that compare mean collinearity alone
 \insertCite{alieeAutoGeneSAutomaticGene2021}{DeCovarT}.
+}
+\details{
+\strong{Private marker blocks.} Genes are partitioned into \eqn{J} nearly equal
+contiguous blocks. Type \eqn{j}'s private direction \eqn{\boldsymbol{v}_{j}}
+is the indicator of its block, then \eqn{\ell_2}-normalised. Distinct blocks
+are orthogonal, so type-specific signal does not leak across columns before
+the shared component is added.
+
+\strong{Shared–private blend.} With unit shared direction
+\eqn{\boldsymbol{u}=G^{-1/2}\mathbf{1}}, each column is
+\eqn{\sqrt{\rho}\,\boldsymbol{u}+\sqrt{1-\rho}\,\boldsymbol{v}_{j}},
+re-normalised, then scaled by \eqn{s}. Thus \eqn{\rho} dials collinearity
+while \eqn{s} dials Euclidean separation without changing angles.
 }

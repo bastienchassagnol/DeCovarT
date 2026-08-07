@@ -15,9 +15,35 @@ A named list with \code{mean_abs_cosine} and
 \code{sum_euclidean_distance}.
 }
 \description{
-Computes the two objectives used by AutoGeneS for signature quality:
-mean absolute pairwise cosine similarity between cell-type columns of
-\eqn{\boldsymbol{\mu}} (to minimise) and the sum of pairwise Euclidean
-distances between those columns (to maximise).
+Computes the two objectives used by AutoGeneS for signature quality.
+For columns \eqn{\boldsymbol{\mu}_{\cdot j},\boldsymbol{\mu}_{\cdot k}}
+of \eqn{\boldsymbol{\mu}}, the \strong{cosine} (angle similarity, akin to
+Pearson correlation of centred, unit-norm vectors but here without
+mean-centring—only \eqn{\ell_2} normalisation) is
+\deqn{
+  \cos(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\mu}_{\cdot k})
+  =
+  \frac{
+    \boldsymbol{\mu}_{\cdot j}^{\mathsf{T}}
+    \boldsymbol{\mu}_{\cdot k}
+  }{
+    \|\boldsymbol{\mu}_{\cdot j}\|_2\,
+    \|\boldsymbol{\mu}_{\cdot k}\|_2
+  },
+}
+and the \strong{Euclidean} separation is
+\deqn{
+  \|\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\|_2
+  =
+  \sqrt{
+    \|\boldsymbol{\mu}_{\cdot j}\|_2^{2}
+    +\|\boldsymbol{\mu}_{\cdot k}\|_2^{2}
+    -2\,
+    \boldsymbol{\mu}_{\cdot j}^{\mathsf{T}}
+    \boldsymbol{\mu}_{\cdot k}
+  }.
+}
+The returned scores are the mean absolute pairwise cosine (to minimise)
+and the sum of pairwise Euclidean distances (to maximise).
 }
 \keyword{internal}

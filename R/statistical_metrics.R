@@ -123,14 +123,14 @@ compute_shannon_entropy <- function(ratios) {
 #' Bayes / MAP rule of [MixSim::overlap()]. Do **not** multiply the
 #' directional masses by \eqn{p_j} again.
 #'
-#' @param true_theta List with `p` (length \eqn{J}), `mu` (\eqn{G\times J}
-#'   mean matrix) and `sigma` (\eqn{G\times G\times J} covariance array),
-#'   as in a GMM
-#'   \eqn{(\boldsymbol{p},\boldsymbol{\mu},\{\boldsymbol{\Sigma}_j\})}.
-#' @param J Number of cell types (components). Defaults to
-#'   `length(true_theta$p)`.
+#' @param true_theta List validated by [check_true_theta()]: `p` (length
+#'   \eqn{J} or \eqn{J\times N}), `mu` (\eqn{G\times J}), `sigma`
+#'   (\eqn{G\times G\times J}).
+#' @param J Number of cell types (components). Defaults to the third
+#'   dimension of `sigma`.
 #' @return Scalar average pairwise overlap (MixSim `BarOmega`).
 #' @export
+#' @seealso [check_true_theta()]
 #' @examples
 #' set.seed(1)
 #' theta <- list(
@@ -139,59 +139,44 @@ compute_shannon_entropy <- function(ratios) {
 #'   sigma = array(c(diag(2), diag(2)), dim = c(2, 2, 2))
 #' )
 #' compute_average_overlap(theta)
-compute_average_overlap <- function(true_theta, J = length(true_theta$p)) {
-  stopifnot(is.list(true_theta))
-  p <- true_theta$p
-  mu <- as.matrix(true_theta$mu)
-  sigma <- true_theta$sigma
-
-  if (length(p) != J) {
-    stop("`J` must equal length(true_theta$p).")
-  }
-  if (is.null(dim(sigma)) || length(dim(sigma)) != 3L) {
-    stop("`true_theta$sigma` must be a G x G x J array.")
-  }
-
-  G <- dim(sigma)[[1L]]
-  n_celltypes <- dim(sigma)[[3L]]
-  if (dim(sigma)[[2L]] != G || n_celltypes != length(p)) {
-    stop("`sigma` dims must be G x G x J with J = length(p).")
-  }
-
-  # DeCovarT stores mu as G x J; MixSim::overlap expects Mu as J x G
-  if (nrow(mu) == G && ncol(mu) == n_celltypes) {
-    mu_mixsim <- t(mu)
-  } else if (nrow(mu) == n_celltypes && ncol(mu) == G) {
-    mu_mixsim <- mu
-  } else {
-    stop("`true_theta$mu` must be G x J (or J x G).")
-  }
-
-  MixSim::overlap(Pi = p, Mu = mu_mixsim, S = sigma)$BarOmega
+compute_average_overlap <- function(true_theta, J = NULL) {
+  theta <- .parse_true_theta(
+    true_theta,
+    require_p = TRUE,
+    J = J,
+    second_moment = "sigma"
+  )
+  # MixSim::overlap expects Mu as J x G
+  MixSim::overlap(
+    Pi = theta$p,
+    Mu = t(theta$mu),
+    S = theta$sigma
+  )$BarOmega
 }
 
 #' Gene scores from multinomial elastic-net cell-type classification
 #'
 #' @description
-#' Fits a multinomial elastic net ([glmnet::cv.glmnet()]) that predicts cell
-#' type from expression features, using only the mean signature
-#' \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (no covariances). Each
-#' column \eqn{\boldsymbol{\mu}_{\cdot j}} is expanded into `n_rep` isotropic
-#' Gaussian perturbations so that cross-validation is well-defined with one
-#' prototype per type. Gene scores are the sum over classes of absolute
-#' coefficients at `lambda.min` (intercept excluded).
+#' Fits a multinomial (or binomial) elastic net ([glmnet::glmnet()]) that
+#' predicts cell type from expression features. Inputs are purified
+#' expression profiles
+#' \eqn{\boldsymbol{X}\in\mathcal{M}_{G\times J\times N}} (genes \eqn{\times}
+#' cell types \eqn{\times} samples) and length-\eqn{J} cell-type labels.
+#' Variability across samples replaces synthetic isotropic noise. Gene scores
+#' are the sum over classes of absolute coefficients at a chosen
+#' \eqn{\lambda} (intercept excluded). For nested / CV selection of
+#' \eqn{\lambda}, see the experimental
+#' \code{compute_glmnet_gene_scores_cv()} helper (not shipped in the package
+#' build).
 #'
-#' This is the `glmnet` screen in the four-score shortlist of the feature-selection
-#' vignette (paired with Jeffreys, MixSim overlap and DEGs).
-#'
-#' @param mu Numeric mean signature \eqn{\boldsymbol{\mu}} with genes in rows
-#'   and cell types in columns (\eqn{G\times J}).
+#' @param expression_profiles Numeric array
+#'   \eqn{G\times J\times N} of purified profiles.
+#' @param celltype_labels Character or factor labels of length \eqn{J}
+#'   (one per cell-type slice).
 #' @param alpha Elastic-net mixing parameter in \eqn{[0,1]} (default `0.5`).
-#' @param n_rep Number of noisy replicates per cell-type mean (default `20L`).
-#' @param noise_sd Isotropic Gaussian noise sd for replicates. Default is
-#'   `1e-3` times the mean absolute column scale of `mu`.
-#' @param nfolds Number of CV folds (default `min(10L, n_rep)`).
-#' @param ... Additional arguments forwarded to [glmnet::cv.glmnet()].
+#' @param lambda Optional penalty value at which coefficients are extracted.
+#'   When `NULL`, uses the smallest \eqn{\lambda} on the fitted path.
+#' @param ... Additional arguments forwarded to [glmnet::glmnet()].
 #'
 #' @return Named numeric vector of length \eqn{G} (gene scores; larger means
 #'   stronger multinomial signal).
@@ -200,96 +185,85 @@ compute_average_overlap <- function(true_theta, J = length(true_theta$p)) {
 #' @seealso [compute_average_jeffreys()], [compute_average_overlap()]
 #' @examples
 #' set.seed(1)
-#' mu <- cbind(c(0, 0, 5), c(5, 0, 0), c(0, 5, 0))
-#' rownames(mu) <- paste0("g", seq_len(nrow(mu)))
-#' scores <- compute_glmnet_gene_scores(mu)
+#' G <- 4L
+#' J <- 3L
+#' N <- 12L
+#' profiles <- array(0, dim = c(G, J, N))
+#' for (j in seq_len(J)) {
+#'   profiles[j, j, ] <- 5 + stats::rnorm(N, sd = 0.2)
+#' }
+#' labels <- paste0("ct", seq_len(J))
+#' scores <- compute_glmnet_gene_scores(profiles, labels)
 #' names(scores)[which.max(scores)]
 compute_glmnet_gene_scores <- function(
-  mu,
+  expression_profiles,
+  celltype_labels,
   alpha = 0.5,
-  n_rep = 20L,
-  noise_sd = NULL,
-  nfolds = NULL,
+  lambda = NULL,
   ...
 ) {
-  if (!requireNamespace("glmnet", quietly = TRUE)) {
-    stop("Package 'glmnet' is required for compute_glmnet_gene_scores().")
+  if (
+    is.null(dim(expression_profiles)) ||
+      length(dim(expression_profiles)) != 3L
+  ) {
+    stop("`expression_profiles` must be a G x J x N array.")
   }
-  mu <- as.matrix(mu)
-  if (!is.numeric(mu) || anyNA(mu)) {
-    stop("`mu` must be a numeric matrix without missing values.")
+  if (!is.numeric(expression_profiles) || anyNA(expression_profiles)) {
+    stop("`expression_profiles` must be numeric without missing values.")
   }
-  G <- nrow(mu)
-  J <- ncol(mu)
-  if (is.null(G) || is.null(J) || G < 1L || J < 2L) {
-    stop("`mu` must be G x J with G >= 1 and J >= 2.")
+  G <- dim(expression_profiles)[[1L]]
+  J <- dim(expression_profiles)[[2L]]
+  N <- dim(expression_profiles)[[3L]]
+  if (G < 1L || J < 2L || N < 1L) {
+    stop("`expression_profiles` must be G x J x N with G >= 1, J >= 2, N >= 1.")
+  }
+  if (length(celltype_labels) != J) {
+    stop("`celltype_labels` must have length J (second dim of profiles).")
   }
   if (!is.numeric(alpha) || length(alpha) != 1L || alpha < 0 || alpha > 1) {
     stop("`alpha` must be a single number in [0, 1].")
   }
-  n_rep <- as.integer(n_rep)
-  if (length(n_rep) != 1L || is.na(n_rep) || n_rep < 1L) {
-    stop("`n_rep` must be a positive integer.")
-  }
 
-  gene_names <- rownames(mu)
+  gene_names <- dimnames(expression_profiles)[[1L]]
   if (is.null(gene_names)) {
     gene_names <- paste0("gene_", seq_len(G))
   }
-  cell_names <- colnames(mu)
-  if (is.null(cell_names)) {
-    cell_names <- paste0("celltype_", seq_len(J))
-  }
+  cell_names <- as.character(celltype_labels)
 
-  if (is.null(noise_sd)) {
-    scale_mu <- mean(abs(mu))
-    noise_sd <- if (scale_mu > 0) 1e-3 * scale_mu else 1e-3
-  }
-  if (!is.numeric(noise_sd) || length(noise_sd) != 1L || noise_sd < 0) {
-    stop("`noise_sd` must be a single non-negative number.")
-  }
-
-  # Design: n_rep replicates of each mean column -> (J * n_rep) x G
-  x <- matrix(NA_real_, nrow = J * n_rep, ncol = G)
-  y <- factor(rep(cell_names, each = n_rep), levels = cell_names)
-  for (j in seq_len(J)) {
-    idx <- ((j - 1L) * n_rep + 1L):(j * n_rep)
-    x[idx, ] <- matrix(mu[, j], nrow = n_rep, ncol = G, byrow = TRUE) +
-      matrix(stats::rnorm(n_rep * G, sd = noise_sd), nrow = n_rep, ncol = G)
+  # Design: one row per (cell type, sample) -> (J * N) x G
+  x <- matrix(NA_real_, nrow = J * N, ncol = G)
+  y <- factor(rep(cell_names, times = N), levels = unique(cell_names))
+  row_id <- 1L
+  for (n in seq_len(N)) {
+    for (j in seq_len(J)) {
+      x[row_id, ] <- expression_profiles[, j, n]
+      row_id <- row_id + 1L
+    }
   }
   colnames(x) <- gene_names
 
-  if (is.null(nfolds)) {
-    nfolds <- min(10L, n_rep)
-  }
-  nfolds <- as.integer(nfolds)
-  if (nfolds < 2L || nfolds > nrow(x)) {
-    stop("`nfolds` must satisfy 2 <= nfolds <= n_rep * J.")
-  }
-
   family <- if (J == 2L) "binomial" else "multinomial"
-  cv_args <- list(
+  glm_args <- list(
     x = x,
     y = y,
     family = family,
-    alpha = alpha,
-    nfolds = nfolds
+    alpha = alpha
   )
   if (identical(family, "multinomial")) {
-    cv_args$type.multinomial <- "grouped"
+    glm_args$type.multinomial <- "grouped"
   }
   dots <- list(...)
   for (nm in names(dots)) {
-    cv_args[[nm]] <- dots[[nm]]
+    glm_args[[nm]] <- dots[[nm]]
   }
 
-  fit <- do.call(glmnet::cv.glmnet, cv_args)
-  beta <- stats::coef(fit, s = "lambda.min")
+  fit <- do.call(glmnet::glmnet, glm_args)
+  s_use <- if (is.null(lambda)) min(fit$lambda) else lambda
+  beta <- stats::coef(fit, s = s_use)
 
   scores <- numeric(G)
   names(scores) <- gene_names
   if (identical(family, "binomial")) {
-    # single sparse matrix: intercept + G coefficients
     cj <- as.matrix(beta)[-1L, 1L]
     scores <- abs(as.numeric(cj))
     names(scores) <- gene_names
@@ -308,7 +282,9 @@ compute_glmnet_gene_scores <- function(
 #' Symmetrised KL divergence
 #' \eqn{J(f_{j},f_{\ell})=D_{\mathrm{KL}}(f_{j}\parallel f_{\ell})+
 #' D_{\mathrm{KL}}(f_{\ell}\parallel f_{j})} for
-#' \eqn{f_{j}=\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j})}
+#' \eqn{f_{j}=\mathcal{N}_{G}(
+#'   \boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j}
+#' )}
 #' and likewise for \eqn{\ell}, using the closed form in the feature-selection
 #' vignette.
 #'
@@ -327,7 +303,7 @@ compute_glmnet_gene_scores <- function(
 #' \url{https://statproofbook.github.io/P/mvn-kl.html}.
 #'
 #' Symmetrised (Jeffreys) divergence:
-#' \url{https://en.wikipedia.org/wiki/Kullback\%E2\%80\%93Leibler_divergence#Symmetrised_divergence}.
+#' \url{https://en.wikipedia.org/wiki/Kullback-Leibler_divergence}.
 #'
 #' @keywords internal
 .jeffreys_gaussian <- function(mu_j, mu_l, sigma_j, sigma_l) {
@@ -368,20 +344,23 @@ compute_glmnet_gene_scores <- function(
 #'   \in[0,\infty),
 #' }
 #' with
-#' \eqn{f_{j}=\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j})}.
+#' \eqn{f_{j}=\mathcal{N}_{G}(
+#'   \boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j}
+#' )}.
 #' If `p` is omitted it defaults to the equi-balanced vector \eqn{1/J}, which
 #' recovers the uniform pairwise average
 #' \eqn{2/(J(J-1))\sum_{j<\ell}J(f_{j},f_{\ell})}.
 #'
-#' @param true_theta List with `mu` (\eqn{G\times J}), `sigma`
-#'   (\eqn{G\times G\times J}), and optionally `p` (length \eqn{J}). If `p` is
-#'   missing it is set to \eqn{(1/J,\ldots,1/J)}.
-#' @param J Number of cell types. Defaults to `length(p)` after the
-#'   equi-balanced default is applied.
+#' @param true_theta List validated by [check_true_theta()]: `mu`
+#'   (\eqn{G\times J}), `sigma` (\eqn{G\times G\times J}), and optionally `p`
+#'   (length \eqn{J} or \eqn{J\times N}). If `p` is missing it is set to
+#'   \eqn{(1/J,\ldots,1/J)}.
+#' @param J Number of cell types. Defaults to the third dimension of `sigma`.
 #'
 #' @return Scalar average pairwise Jeffreys divergence.
 #' @export
-#' @seealso [compute_average_overlap()], [compute_glmnet_gene_scores()]
+#' @seealso [check_true_theta()], [compute_average_overlap()],
+#'   [compute_glmnet_gene_scores()]
 #' @examples
 #' set.seed(1)
 #' theta <- list(
@@ -393,48 +372,19 @@ compute_average_jeffreys <- function(
   true_theta,
   J = NULL
 ) {
-  stopifnot(is.list(true_theta))
-  if (is.null(true_theta$mu) || is.null(true_theta$sigma)) {
-    stop("`true_theta` must contain `mu` and `sigma`.")
+  theta <- .parse_true_theta(
+    true_theta,
+    require_p = FALSE,
+    J = J,
+    second_moment = "sigma"
+  )
+  p <- theta$p
+  if (is.null(p)) {
+    p <- rep(1 / theta$J, theta$J)
   }
-  mu <- as.matrix(true_theta$mu)
-  sigma <- true_theta$sigma
-
-  if (is.null(dim(sigma)) || length(dim(sigma)) != 3L) {
-    stop("`true_theta$sigma` must be a G x G x J array.")
-  }
-  G <- dim(sigma)[[1L]]
-  n_celltypes <- dim(sigma)[[3L]]
-  if (dim(sigma)[[2L]] != G) {
-    stop("`sigma` dims must be G x G x J.")
-  }
-
-  # Accept G x J (preferred) or J x G
-  if (nrow(mu) == G && ncol(mu) == n_celltypes) {
-    mu_gj <- mu
-  } else if (nrow(mu) == n_celltypes && ncol(mu) == G) {
-    mu_gj <- t(mu)
-  } else {
-    stop("`true_theta$mu` must be G x J (or J x G).")
-  }
-
-  if (is.null(true_theta$p)) {
-    p <- rep(1 / n_celltypes, n_celltypes)
-  } else {
-    p <- true_theta$p
-  }
-  if (is.null(J)) {
-    J <- length(p)
-  }
-  if (length(p) != J || n_celltypes != J) {
-    stop("`J` must match length(p) and the third dimension of sigma.")
-  }
-  if (J < 2L) {
-    stop("`J` must be at least 2.")
-  }
-  if (any(p < 0) || abs(sum(p) - 1) > 1e-8) {
-    stop("`true_theta$p` must be non-negative and sum to 1.")
-  }
+  mu_gj <- theta$mu
+  sigma <- theta$sigma
+  J <- theta$J
 
   pair_sum <- 0
   weight_sum <- 0

@@ -38,7 +38,6 @@ knitr::opts_chunk$set(
 options(tinytable_html_mathjax = TRUE)
 ```
 
-
 This vignette surveys **feature selection for reference-based (signature-based) deconvolution**—methods that recover cellular proportions $\boldsymbol{p}$ from a bulk mixture using a purified expression design matrix [@gaspard-boulincCelltypeDeconvolutionMethods2025; @avilacobosComputationalDeconvolutionTranscriptomics2018; @sturmComprehensiveEvaluationTranscriptomebased2019]. Feature selection itself is a classical pre-modelling filter [@guyonIntroductionVariableFeature2003]. We deliberately exclude **marker-based** abundance scoring (enrichment / GSEA-style modules), which returns proxies of presence rather than a consensual gene panel suited to linear or probabilistic mixture models [@aranXCellDigitallyPortraying2017; @zhang_etal17].
 
 The focus is **second-generation** signatures built from single-cell pseudobulks (CIBERSORTx, MuSiC, DWLS, Kassandra and related pipelines) [@newmanDeterminingCellType2019; @wangBulkTissueCell2019; @tsoucasAccurateEstimationCelltype2019; @zaitsevPreciseReconstructionTME2022], where the selected genes must discriminate **all** cell types in the signature jointly, not only one-versus-rest markers. Correlation-aware compact panels such as DUBStepR illustrate the same goal from a single-cell feature-selection angle [@ranjanDUBStepRScalableCorrelationbased2021].
@@ -502,10 +501,10 @@ Overlap / Jeffreys / Chernoff / $W_{2}$ monitor **class separation** of purified
 
 For a first rough candidate pool we retain **four** complementary screens rather than the full metric zoo. Two are **label-aware** selectors on pseudobulks; two are **distributional** discrepancies between purified Gaussians:
 
-1. **`DESeq2` DEGs.** Negative-binomial GLM contrasts on donor-level pseudobulks flag mean shifts across types [@loveModeratedEstimationFold2014a]. They do not encode covariance geometry, so they seed the panel rather than finish it.
-2. **`glmnet` multinomial elastic net.** Sparse discriminative coefficients for cell-type labels [@R-glmnet; @zouRegularizationVariableSelection2005]. Relative to sparse QDA, elastic net is less sensitive to non-Gaussian residuals and to poorly estimated type-specific covariances in the $G\gg n$ pseudobulk regime; treat non-zeros as proposals (see @sec-sparse-classifiers).
-3. **Jeffreys (symmetric KL).** Closed-form mean–covariance discrepancy $J(f_{j},f_{\ell})$ (@eq-jeffreys): information-theoretic, unbounded, sensitive to both location and second-moment mismatch.
-4. **`MixSim` overlap.** Bayes misclassification mass $\omega_{j\ell}\in[0,1]$ (@eq-pairwise-overlap): the most direct probabilistic reading of confusion between purified laws [@R-MixSim; @melnykovMixSimPackageSimulating2012].
+1.  **`DESeq2` DEGs.** Negative-binomial GLM contrasts on donor-level pseudobulks flag mean shifts across types [@loveModeratedEstimationFold2014a]. They do not encode covariance geometry, so they seed the panel rather than finish it.
+2.  **`glmnet` multinomial elastic net.** Sparse discriminative coefficients for cell-type labels [@R-glmnet; @zouRegularizationVariableSelection2005]. Relative to sparse QDA, elastic net is less sensitive to non-Gaussian residuals and to poorly estimated type-specific covariances in the $G\gg n$ pseudobulk regime; treat non-zeros as proposals (see @sec-sparse-classifiers).
+3.  **Jeffreys (symmetric KL).** Closed-form mean–covariance discrepancy $J(f_{j},f_{\ell})$ (@eq-jeffreys): information-theoretic, unbounded, sensitive to both location and second-moment mismatch.
+4.  **`MixSim` overlap.** Bayes misclassification mass $\omega_{j\ell}\in[0,1]$ (@eq-pairwise-overlap): the most direct probabilistic reading of confusion between purified laws [@R-MixSim; @melnykovMixSimPackageSimulating2012].
 
 Jeffreys and MixSim therefore capture **different** aspects of the same pairwise Gaussian discrepancy—relative entropy versus classification error—while `DESeq2` and `glmnet` supply orthogonal mean / discriminative evidence. Take the **union** of top-ranked genes from each screen (with donor-level stability where possible) as the working universe $\mathcal{G}_{0}$ before multi-objective compaction.
 
@@ -748,9 +747,9 @@ Operational sketch:
 
 The screens and multi-objective refinement above are **proposal generators**, not a finished validation protocol. Three limitations dominate current practice in this vignette:
 
-1. **Strong Gaussian modelling.** Overlap, Jeffreys, Chernoff and $W_{2}$ are evaluated under purified laws $\mathcal{N}(\boldsymbol{\mu}_{.j},\boldsymbol{\Sigma}_{j})$. Pseudobulk means after log / residualisation are closer to Gaussian than raw UMI counts, but zero inflation, heavy tails and unmodelled batches still bias second-moment metrics. Treat distributional scores as rankings, not calibrated probabilities, unless the observation model is verified (@nte-sctransform-check).
-2. **Missing nested cross-validation.** Ranking genes and choosing panel size on the **same** donors used to estimate $\boldsymbol{\mu}$ and $\boldsymbol{\Sigma}_{j}$ leaks information and yields optimistic deconvolution error. Donor-grouped nested CV (@sec-cv-selection) must wrap HVG selection, the four-score shortlist (@sec-four-scores) and Pareto refinement (@sec-pareto-panel).
-3. **No external validation by default.** Nested CV on one study remains **internal**. An independent cohort, laboratory or platform is required before claiming transportability. Matched sc/bulk aliquots help with platform shift but do not replace an external hold-out when available [@sturmComprehensiveEvaluationTranscriptomebased2019; @jinBenchmarkRNAseqDeconvolution2021].
+1.  **Strong Gaussian modelling.** Overlap, Jeffreys, Chernoff and $W_{2}$ are evaluated under purified laws $\mathcal{N}(\boldsymbol{\mu}_{.j},\boldsymbol{\Sigma}_{j})$. Pseudobulk means after log / residualisation are closer to Gaussian than raw UMI counts, but zero inflation, heavy tails and unmodelled batches still bias second-moment metrics. Treat distributional scores as rankings, not calibrated probabilities, unless the observation model is verified (@nte-sctransform-check).
+2.  **Missing nested cross-validation.** Ranking genes and choosing panel size on the **same** donors used to estimate $\boldsymbol{\mu}$ and $\boldsymbol{\Sigma}_{j}$ leaks information and yields optimistic deconvolution error. Donor-grouped nested CV (@sec-cv-selection) must wrap HVG selection, the four-score shortlist (@sec-four-scores) and Pareto refinement (@sec-pareto-panel).
+3.  **No external validation by default.** Nested CV on one study remains **internal**. An independent cohort, laboratory or platform is required before claiming transportability. Matched sc/bulk aliquots help with platform shift but do not replace an external hold-out when available [@sturmComprehensiveEvaluationTranscriptomebased2019; @jinBenchmarkRNAseqDeconvolution2021].
 
 ### Nested CV on matched bulks {#sec-cv-selection}
 

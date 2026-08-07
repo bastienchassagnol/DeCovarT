@@ -167,6 +167,7 @@ reference:
     contents:
       - repair_simplex
       - compute_shannon_entropy
+      - check_true_theta
       - compute_average_overlap
       - compute_average_jeffreys
       - compute_glmnet_gene_scores

@@ -80,3 +80,6 @@ __pycache__/
 article/*.pdf
 output/manual/
 diffrential_mean_generator.bib
+
+# Local experimental R helpers (not part of the package build)
+R/experimental/

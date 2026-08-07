@@ -31,6 +31,7 @@
 ^output$
 ^scripts$
 ^slides$
+^R/experimental$
 ^\.cursorrules$
 ^\.cursorignore$
 ^\.vscode$

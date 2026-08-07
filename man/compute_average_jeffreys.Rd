@@ -7,12 +7,12 @@
 compute_average_jeffreys(true_theta, J = NULL)
 }
 \arguments{
-\item{true_theta}{List with \code{mu} (\eqn{G\times J}), \code{sigma}
-(\eqn{G\times G\times J}), and optionally \code{p} (length \eqn{J}). If \code{p} is
-missing it is set to \eqn{(1/J,\ldots,1/J)}.}
+\item{true_theta}{List validated by \code{\link[=check_true_theta]{check_true_theta()}}: \code{mu}
+(\eqn{G\times J}), \code{sigma} (\eqn{G\times G\times J}), and optionally \code{p}
+(length \eqn{J} or \eqn{J\times N}). If \code{p} is missing it is set to
+\eqn{(1/J,\ldots,1/J)}.}
 
-\item{J}{Number of cell types. Defaults to \code{length(p)} after the
-equi-balanced default is applied.}
+\item{J}{Number of cell types. Defaults to the third dimension of \code{sigma}.}
 }
 \value{
 Scalar average pairwise Jeffreys divergence.
@@ -31,7 +31,9 @@ Returns the \eqn{p_j p_{\ell}}-weighted mean of pairwise Jeffreys
   \in[0,\infty),
 }
 with
-\eqn{f_{j}=\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j})}.
+\eqn{f_{j}=\mathcal{N}_{G}(
+  \boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j}
+)}.
 If \code{p} is omitted it defaults to the equi-balanced vector \eqn{1/J}, which
 recovers the uniform pairwise average
 \eqn{2/(J(J-1))\sum_{j<\ell}J(f_{j},f_{\ell})}.
@@ -45,5 +47,6 @@ theta <- list(
 compute_average_jeffreys(theta)
 }
 \seealso{
-\code{\link[=compute_average_overlap]{compute_average_overlap()}}, \code{\link[=compute_glmnet_gene_scores]{compute_glmnet_gene_scores()}}
+\code{\link[=check_true_theta]{check_true_theta()}}, \code{\link[=compute_average_overlap]{compute_average_overlap()}},
+\code{\link[=compute_glmnet_gene_scores]{compute_glmnet_gene_scores()}}
 }

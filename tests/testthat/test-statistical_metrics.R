@@ -10,6 +10,33 @@ test_that("compute_shannon_entropy: input checks", {
   expect_error(compute_shannon_entropy(c(-0.1, 1.1)), "between 0 and 1")
 })
 
+test_that("check_true_theta: accepts valid theta", {
+  theta <- list(
+    p = c(0.5, 0.5),
+    mu = cbind(c(0, 0), c(3, 0)),
+    sigma = array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+  )
+  expect_true(check_true_theta(theta))
+})
+
+test_that("check_true_theta: accepts J x N proportions", {
+  theta <- list(
+    p = cbind(c(0.6, 0.4), c(0.4, 0.6)),
+    mu = cbind(c(0, 0), c(3, 0)),
+    sigma = array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+  )
+  expect_true(check_true_theta(theta))
+  ov <- compute_average_overlap(theta)
+  expect_true(is.numeric(ov) && length(ov) == 1L)
+})
+
+test_that("check_true_theta: rejects bad dims", {
+  expect_error(
+    check_true_theta(list(mu = matrix(1, 2, 2), p = c(0.5, 0.5))),
+    "sigma"
+  )
+})
+
 test_that("compute_average_overlap: closer means overlap more", {
   set.seed(1)
   far <- list(
@@ -74,25 +101,32 @@ test_that("compute_average_jeffreys: equi-balanced default when p omitted", {
 test_that("compute_glmnet_gene_scores: returns named G-vector", {
   skip_if_not_installed("glmnet")
   set.seed(42)
-  mu <- cbind(
-    c(0, 0, 5, 0),
-    c(5, 0, 0, 0),
-    c(0, 5, 0, 0)
+  G <- 4L
+  J <- 3L
+  N <- 15L
+  profiles <- array(0, dim = c(G, J, N))
+  dimnames(profiles) <- list(
+    paste0("g", seq_len(G)),
+    paste0("ct", seq_len(J)),
+    NULL
   )
-  rownames(mu) <- paste0("g", seq_len(4))
-  colnames(mu) <- paste0("ct", seq_len(3))
+  for (j in seq_len(J)) {
+    profiles[j, j, ] <- 5 + stats::rnorm(N, sd = 0.25)
+  }
+  labels <- paste0("ct", seq_len(J))
 
-  scores <- compute_glmnet_gene_scores(mu, n_rep = 15L, nfolds = 5L)
-  expect_length(scores, 4L)
-  expect_identical(names(scores), rownames(mu))
+  scores <- compute_glmnet_gene_scores(profiles, labels)
+  expect_length(scores, G)
+  expect_identical(names(scores), dimnames(profiles)[[1L]])
   expect_true(all(scores >= 0))
   expect_gt(sum(scores), 0)
 })
 
 test_that("compute_glmnet_gene_scores: rejects single cell type", {
   skip_if_not_installed("glmnet")
+  profiles <- array(1, dim = c(3L, 1L, 5L))
   expect_error(
-    compute_glmnet_gene_scores(matrix(1:3, nrow = 3, ncol = 1)),
+    compute_glmnet_gene_scores(profiles, "ct1"),
     "J >= 2"
   )
 })

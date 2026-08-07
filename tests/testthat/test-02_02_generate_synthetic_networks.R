@@ -161,8 +161,13 @@ test_that("precision_shift improves conditioning of Omega", {
   )
 })
 
-test_that("stochastic block and small-world models yield PD precision", {
-  for (model in c("stochastic_block_model", "small_world")) {
+test_that("stochastic block, small-world, erdos and hub yield PD precision", {
+  for (model in c(
+    "erdos_renyi",
+    "hub",
+    "stochastic_block_model",
+    "small_world"
+  )) {
     moments <- withr::with_seed(8L, {
       do.call(
         simulate_hierarchical_grn_moments,

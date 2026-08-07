@@ -9,11 +9,18 @@ generate_random_network_skeleton(n_genes, graph_model, graph_params = list())
 \arguments{
 \item{n_genes}{Integer \eqn{G}, number of nodes (genes).}
 
-\item{graph_model}{One of \code{"scale_free"},
-\code{"stochastic_block_model"}, \code{"small_world"}.}
+\item{graph_model}{One of \code{"erdos_renyi"}, \code{"hub"},
+\code{"scale_free"}, \code{"stochastic_block_model"},
+\code{"small_world"}.}
 
 \item{graph_params}{Named list of generator parameters:
 \describe{
+\item{\code{erdos_renyi}}{\code{p} edge probability for
+\code{igraph::sample_gnp()} (default targets average degree
+about 2)}
+\item{\code{hub}}{\code{n_hubs}: partition nodes into that many
+groups and connect each group's hub to all other members (star
+modules)}
 \item{\code{scale_free}}{\code{power}, \code{edges_per_node}
 (\code{m} in \code{igraph::sample_pa()})}
 \item{\code{stochastic_block_model}}{\code{block_prob},
@@ -26,10 +33,11 @@ probability) for \code{igraph::sample_smallworld()}}
 Symmetric integer matrix \eqn{G\times G} with zero diagonal.
 }
 \description{
-Draws undirected skeletons with \pkg{igraph}: Barabási–Albert
-preferential attachment (\code{scale_free}), a stochastic block
-model (\code{stochastic_block_model}), or Watts–Strogatz
-small-world (\code{small_world})
+Draws undirected skeletons with \pkg{igraph}: Erdős–Rényi
+(\code{erdos_renyi}), hub / star modules (\code{hub}), Barabási–Albert
+preferential attachment (\code{scale_free}), a stochastic block model
+(\code{stochastic_block_model}), or Watts–Strogatz small-world
+(\code{small_world})
 \insertCite{barabasiEmergenceScalingRandom1999}{DeCovarT}.
 }
 \keyword{internal}

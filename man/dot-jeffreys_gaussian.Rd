@@ -18,7 +18,9 @@ Non-negative scalar Jeffreys divergence.
 Symmetrised KL divergence
 \eqn{J(f_{j},f_{\ell})=D_{\mathrm{KL}}(f_{j}\parallel f_{\ell})+
 D_{\mathrm{KL}}(f_{\ell}\parallel f_{j})} for
-\eqn{f_{j}=\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j})}
+\eqn{f_{j}=\mathcal{N}_{G}(
+  \boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j}
+)}
 and likewise for \eqn{\ell}, using the closed form in the feature-selection
 vignette.
 }
@@ -32,6 +34,6 @@ Multivariate normal KL closed form:
 \url{https://statproofbook.github.io/P/mvn-kl.html}.
 
 Symmetrised (Jeffreys) divergence:
-\url{https://en.wikipedia.org/wiki/Kullback\%E2\%80\%93Leibler_divergence#Symmetrised_divergence}.
+\url{https://en.wikipedia.org/wiki/Kullback-Leibler_divergence}.
 }
 \keyword{internal}
