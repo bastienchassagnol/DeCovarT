@@ -24,23 +24,25 @@ test_that("simulate_hierarchical_grn_moments returns expected structure", {
     c(
       "mean_profiles",
       "covariance_matrices",
+      "precision_matrices",
       "graph_structure",
       "objectives"
     )
   )
   expect_equal(dim(moments$mean_profiles), c(30L, 3L))
   expect_equal(dim(moments$covariance_matrices), c(30L, 30L, 3L))
+  expect_equal(dim(moments$precision_matrices), c(30L, 30L, 3L))
   expect_equal(
-    dim(moments$graph_structure$adjacency_matrix),
-    c(30L, 30L)
+    dim(moments$graph_structure$adjacency_matrices),
+    c(30L, 30L, 3L)
   )
   expect_equal(
-    dim(moments$graph_structure$weighted_adjacency),
-    c(30L, 30L)
+    dim(moments$graph_structure$weighted_adjacencies),
+    c(30L, 30L, 3L)
   )
   expect_equal(
     dim(moments$graph_structure$normalised_precision),
-    c(30L, 30L)
+    c(30L, 30L, 3L)
   )
   expect_true(all(moments$mean_profiles >= 0))
   expect_named(
@@ -49,21 +51,23 @@ test_that("simulate_hierarchical_grn_moments returns expected structure", {
   )
 })
 
-test_that("shared covariances are PD and equal across cell types", {
+test_that("per-cell-type covariances are PD and match precision inverses", {
   moments <- withr::with_seed(2L, {
     do.call(simulate_hierarchical_grn_moments, default_args)
   })
 
-  sigma_1 <- moments$covariance_matrices[,, 1]
-  sigma_2 <- moments$covariance_matrices[,, 2]
-  expect_equal(sigma_1, sigma_2)
-  expect_equal(
-    sigma_1,
-    solve(moments$graph_structure$normalised_precision),
-    tolerance = 1e-8
-  )
-  eigen_vals <- eigen(sigma_1, only.values = TRUE)$values
-  expect_true(all(eigen_vals > 0))
+  for (j in seq_len(3L)) {
+    sigma_j <- moments$covariance_matrices[,, j]
+    omega_j <- moments$precision_matrices[,, j]
+    expect_equal(sigma_j, solve(omega_j), tolerance = 1e-8)
+    eigen_vals <- eigen(sigma_j, only.values = TRUE)$values
+    expect_true(all(eigen_vals > 0))
+  }
+  # Independent draws: cell-type precisions need not coincide.
+  expect_false(isTRUE(all.equal(
+    moments$precision_matrices[,, 1],
+    moments$precision_matrices[,, 2]
+  )))
 })
 
 test_that("higher target_cosine increases mean absolute cosine", {
@@ -128,8 +132,8 @@ test_that("precision_scale alters off-diagonal magnitude of Omega", {
     )
   })
 
-  off_weak <- weak$graph_structure$normalised_precision
-  off_strong <- strong$graph_structure$normalised_precision
+  off_weak <- weak$precision_matrices[,, 1]
+  off_strong <- strong$precision_matrices[,, 1]
   diag(off_weak) <- 0
   diag(off_strong) <- 0
   expect_lt(max(abs(off_weak)), max(abs(off_strong)))
@@ -156,8 +160,8 @@ test_that("precision_shift improves conditioning of Omega", {
   })
 
   expect_gt(
-    kappa(ill$graph_structure$normalised_precision, exact = TRUE),
-    kappa(well$graph_structure$normalised_precision, exact = TRUE)
+    kappa(ill$precision_matrices[,, 1], exact = TRUE),
+    kappa(well$precision_matrices[,, 1], exact = TRUE)
   )
 })
 
@@ -174,11 +178,13 @@ test_that("stochastic block, small-world, erdos and hub yield PD precision", {
         modifyList(default_args, list(graph_model = model))
       )
     })
-    eigen_vals <- eigen(
-      moments$graph_structure$normalised_precision,
-      only.values = TRUE
-    )$values
-    expect_true(all(eigen_vals > 0))
+    for (j in seq_len(3L)) {
+      eigen_vals <- eigen(
+        moments$precision_matrices[,, j],
+        only.values = TRUE
+      )$values
+      expect_true(all(eigen_vals > 0))
+    }
   }
 })
 
@@ -189,9 +195,43 @@ test_that("prop_inhibitory controls sign balance on weighted edges", {
       modifyList(default_args, list(prop_inhibitory = 1))
     )
   })
-  W <- moments$graph_structure$weighted_adjacency
-  upper <- W[upper.tri(W) & moments$graph_structure$adjacency_matrix == 1]
-  expect_true(length(upper) == 0L || all(upper > 0))
+  for (j in seq_len(3L)) {
+    W <- moments$graph_structure$weighted_adjacencies[,, j]
+    A <- moments$graph_structure$adjacency_matrices[,, j]
+    upper <- W[upper.tri(W) & A == 1]
+    expect_true(length(upper) == 0L || all(upper > 0))
+  }
+})
+
+test_that("pre-built adjacency list yields cell-type-specific supports", {
+  set.seed(10L)
+  a1 <- generate_random_network_skeleton(12L, "hub", list(n_hubs = 1L))
+  a2 <- generate_random_network_skeleton(12L, "erdos_renyi", list())
+  a3 <- generate_random_network_skeleton(12L, "scale_free", list())
+  moments <- simulate_hierarchical_grn_moments(
+    n_genes = 12L,
+    n_celltypes = 3L,
+    mean_scale = 10,
+    target_cosine = 0.2,
+    precision_shift = 0.1,
+    precision_scale = 0.3,
+    adjacency = list(a1, a2, a3)
+  )
+  expect_equal(
+    moments$graph_structure$adjacency_matrices[,, 1],
+    a1,
+    ignore_attr = TRUE
+  )
+  expect_equal(
+    moments$graph_structure$adjacency_matrices[,, 2],
+    a2,
+    ignore_attr = TRUE
+  )
+  expect_equal(
+    moments$graph_structure$adjacency_matrices[,, 3],
+    a3,
+    ignore_attr = TRUE
+  )
 })
 
 test_that("generate_mean_signature_matrix is deterministic and scaled", {

@@ -62,6 +62,7 @@ docs
 
 # Bib enrichment tooling / backups
 scripts/bib_enrich/.venv/
+scripts/curate_bibliography/bib_enrich/.venv/
 *.bib.bak
 .cursor/bib-enrichment.json
 # Ad-hoc Zotero collection exports (merge into inst/REFERENCES.bib)

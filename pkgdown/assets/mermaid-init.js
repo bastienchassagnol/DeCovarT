@@ -1,9 +1,16 @@
 /**
- * pkgdown Mermaid renderer (shared after_body include).
- * Handles pkgdown/README <pre class="mermaid"> and Quarto
- * <pre class="mermaid mermaid-js"> / language-mermaid fences.
+ * pkgdown Mermaid renderer for the home page (README.md fences).
+ * Vignettes are Quarto-rendered to SVG at build time; index.html still
+ * needs a client-side pass for <pre class="mermaid"> blocks.
  */
 (function () {
+  function stripQuartoInit(text) {
+    // Quarto themes such as "sandstone" are not mermaid.js themes.
+    return String(text || "")
+      .replace(/^\s*%%\{init:[\s\S]*?\}%%\s*/m, "")
+      .trim();
+  }
+
   function collect() {
     var out = [];
     document.querySelectorAll("pre.mermaid, pre.mermaid-js").forEach(function (pre) {
@@ -22,15 +29,13 @@
 
   function textOf(pre) {
     var code = pre.querySelector("code");
-    return (code ? code.textContent : pre.textContent) || "";
+    return stripQuartoInit(code ? code.textContent : pre.textContent);
   }
 
   async function run() {
     if (!window.mermaid) return;
     var pres = collect();
     if (!pres.length) return;
-    // Core mermaid themes: default | dark | forest | neutral | base
-    // (Quarto's "sandstone" is not a mermaid.js theme.)
     window.mermaid.initialize({
       startOnLoad: false,
       theme: "neutral",

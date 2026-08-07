@@ -11,7 +11,7 @@
 #################################################################
 
 library(dplyr)
-library(kableExtra)
+library(tinytable)
 
 # bivariate_simulation <- bivariate_simulation |>
 #   mutate(ID = case_when(
@@ -82,18 +82,14 @@ saveRDS(
   "./simulations/results/reduced_bivariate_configuration.rds"
 )
 
-reduced_bivariate_configuration |>
-  kbl(
-    booktabs = T,
-    caption = "The 8 general scenarios tested to compare the performance of DeCovarT
-    vs standard linear deconvolution model",
-    escape = F,
-    align = "c"
-  ) |>
-  kable_styling(latex_options = c("hold_position", "scale_down")) |>
-  row_spec(0, bold = T) |>
-  row_spec(1:8, hline_after = T) |>
-  kable_styling(bootstrap_options = c("hover", "condensed"))
+tinytable::tt(
+  reduced_bivariate_configuration,
+  caption = paste(
+    "The 8 general scenarios tested to compare the performance of DeCovarT",
+    "vs standard linear deconvolution model"
+  )
+) |>
+  tinytable::style_tt(j = 2:6, align = "c")
 
 ##################################################################
 ##          reduce size of the parameter boostrap file          ##

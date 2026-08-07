@@ -34,8 +34,6 @@ knitr::opts_chunk$set(
   warning = FALSE,
   echo = FALSE
 )
-# Render $...$ maths inside tinytable HTML cells (Quarto MathJax).
-options(tinytable_html_mathjax = TRUE)
 ```
 
 This vignette surveys **feature selection for reference-based (signature-based) deconvolution**—methods that recover cellular proportions $\boldsymbol{p}$ from a bulk mixture using a purified expression design matrix [@gaspard-boulincCelltypeDeconvolutionMethods2025; @avilacobosComputationalDeconvolutionTranscriptomics2018; @sturmComprehensiveEvaluationTranscriptomebased2019]. Feature selection itself is a classical pre-modelling filter [@guyonIntroductionVariableFeature2003]. We deliberately exclude **marker-based** abundance scoring (enrichment / GSEA-style modules), which returns proxies of presence rather than a consensual gene panel suited to linear or probabilistic mixture models [@aranXCellDigitallyPortraying2017; @zhang_etal17].
@@ -360,7 +358,8 @@ classifiers <- data.frame(
   )
 )
 tinytable::tt(classifiers) |>
-  tinytable::format_tt(math = TRUE)
+  tinytable::style_tt(j = 2:3, align = "c") |>
+  tinytable::format_tt(j = 2:3, markdown = TRUE)
 ```
 
 ### Information-optimal panel design (pointer)
@@ -492,9 +491,9 @@ metrics <- data.frame(
   )
 )
 tinytable::tt(metrics) |>
-  tinytable::format_tt(math = TRUE, markdown = TRUE)
+  tinytable::style_tt(j = c(1:2, 4), align = "c") |>
+  tinytable::format_tt(j = c(1, 2, 4), markdown = TRUE)
 ```
-
 Overlap / Jeffreys / Chernoff / $W_{2}$ monitor **class separation** of purified laws. Information-optimal (D/E/A) criteria in @eq-optimal-design instead target **estimation** of $\boldsymbol{p}$ under @eq-mixture (@sec-optimal-design); the two families need not agree. Prefer overlap for an interpretable error rate, Jeffreys for a closed-form divergence, Chernoff when a single discriminability index is desired, and $W_{2}$ when covariance shape matters [@R-MixSim; @alieeAutoGeneSAutomaticGene2021].
 
 ## Conclusion: refined selection of four complementary scores {#sec-four-scores}

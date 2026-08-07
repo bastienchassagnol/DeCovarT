@@ -212,7 +212,7 @@ This repo uses **[Air](https://posit-dev.github.io/air/)** (`air.toml`) and
   purpose of the package, main entry point, and notes on likely
   attach-order conflicts (e.g. `MASS::select` vs `dplyr::select`).
 - Keep `_PACKAGE` docs in `R/DeCovarT-package.R`; regenerate PDF/HTML
-  manuals with `scripts/generate_package_manual.R` when needed.
+  manuals with `scripts/auxiliary/generate_package_manual.R` when needed.
 
 ### Roxygen: `@keywords internal` vs `@noRd`
 
@@ -411,7 +411,7 @@ Edit → Settings → Cite → Citation Key.
 BBT only for extras (auto-export on change, rich formulas, Better
 BibLaTeX, pull export). Otherwise export with Zotero’s built-in BibTeX
 into `inst/REFERENCES.bib` / `article/decovart_library.bib`, then
-`python3 scripts/check_bibliography.py --clean`. Prefer **native**
+`python3 scripts/curate_bibliography/check_bibliography.py --clean`. Prefer **native**
 `citationKey` over a legacy `better-bibtex.sqlite` table; copy or open
 the DB with `immutable=1` when the desktop app holds a lock.
 
@@ -461,9 +461,9 @@ gitignored at the repo root; after merging run `--clean`.
 | `inst/REFERENCES.bib` | Quarto vignettes (literature half) |
 
 - Exactly these two literature copies (independent, kept in sync).
-- After every Zotero export: `python3 scripts/check_bibliography.py --clean`
+- After every Zotero export: `python3 scripts/curate_bibliography/check_bibliography.py --clean`
   (allowed fields only; DOI-dedupe; sync both copies).
-- Allowed fields (whitelist enforced by `scripts/check_bibliography.py`):
+- Allowed fields (whitelist enforced by `scripts/curate_bibliography/check_bibliography.py`):
   `title`, `author`, `editor`, `year`, `journal`, `booktitle`,
   `publisher`, `howpublished`, `doi`, `volume`, `number`, `pages`,
   `isbn`, `issn`, `edition`, `school`, `institution`, `url`.
@@ -486,7 +486,7 @@ When BibTeX / Rdpack validation fails because metadata is incomplete:
    never overwrite existing values; never invent DOIs):
 
 ```bash
-python3 scripts/bib_enrich.py \
+python3 scripts/curate_bibliography/bib_enrich.py \
   inst/REFERENCES.bib --write --backup \
   --min-score 92 --report .cursor/bib-enrichment.json
 ```
@@ -508,8 +508,8 @@ upgrade Node.js to the latest LTS release.
 4. Sync both literature copies and validate:
 
 ```bash
-python3 scripts/check_bibliography.py --clean
-python3 scripts/check_bibliography.py
+python3 scripts/curate_bibliography/check_bibliography.py --clean
+python3 scripts/curate_bibliography/check_bibliography.py
 ```
 
 Install once (user-level with `uv`, no sudo; keeps tooling in home
@@ -522,7 +522,7 @@ uv pip install --python ~/.venvs/bib-enrich/bin/python \
 ~/.venvs/bib-enrich/bin/python -c \
   "import bibtexparser, httpx, rapidfuzz, typer, rich; print('OK')"
 # then run:
-# python3 scripts/bib_enrich.py ...
+# python3 scripts/curate_bibliography/bib_enrich.py ...
 # bibtex-tidy via npx; prefer latest Node.js LTS
 ```
 
@@ -545,7 +545,7 @@ automatically into a standalone bibliography — **not** stored in Zotero.
 Regenerate (from repository root):
 
 ```bash
-Rscript scripts/generate_packages_bib.R
+Rscript scripts/curate_bibliography/generate_packages_bib.R
 ```
 
 That script discovers packages used in **`vignettes/`** and **`article/`**
@@ -568,7 +568,7 @@ Example citations: literature `@wuEstimatingHeterogeneousGene2022`;
 software `@R-huge`, `@R-BDgraph`, `@R-base`.
 
 ```bash
-python3 scripts/check_bibliography.py --check-qmd
+python3 scripts/curate_bibliography/check_bibliography.py --check-qmd
 ```
 
 ---
@@ -734,7 +734,7 @@ reviewer would want to read—and self-check before claiming novelty.
   hits.** Literature citekeys for `.qmd` must come from the Zotero/BBT
   export (`REFERENCES.bib` / `decovart_library.bib`). Software citekeys
   (`@R-huge`, etc.) come from `packages.bib` via
-  `scripts/generate_packages_bib.R`. If a literature citation is uncertain
+  `scripts/curate_bibliography/generate_packages_bib.R`. If a literature citation is uncertain
   or missing from Zotero, flag it for the user rather than guessing.
 - Label claims clearly: established fact (with citation), result of
   *this* work, limitation, or speculation/outlook.

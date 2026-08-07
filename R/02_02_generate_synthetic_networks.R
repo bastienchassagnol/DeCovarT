@@ -504,37 +504,43 @@ build_normalised_precision <- function(
 }
 
 
-#' Replicate a shared precision as cell-type covariances
+#' Build cell-type-specific covariances from precision slices
 #'
-#' Inverts \eqn{\boldsymbol{\Omega}} to
-#' \eqn{\boldsymbol{\Sigma}=\boldsymbol{\Omega}^{-1}} and stacks the same
-#' covariance for each of the \eqn{J} cell types.
+#' For each cell type \eqn{j}, inverts
+#' \eqn{\boldsymbol{\Omega}_j} to
+#' \eqn{\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1}} and stacks the
+#' result as a \eqn{G\times G\times J} array. Precisions need not be
+#' shared across cell types.
 #'
-#' @param normalised_precision Symmetric positive-definite
-#'   \eqn{\boldsymbol{\Omega}\in\mathcal{M}_{G\times G}}.
-#' @param celltype_names Character vector of length \eqn{J}.
-#' @param gene_names Character vector of length \eqn{G}.
+#' @param precision_array Symmetric positive-definite array
+#'   \eqn{(\boldsymbol{\Omega}_j)_{j}\in\mathcal{M}_{G\times G\times J}}.
 #'
 #' @return Numeric array of dimension \eqn{G\times G\times J}.
 #'
 #' @keywords internal
-build_shared_covariance_array <- function(
-  normalised_precision,
-  celltype_names,
-  gene_names
-) {
-  n_genes <- nrow(normalised_precision)
-  n_celltypes <- length(celltype_names)
-  sigma <- solve(normalised_precision)
-  sigma <- (sigma + t(sigma)) / 2
+build_covariance_array_from_precision <- function(precision_array) {
+  if (
+    is.null(dim(precision_array)) ||
+      length(dim(precision_array)) != 3L
+  ) {
+    stop("`precision_array` must be a G x G x J array.", call. = FALSE)
+  }
+  n_genes <- dim(precision_array)[[1L]]
+  n_celltypes <- dim(precision_array)[[3L]]
+  if (dim(precision_array)[[2L]] != n_genes) {
+    stop("`precision_array` dims must be G x G x J.", call. = FALSE)
+  }
 
+  gene_names <- dimnames(precision_array)[[1L]]
+  celltype_names <- dimnames(precision_array)[[3L]]
   covariance_array <- array(
     NA_real_,
     dim = c(n_genes, n_genes, n_celltypes),
     dimnames = list(gene_names, gene_names, celltype_names)
   )
   for (j in seq_len(n_celltypes)) {
-    covariance_array[,, j] <- sigma
+    sigma_j <- solve(precision_array[,, j])
+    covariance_array[,, j] <- (sigma_j + t(sigma_j)) / 2
   }
   covariance_array
 }
@@ -544,16 +550,19 @@ build_shared_covariance_array <- function(
 #'
 #' @description
 #' Builds a mean matrix \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}}
-#' and a shared covariance array \eqn{(\boldsymbol{\Sigma}_j)_{j}} under a
-#' graph-constrained precision model. Means follow the AutoGeneS-inspired
-#' cosine construction of `generate_mean_signature_matrix()` with target
-#' pairwise cosine \eqn{\rho}. The adjacency \eqn{\boldsymbol{A}} is drawn
-#' from a random-graph model (\pkg{igraph}: scale-free, stochastic
-#' block, or Watts–Strogatz small-world); i.i.d. signed weights
-#' with inhibitory fraction \code{prop_inhibitory} form
-#' \eqn{\boldsymbol{W}}; the precision is completed by a spectral shift;
-#' each cell type shares
-#' \eqn{\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}^{-1}}.
+#' and **cell-type-specific** second-order moments
+#' \eqn{(\boldsymbol{\Omega}_j,\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1})_{j=1}^{J}}
+#' under a graph-constrained precision model. Means follow the
+#' AutoGeneS-inspired cosine construction of
+#' `generate_mean_signature_matrix()` with target pairwise cosine
+#' \eqn{\rho}. For each cell type, an adjacency is drawn from a
+#' random-graph model (or supplied), i.i.d. signed weights with
+#' inhibitory fraction \code{prop_inhibitory} form \eqn{\boldsymbol{W}_j},
+#' and the precision is completed by a spectral shift. Distinct cell
+#' types receive **independent** precision draws by default (biology
+#' rarely shares one network across types); pass a length-\eqn{J}
+#' \code{graph_model} / \code{graph_params} or a pre-built
+#' \code{adjacency} list / array for hybrid designs.
 #'
 #' @param n_genes Integer; number of genes \eqn{G}.
 #' @param n_celltypes Integer; number of cell types \eqn{J} (default 2).
@@ -562,24 +571,32 @@ build_shared_covariance_array <- function(
 #' @param target_cosine Numeric in \eqn{[0,1]}; target pairwise cosine
 #'   similarity between columns of \eqn{\boldsymbol{\mu}}.
 #' @param precision_shift Diagonal cushion \eqn{u} for the spectral
-#'   shift.
+#'   shift (scalar, or length \eqn{J}).
 #' @param precision_scale Positive magnitude \eqn{v} of signed
-#'   off-diagonal precision weights.
+#'   off-diagonal precision weights (scalar, or length \eqn{J}).
 #' @param prop_inhibitory Numeric in \eqn{[0,1]}; fraction of edges with
 #'   positive precision weight (inhibitory partial correlation). Default
-#'   \code{0.5} balances inhibitory and activatory edges.
+#'   \code{0.5} balances inhibitory and activatory edges (scalar, or
+#'   length \eqn{J}).
 #' @param graph_model One of \code{"erdos_renyi"}, \code{"hub"},
 #'   \code{"scale_free"}, \code{"stochastic_block_model"},
-#'   \code{"small_world"}.
-#' @param graph_params Named list of generator parameters (see
+#'   \code{"small_world"}, or a character vector of length \eqn{J}.
+#' @param graph_params Named list of generator parameters (shared), or a
+#'   list of length \eqn{J} of such named lists (see
 #'   \code{generate_random_network_skeleton()}).
+#' @param adjacency Optional pre-built undirected adjacencies: a list of
+#'   \eqn{J} \eqn{G\times G} matrices, or a \eqn{G\times G\times J}
+#'   array. When supplied, \code{graph_model} / \code{graph_params} are
+#'   ignored for skeleton generation.
 #'
 #' @return Named list with:
 #' * `mean_profiles`: matrix \eqn{\boldsymbol{\mu}};
 #' * `covariance_matrices`: array
 #'   \eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}};
-#' * `graph_structure`: `adjacency_matrix`, `weighted_adjacency`, and
-#'   `normalised_precision` \eqn{\boldsymbol{\Omega}};
+#' * `precision_matrices`: array
+#'   \eqn{(\boldsymbol{\Omega}_j)_{j}\in\mathcal{M}_{G\times G\times J}};
+#' * `graph_structure`: `adjacency_matrices`, `weighted_adjacencies`,
+#'   and `normalised_precision` (all \eqn{G\times G\times J});
 #' * `objectives`: `mean_abs_cosine` and `sum_euclidean_distance`.
 #'
 #' @examples
@@ -613,21 +630,51 @@ simulate_hierarchical_grn_moments <- function(
     "stochastic_block_model",
     "small_world"
   ),
-  graph_params = list()
+  graph_params = list(),
+  adjacency = NULL
 ) {
-  graph_model <- match.arg(graph_model)
-  if (identical(graph_model, "star")) {
-    graph_model <- "hub"
-  }
   n_genes <- as.integer(n_genes)
   n_celltypes <- as.integer(n_celltypes)
 
   if (n_genes < n_celltypes) {
     stop("`n_genes` must be at least `n_celltypes`.")
   }
-  if (precision_shift <= 0 || precision_scale <= 0) {
-    stop("`precision_shift` and `precision_scale` must be positive.")
+
+  .recycle_positive <- function(x, nm) {
+    x <- as.numeric(x)
+    if (length(x) == 1L) {
+      x <- rep(x, n_celltypes)
+    }
+    if (length(x) != n_celltypes || any(!is.finite(x)) || any(x <= 0)) {
+      stop(
+        paste0("`", nm, "` must be a positive scalar or length-J vector."),
+        call. = FALSE
+      )
+    }
+    x
   }
+  .recycle_unit <- function(x, nm) {
+    x <- as.numeric(x)
+    if (length(x) == 1L) {
+      x <- rep(x, n_celltypes)
+    }
+    if (
+      length(x) != n_celltypes ||
+        any(!is.finite(x)) ||
+        any(x < 0) ||
+        any(x > 1)
+    ) {
+      stop(
+        paste0("`", nm, "` must lie in [0, 1] (scalar or length J)."),
+        call. = FALSE
+      )
+    }
+    x
+  }
+
+  precision_shift <- .recycle_positive(precision_shift, "precision_shift")
+  precision_scale <- .recycle_positive(precision_scale, "precision_scale")
+  prop_inhibitory <- .recycle_unit(prop_inhibitory, "prop_inhibitory")
 
   gene_names <- paste0("gene_", seq_len(n_genes))
   celltype_names <- paste0("celltype_", seq_len(n_celltypes))
@@ -643,40 +690,120 @@ simulate_hierarchical_grn_moments <- function(
   )
   objectives <- compute_mean_profile_objectives(mean_profiles)
 
-  ## --- step 2: random-graph adjacency ----------------------------------
-  adjacency_matrix <- generate_random_network_skeleton(
-    n_genes = n_genes,
-    graph_model = graph_model,
-    graph_params = graph_params
+  ## --- step 2: per-cell-type adjacencies -------------------------------
+  adjacency_array <- array(
+    0L,
+    dim = c(n_genes, n_genes, n_celltypes),
+    dimnames = list(gene_names, gene_names, celltype_names)
   )
-  rownames(adjacency_matrix) <- gene_names
-  colnames(adjacency_matrix) <- gene_names
 
-  ## --- step 3: i.i.d. signs then spectral SPD completion ---------------
-  weighted_adjacency <- assign_iid_signed_weights(
-    adjacency_matrix = adjacency_matrix,
-    prop_inhibitory = prop_inhibitory,
-    weight_magnitude = precision_scale
-  )
-  normalised_precision <- build_normalised_precision(
-    weighted_adjacency = weighted_adjacency,
-    precision_shift = precision_shift
-  )
-  dimnames(normalised_precision) <- list(gene_names, gene_names)
+  if (!is.null(adjacency)) {
+    if (is.list(adjacency)) {
+      if (length(adjacency) != n_celltypes) {
+        stop("`adjacency` list must have length J.", call. = FALSE)
+      }
+      for (j in seq_len(n_celltypes)) {
+        a_j <- as.matrix(adjacency[[j]])
+        if (!identical(dim(a_j), c(n_genes, n_genes))) {
+          stop("Each `adjacency[[j]]` must be G x G.", call. = FALSE)
+        }
+        storage.mode(a_j) <- "integer"
+        diag(a_j) <- 0L
+        adjacency_array[,, j] <- a_j
+      }
+    } else {
+      if (
+        is.null(dim(adjacency)) ||
+          length(dim(adjacency)) != 3L ||
+          !identical(dim(adjacency), c(n_genes, n_genes, n_celltypes))
+      ) {
+        stop("`adjacency` array must be G x G x J.", call. = FALSE)
+      }
+      adjacency_array[] <- as.integer(adjacency)
+      for (j in seq_len(n_celltypes)) {
+        diag(adjacency_array[,, j]) <- 0L
+      }
+    }
+  } else {
+    model_choices <- c(
+      "erdos_renyi",
+      "hub",
+      "star",
+      "scale_free",
+      "stochastic_block_model",
+      "small_world"
+    )
+    if (length(graph_model) == 1L) {
+      graph_model <- rep(match.arg(graph_model, model_choices), n_celltypes)
+    } else {
+      if (length(graph_model) != n_celltypes) {
+        stop("`graph_model` must be length 1 or J.", call. = FALSE)
+      }
+      graph_model <- vapply(
+        graph_model,
+        function(m) match.arg(m, model_choices),
+        character(1)
+      )
+    }
+    graph_model[graph_model == "star"] <- "hub"
 
-  covariance_matrices <- build_shared_covariance_array(
-    normalised_precision = normalised_precision,
-    celltype_names = celltype_names,
-    gene_names = gene_names
+    params_per_type <- if (
+      length(graph_params) == n_celltypes &&
+        all(vapply(graph_params, is.list, logical(1))) &&
+        is.null(names(graph_params))
+    ) {
+      graph_params
+    } else {
+      rep(list(graph_params), n_celltypes)
+    }
+
+    for (j in seq_len(n_celltypes)) {
+      a_j <- generate_random_network_skeleton(
+        n_genes = n_genes,
+        graph_model = graph_model[[j]],
+        graph_params = params_per_type[[j]]
+      )
+      adjacency_array[,, j] <- a_j
+    }
+  }
+
+  ## --- step 3: i.i.d. signs then spectral SPD completion, per type -----
+  weighted_array <- array(
+    0,
+    dim = c(n_genes, n_genes, n_celltypes),
+    dimnames = list(gene_names, gene_names, celltype_names)
+  )
+  precision_array <- array(
+    NA_real_,
+    dim = c(n_genes, n_genes, n_celltypes),
+    dimnames = list(gene_names, gene_names, celltype_names)
+  )
+
+  for (j in seq_len(n_celltypes)) {
+    weighted_array[,, j] <- assign_iid_signed_weights(
+      adjacency_matrix = adjacency_array[,, j],
+      prop_inhibitory = prop_inhibitory[[j]],
+      weight_magnitude = precision_scale[[j]]
+    )
+    omega_j <- build_normalised_precision(
+      weighted_adjacency = weighted_array[,, j],
+      precision_shift = precision_shift[[j]]
+    )
+    precision_array[,, j] <- omega_j
+  }
+
+  covariance_matrices <- build_covariance_array_from_precision(
+    precision_array
   )
 
   list(
     mean_profiles = mean_profiles,
     covariance_matrices = covariance_matrices,
+    precision_matrices = precision_array,
     graph_structure = list(
-      adjacency_matrix = adjacency_matrix,
-      weighted_adjacency = weighted_adjacency,
-      normalised_precision = normalised_precision
+      adjacency_matrices = adjacency_array,
+      weighted_adjacencies = weighted_array,
+      normalised_precision = precision_array
     ),
     objectives = objectives
   )

@@ -34,7 +34,7 @@ repos:
     hooks:
       - id: lintr
         name: lintr
-        entry: Rscript scripts/lintr_precommit.R
+        entry: Rscript scripts/curate_bibliography/lintr_precommit.R
         language: system
         files: '\.[rR]$'
         exclude: '^(vignettes/)'
@@ -58,7 +58,7 @@ repos:
     hooks:
       - id: check-bibliography
         name: check-bibliography
-        entry: python3 scripts/check_bibliography.py
+        entry: python3 scripts/curate_bibliography/check_bibliography.py
         language: system
         pass_filenames: false
         always_run: true

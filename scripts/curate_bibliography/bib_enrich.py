@@ -4,11 +4,11 @@
 Non-interactive CLI intended for Cursor agents and pre-commit workflows.
 
 Examples:
-  scripts/bib_enrich/.venv/bin/python scripts/bib_enrich.py inst/REFERENCES.bib \\
+  scripts/curate_bibliography/bib_enrich/.venv/bin/python scripts/curate_bibliography/bib_enrich.py inst/REFERENCES.bib \\
     --write --backup --min-score 92 --report .cursor/bib-enrichment.json
 
   # dry-run (report only):
-  scripts/bib_enrich/.venv/bin/python scripts/bib_enrich.py inst/REFERENCES.bib \\
+  scripts/curate_bibliography/bib_enrich/.venv/bin/python scripts/curate_bibliography/bib_enrich.py inst/REFERENCES.bib \\
     --report .cursor/bib-enrichment.json
 """
 

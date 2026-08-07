@@ -167,12 +167,12 @@ message(
 # ==============================================================================
 # 2. Cell-type-specific block-structured topologies (BLGGM-style hybrid)
 # ==============================================================================
-## Each cell type gets its OWN 50 x 50 precision matrix (unlike
-## simulate_hierarchical_grn_moments(), which shares one Sigma across all
-## J types). Following the BLGGM hybrid design (global gene blocks + local
-## topology per block, vignette "synthetic-scenarios.qmd"), each cell
-## type's adjacency is block-diagonal: the *local* random-graph model
-## differs by (cell type, gene block) pair, with no edges between blocks:
+## Each cell type gets its OWN 50 x 50 precision matrix via
+## simulate_hierarchical_grn_moments(..., adjacency = ...). Following the
+## BLGGM hybrid design (global gene blocks + local topology per block),
+## each cell type's adjacency is block-diagonal: the *local* random-graph
+## model differs by (cell type, gene block) pair, with no edges between
+## blocks:
 ##
 ##   gene block        | cell type 1        | cell type 2   | cell type 3
 ##   -------------------|---------------------|----------------|-------------
@@ -200,6 +200,7 @@ build_block_adjacency <- function(n_genes, block_defs) {
       graph_params = blk$graph_params
     )
   }
+  dimnames(adjacency) <- list(gene_names, gene_names)
   adjacency
 }
 
@@ -233,35 +234,43 @@ block_defs_by_celltype <- list(
   )
 )
 
-adjacency_matrices <- list()
-weighted_adjacencies <- list()
-Sigma <- array(
-  NA_real_,
-  dim = c(n_genes, n_genes, 3L),
-  dimnames = list(gene_names, gene_names, celltype_names)
+adjacency_list <- lapply(
+  celltype_names,
+  function(ct) build_block_adjacency(n_genes, block_defs_by_celltype[[ct]])
 )
+names(adjacency_list) <- celltype_names
 
-for (ct in celltype_names) {
-  adjacency <- build_block_adjacency(n_genes, block_defs_by_celltype[[ct]])
-  dimnames(adjacency) <- list(gene_names, gene_names)
+## Package generator: per-cell-type Omega_j / Sigma_j from the hybrid
+## adjacencies. Mean profiles from Section 1 overwrite the default cosine
+## construction (which cannot encode the EE / DE / DM block design).
+grn_moments <- simulate_hierarchical_grn_moments(
+  n_genes = n_genes,
+  n_celltypes = 3L,
+  mean_scale = mean_scale,
+  target_cosine = 0,
+  precision_shift = precision_shift,
+  precision_scale = precision_scale,
+  prop_inhibitory = prop_inhibitory,
+  adjacency = adjacency_list
+)
+grn_moments$mean_profiles <- mu
+rownames(grn_moments$mean_profiles) <- gene_names
+colnames(grn_moments$mean_profiles) <- celltype_names
 
-  weighted_adjacency <- assign_iid_signed_weights(
-    adjacency_matrix = adjacency,
-    prop_inhibitory = prop_inhibitory,
-    weight_magnitude = precision_scale
-  )
-  normalised_precision <- build_normalised_precision(
-    weighted_adjacency = weighted_adjacency,
-    precision_shift = precision_shift
-  )
-  dimnames(normalised_precision) <- list(gene_names, gene_names)
-
-  sigma_ct <- solve(normalised_precision)
-  Sigma[,, ct] <- (sigma_ct + t(sigma_ct)) / 2
-
-  adjacency_matrices[[ct]] <- adjacency
-  weighted_adjacencies[[ct]] <- weighted_adjacency
-}
+Sigma <- grn_moments$covariance_matrices
+Theta <- grn_moments$precision_matrices
+dimnames(Sigma) <- list(gene_names, gene_names, celltype_names)
+dimnames(Theta) <- list(gene_names, gene_names, celltype_names)
+adjacency_matrices <- lapply(seq_len(3L), function(j) {
+  adjacency_list[[j]]
+})
+names(adjacency_matrices) <- celltype_names
+weighted_adjacencies <- lapply(seq_len(3L), function(j) {
+  w <- grn_moments$graph_structure$weighted_adjacencies[,, j]
+  dimnames(w) <- list(gene_names, gene_names)
+  w
+})
+names(weighted_adjacencies) <- celltype_names
 
 message(
   "Section 2 - built ",
@@ -469,11 +478,22 @@ readr::write_csv(
   gene_selection_summary,
   file.path(out_dir, "gene_selection_summary.csv")
 )
+true_moments_rds <- list(
+  p = p_true,
+  mu = mu,
+  X = latent_profiles,
+  Sigma = Sigma,
+  Theta = Theta
+)
+saveRDS(
+  true_moments_rds,
+  file.path(out_dir, "true_grn_moments.rds")
+)
 message(
   "Section 5 - wrote gene-level summary table (",
   nrow(gene_selection_summary),
-  " genes): ",
-  file.path(out_dir, "gene_selection_summary.csv")
+  " genes) and true-moment RDS (p, mu, X, Sigma, Theta): ",
+  out_dir
 )
 print(
   gene_selection_summary |>

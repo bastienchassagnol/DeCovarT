@@ -328,7 +328,7 @@ CRAN-style PDF and HTML function manuals (cf. dplyr’s
 [`devtools::build_manual()`](https://devtools.r-lib.org/reference/build_manual.html)):
 
 ``` r
-source("scripts/generate_package_manual.R")
+source("scripts/auxiliary/generate_package_manual.R")
 ```
 
 Outputs land in `output/manual/` (`DeCovarT.pdf`, `index.html`, and per-topic

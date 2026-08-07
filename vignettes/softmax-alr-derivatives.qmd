@@ -29,7 +29,6 @@ format:
 #| label: setup
 #| include: false
 #| eval: true
-options(tinytable_html_mathjax = TRUE)
 ```
 
 DeCovarT estimates cellular ratios $\boldsymbol{p}\in\Delta^{J-1}$ by
@@ -123,7 +122,9 @@ tinytable::tt(
       "Mahalanobis distance"
     )
   )
-)
+) |>
+  tinytable::style_tt(j = 1:2, align = "c") |>
+  tinytable::format_tt(j = 1:2, markdown = TRUE)
 ```
 
 Package helpers `.bilinear_form()` and `.squared_mahalanobis_distance()`

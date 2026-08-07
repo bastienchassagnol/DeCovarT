@@ -227,7 +227,7 @@ visnetwork_plot <- visNetwork::visNetwork(
     )
   ) |>
   visNetwork::visInteraction(navigationButtons = TRUE) |>
-  visNetwork::visOptions(manipulation = TRUE, highlightNearest = TRUE) |>
+  visNetwork::visOptions(highlightNearest = TRUE) |>
   visNetwork::visHierarchicalLayout(
     direction = "LR",
     levelSeparation = 220,

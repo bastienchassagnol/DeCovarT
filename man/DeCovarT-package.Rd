@@ -26,7 +26,7 @@ To learn more, start with the package website vignettes, or in an R session:
 \code{?DeCovarT::deconvolute_ratios}.
 
 Reference manuals (PDF / HTML) can be regenerated with
-\code{source("scripts/generate_package_manual.R")}.
+\code{source("scripts/auxiliary/generate_package_manual.R")}.
 }
 \seealso{
 Useful links:

@@ -7,15 +7,28 @@
 # explicit SOFTWARE_TOOLS allowlist (prose-only mentions such as huge).
 #
 # Usage (from repository root):
-#   Rscript scripts/generate_packages_bib.R
+#   Rscript scripts/curate_bibliography/generate_packages_bib.R
 
-if (file.exists("DESCRIPTION")) {
-  root <- normalizePath(".", winslash = "/", mustWork = TRUE)
-} else if (file.exists(file.path("..", "DESCRIPTION"))) {
-  root <- normalizePath("..", winslash = "/", mustWork = TRUE)
-} else {
-  stop("Run from the DeCovarT repository root (or scripts/).")
+find_repo_root <- function() {
+  candidates <- c(
+    ".",
+    "..",
+    file.path("..", ".."),
+    file.path("..", "..", "..")
+  )
+  for (cand in candidates) {
+    if (file.exists(file.path(cand, "DESCRIPTION"))) {
+      return(normalizePath(cand, winslash = "/", mustWork = TRUE))
+    }
+  }
+  stop(
+    "Run from the DeCovarT repository root ",
+    "(or scripts/curate_bibliography/).",
+    call. = FALSE
+  )
 }
+
+root <- find_repo_root()
 
 vignette_dir <- file.path(root, "vignettes")
 article_dir <- file.path(root, "article")
@@ -207,7 +220,7 @@ dir.create(dirname(out_article), recursive = TRUE, showWarnings = FALSE)
 header <- paste(
   "% Auto-generated R / Bioconductor software bibliography.",
   "% Do NOT edit by hand — regenerate with:",
-  "%   Rscript scripts/generate_packages_bib.R",
+  "%   Rscript scripts/curate_bibliography/generate_packages_bib.R",
   "% Literature (Zotero) lives in decovart_library.bib / REFERENCES.bib.",
   "% Quarto YAML should list both:",
   "%   bibliography:",

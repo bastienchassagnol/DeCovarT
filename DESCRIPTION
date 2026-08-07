@@ -12,7 +12,6 @@ Suggests:
     compositions,
     flextable,
     ggplot2,
-    kableExtra,
     knitr,
     litedown,
     numDeriv,

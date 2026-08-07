@@ -21,7 +21,7 @@
 #' `?DeCovarT::deconvolute_ratios`.
 #'
 #' Reference manuals (PDF / HTML) can be regenerated with
-#' `source("scripts/generate_package_manual.R")`.
+#' `source("scripts/auxiliary/generate_package_manual.R")`.
 #'
 #' @keywords internal
 "_PACKAGE"
