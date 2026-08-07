@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Numerically stable softmax and additive log-ratio derivatives • DeCovarT</title>
+<title>Simplex maps and numerically stable softmax / ALR derivatives • DeCovarT</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -20,7 +20,7 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="softmax-alr-derivatives_files/libs/quarto-html/popper.min.js"></script><script src="softmax-alr-derivatives_files/libs/quarto-html/tippy.umd.min.js"></script><link href="softmax-alr-derivatives_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="softmax-alr-derivatives_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Numerically stable softmax and additive log-ratio derivatives">
+<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Simplex maps and numerically stable softmax / ALR derivatives">
 <meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg">
 </head>
 <body>
@@ -49,14 +49,13 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Getting started</h6></li>
     <li><a class="dropdown-item" href="../articles/synthetic-scenarios.html"><span class="fa fa-flask"></span> Simulating semi-synthetic pseudo-bulk mixtures</a></li>
-    <li><a class="dropdown-item" href="../articles/random-network-generation.html"><span class="fa fa-share-alt"></span> Random Gaussian Markov network generation</a></li>
     <li><a class="dropdown-item" href="../articles/network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
     <li><a class="dropdown-item" href="../articles/DeCoVart-use-cases.html"><span class="fa fa-chart-pie"></span> Deconvolution use cases with DeCovarT</a></li>
     <li><a class="dropdown-item" href="../articles/feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT-numerical-derivatives.html"><span class="fa fa-calculator"></span> Simplex coordinate maps (ALR / additive logistic)</a></li>
-    <li><a class="dropdown-item" href="../articles/softmax-alr-derivatives.html"><span class="fa fa-square-root-variable"></span> Softmax and ALR derivatives</a></li>
+    <li><a class="dropdown-item" href="../articles/softmax-alr-derivatives.html"><span class="fa fa-square-root-variable"></span> Simplex maps and softmax / ALR derivatives</a></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html"><span class="fa fa-newspaper"></span> News</a></li>
@@ -82,10 +81,10 @@
 </nav><div class="container template-quarto">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.svg" class="logo" alt=""><h1>Numerically stable softmax and additive log-ratio derivatives</h1>
+      <img src="../logo.svg" class="logo" alt=""><h1>Simplex maps and numerically stable softmax / ALR derivatives</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-08-06</p>
+      <p class="date">2026-08-07</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/softmax-alr-derivatives.qmd" class="external-link"><code>vignettes/softmax-alr-derivatives.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -96,8 +95,147 @@
 
 
 
-    <p>This vignette collects the closed-form derivatives that DeCovarT needs to move between the unconstrained coordinates <span class="math inline">\boldsymbol{\rho}\in\mathbb{R}^{J-1}</span> and the cellular ratios <span class="math inline">\boldsymbol{p}\in\Delta^{J-1}</span>. For every map we give the explicit tensor formula, an efficient base-<code>R</code> implementation (evaluated and checked against <strong>numDeriv</strong> <span class="citation" data-cites="R-numDeriv">(<a href="#ref-R-numDeriv" role="doc-biblioref">Gilbert and Varadhan 2019</a>)</span>), and a batched <code>PyTorch</code> counterpart. The naming follows the DeCovarT API: <code><a href="../reference/additive_logistic.html">additive_logistic()</a></code> for <span class="math inline">\boldsymbol{\rho}\mapsto\boldsymbol{p}</span> and <code><a href="../reference/additive_logistic.html">additive_log_ratio()</a></code> for <span class="math inline">\boldsymbol{p}\mapsto\boldsymbol{\rho}</span>.</p>
-<section class="section level2"><h2 id="log-sum-exp-and-softmax">Log-sum-exp and softmax<a class="anchor" aria-label="anchor" href="#log-sum-exp-and-softmax"></a>
+    <p>DeCovarT estimates cellular ratios <span class="math inline">\boldsymbol{p}\in\Delta^{J-1}</span> by maximising a Gaussian-convolution log-likelihood over an <em>unconstrained</em> parameter <span class="math inline">\boldsymbol{\rho}\in\mathbb{R}^{J-1}</span>. This vignette collects the simplex coordinate maps, the matrix-algebra vocabulary used in the analytic gradients, and the closed-form softmax / additive log-ratio derivatives needed for efficient optimisation. For every map we give the explicit tensor formula, a base-<code>R</code> implementation (checked against <strong>numDeriv</strong> <span class="citation" data-cites="R-numDeriv">(<a href="#ref-R-numDeriv" role="doc-biblioref">Gilbert and Varadhan 2019</a>)</span>), and a batched <code>PyTorch</code> counterpart. Naming follows the DeCovarT API: <code><a href="../reference/additive_logistic.html">additive_logistic()</a></code> for <span class="math inline">\boldsymbol{\rho}\mapsto\boldsymbol{p}</span> and <code><a href="../reference/additive_logistic.html">additive_log_ratio()</a></code> for <span class="math inline">\boldsymbol{p}\mapsto\boldsymbol{\rho}</span>.</p>
+<section class="section level2"><h2 id="simplex-coordinate-maps">Simplex coordinate maps<a class="anchor" aria-label="anchor" href="#simplex-coordinate-maps"></a>
+</h2>
+<p>The forward map <a href="../reference/additive_logistic.html"><code>additive_logistic()</code></a> sends unconstrained coordinates <span class="math inline">\boldsymbol{\rho}</span> to the open simplex,</p>
+<p><span id="eq-additive-logistic-intro"><span class="math display">
+p_j=\frac{e^{\rho_j}}{\sum_{k&lt;J}e^{\rho_k}+1}\ (j&lt;J),\qquad
+p_J=\frac{1}{\sum_{k&lt;J}e^{\rho_k}+1}.
+\tag{1}</span></span></p>
+<p><a href="#eq-additive-logistic-intro" class="quarto-xref">Eq. 1</a> is a softmax in which the last category <span class="math inline">J</span> is pinned as a reference (<span class="math inline">\rho_J\equiv 0</span>); in Aitchison’s framework it is the <em>additive logistic transform</em>, i.e. the inverse additive log-ratio map (<span class="math inline">\mathrm{alr}^{-1}</span>).</p>
+<p>The inverse map <a href="../reference/additive_logistic.html"><code>additive_log_ratio()</code></a> sends a composition back to <span class="math inline">\mathbb{R}^{J-1}</span>,</p>
+<p><span id="eq-additive-log-ratio-intro"><span class="math display">
+\rho_j=\log\!\left(\frac{p_j}{p_J}\right),\qquad j=1,\ldots,J-1.
+\tag{2}</span></span></p>
+<p><a href="#eq-additive-log-ratio-intro" class="quarto-xref">Eq. 2</a> is the <em>additive log-ratio</em> (<span class="math inline">\mathrm{alr}</span>) transform with reference part <span class="math inline">p_J</span>, equivalently the multinomial-logit link with reference category <span class="math inline">J</span>.</p>
+<p><a href="#tbl-coordinate-maps" class="quarto-xref">Table 1</a> summarises the two helpers and their equivalents across statistical, machine-learning, and compositional-data-analysis literatures.</p>
+<div id="tbl-coordinate-maps" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-coordinate-maps-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 1: DeCovarT simplex coordinate maps and their equivalents.
+</figcaption><div aria-describedby="tbl-coordinate-maps-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table caption-top">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead><tr class="header">
+<th style="text-align: left;">DeCovarT function</th>
+<th style="text-align: left;">Direction</th>
+<th style="text-align: left;">Transform</th>
+<th style="text-align: left;">Equivalent formulations</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code><a href="../reference/additive_logistic.html">additive_logistic()</a></code></td>
+<td style="text-align: left;">
+<span class="math inline">\boldsymbol{\rho}\mapsto\boldsymbol{p}</span> (to <span class="math inline">\Delta^{J-1}</span>)</td>
+<td style="text-align: left;">inverse additive log-ratio (<span class="math inline">\mathrm{alr}^{-1}</span>)</td>
+<td style="text-align: left;">softmax with reference category <span class="math inline">J</span>; <code><a href="https://rdrr.io/pkg/compositions/man/alr.html" class="external-link">compositions::alrInv()</a></code>; <code>skbio.stats.composition.alr_inv()</code>
+</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code><a href="../reference/additive_logistic.html">additive_log_ratio()</a></code></td>
+<td style="text-align: left;">
+<span class="math inline">\boldsymbol{p}\mapsto\boldsymbol{\rho}</span> (to <span class="math inline">\mathbb{R}^{J-1}</span>)</td>
+<td style="text-align: left;">additive log-ratio (<span class="math inline">\mathrm{alr}</span>)</td>
+<td style="text-align: left;">multinomial-logit link (reference <span class="math inline">J</span>); <code><a href="https://rdrr.io/pkg/compositions/man/alr.html" class="external-link">compositions::alr()</a></code>; <code>skbio.stats.composition.alr()</code>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section><section class="section level2"><h2 id="sec-bilinear-forms">Matrix-induced scalar products<a class="anchor" aria-label="anchor" href="#sec-bilinear-forms"></a>
+</h2>
+<p>The DeCovarT log-likelihood and its derivatives evaluate several matrix-induced scalar products involving a symmetric positive-definite covariance or precision matrix <span class="math inline">\boldsymbol{A}</span> (non-degenerate Gaussian laws). <a href="#tbl-bilinear-forms" class="quarto-xref">Table 2</a> records the standard terminology; a quadratic form is the bilinear form evaluated on the same vector twice, <span class="math inline">q(\boldsymbol{x})=b(\boldsymbol{x},\boldsymbol{x})</span>.</p>
+<div class="cell">
+<div id="tbl-bilinear-forms" class="cell quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-bilinear-forms-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 2: Standard algebraic operations induced by a matrix <span class="math inline">\boldsymbol{A}</span>.
+</figcaption><div aria-describedby="tbl-bilinear-forms-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <!-- tinytable mathjax start -->
+    <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script><script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+    </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
+      // Create table-specific functions using external factory
+      const tableFns_f6xk7axdmshphw462mau = TinyTable.createTableFunctions("tinytable_f6xk7axdmshphw462mau");
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '6', j: 1 }, { i: '6', j: 2 } ], css_id: 'tinytable_css_kvtzhwfaxwdeln2pozj3',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 } ], css_id: 'tinytable_css_zykj9nweoltyx09kdjdi',},
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  tableFns_f6xk7axdmshphw462mau.styleCell(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
+<style>
+    /* tinytable css entries after */
+    #tinytable_f6xk7axdmshphw462mau td.tinytable_css_kvtzhwfaxwdeln2pozj3, #tinytable_f6xk7axdmshphw462mau th.tinytable_css_kvtzhwfaxwdeln2pozj3 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_f6xk7axdmshphw462mau td.tinytable_css_zykj9nweoltyx09kdjdi, #tinytable_f6xk7axdmshphw462mau th.tinytable_css_zykj9nweoltyx09kdjdi {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    </style>
+<div class="container">
+      <table class="table tinytable" id="tinytable_f6xk7axdmshphw462mau" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+<thead><tr>
+<th scope="col" data-row="0" data-col="1">Expression</th>
+                <th scope="col" data-row="0" data-col="2">Terminology</th>
+              </tr></thead>
+<tbody>
+<tr>
+<td data-row="1" data-col="1">$\boldsymbol{x}^{\mathsf{T}}\boldsymbol{y}$</td>
+                  <td data-row="1" data-col="2">Dot product / Euclidean inner product</td>
+                </tr>
+<tr>
+<td data-row="2" data-col="1">$\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{y}$</td>
+                  <td data-row="2" data-col="2">Bilinear form (inner product if $\boldsymbol{A}$ is SPD)</td>
+                </tr>
+<tr>
+<td data-row="3" data-col="1">$\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{x}$</td>
+                  <td data-row="3" data-col="2">Quadratic form</td>
+                </tr>
+<tr>
+<td data-row="4" data-col="1">$\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}^{-1}\boldsymbol{x}$</td>
+                  <td data-row="4" data-col="2">Quadratic form induced by $\boldsymbol{A}^{-1}$</td>
+                </tr>
+<tr>
+<td data-row="5" data-col="1">$(\boldsymbol{x}-\boldsymbol{\mu})^{\mathsf{T}}\boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{\mu})$</td>
+                  <td data-row="5" data-col="2">Squared Mahalanobis distance</td>
+                </tr>
+<tr>
+<td data-row="6" data-col="1">$\sqrt{(\boldsymbol{x}-\boldsymbol{\mu})^{\mathsf{T}}\boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{\mu})}$</td>
+                  <td data-row="6" data-col="2">Mahalanobis distance</td>
+                </tr>
+</tbody>
+</table>
+</div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>Package helpers <code><a href="../reference/dot-bilinear_form.html">.bilinear_form()</a></code> and <code><a href="../reference/dot-squared_mahalanobis_distance.html">.squared_mahalanobis_distance()</a></code> implement the middle rows of <a href="#tbl-bilinear-forms" class="quarto-xref">Table 2</a>. The second solves <span class="math inline">\boldsymbol{\Sigma}\boldsymbol{z}=\boldsymbol{\delta}</span> rather than forming <span class="math inline">\boldsymbol{\Sigma}^{-1}</span> explicitly. Calling <span class="math inline">\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{y}</span> a “dot product” is misleading unless <span class="math inline">\boldsymbol{A}=\boldsymbol{I}</span>; see also the <a href="https://en.wikipedia.org/wiki/Dot_product" class="external-link">dot product</a> and <a href="https://en.wikipedia.org/wiki/Inner_product_space" class="external-link">inner product space</a> articles for the Euclidean special case <span class="math inline">\langle\boldsymbol{x},\boldsymbol{y}\rangle=\boldsymbol{x}^{\mathsf{T}}\boldsymbol{y}</span>.</p>
+</section><section class="section level2"><h2 id="log-sum-exp-and-softmax">Log-sum-exp and softmax<a class="anchor" aria-label="anchor" href="#log-sum-exp-and-softmax"></a>
 </h2>
 <p>The softmax of a score vector <span class="math inline">\boldsymbol{z}\in\mathbb{R}^{K}</span> is evaluated through the log-sum-exp (LSE) to avoid overflow,</p>
 <p><span id="eq-softmax"><span class="math display">
@@ -106,7 +244,7 @@ s_i=\operatorname{softmax}(\boldsymbol{z})_i=\frac{e^{z_i}}{\sum_{k}e^{z_k}}
 \qquad
 \operatorname{LSE}(\boldsymbol{z})=m+\log\!\sum_{k}e^{z_k-m},
 \quad m=\max_k z_k.
-\tag{1}</span></span></p>
+\tag{3}</span></span></p>
 <div id="lst-lse-r" class="r listing quarto-float quarto-figure quarto-figure-left" data-eval="true">
 <figure class="quarto-float quarto-float-lst"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-lse-r-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing 1: Stable log-sum-exp and softmax in R
@@ -148,20 +286,20 @@ Listing 2: Softmax and log-sum-exp in PyTorch
 \qquad
 \mathbf{J}_{\mathrm{softmax}}=\operatorname{diag}(\boldsymbol{s})
 -\boldsymbol{s}\boldsymbol{s}^{\top}.
-\tag{2}</span></span></p>
+\tag{4}</span></span></p>
 <p>This matrix also equals the Hessian of the log-sum-exp, <span class="math inline">\nabla^2\operatorname{LSE}(\boldsymbol{z})=\operatorname{diag}(\boldsymbol{s})
 -\boldsymbol{s}\boldsymbol{s}^{\top}</span>. Because softmax is vector-valued, its second derivative is a third-order tensor <span class="math inline">H_{ijk}=\partial^2 s_i/(\partial z_j\partial z_k)</span>,</p>
 <p><span id="eq-softmax-hess"><span class="math display">
 H_{ijk}=s_i\bigl[(\delta_{ij}-s_j)(\delta_{ik}-s_k)-s_j(\delta_{jk}-s_k)\bigr],
-\tag{3}</span></span></p>
+\tag{5}</span></span></p>
 <p>which, slice by slice, is the rank-one correction</p>
 <p><span id="eq-softmax-hess-slice"><span class="math display">
 \mathbf{H}^{(i)}=s_i\Bigl[(\boldsymbol{e}_i-\boldsymbol{s})
 (\boldsymbol{e}_i-\boldsymbol{s})^{\top}
 -\bigl(\operatorname{diag}(\boldsymbol{s})-\boldsymbol{s}\boldsymbol{s}^{\top}\bigr)
 \Bigr],
-\tag{4}</span></span></p>
-<p>with <span class="math inline">\boldsymbol{e}_i</span> the <span class="math inline">i</span>-th canonical basis vector. <a href="#lst-softmax-deriv-r" class="quarto-xref">Listing 3</a> materialises <a href="#eq-softmax-jac" class="quarto-xref">Eq. 2</a> and <a href="#eq-softmax-hess-slice" class="quarto-xref">Eq. 4</a> in <span class="math inline">O(K^2)</span> per slice.</p>
+\tag{6}</span></span></p>
+<p>with <span class="math inline">\boldsymbol{e}_i</span> the <span class="math inline">i</span>-th canonical basis vector. <a href="#lst-softmax-deriv-r" class="quarto-xref">Listing 3</a> materialises <a href="#eq-softmax-jac" class="quarto-xref">Eq. 4</a> and <a href="#eq-softmax-hess-slice" class="quarto-xref">Eq. 6</a> in <span class="math inline">O(K^2)</span> per slice.</p>
 <div id="lst-softmax-deriv-r" class="r listing quarto-float quarto-figure quarto-figure-left" data-eval="true">
 <figure class="quarto-float quarto-float-lst"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-softmax-deriv-r-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing 3: Softmax Jacobian and Hessian tensor in R
@@ -212,7 +350,7 @@ Listing 4: Batched softmax Jacobian and Hessian in PyTorch
 <p>Let <span class="math inline">\boldsymbol{p}=(p_1,\ldots,p_J)</span> be a composition with <span class="math inline">p_j&gt;0</span> and <span class="math inline">\sum_j p_j=1</span>, and take the last part <span class="math inline">J</span> as reference. The <em>additive log-ratio</em> (alr) transform sends the composition to <span class="math inline">\mathbb{R}^{J-1}</span>,</p>
 <p><span id="eq-alr"><span class="math display">
 \rho_i=\log\!\Bigl(\frac{p_i}{p_J}\Bigr),\qquad i=1,\ldots,J-1,
-\tag{5}</span></span></p>
+\tag{7}</span></span></p>
 <p>and its inverse, the <em>additive logistic</em> transform (<span class="math inline">\mathrm{alr}^{-1}</span>), pins a reference logit at zero, <span class="math inline">\tilde{\boldsymbol{\rho}}=(\rho_1,\ldots,\rho_{J-1},0)</span>, and applies a softmax,</p>
 <p><span id="eq-alr-inv"><span class="math display">
 \boldsymbol{p}=\operatorname{softmax}(\tilde{\boldsymbol{\rho}}),
@@ -220,7 +358,7 @@ Listing 4: Batched softmax Jacobian and Hessian in PyTorch
 p_i=\frac{e^{\rho_i}}{1+\sum_{j&lt;J}e^{\rho_j}}\ (i&lt;J),
 \qquad
 p_J=\frac{1}{1+\sum_{j&lt;J}e^{\rho_j}}.
-\tag{6}</span></span></p>
+\tag{8}</span></span></p>
 <div id="lst-alr-maps-r" class="r listing quarto-float quarto-figure quarto-figure-left" data-eval="true">
 <figure class="quarto-float quarto-float-lst"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-alr-maps-r-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing 5: Additive logistic and additive log-ratio maps in R
@@ -266,13 +404,13 @@ Listing 6: Additive logistic and additive log-ratio maps in PyTorch
 =\bigl[\operatorname{diag}(\boldsymbol{p})
 -\boldsymbol{p}\boldsymbol{p}^{\top}\bigr]_{:,\,1:(J-1)},
 \qquad a=1,\ldots,J-1.
-\tag{7}</span></span></p>
-<p>Its Hessian is a tensor <span class="math inline">\mathbf{H}_{\boldsymbol{\psi}}\in\mathcal{M}_{J\times(J-1)\times(J-1)}</span>, the softmax Hessian <a href="#eq-softmax-hess-slice" class="quarto-xref">Eq. 4</a> restricted to the first <span class="math inline">J-1</span> input indices,</p>
+\tag{9}</span></span></p>
+<p>Its Hessian is a tensor <span class="math inline">\mathbf{H}_{\boldsymbol{\psi}}\in\mathcal{M}_{J\times(J-1)\times(J-1)}</span>, the softmax Hessian <a href="#eq-softmax-hess-slice" class="quarto-xref">Eq. 6</a> restricted to the first <span class="math inline">J-1</span> input indices,</p>
 <p><span id="eq-alr-inv-hess"><span class="math display">
 \frac{\partial^2 p_i}{\partial\rho_a\partial\rho_b}
 =p_i\bigl[(\delta_{ia}-p_a)(\delta_{ib}-p_b)-p_a(\delta_{ab}-p_b)\bigr],
 \qquad a,b=1,\ldots,J-1.
-\tag{8}</span></span></p>
+\tag{10}</span></span></p>
 <div id="lst-alr-inv-deriv-r" class="r listing quarto-float quarto-figure quarto-figure-left" data-eval="true">
 <figure class="quarto-float quarto-float-lst"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-alr-inv-deriv-r-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing 7: Jacobian and Hessian of the additive logistic map in R
@@ -326,13 +464,13 @@ Listing 8: Jacobian and Hessian of the additive logistic map in PyTorch
 \mathbf{J}_{\mathrm{alr}}
 =\Bigl[\operatorname{diag}\!\bigl(p_1^{-1},\ldots,p_{J-1}^{-1}\bigr)
 \ \big|\ -p_J^{-1}\boldsymbol{1}_{J-1}\Bigr],
-\tag{9}</span></span></p>
+\tag{11}</span></span></p>
 <p>and its Hessian <span class="math inline">\mathbf{H}_{\mathrm{alr}}\in\mathcal{M}_{(J-1)\times J\times J}</span> is diagonal in the last two modes,</p>
 <p><span id="eq-alr-fwd-hess"><span class="math display">
 \frac{\partial^2\rho_i}{\partial p_j\partial p_k}
 =-\frac{\delta_{ij}\delta_{ik}}{p_i^{2}}
 +\frac{\delta_{jJ}\delta_{kJ}}{p_J^{2}}.
-\tag{10}</span></span></p>
+\tag{12}</span></span></p>
 <div id="lst-alr-fwd-deriv-r" class="r listing quarto-float quarto-figure quarto-figure-left" data-eval="true">
 <figure class="quarto-float quarto-float-lst"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-alr-fwd-deriv-r-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing 9: Jacobian and Hessian of the additive log-ratio map in R
@@ -384,9 +522,9 @@ Listing 10: Jacobian and Hessian of the additive log-ratio map in PyTorch
 </div>
 </figure>
 </div>
-</section></section><section class="section level2"><h2 id="reference-implementations">Reference implementations<a class="anchor" aria-label="anchor" href="#reference-implementations"></a>
+</section></section><section class="section level2"><h2 id="sec-compositions-checks">The <code>compositions</code> package and closed-form checks<a class="anchor" aria-label="anchor" href="#sec-compositions-checks"></a>
 </h2>
-<p>Both transforms are standard in compositional data analysis. In R, the <strong>compositions</strong> package <span class="citation" data-cites="R-compositions">(<a href="#ref-R-compositions" role="doc-biblioref"><span class="nocase">van den Boogaart et al.</span> 2025</a>)</span> exposes <code>alr()</code> / <code>alrInv()</code>. DeCovarT’s <code><a href="../reference/additive_logistic.html">additive_logistic()</a></code> and <code><a href="../reference/additive_logistic.html">additive_log_ratio()</a></code> are the same maps with the last part fixed as reference.</p>
+<p>The <strong>compositions</strong> package <span class="citation" data-cites="R-compositions">(<a href="#ref-R-compositions" role="doc-biblioref"><span class="nocase">van den Boogaart et al.</span> 2025</a>)</span> provides a general toolbox for Aitchison geometry on the simplex. Beyond the additive log-ratio pair <code>alr()</code> / <code>alrInv()</code> used here, it implements the centred log-ratio <code>clr()</code> / <code>clrInv()</code> and the isometric log-ratio <code>ilr()</code> / <code>ilrInv()</code>, together with composition classes (<code>acomp()</code>, <code>rcomp()</code>) and the perturbation and powering operations of the Aitchison simplex. DeCovarT relies only on the additive log-ratio pair because it yields the sparsest <span class="math inline">(J-1)</span>-dimensional parametrisation with an interpretable reference category, but any of the alternative bases would define an equally valid unconstrained coordinate system. DeCovarT’s <code><a href="../reference/additive_logistic.html">additive_logistic()</a></code> and <code><a href="../reference/additive_logistic.html">additive_log_ratio()</a></code> match <code>alrInv()</code> / <code>alr()</code> with the last part fixed as reference (<a href="#lst-compositions-r" class="quarto-xref">Listing 11</a>).</p>
 <div id="lst-compositions-r" class="r listing quarto-float quarto-figure quarto-figure-left" data-eval="true">
 <figure class="quarto-float quarto-float-lst"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-compositions-r-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing 11: Cross-check against the compositions package
@@ -404,9 +542,7 @@ Listing 11: Cross-check against the compositions package
 </div>
 </figure>
 </div>
-</section><section class="section level2"><h2 id="checking-the-closed-forms">Checking the closed forms<a class="anchor" aria-label="anchor" href="#checking-the-closed-forms"></a>
-</h2>
-<p>The analytic derivatives are validated against Richardson extrapolation in <code>R</code> (<a href="#lst-check-r" class="quarto-xref">Listing 12</a>).</p>
+<p>The analytic Jacobians and Hessians are validated against Richardson extrapolation in <code>R</code> (<a href="#lst-check-r" class="quarto-xref">Listing 12</a>).</p>
 <div id="lst-check-r" class="r listing quarto-float quarto-figure quarto-figure-left" data-eval="true">
 <figure class="quarto-float quarto-float-lst"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-lst" id="lst-check-r-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Listing 12: Validation with numDeriv
@@ -546,61 +682,7 @@ Gilbert, Paul, and Ravi Varadhan. 2019. <em>numDeriv: Accurate Numerical Derivat
 
 
 
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script>
-(function () {
-  // pkgdown/README: <pre class="mermaid"><code>…</code></pre>
-  // Quarto articles: <pre class="mermaid mermaid-js">…</pre>
-  function collect() {
-    var out = [];
-    document.querySelectorAll("pre.mermaid, pre.mermaid-js").forEach(function (pre) {
-      if (pre.querySelector("svg")) return;
-      out.push(pre);
-    });
-    document.querySelectorAll(
-      "pre code.language-mermaid, pre code.mermaid, pre code[class*='language-mermaid']"
-    ).forEach(function (code) {
-      var pre = code.closest("pre");
-      if (!pre || pre.querySelector("svg")) return;
-      if (out.indexOf(pre) === -1) out.push(pre);
-    });
-    return out;
-  }
-  function textOf(pre) {
-    var code = pre.querySelector("code");
-    return (code ? code.textContent : pre.textContent) || "";
-  }
-  async function run() {
-    if (!window.mermaid) return;
-    var pres = collect();
-    if (!pres.length) return;
-    // Core mermaid themes: default | dark | forest | neutral | base
-    // (Quarto's "sandstone" is not a mermaid.js theme.)
-    window.mermaid.initialize({
-      startOnLoad: false,
-      theme: "neutral",
-      securityLevel: "loose",
-      flowchart: { htmlLabels: true, curve: "basis" }
-    });
-    var nodes = pres.map(function (pre, i) {
-      var div = document.createElement("div");
-      div.className = "mermaid";
-      div.id = "pkgdown-mermaid-" + i;
-      div.textContent = textOf(pre);
-      pre.replaceWith(div);
-      return div;
-    });
-    try {
-      await window.mermaid.run({ nodes: nodes });
-    } catch (e) {
-      console.warn("Mermaid render failed:", e);
-    }
-  }
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", run);
-  } else {
-    run();
-  }
-})();
-</script>
-</body>
+  after_body.html
+
+  </body>
 </html>

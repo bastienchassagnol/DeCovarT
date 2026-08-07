@@ -28,7 +28,9 @@ deconvolute_ratios(
 - signature_matrix:
 
   Mean signature \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\
-  (rownames = genes, colnames = cell types).
+  (rownames = genes, colnames = cell types). Used as a frequentist
+  **plug-in** for unobserved latent cell-type profiles
+  \\\boldsymbol{x}\_{\cdot j}\\.
 
 - bulk_expression:
 
@@ -59,7 +61,7 @@ deconvolute_ratios(
 ## Value
 
 A `tibble` of estimated \\\hat{\boldsymbol{p}}\\ and metrics, after
-[`enforce_identifiability()`](https://bastienchassagnol.github.io/DeCovarT/reference/enforce_identifiability.md).
+[`repair_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/repair_simplex.md).
 
 ## See also
 

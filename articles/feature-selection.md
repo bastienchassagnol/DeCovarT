@@ -1,7 +1,5 @@
 # Feature selection for reference-based deconvolution
 
-## 1 Scope
-
 This vignette surveys **feature selection for reference-based
 (signature-based) deconvolution**—methods that recover cellular
 proportions \boldsymbol{p} from a bulk mixture using a purified
@@ -54,20 +52,20 @@ Figure 1: Layout of this vignette: univariate and multivariate
 selection, each split into one-versus-others then all-versus-all,
 followed by perspectives for continuous cell states.
 
-Sections are cross-linked below: [Section 3](#sec-preprocess) builds
-moments; [Section 4](#sec-precision-timing) places sparse
+Sections are cross-linked below: [Section 2](#sec-preprocess) builds
+moments; **?@sec-precision-timing** places sparse
 \boldsymbol{\Omega}\_{j} estimation after gene filtering;
-[Section 5](#sec-univariate) and [Section 6](#sec-multivariate) score
-genes; [Section 7](#sec-four-scores) and [Section 8](#sec-pareto-panel)
-assemble a working panel; [Section 9](#sec-cv-selection) and
-[Section 10](#sec-recommended) assemble a pipeline;
-[Section 11](#sec-perspectives) covers continua, Markov blankets,
-mechanistic priors (see [Section 11.1](#sec-mechanistic)),
-information-optimal design as an extension (see
-[Section 11.2](#sec-optimal-design)), and caveats (see
-[Section 11.5](#sec-caveats)).
+[Section 3](#sec-univariate) and [Section 4](#sec-multivariate) score
+genes; [Section 4.4](#sec-four-scores) and
+[Section 5](#sec-pareto-panel) assemble a working panel;
+[Section 6.5.1](#sec-cv-selection) and [Section 5.1](#sec-recommended)
+assemble a pipeline; [Section 6](#sec-perspectives) covers continua,
+Markov blankets, mechanistic priors (see
+[Section 6.1](#sec-mechanistic)), information-optimal design as an
+extension (see [Section 6.2](#sec-optimal-design)), and caveats (see
+[Section 6.5](#sec-caveats)).
 
-## 2 Notation
+## 1 Notation
 
 We align notation with the DeCovarT generative model. Let G genes and J
 cell types index the purified means
@@ -103,7 +101,7 @@ symmetric positive-definite matrix (see also the [synthetic
 scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html#sec-geometric-score)
 vignette).
 
-## 3 Preprocessing shared by all strategies
+## 2 Preprocessing shared by all strategies
 
 Before scoring genes:
 
@@ -116,7 +114,7 @@ Before scoring genes:
     **linear** scale (counts, CPM, or TPM). Log-space breaks the mixture
     linearity in [Equation 1](#eq-mixture). Variance stabilisation for
     *single-cell* QC is handled separately below (see
-    [Section 3.1](#sec-sctransform)).
+    [Section 2.1](#sec-sctransform)).
 3.  Filter genes with poor bulk detectability, extreme zero inflation
     after pseudobulking, strong donor instability, or systematic sc–bulk
     discordance.
@@ -127,7 +125,7 @@ Before scoring genes:
     ([Jin and Liu 2021](#ref-jinBenchmarkRNAseqDeconvolution2021);
     [Racle et al. 2017](#ref-racleSimultaneousEnumerationCancer2017)).
 
-### 3.1 Variance stabilisation and highly variable genes
+### 2.1 Variance stabilisation and highly variable genes
 
 Single-cell count matrices mix **technical** depth noise with
 **biological** cell-type variability. Regularised negative-binomial
@@ -179,8 +177,8 @@ intercept) is
 labelled type against the **global mean expression across cell types and
 samples**. Rank genes by residual variance (or the corresponding model F
 / deviance explained) and keep the top 2{,}000 HVGs as the working
-universe for the selectors in [Section 5](#sec-univariate) and
-[Section 6](#sec-multivariate). Downstream deconvolution still uses
+universe for the selectors in [Section 3](#sec-univariate) and
+[Section 4](#sec-multivariate). Downstream deconvolution still uses
 **linear-scale** \mu\_{gj} on that gene set ([Sturm et al.
 2019](#ref-sturmComprehensiveEvaluationTranscriptomebased2019)).
 
@@ -191,43 +189,23 @@ universe for the selectors in [Section 5](#sec-univariate) and
 > or heavy tails indicate that the offset / covariate design is
 > misspecified before any marker ranking.
 
-## 4 When to estimate sparse precision matrices
+> **Note 2: ℹ️ When to estimate sparse precision matrices**
+>
+> Sparse cell-type precision matrices \boldsymbol{\Omega}\_{j} are
+> inputs to multivariate selectors. However, they should **not** be
+> estimated on the full transcriptome first, since even high dimensional
+> techniques, such as graphical lasso is computationally heavy an
+> unstable when G\gg n.
+>
+> Instead, it is recommended to **filter and subset first**, then
+> estimate networks.
 
-Sparse cell-type precision matrices \boldsymbol{\Omega}\_{j} (and the
-implied covariances
-\boldsymbol{\Sigma}\_{j}=\boldsymbol{\Omega}\_{j}^{-1}) are inputs to
-multivariate selectors, overlap monitors and Fisher-design extensions
-([Section 6.2.1](#sec-indeed), [Section 6.3.4](#sec-overlap),
-[Section 11.2](#sec-optimal-design), [Section 11.4](#sec-markov-seeds)).
-They should **not** be estimated on the full transcriptome first.
-
-Even with graphical lasso / glasso, G\gg n after donor-level pseudobulk
-aggregation makes support recovery unstable and computationally heavy.
-Prefer this order:
-
-1.  Drop noisy, undetectable or technically unreliable genes
-    ([Section 3](#sec-preprocess)).
-2.  Restrict to a compact informative universe—typically the top HVGs
-    after `SCTransform` ([Section 3.1](#sec-sctransform)), optionally
-    refined by univariate candidate scores
-    ([Section 5.1](#sec-univ-one-vs-others),
-    [Section 5.1.3](#sec-gini-entropy))—before fitting per-type sparse
-    \boldsymbol{\Omega}\_{j}.
-3.  Use the resulting sparse \boldsymbol{\Omega}\_{j} /
-    \boldsymbol{\Sigma}\_{j} in the multivariate and all-versus-all
-    stages that require them; univariate mean-only ranks do not need a
-    full precision estimate.
-
-In short: **filter and subset first, then estimate networks**; keep the
-sparse second-moment objects for every subsequent step that uses
-covariance or partial correlation.
-
-## 5 Univariate approaches
+## 3 Univariate approaches
 
 Univariate selectors score each gene marginally (or with a simple
 contrast) and ignore partial correlations among genes.
 
-### 5.1 One versus others
+### 3.1 One versus others
 
 Classical signature pipelines score gene g for cell type j against the
 remaining types, then concatenate per-type shortlists ([Abbas et al.
@@ -235,7 +213,7 @@ remaining types, then concatenate per-type shortlists ([Abbas et al.
 2015](#ref-newmanRobustEnumerationCell2015); [Finotello et al.
 2019](#ref-finotello_etal19)).
 
-#### 5.1.1 Differential expression and fold-change ranks
+#### 3.1.1 Differential expression and fold-change ranks
 
 `limma`–voom, `edgeR` and `DESeq2` remain the workhorses for
 one-versus-rest contrasts ([Ritchie et al.
@@ -252,7 +230,7 @@ xCell-style filters further drop non-haematopoietic contaminants
 ([Finotello et al. 2019](#ref-finotello_etal19); [Aran et al.
 2017](#ref-aranXCellDigitallyPortraying2017)).
 
-#### 5.1.2 ANOVA F-test
+#### 3.1.2 ANOVA F-test
 
 Wang et al. rank genes by the nested-model F statistic comparing a
 cell-type factor to an intercept-only model ([Wang et al.
@@ -271,7 +249,7 @@ Classical ANOVA inference for [Equation 4](#eq-anova-f) assumes, among
 other things:
 
 - independent observations (hence donor-level pseudobulks rather than
-  cells as replicates; [Section 3](#sec-preprocess));
+  cells as replicates; [Section 2](#sec-preprocess));
 - roughly **Gaussian conditional residuals** x\_{gi}\mid
   z\_{i}=j\sim\mathcal{N}(\mu\_{gj},\sigma\_{g}^{2}) with common
   within-type variance (homoscedasticity);
@@ -283,7 +261,7 @@ a GLM / `limma`–voom pipeline ([Ritchie et al.
 2015](#ref-ritchieLimmaPowersDifferential2015a)) and treat F\_{g} as a
 ranking score rather than a calibrated p-value.
 
-#### 5.1.3 Gini and entropy specificity
+#### 3.1.3 Gini and entropy specificity
 
 `BioQC` and `DeconvExplorer` compact signatures with Gini or entropy
 scores over the row \boldsymbol{\mu}\_{g\cdot} ([Zhang et al.
@@ -363,12 +341,12 @@ Concatenating the top-k genes per type therefore often inflates
 GLS remain unstable ([Newman et al.
 2015](#ref-newmanRobustEnumerationCell2015)). Likewise, edges in a
 partial-correlation graph flag candidate influences, not assured
-independence. That is why [Section 5.1](#sec-univ-one-vs-others) must be
+independence. That is why [Section 3.1](#sec-univ-one-vs-others) must be
 followed by an all-versus-all stage (see
-[Section 5.2](#sec-univ-all-vs-all) and
-[Section 6.3](#sec-multi-all-vs-all)).
+[Section 3.2](#sec-univ-all-vs-all) and
+[Section 4.3](#sec-multi-all-vs-all)).
 
-> **Warning 2: ⚠️ Limitation of one-versus-rest concatenation**
+> **Warning 3: ⚠️ Limitation of one-versus-rest concatenation**
 >
 > Union of per-type markers often yields a multicollinear
 > \boldsymbol{\mu}\_{\mathcal{G}} that is still too large for stable
@@ -376,11 +354,11 @@ followed by an all-versus-all stage (see
 > 2015](#ref-newmanRobustEnumerationCell2015); [Avila Cobos et al.
 > 2018](#ref-avilacobosComputationalDeconvolutionTranscriptomics2018)).
 > A global all-versus-all refinement is therefore required (see
-> [Section 6.3](#sec-multi-all-vs-all)).
+> [Section 4.3](#sec-multi-all-vs-all)).
 
-### 5.2 All versus all
+### 3.2 All versus all
 
-#### 5.2.1 Genetic algorithms (`AutoGeneS`)
+#### 3.2.1 Genetic algorithms (`AutoGeneS`)
 
 `AutoGeneS` searches gene subsets with a multi-objective genetic
 algorithm that **minimises inter-population correlation** while
@@ -393,13 +371,13 @@ genetic searches appear in network module discovery (e.g. MOGAMUN)
 full J-column signature rather than on independent one-versus-rest
 lists.
 
-## 6 Multivariate approaches
+## 4 Multivariate approaches
 
 Multivariate selectors use joint dependence—covariance, precision, or
 information matrices—so that a gene is scored by how it improves
 identifiability of \boldsymbol{p} under [Equation 1](#eq-mixture).
 
-### 6.1 Limitations of mean-only condition numbers
+### 4.1 Limitations of mean-only condition numbers
 
 Condition-number pruning (see [Equation 2](#eq-condition-number))
 operates almost exclusively on the **mean** signature
@@ -427,23 +405,23 @@ Figure 5: Condition-number pruning on correlated developmental cell
 types (gastruloid continuum). Mean-only \kappa filtering can concentrate
 signal in dominant collinear lineages and shrink closely related states.
 
-> **Important 3: ⚠️ When \kappa(\boldsymbol{\mu}) is not enough**
+> **Important 4: ⚠️ When \kappa(\boldsymbol{\mu}) is not enough**
 >
 > Use \kappa as a **diagnostic** of mean geometry, not as the sole
 > selector, whenever cell states form a continuum or when discriminatory
 > signal lives in \boldsymbol{\Sigma}\_{j} (see
-> [Section 6.2.1](#sec-indeed) and [Section 11.2](#sec-optimal-design)).
+> [Section 4.2.1](#sec-indeed) and [Section 6.2](#sec-optimal-design)).
 > Pair it with overlap (see [Equation 12](#eq-overlap)), Fisher
 > information (see [Equation 17](#eq-fisher)), or differential-network
 > candidates.
 
-### 6.2 One versus others
+### 4.2 One versus others
 
 Univariate DGE ignores gene–gene interactions and therefore requires
 aggressive multiple-testing correction without modelling network
 rewiring. Differential-network and GGM methods address that gap.
 
-#### 6.2.1 `INDEED`: an ad-hoc approach to Differential networks
+#### 4.2.1 `INDEED`: an ad-hoc approach to Differential networks
 
 `INDEED` combines mean (fold-change) evidence with tests of changes in
 **partial correlation**, ranking genes that both shift in mean **and**
@@ -492,12 +470,12 @@ g} \bigl\lvert\Delta\mathrm{pc}\_{gg'}\bigr\rvert \\
 and ranks genes by \mathrm{AS}\_{g} ([Zuo et al.
 2016](#ref-zuoINDEEDIntegratedDifferential2016)). Relative to pure DGE,
 this favours genes whose local **undirected** neighbourhood (Markov
-boundary in the GGM sense; [Section 11.4](#sec-markov-seeds)) differs
+boundary in the GGM sense; [Section 6.4](#sec-markov-seeds)) differs
 between the focal type and the rest. Related ideas appear in weighted
 graphical-lasso pipelines with PPI priors and differential-network
 scores (DNS).
 
-#### 6.2.2 Janine and the Cooperative Lasso: a statistically grounded approach to differential networks
+#### 4.2.2 Janine and the Cooperative Lasso: a statistically grounded approach to differential networks
 
 Cell-type precision matrices
 \boldsymbol{\Omega}\_{j}=\boldsymbol{\Sigma}\_{j}^{-1} estimated by
@@ -512,16 +490,16 @@ PPI-informed edge weights ([Chiquet et al.
 shrink the combinatorial space of undirected graphs explored per cell
 type.
 
-> **Warning 4: ⚠️ From one-versus-others networks to a panel**
+> **Warning 5: ⚠️ From one-versus-others networks to a panel**
 >
 > Network-based one-versus-others lists still concatenate into a
-> redundant design (see [Note 2](#nte-ovr-concat)). Treat them as
+> redundant design (see [Note 3](#nte-ovr-concat)). Treat them as
 > **candidate generators** for the all-versus-all stage in
-> [Section 6.3](#sec-multi-all-vs-all).
+> [Section 4.3](#sec-multi-all-vs-all).
 
-### 6.3 All versus all
+### 4.3 All versus all
 
-#### 6.3.1 Variance-weighted condition number
+#### 4.3.1 Variance-weighted condition number
 
 With gene-specific uncertainties \tau\_{g}^{2} (biological + sampling +
 optional sc–bulk discordance), standardise rows and evaluate
@@ -538,9 +516,9 @@ where \boldsymbol{W}\_{\mathcal{G}}=\mathrm{diag}(1/\tau\_{g}^{2}) and
 \kappa(\boldsymbol{\mu}\_{\mathcal{G}}) alone can favour quiet but
 biased genes ([Gong and Szustakowski
 2013](#ref-gongDeconRNASeqStatisticalFramework2013)); see also
-[Section 6.1](#sec-kappa-limits).
+[Section 4.1](#sec-kappa-limits).
 
-#### 6.3.2 Sparse classifiers as candidate generators
+#### 4.3.2 Sparse classifiers as candidate generators
 
 Beyond geometric scores on \boldsymbol{\mu} and \boldsymbol{\Sigma},
 multiclass models that treat cell type as a categorical response are
@@ -568,28 +546,28 @@ fraction of replicates ([Meinshausen and Bühlmann
   when a lineage taxonomy is known.
 
 Treat non-zero coefficients as proposals for
-[Section 6.3.4](#sec-overlap), then refine by nested cross-validated
-signature selection; see [Section 9](#sec-cv-selection).
+[Section 4.3.4](#sec-overlap), then refine by nested cross-validated
+signature selection; see [Section 6.5.1](#sec-cv-selection).
 
-| Method | Role | Caveat |
+| \$Method\$ | \$Role\$ | \$Caveat\$ |
 |----|----|----|
-| Multinomial elastic net | Joint classification; \$\ell_1\$ sparsity + \$\ell_2\$ grouping of correlates | May still retain collinear markers unless \$\ell_2\$ is strong |
-| Sparse LDA | Direct class-separation criterion with sparse loadings | Needs more observations than pure logistic paths |
-| Group / tree lasso | Pathway- or hierarchy-aware block selection | Requires predefined groups or a taxonomy tree |
+| \$Multinomial elastic net\$ | \$Joint classification; \$\ell_1\$ sparsity + \$\ell_2\$ grouping of correlates\$ | \$May still retain collinear markers unless \$\ell_2\$ is strong\$ |
+| \$Sparse LDA\$ | \$Direct class-separation criterion with sparse loadings\$ | \$Needs more observations than pure logistic paths\$ |
+| \$Group / tree lasso\$ | \$Pathway- or hierarchy-aware block selection\$ | \$Requires predefined groups or a taxonomy tree\$ |
 
 Table 1: Sparse multiclass methods as panel candidate generators.
 
-#### 6.3.3 Information-optimal panel design (pointer)
+#### 4.3.3 Information-optimal panel design (pointer)
 
 D- / E- / A-optimal criteria based on the mixture Fisher information,
 including the proportion-dependent bulk covariance
 \boldsymbol{V}(\boldsymbol{p}), are developed as a **perspective /
-extension** in [Section 11.2](#sec-optimal-design). In the main
+extension** in [Section 6.2](#sec-optimal-design). In the main
 multivariate path we prefer overlap and related separation monitors
-([Section 6.3.4](#sec-overlap)) together with nested cross-validated
-panel selection ([Section 9](#sec-cv-selection)).
+([Section 4.3.4](#sec-overlap)) together with nested cross-validated
+panel selection ([Section 6.5.1](#sec-cv-selection)).
 
-#### 6.3.4 Marker-separation metrics
+#### 4.3.4 Marker-separation metrics
 
 `AutoGeneS` optimises correlation and centroid distance separately
 ([Aliee and Theis 2021](#ref-alieeAutoGeneSAutomaticGene2021)).
@@ -609,33 +587,36 @@ multivariate (right) under equal or unequal covariance, with MixSim
 overlap, Jeffreys (symmetric KL), Chernoff information and 2-Wasserstein
 / Bures as companion metrics.
 
-> **Note 5: ℹ️ Probabilistic separation metrics**
+> **Note 6: ℹ️ Probabilistic separation metrics**
 >
 > **`MixSim` pairwise overlap.** For densities f\_{j} and f\_{\ell}, the
-> one-sided mass \omega\_{j\mid\ell}=\Pr\_{X\sim
-> f\_{j}}(f\_{\ell}(X)\>f\_{j}(X)) yields the pairwise overlap
+> one-sided directional mass \Omega\_{j\ell}=\Pr\_{X\sim f\_{j}}(X\text{
+> classified as }\ell) (Bayes / MAP rule) yields the pairwise overlap
 >
-> \omega\_{j\ell} = \omega\_{j\mid\ell}+\omega\_{\ell\mid j} =
-> \int\min\bigl(f\_{j}(x),f\_{\ell}(x)\bigr)\\dx \in\[0,1\], \tag{11}
+> \omega\_{j\ell} = \Omega\_{j\ell}+\Omega\_{\ell j} \in\[0,1\] \tag{11}
 >
-> with 0 for perfectly separable Gaussians and 1 for identical laws
-> ([Melnykov et al. 2012](#ref-melnykovMixSimPackageSimulating2012),
-> [2024](#ref-R-MixSim)). Mixture proportions enter the MAP rule inside
-> `MixSim`; they should not be multiplied into \omega\_{j\mid\ell} a
-> second time when reporting pairwise overlap. The unweighted average
-> \overline{\omega}=\tfrac{2}{J(J-1)}\sum\_{j\<\ell}\omega\_{j\ell} is a
-> natural panel monitor.
+> (with the equal-prior geometric reading
+> \omega\_{j\ell}=\int\min(f\_{j},f\_{\ell}) as a special case), taking
+> the value 0 for perfectly separable Gaussians and approaching 1 for
+> identical laws ([Melnykov et al.
+> 2012](#ref-melnykovMixSimPackageSimulating2012),
+> [2024](#ref-R-MixSim)). Mixture proportions \boldsymbol{p} already
+> enter the MAP rule inside
+> [`MixSim::overlap()`](https://rdrr.io/pkg/MixSim/man/overlap.html);
+> they must **not** be multiplied into \Omega\_{j\ell} a second time
+> when reporting pairwise overlap (that double-counts the prior and no
+> longer matches MixSim’s `BarOmega`).
 >
 > Package helper
 > [`compute_average_overlap()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_overlap.md)
-> instead returns a **proportion-weighted** average of `MixSim`’s
-> directional masses,
+> returns MixSim’s unweighted average of pairwise overlaps,
 >
-> \overline{\Omega} = \frac{2}{J(J-1)} \sum\_{1\le j\<\ell\le J}
-> \bigl(p\_{j}\Omega\_{j\ell}+p\_{\ell}\Omega\_{\ell j}\bigr), \tag{12}
+> \overline{\omega} = \frac{2}{J(J-1)} \sum\_{1\le j\<\ell\le J}
+> \bigl(\Omega\_{j\ell}+\Omega\_{\ell j}\bigr) = \texttt{BarOmega},
+> \tag{12}
 >
-> which emphasises abundant types in the mixture prior. Lower values of
-> either summary correspond to better-separated purified profiles.
+> which is the natural panel-separation monitor. Lower values correspond
+> to better-separated purified profiles.
 >
 > **Jeffreys (symmetric KL) divergence.** With
 > J(f\_{j},f\_{\ell})=D\_{\mathrm{KL}}(f\_{j}\parallel
@@ -689,12 +670,12 @@ overlap, Jeffreys (symmetric KL), Chernoff information and 2-Wasserstein
 > is a true metric and reduces to Euclidean mean distance when
 > covariances coincide.
 
-| Metric | Range | Focus | Notes |
+| \\Metric\\ | \\Range\\ | \\Focus\\ | \\Notes\\ |
 |----|----|----|----|
-| \`MixSim\` overlap | \$\[0, 1\]\$ | Bayes misclassification mass | Monte Carlo in \`MixSim\`; intuitive |
-| Jeffreys (sym. KL) | \$\[0, \infty)\$ | Average log-likelihood gap | Closed form for Gaussians |
-| Chernoff information | \$\[0, \infty)\$ | Optimal error exponent | Needs a 1-D line search in \$t\$ |
-| \$W\_{2}\$ (2-Wasserstein) | \$\[0, \infty)\$ | Geometric mean + covariance shape | Matrix square-root cost \$O(d^{3})\$ |
+| \$`MixSim` overlap\$ | \$\$\[0, 1\]\$\$ | \\Bayes misclassification mass\\ | \\Monte Carlo in \`MixSim\`; intuitive\\ |
+| \\Jeffreys (sym. KL)\\ | \$\$\[0, \infty)\$\$ | \\Average log-likelihood gap\\ | \\Closed form for Gaussians\\ |
+| \\Chernoff information\\ | \$\$\[0, \infty)\$\$ | \\Optimal error exponent\\ | \$Needs a 1-D line search in \$t\$\$ |
+| \$\$W\_{2}\$ (2-Wasserstein)\$ | \$\$\[0, \infty)\$\$ | \\Geometric mean + covariance shape\\ | \$Matrix square-root cost \$O(d^{3})\$\$ |
 
 Table 2: Comparison of purified-Gaussian separation metrics for panel
 monitoring.
@@ -703,14 +684,14 @@ Overlap / Jeffreys / Chernoff / W\_{2} monitor **class separation** of
 purified laws. Information-optimal (D/E/A) criteria in
 [Equation 18](#eq-optimal-design) instead target **estimation** of
 \boldsymbol{p} under [Equation 1](#eq-mixture)
-([Section 11.2](#sec-optimal-design)); the two families need not agree.
+([Section 6.2](#sec-optimal-design)); the two families need not agree.
 Prefer overlap for an interpretable error rate, Jeffreys for a
 closed-form divergence, Chernoff when a single discriminability index is
 desired, and W\_{2} when covariance shape matters ([Melnykov et al.
 2024](#ref-R-MixSim); [Aliee and Theis
 2021](#ref-alieeAutoGeneSAutomaticGene2021)).
 
-## 7 Working shortlist: four complementary scores
+### 4.4 Conclusion: refined selection of four complementary scores
 
 For a first rough candidate pool we retain **four** complementary
 screens rather than the full metric zoo. Two are **label-aware**
@@ -728,7 +709,7 @@ between purified Gaussians:
     sparse QDA, elastic net is less sensitive to non-Gaussian residuals
     and to poorly estimated type-specific covariances in the G\gg n
     pseudobulk regime; treat non-zeros as proposals (see
-    [Section 6.3.2](#sec-sparse-classifiers)).
+    [Section 4.3.2](#sec-sparse-classifiers)).
 3.  **Jeffreys (symmetric KL).** Closed-form mean–covariance discrepancy
     J(f\_{j},f\_{\ell}) ([Equation 13](#eq-jeffreys)):
     information-theoretic, unbounded, sensitive to both location and
@@ -746,7 +727,7 @@ discriminative evidence. Take the **union** of top-ranked genes from
 each screen (with donor-level stability where possible) as the working
 universe \mathcal{G}\_{0} before multi-objective compaction.
 
-## 8 Multi-objective panel refinement
+## 5 Multi-objective panel refinement
 
 The shortlist \mathcal{G}\_{0} is typically still too large and
 collinear for stable deconvolution. Following `AutoGeneS` ([Aliee and
@@ -759,7 +740,7 @@ the selected genes:
   as \log\kappa_2; see [Equation 2](#eq-condition-number));
 - minimise average `MixSim` overlap \overline{\omega} (or maximise
   average Jeffreys, if preferred) over type pairs
-  ([Section 6.3.4](#sec-overlap)).
+  ([Section 4.3.4](#sec-overlap)).
 
 These objectives trade off: genes that separate rare types can inflate
 \kappa_2, while an aggressively well-conditioned panel can discard the
@@ -779,10 +760,10 @@ evaluate \kappa_2 and \overline{\omega} on the induced panel.
 ``` r
 
 # Illustrative NSGA-II call (requires {mco}). Replace bi_objective_func
-# with panel κ2 and MixSim overlap computed from μ_G and Σ_j|G.
+# with panel <U+03BA>2 and MixSim overlap computed from <U+03BC>_G and <U+03A3>_j|G.
 bi_objective_func <- function(x) {
   # x: decision variables (e.g. soft gene weights in [0, 1]^d)
-  f1 <- x[1]^2 + x[2]^2 # stand-in for κ2(μ_G)
+  f1 <- x[1]^2 + x[2]^2 # stand-in for <U+03BA>2(<U+03BC>_G)
   f2 <- (x[1] - 1)^2 + x[2]^2 # stand-in for average MixSim overlap
   c(f1, f2)
 }
@@ -802,81 +783,36 @@ mco_res <- mco::nsga2(
 Scalar alternatives (weighted sums inside `GA` / `GenSA`) remain useful
 for auditable single-objective refinement; report several
 Pareto-representative panels rather than one arbitrary knee when handing
-the signature to nested CV ([Section 9](#sec-cv-selection)).
+the signature to nested CV ([Section 6.5.1](#sec-cv-selection)).
 
-## 9 Nested cross-validated signature selection on pseudobulks and matched bulk aliquots
+### 5.1 Recommended pipeline
 
-When matched single-cell and bulk aliquots are available
-(e.g. Kassandra-style benchmarks) ([Zaitsev et al.
-2022](#ref-zaitsevPreciseReconstructionTME2022)), compare candidate
-signatures by the out-of-sample performance of the **intended**
-deconvolution estimator. This is a downstream-task assessment of
-signature utility rather than a gene-level score alone. (In the
-classical feature-selection taxonomy this is sometimes called a
-*wrapper*; we refer to it here as **nested cross-validated signature
-selection**.)
-
-Use **donor-grouped nested cross-validation**. Within each outer
-training partition, repeat all data-dependent steps—normalisation, HVG
-filtering, candidate generation, gene ranking, panel construction and
-deconvolution-parameter tuning. The **inner** loop selects the panel and
-its size by prespecified criteria (overall proportion RMSE, worst-type
-error, rare-cell recall). Apply the **one-standard-error rule inside the
-inner loop** to prefer the smallest panel whose performance remains
-compatible with the empirically best panel. Do **not** choose panel size
-from outer-fold test error.
-
-After selection, refit the full signature and deconvolution pipeline on
-the outer training partition and evaluate once on matched bulk aliquots
-from the held-out donors. Aggregate outer-fold predictions to estimate
-generalisation error. Matched experimental bulks are preferable to
-simulator-only mixtures: a panel tuned only against a mixture simulator
-can overfit the simulator and miss platform discrepancies ([Sturm et al.
-2019](#ref-sturmComprehensiveEvaluationTranscriptomebased2019); [Jin and
-Liu 2021](#ref-jinBenchmarkRNAseqDeconvolution2021)). Retain an
-independent cohort for external validation when available. Nested CV on
-one study remains **internal** validation, not external.
-
-| Stage | Examples | Role |
-|----|----|----|
-| Univariate 1 vs others | DE / \$F\$-test / Gini–entropy | Candidate generation |
-| Univariate all vs all | \`AutoGeneS\` | Panel compaction |
-| Multivariate 1 vs others | \`INDEED\`; sparse GGM | Network-aware candidates |
-| Four-score shortlist | \`DESeq2\`; \`glmnet\`; Jeffreys; \`MixSim\` | Working universe \$\mathcal{G}\_{0}\$ |
-| Pareto panel refinement | \`mco::nsga2\` (\$\kappa_2\$, overlap) | Non-dominated signature panels |
-| Nested CV selection | Donor-grouped nested CV on matched bulks | Panel-size selection and out-of-sample assessment |
-
-Table 3: Compact map from selection strategy to typical role in a
-reference-based pipeline.
-
-## 10 Recommended pipeline
-
-1.  **Reference moments** (see [Section 3](#sec-preprocess)).
+1.  **Reference moments** (see [Section 2](#sec-preprocess)).
     Donor-level pseudobulks; estimate \boldsymbol{\mu} and variance
     components on a linear scale; optional `SCTransform` / top-2{,}000
-    HVGs (see [Section 3.1](#sec-sctransform)) **without** regressing
+    HVGs (see [Section 2.1](#sec-sctransform)) **without** regressing
     out cell type.
 2.  **Reliability filter.** Drop unstable / undetectable / discordant
     genes; optionally inflate \tau\_{g}^{2} by observed sc–bulk
     discrepancy.
-3.  **Four-score shortlist** (see [Section 7](#sec-four-scores)). Union
-    of `DESeq2` DEGs, `glmnet` elastic-net hits, high Jeffreys, and low
-    `MixSim` overlap (optionally with Gini / `INDEED` / stability
-    selection) → working universe \mathcal{G}\_{0}.
-4.  **Pareto panel refinement** (see [Section 8](#sec-pareto-panel)).
+3.  **Four-score shortlist** (see [Section 4.4](#sec-four-scores)).
+    Union of `DESeq2` DEGs, `glmnet` elastic-net hits, high Jeffreys,
+    and low `MixSim` overlap (optionally with Gini / `INDEED` /
+    stability selection) → working universe \mathcal{G}\_{0}.
+4.  **Pareto panel refinement** (see [Section 5](#sec-pareto-panel)).
     NSGA-II / greedy search minimising
     \kappa_2(\boldsymbol{\mu}\_{\mathcal{G}}) and average overlap; keep
     several non-dominated panels.
 5.  **Cross-validated panel selection** (see
-    [Section 9](#sec-cv-selection)). Use donor-grouped nested
+    [Section 6.5.1](#sec-cv-selection)). Use donor-grouped nested
     cross-validation on matched bulk aliquots; select the panel and its
     size in the **inner** loop and estimate deconvolution performance in
-    the **outer** loop. Heed [Section 11.5](#sec-caveats) on external
+    the **outer** loop. Heed [Section 6.5](#sec-caveats) on external
     validation.
-6.  **Optional extension** (see [Section 11.2](#sec-optimal-design)).
+6.  **Optional extension** (see [Section 6.2](#sec-optimal-design)).
     Information-optimal (D/E/A) subset search over a composition grid if
     Fisher-design criteria are desired beyond overlap monitors.
-7.  **Mechanistic annotation** (see [Section 11.1](#sec-mechanistic)).
+7.  **Mechanistic annotation** (see [Section 6.1](#sec-mechanistic)).
     Optional `CARNIVAL` / `CORNETO` pathway hypotheses as soft coverage
     constraints.
 
@@ -901,9 +837,9 @@ The distinctive contribution for DeCovarT-style second-generation models
 is a **bulk-calibrated, variance-weighted information criterion plus
 overlap**, exploiting paired sc/bulk designs when available.
 
-## 11 Perspectives
+## 6 Perspectives
 
-### 11.1 Mechanistic priors
+### 6.1 Mechanistic priors
 
 PPI / TF networks and pathway modules can regularise both GGM estimation
 and cooperative penalties ([Chiquet et al.
@@ -938,7 +874,7 @@ Use `CARNIVAL` / `CORNETO` for **annotation and soft constraints**, not
 as a replacement for overlap in [Equation 12](#eq-overlap) or Fisher
 design in [Equation 18](#eq-optimal-design).
 
-### 11.2 Information-optimal design as a perspective
+### 6.2 Information-optimal design as a perspective
 
 As a potential extension beyond mean geometry and overlap monitors,
 candidate panels can be scored by alphabetical optimality criteria on
@@ -1001,7 +937,7 @@ Figure 9: D-, E- and A-optimal design for gene-panel selection: shared
 Fisher information \mathcal{I}\_{\mathcal{G}}, confidence-ellipse
 intuition, and links to condition number / Gram volume.
 
-> **Note 6: ℹ️ Pros and cons of D / E / A**
+> **Note 7: ℹ️ Pros and cons of D / E / A**
 >
 > - **D-optimality** (\log\det): shrinks the volume of the asymptotic
 >   confidence ellipsoid for \boldsymbol{p}. Efficient in an average
@@ -1017,7 +953,7 @@ intuition, and links to condition number / Gram volume.
 > when \|\mathcal{G}\| is moderate. For combinatorial search, use a
 > greedy / Fedorov exchange as the auditable baseline, and a genetic
 > algorithm only when the objective mixes covariance, overlap, or
-> mechanistic constraints; see [Section 11.1](#sec-mechanistic).
+> mechanistic constraints; see [Section 6.1](#sec-mechanistic).
 
 **Relation to** \kappa and the Gram volume. If
 \boldsymbol{\Sigma}\_{\mathcal{G}}=\boldsymbol{I}, then
@@ -1030,7 +966,7 @@ scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scena
 vignette discusses the same objects as `AutoGeneS`-style scalar
 summaries of \boldsymbol{\mu}.
 
-##### 11.2.0.1 Software for D-optimal search in R
+##### 6.2.0.1 Software for D-optimal search in R
 
 For **standard** D-optimal experiments on a candidate factor grid,
 `skpr` is a strong general-purpose choice (D / A / E / G / I, blocking,
@@ -1089,7 +1025,7 @@ d_objective <- function(selected, information_matrices, ridge = 1e-8) {
 # Optimise the binary selection with a custom exchange / GenSA / GA.
 ```
 
-### 11.3 Continuous states, potency and archetypes
+### 6.3 Continuous states, potency and archetypes
 
 Many tissues are better described by **continua** (differentiation
 trajectories, activation gradients) than by discrete labels. In that
@@ -1104,9 +1040,9 @@ contrasts with scores along inferred latent axes, and evaluating overlap
 Until such methods mature, hierarchical discrete panels (lineage →
 subtype) remain a pragmatic compromise ([Wang et al.
 2019](#ref-wangBulkTissueCell2019)). See also
-[Section 6.1](#sec-kappa-limits).
+[Section 4.1](#sec-kappa-limits).
 
-### 11.4 Seeds and undirected Markov boundaries
+### 6.4 Seeds and undirected Markov boundaries
 
 A complementary panel-expansion strategy starts from a small set of
 **seeds**—genes that are already highly discriminatory for
@@ -1126,7 +1062,7 @@ neighbours therefore adds genes that are **not** redundant once the seed
 is conditioned on—they carry residual information about the local
 dependency structure.
 
-> **Important 7: ⚠️ Undirected (U) separation, not d-separation**
+> **Important 8: ⚠️ Undirected (U) separation, not d-separation**
 >
 > This construction uses the **undirected** Markov property
 > (conditioning on neighbours in \boldsymbol{\Omega}). Classical
@@ -1152,15 +1088,15 @@ Operational sketch:
     [Equation 9](#eq-indeed-as)), or high contribution to
     \mathcal{I}\_{\mathcal{G}} (see [Equation 17](#eq-fisher)).
 2.  Estimate \boldsymbol{\Omega}\_{j} (or a differential precision) on
-    the HVG universe (see [Section 3.1](#sec-sctransform)).
+    the HVG universe (see [Section 2.1](#sec-sctransform)).
 3.  For each seed g, add its undirected neighbours
     \\g':\omega\_{gg'}\neq 0\\ (the Markov boundary).
 4.  Re-run all-versus-all compaction (see
-    [Section 11.2](#sec-optimal-design), [Section 6.3.4](#sec-overlap))
+    [Section 6.2](#sec-optimal-design), [Section 4.3.4](#sec-overlap))
     so that boundary expansion does not reintroduce mean-collinear bulk
-    (see [Note 2](#nte-ovr-concat)).
+    (see [Note 3](#nte-ovr-concat)).
 
-### 11.5 Caveats and leakage-free external validation
+### 6.5 Caveats and leakage-free external validation
 
 The screens and multi-objective refinement above are **proposal
 generators**, not a finished validation protocol. Three limitations
@@ -1178,9 +1114,9 @@ dominate current practice in this vignette:
     panel size on the **same** donors used to estimate \boldsymbol{\mu}
     and \boldsymbol{\Sigma}\_{j} leaks information and yields optimistic
     deconvolution error. Donor-grouped nested CV
-    ([Section 9](#sec-cv-selection)) must wrap HVG selection, the
-    four-score shortlist ([Section 7](#sec-four-scores)) and Pareto
-    refinement ([Section 8](#sec-pareto-panel)).
+    ([Section 6.5.1](#sec-cv-selection)) must wrap HVG selection, the
+    four-score shortlist ([Section 4.4](#sec-four-scores)) and Pareto
+    refinement ([Section 5](#sec-pareto-panel)).
 3.  **No external validation by default.** Nested CV on one study
     remains **internal**. An independent cohort, laboratory or platform
     is required before claiming transportability. Matched sc/bulk
@@ -1188,6 +1124,33 @@ dominate current practice in this vignette:
     hold-out when available ([Sturm et al.
     2019](#ref-sturmComprehensiveEvaluationTranscriptomebased2019); [Jin
     and Liu 2021](#ref-jinBenchmarkRNAseqDeconvolution2021)).
+
+#### 6.5.1 Nested CV on matched bulks
+
+When matched single-cell and bulk aliquots are available
+(e.g. Kassandra-style designs) ([Zaitsev et al.
+2022](#ref-zaitsevPreciseReconstructionTME2022)), score candidate
+signatures by **out-of-sample** performance of the intended
+deconvolution estimator (a wrapper-style assessment of panel utility).
+Prefer **donor-grouped nested CV**: in each outer training fold, re-run
+all data-dependent steps (normalisation, HVGs, four-score shortlist,
+Pareto refinement, deconvolution tuning). Select panel and size in the
+**inner** loop (overall RMSE, worst-type error, rare-cell recall;
+one-standard-error rule for smaller panels). Refit on the outer training
+donors and evaluate once on held-out matched bulks. Prefer experimental
+matched bulks over simulator-only mixtures ([Sturm et al.
+2019](#ref-sturmComprehensiveEvaluationTranscriptomebased2019); [Jin and
+Liu 2021](#ref-jinBenchmarkRNAseqDeconvolution2021)). Nested CV on one
+study is still **internal** validation.
+
+Typical stage roles in a reference-based pipeline: univariate
+1-vs-others (DE / F-test / Gini–entropy) for candidates; univariate
+all-vs-all (`AutoGeneS`) for compaction; multivariate 1-vs-others
+(`INDEED`, sparse GGM) for network-aware genes; four-score shortlist
+(`DESeq2`, `glmnet`, Jeffreys, `MixSim`) for working universe
+\mathcal{G}\_{0}; Pareto refinement (`mco::nsga2` on \kappa_2 and
+overlap) for non-dominated panels; nested CV for panel-size selection
+and assessment.
 
 [Figure 11](#fig-leakage-free-validation) sketches a leakage-aware
 workflow tailored to DeCovarT: recompute data-dependent features inside
@@ -1207,7 +1170,7 @@ nested CV with in-fold HVG / DE / panel construction, four-score
 shortlist and NSGA-II Pareto refinement, then external cohort assessment
 of deconvolution error.
 
-## 12 Software notes
+## 7 Software notes
 
 - Variance stabilisation / Pearson residuals: `sctransform` /
   `Seurat::SCTransform` ([Hafemeister and Satija
@@ -1235,8 +1198,8 @@ of deconvolution error.
   construction ([Hurtado and Pancaldi 2026](#ref-R-pipeML)).
 - Conventional D-optimal grids: `skpr::gen_design()`,
   `AlgDesign::optFederov()` ([Wheeler 2025](#ref-R-AlgDesign)) (see
-  [Section 11.2](#sec-optimal-design)); custom FIM + exchange / `GenSA`
-  / `GA` ([Gubian et al. 2025](#ref-R-GenSA); [Scrucca 2026](#ref-R-GA))
+  [Section 6.2](#sec-optimal-design)); custom FIM + exchange / `GenSA` /
+  `GA` ([Gubian et al. 2025](#ref-R-GenSA); [Scrucca 2026](#ref-R-GA))
   for proportion-dependent DeCovarT panels.
 - Mechanistic annotation: `CARNIVAL` / `CORNETO` ([Liu et al.
   2019](#ref-liuFromExpressionFootprints2019); [Rodriguez-Mier et al.

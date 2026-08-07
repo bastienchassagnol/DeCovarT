@@ -29,7 +29,8 @@ loglik_multivariate(p, y, mean_signature_matrix, Sigma)
 
 - mean_signature_matrix:
 
-  Numeric matrix \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\.
+  Numeric matrix \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\
+  (plug-in means).
 
 - Sigma:
 
@@ -48,7 +49,13 @@ Up to an additive constant independent of \\\boldsymbol{p}\\, \$\$
 (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\mathsf{T}}
 \boldsymbol{\Sigma}(\boldsymbol{p})^{-1}
 (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}). \$\$ Argument
-`mean_signature_matrix` stores \\\boldsymbol{\mu}\\.
+`mean_signature_matrix` stores the plug-in mean signature
+\\\boldsymbol{\mu}\\. Latent sample-specific profiles
+\\\boldsymbol{x}\_{\cdot j}\\ are **not** observed; the frequentist
+likelihood treats \\\boldsymbol{\mu}\\ as a fixed proxy. Estimating
+those latents jointly with \\\boldsymbol{p}\\ requires a Bayesian / MAP
+step (see
+[`.map_gaussian_convolution()`](https://bastienchassagnol.github.io/DeCovarT/reference/dot-map_gaussian_convolution.md)).
 
 ## See also
 

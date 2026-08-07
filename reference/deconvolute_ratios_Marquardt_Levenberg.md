@@ -10,9 +10,10 @@ the Gaussian convolution model \$\$
 \$\$ subject to the simplex constraint
 \\\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1\\,
 \\\boldsymbol{p}\ge\mathbf{0}\\. Optimisation is performed in
-unconstrained coordinates \\\boldsymbol{\rho}\\ via
+unconstrained coordinates \\\boldsymbol{\rho}\in\mathbb{R}^{J-1}\\ via
 \\\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})\\
-(Marquardt–Levenberg default; see other methods below).
+(Marquardt–Levenberg default; see other methods below and
+[`vignette("softmax-alr-derivatives", package = "DeCovarT")`](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.md)).
 
 ## Usage
 
@@ -78,7 +79,7 @@ deconvolute_ratios_gradient_descent(
 - mean_signature_matrix:
 
   Mean signature \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\
-  (columns = cell types).
+  (columns = cell types; plug-in for latent profiles).
 
 - Sigma:
 
@@ -95,6 +96,14 @@ deconvolute_ratios_gradient_descent(
 Named numeric vector \\\hat{\boldsymbol{p}}\\ on the simplex. Benchmark
 metrics are computed by
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md).
+
+## Details
+
+**Plug-in signature.** Argument `mean_signature_matrix` is the mean
+\\\boldsymbol{\mu}\\, used as a proxy for the unobserved cell-type
+profiles \\\boldsymbol{x}\_{\cdot j}\\. This is the frequentist plug-in;
+recovering sample-specific latents is a Bayesian / MAP problem
+([`.map_gaussian_convolution()`](https://bastienchassagnol.github.io/DeCovarT/reference/dot-map_gaussian_convolution.md)).
 
 ## Functions
 

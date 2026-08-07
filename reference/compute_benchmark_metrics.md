@@ -27,7 +27,7 @@ compute_benchmark_metrics(
 - mean_signature_matrix:
 
   Mean signature \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\
-  (columns = cell types).
+  (columns = cell types; plug-in for latent profiles).
 
 - estimated_p:
 

@@ -23,14 +23,13 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Getting started</h6></li>
     <li><a class="dropdown-item" href="../articles/synthetic-scenarios.html"><span class="fa fa-flask"></span> Simulating semi-synthetic pseudo-bulk mixtures</a></li>
-    <li><a class="dropdown-item" href="../articles/random-network-generation.html"><span class="fa fa-share-alt"></span> Random Gaussian Markov network generation</a></li>
     <li><a class="dropdown-item" href="../articles/network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
     <li><a class="dropdown-item" href="../articles/DeCoVart-use-cases.html"><span class="fa fa-chart-pie"></span> Deconvolution use cases with DeCovarT</a></li>
     <li><a class="dropdown-item" href="../articles/feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT-numerical-derivatives.html"><span class="fa fa-calculator"></span> Simplex coordinate maps (ALR / additive logistic)</a></li>
-    <li><a class="dropdown-item" href="../articles/softmax-alr-derivatives.html"><span class="fa fa-square-root-variable"></span> Softmax and ALR derivatives</a></li>
+    <li><a class="dropdown-item" href="../articles/softmax-alr-derivatives.html"><span class="fa fa-square-root-variable"></span> Simplex maps and softmax / ALR derivatives</a></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html"><span class="fa fa-newspaper"></span> News</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -162,7 +161,7 @@
           <code><a href="simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code>
 
         </dt>
-        <dd>Simulate bulk mixtures from a Gaussian convolution</dd>
+        <dd>Simulate bulk mixtures from a multivariate Gaussian convolution</dd>
 
         <dt>
 
@@ -171,9 +170,9 @@
         </dt>
         <dd>Simulate GRN first- and second-order moments</dd>
       </dl></div><div class="section level2">
-      <h2 id="utilities">Utilities<a class="anchor" aria-label="anchor" href="#utilities"></a></h2>
+      <h2 id="statistical-metrics">Statistical metrics<a class="anchor" aria-label="anchor" href="#statistical-metrics"></a></h2>
 
-      <div class="section-desc"><p>Simplex projection, Shannon entropy, and average pairwise overlap used when designing synthetic scenarios.</p></div>
+      <div class="section-desc"><p>Simplex repair, Shannon entropy, MixSim overlap, Jeffreys divergence, and glmnet gene scores for signature design.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -182,10 +181,10 @@
 
       <dl><dt>
 
-          <code><a href="enforce_identifiability.html">enforce_identifiability()</a></code>
+          <code><a href="repair_simplex.html">repair_simplex()</a></code>
 
         </dt>
-        <dd>Project estimated proportions onto the unit simplex</dd>
+        <dd>Repair a numeric vector onto the unit simplex</dd>
 
         <dt>
 
@@ -200,6 +199,20 @@
 
         </dt>
         <dd>Average pairwise overlap of a Gaussian mixture</dd>
+
+        <dt>
+
+          <code><a href="compute_average_jeffreys.html">compute_average_jeffreys()</a></code>
+
+        </dt>
+        <dd>Average pairwise Jeffreys divergence of a Gaussian mixture</dd>
+
+        <dt>
+
+          <code><a href="compute_glmnet_gene_scores.html">compute_glmnet_gene_scores()</a></code>
+
+        </dt>
+        <dd>Gene scores from multinomial elastic-net cell-type classification</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
@@ -217,60 +230,7 @@
 
 
 
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script>
-(function () {
-  // pkgdown/README: <pre class="mermaid"><code>…</code></pre>
-  // Quarto articles: <pre class="mermaid mermaid-js">…</pre>
-  function collect() {
-    var out = [];
-    document.querySelectorAll("pre.mermaid, pre.mermaid-js").forEach(function (pre) {
-      if (pre.querySelector("svg")) return;
-      out.push(pre);
-    });
-    document.querySelectorAll(
-      "pre code.language-mermaid, pre code.mermaid, pre code[class*='language-mermaid']"
-    ).forEach(function (code) {
-      var pre = code.closest("pre");
-      if (!pre || pre.querySelector("svg")) return;
-      if (out.indexOf(pre) === -1) out.push(pre);
-    });
-    return out;
-  }
-  function textOf(pre) {
-    var code = pre.querySelector("code");
-    return (code ? code.textContent : pre.textContent) || "";
-  }
-  async function run() {
-    if (!window.mermaid) return;
-    var pres = collect();
-    if (!pres.length) return;
-    // Core mermaid themes: default | dark | forest | neutral | base
-    // (Quarto's "sandstone" is not a mermaid.js theme.)
-    window.mermaid.initialize({
-      startOnLoad: false,
-      theme: "neutral",
-      securityLevel: "loose",
-      flowchart: { htmlLabels: true, curve: "basis" }
-    });
-    var nodes = pres.map(function (pre, i) {
-      var div = document.createElement("div");
-      div.className = "mermaid";
-      div.id = "pkgdown-mermaid-" + i;
-      div.textContent = textOf(pre);
-      pre.replaceWith(div);
-      return div;
-    });
-    try {
-      await window.mermaid.run({ nodes: nodes });
-    } catch (e) {
-      console.warn("Mermaid render failed:", e);
-    }
-  }
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", run);
-  } else {
-    run();
-  }
-})();
-</script></body></html>
+  after_body.html
+
+  </body></html>
 

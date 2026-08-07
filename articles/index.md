@@ -11,8 +11,6 @@
   benchmarking](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.md):
 - [Feature selection for reference-based
   deconvolution](https://bastienchassagnol.github.io/DeCovarT/articles/feature-selection.md):
-- [Simulating high-dimensional Gaussian Markov regulatory
-  networks](https://bastienchassagnol.github.io/DeCovarT/articles/random-network-generation.md):
 - [In silico inference of gene regulatory
   networks](https://bastienchassagnol.github.io/DeCovarT/articles/network-inference.md):
 - [Deconvolution use cases with
@@ -20,7 +18,7 @@
 
 ### Mathematics
 
-- [Simplex coordinate maps in DeCovarT: additive logistic and additive
-  log-ratio](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-numerical-derivatives.md):
-- [Numerically stable softmax and additive log-ratio
+- [Simplex maps and numerically stable softmax / ALR
   derivatives](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.md):
+- [OLS reminders for linear
+  deconvolution](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-reminders-OLS.md):

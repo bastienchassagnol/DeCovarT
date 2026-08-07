@@ -14,7 +14,9 @@ Recovers the unconstrained additive log-ratio coordinates
 \\p_J\\ as reference. This is Aitchison's additive log-ratio
 (\\\mathrm{alr}\\) transform, equivalently the multinomial-logit link
 with reference category \\J\\ (see
-[`compositions::alr()`](https://rdrr.io/pkg/compositions/man/alr.html)).
+[`compositions::alr()`](https://rdrr.io/pkg/compositions/man/alr.html)
+and
+[`vignette("softmax-alr-derivatives", package = "DeCovarT")`](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.md)).
 
 ## Usage
 
@@ -28,7 +30,9 @@ additive_log_ratio(p)
 
 - rho:
 
-  Numeric vector \\\boldsymbol{\rho}\in\mathbb{R}^{J-1}\\.
+  Numeric vector \\\boldsymbol{\rho}\in\mathbb{R}^{J-1}\\ of
+  unconstrained additive log-ratio coordinates (reference cell type
+  \\J\\).
 
 - p:
 
@@ -50,10 +54,10 @@ p_j=\frac{\mathrm{e}^{\rho_j}}{A}\quad(j\<J),\qquad p_J=\frac{1}{A}.
 \\\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})\\ with
 \\\boldsymbol{\psi}(\boldsymbol{\rho})\propto
 (\mathrm{e}^{\rho_1},\ldots,\mathrm{e}^{\rho\_{J-1}},1)^{\mathsf{T}}\\.
-See
-[`compositions::alrInv()`](https://rdrr.io/pkg/compositions/man/alr.html)
-for a general implementation and the package vignette on additive
-log-ratio derivatives.
+Jacobians and Hessians of both maps are derived in the package vignette
+[`vignette("softmax-alr-derivatives", package = "DeCovarT")`](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.md).
+See also
+[`compositions::alrInv()`](https://rdrr.io/pkg/compositions/man/alr.html).
 
 ## See also
 

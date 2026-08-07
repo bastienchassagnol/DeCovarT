@@ -1,27 +1,45 @@
 # Average pairwise overlap of a Gaussian mixture
 
-Approximates mixture overlap from pairwise misclassification
-probabilities returned by
-[`MixSim::overlap()`](https://rdrr.io/pkg/MixSim/man/overlap.html),
-weighted by \\p_i\Omega\_{ij}+p_j\Omega\_{ji}\\ and averaged over pairs.
+Returns MixSim's **BarOmega**: the unweighted mean of pairwise overlaps
+\$\$ \overline{\omega} = \frac{2}{J(J-1)} \sum\_{1\le j\<\ell\le J}
+\bigl(\Omega\_{j\ell}+\Omega\_{\ell j}\bigr) \in\[0,1\] \$\$ (up to the
+MixSim numerical convention), where \\\Omega\_{j\ell}=\Pr\_{X\sim
+f_j}(X\text{ classified as }\ell)\\ already uses the mixture weights
+\\\boldsymbol{p}\\ inside the Bayes / MAP rule of
+[`MixSim::overlap()`](https://rdrr.io/pkg/MixSim/man/overlap.html). Do
+**not** multiply the directional masses by \\p_j\\ again.
 
 ## Usage
 
 ``` r
-compute_average_overlap(true_theta, k = length(true_theta$p))
+compute_average_overlap(true_theta, J = length(true_theta$p))
 ```
 
 ## Arguments
 
 - true_theta:
 
-  List with `p`, `mu`, `sigma` as in a GMM
+  List with `p` (length \\J\\), `mu` (\\G\times J\\ mean matrix) and
+  `sigma` (\\G\times G\times J\\ covariance array), as in a GMM
   \\(\boldsymbol{p},\boldsymbol{\mu},\\\boldsymbol{\Sigma}\_j\\)\\.
 
-- k:
+- J:
 
-  Number of components \\J\\ (default `length(true_theta$p)`).
+  Number of cell types (components). Defaults to `length(true_theta$p)`.
 
 ## Value
 
-Scalar average overlap.
+Scalar average pairwise overlap (MixSim `BarOmega`).
+
+## Examples
+
+``` r
+set.seed(1)
+theta <- list(
+  p = c(0.5, 0.5),
+  mu = cbind(c(0, 0), c(3, 0)),
+  sigma = array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+)
+compute_average_overlap(theta)
+#> [1] 0.1336144
+```

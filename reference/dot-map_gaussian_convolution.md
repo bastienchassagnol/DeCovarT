@@ -3,8 +3,11 @@
 For fixed plug-in
 \\\boldsymbol{\zeta}=(\boldsymbol{\mu},\\\boldsymbol{\Sigma}\_j\\)\\ and
 a bulk vector \\\boldsymbol{y}\\, returns cell-type-specific MAP
-estimates of the latent purified profiles in the additive Gaussian model
-of the article.
+estimates of the **latent** purified profiles \\\boldsymbol{x}\_{\cdot
+j}\\ in the additive Gaussian model of the article. This is the Bayesian
+counterpart to the frequentist plug-in that replaces
+\\\boldsymbol{x}\_{\cdot j}\\ by \\\boldsymbol{\mu}\_{\cdot j}\\ when
+estimating proportions alone.
 
 ## Usage
 
@@ -20,7 +23,8 @@ of the article.
 
 - mean_signature_matrix:
 
-  Mean matrix \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\.
+  Mean matrix \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\ (prior /
+  plug-in means).
 
 - Sigma:
 

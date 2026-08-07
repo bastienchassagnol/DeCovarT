@@ -26,7 +26,8 @@ loglik_multivariate_constrained(rho, y, mean_signature_matrix, Sigma)
 
 - mean_signature_matrix:
 
-  Numeric matrix \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\.
+  Numeric matrix \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\
+  (plug-in means).
 
 - Sigma:
 

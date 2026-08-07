@@ -49,14 +49,13 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Getting started</h6></li>
     <li><a class="dropdown-item" href="articles/synthetic-scenarios.html"><span class="fa fa-flask"></span> Simulating semi-synthetic pseudo-bulk mixtures</a></li>
-    <li><a class="dropdown-item" href="articles/random-network-generation.html"><span class="fa fa-share-alt"></span> Random Gaussian Markov network generation</a></li>
     <li><a class="dropdown-item" href="articles/network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
     <li><a class="dropdown-item" href="articles/DeCoVart-use-cases.html"><span class="fa fa-chart-pie"></span> Deconvolution use cases with DeCovarT</a></li>
     <li><a class="dropdown-item" href="articles/feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
-    <li><a class="dropdown-item" href="articles/DeCovarT-numerical-derivatives.html"><span class="fa fa-calculator"></span> Simplex coordinate maps (ALR / additive logistic)</a></li>
-    <li><a class="dropdown-item" href="articles/softmax-alr-derivatives.html"><span class="fa fa-square-root-variable"></span> Softmax and ALR derivatives</a></li>
+    <li><a class="dropdown-item" href="articles/softmax-alr-derivatives.html"><span class="fa fa-square-root-variable"></span> Simplex maps and softmax / ALR derivatives</a></li>
+    <li><a class="dropdown-item" href="articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html"><span class="fa fa-newspaper"></span> News</a></li>
@@ -108,7 +107,12 @@
 </li>
 <li><a href="#documentation">Documentation</a></li>
 <li><a href="#the-generative-model-of-decovart">The generative model of DeCovarT</a></li>
-<li><a href="#compiling-the-latex-article">Compiling the LaTeX article</a></li>
+<li>
+<a href="#compiling-the-latex-article">Compiling the LaTeX article</a>
+<ul>
+<li><a href="#package-reference-manuals">Package reference manuals</a></li>
+</ul>
+</li>
 <li><a href="#project-structure">Project structure</a></li>
 <li><a href="#speed-up-computation-with-autozyme">Speed up computation with AutoZyme</a></li>
 </ul>
@@ -165,12 +169,11 @@ flowchart TD
 <div class="section level3">
 <h3 id="interactive-package-structure">Interactive package structure<a class="anchor" aria-label="anchor" href="#interactive-package-structure"></a>
 </h3>
-<p>Regenerate the DeCovarT → DeCovarT function call graph (via <a href="https://github.com/r-lib/pkgapi" class="external-link"><code>pkgapi</code></a> + <a href="https://datastorm-open.github.io/visNetwork/" class="external-link"><code>visNetwork</code></a>) from the repository root:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"scripts/generate_package_network_functions.R"</span><span class="op">)</span></span></code></pre></div>
-<p>This writes <code>output/package_network/decovart_function_network.html</code> (and <code>decovart_functions.csv</code>). On the pkgdown site the graph is copied to <code>package_network/</code> next to the home page:</p>
-<iframe src="package_network/decovart_function_network.html" title="DeCovarT function call graph" width="100%" height="720" style="border: none;">
+<p>Prefer the <a href="https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network.html">full-screen network</a> when exploring call relationships. Regenerate locally with <code>source("scripts/generate_package_network_functions.R")</code>.</p>
+<div class="decovart-fullwidth">
+<iframe class="package-network" src="package_network/decovart_function_network.html" title="DeCovarT function call graph" width="100%" height="640" allowfullscreen>
 </iframe>
+</div>
 </div>
 <div class="section level3">
 <h3 id="built-in-deconvolution-algorithms">Built-in deconvolution algorithms<a class="anchor" aria-label="anchor" href="#built-in-deconvolution-algorithms"></a>
@@ -240,7 +243,7 @@ flowchart TD
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <p>Install the development version from GitHub with <a href="https://pak.r-lib.org/" class="external-link">{pak}</a>:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"pak"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span></span>
 <span>    <span class="st">"pak"</span>,</span>
@@ -254,23 +257,23 @@ flowchart TD
 <span><span class="op">}</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pkg_install.html" class="external-link">pkg_install</a></span><span class="op">(</span><span class="st">"bastienchassagnol/DeCovarT"</span><span class="op">)</span></span></code></pre></div>
 <p>Alternatively with <a href="https://remotes.r-lib.org" class="external-link">remotes</a>:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"bastienchassagnol/DeCovarT"</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="developer-setup-pre-commit">Developer setup (pre-commit)<a class="anchor" aria-label="anchor" href="#developer-setup-pre-commit"></a>
 </h3>
 <p>Contributors should install <a href="https://pre-commit.com" class="external-link">pre-commit</a> hooks (Air formatting, {lintr}, parsable R). From R:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages(c("precommit", "lintr"))</span></span>
 <span><span class="fu">precommit</span><span class="fu">::</span><span class="fu">install_precommit</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu">precommit</span><span class="fu">::</span><span class="fu">use_precommit</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>Or from the shell (after <code>pre-commit</code> is on <code>PATH</code>):</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="ex">pre-commit</span> install</span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="ex">pre-commit</span> run <span class="at">--all-files</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="ex">pre-commit</span> install</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="ex">pre-commit</span> run <span class="at">--all-files</span></span></code></pre></div>
 <p>Edit <code>README.qmd</code>, then regenerate GitHub Flavoured Markdown locally:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">quarto</span> render README.qmd</span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="fu">git</span> add README.qmd README.md</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="ex">quarto</span> render README.qmd</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="fu">git</span> add README.qmd README.md</span></code></pre></div>
 <p>CI fails the pull request if committed <code>README.md</code> is stale relative to <code>README.qmd</code> (see <code>.github/workflows/render-readme.yaml</code>). On <code>main</code>, the same workflow can commit a fresh render when needed, following the <a href="https://github.com/quarto-ext/.github/blob/main/.github/workflows/render-readme.yaml" class="external-link">quarto-ext render-readme</a> pattern.</p>
 <p>See <a href=".github/CONTRIBUTING.MD"><code>.github/CONTRIBUTING.MD</code></a> for the full contributor guide.</p>
 </div>
@@ -287,9 +290,11 @@ flowchart TD
 <strong>render-readme</strong> — Quarto GFM render; verify on PRs, commit on <code>main</code>
 </li>
 <li>
-<strong>test-coverage</strong> — Codecov reporting</li>
+<strong>test-coverage</strong> — Codecov reporting (commit message contains <code>test coverage</code>)</li>
 <li>
 <strong>pkgdown</strong> — documentation site on GitHub Pages</li>
+<li>
+<strong>article generation</strong> — optional <code>latexmk</code> build of <code>article/main.tex</code> when the commit message contains <code>article generation</code> (PDF artifact + <code>docs/article/main.pdf</code> on Pages)</li>
 <li>
 <strong>R-hub</strong> — optional Ubuntu + Windows checks (<code>workflow_dispatch</code>)</li>
 <li>
@@ -305,8 +310,7 @@ flowchart TD
 <ul>
 <li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html">Simulating semi-synthetic pseudo-bulk mixtures</a></li>
 <li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.html">Deconvolution use cases with DeCovarT</a></li>
-<li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-numerical-derivatives.html">Simplex coordinate maps (ALR / additive logistic)</a></li>
-<li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.html">Softmax and ALR derivatives</a></li>
+<li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.html">Simplex maps and softmax / ALR derivatives</a></li>
 </ul>
 <p>In an R session, use <code><a href="reference/deconvolute_ratios.html">?DeCovarT::deconvolute_ratios</a></code> (or any other exported function) for help pages.</p>
 <p><strong>Troubleshooting and issues</strong></p>
@@ -375,16 +379,25 @@ p_{J}=\frac{1}{\sum_{k&lt;J}e^{\rho_{k}}+1},\qquad
 <h2 id="compiling-the-latex-article">Compiling the LaTeX article<a class="anchor" aria-label="anchor" href="#compiling-the-latex-article"></a>
 </h2>
 <p>Source file: <code>article/main.tex</code> (bibliography: <code>article/decovart_library.bib</code>). DAG panels in Fig.~DAG-model are drawn with <a href="https://ctan.org/pkg/tikz-bayesnet" class="external-link"><code>tikz-bayesnet</code></a>.</p>
-<p>From the repository root, generate <code>article/main.pdf</code> with:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="bu">cd</span> article</span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="ex">latexmk</span> <span class="at">-pdf</span> <span class="at">-interaction</span><span class="op">=</span>nonstopmode <span class="at">-file-line-error</span> <span class="at">-synctex</span><span class="op">=</span>1 main.tex</span></code></pre></div>
+<p><strong>Published PDF</strong> (when the latest <code>main</code> commit message contains <code>article generation</code>): <a href="https://bastienchassagnol.github.io/DeCovarT/article/main.pdf">article/main.pdf</a> on the pkgdown site (also uploaded as a GitHub Actions artifact <code>article-main-pdf</code>).</p>
+<p>From the repository root, generate <code>article/main.pdf</code> locally with:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="bu">cd</span> article</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="ex">latexmk</span> <span class="at">-pdf</span> <span class="at">-interaction</span><span class="op">=</span>nonstopmode <span class="at">-file-line-error</span> <span class="at">-synctex</span><span class="op">=</span>1 main.tex</span></code></pre></div>
 <p>In Cursor / VS Code with <strong>LaTeX Workshop</strong>, use the default recipe <strong>latexmk</strong> (configured in <code>.vscode/settings.json</code>), or run <strong>“LaTeX Workshop: Build with recipe”</strong>.</p>
 <p>Auxiliaries are removed automatically after a successful build (<code>latex-workshop.latex.autoClean.run</code>: <code>onSucceeded</code>). Manual clean: Command Palette → <strong>“LaTeX Workshop: Clean up auxiliary files”</strong>.</p>
+<div class="section level3">
+<h3 id="package-reference-manuals">Package reference manuals<a class="anchor" aria-label="anchor" href="#package-reference-manuals"></a>
+</h3>
+<p>CRAN-style PDF and HTML function manuals (cf. dplyr’s <a href="https://devtools.r-lib.org/reference/build_manual.html" class="external-link"><code>devtools::build_manual()</code></a>):</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"scripts/generate_package_manual.R"</span><span class="op">)</span></span></code></pre></div>
+<p>Outputs land in <code>output/manual/</code> (<code>DeCovarT.pdf</code>, <code>index.html</code>, and per-topic HTML under <code>html/</code>).</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="project-structure">Project structure<a class="anchor" aria-label="anchor" href="#project-structure"></a>
 </h2>
-<p>See <a href="#interactive-package-structure">Interactive package structure</a> for the regenerable <code>visNetwork</code> call graph under <code>output/package_network/</code>.</p>
+<p>I’ve used <a href="scripts/generate_package_network_functions.R"><code>generate_package_network_functions</code></a> script to generate the package structure. For an interactive visualisation, see <a href="#interactive-package-structure">Interactive package structure</a>.</p>
 </div>
 <div class="section level2">
 <h2 id="speed-up-computation-with-autozyme">Speed up computation with AutoZyme<a class="anchor" aria-label="anchor" href="#speed-up-computation-with-autozyme"></a>
@@ -408,6 +421,8 @@ p_{J}=\frac{1}{\sum_{k&lt;J}e^{\rho_{k}}+1},\qquad
 <li><a href="https://github.com/bastienchassagnol/DeCovarT/" class="external-link">Browse source code</a></li>
 <li><a href="https://github.com/bastienchassagnol/DeCovarT/issues" class="external-link">Report a bug</a></li>
 <li><a href="https://github.com/bastienchassagnol/DeCovarT/issues" class="external-link">Report a bug</a></li>
+<li><a href="article/main.pdf">Article PDF (when published)</a></li>
+<li><a href="package_network/decovart_function_network.html">Function call network</a></li>
 </ul>
 </div>
 
@@ -453,61 +468,7 @@ p_{J}=\frac{1}{\sum_{k&lt;J}e^{\rho_{k}}+1},\qquad
 
 
 
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script>
-(function () {
-  // pkgdown/README: <pre class="mermaid"><code>…</code></pre>
-  // Quarto articles: <pre class="mermaid mermaid-js">…</pre>
-  function collect() {
-    var out = [];
-    document.querySelectorAll("pre.mermaid, pre.mermaid-js").forEach(function (pre) {
-      if (pre.querySelector("svg")) return;
-      out.push(pre);
-    });
-    document.querySelectorAll(
-      "pre code.language-mermaid, pre code.mermaid, pre code[class*='language-mermaid']"
-    ).forEach(function (code) {
-      var pre = code.closest("pre");
-      if (!pre || pre.querySelector("svg")) return;
-      if (out.indexOf(pre) === -1) out.push(pre);
-    });
-    return out;
-  }
-  function textOf(pre) {
-    var code = pre.querySelector("code");
-    return (code ? code.textContent : pre.textContent) || "";
-  }
-  async function run() {
-    if (!window.mermaid) return;
-    var pres = collect();
-    if (!pres.length) return;
-    // Core mermaid themes: default | dark | forest | neutral | base
-    // (Quarto's "sandstone" is not a mermaid.js theme.)
-    window.mermaid.initialize({
-      startOnLoad: false,
-      theme: "neutral",
-      securityLevel: "loose",
-      flowchart: { htmlLabels: true, curve: "basis" }
-    });
-    var nodes = pres.map(function (pre, i) {
-      var div = document.createElement("div");
-      div.className = "mermaid";
-      div.id = "pkgdown-mermaid-" + i;
-      div.textContent = textOf(pre);
-      pre.replaceWith(div);
-      return div;
-    });
-    try {
-      await window.mermaid.run({ nodes: nodes });
-    } catch (e) {
-      console.warn("Mermaid render failed:", e);
-    }
-  }
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", run);
-  } else {
-    run();
-  }
-})();
-</script>
-</body>
+  after_body.html
+
+  </body>
 </html>

@@ -16,6 +16,7 @@
   - [The generative model of
     DeCovarT](#the-generative-model-of-decovart)
   - [Compiling the LaTeX article](#compiling-the-latex-article)
+    - [Package reference manuals](#package-reference-manuals)
   - [Project structure](#project-structure)
   - [Speed up computation with
     AutoZyme](#speed-up-computation-with-autozyme)
@@ -56,7 +57,7 @@ Etienne Becht
 
 Anaïs Baudot
 
-2026-08-05
+2026-08-06
 
 ## 
 
@@ -435,19 +436,10 @@ The diagram above summarises the end-to-end workflow.
 
 ### Interactive package structure
 
-Regenerate the DeCovarT → DeCovarT function call graph (via
-[`pkgapi`](https://github.com/r-lib/pkgapi) +
-[`visNetwork`](https://datastorm-open.github.io/visNetwork/)) from the
-repository root:
-
-``` r
-
-source("scripts/generate_package_network_functions.R")
-```
-
-This writes `output/package_network/decovart_function_network.html` (and
-`decovart_functions.csv`). On the pkgdown site the graph is copied to
-`package_network/` next to the home page:
+Prefer the [full-screen
+network](https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network.html)
+when exploring call relationships. Regenerate locally with
+`source("scripts/generate_package_network_functions.R")`.
 
 ### Built-in deconvolution algorithms
 
@@ -542,8 +534,12 @@ GitHub Actions on this repository currently cover:
 - **R-CMD-check** — `R CMD check` on push / pull requests
 - **pre-commit** — the same local hooks on CI
 - **render-readme** — Quarto GFM render; verify on PRs, commit on `main`
-- **test-coverage** — Codecov reporting
+- **test-coverage** — Codecov reporting (commit message contains
+  `test coverage`)
 - **pkgdown** — documentation site on GitHub Pages
+- **article generation** — optional `latexmk` build of
+  `article/main.tex` when the commit message contains
+  `article generation` (PDF artifact + `docs/article/main.pdf` on Pages)
 - **R-hub** — optional Ubuntu + Windows checks (`workflow_dispatch`)
 - **version update** — optional DESCRIPTION bumps from commit messages
   or manual dispatch
@@ -558,9 +554,7 @@ Package website: <https://bastienchassagnol.github.io/DeCovarT/>
   mixtures](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html)
 - [Deconvolution use cases with
   DeCovarT](https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.html)
-- [Simplex coordinate maps (ALR / additive
-  logistic)](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-numerical-derivatives.html)
-- [Softmax and ALR
+- [Simplex maps and softmax / ALR
   derivatives](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.html)
 
 In an R session, use
@@ -641,7 +635,13 @@ Source file: `article/main.tex` (bibliography:
 `article/decovart_library.bib`). DAG panels in Fig.~DAG-model are drawn
 with [`tikz-bayesnet`](https://ctan.org/pkg/tikz-bayesnet).
 
-From the repository root, generate `article/main.pdf` with:
+**Published PDF** (when the latest `main` commit message contains
+`article generation`):
+[article/main.pdf](https://bastienchassagnol.github.io/DeCovarT/article/main.pdf)
+on the pkgdown site (also uploaded as a GitHub Actions artifact
+`article-main-pdf`).
+
+From the repository root, generate `article/main.pdf` locally with:
 
 ``` sh
 cd article
@@ -656,10 +656,26 @@ Auxiliaries are removed automatically after a successful build
 (`latex-workshop.latex.autoClean.run`: `onSucceeded`). Manual clean:
 Command Palette → **“LaTeX Workshop: Clean up auxiliary files”**.
 
+### Package reference manuals
+
+CRAN-style PDF and HTML function manuals (cf. dplyr’s
+[`devtools::build_manual()`](https://devtools.r-lib.org/reference/build_manual.html)):
+
+``` r
+
+source("scripts/generate_package_manual.R")
+```
+
+Outputs land in `output/manual/` (`DeCovarT.pdf`, `index.html`, and
+per-topic HTML under `html/`).
+
 ## Project structure
 
-See [Interactive package structure](#interactive-package-structure) for
-the regenerable `visNetwork` call graph under `output/package_network/`.
+I’ve used
+[`generate_package_network_functions`](https://bastienchassagnol.github.io/DeCovarT/scripts/generate_package_network_functions.R)
+script to generate the package structure. For an interactive
+visualisation, see [Interactive package
+structure](#interactive-package-structure).
 
 ## Speed up computation with AutoZyme
 

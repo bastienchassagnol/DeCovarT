@@ -63,18 +63,22 @@ hierarchical GRN moments with graph-constrained covariances.
 - [`generate_mean_signature_matrix()`](https://bastienchassagnol.github.io/DeCovarT/reference/generate_mean_signature_matrix.md)
   : Generate mean profiles with a target pairwise cosine
 - [`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md)
-  : Simulate bulk mixtures from a Gaussian convolution
+  : Simulate bulk mixtures from a multivariate Gaussian convolution
 - [`simulate_hierarchical_grn_moments()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_hierarchical_grn_moments.md)
   : Simulate GRN first- and second-order moments
 
-## Utilities
+## Statistical metrics
 
-Simplex projection, Shannon entropy, and average pairwise overlap used
-when designing synthetic scenarios.
+Simplex repair, Shannon entropy, MixSim overlap, Jeffreys divergence,
+and glmnet gene scores for signature design.
 
-- [`enforce_identifiability()`](https://bastienchassagnol.github.io/DeCovarT/reference/enforce_identifiability.md)
-  : Project estimated proportions onto the unit simplex
+- [`repair_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/repair_simplex.md)
+  : Repair a numeric vector onto the unit simplex
 - [`compute_shannon_entropy()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_shannon_entropy.md)
   : Normalised Shannon entropy of a discrete distribution
 - [`compute_average_overlap()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_overlap.md)
   : Average pairwise overlap of a Gaussian mixture
+- [`compute_average_jeffreys()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_jeffreys.md)
+  : Average pairwise Jeffreys divergence of a Gaussian mixture
+- [`compute_glmnet_gene_scores()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_glmnet_gene_scores.md)
+  : Gene scores from multinomial elastic-net cell-type classification

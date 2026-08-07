@@ -1,11 +1,12 @@
-# Simulate bulk mixtures from a Gaussian convolution
+# Simulate bulk mixtures from a multivariate Gaussian convolution
 
-Draws purified profiles
-\\\boldsymbol{x}\_j\sim\mathcal{N}\_{G}(\boldsymbol{\mu}\_{\cdot j},
-\boldsymbol{\Sigma}\_j)\\ independently for each cell type and forms
-bulk observations by the linear mixture \$\$ \boldsymbol{y}\_{\cdot i}
-=\boldsymbol{\mu}^{(i)}\boldsymbol{p}
-=\sum\_{j=1}^{J}p_j\\\boldsymbol{x}\_j^{(i)}, \$\$ matching the
+For each bootstrap sample \\i=1,\ldots,N\\, draws **latent** purified
+profiles \\\boldsymbol{x}\_{\cdot
+j}^{(i)}\sim\mathcal{N}\_{G}(\boldsymbol{\mu}\_{\cdot j},
+\boldsymbol{\Sigma}\_j)\\ independently for each cell type
+\\j=1,\ldots,J\\, then forms the bulk by the linear convolution \$\$
+\boldsymbol{y}\_{\cdot i} =\boldsymbol{X}^{(i)}\boldsymbol{p}
+=\sum\_{j=1}^{J}p_j\\\boldsymbol{x}\_{\cdot j}^{(i)}, \$\$ matching the
 article's conditional model
 \\\boldsymbol{y}\\\|\\(\boldsymbol{\zeta},\boldsymbol{p})\sim
 \mathcal{N}\_{G}(\boldsymbol{\mu}\boldsymbol{p},
@@ -13,15 +14,16 @@ article's conditional model
 \\\boldsymbol{\Sigma}(\boldsymbol{p})= \sum_j
 p_j^{2}\boldsymbol{\Sigma}\_j\\.
 
-Equivalently, stacking the purified draws into the three-way array
+The mean signature \\\boldsymbol{\mu}\\ is shared across samples; only
+the latent draws \\\boldsymbol{x}\_{\cdot j}^{(i)}\\ vary with \\i\\.
+Stacking those draws into the three-way array
 \\\mathcal{X}=(x\_{gji})\in\mathcal{M}\_{G\times J\times N}\\, the bulk
 matrix is the mode-2 tensor–vector contraction \$\$ \boldsymbol{Y}
 =\mathcal{X}\times\_{2}\boldsymbol{p}, \qquad
 y\_{gi}=\sum\_{j=1}^{J}x\_{gji}\\p\_{j} \quad(g=1,\ldots,G;\\
-i=1,\ldots,N), \$\$ which for each sample recovers the matrix–vector
-product \\\boldsymbol{y}\_{\cdot i}=\boldsymbol{X}\_{\cdot\cdot
-i}\\\boldsymbol{p}\\ with \\\boldsymbol{X}\_{\cdot\cdot
-i}\in\mathcal{M}\_{G\times J}\\.
+i=1,\ldots,N), \$\$ which for each sample recovers
+\\\boldsymbol{y}\_{\cdot i}=\boldsymbol{X}^{(i)}\\\boldsymbol{p}\\ with
+\\\boldsymbol{X}^{(i)}\in\mathcal{M}\_{G\times J}\\.
 
 ## Usage
 
@@ -38,7 +40,8 @@ simulate_bulk_mixture(
 
 - signature_matrix:
 
-  Mean matrix \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\.
+  Mean signature \\\boldsymbol{\mu}=(\mu\_{gj})\in\mathcal{M}\_{G\times
+  J}\\ (shared across samples; not the latent profiles).
 
 - Sigma:
 
@@ -52,15 +55,16 @@ simulate_bulk_mixture(
 
 - n:
 
-  Number of bulk samples \\n\\.
+  Number of bulk / bootstrap samples \\N\\.
 
 ## Value
 
 A list with:
 
-- `mean_signature_matrix`: array
+- `latent_profiles`: array
   \\\mathcal{X}=(x\_{gji})\in\mathcal{M}\_{G\times J\times N}\\ of
-  simulated purified profiles;
+  **unobserved** cell-type-specific draws (one \\G\times J\\ slice per
+  sample \\i\\);
 
 - `Y`: matrix \\\boldsymbol{Y}\in\mathcal{M}\_{G\times N}\\ whose
   columns are bulk vectors \\\boldsymbol{y}\_{\cdot i}\\, obtained as
