@@ -20,6 +20,7 @@ Suggests:
     reactable (>= 0.4.4),
     readr,
     rmarkdown,
+    stringr,
     testthat (>= 3.0.0),
     tinytable,
     withr
@@ -42,7 +43,6 @@ Imports:
     purrr,
     Rdpack (>= 0.7),
     rlang,
-    stringr,
     tensor,
     tibble,
     tidyr,

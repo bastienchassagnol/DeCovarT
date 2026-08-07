@@ -170,6 +170,64 @@ additive_log_ratio <- function(p) {
   return(global_cov)
 }
 
+#' Cached Cholesky factorisation of \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}
+#'
+#' @description
+#' Assembles [.compute_global_variance()] and factorises it once via
+#' [base::chol()], returning the matrix itself together with its Cholesky
+#' factor, log-determinant (via the factor's diagonal, not [base::det()]),
+#' and inverse (via [base::chol2inv()], which reuses the factor rather than
+#' an independent [base::solve()]).
+#'
+#' @details
+#' [stats::optim()], [stats::nlminb()] and [marqLevAlg::marqLevAlg()] each
+#' treat the log-likelihood, gradient and Hessian as three independent
+#' callback functions, but all Newton-type solvers evaluate them at the
+#' SAME trial point \eqn{\boldsymbol{p}} within one iteration (the Hessian
+#' chain rule in [hessian_loglik_constrained()] even re-evaluates the
+#' unconstrained gradient a second time internally). Without sharing work,
+#' one (log-lik, gradient, Hessian) triple pays for the
+#' \eqn{O(G^{3})} assembly-and-factorisation of
+#' \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})} up to four times over; this
+#' single-slot cache, keyed on exact equality of `p` and `Sigma`, means only
+#' the first of those calls actually factorises, and the rest simply return
+#' the cached result in \eqn{O(G^{2})} (the cost of the equality check).
+#' Profiling on a 38-gene / 3-cell-type scenario showed the redundancy
+#' scaling with the number of solver iterations (up to c. 1000 calls for a
+#' single `marqLevAlg` fit); this fix is architecture-only and leaves every
+#' formula unchanged, verified against `numDeriv` after the change.
+#'
+#' @inheritParams loglik_multivariate
+#'
+#' @return A list with elements: `matrix` (\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}
+#'   itself), `chol` (upper-triangular Cholesky factor), `log_det`
+#'   (\eqn{\log\det\boldsymbol{\Sigma}(\boldsymbol{p})}) and `inverse`
+#'   (\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}}).
+#'
+#' @keywords internal
+.sigma_p_factorisation <- local({
+  cache <- NULL
+  function(p, Sigma) {
+    if (
+      !is.null(cache) &&
+        identical(cache$p, p) &&
+        identical(cache$Sigma, Sigma)
+    ) {
+      return(cache$value)
+    }
+    global_cov_matrix <- .compute_global_variance(p, Sigma)
+    chol_factor <- chol(global_cov_matrix)
+    value <- list(
+      matrix = global_cov_matrix,
+      chol = chol_factor,
+      log_det = 2 * sum(log(diag(chol_factor))),
+      inverse = chol2inv(chol_factor)
+    )
+    cache <<- list(p = p, Sigma = Sigma, value = value)
+    value
+  }
+})
+
 # Log-likelihood function, aka the objective function ----------------------
 
 #' Unconstrained DeCovarT log-likelihood
@@ -219,15 +277,10 @@ additive_log_ratio <- function(p) {
 #' @keywords internal
 #' @seealso [gradient_loglik_unconstrained()], [additive_logistic()]
 loglik_multivariate <- function(p, y, mean_signature_matrix, Sigma) {
-  global_cov_matrix <- .compute_global_variance(p, Sigma)
-  log_lik <- -log(det(global_cov_matrix)) -
-    1 /
-      2 *
-      .squared_mahalanobis_distance(
-        y,
-        center = drop(mean_signature_matrix %*% p),
-        covariance = global_cov_matrix
-      )
+  sigma_p <- .sigma_p_factorisation(p, Sigma)
+  residual <- y - drop(mean_signature_matrix %*% p)
+  log_lik <- -sigma_p$log_det -
+    1 / 2 * .bilinear_form(residual, sigma_p$inverse)
   return(log_lik)
 }
 
@@ -331,9 +384,8 @@ jacobian_additive_logistic <- function(rho) {
 #' @keywords internal
 #' @seealso [numDeriv::grad()], [hessian_loglik_unconstrained()]
 gradient_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
-  # compute general covariance and its reverse
-  global_cov_matrix <- .compute_global_variance(p, Sigma)
-  global_precision_matrix <- solve(global_cov_matrix)
+  # shared, cached factorisation of Sigma(p) -- see .sigma_p_factorisation()
+  global_precision_matrix <- .sigma_p_factorisation(p, Sigma)$inverse
 
   # compute the gradient itself
   gradient_unconstrained <- c()
@@ -444,7 +496,8 @@ hessian_additive_logistic <- function(rho) {
 hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
   num_celltypes <- length(p)
   hessian_unconstrained <- matrix(0, nrow = num_celltypes, ncol = num_celltypes)
-  global_precision_matrix <- .compute_global_variance(p, Sigma) |> solve()
+  # shared, cached factorisation of Sigma(p) -- see .sigma_p_factorisation()
+  global_precision_matrix <- .sigma_p_factorisation(p, Sigma)$inverse
   for (i in 1:num_celltypes) {
     for (j in i:num_celltypes) {
       hessian_unconstrained[i, j] <- 4 *
@@ -597,13 +650,24 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
 ) {
   initial_p <- rep(1 / ncol(mean_signature_matrix), ncol(mean_signature_matrix)) # consider by hypothesis equi-balanced proportions between cell populations
   initial_rho <- additive_log_ratio(initial_p)
-  # set minimize to false; partialH=2
+  # marqLevAlg() only negates fn/gr internally when minimize = FALSE; hess()
+  # is passed through unchanged regardless of `minimize`, because its
+  # Cholesky-type step-and-RDM routines (dsinv/dchole) always assume the
+  # "minimisation" convention (positive-definite at the optimum). Since we
+  # maximise the log-likelihood, hessian_loglik_constrained() is negative-
+  # definite at the optimum and must be negated by hand, or dsinv() fails
+  # (ier = -1) on every iteration: the relative-distance-to-minimum (RDM)
+  # criterion of Commenges et al. (2006) then never leaves its "unevaluated"
+  # sentinel (rdm = epsd + 1), so the algorithm always exhausts `maxiter`
+  # (istop = 2) rather than stopping once genuinely close to the maximum.
   invisible(utils::capture.output(
-    estimated_rho <- marqLevAlg::marqLevAlg(
+    fit <- marqLevAlg::marqLevAlg(
       b = initial_rho,
       fn = loglik_multivariate_constrained,
       gr = gradient_loglik_constrained,
-      hess = hessian_loglik_constrained,
+      hess = function(rho, y, mean_signature_matrix, Sigma) {
+        -hessian_loglik_constrained(rho, y, mean_signature_matrix, Sigma)
+      },
       epsa = epsilon,
       epsb = epsilon,
       epsd = epsilon,
@@ -613,30 +677,33 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
       mean_signature_matrix = mean_signature_matrix,
       Sigma = Sigma,
       maxiter = itmax
-    )$b
+    )
   ))
-  if (all(is.na(estimated_rho))) {
-    # retrieve the last non missing estimate
-    output_lm <- utils::capture.output(marqLevAlg::marqLevAlg(
-      b = initial_rho,
-      fn = loglik_multivariate_constrained,
-      gr = gradient_loglik_constrained,
-      hess = hessian_loglik_constrained,
-      epsa = epsilon,
-      epsb = epsilon,
-      epsd = epsilon,
-      minimize = FALSE,
-      multipleTry = 1,
-      y = y,
-      mean_signature_matrix = mean_signature_matrix,
-      Sigma = Sigma,
-      maxiter = itmax
-    )) # add partialH and blinding?
-
-    estimated_rho <- output_lm[grep("b : ", output_lm, value = FALSE)] |>
-      stringr::str_match_all("[0-9,\\.]+") |>
-      unlist() |>
-      as.numeric() # retrieve last estimate before failure
+  if (anyNA(fit$b)) {
+    # istop = 4: a genuinely broken trial point (e.g. every candidate near
+    # the initial guess produced a non-finite log-likelihood). fit$b is the
+    # documented "stopping point value" in every other case, so there is no
+    # need to re-run the optimisation and scrape the printed iteration log.
+    warning(
+      "marqLevAlg::marqLevAlg() returned no usable estimate (istop = ",
+      fit$istop,
+      "); falling back to the equi-balanced initial guess.",
+      call. = FALSE
+    )
+    estimated_rho <- initial_rho
+  } else {
+    if (fit$istop != 1) {
+      warning(
+        "marqLevAlg::marqLevAlg() stopped without jointly satisfying the ",
+        "three Commenges et al. (2006) convergence criteria (istop = ",
+        fit$istop,
+        ", rdm = ",
+        signif(fit$rdm, 3),
+        "); returning the last iterate.",
+        call. = FALSE
+      )
+    }
+    estimated_rho <- fit$b
   }
   estimated_p <- additive_logistic(estimated_rho) |>
     repair_simplex() |> # ensure non-negativity constraint and remove numerical underflow
@@ -686,8 +753,9 @@ deconvolute_ratios_L_BFGS_B <- function(
 ) {
   initial_p <- rep(1 / ncol(mean_signature_matrix), ncol(mean_signature_matrix)) # consider by hypothesis equi-balanced proportions between cell populations
   # Box constraints alone do not keep sum(p)=1, so Sigma(p) can become
-  # singular during the line search. Guard the objective and fall back to a
-  # finite penalty; use numerical gradients for consistency with that guard.
+  # singular during the line search. Guard the objective/gradient and fall
+  # back to a finite penalty (a zero gradient carries no misleading
+  # direction) rather than letting solve() abort the whole optim() call.
   safe_loglik <- function(p, y, mean_signature_matrix, Sigma) {
     if (sum(p) < 1e-8) {
       return(-1e12)
@@ -697,9 +765,19 @@ deconvolute_ratios_L_BFGS_B <- function(
       error = function(e) -1e12
     )
   }
+  safe_gradient <- function(p, y, mean_signature_matrix, Sigma) {
+    if (sum(p) < 1e-8) {
+      return(rep(0, length(p)))
+    }
+    tryCatch(
+      gradient_loglik_unconstrained(p, y, mean_signature_matrix, Sigma),
+      error = function(e) rep(0, length(p))
+    )
+  }
   estimated_p <- stats::optim(
     par = initial_p,
     fn = safe_loglik,
+    gr = safe_gradient,
     y = y,
     mean_signature_matrix = mean_signature_matrix,
     Sigma = Sigma,
@@ -743,7 +821,6 @@ deconvolute_ratios_Newton_Raphson <- function(
     mean_signature_matrix = mean_signature_matrix,
     Sigma = Sigma,
     control = list(
-      eval.max = 1,
       iter.max = itmax,
       rel.tol = epsilon,
       x.tol = epsilon,

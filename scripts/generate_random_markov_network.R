@@ -478,22 +478,36 @@ readr::write_csv(
   gene_selection_summary,
   file.path(out_dir, "gene_selection_summary.csv")
 )
+
+## Bundle every downstream-relevant object into a single serialised list,
+## rather than many small artefacts, echoing the internal-data convention
+## for R/sysdata.rda (https://r-pkgs.org/data.html#sec-data-sysdata): one
+## file holding everything a consumer script needs. `gene_universe` and
+## `final_panel` are gene NAMES (not row indices), so they stay valid after
+## re-loading regardless of any downstream reordering. Genes are kept at
+## full G = 50 here; consumers subset mu / Sigma to `final_panel` as needed
+## (e.g. scripts/deconvolute_simulated_scenario.R).
 true_moments_rds <- list(
   p = p_true,
   mu = mu,
   X = latent_profiles,
   Sigma = Sigma,
-  Theta = Theta
+  Theta = Theta,
+  gene_universe = gene_universe,
+  final_panel = final_panel
 )
-saveRDS(
-  true_moments_rds,
-  file.path(out_dir, "true_grn_moments.rds")
-)
+data_dir <- file.path("data", "synthetic_networks")
+dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
+rds_path <- file.path(data_dir, "true_grn_moments.rds")
+saveRDS(true_moments_rds, rds_path)
 message(
   "Section 5 - wrote gene-level summary table (",
   nrow(gene_selection_summary),
-  " genes) and true-moment RDS (p, mu, X, Sigma, Theta): ",
-  out_dir
+  " genes, ",
+  out_dir,
+  ") and true-moment RDS (p, mu, X, Sigma, Theta, gene_universe, ",
+  "final_panel): ",
+  rds_path
 )
 print(
   gene_selection_summary |>

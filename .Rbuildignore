@@ -29,6 +29,7 @@
 ^article$
 ^codecov\.yml$
 ^output$
+^data$
 ^scripts$
 ^slides$
 ^R/experimental$
