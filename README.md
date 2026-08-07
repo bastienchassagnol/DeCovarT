@@ -23,7 +23,7 @@
 [![Project Status: Active](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![License: CC BY 4.0](https://img.shields.io/badge/license-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![Devel version](https://img.shields.io/badge/devel%20version-2.0.0-blue.svg)](https://github.com/bastienchassagnol/DeCovarT)
+[![Devel version](https://img.shields.io/badge/devel%20version-2.0.1-blue.svg)](https://github.com/bastienchassagnol/DeCovarT)
 [![R-CMD-check](https://github.com/bastienchassagnol/DeCovarT/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bastienchassagnol/DeCovarT/actions/workflows/R-CMD-check.yaml)
 [![Codecov test coverage](https://codecov.io/gh/bastienchassagnol/DeCovarT/graph/badge.svg)](https://app.codecov.io/gh/bastienchassagnol/DeCovarT)
 [![Check README](https://github.com/bastienchassagnol/DeCovarT/actions/workflows/render-readme.yaml/badge.svg)](https://github.com/bastienchassagnol/DeCovarT/actions/workflows/render-readme.yaml)
