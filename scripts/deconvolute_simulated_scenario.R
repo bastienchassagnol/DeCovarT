@@ -29,12 +29,6 @@
 ##     per Commenges et al. (2006) rather than a second run + regex scrape.
 ##   * deconvolute_ratios_Newton_Raphson()      -- second-order ascent on rho
 ##     ([stats::nlminb()]) using the ANALYTIC gradient AND Hessian.
-##   * sann_then_polish (script-local)          -- one concrete answer to
-##     "how do I improve SANN?": rather than a proximal projection onto the
-##     simplex (redundant here -- the ALR reparametrisation already maps
-##     ALL of R^{J-1} onto the open simplex, so there is nothing to
-##     project), use SANN purely as a cheap global warm start and locally
-##     polish the result with the analytic gradient/Hessian.
 ## Every (solver, bulk sample) pair is deconvolved independently and
 ## defensively: both R errors (e.g. `solve()` on a near-singular Sigma(p),
 ## `repair_simplex()` rejecting an estimate) and warnings (e.g. boundary
@@ -118,57 +112,6 @@ message(
   }
 )
 
-## ---- Script-local diagnostic / demonstration solver -----------------------
-## Touches no package code; calls its exported/internal analytic pieces
-## directly (available here via devtools::load_all()).
-
-## deconvolute_sann_then_polish(): SANN as a cheap global warm start,
-## polished locally with a (correctly configured) Newton-Raphson step using
-## the analytic gradient and Hessian. Answers "how do I improve SANN?"
-## without a proximal projection: rho is already unconstrained over all of
-## R^{J-1}, and additive_logistic() always lands on the open simplex, so
-## there is no feasible-set violation for a projection step to correct.
-deconvolute_sann_then_polish <- function(
-  y,
-  mean_signature_matrix,
-  Sigma,
-  epsilon = 10^-4,
-  itmax = 200
-) {
-  initial_p <- rep(
-    1 / ncol(mean_signature_matrix),
-    ncol(mean_signature_matrix)
-  )
-  rho_sann <- stats::optim(
-    par = additive_log_ratio(initial_p),
-    fn = loglik_multivariate_constrained,
-    y = y,
-    mean_signature_matrix = mean_signature_matrix,
-    Sigma = Sigma,
-    control = list(fnscale = -1, maxit = itmax),
-    method = "SANN"
-  )$par
-  estimated_rho <- stats::nlminb(
-    start = rho_sann,
-    objective = function(rho, y, mean_signature_matrix, Sigma) {
-      -loglik_multivariate_constrained(rho, y, mean_signature_matrix, Sigma)
-    },
-    gradient = function(rho, y, mean_signature_matrix, Sigma) {
-      -gradient_loglik_constrained(rho, y, mean_signature_matrix, Sigma)
-    },
-    hessian = function(rho, y, mean_signature_matrix, Sigma) {
-      -hessian_loglik_constrained(rho, y, mean_signature_matrix, Sigma)
-    },
-    y = y,
-    mean_signature_matrix = mean_signature_matrix,
-    Sigma = Sigma,
-    control = list(iter.max = itmax, rel.tol = epsilon)
-  )$par
-  additive_logistic(estimated_rho) |>
-    stats::setNames(colnames(mean_signature_matrix)) |>
-    repair_simplex()
-}
-
 ## ---- Deconvolution, one (solver, bulk sample) pair at a time -------------
 ## Each solver only accepts a single bulk vector `y`; loop explicitly over
 ## the n_bulk columns of Y for every solver. All solvers start from the
@@ -183,8 +126,7 @@ solvers <- list(
   L_BFGS_B = deconvolute_ratios_L_BFGS_B,
   gradient_descent = deconvolute_ratios_gradient_descent,
   Marquardt_Levenberg = deconvolute_ratios_Marquardt_Levenberg,
-  Newton_Raphson = deconvolute_ratios_Newton_Raphson,
-  sann_then_polish = deconvolute_sann_then_polish
+  Newton_Raphson = deconvolute_ratios_Newton_Raphson
 )
 
 ## Wall-clock time (ms) is recorded around the solver call only (excludes

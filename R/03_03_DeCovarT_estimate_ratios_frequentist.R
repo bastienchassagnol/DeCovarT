@@ -193,9 +193,6 @@ additive_log_ratio <- function(p) {
 #' the first of those calls actually factorises, and the rest simply return
 #' the cached result in \eqn{O(G^{2})} (the cost of the equality check).
 #' Profiling on a 38-gene / 3-cell-type scenario showed the redundancy
-#' scaling with the number of solver iterations (up to c. 1000 calls for a
-#' single `marqLevAlg` fit); this fix is architecture-only and leaves every
-#' formula unchanged, verified against `numDeriv` after the change.
 #'
 #' @inheritParams loglik_multivariate
 #'
@@ -680,10 +677,6 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
     )
   ))
   if (anyNA(fit$b)) {
-    # istop = 4: a genuinely broken trial point (e.g. every candidate near
-    # the initial guess produced a non-finite log-likelihood). fit$b is the
-    # documented "stopping point value" in every other case, so there is no
-    # need to re-run the optimisation and scrape the printed iteration log.
     warning(
       "marqLevAlg::marqLevAlg() returned no usable estimate (istop = ",
       fit$istop,
@@ -706,7 +699,7 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
     estimated_rho <- fit$b
   }
   estimated_p <- additive_logistic(estimated_rho) |>
-    repair_simplex() |> # ensure non-negativity constraint and remove numerical underflow
+    repair_simplex() |>
     stats::setNames(colnames(mean_signature_matrix))
   estimated_p
 }
