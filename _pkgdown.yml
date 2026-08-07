@@ -190,5 +190,7 @@ articles:
 
 news:
   releases:
+    - text: "Version 1.0.0 (first stabilised release)"
+      href: https://github.com/bastienchassagnol/DeCovarT/releases/tag/v1.0.0
     - text: Version 0.1.0 (development)
       href: https://github.com/bastienchassagnol/DeCovarT/blob/main/NEWS.md
