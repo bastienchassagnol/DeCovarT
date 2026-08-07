@@ -156,6 +156,12 @@ compute_mean_profile_objectives <- function(mean_signature_matrix) {
 #' @return Numeric matrix \eqn{\boldsymbol{\mu}} with dimensions
 #'   \eqn{G\times J}.
 #'
+#' @examples
+#' generate_mean_signature_matrix(
+#'   n_genes = 6L,
+#'   n_celltypes = 2L,
+#'   target_cosine = 0.5
+#' )
 #' @export
 generate_mean_signature_matrix <- function(
   n_genes,

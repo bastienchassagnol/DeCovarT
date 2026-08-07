@@ -43,3 +43,5 @@
 ^\.zotc$
 ^\.venv-zotcurate$
 ^output$
+^revdep$
+^Exported Items\.bib$

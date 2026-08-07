@@ -138,8 +138,8 @@ All of the above ship with the package (no extra method packages required).
 
 ### Links to the paper
 
-- [Overleaf repository (shared with Anaïs Baudot)](https://www.overleaf.com/project/697398ed149e81845cb5208e)
-- [HAL / arXiv archive](https://arxiv.org/pdf/2309.09557)
+- [arXiv:2309.09557](https://arxiv.org/abs/2309.09557) (also on HAL)
+- PDF: [arXiv PDF](https://arxiv.org/pdf/2309.09557)
 
 ## Installation
 
@@ -311,11 +311,10 @@ $$
 Source file: `article/main.tex` (bibliography: `article/decovart_library.bib`).
 DAG panels in Fig.~DAG-model are drawn with [`tikz-bayesnet`](https://ctan.org/pkg/tikz-bayesnet).
 
-**Published PDF** (when the latest `main` commit message contains
-`article generation`):
-[article/main.pdf](https://bastienchassagnol.github.io/DeCovarT/article/main.pdf)
-on the pkgdown site (also uploaded as a GitHub Actions artifact
-`article-main-pdf`).
+**Published PDF:** the peer-reviewed / preprint PDF is on
+[arXiv:2309.09557](https://arxiv.org/pdf/2309.09557). When a `main` commit
+message contains `article generation`, CI also builds `article/main.tex`
+and may publish `docs/article/main.pdf` on the pkgdown site.
 
 From the repository root, generate `article/main.pdf` locally with:
 

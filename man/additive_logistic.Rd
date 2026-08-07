@@ -54,8 +54,13 @@ Jacobians and Hessians of both maps are derived in the package vignette
 \code{vignette("softmax-alr-derivatives", package = "DeCovarT")}.
 See also \code{\link[compositions:alr]{compositions::alrInv()}}.
 }
+\examples{
+rho <- c(0.2, -0.5)
+p <- additive_logistic(rho)
+sum(p)
+additive_log_ratio(p)
+}
 \seealso{
 The inverse map (additive log-ratio) is documented as
 \code{additive_log_ratio()} on this help page.
 }
-\keyword{internal}

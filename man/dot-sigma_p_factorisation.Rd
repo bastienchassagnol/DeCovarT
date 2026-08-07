@@ -39,8 +39,5 @@ single-slot cache, keyed on exact equality of \code{p} and \code{Sigma}, means o
 the first of those calls actually factorises, and the rest simply return
 the cached result in \eqn{O(G^{2})} (the cost of the equality check).
 Profiling on a 38-gene / 3-cell-type scenario showed the redundancy
-scaling with the number of solver iterations (up to c. 1000 calls for a
-single \code{marqLevAlg} fit); this fix is architecture-only and leaves every
-formula unchanged, verified against \code{numDeriv} after the change.
 }
 \keyword{internal}

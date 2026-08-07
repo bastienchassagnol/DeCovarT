@@ -15,6 +15,9 @@
 #' @return Numeric vector on the simplex \eqn{\Delta^{J-1}}.
 #'
 #' @seealso [compositions::clo()] for compositional closure.
+#'
+#' @examples
+#' repair_simplex(c(0.2, 0.3, 0.5 + 1e-12))
 #' @export
 repair_simplex <- function(p, tolerance = 100 * .Machine$double.eps) {
   if (!is.numeric(p) || length(p) == 0L || anyNA(p)) {

@@ -23,6 +23,9 @@ renormalisation} step for estimated proportions, not a Euclidean
 projection onto the simplex and not a statistical-identifiability
 constraint.
 }
+\examples{
+repair_simplex(c(0.2, 0.3, 0.5 + 1e-12))
+}
 \seealso{
 \code{\link[compositions:clo]{compositions::clo()}} for compositional closure.
 }

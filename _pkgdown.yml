@@ -5,6 +5,14 @@ description: >-
   Bulk transcriptomic deconvolution that accounts for gene–gene covariance
   in purified reference populations.
 
+authors:
+  Bastien Chassagnol:
+    html: >-
+      Bastien Chassagnol
+      (<a href="mailto:bastien_chassagnol@laposte.net">bastien_chassagnol@laposte.net</a>
+      ·
+      <a href="https://www.linkedin.com/in/bastien-chassagnol-677b67140/?locale=fr">LinkedIn</a>)
+
 development:
   mode: auto
 
@@ -118,8 +126,8 @@ home:
   links:
     - text: Report a bug
       href: https://github.com/bastienchassagnol/DeCovarT/issues
-    - text: Article PDF (when published)
-      href: article/main.pdf
+    - text: Method preprint (arXiv)
+      href: https://arxiv.org/abs/2309.09557
     - text: Function call network
       href: package_network/decovart_function_network.html
 
@@ -204,6 +212,8 @@ articles:
 
 news:
   releases:
+    - text: "Version 1.1.0 (numerical optimisers / CRAN prep)"
+      href: https://github.com/bastienchassagnol/DeCovarT/blob/main/NEWS.md
     - text: "Version 1.0.0 (first stabilised release)"
       href: https://github.com/bastienchassagnol/DeCovarT/releases/tag/v1.0.0
     - text: Version 0.1.0 (development)

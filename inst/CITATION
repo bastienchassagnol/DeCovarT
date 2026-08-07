@@ -1,11 +1,24 @@
 citHeader("To cite DeCovarT in publications use:")
 
-citEntry("DeCovarT2023",
-  entry    = "Article",
-  title    = "{DeCovarT}, a {R} package for the robust deconvolution of cell mixtures in
-transcriptomic samples",
-  author   = "Bastien Chassagnol and Yufei Luo and Grégory Nuel and Etienne Becht",
-  journal  = "NA",
-  year     = "2023",
-  url      = "https://github.com/bastienchassagnol/DeCovarT",
+bibentry(
+  bibtype = "Misc",
+  title = paste(
+    "{DeCovarT}, a Multidimensional Probabilistic Model for the",
+    "Deconvolution of Heterogeneous Transcriptomic Samples"
+  ),
+  author = c(
+    person("Bastien", "Chassagnol"),
+    person("Gr\u00e9gory", "Nuel"),
+    person("Etienne", "Becht")
+  ),
+  year = "2023",
+  doi = "10.48550/arXiv.2309.09557",
+  url = "https://arxiv.org/abs/2309.09557",
+  note = "arXiv:2309.09557 [q-bio.QM]",
+  textVersion = paste(
+    "Chassagnol, B., Nuel, G. and Becht, E. (2023).",
+    "DeCovarT, a multidimensional probabilistic model for the",
+    "deconvolution of heterogeneous transcriptomic samples.",
+    "arXiv:2309.09557. https://doi.org/10.48550/arXiv.2309.09557"
+  )
 )

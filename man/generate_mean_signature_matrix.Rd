@@ -96,3 +96,10 @@ the shared component is added.
 re-normalised, then scaled by \eqn{s}. Thus \eqn{\rho} dials collinearity
 while \eqn{s} dials Euclidean separation without changing angles.
 }
+\examples{
+generate_mean_signature_matrix(
+  n_genes = 6L,
+  n_celltypes = 2L,
+  target_cosine = 0.5
+)
+}

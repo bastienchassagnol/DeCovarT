@@ -20,7 +20,20 @@ plot_correlation_Heatmap(
 
 \item{uni_scale}{If \code{FALSE}, each panel uses its own colour scale.}
 }
+\value{
+A named list of \code{ComplexHeatmap} heatmap objects (one per algorithm).
+}
 \description{
 For each algorithm, visualises a selected score over the design grid of
 simulated \eqn{\boldsymbol{p}} (and related scenario factors).
+}
+\examples{
+metrics <- tibble::tibble(
+  correlation_celltype1 = c(0, 0, 0.5, 0.5),
+  correlation_celltype2 = c(0, 0.5, 0, 0.5),
+  algorithm = "nnls",
+  model_mse = c(0.01, 0.02, 0.015, 0.03)
+)
+ht <- plot_correlation_Heatmap(metrics, score_variable = "model_mse")
+names(ht)
 }

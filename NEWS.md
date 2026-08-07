@@ -1,3 +1,37 @@
+# DeCovarT 1.1.0
+
+* **Minor release** preparing the first CRAN submission, focused on numerical
+  stability and optimiser cost in
+  `R/03_03_DeCovarT_estimate_ratios_frequentist.R` (documented in
+  `vignette("softmax-alr-derivatives")`, section *Numerical speed-ups and
+  solver safeguards*).
+
+* **Newton–Raphson evaluation budget.** Removed an erroneous
+  `eval.max = 1` control passed to `stats::nlminb()` in
+  `deconvolute_ratios_Newton_Raphson()`, which capped the *entire* run at a
+  single objective evaluation and silently returned the equi-balanced start.
+
+* **Cached Cholesky factorisation of $\boldsymbol{\Sigma}(\boldsymbol{p})$.**
+  New internal `.sigma_p_factorisation()` assembles the mixture covariance
+  once per trial point, shares `chol()` / `chol2inv()` across the
+  log-likelihood, gradient and Hessian, and uses a Cholesky-based
+  log-determinant (verified against `numDeriv`).
+
+* **Analytic gradient for L-BFGS-B.** `deconvolute_ratios_L_BFGS_B()` now
+  passes the unconstrained analytic score instead of finite differences,
+  with finite-penalty guards when box-constrained line searches drive
+  $\boldsymbol{\Sigma}(\boldsymbol{p})$ near-singular.
+
+* **`marqLevAlg` Hessian sign under maximisation.** When
+  `minimize = FALSE`, `marqLevAlg` only negates `fn` / `gr`; the analytic
+  Hessian must be negated by hand so the Commenges et al. RDM criterion
+  can fire. Reported upstream as
+  [VivianePhilipps/marqLevAlgParallel#3](https://github.com/VivianePhilipps/marqLevAlgParallel/issues/3).
+
+* **Documentation.** Expanded use-cases and feature-selection vignettes;
+  CRAN-oriented `DESCRIPTION` (MIT licence, arXiv method reference
+  <doi:10.48550/arXiv.2309.09557>).
+
 # DeCovarT 1.0.0
 
 * First **stabilised** release of DeCovarT (semver `1.0.0`), marking the

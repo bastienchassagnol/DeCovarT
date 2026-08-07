@@ -1,11 +1,25 @@
 Package: DeCovarT
-Title: What the Package Does (One Line, Title Case)
-Version: 2.0.0
+Title: Covariance-Aware Deconvolution of Bulk Transcriptomic Samples
+Version: 1.1.0
 Authors@R:
-    person("Bastien", "Chassagnol", , "bastien_chassagnol@laposte.net", role = c("aut", "cre"),
-           comment = c(ORCID = "0000-0002-8955-2391"))
-Description: Implements the first deconvolution algorithm for bulk transcriptome that accounts for the interactions between genes.
-License: CC BY 4.0
+    person("Bastien", "Chassagnol",
+           email = "bastien_chassagnol@laposte.net",
+           role = c("aut", "cre", "cph"),
+           comment = c(
+             ORCID = "0000-0002-8955-2391",
+             LinkedIn = "https://www.linkedin.com/in/bastien-chassagnol-677b67140/?locale=fr"
+           ))
+Description: Estimates cell-type proportions in bulk transcriptomic samples
+    with a probabilistic convolution model that integrates the gene-gene
+    covariance structure of purified reference profiles. Cellular ratios
+    are recovered by maximum likelihood under a multivariate Gaussian
+    convolution, using analytic gradients and Hessians, an additive
+    log-ratio reparametrisation that enforces the simplex constraint, and
+    Marquardt-Levenberg or Newton-type optimisers. The methodology is
+    described in Chassagnol, Nuel and Becht (2023)
+    <doi:10.48550/arXiv.2309.09557>.
+License: MIT + file LICENSE
+Additional_repositories: https://bioconductor.org/packages/release/bioc
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 Suggests:

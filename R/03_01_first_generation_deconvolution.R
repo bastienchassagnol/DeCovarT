@@ -9,6 +9,7 @@
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Linear baseline
 #'   \eqn{\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}} via nu-SVR
 #'   (CIBERSORT-style); no covariance prior is used.
+#' @export
 deconvolute_ratios_cibersort <- function(y, mean_signature_matrix) {
   # the set of nu values tested for best performance
   range.nu <- seq(0.2, 0.8, 0.3)
@@ -45,6 +46,7 @@ deconvolute_ratios_cibersort <- function(y, mean_signature_matrix) {
 #'   ([stats::lsfit()]), following
 #'   \insertCite{abbasDeconvolutionBloodMicroarray2009;textual}{DeCovarT};
 #'   estimates are projected back onto the simplex.
+#' @export
 deconvolute_ratios_lsfit <- function(y, mean_signature_matrix) {
   estimated_p <- stats::lsfit(
     mean_signature_matrix,
@@ -59,6 +61,7 @@ deconvolute_ratios_lsfit <- function(y, mean_signature_matrix) {
 #'   \eqn{\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}}
 #'   ([MASS::rlm()]), as in
 #'   \insertCite{monacoRNASeqSignaturesNormalized2019;textual}{DeCovarT}.
+#' @export
 deconvolute_ratios_rlm <- function(y, mean_signature_matrix) {
   estimated_p <- MASS::rlm(
     y ~ mean_signature_matrix + 0,
@@ -71,6 +74,7 @@ deconvolute_ratios_rlm <- function(y, mean_signature_matrix) {
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Non-negative least squares
 #'   for \eqn{\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}}
 #'   ([nnls::nnls()]), then simplex projection.
+#' @export
 deconvolute_ratios_nnls <- function(y, mean_signature_matrix) {
   estimated_p <- nnls::nnls(mean_signature_matrix, as.numeric(y))$x
   names(estimated_p) <- colnames(mean_signature_matrix)
@@ -82,6 +86,7 @@ deconvolute_ratios_nnls <- function(y, mean_signature_matrix) {
 #'   ([limSolve::lsei()]), in the spirit of `deconRNASeq`.
 #' @references
 #' \insertAllCited{}
+#' @export
 deconvolute_ratios_deconrnaseq <- function(y, mean_signature_matrix) {
   n_celltypes <- ncol(mean_signature_matrix)
   estimated_p <- limSolve::lsei(

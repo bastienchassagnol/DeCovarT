@@ -52,6 +52,28 @@ covariance information is provided, DeCovarT methods maximise
   \boldsymbol{\Sigma}(\boldsymbol{p})
 )}.
 }
+\examples{
+set.seed(1)
+genes <- paste0("g", 1:2)
+cts <- paste0("ct", 1:2)
+mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))
+Sigma <- array(
+  c(1, 0, 0, 1, 1, 0, 0, 1),
+  dim = c(2, 2, 2),
+  dimnames = list(genes, genes, cts)
+)
+Y <- simulate_bulk_mixture(mu, Sigma, p = c(0.5, 0.5), n = 2)$Y
+deconvolute_ratios(
+  signature_matrix = mu,
+  bulk_expression = Y,
+  true_ratios = c(0.5, 0.5),
+  Sigma = Sigma,
+  deconvolution_functions = list(
+    "nnls" = list(FUN = deconvolute_ratios_nnls)
+  ),
+  cores = 1
+)
+}
 \seealso{
 \code{\link[=deconvolute_ratios_Marquardt_Levenberg]{deconvolute_ratios_Marquardt_Levenberg()}}
 }

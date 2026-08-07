@@ -52,6 +52,18 @@
 #'   are bulk vectors \eqn{\boldsymbol{y}_{\cdot i}}, obtained as
 #'   \eqn{\mathcal{X}\times_{2}\boldsymbol{p}}.
 #'
+#' @examples
+#' set.seed(1)
+#' genes <- paste0("g", 1:2)
+#' cts <- paste0("ct", 1:2)
+#' mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))
+#' Sigma <- array(
+#'   c(1, 0, 0, 1, 1, 0, 0, 1),
+#'   dim = c(2, 2, 2),
+#'   dimnames = list(genes, genes, cts)
+#' )
+#' sim <- simulate_bulk_mixture(mu, Sigma, p = c(0.5, 0.5), n = 5)
+#' dim(sim$Y)
 #' @export
 #' @seealso [deconvolute_ratios()],
 #'   [benchmark_bivariate_gaussian_convolutions()]
@@ -64,19 +76,23 @@ simulate_bulk_mixture <- function(
   ##################################################################
   ##                        check validity                        ##
   ##################################################################
-  if (
-    !all.equal(
-      row.names(signature_matrix),
-      union(dimnames(Sigma)[[1]], dimnames(Sigma)[[2]])
-    )
-  ) {
+  gene_ok <- isTRUE(all.equal(
+    rownames(signature_matrix),
+    union(dimnames(Sigma)[[1]], dimnames(Sigma)[[2]])
+  ))
+  cell_ok <- isTRUE(all.equal(
+    colnames(signature_matrix),
+    dimnames(Sigma)[[3]]
+  ))
+  if (!gene_ok) {
     stop(
       paste(
         "Some of the genes are distinct between expected",
         "and covariance expression"
       )
     )
-  } else if (!all.equal(colnames(signature_matrix), dimnames(Sigma)[[3]])) {
+  }
+  if (!cell_ok) {
     stop("Cell types differ between expected and covariance expression")
   }
 
@@ -151,6 +167,20 @@ simulate_bulk_mixture <- function(
 #' @return A list with `config` (design + entropy/overlap) and `simulations`
 #'   (estimation tibble).
 #'
+#' @examples
+#' set.seed(1)
+#' out <- benchmark_bivariate_gaussian_convolutions(
+#'   proportions = list("balanced" = c(0.5, 0.5)),
+#'   signature_matrices = list("small" = matrix(c(20, 22, 22, 20), 2)),
+#'   corr_sequence = 0,
+#'   diagonal_terms = list("homoscedastic" = c(1, 1)),
+#'   deconvolution_functions = list(
+#'     "nnls" = list(FUN = deconvolute_ratios_nnls)
+#'   ),
+#'   n = 2,
+#'   cores = 1
+#' )
+#' nrow(out$simulations)
 #' @importFrom rlang .data
 #' @export
 #' @seealso [simulate_bulk_mixture()], [deconvolute_ratios()]

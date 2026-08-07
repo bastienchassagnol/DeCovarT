@@ -59,6 +59,21 @@ Scenarios are enumerated with \code{\link[tidyr:expand_grid]{tidyr::expand_grid(
 unique \code{ID} via \code{\link[dplyr:row_number]{dplyr::row_number()}}, so no side-effect mutation is needed
 while looping over the design.
 }
+\examples{
+set.seed(1)
+out <- benchmark_bivariate_gaussian_convolutions(
+  proportions = list("balanced" = c(0.5, 0.5)),
+  signature_matrices = list("small" = matrix(c(20, 22, 22, 20), 2)),
+  corr_sequence = 0,
+  diagonal_terms = list("homoscedastic" = c(1, 1)),
+  deconvolution_functions = list(
+    "nnls" = list(FUN = deconvolute_ratios_nnls)
+  ),
+  n = 2,
+  cores = 1
+)
+nrow(out$simulations)
+}
 \seealso{
 \code{\link[=simulate_bulk_mixture]{simulate_bulk_mixture()}}, \code{\link[=deconvolute_ratios]{deconvolute_ratios()}}
 }

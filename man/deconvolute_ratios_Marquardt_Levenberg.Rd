@@ -149,6 +149,19 @@ directly in \eqn{\boldsymbol{p}} (\code{\link[stats:optim]{stats::optim()}} \cod
 on \eqn{\boldsymbol{\rho}} (\code{\link[stats:optim]{stats::optim()}} \code{method = "BFGS"}).
 
 }}
+\examples{
+set.seed(1)
+genes <- paste0("g", 1:2)
+cts <- paste0("ct", 1:2)
+mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))
+Sigma <- array(
+  c(1, 0, 0, 1, 1, 0, 0, 1),
+  dim = c(2, 2, 2),
+  dimnames = list(genes, genes, cts)
+)
+y <- drop(mu \%*\% c(0.6, 0.4) + rnorm(2, sd = 0.1))
+deconvolute_ratios_Marquardt_Levenberg(y, mu, Sigma, itmax = 50)
+}
 \references{
 \insertAllCited{}
 }

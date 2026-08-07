@@ -40,3 +40,10 @@ compare the reconstituted bulk
 \eqn{\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}} to the
 observed \eqn{\boldsymbol{y}}.
 }
+\examples{
+mu <- matrix(c(20, 22, 22, 20), nrow = 2,
+             dimnames = list(paste0("g", 1:2), paste0("ct", 1:2)))
+y <- drop(mu \%*\% c(0.4, 0.6))
+compute_benchmark_metrics(y, mu, estimated_p = c(0.45, 0.55),
+                          true_ratios = c(0.4, 0.6))
+}

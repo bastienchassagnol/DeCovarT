@@ -36,6 +36,12 @@
 #'
 #' @seealso The inverse map (additive log-ratio) is documented as
 #'   `additive_log_ratio()` on this help page.
+#'
+#' @examples
+#' rho <- c(0.2, -0.5)
+#' p <- additive_logistic(rho)
+#' sum(p)
+#' additive_log_ratio(p)
 #' @export
 additive_logistic <- function(rho) {
   p <- c(exp(rho[seq_along(rho)]), 1)
@@ -56,7 +62,7 @@ additive_logistic <- function(rho) {
 #' @return Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
 #'
 #' @rdname additive_logistic
-#' @keywords internal
+#' @export
 additive_log_ratio <- function(p) {
   num_cells <- length(p)
   return(log(p[1:num_cells - 1] / p[num_cells]))
@@ -636,6 +642,19 @@ hessian_loglik_constrained <- function(rho, y, mean_signature_matrix, Sigma) {
 #'
 #' @return Named numeric vector \eqn{\hat{\boldsymbol{p}}} on the simplex.
 #'   Benchmark metrics are computed by [deconvolute_ratios()].
+#'
+#' @examples
+#' set.seed(1)
+#' genes <- paste0("g", 1:2)
+#' cts <- paste0("ct", 1:2)
+#' mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))
+#' Sigma <- array(
+#'   c(1, 0, 0, 1, 1, 0, 0, 1),
+#'   dim = c(2, 2, 2),
+#'   dimnames = list(genes, genes, cts)
+#' )
+#' y <- drop(mu %*% c(0.6, 0.4) + rnorm(2, sd = 0.1))
+#' deconvolute_ratios_Marquardt_Levenberg(y, mu, Sigma, itmax = 50)
 #' @export
 #' @seealso [deconvolute_ratios()], [additive_logistic()]
 deconvolute_ratios_Marquardt_Levenberg <- function(
@@ -707,7 +726,7 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Simulated annealing on
 #'   \eqn{\boldsymbol{\rho}} ([stats::optim()] with `method = "SANN"`).
-
+#' @export
 deconvolute_ratios_simulated_annealing <- function(
   y,
   mean_signature_matrix,
@@ -736,7 +755,7 @@ deconvolute_ratios_simulated_annealing <- function(
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Box-constrained L-BFGS-B
 #'   directly in \eqn{\boldsymbol{p}} ([stats::optim()] `method = "L-BFGS-B"`).
-
+#' @export
 deconvolute_ratios_L_BFGS_B <- function(
   y,
   mean_signature_matrix,
@@ -787,7 +806,7 @@ deconvolute_ratios_L_BFGS_B <- function(
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Newton–Raphson /
 #'   `nlminb` on \eqn{\boldsymbol{\rho}} using analytic gradient and Hessian
 #'   ([stats::nlminb()]).
-
+#' @export
 deconvolute_ratios_Newton_Raphson <- function(
   y,
   mean_signature_matrix,
@@ -830,7 +849,7 @@ deconvolute_ratios_Newton_Raphson <- function(
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg BFGS quasi-Newton ascent
 #'   on \eqn{\boldsymbol{\rho}} ([stats::optim()] `method = "BFGS"`).
-
+#' @export
 deconvolute_ratios_gradient_descent <- function(
   y,
   mean_signature_matrix,
