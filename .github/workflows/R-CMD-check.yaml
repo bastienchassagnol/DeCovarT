@@ -166,7 +166,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload slides HTML artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: slides-generation
           path: slides/index.html
@@ -224,7 +224,7 @@ jobs:
         if: >-
           github.event_name == 'push' &&
           contains(github.event.head_commit.message, 'article generation')
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: article-main-pdf
           path: article/main.pdf
