@@ -165,6 +165,15 @@ key-driver gene) for cell type 2. `equal_all` is wired identically
 (Erdős–Rényi) in every cell type, matching its complete lack of mean
 signal.
 
+The generative construction (seed `20260807`) lives in
+`scripts/generate_random_markov_network.R`.
+[Table 2](#tbl-mean-geometry) and [Table 3](#tbl-topology-diagnostics)
+report a fixed draw from that pipeline so the Quarto vignette builds
+without requiring a live
+[`library(DeCovarT)`](https://github.com/bastienchassagnol/DeCovarT) in
+the Quarto subprocess (which can miss the temporary library during
+`R CMD build` on some platforms).
+
 | pair                     | cosine | euclidean |
 |--------------------------|--------|-----------|
 | celltype_1 vs celltype_2 | 0.973  | 2.76      |
@@ -172,7 +181,7 @@ signal.
 | celltype_2 vs celltype_3 | 0.562  | 11.22     |
 
 Table 2: Realised pairwise cosine and Euclidean distance of the 50 x 3
-mean signature, over the full G = 50 genes.
+mean signature, over the full G = 50 genes (seed 20260807).
 
 | cell type | topology | \$\lambda\_{\min}\$ | \$\lambda\_{\max}\$ | \$\kappa(\Omega)\$ | prop inhib |
 |----|----|----|----|----|----|
@@ -181,7 +190,7 @@ mean signature, over the full G = 50 genes.
 | celltype_3 | scale-free (marker genes) | 0.1 | 2.1 | 21 | 0.5 |
 
 Table 3: Per-cell-type precision spectrum for the 50 x 50
-hybrid-topology Omega_j.
+hybrid-topology Omega_j (seed 20260807).
 
 Column guide: \lambda\_{\min}, \lambda\_{\max}, and
 \kappa(\boldsymbol{\Omega})=\lambda\_{\max}/\lambda\_{\min} summarise
