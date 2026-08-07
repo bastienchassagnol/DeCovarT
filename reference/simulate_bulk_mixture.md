@@ -74,3 +74,20 @@ A list with:
 
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md),
 [`benchmark_bivariate_gaussian_convolutions()`](https://bastienchassagnol.github.io/DeCovarT/reference/benchmark_bivariate_gaussian_convolutions.md)
+
+## Examples
+
+``` r
+set.seed(1)
+genes <- paste0("g", 1:2)
+cts <- paste0("ct", 1:2)
+mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))
+Sigma <- array(
+  c(1, 0, 0, 1, 1, 0, 0, 1),
+  dim = c(2, 2, 2),
+  dimnames = list(genes, genes, cts)
+)
+sim <- simulate_bulk_mixture(mu, Sigma, p = c(0.5, 0.5), n = 5)
+dim(sim$Y)
+#> [1] 2 5
+```

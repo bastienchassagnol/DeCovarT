@@ -31,3 +31,21 @@ plot_correlation_Heatmap(
 - uni_scale:
 
   If `FALSE`, each panel uses its own colour scale.
+
+## Value
+
+A named list of `ComplexHeatmap` heatmap objects (one per algorithm).
+
+## Examples
+
+``` r
+metrics <- tibble::tibble(
+  correlation_celltype1 = c(0, 0, 0.5, 0.5),
+  correlation_celltype2 = c(0, 0.5, 0, 0.5),
+  algorithm = "nnls",
+  model_mse = c(0.01, 0.02, 0.015, 0.03)
+)
+ht <- plot_correlation_Heatmap(metrics, score_variable = "model_mse")
+names(ht)
+#> [1] "nnls"
+```

@@ -169,3 +169,21 @@ Deconvolution of Human Immune Cell Types.” *Cell Reports*, **26**.
 
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md),
 [`additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
+
+## Examples
+
+``` r
+set.seed(1)
+genes <- paste0("g", 1:2)
+cts <- paste0("ct", 1:2)
+mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))
+Sigma <- array(
+  c(1, 0, 0, 1, 1, 0, 0, 1),
+  dim = c(2, 2, 2),
+  dimnames = list(genes, genes, cts)
+)
+y <- drop(mu %*% c(0.6, 0.4) + rnorm(2, sd = 0.1))
+deconvolute_ratios_Marquardt_Levenberg(y, mu, Sigma, itmax = 50)
+#>       ct1       ct2 
+#> 0.5605665 0.4394335 
+```

@@ -46,3 +46,19 @@ compute_benchmark_metrics(
 
 A `tibble` with mse/rmse/mae, optionally \\R^{2}\\ / adjusted \\R^{2}\\,
 and Pearson correlation.
+
+## Examples
+
+``` r
+mu <- matrix(c(20, 22, 22, 20), nrow = 2,
+             dimnames = list(paste0("g", 1:2), paste0("ct", 1:2)))
+y <- drop(mu %*% c(0.4, 0.6))
+compute_benchmark_metrics(y, mu, estimated_p = c(0.45, 0.55),
+                          true_ratios = c(0.4, 0.6))
+#> # A tibble: 1 × 6
+#>   model_mse model_rmse model_mae model_coef_determination model_coef_determina…¹
+#>       <dbl>      <dbl>     <dbl>                    <dbl>                  <dbl>
+#> 1   0.00250     0.0500    0.0500                     0.75                   0.75
+#> # ℹ abbreviated name: ¹​model_coef_determination_adjusted
+#> # ℹ 1 more variable: model_cor <dbl>
+```

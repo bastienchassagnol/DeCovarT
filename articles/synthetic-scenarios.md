@@ -701,173 +701,12 @@ simulation study.
 ([Equation 17](#eq-partial-scale)) when support and signs must be exact;
 add the mean layer **independently** of graph generation.
 
-## Synthetic simulation design: a hybrid multi-topology reference scenario
-
-The earlier factorial design swept one topology and one cosine level at
-a time, keeping a single **shared** covariance across all J cell types
-([`simulate_hierarchical_grn_moments()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_hierarchical_grn_moments.md);
-[Section 4](#sec-ggm-networks)).
-`scripts/generate_random_markov_network.R` instead builds **one**
-scenario that stresses several axes of the feature-selection pipeline
-simultaneously: two cell types that are unrecoverable from
-\boldsymbol{\mu} alone and must be told apart from **topology**, a third
-cell type set apart by a compact marker block, and a null block that
-should survive every selection stage as *discarded*. Notation matches
-the manuscript: G=50 genes, J=3 cell types, N bulk samples for
-\boldsymbol{Y}\in\mathcal{M}\_{G\times N}.
-
-### Gene and cell-type design
-
-The G=50 genes are partitioned into three blocks, and each cell type
-gets its **own** G\times G precision \boldsymbol{\Omega}\_j (not a
-shared one):
-
-\underbrace{\mathcal{G}\_{12}}\_{30\text{ genes}} \\ \cup\\
-\underbrace{\mathcal{G}\_{3}}\_{10\text{ genes}} \\ \cup\\
-\underbrace{\mathcal{G}\_{\mathrm{eq}}}\_{10\text{ genes}}, \qquad
-\boldsymbol{\Omega}\_j = \mathrm{blockdiag}\bigl(
-\boldsymbol{\Omega}\_j^{(\mathcal{G}\_{12})},\\
-\boldsymbol{\Omega}\_j^{(\mathcal{G}\_{3})},\\
-\boldsymbol{\Omega}\_j^{(\mathcal{G}\_{\mathrm{eq}})} \bigr), \qquad
-j=1,2,3.
-
-\boldsymbol{\mu} is built by **two** iterative calls to
-[`generate_mean_signature_matrix()`](https://bastienchassagnol.github.io/DeCovarT/reference/generate_mean_signature_matrix.md)
-([Equation 1](#eq-mean-cosine)): first on \mathcal{G}\_{12} for the pair
-(cell type 1, cell type 2) with a **high** target cosine \rho\_{12}=0.95
-(near-collinear, per [Section 3.1](#sec-lr-block-mu)); then on a pool of
-2\times10 genes for the pair (merged \\1,2\\, cell type 3) with a
-**low** target cosine \rho\_{3}=0.05 (near-orthogonal), keeping only the
-10 genes whose private block belongs to cell type 3.
-\mathcal{G}\_{\mathrm{eq}} gets a flat baseline directly (identical mean
-in all three types by construction). Only \mathcal{G}\_{12} and
-\mathcal{G}\_3 carry a mean signal; cell types 1 and 2 are, by design,
-mean-indistinguishable on \mathcal{G}\_{12}.
-
-Following the BLGGM hybrid design ([Section 4](#sec-ggm-networks)), each
-block’s **local** topology is set independently per cell type, with no
-edges between blocks:
-
-| Gene block | \# genes | Cell type 1 | Cell type 2 | Cell type 3 |
-|----|----|----|----|----|
-| `shared_12_vs_3` | 30 | stochastic block model (hub-like modules) | star (single key-driver gene) | Erdős–Rényi (background) |
-| `marker_3` | 10 | Erdős–Rényi (background) | Erdős–Rényi (background) | scale-free |
-| `equal_all` | 10 | Erdős–Rényi | Erdős–Rényi | Erdős–Rényi |
-
-Table 7: Local topology assigned to each (gene block, cell type) pair;
-no edges connect different blocks (block-diagonal precision support).
-
-Cell types 1 and 2 therefore differ **only** on `shared_12_vs_3`, and
-only through \boldsymbol{\Omega}: hub/stochastic-block modules
-(cascading-pathway-like) for cell type 1 versus a single star (one
-key-driver gene) for cell type 2. `equal_all` is wired identically
-(Erdős–Rényi) in every cell type, matching its complete lack of mean
-signal.
-
-| pair                     | cosine | euclidean |
-|--------------------------|--------|-----------|
-| celltype_1 vs celltype_2 | 0.973  | 2.76      |
-| celltype_1 vs celltype_3 | 0.562  | 11.22     |
-| celltype_2 vs celltype_3 | 0.562  | 11.22     |
-
-Table 8: Realised pairwise cosine and Euclidean distance of the 50 x 3
-mean signature, over the full G = 50 genes.
-
-| cell type | topology | \$\lambda\_{\min}\$ | \$\lambda\_{\max}\$ | \$\kappa(\Omega)\$ | prop inhib |
-|----|----|----|----|----|----|
-| celltype_1 | SBM (hub-like modules) | 0.1 | 1.68 | 16.8 | 0.5 |
-| celltype_2 | star (single key driver) | 0.1 | 3.33 | 33.3 | 0.489 |
-| celltype_3 | scale-free (marker genes) | 0.1 | 2.1 | 21 | 0.5 |
-
-Table 9: Per-cell-type precision spectrum for the 50 x 50
-hybrid-topology Omega_j.
-
-Column guide: \lambda\_{\min}, \lambda\_{\max}, and
-\kappa(\boldsymbol{\Omega})=\lambda\_{\max}/\lambda\_{\min} summarise
-the precision spectrum of each cell type’s *own* \boldsymbol{\Omega}\_j;
-`prop_inhib` is the realised fraction of inhibitory precision edges.
-[Table 8](#tbl-mean-geometry) shows cell types 1 and 2 near-collinear
-(cosine \approx 0.97), tracking the local target \rho\_{12}=0.95 used on
-`shared_12_vs_3`. Cell type 3, however, sits at only a *moderate* cosine
-(\approx0.56) from the other two—well above the local target
-\rho\_{3}=0.05 used on the `marker_3` pool. The gap is exactly the
-finite-sample effect of [Section 3.1.1](#sec-asymptotic-cosine): the
-flat `celltype_12_merged` background on `shared_12_vs_3` and the
-identical `equal_all` baseline both contribute a strictly positive term
-to *every* pairwise inner product over the full G=50 vector, diluting
-the block-local orthogonality of `marker_3` alone.
-[Table 9](#tbl-topology-diagnostics) shows that, despite the shared mean
-on `shared_12_vs_3`, cell types 1 and 2 carry distinct, well-conditioned
-precision spectra—exactly the topology-only separation the scenario is
-designed to require.
-
-[Figure 7](#fig-network-topologies) renders the three realised networks
-with `igraph`, coloured by gene block and by precision-edge sign.
-
-![](figures/fig_network_topologies.png)
-
-Figure 7: Cell-type-specific block topologies for the 50-gene hybrid
-scenario: a stochastic-block/hub-like module structure for cell type 1,
-restricted to the 30 `shared_12_vs_3` genes; a single star (one
-key-driver gene) for cell type 2 on the same 30 genes; and a scale-free
-network for cell type 3 restricted to its own 10 `marker_3` genes. The
-`equal_all` block (grey) is wired as Erdős–Rényi in every cell type.
-Edge colour encodes the sign of the precision entry (red = inhibitory,
-teal = activatory); node colour encodes the gene block.
-
-The full pipeline built on this scenario—mean signature, per-cell-type
-topologies, N=200 bulk simulation, and the pre-selection / NSGA-II
-feature-selection stages it stresses—is reproduced end-to-end in
-`scripts/generate_random_markov_network.R`.
-
-### Related literature
-
-Pseudobulk simulation tools such as **`muscat`** ([Crowell et al.
-2020](#ref-crowellMuscatDetectsSubpopulationspecific2020)) aggregate
-single-cell counts across samples and conditions for differential-state
-testing; **`scDD`** ([Korthauer et al.
-2016](#ref-korthauerStatisticalApproachIdentifying2016)) partitions
-genes, relative to a reference condition, into five
-differential-distribution (DD) patterns: equivalent expression (**EE**),
-differential expression (**DE**, a mean shift with one mode preserved
-per condition), differential proportion (**DP**, a shift in the mixing
-weights of a shared bimodal pattern), differential modality (**DM**, a
-change in the number of modes without necessarily shifting the overall
-mean), and differential expression **and** modality combined (**DB**).
-
-The hybrid scenario above instantiates a loose, network-level analogue
-of three of these patterns, tailored to deconvolution rather than to
-single-cell distribution testing directly
-([Figure 8](#fig-dd-taxonomy)):
-
-- the 10 `equal_all` genes are **EE**: identical mean and identically
-  Erdős–Rényi-wired second-order structure in every cell type;
-- the 10 `marker_3` genes are **DE** against the merged \\1,2\\
-  background: a mean shift confined to cell type 3, layered on a
-  scale-free local topology;
-- the 30 `shared_12_vs_3` genes are **DE** against cell type 3 but,
-  between cell types 1 and 2 specifically, carry **no mean shift at
-  all**—only the precision-matrix topology
-  ([Table 7](#tbl-hybrid-topology-design)) differs. This is not scDD’s
-  original single-gene DM test (unimodal versus bimodal *marginal*
-  densities within one gene), but it plays a structurally similar role
-  here: two populations a mean-only model cannot separate, which a
-  covariance-aware model such as DeCovarT is designed to exploit.
-
-![](figures/fig_dd_taxonomy_ee_de_dm.png)
-
-Figure 8: Schematic differential-distribution taxonomy for the three
-gene blocks: equivalent expression (EE, `equal_all`), differential
-expression marking cell type 3 (DE, `marker_3`), and a
-differential-modality-like contrast between cell types 1 and 2 that is
-invisible at the mean level and only resolved by network topology
-(DM-like, `shared_12_vs_3`).
-
-DeCovarT’s generator is narrower—it fixes \boldsymbol{\mu} through
-[Equation 1](#eq-mean-cosine) and [Equation 2](#eq-lr-block) rather than
-estimating signatures from real scRNA-seq—but the same
-low-rank-plus-block intuition underpins many reference-matrix
-constructions cited above.
+The end-to-end **hybrid multi-topology reference scenario** (two
+mean-collinear cell types distinguished only by network topology, a
+third orthogonal type, NSGA-II panel curation, and the frequentist
+solver comparison on imbalanced mixtures) is documented in the companion
+vignette [Deconvolution use
+cases](https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.html#sec-scenario-grid).
 
 ## References
 
@@ -896,11 +735,6 @@ Chiquet, Julien, Mahendra Mariadassou, and Stéphane Robin. 2018.
 *Variational Inference for Sparse Network Reconstruction from Count
 Data*. arXiv. <https://doi.org/10.48550/arxiv.1806.03120>.
 
-Crowell, Helena L., Charlotte Soneson, Pierre-Luc Germain, et al. 2020.
-‘Muscat Detects Subpopulation-Specific State Transitions from
-Multi-Sample Multi-Condition Single-Cell Transcriptomics Data’. *Nature
-Communications* 11: 6077. <https://doi.org/10.1038/s41467-020-19894-4>.
-
 Federico, Anthony, Joseph Kern, Xaralabos Varelas, and Stefano Monti.
 2023. ‘Structure Learning for Gene Regulatory Networks’. *PLOS
 Computational Biology* 19.
@@ -908,11 +742,6 @@ Computational Biology* 19.
 
 Jiang, Haoming, Xinyu Fei, Han Liu, et al. 2026. *Huge: High-Dimensional
 Undirected Graph Estimation*. <https://github.com/Gatech-Flash/huge>.
-
-Korthauer, Keegan D., Li-Fang Chu, Michael A. Newton, et al. 2016. ‘A
-Statistical Approach for Identifying Differential Distributions in
-Single-Cell RNA-seq Experiments’. *Genome Biology* 17: 222.
-<https://doi.org/10.1186/s13059-016-1077-y>.
 
 Lima-Mendez, Gipsi, and Jacques van Helden. 2009. ‘The Powerful Law of
 the Power Law and Other Myths in Network Biology1’. *Molecular

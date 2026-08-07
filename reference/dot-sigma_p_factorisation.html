@@ -108,10 +108,7 @@ one (log-lik, gradient, Hessian) triple pays for the
 single-slot cache, keyed on exact equality of <code>p</code> and <code>Sigma</code>, means only
 the first of those calls actually factorises, and the rest simply return
 the cached result in \(O(G^{2})\) (the cost of the equality check).
-Profiling on a 38-gene / 3-cell-type scenario showed the redundancy
-scaling with the number of solver iterations (up to c. 1000 calls for a
-single <code>marqLevAlg</code> fit); this fix is architecture-only and leaves every
-formula unchanged, verified against <code>numDeriv</code> after the change.</p>
+Profiling on a 38-gene / 3-cell-type scenario showed the redundancy</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
@@ -119,7 +116,7 @@ formula unchanged, verified against <code>numDeriv</code> after the change.</p>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Bastien Chassagnol.</p>
+  <p>Developed by Bastien Chassagnol (<a href="mailto:bastien_chassagnol@laposte.net">bastien_chassagnol@laposte.net</a> · <a href="https://www.linkedin.com/in/bastien-chassagnol-677b67140/?locale=fr" class="external-link">LinkedIn</a>).</p>
 </div>
 
 <div class="pkgdown-footer-right">

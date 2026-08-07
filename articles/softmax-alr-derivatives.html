@@ -160,34 +160,44 @@ Table 2: Standard algebraic operations induced by a matrix <span class="math in
 <div class="cell-output-display">
 <!-- preamble start -->
 
-    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
+    <!-- tinytable mathjax start -->
+    <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script><script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+    </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_wqzfvl689qo8jryqmfrc = TinyTable.createTableFunctions("tinytable_wqzfvl689qo8jryqmfrc");
+      const tableFns_ka8i4amjbg9afmqorabh = TinyTable.createTableFunctions("tinytable_ka8i4amjbg9afmqorabh");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '6', j: 1 }, { i: '6', j: 2 } ], css_id: 'tinytable_css_y7lhh9k2nfhs388ukx9r',},
-          { positions: [ { i: '1', j: 1 }, { i: '2', j: 1 }, { i: '3', j: 1 }, { i: '4', j: 1 }, { i: '5', j: 1 }, { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 } ], css_id: 'tinytable_css_jwnhamr3zekz4si1on8e',},
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 } ], css_id: 'tinytable_css_f502m38yv3yzkz3dgdlx',},
+          { positions: [ { i: '6', j: 1 }, { i: '6', j: 2 } ], css_id: 'tinytable_css_8kdiiknwzivsbfkjaiea',},
+          { positions: [ { i: '1', j: 1 }, { i: '2', j: 1 }, { i: '3', j: 1 }, { i: '4', j: 1 }, { i: '5', j: 1 }, { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 } ], css_id: 'tinytable_css_jsnvczzunpcxjq21629g',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 } ], css_id: 'tinytable_css_iu3favic7gnko2cdydxi',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_wqzfvl689qo8jryqmfrc.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_ka8i4amjbg9afmqorabh.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_wqzfvl689qo8jryqmfrc td.tinytable_css_y7lhh9k2nfhs388ukx9r, #tinytable_wqzfvl689qo8jryqmfrc th.tinytable_css_y7lhh9k2nfhs388ukx9r {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_wqzfvl689qo8jryqmfrc td.tinytable_css_jwnhamr3zekz4si1on8e, #tinytable_wqzfvl689qo8jryqmfrc th.tinytable_css_jwnhamr3zekz4si1on8e { text-align: center }
-    #tinytable_wqzfvl689qo8jryqmfrc td.tinytable_css_f502m38yv3yzkz3dgdlx, #tinytable_wqzfvl689qo8jryqmfrc th.tinytable_css_f502m38yv3yzkz3dgdlx {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_ka8i4amjbg9afmqorabh td.tinytable_css_8kdiiknwzivsbfkjaiea, #tinytable_ka8i4amjbg9afmqorabh th.tinytable_css_8kdiiknwzivsbfkjaiea {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_ka8i4amjbg9afmqorabh td.tinytable_css_jsnvczzunpcxjq21629g, #tinytable_ka8i4amjbg9afmqorabh th.tinytable_css_jsnvczzunpcxjq21629g { text-align: center }
+    #tinytable_ka8i4amjbg9afmqorabh td.tinytable_css_iu3favic7gnko2cdydxi, #tinytable_ka8i4amjbg9afmqorabh th.tinytable_css_iu3favic7gnko2cdydxi {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_wqzfvl689qo8jryqmfrc" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_ka8i4amjbg9afmqorabh" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">Expression</th>
                 <th scope="col" data-row="0" data-col="2">Terminology</th>
@@ -565,15 +575,185 @@ Listing 12: Validation with numDeriv
 </div>
 </figure>
 </div>
+</section><section class="section level2"><h2 id="sec-numerical-speedups">Numerical speed-ups and solver safeguards<a class="anchor" aria-label="anchor" href="#sec-numerical-speedups"></a>
+</h2>
+<p>The analytic maps above are only half of a usable optimiser: each Newton-type iteration also evaluates the Gaussian-convolution log-likelihood and its derivatives with respect to <span class="math inline">\boldsymbol{p}</span> (or <span class="math inline">\boldsymbol{\rho}</span>). Several practical bottlenecks and numerical inconsistencies showed up when running the hybrid scenario in <a href="DeCoVart-use-cases.html#sec-hybrid-deconvolution">Deconvolution use cases</a>; the changes below live in <code>R/03_03_DeCovarT_estimate_ratios_frequentist.R</code>.</p>
+<section class="level2"><h3 id="raise-the-newtonraphson-evaluation-budget">Raise the Newton–Raphson evaluation budget<a class="anchor" aria-label="anchor" href="#raise-the-newtonraphson-evaluation-budget"></a>
+</h3>
+<p><code><a href="../reference/deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_Newton_Raphson()</a></code> wraps <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">stats::nlminb()</a></code>. An earlier control list set <code>eval.max = 1</code>, which caps the <strong>total</strong> number of objective evaluations for the whole run (not per iteration). The solver therefore evaluated the log-likelihood once at the equi-balanced start and stopped, returning the untouched initial guess on every sample. Removing that entry (keeping <code>iter.max</code>, <code>rel.tol</code>, ) restores genuine Newton steps; see the before/after contrast (<code>Newton_Raphson</code> versus <code>Newton_Raphson_fixed</code>) in <a href="DeCoVart-use-cases.html#tbl-solver-diagnostics">Table solver diagnostics</a>.</p>
+</section><section class="level2"><h3 id="cache-a-cholesky-factorisation-of-boldsymbolsigmaboldsymbolp">Cache a Cholesky factorisation of <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span>
+<a class="anchor" aria-label="anchor" href="#cache-a-cholesky-factorisation-of-boldsymbolsigmaboldsymbolp"></a>
+</h3>
+<p>Within one iteration, <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code> / <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">nlminb()</a></code> / <code>marqLevAlg()</code> treat the log-likelihood, gradient and Hessian as independent callbacks, yet they all hit the <strong>same</strong> trial <span class="math inline">\boldsymbol{p}</span>. Assembling <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j</span> and factorising it separately in each callback (and again inside the constrained Hessian chain rule) paid for an <span class="math inline">O(G^3)</span> factorisation up to four times per iteration. The internal helper <code><a href="../reference/dot-sigma_p_factorisation.html">.sigma_p_factorisation()</a></code> caches a single Cholesky factor keyed on exact equality of <code>(p, Sigma)</code> and returns</p>
+<p><span id="eq-chol-sigma-p"><span class="math display">
+\boldsymbol{\Sigma}(\boldsymbol{p})
+=
+\mathbf{R}^{\mathsf{T}}\mathbf{R},
+\qquad
+\log\det\boldsymbol{\Sigma}(\boldsymbol{p})
+=
+2\sum_{g=1}^{G}\log R_{gg},
+\qquad
+\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}
+=
+\mathbf{R}^{-1}(\mathbf{R}^{\mathsf{T}})^{-1}
+\tag{13}</span></span></p>
+<p>via <code><a href="https://rdrr.io/r/base/chol.html" class="external-link">chol()</a></code> / <code><a href="https://rdrr.io/r/base/chol2inv.html" class="external-link">chol2inv()</a></code> (<a href="#eq-chol-sigma-p" class="quarto-xref">Eq. 13</a>). The unconstrained log-likelihood then uses the cached log-determinant and inverse,</p>
+<p><span id="eq-loglik-chol"><span class="math display">
+\ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{p})
+=
+-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})
+-\tfrac{1}{2}
+\boldsymbol{r}^{\mathsf{T}}
+\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}
+\boldsymbol{r},
+\qquad
+\boldsymbol{r}
+=
+\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p},
+\tag{14}</span></span></p>
+<p>and both <code><a href="../reference/gradient_loglik_unconstrained.html">gradient_loglik_unconstrained()</a></code> and <code><a href="../reference/hessian_loglik_unconstrained.html">hessian_loglik_unconstrained()</a></code> reuse the same <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}</span> (<a href="#eq-loglik-chol" class="quarto-xref">Eq. 14</a>). Analytic gradients and Hessians still match <code>numDeriv</code> to <span class="math inline">\sim 10^{-8}</span>–<span class="math inline">10^{-9}</span> after the refactor.</p>
+</section><section class="level2"><h3 id="guard-the-box-constrained-l-bfgs-b-path">Guard the box-constrained L-BFGS-B path<a class="anchor" aria-label="anchor" href="#guard-the-box-constrained-l-bfgs-b-path"></a>
+</h3>
+<p><code><a href="../reference/deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_L_BFGS_B()</a></code> optimises directly in <span class="math inline">\boldsymbol{p}</span> with box constraints <span class="math inline">[0,1]^J</span>. Those boxes alone do <strong>not</strong> enforce <span class="math inline">\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1</span>, so line searches can drive <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span> singular. Both the objective and the analytic gradient are wrapped: near <span class="math inline">\sum_j p_j\approx 0</span> (or on a failed <code><a href="https://rdrr.io/r/base/chol.html" class="external-link">chol()</a></code>), the log-likelihood returns a finite penalty and the gradient a zero vector rather than aborting <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">safe_loglik</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">p</span>, <span class="va">y</span>, <span class="va">mean_signature_matrix</span>, <span class="va">Sigma</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">1e-8</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1e12</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="../reference/loglik_multivariate.html">loglik_multivariate</a></span><span class="op">(</span><span class="va">p</span>, <span class="va">y</span>, <span class="va">mean_signature_matrix</span>, <span class="va">Sigma</span><span class="op">)</span>,</span>
+<span>    error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="op">-</span><span class="fl">1e12</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">safe_gradient</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">p</span>, <span class="va">y</span>, <span class="va">mean_signature_matrix</span>, <span class="va">Sigma</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">1e-8</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="kw"><a href="https://rdrr.io/r/base/function.html" class="external-link">return</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="../reference/gradient_loglik_unconstrained.html">gradient_loglik_unconstrained</a></span><span class="op">(</span><span class="va">p</span>, <span class="va">y</span>, <span class="va">mean_signature_matrix</span>, <span class="va">Sigma</span><span class="op">)</span>,</span>
+<span>    error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+</div>
+</section><section class="level2"><h3 id="supply-the-analytic-gradient-to-l-bfgs-b">Supply the analytic gradient to L-BFGS-B<a class="anchor" aria-label="anchor" href="#supply-the-analytic-gradient-to-l-bfgs-b"></a>
+</h3>
+<p>The same solver previously relied on finite-difference gradients. Passing <code>gr = safe_gradient</code> (the unconstrained analytic score) removes that cost and keeps the safeguarded behaviour above.</p>
+</section><section class="level2"><h3 id="marqlevalg-hessian-sign-under-minimize-false">
+<code>marqLevAlg</code> Hessian sign under <code>minimize = FALSE</code>
+<a class="anchor" aria-label="anchor" href="#marqlevalg-hessian-sign-under-minimize-false"></a>
+</h3>
+<div id="nte-marqlevalg-hess">
+<blockquote>
+<p><strong>Caution 1: <code>marqLevAlg(minimize = FALSE)</code> does not flip <code>hess</code></strong></p>
+<p><a href="https://cran.r-project.org/package=marqLevAlg" class="external-link"><code>marqLevAlg</code></a> <span class="citation" data-cites="R-marqLevAlg">(<a href="#ref-R-marqLevAlg" role="doc-biblioref">Philipps et al. 2023</a>)</span> implements the Marquardt–Levenberg algorithm with the relative-distance-to-minimum (RDM) stopping rule of Commenges et al. <span class="citation" data-cites="commengesNewtonLikeAlgorithmLikelihood2006">(<a href="#ref-commengesNewtonLikeAlgorithmLikelihood2006" role="doc-biblioref">Commenges et al. 2006</a>)</span>:</p>
+<p><span id="eq-rdm-commenges"><span class="math display">
+C_k
+\approx
+m^{-1}
+\boldsymbol{U}(\boldsymbol{\theta}_k)^{\mathsf{T}}
+\mathbf{G}(\boldsymbol{\theta}_k)^{-1}
+\boldsymbol{U}(\boldsymbol{\theta}_k).
+\tag{15}</span></span></p>
+<p>With <code>minimize = FALSE</code>, the package <strong>only</strong> negates the user-supplied <code>fn</code> and <code>gr</code>. The analytic <code>hess</code> is passed through <strong>unchanged</strong>, while the internal Cholesky / inversion routines (<code>dsinv</code>, <code>dchole</code>) assume a <strong>positive-definite</strong> matrix at the optimum (minimisation convention). When maximising a log-likelihood, <code><a href="../reference/hessian_loglik_constrained.html">hessian_loglik_constrained()</a></code> is negative-definite at the MLE, so <code>dsinv</code> fails (<code>ier = -1</code>) on every iteration, <code>rdm</code> sticks at the unevaluated sentinel <code>epsd + 1</code> (e.g. <code>1.0001</code>), and the algorithm always exhausts <code>maxiter</code> (<code>istop = 2</code>) even when the iterate is already at the maximum.</p>
+<p><strong>Workaround used in DeCovarT:</strong> pass <code>hess = function(...) -hessian_loglik_constrained(...)</code> and keep <code>minimize = FALSE</code>. Reported upstream as <a href="https://github.com/VivianePhilipps/marqLevAlgParallel/issues/3" class="external-link">VivianePhilipps/marqLevAlgParallel#3</a>.</p>
+</blockquote>
+</div>
+<p><a href="#tbl-marqlevalg-hess" class="quarto-xref">Table 3</a> summarises the empirical confirmation on the hybrid <span class="math inline">J=3</span> scenario (<span class="math inline">m=J-1=2</span> free ALR coordinates). Point estimates barely moved (the wrongly scaled Newton step was often rescued by the internal line search), but iterations dropped roughly <span class="math inline">20</span>–<span class="math inline">40\times</span> and <code>istop</code> / <code>rdm</code> became honest relative to <a href="#eq-rdm-commenges" class="quarto-xref">Eq. 15</a>.</p>
+<div class="cell">
+<div id="tbl-marqlevalg-hess" class="cell quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-marqlevalg-hess-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 3: Effect of negating the analytic Hessian passed to marqLevAlg when maximize = TRUE (minimize = FALSE).
+</figcaption><div aria-describedby="tbl-marqlevalg-hess-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <!-- tinytable mathjax start -->
+    <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script><script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+    </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
+      // Create table-specific functions using external factory
+      const tableFns_e7fk1z1miigv2krejql4 = TinyTable.createTableFunctions("tinytable_e7fk1z1miigv2krejql4");
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '2', j: 2 }, { i: '2', j: 3 }, { i: '2', j: 4 } ], css_id: 'tinytable_css_2lf167fju0ylrxekoa26',},
+          { positions: [ { i: '1', j: 2 }, { i: '1', j: 3 }, { i: '1', j: 4 } ], css_id: 'tinytable_css_rjhfv8k4e9d3k1kcbc0m',},
+          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_2l4v11rb16otupg83tgi',},
+          { positions: [ { i: '2', j: 1 } ], css_id: 'tinytable_css_j1ysx406icxrb9awwl5p',},
+          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_b73p3e0ytn1ia0di5q89',},
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  tableFns_e7fk1z1miigv2krejql4.styleCell(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
+<style>
+    /* tinytable css entries after */
+    #tinytable_e7fk1z1miigv2krejql4 td.tinytable_css_2lf167fju0ylrxekoa26, #tinytable_e7fk1z1miigv2krejql4 th.tinytable_css_2lf167fju0ylrxekoa26 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_e7fk1z1miigv2krejql4 td.tinytable_css_rjhfv8k4e9d3k1kcbc0m, #tinytable_e7fk1z1miigv2krejql4 th.tinytable_css_rjhfv8k4e9d3k1kcbc0m { text-align: center }
+    #tinytable_e7fk1z1miigv2krejql4 td.tinytable_css_2l4v11rb16otupg83tgi, #tinytable_e7fk1z1miigv2krejql4 th.tinytable_css_2l4v11rb16otupg83tgi {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_e7fk1z1miigv2krejql4 td.tinytable_css_j1ysx406icxrb9awwl5p, #tinytable_e7fk1z1miigv2krejql4 th.tinytable_css_j1ysx406icxrb9awwl5p {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_e7fk1z1miigv2krejql4 td.tinytable_css_b73p3e0ytn1ia0di5q89, #tinytable_e7fk1z1miigv2krejql4 th.tinytable_css_b73p3e0ytn1ia0di5q89 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    </style>
+<div class="container">
+      <table class="table tinytable" id="tinytable_e7fk1z1miigv2krejql4" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+<thead><tr>
+<th scope="col" data-row="0" data-col="1">Hessian sign</th>
+                <th scope="col" data-row="0" data-col="2">istop</th>
+                <th scope="col" data-row="0" data-col="3">iterations</th>
+                <th scope="col" data-row="0" data-col="4">rdm</th>
+              </tr></thead>
+<tbody>
+<tr>
+<td data-row="1" data-col="1">Wrong (log-likelihood Hessian as-is)</td>
+                  <td data-row="1" data-col="2">2 (hit maxiter)</td>
+                  <td data-row="1" data-col="3">200 / 200</td>
+                  <td data-row="1" data-col="4">1.0001 (sentinel)</td>
+                </tr>
+<tr>
+<td data-row="2" data-col="1">Negated (`-hess`)</td>
+                  <td data-row="2" data-col="2">1 (converged)</td>
+                  <td data-row="2" data-col="3">4–11</td>
+                  <td data-row="2" data-col="4">~1e-13 to 1e-21</td>
+                </tr>
+</tbody>
+</table>
+</div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</figure>
+</div>
+</div>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-commengesNewtonLikeAlgorithmLikelihood2006" class="csl-entry" role="listitem">
+Commenges, Daniel, Helene Jacqmin-Gadda, Cecile Proust, and Jeremie Guedj. 2006. <em>A <span>Newton-Like Algorithm</span> for <span>Likelihood Maximization</span>: <span>The Robust-Variance Scoring Algorithm</span></em>. arXiv. <a href="https://doi.org/10.48550/arxiv.math/0610402" class="external-link">https://doi.org/10.48550/arxiv.math/0610402</a>.
+</div>
 <div id="ref-R-numDeriv" class="csl-entry" role="listitem">
 Gilbert, Paul, and Ravi Varadhan. 2019. <em>numDeriv: Accurate Numerical Derivatives</em>. <a href="http://optimizer.r-forge.r-project.org/" class="external-link">http://optimizer.r-forge.r-project.org/</a>.
+</div>
+<div id="ref-R-marqLevAlg" class="csl-entry" role="listitem">
+Philipps, Viviane, Cecile Proust-Lima, Melanie Prague, Boris Hejblum, Daniel Commenges, and Amadou Diakite. 2023. <em>marqLevAlg: A Parallelized General-Purpose Optimization Based on Marquardt-Levenberg Algorithm</em>.
 </div>
 <div id="ref-R-compositions" class="csl-entry" role="listitem">
 <span class="nocase">van den Boogaart, K. Gerald, Raimon Tolosana-Delgado, and Matevz Bren</span>. 2025. <em>Compositions: Compositional Data Analysis</em>. <a href="http://www.stat.boogaart.de/compositions/" class="external-link">http://www.stat.boogaart.de/compositions/</a>.
 </div>
 </div>
-</section><script id="quarto-html-after-body" type="application/javascript">
+</section></section><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
@@ -662,7 +842,7 @@ Gilbert, Paul, and Ravi Varadhan. 2019. <em>numDeriv: Accurate Numerical Derivat
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Bastien Chassagnol.</p>
+  <p>Developed by Bastien Chassagnol (<a href="mailto:bastien_chassagnol@laposte.net">bastien_chassagnol@laposte.net</a> · <a href="https://www.linkedin.com/in/bastien-chassagnol-677b67140/?locale=fr" class="external-link">LinkedIn</a>).</p>
 </div>
 
 <div class="pkgdown-footer-right">

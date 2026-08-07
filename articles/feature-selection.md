@@ -1170,6 +1170,49 @@ nested CV with in-fold HVG / DE / panel construction, four-score
 shortlist and NSGA-II Pareto refinement, then external cohort assessment
 of deconvolution error.
 
+#### 6.5.2 Bootstrap-enhanced regularisation for collinear markers
+
+Marker and influential-variable screens used in signature construction
+face a persistent trade-off. Pure \ell_1 methods such as the lasso (and,
+to a lesser extent, the elastic net) are **sensitive to
+multicollinearity**: among a block of highly correlated predictors they
+typically retain only one, discarding biologically related markers that
+share the same signal ([Zou and Hastie
+2005](#ref-zouRegularizationVariableSelection2005)). Conversely, methods
+that keep correlated groups more generously—or that fit on the full
+training distribution without resampling—often **overfit**, so selected
+panels fail to transport to held-out donors or external cohorts
+([Section 6.5](#sec-caveats)).
+
+The Bootstrap-Enhanced Regularization Method (**BERM**) of Dong et al.
+([Dong et al.
+2026](#ref-dongBootstrapenhancedRegularizationAddressing2026)) targets
+both failure modes with a two-step procedure tailored to
+high-dimensional, skewed immunophenotyping data:
+
+1.  **Bootstrap selection.** Fit an elastic-net model on many bootstrap
+    resamples (via `caret::train()`), build percentile confidence
+    intervals for each coefficient, and mark a predictor as irrelevant
+    when its interval covers zero. This stabilises selection under
+    multicollinearity without relying on a single adaptive-weight pilot
+    fit.
+2.  **Weighted elastic-net estimation.** Re-fit a weighted elastic net
+    in which relevant variables receive penalty weight w_j=1 and
+    irrelevant ones w_j=\infty (hard exclusion via `penalty.factor`),
+    yielding coefficient estimates that condition on the
+    bootstrap-screened support.
+
+Relative to adaptive elastic net / adaptive lasso (weights from one
+initial fit), random-lasso-style predictor subsampling, or
+bootstrap-interval methods that stop at selection alone, BERM therefore
+couples **stable inclusion** with **post-selection coefficient
+estimation**. In DeCovarT’s pipeline it is a natural companion to the
+`glmnet` multinomial / elastic-net shortlist
+([Section 4.4](#sec-four-scores)) when gene blocks are near-collinear on
+\boldsymbol{\mu} and nested CV ([Section 6.5.1](#sec-cv-selection)) must
+still protect against distribution overfitting. An open-source
+implementation is available at <https://github.com/xiaorudong/berm>.
+
 ## 7 Software notes
 
 - Variance stabilisation / Pearson residuals: `sctransform` /
@@ -1254,6 +1297,12 @@ Dahl, Joachim, Vwani Roychowdhury, and Lieven Vandenberghe. 2005.
 *Maximum Likelihood Estimation of Gaussian Graphical Models: Numerical
 Implementation and Topology Selection*. University of California, Los
 Angeles.
+
+Dong, Xiaoru, Apoorva Goyal, Muxuan Liang, Maigan A. Brusko, Todd M.
+Brusko, and Rhonda Bacher. 2026. ‘Bootstrap-Enhanced Regularization
+Addressing Multicollinearity and Skewness in High-Dimensional
+Immunophenotyping Data’. *BMC Bioinformatics*, ahead of print.
+<https://doi.org/10.1186/s12859-026-06586-x>.
 
 Finotello, Francesca, Clemens Mayer, Christina Plattner, et al. 2019.
 ‘Molecular and Pharmacological Modulators of the Tumor Immune Contexture

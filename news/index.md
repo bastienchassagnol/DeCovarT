@@ -1,5 +1,47 @@
 # Changelog
 
+## DeCovarT 2.0.0
+
+- **Release** aligned with the GitHub `v2.0.0` tag and the first CRAN
+  submission, focused on numerical stability and optimiser cost in
+  `R/03_03_DeCovarT_estimate_ratios_frequentist.R` (documented in
+  [`vignette("softmax-alr-derivatives")`](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.md),
+  section *Numerical speed-ups and solver safeguards*). The CRAN tarball
+  ships the use-cases and softmax/ALR vignettes; remaining articles stay
+  on the pkgdown site.
+
+- **Newton–Raphson evaluation budget.** Removed an erroneous
+  `eval.max = 1` control passed to
+  [`stats::nlminb()`](https://rdrr.io/r/stats/nlminb.html) in
+  [`deconvolute_ratios_Newton_Raphson()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md),
+  which capped the *entire* run at a single objective evaluation and
+  silently returned the equi-balanced start.
+
+- **Cached Cholesky factorisation of
+  \boldsymbol{\Sigma}(\boldsymbol{p}).** New internal
+  [`.sigma_p_factorisation()`](https://bastienchassagnol.github.io/DeCovarT/reference/dot-sigma_p_factorisation.md)
+  assembles the mixture covariance once per trial point, shares
+  [`chol()`](https://rdrr.io/r/base/chol.html) /
+  [`chol2inv()`](https://rdrr.io/r/base/chol2inv.html) across the
+  log-likelihood, gradient and Hessian, and uses a Cholesky-based
+  log-determinant (verified against `numDeriv`).
+
+- **Analytic gradient for L-BFGS-B.**
+  [`deconvolute_ratios_L_BFGS_B()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md)
+  now passes the unconstrained analytic score instead of finite
+  differences, with finite-penalty guards when box-constrained line
+  searches drive \boldsymbol{\Sigma}(\boldsymbol{p}) near-singular.
+
+- **`marqLevAlg` Hessian sign under maximisation.** When
+  `minimize = FALSE`, `marqLevAlg` only negates `fn` / `gr`; the
+  analytic Hessian must be negated by hand so the Commenges et al. RDM
+  criterion can fire. Reported upstream as
+  [VivianePhilipps/marqLevAlgParallel#3](https://github.com/VivianePhilipps/marqLevAlgParallel/issues/3).
+
+- **Documentation.** Expanded use-cases and feature-selection vignettes;
+  CRAN-oriented `DESCRIPTION` (MIT licence, arXiv method reference
+  <doi:10.48550/arXiv.2309.09557>).
+
 ## DeCovarT 1.0.0
 
 - First **stabilised** release of DeCovarT (semver `1.0.0`), marking the

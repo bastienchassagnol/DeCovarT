@@ -959,259 +959,8 @@ Table 6: Compact factorial axes for a reproducible undirected GGM simulation st
 </figure>
 </div>
 <p><strong>Main insights.</strong> Prefer the uniform spectral shift (<a href="#eq-spectral-shift" class="quarto-xref">Equation 18</a>) or partial-correlation scaling (<a href="#eq-partial-scale" class="quarto-xref">Equation 17</a>) when support and signs must be exact; add the mean layer <strong>independently</strong> of graph generation.</p>
-</section></section></section><section class="section level2"><h2 id="sec-scenario-grid">Synthetic simulation design: a hybrid multi-topology reference scenario<a class="anchor" aria-label="anchor" href="#sec-scenario-grid"></a>
-</h2>
-<p>The earlier factorial design swept one topology and one cosine level at a time, keeping a single <strong>shared</strong> covariance across all <span class="math inline">J</span> cell types (<code><a href="../reference/simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments()</a></code>; <a href="#sec-ggm-networks" class="quarto-xref">Section 4</a>). <code>scripts/generate_random_markov_network.R</code> instead builds <strong>one</strong> scenario that stresses several axes of the feature-selection pipeline simultaneously: two cell types that are unrecoverable from <span class="math inline">\boldsymbol{\mu}</span> alone and must be told apart from <strong>topology</strong>, a third cell type set apart by a compact marker block, and a null block that should survive every selection stage as <em>discarded</em>. Notation matches the manuscript: <span class="math inline">G=50</span> genes, <span class="math inline">J=3</span> cell types, <span class="math inline">N</span> bulk samples for <span class="math inline">\boldsymbol{Y}\in\mathcal{M}_{G\times N}</span>.</p>
-<section class="level2"><h3 id="gene-and-cell-type-design">Gene and cell-type design<a class="anchor" aria-label="anchor" href="#gene-and-cell-type-design"></a>
-</h3>
-<p>The <span class="math inline">G=50</span> genes are partitioned into three blocks, and each cell type gets its <strong>own</strong> <span class="math inline">G\times G</span> precision <span class="math inline">\boldsymbol{\Omega}_j</span> (not a shared one):</p>
-<p><span class="math display">
-\underbrace{\mathcal{G}_{12}}_{30\text{ genes}}
-\ \cup\
-\underbrace{\mathcal{G}_{3}}_{10\text{ genes}}
-\ \cup\
-\underbrace{\mathcal{G}_{\mathrm{eq}}}_{10\text{ genes}},
-\qquad
-\boldsymbol{\Omega}_j
-=
-\mathrm{blockdiag}\bigl(
-  \boldsymbol{\Omega}_j^{(\mathcal{G}_{12})},\,
-  \boldsymbol{\Omega}_j^{(\mathcal{G}_{3})},\,
-  \boldsymbol{\Omega}_j^{(\mathcal{G}_{\mathrm{eq}})}
-\bigr),
-\qquad j=1,2,3.
-</span></p>
-<p><span class="math inline">\boldsymbol{\mu}</span> is built by <strong>two</strong> iterative calls to <code><a href="../reference/generate_mean_signature_matrix.html">generate_mean_signature_matrix()</a></code> (<a href="#eq-mean-cosine" class="quarto-xref">Equation 1</a>): first on <span class="math inline">\mathcal{G}_{12}</span> for the pair (cell type 1, cell type 2) with a <strong>high</strong> target cosine <span class="math inline">\rho_{12}=0.95</span> (near-collinear, per <a href="#sec-lr-block-mu" class="quarto-xref">Section 3.1</a>); then on a pool of <span class="math inline">2\times10</span> genes for the pair (merged <span class="math inline">\{1,2\}</span>, cell type 3) with a <strong>low</strong> target cosine <span class="math inline">\rho_{3}=0.05</span> (near-orthogonal), keeping only the 10 genes whose private block belongs to cell type 3. <span class="math inline">\mathcal{G}_{\mathrm{eq}}</span> gets a flat baseline directly (identical mean in all three types by construction). Only <span class="math inline">\mathcal{G}_{12}</span> and <span class="math inline">\mathcal{G}_3</span> carry a mean signal; cell types 1 and 2 are, by design, mean-indistinguishable on <span class="math inline">\mathcal{G}_{12}</span>.</p>
-<p>Following the BLGGM hybrid design (<a href="#sec-ggm-networks" class="quarto-xref">Section 4</a>), each block’s <strong>local</strong> topology is set independently per cell type, with no edges between blocks:</p>
-<div id="tbl-hybrid-topology-design" class="quarto-float quarto-figure quarto-figure-center">
-<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-hybrid-topology-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 7: Local topology assigned to each (gene block, cell type) pair; no edges connect different blocks (block-diagonal precision support).
-</figcaption><div aria-describedby="tbl-hybrid-topology-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="table caption-top">
-<colgroup>
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 20%">
-</colgroup>
-<thead><tr class="header">
-<th>Gene block</th>
-<th># genes</th>
-<th>Cell type 1</th>
-<th>Cell type 2</th>
-<th>Cell type 3</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td><code>shared_12_vs_3</code></td>
-<td>30</td>
-<td>stochastic block model (hub-like modules)</td>
-<td>star (single key-driver gene)</td>
-<td>Erdős–Rényi (background)</td>
-</tr>
-<tr class="even">
-<td><code>marker_3</code></td>
-<td>10</td>
-<td>Erdős–Rényi (background)</td>
-<td>Erdős–Rényi (background)</td>
-<td>scale-free</td>
-</tr>
-<tr class="odd">
-<td><code>equal_all</code></td>
-<td>10</td>
-<td>Erdős–Rényi</td>
-<td>Erdős–Rényi</td>
-<td>Erdős–Rényi</td>
-</tr>
-</tbody>
-</table>
-</div>
-</figure>
-</div>
-<p>Cell types 1 and 2 therefore differ <strong>only</strong> on <code>shared_12_vs_3</code>, and only through <span class="math inline">\boldsymbol{\Omega}</span>: hub/stochastic-block modules (cascading-pathway-like) for cell type 1 versus a single star (one key-driver gene) for cell type 2. <code>equal_all</code> is wired identically (Erdős–Rényi) in every cell type, matching its complete lack of mean signal.</p>
-<div class="cell">
-<div id="tbl-mean-geometry" class="cell quarto-float quarto-figure quarto-figure-center">
-<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-mean-geometry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 8: Realised pairwise cosine and Euclidean distance of the 50 x 3 mean signature, over the full G = 50 genes.
-</figcaption><div aria-describedby="tbl-mean-geometry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output-display">
-<!-- preamble start -->
-
-    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
-      // Create table-specific functions using external factory
-      const tableFns_lnz7jchrllx2gwlmcygu = TinyTable.createTableFunctions("tinytable_lnz7jchrllx2gwlmcygu");
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: '3', j: 2 }, { i: '3', j: 3 } ], css_id: 'tinytable_css_ey87f5cwn322mhetzk9h',},
-          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 } ], css_id: 'tinytable_css_3ry8ah7m0gxpammuvxfq',},
-          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 } ], css_id: 'tinytable_css_2ta2bqvw9c8joqout938',},
-          { positions: [ { i: '3', j: 1 } ], css_id: 'tinytable_css_z505geenhsbdagilkouf',},
-          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_5taz6ylnezklgrsx2fyj',},
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  tableFns_lnz7jchrllx2gwlmcygu.styleCell(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
-<style>
-    /* tinytable css entries after */
-    #tinytable_lnz7jchrllx2gwlmcygu td.tinytable_css_ey87f5cwn322mhetzk9h, #tinytable_lnz7jchrllx2gwlmcygu th.tinytable_css_ey87f5cwn322mhetzk9h {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_lnz7jchrllx2gwlmcygu td.tinytable_css_3ry8ah7m0gxpammuvxfq, #tinytable_lnz7jchrllx2gwlmcygu th.tinytable_css_3ry8ah7m0gxpammuvxfq { text-align: center }
-    #tinytable_lnz7jchrllx2gwlmcygu td.tinytable_css_2ta2bqvw9c8joqout938, #tinytable_lnz7jchrllx2gwlmcygu th.tinytable_css_2ta2bqvw9c8joqout938 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_lnz7jchrllx2gwlmcygu td.tinytable_css_z505geenhsbdagilkouf, #tinytable_lnz7jchrllx2gwlmcygu th.tinytable_css_z505geenhsbdagilkouf {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_lnz7jchrllx2gwlmcygu td.tinytable_css_5taz6ylnezklgrsx2fyj, #tinytable_lnz7jchrllx2gwlmcygu th.tinytable_css_5taz6ylnezklgrsx2fyj {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    </style>
-<div class="container">
-      <table class="table tinytable" id="tinytable_lnz7jchrllx2gwlmcygu" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-<thead><tr>
-<th scope="col" data-row="0" data-col="1">pair</th>
-                <th scope="col" data-row="0" data-col="2">cosine</th>
-                <th scope="col" data-row="0" data-col="3">euclidean</th>
-              </tr></thead>
-<tbody>
-<tr>
-<td data-row="1" data-col="1">celltype_1 vs celltype_2</td>
-                  <td data-row="1" data-col="2">0.973</td>
-                  <td data-row="1" data-col="3">2.76</td>
-                </tr>
-<tr>
-<td data-row="2" data-col="1">celltype_1 vs celltype_3</td>
-                  <td data-row="2" data-col="2">0.562</td>
-                  <td data-row="2" data-col="3">11.22</td>
-                </tr>
-<tr>
-<td data-row="3" data-col="1">celltype_2 vs celltype_3</td>
-                  <td data-row="3" data-col="2">0.562</td>
-                  <td data-row="3" data-col="3">11.22</td>
-                </tr>
-</tbody>
-</table>
-</div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
-</figure>
-</div>
-</div>
-<div class="cell">
-<div id="tbl-topology-diagnostics" class="cell quarto-float quarto-figure quarto-figure-center">
-<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-topology-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 9: Per-cell-type precision spectrum for the 50 x 50 hybrid-topology Omega_j.
-</figcaption><div aria-describedby="tbl-topology-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output-display">
-<!-- preamble start -->
-
-    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
-      // Create table-specific functions using external factory
-      const tableFns_hypgkymunvoot67ogbig = TinyTable.createTableFunctions("tinytable_hypgkymunvoot67ogbig");
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: '3', j: 3 }, { i: '3', j: 4 }, { i: '3', j: 5 }, { i: '3', j: 6 } ], css_id: 'tinytable_css_wwyao8lhstcs6ozy6p8k',},
-          { positions: [ { i: '1', j: 3 }, { i: '2', j: 3 }, { i: '1', j: 4 }, { i: '2', j: 4 }, { i: '1', j: 5 }, { i: '2', j: 5 }, { i: '1', j: 6 }, { i: '2', j: 6 } ], css_id: 'tinytable_css_mo433r1m65i7nxbx12fw',},
-          { positions: [ { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 }, { i: '0', j: 6 } ], css_id: 'tinytable_css_rvs8gcntldnfhw5to9g8',},
-          { positions: [ { i: '3', j: 1 }, { i: '3', j: 2 } ], css_id: 'tinytable_css_777w9jcrx9pa72cgt9x3',},
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 } ], css_id: 'tinytable_css_h306x22l4vyqhsec2mh8',},
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  tableFns_hypgkymunvoot67ogbig.styleCell(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
-<style>
-    /* tinytable css entries after */
-    #tinytable_hypgkymunvoot67ogbig td.tinytable_css_wwyao8lhstcs6ozy6p8k, #tinytable_hypgkymunvoot67ogbig th.tinytable_css_wwyao8lhstcs6ozy6p8k {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_hypgkymunvoot67ogbig td.tinytable_css_mo433r1m65i7nxbx12fw, #tinytable_hypgkymunvoot67ogbig th.tinytable_css_mo433r1m65i7nxbx12fw { text-align: center }
-    #tinytable_hypgkymunvoot67ogbig td.tinytable_css_rvs8gcntldnfhw5to9g8, #tinytable_hypgkymunvoot67ogbig th.tinytable_css_rvs8gcntldnfhw5to9g8 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_hypgkymunvoot67ogbig td.tinytable_css_777w9jcrx9pa72cgt9x3, #tinytable_hypgkymunvoot67ogbig th.tinytable_css_777w9jcrx9pa72cgt9x3 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_hypgkymunvoot67ogbig td.tinytable_css_h306x22l4vyqhsec2mh8, #tinytable_hypgkymunvoot67ogbig th.tinytable_css_h306x22l4vyqhsec2mh8 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    </style>
-<div class="container">
-      <table class="table tinytable" id="tinytable_hypgkymunvoot67ogbig" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-<thead><tr>
-<th scope="col" data-row="0" data-col="1">cell type</th>
-                <th scope="col" data-row="0" data-col="2">topology</th>
-                <th scope="col" data-row="0" data-col="3">$\lambda_{\min}$</th>
-                <th scope="col" data-row="0" data-col="4">$\lambda_{\max}$</th>
-                <th scope="col" data-row="0" data-col="5">$\kappa(\Omega)$</th>
-                <th scope="col" data-row="0" data-col="6">prop inhib</th>
-              </tr></thead>
-<tbody>
-<tr>
-<td data-row="1" data-col="1">celltype_1</td>
-                  <td data-row="1" data-col="2">SBM (hub-like modules)</td>
-                  <td data-row="1" data-col="3">0.1</td>
-                  <td data-row="1" data-col="4">1.68</td>
-                  <td data-row="1" data-col="5">16.8</td>
-                  <td data-row="1" data-col="6">0.5</td>
-                </tr>
-<tr>
-<td data-row="2" data-col="1">celltype_2</td>
-                  <td data-row="2" data-col="2">star (single key driver)</td>
-                  <td data-row="2" data-col="3">0.1</td>
-                  <td data-row="2" data-col="4">3.33</td>
-                  <td data-row="2" data-col="5">33.3</td>
-                  <td data-row="2" data-col="6">0.489</td>
-                </tr>
-<tr>
-<td data-row="3" data-col="1">celltype_3</td>
-                  <td data-row="3" data-col="2">scale-free (marker genes)</td>
-                  <td data-row="3" data-col="3">0.1</td>
-                  <td data-row="3" data-col="4">2.1</td>
-                  <td data-row="3" data-col="5">21</td>
-                  <td data-row="3" data-col="6">0.5</td>
-                </tr>
-</tbody>
-</table>
-</div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
-</figure>
-</div>
-</div>
-<p>Column guide: <span class="math inline">\lambda_{\min}</span>, <span class="math inline">\lambda_{\max}</span>, and <span class="math inline">\kappa(\boldsymbol{\Omega})=\lambda_{\max}/\lambda_{\min}</span> summarise the precision spectrum of each cell type’s <em>own</em> <span class="math inline">\boldsymbol{\Omega}_j</span>; <code>prop_inhib</code> is the realised fraction of inhibitory precision edges. <a href="#tbl-mean-geometry" class="quarto-xref">Table 8</a> shows cell types 1 and 2 near-collinear (cosine <span class="math inline">\approx 0.97</span>), tracking the local target <span class="math inline">\rho_{12}=0.95</span> used on <code>shared_12_vs_3</code>. Cell type 3, however, sits at only a <em>moderate</em> cosine (<span class="math inline">\approx0.56</span>) from the other two—well above the local target <span class="math inline">\rho_{3}=0.05</span> used on the <code>marker_3</code> pool. The gap is exactly the finite-sample effect of <a href="#sec-asymptotic-cosine" class="quarto-xref">Section 3.1.1</a>: the flat <code>celltype_12_merged</code> background on <code>shared_12_vs_3</code> and the identical <code>equal_all</code> baseline both contribute a strictly positive term to <em>every</em> pairwise inner product over the full <span class="math inline">G=50</span> vector, diluting the block-local orthogonality of <code>marker_3</code> alone. <a href="#tbl-topology-diagnostics" class="quarto-xref">Table 9</a> shows that, despite the shared mean on <code>shared_12_vs_3</code>, cell types 1 and 2 carry distinct, well-conditioned precision spectra—exactly the topology-only separation the scenario is designed to require.</p>
-<p><a href="#fig-network-topologies" class="quarto-xref">Figure 7</a> renders the three realised networks with <code>igraph</code>, coloured by gene block and by precision-edge sign.</p>
-<div id="fig-network-topologies" class="quarto-float quarto-figure quarto-figure-center">
-<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-network-topologies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="figures/fig_network_topologies.png" style="width:100.0%">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-network-topologies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 7: Cell-type-specific block topologies for the 50-gene hybrid scenario: a stochastic-block/hub-like module structure for cell type 1, restricted to the 30 <code>shared_12_vs_3</code> genes; a single star (one key-driver gene) for cell type 2 on the same 30 genes; and a scale-free network for cell type 3 restricted to its own 10 <code>marker_3</code> genes. The <code>equal_all</code> block (grey) is wired as Erdős–Rényi in every cell type. Edge colour encodes the sign of the precision entry (red = inhibitory, teal = activatory); node colour encodes the gene block.
-</figcaption></figure>
-</div>
-<p>The full pipeline built on this scenario—mean signature, per-cell-type topologies, <span class="math inline">N=200</span> bulk simulation, and the pre-selection / NSGA-II feature-selection stages it stresses—is reproduced end-to-end in <code>scripts/generate_random_markov_network.R</code>.</p>
-</section><section class="level2"><h3 id="related-literature">Related literature<a class="anchor" aria-label="anchor" href="#related-literature"></a>
-</h3>
-<p>Pseudobulk simulation tools such as <strong><code>muscat</code></strong> <span class="citation" data-cites="crowellMuscatDetectsSubpopulationspecific2020">(<a href="#ref-crowellMuscatDetectsSubpopulationspecific2020" role="doc-biblioref">Crowell et al. 2020</a>)</span> aggregate single-cell counts across samples and conditions for differential-state testing; <strong><code>scDD</code></strong> <span class="citation" data-cites="korthauerStatisticalApproachIdentifying2016">(<a href="#ref-korthauerStatisticalApproachIdentifying2016" role="doc-biblioref">Korthauer et al. 2016</a>)</span> partitions genes, relative to a reference condition, into five differential-distribution (DD) patterns: equivalent expression (<strong>EE</strong>), differential expression (<strong>DE</strong>, a mean shift with one mode preserved per condition), differential proportion (<strong>DP</strong>, a shift in the mixing weights of a shared bimodal pattern), differential modality (<strong>DM</strong>, a change in the number of modes without necessarily shifting the overall mean), and differential expression <strong>and</strong> modality combined (<strong>DB</strong>).</p>
-<p>The hybrid scenario above instantiates a loose, network-level analogue of three of these patterns, tailored to deconvolution rather than to single-cell distribution testing directly (<a href="#fig-dd-taxonomy" class="quarto-xref">Figure 8</a>):</p>
-<ul>
-<li>the 10 <code>equal_all</code> genes are <strong>EE</strong>: identical mean and identically Erdős–Rényi-wired second-order structure in every cell type;</li>
-<li>the 10 <code>marker_3</code> genes are <strong>DE</strong> against the merged <span class="math inline">\{1,2\}</span> background: a mean shift confined to cell type 3, layered on a scale-free local topology;</li>
-<li>the 30 <code>shared_12_vs_3</code> genes are <strong>DE</strong> against cell type 3 but, between cell types 1 and 2 specifically, carry <strong>no mean shift at all</strong>—only the precision-matrix topology (<a href="#tbl-hybrid-topology-design" class="quarto-xref">Table 7</a>) differs. This is not scDD’s original single-gene DM test (unimodal versus bimodal <em>marginal</em> densities within one gene), but it plays a structurally similar role here: two populations a mean-only model cannot separate, which a covariance-aware model such as DeCovarT is designed to exploit.</li>
-</ul>
-<div id="fig-dd-taxonomy" class="quarto-float quarto-figure quarto-figure-center">
-<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-dd-taxonomy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="figures/fig_dd_taxonomy_ee_de_dm.png" style="width:100.0%">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-dd-taxonomy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 8: Schematic differential-distribution taxonomy for the three gene blocks: equivalent expression (EE, <code>equal_all</code>), differential expression marking cell type 3 (DE, <code>marker_3</code>), and a differential-modality-like contrast between cell types 1 and 2 that is invisible at the mean level and only resolved by network topology (DM-like, <code>shared_12_vs_3</code>).
-</figcaption></figure>
-</div>
-<p>DeCovarT’s generator is narrower—it fixes <span class="math inline">\boldsymbol{\mu}</span> through <a href="#eq-mean-cosine" class="quarto-xref">Equation 1</a> and <a href="#eq-lr-block" class="quarto-xref">Equation 2</a> rather than estimating signatures from real scRNA-seq—but the same low-rank-plus-block intuition underpins many reference-matrix constructions cited above.</p>
-</section></section><section class="section level2"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+<p>The end-to-end <strong>hybrid multi-topology reference scenario</strong> (two mean-collinear cell types distinguished only by network topology, a third orthogonal type, NSGA-II panel curation, and the frequentist solver comparison on imbalanced mixtures) is documented in the companion vignette <a href="DeCoVart-use-cases.html#sec-scenario-grid">Deconvolution use cases</a>.</p>
+</section></section></section><section class="section level2"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-alieeAutoGeneSAutomaticGene2021" class="csl-entry" role="listitem">
@@ -1232,17 +981,11 @@ Broido, Anna D., and Aaron Clauset. 2019. <span>‘Scale-Free Networks Are Rare�
 <div id="ref-chiquetVariationalInferenceSparse2018" class="csl-entry" role="listitem">
 Chiquet, Julien, Mahendra Mariadassou, and Stéphane Robin. 2018. <em>Variational Inference for Sparse Network Reconstruction from Count Data</em>. arXiv. <a href="https://doi.org/10.48550/arxiv.1806.03120" class="external-link">https://doi.org/10.48550/arxiv.1806.03120</a>.
 </div>
-<div id="ref-crowellMuscatDetectsSubpopulationspecific2020" class="csl-entry" role="listitem">
-Crowell, Helena L., Charlotte Soneson, Pierre-Luc Germain, et al. 2020. <span>‘Muscat Detects Subpopulation-Specific State Transitions from Multi-Sample Multi-Condition Single-Cell Transcriptomics Data’</span>. <em>Nature Communications</em> 11: 6077. <a href="https://doi.org/10.1038/s41467-020-19894-4" class="external-link">https://doi.org/10.1038/s41467-020-19894-4</a>.
-</div>
 <div id="ref-federicoStructureLearningGene2023" class="csl-entry" role="listitem">
 Federico, Anthony, Joseph Kern, Xaralabos Varelas, and Stefano Monti. 2023. <span>‘Structure Learning for Gene Regulatory Networks’</span>. <em>PLOS Computational Biology</em> 19. <a href="https://doi.org/10.1371/journal.pcbi.1011118" class="external-link">https://doi.org/10.1371/journal.pcbi.1011118</a>.
 </div>
 <div id="ref-R-huge" class="csl-entry" role="listitem">
 Jiang, Haoming, Xinyu Fei, Han Liu, et al. 2026. <em>Huge: High-Dimensional Undirected Graph Estimation</em>. <a href="https://github.com/Gatech-Flash/huge" class="external-link">https://github.com/Gatech-Flash/huge</a>.
-</div>
-<div id="ref-korthauerStatisticalApproachIdentifying2016" class="csl-entry" role="listitem">
-Korthauer, Keegan D., Li-Fang Chu, Michael A. Newton, et al. 2016. <span>‘A Statistical Approach for Identifying Differential Distributions in Single-Cell <span class="nocase">RNA-seq</span> Experiments’</span>. <em>Genome Biology</em> 17: 222. <a href="https://doi.org/10.1186/s13059-016-1077-y" class="external-link">https://doi.org/10.1186/s13059-016-1077-y</a>.
 </div>
 <div id="ref-lima-mendezPowerfulLawPower2009" class="csl-entry" role="listitem">
 <span class="nocase">Lima-Mendez, Gipsi, and Jacques van Helden</span>. 2009. <span>‘The Powerful Law of the Power Law and Other Myths in Network Biology1’</span>. <em>Molecular BioSystems(MBS)</em> 5. <a href="https://doi.org/10.1039/b908681a" class="external-link">https://doi.org/10.1039/b908681a</a>.
@@ -1355,7 +1098,7 @@ Zhang, Rong, Zhao Ren, and Wei Chen. 2018. <span>‘<span>SILGGM</span>: <span>A
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Bastien Chassagnol.</p>
+  <p>Developed by Bastien Chassagnol (<a href="mailto:bastien_chassagnol@laposte.net">bastien_chassagnol@laposte.net</a> · <a href="https://www.linkedin.com/in/bastien-chassagnol-677b67140/?locale=fr" class="external-link">LinkedIn</a>).</p>
 </div>
 
 <div class="pkgdown-footer-right">

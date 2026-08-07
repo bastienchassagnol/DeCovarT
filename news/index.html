@@ -53,6 +53,15 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.0.0" id="decovart-200">DeCovarT 2.0.0<a class="anchor" aria-label="anchor" href="#decovart-200"></a></h2>
+<ul><li><p><strong>Release</strong> aligned with the GitHub <code>v2.0.0</code> tag and the first CRAN submission, focused on numerical stability and optimiser cost in <code>R/03_03_DeCovarT_estimate_ratios_frequentist.R</code> (documented in <code><a href="../articles/softmax-alr-derivatives.html">vignette("softmax-alr-derivatives")</a></code>, section <em>Numerical speed-ups and solver safeguards</em>). The CRAN tarball ships the use-cases and softmax/ALR vignettes; remaining articles stay on the pkgdown site.</p></li>
+<li><p><strong>Newton–Raphson evaluation budget.</strong> Removed an erroneous <code>eval.max = 1</code> control passed to <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">stats::nlminb()</a></code> in <code><a href="../reference/deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_Newton_Raphson()</a></code>, which capped the <em>entire</em> run at a single objective evaluation and silently returned the equi-balanced start.</p></li>
+<li><p><strong>Cached Cholesky factorisation of <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span>.</strong> New internal <code><a href="../reference/dot-sigma_p_factorisation.html">.sigma_p_factorisation()</a></code> assembles the mixture covariance once per trial point, shares <code><a href="https://rdrr.io/r/base/chol.html" class="external-link">chol()</a></code> / <code><a href="https://rdrr.io/r/base/chol2inv.html" class="external-link">chol2inv()</a></code> across the log-likelihood, gradient and Hessian, and uses a Cholesky-based log-determinant (verified against <code>numDeriv</code>).</p></li>
+<li><p><strong>Analytic gradient for L-BFGS-B.</strong> <code><a href="../reference/deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_L_BFGS_B()</a></code> now passes the unconstrained analytic score instead of finite differences, with finite-penalty guards when box-constrained line searches drive <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span> near-singular.</p></li>
+<li><p><strong><code>marqLevAlg</code> Hessian sign under maximisation.</strong> When <code>minimize = FALSE</code>, <code>marqLevAlg</code> only negates <code>fn</code> / <code>gr</code>; the analytic Hessian must be negated by hand so the Commenges et al. RDM criterion can fire. Reported upstream as <a href="https://github.com/VivianePhilipps/marqLevAlgParallel/issues/3" class="external-link">VivianePhilipps/marqLevAlgParallel#3</a>.</p></li>
+<li><p><strong>Documentation.</strong> Expanded use-cases and feature-selection vignettes; CRAN-oriented <code>DESCRIPTION</code> (MIT licence, arXiv method reference <a href="doi:10.48550/arXiv.2309.09557" class="uri">doi:10.48550/arXiv.2309.09557</a>).</p></li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.0" id="decovart-100">DeCovarT 1.0.0<a class="anchor" aria-label="anchor" href="#decovart-100"></a></h2>
 <ul><li><p>First <strong>stabilised</strong> release of DeCovarT (semver <code>1.0.0</code>), marking the end of the exploratory <code>0.x</code> series. The core ALR-based frequentist deconvolution API, analytic score equations, and simulation tooling are now treated as a stable public surface for downstream use and paper reproduction.</p></li>
 <li><p><strong>Analytic derivatives, numerically verified.</strong> The unconstrained and constrained log-likelihood gradients and Hessians (and the additive logistic Jacobian / Hessian) are derived in closed form and unit-tested against <code>numDeriv</code> finite differences. Earlier faulty numerical / finite-difference-only paths that could mislead Marquardt–Levenberg and related optimisers have been replaced by these verified analytic expressions (see <code><a href="../articles/softmax-alr-derivatives.html">vignette("softmax-alr-derivatives")</a></code> and <code>tests/testthat/test-03_03_DeCovarT.R</code>).</p></li>
@@ -68,7 +77,7 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Bastien Chassagnol.</p>
+  <p>Developed by Bastien Chassagnol (<a href="mailto:bastien_chassagnol@laposte.net">bastien_chassagnol@laposte.net</a> · <a href="https://www.linkedin.com/in/bastien-chassagnol-677b67140/?locale=fr" class="external-link">LinkedIn</a>).</p>
 </div>
 
 <div class="pkgdown-footer-right">

@@ -85,3 +85,20 @@ added.
 \\\sqrt{\rho}\\\boldsymbol{u}+\sqrt{1-\rho}\\\boldsymbol{v}\_{j}\\,
 re-normalised, then scaled by \\s\\. Thus \\\rho\\ dials collinearity
 while \\s\\ dials Euclidean separation without changing angles.
+
+## Examples
+
+``` r
+generate_mean_signature_matrix(
+  n_genes = 6L,
+  n_celltypes = 2L,
+  target_cosine = 0.5
+)
+#>        celltype_1 celltype_2
+#> gene_1   5.334021   2.209424
+#> gene_2   5.334021   2.209424
+#> gene_3   5.334021   2.209424
+#> gene_4   2.209424   5.334021
+#> gene_5   2.209424   5.334021
+#> gene_6   2.209424   5.334021
+```

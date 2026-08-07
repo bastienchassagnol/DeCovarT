@@ -436,8 +436,165 @@ c(logistic_jacobian = isTRUE(jac_ok),
 
 Listing 12: Validation with numDeriv
 
+## Numerical speed-ups and solver safeguards
+
+The analytic maps above are only half of a usable optimiser: each
+Newton-type iteration also evaluates the Gaussian-convolution
+log-likelihood and its derivatives with respect to \boldsymbol{p} (or
+\boldsymbol{\rho}). Several practical bottlenecks and numerical
+inconsistencies showed up when running the hybrid scenario in
+[Deconvolution use
+cases](https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.html#sec-hybrid-deconvolution);
+the changes below live in
+`R/03_03_DeCovarT_estimate_ratios_frequentist.R`.
+
+### Raise the Newton–Raphson evaluation budget
+
+[`deconvolute_ratios_Newton_Raphson()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md)
+wraps [`stats::nlminb()`](https://rdrr.io/r/stats/nlminb.html). An
+earlier control list set `eval.max = 1`, which caps the **total** number
+of objective evaluations for the whole run (not per iteration). The
+solver therefore evaluated the log-likelihood once at the equi-balanced
+start and stopped, returning the untouched initial guess on every
+sample. Removing that entry (keeping `iter.max`, `rel.tol`, ) restores
+genuine Newton steps; see the before/after contrast (`Newton_Raphson`
+versus `Newton_Raphson_fixed`) in [Table solver
+diagnostics](https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.html#tbl-solver-diagnostics).
+
+### Cache a Cholesky factorisation of \boldsymbol{\Sigma}(\boldsymbol{p})
+
+Within one iteration, [`optim()`](https://rdrr.io/r/stats/optim.html) /
+[`nlminb()`](https://rdrr.io/r/stats/nlminb.html) / `marqLevAlg()` treat
+the log-likelihood, gradient and Hessian as independent callbacks, yet
+they all hit the **same** trial \boldsymbol{p}. Assembling
+\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}\_j
+and factorising it separately in each callback (and again inside the
+constrained Hessian chain rule) paid for an O(G^3) factorisation up to
+four times per iteration. The internal helper
+[`.sigma_p_factorisation()`](https://bastienchassagnol.github.io/DeCovarT/reference/dot-sigma_p_factorisation.md)
+caches a single Cholesky factor keyed on exact equality of `(p, Sigma)`
+and returns
+
+\boldsymbol{\Sigma}(\boldsymbol{p}) = \mathbf{R}^{\mathsf{T}}\mathbf{R},
+\qquad \log\det\boldsymbol{\Sigma}(\boldsymbol{p}) =
+2\sum\_{g=1}^{G}\log R\_{gg}, \qquad
+\boldsymbol{\Sigma}(\boldsymbol{p})^{-1} =
+\mathbf{R}^{-1}(\mathbf{R}^{\mathsf{T}})^{-1} \tag{13}
+
+via [`chol()`](https://rdrr.io/r/base/chol.html) /
+[`chol2inv()`](https://rdrr.io/r/base/chol2inv.html)
+([Eq. 13](#eq-chol-sigma-p)). The unconstrained log-likelihood then uses
+the cached log-determinant and inverse,
+
+\ell\_{\boldsymbol{y}\\\|\\\boldsymbol{\zeta}}(\boldsymbol{p}) =
+-\log\det\boldsymbol{\Sigma}(\boldsymbol{p}) -\tfrac{1}{2}
+\boldsymbol{r}^{\mathsf{T}} \boldsymbol{\Sigma}(\boldsymbol{p})^{-1}
+\boldsymbol{r}, \qquad \boldsymbol{r} =
+\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}, \tag{14}
+
+and both
+[`gradient_loglik_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/gradient_loglik_unconstrained.md)
+and
+[`hessian_loglik_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/hessian_loglik_unconstrained.md)
+reuse the same \boldsymbol{\Sigma}(\boldsymbol{p})^{-1}
+([Eq. 14](#eq-loglik-chol)). Analytic gradients and Hessians still match
+`numDeriv` to \sim 10^{-8}–10^{-9} after the refactor.
+
+### Guard the box-constrained L-BFGS-B path
+
+[`deconvolute_ratios_L_BFGS_B()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md)
+optimises directly in \boldsymbol{p} with box constraints \[0,1\]^J.
+Those boxes alone do **not** enforce
+\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1, so line searches can drive
+\boldsymbol{\Sigma}(\boldsymbol{p}) singular. Both the objective and the
+analytic gradient are wrapped: near \sum_j p_j\approx 0 (or on a failed
+[`chol()`](https://rdrr.io/r/base/chol.html)), the log-likelihood
+returns a finite penalty and the gradient a zero vector rather than
+aborting [`optim()`](https://rdrr.io/r/stats/optim.html):
+
+``` r
+
+safe_loglik <- function(p, y, mean_signature_matrix, Sigma) {
+  if (sum(p) < 1e-8) {
+    return(-1e12)
+  }
+  tryCatch(
+    loglik_multivariate(p, y, mean_signature_matrix, Sigma),
+    error = function(e) -1e12
+  )
+}
+safe_gradient <- function(p, y, mean_signature_matrix, Sigma) {
+  if (sum(p) < 1e-8) {
+    return(rep(0, length(p)))
+  }
+  tryCatch(
+    gradient_loglik_unconstrained(p, y, mean_signature_matrix, Sigma),
+    error = function(e) rep(0, length(p))
+  )
+}
+```
+
+### Supply the analytic gradient to L-BFGS-B
+
+The same solver previously relied on finite-difference gradients.
+Passing `gr = safe_gradient` (the unconstrained analytic score) removes
+that cost and keeps the safeguarded behaviour above.
+
+### `marqLevAlg` Hessian sign under `minimize = FALSE`
+
+> **Caution 1: `marqLevAlg(minimize = FALSE)` does not flip `hess`**
+>
+> [`marqLevAlg`](https://cran.r-project.org/package=marqLevAlg)
+> ([Philipps et al. 2023](#ref-R-marqLevAlg)) implements the
+> Marquardt–Levenberg algorithm with the relative-distance-to-minimum
+> (RDM) stopping rule of Commenges et al. ([Commenges et al.
+> 2006](#ref-commengesNewtonLikeAlgorithmLikelihood2006)):
+>
+> C_k \approx m^{-1} \boldsymbol{U}(\boldsymbol{\theta}\_k)^{\mathsf{T}}
+> \mathbf{G}(\boldsymbol{\theta}\_k)^{-1}
+> \boldsymbol{U}(\boldsymbol{\theta}\_k). \tag{15}
+>
+> With `minimize = FALSE`, the package **only** negates the
+> user-supplied `fn` and `gr`. The analytic `hess` is passed through
+> **unchanged**, while the internal Cholesky / inversion routines
+> (`dsinv`, `dchole`) assume a **positive-definite** matrix at the
+> optimum (minimisation convention). When maximising a log-likelihood,
+> [`hessian_loglik_constrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/hessian_loglik_constrained.md)
+> is negative-definite at the MLE, so `dsinv` fails (`ier = -1`) on
+> every iteration, `rdm` sticks at the unevaluated sentinel `epsd + 1`
+> (e.g. `1.0001`), and the algorithm always exhausts `maxiter`
+> (`istop = 2`) even when the iterate is already at the maximum.
+>
+> **Workaround used in DeCovarT:** pass
+> `hess = function(...) -hessian_loglik_constrained(...)` and keep
+> `minimize = FALSE`. Reported upstream as
+> [VivianePhilipps/marqLevAlgParallel#3](https://github.com/VivianePhilipps/marqLevAlgParallel/issues/3).
+
+[Table 3](#tbl-marqlevalg-hess) summarises the empirical confirmation on
+the hybrid J=3 scenario (m=J-1=2 free ALR coordinates). Point estimates
+barely moved (the wrongly scaled Newton step was often rescued by the
+internal line search), but iterations dropped roughly 20–40\times and
+`istop` / `rdm` became honest relative to [Eq. 15](#eq-rdm-commenges).
+
+| Hessian sign | istop | iterations | rdm |
+|----|----|----|----|
+| Wrong (log-likelihood Hessian as-is) | 2 (hit maxiter) | 200 / 200 | 1.0001 (sentinel) |
+| Negated (\`-hess\`) | 1 (converged) | 4–11 | ~1e-13 to 1e-21 |
+
+Table 3: Effect of negating the analytic Hessian passed to marqLevAlg
+when maximize = TRUE (minimize = FALSE).
+
+Commenges, Daniel, Helene Jacqmin-Gadda, Cecile Proust, and Jeremie
+Guedj. 2006. *A Newton-Like Algorithm for Likelihood Maximization: The
+Robust-Variance Scoring Algorithm*. arXiv.
+<https://doi.org/10.48550/arxiv.math/0610402>.
+
 Gilbert, Paul, and Ravi Varadhan. 2019. *numDeriv: Accurate Numerical
 Derivatives*. <http://optimizer.r-forge.r-project.org/>.
+
+Philipps, Viviane, Cecile Proust-Lima, Melanie Prague, Boris Hejblum,
+Daniel Commenges, and Amadou Diakite. 2023. *marqLevAlg: A Parallelized
+General-Purpose Optimization Based on Marquardt-Levenberg Algorithm*.
 
 van den Boogaart, K. Gerald, Raimon Tolosana-Delgado, and Matevz Bren.
 2025. *Compositions: Compositional Data Analysis*.

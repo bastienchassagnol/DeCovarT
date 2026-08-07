@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>What the Package Does (One Line, Title Case) • DeCovarT</title>
+<title>Covariance-Aware Deconvolution of Bulk Transcriptomic Samples • DeCovarT</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
@@ -18,9 +18,9 @@
 <link href="deps/Source_Code_Pro-0.4.10/font.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="What the Package Does (One Line, Title Case)">
-<meta name="description" content="Implements the first deconvolution algorithm for bulk transcriptome that accounts for the interactions between genes.">
-<meta property="og:description" content="Implements the first deconvolution algorithm for bulk transcriptome that accounts for the interactions between genes.">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Covariance-Aware Deconvolution of Bulk Transcriptomic Samples">
+<meta name="description" content="Estimates cell-type proportions in bulk transcriptomic samples with a probabilistic convolution model that integrates the gene-gene covariance structure of purified reference profiles. Cellular ratios are recovered by maximum likelihood under a multivariate Gaussian convolution, using analytic gradients and Hessians, an additive log-ratio reparametrisation that enforces the simplex constraint, and Marquardt-Levenberg or Newton-type optimisers. The methodology is described in Chassagnol, Nuel and Becht (2023) &lt;doi:10.48550/arXiv.2309.09557&gt;.">
+<meta property="og:description" content="Estimates cell-type proportions in bulk transcriptomic samples with a probabilistic convolution model that integrates the gene-gene covariance structure of purified reference profiles. Cellular ratios are recovered by maximum likelihood under a multivariate Gaussian convolution, using analytic gradients and Hessians, an additive log-ratio reparametrisation that enforces the simplex constraint, and Marquardt-Levenberg or Newton-type optimisers. The methodology is described in Chassagnol, Nuel and Becht (2023) &lt;doi:10.48550/arXiv.2309.09557&gt;.">
 <meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg">
 </head>
 <body>
@@ -82,7 +82,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><ul>
 <li>
-<a href="#decovart-">DeCovarT </a><a href="https://bastienchassagnol.github.io/DeCovarT/"><img src="reference/figures/logo.svg" alt="DeCovarT logo" align="right" height="139"></a>
+<a href="#decovart-">DeCovarT </a><a href="https://bastienchassagnol.github.io/DeCovarT/"><img src="reference/figures/logo.png" alt="DeCovarT logo" align="right" height="139"></a>
 <ul>
 <li>
 <a href="#overview">Overview</a>
@@ -107,14 +107,7 @@
 </li>
 <li><a href="#documentation">Documentation</a></li>
 <li><a href="#the-generative-model-of-decovart">The generative model of DeCovarT</a></li>
-<li>
-<a href="#compiling-the-latex-article">Compiling the LaTeX article</a>
-<ul>
-<li><a href="#package-reference-manuals">Package reference manuals</a></li>
-</ul>
-</li>
-<li><a href="#project-structure">Project structure</a></li>
-<li><a href="#speed-up-computation-with-autozyme">Speed up computation with AutoZyme</a></li>
+<li><a href="#compiling-the-latex-article">Compiling the LaTeX article</a></li>
 </ul>
 </li>
 </ul>
@@ -234,8 +227,10 @@ flowchart TD
 <h3 id="links-to-the-paper">Links to the paper<a class="anchor" aria-label="anchor" href="#links-to-the-paper"></a>
 </h3>
 <ul>
-<li><a href="https://www.overleaf.com/project/697398ed149e81845cb5208e" class="external-link">Overleaf repository (shared with Anaïs Baudot)</a></li>
-<li><a href="https://arxiv.org/pdf/2309.09557" class="external-link">HAL / arXiv archive</a></li>
+<li>
+<a href="https://arxiv.org/abs/2309.09557" class="external-link">arXiv:2309.09557</a> (also on HAL)</li>
+<li>PDF: <a href="https://arxiv.org/pdf/2309.09557" class="external-link">arXiv PDF</a>
+</li>
 </ul>
 </div>
 </div>
@@ -379,39 +374,26 @@ p_{J}=\frac{1}{\sum_{k&lt;J}e^{\rho_{k}}+1},\qquad
 <h2 id="compiling-the-latex-article">Compiling the LaTeX article<a class="anchor" aria-label="anchor" href="#compiling-the-latex-article"></a>
 </h2>
 <p>Source file: <code>article/main.tex</code> (bibliography: <code>article/decovart_library.bib</code>). DAG panels in Fig.~DAG-model are drawn with <a href="https://ctan.org/pkg/tikz-bayesnet" class="external-link"><code>tikz-bayesnet</code></a>.</p>
-<p><strong>Published PDF</strong> (when the latest <code>main</code> commit message contains <code>article generation</code>): <a href="https://bastienchassagnol.github.io/DeCovarT/article/main.pdf">article/main.pdf</a> on the pkgdown site (also uploaded as a GitHub Actions artifact <code>article-main-pdf</code>).</p>
+<p><strong>Published PDF:</strong> the peer-reviewed / preprint PDF is on <a href="https://arxiv.org/pdf/2309.09557" class="external-link">arXiv:2309.09557</a>. When a <code>main</code> commit message contains <code>article generation</code>, CI also builds <code>article/main.tex</code> and may publish <code>docs/article/main.pdf</code> on the pkgdown site.</p>
 <p>From the repository root, generate <code>article/main.pdf</code> locally with:</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="bu">cd</span> article</span>
 <span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="ex">latexmk</span> <span class="at">-pdf</span> <span class="at">-interaction</span><span class="op">=</span>nonstopmode <span class="at">-file-line-error</span> <span class="at">-synctex</span><span class="op">=</span>1 main.tex</span></code></pre></div>
-<p>In Cursor / VS Code with <strong>LaTeX Workshop</strong>, use the default recipe <strong>latexmk</strong> (configured in <code>.vscode/settings.json</code>), or run <strong>“LaTeX Workshop: Build with recipe”</strong>.</p>
-<p>Auxiliaries are removed automatically after a successful build (<code>latex-workshop.latex.autoClean.run</code>: <code>onSucceeded</code>). Manual clean: Command Palette → <strong>“LaTeX Workshop: Clean up auxiliary files”</strong>.</p>
-<div class="section level3">
-<h3 id="package-reference-manuals">Package reference manuals<a class="anchor" aria-label="anchor" href="#package-reference-manuals"></a>
-</h3>
-<p>CRAN-style PDF and HTML function manuals (cf. dplyr’s <a href="https://devtools.r-lib.org/reference/build_manual.html" class="external-link"><code>devtools::build_manual()</code></a>):</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"scripts/auxiliary/generate_package_manual.R"</span><span class="op">)</span></span></code></pre></div>
-<p>Outputs land in <code>output/manual/</code> (<code>DeCovarT.pdf</code>, <code>index.html</code>, and per-topic HTML under <code>html/</code>).</p>
-</div>
-</div>
-<div class="section level2">
-<h2 id="project-structure">Project structure<a class="anchor" aria-label="anchor" href="#project-structure"></a>
-</h2>
-<p>I’ve used <a href="scripts/generate_package_network_functions.R"><code>generate_package_network_functions</code></a> script to generate the package structure. For an interactive visualisation, see <a href="#interactive-package-structure">Interactive package structure</a>.</p>
-</div>
-<div class="section level2">
-<h2 id="speed-up-computation-with-autozyme">Speed up computation with AutoZyme<a class="anchor" aria-label="anchor" href="#speed-up-computation-with-autozyme"></a>
-</h2>
-<p><a href="https://autozyme.com/docs/users/usage-guide/" class="external-link">AutoZyme</a> ships drop-in accelerators for common scientific R packages (Seurat, WGCNA, and others in the <a href="https://autozyme.com/docs/users/patch-catalog/" class="external-link">patch catalog</a>). It is installed locally but <strong>off by default</strong> (<code>options(autozyme.disabled = TRUE)</code> → <code>AUTOZYME_DISABLED=1</code>).</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># List patches, enable, activate, then check what is bound to the fast path</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">options</a></span><span class="op">(</span>autozyme.disabled <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.unsetenv</a></span><span class="op">(</span><span class="st">"AUTOZYME_DISABLED"</span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">autozyme</span><span class="op">)</span></span>
-<span><span class="fu">autozyme</span><span class="fu">::</span><span class="fu">list_patches</span><span class="op">(</span>installed <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span><span class="fu">autozyme</span><span class="fu">::</span><span class="fu">activate</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"seurat"</span>, <span class="st">"wgcna"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu">autozyme</span><span class="fu">::</span><span class="fu">inspect</span><span class="op">(</span><span class="st">"seurat"</span><span class="op">)</span></span>
-<span><span class="co"># Off again: Sys.setenv(AUTOZYME_DISABLED = "1")</span></span></code></pre></div>
+<!-- ## Speed up computation with AutoZyme
+&#10;[AutoZyme](https://autozyme.com/docs/users/usage-guide/) ships drop-in
+accelerators for common scientific R packages (Seurat, WGCNA, and others in the
+[patch catalog](https://autozyme.com/docs/users/patch-catalog/)). It is
+installed locally but **off by default**
+(`options(autozyme.disabled = TRUE)` → `AUTOZYME_DISABLED=1`).
+&#10;```r
+# List patches, enable, activate, then check what is bound to the fast path
+options(autozyme.disabled = FALSE)
+Sys.unsetenv("AUTOZYME_DISABLED")
+library(autozyme)
+autozyme::list_patches(installed = TRUE)
+autozyme::activate(c("seurat", "wgcna"))
+autozyme::inspect("seurat")
+# Off again: Sys.setenv(AUTOZYME_DISABLED = "1")
+``` -->
 </div>
 </div>
 
@@ -421,7 +403,7 @@ p_{J}=\frac{1}{\sum_{k&lt;J}e^{\rho_{k}}+1},\qquad
 <li><a href="https://github.com/bastienchassagnol/DeCovarT/" class="external-link">Browse source code</a></li>
 <li><a href="https://github.com/bastienchassagnol/DeCovarT/issues" class="external-link">Report a bug</a></li>
 <li><a href="https://github.com/bastienchassagnol/DeCovarT/issues" class="external-link">Report a bug</a></li>
-<li><a href="article/main.pdf">Article PDF (when published)</a></li>
+<li><a href="https://arxiv.org/abs/2309.09557" class="external-link">Method preprint (arXiv)</a></li>
 <li><a href="package_network/decovart_function_network.html">Function call network</a></li>
 </ul>
 </div>
@@ -430,7 +412,7 @@ p_{J}=\frac{1}{\sum_{k&lt;J}e^{\rho_{k}}+1},\qquad
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
 <li><a href="LICENSE.html">Full license</a></li>
-<li><small><a href="https://creativecommons.org/licenses/by/4.0" class="external-link">CC BY 4.0</a></small></li>
+<li><small><a href="https://opensource.org/licenses/mit-license.php" class="external-link">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a></small></li>
 </ul>
 </div>
 
@@ -445,7 +427,8 @@ p_{J}=\frac{1}{\sum_{k&lt;J}e^{\rho_{k}}+1},\qquad
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Bastien Chassagnol <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0000-0002-8955-2391" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
+<li>Bastien Chassagnol (<a href="mailto:bastien_chassagnol@laposte.net">bastien_chassagnol@laposte.net</a> · <a href="https://www.linkedin.com/in/bastien-chassagnol-677b67140/?locale=fr" class="external-link">LinkedIn</a>) <br><small class="roles"> Author, maintainer, copyright holder </small> <a href="https://orcid.org/0000-0002-8955-2391" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
+<li><a href="authors.html">More about authors...</a></li>
 </ul>
 </div>
 
@@ -456,7 +439,7 @@ p_{J}=\frac{1}{\sum_{k&lt;J}e^{\rho_{k}}+1},\qquad
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Bastien Chassagnol.</p>
+  <p>Developed by Bastien Chassagnol (<a href="mailto:bastien_chassagnol@laposte.net">bastien_chassagnol@laposte.net</a> · <a href="https://www.linkedin.com/in/bastien-chassagnol-677b67140/?locale=fr" class="external-link">LinkedIn</a>).</p>
 </div>
 
 <div class="pkgdown-footer-right">

@@ -31,3 +31,10 @@ Numeric vector on the simplex \\\Delta^{J-1}\\.
 
 [`compositions::clo()`](https://rdrr.io/pkg/compositions/man/clo.html)
 for compositional closure.
+
+## Examples
+
+``` r
+repair_simplex(c(0.2, 0.3, 0.5 + 1e-12))
+#> [1] 0.2 0.3 0.5
+```

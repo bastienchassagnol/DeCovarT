@@ -67,3 +67,36 @@ A `tibble` of estimated \\\hat{\boldsymbol{p}}\\ and metrics, after
 ## See also
 
 [`deconvolute_ratios_Marquardt_Levenberg()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md)
+
+## Examples
+
+``` r
+set.seed(1)
+genes <- paste0("g", 1:2)
+cts <- paste0("ct", 1:2)
+mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))
+Sigma <- array(
+  c(1, 0, 0, 1, 1, 0, 0, 1),
+  dim = c(2, 2, 2),
+  dimnames = list(genes, genes, cts)
+)
+Y <- simulate_bulk_mixture(mu, Sigma, p = c(0.5, 0.5), n = 2)$Y
+deconvolute_ratios(
+  signature_matrix = mu,
+  bulk_expression = Y,
+  true_ratios = c(0.5, 0.5),
+  Sigma = Sigma,
+  deconvolution_functions = list(
+    "nnls" = list(FUN = deconvolute_ratios_nnls)
+  ),
+  cores = 1
+)
+#> # A tibble: 2 × 10
+#>   model_mse model_rmse model_mae model_coef_determination model_coef_determina…¹
+#>       <dbl>      <dbl>     <dbl>                    <dbl>                  <dbl>
+#> 1   0.00650     0.0806    0.0806                        0                      0
+#> 2   0.0483      0.220     0.220                         0                      0
+#> # ℹ abbreviated name: ¹​model_coef_determination_adjusted
+#> # ℹ 5 more variables: model_cor <dbl>, ct1 <dbl>, ct2 <dbl>, OMIC_ID <chr>,
+#> #   algorithm <chr>
+```

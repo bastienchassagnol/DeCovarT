@@ -81,3 +81,23 @@ so no side-effect mutation is needed while looping over the design.
 
 [`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md),
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)
+
+## Examples
+
+``` r
+set.seed(1)
+out <- benchmark_bivariate_gaussian_convolutions(
+  proportions = list("balanced" = c(0.5, 0.5)),
+  signature_matrices = list("small" = matrix(c(20, 22, 22, 20), 2)),
+  corr_sequence = 0,
+  diagonal_terms = list("homoscedastic" = c(1, 1)),
+  deconvolution_functions = list(
+    "nnls" = list(FUN = deconvolute_ratios_nnls)
+  ),
+  n = 2,
+  cores = 1
+)
+#> Scenario B1_Ho: balanced, corr=(0, 0), centroids=small, variance=homoscedastic.
+nrow(out$simulations)
+#> [1] 2
+```

@@ -1,7 +1,7 @@
 # DeCovarT
 
 - [DeCovarT](#decovart-) [![DeCovarT
-  logo](reference/figures/logo.svg)](https://bastienchassagnol.github.io/DeCovarT/)
+  logo](reference/figures/logo.png)](https://bastienchassagnol.github.io/DeCovarT/)
   - [Overview](#overview)
     - [Seminar slides (iframe)](#seminar-slides-iframe)
   - [Pipeline Architecture](#pipeline-architecture)
@@ -16,10 +16,6 @@
   - [The generative model of
     DeCovarT](#the-generative-model-of-decovart)
   - [Compiling the LaTeX article](#compiling-the-latex-article)
-    - [Package reference manuals](#package-reference-manuals)
-  - [Project structure](#project-structure)
-  - [Speed up computation with
-    AutoZyme](#speed-up-computation-with-autozyme)
 
 ![R](https://img.shields.io/badge/R-Statistical%20Computing-276DC3?style=flat-square&logo=r&logoColor=white)![tidyverse](https://img.shields.io/badge/R-dplyr%20%7C%20purrr%20%7C%20tidyr-276DC3?style=flat-square&logo=r&logoColor=white)![Optimisation](https://img.shields.io/badge/Optim-marqLevAlg%20%7C%20limSolve-0F766E?style=flat-square)![Bulk
 RNA-seq](https://img.shields.io/badge/Data-bulk%20RNA--seq-16A34A?style=flat-square)
@@ -457,9 +453,8 @@ required).
 
 ### Links to the paper
 
-- [Overleaf repository (shared with Anaïs
-  Baudot)](https://www.overleaf.com/project/697398ed149e81845cb5208e)
-- [HAL / arXiv archive](https://arxiv.org/pdf/2309.09557)
+- [arXiv:2309.09557](https://arxiv.org/abs/2309.09557) (also on HAL)
+- PDF: [arXiv PDF](https://arxiv.org/pdf/2309.09557)
 
 ## Installation
 
@@ -635,66 +630,17 @@ Source file: `article/main.tex` (bibliography:
 `article/decovart_library.bib`). DAG panels in Fig.~DAG-model are drawn
 with [`tikz-bayesnet`](https://ctan.org/pkg/tikz-bayesnet).
 
-**Published PDF** (when the latest `main` commit message contains
-`article generation`):
-[article/main.pdf](https://bastienchassagnol.github.io/DeCovarT/article/main.pdf)
-on the pkgdown site (also uploaded as a GitHub Actions artifact
-`article-main-pdf`).
+**Published PDF:** the peer-reviewed / preprint PDF is on
+[arXiv:2309.09557](https://arxiv.org/pdf/2309.09557). When a `main`
+commit message contains `article generation`, CI also builds
+`article/main.tex` and may publish `docs/article/main.pdf` on the
+pkgdown site.
 
 From the repository root, generate `article/main.pdf` locally with:
 
 ``` sh
 cd article
 latexmk -pdf -interaction=nonstopmode -file-line-error -synctex=1 main.tex
-```
-
-In Cursor / VS Code with **LaTeX Workshop**, use the default recipe
-**latexmk** (configured in `.vscode/settings.json`), or run **“LaTeX
-Workshop: Build with recipe”**.
-
-Auxiliaries are removed automatically after a successful build
-(`latex-workshop.latex.autoClean.run`: `onSucceeded`). Manual clean:
-Command Palette → **“LaTeX Workshop: Clean up auxiliary files”**.
-
-### Package reference manuals
-
-CRAN-style PDF and HTML function manuals (cf. dplyr’s
-[`devtools::build_manual()`](https://devtools.r-lib.org/reference/build_manual.html)):
-
-``` r
-
-source("scripts/auxiliary/generate_package_manual.R")
-```
-
-Outputs land in `output/manual/` (`DeCovarT.pdf`, `index.html`, and
-per-topic HTML under `html/`).
-
-## Project structure
-
-I’ve used
-[`generate_package_network_functions`](https://bastienchassagnol.github.io/DeCovarT/scripts/generate_package_network_functions.R)
-script to generate the package structure. For an interactive
-visualisation, see [Interactive package
-structure](#interactive-package-structure).
-
-## Speed up computation with AutoZyme
-
-[AutoZyme](https://autozyme.com/docs/users/usage-guide/) ships drop-in
-accelerators for common scientific R packages (Seurat, WGCNA, and others
-in the [patch catalog](https://autozyme.com/docs/users/patch-catalog/)).
-It is installed locally but **off by default**
-(`options(autozyme.disabled = TRUE)` → `AUTOZYME_DISABLED=1`).
-
-``` r
-
-# List patches, enable, activate, then check what is bound to the fast path
-options(autozyme.disabled = FALSE)
-Sys.unsetenv("AUTOZYME_DISABLED")
-library(autozyme)
-autozyme::list_patches(installed = TRUE)
-autozyme::activate(c("seurat", "wgcna"))
-autozyme::inspect("seurat")
-# Off again: Sys.setenv(AUTOZYME_DISABLED = "1")
 ```
 
 # Package index

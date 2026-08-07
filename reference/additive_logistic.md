@@ -63,3 +63,14 @@ See also
 
 The inverse map (additive log-ratio) is documented as
 `additive_log_ratio()` on this help page.
+
+## Examples
+
+``` r
+rho <- c(0.2, -0.5)
+p <- additive_logistic(rho)
+sum(p)
+#> [1] 1
+additive_log_ratio(p)
+#> [1]  0.2 -0.5
+```
