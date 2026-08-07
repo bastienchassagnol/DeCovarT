@@ -1,10 +1,11 @@
-# DeCovarT 1.1.0
+# DeCovarT 2.0.0
 
-* **Minor release** preparing the first CRAN submission, focused on numerical
-  stability and optimiser cost in
+* **Release** aligned with the GitHub `v2.0.0` tag and the first CRAN
+  submission, focused on numerical stability and optimiser cost in
   `R/03_03_DeCovarT_estimate_ratios_frequentist.R` (documented in
   `vignette("softmax-alr-derivatives")`, section *Numerical speed-ups and
-  solver safeguards*).
+  solver safeguards*). The CRAN tarball ships the use-cases and
+  softmax/ALR vignettes; remaining articles stay on the pkgdown site.
 
 * **Newton–Raphson evaluation budget.** Removed an erroneous
   `eval.max = 1` control passed to `stats::nlminb()` in

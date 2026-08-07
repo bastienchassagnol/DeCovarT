@@ -8,13 +8,15 @@
 
 0 errors | 0 warnings | 0 notes (local `--as-cran`)
 
-* This is a new submission to CRAN (not yet on CRAN).
+* This is a new submission to CRAN (version 2.0.0, matching the GitHub
+  release tag `v2.0.0`).
 * Method reference: Chassagnol, Nuel and Becht (2023)
   <doi:10.48550/arXiv.2309.09557> (also on HAL).
-* Local check reports an INFO (not a NOTE) that the installed size is
-  about 61 Mb (`doc` ~52 Mb from vignette HTML/figures; `logo` ~3.6 Mb;
-  `help` ~4.8 Mb). Happy to compress logos / slim vignette assets if
-  requested.
+* The CRAN tarball ships two Quarto vignettes
+  (`DeCoVart-use-cases`, `softmax-alr-derivatives`); additional articles
+  remain on the pkgdown site only.
+* Local check may report an installed-size INFO (~9 Mb after slimming
+  vignettes/logos); previously ~61 Mb.
 
 ## Reverse dependencies
 

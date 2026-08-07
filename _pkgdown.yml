@@ -212,8 +212,8 @@ articles:
 
 news:
   releases:
-    - text: "Version 1.1.0 (numerical optimisers / CRAN prep)"
-      href: https://github.com/bastienchassagnol/DeCovarT/blob/main/NEWS.md
+    - text: "Version 2.0.0 (numerical optimisers / CRAN submission)"
+      href: https://github.com/bastienchassagnol/DeCovarT/releases/tag/v2.0.0
     - text: "Version 1.0.0 (first stabilised release)"
       href: https://github.com/bastienchassagnol/DeCovarT/releases/tag/v1.0.0
     - text: Version 0.1.0 (development)

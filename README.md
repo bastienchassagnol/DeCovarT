@@ -1,6 +1,6 @@
 
 
-- [DeCovarT <a href="https://bastienchassagnol.github.io/DeCovarT/"><img src="man/figures/logo.svg" alt="DeCovarT logo" align="right" height="139"/></a>](#decovart-)
+- [DeCovarT <a href="https://bastienchassagnol.github.io/DeCovarT/"><img src="man/figures/logo.png" alt="DeCovarT logo" align="right" height="139"/></a>](#decovart-)
   - [Overview](#overview)
     - [Seminar slides (iframe)](#seminar-slides-iframe)
   - [Pipeline Architecture](#pipeline-architecture)
@@ -16,7 +16,7 @@
 
 <!-- README.md is generated from README.qmd. Do not edit README.md manually. -->
 
-# DeCovarT <a href="https://bastienchassagnol.github.io/DeCovarT/"><img src="man/figures/logo.svg" alt="DeCovarT logo" align="right" height="139"/></a>
+# DeCovarT <a href="https://bastienchassagnol.github.io/DeCovarT/"><img src="man/figures/logo.png" alt="DeCovarT logo" align="right" height="139"/></a>
 
 <!-- badges: start -->
 
