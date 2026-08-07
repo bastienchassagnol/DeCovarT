@@ -3,8 +3,8 @@
 Symmetrised KL divergence
 \\J(f\_{j},f\_{\ell})=D\_{\mathrm{KL}}(f\_{j}\parallel f\_{\ell})+
 D\_{\mathrm{KL}}(f\_{\ell}\parallel f\_{j})\\ for
-\\f\_{j}=\mathcal{N}\_{G}(\boldsymbol{\mu}\_{\cdot
-j},\boldsymbol{\Sigma}\_{j})\\ and likewise for \\\ell\\, using the
+\\f\_{j}=\mathcal{N}\_{G}( \boldsymbol{\mu}\_{\cdot
+j},\boldsymbol{\Sigma}\_{j} )\\ and likewise for \\\ell\\, using the
 closed form in the feature-selection vignette.
 
 ## Usage
@@ -37,4 +37,4 @@ Multivariate normal KL closed form:
 <https://statproofbook.github.io/P/mvn-kl.html>.
 
 Symmetrised (Jeffreys) divergence:
-<https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence#Symmetrised_divergence>.
+<https://en.wikipedia.org/wiki/Kullback-Leibler_divergence>.

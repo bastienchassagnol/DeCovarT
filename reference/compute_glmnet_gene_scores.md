@@ -1,60 +1,52 @@
 # Gene scores from multinomial elastic-net cell-type classification
 
-Fits a multinomial elastic net
-([`glmnet::cv.glmnet()`](https://glmnet.stanford.edu/reference/cv.glmnet.html))
-that predicts cell type from expression features, using only the mean
-signature \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\ (no
-covariances). Each column \\\boldsymbol{\mu}\_{\cdot j}\\ is expanded
-into `n_rep` isotropic Gaussian perturbations so that cross-validation
-is well-defined with one prototype per type. Gene scores are the sum
-over classes of absolute coefficients at `lambda.min` (intercept
-excluded).
-
-This is the `glmnet` screen in the four-score shortlist of the
-feature-selection vignette (paired with Jeffreys, MixSim overlap and
-DEGs).
+Fits a multinomial (or binomial) elastic net
+([`glmnet::glmnet()`](https://rdrr.io/pkg/glmnet/man/glmnet.html)) that
+predicts cell type from expression features. Inputs are purified
+expression profiles \\\boldsymbol{X}\in\mathcal{M}\_{G\times J\times
+N}\\ (genes \\\times\\ cell types \\\times\\ samples) and length-\\J\\
+cell-type labels. Variability across samples replaces synthetic
+isotropic noise. Gene scores are the sum over classes of absolute
+coefficients at a chosen \\\lambda\\ (intercept excluded). For nested /
+CV selection of \\\lambda\\, see the experimental
+`compute_glmnet_gene_scores_cv()` helper (not shipped in the package
+build).
 
 ## Usage
 
 ``` r
 compute_glmnet_gene_scores(
-  mu,
+  expression_profiles,
+  celltype_labels,
   alpha = 0.5,
-  n_rep = 20L,
-  noise_sd = NULL,
-  nfolds = NULL,
+  lambda = NULL,
   ...
 )
 ```
 
 ## Arguments
 
-- mu:
+- expression_profiles:
 
-  Numeric mean signature \\\boldsymbol{\mu}\\ with genes in rows and
-  cell types in columns (\\G\times J\\).
+  Numeric array \\G\times J\times N\\ of purified profiles.
+
+- celltype_labels:
+
+  Character or factor labels of length \\J\\ (one per cell-type slice).
 
 - alpha:
 
   Elastic-net mixing parameter in \\\[0,1\]\\ (default `0.5`).
 
-- n_rep:
+- lambda:
 
-  Number of noisy replicates per cell-type mean (default `20L`).
-
-- noise_sd:
-
-  Isotropic Gaussian noise sd for replicates. Default is `1e-3` times
-  the mean absolute column scale of `mu`.
-
-- nfolds:
-
-  Number of CV folds (default `min(10L, n_rep)`).
+  Optional penalty value at which coefficients are extracted. When
+  `NULL`, uses the smallest \\\lambda\\ on the fitted path.
 
 - ...:
 
   Additional arguments forwarded to
-  [`glmnet::cv.glmnet()`](https://glmnet.stanford.edu/reference/cv.glmnet.html).
+  [`glmnet::glmnet()`](https://rdrr.io/pkg/glmnet/man/glmnet.html).
 
 ## Value
 
@@ -70,9 +62,15 @@ multinomial signal).
 
 ``` r
 set.seed(1)
-mu <- cbind(c(0, 0, 5), c(5, 0, 0), c(0, 5, 0))
-rownames(mu) <- paste0("g", seq_len(nrow(mu)))
-scores <- compute_glmnet_gene_scores(mu)
+G <- 4L
+J <- 3L
+N <- 12L
+profiles <- array(0, dim = c(G, J, N))
+for (j in seq_len(J)) {
+  profiles[j, j, ] <- 5 + stats::rnorm(N, sd = 0.2)
+}
+labels <- paste0("ct", seq_len(J))
+scores <- compute_glmnet_gene_scores(profiles, labels)
 names(scores)[which.max(scores)]
-#> [1] "g2"
+#> [1] "gene_3"
 ```

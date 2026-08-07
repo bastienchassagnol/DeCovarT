@@ -32,7 +32,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -99,7 +99,7 @@
     <section class="section level2"><h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
 <p>This vignette documents the synthetic first- and second-order moment generator <code><a href="../reference/simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments()</a></code> and how its outputs feed bulk mixture simulation. Mean profiles follow an AutoGeneS-inspired construction <span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">(<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">Aliee and Theis 2021</a>)</span> in which a single dial <span class="math inline">\rho</span> (<code>target_cosine</code>) sets pairwise collinearity between cell-type columns of <span class="math inline">\boldsymbol{\mu}</span>, while a fixed scale <span class="math inline">s</span> (<code>mean_scale</code>) sets column norms. Prefer varying <span class="math inline">\rho</span> across scenarios when precision weights already control second-order dependence.</p>
-<p>Covariances share a graph-constrained signed precision <span class="math inline">\boldsymbol{\Omega}</span>, mapped to <span class="math inline">\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}^{-1}</span>. An undirected Gaussian Markov simulation separates four layers (<a href="#eq-ggm-pipeline" class="quarto-xref">Equation 3</a>): graph <span class="math inline">G</span>, signed weights <span class="math inline">W(G)</span>, SPD precision <span class="math inline">\Omega</span>, and latent Gaussians (an optional observation layer can add Poisson–log-normal or zero-inflated counts). The <strong>graph</strong> and the <strong>precision</strong> must not be conflated: a binary adjacency is almost never itself positive definite. DeCovarT draws <span class="math inline">G</span> via <code><a href="../reference/generate_random_network_skeleton.html">generate_random_network_skeleton()</a></code>, completes <span class="math inline">\Omega\succ 0</span> with <code>build_normalised_precision()</code>, and stacks shared covariances with <code>build_shared_covariance_array()</code>. <a href="#sec-ggm-networks" class="quarto-xref">Section 4</a> develops the topology, weight, and SPD design in detail.</p>
+<p>Covariances share a graph-constrained signed precision <span class="math inline">\boldsymbol{\Omega}</span>, mapped to <span class="math inline">\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}^{-1}</span>. An undirected Gaussian Markov simulation separates four layers (<a href="#eq-ggm-pipeline" class="quarto-xref">Equation 8</a>): graph <span class="math inline">G</span>, signed weights <span class="math inline">W(G)</span>, SPD precision <span class="math inline">\Omega</span>, and latent Gaussians (an optional observation layer can add Poisson–log-normal or zero-inflated counts). The <strong>graph</strong> and the <strong>precision</strong> must not be conflated: a binary adjacency is almost never itself positive definite. DeCovarT draws <span class="math inline">G</span> via <code><a href="../reference/generate_random_network_skeleton.html">generate_random_network_skeleton()</a></code>, completes <span class="math inline">\Omega\succ 0</span> with <code>build_normalised_precision()</code>, and stacks shared covariances with <code>build_shared_covariance_array()</code>. <a href="#sec-ggm-networks" class="quarto-xref">Section 4</a> develops the topology, weight, and SPD design in detail.</p>
 </section><section class="section level2"><h2 id="pipeline-api">Pipeline API<a class="anchor" aria-label="anchor" href="#pipeline-api"></a>
 </h2>
 <p>The exported entry point orchestrates internal helpers and returns moments that can be passed to <code><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code> and then to any deconvolution routine exposed by <code><a href="../reference/deconvolute_ratios.html">deconvolute_ratios()</a></code>.</p>
@@ -199,9 +199,103 @@ j=1,\ldots,J.
 \tag{2}</span></span></p>
 <p>because <span class="math inline">\boldsymbol{u}^{\mathsf{T}}\boldsymbol{u}=1</span> and <span class="math inline">\boldsymbol{v}_{j}^{\mathsf{T}}\boldsymbol{v}_{k}=0</span>. The cross terms <span class="math inline">\boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}_{j}</span> equal the (positive) mass of the shared direction on block <span class="math inline">j</span>; they vanish in the idealised case where each <span class="math inline">\boldsymbol{v}_{j}</span> is taken orthogonal to <span class="math inline">\boldsymbol{u}</span>, in which <a href="#eq-mean-inner" class="quarto-xref">Equation 2</a> collapses to <span class="math inline">\rho</span> and, since <span class="math inline">\|\tilde{\boldsymbol{\mu}}_{\cdot j}\|_2=1</span>, the cosine of <span class="math inline">\boldsymbol{\mu}</span> equals <span class="math inline">\rho</span> exactly. With block indicators the cross terms are of order <span class="math inline">J^{-1/2}</span>, so after the column renormalisation in <a href="#eq-mean-cosine" class="quarto-xref">Equation 1</a> the realised pairwise cosine tracks <span class="math inline">\rho</span> closely once each block contains many genes.</p>
 <p>The scale <span class="math inline">s</span> sets column norms without changing angles: <span class="math inline">\|\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\|_2\propto s</span> at fixed <span class="math inline">\rho</span>. We keep <span class="math inline">s=10</span> across scenarios and only vary <span class="math inline">\rho</span>.</p>
-<section class="level3"><h4 id="visualising-the-cosine-construction">Visualising the cosine construction<a class="anchor" aria-label="anchor" href="#visualising-the-cosine-construction"></a>
+<section class="level3"><h4 id="sec-asymptotic-cosine">Asymptotic cosine control<a class="anchor" aria-label="anchor" href="#sec-asymptotic-cosine"></a>
 </h4>
-<p><a href="#fig-cosine-geometry" class="quarto-xref">Figure 2</a> visualises the same three operating points (<span class="math inline">\rho\in\{0,\,0.3,\,1\}</span>) for <span class="math inline">G=2</span> genes and <span class="math inline">J=2</span> cell types. The centroids come from <code><a href="../reference/generate_mean_signature_matrix.html">generate_mean_signature_matrix()</a></code>, with <strong>cell type 1 held fixed</strong> at its <span class="math inline">\rho=1</span> mean across panels and only cell type 2’s mean moved to realise each target cosine. Independent Gaussian noise is added <em>only in this vignette chunk</em> around each centroid (<span class="math inline">N=20</span> i.i.d. draws per population) to emulate within-type dispersion under an independence assumption, without altering the mean-signature generator itself. Coloured arrows mark each type’s mean direction; the shaded wedge is the angle between the two means.</p>
+<p>Block indicators are not orthogonal to the shared direction: if block <span class="math inline">j</span> contains <span class="math inline">L_j</span> genes then</p>
+<p><span id="eq-u-vj"><span class="math display">
+\boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}_{j}
+=
+\sqrt{\frac{L_j}{G}},
+\tag{3}</span></span></p>
+<p>because <span class="math inline">\boldsymbol{u}=G^{-1/2}\mathbf{1}_{G}</span> and <span class="math inline">\boldsymbol{v}_j</span> is the <span class="math inline">\ell_2</span>-normalised indicator on its block. Plugging <a href="#eq-u-vj" class="quarto-xref">Equation 3</a> into <a href="#eq-mean-inner" class="quarto-xref">Equation 2</a> gives the exact un-normalised inner product for <span class="math inline">j\neq k</span>:</p>
+<p><span id="eq-mean-inner-explicit"><span class="math display">
+\tilde{\boldsymbol{\mu}}_{\cdot j}^{\mathsf{T}}
+\tilde{\boldsymbol{\mu}}_{\cdot k}
+=
+\rho
++
+\sqrt{\rho(1-\rho)}\,
+\Bigl(
+  \sqrt{\tfrac{L_j}{G}}
+  +
+  \sqrt{\tfrac{L_k}{G}}
+\Bigr).
+\tag{4}</span></span></p>
+<p>Column-wise renormalisation in <a href="#eq-mean-cosine" class="quarto-xref">Equation 1</a> maps this to a realised cosine that is <strong>not</strong> exactly <span class="math inline">\rho</span> for finite <span class="math inline">G</span> and <span class="math inline">J</span>. Writing <span class="math inline">c_{jk}=\sqrt{L_j/G}+\sqrt{L_k/G}</span>,</p>
+<p><span id="eq-realised-cosine"><span class="math display">
+\cos\bigl(
+  \boldsymbol{\mu}_{\cdot j},
+  \boldsymbol{\mu}_{\cdot k}
+\bigr)
+=
+\frac{
+  \rho
+  + \sqrt{\rho(1-\rho)}\,c_{jk}
+}{
+  1 + \sqrt{\rho(1-\rho)}\,c_{jk}
+},
+\qquad j\neq k.
+\tag{5}</span></span></p>
+<p>For equal blocks (<span class="math inline">L_j\approx G/J</span>) we have <span class="math inline">c_{jk}\approx 2/\sqrt{J}</span>, so the bias is <span class="math inline">O(J^{-1/2})</span>: the realised cosine sits <strong>slightly above</strong> <span class="math inline">\rho</span> and approaches the target as <span class="math inline">J</span> or the block sizes grow. <a href="#fig-cosine-convergence" class="quarto-xref">Figure 2</a> illustrates this numerically for fixed <span class="math inline">\rho=0.5</span> when <span class="math inline">G</span> and <span class="math inline">J</span> increase (each panel uses <code><a href="../reference/generate_mean_signature_matrix.html">generate_mean_signature_matrix()</a></code> and reports the mean absolute pairwise cosine from <code><a href="../reference/compute_mean_profile_objectives.html">compute_mean_profile_objectives()</a></code>).</p>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-cosine-convergence" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-cosine-convergence-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="synthetic-scenarios_files/figure-html/fig-cosine-convergence-1.png" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cosine-convergence-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 2: Realised mean absolute pairwise cosine vs target <span class="math inline">\rho=0.5</span> as <span class="math inline">G</span> and <span class="math inline">J</span> grow (equal gene blocks). Dashed line: target; points: output of <code><a href="../reference/compute_mean_profile_objectives.html">compute_mean_profile_objectives()</a></code>.
+</figcaption></figure>
+</div>
+</div>
+</div>
+<p>In practice one dials <span class="math inline">\rho</span> mindful of this upward bias; for the nine-scenario grid (<span class="math inline">G=200</span>, <span class="math inline">J=3</span>) the overshoot is small enough that pairwise cosines remain in the same ballpark as the target <span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">(<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">Aliee and Theis 2021</a>)</span>.</p>
+</section><section class="level3"><h4 id="sec-lr-block-mu">Low-rank plus block structure<a class="anchor" aria-label="anchor" href="#sec-lr-block-mu"></a>
+</h4>
+<p>Stacking the un-normalised columns from <a href="#eq-mean-cosine" class="quarto-xref">Equation 1</a> yields a <strong>rank-one shared term plus a block-sparse private term</strong>:</p>
+<p><span id="eq-lr-block"><span class="math display">
+\tilde{\boldsymbol{M}}
+=
+\bigl[
+  \tilde{\boldsymbol{\mu}}_{\cdot 1}
+  \,\middle|\,
+  \cdots
+  \,\middle|\,
+  \tilde{\boldsymbol{\mu}}_{\cdot J}
+\bigr]
+=
+\sqrt{\rho}\,
+\boldsymbol{u}\mathbf{1}_{J}^{\mathsf{T}}
++
+\sqrt{1-\rho}\,
+\mathbf{V},
+\tag{6}</span></span></p>
+<p>where <span class="math inline">\mathbf{V}=[\boldsymbol{v}_{1}\,\middle|\,\cdots\,\middle|\,\boldsymbol{v}_{J}]</span> has <strong>disjoint supports</strong> across columns (each <span class="math inline">\boldsymbol{v}_j</span> is non-zero only on block <span class="math inline">j</span>). The shared part is rank one; the private part is block-diagonal in the gene-partition sense. After column normalisation and scaling,</p>
+<p><span id="eq-mu-normalised"><span class="math display">
+\boldsymbol{\mu}
+=
+s\,\tilde{\boldsymbol{M}}\,
+\mathbf{D}^{-1},
+\qquad
+\mathbf{D}=\mathrm{diag}\bigl(
+  \|\tilde{\boldsymbol{\mu}}_{\cdot 1}\|_2,
+  \ldots,
+  \|\tilde{\boldsymbol{\mu}}_{\cdot J}\|_2
+\bigr),
+\tag{7}</span></span></p>
+<p>so <span class="math inline">\boldsymbol{\mu}</span> is a low-rank-plus-block construction followed by per-column calibration. This matches synthetic signature designs that combine a common baseline with type-specific marker programmes <span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021 schelkerEstimationImmuneCell2017 baWhenLessNot2026">(<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">Aliee and Theis 2021</a>; <a href="#ref-schelkerEstimationImmuneCell2017" role="doc-biblioref">Schelker et al. 2017</a>; <a href="#ref-baWhenLessNot2026" role="doc-biblioref">Ba et al. 2026</a>)</span>.</p>
+<p><a href="#fig-mean-signature-schematic" class="quarto-xref">Figure 3</a> gives a toy schematic for <span class="math inline">J=3</span> cell types: a uniform shared component, three orthogonal private blocks, and the resulting mean directions.</p>
+<div id="fig-mean-signature-schematic" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-mean-signature-schematic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/fig_mean_signature_shared_private.png" style="width:90.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mean-signature-schematic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 3: Schematic of shared-plus-private mean signature construction for <span class="math inline">J=3</span> cell types. A rank-one shared direction <span class="math inline">\boldsymbol{u}</span> (grey) blends with block-sparse private markers <span class="math inline">\boldsymbol{v}_j</span> (coloured) at weights <span class="math inline">\sqrt{\rho}</span> and <span class="math inline">\sqrt{1-\rho}</span>; columns are normalised and scaled to <span class="math inline">\boldsymbol{\mu}_{\cdot j}</span>. Illustration generated for this vignette in a Nature Methods-style layout.
+</figcaption></figure>
+</div>
+</section><section class="level3"><h4 id="visualising-the-cosine-construction">Visualising the cosine construction<a class="anchor" aria-label="anchor" href="#visualising-the-cosine-construction"></a>
+</h4>
+<p><a href="#fig-cosine-geometry" class="quarto-xref">Figure 4</a> visualises the same three operating points (<span class="math inline">\rho\in\{0,\,0.3,\,1\}</span>) for <span class="math inline">G=2</span> genes and <span class="math inline">J=2</span> cell types. The centroids come from <code><a href="../reference/generate_mean_signature_matrix.html">generate_mean_signature_matrix()</a></code>, with <strong>cell type 1 held fixed</strong> at its <span class="math inline">\rho=1</span> mean across panels and only cell type 2’s mean moved to realise each target cosine. Independent Gaussian noise is added <em>only in this vignette chunk</em> around each centroid (<span class="math inline">N=20</span> i.i.d. draws per population) to emulate within-type dispersion under an independence assumption, without altering the mean-signature generator itself. Coloured arrows mark each type’s mean direction; the shaded wedge is the angle between the two means.</p>
 <p>This illustration is inspired by panel B in the AutoGeneS paper <span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">(<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">Aliee and Theis 2021</a>)</span>, but focuses here on the cosine-angle control induced by <a href="#eq-mean-cosine" class="quarto-xref">Equation 1</a> (without modelling centroid-distance optimisation). With only two genes the cross terms in <a href="#eq-mean-inner" class="quarto-xref">Equation 2</a> are large, so the realised cosine is a warped but strictly increasing map of <span class="math inline">\rho</span>.</p>
 <div class="cell">
 <div class="cell-output-display">
@@ -210,11 +304,15 @@ j=1,\ldots,J.
 <img src="synthetic-scenarios_files/figure-html/fig-cosine-geometry-1.png" width="864">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-cosine-geometry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 2: Cosine-control toy for <span class="math inline">J=2</span> cell types and <span class="math inline">G=2</span> genes. Cell type 1’s mean is fixed (from <span class="math inline">\rho=1</span>); only cell type 2 moves. Coloured arrows: mean directions; shaded wedge: angle between means. Labels report realised cosine (unitless) and angle (radians). Points are <span class="math inline">N=20</span> i.i.d. Gaussian draws around each centroid (stars). Styling is inspired by panel B of <code>AutoGeneS</code> (<span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">Aliee and Theis (<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">2021</a>)</span>).
+Figure 4: Cosine-control toy for <span class="math inline">J=2</span> cell types and <span class="math inline">G=2</span> genes. Cell type 1’s mean is fixed (from <span class="math inline">\rho=1</span>); only cell type 2 moves. Coloured arrows: mean directions; shaded wedge: angle between means. Labels report realised cosine (unitless) and angle (radians). Points are <span class="math inline">N=20</span> i.i.d. Gaussian draws around each centroid (stars). Styling is inspired by panel B of <code>AutoGeneS</code> (<span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">Aliee and Theis (<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">2021</a>)</span>).
 </figcaption></figure>
 </div>
 </div>
 </div>
+</section><section class="level3"><h4 id="sec-related-signatures">Related signature constructions<a class="anchor" aria-label="anchor" href="#sec-related-signatures"></a>
+</h4>
+<p>Blending a common baseline with type-specific markers is standard in deconvolution benchmarking. <strong><code>AutoGeneS</code></strong> <span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">(<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">Aliee and Theis 2021</a>)</span> selects genes by jointly minimising inter-type correlation and maximising centroid distance; its simulations use a similar shared-plus-private logic to control signature geometry. <strong><code>Schelker et al.</code></strong> <span class="citation" data-cites="schelkerEstimationImmuneCell2017">(<a href="#ref-schelkerEstimationImmuneCell2017" role="doc-biblioref">Schelker et al. 2017</a>)</span> build tumour-derived reference gene expression profiles from single-cell RNA-seq clusters and marker genes, then simulate bulk mixtures by combining those columns—empirically a shared baseline plus distinct marker programmes per immune cell type.</p>
+<p>The <strong><code>DICEPro</code></strong> framework <span class="citation" data-cites="baWhenLessNot2026">(<a href="#ref-baWhenLessNot2026" role="doc-biblioref">Ba et al. 2026</a>)</span> targets incomplete reference matrices in supervised deconvolution. Its simulation engine generates synthetic signature matrices from multivariate Gaussian (or Poisson) models with a prescribed correlation structure; a <strong><code>bloc=TRUE</code></strong> option enforces <strong>block sparsity</strong> by zeroing expression outside type-specific gene blocks—closely analogous to the private indicators <span class="math inline">\boldsymbol{v}_j</span> in <a href="#eq-lr-block" class="quarto-xref">Equation 6</a>. DICEPro then optimises reference signatures when cell types are missing from the matrix, complementing the controlled <span class="math inline">\rho</span>-dial we use here for method comparison under known ground truth.</p>
 </section></section><section class="level2"><h3 id="objectives-compute_mean_profile_objectives">Objectives: <code>compute_mean_profile_objectives()</code>
 <a class="anchor" aria-label="anchor" href="#objectives-compute_mean_profile_objectives"></a>
 </h3>
@@ -247,7 +345,7 @@ D_{\mathrm{Euc}}
 <p><span id="eq-ggm-pipeline"><span class="math display">
 G \longrightarrow W(G) \longrightarrow \Omega \succ 0
 \longrightarrow X_i \sim \mathcal{N}_p(\mu_i,\Omega^{-1})
-\tag{3}</span></span></p>
+\tag{8}</span></span></p>
 <p>Here <span class="math inline">G</span> is an <strong>undirected</strong> graph, <span class="math inline">W(G)</span> a symmetric weighted matrix with the same off-diagonal support, <span class="math inline">\Omega</span> a strictly positive-definite precision, and <span class="math inline">X_i</span> an expression profile. This section covers <strong>undirected</strong> Gaussian Markov / precision-graph simulation only. <code><a href="../reference/generate_random_network_skeleton.html">generate_random_network_skeleton()</a></code> draws <span class="math inline">G</span>; <code>build_normalised_precision()</code> completes it to <span class="math inline">\Omega\succ 0</span> by an affine spectral shift; <code>build_shared_covariance_array()</code> maps <span class="math inline">\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}^{-1}</span> for each cell type.</p>
 <div class="cell" data-layout-align="default">
 <div class="cell-output-display">
@@ -266,7 +364,7 @@ flowchart LR
 </div>
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ggm-pipeline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 3: Undirected simulation pipeline from topology to observations (optional observation layer dashed).
+Figure 5: Undirected simulation pipeline from topology to observations (optional observation layer dashed).
 </figcaption></figure>
 </div>
 </div>
@@ -275,12 +373,9 @@ Figure 3: Undirected simulation pipeline from topology to observations (optiona
 </h3>
 <section class="level3"><h4 id="evidence-from-the-literature">Evidence from the literature<a class="anchor" aria-label="anchor" href="#evidence-from-the-literature"></a>
 </h4>
-<p><a href="#tbl-studies" class="quarto-xref">Table 1</a> summarises how recent simulation studies combine topology, precision construction, and mean / observation models.</p>
-<div id="tbl-studies" class="quarto-float quarto-figure quarto-figure-center">
-<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-studies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 1: Literature survey of undirected graph → precision → observation designs.
-</figcaption><div aria-describedby="tbl-studies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<p><strong>?@tbl-studies</strong> summarises how recent simulation studies combine topology, precision construction, and mean / observation models.</p>
 <table class="table caption-top">
+<caption>Literature survey of undirected graph → precision → observation designs.</caption>
 <colgroup>
 <col style="width: 20%">
 <col style="width: 20%">
@@ -321,25 +416,13 @@ Table 1: Literature survey of undirected graph → precision → observation de
 <td>Cell-type-specific <span class="math inline">\mu_k</span>, <span class="math inline">\Omega_k</span>; expression-dependent dropout</td>
 <td>Joint clustering, heterogeneous networks, zero inflation</td>
 </tr>
-<tr class="even">
-<td>Structure learning / modular GRNs <span class="citation" data-cites="federicoStructureLearningGene2023">(<a href="#ref-federicoStructureLearningGene2023" role="doc-biblioref">Federico et al. 2023</a>)</span>
-</td>
-<td>Modular and related hierarchical graphs</td>
-<td>GGM linked to each graph</td>
-<td>Shared structure across related networks; <span class="math inline">n\ll p</span>
-</td>
-<td>Modular constraints and information sharing</td>
-</tr>
 </tbody>
 </table>
-</div>
-</figure>
-</div>
 <p>Several conclusions follow.</p>
 <ol type="1">
 <li>
 <strong>Band</strong> is not intrinsically a random-graph model: its support is usually deterministic once the bandwidth is fixed (edge weights and signs may still be random). Hub constructions are often partly deterministic as well. Erdős–Rényi, preferential attachment, and stochastic block models are genuinely stochastic.</li>
-<li>A positive off-diagonal entry in <span class="math inline">\Omega</span> encodes a <strong>negative</strong> partial correlation (<a href="#eq-partial-cor" class="quarto-xref">Equation 4</a>). Uniformly positive precision weights therefore induce uniformly negative edgewise partial correlations; random or signed biological weights are needed when activation-like and inhibition-like associations matter.</li>
+<li>A positive off-diagonal entry in <span class="math inline">\Omega</span> encodes a <strong>negative</strong> partial correlation (<a href="#eq-partial-cor" class="quarto-xref">Equation 9</a>). Uniformly positive precision weights therefore induce uniformly negative edgewise partial correlations; random or signed biological weights are needed when activation-like and inhibition-like associations matter.</li>
 <li>These models target <strong>undirected</strong> conditional dependence. Federico and colleagues prefer a Markov-network representation when observational data do not justify edge directionality <span class="citation" data-cites="federicoStructureLearningGene2023">(<a href="#ref-federicoStructureLearningGene2023" role="doc-biblioref">Federico et al. 2023</a>)</span>.</li>
 <li>
 <strong>BLGGM as a hybrid topology design.</strong> Wu and Luo’s simulation can be read as two nested layers <span class="citation" data-cites="wuEstimatingHeterogeneousGene2022">(<a href="#ref-wuEstimatingHeterogeneousGene2022" role="doc-biblioref">Wu and Luo 2022</a>)</span>. At the <strong>global</strong> scale, genes are partitioned into blocks (a stochastic-block–like partition). Within each block, a <strong>finer</strong> local topology is specified—dense clique-like modules, circles, stars / hubs, or signed dense substructures—so that different blocks can stand for distinct regulatory regimes (e.g. dense co-expression programmes, cyclic signalling motifs, master-regulator hubs). Signs can also differ across modules or cell types. This is richer than a flat ER draw, yet still fully undirected.</li>
@@ -348,13 +431,10 @@ Table 1: Literature survey of undirected graph → precision → observation de
 \rho_{jk\mid -\{j,k\}}
 =
 -\frac{\Omega_{jk}}{\sqrt{\Omega_{jj}\Omega_{kk}}}
-\tag{4}</span></span></p>
-<p><a href="#tbl-topologies" class="quarto-xref">Table 2</a> compares the main <strong>undirected</strong> topology families used in GGM benchmarks, with R entry points. <a href="#fig-topologies" class="quarto-xref">Figure 4</a> sketches the six families most often used in random-like network structure generation.</p>
-<div id="tbl-topologies" class="quarto-float quarto-figure quarto-figure-center">
-<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-topologies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 2: Topology families for undirected GGM simulation (R-focused).
-</figcaption><div aria-describedby="tbl-topologies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+\tag{9}</span></span></p>
+<p><strong>?@tbl-topologies</strong> compares the main <strong>undirected</strong> topology families used in GGM benchmarks, with R entry points. <a href="#fig-topologies" class="quarto-xref">Figure 6</a> sketches the six families most often used in random-like network structure generation.</p>
 <table class="table caption-top">
+<caption>Topology families for undirected GGM simulation (R-focused).</caption>
 <colgroup>
 <col style="width: 20%">
 <col style="width: 20%">
@@ -374,7 +454,7 @@ Table 2: Topology families for undirected GGM simulation (R-focused).
 <td><strong>Erdős–Rényi</strong></td>
 <td>Each edge present independently with probability <span class="math inline">q</span>; <span class="math inline">q=d_{\mathrm{avg}}/(p-1)</span> targets average degree</td>
 <td>
-<code>huge::huge.generator(graph="random")</code> <span class="citation" data-cites="R-huge">(<a href="#ref-R-huge" role="doc-biblioref">Jiang et al. 2026</a>)</span>; <code>BDgraph::graph.sim(graph="random")</code> <span class="citation" data-cites="R-BDgraph">(<a href="#ref-R-BDgraph" role="doc-biblioref">Mohammadi and Wit 2025</a>)</span>
+<code>huge::huge.generator(graph="random")</code> <span class="citation" data-cites="R-huge">(<a href="#ref-R-huge" role="doc-biblioref">Jiang et al. 2026</a>)</span>; <code>BDgraph::graph.sim(graph="random")</code> <span class="citation" data-cites="R-BDgraph">(<a href="#ref-R-BDgraph" role="doc-biblioref">Mohammadi and Wit 2025</a>)</span>; DeCovarT <code>graph_model = "erdos_renyi"</code>
 </td>
 <td>Exact sparsity control in expectation; few nuisance parameters</td>
 <td>Narrow degree distribution; little modular organisation</td>
@@ -394,7 +474,7 @@ Table 2: Topology families for undirected GGM simulation (R-focused).
 <td>
 <span class="math inline">g</span> groups; one centre linked to remaining members</td>
 <td>
-<code>huge.generator(graph="hub")</code> <span class="citation" data-cites="R-huge">(<a href="#ref-R-huge" role="doc-biblioref">Jiang et al. 2026</a>)</span>; <code>graph.sim(graph="hub")</code> / <code>"star"</code> <span class="citation" data-cites="R-BDgraph">(<a href="#ref-R-BDgraph" role="doc-biblioref">Mohammadi and Wit 2025</a>)</span>
+<code>huge.generator(graph="hub")</code> <span class="citation" data-cites="R-huge">(<a href="#ref-R-huge" role="doc-biblioref">Jiang et al. 2026</a>)</span>; <code>graph.sim(graph="hub")</code> / <code>"star"</code> <span class="citation" data-cites="R-BDgraph">(<a href="#ref-R-BDgraph" role="doc-biblioref">Mohammadi and Wit 2025</a>)</span>; DeCovarT <code>graph_model = "hub"</code>
 </td>
 <td>Stress-tests high-degree regulators</td>
 <td>Pure stars omit cross-talk</td>
@@ -426,22 +506,15 @@ Table 2: Topology families for undirected GGM simulation (R-focused).
 <td>Narrow degrees; needs a defensible ordering</td>
 </tr>
 </tbody>
-</table>
-</div>
-</figure>
-</div>
-</section></section><section class="level2"><h3 id="biological-relevance-of-the-six-families">Biological relevance of the six families<a class="anchor" aria-label="anchor" href="#biological-relevance-of-the-six-families"></a>
+</table></section></section><section class="level2"><h3 id="biological-relevance-of-the-six-families">Biological relevance of the six families<a class="anchor" aria-label="anchor" href="#biological-relevance-of-the-six-families"></a>
 </h3>
-<p>Not every topology is equally useful as a <strong>gene-regulatory</strong> prior. The three simulation studies in <a href="#tbl-studies" class="quarto-xref">Table 1</a>, together with classical network biology, suggest the following reading.</p>
-<div id="tbl-bio-topologies" class="quarto-float quarto-figure quarto-figure-center">
-<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-bio-topologies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 3: Biological interpretability of undirected topology families.
-</figcaption><div aria-describedby="tbl-bio-topologies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="table caption-top">
+<p>Not every topology is equally useful as a <strong>gene-regulatory</strong> prior. The three simulation studies in <strong>?@tbl-studies</strong>, together with classical network biology, suggest the following reading.</p>
+<table class="table caption-top" style="width:100%;">
+<caption>Biological interpretability of undirected topology families.</caption>
 <colgroup>
-<col style="width: 14%">
-<col style="width: 35%">
-<col style="width: 50%">
+<col style="width: 21%">
+<col style="width: 31%">
+<col style="width: 46%">
 </colgroup>
 <thead><tr class="header">
 <th>Family</th>
@@ -487,9 +560,6 @@ Table 3: Biological interpretability of undirected topology families.
 </tr>
 </tbody>
 </table>
-</div>
-</figure>
-</div>
 <section class="level3"><h4 id="the-scale-free-hypothesis-a-useful-stress-test-not-a-biological-default">The scale-free hypothesis: a useful stress test, not a biological default<a class="anchor" aria-label="anchor" href="#the-scale-free-hypothesis-a-useful-stress-test-not-a-biological-default"></a>
 </h4>
 <p>The phrase <em>scale-free network</em> usually means that the degree distribution follows a power law, <span class="math inline">\Pr(K=k)\propto k^{-\alpha}</span>, at least above a lower cut-off. This statistical statement is distinct from the Barabási–Albert (BA) growth mechanism. Preferential attachment can generate a power law, but observing a heavy-tailed degree distribution does not establish preferential attachment; other mechanisms can produce similar tails, and variants of preferential attachment need not produce a pure power law <span class="citation" data-cites="lima-mendezPowerfulLawPower2009 broidoScalefreeNetworksAre2019">(<a href="#ref-lima-mendezPowerfulLawPower2009" role="doc-biblioref"><span class="nocase">Lima-Mendez and van Helden</span> 2009</a>; <a href="#ref-broidoScalefreeNetworksAre2019" role="doc-biblioref">Broido and Clauset 2019</a>)</span>.</p>
@@ -517,22 +587,19 @@ Table 3: Biological interpretability of undirected topology families.
 <img src="figures/fig_network_topologies_six.png">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-topologies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 4: Six undirected topology families used in GGM simulation: Erdős–Rényi, Barabási–Albert (preferential attachment / scale-free), stochastic block (cluster), band / AR, star / hub, and small-world (Watts–Strogatz).<br><br></figcaption></figure>
+Figure 6: Six undirected topology families used in GGM simulation: Erdős–Rényi, Barabási–Albert (preferential attachment / scale-free), stochastic block (cluster), band / AR, star / hub, and small-world (Watts–Strogatz).<br><br></figcaption></figure>
 </div>
 </section><section class="level2"><h3 id="weight-design-and-random-signs">Weight design and random signs<a class="anchor" aria-label="anchor" href="#weight-design-and-random-signs"></a>
 </h3>
-<p>Topology generators return a binary undirected support <span class="math inline">E</span>. <strong>Signs and magnitudes</strong> are a separate design layer <span class="math inline">W(G)</span> in <a href="#eq-ggm-pipeline" class="quarto-xref">Equation 3</a>: they are assigned <em>after</em> (or jointly with) the skeleton, then completed to an SPD precision. Remember that</p>
+<p>Topology generators return a binary undirected support <span class="math inline">E</span>. <strong>Signs and magnitudes</strong> are a separate design layer <span class="math inline">W(G)</span> in <a href="#eq-ggm-pipeline" class="quarto-xref">Equation 8</a>: they are assigned <em>after</em> (or jointly with) the skeleton, then completed to an SPD precision. Remember that</p>
 <p><span id="eq-sign-flip"><span class="math display">
 \operatorname{sign}(\rho_{jk\mid -\{j,k\}})
 =
 -\operatorname{sign}(\Omega_{jk})
-\tag{5}</span></span></p>
-<p>see <a href="#eq-partial-cor" class="quarto-xref">Equation 4</a>, so a positive precision weight is an inhibitory partial correlation. <a href="#tbl-weights" class="quarto-xref">Table 4</a> contrasts three standard undirected strategies.</p>
-<div id="tbl-weights" class="quarto-float quarto-figure quarto-figure-center">
-<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-weights-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 4: Three undirected strategies for signed / random edge weights after a fixed skeleton.
-</figcaption><div aria-describedby="tbl-weights-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+\tag{10}</span></span></p>
+<p>see <a href="#eq-partial-cor" class="quarto-xref">Equation 9</a>, so a positive precision weight is an inhibitory partial correlation. <strong>?@tbl-weights</strong> contrasts three standard undirected strategies.</p>
 <table class="table caption-top">
+<caption>Three undirected strategies for signed / random edge weights after a fixed skeleton.</caption>
 <colgroup>
 <col style="width: 25%">
 <col style="width: 25%">
@@ -558,7 +625,7 @@ Table 4: Three undirected strategies for signed / random edge weights after a f
 <td>Fill a symmetric matrix <span class="math inline">R</span> with <span class="math inline">R_{jk}=0</span> off <span class="math inline">E</span> and <span class="math inline">R_{jk}\in(-1,1)</span> (signed) on <span class="math inline">E</span>; ensure <span class="math inline">\rho(R)&lt;1</span>
 </td>
 <td>
-<span class="math inline">\Omega = D^{1/2}(I-R)D^{1/2}</span> (<a href="#eq-partial-scale" class="quarto-xref">Equation 8</a>)</td>
+<span class="math inline">\Omega = D^{1/2}(I-R)D^{1/2}</span> (<a href="#eq-partial-scale" class="quarto-xref">Equation 13</a>)</td>
 <td>Direct control of partial-correlation signs and strengths</td>
 </tr>
 <tr class="odd">
@@ -572,9 +639,6 @@ Table 4: Three undirected strategies for signed / random edge weights after a f
 </tr>
 </tbody>
 </table>
-</div>
-</figure>
-</div>
 <section class="level3"><h4 id="i-i-d--signs-on-a-fixed-skeleton">i.i.d. signs on a fixed skeleton<a class="anchor" aria-label="anchor" href="#i-i-d--signs-on-a-fixed-skeleton"></a>
 </h4>
 <p>Draw <span class="math inline">G</span> (ER, band, hub, …). Independently for each undirected edge,</p>
@@ -583,7 +647,7 @@ W_{jk}=W_{kj}=s_{jk}\,m_{jk},
 \qquad
 s_{jk}\in\{-1,+1\},
 \quad m_{jk}&gt;0,
-\tag{6}</span></span></p>
+\tag{11}</span></span></p>
 <p>then apply a support-preserving SPD completion (next section). Uniform positive loadings <span class="math inline">W=vG</span> are the special case <span class="math inline">s_{jk}\equiv +1</span> used by PLN-style and many <code>huge</code> simulations <span class="citation" data-cites="chiquetVariationalInferenceSparse2018">(<a href="#ref-chiquetVariationalInferenceSparse2018" role="doc-biblioref">Chiquet et al. 2018</a>)</span>—all partial correlations then share the same sign. DeCovarT uses i.i.d. signs with inhibitory fraction <code>prop_inhibitory</code> and magnitude <span class="math inline">v</span> (<code>precision_scale</code>) baked into <span class="math inline">\boldsymbol{W}</span> before the spectral SPD completion.</p>
 </section><section class="level3"><h4 id="partial-correlation-scaling-and-why-i-r">Partial-correlation scaling and why <span class="math inline">I-R</span>
 <a class="anchor" aria-label="anchor" href="#partial-correlation-scaling-and-why-i-r"></a>
@@ -598,21 +662,21 @@ R_{jk}
 \rho_{jk\mid -\{j,k\}} &amp; \{j,k\}\in E,\\
 0 &amp; \{j,k\}\notin E,
 \end{cases}
-\tag{7}</span></span></p>
+\tag{12}</span></span></p>
 <p>and choose magnitudes so that the spectral radius satisfies <span class="math inline">\rho(R)&lt;1</span>. Then</p>
 <p><span id="eq-partial-scale"><span class="math display">
 \Omega
 =
 D^{1/2}(I-R)D^{1/2}
-\tag{8}</span></span></p>
+\tag{13}</span></span></p>
 <p>for a positive diagonal <span class="math inline">D</span> (often <span class="math inline">D=I</span> after standardising margins).</p>
-<p><strong>Why subtract from the identity?</strong> The precision encodes <em>conditional</em> dependence. For a correlation-type matrix, <span class="math inline">I-R</span> places <strong>ones on the diagonal</strong> (self-precision after scaling) and <strong>negatives of the partial correlations</strong> off the diagonal, matching <a href="#eq-sign-flip" class="quarto-xref">Equation 5</a>: if <span class="math inline">R_{jk}&gt;0</span> (positively partially correlated variables), then <span class="math inline">(I-R)_{jk}&lt;0</span>, hence <span class="math inline">\Omega_{jk}&lt;0</span>.</p>
+<p><strong>Why subtract from the identity?</strong> The precision encodes <em>conditional</em> dependence. For a correlation-type matrix, <span class="math inline">I-R</span> places <strong>ones on the diagonal</strong> (self-precision after scaling) and <strong>negatives of the partial correlations</strong> off the diagonal, matching <a href="#eq-sign-flip" class="quarto-xref">Equation 10</a>: if <span class="math inline">R_{jk}&gt;0</span> (positively partially correlated variables), then <span class="math inline">(I-R)_{jk}&lt;0</span>, hence <span class="math inline">\Omega_{jk}&lt;0</span>.</p>
 </section><section class="level3"><h4 id="g-wishart-draws-on-a-fixed-graph">G-Wishart draws on a fixed graph<a class="anchor" aria-label="anchor" href="#g-wishart-draws-on-a-fixed-graph"></a>
 </h4>
-<p>Given adjacency <span class="math inline">G</span>, <code>BDgraph::rgwish()</code> samples <span class="math inline">\Omega\sim W_G(b,D)</span> already positive definite and with <span class="math inline">\Omega_{jk}=0</span> whenever <span class="math inline">(j,k)\notin E</span> <span class="citation" data-cites="R-BDgraph BDgraph2019">(<a href="#ref-R-BDgraph" role="doc-biblioref">Mohammadi and Wit 2025</a>, <a href="#ref-BDgraph2019" role="doc-biblioref">2019</a>)</span>. Signs and magnitudes arise from the continuous distribution rather than from an explicit coin-flip layer. This is the most “automatic” signed-weight generator once the skeleton is fixed; the trade-off is less direct control of the inhibitory fraction than <a href="#eq-iid-signs" class="quarto-xref">Equation 6</a> or <a href="#eq-partial-scale" class="quarto-xref">Equation 8</a>.</p>
+<p>Given adjacency <span class="math inline">G</span>, <code>BDgraph::rgwish()</code> samples <span class="math inline">\Omega\sim W_G(b,D)</span> already positive definite and with <span class="math inline">\Omega_{jk}=0</span> whenever <span class="math inline">(j,k)\notin E</span> <span class="citation" data-cites="R-BDgraph BDgraph2019">(<a href="#ref-R-BDgraph" role="doc-biblioref">Mohammadi and Wit 2025</a>, <a href="#ref-BDgraph2019" role="doc-biblioref">2019</a>)</span>. Signs and magnitudes arise from the continuous distribution rather than from an explicit coin-flip layer. This is the most “automatic” signed-weight generator once the skeleton is fixed; the trade-off is less direct control of the inhibitory fraction than <a href="#eq-iid-signs" class="quarto-xref">Equation 11</a> or <a href="#eq-partial-scale" class="quarto-xref">Equation 13</a>.</p>
 </section></section><section class="level2"><h3 id="positive-definiteness-strategies">Positive-definiteness strategies<a class="anchor" aria-label="anchor" href="#positive-definiteness-strategies"></a>
 </h3>
-<p><a href="#tbl-pd" class="quarto-xref">Table 5</a> contrasts constructions that turn a weighted support <span class="math inline">W</span> (or a partial-correlation design) into <span class="math inline">\Omega\succ 0</span>. DeCovarT’s <code>build_normalised_precision()</code> implements the uniform spectral shift below, with diagonal cushion <span class="math inline">u</span> (<code>precision_shift</code>):</p>
+<p><strong>?@tbl-pd</strong> contrasts constructions that turn a weighted support <span class="math inline">W</span> (or a partial-correlation design) into <span class="math inline">\Omega\succ 0</span>. DeCovarT’s <code>build_normalised_precision()</code> implements the uniform spectral shift below, with diagonal cushion <span class="math inline">u</span> (<code>precision_shift</code>):</p>
 <p><span class="math display">
 \boldsymbol{\Omega}
 =
@@ -623,11 +687,8 @@ D^{1/2}(I-R)D^{1/2}
 \bigr)
 \mathbf{I}.
 </span></p>
-<div id="tbl-pd" class="quarto-float quarto-figure quarto-figure-center">
-<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-pd-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 5: Positive-definiteness constructions for graph-constrained precisions.
-</figcaption><div aria-describedby="tbl-pd-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table caption-top">
+<caption>Positive-definiteness constructions for graph-constrained precisions.</caption>
 <colgroup>
 <col style="width: 20%">
 <col style="width: 20%">
@@ -668,7 +729,7 @@ Table 5: Positive-definiteness constructions for graph-constrained precisions.
 </td>
 <td style="text-align: right;">Yes</td>
 <td style="text-align: right;">Yes</td>
-<td>Signs and strengths set on the partial-correlation scale (<a href="#eq-partial-scale" class="quarto-xref">Equation 8</a>)</td>
+<td>Signs and strengths set on the partial-correlation scale (<a href="#eq-partial-scale" class="quarto-xref">Equation 13</a>)</td>
 </tr>
 <tr class="even">
 <td>Graph Laplacian / M-matrix</td>
@@ -704,24 +765,21 @@ Table 5: Positive-definiteness constructions for graph-constrained precisions.
 </tr>
 </tbody>
 </table>
-</div>
-</figure>
-</div>
 <section class="level3"><h4 id="why-the-uniform-spectral-shift-is-attractive">Why the uniform spectral shift is attractive<a class="anchor" aria-label="anchor" href="#why-the-uniform-spectral-shift-is-attractive"></a>
 </h4>
-<p>If <span class="math inline">W=Q\Lambda Q^{\top}</span>, then (<a href="#eq-spectral-shift" class="quarto-xref">Equation 9</a>)</p>
+<p>If <span class="math inline">W=Q\Lambda Q^{\top}</span>, then (<a href="#eq-spectral-shift" class="quarto-xref">Equation 14</a>)</p>
 <p><span id="eq-spectral-shift"><span class="math display">
 W+cI = Q(\Lambda+cI)Q^{\top}.
-\tag{9}</span></span></p>
+\tag{14}</span></span></p>
 <p>Every eigenvalue increases by <span class="math inline">c</span>, while every off-diagonal of <span class="math inline">W</span> is unchanged, so the edge set</p>
 <p><span id="eq-edge-set"><span class="math display">
 E=\{(j,k):j&lt;k,\ \Omega_{jk}\neq 0\}
-\tag{10}</span></span></p>
+\tag{15}</span></span></p>
 <p>is identical before and after loading—and <strong>signs of</strong> <span class="math inline">W</span> are preserved.</p>
 <p>The floor <span class="math inline">\varepsilon</span> also controls the condition number</p>
 <p><span id="eq-omega-kappa"><span class="math display">
 \kappa(\Omega)=\frac{\lambda_{\max}(\Omega)}{\lambda_{\min}(\Omega)}.
-\tag{11}</span></span></p>
+\tag{16}</span></span></p>
 <p>Large loading yields a well-conditioned but weakly dependent network; loading only slightly above <span class="math inline">-\lambda_{\min}</span> strengthens dependence but can make estimation fragile. Benchmarks should report partial-correlation distributions and <span class="math inline">\kappa(\Omega)</span>, not only the adjacency.</p>
 </section></section><section class="level2"><h3 id="shared-covariances-build_shared_covariance_array">Shared covariances: <code>build_shared_covariance_array()</code>
 <a class="anchor" aria-label="anchor" href="#shared-covariances-build_shared_covariance_array"></a>
@@ -744,7 +802,7 @@ j=1,\ldots,J,
 </blockquote>
 <section class="level3"><h4 id="further-high-dimensional-designs">Further high-dimensional designs<a class="anchor" aria-label="anchor" href="#further-high-dimensional-designs"></a>
 </h4>
-<p>Beyond the families in <a href="#tbl-topologies" class="quarto-xref">Table 2</a>:</p>
+<p>Beyond the families in <strong>?@tbl-topologies</strong>:</p>
 <ul>
 <li>
 <strong>Degree-prescribed / configuration</strong> graphs separate degree heterogeneity from preferential-attachment <em>mechanisms</em>.</li>
@@ -776,7 +834,7 @@ j=1,\ldots,J,
 </li>
 </ul></section><section class="level3"><h4 id="recommended-benchmark-specification">Recommended benchmark specification<a class="anchor" aria-label="anchor" href="#recommended-benchmark-specification"></a>
 </h4>
-<p>Use one pipeline for every topology (<a href="#eq-benchmark-pipe" class="quarto-xref">Equation 12</a>, <a href="#fig-ggm-pipeline" class="quarto-xref">Figure 3</a>):</p>
+<p>Use one pipeline for every topology (<a href="#eq-benchmark-pipe" class="quarto-xref">Equation 17</a>, <a href="#fig-ggm-pipeline" class="quarto-xref">Figure 5</a>):</p>
 <p><span id="eq-benchmark-pipe"><span class="math display">
 \text{topology}
 \rightarrow
@@ -789,15 +847,12 @@ j=1,\ldots,J,
 \text{latent Gaussian}
 \rightarrow
 \text{observation model}
-\tag{12}</span></span></p>
-<div id="tbl-benchmark" class="quarto-float quarto-figure quarto-figure-center">
-<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-benchmark-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 6: Compact factorial axes for a reproducible undirected GGM simulation study.
-</figcaption><div aria-describedby="tbl-benchmark-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+\tag{17}</span></span></p>
 <table class="table caption-top">
+<caption>Compact factorial axes for a reproducible undirected GGM simulation study.</caption>
 <colgroup>
-<col style="width: 31%">
-<col style="width: 68%">
+<col style="width: 32%">
+<col style="width: 67%">
 </colgroup>
 <thead><tr class="header">
 <th>Axis</th>
@@ -832,229 +887,132 @@ Table 6: Compact factorial axes for a reproducible undirected GGM simulation st
 </tr>
 </tbody>
 </table>
+<p><strong>Main insights.</strong> Prefer the uniform spectral shift (<a href="#eq-spectral-shift" class="quarto-xref">Equation 14</a>) or partial-correlation scaling (<a href="#eq-partial-scale" class="quarto-xref">Equation 13</a>) when support and signs must be exact; add the mean layer <strong>independently</strong> of graph generation.</p>
+</section></section></section><section class="section level2"><h2 id="sec-scenario-grid">Synthetic simulation design: a hybrid multi-topology reference scenario<a class="anchor" aria-label="anchor" href="#sec-scenario-grid"></a>
+</h2>
+<p>The earlier factorial design swept one topology and one cosine level at a time, keeping a single <strong>shared</strong> covariance across all <span class="math inline">J</span> cell types (<code><a href="../reference/simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments()</a></code>; <a href="#sec-ggm-networks" class="quarto-xref">Section 4</a>). <code>scripts/generate_random_markov_network.R</code> instead builds <strong>one</strong> scenario that stresses several axes of the feature-selection pipeline simultaneously: two cell types that are unrecoverable from <span class="math inline">\boldsymbol{\mu}</span> alone and must be told apart from <strong>topology</strong>, a third cell type set apart by a compact marker block, and a null block that should survive every selection stage as <em>discarded</em>. Notation matches the manuscript: <span class="math inline">G=50</span> genes, <span class="math inline">J=3</span> cell types, <span class="math inline">N</span> bulk samples for <span class="math inline">\boldsymbol{Y}\in\mathcal{M}_{G\times N}</span>.</p>
+<section class="level2"><h3 id="gene-and-cell-type-design">Gene and cell-type design<a class="anchor" aria-label="anchor" href="#gene-and-cell-type-design"></a>
+</h3>
+<p>The <span class="math inline">G=50</span> genes are partitioned into three blocks, and each cell type gets its <strong>own</strong> <span class="math inline">G\times G</span> precision <span class="math inline">\boldsymbol{\Omega}_j</span> (not a shared one):</p>
+<p><span class="math display">
+\underbrace{\mathcal{G}_{12}}_{30\text{ genes}}
+\ \cup\
+\underbrace{\mathcal{G}_{3}}_{10\text{ genes}}
+\ \cup\
+\underbrace{\mathcal{G}_{\mathrm{eq}}}_{10\text{ genes}},
+\qquad
+\boldsymbol{\Omega}_j
+=
+\mathrm{blockdiag}\bigl(
+  \boldsymbol{\Omega}_j^{(\mathcal{G}_{12})},\,
+  \boldsymbol{\Omega}_j^{(\mathcal{G}_{3})},\,
+  \boldsymbol{\Omega}_j^{(\mathcal{G}_{\mathrm{eq}})}
+\bigr),
+\qquad j=1,2,3.
+</span></p>
+<p><span class="math inline">\boldsymbol{\mu}</span> is built by <strong>two</strong> iterative calls to <code><a href="../reference/generate_mean_signature_matrix.html">generate_mean_signature_matrix()</a></code> (<a href="#eq-mean-cosine" class="quarto-xref">Equation 1</a>): first on <span class="math inline">\mathcal{G}_{12}</span> for the pair (cell type 1, cell type 2) with a <strong>high</strong> target cosine <span class="math inline">\rho_{12}=0.95</span> (near-collinear, per <a href="#sec-lr-block-mu" class="quarto-xref">Section 3.1.2</a>); then on a pool of <span class="math inline">2\times10</span> genes for the pair (merged <span class="math inline">\{1,2\}</span>, cell type 3) with a <strong>low</strong> target cosine <span class="math inline">\rho_{3}=0.05</span> (near-orthogonal), keeping only the 10 genes whose private block belongs to cell type 3. <span class="math inline">\mathcal{G}_{\mathrm{eq}}</span> gets a flat baseline directly (identical mean in all three types by construction). Only <span class="math inline">\mathcal{G}_{12}</span> and <span class="math inline">\mathcal{G}_3</span> carry a mean signal; cell types 1 and 2 are, by design, mean-indistinguishable on <span class="math inline">\mathcal{G}_{12}</span>.</p>
+<p>Following the BLGGM hybrid design (<a href="#sec-ggm-networks" class="quarto-xref">Section 4</a>), each block’s <strong>local</strong> topology is set independently per cell type, with no edges between blocks:</p>
+<div id="tbl-hybrid-topology-design" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-hybrid-topology-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 1: Local topology assigned to each (gene block, cell type) pair; no edges connect different blocks (block-diagonal precision support).
+</figcaption><div aria-describedby="tbl-hybrid-topology-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table caption-top">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead><tr class="header">
+<th>Gene block</th>
+<th># genes</th>
+<th>Cell type 1</th>
+<th>Cell type 2</th>
+<th>Cell type 3</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>shared_12_vs_3</code></td>
+<td>30</td>
+<td>stochastic block model (hub-like modules)</td>
+<td>star (single key-driver gene)</td>
+<td>Erdős–Rényi (background)</td>
+</tr>
+<tr class="even">
+<td><code>marker_3</code></td>
+<td>10</td>
+<td>Erdős–Rényi (background)</td>
+<td>Erdős–Rényi (background)</td>
+<td>scale-free</td>
+</tr>
+<tr class="odd">
+<td><code>equal_all</code></td>
+<td>10</td>
+<td>Erdős–Rényi</td>
+<td>Erdős–Rényi</td>
+<td>Erdős–Rényi</td>
+</tr>
+</tbody>
+</table>
 </div>
 </figure>
 </div>
-<p><strong>Main insights.</strong> Prefer the uniform spectral shift (<a href="#eq-spectral-shift" class="quarto-xref">Equation 9</a>) or partial-correlation scaling (<a href="#eq-partial-scale" class="quarto-xref">Equation 8</a>) when support and signs must be exact; add the mean layer <strong>independently</strong> of graph generation.</p>
-</section></section><section class="level2"><h3 id="nine-factorial-simulation-scenarios">Nine factorial simulation scenarios<a class="anchor" aria-label="anchor" href="#nine-factorial-simulation-scenarios"></a>
-</h3>
-<p>The script <code>scripts/generate_random_network_skeleton.R</code> builds a <span class="math inline">3\times 3</span> grid of undirected Markov-network moments. Notation matches the manuscript: <span class="math inline">G</span> genes and <span class="math inline">N</span> bulk samples for <span class="math inline">\boldsymbol{Y}\in\mathcal{M}_{G\times N}</span>.</p>
-<p><span id="eq-scenario-grid"><span class="math display">
-\begin{aligned}
-\text{topology}
-&amp;\in
-\{\text{scale-free (A)},\
-\text{SBM (B)},\
-\text{small-world (C)}\},
-\\
-\rho
-&amp;\in
-\{0.05,\,0.35,\,0.70\}
-\quad\text{(cosine levels 1–3)},
-\\
-\text{prop. inhibitory edges}
-&amp;=
-\tfrac12,
-\qquad
-\text{target }\kappa(\boldsymbol{\Omega})
-\approx
-50.
-\end{aligned}
-\tag{13}</span></span></p>
-<p>Scenario IDs are <span class="math inline">\mathtt{A1}</span>–<span class="math inline">\mathtt{C3}</span> (topology letter × cosine level). <a href="#tbl-scenarios" class="quarto-xref">Table 7</a> reports realised diagnostics for each run (seeded).</p>
+<p>Cell types 1 and 2 therefore differ <strong>only</strong> on <code>shared_12_vs_3</code>, and only through <span class="math inline">\boldsymbol{\Omega}</span>: hub/stochastic-block modules (cascading-pathway-like) for cell type 1 versus a single star (one key-driver gene) for cell type 2. <code>equal_all</code> is wired identically (Erdős–Rényi) in every cell type, matching its complete lack of mean signal.</p>
 <div class="cell">
-<div id="tbl-scenarios" class="cell quarto-float quarto-figure quarto-figure-center">
-<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-scenarios-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 7: Nine undirected Markov-network scenarios (3 topologies × 3 cosine levels).
-</figcaption><div aria-describedby="tbl-scenarios-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div id="tbl-mean-geometry" class="cell quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-mean-geometry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 2: Realised pairwise cosine and Euclidean distance of the 50 x 3 mean signature, over the full G = 50 genes.
+</figcaption><div aria-describedby="tbl-mean-geometry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
 <!-- preamble start -->
 
     <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_3z6ffmx6a2y2inszr2sx = TinyTable.createTableFunctions("tinytable_3z6ffmx6a2y2inszr2sx");
+      const tableFns_lnz7jchrllx2gwlmcygu = TinyTable.createTableFunctions("tinytable_lnz7jchrllx2gwlmcygu");
       // tinytable span after
-      window.addEventListener('load', function () { tableFns_3z6ffmx6a2y2inszr2sx.spanCell(9, 1, 1, 10) })
-      window.addEventListener('load', function () { tableFns_3z6ffmx6a2y2inszr2sx.spanCell(5, 1, 1, 10) })
-      window.addEventListener('load', function () { tableFns_3z6ffmx6a2y2inszr2sx.spanCell(1, 1, 1, 10) })
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '12', j: 1 }, { i: '12', j: 2 }, { i: '12', j: 3 }, { i: '12', j: 4 }, { i: '12', j: 5 }, { i: '12', j: 6 }, { i: '12', j: 7 }, { i: '12', j: 8 }, { i: '12', j: 9 }, { i: '12', j: 10 } ], css_id: 'tinytable_css_totag2mk0ldx03k9dvx3',},
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 }, { i: '0', j: 6 }, { i: '0', j: 7 }, { i: '0', j: 8 }, { i: '0', j: 9 }, { i: '0', j: 10 } ], css_id: 'tinytable_css_ct5kxqealw2dgqxnw9vy',},
+          { positions: [ { i: '3', j: 1 }, { i: '3', j: 2 }, { i: '3', j: 3 } ], css_id: 'tinytable_css_z505geenhsbdagilkouf',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 } ], css_id: 'tinytable_css_5taz6ylnezklgrsx2fyj',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_3z6ffmx6a2y2inszr2sx.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_lnz7jchrllx2gwlmcygu.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_3z6ffmx6a2y2inszr2sx td.tinytable_css_totag2mk0ldx03k9dvx3, #tinytable_3z6ffmx6a2y2inszr2sx th.tinytable_css_totag2mk0ldx03k9dvx3 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_3z6ffmx6a2y2inszr2sx td.tinytable_css_ct5kxqealw2dgqxnw9vy, #tinytable_3z6ffmx6a2y2inszr2sx th.tinytable_css_ct5kxqealw2dgqxnw9vy {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_lnz7jchrllx2gwlmcygu td.tinytable_css_z505geenhsbdagilkouf, #tinytable_lnz7jchrllx2gwlmcygu th.tinytable_css_z505geenhsbdagilkouf {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_lnz7jchrllx2gwlmcygu td.tinytable_css_5taz6ylnezklgrsx2fyj, #tinytable_lnz7jchrllx2gwlmcygu th.tinytable_css_5taz6ylnezklgrsx2fyj {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_3z6ffmx6a2y2inszr2sx" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_lnz7jchrllx2gwlmcygu" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
-<th scope="col" data-row="0" data-col="1">ID</th>
-                <th scope="col" data-row="0" data-col="2">topology</th>
-                <th scope="col" data-row="0" data-col="3">rho</th>
-                <th scope="col" data-row="0" data-col="4">lambda_min</th>
-                <th scope="col" data-row="0" data-col="5">lambda_max</th>
-                <th scope="col" data-row="0" data-col="6">kappa_Omega</th>
-                <th scope="col" data-row="0" data-col="7">prop_inhib</th>
-                <th scope="col" data-row="0" data-col="8">mean_abs_cos</th>
-                <th scope="col" data-row="0" data-col="9">recip_kappa_mu</th>
-                <th scope="col" data-row="0" data-col="10">gram_det</th>
+<th scope="col" data-row="0" data-col="1">pair</th>
+                <th scope="col" data-row="0" data-col="2">cosine</th>
+                <th scope="col" data-row="0" data-col="3">euclidean</th>
               </tr></thead>
 <tbody>
 <tr>
-<td data-row="1" data-col="1">A - scale-free (Barabasi-Albert)</td>
-                  <td data-row="1" data-col="2">A - scale-free (Barabasi-Albert)</td>
-                  <td data-row="1" data-col="3">A - scale-free (Barabasi-Albert)</td>
-                  <td data-row="1" data-col="4">A - scale-free (Barabasi-Albert)</td>
-                  <td data-row="1" data-col="5">A - scale-free (Barabasi-Albert)</td>
-                  <td data-row="1" data-col="6">A - scale-free (Barabasi-Albert)</td>
-                  <td data-row="1" data-col="7">A - scale-free (Barabasi-Albert)</td>
-                  <td data-row="1" data-col="8">A - scale-free (Barabasi-Albert)</td>
-                  <td data-row="1" data-col="9">A - scale-free (Barabasi-Albert)</td>
-                  <td data-row="1" data-col="10">A - scale-free (Barabasi-Albert)</td>
+<td data-row="1" data-col="1">celltype_1 vs celltype_2</td>
+                  <td data-row="1" data-col="2">0.973</td>
+                  <td data-row="1" data-col="3">2.76</td>
                 </tr>
 <tr>
-<td data-row="2" data-col="1">A1</td>
-                  <td data-row="2" data-col="2">scale_free</td>
-                  <td data-row="2" data-col="3">0.05</td>
-                  <td data-row="2" data-col="4">0.05</td>
-                  <td data-row="2" data-col="5">2.1</td>
-                  <td data-row="2" data-col="6">42.1</td>
-                  <td data-row="2" data-col="7">0.508</td>
-                  <td data-row="2" data-col="8">0.241</td>
-                  <td data-row="2" data-col="9">0.716</td>
-                  <td data-row="2" data-col="10">924</td>
+<td data-row="2" data-col="1">celltype_1 vs celltype_3</td>
+                  <td data-row="2" data-col="2">0.562</td>
+                  <td data-row="2" data-col="3">11.22</td>
                 </tr>
 <tr>
-<td data-row="3" data-col="1">A2</td>
-                  <td data-row="3" data-col="2">scale_free</td>
-                  <td data-row="3" data-col="3">0.35</td>
-                  <td data-row="3" data-col="4">0.05</td>
-                  <td data-row="3" data-col="5">2.17</td>
-                  <td data-row="3" data-col="6">43.3</td>
-                  <td data-row="3" data-col="7">0.508</td>
-                  <td data-row="3" data-col="8">0.581</td>
-                  <td data-row="3" data-col="9">0.44</td>
-                  <td data-row="3" data-col="10">616</td>
-                </tr>
-<tr>
-<td data-row="4" data-col="1">A3</td>
-                  <td data-row="4" data-col="2">scale_free</td>
-                  <td data-row="4" data-col="3">0.7</td>
-                  <td data-row="4" data-col="4">0.05</td>
-                  <td data-row="4" data-col="5">2.09</td>
-                  <td data-row="4" data-col="6">41.8</td>
-                  <td data-row="4" data-col="7">0.508</td>
-                  <td data-row="4" data-col="8">0.804</td>
-                  <td data-row="4" data-col="9">0.274</td>
-                  <td data-row="4" data-col="10">317</td>
-                </tr>
-<tr>
-<td data-row="5" data-col="1">B - stochastic block model</td>
-                  <td data-row="5" data-col="2">B - stochastic block model</td>
-                  <td data-row="5" data-col="3">B - stochastic block model</td>
-                  <td data-row="5" data-col="4">B - stochastic block model</td>
-                  <td data-row="5" data-col="5">B - stochastic block model</td>
-                  <td data-row="5" data-col="6">B - stochastic block model</td>
-                  <td data-row="5" data-col="7">B - stochastic block model</td>
-                  <td data-row="5" data-col="8">B - stochastic block model</td>
-                  <td data-row="5" data-col="9">B - stochastic block model</td>
-                  <td data-row="5" data-col="10">B - stochastic block model</td>
-                </tr>
-<tr>
-<td data-row="6" data-col="1">B1</td>
-                  <td data-row="6" data-col="2">stochastic_block_model</td>
-                  <td data-row="6" data-col="3">0.05</td>
-                  <td data-row="6" data-col="4">0.05</td>
-                  <td data-row="6" data-col="5">3.33</td>
-                  <td data-row="6" data-col="6">66.6</td>
-                  <td data-row="6" data-col="7">0.5</td>
-                  <td data-row="6" data-col="8">0.241</td>
-                  <td data-row="6" data-col="9">0.716</td>
-                  <td data-row="6" data-col="10">924</td>
-                </tr>
-<tr>
-<td data-row="7" data-col="1">B2</td>
-                  <td data-row="7" data-col="2">stochastic_block_model</td>
-                  <td data-row="7" data-col="3">0.35</td>
-                  <td data-row="7" data-col="4">0.05</td>
-                  <td data-row="7" data-col="5">2.94</td>
-                  <td data-row="7" data-col="6">58.8</td>
-                  <td data-row="7" data-col="7">0.503</td>
-                  <td data-row="7" data-col="8">0.581</td>
-                  <td data-row="7" data-col="9">0.44</td>
-                  <td data-row="7" data-col="10">616</td>
-                </tr>
-<tr>
-<td data-row="8" data-col="1">B3</td>
-                  <td data-row="8" data-col="2">stochastic_block_model</td>
-                  <td data-row="8" data-col="3">0.7</td>
-                  <td data-row="8" data-col="4">0.05</td>
-                  <td data-row="8" data-col="5">3.32</td>
-                  <td data-row="8" data-col="6">66.3</td>
-                  <td data-row="8" data-col="7">0.503</td>
-                  <td data-row="8" data-col="8">0.804</td>
-                  <td data-row="8" data-col="9">0.274</td>
-                  <td data-row="8" data-col="10">317</td>
-                </tr>
-<tr>
-<td data-row="9" data-col="1">C - small-world (Watts-Strogatz)</td>
-                  <td data-row="9" data-col="2">C - small-world (Watts-Strogatz)</td>
-                  <td data-row="9" data-col="3">C - small-world (Watts-Strogatz)</td>
-                  <td data-row="9" data-col="4">C - small-world (Watts-Strogatz)</td>
-                  <td data-row="9" data-col="5">C - small-world (Watts-Strogatz)</td>
-                  <td data-row="9" data-col="6">C - small-world (Watts-Strogatz)</td>
-                  <td data-row="9" data-col="7">C - small-world (Watts-Strogatz)</td>
-                  <td data-row="9" data-col="8">C - small-world (Watts-Strogatz)</td>
-                  <td data-row="9" data-col="9">C - small-world (Watts-Strogatz)</td>
-                  <td data-row="9" data-col="10">C - small-world (Watts-Strogatz)</td>
-                </tr>
-<tr>
-<td data-row="10" data-col="1">C1</td>
-                  <td data-row="10" data-col="2">small_world</td>
-                  <td data-row="10" data-col="3">0.05</td>
-                  <td data-row="10" data-col="4">0.05</td>
-                  <td data-row="10" data-col="5">2.02</td>
-                  <td data-row="10" data-col="6">40.4</td>
-                  <td data-row="10" data-col="7">0.5</td>
-                  <td data-row="10" data-col="8">0.241</td>
-                  <td data-row="10" data-col="9">0.716</td>
-                  <td data-row="10" data-col="10">924</td>
-                </tr>
-<tr>
-<td data-row="11" data-col="1">C2</td>
-                  <td data-row="11" data-col="2">small_world</td>
-                  <td data-row="11" data-col="3">0.35</td>
-                  <td data-row="11" data-col="4">0.05</td>
-                  <td data-row="11" data-col="5">2.11</td>
-                  <td data-row="11" data-col="6">42.2</td>
-                  <td data-row="11" data-col="7">0.5</td>
-                  <td data-row="11" data-col="8">0.581</td>
-                  <td data-row="11" data-col="9">0.44</td>
-                  <td data-row="11" data-col="10">616</td>
-                </tr>
-<tr>
-<td data-row="12" data-col="1">C3</td>
-                  <td data-row="12" data-col="2">small_world</td>
-                  <td data-row="12" data-col="3">0.7</td>
-                  <td data-row="12" data-col="4">0.05</td>
-                  <td data-row="12" data-col="5">2.15</td>
-                  <td data-row="12" data-col="6">43</td>
-                  <td data-row="12" data-col="7">0.5</td>
-                  <td data-row="12" data-col="8">0.804</td>
-                  <td data-row="12" data-col="9">0.274</td>
-                  <td data-row="12" data-col="10">317</td>
+<td data-row="3" data-col="1">celltype_2 vs celltype_3</td>
+                  <td data-row="3" data-col="2">0.562</td>
+                  <td data-row="3" data-col="3">11.22</td>
                 </tr>
 </tbody>
 </table>
@@ -1065,7 +1023,111 @@ Table 7: Nine undirected Markov-network scenarios (3 topologies × 3 cosine lev
 </figure>
 </div>
 </div>
-<p>Column guide: <span class="math inline">\lambda_{\min}</span>, <span class="math inline">\lambda_{\max}</span>, and <span class="math inline">\kappa(\boldsymbol{\Omega})=\lambda_{\max}/\lambda_{\min}</span> summarise the precision spectrum; <code>prop_inhib</code> is the realised fraction of inhibitory precision edges; <code>mean_abs_cos</code> is the AutoGeneS cosine objective on <span class="math inline">\boldsymbol{\mu}</span>; <code>recip_kappa_mu</code> is <span class="math inline">\kappa_2(\boldsymbol{\mu})^{-1}</span>; <code>gram_det</code> is <span class="math inline">\sqrt{\det(\boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu})}</span>.</p>
+<div class="cell">
+<div id="tbl-topology-diagnostics" class="cell quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-topology-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 3: Per-cell-type precision spectrum for the 50 x 50 hybrid-topology Omega_j.
+</figcaption><div aria-describedby="tbl-topology-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
+      // Create table-specific functions using external factory
+      const tableFns_3ry8ah7m0gxpammuvxfq = TinyTable.createTableFunctions("tinytable_3ry8ah7m0gxpammuvxfq");
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '3', j: 1 }, { i: '3', j: 2 }, { i: '3', j: 3 }, { i: '3', j: 4 }, { i: '3', j: 5 }, { i: '3', j: 6 } ], css_id: 'tinytable_css_xcanddcv9za68dkjejbz',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 }, { i: '0', j: 6 } ], css_id: 'tinytable_css_ey87f5cwn322mhetzk9h',},
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  tableFns_3ry8ah7m0gxpammuvxfq.styleCell(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
+<style>
+    /* tinytable css entries after */
+    #tinytable_3ry8ah7m0gxpammuvxfq td.tinytable_css_xcanddcv9za68dkjejbz, #tinytable_3ry8ah7m0gxpammuvxfq th.tinytable_css_xcanddcv9za68dkjejbz {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_3ry8ah7m0gxpammuvxfq td.tinytable_css_ey87f5cwn322mhetzk9h, #tinytable_3ry8ah7m0gxpammuvxfq th.tinytable_css_ey87f5cwn322mhetzk9h {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    </style>
+<div class="container">
+      <table class="table tinytable" id="tinytable_3ry8ah7m0gxpammuvxfq" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+<thead><tr>
+<th scope="col" data-row="0" data-col="1">cell type</th>
+                <th scope="col" data-row="0" data-col="2">topology</th>
+                <th scope="col" data-row="0" data-col="3">lambda_min</th>
+                <th scope="col" data-row="0" data-col="4">lambda_max</th>
+                <th scope="col" data-row="0" data-col="5">kappa_Omega</th>
+                <th scope="col" data-row="0" data-col="6">prop_inhib</th>
+              </tr></thead>
+<tbody>
+<tr>
+<td data-row="1" data-col="1">celltype_1</td>
+                  <td data-row="1" data-col="2">SBM (hub-like modules)</td>
+                  <td data-row="1" data-col="3">0.1</td>
+                  <td data-row="1" data-col="4">1.68</td>
+                  <td data-row="1" data-col="5">16.8</td>
+                  <td data-row="1" data-col="6">0.5</td>
+                </tr>
+<tr>
+<td data-row="2" data-col="1">celltype_2</td>
+                  <td data-row="2" data-col="2">star (single key driver)</td>
+                  <td data-row="2" data-col="3">0.1</td>
+                  <td data-row="2" data-col="4">3.33</td>
+                  <td data-row="2" data-col="5">33.3</td>
+                  <td data-row="2" data-col="6">0.489</td>
+                </tr>
+<tr>
+<td data-row="3" data-col="1">celltype_3</td>
+                  <td data-row="3" data-col="2">scale-free (marker genes)</td>
+                  <td data-row="3" data-col="3">0.1</td>
+                  <td data-row="3" data-col="4">2.1</td>
+                  <td data-row="3" data-col="5">21</td>
+                  <td data-row="3" data-col="6">0.5</td>
+                </tr>
+</tbody>
+</table>
+</div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>Column guide: <span class="math inline">\lambda_{\min}</span>, <span class="math inline">\lambda_{\max}</span>, and <span class="math inline">\kappa(\boldsymbol{\Omega})=\lambda_{\max}/\lambda_{\min}</span> summarise the precision spectrum of each cell type’s <em>own</em> <span class="math inline">\boldsymbol{\Omega}_j</span>; <code>prop_inhib</code> is the realised fraction of inhibitory precision edges. <a href="#tbl-mean-geometry" class="quarto-xref">Table 2</a> shows cell types 1 and 2 near-collinear (cosine <span class="math inline">\approx 0.97</span>), tracking the local target <span class="math inline">\rho_{12}=0.95</span> used on <code>shared_12_vs_3</code>. Cell type 3, however, sits at only a <em>moderate</em> cosine (<span class="math inline">\approx0.56</span>) from the other two—well above the local target <span class="math inline">\rho_{3}=0.05</span> used on the <code>marker_3</code> pool. The gap is exactly the finite-sample effect of <a href="#sec-asymptotic-cosine" class="quarto-xref">Section 3.1.1</a>: the flat <code>celltype_12_merged</code> background on <code>shared_12_vs_3</code> and the identical <code>equal_all</code> baseline both contribute a strictly positive term to <em>every</em> pairwise inner product over the full <span class="math inline">G=50</span> vector, diluting the block-local orthogonality of <code>marker_3</code> alone. <a href="#tbl-topology-diagnostics" class="quarto-xref">Table 3</a> shows that, despite the shared mean on <code>shared_12_vs_3</code>, cell types 1 and 2 carry distinct, well-conditioned precision spectra—exactly the topology-only separation the scenario is designed to require.</p>
+<p><a href="#fig-network-topologies" class="quarto-xref">Figure 7</a> renders the three realised networks with <code>igraph</code>, coloured by gene block and by precision-edge sign.</p>
+<div id="fig-network-topologies" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-network-topologies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/fig_network_topologies.png" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-network-topologies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 7: Cell-type-specific block topologies for the 50-gene hybrid scenario: a stochastic-block/hub-like module structure for cell type 1, restricted to the 30 <code>shared_12_vs_3</code> genes; a single star (one key-driver gene) for cell type 2 on the same 30 genes; and a scale-free network for cell type 3 restricted to its own 10 <code>marker_3</code> genes. The <code>equal_all</code> block (grey) is wired as Erdős–Rényi in every cell type. Edge colour encodes the sign of the precision entry (red = inhibitory, teal = activatory); node colour encodes the gene block.
+</figcaption></figure>
+</div>
+<p>The full pipeline built on this scenario—mean signature, per-cell-type topologies, <span class="math inline">N=200</span> bulk simulation, and the pre-selection / NSGA-II feature-selection stages it stresses—is reproduced end-to-end in <code>scripts/generate_random_markov_network.R</code>.</p>
+</section><section class="level2"><h3 id="related-literature">Related literature<a class="anchor" aria-label="anchor" href="#related-literature"></a>
+</h3>
+<p>Pseudobulk simulation tools such as <strong><code>muscat</code></strong> <span class="citation" data-cites="crowellMuscatDetectsSubpopulationspecific2020">(<a href="#ref-crowellMuscatDetectsSubpopulationspecific2020" role="doc-biblioref">Crowell et al. 2020</a>)</span> aggregate single-cell counts across samples and conditions for differential-state testing; <strong><code>scDD</code></strong> <span class="citation" data-cites="korthauerStatisticalApproachIdentifying2016">(<a href="#ref-korthauerStatisticalApproachIdentifying2016" role="doc-biblioref">Korthauer et al. 2016</a>)</span> partitions genes, relative to a reference condition, into five differential-distribution (DD) patterns: equivalent expression (<strong>EE</strong>), differential expression (<strong>DE</strong>, a mean shift with one mode preserved per condition), differential proportion (<strong>DP</strong>, a shift in the mixing weights of a shared bimodal pattern), differential modality (<strong>DM</strong>, a change in the number of modes without necessarily shifting the overall mean), and differential expression <strong>and</strong> modality combined (<strong>DB</strong>).</p>
+<p>The hybrid scenario above instantiates a loose, network-level analogue of three of these patterns, tailored to deconvolution rather than to single-cell distribution testing directly (<a href="#fig-dd-taxonomy" class="quarto-xref">Figure 8</a>):</p>
+<ul>
+<li>the 10 <code>equal_all</code> genes are <strong>EE</strong>: identical mean and identically Erdős–Rényi-wired second-order structure in every cell type;</li>
+<li>the 10 <code>marker_3</code> genes are <strong>DE</strong> against the merged <span class="math inline">\{1,2\}</span> background: a mean shift confined to cell type 3, layered on a scale-free local topology;</li>
+<li>the 30 <code>shared_12_vs_3</code> genes are <strong>DE</strong> against cell type 3 but, between cell types 1 and 2 specifically, carry <strong>no mean shift at all</strong>—only the precision-matrix topology (<a href="#tbl-hybrid-topology-design" class="quarto-xref">Table 1</a>) differs. This is not scDD’s original single-gene DM test (unimodal versus bimodal <em>marginal</em> densities within one gene), but it plays a structurally similar role here: two populations a mean-only model cannot separate, which a covariance-aware model such as DeCovarT is designed to exploit.</li>
+</ul>
+<div id="fig-dd-taxonomy" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-dd-taxonomy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/fig_dd_taxonomy_ee_de_dm.png" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-dd-taxonomy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 8: Schematic differential-distribution taxonomy for the three gene blocks: equivalent expression (EE, <code>equal_all</code>), differential expression marking cell type 3 (DE, <code>marker_3</code>), and a differential-modality-like contrast between cell types 1 and 2 that is invisible at the mean level and only resolved by network topology (DM-like, <code>shared_12_vs_3</code>).
+</figcaption></figure>
+</div>
+<p>DeCovarT’s generator is narrower—it fixes <span class="math inline">\boldsymbol{\mu}</span> through <a href="#eq-mean-cosine" class="quarto-xref">Equation 1</a> and <a href="#eq-lr-block" class="quarto-xref">Equation 6</a> rather than estimating signatures from real scRNA-seq—but the same low-rank-plus-block intuition underpins many reference-matrix constructions cited above.</p>
 </section></section><section class="section level2"><h2 id="sec-geometric-score">Perspectives: a single geometric score for <span class="math inline">\boldsymbol{\mu}</span>
 <a class="anchor" aria-label="anchor" href="#sec-geometric-score"></a>
 </h2>
@@ -1079,14 +1141,14 @@ V(\boldsymbol{\mu})
     \boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu}
   \bigr)
 }
-\tag{14}</span></span></p>
+\tag{18}</span></span></p>
 <p>is the volume of the parallelepiped spanned by the columns of <span class="math inline">\boldsymbol{\mu}</span>. It vanishes under exact collinearity and grows when columns lengthen or become more orthogonal—precisely the desired MOO trade-off in one number.</p>
 <p>Equivalently, the reciprocal condition number</p>
 <p><span id="eq-reciprocal-kappa"><span class="math display">
 \kappa_2(\boldsymbol{\mu})^{-1}
 =
 \frac{\sigma_{\min}(\boldsymbol{\mu})}{\sigma_{\max}(\boldsymbol{\mu})},
-\tag{15}</span></span></p>
+\tag{19}</span></span></p>
 <p>available in R via <code>kappa(mean_profiles, exact = TRUE)</code> (or <code>1 / kappa(...)</code>), measures how ill-posed linear recovery of <span class="math inline">\boldsymbol{p}</span> from <span class="math inline">\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}</span> is. Maximising <span class="math inline">\kappa_2(\boldsymbol{\mu})^{-1}</span> (or minimising <span class="math inline">\kappa_2(\boldsymbol{\mu})</span>) collapses cosine and distance into a deconvolution-centric criterion without a Pareto front.</p>
 <p>A practical next step is to expose an optional <code>mean_objective = c("autogenes", "volume", "condition")</code> in <code><a href="../reference/simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments()</a></code>, keep the constructive <span class="math inline">(\rho,s)</span> generator for controllable scenarios, and report the chosen scalar alongside the existing pairwise diagnostics.</p>
 </section><section class="section level2"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
@@ -1094,6 +1156,9 @@ V(\boldsymbol{\mu})
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-alieeAutoGeneSAutomaticGene2021" class="csl-entry" role="listitem">
 Aliee, Hananeh, and Fabian J. Theis. 2021. <span>‘<span>AutoGeneS</span>: <span>Automatic</span> Gene Selection Using Multi-Objective Optimization for <span class="nocase">RNA-seq</span> Deconvolution’</span>. <em>Cell Systems</em> 12. <a href="https://doi.org/10.1016/j.cels.2021.05.006" class="external-link">https://doi.org/10.1016/j.cels.2021.05.006</a>.
+</div>
+<div id="ref-baWhenLessNot2026" class="csl-entry" role="listitem">
+Ba, Kalidou, Rodolphe Thiébaut, Xavier Hinaut, and Boris Hejblum. 2026. <em>When <span>Less Is Not More</span>: <span>DICEPro Mitigates</span> the <span>Impact</span> of <span>Incomplete Reference Matrices</span> on <span>Cellular Frequency Deconvolution</span></em>. bioRxiv. <a href="https://doi.org/10.64898/2026.06.17.732876" class="external-link">https://doi.org/10.64898/2026.06.17.732876</a>.
 </div>
 <div id="ref-barabasiEmergenceScalingRandom1999" class="csl-entry" role="listitem">
 Barabási, Albert-László, and Réka Albert. 1999. <span>‘Emergence of <span>Scaling</span> in <span>Random Networks</span>’</span>. <em>Science</em> 286. <a href="https://doi.org/10.1126/science.286.5439.509" class="external-link">https://doi.org/10.1126/science.286.5439.509</a>.
@@ -1107,6 +1172,9 @@ Broido, Anna D., and Aaron Clauset. 2019. <span>‘Scale-Free Networks Are Rare�
 <div id="ref-chiquetVariationalInferenceSparse2018" class="csl-entry" role="listitem">
 Chiquet, Julien, Mahendra Mariadassou, and Stéphane Robin. 2018. <em>Variational Inference for Sparse Network Reconstruction from Count Data</em>. arXiv. <a href="https://doi.org/10.48550/arxiv.1806.03120" class="external-link">https://doi.org/10.48550/arxiv.1806.03120</a>.
 </div>
+<div id="ref-crowellMuscatDetectsSubpopulationspecific2020" class="csl-entry" role="listitem">
+Crowell, Helena L., Charlotte Soneson, Pierre-Luc Germain, et al. 2020. <span>‘Muscat Detects Subpopulation-Specific State Transitions from Multi-Sample Multi-Condition Single-Cell Transcriptomics Data’</span>. <em>Nature Communications</em> 11: 6077. <a href="https://doi.org/10.1038/s41467-020-19894-4" class="external-link">https://doi.org/10.1038/s41467-020-19894-4</a>.
+</div>
 <div id="ref-R-igraph" class="csl-entry" role="listitem">
 Csárdi, Gábor, Tamás Nepusz, Vincent Traag, et al. 2026. <em>Igraph: Network Analysis and Visualization</em>. <a href="https://r.igraph.org/" class="external-link">https://r.igraph.org/</a>.
 </div>
@@ -1116,6 +1184,9 @@ Federico, Anthony, Joseph Kern, Xaralabos Varelas, and Stefano Monti. 2023. <spa
 <div id="ref-R-huge" class="csl-entry" role="listitem">
 Jiang, Haoming, Xinyu Fei, Han Liu, et al. 2026. <em>Huge: High-Dimensional Undirected Graph Estimation</em>. <a href="https://github.com/Gatech-Flash/huge" class="external-link">https://github.com/Gatech-Flash/huge</a>.
 </div>
+<div id="ref-korthauerStatisticalApproachIdentifying2016" class="csl-entry" role="listitem">
+Korthauer, Keegan D., Li-Fang Chu, Michael A. Newton, et al. 2016. <span>‘A Statistical Approach for Identifying Differential Distributions in Single-Cell <span class="nocase">RNA-seq</span> Experiments’</span>. <em>Genome Biology</em> 17: 222. <a href="https://doi.org/10.1186/s13059-016-1077-y" class="external-link">https://doi.org/10.1186/s13059-016-1077-y</a>.
+</div>
 <div id="ref-lima-mendezPowerfulLawPower2009" class="csl-entry" role="listitem">
 <span class="nocase">Lima-Mendez, Gipsi, and Jacques van Helden</span>. 2009. <span>‘The Powerful Law of the Power Law and Other Myths in Network Biology1’</span>. <em>Molecular BioSystems(MBS)</em> 5. <a href="https://doi.org/10.1039/b908681a" class="external-link">https://doi.org/10.1039/b908681a</a>.
 </div>
@@ -1124,6 +1195,9 @@ Mohammadi, Reza, and Ernst Wit. 2019. <span>‘<span>BDgraph</span>: An <span>R<
 </div>
 <div id="ref-R-BDgraph" class="csl-entry" role="listitem">
 Mohammadi, Reza, and Ernst Wit. 2025. <em>BDgraph: Bayesian Structure Learning in Graphical Models Using Birth-Death MCMC</em>. <a href="https://www.uva.nl/profile/a.mohammadi" class="external-link">https://www.uva.nl/profile/a.mohammadi</a>.
+</div>
+<div id="ref-schelkerEstimationImmuneCell2017" class="csl-entry" role="listitem">
+Schelker, Max, Sonia Feau, Jinyan Du, et al. 2017. <span>‘Estimation of Immune Cell Content in Tumour Tissue Using Single-Cell <span class="nocase">RNA-seq</span> Data’</span>. <em>Nature Communications</em> 8 (1): 2032. <a href="https://doi.org/10.1038/s41467-017-02289-3" class="external-link">https://doi.org/10.1038/s41467-017-02289-3</a>.
 </div>
 <div id="ref-R-bnlearn" class="csl-entry" role="listitem">
 Scutari, Marco. 2026. <em>Bnlearn: Bayesian Network Structure Learning, Parameter Learning and Inference</em>. <a href="https://www.bnlearn.com/" class="external-link">https://www.bnlearn.com/</a>.

@@ -23,7 +23,8 @@ simulate_hierarchical_grn_moments(
   precision_shift,
   precision_scale,
   prop_inhibitory = 0.5,
-  graph_model = c("scale_free", "stochastic_block_model", "small_world"),
+  graph_model = c("erdos_renyi", "hub", "star", "scale_free", "stochastic_block_model",
+    "small_world"),
   graph_params = list()
 )
 ```
@@ -64,7 +65,8 @@ simulate_hierarchical_grn_moments(
 
 - graph_model:
 
-  One of `"scale_free"`, `"stochastic_block_model"`, `"small_world"`.
+  One of `"erdos_renyi"`, `"hub"`, `"scale_free"`,
+  `"stochastic_block_model"`, `"small_world"`.
 
 - graph_params:
 

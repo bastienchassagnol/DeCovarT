@@ -6,7 +6,8 @@ For each column \\\boldsymbol{y}\_{\cdot i}\\ of the bulk matrix
 covariance information is provided, DeCovarT methods maximise
 \\\ell\_{\boldsymbol{y}\\\|\\\boldsymbol{\zeta}}(\boldsymbol{p})\\ under
 \\\boldsymbol{y}\\\|\\(\boldsymbol{\zeta},\boldsymbol{p})\sim
-\mathcal{N}\_{G}(\boldsymbol{\mu}\boldsymbol{p},\boldsymbol{\Sigma}(\boldsymbol{p}))\\.
+\mathcal{N}\_{G}( \boldsymbol{\mu}\boldsymbol{p},
+\boldsymbol{\Sigma}(\boldsymbol{p}) )\\.
 
 ## Usage
 

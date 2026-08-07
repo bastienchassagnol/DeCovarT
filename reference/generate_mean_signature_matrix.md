@@ -6,11 +6,9 @@ orthogonal marker directions \\\boldsymbol{v}\_{j}\\: \$\$
 \tilde{\boldsymbol{\mu}}\_{\cdot j} = \sqrt{\rho}\\\boldsymbol{u}
 +\sqrt{1-\rho}\\\boldsymbol{v}\_{j}, \qquad \boldsymbol{\mu}\_{\cdot j}
 = s\\ \frac{\tilde{\boldsymbol{\mu}}\_{\cdot j}}{
-\\\tilde{\boldsymbol{\mu}}\_{\cdot j}\\\_2 }. \$\$ Here
-\\\rho\in\[0,1\]\\ is `target_cosine` and \\s\>0\\ is `mean_scale`
-(default `10`, matching the nine-scenario simulation grid). The private
-vectors \\\boldsymbol{v}\_{j}\\ are indicator directions on a partition
-of the \\G\\ genes (type \\j\\ only) and then \\\ell_2\\-normalised, so
+\\\tilde{\boldsymbol{\mu}}\_{\cdot j}\\\_2 }. \$\$ The private vectors
+\\\boldsymbol{v}\_{j}\\ are indicator directions on a partition of the
+\\G\\ genes (type \\j\\ only) and then \\\ell_2\\-normalised, so
 \\\boldsymbol{v}\_{j}^{\mathsf{T}}\boldsymbol{v}\_{k}=0\\ for \\j\neq
 k\\. With a shared unit \\\boldsymbol{u}\\, \$\$
 \tilde{\boldsymbol{\mu}}\_{\cdot j}^{\mathsf{T}}
@@ -72,3 +70,18 @@ generate_mean_signature_matrix(
 ## Value
 
 Numeric matrix \\\boldsymbol{\mu}\\ with dimensions \\G\times J\\.
+
+## Details
+
+**Private marker blocks.** Genes are partitioned into \\J\\ nearly equal
+contiguous blocks. Type \\j\\'s private direction
+\\\boldsymbol{v}\_{j}\\ is the indicator of its block, then
+\\\ell_2\\-normalised. Distinct blocks are orthogonal, so type-specific
+signal does not leak across columns before the shared component is
+added.
+
+**Shared–private blend.** With unit shared direction
+\\\boldsymbol{u}=G^{-1/2}\mathbf{1}\\, each column is
+\\\sqrt{\rho}\\\boldsymbol{u}+\sqrt{1-\rho}\\\boldsymbol{v}\_{j}\\,
+re-normalised, then scaled by \\s\\. Thus \\\rho\\ dials collinearity
+while \\s\\ dials Euclidean separation without changing angles.

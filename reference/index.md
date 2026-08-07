@@ -76,6 +76,8 @@ and glmnet gene scores for signature design.
   : Repair a numeric vector onto the unit simplex
 - [`compute_shannon_entropy()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_shannon_entropy.md)
   : Normalised Shannon entropy of a discrete distribution
+- [`check_true_theta()`](https://bastienchassagnol.github.io/DeCovarT/reference/check_true_theta.md)
+  : Validate generative-model parameters \\\theta\\
 - [`compute_average_overlap()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_overlap.md)
   : Average pairwise overlap of a Gaussian mixture
 - [`compute_average_jeffreys()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_jeffreys.md)

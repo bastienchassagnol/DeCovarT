@@ -1,9 +1,9 @@
 # Sample a symmetric adjacency from a random-graph family
 
-Draws undirected skeletons with igraph: Barabási–Albert preferential
-attachment (`scale_free`), a stochastic block model
-(`stochastic_block_model`), or Watts–Strogatz small-world
-(`small_world`) (Barabási and Albert 1999) .
+Draws undirected skeletons with igraph: Erdős–Rényi (`erdos_renyi`), hub
+/ star modules (`hub`), Barabási–Albert preferential attachment
+(`scale_free`), a stochastic block model (`stochastic_block_model`), or
+Watts–Strogatz small-world (`small_world`) (Barabási and Albert 1999) .
 
 ## Usage
 
@@ -19,11 +19,23 @@ generate_random_network_skeleton(n_genes, graph_model, graph_params = list())
 
 - graph_model:
 
-  One of `"scale_free"`, `"stochastic_block_model"`, `"small_world"`.
+  One of `"erdos_renyi"`, `"hub"`, `"scale_free"`,
+  `"stochastic_block_model"`, `"small_world"`.
 
 - graph_params:
 
   Named list of generator parameters:
+
+  `erdos_renyi`
+
+  :   `p` edge probability for
+      [`igraph::sample_gnp()`](https://r.igraph.org/reference/sample_gnp.html)
+      (default targets average degree about 2)
+
+  `hub`
+
+  :   `n_hubs`: partition nodes into that many groups and connect each
+      group's hub to all other members (star modules)
 
   `scale_free`
 

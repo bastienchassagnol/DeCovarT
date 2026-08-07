@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -53,10 +53,18 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.1.0" id="decovart-010">DeCovarT 0.1.0<a class="anchor" aria-label="anchor" href="#decovart-010"></a></h2>
-<ul><li>First official release of DeCovarT: bulk transcriptomic deconvolution that accounts for gene–gene covariance in purified reference populations.</li>
+<h2 class="pkg-version" data-toc-text="1.0.0" id="decovart-100">DeCovarT 1.0.0<a class="anchor" aria-label="anchor" href="#decovart-100"></a></h2>
+<ul><li><p>First <strong>stabilised</strong> release of DeCovarT (semver <code>1.0.0</code>), marking the end of the exploratory <code>0.x</code> series. The core ALR-based frequentist deconvolution API, analytic score equations, and simulation tooling are now treated as a stable public surface for downstream use and paper reproduction.</p></li>
+<li><p><strong>Analytic derivatives, numerically verified.</strong> The unconstrained and constrained log-likelihood gradients and Hessians (and the additive logistic Jacobian / Hessian) are derived in closed form and unit-tested against <code>numDeriv</code> finite differences. Earlier faulty numerical / finite-difference-only paths that could mislead Marquardt–Levenberg and related optimisers have been replaced by these verified analytic expressions (see <code><a href="../articles/softmax-alr-derivatives.html">vignette("softmax-alr-derivatives")</a></code> and <code>tests/testthat/test-03_03_DeCovarT.R</code>).</p></li>
+<li><p><strong>Simulation framework beyond the bivariate toy.</strong> Synthetic first- and second-order moments now support arbitrary gene panels (<span class="math inline">G\gg 2</span>) and multi-type mixtures: AutoGeneS-style mean signatures with a cosine dial, graph-constrained precisions (ER, hub/star, scale-free, SBM, small-world), and bulk convolution via <code><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code>. A hybrid multi-topology reference scenario (<span class="math inline">G=50</span>, <span class="math inline">J=3</span>) in <code>scripts/generate_random_markov_network.R</code> and <code><a href="../articles/synthetic-scenarios.html">vignette("synthetic-scenarios")</a></code> stresses feature selection under EE / DE / differential-modality-like blocks (scDD / <code>muscat</code>-inspired taxonomy).</p></li>
+<li><p>Feature-selection metrics (<code><a href="../reference/compute_average_overlap.html">compute_average_overlap()</a></code>, <code><a href="../reference/compute_average_jeffreys.html">compute_average_jeffreys()</a></code>, <code><a href="../reference/compute_glmnet_gene_scores.html">compute_glmnet_gene_scores()</a></code>) and a shared <code><a href="../reference/check_true_theta.html">check_true_theta()</a></code> validator complete the end-to-end simulation → pre-screen → NSGA-II refinement loop documented in <code><a href="../articles/feature-selection.html">vignette("feature-selection")</a></code>.</p></li>
 </ul></div>
-  </main></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.0" id="decovart-010">DeCovarT 0.1.0<a class="anchor" aria-label="anchor" href="#decovart-010"></a></h2>
+<ul><li>First official release of DeCovarT: bulk transcriptomic deconvolution that accounts for gene-gene covariance in purified reference populations.</li>
+</ul></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

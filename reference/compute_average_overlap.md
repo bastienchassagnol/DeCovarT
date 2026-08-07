@@ -12,24 +12,30 @@ f_j}(X\text{ classified as }\ell)\\ already uses the mixture weights
 ## Usage
 
 ``` r
-compute_average_overlap(true_theta, J = length(true_theta$p))
+compute_average_overlap(true_theta, J = NULL)
 ```
 
 ## Arguments
 
 - true_theta:
 
-  List with `p` (length \\J\\), `mu` (\\G\times J\\ mean matrix) and
-  `sigma` (\\G\times G\times J\\ covariance array), as in a GMM
-  \\(\boldsymbol{p},\boldsymbol{\mu},\\\boldsymbol{\Sigma}\_j\\)\\.
+  List validated by
+  [`check_true_theta()`](https://bastienchassagnol.github.io/DeCovarT/reference/check_true_theta.md):
+  `p` (length \\J\\ or \\J\times N\\), `mu` (\\G\times J\\), `sigma`
+  (\\G\times G\times J\\).
 
 - J:
 
-  Number of cell types (components). Defaults to `length(true_theta$p)`.
+  Number of cell types (components). Defaults to the third dimension of
+  `sigma`.
 
 ## Value
 
 Scalar average pairwise overlap (MixSim `BarOmega`).
+
+## See also
+
+[`check_true_theta()`](https://bastienchassagnol.github.io/DeCovarT/reference/check_true_theta.md)
 
 ## Examples
 

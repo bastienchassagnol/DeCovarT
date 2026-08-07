@@ -35,7 +35,7 @@ directional masses by \(p_j\) again."><meta property="og:image" content="https:/
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -101,7 +101,7 @@ directional masses by \(p_j\) again.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">compute_average_overlap</span><span class="op">(</span><span class="va">true_theta</span>, J <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">true_theta</span><span class="op">$</span><span class="va">p</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">compute_average_overlap</span><span class="op">(</span><span class="va">true_theta</span>, J <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -109,20 +109,23 @@ directional masses by \(p_j\) again.</p>
 
 
 <dl><dt id="arg-true-theta">true_theta<a class="anchor" aria-label="anchor" href="#arg-true-theta"></a></dt>
-<dd><p>List with <code>p</code> (length \(J\)), <code>mu</code> (\(G\times J\)
-mean matrix) and <code>sigma</code> (\(G\times G\times J\) covariance array),
-as in a GMM
-\((\boldsymbol{p},\boldsymbol{\mu},\{\boldsymbol{\Sigma}_j\})\).</p></dd>
+<dd><p>List validated by <code><a href="check_true_theta.html">check_true_theta()</a></code>: <code>p</code> (length
+\(J\) or \(J\times N\)), <code>mu</code> (\(G\times J\)), <code>sigma</code>
+(\(G\times G\times J\)).</p></dd>
 
 
 <dt id="arg-j">J<a class="anchor" aria-label="anchor" href="#arg-j"></a></dt>
-<dd><p>Number of cell types (components). Defaults to
-<code>length(true_theta$p)</code>.</p></dd>
+<dd><p>Number of cell types (components). Defaults to the third
+dimension of <code>sigma</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>Scalar average pairwise overlap (MixSim <code>BarOmega</code>).</p>
+    </div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><code><a href="check_true_theta.html">check_true_theta()</a></code></p></div>
     </div>
 
     <div class="section level2">
