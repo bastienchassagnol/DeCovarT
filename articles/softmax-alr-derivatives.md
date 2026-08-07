@@ -60,12 +60,12 @@ twice, q(\boldsymbol{x})=b(\boldsymbol{x},\boldsymbol{x}).
 
 | Expression | Terminology |
 |----|----|
-| \$\boldsymbol{x}^{\mathsf{T}}\boldsymbol{y}\$ | Dot product / Euclidean inner product |
-| \$\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{y}\$ | Bilinear form (inner product if \$\boldsymbol{A}\$ is SPD) |
-| \$\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{x}\$ | Quadratic form |
-| \$\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}^{-1}\boldsymbol{x}\$ | Quadratic form induced by \$\boldsymbol{A}^{-1}\$ |
-| \$(\boldsymbol{x}-\boldsymbol{\mu})^{\mathsf{T}}\boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{\mu})\$ | Squared Mahalanobis distance |
-| \$\sqrt{(\boldsymbol{x}-\boldsymbol{\mu})^{\mathsf{T}}\boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{\mu})}\$ | Mahalanobis distance |
+| \\\boldsymbol{x}^{\mathsf{T}}\boldsymbol{y}\\ | Dot product / Euclidean inner product |
+| \\\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{y}\\ | Bilinear form (inner product if \\\boldsymbol{A}\\ is SPD) |
+| \\\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{x}\\ | Quadratic form |
+| \\\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}^{-1}\boldsymbol{x}\\ | Quadratic form induced by \\\boldsymbol{A}^{-1}\\ |
+| \\(\boldsymbol{x}-\boldsymbol{\mu})^{\mathsf{T}}\boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{\mu})\\ | Squared Mahalanobis distance |
+| \\\sqrt{(\boldsymbol{x}-\boldsymbol{\mu})^{\mathsf{T}}\boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{\mu})}\\ | Mahalanobis distance |
 
 Table 2: Standard algebraic operations induced by a matrix
 \boldsymbol{A}.

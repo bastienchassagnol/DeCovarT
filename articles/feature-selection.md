@@ -549,11 +549,11 @@ Treat non-zero coefficients as proposals for
 [Section 4.3.4](#sec-overlap), then refine by nested cross-validated
 signature selection; see [Section 6.5.1](#sec-cv-selection).
 
-| \$Method\$ | \$Role\$ | \$Caveat\$ |
+| Method | Role | Caveat |
 |----|----|----|
-| \$Multinomial elastic net\$ | \$Joint classification; \$\ell_1\$ sparsity + \$\ell_2\$ grouping of correlates\$ | \$May still retain collinear markers unless \$\ell_2\$ is strong\$ |
-| \$Sparse LDA\$ | \$Direct class-separation criterion with sparse loadings\$ | \$Needs more observations than pure logistic paths\$ |
-| \$Group / tree lasso\$ | \$Pathway- or hierarchy-aware block selection\$ | \$Requires predefined groups or a taxonomy tree\$ |
+| Multinomial elastic net | Joint classification; \\\ell_1\\ sparsity + \\\ell_2\\ grouping of correlates | May still retain collinear markers unless \\\ell_2\\ is strong |
+| Sparse LDA | Direct class-separation criterion with sparse loadings | Needs more observations than pure logistic paths |
+| Group / tree lasso | Pathway- or hierarchy-aware block selection | Requires predefined groups or a taxonomy tree |
 
 Table 1: Sparse multiclass methods as panel candidate generators.
 
@@ -670,12 +670,12 @@ overlap, Jeffreys (symmetric KL), Chernoff information and 2-Wasserstein
 > is a true metric and reduces to Euclidean mean distance when
 > covariances coincide.
 
-| \\Metric\\ | \\Range\\ | \\Focus\\ | \\Notes\\ |
+| Metric | Range | Focus | Notes |
 |----|----|----|----|
-| \$`MixSim` overlap\$ | \$\$\[0, 1\]\$\$ | \\Bayes misclassification mass\\ | \\Monte Carlo in \`MixSim\`; intuitive\\ |
-| \\Jeffreys (sym. KL)\\ | \$\$\[0, \infty)\$\$ | \\Average log-likelihood gap\\ | \\Closed form for Gaussians\\ |
-| \\Chernoff information\\ | \$\$\[0, \infty)\$\$ | \\Optimal error exponent\\ | \$Needs a 1-D line search in \$t\$\$ |
-| \$\$W\_{2}\$ (2-Wasserstein)\$ | \$\$\[0, \infty)\$\$ | \\Geometric mean + covariance shape\\ | \$Matrix square-root cost \$O(d^{3})\$\$ |
+| `MixSim` overlap | \\\[0, 1\]\\ | Bayes misclassification mass | Monte Carlo in `MixSim`; intuitive |
+| Jeffreys (sym. KL) | \\\[0, \infty)\\ | Average log-likelihood gap | Closed form for Gaussians |
+| Chernoff information | \\\[0, \infty)\\ | Optimal error exponent | Needs a 1-D line search in \\t\\ |
+| \\W\_{2}\\ (2-Wasserstein) | \\\[0, \infty)\\ | Geometric mean + covariance shape | Matrix square-root cost \\O(d^{3})\\ |
 
 Table 2: Comparison of purified-Gaussian separation metrics for panel
 monitoring.

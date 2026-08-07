@@ -13,6 +13,33 @@ using any combination of deconvolution algorithms in parallel.
 Covariance-aware optimisation of cellular ratios under a multivariate
 Gaussian convolution model.
 
+### Score equations and simplex maps
+
+Analytic first- and second-order helpers for the unconstrained and
+ALR-constrained log-likelihood (Jacobian / Hessian of the additive
+logistic map; gradients and Hessians of ()). Documented for `?` / source
+inspection; see also
+[`vignette("softmax-alr-derivatives")`](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.md).
+
+- [`additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
+  [`additive_log_ratio()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
+  : Additive logistic transform (unconstrained coordinates to the
+  simplex)
+- [`jacobian_additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/jacobian_additive_logistic.md)
+  : Jacobian \\\mathbf{J}\_{\boldsymbol{\psi}}\\ of the additive
+  logistic map
+- [`hessian_additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/hessian_additive_logistic.md)
+  : Second derivatives (Hessian tensor) of the additive logistic map
+- [`gradient_loglik_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/gradient_loglik_unconstrained.md)
+  : Gradient \\\nabla\_{\boldsymbol{p}}\ell\\ of the unconstrained
+  log-likelihood
+- [`hessian_loglik_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/hessian_loglik_unconstrained.md)
+  : Hessian \\\mathbf{H}\\ of the unconstrained log-likelihood
+- [`gradient_loglik_constrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/gradient_loglik_constrained.md)
+  : Constrained gradient via the chain rule
+- [`hessian_loglik_constrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/hessian_loglik_constrained.md)
+  : Constrained Hessian of \\\ell\circ\boldsymbol{\psi}\\
+
 ### Core optimiser
 
 Marquardt–Levenberg deconvolution (exported entry point). Related first-
@@ -30,16 +57,6 @@ and second-order variants live in
   [`deconvolute_ratios_Newton_Raphson()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md)
   [`deconvolute_ratios_gradient_descent()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md)
   : DeCovarT MLE of cellular proportions for one bulk sample
-
-### Parametrisation
-
-Additive logistic transform between the unconstrained parameter space
-(^{J-1}) and the unit simplex (^{J-1}).
-
-- [`additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
-  [`additive_log_ratio()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
-  : Additive logistic transform (unconstrained coordinates to the
-  simplex)
 
 ## Benchmark and evaluation
 

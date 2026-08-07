@@ -663,7 +663,7 @@ CRAN-style PDF and HTML function manuals (cf. dplyr’s
 
 ``` r
 
-source("scripts/generate_package_manual.R")
+source("scripts/auxiliary/generate_package_manual.R")
 ```
 
 Outputs land in `output/manual/` (`DeCovarT.pdf`, `index.html`, and

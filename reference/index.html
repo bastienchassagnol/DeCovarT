@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -74,6 +74,64 @@
 
       <dl></dl></div><div class="section level2">
 
+      <h3 id="score-equations-and-simplex-maps">Score equations and simplex maps<a class="anchor" aria-label="anchor" href="#score-equations-and-simplex-maps"></a></h3>
+      <div class="section-desc"><p>Analytic first- and second-order helpers for the unconstrained and ALR-constrained log-likelihood (Jacobian / Hessian of the additive logistic map; gradients and Hessians of ()). Documented for <code>?</code> / source inspection; see also <code><a href="../articles/softmax-alr-derivatives.html">vignette("softmax-alr-derivatives")</a></code>.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="additive_logistic.html">additive_logistic()</a></code> <code><a href="additive_logistic.html">additive_log_ratio()</a></code>
+
+        </dt>
+        <dd>Additive logistic transform (unconstrained coordinates to the simplex)</dd>
+
+        <dt>
+
+          <code><a href="jacobian_additive_logistic.html">jacobian_additive_logistic()</a></code>
+
+        </dt>
+        <dd>Jacobian \(\mathbf{J}_{\boldsymbol{\psi}}\) of the additive logistic map</dd>
+
+        <dt>
+
+          <code><a href="hessian_additive_logistic.html">hessian_additive_logistic()</a></code>
+
+        </dt>
+        <dd>Second derivatives (Hessian tensor) of the additive logistic map</dd>
+
+        <dt>
+
+          <code><a href="gradient_loglik_unconstrained.html">gradient_loglik_unconstrained()</a></code>
+
+        </dt>
+        <dd>Gradient \(\nabla_{\boldsymbol{p}}\ell\) of the unconstrained log-likelihood</dd>
+
+        <dt>
+
+          <code><a href="hessian_loglik_unconstrained.html">hessian_loglik_unconstrained()</a></code>
+
+        </dt>
+        <dd>Hessian \(\mathbf{H}\) of the unconstrained log-likelihood</dd>
+
+        <dt>
+
+          <code><a href="gradient_loglik_constrained.html">gradient_loglik_constrained()</a></code>
+
+        </dt>
+        <dd>Constrained gradient via the chain rule</dd>
+
+        <dt>
+
+          <code><a href="hessian_loglik_constrained.html">hessian_loglik_constrained()</a></code>
+
+        </dt>
+        <dd>Constrained Hessian of \(\ell\circ\boldsymbol{\psi}\)</dd>
+      </dl></div><div class="section level2">
+
       <h3 id="core-optimiser">Core optimiser<a class="anchor" aria-label="anchor" href="#core-optimiser"></a></h3>
       <div class="section-desc"><p>Marquardt–Levenberg deconvolution (exported entry point). Related first- and second-order variants live in <code>R/03_03_DeCovarT_estimate_ratios_frequentist.R</code>.</p></div>
 
@@ -88,22 +146,6 @@
 
         </dt>
         <dd>DeCovarT MLE of cellular proportions for one bulk sample</dd>
-      </dl></div><div class="section level2">
-
-      <h3 id="parametrisation">Parametrisation<a class="anchor" aria-label="anchor" href="#parametrisation"></a></h3>
-      <div class="section-desc"><p>Additive logistic transform between the unconstrained parameter space (^{J-1}) and the unit simplex (^{J-1}).</p></div>
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="additive_logistic.html">additive_logistic()</a></code> <code><a href="additive_logistic.html">additive_log_ratio()</a></code>
-
-        </dt>
-        <dd>Additive logistic transform (unconstrained coordinates to the simplex)</dd>
       </dl></div><div class="section level2">
       <h2 id="benchmark-and-evaluation">Benchmark and evaluation<a class="anchor" aria-label="anchor" href="#benchmark-and-evaluation"></a></h2>
 
@@ -237,7 +279,5 @@
 
 
 
-  after_body.html
-
-  </body></html>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script src="mermaid-init.js"></script></body></html>
 

@@ -20,7 +20,7 @@ session: `browseVignettes(package = "DeCovarT")` and
 [`?DeCovarT::deconvolute_ratios`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md).
 
 Reference manuals (PDF / HTML) can be regenerated with
-`source("scripts/generate_package_manual.R")`.
+`source("scripts/auxiliary/generate_package_manual.R")`.
 
 ## See also
 
