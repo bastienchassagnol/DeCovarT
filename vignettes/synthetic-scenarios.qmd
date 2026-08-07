@@ -126,6 +126,175 @@ because $\boldsymbol{u}^{\mathsf{T}}\boldsymbol{u}=1$ and $\boldsymbol{v}_{j}^{\
 
 The scale $s$ sets column norms without changing angles: $\|\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\|_2\propto s$ at fixed $\rho$. We keep $s=10$ across scenarios and only vary $\rho$.
 
+### Asymptotic cosine control {#sec-asymptotic-cosine}
+
+Block indicators are not orthogonal to the shared direction: if block $j$ contains $L_j$ genes then
+
+$$
+\boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}_{j}
+=
+\sqrt{\frac{L_j}{G}},
+$$ {#eq-u-vj}
+
+because $\boldsymbol{u}=G^{-1/2}\mathbf{1}_{G}$ and $\boldsymbol{v}_j$ is the $\ell_2$-normalised indicator on its block. Plugging @eq-u-vj into @eq-mean-inner gives the exact un-normalised inner product for $j\neq k$:
+
+$$
+\tilde{\boldsymbol{\mu}}_{\cdot j}^{\mathsf{T}}
+\tilde{\boldsymbol{\mu}}_{\cdot k}
+=
+\rho
++
+\sqrt{\rho(1-\rho)}\,
+\Bigl(
+  \sqrt{\tfrac{L_j}{G}}
+  +
+  \sqrt{\tfrac{L_k}{G}}
+\Bigr).
+$$ {#eq-mean-inner-explicit}
+
+Column-wise renormalisation in @eq-mean-cosine maps this to a realised cosine that is **not** exactly $\rho$ for finite $G$ and $J$. Writing $c_{jk}=\sqrt{L_j/G}+\sqrt{L_k/G}$,
+
+$$
+\cos\bigl(
+  \boldsymbol{\mu}_{\cdot j},
+  \boldsymbol{\mu}_{\cdot k}
+\bigr)
+=
+\frac{
+  \rho
+  + \sqrt{\rho(1-\rho)}\,c_{jk}
+}{
+  1 + \sqrt{\rho(1-\rho)}\,c_{jk}
+},
+\qquad j\neq k.
+$$ {#eq-realised-cosine}
+
+For equal blocks ($L_j\approx G/J$) we have $c_{jk}\approx 2/\sqrt{J}$, so the bias is $O(J^{-1/2})$: the realised cosine sits **slightly above** $\rho$ and approaches the target as $J$ or the block sizes grow. @fig-cosine-convergence illustrates this numerically for fixed $\rho=0.5$ when $G$ and $J$ increase (each panel uses `generate_mean_signature_matrix()` and reports the mean absolute pairwise cosine from `compute_mean_profile_objectives()`).
+
+```{r}
+#| label: fig-cosine-convergence
+#| fig-cap: >-
+#|   Realised mean absolute pairwise cosine vs target $\rho=0.5$
+#|   as $G$ and $J$ grow (equal gene blocks). Dashed line: target;
+#|   points: output of `compute_mean_profile_objectives()`.
+#| fig-width: 7
+#| fig-height: 4
+#| echo: false
+#| eval: true
+target_rho <- 0.5
+grid <- expand.grid(
+  G = c(40L, 100L, 400L, 1000L),
+  J = c(2L, 3L, 5L, 10L, 20L)
+)
+grid <- grid[grid$G >= grid$J, ]
+conv_df <- data.frame(
+  G = integer(),
+  J = integer(),
+  mean_abs_cosine = numeric(),
+  target = numeric()
+)
+for (i in seq_len(nrow(grid))) {
+  J <- grid$J[[i]]
+  mu <- DeCovarT::generate_mean_signature_matrix(
+    n_genes = grid$G[[i]],
+    n_celltypes = grid$J[[i]],
+    mean_scale = 10,
+    target_cosine = target_rho
+  )
+  obj <- {
+    n_pairs <- J * (J - 1L) / 2L
+    acc <- 0
+    for (jj in seq_len(J - 1L)) {
+      for (kk in (jj + 1L):J) {
+        mu_j <- mu[, jj]
+        mu_k <- mu[, kk]
+        norms <- sqrt(sum(mu_j^2) * sum(mu_k^2))
+        cos_jk <- if (norms < .Machine$double.eps) 0 else sum(mu_j * mu_k) / norms
+        acc <- acc + abs(cos_jk)
+      }
+    }
+    acc / n_pairs
+  }
+  conv_df <- rbind(
+    conv_df,
+    data.frame(
+      G = grid$G[[i]],
+      J = grid$J[[i]],
+      mean_abs_cosine = obj,
+      target = target_rho
+    )
+  )
+}
+conv_df$label <- paste0("G=", conv_df$G, ", J=", conv_df$J)
+
+ggplot2::ggplot(conv_df, ggplot2::aes(
+  x = reorder(label, G * J),
+  y = mean_abs_cosine
+)) +
+  ggplot2::geom_hline(
+    yintercept = target_rho,
+    linetype = "dashed",
+    colour = "grey40"
+  ) +
+  ggplot2::geom_point(size = 2.4, colour = "#2B8C99") +
+  ggplot2::geom_line(
+    ggplot2::aes(group = 1),
+    colour = "#2B8C99",
+    alpha = 0.5
+  ) +
+  ggplot2::coord_flip() +
+  ggplot2::labs(
+    x = NULL,
+    y = "Mean |cosine| (realised)"
+  ) +
+  ggplot2::theme_bw(base_size = 11)
+```
+
+In practice one dials $\rho$ mindful of this upward bias; for the nine-scenario grid ($G=200$, $J=3$) the overshoot is small enough that pairwise cosines remain in the same ballpark as the target [@alieeAutoGeneSAutomaticGene2021].
+
+### Low-rank plus block structure {#sec-lr-block-mu}
+
+Stacking the un-normalised columns from @eq-mean-cosine yields a **rank-one shared term plus a block-sparse private term**:
+
+$$
+\tilde{\boldsymbol{M}}
+=
+\bigl[
+  \tilde{\boldsymbol{\mu}}_{\cdot 1}
+  \,\middle|\,
+  \cdots
+  \,\middle|\,
+  \tilde{\boldsymbol{\mu}}_{\cdot J}
+\bigr]
+=
+\sqrt{\rho}\,
+\boldsymbol{u}\mathbf{1}_{J}^{\mathsf{T}}
++
+\sqrt{1-\rho}\,
+\mathbf{V},
+$$ {#eq-lr-block}
+
+where $\mathbf{V}=[\boldsymbol{v}_{1}\,\middle|\,\cdots\,\middle|\,\boldsymbol{v}_{J}]$ has **disjoint supports** across columns (each $\boldsymbol{v}_j$ is non-zero only on block $j$). The shared part is rank one; the private part is block-diagonal in the gene-partition sense. After column normalisation and scaling,
+
+$$
+\boldsymbol{\mu}
+=
+s\,\tilde{\boldsymbol{M}}\,
+\mathbf{D}^{-1},
+\qquad
+\mathbf{D}=\mathrm{diag}\bigl(
+  \|\tilde{\boldsymbol{\mu}}_{\cdot 1}\|_2,
+  \ldots,
+  \|\tilde{\boldsymbol{\mu}}_{\cdot J}\|_2
+\bigr),
+$$ {#eq-mu-normalised}
+
+so $\boldsymbol{\mu}$ is a low-rank-plus-block construction followed by per-column calibration. This matches synthetic signature designs that combine a common baseline with type-specific marker programmes [@alieeAutoGeneSAutomaticGene2021; @schelkerEstimationImmuneCell2017; @baWhenLessNot2026].
+
+@fig-mean-signature-schematic gives a toy schematic for $J=3$ cell types: a uniform shared component, three orthogonal private blocks, and the resulting mean directions.
+
+![Schematic of shared-plus-private mean signature construction for $J=3$ cell types. A rank-one shared direction $\boldsymbol{u}$ (grey) blends with block-sparse private markers $\boldsymbol{v}_j$ (coloured) at weights $\sqrt{\rho}$ and $\sqrt{1-\rho}$; columns are normalised and scaled to $\boldsymbol{\mu}_{\cdot j}$. Illustration generated for this vignette in a Nature Methods-style layout.](figures/fig_mean_signature_shared_private.png){#fig-mean-signature-schematic width=90%}
+
 ### Visualising the cosine construction
 
 @fig-cosine-geometry visualises the same three operating points ($\rho\in\{0,\,0.3,\,1\}$) for $G=2$ genes and $J=2$ cell types. The centroids come from `generate_mean_signature_matrix()`, with **cell type 1 held fixed** at its $\rho=1$ mean across panels and only cell type 2's mean moved to realise each target cosine. Independent Gaussian noise is added *only in this vignette chunk* around each centroid ($N=20$ i.i.d. draws per population) to emulate within-type dispersion under an independence assumption, without altering the mean-signature generator itself. Coloured arrows mark each type's mean direction; the shaded wedge is the angle between the two means.
@@ -352,6 +521,12 @@ ggplot2::ggplot() +
     strip.text = ggplot2::element_text(face = "bold")
   )
 ```
+
+### Related signature constructions {#sec-related-signatures}
+
+Blending a common baseline with type-specific markers is standard in deconvolution benchmarking. **`AutoGeneS`** [@alieeAutoGeneSAutomaticGene2021] selects genes by jointly minimising inter-type correlation and maximising centroid distance; its simulations use a similar shared-plus-private logic to control signature geometry. **`Schelker et al.`** [@schelkerEstimationImmuneCell2017] build tumour-derived reference gene expression profiles from single-cell RNA-seq clusters and marker genes, then simulate bulk mixtures by combining those columns—empirically a shared baseline plus distinct marker programmes per immune cell type.
+
+The **`DICEPro`** framework [@baWhenLessNot2026] targets incomplete reference matrices in supervised deconvolution. Its simulation engine generates synthetic signature matrices from multivariate Gaussian (or Poisson) models with a prescribed correlation structure; a **`bloc=TRUE`** option enforces **block sparsity** by zeroing expression outside type-specific gene blocks—closely analogous to the private indicators $\boldsymbol{v}_j$ in @eq-lr-block. DICEPro then optimises reference signatures when cell types are missing from the matrix, complementing the controlled $\rho$-dial we use here for method comparison under known ground truth.
 
 ## Objectives: `compute_mean_profile_objectives()`
 
