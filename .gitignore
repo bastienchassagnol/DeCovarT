@@ -81,9 +81,6 @@ __pycache__/
 article/*.pdf
 output/manual/
 
-# Local experimental R helpers (not part of the package build)
-R/experimental/
-
 # scripts/generate_random_markov_network.R: exploratory outputs (gene
 # summary CSV, heatmap, interactive visNetwork widgets + dependency
 # folders). The single static counterpart embedded by the pkgdown

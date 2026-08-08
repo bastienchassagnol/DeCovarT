@@ -171,15 +171,18 @@ This repo uses **[Air](https://posit-dev.github.io/air/)** (`air.toml`) and
 - Keep `LICENSE` / `LICENSE.md` and `NEWS.md` up to date.
 - Document with **roxygen2**; run `devtools::document()`.
 - Before interactive testing: `devtools::load_all()`.
-- Validate with `devtools::check()` (notes OK; avoid warnings/errors).
+- Validate with `devtools::check()` (notes OK; avoid warnings/errors)
+  and `pkgcheck::pkgcheck()` (address failing checks; `:eyes:` items
+  are optional).
 - Before committing or pushing changes that touch exported functions,
   pkgdown config (`_pkgdown.yml`), vignettes, or docs workflows, run a
   local pkgdown build (`pkgdown::build_site()`) and fix failures first.
 - Prefer **usethis** and **devtools** workflows for package tasks
   (tests, docs, DESCRIPTION, GitHub Actions helpers, etc.).
 - Before every push that touches package code, run a local
-  `devtools::check()` (or at least `rcmdcheck`) and fix **warnings**
-  as well as errors. Do not rely on GitHub Actions as the first check.
+  `devtools::check()` (or at least `rcmdcheck`) **and**
+  `pkgcheck::pkgcheck()`, and fix **warnings** as well as errors. Do
+  not rely on GitHub Actions as the first check.
 - Portable packages: `R/` and `NAMESPACE` must be **ASCII-only**
   (no em dashes, fancy quotes, etc. in strings). Use
   `tools::showNonASCIIfile("R/foo.R")` and `\uxxxx` escapes if needed.
@@ -322,7 +325,14 @@ Follow
   `tests/testthat/fixtures/` when needed.
 - Interactive: `devtools::test()`, `devtools::test_coverage()`,
   `devtools::test_coverage_active_file()`.
-- CI: keep `test-coverage` and `R-CMD-check` workflows meaningful.
+- Package checks: run `devtools::check()` **and**
+  `pkgcheck::pkgcheck()` (rOpenSci
+  [pkgcheck](https://docs.ropensci.org/pkgcheck/)); fix failing
+  checks before proceeding (`:eyes:` items are optional). Optionally
+  write a markdown report with
+  `pkgcheck::checks_to_markdown()`.
+- CI: keep `test-coverage` and `R-CMD-check` workflows meaningful
+  (pkgcheck matches workflow run names against `cmd|coverage`).
 
 ## Reproducibility
 

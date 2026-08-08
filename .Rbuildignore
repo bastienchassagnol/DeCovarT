@@ -58,7 +58,6 @@
 ^data$
 ^scripts$
 ^slides$
-^R/experimental$
 ^\.cursorrules$
 ^\.cursorignore$
 ^\.vscode$

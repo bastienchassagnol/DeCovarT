@@ -21,7 +21,8 @@ on:
         required: false
         type: string
 
-name: R package CI
+# pkgcheck matches workflow run names against "cmd|coverage"
+name: R-CMD-check
 
 permissions: read-all
 
