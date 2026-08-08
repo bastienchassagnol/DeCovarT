@@ -47,7 +47,8 @@ inst/doc
 simulation_*
 older_functions/
 tests/testthat/simulations/
-
+.Renviron
+.Renviron.local
 
 # my folders
 # Track Quarto slide sources; ignore bulky legacy decks and render output

@@ -1,6 +1,6 @@
 ## Checks for [DeCovarT (v2.0.1)](https://github.com/bastienchassagnol/DeCovarT)
 
-git hash: [9fa8e5ad](https://github.com/bastienchassagnol/DeCovarT/tree/9fa8e5adf32403b15a5df0c52be5290746f4edcf)
+git hash: [0029d1d4](https://github.com/bastienchassagnol/DeCovarT/tree/0029d1d44f0aefd4798840244042ec008d56d188)
 
 - :heavy_check_mark: Package name is available
 - :heavy_check_mark: has a 'contributing' file.
@@ -10,14 +10,12 @@ git hash: [9fa8e5ad](https://github.com/bastienchassagnol/DeCovarT/tree/9fa8e5ad
 - :heavy_check_mark: Package has at least one HTML vignette
 - :heavy_check_mark: All functions have examples.
 - :heavy_check_mark: Repository has a website
-- :heavy_multiplication_x:  Package has no continuous integration checks.
+- :heavy_check_mark:  Package has continuous integration checks.
 - :heavy_check_mark: Package coverage is 77.8%.
 - :heavy_check_mark: R CMD check found no errors.
 - :heavy_check_mark: R CMD check found no warnings.
 - :eyes: Some goodpractice linters failed.
 - :eyes: Package has unusually large number of 20 Imports (> 98% of all packages)
-
-**Important:** All failing checks above must be addressed prior to proceeding
 
 (Checks marked with :eyes: may be optionally addressed.)
 
@@ -120,11 +118,11 @@ The final measure (`fn_call_network_size`) is the total number of calls between 
 
 |measure                  | value| percentile|noteworthy |
 |:------------------------|-----:|----------:|:----------|
-|files_R                  |    11|       76.6|           |
+|files_R                  |    10|       74.8|           |
 |files_inst               |     2|       85.2|           |
 |files_vignettes          |     4|       96.1|           |
 |files_tests              |     8|       93.1|           |
-|loc_R                    |  1876|       89.9|           |
+|loc_R                    |  1795|       89.7|           |
 |loc_inst                 |  3143|       95.0|TRUE       |
 |loc_vignettes            |   224|       57.4|           |
 |loc_tests                |   801|       86.1|           |
@@ -137,7 +135,7 @@ The final measure (`fn_call_network_size`) is the total number of calls between 
 |loc_per_fn_r             |    14|       68.6|           |
 |loc_per_fn_r_exp         |    14|       65.1|           |
 |loc_per_fn_r_not_exp     |    25|       92.7|           |
-|rel_whitespace_R         |     9|       82.2|           |
+|rel_whitespace_R         |     9|       81.9|           |
 |rel_whitespace_inst      |    13|       94.7|           |
 |rel_whitespace_vignettes |    10|       41.6|           |
 |rel_whitespace_tests     |     9|       82.4|           |
@@ -152,7 +150,7 @@ The final measure (`fn_call_network_size`) is the total number of calls between 
 
 ### 2a. Network visualisation
 
-Click to see the [interactive network visualisation of calls between objects in package](/home/bastien/.cache/R/pkgcheck/static/DeCovarT_pkgstats9fa8e5ad.html)
+Click to see the [interactive network visualisation of calls between objects in package](/home/bastien/.cache/R/pkgcheck/static/DeCovarT_pkgstats0029d1d4.html)
 
 ---
 
@@ -162,7 +160,19 @@ Click to see the [interactive network visualisation of calls between objects in 
 <summary>Details of goodpractice checks (click to open)</summary>
 <p>
 
+#### 3a. Continuous Integration Badges
 
+[![R-CMD-check.yaml](https://github.com/bastienchassagnol/DeCovarT/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bastienchassagnol/DeCovarT/actions)
+[![render-readme.yaml](https://github.com/bastienchassagnol/DeCovarT/actions/workflows/render-readme.yaml/badge.svg)](https://github.com/bastienchassagnol/DeCovarT/actions)
+
+**GitHub Workflow Results**
+
+|          id|name          |conclusion |sha    | run_number|date       |
+|-----------:|:-------------|:----------|:------|----------:|:----------|
+| 31188274365|pre-commit    |success    |c1a7bb |         17|2026-08-07 |
+| 31219996293|R package CI  |success    |1d7c88 |         87|2026-08-07 |
+| 31252824642|R-CMD-check   |success    |0029d1 |         88|2026-08-08 |
+| 31219391627|render-readme |success    |a7c4e2 |         13|2026-08-07 |
 
 ---
 
@@ -182,7 +192,7 @@ Error : Failed to install 'DeCovarT' from local:
 
 #### Static code analyses with [lintr](https://github.com/jimhester/lintr)
 
-[lintr](https://github.com/jimhester/lintr) found the following 83 potential issues:
+[lintr](https://github.com/jimhester/lintr) found the following 82 potential issues:
 
 message | number of times
 --- | ---
@@ -195,7 +205,7 @@ Don't use paste to build warning strings. | 2
 Don't use paste0 to build message strings. | 1
 Don't use paste0 to build stop strings. | 4
 expect_named(x, n) is better than expect_identical(names(x), n) | 1
-Lines should not be more than 80 characters. | 36
+Lines should not be more than 80 characters. | 35
 Pass match.arg directly as a symbol to vapply() instead of wrapping it in an unnecessary anonymous function. | 1
 Remove unnecessary c() of a constant. | 1
 Replace unnecessary c() by NULL or, whenever possible, vector() seeded with the correct type and/or length. | 1
