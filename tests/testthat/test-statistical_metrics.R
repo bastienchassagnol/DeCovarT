@@ -27,7 +27,21 @@ test_that("check_true_theta: accepts J x N proportions", {
   )
   expect_true(check_true_theta(theta))
   ov <- compute_average_overlap(theta)
-  expect_true(is.numeric(ov) && length(ov) == 1L)
+  expect_true(is.numeric(ov))
+  expect_identical(length(ov), 1L)
+})
+
+test_that("repair_simplex renormalises and rejects invalid inputs", {
+  expect_equal(
+    repair_simplex(c(0.2, 0.3, 0.5 + 1e-12)),
+    c(0.2, 0.3, 0.5),
+    tolerance = 1e-8
+  )
+  expect_equal(sum(repair_simplex(c(2, 2, 0))), 1)
+  expect_error(repair_simplex(numeric()), "`p`")
+  expect_error(repair_simplex(c(0.5, NA)), "`p`")
+  expect_error(repair_simplex(c(-1, 2)), "negative")
+  expect_error(repair_simplex(c(0, 0)), "positive")
 })
 
 test_that("check_true_theta: rejects bad dims", {
@@ -52,7 +66,8 @@ test_that("compute_average_overlap: closer means overlap more", {
 
   ov_far <- compute_average_overlap(far)
   ov_near <- compute_average_overlap(near)
-  expect_true(is.numeric(ov_far) && length(ov_far) == 1L)
+  expect_true(is.numeric(ov_far))
+  expect_identical(length(ov_far), 1L)
   expect_gte(ov_far, 0)
   expect_lte(ov_far, 1)
   expect_lt(ov_far, ov_near)
@@ -117,7 +132,7 @@ test_that("compute_glmnet_gene_scores: returns named G-vector", {
 
   scores <- compute_glmnet_gene_scores(profiles, labels)
   expect_length(scores, G)
-  expect_identical(names(scores), dimnames(profiles)[[1L]])
+  expect_named(scores, dimnames(profiles)[[1L]])
   expect_true(all(scores >= 0))
   expect_gt(sum(scores), 0)
 })

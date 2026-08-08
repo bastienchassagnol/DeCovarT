@@ -44,6 +44,7 @@
 #'   \code{sum_euclidean_distance}.
 #'
 #' @keywords internal
+#' @export
 compute_mean_profile_objectives <- function(mean_signature_matrix) {
   n_celltypes <- ncol(mean_signature_matrix)
   if (n_celltypes < 2L) {
@@ -266,6 +267,7 @@ generate_mean_signature_matrix <- function(
 #' @return Symmetric integer matrix \eqn{G\times G} with zero diagonal.
 #'
 #' @keywords internal
+#' @export
 generate_random_network_skeleton <- function(
   n_genes,
   graph_model,
@@ -438,6 +440,7 @@ generate_random_network_skeleton <- function(
 #'   \code{adjacency_matrix} and zero diagonal.
 #'
 #' @keywords internal
+#' @export
 assign_iid_signed_weights <- function(
   adjacency_matrix,
   prop_inhibitory = 0.5,
@@ -495,6 +498,7 @@ assign_iid_signed_weights <- function(
 #' @return Symmetric positive-definite matrix.
 #'
 #' @keywords internal
+#' @export
 build_normalised_precision <- function(
   weighted_adjacency,
   precision_shift
@@ -524,6 +528,7 @@ build_normalised_precision <- function(
 #' @return Numeric array of dimension \eqn{G\times G\times J}.
 #'
 #' @keywords internal
+#' @export
 build_covariance_array_from_precision <- function(precision_array) {
   if (
     is.null(dim(precision_array)) ||
@@ -651,9 +656,11 @@ simulate_hierarchical_grn_moments <- function(
     if (length(x) == 1L) {
       x <- rep(x, n_celltypes)
     }
-    if (length(x) != n_celltypes || any(!is.finite(x)) || any(x <= 0)) {
+    if (length(x) != n_celltypes || !all(is.finite(x)) || any(x <= 0)) {
       stop(
-        paste0("`", nm, "` must be a positive scalar or length-J vector."),
+        "`",
+        nm,
+        "` must be a positive scalar or length-J vector.",
         call. = FALSE
       )
     }
@@ -666,12 +673,14 @@ simulate_hierarchical_grn_moments <- function(
     }
     if (
       length(x) != n_celltypes ||
-        any(!is.finite(x)) ||
+        !all(is.finite(x)) ||
         any(x < 0) ||
         any(x > 1)
     ) {
       stop(
-        paste0("`", nm, "` must lie in [0, 1] (scalar or length J)."),
+        "`",
+        nm,
+        "` must lie in [0, 1] (scalar or length J).",
         call. = FALSE
       )
     }
@@ -747,8 +756,9 @@ simulate_hierarchical_grn_moments <- function(
       }
       graph_model <- vapply(
         graph_model,
-        function(m) match.arg(m, model_choices),
-        character(1)
+        match.arg,
+        character(1),
+        choices = model_choices
       )
     }
     graph_model[graph_model == "star"] <- "hub"

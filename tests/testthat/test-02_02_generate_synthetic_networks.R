@@ -29,18 +29,18 @@ test_that("simulate_hierarchical_grn_moments returns expected structure", {
       "objectives"
     )
   )
-  expect_equal(dim(moments$mean_profiles), c(30L, 3L))
-  expect_equal(dim(moments$covariance_matrices), c(30L, 30L, 3L))
-  expect_equal(dim(moments$precision_matrices), c(30L, 30L, 3L))
-  expect_equal(
+  expect_identical(dim(moments$mean_profiles), c(30L, 3L))
+  expect_identical(dim(moments$covariance_matrices), c(30L, 30L, 3L))
+  expect_identical(dim(moments$precision_matrices), c(30L, 30L, 3L))
+  expect_identical(
     dim(moments$graph_structure$adjacency_matrices),
     c(30L, 30L, 3L)
   )
-  expect_equal(
+  expect_identical(
     dim(moments$graph_structure$weighted_adjacencies),
     c(30L, 30L, 3L)
   )
-  expect_equal(
+  expect_identical(
     dim(moments$graph_structure$normalised_precision),
     c(30L, 30L, 3L)
   )
@@ -248,8 +248,8 @@ test_that("generate_mean_signature_matrix is deterministic and scaled", {
     target_cosine = 0.3
   )
 
-  expect_equal(dim(mu_a), c(2L, 2L))
-  expect_equal(mu_a, mu_b)
+  expect_identical(dim(mu_a), c(2L, 2L))
+  expect_identical(mu_a, mu_b)
   expect_equal(
     unname(sqrt(colSums(mu_a^2))),
     rep(10, 2),

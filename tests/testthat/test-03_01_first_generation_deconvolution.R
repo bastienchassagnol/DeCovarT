@@ -84,4 +84,26 @@ test_that("First-generation deconvolution solvers return a valid simplex", {
     mean_signature_matrix = setup$mean_signature_matrix
   )
   .expect_valid_simplex(estimated_lsei, setup$p, "deconrnaseq")
+
+  # ------------------------------------------------------------------ #
+  # CIBERSORT-style nu-SVR (e1071); needs more genes than hold-out SVM #
+  # ------------------------------------------------------------------ #
+  set.seed(42L)
+  n_genes <- 20L
+  n_ct <- 2L
+  cibersort_mu <- matrix(
+    runif(n_genes * n_ct, min = 10, max = 50),
+    nrow = n_genes,
+    dimnames = list(
+      paste0("gene_", seq_len(n_genes)),
+      paste0("celltype_", seq_len(n_ct))
+    )
+  )
+  true_p <- c(0.4, 0.6)
+  cibersort_y <- as.numeric(cibersort_mu %*% true_p + rnorm(n_genes, sd = 1))
+  estimated_cibersort <- deconvolute_ratios_cibersort(
+    y = cibersort_y,
+    mean_signature_matrix = cibersort_mu
+  )
+  .expect_valid_simplex(estimated_cibersort, true_p, "cibersort")
 })

@@ -19,6 +19,7 @@
 #' @return List of length \eqn{J} with MAP vectors in \eqn{\mathbb{R}^{G}}.
 #'
 #' @keywords internal
+#' @export
 .map_gaussian_convolution <- function(y, mean_signature_matrix, Sigma) {
   J <- ncol(mean_signature_matrix)
   # compute intermediate calculations ---------------------------------------

@@ -89,6 +89,7 @@ additive_log_ratio <- function(p) {
 #'
 #' @return Numeric scalar.
 #' @keywords internal
+#' @export
 .bilinear_form <- function(x, A, y = x) {
   x <- as.numeric(x)
   y <- as.numeric(y)
@@ -108,44 +109,6 @@ additive_log_ratio <- function(p) {
   drop(crossprod(x, A %*% y))
 }
 
-#' Squared Mahalanobis distance
-#'
-#' Computes
-#' \eqn{(\boldsymbol{x}-\boldsymbol{m})^{\mathsf{T}}
-#' \boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{m})}
-#' for a symmetric positive-definite covariance (or scatter) matrix
-#' \eqn{\boldsymbol{\Sigma}}. This is the squared distance; take the square
-#' root for the Mahalanobis distance itself. Solves
-#' \eqn{\boldsymbol{\Sigma}\boldsymbol{z}=\boldsymbol{\delta}} instead of
-#' forming \eqn{\boldsymbol{\Sigma}^{-1}} explicitly.
-#'
-#' @param x Numeric vector.
-#' @param center Numeric centre \eqn{\boldsymbol{m}} (default the origin).
-#' @param covariance Symmetric positive-definite \eqn{G\times G} matrix.
-#'
-#' @return Non-negative numeric scalar.
-#' @keywords internal
-.squared_mahalanobis_distance <- function(
-  x,
-  center = numeric(length(x)),
-  covariance
-) {
-  delta <- as.numeric(x) - as.numeric(center)
-  covariance <- as.matrix(covariance)
-  p <- length(delta)
-
-  if (length(center) != p) {
-    stop("`x` and `center` must have the same length.", call. = FALSE)
-  }
-  if (!identical(dim(covariance), c(p, p))) {
-    stop("`covariance` has incompatible dimensions.", call. = FALSE)
-  }
-
-  # Solve covariance %*% z = delta; avoid forming the inverse.
-  z <- solve(covariance, delta)
-  drop(crossprod(delta, z))
-}
-
 #' Bulk mixture covariance \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}
 #'
 #' @description
@@ -156,14 +119,13 @@ additive_log_ratio <- function(p) {
 #' }
 #' stored as slices of the array `Sigma`.
 #'
-#' @param p Numeric vector \eqn{\boldsymbol{p}\in\mathbb{R}^{J}}.
-#' @param Sigma Array in \eqn{\mathcal{M}_{G\times G\times J}} whose slice
-#'   \eqn{\boldsymbol{\Sigma}_j=} `Sigma[,, j]` is the cell-type covariance.
+#' @inheritParams loglik_multivariate
 #'
 #' @return Symmetric matrix
 #'   \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})\in\mathcal{M}_{G\times G}}.
 #'
 #' @keywords internal
+#' @export
 .compute_global_variance <- function(p, Sigma) {
   ###  Sigma and TensorA packages
   # global_cov <- matrix(0, nrow = dim(Sigma)[1], ncol=dim(Sigma)[2])
@@ -208,25 +170,38 @@ additive_log_ratio <- function(p) {
 #'   (\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}}).
 #'
 #' @keywords internal
+#' @export
 .sigma_p_factorisation <- local({
-  cache <- NULL
+  cache <- new.env(parent = emptyenv())
+  cache$value <- NULL
+
   function(p, Sigma) {
+    cached <- cache$value
+
     if (
-      !is.null(cache) &&
-        identical(cache$p, p) &&
-        identical(cache$Sigma, Sigma)
+      !is.null(cached) &&
+        identical(cached$p, p) &&
+        identical(cached$Sigma, Sigma)
     ) {
-      return(cache$value)
+      return(cached$value)
     }
+
     global_cov_matrix <- .compute_global_variance(p, Sigma)
     chol_factor <- chol(global_cov_matrix)
+
     value <- list(
       matrix = global_cov_matrix,
       chol = chol_factor,
       log_det = 2 * sum(log(diag(chol_factor))),
       inverse = chol2inv(chol_factor)
     )
-    cache <<- list(p = p, Sigma = Sigma, value = value)
+
+    cache$value <- list(
+      p = p,
+      Sigma = Sigma,
+      value = value
+    )
+
     value
   }
 })
@@ -278,6 +253,7 @@ additive_log_ratio <- function(p) {
 #' @return Scalar log-likelihood value.
 #'
 #' @keywords internal
+#' @export
 #' @seealso [gradient_loglik_unconstrained()], [additive_logistic()]
 loglik_multivariate <- function(p, y, mean_signature_matrix, Sigma) {
   sigma_p <- .sigma_p_factorisation(p, Sigma)
@@ -302,6 +278,7 @@ loglik_multivariate <- function(p, y, mean_signature_matrix, Sigma) {
 #' @return Scalar log-likelihood on the constrained manifold.
 #'
 #' @keywords internal
+#' @export
 loglik_multivariate_constrained <- function(
   rho,
   y,
@@ -313,12 +290,13 @@ loglik_multivariate_constrained <- function(
   log_lik <- loglik_multivariate(p, y, mean_signature_matrix, Sigma)
   if (any(p < 100 * .Machine$double.eps | p > 1 - 100 * .Machine$double.eps)) {
     # if the ratios returned present numerical underflows
-    warning(paste(
-      "Thee ratios are given by",
+    warning(
+      "The ratios are given by ",
       paste(signif(p, digits = 5), collapse = "//"),
-      "and loglik is: ",
-      log_lik
-    ))
+      " and loglik is: ",
+      log_lik,
+      call. = FALSE
+    )
   }
   return(log_lik)
 }
@@ -339,6 +317,7 @@ loglik_multivariate_constrained <- function(
 #' @return Numeric matrix of size \eqn{J\times(J-1)}.
 #'
 #' @keywords internal
+#' @export
 jacobian_additive_logistic <- function(rho) {
   p <- additive_logistic(rho)
   num_celltypes <- length(p)
@@ -385,13 +364,14 @@ jacobian_additive_logistic <- function(rho) {
 #'   \eqn{\nabla_{\boldsymbol{p}}\ell\in\mathbb{R}^{J}}.
 #'
 #' @keywords internal
+#' @export
 #' @seealso [numDeriv::grad()], [hessian_loglik_unconstrained()]
 gradient_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
   # shared, cached factorisation of Sigma(p) -- see .sigma_p_factorisation()
   global_precision_matrix <- .sigma_p_factorisation(p, Sigma)$inverse
 
   # compute the gradient itself
-  gradient_unconstrained <- c()
+  gradient_unconstrained <- numeric(0)
   for (j in seq_along(p)) {
     gradient_unconstrained <- c(
       gradient_unconstrained,
@@ -432,6 +412,7 @@ gradient_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
 #' @return Numeric vector in \eqn{\mathbb{R}^{J-1}}.
 #'
 #' @keywords internal
+#' @export
 gradient_loglik_constrained <- function(
   rho,
   y,
@@ -464,6 +445,7 @@ gradient_loglik_constrained <- function(
 #' @return Numeric array used in the constrained Hessian chain rule.
 #'
 #' @keywords internal
+#' @export
 hessian_additive_logistic <- function(rho) {
   p <- additive_logistic(rho)
   num_celltypes <- length(p)
@@ -496,6 +478,7 @@ hessian_additive_logistic <- function(rho) {
 #' @return Symmetric numeric matrix \eqn{\mathbf{H}}.
 #'
 #' @keywords internal
+#' @export
 hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
   num_celltypes <- length(p)
   hessian_unconstrained <- matrix(0, nrow = num_celltypes, ncol = num_celltypes)
@@ -581,9 +564,10 @@ hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
 #' @return Symmetric matrix in \eqn{\mathcal{M}_{(J-1)\times(J-1)}}.
 #'
 #' @keywords internal
+#' @export
 hessian_loglik_constrained <- function(rho, y, mean_signature_matrix, Sigma) {
   p <- additive_logistic(rho)
-  # t(J_psi) mean_signature_matrix H_log mean_signature_matrix J_psi + sum over number of ratios of grad_log mean_signature_matrix H_psi
+  # t(J_psi) H_log J_psi + sum_i grad_log_i * H_psi^{(i)}
   hessian_constrained <- t(jacobian_additive_logistic(rho)) %*%
     hessian_loglik_unconstrained(p, y, mean_signature_matrix, Sigma) %*%
     jacobian_additive_logistic(rho) +
@@ -664,7 +648,11 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
   epsilon = 10^-4,
   itmax = 200
 ) {
-  initial_p <- rep(1 / ncol(mean_signature_matrix), ncol(mean_signature_matrix)) # consider by hypothesis equi-balanced proportions between cell populations
+  # equi-balanced initial proportions across cell populations
+  initial_p <- rep(
+    1 / ncol(mean_signature_matrix),
+    ncol(mean_signature_matrix)
+  )
   initial_rho <- additive_log_ratio(initial_p)
   # marqLevAlg() only negates fn/gr internally when minimize = FALSE; hess()
   # is passed through unchanged regardless of `minimize`, because its
@@ -676,8 +664,11 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
   # criterion of Commenges et al. (2006) then never leaves its "unevaluated"
   # sentinel (rdm = epsd + 1), so the algorithm always exhausts `maxiter`
   # (istop = 2) rather than stopping once genuinely close to the maximum.
-  invisible(utils::capture.output(
-    fit <- marqLevAlg::marqLevAlg(
+  # Sink console chatter from marqLevAlg without assigning inside capture.output()
+  fit <- local({
+    sink(nullfile())
+    on.exit(sink(), add = TRUE)
+    marqLevAlg::marqLevAlg(
       b = initial_rho,
       fn = loglik_multivariate_constrained,
       gr = gradient_loglik_constrained,
@@ -694,7 +685,7 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
       Sigma = Sigma,
       maxiter = itmax
     )
-  ))
+  })
   if (anyNA(fit$b)) {
     warning(
       "marqLevAlg::marqLevAlg() returned no usable estimate (istop = ",
@@ -734,10 +725,14 @@ deconvolute_ratios_simulated_annealing <- function(
   epsilon = 10^-4,
   itmax = 200
 ) {
-  initial_p <- rep(1 / ncol(mean_signature_matrix), ncol(mean_signature_matrix)) # consider by hypothesis equi-balanced proportions between cell populations
+  # equi-balanced initial proportions across cell populations
+  initial_p <- rep(
+    1 / ncol(mean_signature_matrix),
+    ncol(mean_signature_matrix)
+  )
   initial_rho <- additive_log_ratio(initial_p)
   # gr is not used in the simulated annealing approach
-  # In SANNN, maxit is the total number of point evaluations, and not the maximum number of iterations
+  # In SANN, maxit is the total number of point evaluations, not iterations
   estimated_rho <- stats::optim(
     par = initial_rho,
     fn = loglik_multivariate_constrained,
@@ -763,7 +758,11 @@ deconvolute_ratios_L_BFGS_B <- function(
   epsilon = 10^-4,
   itmax = 200
 ) {
-  initial_p <- rep(1 / ncol(mean_signature_matrix), ncol(mean_signature_matrix)) # consider by hypothesis equi-balanced proportions between cell populations
+  # equi-balanced initial proportions across cell populations
+  initial_p <- rep(
+    1 / ncol(mean_signature_matrix),
+    ncol(mean_signature_matrix)
+  )
   # Box constraints alone do not keep sum(p)=1, so Sigma(p) can become
   # singular during the line search. Guard the objective/gradient and fall
   # back to a finite penalty (a zero gradient carries no misleading
@@ -814,7 +813,11 @@ deconvolute_ratios_Newton_Raphson <- function(
   epsilon = 10^-4,
   itmax = 200
 ) {
-  initial_p <- rep(1 / ncol(mean_signature_matrix), ncol(mean_signature_matrix)) # consider by hypothesis equi-balanced proportions between cell populations
+  # equi-balanced initial proportions across cell populations
+  initial_p <- rep(
+    1 / ncol(mean_signature_matrix),
+    ncol(mean_signature_matrix)
+  )
   initial_rho <- additive_log_ratio(initial_p)
 
   # with nlmimb package method (outdated, but works well for our scenario)
@@ -857,7 +860,11 @@ deconvolute_ratios_gradient_descent <- function(
   epsilon = 10^-4,
   itmax = 200
 ) {
-  initial_p <- rep(1 / ncol(mean_signature_matrix), ncol(mean_signature_matrix)) # consider by hypothesis equi-balanced proportions between cell populations
+  # equi-balanced initial proportions across cell populations
+  initial_p <- rep(
+    1 / ncol(mean_signature_matrix),
+    ncol(mean_signature_matrix)
+  )
 
   initial_rho <- additive_log_ratio(initial_p)
 

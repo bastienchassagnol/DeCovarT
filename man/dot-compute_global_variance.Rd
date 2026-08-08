@@ -9,8 +9,8 @@
 \arguments{
 \item{p}{Numeric vector \eqn{\boldsymbol{p}\in\mathbb{R}^{J}}.}
 
-\item{Sigma}{Array in \eqn{\mathcal{M}_{G\times G\times J}} whose slice
-\eqn{\boldsymbol{\Sigma}_j=} \code{Sigma[,, j]} is the cell-type covariance.}
+\item{Sigma}{Array of cell-type covariances in
+\eqn{\mathcal{M}_{G\times G\times J}}.}
 }
 \value{
 Symmetric matrix

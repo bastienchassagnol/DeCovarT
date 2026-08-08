@@ -87,7 +87,9 @@ check_true_theta <- function(
   .check_ggj_array <- function(arr, nm) {
     if (is.null(dim(arr)) || length(dim(arr)) != 3L) {
       stop(
-        paste0("`true_theta$", nm, "` must be a G x G x J array."),
+        "`true_theta$",
+        nm,
+        "` must be a G x G x J array.",
         call. = FALSE
       )
     }
@@ -96,7 +98,9 @@ check_true_theta <- function(
     jj <- dim(arr)[[3L]]
     if (g1 != g2) {
       stop(
-        paste0("`true_theta$", nm, "` dims must be G x G x J."),
+        "`true_theta$",
+        nm,
+        "` dims must be G x G x J.",
         call. = FALSE
       )
     }
@@ -164,10 +168,8 @@ check_true_theta <- function(
         # average across samples for mixture-level summaries.
         if (any(abs(colSums(p_mat) - 1) > 1e-8) || any(p_mat < 0)) {
           stop(
-            paste(
-              "`true_theta$p` as J x N must have non-negative columns",
-              "summing to 1."
-            ),
+            "`true_theta$p` as J x N must have non-negative columns ",
+            "summing to 1.",
             call. = FALSE
           )
         }
@@ -176,10 +178,8 @@ check_true_theta <- function(
         # N x J: each row is a sample-wise ratio; average across samples.
         if (any(abs(rowSums(p_mat) - 1) > 1e-8) || any(p_mat < 0)) {
           stop(
-            paste(
-              "`true_theta$p` as N x J must have non-negative rows",
-              "summing to 1."
-            ),
+            "`true_theta$p` as N x J must have non-negative rows ",
+            "summing to 1.",
             call. = FALSE
           )
         }
@@ -194,10 +194,8 @@ check_true_theta <- function(
     # Final simplex check on the (possibly averaged) length-J weight vector.
     if (any(p_vec < 0) || abs(sum(p_vec) - 1) > 1e-8) {
       stop(
-        paste(
-          "`true_theta$p` must be non-negative and sum to 1",
-          "(after averaging over samples if matrix)."
-        ),
+        "`true_theta$p` must be non-negative and sum to 1 ",
+        "(after averaging over samples if matrix).",
         call. = FALSE
       )
     }
@@ -380,10 +378,10 @@ deconvolute_ratios <- function(
 ) {
   # read in data
   if (!is.matrix(signature_matrix) || is.null(row.names(signature_matrix))) {
-    stop(paste(
+    stop(
       "required format for signature is expression matrix,",
-      "with rownames as genes"
-    ))
+      " with rownames as genes"
+    )
   }
   mean_signature_matrix <- tibble::as_tibble(
     signature_matrix,
@@ -403,12 +401,12 @@ deconvolute_ratios <- function(
   common_genes <- intersect(mean_signature_matrix$GENE_SYMBOL, Y$GENE_SYMBOL)
 
   if (length(common_genes) / dim(mean_signature_matrix)[1] < 0.5) {
-    stop(paste(
-      "Only",
+    stop(
+      "Only ",
       length(common_genes) / dim(mean_signature_matrix)[1],
-      "fraction of genes are used in the signature matrix\n.
-                  Half of common genes are required at least"
-    ))
+      " fraction of genes are used in the signature matrix.\n",
+      "Half of common genes are required at least"
+    )
   }
   mean_signature_matrix <- mean_signature_matrix |>
     dplyr::filter(.data$GENE_SYMBOL %in% common_genes) |>
@@ -459,7 +457,7 @@ deconvolute_ratios <- function(
                 dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
             },
             error = function(e) {
-              warning(paste(e, "\n"))
+              warning(conditionMessage(e), call. = FALSE)
               return(e)
             }
           )

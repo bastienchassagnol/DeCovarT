@@ -86,10 +86,8 @@ simulate_bulk_mixture <- function(
   ))
   if (!gene_ok) {
     stop(
-      paste(
-        "Some of the genes are distinct between expected",
-        "and covariance expression"
-      )
+      "Some of the genes are distinct between expected",
+      " and covariance expression"
     )
   }
   if (!cell_ok) {
@@ -246,7 +244,7 @@ benchmark_bivariate_gaussian_convolutions <- function(
       scenario_idx,
       ID
     ) {
-      message(paste0(
+      message(
         "Scenario ",
         ID,
         ": ",
@@ -260,7 +258,7 @@ benchmark_bivariate_gaussian_convolutions <- function(
         ", variance=",
         variance,
         "."
-      ))
+      )
 
       mu <- signature_matrices[[centroids]]
       p <- proportion_list[[proportion_name]]

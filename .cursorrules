@@ -217,21 +217,21 @@ This repo uses **[Air](https://posit-dev.github.io/air/)** (`air.toml`) and
 - Keep `_PACKAGE` docs in `R/DeCovarT-package.R`; regenerate PDF/HTML
   manuals with `scripts/auxiliary/generate_package_manual.R` when needed.
 
-### Roxygen: `@keywords internal` vs `@noRd`
+### Roxygen: `@export`, `@keywords internal`, `@noRd`, `@inheritParams`
 
-- Unexported helpers may use **`@keywords internal`** so they stay off
-  the pkgdown reference index / user-facing “see also” surfaces while
-  still generating help pages when documented.
+- Every function with a substantive roxygen block (title / description /
+  `@param` / `@return`) must be tagged with **`@export`** (and may also
+  carry `@keywords internal` if it is an advanced / low-level helper).
+  Documented functions are exported so `?fn` works after
+  `devtools::document()` and so goodpractice / pkgcheck stay green.
 - Use **`@noRd` if and only if** the object has **no** substantive
-  roxygen documentation (no title / description / `@param` /
-  `@return` worth installing). Bare `@keywords internal` + `@noRd`
-  is appropriate for tiny undocumented helpers (e.g. `.bilinear_form`).
-- If you write real roxygen (title, maths, arguments, return value),
-  **do not** add `@noRd`: install the `.Rd` so `?fn` and
-  `?pkg:::fn` work after `devtools::document()` / install. Keep
-  `@keywords internal` when the function remains unexported.
-- Never use `@noRd` merely because a function is internal—that hides
-  documentation you already wrote.
+  roxygen documentation. Bare `@keywords internal` + `@noRd` is for tiny
+  undocumented helpers only (e.g. `.onLoad`).
+- Never use `@noRd` merely to hide docs you already wrote.
+- Prefer **`@inheritParams`** when several functions share identical
+  `@param` text (e.g. inherit `p` / `Sigma` / `y` /
+  `mean_signature_matrix` from `loglik_multivariate`). Do not copy-paste
+  the same parameter paragraphs across files.
 
 ## Naming conventions
 
@@ -254,10 +254,29 @@ This repo uses **[Air](https://posit-dev.github.io/air/)** (`air.toml`) and
 - Use the native pipe `|>`.
 - Use `package::function()` for non-base functions
   (e.g. `dplyr::select()`).
-- Use `glue::glue()` for string interpolation (not `paste` / `paste0`).
+- Use `glue::glue()` for string interpolation in assigned strings;
+  for `stop()` / `warning()` / `message()`, pass message parts as
+  separate arguments to the condition function itself — never
+  `stop(paste(...))`, `stop(paste0(...))`, or `stop(sprintf(...))`.
+  Prefer `stop("a", " b=", x)` over wrapping `paste`.
 - Assign with `<-`; use `=` only inside R6 methods.
+- **Never use `<<-`** (or other super-assignment). For caches shared
+  across calls, use a `local({ cache <- new.env(...); function(...) })`
+  closure and assign with `cache$value <- ...`, not `cache <<- ...`.
+- Never write `f(x <- value)`; assign first, then call the function.
 - Handle missing values explicitly (`na.rm = TRUE`, `is.na()`).
-- Preallocate vectors when filling in loops.
+- Preallocate vectors when filling in loops; avoid `c()` with a single
+  argument (`c("x")` → `"x"`) and empty `c()` (prefer `NULL` or
+  `numeric(0)` / `character(0)` with the right type).
+- Prefer `!any(x)` over `all(!x)`, and `!all(x)` over `any(!x)`.
+- Prefer `paste0()` over `paste(..., sep = "")`, and `file.path()` over
+  `paste(..., sep = "/")`.
+- In `grep()` / `grepl()` / `sub()` / `gsub()`, use `fixed = TRUE` when
+  the pattern is a plain string, not a regular expression.
+- Prefer `vapply(x, fun, type, ...)` / `purrr::map_*` with `fun` passed
+  directly when an anonymous `\(x) fun(x)` wrapper adds nothing.
+- Keep source lines ≤ **80** characters (Air / lintr); wrap prose and
+  code rather than silencing the linter.
 - Comment non-obvious logic only; prefer self-explanatory names.
 - Prefer modular, reusable functions over long scripts.
 - Avoid unnecessary dependencies; use base R when clearly simpler.
@@ -321,6 +340,16 @@ Follow
   almost only `test_that()` calls; minimise top-level file scope.
 - Focus on external behaviour, edge cases, missing values, and known
   bug regressions—not every trivial line.
+- Cover every exported function with at least a smoke or correctness
+  test (except explicitly deferred APIs, e.g. experimental MAP helpers).
+- testthat style (goodpractice / lintr):
+  - Prefer `expect_identical()` over `expect_equal()` when comparison
+    should be exact (types, integers, names, dims).
+  - Use `expect_equal()` only when tolerance / numeric noise matters.
+  - Prefer `expect_named(x, expected)` over
+    `expect_identical(names(x), expected)`.
+  - Split `expect_true(a && b)` into separate `expect_true(a)` and
+    `expect_true(b)` calls.
 - Use `set.seed()` for stochastic tests; store fixtures under
   `tests/testthat/fixtures/` when needed.
 - Interactive: `devtools::test()`, `devtools::test_coverage()`,

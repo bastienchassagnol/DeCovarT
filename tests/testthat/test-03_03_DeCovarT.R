@@ -28,11 +28,10 @@
 }
 
 
-test_that(".bilinear_form and .squared_mahalanobis_distance match closed forms", {
+test_that(".bilinear_form matches the closed-form quadratic product", {
   x <- c(1, 2)
   y <- c(3, -1)
   a <- matrix(c(2, 0.5, 0.5, 3), 2L)
-  center <- c(0.2, -0.4)
 
   expect_equal(
     .bilinear_form(x, a, y),
@@ -42,13 +41,24 @@ test_that(".bilinear_form and .squared_mahalanobis_distance match closed forms",
     .bilinear_form(x, a),
     as.numeric(t(x) %*% a %*% x)
   )
+})
+
+test_that(".sigma_p_factorisation caches by exact (p, Sigma)", {
+  setup <- .decovart_deriv_setup()
+  first <- .sigma_p_factorisation(setup$p, setup$Sigma)
+  second <- .sigma_p_factorisation(setup$p, setup$Sigma)
+
+  expect_identical(first, second)
+  expect_named(first, c("matrix", "chol", "log_det", "inverse"))
   expect_equal(
-    .squared_mahalanobis_distance(x, center = center, covariance = a),
-    as.numeric(t(x - center) %*% solve(a) %*% (x - center))
+    first$matrix,
+    .compute_global_variance(setup$p, setup$Sigma),
+    tolerance = 1e-10
   )
   expect_equal(
-    .squared_mahalanobis_distance(x, covariance = a),
-    as.numeric(t(x) %*% solve(a) %*% x)
+    first$inverse,
+    solve(first$matrix),
+    tolerance = 1e-8
   )
 })
 

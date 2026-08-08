@@ -107,9 +107,10 @@ plot_correlation_Heatmap <- function(
       complex_heatmap_per_algo <- ComplexHeatmap::Heatmap(
         cor_matrix_per_algo,
         col = col,
-        name = gsub("model_", "", score_variable),
+        name = gsub("model_", "", score_variable, fixed = TRUE),
         heatmap_legend_param = list(
-          title = gsub("model_", "", score_variable) |> toupper()
+          title = gsub("model_", "", score_variable, fixed = TRUE) |>
+            toupper()
         ),
         row_title = "Corr cell type 1",
         cluster_rows = FALSE,

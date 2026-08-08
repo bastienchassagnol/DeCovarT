@@ -11,31 +11,38 @@
 #'   (CIBERSORT-style); no covariance prior is used.
 #' @export
 deconvolute_ratios_cibersort <- function(y, mean_signature_matrix) {
-  # the set of nu values tested for best performance
-  range.nu <- seq(0.2, 0.8, 0.3)
-  model <- e1071::best.svm(
-    mean_signature_matrix,
-    y,
-    type = "nu-regression",
-    kernel = "linear",
-    scale = FALSE,
-    nu = range.nu,
-    tunecontrol = e1071::tune.control(sampling = "fix", fix = 0.75)
-  )
+  # nu grid as in CIBERSORT; skip tuning when too few genes for hold-out
+  range_nu <- seq(0.2, 0.8, 0.3)
+  n_obs <- nrow(mean_signature_matrix)
+  model <- NULL
+  if (n_obs >= 4L) {
+    model <- tryCatch(
+      e1071::best.svm(
+        mean_signature_matrix,
+        y,
+        type = "nu-regression",
+        kernel = "linear",
+        scale = FALSE,
+        nu = range_nu,
+        tunecontrol = e1071::tune.control(sampling = "fix", fix = 0.75)
+      ),
+      error = function(e) NULL
+    )
+  }
+  if (is.null(model)) {
+    model <- e1071::svm(
+      mean_signature_matrix,
+      y = y,
+      type = "nu-regression",
+      kernel = "linear",
+      scale = FALSE,
+      nu = 0.5
+    )
+  }
 
-  e1071::tune.svm(
-    mean_signature_matrix,
-    y,
-    type = "nu-regression",
-    kernel = "linear",
-    scale = FALSE,
-    nu = 0.25,
-    tunecontrol = e1071::tune.control(sampling = "fix", fix = 0.75)
-  )
-
-  model <- e1071::svm(mean_signature_matrix, y = y)
-
-  estimated_p <- t(model$coefs) %*% model$SV |> repair_simplex()
+  estimated_p <- as.numeric(t(model$coefs) %*% model$SV)
+  estimated_p[estimated_p < 0] <- 0
+  estimated_p <- repair_simplex(estimated_p)
   names(estimated_p) <- colnames(mean_signature_matrix)
   estimated_p
 }
@@ -65,7 +72,7 @@ deconvolute_ratios_lsfit <- function(y, mean_signature_matrix) {
 deconvolute_ratios_rlm <- function(y, mean_signature_matrix) {
   estimated_p <- MASS::rlm(
     y ~ mean_signature_matrix + 0,
-    method = c("M")
+    method = "M"
   )$coefficients
   names(estimated_p) <- colnames(mean_signature_matrix)
   estimated_p |> repair_simplex()
