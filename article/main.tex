@@ -48,22 +48,46 @@
     and Multidimensional Framework for Cellular Deconvolution in Heterogeneous Biological
     Samples}
 
-    \author[1,2]{\fnm{Bastien} \sur{CHASSAGNOL}}
+    \author*[1,2]{\fnm{Bastien} \sur{Chassagnol}}
     \email{bastien\_chassagnol@laposte.net}
+    \equalcont{B.C.\ and M.P.\ contributed equally to this work.}
 
-    \author[2,3]{\fnm{Gréogry} \sur{Nuel}}
-    \email{iiauthor@gmail.com}
-    \equalcont{These authors contributed equally to this work.}
+    \author[3]{\fnm{Marielle} \sur{P\'{e}r\'{e}}}
+    \email{marielle.pere@inria.fr}
+    \equalcont{B.C.\ and M.P.\ contributed equally to this work.}
 
-    \author[1,2]{\fnm{Etienne} \sur{Becht}}
-    \email{iiiauthor@gmail.com}
-    \equalcont{These authors contributed equally to this work.}
+    \author[1]{\fnm{Mohamad} \sur{Al Charif}}
 
-    \affil*[1]{\orgdiv{Institut De Recherches Internationales Servier (IRIS), FRANCE}, \orgname{Organization}, \orgaddress{\street{Street}, \city{City}, \postcode{100190}, \state{State}, \country{Country}}}
+    \author[2]{\fnm{Gr\'{e}gory} \sur{Nuel}}
+    \email{nuel@math.cnrs.fr}
 
-    \affil[2]{\orgdiv{LPSM (Laboratoire de Probabilités, Statistiques et Modélisation), Sorbonne Université}, \orgname{Organization}, \orgaddress{\street{Street}, \city{City}, \postcode{10587}, \state{State}, \country{Country}}}
+    \author[4]{\fnm{Etienne} \sur{Becht}}
+    \email{etienne.becht@inserm.fr}
 
-    \affil[3]{\orgdiv{Department}, \orgname{Organization}, \orgaddress{\street{Street}, \city{City}, \postcode{610101}, \state{State}, \country{Country}}}
+    \author[1]{\fnm{Ana\"{i}s} \sur{Baudot}}
+    \email{anais.baudot@univ-amu.fr}
+
+    \affil[1]{\orgdiv{Marseille Medical Genetics (MMG), Systems Biomedicine team},
+      \orgname{Aix-Marseille University, Inserm U1251},
+      \orgaddress{\street{Facult\'{e} de M\'{e}decine, 27 Bd Jean Moulin},
+        \city{Marseille}, \postcode{13385}, \country{France}}}
+
+    \affil[2]{\orgdiv{Laboratoire de Probabilit\'{e}s, Statistique et
+      Mod\'{e}lisation (LPSM), UMR 8001},
+      \orgname{Sorbonne Universit\'{e} / CNRS},
+      \orgaddress{\city{Paris}, \country{France}}}
+
+    \affil[3]{\orgdiv{MacBes team},
+      \orgname{Inria Centre at Universit\'{e} C\^{o}te d'Azur;
+        Institut de Pharmacologie Mol\'{e}culaire et Cellulaire (IPMC)},
+      \orgaddress{\city{Sophia-Antipolis}, \country{France}}}
+
+    \affil[4]{\orgdiv{Centre de Recherche sur l'Inflammation (CRI),
+      UMR 1149},
+      \orgname{Inserm / Universit\'{e} Paris Cit\'{e}},
+      \orgaddress{\street{Facult\'{e} de m\'{e}decine -- site Bichat,
+        16 rue Henri Huchard},
+        \city{Paris}, \postcode{75018}, \country{France}}}
 
     %%================================%%
     %% abstract %%
@@ -700,7 +724,30 @@ djusting $p-$ values, as numerous genes are examined simultaneously,
     real biological mixtures with the DeCovarT algorithm is implemented on Github
     \href{https://github.com/bastienchassagnol/DeCovarT}{DeCovarT}.
 
-    \section{Author contribution}
+    \section{Author contributions}
+
+    B.C.\ conceived the method, implemented the \texttt{DeCovarT} package,
+    designed the simulation studies, and wrote the manuscript. M.P.\ contributed
+    equally to the methodological development and manuscript drafting.
+    M.A.C.\ contributed to the benchmarking of gene-regulatory-network inference
+    techniques used in the synthetic scenarios. G.N., E.B.\ and A.B.\ jointly
+    supervised the work and revised the manuscript. All authors approved the
+    final version.
+
+    \section{Conflicts of interest}
+
+    The authors declare no conflict of interest.
+
+    \section{Acknowledgments}
+
+    We thank Boris Hejblum for advice on computational performance and numerical
+    precision, notably the use of the log-sum-exp trick for evaluating the
+    additive logistic (softmax) map and its derivatives. We thank Kalidou~Ba for
+    suggestions on pre-processing and normalisation of bulk and single-cell omics
+    inputs to deconvolution algorithms. We thank Annesh~Pal for ideas on more
+    realistic synthetic scenarios for DeCovarT, in particular the use of random
+    graph models to generate richer topological structures for gene-regulatory
+    networks.
 
     \backmatter
 
