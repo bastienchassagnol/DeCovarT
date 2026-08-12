@@ -3,7 +3,7 @@
 .Rproj.user
 *.zip
 *.gz
-build*
+/build/
 simulations/*
 
 # LaTeX / pdflatex / latexmk intermediates (keep sources and PDFs)
