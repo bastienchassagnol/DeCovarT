@@ -23,35 +23,19 @@ format:
     toc: true
 ---
 
-::: {.callout-note}
+::: callout-note
 ## Scope
 
-Outlook on extending DeCovarT beyond bulk transcriptomic deconvolution.
-Future sections (spatial transcriptomics, multi-modal / multi-omics) will be
-added here. Compositional reparametrisation is implemented in
-[`additive_logistic()`](../reference/additive_logistic.html) and documented
-numerically in the
-[softmax / ALR derivatives](softmax-alr-derivatives.html) vignette.
+Outlook on extending DeCovarT beyond bulk transcriptomic deconvolution. Sections below cover Scheffé-type mixture extensions, lineage-aware hierarchical deconvolution, and compositional validation; future topics (spatial transcriptomics, multi-modal / multi-omics) will be added here. Compositional reparametrisation is implemented in [`additive_logistic()`](../reference/additive_logistic.html) and documented numerically in the [softmax / ALR derivatives](softmax-alr-derivatives.html) vignette.
 :::
 
-Bulk transcriptomic deconvolution is one instance of a **mixture inverse
-problem**: a composite signal (tissue expression, a spectrum, a chromatogram)
-is observed, and we seek the proportions $\boldsymbol{p}$ of underlying
-components. Because $\boldsymbol{p}$ is **compositional** (parts of a whole),
-estimates must lie on the simplex
-$\Delta^{J-1}=\{\boldsymbol{p}\in[0,1]^J:\sum_j p_j=1\}$.
-[@chassagnolDeCovarTMultidimensionalProbalistic2023] model each reference
-profile as multivariate Gaussian and recover $\boldsymbol{p}$ by constrained
-maximum likelihood; classical deconvolution tools such as `CIBERSORT` assume
-gene-wise independence instead [@newmanRobustEnumerationCell2015].
+Bulk transcriptomic deconvolution is one instance of a **mixture inverse problem**: a composite signal (tissue expression, a spectrum, a chromatogram) is observed, and we seek the proportions $\boldsymbol{p}$ of underlying components. Because $\boldsymbol{p}$ is **compositional** (parts of a whole), estimates must lie on the simplex $\Delta^{J-1}=\{\boldsymbol{p}\in[0,1]^J:\sum_j p_j=1\}$. [@chassagnolDeCovarTMultidimensionalProbalistic2023] model each reference profile as multivariate Gaussian and recover $\boldsymbol{p}$ by constrained maximum likelihood; classical deconvolution tools such as `CIBERSORT` assume gene-wise independence instead [@newmanRobustEnumerationCell2015].
 
 # Extending the generative model {#sec-extending-model}
 
 ## Mixture design and first-order structure {#sec-mixture-design}
 
-In designed mixture experiments (chemistry, food science, formulation),
-component proportions are explicit regressors with no free intercept because
-$\sum_j p_j=1$. A Scheffé cubic model for three components reads
+In designed mixture experiments (chemistry, food science, formulation), component proportions are explicit regressors with no free intercept because $\sum_j p_j=1$. A Scheffé cubic model for three components reads
 
 $$
 y = \beta_1 p_1 + \beta_2 p_2 + \beta_3 p_3
@@ -59,12 +43,7 @@ y = \beta_1 p_1 + \beta_2 p_2 + \beta_3 p_3
   + \beta_{123} p_1 p_2 p_3,
 $$ {#eq-scheffe-cubic}
 
-with every $p_j\in[0,1]$ and $\sum_j p_j=1$
-[@brownGeneralBlendingModels2015; @aitchisonStatisticalAnalysisCompositional1982].
-DeCovarT's current release implements only the **first-order** part of
-@eq-scheffe-cubic in a probabilistic setting: for cell type $j$, reference
-mean $\boldsymbol{\mu}_j$ and covariance $\boldsymbol{\Sigma}_j$ are given,
-and the bulk mixture satisfies
+with every $p_j\in[0,1]$ and $\sum_j p_j=1$ [@brownGeneralBlendingModels2015; @aitchisonStatisticalAnalysisCompositional1982]. DeCovarT's current release implements only the **first-order** part of @eq-scheffe-cubic in a probabilistic setting: for cell type $j$, reference mean $\boldsymbol{\mu}_j$ and covariance $\boldsymbol{\Sigma}_j$ are given, and the bulk mixture satisfies
 
 $$
 \boldsymbol{Y}\mid\boldsymbol{p}
@@ -74,18 +53,11 @@ $$
   \right).
 $$ {#eq-gaussian-convolution}
 
-@eq-gaussian-convolution is the Gaussian-convolution likelihood optimised in
-[`deconvolute_ratios()`](../reference/deconvolute_ratios.html); it extends
-mean-only linear deconvolution by propagating gene–gene covariance, not by
-adding Scheffé interaction monomials.
+@eq-gaussian-convolution is the Gaussian-convolution likelihood optimised in [`deconvolute_ratios()`](../reference/deconvolute_ratios.html); it extends mean-only linear deconvolution by propagating gene–gene covariance, not by adding Scheffé interaction monomials.
 
 ## Interaction and synergy terms {#sec-interactions}
 
-Synergy or antagonism between components corresponds to **second-order**
-terms in @eq-scheffe-cubic: a positive $\beta_{12}$ means the joint presence
-of components 1 and 2 raises the response above the additive prediction
-$\beta_1 p_1+\beta_2 p_2$. A natural generative extension would enrich the
-mean and, optionally, the covariance:
+Synergy or antagonism between components corresponds to **second-order** terms in @eq-scheffe-cubic: a positive $\beta_{12}$ means the joint presence of components 1 and 2 raises the response above the additive prediction $\beta_1 p_1+\beta_2 p_2$. A natural generative extension would enrich the mean and, optionally, the covariance:
 
 $$
 \mathbb{E}[\boldsymbol{Y}]
@@ -100,22 +72,210 @@ $$
 $$ {#eq-interaction-cov}
 
 with $f,g$ often taken as $p_j p_k$. Allowing $\operatorname{Cov}(\boldsymbol
-{X}_j,\boldsymbol{X}_k)\neq\boldsymbol{0}$ relaxes DeCovarT's independence
-assumption between components and captures non-additive mixing. Such a model
-remains compatible with the same simplex constraint on $\boldsymbol{p}$ and
-could still be fitted by constrained MLE, at the cost of many additional
-interaction parameters and careful guard against overfitting.
+{X}_j,\boldsymbol{X}_k)\neq\boldsymbol{0}$ relaxes DeCovarT's independence assumption between components and captures non-additive mixing. Such a model remains compatible with the same simplex constraint on $\boldsymbol{p}$ and could still be fitted by constrained MLE, at the cost of many additional interaction parameters and careful guard against overfitting.
+
+## Lineage-aware hierarchical deconvolution {#sec-hierarchical-deconvolution}
+
+Flat deconvolution treats every cell type as a sibling on one simplex.
+**Hierarchical** methods instead estimate proportions at several granularities
+linked by a cell-type tree: broad compartments first, then closely related
+subtypes whose mean signatures are collinear at the leaf level.
+
+We reuse the DeCovarT set-up from the [article](../article/main.pdf): gene
+$g=1,\ldots,G$; cell type or tree node $j$; sample $i=1,\ldots,N$
+(independence across $i$). Slices follow the usual dot notation
+($\boldsymbol{\mu}_{\cdot j}$, $\boldsymbol{y}_{\cdot i}$).
+
+* $\boldsymbol{y}=(y_{gi})\in\mathbb{R}_{+}^{G\times N}$: bulk expression;
+  $\boldsymbol{y}_{\cdot i}\in\mathbb{R}_{+}^{G}$ is sample $i$.
+* $\boldsymbol{\mu}=(\mu_{gj})\in\mathbb{R}^{G\times J}$: mean signature;
+  $\boldsymbol{\mu}_{\cdot j}\in\mathbb{R}^{G}$ is the cross-sample mean
+  profile of type $j$ (as in `MuSiC` [@wangBulkTissueCell2019]).
+* $\boldsymbol{p}=(p_{ji})\in\,]0,1[^{J\times N}$: unknown relative
+  proportions; $\boldsymbol{p}_{\cdot i}\in\,]0,1[^{J}$ is the composition
+  of sample $i$.
+
+$$
+\boldsymbol{y}_{\cdot i}=\boldsymbol{\mu}\,\boldsymbol{p}_{\cdot i},
+$$ {#eq-hierarchical-linear}
+
+$$
+\sum_{j=1}^{J} p_{ji}=1,
+\qquad p_{ji}\ge 0
+\qquad (i=1,\ldots,N).
+$$ {#eq-simplex-constraint}
+
+$$
+p_{j,i}=\sum_{c\in\mathcal{C}(j)} p_{c,i}
+\qquad (i=1,\ldots,N).
+$$ {#eq-parent-child}
+
+At each tree level the bulk mixture satisfies @eq-hierarchical-linear with
+each composition on the unit simplex (@eq-simplex-constraint). For a parent
+node $j$ with child set $\mathcal{C}(j)$, coherent hierarchical estimates
+require @eq-parent-child.
+
+### Hard versus soft lineage constraints {#sec-hard-soft-constraints}
+
+Despite diverse implementations, hierarchical bulk mRNA deconvolution
+methods fall into **two constraint regimes**:
+
+* **Hard constraints** — child lineage ratios are forced to sum exactly to
+  the parent estimate (@eq-parent-child). `MuSiC` and `SCDC` (tree-guided
+  mode) first fix a parent total $\hat{p}_{j,i}$, then fit children
+  $q_{c,i}$ on the within-parent simplex so that
+  $\hat{p}_{c,i}=q_{c,i}\,\hat{p}_{j,i}$
+  [@wangBulkTissueCell2019; @dongSCDCBulkGene2021]. `HIDE` applies the same
+  equality by renormalising child estimates after each top-down split
+  [@voelklHIDEHierarchicalCelltype2025]; `Rectangle` propagates coarse
+  cluster fractions as hard bounds on fine-grained estimates
+  [@ederRectangleRobustScalable2026].
+* **Soft constraints** — parent–child coherence is encouraged but not
+  enforced exactly. `HiDecon` adds a squared mismatch penalty to the
+  deconvolution loss [@huangAccurateEstimationRare2024]; `Kassandra` trains
+  separate predictors at predefined hierarchy levels without an explicit
+  parent–child equality [@zaitsevPreciseReconstructionTME2022].
+
+Hard splitting after fixing the parent (@eq-hard-child-split):
+
+$$
+\hat{p}_{c,i}=q_{c,i}\,\hat{p}_{j,i},
+\quad
+q_{c,i}\ge 0,\;
+\sum_{c\in\mathcal{C}(j)} q_{c,i}=1.
+$$ {#eq-hard-child-split}
+
+`HIDE` renormalisation (@eq-hide-renorm):
+
+$$
+\hat{p}_{c,i}\leftarrow
+\hat{p}_{c,i}\,
+\frac{\hat{p}_{j,i}}{\sum_{c'\in\mathcal{C}(j)}\hat{p}_{c',i}}.
+$$ {#eq-hide-renorm}
+
+`HiDecon` soft penalty (@eq-soft-penalty):
+
+$$
+\mathcal{L}_{\mathrm{tot}}
+=
+\mathcal{L}_{\mathrm{deconv}}
++
+\lambda\sum_{j}\sum_{i=1}^{N}
+\Bigl(
+p_{j,i}-\sum_{c\in\mathcal{C}(j)} p_{c,i}
+\Bigr)^{2}.
+$$ {#eq-soft-penalty}
+
+Within each regime, methods further differ by whether they reuse a **single
+reference signature** at every granularity or **reselect / reweight genes**
+locally at each internal node (@fig-hierarchical-taxonomy).
+
+```{mermaid}
+%%| label: fig-hierarchical-taxonomy
+%%| fig-cap: "Taxonomy of lineage-aware bulk mRNA deconvolution: parent–child constraint (hard vs soft) and reference-gene strategy (fixed matrix vs node-local weights)."
+%%{init: {"theme": "sandstone"}}%%
+flowchart TD
+  A["Lineage-aware bulk mRNA deconvolution"] --> B{"Parent–child linkage"}
+  B -->|"Hard equality (Eq. parent–child)"| C["MuSiC, SCDC, HIDE, Rectangle"]
+  B -->|"Soft / uncoupled levels"| D["HiDecon, Kassandra"]
+  C --> E{"Genes at each node"}
+  D --> F{"Genes at each node"}
+  E -->|"Fixed reference matrix"| G["SCDC ensemble"]
+  E -->|"Node-local reweighting"| H["MuSiC, HIDE, Rectangle"]
+  F -->|"Shared matrix + penalty"| I["HiDecon"]
+  F -->|"Level-specific signatures"| J["Kassandra"]
+```
+
+`xCell` 2.0 [@angelXCell20Robust2025] uses Cell Ontology ancestry to build
+signatures and control spillover between related labels, but its outputs are
+enrichment scores rather than a compositional tree; it sits outside the
+hard/soft fraction taxonomy above.
+
+```{r}
+#| label: tbl-hierarchical-methods
+#| tbl-cap: "Lineage-aware bulk mRNA deconvolution: constraint regime, enforcing equation, and gene strategy (2019–2026 census)."
+#| echo: false
+#| message: false
+#| warning: false
+hier_tbl <- data.frame(
+  method = c(
+    "MuSiC",
+    "SCDC",
+    "HIDE",
+    "Rectangle",
+    "HiDecon",
+    "Kassandra",
+    "xCell 2.0"
+  ),
+  constraint = c(
+    "Hard",
+    "Hard (tree-guided)",
+    "Hard",
+    "Hard (multiscale)",
+    "Soft",
+    "Soft / uncoupled",
+    "None (scores)"
+  ),
+  `lineage constraint` = c(
+    paste0(
+      "Fix $\\hat{p}_{j,i}$; ",
+      "$\\hat{p}_{c,i}=q_{c,i}\\hat{p}_{j,i}$, ",
+      "$\\sum_c q_{c,i}=1$"
+    ),
+    paste0(
+      "MuSiC step; ",
+      "$\\hat{p}_{c,i}=q_{c,i}\\hat{p}_{j,i}$"
+    ),
+    paste0(
+      "Fit then renormalise: ",
+      "$\\hat{p}_{c,i}\\leftarrow",
+      "\\hat{p}_{c,i}\\hat{p}_{j,i}/",
+      "\\sum_{c'}\\hat{p}_{c',i}$"
+    ),
+    "Coarse $\\boldsymbol{p}^{(\\mathrm{coarse})}$ bounds fine estimates",
+    paste0(
+      "$\\mathcal{L}_{\\mathrm{tot}}=\\mathcal{L}_{\\mathrm{deconv}}+",
+      "\\lambda\\sum_{j,i}(p_{j,i}-\\sum_c p_{c,i})^2$"
+    ),
+    "Separate models; no parent–child equality",
+    "Ontology spillover control only"
+  ),
+  `gene strategy` = c(
+    "Node-local consistent genes",
+    "Full reference; optional node split",
+    "Parent-specific learned weights",
+    "Clustered + direct signatures",
+    "Shared $\\boldsymbol{\\mu}$; joint penalised fit",
+    "Level-specific trained signatures",
+    "Ontology-aware signature generation"
+  ),
+  check.names = FALSE
+)
+tinytable::tt(hier_tbl) |>
+  tinytable::style_tt(j = 2:4, align = "l") |>
+  tinytable::format_tt(j = 3, markdown = TRUE)
+```
+
+@tbl-hierarchical-methods and @fig-hierarchical-taxonomy summarise the
+landscape aligned with @eq-hierarchical-linear–@eq-parent-child. **Hard**
+methods (`MuSiC`, `HIDE`, `Rectangle`) are easier to audit node by node but
+inherit upstream bias; **soft** coupling (`HiDecon`) can stabilise rare
+subtypes when the tree is credible. **Node-local gene reweighting** (`MuSiC`,
+`HIDE`, `Rectangle`) targets collinear siblings; **fixed or level-specific
+signatures** (`SCDC`, `Kassandra`) trade flexibility for simpler reference
+construction.
+
+A natural DeCovarT extension would combine @eq-gaussian-convolution with
+either @eq-hard-child-split or @eq-soft-penalty, node-local marker panels,
+and ALR optimisation (@sec-alr-reparam) when a curated lineage tree is
+supplied—benchmarked at broad, intermediate, and terminal resolutions against
+`HiDecon`, `HIDE`, tree-guided `MuSiC`, and `Rectangle`.
 
 # Compositional geometry and validation {#sec-compositional-geometry}
 
 ## ALR reparametrisation and links to the maths vignette {#sec-alr-reparam}
 
-Any estimator of $\boldsymbol{p}$ must respect compositional geometry
-[@aitchisonStatisticalAnalysisCompositional1982;
-@pawlowsky-glahnCompositionalDataAnalysis2011]. DeCovarT maps unconstrained
-coordinates $\boldsymbol{\rho}\in\mathbb{R}^{J-1}$ to the open simplex via
-the **additive logistic** (inverse ALR) map implemented in
-[`additive_logistic()`](../reference/additive_logistic.html):
+Any estimator of $\boldsymbol{p}$ must respect compositional geometry [@aitchisonStatisticalAnalysisCompositional1982; @pawlowsky-glahnCompositionalDataAnalysis2011]. DeCovarT maps unconstrained coordinates $\boldsymbol{\rho}\in\mathbb{R}^{J-1}$ to the open simplex via the **additive logistic** (inverse ALR) map implemented in [`additive_logistic()`](../reference/additive_logistic.html):
 
 $$
 p_j=\frac{e^{\rho_j}}{\sum_{k<J}e^{\rho_k}+1}\;(j<J),
@@ -123,57 +283,19 @@ p_j=\frac{e^{\rho_j}}{\sum_{k<J}e^{\rho_k}+1}\;(j<J),
 p_J=\frac{1}{\sum_{k<J}e^{\rho_k}+1}.
 $$ {#eq-alr-forward}
 
-The inverse [`additive_log_ratio()`](../reference/additive_log_ratio.html)
-recovers $\rho_j=\log(p_j/p_J)$. The forward and inverse maps, their Jacobians,
-and Hessians used in the constrained likelihood are derived in the companion
-vignette
-[Simplex maps and softmax / ALR derivatives](softmax-alr-derivatives.html#eq-additive-logistic-intro)
-(`@eq-additive-logistic-intro` and `@eq-additive-log-ratio-intro` there).
-Optimisation therefore runs in $\boldsymbol{\rho}$-space while reported
-estimates satisfy $\sum_j p_j=1$.
+The inverse [`additive_log_ratio()`](../reference/additive_log_ratio.html) recovers $\rho_j=\log(p_j/p_J)$. The forward and inverse maps, their Jacobians, and Hessians used in the constrained likelihood are derived in the companion vignette [Simplex maps and softmax / ALR derivatives](softmax-alr-derivatives.html#eq-additive-logistic-intro) (`@eq-additive-logistic-intro` and `@eq-additive-log-ratio-intro` there). Optimisation therefore runs in $\boldsymbol{\rho}$-space while reported estimates satisfy $\sum_j p_j=1$.
 
-Extensions on the same footing include **ILR** or **CLR** coordinates
-[@pawlowsky-glahnCompositionalDataAnalysis2011] and Bayesian formulations: a
-Dirichlet or logistic-normal prior on $\boldsymbol{p}$ pairs naturally with
-the Gaussian bulk likelihood (the experimental MAP `CTS` path in
-`R/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R` is one starting point).
-Regardless of coordinate system, the workflow is the same: optimise in an
-unconstrained parameterisation, then map back to the simplex for
-interpretation.
+Extensions on the same footing include **ILR** or **CLR** coordinates [@pawlowsky-glahnCompositionalDataAnalysis2011] and Bayesian formulations: a Dirichlet or logistic-normal prior on $\boldsymbol{p}$ pairs naturally with the Gaussian bulk likelihood (the experimental MAP `CTS` path in `R/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R` is one starting point). Regardless of coordinate system, the workflow is the same: optimise in an unconstrained parameterisation, then map back to the simplex for interpretation.
 
 ## Validation metrics {#sec-validation}
 
-Extended models should be checked on **designed mixtures** with known
-$\boldsymbol{p}$: semi-synthetic bulk profiles (as in
-[synthetic scenarios](synthetic-scenarios.html)), chemical standard blends, or
-mixture-design benchmarks with and without injected interaction signals.
-Because $\boldsymbol{p}$ is compositional, error is often summarised with
-**Aitchison distance** after a log-ratio transform
-[@aitchisonStatisticalAnalysisCompositional1982], or with MAE / RMSE and
-Pearson correlation on raw proportions (common in deconvolution benchmarks).
-Comparing against mean-only baselines (`CIBERSORT`, NNLS, second-generation
-single-cell-informed tools) quantifies the gain from modelling covariance in
-@eq-gaussian-convolution and, eventually, interaction terms in
-@eq-interaction-mean–@eq-interaction-cov.
+Extended models should be checked on **designed mixtures** with known $\boldsymbol{p}$: semi-synthetic bulk profiles (as in [synthetic scenarios](synthetic-scenarios.html)), chemical standard blends, or mixture-design benchmarks with and without injected interaction signals. Because $\boldsymbol{p}$ is compositional, error is often summarised with **Aitchison distance** after a log-ratio transform [@aitchisonStatisticalAnalysisCompositional1982], or with MAE / RMSE and Pearson correlation on raw proportions (common in deconvolution benchmarks). Comparing against mean-only baselines (`CIBERSORT`, NNLS, second-generation single-cell-informed tools) quantifies the gain from modelling covariance in @eq-gaussian-convolution and, eventually, interaction terms in @eq-interaction-mean–@eq-interaction-cov.
 
 ## R tooling for mixture experimental designs {#sec-mixture-doe-r}
 
-The archived CRAN package `mixexp` formerly provided constrained mixture
-regions, extreme-vertex designs, and ternary contour plots; archived releases
-remain on CRAN but there is no maintained one-package replacement. For
-validation workflows that require **designed simplex points** rather than
-random $\boldsymbol{p}$, two practical options are:
+The archived CRAN package `mixexp` formerly provided constrained mixture regions, extreme-vertex designs, and ternary contour plots; archived releases remain on CRAN but there is no maintained one-package replacement. For validation workflows that require **designed simplex points** rather than random $\boldsymbol{p}$, two practical options are:
 
-* **`AlgDesign`** [@R-AlgDesign] — lattice and simplex-centroid mixture
-  designs via `genMixture()` / `gen.mixture()`, plus D-, A-, and I-optimal
-  designs; the closest general substitute for classical mixture DOE.
-* **`skpr`** [@R-skpr] — optimal mixture designs from a candidate set under
-  the $\sum_j p_j=1$ constraint; preferable when optimality criteria matter
-  more than fixed simplex-centroid lattices.
+- **`AlgDesign`** [@R-AlgDesign] — lattice and simplex-centroid mixture designs via `genMixture()` / `gen.mixture()`, plus D-, A-, and I-optimal designs; the closest general substitute for classical mixture DOE.
+- **`skpr`** [@R-skpr] — optimal mixture designs from a candidate set under the $\sum_j p_j=1$ constraint; preferable when optimality criteria matter more than fixed simplex-centroid lattices.
 
-A modular workflow for Scheffé-type benchmarks would combine `AlgDesign` (or
-`skpr`) to propose $\boldsymbol{p}$, DeCovarT (or baselines) to invert the
-mixture, and standard compositional metrics above. Constrained extreme-vertex
-designs under linear bounds remain less well served in current R packages than
-the original `mixexp` workflow; custom simplex sampling may still be required
-for those regions.
+A modular workflow for Scheffé-type benchmarks would combine `AlgDesign` (or `skpr`) to propose $\boldsymbol{p}$, DeCovarT (or baselines) to invert the mixture, and standard compositional metrics above. Constrained extreme-vertex designs under linear bounds remain less well served in current R packages than the original `mixexp` workflow; custom simplex sampling may still be required for those regions.
