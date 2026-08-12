@@ -193,6 +193,21 @@
     probabilistic model of our algorithm, \emph{DeCovarT} (Deconvolution using
     the Transcriptomic Covariance), implements this integrated approach.
 
+    A key practical challenge for \emph{DeCovarT} is that, unlike methods relying
+    solely on mean expression profiles, it requires a covariance (or precision)
+    matrix encoding gene--gene interactions.  Recovering this structure from
+    observational expression data alone is inherently difficult: expression
+    correlations are largely correlative, and inferring directed, mechanistically
+    interpretable regulatory edges typically requires additional data modalities
+    such as chromatin accessibility (ATAC-seq) or transcription-factor binding
+    information \cite{badia-i-mompelGeneRegulatoryNetwork2023,maizelsGeneRegulatoryNetworks2026}.
+    Systematic benchmarking further shows that even with richer multi-omic inputs,
+    GRN inference can fail in common regimes \cite{nourisaGeneRNIBLivingBenchmark2025}.
+    Whether recovering the true causal regulatory architecture is strictly
+    necessary for accurate deconvolution, or whether statistically consistent
+    covariance estimation is sufficient to improve compositional recovery, remains
+    an open question that we address experimentally in the Results section.
+
     \section{Results}
     \label{sec2}
 
@@ -251,7 +266,7 @@
       \begin{figure}
         \centering
         \includegraphics[width=0.9\textwidth]{
-            figs/deconvolution_Heatmap_full.pdf
+            deconvolution_Heatmap_full.png
         }
         \caption{We used the package \CRANpkg{ComplexHeatmap} to display the mean
         square error (MSE) of the estimated cell ratios, comparing the NNLS
@@ -476,7 +491,7 @@
 
     \begin{figure}[t]
         \centering
-        \input{figs/tikz_dag_models}
+        \input{tikz_dag_models}
         \caption[DAG models for linear and DeCovarT deconvolution]{%
             Directed graphical models (plate notation), following the conventions
             of \href{https://revbayes.github.io/tutorials/intro/graph_models.html}{RevBayes}.
@@ -1243,9 +1258,8 @@ djusting $p-$ values, as numerous genes are examined simultaneously,
             $\Sigma=\boldsymbol{C}\boldsymbol{C}^{\top}$ and multiply the
             observations and the predicted values by $\boldsymbol{C}^{-1}$, we can
             turn the problem in a standard OLS optimisation, removing the
-            heteroscedascity and the covariance between the observations. Using then
-            \ref{th:MLE-estimate-univariate} to this transformed data, we show
-            that the GLS estimate is the best linear unbiased estimator of
+            heteroscedascity and the covariance between the observations. The GLS estimate 
+            is the best linear unbiased estimator of
             $\boldsymbol{p}$.
 
             \footnote{Weighted least squares (WLS) estimation is a sub-problem

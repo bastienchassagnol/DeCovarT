@@ -113,6 +113,9 @@ navbar:
         - text: OLS reminders for linear deconvolution
           icon: fa-equals
           href: articles/DeCovarT-reminders-OLS.html
+        - text: DeCovarT perspectives (outlook)
+          icon: fa-compass
+          href: articles/decovart-perspectives.html
     news:
       text: News
       icon: fa-newspaper
@@ -209,6 +212,7 @@ articles:
     contents:
       - softmax-alr-derivatives
       - DeCovarT-reminders-OLS
+      - decovart-perspectives
 
 news:
   releases:

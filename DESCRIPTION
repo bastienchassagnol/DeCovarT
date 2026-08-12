@@ -21,7 +21,7 @@ Description: Estimates cell-type proportions in bulk transcriptomic samples
 License: MIT + file LICENSE
 Additional_repositories: https://bioconductor.org/packages/release/bioc
 Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
+Roxygen: list(markdown = TRUE, roclets = c("namespace", "rd", "srr::srr_stats_roclet"))
 Suggests:
     compositions,
     flextable,

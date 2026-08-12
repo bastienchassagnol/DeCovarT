@@ -6,6 +6,7 @@
 ^README-.*\.png$
 ^.*\.Rproj$
 ^CONTRIBUTING\.md$
+^B-submit-a-presubmission-inquiry\.md$
 ^LICENSE\.md$
 ^additional_functions\.R$
 ^figs$
@@ -70,3 +71,4 @@
 ^output$
 ^revdep$
 ^inst/logo/decovart_logo_chatgpt.png$
+^pkgcheck-report.md$

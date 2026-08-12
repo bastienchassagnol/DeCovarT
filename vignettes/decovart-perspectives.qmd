@@ -1,0 +1,179 @@
+---
+title: "DeCovarT perspectives"
+author: "Bastien Chassagnol"
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteIndexEntry{DeCovarT perspectives}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+bibliography:
+  - ../inst/packages.bib
+  - ../inst/REFERENCES.bib
+link-citations: true
+crossref:
+  eq-prefix: "Eq."
+  sec-prefix: "Sec."
+format:
+  html:
+    embed-resources: true
+    toc: true
+---
+
+::: {.callout-note}
+## Scope
+
+Outlook on extending DeCovarT beyond bulk transcriptomic deconvolution.
+Future sections (spatial transcriptomics, multi-modal / multi-omics) will be
+added here. Compositional reparametrisation is implemented in
+[`additive_logistic()`](../reference/additive_logistic.html) and documented
+numerically in the
+[softmax / ALR derivatives](softmax-alr-derivatives.html) vignette.
+:::
+
+Bulk transcriptomic deconvolution is one instance of a **mixture inverse
+problem**: a composite signal (tissue expression, a spectrum, a chromatogram)
+is observed, and we seek the proportions $\boldsymbol{p}$ of underlying
+components. Because $\boldsymbol{p}$ is **compositional** (parts of a whole),
+estimates must lie on the simplex
+$\Delta^{J-1}=\{\boldsymbol{p}\in[0,1]^J:\sum_j p_j=1\}$.
+[@chassagnolDeCovarTMultidimensionalProbalistic2023] model each reference
+profile as multivariate Gaussian and recover $\boldsymbol{p}$ by constrained
+maximum likelihood; classical deconvolution tools such as `CIBERSORT` assume
+gene-wise independence instead [@newmanRobustEnumerationCell2015].
+
+# Extending the generative model {#sec-extending-model}
+
+## Mixture design and first-order structure {#sec-mixture-design}
+
+In designed mixture experiments (chemistry, food science, formulation),
+component proportions are explicit regressors with no free intercept because
+$\sum_j p_j=1$. A Scheffé cubic model for three components reads
+
+$$
+y = \beta_1 p_1 + \beta_2 p_2 + \beta_3 p_3
+  + \beta_{12} p_1 p_2 + \beta_{13} p_1 p_3 + \beta_{23} p_2 p_3
+  + \beta_{123} p_1 p_2 p_3,
+$$ {#eq-scheffe-cubic}
+
+with every $p_j\in[0,1]$ and $\sum_j p_j=1$
+[@brownGeneralBlendingModels2015; @aitchisonStatisticalAnalysisCompositional1982].
+DeCovarT's current release implements only the **first-order** part of
+@eq-scheffe-cubic in a probabilistic setting: for cell type $j$, reference
+mean $\boldsymbol{\mu}_j$ and covariance $\boldsymbol{\Sigma}_j$ are given,
+and the bulk mixture satisfies
+
+$$
+\boldsymbol{Y}\mid\boldsymbol{p}
+  \sim \mathcal{N}\!\left(
+    \sum_{j=1}^{J} p_j\,\boldsymbol{\mu}_j,\;
+    \sum_{j=1}^{J} p_j^{2}\,\boldsymbol{\Sigma}_j
+  \right).
+$$ {#eq-gaussian-convolution}
+
+@eq-gaussian-convolution is the Gaussian-convolution likelihood optimised in
+[`deconvolute_ratios()`](../reference/deconvolute_ratios.html); it extends
+mean-only linear deconvolution by propagating gene–gene covariance, not by
+adding Scheffé interaction monomials.
+
+## Interaction and synergy terms {#sec-interactions}
+
+Synergy or antagonism between components corresponds to **second-order**
+terms in @eq-scheffe-cubic: a positive $\beta_{12}$ means the joint presence
+of components 1 and 2 raises the response above the additive prediction
+$\beta_1 p_1+\beta_2 p_2$. A natural generative extension would enrich the
+mean and, optionally, the covariance:
+
+$$
+\mathbb{E}[\boldsymbol{Y}]
+  = \sum_j p_j\,\boldsymbol{\mu}_j
+  + \sum_{j<k} f(p_j,p_k)\,\boldsymbol{\mu}_{jk} + \cdots,
+$$ {#eq-interaction-mean}
+
+$$
+\boldsymbol{\Sigma}(\boldsymbol{p})
+  = \sum_j p_j^{2}\,\boldsymbol{\Sigma}_j
+  + \sum_{j<k} g(p_j,p_k)\,\boldsymbol{\Sigma}_{jk} + \cdots,
+$$ {#eq-interaction-cov}
+
+with $f,g$ often taken as $p_j p_k$. Allowing $\operatorname{Cov}(\boldsymbol
+{X}_j,\boldsymbol{X}_k)\neq\boldsymbol{0}$ relaxes DeCovarT's independence
+assumption between components and captures non-additive mixing. Such a model
+remains compatible with the same simplex constraint on $\boldsymbol{p}$ and
+could still be fitted by constrained MLE, at the cost of many additional
+interaction parameters and careful guard against overfitting.
+
+# Compositional geometry and validation {#sec-compositional-geometry}
+
+## ALR reparametrisation and links to the maths vignette {#sec-alr-reparam}
+
+Any estimator of $\boldsymbol{p}$ must respect compositional geometry
+[@aitchisonStatisticalAnalysisCompositional1982;
+@pawlowsky-glahnCompositionalDataAnalysis2011]. DeCovarT maps unconstrained
+coordinates $\boldsymbol{\rho}\in\mathbb{R}^{J-1}$ to the open simplex via
+the **additive logistic** (inverse ALR) map implemented in
+[`additive_logistic()`](../reference/additive_logistic.html):
+
+$$
+p_j=\frac{e^{\rho_j}}{\sum_{k<J}e^{\rho_k}+1}\;(j<J),
+\qquad
+p_J=\frac{1}{\sum_{k<J}e^{\rho_k}+1}.
+$$ {#eq-alr-forward}
+
+The inverse [`additive_log_ratio()`](../reference/additive_log_ratio.html)
+recovers $\rho_j=\log(p_j/p_J)$. The forward and inverse maps, their Jacobians,
+and Hessians used in the constrained likelihood are derived in the companion
+vignette
+[Simplex maps and softmax / ALR derivatives](softmax-alr-derivatives.html#eq-additive-logistic-intro)
+(`@eq-additive-logistic-intro` and `@eq-additive-log-ratio-intro` there).
+Optimisation therefore runs in $\boldsymbol{\rho}$-space while reported
+estimates satisfy $\sum_j p_j=1$.
+
+Extensions on the same footing include **ILR** or **CLR** coordinates
+[@pawlowsky-glahnCompositionalDataAnalysis2011] and Bayesian formulations: a
+Dirichlet or logistic-normal prior on $\boldsymbol{p}$ pairs naturally with
+the Gaussian bulk likelihood (the experimental MAP `CTS` path in
+`R/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R` is one starting point).
+Regardless of coordinate system, the workflow is the same: optimise in an
+unconstrained parameterisation, then map back to the simplex for
+interpretation.
+
+## Validation metrics {#sec-validation}
+
+Extended models should be checked on **designed mixtures** with known
+$\boldsymbol{p}$: semi-synthetic bulk profiles (as in
+[synthetic scenarios](synthetic-scenarios.html)), chemical standard blends, or
+mixture-design benchmarks with and without injected interaction signals.
+Because $\boldsymbol{p}$ is compositional, error is often summarised with
+**Aitchison distance** after a log-ratio transform
+[@aitchisonStatisticalAnalysisCompositional1982], or with MAE / RMSE and
+Pearson correlation on raw proportions (common in deconvolution benchmarks).
+Comparing against mean-only baselines (`CIBERSORT`, NNLS, second-generation
+single-cell-informed tools) quantifies the gain from modelling covariance in
+@eq-gaussian-convolution and, eventually, interaction terms in
+@eq-interaction-mean–@eq-interaction-cov.
+
+## R tooling for mixture experimental designs {#sec-mixture-doe-r}
+
+The archived CRAN package `mixexp` formerly provided constrained mixture
+regions, extreme-vertex designs, and ternary contour plots; archived releases
+remain on CRAN but there is no maintained one-package replacement. For
+validation workflows that require **designed simplex points** rather than
+random $\boldsymbol{p}$, two practical options are:
+
+* **`AlgDesign`** [@R-AlgDesign] — lattice and simplex-centroid mixture
+  designs via `genMixture()` / `gen.mixture()`, plus D-, A-, and I-optimal
+  designs; the closest general substitute for classical mixture DOE.
+* **`skpr`** [@R-skpr] — optimal mixture designs from a candidate set under
+  the $\sum_j p_j=1$ constraint; preferable when optimality criteria matter
+  more than fixed simplex-centroid lattices.
+
+A modular workflow for Scheffé-type benchmarks would combine `AlgDesign` (or
+`skpr`) to propose $\boldsymbol{p}$, DeCovarT (or baselines) to invert the
+mixture, and standard compositional metrics above. Constrained extreme-vertex
+designs under linear bounds remain less well served in current R packages than
+the original `mixexp` workflow; custom simplex sampling may still be required
+for those regions.

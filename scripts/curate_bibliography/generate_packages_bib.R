@@ -71,6 +71,17 @@ EXTRA_MANUALS <- c(
     "  url = {https://github.com/VeraPancaldiLab/pipeML},",
     "}",
     sep = "\n"
+  ),
+  paste(
+    "@Manual{R-skpr,",
+    "  title = {skpr: Design of Experiments Suite: Generate and Evaluate",
+    "Optimal Designs},",
+    "  author = {Tyler Morgan-Wall and George Khoury},",
+    "  year = {2025},",
+    "  note = {R package version 1.9.2},",
+    "  url = {https://CRAN.R-project.org/package=skpr},",
+    "}",
+    sep = "\n"
   )
 )
 
