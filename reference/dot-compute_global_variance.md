@@ -19,8 +19,8 @@ of the array `Sigma`.
 
 - Sigma:
 
-  Array in \\\mathcal{M}\_{G\times G\times J}\\ whose slice
-  \\\boldsymbol{\Sigma}\_j=\\ `Sigma[,, j]` is the cell-type covariance.
+  Array of cell-type covariances in \\\mathcal{M}\_{G\times G\times
+  J}\\.
 
 ## Value
 

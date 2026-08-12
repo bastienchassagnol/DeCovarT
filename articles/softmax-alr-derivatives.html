@@ -56,6 +56,7 @@
     <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
     <li><a class="dropdown-item" href="../articles/softmax-alr-derivatives.html"><span class="fa fa-square-root-variable"></span> Simplex maps and softmax / ALR derivatives</a></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
+    <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives (outlook)</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html"><span class="fa fa-newspaper"></span> News</a></li>
@@ -84,7 +85,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Simplex maps and numerically stable softmax / ALR derivatives</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-08-08</p>
+      <p class="date">2026-08-12</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/softmax-alr-derivatives.qmd" class="external-link"><code>vignettes/softmax-alr-derivatives.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -172,32 +173,32 @@ Table 2: Standard algebraic operations induced by a matrix <span class="math in
     };
     </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_7lzus2k59z5gvtu45ob9 = TinyTable.createTableFunctions("tinytable_7lzus2k59z5gvtu45ob9");
+      const tableFns_6rq57x667u5vxbcnlgw2 = TinyTable.createTableFunctions("tinytable_6rq57x667u5vxbcnlgw2");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '6', j: 1 }, { i: '6', j: 2 } ], css_id: 'tinytable_css_bnmtzp2g28286g502asn',},
-          { positions: [ { i: '1', j: 1 }, { i: '2', j: 1 }, { i: '3', j: 1 }, { i: '4', j: 1 }, { i: '5', j: 1 }, { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 } ], css_id: 'tinytable_css_6fff35fbrfpn1k2aji7u',},
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 } ], css_id: 'tinytable_css_k17q4e8o79qqfpys7yqv',},
+          { positions: [ { i: '6', j: 1 }, { i: '6', j: 2 } ], css_id: 'tinytable_css_povn98rhjqxgqwyegoi4',},
+          { positions: [ { i: '1', j: 1 }, { i: '2', j: 1 }, { i: '3', j: 1 }, { i: '4', j: 1 }, { i: '5', j: 1 }, { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 } ], css_id: 'tinytable_css_46oiz9a58llk70tuvmg5',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 } ], css_id: 'tinytable_css_fjw5h9uts0fnsrj29vqj',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_7lzus2k59z5gvtu45ob9.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_6rq57x667u5vxbcnlgw2.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_7lzus2k59z5gvtu45ob9 td.tinytable_css_bnmtzp2g28286g502asn, #tinytable_7lzus2k59z5gvtu45ob9 th.tinytable_css_bnmtzp2g28286g502asn {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_7lzus2k59z5gvtu45ob9 td.tinytable_css_6fff35fbrfpn1k2aji7u, #tinytable_7lzus2k59z5gvtu45ob9 th.tinytable_css_6fff35fbrfpn1k2aji7u { text-align: center }
-    #tinytable_7lzus2k59z5gvtu45ob9 td.tinytable_css_k17q4e8o79qqfpys7yqv, #tinytable_7lzus2k59z5gvtu45ob9 th.tinytable_css_k17q4e8o79qqfpys7yqv {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_6rq57x667u5vxbcnlgw2 td.tinytable_css_povn98rhjqxgqwyegoi4, #tinytable_6rq57x667u5vxbcnlgw2 th.tinytable_css_povn98rhjqxgqwyegoi4 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_6rq57x667u5vxbcnlgw2 td.tinytable_css_46oiz9a58llk70tuvmg5, #tinytable_6rq57x667u5vxbcnlgw2 th.tinytable_css_46oiz9a58llk70tuvmg5 { text-align: center }
+    #tinytable_6rq57x667u5vxbcnlgw2 td.tinytable_css_fjw5h9uts0fnsrj29vqj, #tinytable_6rq57x667u5vxbcnlgw2 th.tinytable_css_fjw5h9uts0fnsrj29vqj {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_7lzus2k59z5gvtu45ob9" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_6rq57x667u5vxbcnlgw2" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">Expression</th>
                 <th scope="col" data-row="0" data-col="2">Terminology</th>
@@ -236,7 +237,7 @@ Table 2: Standard algebraic operations induced by a matrix <span class="math in
 </figure>
 </div>
 </div>
-<p>Package helpers <code><a href="../reference/dot-bilinear_form.html">.bilinear_form()</a></code> and <code><a href="../reference/dot-squared_mahalanobis_distance.html">.squared_mahalanobis_distance()</a></code> implement the middle rows of <a href="#tbl-bilinear-forms" class="quarto-xref">Table 2</a>. The second solves <span class="math inline">\boldsymbol{\Sigma}\boldsymbol{z}=\boldsymbol{\delta}</span> rather than forming <span class="math inline">\boldsymbol{\Sigma}^{-1}</span> explicitly. Calling <span class="math inline">\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{y}</span> a “dot product” is misleading unless <span class="math inline">\boldsymbol{A}=\boldsymbol{I}</span>; see also the <a href="https://en.wikipedia.org/wiki/Dot_product" class="external-link">dot product</a> and <a href="https://en.wikipedia.org/wiki/Inner_product_space" class="external-link">inner product space</a> articles for the Euclidean special case <span class="math inline">\langle\boldsymbol{x},\boldsymbol{y}\rangle=\boldsymbol{x}^{\mathsf{T}}\boldsymbol{y}</span>.</p>
+<p>Package helpers <code><a href="../reference/dot-bilinear_form.html">.bilinear_form()</a></code> and <code>.squared_mahalanobis_distance()</code> implement the middle rows of <a href="#tbl-bilinear-forms" class="quarto-xref">Table 2</a>. The second solves <span class="math inline">\boldsymbol{\Sigma}\boldsymbol{z}=\boldsymbol{\delta}</span> rather than forming <span class="math inline">\boldsymbol{\Sigma}^{-1}</span> explicitly. Calling <span class="math inline">\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{y}</span> a “dot product” is misleading unless <span class="math inline">\boldsymbol{A}=\boldsymbol{I}</span>; see also the <a href="https://en.wikipedia.org/wiki/Dot_product" class="external-link">dot product</a> and <a href="https://en.wikipedia.org/wiki/Inner_product_space" class="external-link">inner product space</a> articles for the Euclidean special case <span class="math inline">\langle\boldsymbol{x},\boldsymbol{y}\rangle=\boldsymbol{x}^{\mathsf{T}}\boldsymbol{y}</span>.</p>
 </section><section class="section level2"><h2 id="log-sum-exp-and-softmax">Log-sum-exp and softmax<a class="anchor" aria-label="anchor" href="#log-sum-exp-and-softmax"></a>
 </h2>
 <p>The softmax of a score vector <span class="math inline">\boldsymbol{z}\in\mathbb{R}^{K}</span> is evaluated through the log-sum-exp (LSE) to avoid overflow,</p>
@@ -681,36 +682,36 @@ Table 3: Effect of negating the analytic Hessian passed to marqLevAlg when maxi
     };
     </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_1glga0dwmit07toamoc1 = TinyTable.createTableFunctions("tinytable_1glga0dwmit07toamoc1");
+      const tableFns_7qo4o6v0dtb3m3gm0iqj = TinyTable.createTableFunctions("tinytable_7qo4o6v0dtb3m3gm0iqj");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '2', j: 2 }, { i: '2', j: 3 }, { i: '2', j: 4 } ], css_id: 'tinytable_css_qjw21qm4ek6urgy3bs93',},
-          { positions: [ { i: '1', j: 2 }, { i: '1', j: 3 }, { i: '1', j: 4 } ], css_id: 'tinytable_css_4u7ykrriqs7hx0vy9fyi',},
-          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_0txzvfdl0yslhm3r3blc',},
-          { positions: [ { i: '2', j: 1 } ], css_id: 'tinytable_css_tazpr6pupuzs1letf5nr',},
-          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_g6qmk4b2v5g7zuwpui7t',},
+          { positions: [ { i: '2', j: 2 }, { i: '2', j: 3 }, { i: '2', j: 4 } ], css_id: 'tinytable_css_94un4jm7p310xp5o8n9u',},
+          { positions: [ { i: '1', j: 2 }, { i: '1', j: 3 }, { i: '1', j: 4 } ], css_id: 'tinytable_css_48xoxqmjzv57tt6bl3o9',},
+          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_frtagm8ua0t0efwanjyy',},
+          { positions: [ { i: '2', j: 1 } ], css_id: 'tinytable_css_3bmq25qlseugmnhvzx49',},
+          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_m952cmjmg48kln27camt',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_1glga0dwmit07toamoc1.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_7qo4o6v0dtb3m3gm0iqj.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_1glga0dwmit07toamoc1 td.tinytable_css_qjw21qm4ek6urgy3bs93, #tinytable_1glga0dwmit07toamoc1 th.tinytable_css_qjw21qm4ek6urgy3bs93 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_1glga0dwmit07toamoc1 td.tinytable_css_4u7ykrriqs7hx0vy9fyi, #tinytable_1glga0dwmit07toamoc1 th.tinytable_css_4u7ykrriqs7hx0vy9fyi { text-align: center }
-    #tinytable_1glga0dwmit07toamoc1 td.tinytable_css_0txzvfdl0yslhm3r3blc, #tinytable_1glga0dwmit07toamoc1 th.tinytable_css_0txzvfdl0yslhm3r3blc {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_1glga0dwmit07toamoc1 td.tinytable_css_tazpr6pupuzs1letf5nr, #tinytable_1glga0dwmit07toamoc1 th.tinytable_css_tazpr6pupuzs1letf5nr {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_1glga0dwmit07toamoc1 td.tinytable_css_g6qmk4b2v5g7zuwpui7t, #tinytable_1glga0dwmit07toamoc1 th.tinytable_css_g6qmk4b2v5g7zuwpui7t {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_7qo4o6v0dtb3m3gm0iqj td.tinytable_css_94un4jm7p310xp5o8n9u, #tinytable_7qo4o6v0dtb3m3gm0iqj th.tinytable_css_94un4jm7p310xp5o8n9u {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_7qo4o6v0dtb3m3gm0iqj td.tinytable_css_48xoxqmjzv57tt6bl3o9, #tinytable_7qo4o6v0dtb3m3gm0iqj th.tinytable_css_48xoxqmjzv57tt6bl3o9 { text-align: center }
+    #tinytable_7qo4o6v0dtb3m3gm0iqj td.tinytable_css_frtagm8ua0t0efwanjyy, #tinytable_7qo4o6v0dtb3m3gm0iqj th.tinytable_css_frtagm8ua0t0efwanjyy {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_7qo4o6v0dtb3m3gm0iqj td.tinytable_css_3bmq25qlseugmnhvzx49, #tinytable_7qo4o6v0dtb3m3gm0iqj th.tinytable_css_3bmq25qlseugmnhvzx49 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_7qo4o6v0dtb3m3gm0iqj td.tinytable_css_m952cmjmg48kln27camt, #tinytable_7qo4o6v0dtb3m3gm0iqj th.tinytable_css_m952cmjmg48kln27camt {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_1glga0dwmit07toamoc1" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_7qo4o6v0dtb3m3gm0iqj" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">Hessian sign</th>
                 <th scope="col" data-row="0" data-col="2">istop</th>

@@ -23,9 +23,10 @@ can add Poisson–log-normal or zero-inflated counts). The **graph** and
 the **precision** must not be conflated: a binary adjacency is almost
 never itself positive definite. DeCovarT draws G_j via
 [`generate_random_network_skeleton()`](https://bastienchassagnol.github.io/DeCovarT/reference/generate_random_network_skeleton.md),
-completes \Omega_j\succ 0 with `build_normalised_precision()`, and
-stacks the inverted slices with
-`build_covariance_array_from_precision()`.
+completes \Omega_j\succ 0 with
+[`build_normalised_precision()`](https://bastienchassagnol.github.io/DeCovarT/reference/build_normalised_precision.md),
+and stacks the inverted slices with
+[`build_covariance_array_from_precision()`](https://bastienchassagnol.github.io/DeCovarT/reference/build_covariance_array_from_precision.md).
 [Section 4](#sec-ggm-networks) develops the topology, weight, and SPD
 design in detail.
 
@@ -334,9 +335,11 @@ the same off-diagonal support, \Omega a strictly positive-definite
 precision, and X_i an expression profile. This section covers
 **undirected** Gaussian Markov / precision-graph simulation only.
 [`generate_random_network_skeleton()`](https://bastienchassagnol.github.io/DeCovarT/reference/generate_random_network_skeleton.md)
-draws G; `build_normalised_precision()` completes it to \Omega\succ 0 by
-an affine spectral shift; `build_covariance_array_from_precision()` maps
-each slice \boldsymbol{\Sigma}\_j=\boldsymbol{\Omega}\_j^{-1} (cell
+draws G;
+[`build_normalised_precision()`](https://bastienchassagnol.github.io/DeCovarT/reference/build_normalised_precision.md)
+completes it to \Omega\succ 0 by an affine spectral shift;
+[`build_covariance_array_from_precision()`](https://bastienchassagnol.github.io/DeCovarT/reference/build_covariance_array_from_precision.md)
+maps each slice \boldsymbol{\Sigma}\_j=\boldsymbol{\Omega}\_j^{-1} (cell
 types need not share one network).
 
 ``` mermaid
@@ -584,8 +587,9 @@ less direct control of the inhibitory fraction than
 
 [Table 5](#tbl-pd) contrasts constructions that turn a weighted support
 W (or a partial-correlation design) into \Omega\succ 0. DeCovarT’s
-`build_normalised_precision()` implements the uniform spectral shift
-below, with diagonal cushion u (`precision_shift`):
+[`build_normalised_precision()`](https://bastienchassagnol.github.io/DeCovarT/reference/build_normalised_precision.md)
+implements the uniform spectral shift below, with diagonal cushion u
+(`precision_shift`):
 
 \boldsymbol{\Omega} = \boldsymbol{W} + \bigl(
 \lvert\lambda\_{\min}(\boldsymbol{W})\rvert + u \bigr) \mathbf{I}.

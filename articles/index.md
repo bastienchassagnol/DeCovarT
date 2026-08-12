@@ -22,3 +22,5 @@
   derivatives](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.md):
 - [OLS reminders for linear
   deconvolution](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-reminders-OLS.md):
+- [DeCovarT
+  perspectives](https://bastienchassagnol.github.io/DeCovarT/articles/decovart-perspectives.md):

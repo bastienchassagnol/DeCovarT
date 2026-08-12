@@ -1,11 +1,13 @@
 <urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/404.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/B-submit-a-presubmission-inquiry.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/LICENSE-text.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/LICENSE.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/PULL_REQUEST_TEMPLATE.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-reminders-OLS.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/deconvolution-seminar-slides.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/decovart-perspectives.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/feature-selection.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/index.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/network-inference.html</loc></url>
@@ -19,6 +21,8 @@
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/assign_iid_signed_weights.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/benchmark_bivariate_gaussian_convolutions.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/build_covariance_array_from_precision.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/build_normalised_precision.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/check_true_theta.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_jeffreys.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_overlap.html</loc></url>
@@ -33,7 +37,6 @@
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/dot-jeffreys_gaussian.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/dot-map_gaussian_convolution.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/dot-sigma_p_factorisation.html</loc></url>
-<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/dot-squared_mahalanobis_distance.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/generate_mean_signature_matrix.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/generate_random_network_skeleton.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/gradient_loglik_constrained.html</loc></url>

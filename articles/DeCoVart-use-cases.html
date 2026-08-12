@@ -56,6 +56,7 @@
     <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
     <li><a class="dropdown-item" href="../articles/softmax-alr-derivatives.html"><span class="fa fa-square-root-variable"></span> Simplex maps and softmax / ALR derivatives</a></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
+    <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives (outlook)</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html"><span class="fa fa-newspaper"></span> News</a></li>
@@ -84,7 +85,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Deconvolution use cases with DeCovarT</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-08-08</p>
+      <p class="date">2026-08-12</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/DeCoVart-use-cases.qmd" class="external-link"><code>vignettes/DeCoVart-use-cases.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -239,36 +240,36 @@ Table 2: Realised pairwise cosine and Euclidean distance of the 50 x 3 mean sig
     };
     </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_k95aqyz5lqga9g4paf01 = TinyTable.createTableFunctions("tinytable_k95aqyz5lqga9g4paf01");
+      const tableFns_wwozd0ze8wi87xj9kf5n = TinyTable.createTableFunctions("tinytable_wwozd0ze8wi87xj9kf5n");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '3', j: 2 }, { i: '3', j: 3 } ], css_id: 'tinytable_css_fmpgr1j8xom6p99tz3gr',},
-          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 } ], css_id: 'tinytable_css_74h3t7r1c0b7om3aiynq',},
-          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 } ], css_id: 'tinytable_css_v1tw29wpwzzaetocdjpl',},
-          { positions: [ { i: '3', j: 1 } ], css_id: 'tinytable_css_z1xc8uhpf9pnwwby4thd',},
-          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_3poggoeiommxlettvhpp',},
+          { positions: [ { i: '3', j: 2 }, { i: '3', j: 3 } ], css_id: 'tinytable_css_d8oy4v3uf83e6yuvn441',},
+          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 } ], css_id: 'tinytable_css_lsdzvtx4f6evdlddhczy',},
+          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 } ], css_id: 'tinytable_css_b0bg0h3rrsmnfwzkmgxw',},
+          { positions: [ { i: '3', j: 1 } ], css_id: 'tinytable_css_xe21fh5ka4hmb4py9mw2',},
+          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_ued014z1bym55eky8g2x',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_k95aqyz5lqga9g4paf01.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_wwozd0ze8wi87xj9kf5n.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_k95aqyz5lqga9g4paf01 td.tinytable_css_fmpgr1j8xom6p99tz3gr, #tinytable_k95aqyz5lqga9g4paf01 th.tinytable_css_fmpgr1j8xom6p99tz3gr {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_k95aqyz5lqga9g4paf01 td.tinytable_css_74h3t7r1c0b7om3aiynq, #tinytable_k95aqyz5lqga9g4paf01 th.tinytable_css_74h3t7r1c0b7om3aiynq { text-align: center }
-    #tinytable_k95aqyz5lqga9g4paf01 td.tinytable_css_v1tw29wpwzzaetocdjpl, #tinytable_k95aqyz5lqga9g4paf01 th.tinytable_css_v1tw29wpwzzaetocdjpl {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_k95aqyz5lqga9g4paf01 td.tinytable_css_z1xc8uhpf9pnwwby4thd, #tinytable_k95aqyz5lqga9g4paf01 th.tinytable_css_z1xc8uhpf9pnwwby4thd {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_k95aqyz5lqga9g4paf01 td.tinytable_css_3poggoeiommxlettvhpp, #tinytable_k95aqyz5lqga9g4paf01 th.tinytable_css_3poggoeiommxlettvhpp {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_wwozd0ze8wi87xj9kf5n td.tinytable_css_d8oy4v3uf83e6yuvn441, #tinytable_wwozd0ze8wi87xj9kf5n th.tinytable_css_d8oy4v3uf83e6yuvn441 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_wwozd0ze8wi87xj9kf5n td.tinytable_css_lsdzvtx4f6evdlddhczy, #tinytable_wwozd0ze8wi87xj9kf5n th.tinytable_css_lsdzvtx4f6evdlddhczy { text-align: center }
+    #tinytable_wwozd0ze8wi87xj9kf5n td.tinytable_css_b0bg0h3rrsmnfwzkmgxw, #tinytable_wwozd0ze8wi87xj9kf5n th.tinytable_css_b0bg0h3rrsmnfwzkmgxw {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_wwozd0ze8wi87xj9kf5n td.tinytable_css_xe21fh5ka4hmb4py9mw2, #tinytable_wwozd0ze8wi87xj9kf5n th.tinytable_css_xe21fh5ka4hmb4py9mw2 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_wwozd0ze8wi87xj9kf5n td.tinytable_css_ued014z1bym55eky8g2x, #tinytable_wwozd0ze8wi87xj9kf5n th.tinytable_css_ued014z1bym55eky8g2x {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_k95aqyz5lqga9g4paf01" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_wwozd0ze8wi87xj9kf5n" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">pair</th>
                 <th scope="col" data-row="0" data-col="2">cosine</th>
@@ -319,36 +320,36 @@ Table 3: Per-cell-type precision spectrum for the 50 x 50 hybrid-topology Omega
     };
     </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_qmbqo72nbnh75jh0zb1d = TinyTable.createTableFunctions("tinytable_qmbqo72nbnh75jh0zb1d");
+      const tableFns_q6wdfwwxyq3w67ewgsfz = TinyTable.createTableFunctions("tinytable_q6wdfwwxyq3w67ewgsfz");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '3', j: 3 }, { i: '3', j: 4 }, { i: '3', j: 5 }, { i: '3', j: 6 } ], css_id: 'tinytable_css_fgz258ts471v1py9fd0i',},
-          { positions: [ { i: '1', j: 3 }, { i: '2', j: 3 }, { i: '1', j: 4 }, { i: '2', j: 4 }, { i: '1', j: 5 }, { i: '2', j: 5 }, { i: '1', j: 6 }, { i: '2', j: 6 } ], css_id: 'tinytable_css_j6tr0n2bh7yd7ypex2oc',},
-          { positions: [ { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 }, { i: '0', j: 6 } ], css_id: 'tinytable_css_11opzzqdvetuyomgv6g6',},
-          { positions: [ { i: '3', j: 1 }, { i: '3', j: 2 } ], css_id: 'tinytable_css_tzr7qlpuhcgccyucv4ka',},
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 } ], css_id: 'tinytable_css_noczymwh84dm0fh0t5pf',},
+          { positions: [ { i: '3', j: 3 }, { i: '3', j: 4 }, { i: '3', j: 5 }, { i: '3', j: 6 } ], css_id: 'tinytable_css_ctwwe7v8km7peqij4cf4',},
+          { positions: [ { i: '1', j: 3 }, { i: '2', j: 3 }, { i: '1', j: 4 }, { i: '2', j: 4 }, { i: '1', j: 5 }, { i: '2', j: 5 }, { i: '1', j: 6 }, { i: '2', j: 6 } ], css_id: 'tinytable_css_d2uer7c9k6f4foloi943',},
+          { positions: [ { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 }, { i: '0', j: 6 } ], css_id: 'tinytable_css_05dvcdo00zekweb6l3t8',},
+          { positions: [ { i: '3', j: 1 }, { i: '3', j: 2 } ], css_id: 'tinytable_css_cjt2v08ovjo7u52zn52p',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 } ], css_id: 'tinytable_css_4hav0ifkosxvss7iwe7e',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_qmbqo72nbnh75jh0zb1d.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_q6wdfwwxyq3w67ewgsfz.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_qmbqo72nbnh75jh0zb1d td.tinytable_css_fgz258ts471v1py9fd0i, #tinytable_qmbqo72nbnh75jh0zb1d th.tinytable_css_fgz258ts471v1py9fd0i {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_qmbqo72nbnh75jh0zb1d td.tinytable_css_j6tr0n2bh7yd7ypex2oc, #tinytable_qmbqo72nbnh75jh0zb1d th.tinytable_css_j6tr0n2bh7yd7ypex2oc { text-align: center }
-    #tinytable_qmbqo72nbnh75jh0zb1d td.tinytable_css_11opzzqdvetuyomgv6g6, #tinytable_qmbqo72nbnh75jh0zb1d th.tinytable_css_11opzzqdvetuyomgv6g6 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_qmbqo72nbnh75jh0zb1d td.tinytable_css_tzr7qlpuhcgccyucv4ka, #tinytable_qmbqo72nbnh75jh0zb1d th.tinytable_css_tzr7qlpuhcgccyucv4ka {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_qmbqo72nbnh75jh0zb1d td.tinytable_css_noczymwh84dm0fh0t5pf, #tinytable_qmbqo72nbnh75jh0zb1d th.tinytable_css_noczymwh84dm0fh0t5pf {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_q6wdfwwxyq3w67ewgsfz td.tinytable_css_ctwwe7v8km7peqij4cf4, #tinytable_q6wdfwwxyq3w67ewgsfz th.tinytable_css_ctwwe7v8km7peqij4cf4 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_q6wdfwwxyq3w67ewgsfz td.tinytable_css_d2uer7c9k6f4foloi943, #tinytable_q6wdfwwxyq3w67ewgsfz th.tinytable_css_d2uer7c9k6f4foloi943 { text-align: center }
+    #tinytable_q6wdfwwxyq3w67ewgsfz td.tinytable_css_05dvcdo00zekweb6l3t8, #tinytable_q6wdfwwxyq3w67ewgsfz th.tinytable_css_05dvcdo00zekweb6l3t8 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_q6wdfwwxyq3w67ewgsfz td.tinytable_css_cjt2v08ovjo7u52zn52p, #tinytable_q6wdfwwxyq3w67ewgsfz th.tinytable_css_cjt2v08ovjo7u52zn52p {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_q6wdfwwxyq3w67ewgsfz td.tinytable_css_4hav0ifkosxvss7iwe7e, #tinytable_q6wdfwwxyq3w67ewgsfz th.tinytable_css_4hav0ifkosxvss7iwe7e {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_qmbqo72nbnh75jh0zb1d" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_q6wdfwwxyq3w67ewgsfz" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">cell type</th>
                 <th scope="col" data-row="0" data-col="2">topology</th>
@@ -425,36 +426,36 @@ Table 4: Per-solver summary on 20 imbalanced hybrid bulk mixtures (true p = (0.
     };
     </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_ikzq8mg1uo90ab02u2bo = TinyTable.createTableFunctions("tinytable_ikzq8mg1uo90ab02u2bo");
+      const tableFns_eczhth7xryf5lpj83mul = TinyTable.createTableFunctions("tinytable_eczhth7xryf5lpj83mul");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '7', j: 2 }, { i: '7', j: 3 }, { i: '7', j: 4 }, { i: '7', j: 5 } ], css_id: 'tinytable_css_ju3lbdd0ta2udqbynwsm',},
-          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 }, { i: '6', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 }, { i: '3', j: 3 }, { i: '4', j: 3 }, { i: '5', j: 3 }, { i: '6', j: 3 }, { i: '1', j: 4 }, { i: '2', j: 4 }, { i: '3', j: 4 }, { i: '4', j: 4 }, { i: '5', j: 4 }, { i: '6', j: 4 }, { i: '1', j: 5 }, { i: '2', j: 5 }, { i: '3', j: 5 }, { i: '4', j: 5 }, { i: '5', j: 5 }, { i: '6', j: 5 } ], css_id: 'tinytable_css_wfide0f3haysw0ktnb9i',},
-          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_etrnout64oygk29k5kws',},
-          { positions: [ { i: '7', j: 1 } ], css_id: 'tinytable_css_y7ljo6qvxbjnx6wjfzdd',},
-          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_krxavxhxu8g5z1wfba0m',},
+          { positions: [ { i: '7', j: 2 }, { i: '7', j: 3 }, { i: '7', j: 4 }, { i: '7', j: 5 } ], css_id: 'tinytable_css_8cihz9f0rx2vv2ot7enw',},
+          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 }, { i: '6', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 }, { i: '3', j: 3 }, { i: '4', j: 3 }, { i: '5', j: 3 }, { i: '6', j: 3 }, { i: '1', j: 4 }, { i: '2', j: 4 }, { i: '3', j: 4 }, { i: '4', j: 4 }, { i: '5', j: 4 }, { i: '6', j: 4 }, { i: '1', j: 5 }, { i: '2', j: 5 }, { i: '3', j: 5 }, { i: '4', j: 5 }, { i: '5', j: 5 }, { i: '6', j: 5 } ], css_id: 'tinytable_css_s6icirjazk6ierw6yw3k',},
+          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_j8ni1g7zaq4ax508kx89',},
+          { positions: [ { i: '7', j: 1 } ], css_id: 'tinytable_css_9870rtz5hfd6ugun7bdx',},
+          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_eg5z6gzvipv9twef5n1q',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_ikzq8mg1uo90ab02u2bo.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_eczhth7xryf5lpj83mul.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_ikzq8mg1uo90ab02u2bo td.tinytable_css_ju3lbdd0ta2udqbynwsm, #tinytable_ikzq8mg1uo90ab02u2bo th.tinytable_css_ju3lbdd0ta2udqbynwsm {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_ikzq8mg1uo90ab02u2bo td.tinytable_css_wfide0f3haysw0ktnb9i, #tinytable_ikzq8mg1uo90ab02u2bo th.tinytable_css_wfide0f3haysw0ktnb9i { text-align: center }
-    #tinytable_ikzq8mg1uo90ab02u2bo td.tinytable_css_etrnout64oygk29k5kws, #tinytable_ikzq8mg1uo90ab02u2bo th.tinytable_css_etrnout64oygk29k5kws {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_ikzq8mg1uo90ab02u2bo td.tinytable_css_y7ljo6qvxbjnx6wjfzdd, #tinytable_ikzq8mg1uo90ab02u2bo th.tinytable_css_y7ljo6qvxbjnx6wjfzdd {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_ikzq8mg1uo90ab02u2bo td.tinytable_css_krxavxhxu8g5z1wfba0m, #tinytable_ikzq8mg1uo90ab02u2bo th.tinytable_css_krxavxhxu8g5z1wfba0m {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_eczhth7xryf5lpj83mul td.tinytable_css_8cihz9f0rx2vv2ot7enw, #tinytable_eczhth7xryf5lpj83mul th.tinytable_css_8cihz9f0rx2vv2ot7enw {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_eczhth7xryf5lpj83mul td.tinytable_css_s6icirjazk6ierw6yw3k, #tinytable_eczhth7xryf5lpj83mul th.tinytable_css_s6icirjazk6ierw6yw3k { text-align: center }
+    #tinytable_eczhth7xryf5lpj83mul td.tinytable_css_j8ni1g7zaq4ax508kx89, #tinytable_eczhth7xryf5lpj83mul th.tinytable_css_j8ni1g7zaq4ax508kx89 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_eczhth7xryf5lpj83mul td.tinytable_css_9870rtz5hfd6ugun7bdx, #tinytable_eczhth7xryf5lpj83mul th.tinytable_css_9870rtz5hfd6ugun7bdx {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_eczhth7xryf5lpj83mul td.tinytable_css_eg5z6gzvipv9twef5n1q, #tinytable_eczhth7xryf5lpj83mul th.tinytable_css_eg5z6gzvipv9twef5n1q {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_ikzq8mg1uo90ab02u2bo" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_eczhth7xryf5lpj83mul" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">algorithm</th>
                 <th scope="col" data-row="0" data-col="2">n_ok</th>

@@ -1,8 +1,8 @@
 # Gene scores from multinomial elastic-net cell-type classification
 
 Fits a multinomial (or binomial) elastic net
-([`glmnet::glmnet()`](https://rdrr.io/pkg/glmnet/man/glmnet.html)) that
-predicts cell type from expression features. Inputs are purified
+([`glmnet::glmnet()`](https://glmnet.stanford.edu/reference/glmnet.html))
+that predicts cell type from expression features. Inputs are purified
 expression profiles \\\boldsymbol{X}\in\mathcal{M}\_{G\times J\times
 N}\\ (genes \\\times\\ cell types \\\times\\ samples) and length-\\J\\
 cell-type labels. Variability across samples replaces synthetic
@@ -46,7 +46,7 @@ compute_glmnet_gene_scores(
 - ...:
 
   Additional arguments forwarded to
-  [`glmnet::glmnet()`](https://rdrr.io/pkg/glmnet/man/glmnet.html).
+  [`glmnet::glmnet()`](https://glmnet.stanford.edu/reference/glmnet.html).
 
 ## Value
 

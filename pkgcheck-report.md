@@ -3,7 +3,7 @@
 ## Checks for [DeCovarT (v2.0.1)](https://github.com/bastienchassagnol/DeCovarT)
 
 git hash:
-[9fa8e5ad](https://github.com/bastienchassagnol/DeCovarT/tree/9fa8e5adf32403b15a5df0c52be5290746f4edcf)
+[0029d1d4](https://github.com/bastienchassagnol/DeCovarT/tree/0029d1d44f0aefd4798840244042ec008d56d188)
 
 - ✔️ Package name is available
 - ✔️ has a ‘contributing’ file.
@@ -13,16 +13,13 @@ git hash:
 - ✔️ Package has at least one HTML vignette
 - ✔️ All functions have examples.
 - ✔️ Repository has a website
-- ✖️ Package has no continuous integration checks.
-- ✔️ Package coverage is 77.8%.
+- ✔️ Package has continuous integration checks.
+- ✔️ Package coverage is 86.1%.
 - ✔️ R CMD check found no errors.
 - ✔️ R CMD check found no warnings.
 - 👀 Some goodpractice linters failed.
 - 👀 Package has unusually large number of 20 Imports (\> 98% of all
   packages)
-
-**Important:** All failing checks above must be addressed prior to
-proceeding
 
 (Checks marked with 👀 may be optionally addressed.)
 
@@ -43,25 +40,34 @@ system which may not be entirely accurate.
 
 | type       | package        | ncalls |
 |:-----------|:---------------|-------:|
-| imports    | circlize       |     NA |
-| imports    | ComplexHeatmap |     NA |
-| imports    | dplyr          |     NA |
-| imports    | e1071          |     NA |
-| imports    | igraph         |     NA |
-| imports    | limSolve       |     NA |
+| internal   | base           |    294 |
+| internal   | DeCovarT       |     54 |
+| internal   | stats          |     22 |
+| internal   | boot           |     10 |
+| internal   | grid           |      7 |
+| internal   | utils          |      6 |
+| internal   | graphics       |      4 |
+| internal   | Matrix         |      2 |
+| internal   | parallel       |      1 |
+| imports    | tensor         |      6 |
+| imports    | dplyr          |      5 |
+| imports    | purrr          |      5 |
+| imports    | tibble         |      5 |
+| imports    | igraph         |      4 |
+| imports    | e1071          |      3 |
+| imports    | Metrics        |      3 |
+| imports    | circlize       |      2 |
+| imports    | MASS           |      2 |
+| imports    | ComplexHeatmap |      1 |
+| imports    | limSolve       |      1 |
+| imports    | methods        |      1 |
+| imports    | MixSim         |      1 |
+| imports    | nnls           |      1 |
+| imports    | glmnet         |      1 |
+| imports    | tidyr          |      1 |
 | imports    | marqLevAlg     |     NA |
-| imports    | MASS           |     NA |
-| imports    | methods        |     NA |
-| imports    | Metrics        |     NA |
-| imports    | MixSim         |     NA |
-| imports    | nnls           |     NA |
-| imports    | glmnet         |     NA |
-| imports    | purrr          |     NA |
 | imports    | Rdpack         |     NA |
 | imports    | rlang          |     NA |
-| imports    | tensor         |     NA |
-| imports    | tibble         |     NA |
-| imports    | tidyr          |     NA |
 | imports    | viridis        |     NA |
 | suggests   | compositions   |     NA |
 | suggests   | flextable      |     NA |
@@ -84,8 +90,139 @@ Click below for tallies of functions used in each package. Locations of
 each call within this package may be generated locally by running ‘s \<-
 pkgstats::pkgstats()’, and examining the ‘external_calls’ table.
 
-**NOTE:** No imported packages appear to have associated function calls;
-please ensure with author that these ‘Imports’ are listed appropriately.
+base
+
+list (36), for (17), if (16), seq_len (16), rep (14), is.null (12),
+length (11), dim (10), nrow (9), matrix (8), ncol (8), array (7),
+as.matrix (7), c (6), as.numeric (5), paste0 (5), sum (5), diag (4),
+names (4), return (4), solve (4), sqrt (4), t (4), beta (3), colnames
+(3), dimnames (3), drop (3), max (3), tcrossprod (3), all.equal (2),
+chol (2), col (2), do.call (2), factor (2), gsub (2), isTRUE (2), lapply
+(2), min (2), numeric (2), round (2), rownames (2), seq_along (2),
+suppressWarnings (2), tryCatch (2), as.character (1), as.integer (1),
+as.list (1), as.vector (1), character (1), chol2inv (1), crossprod (1),
+eigen (1), emptyenv (1), exp (1), F (1), intersect (1), levels (1),
+local (1), log (1), mean (1), new.env (1), proportions (1), row.names
+(1), rowSums (1), sample.int (1), scale (1), search (1), seq (1),
+seq.int (1), switch (1), unique (1), upper.tri (1), which (1), which.max
+(1)
+
+DeCovarT
+
+additive_logistic (10), additive_log_ratio (5),
+loglik_multivariate_constrained (3),
+build_covariance_array_from_precision (2), build_normalised_precision
+(2), compute_mean_profile_objectives (2), compute_shannon_entropy (2),
+deconvolute_ratios (2), gradient_loglik_constrained (2),
+gradient_loglik_unconstrained (2), assign_iid_signed_weights (1),
+benchmark_bivariate_gaussian_convolutions (1), check_true_theta (1),
+compute_average_jeffreys (1), compute_average_overlap (1),
+compute_benchmark_metrics (1), compute_glmnet_gene_scores (1),
+deconvolute_ratios_cibersort (1), deconvolute_ratios_deconrnaseq (1),
+deconvolute_ratios_gradient_descent (1), deconvolute_ratios_L_BFGS_B
+(1), deconvolute_ratios_lsfit (1),
+deconvolute_ratios_Marquardt_Levenberg (1),
+deconvolute_ratios_Newton_Raphson (1), deconvolute_ratios_nnls (1),
+generate_mean_signature_matrix (1), hessian_additive_logistic (1),
+jacobian_additive_logistic (1), loglik_multivariate (1), safe_gradient
+(1), safe_loglik (1), simulate_bulk_mixture (1)
+
+stats
+
+sigma (6), family (3), optim (3), coef (2), start (2), cor (1), kernel
+(1), lsfit (1), median (1), nlminb (1), power (1)
+
+boot
+
+control (10)
+
+grid
+
+gpar (5), unit (2)
+
+tensor
+
+tensor (6)
+
+utils
+
+fix (3), data (1), packageDescription (1), packageVersion (1)
+
+dplyr
+
+all_of (2), bind_rows (2), row_number (1)
+
+purrr
+
+map (2), imap (1), imap_dfr (1), pmap (1)
+
+tibble
+
+tibble (3), as_tibble (2)
+
+graphics
+
+par (3), title (1)
+
+igraph
+
+make_empty_graph (2), sample_gnp (2)
+
+e1071
+
+tune.control (3)
+
+Metrics
+
+mae (1), mse (1), rmse (1)
+
+circlize
+
+colorRamp2 (2)
+
+MASS
+
+mvrnorm (1), rlm (1)
+
+Matrix
+
+s (2)
+
+ComplexHeatmap
+
+Heatmap (1)
+
+glmnet
+
+glmnet (1)
+
+limSolve
+
+lsei (1)
+
+methods
+
+formalArgs (1)
+
+MixSim
+
+overlap (1)
+
+nnls
+
+nnls (1)
+
+parallel
+
+mclapply (1)
+
+tidyr
+
+expand_grid (1)
+
+**NOTE:** Some imported packages appear to have no associated function
+calls; please ensure with author that these ‘Imports’ are listed
+appropriately.
 
 ------------------------------------------------------------------------
 
@@ -98,12 +235,12 @@ Details of statistical properties (click to open)
 
 The package has:
 
-- code in R (36% in 10 files) and TeX (64% in 2 files)
+- code in R (37% in 10 files) and TeX (63% in 2 files)
 - 1 authors
 - 7 vignettes
 - no internal data file
 - 20 imported packages
-- 44 exported functions (median 14 lines of code)
+- 43 exported functions (median 15 lines of code)
 - 3 non-exported functions in R (median 25 lines of code)
 
 ------------------------------------------------------------------------
@@ -127,30 +264,30 @@ lie in the upper or lower 5th percentile.
 
 | measure                  | value | percentile | noteworthy |
 |:-------------------------|------:|-----------:|:-----------|
-| files_R                  |    11 |       76.6 |            |
+| files_R                  |    10 |       74.8 |            |
 | files_inst               |     2 |       85.2 |            |
 | files_vignettes          |     4 |       96.1 |            |
-| files_tests              |     8 |       93.1 |            |
-| loc_R                    |  1876 |       89.9 |            |
+| files_tests              |    10 |       94.2 |            |
+| loc_R                    |  1814 |       89.8 |            |
 | loc_inst                 |  3143 |       95.0 | TRUE       |
 | loc_vignettes            |   224 |       57.4 |            |
-| loc_tests                |   801 |       86.1 |            |
+| loc_tests                |   931 |       87.7 |            |
 | num_vignettes            |     7 |       98.4 | TRUE       |
-| n_fns_r                  |    47 |       87.0 |            |
-| n_fns_r_exported         |    44 |       91.4 |            |
+| n_fns_r                  |    46 |       86.9 |            |
+| n_fns_r_exported         |    43 |       91.2 |            |
 | n_fns_r_not_exported     |     3 |       68.1 |            |
 | n_fns_per_file_r         |     5 |       86.5 |            |
-| num_params_per_fn        |     3 |       64.7 |            |
-| loc_per_fn_r             |    14 |       68.6 |            |
-| loc_per_fn_r_exp         |    14 |       65.1 |            |
+| num_params_per_fn        |     4 |       74.4 |            |
+| loc_per_fn_r             |    16 |       71.4 |            |
+| loc_per_fn_r_exp         |    15 |       65.7 |            |
 | loc_per_fn_r_not_exp     |    25 |       92.7 |            |
-| rel_whitespace_R         |     9 |       82.2 |            |
+| rel_whitespace_R         |     9 |       81.9 |            |
 | rel_whitespace_inst      |    13 |       94.7 |            |
 | rel_whitespace_vignettes |    10 |       41.6 |            |
-| rel_whitespace_tests     |     9 |       82.4 |            |
-| doclines_per_fn_exp      |    39 |       70.0 |            |
-| doclines_per_fn_not_exp  |     0 |        0.0 | TRUE       |
-| fn_call_network_size     |     0 |        0.0 | TRUE       |
+| rel_whitespace_tests     |    10 |       83.6 |            |
+| doclines_per_fn_exp      |    40 |       70.8 |            |
+| doclines_per_fn_not_exp  |    15 |       97.1 | TRUE       |
+| fn_call_network_size     |    69 |       84.7 |            |
 
 ------------------------------------------------------------------------
 
@@ -158,7 +295,7 @@ lie in the upper or lower 5th percentile.
 
 Click to see the [interactive network visualisation of calls between
 objects in
-package](https://bastienchassagnol.github.io/home/bastien/.cache/R/pkgcheck/static/DeCovarT_pkgstats9fa8e5ad.md)
+package](https://bastienchassagnol.github.io/home/bastien/.cache/R/pkgcheck/static/DeCovarT_pkgstats0029d1d4.md)
 
 ------------------------------------------------------------------------
 
@@ -166,13 +303,27 @@ package](https://bastienchassagnol.github.io/home/bastien/.cache/R/pkgcheck/stat
 
 Details of goodpractice checks (click to open)
 
+#### 3a. Continuous Integration Badges
+
+[![R-CMD-check.yaml](https://github.com/bastienchassagnol/DeCovarT/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bastienchassagnol/DeCovarT/actions)
+[![render-readme.yaml](https://github.com/bastienchassagnol/DeCovarT/actions/workflows/render-readme.yaml/badge.svg)](https://github.com/bastienchassagnol/DeCovarT/actions)
+
+**GitHub Workflow Results**
+
+|          id | name          | conclusion | sha    | run_number | date       |
+|------------:|:--------------|:-----------|:-------|-----------:|:-----------|
+| 31188274365 | pre-commit    | success    | c1a7bb |         17 | 2026-08-07 |
+| 31219996293 | R package CI  | success    | 1d7c88 |         87 | 2026-08-07 |
+| 31252824642 | R-CMD-check   | success    | 0029d1 |         88 | 2026-08-08 |
+| 31219391627 | render-readme | success    | a7c4e2 |         13 | 2026-08-07 |
+
 ------------------------------------------------------------------------
 
 #### 3b. `goodpractice` results
 
 #### Test coverage with [covr](https://covr.r-lib.org/)
 
-Package coverage: 77.84
+Package coverage: 86.07
 
 #### Cyclocomplexity with [cyclocomp](https://github.com/MangoTheCat/cyclocomp)
 
@@ -181,33 +332,26 @@ ComplexHeatmap with RemoteType ‘bioc’ to remote
 
 #### Static code analyses with [lintr](https://github.com/jimhester/lintr)
 
-[lintr](https://github.com/jimhester/lintr) found the following 83
+[lintr](https://github.com/jimhester/lintr) found the following 51
 potential issues:
 
 | message | number of times |
 |----|----|
-| !all(x) is better than any(!x). | 2 |
 | Avoid implicit assignments in function calls. | 1 |
 | Avoid undesirable operator `:::`. | 1 |
-| Avoid undesirable operator `<<-`. | 1 |
-| Don’t use paste to build stop strings. | 6 |
-| Don’t use paste to build warning strings. | 2 |
-| Don’t use paste0 to build message strings. | 1 |
-| Don’t use paste0 to build stop strings. | 4 |
-| expect_named(x, n) is better than expect_identical(names(x), n) | 1 |
-| Lines should not be more than 80 characters. | 36 |
-| Pass match.arg directly as a symbol to vapply() instead of wrapping it in an unnecessary anonymous function. | 1 |
-| Remove unnecessary c() of a constant. | 1 |
-| Replace unnecessary c() by NULL or, whenever possible, vector() seeded with the correct type and/or length. | 1 |
+| Don’t nest pipes inside other calls. | 1 |
+| Don’t use paste to build stop strings. | 3 |
+| Don’t use paste0 to build stop strings. | 2 |
+| expect_length(x, n) is better than expect_identical(length(x), n) | 2 |
+| expect_type(x, t) is better than expect_true(is.(x)) | 2 |
+| Lines should not be more than 80 characters. | 27 |
 | toString(.) is more expressive than paste(., collapse = “,”). | 1 |
 | unexpected SPECIAL | 2 |
-| Use “model\_” with fixed = TRUE here. | 2 |
-| Use expect_identical(x, y) by default; resort to expect_equal() only when needed, e.g. | 18 |
-| Write multiple expectations like expect_true(A) and expect_true(B) instead of expect_true(A && B). | 2 |
+| Use expect_identical(x, y) by default; resort to expect_equal() only when needed, e.g. | 9 |
 
 #### Other goodpractice checks
 
-✖️ All internal functions are used ✖️ Documented functions have @export,
+✖️ Exported functions have in .Rd ✖️ Documented functions have @export,
 @noRd, or @rdname ✖️ Avoid duplicated @param documentation across
 functions
 

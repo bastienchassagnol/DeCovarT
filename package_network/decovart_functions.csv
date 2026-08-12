@@ -16,7 +16,6 @@
 "additive_logistic","03_03_DeCovarT_estimate_ratios_frequentist.R","rho"
 "additive_log_ratio","03_03_DeCovarT_estimate_ratios_frequentist.R","p"
 ".bilinear_form","03_03_DeCovarT_estimate_ratios_frequentist.R","x, A, y"
-".squared_mahalanobis_distance","03_03_DeCovarT_estimate_ratios_frequentist.R","x, center, covariance"
 ".compute_global_variance","03_03_DeCovarT_estimate_ratios_frequentist.R","p, Sigma"
 "loglik_multivariate","03_03_DeCovarT_estimate_ratios_frequentist.R","p, y, mean_signature_matrix, Sigma"
 "loglik_multivariate_constrained","03_03_DeCovarT_estimate_ratios_frequentist.R","rho, y, mean_signature_matrix, Sigma"
