@@ -80,14 +80,9 @@ Machine-readable, human-readable, and sort-friendly
   Architecture” (or equivalent) section summarising the end-to-end
   workflow. Keep raw model outputs distinct from standardised evaluation
   artefacts when relevant.
-- **PDF → Markdown (literature / notes / reviews):** when ingesting a
-  PDF for vignettes, articles, or slide rebuilds, convert it locally with
-  Stephen Turner’s **[pdfdown](https://stephenturner.github.io/pdfdown/)**
-  (browser drop-zone; everything runs locally) **before** rewriting prose.
-  Prefer the resulting Markdown as the textual source of truth; use
-  `pdftoppm` only for page screenshots / figures that pdfdown does not
-  recover cleanly. Do not invent content from PDF memory when a
-  conversion is available in the workspace.
+- **PDF / DOCX → Markdown:** convert first (see
+  **Converting documents and slides**); do not invent content from
+  memory when a conversion is available.
 - README badges: add flat-square shields tailored to stacks actually used
   in this project (R / key CRAN packages / methods), for example:
 
@@ -816,6 +811,58 @@ results they confirm.
 
 ---
 
+# Converting documents and slides
+
+Do not invent content when a conversion is available. Use a
+**structural converter**, then a **cleanup pass** (YAML, headings,
+tables, captions, image paths, alt-text). Do not ask an LLM to read a
+whole DOCX/PPTX when Pandoc can parse its structure.
+
+## Slides (PDF / PPTX → Quarto reveal.js)
+
+Rebuild as Quarto reveal.js with Slidecrafting patterns; do not ship
+raw PDF/PPTX as the live deck. When several sources exist:
+
+1. **Markdown** — structure and wording.
+2. **PPTX** — Pandoc extracts images, hyperlinks, lists, and OMML
+   equations (to LaTeX):
+
+```bash
+pandoc talk.pptx --extract-media=slides/images -t markdown -o talk.md
+```
+
+3. **PDF** — Stephen Turner’s
+   **[pdfdown](https://stephenturner.github.io/pdfdown/)** (local
+   browser drop-zone) for text; `pdftoppm` only for figures pdfdown
+   misses.
+
+Keep extracted media. Restore equations as `$...$` / `$$...$$` when
+Pandoc emitted LaTeX; otherwise transcribe from the slide. Preserve
+links as `[text](url)`. Then restyle with the reveal.js skill.
+
+## Documents (DOCX / PDF → `.qmd`)
+
+**DOCX** is structured. Convert with Pandoc, then clean — never hand
+the whole file to an LLM first
+([Pandoc Markdown](https://quarto.org/docs/authoring/markdown-basics.html)):
+
+```bash
+pandoc document.docx \
+  --extract-media=images \
+  -t markdown \
+  -o document.qmd
+```
+
+Yields `document.qmd` plus `images/media/…`, referenced as
+`![…](images/media/image1.png)`.
+
+Cleanup pass (do **not** rewrite scientific content): Quarto YAML,
+heading hierarchy, Word tables, captions, notes, cross-references,
+image paths, and alt-text for screenshots or diagrams.
+
+**PDF** (literature, notes, reviews, vignette drafts): pdfdown first,
+then the same cleanup pass; `pdftoppm` only for unrecovered figures.
+
 # Quarto reveal.js slides (Slidecrafting)
 
 Whenever the user asks to create, restyle, animate, or present
@@ -883,20 +930,10 @@ Use `quarto preview` so the Modify / Save UI can write layout tweaks
 back to the `.qmd`. Optionally mark elements with `{.editable}` for
 immediate editability without entering Modify mode first.
 
-### Converting legacy decks (PDF / PPTX / Markdown)
+### Converting legacy decks
 
-Source materials often exist as PDF, PowerPoint, and Markdown of the
-same talk. Prefer this order:
-
-1. **Markdown** — structure and wording for Quarto authoring.
-2. **PDF** — first convert text with **pdfdown**
-   (<https://stephenturner.github.io/pdfdown/>); then recover missing
-   figures / layout via `pdftoppm` page screenshots when needed.
-3. **PPTX** — extract embedded graphics when PDF rasterisation is poor.
-
-Rebuild as Quarto reveal.js with Slidecrafting patterns; do not ship
-raw PDF/PPTX as the live deck. Apply the same pdfdown-first rule when
-parsing review PDFs or other literature PDFs into vignette drafts.
+See **Converting documents and slides**. Rebuild with Slidecrafting
+patterns; do not ship raw PDF/PPTX as the live deck.
 
 ## 3. Slide design lessons
 
