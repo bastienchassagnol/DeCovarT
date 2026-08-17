@@ -173,7 +173,8 @@ This repo uses **[Air](https://posit-dev.github.io/air/)** (`air.toml`) and
   pkgdown config (`_pkgdown.yml`), vignettes, or docs workflows, run a
   local pkgdown build (`pkgdown::build_site()`) and fix failures first.
 - Prefer **usethis** and **devtools** workflows for package tasks
-  (tests, docs, DESCRIPTION, GitHub Actions helpers, etc.).
+  (tests, docs, DESCRIPTION, GitHub Actions helpers, etc.); see
+  **GitHub and docs bootstrap** below when starting a new package.
 - Before every push that touches package code, run a local
   `devtools::check()` (or at least `rcmdcheck`) **and**
   `pkgcheck::pkgcheck()`, and fix **warnings** as well as errors. Do
@@ -181,6 +182,23 @@ This repo uses **[Air](https://posit-dev.github.io/air/)** (`air.toml`) and
 - Portable packages: `R/` and `NAMESPACE` must be **ASCII-only**
   (no em dashes, fancy quotes, etc. in strings). Use
   `tools::showNonASCIIfile("R/foo.R")` and `\uxxxx` escapes if needed.
+
+### GitHub and docs bootstrap (new packages)
+
+Early setup via **usethis** (run once after creating the GitHub repo):
+
+- `usethis::use_github_links()` — populate `DESCRIPTION` `URL` and
+  `BugReports` from the GitHub remote (package site link, issues URL).
+- `usethis::use_github_action()` — add r-lib Actions workflows; choose
+  **1** (`check-standard`, R-CMD-check) and **2** (`test-coverage`).
+  Extend or replace with repo-specific workflows (e.g. pkgdown) as the
+  package matures; do not duplicate checks already covered elsewhere.
+- `usethis::use_pkgdown_github_pages()` — scaffold `_pkgdown.yml`, a
+  GitHub Pages deploy workflow, and `URL`/`BugReports` fields for a
+  documented package site.
+
+Customise the resulting pkgdown site per **pkgdown site customisation**
+below; validate locally with `pkgdown::build_site()` before pushing.
 
 ### pkgdown site customisation
 
@@ -808,6 +826,11 @@ When literature verification is needed and no Consensus account is
 available, propose precise search queries (OpenAlex, Google Scholar,
 PubMed, Semantic Scholar) for the user to run, and integrate only
 results they confirm.
+
+## Scientific review
+
+-Check **statistical analysis**, with <https://www.equator-network.org/wp-content/uploads/2013/03/SAMPL-Guidelines-3-13-13.pdf>
+- Check **commit activity** with <https://piechowski.io/post/git-commands-before-reading-code>
 
 ---
 
