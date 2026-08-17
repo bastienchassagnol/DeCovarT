@@ -202,6 +202,14 @@ below; validate locally with `pkgdown::build_site()` before pushing.
 
 ### pkgdown site customisation
 
+- Initiate GitHub Pages once with `quarto publish gh-pages` (from the
+  repo root, not already on `gh-pages`). That creates the `gh-pages`
+  branch and `_publish.yml` so later CI can deploy from the branch
+  ([Quarto: Publish Action](https://quarto.org/docs/publishing/github-pages.html#publish-action)).
+  For a project site (`https://<user>.github.io/<repo>/`) GitHub then
+  publishes from `gh-pages` automatically; user/org sites
+  (`https://<user>.github.io/`) still need **Settings → Pages** set to
+  that branch.
 - Prefer **external shared includes** under `pkgdown/` over raw HTML/JS
   embedded in `_pkgdown.yml` (e.g. `template.includes.after_body:
   after_body.html`). Use pkgdown’s `{{#site}}{{root}}{{/site}}` prefix
@@ -757,6 +765,49 @@ Rules for every `.qmd` / `.Rmd` / `.md` document in this repo:
 - Keep Visual Editor–hostile syntax out of vignettes unless a feature
   (callouts, shortcodes) is intentionally required for the published
   HTML and documented here.
+
+### Videos (`{{< video >}}` shortcode)
+
+Embed YouTube / Vimeo / local files with the
+[video shortcode](https://quarto.org/docs/authoring/videos.html).
+HTML embeds the player; other formats (Typst / PDF) become a link.
+For a numbered, referable figure, wrap the shortcode in a
+`::: {#fig-…}` div; the **last paragraph is the caption**. Keep
+`title`, `aria-label`, and `start` as **separate** attributes (do not
+merge them into `title`). Cite mid-sentence with `@fig-…`.
+
+```markdown
+::: {#fig-example-video}
+
+{{< video https://www.youtube.com/embed/VIDEO_ID
+    title="Short iframe title"
+    aria-label="What a screen reader should hear"
+    start="20"
+>}}
+
+Caption: one sentence describing the clip.
+
+:::
+
+See @fig-example-video for the demonstration.
+```
+
+### Linked figures (image + source URL)
+
+When a local figure is copied from a website (manual, datasheet, paper
+figure), wrap the captioned image in a Markdown link so the rendered
+figure stays numbered **and** opens the original URL. This is Quarto’s
+[linked-figure](https://quarto.org/docs/authoring/figures.html#linked-figures)
+syntax: `[![caption](local-path){#fig-label}](https://source-url)`.
+Put `{#fig-…}` on the **image**, not on the outer link. Cite with
+`@fig-…`. Prefer this whenever a stable public URL exists; do not invent
+URLs.
+
+```markdown
+See @fig-example-manual for the manufacturer’s PDF.
+
+[![Caption — source name](images/example.png){#fig-example-manual}](https://example.com/path/to/original.pdf)
+```
 
 ## Scientific voice and self-review (no Consensus required)
 
