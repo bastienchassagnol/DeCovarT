@@ -1063,6 +1063,31 @@ patterns; do not ship raw PDF/PPTX as the live deck.
   `chrome-headless-shell` backend and verify rendered output rather than
   raw diagram source.
 
+#### HTML: test native Quarto Mermaid before any JS fallback
+
+Empty figure boxes on the web almost always mean the `{mermaid}` engine
+never ran. **Do not** add a client-side fallback first.
+
+1. Set `execute.eval: true` in `_quarto.yml` (or `%%| eval: true` on the
+   Mermaid chunk). `eval: false` skips the diagram engine and leaves an
+   empty `<div>` where the figure should be.
+2. `quarto render` the HTML and inspect the output: a healthy diagram is
+   a `<pre class="mermaid mermaid-js">` block **containing the flowchart
+   source**, plus Quarto’s own
+   `site_libs/quarto-diagram/mermaid.min.js` and
+   `site_libs/quarto-diagram/mermaid-init.js` in the page `<head>`.
+3. Open the page in a browser (`quarto preview` or the built HTML). The
+   `pre.mermaid` block should become an SVG. That is the supported path
+   for Quarto books and vignettes.
+
+Only if those `pre.mermaid` blocks are present **and still unrendered**
+in the browser (e.g. pkgdown README fences that Quarto never compiled)
+may you add the optional DeCovarT client-side fallback:
+`pkgdown/assets/mermaid-init.js` plus the CDN include in `_pkgdown.yml`
+(`after_body`), or an equivalent `html/mermaid-after-body.html`. If
+native `eval: true` already emits `pre.mermaid` + quarto-diagram, **do
+not** add that fallback — remove it.
+
 ### Citations and cross-references
 
 - Cite from `inst/REFERENCES.bib` (or a deck-local `.bib` that mirrors

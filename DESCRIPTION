@@ -34,6 +34,7 @@ Suggests:
     reactable (>= 0.4.4),
     readr,
     rmarkdown,
+    spelling,
     stringr,
     testthat (>= 3.0.0),
     tinytable,
