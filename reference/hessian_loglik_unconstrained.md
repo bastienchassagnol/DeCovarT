@@ -2,7 +2,7 @@
 
 Analytic Hessian \\\mathbf{H}\in\mathcal{M}\_{J\times J}\\ with entries
 \\\mathbf{H}\_{i,j}=\partial^{2}\ell/(\partial p_i\partial p_j)\\,
-matching the matricial formulae of the article (quadratic forms in
+matching the matrix formulae of the article (quadratic forms in
 \\\boldsymbol{\Theta}\\, \\\boldsymbol{\Sigma}\_i\\,
 \\\boldsymbol{\mu}\_{\cdot i}\\ and residual
 \\\boldsymbol{r}=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}\\).

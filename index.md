@@ -534,7 +534,7 @@ GitHub Actions on this repository currently cover:
 - **pkgdown** — documentation site on GitHub Pages
 - **article generation** — optional `latexmk` build of
   `article/main.tex` when the commit message contains
-  `article generation` (PDF artifact + `docs/article/main.pdf` on Pages)
+  `article generation` (PDF artefact + `docs/article/main.pdf` on Pages)
 - **R-hub** — optional Ubuntu + Windows checks (`workflow_dispatch`)
 - **version update** — optional DESCRIPTION bumps from commit messages
   or manual dispatch
