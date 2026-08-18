@@ -384,6 +384,28 @@ Follow
 - CI: keep `test-coverage` and `R-CMD-check` workflows meaningful
   (pkgcheck matches workflow run names against `cmd|coverage`).
 
+## Spell checking (`spelling`)
+
+Treat Hunspell as a regular package check, not a one-off. Setup:
+
+```r
+spelling::spell_check_setup(".", lang = "en-GB", error = FALSE)
+```
+
+That adds `spelling` to Suggests, `Language: en-GB` in `DESCRIPTION`,
+`tests/spelling.R`, `inst/WORDLIST`, and `.aspell/defaults.R`.
+
+- Keep **`error = FALSE`**: `R CMD check` prints suspects but does not
+  fail on residual jargon or LaTeX tokens.
+- **`inst/WORDLIST`**: proper nouns (Aitchison, Becht), method/package
+  names, and domain terms Hunspell misses (pseudobulk, ALR). After
+  `update_wordlist()`, prune LaTeX (`mathbb`, `Biggl`), math indices
+  (`gi`, `jj`), and URL crumbs (`www`, `com`). Fix real typos and
+  Americanisms in the source (artefact, not artifact).
+- **Commit `.aspell/`**; do not gitignore or `.Rbuildignore` it. R
+  treats it as a known package directory so CRAN aspell
+  (`_R_CHECK_CRAN_INCOMING_USE_ASPELL_`) reuses `inst/WORDLIST`.
+
 ## Reproducibility
 
 - Prefer Quarto for reports and package vignettes when available.
