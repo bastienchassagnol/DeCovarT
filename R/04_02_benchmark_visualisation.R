@@ -5,7 +5,15 @@
 #' simulated \eqn{\boldsymbol{p}} (and related scenario factors).
 #'
 #' @param distribution_metrics Tibble of metric scores from a benchmark.
-#' @param score_variable Column name of the metric to display.
+#' @param score_variable Column name of the metric to display
+#'   (`"model_mse"`, `"model_rmse"`, `"model_coef_determination"`,
+#'   `"model_coef_determination_adjusted"`, `"model_mae"`, `"model_cor"`,
+#'   `"model_ccc"`). Matching is case-insensitive.
+#'
+#' @srrstats {G2.3} Restricted character input (`score_variable`).
+#' @srrstats {G2.3a} Validated via `.match_arg_ci()` (a `match.arg()`
+#'   equivalent).
+#' @srrstats {G2.3b} Matching is case-insensitive (`tolower()`).
 #' @param n_break Number of colour breaks.
 #' @param uni_scale If `FALSE`, each panel uses its own colour scale.
 #'
@@ -28,7 +36,7 @@ plot_correlation_Heatmap <- function(
   n_break = 20,
   uni_scale = TRUE
 ) {
-  score_variable <- match.arg(
+  score_variable <- .match_arg_ci(
     score_variable,
     c(
       "model_mse",

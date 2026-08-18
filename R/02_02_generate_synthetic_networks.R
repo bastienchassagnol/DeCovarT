@@ -247,7 +247,13 @@ generate_mean_signature_matrix <- function(
 #' @param n_genes Integer \eqn{G}, number of nodes (genes).
 #' @param graph_model One of \code{"erdos_renyi"}, \code{"hub"},
 #'   \code{"scale_free"}, \code{"stochastic_block_model"},
-#'   \code{"small_world"}.
+#'   \code{"small_world"} (also \code{"star"}, mapped to \code{"hub"}).
+#'   Matching is case-insensitive.
+#'
+#' @srrstats {G2.3} Restricted character input (`graph_model`).
+#' @srrstats {G2.3a} Validated via `.match_arg_ci()` (a `match.arg()`
+#'   equivalent).
+#' @srrstats {G2.3b} Matching is case-insensitive (`tolower()`).
 #' @param graph_params Named list of generator parameters:
 #'   \describe{
 #'     \item{\code{erdos_renyi}}{\code{p} edge probability for
@@ -274,7 +280,7 @@ generate_random_network_skeleton <- function(
   graph_params = list()
 ) {
   n_genes <- as.integer(n_genes)
-  graph_model <- match.arg(
+  graph_model <- .match_arg_ci(
     graph_model,
     c(
       "erdos_renyi",
@@ -749,17 +755,15 @@ simulate_hierarchical_grn_moments <- function(
       "small_world"
     )
     if (length(graph_model) == 1L) {
-      graph_model <- rep(match.arg(graph_model, model_choices), n_celltypes)
+      graph_model <- rep(
+        .match_arg_ci(graph_model, model_choices),
+        n_celltypes
+      )
     } else {
       if (length(graph_model) != n_celltypes) {
         stop("`graph_model` must be length 1 or J.", call. = FALSE)
       }
-      graph_model <- vapply(
-        graph_model,
-        match.arg,
-        character(1),
-        choices = model_choices
-      )
+      graph_model <- .match_arg_ci(graph_model, model_choices)
     }
     graph_model[graph_model == "star"] <- "hub"
 

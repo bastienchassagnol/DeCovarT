@@ -1,7 +1,7 @@
 test_that("compute_shannon_entropy: Dirac and uniform", {
-  expect_equal(compute_shannon_entropy(c(1, 0, 0)), 0)
-  expect_equal(compute_shannon_entropy(rep(1 / 3, 3)), 1)
-  expect_equal(compute_shannon_entropy(1), 0)
+  expect_equal(compute_shannon_entropy(c(1, 0, 0)), 0, tolerance = .tol_srr)
+  expect_equal(compute_shannon_entropy(rep(1 / 3, 3)), 1, tolerance = .tol_srr)
+  expect_equal(compute_shannon_entropy(1), 0, tolerance = .tol_srr)
 })
 
 test_that("compute_shannon_entropy: input checks", {
@@ -17,6 +17,7 @@ test_that("check_true_theta: accepts valid theta", {
     sigma = array(c(diag(2), diag(2)), dim = c(2, 2, 2))
   )
   expect_true(check_true_theta(theta))
+  expect_true(check_true_theta(theta, second_moment = "SIGMA"))
 })
 
 test_that("check_true_theta: accepts J x N proportions", {
@@ -32,12 +33,13 @@ test_that("check_true_theta: accepts J x N proportions", {
 })
 
 test_that("repair_simplex renormalises and rejects invalid inputs", {
+  p_near <- c(0.2, 0.3, 0.5 + 1e-12)
   expect_equal(
-    repair_simplex(c(0.2, 0.3, 0.5 + 1e-12)),
-    c(0.2, 0.3, 0.5),
-    tolerance = 1e-8
+    repair_simplex(p_near),
+    p_near / sum(p_near),
+    tolerance = .tol_srr
   )
-  expect_equal(sum(repair_simplex(c(2, 2, 0))), 1)
+  expect_equal(sum(repair_simplex(c(2, 2, 0))), 1, tolerance = .tol_srr)
   expect_error(repair_simplex(numeric()), "`p`")
   expect_error(repair_simplex(c(0.5, NA)), "`p`")
   expect_error(repair_simplex(c(-1, 2)), "negative")
@@ -87,7 +89,7 @@ test_that("compute_average_jeffreys: identical means give ~0", {
     mu = cbind(c(0, 0), c(0, 0)),
     sigma = array(c(diag(2), diag(2)), dim = c(2, 2, 2))
   )
-  expect_equal(compute_average_jeffreys(theta), 0, tolerance = 1e-10)
+  expect_equal(compute_average_jeffreys(theta), 0, tolerance = .tol_srr)
 })
 
 test_that("compute_average_jeffreys: mean shift increases divergence", {
@@ -110,7 +112,7 @@ test_that("compute_average_jeffreys: equi-balanced default when p omitted", {
   j1 <- compute_average_jeffreys(theta)
   theta$p <- rep(1 / 3, 3)
   j2 <- compute_average_jeffreys(theta)
-  expect_equal(j1, j2)
+  expect_equal(j1, j2, tolerance = .tol_srr)
 })
 
 test_that("compute_glmnet_gene_scores: returns named G-vector", {

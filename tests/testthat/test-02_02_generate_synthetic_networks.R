@@ -260,3 +260,9 @@ test_that("generate_mean_signature_matrix is deterministic and scaled", {
   expect_gt(cos_hat, 0)
   expect_lt(cos_hat, 1)
 })
+
+test_that("graph_model matching is case-insensitive", {
+  a_lower <- generate_random_network_skeleton(8L, "erdos_renyi")
+  a_upper <- generate_random_network_skeleton(8L, "ERDOS_RENYI")
+  expect_identical(dim(a_lower), dim(a_upper))
+})

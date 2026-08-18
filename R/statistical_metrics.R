@@ -16,6 +16,9 @@
 #'
 #' @seealso [compositions::clo()] for compositional closure.
 #'
+#' @srrstats {G3.0} Default `tolerance` is `100 * .Machine$double.eps`;
+#'   callers must not test floating-point equality with `==`.
+#'
 #' @examples
 #' repair_simplex(c(0.2, 0.3, 0.5 + 1e-12))
 #' @export

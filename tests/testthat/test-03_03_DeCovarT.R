@@ -35,11 +35,13 @@ test_that(".bilinear_form matches the closed-form quadratic product", {
 
   expect_equal(
     .bilinear_form(x, a, y),
-    as.numeric(t(x) %*% a %*% y)
+    as.numeric(t(x) %*% a %*% y),
+    tolerance = .tol_srr
   )
   expect_equal(
     .bilinear_form(x, a),
-    as.numeric(t(x) %*% a %*% x)
+    as.numeric(t(x) %*% a %*% x),
+    tolerance = .tol_srr
   )
 })
 

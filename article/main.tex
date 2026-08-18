@@ -191,7 +191,11 @@
     pairwise covariance of the genes into the reference transcriptome profiles
     could enhance the performance of transcriptomic deconvolution methods. The generative
     probabilistic model of our algorithm, \emph{DeCovarT} (Deconvolution using
-    the Transcriptomic Covariance), implements this integrated approach.
+    the Transcriptomic Covariance), is, to our knowledge, the first
+    implementation of a \emph{multivariate} Gaussian convolution for bulk
+    deconvolution, with a sparse cell-type-specific covariance (in contrast
+    to the univariate, gene-wise Gaussians of DSection
+    \cite{erkkilaProbabilisticAnalysisGene2010}).
 
     A key practical challenge for \emph{DeCovarT} is that, unlike methods relying
     solely on mean expression profiles, it requires a covariance (or precision)
@@ -434,9 +438,18 @@
 
     In contrast to standard linear regression, DeCovarT relaxes
     \emph{exogeneity} by treating latent cell-type expression profiles as
-    random rather than fixed (as in DSection and DeMixt). We further weaken
-    gene-wise independence by modelling the full $G\times G$ covariance of
-    each purified cell type.
+    random rather than fixed. The closest published method is DSection
+    \cite{erkkilaProbabilisticAnalysisGene2010}, which implements a
+    \emph{univariate} Gaussian convolution (independent genes, gene-specific
+    variances). DeMix \cite{ahnDeMixDeconvolutionMixed2013}, DeMixT
+    \cite{wangTranscriptomeDeconvolutionHeterogeneous2018} and ISOpureR
+    \cite{anghelISOpureRImplementationComputational2015} likewise treat
+    tumour or stromal profiles as latent rather than observed; Ogundijo and
+    Wang \cite{ogundijoSequentialMonteCarlo2017} extend DSection by
+    approximating the posterior with sequential Monte Carlo. DeCovarT
+    generalises the DSection likelihood to a \emph{multivariate} Gaussian
+    convolution with a sparse cell-type-specific covariance
+    $\boldsymbol{\Sigma}_{j}$.
 
     Latent profile $\boldsymbol{x}_{\cdot j}\in\mathbb{R}^{G}$ of cell type
     $j$ is multivariate Gaussian (\ref{eq-multivariate-gaussian}):

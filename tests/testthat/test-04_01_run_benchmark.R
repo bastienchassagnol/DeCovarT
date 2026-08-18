@@ -81,3 +81,55 @@ test_that("deconvolute_ratios returns a tidy table for nnls", {
   expect_true("algorithm" %in% names(out))
   expect_true(all(c("ct1", "ct2") %in% names(out)))
 })
+
+test_that("deconvolute_ratios errors on missing values (G2.13)", {
+  genes <- paste0("g", 1:2)
+  cts <- paste0("ct", 1:2)
+  mu <- matrix(
+    c(20, 22, 22, 20),
+    nrow = 2,
+    dimnames = list(genes, cts)
+  )
+  bulk <- cbind(drop(mu %*% c(0.5, 0.5)))
+  dimnames(bulk) <- list(genes, "sample_1")
+  fns <- list("nnls" = list(FUN = deconvolute_ratios_nnls))
+
+  bulk_na <- bulk
+  bulk_na[1, 1] <- NA_real_
+  expect_error(
+    deconvolute_ratios(
+      signature_matrix = mu,
+      bulk_expression = bulk_na,
+      deconvolution_functions = fns,
+      cores = 1
+    ),
+    "missing"
+  )
+
+  mu_na <- mu
+  mu_na[1, 1] <- NA_real_
+  expect_error(
+    deconvolute_ratios(
+      signature_matrix = mu_na,
+      bulk_expression = bulk,
+      deconvolution_functions = fns,
+      cores = 1
+    ),
+    "missing"
+  )
+})
+
+test_that(".match_arg_ci is case-insensitive (G2.3b)", {
+  expect_identical(
+    .match_arg_ci("SIGMA", c("either", "sigma", "Theta")),
+    "sigma"
+  )
+  expect_identical(
+    .match_arg_ci("theta", c("either", "sigma", "Theta")),
+    "Theta"
+  )
+  expect_error(
+    .match_arg_ci("not_a_choice", c("either", "sigma", "Theta")),
+    "must be one of"
+  )
+})

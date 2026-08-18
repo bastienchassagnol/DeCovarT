@@ -271,6 +271,35 @@ and ALR optimisation (@sec-alr-reparam) when a curated lineage tree is
 supplied—benchmarked at broad, intermediate, and terminal resolutions against
 `HiDecon`, `HIDE`, tree-guided `MuSiC`, and `Rectangle`.
 
+## Sample-level CTS, spatial mixtures, and alternative laws {#sec-outlook-laws}
+
+Three further extensions change the **observation model**, not the simplex
+constraint on $\boldsymbol{p}$.
+
+**Cell-type-specific (CTS) profiles.** The frequentist API plugs
+$\boldsymbol{\mu}_{\cdot j}$ in for the latent purified vector
+$\boldsymbol{x}_{\cdot j}$. A Bayesian CTS step would instead recover a
+sample-level posterior (or MAP) for each $\boldsymbol{x}_{\cdot j}$ given
+$\boldsymbol{y}_{\cdot i}$ and $\boldsymbol{p}_{\cdot i}$—the experimental
+path in `R/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R`. DSection
+[@erkkilaProbabilisticAnalysisGene2010] already samples univariate
+latents; DeCovarT would do the same under the multivariate convolution
+@eq-gaussian-convolution.
+
+**Spatial transcriptomics.** Each spot (or pixel) is a local mixture
+$\boldsymbol{y}(s)$ with its own $\boldsymbol{p}(s)$ on the same simplex.
+The Gaussian convolution still applies per location; neighbourhood
+kernels or 3-D tissue structure enter only as dependence among adjacent
+$\boldsymbol{p}(s)$.
+
+**Alternative bulk laws.** Replacing the Gaussian in
+@eq-gaussian-convolution with a **log-normal** convolution (independent
+genes, as in Blade-type models) or a **Poisson log-normal** count model
+[@chiquetVariationalInferenceSparse2018] would better match
+over-dispersed RNA counts. The ALR map (@eq-alr-forward) and simplex
+constraint are unchanged; only the likelihood and its derivatives
+change.
+
 # Compositional geometry and validation {#sec-compositional-geometry}
 
 ## ALR reparametrisation and links to the maths vignette {#sec-alr-reparam}

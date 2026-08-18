@@ -22,7 +22,7 @@ from \code{mu} / the third dimension of \code{sigma} or \code{Theta}.}
 
 \item{second_moment}{Which second-moment field to require:
 \code{"sigma"}, \code{"Theta"}, or \code{"either"} (default: at least one of
-\code{sigma} / \code{Theta}).}
+\code{sigma} / \code{Theta}). Matching is case-insensitive.}
 }
 \value{
 \code{TRUE} invisibly if the structure is valid; otherwise stops

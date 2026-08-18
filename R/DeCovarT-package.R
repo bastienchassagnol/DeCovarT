@@ -23,5 +23,19 @@
 #' Reference manuals (PDF / HTML) can be regenerated with
 #' `source("scripts/auxiliary/generate_package_manual.R")`.
 #'
+#' @srrstats {G1.4} Exported functions are documented with roxygen2.
+#' @srrstats {G1.4a} Undocumented internals use `@noRd`; documented
+#'   helpers are exported (with `@keywords internal` when low-level).
+#' @srrstats {G1.3} Terminology: \eqn{\boldsymbol{p}} (simplex proportions),
+#'   ALR coordinates \eqn{\boldsymbol{\rho}}, Gaussian convolution
+#'   \eqn{\boldsymbol{y}\mid\boldsymbol{p}}, covariance
+#'   \eqn{\boldsymbol{\Sigma}_j}. Outlook (defined in
+#'   `vignette("decovart-perspectives", package = "DeCovarT")`):
+#'   *cell-type-specific (CTS)* sample-level latents
+#'   \eqn{\boldsymbol{x}_{\cdot j}} (Bayesian / MAP);
+#'   *spatial transcriptomics* as location-wise mixtures
+#'   \eqn{\boldsymbol{y}(s)}; *log-normal* and *Poisson-log-normal*
+#'   alternatives to the Gaussian bulk law.
+#'
 #' @keywords internal
 "_PACKAGE"

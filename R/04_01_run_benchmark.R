@@ -15,7 +15,12 @@
 #'   from `mu` / the third dimension of `sigma` or `Theta`.
 #' @param second_moment Which second-moment field to require:
 #'   `"sigma"`, `"Theta"`, or `"either"` (default: at least one of
-#'   `sigma` / `Theta`).
+#'   `sigma` / `Theta`). Matching is case-insensitive.
+#'
+#' @srrstats {G2.3} Restricted character input (`second_moment`).
+#' @srrstats {G2.3a} Validated via `.match_arg_ci()` (a `match.arg()`
+#'   equivalent).
+#' @srrstats {G2.3b} Matching is case-insensitive (`tolower()`).
 #'
 #' @return `TRUE` invisibly if the structure is valid; otherwise stops
 #'   with an informative error.
@@ -57,7 +62,7 @@ check_true_theta <- function(
   J = NULL,
   second_moment = c("either", "sigma", "Theta")
 ) {
-  second_moment <- match.arg(second_moment)
+  second_moment <- .match_arg_ci(second_moment, c("either", "sigma", "Theta"))
   if (!is.list(true_theta)) {
     stop("`true_theta` must be a list.", call. = FALSE)
   }
@@ -166,7 +171,11 @@ check_true_theta <- function(
       if (nrow(p_mat) == n_celltypes) {
         # J x N: each column is a sample-wise cellular ratio on the simplex;
         # average across samples for mixture-level summaries.
-        if (any(abs(colSums(p_mat) - 1) > 1e-8) || any(p_mat < 0)) {
+        if (
+          any(abs(colSums(p_mat) - 1) > 100 * .Machine$double.eps) ||
+            any(p_mat < 0) ||
+            anyNA(p_mat)
+        ) {
           stop(
             "`true_theta$p` as J x N must have non-negative columns ",
             "summing to 1.",
@@ -176,7 +185,11 @@ check_true_theta <- function(
         p_vec <- rowMeans(p_mat)
       } else if (ncol(p_mat) == n_celltypes) {
         # N x J: each row is a sample-wise ratio; average across samples.
-        if (any(abs(rowSums(p_mat) - 1) > 1e-8) || any(p_mat < 0)) {
+        if (
+          any(abs(rowSums(p_mat) - 1) > 100 * .Machine$double.eps) ||
+            any(p_mat < 0) ||
+            anyNA(p_mat)
+        ) {
           stop(
             "`true_theta$p` as N x J must have non-negative rows ",
             "summing to 1.",
@@ -192,7 +205,11 @@ check_true_theta <- function(
       }
     }
     # Final simplex check on the (possibly averaged) length-J weight vector.
-    if (any(p_vec < 0) || abs(sum(p_vec) - 1) > 1e-8) {
+    if (
+      any(p_vec < 0) ||
+        anyNA(p_vec) ||
+        abs(sum(p_vec) - 1) > 100 * .Machine$double.eps
+    ) {
       stop(
         "`true_theta$p` must be non-negative and sum to 1 ",
         "(after averaging over samples if matrix).",
@@ -360,6 +377,23 @@ compute_benchmark_metrics <- function(
 #'   ),
 #'   cores = 1
 #' )
+#' @srrstats {G1.0} Closest published statistical method is DSection
+#'   (Erkkila et al. 2010): univariate Gaussian convolution. DeMix, DeMixT
+#'   and ISOpureR also treat cell-type profiles as latent; Ogundijo and Wang
+#'   (2017) extend DSection by sequential Monte Carlo. DeCovarT generalises
+#'   DSection to a multivariate convolution with sparse cell-type covariance.
+#' @srrstats {G1.1} First implementation (in R or otherwise) of that
+#'   multivariate Gaussian-convolution MLE for bulk deconvolution.
+#' @srrstats {G2.13} Missing values in `y`, the signature, `Sigma` or
+#'   `true_ratios` raise an error here, before any solver is called.
+#' @srrstats {G2.15} After this check, `mean` / `cor` / `var` never receive
+#'   incomplete expression data (default `na.rm = FALSE` is then safe).
+#' @references
+#' \insertRef{erkkilaProbabilisticAnalysisGene2010}{DeCovarT}
+#' \insertRef{ahnDeMixDeconvolutionMixed2013}{DeCovarT}
+#' \insertRef{wangTranscriptomeDeconvolutionHeterogeneous2018}{DeCovarT}
+#' \insertRef{anghelISOpureRImplementationComputational2015}{DeCovarT}
+#' \insertRef{ogundijoSequentialMonteCarlo2017}{DeCovarT}
 #' @importFrom rlang .data
 #' @export
 #' @seealso [deconvolute_ratios_Marquardt_Levenberg()]
@@ -376,26 +410,31 @@ deconvolute_ratios <- function(
     1
   )
 ) {
-  # read in data
   if (!is.matrix(signature_matrix) || is.null(row.names(signature_matrix))) {
     stop(
       "required format for signature is expression matrix,",
       " with rownames as genes"
     )
   }
-  mean_signature_matrix <- tibble::as_tibble(
-    signature_matrix,
-    rownames = "GENE_SYMBOL"
-  )
   if (!is.matrix(bulk_expression) || is.null(row.names(bulk_expression))) {
     stop(
       "required format for mixture is expression matrix, with rownames as genes"
     )
   }
-  Y <- tibble::as_tibble(bulk_expression, rownames = "GENE_SYMBOL")
+  .assert_no_missing(signature_matrix, "signature_matrix")
+  .assert_no_missing(bulk_expression, "bulk_expression")
+  if (!is.null(Sigma)) {
+    .assert_no_missing(Sigma, "Sigma")
+  }
+  if (!is.null(true_ratios)) {
+    .assert_no_missing(true_ratios, "true_ratios")
+  }
 
-  # remove potential missing data from Y database
-  Y <- Y |> tidyr::drop_na()
+  mean_signature_matrix <- tibble::as_tibble(
+    signature_matrix,
+    rownames = "GENE_SYMBOL"
+  )
+  Y <- tibble::as_tibble(bulk_expression, rownames = "GENE_SYMBOL")
 
   # intersect genes (we only keep genes that are common to both data bases)
   common_genes <- intersect(mean_signature_matrix$GENE_SYMBOL, Y$GENE_SYMBOL)

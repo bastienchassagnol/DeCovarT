@@ -11,27 +11,17 @@ NULL
 #'
 #' G1 - Documentation and references
 #'
-#' @srrstats {G1.0} Primary reference is Chassagnol, Nuel and Becht (2023)
-#'   <doi:10.48550/arXiv.2309.09557>, cited in DESCRIPTION and
-#'   `inst/REFERENCES.bib`.
-#'
-#' @srrstats {G1.1} DeCovarT is documented as a novel R implementation of
-#'   multivariate Gaussian convolution MLE for bulk deconvolution; no prior
-#'   R implementation of this exact approach exists (README, preprint).
+#' G1.0, G1.1: see [deconvolute_ratios()] (DSection as closest method;
+#' first multivariate Gaussian-convolution MLE).
+#' G1.3, G1.4, G1.4a: see `DeCovarT-package`.
+#' G2.3 / G2.3a / G2.3b: see `.match_arg_ci()`, [check_true_theta()],
+#' [generate_random_network_skeleton()], [plot_correlation_Heatmap()].
+#' G2.13 / G2.15: see `.assert_no_missing()` and [deconvolute_ratios()].
+#' G3.0: see [repair_simplex()] and tests (`100 * .Machine$double.eps`).
 #'
 #' @srrstats {G1.2} A lifecycle badge (Active/stable,
 #'   <https://www.repostatus.org/#active>) is shown in the README; future
 #'   development is described there and in vignettes.
-#'
-#' @srrstats {G1.3} Statistical terminology (ALR reparametrisation, simplex
-#'   constraint, Fisher information, Marquardt-Levenberg) is defined in the
-#'   vignettes and in `article/main.tex`.
-#'
-#' @srrstats {G1.4} All exported functions are documented with roxygen2
-#'   (title, description, `@param`, `@return`, `@examples`).
-#'
-#' @srrstats {G1.4a} All internal helpers carry a `@noRd` or
-#'   `@keywords internal` tag.
 #'
 #' @srrstatsTODO {G1.5} Reproduction scripts for arXiv preprint performance
 #'   claims to be added to `scripts/` before full submission.
@@ -55,13 +45,9 @@ NULL
 #' @srrstats {G2.2} Scalar parameters are checked with `assert_scalar` or
 #'   equivalent.
 #'
-#' @srrstats {G2.3} Character parameters validated with `match.arg()`.
-#'
-#' @srrstats {G2.3a} `match.arg()` used for all fixed-choice character
-#'   arguments (e.g. `method` in `run_deconvolution_benchmark()`).
-#'
-#' @srrstats {G2.3b} Character inputs compared case-insensitively via
-#'   `tolower()` in argument validation.
+#' G2.3, G2.3a, G2.3b: see `.match_arg_ci()` in `R/00_01_input_checks.R`.
+#' G2.13, G2.15: see [deconvolute_ratios()] (error on missing values; no
+#' imputation).
 #'
 #' @srrstatsTODO {G2.4} Coercion between data types to be reviewed.
 #' @srrstatsTODO {G2.4a} explicit conversion to `integer` via `as.integer()`
@@ -88,24 +74,19 @@ NULL
 #'
 #' @srrstatsTODO {G2.12} List-column handling to be addressed.
 #'
-#' @srrstats {G2.13} `anyNA()` checks applied to `y` and the signature matrix
-#'   at the start of `deconvolute_ratios()`; error raised if NAs detected.
-#'
 #' @srrstatsTODO {G2.14} User-specified NA handling options to be added.
 #' @srrstatsTODO {G2.14a} error on missing data
 #' @srrstatsTODO {G2.14b} ignore missing data with warning
 #' @srrstatsTODO {G2.14c} replace missing data with imputed values
 #'
-#' @srrstats {G2.15} All `mean`, `var`, `cor` calls pass `na.rm = TRUE` or
-#'   operate on pre-validated complete data.
+#' G2.13, G2.15: see [deconvolute_ratios()] and `.assert_no_missing()`.
 #'
 #' @srrstatsTODO {G2.16} User-facing options for `NaN`/`Inf`/`-Inf` handling
 #'   to be formalised (guards already present on optimiser inputs).
 #'
 #' G3 - Numeric precision
 #'
-#' @srrstats {G3.0} Floating-point equality avoided throughout; tolerance-based
-#'   checks (`isTRUE(all.equal(...))`) used where equality is tested.
+#' G3.0: see `.match_arg_ci()` / tests (`100 * .Machine$double.eps`).
 #'
 #' @srrstats {G3.1} User-provided covariance matrices can originate from any
 #'   estimation method; the diagonal (independence) approximation is one valid

@@ -11,7 +11,8 @@ generate_random_network_skeleton(n_genes, graph_model, graph_params = list())
 
 \item{graph_model}{One of \code{"erdos_renyi"}, \code{"hub"},
 \code{"scale_free"}, \code{"stochastic_block_model"},
-\code{"small_world"}.}
+\code{"small_world"} (also \code{"star"}, mapped to \code{"hub"}).
+Matching is case-insensitive.}
 
 \item{graph_params}{Named list of generator parameters:
 \describe{

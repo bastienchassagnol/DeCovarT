@@ -14,7 +14,10 @@ plot_correlation_Heatmap(
 \arguments{
 \item{distribution_metrics}{Tibble of metric scores from a benchmark.}
 
-\item{score_variable}{Column name of the metric to display.}
+\item{score_variable}{Column name of the metric to display
+(\code{"model_mse"}, \code{"model_rmse"}, \code{"model_coef_determination"},
+\code{"model_coef_determination_adjusted"}, \code{"model_mae"}, \code{"model_cor"},
+\code{"model_ccc"}). Matching is case-insensitive.}
 
 \item{n_break}{Number of colour breaks.}
 

@@ -74,6 +74,13 @@ deconvolute_ratios(
   cores = 1
 )
 }
+\references{
+\insertRef{erkkilaProbabilisticAnalysisGene2010}{DeCovarT}
+\insertRef{ahnDeMixDeconvolutionMixed2013}{DeCovarT}
+\insertRef{wangTranscriptomeDeconvolutionHeterogeneous2018}{DeCovarT}
+\insertRef{anghelISOpureRImplementationComputational2015}{DeCovarT}
+\insertRef{ogundijoSequentialMonteCarlo2017}{DeCovarT}
+}
 \seealso{
 \code{\link[=deconvolute_ratios_Marquardt_Levenberg]{deconvolute_ratios_Marquardt_Levenberg()}}
 }
