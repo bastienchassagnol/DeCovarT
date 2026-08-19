@@ -67,7 +67,8 @@ simulated \(\boldsymbol{p}\) (and related scenario factors).</p>
 <span>  <span class="va">distribution_metrics</span>,</span>
 <span>  score_variable <span class="op">=</span> <span class="st">"model_mse"</span>,</span>
 <span>  n_break <span class="op">=</span> <span class="fl">20</span>,</span>
-<span>  uni_scale <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  uni_scale <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  file <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -80,7 +81,10 @@ simulated \(\boldsymbol{p}\) (and related scenario factors).</p>
 
 
 <dt id="arg-score-variable">score_variable<a class="anchor" aria-label="anchor" href="#arg-score-variable"></a></dt>
-<dd><p>Column name of the metric to display.</p></dd>
+<dd><p>Column name of the metric to display
+(<code>"model_mse"</code>, <code>"model_rmse"</code>, <code>"model_coef_determination"</code>,
+<code>"model_coef_determination_adjusted"</code>, <code>"model_mae"</code>, <code>"model_cor"</code>,
+<code>"model_ccc"</code>). Matching is case-insensitive.</p></dd>
 
 
 <dt id="arg-n-break">n_break<a class="anchor" aria-label="anchor" href="#arg-n-break"></a></dt>
@@ -89,6 +93,11 @@ simulated \(\boldsymbol{p}\) (and related scenario factors).</p>
 
 <dt id="arg-uni-scale">uni_scale<a class="anchor" aria-label="anchor" href="#arg-uni-scale"></a></dt>
 <dd><p>If <code>FALSE</code>, each panel uses its own colour scale.</p></dd>
+
+
+<dt id="arg-file">file<a class="anchor" aria-label="anchor" href="#arg-file"></a></dt>
+<dd><p>Optional PDF path. When supplied, heatmaps are drawn with
+<code><a href="https://rdrr.io/r/grDevices/pdf.html" class="external-link">grDevices::pdf()</a></code>; a missing <code>.pdf</code> suffix is added (G4.0).</p></dd>
 
 </dl></div>
     <div class="section level2">

@@ -20,7 +20,8 @@ generate_random_network_skeleton(n_genes, graph_model, graph_params = list())
 - graph_model:
 
   One of `"erdos_renyi"`, `"hub"`, `"scale_free"`,
-  `"stochastic_block_model"`, `"small_world"`.
+  `"stochastic_block_model"`, `"small_world"` (also `"star"`, mapped to
+  `"hub"`). Matching is case-insensitive.
 
 - graph_params:
 

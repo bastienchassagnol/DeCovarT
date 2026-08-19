@@ -41,7 +41,8 @@ check_true_theta(
 - second_moment:
 
   Which second-moment field to require: `"sigma"`, `"Theta"`, or
-  `"either"` (default: at least one of `sigma` / `Theta`).
+  `"either"` (default: at least one of `sigma` / `Theta`). Matching is
+  case-insensitive.
 
 ## Value
 

@@ -10,7 +10,8 @@ plot_correlation_Heatmap(
   distribution_metrics,
   score_variable = "model_mse",
   n_break = 20,
-  uni_scale = TRUE
+  uni_scale = TRUE,
+  file = NULL
 )
 ```
 
@@ -22,7 +23,10 @@ plot_correlation_Heatmap(
 
 - score_variable:
 
-  Column name of the metric to display.
+  Column name of the metric to display (`"model_mse"`, `"model_rmse"`,
+  `"model_coef_determination"`, `"model_coef_determination_adjusted"`,
+  `"model_mae"`, `"model_cor"`, `"model_ccc"`). Matching is
+  case-insensitive.
 
 - n_break:
 
@@ -31,6 +35,12 @@ plot_correlation_Heatmap(
 - uni_scale:
 
   If `FALSE`, each panel uses its own colour scale.
+
+- file:
+
+  Optional PDF path. When supplied, heatmaps are drawn with
+  [`grDevices::pdf()`](https://rdrr.io/r/grDevices/pdf.html); a missing
+  `.pdf` suffix is added (G4.0).
 
 ## Value
 

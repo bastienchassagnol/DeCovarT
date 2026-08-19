@@ -219,6 +219,36 @@ a curated lineage tree is supplied—benchmarked at broad, intermediate,
 and terminal resolutions against `HiDecon`, `HIDE`, tree-guided `MuSiC`,
 and `Rectangle`.
 
+### Sample-level CTS, spatial mixtures, and alternative laws
+
+Three further extensions change the **observation model**, not the
+simplex constraint on \boldsymbol{p}.
+
+**Cell-type-specific (CTS) profiles.** The frequentist API plugs
+\boldsymbol{\mu}\_{\cdot j} in for the latent purified vector
+\boldsymbol{x}\_{\cdot j}. A Bayesian CTS step would instead recover a
+sample-level posterior (or MAP) for each \boldsymbol{x}\_{\cdot j} given
+\boldsymbol{y}\_{\cdot i} and \boldsymbol{p}\_{\cdot i}—the experimental
+path in `R/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R`. DSection
+([Erkkilä et al. 2010](#ref-erkkilaProbabilisticAnalysisGene2010))
+already samples univariate latents; DeCovarT would do the same under the
+multivariate convolution [Eq. 2](#eq-gaussian-convolution).
+
+**Spatial transcriptomics.** Each spot (or pixel) is a local mixture
+\boldsymbol{y}(s) with its own \boldsymbol{p}(s) on the same simplex.
+The Gaussian convolution still applies per location; neighbourhood
+kernels or 3-D tissue structure enter only as dependence among adjacent
+\boldsymbol{p}(s).
+
+**Alternative bulk laws.** Replacing the Gaussian in
+[Eq. 2](#eq-gaussian-convolution) with a **log-normal** convolution
+(independent genes, as in Blade-type models) or a **Poisson log-normal**
+count model ([Chiquet et al.
+2018](#ref-chiquetVariationalInferenceSparse2018)) would better match
+over-dispersed RNA counts. The ALR map ([Eq. 11](#eq-alr-forward)) and
+simplex constraint are unchanged; only the likelihood and its
+derivatives change.
+
 ## Compositional geometry and validation
 
 ### ALR reparametrisation and links to the maths vignette
@@ -314,6 +344,10 @@ Multidimensional Probabilistic Model for the Deconvolution of
 Heterogeneous Transcriptomic Samples*. arXiv.
 <https://doi.org/10.48550/arxiv.2309.09557>.
 
+Chiquet, Julien, Mahendra Mariadassou, and Stéphane Robin. 2018.
+*Variational Inference for Sparse Network Reconstruction from Count
+Data*. arXiv. <https://doi.org/10.48550/arxiv.1806.03120>.
+
 Dong, Meichen, Aatish Thennavan, Eugene Urrutia, et al. 2021. ‘SCDC:
 Bulk Gene Expression Deconvolution by Multiple Single-Cell RNA
 Sequencing References’. *Briefings in Bioinformatics* 22.
@@ -323,6 +357,11 @@ Eder, Bernhard, Irene Rigato, Alexander Dietrich, et al. 2026.
 *Rectangle: Robust and Scalable Multiscale Deconvolution Informed by
 Single-Cell RNA Sequencing Data*. bioRxiv.
 <https://doi.org/10.64898/2026.07.07.736950>.
+
+Erkkilä, Timo, Saara Lehmusvaara, Pekka Ruusuvuori, Tapio Visakorpi,
+Ilya Shmulevich, and Harri Lähdesmäki. 2010. ‘Probabilistic Analysis of
+Gene Expression Measurements from Heterogeneous Tissues’.
+*Bioinformatics* 26. <https://doi.org/10.1093/bioinformatics/btq406>.
 
 Huang, Penghui, Manqi Cai, Xinghua Lu, Chris McKennan, and Jiebiao Wang.
 2024. ‘Accurate Estimation of Rare Cell-Type Fractions from Tissue Omics
