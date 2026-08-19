@@ -25,7 +25,7 @@
     paste0("DeCovarT ", ver, " - covariance-aware bulk deconvolution."),
     "Estimate cellular proportions from bulk RNA-seq using Gaussian",
     "convolutions of purified means and covariances (ALR + MLE).",
-    "Main entry point: deconvolute_ratios().",
+    "Main entry points: fit_decovart() and deconvolute_ratios().",
     "Website: https://bastienchassagnol.github.io/DeCovarT/"
   )
   if (length(import_pkgs)) {
@@ -33,7 +33,7 @@
       msg,
       paste0(
         "Imports (loaded with the package): ",
-        paste(import_pkgs, collapse = ", "),
+        toString(import_pkgs),
         "."
       )
     )

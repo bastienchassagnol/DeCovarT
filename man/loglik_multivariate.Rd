@@ -53,6 +53,19 @@ likelihood treats \eqn{\boldsymbol{\mu}} as a fixed proxy. Estimating those
 latents jointly with \eqn{\boldsymbol{p}} requires a Bayesian / MAP step
 (see \code{.map_gaussian_convolution()}).
 }
+\examples{
+genes <- paste0("g", 1:2)
+cts <- paste0("ct", 1:2)
+mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))
+Sigma <- array(
+  c(1, 0, 0, 1, 1, 0, 0, 1),
+  dim = c(2, 2, 2),
+  dimnames = list(genes, genes, cts)
+)
+p <- c(0.6, 0.4)
+y <- drop(mu \%*\% p)
+loglik_multivariate(p, y, mu, Sigma)
+}
 \seealso{
 \code{\link[=gradient_loglik_unconstrained]{gradient_loglik_unconstrained()}}, \code{\link[=additive_logistic]{additive_logistic()}}
 }

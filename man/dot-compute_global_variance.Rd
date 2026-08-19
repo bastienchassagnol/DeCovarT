@@ -24,4 +24,9 @@ Assembles the conditional covariance of the Gaussian convolution
 }
 stored as slices of the array \code{Sigma}.
 }
+\examples{
+p <- c(0.6, 0.4)
+Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+.compute_global_variance(p, Sigma)
+}
 \keyword{internal}

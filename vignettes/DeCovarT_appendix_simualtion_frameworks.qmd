@@ -7,7 +7,7 @@ vignette: >
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 knitr:
-    10|  opts_chunk:
+  opts_chunk:
     collapse: true
     comment: "#>"
 bibliography:
@@ -17,7 +17,7 @@ link-citations: true
 crossref:
   eq-prefix: "Eq."
   sec-prefix: "Sec."
-    20|format:
+format:
   html:
     embed-resources: true
     toc: true

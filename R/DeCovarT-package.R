@@ -17,7 +17,8 @@
 #' the Bayesian extension.
 #'
 #' To learn more, start with the package website vignettes, or in an R session:
-#' `browseVignettes(package = "DeCovarT")` and
+#' `browseVignettes(package = "DeCovarT")`,
+#' `?DeCovarT::fit_decovart` and
 #' `?DeCovarT::deconvolute_ratios`.
 #'
 #' Reference manuals (PDF / HTML) can be regenerated with

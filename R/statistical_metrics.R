@@ -312,6 +312,8 @@ compute_glmnet_gene_scores <- function(
 #' \url{https://en.wikipedia.org/wiki/Kullback-Leibler_divergence}.
 #'
 #' @keywords internal
+#' @examples
+#' .jeffreys_gaussian(c(0, 0), c(1, 0), diag(2), diag(2))
 #' @export
 .jeffreys_gaussian <- function(mu_j, mu_l, sigma_j, sigma_l) {
   mu_j <- as.numeric(mu_j)

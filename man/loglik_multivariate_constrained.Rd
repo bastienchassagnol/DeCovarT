@@ -27,4 +27,11 @@ Composes \code{\link[=loglik_multivariate]{loglik_multivariate()}} with \code{\l
 optimisation may be performed over
 \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
 }
+\examples{
+mu <- matrix(c(20, 22, 22, 20), 2)
+Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+p <- c(0.6, 0.4)
+y <- drop(mu \%*\% p)
+loglik_multivariate_constrained(additive_log_ratio(p), y, mu, Sigma)
+}
 \keyword{internal}

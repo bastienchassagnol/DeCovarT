@@ -52,6 +52,13 @@ between extrapolations (default \code{v = 2}).}
 }
 Alternative \code{method} values: \code{"simple"} and \code{"complex"}.
 }
+\examples{
+mu <- matrix(c(20, 22, 22, 20), 2)
+Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+p <- c(0.6, 0.4)
+y <- drop(mu \%*\% p)
+gradient_loglik_unconstrained(p, y, mu, Sigma)
+}
 \seealso{
 \code{\link[numDeriv:grad]{numDeriv::grad()}}, \code{\link[=hessian_loglik_unconstrained]{hessian_loglik_unconstrained()}}
 }

@@ -19,15 +19,16 @@ simulate_hierarchical_grn_moments(
 )
 }
 \arguments{
-\item{n_genes}{Integer; number of genes \eqn{G}.}
+\item{n_genes}{Integer \eqn{G}; must be at least \code{n_celltypes}.}
 
-\item{n_celltypes}{Integer; number of cell types \eqn{J} (default 2).}
+\item{n_celltypes}{Integer \eqn{J\ge 2}.}
 
-\item{mean_scale}{Positive scalar \eqn{s} for centroid norms
-(default \code{10}, as in the nine-scenario grid).}
+\item{mean_scale}{Positive scalar \eqn{s} (centroid norms). Default
+\code{10}, as in the nine factorial scenarios. Hold fixed when
+studying cosine / collinearity alone.}
 
-\item{target_cosine}{Numeric in \eqn{[0,1]}; target pairwise cosine
-similarity between columns of \eqn{\boldsymbol{\mu}}.}
+\item{target_cosine}{Numeric in \eqn{[0,1]}, the collinearity dial
+\eqn{\rho}.}
 
 \item{precision_shift}{Diagonal cushion \eqn{u} for the spectral
 shift (scalar, or length \eqn{J}).}

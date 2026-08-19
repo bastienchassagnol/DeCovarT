@@ -19,14 +19,11 @@ deconvolute_ratios(
 \arguments{
 \item{signature_matrix}{Mean signature
 \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (rownames = genes,
-colnames = cell types). Numeric matrix of non-negative expression;
-\eqn{G \ge J} is required (the mixture is undetermined if
-\eqn{J > G}). Used as a frequentist \strong{plug-in} for unobserved
-latent cell-type profiles \eqn{\boldsymbol{x}_{\cdot j}}.}
+colnames = cell types).}
 
 \item{bulk_expression}{Bulk matrix
-\eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}}: numeric, non-negative,
-gene rownames matching \code{signature_matrix}.}
+\eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}} (rownames = genes,
+colnames = samples).}
 
 \item{true_ratios}{Optional ground-truth proportions: a length-\eqn{J}
 numeric vector (recycled over samples) or a numeric matrix
@@ -39,22 +36,19 @@ of cell-type covariances (numeric; off-diagonals may be negative).}
 \item{deconvolution_functions}{Named list; each element has \code{FUN} and
 optional \code{additional_parameters}.}
 
-\item{standardise}{If \code{TRUE}, apply a gene-wise affine z-score (same
-centre and scale from \(\boldsymbol{\mu}\) to bulk, means and
-covariances). This does not change the theoretical MLE of
-\(\boldsymbol{p}\).}
+\item{standardise}{If \code{TRUE}, apply a \strong{gene-wise} affine z-score
+computed once from \eqn{\boldsymbol{\mu}} to bulk, means and covariances
+(see Details). Cell-type-wise or sample-wise transforms are not
+supported.}
 
-\item{scaled}{Deprecated. \code{TRUE} (log2 mixing) always errors: the
-logarithm breaks the linear convolution (Jensen). CIBERSORT
-likewise requires non-log linear space
-\insertCite{newmanRobustEnumerationCell2015}{DeCovarT}.}
+\item{scaled}{Deprecated. \code{TRUE} (log2 mixing) always errors.}
 
 \item{cores}{Number of parallel workers.}
 }
 \value{
 A \code{tibble} of estimated \eqn{\hat{\boldsymbol{p}}} and metrics.
 First-generation solvers still call \code{\link[=repair_simplex]{repair_simplex()}}; the three
-native DeCovarT maps (ALR or \(p/\sum p\)) already lie on the simplex.
+native DeCovarT maps (ALR or \eqn{p/\sum p}) already lie on the simplex.
 }
 \description{
 For each column \eqn{\boldsymbol{y}_{\cdot i}} of the bulk matrix

@@ -7,13 +7,14 @@
 .map_gaussian_convolution(y, mean_signature_matrix, Sigma)
 }
 \arguments{
-\item{y}{Bulk vector \eqn{\boldsymbol{y}\in\mathbb{R}^{G}}.}
+\item{y}{Numeric vector (or one-column matrix)
+\eqn{\boldsymbol{y}\in\mathbb{R}^{G}}.}
 
-\item{mean_signature_matrix}{Mean matrix
-\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (prior / plug-in means).}
+\item{mean_signature_matrix}{Numeric matrix
+\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (plug-in means).}
 
-\item{Sigma}{Array
-\eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}}.}
+\item{Sigma}{Array of cell-type covariances in
+\eqn{\mathcal{M}_{G\times G\times J}}.}
 }
 \value{
 List of length \eqn{J} with MAP vectors in \eqn{\mathbb{R}^{G}}.
@@ -27,5 +28,17 @@ the \strong{latent} purified profiles
 This is the Bayesian counterpart to the frequentist plug-in that replaces
 \eqn{\boldsymbol{x}_{\cdot j}} by \eqn{\boldsymbol{\mu}_{\cdot j}} when
 estimating proportions alone.
+}
+\examples{
+genes <- paste0("g", 1:2)
+cts <- paste0("ct", 1:2)
+mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))
+Sigma <- array(
+  c(1, 0, 0, 1, 1, 0, 0, 1),
+  dim = c(2, 2, 2),
+  dimnames = list(genes, genes, cts)
+)
+y <- drop(mu \%*\% c(0.6, 0.4))
+.map_gaussian_convolution(y, mu, Sigma)
 }
 \keyword{internal}

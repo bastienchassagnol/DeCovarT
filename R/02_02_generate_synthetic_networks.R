@@ -44,6 +44,8 @@
 #'   \code{sum_euclidean_distance}.
 #'
 #' @keywords internal
+#' @examples
+#' compute_mean_profile_objectives(matrix(c(20, 22, 22, 20), 2))
 #' @export
 compute_mean_profile_objectives <- function(mean_signature_matrix) {
   n_celltypes <- ncol(mean_signature_matrix)
@@ -273,6 +275,8 @@ generate_mean_signature_matrix <- function(
 #' @return Symmetric integer matrix \eqn{G\times G} with zero diagonal.
 #'
 #' @keywords internal
+#' @examples
+#' generate_random_network_skeleton(8L, "erdos_renyi")
 #' @export
 generate_random_network_skeleton <- function(
   n_genes,
@@ -446,6 +450,9 @@ generate_random_network_skeleton <- function(
 #'   \code{adjacency_matrix} and zero diagonal.
 #'
 #' @keywords internal
+#' @examples
+#' A <- generate_random_network_skeleton(6L, "hub")
+#' assign_iid_signed_weights(A, prop_inhibitory = 0.5)
 #' @export
 assign_iid_signed_weights <- function(
   adjacency_matrix,
@@ -504,6 +511,10 @@ assign_iid_signed_weights <- function(
 #' @return Symmetric positive-definite matrix.
 #'
 #' @keywords internal
+#' @examples
+#' A <- generate_random_network_skeleton(6L, "hub")
+#' W <- assign_iid_signed_weights(A)
+#' build_normalised_precision(W, precision_shift = 0.2)
 #' @export
 build_normalised_precision <- function(
   weighted_adjacency,
@@ -534,6 +545,12 @@ build_normalised_precision <- function(
 #' @return Numeric array of dimension \eqn{G\times G\times J}.
 #'
 #' @keywords internal
+#' @examples
+#' A <- generate_random_network_skeleton(6L, "hub")
+#' W <- assign_iid_signed_weights(A)
+#' Omega <- build_normalised_precision(W, precision_shift = 0.2)
+#' arr <- array(Omega, dim = c(6, 6, 1))
+#' dim(build_covariance_array_from_precision(arr))
 #' @export
 build_covariance_array_from_precision <- function(precision_array) {
   if (
@@ -581,12 +598,7 @@ build_covariance_array_from_precision <- function(precision_array) {
 #' \code{graph_model} / \code{graph_params} or a pre-built
 #' \code{adjacency} list / array for hybrid designs.
 #'
-#' @param n_genes Integer; number of genes \eqn{G}.
-#' @param n_celltypes Integer; number of cell types \eqn{J} (default 2).
-#' @param mean_scale Positive scalar \eqn{s} for centroid norms
-#'   (default \code{10}, as in the nine-scenario grid).
-#' @param target_cosine Numeric in \eqn{[0,1]}; target pairwise cosine
-#'   similarity between columns of \eqn{\boldsymbol{\mu}}.
+#' @inheritParams generate_mean_signature_matrix
 #' @param precision_shift Diagonal cushion \eqn{u} for the spectral
 #'   shift (scalar, or length \eqn{J}).
 #' @param precision_scale Positive magnitude \eqn{v} of signed

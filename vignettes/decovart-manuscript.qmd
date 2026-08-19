@@ -1,0 +1,33 @@
+---
+title: "DeCovarT methods paper"
+author: "Bastien Chassagnol"
+date: today
+vignette: >
+  %\VignetteIndexEntry{DeCovarT methods paper}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+bibliography:
+  - ../inst/packages.bib
+  - ../inst/REFERENCES.bib
+link-citations: true
+resources:
+  - decovart-manuscript.pdf
+format:
+  html:
+    embed-resources: false
+    toc: true
+embedpdf:
+  height: 800
+  width: 100%
+---
+
+The methods paper describes covariance-aware deconvolution of bulk
+transcriptomes as a multivariate Gaussian convolution, recovering
+simplex-constrained cell-type proportions by maximum likelihood with
+analytic derivatives. The current official source repository is
+[bastienchassagnol/DeCovarT](https://github.com/bastienchassagnol/DeCovarT);
+a preprint is on [arXiv](https://arxiv.org/abs/2309.09557)
+[@chassagnolDeCovarTMultidimensionalProbalistic2023]. The PDF below is
+the working manuscript (`article/main.pdf`).
+
+{{< pdf decovart-manuscript.pdf width=100% height=800 >}}

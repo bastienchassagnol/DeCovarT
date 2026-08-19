@@ -20,4 +20,11 @@ For each cell type \eqn{j}, inverts
 result as a \eqn{G\times G\times J} array. Precisions need not be
 shared across cell types.
 }
+\examples{
+A <- generate_random_network_skeleton(6L, "hub")
+W <- assign_iid_signed_weights(A)
+Omega <- build_normalised_precision(W, precision_shift = 0.2)
+arr <- array(Omega, dim = c(6, 6, 1))
+dim(build_covariance_array_from_precision(arr))
+}
 \keyword{internal}

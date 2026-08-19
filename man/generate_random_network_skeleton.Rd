@@ -41,4 +41,7 @@ preferential attachment (\code{scale_free}), a stochastic block model
 (\code{small_world})
 \insertCite{barabasiEmergenceScalingRandom1999}{DeCovarT}.
 }
+\examples{
+generate_random_network_skeleton(8L, "erdos_renyi")
+}
 \keyword{internal}

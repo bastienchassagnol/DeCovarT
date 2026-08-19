@@ -40,4 +40,9 @@ the first of those calls actually factorises, and the rest simply return
 the cached result in \eqn{O(G^{2})} (the cost of the equality check).
 Profiling on a 38-gene / 3-cell-type scenario showed the redundancy
 }
+\examples{
+p <- c(0.6, 0.4)
+Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+names(.sigma_p_factorisation(p, Sigma))
+}
 \keyword{internal}

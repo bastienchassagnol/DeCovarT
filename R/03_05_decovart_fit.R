@@ -17,14 +17,14 @@
 #' }
 #' This is a **variance / likelihood specification**, not ordinary least
 #' squares: cell-type covariances enter the residual law and cannot be
-#' written as extra columns of \(\boldsymbol{\mu}\). There is therefore no
+#' written as extra columns of \eqn{\boldsymbol{\mu}}. There is therefore no
 #' `formula` / `lm` interface, and no `predict()` method for forecasting
 #' bulk expression.
 #'
 #' The returned object is an S3 class `decovart_fit` with accessors
 #' [coef()], [fitted()], [residuals()], [vcov()], [nobs()], [confint()],
 #' [print()], [summary()] and [plot()]. Residuals are
-#' \(\boldsymbol{Y}-\boldsymbol{\mu}\hat{\boldsymbol{P}}\); they are **not** OLS
+#' \eqn{\boldsymbol{Y}-\boldsymbol{\mu}\hat{\boldsymbol{P}}}; they are **not** OLS
 #' residuals. Goodness of fit is the convolution log-likelihood, not
 #' residual sum of squares.
 #'
@@ -41,13 +41,13 @@
 #'   cell-type covariances.
 #' @param method Optimiser; one of `"Marquardt-Levenberg"`,
 #'   `"L-BFGS-B"`, `"Newton-Raphson"` (case-insensitive). These three
-#'   maps already land on the simplex (ALR or \(p/\sum p\)); they do
+#'   maps already land on the simplex (ALR or \eqn{p/\sum p}); they do
 #'   **not** call [repair_simplex()].
 #' @param epsilon,itmax Absolute convergence tolerance and iteration
 #'   budget, in the same roles as `reltol` / `maxit` in
 #'   [stats::optim()].
 #' @param standardise If `TRUE`, apply a **gene-wise** affine z-score
-#'   computed once from \(\boldsymbol{\mu}\) to bulk, means and covariances
+#'   computed once from \eqn{\boldsymbol{\mu}} to bulk, means and covariances
 #'   (see Details). Cell-type-wise or sample-wise transforms are not
 #'   supported.
 #' @param scaled Deprecated. `TRUE` (log2 mixing) always errors.
@@ -57,15 +57,15 @@
 #' missing values, and a non-log linear scale
 #' \insertCite{newmanRobustEnumerationCell2015}{DeCovarT}. A logarithm is
 #' concave, so Jensen's inequality shifts first and second moments and
-#' \(\log(\boldsymbol{\mu}\boldsymbol{p})\neq(\log\boldsymbol{\mu})\boldsymbol{p}\).
+#' \eqn{\log(\boldsymbol{\mu}\boldsymbol{p})\neq(\log\boldsymbol{\mu})\boldsymbol{p}}.
 #' A gene-wise affine map
-#' \(\boldsymbol{x}\mapsto D^{-1}(\boldsymbol{x}-\boldsymbol{m})\) with the
-#' **same** \(D,\boldsymbol{m}\) on \(\boldsymbol{Y}\), \(\boldsymbol{\mu}\) and
-#' \(\boldsymbol{\Sigma}_j^\star=D^{-1}\boldsymbol{\Sigma}_j D^{-1}\) leaves the
-#' MLE of \(\boldsymbol{p}\) unchanged (equivariance).
+#' \eqn{\boldsymbol{x}\mapsto D^{-1}(\boldsymbol{x}-\boldsymbol{m})} with the
+#' **same** \eqn{D,\boldsymbol{m}} on \eqn{\boldsymbol{Y}}, \eqn{\boldsymbol{\mu}} and
+#' \eqn{\boldsymbol{\Sigma}_j^\star=D^{-1}\boldsymbol{\Sigma}_j D^{-1}} leaves the
+#' MLE of \eqn{\boldsymbol{p}} unchanged (equivariance).
 #'
 #' **Wald covariance.** Let
-#' \(\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\).
+#' \eqn{\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}}.
 #' The expected Fisher information of the unconstrained mean--covariance
 #' map (multivariate normal; see e.g. the Wikipedia entry *Fisher
 #' information*, multivariate normal) is
@@ -83,13 +83,13 @@
 #'   \bigr).
 #' }
 #' Cramer--Rao gives
-#' \(\mathrm{Var}(\hat{\boldsymbol{\rho}})\succeq I_{\boldsymbol{\rho}}^{-1}\)
+#' \eqn{\mathrm{Var}(\hat{\boldsymbol{\rho}})\succeq I_{\boldsymbol{\rho}}^{-1}}
 #' in ALR coordinates, with
-#' \(I_{\boldsymbol{\rho}}
+#' \eqn{I_{\boldsymbol{\rho}}
 #' =\mathbf{J}_{\boldsymbol{\psi}}^{\top} I(\boldsymbol{p})
-#' \mathbf{J}_{\boldsymbol{\psi}}\) and
-#' \(\mathbf{J}_{\boldsymbol{\psi}}
-#' =\partial\boldsymbol{\psi}/\partial\boldsymbol{\rho}^{\top}\)
+#' \mathbf{J}_{\boldsymbol{\psi}}} and
+#' \eqn{\mathbf{J}_{\boldsymbol{\psi}}
+#' =\partial\boldsymbol{\psi}/\partial\boldsymbol{\rho}^{\top}}
 #' ([jacobian_additive_logistic()]). The delta method maps the bound
 #' back to the simplex:
 #' \deqn{
@@ -157,6 +157,7 @@
 #'   `vcov`, `nobs`, `print`, `summary`, `plot`.
 #' @references
 #' \insertRef{newmanRobustEnumerationCell2015}{DeCovarT}
+#' @importFrom stats nobs coef vcov fitted residuals confint
 #' @export
 #' @seealso [deconvolute_ratios()],
 #'   [deconvolute_ratios_Marquardt_Levenberg()]
@@ -358,7 +359,7 @@ print.decovart_fit <- function(x, ...) {
   )
   cat("Proportions:\n")
   print(x$coefficients, ...)
-  cat("Log-likelihood:", paste(signif(x$loglik, 6), collapse = ", "), "\n")
+  cat("Log-likelihood:", toString(signif(x$loglik, 6)), "\n")
   invisible(x)
 }
 

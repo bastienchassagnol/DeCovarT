@@ -88,6 +88,11 @@ navbar:
       text: Vignettes
       icon: fa-book-open
       menu:
+        - text: Manuscript
+        - text: DeCovarT methods paper (PDF)
+          icon: fa-file-pdf
+          href: articles/decovart-manuscript.html
+        - text: -------
         - text: Doctorants seminar slides (embedded)
           icon: fa-chalkboard-user
           href: articles/deconvolution-seminar-slides.html
@@ -203,6 +208,9 @@ reference:
       - compute_glmnet_gene_scores
 
 articles:
+  - title: Manuscript
+    contents:
+      - decovart-manuscript
   - title: Presentations
     contents:
       - deconvolution-seminar-slides
@@ -222,6 +230,8 @@ articles:
 
 news:
   releases:
+    - text: "Version 2.2.0 (S3 model-fit wrapper)"
+      href: https://github.com/bastienchassagnol/DeCovarT/releases/tag/v2.2.0
     - text: "Version 2.0.0 (numerical optimisers / CRAN submission)"
       href: https://github.com/bastienchassagnol/DeCovarT/releases/tag/v2.0.0
     - text: "Version 1.0.0 (first stabilised release)"

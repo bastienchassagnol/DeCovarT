@@ -32,4 +32,11 @@ Returns
 i.e. first-order chain rule for
 \eqn{\ell\circ\boldsymbol{\psi}}.
 }
+\examples{
+mu <- matrix(c(20, 22, 22, 20), 2)
+Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+p <- c(0.6, 0.4)
+y <- drop(mu \%*\% p)
+gradient_loglik_constrained(additive_log_ratio(p), y, mu, Sigma)
+}
 \keyword{internal}

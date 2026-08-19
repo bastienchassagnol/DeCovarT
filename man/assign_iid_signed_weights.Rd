@@ -33,4 +33,8 @@ off-diagonal is an \strong{inhibitory} partial correlation
 \eqn{\Omega_{jk}>0} (negative partial correlation). The complementary
 fraction is activatory (\eqn{\Omega_{jk}<0}).
 }
+\examples{
+A <- generate_random_network_skeleton(6L, "hub")
+assign_iid_signed_weights(A, prop_inhibitory = 0.5)
+}
 \keyword{internal}

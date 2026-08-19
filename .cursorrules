@@ -146,6 +146,11 @@ This repo uses **[Air](https://posit-dev.github.io/air/)** (`air.toml`) and
 - Format R with Air: line width **80**, indent **2 spaces**, space indent.
 - Do not fight Air/lintr: match existing style after edits.
 - Prefer Air over styler for formatting.
+- **goodpractice / lintr (address these; ignore other lintr messages):**
+  - Do not nest pipes inside other calls (`f(x |> g())`); assign first.
+  - `expect_length(x, n)` rather than `expect_identical(length(x), n)`.
+  - `expect_type(x, t)` rather than `expect_true(is.<type>(x))`.
+  - `toString(x)` rather than `paste(x, collapse = ", ")`.
 - Run / respect pre-commit hooks: `air-format`, `lintr` (warn-only),
   `parsable-R`, `no-browser-statement`, `use-tidy-description`,
   `deps-in-desc`, large-file check, `check-bibliography`. README sync
@@ -369,6 +374,8 @@ Follow
   - Use `expect_equal()` only when tolerance / numeric noise matters.
   - Prefer `expect_named(x, expected)` over
     `expect_identical(names(x), expected)`.
+  - `expect_length(x, n)` rather than `expect_identical(length(x), n)`.
+  - `expect_type(x, t)` rather than `expect_true(is.<type>(x))`.
   - Split `expect_true(a && b)` into separate `expect_true(a)` and
     `expect_true(b)` calls.
 - Use `set.seed()` for stochastic tests; store fixtures under

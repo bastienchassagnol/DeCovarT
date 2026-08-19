@@ -48,9 +48,9 @@ repos:
       - id: check-added-large-files
         args: ["--maxkb=2000"]
       - id: end-of-file-fixer
-        exclude: '(?x)(\.Rd$|slides/_extensions/)'
+        exclude: '(?x)(\.Rd$|slides/_extensions/|vignettes/_extensions/)'
       - id: trailing-whitespace
-        exclude: '(?x)(\.Rd$|slides/_extensions/)'
+        exclude: '(?x)(\.Rd$|slides/_extensions/|vignettes/_extensions/)'
 
   # Bibliography hygiene (Zotero/BBT). always_run because global exclude
   # skips article/; the script still reads article/ + inst/ on disk.

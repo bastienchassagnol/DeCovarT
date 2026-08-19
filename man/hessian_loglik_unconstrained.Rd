@@ -30,4 +30,11 @@ matching the matrix formulae of the article (quadratic forms in
 \eqn{\boldsymbol{\mu}_{\cdot i}} and residual
 \eqn{\boldsymbol{r}=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}}).
 }
+\examples{
+mu <- matrix(c(20, 22, 22, 20), 2)
+Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+p <- c(0.6, 0.4)
+y <- drop(mu \%*\% p)
+hessian_loglik_unconstrained(p, y, mu, Sigma)
+}
 \keyword{internal}

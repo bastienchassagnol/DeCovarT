@@ -17,4 +17,7 @@ Tensor of mixed partials of \code{\link[=additive_logistic]{additive_logistic()}
 \eqn{\partial^{2}p_i/(\partial\rho_k\partial\rho_j)}, stored as an
 array of size \eqn{(J-1)\times(J-1)\times J}.
 }
+\examples{
+hessian_additive_logistic(c(0.2, -0.5))
+}
 \keyword{internal}

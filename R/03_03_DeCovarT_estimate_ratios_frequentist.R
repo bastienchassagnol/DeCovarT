@@ -89,6 +89,8 @@ additive_log_ratio <- function(p) {
 #'
 #' @return Numeric scalar.
 #' @keywords internal
+#' @examples
+#' .bilinear_form(c(1, 2), diag(2), c(3, 4))
 #' @export
 .bilinear_form <- function(x, A, y = x) {
   x <- as.numeric(x)
@@ -125,6 +127,10 @@ additive_log_ratio <- function(p) {
 #'   \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})\in\mathcal{M}_{G\times G}}.
 #'
 #' @keywords internal
+#' @examples
+#' p <- c(0.6, 0.4)
+#' Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+#' .compute_global_variance(p, Sigma)
 #' @export
 .compute_global_variance <- function(p, Sigma) {
   ###  Sigma and TensorA packages
@@ -170,6 +176,10 @@ additive_log_ratio <- function(p) {
 #'   (\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}}).
 #'
 #' @keywords internal
+#' @examples
+#' p <- c(0.6, 0.4)
+#' Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+#' names(.sigma_p_factorisation(p, Sigma))
 #' @export
 .sigma_p_factorisation <- local({
   cache <- new.env(parent = emptyenv())
@@ -254,6 +264,18 @@ additive_log_ratio <- function(p) {
 #'
 #' @keywords internal
 #' @export
+#' @examples
+#' genes <- paste0("g", 1:2)
+#' cts <- paste0("ct", 1:2)
+#' mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))
+#' Sigma <- array(
+#'   c(1, 0, 0, 1, 1, 0, 0, 1),
+#'   dim = c(2, 2, 2),
+#'   dimnames = list(genes, genes, cts)
+#' )
+#' p <- c(0.6, 0.4)
+#' y <- drop(mu %*% p)
+#' loglik_multivariate(p, y, mu, Sigma)
 #' @seealso [gradient_loglik_unconstrained()], [additive_logistic()]
 loglik_multivariate <- function(p, y, mean_signature_matrix, Sigma) {
   sigma_p <- .sigma_p_factorisation(p, Sigma)
@@ -278,6 +300,12 @@ loglik_multivariate <- function(p, y, mean_signature_matrix, Sigma) {
 #' @return Scalar log-likelihood on the constrained manifold.
 #'
 #' @keywords internal
+#' @examples
+#' mu <- matrix(c(20, 22, 22, 20), 2)
+#' Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+#' p <- c(0.6, 0.4)
+#' y <- drop(mu %*% p)
+#' loglik_multivariate_constrained(additive_log_ratio(p), y, mu, Sigma)
 #' @export
 loglik_multivariate_constrained <- function(
   rho,
@@ -317,6 +345,8 @@ loglik_multivariate_constrained <- function(
 #' @return Numeric matrix of size \eqn{J\times(J-1)}.
 #'
 #' @keywords internal
+#' @examples
+#' jacobian_additive_logistic(c(0.2, -0.5))
 #' @export
 jacobian_additive_logistic <- function(rho) {
   p <- additive_logistic(rho)
@@ -364,6 +394,12 @@ jacobian_additive_logistic <- function(rho) {
 #'   \eqn{\nabla_{\boldsymbol{p}}\ell\in\mathbb{R}^{J}}.
 #'
 #' @keywords internal
+#' @examples
+#' mu <- matrix(c(20, 22, 22, 20), 2)
+#' Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+#' p <- c(0.6, 0.4)
+#' y <- drop(mu %*% p)
+#' gradient_loglik_unconstrained(p, y, mu, Sigma)
 #' @export
 #' @seealso [numDeriv::grad()], [hessian_loglik_unconstrained()]
 gradient_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
@@ -412,6 +448,12 @@ gradient_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
 #' @return Numeric vector in \eqn{\mathbb{R}^{J-1}}.
 #'
 #' @keywords internal
+#' @examples
+#' mu <- matrix(c(20, 22, 22, 20), 2)
+#' Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+#' p <- c(0.6, 0.4)
+#' y <- drop(mu %*% p)
+#' gradient_loglik_constrained(additive_log_ratio(p), y, mu, Sigma)
 #' @export
 gradient_loglik_constrained <- function(
   rho,
@@ -445,6 +487,8 @@ gradient_loglik_constrained <- function(
 #' @return Numeric array used in the constrained Hessian chain rule.
 #'
 #' @keywords internal
+#' @examples
+#' hessian_additive_logistic(c(0.2, -0.5))
 #' @export
 hessian_additive_logistic <- function(rho) {
   p <- additive_logistic(rho)
@@ -478,6 +522,12 @@ hessian_additive_logistic <- function(rho) {
 #' @return Symmetric numeric matrix \eqn{\mathbf{H}}.
 #'
 #' @keywords internal
+#' @examples
+#' mu <- matrix(c(20, 22, 22, 20), 2)
+#' Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+#' p <- c(0.6, 0.4)
+#' y <- drop(mu %*% p)
+#' hessian_loglik_unconstrained(p, y, mu, Sigma)
 #' @export
 hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
   num_celltypes <- length(p)
@@ -564,20 +614,28 @@ hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
 #' @return Symmetric matrix in \eqn{\mathcal{M}_{(J-1)\times(J-1)}}.
 #'
 #' @keywords internal
+#' @examples
+#' mu <- matrix(c(20, 22, 22, 20), 2)
+#' Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+#' p <- c(0.6, 0.4)
+#' y <- drop(mu %*% p)
+#' hessian_loglik_constrained(additive_log_ratio(p), y, mu, Sigma)
 #' @export
 hessian_loglik_constrained <- function(rho, y, mean_signature_matrix, Sigma) {
   p <- additive_logistic(rho)
-  # t(J_psi) H_log J_psi + sum_i grad_log_i * H_psi^{(i)}
-  hessian_constrained <- t(jacobian_additive_logistic(rho)) %*%
-    hessian_loglik_unconstrained(p, y, mean_signature_matrix, Sigma) %*%
-    jacobian_additive_logistic(rho) +
+  jac <- jacobian_additive_logistic(rho)
+  hess_alr <- as.matrix(
     tensor::tensor(
       A = gradient_loglik_unconstrained(p, y, mean_signature_matrix, Sigma),
       B = hessian_additive_logistic(rho),
       alongA = 1,
       alongB = 3
-    ) |>
-      as.matrix()
+    )
+  )
+  hessian_constrained <- t(jac) %*%
+    hessian_loglik_unconstrained(p, y, mean_signature_matrix, Sigma) %*%
+    jac +
+    hess_alr
   return(hessian_constrained)
 }
 
@@ -613,14 +671,7 @@ hessian_loglik_constrained <- function(rho, y, mean_signature_matrix, Sigma) {
 #' recovering sample-specific latents is a Bayesian / MAP problem
 #' (`.map_gaussian_convolution()`).
 #'
-#' @param y Bulk expression vector
-#'   \eqn{\boldsymbol{y}\in\mathbb{R}^{G}} (one heterogeneous sample).
-#' @param mean_signature_matrix Mean signature
-#'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (columns = cell types;
-#'   plug-in for latent profiles).
-#' @param Sigma Array
-#'   \eqn{(\boldsymbol{\Sigma}_j)_{j=1}^{J}\in\mathcal{M}_{G\times G\times J}}
-#'   of cell-type covariances.
+#' @inheritParams loglik_multivariate
 #' @param epsilon,itmax Absolute convergence tolerance and maximum number of
 #'   iterations for the optimiser (same roles as `reltol` / `maxit` in
 #'   [stats::optim()]).
@@ -714,8 +765,8 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
     }
     estimated_rho <- fit$b
   }
-  estimated_p <- additive_logistic(estimated_rho) |>
-    stats::setNames(colnames(mean_signature_matrix))
+  estimated_p <- additive_logistic(estimated_rho)
+  names(estimated_p) <- colnames(mean_signature_matrix)
   if (isTRUE(return_model)) {
     return(list(
       coefficients = estimated_p,
@@ -764,16 +815,15 @@ deconvolute_ratios_simulated_annealing <- function(
     control = list(fnscale = -1, maxit = itmax),
     method = "SANN"
   )$par
-  estimated_p <- additive_logistic(estimated_rho) |>
-    stats::setNames(colnames(mean_signature_matrix)) |>
-    repair_simplex()
-  estimated_p
+  estimated_p <- additive_logistic(estimated_rho)
+  names(estimated_p) <- colnames(mean_signature_matrix)
+  repair_simplex(estimated_p)
 }
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Box-constrained L-BFGS-B
 #'   directly in \eqn{\boldsymbol{p}} ([stats::optim()] `method = "L-BFGS-B"`).
 #'   The box keeps each coordinate in \eqn{[0,1]}; the returned vector is
-#'   closed by \(p/\sum p\) (no [repair_simplex()] clipping).
+#'   closed by \eqn{p/\sum p} (no [repair_simplex()] clipping).
 #' @export
 deconvolute_ratios_L_BFGS_B <- function(
   y,
@@ -896,8 +946,8 @@ deconvolute_ratios_Newton_Raphson <- function(
     )
   )
   estimated_rho <- fit$par
-  estimated_p <- additive_logistic(estimated_rho) |>
-    stats::setNames(colnames(mean_signature_matrix))
+  estimated_p <- additive_logistic(estimated_rho)
+  names(estimated_p) <- colnames(mean_signature_matrix)
   if (isTRUE(return_model)) {
     return(list(
       coefficients = estimated_p,
@@ -951,8 +1001,7 @@ deconvolute_ratios_gradient_descent <- function(
     ),
     method = "BFGS"
   )$par
-  estimated_p <- additive_logistic(estimated_rho) |>
-    stats::setNames(colnames(mean_signature_matrix)) |>
-    repair_simplex()
-  estimated_p
+  estimated_p <- additive_logistic(estimated_rho)
+  names(estimated_p) <- colnames(mean_signature_matrix)
+  repair_simplex(estimated_p)
 }

@@ -68,16 +68,14 @@ deconvolute_ratios_gradient_descent(
 )
 }
 \arguments{
-\item{y}{Bulk expression vector
-\eqn{\boldsymbol{y}\in\mathbb{R}^{G}} (one heterogeneous sample).}
+\item{y}{Numeric vector (or one-column matrix)
+\eqn{\boldsymbol{y}\in\mathbb{R}^{G}}.}
 
-\item{mean_signature_matrix}{Mean signature
-\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (columns = cell types;
-plug-in for latent profiles).}
+\item{mean_signature_matrix}{Numeric matrix
+\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (plug-in means).}
 
-\item{Sigma}{Array
-\eqn{(\boldsymbol{\Sigma}_j)_{j=1}^{J}\in\mathcal{M}_{G\times G\times J}}
-of cell-type covariances.}
+\item{Sigma}{Array of cell-type covariances in
+\eqn{\mathcal{M}_{G\times G\times J}}.}
 
 \item{epsilon, itmax}{Absolute convergence tolerance and maximum number of
 iterations for the optimiser (same roles as \code{reltol} / \code{maxit} in
@@ -150,7 +148,7 @@ inequality-constrained least squares on the simplex
 \item \code{deconvolute_ratios_L_BFGS_B()}: Box-constrained L-BFGS-B
 directly in \eqn{\boldsymbol{p}} (\code{\link[stats:optim]{stats::optim()}} \code{method = "L-BFGS-B"}).
 The box keeps each coordinate in \eqn{[0,1]}; the returned vector is
-closed by \(p/\sum p\) (no \code{\link[=repair_simplex]{repair_simplex()}} clipping).
+closed by \eqn{p/\sum p} (no \code{\link[=repair_simplex]{repair_simplex()}} clipping).
 
 \item \code{deconvolute_ratios_Newton_Raphson()}: Newton–Raphson /
 \code{nlminb} on \eqn{\boldsymbol{\rho}} using analytic gradient and Hessian

@@ -18,4 +18,7 @@ Returns the Jacobian of \code{\link[=additive_logistic]{additive_logistic()}},
 entries
 \eqn{(\mathbf{J}_{\boldsymbol{\psi}})_{i,j}=\partial p_i/\partial\rho_j}.
 }
+\examples{
+jacobian_additive_logistic(c(0.2, -0.5))
+}
 \keyword{internal}

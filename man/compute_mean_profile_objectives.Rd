@@ -46,4 +46,7 @@ and the \strong{Euclidean} separation is
 The returned scores are the mean absolute pairwise cosine (to minimise)
 and the sum of pairwise Euclidean distances (to maximise).
 }
+\examples{
+compute_mean_profile_objectives(matrix(c(20, 22, 22, 20), 2))
+}
 \keyword{internal}

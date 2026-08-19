@@ -22,7 +22,8 @@ profiles \eqn{\boldsymbol{x}_{\cdot j}}; MAP recovery of those latents is
 the Bayesian extension.
 
 To learn more, start with the package website vignettes, or in an R session:
-\code{browseVignettes(package = "DeCovarT")} and
+\code{browseVignettes(package = "DeCovarT")},
+\code{?DeCovarT::fit_decovart} and
 \code{?DeCovarT::deconvolute_ratios}.
 
 Reference manuals (PDF / HTML) can be regenerated with

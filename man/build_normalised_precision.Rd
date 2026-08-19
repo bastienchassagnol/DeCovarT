@@ -26,4 +26,9 @@ support:
   \mathbf{I}.
 }
 }
+\examples{
+A <- generate_random_network_skeleton(6L, "hub")
+W <- assign_iid_signed_weights(A)
+build_normalised_precision(W, precision_shift = 0.2)
+}
 \keyword{internal}

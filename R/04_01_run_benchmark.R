@@ -339,15 +339,7 @@ compute_benchmark_metrics <- function(
 #'   \boldsymbol{\Sigma}(\boldsymbol{p})
 #' )}.
 #'
-#' @param signature_matrix Mean signature
-#'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (rownames = genes,
-#'   colnames = cell types). Numeric matrix of non-negative expression;
-#'   \eqn{G \ge J} is required (the mixture is undetermined if
-#'   \eqn{J > G}). Used as a frequentist **plug-in** for unobserved
-#'   latent cell-type profiles \eqn{\boldsymbol{x}_{\cdot j}}.
-#' @param bulk_expression Bulk matrix
-#'   \eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}}: numeric, non-negative,
-#'   gene rownames matching `signature_matrix`.
+#' @inheritParams fit_decovart
 #' @param true_ratios Optional ground-truth proportions: a length-\eqn{J}
 #'   numeric vector (recycled over samples) or a numeric matrix
 #'   \eqn{J\times N} (or \eqn{N\times J}).
@@ -356,19 +348,11 @@ compute_benchmark_metrics <- function(
 #'   of cell-type covariances (numeric; off-diagonals may be negative).
 #' @param deconvolution_functions Named list; each element has `FUN` and
 #'   optional `additional_parameters`.
-#' @param standardise If `TRUE`, apply a gene-wise affine z-score (same
-#'   centre and scale from \(\boldsymbol{\mu}\) to bulk, means and
-#'   covariances). This does not change the theoretical MLE of
-#'   \(\boldsymbol{p}\).
-#' @param scaled Deprecated. `TRUE` (log2 mixing) always errors: the
-#'   logarithm breaks the linear convolution (Jensen). CIBERSORT
-#'   likewise requires non-log linear space
-#'   \insertCite{newmanRobustEnumerationCell2015}{DeCovarT}.
 #' @param cores Number of parallel workers.
 #'
 #' @return A `tibble` of estimated \eqn{\hat{\boldsymbol{p}}} and metrics.
 #'   First-generation solvers still call [repair_simplex()]; the three
-#'   native DeCovarT maps (ALR or \(p/\sum p\)) already lie on the simplex.
+#'   native DeCovarT maps (ALR or \eqn{p/\sum p}) already lie on the simplex.
 #'
 #' @examples
 #' set.seed(1)
@@ -476,13 +460,13 @@ deconvolute_ratios <- function(
                 deconvolution_function$FUN,
                 list_arguments[names(list_arguments) %in% formal_args]
               )
-              compute_benchmark_metrics(
+              metric_row <- compute_benchmark_metrics(
                 y = y_i,
                 mean_signature_matrix = mean_signature_matrix,
                 estimated_p = estimated_p,
                 true_ratios = p_i
-              ) |>
-                dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
+              )
+              dplyr::bind_cols(metric_row, tibble::as_tibble_row(estimated_p))
             },
             error = function(e) {
               warning(conditionMessage(e), call. = FALSE)

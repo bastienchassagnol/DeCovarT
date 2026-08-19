@@ -291,12 +291,12 @@ benchmark_bivariate_gaussian_convolutions <- function(
         n = n
       )
       true_theta <- list(p = p, mu = mu, sigma = Sigma)
-      overlap <- MixSim::overlap(
+      overlap_fit <- MixSim::overlap(
         Pi = p,
         Mu = t(mu),
         S = Sigma
-      )$BarOmega |>
-        signif(digits = 3)
+      )
+      overlap <- signif(overlap_fit$BarOmega, digits = 3)
 
       estimated_ratios <- suppressWarnings(deconvolute_ratios(
         signature_matrix = mu,

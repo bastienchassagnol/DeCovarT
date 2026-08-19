@@ -31,4 +31,7 @@ Implementation uses \code{\link[base:crossprod]{base::crossprod()}} as
 a bilinear / quadratic form in R (avoids an explicit transpose of
 \eqn{\boldsymbol{x}} and a temporary outer product).
 }
+\examples{
+.bilinear_form(c(1, 2), diag(2), c(3, 4))
+}
 \keyword{internal}

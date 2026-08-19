@@ -1,11 +1,16 @@
-# DeCovarT 2.1.0
+# DeCovarT 2.2.0
 
-* **`fit_decovart()` S3 API.** Dedicated convolution fit object
-  (`print`, `summary`, `coef`, `fitted`, `residuals`, `vcov`, `nobs`,
-  `confint`, `plot`) for Marquardt--Levenberg, L-BFGS-B and
-  Newton--Raphson. `deconvolute_ratios()` stays the multi-algorithm
-  benchmark tibble. No `formula` / `predict()` methods: the estimator is
-  a variance model, not OLS for bulk expression.
+* **Model-fit wrapper.** Added `fit_decovart()`, an S3 wrapper in the
+  style of standard R model fits (`print`, `summary`, `coef`, `fitted`,
+  `residuals`, `vcov`, `nobs`, `confint`, `plot`). This makes DeCovarT
+  more versatile and easier for the R statistical community to adopt.
+  `deconvolute_ratios()` remains the multi-algorithm benchmark tibble.
+  There is no `formula` / `predict()` method: the estimator is a
+  variance model, not OLS for bulk expression.
+
+* **`fit_decovart()` solvers.** Marquardt--Levenberg, L-BFGS-B and
+  Newton--Raphson only; ALR maps already land on the simplex (no
+  `repair_simplex()` on these three).
 
 * **Gene-wise `standardise`.** Affine z-score of bulk, means and
   covariances (equivariant MLE). Log2 mixing (`scaled = TRUE`) is
@@ -13,6 +18,10 @@
 
 * **Wald `vcov`.** Expected Fisher information of the multivariate
   normal convolution, mapped to the simplex by the ALR delta method.
+
+* **Methods paper on the site.** pkgdown embeds `article/main.pdf` via
+  the [embedpdf](https://github.com/jmgirard/embedpdf) Quarto extension
+  (`vignette` *DeCovarT methods paper*).
 
 # DeCovarT 2.0.0
 

@@ -12,12 +12,11 @@ compute_benchmark_metrics(
 )
 }
 \arguments{
-\item{y}{Bulk expression vector
-\eqn{\boldsymbol{y}\in\mathbb{R}^{G}} (one heterogeneous sample).}
+\item{y}{Numeric vector (or one-column matrix)
+\eqn{\boldsymbol{y}\in\mathbb{R}^{G}}.}
 
-\item{mean_signature_matrix}{Mean signature
-\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (columns = cell types;
-plug-in for latent profiles).}
+\item{mean_signature_matrix}{Numeric matrix
+\eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (plug-in means).}
 
 \item{estimated_p}{Estimated proportions
 \eqn{\hat{\boldsymbol{p}}\in\mathbb{R}^{J}}.}

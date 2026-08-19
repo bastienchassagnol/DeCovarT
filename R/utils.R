@@ -40,7 +40,7 @@
       if (length(hit) != 1L) {
         stop(
           "Argument must be one of ",
-          paste(choices, collapse = ", "),
+          toString(choices),
           ".",
           call. = FALSE
         )

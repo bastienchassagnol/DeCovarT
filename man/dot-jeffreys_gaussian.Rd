@@ -24,6 +24,9 @@ D_{\mathrm{KL}}(f_{\ell}\parallel f_{j})} for
 and likewise for \eqn{\ell}, using the closed form in the feature-selection
 vignette.
 }
+\examples{
+.jeffreys_gaussian(c(0, 0), c(1, 0), diag(2), diag(2))
+}
 \references{
 Kullback S, Leibler RA (1951).
 "On Information and Sufficiency."

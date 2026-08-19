@@ -78,14 +78,9 @@ plot_correlation_Heatmap <- function(
       mean_metric = mean(.data[[score_variable]], na.rm = TRUE)
     )
 
-  min_metric <- min(
-    mean_distribution_metrics |> dplyr::pull("mean_metric"),
-    na.rm = TRUE
-  )
-  max_metric <- max(
-    mean_distribution_metrics |> dplyr::pull("mean_metric"),
-    na.rm = TRUE
-  )
+  metric_vals <- dplyr::pull(mean_distribution_metrics, "mean_metric")
+  min_metric <- min(metric_vals, na.rm = TRUE)
+  max_metric <- max(metric_vals, na.rm = TRUE)
   if (uni_scale) {
     col <- circlize::colorRamp2(
       seq(min_metric, max_metric, length.out = n_break),
@@ -117,14 +112,17 @@ plot_correlation_Heatmap <- function(
         )
       }
 
+      score_label <- toupper(gsub(
+        "model_",
+        "",
+        score_variable,
+        fixed = TRUE
+      ))
       complex_heatmap_per_algo <- ComplexHeatmap::Heatmap(
         cor_matrix_per_algo,
         col = col,
-        name = gsub("model_", "", score_variable, fixed = TRUE),
-        heatmap_legend_param = list(
-          title = gsub("model_", "", score_variable, fixed = TRUE) |>
-            toupper()
-        ),
+        name = score_label,
+        heatmap_legend_param = list(title = score_label),
         row_title = "Corr cell type 1",
         cluster_rows = FALSE,
         row_names_gp = grid::gpar(fontsize = 8),

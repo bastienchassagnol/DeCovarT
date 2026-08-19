@@ -61,7 +61,7 @@ deconvolute_ratios_lsfit <- function(y, mean_signature_matrix) {
     intercept = FALSE
   )$coefficients
   names(estimated_p) <- colnames(mean_signature_matrix)
-  estimated_p |> repair_simplex()
+  repair_simplex(estimated_p)
 }
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Robust linear model
@@ -75,7 +75,7 @@ deconvolute_ratios_rlm <- function(y, mean_signature_matrix) {
     method = "M"
   )$coefficients
   names(estimated_p) <- colnames(mean_signature_matrix)
-  estimated_p |> repair_simplex()
+  repair_simplex(estimated_p)
 }
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Non-negative least squares
@@ -85,7 +85,7 @@ deconvolute_ratios_rlm <- function(y, mean_signature_matrix) {
 deconvolute_ratios_nnls <- function(y, mean_signature_matrix) {
   estimated_p <- nnls::nnls(mean_signature_matrix, as.numeric(y))$x
   names(estimated_p) <- colnames(mean_signature_matrix)
-  estimated_p |> repair_simplex()
+  repair_simplex(estimated_p)
 }
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Equality- and
@@ -106,5 +106,5 @@ deconvolute_ratios_deconrnaseq <- function(y, mean_signature_matrix) {
     verbose = FALSE
   )$X
   names(estimated_p) <- colnames(mean_signature_matrix)
-  estimated_p |> repair_simplex()
+  repair_simplex(estimated_p)
 }

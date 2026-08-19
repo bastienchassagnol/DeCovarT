@@ -10,15 +10,22 @@
 #' \eqn{\boldsymbol{x}_{\cdot j}} by \eqn{\boldsymbol{\mu}_{\cdot j}} when
 #' estimating proportions alone.
 #'
-#' @param y Bulk vector \eqn{\boldsymbol{y}\in\mathbb{R}^{G}}.
-#' @param mean_signature_matrix Mean matrix
-#'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (prior / plug-in means).
-#' @param Sigma Array
-#'   \eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}}.
+#' @inheritParams loglik_multivariate
 #'
 #' @return List of length \eqn{J} with MAP vectors in \eqn{\mathbb{R}^{G}}.
 #'
 #' @keywords internal
+#' @examples
+#' genes <- paste0("g", 1:2)
+#' cts <- paste0("ct", 1:2)
+#' mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))
+#' Sigma <- array(
+#'   c(1, 0, 0, 1, 1, 0, 0, 1),
+#'   dim = c(2, 2, 2),
+#'   dimnames = list(genes, genes, cts)
+#' )
+#' y <- drop(mu %*% c(0.6, 0.4))
+#' .map_gaussian_convolution(y, mu, Sigma)
 #' @export
 .map_gaussian_convolution <- function(y, mean_signature_matrix, Sigma) {
   J <- ncol(mean_signature_matrix)
