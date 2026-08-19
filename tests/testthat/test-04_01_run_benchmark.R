@@ -200,6 +200,22 @@ test_that("deconvolute_ratios errors on Inf, negatives, and J > G", {
   )
 })
 
+test_that("deconvolute_ratios rejects log2 mixing (RE2.3)", {
+  toy <- .toy_deconvolution()
+  expect_error(
+    deconvolute_ratios(
+      signature_matrix = toy$signature_matrix,
+      bulk_expression = toy$bulk_expression,
+      deconvolution_functions = list(
+        "nnls" = list(FUN = deconvolute_ratios_nnls)
+      ),
+      scaled = TRUE,
+      cores = 1
+    ),
+    "log2"
+  )
+})
+
 test_that(".ensure_file_suffix adds or rejects extensions (G4.0)", {
   expect_identical(.ensure_file_suffix("scores", "rds"), "scores.rds")
   expect_identical(.ensure_file_suffix("scores.RDS", "rds"), "scores.RDS")

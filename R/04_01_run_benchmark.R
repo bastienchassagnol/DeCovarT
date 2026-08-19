@@ -356,11 +356,19 @@ compute_benchmark_metrics <- function(
 #'   of cell-type covariances (numeric; off-diagonals may be negative).
 #' @param deconvolution_functions Named list; each element has `FUN` and
 #'   optional `additional_parameters`.
-#' @param scaled If `TRUE`, apply a log2 transform before estimation.
+#' @param standardise If `TRUE`, apply a gene-wise affine z-score (same
+#'   centre and scale from \(\boldsymbol{\mu}\) to bulk, means and
+#'   covariances). This does not change the theoretical MLE of
+#'   \(\boldsymbol{p}\).
+#' @param scaled Deprecated. `TRUE` (log2 mixing) always errors: the
+#'   logarithm breaks the linear convolution (Jensen). CIBERSORT
+#'   likewise requires non-log linear space
+#'   \insertCite{newmanRobustEnumerationCell2015}{DeCovarT}.
 #' @param cores Number of parallel workers.
 #'
-#' @return A `tibble` of estimated \eqn{\hat{\boldsymbol{p}}} and metrics,
-#'   after [repair_simplex()].
+#' @return A `tibble` of estimated \eqn{\hat{\boldsymbol{p}}} and metrics.
+#'   First-generation solvers still call [repair_simplex()]; the three
+#'   native DeCovarT maps (ALR or \(p/\sum p\)) already lie on the simplex.
 #'
 #' @examples
 #' set.seed(1)
@@ -408,6 +416,7 @@ compute_benchmark_metrics <- function(
 #' \insertRef{ogundijoSequentialMonteCarlo2017}{DeCovarT}
 #' \insertRef{hafemeisterNormalizationVarianceStabilization2019}{DeCovarT}
 #' \insertRef{chionBayesianFrameworkMultivariate2023}{DeCovarT}
+#' \insertRef{newmanRobustEnumerationCell2015}{DeCovarT}
 #' @importFrom rlang .data
 #' @export
 #' @seealso [deconvolute_ratios_Marquardt_Levenberg()]
@@ -417,6 +426,7 @@ deconvolute_ratios <- function(
   true_ratios = NULL,
   Sigma = NULL,
   deconvolution_functions = NULL,
+  standardise = FALSE,
   scaled = FALSE,
   cores = ifelse(
     .Platform$OS.type == "unix",
@@ -429,6 +439,7 @@ deconvolute_ratios <- function(
     bulk_expression = bulk_expression,
     true_ratios = true_ratios,
     Sigma = Sigma,
+    standardise = standardise,
     scaled = scaled
   )
   mean_signature_matrix <- aligned$signature_matrix

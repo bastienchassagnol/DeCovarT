@@ -640,93 +640,102 @@
     whether the proportion of a given cell population differs significantly between
     two distinct biological conditions.
 
-    \subsection{Limitations of the method}
+    \subsection{Limitations and outlook}
 
-    \subsubsection{Extend the Simulation Framework}
+    The present estimator is a closed-reference Gaussian convolution: every
+    abundant cell type is assumed to appear as a column of $\boldsymbol{\mu}$,
+    bulk and reference profiles are taken to lie on a compatible expression
+    scale, and sample-level covariates, sequencing exposure, cell-type
+    transcriptome size and condition-dependent shifts in
+    $\boldsymbol{\mu}_{\cdot j}$ are not modelled. Graphical-lasso estimates of
+    $\boldsymbol{\Theta}_{j}$ additionally shrink non-zero partial correlations.
+    These restrictions motivate the extensions below; a longer catalogue with
+    equations is given in the package perspectives vignette.
 
-    The next phase of our evaluation involves real-world experiments,
-    encompassing both blood and solid tumoral samples. To that end, we could
-    start from the Kassandra benchmark, by \cite{zaitsevPreciseReconstructionTME2022}. This large-scale
-    project evaluates the performance of five established gold-standard and
-    signature-based deconvolution algorithms, including EPIC \cite{racleSimultaneousEnumerationCancer2017},
-    CIBERSORT \cite{newmanRobustEnumerationCell2015}, CIBERSORTx \cite{newmanDeterminingCellType2019}, quanTIseq
-    \cite{finotello_etal19}, and ABIS \cite{monacoRNASeqSignaturesNormalized2019}. The evaluation
-    involves deconvolving six publicly available datasets annotated with both
-    flow cytometry and bulk RNA-seq expression.
+    DeCovarT is not ordinary least squares. Cell-type covariances enter the
+    residual law \(\boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i})\) and cannot be
+    treated as extra columns of \(\boldsymbol{\mu}\). There is therefore no
+    formula / \texttt{lm} interface, and no \texttt{predict()} method for
+    forecasting bulk transcriptomes. Gene-wise affine standardisation
+    (z-scoring \(\boldsymbol{y}_{\cdot i}\), \(\boldsymbol{\mu}\) and
+    \(\boldsymbol{\Sigma}_{j}\) with the same centre and scale) is equivariant
+    for \(\hat{\boldsymbol{p}}\)
+    (\ref{pr:decovart-affine-equivariance}); logarithms and
+    per-cell-type or per-sample transforms are not. Wald intervals use the
+    expected Fisher information of the convolution mapped through the ALR
+    (\ref{pr:decovart-expected-fisher}). A systematic study of CPM / log2
+    normalisation, optimiser tolerance, and scaling with \(G\), \(J\) and
+    signature overlap is left to a later benchmark.
 
-    \paragraph{Enhanced Inference and Integration of Co-Expression Networks}
-    \label{para:one-vs-all-deconvolution}
+    Real-data evaluation should start from matched flow-cytometry / bulk
+    RNA-seq panels such as the Kassandra benchmark
+    \cite{zaitsevPreciseReconstructionTME2022}, which already compares EPIC
+    \cite{racleSimultaneousEnumerationCancer2017}, CIBERSORT
+    \cite{newmanRobustEnumerationCell2015}, CIBERSORTx
+    \cite{newmanDeterminingCellType2019}, quanTIseq \cite{finotello_etal19}
+    and ABIS \cite{monacoRNASeqSignaturesNormalized2019}.
 
-    All the popular differential gene expression analyses, such as \textit{limma
-    + voom} (\cite{ritchieLimmaPowersDifferential2015a}), \textit{EdgeR} (\cite{robinsonEdgeRBioconductorPackage2010}) and
-    \textit{Deseq2} (\cite{loveModeratedEstimationFold2014a}), tend to overlook gene-gene
-    interactions, comparing independently the expression between two conditions for
-    each gene. The usual univariate approach of DGEAs additionally underlies the
-    need of a
-    \bigskip
-    The \texttt{gLasso} algorithm used to derive the precision matrix associated to each purified
-    cell profile is subjected to \textit{parameter shrinkage}, like any penalty regularisation
-    approach. Notably, in our setting, shrinkage tends to systematically
-    underestimate the non-zero partial correlations of the precision matrix.
+    \paragraph{Observation laws and sample-level CTS.}
+    DeCovarT is a continuous, frequentist convolution with plug-in
+    $\boldsymbol{\mu}$ and $\boldsymbol{\Sigma}_{j}$. Discrete alternatives include
+    multinomial--Dirichlet purification (ISOpureR, BayesPrism)
+    \cite{anghelISOpureRImplementationComputational2015,chuCellTypeGeneExpression2022}
+    and Poisson / Poisson--log-normal count models
+    \cite{chiquetPoissonLognormalModelVersatile2021}. BLADE replaces the
+    Gaussian by a gene-wise log-normal convolution and jointly infers
+    cell-type-specific (CTS) expression
+    \cite{andrade-barbosaBayesianLogNormalDeconvolution2021}. A Bayesian CTS
+    step for DeCovarT would recover $\boldsymbol{x}_{\cdot j,i}$ given
+    $\boldsymbol{y}_{\cdot i}$ and $\boldsymbol{p}_{\cdot i}$ under the existing
+    multivariate likelihood---the univariate analogue is DSection
+    \cite{erkkilaProbabilisticAnalysisGene2010}. Isoform-level signatures
+    $\boldsymbol{\mu}^{\mathrm{iso}}\in\mathbb{R}^{T\times J}$ can further
+    exploit differential transcript usage
+    \cite{heilingEstimatingCellTypeComposition2023}.
 
-    To mitigate this issue, one approach is to incorporate the \textit{support}
-    (indicating non-null inputs), derived from the \texttt{gLasso} output, into a
-    conventional Maximum Likelihood Estimation (MLE) framework. The general concept
-    is to utilising the true "zeros" to impose topological constraints on the final
-    Gaussian Graphical Model (GGM). However, it's important to note that unless the
-    undirected Markov network obtained from the \texttt{gLasso} output is a \textit{chordal
-    graph}, there is usually no straightforward mapping between the two topological
-    spaces.
+    \paragraph{Covariates, unknown types, and RNA--cell uncoupling.}
+    Sample-level covariates $\boldsymbol{z}_{i}$ cannot be appended as extra
+    columns of $\boldsymbol{\mu}$. They may modulate cell-state moments
+    $\boldsymbol{\mu}_{j}(\boldsymbol{z}_{i})$ (as in MuSiC2, which drops
+    condition-specific genes while remaining closed-reference)
+    \cite{fanMusic2CellTypeDeconvolution2022} or the ALR coordinates of
+    $\boldsymbol{p}_{\cdot i}$. Incomplete references require an explicit unknown
+    component $p_{u,i}\boldsymbol{u}_{i}$ or a signature adjustment: DICEPro
+    wraps existing engines when columns of $\boldsymbol{\mu}$ are missing
+    \cite{baWhenLessNot2026}; BayICE adds a Bayesian unknown type with
+    spike-and-slab selection \cite{taiBayiceBayesianHierarchicalModel2021};
+    EPIC already includes an uncharacterised compartment
+    \cite{racleSimultaneousEnumerationCancer2017}. Independently, RNA mass
+    fractions differ from cytometric cell fractions whenever transcriptome
+    sizes $r_{j}$ are heterogeneous. EPIC and quanTIseq apply a
+    post-correction $\hat p_{j}^{\ast}\propto\hat p_{j}/r_{j}$ with measured
+    or proxied $r_{j}$
+    \cite{racleSimultaneousEnumerationCancer2017,finotello_etal19,luTranscriptomeSizeMatters2025};
+    MMAD instead estimates $r_{j}$ as an extra parameter, so the
+    mixture is no longer linear \cite{liebnerMMADMicroarrayMicrodissection2014}.
 
-    Finally, the inclusion of prior biological knowledge, such as the strength of
-    relationships between transcription factors, retrieved from Protein-Protein
-    Interaction (PPI) networks, can help reduce the exponential space of undirected
-    graphs to explore.
-djusting $p-$ values, as numerous genes are examined simultaneously,
-    and without accounting for interactions between them, the probability of observing
-    false positives increases.
-
-    \bigskip
-
-    Differential network approaches, such
-    as INDEED, by \cite{zuoINDEEDIntegratedDifferential2016}, implement heuristic and dual-optimisation
-    approache
-    \paragraph{Enhanced Inference and Integration of Co-Expression Networks}
-
-    All the methods outlined in \ref{para:one-vs-all-deconvolution} yield a subset
-    of genes that distinguish a particular cell population from all others.
-    However, when we combine these gene subsets, we often end up with a non-scalable
-    signature matrix, exhibiting strong multicollinearity due to redundancy among
-    the identified gene markers.
-
-    To further refine the final set of genes able to delineating any cell population
-    included in the signature matrix, \textit{AutoGeneS}, by
-    \cite{alieeAutoGeneSAutomaticGene2021}, introduces a greedy genetic approach coupled with a dual
-    optimisation approach \footnote{In standard approaches that rely on linear
-    regression, the condition number serves as the gold-standard metric for assessing
-    the level of precision of the linear model achievable with the design matrix}.
-    Precisely, the loss function involves minimising inter-population correlation
-    while simultaneously maximising the distance of the centroids.
-
-    We propose instead of this dual optimisation approach the minimisation of the
-    \emph{global overlap} between the concatenated distributions of the cellular
-    profiles. Indeed, this metric not only captures in a single criterion the
-    combined influence of mean inter-cluster distance and differential network
-    structure in delineating purified cellular expression profiles, but supplies
-    a straightforward score easy to interpret. The \textit{overlap} metric precisely
-    measures the shared probability mass and the degree of concurrence in probability
-    densities. In simpler terms, it quantifies the global probability of incorrectly
-    assigning an expression profile to the wrong cell subtype when utilising a maximum
-    a posteriori approach, with the knowledge of each cellular profile's
-    individual parameters.
-
-    \begin{itemize}
-        \item General advantages of bulk transcriptomic paired with cellular deconvolution
-            over alternative transcriptomic technologies
-    \end{itemize}
-
-    \paragraph{Joint Estimation of purified Expression Profiles and Cellular
-    Ratios}
+    \paragraph{Weighted and generalised least squares.}
+    DWLS down-weights noisy genes by a diagonal $W$
+    \cite{tsoucasAccurateEstimationCelltype2019}. Ingesting those weights
+    into BayesPrism is currently a strong joint $\boldsymbol{p}$+CTS combination
+    \cite{zhangIntegratedInferenceCellularCompositions2026}; the DeCovarT
+    analogue is a weighted convolution
+    $\boldsymbol{y}^{\star}=W^{1/2}\boldsymbol{y}$,
+    $\boldsymbol{\Sigma}_{j}^{\star}=W^{1/2}\boldsymbol{\Sigma}_{j}W^{1/2}$
+    (\ref{th:generalized-least-squares-estimate}).
+    Generalised least squares with a \emph{global} residual covariance
+    $\Sigma=J^{-2}\sum_{j}\boldsymbol{\Sigma}_{j}$ (equi-balanced $p_{j}=1/J$) is
+    a simpler competitor that ignores cell-type-specific networks;
+    cellGeometry estimates such a gene-level covariance from cross-sample
+    variances \cite{lauCellGeometryUltrafastSinglecell2026}. Lineage trees
+    add parent--child constraints on $\boldsymbol{p}$
+    \cite{wangBulkTissueCell2019}; elastic-net methods such as DCQ target
+    which types \emph{change} over time rather than a static simplex
+    snapshot \cite{altboumDigitalCellQuantification2014}; EnsDeconv fuses
+    several bulk engines into one $\hat{\boldsymbol{p}}$
+    \cite{caiRobustAccurateEstimation2022}. Each spot of a spatial assay is
+    the same mixture with its own $\boldsymbol{p}(s)$
+    \cite{gaspard-boulincCelltypeDeconvolutionMethods2025}.
 
     \section{Code availability}
 
@@ -876,9 +885,122 @@ djusting $p-$ values, as numerous genes are examined simultaneously,
                         {\Sigma_1}+ \boldsymbol{\Sigma_2})
                     \end{equation*}
 
-                    By induction, this property generalises to the sum of $J$ independent
-                    random vectors of same dimension $\RR^{G}$.
+                    By induction, this property generalises to the sum of \(J\) independent
+                    random vectors of same dimension \(\RR^{G}\).
             \end{itemize}
+        \end{remark}
+
+        \begin{remark}[Equivariance of the DeCovarT MLE]
+            \label{pr:decovart-affine-equivariance}
+
+            DeCovarT is equivariant to any fixed, invertible, gene-wise affine
+            transformation applied consistently to bulk expression, reference
+            means and reference covariances. Such transformations therefore do
+            not alter the theoretical proportion estimates, although they may
+            affect numerical conditioning. Transformations estimated separately
+            for each cell type or bulk sample are not equivalent and are not
+            supported.
+
+            Let \(D=\mathrm{diag}(s_{1},\ldots,s_{G})\) with \(s_{g}\neq 0\)
+            and \(\boldsymbol{m}\in\mathbb{R}^{G}\). The gene-wise map
+            \begin{equation*}
+                \boldsymbol{y}^{\star}_{\cdot i}
+                = D^{-1}(\boldsymbol{y}_{\cdot i}-\boldsymbol{m}),
+                \quad
+                \boldsymbol{\mu}^{\star}
+                = D^{-1}(\boldsymbol{\mu}-\boldsymbol{m}\boldsymbol{1}_{J}^{\top}),
+                \quad
+                \boldsymbol{\Sigma}_{j}^{\star}
+                = D^{-1}\boldsymbol{\Sigma}_{j} D^{-1}
+            \end{equation*}
+            preserves the linear convolution: because
+            \(\boldsymbol{1}_{J}^{\top}\boldsymbol{p}_{\cdot i}=1\),
+            \begin{equation*}
+                \boldsymbol{y}^{\star}_{\cdot i}
+                =\boldsymbol{\mu}^{\star}\boldsymbol{p}_{\cdot i}
+                +\boldsymbol{\varepsilon}^{\star}_{\cdot i}
+            \end{equation*}
+            with the same \(\boldsymbol{p}_{\cdot i}\). The Mahalanobis residual
+            is invariant,
+            \begin{equation*}
+                (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
+                \boldsymbol{\Sigma}(\boldsymbol{p})^{-1}
+                (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})
+                =
+                (\boldsymbol{y}^{\star}-\boldsymbol{\mu}^{\star}\boldsymbol{p})^{\top}
+                \boldsymbol{\Sigma}^{\star}(\boldsymbol{p})^{-1}
+                (\boldsymbol{y}^{\star}-\boldsymbol{\mu}^{\star}\boldsymbol{p}),
+            \end{equation*}
+            so the maximiser \(\hat{\boldsymbol{p}}\) is unchanged. A z-score
+            (centre and scale computed once per gene from \(\boldsymbol{\mu}\),
+            including any gene-wise covariate adjustment of those means) is
+            the special case \(m_{g}=\mathrm{mean}_{g}\),
+            \(s_{g}=\mathrm{sd}_{g}\).
+
+            A nonlinear logarithm is a different matter. CIBERSORT requires
+            non-negative expression, no missing values, and a non-log linear
+            scale \cite{newmanRobustEnumerationCell2015}. By Jensen's
+            inequality the concave map \(\log\) changes first and second
+            moments, and
+            \(\log(\boldsymbol{\mu}\boldsymbol{p})
+            \neq (\log\boldsymbol{\mu})\boldsymbol{p}\) except at degenerate points,
+            so the convolution is no longer linear. The logarithm is continuous
+            and strictly increasing on \((0,\infty)\), hence order-preserving
+            for strictly positive expression, but that does \emph{not} leave
+            the Gaussian-convolution MLE of \(\boldsymbol{p}\) invariant.
+        \end{remark}
+
+        \begin{remark}[Expected Fisher information and Wald intervals]
+            \label{pr:decovart-expected-fisher}
+
+            For one bulk sample the convolution is
+            \(\boldsymbol{y}_{\cdot i}\sim
+            \mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},
+            \boldsymbol{\Sigma}(\boldsymbol{p}))\) with
+            \(\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_{j}p_{j}^{2}\boldsymbol{\Sigma}_{j}\).
+            Writing
+            \(\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\),
+            the expected Fisher information of the unconstrained
+            mean--covariance map is
+            \begin{equation}
+                \label{eq-expected-fisher-p}
+                I(\boldsymbol{p})_{jk}
+                =
+                \boldsymbol{\mu}_{\cdot j}^{\top}
+                \boldsymbol{\Theta}(\boldsymbol{p})
+                \boldsymbol{\mu}_{\cdot k}
+                +
+                2 p_{j} p_{k}\,
+                \mathrm{tr}\bigl(
+                    \boldsymbol{\Theta}(\boldsymbol{p})
+                    \boldsymbol{\Sigma}_{j}
+                    \boldsymbol{\Theta}(\boldsymbol{p})
+                    \boldsymbol{\Sigma}_{k}
+                \bigr).
+            \end{equation}
+            Cramér--Rao supplies the lower bound
+            \(\mathrm{Var}(\hat{\boldsymbol{\rho}})
+            \succeq I_{\boldsymbol{\rho}}^{-1}\) in ALR coordinates
+            \(\boldsymbol{\rho}\), where
+            \(I_{\boldsymbol{\rho}}
+            =\mathbf{J}_{\boldsymbol{\psi}}^{\top}
+            I(\boldsymbol{p})
+            \mathbf{J}_{\boldsymbol{\psi}}\) and
+            \(\mathbf{J}_{\boldsymbol{\psi}}
+            =\partial\boldsymbol{\psi}/\partial\boldsymbol{\rho}^{\top}\).
+            The delta method maps that bound back to the simplex:
+            \begin{equation}
+                \label{eq-delta-method-p}
+                \mathrm{Var}(\hat{\boldsymbol{p}})
+                =
+                \mathbf{J}_{\boldsymbol{\psi}}
+                I_{\boldsymbol{\rho}}^{-1}
+                \mathbf{J}_{\boldsymbol{\psi}}^{\top}.
+            \end{equation}
+            This is the sandwich returned by \texttt{vcov()} on a fitted
+            DeCovarT object. It is not an OLS residual variance: goodness of
+            fit is the convolution log-likelihood, and the estimator is not a
+            linear model for forecasting bulk expression.
         \end{remark}
 
         Deriving the characteristic function of the multivariate GMM yields
@@ -1225,61 +1347,78 @@ djusting $p-$ values, as numerous genes are examined simultaneously,
 
         \subsection{Robust linear regression with GLS}
 
-        An ad-hoc approximation could be made, by assuming fixed and equi-balanced
-        cellular proportions: $\sum_{j=1}^{J} p_{j}= \frac{1}{J}$ to estimate
-        the global covariance of the conditional distribution. Using this hypothesis,
-        the global covariance is given by \ref{eq-18}:
+        DeCovarT's residual covariance
+        $\Sigma(\boldsymbol{p}_{\cdot i})=\sum_{j=1}^{J}p_{ji}^{2}\boldsymbol{\Sigma}_{j}$
+        depends on the unknown composition. An ad-hoc GLS approximation freezes
+        that map at equi-balanced weights $p_{j}=1/J$,
         \begin{equation}
-            \label{eq-18}\COV(\boldsymbol{y}| \boldsymbol{X}) = \frac{1}{J^{2}}\sum
-            _{j=1}^{J} \Sigma_{j}
+            \label{eq-18}
+            \COV(\boldsymbol{y}_{\cdot i}\mid\boldsymbol{\mu})
+            =\frac{1}{J^{2}}\sum_{j=1}^{J}\boldsymbol{\Sigma}_{j},
         \end{equation}
-        Indirectly, we consider making this hypothesis that the the variance of
-        purified expression profiles is fixed, and independent from the magnitude
-        of their proportions in the sample. These are exactly the hypotheses
-        made by the \textit{generalised least squares method}, whose properties
-        of the corresponding estimate are described in
-        \ref{th:generalized-least-squares-estimate}.
+        so the variance of purified profiles is treated as independent of their
+        mixing weights. This is exactly generalised least squares (GLS) on the
+        linear mean $\boldsymbol{y}_{\cdot i}=\boldsymbol{\mu}\,\boldsymbol{p}_{\cdot i}$
+        \ref{th:generalized-least-squares-estimate}: a \emph{single} residual
+        covariance $\Sigma$, not a cell-type tensor. cellGeometry estimates such
+        a global gene-level covariance from cross-sample variances and
+        gene-wise heteroscedasticity
+        \cite{lauCellGeometryUltrafastSinglecell2026}. DeCovarT remains
+        strictly richer whenever $\boldsymbol{\Sigma}_{j}$ differ across $j$ and
+        $\Sigma$ should scale with $p_{ji}^{2}$.
+
+        Weighted least squares (WLS) is the diagonal special case
+        $\Theta=\mathrm{diag}(w_{1},\ldots,w_{G})$. DWLS supplies dampened gene
+        weights $w_{g}$ for that diagonal
+        \cite{tsoucasAccurateEstimationCelltype2019}. A direct DeCovarT
+        extension, following the BayesPrism--DWLS construction
+        \cite{zhangIntegratedInferenceCellularCompositions2026}, is to ingest
+        $W=\mathrm{diag}(w_{g})$ into the convolution without dropping
+        cell-type-specific networks: set
+        $\boldsymbol{y}^{\star}=W^{1/2}\boldsymbol{y}_{\cdot i}$,
+        $\boldsymbol{\mu}^{\star}=W^{1/2}\boldsymbol{\mu}$ and
+        $\boldsymbol{\Sigma}_{j}^{\star}=W^{1/2}\boldsymbol{\Sigma}_{j}W^{1/2}$, then run
+        the existing simplex-constrained solver. Interaction monomials
+        $p_{j}p_{k}$ in the mean (a general linear model / Scheff\'{e}
+        expansion) can be added on the same GLS residual, at the cost of many
+        extra $\boldsymbol{\mu}_{jk}$ parameters.
 
         \begin{theorem}[Generalised Least Squares Regression]
             \label{th:generalized-least-squares-estimate}
 
-            Modelling the multivariate linear conditional problem, stating that:
+            Consider the multivariate linear model
             \begin{multicols}{3}
                 \begin{enumerate}
-                    \item $\boldsymbol{y}=\boldsymbol{X}\boldsymbol{p}+ \epsilon$
+                    \item $\boldsymbol{y}_{\cdot i}=\boldsymbol{\mu}\,\boldsymbol{p}_{\cdot i}
+                          +\epsilon$
 
-                    \item $\mathbb{E}(\epsilon | \boldsymbol{X}) = 0$
+                    \item $\mathbb{E}(\epsilon\mid\boldsymbol{\mu})=0$
 
-                    \item $\COV(\epsilon | \boldsymbol{X}) = \Sigma$
+                    \item $\COV(\epsilon\mid\boldsymbol{\mu})=\Sigma$
                 \end{enumerate}
             \end{multicols}
-            with $\sigma$ a known non-singular covariance matrix. The corresponding
-            GLS estimate that minimises the squared Mahalanobis distance of the residuals
-            is given by:
+            with $\Sigma$ a known non-singular covariance. The GLS estimate
+            that minimises the squared Mahalanobis distance of the residuals is
             \begin{equation*}
-                \hat{p}^{\text{GLS}}= (\boldsymbol{X}^{\top} \Theta\boldsymbol{X}
-                )^{-1}\boldsymbol{X}^{\top} \Theta y
+                \hat{\boldsymbol{p}}^{\mathrm{GLS}}
+                =(\boldsymbol{\mu}^{\top}\Theta\boldsymbol{\mu})^{-1}
+                \boldsymbol{\mu}^{\top}\Theta\boldsymbol{y}_{\cdot i},
             \end{equation*}
-            where $\Theta$ is the precision matrix, inverse of the covariance matrix.
-            $\hat{p}^{\text{GLS}}$ is an unbiased, consistent, efficient and
-            asymptotically normal estimator. Assuming additionally that the conditional
-            distribution is modelled by a multivariate Gaussian distribution,
-            with mean $\boldsymbol{X}\boldsymbol{p}$ and covariance $\Sigma$, the
-            associated MLE estimate is the same as the GLS.
+            where $\Theta=\Sigma^{-1}$. The estimator is unbiased, consistent,
+            efficient and asymptotically normal; under a Gaussian conditional
+            law with mean $\boldsymbol{\mu}\,\boldsymbol{p}_{\cdot i}$ and covariance
+            $\Sigma$ it coincides with the unconstrained MLE. A Cholesky factor
+            $\Sigma=\boldsymbol{C}\boldsymbol{C}^{\top}$ reduces the problem to OLS
+            after the transform $\boldsymbol{C}^{-1}\boldsymbol{y}_{\cdot i}$, removing
+            heteroscedasticity and residual correlation. The GLS estimate is
+            the best linear unbiased estimator of $\boldsymbol{p}_{\cdot i}$ in
+            this unconstrained model; non-negativity and
+            $\sum_{j}p_{ji}=1$ are imposed afterwards, or via the ALR map
+            used in the main text.
 
-            Of note, by using a Cholesky decomposition
-            $\Sigma=\boldsymbol{C}\boldsymbol{C}^{\top}$ and multiply the
-            observations and the predicted values by $\boldsymbol{C}^{-1}$, we can
-            turn the problem in a standard OLS optimisation, removing the
-            heteroscedascity and the covariance between the observations. The GLS estimate 
-            is the best linear unbiased estimator of
-            $\boldsymbol{p}$.
-
-            \footnote{Weighted least squares (WLS) estimation is a sub-problem
-            of generalised least squares optimisation, in which the off-diagonal
-            entries of the covariance matrix are set to zero, and the
-            heteroscedascity of each observation is encoded in the diagonal
-            terms.}
+            \footnote{Weighted least squares is GLS with a diagonal
+            $\Theta$; off-diagonal residual correlations are then ignored and
+            gene-specific heteroscedasticity is encoded in $w_{g}$.}
         \end{theorem}
     \end{appendices}
 

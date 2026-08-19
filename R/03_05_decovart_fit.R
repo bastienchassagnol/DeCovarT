@@ -1,0 +1,519 @@
+#' Fit the DeCovarT Gaussian-convolution model
+#'
+#' @description
+#' Maximum-likelihood estimator of cellular proportions
+#' \eqn{\boldsymbol{p}_{\cdot i}} under the multivariate Gaussian convolution
+#' \deqn{
+#'   \boldsymbol{y}_{\cdot i}\mid(\boldsymbol{\mu},\boldsymbol{\Sigma}_j,
+#'   \boldsymbol{p}_{\cdot i})
+#'   \sim
+#'   \mathcal{N}_{G}\bigl(
+#'     \boldsymbol{\mu}\boldsymbol{p}_{\cdot i},\;
+#'     \boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i})
+#'   \bigr),
+#'   \qquad
+#'   \boldsymbol{\Sigma}(\boldsymbol{p})
+#'   =\sum_{j=1}^{J}p_j^{2}\boldsymbol{\Sigma}_j.
+#' }
+#' This is a **variance / likelihood specification**, not ordinary least
+#' squares: cell-type covariances enter the residual law and cannot be
+#' written as extra columns of \(\boldsymbol{\mu}\). There is therefore no
+#' `formula` / `lm` interface, and no `predict()` method for forecasting
+#' bulk expression.
+#'
+#' The returned object is an S3 class `decovart_fit` with accessors
+#' [coef()], [fitted()], [residuals()], [vcov()], [nobs()], [confint()],
+#' [print()], [summary()] and [plot()]. Residuals are
+#' \(\boldsymbol{Y}-\boldsymbol{\mu}\hat{\boldsymbol{P}}\); they are **not** OLS
+#' residuals. Goodness of fit is the convolution log-likelihood, not
+#' residual sum of squares.
+#'
+#' @param signature_matrix Mean signature
+#'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (rownames = genes,
+#'   colnames = cell types).
+#' @param bulk_expression Bulk matrix
+#'   \eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}} (rownames = genes,
+#'   colnames = samples).
+#' @param true_ratios Optional ground-truth proportions (\eqn{J} vector or
+#'   \eqn{J\times N} matrix). Stored on the fit; not used by the MLE.
+#' @param Sigma Array
+#'   \eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}} of
+#'   cell-type covariances.
+#' @param method Optimiser; one of `"Marquardt-Levenberg"`,
+#'   `"L-BFGS-B"`, `"Newton-Raphson"` (case-insensitive). These three
+#'   maps already land on the simplex (ALR or \(p/\sum p\)); they do
+#'   **not** call [repair_simplex()].
+#' @param epsilon,itmax Absolute convergence tolerance and iteration
+#'   budget, in the same roles as `reltol` / `maxit` in
+#'   [stats::optim()].
+#' @param standardise If `TRUE`, apply a **gene-wise** affine z-score
+#'   computed once from \(\boldsymbol{\mu}\) to bulk, means and covariances
+#'   (see Details). Cell-type-wise or sample-wise transforms are not
+#'   supported.
+#' @param scaled Deprecated. `TRUE` (log2 mixing) always errors.
+#'
+#' @details
+#' **Standardisation.** CIBERSORT requires non-negative expression, no
+#' missing values, and a non-log linear scale
+#' \insertCite{newmanRobustEnumerationCell2015}{DeCovarT}. A logarithm is
+#' concave, so Jensen's inequality shifts first and second moments and
+#' \(\log(\boldsymbol{\mu}\boldsymbol{p})\neq(\log\boldsymbol{\mu})\boldsymbol{p}\).
+#' A gene-wise affine map
+#' \(\boldsymbol{x}\mapsto D^{-1}(\boldsymbol{x}-\boldsymbol{m})\) with the
+#' **same** \(D,\boldsymbol{m}\) on \(\boldsymbol{Y}\), \(\boldsymbol{\mu}\) and
+#' \(\boldsymbol{\Sigma}_j^\star=D^{-1}\boldsymbol{\Sigma}_j D^{-1}\) leaves the
+#' MLE of \(\boldsymbol{p}\) unchanged (equivariance).
+#'
+#' **Wald covariance.** Let
+#' \(\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\).
+#' The expected Fisher information of the unconstrained mean--covariance
+#' map (multivariate normal; see e.g. the Wikipedia entry *Fisher
+#' information*, multivariate normal) is
+#' \deqn{
+#'   I(\boldsymbol{p})_{jk}
+#'   =
+#'   \boldsymbol{\mu}_{\cdot j}^{\top}
+#'   \boldsymbol{\Theta}(\boldsymbol{p})
+#'   \boldsymbol{\mu}_{\cdot k}
+#'   +
+#'   2 p_j p_k\,
+#'   \mathrm{tr}\bigl(
+#'     \boldsymbol{\Theta}(\boldsymbol{p})\boldsymbol{\Sigma}_j
+#'     \boldsymbol{\Theta}(\boldsymbol{p})\boldsymbol{\Sigma}_k
+#'   \bigr).
+#' }
+#' Cramer--Rao gives
+#' \(\mathrm{Var}(\hat{\boldsymbol{\rho}})\succeq I_{\boldsymbol{\rho}}^{-1}\)
+#' in ALR coordinates, with
+#' \(I_{\boldsymbol{\rho}}
+#' =\mathbf{J}_{\boldsymbol{\psi}}^{\top} I(\boldsymbol{p})
+#' \mathbf{J}_{\boldsymbol{\psi}}\) and
+#' \(\mathbf{J}_{\boldsymbol{\psi}}
+#' =\partial\boldsymbol{\psi}/\partial\boldsymbol{\rho}^{\top}\)
+#' ([jacobian_additive_logistic()]). The delta method maps the bound
+#' back to the simplex:
+#' \deqn{
+#'   \mathrm{Var}(\hat{\boldsymbol{p}})
+#'   =
+#'   \mathbf{J}_{\boldsymbol{\psi}}
+#'   I_{\boldsymbol{\rho}}^{-1}
+#'   \mathbf{J}_{\boldsymbol{\psi}}^{\top}.
+#' }
+#'
+#' @return An object of class `decovart_fit`.
+#'
+#' @examples
+#' toy <- readRDS(system.file(
+#'   "extdata", "toy_deconvolution.rds",
+#'   package = "DeCovarT"
+#' ))
+#' fit <- fit_decovart(
+#'   signature_matrix = toy$signature_matrix,
+#'   bulk_expression = toy$bulk_expression,
+#'   Sigma = toy$Sigma,
+#'   itmax = 40
+#' )
+#' coef(fit)
+#' nobs(fit)
+#' @srrstats {RE1.2} Input classes are numeric matrices / arrays.
+#' @srrstats {RE1.3} Gene rownames and sample colnames of `Y` are kept on
+#'   fitted values and residuals; cell-type colnames of `mu` label
+#'   `coef()`.
+#' @srrstats {RE1.4} Gaussian convolution, PD Sigma, simplex `p`.
+#' @srrstats {RE2.0} ALR reparametrisation for Marquardt and Newton.
+#' @srrstats {RE2.1} Missing values error in `.prepare_deconvolution_inputs()`.
+#' @srrstats {RE2.3} Gene-wise affine `standardise`; log2 mixing errors.
+#' @srrstats {RE2.4} Collinear signature columns warn (RE2.4a, RE2.4b).
+#' @srrstats {RE3.0} Non-convergence of Marquardt--Levenberg warns.
+#' @srrstats {RE3.2} Defaults `epsilon = 1e-4`, `itmax = 200`.
+#' @srrstats {RE3.3} Both knobs are arguments (optim-style).
+#' @srrstats {RE4.0} `decovart_fit` stores coefficients, log-likelihood,
+#'   Fisher `vcov`, and convergence diagnostics.
+#' @srrstats {RE4.2} `coef()` returns \(\hat{\boldsymbol{P}}\) (\(J\times N\)).
+#' @srrstats {RE4.3} `confint()` uses the ALR delta-method Wald bound.
+#' @srrstats {RE4.5} `nobs()` is \(N\), with attributes `n_genes` and
+#'   `n_celltypes`.
+#' @srrstats {RE4.6} `vcov()` is the Cramer--Rao / delta-method matrix.
+#' @srrstats {RE4.7} Convergence codes and iteration counts are stored.
+#' @srrstats {RE4.8} Observed bulk `Y` is stored as `bulk_expression`.
+#' @srrstats {RE4.9} `fitted()` is \(\boldsymbol{\mu}\hat{\boldsymbol{P}}\).
+#' @srrstats {RE4.10} `residuals()` is \(\boldsymbol{Y}-\hat{\boldsymbol{Y}}\);
+#'   these are convolution residuals, not OLS residuals. Goodness of fit
+#'   is the MLE log-likelihood (RE4.11), not residual sum of squares.
+#' @srrstats {RE4.11} `summary()` reports log-likelihood (and AIC).
+#' @srrstats {RE4.12} ALR maps are [additive_logistic()] /
+#'   [additive_log_ratio()].
+#' @srrstats {RE4.13} Signature and `Sigma` are stored on the fit.
+#' @srrstats {RE4.17} `print.decovart_fit()` shows proportions and
+#'   log-likelihood.
+#' @srrstats {RE4.18} `summary.decovart_fit()` adds Wald SEs and
+#'   convergence.
+#' @srrstats {RE6.0} `plot.decovart_fit()` compares observed and fitted
+#'   bulk expression (not estimated vs true proportions).
+#' @srrstats {RE6.1} Dispatch is `plot.decovart_fit`.
+#' @srrstats {RE6.2} Default plot is observed vs fitted bulk profiles.
+#' @srrstats {RE7.2} Dimnames of `Y` and `mu` are retained.
+#' @srrstats {RE7.3} Tests exercise `coef`, `fitted`, `residuals`,
+#'   `vcov`, `nobs`, `print`, `summary`, `plot`.
+#' @references
+#' \insertRef{newmanRobustEnumerationCell2015}{DeCovarT}
+#' @export
+#' @seealso [deconvolute_ratios()],
+#'   [deconvolute_ratios_Marquardt_Levenberg()]
+fit_decovart <- function(
+  signature_matrix,
+  bulk_expression,
+  true_ratios = NULL,
+  Sigma = NULL,
+  method = c(
+    "Marquardt-Levenberg",
+    "L-BFGS-B",
+    "Newton-Raphson"
+  ),
+  epsilon = 10^-4,
+  itmax = 200,
+  standardise = FALSE,
+  scaled = FALSE
+) {
+  method <- .match_arg_ci(
+    method,
+    c("Marquardt-Levenberg", "L-BFGS-B", "Newton-Raphson")
+  )
+  if (is.null(Sigma)) {
+    stop(
+      "`Sigma` is required: DeCovarT is a variance model, not OLS.",
+      call. = FALSE
+    )
+  }
+  aligned <- .prepare_deconvolution_inputs(
+    signature_matrix = signature_matrix,
+    bulk_expression = bulk_expression,
+    true_ratios = true_ratios,
+    Sigma = Sigma,
+    standardise = standardise,
+    scaled = scaled
+  )
+  mu <- aligned$signature_matrix
+  y_mat <- aligned$bulk_expression
+  sigma_arr <- aligned$Sigma
+  solver <- switch(
+    method,
+    "Marquardt-Levenberg" = deconvolute_ratios_Marquardt_Levenberg,
+    "L-BFGS-B" = deconvolute_ratios_L_BFGS_B,
+    "Newton-Raphson" = deconvolute_ratios_Newton_Raphson
+  )
+  n_samples <- ncol(y_mat)
+  n_celltypes <- ncol(mu)
+  coef_mat <- matrix(
+    NA_real_,
+    nrow = n_celltypes,
+    ncol = n_samples,
+    dimnames = list(colnames(mu), colnames(y_mat))
+  )
+  loglik <- stats::setNames(rep(NA_real_, n_samples), colnames(y_mat))
+  vcov_list <- vector("list", n_samples)
+  names(vcov_list) <- colnames(y_mat)
+  convergence <- vector("list", n_samples)
+  names(convergence) <- colnames(y_mat)
+  for (i in seq_len(n_samples)) {
+    y_i <- y_mat[, i, drop = TRUE]
+    fit_i <- solver(
+      y = y_i,
+      mean_signature_matrix = mu,
+      Sigma = sigma_arr,
+      epsilon = epsilon,
+      itmax = itmax,
+      return_model = TRUE
+    )
+    coef_mat[, i] <- fit_i$coefficients
+    loglik[[i]] <- fit_i$loglik
+    vcov_list[[i]] <- .vcov_alr_delta(
+      fit_i$coefficients,
+      mu,
+      sigma_arr
+    )
+    convergence[[i]] <- fit_i$convergence
+  }
+  fitted_mat <- mu %*% coef_mat
+  dimnames(fitted_mat) <- dimnames(y_mat)
+  structure(
+    list(
+      coefficients = coef_mat,
+      fitted.values = fitted_mat,
+      residuals = y_mat - fitted_mat,
+      vcov = vcov_list,
+      loglik = loglik,
+      convergence = convergence,
+      method = method,
+      epsilon = epsilon,
+      itmax = itmax,
+      standardise = isTRUE(standardise),
+      centre = aligned$centre,
+      scale = aligned$scale,
+      n_genes = nrow(mu),
+      n_celltypes = n_celltypes,
+      n_samples = n_samples,
+      signature_matrix = mu,
+      bulk_expression = y_mat,
+      Sigma = sigma_arr,
+      true_ratios = aligned$true_ratios
+    ),
+    class = "decovart_fit"
+  )
+}
+
+#' Expected Fisher information of unconstrained \(\boldsymbol{p}\)
+#'
+#' Multivariate-normal mean--covariance map:
+#' \(I_{jk}=\mu_{\cdot j}^{\top}\Theta\mu_{\cdot k}
+#' +2 p_j p_k\,\mathrm{tr}(\Theta\Sigma_j\Theta\Sigma_k)\).
+#'
+#' @keywords internal
+#' @noRd
+.expected_fisher_unconstrained <- function(
+  p,
+  mean_signature_matrix,
+  Sigma
+) {
+  n_celltypes <- length(p)
+  theta <- .sigma_p_factorisation(p, Sigma)$inverse
+  info <- matrix(0, n_celltypes, n_celltypes)
+  for (j in seq_len(n_celltypes)) {
+    mu_j <- mean_signature_matrix[, j, drop = TRUE]
+    sigma_j <- Sigma[,, j]
+    for (k in seq_len(n_celltypes)) {
+      mu_k <- mean_signature_matrix[, k, drop = TRUE]
+      sigma_k <- Sigma[,, k]
+      mean_term <- .bilinear_form(mu_j, theta, mu_k)
+      cov_term <- 2 *
+        p[[j]] *
+        p[[k]] *
+        sum(diag(theta %*% sigma_j %*% theta %*% sigma_k))
+      info[j, k] <- mean_term + cov_term
+    }
+  }
+  info
+}
+
+#' Cramer--Rao / ALR delta-method covariance of \(\hat{\boldsymbol{p}}\)
+#'
+#' @keywords internal
+#' @noRd
+.vcov_alr_delta <- function(p, mean_signature_matrix, Sigma) {
+  nms <- names(p)
+  n_celltypes <- length(p)
+  out <- matrix(
+    NA_real_,
+    n_celltypes,
+    n_celltypes,
+    dimnames = list(nms, nms)
+  )
+  if (any(p < 100 * .Machine$double.eps | p > 1 - 100 * .Machine$double.eps)) {
+    warning(
+      "Proportions on the simplex boundary; Wald vcov is undefined.",
+      call. = FALSE
+    )
+    return(out)
+  }
+  info_p <- .expected_fisher_unconstrained(p, mean_signature_matrix, Sigma)
+  rho <- additive_log_ratio(p)
+  jac <- jacobian_additive_logistic(rho)
+  info_rho <- t(jac) %*% info_p %*% jac
+  vcov_rho <- tryCatch(
+    solve(info_rho),
+    error = function(e) {
+      warning(
+        "Expected Fisher information in ALR coordinates is singular.",
+        call. = FALSE
+      )
+      NULL
+    }
+  )
+  if (is.null(vcov_rho)) {
+    return(out)
+  }
+  vcov_p <- jac %*% vcov_rho %*% t(jac)
+  dimnames(vcov_p) <- list(nms, nms)
+  vcov_p
+}
+
+#' @rdname fit_decovart
+#' @param x,object A `decovart_fit`.
+#' @param ... Passed to [graphics::plot()] (plot method) or ignored.
+#' @export
+#' @method print decovart_fit
+print.decovart_fit <- function(x, ...) {
+  cat(
+    "DeCovarT fit (",
+    x$method,
+    ")\n",
+    "  genes: ",
+    x$n_genes,
+    ", cell types: ",
+    x$n_celltypes,
+    ", samples: ",
+    x$n_samples,
+    "\n",
+    sep = ""
+  )
+  cat("Proportions:\n")
+  print(x$coefficients, ...)
+  cat("Log-likelihood:", paste(signif(x$loglik, 6), collapse = ", "), "\n")
+  invisible(x)
+}
+
+#' @rdname fit_decovart
+#' @export
+#' @method summary decovart_fit
+summary.decovart_fit <- function(object, ...) {
+  se <- vapply(
+    object$vcov,
+    function(v) {
+      d <- diag(v)
+      d[!is.finite(d)] <- NA_real_
+      sqrt(pmax(d, 0))
+    },
+    numeric(object$n_celltypes)
+  )
+  if (is.null(dim(se))) {
+    se <- matrix(
+      se,
+      ncol = 1L,
+      dimnames = list(rownames(object$coefficients), NULL)
+    )
+  } else {
+    dimnames(se) <- dimnames(object$coefficients)
+  }
+  n_par <- object$n_celltypes - 1L
+  aic <- -2 * object$loglik + 2 * n_par
+  structure(
+    list(
+      coefficients = object$coefficients,
+      se = se,
+      loglik = object$loglik,
+      aic = aic,
+      method = object$method,
+      convergence = object$convergence,
+      n_genes = object$n_genes,
+      n_celltypes = object$n_celltypes,
+      n_samples = object$n_samples
+    ),
+    class = "summary.decovart_fit"
+  )
+}
+
+#' @rdname fit_decovart
+#' @export
+#' @method print summary.decovart_fit
+print.summary.decovart_fit <- function(x, ...) {
+  cat(
+    "DeCovarT summary (",
+    x$method,
+    ")\nGoodness of fit is the convolution MLE ",
+    "log-likelihood, not least squares.\n",
+    sep = ""
+  )
+  for (i in seq_len(x$n_samples)) {
+    cat("\nSample ", colnames(x$coefficients)[[i]], "\n", sep = "")
+    tab <- cbind(
+      Estimate = x$coefficients[, i],
+      `Std. Error` = x$se[, i]
+    )
+    print(tab, ...)
+    cat(
+      "  logLik = ",
+      signif(x$loglik[[i]], 6),
+      ", AIC = ",
+      signif(x$aic[[i]], 6),
+      "\n",
+      sep = ""
+    )
+  }
+  invisible(x)
+}
+
+#' @rdname fit_decovart
+#' @export
+#' @method coef decovart_fit
+coef.decovart_fit <- function(object, ...) {
+  object$coefficients
+}
+
+#' @rdname fit_decovart
+#' @export
+#' @method fitted decovart_fit
+fitted.decovart_fit <- function(object, ...) {
+  object$fitted.values
+}
+
+#' @rdname fit_decovart
+#' @export
+#' @method residuals decovart_fit
+residuals.decovart_fit <- function(object, ...) {
+  object$residuals
+}
+
+#' @rdname fit_decovart
+#' @export
+#' @method vcov decovart_fit
+vcov.decovart_fit <- function(object, ...) {
+  if (object$n_samples == 1L) {
+    return(object$vcov[[1L]])
+  }
+  object$vcov
+}
+
+#' @rdname fit_decovart
+#' @export
+#' @method nobs decovart_fit
+nobs.decovart_fit <- function(object, ...) {
+  n <- object$n_samples
+  attr(n, "n_genes") <- object$n_genes
+  attr(n, "n_celltypes") <- object$n_celltypes
+  attr(n, "n_samples") <- object$n_samples
+  n
+}
+
+#' @rdname fit_decovart
+#' @param parm Unused (all simplex coordinates are returned).
+#' @param level Confidence level.
+#' @export
+#' @method confint decovart_fit
+confint.decovart_fit <- function(object, parm, level = 0.95, ...) {
+  alpha <- (1 - level) / 2
+  z <- stats::qnorm(c(alpha, 1 - alpha))
+  cf <- object$coefficients
+  out <- vector("list", object$n_samples)
+  names(out) <- colnames(cf)
+  for (i in seq_len(object$n_samples)) {
+    se <- sqrt(pmax(diag(object$vcov[[i]]), 0))
+    interval <- cbind(cf[, i] + z[[1L]] * se, cf[, i] + z[[2L]] * se)
+    colnames(interval) <- paste0(
+      format(100 * c(alpha, 1 - alpha), trim = TRUE),
+      "%"
+    )
+    rownames(interval) <- rownames(cf)
+    out[[i]] <- interval
+  }
+  if (object$n_samples == 1L) {
+    return(out[[1L]])
+  }
+  out
+}
+
+#' @rdname fit_decovart
+#' @export
+#' @method plot decovart_fit
+plot.decovart_fit <- function(x, ...) {
+  y_obs <- as.vector(x$bulk_expression)
+  y_hat <- as.vector(x$fitted.values)
+  graphics::plot(
+    y_obs,
+    y_hat,
+    xlab = "Observed bulk expression",
+    ylab = "Fitted bulk expression",
+    ...
+  )
+  graphics::abline(0, 1, lty = 2)
+  invisible(x)
+}

@@ -29,7 +29,14 @@
 #' @srrstats {G1.3} Terminology: \eqn{\boldsymbol{p}} (simplex proportions),
 #'   ALR coordinates \eqn{\boldsymbol{\rho}}, Gaussian convolution
 #'   \eqn{\boldsymbol{y}\mid\boldsymbol{p}}, covariance
-#'   \eqn{\boldsymbol{\Sigma}_j}. Outlook (defined in
+#'   \eqn{\boldsymbol{\Sigma}_j}. *Closed-reference*: every abundant type is a
+#'   column of \eqn{\boldsymbol{\mu}}. *Gene-wise affine standardisation*:
+#'   one centre/scale per gene, applied to bulk, means and covariances.
+#'   A *sample-level covariate* \eqn{\boldsymbol{z}_{i}} is not a column of
+#'   \eqn{\boldsymbol{\mu}}; it may shift \eqn{\boldsymbol{\mu}_{j}(\boldsymbol{z}_{i})}
+#'   or the ALR of \eqn{\boldsymbol{p}_{\cdot i}}. *RNA fraction* vs *cell
+#'   fraction*: transcriptome sizes \eqn{r_{j}} uncouple the two.
+#'   Outlook (defined in
 #'   `vignette("decovart-perspectives", package = "DeCovarT")`):
 #'   *cell-type-specific (CTS)* sample-level latents
 #'   \eqn{\boldsymbol{x}_{\cdot j}} (Bayesian / MAP);

@@ -26,7 +26,7 @@ format:
 ::: callout-note
 ## Scope
 
-Outlook on extending DeCovarT beyond bulk transcriptomic deconvolution. Sections below cover Scheffé-type mixture extensions, lineage-aware hierarchical deconvolution, and compositional validation; future topics (spatial transcriptomics, multi-modal / multi-omics) will be added here. Compositional reparametrisation is implemented in [`additive_logistic()`](../reference/additive_logistic.html) and documented numerically in the [softmax / ALR derivatives](softmax-alr-derivatives.html) vignette.
+Outlook on extending DeCovarT beyond the closed-reference Gaussian convolution. Sections cover Scheffé-type mixture structure, alternative observation laws and Bayesian CTS inference, sample-level covariates, incomplete references, isoforms, RNA–cell uncoupling, weighted / generalised least squares, lineage and archetypes, time-resolved composition, ensembles, spatial transcriptomics, and multi-omics. Compositional reparametrisation is implemented in [`additive_logistic()`](../reference/additive_logistic.html) and documented numerically in the [softmax / ALR derivatives](softmax-alr-derivatives.html) vignette. The same catalogue is tracked in [GitHub issue 5](https://github.com/bastienchassagnol/DeCovarT/issues/5).
 :::
 
 Bulk transcriptomic deconvolution is one instance of a **mixture inverse problem**: a composite signal (tissue expression, a spectrum, a chromatogram) is observed, and we seek the proportions $\boldsymbol{p}$ of underlying components. Because $\boldsymbol{p}$ is **compositional** (parts of a whole), estimates must lie on the simplex $\Delta^{J-1}=\{\boldsymbol{p}\in[0,1]^J:\sum_j p_j=1\}$. [@chassagnolDeCovarTMultidimensionalProbalistic2023] model each reference profile as multivariate Gaussian and recover $\boldsymbol{p}$ by constrained maximum likelihood; classical deconvolution tools such as `CIBERSORT` assume gene-wise independence instead [@newmanRobustEnumerationCell2015].
@@ -269,36 +269,358 @@ A natural DeCovarT extension would combine @eq-gaussian-convolution with
 either @eq-hard-child-split or @eq-soft-penalty, node-local marker panels,
 and ALR optimisation (@sec-alr-reparam) when a curated lineage tree is
 supplied—benchmarked at broad, intermediate, and terminal resolutions against
-`HiDecon`, `HIDE`, tree-guided `MuSiC`, and `Rectangle`.
+`HiDecon`, `HIDE`, tree-guided `MuSiC`, and `Rectangle`. Spatial
+`HIDF` applies the same tree idea to spots with an `RCTD` back-end
+[@zouHidfIntegratingTreeStructured2026]; `scDETECT` uses a lineage prior
+for differential expression rather than for $\boldsymbol{p}$
+[@xuScdetectNovelStatisticalModel2025]. Archetypes and cell states
+(type versus shared gene-expression programmes) are taken up in
+@sec-archetypes.
 
-## Sample-level CTS, spatial mixtures, and alternative laws {#sec-outlook-laws}
+# Statistical perspectives {#sec-statistical-perspectives}
 
-Three further extensions change the **observation model**, not the simplex
-constraint on $\boldsymbol{p}$.
+The present estimator is a **closed-reference, continuous, frequentist**
+convolution: $\boldsymbol{\mu}_{\cdot j}$ and $\boldsymbol{\Sigma}_{j}$ are
+plug-in moments, and only $\boldsymbol{p}_{\cdot i}$ is unknown. The
+subsections below change the observation law, the reference, or the
+loss, while keeping the simplex constraint (@eq-simplex-constraint).
 
-**Cell-type-specific (CTS) profiles.** The frequentist API plugs
-$\boldsymbol{\mu}_{\cdot j}$ in for the latent purified vector
-$\boldsymbol{x}_{\cdot j}$. A Bayesian CTS step would instead recover a
-sample-level posterior (or MAP) for each $\boldsymbol{x}_{\cdot j}$ given
-$\boldsymbol{y}_{\cdot i}$ and $\boldsymbol{p}_{\cdot i}$—the experimental
-path in `R/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R`. DSection
-[@erkkilaProbabilisticAnalysisGene2010] already samples univariate
-latents; DeCovarT would do the same under the multivariate convolution
-@eq-gaussian-convolution.
+## Alternative distributions {#sec-alternative-laws}
 
-**Spatial transcriptomics.** Each spot (or pixel) is a local mixture
-$\boldsymbol{y}(s)$ with its own $\boldsymbol{p}(s)$ on the same simplex.
-The Gaussian convolution still applies per location; neighbourhood
-kernels or 3-D tissue structure enter only as dependence among adjacent
-$\boldsymbol{p}(s)$.
+Split first by the **support of $\boldsymbol{y}$** (integer counts versus
+continuous intensities), then by **frequentist plug-in versus Bayesian
+joint inference** of $\boldsymbol{p}_{\cdot i}$ and sample-level
+cell-type-specific (CTS) profiles $\boldsymbol{x}_{\cdot j,i}$.
 
-**Alternative bulk laws.** Replacing the Gaussian in
-@eq-gaussian-convolution with a **log-normal** convolution (independent
-genes, as in Blade-type models) or a **Poisson log-normal** count model
-[@chiquetVariationalInferenceSparse2018] would better match
-over-dispersed RNA counts. The ALR map (@eq-alr-forward) and simplex
-constraint are unchanged; only the likelihood and its derivatives
-change.
+```{mermaid}
+%%| label: fig-observation-taxonomy
+%%| fig-cap: "Taxonomy of observation models for bulk deconvolution, relative to DeCovarT's multivariate Gaussian convolution."
+%%{init: {"theme": "sandstone"}}%%
+flowchart TD
+  A["Bulk observation law"] --> B["Discrete counts"]
+  A --> C["Continuous intensities"]
+  B --> D["Multinomial / Dirichlet: ISOpureR, BayesPrism"]
+  B --> E["Poisson / PLN / ZIPLN: DeconV, Chiquet"]
+  C --> F["Univariate Gaussian: DSection, DeMix, BayICE"]
+  C --> G["Multivariate Gaussian convolution: DeCovarT"]
+  C --> H["Log-normal convolution: BLADE"]
+  D --> I["Bayesian joint p and CTS"]
+  G --> J["Frequentist plug-in mu, Sigma"]
+  H --> I
+```
+
+### Discrete counts
+
+A multinomial (or Dirichlet–multinomial) model treats
+$\boldsymbol{y}_{\cdot i}$ as integer reads that sum to a library size.
+`ISOpureR` implements a hierarchical multinomial–Dirichlet purification
+of mixed tumour profiles [@anghelISOpureRImplementationComputational2015].
+`BayesPrism` places a multinomial likelihood on bulk counts with a
+patient-derived scRNA-seq prior and jointly infers $\boldsymbol{p}_{\cdot i}$
+and sample-level CTS expression [@chuCellTypeGeneExpression2022].
+`DeconV` instead uses Poisson aggregation from single-cell to bulk
+(sums of independent Poissons remain Poisson) and returns interval
+estimates of $\boldsymbol{p}_{\cdot i}$
+[@gynterDeconvProbabilisticCellType2023].
+
+Over-dispersed, correlated counts are the domain of the multivariate
+**Poisson–log-normal (PLN)** family: a latent Gaussian vector induces
+dependence, and a Poisson observation layer yields integer reads
+[@chiquetPoissonLognormalModelVersatile2021; @chiquetVariationalInferenceSparse2018].
+**ZIPLN** adds a Bernoulli zero-inflation layer for dropout
+[@batardiereZeroInflationMultivariatePoisson2025]. A DeCovarT-style
+extension would replace @eq-gaussian-convolution by a PLN (or ZIPLN)
+convolution on the latent log-abundance scale, keeping the ALR map on
+$\boldsymbol{p}$.
+
+### Continuous intensities: frequentist versus Bayesian CTS
+
+DSection is the univariate ancestor of DeCovarT: a Gaussian convolution
+that is heteroscedastic across genes, with Normal / Gamma / Dirichlet
+priors and a Gibbs–Metropolis sampler
+[@erkkilaProbabilisticAnalysisGene2010]. DeMix and DeMixT remain
+frequentist convolutions that treat tumour or stromal profiles as latent
+[@ahnDeMixDeconvolutionMixed2013; @wangTranscriptomeDeconvolutionHeterogeneous2018].
+DeCovarT keeps that convolution but makes it **multivariate** with sparse
+$\boldsymbol{\Sigma}_{j}$.
+
+`BLADE` replaces the Gaussian with a **gene-wise log-normal**
+convolution, jointly purifying CTS profiles by variational inference
+[@andrade-barbosaBayesianLogNormalDeconvolution2021]. `bMIND` estimates
+sample-level CTS with an scRNA-seq-derived prior
+[@wangBayesianEstimationCelltypespecific2020]. The experimental MAP path
+in `R/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R` is the corresponding
+DeCovarT starting point: recover $\boldsymbol{x}_{\cdot j,i}$ given
+$\boldsymbol{y}_{\cdot i}$ and $\boldsymbol{p}_{\cdot i}$ under
+@eq-gaussian-convolution rather than under independent genes.
+
+Zhang et al. benchmark joint $\boldsymbol{p}$ + CTS engines and report
+**BayesPrism with DWLS gene weights** as the strongest combination on
+pseudobulk and real bulk data
+[@zhangIntegratedInferenceCellularCompositions2026]. That is a
+weighted-likelihood analogue of @sec-robust-gls.
+
+## Sample-level covariates {#sec-covariates}
+
+A condition, tissue, batch, sex or age vector $\boldsymbol{z}_{i}$ is indexed
+by sample $i$, whereas $\boldsymbol{\mu}$ has genes in rows and cell types in
+columns. Covariates therefore cannot be appended as extra columns of the
+signature. Two generative extensions are distinct
+[@fanMusic2CellTypeDeconvolution2022].
+
+**State model.** Condition alters the reference distribution,
+
+$$
+\boldsymbol{x}_{\cdot j,i}\mid\boldsymbol{z}_{i}
+\sim\mathcal{N}_G
+\bigl(\boldsymbol{\mu}_{j}(\boldsymbol{z}_{i}),\boldsymbol{\Sigma}_{j}(\boldsymbol{z}_{i})\bigr),
+$$ {#eq-covariate-state}
+
+for example $\boldsymbol{\mu}_{j}(\boldsymbol{z}_{i})=\boldsymbol{\mu}_{j}+B_{j}\boldsymbol{z}_{i}$.
+The bulk law is then @eq-gaussian-convolution with those
+condition-dependent moments. `MuSiC2` addresses the same mismatch by
+iteratively dropping cell-type-specific DE genes between the bulk
+condition and the scRNA-seq reference; it remains closed-reference and
+cannot invent novel types [@fanMusic2CellTypeDeconvolution2022].
+
+**Composition model.** Condition alters $\boldsymbol{p}_{\cdot i}$ through the
+existing ALR coordinates $\boldsymbol{\rho}_{i}$,
+
+$$
+\boldsymbol{\rho}_{i}=B\boldsymbol{z}_{i}+\boldsymbol{u}_{i},
+\qquad
+\boldsymbol{p}_{\cdot i}=\psi(\boldsymbol{\rho}_{i}),
+$$ {#eq-covariate-composition}
+
+with $\psi$ the additive logistic map (@eq-alr-forward). This is the
+setting in which a future `predict()` method on new $\boldsymbol{z}$ would be
+meaningful.
+
+A known sequencing exposure $s_{i}$ is a **multiplicative** scale,
+$\boldsymbol{y}_{\cdot i}\sim\mathcal{N}_G(s_{i}\boldsymbol{\mu}\boldsymbol{p}_{\cdot i},s_{i}^{2}\Sigma(\boldsymbol{p}_{\cdot i}))$,
+not an additive `lm` offset. Cell-type transcriptome size $r_{j}$ is a
+different parameter (@sec-uncoupling). A gene-wise affine
+standardisation applied identically to $\boldsymbol{y}$, $\boldsymbol{\mu}$ and every
+$\boldsymbol{\Sigma}_{j}$ leaves $\hat{\boldsymbol{p}}$ unchanged in exact
+arithmetic; column-wise `scale()` on $\boldsymbol{\mu}$ does not.
+
+## Incomplete references {#sec-semi-reference}
+
+Closed-reference DeCovarT assumes every abundant type appears as a
+column of $\boldsymbol{\mu}$. An unrepresented population contributes a
+structured gene vector $\boldsymbol{u}_{i}$, not a scalar intercept:
+
+$$
+\boldsymbol{y}_{\cdot i}
+=\boldsymbol{\mu}\,\boldsymbol{p}_{\cdot i}^{\mathrm{known}}
++p_{u,i}\boldsymbol{u}_{i}+\boldsymbol{\varepsilon}_{i},
+\qquad
+\sum_{j}p_{ji}+p_{u,i}=1.
+$$ {#eq-unknown-component}
+
+`DICEPro` shows that supervised engines remain stable while most types
+are present and then collapse as $\boldsymbol{\mu}$ becomes incomplete,
+especially when the missing type is abundant; it wraps existing methods
+by adjusting reference signatures
+[@baWhenLessNot2026]. `BayICE` is a univariate-Gaussian Bayesian
+semi-reference model that estimates known types **and one unknown
+type**, with spike-and-slab selection of genes and columns of
+$\boldsymbol{\mu}$ [@taiBayiceBayesianHierarchicalModel2021]. Montierth et al.
+convolve negative binomials for known components plus an unknown tumour
+component, assuming proportions shift means but not dispersions
+[@montierthDeconvolutionSparsecountRNA2025]. `CDState` reconstructs
+malignant **states** rather than a single tumour column
+[@kraftCdstateResolvesMalignantCell2026]. `EPIC` already includes an
+uncharacterised compartment in its signature
+[@racleSimultaneousEnumerationCancer2017]. Semi-CAM uses partial marker
+information [@dongSemiCAMSemisupervisedDeconvolution2020]; `BLEND`
+automates reference-panel selection
+[@huangBLENDProbabilisticCellular2024].
+
+## Isoform-level observations {#sec-isoforms}
+
+Gene-level $\boldsymbol{y}\in\mathbb{R}_{+}^{G}$ discards differential isoform
+usage. Expanding the observation to transcripts
+$t=1,\ldots,T$ (short-read quantification or long-read) yields a taller
+signature $\boldsymbol{\mu}^{\mathrm{iso}}\in\mathbb{R}^{T\times J}$.
+`IsoDeconvMM` estimates $\boldsymbol{p}$ from isoform-level expression, even
+from a single gene, by exploiting differential isoform usage rather than
+gene-level DE; full-length long-read or spatial RNA-seq are the natural
+sources of cell-type- and isoform-specific references when droplet
+scRNA-seq misses isoforms [@heilingEstimatingCellTypeComposition2023].
+
+## RNA fraction versus cell fraction {#sec-uncoupling}
+
+DeCovarT, like most linear engines, estimates the **RNA mass fraction**
+of type $j$, not the cytometric cell fraction, unless transcriptome
+sizes $r_{j}$ (mean transcripts per cell) are homogeneous. With
+$\hat p_{j}$ the RNA-scale estimate,
+
+$$
+\hat p_{j}^{\ast}
+=\frac{\hat p_{j}/r_{j}}{\sum_{k=1}^{J}\hat p_{k}/r_{k}}.
+$$ {#eq-rna-to-cell}
+
+**Post-correction** treats $r_{j}$ as measured (or proxied). `EPIC` and
+`quanTIseq` rescale $\hat{\boldsymbol{p}}$ using kit-based mRNA content or
+housekeeping-gene / proteasome-subunit surrogates
+[@racleSimultaneousEnumerationCancer2017; @finotello_etal19]. `MuSiC`
+uses average cell-type library size as a size proxy and warns that TPM
+can discard the information needed to recover cell fractions
+[@wangBulkTissueCell2019]. `ReDeconv` separates global library-size
+normalisation from cell-type transcriptome size
+[@luTranscriptomeSizeMatters2025].
+
+**Joint estimation** treats $r_{j}$ as unknown. `MMAD` estimates
+extraction efficiencies by non-linear conjugate gradients, so the
+mixture is no longer linear
+[@liebnerMMADMicroarrayMicrodissection2014]. A DeCovarT analogue would
+introduce $r_{j}$ inside the mean
+$\sum_{j}p_{ji}r_{j}\boldsymbol{\mu}_{\cdot j}$ (with a product-simplex
+constraint on $(p_{j}r_{j})$), rather than assuming $r_{j}$ known.
+
+## Robust regression, GLS, and gene weights {#sec-robust-gls}
+
+Let $W=\mathrm{diag}(w_{1},\ldots,w_{G})$ be gene-specific precision
+weights (DWLS dampening, voom mean–variance weights, or inverse
+leverage). Weighted least squares minimises
+$(\boldsymbol{y}_{\cdot i}-\boldsymbol{\mu}\boldsymbol{p}_{\cdot i})^{\top}
+W(\boldsymbol{y}_{\cdot i}-\boldsymbol{\mu}\boldsymbol{p}_{\cdot i})$
+[@tsoucasAccurateEstimationCelltype2019; @lawVoomPrecisionWeights2014].
+CIBERSORT's $\nu$-SVR replaces squared error by a robust hinge
+[@newmanRobustEnumerationCell2015].
+
+**Generalised least squares** uses a single residual covariance
+$\Sigma$, not a cell-type tensor. The equi-balanced approximation
+$p_{j}=1/J$ of the DeCovarT covariance is
+$\Sigma=J^{-2}\sum_{j}\boldsymbol{\Sigma}_{j}$, and
+
+$$
+\hat{\boldsymbol{p}}^{\mathrm{GLS}}
+=(\boldsymbol{\mu}^{\top}\Theta\boldsymbol{\mu})^{-1}\boldsymbol{\mu}^{\top}\Theta\boldsymbol{y}_{\cdot i},
+\qquad
+\Theta=\Sigma^{-1},
+$$ {#eq-gls}
+
+after which the simplex is imposed by ALR or projection. WLS is the
+diagonal special case $\Theta=W$. DeCovarT is strictly richer:
+$\Sigma(\boldsymbol{p})=\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}$ depends on the
+unknown coefficients.
+
+A direct extension, following the BayesPrism–DWLS construction
+[@zhangIntegratedInferenceCellularCompositions2026], is to ingest $W$
+into the convolution: transform
+$\boldsymbol{y}^{\star}=W^{1/2}\boldsymbol{y}_{\cdot i}$,
+$\boldsymbol{\mu}^{\star}=W^{1/2}\boldsymbol{\mu}$,
+$\boldsymbol{\Sigma}_{j}^{\star}=W^{1/2}\boldsymbol{\Sigma}_{j}W^{1/2}$
+and run the existing solver — weighted GLS with cell-type-specific
+networks retained.
+
+`cellGeometry` estimates uncertainty from gene-wise heteroscedasticity
+and the cross-sample variance of each gene, i.e. a **global**
+gene/sample covariance rather than $\boldsymbol{\Sigma}_{j}$
+[@lauCellGeometryUltrafastSinglecell2026]. `Unico` deconvolves a 2-D
+bulk matrix into a 3-D sample $\times$ feature $\times$ cell-type tensor
+and explicitly models cell-type-level covariances, including on
+methylation [@chenUnicoUnifiedModelCell2025]. Interaction monomials
+$p_{j}p_{k}$ in the mean (@eq-interaction-mean) are the Scheffé /
+general-linear-model route; `DecOT` instead changes the discrepancy to
+an optimal-transport loss [@liuDecotBulkDeconvolutionOptimal2022].
+
+## Time-resolved composition {#sec-dynamics}
+
+When $J>G$ the linear map is under-determined. Elastic-net methods such
+as `DCQ` (`glmnet`) select the **support of cell types that change**
+between biological states, rather than recovering a full simplex
+snapshot [@altboumDigitalCellQuantification2014; @R-glmnet]. Static
+benchmarks that score these methods as poor deconvolution miss that
+target [@jinBenchmarkRNAseqDeconvolution2021]. `DCQ` tracked 213 immune
+subtypes across ten influenza time points and reported changes in about
+70 types; `ImmQuant` packages a similar pipeline
+[@frishbergImmQuantUserfriendlyTool2016].
+
+A DeCovarT trajectory would put a temporal prior on ALR coordinates,
+e.g. $\boldsymbol{\rho}_{i}(t)=\boldsymbol{\rho}_{i}(t-1)+\boldsymbol{\eta}_{t}$, as in
+`ChronoStrain`'s Bayesian strain trajectories
+[@kimLongitudinalProfilingLowAbundance2025]. `scTREND` supplies an
+annotation-free single-cell hazard clock for organoid / gastruloid time
+courses [@yukiSctrendAnnotationFreeSingle2026]. `SpaDecoder` adds
+space–time kernels on spots
+[@loboSpatiotemporalCellTypeDeconvolution2026].
+
+## Ensembles {#sec-ensembles}
+
+Two operations are easily confused. **Several references, one
+algorithm:** `MuSiC` weights subjects and `SCDC` weights scRNA-seq
+studies [@wangBulkTissueCell2019; @dongSCDCBulkGene2021]. **Several
+algorithms, one consensus $\hat{\boldsymbol{p}}$:** `EnsDeconv` fuses 11 bulk
+engines plus variation in references, markers and normalisation by
+cell-type-specific robust regression, on 4,937 samples with measured
+fractions [@caiRobustAccurateEstimation2022]. `EnDecon` runs 14 spatial
+(and bulk) methods and forms a weighted-median consensus, down-weighting
+discordant engines [@tuEndeconCellTypeDeconvolution2023]. The DREAM
+community assessment found that a mean-rank ensemble beat every
+individual method [@whiteCommunityAssessmentMethodsDeconvolve2024].
+
+# Spatial transcriptomics {#sec-spatial}
+
+Each spot (or pixel) $s$ is a local mixture $\boldsymbol{y}(s)$ with its own
+$\boldsymbol{p}(s)\in\Delta^{J-1}$. The Gaussian convolution still applies
+per location; space enters as dependence among neighbouring
+$\boldsymbol{p}(s)$. Sequencing-based surveys classify probabilistic
+assumptions and provide practical benchmarks
+[@saqibPixelsCellTypes2025; @gaspard-boulincCelltypeDeconvolutionMethods2025; @liComprehensiveBenchmarkingPractical2023].
+Imaging-based reconstruction goes the other way: `HistoMap` generates
+single-cell-like profiles from bulk with a variational autoencoder and
+maps them onto histological coordinates with an H-ViT
+[@heHistomapReconstructingSpatiallyResolved2026]; `HEDeST` pairs H&E
+with spot-level $\hat{\boldsymbol{p}}(s)$
+[@gortanaHedestIntegrativeApproachEnhance2026]. `SpaDecoder` aligns
+slices, infers neighbourhoods, and uses 3-D Gaussian kernels, with an
+explicit simplex constraint and a penalty on the number of types per
+spot [@loboSpatiotemporalCellTypeDeconvolution2026]. Under **cell-type
+mismatch**, missing types are mostly absorbed by the most similar
+column of $\boldsymbol{\mu}$
+[@mahamuneSystematicEvaluationRobustnessDeconvolution2025] — the spatial
+counterpart of @sec-semi-reference.
+
+# Multi-modal and multi-omics {#sec-multiomics}
+
+Bulk deconvolution is one arm of a multi-scale tumour-immune map that
+also includes scRNA-seq and spatial assays
+[@sunMultiScaleTranscriptomicsRedefining2026]. `DECODE` trains a shared
+deconvolution architecture across omics
+[@zhaoDecodeDeepLearningBased2026]. Yao et al. reconstruct
+cell-type-specific regulatory processes from paired ATAC-seq and bulk
+RNA-seq, benchmarking against CIBERSORTx
+[@yaoHighResolutionReconstructionCell2026]. Proteomics-constrained
+deconvolution uses protein abundance as a regulariser on transcriptomic
+$\boldsymbol{p}$ / CTS
+[@isikProteomicsConstrainedDeconvolutionReveals2026]. `Unico` already
+treats expression and DNA methylation under one tensor model
+[@chenUnicoUnifiedModelCell2025]. The HADACA3 community benchmark
+stresses the limits of naive multimodal concatenation
+[@barbotPromisesLimitsMultimodal2026].
+
+## Archetypes, states, and potency {#sec-archetypes}
+
+A finite $J$-column signature is a piecewise approximation of within-type
+continua. **Archetypal analysis** places cells on a simplicial polytope
+whose vertices are extreme programmes, avoiding NMF/ICA rotational
+ambiguity [@hartInferringBiologicalTasks2015; @crowleyParetoOptimalityRevealsAtlas2026].
+`ACTION` separates transcriptional identity (cell type) from activity
+states (shared gene-expression programmes) and chooses $k$
+automatically [@mohammadiAMultiresolutionFrameworkCharacterize2020];
+`scAAnet` extends that construction with a VAE and a zero-inflated
+negative-binomial reconstruction
+[@wangNonLinearArchetypalAnalysis2022]. `tissueResolver` builds a
+virtual tissue without predefined labels, aiming at fine states within
+types [@simethVirtualTissueExpressionAnalysis2024]. Potency and
+differentiation scores, as in hypothalamic–pituitary organoids, replace
+discrete labels by a continuous axis
+[@asanoADeepLearningApproach2024]. Macrophage M1/M2 polarisation is the
+standard biological example of a microenvironment-dependent continuum
+rather than two extra columns of $\boldsymbol{\mu}$.
 
 # Compositional geometry and validation {#sec-compositional-geometry}
 

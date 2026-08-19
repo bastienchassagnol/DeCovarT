@@ -132,165 +132,131 @@ NULL
 #'
 #' RE1 - Regression: input specification
 #'
-#' @srrstats {RE1.1} DeCovarT does not use a formula interface: inputs are
-#'   numeric matrices (`y`, `mean_signature_matrix`, `Sigma_list`). This is
-#'   explicitly documented in `?deconvolute_ratios` and justified by the
-#'   multivariate nature of the convolution model.
-#'
-#' @srrstatsTODO {RE1.0} Formula interface or explicit justification - the
-#'   RE1.1 entry addresses this; will be moved to `@srrstatsNA` at full
-#'   submission once editors confirm acceptability.
-#'
 #' @srrstats {RE1.2} Expected input classes documented in every `@param`
-#'   block; unsupported types raise `checkmate` errors.
+#'   block; unsupported types raise `checkmate` / `.assert_numeric_array`
+#'   errors.
 #'
-#' @srrstats {RE1.3} Output tibble retains column names from signature matrix
-#'   and row names (sample IDs) from bulk matrix `y`.
-#'
-#' @srrstatsTODO {RE1.3a} Cases where input metadata are not transferred to
-#'   be audited and documented.
+#' @srrstats {RE1.3} Gene rownames of \(Y\) and \(\mu\) identify genes;
+#'   colnames of \(Y\) identify samples; colnames of \(\mu\) identify
+#'   cell types. `fit_decovart()` keeps those dimnames on `coef()`,
+#'   `fitted()` and `residuals()`. `deconvolute_ratios()` labels
+#'   proportion columns from \(\mu\).
 #'
 #' @srrstats {RE1.4} Distributional assumptions (multivariate Gaussian,
 #'   positive-definite Sigma, simplex-constrained proportions) documented in
-#'   `?deconvolute_ratios` and vignettes, with notes on violation consequences.
+#'   `?fit_decovart`, `?deconvolute_ratios` and vignettes.
 #'
 #' RE2 - Regression: pre-processing
 #'
-#' @srrstats {RE2.0} ALR reparametrisation documented in `?deconvolute_ratios`,
-#'   vignettes, and preprint; exposed via `alr_transform` / `alr_inverse`.
+#' @srrstats {RE2.0} ALR reparametrisation documented in `?fit_decovart`,
+#'   `?additive_logistic`, and `vignette("softmax-alr-derivatives")`.
 #'
-#' @srrstats {RE2.1} Missing values in `y` or signature matrix raise an error
-#'   at the start of `deconvolute_ratios()`; no silent imputation is performed.
+#' @srrstats {RE2.1} Missing values in `y` or the signature raise an error
+#'   in `.prepare_deconvolution_inputs()`; no silent imputation.
 #'
-#' @srrstatsTODO {RE2.2} Separate NA handling for predictor vs response data
-#'   to be added.
+#' @srrstats {RE2.3} `standardise = TRUE` applies one gene-wise affine
+#'   z-score (centre/scale from \(\mu\)) to bulk, means and covariances.
+#'   Log2 mixing (`scaled = TRUE`) is rejected (Jensen / CIBERSORT).
 #'
-#' @srrstatsTODO {RE2.3} Centring / scaling options not currently exposed; to
-#'   be reviewed.
+#' @srrstats {RE2.4} Condition of \(\Sigma(\boldsymbol{p})\) is handled in
+#'   `.sigma_p_factorisation()`; collinear signature columns warn.
 #'
-#' @srrstats {RE2.4} Condition numbers of covariance matrices checked before
-#'   inversion; warning issued when threshold exceeded.
+#' @srrstats {RE2.4a} Identical or rank-deficient signature columns
+#'   trigger `.warn_collinear_signature()`.
 #'
-#' @srrstats {RE2.4a} Near-perfect collinearity among signature columns
-#'   (identical cell profiles) triggers an informative warning.
-#'
-#' @srrstatsTODO {RE2.4b} Perfect collinearity between predictors and response
-#'   to be explicitly tested.
+#' @srrstats {RE2.4b} Perfect collinearity among predictors (duplicate
+#'   columns, or a parent equal to a combination of children) is tested
+#'   in `tests/testthat/test-03_05_decovart_fit.R` and the simulation
+#'   appendix vignette.
 #'
 #' RE3 - Regression: convergence
 #'
-#' @srrstats {RE3.0} Non-convergence of the Marquardt-Levenberg optimiser
-#'   raises a `warning()` with the convergence code.
+#' @srrstats {RE3.0} Non-convergence of Marquardt--Levenberg raises a
+#'   `warning()` with the `istop` / RDM code.
 #'
-#' @srrstats {RE3.1} Convergence warnings suppressible via `verbose = FALSE`;
-#'   the result object retains the convergence field.
+#' @srrstats {RE3.1} Convergence diagnostics are stored on `decovart_fit`
+#'   (`$convergence`); warnings remain suppressible with
+#'   `suppressWarnings()`.
 #'
-#' @srrstats {RE3.2} Default convergence thresholds (`epsa`, `epsb`, `epsd`)
-#'   documented in `?deconvolute_ratios` with values and rationale.
+#' @srrstats {RE3.2} Default `epsilon = 1e-4`, `itmax = 200` documented
+#'   in `?fit_decovart` (optim-style).
 #'
-#' @srrstats {RE3.3} Convergence thresholds settable via `...` pass-through
-#'   to `marqLevAlg::marqLevAlg()`, documented in `@param ...`.
+#' @srrstats {RE3.3} Both knobs are explicit arguments of `fit_decovart()`
+#'   and of the three native solvers.
 #'
 #' RE4 - Regression: return objects
 #'
-#' @srrstats {RE4.0} `deconvolute_ratios()` returns a named list
-#'   (`DeCovarT_result`) with proportions, log-likelihood, Fisher information,
-#'   and convergence diagnostics.
+#' @srrstats {RE4.0} `fit_decovart()` returns class `decovart_fit` with
+#'   proportions, log-likelihood, Fisher `vcov`, and convergence.
+#'   `deconvolute_ratios()` remains a benchmark tibble of many algorithms.
 #'
-#' @srrstatsTODO {RE4.1} Model object without fitting not currently supported.
+#' @srrstats {RE4.2} `coef(fit)` is \(\hat{\boldsymbol{P}}\) (\(J\times N\)).
 #'
-#' @srrstats {RE4.2} Estimated proportions (model coefficients) returned in a
-#'   tidy tibble.
+#' @srrstats {RE4.3} `confint(fit)` is the ALR delta-method Wald interval.
 #'
-#' @srrstats {RE4.3} Asymptotic confidence intervals from the observed Fisher
-#'   information matrix returned alongside point estimates.
+#' @srrstats {RE4.5} `nobs(fit)` is \(N\) (one MVN observation per bulk
+#'   sample), with attributes `n_genes` and `n_celltypes`.
 #'
-#' @srrstatsTODO {RE4.4} `formula()` accessor - not applicable; see RE1.1.
-#'   Will be moved to `@srrstatsNA` at full submission.
+#' @srrstats {RE4.6} `vcov(fit)` is the Cramer--Rao / expected-Fisher
+#'   bound mapped to the simplex.
 #'
-#' @srrstats {RE4.5} Number of observations (`N` bulk samples) returned in
-#'   result object.
+#' @srrstats {RE4.7} Optimiser stop codes and iteration counts are stored
+#'   on `$convergence` (this tag is **convergence**, not prediction).
 #'
-#' @srrstats {RE4.6} Variance-covariance matrix of estimated proportion
-#'   parameters (inverse expected Fisher information) returned.
+#' @srrstats {RE4.8} Observed bulk `Y` is `$bulk_expression`.
 #'
-#' @srrstats {RE4.7} Convergence statistics (code, iterations, gradient norm)
-#'   from `marqLevAlg` stored in result object.
+#' @srrstats {RE4.9} `fitted(fit)` is \(\boldsymbol{\mu}\hat{\boldsymbol{P}}\).
 #'
-#' @srrstats {RE4.8} Bulk mixture matrix `y` stored as attribute of result
-#'   object.
+#' @srrstats {RE4.10} `residuals(fit)` is \(\boldsymbol{Y}-\hat{\boldsymbol{Y}}\).
+#'   These are convolution residuals, not OLS residuals; GoF is the MLE
+#'   log-likelihood (RE4.11).
 #'
-#' @srrstats {RE4.9} Fitted values (modelled bulk expression from estimated
-#'   proportions and signature) returned.
+#' @srrstats {RE4.11} `summary(fit)` reports log-likelihood and AIC, not
+#'   least-squares \(R^{2}\).
 #'
-#' @srrstatsTODO {RE4.10} Residuals not yet formally returned; to be added.
+#' @srrstats {RE4.12} ALR maps: `additive_logistic` / `additive_log_ratio`.
 #'
-#' @srrstatsTODO {RE4.11} Goodness-of-fit metrics (RMSE, Pearson correlation)
-#'   to be added; log-likelihood and AIC already returned.
+#' @srrstats {RE4.13} Signature and `Sigma` are stored on the fit.
 #'
-#' @srrstats {RE4.12} ALR forward and inverse transforms exported as
-#'   `alr_transform` / `alr_inverse`.
+#' @srrstats {RE4.17} `print.decovart_fit()` shows proportions and logLik.
 #'
-#' @srrstats {RE4.13} Signature matrix (predictor variables) and covariance
-#'   list stored in result object.
-#'
-#' @srrstatsTODO {RE4.14} Extrapolation errors - not applicable to
-#'   compositional estimation; will be `@srrstatsNA` at full submission.
-#'
-#' @srrstatsTODO {RE4.15} Forecast-horizon uncertainty - not applicable; will
-#'   be `@srrstatsNA` at full submission.
-#'
-#' @srrstatsTODO {RE4.16} `predict()` S3 method dispatching on
-#'   `DeCovarT_result` is planned.
-#'
-#' @srrstats {RE4.17} `print.DeCovarT_result()` displays estimated proportions,
-#'   log-likelihood, and convergence status.
-#'
-#' @srrstatsTODO {RE4.18} `summary.DeCovarT_result()` method is planned.
+#' @srrstats {RE4.18} `summary.decovart_fit()` adds Wald SEs and AIC.
 #'
 #' RE5 - Regression: scaling
 #'
-#' @srrstatsTODO {RE5.0} Runtime vs number of samples and genes to be
-#'   benchmarked and documented in a vignette.
+#' @srrstatsTODO {RE5.0} Runtime vs \(G\), \(J\), overlap, CPM / log2
+#'   normalisation, and tolerance will be reported in a later benchmark
+#'   paper / issue, not in this package release.
 #'
 #' RE6 - Regression: visualisation
 #'
-#' @srrstats {RE6.0} `plot.DeCovarT_result()` implemented in
-#'   `R/04_02_benchmark_visualisation.R`; produces proportion bar plots and
-#'   scatter plots of estimated vs true proportions where ground truth exists.
+#' @srrstats {RE6.0} `plot.decovart_fit()` compares observed and fitted
+#'   bulk expression after \(\hat{\boldsymbol{p}}\) has been inferred.
 #'
-#' @srrstats {RE6.1} `plot()` generic dispatches on `DeCovarT_result` via
-#'   `plot.DeCovarT_result()`.
+#' @srrstats {RE6.1} The `plot()` generic dispatches on `decovart_fit`.
 #'
-#' @srrstats {RE6.2} Default plot shows fitted proportions per sample with
-#'   optional confidence-interval whiskers.
-#'
-#' @srrstatsTODO {RE6.3} Interpolated vs extrapolated distinction - not
-#'   applicable to compositional estimation; will be `@srrstatsNA` at full
-#'   submission.
+#' @srrstats {RE6.2} Default plot is observed vs fitted bulk profiles
+#'   with the identity line (not estimated vs true proportions).
 #'
 #' RE7 - Regression: tests
 #'
-#' @srrstats {RE7.0} Tests with noiseless exact proportions included in
-#'   `tests/testthat/test-03_03_*.R`.
+#' @srrstats {RE7.0} Tests with noiseless exact proportions in
+#'   `tests/testthat/test-03_03_*.R` and `test-03_05_decovart_fit.R`.
 #'
-#' @srrstats {RE7.0a} Tests confirm rank-deficient signature inputs rejected
-#'   with informative error.
+#' @srrstats {RE7.0a} Rank-deficient signatures warn
+#'   (`.warn_collinear_signature()`); \(J>G\) errors.
 #'
-#' @srrstats {RE7.1} Noiseless exact predictor-response tests confirm estimated
-#'   proportions equal ground truth within tolerance.
+#' @srrstats {RE7.1} Noiseless tests recover ground-truth proportions
+#'   within numerical tolerance.
 #'
-#' @srrstatsTODO {RE7.1a} Speed comparison noiseless vs noisy fitting to be
-#'   benchmarked.
+#' @srrstatsTODO {RE7.1a} Speed comparison noiseless vs noisy fitting,
+#'   and scaling with \(G,J\), deferred with RE5.0.
 #'
-#' @srrstats {RE7.2} Tests confirm output tibbles retain row and column names
-#'   from input matrices.
+#' @srrstats {RE7.2} Tests confirm dimnames of \(Y\) and \(\mu\) on
+#'   `decovart_fit` accessors.
 #'
-#' @srrstats {RE7.3} Tests exercise accessor fields of `DeCovarT_result`
-#'   (proportions, CIs, Fisher information, convergence diagnostics).
-#'
-#' @srrstatsTODO {RE7.4} Forecast-horizon tests - not applicable; will be
-#'   `@srrstatsNA` at full submission.
+#' @srrstats {RE7.3} Tests exercise `coef`, `fitted`, `residuals`,
+#'   `vcov`, `nobs`, `print`, `summary`, `plot`.
 #'
 #' @noRd
 NULL
@@ -325,6 +291,32 @@ NULL
 #' @srrstatsNA {G5.11} Unit tests do not download assets. Paper-scale data
 #'   will live in the companion reproducibility repository.
 #' @srrstatsNA {G5.11a} See G5.11.
+#'
+#' @srrstatsNA {RE1.0} No `formula` interface. DeCovarT is not a linear
+#'   model for predicting bulk transcriptomes: \(\boldsymbol{\Sigma}(p)\) is
+#'   a variance / likelihood specification, not extra regressors. A
+#'   formula / `lm` API would misrepresent the estimator.
+#' @srrstatsNA {RE1.1} There is no formula to convert (see RE1.0).
+#' @srrstatsNA {RE1.3a} Dimnames that exist on \(Y\) and \(\mu\) are
+#'   always transferred; there is no supported path that silently drops
+#'   metadata.
+#' @srrstatsNA {RE2.2} Predictors and response are complete numeric
+#'   matrices with a single missing-data policy (error). Separate NA
+#'   handling is not relevant for quantified bulk RNA-seq.
+#' @srrstatsNA {RE4.1} An unfitted `lm`-style model object is not
+#'   meaningful: the convolution has no formula and is not estimated by
+#'   least squares.
+#' @srrstatsNA {RE4.4} `formula()` is not implemented (see RE1.0).
+#' @srrstatsNA {RE4.14} Forecast / extrapolation errors do not apply:
+#'   the target is a simplex of mixing weights, not a future bulk
+#'   expression.
+#' @srrstatsNA {RE4.15} There is no forecast horizon.
+#' @srrstatsNA {RE4.16} `predict()` is not implemented: DeCovarT does
+#'   not forecast bulk transcriptomic values (new groups, interpolation
+#'   or extrapolation).
+#' @srrstatsNA {RE6.3} Interpolated vs extrapolated predictions do not
+#'   arise (no `predict()`).
+#' @srrstatsNA {RE7.4} Forecast-horizon tests do not apply (see RE4.15).
 #'
 #' @noRd
 NULL

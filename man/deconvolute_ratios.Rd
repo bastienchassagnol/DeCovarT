@@ -10,6 +10,7 @@ deconvolute_ratios(
   true_ratios = NULL,
   Sigma = NULL,
   deconvolution_functions = NULL,
+  standardise = FALSE,
   scaled = FALSE,
   cores = ifelse(.Platform$OS.type == "unix", getOption("mc.cores",
     parallel::detectCores()), 1)
@@ -38,13 +39,22 @@ of cell-type covariances (numeric; off-diagonals may be negative).}
 \item{deconvolution_functions}{Named list; each element has \code{FUN} and
 optional \code{additional_parameters}.}
 
-\item{scaled}{If \code{TRUE}, apply a log2 transform before estimation.}
+\item{standardise}{If \code{TRUE}, apply a gene-wise affine z-score (same
+centre and scale from \(\boldsymbol{\mu}\) to bulk, means and
+covariances). This does not change the theoretical MLE of
+\(\boldsymbol{p}\).}
+
+\item{scaled}{Deprecated. \code{TRUE} (log2 mixing) always errors: the
+logarithm breaks the linear convolution (Jensen). CIBERSORT
+likewise requires non-log linear space
+\insertCite{newmanRobustEnumerationCell2015}{DeCovarT}.}
 
 \item{cores}{Number of parallel workers.}
 }
 \value{
-A \code{tibble} of estimated \eqn{\hat{\boldsymbol{p}}} and metrics,
-after \code{\link[=repair_simplex]{repair_simplex()}}.
+A \code{tibble} of estimated \eqn{\hat{\boldsymbol{p}}} and metrics.
+First-generation solvers still call \code{\link[=repair_simplex]{repair_simplex()}}; the three
+native DeCovarT maps (ALR or \(p/\sum p\)) already lie on the simplex.
 }
 \description{
 For each column \eqn{\boldsymbol{y}_{\cdot i}} of the bulk matrix
@@ -88,6 +98,7 @@ deconvolute_ratios(
 \insertRef{ogundijoSequentialMonteCarlo2017}{DeCovarT}
 \insertRef{hafemeisterNormalizationVarianceStabilization2019}{DeCovarT}
 \insertRef{chionBayesianFrameworkMultivariate2023}{DeCovarT}
+\insertRef{newmanRobustEnumerationCell2015}{DeCovarT}
 }
 \seealso{
 \code{\link[=deconvolute_ratios_Marquardt_Levenberg]{deconvolute_ratios_Marquardt_Levenberg()}}

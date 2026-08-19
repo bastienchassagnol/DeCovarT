@@ -113,6 +113,9 @@ navbar:
         - text: OLS reminders for linear deconvolution
           icon: fa-equals
           href: articles/DeCovarT-reminders-OLS.html
+        - text: Affine equivariance and collinearity
+          icon: fa-ruler-combined
+          href: articles/DeCovarT_appendix_simualtion_frameworks.html
         - text: DeCovarT perspectives (outlook)
           icon: fa-compass
           href: articles/decovart-perspectives.html
@@ -165,9 +168,11 @@ reference:
     desc: |
       Marquardt–Levenberg deconvolution (exported entry point). Related
       first- and second-order variants live in
-      `R/03_03_DeCovarT_estimate_ratios_frequentist.R`.
+      `R/03_03_DeCovarT_estimate_ratios_frequentist.R`. The S3 model
+      wrapper is `fit_decovart()`.
     contents:
       - deconvolute_ratios_Marquardt_Levenberg
+      - fit_decovart
   - title: Benchmark and evaluation
     desc: |
       Quality metrics for estimated proportions, and the bivariate toy
@@ -212,6 +217,7 @@ articles:
     contents:
       - softmax-alr-derivatives
       - DeCovarT-reminders-OLS
+      - DeCovarT_appendix_simualtion_frameworks
       - decovart-perspectives
 
 news:

@@ -29,7 +29,8 @@ deconvolute_ratios_Marquardt_Levenberg(
   mean_signature_matrix,
   Sigma,
   epsilon = 10^-4,
-  itmax = 200
+  itmax = 200,
+  return_model = FALSE
 )
 
 deconvolute_ratios_simulated_annealing(
@@ -45,7 +46,8 @@ deconvolute_ratios_L_BFGS_B(
   mean_signature_matrix,
   Sigma,
   epsilon = 10^-4,
-  itmax = 200
+  itmax = 200,
+  return_model = FALSE
 )
 
 deconvolute_ratios_Newton_Raphson(
@@ -53,7 +55,8 @@ deconvolute_ratios_Newton_Raphson(
   mean_signature_matrix,
   Sigma,
   epsilon = 10^-4,
-  itmax = 200
+  itmax = 200,
+  return_model = FALSE
 )
 
 deconvolute_ratios_gradient_descent(
@@ -77,10 +80,16 @@ plug-in for latent profiles).}
 of cell-type covariances.}
 
 \item{epsilon, itmax}{Absolute convergence tolerance and maximum number of
-iterations for the optimiser.}
+iterations for the optimiser (same roles as \code{reltol} / \code{maxit} in
+\code{\link[stats:optim]{stats::optim()}}).}
+
+\item{return_model}{If \code{TRUE}, return a named list with coefficients,
+ALR coordinates, log-likelihood and optimiser diagnostics instead of
+the proportion vector.}
 }
 \value{
-Named numeric vector \eqn{\hat{\boldsymbol{p}}} on the simplex.
+Named numeric vector \eqn{\hat{\boldsymbol{p}}} on the simplex
+(ALR methods), or that list when \code{return_model = TRUE}.
 Benchmark metrics are computed by \code{\link[=deconvolute_ratios]{deconvolute_ratios()}}.
 }
 \description{
@@ -140,6 +149,8 @@ inequality-constrained least squares on the simplex
 
 \item \code{deconvolute_ratios_L_BFGS_B()}: Box-constrained L-BFGS-B
 directly in \eqn{\boldsymbol{p}} (\code{\link[stats:optim]{stats::optim()}} \code{method = "L-BFGS-B"}).
+The box keeps each coordinate in \eqn{[0,1]}; the returned vector is
+closed by \(p/\sum p\) (no \code{\link[=repair_simplex]{repair_simplex()}} clipping).
 
 \item \code{deconvolute_ratios_Newton_Raphson()}: Newton–Raphson /
 \code{nlminb} on \eqn{\boldsymbol{\rho}} using analytic gradient and Hessian

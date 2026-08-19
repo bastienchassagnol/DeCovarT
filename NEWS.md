@@ -1,3 +1,19 @@
+# DeCovarT 2.1.0
+
+* **`fit_decovart()` S3 API.** Dedicated convolution fit object
+  (`print`, `summary`, `coef`, `fitted`, `residuals`, `vcov`, `nobs`,
+  `confint`, `plot`) for Marquardt--Levenberg, L-BFGS-B and
+  Newton--Raphson. `deconvolute_ratios()` stays the multi-algorithm
+  benchmark tibble. No `formula` / `predict()` methods: the estimator is
+  a variance model, not OLS for bulk expression.
+
+* **Gene-wise `standardise`.** Affine z-score of bulk, means and
+  covariances (equivariant MLE). Log2 mixing (`scaled = TRUE`) is
+  rejected (Jensen / CIBERSORT linear space).
+
+* **Wald `vcov`.** Expected Fisher information of the multivariate
+  normal convolution, mapped to the simplex by the ALR delta method.
+
 # DeCovarT 2.0.0
 
 * **Release** aligned with the GitHub `v2.0.0` tag and the first CRAN

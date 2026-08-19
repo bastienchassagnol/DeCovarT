@@ -622,9 +622,14 @@ hessian_loglik_constrained <- function(rho, y, mean_signature_matrix, Sigma) {
 #'   \eqn{(\boldsymbol{\Sigma}_j)_{j=1}^{J}\in\mathcal{M}_{G\times G\times J}}
 #'   of cell-type covariances.
 #' @param epsilon,itmax Absolute convergence tolerance and maximum number of
-#'   iterations for the optimiser.
+#'   iterations for the optimiser (same roles as `reltol` / `maxit` in
+#'   [stats::optim()]).
+#' @param return_model If `TRUE`, return a named list with coefficients,
+#'   ALR coordinates, log-likelihood and optimiser diagnostics instead of
+#'   the proportion vector.
 #'
-#' @return Named numeric vector \eqn{\hat{\boldsymbol{p}}} on the simplex.
+#' @return Named numeric vector \eqn{\hat{\boldsymbol{p}}} on the simplex
+#'   (ALR methods), or that list when `return_model = TRUE`.
 #'   Benchmark metrics are computed by [deconvolute_ratios()].
 #'
 #' @examples
@@ -646,7 +651,8 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
   mean_signature_matrix,
   Sigma,
   epsilon = 10^-4,
-  itmax = 200
+  itmax = 200,
+  return_model = FALSE
 ) {
   # equi-balanced initial proportions across cell populations
   initial_p <- rep(
@@ -709,8 +715,24 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
     estimated_rho <- fit$b
   }
   estimated_p <- additive_logistic(estimated_rho) |>
-    repair_simplex() |>
     stats::setNames(colnames(mean_signature_matrix))
+  if (isTRUE(return_model)) {
+    return(list(
+      coefficients = estimated_p,
+      rho = estimated_rho,
+      loglik = loglik_multivariate(
+        estimated_p,
+        y,
+        mean_signature_matrix,
+        Sigma
+      ),
+      convergence = list(
+        istop = fit$istop,
+        rdm = fit$rdm,
+        iterations = fit$ni
+      )
+    ))
+  }
   estimated_p
 }
 
@@ -750,13 +772,16 @@ deconvolute_ratios_simulated_annealing <- function(
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Box-constrained L-BFGS-B
 #'   directly in \eqn{\boldsymbol{p}} ([stats::optim()] `method = "L-BFGS-B"`).
+#'   The box keeps each coordinate in \eqn{[0,1]}; the returned vector is
+#'   closed by \(p/\sum p\) (no [repair_simplex()] clipping).
 #' @export
 deconvolute_ratios_L_BFGS_B <- function(
   y,
   mean_signature_matrix,
   Sigma,
   epsilon = 10^-4,
-  itmax = 200
+  itmax = 200,
+  return_model = FALSE
 ) {
   # equi-balanced initial proportions across cell populations
   initial_p <- rep(
@@ -785,20 +810,46 @@ deconvolute_ratios_L_BFGS_B <- function(
       error = function(e) rep(0, length(p))
     )
   }
-  estimated_p <- stats::optim(
+  fit <- stats::optim(
     par = initial_p,
     fn = safe_loglik,
     gr = safe_gradient,
     y = y,
     mean_signature_matrix = mean_signature_matrix,
     Sigma = Sigma,
-    control = list(fnscale = -1, maxit = itmax, lmm = 1, factr = epsilon * 10),
+    control = list(
+      fnscale = -1,
+      maxit = itmax,
+      lmm = 1,
+      factr = epsilon * 10
+    ),
     method = "L-BFGS-B",
     lower = rep(0, length(initial_p)),
     upper = rep(1, length(initial_p))
-  )$par |>
-    stats::setNames(colnames(mean_signature_matrix)) |>
-    repair_simplex()
+  )
+  estimated_p <- fit$par
+  names(estimated_p) <- colnames(mean_signature_matrix)
+  total <- sum(estimated_p)
+  if (is.finite(total) && total > 0) {
+    estimated_p <- estimated_p / total
+  }
+  if (isTRUE(return_model)) {
+    return(list(
+      coefficients = estimated_p,
+      rho = additive_log_ratio(estimated_p),
+      loglik = loglik_multivariate(
+        estimated_p,
+        y,
+        mean_signature_matrix,
+        Sigma
+      ),
+      convergence = list(
+        code = fit$convergence,
+        iterations = unname(fit$counts[["function"]]),
+        message = fit$message
+      )
+    ))
+  }
   estimated_p
 }
 
@@ -811,7 +862,8 @@ deconvolute_ratios_Newton_Raphson <- function(
   mean_signature_matrix,
   Sigma,
   epsilon = 10^-4,
-  itmax = 200
+  itmax = 200,
+  return_model = FALSE
 ) {
   # equi-balanced initial proportions across cell populations
   initial_p <- rep(
@@ -821,7 +873,7 @@ deconvolute_ratios_Newton_Raphson <- function(
   initial_rho <- additive_log_ratio(initial_p)
 
   # with nlmimb package method (outdated, but works well for our scenario)
-  estimated_rho <- stats::nlminb(
+  fit <- stats::nlminb(
     start = initial_rho,
     objective = function(p, y, mean_signature_matrix, Sigma) {
       -loglik_multivariate_constrained(p, y, mean_signature_matrix, Sigma)
@@ -842,11 +894,27 @@ deconvolute_ratios_Newton_Raphson <- function(
       xf.tol = epsilon,
       abs.tol = epsilon
     )
-  )$par
-
+  )
+  estimated_rho <- fit$par
   estimated_p <- additive_logistic(estimated_rho) |>
-    stats::setNames(colnames(mean_signature_matrix)) |>
-    repair_simplex()
+    stats::setNames(colnames(mean_signature_matrix))
+  if (isTRUE(return_model)) {
+    return(list(
+      coefficients = estimated_p,
+      rho = estimated_rho,
+      loglik = loglik_multivariate(
+        estimated_p,
+        y,
+        mean_signature_matrix,
+        Sigma
+      ),
+      convergence = list(
+        code = fit$convergence,
+        iterations = fit$iterations,
+        message = fit$message
+      )
+    ))
+  }
   estimated_p
 }
 

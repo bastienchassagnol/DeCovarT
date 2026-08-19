@@ -13,6 +13,7 @@ benchmark_bivariate_gaussian_convolutions(
   deconvolution_functions = list(lsfit = list(FUN = deconvolute_ratios_lsfit,
     additional_parameters = NULL)),
   n = 200,
+  standardise = FALSE,
   scaled = FALSE,
   cores = ifelse(.Platform$OS.type == "unix", getOption("mc.cores",
     parallel::detectCores()), 1)
@@ -34,7 +35,7 @@ variance templates used to assemble
 
 \item{n}{Number of bulk replicates \eqn{N} per scenario.}
 
-\item{scaled}{Logical; whether to log-scale inputs before estimation.}
+\item{standardise, scaled}{Passed to \code{\link[=deconvolute_ratios]{deconvolute_ratios()}}.}
 
 \item{cores}{Parallel workers for \code{\link[=deconvolute_ratios]{deconvolute_ratios()}}.}
 }

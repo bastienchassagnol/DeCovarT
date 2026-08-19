@@ -33,6 +33,7 @@
 ^vignettes/feature-selection\.qmd$
 ^vignettes/network-inference\.qmd$
 ^vignettes/synthetic-scenarios\.qmd$
+^vignettes/DeCovarT_appendix_simualtion_frameworks\.qmd$
 # pkgdown-only vignette figures (CRAN vignettes use the two kept below)
 ^vignettes/figures/condition_number_poor_performance_correlated_cell_types\.png$
 ^vignettes/figures/dea_optimal_design_comparison\.png$

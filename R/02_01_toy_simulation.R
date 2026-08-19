@@ -159,7 +159,7 @@ simulate_bulk_mixture <- function(
 #' @param deconvolution_functions Named list of deconvolution callables
 #'   (each with `FUN` and optional `additional_parameters`).
 #' @param n Number of bulk replicates \eqn{N} per scenario.
-#' @param scaled Logical; whether to log-scale inputs before estimation.
+#' @param standardise,scaled Passed to [deconvolute_ratios()].
 #' @param cores Parallel workers for [deconvolute_ratios()].
 #'
 #' @return A list with `config` (design + entropy/overlap) and `simulations`
@@ -195,6 +195,7 @@ benchmark_bivariate_gaussian_convolutions <- function(
     "lsfit" = list(FUN = deconvolute_ratios_lsfit, additional_parameters = NULL)
   ),
   n = 200,
+  standardise = FALSE,
   scaled = FALSE,
   cores = ifelse(
     .Platform$OS.type == "unix",
@@ -303,6 +304,7 @@ benchmark_bivariate_gaussian_convolutions <- function(
         true_ratios = p,
         Sigma = Sigma,
         deconvolution_functions = deconvolution_functions,
+        standardise = standardise,
         scaled = scaled,
         cores = cores
       ))

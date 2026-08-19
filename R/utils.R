@@ -281,11 +281,15 @@
 #' undetermined and an error is raised.
 #'
 #' @return Named list with aligned `signature_matrix`, `bulk_expression`,
-#'   `true_ratios` (\eqn{J\times N} or `NULL`) and `Sigma`.
+#'   `true_ratios` (\eqn{J\times N} or `NULL`), `Sigma`, and optional
+#'   gene-wise affine `centre` / `scale` when `standardise = TRUE`.
 #'
 #' @srrstats {G2.8} This is the unique conversion / dispatch point.
 #' @srrstats {G2.10} Matrix subsetting uses `drop = FALSE`.
 #' @srrstats {G5.8d} \eqn{J > G} (more cell types than genes) is rejected.
+#' @srrstats {RE2.3} Gene-wise affine standardisation is the only supported
+#'   scaling; log2 mixing (`scaled = TRUE`) is rejected.
+#' @srrstats {RE2.4a} Rank-deficient or duplicate signature columns warn.
 #'
 #' @keywords internal
 #' @noRd
@@ -294,6 +298,7 @@
   bulk_expression,
   true_ratios = NULL,
   Sigma = NULL,
+  standardise = FALSE,
   scaled = FALSE
 ) {
   .assert_numeric_array(
@@ -387,22 +392,123 @@
     n_samples = n_samples
   )
 
+  .warn_collinear_signature(signature_matrix)
+
   if (isTRUE(scaled)) {
-    if (any(signature_matrix <= 0) || any(bulk_expression <= 0)) {
-      stop(
-        "`scaled = TRUE` requires strictly positive expression ",
-        "(log2 of zero is -Inf).",
-        call. = FALSE
-      )
-    }
-    signature_matrix <- log2(signature_matrix)
-    bulk_expression <- log2(bulk_expression)
+    stop(
+      "`scaled = TRUE` (log2 mixing) is not supported: the logarithm ",
+      "is a nonlinear map and, by Jensen's inequality, changes first ",
+      "and second moments, breaking the linear convolution ",
+      "y = mu p. CIBERSORT likewise requires non-negative expression, ",
+      "no missing values, and a non-log linear scale ",
+      "(Newman et al., 2015). Use `standardise = TRUE` for a gene-wise ",
+      "affine z-score that leaves the theoretical MLE unchanged.",
+      call. = FALSE
+    )
+  }
+
+  centre <- NULL
+  scale <- NULL
+  if (isTRUE(standardise)) {
+    std <- .standardise_gene_wise(
+      signature_matrix,
+      bulk_expression,
+      Sigma
+    )
+    signature_matrix <- std$signature_matrix
+    bulk_expression <- std$bulk_expression
+    Sigma <- std$Sigma
+    centre <- std$centre
+    scale <- std$scale
   }
 
   list(
     signature_matrix = signature_matrix,
     bulk_expression = bulk_expression,
     true_ratios = true_ratios,
-    Sigma = Sigma
+    Sigma = Sigma,
+    centre = centre,
+    scale = scale
+  )
+}
+
+#' Warn when signature columns are collinear (RE2.4a, RE2.4b)
+#'
+#' @keywords internal
+#' @noRd
+.warn_collinear_signature <- function(signature_matrix) {
+  n_celltypes <- ncol(signature_matrix)
+  rank_mu <- qr(signature_matrix)$rank
+  if (rank_mu < n_celltypes) {
+    warning(
+      "Signature columns are collinear (rank ",
+      rank_mu,
+      " < J = ",
+      n_celltypes,
+      "); mixture proportions are not identifiable.",
+      call. = FALSE
+    )
+    return(invisible(FALSE))
+  }
+  col_norm <- sqrt(colSums(signature_matrix^2))
+  if (any(col_norm < .Machine$double.eps)) {
+    warning(
+      "A signature column is numerically zero.",
+      call. = FALSE
+    )
+    return(invisible(FALSE))
+  }
+  unit_cols <- sweep(signature_matrix, 2L, col_norm, "/")
+  cosine <- abs(crossprod(unit_cols))
+  diag(cosine) <- 0
+  if (any(cosine > 1 - 1e-8)) {
+    warning(
+      "At least two signature columns are identical up to scaling.",
+      call. = FALSE
+    )
+  }
+  invisible(TRUE)
+}
+
+#' Gene-wise affine z-score of bulk, means and covariances (RE2.3)
+#'
+#' Centre and scale are computed once from the reference means
+#' \eqn{\boldsymbol{\mu}} (not per cell type or per bulk sample) and applied
+#' as \(D^{-1}(\boldsymbol{x}-\boldsymbol{m})\) to \(\boldsymbol{Y}\) and
+#' \(\boldsymbol{\mu}\), and as \(D^{-1}\boldsymbol{\Sigma}_j D^{-1}\) to each
+#' covariance slice.
+#'
+#' @keywords internal
+#' @noRd
+.standardise_gene_wise <- function(
+  signature_matrix,
+  bulk_expression,
+  Sigma = NULL
+) {
+  centre <- rowMeans(signature_matrix)
+  scale <- apply(signature_matrix, 1L, stats::sd)
+  if (any(!is.finite(scale) | scale < .Machine$double.eps)) {
+    stop(
+      "Gene-wise standardisation requires a positive finite standard ",
+      "deviation for every gene in the signature.",
+      call. = FALSE
+    )
+  }
+  signature_star <- (signature_matrix - centre) / scale
+  bulk_star <- (bulk_expression - centre) / scale
+  sigma_star <- Sigma
+  if (!is.null(Sigma)) {
+    inv_scale <- 1 / scale
+    scale_outer <- tcrossprod(inv_scale)
+    for (j in seq_len(dim(Sigma)[[3L]])) {
+      sigma_star[,, j] <- Sigma[,, j] * scale_outer
+    }
+  }
+  list(
+    signature_matrix = signature_star,
+    bulk_expression = bulk_star,
+    Sigma = sigma_star,
+    centre = centre,
+    scale = scale
   )
 }

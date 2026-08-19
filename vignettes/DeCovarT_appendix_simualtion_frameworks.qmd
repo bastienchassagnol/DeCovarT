@@ -1,0 +1,282 @@
+---
+title: "DeCovarT appendix: affine equivariance, collinearity and perturbations"
+author: "Bastien Chassagnol"
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteIndexEntry{DeCovarT appendix: affine equivariance, collinearity and perturbations}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+knitr:
+    10|  opts_chunk:
+    collapse: true
+    comment: "#>"
+bibliography:
+  - ../inst/packages.bib
+  - ../inst/REFERENCES.bib
+link-citations: true
+crossref:
+  eq-prefix: "Eq."
+  sec-prefix: "Sec."
+    20|format:
+  html:
+    embed-resources: true
+    toc: true
+---
+
+```{r}
+#| label: setup
+#| include: false
+options(tinytable_html_mathjax = TRUE)
+```
+
+This appendix records three numerical facts that sit behind the
+`decovart_fit` API: gene-wise affine equivariance of the MLE, failure
+under collinear signatures, and the effect of small bulk perturbations
+when the covariance is full, cell-type diagonal, or global. CPM / log2
+normalisation, optimiser tolerance, and scaling with $G$, $J$ and
+overlap are left to a later benchmark issue.
+
+# Gene-wise affine equivariance {#sec-affine}
+
+Let $D=\mathrm{diag}(s_1,\ldots,s_G)$ with $s_g\neq 0$ and
+$\boldsymbol{m}\in\mathbb{R}^{G}$. The same gene-wise map applied to bulk,
+means and covariances,
+$$
+\boldsymbol{y}^\star_{\cdot i}
+= D^{-1}(\boldsymbol{y}_{\cdot i}-\boldsymbol{m}),
+\quad
+\boldsymbol{\mu}^\star
+= D^{-1}(\boldsymbol{\mu}-\boldsymbol{m}\boldsymbol{1}_J^\top),
+\quad
+\boldsymbol{\Sigma}_j^\star
+= D^{-1}\boldsymbol{\Sigma}_j D^{-1},
+$$
+preserves the linear convolution because
+$\boldsymbol{1}_J^\top\boldsymbol{p}_{\cdot i}=1$:
+$$
+\boldsymbol{y}^\star_{\cdot i}
+=\boldsymbol{\mu}^\star\boldsymbol{p}_{\cdot i}
++\boldsymbol{\varepsilon}^\star_{\cdot i}.
+$$
+The Mahalanobis residual is invariant, so
+$\hat{\boldsymbol{p}}(\boldsymbol{Y},\boldsymbol{\mu},\boldsymbol{\Sigma})
+=\hat{\boldsymbol{p}}(\boldsymbol{Y}^\star,\boldsymbol{\mu}^\star,
+\boldsymbol{\Sigma}^\star)$ in exact arithmetic. A z-score computed
+**once per gene from $\boldsymbol{\mu}$** (not per cell type, not per bulk
+sample) is that map. Sample-level covariates that shift gene-wise means
+are included provided the same $D$ and $\boldsymbol{m}$ are applied to the
+adjusted $\boldsymbol{\mu}_j(\boldsymbol{z}_i)$.
+
+A logarithm is not affine. It is concave, so Jensen's inequality
+changes first and second moments, and
+$\log(\boldsymbol{\mu}\boldsymbol{p})\neq(\log\boldsymbol{\mu})\boldsymbol{p}$.
+`CIBERSORT` therefore requires non-negative expression, no missing
+values, and a non-log linear scale
+[@newmanRobustEnumerationCell2015]. The logarithm is monotone on
+$(0,\infty)$, so gene-wise orderings are preserved, but the
+Gaussian-convolution MLE of $\boldsymbol{p}$ is not.
+
+```{r}
+#| label: affine-invariance
+#| warning: false
+library(DeCovarT)
+
+set.seed(1)
+genes <- paste0("g", 1:3)
+cts <- paste0("ct", 1:2)
+mu <- matrix(
+  c(20, 40, 25, 35, 30, 22),
+  nrow = 3,
+  dimnames = list(genes, cts)
+)
+Sigma <- array(0, dim = c(3, 3, 2), dimnames = list(genes, genes, cts))
+Sigma[, , 1] <- diag(c(1.0, 1.2, 0.8))
+Sigma[, , 2] <- diag(c(1.5, 0.9, 1.1))
+p_true <- c(0.65, 0.35)
+y <- matrix(
+  drop(mu %*% p_true + rnorm(3, sd = 0.05)),
+  ncol = 1,
+  dimnames = list(genes, "s1")
+)
+
+fit_raw <- fit_decovart(
+  mu,
+  y,
+  Sigma = Sigma,
+  method = "Marquardt-Levenberg",
+  itmax = 80
+)
+
+centre <- c(2, -1, 0.5)
+scale <- c(2, 0.5, 4)
+D_inv <- 1 / scale
+y_star <- (y - centre) / scale
+mu_star <- (mu - centre) / scale
+Sigma_star <- Sigma
+for (j in seq_len(2)) {
+  Sigma_star[, , j] <- Sigma[, , j] * tcrossprod(D_inv)
+}
+# Solvers accept the starred arrays directly (z-scores need not be
+# non-negative). The public gate still requires non-negative raw counts.
+p_star <- deconvolute_ratios_Marquardt_Levenberg(
+  drop(y_star),
+  mu_star,
+  Sigma_star,
+  itmax = 80
+)
+fit_z <- fit_decovart(
+  mu,
+  y,
+  Sigma = Sigma,
+  method = "Marquardt-Levenberg",
+  itmax = 80,
+  standardise = TRUE
+)
+
+rbind(
+  raw = drop(coef(fit_raw)),
+  general_affine = p_star,
+  gene_wise_z = drop(coef(fit_z))
+)
+```
+
+The two rows should agree up to optimiser noise: `standardise = TRUE`
+is a gene-wise affine map. Cell-type-wise `scale()` of $\boldsymbol{\mu}$
+would estimate a different $D$ per column and is not supported.
+
+# Collinearity {#sec-collinearity}
+
+If two signature columns are identical, or a parent profile is an
+affine combination of children, $\boldsymbol{\mu}$ is rank-deficient and
+$\boldsymbol{p}$ is not identifiable (RE2.4b).
+
+```{r}
+#| label: collinear-two
+#| warning: true
+mu2 <- mu
+mu2[, 2] <- mu2[, 1]
+tryCatch(
+  fit_decovart(
+    mu2,
+    y,
+    Sigma = Sigma,
+    method = "Marquardt-Levenberg",
+    itmax = 20
+  ),
+  warning = function(w) conditionMessage(w),
+  error = function(e) conditionMessage(e)
+)
+```
+
+```{r}
+#| label: collinear-parent
+#| warning: true
+genes3 <- paste0("g", 1:3)
+cts3 <- c("child_1", "child_2", "parent")
+mu3 <- cbind(
+  child_1 = c(20, 40, 15),
+  child_2 = c(40, 20, 25),
+  parent = 0.5 * c(20, 40, 15) + 0.5 * c(40, 20, 25)
+)
+rownames(mu3) <- genes3
+Sigma3 <- array(0, dim = c(3, 3, 3), dimnames = list(genes3, genes3, cts3))
+for (j in 1:3) {
+  Sigma3[, , j] <- diag(3)
+}
+y3 <- matrix(mu3 %*% c(0.2, 0.3, 0.5), ncol = 1)
+dimnames(y3) <- list(genes3, "s1")
+qr(mu3)$rank
+tryCatch(
+  fit_decovart(
+    mu3,
+    y3,
+    Sigma = Sigma3,
+    method = "Marquardt-Levenberg",
+    itmax = 20
+  ),
+  warning = function(w) conditionMessage(w),
+  error = function(e) conditionMessage(e)
+)
+```
+
+Missing values are not a separate predictor / response policy (RE2.2):
+quantified bulk RNA-seq matrices are complete, and the API errors on
+`NA` / `NaN` / `Inf`.
+
+# Small perturbations of the bulk {#sec-perturb}
+
+With known $\boldsymbol{p}$, a small Gaussian perturbation of
+$\boldsymbol{y}_{\cdot i}$ should move Marquardt--Levenberg estimates only
+slightly. Three covariance specifications are compared:
+
+1. Full cell-type tensor $\boldsymbol{\Sigma}_j$.
+2. Cell-type diagonal: off-diagonals of each $\boldsymbol{\Sigma}_j$ set to
+   zero (gene-wise weighted convolution).
+3. Global GLS competitor: every slice replaced by the equi-balanced
+   $\Sigma=J^{-2}\sum_j\boldsymbol{\Sigma}_j$.
+
+```{r}
+#| label: perturbation
+#| warning: false
+set.seed(2)
+p_true <- c(0.6, 0.4)
+y0 <- matrix(drop(mu %*% p_true), ncol = 1, dimnames = list(genes, "s1"))
+y_pert <- y0 + rnorm(3, sd = 0.2)
+
+Sigma_diag <- Sigma
+for (j in 1:2) {
+  Sigma_diag[, , j] <- diag(diag(Sigma[, , j]))
+}
+sigma_bar <- (Sigma[, , 1] + Sigma[, , 2]) / 4
+Sigma_global <- Sigma
+Sigma_global[, , 1] <- sigma_bar
+Sigma_global[, , 2] <- sigma_bar
+
+fit_spec <- function(y, S) {
+  drop(coef(fit_decovart(
+    mu,
+    y,
+    Sigma = S,
+    method = "Marquardt-Levenberg",
+    itmax = 80
+  )))
+}
+
+specs <- list(
+  full = Sigma,
+  celltype_diagonal = Sigma_diag,
+  global_equibalanced = Sigma_global
+)
+est <- vapply(specs, function(S) fit_spec(y_pert, S), numeric(2))
+rmse <- apply(est, 2, function(p_hat) sqrt(mean((p_hat - p_true)^2)))
+list(estimates = est, rmse_to_truth = rmse)
+```
+
+A fuller comparison of normalisation (CPM, log2), tolerance, and
+dimension $(G,J)$ belongs in a later issue.
+
+# S3 accessors {#sec-s3}
+
+```{r}
+#| label: s3-accessors
+#| warning: false
+fit <- fit_decovart(
+  mu,
+  y,
+  Sigma = Sigma,
+  method = "Marquardt-Levenberg",
+  itmax = 80
+)
+coef(fit)
+nobs(fit)
+c(
+  n_genes = attr(nobs(fit), "n_genes"),
+  n_celltypes = attr(nobs(fit), "n_celltypes")
+)
+fitted(fit)
+residuals(fit)
+vcov(fit)
+```
+
+`formula()` and `predict()` are not implemented: DeCovarT does not
+forecast bulk expression.
