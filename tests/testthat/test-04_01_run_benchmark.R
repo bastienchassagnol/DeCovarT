@@ -133,3 +133,84 @@ test_that(".match_arg_ci is case-insensitive (G2.3b)", {
     "must be one of"
   )
 })
+
+test_that("deconvolute_ratios uses the bundled toy fixture (G5.1)", {
+  toy <- .toy_deconvolution()
+  out <- deconvolute_ratios(
+    signature_matrix = toy$signature_matrix,
+    bulk_expression = toy$bulk_expression,
+    true_ratios = toy$true_ratios,
+    Sigma = toy$Sigma,
+    deconvolution_functions = list(
+      "nnls" = list(FUN = deconvolute_ratios_nnls)
+    ),
+    cores = 1
+  )
+  expect_true(tibble::is_tibble(out))
+  expect_identical(nrow(out), ncol(toy$bulk_expression))
+})
+
+test_that("deconvolute_ratios errors on Inf, negatives, and J > G", {
+  toy <- .toy_deconvolution()
+  fns <- list("nnls" = list(FUN = deconvolute_ratios_nnls))
+
+  bulk_inf <- toy$bulk_expression
+  bulk_inf[1, 1] <- Inf
+  expect_error(
+    deconvolute_ratios(
+      signature_matrix = toy$signature_matrix,
+      bulk_expression = bulk_inf,
+      deconvolution_functions = fns,
+      cores = 1
+    ),
+    "Inf"
+  )
+
+  bulk_neg <- toy$bulk_expression
+  bulk_neg[1, 1] <- -1
+  expect_error(
+    deconvolute_ratios(
+      signature_matrix = toy$signature_matrix,
+      bulk_expression = bulk_neg,
+      deconvolution_functions = fns,
+      cores = 1
+    ),
+    "non-negative"
+  )
+
+  expect_error(
+    deconvolute_ratios(
+      signature_matrix = as.data.frame(toy$signature_matrix),
+      bulk_expression = toy$bulk_expression,
+      deconvolution_functions = fns,
+      cores = 1
+    ),
+    "data.frame"
+  )
+
+  wide_mu <- cbind(toy$signature_matrix, extra = c(21, 19))
+  expect_error(
+    deconvolute_ratios(
+      signature_matrix = wide_mu,
+      bulk_expression = toy$bulk_expression,
+      deconvolution_functions = fns,
+      cores = 1
+    ),
+    "Undetermined"
+  )
+})
+
+test_that(".ensure_file_suffix adds or rejects extensions (G4.0)", {
+  expect_identical(.ensure_file_suffix("scores", "rds"), "scores.rds")
+  expect_identical(.ensure_file_suffix("scores.RDS", "rds"), "scores.RDS")
+  expect_error(.ensure_file_suffix("scores.csv", "rds"), "must use suffix")
+})
+
+test_that(".write_artefact writes RDS under with_tempfile (G4.0)", {
+  toy <- .toy_deconvolution()
+  withr::with_tempfile("tf", fileext = ".rds", {
+    path <- .write_artefact(toy, tf, kind = "rds")
+    expect_identical(tools::file_ext(path), "rds")
+    expect_identical(readRDS(path)$true_ratios, toy$true_ratios)
+  })
+})

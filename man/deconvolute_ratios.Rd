@@ -18,16 +18,22 @@ deconvolute_ratios(
 \arguments{
 \item{signature_matrix}{Mean signature
 \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (rownames = genes,
-colnames = cell types). Used as a frequentist \strong{plug-in} for unobserved
+colnames = cell types). Numeric matrix of non-negative expression;
+\eqn{G \ge J} is required (the mixture is undetermined if
+\eqn{J > G}). Used as a frequentist \strong{plug-in} for unobserved
 latent cell-type profiles \eqn{\boldsymbol{x}_{\cdot j}}.}
 
 \item{bulk_expression}{Bulk matrix
-\eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}}.}
+\eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}}: numeric, non-negative,
+gene rownames matching \code{signature_matrix}.}
 
-\item{true_ratios}{Optional ground-truth proportions for scoring.}
+\item{true_ratios}{Optional ground-truth proportions: a length-\eqn{J}
+numeric vector (recycled over samples) or a numeric matrix
+\eqn{J\times N} (or \eqn{N\times J}).}
 
 \item{Sigma}{Optional array
-\eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}}.}
+\eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}}
+of cell-type covariances (numeric; off-diagonals may be negative).}
 
 \item{deconvolution_functions}{Named list; each element has \code{FUN} and
 optional \code{additional_parameters}.}
@@ -80,6 +86,8 @@ deconvolute_ratios(
 \insertRef{wangTranscriptomeDeconvolutionHeterogeneous2018}{DeCovarT}
 \insertRef{anghelISOpureRImplementationComputational2015}{DeCovarT}
 \insertRef{ogundijoSequentialMonteCarlo2017}{DeCovarT}
+\insertRef{hafemeisterNormalizationVarianceStabilization2019}{DeCovarT}
+\insertRef{chionBayesianFrameworkMultivariate2023}{DeCovarT}
 }
 \seealso{
 \code{\link[=deconvolute_ratios_Marquardt_Levenberg]{deconvolute_ratios_Marquardt_Levenberg()}}

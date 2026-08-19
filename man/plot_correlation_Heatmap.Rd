@@ -8,7 +8,8 @@ plot_correlation_Heatmap(
   distribution_metrics,
   score_variable = "model_mse",
   n_break = 20,
-  uni_scale = TRUE
+  uni_scale = TRUE,
+  file = NULL
 )
 }
 \arguments{
@@ -22,6 +23,9 @@ plot_correlation_Heatmap(
 \item{n_break}{Number of colour breaks.}
 
 \item{uni_scale}{If \code{FALSE}, each panel uses its own colour scale.}
+
+\item{file}{Optional PDF path. When supplied, heatmaps are drawn with
+\code{\link[grDevices:pdf]{grDevices::pdf()}}; a missing \code{.pdf} suffix is added (G4.0).}
 }
 \value{
 A named list of \code{ComplexHeatmap} heatmap objects (one per algorithm).

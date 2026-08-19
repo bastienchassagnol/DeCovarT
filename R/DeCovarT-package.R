@@ -37,5 +37,22 @@
 #'   \eqn{\boldsymbol{y}(s)}; *log-normal* and *Poisson-log-normal*
 #'   alternatives to the Gaussian bulk law.
 #'
+#' Paper-scale figures and large simulation assets are **not** bundled
+#' here. They will live in a companion reproducibility repository,
+#' following the CellRank 2 split between the maintained package
+#' (`scverse/cellrank`) and `theislab/cellrank2_reproducibility`
+#' (Weiler et al., *Nature Methods* 2024,
+#' <https://doi.org/10.1038/s41592-024-02303-9>).
+#'
+#' Missing values: bulk and single-cell RNA-seq quantification yields
+#' complete numeric matrices whose zeros are dropouts, not `NA`
+#' \insertCite{hafemeisterNormalizationVarianceStabilization2019}{DeCovarT}.
+#' Label-free proteomics, by contrast, routinely has 10-50% structurally
+#' missing intensities (limit of detection, DDA ion sampling) that need
+#' explicit missing-data models
+#' \insertCite{chionBayesianFrameworkMultivariate2023}{DeCovarT}.
+#' DeCovarT currently targets transcriptomes and therefore **errors** on
+#' `NA` / `NaN` / `Inf` rather than imputing.
+#'
 #' @keywords internal
 "_PACKAGE"

@@ -29,6 +29,13 @@ Areas where contributions are especially welcome include:
 - **Extended benchmarking scenarios** beyond the bivariate toy example, e.g. higher-dimensional GRN-based simulations using `simulate_hierarchical_grn_moments()`.
 - **Performance improvements** to the Marquardt–Levenberg optimiser or its gradient/Hessian computations.
 
+Paper-scale figures, large simulation assets, and comparative benchmarks
+against other tools will live in a **companion reproducibility repository**
+(same split as CellRank 2: [scverse/cellrank](https://github.com/scverse/cellrank)
+vs [theislab/cellrank2_reproducibility](https://github.com/theislab/cellrank2_reproducibility);
+Weiler et al., *Nature Methods* 2024, <https://doi.org/10.1038/s41592-024-02303-9>).
+This package remains the standalone estimator.
+
 ## Pull request process
 
 1. Create a dedicated Git branch for each pull request (`git checkout -b feat/my-feature`).

@@ -46,7 +46,13 @@ saveRDS(
 )
 
 reduced_bivariate_configuration <- bivariate_configuration |>
-  mutate(ID = factor(ID, levels = unique(bivariate_configuration$ID))) |>
+  mutate(
+    ID = factor(
+      ID,
+      levels = unique(bivariate_configuration$ID),
+      ordered = TRUE
+    )
+  ) |>
   group_by(ID) |>
   summarise(
     Entropy = entropy,

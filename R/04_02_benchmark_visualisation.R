@@ -16,8 +16,12 @@
 #' @srrstats {G2.3b} Matching is case-insensitive (`tolower()`).
 #' @param n_break Number of colour breaks.
 #' @param uni_scale If `FALSE`, each panel uses its own colour scale.
+#' @param file Optional PDF path. When supplied, heatmaps are drawn with
+#'   [grDevices::pdf()]; a missing `.pdf` suffix is added (G4.0).
 #'
 #' @return A named list of `ComplexHeatmap` heatmap objects (one per algorithm).
+#'
+#' @srrstats {G4.0} `file` is passed through `.ensure_file_suffix()`.
 #'
 #' @examples
 #' metrics <- tibble::tibble(
@@ -34,7 +38,8 @@ plot_correlation_Heatmap <- function(
   distribution_metrics,
   score_variable = "model_mse",
   n_break = 20,
-  uni_scale = TRUE
+  uni_scale = TRUE,
+  file = NULL
 ) {
   score_variable <- .match_arg_ci(
     score_variable,
@@ -137,5 +142,8 @@ plot_correlation_Heatmap <- function(
       return(complex_heatmap_per_algo)
     }
   )
+  if (!is.null(file)) {
+    .write_artefact(complex_heatmap_list, file, kind = "pdf")
+  }
   return(complex_heatmap_list)
 }

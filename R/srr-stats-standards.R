@@ -16,18 +16,20 @@ NULL
 #' G1.3, G1.4, G1.4a: see `DeCovarT-package`.
 #' G2.3 / G2.3a / G2.3b: see `.match_arg_ci()`, [check_true_theta()],
 #' [generate_random_network_skeleton()], [plot_correlation_Heatmap()].
-#' G2.13 / G2.15: see `.assert_no_missing()` and [deconvolute_ratios()].
+#' G2.4-G2.16, G4.0, G5.8d: see `R/utils.R` and [deconvolute_ratios()].
 #' G3.0: see [repair_simplex()] and tests (`100 * .Machine$double.eps`).
 #'
 #' @srrstats {G1.2} A lifecycle badge (Active/stable,
 #'   <https://www.repostatus.org/#active>) is shown in the README; future
 #'   development is described there and in vignettes.
 #'
-#' @srrstatsTODO {G1.5} Reproduction scripts for arXiv preprint performance
-#'   claims to be added to `scripts/` before full submission.
+#' @srrstatsTODO {G1.5} Reproduction code for article figures will live in a
+#'   companion GitHub repository (CellRank 2 pattern: software vs
+#'   `cellrank2_reproducibility`), not in this package.
 #'
-#' @srrstatsTODO {G1.6} Comprehensive benchmark vignette comparing DeCovarT
-#'   to alternative implementations is planned.
+#' @srrstatsTODO {G1.6} Comparative benchmarks against other R deconvolution
+#'   tools will also live in that companion repository / vignette, once the
+#'   simulation grid is extended.
 #'
 #' G2 - Input validation
 #'
@@ -45,48 +47,32 @@ NULL
 #' @srrstats {G2.2} Scalar parameters are checked with `assert_scalar` or
 #'   equivalent.
 #'
-#' G2.3, G2.3a, G2.3b: see `.match_arg_ci()` in `R/00_01_input_checks.R`.
-#' G2.13, G2.15: see [deconvolute_ratios()] (error on missing values; no
+#' G2.3, G2.3a, G2.3b: see `.match_arg_ci()` in `R/utils.R`.
+#' G2.13, G2.15, G2.16: see `.assert_no_missing()` and
+#' [deconvolute_ratios()] (error on missing / non-finite values; no
 #' imputation).
 #'
-#' @srrstatsTODO {G2.4} Coercion between data types to be reviewed.
-#' @srrstatsTODO {G2.4a} explicit conversion to `integer` via `as.integer()`
-#' @srrstatsTODO {G2.4b} explicit conversion to numeric via `as.numeric()`
-#' @srrstatsTODO {G2.4c} explicit conversion to character via `as.character()`
-#' @srrstatsTODO {G2.4d} explicit conversion to factor via `as.factor()`
-#' @srrstatsTODO {G2.4e} explicit conversion from factor via `as...()` functions
+#' @srrstats {G5.0} Tests use internally generated data from
+#'   `simulate_bulk_mixture()` / `simulate_hierarchical_grn_moments()`
+#'   with known ground-truth proportions, plus
+#'   `inst/extdata/toy_deconvolution.rds`.
 #'
-#' @srrstatsTODO {G2.5} Factor inputs not currently accepted; documentation
-#'   to state this explicitly.
+#' @srrstats {G5.1} The toy two-gene / two-cell-type list is shipped in
+#'   `inst/extdata/toy_deconvolution.rds`; bivariate solver fixtures live
+#'   under `tests/testthat/fixtures/` (see `tests/README.md`).
 #'
-#' @srrstatsTODO {G2.6} One-dimensional input pre-processing to be reviewed.
+#' @srrstats {G5.8d} \eqn{J > G} is rejected in
+#'   `.prepare_deconvolution_inputs()`.
 #'
-#' @srrstatsTODO {G2.7} Currently requires numeric matrices; data-frame
-#'   dispatch to be added.
+#' @srrstats {G5.10} Extended tests are gated by
+#'   `DECOVART_EXTENDED_TESTS=true` (`skip_if_not_extended()`).
 #'
-#' @srrstatsTODO {G2.8} Type dispatch normalisation to be reviewed.
+#' @srrstatsTODO {G5.6b} Multi-seed long-running tests to be added to an
+#'   extended test suite.
 #'
-#' @srrstatsTODO {G2.9} Diagnostic messages on type conversion to be added.
+#' @srrstatsTODO {G5.7} Runtime scaling benchmarks to be added.
 #'
-#' @srrstatsTODO {G2.10} Single-column extraction behaviour to be verified.
-#'
-#' @srrstatsTODO {G2.11} Non-standard column class attributes to be tested.
-#'
-#' @srrstatsTODO {G2.12} List-column handling to be addressed.
-#'
-#' @srrstatsTODO {G2.14} User-specified NA handling options to be added.
-#' @srrstatsTODO {G2.14a} error on missing data
-#' @srrstatsTODO {G2.14b} ignore missing data with warning
-#' @srrstatsTODO {G2.14c} replace missing data with imputed values
-#'
-#' G2.13, G2.15: see [deconvolute_ratios()] and `.assert_no_missing()`.
-#'
-#' @srrstatsTODO {G2.16} User-facing options for `NaN`/`Inf`/`-Inf` handling
-#'   to be formalised (guards already present on optimiser inputs).
-#'
-#' G3 - Numeric precision
-#'
-#' G3.0: see `.match_arg_ci()` / tests (`100 * .Machine$double.eps`).
+#' @srrstatsTODO {G5.9b} Multiple random seeds to be added (see G5.6b).
 #'
 #' @srrstats {G3.1} User-provided covariance matrices can originate from any
 #'   estimation method; the diagonal (independence) approximation is one valid
@@ -97,11 +83,7 @@ NULL
 #'
 #' G5 - Testing
 #'
-#' @srrstats {G5.0} Tests use internally generated data from
-#'   `generate_synthetic_mixtures()` with known ground-truth proportions.
-#'
-#' @srrstatsTODO {G5.1} Formal export of test fixtures as package data to be
-#'   considered during review.
+#' G5.0, G5.1, G5.8d, G5.10: see the G2 block above and `tests/README.md`.
 #'
 #' @srrstats {G5.2} Error and warning conditions tested via `expect_error()` /
 #'   `expect_warning()` covering malformed inputs and constraint violations.
@@ -121,12 +103,6 @@ NULL
 #' @srrstats {G5.4a} Two-cell / two-gene cases used where MLE is analytically
 #'   derivable and verifiable by hand.
 #'
-#' @srrstatsTODO {G5.4b} Cross-validation against external packages to be
-#'   expanded.
-#'
-#' @srrstatsTODO {G5.4c} Stored paper-output values to be added from the
-#'   arXiv preprint numerical results.
-#'
 #' @srrstats {G5.5} All stochastic tests use `set.seed()`.
 #'
 #' @srrstats {G5.6} Parameter recovery tests confirm convergence to ground
@@ -134,11 +110,6 @@ NULL
 #'
 #' @srrstats {G5.6a} Recovery tests use `expect_equal(..., tolerance = 1e-3)`,
 #'   not exact equality.
-#'
-#' @srrstatsTODO {G5.6b} Multi-seed long-running tests to be added to an
-#'   extended test suite.
-#'
-#' @srrstatsTODO {G5.7} Runtime scaling benchmarks to be added.
 #'
 #' @srrstats {G5.8} Edge tests cover zero-proportion cell types, near-singular
 #'   covariance matrices, and single-cell-type degenerate cases.
@@ -149,9 +120,6 @@ NULL
 #'
 #' @srrstats {G5.8c} All-`NA` columns trigger an early-exit error.
 #'
-#' @srrstatsTODO {G5.8d} High-dimensional (more variables than observations)
-#'   cases to be explicitly tested.
-#'
 #' @srrstats {G5.9} Noise susceptibility confirmed: perturbing bulk mixtures
 #'   with small Gaussian noise changes estimates by less than a defined
 #'   threshold.
@@ -159,18 +127,8 @@ NULL
 #' @srrstats {G5.9a} Trivial noise at `.Machine$double.eps` scale does not
 #'   materially alter proportion estimates (tested).
 #'
-#' @srrstatsTODO {G5.9b} Multiple random seeds to be added (see G5.6b).
-#'
-#' @srrstatsTODO {G5.10} Extended tests with environment variable flag to be
-#'   added (e.g. `DECOVART_EXTENDED_TESTS=true`).
-#'
-#' @srrstatsTODO {G5.11} Large-asset downloads for extended tests to be
-#'   structured.
-#'
-#' @srrstatsTODO {G5.11a} Skip-on-download-failure to be added.
-#'
-#' @srrstatsTODO {G5.12} Developer documentation for extended tests to be
-#'   written.
+#' @srrstats {G5.12} Extended-test flags and timing notes are in
+#'   `tests/README.md`.
 #'
 #' RE1 - Regression: input specification
 #'
@@ -341,8 +299,32 @@ NULL
 #'
 #' Standards not applicable to DeCovarT, with justifications.
 #'
-#' @srrstatsNA {G4.0} DeCovarT returns R objects only; no file-writing wrappers
-#'   are exposed, so automatic file-suffix generation is not relevant.
+#' @srrstatsNA {G2.4} No type coercion is performed: callers must supply
+#'   numeric matrices / arrays. `as.integer` / `as.numeric` / `as.character`
+#'   / `as.factor` helpers are therefore not part of the API.
+#' @srrstatsNA {G2.4a} See G2.4.
+#' @srrstatsNA {G2.4b} See G2.4.
+#' @srrstatsNA {G2.4c} See G2.4.
+#' @srrstatsNA {G2.4d} See G2.4.
+#' @srrstatsNA {G2.4e} See G2.4.
+#' @srrstatsNA {G2.5} No package argument expects a factor. The only
+#'   ordered factor is in `scripts/bivariate_toy_model.R` (outside `R/`).
+#' @srrstatsNA {G2.7} The public API accepts numeric matrices and arrays
+#'   only, not `data.frame` or other tabular forms.
+#' @srrstatsNA {G2.11} Units / non-vector columns cannot arise: inputs are
+#'   not `data.frame`s.
+#' @srrstatsNA {G2.12} List columns cannot arise for the same reason.
+#' @srrstatsNA {G2.14b} Ignoring missing values is not offered.
+#' @srrstatsNA {G2.14c} Imputation is not offered (RNA-seq matrices are
+#'   complete; proteomic missingness is a future, separate API).
+#' @srrstatsNA {G5.4b} DeCovarT is the first implementation of this
+#'   multivariate Gaussian-convolution MLE (G1.1); there is no prior R
+#'   implementation to test against.
+#' @srrstatsNA {G5.4c} There is likewise no published numerical oracle for
+#'   this estimator (same G1.1 justification).
+#' @srrstatsNA {G5.11} Unit tests do not download assets. Paper-scale data
+#'   will live in the companion reproducibility repository.
+#' @srrstatsNA {G5.11a} See G5.11.
 #'
 #' @noRd
 NULL

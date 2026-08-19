@@ -341,13 +341,19 @@ compute_benchmark_metrics <- function(
 #'
 #' @param signature_matrix Mean signature
 #'   \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (rownames = genes,
-#'   colnames = cell types). Used as a frequentist **plug-in** for unobserved
+#'   colnames = cell types). Numeric matrix of non-negative expression;
+#'   \eqn{G \ge J} is required (the mixture is undetermined if
+#'   \eqn{J > G}). Used as a frequentist **plug-in** for unobserved
 #'   latent cell-type profiles \eqn{\boldsymbol{x}_{\cdot j}}.
 #' @param bulk_expression Bulk matrix
-#'   \eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}}.
-#' @param true_ratios Optional ground-truth proportions for scoring.
+#'   \eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}}: numeric, non-negative,
+#'   gene rownames matching `signature_matrix`.
+#' @param true_ratios Optional ground-truth proportions: a length-\eqn{J}
+#'   numeric vector (recycled over samples) or a numeric matrix
+#'   \eqn{J\times N} (or \eqn{N\times J}).
 #' @param Sigma Optional array
-#'   \eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}}.
+#'   \eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}}
+#'   of cell-type covariances (numeric; off-diagonals may be negative).
 #' @param deconvolution_functions Named list; each element has `FUN` and
 #'   optional `additional_parameters`.
 #' @param scaled If `TRUE`, apply a log2 transform before estimation.
@@ -384,16 +390,24 @@ compute_benchmark_metrics <- function(
 #'   DSection to a multivariate convolution with sparse cell-type covariance.
 #' @srrstats {G1.1} First implementation (in R or otherwise) of that
 #'   multivariate Gaussian-convolution MLE for bulk deconvolution.
+#' @srrstats {G2.8} Unique pre-processing gate:
+#'   `.prepare_deconvolution_inputs()` then passes numeric matrices /
+#'   arrays to every solver.
 #' @srrstats {G2.13} Missing values in `y`, the signature, `Sigma` or
 #'   `true_ratios` raise an error here, before any solver is called.
+#' @srrstats {G2.14a} The missing-data policy is error-only (no imputation).
 #' @srrstats {G2.15} After this check, `mean` / `cor` / `var` never receive
 #'   incomplete expression data (default `na.rm = FALSE` is then safe).
+#' @srrstats {G2.16} `NaN` / `Inf` / `-Inf` are rejected with the same error.
+#' @srrstats {G5.8d} \eqn{J > G} raises an undetermined-mixture error.
 #' @references
 #' \insertRef{erkkilaProbabilisticAnalysisGene2010}{DeCovarT}
 #' \insertRef{ahnDeMixDeconvolutionMixed2013}{DeCovarT}
 #' \insertRef{wangTranscriptomeDeconvolutionHeterogeneous2018}{DeCovarT}
 #' \insertRef{anghelISOpureRImplementationComputational2015}{DeCovarT}
 #' \insertRef{ogundijoSequentialMonteCarlo2017}{DeCovarT}
+#' \insertRef{hafemeisterNormalizationVarianceStabilization2019}{DeCovarT}
+#' \insertRef{chionBayesianFrameworkMultivariate2023}{DeCovarT}
 #' @importFrom rlang .data
 #' @export
 #' @seealso [deconvolute_ratios_Marquardt_Levenberg()]
@@ -410,58 +424,17 @@ deconvolute_ratios <- function(
     1
   )
 ) {
-  if (!is.matrix(signature_matrix) || is.null(row.names(signature_matrix))) {
-    stop(
-      "required format for signature is expression matrix,",
-      " with rownames as genes"
-    )
-  }
-  if (!is.matrix(bulk_expression) || is.null(row.names(bulk_expression))) {
-    stop(
-      "required format for mixture is expression matrix, with rownames as genes"
-    )
-  }
-  .assert_no_missing(signature_matrix, "signature_matrix")
-  .assert_no_missing(bulk_expression, "bulk_expression")
-  if (!is.null(Sigma)) {
-    .assert_no_missing(Sigma, "Sigma")
-  }
-  if (!is.null(true_ratios)) {
-    .assert_no_missing(true_ratios, "true_ratios")
-  }
-
-  mean_signature_matrix <- tibble::as_tibble(
-    signature_matrix,
-    rownames = "GENE_SYMBOL"
+  aligned <- .prepare_deconvolution_inputs(
+    signature_matrix = signature_matrix,
+    bulk_expression = bulk_expression,
+    true_ratios = true_ratios,
+    Sigma = Sigma,
+    scaled = scaled
   )
-  Y <- tibble::as_tibble(bulk_expression, rownames = "GENE_SYMBOL")
-
-  # intersect genes (we only keep genes that are common to both data bases)
-  common_genes <- intersect(mean_signature_matrix$GENE_SYMBOL, Y$GENE_SYMBOL)
-
-  if (length(common_genes) / dim(mean_signature_matrix)[1] < 0.5) {
-    stop(
-      "Only ",
-      length(common_genes) / dim(mean_signature_matrix)[1],
-      " fraction of genes are used in the signature matrix.\n",
-      "Half of common genes are required at least"
-    )
-  }
-  mean_signature_matrix <- mean_signature_matrix |>
-    dplyr::filter(.data$GENE_SYMBOL %in% common_genes) |>
-    dplyr::arrange(.data$GENE_SYMBOL) |>
-    dplyr::select(dplyr::where(is.numeric)) |>
-    as.matrix()
-  Y <- Y |>
-    dplyr::filter(.data$GENE_SYMBOL %in% common_genes) |>
-    dplyr::arrange(.data$GENE_SYMBOL) |>
-    dplyr::select(dplyr::where(is.numeric))
-
-  if (scaled) {
-    # log-2 normalise
-    Y <- log2(Y)
-    mean_signature_matrix <- log2(mean_signature_matrix)
-  }
+  mean_signature_matrix <- aligned$signature_matrix
+  Y <- aligned$bulk_expression
+  true_ratios <- aligned$true_ratios
+  Sigma <- aligned$Sigma
 
   # estimation itself
   deconvolution_estimates <- purrr::imap_dfr(
@@ -471,10 +444,15 @@ deconvolute_ratios <- function(
       metric_scores <- parallel::mclapply(
         seq_len(ncol(Y)),
         function(i) {
-          # metric_scores <- tibble::tibble(); for (i in 1:ncol(Y)) {
+          y_i <- Y[, i, drop = TRUE]
+          p_i <- if (is.null(true_ratios)) {
+            NULL
+          } else {
+            true_ratios[, i, drop = TRUE]
+          }
           list_arguments <- c(
             list(
-              "y" = as.numeric(Y[[i]]),
+              "y" = y_i,
               "mean_signature_matrix" = mean_signature_matrix,
               "Sigma" = Sigma
             ),
@@ -488,10 +466,10 @@ deconvolute_ratios <- function(
                 list_arguments[names(list_arguments) %in% formal_args]
               )
               compute_benchmark_metrics(
-                y = as.numeric(Y[[i]]),
+                y = y_i,
                 mean_signature_matrix = mean_signature_matrix,
                 estimated_p = estimated_p,
-                true_ratios = true_ratios
+                true_ratios = p_i
               ) |>
                 dplyr::bind_cols(tibble::as_tibble_row(estimated_p))
             },
