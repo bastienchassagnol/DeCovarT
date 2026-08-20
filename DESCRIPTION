@@ -1,6 +1,6 @@
 Package: DeCovarT
 Title: Covariance-Aware Deconvolution of Bulk Transcriptomic Samples
-Version: 2.2.0
+Version: 2.2.1
 Authors@R:
     person("Bastien", "Chassagnol",
            email = "bastien_chassagnol@laposte.net",
