@@ -22,7 +22,7 @@
 
 [![Project Status: Active](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
-[![License: CC BY 4.0](https://img.shields.io/badge/license-CC%20BY%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Devel version](https://img.shields.io/badge/devel%20version-2.2.0-blue.svg)](https://github.com/bastienchassagnol/DeCovarT)
 [![R-CMD-check](https://github.com/bastienchassagnol/DeCovarT/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bastienchassagnol/DeCovarT/actions/workflows/R-CMD-check.yaml)
 [![Codecov test coverage](https://codecov.io/gh/bastienchassagnol/DeCovarT/graph/badge.svg)](https://app.codecov.io/gh/bastienchassagnol/DeCovarT)
@@ -133,7 +133,13 @@ All of the above ship with the package (no extra method packages required).
 
 ## Installation
 
-Install the development version from GitHub with [{pak}](https://pak.r-lib.org/):
+Install from CRAN:
+
+``` r
+install.packages("DeCovarT")
+```
+
+The development version from GitHub with [{pak}](https://pak.r-lib.org/):
 
 ``` r
 if (!requireNamespace("pak", quietly = TRUE)) {
@@ -188,8 +194,9 @@ workflow can commit a fresh render when needed, following the
 [quarto-ext render-readme](https://github.com/quarto-ext/.github/blob/main/.github/workflows/render-readme.yaml)
 pattern.
 
-See [`.github/CONTRIBUTING.MD`](.github/CONTRIBUTING.MD) for the full
-contributor guide.
+See the
+[contributor guide](https://github.com/bastienchassagnol/DeCovarT/blob/main/.github/CONTRIBUTING.MD)
+for the full contributor guide.
 
 ### Continuous integration
 
@@ -222,7 +229,7 @@ function) for help pages.
 **Troubleshooting and issues**
 
 - Contributor guidance and common development pitfalls:
-  [`.github/CONTRIBUTING.MD`](.github/CONTRIBUTING.MD)
+  [contributor guide](https://github.com/bastienchassagnol/DeCovarT/blob/main/.github/CONTRIBUTING.MD)
 - Bug reports and feature requests:
   [GitHub issues](https://github.com/bastienchassagnol/DeCovarT/issues)
 

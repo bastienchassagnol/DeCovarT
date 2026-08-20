@@ -5,10 +5,7 @@ Authors@R:
     person("Bastien", "Chassagnol",
            email = "bastien_chassagnol@laposte.net",
            role = c("aut", "cre", "cph"),
-           comment = c(
-             ORCID = "0000-0002-8955-2391",
-             LinkedIn = "https://www.linkedin.com/in/bastien-chassagnol-677b67140/?locale=fr"
-           ))
+           comment = c(ORCID = "0000-0002-8955-2391"))
 Description: Estimates cell-type proportions in bulk transcriptomic samples
     with a probabilistic convolution model that integrates the gene-gene
     covariance structure of purified reference profiles. Cellular ratios

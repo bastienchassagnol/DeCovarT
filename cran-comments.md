@@ -1,24 +1,29 @@
 ## Test environments
 
-* Local: Ubuntu 24.04, R 4.5.2
-* GitHub Actions: Ubuntu / Windows / macOS (release + devel as configured)
-* R-hub: linux (R-devel), windows (R-devel)
+* Local: Ubuntu 24.04, R 4.5.2 (`rcmdcheck --as-cran`)
+* GitHub Actions: Ubuntu / Windows (R-release)
+* R-hub: linux, windows (no macOS)
+* win-builder: devel and release (submitted)
 
 ## R CMD check results
 
-0 errors | 0 warnings | 0 notes (local `--as-cran`)
+0 errors | 0 warnings | 1 note
 
-* This is a new submission to CRAN (version 2.0.0, matching the GitHub
-  release tag `v2.0.0`).
+* This is a new submission to CRAN (version 2.2.0). The GitHub series
+  already used 2.0.x / 2.2.0; there is no previous CRAN release.
+* Maintainer email: bastien_chassagnol@laposte.net
+* Incoming feasibility also reports:
+  Availability using Additional_repositories specification:
+    ? ? https://bioconductor.org/packages/release/bioc
+  Imports `ComplexHeatmap` from Bioconductor (heatmaps only;
+  `plot_correlation_Heatmap()`). Estimators do not call it. `circlize`
+  is on CRAN.
 * Method reference: Chassagnol, Nuel and Becht (2023)
-  <doi:10.48550/arXiv.2309.09557> (also on HAL).
+  <doi:10.48550/arXiv.2309.09557>.
 * The CRAN tarball ships two Quarto vignettes
   (`DeCoVart-use-cases`, `softmax-alr-derivatives`); additional articles
-  remain on the pkgdown site only.
-* Local check may report an installed-size INFO (~9 Mb after slimming
-  vignettes/logos); previously ~61 Mb.
+  remain on the pkgdown site.
 
 ## Reverse dependencies
 
-There are currently no reverse dependencies on CRAN / Bioconductor
-(`revdep/` scaffolding in place; `revdep/cran.md` records 0 packages).
+There are currently no reverse dependencies on CRAN / Bioconductor.

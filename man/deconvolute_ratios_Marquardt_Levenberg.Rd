@@ -30,7 +30,8 @@ deconvolute_ratios_Marquardt_Levenberg(
   Sigma,
   epsilon = 10^-4,
   itmax = 200,
-  return_model = FALSE
+  return_model = FALSE,
+  initial_p = NULL
 )
 
 deconvolute_ratios_simulated_annealing(
@@ -38,7 +39,8 @@ deconvolute_ratios_simulated_annealing(
   mean_signature_matrix,
   Sigma,
   epsilon = 10^-4,
-  itmax = 200
+  itmax = 200,
+  initial_p = NULL
 )
 
 deconvolute_ratios_L_BFGS_B(
@@ -47,7 +49,8 @@ deconvolute_ratios_L_BFGS_B(
   Sigma,
   epsilon = 10^-4,
   itmax = 200,
-  return_model = FALSE
+  return_model = FALSE,
+  initial_p = NULL
 )
 
 deconvolute_ratios_Newton_Raphson(
@@ -56,7 +59,8 @@ deconvolute_ratios_Newton_Raphson(
   Sigma,
   epsilon = 10^-4,
   itmax = 200,
-  return_model = FALSE
+  return_model = FALSE,
+  initial_p = NULL
 )
 
 deconvolute_ratios_gradient_descent(
@@ -64,7 +68,8 @@ deconvolute_ratios_gradient_descent(
   mean_signature_matrix,
   Sigma,
   epsilon = 10^-4,
-  itmax = 200
+  itmax = 200,
+  initial_p = NULL
 )
 }
 \arguments{
@@ -84,6 +89,12 @@ iterations for the optimiser (same roles as \code{reltol} / \code{maxit} in
 \item{return_model}{If \code{TRUE}, return a named list with coefficients,
 ALR coordinates, log-likelihood and optimiser diagnostics instead of
 the proportion vector.}
+
+\item{initial_p}{Optional starting proportions of length \eqn{J}. The
+default is the equi-balanced vector \eqn{(1/J,\ldots,1/J)}. Starts
+on a simplex face are nudged into the interior so the ALR map is
+defined (ALR methods) and so L-BFGS-B does not start on a
+degenerate \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}.}
 }
 \value{
 Named numeric vector \eqn{\hat{\boldsymbol{p}}} on the simplex

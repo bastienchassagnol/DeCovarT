@@ -87,3 +87,5 @@ output/manual/
 # folders). The single static counterpart embedded by the pkgdown
 # vignette lives at vignettes/figures/fig_network_topologies.png (tracked).
 output/random_markov_network/
+/doc/
+/Meta/

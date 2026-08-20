@@ -16,13 +16,11 @@
 #' profiles \eqn{\boldsymbol{x}_{\cdot j}}; MAP recovery of those latents is
 #' the Bayesian extension.
 #'
-#' To learn more, start with the package website vignettes, or in an R session:
+#' To learn more, start with the package website
+#' (<https://bastienchassagnol.github.io/DeCovarT/>), or in an R session:
 #' `browseVignettes(package = "DeCovarT")`,
 #' `?DeCovarT::fit_decovart` and
 #' `?DeCovarT::deconvolute_ratios`.
-#'
-#' Reference manuals (PDF / HTML) can be regenerated with
-#' `source("scripts/auxiliary/generate_package_manual.R")`.
 #'
 #' @srrstats {G1.4} Exported functions are documented with roxygen2.
 #' @srrstats {G1.4a} Undocumented internals use `@noRd`; documented
@@ -37,8 +35,7 @@
 #'   \eqn{\boldsymbol{\mu}}; it may shift \eqn{\boldsymbol{\mu}_{j}(\boldsymbol{z}_{i})}
 #'   or the ALR of \eqn{\boldsymbol{p}_{\cdot i}}. *RNA fraction* vs *cell
 #'   fraction*: transcriptome sizes \eqn{r_{j}} uncouple the two.
-#'   Outlook (defined in
-#'   `vignette("decovart-perspectives", package = "DeCovarT")`):
+#'   Outlook (pkgdown article *DeCovarT perspectives*):
 #'   *cell-type-specific (CTS)* sample-level latents
 #'   \eqn{\boldsymbol{x}_{\cdot j}} (Bayesian / MAP);
 #'   *spatial transcriptomics* as location-wise mixtures

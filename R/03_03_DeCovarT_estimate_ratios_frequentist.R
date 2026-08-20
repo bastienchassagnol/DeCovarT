@@ -642,6 +642,43 @@ hessian_loglik_constrained <- function(rho, y, mean_signature_matrix, Sigma) {
 
 # DeCovarT core optimisation algorithms -----------------------------------
 
+#' Open-simplex start for ALR solvers
+#'
+#' Default is the equi-balanced vector. A supplied `initial_p` is repaired
+#' onto the simplex, then nudged off the boundary so
+#' [additive_log_ratio()] is defined.
+#'
+#' @param n_celltypes Integer \eqn{J}.
+#' @param initial_p `NULL` or a numeric vector of length \eqn{J}.
+#' @param nms Optional names (cell-type colnames).
+#'
+#' @noRd
+.starting_simplex <- function(n_celltypes, initial_p = NULL, nms = NULL) {
+  if (is.null(initial_p)) {
+    p <- rep(1 / n_celltypes, n_celltypes)
+  } else {
+    if (!is.numeric(initial_p) || length(initial_p) != n_celltypes) {
+      stop(
+        "`initial_p` must be a numeric vector of length ",
+        n_celltypes,
+        ".",
+        call. = FALSE
+      )
+    }
+    p <- repair_simplex(as.numeric(initial_p))
+  }
+  floor <- 100 * .Machine$double.eps
+  if (any(p < floor) || any(p > 1 - floor)) {
+    p <- pmax(p, floor)
+    p <- p / sum(p)
+  }
+  if (!is.null(nms)) {
+    names(p) <- nms
+  }
+  p
+}
+
+
 #' DeCovarT MLE of cellular proportions for one bulk sample
 #'
 #' @description
@@ -678,6 +715,11 @@ hessian_loglik_constrained <- function(rho, y, mean_signature_matrix, Sigma) {
 #' @param return_model If `TRUE`, return a named list with coefficients,
 #'   ALR coordinates, log-likelihood and optimiser diagnostics instead of
 #'   the proportion vector.
+#' @param initial_p Optional starting proportions of length \eqn{J}. The
+#'   default is the equi-balanced vector \eqn{(1/J,\ldots,1/J)}. Starts
+#'   on a simplex face are nudged into the interior so the ALR map is
+#'   defined (ALR methods) and so L-BFGS-B does not start on a
+#'   degenerate \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}.
 #'
 #' @return Named numeric vector \eqn{\hat{\boldsymbol{p}}} on the simplex
 #'   (ALR methods), or that list when `return_model = TRUE`.
@@ -703,12 +745,13 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
   Sigma,
   epsilon = 10^-4,
   itmax = 200,
-  return_model = FALSE
+  return_model = FALSE,
+  initial_p = NULL
 ) {
-  # equi-balanced initial proportions across cell populations
-  initial_p <- rep(
-    1 / ncol(mean_signature_matrix),
-    ncol(mean_signature_matrix)
+  initial_p <- .starting_simplex(
+    ncol(mean_signature_matrix),
+    initial_p,
+    colnames(mean_signature_matrix)
   )
   initial_rho <- additive_log_ratio(initial_p)
   # marqLevAlg() only negates fn/gr internally when minimize = FALSE; hess()
@@ -796,12 +839,13 @@ deconvolute_ratios_simulated_annealing <- function(
   mean_signature_matrix,
   Sigma,
   epsilon = 10^-4,
-  itmax = 200
+  itmax = 200,
+  initial_p = NULL
 ) {
-  # equi-balanced initial proportions across cell populations
-  initial_p <- rep(
-    1 / ncol(mean_signature_matrix),
-    ncol(mean_signature_matrix)
+  initial_p <- .starting_simplex(
+    ncol(mean_signature_matrix),
+    initial_p,
+    colnames(mean_signature_matrix)
   )
   initial_rho <- additive_log_ratio(initial_p)
   # gr is not used in the simulated annealing approach
@@ -831,12 +875,13 @@ deconvolute_ratios_L_BFGS_B <- function(
   Sigma,
   epsilon = 10^-4,
   itmax = 200,
-  return_model = FALSE
+  return_model = FALSE,
+  initial_p = NULL
 ) {
-  # equi-balanced initial proportions across cell populations
-  initial_p <- rep(
-    1 / ncol(mean_signature_matrix),
-    ncol(mean_signature_matrix)
+  initial_p <- .starting_simplex(
+    ncol(mean_signature_matrix),
+    initial_p,
+    colnames(mean_signature_matrix)
   )
   # Box constraints alone do not keep sum(p)=1, so Sigma(p) can become
   # singular during the line search. Guard the objective/gradient and fall
@@ -913,12 +958,13 @@ deconvolute_ratios_Newton_Raphson <- function(
   Sigma,
   epsilon = 10^-4,
   itmax = 200,
-  return_model = FALSE
+  return_model = FALSE,
+  initial_p = NULL
 ) {
-  # equi-balanced initial proportions across cell populations
-  initial_p <- rep(
-    1 / ncol(mean_signature_matrix),
-    ncol(mean_signature_matrix)
+  initial_p <- .starting_simplex(
+    ncol(mean_signature_matrix),
+    initial_p,
+    colnames(mean_signature_matrix)
   )
   initial_rho <- additive_log_ratio(initial_p)
 
@@ -976,14 +1022,14 @@ deconvolute_ratios_gradient_descent <- function(
   mean_signature_matrix,
   Sigma,
   epsilon = 10^-4,
-  itmax = 200
+  itmax = 200,
+  initial_p = NULL
 ) {
-  # equi-balanced initial proportions across cell populations
-  initial_p <- rep(
-    1 / ncol(mean_signature_matrix),
-    ncol(mean_signature_matrix)
+  initial_p <- .starting_simplex(
+    ncol(mean_signature_matrix),
+    initial_p,
+    colnames(mean_signature_matrix)
   )
-
   initial_rho <- additive_log_ratio(initial_p)
 
   estimated_rho <- stats::optim(

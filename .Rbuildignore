@@ -36,6 +36,7 @@
 ^vignettes/DeCovarT_appendix_simualtion_frameworks\.qmd$
 ^vignettes/decovart-manuscript\.qmd$
 ^vignettes/decovart-manuscript\.pdf$
+^vignettes/decovart-perspectives\.qmd$
 ^vignettes/_extensions/
 # pkgdown-only vignette figures (CRAN vignettes use the two kept below)
 ^vignettes/figures/condition_number_poor_performance_correlated_cell_types\.png$
@@ -76,3 +77,5 @@
 ^revdep$
 ^inst/logo/decovart_logo_chatgpt.png$
 ^pkgcheck-report.md$
+^doc$
+^Meta$

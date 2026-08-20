@@ -21,13 +21,11 @@ The frequentist API plugs in \eqn{\boldsymbol{\mu}} for unobserved latent
 profiles \eqn{\boldsymbol{x}_{\cdot j}}; MAP recovery of those latents is
 the Bayesian extension.
 
-To learn more, start with the package website vignettes, or in an R session:
+To learn more, start with the package website
+(\url{https://bastienchassagnol.github.io/DeCovarT/}), or in an R session:
 \code{browseVignettes(package = "DeCovarT")},
 \code{?DeCovarT::fit_decovart} and
 \code{?DeCovarT::deconvolute_ratios}.
-
-Reference manuals (PDF / HTML) can be regenerated with
-\code{source("scripts/auxiliary/generate_package_manual.R")}.
 }
 \seealso{
 Useful links:
@@ -39,7 +37,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Bastien Chassagnol \email{bastien_chassagnol@laposte.net} (\href{https://orcid.org/0000-0002-8955-2391}{ORCID}) (https://www.linkedin.com/in/bastien-chassagnol-677b67140/?locale=fr) [copyright holder]
+\strong{Maintainer}: Bastien Chassagnol \email{bastien_chassagnol@laposte.net} (\href{https://orcid.org/0000-0002-8955-2391}{ORCID}) [copyright holder]
 
 }
 \keyword{internal}

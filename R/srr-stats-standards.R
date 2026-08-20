@@ -27,10 +27,6 @@ NULL
 #'   companion GitHub repository (CellRank 2 pattern: software vs
 #'   `cellrank2_reproducibility`), not in this package.
 #'
-#' @srrstatsTODO {G1.6} Comparative benchmarks against other R deconvolution
-#'   tools will also live in that companion repository / vignette, once the
-#'   simulation grid is extended.
-#'
 #' G2 - Input validation
 #'
 #' @srrstats {G2.0} Input length assertions implemented via `checkmate`
@@ -67,12 +63,16 @@ NULL
 #' @srrstats {G5.10} Extended tests are gated by
 #'   `DECOVART_EXTENDED_TESTS=true` (`skip_if_not_extended()`).
 #'
-#' @srrstatsTODO {G5.6b} Multi-seed long-running tests to be added to an
-#'   extended test suite.
+#' @srrstats {G5.6b} Parameter recovery for Marquardt--Levenberg and
+#'   Newton--Raphson is repeated with three simulation seeds in
+#'   `tests/testthat/test-03_05_decovart_fit.R`.
 #'
 #' @srrstatsTODO {G5.7} Runtime scaling benchmarks to be added.
 #'
-#' @srrstatsTODO {G5.9b} Multiple random seeds to be added (see G5.6b).
+#' @srrstats {G5.9b} The same tests also vary the ALR start
+#'   (\eqn{\boldsymbol{p}^{(0)}} from three Dirichlet draws). Second-order
+#'   solvers can stall from a poor start; estimates on a
+#'   well-conditioned toy remain close across those starts.
 #'
 #' @srrstats {G3.1} User-provided covariance matrices can originate from any
 #'   estimation method; the diagonal (independence) approximation is one valid
@@ -249,8 +249,11 @@ NULL
 #' @srrstats {RE7.1} Noiseless tests recover ground-truth proportions
 #'   within numerical tolerance.
 #'
-#' @srrstatsTODO {RE7.1a} Speed comparison noiseless vs noisy fitting,
-#'   and scaling with \(G,J\), deferred with RE5.0.
+#' @srrstats {RE7.1a} Noiseless fitting is checked under three
+#'   second-moment specifications (full \eqn{\boldsymbol{\Sigma}_j}; cell-type
+#'   diagonal; global \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}
+#'   \boldsymbol{\Sigma}_j} with known mixing weights). Runtime vs noisy
+#'   data and vs \eqn{G,J} remains with RE5.0.
 #'
 #' @srrstats {RE7.2} Tests confirm dimnames of \(Y\) and \(\mu\) on
 #'   `decovart_fit` accessors.
@@ -288,6 +291,10 @@ NULL
 #'   implementation to test against.
 #' @srrstatsNA {G5.4c} There is likewise no published numerical oracle for
 #'   this estimator (same G1.1 justification).
+#' @srrstatsNA {G1.6} No other R package implements this variance-based
+#'   Gaussian-convolution regression (G1.1). Mean-only deconvolution
+#'   tools are not alternative implementations of the same estimator, so
+#'   an in-package like-for-like comparison is not applicable.
 #' @srrstatsNA {G5.11} Unit tests do not download assets. Paper-scale data
 #'   will live in the companion reproducibility repository.
 #' @srrstatsNA {G5.11a} See G5.11.

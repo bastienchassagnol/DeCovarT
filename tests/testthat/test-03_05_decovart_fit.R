@@ -201,7 +201,7 @@ test_that("Marquardt-Levenberg is stable under small bulk noise (RE5.9)", {
   for (j in 1:2) {
     Sigma_diag[,, j] <- diag(diag(Sigma[,, j]))
   }
-  sigma_bar <- (Sigma[,, 1] + Sigma[,, 2]) / 4
+  sigma_bar <- .compute_global_variance(p_true, Sigma)
   Sigma_global <- Sigma
   Sigma_global[,, 1] <- sigma_bar
   Sigma_global[,, 2] <- sigma_bar
@@ -219,6 +219,140 @@ test_that("Marquardt-Levenberg is stable under small bulk noise (RE5.9)", {
   ))))
   expect_equal(sum(p_diag), 1, tolerance = 1e-6)
   expect_equal(sum(p_global), 1, tolerance = 1e-6)
+})
+
+test_that("Marquardt and Newton recover p across seeds and starts (G5.6b, G5.9b)", {
+  genes <- paste0("g", 1:3)
+  cts <- paste0("ct", 1:2)
+  mu <- matrix(
+    c(20, 40, 25, 35, 30, 22),
+    nrow = 3,
+    dimnames = list(genes, cts)
+  )
+  Sigma <- array(0, dim = c(3, 3, 2), dimnames = list(genes, genes, cts))
+  Sigma[,, 1] <- matrix(c(1, 0.2, 0, 0.2, 1.2, 0.1, 0, 0.1, 0.8), 3, 3)
+  Sigma[,, 2] <- matrix(c(1.5, 0, 0.1, 0, 0.9, 0, 0.1, 0, 1.1), 3, 3)
+  p_true <- c(0.6, 0.4)
+  solvers <- list(
+    Marquardt = deconvolute_ratios_Marquardt_Levenberg,
+    Newton = deconvolute_ratios_Newton_Raphson
+  )
+  seeds <- c(11L, 22L, 33L)
+
+  dirichlet_start <- function(seed) {
+    withr::with_seed(seed, {
+      g <- stats::rgamma(length(p_true), shape = 1, rate = 1)
+      g / sum(g)
+    })
+  }
+
+  # G5.6b: three simulation seeds for the convolution draws.
+  for (seed in seeds) {
+    sim <- withr::with_seed(
+      seed,
+      simulate_bulk_mixture(mu, Sigma, p = p_true, n = 1L)
+    )
+    y <- sim$Y[, 1L, drop = TRUE]
+    for (nm in names(solvers)) {
+      p_hat <- suppressWarnings(solvers[[nm]](
+        y,
+        mu,
+        Sigma,
+        itmax = 80
+      ))
+      expect_equal(sum(p_hat), 1, tolerance = 1e-6, info = nm)
+      expect_lt(
+        sqrt(mean((as.numeric(p_hat) - p_true)^2)),
+        0.2
+      )
+    }
+  }
+
+  # G5.9b: three random interior starts on a fixed perturbed bulk.
+  y0 <- drop(mu %*% p_true)
+  y_pert <- withr::with_seed(2L, y0 + stats::rnorm(3, sd = 0.05))
+  for (nm in names(solvers)) {
+    starts <- lapply(seeds, dirichlet_start)
+    hats <- lapply(starts, function(p0) {
+      suppressWarnings(solvers[[nm]](
+        y_pert,
+        mu,
+        Sigma,
+        itmax = 80,
+        initial_p = p0
+      ))
+    })
+    mat <- vapply(hats, as.numeric, numeric(2))
+    expect_true(all(abs(colSums(mat) - 1) < 1e-6), info = nm)
+    pairwise <- max(stats::dist(t(mat)))
+    expect_lt(pairwise, 0.05)
+  }
+})
+
+test_that("Diagonal and global weighted covariances stay on the simplex (RE7.1a)", {
+  genes <- paste0("g", 1:3)
+  cts <- paste0("ct", 1:2)
+  mu <- matrix(
+    c(20, 40, 25, 35, 30, 22),
+    nrow = 3,
+    dimnames = list(genes, cts)
+  )
+  Sigma <- array(0, dim = c(3, 3, 2), dimnames = list(genes, genes, cts))
+  Sigma[,, 1] <- matrix(c(1, 0.2, 0, 0.2, 1.2, 0.1, 0, 0.1, 0.8), 3, 3)
+  Sigma[,, 2] <- matrix(c(1.5, 0, 0.1, 0, 0.9, 0, 0.1, 0, 1.1), 3, 3)
+  p_true <- c(0.6, 0.4)
+  y0 <- drop(mu %*% p_true)
+
+  sigma_p <- p_true[[1L]]^2 * Sigma[,, 1] + p_true[[2L]]^2 * Sigma[,, 2]
+  expect_equal(
+    .compute_global_variance(p_true, Sigma),
+    sigma_p,
+    ignore_attr = TRUE,
+    tolerance = 1e-10
+  )
+
+  Sigma_diag <- Sigma
+  for (j in 1:2) {
+    Sigma_diag[,, j] <- diag(diag(Sigma[,, j]))
+  }
+  Sigma_global <- Sigma
+  Sigma_global[,, 1] <- sigma_p
+  Sigma_global[,, 2] <- sigma_p
+
+  specs <- list(
+    full = Sigma,
+    celltype_diagonal = Sigma_diag,
+    global_weighted = Sigma_global
+  )
+  solvers <- list(
+    Marquardt = deconvolute_ratios_Marquardt_Levenberg,
+    Newton = deconvolute_ratios_Newton_Raphson
+  )
+  for (spec_nm in names(specs)) {
+    for (sol_nm in names(solvers)) {
+      p_hat <- suppressWarnings(solvers[[sol_nm]](
+        y0,
+        mu,
+        specs[[spec_nm]],
+        itmax = 80
+      ))
+      expect_equal(
+        sum(p_hat),
+        1,
+        tolerance = 1e-6,
+        info = paste(spec_nm, sol_nm)
+      )
+      expect_true(all(p_hat > 0), info = paste(spec_nm, sol_nm))
+      expect_true(all(p_hat < 1), info = paste(spec_nm, sol_nm))
+    }
+  }
+  p_full <- suppressWarnings(deconvolute_ratios_Marquardt_Levenberg(
+    y0,
+    mu,
+    Sigma,
+    itmax = 80
+  ))
+  expect_lt(sqrt(mean((as.numeric(p_full) - p_true)^2)), 5e-3)
 })
 
 test_that("L-BFGS-B and Newton-Raphson return models without repair_simplex", {
