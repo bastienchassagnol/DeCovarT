@@ -65,9 +65,9 @@ Two practical workflows appear repeatedly:
     hard zeros on (\_{ij}) for ((i,j)E).
 
 Count-aware extensions replace the Gaussian likelihood by
-Poisson–log-normal (PLN) or copula models
-([**chiquetPoissonLognormalModelVersatile2021?**](#ref-chiquetPoissonLognormalModelVersatile2021);
-[Chiquet et al. 2018](#ref-chiquetVariationalInferenceSparse2018)), and
+Poisson–log-normal (PLN) or copula models ([Chiquet et al.
+2021](#ref-chiquetPoissonLognormalModelVersatile2021),
+[2018](#ref-chiquetVariationalInferenceSparse2018)), and
 [CeSpGRN](https://doi.org/10.1093/bioinformatics/btag324), which matters
 when DeCovarT moves from Gaussian convolutions to sequencing counts.
 
@@ -204,6 +204,11 @@ Analysis’. PhD thesis, Université Paris-Saclay / AgroParisTech.
 Chiquet, Julien, Mahendra Mariadassou, and Stéphane Robin. 2018.
 *Variational Inference for Sparse Network Reconstruction from Count
 Data*. arXiv. <https://doi.org/10.48550/arxiv.1806.03120>.
+
+Chiquet, Julien, Mahendra Mariadassou, and Stéphane Robin. 2021. ‘The
+Poisson-Lognormal Model as a Versatile Framework for the Joint Analysis
+of Species Abundances’. *Frontiers in Ecology and Evolution* 9.
+<https://doi.org/10.3389/fevo.2021.588292>.
 
 Friedman, Jerome, Trevor Hastie, and Robert Tibshirani. 2008. ‘Sparse
 Inverse Covariance Estimation with the Graphical Lasso’. *Biostatistics

@@ -33,7 +33,9 @@ deconvolute_ratios_Marquardt_Levenberg(
   mean_signature_matrix,
   Sigma,
   epsilon = 10^-4,
-  itmax = 200
+  itmax = 200,
+  return_model = FALSE,
+  initial_p = NULL
 )
 
 deconvolute_ratios_simulated_annealing(
@@ -41,7 +43,8 @@ deconvolute_ratios_simulated_annealing(
   mean_signature_matrix,
   Sigma,
   epsilon = 10^-4,
-  itmax = 200
+  itmax = 200,
+  initial_p = NULL
 )
 
 deconvolute_ratios_L_BFGS_B(
@@ -49,7 +52,9 @@ deconvolute_ratios_L_BFGS_B(
   mean_signature_matrix,
   Sigma,
   epsilon = 10^-4,
-  itmax = 200
+  itmax = 200,
+  return_model = FALSE,
+  initial_p = NULL
 )
 
 deconvolute_ratios_Newton_Raphson(
@@ -57,7 +62,9 @@ deconvolute_ratios_Newton_Raphson(
   mean_signature_matrix,
   Sigma,
   epsilon = 10^-4,
-  itmax = 200
+  itmax = 200,
+  return_model = FALSE,
+  initial_p = NULL
 )
 
 deconvolute_ratios_gradient_descent(
@@ -65,7 +72,8 @@ deconvolute_ratios_gradient_descent(
   mean_signature_matrix,
   Sigma,
   epsilon = 10^-4,
-  itmax = 200
+  itmax = 200,
+  initial_p = NULL
 )
 ```
 
@@ -73,28 +81,44 @@ deconvolute_ratios_gradient_descent(
 
 - y:
 
-  Bulk expression vector \\\boldsymbol{y}\in\mathbb{R}^{G}\\ (one
-  heterogeneous sample).
+  Numeric vector (or one-column matrix)
+  \\\boldsymbol{y}\in\mathbb{R}^{G}\\.
 
 - mean_signature_matrix:
 
-  Mean signature \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\
-  (columns = cell types; plug-in for latent profiles).
+  Numeric matrix \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\
+  (plug-in means).
 
 - Sigma:
 
-  Array \\(\boldsymbol{\Sigma}\_j)\_{j=1}^{J}\in\mathcal{M}\_{G\times
-  G\times J}\\ of cell-type covariances.
+  Array of cell-type covariances in \\\mathcal{M}\_{G\times G\times
+  J}\\.
 
 - epsilon, itmax:
 
   Absolute convergence tolerance and maximum number of iterations for
-  the optimiser.
+  the optimiser (same roles as `reltol` / `maxit` in
+  [`stats::optim()`](https://rdrr.io/r/stats/optim.html)).
+
+- return_model:
+
+  If `TRUE`, return a named list with coefficients, ALR coordinates,
+  log-likelihood and optimiser diagnostics instead of the proportion
+  vector.
+
+- initial_p:
+
+  Optional starting proportions of length \\J\\. The default is the
+  equi-balanced vector \\(1/J,\ldots,1/J)\\. Starts on a simplex face
+  are nudged into the interior so the ALR map is defined (ALR methods)
+  and so L-BFGS-B does not start on a degenerate
+  \\\boldsymbol{\Sigma}(\boldsymbol{p})\\.
 
 ## Value
 
-Named numeric vector \\\hat{\boldsymbol{p}}\\ on the simplex. Benchmark
-metrics are computed by
+Named numeric vector \\\hat{\boldsymbol{p}}\\ on the simplex (ALR
+methods), or that list when `return_model = TRUE`. Benchmark metrics are
+computed by
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md).
 
 ## Details
@@ -139,7 +163,10 @@ recovering sample-specific latents is a Bayesian / MAP problem
 - `deconvolute_ratios_L_BFGS_B()`: Box-constrained L-BFGS-B directly in
   \\\boldsymbol{p}\\
   ([`stats::optim()`](https://rdrr.io/r/stats/optim.html)
-  `method = "L-BFGS-B"`).
+  `method = "L-BFGS-B"`). The box keeps each coordinate in \\\[0,1\]\\;
+  the returned vector is closed by \\p/\sum p\\ (no
+  [`repair_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/repair_simplex.md)
+  clipping).
 
 - `deconvolute_ratios_Newton_Raphson()`: Newton–Raphson / `nlminb` on
   \\\boldsymbol{\rho}\\ using analytic gradient and Hessian

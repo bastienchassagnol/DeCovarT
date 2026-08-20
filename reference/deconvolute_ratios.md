@@ -18,6 +18,7 @@ deconvolute_ratios(
   true_ratios = NULL,
   Sigma = NULL,
   deconvolution_functions = NULL,
+  standardise = FALSE,
   scaled = FALSE,
   cores = ifelse(.Platform$OS.type == "unix", getOption("mc.cores",
     parallel::detectCores()), 1)
@@ -29,15 +30,12 @@ deconvolute_ratios(
 - signature_matrix:
 
   Mean signature \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\
-  (rownames = genes, colnames = cell types). Numeric matrix of
-  non-negative expression; \\G \ge J\\ is required (the mixture is
-  undetermined if \\J \> G\\). Used as a frequentist **plug-in** for
-  unobserved latent cell-type profiles \\\boldsymbol{x}\_{\cdot j}\\.
+  (rownames = genes, colnames = cell types).
 
 - bulk_expression:
 
-  Bulk matrix \\\boldsymbol{Y}\in\mathcal{M}\_{G\times N}\\: numeric,
-  non-negative, gene rownames matching `signature_matrix`.
+  Bulk matrix \\\boldsymbol{Y}\in\mathcal{M}\_{G\times N}\\ (rownames =
+  genes, colnames = samples).
 
 - true_ratios:
 
@@ -56,9 +54,15 @@ deconvolute_ratios(
   Named list; each element has `FUN` and optional
   `additional_parameters`.
 
+- standardise:
+
+  If `TRUE`, apply a **gene-wise** affine z-score computed once from
+  \\\boldsymbol{\mu}\\ to bulk, means and covariances (see Details).
+  Cell-type-wise or sample-wise transforms are not supported.
+
 - scaled:
 
-  If `TRUE`, apply a log2 transform before estimation.
+  Deprecated. `TRUE` (log2 mixing) always errors.
 
 - cores:
 
@@ -66,8 +70,11 @@ deconvolute_ratios(
 
 ## Value
 
-A `tibble` of estimated \\\hat{\boldsymbol{p}}\\ and metrics, after
-[`repair_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/repair_simplex.md).
+A `tibble` of estimated \\\hat{\boldsymbol{p}}\\ and metrics.
+First-generation solvers still call
+[`repair_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/repair_simplex.md);
+the three native DeCovarT maps (ALR or \\p/\sum p\\) already lie on the
+simplex.
 
 ## References
 
@@ -99,7 +106,10 @@ binomial regression.” *Genome Biology*, **20**(1), 296.
 . Chion M, Leroy A (2023). “A Bayesian Framework for Multivariate
 Differential Analysis Accounting for Missing Data.” arXiv.
 [doi:10.48550/arxiv.2307.08975](https://doi.org/10.48550/arxiv.2307.08975)
-.
+. Newman A, Liu C, Green M, Gentles A, Feng W, Xu Y, Hoang C, Diehn M,
+Alizadeh A (2015). “Robust Enumeration of Cell Subsets from Tissue
+Expression Profiles.” *Nature methods*, **12**.
+[doi:10.1038/nmeth.3337](https://doi.org/10.1038/nmeth.3337) .
 
 ## See also
 

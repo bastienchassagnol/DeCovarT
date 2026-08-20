@@ -37,21 +37,21 @@ simulate_hierarchical_grn_moments(
 
 - n_genes:
 
-  Integer; number of genes \\G\\.
+  Integer \\G\\; must be at least `n_celltypes`.
 
 - n_celltypes:
 
-  Integer; number of cell types \\J\\ (default 2).
+  Integer \\J\ge 2\\.
 
 - mean_scale:
 
-  Positive scalar \\s\\ for centroid norms (default `10`, as in the
-  nine-scenario grid).
+  Positive scalar \\s\\ (centroid norms). Default `10`, as in the nine
+  factorial scenarios. Hold fixed when studying cosine / collinearity
+  alone.
 
 - target_cosine:
 
-  Numeric in \\\[0,1\]\\; target pairwise cosine similarity between
-  columns of \\\boldsymbol{\mu}\\.
+  Numeric in \\\[0,1\]\\, the collinearity dial \\\rho\\.
 
 - precision_shift:
 

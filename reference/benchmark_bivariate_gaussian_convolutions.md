@@ -20,6 +20,7 @@ benchmark_bivariate_gaussian_convolutions(
   deconvolution_functions = list(lsfit = list(FUN = deconvolute_ratios_lsfit,
     additional_parameters = NULL)),
   n = 200,
+  standardise = FALSE,
   scaled = FALSE,
   cores = ifelse(.Platform$OS.type == "unix", getOption("mc.cores",
     parallel::detectCores()), 1)
@@ -52,9 +53,10 @@ benchmark_bivariate_gaussian_convolutions(
 
   Number of bulk replicates \\N\\ per scenario.
 
-- scaled:
+- standardise, scaled:
 
-  Logical; whether to log-scale inputs before estimation.
+  Passed to
+  [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md).
 
 - cores:
 

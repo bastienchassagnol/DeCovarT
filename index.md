@@ -53,7 +53,7 @@ Etienne Becht
 
 Anaïs Baudot
 
-2026-08-18
+2026-08-19
 
 ## 
 
@@ -458,7 +458,14 @@ required).
 
 ## Installation
 
-Install the development version from GitHub with
+Install from CRAN:
+
+``` r
+
+install.packages("DeCovarT")
+```
+
+The development version from GitHub with
 [{pak}](https://pak.r-lib.org/):
 
 ``` r
@@ -518,8 +525,8 @@ the same workflow can commit a fresh render when needed, following the
 render-readme](https://github.com/quarto-ext/.github/blob/main/.github/workflows/render-readme.yaml)
 pattern.
 
-See
-[`.github/CONTRIBUTING.MD`](https://bastienchassagnol.github.io/DeCovarT/.github/CONTRIBUTING.MD)
+See the [contributor
+guide](https://github.com/bastienchassagnol/DeCovarT/blob/main/.github/CONTRIBUTING.MD)
 for the full contributor guide.
 
 ### Continuous integration
@@ -558,8 +565,8 @@ In an R session, use
 
 **Troubleshooting and issues**
 
-- Contributor guidance and common development pitfalls:
-  [`.github/CONTRIBUTING.MD`](https://bastienchassagnol.github.io/DeCovarT/.github/CONTRIBUTING.MD)
+- Contributor guidance and common development pitfalls: [contributor
+  guide](https://github.com/bastienchassagnol/DeCovarT/blob/main/.github/CONTRIBUTING.MD)
 - Bug reports and feature requests: [GitHub
   issues](https://github.com/bastienchassagnol/DeCovarT/issues)
 

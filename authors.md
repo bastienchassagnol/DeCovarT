@@ -5,8 +5,7 @@
 - **Bastien Chassagnol (<bastien_chassagnol@laposte.net> ·
   [LinkedIn](https://www.linkedin.com/in/bastien-chassagnol-677b67140/?locale=fr))**.
   Author, maintainer, copyright holder.
-  [](https://orcid.org/0000-0002-8955-2391)  
-  https://www.linkedin.com/in/bastien-chassagnol-677b67140/?locale=fr
+  [](https://orcid.org/0000-0002-8955-2391)
 
 ## Citation
 

@@ -37,3 +37,17 @@ assign_iid_signed_weights(
 
 Symmetric numeric matrix with the same support as `adjacency_matrix` and
 zero diagonal.
+
+## Examples
+
+``` r
+A <- generate_random_network_skeleton(6L, "hub")
+assign_iid_signed_weights(A, prop_inhibitory = 0.5)
+#>      [,1] [,2] [,3] [,4] [,5] [,6]
+#> [1,]  0.0  0.3 -0.3  0.0  0.0  0.0
+#> [2,]  0.3  0.0  0.0  0.0  0.0  0.0
+#> [3,] -0.3  0.0  0.0  0.0  0.0  0.0
+#> [4,]  0.0  0.0  0.0  0.0  0.3 -0.3
+#> [5,]  0.0  0.0  0.0  0.3  0.0  0.0
+#> [6,]  0.0  0.0  0.0 -0.3  0.0  0.0
+```

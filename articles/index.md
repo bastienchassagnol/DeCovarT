@@ -1,5 +1,10 @@
 # Articles
 
+### Manuscript
+
+- [DeCovarT methods
+  paper](https://bastienchassagnol.github.io/DeCovarT/articles/decovart-manuscript.md):
+
 ### Presentations
 
 - [Doctorants seminar slides
@@ -22,5 +27,7 @@
   derivatives](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.md):
 - [OLS reminders for linear
   deconvolution](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-reminders-OLS.md):
+- [DeCovarT appendix: affine equivariance, collinearity and
+  perturbations](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT_appendix_simualtion_frameworks.md):
 - [DeCovarT
   perspectives](https://bastienchassagnol.github.io/DeCovarT/articles/decovart-perspectives.md):

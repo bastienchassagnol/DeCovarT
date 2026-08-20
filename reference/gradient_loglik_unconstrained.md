@@ -77,3 +77,14 @@ Alternative `method` values: `"simple"` and `"complex"`.
 
 [`numDeriv::grad()`](https://rdrr.io/pkg/numDeriv/man/grad.html),
 [`hessian_loglik_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/hessian_loglik_unconstrained.md)
+
+## Examples
+
+``` r
+mu <- matrix(c(20, 22, 22, 20), 2)
+Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+p <- c(0.6, 0.4)
+y <- drop(mu %*% p)
+gradient_loglik_unconstrained(p, y, mu, Sigma)
+#> [1] -4.615385 -3.076923
+```

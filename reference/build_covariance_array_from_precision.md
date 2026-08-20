@@ -21,3 +21,14 @@ build_covariance_array_from_precision(precision_array)
 ## Value
 
 Numeric array of dimension \\G\times G\times J\\.
+
+## Examples
+
+``` r
+A <- generate_random_network_skeleton(6L, "hub")
+W <- assign_iid_signed_weights(A)
+Omega <- build_normalised_precision(W, precision_shift = 0.2)
+arr <- array(Omega, dim = c(6, 6, 1))
+dim(build_covariance_array_from_precision(arr))
+#> [1] 6 6 1
+```

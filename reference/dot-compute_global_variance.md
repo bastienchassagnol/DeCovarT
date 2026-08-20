@@ -26,3 +26,14 @@ of the array `Sigma`.
 
 Symmetric matrix
 \\\boldsymbol{\Sigma}(\boldsymbol{p})\in\mathcal{M}\_{G\times G}\\.
+
+## Examples
+
+``` r
+p <- c(0.6, 0.4)
+Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+.compute_global_variance(p, Sigma)
+#>      [,1] [,2]
+#> [1,] 0.52 0.00
+#> [2,] 0.00 0.52
+```

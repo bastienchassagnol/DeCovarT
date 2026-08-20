@@ -38,3 +38,10 @@ Multivariate normal KL closed form:
 
 Symmetrised (Jeffreys) divergence:
 <https://en.wikipedia.org/wiki/Kullback-Leibler_divergence>.
+
+## Examples
+
+``` r
+.jeffreys_gaussian(c(0, 0), c(1, 0), diag(2), diag(2))
+#> [1] 1
+```

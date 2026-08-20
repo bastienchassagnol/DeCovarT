@@ -1,5 +1,35 @@
 # Changelog
 
+## DeCovarT 2.2.0
+
+- **Model-fit wrapper.** Added
+  [`fit_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md),
+  an S3 wrapper in the style of standard R model fits (`print`,
+  `summary`, `coef`, `fitted`, `residuals`, `vcov`, `nobs`, `confint`,
+  `plot`). This makes DeCovarT more versatile and easier for the R
+  statistical community to adopt.
+  [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)
+  remains the multi-algorithm benchmark tibble. There is no `formula` /
+  [`predict()`](https://rdrr.io/r/stats/predict.html) method: the
+  estimator is a variance model, not OLS for bulk expression.
+
+- **[`fit_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md)
+  solvers.** Marquardt–Levenberg, L-BFGS-B and Newton–Raphson only; ALR
+  maps already land on the simplex (no
+  [`repair_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/repair_simplex.md)
+  on these three).
+
+- **Gene-wise `standardise`.** Affine z-score of bulk, means and
+  covariances (equivariant MLE). Log2 mixing (`scaled = TRUE`) is
+  rejected (Jensen / CIBERSORT linear space).
+
+- **Wald `vcov`.** Expected Fisher information of the multivariate
+  normal convolution, mapped to the simplex by the ALR delta method.
+
+- **Methods paper on the site.** pkgdown embeds `article/main.pdf` via
+  the [embedpdf](https://github.com/jmgirard/embedpdf) Quarto extension
+  (`vignette` *DeCovarT methods paper*).
+
 ## DeCovarT 2.0.0
 
 - **Release** aligned with the GitHub `v2.0.0` tag and the first CRAN

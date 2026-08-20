@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,7 +45,10 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-vignettes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true"><span class="fa fa-book-open"></span> Vignettes</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-vignettes">
-<li><a class="dropdown-item" href="../articles/deconvolution-seminar-slides.html"><span class="fa fa-chalkboard-user"></span> Doctorants seminar slides (embedded)</a></li>
+<li><h6 class="dropdown-header" data-toc-skip>Manuscript</h6></li>
+    <li><a class="dropdown-item" href="../articles/decovart-manuscript.html"><span class="fa fa-file-pdf"></span> DeCovarT methods paper (PDF)</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/deconvolution-seminar-slides.html"><span class="fa fa-chalkboard-user"></span> Doctorants seminar slides (embedded)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Getting started</h6></li>
     <li><a class="dropdown-item" href="../articles/synthetic-scenarios.html"><span class="fa fa-flask"></span> Simulating semi-synthetic pseudo-bulk mixtures</a></li>
@@ -56,6 +59,7 @@
     <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
     <li><a class="dropdown-item" href="../articles/softmax-alr-derivatives.html"><span class="fa fa-square-root-variable"></span> Simplex maps and softmax / ALR derivatives</a></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT_appendix_simualtion_frameworks.html"><span class="fa fa-ruler-combined"></span> Affine equivariance and collinearity</a></li>
     <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives (outlook)</a></li>
   </ul>
 </li>
@@ -85,7 +89,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Simplex maps and numerically stable softmax / ALR derivatives</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-08-19</p>
+      <p class="date">2026-08-20</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/softmax-alr-derivatives.qmd" class="external-link"><code>vignettes/softmax-alr-derivatives.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -159,9 +163,7 @@ Table 1: DeCovarT simplex coordinate maps and their equivalents.
 Table 2: Standard algebraic operations induced by a matrix <span class="math inline">\boldsymbol{A}</span>.
 </figcaption><div aria-describedby="tbl-bilinear-forms-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
-<!-- preamble start -->
-
-    <!-- tinytable mathjax start -->
+<!-- tinytable mathjax start -->
     <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script><script>
     MathJax = {
       tex: {
@@ -173,32 +175,32 @@ Table 2: Standard algebraic operations induced by a matrix <span class="math in
     };
     </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_a2x83ftc53c0xdnxrsgq = TinyTable.createTableFunctions("tinytable_a2x83ftc53c0xdnxrsgq");
+      const tableFns_otr0z3kt7n0wmd6xjtvj = TinyTable.createTableFunctions("tinytable_otr0z3kt7n0wmd6xjtvj");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '6', j: 1 }, { i: '6', j: 2 } ], css_id: 'tinytable_css_lm5vjcoe7hr5qbavme91',},
-          { positions: [ { i: '1', j: 1 }, { i: '2', j: 1 }, { i: '3', j: 1 }, { i: '4', j: 1 }, { i: '5', j: 1 }, { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 } ], css_id: 'tinytable_css_xdlh1i7yeqkzq33e24vc',},
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 } ], css_id: 'tinytable_css_vcuugl422tlz6x57lo5t',},
+          { positions: [ { i: '6', j: 1 }, { i: '6', j: 2 } ], css_id: 'tinytable_css_lh1k33akw3daai8n7603',},
+          { positions: [ { i: '1', j: 1 }, { i: '2', j: 1 }, { i: '3', j: 1 }, { i: '4', j: 1 }, { i: '5', j: 1 }, { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 } ], css_id: 'tinytable_css_qelxuwzu9mpc5eew325n',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 } ], css_id: 'tinytable_css_bgg7jhgt5qwd8t170ifx',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_a2x83ftc53c0xdnxrsgq.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_otr0z3kt7n0wmd6xjtvj.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_a2x83ftc53c0xdnxrsgq td.tinytable_css_lm5vjcoe7hr5qbavme91, #tinytable_a2x83ftc53c0xdnxrsgq th.tinytable_css_lm5vjcoe7hr5qbavme91 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_a2x83ftc53c0xdnxrsgq td.tinytable_css_xdlh1i7yeqkzq33e24vc, #tinytable_a2x83ftc53c0xdnxrsgq th.tinytable_css_xdlh1i7yeqkzq33e24vc { text-align: center }
-    #tinytable_a2x83ftc53c0xdnxrsgq td.tinytable_css_vcuugl422tlz6x57lo5t, #tinytable_a2x83ftc53c0xdnxrsgq th.tinytable_css_vcuugl422tlz6x57lo5t {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_otr0z3kt7n0wmd6xjtvj td.tinytable_css_lh1k33akw3daai8n7603, #tinytable_otr0z3kt7n0wmd6xjtvj th.tinytable_css_lh1k33akw3daai8n7603 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_otr0z3kt7n0wmd6xjtvj td.tinytable_css_qelxuwzu9mpc5eew325n, #tinytable_otr0z3kt7n0wmd6xjtvj th.tinytable_css_qelxuwzu9mpc5eew325n { text-align: center }
+    #tinytable_otr0z3kt7n0wmd6xjtvj td.tinytable_css_bgg7jhgt5qwd8t170ifx, #tinytable_otr0z3kt7n0wmd6xjtvj th.tinytable_css_bgg7jhgt5qwd8t170ifx {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_a2x83ftc53c0xdnxrsgq" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_otr0z3kt7n0wmd6xjtvj" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">Expression</th>
                 <th scope="col" data-row="0" data-col="2">Terminology</th>
@@ -668,9 +670,7 @@ m^{-1}
 Table 3: Effect of negating the analytic Hessian passed to marqLevAlg when maximize = TRUE (minimize = FALSE).
 </figcaption><div aria-describedby="tbl-marqlevalg-hess-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
-<!-- preamble start -->
-
-    <!-- tinytable mathjax start -->
+<!-- tinytable mathjax start -->
     <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script><script>
     MathJax = {
       tex: {
@@ -682,36 +682,36 @@ Table 3: Effect of negating the analytic Hessian passed to marqLevAlg when maxi
     };
     </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_dt6vkhabtr1hv7c6m66w = TinyTable.createTableFunctions("tinytable_dt6vkhabtr1hv7c6m66w");
+      const tableFns_ruroajpos5bz7b5mi7nl = TinyTable.createTableFunctions("tinytable_ruroajpos5bz7b5mi7nl");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '2', j: 2 }, { i: '2', j: 3 }, { i: '2', j: 4 } ], css_id: 'tinytable_css_zgh864nxnpnp4mcfq3yq',},
-          { positions: [ { i: '1', j: 2 }, { i: '1', j: 3 }, { i: '1', j: 4 } ], css_id: 'tinytable_css_8bp4u1t36m6h7vll0zng',},
-          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_l5vxckwq689qc1336ltb',},
-          { positions: [ { i: '2', j: 1 } ], css_id: 'tinytable_css_xnaf8gnfu9nn9m0rytti',},
-          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_kb4tcftf677aalkdt3qq',},
+          { positions: [ { i: '2', j: 2 }, { i: '2', j: 3 }, { i: '2', j: 4 } ], css_id: 'tinytable_css_07ii3i5pv0tjt02ozfdo',},
+          { positions: [ { i: '1', j: 2 }, { i: '1', j: 3 }, { i: '1', j: 4 } ], css_id: 'tinytable_css_mlcdg0nyqofbtumrfcvw',},
+          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_vhmtxxffvf9vx22qp00l',},
+          { positions: [ { i: '2', j: 1 } ], css_id: 'tinytable_css_yu0zftqxu3c79lnagmo0',},
+          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_6ubpdp198yvlvgy8apur',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_dt6vkhabtr1hv7c6m66w.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_ruroajpos5bz7b5mi7nl.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_dt6vkhabtr1hv7c6m66w td.tinytable_css_zgh864nxnpnp4mcfq3yq, #tinytable_dt6vkhabtr1hv7c6m66w th.tinytable_css_zgh864nxnpnp4mcfq3yq {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_dt6vkhabtr1hv7c6m66w td.tinytable_css_8bp4u1t36m6h7vll0zng, #tinytable_dt6vkhabtr1hv7c6m66w th.tinytable_css_8bp4u1t36m6h7vll0zng { text-align: center }
-    #tinytable_dt6vkhabtr1hv7c6m66w td.tinytable_css_l5vxckwq689qc1336ltb, #tinytable_dt6vkhabtr1hv7c6m66w th.tinytable_css_l5vxckwq689qc1336ltb {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_dt6vkhabtr1hv7c6m66w td.tinytable_css_xnaf8gnfu9nn9m0rytti, #tinytable_dt6vkhabtr1hv7c6m66w th.tinytable_css_xnaf8gnfu9nn9m0rytti {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_dt6vkhabtr1hv7c6m66w td.tinytable_css_kb4tcftf677aalkdt3qq, #tinytable_dt6vkhabtr1hv7c6m66w th.tinytable_css_kb4tcftf677aalkdt3qq {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_ruroajpos5bz7b5mi7nl td.tinytable_css_07ii3i5pv0tjt02ozfdo, #tinytable_ruroajpos5bz7b5mi7nl th.tinytable_css_07ii3i5pv0tjt02ozfdo {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_ruroajpos5bz7b5mi7nl td.tinytable_css_mlcdg0nyqofbtumrfcvw, #tinytable_ruroajpos5bz7b5mi7nl th.tinytable_css_mlcdg0nyqofbtumrfcvw { text-align: center }
+    #tinytable_ruroajpos5bz7b5mi7nl td.tinytable_css_vhmtxxffvf9vx22qp00l, #tinytable_ruroajpos5bz7b5mi7nl th.tinytable_css_vhmtxxffvf9vx22qp00l {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_ruroajpos5bz7b5mi7nl td.tinytable_css_yu0zftqxu3c79lnagmo0, #tinytable_ruroajpos5bz7b5mi7nl th.tinytable_css_yu0zftqxu3c79lnagmo0 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_ruroajpos5bz7b5mi7nl td.tinytable_css_6ubpdp198yvlvgy8apur, #tinytable_ruroajpos5bz7b5mi7nl th.tinytable_css_6ubpdp198yvlvgy8apur {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_dt6vkhabtr1hv7c6m66w" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_ruroajpos5bz7b5mi7nl" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">Hessian sign</th>
                 <th scope="col" data-row="0" data-col="2">istop</th>

@@ -21,3 +21,13 @@ jacobian_additive_logistic(rho)
 ## Value
 
 Numeric matrix of size \\J\times(J-1)\\.
+
+## Examples
+
+``` r
+jacobian_additive_logistic(c(0.2, -0.5))
+#>             [,1]        [,2]
+#> [1,]  0.24536327 -0.09263461
+#> [2,] -0.09263461  0.16847742
+#> [3,] -0.15272866 -0.07584281
+```

@@ -21,13 +21,13 @@ compute_benchmark_metrics(
 
 - y:
 
-  Bulk expression vector \\\boldsymbol{y}\in\mathbb{R}^{G}\\ (one
-  heterogeneous sample).
+  Numeric vector (or one-column matrix)
+  \\\boldsymbol{y}\in\mathbb{R}^{G}\\.
 
 - mean_signature_matrix:
 
-  Mean signature \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\
-  (columns = cell types; plug-in for latent profiles).
+  Numeric matrix \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\
+  (plug-in means).
 
 - estimated_p:
 

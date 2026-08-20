@@ -39,3 +39,10 @@ Implementation uses
 `drop(crossprod(x, A %*% y))`, which is the standard efficient route to
 a bilinear / quadratic form in R (avoids an explicit transpose of
 \\\boldsymbol{x}\\ and a temporary outer product).
+
+## Examples
+
+``` r
+.bilinear_form(c(1, 2), diag(2), c(3, 4))
+#> [1] 11
+```

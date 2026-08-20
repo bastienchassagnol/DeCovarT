@@ -32,3 +32,15 @@ compute_mean_profile_objectives(mean_signature_matrix)
 ## Value
 
 A named list with `mean_abs_cosine` and `sum_euclidean_distance`.
+
+## Examples
+
+``` r
+compute_mean_profile_objectives(matrix(c(20, 22, 22, 20), 2))
+#> $mean_abs_cosine
+#> [1] 0.9954751
+#> 
+#> $sum_euclidean_distance
+#> [1] 2.828427
+#> 
+```

@@ -37,3 +37,16 @@ hessian_loglik_unconstrained(p, y, mean_signature_matrix, Sigma)
 ## Value
 
 Symmetric numeric matrix \\\mathbf{H}\\.
+
+## Examples
+
+``` r
+mu <- matrix(c(20, 22, 22, 20), 2)
+Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+p <- c(0.6, 0.4)
+y <- drop(mu %*% p)
+hessian_loglik_unconstrained(p, y, mu, Sigma)
+#>           [,1]      [,2]
+#> [1,] -1697.041 -1685.207
+#> [2,] -1685.207 -1702.959
+```
