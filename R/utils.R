@@ -201,11 +201,13 @@
       grDevices::pdf(path)
       on.exit(grDevices::dev.off(), add = TRUE)
       if (inherits(x, "Heatmap")) {
+        .check_heatmap_dependencies()
         ComplexHeatmap::draw(x)
       } else if (
         is.list(x) &&
           all(vapply(x, inherits, logical(1L), "Heatmap"))
       ) {
+        .check_heatmap_dependencies()
         lapply(x, ComplexHeatmap::draw)
       } else {
         print(x)

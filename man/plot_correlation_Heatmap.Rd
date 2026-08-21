@@ -33,6 +33,8 @@ A named list of \code{ComplexHeatmap} heatmap objects (one per algorithm).
 \description{
 For each algorithm, visualises a selected score over the design grid of
 simulated \eqn{\boldsymbol{p}} (and related scenario factors).
+Requires optional Suggests packages \code{ComplexHeatmap}, \code{circlize}, and
+\code{viridis} (install \code{ComplexHeatmap} via Bioconductor).
 }
 \examples{
 metrics <- tibble::tibble(
@@ -41,6 +43,12 @@ metrics <- tibble::tibble(
   algorithm = "nnls",
   model_mse = c(0.01, 0.02, 0.015, 0.03)
 )
-ht <- plot_correlation_Heatmap(metrics, score_variable = "model_mse")
-names(ht)
+if (
+  requireNamespace("ComplexHeatmap", quietly = TRUE) &&
+    requireNamespace("circlize", quietly = TRUE) &&
+    requireNamespace("viridis", quietly = TRUE)
+) {
+  ht <- plot_correlation_Heatmap(metrics, score_variable = "model_mse")
+  names(ht)
+}
 }

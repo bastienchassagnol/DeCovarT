@@ -1,3 +1,18 @@
+# DeCovarT 2.2.3
+
+* **Optional heatmap stack.** Moved `ComplexHeatmap`, `circlize`, and
+  `viridis` from Imports to Suggests. `plot_correlation_Heatmap()`
+  guards with `requireNamespace()` and a clear install message.
+  Removed `Additional_repositories` (Bioconductor is a standard CRAN
+  dependency source; that field was causing the availability `? ?` NOTE).
+
+# DeCovarT 2.2.2
+
+* **CRAN resubmission.** Quarto Markdown tables in the two CRAN vignettes
+  (no `tinytable` during vignette rebuild on Windows); absolute pkgdown
+  URLs for articles excluded from the tarball; Rd figure widths in
+  pixels; `cran-comments` clarifies DESCRIPTION Hunspell false positives.
+
 # DeCovarT 2.2.0
 
 * **Model-fit wrapper.** Added `fit_decovart()`, an S3 wrapper in the

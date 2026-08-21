@@ -188,6 +188,52 @@ This repo uses **[Air](https://posit-dev.github.io/air/)** (`air.toml`) and
   (no em dashes, fancy quotes, etc. in strings). Use
   `tools::showNonASCIIfile("R/foo.R")` and `\uxxxx` escapes if needed.
 
+### CRAN incoming vs local / GitHub Actions (hard-won lessons)
+
+Local `devtools::check()` and GHA `R-CMD-check` can be green while CRAN
+incoming pretest still fails. Before every CRAN (re)submission, also:
+
+1. Run `rcmdcheck::rcmdcheck(args = c("--as-cran", "--no-manual"))` with
+   `options(repos = c(CRAN = "https://cloud.r-project.org"))` so Suggests
+   versions match what CRAN will install (not a stale user library).
+2. Trigger `rhub` / win-builder **Windows and Linux** (this repo skips
+   macOS by choice) and read the incoming pretest logs, not only GHA.
+3. **Vignette rebuild** on CRAN uses a clean library + Quarto CLI.
+   Prefer **Quarto Markdown pipe tables** in vignettes that ship in the
+   CRAN tarball (`DeCoVart-use-cases`, `softmax-alr-derivatives`). Keep
+   `tinytable` for pkgdown-only articles, but pin a minimum version in
+   Suggests; never assume the Suggests API your laptop has is what
+   win-builder installs the next day.
+4. **Relative HTML links** between vignettes (`foo.html#sec-…`) become
+   invalid URIs when the target vignette is `.Rbuildignore`d. From any
+   CRAN-shipped vignette, link excluded articles with **absolute**
+   pkgdown URLs (`https://bastienchassagnol.github.io/DeCovarT/articles/…`).
+5. Rd `\figure{…}{options: width=…}` for HTML must use **pixel** widths
+   (e.g. `width=700`), not percentages; LaTeX may keep `width=5.5in`.
+6. DESCRIPTION Hunspell “misspellings” (British English / domain terms)
+   stay as written; explain them in `cran-comments.md` and keep jargon in
+   `inst/WORDLIST` for `spelling` / aspell.
+7. **Do not set `Additional_repositories` for CRAN or Bioconductor.**
+   CRAN already treats the Bioconductor *software* repository as a
+   standard dependency source. Pointing
+   `Additional_repositories` at
+   `https://bioconductor.org/packages/release/bioc` is redundant and
+   triggers the incoming availability `? ?` NOTE. Use that field only
+   for packages outside CRAN / Bioconductor / Omegahat / R-Forge.
+8. **Optional visualisation dependencies** (e.g. `ComplexHeatmap`,
+   `circlize`, `viridis`): put them in **Suggests**, not Imports, when
+   they are used only by optional plotting helpers. Gate entry points
+   with `requireNamespace(..., quietly = TRUE)` (Writing R Extensions),
+   fail with an install hint via a small checker such as
+   `.check_heatmap_dependencies()`, and wrap Rd `@examples` /
+   testthat blocks in the same `requireNamespace` /
+   `skip_if_not_installed()` pattern. Never call Suggests packages
+   unconditionally from Imports-level code paths.
+
+Excluding long Quarto articles from the tarball is justified when it
+cuts rebuild time and Suggests risk; document the list in `.Rbuildignore`
+and `cran-comments.md`, and never leave dangling relative links.
+
 ### GitHub and docs bootstrap (new packages)
 
 Early setup via **usethis** (run once after creating the GitHub repo):
@@ -454,7 +500,7 @@ That adds `spelling` to Suggests, `Language: en-GB` in `DESCRIPTION`,
 | Paths | `here`, `fs` (avoid ad-hoc `normalizePath()`) |
 | Tabular data | `dplyr`, `tidyr`, `tibble` (`data.table` if needed) |
 | Out-of-memory data | `duckdb` |
-| Plotting | `ggplot2`; heatmaps: `ComplexHeatmap`; interactive: `ggiraph` |
+| Plotting | `ggplot2`; heatmaps: `ComplexHeatmap` (Suggests + `requireNamespace`); interactive: `ggiraph` |
 | Static tables (vignettes / Quarto HTML) | `tinytable` (prefer over `knitr::kable`, `kableExtra`, `flextable`) |
 | Slide / HTML interactive tables | `reactable` (prefer over static Markdown tables in reveal.js) |
 | Discrete ggplot scales | named vectors via `stats::setNames()` |
@@ -1131,7 +1177,14 @@ not** add that fallback — remove it.
 
 ### Tables: tinytable (static) vs reactable (interactive)
 
-- **Vignettes / static Quarto HTML:** use `tinytable::tt()` by default.
+- **CRAN-shipped Quarto vignettes** (`DeCoVart-use-cases`,
+  `softmax-alr-derivatives`): prefer [Quarto Markdown pipe
+  tables](https://quarto.org/docs/authoring/tables.html) with
+  `: Caption {#tbl-…}`. Do **not** call `tinytable` there — CRAN
+  vignette rebuild must not depend on Suggests S4 APIs that change
+  between your laptop and win-builder.
+- **Pkgdown-only articles / other static Quarto HTML:** use
+  `tinytable::tt()` by default (pin `tinytable (>= …)` in Suggests).
   Do not introduce `knitr::kable()`, `kableExtra`, or `flextable` for
   new static tables unless the user asks. For maths in cells, write
   `$\\kappa_2$`-style strings (double backslashes) and follow

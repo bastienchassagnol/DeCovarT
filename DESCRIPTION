@@ -1,6 +1,6 @@
 Package: DeCovarT
 Title: Covariance-Aware Deconvolution of Bulk Transcriptomic Samples
-Version: 2.2.1
+Version: 2.2.3
 Authors@R:
     person("Bastien", "Chassagnol",
            email = "bastien_chassagnol@laposte.net",
@@ -16,10 +16,11 @@ Description: Estimates cell-type proportions in bulk transcriptomic samples
     described in Chassagnol, Nuel and Becht (2023)
     <doi:10.48550/arXiv.2309.09557>.
 License: MIT + file LICENSE
-Additional_repositories: https://bioconductor.org/packages/release/bioc
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE, roclets = c("namespace", "rd", "srr::srr_stats_roclet"))
 Suggests:
+    circlize,
+    ComplexHeatmap,
     compositions,
     flextable,
     ggplot2,
@@ -34,13 +35,12 @@ Suggests:
     spelling,
     stringr,
     testthat (>= 3.0.0),
-    tinytable,
+    tinytable (>= 0.15.0),
+    viridis,
     withr
 VignetteBuilder: knitr, quarto
 Config/testthat/edition: 3
 Imports:
-    circlize,
-    ComplexHeatmap,
     dplyr,
     e1071,
     igraph,
@@ -57,8 +57,7 @@ Imports:
     rlang,
     tensor,
     tibble,
-    tidyr,
-    viridis
+    tidyr
 Depends:
     R (>= 4.1.0)
 RdMacros: Rdpack

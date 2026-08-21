@@ -1,8 +1,37 @@
+#' Check optional heatmap Suggests packages
+#'
+#' @keywords internal
+#' @noRd
+.check_heatmap_dependencies <- function() {
+  pkgs <- c("ComplexHeatmap", "circlize", "viridis")
+  missing <- pkgs[
+    !vapply(
+      pkgs,
+      requireNamespace,
+      quietly = TRUE,
+      FUN.VALUE = logical(1)
+    )
+  ]
+  if (length(missing)) {
+    stop(
+      "plot_correlation_Heatmap() requires the optional package",
+      if (length(missing) > 1L) "s " else " ",
+      toString(paste0("'", missing, "'")),
+      ". Install CRAN dependencies with install.packages(), and ",
+      "'ComplexHeatmap' with BiocManager::install('ComplexHeatmap').",
+      call. = FALSE
+    )
+  }
+  invisible(TRUE)
+}
+
 #' Plot deconvolution metric heatmaps
 #'
 #' @description
 #' For each algorithm, visualises a selected score over the design grid of
 #' simulated \eqn{\boldsymbol{p}} (and related scenario factors).
+#' Requires optional Suggests packages `ComplexHeatmap`, `circlize`, and
+#' `viridis` (install `ComplexHeatmap` via Bioconductor).
 #'
 #' @param distribution_metrics Tibble of metric scores from a benchmark.
 #' @param score_variable Column name of the metric to display
@@ -30,8 +59,14 @@
 #'   algorithm = "nnls",
 #'   model_mse = c(0.01, 0.02, 0.015, 0.03)
 #' )
-#' ht <- plot_correlation_Heatmap(metrics, score_variable = "model_mse")
-#' names(ht)
+#' if (
+#'   requireNamespace("ComplexHeatmap", quietly = TRUE) &&
+#'     requireNamespace("circlize", quietly = TRUE) &&
+#'     requireNamespace("viridis", quietly = TRUE)
+#' ) {
+#'   ht <- plot_correlation_Heatmap(metrics, score_variable = "model_mse")
+#'   names(ht)
+#' }
 #' @importFrom rlang .data
 #' @export
 plot_correlation_Heatmap <- function(
@@ -41,6 +76,7 @@ plot_correlation_Heatmap <- function(
   uni_scale = TRUE,
   file = NULL
 ) {
+  .check_heatmap_dependencies()
   score_variable <- .match_arg_ci(
     score_variable,
     c(

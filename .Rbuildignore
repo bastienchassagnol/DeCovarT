@@ -2,6 +2,7 @@
 ^\.Rproj\.user$
 ^\.travis\.yml$
 ^cran-comments\.md$
+^external_dependencies_cran_submission\.md$
 ^README\.Rmd$
 ^README-.*\.png$
 ^.*\.Rproj$
@@ -26,8 +27,11 @@
 ^vignettes/.*_files$
 ^vignettes/.*\.html$
 ^vignettes/.*\.R$
-# CRAN tarball ships only use-cases + softmax/ALR vignettes; other Quarto
-# articles remain in git for the pkgdown site.
+# CRAN tarball ships only the two Quarto vignettes needed for the methods
+# core (use-cases + softmax/ALR). Other articles stay on the pkgdown site
+# (absolute URLs from CRAN vignettes) to keep rebuild time and Suggests
+# surface small: slides, manuscript PDF embed, long feature-selection /
+# network / perspectives / appendix articles.
 ^vignettes/deconvolution-seminar-slides\.qmd$
 ^vignettes/DeCovarT-reminders-OLS\.qmd$
 ^vignettes/feature-selection\.qmd$

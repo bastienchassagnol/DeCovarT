@@ -40,3 +40,10 @@ test_that("plot_correlation_Heatmap writes a PDF via tempfile (G4.0)", {
     expect_s4_class(ht[["nnls"]], "Heatmap")
   })
 })
+
+test_that(".check_heatmap_dependencies succeeds when Suggests present", {
+  skip_if_not_installed("ComplexHeatmap")
+  skip_if_not_installed("circlize")
+  skip_if_not_installed("viridis")
+  expect_true(DeCovarT:::.check_heatmap_dependencies())
+})

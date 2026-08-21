@@ -79,7 +79,7 @@ repair_simplex <- function(p, tolerance = 100 * .Machine$double.eps) {
 #' share vector with a flat (multi-type, high entropy) one for \eqn{J=5}
 #' classes.
 #'
-#' \if{html}{\figure{gini_vs_entropy_specificity.png}{options: width="100\%"
+#' \if{html}{\figure{gini_vs_entropy_specificity.png}{options: width=700
 #'   alt="Gini versus Shannon entropy"}}
 #' \if{latex}{\figure{gini_vs_entropy_specificity.png}{options: width=5.5in}}
 #'
