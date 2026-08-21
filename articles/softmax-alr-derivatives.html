@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.2.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -157,87 +157,49 @@ Table 1: DeCovarT simplex coordinate maps and their equivalents.
 </section><section class="section level2"><h2 id="sec-bilinear-forms">Matrix-induced scalar products<a class="anchor" aria-label="anchor" href="#sec-bilinear-forms"></a>
 </h2>
 <p>The DeCovarT log-likelihood and its derivatives evaluate several matrix-induced scalar products involving a symmetric positive-definite covariance or precision matrix <span class="math inline">\boldsymbol{A}</span> (non-degenerate Gaussian laws). <a href="#tbl-bilinear-forms" class="quarto-xref">Table 2</a> records the standard terminology; a quadratic form is the bilinear form evaluated on the same vector twice, <span class="math inline">q(\boldsymbol{x})=b(\boldsymbol{x},\boldsymbol{x})</span>.</p>
-<div class="cell">
-<div id="tbl-bilinear-forms" class="cell quarto-float quarto-figure quarto-figure-center">
+<div id="tbl-bilinear-forms" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-bilinear-forms-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table 2: Standard algebraic operations induced by a matrix <span class="math inline">\boldsymbol{A}</span>.
 </figcaption><div aria-describedby="tbl-bilinear-forms-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output-display">
-<!-- tinytable mathjax start -->
-    <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script><script>
-    MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']]
-      },
-      svg: {
-        fontCache: 'global'
-      }
-    };
-    </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
-      // Create table-specific functions using external factory
-      const tableFns_4uudfcy913ltglmv4dst = TinyTable.createTableFunctions("tinytable_4uudfcy913ltglmv4dst");
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: '6', j: 1 }, { i: '6', j: 2 } ], css_id: 'tinytable_css_70e0xdzmrxaq0o1r3bq3',},
-          { positions: [ { i: '1', j: 1 }, { i: '2', j: 1 }, { i: '3', j: 1 }, { i: '4', j: 1 }, { i: '5', j: 1 }, { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 } ], css_id: 'tinytable_css_bikem5vfqu2dwvgkx9jh',},
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 } ], css_id: 'tinytable_css_oes8f6qdu84zo04piham',},
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  tableFns_4uudfcy913ltglmv4dst.styleCell(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
-<style>
-    /* tinytable css entries after */
-    #tinytable_4uudfcy913ltglmv4dst td.tinytable_css_70e0xdzmrxaq0o1r3bq3, #tinytable_4uudfcy913ltglmv4dst th.tinytable_css_70e0xdzmrxaq0o1r3bq3 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_4uudfcy913ltglmv4dst td.tinytable_css_bikem5vfqu2dwvgkx9jh, #tinytable_4uudfcy913ltglmv4dst th.tinytable_css_bikem5vfqu2dwvgkx9jh { text-align: center }
-    #tinytable_4uudfcy913ltglmv4dst td.tinytable_css_oes8f6qdu84zo04piham, #tinytable_4uudfcy913ltglmv4dst th.tinytable_css_oes8f6qdu84zo04piham {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    </style>
-<div class="container">
-      <table class="table tinytable" id="tinytable_4uudfcy913ltglmv4dst" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-<thead><tr>
-<th scope="col" data-row="0" data-col="1">Expression</th>
-                <th scope="col" data-row="0" data-col="2">Terminology</th>
-              </tr></thead>
+<table class="table caption-top">
+<colgroup>
+<col style="width: 48%">
+<col style="width: 52%">
+</colgroup>
+<thead><tr class="header">
+<th style="text-align: left;">Expression</th>
+<th style="text-align: left;">Terminology</th>
+</tr></thead>
 <tbody>
-<tr>
-<td data-row="1" data-col="1">\(\boldsymbol{x}^{\mathsf{T}}\boldsymbol{y}\)</td>
-                  <td data-row="1" data-col="2">Dot product / Euclidean inner product</td>
-                </tr>
-<tr>
-<td data-row="2" data-col="1">\(\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{y}\)</td>
-                  <td data-row="2" data-col="2">Bilinear form (inner product if \(\boldsymbol{A}\) is SPD)</td>
-                </tr>
-<tr>
-<td data-row="3" data-col="1">\(\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{x}\)</td>
-                  <td data-row="3" data-col="2">Quadratic form</td>
-                </tr>
-<tr>
-<td data-row="4" data-col="1">\(\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}^{-1}\boldsymbol{x}\)</td>
-                  <td data-row="4" data-col="2">Quadratic form induced by \(\boldsymbol{A}^{-1}\)</td>
-                </tr>
-<tr>
-<td data-row="5" data-col="1">\((\boldsymbol{x}-\boldsymbol{\mu})^{\mathsf{T}}\boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{\mu})\)</td>
-                  <td data-row="5" data-col="2">Squared Mahalanobis distance</td>
-                </tr>
-<tr>
-<td data-row="6" data-col="1">\(\sqrt{(\boldsymbol{x}-\boldsymbol{\mu})^{\mathsf{T}}\boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{\mu})}\)</td>
-                  <td data-row="6" data-col="2">Mahalanobis distance</td>
-                </tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\boldsymbol{x}^{\mathsf{T}}\boldsymbol{y}</span></td>
+<td style="text-align: left;">Dot product / Euclidean inner product</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{y}</span></td>
+<td style="text-align: left;">Bilinear form (inner product if <span class="math inline">\boldsymbol{A}</span> is SPD)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{x}</span></td>
+<td style="text-align: left;">Quadratic form</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}^{-1}\boldsymbol{x}</span></td>
+<td style="text-align: left;">Quadratic form induced by <span class="math inline">\boldsymbol{A}^{-1}</span>
+</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">(\boldsymbol{x}-\boldsymbol{\mu})^{\mathsf{T}}\boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{\mu})</span></td>
+<td style="text-align: left;">Squared Mahalanobis distance</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\sqrt{(\boldsymbol{x}-\boldsymbol{\mu})^{\mathsf{T}}\boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{\mu})}</span></td>
+<td style="text-align: left;">Mahalanobis distance</td>
+</tr>
 </tbody>
 </table>
 </div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
 </figure>
-</div>
 </div>
 <p>Package helpers <code><a href="../reference/dot-bilinear_form.html">.bilinear_form()</a></code> and <code>.squared_mahalanobis_distance()</code> implement the middle rows of <a href="#tbl-bilinear-forms" class="quarto-xref">Table 2</a>. The second solves <span class="math inline">\boldsymbol{\Sigma}\boldsymbol{z}=\boldsymbol{\delta}</span> rather than forming <span class="math inline">\boldsymbol{\Sigma}^{-1}</span> explicitly. Calling <span class="math inline">\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{y}</span> a “dot product” is misleading unless <span class="math inline">\boldsymbol{A}=\boldsymbol{I}</span>; see also the <a href="https://en.wikipedia.org/wiki/Dot_product" class="external-link">dot product</a> and <a href="https://en.wikipedia.org/wiki/Inner_product_space" class="external-link">inner product space</a> articles for the Euclidean special case <span class="math inline">\langle\boldsymbol{x},\boldsymbol{y}\rangle=\boldsymbol{x}^{\mathsf{T}}\boldsymbol{y}</span>.</p>
 </section><section class="section level2"><h2 id="log-sum-exp-and-softmax">Log-sum-exp and softmax<a class="anchor" aria-label="anchor" href="#log-sum-exp-and-softmax"></a>
@@ -664,81 +626,40 @@ m^{-1}
 </blockquote>
 </div>
 <p><a href="#tbl-marqlevalg-hess" class="quarto-xref">Table 3</a> summarises the empirical confirmation on the hybrid <span class="math inline">J=3</span> scenario (<span class="math inline">m=J-1=2</span> free ALR coordinates). Point estimates barely moved (the wrongly scaled Newton step was often rescued by the internal line search), but iterations dropped roughly <span class="math inline">20</span>–<span class="math inline">40\times</span> and <code>istop</code> / <code>rdm</code> became honest relative to <a href="#eq-rdm-commenges" class="quarto-xref">Eq. 15</a>.</p>
-<div class="cell">
-<div id="tbl-marqlevalg-hess" class="cell quarto-float quarto-figure quarto-figure-center">
+<div id="tbl-marqlevalg-hess" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-marqlevalg-hess-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table 3: Effect of negating the analytic Hessian passed to marqLevAlg when maximize = TRUE (minimize = FALSE).
 </figcaption><div aria-describedby="tbl-marqlevalg-hess-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output-display">
-<!-- tinytable mathjax start -->
-    <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script><script>
-    MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']]
-      },
-      svg: {
-        fontCache: 'global'
-      }
-    };
-    </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
-      // Create table-specific functions using external factory
-      const tableFns_xyqdje20d3i8lz3veeie = TinyTable.createTableFunctions("tinytable_xyqdje20d3i8lz3veeie");
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: '2', j: 2 }, { i: '2', j: 3 }, { i: '2', j: 4 } ], css_id: 'tinytable_css_kuofg2e2s7wghjem3q9x',},
-          { positions: [ { i: '1', j: 2 }, { i: '1', j: 3 }, { i: '1', j: 4 } ], css_id: 'tinytable_css_1dr9h3enynaiojlxeo2q',},
-          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_fktsezxbamxfx7pirrf1',},
-          { positions: [ { i: '2', j: 1 } ], css_id: 'tinytable_css_tejd49gvqa2k8eovtazq',},
-          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_vy3uvc0arvbd93qbi2dd',},
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  tableFns_xyqdje20d3i8lz3veeie.styleCell(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
-<style>
-    /* tinytable css entries after */
-    #tinytable_xyqdje20d3i8lz3veeie td.tinytable_css_kuofg2e2s7wghjem3q9x, #tinytable_xyqdje20d3i8lz3veeie th.tinytable_css_kuofg2e2s7wghjem3q9x {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_xyqdje20d3i8lz3veeie td.tinytable_css_1dr9h3enynaiojlxeo2q, #tinytable_xyqdje20d3i8lz3veeie th.tinytable_css_1dr9h3enynaiojlxeo2q { text-align: center }
-    #tinytable_xyqdje20d3i8lz3veeie td.tinytable_css_fktsezxbamxfx7pirrf1, #tinytable_xyqdje20d3i8lz3veeie th.tinytable_css_fktsezxbamxfx7pirrf1 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_xyqdje20d3i8lz3veeie td.tinytable_css_tejd49gvqa2k8eovtazq, #tinytable_xyqdje20d3i8lz3veeie th.tinytable_css_tejd49gvqa2k8eovtazq {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_xyqdje20d3i8lz3veeie td.tinytable_css_vy3uvc0arvbd93qbi2dd, #tinytable_xyqdje20d3i8lz3veeie th.tinytable_css_vy3uvc0arvbd93qbi2dd {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    </style>
-<div class="container">
-      <table class="table tinytable" id="tinytable_xyqdje20d3i8lz3veeie" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-<thead><tr>
-<th scope="col" data-row="0" data-col="1">Hessian sign</th>
-                <th scope="col" data-row="0" data-col="2">istop</th>
-                <th scope="col" data-row="0" data-col="3">iterations</th>
-                <th scope="col" data-row="0" data-col="4">rdm</th>
-              </tr></thead>
+<table class="table caption-top" style="width:100%;">
+<colgroup>
+<col style="width: 36%">
+<col style="width: 18%">
+<col style="width: 31%">
+<col style="width: 13%">
+</colgroup>
+<thead><tr class="header">
+<th style="text-align: left;">Hessian sign</th>
+<th style="text-align: left;">istop</th>
+<th style="text-align: left;">iterations</th>
+<th style="text-align: left;">rdm</th>
+</tr></thead>
 <tbody>
-<tr>
-<td data-row="1" data-col="1">Wrong (log-likelihood Hessian as-is)</td>
-                  <td data-row="1" data-col="2">2 (hit maxiter)</td>
-                  <td data-row="1" data-col="3">200 / 200</td>
-                  <td data-row="1" data-col="4">1.0001 (sentinel)</td>
-                </tr>
-<tr>
-<td data-row="2" data-col="1">Negated (`-hess`)</td>
-                  <td data-row="2" data-col="2">1 (converged)</td>
-                  <td data-row="2" data-col="3">4–11</td>
-                  <td data-row="2" data-col="4">~1e-13 to 1e-21</td>
-                </tr>
+<tr class="odd">
+<td style="text-align: left;">Wrong (log-likelihood Hessian as-is)</td>
+<td style="text-align: left;">2 (hit maxiter)</td>
+<td style="text-align: left;">200 / 200</td>
+<td style="text-align: left;">1.0001 (sentinel)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Negated (<code>-hess</code>)</td>
+<td style="text-align: left;">1 (converged)</td>
+<td style="text-align: left;">4–11</td>
+<td style="text-align: left;">~1e-13 to 1e-21</td>
+</tr>
 </tbody>
 </table>
 </div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
 </figure>
-</div>
 </div>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-commengesNewtonLikeAlgorithmLikelihood2006" class="csl-entry" role="listitem">

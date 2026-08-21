@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.2.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -107,7 +107,7 @@
 </ol>
 <section class="section level2"><h2 id="sec-bivariate-toy">Bivariate toy model: when covariance hurts mean-only deconvolution<a class="anchor" aria-label="anchor" href="#sec-bivariate-toy"></a>
 </h2>
-<p>The manuscript’s bivariate study (two genes, two cell populations) is implemented by <a href="../reference/benchmark_bivariate_gaussian_convolutions.html"><code>benchmark_bivariate_gaussian_convolutions()</code></a> in <code>R/02_01_toy_simulation.R</code>. The purpose is deliberately narrow: show that <strong>even when mean expression profiles are similar</strong>, accounting for the covariance between genes can (a) <strong>degrade</strong> standard mean-only deconvolution algorithms, and (b) be <strong>partly alleviated</strong> by DeCovarT’s native inclusion of <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j</span>.</p>
+<p>The manuscript’s bivariate study (two genes, two cell populations) is implemented by <code><a href="../reference/benchmark_bivariate_gaussian_convolutions.html">benchmark_bivariate_gaussian_convolutions()</a></code> in <code>R/02_01_toy_simulation.R</code>. The purpose is deliberately narrow: show that <strong>even when mean expression profiles are similar</strong>, accounting for the covariance between genes can (a) <strong>degrade</strong> standard mean-only deconvolution algorithms, and (b) be <strong>partly alleviated</strong> by DeCovarT’s native inclusion of <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j</span>.</p>
 <section class="level2"><h3 id="generative-design">Generative design<a class="anchor" aria-label="anchor" href="#generative-design"></a>
 </h3>
 <p>With the simplex constraint <span class="math inline">p_1+p_2=1</span>, only one free unconstrained coordinate <span class="math inline">\rho_1</span> needs to be estimated (via the additive logistic map; see the <a href="softmax-alr-derivatives.html">softmax / ALR vignette</a>). Bulk mixtures <span class="math inline">\boldsymbol{Y}\in\mathcal{M}_{G\times N}</span> are simulated without observation noise beyond the Gaussian convolution itself:</p>
@@ -154,7 +154,7 @@
 <p>The returned list has two tibbles: <code>config</code> (design, Shannon entropy of <span class="math inline">\boldsymbol{p}</span>, MixSim overlap) and <code>simulations</code> (per-sample estimates and error metrics). The article compares DeCovarT against DeconRNASeq / NNLS <span class="citation" data-cites="gongDeconRNASeqStatisticalFramework2013">(<a href="#ref-gongDeconRNASeqStatisticalFramework2013" role="doc-biblioref">Gong and Szustakowski 2013</a>)</span>: overlap of the two cell-type Gaussians is a strong proxy for estimation quality—the lower the overlap, the lower the MSE—while <strong>strong gene–gene correlation at fixed means</strong> inflates mean-only error and is partially recovered once <span class="math inline">\boldsymbol{\Sigma}_j</span> enters the likelihood (ComplexHeatmap panels in the manuscript).</p>
 </section></section><section class="section level2"><h2 id="sec-scenario-grid">High-dimensional hybrid scenario and deconvolution<a class="anchor" aria-label="anchor" href="#sec-scenario-grid"></a>
 </h2>
-<p>The earlier factorial design swept one topology and one cosine level at a time, keeping a single <strong>shared</strong> covariance across all <span class="math inline">J</span> cell types (<code><a href="../reference/simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments()</a></code>; see <a href="synthetic-scenarios.html#sec-ggm-networks">GGM networks</a>). <code>scripts/generate_random_markov_network.R</code> instead builds <strong>one</strong> scenario that stresses several axes of the feature-selection pipeline simultaneously: two cell types that are unrecoverable from <span class="math inline">\boldsymbol{\mu}</span> alone and must be told apart from <strong>topology</strong>, a third cell type set apart by a compact marker block, and a null block that should survive every selection stage as <em>discarded</em>. Notation matches the manuscript: <span class="math inline">G=50</span> genes, <span class="math inline">J=3</span> cell types, <span class="math inline">N</span> bulk samples for <span class="math inline">\boldsymbol{Y}\in\mathcal{M}_{G\times N}</span>.</p>
+<p>The earlier factorial design swept one topology and one cosine level at a time, keeping a single <strong>shared</strong> covariance across all <span class="math inline">J</span> cell types (<code><a href="../reference/simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments()</a></code>; see <a href="https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html#sec-ggm-networks">GGM networks</a>). <code>scripts/generate_random_markov_network.R</code> instead builds <strong>one</strong> scenario that stresses several axes of the feature-selection pipeline simultaneously: two cell types that are unrecoverable from <span class="math inline">\boldsymbol{\mu}</span> alone and must be told apart from <strong>topology</strong>, a third cell type set apart by a compact marker block, and a null block that should survive every selection stage as <em>discarded</em>. Notation matches the manuscript: <span class="math inline">G=50</span> genes, <span class="math inline">J=3</span> cell types, <span class="math inline">N</span> bulk samples for <span class="math inline">\boldsymbol{Y}\in\mathcal{M}_{G\times N}</span>.</p>
 <section class="level2"><h3 id="gene-and-cell-type-design">Gene and cell-type design<a class="anchor" aria-label="anchor" href="#gene-and-cell-type-design"></a>
 </h3>
 <p>The <span class="math inline">G=50</span> genes are partitioned into three blocks, and each cell type gets its <strong>own</strong> <span class="math inline">G\times G</span> precision <span class="math inline">\boldsymbol{\Omega}_j</span> (not a shared one):</p>
@@ -174,8 +174,8 @@
 \bigr),
 \qquad j=1,2,3.
 </span></p>
-<p><span class="math inline">\boldsymbol{\mu}</span> is built by <strong>two</strong> iterative calls to <code><a href="../reference/generate_mean_signature_matrix.html">generate_mean_signature_matrix()</a></code> (<a href="synthetic-scenarios.html#eq-mean-cosine">Eq. mean cosine</a>): first on <span class="math inline">\mathcal{G}_{12}</span> for the pair (cell type 1, cell type 2) with a <strong>high</strong> target cosine <span class="math inline">\rho_{12}=0.95</span> (near-collinear, per <a href="synthetic-scenarios.html#sec-lr-block-mu">mean signature construction</a>); then on a pool of <span class="math inline">2\times10</span> genes for the pair (merged <span class="math inline">\{1,2\}</span>, cell type 3) with a <strong>low</strong> target cosine <span class="math inline">\rho_{3}=0.05</span> (near-orthogonal), keeping only the 10 genes whose private block belongs to cell type 3. <span class="math inline">\mathcal{G}_{\mathrm{eq}}</span> gets a flat baseline directly (identical mean in all three types by construction). Only <span class="math inline">\mathcal{G}_{12}</span> and <span class="math inline">\mathcal{G}_3</span> carry a mean signal; cell types 1 and 2 are, by design, mean-indistinguishable on <span class="math inline">\mathcal{G}_{12}</span>.</p>
-<p>Following the BLGGM hybrid design (<a href="synthetic-scenarios.html#sec-ggm-networks">GGM networks</a>), each block’s <strong>local</strong> topology is set independently per cell type, with no edges between blocks:</p>
+<p><span class="math inline">\boldsymbol{\mu}</span> is built by <strong>two</strong> iterative calls to <code><a href="../reference/generate_mean_signature_matrix.html">generate_mean_signature_matrix()</a></code> (<a href="https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html#eq-mean-cosine">Eq. mean cosine</a>): first on <span class="math inline">\mathcal{G}_{12}</span> for the pair (cell type 1, cell type 2) with a <strong>high</strong> target cosine <span class="math inline">\rho_{12}=0.95</span> (near-collinear, per <a href="https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html#sec-lr-block-mu">mean signature construction</a>); then on a pool of <span class="math inline">2\times10</span> genes for the pair (merged <span class="math inline">\{1,2\}</span>, cell type 3) with a <strong>low</strong> target cosine <span class="math inline">\rho_{3}=0.05</span> (near-orthogonal), keeping only the 10 genes whose private block belongs to cell type 3. <span class="math inline">\mathcal{G}_{\mathrm{eq}}</span> gets a flat baseline directly (identical mean in all three types by construction). Only <span class="math inline">\mathcal{G}_{12}</span> and <span class="math inline">\mathcal{G}_3</span> carry a mean signal; cell types 1 and 2 are, by design, mean-indistinguishable on <span class="math inline">\mathcal{G}_{12}</span>.</p>
+<p>Following the BLGGM hybrid design (<a href="https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html#sec-ggm-networks">GGM networks</a>), each block’s <strong>local</strong> topology is set independently per cell type, with no edges between blocks:</p>
 <div id="tbl-hybrid-topology-design" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-hybrid-topology-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table 1: Local topology assigned to each (gene block, cell type) pair; no edges connect different blocks (block-diagonal precision support).
@@ -224,175 +224,89 @@ Table 1: Local topology assigned to each (gene block, cell type) pair; no edges
 </div>
 <p>Cell types 1 and 2 therefore differ <strong>only</strong> on <code>shared_12_vs_3</code>, and only through <span class="math inline">\boldsymbol{\Omega}</span>: hub/stochastic-block modules (cascading-pathway-like) for cell type 1 versus a single star (one key-driver gene) for cell type 2. <code>equal_all</code> is wired identically (Erdős–Rényi) in every cell type, matching its complete lack of mean signal.</p>
 <p>The generative construction (seed <code>20260807</code>) lives in <code>scripts/generate_random_markov_network.R</code>. <a href="#tbl-mean-geometry" class="quarto-xref">Table 2</a> and <a href="#tbl-topology-diagnostics" class="quarto-xref">Table 3</a> report a fixed draw from that pipeline so the Quarto vignette builds without requiring a live <code><a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">library(DeCovarT)</a></code> in the Quarto subprocess (which can miss the temporary library during <code>R CMD build</code> on some platforms).</p>
-<div class="cell">
-<div id="tbl-mean-geometry" class="cell quarto-float quarto-figure quarto-figure-center">
+<div id="tbl-mean-geometry" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-mean-geometry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table 2: Realised pairwise cosine and Euclidean distance of the 50 x 3 mean signature, over the full G = 50 genes (seed 20260807).
 </figcaption><div aria-describedby="tbl-mean-geometry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output-display">
-<!-- tinytable mathjax start -->
-    <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script><script>
-    MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']]
-      },
-      svg: {
-        fontCache: 'global'
-      }
-    };
-    </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
-      // Create table-specific functions using external factory
-      const tableFns_qids7rpdvg9fv8rmgf6t = TinyTable.createTableFunctions("tinytable_qids7rpdvg9fv8rmgf6t");
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: '3', j: 2 }, { i: '3', j: 3 } ], css_id: 'tinytable_css_hqxm4cjxb4tzi5boz06y',},
-          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 } ], css_id: 'tinytable_css_a2qwvquaovxqmip3kliz',},
-          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 } ], css_id: 'tinytable_css_ul1fujc9eck5n8ko3638',},
-          { positions: [ { i: '3', j: 1 } ], css_id: 'tinytable_css_xgyo7589v8s6mdzn5qv8',},
-          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_k8n303anywwuttog3hkx',},
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  tableFns_qids7rpdvg9fv8rmgf6t.styleCell(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
-<style>
-    /* tinytable css entries after */
-    #tinytable_qids7rpdvg9fv8rmgf6t td.tinytable_css_hqxm4cjxb4tzi5boz06y, #tinytable_qids7rpdvg9fv8rmgf6t th.tinytable_css_hqxm4cjxb4tzi5boz06y {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_qids7rpdvg9fv8rmgf6t td.tinytable_css_a2qwvquaovxqmip3kliz, #tinytable_qids7rpdvg9fv8rmgf6t th.tinytable_css_a2qwvquaovxqmip3kliz { text-align: center }
-    #tinytable_qids7rpdvg9fv8rmgf6t td.tinytable_css_ul1fujc9eck5n8ko3638, #tinytable_qids7rpdvg9fv8rmgf6t th.tinytable_css_ul1fujc9eck5n8ko3638 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_qids7rpdvg9fv8rmgf6t td.tinytable_css_xgyo7589v8s6mdzn5qv8, #tinytable_qids7rpdvg9fv8rmgf6t th.tinytable_css_xgyo7589v8s6mdzn5qv8 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_qids7rpdvg9fv8rmgf6t td.tinytable_css_k8n303anywwuttog3hkx, #tinytable_qids7rpdvg9fv8rmgf6t th.tinytable_css_k8n303anywwuttog3hkx {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    </style>
-<div class="container">
-      <table class="table tinytable" id="tinytable_qids7rpdvg9fv8rmgf6t" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-<thead><tr>
-<th scope="col" data-row="0" data-col="1">pair</th>
-                <th scope="col" data-row="0" data-col="2">cosine</th>
-                <th scope="col" data-row="0" data-col="3">euclidean</th>
-              </tr></thead>
+<table class="table caption-top">
+<thead><tr class="header">
+<th style="text-align: left;">pair</th>
+<th style="text-align: right;">cosine</th>
+<th style="text-align: right;">euclidean</th>
+</tr></thead>
 <tbody>
-<tr>
-<td data-row="1" data-col="1">celltype_1 vs celltype_2</td>
-                  <td data-row="1" data-col="2">0.973</td>
-                  <td data-row="1" data-col="3">2.76</td>
-                </tr>
-<tr>
-<td data-row="2" data-col="1">celltype_1 vs celltype_3</td>
-                  <td data-row="2" data-col="2">0.562</td>
-                  <td data-row="2" data-col="3">11.22</td>
-                </tr>
-<tr>
-<td data-row="3" data-col="1">celltype_2 vs celltype_3</td>
-                  <td data-row="3" data-col="2">0.562</td>
-                  <td data-row="3" data-col="3">11.22</td>
-                </tr>
+<tr class="odd">
+<td style="text-align: left;">celltype_1 vs celltype_2</td>
+<td style="text-align: right;">0.973</td>
+<td style="text-align: right;">2.765</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">celltype_1 vs celltype_3</td>
+<td style="text-align: right;">0.562</td>
+<td style="text-align: right;">11.219</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">celltype_2 vs celltype_3</td>
+<td style="text-align: right;">0.562</td>
+<td style="text-align: right;">11.219</td>
+</tr>
 </tbody>
 </table>
 </div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
 </figure>
 </div>
-</div>
-<div class="cell">
-<div id="tbl-topology-diagnostics" class="cell quarto-float quarto-figure quarto-figure-center">
+<div id="tbl-topology-diagnostics" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-topology-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table 3: Per-cell-type precision spectrum for the 50 x 50 hybrid-topology Omega_j (seed 20260807).
 </figcaption><div aria-describedby="tbl-topology-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output-display">
-<!-- tinytable mathjax start -->
-    <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script><script>
-    MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']]
-      },
-      svg: {
-        fontCache: 'global'
-      }
-    };
-    </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
-      // Create table-specific functions using external factory
-      const tableFns_fd5d5dhz19mff6dhu7us = TinyTable.createTableFunctions("tinytable_fd5d5dhz19mff6dhu7us");
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: '3', j: 3 }, { i: '3', j: 4 }, { i: '3', j: 5 }, { i: '3', j: 6 } ], css_id: 'tinytable_css_oes8f6qdu84zo04piham',},
-          { positions: [ { i: '1', j: 3 }, { i: '2', j: 3 }, { i: '1', j: 4 }, { i: '2', j: 4 }, { i: '1', j: 5 }, { i: '2', j: 5 }, { i: '1', j: 6 }, { i: '2', j: 6 } ], css_id: 'tinytable_css_4uudfcy913ltglmv4dst',},
-          { positions: [ { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 }, { i: '0', j: 6 } ], css_id: 'tinytable_css_q3rowwqo1zbt4ve1e3ly',},
-          { positions: [ { i: '3', j: 1 }, { i: '3', j: 2 } ], css_id: 'tinytable_css_y0ke2pi176l3g868b8ql',},
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 } ], css_id: 'tinytable_css_0xw7q7puc0is45ubmn2o',},
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  tableFns_fd5d5dhz19mff6dhu7us.styleCell(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
-<style>
-    /* tinytable css entries after */
-    #tinytable_fd5d5dhz19mff6dhu7us td.tinytable_css_oes8f6qdu84zo04piham, #tinytable_fd5d5dhz19mff6dhu7us th.tinytable_css_oes8f6qdu84zo04piham {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_fd5d5dhz19mff6dhu7us td.tinytable_css_4uudfcy913ltglmv4dst, #tinytable_fd5d5dhz19mff6dhu7us th.tinytable_css_4uudfcy913ltglmv4dst { text-align: center }
-    #tinytable_fd5d5dhz19mff6dhu7us td.tinytable_css_q3rowwqo1zbt4ve1e3ly, #tinytable_fd5d5dhz19mff6dhu7us th.tinytable_css_q3rowwqo1zbt4ve1e3ly {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_fd5d5dhz19mff6dhu7us td.tinytable_css_y0ke2pi176l3g868b8ql, #tinytable_fd5d5dhz19mff6dhu7us th.tinytable_css_y0ke2pi176l3g868b8ql {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_fd5d5dhz19mff6dhu7us td.tinytable_css_0xw7q7puc0is45ubmn2o, #tinytable_fd5d5dhz19mff6dhu7us th.tinytable_css_0xw7q7puc0is45ubmn2o {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    </style>
-<div class="container">
-      <table class="table tinytable" id="tinytable_fd5d5dhz19mff6dhu7us" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-<thead><tr>
-<th scope="col" data-row="0" data-col="1">cell type</th>
-                <th scope="col" data-row="0" data-col="2">topology</th>
-                <th scope="col" data-row="0" data-col="3">$\lambda_{\min}$</th>
-                <th scope="col" data-row="0" data-col="4">$\lambda_{\max}$</th>
-                <th scope="col" data-row="0" data-col="5">$\kappa(\Omega)$</th>
-                <th scope="col" data-row="0" data-col="6">prop inhib</th>
-              </tr></thead>
+<table class="table caption-top">
+<colgroup>
+<col style="width: 12%">
+<col style="width: 11%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 13%">
+</colgroup>
+<thead><tr class="header">
+<th style="text-align: left;">cell type</th>
+<th style="text-align: left;">topology</th>
+<th style="text-align: right;"><span class="math inline">\lambda_{\min}</span></th>
+<th style="text-align: right;"><span class="math inline">\lambda_{\max}</span></th>
+<th style="text-align: right;"><span class="math inline">\kappa(\Omega)</span></th>
+<th style="text-align: right;">prop inhib</th>
+</tr></thead>
 <tbody>
-<tr>
-<td data-row="1" data-col="1">celltype_1</td>
-                  <td data-row="1" data-col="2">SBM (hub-like modules)</td>
-                  <td data-row="1" data-col="3">0.1</td>
-                  <td data-row="1" data-col="4">1.68</td>
-                  <td data-row="1" data-col="5">16.8</td>
-                  <td data-row="1" data-col="6">0.5</td>
-                </tr>
-<tr>
-<td data-row="2" data-col="1">celltype_2</td>
-                  <td data-row="2" data-col="2">star (single key driver)</td>
-                  <td data-row="2" data-col="3">0.1</td>
-                  <td data-row="2" data-col="4">3.33</td>
-                  <td data-row="2" data-col="5">33.3</td>
-                  <td data-row="2" data-col="6">0.489</td>
-                </tr>
-<tr>
-<td data-row="3" data-col="1">celltype_3</td>
-                  <td data-row="3" data-col="2">scale-free (marker genes)</td>
-                  <td data-row="3" data-col="3">0.1</td>
-                  <td data-row="3" data-col="4">2.1</td>
-                  <td data-row="3" data-col="5">21</td>
-                  <td data-row="3" data-col="6">0.5</td>
-                </tr>
+<tr class="odd">
+<td style="text-align: left;">celltype_1</td>
+<td style="text-align: left;">SBM (hub-like modules)</td>
+<td style="text-align: right;">0.100</td>
+<td style="text-align: right;">1.685</td>
+<td style="text-align: right;">16.846</td>
+<td style="text-align: right;">0.500</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">celltype_2</td>
+<td style="text-align: left;">star (single key driver)</td>
+<td style="text-align: right;">0.100</td>
+<td style="text-align: right;">3.331</td>
+<td style="text-align: right;">33.311</td>
+<td style="text-align: right;">0.489</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">celltype_3</td>
+<td style="text-align: left;">scale-free (marker genes)</td>
+<td style="text-align: right;">0.100</td>
+<td style="text-align: right;">2.096</td>
+<td style="text-align: right;">20.961</td>
+<td style="text-align: right;">0.500</td>
+</tr>
 </tbody>
 </table>
 </div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
 </figure>
 </div>
-</div>
-<p>Column guide: <span class="math inline">\lambda_{\min}</span>, <span class="math inline">\lambda_{\max}</span>, and <span class="math inline">\kappa(\boldsymbol{\Omega})=\lambda_{\max}/\lambda_{\min}</span> summarise the precision spectrum of each cell type’s <em>own</em> <span class="math inline">\boldsymbol{\Omega}_j</span>; <code>prop_inhib</code> is the realised fraction of inhibitory precision edges. <a href="#tbl-mean-geometry" class="quarto-xref">Table 2</a> shows cell types 1 and 2 near-collinear (cosine <span class="math inline">\approx 0.97</span>), tracking the local target <span class="math inline">\rho_{12}=0.95</span> used on <code>shared_12_vs_3</code>. Cell type 3, however, sits at only a <em>moderate</em> cosine (<span class="math inline">\approx0.56</span>) from the other two—well above the local target <span class="math inline">\rho_{3}=0.05</span> used on the <code>marker_3</code> pool. The gap is exactly the finite-sample effect of <a href="synthetic-scenarios.html#sec-asymptotic-cosine">asymptotic cosine control</a>: the flat <code>celltype_12_merged</code> background on <code>shared_12_vs_3</code> and the identical <code>equal_all</code> baseline both contribute a strictly positive term to <em>every</em> pairwise inner product over the full <span class="math inline">G=50</span> vector, diluting the block-local orthogonality of <code>marker_3</code> alone. <a href="#tbl-topology-diagnostics" class="quarto-xref">Table 3</a> shows that, despite the shared mean on <code>shared_12_vs_3</code>, cell types 1 and 2 carry distinct, well-conditioned precision spectra—exactly the topology-only separation the scenario is designed to require.</p>
+<p>Column guide: <span class="math inline">\lambda_{\min}</span>, <span class="math inline">\lambda_{\max}</span>, and <span class="math inline">\kappa(\boldsymbol{\Omega})=\lambda_{\max}/\lambda_{\min}</span> summarise the precision spectrum of each cell type’s <em>own</em> <span class="math inline">\boldsymbol{\Omega}_j</span>; <code>prop_inhib</code> is the realised fraction of inhibitory precision edges. <a href="#tbl-mean-geometry" class="quarto-xref">Table 2</a> shows cell types 1 and 2 near-collinear (cosine <span class="math inline">\approx 0.97</span>), tracking the local target <span class="math inline">\rho_{12}=0.95</span> used on <code>shared_12_vs_3</code>. Cell type 3, however, sits at only a <em>moderate</em> cosine (<span class="math inline">\approx0.56</span>) from the other two—well above the local target <span class="math inline">\rho_{3}=0.05</span> used on the <code>marker_3</code> pool. The gap is exactly the finite-sample effect of <a href="https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html#sec-asymptotic-cosine">asymptotic cosine control</a>: the flat <code>celltype_12_merged</code> background on <code>shared_12_vs_3</code> and the identical <code>equal_all</code> baseline both contribute a strictly positive term to <em>every</em> pairwise inner product over the full <span class="math inline">G=50</span> vector, diluting the block-local orthogonality of <code>marker_3</code> alone. <a href="#tbl-topology-diagnostics" class="quarto-xref">Table 3</a> shows that, despite the shared mean on <code>shared_12_vs_3</code>, cell types 1 and 2 carry distinct, well-conditioned precision spectra—exactly the topology-only separation the scenario is designed to require.</p>
 <p><a href="#fig-network-topologies" class="quarto-xref">Figure 1</a> renders the three realised networks with <code>igraph</code>, coloured by gene block and by precision-edge sign.</p>
 <div id="fig-network-topologies" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-network-topologies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -406,119 +320,72 @@ Figure 1: Cell-type-specific block topologies for the 50-gene hybrid scenario: 
 </section><section class="level2"><h3 id="sec-hybrid-deconvolution">Deconvolution on imbalanced mixtures<a class="anchor" aria-label="anchor" href="#sec-hybrid-deconvolution"></a>
 </h3>
 <p><code>scripts/deconvolute_simulated_scenario.R</code> loads the NSGA-II-curated moments from <code>data/synthetic_networks/true_grn_moments.rds</code>, restricts to the final gene panel, simulates <span class="math inline">N=20</span> bulk mixtures with <strong>imbalanced</strong> true composition <span class="math inline">\boldsymbol{p}=(0.4,0.4,0.2)</span> (equal mass on the two mean-collinear types; <span class="math inline">0.2</span> on the orthogonal type), and runs every frequentist solver from an equi-balanced start. <a href="#tbl-solver-diagnostics" class="quarto-xref">Table 4</a> summarises a diagnostic run <strong>before</strong> the numerical fixes documented in the <a href="softmax-alr-derivatives.html#sec-numerical-speedups">softmax / ALR vignette</a>: stalled Newton–Raphson (<code>eval.max = 1</code>), slow Marquardt–Levenberg (wrong Hessian sign under <code>marqLevAlg</code>), and the benefit of polishing simulated annealing with a local Newton step.</p>
-<div class="cell">
-<div id="tbl-solver-diagnostics" class="cell quarto-float quarto-figure quarto-figure-center">
+<div id="tbl-solver-diagnostics" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-solver-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table 4: Per-solver summary on 20 imbalanced hybrid bulk mixtures (true p = (0.4, 0.4, 0.2)), diagnostic run before numerical fixes in R/03_03_DeCovarT_estimate_ratios_frequentist.R.
 </figcaption><div aria-describedby="tbl-solver-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output-display">
-<!-- tinytable mathjax start -->
-    <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script><script>
-    MathJax = {
-      tex: {
-        inlineMath: [['$', '$'], ['\\(', '\\)']]
-      },
-      svg: {
-        fontCache: 'global'
-      }
-    };
-    </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
-      // Create table-specific functions using external factory
-      const tableFns_70e0xdzmrxaq0o1r3bq3 = TinyTable.createTableFunctions("tinytable_70e0xdzmrxaq0o1r3bq3");
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: '7', j: 2 }, { i: '7', j: 3 }, { i: '7', j: 4 }, { i: '7', j: 5 } ], css_id: 'tinytable_css_fktsezxbamxfx7pirrf1',},
-          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 }, { i: '6', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 }, { i: '3', j: 3 }, { i: '4', j: 3 }, { i: '5', j: 3 }, { i: '6', j: 3 }, { i: '1', j: 4 }, { i: '2', j: 4 }, { i: '3', j: 4 }, { i: '4', j: 4 }, { i: '5', j: 4 }, { i: '6', j: 4 }, { i: '1', j: 5 }, { i: '2', j: 5 }, { i: '3', j: 5 }, { i: '4', j: 5 }, { i: '5', j: 5 }, { i: '6', j: 5 } ], css_id: 'tinytable_css_tejd49gvqa2k8eovtazq',},
-          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_vy3uvc0arvbd93qbi2dd',},
-          { positions: [ { i: '7', j: 1 } ], css_id: 'tinytable_css_xyqdje20d3i8lz3veeie',},
-          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_lj0seo08ngmpjv1m9qql',},
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  tableFns_70e0xdzmrxaq0o1r3bq3.styleCell(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
-<style>
-    /* tinytable css entries after */
-    #tinytable_70e0xdzmrxaq0o1r3bq3 td.tinytable_css_fktsezxbamxfx7pirrf1, #tinytable_70e0xdzmrxaq0o1r3bq3 th.tinytable_css_fktsezxbamxfx7pirrf1 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_70e0xdzmrxaq0o1r3bq3 td.tinytable_css_tejd49gvqa2k8eovtazq, #tinytable_70e0xdzmrxaq0o1r3bq3 th.tinytable_css_tejd49gvqa2k8eovtazq { text-align: center }
-    #tinytable_70e0xdzmrxaq0o1r3bq3 td.tinytable_css_vy3uvc0arvbd93qbi2dd, #tinytable_70e0xdzmrxaq0o1r3bq3 th.tinytable_css_vy3uvc0arvbd93qbi2dd {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_70e0xdzmrxaq0o1r3bq3 td.tinytable_css_xyqdje20d3i8lz3veeie, #tinytable_70e0xdzmrxaq0o1r3bq3 th.tinytable_css_xyqdje20d3i8lz3veeie {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_70e0xdzmrxaq0o1r3bq3 td.tinytable_css_lj0seo08ngmpjv1m9qql, #tinytable_70e0xdzmrxaq0o1r3bq3 th.tinytable_css_lj0seo08ngmpjv1m9qql {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    </style>
-<div class="container">
-      <table class="table tinytable" id="tinytable_70e0xdzmrxaq0o1r3bq3" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-<thead><tr>
-<th scope="col" data-row="0" data-col="1">algorithm</th>
-                <th scope="col" data-row="0" data-col="2">n_ok</th>
-                <th scope="col" data-row="0" data-col="3">n_flagged</th>
-                <th scope="col" data-row="0" data-col="4">mean max|error|</th>
-                <th scope="col" data-row="0" data-col="5">mean time/sample</th>
-              </tr></thead>
+<table class="table caption-top">
+<thead><tr class="header">
+<th style="text-align: left;">algorithm</th>
+<th style="text-align: right;">n_ok</th>
+<th style="text-align: right;">n_flagged</th>
+<th style="text-align: right;">mean max|error|</th>
+<th style="text-align: right;">mean time/sample</th>
+</tr></thead>
 <tbody>
-<tr>
-<td data-row="1" data-col="1">gradient_descent (BFGS)</td>
-                  <td data-row="1" data-col="2">20</td>
-                  <td data-row="1" data-col="3">0</td>
-                  <td data-row="1" data-col="4">0.145</td>
-                  <td data-row="1" data-col="5">2.6 ms</td>
-                </tr>
-<tr>
-<td data-row="2" data-col="1">Newton_Raphson (as shipped)</td>
-                  <td data-row="2" data-col="2">0</td>
-                  <td data-row="2" data-col="3">20</td>
-                  <td data-row="2" data-col="4">0.133</td>
-                  <td data-row="2" data-col="5">8.6 ms</td>
-                </tr>
-<tr>
-<td data-row="3" data-col="1">Newton_Raphson_fixed</td>
-                  <td data-row="3" data-col="2">20</td>
-                  <td data-row="3" data-col="3">0</td>
-                  <td data-row="3" data-col="4">0.102</td>
-                  <td data-row="3" data-col="5">39 ms</td>
-                </tr>
-<tr>
-<td data-row="4" data-col="1">sann_then_polish</td>
-                  <td data-row="4" data-col="2">20</td>
-                  <td data-row="4" data-col="3">0</td>
-                  <td data-row="4" data-col="4">0.102</td>
-                  <td data-row="4" data-col="5">55.6 ms</td>
-                </tr>
-<tr>
-<td data-row="5" data-col="1">simulated_annealing</td>
-                  <td data-row="5" data-col="2">18</td>
-                  <td data-row="5" data-col="3">2</td>
-                  <td data-row="5" data-col="4">0.11</td>
-                  <td data-row="5" data-col="5">58.7 ms</td>
-                </tr>
-<tr>
-<td data-row="6" data-col="1">L_BFGS_B</td>
-                  <td data-row="6" data-col="2">20</td>
-                  <td data-row="6" data-col="3">0</td>
-                  <td data-row="6" data-col="4">0.1</td>
-                  <td data-row="6" data-col="5">86.9 ms</td>
-                </tr>
-<tr>
-<td data-row="7" data-col="1">Marquardt_Levenberg</td>
-                  <td data-row="7" data-col="2">18</td>
-                  <td data-row="7" data-col="3">2</td>
-                  <td data-row="7" data-col="4">0.102</td>
-                  <td data-row="7" data-col="5">1662 ms</td>
-                </tr>
+<tr class="odd">
+<td style="text-align: left;">gradient_descent (BFGS)</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.145</td>
+<td style="text-align: right;">2.6 ms</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Newton_Raphson (as shipped)</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">0.133</td>
+<td style="text-align: right;">8.6 ms</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Newton_Raphson_fixed</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.102</td>
+<td style="text-align: right;">39 ms</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">sann_then_polish</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.102</td>
+<td style="text-align: right;">55.6 ms</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">simulated_annealing</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0.110</td>
+<td style="text-align: right;">58.7 ms</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">L_BFGS_B</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0.100</td>
+<td style="text-align: right;">86.9 ms</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Marquardt_Levenberg</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0.102</td>
+<td style="text-align: right;">1662 ms</td>
+</tr>
 </tbody>
 </table>
 </div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
 </figure>
-</div>
 </div>
 <p>Key reading of <a href="#tbl-solver-diagnostics" class="quarto-xref">Table 4</a>:</p>
 <ul>
@@ -553,7 +420,7 @@ Table 4: Per-solver summary on 20 imbalanced hybrid bulk mixtures (true p = (0.
 Figure 2: Schematic differential-distribution taxonomy for the three gene blocks: equivalent expression (EE, <code>equal_all</code>), differential expression marking cell type 3 (DE, <code>marker_3</code>), and a differential-modality-like contrast between cell types 1 and 2 that is invisible at the mean level and only resolved by network topology (DM-like, <code>shared_12_vs_3</code>).
 </figcaption></figure>
 </div>
-<p>DeCovarT’s generator is narrower—it fixes <span class="math inline">\boldsymbol{\mu}</span> through <a href="synthetic-scenarios.html#eq-mean-cosine">Eq. mean cosine</a> and <a href="synthetic-scenarios.html#eq-lr-block">Eq. low-rank block</a> rather than estimating signatures from real scRNA-seq—but the same low-rank-plus-block intuition underpins many reference-matrix constructions cited above.</p>
+<p>DeCovarT’s generator is narrower—it fixes <span class="math inline">\boldsymbol{\mu}</span> through <a href="https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html#eq-mean-cosine">Eq. mean cosine</a> and <a href="https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html#eq-lr-block">Eq. low-rank block</a> rather than estimating signatures from real scRNA-seq—but the same low-rank-plus-block intuition underpins many reference-matrix constructions cited above.</p>
 </section></section><section class="section level2"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">

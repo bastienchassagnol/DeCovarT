@@ -59,13 +59,13 @@ a quadratic form is the bilinear form evaluated on the same vector
 twice, q(\boldsymbol{x})=b(\boldsymbol{x},\boldsymbol{x}).
 
 | Expression | Terminology |
-|----|----|
-| \\\boldsymbol{x}^{\mathsf{T}}\boldsymbol{y}\\ | Dot product / Euclidean inner product |
-| \\\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{y}\\ | Bilinear form (inner product if \\\boldsymbol{A}\\ is SPD) |
-| \\\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{x}\\ | Quadratic form |
-| \\\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}^{-1}\boldsymbol{x}\\ | Quadratic form induced by \\\boldsymbol{A}^{-1}\\ |
-| \\(\boldsymbol{x}-\boldsymbol{\mu})^{\mathsf{T}}\boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{\mu})\\ | Squared Mahalanobis distance |
-| \\\sqrt{(\boldsymbol{x}-\boldsymbol{\mu})^{\mathsf{T}}\boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{\mu})}\\ | Mahalanobis distance |
+|:---|:---|
+| \boldsymbol{x}^{\mathsf{T}}\boldsymbol{y} | Dot product / Euclidean inner product |
+| \boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{y} | Bilinear form (inner product if \boldsymbol{A} is SPD) |
+| \boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{x} | Quadratic form |
+| \boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}^{-1}\boldsymbol{x} | Quadratic form induced by \boldsymbol{A}^{-1} |
+| (\boldsymbol{x}-\boldsymbol{\mu})^{\mathsf{T}}\boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{\mu}) | Squared Mahalanobis distance |
+| \sqrt{(\boldsymbol{x}-\boldsymbol{\mu})^{\mathsf{T}}\boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{\mu})} | Mahalanobis distance |
 
 Table 2: Standard algebraic operations induced by a matrix
 \boldsymbol{A}.
@@ -576,9 +576,9 @@ internal line search), but iterations dropped roughly 20–40\times and
 `istop` / `rdm` became honest relative to [Eq. 15](#eq-rdm-commenges).
 
 | Hessian sign | istop | iterations | rdm |
-|----|----|----|----|
+|:---|:---|:---|:---|
 | Wrong (log-likelihood Hessian as-is) | 2 (hit maxiter) | 200 / 200 | 1.0001 (sentinel) |
-| Negated (\`-hess\`) | 1 (converged) | 4–11 | ~1e-13 to 1e-21 |
+| Negated (`-hess`) | 1 (converged) | 4–11 | ~1e-13 to 1e-21 |
 
 Table 3: Effect of negating the analytic Hessian passed to marqLevAlg
 when maximize = TRUE (minimize = FALSE).

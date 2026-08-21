@@ -49,6 +49,7 @@
 ".parse_true_theta","04_01_run_benchmark.R","true_theta, require_p, J, second_moment"
 "compute_benchmark_metrics","04_01_run_benchmark.R","y, mean_signature_matrix, estimated_p, true_ratios"
 "deconvolute_ratios","04_01_run_benchmark.R","signature_matrix, bulk_expression, true_ratios, Sigma, deconvolution_functions, standardise, scaled, cores"
+".check_heatmap_dependencies","04_02_benchmark_visualisation.R","<none>"
 "plot_correlation_Heatmap","04_02_benchmark_visualisation.R","distribution_metrics, score_variable, n_break, uni_scale, file"
 "repair_simplex","statistical_metrics.R","p, tolerance"
 "compute_shannon_entropy","statistical_metrics.R","ratios"

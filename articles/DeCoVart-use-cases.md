@@ -175,19 +175,19 @@ the Quarto subprocess (which can miss the temporary library during
 `R CMD build` on some platforms).
 
 | pair                     | cosine | euclidean |
-|--------------------------|--------|-----------|
-| celltype_1 vs celltype_2 | 0.973  | 2.76      |
-| celltype_1 vs celltype_3 | 0.562  | 11.22     |
-| celltype_2 vs celltype_3 | 0.562  | 11.22     |
+|:-------------------------|-------:|----------:|
+| celltype_1 vs celltype_2 |  0.973 |     2.765 |
+| celltype_1 vs celltype_3 |  0.562 |    11.219 |
+| celltype_2 vs celltype_3 |  0.562 |    11.219 |
 
 Table 2: Realised pairwise cosine and Euclidean distance of the 50 x 3
 mean signature, over the full G = 50 genes (seed 20260807).
 
-| cell type | topology | \$\lambda\_{\min}\$ | \$\lambda\_{\max}\$ | \$\kappa(\Omega)\$ | prop inhib |
-|----|----|----|----|----|----|
-| celltype_1 | SBM (hub-like modules) | 0.1 | 1.68 | 16.8 | 0.5 |
-| celltype_2 | star (single key driver) | 0.1 | 3.33 | 33.3 | 0.489 |
-| celltype_3 | scale-free (marker genes) | 0.1 | 2.1 | 21 | 0.5 |
+| cell type | topology | \lambda\_{\min} | \lambda\_{\max} | \kappa(\Omega) | prop inhib |
+|:---|:---|---:|---:|---:|---:|
+| celltype_1 | SBM (hub-like modules) | 0.100 | 1.685 | 16.846 | 0.500 |
+| celltype_2 | star (single key driver) | 0.100 | 3.331 | 33.311 | 0.489 |
+| celltype_3 | scale-free (marker genes) | 0.100 | 2.096 | 20.961 | 0.500 |
 
 Table 3: Per-cell-type precision spectrum for the 50 x 50
 hybrid-topology Omega_j (seed 20260807).
@@ -247,13 +247,13 @@ Hessian sign under `marqLevAlg`), and the benefit of polishing simulated
 annealing with a local Newton step.
 
 | algorithm | n_ok | n_flagged | mean max\|error\| | mean time/sample |
-|----|----|----|----|----|
+|:---|---:|---:|---:|---:|
 | gradient_descent (BFGS) | 20 | 0 | 0.145 | 2.6 ms |
 | Newton_Raphson (as shipped) | 0 | 20 | 0.133 | 8.6 ms |
 | Newton_Raphson_fixed | 20 | 0 | 0.102 | 39 ms |
 | sann_then_polish | 20 | 0 | 0.102 | 55.6 ms |
-| simulated_annealing | 18 | 2 | 0.11 | 58.7 ms |
-| L_BFGS_B | 20 | 0 | 0.1 | 86.9 ms |
+| simulated_annealing | 18 | 2 | 0.110 | 58.7 ms |
+| L_BFGS_B | 20 | 0 | 0.100 | 86.9 ms |
 | Marquardt_Levenberg | 18 | 2 | 0.102 | 1662 ms |
 
 Table 4: Per-solver summary on 20 imbalanced hybrid bulk mixtures (true

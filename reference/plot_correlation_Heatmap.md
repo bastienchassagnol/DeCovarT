@@ -1,7 +1,9 @@
 # Plot deconvolution metric heatmaps
 
 For each algorithm, visualises a selected score over the design grid of
-simulated \\\boldsymbol{p}\\ (and related scenario factors).
+simulated \\\boldsymbol{p}\\ (and related scenario factors). Requires
+optional Suggests packages `ComplexHeatmap`, `circlize`, and `viridis`
+(install `ComplexHeatmap` via Bioconductor).
 
 ## Usage
 
@@ -55,7 +57,13 @@ metrics <- tibble::tibble(
   algorithm = "nnls",
   model_mse = c(0.01, 0.02, 0.015, 0.03)
 )
-ht <- plot_correlation_Heatmap(metrics, score_variable = "model_mse")
-names(ht)
+if (
+  requireNamespace("ComplexHeatmap", quietly = TRUE) &&
+    requireNamespace("circlize", quietly = TRUE) &&
+    requireNamespace("viridis", quietly = TRUE)
+) {
+  ht <- plot_correlation_Heatmap(metrics, score_variable = "model_mse")
+  names(ht)
+}
 #> [1] "nnls"
 ```
