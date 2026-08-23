@@ -136,6 +136,34 @@ stacks (e.g. PyTorch) for this R package.
 - External package files live in `inst/`; read with `system.file()`.
 - Prefer Quarto for reproducible reports combining code and results.
 
+## Code intelligence (Graphify)
+
+Prefer **[Graphify](https://github.com/Graphify-Labs/graphify)** as the
+codebase knowledge graph before repo-wide grep or blind file reads when
+exploring structure, dependencies, or cross-file call paths.
+
+- **Cursor (Agent chat):** `/graphify .` builds the graph; `/graphify query
+  "…"`, `/graphify path "A" "B"`, `/graphify explain "fn"` query it.
+  These are **skill commands in chat**, not shell paths — do not type
+  `/graphify` in the terminal.
+- **Terminal:** `graphify extract . --code-only` (first build) or
+  `graphify update .` after edits. Respect `.graphifyignore` (lean scope:
+  `R/`, `scripts/`, `vignettes/*.qmd`, `tests/`; **exclude** `slides/` and
+  vendored `vignettes/_extensions/`).
+- **Outputs (local only):** `graphify-out/` is **gitignored** and
+  **`.Rbuildignore`d** — rebuilt locally via `graphify hook install`
+  (post-commit AST refresh) or `graphify update .`. Do not commit it.
+- **Always-on nudge:** `.cursor/rules/graphify.mdc` (from
+  `graphify cursor install`); reinstall after `uv tool upgrade graphifyy`.
+- **R package gap (v0.9.48):** `.R` files are classified as code but have
+  **no AST extractor** yet — `R/` and `tests/` contribute no nodes until
+  [tree-sitter-r lands (#1689)](https://github.com/Graphify-Labs/graphify/issues/1689).
+  Until then, graphify is most useful for `scripts/`, vignette `.qmd`
+  (full `/graphify .` with semantic pass), and cross-doc links; use
+  `grep` / `@inheritParams` / pkgdown for exported R API navigation.
+  Cloud workspace (optional):
+  [app.graphify.com](https://app.graphify.com).
+
 ## Air formatting and automated linting
 
 This repo uses **[Air](https://posit-dev.github.io/air/)** (`air.toml`) and
@@ -611,6 +639,28 @@ gitignored at the repo root; after merging run `--clean`.
   - `@techreport` — `title`, `author`, `year`, `institution`
 - Pre-commit hook `check-bibliography` validates literature hygiene and
   `article/main.tex` citekeys (against literature **and** `packages.bib`).
+
+### Broken or missing URLs (Internet Archive / Wayback Machine)
+
+When fetching or verifying bibliographical resources (publisher pages,
+preprints, software manuals, `url` / `howpublished` fields, linked
+figures, or any cited web resource):
+
+1. Try the live URL first (DOI resolver, publisher, GitHub, etc.).
+2. If the link is **404**, redirected to a dead host, paywalled with no
+   usable landing page, or otherwise unreachable, look up an archived
+   copy on the **[Wayback Machine](https://web.archive.org/)** before
+   inventing a replacement or dropping the citation metadata.
+3. Prefer the closest successful snapshot to the publication / access
+   date. Construct lookups as
+   `https://web.archive.org/web/*/<original-url>` (or the Archive’s
+   “Save Page Now” / browse UI) and cite or store the **archived URL**
+   when the live one is gone.
+4. Still prefer a stable identifier when one exists (`doi`, ISBN, CRAN /
+   Bioconductor package page). Use Wayback as a **fallback for content
+   recovery**, not as a substitute for inventing DOIs or BibTeX fields.
+5. Never fabricate archive timestamps or claim a snapshot existed when
+   the Archive has no capture; flag the dead link for the user instead.
 
 ### Completing missing fields (Crossref + bibtex-tidy)
 

@@ -1,0 +1,36 @@
+# Graphify extraction scope for DeCovarT (see .cursorrules).
+# Merged with .gitignore; patterns here only exclude more.
+
+# Reveal.js deck + vendored JS (dominated past graphs)
+slides/
+
+# Quarto extension vendoring (embedpdf, etc.)
+vignettes/_extensions/
+
+# Built site, bulky artefacts, raw data
+docs/
+pkgdown/
+output/
+data/
+graphify-out/
+
+# Figures / logos (not useful for AST code graph)
+figs/
+vignettes/figures/
+inst/logo/
+article/figs/
+
+# Tooling / IDE (not package logic)
+.github/
+.cursor/
+.vscode/
+
+# Large or binary media
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.svg
+*.pdf
+*.html

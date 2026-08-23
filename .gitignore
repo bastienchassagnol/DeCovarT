@@ -78,6 +78,9 @@ IV) build signature matrix.bib
 output/zotero/
 __pycache__/
 
+# Graphify knowledge graph (local only; rebuilt by hook or graphify update)
+graphify-out/
+
 # Generated manuals and article PDF (CI / local latexmk)
 article/*.pdf
 output/manual/
