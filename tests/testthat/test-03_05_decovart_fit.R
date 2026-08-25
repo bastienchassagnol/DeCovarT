@@ -1,3 +1,17 @@
+# rOpenSci srr tags for Probability Distributions / Regression tests live
+# here so compliance is documented under tests/ as well as R/.
+#
+#' @srrstats {PD4.0} Numeric equality of fitted proportions and log-likelihood
+#'   against known toy fixtures (tolerance `.tol_srr`).
+#' @srrstats {PD4.1} Expected values are derived from the analytic Gaussian
+#'   convolution on the shipped two-gene / two-cell-type toy.
+#' @srrstats {PD4.3} Solver controls (`itmax`, method) are exercised below.
+#' @srrstats {PD4.4} Marquardt--Levenberg path used here; Newton comparisons
+#'   appear in neighbouring cases in this file.
+#' @srrstats {RE7.1} Noiseless / low-noise recovery of ground-truth proportions.
+#' @srrstats {RE7.3} S3 accessors `coef`, `fitted`, `residuals`, `vcov`,
+#'   `nobs`, `print`, `summary`, `plot` are exercised.
+
 test_that("fit_decovart S3 accessors match the convolution (RE4, RE6)", {
   toy <- .toy_deconvolution()
   fit <- suppressWarnings(fit_decovart(

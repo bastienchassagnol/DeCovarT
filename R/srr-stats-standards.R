@@ -4,10 +4,15 @@ NULL
 
 #' srr_stats
 #'
-#' rOpenSci Statistical Software Standards - General (G) and Regression (RE)
-#' categories.  Standards already addressed are tagged `@srrstats`.
-#' Standards not applicable are tagged `@srrstatsNA` in the block below.
-#' Remaining standards keep `@srrstatsTODO` for full review.
+#' rOpenSci Statistical Software Standards - General (G), Regression (RE)
+#' and Probability Distributions (PD) categories.  Standards already
+#' addressed are tagged `@srrstats`. Standards not applicable are tagged
+#' `@srrstatsNA` in the block below. Remaining standards keep
+#' `@srrstatsTODO` for full review.
+#'
+#' Tags are intentionally placed in both `R/` (this file and exported
+#' helpers) and `tests/testthat/` so `srr::srr_stats_pre_submit()` sees
+#' documentation in multiple package directories.
 #'
 #' G1 - Documentation and references
 #'
@@ -261,6 +266,43 @@ NULL
 #' @srrstats {RE7.3} Tests exercise `coef`, `fitted`, `residuals`,
 #'   `vcov`, `nobs`, `print`, `summary`, `plot`.
 #'
+#' PD - Probability Distributions (v0.2.0)
+#' See <https://stats-devguide.ropensci.org/standards.html#standards-distributions>.
+#' DeCovarT is primarily Regression/Supervised Learning; the generative
+#' model is a fixed multivariate Gaussian convolution of purified cell-type
+#' profiles, so PD standards apply to that distributional core only.
+#'
+#' @srrstats {PD1.0} The multivariate normal convolution
+#'   \(\boldsymbol{y}\mid\boldsymbol{p}\sim
+#'   \mathcal{N}_G(\boldsymbol{\mu}\boldsymbol{p},
+#'   \sum_j p_j^{2}\boldsymbol{\Sigma}_j)\) is justified in Chassagnol,
+#'   Nuel and Becht (2023) <doi:10.48550/arXiv.2309.09557> and documented
+#'   in `?fit_decovart`, `?loglik_multivariate`, and the use-cases vignette.
+#'
+#' @srrstats {PD3.0} Log-likelihood, score and Hessian of the Gaussian
+#'   convolution are analytic (ALR reparametrisation); numeric finite
+#'   differences are used only in tests against `numDeriv`, not for fitting.
+#'
+#' @srrstats {PD3.2} Optimiser controls (`method`, `epsilon`, `itmax`, and
+#'   solver-specific knobs) are explicit arguments of `fit_decovart()` /
+#'   `deconvolute_ratios()`; defaults are documented in the help pages.
+#'
+#' @srrstats {PD3.3} `decovart_fit$convergence` stores algorithm name,
+#'   stop / RDM codes, iteration counts and tolerance; see also RE3.0–RE3.3.
+#'
+#' @srrstats {PD4.0} Numeric equality tests of the log-likelihood and
+#'   recovered proportions use defined tolerances (see G3.0 / `.tol_srr`).
+#'
+#' @srrstats {PD4.1} Bivariate / two-gene fixtures under
+#'   `tests/testthat/fixtures/` and hand-checkable cases in
+#'   `test-03_05_decovart_fit.R` show how expected values are derived.
+#'
+#' @srrstats {PD4.3} Optimiser tests vary `epsilon`, `itmax` and starting
+#'   values; see also G5.9b multi-start checks.
+#'
+#' @srrstats {PD4.4} Equivalent fits are compared across at least two
+#'   algorithms (Marquardt--Levenberg and Newton--Raphson).
+#'
 #' @noRd
 NULL
 
@@ -324,6 +366,21 @@ NULL
 #' @srrstatsNA {RE6.3} Interpolated vs extrapolated predictions do not
 #'   arise (no `predict()`).
 #' @srrstatsNA {RE7.4} Forecast-horizon tests do not apply (see RE4.15).
+#'
+#' Probability Distributions NAs (fixed MVN generative model; see PD1.0):
+#' @srrstatsNA {PD2.0} Distributions are not represented via a general
+#'   distribution package (`distr`, `distributional`, …). DeCovarT uses one
+#'   fixed multivariate Gaussian convolution (PD1.0), implemented analytically
+#'   in `loglik_multivariate()` / `fit_decovart()`.
+#' @srrstatsNA {PD3.1} Operations do not take a distribution name as an
+#'   argument: the generative law is fixed as MVN (see PD1.0 / PD2.0).
+#' @srrstatsNA {PD3.4} Fitting does not numerically integrate densities;
+#'   the MLE maximises the closed-form Gaussian log-likelihood.
+#' @srrstatsNA {PD3.5} Discrete Riemann summation is not used to approximate
+#'   distributional integrals (see PD3.4).
+#' @srrstatsNA {PD3.5a} See PD3.5.
+#' @srrstatsNA {PD4.2} No multi-distribution API exists (see PD3.1); tests
+#'   therefore cannot swap an alternative named distribution.
 #'
 #' @noRd
 NULL
