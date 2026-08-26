@@ -34,7 +34,7 @@ The manuscript's bivariate study (two genes, two cell populations) is implemente
 
 ## Generative design
 
-With the simplex constraint $p_1+p_2=1$, only one free unconstrained coordinate $\rho_1$ needs to be estimated (via the additive logistic map; see the [softmax / ALR vignette](softmax-alr-derivatives.html)). Bulk mixtures $\boldsymbol{Y}\in\mathcal{M}_{G\times N}$ are simulated without observation noise beyond the Gaussian convolution itself:
+With the simplex constraint $p_1+p_2=1$, only one free unconstrained coordinate $\rho_1$ needs to be estimated (via the additive logistic map; see the [derivatives under simplex transforms](generative-model-derivatives.html) vignette). Bulk mixtures $\boldsymbol{Y}\in\mathcal{M}_{G\times N}$ are simulated without observation noise beyond the Gaussian convolution itself:
 
 * **Proportions.** Equi-balanced $\boldsymbol{p}=(1/2,1/2)$ and highly unbalanced $\boldsymbol{p}=(0.95,0.05)$ (the exported helper also accepts intermediate unbalanced levels such as $(0.6,0.4)$).
 * **Means.** Two centroid geometries: a **small** mean separation $\boldsymbol{\mu}_{.1}=(20,22)$, $\boldsymbol{\mu}_{.2}=(22,20)$ (high overlap) versus a **large** separation $\boldsymbol{\mu}_{.1}=(20,40)$, $\boldsymbol{\mu}_{.2}=(40,20)$.
@@ -151,7 +151,7 @@ The full pipeline built on this scenario—mean signature, per-cell-type topolog
 
 ## Deconvolution on imbalanced mixtures {#sec-hybrid-deconvolution}
 
-`scripts/deconvolute_simulated_scenario.R` loads the NSGA-II-curated moments from `data/synthetic_networks/true_grn_moments.rds`, restricts to the final gene panel, simulates $N=20$ bulk mixtures with **imbalanced** true composition $\boldsymbol{p}=(0.4,0.4,0.2)$ (equal mass on the two mean-collinear types; $0.2$ on the orthogonal type), and runs every frequentist solver from an equi-balanced start. @tbl-solver-diagnostics summarises a diagnostic run **before** the numerical fixes documented in the [softmax / ALR vignette](softmax-alr-derivatives.html#sec-numerical-speedups): stalled Newton–Raphson (`eval.max = 1`), slow Marquardt–Levenberg (wrong Hessian sign under `marqLevAlg`), and the benefit of polishing simulated annealing with a local Newton step.
+`scripts/deconvolute_simulated_scenario.R` loads the NSGA-II-curated moments from `data/synthetic_networks/true_grn_moments.rds`, restricts to the final gene panel, simulates $N=20$ bulk mixtures with **imbalanced** true composition $\boldsymbol{p}=(0.4,0.4,0.2)$ (equal mass on the two mean-collinear types; $0.2$ on the orthogonal type), and runs every frequentist solver from an equi-balanced start. @tbl-solver-diagnostics summarises a diagnostic run **before** the numerical fixes documented in the [derivatives under simplex transforms](generative-model-derivatives.html#sec-numerical-speedups) vignette: stalled Newton–Raphson (`eval.max = 1`), slow Marquardt–Levenberg (wrong Hessian sign under `marqLevAlg`), and the benefit of polishing simulated annealing with a local Newton step.
 
 | algorithm | n_ok | n_flagged | mean max\|error\| | mean time/sample |
 |:----------|-----:|----------:|------------------:|-----------------:|
@@ -169,7 +169,7 @@ Key reading of @tbl-solver-diagnostics:
 
 * **`Newton_Raphson` (as shipped)** never left the equi-balanced start (`n_ok = 0`): `stats::nlminb()` was capped at a single objective evaluation (`eval.max = 1`).
 * **`Newton_Raphson_fixed`** (same code without that control) and **`sann_then_polish`** both recover mean max$|$error$|\approx 0.102$, matching a correctly configured second-order step.
-* **`Marquardt_Levenberg`** already reached similar accuracy but at $\sim$1.7 s/sample because the relative-distance-to-minimum (RDM) criterion never fired (Hessian sign convention under `marqLevAlg`; see [numerical notes](softmax-alr-derivatives.html#sec-numerical-speedups)).
+* **`Marquardt_Levenberg`** already reached similar accuracy but at $\sim$1.7 s/sample because the relative-distance-to-minimum (RDM) criterion never fired (Hessian sign convention under `marqLevAlg`; see [numerical notes](generative-model-derivatives.html#sec-numerical-speedups)).
 * **`simulated_annealing`** stalled on 2/20 samples; polishing with Newton after a SANN warm start removed those stalls without a proximal simplex projection (the ALR map already lands on the open simplex).
 
 After the package fixes (removed `eval.max = 1`, analytic gradient for L-BFGS-B, cached Cholesky factorisation of $\boldsymbol{\Sigma}(\boldsymbol{p})$, negated Hessian for `marqLevAlg`), Newton–Raphson, Marquardt–Levenberg and `sann_then_polish` agree to about four decimals, and Marquardt–Levenberg drops to tens of milliseconds per sample. Reproduce the current comparison with:

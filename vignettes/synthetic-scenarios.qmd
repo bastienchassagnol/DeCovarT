@@ -1,5 +1,5 @@
 ---
-title: "Simulating semi-synthetic pseudo-bulk mixtures for benchmarking"
+title: "Simulating synthetic scenarios for benchmarking"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
 vignette: >
@@ -82,7 +82,7 @@ dim(bulk$latent_profiles) # G x J x N latent draws; input mu is shared
 
 Selecting genes (or, here, designing $\boldsymbol{\mu}$) by cosine alone is insufficient for stable deconvolution [@alieeAutoGeneSAutomaticGene2021]. In the scenarios of this package we therefore **hold `mean_scale` fixed** and dial only `target_cosine`, so first-order scale and second-order precision weights stay comparable across runs.
 
-# Mathematical roles of the generators
+# Generate mean expression profiles
 
 ## Mean signature: `generate_mean_signature_matrix()` {#sec-lr-block-mu}
 
@@ -869,11 +869,51 @@ stacked as an array in $\mathcal{M}_{G\times G\times J}$. Shared networks remain
 \mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},
 \sum_j p_j^{2}\boldsymbol{\Sigma}_j)$.
 
-## Conclusions
+## Imbalanced cellular proportions {#sec-imbalanced}
 
-> DeCovarT draws `scale_free`, `stochastic_block_model`, and `small_world` skeletons with \pkg{igraph}, then i.i.d. signed weights (`prop_inhibitory`) and a spectral shift to guarantee $\Omega\succ 0$.
+Topology and mean design fix the *reference* moments
+$\boldsymbol{\zeta}$. Mixture difficulty also depends on how uneven the
+true composition $\boldsymbol{p}$ is. DeCovarT summarises that imbalance
+with the normalised Shannon entropy
+[`compute_shannon_entropy()`](../reference/compute_shannon_entropy.html),
 
-### Further high-dimensional designs
+$$
+H^{\star}(\boldsymbol{p})
+=
+\frac{-\sum_{j:p_{j}>0}p_{j}\log p_{j}}{\log J}
+\in[0,1],
+$$ {#eq-shannon-star}
+
+so $H^{\star}=0$ for a Dirac mass on one type and $H^{\star}=1$ for the
+uniform vector on $J$ types. Zero masses are dropped only inside the
+sum; the normaliser still uses the full panel size $J$.
+
+A practical grid therefore crosses network / mean axes with a few
+composition designs, for example:
+
+| Design | Example $\boldsymbol{p}$ (up to permutation) | Typical $H^{\star}$ |
+|:--|:--|:--|
+| Pure / near-pure | $(1,0,\ldots)$ or $(0.95,0.05,0,\ldots)$ | near $0$ |
+| One dominant type | $(0.7,0.15,0.15)$ | low–moderate |
+| Two-way balance | $(0.5,0.5)$ or $(0.4,0.4,0.2)$ | moderate–high |
+| Uniform | $(1/J,\ldots,1/J)$ | $1$ |
+
+: Composition designs scored by normalised Shannon entropy. {#tbl-entropy-designs}
+
+The Bioconductor package `SimBu` [@R-SimBu] offers a complementary
+pseudo-bulk toolkit with six named fraction scenarios (`even`,
+`random`, `mirror_db`, `weighted`, `pure`, `custom`) when aggregating
+single-cell profiles; see the
+[SimBu “Simulate pseudo bulk datasets”](https://bioconductor.org/packages/release/bioc/vignettes/SimBu/inst/doc/SimBu.html)
+section. DeCovarT’s Gaussian convolution uses the same idea at the
+*moment* layer: supply `p` (or a $J\times N$ matrix of sample-wise
+ratios) to `simulate_bulk_mixture()` / the hybrid scenario scripts, and
+report $H^{\star}$ alongside overlap or condition-number diagnostics.
+The hybrid $J=3$ use-case vignette uses the imbalanced design
+$\boldsymbol{p}=(0.4,0.4,0.2)$
+([Deconvolution use cases](DeCoVart-use-cases.html#sec-scenario-grid)).
+
+# Perspectives on high-dimensional or more biologically realistic designs
 
 Beyond the families in @tbl-topologies:
 
@@ -890,7 +930,8 @@ Beyond the families in @tbl-topologies:
   - **Poisson–log-normal / compositional** observation layers on latent log-abundances [@chiquetVariationalInferenceSparse2018].
   - **Zero-inflated mixture GGMs** with cell-type-specific $(\mu_k,\Omega_k)$ and expression-dependent dropout [@wuEstimatingHeterogeneousGene2022].
 
-### Recommended benchmark specification
+::: {#nte-benchmark-spec .callout-important}
+## Recommended benchmark specification
 
 Use one pipeline for every topology (@eq-benchmark-pipe, @fig-ggm-pipeline):
 
@@ -910,17 +951,35 @@ $$ {#eq-benchmark-pipe}
 
 | Axis | Suggested levels |
 |-----------------------|------------------------------------------------|
-| Dimension, namely number of variables (here, genes) | $p \in \{100,500,1000\}$ |
+| Dimension (genes) | $G \in \{100,500,1000\}$ |
 | Topology | ER, band, hub, scale-free, SBM, small-world |
 | Expected degree | $\approx 2,4,8$ (keep graphs sparse) |
 | Edge weights | Constant; i.i.d. signed; partial-correlation scaling; G-Wishart |
-| Conditioning | Report $\lambda_{\min}$, $\lambda_{\max}$, $\kappa(\Omega)$ |
-| Means | Zero; sparse group shifts, driven by cell-type; joint $\mu$–$\Omega$ heterogeneity, for example playing on the *cosine similarity*, or the *condition number*, of the mean profile |
+| Conditioning | Report $\kappa(\Omega)$ and partial-correlation summaries |
+| Composition | Pure / weighted / balanced / uniform (@sec-imbalanced); record $H^{\star}$ |
 
 : Compact factorial axes for a reproducible undirected GGM simulation study. {#tbl-benchmark-axes}
 
-**Main insights.** Prefer the uniform spectral shift (@eq-spectral-shift) or partial-correlation scaling (@eq-partial-scale) when support and signs must be exact; add the mean layer **independently** of graph generation.
+Prefer the uniform spectral shift (@eq-spectral-shift) or
+partial-correlation scaling (@eq-partial-scale) when support and signs
+must be exact; add the mean layer **independently** of graph generation.
+The end-to-end **hybrid multi-topology reference scenario** (two
+mean-collinear cell types distinguished only by network topology, a
+third orthogonal type, NSGA-II panel curation, and the frequentist
+solver comparison on imbalanced mixtures) is documented in
+[Deconvolution use cases](DeCoVart-use-cases.html#sec-scenario-grid).
+Edge-case numerical checks (gene-wise z-score equivariance, collinear
+signatures, small bulk perturbations, random ALR starts) live in the
+[appendix simulation vignette](DeCovarT_appendix_simualtion_frameworks.html).
+:::
 
-The end-to-end **hybrid multi-topology reference scenario** (two mean-collinear cell types distinguished only by network topology, a third orthogonal type, NSGA-II panel curation, and the frequentist solver comparison on imbalanced mixtures) is documented in the companion vignette [Deconvolution use cases](DeCoVart-use-cases.html#sec-scenario-grid).
+# Conclusions
+
+DeCovarT draws `scale_free`, `stochastic_block_model`, and
+`small_world` skeletons with `igraph`, then i.i.d. signed weights
+(`prop_inhibitory`) and a spectral shift to guarantee
+$\Omega\succ 0$. Keep graph generation, mean design, and composition
+imbalance as separate factorial axes, and report both network
+conditioning and $H^{\star}(\boldsymbol{p})$ when comparing solvers.
 
 # References

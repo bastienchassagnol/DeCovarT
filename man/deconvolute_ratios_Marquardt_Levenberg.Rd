@@ -119,7 +119,7 @@ Optimisation is performed in unconstrained coordinates
 \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}} via
 \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})}
 (Marquardt–Levenberg default; see other methods below and
-\code{vignette("softmax-alr-derivatives", package = "DeCovarT")}).
+\code{vignette("generative-model-derivatives", package = "DeCovarT")}).
 }
 \details{
 \strong{Plug-in signature.} Argument \code{mean_signature_matrix} is the mean

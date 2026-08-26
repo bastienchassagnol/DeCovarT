@@ -55,7 +55,8 @@ SOFTWARE_TOOLS <- c(
   "GenSA",
   "GA",
   "mco",
-  "expm"
+  "expm",
+  "SimBu"
 )
 
 # GitHub / non-CRAN Manual entries appended after knitr::write_bib().
@@ -80,6 +81,18 @@ EXTRA_MANUALS <- c(
     "  year = {2025},",
     "  note = {R package version 1.9.2},",
     "  url = {https://CRAN.R-project.org/package=skpr},",
+    "}",
+    sep = "\n"
+  ),
+  paste(
+    "@Manual{R-SimBu,",
+    "  title = {SimBu: Bias-aware simulation of bulk RNA-seq data with",
+    "variable cell-type composition},",
+    "  author = {Alexander Dietrich},",
+    "  year = {2024},",
+    "  note = {Bioconductor package;",
+    "  https://bioconductor.org/packages/SimBu},",
+    "  url = {https://doi.org/10.18129/B9.bioc.SimBu},",
     "}",
     sep = "\n"
   )

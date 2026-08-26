@@ -23,7 +23,7 @@
 #' \eqn{\boldsymbol{\psi}(\boldsymbol{\rho})\propto
 #' (\mathrm{e}^{\rho_1},\ldots,\mathrm{e}^{\rho_{J-1}},1)^{\mathsf{T}}}.
 #' Jacobians and Hessians of both maps are derived in the package vignette
-#' `vignette("softmax-alr-derivatives", package = "DeCovarT")`.
+#' `vignette("generative-model-derivatives", package = "DeCovarT")`.
 #' See also [compositions::alrInv()].
 #'
 #' @param rho Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}} of
@@ -55,7 +55,7 @@ additive_logistic <- function(rho) {
 #' \eqn{p_J} as reference. This is Aitchison's additive log-ratio
 #' (\eqn{\mathrm{alr}}) transform, equivalently the multinomial-logit link
 #' with reference category \eqn{J} (see [compositions::alr()] and
-#' `vignette("softmax-alr-derivatives", package = "DeCovarT")`).
+#' `vignette("generative-model-derivatives", package = "DeCovarT")`).
 #'
 #' @param p Numeric vector \eqn{\boldsymbol{p}} on the open simplex.
 #'
@@ -698,7 +698,7 @@ hessian_loglik_constrained <- function(rho, y, mean_signature_matrix, Sigma) {
 #' \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}} via
 #' \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})}
 #' (Marquardt–Levenberg default; see other methods below and
-#' `vignette("softmax-alr-derivatives", package = "DeCovarT")`).
+#' `vignette("generative-model-derivatives", package = "DeCovarT")`).
 #'
 #' @details
 #' **Plug-in signature.** Argument `mean_signature_matrix` is the mean

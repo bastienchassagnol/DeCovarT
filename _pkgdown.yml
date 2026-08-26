@@ -112,18 +112,20 @@ navbar:
           href: articles/feature-selection.html
         - text: -------
         - text: Mathematics
-        - text: Simplex maps and softmax / ALR derivatives
+        - text: Derivatives under simplex transforms
           icon: fa-square-root-variable
-          href: articles/softmax-alr-derivatives.html
+          href: articles/generative-model-derivatives.html
         - text: OLS reminders for linear deconvolution
           icon: fa-equals
           href: articles/DeCovarT-reminders-OLS.html
-        - text: Affine equivariance and collinearity
-          icon: fa-ruler-combined
-          href: articles/DeCovarT_appendix_simualtion_frameworks.html
         - text: DeCovarT perspectives (outlook)
           icon: fa-compass
           href: articles/decovart-perspectives.html
+        - text: -------
+        - text: Appendix simulations
+        - text: Equivariance, collinearity and perturbations
+          icon: fa-vial
+          href: articles/DeCovarT_appendix_simualtion_frameworks.html
     news:
       text: News
       icon: fa-newspaper
@@ -159,7 +161,7 @@ reference:
       ALR-constrained log-likelihood (Jacobian / Hessian of the additive
       logistic map; gradients and Hessians of \(\ell\)). Documented for
       `?` / source inspection; see also
-      `vignette("softmax-alr-derivatives")`.
+      `vignette("generative-model-derivatives")`.
     contents:
       - additive_logistic
       - additive_log_ratio
@@ -178,6 +180,14 @@ reference:
     contents:
       - deconvolute_ratios_Marquardt_Levenberg
       - fit_decovart
+  - subtitle: Fisher information and Wald intervals
+    desc: |
+      Expected Fisher information of unconstrained proportions and ALR
+      delta-method covariance used by `vcov()` / `confint()` on
+      `decovart_fit` objects (see `fit_decovart`).
+    contents:
+      - expected_fisher_unconstrained
+      - vcov_alr_delta
   - title: Benchmark and evaluation
     desc: |
       Quality metrics for estimated proportions, and the bivariate toy
@@ -223,10 +233,18 @@ articles:
       - DeCoVart-use-cases
   - title: Mathematics
     contents:
-      - softmax-alr-derivatives
+      - generative-model-derivatives
       - DeCovarT-reminders-OLS
-      - DeCovarT_appendix_simualtion_frameworks
       - decovart-perspectives
+  - title: Appendix simulations
+    desc: |
+      Edge-case numerical checks behind the `decovart_fit` API: gene-wise
+      z-score / affine equivariance of the MLE, failure under collinear
+      signatures, impact of small bulk perturbations under full /
+      cell-type-diagonal / global covariances, and sensitivity of
+      second-order solvers to random ALR starts.
+    contents:
+      - DeCovarT_appendix_simualtion_frameworks
 
 news:
   releases:

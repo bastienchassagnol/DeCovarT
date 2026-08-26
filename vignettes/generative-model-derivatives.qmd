@@ -1,0 +1,686 @@
+---
+title: "Derivatives of the DeCovarT generative model under simplex transforms"
+author: "Bastien Chassagnol"
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteIndexEntry{Derivatives of the DeCovarT generative model under simplex transforms}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    eval: false
+bibliography:
+  - ../inst/packages.bib
+  - ../inst/REFERENCES.bib
+link-citations: true
+crossref:
+  eq-prefix: "Eq."
+  tbl-prefix: "Table"
+  lst-prefix: "Listing"
+  sec-prefix: "Sec."
+format:
+  html:
+    embed-resources: true
+    toc: true
+---
+
+```{r}
+#| label: setup
+#| include: false
+#| eval: true
+# CRAN vignettes use Quarto Markdown tables (no tinytable) so vignette
+# rebuilds do not depend on Suggests packages that change S4 APIs.
+NULL
+```
+
+DeCovarT maximises a Gaussian-convolution log-likelihood for cellular
+ratios $\boldsymbol{p}\in\Delta^{J-1}$. This vignette derives the
+analytic first- and second-order derivatives used by the frequentist
+solvers, first with respect to unconstrained ambient proportions
+$\boldsymbol{p}$, then after the additive log-ratio (ALR) map that
+enforces the simplex. It closes with the expected Fisher information and
+the ALR delta-method covariance that feed
+[`vcov.decovart_fit()`](../reference/fit_decovart.html) and
+[`confint.decovart_fit()`](../reference/fit_decovart.html).
+Package entry points are
+[`gradient_loglik_unconstrained()`](../reference/gradient_loglik_unconstrained.html),
+[`hessian_loglik_unconstrained()`](../reference/hessian_loglik_unconstrained.html),
+[`gradient_loglik_constrained()`](../reference/gradient_loglik_constrained.html),
+[`hessian_loglik_constrained()`](../reference/hessian_loglik_constrained.html),
+[`expected_fisher_unconstrained()`](../reference/expected_fisher_unconstrained.html)
+and
+[`vcov_alr_delta()`](../reference/vcov_alr_delta.html).
+
+::: {#nte-notation .callout-note}
+## Notation
+
+- $\boldsymbol{\mu}\in\mathbb{R}^{G\times J}$: mean signature.
+- $\boldsymbol{\Sigma}_j\in\mathrm{SPD}(G)$: cell-type covariance;
+  $\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}\boldsymbol{\Sigma}_j$
+  and
+  $\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}$.
+- $\boldsymbol{p}$: proportions on the open simplex (ambient score
+  equations treat them as free coordinates in $(0,1)^{J}$).
+- $\boldsymbol{\rho}\in\mathbb{R}^{J-1}$: ALR coordinates with reference
+  part $J$; $\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})$.
+:::
+
+# Matrix calculus reminders {#sec-matrix-calculus}
+
+The score and Hessian of the convolution log-likelihood follow from a
+handful of matrix-derivative identities. The statements below mirror the
+matrix-calculus remarks in the manuscript Methods appendix.
+
+::: {#rem-first-order-matrix}
+## First-order matrix calculus
+
+Let $\boldsymbol{A}=\boldsymbol{A}(p)$ and $\boldsymbol{B}=\boldsymbol{B}(p)$
+be invertible matrix-valued functions of a scalar $p$, and let
+$\boldsymbol{U}$, $\boldsymbol{V}$ be constant matrices of compatible size.
+Then
+
+$$
+\begin{aligned}
+\frac{\partial\det(\boldsymbol{A})}{\partial p}
+&=
+\det(\boldsymbol{A})\,
+\mathrm{tr}\!\left(
+  \boldsymbol{A}^{-1}
+  \frac{\partial\boldsymbol{A}}{\partial p}
+\right),
+\\
+\frac{\partial(\boldsymbol{U}\boldsymbol{A}\boldsymbol{V})}{\partial p}
+&=
+\boldsymbol{U}
+\frac{\partial\boldsymbol{A}}{\partial p}
+\boldsymbol{V},
+\\
+\frac{\partial\boldsymbol{A}^{-1}}{\partial p}
+&=
+-
+\boldsymbol{A}^{-1}
+\frac{\partial\boldsymbol{A}}{\partial p}
+\boldsymbol{A}^{-1}.
+\end{aligned}
+$$ {#eq-matrix-first-order}
+
+The chain rule on $\log\det$ yields
+
+$$
+\frac{\partial\log\det(\boldsymbol{A})}{\partial p}
+=
+\mathrm{tr}\!\left(
+  \boldsymbol{A}^{-1}
+  \frac{\partial\boldsymbol{A}}{\partial p}
+\right),
+\qquad
+\frac{\partial\log\det(\boldsymbol{A}^{-1})}{\partial p}
+=
+-
+\mathrm{tr}\!\left(
+  \boldsymbol{A}^{-1}
+  \frac{\partial\boldsymbol{A}}{\partial p}
+\right).
+$$ {#eq-logdet}
+
+For a residual quadratic form with symmetric precision
+$\boldsymbol{\Theta}$ and mean map linear in $p$,
+
+$$
+\frac{\partial}{\partial p}
+\bigl(
+  (\boldsymbol{y}-\boldsymbol{x}p)^{\top}
+  \boldsymbol{\Theta}
+  (\boldsymbol{y}-\boldsymbol{x}p)
+\bigr)
+=
+-2\,
+\boldsymbol{x}^{\top}
+\boldsymbol{\Theta}
+(\boldsymbol{y}-\boldsymbol{x}p).
+$$ {#eq-quad-form-deriv}
+:::
+
+::: {#rem-second-order-matrix}
+## Second-order matrix calculus
+
+Differentiating the inverse once more gives
+
+$$
+\frac{\partial^{2}\boldsymbol{A}^{-1}}{\partial p_{i}\partial p_{j}}
+=
+\boldsymbol{A}^{-1}
+\Biggl(
+  \frac{\partial\boldsymbol{A}}{\partial p_{i}}
+  \boldsymbol{A}^{-1}
+  \frac{\partial\boldsymbol{A}}{\partial p_{j}}
+  -
+  \frac{\partial^{2}\boldsymbol{A}}{\partial p_{i}\partial p_{j}}
+  +
+  \frac{\partial\boldsymbol{A}}{\partial p_{j}}
+  \boldsymbol{A}^{-1}
+  \frac{\partial\boldsymbol{A}}{\partial p_{i}}
+\Biggr)
+\boldsymbol{A}^{-1},
+$$ {#eq-matrix-second-order}
+
+and the trace is linear,
+$\partial\mathrm{tr}(\boldsymbol{A})/\partial p_{i}
+=\mathrm{tr}(\partial\boldsymbol{A}/\partial p_{i})$. Combining
+@eq-matrix-first-order with that linearity yields
+
+$$
+\frac{\partial^{2}\log\det(\boldsymbol{A}^{-1})}{\partial p_{i}\partial p_{j}}
+=
+-
+\mathrm{tr}\!\left[
+  \boldsymbol{A}^{-1}
+  \frac{\partial^{2}\boldsymbol{A}}{\partial p_{i}\partial p_{j}}
+\right]
++
+\mathrm{tr}\!\left[
+  \left(
+    \boldsymbol{A}^{-1}
+    \frac{\partial\boldsymbol{A}}{\partial p_{i}}
+  \right)
+  \left(
+    \boldsymbol{A}^{-1}
+    \frac{\partial\boldsymbol{A}}{\partial p_{j}}
+  \right)
+\right].
+$$ {#eq-logdet-hess}
+:::
+
+::: {#nte-inner-products .callout-tip}
+## Inner products in the score
+
+Several terms are $\boldsymbol{\Theta}$-inner products of signature
+columns,
+$\boldsymbol{\mu}_{\cdot j}^{\top}\boldsymbol{\Theta}\boldsymbol{\mu}_{\cdot k}$.
+Package helper [`.inner_product()`](../reference/dot-inner_product.html)
+evaluates that bilinear form; see also the squared Mahalanobis distance
+helper in the same family.
+:::
+
+# Unconstrained score and Hessian {#sec-unconstrained}
+
+Conditional on the reference moments
+$\boldsymbol{\zeta}=(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})$, the
+bulk follows
+$\boldsymbol{y}\mid\boldsymbol{\zeta},\boldsymbol{p}
+\sim\mathcal{N}_{G}\bigl(\boldsymbol{\mu}\boldsymbol{p},
+\boldsymbol{\Sigma}(\boldsymbol{p})\bigr)$. Up to an additive constant
+independent of $\boldsymbol{p}$,
+
+$$
+\ell_{\boldsymbol{y}\mid\boldsymbol{\zeta}}(\boldsymbol{p})
+=
+\log\det\boldsymbol{\Theta}(\boldsymbol{p})
+-
+\tfrac{1}{2}
+(\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
+\boldsymbol{\Theta}(\boldsymbol{p})
+(\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}).
+$$ {#eq-loglik}
+
+::: {#nte-unconstrained-meaning .callout-warning}
+## What “unconstrained” means here
+
+@sec-unconstrained treats each $p_{j}$ as an ambient coordinate in
+$(0,1)$ and ignores $\sum_{j}p_{j}=1$. The resulting gradient and
+Hessian are the building blocks of the ALR chain rule in
+@sec-constrained. They are **not** the coordinates used by
+Marquardt–Levenberg or Newton–Raphson in the package (those optimise in
+$\boldsymbol{\rho}$-space). The box-constrained L-BFGS-B path is the
+exception: it works directly in $\boldsymbol{p}$ with $[0,1]^{J}$ boxes
+and does not enforce the simplex exactly.
+:::
+
+Applying @eq-logdet and @eq-quad-form-deriv with
+$\partial\boldsymbol{\Sigma}/\partial p_{j}=2p_{j}\boldsymbol{\Sigma}_{j}$
+gives the ambient score. Colour coding matches the manuscript: purple
+determinant / precision terms, blue mean residual, orange covariance
+quadratic.
+
+::: {#thm-score-unconstrained}
+## Unconstrained gradient
+
+$$
+\begin{aligned}
+\frac{\partial\ell}{\partial p_{j}}
+&=
+\underbrace{-2p_{j}\,\mathrm{tr}\bigl(
+  \boldsymbol{\Theta}\boldsymbol{\Sigma}_{j}
+\bigr)}_{\text{purple}}
++
+\underbrace{
+  (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
+  \boldsymbol{\Theta}
+  \boldsymbol{\mu}_{\cdot j}
+}_{\text{blue}}
+\\
+&\quad+
+\underbrace{
+  p_{j}\,
+  (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
+  \boldsymbol{\Theta}
+  \boldsymbol{\Sigma}_{j}
+  \boldsymbol{\Theta}
+  (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})
+}_{\text{orange}}.
+\end{aligned}
+$$ {#eq-grad-unconstrained}
+:::
+
+Differentiating @eq-grad-unconstrained once more yields the ambient
+Hessian $\mathbf{H}\in\mathcal{M}_{J\times J}$. Diagonal and off-diagonal
+blocks keep the same colour pairing.
+
+::: {#thm-hess-unconstrained}
+## Unconstrained Hessian
+
+For $i\in\{1,\ldots,J\}$,
+
+$$
+\begin{aligned}
+\mathbf{H}_{ii}
+&=
+\frac{\partial^{2}\ell}{\partial p_{i}^{2}}
+=
+\underbrace{
+  -2\,\mathrm{tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}_{i})
+  +
+  4p_{i}^{2}\,\mathrm{tr}\bigl(
+    (\boldsymbol{\Theta}\boldsymbol{\Sigma}_{i})^{2}
+  \bigr)
+}_{\text{purple}}
+\\
+&\quad
+\underbrace{
+  -2p_{i}
+  (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
+  \boldsymbol{\Theta}
+  \boldsymbol{\Sigma}_{i}
+  \boldsymbol{\Theta}
+  \boldsymbol{\mu}_{\cdot i}
+  -
+  \boldsymbol{\mu}_{\cdot i}^{\top}
+  \boldsymbol{\Theta}
+  \boldsymbol{\mu}_{\cdot i}
+}_{\text{blue}}
+\\
+&\quad
+\underbrace{
+  -2p_{i}
+  (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
+  \boldsymbol{\Theta}
+  \boldsymbol{\Sigma}_{i}
+  \boldsymbol{\Theta}
+  \boldsymbol{\mu}_{\cdot i}
+  -
+  (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
+  \boldsymbol{\Theta}
+  \bigl(
+    4p_{i}^{2}\boldsymbol{\Sigma}_{i}\boldsymbol{\Theta}\boldsymbol{\Sigma}_{i}
+    -
+    \boldsymbol{\Sigma}_{i}
+  \bigr)
+  \boldsymbol{\Theta}
+  (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})
+}_{\text{orange}},
+\end{aligned}
+$$ {#eq-hess-diag}
+
+and for $i\neq j$,
+
+$$
+\begin{aligned}
+\mathbf{H}_{ij}
+&=
+\frac{\partial^{2}\ell}{\partial p_{i}\partial p_{j}}
+=
+\underbrace{
+  4p_{i}p_{j}\,
+  \mathrm{tr}\bigl(
+    \boldsymbol{\Theta}\boldsymbol{\Sigma}_{j}
+    \boldsymbol{\Theta}\boldsymbol{\Sigma}_{i}
+  \bigr)
+}_{\text{purple}}
+\\
+&\quad
+\underbrace{
+  -2p_{i}
+  (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
+  \boldsymbol{\Theta}
+  \boldsymbol{\Sigma}_{i}
+  \boldsymbol{\Theta}
+  \boldsymbol{\mu}_{\cdot j}
+  -
+  \boldsymbol{\mu}_{\cdot i}^{\top}
+  \boldsymbol{\Theta}
+  \boldsymbol{\mu}_{\cdot j}
+}_{\text{blue}}
+\\
+&\quad
+\underbrace{
+  -2p_{j}
+  (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
+  \boldsymbol{\Theta}
+  \boldsymbol{\Sigma}_{j}
+  \boldsymbol{\Theta}
+  \boldsymbol{\mu}_{\cdot i}
+  -
+  4p_{i}p_{j}
+  (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
+  \boldsymbol{\Theta}
+  \boldsymbol{\Sigma}_{i}
+  \boldsymbol{\Theta}
+  \boldsymbol{\Sigma}_{j}
+  \boldsymbol{\Theta}
+  (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})
+}_{\text{orange}}.
+\end{aligned}
+$$ {#eq-hess-off}
+:::
+
+The stationary equation $\nabla\ell(\boldsymbol{p})=\boldsymbol{0}$ has
+no closed root, so DeCovarT uses iterative solvers. Analytic gradients
+and Hessians are checked against Richardson extrapolation in
+`numDeriv` [@R-numDeriv].
+
+# Constrained optimisation on the simplex {#sec-constrained}
+
+Constrained optimisation may eliminate constraints by reparametrisation,
+enforce them softly with penalties or barriers, or enforce them exactly
+with projections / KKT methods. DeCovarT uses a $C^{2}$ diffeomorphism
+from free Euclidean coordinates $\boldsymbol{\rho}\in\mathbb{R}^{J-1}$
+onto the open simplex, so every Newton step stays feasible by
+construction.
+
+## Log-sum-exp and softmax {#sec-lse}
+
+The softmax of scores $\boldsymbol{z}\in\mathbb{R}^{K}$ is evaluated
+through the log-sum-exp (LSE) to avoid overflow,
+
+$$
+s_{i}
+=
+\frac{e^{z_{i}}}{\sum_{k}e^{z_{k}}}
+=
+e^{z_{i}-\operatorname{LSE}(\boldsymbol{z})},
+\qquad
+\operatorname{LSE}(\boldsymbol{z})
+=
+m+\log\sum_{k}e^{z_{k}-m},
+\quad
+m=\max_{k}z_{k}.
+$$ {#eq-softmax}
+
+Its Jacobian is
+$\mathbf{J}_{\mathrm{softmax}}=\operatorname{diag}(\boldsymbol{s})
+-\boldsymbol{s}\boldsymbol{s}^{\top}$, which is also
+$\nabla^{2}\operatorname{LSE}(\boldsymbol{z})$. The second derivative is
+the third-order tensor
+
+$$
+H_{ijk}
+=
+s_{i}\bigl[
+  (\delta_{ij}-s_{j})(\delta_{ik}-s_{k})
+  -
+  s_{j}(\delta_{jk}-s_{k})
+\bigr].
+$$ {#eq-softmax-hess}
+
+## Additive log-ratio map {#sec-alr}
+
+Pin the last category as reference ($\rho_{J}\equiv 0$). The *additive
+logistic* transform $\boldsymbol{\psi}$ (inverse ALR) and its inverse are
+[@aitchisonStatisticalAnalysisCompositional1982]
+
+$$
+p_{j}
+=
+\frac{e^{\rho_{j}}}{\sum_{k<J}e^{\rho_{k}}+1}\ (j<J),
+\qquad
+p_{J}
+=
+\frac{1}{\sum_{k<J}e^{\rho_{k}}+1},
+\qquad
+\rho_{j}
+=
+\log\!\left(\frac{p_{j}}{p_{J}}\right).
+$$ {#eq-alr-maps}
+
+Equivalently,
+$\boldsymbol{p}=\operatorname{softmax}(\rho_{1},\ldots,\rho_{J-1},0)$.
+Package helpers
+[`additive_logistic()`](../reference/additive_logistic.html) and
+[`additive_log_ratio()`](../reference/additive_log_ratio.html) implement
+@eq-alr-maps; they match `compositions::alrInv()` / `alr()` with the last
+part as reference [@R-compositions].
+
+::: {#prp-alr-diffeo}
+## ALR is a $C^{2}$ diffeomorphism
+
+$\boldsymbol{\psi}:\mathbb{R}^{J-1}\to(0,1)^{J}$ with
+$\sum_{j}p_{j}=1$ is bijective and twice continuously differentiable, so
+every critical point in $\boldsymbol{\rho}$-space maps to a unique open
+simplex composition and conversely.
+:::
+
+## Efficient derivatives of $\boldsymbol{\psi}$ {#sec-alr-deriv}
+
+Write $A=\sum_{j'<J}e^{\rho_{j'}}+1$ and $B_{i}=A-e^{\rho_{i}}$. The
+Jacobian
+$\mathbf{J}_{\boldsymbol{\psi}}\in\mathcal{M}_{J\times(J-1)}$ is the
+softmax Jacobian with the reference column dropped,
+
+$$
+\frac{\partial p_{i}}{\partial\rho_{j}}
+=
+\begin{cases}
+e^{\rho_{i}}B_{i}/A^{2}, & i=j,\ i<J,\\
+-e^{\rho_{j}}e^{\rho_{i}}/A^{2}, & i\neq j,\ i<J,\\
+-e^{\rho_{j}}/A^{2}, & i=J,
+\end{cases}
+$$ {#eq-alr-jac}
+
+or compactly
+$\partial p_{i}/\partial\rho_{a}=p_{i}(\delta_{ia}-p_{a})$ for
+$a=1,\ldots,J-1$. The Hessian is a third-order tensor of shape
+$(J-1)\times(J-1)\times J$; explicit case distinctions appear in the
+manuscript appendix and in
+[`hessian_additive_logistic()`](../reference/hessian_additive_logistic.html).
+In practice DeCovarT evaluates the Jacobian / Hessian from the softmax
+restriction rather than expanding every Boolean case by hand
+([`jacobian_additive_logistic()`](../reference/jacobian_additive_logistic.html)).
+
+## Change of variables: ambient $\boldsymbol{p}$ to ALR $\boldsymbol{\rho}$ {#sec-chain-rule}
+
+Let $\ell_{\boldsymbol{\rho}}(\boldsymbol{\rho})
+=\ell_{\boldsymbol{y}\mid\boldsymbol{\zeta}}
+\bigl(\boldsymbol{\psi}(\boldsymbol{\rho})\bigr)$. The chain rule maps the
+unconstrained derivatives of @sec-unconstrained into free Euclidean
+coordinates.
+
+::: {#thm-chain-rule}
+## Constrained score and Hessian
+
+$$
+\frac{\partial\ell_{\boldsymbol{\rho}}}{\partial\rho_{j}}
+=
+\sum_{i=1}^{J}
+\frac{\partial\ell}{\partial p_{i}}
+\frac{\partial p_{i}}{\partial\rho_{j}},
+$$ {#eq-chain-first}
+
+$$
+\begin{aligned}
+\frac{\partial^{2}\ell_{\boldsymbol{\rho}}}{\partial\rho_{k}\partial\rho_{j}}
+&=
+\sum_{i=1}^{J}
+\sum_{l=1}^{J}
+\frac{\partial p_{i}}{\partial\rho_{j}}
+\frac{\partial^{2}\ell}{\partial p_{i}\partial p_{l}}
+\frac{\partial p_{l}}{\partial\rho_{k}}
+\\
+&\quad+
+\sum_{i=1}^{J}
+\frac{\partial\ell}{\partial p_{i}}
+\frac{\partial^{2}p_{i}}{\partial\rho_{k}\partial\rho_{j}}.
+\end{aligned}
+$$ {#eq-chain-second}
+:::
+
+::: {#nte-chain-impl .callout-important}
+## Implementation map
+
+| Object | Package function |
+|:--|:--|
+| Ambient score / Hessian | `gradient_loglik_unconstrained()`, `hessian_loglik_unconstrained()` |
+| Map Jacobian / Hessian | `jacobian_additive_logistic()`, `hessian_additive_logistic()` |
+| ALR score / Hessian | `gradient_loglik_constrained()`, `hessian_loglik_constrained()` |
+
+@eq-chain-second is the sum of a covariant pull-back of $\mathbf{H}$ and
+a contraction of the ambient score against the map Hessian. Omitting the
+second summand is a common bug when porting first-order code to Newton
+methods.
+:::
+
+# Expected Fisher information and Wald inference {#sec-fisher-wald}
+
+Point estimation alone does not report uncertainty. Under a regular
+large-sample regime the MLE is asymptotically normal with covariance
+given by the inverse Fisher information. DeCovarT builds Wald standard
+errors from the *expected* Fisher information of the multivariate-normal
+convolution, then maps that information through the ALR chart.
+
+## Unconstrained expected Fisher information {#sec-fisher-p}
+
+For
+$\boldsymbol{y}\sim\mathcal{N}_{G}\bigl(\boldsymbol{\mu}\boldsymbol{p},
+\boldsymbol{\Sigma}(\boldsymbol{p})\bigr)$ the expected Fisher information
+has entries
+
+$$
+I(\boldsymbol{p})_{jk}
+=
+\boldsymbol{\mu}_{\cdot j}^{\top}
+\boldsymbol{\Theta}(\boldsymbol{p})
+\boldsymbol{\mu}_{\cdot k}
++
+2p_{j}p_{k}\,
+\mathrm{tr}\bigl(
+  \boldsymbol{\Theta}(\boldsymbol{p})\boldsymbol{\Sigma}_{j}
+  \boldsymbol{\Theta}(\boldsymbol{p})\boldsymbol{\Sigma}_{k}
+\bigr).
+$$ {#eq-fisher-p}
+
+The first summand is the mean contribution (a $\boldsymbol{\Theta}$-inner
+product of signature columns); the second is the covariance contribution
+of the quadratic map
+$\boldsymbol{p}\mapsto\boldsymbol{\Sigma}(\boldsymbol{p})$. See the
+multivariate-normal formula on
+[Wikipedia: Fisher information](https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution).
+[`expected_fisher_unconstrained()`](../reference/expected_fisher_unconstrained.html)
+implements @eq-fisher-p.
+
+::: {#nte-obs-vs-exp .callout-note}
+## Observed versus expected information
+
+The analytic Hessian of @sec-unconstrained is the *observed* information
+(up to sign). Wald intervals in `decovart_fit` use the *expected*
+information @eq-fisher-p, which does not depend on the residual
+$\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}$ and is positive definite under
+the usual full-rank assumptions on $(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})$.
+:::
+
+## Constrained case: ALR delta method {#sec-fisher-rho}
+
+Fisher information transforms as a covariant quadratic form under the
+ALR chart. With
+$\mathbf{J}_{\boldsymbol{\psi}}
+=\partial\boldsymbol{\psi}/\partial\boldsymbol{\rho}^{\top}$,
+
+$$
+I_{\boldsymbol{\rho}}
+=
+\mathbf{J}_{\boldsymbol{\psi}}^{\top}
+I(\boldsymbol{p})
+\mathbf{J}_{\boldsymbol{\psi}}.
+$$ {#eq-fisher-rho}
+
+Under regularity,
+$\hat{\boldsymbol{\rho}}
+\overset{a}{\sim}
+\mathcal{N}(\boldsymbol{\rho}_{0},I_{\boldsymbol{\rho}}^{-1})$
+[@vaartAsymptoticStatistics2000].
+The first-order delta method [@oehlertNoteDeltaMethod1992] then returns
+the simplex covariance used by
+[`vcov.decovart_fit()`](../reference/fit_decovart.html),
+
+$$
+\mathrm{Var}(\hat{\boldsymbol{p}})
+\approx
+\mathbf{J}_{\boldsymbol{\psi}}
+I_{\boldsymbol{\rho}}^{-1}
+\mathbf{J}_{\boldsymbol{\psi}}^{\top}.
+$$ {#eq-delta-p}
+
+Diagonal square roots are asymptotic standard errors; Wald intervals at
+level $1-\alpha$ are
+$\hat{p}_{j}\pm z_{1-\alpha/2}\,\mathrm{SE}_{j}$ with
+$z_{q}=\Phi^{-1}(q)$, as in
+[`confint.decovart_fit()`](../reference/fit_decovart.html).
+[`vcov_alr_delta()`](../reference/vcov_alr_delta.html) implements
+@eq-fisher-rho--@eq-delta-p. The construction is undefined on the
+simplex boundary (the ALR chart blows up); the helper then returns `NA`
+with a warning. The ALR chart itself follows Aitchison's compositional
+geometry [@aitchisonStatisticalAnalysisCompositional1982].
+
+# Numerical speed-ups and solver safeguards {#sec-numerical-speedups}
+
+The analytic maps above are only half of a usable optimiser. Practical
+bottlenecks that showed up on the hybrid scenario in
+[Deconvolution use cases](DeCoVart-use-cases.html#sec-hybrid-deconvolution)
+live in `R/03_03_DeCovarT_estimate_ratios_frequentist.R`.
+
+## Cache a Cholesky factorisation of $\boldsymbol{\Sigma}(\boldsymbol{p})$
+
+Within one iteration, objective / gradient / Hessian callbacks hit the
+same trial $\boldsymbol{p}$. The helper `.sigma_p_factorisation()` caches
+a single Cholesky factor and returns
+$\log\det\boldsymbol{\Sigma}(\boldsymbol{p})$ and
+$\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}$ without repeating an
+$O(G^{3})$ factorisation.
+
+## Guard the box-constrained L-BFGS-B path
+
+`deconvolute_ratios_L_BFGS_B()` optimises in $\boldsymbol{p}$ with boxes
+$[0,1]^{J}$ that do not enforce $\mathbf{1}^{\top}\boldsymbol{p}=1$. Near
+$\sum_{j}p_{j}\approx 0$ (or on a failed `chol()`), safeguarded wrappers
+return a finite penalty and a zero gradient rather than aborting
+`optim()`.
+
+## `marqLevAlg` Hessian sign under `minimize = FALSE`
+
+::: {#nte-marqlevalg-hess .callout-caution}
+## `marqLevAlg(minimize = FALSE)` does not flip `hess`
+
+[`marqLevAlg`](https://cran.r-project.org/package=marqLevAlg)
+[@R-marqLevAlg] implements Marquardt–Levenberg with the
+relative-distance-to-minimum (RDM) rule of Commenges et al.
+[@commengesNewtonLikeAlgorithmLikelihood2006]. With
+`minimize = FALSE`, the package negates only `fn` and `gr`; the analytic
+`hess` is passed through unchanged while internal Cholesky routines
+assume a **positive-definite** matrix at the optimum. When maximising a
+log-likelihood, pass
+`hess = function(...) -hessian_loglik_constrained(...)`. Reported
+upstream as
+[VivianePhilipps/marqLevAlgParallel#3](https://github.com/VivianePhilipps/marqLevAlgParallel/issues/3).
+:::
+
+# References

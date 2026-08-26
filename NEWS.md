@@ -43,7 +43,7 @@
 * **Release** aligned with the GitHub `v2.0.0` tag and the first CRAN
   submission, focused on numerical stability and optimiser cost in
   `R/03_03_DeCovarT_estimate_ratios_frequentist.R` (documented in
-  `vignette("softmax-alr-derivatives")`, section *Numerical speed-ups and
+  `vignette("generative-model-derivatives")`, section *Numerical speed-ups and
   solver safeguards*). The CRAN tarball ships the use-cases and
   softmax/ALR vignettes; remaining articles stay on the pkgdown site.
 
@@ -87,7 +87,7 @@
   against `numDeriv` finite differences. Earlier faulty numerical /
   finite-difference-only paths that could mislead Marquardt–Levenberg and
   related optimisers have been replaced by these verified analytic
-  expressions (see `vignette("softmax-alr-derivatives")` and
+  expressions (see `vignette("generative-model-derivatives")` and
   `tests/testthat/test-03_03_DeCovarT.R`).
 
 * **Simulation framework beyond the bivariate toy.** Synthetic

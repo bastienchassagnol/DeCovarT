@@ -154,7 +154,7 @@ NULL
 #' RE2 - Regression: pre-processing
 #'
 #' @srrstats {RE2.0} ALR reparametrisation documented in `?fit_decovart`,
-#'   `?additive_logistic`, and `vignette("softmax-alr-derivatives")`.
+#'   `?additive_logistic`, and `vignette("generative-model-derivatives")`.
 #'
 #' @srrstats {RE2.1} Missing values in `y` or the signature raise an error
 #'   in `.prepare_deconvolution_inputs()`; no silent imputation.
