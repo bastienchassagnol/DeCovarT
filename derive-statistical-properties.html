@@ -535,7 +535,7 @@ I_{J-1}\\
 <p><strong>Correct the Gaussian likelihood before adding further inference.</strong> In <code><a href="reference/loglik_multivariate.html">loglik_multivariate()</a></code>,</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">log_lik</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> <span class="va">sigma_p</span><span class="op">$</span><span class="va">log_det</span> <span class="op">-</span></span>
-<span>  <span class="fl">0.5</span> <span class="op">*</span> <span class="fu"><a href="reference/dot-bilinear_form.html">.bilinear_form</a></span><span class="op">(</span><span class="va">residual</span>, <span class="va">sigma_p</span><span class="op">$</span><span class="va">inverse</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fl">0.5</span> <span class="op">*</span> <span class="fu"><a href="reference/dot-inner_product.html">.inner_product</a></span><span class="op">(</span><span class="va">residual</span>, <span class="va">sigma_p</span><span class="op">$</span><span class="va">inverse</span><span class="op">)</span></span></code></pre></div>
 <p>must replace the current doubled determinant term if equation [ YpN_G(p,V(p)) ] is indeed the intended generative model. The current implementation and documentation explicitly use <code>-sigma_p$log_det</code>. fileciteturn10file0</p>
 <p>Then update the analytic gradient and Hessian. In particular,</p>
 <p>[ -2p_j(T_j) ]</p>

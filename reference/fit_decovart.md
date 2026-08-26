@@ -131,11 +131,22 @@ plot(x, ...)
 
 - parm:
 
-  Unused (all simplex coordinates are returned).
+  Kept for compatibility with
+  [`stats::confint()`](https://rdrr.io/r/stats/confint.html); all
+  simplex coordinates are always returned (subsetting by `parm` is not
+  implemented). Removing this formal would break the S3 method contract
+  with the generic.
 
 - level:
 
-  Confidence level.
+  Confidence level \\1-\alpha\\ (default `0.95`). Wald intervals use
+  asymptotic normality of the MLE with standard errors from
+  [`vcov_alr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.md)
+  /
+  [`expected_fisher_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.md)
+  (see Details of `fit_decovart()` and of
+  [`vcov_alr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.md)):
+  \\\hat{p}\_j \pm z\_{1-\alpha/2}\\\mathrm{SE}\_j\\.
 
 ## Value
 
@@ -184,7 +195,10 @@ Expression Profiles.” *Nature methods*, **12**.
 ## See also
 
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md),
-[`deconvolute_ratios_Marquardt_Levenberg()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md)
+[`deconvolute_ratios_Marquardt_Levenberg()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md),
+[`expected_fisher_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.md),
+[`vcov_alr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.md),
+`coef.decovart_fit()`, `vcov.decovart_fit()`, `confint.decovart_fit()`
 
 ## Examples
 

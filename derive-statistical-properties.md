@@ -1050,7 +1050,7 @@ optional enhancements.
 ``` r
 
 log_lik <- -0.5 * sigma_p$log_det -
-  0.5 * .bilinear_form(residual, sigma_p$inverse)
+  0.5 * .inner_product(residual, sigma_p$inverse)
 ```
 
 must replace the current doubled determinant term if equation \[

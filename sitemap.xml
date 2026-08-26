@@ -35,11 +35,12 @@
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/compute_shannon_entropy.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.html</loc></url>
-<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/dot-bilinear_form.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/dot-compute_global_variance.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/dot-inner_product.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/dot-jeffreys_gaussian.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/dot-map_gaussian_convolution.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/dot-sigma_p_factorisation.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/generate_mean_signature_matrix.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/generate_random_network_skeleton.html</loc></url>
@@ -56,5 +57,6 @@
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/repair_simplex.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/simulate_hierarchical_grn_moments.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.html</loc></url>
 </urlset>
 

@@ -239,11 +239,19 @@ supported.</p></dd>
 
 
 <dt id="arg-parm">parm<a class="anchor" aria-label="anchor" href="#arg-parm"></a></dt>
-<dd><p>Unused (all simplex coordinates are returned).</p></dd>
+<dd><p>Kept for compatibility with <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">stats::confint()</a></code>; all
+simplex coordinates are always returned (subsetting by <code>parm</code> is
+not implemented). Removing this formal would break the S3 method
+contract with the generic.</p></dd>
 
 
 <dt id="arg-level">level<a class="anchor" aria-label="anchor" href="#arg-level"></a></dt>
-<dd><p>Confidence level.</p></dd>
+<dd><p>Confidence level \(1-\alpha\) (default <code>0.95</code>). Wald
+intervals use asymptotic normality of the MLE with standard errors
+from <code><a href="vcov_alr_delta.html">vcov_alr_delta()</a></code> /
+<code><a href="expected_fisher_unconstrained.html">expected_fisher_unconstrained()</a></code> (see Details of <code>fit_decovart()</code>
+and of <code><a href="vcov_alr_delta.html">vcov_alr_delta()</a></code>):
+\(\hat{p}_j \pm z_{1-\alpha/2}\,\mathrm{SE}_j\).</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -310,7 +318,10 @@ $$</p>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="deconvolute_ratios.html">deconvolute_ratios()</a></code>,
-<code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_Marquardt_Levenberg()</a></code></p></div>
+<code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_Marquardt_Levenberg()</a></code>,
+<code><a href="expected_fisher_unconstrained.html">expected_fisher_unconstrained()</a></code>, <code><a href="vcov_alr_delta.html">vcov_alr_delta()</a></code>,
+<code>coef.decovart_fit()</code>, <code>vcov.decovart_fit()</code>,
+<code>confint.decovart_fit()</code></p></div>
     </div>
 
     <div class="section level2">

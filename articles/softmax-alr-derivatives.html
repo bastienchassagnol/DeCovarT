@@ -89,7 +89,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Simplex maps and numerically stable softmax / ALR derivatives</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-08-25</p>
+      <p class="date">2026-08-26</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/softmax-alr-derivatives.qmd" class="external-link"><code>vignettes/softmax-alr-derivatives.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -201,7 +201,7 @@ Table 2: Standard algebraic operations induced by a matrix <span class="math in
 </div>
 </figure>
 </div>
-<p>Package helpers <code><a href="../reference/dot-bilinear_form.html">.bilinear_form()</a></code> and <code>.squared_mahalanobis_distance()</code> implement the middle rows of <a href="#tbl-bilinear-forms" class="quarto-xref">Table 2</a>. The second solves <span class="math inline">\boldsymbol{\Sigma}\boldsymbol{z}=\boldsymbol{\delta}</span> rather than forming <span class="math inline">\boldsymbol{\Sigma}^{-1}</span> explicitly. Calling <span class="math inline">\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{y}</span> a “dot product” is misleading unless <span class="math inline">\boldsymbol{A}=\boldsymbol{I}</span>; see also the <a href="https://en.wikipedia.org/wiki/Dot_product" class="external-link">dot product</a> and <a href="https://en.wikipedia.org/wiki/Inner_product_space" class="external-link">inner product space</a> articles for the Euclidean special case <span class="math inline">\langle\boldsymbol{x},\boldsymbol{y}\rangle=\boldsymbol{x}^{\mathsf{T}}\boldsymbol{y}</span>.</p>
+<p>Package helpers <code><a href="../reference/dot-inner_product.html">.inner_product()</a></code> and <code>.squared_mahalanobis_distance()</code> implement the middle rows of <a href="#tbl-bilinear-forms" class="quarto-xref">Table 2</a>. The second solves <span class="math inline">\boldsymbol{\Sigma}\boldsymbol{z}=\boldsymbol{\delta}</span> rather than forming <span class="math inline">\boldsymbol{\Sigma}^{-1}</span> explicitly. Calling <span class="math inline">\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{y}</span> a “dot product” is misleading unless <span class="math inline">\boldsymbol{A}=\boldsymbol{I}</span>; see also the <a href="https://en.wikipedia.org/wiki/Dot_product" class="external-link">dot product</a> and <a href="https://en.wikipedia.org/wiki/Inner_product_space" class="external-link">inner product space</a> articles for the Euclidean special case <span class="math inline">\langle\boldsymbol{x},\boldsymbol{y}\rangle=\boldsymbol{x}^{\mathsf{T}}\boldsymbol{y}</span>.</p>
 </section><section class="section level2"><h2 id="log-sum-exp-and-softmax">Log-sum-exp and softmax<a class="anchor" aria-label="anchor" href="#log-sum-exp-and-softmax"></a>
 </h2>
 <p>The softmax of a score vector <span class="math inline">\boldsymbol{z}\in\mathbb{R}^{K}</span> is evaluated through the log-sum-exp (LSE) to avoid overflow,</p>

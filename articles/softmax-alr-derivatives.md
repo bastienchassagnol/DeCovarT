@@ -71,7 +71,7 @@ Table 2: Standard algebraic operations induced by a matrix
 \boldsymbol{A}.
 
 Package helpers
-[`.bilinear_form()`](https://bastienchassagnol.github.io/DeCovarT/reference/dot-bilinear_form.md)
+[`.inner_product()`](https://bastienchassagnol.github.io/DeCovarT/reference/dot-inner_product.md)
 and `.squared_mahalanobis_distance()` implement the middle rows of
 [Table 2](#tbl-bilinear-forms). The second solves
 \boldsymbol{\Sigma}\boldsymbol{z}=\boldsymbol{\delta} rather than
