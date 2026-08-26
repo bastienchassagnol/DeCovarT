@@ -98,8 +98,8 @@ independence ([Efron 2009](#ref-efronAreSetMicroarrays2009)).
 > \sim\mathcal{N}\_{G}\bigl(\boldsymbol{\mu}\\\boldsymbol{p}\_{\cdot i},
 > \sum\_{j}p\_{ji}^{2}\boldsymbol{\Sigma}\_{j}\bigr), with precision
 > \boldsymbol{\Theta}\_{j}=\boldsymbol{\Sigma}\_{j}^{-1} (typically from
-> `gLasso`). See the article Methods and [softmax / ALR
-> derivatives](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.md).
+> `gLasso`). See the article Methods and [derivatives under simplex
+> transforms](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.md).
 
 Abbas, Alexander R., Kristen Wolslegel, Dhaya Seshasayee, Zora Modrusan,
 and Hilary F. Clark. 2009. ‘Deconvolution of Blood Microarray Data

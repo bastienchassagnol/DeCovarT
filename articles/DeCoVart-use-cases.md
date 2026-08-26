@@ -28,10 +28,11 @@ p_j^2\boldsymbol{\Sigma}\_j.
 
 With the simplex constraint p_1+p_2=1, only one free unconstrained
 coordinate \rho_1 needs to be estimated (via the additive logistic map;
-see the [softmax / ALR
-vignette](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.md)).
-Bulk mixtures \boldsymbol{Y}\in\mathcal{M}\_{G\times N} are simulated
-without observation noise beyond the Gaussian convolution itself:
+see the [derivatives under simplex
+transforms](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.md)
+vignette). Bulk mixtures \boldsymbol{Y}\in\mathcal{M}\_{G\times N} are
+simulated without observation noise beyond the Gaussian convolution
+itself:
 
 - **Proportions.** Equi-balanced \boldsymbol{p}=(1/2,1/2) and highly
   unbalanced \boldsymbol{p}=(0.95,0.05) (the exported helper also
@@ -240,11 +241,12 @@ to the final gene panel, simulates N=20 bulk mixtures with
 on the two mean-collinear types; 0.2 on the orthogonal type), and runs
 every frequentist solver from an equi-balanced start.
 [Table 4](#tbl-solver-diagnostics) summarises a diagnostic run
-**before** the numerical fixes documented in the [softmax / ALR
-vignette](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.html#sec-numerical-speedups):
-stalled Newton–Raphson (`eval.max = 1`), slow Marquardt–Levenberg (wrong
-Hessian sign under `marqLevAlg`), and the benefit of polishing simulated
-annealing with a local Newton step.
+**before** the numerical fixes documented in the [derivatives under
+simplex
+transforms](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.html#sec-numerical-speedups)
+vignette: stalled Newton–Raphson (`eval.max = 1`), slow
+Marquardt–Levenberg (wrong Hessian sign under `marqLevAlg`), and the
+benefit of polishing simulated annealing with a local Newton step.
 
 | algorithm | n_ok | n_flagged | mean max\|error\| | mean time/sample |
 |:---|---:|---:|---:|---:|
@@ -272,7 +274,7 @@ Key reading of [Table 4](#tbl-solver-diagnostics):
   \$\$1.7 s/sample because the relative-distance-to-minimum (RDM)
   criterion never fired (Hessian sign convention under `marqLevAlg`; see
   [numerical
-  notes](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.html#sec-numerical-speedups)).
+  notes](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.html#sec-numerical-speedups)).
 - **`simulated_annealing`** stalled on 2/20 samples; polishing with
   Newton after a SANN warm start removed those stalls without a proximal
   simplex projection (the ALR map already lands on the open simplex).

@@ -12,7 +12,7 @@
 
 ### Getting started
 
-- [Simulating semi-synthetic pseudo-bulk mixtures for
+- [Simulating synthetic scenarios for
   benchmarking](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.md):
 - [Feature selection for reference-based
   deconvolution](https://bastienchassagnol.github.io/DeCovarT/articles/feature-selection.md):
@@ -23,11 +23,20 @@
 
 ### Mathematics
 
-- [Simplex maps and numerically stable softmax / ALR
-  derivatives](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.md):
+- [Derivatives of the DeCovarT generative model under simplex
+  transforms](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.md):
 - [OLS reminders for linear
   deconvolution](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-reminders-OLS.md):
-- [DeCovarT appendix: affine equivariance, collinearity and
-  perturbations](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT_appendix_simualtion_frameworks.md):
 - [DeCovarT
   perspectives](https://bastienchassagnol.github.io/DeCovarT/articles/decovart-perspectives.md):
+
+### Appendix simulations
+
+Edge-case numerical checks behind the `decovart_fit` API: gene-wise
+z-score / affine equivariance of the MLE, failure under collinear
+signatures, impact of small bulk perturbations under full /
+cell-type-diagonal / global covariances, and sensitivity of second-order
+solvers to random ALR starts.
+
+- [DeCovarT appendix: affine equivariance, collinearity and
+  perturbations](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT_appendix_simualtion_frameworks.md):

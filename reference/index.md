@@ -19,7 +19,7 @@ Analytic first- and second-order helpers for the unconstrained and
 ALR-constrained log-likelihood (Jacobian / Hessian of the additive
 logistic map; gradients and Hessians of ()). Documented for `?` / source
 inspection; see also
-[`vignette("softmax-alr-derivatives")`](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.md).
+[`vignette("generative-model-derivatives")`](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.md).
 
 - [`additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
   [`additive_log_ratio()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
@@ -71,6 +71,19 @@ is
   [`confint(`*`<decovart_fit>`*`)`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md)
   [`plot(`*`<decovart_fit>`*`)`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md)
   : Fit the DeCovarT Gaussian-convolution model
+
+### Fisher information and Wald intervals
+
+Expected Fisher information of unconstrained proportions and ALR
+delta-method covariance used by
+[`vcov()`](https://rdrr.io/r/stats/vcov.html) /
+[`confint()`](https://rdrr.io/r/stats/confint.html) on `decovart_fit`
+objects (see `fit_decovart`).
+
+- [`expected_fisher_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.md)
+  : Expected Fisher information of unconstrained \\\boldsymbol{p}\\
+- [`vcov_alr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.md)
+  : Cramer–Rao / ALR delta-method covariance of \\\hat{\boldsymbol{p}}\\
 
 ## Benchmark and evaluation
 

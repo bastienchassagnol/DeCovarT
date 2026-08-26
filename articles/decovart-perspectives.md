@@ -10,8 +10,8 @@
 > time-resolved composition, ensembles, spatial transcriptomics, and
 > multi-omics. Compositional reparametrisation is implemented in
 > [`additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
-> and documented numerically in the [softmax / ALR
-> derivatives](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.md)
+> and documented numerically in the [derivatives under simplex
+> transforms](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.md)
 > vignette. The same catalogue is tracked in [GitHub issue
 > 5](https://github.com/bastienchassagnol/DeCovarT/issues/5).
 
@@ -615,11 +615,10 @@ The inverse
 [`additive_log_ratio()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_log_ratio.md)
 recovers \rho_j=\log(p_j/p_J). The forward and inverse maps, their
 Jacobians, and Hessians used in the constrained likelihood are derived
-in the companion vignette [Simplex maps and softmax / ALR
-derivatives](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.html#eq-additive-logistic-intro)
-(`@eq-additive-logistic-intro` and `@eq-additive-log-ratio-intro`
-there). Optimisation therefore runs in \boldsymbol{\rho}-space while
-reported estimates satisfy \sum_j p_j=1.
+in the companion vignette [Derivatives under simplex
+transforms](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.html#eq-alr-maps)
+(`@eq-alr-maps` there). Optimisation therefore runs in
+\boldsymbol{\rho}-space while reported estimates satisfy \sum_j p_j=1.
 
 Extensions on the same footing include **ILR** or **CLR** coordinates
 ([Pawlowsky-Glahn and Buccianti

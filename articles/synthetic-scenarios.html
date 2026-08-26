@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Simulating semi-synthetic pseudo-bulk mixtures for benchmarking • DeCovarT</title>
+<title>Simulating synthetic scenarios for benchmarking • DeCovarT</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -21,7 +21,7 @@
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="synthetic-scenarios_files/libs/quarto-html/popper.min.js"></script><script src="synthetic-scenarios_files/libs/quarto-html/tippy.umd.min.js"></script><link href="synthetic-scenarios_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="synthetic-scenarios_files/libs/quarto-html/light-border.css" rel="stylesheet">
 <script src="synthetic-scenarios_files/libs/quarto-diagram/mermaid.min.js"></script><script src="synthetic-scenarios_files/libs/quarto-diagram/mermaid-init.js"></script><link href="synthetic-scenarios_files/libs/quarto-diagram/mermaid.css" rel="stylesheet">
-<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Simulating semi-synthetic pseudo-bulk mixtures for benchmarking">
+<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Simulating synthetic scenarios for benchmarking">
 <meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg">
 </head>
 <body>
@@ -58,10 +58,12 @@
     <li><a class="dropdown-item" href="../articles/feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
-    <li><a class="dropdown-item" href="../articles/softmax-alr-derivatives.html"><span class="fa fa-square-root-variable"></span> Simplex maps and softmax / ALR derivatives</a></li>
+    <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Derivatives under simplex transforms</a></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT_appendix_simualtion_frameworks.html"><span class="fa fa-ruler-combined"></span> Affine equivariance and collinearity</a></li>
     <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives (outlook)</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Appendix simulations</h6></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT_appendix_simualtion_frameworks.html"><span class="fa fa-vial"></span> Equivariance, collinearity and perturbations</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html"><span class="fa fa-newspaper"></span> News</a></li>
@@ -87,7 +89,7 @@
 </nav><div class="container template-quarto">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.svg" class="logo" alt=""><h1>Simulating semi-synthetic pseudo-bulk mixtures for benchmarking</h1>
+      <img src="../logo.svg" class="logo" alt=""><h1>Simulating synthetic scenarios for benchmarking</h1>
 
       <p class="author">Bastien Chassagnol</p>
       <p class="date">2026-08-26</p>
@@ -166,7 +168,7 @@ Figure 1: Pipeline from synthetic moment generation to deconvolution.
 <span><span class="co">#&gt; [1] 40  3 20</span></span></code></pre></div>
 </div>
 <p>Selecting genes (or, here, designing <span class="math inline">\boldsymbol{\mu}</span>) by cosine alone is insufficient for stable deconvolution <span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">(<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">Aliee and Theis 2021</a>)</span>. In the scenarios of this package we therefore <strong>hold <code>mean_scale</code> fixed</strong> and dial only <code>target_cosine</code>, so first-order scale and second-order precision weights stay comparable across runs.</p>
-</section><section class="section level2"><h2 id="mathematical-roles-of-the-generators">Mathematical roles of the generators<a class="anchor" aria-label="anchor" href="#mathematical-roles-of-the-generators"></a>
+</section><section class="section level2"><h2 id="generate-mean-expression-profiles">Generate mean expression profiles<a class="anchor" aria-label="anchor" href="#generate-mean-expression-profiles"></a>
 </h2>
 <section class="level2"><h3 id="sec-lr-block-mu">Mean signature: <code>generate_mean_signature_matrix()</code>
 <a class="anchor" aria-label="anchor" href="#sec-lr-block-mu"></a>
@@ -865,13 +867,67 @@ j=1,\ldots,J,
 <p>stacked as an array in <span class="math inline">\mathcal{M}_{G\times G\times J}</span>. Shared networks remain available by supplying the same adjacency (or the same graph model seed path) for every type. Downstream bulk simulation uses the Gaussian convolution <span class="math inline">\boldsymbol{y}\mid(\boldsymbol{\zeta},\boldsymbol{p})\sim
 \mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},
 \sum_j p_j^{2}\boldsymbol{\Sigma}_j)</span>.</p>
-</section><section class="level2"><h3 id="conclusions">Conclusions<a class="anchor" aria-label="anchor" href="#conclusions"></a>
+</section><section class="level2"><h3 id="sec-imbalanced">Imbalanced cellular proportions<a class="anchor" aria-label="anchor" href="#sec-imbalanced"></a>
 </h3>
-<blockquote>
-<p>DeCovarT draws <code>scale_free</code>, <code>stochastic_block_model</code>, and <code>small_world</code> skeletons with , then i.i.d. signed weights (<code>prop_inhibitory</code>) and a spectral shift to guarantee <span class="math inline">\Omega\succ 0</span>.</p>
-</blockquote>
-<section class="level3"><h4 id="further-high-dimensional-designs">Further high-dimensional designs<a class="anchor" aria-label="anchor" href="#further-high-dimensional-designs"></a>
-</h4>
+<p>Topology and mean design fix the <em>reference</em> moments <span class="math inline">\boldsymbol{\zeta}</span>. Mixture difficulty also depends on how uneven the true composition <span class="math inline">\boldsymbol{p}</span> is. DeCovarT summarises that imbalance with the normalised Shannon entropy <a href="../reference/compute_shannon_entropy.html"><code>compute_shannon_entropy()</code></a>,</p>
+<p><span id="eq-shannon-star"><span class="math display">
+H^{\star}(\boldsymbol{p})
+=
+\frac{-\sum_{j:p_{j}&gt;0}p_{j}\log p_{j}}{\log J}
+\in[0,1],
+\tag{21}</span></span></p>
+<p>so <span class="math inline">H^{\star}=0</span> for a Dirac mass on one type and <span class="math inline">H^{\star}=1</span> for the uniform vector on <span class="math inline">J</span> types. Zero masses are dropped only inside the sum; the normaliser still uses the full panel size <span class="math inline">J</span>.</p>
+<p>A practical grid therefore crosses network / mean axes with a few composition designs, for example:</p>
+<div id="tbl-entropy-designs" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-entropy-designs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 6: Composition designs scored by normalised Shannon entropy.
+</figcaption><div aria-describedby="tbl-entropy-designs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table caption-top">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead><tr class="header">
+<th style="text-align: left;">Design</th>
+<th style="text-align: left;">Example <span class="math inline">\boldsymbol{p}</span> (up to permutation)</th>
+<th style="text-align: left;">Typical <span class="math inline">H^{\star}</span>
+</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Pure / near-pure</td>
+<td style="text-align: left;">
+<span class="math inline">(1,0,\ldots)</span> or <span class="math inline">(0.95,0.05,0,\ldots)</span>
+</td>
+<td style="text-align: left;">near <span class="math inline">0</span>
+</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">One dominant type</td>
+<td style="text-align: left;"><span class="math inline">(0.7,0.15,0.15)</span></td>
+<td style="text-align: left;">low–moderate</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Two-way balance</td>
+<td style="text-align: left;">
+<span class="math inline">(0.5,0.5)</span> or <span class="math inline">(0.4,0.4,0.2)</span>
+</td>
+<td style="text-align: left;">moderate–high</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Uniform</td>
+<td style="text-align: left;"><span class="math inline">(1/J,\ldots,1/J)</span></td>
+<td style="text-align: left;"><span class="math inline">1</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>The Bioconductor package <code>SimBu</code> <span class="citation" data-cites="R-SimBu">(<a href="#ref-R-SimBu" role="doc-biblioref">Dietrich 2024</a>)</span> offers a complementary pseudo-bulk toolkit with six named fraction scenarios (<code>even</code>, <code>random</code>, <code>mirror_db</code>, <code>weighted</code>, <code>pure</code>, <code>custom</code>) when aggregating single-cell profiles; see the <a href="https://bioconductor.org/packages/release/bioc/vignettes/SimBu/inst/doc/SimBu.html" class="external-link">SimBu “Simulate pseudo bulk datasets”</a> section. DeCovarT’s Gaussian convolution uses the same idea at the <em>moment</em> layer: supply <code>p</code> (or a <span class="math inline">J\times N</span> matrix of sample-wise ratios) to <code><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code> / the hybrid scenario scripts, and report <span class="math inline">H^{\star}</span> alongside overlap or condition-number diagnostics. The hybrid <span class="math inline">J=3</span> use-case vignette uses the imbalanced design <span class="math inline">\boldsymbol{p}=(0.4,0.4,0.2)</span> (<a href="DeCoVart-use-cases.html#sec-scenario-grid">Deconvolution use cases</a>).</p>
+</section></section><section class="section level2"><h2 id="perspectives-on-high-dimensional-or-more-biologically-realistic-designs">Perspectives on high-dimensional or more biologically realistic designs<a class="anchor" aria-label="anchor" href="#perspectives-on-high-dimensional-or-more-biologically-realistic-designs"></a>
+</h2>
 <p>Beyond the families in <a href="#tbl-topologies" class="quarto-xref">Table 1</a>:</p>
 <ul>
 <li>
@@ -902,9 +958,11 @@ j=1,\ldots,J,
 <strong>Zero-inflated mixture GGMs</strong> with cell-type-specific <span class="math inline">(\mu_k,\Omega_k)</span> and expression-dependent dropout <span class="citation" data-cites="wuEstimatingHeterogeneousGene2022">(<a href="#ref-wuEstimatingHeterogeneousGene2022" role="doc-biblioref">Wu and Luo 2022</a>)</span>.</li>
 </ul>
 </li>
-</ul></section><section class="level3"><h4 id="recommended-benchmark-specification">Recommended benchmark specification<a class="anchor" aria-label="anchor" href="#recommended-benchmark-specification"></a>
-</h4>
-<p>Use one pipeline for every topology (<a href="#eq-benchmark-pipe" class="quarto-xref">Equation 21</a>, <a href="#fig-ggm-pipeline" class="quarto-xref">Figure 5</a>):</p>
+</ul>
+<div id="nte-benchmark-spec">
+<blockquote>
+<p><strong>Important 1: Recommended benchmark specification</strong></p>
+<p>Use one pipeline for every topology (<a href="#eq-benchmark-pipe" class="quarto-xref">Equation 22</a>, <a href="#fig-ggm-pipeline" class="quarto-xref">Figure 5</a>):</p>
 <p><span id="eq-benchmark-pipe"><span class="math display">
 \text{topology}
 \rightarrow
@@ -917,10 +975,10 @@ j=1,\ldots,J,
 \text{latent Gaussian}
 \rightarrow
 \text{observation model}
-\tag{21}</span></span></p>
+\tag{22}</span></span></p>
 <div id="tbl-benchmark-axes" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-benchmark-axes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 6: Compact factorial axes for a reproducible undirected GGM simulation study.
+Table 7: Compact factorial axes for a reproducible undirected GGM simulation study.
 </figcaption><div aria-describedby="tbl-benchmark-axes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table caption-top">
 <colgroup>
@@ -933,8 +991,8 @@ Table 6: Compact factorial axes for a reproducible undirected GGM simulation st
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td>Dimension, namely number of variables (here, genes)</td>
-<td><span class="math inline">p \in \{100,500,1000\}</span></td>
+<td>Dimension (genes)</td>
+<td><span class="math inline">G \in \{100,500,1000\}</span></td>
 </tr>
 <tr class="even">
 <td>Topology</td>
@@ -951,21 +1009,25 @@ Table 6: Compact factorial axes for a reproducible undirected GGM simulation st
 </tr>
 <tr class="odd">
 <td>Conditioning</td>
-<td>Report <span class="math inline">\lambda_{\min}</span>, <span class="math inline">\lambda_{\max}</span>, <span class="math inline">\kappa(\Omega)</span>
-</td>
+<td>Report <span class="math inline">\kappa(\Omega)</span> and partial-correlation summaries</td>
 </tr>
 <tr class="even">
-<td>Means</td>
-<td>Zero; sparse group shifts, driven by cell-type; joint <span class="math inline">\mu</span>–<span class="math inline">\Omega</span> heterogeneity, for example playing on the <em>cosine similarity</em>, or the <em>condition number</em>, of the mean profile</td>
+<td>Composition</td>
+<td>Pure / weighted / balanced / uniform (<a href="#sec-imbalanced" class="quarto-xref">Section 4.6</a>); record <span class="math inline">H^{\star}</span>
+</td>
 </tr>
 </tbody>
 </table>
 </div>
 </figure>
 </div>
-<p><strong>Main insights.</strong> Prefer the uniform spectral shift (<a href="#eq-spectral-shift" class="quarto-xref">Equation 18</a>) or partial-correlation scaling (<a href="#eq-partial-scale" class="quarto-xref">Equation 17</a>) when support and signs must be exact; add the mean layer <strong>independently</strong> of graph generation.</p>
-<p>The end-to-end <strong>hybrid multi-topology reference scenario</strong> (two mean-collinear cell types distinguished only by network topology, a third orthogonal type, NSGA-II panel curation, and the frequentist solver comparison on imbalanced mixtures) is documented in the companion vignette <a href="DeCoVart-use-cases.html#sec-scenario-grid">Deconvolution use cases</a>.</p>
-</section></section></section><section class="section level2"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+<p>Prefer the uniform spectral shift (<a href="#eq-spectral-shift" class="quarto-xref">Equation 18</a>) or partial-correlation scaling (<a href="#eq-partial-scale" class="quarto-xref">Equation 17</a>) when support and signs must be exact; add the mean layer <strong>independently</strong> of graph generation. The end-to-end <strong>hybrid multi-topology reference scenario</strong> (two mean-collinear cell types distinguished only by network topology, a third orthogonal type, NSGA-II panel curation, and the frequentist solver comparison on imbalanced mixtures) is documented in <a href="DeCoVart-use-cases.html#sec-scenario-grid">Deconvolution use cases</a>. Edge-case numerical checks (gene-wise z-score equivariance, collinear signatures, small bulk perturbations, random ALR starts) live in the <a href="DeCovarT_appendix_simualtion_frameworks.html">appendix simulation vignette</a>.</p>
+</blockquote>
+</div>
+</section><section class="section level2"><h2 id="conclusions">Conclusions<a class="anchor" aria-label="anchor" href="#conclusions"></a>
+</h2>
+<p>DeCovarT draws <code>scale_free</code>, <code>stochastic_block_model</code>, and <code>small_world</code> skeletons with <code>igraph</code>, then i.i.d. signed weights (<code>prop_inhibitory</code>) and a spectral shift to guarantee <span class="math inline">\Omega\succ 0</span>. Keep graph generation, mean design, and composition imbalance as separate factorial axes, and report both network conditioning and <span class="math inline">H^{\star}(\boldsymbol{p})</span> when comparing solvers.</p>
+</section><section class="section level2"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-alieeAutoGeneSAutomaticGene2021" class="csl-entry" role="listitem">
@@ -985,6 +1047,9 @@ Broido, Anna D., and Aaron Clauset. 2019. <span>‘Scale-Free Networks Are Rare�
 </div>
 <div id="ref-chiquetVariationalInferenceSparse2018" class="csl-entry" role="listitem">
 Chiquet, Julien, Mahendra Mariadassou, and Stéphane Robin. 2018. <em>Variational Inference for Sparse Network Reconstruction from Count Data</em>. arXiv. <a href="https://doi.org/10.48550/arxiv.1806.03120" class="external-link">https://doi.org/10.48550/arxiv.1806.03120</a>.
+</div>
+<div id="ref-R-SimBu" class="csl-entry" role="listitem">
+Dietrich, Alexander. 2024. <em>SimBu: Bias-Aware Simulation of Bulk RNA-Seq Data with Variable Cell-Type Composition</em>. <a href="https://doi.org/10.18129/B9.bioc.SimBu" class="external-link">https://doi.org/10.18129/B9.bioc.SimBu</a>.
 </div>
 <div id="ref-federicoStructureLearningGene2023" class="csl-entry" role="listitem">
 Federico, Anthony, Joseph Kern, Xaralabos Varelas, and Stefano Monti. 2023. <span>‘Structure Learning for Gene Regulatory Networks’</span>. <em>PLOS Computational Biology</em> 19. <a href="https://doi.org/10.1371/journal.pcbi.1011118" class="external-link">https://doi.org/10.1371/journal.pcbi.1011118</a>.

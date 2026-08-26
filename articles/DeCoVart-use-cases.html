@@ -57,10 +57,12 @@
     <li><a class="dropdown-item" href="../articles/feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
-    <li><a class="dropdown-item" href="../articles/softmax-alr-derivatives.html"><span class="fa fa-square-root-variable"></span> Simplex maps and softmax / ALR derivatives</a></li>
+    <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Derivatives under simplex transforms</a></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT_appendix_simualtion_frameworks.html"><span class="fa fa-ruler-combined"></span> Affine equivariance and collinearity</a></li>
     <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives (outlook)</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Appendix simulations</h6></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT_appendix_simualtion_frameworks.html"><span class="fa fa-vial"></span> Equivariance, collinearity and perturbations</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html"><span class="fa fa-newspaper"></span> News</a></li>
@@ -110,7 +112,7 @@
 <p>The manuscript’s bivariate study (two genes, two cell populations) is implemented by <code><a href="../reference/benchmark_bivariate_gaussian_convolutions.html">benchmark_bivariate_gaussian_convolutions()</a></code> in <code>R/02_01_toy_simulation.R</code>. The purpose is deliberately narrow: show that <strong>even when mean expression profiles are similar</strong>, accounting for the covariance between genes can (a) <strong>degrade</strong> standard mean-only deconvolution algorithms, and (b) be <strong>partly alleviated</strong> by DeCovarT’s native inclusion of <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j</span>.</p>
 <section class="level2"><h3 id="generative-design">Generative design<a class="anchor" aria-label="anchor" href="#generative-design"></a>
 </h3>
-<p>With the simplex constraint <span class="math inline">p_1+p_2=1</span>, only one free unconstrained coordinate <span class="math inline">\rho_1</span> needs to be estimated (via the additive logistic map; see the <a href="softmax-alr-derivatives.html">softmax / ALR vignette</a>). Bulk mixtures <span class="math inline">\boldsymbol{Y}\in\mathcal{M}_{G\times N}</span> are simulated without observation noise beyond the Gaussian convolution itself:</p>
+<p>With the simplex constraint <span class="math inline">p_1+p_2=1</span>, only one free unconstrained coordinate <span class="math inline">\rho_1</span> needs to be estimated (via the additive logistic map; see the <a href="generative-model-derivatives.html">derivatives under simplex transforms</a> vignette). Bulk mixtures <span class="math inline">\boldsymbol{Y}\in\mathcal{M}_{G\times N}</span> are simulated without observation noise beyond the Gaussian convolution itself:</p>
 <ul>
 <li>
 <strong>Proportions.</strong> Equi-balanced <span class="math inline">\boldsymbol{p}=(1/2,1/2)</span> and highly unbalanced <span class="math inline">\boldsymbol{p}=(0.95,0.05)</span> (the exported helper also accepts intermediate unbalanced levels such as <span class="math inline">(0.6,0.4)</span>).</li>
@@ -319,7 +321,7 @@ Figure 1: Cell-type-specific block topologies for the 50-gene hybrid scenario: 
 <p>The full pipeline built on this scenario—mean signature, per-cell-type topologies, <span class="math inline">N=200</span> bulk simulation, and the pre-selection / NSGA-II feature-selection stages it stresses—is reproduced end-to-end in <code>scripts/generate_random_markov_network.R</code>.</p>
 </section><section class="level2"><h3 id="sec-hybrid-deconvolution">Deconvolution on imbalanced mixtures<a class="anchor" aria-label="anchor" href="#sec-hybrid-deconvolution"></a>
 </h3>
-<p><code>scripts/deconvolute_simulated_scenario.R</code> loads the NSGA-II-curated moments from <code>data/synthetic_networks/true_grn_moments.rds</code>, restricts to the final gene panel, simulates <span class="math inline">N=20</span> bulk mixtures with <strong>imbalanced</strong> true composition <span class="math inline">\boldsymbol{p}=(0.4,0.4,0.2)</span> (equal mass on the two mean-collinear types; <span class="math inline">0.2</span> on the orthogonal type), and runs every frequentist solver from an equi-balanced start. <a href="#tbl-solver-diagnostics" class="quarto-xref">Table 4</a> summarises a diagnostic run <strong>before</strong> the numerical fixes documented in the <a href="softmax-alr-derivatives.html#sec-numerical-speedups">softmax / ALR vignette</a>: stalled Newton–Raphson (<code>eval.max = 1</code>), slow Marquardt–Levenberg (wrong Hessian sign under <code>marqLevAlg</code>), and the benefit of polishing simulated annealing with a local Newton step.</p>
+<p><code>scripts/deconvolute_simulated_scenario.R</code> loads the NSGA-II-curated moments from <code>data/synthetic_networks/true_grn_moments.rds</code>, restricts to the final gene panel, simulates <span class="math inline">N=20</span> bulk mixtures with <strong>imbalanced</strong> true composition <span class="math inline">\boldsymbol{p}=(0.4,0.4,0.2)</span> (equal mass on the two mean-collinear types; <span class="math inline">0.2</span> on the orthogonal type), and runs every frequentist solver from an equi-balanced start. <a href="#tbl-solver-diagnostics" class="quarto-xref">Table 4</a> summarises a diagnostic run <strong>before</strong> the numerical fixes documented in the <a href="generative-model-derivatives.html#sec-numerical-speedups">derivatives under simplex transforms</a> vignette: stalled Newton–Raphson (<code>eval.max = 1</code>), slow Marquardt–Levenberg (wrong Hessian sign under <code>marqLevAlg</code>), and the benefit of polishing simulated annealing with a local Newton step.</p>
 <div id="tbl-solver-diagnostics" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-solver-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table 4: Per-solver summary on 20 imbalanced hybrid bulk mixtures (true p = (0.4, 0.4, 0.2)), diagnostic run before numerical fixes in R/03_03_DeCovarT_estimate_ratios_frequentist.R.
@@ -394,7 +396,7 @@ Table 4: Per-solver summary on 20 imbalanced hybrid bulk mixtures (true p = (0.
 <li>
 <strong><code>Newton_Raphson_fixed</code></strong> (same code without that control) and <strong><code>sann_then_polish</code></strong> both recover mean max<span class="math inline">|</span>error<span class="math inline">|\approx 0.102</span>, matching a correctly configured second-order step.</li>
 <li>
-<strong><code>Marquardt_Levenberg</code></strong> already reached similar accuracy but at $$1.7 s/sample because the relative-distance-to-minimum (RDM) criterion never fired (Hessian sign convention under <code>marqLevAlg</code>; see <a href="softmax-alr-derivatives.html#sec-numerical-speedups">numerical notes</a>).</li>
+<strong><code>Marquardt_Levenberg</code></strong> already reached similar accuracy but at $$1.7 s/sample because the relative-distance-to-minimum (RDM) criterion never fired (Hessian sign convention under <code>marqLevAlg</code>; see <a href="generative-model-derivatives.html#sec-numerical-speedups">numerical notes</a>).</li>
 <li>
 <strong><code>simulated_annealing</code></strong> stalled on 2/20 samples; polishing with Newton after a SANN warm start removed those stalls without a proximal simplex projection (the ALR map already lands on the open simplex).</li>
 </ul>

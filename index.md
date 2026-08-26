@@ -53,7 +53,7 @@ Etienne Becht
 
 Anaïs Baudot
 
-2026-08-25
+2026-08-26
 
 ## 
 
@@ -556,8 +556,8 @@ Package website: <https://bastienchassagnol.github.io/DeCovarT/>
   mixtures](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html)
 - [Deconvolution use cases with
   DeCovarT](https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.html)
-- [Simplex maps and softmax / ALR
-  derivatives](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.html)
+- [Derivatives under simplex
+  transforms](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.html)
 
 In an R session, use
 [`?DeCovarT::deconvolute_ratios`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)

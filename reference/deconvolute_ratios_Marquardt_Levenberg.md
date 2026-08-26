@@ -13,7 +13,7 @@ the Gaussian convolution model \$\$
 unconstrained coordinates \\\boldsymbol{\rho}\in\mathbb{R}^{J-1}\\ via
 \\\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})\\
 (Marquardt–Levenberg default; see other methods below and
-[`vignette("softmax-alr-derivatives", package = "DeCovarT")`](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.md)).
+[`vignette("generative-model-derivatives", package = "DeCovarT")`](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.md)).
 
 ## Usage
 

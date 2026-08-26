@@ -57,10 +57,12 @@
     <li><a class="dropdown-item" href="../articles/feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
-    <li><a class="dropdown-item" href="../articles/softmax-alr-derivatives.html"><span class="fa fa-square-root-variable"></span> Simplex maps and softmax / ALR derivatives</a></li>
+    <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Derivatives under simplex transforms</a></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT_appendix_simualtion_frameworks.html"><span class="fa fa-ruler-combined"></span> Affine equivariance and collinearity</a></li>
     <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives (outlook)</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Appendix simulations</h6></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT_appendix_simualtion_frameworks.html"><span class="fa fa-vial"></span> Equivariance, collinearity and perturbations</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html"><span class="fa fa-newspaper"></span> News</a></li>
@@ -204,7 +206,7 @@ y_{gi}=\sum_{j=1}^{J}\mu_{gj}p_{ji}+\epsilon_{gi},
 <p>DeCovarT replaces gene-wise scalar noise with a multivariate convolution: latent <span class="math inline">\boldsymbol{x}_{\cdot j}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},
 \boldsymbol{\Sigma}_{j})</span>, and <span class="math inline">\boldsymbol{y}_{\cdot i}\,|\,\boldsymbol{p}_{\cdot i}
 \sim\mathcal{N}_{G}\bigl(\boldsymbol{\mu}\,\boldsymbol{p}_{\cdot i},
-\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}\bigr)</span>, with precision <span class="math inline">\boldsymbol{\Theta}_{j}=\boldsymbol{\Sigma}_{j}^{-1}</span> (typically from <code>gLasso</code>). See the article Methods and <a href="softmax-alr-derivatives.html">softmax / ALR derivatives</a>.</p>
+\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}\bigr)</span>, with precision <span class="math inline">\boldsymbol{\Theta}_{j}=\boldsymbol{\Sigma}_{j}^{-1}</span> (typically from <code>gLasso</code>). See the article Methods and <a href="generative-model-derivatives.html">derivatives under simplex transforms</a>.</p>
 </blockquote>
 </div>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">

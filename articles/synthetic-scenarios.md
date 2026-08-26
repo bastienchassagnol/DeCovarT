@@ -1,4 +1,4 @@
-# Simulating semi-synthetic pseudo-bulk mixtures for benchmarking
+# Simulating synthetic scenarios for benchmarking
 
 ## Overview
 
@@ -94,7 +94,7 @@ package we therefore **hold `mean_scale` fixed** and dial only
 `target_cosine`, so first-order scale and second-order precision weights
 stay comparable across runs.
 
-## Mathematical roles of the generators
+## Generate mean expression profiles
 
 ### Mean signature: `generate_mean_signature_matrix()`
 
@@ -646,13 +646,48 @@ Gaussian convolution
 \mathcal{N}\_{G}(\boldsymbol{\mu}\boldsymbol{p}, \sum_j
 p_j^{2}\boldsymbol{\Sigma}\_j).
 
-### Conclusions
+### Imbalanced cellular proportions
 
-> DeCovarT draws `scale_free`, `stochastic_block_model`, and
-> `small_world` skeletons with , then i.i.d. signed weights
-> (`prop_inhibitory`) and a spectral shift to guarantee \Omega\succ 0.
+Topology and mean design fix the *reference* moments \boldsymbol{\zeta}.
+Mixture difficulty also depends on how uneven the true composition
+\boldsymbol{p} is. DeCovarT summarises that imbalance with the
+normalised Shannon entropy
+[`compute_shannon_entropy()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_shannon_entropy.md),
 
-#### Further high-dimensional designs
+H^{\star}(\boldsymbol{p}) = \frac{-\sum\_{j:p\_{j}\>0}p\_{j}\log
+p\_{j}}{\log J} \in\[0,1\], \tag{21}
+
+so H^{\star}=0 for a Dirac mass on one type and H^{\star}=1 for the
+uniform vector on J types. Zero masses are dropped only inside the sum;
+the normaliser still uses the full panel size J.
+
+A practical grid therefore crosses network / mean axes with a few
+composition designs, for example:
+
+| Design | Example \boldsymbol{p} (up to permutation) | Typical H^{\star} |
+|:---|:---|:---|
+| Pure / near-pure | (1,0,\ldots) or (0.95,0.05,0,\ldots) | near 0 |
+| One dominant type | (0.7,0.15,0.15) | low–moderate |
+| Two-way balance | (0.5,0.5) or (0.4,0.4,0.2) | moderate–high |
+| Uniform | (1/J,\ldots,1/J) | 1 |
+
+Table 6: Composition designs scored by normalised Shannon entropy.
+
+The Bioconductor package `SimBu` ([Dietrich 2024](#ref-R-SimBu)) offers
+a complementary pseudo-bulk toolkit with six named fraction scenarios
+(`even`, `random`, `mirror_db`, `weighted`, `pure`, `custom`) when
+aggregating single-cell profiles; see the [SimBu “Simulate pseudo bulk
+datasets”](https://bioconductor.org/packages/release/bioc/vignettes/SimBu/inst/doc/SimBu.html)
+section. DeCovarT’s Gaussian convolution uses the same idea at the
+*moment* layer: supply `p` (or a J\times N matrix of sample-wise ratios)
+to
+[`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md)
+/ the hybrid scenario scripts, and report H^{\star} alongside overlap or
+condition-number diagnostics. The hybrid J=3 use-case vignette uses the
+imbalanced design \boldsymbol{p}=(0.4,0.4,0.2) ([Deconvolution use
+cases](https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.html#sec-scenario-grid)).
+
+## Perspectives on high-dimensional or more biologically realistic designs
 
 Beyond the families in [Table 1](#tbl-topologies):
 
@@ -679,38 +714,49 @@ Beyond the families in [Table 1](#tbl-topologies):
     (\mu_k,\Omega_k) and expression-dependent dropout ([Wu and Luo
     2022](#ref-wuEstimatingHeterogeneousGene2022)).
 
-#### Recommended benchmark specification
+> **Important 1: Recommended benchmark specification**
+>
+> Use one pipeline for every topology
+> ([Equation 22](#eq-benchmark-pipe), [Figure 5](#fig-ggm-pipeline)):
+>
+> \text{topology} \rightarrow \text{signed weights} \rightarrow
+> \text{SPD precision} \rightarrow \text{mean design} \rightarrow
+> \text{latent Gaussian} \rightarrow \text{observation model} \tag{22}
+>
+> | Axis | Suggested levels |
+> |----|----|
+> | Dimension (genes) | G \in \\100,500,1000\\ |
+> | Topology | ER, band, hub, scale-free, SBM, small-world |
+> | Expected degree | \approx 2,4,8 (keep graphs sparse) |
+> | Edge weights | Constant; i.i.d. signed; partial-correlation scaling; G-Wishart |
+> | Conditioning | Report \kappa(\Omega) and partial-correlation summaries |
+> | Composition | Pure / weighted / balanced / uniform ([Section 4.6](#sec-imbalanced)); record H^{\star} |
+>
+> Table 7: Compact factorial axes for a reproducible undirected GGM
+> simulation study.
+>
+> Prefer the uniform spectral shift ([Equation 18](#eq-spectral-shift))
+> or partial-correlation scaling ([Equation 17](#eq-partial-scale)) when
+> support and signs must be exact; add the mean layer **independently**
+> of graph generation. The end-to-end **hybrid multi-topology reference
+> scenario** (two mean-collinear cell types distinguished only by
+> network topology, a third orthogonal type, NSGA-II panel curation, and
+> the frequentist solver comparison on imbalanced mixtures) is
+> documented in [Deconvolution use
+> cases](https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.html#sec-scenario-grid).
+> Edge-case numerical checks (gene-wise z-score equivariance, collinear
+> signatures, small bulk perturbations, random ALR starts) live in the
+> [appendix simulation
+> vignette](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT_appendix_simualtion_frameworks.md).
 
-Use one pipeline for every topology ([Equation 21](#eq-benchmark-pipe),
-[Figure 5](#fig-ggm-pipeline)):
+## Conclusions
 
-\text{topology} \rightarrow \text{signed weights} \rightarrow \text{SPD
-precision} \rightarrow \text{mean design} \rightarrow \text{latent
-Gaussian} \rightarrow \text{observation model} \tag{21}
-
-| Axis | Suggested levels |
-|----|----|
-| Dimension, namely number of variables (here, genes) | p \in \\100,500,1000\\ |
-| Topology | ER, band, hub, scale-free, SBM, small-world |
-| Expected degree | \approx 2,4,8 (keep graphs sparse) |
-| Edge weights | Constant; i.i.d. signed; partial-correlation scaling; G-Wishart |
-| Conditioning | Report \lambda\_{\min}, \lambda\_{\max}, \kappa(\Omega) |
-| Means | Zero; sparse group shifts, driven by cell-type; joint \mu–\Omega heterogeneity, for example playing on the *cosine similarity*, or the *condition number*, of the mean profile |
-
-Table 6: Compact factorial axes for a reproducible undirected GGM
-simulation study.
-
-**Main insights.** Prefer the uniform spectral shift
-([Equation 18](#eq-spectral-shift)) or partial-correlation scaling
-([Equation 17](#eq-partial-scale)) when support and signs must be exact;
-add the mean layer **independently** of graph generation.
-
-The end-to-end **hybrid multi-topology reference scenario** (two
-mean-collinear cell types distinguished only by network topology, a
-third orthogonal type, NSGA-II panel curation, and the frequentist
-solver comparison on imbalanced mixtures) is documented in the companion
-vignette [Deconvolution use
-cases](https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.html#sec-scenario-grid).
+DeCovarT draws `scale_free`, `stochastic_block_model`, and `small_world`
+skeletons with `igraph`, then i.i.d. signed weights (`prop_inhibitory`)
+and a spectral shift to guarantee \Omega\succ 0. Keep graph generation,
+mean design, and composition imbalance as separate factorial axes, and
+report both network conditioning and H^{\star}(\boldsymbol{p}) when
+comparing solvers.
 
 ## References
 
@@ -738,6 +784,10 @@ Rare’. *Nature Communications* 10.
 Chiquet, Julien, Mahendra Mariadassou, and Stéphane Robin. 2018.
 *Variational Inference for Sparse Network Reconstruction from Count
 Data*. arXiv. <https://doi.org/10.48550/arxiv.1806.03120>.
+
+Dietrich, Alexander. 2024. *SimBu: Bias-Aware Simulation of Bulk RNA-Seq
+Data with Variable Cell-Type Composition*.
+<https://doi.org/10.18129/B9.bioc.SimBu>.
 
 Federico, Anthony, Joseph Kern, Xaralabos Varelas, and Stefano Monti.
 2023. ‘Structure Learning for Gene Regulatory Networks’. *PLOS

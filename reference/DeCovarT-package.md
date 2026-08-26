@@ -9,7 +9,7 @@ cell types \\j=1,\ldots,J\\, samples \\i=1,\ldots,N\\; bulk
 \\\boldsymbol{\Sigma}\_j\\/\\\boldsymbol{\Theta}\_j\\. Proportions live
 on the open simplex and are optimised in unconstrained ALR coordinates
 \\\boldsymbol{\rho}\in\mathbb{R}^{J-1}\\
-([`vignette("softmax-alr-derivatives", package = "DeCovarT")`](https://bastienchassagnol.github.io/DeCovarT/articles/softmax-alr-derivatives.md)).
+([`vignette("generative-model-derivatives", package = "DeCovarT")`](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.md)).
 
 The frequentist API plugs in \\\boldsymbol{\mu}\\ for unobserved latent
 profiles \\\boldsymbol{x}\_{\cdot j}\\; MAP recovery of those latents is
