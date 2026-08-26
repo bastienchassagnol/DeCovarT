@@ -159,8 +159,12 @@
 #' \insertRef{newmanRobustEnumerationCell2015}{DeCovarT}
 #' @importFrom stats nobs coef vcov fitted residuals confint
 #' @export
+#' @family decovart_fit
 #' @seealso [deconvolute_ratios()],
-#'   [deconvolute_ratios_Marquardt_Levenberg()]
+#'   [deconvolute_ratios_Marquardt_Levenberg()],
+#'   [expected_fisher_unconstrained()], [vcov_alr_delta()],
+#'   [coef.decovart_fit()], [vcov.decovart_fit()],
+#'   [confint.decovart_fit()]
 fit_decovart <- function(
   signature_matrix,
   bulk_expression,
@@ -176,7 +180,7 @@ fit_decovart <- function(
   standardise = FALSE,
   scaled = FALSE
 ) {
-  method <- .match_arg_ci(
+  method <- .match_arg_case_insensitive(
     method,
     c("Marquardt-Levenberg", "L-BFGS-B", "Newton-Raphson")
   )
@@ -228,7 +232,7 @@ fit_decovart <- function(
     )
     coef_mat[, i] <- fit_i$coefficients
     loglik[[i]] <- fit_i$loglik
-    vcov_list[[i]] <- .vcov_alr_delta(
+    vcov_list[[i]] <- vcov_alr_delta(
       fit_i$coefficients,
       mu,
       sigma_arr
@@ -263,15 +267,51 @@ fit_decovart <- function(
   )
 }
 
-#' Expected Fisher information of unconstrained \(\boldsymbol{p}\)
+#' Expected Fisher information of unconstrained \eqn{\boldsymbol{p}}
 #'
-#' Multivariate-normal mean--covariance map:
-#' \(I_{jk}=\mu_{\cdot j}^{\top}\Theta\mu_{\cdot k}
-#' +2 p_j p_k\,\mathrm{tr}(\Theta\Sigma_j\Theta\Sigma_k)\).
+#' @description
+#' For the multivariate-normal mean--covariance map of the DeCovarT
+#' convolution,
+#' \eqn{\boldsymbol{y}\sim\mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},
+#' \boldsymbol{\Sigma}(\boldsymbol{p}))} with
+#' \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}\boldsymbol{\Sigma}_j}
+#' and precision
+#' \eqn{\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}},
+#' the expected Fisher information has entries
+#' \deqn{
+#'   I(\boldsymbol{p})_{jk}
+#'   =
+#'   \boldsymbol{\mu}_{\cdot j}^{\top}
+#'   \boldsymbol{\Theta}(\boldsymbol{p})
+#'   \boldsymbol{\mu}_{\cdot k}
+#'   +
+#'   2 p_j p_k\,
+#'   \mathrm{tr}\bigl(
+#'     \boldsymbol{\Theta}(\boldsymbol{p})\boldsymbol{\Sigma}_j
+#'     \boldsymbol{\Theta}(\boldsymbol{p})\boldsymbol{\Sigma}_k
+#'   \bigr).
+#' }
+#' The first summand is the mean contribution
+#' (an \eqn{\boldsymbol{\Theta}}-inner product of signature columns); the
+#' second is the covariance contribution of the quadratic map
+#' \eqn{\boldsymbol{p}\mapsto\boldsymbol{\Sigma}(\boldsymbol{p})}. See the
+#' multivariate-normal formula on
+#' <https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution>.
+#'
+#' @param p Numeric proportions on the open simplex.
+#' @param mean_signature_matrix Mean signature \eqn{\boldsymbol{\mu}}
+#'   (\eqn{G\times J}).
+#' @param Sigma Cell-type covariances \eqn{G\times G\times J}.
+#'
+#' @return Symmetric \eqn{J\times J} expected Fisher information matrix
+#'   \eqn{I(\boldsymbol{p})}.
+#'
+#' @seealso [vcov_alr_delta()], [vcov.decovart_fit()],
+#'   [confint.decovart_fit()], [.inner_product()]
 #'
 #' @keywords internal
-#' @noRd
-.expected_fisher_unconstrained <- function(
+#' @export
+expected_fisher_unconstrained <- function(
   p,
   mean_signature_matrix,
   Sigma
@@ -285,7 +325,7 @@ fit_decovart <- function(
     for (k in seq_len(n_celltypes)) {
       mu_k <- mean_signature_matrix[, k, drop = TRUE]
       sigma_k <- Sigma[,, k]
-      mean_term <- .bilinear_form(mu_j, theta, mu_k)
+      mean_term <- .inner_product(mu_j, theta, mu_k)
       cov_term <- 2 *
         p[[j]] *
         p[[k]] *
@@ -296,11 +336,63 @@ fit_decovart <- function(
   info
 }
 
-#' Cramer--Rao / ALR delta-method covariance of \(\hat{\boldsymbol{p}}\)
+#' Cramer--Rao / ALR delta-method covariance of \eqn{\hat{\boldsymbol{p}}}
+#'
+#' @description
+#' Maps the expected Fisher information of unconstrained proportions
+#' through the additive log-ratio (ALR) chart and back to the simplex
+#' via the delta method.
+#'
+#' Let \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})} with
+#' Jacobian
+#' \eqn{\mathbf{J}_{\boldsymbol{\psi}}
+#' =\partial\boldsymbol{\psi}/\partial\boldsymbol{\rho}^{\top}}
+#' ([jacobian_additive_logistic()]). Fisher information transforms as
+#' the covariant quadratic form
+#' \deqn{
+#'   I_{\boldsymbol{\rho}}
+#'   =
+#'   \mathbf{J}_{\boldsymbol{\psi}}^{\top}
+#'   I(\boldsymbol{p})
+#'   \mathbf{J}_{\boldsymbol{\psi}}.
+#' }
+#' Under a regular large-sample regime the MLE in ALR coordinates is
+#' asymptotically normal,
+#' \eqn{\hat{\boldsymbol{\rho}}
+#' \overset{a}{\sim}
+#' \mathcal{N}(\boldsymbol{\rho}_{0}, I_{\boldsymbol{\rho}}^{-1})}
+#' (Cramer--Rao / asymptotic normality of MLEs; law of large numbers
+#' for the score). The first-order delta method then yields the
+#' simplex covariance used by [vcov.decovart_fit()] and the Wald
+#' standard errors in [confint.decovart_fit()]:
+#' \deqn{
+#'   \mathrm{Var}(\hat{\boldsymbol{p}})
+#'   \approx
+#'   \mathbf{J}_{\boldsymbol{\psi}}
+#'   I_{\boldsymbol{\rho}}^{-1}
+#'   \mathbf{J}_{\boldsymbol{\psi}}^{\top}.
+#' }
+#' Diagonal square roots of this matrix are the asymptotic standard
+#' errors; Wald intervals at level \eqn{1-\alpha} are
+#' \eqn{\hat{p}_j \pm z_{1-\alpha/2}\,\mathrm{SE}_j} with
+#' \eqn{z_{q}=\Phi^{-1}(q)}. The construction is undefined on the
+#' simplex boundary (ALR chart blows up); the function then returns
+#' `NA` with a warning. See also
+#' <https://en.wikipedia.org/wiki/Delta_method> and
+#' <https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution>.
+#'
+#' @inheritParams expected_fisher_unconstrained
+#'
+#' @return Symmetric \eqn{J\times J} asymptotic covariance of
+#'   \eqn{\hat{\boldsymbol{p}}}, or a matrix of `NA` if the bound is
+#'   undefined / singular.
+#'
+#' @seealso [expected_fisher_unconstrained()], [vcov.decovart_fit()],
+#'   [confint.decovart_fit()], [jacobian_additive_logistic()]
 #'
 #' @keywords internal
-#' @noRd
-.vcov_alr_delta <- function(p, mean_signature_matrix, Sigma) {
+#' @export
+vcov_alr_delta <- function(p, mean_signature_matrix, Sigma) {
   nms <- names(p)
   n_celltypes <- length(p)
   out <- matrix(
@@ -316,7 +408,7 @@ fit_decovart <- function(
     )
     return(out)
   }
-  info_p <- .expected_fisher_unconstrained(p, mean_signature_matrix, Sigma)
+  info_p <- expected_fisher_unconstrained(p, mean_signature_matrix, Sigma)
   rho <- additive_log_ratio(p)
   jac <- jacobian_additive_logistic(rho)
   info_rho <- t(jac) %*% info_p %*% jac
@@ -435,6 +527,7 @@ print.summary.decovart_fit <- function(x, ...) {
 
 #' @rdname fit_decovart
 #' @export
+#' @family decovart_fit
 #' @method coef decovart_fit
 coef.decovart_fit <- function(object, ...) {
   object$coefficients
@@ -442,6 +535,7 @@ coef.decovart_fit <- function(object, ...) {
 
 #' @rdname fit_decovart
 #' @export
+#' @family decovart_fit
 #' @method fitted decovart_fit
 fitted.decovart_fit <- function(object, ...) {
   object$fitted.values
@@ -449,6 +543,7 @@ fitted.decovart_fit <- function(object, ...) {
 
 #' @rdname fit_decovart
 #' @export
+#' @family decovart_fit
 #' @method residuals decovart_fit
 residuals.decovart_fit <- function(object, ...) {
   object$residuals
@@ -456,6 +551,7 @@ residuals.decovart_fit <- function(object, ...) {
 
 #' @rdname fit_decovart
 #' @export
+#' @family decovart_fit
 #' @method vcov decovart_fit
 vcov.decovart_fit <- function(object, ...) {
   if (object$n_samples == 1L) {
@@ -466,6 +562,7 @@ vcov.decovart_fit <- function(object, ...) {
 
 #' @rdname fit_decovart
 #' @export
+#' @family decovart_fit
 #' @method nobs decovart_fit
 nobs.decovart_fit <- function(object, ...) {
   n <- object$n_samples
@@ -476,11 +573,24 @@ nobs.decovart_fit <- function(object, ...) {
 }
 
 #' @rdname fit_decovart
-#' @param parm Unused (all simplex coordinates are returned).
-#' @param level Confidence level.
+#' @param parm Kept for compatibility with [stats::confint()]; all
+#'   simplex coordinates are always returned (subsetting by `parm` is
+#'   not implemented). Removing this formal would break the S3 method
+#'   contract with the generic.
+#' @param level Confidence level \eqn{1-\alpha} (default `0.95`). Wald
+#'   intervals use asymptotic normality of the MLE with standard errors
+#'   from [vcov_alr_delta()] /
+#'   [expected_fisher_unconstrained()] (see Details of [fit_decovart()]
+#'   and of [vcov_alr_delta()]):
+#'   \eqn{\hat{p}_j \pm z_{1-\alpha/2}\,\mathrm{SE}_j}.
 #' @export
+#' @family decovart_fit
 #' @method confint decovart_fit
 confint.decovart_fit <- function(object, parm, level = 0.95, ...) {
+  # `parm` is required by stats::confint; subsetting is not implemented.
+  if (!missing(parm)) {
+    invisible(parm)
+  }
   alpha <- (1 - level) / 2
   z <- stats::qnorm(c(alpha, 1 - alpha))
   cf <- object$coefficients
@@ -504,6 +614,7 @@ confint.decovart_fit <- function(object, parm, level = 0.95, ...) {
 
 #' @rdname fit_decovart
 #' @export
+#' @family decovart_fit
 #' @method plot decovart_fit
 plot.decovart_fit <- function(x, ...) {
   y_obs <- as.vector(x$bulk_expression)

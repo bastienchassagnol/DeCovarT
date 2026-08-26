@@ -43,6 +43,34 @@ DeCovarT/
   and document remotes in the README; commit `.dvc` pointers, not blobs.
 - Avoid `"final"` / `"FINAL_v3"` in file names; use Git history instead.
 
+### Code intelligence (Graphify)
+
+Prefer **[Graphify](https://github.com/Graphify-Labs/graphify)** as the
+codebase knowledge graph before repo-wide grep or blind file reads when
+exploring structure, dependencies, or cross-file call paths.
+
+- **Cursor (Agent chat):** `/graphify .` builds the graph; `/graphify query
+  "…"`, `/graphify path "A" "B"`, `/graphify explain "fn"` query it.
+  These are **skill commands in chat**, not shell paths — do not type
+  `/graphify` in the terminal.
+- **Terminal:** `graphify extract . --code-only` (first build) or
+  `graphify update .` after edits. Respect `.graphifyignore` (lean scope:
+  `R/`, `scripts/`, `vignettes/*.qmd`, `tests/`; **exclude** `slides/` and
+  vendored `vignettes/_extensions/`).
+- **Outputs (local only):** `graphify-out/` is **gitignored** and
+  **`.Rbuildignore`d** — rebuilt locally via `graphify hook install`
+  (post-commit AST refresh) or `graphify update .`. Do not commit it.
+- **Always-on nudge:** `.cursor/rules/graphify.mdc` (from
+  `graphify cursor install`); reinstall after `uv tool upgrade graphifyy`.
+- **R package gap (v0.9.48):** `.R` files are classified as code but have
+  **no AST extractor** yet — `R/` and `tests/` contribute no nodes until
+  [tree-sitter-r lands (#1689)](https://github.com/Graphify-Labs/graphify/issues/1689).
+  Until then, graphify is most useful for `scripts/`, vignette `.qmd`
+  (full `/graphify .` with semantic pass), and cross-doc links; use
+  `grep` / `@inheritParams` / pkgdown for exported R API navigation.
+  Cloud workspace (optional):
+  [app.graphify.com](https://app.graphify.com).
+
 ## File naming
 
 Machine-readable, human-readable, and sort-friendly
@@ -63,10 +91,10 @@ Machine-readable, human-readable, and sort-friendly
   variable name, description, units, allowed values/range, missing-value
   coding. A simple CSV/TSV (one row per variable) is enough.
 - Document cleaning decisions in scripts and, for package users, in
-  **vignettes**: automatically (or explicitly) describe pre-processing
-  applied to raw inputs and any paramount mathematical / numerical
-  operations used to speed up or stabilise computation (e.g. ALR,
-  analytic gradients, constrained optimisation).
+  **vignettes**: describe pre-processing applied to raw inputs and any
+  paramount mathematical / numerical operations used to speed up or
+  stabilise computation (e.g. ALR, analytic gradients, constrained
+  optimisation).
 - Plan for sharing: a stranger should reproduce analysis from raw data
   via scripts + README + vignettes.
 
@@ -80,9 +108,9 @@ Machine-readable, human-readable, and sort-friendly
   Architecture” (or equivalent) section summarising the end-to-end
   workflow. Keep raw model outputs distinct from standardised evaluation
   artefacts when relevant.
-- **PDF / DOCX → Markdown:** convert first (see
-  **Converting documents and slides**); do not invent content from
-  memory when a conversion is available.
+- **PDF / DOCX → Markdown:** convert first (see **Literature intake:
+  converting documents and slides**); do not invent content from memory
+  when a conversion is available.
 - README badges: add flat-square shields tailored to stacks actually used
   in this project (R / key CRAN packages / methods), for example:
 
@@ -127,73 +155,11 @@ stacks (e.g. PyTorch) for this R package.
 > set `RENV_CONFIG_AUTOLOADER_ENABLED=FALSE` to avoid false “out-of-sync”
 > messages.
 
+## Package structure and project roles
 
-## Project roles
-
-- Reusable package code lives in `R/`.
-- Analysis / simulation / network scripts live in `scripts/`.
-- Vignettes live in `vignettes/` (Quarto preferred when available).
-- External package files live in `inst/`; read with `system.file()`.
-- Prefer Quarto for reproducible reports combining code and results.
-
-## Code intelligence (Graphify)
-
-Prefer **[Graphify](https://github.com/Graphify-Labs/graphify)** as the
-codebase knowledge graph before repo-wide grep or blind file reads when
-exploring structure, dependencies, or cross-file call paths.
-
-- **Cursor (Agent chat):** `/graphify .` builds the graph; `/graphify query
-  "…"`, `/graphify path "A" "B"`, `/graphify explain "fn"` query it.
-  These are **skill commands in chat**, not shell paths — do not type
-  `/graphify` in the terminal.
-- **Terminal:** `graphify extract . --code-only` (first build) or
-  `graphify update .` after edits. Respect `.graphifyignore` (lean scope:
-  `R/`, `scripts/`, `vignettes/*.qmd`, `tests/`; **exclude** `slides/` and
-  vendored `vignettes/_extensions/`).
-- **Outputs (local only):** `graphify-out/` is **gitignored** and
-  **`.Rbuildignore`d** — rebuilt locally via `graphify hook install`
-  (post-commit AST refresh) or `graphify update .`. Do not commit it.
-- **Always-on nudge:** `.cursor/rules/graphify.mdc` (from
-  `graphify cursor install`); reinstall after `uv tool upgrade graphifyy`.
-- **R package gap (v0.9.48):** `.R` files are classified as code but have
-  **no AST extractor** yet — `R/` and `tests/` contribute no nodes until
-  [tree-sitter-r lands (#1689)](https://github.com/Graphify-Labs/graphify/issues/1689).
-  Until then, graphify is most useful for `scripts/`, vignette `.qmd`
-  (full `/graphify .` with semantic pass), and cross-doc links; use
-  `grep` / `@inheritParams` / pkgdown for exported R API navigation.
-  Cloud workspace (optional):
-  [app.graphify.com](https://app.graphify.com).
-
-## Air formatting and automated linting
-
-This repo uses **[Air](https://posit-dev.github.io/air/)** (`air.toml`) and
-**{lintr}** (`.lintr`), enforced via **pre-commit**
-(`.pre-commit-config.yaml`) and VS Code format-on-save
-(`Posit.air-vscode`).
-
-- Format R with Air: line width **80**, indent **2 spaces**, space indent.
-- Do not fight Air/lintr: match existing style after edits.
-- Prefer Air over styler for formatting.
-- **goodpractice / lintr (address these; ignore other lintr messages):**
-  - Do not nest pipes inside other calls (`f(x |> g())`); assign first.
-  - `expect_length(x, n)` rather than `expect_identical(length(x), n)`.
-  - `expect_type(x, t)` rather than `expect_true(is.<type>(x))`.
-  - `toString(x)` rather than `paste(x, collapse = ", ")`.
-- Run / respect pre-commit hooks: `air-format`, `lintr` (warn-only),
-  `parsable-R`, `no-browser-statement`, `use-tidy-description`,
-  `deps-in-desc`, large-file check, `check-bibliography`. README sync
-  is enforced in CI via `.github/workflows/render-readme.yaml`
-  (`quarto render README.qmd`).
-- Before any `pre-commit run` or commit, always:
-  1. `pre-commit clean`
-  2. Stage **all** intended files (`git add …`) — no leftover unstaged
-     edits (avoids stash/autofix rollback failures)
-  3. `pre-commit run` (or `--all-files`), then `git add -u` if hooks
-     rewrote files, then commit
-- Keep line length ≤ 80 characters.
-
-## Package structure
-
+- Reusable package code lives in `R/`; analysis / simulation / network
+  scripts in `scripts/`; Quarto vignettes in `vignettes/`; external
+  package files in `inst/` (read with `system.file()`).
 - Declare dependencies with versions in `DESCRIPTION`
   (e.g. `R6 (>= 2.6.1)`).
 - Keep `LICENSE` / `LICENSE.md` and `NEWS.md` up to date.
@@ -202,16 +168,16 @@ This repo uses **[Air](https://posit-dev.github.io/air/)** (`air.toml`) and
 - Validate with `devtools::check()` (notes OK; avoid warnings/errors)
   and `pkgcheck::pkgcheck()` (address failing checks; `:eyes:` items
   are optional).
+- Before every push that touches package code, run a local
+  `devtools::check()` (or at least `rcmdcheck`) **and**
+  `pkgcheck::pkgcheck()`, and fix **warnings** as well as errors. Do
+  not rely on GitHub Actions as the first check.
 - Before committing or pushing changes that touch exported functions,
   pkgdown config (`_pkgdown.yml`), vignettes, or docs workflows, run a
   local pkgdown build (`pkgdown::build_site()`) and fix failures first.
 - Prefer **usethis** and **devtools** workflows for package tasks
   (tests, docs, DESCRIPTION, GitHub Actions helpers, etc.); see
   **GitHub and docs bootstrap** below when starting a new package.
-- Before every push that touches package code, run a local
-  `devtools::check()` (or at least `rcmdcheck`) **and**
-  `pkgcheck::pkgcheck()`, and fix **warnings** as well as errors. Do
-  not rely on GitHub Actions as the first check.
 - Portable packages: `R/` and `NAMESPACE` must be **ASCII-only**
   (no em dashes, fancy quotes, etc. in strings). Use
   `tools::showNonASCIIfile("R/foo.R")` and `\uxxxx` escapes if needed.
@@ -226,12 +192,10 @@ incoming pretest still fails. Before every CRAN (re)submission, also:
    versions match what CRAN will install (not a stale user library).
 2. Trigger `rhub` / win-builder **Windows and Linux** (this repo skips
    macOS by choice) and read the incoming pretest logs, not only GHA.
-3. **Vignette rebuild** on CRAN uses a clean library + Quarto CLI.
-   Prefer **Quarto Markdown pipe tables** in vignettes that ship in the
-   CRAN tarball (`DeCoVart-use-cases`, `softmax-alr-derivatives`). Keep
-   `tinytable` for pkgdown-only articles, but pin a minimum version in
-   Suggests; never assume the Suggests API your laptop has is what
-   win-builder installs the next day.
+3. **Vignette rebuild** on CRAN uses a clean library + Quarto CLI. Pin
+   Suggests versions used by vignettes (see **Tables: tinytable vs
+   reactable**); never assume the Suggests version your laptop has is
+   what win-builder installs the next day.
 4. **Relative HTML links** between vignettes (`foo.html#sec-…`) become
    invalid URIs when the target vignette is `.Rbuildignore`d. From any
    CRAN-shipped vignette, link excluded articles with **absolute**
@@ -243,8 +207,7 @@ incoming pretest still fails. Before every CRAN (re)submission, also:
    `inst/WORDLIST` for `spelling` / aspell.
 7. **Do not set `Additional_repositories` for CRAN or Bioconductor.**
    CRAN already treats the Bioconductor *software* repository as a
-   standard dependency source. Pointing
-   `Additional_repositories` at
+   standard dependency source; pointing it at
    `https://bioconductor.org/packages/release/bioc` is redundant and
    triggers the incoming availability `? ?` NOTE. Use that field only
    for packages outside CRAN / Bioconductor / Omegahat / R-Forge.
@@ -333,7 +296,37 @@ below; validate locally with `pkgdown::build_site()` before pushing.
   `mean_signature_matrix` from `loglik_multivariate`). Do not copy-paste
   the same parameter paragraphs across files.
 
-## Naming conventions
+## Air formatting and automated linting
+
+This repo uses **[Air](https://posit-dev.github.io/air/)** (`air.toml`) and
+**{lintr}** (`.lintr`), enforced via **pre-commit**
+(`.pre-commit-config.yaml`) and VS Code format-on-save
+(`Posit.air-vscode`).
+
+- Format R with Air: line width **80**, indent **2 spaces**, space indent.
+- Do not fight Air/lintr: match existing style after edits.
+- Prefer Air over styler for formatting.
+- **goodpractice / lintr (address these; ignore other lintr messages):**
+  - Do not nest pipes inside other calls (`f(x |> g())`); assign first.
+  - `expect_length(x, n)` rather than `expect_identical(length(x), n)`.
+  - `expect_type(x, t)` rather than `expect_true(is.<type>(x))`.
+  - `toString(x)` rather than `paste(x, collapse = ", ")`.
+- Run / respect pre-commit hooks: `air-format`, `lintr` (warn-only),
+  `parsable-R`, `no-browser-statement`, `use-tidy-description`,
+  `deps-in-desc`, large-file check, `check-bibliography`. README sync
+  is enforced in CI via `.github/workflows/render-readme.yaml`
+  (`quarto render README.qmd`).
+- Before any `pre-commit run` or commit, always:
+  1. `pre-commit clean`
+  2. Stage **all** intended files (`git add …`) — no leftover unstaged
+     edits (avoids stash/autofix rollback failures)
+  3. `pre-commit run` (or `--all-files`), then `git add -u` if hooks
+     rewrote files, then commit
+- Keep line length ≤ 80 characters.
+
+## Coding style and naming conventions
+
+**Naming**
 
 - `snake_case` for variables, functions, and file names
   (e.g. `total_sales`, `clean_data()`).
@@ -346,7 +339,7 @@ below; validate locally with `pkgdown::build_site()` before pushing.
   `private$.get_data()`).
 - Avoid one-off helpers unless they improve readability.
 
-## Coding style
+**Style**
 
 - Follow the [tidyverse style guide](https://style.tidyverse.org/).
 - Prefer `dplyr::mutate(..., .keep = "none")` over superseded
@@ -415,6 +408,135 @@ follow
 - `dplyr` / `tidyr` / `tibble` for tabular work in this package
   (match existing style; use `data.table` only when speed clearly needs it).
 
+## Vignettes and Quarto authoring
+
+- Prefer Quarto for reproducible reports and vignettes combining code
+  and results; British English; precise, cited scientific prose.
+- Document pre-processing of inputs and non-obvious numerical /
+  mathematical devices (ALR, analytic gradients, constrained optimisers)
+  when they matter for understanding or speed.
+- Keep vignettes reproducible; avoid duplicating the full Article word
+  budget—cross-link the paper and package help pages.
+- Apply the editorial rules under **Scientific writing** whenever a
+  vignette presents scientific claims, methods, or benchmarks.
+
+### Quarto Markdown checklist (`.qmd` / `.Rmd` / `.md`)
+
+Prefer constructs that render cleanly in HTML / pkgdown, stay readable
+in source, and keep the RStudio / VS Code **Visual Editor** usable.
+Follow Quarto
+[cross-references](https://quarto.org/docs/authoring/cross-references.html)
+for figures, tables, equations, sections, and callouts.
+
+- **Cross-references:** label figures / tables / equations / sections
+  (`#fig-…`, `#tbl-…`, `#eq-…`, `{#sec-…}`) and cite them mid-sentence
+  (`see @fig-…`, `see @eq-…`), never wrapped as `(@fig-…)`. Across
+  vignettes use pkgdown HTML links
+  (e.g. `[synthetic scenarios](synthetic-scenarios.html#sec-…)`).
+- **Lists:** only the basic Quarto / Pandoc forms documented at
+  [Markdown Basics — Lists](https://quarto.org/docs/authoring/markdown-basics.html#lists)
+  — unordered (`-`, `*`, `+`) and ordered (`1.`, `2.`, …), nested as
+  documented. **Forbidden:** Pandoc example lists (`(@)`, `(@label)`,
+  or any hard-wrap where a line starts with `@label)`), task /
+  checkbox lists (`- [ ]`, `- [x]`), and unicode step markers
+  (`- ① …`). Example lists block Visual Mode (“Document contains
+  example lists…”).
+- **Package / method names:** put **package**, **software tool**, and
+  **named method** labels in inline code spans (`` `limma` ``,
+  `` `edgeR` ``, `` `DESeq2` ``, `` `AutoGeneS` ``, `` `INDEED` ``,
+  `` `MixSim` ``, `` `SCTransform` ``). Keep citation keys (`@R-limma`)
+  and maths unchanged. Do not backtick generic statistical terms
+  (ANOVA, Gini coefficient, nested CV). Mermaid node labels may keep
+  short plain names.
+- **Warnings / notes:** prefer labelled Quarto callouts with
+  cross-references (`::: {#nte-foo .callout-warning}` … `:::` then
+  `@nte-foo`) over raw blockquotes with pasted glyphs. See
+  [callout cross-references](https://quarto.org/docs/authoring/cross-references.html#callouts).
+- **Emoji / icons:** use GitHub-style `:name:` shortcodes from
+  [rxaviers/emoji-cheat-sheet](https://gist.github.com/rxaviers/7360908)
+  (`:warning:`, `:information_source:`), not literal unicode emoji in
+  source. Enable Quarto emoji support in YAML when they must render
+  (`from: markdown+emoji`).
+- **Videos:** embed with the
+  [video shortcode](https://quarto.org/docs/authoring/videos.html)
+  (`{{< video URL title="…" aria-label="…" start="20" >}}`); keep
+  `title`, `aria-label`, and `start` as **separate** attributes. For a
+  numbered figure wrap it in a `::: {#fig-…}` div whose **last
+  paragraph is the caption**, then cite `@fig-…`. HTML embeds a player;
+  other formats degrade to a link.
+- **Linked figures:** when a local image comes from a website, use
+  Quarto’s
+  [linked-figure](https://quarto.org/docs/authoring/figures.html#linked-figures)
+  form `[![caption](local-path){#fig-label}](https://source-url)` —
+  `{#fig-…}` on the **image**, not the outer link. Prefer this when a
+  stable public URL exists; never invent URLs.
+- Keep Visual Editor–hostile syntax out of vignettes unless a feature
+  (callouts, shortcodes) is intentionally required and documented here.
+
+### Tables: tinytable (static) vs reactable (interactive)
+
+- **Static tables** in vignettes, pkgdown articles, and other Quarto
+  HTML: use `tinytable::tt()` by default. Pin `tinytable (>= 0.19.0)`
+  in Suggests once that CRAN release ships the fix for
+  [tinytable#687](https://github.com/vincentarelbundock/tinytable/issues/687)
+  ([#688](https://github.com/vincentarelbundock/tinytable/pull/688));
+  until then install from GitHub for local / rhub checks
+  (`remotes::install_github("vincentarelbundock/tinytable")`). Do not
+  introduce `knitr::kable()`, `kableExtra`, or `flextable` for new
+  static tables unless the user asks. For maths in cells write
+  `$\\kappa_2$`-style strings (double backslashes) per the
+  [tinytable math docs](https://vincentarelbundock.github.io/tinytable/vignettes/format.html#math)
+  and set `options(tinytable_html_mathjax = TRUE)` in setup when HTML
+  needs inline MathJax. Quarto Markdown pipe tables remain acceptable
+  for very simple tables without styling or cell maths.
+- **Reveal.js slides / interactive HTML:** prefer `reactable` (see
+  **Slide design**).
+
+### Mermaid rendering constraints (README, vignettes, slides)
+
+- Do **not** use plain code fences like ```` ``` mermaid ```` for figures
+  intended to render in Quarto outputs; use executable Mermaid chunks.
+  Minimal pattern:
+  - opening fence: ```` ```{mermaid} ````
+  - options: `%%| label: fig-example` and
+    `%%| fig-cap: "Example caption."`
+  - diagram body: e.g. `flowchart TD` then `A --> B`
+  - closing fence: ```` ``` ````
+- Cross-reference Mermaid figures with Quarto labels (`@fig-...`), as
+  documented at
+  <https://quarto.org/docs/authoring/diagrams.html#cross-references>.
+- Set Mermaid theme to **sandstone** for consistency unless a context
+  explicitly requires another documented theme.
+- For reveal.js decks, keep Mermaid configured under `format: revealjs:`
+  and verify rendering in both `quarto preview` and `quarto render`.
+- For PDF/Word paths using Mermaid, use the installed
+  `chrome-headless-shell` backend and verify rendered output rather than
+  raw diagram source.
+
+**HTML: test native Quarto Mermaid before any JS fallback.** Empty
+figure boxes on the web almost always mean the `{mermaid}` engine never
+ran. **Do not** add a client-side fallback first.
+
+1. Set `execute.eval: true` in `_quarto.yml` (or `%%| eval: true` on the
+   Mermaid chunk). `eval: false` skips the diagram engine and leaves an
+   empty `<div>` where the figure should be.
+2. `quarto render` the HTML and inspect the output: a healthy diagram is
+   a `<pre class="mermaid mermaid-js">` block **containing the flowchart
+   source**, plus Quarto’s own
+   `site_libs/quarto-diagram/mermaid.min.js` and
+   `site_libs/quarto-diagram/mermaid-init.js` in the page `<head>`.
+3. Open the page in a browser (`quarto preview` or the built HTML). The
+   `pre.mermaid` block should become an SVG. That is the supported path
+   for Quarto books and vignettes.
+
+Only if those `pre.mermaid` blocks are present **and still unrendered**
+in the browser (e.g. pkgdown README fences that Quarto never compiled)
+may you add the optional DeCovarT client-side fallback:
+`pkgdown/assets/mermaid-init.js` plus the CDN include in `_pkgdown.yml`
+(`after_body`), or an equivalent `html/mermaid-after-body.html`. If
+native `eval: true` already emits `pre.mermaid` + quarto-diagram, **do
+not** add that fallback — remove it.
+
 ## Performance and optimisation
 
 - Profile with `profvis` before optimising.
@@ -460,8 +582,7 @@ Follow
   `pkgcheck::pkgcheck()` (rOpenSci
   [pkgcheck](https://docs.ropensci.org/pkgcheck/)); fix failing
   checks before proceeding (`:eyes:` items are optional). Optionally
-  write a markdown report with
-  `pkgcheck::checks_to_markdown()`.
+  write a markdown report with `pkgcheck::checks_to_markdown()`.
 - CI: keep `test-coverage` and `R-CMD-check` workflows meaningful
   (pkgcheck matches workflow run names against `cmd|coverage`).
 
@@ -487,20 +608,15 @@ That adds `spelling` to Suggests, `Language: en-GB` in `DESCRIPTION`,
   treats it as a known package directory so CRAN aspell
   (`_R_CHECK_CRAN_INCOMING_USE_ASPELL_`) reuses `inst/WORDLIST`.
 
-## Reproducibility
+## Reproducibility and collaboration
 
-- Prefer Quarto for reports and package vignettes when available.
 - Capture environment with `sessioninfo::session_info()`.
 - Pin packages with `renv` when used; otherwise lock via DESCRIPTION /
   CI.
-- Document analysis steps in README (from `README.qmd`) and vignettes.
-  Edit `README.qmd`, then `quarto render README.qmd` (CI verifies /
-  re-renders via `.github/workflows/render-readme.yaml`).
-
-## Collaboration and documentation
-
-- Maintain a clear README: goals, installation, pipeline Mermaid,
-  badges, and usage.
+- Maintain a clear README (goals, installation, pipeline Mermaid,
+  badges, usage): edit `README.qmd`, then `quarto render README.qmd`
+  (CI verifies / re-renders via
+  `.github/workflows/render-readme.yaml`).
 - Use descriptive commit messages and feature branches.
 - Track user-facing changes in `NEWS.md`.
 - Share results via HTML/PDF (pkgdown, Quarto) as appropriate.
@@ -529,8 +645,8 @@ That adds `spelling` to Suggests, `Language: en-GB` in `DESCRIPTION`,
 | Tabular data | `dplyr`, `tidyr`, `tibble` (`data.table` if needed) |
 | Out-of-memory data | `duckdb` |
 | Plotting | `ggplot2`; heatmaps: `ComplexHeatmap` (Suggests + `requireNamespace`); interactive: `ggiraph` |
-| Static tables (vignettes / Quarto HTML) | `tinytable` (prefer over `knitr::kable`, `kableExtra`, `flextable`) |
-| Slide / HTML interactive tables | `reactable` (prefer over static Markdown tables in reveal.js) |
+| Static tables (vignettes / Quarto HTML) | `tinytable` |
+| Slide / HTML interactive tables | `reactable` |
 | Discrete ggplot scales | named vectors via `stats::setNames()` |
 | Input checks | `checkmate` |
 | Messages | `cli` |
@@ -562,21 +678,14 @@ Zotero first, then export. Missing metadata may be completed only via
 the deterministic Crossref enrichment CLI below (never by unconstrained
 LLM guessing).
 
-### Citation keys: Zotero 8+ native vs Better BibTeX
-
 From **Zotero 8 onward** (this machine runs **Zotero 9**), citation keys
 are a first-class field in `zotero.sqlite`
-(`fields.fieldName = 'citationKey'`). That is enough for `zotc` and for
-stable citekeys when the same formula is set under
-Edit → Settings → Cite → Citation Key.
-
-**Better BibTeX (BBT) is optional** once native keys are populated. Keep
-BBT only for extras (auto-export on change, rich formulas, Better
-BibLaTeX, pull export). Otherwise export with Zotero’s built-in BibTeX
-into `inst/REFERENCES.bib` / `article/decovart_library.bib`, then
-`python3 scripts/curate_bibliography/check_bibliography.py --clean`. Prefer **native**
-`citationKey` over a legacy `better-bibtex.sqlite` table; copy or open
-the DB with `immutable=1` when the desktop app holds a lock.
+(`fields.fieldName = 'citationKey'`), so the built-in BibTeX exporter is
+enough: export into `inst/REFERENCES.bib` /
+`article/decovart_library.bib`, then run
+`python3 scripts/curate_bibliography/check_bibliography.py --clean`.
+Set the key formula once under Edit → Settings → Cite → Citation Key.
+Copy or open the DB with `immutable=1` when the desktop app holds a lock.
 
 ### Zotcurate (`zotc`) — collection curation from documents
 
@@ -617,7 +726,6 @@ gitignored at the repo root; after merging run `--clean`.
    desktop → **leaf only** → native citekey → re-export → `--clean`.
 3. Software tools → `packages.bib`, not Zotero literature.
 
-
 | Path | Consumer |
 |------|----------|
 | `article/decovart_library.bib` | LaTeX manuscript |
@@ -639,28 +747,6 @@ gitignored at the repo root; after merging run `--clean`.
   - `@techreport` — `title`, `author`, `year`, `institution`
 - Pre-commit hook `check-bibliography` validates literature hygiene and
   `article/main.tex` citekeys (against literature **and** `packages.bib`).
-
-### Broken or missing URLs (Internet Archive / Wayback Machine)
-
-When fetching or verifying bibliographical resources (publisher pages,
-preprints, software manuals, `url` / `howpublished` fields, linked
-figures, or any cited web resource):
-
-1. Try the live URL first (DOI resolver, publisher, GitHub, etc.).
-2. If the link is **404**, redirected to a dead host, paywalled with no
-   usable landing page, or otherwise unreachable, look up an archived
-   copy on the **[Wayback Machine](https://web.archive.org/)** before
-   inventing a replacement or dropping the citation metadata.
-3. Prefer the closest successful snapshot to the publication / access
-   date. Construct lookups as
-   `https://web.archive.org/web/*/<original-url>` (or the Archive’s
-   “Save Page Now” / browse UI) and cite or store the **archived URL**
-   when the live one is gone.
-4. Still prefer a stable identifier when one exists (`doi`, ISBN, CRAN /
-   Bioconductor package page). Use Wayback as a **fallback for content
-   recovery**, not as a substitute for inventing DOIs or BibTeX fields.
-5. Never fabricate archive timestamps or claim a snapshot existed when
-   the Archive has no capture; flag the dead link for the user instead.
 
 ### Completing missing fields (Crossref + bibtex-tidy)
 
@@ -798,143 +884,75 @@ claims), respect these limits unless the user explicitly overrides them:
 - Prefer TikZ / vector figures for model DAGs and mathematical panels;
   Mermaid is fine in vignettes/README, not as a substitute for article
   display items unless exported to a journal-ready figure.
+- Before submission: spell-check; confirm acknowledgements (all funders)
+  and author affiliations; ensure main text and supplement use the same
+  wording for shared concepts; cite every figure / table / supplementary
+  display item and point to Methods where needed.
 
-**Vignettes**
+### Paper section layout (IMRaD and companions)
 
-- Prefer Quarto; British English; precise, cited scientific prose.
-- Document pre-processing of inputs and non-obvious numerical / mathematical
-  devices (ALR, analytic gradients, constrained optimisers) when they
-  matter for understanding or speed.
-- Keep vignettes reproducible; avoid duplicating the full Article word
-  budget—cross-link the paper and package help pages.
-- For **static** tables in vignettes / Quarto HTML, prefer
-  [`tinytable`](https://vincentarelbundock.github.io/tinytable/)
-  (`tinytable::tt()`) over `knitr::kable()`, `kableExtra`, or
-  `flextable`. Embed maths in cells with `$...$` (double backslashes in
-  R strings) as in the
-  [tinytable math section](https://vincentarelbundock.github.io/tinytable/vignettes/format.html#math);
-  set `options(tinytable_html_mathjax = TRUE)` in the setup chunk when
-  needed. Keep `reactable` for interactive slide / dashboard tables.
+Use these section skeletons for `article/` (and for vignettes when they
+narrate a full study). They complement the Nature Methods word / display
+limits above; do not invent a separate literature-review chapter in a
+Nature Methods *Article*—fold critical background into the Introduction.
 
-### Quarto Markdown conventions (vignettes and `.qmd`)
+1. **Abstract — IMRaD** (≤150 words, unreferenced): *Introduction*
+   (problem / why it matters) → *Methods* (what was done) → *Results*
+   (main findings, concrete numbers) → *Discussion* (what they mean).
+   Many readers stop here; every sentence must earn its place.
+2. **Introduction — CARD**: *Context* → *Aim* → *Research gap* →
+   *Direction* (how this paper approaches the gap). Move from field
+   importance to the specific contribution without a long tutorial.
+3. **Background / related work (within Intro) — CLAIM**: *Cite* key
+   studies → *Link* them → *Analyse* strengths / limits → *Identify*
+   the gap → *Motivate* this work. Prefer analytical narrative over
+   paper-by-paper summary; stay inside the ≤50-reference budget.
+4. **Methods — PASTE** (adapted to computational methods):
+   *Population* / data (what was analysed) → *Approach* (design) →
+   *Steps* (procedures, preprocessing) → *Tools* (software, packages,
+   versions) → *Evaluation* (metrics, baselines, validation splits).
+   Enough detail for independent reimplementation or a clear pointer to
+   vignettes / code for material that cannot fit the main text.
+5. **Results & Discussion — SIRF**: *Summary* of findings (with
+   figures/tables) → *Interpretation* → *Relation* to prior literature
+   → *Future* implications / limitations. Prefer comparative validation
+   over unanchored success claims.
+6. **Closing (Discussion end or short Conclusion) — RISC**: *Restate*
+   the problem → *Insights* → *Significance* → *Closing* thoughts /
+   outlook. No new results here.
 
-Prefer constructs that render cleanly in HTML / pkgdown and stay
-readable in source. Follow Quarto
-[cross-references](https://quarto.org/docs/authoring/cross-references.html)
-for figures, tables, equations, sections, and callouts.
+### Acronyms, glossaries, and notation (LaTeX)
 
-### Package and method names (backticks)
+Minimise acronyms in the first place (see **Anti-slop and wording**).
+When the manuscript genuinely needs a recurring set of abbreviations or
+domain terms, manage them with the
+[`glossaries`](https://www.overleaf.com/learn/latex/Glossaries) package
+in `article/` rather than hand-maintained macros or a hard-coded table.
 
-In `.qmd` / `.Rmd` prose, put **package**, **software tool**, and
-**named method** labels in inline code spans so they stand out from
-ordinary English:
+- Preamble: `\usepackage[acronym,toc]{glossaries}` then
+  `\makeglossaries` before the first entry (`toc` lists the glossary in
+  the table of contents).
+- Terms: `\newglossaryentry{alr}{name=additive log-ratio,
+  description={…}}` — lowercase, singular `name`.
+- Acronyms: `\newacronym{alr}{ALR}{additive log-ratio}`; the first
+  field is the label you cite, the second the short form.
+- Cite in prose with `\gls{}` / `\Gls{}` (sentence case) / `\glspl{}`
+  (plural), and `\acrshort{}` / `\acrlong{}` / `\acrfull{}` for
+  acronyms, so first use expands automatically instead of being typed
+  twice.
+- Print with `\printglossary[type=\acronymtype]` for the acronym list
+  and `\printglossaries` for terms; retitle via
+  `\printglossary[title=…, toctitle=…]` when the journal requires it.
+- Keep `main.tex` in the `article/` root so glossary auxiliary files
+  land in the compile directory.
+- Local builds need three passes: `pdflatex` → `makeglossaries` →
+  `pdflatex`. The `article generation` CI path uses `latexmk`, so add a
+  `.latexmkrc` custom dependency (or an explicit `makeglossaries` step)
+  before assuming the glossary is current.
+- Keep glossary entries consistent with `inst/WORDLIST` and with the
+  notation used in TikZ figures and package documentation.
 
-```markdown
-`limma`, `edgeR`, `DESeq2`, `BioQC`, `AutoGeneS`, `INDEED`,
-`MixSim`, `CARNIVAL`, `CORNETO`, `SCTransform`
-```
-
-- Prefer `` `limma` `` over bare Limma / limma in running text.
-- Keep citation keys (`@R-limma`) and mathematical notation unchanged.
-- Do not backtick generic statistical terms (ANOVA, Gini coefficient,
-  Shannon entropy, nested CV) unless they are a software product name.
-- Mermaid node labels may keep short plain names for readability.
-
-### Lists (Visual Editor–safe; Quarto basics only)
-
-Use **only** the basic Quarto / Pandoc list forms documented at
-[Markdown Basics — Lists](https://quarto.org/docs/authoring/markdown-basics.html#lists):
-
-```markdown
-* unordered list
-  + sub-item 1
-  + sub-item 2
-    - sub-sub-item 1
-
-1. ordered list
-2. item 2
-   - sub-item nested under 2
-```
-
-Rules for every `.qmd` / `.Rmd` / `.md` document in this repo:
-
-- **Allowed:** unordered lists (`-`, `*`, `+`) and ordered lists
-  (`1.`, `2.`, …), including nesting as above.
-- **Forbidden:** Pandoc **example lists** (`(@)`, `(@label)`, or any
-  line that Pandoc parses as Example-style). In particular:
-  - never write `(@eq-…)`, `(@fig-…)`, `(@sec-…)` as a list marker;
-  - never hard-wrap a parenthetical so the next line begins with
-    `@label)` (e.g. `(see @sec-foo,` / newline / `  @sec-bar) …`) —
-    that is parsed as an example list and blocks Visual Mode
-    (“Document contains example lists…”). Keep such cites on one line
-    or rephrase as `see @sec-foo and @sec-bar`.
-- **Forbidden:** Markdown task / checkbox lists (`- [ ]`, `- [x]`).
-- **Do not** use unicode step markers (`- ① …`, `- ② …`) as a
-  substitute for ordered lists; use real `1.` / `2.` lists instead.
-- Cross-references stay mid-sentence: `see @eq-…`, `see @sec-…`
-  (never wrapped as `(@eq-…)`).
-- **Warnings / notes:** prefer labelled Quarto callouts with
-  cross-references (e.g. `::: {#nte-foo .callout-warning}` … `:::` then
-  `@nte-foo`), not raw blockquotes with pasted emoji glyphs. See
-  [callout cross-references](https://quarto.org/docs/authoring/cross-references.html#callouts).
-- **Emoji / icons:** when an emoji shortcode is needed in Markdown,
-  use GitHub-style `:name:` tokens from
-  [rxaviers/emoji-cheat-sheet](https://gist.github.com/rxaviers/7360908)
-  (e.g. `:warning:`, `:information_source:`), not literal unicode
-  emoji characters typed into the source. Enable Quarto emoji support
-  in the document YAML when shortcodes must render (`from: markdown+emoji`
-  or the project’s established emoji setup).
-- Label major headings with `{#sec-…}` and cross-link with `@sec-…`
-  within a document; across vignettes use pkgdown HTML links
-  (e.g. `[synthetic scenarios](synthetic-scenarios.html#sec-…)`).
-- Keep Visual Editor–hostile syntax out of vignettes unless a feature
-  (callouts, shortcodes) is intentionally required for the published
-  HTML and documented here.
-
-### Videos (`{{< video >}}` shortcode)
-
-Embed YouTube / Vimeo / local files with the
-[video shortcode](https://quarto.org/docs/authoring/videos.html).
-HTML embeds the player; other formats (Typst / PDF) become a link.
-For a numbered, referable figure, wrap the shortcode in a
-`::: {#fig-…}` div; the **last paragraph is the caption**. Keep
-`title`, `aria-label`, and `start` as **separate** attributes (do not
-merge them into `title`). Cite mid-sentence with `@fig-…`.
-
-```markdown
-::: {#fig-example-video}
-
-{{< video https://www.youtube.com/embed/VIDEO_ID
-    title="Short iframe title"
-    aria-label="What a screen reader should hear"
-    start="20"
->}}
-
-Caption: one sentence describing the clip.
-
-:::
-
-See @fig-example-video for the demonstration.
-```
-
-### Linked figures (image + source URL)
-
-When a local figure is copied from a website (manual, datasheet, paper
-figure), wrap the captioned image in a Markdown link so the rendered
-figure stays numbered **and** opens the original URL. This is Quarto’s
-[linked-figure](https://quarto.org/docs/authoring/figures.html#linked-figures)
-syntax: `[![caption](local-path){#fig-label}](https://source-url)`.
-Put `{#fig-…}` on the **image**, not on the outer link. Cite with
-`@fig-…`. Prefer this whenever a stable public URL exists; do not invent
-URLs.
-
-```markdown
-See @fig-example-manual for the manufacturer’s PDF.
-
-[![Caption — source name](images/example.png){#fig-example-manual}](https://example.com/path/to/original.pdf)
-```
-
-## Scientific voice and self-review (no Consensus required)
+## Scientific voice and self-review
 
 When editing `article/` or `vignettes/`, write like a careful methods
 reviewer would want to read—and self-check before claiming novelty.
@@ -942,35 +960,97 @@ reviewer would want to read—and self-check before claiming novelty.
 ### Anti-slop and wording
 
 - Prefer concrete nouns and verbs: name the estimator, the loss, the
-  dataset, the baseline, the metric.
+  dataset, the baseline, the metric. Prefer **numbers and facts** over
+  vague quantifiers (*some*, *few*, *a lot*, *many*, *often*) unless a
+  precise range is stated.
+- Prefer **British English**; agree once with coauthors on dual spellings
+  / compounds (*dataset* vs *data set*, *disease-associated* vs
+  *disease associated*) and keep that choice everywhere (main text,
+  supplement, figure labels).
+- Prefer short, simple sentences: **one idea per sentence**; avoid
+  sentences that span more than about two lines. Break long sentences.
+- Prefer the **active voice** in Results / Discussion / vignette prose;
+  Methods may use conventional passive when it improves clarity.
+- Avoid bare pronouns and vague deixis (*it*, *this*, *they*, *their*)
+  that point to a previous sentence without a noun. Prefer *this
+  estimator*, *these residuals*, *those baselines*. *This/these* may
+  precede a noun; avoid *this* + verb alone.
+- Prefer one name per concept; do not rotate synonyms for the same
+  object (homogeneity across main text, Methods, and supplement).
+- Minimise acronyms: define on first use; keep only a short agreed set
+  of field-standard abbreviations (typically a handful per paper). Do
+  not invent decorative acronyms; manage the survivors with
+  `glossaries` (see above).
+- Prefer lean wording; drop ornamental adjectives that do not change
+  the claim.
 - Avoid AI-flavoured filler: “delve”, “leverage”, “robust framework”,
   “comprehensive suite”, “powerful paradigm”, “in today’s landscape”,
   “it is worth noting that”, “plays a crucial role”, empty “novel”
   / “seamless” / “cutting-edge” without a precise claim.
 - Avoid stacked hedges (“may potentially suggest”) and false precision.
-- Prefer short sentences; one claim per sentence when arguing.
 - Define symbols on first use; keep notation consistent with the package
   and TikZ figures.
 - Do not anthropomorphise methods (“the model understands”).
 - Citations support load-bearing claims; do not cite for decoration.
   Stay within the Article’s ~50-reference budget by prioritising
   seminal methods, direct baselines, and essential datasets.
+- Spell-check and remove typos before treating a draft as review-ready.
 
-### Integrity (literature and claims)
+### High-quality scientific figures (article, vignettes, slides)
 
-- **Never invent papers, DOIs, quotes, BibTeX entries, or “Consensus”
-  hits.** Literature citekeys for `.qmd` must come from the Zotero/BBT
-  export (`REFERENCES.bib` / `decovart_library.bib`). Software citekeys
-  (`@R-huge`, etc.) come from `packages.bib` via
-  `scripts/curate_bibliography/generate_packages_bib.R`. If a literature citation is uncertain
-  or missing from Zotero, flag it for the user rather than guessing.
-- Label claims clearly: established fact (with citation), result of
-  *this* work, limitation, or speculation/outlook.
-- Flag load-bearing intro assertions that lack a citation.
-- Do not overclaim primacy (“first”, “only”) unless the user confirms
-  and a defensible search narrative exists.
-- Surface gaps honestly: missing baseline, missing negative control,
-  metric not standard in the field—do not paper over them with prose.
+Apply when creating or editing display items in `article/`, vignettes,
+`figs/`, or slide panels. Captions must describe axes, labels, colours,
+and panels so the figure is interpretable without the main text. Cite
+every figure (and supplementary figure) in the text. Prefer vector
+export (PDF/SVG) for plots with text and lines; raster only for
+microscopy / photo panels at adequate resolution.
+
+Condensed Evergreen-style checks (score Fully / Partially / Not met when
+reviewing; target a clear “so what?” per figure):
+
+**Text**
+
+- Left-justified, sentence-style takeaway title (≈8–20 words) when the
+  venue allows; otherwise put that takeaway in the caption opening.
+- Useful subtitle / in-plot annotations (not only a data-source line).
+- Readable hierarchy: title > subtitle/annotation > labels > source;
+  smallest text still legible in print (≈9 pt arm’s length).
+- Prefer **horizontal** text; rotate the chart (e.g. bars) rather than
+  diagonal axis labels when possible.
+- Prefer **direct labels** over legends; label sparingly (no redundant
+  value labels *and* a full value axis; avoid repeating axis titles if
+  the caption already states them).
+
+**Arrangement**
+
+- Accurate proportions; bar charts include 0 on the value axis; other
+  scales must not hide meaningful variation.
+- Intentional order (magnitude, time, groups)—not arbitrary defaults.
+- Equidistant axis intervals; **2D only**—no 3D, bevels, or shadows.
+- No decorative clipart; icons only if they aid interpretation.
+
+**Lines**
+
+- Mute or remove gridlines; no chart border box; minimise tick marks /
+  axis spines; one horizontal and one vertical interpretive axis (avoid
+  dual-y that readers must decode).
+
+**Colour**
+
+- Intentional palette (not software defaults); colour highlights the
+  main contrast, with muted greys for context.
+- Distinguishable in greyscale and for common colour-vision deficiency;
+  avoid red–green “bad/good” encoding; ensure text–background contrast.
+
+**Overall**
+
+- Graph type matches the relationship (trend, comparison, distribution,
+  composition); precision matches the audience (avoid spurious decimals
+  and in-plot *P*-values unless essential).
+- Multi-panel figures (`A`, `B`, `C`, …): each panel answers one precise
+  question; consistent fonts and sizes across panels (Nature Methods–
+  style minimalism); use a neutral sans-serif family (Arial, Helvetica,
+  Source Sans 3) consistently rather than per-plot defaults.
 
 ### Self-review checklist (use when asked to critique or polish)
 
@@ -992,83 +1072,212 @@ specific remedies, not padded criticism. Acknowledge strengths when earned.
 5. **Validation** — Are comparisons fair (same genes, same mixtures,
    same metrics)? Are reproducibility details present?
 6. **Nature Methods fit** — Word counts, abstract length, display-item
-   count, no footnotes; does the narrative match an Article (method +
-   validation) rather than a software note alone?
+   count, no footnotes; IMRaD/CARD/SIRF (etc.) section logic; figures
+   pass the scientific-figure checks; narrative matches an Article
+   (method + validation) rather than a software note alone?
 7. **Recommendation** (when reviewing): Accept / Minor revision /
    Major revision / Reject-style verdict for *internal* use only, with
    one justifying sentence tied to the major concerns.
 
-When literature verification is needed and no Consensus account is
-available, propose precise search queries (OpenAlex, Google Scholar,
-PubMed, Semantic Scholar) for the user to run, and integrate only
-results they confirm.
-
 ## Scientific review
 
--Check **statistical analysis**, with <https://www.equator-network.org/wp-content/uploads/2013/03/SAMPL-Guidelines-3-13-13.pdf>
-- Check **commit activity** with <https://piechowski.io/post/git-commands-before-reading-code>
+- Check **statistical reporting** against the
+  [SAMPL guidelines](https://www.equator-network.org/wp-content/uploads/2013/03/SAMPL-Guidelines-3-13-13.pdf).
+- Check **commit activity** with
+  <https://piechowski.io/post/git-commands-before-reading-code>.
+- When literature verification is needed and no Consensus account is
+  available, propose precise search queries (OpenAlex, Google Scholar,
+  PubMed, Semantic Scholar) for the user to run, and integrate only
+  results they confirm.
 
----
+### Integrity (literature and claims)
 
-# Converting documents and slides
+- **Never invent papers, DOIs, quotes, BibTeX entries, or “Consensus”
+  hits.** Literature citekeys for `.qmd` must come from the Zotero
+  export (`REFERENCES.bib` / `decovart_library.bib`). Software citekeys
+  (`@R-huge`, etc.) come from `packages.bib` via
+  `scripts/curate_bibliography/generate_packages_bib.R`. If a literature
+  citation is uncertain or missing from Zotero, flag it for the user
+  rather than guessing.
+- Label claims clearly: established fact (with citation), result of
+  *this* work, limitation, or speculation/outlook.
+- Flag load-bearing intro assertions that lack a citation.
+- Do not overclaim primacy (“first”, “only”) unless the user confirms
+  and a defensible search narrative exists.
+- Surface gaps honestly: missing baseline, missing negative control,
+  metric not standard in the field—do not paper over them with prose.
+
+### Broken or missing URLs (Internet Archive / Wayback Machine)
+
+When fetching or verifying bibliographical resources (publisher pages,
+preprints, software manuals, `url` / `howpublished` fields, linked
+figures, or any cited web resource):
+
+1. Try the live URL first (DOI resolver, publisher, GitHub, etc.).
+2. If the link is **404**, redirected to a dead host, paywalled with no
+   usable landing page, or otherwise unreachable, look up an archived
+   copy on the **[Wayback Machine](https://web.archive.org/)** before
+   inventing a replacement or dropping the citation metadata.
+3. Prefer the closest successful snapshot to the publication / access
+   date. Construct lookups as
+   `https://web.archive.org/web/*/<original-url>` (or the Archive’s
+   “Save Page Now” / browse UI) and cite or store the **archived URL**
+   when the live one is gone.
+4. Still prefer a stable identifier when one exists (`doi`, ISBN, CRAN /
+   Bioconductor package page). Use Wayback as a **fallback for content
+   recovery**, not as a substitute for inventing DOIs or BibTeX fields.
+5. Never fabricate archive timestamps or claim a snapshot existed when
+   the Archive has no capture; flag the dead link for the user instead.
+
+### Literature intake: converting documents and slides
 
 Do not invent content when a conversion is available. Use a
 **structural converter**, then a **cleanup pass** (YAML, headings,
 tables, captions, image paths, alt-text). Do not ask an LLM to read a
 whole DOCX/PPTX when Pandoc can parse its structure.
 
-## Slides (PDF / PPTX → Quarto reveal.js)
+**Documents (DOCX / PDF → `.qmd`).** DOCX is structured; convert with
+Pandoc, then clean:
 
-Rebuild as Quarto reveal.js with Slidecrafting patterns; do not ship
-raw PDF/PPTX as the live deck. When several sources exist:
+```bash
+pandoc document.docx --extract-media=images -t markdown -o document.qmd
+```
 
-1. **Markdown** — structure and wording.
-2. **PPTX** — Pandoc extracts images, hyperlinks, lists, and OMML
-   equations (to LaTeX):
+That yields `document.qmd` plus `images/media/…`, referenced as
+`![…](images/media/image1.png)`. The cleanup pass fixes Quarto YAML,
+heading hierarchy, Word tables, captions, notes, cross-references,
+image paths, and alt-text — it does **not** rewrite scientific content.
+For PDFs (literature, notes, reviews, vignette drafts), use Stephen
+Turner’s **[pdfdown](https://stephenturner.github.io/pdfdown/)** (local
+browser drop-zone) first, then the same cleanup pass; `pdftoppm` only
+for figures pdfdown misses.
+
+**Slides (PDF / PPTX → Quarto reveal.js).** Prefer sources in this
+order: Markdown (structure and wording), then PPTX, then PDF.
 
 ```bash
 pandoc talk.pptx --extract-media=slides/images -t markdown -o talk.md
 ```
 
-3. **PDF** — Stephen Turner’s
-   **[pdfdown](https://stephenturner.github.io/pdfdown/)** (local
-   browser drop-zone) for text; `pdftoppm` only for figures pdfdown
-   misses.
+Pandoc extracts images, hyperlinks, lists, and OMML equations (to
+LaTeX). Keep extracted media; restore equations as `$...$` / `$$...$$`
+when Pandoc emitted LaTeX, otherwise transcribe from the slide;
+preserve links as `[text](url)`. Then restyle per **Slide design** —
+never ship raw PDF/PPTX as the live deck.
 
-Keep extracted media. Restore equations as `$...$` / `$$...$$` when
-Pandoc emitted LaTeX; otherwise transcribe from the slide. Preserve
-links as `[text](url)`. Then restyle with the reveal.js skill.
+---
 
-## Documents (DOCX / PDF → `.qmd`)
+# Slide design
 
-**DOCX** is structured. Convert with Pandoc, then clean — never hand
-the whole file to an LLM first
-([Pandoc Markdown](https://quarto.org/docs/authoring/markdown-basics.html)):
+Applies to any talk deck in this project (currently `slides/`).
 
-```bash
-pandoc document.docx \
-  --extract-media=images \
-  -t markdown \
-  -o document.qmd
+## Content principles
+
+- One headline claim per slide. Prefer bullet points over full sentences.
+- Prefer **Mermaid** or **Excalidraw** for conceptual diagrams (see
+  **Mermaid rendering constraints**); fall back to curated PDF/PPTX page
+  images when the original graphic is essential and hard to redraw.
+- For tables, use **reactable** (interactive HTML), not static Markdown
+  / knitr / tinytable tables, unless the user asks otherwise. Add
+  `reactable` under **Suggests** with a minimum version, keep tables
+  inside the viewport, and set `echo: false` unless code must show:
+  `reactable::reactable(..., pagination = FALSE, defaultPageSize = 8,
+  bordered = TRUE, highlight = TRUE, wrap = FALSE)`.
+- For equations, always define indexes and other notation on the slide
+  (or on the previous slide).
+- Follow **High-quality scientific figures** for panels and readability;
+  keep the same Nature Methods minimalism in generated illustrations,
+  and export equation-heavy diagrams as vector assets (SVG/PDF).
+
+## Overflow is the primary failure mode
+
+Reveal.js slides have a fixed viewport. Content that exceeds it
+overflows with little or no render-time warning.
+
+- **Always render after edits** (`quarto render …`) and visually check
+  the changed slide. Do not assume content will fit.
+- When combining a diagram with content below it, budget vertical space
+  explicitly. Tighten margins, padding, and font sizes on the upper
+  element to leave room.
+- If a slide overflows, cut content or tighten spacing — do not shrink
+  fonts below readability.
+- Use the deck’s existing CSS classes first. Add a new class only when a
+  style is reused across three or more slides; do not churn global
+  SCSS/CSS for one slide.
+
+## Font-size hierarchy
+
+For information-dense slides, keep a consistent hierarchy:
+
+| Element | Size |
+|---|---|
+| Diagram node labels | 18–20px |
+| Card / section headers | 14–16px |
+| Supporting detail, bullet text | 12–13px |
+| Affiliations, metadata, attributions | 10–11px |
+
+Going below 10px is unreadable from the back of a seminar room. If you
+need smaller text to fit, the slide has too much content.
+
+## Backbone diagrams as navigation
+
+When a talk has a unifying programme diagram, show it at the opening,
+re-show a compact version at major section transitions, and close with
+it.
+
+- On first appearance, build in stages if order matters (fragments /
+  auto-animate via Slidecrafting). On re-appearances, show it static.
+- Colour-code methods in the diagram and reuse those colours when
+  referencing the same methods later.
+
+## Figures, citations, and attribution
+
+- Check whether requested assets already exist locally before creating
+  new ones. Prefer `slides/images/` with relative paths from the slide
+  source.
+- Cite from `inst/REFERENCES.bib` (or a deck-local `.bib` mirroring
+  those keys) with `bibliography: ../inst/REFERENCES.bib` and Quarto
+  cite syntax; label and cross-reference display items as in the
+  **Quarto Markdown checklist**. Do not silently drop citations when
+  converting legacy slides.
+- Enable the **attribution** reveal.js plugin
+  (`quarto-ext/attribution`) in YAML:
+
+```yaml
+revealjs-plugins:
+  - attribution
 ```
 
-Yields `document.qmd` plus `images/media/…`, referenced as
-`![…](images/media/image1.png)`.
+- Place a short credit on the slide with the vertical right-edge
+  attribution block (compact by design — do **not** invent HTML
+  footers that duplicate it), paired with a labelled figure when the
+  image is the main content:
 
-Cleanup pass (do **not** rewrite scientific content): Quarto YAML,
-heading hierarchy, Word tables, captions, notes, cross-references,
-image paths, and alt-text for screenshots or diagrams.
+```markdown
+![Immune balance seesaw](images/immune-balance.png){#fig-immune-balance}
 
-**PDF** (literature, notes, reviews, vignette drafts): pdfdown first,
-then the same cleanup pass; `pdftoppm` only for unrecovered figures.
+::: {.attribution}
+@schnellImmune2020 — [doi](https://doi.org/10.1038/s41422-020-0277-x)
+:::
+```
 
-# Quarto reveal.js slides (Slidecrafting)
+## Editing guardrails
+
+- Do not change slide count, section structure, or title/abstract
+  without explicit instruction.
+- Do not silently remove citations or attributions.
+- Use British English spelling.
+- Preserve the citation style and colour palette.
+- Hide executed code on slides unless the user wants it shown
+  (`echo: false` / Quarto chunk options).
+
+## Quarto reveal.js slides (Slidecrafting)
 
 Whenever the user asks to create, restyle, animate, or present
 **Quarto reveal.js** slides (`format: revealjs` in a `.qmd`, or work
 under `slides/` / similar deck folders), follow this workflow.
 
-## 1. Ensure the global slidecrafting skills are installed
+### Ensure the global slidecrafting skills are installed
 
 Expected personal Cursor skills (from
 [EmilHvitfeldt/slidecrafting-book.com](https://github.com/EmilHvitfeldt/slidecrafting-book.com)):
@@ -1088,7 +1297,7 @@ npx skills add emilhvitfeldt/slidecrafting.com
 
 (Requires Node ≥ 22.20.) Then continue after the skill is present.
 
-## 2. Always use the skill for reveal.js decks
+### Always use the skill for reveal.js decks
 
 1. **Read** `~/.cursor/skills/quarto-revealjs/SKILL.md` (or the
    `~/.agents/skills/` copy) **before** writing or heavily editing a
@@ -1101,9 +1310,8 @@ npx skills add emilhvitfeldt/slidecrafting.com
    there and at <https://slidecrafting-book.com>.
 4. Cross-check features against official Quarto reveal.js docs
    (<https://quarto.org/docs/presentations/revealjs/>) **and** the
-   Slidecrafting book (<https://slidecrafting-book.com/>) when choosing
-   YAML options, extensions, layout, or animation patterns. Prefer
-   documented Quarto / Slidecrafting features over ad-hoc HTML/CSS.
+   Slidecrafting book when choosing YAML options, extensions, layout, or
+   animation patterns. Prefer documented features over ad-hoc HTML/CSS.
 5. For custom fragment CSS/JS or multi-slide auto-animate element
    casts, also read `quarto-revealjs-fragment` and/or
    `auto-animate-elements` when those skills are installed.
@@ -1131,208 +1339,5 @@ immediate editability without entering Modify mode first.
 
 ### Converting legacy decks
 
-See **Converting documents and slides**. Rebuild with Slidecrafting
-patterns; do not ship raw PDF/PPTX as the live deck.
-
-## 3. Slide design lessons
-
-### Content principles
-
-- One headline claim per slide. Prefer bullet points over full sentences.
-- Prefer **Mermaid** or **Excalidraw** for conceptual diagrams; fall
-  back to curated PDF/PPTX page images when the original graphic is
-  essential and hard to redraw.
-- For tables in slides, use **reactable** (interactive HTML), not static
-  Markdown / knitr / tinytable tables, unless the user asks otherwise.
-  Keep tables small enough for the viewport (`pagination`, compact
-  columns). For **vignette** static tables, prefer `tinytable` instead
-  (see Preferred R dependencies and Tables: tinytable vs reactable).
-- For equations, always define indexes and other notation on the slide
-  (or on the previous slide).
-
-### High-quality scientific images (Nature Methods target)
-
-- Aim for **Nature Methods** visual style: clear scientific message,
-  minimal decorative effects, high contrast, and consistent typography.
-- Prefer equations and mathematically precise notation when concepts are
-  model-based; export equation-heavy diagrams as vector assets (SVG/PDF)
-  whenever possible.
-- Use multi-panel layouts (`A`, `B`, `C`, …) when several concepts are
-  needed to explain one claim; each panel should answer one precise
-  question.
-- Keep style minimalist and interpretation-first: avoid visual clutter,
-  3D effects, and ornamental graphics that do not support inference.
-- When creating or revising generated illustrations in `slides/index.qmd`
-  and included section files, apply this same panel and readability
-  discipline.
-
-### Mermaid rendering constraints (README, vignettes, slides)
-
-- Do **not** use plain code fences like ```` ``` mermaid ```` for figures
-  intended to render in Quarto outputs; use executable Mermaid chunks.
-  Minimal pattern:
-  - opening fence: ```` ```{mermaid} ````
-  - options: `%%| label: fig-example` and
-    `%%| fig-cap: "Example caption."`
-  - diagram body: e.g. `flowchart TD` then `A --> B`
-  - closing fence: ```` ``` ````
-
-- Cross-reference Mermaid figures with Quarto labels (`@fig-...`), as
-  documented at
-  <https://quarto.org/docs/authoring/diagrams.html#cross-references>.
-- Set Mermaid theme to **sandstone** for consistency unless a slide
-  context explicitly requires another documented theme.
-- For reveal.js decks, keep Mermaid configured under `format: revealjs:`
-  and verify rendering in both `quarto preview` and `quarto render`.
-- For PDF/Word paths using Mermaid, use the installed
-  `chrome-headless-shell` backend and verify rendered output rather than
-  raw diagram source.
-
-#### HTML: test native Quarto Mermaid before any JS fallback
-
-Empty figure boxes on the web almost always mean the `{mermaid}` engine
-never ran. **Do not** add a client-side fallback first.
-
-1. Set `execute.eval: true` in `_quarto.yml` (or `%%| eval: true` on the
-   Mermaid chunk). `eval: false` skips the diagram engine and leaves an
-   empty `<div>` where the figure should be.
-2. `quarto render` the HTML and inspect the output: a healthy diagram is
-   a `<pre class="mermaid mermaid-js">` block **containing the flowchart
-   source**, plus Quarto’s own
-   `site_libs/quarto-diagram/mermaid.min.js` and
-   `site_libs/quarto-diagram/mermaid-init.js` in the page `<head>`.
-3. Open the page in a browser (`quarto preview` or the built HTML). The
-   `pre.mermaid` block should become an SVG. That is the supported path
-   for Quarto books and vignettes.
-
-Only if those `pre.mermaid` blocks are present **and still unrendered**
-in the browser (e.g. pkgdown README fences that Quarto never compiled)
-may you add the optional DeCovarT client-side fallback:
-`pkgdown/assets/mermaid-init.js` plus the CDN include in `_pkgdown.yml`
-(`after_body`), or an equivalent `html/mermaid-after-body.html`. If
-native `eval: true` already emits `pre.mermaid` + quarto-diagram, **do
-not** add that fallback — remove it.
-
-### Citations and cross-references
-
-- Cite from `inst/REFERENCES.bib` (or a deck-local `.bib` that mirrors
-  those keys). Wire the deck YAML with e.g.
-  `bibliography: ../inst/REFERENCES.bib` and use Quarto cite syntax
-  (`@key`, `[@key]`).
-- Label figures, tables, and equations for Quarto cross-references
-  (`#fig-…`, `#tbl-…`, `#eq-…`) and refer to them with `@fig-…` /
-  `@tbl-…` / `@eq-…`. See
-  <https://quarto.org/docs/authoring/cross-references.html>.
-- Do not silently drop citations when converting legacy slides.
-
-### Tables: tinytable (static) vs reactable (interactive)
-
-- **CRAN-shipped Quarto vignettes** (`DeCoVart-use-cases`,
-  `softmax-alr-derivatives`): prefer [Quarto Markdown pipe
-  tables](https://quarto.org/docs/authoring/tables.html) with
-  `: Caption {#tbl-…}`. Do **not** call `tinytable` there — CRAN
-  vignette rebuild must not depend on Suggests S4 APIs that change
-  between your laptop and win-builder.
-- **Pkgdown-only articles / other static Quarto HTML:** use
-  `tinytable::tt()` by default (pin `tinytable (>= …)` in Suggests).
-  Do not introduce `knitr::kable()`, `kableExtra`, or `flextable` for
-  new static tables unless the user asks. For maths in cells, write
-  `$\\kappa_2$`-style strings (double backslashes) and follow
-  <https://vincentarelbundock.github.io/tinytable/vignettes/format.html#math>;
-  enable `options(tinytable_html_mathjax = TRUE)` in setup when HTML
-  needs inline MathJax for table cells.
-- **Reveal.js slides / interactive HTML:** prefer `reactable` over
-  static Markdown / knitr / tinytable tables unless the user asks
-  otherwise. Keep tables small enough for the viewport
-  (`pagination`, compact columns).
-
-### Tables with reactable
-
-- Add `reactable` under **Suggests** (with a minimum version) when the
-  package uses it in slides / vignettes.
-- Prefer compact options suitable for reveal.js, e.g.
-  `reactable::reactable(..., pagination = FALSE, defaultPageSize = 8,
-  bordered = TRUE, highlight = TRUE, wrap = FALSE)` and a modest
-  `style` / `theme` so text stays readable.
-- Set `echo: false` for table chunks unless the user wants code shown.
-
-### Overflow is the primary failure mode
-
-Reveal.js slides have a fixed viewport. Content that exceeds it
-overflows with little or no render-time warning.
-
-- **Always render after edits** (`quarto render …`) and visually check
-  the changed slide. Do not assume content will fit.
-- When combining a diagram with content below it, budget vertical space
-  explicitly. Tighten margins, padding, and font sizes on the upper
-  element to leave room.
-- If a slide overflows, cut content or tighten spacing — do not shrink
-  fonts below readability.
-- Use the deck’s existing CSS classes first.
-- Add a new CSS class only when a style is reused across three or more
-  slides. Do not churn global SCSS/CSS for one slide.
-
-### Font-size hierarchy
-
-For information-dense slides, keep a consistent hierarchy:
-
-| Element | Size |
-|---|---|
-| Diagram node labels | 18–20px |
-| Card / section headers | 14–16px |
-| Supporting detail, bullet text | 12–13px |
-| Affiliations, metadata, attributions | 10–11px |
-
-Going below 10px is unreadable from the back of a seminar room. If you
-need smaller text to fit, the slide has too much content.
-
-### Backbone diagrams as navigation
-
-When a talk has a unifying programme diagram, show it at the opening,
-re-show a compact version at major section transitions, and close with
-it.
-
-- On first appearance, build in stages if order matters (fragments /
-  auto-animate via Slidecrafting). On re-appearances, show it static.
-- Colour-code methods in the diagram and reuse those colours when
-  referencing the same methods later.
-
-### Figures and attribution
-
-- Check whether requested assets already exist locally before creating
-  new ones. Prefer `slides/images/` with relative paths from the slide
-  source.
-- Enable the **attribution** reveal.js plugin
-  (`quarto-ext/attribution`) in YAML:
-
-```yaml
-revealjs-plugins:
-  - attribution
-```
-
-- Place a short credit on the slide with the vertical right-edge
-  attribution block (compact by design — do **not** invent HTML
-  footers that duplicate it):
-
-```markdown
-::: {.attribution}
-@schnellImmune2020 — [doi](https://doi.org/10.1038/s41422-020-0277-x)
-:::
-```
-
-- Pair attributions with labelled figures when the image is the main
-  content:
-
-```markdown
-![Immune balance seesaw](images/immune-balance.png){#fig-immune-balance}
-```
-
-### Editing guardrails
-
-- Do not change slide count, section structure, or title/abstract
-  without explicit instruction.
-- Do not silently remove citations or attributions.
-- Use British English spelling.
-- Preserve the citation style and colour palette.
-- Hide executed code on slides unless the user wants it shown
-  (`echo: false` / Quarto chunk options).
+See **Literature intake: converting documents and slides**. Rebuild with
+Slidecrafting patterns; do not ship raw PDF/PPTX as the live deck.

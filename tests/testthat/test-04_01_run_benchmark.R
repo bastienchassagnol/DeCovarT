@@ -119,17 +119,17 @@ test_that("deconvolute_ratios errors on missing values (G2.13)", {
   )
 })
 
-test_that(".match_arg_ci is case-insensitive (G2.3b)", {
+test_that(".match_arg_case_insensitive is case-insensitive (G2.3b)", {
   expect_identical(
-    .match_arg_ci("SIGMA", c("either", "sigma", "Theta")),
+    .match_arg_case_insensitive("SIGMA", c("either", "sigma", "Theta")),
     "sigma"
   )
   expect_identical(
-    .match_arg_ci("theta", c("either", "sigma", "Theta")),
+    .match_arg_case_insensitive("theta", c("either", "sigma", "Theta")),
     "Theta"
   )
   expect_error(
-    .match_arg_ci("not_a_choice", c("either", "sigma", "Theta")),
+    .match_arg_case_insensitive("not_a_choice", c("either", "sigma", "Theta")),
     "must be one of"
   )
 })

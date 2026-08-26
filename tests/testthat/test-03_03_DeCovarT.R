@@ -28,18 +28,18 @@
 }
 
 
-test_that(".bilinear_form matches the closed-form quadratic product", {
+test_that(".inner_product matches the closed-form quadratic product", {
   x <- c(1, 2)
   y <- c(3, -1)
   a <- matrix(c(2, 0.5, 0.5, 3), 2L)
 
   expect_equal(
-    .bilinear_form(x, a, y),
+    .inner_product(x, a, y),
     as.numeric(t(x) %*% a %*% y),
     tolerance = .tol_srr
   )
   expect_equal(
-    .bilinear_form(x, a),
+    .inner_product(x, a),
     as.numeric(t(x) %*% a %*% x),
     tolerance = .tol_srr
   )

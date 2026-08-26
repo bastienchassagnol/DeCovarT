@@ -19,7 +19,7 @@
 #'
 #' @keywords internal
 #' @noRd
-.match_arg_ci <- function(arg, choices) {
+.match_arg_case_insensitive <- function(arg, choices) {
   if (!is.character(arg) || length(arg) < 1L) {
     stop("Argument must be a non-empty character vector.", call. = FALSE)
   }
@@ -156,7 +156,7 @@
     stop("`path` must be a non-empty character string.", call. = FALSE)
   }
   suffix <- sub("^\\.", "", suffix)
-  suffix <- .match_arg_ci(suffix, c("pdf", "csv", "rds"))
+  suffix <- .match_arg_case_insensitive(suffix, c("pdf", "csv", "rds"))
   ext <- tools::file_ext(path)
   if (!nzchar(ext)) {
     return(paste0(path, ".", suffix))
@@ -191,7 +191,7 @@
 #' @keywords internal
 #' @noRd
 .write_artefact <- function(x, path, kind = c("rds", "csv", "pdf")) {
-  kind <- .match_arg_ci(kind, c("rds", "csv", "pdf"))
+  kind <- .match_arg_case_insensitive(kind, c("rds", "csv", "pdf"))
   path <- .ensure_file_suffix(path, kind)
   switch(
     kind,
@@ -217,12 +217,45 @@
   invisible(path)
 }
 
+#' Require a cubic \eqn{G\times G\times J} numeric array
+#'
+#' Shared by `.prepare_deconvolution_inputs()` (cell-type `Sigma`) and
+#' `.parse_true_theta()` (generative `sigma` / `Theta`). Full merge of
+#' those two gates is intentionally avoided: one validates deconvolution
+#' inputs (\eqn{\boldsymbol{\mu}}, \eqn{\boldsymbol{Y}}, \eqn{\boldsymbol{\Sigma}}),
+#' the other validates MixSim / Jeffreys generative parameters
+#' \eqn{\theta=(p,\boldsymbol{\mu},\boldsymbol{\Sigma})}.
+#'
+#' @param arr Array to check.
+#' @param name Argument name used in the error message.
+#'
+#' @return Named list with `G` and `J`.
+#'
+#' @keywords internal
+#' @noRd
+.assert_ggj_array <- function(arr, name) {
+  if (is.null(dim(arr)) || length(dim(arr)) != 3L) {
+    stop("`", name, "` must be a G x G x J array.", call. = FALSE)
+  }
+  g1 <- dim(arr)[[1L]]
+  g2 <- dim(arr)[[2L]]
+  jj <- dim(arr)[[3L]]
+  if (g1 != g2) {
+    stop("`", name, "` dims must be G x G x J.", call. = FALSE)
+  }
+  list(G = g1, J = jj)
+}
+
 #' Align optional ground-truth proportions to \eqn{J \times N}
 #'
 #' @param true_ratios `NULL`, length-\eqn{J} numeric vector, or numeric
-#'   matrix with dimensions \eqn{J\times N} or \eqn{N\times J}.
-#' @param n_celltypes \eqn{J}.
-#' @param n_samples \eqn{N}.
+#'   matrix with dimensions \eqn{J\times N} only (no \eqn{N\times J}
+#'   transpose).
+#' @param n_celltypes Number of cell types \eqn{J} (rows of the returned
+#'   matrix; must match `ncol(signature_matrix)`).
+#' @param n_samples Number of bulk samples \eqn{N} to deconvolve
+#'   (columns of the returned matrix; must match
+#'   `ncol(bulk_expression)`).
 #'
 #' @return `NULL` or a numeric matrix \eqn{J\times N}.
 #'
@@ -246,11 +279,9 @@
     if (nrow(true_ratios) == n_celltypes && ncol(true_ratios) == n_samples) {
       return(true_ratios)
     }
-    if (nrow(true_ratios) == n_samples && ncol(true_ratios) == n_celltypes) {
-      return(t(true_ratios))
-    }
     stop(
-      "`true_ratios` as a matrix must be J x N or N x J.",
+      "`true_ratios` as a matrix must be J x N ",
+      "(n_celltypes x n_samples).",
       call. = FALSE
     )
   }
@@ -281,6 +312,14 @@
 #' matrices / arrays only. Genes are matched by row names with
 #' `drop = FALSE` (G2.10). When \eqn{J > G} the linear mixture is
 #' undetermined and an error is raised.
+#'
+#' Complements [check_true_theta()] / `.parse_true_theta()`: those
+#' validators check generative-model lists
+#' \eqn{\theta=(p,\boldsymbol{\mu},\boldsymbol{\Sigma})} for MixSim /
+#' Jeffreys metrics, while this gate checks the deconvolution call
+#' signature (\eqn{\boldsymbol{\mu}}, \eqn{\boldsymbol{Y}}, optional
+#' ground-truth ratios, \eqn{\boldsymbol{\Sigma}}). Shared cubic-array
+#' checks use `.assert_ggj_array()`.
 #'
 #' @return Named list with aligned `signature_matrix`, `bulk_expression`,
 #'   `true_ratios` (\eqn{J\times N} or `NULL`), `Sigma`, and optional
@@ -362,8 +401,14 @@
 
   if (!is.null(Sigma)) {
     .assert_numeric_array(Sigma, "Sigma", 3L, non_negative = FALSE)
+    dims_sigma <- .assert_ggj_array(Sigma, "Sigma")
     if (is.null(dimnames(Sigma)[[1L]]) || is.null(dimnames(Sigma)[[3L]])) {
-      if (!identical(dim(Sigma), c(n_genes, n_genes, n_celltypes))) {
+      if (
+        !identical(
+          c(dims_sigma$G, dims_sigma$G, dims_sigma$J),
+          c(n_genes, n_genes, n_celltypes)
+        )
+      ) {
         stop(
           "`Sigma` must be a G x G x J array matching the aligned ",
           "signature matrix.",

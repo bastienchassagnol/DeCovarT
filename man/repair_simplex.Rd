@@ -4,16 +4,28 @@
 \alias{repair_simplex}
 \title{Repair a numeric vector onto the unit simplex}
 \usage{
-repair_simplex(p, tolerance = 100 * .Machine$double.eps)
+repair_simplex(
+  p,
+  tolerance = 100 * .Machine$double.eps,
+  open = FALSE,
+  nms = NULL
+)
 }
 \arguments{
 \item{p}{Numeric vector \eqn{\boldsymbol{p}\in\mathbb{R}^{J}}.}
 
 \item{tolerance}{Non-negative tolerance for treating entries as zero
 (default \code{100 * .Machine$double.eps}).}
+
+\item{open}{Logical; if \code{TRUE}, push the repaired vector off the
+boundary into the open simplex.}
+
+\item{nms}{Optional names attached to the returned vector (e.g.
+cell-type colnames).}
 }
 \value{
-Numeric vector on the simplex \eqn{\Delta^{J-1}}.
+Numeric vector on the simplex \eqn{\Delta^{J-1}} (open when
+\code{open = TRUE}).
 }
 \description{
 Clips numerical under/overflow and renormalises so that
@@ -22,9 +34,15 @@ Clips numerical under/overflow and renormalises so that
 renormalisation} step for estimated proportions, not a Euclidean
 projection onto the simplex and not a statistical-identifiability
 constraint.
+
+When \code{open = TRUE}, entries on the closed-simplex boundary are nudged
+into the relative interior so that \code{\link[=additive_log_ratio]{additive_log_ratio()}} is defined
+(ALR / Marquardt / Newton starts). That open-simplex path is the
+former role of \code{.starting_simplex()}.
 }
 \examples{
 repair_simplex(c(0.2, 0.3, 0.5 + 1e-12))
+repair_simplex(c(1, 0, 0), open = TRUE)
 }
 \seealso{
 \code{\link[compositions:clo]{compositions::clo()}} for compositional closure.

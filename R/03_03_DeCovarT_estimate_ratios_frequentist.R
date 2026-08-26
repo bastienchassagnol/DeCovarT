@@ -68,13 +68,19 @@ additive_log_ratio <- function(p) {
   return(log(p[1:num_cells - 1] / p[num_cells]))
 }
 
-#' Evaluate a matrix-induced bilinear form
+#' Evaluate a matrix-induced inner product
 #'
-#' Computes \eqn{\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{y}}.
+#' Computes \eqn{\langle\boldsymbol{x},\boldsymbol{y}\rangle_{\boldsymbol{A}}
+#' =\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{y}}.
 #' When \eqn{\boldsymbol{A}} is symmetric positive definite (as for a
 #' non-degenerate Gaussian covariance or precision), this is the
-#' \eqn{\boldsymbol{A}}-inner product. Prefer this name over "dot product",
-#' which is reserved for \eqn{\boldsymbol{x}^{\mathsf{T}}\boldsymbol{y}}.
+#' \eqn{\boldsymbol{A}}-inner product on
+#' \eqn{\mathbb{R}^{p}}
+#' (<https://en.wikipedia.org/wiki/Inner_product_space#Basic_properties>).
+#' Prefer this name over the generic "bilinear form" when \eqn{\boldsymbol{A}}
+#' is SPD; the Euclidean inner product is the special case
+#' \eqn{\boldsymbol{A}=\mathbf{I}}
+#' (\eqn{\boldsymbol{x}^{\mathsf{T}}\boldsymbol{y}}).
 #'
 #' Implementation uses [base::crossprod()] as
 #' `drop(crossprod(x, A %*% y))`, which is the standard efficient route to
@@ -82,17 +88,18 @@ additive_log_ratio <- function(p) {
 #' \eqn{\boldsymbol{x}} and a temporary outer product).
 #'
 #' @param x Numeric vector.
-#' @param A Numeric square matrix, compatible with `x` and `y`.
+#' @param A Numeric square matrix, compatible with `x` and `y`
+#'   (SPD when interpreted as an inner-product metric).
 #' @param y Numeric vector of the same length as `x` (default `x`,
-#'   which yields the quadratic form
+#'   which yields the squared \eqn{\boldsymbol{A}}-norm
 #'   \eqn{\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{x}}).
 #'
 #' @return Numeric scalar.
 #' @keywords internal
 #' @examples
-#' .bilinear_form(c(1, 2), diag(2), c(3, 4))
+#' .inner_product(c(1, 2), diag(2), c(3, 4))
 #' @export
-.bilinear_form <- function(x, A, y = x) {
+.inner_product <- function(x, A, y = x) {
   x <- as.numeric(x)
   y <- as.numeric(y)
   A <- as.matrix(A)
@@ -281,7 +288,7 @@ loglik_multivariate <- function(p, y, mean_signature_matrix, Sigma) {
   sigma_p <- .sigma_p_factorisation(p, Sigma)
   residual <- y - drop(mean_signature_matrix %*% p)
   log_lik <- -sigma_p$log_det -
-    1 / 2 * .bilinear_form(residual, sigma_p$inverse)
+    1 / 2 * .inner_product(residual, sigma_p$inverse)
   return(log_lik)
 }
 
@@ -414,13 +421,13 @@ gradient_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
       -2 *
         p[j] *
         sum(diag(global_precision_matrix %*% Sigma[,, j])) +
-        .bilinear_form(
+        .inner_product(
           y - mean_signature_matrix %*% p,
           global_precision_matrix,
           mean_signature_matrix[, j]
         ) +
         p[j] *
-          .bilinear_form(
+          .inner_product(
             y - mean_signature_matrix %*% p,
             global_precision_matrix %*% Sigma[,, j] %*% global_precision_matrix
           )
@@ -545,21 +552,21 @@ hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
             global_precision_matrix %*%
             Sigma[,, j]
         )) -
-        .bilinear_form(
+        .inner_product(
           mean_signature_matrix[, i],
           global_precision_matrix,
           mean_signature_matrix[, j]
         ) -
         2 *
           p[i] *
-          .bilinear_form(
+          .inner_product(
             y - mean_signature_matrix %*% p,
             global_precision_matrix %*% Sigma[,, i] %*% global_precision_matrix,
             mean_signature_matrix[, j]
           ) -
         2 *
           p[j] *
-          .bilinear_form(
+          .inner_product(
             y - mean_signature_matrix %*% p,
             global_precision_matrix %*% Sigma[,, j] %*% global_precision_matrix,
             mean_signature_matrix[, i]
@@ -567,7 +574,7 @@ hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
         4 *
           p[i] *
           p[j] *
-          .bilinear_form(
+          .inner_product(
             y - mean_signature_matrix %*% p,
             global_precision_matrix %*%
               Sigma[,, j] %*%
@@ -579,7 +586,7 @@ hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
         # add diagonal terms
         hessian_unconstrained[i, i] <- hessian_unconstrained[i, i] -
           2 * sum(diag(global_precision_matrix %*% Sigma[,, i])) +
-          .bilinear_form(
+          .inner_product(
             y - mean_signature_matrix %*% p,
             global_precision_matrix %*% Sigma[,, i] %*% global_precision_matrix
           )
@@ -644,8 +651,8 @@ hessian_loglik_constrained <- function(rho, y, mean_signature_matrix, Sigma) {
 
 #' Open-simplex start for ALR solvers
 #'
-#' Default is the equi-balanced vector. A supplied `initial_p` is repaired
-#' onto the simplex, then nudged off the boundary so
+#' Default is the equi-balanced vector. A supplied `initial_p` is passed
+#' through [repair_simplex()] with `open = TRUE` so
 #' [additive_log_ratio()] is defined.
 #'
 #' @param n_celltypes Integer \eqn{J}.
@@ -665,17 +672,9 @@ hessian_loglik_constrained <- function(rho, y, mean_signature_matrix, Sigma) {
         call. = FALSE
       )
     }
-    p <- repair_simplex(as.numeric(initial_p))
+    p <- as.numeric(initial_p)
   }
-  floor <- 100 * .Machine$double.eps
-  if (any(p < floor) || any(p > 1 - floor)) {
-    p <- pmax(p, floor)
-    p <- p / sum(p)
-  }
-  if (!is.null(nms)) {
-    names(p) <- nms
-  }
-  p
+  repair_simplex(p, open = TRUE, nms = nms)
 }
 
 

@@ -102,7 +102,7 @@ $q(\boldsymbol{x})=b(\boldsymbol{x},\boldsymbol{x})$.
 
 : Standard algebraic operations induced by a matrix $\boldsymbol{A}$. {#tbl-bilinear-forms}
 
-Package helpers `.bilinear_form()` and `.squared_mahalanobis_distance()`
+Package helpers `.inner_product()` and `.squared_mahalanobis_distance()`
 implement the middle rows of @tbl-bilinear-forms. The second solves
 $\boldsymbol{\Sigma}\boldsymbol{z}=\boldsymbol{\delta}$ rather than forming
 $\boldsymbol{\Sigma}^{-1}$ explicitly. Calling

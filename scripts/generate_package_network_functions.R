@@ -24,6 +24,13 @@ stop_if_missing("visNetwork")
 
 project_path <- getwd()
 excluded_files <- c("zzz.R", "data.R")
+# Tiny I/O / argparse helpers clutter the call graph without clarifying
+# the statistical API; keep them out of the visNetwork report.
+excluded_functions <- c(
+  ".match_arg_case_insensitive",
+  ".write_artefact",
+  ".ensure_file_suffix"
+)
 
 out_dir <- file.path(project_path, "output", "package_network")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
@@ -111,6 +118,9 @@ internal_functions <- do.call(rbind, lapply(r_files, extract_function_metadata))
 internal_functions <- internal_functions[
   !duplicated(internal_functions$function_name),
 ]
+internal_functions <- internal_functions[
+  !internal_functions$function_name %in% excluded_functions,
+]
 
 if (nrow(internal_functions) == 0L) {
   stop("No top-level functions found in R/ (after exclusions).", call. = FALSE)
@@ -149,6 +159,31 @@ edges <- unique(data.frame(
   color = "#8ea0b3",
   stringsAsFactors = FALSE
 ))
+
+# S3 methods on `decovart_fit` are not *called* by fit_decovart(); they
+# dispatch on objects it returns. Add synthetic edges so the network
+# shows the constructor ↔ accessor family.
+s3_fit_methods <- grep(
+  "\\.decovart_fit$",
+  internal_functions$function_name,
+  value = TRUE
+)
+if (
+  "fit_decovart" %in%
+    internal_functions$function_name &&
+    length(s3_fit_methods) > 0L
+) {
+  edges <- rbind(
+    edges,
+    data.frame(
+      from = "fit_decovart",
+      to = s3_fit_methods,
+      arrows = "to",
+      color = "#c4a35a",
+      stringsAsFactors = FALSE
+    )
+  )
+}
 
 message("Call edges (DeCovarT to DeCovarT only): ", nrow(edges))
 

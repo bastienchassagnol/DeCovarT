@@ -253,7 +253,7 @@ generate_mean_signature_matrix <- function(
 #'   Matching is case-insensitive.
 #'
 #' @srrstats {G2.3} Restricted character input (`graph_model`).
-#' @srrstats {G2.3a} Validated via `.match_arg_ci()` (a `match.arg()`
+#' @srrstats {G2.3a} Validated via `.match_arg_case_insensitive()` (a `match.arg()`
 #'   equivalent).
 #' @srrstats {G2.3b} Matching is case-insensitive (`tolower()`).
 #' @param graph_params Named list of generator parameters:
@@ -284,7 +284,7 @@ generate_random_network_skeleton <- function(
   graph_params = list()
 ) {
   n_genes <- as.integer(n_genes)
-  graph_model <- .match_arg_ci(
+  graph_model <- .match_arg_case_insensitive(
     graph_model,
     c(
       "erdos_renyi",
@@ -460,9 +460,6 @@ assign_iid_signed_weights <- function(
   weight_magnitude = 0.3
 ) {
   A <- as.matrix(adjacency_matrix)
-  if (nrow(A) != ncol(A)) {
-    stop("`adjacency_matrix` must be square.")
-  }
   if (prop_inhibitory < 0 || prop_inhibitory > 1) {
     stop("`prop_inhibitory` must lie in [0, 1].")
   }
@@ -471,6 +468,8 @@ assign_iid_signed_weights <- function(
   }
 
   W <- matrix(0, nrow(A), ncol(A))
+  # Non-null off-diagonal support of A (upper triangle). If every off-diagonal
+  # entry is zero there is no edge whose sign can change, so return W = 0.
   upper <- which(upper.tri(A) & A != 0, arr.ind = TRUE)
   if (nrow(upper) == 0L) {
     dimnames(W) <- dimnames(A)
@@ -480,11 +479,15 @@ assign_iid_signed_weights <- function(
   n_edge <- nrow(upper)
   n_inhib <- as.integer(round(prop_inhibitory * n_edge))
   signs <- rep(-1, n_edge) # activatory precision weight by default
+  # Sample which edges receive a negative partial correlation (inhibitory
+  # precision weight): uniform without replacement over the edge set.
   if (n_inhib > 0L) {
     inhib_idx <- sample.int(n_edge, n_inhib)
     signs[inhib_idx] <- 1
   }
   values <- signs * weight_magnitude
+  # Symmetrise: undirected Gaussian graphical models require a symmetric
+  # precision (or covariance) matrix, so Omega_jk = Omega_kj.
   W[upper] <- values
   W[cbind(upper[, 2L], upper[, 1L])] <- values
   dimnames(W) <- dimnames(A)
@@ -768,14 +771,14 @@ simulate_hierarchical_grn_moments <- function(
     )
     if (length(graph_model) == 1L) {
       graph_model <- rep(
-        .match_arg_ci(graph_model, model_choices),
+        .match_arg_case_insensitive(graph_model, model_choices),
         n_celltypes
       )
     } else {
       if (length(graph_model) != n_celltypes) {
         stop("`graph_model` must be length 1 or J.", call. = FALSE)
       }
-      graph_model <- .match_arg_ci(graph_model, model_choices)
+      graph_model <- .match_arg_case_insensitive(graph_model, model_choices)
     }
     graph_model[graph_model == "star"] <- "hub"
 

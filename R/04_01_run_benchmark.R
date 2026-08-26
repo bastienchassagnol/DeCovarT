@@ -18,7 +18,7 @@
 #'   `sigma` / `Theta`). Matching is case-insensitive.
 #'
 #' @srrstats {G2.3} Restricted character input (`second_moment`).
-#' @srrstats {G2.3a} Validated via `.match_arg_ci()` (a `match.arg()`
+#' @srrstats {G2.3a} Validated via `.match_arg_case_insensitive()` (a `match.arg()`
 #'   equivalent).
 #' @srrstats {G2.3b} Matching is case-insensitive (`tolower()`).
 #'
@@ -62,7 +62,10 @@ check_true_theta <- function(
   J = NULL,
   second_moment = c("either", "sigma", "Theta")
 ) {
-  second_moment <- .match_arg_ci(second_moment, c("either", "sigma", "Theta"))
+  second_moment <- .match_arg_case_insensitive(
+    second_moment,
+    c("either", "sigma", "Theta")
+  )
   if (!is.list(true_theta)) {
     stop("`true_theta` must be a list.", call. = FALSE)
   }
@@ -89,27 +92,9 @@ check_true_theta <- function(
   }
 
   # Helper: enforce cubic layout G x G x J and return (G, J).
+  # Shared implementation lives in utils.R as `.assert_ggj_array()`.
   .check_ggj_array <- function(arr, nm) {
-    if (is.null(dim(arr)) || length(dim(arr)) != 3L) {
-      stop(
-        "`true_theta$",
-        nm,
-        "` must be a G x G x J array.",
-        call. = FALSE
-      )
-    }
-    g1 <- dim(arr)[[1L]]
-    g2 <- dim(arr)[[2L]]
-    jj <- dim(arr)[[3L]]
-    if (g1 != g2) {
-      stop(
-        "`true_theta$",
-        nm,
-        "` dims must be G x G x J.",
-        call. = FALSE
-      )
-    }
-    list(G = g1, J = jj)
+    .assert_ggj_array(arr, paste0("true_theta$", nm))
   }
 
   dims_list <- list()

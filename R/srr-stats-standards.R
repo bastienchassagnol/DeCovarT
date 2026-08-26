@@ -19,7 +19,7 @@ NULL
 #' G1.0, G1.1: see [deconvolute_ratios()] (DSection as closest method;
 #' first multivariate Gaussian-convolution MLE).
 #' G1.3, G1.4, G1.4a: see `DeCovarT-package`.
-#' G2.3 / G2.3a / G2.3b: see `.match_arg_ci()`, [check_true_theta()],
+#' G2.3 / G2.3a / G2.3b: see `.match_arg_case_insensitive()`, [check_true_theta()],
 #' [generate_random_network_skeleton()], [plot_correlation_Heatmap()].
 #' G2.4-G2.16, G4.0, G5.8d: see `R/utils.R` and [deconvolute_ratios()].
 #' G3.0: see [repair_simplex()] and tests (`100 * .Machine$double.eps`).
@@ -48,7 +48,7 @@ NULL
 #' @srrstats {G2.2} Scalar parameters are checked with `assert_scalar` or
 #'   equivalent.
 #'
-#' G2.3, G2.3a, G2.3b: see `.match_arg_ci()` in `R/utils.R`.
+#' G2.3, G2.3a, G2.3b: see `.match_arg_case_insensitive()` in `R/utils.R`.
 #' G2.13, G2.15, G2.16: see `.assert_no_missing()` and
 #' [deconvolute_ratios()] (error on missing / non-finite values; no
 #' imputation).

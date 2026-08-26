@@ -40,7 +40,7 @@
 #'   `"model_ccc"`). Matching is case-insensitive.
 #'
 #' @srrstats {G2.3} Restricted character input (`score_variable`).
-#' @srrstats {G2.3a} Validated via `.match_arg_ci()` (a `match.arg()`
+#' @srrstats {G2.3a} Validated via `.match_arg_case_insensitive()` (a `match.arg()`
 #'   equivalent).
 #' @srrstats {G2.3b} Matching is case-insensitive (`tolower()`).
 #' @param n_break Number of colour breaks.
@@ -77,7 +77,7 @@ plot_correlation_Heatmap <- function(
   file = NULL
 ) {
   .check_heatmap_dependencies()
-  score_variable <- .match_arg_ci(
+  score_variable <- .match_arg_case_insensitive(
     score_variable,
     c(
       "model_mse",

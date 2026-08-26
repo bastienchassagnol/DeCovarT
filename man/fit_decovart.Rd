@@ -82,9 +82,17 @@ supported.}
 
 \item{...}{Passed to \code{\link[graphics:plot.default]{graphics::plot()}} (plot method) or ignored.}
 
-\item{parm}{Unused (all simplex coordinates are returned).}
+\item{parm}{Kept for compatibility with \code{\link[stats:confint]{stats::confint()}}; all
+simplex coordinates are always returned (subsetting by \code{parm} is
+not implemented). Removing this formal would break the S3 method
+contract with the generic.}
 
-\item{level}{Confidence level.}
+\item{level}{Confidence level \eqn{1-\alpha} (default \code{0.95}). Wald
+intervals use asymptotic normality of the MLE with standard errors
+from \code{\link[=vcov_alr_delta]{vcov_alr_delta()}} /
+\code{\link[=expected_fisher_unconstrained]{expected_fisher_unconstrained()}} (see Details of \code{\link[=fit_decovart]{fit_decovart()}}
+and of \code{\link[=vcov_alr_delta]{vcov_alr_delta()}}):
+\eqn{\hat{p}_j \pm z_{1-\alpha/2}\,\mathrm{SE}_j}.}
 }
 \value{
 An object of class \code{decovart_fit}.
@@ -184,5 +192,9 @@ nobs(fit)
 }
 \seealso{
 \code{\link[=deconvolute_ratios]{deconvolute_ratios()}},
-\code{\link[=deconvolute_ratios_Marquardt_Levenberg]{deconvolute_ratios_Marquardt_Levenberg()}}
+\code{\link[=deconvolute_ratios_Marquardt_Levenberg]{deconvolute_ratios_Marquardt_Levenberg()}},
+\code{\link[=expected_fisher_unconstrained]{expected_fisher_unconstrained()}}, \code{\link[=vcov_alr_delta]{vcov_alr_delta()}},
+\code{\link[=coef.decovart_fit]{coef.decovart_fit()}}, \code{\link[=vcov.decovart_fit]{vcov.decovart_fit()}},
+\code{\link[=confint.decovart_fit]{confint.decovart_fit()}}
 }
+\concept{decovart_fit}
