@@ -41,7 +41,7 @@ vignette("generative-model-derivatives", package = "DeCovarT")).'><meta property
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.2.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,6 +66,7 @@ vignette("generative-model-derivatives", package = "DeCovarT")).'><meta property
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
     <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Derivatives under simplex transforms</a></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
     <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives (outlook)</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -295,7 +296,7 @@ on \(\boldsymbol{\rho}\) (<code><a href="https://rdrr.io/r/stats/optim.html" cla
 <span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="va">mu</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="fl">0.4</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">2</span>, sd <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">deconvolute_ratios_Marquardt_Levenberg</span><span class="op">(</span><span class="va">y</span>, <span class="va">mu</span>, <span class="va">Sigma</span>, itmax <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       ct1       ct2 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 0.5605665 0.4394335 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 0.5805233 0.4194767 </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

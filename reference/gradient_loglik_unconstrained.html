@@ -7,11 +7,16 @@
 $$
   \frac{\partial\ell}{\partial p_j}
   =
-  -2p_j\,\mathrm{Tr}\!\bigl(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\bigr)
+  -p_j\,\mathrm{Tr}\!\bigl(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\bigr)
   +\boldsymbol{r}^{\mathsf{T}}\boldsymbol{\Theta}\boldsymbol{\mu}_{\cdot j}
   +p_j\,\boldsymbol{r}^{\mathsf{T}}
   \boldsymbol{\Theta}\boldsymbol{\Sigma}_j\boldsymbol{\Theta}\boldsymbol{r}.
-$$"><meta property="og:description" content="Analytic gradient of loglik_multivariate() with respect to
+$$
+The determinant score is \(-p_j\mathrm{Tr}(\boldsymbol{\Theta}
+\boldsymbol{\Sigma}_j)\) because
+\(\partial\boldsymbol{\Sigma}/\partial p_j=2p_j\boldsymbol{\Sigma}_j\)
+enters \(-\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})\); the
+two residual terms are unaffected by that factor."><meta property="og:description" content="Analytic gradient of loglik_multivariate() with respect to
 \(\boldsymbol{p}\). Writing
 \(\boldsymbol{\Theta}=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\) and
 \(\boldsymbol{r}=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}\), the
@@ -19,11 +24,16 @@ $$"><meta property="og:description" content="Analytic gradient of loglik_multiva
 $$
   \frac{\partial\ell}{\partial p_j}
   =
-  -2p_j\,\mathrm{Tr}\!\bigl(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\bigr)
+  -p_j\,\mathrm{Tr}\!\bigl(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\bigr)
   +\boldsymbol{r}^{\mathsf{T}}\boldsymbol{\Theta}\boldsymbol{\mu}_{\cdot j}
   +p_j\,\boldsymbol{r}^{\mathsf{T}}
   \boldsymbol{\Theta}\boldsymbol{\Sigma}_j\boldsymbol{\Theta}\boldsymbol{r}.
-$$"><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
+$$
+The determinant score is \(-p_j\mathrm{Tr}(\boldsymbol{\Theta}
+\boldsymbol{\Sigma}_j)\) because
+\(\partial\boldsymbol{\Sigma}/\partial p_j=2p_j\boldsymbol{\Sigma}_j\)
+enters \(-\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})\); the
+two residual terms are unaffected by that factor."><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -31,7 +41,7 @@ $$"><meta property="og:image" content="https://bastienchassagnol.github.io/DeCov
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.2.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,6 +66,7 @@ $$"><meta property="og:image" content="https://bastienchassagnol.github.io/DeCov
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
     <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Derivatives under simplex transforms</a></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
     <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives (outlook)</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -93,11 +104,16 @@ $$"><meta property="og:image" content="https://bastienchassagnol.github.io/DeCov
 $$
   \frac{\partial\ell}{\partial p_j}
   =
-  -2p_j\,\mathrm{Tr}\!\bigl(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\bigr)
+  -p_j\,\mathrm{Tr}\!\bigl(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\bigr)
   +\boldsymbol{r}^{\mathsf{T}}\boldsymbol{\Theta}\boldsymbol{\mu}_{\cdot j}
   +p_j\,\boldsymbol{r}^{\mathsf{T}}
   \boldsymbol{\Theta}\boldsymbol{\Sigma}_j\boldsymbol{\Theta}\boldsymbol{r}.
-$$</p>
+$$
+The determinant score is \(-p_j\mathrm{Tr}(\boldsymbol{\Theta}
+\boldsymbol{\Sigma}_j)\) because
+\(\partial\boldsymbol{\Sigma}/\partial p_j=2p_j\boldsymbol{\Sigma}_j\)
+enters \(-\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})\); the
+two residual terms are unaffected by that factor.</p>
     </div>
 
     <div class="section level2">
@@ -167,7 +183,7 @@ between extrapolations (default <code>v = 2</code>).</p></dd>
 <span class="r-in"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="fl">0.4</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="va">mu</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">p</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">gradient_loglik_unconstrained</span><span class="op">(</span><span class="va">p</span>, <span class="va">y</span>, <span class="va">mu</span>, <span class="va">Sigma</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -4.615385 -3.076923</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -2.307692 -1.538462</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

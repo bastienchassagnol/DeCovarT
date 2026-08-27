@@ -6,11 +6,15 @@ with respect to \\\boldsymbol{p}\\. Writing
 \\\boldsymbol{\Theta}=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\\ and
 \\\boldsymbol{r}=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}\\, the
 \\j\\-th coordinate is \$\$ \frac{\partial\ell}{\partial p_j} =
--2p_j\\\mathrm{Tr}\\\bigl(\boldsymbol{\Theta}\boldsymbol{\Sigma}\_j\bigr)
+-p_j\\\mathrm{Tr}\\\bigl(\boldsymbol{\Theta}\boldsymbol{\Sigma}\_j\bigr)
 +\boldsymbol{r}^{\mathsf{T}}\boldsymbol{\Theta}\boldsymbol{\mu}\_{\cdot
 j} +p_j\\\boldsymbol{r}^{\mathsf{T}}
 \boldsymbol{\Theta}\boldsymbol{\Sigma}\_j\boldsymbol{\Theta}\boldsymbol{r}.
-\$\$
+\$\$ The determinant score is \\-p_j\mathrm{Tr}(\boldsymbol{\Theta}
+\boldsymbol{\Sigma}\_j)\\ because \\\partial\boldsymbol{\Sigma}/\partial
+p_j=2p_j\boldsymbol{\Sigma}\_j\\ enters
+\\-\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})\\; the two
+residual terms are unaffected by that factor.
 
 ## Usage
 
@@ -86,5 +90,5 @@ Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
 p <- c(0.6, 0.4)
 y <- drop(mu %*% p)
 gradient_loglik_unconstrained(p, y, mu, Sigma)
-#> [1] -4.615385 -3.076923
+#> [1] -2.307692 -1.538462
 ```

@@ -55,7 +55,7 @@ residual sum of squares."><meta property="og:image" content="https://bastienchas
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.2.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -80,6 +80,7 @@ residual sum of squares."><meta property="og:image" content="https://bastienchas
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
     <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Derivatives under simplex transforms</a></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
     <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives (outlook)</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -147,7 +148,9 @@ residual sum of squares.</p>
 <span>  epsilon <span class="op">=</span> <span class="fl">10</span><span class="op">^</span><span class="op">-</span><span class="fl">4</span>,</span>
 <span>  itmax <span class="op">=</span> <span class="fl">200</span>,</span>
 <span>  standardise <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  scaled <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  scaled <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  n_starts <span class="op">=</span> <span class="fl">0L</span>,</span>
+<span>  boundary_tol <span class="op">=</span> <span class="fl">1e-08</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S3 method for class 'decovart_fit'</span></span>
@@ -230,6 +233,21 @@ supported.</p></dd>
 
 <dt id="arg-scaled">scaled<a class="anchor" aria-label="anchor" href="#arg-scaled"></a></dt>
 <dd><p>Deprecated. <code>TRUE</code> (log2 mixing) always errors.</p></dd>
+
+
+<dt id="arg-n-starts">n_starts<a class="anchor" aria-label="anchor" href="#arg-n-starts"></a></dt>
+<dd><p>Number of additional random Dirichlet starts per
+sample. With <code>n_starts &gt; 0</code> the best log-likelihood is kept and
+<code><a href="multistart_decovart.html">multistart_decovart()</a></code> records the spread of attained optima, the
+only direct probe of multimodality (the realised log-likelihood is
+not globally concave).</p></dd>
+
+
+<dt id="arg-boundary-tol">boundary_tol<a class="anchor" aria-label="anchor" href="#arg-boundary-tol"></a></dt>
+<dd><p>Threshold on \(\min_j\hat{p}_j\) below which a
+sample is flagged <code>near_boundary</code> by <code><a href="boundary_diagnostics.html">boundary_diagnostics()</a></code>. Wald
+intervals are unreliable there; prefer
+<code><a href="confint_profile_decovart.html">confint_profile_decovart()</a></code> or <code><a href="lrt_decovart.html">lrt_decovart()</a></code>.</p></dd>
 
 
 <dt id="arg-x-object">x, object<a class="anchor" aria-label="anchor" href="#arg-x-object"></a></dt>
@@ -340,8 +358,8 @@ $$</p>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>      sample_1  sample_2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ct1 0.4595454 0.6439327</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ct2 0.5404546 0.3560673</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ct1 0.4461301 0.7062033</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ct2 0.5538699 0.2937967</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/nobs.html" class="external-link">nobs</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> attr(,"n_genes")</span>

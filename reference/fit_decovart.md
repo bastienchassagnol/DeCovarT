@@ -40,7 +40,9 @@ fit_decovart(
   epsilon = 10^-4,
   itmax = 200,
   standardise = FALSE,
-  scaled = FALSE
+  scaled = FALSE,
+  n_starts = 0L,
+  boundary_tol = 1e-08
 )
 
 # S3 method for class 'decovart_fit'
@@ -118,6 +120,24 @@ plot(x, ...)
 - scaled:
 
   Deprecated. `TRUE` (log2 mixing) always errors.
+
+- n_starts:
+
+  Number of additional random Dirichlet starts per sample. With
+  `n_starts > 0` the best log-likelihood is kept and
+  [`multistart_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/multistart_decovart.md)
+  records the spread of attained optima, the only direct probe of
+  multimodality (the realised log-likelihood is not globally concave).
+
+- boundary_tol:
+
+  Threshold on \\\min_j\hat{p}\_j\\ below which a sample is flagged
+  `near_boundary` by
+  [`boundary_diagnostics()`](https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.md).
+  Wald intervals are unreliable there; prefer
+  [`confint_profile_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_decovart.md)
+  or
+  [`lrt_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_decovart.md).
 
 - x, object:
 
@@ -215,8 +235,8 @@ fit <- fit_decovart(
 )
 coef(fit)
 #>      sample_1  sample_2
-#> ct1 0.4595454 0.6439327
-#> ct2 0.5404546 0.3560673
+#> ct1 0.4461301 0.7062033
+#> ct2 0.5538699 0.2937967
 nobs(fit)
 #> [1] 2
 #> attr(,"n_genes")

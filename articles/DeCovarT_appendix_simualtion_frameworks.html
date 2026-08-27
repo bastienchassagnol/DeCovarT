@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.2.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -58,6 +58,7 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
     <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Derivatives under simplex transforms</a></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
     <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives (outlook)</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -91,7 +92,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>DeCovarT appendix: affine equivariance, collinearity and perturbations</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-08-26</p>
+      <p class="date">2026-08-27</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/DeCovarT_appendix_simualtion_frameworks.qmd" class="external-link"><code>vignettes/DeCovarT_appendix_simualtion_frameworks.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -184,9 +185,9 @@
 <span>  gene_wise_z <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit_z</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;                      ct1       ct2</span></span>
-<span><span class="co">#&gt; raw            0.6468186 0.3531814</span></span>
-<span><span class="co">#&gt; general_affine 0.6468186 0.3531814</span></span>
-<span><span class="co">#&gt; gene_wise_z    0.6468186 0.3531814</span></span></code></pre></div>
+<span><span class="co">#&gt; raw            0.6489623 0.3510377</span></span>
+<span><span class="co">#&gt; general_affine 0.6489623 0.3510377</span></span>
+<span><span class="co">#&gt; gene_wise_z    0.6489623 0.3510377</span></span></code></pre></div>
 </div>
 <p>The two rows should agree up to optimiser noise: <code>standardise = TRUE</code> is a gene-wise affine map. Cell-type-wise <code><a href="https://rdrr.io/r/base/scale.html" class="external-link">scale()</a></code> of <span class="math inline">\boldsymbol{\mu}</span> would estimate a different <span class="math inline">D</span> per column and is not supported.</p>
 </section><section class="section level2"><h2 id="sec-collinearity">Collinearity<a class="anchor" aria-label="anchor" href="#sec-collinearity"></a>
@@ -285,12 +286,12 @@
 <span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>estimates <span class="op">=</span> <span class="va">est</span>, rmse_to_truth <span class="op">=</span> <span class="va">rmse</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $estimates</span></span>
 <span><span class="co">#&gt;          full celltype_diagonal global_weighted</span></span>
-<span><span class="co">#&gt; ct1 0.6098172         0.6098172       0.6104442</span></span>
-<span><span class="co">#&gt; ct2 0.3901828         0.3901828       0.3895558</span></span>
+<span><span class="co">#&gt; ct1 0.6112459         0.6112459       0.6115984</span></span>
+<span><span class="co">#&gt; ct2 0.3887541         0.3887541       0.3884016</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $rmse_to_truth</span></span>
 <span><span class="co">#&gt;              full celltype_diagonal   global_weighted </span></span>
-<span><span class="co">#&gt;       0.009817228       0.009817228       0.010444217</span></span></code></pre></div>
+<span><span class="co">#&gt;        0.01124588        0.01124588        0.01159839</span></span></code></pre></div>
 </div>
 <section class="level2"><h3 id="sec-init-seeds">Random ALR starts<a class="anchor" aria-label="anchor" href="#sec-init-seeds"></a>
 </h3>
@@ -337,14 +338,14 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $marquardt</span></span>
-<span><span class="co">#&gt;       seed_11   seed_22   seed_33</span></span>
-<span><span class="co">#&gt; ct1 0.6098172 0.6098173 0.6098173</span></span>
-<span><span class="co">#&gt; ct2 0.3901828 0.3901827 0.3901827</span></span>
+<span><span class="co">#&gt;      seed_11   seed_22   seed_33</span></span>
+<span><span class="co">#&gt; ct1 0.611246 0.6112463 0.6112459</span></span>
+<span><span class="co">#&gt; ct2 0.388754 0.3887537 0.3887541</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $newton_raphson</span></span>
-<span><span class="co">#&gt;       seed_11   seed_22   seed_33</span></span>
-<span><span class="co">#&gt; ct1 0.6098163 0.6098173 0.6098173</span></span>
-<span><span class="co">#&gt; ct2 0.3901837 0.3901827 0.3901827</span></span></code></pre></div>
+<span><span class="co">#&gt;      seed_11  seed_22  seed_33</span></span>
+<span><span class="co">#&gt; ct1 0.611246 0.611246 0.611246</span></span>
+<span><span class="co">#&gt; ct2 0.388754 0.388754 0.388754</span></span></code></pre></div>
 </div>
 <p>A fuller comparison of normalisation (CPM, log2), tolerance, and dimension <span class="math inline">(G,J)</span> belongs in a later issue.</p>
 </section></section><section class="section level2"><h2 id="sec-s3">S3 accessors<a class="anchor" aria-label="anchor" href="#sec-s3"></a>
@@ -360,8 +361,8 @@
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;            s1</span></span>
-<span><span class="co">#&gt; ct1 0.6468186</span></span>
-<span><span class="co">#&gt; ct2 0.3531814</span></span>
+<span><span class="co">#&gt; ct1 0.6489623</span></span>
+<span><span class="co">#&gt; ct2 0.3510377</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/nobs.html" class="external-link">nobs</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 1</span></span>
 <span><span class="co">#&gt; attr(,"n_genes")</span></span>
@@ -378,18 +379,18 @@
 <span><span class="co">#&gt;           3           2</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;          s1</span></span>
-<span><span class="co">#&gt; g1 25.29772</span></span>
-<span><span class="co">#&gt; g2 36.46819</span></span>
-<span><span class="co">#&gt; g3 23.94046</span></span>
+<span><span class="co">#&gt; g1 25.26557</span></span>
+<span><span class="co">#&gt; g2 36.48962</span></span>
+<span><span class="co">#&gt; g3 23.94689</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             s1</span></span>
-<span><span class="co">#&gt; g1 -0.07904438</span></span>
-<span><span class="co">#&gt; g2  0.04099662</span></span>
-<span><span class="co">#&gt; g3 -0.03223709</span></span>
+<span><span class="co">#&gt; g1 -0.04688787</span></span>
+<span><span class="co">#&gt; g2  0.01955895</span></span>
+<span><span class="co">#&gt; g3 -0.03866839</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;              ct1          ct2</span></span>
-<span><span class="co">#&gt; ct1  0.001802457 -0.001802457</span></span>
-<span><span class="co">#&gt; ct2 -0.001802457  0.001802457</span></span></code></pre></div>
+<span><span class="co">#&gt; ct1  0.001805152 -0.001805152</span></span>
+<span><span class="co">#&gt; ct2 -0.001805152  0.001805152</span></span></code></pre></div>
 </div>
 <p><code><a href="https://rdrr.io/r/stats/formula.html" class="external-link">formula()</a></code> and <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> are not implemented: DeCovarT does not forecast bulk expression.</p>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">

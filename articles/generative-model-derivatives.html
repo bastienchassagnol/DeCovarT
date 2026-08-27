@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.2.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -58,6 +58,7 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
     <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Derivatives under simplex transforms</a></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
     <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives (outlook)</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -91,7 +92,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Derivatives of the DeCovarT generative model under simplex transforms</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-08-26</p>
+      <p class="date">2026-08-27</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/generative-model-derivatives.qmd" class="external-link"><code>vignettes/generative-model-derivatives.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -235,16 +236,22 @@
 <p><span id="eq-loglik"><span class="math display">
 \ell_{\boldsymbol{y}\mid\boldsymbol{\zeta}}(\boldsymbol{p})
 =
-\log\det\boldsymbol{\Theta}(\boldsymbol{p})
+\tfrac{1}{2}\log\det\boldsymbol{\Theta}(\boldsymbol{p})
 -
 \tfrac{1}{2}
 (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
 \boldsymbol{\Theta}(\boldsymbol{p})
 (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}).
 \tag{6}</span></span></p>
+<div id="nte-halfdet">
+<blockquote>
+<p><strong>Important 3: The determinant term carries a factor <span class="math inline">\tfrac{1}{2}</span></strong></p>
+<p>Both terms of <a href="#eq-loglik" class="quarto-xref">Eq. 6</a> are halved, because <span class="math inline">\log\det\boldsymbol{\Theta}=-\log\det\boldsymbol{\Sigma}</span> enters the Gaussian log-density as <span class="math inline">-\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})</span>. DeCovarT releases before 2.3.0 implemented <span class="math inline">-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})</span>, which doubled the determinant contribution. The objective was then <em>not</em> the stated Gaussian model, and it disagreed with the expected Fisher information of <a href="#sec-fisher-wald" class="quarto-xref">Sec. 4</a>, which had always been the one implied by the correct density. With the factor restored, <code><a href="../reference/loglik_multivariate.html">loglik_multivariate()</a></code> matches <code>mvtnorm::dmvnorm(..., log = TRUE)</code> up to the constant <span class="math inline">\tfrac{G}{2}\log(2\pi)</span>, and <span class="math inline">\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})</span> holds exactly (see <a href="#nte-obs-vs-exp" class="quarto-xref">Note 6</a>). Point estimates move only slightly, because the two terms trade off differently, but likelihood <strong>values</strong>, AIC, likelihood-ratio statistics, and any curvature-based standard error do change.</p>
+</blockquote>
+</div>
 <div id="nte-unconstrained-meaning">
 <blockquote>
-<p><strong>Warning 3: What “unconstrained” means here</strong></p>
+<p><strong>Warning 4: What “unconstrained” means here</strong></p>
 <p><a href="#sec-unconstrained" class="quarto-xref">Sec. 2</a> treats each <span class="math inline">p_{j}</span> as an ambient coordinate in <span class="math inline">(0,1)</span> and ignores <span class="math inline">\sum_{j}p_{j}=1</span>. The resulting gradient and Hessian are the building blocks of the ALR chain rule in <a href="#sec-constrained" class="quarto-xref">Sec. 3</a>. They are <strong>not</strong> the coordinates used by Marquardt–Levenberg or Newton–Raphson in the package (those optimise in <span class="math inline">\boldsymbol{\rho}</span>-space). The box-constrained L-BFGS-B path is the exception: it works directly in <span class="math inline">\boldsymbol{p}</span> with <span class="math inline">[0,1]^{J}</span> boxes and does not enforce the simplex exactly.</p>
 </blockquote>
 </div>
@@ -254,7 +261,7 @@
 \begin{aligned}
 \frac{\partial\ell}{\partial p_{j}}
 &amp;=
-\underbrace{-2p_{j}\,\mathrm{tr}\bigl(
+\underbrace{-p_{j}\,\mathrm{tr}\bigl(
   \boldsymbol{\Theta}\boldsymbol{\Sigma}_{j}
 \bigr)}_{\text{purple}}
 +
@@ -286,9 +293,9 @@
 \frac{\partial^{2}\ell}{\partial p_{i}^{2}}
 =
 \underbrace{
-  -2\,\mathrm{tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}_{i})
+  -\,\mathrm{tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}_{i})
   +
-  4p_{i}^{2}\,\mathrm{tr}\bigl(
+  2p_{i}^{2}\,\mathrm{tr}\bigl(
     (\boldsymbol{\Theta}\boldsymbol{\Sigma}_{i})^{2}
   \bigr)
 }_{\text{purple}}
@@ -336,7 +343,7 @@
 \frac{\partial^{2}\ell}{\partial p_{i}\partial p_{j}}
 =
 \underbrace{
-  4p_{i}p_{j}\,
+  2p_{i}p_{j}\,
   \mathrm{tr}\bigl(
     \boldsymbol{\Theta}\boldsymbol{\Sigma}_{j}
     \boldsymbol{\Theta}\boldsymbol{\Sigma}_{i}
@@ -476,7 +483,7 @@ e^{\rho_{i}}B_{i}/A^{2}, &amp; i=j,\ i&lt;J,\\
 </div>
 <div id="nte-chain-impl">
 <blockquote>
-<p><strong>Important 4: Implementation map</strong></p>
+<p><strong>Important 5: Implementation map</strong></p>
 <table class="table caption-top">
 <colgroup>
 <col style="width: 50%">
@@ -533,8 +540,10 @@ I(\boldsymbol{p})_{jk}
 <p>The first summand is the mean contribution (a <span class="math inline">\boldsymbol{\Theta}</span>-inner product of signature columns); the second is the covariance contribution of the quadratic map <span class="math inline">\boldsymbol{p}\mapsto\boldsymbol{\Sigma}(\boldsymbol{p})</span>. See the multivariate-normal formula on <a href="https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution" class="external-link">Wikipedia: Fisher information</a>. <a href="../reference/expected_fisher_unconstrained.html"><code>expected_fisher_unconstrained()</code></a> implements <a href="#eq-fisher-p" class="quarto-xref">Eq. 16</a>.</p>
 <div id="nte-obs-vs-exp">
 <blockquote>
-<p><strong>Note 5: Observed versus expected information</strong></p>
+<p><strong>Note 6: Observed versus expected information</strong></p>
 <p>The analytic Hessian of <a href="#sec-unconstrained" class="quarto-xref">Sec. 2</a> is the <em>observed</em> information (up to sign). Wald intervals in <code>decovart_fit</code> use the <em>expected</em> information <a href="#eq-fisher-p" class="quarto-xref">Eq. 16</a>, which does not depend on the residual <span class="math inline">\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}</span> and is positive definite under the usual full-rank assumptions on <span class="math inline">(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})</span>.</p>
+<p>The two are consistent by construction. Substituting <span class="math inline">\mathbb{E}[\boldsymbol{r}]=\boldsymbol{0}</span> and <span class="math inline">\mathbb{E}[\boldsymbol{r}\boldsymbol{r}^{\top}]
+=\boldsymbol{\Sigma}(\boldsymbol{p})</span> into <a href="#eq-hess-diag" class="quarto-xref">Eq. 8</a> and <a href="#eq-hess-off" class="quarto-xref">Eq. 9</a> cancels the determinant traces against the residual traces and returns <a href="#eq-fisher-p" class="quarto-xref">Eq. 16</a> exactly, i.e. <span class="math inline">\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})</span>. That identity only holds with the factor <span class="math inline">\tfrac{1}{2}</span> of <a href="#nte-halfdet" class="quarto-xref">Note 3</a> in place.</p>
 </blockquote>
 </div>
 </section><section class="level2"><h3 id="sec-fisher-rho">Constrained case: ALR delta method<a class="anchor" aria-label="anchor" href="#sec-fisher-rho"></a>
@@ -559,13 +568,22 @@ I_{\boldsymbol{\rho}}^{-1}
 \mathbf{J}_{\boldsymbol{\psi}}^{\top}.
 \tag{18}</span></span></p>
 <p>Diagonal square roots are asymptotic standard errors; Wald intervals at level <span class="math inline">1-\alpha</span> are <span class="math inline">\hat{p}_{j}\pm z_{1-\alpha/2}\,\mathrm{SE}_{j}</span> with <span class="math inline">z_{q}=\Phi^{-1}(q)</span>, as in <a href="../reference/fit_decovart.html"><code>confint.decovart_fit()</code></a>. <a href="../reference/vcov_alr_delta.html"><code>vcov_alr_delta()</code></a> implements <a href="#eq-fisher-rho" class="quarto-xref">Eq. 17</a>–<a href="#eq-delta-p" class="quarto-xref">Eq. 18</a>. The construction is undefined on the simplex boundary (the ALR chart blows up); the helper then returns <code>NA</code> with a warning. The ALR chart itself follows Aitchison’s compositional geometry <span class="citation" data-cites="aitchisonStatisticalAnalysisCompositional1982">(<a href="#ref-aitchisonStatisticalAnalysisCompositional1982" role="doc-biblioref">Aitchison 1982</a>)</span>.</p>
+<div id="nte-wald-limits">
+<blockquote>
+<p><strong>Warning 7: Wald is the cheapest, not the safest, interval</strong></p>
+<p><a href="#eq-delta-p" class="quarto-xref">Eq. 18</a> linearises the ALR chart at <span class="math inline">\hat{\boldsymbol{p}}</span>, so it is neither invariant to reparametrisation nor confined to <span class="math inline">[0,1]</span>, and it degenerates entirely when a proportion reaches a simplex face. The companion vignette <a href="https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.html">MLE properties and asymptotic inference</a> derives the alternatives: profile likelihood-ratio intervals, the chi-bar-square calibration of Chernoff and of Self and Liang for nulls on the boundary, a parametric bootstrap, and a reference-sample bootstrap of donors or cells (or a Dirichlet composition sweep). It also shows why these limits need replicate samples that share one composition. Shuffling genes or cell-type names of an averaged signature is not a bootstrap: the maximised likelihood is equivariant under relabelling.</p>
+</blockquote>
+</div>
 </section></section><section class="section level2"><h2 id="sec-numerical-speedups">Numerical speed-ups and solver safeguards<a class="anchor" aria-label="anchor" href="#sec-numerical-speedups"></a>
 </h2>
 <p>The analytic maps above are only half of a usable optimiser. Practical bottlenecks that showed up on the hybrid scenario in <a href="DeCoVart-use-cases.html#sec-hybrid-deconvolution">Deconvolution use cases</a> live in <code>R/03_03_DeCovarT_estimate_ratios_frequentist.R</code>.</p>
 <section class="level2"><h3 id="cache-a-cholesky-factorisation-of-boldsymbolsigmaboldsymbolp">Cache a Cholesky factorisation of <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span>
 <a class="anchor" aria-label="anchor" href="#cache-a-cholesky-factorisation-of-boldsymbolsigmaboldsymbolp"></a>
 </h3>
-<p>Within one iteration, objective / gradient / Hessian callbacks hit the same trial <span class="math inline">\boldsymbol{p}</span>. The helper <code><a href="../reference/dot-sigma_p_factorisation.html">.sigma_p_factorisation()</a></code> caches a single Cholesky factor and returns <span class="math inline">\log\det\boldsymbol{\Sigma}(\boldsymbol{p})</span> and <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}</span> without repeating an <span class="math inline">O(G^{3})</span> factorisation.</p>
+<p>Within one iteration, objective / gradient / Hessian callbacks hit the same trial <span class="math inline">\boldsymbol{p}</span>. The helper <code><a href="../reference/dot-sigma_p_factorisation.html">.sigma_p_factorisation()</a></code> caches a single Cholesky factor <span class="math inline">\boldsymbol{R}</span> with <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\boldsymbol{R}^{\mathsf{T}}\boldsymbol{R}</span> and returns <span class="math inline">\log\det\boldsymbol{\Sigma}(\boldsymbol{p})=2\sum_g\log R_{gg}</span> together with the precision <span class="math inline">\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{R}^{-1}\boldsymbol{R}^{-\mathsf{T}}</span> (via <code>chol2inv</code>) without repeating an <span class="math inline">O(G^{3})</span> factorisation.</p>
+<p><a href="../reference/loglik_multivariate.html"><code>loglik_multivariate()</code></a> then evaluates the Mahalanobis term exactly as <code><a href="https://rdrr.io/pkg/mvtnorm/man/Mvnorm.html" class="external-link">mvtnorm::dmvnorm</a></code> <span class="citation" data-cites="R-mvtnorm">(<a href="#ref-R-mvtnorm" role="doc-biblioref">Genz et al. 2026</a>)</span>: it solves <span class="math inline">\boldsymbol{R}^{\mathsf{T}}\boldsymbol{z}
+=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}</span> by <code>backsolve(..., transpose = TRUE)</code> and takes <span class="math inline">\lVert\boldsymbol{z}\rVert^{2}</span>, rather than forming <span class="math inline">\boldsymbol{\Theta}(\boldsymbol{p})</span> and a dense quadratic form. The two routes agree to machine precision; the backsolve path is the one used for the objective, while the cached inverse is retained for the analytic score and Hessian, which need <span class="math inline">\boldsymbol{\Theta}(\boldsymbol{p})</span> in several trace and inner-product terms. A QR factorisation of the covariance itself would recover the same log-determinant and quadratic form at a larger <span class="math inline">O(G^{3})</span> constant and is not used: Cholesky is the natural factorisation of a symmetric positive-definite matrix.</p>
+<p>The implemented log-density omits the additive <span class="math inline">-\tfrac{G}{2}\log(2\pi)</span> of the full Gaussian, which does not depend on <span class="math inline">\boldsymbol{p}</span> and therefore cannot change the MLE, the score, or the Hessian. Tests check that subtracting that constant recovers <code>dmvnorm(..., log = TRUE)</code> exactly.</p>
 </section><section class="level2"><h3 id="guard-the-box-constrained-l-bfgs-b-path">Guard the box-constrained L-BFGS-B path<a class="anchor" aria-label="anchor" href="#guard-the-box-constrained-l-bfgs-b-path"></a>
 </h3>
 <p><code><a href="../reference/deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_L_BFGS_B()</a></code> optimises in <span class="math inline">\boldsymbol{p}</span> with boxes <span class="math inline">[0,1]^{J}</span> that do not enforce <span class="math inline">\mathbf{1}^{\top}\boldsymbol{p}=1</span>. Near <span class="math inline">\sum_{j}p_{j}\approx 0</span> (or on a failed <code><a href="https://rdrr.io/r/base/chol.html" class="external-link">chol()</a></code>), safeguarded wrappers return a finite penalty and a zero gradient rather than aborting <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code>.</p>
@@ -575,10 +593,115 @@ I_{\boldsymbol{\rho}}^{-1}
 </h3>
 <div id="nte-marqlevalg-hess">
 <blockquote>
-<p><strong>Caution 6: <code>marqLevAlg(minimize = FALSE)</code> does not flip <code>hess</code></strong></p>
+<p><strong>Caution 8: <code>marqLevAlg(minimize = FALSE)</code> does not flip <code>hess</code></strong></p>
 <p><a href="https://cran.r-project.org/package=marqLevAlg" class="external-link"><code>marqLevAlg</code></a> <span class="citation" data-cites="R-marqLevAlg">(<a href="#ref-R-marqLevAlg" role="doc-biblioref">Philipps et al. 2023</a>)</span> implements Marquardt–Levenberg with the relative-distance-to-minimum (RDM) rule of Commenges et al. <span class="citation" data-cites="commengesNewtonLikeAlgorithmLikelihood2006">(<a href="#ref-commengesNewtonLikeAlgorithmLikelihood2006" role="doc-biblioref">Commenges et al. 2006</a>)</span>. With <code>minimize = FALSE</code>, the package negates only <code>fn</code> and <code>gr</code>; the analytic <code>hess</code> is passed through unchanged while internal Cholesky routines assume a <strong>positive-definite</strong> matrix at the optimum. When maximising a log-likelihood, pass <code>hess = function(...) -hessian_loglik_constrained(...)</code>. Reported upstream as <a href="https://github.com/VivianePhilipps/marqLevAlgParallel/issues/3" class="external-link">VivianePhilipps/marqLevAlgParallel#3</a>.</p>
 </blockquote>
 </div>
+</section></section><section class="section level2"><h2 id="sec-numerical-consistency">Numerical consistency of the likelihood and its derivatives<a class="anchor" aria-label="anchor" href="#sec-numerical-consistency"></a>
+</h2>
+<p>Analytic formulae can be differentiated correctly <em>and</em> still implement the wrong objective. The checks below separate those two questions. They are the same identities that <code>tests/testthat/test-03_03_DeCovarT.R</code> and <code>tests/testthat/test-03_06_decovart_inference.R</code> enforce on every package build; the chunks here are a readable, small-(G) illustration.</p>
+<section class="level2"><h3 id="density-against-mvtnorm">Density against <code>mvtnorm</code>
+<a class="anchor" aria-label="anchor" href="#density-against-mvtnorm"></a>
+</h3>
+<p>The first check is against an independent implementation of the multivariate Gaussian log-density, not against our own inverse. With the <span class="math inline">\tfrac{1}{2}\log\det</span> factor restored, DeCovarT and <code><a href="https://rdrr.io/pkg/mvtnorm/man/Mvnorm.html" class="external-link">mvtnorm::dmvnorm</a></code> <span class="citation" data-cites="R-mvtnorm">(<a href="#ref-R-mvtnorm" role="doc-biblioref">Genz et al. 2026</a>)</span> differ by exactly <span class="math inline">\tfrac{G}{2}\log(2\pi)</span> (DeCovarT omits the negative constant):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">n_genes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">y_chk</span><span class="op">)</span></span>
+<span><span class="va">ours</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/loglik_multivariate.html">loglik_multivariate</a></span><span class="op">(</span><span class="va">p_chk</span>, <span class="va">y_chk</span>, <span class="va">mu_chk</span>, <span class="va">Sigma_chk</span><span class="op">)</span></span>
+<span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"mvtnorm"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="fu">mvtnorm</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/mvtnorm/man/Mvnorm.html" class="external-link">dmvnorm</a></span><span class="op">(</span></span>
+<span>    <span class="va">y_chk</span>,</span>
+<span>    mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="va">mu_chk</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">p_chk</span><span class="op">)</span>,</span>
+<span>    sigma <span class="op">=</span> <span class="va">cov_chk</span>,</span>
+<span>    log <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  <span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>  <span class="va">residual</span> <span class="op">&lt;-</span> <span class="va">y_chk</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="va">mu_chk</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">p_chk</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span></span>
+<span>    <span class="op">-</span><span class="fl">0.5</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/det.html" class="external-link">determinant</a></span><span class="op">(</span><span class="va">cov_chk</span>, logarithm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">modulus</span> <span class="op">-</span></span>
+<span>      <span class="fl">0.5</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">residual</span>, <span class="fu"><a href="https://rdrr.io/r/base/solve.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">cov_chk</span>, <span class="va">residual</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">-</span></span>
+<span>      <span class="fl">0.5</span> <span class="op">*</span> <span class="va">n_genes</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  loglik_multivariate <span class="op">=</span> <span class="va">ours</span>,</span>
+<span>  dmvnorm <span class="op">=</span> <span class="va">reference</span>,</span>
+<span>  difference <span class="op">=</span> <span class="va">ours</span> <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="va">n_genes</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span> <span class="op">-</span> <span class="va">reference</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; loglik_multivariate             dmvnorm          difference </span></span>
+<span><span class="co">#&gt;           0.9560062          -1.8008094           0.0000000</span></span></code></pre></div>
+</div>
+<p>A finite-difference check of the <em>same</em> objective cannot detect a shared factor-of-two error in the log-likelihood and its derivatives. That is why this density comparison is independent of <code>numDeriv</code>.</p>
+</section><section class="level2"><h3 id="richardson-extrapolation-of-the-score-and-hessian">Richardson extrapolation of the score and Hessian<a class="anchor" aria-label="anchor" href="#richardson-extrapolation-of-the-score-and-hessian"></a>
+</h3>
+<p>Once the objective is the intended Gaussian, the analytic score and Hessian are checked against Richardson extrapolation in <code>numDeriv</code> <span class="citation" data-cites="R-numDeriv">(<a href="#ref-R-numDeriv" role="doc-biblioref">Gilbert and Varadhan 2019</a>)</span>. Richardson’s tableau extrapolates central differences to cancel successive even powers of the step size, which is more accurate than a single two-point stencil at the same <span class="math inline">O(\varepsilon^{-1})</span> cost in function evaluations.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"numDeriv"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">numderiv_report</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>gradient_rel <span class="op">=</span> <span class="cn">NA_real_</span>, hessian_rel <span class="op">=</span> <span class="cn">NA_real_</span><span class="op">)</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>  <span class="va">grad_n</span> <span class="op">&lt;-</span> <span class="fu">numDeriv</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/numDeriv/man/grad.html" class="external-link">grad</a></span><span class="op">(</span></span>
+<span>    <span class="va">loglik_multivariate</span>,</span>
+<span>    <span class="va">p_chk</span>,</span>
+<span>    method <span class="op">=</span> <span class="st">"Richardson"</span>,</span>
+<span>    method.args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>eps <span class="op">=</span> <span class="fl">1e-4</span>, r <span class="op">=</span> <span class="fl">6</span><span class="op">)</span>,</span>
+<span>    y <span class="op">=</span> <span class="va">y_chk</span>,</span>
+<span>    mean_signature_matrix <span class="op">=</span> <span class="va">mu_chk</span>,</span>
+<span>    Sigma <span class="op">=</span> <span class="va">Sigma_chk</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="va">hess_n</span> <span class="op">&lt;-</span> <span class="fu">numDeriv</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/numDeriv/man/hessian.html" class="external-link">hessian</a></span><span class="op">(</span></span>
+<span>    <span class="va">loglik_multivariate</span>,</span>
+<span>    <span class="va">p_chk</span>,</span>
+<span>    method <span class="op">=</span> <span class="st">"Richardson"</span>,</span>
+<span>    method.args <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>eps <span class="op">=</span> <span class="fl">1e-4</span>, r <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>,</span>
+<span>    y <span class="op">=</span> <span class="va">y_chk</span>,</span>
+<span>    mean_signature_matrix <span class="op">=</span> <span class="va">mu_chk</span>,</span>
+<span>    Sigma <span class="op">=</span> <span class="va">Sigma_chk</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="va">grad_a</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gradient_loglik_unconstrained.html">gradient_loglik_unconstrained</a></span><span class="op">(</span></span>
+<span>    <span class="va">p_chk</span>, <span class="va">y_chk</span>, <span class="va">mu_chk</span>, <span class="va">Sigma_chk</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="va">hess_a</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hessian_loglik_unconstrained.html">hessian_loglik_unconstrained</a></span><span class="op">(</span></span>
+<span>    <span class="va">p_chk</span>, <span class="va">y_chk</span>, <span class="va">mu_chk</span>, <span class="va">Sigma_chk</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="va">numderiv_report</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    gradient_rel <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">grad_a</span> <span class="op">-</span> <span class="va">grad_n</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">grad_n</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    hessian_rel <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">hess_a</span> <span class="op">-</span> <span class="va">hess_n</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">hess_n</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">numderiv_report</span></span>
+<span><span class="co">#&gt; gradient_rel  hessian_rel </span></span>
+<span><span class="co">#&gt; 2.797001e-11 4.275761e-12</span></span></code></pre></div>
+</div>
+<p>Relative discrepancies of order (10^{-8}) are typical on this three-gene toy; that is the same tolerance used in the test suite.</p>
+</section><section class="level2"><h3 id="expected-information-versus-monte-carlo--">Expected information versus Monte Carlo ([-])<a class="anchor" aria-label="anchor" href="#expected-information-versus-monte-carlo--"></a>
+</h3>
+<p>Matching <code>numDeriv</code> shows that the derivatives belong to the implemented objective. Matching the <em>expected</em> Fisher information <a href="#eq-fisher-p" class="quarto-xref">Eq. 16</a> to a Monte Carlo average of (-(; )) shows that the objective is the Gaussian whose information matrix we use for Wald intervals. Draw (^{(b)}_G(, ())) at the <em>true</em> () (the parametric bootstrap of <a href="../reference/bootstrap_decovart.html"><code>bootstrap_decovart()</code></a>, used here as a diagnostic rather than as an inferential procedure):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">n_mc</span> <span class="op">&lt;-</span> <span class="fl">40L</span></span>
+<span><span class="va">info</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/expected_fisher_unconstrained.html">expected_fisher_unconstrained</a></span><span class="op">(</span><span class="va">p_chk</span>, <span class="va">mu_chk</span>, <span class="va">Sigma_chk</span><span class="op">)</span></span>
+<span><span class="va">neg_hess</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="cn">NA_real_</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3L</span>, <span class="fl">3L</span>, <span class="va">n_mc</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="kw">for</span> <span class="op">(</span><span class="va">b</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">n_mc</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">y_b</span> <span class="op">&lt;-</span> <span class="fu">MASS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html" class="external-link">mvrnorm</a></span><span class="op">(</span></span>
+<span>    n <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>    mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="va">mu_chk</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">p_chk</span><span class="op">)</span>,</span>
+<span>    Sigma <span class="op">=</span> <span class="va">cov_chk</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="va">neg_hess</span><span class="op">[</span>, , <span class="va">b</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="op">-</span><span class="fu"><a href="../reference/hessian_loglik_unconstrained.html">hessian_loglik_unconstrained</a></span><span class="op">(</span></span>
+<span>    <span class="va">p_chk</span>, <span class="va">y_b</span>, <span class="va">mu_chk</span>, <span class="va">Sigma_chk</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">mc_info</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">neg_hess</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="fl">2L</span><span class="op">)</span>, <span class="va">mean</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  rel_frobenius <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="op">(</span><span class="va">mc_info</span> <span class="op">-</span> <span class="va">info</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">info</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; rel_frobenius </span></span>
+<span><span class="co">#&gt;   0.004978603</span></span></code></pre></div>
+</div>
+<p>The same identity is what closed the factor-of-two inconsistency: with the old (-) objective, ([-]) could not equal (I()). A few dozen draws already bring the relative Frobenius gap below (10^{-2}) on this toy; the test suite uses a tighter Monte Carlo.</p>
+<p>A related, weaker check compares the empirical covariance of parametric-bootstrap MLEs to the Cramér–Rao map <a href="../reference/vcov_alr_delta.html"><code>vcov_alr_delta()</code></a>. That comparison is noisy at small replication (see <a href="https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.html#sec-replication">MLE properties</a> for why one bulk column is not an asymptotic sample) and is therefore left to the inference vignette and to <a href="../reference/bootstrap_decovart.html"><code>bootstrap_decovart()</code></a>.</p>
 </section></section><section class="section level2"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
@@ -587,6 +710,9 @@ Aitchison, J. 1982. <span>‘The Statistical Analysis of Compositional Data’</
 </div>
 <div id="ref-commengesNewtonLikeAlgorithmLikelihood2006" class="csl-entry" role="listitem">
 Commenges, Daniel, Helene Jacqmin-Gadda, Cecile Proust, and Jeremie Guedj. 2006. <em>A <span>Newton-Like Algorithm</span> for <span>Likelihood Maximization</span>: <span>The Robust-Variance Scoring Algorithm</span></em>. arXiv. <a href="https://doi.org/10.48550/arxiv.math/0610402" class="external-link">https://doi.org/10.48550/arxiv.math/0610402</a>.
+</div>
+<div id="ref-R-mvtnorm" class="csl-entry" role="listitem">
+Genz, Alan, Frank Bretz, Tetsuhisa Miwa, Xuefei Mi, and Torsten Hothorn. 2026. <em>Mvtnorm: Multivariate Normal and t Distributions</em>. <a href="http://mvtnorm.R-forge.R-project.org" class="external-link">http://mvtnorm.R-forge.R-project.org</a>.
 </div>
 <div id="ref-R-numDeriv" class="csl-entry" role="listitem">
 Gilbert, Paul, and Ravi Varadhan. 2019. <em>numDeriv: Accurate Numerical Derivatives</em>. <a href="http://optimizer.r-forge.r-project.org/" class="external-link">http://optimizer.r-forge.r-project.org/</a>.

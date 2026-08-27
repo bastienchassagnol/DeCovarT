@@ -59,6 +59,18 @@ Jacobians and Hessians of both maps are derived in the package vignette
 See also
 [`compositions::alrInv()`](https://rdrr.io/pkg/compositions/man/alr.html).
 
+## Numerical stability
+
+Evaluated through the log-sum-exp shift
+\\p_i\propto\exp(\tilde{\rho}\_i-\max_k\tilde{\rho}\_k)\\ with
+\\\tilde{\boldsymbol{\rho}}=(\rho_1,\ldots,\rho\_{J-1},0)\\, which is
+algebraically identical to the ratio above but never forms
+\\\mathrm{e}^{\rho_i}\\ directly. The naive quotient overflows to `NaN`
+for \\\rho_i\gtrsim 710\\, which unconstrained ascent can reach when the
+MLE approaches a simplex face; the shifted form returns an exact zero
+instead and keeps \\\boldsymbol{\Sigma}(\boldsymbol{p})\\ positive
+definite.
+
 ## See also
 
 The inverse map (additive log-ratio) is documented as
@@ -73,4 +85,7 @@ sum(p)
 #> [1] 1
 additive_log_ratio(p)
 #> [1]  0.2 -0.5
+# Stable far out in ALR space, where exp(rho) would overflow.
+additive_logistic(c(800, 1200))
+#> [1] 1.91517e-174  1.00000e+00  0.00000e+00
 ```

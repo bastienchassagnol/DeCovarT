@@ -45,5 +45,5 @@ p <- c(0.6, 0.4)
 y <- drop(mu %*% p)
 gradient_loglik_constrained(additive_log_ratio(p), y, mu, Sigma)
 #>            [,1]
-#> [1,] -0.3692308
+#> [1,] -0.1846154
 ```

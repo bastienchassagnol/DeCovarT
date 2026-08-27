@@ -33,7 +33,7 @@ vignette(&quot;generative-model-derivatives&quot;, package = &quot;DeCovarT&quot
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.2.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -58,6 +58,7 @@ vignette(&quot;generative-model-derivatives&quot;, package = &quot;DeCovarT&quot
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
     <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Derivatives under simplex transforms</a></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
     <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives (outlook)</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -147,6 +148,20 @@ Jacobians and Hessians of both maps are derived in the package vignette
 See also <code><a href="https://rdrr.io/pkg/compositions/man/alr.html" class="external-link">compositions::alrInv()</a></code>.</p>
     </div>
     <div class="section level2">
+    <h2 id="numerical-stability">Numerical stability<a class="anchor" aria-label="anchor" href="#numerical-stability"></a></h2>
+
+
+<p>Evaluated through the log-sum-exp shift
+\(p_i\propto\exp(\tilde{\rho}_i-\max_k\tilde{\rho}_k)\) with
+\(\tilde{\boldsymbol{\rho}}=(\rho_1,\ldots,\rho_{J-1},0)\), which is
+algebraically identical to the ratio above but never forms
+\(\mathrm{e}^{\rho_i}\) directly. The naive quotient overflows to
+<code>NaN</code> for \(\rho_i\gtrsim 710\), which unconstrained ascent can
+reach when the MLE approaches a simplex face; the shifted form
+returns an exact zero instead and keeps
+\(\boldsymbol{\Sigma}(\boldsymbol{p})\) positive definite.</p>
+    </div>
+    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p>The inverse map (additive log-ratio) is documented as
 <code>additive_log_ratio()</code> on this help page.</p></div>
@@ -160,6 +175,9 @@ See also <code><a href="https://rdrr.io/pkg/compositions/man/alr.html" class="ex
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
 <span class="r-in"><span><span class="fu">additive_log_ratio</span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1]  0.2 -0.5</span>
+<span class="r-in"><span><span class="co"># Stable far out in ALR space, where exp(rho) would overflow.</span></span></span>
+<span class="r-in"><span><span class="fu">additive_logistic</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">800</span>, <span class="fl">1200</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1.91517e-174  1.00000e+00  0.00000e+00</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

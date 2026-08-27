@@ -85,6 +85,36 @@ objects (see `fit_decovart`).
 - [`vcov_alr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.md)
   : Cramer–Rao / ALR delta-method covariance of \\\hat{\boldsymbol{p}}\\
 
+### Likelihood-ratio and boundary inference
+
+Profile likelihood, likelihood-ratio tests with chi-bar-square (Chernoff
+/ Self–Liang) calibration on simplex faces, parametric bootstrap,
+reference-sample bootstrap (donors, cells, or Dirichlet compositions),
+and the boundary / multimodality diagnostics that a bare convergence
+code cannot provide. See
+[`vignette("DeCovarT-MLE-properties")`](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.md).
+
+- [`restricted_mle_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_decovart.md)
+  : Restricted maximum likelihood with fixed cellular ratios
+- [`profile_loglik_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/profile_loglik_decovart.md)
+  : Profile log-likelihood of one cellular ratio
+- [`lrt_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_decovart.md)
+  : Likelihood-ratio test for cellular ratios
+- [`confint_profile_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_decovart.md)
+  : Profile-likelihood confidence intervals for cellular ratios
+- [`chi_bar_square_pvalue()`](https://bastienchassagnol.github.io/DeCovarT/reference/chi_bar_square_pvalue.md)
+  : Chi-bar-square tail probability for boundary likelihood-ratio tests
+- [`bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_decovart.md)
+  : Parametric bootstrap for DeCovarT proportions and boundary tests
+- [`reference_bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_decovart.md)
+  : Reference-based bootstrap for signature and composition uncertainty
+- [`equivariance_check_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/equivariance_check_decovart.md)
+  : Permutation-equivariance check for a labelled reference
+- [`boundary_diagnostics()`](https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.md)
+  : Boundary and stationarity diagnostics for one DeCovarT fit
+- [`multistart_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/multistart_decovart.md)
+  : Refit DeCovarT from several random starts to probe multimodality
+
 ## Benchmark and evaluation
 
 Quality metrics for estimated proportions, and the bivariate toy

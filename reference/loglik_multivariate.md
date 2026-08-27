@@ -45,11 +45,34 @@ Scalar log-likelihood value.
 
 Up to an additive constant independent of \\\boldsymbol{p}\\, \$\$
 \ell\_{\boldsymbol{y}\\\|\\\boldsymbol{\zeta}}(\boldsymbol{p}) =
--\log\det\boldsymbol{\Sigma}(\boldsymbol{p}) -\tfrac{1}{2}
+-\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p}) -\tfrac{1}{2}
 (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\mathsf{T}}
 \boldsymbol{\Sigma}(\boldsymbol{p})^{-1}
-(\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}). \$\$ Argument
-`mean_signature_matrix` stores the plug-in mean signature
+(\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}). \$\$ Both terms carry
+the factor \\1/2\\ of the Gaussian log-density. An earlier release used
+\\-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})\\, which doubled the
+determinant contribution and left the objective inconsistent with
+[`expected_fisher_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.md).
+With the factor restored,
+\\\mathbb{E}\[-\mathbf{H}\]=I(\boldsymbol{p})\\ exactly.
+
+Computationally this is the same Cholesky-and-backsolve evaluation as
+`mvtnorm::dmvnorm(..., log = TRUE)` (Genz and Bretz), omitting only the
+additive \\-\tfrac{G}{2}\log(2\pi)\\ that does not depend on
+\\\boldsymbol{p}\\. The cached factor from
+[`.sigma_p_factorisation()`](https://bastienchassagnol.github.io/DeCovarT/reference/dot-sigma_p_factorisation.md)
+supplies the upper-triangular \\\boldsymbol{R}\\ with
+\\\boldsymbol{\Sigma}(\boldsymbol{p})=\boldsymbol{R}^{\mathsf{T}}\boldsymbol{R}\\;
+the Mahalanobis term is then \\\lVert\boldsymbol{R}^{-\mathsf{T}}
+(\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})\rVert^{2}\\, obtained by
+[`base::backsolve()`](https://rdrr.io/r/base/backsolve.html) without
+forming the explicit inverse. The inverse is still cached because the
+analytic score and Hessian need \\\boldsymbol{\Theta}(\boldsymbol{p})
+=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\\. A QR factorisation of
+\\\boldsymbol{\Sigma}(\boldsymbol{p})\\ would be a more expensive route
+to the same SPD quantities; Cholesky is the natural factorisation.
+
+Argument `mean_signature_matrix` stores the plug-in mean signature
 \\\boldsymbol{\mu}\\. Latent sample-specific profiles
 \\\boldsymbol{x}\_{\cdot j}\\ are **not** observed; the frequentist
 likelihood treats \\\boldsymbol{\mu}\\ as a fixed proxy. Estimating
@@ -76,5 +99,5 @@ Sigma <- array(
 p <- c(0.6, 0.4)
 y <- drop(mu %*% p)
 loglik_multivariate(p, y, mu, Sigma)
-#> [1] 1.307853
+#> [1] 0.6539265
 ```

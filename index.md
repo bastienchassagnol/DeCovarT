@@ -558,6 +558,8 @@ Package website: <https://bastienchassagnol.github.io/DeCovarT/>
   DeCovarT](https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.html)
 - [Derivatives under simplex
   transforms](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.html)
+- [MLE properties and asymptotic
+  inference](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.html)
 
 In an R session, use
 [`?DeCovarT::deconvolute_ratios`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)

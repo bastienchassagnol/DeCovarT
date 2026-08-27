@@ -25,6 +25,8 @@
 
 - [Derivatives of the DeCovarT generative model under simplex
   transforms](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.md):
+- [MLE properties and asymptotic inference for the DeCovarT
+  log-likelihood](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.md):
 - [OLS reminders for linear
   deconvolution](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-reminders-OLS.md):
 - [DeCovarT

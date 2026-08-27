@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.2.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -32,6 +32,7 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
     <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Derivatives under simplex transforms</a></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
     <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives (outlook)</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -183,6 +184,85 @@
 
         </dt>
         <dd>Cramer–Rao / ALR delta-method covariance of \(\hat{\boldsymbol{p}}\)</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="likelihood-ratio-and-boundary-inference">Likelihood-ratio and boundary inference<a class="anchor" aria-label="anchor" href="#likelihood-ratio-and-boundary-inference"></a></h3>
+      <div class="section-desc"><p>Profile likelihood, likelihood-ratio tests with chi-bar-square (Chernoff / Self–Liang) calibration on simplex faces, parametric bootstrap, reference-sample bootstrap (donors, cells, or Dirichlet compositions), and the boundary / multimodality diagnostics that a bare convergence code cannot provide. See <code><a href="../articles/DeCovarT-MLE-properties.html">vignette("DeCovarT-MLE-properties")</a></code>.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="restricted_mle_decovart.html">restricted_mle_decovart()</a></code>
+
+        </dt>
+        <dd>Restricted maximum likelihood with fixed cellular ratios</dd>
+
+        <dt>
+
+          <code><a href="profile_loglik_decovart.html">profile_loglik_decovart()</a></code>
+
+        </dt>
+        <dd>Profile log-likelihood of one cellular ratio</dd>
+
+        <dt>
+
+          <code><a href="lrt_decovart.html">lrt_decovart()</a></code>
+
+        </dt>
+        <dd>Likelihood-ratio test for cellular ratios</dd>
+
+        <dt>
+
+          <code><a href="confint_profile_decovart.html">confint_profile_decovart()</a></code>
+
+        </dt>
+        <dd>Profile-likelihood confidence intervals for cellular ratios</dd>
+
+        <dt>
+
+          <code><a href="chi_bar_square_pvalue.html">chi_bar_square_pvalue()</a></code>
+
+        </dt>
+        <dd>Chi-bar-square tail probability for boundary likelihood-ratio tests</dd>
+
+        <dt>
+
+          <code><a href="bootstrap_decovart.html">bootstrap_decovart()</a></code>
+
+        </dt>
+        <dd>Parametric bootstrap for DeCovarT proportions and boundary tests</dd>
+
+        <dt>
+
+          <code><a href="reference_bootstrap_decovart.html">reference_bootstrap_decovart()</a></code>
+
+        </dt>
+        <dd>Reference-based bootstrap for signature and composition uncertainty</dd>
+
+        <dt>
+
+          <code><a href="equivariance_check_decovart.html">equivariance_check_decovart()</a></code>
+
+        </dt>
+        <dd>Permutation-equivariance check for a labelled reference</dd>
+
+        <dt>
+
+          <code><a href="boundary_diagnostics.html">boundary_diagnostics()</a></code>
+
+        </dt>
+        <dd>Boundary and stationarity diagnostics for one DeCovarT fit</dd>
+
+        <dt>
+
+          <code><a href="multistart_decovart.html">multistart_decovart()</a></code>
+
+        </dt>
+        <dd>Refit DeCovarT from several random starts to probe multimodality</dd>
       </dl></div><div class="section level2">
       <h2 id="benchmark-and-evaluation">Benchmark and evaluation<a class="anchor" aria-label="anchor" href="#benchmark-and-evaluation"></a></h2>
 

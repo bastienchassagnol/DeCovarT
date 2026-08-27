@@ -47,5 +47,5 @@ p <- c(0.6, 0.4)
 y <- drop(mu %*% p)
 hessian_loglik_constrained(additive_log_ratio(p), y, mu, Sigma)
 #>           [,1]
-#> [1,] -1.630296
+#> [1,] -1.258225
 ```

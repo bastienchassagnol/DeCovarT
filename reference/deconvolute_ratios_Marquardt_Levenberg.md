@@ -212,5 +212,5 @@ Sigma <- array(
 y <- drop(mu %*% c(0.6, 0.4) + rnorm(2, sd = 0.1))
 deconvolute_ratios_Marquardt_Levenberg(y, mu, Sigma, itmax = 50)
 #>       ct1       ct2 
-#> 0.5605665 0.4394335 
+#> 0.5805233 0.4194767 
 ```

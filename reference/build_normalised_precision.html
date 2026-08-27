@@ -25,7 +25,7 @@ $$"><meta property="og:image" content="https://bastienchassagnol.github.io/DeCov
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.2.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -50,6 +50,7 @@ $$"><meta property="og:image" content="https://bastienchassagnol.github.io/DeCov
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
     <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Derivatives under simplex transforms</a></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
     <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives (outlook)</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -118,13 +119,13 @@ $$</p>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">A</span> <span class="op">&lt;-</span> <span class="fu"><a href="generate_random_network_skeleton.html">generate_random_network_skeleton</a></span><span class="op">(</span><span class="fl">6L</span>, <span class="st">"hub"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">W</span> <span class="op">&lt;-</span> <span class="fu"><a href="assign_iid_signed_weights.html">assign_iid_signed_weights</a></span><span class="op">(</span><span class="va">A</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">build_normalised_precision</span><span class="op">(</span><span class="va">W</span>, precision_shift <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>            [,1]       [,2]      [,3]       [,4]      [,5]       [,6]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]  0.6242641 -0.3000000 0.3000000  0.0000000 0.0000000  0.0000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] -0.3000000  0.6242641 0.0000000  0.0000000 0.0000000  0.0000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [3,]  0.3000000  0.0000000 0.6242641  0.0000000 0.0000000  0.0000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [4,]  0.0000000  0.0000000 0.0000000  0.6242641 0.3000000 -0.3000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [5,]  0.0000000  0.0000000 0.0000000  0.3000000 0.6242641  0.0000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [6,]  0.0000000  0.0000000 0.0000000 -0.3000000 0.0000000  0.6242641</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            [,1]       [,2]       [,3]      [,4]      [,5]      [,6]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,]  0.6242641 -0.3000000 -0.3000000 0.0000000 0.0000000 0.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] -0.3000000  0.6242641  0.0000000 0.0000000 0.0000000 0.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [3,] -0.3000000  0.0000000  0.6242641 0.0000000 0.0000000 0.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [4,]  0.0000000  0.0000000  0.0000000 0.6242641 0.3000000 0.3000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [5,]  0.0000000  0.0000000  0.0000000 0.3000000 0.6242641 0.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [6,]  0.0000000  0.0000000  0.0000000 0.3000000 0.0000000 0.6242641</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

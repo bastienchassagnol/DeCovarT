@@ -29,7 +29,7 @@ and mixture covariance
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.2.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,6 +54,7 @@ and mixture covariance
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
     <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Derivatives under simplex transforms</a></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
     <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives (outlook)</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -135,13 +136,34 @@ and mixture covariance
 $$
   \ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{p})
   =
-  -\log\det\boldsymbol{\Sigma}(\boldsymbol{p})
+  -\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})
   -\tfrac{1}{2}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\mathsf{T}}
   \boldsymbol{\Sigma}(\boldsymbol{p})^{-1}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}).
 $$
-Argument <code>mean_signature_matrix</code> stores the plug-in mean signature
+Both terms carry the factor \(1/2\) of the Gaussian log-density. An
+earlier release used \(-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})\),
+which doubled the determinant contribution and left the objective
+inconsistent with <code><a href="expected_fisher_unconstrained.html">expected_fisher_unconstrained()</a></code>. With the factor
+restored, \(\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})\) exactly.</p>
+<p>Computationally this is the same Cholesky-and-backsolve evaluation as
+<code>mvtnorm::dmvnorm(..., log = TRUE)</code> (Genz and Bretz), omitting only the
+additive \(-\tfrac{G}{2}\log(2\pi)\) that does not depend on
+\(\boldsymbol{p}\). The cached factor from
+<code><a href="dot-sigma_p_factorisation.html">.sigma_p_factorisation()</a></code> supplies the upper-triangular
+\(\boldsymbol{R}\) with
+\(\boldsymbol{\Sigma}(\boldsymbol{p})=\boldsymbol{R}^{\mathsf{T}}\boldsymbol{R}\);
+the Mahalanobis term is then
+\(\lVert\boldsymbol{R}^{-\mathsf{T}}
+(\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})\rVert^{2}\),
+obtained by <code><a href="https://rdrr.io/r/base/backsolve.html" class="external-link">base::backsolve()</a></code> without forming the explicit inverse.
+The inverse is still cached because the analytic score and Hessian
+need \(\boldsymbol{\Theta}(\boldsymbol{p})
+=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\). A QR factorisation of
+\(\boldsymbol{\Sigma}(\boldsymbol{p})\) would be a more expensive route
+to the same SPD quantities; Cholesky is the natural factorisation.</p>
+<p>Argument <code>mean_signature_matrix</code> stores the plug-in mean signature
 \(\boldsymbol{\mu}\). Latent sample-specific profiles
 \(\boldsymbol{x}_{\cdot j}\) are <strong>not</strong> observed; the frequentist
 likelihood treats \(\boldsymbol{\mu}\) as a fixed proxy. Estimating those
@@ -166,7 +188,7 @@ latents jointly with \(\boldsymbol{p}\) requires a Bayesian / MAP step
 <span class="r-in"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="fl">0.4</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="va">mu</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">p</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">loglik_multivariate</span><span class="op">(</span><span class="va">p</span>, <span class="va">y</span>, <span class="va">mu</span>, <span class="va">Sigma</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1.307853</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.6539265</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

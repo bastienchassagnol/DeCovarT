@@ -252,6 +252,7 @@ flowchart TD
   B --> E["Poisson / PLN / ZIPLN: DeconV, Chiquet"]
   C --> F["Univariate Gaussian: DSection, DeMix, BayICE"]
   C --> G["Multivariate Gaussian convolution: DeCovarT"]
+  C --> RS["CLT Gaussian + noisy M: RNA-Sieve"]
   C --> H["Log-normal convolution: BLADE"]
   D --> I["Bayesian joint p and CTS"]
   G --> J["Frequentist plug-in mu, Sigma"]
@@ -299,6 +300,20 @@ latent ([Ahn et al. 2013](#ref-ahnDeMixDeconvolutionMixed2013); [Wang et
 al. 2018](#ref-wangTranscriptomeDeconvolutionHeterogeneous2018)).
 DeCovarT keeps that convolution but makes it **multivariate** with
 sparse \boldsymbol{\Sigma}\_{j}.
+
+`RNA-Sieve` is a supervised likelihood, but not that convolution
+([Erdmann-Pham et al.
+2021](#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021)). Their M,
+\alpha and b are DeCovarT’s \boldsymbol{\mu}, \boldsymbol{p} and
+\boldsymbol{y}. The bulk is modelled as the sum of n cells with a
+*gene-wise* central-limit Gaussian, plus measurement error in M
+(errors-in-variables). Genes are independent. Wald regions use the
+inverse Fisher information, or the Godambe sandwich under protocol
+shift. DeCovarT instead uses a full \boldsymbol{\Sigma}(\boldsymbol{p})
+and plug-in moments; the resampling counterpart of noisy M is
+[`reference_bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_decovart.md).
+A side-by-side comparison is in the [MLE properties
+vignette](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.html#sec-rna-sieve).
 
 `BLADE` replaces the Gaussian with a **gene-wise log-normal**
 convolution, jointly purifying CTS profiles by variational inference
@@ -772,6 +787,11 @@ Eder, Bernhard, Irene Rigato, Alexander Dietrich, et al. 2026.
 *Rectangle: Robust and Scalable Multiscale Deconvolution Informed by
 Single-Cell RNA Sequencing Data*. bioRxiv.
 <https://doi.org/10.64898/2026.07.07.736950>.
+
+Erdmann-Pham, Dan D., Jonathan Fischer, Justin Hong, and Yun S. Song.
+2021. ‘Likelihood-Based Deconvolution of Bulk Gene Expression Data Using
+Single-Cell References’. *Genome Research* 31 (10): 1794–806.
+<https://doi.org/10.1101/gr.272344.120>.
 
 Erkkilä, Timo, Saara Lehmusvaara, Pekka Ruusuvuori, Tapio Visakorpi,
 Ilya Shmulevich, and Harri Lähdesmäki. 2010. ‘Probabilistic Analysis of

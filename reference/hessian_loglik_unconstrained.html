@@ -19,7 +19,7 @@ matching the matrix formulae of the article (quadratic forms in
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.2.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,6 +44,7 @@ matching the matrix formulae of the article (quadratic forms in
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
     <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Derivatives under simplex transforms</a></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
     <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives (outlook)</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -114,6 +115,21 @@ matching the matrix formulae of the article (quadratic forms in
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>Symmetric numeric matrix \(\mathbf{H}\).</p>
     </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>The log-determinant contributes
+\(-\delta_{ij}\mathrm{Tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j)
++2p_ip_j\mathrm{Tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i
+\boldsymbol{\Theta}\boldsymbol{\Sigma}_j)\), i.e. half the coefficients of
+the pre-2.3.0 objective, which used
+\(-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})\). Residual terms are
+unchanged. Taking expectations under
+\(\boldsymbol{r}\sim\mathcal{N}_G(\boldsymbol{0},
+\boldsymbol{\Sigma}(\boldsymbol{p}))\) cancels the determinant and
+residual traces, leaving exactly
+\(\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})\) of
+<code><a href="expected_fisher_unconstrained.html">expected_fisher_unconstrained()</a></code>.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
@@ -123,8 +139,8 @@ matching the matrix formulae of the article (quadratic forms in
 <span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="va">mu</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">p</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">hessian_loglik_unconstrained</span><span class="op">(</span><span class="va">p</span>, <span class="va">y</span>, <span class="va">mu</span>, <span class="va">Sigma</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]      [,2]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] -1697.041 -1685.207</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] -1685.207 -1702.959</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] -1698.521 -1688.757</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] -1688.757 -1701.479</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

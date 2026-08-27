@@ -5,6 +5,7 @@
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/LICENSE.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/PULL_REQUEST_TEMPLATE.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-reminders-OLS.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT_appendix_simualtion_frameworks.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/deconvolution-seminar-slides.html</loc></url>
@@ -16,7 +17,6 @@
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/network-inference.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/authors.html</loc></url>
-<url><loc>https://bastienchassagnol.github.io/DeCovarT/derive-statistical-properties.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/index.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/news/index.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/pkgcheck-report.html</loc></url>
@@ -24,15 +24,19 @@
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/assign_iid_signed_weights.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/benchmark_bivariate_gaussian_convolutions.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_decovart.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/build_covariance_array_from_precision.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/build_normalised_precision.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/check_true_theta.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/chi_bar_square_pvalue.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_jeffreys.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_overlap.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/compute_glmnet_gene_scores.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/compute_mean_profile_objectives.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/compute_shannon_entropy.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_decovart.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/dot-compute_global_variance.html</loc></url>
@@ -40,6 +44,7 @@
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/dot-jeffreys_gaussian.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/dot-map_gaussian_convolution.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/dot-sigma_p_factorisation.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/equivariance_check_decovart.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/generate_mean_signature_matrix.html</loc></url>
@@ -53,8 +58,13 @@
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/jacobian_additive_logistic.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/loglik_multivariate.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/loglik_multivariate_constrained.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/lrt_decovart.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/multistart_decovart.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/plot_correlation_Heatmap.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/profile_loglik_decovart.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_decovart.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/repair_simplex.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_decovart.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/simulate_hierarchical_grn_moments.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.html</loc></url>

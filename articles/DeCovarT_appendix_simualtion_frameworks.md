@@ -102,9 +102,9 @@ rbind(
   gene_wise_z = drop(coef(fit_z))
 )
 #>                      ct1       ct2
-#> raw            0.6468186 0.3531814
-#> general_affine 0.6468186 0.3531814
-#> gene_wise_z    0.6468186 0.3531814
+#> raw            0.6489623 0.3510377
+#> general_affine 0.6489623 0.3510377
+#> gene_wise_z    0.6489623 0.3510377
 ```
 
 The two rows should agree up to optimiser noise: `standardise = TRUE` is
@@ -221,12 +221,12 @@ rmse <- apply(est, 2, function(p_hat) sqrt(mean((p_hat - p_true)^2)))
 list(estimates = est, rmse_to_truth = rmse)
 #> $estimates
 #>          full celltype_diagonal global_weighted
-#> ct1 0.6098172         0.6098172       0.6104442
-#> ct2 0.3901828         0.3901828       0.3895558
+#> ct1 0.6112459         0.6112459       0.6115984
+#> ct2 0.3887541         0.3887541       0.3884016
 #> 
 #> $rmse_to_truth
 #>              full celltype_diagonal   global_weighted 
-#>       0.009817228       0.009817228       0.010444217
+#>        0.01124588        0.01124588        0.01159839
 ```
 
 ### Random ALR starts
@@ -282,14 +282,14 @@ list(
 #> 
 #> 
 #> $marquardt
-#>       seed_11   seed_22   seed_33
-#> ct1 0.6098172 0.6098173 0.6098173
-#> ct2 0.3901828 0.3901827 0.3901827
+#>      seed_11   seed_22   seed_33
+#> ct1 0.611246 0.6112463 0.6112459
+#> ct2 0.388754 0.3887537 0.3887541
 #> 
 #> $newton_raphson
-#>       seed_11   seed_22   seed_33
-#> ct1 0.6098163 0.6098173 0.6098173
-#> ct2 0.3901837 0.3901827 0.3901827
+#>      seed_11  seed_22  seed_33
+#> ct1 0.611246 0.611246 0.611246
+#> ct2 0.388754 0.388754 0.388754
 ```
 
 A fuller comparison of normalisation (CPM, log2), tolerance, and
@@ -308,8 +308,8 @@ fit <- fit_decovart(
 )
 coef(fit)
 #>            s1
-#> ct1 0.6468186
-#> ct2 0.3531814
+#> ct1 0.6489623
+#> ct2 0.3510377
 nobs(fit)
 #> [1] 1
 #> attr(,"n_genes")
@@ -326,18 +326,18 @@ c(
 #>           3           2
 fitted(fit)
 #>          s1
-#> g1 25.29772
-#> g2 36.46819
-#> g3 23.94046
+#> g1 25.26557
+#> g2 36.48962
+#> g3 23.94689
 residuals(fit)
 #>             s1
-#> g1 -0.07904438
-#> g2  0.04099662
-#> g3 -0.03223709
+#> g1 -0.04688787
+#> g2  0.01955895
+#> g3 -0.03866839
 vcov(fit)
 #>              ct1          ct2
-#> ct1  0.001802457 -0.001802457
-#> ct2 -0.001802457  0.001802457
+#> ct1  0.001805152 -0.001805152
+#> ct2 -0.001805152  0.001805152
 ```
 
 [`formula()`](https://rdrr.io/r/stats/formula.html) and

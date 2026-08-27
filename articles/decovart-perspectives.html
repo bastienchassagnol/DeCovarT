@@ -32,7 +32,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.2.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,6 +59,7 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
     <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Derivatives under simplex transforms</a></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
     <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives (outlook)</a></li>
     <li><hr class="dropdown-divider"></li>
@@ -92,7 +93,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>DeCovarT perspectives</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-08-26</p>
+      <p class="date">2026-08-27</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/decovart-perspectives.qmd" class="external-link"><code>vignettes/decovart-perspectives.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -237,36 +238,36 @@ Table 1: Lineage-aware bulk mRNA deconvolution: constraint regime, enforcing eq
 <div class="cell-output-display">
 <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_c0njknunusmm8udykzi1 = TinyTable.createTableFunctions("tinytable_c0njknunusmm8udykzi1");
+      const tableFns_uhhjicpis27vzryw7d94 = TinyTable.createTableFunctions("tinytable_uhhjicpis27vzryw7d94");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '7', j: 2 }, { i: '7', j: 3 }, { i: '7', j: 4 } ], css_id: 'tinytable_css_qia9y0faq5tdc2wlewy9',},
-          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 }, { i: '6', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 }, { i: '3', j: 3 }, { i: '4', j: 3 }, { i: '5', j: 3 }, { i: '6', j: 3 }, { i: '1', j: 4 }, { i: '2', j: 4 }, { i: '3', j: 4 }, { i: '4', j: 4 }, { i: '5', j: 4 }, { i: '6', j: 4 } ], css_id: 'tinytable_css_19g4vrx71wjdfmbgw3m2',},
-          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_lhde01boyokmao026s1i',},
-          { positions: [ { i: '7', j: 1 } ], css_id: 'tinytable_css_m9egd661u413vzj7e41v',},
-          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_lg6ftz1b6icnyypuzwxp',},
+          { positions: [ { i: '7', j: 2 }, { i: '7', j: 3 }, { i: '7', j: 4 } ], css_id: 'tinytable_css_nntq6qmw4xpsluw1cz24',},
+          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 }, { i: '6', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 }, { i: '3', j: 3 }, { i: '4', j: 3 }, { i: '5', j: 3 }, { i: '6', j: 3 }, { i: '1', j: 4 }, { i: '2', j: 4 }, { i: '3', j: 4 }, { i: '4', j: 4 }, { i: '5', j: 4 }, { i: '6', j: 4 } ], css_id: 'tinytable_css_4kr41e927f63m1cgcfwc',},
+          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_gyg58vphqorxg2846fp2',},
+          { positions: [ { i: '7', j: 1 } ], css_id: 'tinytable_css_kudfodjur9t33f417ygq',},
+          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_tm29wgdqk274071a6deo',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_c0njknunusmm8udykzi1.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_uhhjicpis27vzryw7d94.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_c0njknunusmm8udykzi1 td.tinytable_css_qia9y0faq5tdc2wlewy9, #tinytable_c0njknunusmm8udykzi1 th.tinytable_css_qia9y0faq5tdc2wlewy9 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
-    #tinytable_c0njknunusmm8udykzi1 td.tinytable_css_19g4vrx71wjdfmbgw3m2, #tinytable_c0njknunusmm8udykzi1 th.tinytable_css_19g4vrx71wjdfmbgw3m2 { text-align: left }
-    #tinytable_c0njknunusmm8udykzi1 td.tinytable_css_lhde01boyokmao026s1i, #tinytable_c0njknunusmm8udykzi1 th.tinytable_css_lhde01boyokmao026s1i {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
-    #tinytable_c0njknunusmm8udykzi1 td.tinytable_css_m9egd661u413vzj7e41v, #tinytable_c0njknunusmm8udykzi1 th.tinytable_css_m9egd661u413vzj7e41v {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_c0njknunusmm8udykzi1 td.tinytable_css_lg6ftz1b6icnyypuzwxp, #tinytable_c0njknunusmm8udykzi1 th.tinytable_css_lg6ftz1b6icnyypuzwxp {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_uhhjicpis27vzryw7d94 td.tinytable_css_nntq6qmw4xpsluw1cz24, #tinytable_uhhjicpis27vzryw7d94 th.tinytable_css_nntq6qmw4xpsluw1cz24 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
+    #tinytable_uhhjicpis27vzryw7d94 td.tinytable_css_4kr41e927f63m1cgcfwc, #tinytable_uhhjicpis27vzryw7d94 th.tinytable_css_4kr41e927f63m1cgcfwc { text-align: left }
+    #tinytable_uhhjicpis27vzryw7d94 td.tinytable_css_gyg58vphqorxg2846fp2, #tinytable_uhhjicpis27vzryw7d94 th.tinytable_css_gyg58vphqorxg2846fp2 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
+    #tinytable_uhhjicpis27vzryw7d94 td.tinytable_css_kudfodjur9t33f417ygq, #tinytable_uhhjicpis27vzryw7d94 th.tinytable_css_kudfodjur9t33f417ygq {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_uhhjicpis27vzryw7d94 td.tinytable_css_tm29wgdqk274071a6deo, #tinytable_uhhjicpis27vzryw7d94 th.tinytable_css_tm29wgdqk274071a6deo {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_c0njknunusmm8udykzi1" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_uhhjicpis27vzryw7d94" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">method</th>
                 <th scope="col" data-row="0" data-col="2">constraint</th>
@@ -346,6 +347,7 @@ flowchart TD
   B --&gt; E["Poisson / PLN / ZIPLN: DeconV, Chiquet"]
   C --&gt; F["Univariate Gaussian: DSection, DeMix, BayICE"]
   C --&gt; G["Multivariate Gaussian convolution: DeCovarT"]
+  C --&gt; RS["CLT Gaussian + noisy M: RNA-Sieve"]
   C --&gt; H["Log-normal convolution: BLADE"]
   D --&gt; I["Bayesian joint p and CTS"]
   G --&gt; J["Frequentist plug-in mu, Sigma"]
@@ -366,6 +368,7 @@ Figure 2: Taxonomy of observation models for bulk deconvolution, relative to De
 </section><section class="level3"><h4 id="continuous-intensities-frequentist-versus-bayesian-cts">Continuous intensities: frequentist versus Bayesian CTS<a class="anchor" aria-label="anchor" href="#continuous-intensities-frequentist-versus-bayesian-cts"></a>
 </h4>
 <p>DSection is the univariate ancestor of DeCovarT: a Gaussian convolution that is heteroscedastic across genes, with Normal / Gamma / Dirichlet priors and a Gibbs–Metropolis sampler <span class="citation" data-cites="erkkilaProbabilisticAnalysisGene2010">(<a href="#ref-erkkilaProbabilisticAnalysisGene2010" role="doc-biblioref">Erkkilä et al. 2010</a>)</span>. DeMix and DeMixT remain frequentist convolutions that treat tumour or stromal profiles as latent <span class="citation" data-cites="ahnDeMixDeconvolutionMixed2013 wangTranscriptomeDeconvolutionHeterogeneous2018">(<a href="#ref-ahnDeMixDeconvolutionMixed2013" role="doc-biblioref">Ahn et al. 2013</a>; <a href="#ref-wangTranscriptomeDeconvolutionHeterogeneous2018" role="doc-biblioref">Wang et al. 2018</a>)</span>. DeCovarT keeps that convolution but makes it <strong>multivariate</strong> with sparse <span class="math inline">\boldsymbol{\Sigma}_{j}</span>.</p>
+<p><code>RNA-Sieve</code> is a supervised likelihood, but not that convolution <span class="citation" data-cites="erdmann-phamLikelihoodbasedDeconvolutionBulk2021">(<a href="#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021" role="doc-biblioref">Erdmann-Pham et al. 2021</a>)</span>. Their <span class="math inline">M</span>, <span class="math inline">\alpha</span> and <span class="math inline">b</span> are DeCovarT’s <span class="math inline">\boldsymbol{\mu}</span>, <span class="math inline">\boldsymbol{p}</span> and <span class="math inline">\boldsymbol{y}</span>. The bulk is modelled as the sum of <span class="math inline">n</span> cells with a <em>gene-wise</em> central-limit Gaussian, plus measurement error in <span class="math inline">M</span> (errors-in-variables). Genes are independent. Wald regions use the inverse Fisher information, or the Godambe sandwich under protocol shift. DeCovarT instead uses a full <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span> and plug-in moments; the resampling counterpart of noisy <span class="math inline">M</span> is <a href="../reference/reference_bootstrap_decovart.html"><code>reference_bootstrap_decovart()</code></a>. A side-by-side comparison is in the <a href="DeCovarT-MLE-properties.html#sec-rna-sieve">MLE properties vignette</a>.</p>
 <p><code>BLADE</code> replaces the Gaussian with a <strong>gene-wise log-normal</strong> convolution, jointly purifying CTS profiles by variational inference <span class="citation" data-cites="andrade-barbosaBayesianLogNormalDeconvolution2021">(<a href="#ref-andrade-barbosaBayesianLogNormalDeconvolution2021" role="doc-biblioref">Andrade Barbosa et al. 2021</a>)</span>. <code>bMIND</code> estimates sample-level CTS with an scRNA-seq-derived prior <span class="citation" data-cites="wangBayesianEstimationCelltypespecific2020">(<a href="#ref-wangBayesianEstimationCelltypespecific2020" role="doc-biblioref">Wang et al. 2020</a>)</span>. The experimental MAP path in <code>R/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R</code> is the corresponding DeCovarT starting point: recover <span class="math inline">\boldsymbol{x}_{\cdot j,i}</span> given <span class="math inline">\boldsymbol{y}_{\cdot i}</span> and <span class="math inline">\boldsymbol{p}_{\cdot i}</span> under <a href="#eq-gaussian-convolution" class="quarto-xref">Eq. 2</a> rather than under independent genes.</p>
 <p>Zhang et al. benchmark joint <span class="math inline">\boldsymbol{p}</span> + CTS engines and report <strong>BayesPrism with DWLS gene weights</strong> as the strongest combination on pseudobulk and real bulk data <span class="citation" data-cites="zhangIntegratedInferenceCellularCompositions2026">(<a href="#ref-zhangIntegratedInferenceCellularCompositions2026" role="doc-biblioref">Zhang et al. 2026</a>)</span>. That is a weighted-likelihood analogue of <a href="#sec-robust-gls" class="quarto-xref">Sec. 2.6</a>.</p>
 </section></section><section class="level2"><h3 id="sec-covariates">Sample-level covariates<a class="anchor" aria-label="anchor" href="#sec-covariates"></a>
@@ -527,6 +530,9 @@ Dong, Meichen, Aatish Thennavan, Eugene Urrutia, et al. 2021. <span>‘<span>SCD
 </div>
 <div id="ref-ederRectangleRobustScalable2026" class="csl-entry" role="listitem">
 Eder, Bernhard, Irene Rigato, Alexander Dietrich, et al. 2026. <em>Rectangle: Robust and Scalable Multiscale Deconvolution Informed by Single-Cell <span>RNA</span> Sequencing Data</em>. bioRxiv. <a href="https://doi.org/10.64898/2026.07.07.736950" class="external-link">https://doi.org/10.64898/2026.07.07.736950</a>.
+</div>
+<div id="ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021" class="csl-entry" role="listitem">
+Erdmann-Pham, Dan D., Jonathan Fischer, Justin Hong, and Yun S. Song. 2021. <span>‘Likelihood-Based Deconvolution of Bulk Gene Expression Data Using Single-Cell References’</span>. <em>Genome Research</em> 31 (10): 1794–806. <a href="https://doi.org/10.1101/gr.272344.120" class="external-link">https://doi.org/10.1101/gr.272344.120</a>.
 </div>
 <div id="ref-erkkilaProbabilisticAnalysisGene2010" class="csl-entry" role="listitem">
 Erkkilä, Timo, Saara Lehmusvaara, Pekka Ruusuvuori, Tapio Visakorpi, Ilya Shmulevich, and Harri Lähdesmäki. 2010. <span>‘Probabilistic Analysis of Gene Expression Measurements from Heterogeneous Tissues’</span>. <em>Bioinformatics</em> 26. <a href="https://doi.org/10.1093/bioinformatics/btq406" class="external-link">https://doi.org/10.1093/bioinformatics/btq406</a>.

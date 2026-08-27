@@ -38,6 +38,21 @@ hessian_loglik_unconstrained(p, y, mean_signature_matrix, Sigma)
 
 Symmetric numeric matrix \\\mathbf{H}\\.
 
+## Details
+
+The log-determinant contributes
+\\-\delta\_{ij}\mathrm{Tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}\_j)
++2p_ip_j\mathrm{Tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}\_i
+\boldsymbol{\Theta}\boldsymbol{\Sigma}\_j)\\, i.e. half the coefficients
+of the pre-2.3.0 objective, which used
+\\-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})\\. Residual terms are
+unchanged. Taking expectations under
+\\\boldsymbol{r}\sim\mathcal{N}\_G(\boldsymbol{0},
+\boldsymbol{\Sigma}(\boldsymbol{p}))\\ cancels the determinant and
+residual traces, leaving exactly
+\\\mathbb{E}\[-\mathbf{H}\]=I(\boldsymbol{p})\\ of
+[`expected_fisher_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.md).
+
 ## Examples
 
 ``` r
@@ -47,6 +62,6 @@ p <- c(0.6, 0.4)
 y <- drop(mu %*% p)
 hessian_loglik_unconstrained(p, y, mu, Sigma)
 #>           [,1]      [,2]
-#> [1,] -1697.041 -1685.207
-#> [2,] -1685.207 -1702.959
+#> [1,] -1698.521 -1688.757
+#> [2,] -1688.757 -1701.479
 ```
