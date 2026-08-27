@@ -44,6 +44,7 @@ SOFTWARE_TOOLS <- c(
   "igraph",
   "RSpectra",
   "numDeriv",
+  "mvtnorm",
   "compositions",
   "marqLevAlg",
   "ComplexHeatmap",

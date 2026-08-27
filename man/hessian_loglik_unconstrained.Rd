@@ -30,6 +30,20 @@ matching the matrix formulae of the article (quadratic forms in
 \eqn{\boldsymbol{\mu}_{\cdot i}} and residual
 \eqn{\boldsymbol{r}=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}}).
 }
+\details{
+The log-determinant contributes
+\eqn{-\delta_{ij}\mathrm{Tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j)
++2p_ip_j\mathrm{Tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i
+\boldsymbol{\Theta}\boldsymbol{\Sigma}_j)}, i.e. half the coefficients of
+the pre-2.3.0 objective, which used
+\eqn{-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})}. Residual terms are
+unchanged. Taking expectations under
+\eqn{\boldsymbol{r}\sim\mathcal{N}_G(\boldsymbol{0},
+\boldsymbol{\Sigma}(\boldsymbol{p}))} cancels the determinant and
+residual traces, leaving exactly
+\eqn{\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})} of
+\code{\link[=expected_fisher_unconstrained]{expected_fisher_unconstrained()}}.
+}
 \examples{
 mu <- matrix(c(20, 22, 22, 20), 2)
 Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))

@@ -217,13 +217,35 @@ independent of $\boldsymbol{p}$,
 $$
 \ell_{\boldsymbol{y}\mid\boldsymbol{\zeta}}(\boldsymbol{p})
 =
-\log\det\boldsymbol{\Theta}(\boldsymbol{p})
+\tfrac{1}{2}\log\det\boldsymbol{\Theta}(\boldsymbol{p})
 -
 \tfrac{1}{2}
 (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
 \boldsymbol{\Theta}(\boldsymbol{p})
 (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}).
 $$ {#eq-loglik}
+
+::: {#nte-halfdet .callout-important}
+## The determinant term carries a factor $\tfrac{1}{2}$
+
+Both terms of @eq-loglik are halved, because
+$\log\det\boldsymbol{\Theta}=-\log\det\boldsymbol{\Sigma}$ enters the
+Gaussian log-density as
+$-\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})$. DeCovarT
+releases before 2.3.0 implemented
+$-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})$, which doubled the
+determinant contribution. The objective was then *not* the stated
+Gaussian model, and it disagreed with the expected Fisher information of
+@sec-fisher-wald, which had always been the one implied by the correct
+density. With the factor restored,
+`loglik_multivariate()` matches `mvtnorm::dmvnorm(..., log = TRUE)` up to
+the constant $\tfrac{G}{2}\log(2\pi)$, and
+$\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})$ holds exactly
+(see @nte-obs-vs-exp). Point estimates move only slightly, because the
+two terms trade off differently, but likelihood **values**, AIC,
+likelihood-ratio statistics, and any curvature-based standard error do
+change.
+:::
 
 ::: {#nte-unconstrained-meaning .callout-warning}
 ## What “unconstrained” means here
@@ -251,7 +273,7 @@ $$
 \begin{aligned}
 \frac{\partial\ell}{\partial p_{j}}
 &=
-\underbrace{-2p_{j}\,\mathrm{tr}\bigl(
+\underbrace{-p_{j}\,\mathrm{tr}\bigl(
   \boldsymbol{\Theta}\boldsymbol{\Sigma}_{j}
 \bigr)}_{\text{purple}}
 +
@@ -290,9 +312,9 @@ $$
 \frac{\partial^{2}\ell}{\partial p_{i}^{2}}
 =
 \underbrace{
-  -2\,\mathrm{tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}_{i})
+  -\,\mathrm{tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}_{i})
   +
-  4p_{i}^{2}\,\mathrm{tr}\bigl(
+  2p_{i}^{2}\,\mathrm{tr}\bigl(
     (\boldsymbol{\Theta}\boldsymbol{\Sigma}_{i})^{2}
   \bigr)
 }_{\text{purple}}
@@ -342,7 +364,7 @@ $$
 \frac{\partial^{2}\ell}{\partial p_{i}\partial p_{j}}
 =
 \underbrace{
-  4p_{i}p_{j}\,
+  2p_{i}p_{j}\,
   \mathrm{tr}\bigl(
     \boldsymbol{\Theta}\boldsymbol{\Sigma}_{j}
     \boldsymbol{\Theta}\boldsymbol{\Sigma}_{i}
@@ -596,6 +618,15 @@ The analytic Hessian of @sec-unconstrained is the *observed* information
 information @eq-fisher-p, which does not depend on the residual
 $\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}$ and is positive definite under
 the usual full-rank assumptions on $(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})$.
+
+The two are consistent by construction. Substituting
+$\mathbb{E}[\boldsymbol{r}]=\boldsymbol{0}$ and
+$\mathbb{E}[\boldsymbol{r}\boldsymbol{r}^{\top}]
+=\boldsymbol{\Sigma}(\boldsymbol{p})$ into @eq-hess-diag and
+@eq-hess-off cancels the determinant traces against the residual traces
+and returns @eq-fisher-p exactly, i.e.
+$\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})$. That identity only holds with
+the factor $\tfrac{1}{2}$ of @nte-halfdet in place.
 :::
 
 ## Constrained case: ALR delta method {#sec-fisher-rho}
@@ -641,6 +672,23 @@ simplex boundary (the ALR chart blows up); the helper then returns `NA`
 with a warning. The ALR chart itself follows Aitchison's compositional
 geometry [@aitchisonStatisticalAnalysisCompositional1982].
 
+::: {#nte-wald-limits .callout-warning}
+## Wald is the cheapest, not the safest, interval
+
+@eq-delta-p linearises the ALR chart at $\hat{\boldsymbol{p}}$, so it is
+neither invariant to reparametrisation nor confined to $[0,1]$, and it
+degenerates entirely when a proportion reaches a simplex face. The
+companion vignette
+[MLE properties and asymptotic inference](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.html)
+derives the alternatives: profile likelihood-ratio intervals, the
+chi-bar-square calibration of Chernoff and of Self and Liang for nulls on
+the boundary, a parametric bootstrap, and a reference-sample bootstrap
+of donors or cells (or a Dirichlet composition sweep). It also shows why
+these limits need replicate samples that share one composition.
+Shuffling genes or cell-type names of an averaged signature is not a
+bootstrap: the maximised likelihood is equivariant under relabelling.
+:::
+
 # Numerical speed-ups and solver safeguards {#sec-numerical-speedups}
 
 The analytic maps above are only half of a usable optimiser. Practical
@@ -652,10 +700,36 @@ live in `R/03_03_DeCovarT_estimate_ratios_frequentist.R`.
 
 Within one iteration, objective / gradient / Hessian callbacks hit the
 same trial $\boldsymbol{p}$. The helper `.sigma_p_factorisation()` caches
-a single Cholesky factor and returns
-$\log\det\boldsymbol{\Sigma}(\boldsymbol{p})$ and
-$\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}$ without repeating an
-$O(G^{3})$ factorisation.
+a single Cholesky factor
+$\boldsymbol{R}$ with
+$\boldsymbol{\Sigma}(\boldsymbol{p})=\boldsymbol{R}^{\mathsf{T}}\boldsymbol{R}$
+and returns
+$\log\det\boldsymbol{\Sigma}(\boldsymbol{p})=2\sum_g\log R_{gg}$
+together with the precision
+$\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{R}^{-1}\boldsymbol{R}^{-\mathsf{T}}$
+(via `chol2inv`) without repeating an $O(G^{3})$ factorisation.
+
+[`loglik_multivariate()`](../reference/loglik_multivariate.html) then
+evaluates the Mahalanobis term exactly as `mvtnorm::dmvnorm`
+[@R-mvtnorm]: it solves $\boldsymbol{R}^{\mathsf{T}}\boldsymbol{z}
+=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}$ by
+`backsolve(..., transpose = TRUE)` and takes
+$\lVert\boldsymbol{z}\rVert^{2}$, rather than forming
+$\boldsymbol{\Theta}(\boldsymbol{p})$ and a dense quadratic form. The two
+routes agree to machine precision; the backsolve path is the one used
+for the objective, while the cached inverse is retained for the analytic
+score and Hessian, which need
+$\boldsymbol{\Theta}(\boldsymbol{p})$ in several trace and inner-product
+terms. A QR factorisation of the covariance itself would recover the
+same log-determinant and quadratic form at a larger $O(G^{3})$ constant
+and is not used: Cholesky is the natural factorisation of a symmetric
+positive-definite matrix.
+
+The implemented log-density omits the additive
+$-\tfrac{G}{2}\log(2\pi)$ of the full Gaussian, which does not depend
+on $\boldsymbol{p}$ and therefore cannot change the MLE, the score, or
+the Hessian. Tests check that subtracting that constant recovers
+`dmvnorm(..., log = TRUE)` exactly.
 
 ## Guard the box-constrained L-BFGS-B path
 
@@ -682,5 +756,176 @@ log-likelihood, pass
 upstream as
 [VivianePhilipps/marqLevAlgParallel#3](https://github.com/VivianePhilipps/marqLevAlgParallel/issues/3).
 :::
+
+# Numerical consistency of the likelihood and its derivatives {#sec-numerical-consistency}
+
+Analytic formulae can be differentiated correctly *and* still implement
+the wrong objective. The checks below separate those two questions.
+They are the same identities that
+`tests/testthat/test-03_03_DeCovarT.R` and
+`tests/testthat/test-03_06_decovart_inference.R` enforce on every
+package build; the chunks here are a readable, small-\(G\) illustration.
+
+```{r}
+#| label: consistency-setup
+#| eval: true
+#| include: false
+library(DeCovarT)
+genes <- paste0("g", 1:3)
+cts <- paste0("ct", 1:3)
+mu_chk <- matrix(
+  c(20, 40, 15, 40, 20, 25, 25, 30, 35),
+  nrow = 3,
+  dimnames = list(genes, cts)
+)
+Sigma_chk <- array(0, dim = c(3, 3, 3), dimnames = list(genes, genes, cts))
+Sigma_chk[, , 1] <- diag(c(1, 1.5, 1.2))
+Sigma_chk[, , 2] <- diag(c(1.1, 0.9, 1.3))
+Sigma_chk[, , 3] <- diag(c(0.8, 1.2, 1.0))
+p_chk <- c(0.5, 0.3, 0.2)
+set.seed(1)
+y_chk <- drop(mu_chk %*% p_chk) + c(0.4, -0.2, 0.1)
+cov_chk <- .compute_global_variance(p_chk, Sigma_chk)
+```
+
+## Density against `mvtnorm`
+
+The first check is against an independent implementation of the
+multivariate Gaussian log-density, not against our own inverse. With
+the $\tfrac{1}{2}\log\det$ factor restored, DeCovarT and
+`mvtnorm::dmvnorm` [@R-mvtnorm] differ by exactly
+$\tfrac{G}{2}\log(2\pi)$ (DeCovarT omits the negative constant):
+
+```{r}
+#| label: consistency-dmvnorm
+#| eval: true
+n_genes <- length(y_chk)
+ours <- loglik_multivariate(p_chk, y_chk, mu_chk, Sigma_chk)
+reference <- if (requireNamespace("mvtnorm", quietly = TRUE)) {
+  as.numeric(mvtnorm::dmvnorm(
+    y_chk,
+    mean = drop(mu_chk %*% p_chk),
+    sigma = cov_chk,
+    log = TRUE
+  ))
+} else {
+  residual <- y_chk - drop(mu_chk %*% p_chk)
+  as.numeric(
+    -0.5 * determinant(cov_chk, logarithm = TRUE)$modulus -
+      0.5 * drop(crossprod(residual, solve(cov_chk, residual))) -
+      0.5 * n_genes * log(2 * pi)
+  )
+}
+c(
+  loglik_multivariate = ours,
+  dmvnorm = reference,
+  difference = ours - 0.5 * n_genes * log(2 * pi) - reference
+)
+```
+
+A finite-difference check of the *same* objective cannot detect a shared
+factor-of-two error in the log-likelihood and its derivatives. That is
+why this density comparison is independent of `numDeriv`.
+
+## Richardson extrapolation of the score and Hessian
+
+Once the objective is the intended Gaussian, the analytic score and
+Hessian are checked against Richardson extrapolation in `numDeriv`
+[@R-numDeriv]. Richardson's tableau extrapolates central differences to
+cancel successive even powers of the step size, which is more accurate
+than a single two-point stencil at the same $O(\varepsilon^{-1})$ cost
+in function evaluations.
+
+```{r}
+#| label: consistency-numderiv
+#| eval: true
+if (!requireNamespace("numDeriv", quietly = TRUE)) {
+  numderiv_report <- c(gradient_rel = NA_real_, hessian_rel = NA_real_)
+} else {
+  grad_n <- numDeriv::grad(
+    loglik_multivariate,
+    p_chk,
+    method = "Richardson",
+    method.args = list(eps = 1e-4, r = 6),
+    y = y_chk,
+    mean_signature_matrix = mu_chk,
+    Sigma = Sigma_chk
+  )
+  hess_n <- numDeriv::hessian(
+    loglik_multivariate,
+    p_chk,
+    method = "Richardson",
+    method.args = list(eps = 1e-4, r = 4),
+    y = y_chk,
+    mean_signature_matrix = mu_chk,
+    Sigma = Sigma_chk
+  )
+  grad_a <- gradient_loglik_unconstrained(
+    p_chk, y_chk, mu_chk, Sigma_chk
+  )
+  hess_a <- hessian_loglik_unconstrained(
+    p_chk, y_chk, mu_chk, Sigma_chk
+  )
+  numderiv_report <- c(
+    gradient_rel = max(abs(grad_a - grad_n)) / max(abs(grad_n)),
+    hessian_rel = max(abs(hess_a - hess_n)) / max(abs(hess_n))
+  )
+}
+numderiv_report
+```
+
+Relative discrepancies of order \(10^{-8}\) are typical on this
+three-gene toy; that is the same tolerance used in the test suite.
+
+## Expected information versus Monte Carlo \(\mathbb{E}[-\mathbf{H}]\)
+
+Matching `numDeriv` shows that the derivatives belong to the implemented
+objective. Matching the *expected* Fisher information
+[@eq-fisher-p] to a Monte Carlo average of \(-\mathbf{H}(\boldsymbol{p};
+\boldsymbol{Y})\) shows that the objective is the Gaussian whose
+information matrix we use for Wald intervals. Draw
+\(\boldsymbol{Y}^{(b)}\sim\mathcal{N}_G(\boldsymbol{\mu}\boldsymbol{p},
+\boldsymbol{\Sigma}(\boldsymbol{p}))\) at the *true* \(\boldsymbol{p}\)
+(the parametric bootstrap of
+[`bootstrap_decovart()`](../reference/bootstrap_decovart.html), used here
+as a diagnostic rather than as an inferential procedure):
+
+```{r}
+#| label: consistency-fisher-mc
+#| eval: true
+set.seed(2)
+n_mc <- 40L
+info <- expected_fisher_unconstrained(p_chk, mu_chk, Sigma_chk)
+neg_hess <- array(NA_real_, c(3L, 3L, n_mc))
+for (b in seq_len(n_mc)) {
+  y_b <- MASS::mvrnorm(
+    n = 1L,
+    mu = drop(mu_chk %*% p_chk),
+    Sigma = cov_chk
+  )
+  neg_hess[, , b] <- -hessian_loglik_unconstrained(
+    p_chk, y_b, mu_chk, Sigma_chk
+  )
+}
+mc_info <- apply(neg_hess, c(1L, 2L), mean)
+c(
+  rel_frobenius = sqrt(sum((mc_info - info)^2)) / sqrt(sum(info^2))
+)
+```
+
+The same identity is what closed the factor-of-two inconsistency: with
+the old \(-\log\det\) objective, \(\mathbb{E}[-\mathbf{H}]\) could not
+equal \(I(\boldsymbol{p})\). A few dozen draws already bring the relative
+Frobenius gap below \(10^{-2}\) on this toy; the test suite uses a
+tighter Monte Carlo.
+
+A related, weaker check compares the empirical covariance of
+parametric-bootstrap MLEs to the Cramér–Rao map
+[`vcov_alr_delta()`](../reference/vcov_alr_delta.html). That comparison
+is noisy at small replication (see
+[MLE properties](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.html#sec-replication)
+for why one bulk column is not an asymptotic sample) and is therefore
+left to the inference vignette and to
+[`bootstrap_decovart()`](../reference/bootstrap_decovart.html).
 
 # References

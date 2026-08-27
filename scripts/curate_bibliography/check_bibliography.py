@@ -94,7 +94,31 @@ CITE_CMD_RE = re.compile(
     r"\\(?:cite|citep|citepp|citet|citepalt|citepauthor|citepyear)\*?\{([^}]+)\}"
 )
 QMD_CITE_RE = re.compile(r"(?<![\w\\])@([A-Za-z][\w:-]*)")
-SKIP_QMD_PREFIXES = ("eq-", "fig-", "lst-", "tbl-", "sec-", "ref-", "nte-")
+# Quarto cross-reference prefixes, including the theorem environments
+# (https://quarto.org/docs/authoring/cross-references.html#theorems-and-proofs).
+SKIP_QMD_PREFIXES = (
+    "eq-",
+    "fig-",
+    "lst-",
+    "tbl-",
+    "sec-",
+    "ref-",
+    "nte-",
+    "thm-",
+    "lem-",
+    "cor-",
+    "prp-",
+    "cnj-",
+    "def-",
+    "exm-",
+    "exr-",
+    "rem-",
+    "sol-",
+    "tip-",
+    "wrn-",
+    "imp-",
+    "cau-",
+)
 SKIP_QMD_KEYS = {
     "r",
     "echo",

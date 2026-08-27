@@ -40,12 +40,35 @@ Up to an additive constant independent of \eqn{\boldsymbol{p}},
 \deqn{
   \ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{p})
   =
-  -\log\det\boldsymbol{\Sigma}(\boldsymbol{p})
+  -\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})
   -\tfrac{1}{2}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\mathsf{T}}
   \boldsymbol{\Sigma}(\boldsymbol{p})^{-1}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}).
 }
+Both terms carry the factor \eqn{1/2} of the Gaussian log-density. An
+earlier release used \eqn{-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})},
+which doubled the determinant contribution and left the objective
+inconsistent with \code{\link[=expected_fisher_unconstrained]{expected_fisher_unconstrained()}}. With the factor
+restored, \eqn{\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})} exactly.
+
+Computationally this is the same Cholesky-and-backsolve evaluation as
+\code{mvtnorm::dmvnorm(..., log = TRUE)} (Genz and Bretz), omitting only the
+additive \eqn{-\tfrac{G}{2}\log(2\pi)} that does not depend on
+\eqn{\boldsymbol{p}}. The cached factor from
+\code{\link[=.sigma_p_factorisation]{.sigma_p_factorisation()}} supplies the upper-triangular
+\eqn{\boldsymbol{R}} with
+\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=\boldsymbol{R}^{\mathsf{T}}\boldsymbol{R}};
+the Mahalanobis term is then
+\eqn{\lVert\boldsymbol{R}^{-\mathsf{T}}
+(\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})\rVert^{2}},
+obtained by \code{\link[base:backsolve]{base::backsolve()}} without forming the explicit inverse.
+The inverse is still cached because the analytic score and Hessian
+need \eqn{\boldsymbol{\Theta}(\boldsymbol{p})
+=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}}. A QR factorisation of
+\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})} would be a more expensive route
+to the same SPD quantities; Cholesky is the natural factorisation.
+
 Argument \code{mean_signature_matrix} stores the plug-in mean signature
 \eqn{\boldsymbol{\mu}}. Latent sample-specific profiles
 \eqn{\boldsymbol{x}_{\cdot j}} are \strong{not} observed; the frequentist

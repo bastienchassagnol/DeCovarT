@@ -34,6 +34,7 @@
 # network / perspectives / appendix articles.
 ^vignettes/deconvolution-seminar-slides\.qmd$
 ^vignettes/DeCovarT-reminders-OLS\.qmd$
+^vignettes/DeCovarT-MLE-properties\.qmd$
 ^vignettes/feature-selection\.qmd$
 ^vignettes/network-inference\.qmd$
 ^vignettes/synthetic-scenarios\.qmd$
@@ -49,6 +50,7 @@
 ^vignettes/figures/fig_mean_signature_shared_private\.png$
 ^vignettes/figures/fig_network_topologies_six\.png$
 ^vignettes/figures/gini_coefficient_derivation\.png$
+^vignettes/figures/simplex_boundary_tangent_cones\.png$
 ^vignettes/figures/gini_vs_entropy_specificity\.png$
 ^vignettes/figures/INDEED_graphical_abstract\.png$
 ^vignettes/figures/INDEED_pipeline\.png$
@@ -85,3 +87,24 @@
 ^Meta$
 ^CRAN-SUBMISSION$
 ^graphify-out$
+^\.graphifyignore$
+^derive-statistical-properties\.md$
+# Local deep-research notes and Zotero / RAG scratch inputs, also
+# gitignored: merged into inst/REFERENCES.bib and never shipped.
+^decovart_mle_proeprties\.md$
+^decovart_statistical_properties\.md$
+^Optimisation approaches\.bib$
+^ii\) interval derivation\.bib$
+^Exported Items\.bib$
+^benchmark_algorithms\.bib$
+^Reference-based benchmarks\.bib$
+^rna-sieve-paper\.bib$
+^imply\.pdf$
+^imply_supp_material\.pdf$
+^imply_supp_material\.md$
+^rna-sieve\.pdf$
+^rna-sieve\.md$
+^rna-sieve-supplementary\.pdf$
+^error-in-variable\.pdf$
+^temp_rag_CIs_derivation$
+^temp_rag_CIs_derivation/

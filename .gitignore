@@ -92,3 +92,22 @@ output/manual/
 output/random_markov_network/
 /doc/
 /Meta/
+
+# Ad-hoc Zotero collection exports and RAG source material used to draft
+# the inference vignette (merge into inst/REFERENCES.bib, then delete).
+Optimisation approaches.bib
+ii) interval derivation.bib
+Exported Items.bib
+benchmark_algorithms.bib
+Reference-based benchmarks.bib
+rna-sieve-paper.bib
+imply.pdf
+imply_supp_material.pdf
+imply_supp_material.md
+rna-sieve.pdf
+rna-sieve.md
+rna-sieve-supplementary.pdf
+error-in-variable.pdf
+temp_rag_CIs_derivation/
+decovart_mle_proeprties.md
+decovart_statistical_properties.md

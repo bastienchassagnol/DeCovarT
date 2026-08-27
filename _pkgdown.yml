@@ -115,6 +115,9 @@ navbar:
         - text: Derivatives under simplex transforms
           icon: fa-square-root-variable
           href: articles/generative-model-derivatives.html
+        - text: MLE properties and asymptotic inference
+          icon: fa-chart-area
+          href: articles/DeCovarT-MLE-properties.html
         - text: OLS reminders for linear deconvolution
           icon: fa-equals
           href: articles/DeCovarT-reminders-OLS.html
@@ -188,6 +191,25 @@ reference:
     contents:
       - expected_fisher_unconstrained
       - vcov_alr_delta
+  - subtitle: Likelihood-ratio and boundary inference
+    desc: |
+      Profile likelihood, likelihood-ratio tests with chi-bar-square
+      (Chernoff / Self--Liang) calibration on simplex faces, parametric
+      bootstrap, reference-sample bootstrap (donors, cells, or Dirichlet
+      compositions), and the boundary / multimodality diagnostics that a
+      bare convergence code cannot provide. See
+      `vignette("DeCovarT-MLE-properties")`.
+    contents:
+      - restricted_mle_decovart
+      - profile_loglik_decovart
+      - lrt_decovart
+      - confint_profile_decovart
+      - chi_bar_square_pvalue
+      - bootstrap_decovart
+      - reference_bootstrap_decovart
+      - equivariance_check_decovart
+      - boundary_diagnostics
+      - multistart_decovart
   - title: Benchmark and evaluation
     desc: |
       Quality metrics for estimated proportions, and the bivariate toy
@@ -234,6 +256,7 @@ articles:
   - title: Mathematics
     contents:
       - generative-model-derivatives
+      - DeCovarT-MLE-properties
       - DeCovarT-reminders-OLS
       - decovart-perspectives
   - title: Appendix simulations

@@ -54,11 +54,26 @@ Jacobians and Hessians of both maps are derived in the package vignette
 \code{vignette("generative-model-derivatives", package = "DeCovarT")}.
 See also \code{\link[compositions:alr]{compositions::alrInv()}}.
 }
+\section{Numerical stability}{
+
+Evaluated through the log-sum-exp shift
+\eqn{p_i\propto\exp(\tilde{\rho}_i-\max_k\tilde{\rho}_k)} with
+\eqn{\tilde{\boldsymbol{\rho}}=(\rho_1,\ldots,\rho_{J-1},0)}, which is
+algebraically identical to the ratio above but never forms
+\eqn{\mathrm{e}^{\rho_i}} directly. The naive quotient overflows to
+\code{NaN} for \eqn{\rho_i\gtrsim 710}, which unconstrained ascent can
+reach when the MLE approaches a simplex face; the shifted form
+returns an exact zero instead and keeps
+\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})} positive definite.
+}
+
 \examples{
 rho <- c(0.2, -0.5)
 p <- additive_logistic(rho)
 sum(p)
 additive_log_ratio(p)
+# Stable far out in ALR space, where exp(rho) would overflow.
+additive_logistic(c(800, 1200))
 }
 \seealso{
 The inverse map (additive log-ratio) is documented as

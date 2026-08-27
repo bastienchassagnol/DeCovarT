@@ -34,6 +34,17 @@
 #'   simplex (\eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1},
 #'   \eqn{\boldsymbol{p}\ge\mathbf{0}}).
 #'
+#' @section Numerical stability:
+#' Evaluated through the log-sum-exp shift
+#' \eqn{p_i\propto\exp(\tilde{\rho}_i-\max_k\tilde{\rho}_k)} with
+#' \eqn{\tilde{\boldsymbol{\rho}}=(\rho_1,\ldots,\rho_{J-1},0)}, which is
+#' algebraically identical to the ratio above but never forms
+#' \eqn{\mathrm{e}^{\rho_i}} directly. The naive quotient overflows to
+#' `NaN` for \eqn{\rho_i\gtrsim 710}, which unconstrained ascent can
+#' reach when the MLE approaches a simplex face; the shifted form
+#' returns an exact zero instead and keeps
+#' \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})} positive definite.
+#'
 #' @seealso The inverse map (additive log-ratio) is documented as
 #'   `additive_log_ratio()` on this help page.
 #'
@@ -42,10 +53,13 @@
 #' p <- additive_logistic(rho)
 #' sum(p)
 #' additive_log_ratio(p)
+#' # Stable far out in ALR space, where exp(rho) would overflow.
+#' additive_logistic(c(800, 1200))
 #' @export
 additive_logistic <- function(rho) {
-  p <- c(exp(rho[seq_along(rho)]), 1)
-  return(p / sum(p))
+  scores <- c(rho, 0)
+  weights <- exp(scores - max(scores))
+  return(weights / sum(weights))
 }
 
 #' Additive log-ratio transform \eqn{\boldsymbol{p}\mapsto\boldsymbol{\rho}}
@@ -246,12 +260,35 @@ additive_log_ratio <- function(p) {
 #' \deqn{
 #'   \ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{p})
 #'   =
-#'   -\log\det\boldsymbol{\Sigma}(\boldsymbol{p})
+#'   -\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})
 #'   -\tfrac{1}{2}
 #'   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\mathsf{T}}
 #'   \boldsymbol{\Sigma}(\boldsymbol{p})^{-1}
 #'   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}).
 #' }
+#' Both terms carry the factor \eqn{1/2} of the Gaussian log-density. An
+#' earlier release used \eqn{-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})},
+#' which doubled the determinant contribution and left the objective
+#' inconsistent with [expected_fisher_unconstrained()]. With the factor
+#' restored, \eqn{\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})} exactly.
+#'
+#' Computationally this is the same Cholesky-and-backsolve evaluation as
+#' `mvtnorm::dmvnorm(..., log = TRUE)` (Genz and Bretz), omitting only the
+#' additive \eqn{-\tfrac{G}{2}\log(2\pi)} that does not depend on
+#' \eqn{\boldsymbol{p}}. The cached factor from
+#' [.sigma_p_factorisation()] supplies the upper-triangular
+#' \eqn{\boldsymbol{R}} with
+#' \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=\boldsymbol{R}^{\mathsf{T}}\boldsymbol{R}};
+#' the Mahalanobis term is then
+#' \eqn{\lVert\boldsymbol{R}^{-\mathsf{T}}
+#' (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})\rVert^{2}},
+#' obtained by [base::backsolve()] without forming the explicit inverse.
+#' The inverse is still cached because the analytic score and Hessian
+#' need \eqn{\boldsymbol{\Theta}(\boldsymbol{p})
+#' =\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}}. A QR factorisation of
+#' \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})} would be a more expensive route
+#' to the same SPD quantities; Cholesky is the natural factorisation.
+#'
 #' Argument `mean_signature_matrix` stores the plug-in mean signature
 #' \eqn{\boldsymbol{\mu}}. Latent sample-specific profiles
 #' \eqn{\boldsymbol{x}_{\cdot j}} are **not** observed; the frequentist
@@ -286,10 +323,11 @@ additive_log_ratio <- function(p) {
 #' @seealso [gradient_loglik_unconstrained()], [additive_logistic()]
 loglik_multivariate <- function(p, y, mean_signature_matrix, Sigma) {
   sigma_p <- .sigma_p_factorisation(p, Sigma)
-  residual <- y - drop(mean_signature_matrix %*% p)
-  log_lik <- -sigma_p$log_det -
-    1 / 2 * .inner_product(residual, sigma_p$inverse)
-  return(log_lik)
+  residual <- as.numeric(y - drop(mean_signature_matrix %*% p))
+  # Mahalanobis distance via the cached Cholesky factor, matching
+  # mvtnorm::dmvnorm: solve R^T z = r, then r^T Sigma^{-1} r = ||z||^2.
+  z <- backsolve(sigma_p$chol, residual, transpose = TRUE)
+  -1 / 2 * sigma_p$log_det - 1 / 2 * sum(z * z)
 }
 
 
@@ -374,11 +412,16 @@ jacobian_additive_logistic <- function(rho) {
 #' \deqn{
 #'   \frac{\partial\ell}{\partial p_j}
 #'   =
-#'   -2p_j\,\mathrm{Tr}\!\bigl(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\bigr)
+#'   -p_j\,\mathrm{Tr}\!\bigl(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\bigr)
 #'   +\boldsymbol{r}^{\mathsf{T}}\boldsymbol{\Theta}\boldsymbol{\mu}_{\cdot j}
 #'   +p_j\,\boldsymbol{r}^{\mathsf{T}}
 #'   \boldsymbol{\Theta}\boldsymbol{\Sigma}_j\boldsymbol{\Theta}\boldsymbol{r}.
 #' }
+#' The determinant score is \eqn{-p_j\mathrm{Tr}(\boldsymbol{\Theta}
+#' \boldsymbol{\Sigma}_j)} because
+#' \eqn{\partial\boldsymbol{\Sigma}/\partial p_j=2p_j\boldsymbol{\Sigma}_j}
+#' enters \eqn{-\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})}; the
+#' two residual terms are unaffected by that factor.
 #'
 #' @details
 #' Unit tests compare this analytic gradient to a numerical reference from
@@ -418,8 +461,7 @@ gradient_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
   for (j in seq_along(p)) {
     gradient_unconstrained <- c(
       gradient_unconstrained,
-      -2 *
-        p[j] *
+      -p[j] *
         sum(diag(global_precision_matrix %*% Sigma[,, j])) +
         .inner_product(
           y - mean_signature_matrix %*% p,
@@ -524,6 +566,20 @@ hessian_additive_logistic <- function(rho) {
 #' \eqn{\boldsymbol{\mu}_{\cdot i}} and residual
 #' \eqn{\boldsymbol{r}=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}}).
 #'
+#' @details
+#' The log-determinant contributes
+#' \eqn{-\delta_{ij}\mathrm{Tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j)
+#' +2p_ip_j\mathrm{Tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i
+#' \boldsymbol{\Theta}\boldsymbol{\Sigma}_j)}, i.e. half the coefficients of
+#' the pre-2.3.0 objective, which used
+#' \eqn{-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})}. Residual terms are
+#' unchanged. Taking expectations under
+#' \eqn{\boldsymbol{r}\sim\mathcal{N}_G(\boldsymbol{0},
+#' \boldsymbol{\Sigma}(\boldsymbol{p}))} cancels the determinant and
+#' residual traces, leaving exactly
+#' \eqn{\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})} of
+#' [expected_fisher_unconstrained()].
+#'
 #' @inheritParams loglik_multivariate
 #'
 #' @return Symmetric numeric matrix \eqn{\mathbf{H}}.
@@ -543,7 +599,7 @@ hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
   global_precision_matrix <- .sigma_p_factorisation(p, Sigma)$inverse
   for (i in 1:num_celltypes) {
     for (j in i:num_celltypes) {
-      hessian_unconstrained[i, j] <- 4 *
+      hessian_unconstrained[i, j] <- 2 *
         p[i] *
         p[j] *
         sum(diag(
@@ -585,7 +641,7 @@ hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
       if (i == j) {
         # add diagonal terms
         hessian_unconstrained[i, i] <- hessian_unconstrained[i, i] -
-          2 * sum(diag(global_precision_matrix %*% Sigma[,, i])) +
+          sum(diag(global_precision_matrix %*% Sigma[,, i])) +
           .inner_product(
             y - mean_signature_matrix %*% p,
             global_precision_matrix %*% Sigma[,, i] %*% global_precision_matrix

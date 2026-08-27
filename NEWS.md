@@ -1,3 +1,66 @@
+# DeCovarT 2.3.0
+
+* **Log-likelihood evaluation.** `loglik_multivariate()` now uses the
+  cached Cholesky factor with `backsolve()` for the Mahalanobis term,
+  matching `mvtnorm::dmvnorm(..., log = TRUE)` up to
+  \(\tfrac{G}{2}\log(2\pi)\), rather than a dense
+  \(\boldsymbol{r}^{\mathsf{T}}\boldsymbol{\Sigma}^{-1}\boldsymbol{r}\).
+  The inverse remains cached for the analytic score and Hessian.
+
+* **Corrected log-likelihood (breaking numerical change).**
+  `loglik_multivariate()` implemented
+  \eqn{-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})} instead of the
+  Gaussian \eqn{-\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})},
+  doubling the determinant contribution. The objective now matches
+  `mvtnorm::dmvnorm(..., log = TRUE)` up to \eqn{\tfrac{G}{2}\log(2\pi)},
+  and \eqn{\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})} holds exactly, so
+  the objective and the Wald / Fisher inference are finally consistent.
+  `gradient_loglik_unconstrained()` and
+  `hessian_loglik_unconstrained()` halve their determinant terms
+  accordingly; residual terms and `expected_fisher_unconstrained()` are
+  unchanged. Reported log-likelihood values, AIC and likelihood-ratio
+  statistics all change; point estimates move only slightly. The article
+  and the derivatives vignette were updated in step.
+
+* **Likelihood-ratio and boundary inference.** New
+  `lrt_decovart()`, `confint_profile_decovart()`,
+  `profile_loglik_decovart()`, `restricted_mle_decovart()`,
+  `chi_bar_square_pvalue()` and `bootstrap_decovart()`. Testing the
+  absence of a cell type puts the null on a simplex face, where Wilks'
+  theorem fails and ALR Wald intervals are undefined; the null law is the
+  chi-bar-square mixture of Chernoff (1954) and Self and Liang (1987),
+  with a restricted parametric bootstrap when the binomial weights cannot
+  be justified. Profile intervals are reparametrisation-invariant and stay
+  inside \eqn{[0,1]}. `reference_bootstrap_decovart()` resamples the
+  experimental units of a *labelled* reference: donors within each cell
+  type (default), cells within each cell type, or Dirichlet draws of the
+  composition. Gene-order and cell-type-label shuffles of an averaged
+  signature are not inferential procedures;
+  `equivariance_check_decovart()` only verifies that permuting signature
+  columns relabels \eqn{\hat{\boldsymbol{p}}}.
+
+* **Boundary and multimodality diagnostics.** New
+  `boundary_diagnostics()` and `multistart_decovart()`, wired into
+  `fit_decovart(n_starts =, boundary_tol =)` and stored in
+  `fit$diagnostics`. The realised log-likelihood is not globally concave
+  (a worked indefinite-Hessian counterexample is in the new vignette), so
+  `converged`, `local_maximum`, `near_boundary` and `multimodal` are
+  reported as separate claims. A near-boundary estimate is flagged as a
+  caution about Wald linearisation, not as optimiser failure.
+
+* **Numerical stability of `additive_logistic()`.** Now evaluated through
+  the log-sum-exp shift instead of `exp(rho) / sum(exp(rho))`, which
+  overflowed to `NaN` for \eqn{\rho_i\gtrsim 710} and could make
+  \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})} non-factorisable when the MLE
+  approached a simplex face.
+
+* **New vignette** `vignette("DeCovarT-MLE-properties")`: identifiability,
+  existence, failure of uniqueness for one observed sample, population
+  consistency through the Kullback--Leibler divergence and the Fisher
+  information metric, affine (but not logarithmic) equivariance, the four
+  strata of the simplex and their tangent cones, and why replication is
+  what makes the asymptotics meaningful.
+
 # DeCovarT 2.2.3
 
 * **Optional heatmap stack.** Moved `ComplexHeatmap`, `circlize`, and

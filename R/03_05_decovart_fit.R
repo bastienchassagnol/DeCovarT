@@ -51,6 +51,15 @@
 #'   (see Details). Cell-type-wise or sample-wise transforms are not
 #'   supported.
 #' @param scaled Deprecated. `TRUE` (log2 mixing) always errors.
+#' @param n_starts Number of additional random Dirichlet starts per
+#'   sample. With `n_starts > 0` the best log-likelihood is kept and
+#'   [multistart_decovart()] records the spread of attained optima, the
+#'   only direct probe of multimodality (the realised log-likelihood is
+#'   not globally concave).
+#' @param boundary_tol Threshold on \eqn{\min_j\hat{p}_j} below which a
+#'   sample is flagged `near_boundary` by [boundary_diagnostics()]. Wald
+#'   intervals are unreliable there; prefer
+#'   [confint_profile_decovart()] or [lrt_decovart()].
 #'
 #' @details
 #' **Standardisation.** CIBERSORT requires non-negative expression, no
@@ -178,7 +187,9 @@ fit_decovart <- function(
   epsilon = 10^-4,
   itmax = 200,
   standardise = FALSE,
-  scaled = FALSE
+  scaled = FALSE,
+  n_starts = 0L,
+  boundary_tol = 1e-8
 ) {
   method <- .match_arg_case_insensitive(
     method,
@@ -220,6 +231,9 @@ fit_decovart <- function(
   names(vcov_list) <- colnames(y_mat)
   convergence <- vector("list", n_samples)
   names(convergence) <- colnames(y_mat)
+  diagnostics <- vector("list", n_samples)
+  names(diagnostics) <- colnames(y_mat)
+  n_starts <- as.integer(n_starts)
   for (i in seq_len(n_samples)) {
     y_i <- y_mat[, i, drop = TRUE]
     fit_i <- solver(
@@ -230,6 +244,24 @@ fit_decovart <- function(
       itmax = itmax,
       return_model = TRUE
     )
+    convergence[[i]] <- fit_i$convergence
+    if (n_starts > 0L) {
+      restarts <- multistart_decovart(
+        y = y_i,
+        mean_signature_matrix = mu,
+        Sigma = sigma_arr,
+        n_starts = n_starts,
+        solver = solver,
+        epsilon = epsilon,
+        itmax = itmax
+      )
+      if (restarts$loglik > fit_i$loglik) {
+        fit_i$coefficients <- restarts$coefficients
+        fit_i$loglik <- restarts$loglik
+      }
+      convergence[[i]]$loglik_range <- restarts$loglik_range
+      convergence[[i]]$multimodal <- restarts$multimodal
+    }
     coef_mat[, i] <- fit_i$coefficients
     loglik[[i]] <- fit_i$loglik
     vcov_list[[i]] <- vcov_alr_delta(
@@ -237,7 +269,28 @@ fit_decovart <- function(
       mu,
       sigma_arr
     )
-    convergence[[i]] <- fit_i$convergence
+    diagnostics[[i]] <- boundary_diagnostics(
+      fit_i$coefficients,
+      y_i,
+      mu,
+      sigma_arr,
+      boundary_tol = boundary_tol
+    )
+  }
+  near_boundary <- vapply(
+    diagnostics,
+    function(d) isTRUE(d$near_boundary),
+    logical(1)
+  )
+  if (any(near_boundary)) {
+    warning(
+      "Estimated proportions reach a simplex face in sample(s) ",
+      toString(names(diagnostics)[near_boundary]),
+      ". This may be a genuine boundary optimum, but ALR Wald intervals ",
+      "are then undefined; use confint_profile_decovart() or ",
+      "lrt_decovart().",
+      call. = FALSE
+    )
   }
   fitted_mat <- mu %*% coef_mat
   dimnames(fitted_mat) <- dimnames(y_mat)
@@ -249,6 +302,7 @@ fit_decovart <- function(
       vcov = vcov_list,
       loglik = loglik,
       convergence = convergence,
+      diagnostics = diagnostics,
       method = method,
       epsilon = epsilon,
       itmax = itmax,

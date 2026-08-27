@@ -23,7 +23,9 @@ fit_decovart(
   epsilon = 10^-4,
   itmax = 200,
   standardise = FALSE,
-  scaled = FALSE
+  scaled = FALSE,
+  n_starts = 0L,
+  boundary_tol = 1e-08
 )
 
 \method{print}{decovart_fit}(x, ...)
@@ -77,6 +79,17 @@ computed once from \eqn{\boldsymbol{\mu}} to bulk, means and covariances
 supported.}
 
 \item{scaled}{Deprecated. \code{TRUE} (log2 mixing) always errors.}
+
+\item{n_starts}{Number of additional random Dirichlet starts per
+sample. With \code{n_starts > 0} the best log-likelihood is kept and
+\code{\link[=multistart_decovart]{multistart_decovart()}} records the spread of attained optima, the
+only direct probe of multimodality (the realised log-likelihood is
+not globally concave).}
+
+\item{boundary_tol}{Threshold on \eqn{\min_j\hat{p}_j} below which a
+sample is flagged \code{near_boundary} by \code{\link[=boundary_diagnostics]{boundary_diagnostics()}}. Wald
+intervals are unreliable there; prefer
+\code{\link[=confint_profile_decovart]{confint_profile_decovart()}} or \code{\link[=lrt_decovart]{lrt_decovart()}}.}
 
 \item{x, object}{A \code{decovart_fit}.}
 

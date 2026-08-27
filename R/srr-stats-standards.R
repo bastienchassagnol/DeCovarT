@@ -28,10 +28,6 @@ NULL
 #'   <https://www.repostatus.org/#active>) is shown in the README; future
 #'   development is described there and in vignettes.
 #'
-#' @srrstatsTODO {G1.5} Reproduction code for article figures will live in a
-#'   companion GitHub repository (CellRank 2 pattern: software vs
-#'   `cellrank2_reproducibility`), not in this package.
-#'
 #' G2 - Input validation
 #'
 #' @srrstats {G2.0} Input length assertions implemented via `checkmate`
@@ -72,7 +68,11 @@ NULL
 #'   Newton--Raphson is repeated with three simulation seeds in
 #'   `tests/testthat/test-03_05_decovart_fit.R`.
 #'
-#' @srrstatsTODO {G5.7} Runtime scaling benchmarks to be added.
+#' @srrstatsTODO {G5.7} Runtime scaling of the *solvers* vs \(G\) and
+#'   \(J\) remains for a companion benchmark. The Gaussian log-likelihood
+#'   itself is now the Cholesky-and-backsolve evaluation of
+#'   `mvtnorm::dmvnorm` (tested against that reference); that is a
+#'   constant-factor improvement of the objective, not a scaling study.
 #'
 #' @srrstats {G5.9b} The same tests also vary the ALR start
 #'   (\eqn{\boldsymbol{p}^{(0)}} from three Dirichlet draws). Second-order
@@ -198,6 +198,15 @@ NULL
 #' @srrstats {RE4.2} `coef(fit)` is \(\hat{\boldsymbol{P}}\) (\(J\times N\)).
 #'
 #' @srrstats {RE4.3} `confint(fit)` is the ALR delta-method Wald interval.
+#'   `confint_profile_decovart()` adds reparametrisation-invariant profile
+#'   likelihood-ratio intervals, and `lrt_decovart()` the boundary
+#'   (chi-bar-square) calibration required when a null proportion is zero.
+#'   `bootstrap_decovart()` and `reference_bootstrap_decovart()` supply
+#'   Monte Carlo and reference-sample calibrations that do not rely on
+#'   Wilks' theorem. `reference_bootstrap_decovart()` resamples donors
+#'   (default) or cells within each labelled cell type, or redraws
+#'   compositions from a Dirichlet law; it does not permute genes or
+#'   cell-type names.
 #'
 #' @srrstats {RE4.5} `nobs(fit)` is \(N\) (one MVN observation per bulk
 #'   sample), with attributes `n_genes` and `n_celltypes`.
@@ -207,6 +216,12 @@ NULL
 #'
 #' @srrstats {RE4.7} Optimiser stop codes and iteration counts are stored
 #'   on `$convergence` (this tag is **convergence**, not prediction).
+#'   `$diagnostics` adds `boundary_diagnostics()`: the ALR score norm,
+#'   the largest Hessian eigenvalue, `near_boundary` and `local_maximum`.
+#'   With `n_starts > 0`, `$convergence` also carries `loglik_range` and
+#'   `multimodal` from `multistart_decovart()`, because the realised
+#'   log-likelihood is not globally concave and numerical convergence
+#'   therefore does not certify a global optimum.
 #'
 #' @srrstats {RE4.8} Observed bulk `Y` is `$bulk_expression`.
 #'
@@ -231,7 +246,8 @@ NULL
 #'
 #' @srrstatsTODO {RE5.0} Runtime vs \(G\), \(J\), overlap, CPM / log2
 #'   normalisation, and tolerance will be reported in a later benchmark
-#'   paper / issue, not in this package release.
+#'   paper / issue, not in this package release. Profile / boundary
+#'   intervals close RE4.3, not this scaling standard.
 #'
 #' RE6 - Regression: visualisation
 #'
@@ -281,7 +297,10 @@ NULL
 #'
 #' @srrstats {PD3.0} Log-likelihood, score and Hessian of the Gaussian
 #'   convolution are analytic (ALR reparametrisation); numeric finite
-#'   differences are used only in tests against `numDeriv`, not for fitting.
+#'   differences (`numDeriv` Richardson extrapolation) and a Monte Carlo
+#'   check that the mean observed information equals the expected Fisher
+#'   matrix are used in tests and in the derivatives vignette, not for
+#'   fitting.
 #'
 #' @srrstats {PD3.2} Optimiser controls (`method`, `epsilon`, `itmax`, and
 #'   solver-specific knobs) are explicit arguments of `fit_decovart()` /
@@ -333,6 +352,10 @@ NULL
 #'   implementation to test against.
 #' @srrstatsNA {G5.4c} There is likewise no published numerical oracle for
 #'   this estimator (same G1.1 justification).
+#' @srrstatsNA {G1.5} Reproduction code for article figures is deliberately
+#'   out of this package. Performance claims in the manuscript will be
+#'   reproduced from a companion repository if one is published; they are
+#'   not shipped as vignette or test assets here.
 #' @srrstatsNA {G1.6} No other R package implements this variance-based
 #'   Gaussian-convolution regression (G1.1). Mean-only deconvolution
 #'   tools are not alternative implementations of the same estimator, so

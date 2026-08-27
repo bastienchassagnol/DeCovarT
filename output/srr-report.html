@@ -11,7 +11,7 @@
 
 
 
-<title>file3395d56982212.knit</title>
+<title>srr-report</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -358,467 +358,527 @@ display: none;
 here for full text of all standards</a></p>
 <div id="standards-with-srrstats-tag" class="section level2">
 <h2>Standards with <code>srrstats</code> tag</h2>
-<p><strong>Numbers of standards:</strong></p>
-<ul>
-<li><p>G : 35 / 68</p></li>
-<li><p>RE : 31 / 48</p></li>
-<li><p>Total : 66 / 116</p></li>
-</ul>
+<p><strong>Numbers of standards:</strong> - G : 49 / 68 - PD : 8 / 14 -
+RE : 36 / 48 - Total : 93 / 130</p>
 <div id="r-directory" class="section level3">
 <h3>R directory</h3>
-<p>Standards on line#22 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/00_01_input_checks.R#L22">R/00_01_input_checks.R</a>:</p>
-<ul>
-<li><p>G2.3 For univariate character input:</p></li>
-<li><p>G2.3a Use <code>match.arg()</code> or equivalent where applicable
-to only permit expected values.</p></li>
-<li><p>G2.3b Either: use <code>tolower()</code> or equivalent to ensure
-input of character parameters is not case dependent; or explicitly
-document that parameters are strictly case-sensitive.</p></li>
-<li><p>G3.0 Statistical software should never compare floating point
-numbers for equality. All numeric equality comparisons should either
-ensure that they are made between integers, or use appropriate
-tolerances for approximate equality.*</p></li>
-</ul>
-<p>Standards on line#66 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/00_01_input_checks.R#L66">R/00_01_input_checks.R</a>:</p>
-<ul>
-<li><p>G2.13 Statistical Software should implement appropriate checks
-for missing data as part of initial pre-processing prior to passing data
-to analytic algorithms.</p></li>
-<li><p>G2.15 Functions should never assume non-missingness, and should
-never pass data with potential missing values to any base routines with
-default <code>na.rm = FALSE</code>-type parameters (such as <a href="https://stat.ethz.ch/R-manual/R-devel/library/base/html/mean.html"><code>mean()</code></a>,
-<a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/sd.html"><code>sd()</code></a>
-or <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/cor.html"><code>cor()</code></a>).</p></li>
-</ul>
-<p>Standards on line#277 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/02_02_generate_synthetic_networks.R#L277">R/02_02_generate_synthetic_networks.R</a>:</p>
-<ul>
-<li><p>G2.3 For univariate character input:</p></li>
-<li><p>G2.3a Use <code>match.arg()</code> or equivalent where applicable
-to only permit expected values.</p></li>
-<li><p>G2.3b Either: use <code>tolower()</code> or equivalent to ensure
-input of character parameters is not case dependent; or explicitly
-document that parameters are strictly case-sensitive.</p></li>
-</ul>
-<p>Standards on line#37 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/04_01_run_benchmark.R#L37">R/04_01_run_benchmark.R</a>:</p>
-<ul>
-<li><p>G2.3 For univariate character input:</p></li>
-<li><p>G2.3a Use <code>match.arg()</code> or equivalent where applicable
-to only permit expected values.</p></li>
-<li><p>G2.3b Either: use <code>tolower()</code> or equivalent to ensure
-input of character parameters is not case dependent; or explicitly
-document that parameters are strictly case-sensitive.</p></li>
-</ul>
-<p>Standards on line#400 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/04_01_run_benchmark.R#L400">R/04_01_run_benchmark.R</a>:</p>
-<ul>
-<li><p>G1.0 Statistical Software should list at least one primary
-reference from published academic literature.*</p></li>
-<li><p>G1.1 Statistical Software should document whether the
-algorithm(s) it implements are:* - <em>The first implementation of a
-novel algorithm</em>; or - <em>The first implementation within
-<strong>R</strong> of an algorithm which has previously been implemented
-in other languages or contexts</em>; or - <em>An improvement on other
-implementations of similar algorithms in
-<strong>R</strong></em>.</p></li>
-<li><p>G2.13 Statistical Software should implement appropriate checks
-for missing data as part of initial pre-processing prior to passing data
-to analytic algorithms.</p></li>
-<li><p>G2.15 Functions should never assume non-missingness, and should
-never pass data with potential missing values to any base routines with
-default <code>na.rm = FALSE</code>-type parameters (such as <a href="https://stat.ethz.ch/R-manual/R-devel/library/base/html/mean.html"><code>mean()</code></a>,
-<a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/sd.html"><code>sd()</code></a>
-or <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/cor.html"><code>cor()</code></a>).</p></li>
-</ul>
-<p>Standards on line#33 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/04_02_benchmark_visualisation.R#L33">R/04_02_benchmark_visualisation.R</a>:</p>
-<ul>
-<li><p>G2.3 For univariate character input:</p></li>
-<li><p>G2.3a Use <code>match.arg()</code> or equivalent where applicable
-to only permit expected values.</p></li>
-<li><p>G2.3b Either: use <code>tolower()</code> or equivalent to ensure
-input of character parameters is not case dependent; or explicitly
-document that parameters are strictly case-sensitive.</p></li>
-</ul>
-<p>Standards on line#41 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/DeCovarT-package.R#L41">R/DeCovarT-package.R</a>:</p>
-<ul>
-<li><p>G1.3 All statistical terminology should be clarified and
-unambiguously defined.*</p></li>
-<li><p>G1.4 Software should use <a href="https://roxygen2.r-lib.org/"><code>roxygen2</code></a> to document
-all functions.</p></li>
-<li><p>G1.4a All internal (non-exported) functions should also be
-documented in standard <a href="https://roxygen2.r-lib.org/"><code>roxygen2</code></a> format,
-along with a final <code>@noRd</code> tag to suppress automatic
-generation of <code>.Rd</code> files or <a href="https://roxygen2.r-lib.org/reference/tags-index-crossref.html?q=keywords%20internal#null"><code>@keywords internal</code></a>
-if documentation is still desired.*</p></li>
-</ul>
-<p>Standards on line#338 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/srr-stats-standards.R#L338">R/srr-stats-standards.R</a>:</p>
-<ul>
-<li><p>G1.2 Statistical Software should include a* Life Cycle Statement
-<em>describing current and anticipated future states of
-development.</em></p></li>
-<li><p>G2.0 Implement assertions on lengths of inputs, particularly
-through asserting that inputs expected to be single- or multi-valued are
-indeed so.</p></li>
-<li><p>G2.0a Provide explicit secondary documentation of any
-expectations on lengths of inputs</p></li>
-<li><p>G2.1 Implement assertions on types of inputs (see the initial
-point on nomenclature above).</p></li>
-<li><p>G2.1a Provide explicit secondary documentation of expectations on
-data types of all vector inputs.</p></li>
-<li><p>G2.2 Appropriately prohibit or restrict submission of
-multivariate input to parameters expected to be univariate.</p></li>
-<li><p>G3.1 Statistical software which relies on covariance calculations
-should enable users to choose between different algorithms for
-calculating covariances, and should not rely solely on covariances from
-the <code>stats::cov</code> function.</p></li>
-<li><p>G3.1a The ability to use arbitrarily specified covariance methods
-should be documented (typically in examples or vignettes).*</p></li>
-<li><p>G5.0 Where applicable or practicable, tests should use standard
-data sets with known properties (for example, the <a href="https://www.itl.nist.gov/div898/strd/">NIST Standard Reference
-Datasets</a>, or data sets provided by other widely-used R
-packages).</p></li>
-<li><p>G5.2 Appropriate error and warning behaviour of all functions
-should be explicitly demonstrated through tests. In particular,</p></li>
-<li><p>G5.2a Every message produced within R code by
-<code>stop()</code>, <code>warning()</code>, <code>message()</code>, or
-equivalent should be unique</p></li>
-<li><p>G5.2b Explicit tests should demonstrate conditions which trigger
-every one of those messages, and should compare the result with expected
-values.</p></li>
-<li><p>G5.3 For functions which are expected to return objects
-containing no missing (<code>NA</code>) or undefined (<code>NaN</code>,
-<code>Inf</code>) values, the absence of any such values in return
-objects should be explicitly tested.*</p></li>
-<li><p>G5.4 *Correctness tests** *to test that statistical algorithms
-produce expected results to some fixed test data sets (potentially
-through comparisons using binding frameworks such as <a href="https://github.com/lbraglia/RStata">RStata</a>).</p></li>
-<li><p>G5.4a For new methods, it can be difficult to separate out
-correctness of the method from the correctness of the implementation, as
-there may not be reference for comparison. In this case, testing may be
-implemented against simple, trivial cases or against multiple
-implementations such as an initial R implementation compared with
-results from a C/C++ implementation.</p></li>
-<li><p>G5.5 Correctness tests should be run with a fixed random
-seed</p></li>
-<li><p>G5.6 *Parameter recovery tests** *to test that the implementation
-produce expected results given data with known properties. For instance,
-a linear regression algorithm should return expected coefficient values
-for a simulated data set generated from a linear model.</p></li>
-<li><p>G5.6a Parameter recovery tests should generally be expected to
-succeed within a defined tolerance rather than recovering exact
-values.</p></li>
-<li><p>G5.8 *Edge condition tests** *to test that these conditions
-produce expected behaviour such as clear warnings or errors when
-confronted with data with extreme properties including but not limited
-to:</p></li>
-<li><p>G5.8a Zero-length data</p></li>
-<li><p>G5.8b Data of unsupported types (e.g., character or complex
-numbers in for functions designed only for numeric data)</p></li>
-<li><p>G5.8c Data with all-<code>NA</code> fields or columns or all
-identical fields or columns</p></li>
-<li><p>G5.9 *Noise susceptibility tests** *Packages should test for
-expected stochastic behaviour, such as through the following
-conditions:</p></li>
-<li><p>G5.9a Adding trivial noise (for example, at the scale of
-<code>.Machine$double.eps</code>) to data does not meaningfully change
-results</p></li>
-<li><p>RE1.1 Regression Software should document how formula interfaces
-are converted to matrix representations of input data.*</p></li>
-<li><p>RE1.2 Regression Software should document expected format (types
-or classes) for inputting predictor variables, including descriptions of
-types or classes which are not accepted.*</p></li>
-<li><p>RE1.3 Regression Software which passes or otherwise transforms
-aspects of input data onto output structures should ensure that those
-output structures retain all relevant aspects of input data, notably
-including row and column names, and potentially information from other
-<code>attributes()</code>.</p></li>
-<li><p>RE1.4 Regression Software should document any assumptions made
-with regard to input data; for example distributional assumptions, or
+<p>Standards on line#281 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/02_02_generate_synthetic_networks.R#L281">R/02_02_generate_synthetic_networks.R</a>:
+- G2.3 For univariate character input: - G2.3a Use
+<code>match.arg()</code> or equivalent where applicable to only permit
+expected values. - G2.3b Either: use <code>tolower()</code> or
+equivalent to ensure input of character parameters is not case
+dependent; or explicitly document that parameters are strictly
+case-sensitive. Standards on line#177 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/03_05_decovart_fit.R#L177">R/03_05_decovart_fit.R</a>:
+- RE1.2 Regression Software should document expected format (types or
+classes) for inputting predictor variables, including descriptions of
+types or classes which are not accepted.* - RE1.3 Regression Software
+which passes or otherwise transforms aspects of input data onto output
+structures should ensure that those output structures retain all
+relevant aspects of input data, notably including row and column names,
+and potentially information from other <code>attributes()</code>. -
+RE1.4 Regression Software should document any assumptions made with
+regard to input data; for example distributional assumptions, or
 assumptions that predictor data have mean values of zero. Implications
 of violations of these assumptions should be both documented and
-tested.*</p></li>
-<li><p>RE2.0 Regression Software should document any transformations
+tested.* - RE2.0 Regression Software should document any transformations
 applied to input data, for example conversion of label-values to
 <code>factor</code>, and should provide ways to explicitly avoid any
 default transformations (with error or warning conditions where
-appropriate).</p></li>
-<li><p>RE2.1 Regression Software should implement explicit parameters
-controlling the processing of missing values, ideally distinguishing
-<code>NA</code> or <code>NaN</code> values from <code>Inf</code> values
-(for example, through use of <code>na.omit()</code> and related
-functions from the <code>stats</code> package).*</p></li>
-<li><p>RE2.4 Regression Software should implement pre-processing
+appropriate). - RE2.1 Regression Software should implement explicit
+parameters controlling the processing of missing values, ideally
+distinguishing <code>NA</code> or <code>NaN</code> values from
+<code>Inf</code> values (for example, through use of
+<code>na.omit()</code> and related functions from the <code>stats</code>
+package).* - RE2.3 Where applicable, Regression Software should enable
+data to be centred (for example, through converting to zero-mean
+equivalent values; or to z-scores) or offset (for example, to
+zero-intercept equivalent values) via additional parameters, with the
+effects of any such parameters clearly documented and tested. - RE2.4
+Regression Software should implement pre-processing routines to identify
+whether aspects of input data are perfectly collinear, notably
+including: - RE3.0 Issue appropriate warnings or other diagnostic
+messages for models which fail to converge. - RE3.2 Ensure that
+convergence thresholds have sensible default values, demonstrated
+through explicit documentation. - RE3.3 Allow explicit setting of
+convergence thresholds, unless reasons against doing so are explicitly
+documented.* - RE4.0 Regression Software should return some form of
+“model” object, generally through using or modifying existing class
+structures for model objects (such as <code>lm</code>, <code>glm</code>,
+or model objects from other packages), or creating a new class of model
+objects. - RE4.10 Model Residuals, including sufficient documentation to
+enable interpretation of residuals, and to enable users to submit
+residuals to their own tests. - RE4.11 Goodness-of-fit and other
+statistics associated such as effect sizes with model coefficients. -
+RE4.12 Where appropriate, functions used to transform input data, and
+associated inverse transform functions.* - RE4.13 Predictor variables,
+and associated “metadata” where applicable.* - RE4.17 Model objects
+returned by Regression Software should implement or appropriately extend
+a default <code>print</code> method which provides an on-screen summary
+of model (input) parameters and (output) coefficients. - RE4.18
+Regression Software may also implement <code>summary</code> methods for
+model objects, and in particular should implement distinct
+<code>summary</code> methods for any cases in which calculation of
+summary statistics is computationally non-trivial (for example, for
+bootstrapped estimates of confidence intervals).* - RE4.2 Model
+coefficients (via <code>coef()</code> / <code>coefficients()</code>) -
+RE4.3 Confidence intervals on those coefficients (via
+<code>confint()</code>) - RE4.5 Numbers of observations submitted to
+model (via <code>nobs()</code>) - RE4.6 The variance-covariance matrix
+of the model parameters (via <code>vcov()</code>) - RE4.7 Where
+appropriate, convergence statistics* - RE4.8 Response variables, and
+associated “metadata” where applicable. - RE4.9 Modelled values of
+response variables. - RE6.0 Model objects returned by Regression
+Software (see* <strong>RE4</strong><em>) should have default
+<code>plot</code> methods, either through explicit implementation,
+extension of methods for existing model objects, or through ensuring
+default methods work appropriately. - RE6.1 Where the default
+<code>plot</code> method is <strong>NOT</strong> a generic
+<code>plot</code> method dispatched on the class of return objects (that
+is, through an S3-type <code>plot.&lt;myclass&gt;</code> function or
+equivalent), that method dispatch (or equivalent) should nevertheless
+exist in order to explicitly direct users to the appropriate function. -
+RE6.2 The default <code>plot</code> method should produce a plot of the
+<code>fitted</code> values of the model, with optional visualisation of
+confidence intervals or equivalent.</em> - RE7.2 Demonstrate that output
+objects retain aspects of input data such as row or case names (see
+<strong>RE1.3</strong>). - RE7.3 Demonstrate and test expected behaviour
+when objects returned from regression software are submitted to the
+accessor methods of <strong>RE4.2</strong>–<strong>RE4.7</strong>.
+Standards on line#37 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/04_01_run_benchmark.R#L37">R/04_01_run_benchmark.R</a>:
+- G2.3 For univariate character input: - G2.3a Use
+<code>match.arg()</code> or equivalent where applicable to only permit
+expected values. - G2.3b Either: use <code>tolower()</code> or
+equivalent to ensure input of character parameters is not case
+dependent; or explicitly document that parameters are strictly
+case-sensitive. Standards on line#392 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/04_01_run_benchmark.R#L392">R/04_01_run_benchmark.R</a>:
+- G1.0 Statistical Software should list at least one primary reference
+from published academic literature.* - G1.1 Statistical Software should
+document whether the algorithm(s) it implements are:* - <em>The first
+implementation of a novel algorithm</em>; or - <em>The first
+implementation within <strong>R</strong> of an algorithm which has
+previously been implemented in other languages or contexts</em>; or -
+<em>An improvement on other implementations of similar algorithms in
+<strong>R</strong></em>. - G2.13 Statistical Software should implement
+appropriate checks for missing data as part of initial pre-processing
+prior to passing data to analytic algorithms. - G2.14a error on missing
+data - G2.15 Functions should never assume non-missingness, and should
+never pass data with potential missing values to any base routines with
+default <code>na.rm = FALSE</code>-type parameters (such as <a href="https://stat.ethz.ch/R-manual/R-devel/library/base/html/mean.html"><code>mean()</code></a>,
+<a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/sd.html"><code>sd()</code></a>
+or <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/cor.html"><code>cor()</code></a>).
+- G2.16 All functions should also provide options to handle undefined
+values (e.g., <code>NaN</code>, <code>Inf</code> and <code>-Inf</code>),
+including potentially ignoring or removing such values.* - G2.8 Software
+should provide appropriate conversion or dispatch routines as part of
+initial pre-processing to ensure that all other sub-functions of a
+package receive inputs of a single defined class or type. - G5.8d Data
+outside the scope of the algorithm (for example, data with more fields
+(columns) than observations (rows) for some regression algorithms)
+Standards on line#72 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/04_02_benchmark_visualisation.R#L72">R/04_02_benchmark_visualisation.R</a>:
+- G2.3 For univariate character input: - G2.3a Use
+<code>match.arg()</code> or equivalent where applicable to only permit
+expected values. - G2.3b Either: use <code>tolower()</code> or
+equivalent to ensure input of character parameters is not case
+dependent; or explicitly document that parameters are strictly
+case-sensitive. - G4.0 Statistical Software which enables outputs to be
+written to local files should parse parameters specifying file names to
+ensure appropriate file suffixes are automatically generated where not
+provided.* Standards on line#63 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/DeCovarT-package.R#L63">R/DeCovarT-package.R</a>:
+- G1.3 All statistical terminology should be clarified and unambiguously
+defined.* - G1.4 Software should use <a href="https://roxygen2.r-lib.org/"><code>roxygen2</code></a> to document
+all functions. - G1.4a All internal (non-exported) functions should also
+be documented in standard <a href="https://roxygen2.r-lib.org/"><code>roxygen2</code></a> format,
+along with a final <code>@noRd</code> tag to suppress automatic
+generation of <code>.Rd</code> files or <a href="https://roxygen2.r-lib.org/reference/tags-index-crossref.html?q=keywords%20internal#null"><code>@keywords internal</code></a>
+if documentation is still desired.* Standards on line#327 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/srr-stats-standards.R#L327">R/srr-stats-standards.R</a>:
+- G1.2 Statistical Software should include a* Life Cycle Statement
+<em>describing current and anticipated future states of
+development.</em> - G2.0 Implement assertions on lengths of inputs,
+particularly through asserting that inputs expected to be single- or
+multi-valued are indeed so. - G2.0a Provide explicit secondary
+documentation of any expectations on lengths of inputs - G2.1 Implement
+assertions on types of inputs (see the initial point on nomenclature
+above). - G2.1a Provide explicit secondary documentation of expectations
+on data types of all vector inputs. - G2.2 Appropriately prohibit or
+restrict submission of multivariate input to parameters expected to be
+univariate. - G3.1 Statistical software which relies on covariance
+calculations should enable users to choose between different algorithms
+for calculating covariances, and should not rely solely on covariances
+from the <code>stats::cov</code> function. - G3.1a The ability to use
+arbitrarily specified covariance methods should be documented (typically
+in examples or vignettes).* - G5.0 Where applicable or practicable,
+tests should use standard data sets with known properties (for example,
+the <a href="https://www.itl.nist.gov/div898/strd/">NIST Standard
+Reference Datasets</a>, or data sets provided by other widely-used R
+packages). - G5.1 Data sets created within, and used to test, a package
+should be exported (or otherwise made generally available) so that users
+can confirm tests and run examples.* - G5.10 Extended tests should
+included and run under a common framework with other tests but be
+switched on by flags such as as a
+<code>&lt;MYPKG&gt;_EXTENDED_TESTS=&quot;true&quot;</code> environment variable.*
+- The extended tests can be then run automatically by GitHub Actions for
+example by adding the following to the <code>env</code> section of the
+workflow: - G5.12 Any conditions necessary to run extended tests such as
+platform requirements, memory, expected runtime, and artefacts produced
+that may need manual inspection, should be described in developer
+documentation such as a <code>CONTRIBUTING.md</code> or
+<code>tests/README.md</code> file. - G5.2 Appropriate error and warning
+behaviour of all functions should be explicitly demonstrated through
+tests. In particular, - G5.2a Every message produced within R code by
+<code>stop()</code>, <code>warning()</code>, <code>message()</code>, or
+equivalent should be unique - G5.2b Explicit tests should demonstrate
+conditions which trigger every one of those messages, and should compare
+the result with expected values. - G5.3 For functions which are expected
+to return objects containing no missing (<code>NA</code>) or undefined
+(<code>NaN</code>, <code>Inf</code>) values, the absence of any such
+values in return objects should be explicitly tested.* - G5.4
+<em>Correctness tests<strong> <em>to test that statistical algorithms
+produce expected results to some fixed test data sets (potentially
+through comparisons using binding frameworks such as <a href="https://github.com/lbraglia/RStata">RStata</a>). - G5.4a For new
+methods, it can be difficult to separate out correctness of the method
+from the correctness of the implementation, as there may not be
+reference for comparison. In this case, testing may be implemented
+against simple, trivial cases or against multiple implementations such
+as an initial R implementation compared with results from a C/C++
+implementation. - G5.5 Correctness tests should be run with a fixed
+random seed - G5.6 </em>Parameter recovery tests</strong> </em>to test
+that the implementation produce expected results given data with known
+properties. For instance, a linear regression algorithm should return
+expected coefficient values for a simulated data set generated from a
+linear model. - G5.6a Parameter recovery tests should generally be
+expected to succeed within a defined tolerance rather than recovering
+exact values. - G5.6b Parameter recovery tests should be run with
+multiple random seeds when either data simulation or the algorithm
+contains a random component. (When long-running, such tests may be part
+of an extended, rather than regular, test suite; see G5.10-4.12,
+below).* - G5.8 <em>Edge condition tests<strong> <em>to test that these
+conditions produce expected behaviour such as clear warnings or errors
+when confronted with data with extreme properties including but not
+limited to: - G5.8a Zero-length data - G5.8b Data of unsupported types
+(e.g., character or complex numbers in for functions designed only for
+numeric data) - G5.8c Data with all-<code>NA</code> fields or columns or
+all identical fields or columns - G5.8d Data outside the scope of the
+algorithm (for example, data with more fields (columns) than
+observations (rows) for some regression algorithms) - G5.9 </em>Noise
+susceptibility tests</strong> </em>Packages should test for expected
+stochastic behaviour, such as through the following conditions: - G5.9a
+Adding trivial noise (for example, at the scale of
+<code>.Machine$double.eps</code>) to data does not meaningfully change
+results - G5.9b Running under different random seeds or initial
+conditions does not meaningfully change results* - PD1.0 Software should
+provide references justifying choice and usage of particular probability
+distributions.* - PD3.0 Manipulation of probability distributions should
+very generally be analytic, with numeric manipulations only implemented
+with clear justification (ideally including references).* - PD3.2 Use of
+optimisation routines to estimate parameters from probability
+distributions should explicitly specify and explain values of all
+parameters, including all uses of default parameters. - PD3.3 Return
+objects which include values generated from optimisation algorithms
+should include information on optimisation algorithm and performance,
+minimally including the name of the algorithm used, the convergence
+tolerance, and the number of iterations.* - PD4.0 The numeric outputs of
+probability distribution functions should be tested, not just output
+structures. These tests should generally be tests for numeric equality.*
+- PD4.1 Tests for numeric equality should compare the output of of
+probability distribution functions with the output of code which
+explicitly demonstrates how such values are derived (generally defined
+in the same location in test files).* - PD4.3 Tests of optimisation or
+integration algorithms should compare default results with results
+generated with alternative values for every parameter, including all
+parameters for the chosen algorithm (whether exposed as function inputs
+or not).* - PD4.4 Tests of optimisation or integration algorithms should
+compare equivalent results generated with at least one alternative
+algorithm.* - RE1.2 Regression Software should document expected format
+(types or classes) for inputting predictor variables, including
+descriptions of types or classes which are not accepted.* - RE1.3
+Regression Software which passes or otherwise transforms aspects of
+input data onto output structures should ensure that those output
+structures retain all relevant aspects of input data, notably including
+row and column names, and potentially information from other
+<code>attributes()</code>. - RE1.4 Regression Software should document
+any assumptions made with regard to input data; for example
+distributional assumptions, or assumptions that predictor data have mean
+values of zero. Implications of violations of these assumptions should
+be both documented and tested.* - RE2.0 Regression Software should
+document any transformations applied to input data, for example
+conversion of label-values to <code>factor</code>, and should provide
+ways to explicitly avoid any default transformations (with error or
+warning conditions where appropriate). - RE2.1 Regression Software
+should implement explicit parameters controlling the processing of
+missing values, ideally distinguishing <code>NA</code> or
+<code>NaN</code> values from <code>Inf</code> values (for example,
+through use of <code>na.omit()</code> and related functions from the
+<code>stats</code> package).* - RE2.3 Where applicable, Regression
+Software should enable data to be centred (for example, through
+converting to zero-mean equivalent values; or to z-scores) or offset
+(for example, to zero-intercept equivalent values) via additional
+parameters, with the effects of any such parameters clearly documented
+and tested. - RE2.4 Regression Software should implement pre-processing
 routines to identify whether aspects of input data are perfectly
-collinear, notably including:</p></li>
-<li><p>RE2.4a Perfect collinearity among predictor variables</p></li>
-<li><p>RE3.0 Issue appropriate warnings or other diagnostic messages for
-models which fail to converge.</p></li>
-<li><p>RE3.1 Enable such messages to be optionally suppressed, yet
-should ensure that the resultant model object nevertheless includes
-sufficient data to identify lack of convergence.</p></li>
-<li><p>RE3.2 Ensure that convergence thresholds have sensible default
-values, demonstrated through explicit documentation.</p></li>
-<li><p>RE3.3 Allow explicit setting of convergence thresholds, unless
-reasons against doing so are explicitly documented.*</p></li>
-<li><p>RE4.0 Regression Software should return some form of “model”
-object, generally through using or modifying existing class structures
-for model objects (such as <code>lm</code>, <code>glm</code>, or model
-objects from other packages), or creating a new class of model
-objects.</p></li>
-<li><p>RE4.12 Where appropriate, functions used to transform input data,
-and associated inverse transform functions.*</p></li>
-<li><p>RE4.13 Predictor variables, and associated “metadata” where
-applicable.*</p></li>
-<li><p>RE4.17 Model objects returned by Regression Software should
-implement or appropriately extend a default <code>print</code> method
-which provides an on-screen summary of model (input) parameters and
-(output) coefficients.</p></li>
-<li><p>RE4.2 Model coefficients (via <code>coef()</code> /
-<code>coefficients()</code>)</p></li>
-<li><p>RE4.3 Confidence intervals on those coefficients (via
-<code>confint()</code>)</p></li>
-<li><p>RE4.5 Numbers of observations submitted to model (via
-<code>nobs()</code>)</p></li>
-<li><p>RE4.6 The variance-covariance matrix of the model parameters (via
-<code>vcov()</code>)</p></li>
-<li><p>RE4.7 Where appropriate, convergence statistics*</p></li>
-<li><p>RE4.8 Response variables, and associated “metadata” where
-applicable.</p></li>
-<li><p>RE4.9 Modelled values of response variables.</p></li>
-<li><p>RE6.0 Model objects returned by Regression Software (see*
-<strong>RE4</strong>*) should have default <code>plot</code> methods,
-either through explicit implementation, extension of methods for
-existing model objects, or through ensuring default methods work
-appropriately.</p></li>
-<li><p>RE6.1 Where the default <code>plot</code> method is
-<strong>NOT</strong> a generic <code>plot</code> method dispatched on
-the class of return objects (that is, through an S3-type
-<code>plot.&lt;myclass&gt;</code> function or equivalent), that method
-dispatch (or equivalent) should nevertheless exist in order to
-explicitly direct users to the appropriate function.</p></li>
-<li><p>RE6.2 The default <code>plot</code> method should produce a plot
-of the <code>fitted</code> values of the model, with optional
-visualisation of confidence intervals or equivalent.*</p></li>
-<li><p>RE7.0 Tests with noiseless, exact relationships between predictor
-(independent) data.</p></li>
-<li><p>RE7.0a In particular, these tests should confirm ability to
-reject perfectly noiseless input data.</p></li>
-<li><p>RE7.1 Tests with noiseless, exact relationships between predictor
-(independent) and response (dependent) data.</p></li>
-<li><p>RE7.2 Demonstrate that output objects retain aspects of input
-data such as row or case names (see <strong>RE1.3</strong>).</p></li>
-<li><p>RE7.3 Demonstrate and test expected behaviour when objects
+collinear, notably including: - RE2.4a Perfect collinearity among
+predictor variables - RE2.4b Perfect collinearity between independent
+and dependent variables* - RE3.0 Issue appropriate warnings or other
+diagnostic messages for models which fail to converge. - RE3.1 Enable
+such messages to be optionally suppressed, yet should ensure that the
+resultant model object nevertheless includes sufficient data to identify
+lack of convergence. - RE3.2 Ensure that convergence thresholds have
+sensible default values, demonstrated through explicit documentation. -
+RE3.3 Allow explicit setting of convergence thresholds, unless reasons
+against doing so are explicitly documented.* - RE4.0 Regression Software
+should return some form of “model” object, generally through using or
+modifying existing class structures for model objects (such as
+<code>lm</code>, <code>glm</code>, or model objects from other
+packages), or creating a new class of model objects. - RE4.10 Model
+Residuals, including sufficient documentation to enable interpretation
+of residuals, and to enable users to submit residuals to their own
+tests. - RE4.11 Goodness-of-fit and other statistics associated such as
+effect sizes with model coefficients. - RE4.12 Where appropriate,
+functions used to transform input data, and associated inverse transform
+functions.* - RE4.13 Predictor variables, and associated “metadata”
+where applicable.* - RE4.17 Model objects returned by Regression
+Software should implement or appropriately extend a default
+<code>print</code> method which provides an on-screen summary of model
+(input) parameters and (output) coefficients. - RE4.18 Regression
+Software may also implement <code>summary</code> methods for model
+objects, and in particular should implement distinct
+<code>summary</code> methods for any cases in which calculation of
+summary statistics is computationally non-trivial (for example, for
+bootstrapped estimates of confidence intervals).* - RE4.2 Model
+coefficients (via <code>coef()</code> / <code>coefficients()</code>) -
+RE4.3 Confidence intervals on those coefficients (via
+<code>confint()</code>) - RE4.5 Numbers of observations submitted to
+model (via <code>nobs()</code>) - RE4.6 The variance-covariance matrix
+of the model parameters (via <code>vcov()</code>) - RE4.7 Where
+appropriate, convergence statistics* - RE4.8 Response variables, and
+associated “metadata” where applicable. - RE4.9 Modelled values of
+response variables. - RE6.0 Model objects returned by Regression
+Software (see* <strong>RE4</strong><em>) should have default
+<code>plot</code> methods, either through explicit implementation,
+extension of methods for existing model objects, or through ensuring
+default methods work appropriately. - RE6.1 Where the default
+<code>plot</code> method is <strong>NOT</strong> a generic
+<code>plot</code> method dispatched on the class of return objects (that
+is, through an S3-type <code>plot.&lt;myclass&gt;</code> function or
+equivalent), that method dispatch (or equivalent) should nevertheless
+exist in order to explicitly direct users to the appropriate function. -
+RE6.2 The default <code>plot</code> method should produce a plot of the
+<code>fitted</code> values of the model, with optional visualisation of
+confidence intervals or equivalent.</em> - RE7.0 Tests with noiseless,
+exact relationships between predictor (independent) data. - RE7.0a In
+particular, these tests should confirm ability to reject perfectly
+noiseless input data. - RE7.1 Tests with noiseless, exact relationships
+between predictor (independent) and response (dependent) data. - RE7.1a
+In particular, these tests should confirm that model fitting is at least
+as fast or (preferably) faster than testing with equivalent noisy data
+(see RE2.4b).* - RE7.2 Demonstrate that output objects retain aspects of
+input data such as row or case names (see <strong>RE1.3</strong>). -
+RE7.3 Demonstrate and test expected behaviour when objects returned from
+regression software are submitted to the accessor methods of
+<strong>RE4.2</strong>–<strong>RE4.7</strong>. Standards on line#36 of
+file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/statistical_metrics.R#L36">R/statistical_metrics.R</a>:
+- G3.0 Statistical software should never compare floating point numbers
+for equality. All numeric equality comparisons should either ensure that
+they are made between integers, or use appropriate tolerances for
+approximate equality.* Standards on line#22 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/utils.R#L22">R/utils.R</a>:
+- G2.3 For univariate character input: - G2.3a Use
+<code>match.arg()</code> or equivalent where applicable to only permit
+expected values. - G2.3b Either: use <code>tolower()</code> or
+equivalent to ensure input of character parameters is not case
+dependent; or explicitly document that parameters are strictly
+case-sensitive. - G3.0 Statistical software should never compare
+floating point numbers for equality. All numeric equality comparisons
+should either ensure that they are made between integers, or use
+appropriate tolerances for approximate equality.* Standards on line#76
+of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/utils.R#L76">R/utils.R</a>:
+- G2.13 Statistical Software should implement appropriate checks for
+missing data as part of initial pre-processing prior to passing data to
+analytic algorithms. - G2.14 Where possible, all functions should
+provide options for users to specify how to handle missing
+(<code>NA</code>) data, with options minimally including: - G2.14a error
+on missing data - G2.15 Functions should never assume non-missingness,
+and should never pass data with potential missing values to any base
+routines with default <code>na.rm = FALSE</code>-type parameters (such
+as <a href="https://stat.ethz.ch/R-manual/R-devel/library/base/html/mean.html"><code>mean()</code></a>,
+<a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/sd.html"><code>sd()</code></a>
+or <a href="https://stat.ethz.ch/R-manual/R-devel/library/stats/html/cor.html"><code>cor()</code></a>).
+- G2.16 All functions should also provide options to handle undefined
+values (e.g., <code>NaN</code>, <code>Inf</code> and <code>-Inf</code>),
+including potentially ignoring or removing such values.* Standards on
+line#107 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/utils.R#L107">R/utils.R</a>:
+- G2.1 Implement assertions on types of inputs (see the initial point on
+nomenclature above). - G2.6 Software which accepts one-dimensional input
+should ensure values are appropriately pre-processed regardless of class
+structures.* - G2.8 Software should provide appropriate conversion or
+dispatch routines as part of initial pre-processing to ensure that all
+other sub-functions of a package receive inputs of a single defined
+class or type. - G2.9 Software should issue diagnostic messages for type
+conversion in which information is lost (such as conversion of variables
+from factor to character; standardisation of variable names; or removal
+of meta-data such as those associated with <a href="https://r-spatial.github.io/sf/"><code>sf</code>-format</a> data)
+or added (such as insertion of variable or column names where none were
+provided).* Standards on line#154 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/utils.R#L154">R/utils.R</a>:
+- G4.0 Statistical Software which enables outputs to be written to local
+files should parse parameters specifying file names to ensure
+appropriate file suffixes are automatically generated where not
+provided.* Standards on line#193 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/utils.R#L193">R/utils.R</a>:
+- G4.0 Statistical Software which enables outputs to be written to local
+files should parse parameters specifying file names to ensure
+appropriate file suffixes are automatically generated where not
+provided.* Standards on line#267 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/utils.R#L267">R/utils.R</a>:
+- G2.6 Software which accepts one-dimensional input should ensure values
+are appropriately pre-processed regardless of class structures.*
+Standards on line#337 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/utils.R#L337">R/utils.R</a>:
+- G2.10 Software should ensure that extraction or filtering of single
+columns from tabular inputs should not presume any particular default
+behaviour, and should ensure all column-extraction operations behave
+consistently regardless of the class of tabular data used as input.* -
+G2.8 Software should provide appropriate conversion or dispatch routines
+as part of initial pre-processing to ensure that all other sub-functions
+of a package receive inputs of a single defined class or type. - G5.8d
+Data outside the scope of the algorithm (for example, data with more
+fields (columns) than observations (rows) for some regression
+algorithms) - RE2.3 Where applicable, Regression Software should enable
+data to be centred (for example, through converting to zero-mean
+equivalent values; or to z-scores) or offset (for example, to
+zero-intercept equivalent values) via additional parameters, with the
+effects of any such parameters clearly documented and tested. - RE2.4a
+Perfect collinearity among predictor variables</p>
+</div>
+<div id="tests-directory" class="section level3">
+<h3>tests directory</h3>
+<p>Standards on line#15 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/tests/testthat/test-03_05_decovart_fit.R#L15">tests/testthat/test-03_05_decovart_fit.R</a>:
+- PD4.0 The numeric outputs of probability distribution functions should
+be tested, not just output structures. These tests should generally be
+tests for numeric equality.* - PD4.1 Tests for numeric equality should
+compare the output of of probability distribution functions with the
+output of code which explicitly demonstrates how such values are derived
+(generally defined in the same location in test files).* - PD4.3 Tests
+of optimisation or integration algorithms should compare default results
+with results generated with alternative values for every parameter,
+including all parameters for the chosen algorithm (whether exposed as
+function inputs or not).* - PD4.4 Tests of optimisation or integration
+algorithms should compare equivalent results generated with at least one
+alternative algorithm.* - RE7.1 Tests with noiseless, exact
+relationships between predictor (independent) and response (dependent)
+data. - RE7.3 Demonstrate and test expected behaviour when objects
 returned from regression software are submitted to the accessor methods
-of <strong>RE4.2</strong>–<strong>RE4.7</strong>.</p></li>
-</ul>
-<p>Standards on line#25 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/statistical_metrics.R#L25">R/statistical_metrics.R</a>:</p>
-<ul>
-<li>G3.0 Statistical software should never compare floating point
-numbers for equality. All numeric equality comparisons should either
-ensure that they are made between integers, or use appropriate
-tolerances for approximate equality.*</li>
-</ul>
+of <strong>RE4.2</strong>–<strong>RE4.7</strong>.</p>
 <hr />
 </div>
 </div>
 <div id="standards-with-srrstatsna-tag" class="section level2">
 <h2>Standards with <code>srrstatsNA</code> tag</h2>
-<p><strong>Numbers of standards:</strong></p>
-<ul>
-<li><p>G : 1 / 68</p></li>
-<li><p>RE : 0 / 48</p></li>
-<li><p>Total : 1 / 116</p></li>
-</ul>
+<p><strong>Numbers of standards:</strong> - G : 17 / 68 - PD : 6 / 14 -
+RE : 11 / 48 - Total : 34 / 130</p>
 <div id="r-directory-1" class="section level3">
 <h3>R directory</h3>
-<p>Standards on line#348 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/srr-stats-standards.R#L348">R/srr-stats-standards.R</a>:</p>
-<ul>
-<li>G4.0 Statistical Software which enables outputs to be written to
-local files should parse parameters specifying file names to ensure
-appropriate file suffixes are automatically generated where not
-provided.*</li>
-</ul>
+<p>Standards on line#406 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/srr-stats-standards.R#L406">R/srr-stats-standards.R</a>:
+- G1.6 Software should include code necessary to compare performance
+claims with alternative implementations in other R packages.* - G2.11
+Software should ensure that <code>data.frame</code>-like tabular objects
+which have columns which do not themselves have standard class
+attributes (typically, <code>vector</code>) are appropriately processed,
+and do not error without reason. This behaviour should be tested. Again,
+columns created by the <a href="https://github.com/r-quantities/units/"><code>units</code>
+package</a> provide a good test case. - G2.12 Software should ensure
+that <code>data.frame</code>-like tabular objects which have list
+columns should ensure that those columns are appropriately pre-processed
+either through being removed, converted to equivalent vector columns
+where appropriate, or some other appropriate treatment such as an
+informative error. This behaviour should be tested.* - G2.14b ignore
+missing data with default warnings or messages issued - G2.14c replace
+missing data with appropriately imputed values - G2.4 Provide
+appropriate mechanisms to convert between different data types,
+potentially including: - G2.4a explicit conversion to
+<code>integer</code> via <code>as.integer()</code> - G2.4b explicit
+conversion to continuous via <code>as.numeric()</code> - G2.4c explicit
+conversion to character via <code>as.character()</code> (and not
+<code>paste</code> or <code>paste0</code>) - G2.4d explicit conversion
+to factor via <code>as.factor()</code> - G2.4e explicit conversion from
+factor via <code>as...()</code> functions - G2.5 Where inputs are
+expected to be of <code>factor</code> type, secondary documentation
+should explicitly state whether these should be <code>ordered</code> or
+not, and those inputs should provide appropriate error or other routines
+to ensure inputs follow these expectations.* - G2.7 Software should
+accept as input as many of the above standard tabular forms as possible,
+including extension to domain-specific forms.* - G5.11 Where extended
+tests require large data sets or other assets, these should be provided
+for downloading and fetched as part of the testing workflow. - G5.11a
+When any downloads of additional data necessary for extended tests fail,
+the tests themselves should not fail, rather be skipped and implicitly
+succeed with an appropriate diagnostic message. - G5.4b For new
+implementations of existing methods, correctness tests should include
+tests against previous implementations. Such testing may explicitly call
+those implementations in testing, preferably from fixed-versions of
+other software, or use stored outputs from those where that is not
+possible. - G5.4c Where applicable, stored values may be drawn from
+published paper outputs when applicable and where code from original
+implementations is not available - PD2.0 Where possible, software should
+represent probability distributions using a package for general
+representation.* - PD3.1 Operations on probability distributions should
+generally be contained within separate functions which themselves accept
+the names of the distributions as one input parameter.* - PD3.4 Use of
+routines to integrate probability distributions should explicitly
+document conditions under which integrals are expected to remain stable,
+and ideally include pre-processing checks for potentially unstable
+behaviour. - PD3.5 Integration routines should only rely on discrete
+summation where such use can be justified (for example, through
+providing a literature reference), in which case the following applies:
+- PD3.5a Use of discrete summation to approximate integrals must
+demonstrate that the Reimann sum has a finite limit (or, equivalently,
+must explicitly describe the conditions under which the sum may be
+expected to be finite).* - PD4.2 All functions constructed in accordance
+with <strong>PD2.1</strong> - that is, which use a fixed distribution,
+and which name that distribution as an input parameter - should be
+tested using at least two different distributions.* - RE1.0 Regression
+Software should enable models to be specified via a formula interface,
+unless reasons for not doing so are explicitly documented. - RE1.1
+Regression Software should document how formula interfaces are converted
+to matrix representations of input data.* - RE1.3a Where otherwise
+relevant information is not transferred, this should be explicitly
+documented.* - RE2.2 Regression Software should provide different
+options for processing missing values in predictor and response data.
+For example, it should be possible to fit a model with no missing
+predictor data in order to generate values for all associated response
+points, even where submitted response values may be missing. - RE4.1
+Regression Software may enable an ability to generate a model object
+without actually fitting values. This may be useful for controlling
+batch processing of computationally intensive fitting algorithms.* -
+RE4.14 Where possible, values should also be provided for extrapolation
+or forecast <em>errors</em>. - RE4.15 Sufficient documentation and/or
+testing should be provided to demonstrate that forecast errors,
+confidence intervals, or equivalent values increase with forecast
+horizons.* - RE4.16 Regression Software which models distinct responses
+for different categorical groups should include the ability to submit
+new groups to <code>predict()</code> methods.* - RE4.4 The specification
+of the model, generally as a formula (via <code>formula()</code>) -
+RE6.3 Where a model object is used to generate a forecast (for example,
+through a <code>predict()</code> method), the default <code>plot</code>
+method should provide clear visual distinction between modelled
+(interpolated) and forecast (extrapolated) values.* - RE7.4 Extending
+directly from <strong>RE4.15</strong>, where appropriate, tests should
+demonstrate and confirm that forecast errors, confidence intervals, or
+equivalent values increase with forecast horizons.</p>
 <hr />
 </div>
 </div>
 <div id="standards-with-srrstatstodo-tag" class="section level2">
 <h2>Standards with <code>srrstatsTODO</code> tag</h2>
-<p><strong>Numbers of standards:</strong></p>
-<ul>
-<li><p>G : 32 / 68</p></li>
-<li><p>RE : 17 / 48</p></li>
-<li><p>Total : 49 / 116</p></li>
-</ul>
+<p><strong>Numbers of standards:</strong> - G : 2 / 68 - PD : 0 / 14 -
+RE : 1 / 48 - Total : 3 / 130</p>
 <div id="r-directory-2" class="section level3">
 <h3>R directory</h3>
-<p>Standards on line#338 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/srr-stats-standards.R#L338">R/srr-stats-standards.R</a>:</p>
-<ul>
-<li><p>G1.5 Software should include all code necessary to reproduce
-results which form the basis of performance claims made in associated
-publications.*</p></li>
-<li><p>G1.6 Software should include code necessary to compare
-performance claims with alternative implementations in other R
-packages.*</p></li>
-<li><p>G2.10 Software should ensure that extraction or filtering of
-single columns from tabular inputs should not presume any particular
-default behaviour, and should ensure all column-extraction operations
-behave consistently regardless of the class of tabular data used as
-input.*</p></li>
-<li><p>G2.11 Software should ensure that <code>data.frame</code>-like
-tabular objects which have columns which do not themselves have standard
-class attributes (typically, <code>vector</code>) are appropriately
-processed, and do not error without reason. This behaviour should be
-tested. Again, columns created by the <a href="https://github.com/r-quantities/units/"><code>units</code>
-package</a> provide a good test case.</p></li>
-<li><p>G2.12 Software should ensure that <code>data.frame</code>-like
-tabular objects which have list columns should ensure that those columns
-are appropriately pre-processed either through being removed, converted
-to equivalent vector columns where appropriate, or some other
-appropriate treatment such as an informative error. This behaviour
-should be tested.*</p></li>
-<li><p>G2.14 Where possible, all functions should provide options for
-users to specify how to handle missing (<code>NA</code>) data, with
-options minimally including:</p></li>
-<li><p>G2.14a error on missing data</p></li>
-<li><p>G2.14b ignore missing data with default warnings or messages
-issued</p></li>
-<li><p>G2.14c replace missing data with appropriately imputed
-values</p></li>
-<li><p>G2.16 All functions should also provide options to handle
-undefined values (e.g., <code>NaN</code>, <code>Inf</code> and
-<code>-Inf</code>), including potentially ignoring or removing such
-values.*</p></li>
-<li><p>G2.4 Provide appropriate mechanisms to convert between different
-data types, potentially including:</p></li>
-<li><p>G2.4a explicit conversion to <code>integer</code> via
-<code>as.integer()</code></p></li>
-<li><p>G2.4b explicit conversion to continuous via
-<code>as.numeric()</code></p></li>
-<li><p>G2.4c explicit conversion to character via
-<code>as.character()</code> (and not <code>paste</code> or
-<code>paste0</code>)</p></li>
-<li><p>G2.4d explicit conversion to factor via
-<code>as.factor()</code></p></li>
-<li><p>G2.4e explicit conversion from factor via <code>as...()</code>
-functions</p></li>
-<li><p>G2.5 Where inputs are expected to be of <code>factor</code> type,
-secondary documentation should explicitly state whether these should be
-<code>ordered</code> or not, and those inputs should provide appropriate
-error or other routines to ensure inputs follow these
-expectations.*</p></li>
-<li><p>G2.6 Software which accepts one-dimensional input should ensure
-values are appropriately pre-processed regardless of class
-structures.*</p></li>
-<li><p>G2.7 Software should accept as input as many of the above
-standard tabular forms as possible, including extension to
-domain-specific forms.*</p></li>
-<li><p>G2.8 Software should provide appropriate conversion or dispatch
-routines as part of initial pre-processing to ensure that all other
-sub-functions of a package receive inputs of a single defined class or
-type.</p></li>
-<li><p>G2.9 Software should issue diagnostic messages for type
-conversion in which information is lost (such as conversion of variables
-from factor to character; standardisation of variable names; or removal
-of meta-data such as those associated with <a href="https://r-spatial.github.io/sf/"><code>sf</code>-format</a> data)
-or added (such as insertion of variable or column names where none were
-provided).*</p></li>
-<li><p>G5.1 Data sets created within, and used to test, a package should
-be exported (or otherwise made generally available) so that users can
-confirm tests and run examples.*</p></li>
-<li><p>G5.10 Extended tests should included and run under a common
-framework with other tests but be switched on by flags such as as a
-<code>&lt;MYPKG&gt;_EXTENDED_TESTS=&quot;true&quot;</code> environment variable.*
-- The extended tests can be then run automatically by GitHub Actions for
-example by adding the following to the <code>env</code> section of the
-workflow:</p></li>
-<li><p>G5.11 Where extended tests require large data sets or other
-assets, these should be provided for downloading and fetched as part of
-the testing workflow.</p></li>
-<li><p>G5.11a When any downloads of additional data necessary for
-extended tests fail, the tests themselves should not fail, rather be
-skipped and implicitly succeed with an appropriate diagnostic
-message.</p></li>
-<li><p>G5.12 Any conditions necessary to run extended tests such as
-platform requirements, memory, expected runtime, and artefacts produced
-that may need manual inspection, should be described in developer
-documentation such as a <code>CONTRIBUTING.md</code> or
-<code>tests/README.md</code> file.</p></li>
-<li><p>G5.4b For new implementations of existing methods, correctness
-tests should include tests against previous implementations. Such
-testing may explicitly call those implementations in testing, preferably
-from fixed-versions of other software, or use stored outputs from those
-where that is not possible.</p></li>
-<li><p>G5.4c Where applicable, stored values may be drawn from published
-paper outputs when applicable and where code from original
-implementations is not available</p></li>
-<li><p>G5.6b Parameter recovery tests should be run with multiple random
-seeds when either data simulation or the algorithm contains a random
-component. (When long-running, such tests may be part of an extended,
-rather than regular, test suite; see G5.10-4.12, below).*</p></li>
-<li><p>G5.7 *Algorithm performance tests** *to test that implementation
-performs as expected as properties of data change. For instance, a test
-may show that parameters approach correct estimates within tolerance as
-data size increases, or that convergence times decrease for higher
-convergence thresholds.</p></li>
-<li><p>G5.8d Data outside the scope of the algorithm (for example, data
-with more fields (columns) than observations (rows) for some regression
-algorithms)</p></li>
-<li><p>G5.9b Running under different random seeds or initial conditions
-does not meaningfully change results*</p></li>
-<li><p>RE1.0 Regression Software should enable models to be specified
-via a formula interface, unless reasons for not doing so are explicitly
-documented.</p></li>
-<li><p>RE1.3a Where otherwise relevant information is not transferred,
-this should be explicitly documented.*</p></li>
-<li><p>RE2.2 Regression Software should provide different options for
-processing missing values in predictor and response data. For example,
-it should be possible to fit a model with no missing predictor data in
-order to generate values for all associated response points, even where
-submitted response values may be missing.</p></li>
-<li><p>RE2.3 Where applicable, Regression Software should enable data to
-be centred (for example, through converting to zero-mean equivalent
-values; or to z-scores) or offset (for example, to zero-intercept
-equivalent values) via additional parameters, with the effects of any
-such parameters clearly documented and tested.</p></li>
-<li><p>RE2.4b Perfect collinearity between independent and dependent
-variables*</p></li>
-<li><p>RE4.1 Regression Software may enable an ability to generate a
-model object without actually fitting values. This may be useful for
-controlling batch processing of computationally intensive fitting
-algorithms.*</p></li>
-<li><p>RE4.10 Model Residuals, including sufficient documentation to
-enable interpretation of residuals, and to enable users to submit
-residuals to their own tests.</p></li>
-<li><p>RE4.11 Goodness-of-fit and other statistics associated such as
-effect sizes with model coefficients.</p></li>
-<li><p>RE4.14 Where possible, values should also be provided for
-extrapolation or forecast <em>errors</em>.</p></li>
-<li><p>RE4.15 Sufficient documentation and/or testing should be provided
-to demonstrate that forecast errors, confidence intervals, or equivalent
-values increase with forecast horizons.*</p></li>
-<li><p>RE4.16 Regression Software which models distinct responses for
-different categorical groups should include the ability to submit new
-groups to <code>predict()</code> methods.*</p></li>
-<li><p>RE4.18 Regression Software may also implement
-<code>summary</code> methods for model objects, and in particular should
-implement distinct <code>summary</code> methods for any cases in which
-calculation of summary statistics is computationally non-trivial (for
-example, for bootstrapped estimates of confidence intervals).*</p></li>
-<li><p>RE4.4 The specification of the model, generally as a formula (via
-<code>formula()</code>)</p></li>
-<li><p>RE5.0 Scaling relationships between sizes of input data (numbers
-of observations, with potential extension to numbers of
-variables/columns) and speed of algorithm.*</p></li>
-<li><p>RE6.3 Where a model object is used to generate a forecast (for
-example, through a <code>predict()</code> method), the default
-<code>plot</code> method should provide clear visual distinction between
-modelled (interpolated) and forecast (extrapolated) values.*</p></li>
-<li><p>RE7.1a In particular, these tests should confirm that model
-fitting is at least as fast or (preferably) faster than testing with
-equivalent noisy data (see RE2.4b).*</p></li>
-<li><p>RE7.4 Extending directly from <strong>RE4.15</strong>, where
-appropriate, tests should demonstrate and confirm that forecast errors,
-confidence intervals, or equivalent values increase with forecast
-horizons.</p></li>
-</ul>
+<p>Standards on line#327 of file <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/srr-stats-standards.R#L327">R/srr-stats-standards.R</a>:
+- G1.5 Software should include all code necessary to reproduce results
+which form the basis of performance claims made in associated
+publications.* - G5.7 *Algorithm performance tests** <em>to test that
+implementation performs as expected as properties of data change. For
+instance, a test may show that parameters approach correct estimates
+within tolerance as data size increases, or that convergence times
+decrease for higher convergence thresholds. - RE5.0 Scaling
+relationships between sizes of input data (numbers of observations, with
+potential extension to numbers of variables/columns) and speed of
+algorithm.</em></p>
 <hr />
 </div>
 </div>

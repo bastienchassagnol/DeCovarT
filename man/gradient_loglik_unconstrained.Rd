@@ -31,11 +31,16 @@ Analytic gradient of \code{\link[=loglik_multivariate]{loglik_multivariate()}} w
 \deqn{
   \frac{\partial\ell}{\partial p_j}
   =
-  -2p_j\,\mathrm{Tr}\!\bigl(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\bigr)
+  -p_j\,\mathrm{Tr}\!\bigl(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\bigr)
   +\boldsymbol{r}^{\mathsf{T}}\boldsymbol{\Theta}\boldsymbol{\mu}_{\cdot j}
   +p_j\,\boldsymbol{r}^{\mathsf{T}}
   \boldsymbol{\Theta}\boldsymbol{\Sigma}_j\boldsymbol{\Theta}\boldsymbol{r}.
 }
+The determinant score is \eqn{-p_j\mathrm{Tr}(\boldsymbol{\Theta}
+\boldsymbol{\Sigma}_j)} because
+\eqn{\partial\boldsymbol{\Sigma}/\partial p_j=2p_j\boldsymbol{\Sigma}_j}
+enters \eqn{-\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})}; the
+two residual terms are unaffected by that factor.
 }
 \details{
 Unit tests compare this analytic gradient to a numerical reference from

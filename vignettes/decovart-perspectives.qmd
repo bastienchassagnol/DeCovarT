@@ -303,6 +303,7 @@ flowchart TD
   B --> E["Poisson / PLN / ZIPLN: DeconV, Chiquet"]
   C --> F["Univariate Gaussian: DSection, DeMix, BayICE"]
   C --> G["Multivariate Gaussian convolution: DeCovarT"]
+  C --> RS["CLT Gaussian + noisy M: RNA-Sieve"]
   C --> H["Log-normal convolution: BLADE"]
   D --> I["Bayesian joint p and CTS"]
   G --> J["Frequentist plug-in mu, Sigma"]
@@ -343,6 +344,19 @@ frequentist convolutions that treat tumour or stromal profiles as latent
 [@ahnDeMixDeconvolutionMixed2013; @wangTranscriptomeDeconvolutionHeterogeneous2018].
 DeCovarT keeps that convolution but makes it **multivariate** with sparse
 $\boldsymbol{\Sigma}_{j}$.
+
+`RNA-Sieve` is a supervised likelihood, but not that convolution
+[@erdmann-phamLikelihoodbasedDeconvolutionBulk2021]. Their $M$,
+$\alpha$ and $b$ are DeCovarT's $\boldsymbol{\mu}$, $\boldsymbol{p}$ and
+$\boldsymbol{y}$. The bulk is modelled as the sum of $n$ cells with a
+*gene-wise* central-limit Gaussian, plus measurement error in $M$
+(errors-in-variables). Genes are independent. Wald regions use the
+inverse Fisher information, or the Godambe sandwich under protocol
+shift. DeCovarT instead uses a full $\boldsymbol{\Sigma}(\boldsymbol{p})$ and
+plug-in moments; the resampling counterpart of noisy $M$ is
+[`reference_bootstrap_decovart()`](../reference/reference_bootstrap_decovart.html).
+A side-by-side comparison is in the
+[MLE properties vignette](DeCovarT-MLE-properties.html#sec-rna-sieve).
 
 `BLADE` replaces the Gaussian with a **gene-wise log-normal**
 convolution, jointly purifying CTS profiles by variational inference

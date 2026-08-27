@@ -435,6 +435,7 @@
     \end{equation}
 
     \subsection{Model assumptions}
+    \label{subsec:model-assumptions-rank}
 
     In contrast to standard linear regression, DeCovarT relaxes
     \emph{exogeneity} by treating latent cell-type expression profiles as
@@ -450,6 +451,20 @@
     generalises the DSection likelihood to a \emph{multivariate} Gaussian
     convolution with a sparse cell-type-specific covariance
     $\boldsymbol{\Sigma}_{j}$.
+
+    RNA-Sieve \cite{erdmann-phamLikelihoodbasedDeconvolutionBulk2021} is
+    also a supervised, likelihood-based deconvolution, but of a different
+    generative model. Writing their mean matrix $M$, mixing weights
+    $\alpha$ and bulk $b$ for DeCovarT's $\boldsymbol{\mu}$,
+    $\boldsymbol{p}$ and $\boldsymbol{y}$, they treat $b$ as the sum of
+    $n$ independent cells and invoke a \emph{gene-wise} central-limit
+    Gaussian whose variance $s_{g}^{2}(M,\alpha,S)$ depends on $\alpha$.
+    They further model estimation error in $M$
+    ($\varepsilon_{M,gk}\sim\mathcal{N}(0,s_{gk}/c_{k})$), an
+    errors-in-variables correction of the design rather than a convolution
+    of $J$ latent type profiles. Genes are taken as independent.
+    DeCovarT instead convolves multivariate type profiles and treats
+    $(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})$ as plug-in known.
 
     Latent profile $\boldsymbol{x}_{\cdot j}\in\mathbb{R}^{G}$ of cell type
     $j$ is multivariate Gaussian (\ref{eq-multivariate-gaussian}):
@@ -544,12 +559,21 @@
     \ref{eq-loglikelihood-multivariate-gaussian}:
 
     \begin{equation}
-        \ell_{\boldsymbol{y} | \boldsymbol{\zeta}}(\boldsymbol{p})=C + \log\left(
-        \DET \left(\sum_{j=1}^{J} p_{j}^{2}\boldsymbol{\Sigma}_{j}\right)^{-1}\right
+        \ell_{\boldsymbol{y} | \boldsymbol{\zeta}}(\boldsymbol{p})=C + \frac{1}{2}\log
+        \left(\DET \left(\sum_{j=1}^{J} p_{j}^{2}\boldsymbol{\Sigma}_{j}\right)^{-1}\right
         ) - \frac{1}{2}(\boldsymbol{y}- \boldsymbol{\mu}\boldsymbol{p})^{\top} \left
         (\sum_{j=1}^{J} p_{j}^{2}\boldsymbol{\Sigma}_{j}\right)^{-1}(\boldsymbol{y}
         - \boldsymbol{\mu}\boldsymbol{p}) \label{eq-loglikelihood-multivariate-gaussian}
     \end{equation}
+
+    Both the log-determinant and the Mahalanobis residual carry the factor
+    $\frac{1}{2}$ of the Gaussian log-density
+    (\ref{eq-conditional-multivariate-distribution}). Keeping that factor is
+    what makes the score and Hessian derived below consistent with the
+    expected Fisher information used for Wald inference in
+    \ref{subsec:asymptotic-inference}: taking expectations of
+    \ref{eq-hessian-log-likelihood-unconstrained} under the generative model
+    returns $\mathcal{I}(\boldsymbol{p})$ exactly.
 
     \subsection{First and second-order derivation of the unconstrained DeCovarT
     log-likelihood function}
@@ -566,7 +590,7 @@
         \label{eq-derivative-log-likelihood-unconstrained}
         \begin{split}
             \frac{\partial \ell_{\boldsymbol{y} | \boldsymbol{\zeta}}(\boldsymbol{p})}{\partial
-            p_{j}}=&\scriptstyle \frac{\partial \log\left(\DET(\boldsymbol{\Theta})\right)}{\partial
+            p_{j}}=&\scriptstyle \frac{1}{2}\frac{\partial \log\left(\DET(\boldsymbol{\Theta})\right)}{\partial
             p_{j}}-\frac{1}{2}\left[\frac{\partial (\boldsymbol{y}- \boldsymbol{\mu}\boldsymbol{p})^{\top}}{\partial
             p_{j}}\boldsymbol{\Theta}(\boldsymbol{y}- \boldsymbol{\mu}\boldsymbol
             {p}) + (\boldsymbol{y}- \boldsymbol{\mu}\boldsymbol{p})^{\top}\frac{\partial\boldsymbol{\Theta}}{\partial
@@ -574,14 +598,14 @@
             {y}- \boldsymbol{\mu}\boldsymbol{p})^{\top}\boldsymbol{\Theta}\frac{\partial
             (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})}{\partial p_{j}}\right
             ]\\
-            =&\scriptstyle -\Tr \left(\boldsymbol{\Theta}\frac{\partial
+            =&\scriptstyle -\frac{1}{2}\Tr \left(\boldsymbol{\Theta}\frac{\partial
             \boldsymbol{\Sigma}}{\partial p_{j}}\right) - \frac{1}{2}\left[ - \boldsymbol
             {\mu}_{\cdot j}^{\top}\boldsymbol{\Theta}(\boldsymbol{y}- \boldsymbol{\mu}
             \boldsymbol{p}) - (\boldsymbol{y}- \boldsymbol{\mu}\boldsymbol{p})^{\top}
             \Theta\frac{\partial \Sigma}{\partial p_{j}}\Theta(\boldsymbol{y}- \boldsymbol
             {\mu}\boldsymbol{p}) - (\boldsymbol{y}- \boldsymbol{\mu}\boldsymbol{p}
             )^{\top}\boldsymbol{\Theta}\boldsymbol{\mu}_{\cdot j}\right] \\
-            =&\textcolor{purple}{-2p_j \Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\right)
+            =&\textcolor{purple}{-p_j \Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\right)
             }+ \textcolor{blue}{(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta}
             \boldsymbol{\mu}_{\cdot j}}\, + \textcolor{orange}{p_j (\boldsymbol{y} -
             \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \Sigma_j
@@ -600,9 +624,9 @@
     \begin{equation}
         \label{eq-hessian-log-likelihood-unconstrained}
         \begin{aligned}
-            \mathbf{H}_{i,i} & = \frac{\partial^2 \ell}{\partial^2 p_i}= \textcolor{purple}{-2\Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i\right) + 4p_i^2 \Tr \left(\left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i\right)^2\right)}\textcolor{blue}{-2p_i(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\mu}_{\cdot i}\, - \boldsymbol{\mu}_{\cdot i}^\top\boldsymbol{\Theta} \boldsymbol{\mu}_{\cdot i}}\, -        \\
+            \mathbf{H}_{i,i} & = \frac{\partial^2 \ell}{\partial^2 p_i}= \textcolor{purple}{-\Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i\right) + 2p_i^2 \Tr \left(\left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i\right)^2\right)}\textcolor{blue}{-2p_i(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\mu}_{\cdot i}\, - \boldsymbol{\mu}_{\cdot i}^\top\boldsymbol{\Theta} \boldsymbol{\mu}_{\cdot i}}\, -        \\
                              & \textcolor{orange}{2p_i (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top \boldsymbol{\Theta}\boldsymbol{\Sigma}_i\boldsymbol{\Theta}\boldsymbol{\mu}_{\cdot i} \, - (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \left(4p_i^2 \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\Sigma}_i - \boldsymbol{\Sigma}_i \right)\boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})}, \quad i \in \widetilde{J} \\
-            \mathbf{H}_{i,j} & = \frac{\partial^2 \ell}{\partial p_i \partial p_j}= \textcolor{purple}{4p_j p_i \Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j \boldsymbol{\Theta}\boldsymbol{\Sigma}_i \right)}\textcolor{blue}{-2p_i(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\mu}_{\cdot j} - \boldsymbol{\mu}_{\cdot i}^\top\boldsymbol{\Theta} \boldsymbol{\mu}_{\cdot j}}\, -                                \\
+            \mathbf{H}_{i,j} & = \frac{\partial^2 \ell}{\partial p_i \partial p_j}= \textcolor{purple}{2p_j p_i \Tr \left(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j \boldsymbol{\Theta}\boldsymbol{\Sigma}_i \right)}\textcolor{blue}{-2p_i(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta} \boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\mu}_{\cdot j} - \boldsymbol{\mu}_{\cdot i}^\top\boldsymbol{\Theta} \boldsymbol{\mu}_{\cdot j}}\, -                                \\
                              & \textcolor{orange}{2p_j (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top \boldsymbol{\Theta}\boldsymbol{\Sigma}_j\boldsymbol{\Theta} \boldsymbol{\mu}_{\cdot i}\, - 4p_ip_j(\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})^\top\boldsymbol{\Theta}\boldsymbol{\Sigma}_i \boldsymbol{\Theta} \boldsymbol{\Sigma}_j \boldsymbol{\Theta} (\boldsymbol{y} - \boldsymbol{\mu} \boldsymbol{p})}, \quad (i,j) \in \widetilde{J}^{2}, i \neq j
         \end{aligned}
     \end{equation}
@@ -666,6 +690,22 @@
     (\ref{pr:decovart-expected-fisher}). A systematic study of CPM / log2
     normalisation, optimiser tolerance, and scaling with \(G\), \(J\) and
     signature overlap is left to a later benchmark.
+
+    RNA-Sieve reports Wald regions from the inverse Fisher information of
+    its gene-wise CLT likelihood, and a Godambe sandwich when protocol
+    shift takes the truth outside the model family
+    \cite{erdmann-phamLikelihoodbasedDeconvolutionBulk2021}. DeCovarT's
+    analogue of the first is
+    (\ref{pr:decovart-expected-fisher}); it is not calibrated on a simplex
+    face, where the chi-bar-square likelihood-ratio test and a restricted
+    parametric bootstrap are required. A Godambe correction would be the
+    natural sandwich if the multivariate convolution itself is
+    misspecified. RNA-Sieve's noisy-$M$ term is the likelihood analogue of
+    resampling the reference; DeCovarT currently keeps
+    $\boldsymbol{\mu}$ and $\boldsymbol{\Sigma}_{j}$ plug-in and
+    propagates that uncertainty by a donor- or cell-level bootstrap. The
+    package vignette on MLE properties compares the two generative models
+    in notation aligned with (\ref{eq-linear-deconvolution}).
 
     Real-data evaluation should start from matched flow-cytometry / bulk
     RNA-seq panels such as the Kassandra benchmark
@@ -1256,6 +1296,71 @@
         (\cite{philippsRobustEfficientOptimization2021}). It notably includes an additional convergence criteria,
         the relative distance to the maximum (RDM), that sets apart extrema from
         spurious saddle points.
+
+        \subsection{Asymptotic inference and boundary calibration}
+        \label{subsec:asymptotic-inference}
+
+        Expectations of \ref{eq-hessian-log-likelihood-unconstrained} under the
+        generative model, using $\mathbb{E}[\boldsymbol{r}]=\boldsymbol{0}$ and
+        $\mathbb{E}[\boldsymbol{r}\boldsymbol{r}^{\top}]=\boldsymbol{\Sigma}(
+        \boldsymbol{p})$ with $\boldsymbol{r}=\boldsymbol{y}-\boldsymbol{\mu}
+        \boldsymbol{p}$, cancel the determinant traces against the residual
+        traces and return exactly the expected Fisher information
+        \ref{eq-expected-fisher-p} of \ref{pr:decovart-expected-fisher}, that is
+        $\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})$. This identity holds only
+        with the factor $\frac{1}{2}$ of
+        \ref{eq-loglikelihood-multivariate-gaussian} in place; doubling the
+        log-determinant, as an earlier version of the implementation did, breaks
+        it and leaves the objective inconsistent with the Wald standard errors
+        obtained from \ref{eq-delta-method-p}
+        \cite{oehlertNoteDeltaMethod1992}. Two caveats bound the interpretation
+        of those standard errors.
+
+        First, the realised log-likelihood is \textit{not} globally concave: with
+        $\boldsymbol{\Sigma}_{1}=\boldsymbol{\Sigma}_{2}=\mathbf{I}_{3}$,
+        $\boldsymbol{\mu}=\left(\begin{smallmatrix} 2 & 1 \\ 1 & 2 \\ 1 & 6/5
+        \end{smallmatrix}\right)$ and $\boldsymbol{y}=\boldsymbol{\mu}(1/2,1/2)^{\top}$,
+        the Hessian at the interior point $\boldsymbol{p}=(1/5,3/10)$ has
+        eigenvalues $\approx-654.5$ and $+53.9$, hence is indefinite. A converged
+        optimiser therefore certifies a local maximum only. Uniqueness is
+        recovered at the \textit{population} level, where the Kullback-Leibler
+        identity makes $\boldsymbol{p}_{0}$ the unique maximiser of
+        $\mathbb{E}_{\boldsymbol{p}_{0}}\{\ell(\boldsymbol{p})\}$ under the
+        rank condition of \ref{subsec:model-assumptions-rank}, and the local
+        curvature of that divergence is exactly \ref{eq-expected-fisher}
+        \cite{vaartAsymptoticStatistics2000}.
+
+        Second, testing the absence of a cell type, $H_{0}: p_{j}=0$ against
+        $H_{1}: p_{j}\ge 0$, places the null on the boundary of the simplex. The
+        local parameter space is then a half-line rather than a vector space, so
+        Wilks' theorem \cite{wilksLargeSampleDistributionLikelihood1938} does not
+        apply and the additive log-ratio chart cannot even represent the null
+        ($\rho_{j}=-\infty$). Following
+        \cite{hermanDistributionLikelihoodRatio1954} and
+        \cite{selfAsymptoticPropertiesMaximum1987}, the problem is asymptotically
+        equivalent to projecting a Gaussian score onto the tangent cone
+        approximating the admissible set, and with $q$ active boundary
+        constraints and $s$ interior constraints the profile likelihood-ratio
+        statistic $D=2\{\ell(\hat{\boldsymbol{p}})-\ell(\hat{\boldsymbol{p}}^{(0)}
+        )\}$ converges to the chi-bar-square mixture
+        (\ref{eq-chi-bar-square}):
+
+        \begin{equation}
+            \label{eq-chi-bar-square}D \rightsquigarrow \sum_{i=0}^{q} \binom{q}{i}
+            2^{-q}\chi^{2}_{s+i}
+        \end{equation}
+
+        For a single absent cell type \ref{eq-chi-bar-square} is the
+        $\frac{1}{2}\chi^{2}_{0}+\frac{1}{2}\chi^{2}_{1}$ law, so the correct
+        one-sided p-value is half the naive one. The binomial weights require the
+        active information block to be orthogonal to the nuisance block; we
+        therefore also provide a restricted parametric bootstrap, which resimulates
+        $\boldsymbol{Y}^{(b)}\sim\mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},
+        \boldsymbol{\Sigma}(\boldsymbol{p}))$ under the restricted MLE and
+        recalibrates $D$ without invoking \ref{eq-chi-bar-square}. Because a
+        single bulk profile provides no replication for its own composition, all
+        of these limits are taken in the number of replicate samples sharing one
+        composition.
 
     \section{Special cases of the generative model}
 
