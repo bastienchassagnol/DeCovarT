@@ -70,7 +70,8 @@ and \code{normalised_precision} (all \eqn{G\times G\times J});
 \description{
 Builds a mean matrix \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}}
 and \strong{cell-type-specific} second-order moments
-\eqn{(\boldsymbol{\Omega}_j,\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1})_{j=1}^{J}}
+\eqn{(\boldsymbol{\Omega}_j,
+  \boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1})_{j=1}^{J}}
 under a graph-constrained precision model. Means follow the
 AutoGeneS-inspired cosine construction of
 \code{generate_mean_signature_matrix()} with target pairwise cosine

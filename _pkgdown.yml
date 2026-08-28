@@ -213,11 +213,12 @@ reference:
       - multistart_decovart
   - title: Benchmark and evaluation
     desc: |
-      Quality metrics for estimated proportions, and the bivariate toy
-      convolution benchmark.
+      Quality metrics for estimated proportions, and the simulation
+      benchmark wrapper.
     contents:
       - compute_benchmark_metrics
-      - benchmark_bivariate_gaussian_convolutions
+      - run_simulation_benchmark
+      - deconvolute_ratios
       - plot_correlation_Heatmap
   - title: Simulation
   - subtitle: Toy bulk mixtures

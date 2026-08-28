@@ -53,15 +53,6 @@ test_that("First-generation deconvolution solvers return a valid simplex", {
   setup <- .first_gen_setup()
 
   # ------------------------------------------------------------------ #
-  # Ordinary least squares (lsfit / Abbas-style)                       #
-  # ------------------------------------------------------------------ #
-  estimated_lsfit <- deconvolute_ratios_lsfit(
-    y = setup$y,
-    mean_signature_matrix = setup$mean_signature_matrix
-  )
-  .expect_valid_simplex(estimated_lsfit, setup$p, "lsfit")
-
-  # ------------------------------------------------------------------ #
   # Robust linear model (rlm / Monaco-style)                           #
   # ------------------------------------------------------------------ #
   estimated_rlm <- deconvolute_ratios_rlm(

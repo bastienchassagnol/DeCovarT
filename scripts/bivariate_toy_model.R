@@ -1,91 +1,68 @@
 ###########################################################################
 ###########################################################################
 ###                                                                     ###
-###                   GENERATE HEATMAP VISUALISATIONS                   ###
+###                   BIVARIATE TOY MODEL FIGURES                       ###
 ###                                                                     ###
 ###########################################################################
 ###########################################################################
 
-#################################################################
-##            generate parameter configuration file            ##
-#################################################################
+# Post-process benchmark RDS artefacts (tables and JOBIM heatmaps).
+# To regenerate simulations, run scripts/run_bivariate_toy_benchmark.R first.
+#
+# Scenario configuration: scripts/configure_bivariate_toy_scenarios.R
+# Wrapper API: run_simulation_benchmark()
 
 library(dplyr)
 library(tinytable)
 
-# bivariate_simulation <- bivariate_simulation |>
-#   mutate(ID = case_when(
-#     proportions == "balanced" & centroids=="small CLD" ~ "B1_",
-#     proportions == "highly_unbalanced" & centroids=="small CLD" ~ "B2_",
-#     proportions == "balanced" & centroids=="high CLD" ~ "B3_",
-#     proportions == "highly_unbalanced" & centroids=="high CLD" ~ "B4_",
-#     TRUE                      ~ as.character(ID) )) |>
-#   dplyr::mutate(ID = dplyr::if_else(variance=="homoscedasctic", paste0(ID, "Ho"), paste0(ID, "He")))
-# saveRDS(bivariate_simulation, "./simulations/results/bivariate_scenario.rds")
-# saveRDS(bivariate_formatted |> dplyr::mutate(across(where(is.numeric), signif, 4)) |>
-#           dplyr::select(-c("model_rmse", "model_mae")),
-#         "./data/bivariate/bivariate_parameters.rds")
-
-bivariate_simulation <- readRDS("./simulations/results/bivariate_scenario.rds")
-
-bivariate_configuration <- bivariate_simulation |>
-  select(c(
-    "ID",
-    "overlap",
-    "entropy",
-    "proportions",
-    "variance",
-    "centroids",
-    "true_parameters"
-  )) |>
-  dplyr::distinct() |>
-  dplyr::mutate(centroids = stringr::str_replace_all(centroids, "CLD", "ICD"))
-saveRDS(
-  bivariate_configuration,
-  "./simulations/results/complete_bivariate_configuration.rds"
+results_dir <- file.path("simulations", "results")
+bivariate_simulation <- readRDS(
+  file.path(results_dir, "bivariate_scenario.rds")
+)
+bivariate_configuration <- readRDS(
+  file.path(results_dir, "complete_bivariate_configuration.rds")
 )
 
 reduced_bivariate_configuration <- bivariate_configuration |>
-  mutate(
+  dplyr::mutate(
     ID = factor(
       ID,
       levels = unique(bivariate_configuration$ID),
       ordered = TRUE
     )
   ) |>
-  group_by(ID) |>
-  summarise(
+  dplyr::group_by(ID) |>
+  dplyr::summarise(
     Entropy = entropy,
     OVL = mean(overlap),
     Proportions = purrr::map_chr(
       true_parameters,
-      ~ paste(.mean_signature_matrix$p, collapse = " / ")
+      ~ paste(.x$p, collapse = " / ")
     ),
     Means = purrr::map_chr(
       true_parameters,
       ~ paste0(
         "(",
-        paste0(.mean_signature_matrix$mu[, 1], collapse = ","),
+        paste0(.x$mu[, 1], collapse = ","),
         ");(",
-        paste0(.mean_signature_matrix$mu[, 2], collapse = ","),
+        paste0(.x$mu[, 2], collapse = ","),
         ")"
       )
     ),
     Variance = purrr::map_chr(
       true_parameters,
       ~ paste(
-        c(
-          .mean_signature_matrix$sigma[1, 1, 1],
-          .mean_signature_matrix$sigma[2, 2, 1]
-        ),
+        c(.x$sigma[1, 1, 1], .x$sigma[2, 2, 1]),
         collapse = " / "
       )
-    )
+    ),
+    .groups = "drop"
   ) |>
   dplyr::distinct()
+
 saveRDS(
   reduced_bivariate_configuration,
-  "./simulations/results/reduced_bivariate_configuration.rds"
+  file.path(results_dir, "reduced_bivariate_configuration.rds")
 )
 
 tinytable::tt(
@@ -97,16 +74,11 @@ tinytable::tt(
 ) |>
   tinytable::style_tt(j = 2:6, align = "c")
 
-##################################################################
-##          reduce size of the parameter boostrap file          ##
-##################################################################
-
 reduced_bivariate_simulation <- bivariate_simulation |>
-  mutate(
+  dplyr::mutate(
     algorithm = factor(
       algorithm,
       levels = c(
-        "lm",
         "nnls",
         "lsei",
         "gradient",
@@ -114,17 +86,20 @@ reduced_bivariate_simulation <- bivariate_simulation |>
         "DeCoVarT",
         "optim",
         "barrier",
-        "SA"
+        "SA",
+        "LBFGS",
+        "Newton-Raphson",
+        "Marquardt-Levenberg"
       )
     )
   ) |>
-  mutate(
+  dplyr::mutate(
     algorithm = forcats::fct_recode(algorithm, Levenberg = "DeCoVarT") |>
       forcats::fct_relevel()
   ) |>
-  mutate(across(where(is.numeric), signif(digits = 4))) |>
-  select(
-    -c(
+  dplyr::mutate(dplyr::across(where(is.numeric), signif, digits = 4)) |>
+  dplyr::select(
+    -dplyr::any_of(c(
       "proportions",
       "true_parameters",
       "variance",
@@ -134,138 +109,71 @@ reduced_bivariate_simulation <- bivariate_simulation |>
       "model_cor",
       "entropy",
       "centroids"
-    )
+    ))
   ) |>
-  dplyr::relocate("ID", .before = "correlation_celltype1") |>
-  dplyr::rename_with(~ gsub("celltype_", "p", .mean_signature_matrix))
+  dplyr::relocate(ID, .before = correlation_celltype1) |>
+  dplyr::rename_with(
+    ~ gsub("celltype_", "p", .x),
+    .cols = dplyr::matches("celltype_")
+  )
 
+data_dir <- file.path("data", "bivariate")
+dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
 saveRDS(
   reduced_bivariate_simulation,
-  file = "./data/bivariate/bivariate_parameters.rds"
+  file.path(data_dir, "bivariate_parameters.rds")
 )
 
+if (file.exists(file.path(results_dir, "high_overlap_version2.rds"))) {
+  highly_overlapping_simulation <- readRDS(
+    file.path(results_dir, "high_overlap_version2.rds")
+  )
 
-#################################################################
-##                    generate JOBIM figure                    ##
-#################################################################
+  data <- highly_overlapping_simulation |>
+    dplyr::filter(proportions == "balanced" & variance == "homoscedastic") |>
+    plot_correlation_Heatmap(score_variable = "model_mse")
+  data1 <- data$lsei@matrix
+  data2 <- data$`tricky optim`@matrix
 
-highly_overlapping_simulation <- readRDS(
-  "./simulations/results/high_overlap_version2.rds"
-)
+  common_min <- min(c(data1, data2))
+  common_max <- max(c(data1, data2))
+  col_fun <- circlize::colorRamp2(c(common_min, common_max), c("blue", "red"))
 
-
-data <- highly_overlapping_simulation |>
-  dplyr::filter(proportions == "balanced" & variance == "homoscedasctic") |>
-  plot_correlation_Heatmap(score_variable = "model_mse")
-data1 <- data$lsei@matrix
-data2 <- data$`tricky optim`@matrix
-
-
-common_min <- min(c(data1, data2))
-common_max <- max(c(data1, data2))
-col_fun <- circlize::colorRamp2(c(common_min, common_max), c("blue", "red"))
-
-global_heatmap <- ComplexHeatmap::Heatmap(
-  data1,
-  col = col_fun,
-  heatmap_legend_param = list(title = "MSE"),
-  row_title = "Corr cell type 1",
-  cluster_rows = F,
-  row_names_gp = grid::gpar(fontsize = 8),
-  row_labels = colnames(data1),
-  row_title_gp = grid::gpar(fontsize = 10),
-  column_names_rot = 0,
-  cluster_columns = F,
-  column_names_gp = grid::gpar(fontsize = 8),
-  column_labels = colnames(data1),
-  width = unit(8, "cm"),
-  height = unit(8, "cm"),
-  column_title_gp = grid::gpar(fontsize = 10),
-  column_title = "Corr cell type 2"
-) +
-  ComplexHeatmap::Heatmap(
-    data2,
+  global_heatmap <- ComplexHeatmap::Heatmap(
+    data1,
     col = col_fun,
-    show_heatmap_legend = F,
     heatmap_legend_param = list(title = "MSE"),
     row_title = "Corr cell type 1",
-    cluster_rows = F,
+    cluster_rows = FALSE,
     row_names_gp = grid::gpar(fontsize = 8),
-    row_labels = colnames(data2),
+    row_labels = colnames(data1),
     row_title_gp = grid::gpar(fontsize = 10),
     column_names_rot = 0,
-    cluster_columns = F,
+    cluster_columns = FALSE,
     column_names_gp = grid::gpar(fontsize = 8),
-    column_labels = colnames(data2),
-    width = unit(8, "cm"),
-    height = unit(8, "cm"),
+    column_labels = colnames(data1),
+    width = grid::unit(8, "cm"),
+    height = grid::unit(8, "cm"),
     column_title_gp = grid::gpar(fontsize = 10),
     column_title = "Corr cell type 2"
-  )
-
-
-##################################################################
-##                    log-likelihood plot                       ##
-##################################################################
-library(DeCovarT)
-library(dplyr)
-library(ggplot2)
-p <- c(0.50, 0.50)
-correlation <- -0.8
-mean_signature_matrix <- matrix(c(20, 22, 22, 20), nrow = 2)
-Sigma <- array(rep(c(1, correlation, correlation, 1), 2), dim = c(2, 2, 2))
-y <- mean_signature_matrix %*% p
-
-# generate values
-log_lik_tibble <- tibble::tibble(
-  mean_signature_matrix = seq(-10, 10, 0.01),
-  y = purrr::map_dbl(
-    mean_signature_matrix,
-    DeCovarT:::loglik_multivariate_constrained,
-    y = y,
-    mean_signature_matrix = mean_signature_matrix,
-    Sigma = Sigma
-  )
-)
-
-# plot corresponding result
-# |  \\mathbf{mean_signature_matrix}, \\Sigma}(\\mathbf{p})
-library(latex2exp)
-# tikzDevice::tikz(file = "./figs/log_plot.tex", width = 6, height = 6)
-log_plot <- ggplot(
-  log_lik_tibble,
-  aes(mean_signature_matrix = mean_signature_matrix, y = y)
-) +
-  geom_line(linewidth = 1.5) +
-  theme_minimal() +
-  # xlab(TeX(r"($\rho$)")) +
-  xlab(TeX(r'($\rho$)')) +
-  ylab("\u2113(\u03C1)") +
-  theme(
-    axis.title = element_text(angle = 0),
-    #axis.text.mean_signature_matrix=element_blank(), #remove mean_signature_matrix axis labels
-    # axis.ticks.mean_signature_matrix=element_blank(), #remove mean_signature_matrix axis ticks
-    axis.text.y = element_blank(), #remove y axis labels
-    axis.ticks.y = element_blank()
   ) +
-  geom_vline(xintercept = 0, color = "blue", linewidth = 1.5) +
-  annotate(
-    "label",
-    mean_signature_matrix = 6,
-    y = 2,
-    label = TeX(r'($\hat{\rho}^{MLE} = 0$)', output = "character"),
-    parse = TRUE
-  ) +
-  annotate(
-    "label",
-    mean_signature_matrix = 6,
-    y = 1.5,
-    label = TeX(
-      r'($\hat{p}_1^{MLE} = \hat{p}_2^{MLE} =0.5$)',
-      output = "character"
-    ),
-    parse = TRUE
-  ) +
-  ggtitle("Curve representation of \u2113(\u03C1)")
-
-ggsave("./figs/log-likehood-function.png", log_plot, width = 3.5, height = 2.6)
+    ComplexHeatmap::Heatmap(
+      data2,
+      col = col_fun,
+      show_heatmap_legend = FALSE,
+      heatmap_legend_param = list(title = "MSE"),
+      row_title = "Corr cell type 1",
+      cluster_rows = FALSE,
+      row_names_gp = grid::gpar(fontsize = 8),
+      row_labels = colnames(data2),
+      row_title_gp = grid::gpar(fontsize = 10),
+      column_names_rot = 0,
+      cluster_columns = FALSE,
+      column_names_gp = grid::gpar(fontsize = 8),
+      column_labels = colnames(data2),
+      width = grid::unit(8, "cm"),
+      height = grid::unit(8, "cm"),
+      column_title_gp = grid::gpar(fontsize = 10),
+      column_title = "Corr cell type 2"
+    )
+}

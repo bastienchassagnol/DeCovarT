@@ -290,45 +290,38 @@ test_that("All deconvolute_ratios_* solvers return a valid simplex", {
 })
 
 test_that("Benchmark standard deconvolution algorithms against DeCovarT", {
-  # Fast single-scenario bivariate benchmark: one correlation, one variance
-  # template, two bulk samples, and at most 10 iterations per descent method.
-  deconvolution_functions <- list(
-    "nnls" = list(FUN = deconvolute_ratios_nnls),
-    "lsei" = list(FUN = deconvolute_ratios_deconrnaseq),
-    "LBFGS" = list(
-      FUN = deconvolute_ratios_L_BFGS_B,
-      additional_parameters = list(epsilon = 10^-3, itmax = 10)
-    ),
-    "gradient" = list(
-      FUN = deconvolute_ratios_gradient_descent,
-      additional_parameters = list(epsilon = 10^-3, itmax = 10)
-    ),
-    "Newton-Raphson" = list(
-      FUN = deconvolute_ratios_Newton_Raphson,
-      additional_parameters = list(epsilon = 10^-3, itmax = 10)
-    ),
-    "Marquardt-Levenberg" = list(
-      FUN = deconvolute_ratios_Marquardt_Levenberg,
-      additional_parameters = list(epsilon = 10^-3, itmax = 10)
-    ),
-    "SA" = list(
-      FUN = deconvolute_ratios_simulated_annealing,
-      additional_parameters = list(epsilon = 10^-3, itmax = 10)
+  skip_if_not_installed("nnls")
+  skip_if_not_installed("limSolve")
+  pkg_root <- normalizePath(
+    file.path(testthat::test_path(), "..", ".."),
+    winslash = "/"
+  )
+  source(
+    file.path(pkg_root, "scripts", "configure_bivariate_toy_scenarios.R"),
+    local = TRUE
+  )
+
+  scenario_config <- build_bivariate_scenario_config(
+    proportions = list("balanced" = c(0.50, 0.50)),
+    corr_sequence = 0,
+    diagonal_terms = list("homoscedastic" = c(1, 1)),
+    signature_matrices = list(
+      "small CLD" = matrix(c(20, 22, 22, 20), nrow = 2)
     )
+  )
+  deconvolution_functions <- bivariate_toy_deconvolution_functions(
+    itmax = 10L,
+    epsilon = 1e-3
   )
 
   bivariate_scenario <- withr::with_seed(
     seed = 3L,
-    benchmark_bivariate_gaussian_convolutions(
-      proportions = list("balanced" = c(0.50, 0.50)),
-      n = 2,
-      corr_sequence = 0,
-      diagonal_terms = list("homoscedastic" = c(1, 1)),
-      signature_matrices = list(
-        "small CLD" = matrix(c(20, 22, 22, 20), nrow = 2)
-      ),
+    run_simulation_benchmark(
+      scenario_config = scenario_config,
       deconvolution_functions = deconvolution_functions,
-      cores = 1
+      n = 2L,
+      cores = 1L,
+      parallel_scenarios = FALSE
     )
   )
 

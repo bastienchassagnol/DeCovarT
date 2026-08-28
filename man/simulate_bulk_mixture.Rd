@@ -39,7 +39,8 @@ are bulk vectors \eqn{\boldsymbol{y}_{\cdot i}}, obtained as
 \description{
 For each bootstrap sample \eqn{i=1,\ldots,N}, draws \strong{latent} purified
 profiles
-\eqn{\boldsymbol{x}_{\cdot j}^{(i)}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},
+\eqn{\boldsymbol{x}_{\cdot j}^{(i)}\sim
+  \mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},
 \boldsymbol{\Sigma}_j)} independently for each cell type
 \eqn{j=1,\ldots,J}, then forms the bulk by the linear convolution
 \deqn{
@@ -85,5 +86,5 @@ dim(sim$Y)
 }
 \seealso{
 \code{\link[=deconvolute_ratios]{deconvolute_ratios()}},
-\code{\link[=benchmark_bivariate_gaussian_convolutions]{benchmark_bivariate_gaussian_convolutions()}}
+\code{\link[=run_simulation_benchmark]{run_simulation_benchmark()}}
 }

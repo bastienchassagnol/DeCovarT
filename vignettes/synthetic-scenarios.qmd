@@ -52,7 +52,7 @@ Each cell type carries its own graph-constrained signed precision $\boldsymbol{\
 
 # Pipeline API
 
-The exported entry point orchestrates internal helpers and returns moments that can be passed to `simulate_bulk_mixture()` and then to any deconvolution routine exposed by `deconvolute_ratios()`.
+The exported entry point orchestrates internal helpers and returns moments that can be passed to `simulate_bulk_mixture()`, then to [`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.html) (scenario grids in analysis scripts such as `scripts/configure_bivariate_toy_scenarios.R`) or directly to any solver via `deconvolute_ratios()`.
 
 ```{mermaid}
 %%| label: fig-pipeline-api

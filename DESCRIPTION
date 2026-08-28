@@ -24,6 +24,8 @@ Suggests:
     compositions,
     e1071,
     flextable,
+    furrr,
+    future,
     ggplot2,
     glmnet,
     igraph,
