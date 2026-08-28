@@ -53,7 +53,7 @@ Etienne Becht
 
 Anaïs Baudot
 
-2026-08-26
+2026-08-27
 
 ## 
 
@@ -435,7 +435,7 @@ The diagram above summarises the end-to-end workflow.
 Prefer the [full-screen
 network](https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network.html)
 when exploring call relationships. Regenerate locally with
-`source("scripts/generate_package_network_functions.R")`.
+`source("scripts/auxiliary/generate_package_network_functions.R")`.
 
 ### Built-in deconvolution algorithms
 
@@ -554,8 +554,8 @@ Package website: <https://bastienchassagnol.github.io/DeCovarT/>
 
 - [Simulating semi-synthetic pseudo-bulk
   mixtures](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html)
-- [Deconvolution use cases with
-  DeCovarT](https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.html)
+- [Manuscript synthetic simulation
+  scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-manuscript-scenarios.html)
 - [Derivatives under simplex
   transforms](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.html)
 - [MLE properties and asymptotic
@@ -833,8 +833,8 @@ and glmnet gene scores for signature design.
   deconvolution](https://bastienchassagnol.github.io/DeCovarT/articles/feature-selection.md):
 - [In silico inference of gene regulatory
   networks](https://bastienchassagnol.github.io/DeCovarT/articles/network-inference.md):
-- [Deconvolution use cases with
-  DeCovarT](https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.md):
+- [Manuscript synthetic simulation
+  scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-manuscript-scenarios.md):
 
 ### Mathematics
 

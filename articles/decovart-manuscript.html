@@ -20,7 +20,6 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="decovart-manuscript_files/libs/quarto-html/popper.min.js"></script><script src="decovart-manuscript_files/libs/quarto-html/tippy.umd.min.js"></script><link href="decovart-manuscript_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="decovart-manuscript_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<link href="decovart-manuscript_files/libs/quarto-contrib/embedpdf-1.0.2/embedpdf.css" rel="stylesheet">
 <!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="DeCovarT methods paper">
 <meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg">
 </head>
@@ -51,20 +50,21 @@
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/deconvolution-seminar-slides.html"><span class="fa fa-chalkboard-user"></span> Doctorants seminar slides (embedded)</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Getting started</h6></li>
-    <li><a class="dropdown-item" href="../articles/synthetic-scenarios.html"><span class="fa fa-flask"></span> Simulating semi-synthetic pseudo-bulk mixtures</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Prepare inputs</h6></li>
     <li><a class="dropdown-item" href="../articles/network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
-    <li><a class="dropdown-item" href="../articles/DeCoVart-use-cases.html"><span class="fa fa-chart-pie"></span> Deconvolution use cases with DeCovarT</a></li>
     <li><a class="dropdown-item" href="../articles/feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Mathematics</h6></li>
-    <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Derivatives under simplex transforms</a></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> OLS reminders for linear deconvolution</a></li>
-    <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives (outlook)</a></li>
+    <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Mathematical and Programmatic introduction to DeCovarT</a></li>
+    <li><a class="dropdown-item" href="../articles/synthetic-scenarios.html"><span class="fa fa-flask"></span> How to simulate interesting synthetic scenarios with dependency structures</a></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT-manuscript-scenarios.html"><span class="fa fa-chart-pie"></span> Manuscript synthetic simulation scenarios</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Appendix simulations</h6></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT_appendix_simualtion_frameworks.html"><span class="fa fa-vial"></span> Equivariance, collinearity and perturbations</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>DeCovarT Mathematical appendix</h6></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> Literature review, and comparison to other related methods</a></li>
+    <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>DeCovarT extra-simulation appendix</h6></li>
+    <li><a class="dropdown-item" href="../articles/DeCovarT_appendix_simualtion_frameworks.html"><span class="fa fa-vial"></span> Edge cases: quasi-collinearity, multi-modal, active zero proportions and perturbations</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html"><span class="fa fa-newspaper"></span> News</a></li>
@@ -93,7 +93,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>DeCovarT methods paper</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-08-27</p>
+      <p class="date">2026-08-28</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/decovart-manuscript.qmd" class="external-link"><code>vignettes/decovart-manuscript.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -104,8 +104,16 @@
 
 
 
-    <p>The methods paper describes covariance-aware deconvolution of bulk transcriptomes as a multivariate Gaussian convolution, recovering simplex-constrained cell-type proportions by maximum likelihood with analytic derivatives. The current official source repository is <a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">bastienchassagnol/DeCovarT</a>; a preprint is on <a href="https://arxiv.org/abs/2309.09557" class="external-link">arXiv</a> <span class="citation" data-cites="chassagnolDeCovarTMultidimensionalProbalistic2023">(<a href="#ref-chassagnolDeCovarTMultidimensionalProbalistic2023" role="doc-biblioref">Chassagnol et al. 2023</a>)</span>. The PDF below is the working manuscript (<code>article/main.pdf</code>).</p>
-<div class="embedpdf" data-src="decovart-manuscript.pdf" data-renderer="auto" data-width="100%" data-height="800"><a href="decovart-manuscript.pdf" download="">Download PDF file.</a></div>
+    <p>The methods paper describes covariance-aware deconvolution of bulk transcriptomes as a multivariate Gaussian convolution, recovering simplex-constrained cell-type proportions by maximum likelihood with analytic derivatives. The current official source repository is <a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">bastienchassagnol/DeCovarT</a>; a preprint is on <a href="https://arxiv.org/abs/2309.09557" class="external-link">arXiv</a> <span class="citation" data-cites="chassagnolDeCovarTMultidimensionalProbalistic2023">(<a href="#ref-chassagnolDeCovarTMultidimensionalProbalistic2023" role="doc-biblioref">Chassagnol et al. 2023</a>)</span>. The viewer below is the working manuscript (<code>article/main.pdf</code>).</p>
+<p>Open <a href="https://bastienchassagnol.github.io/DeCovarT/article/main.pdf">full screen</a> or <a href="decovart-manuscript.pdf">download the PDF</a>.</p>
+<div class="decovart-fullwidth">
+  <object class="decovart-pdf-embed" data="../article/main.pdf" type="application/pdf" width="100%" height="1400">
+    <object class="decovart-pdf-embed" data="decovart-manuscript.pdf" type="application/pdf" width="100%" height="1400">
+      <iframe class="decovart-pdf-embed" src="decovart-manuscript.pdf" title="DeCovarT working manuscript" width="100%" height="1400"></iframe>
+    </object>
+  </object>
+</div>
+<p>A native HTML <code>object</code> / <code>iframe</code> is used instead of the <a href="https://github.com/jmgirard/embedpdf" class="external-link"><code>embedpdf</code></a> shortcode: under pkgdown the shortcode often cannot hydrate (no <code>html:js</code> context), so only its fallback hyperlink appeared. The PDF is copied to <code>pkgdown/assets/article/main.pdf</code> and <code>vignettes/decovart-manuscript.pdf</code>.</p>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-chassagnolDeCovarTMultidimensionalProbalistic2023" class="csl-entry" role="listitem">
 Chassagnol, Bastien, Grégory Nuel, and Etienne Becht. 2023. <em><span>DeCovarT</span>, a Multidimensional Probabilistic Model for the Deconvolution of Heterogeneous Transcriptomic Samples</em>. arXiv. <a href="https://doi.org/10.48550/arxiv.2309.09557" class="external-link">https://doi.org/10.48550/arxiv.2309.09557</a>.

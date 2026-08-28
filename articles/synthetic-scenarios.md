@@ -87,27 +87,26 @@ dim(bulk$latent_profiles) # G x J x N latent draws; input mu is shared
 #> [1] 40  3 20
 ```
 
-Selecting genes (or, here, designing \boldsymbol{\mu}) by cosine alone
-is insufficient for stable deconvolution ([Aliee and Theis
-2021](#ref-alieeAutoGeneSAutomaticGene2021)). In the scenarios of this
-package we therefore **hold `mean_scale` fixed** and dial only
-`target_cosine`, so first-order scale and second-order precision weights
-stay comparable across runs.
-
 ## Generate mean expression profiles
 
 ### Mean signature: `generate_mean_signature_matrix()`
 
-Notation: G genes, J cell types indexed by j=1,\ldots,J, and columns
-\boldsymbol{\mu}\_{\cdot j}\in\mathbb{R}^{G} of the mean signature. Fix
-the column scale s (`mean_scale`, default 10 in the nine-scenario grid)
-and dial only the target cosine \rho\in\[0,1\] (`target_cosine`).
+The construction uses one symbol per quantity:
 
-Let \boldsymbol{u}=G^{-1/2}\mathbf{1}\_{G} be the shared unit direction
-and let \boldsymbol{v}\_{j} be the \ell_2-normalised indicator of the
-gene block assigned to type j (disjoint partition of \\1,\ldots,G\\).
-Then \boldsymbol{v}\_{j}^{\mathsf{T}}\boldsymbol{v}\_{k}=0 for j\neq k.
-Each column is the normalised blend
+- G: number of genes
+- J: number of cell types, indexed by j=1,\ldots,J
+- \boldsymbol{\mu}\_{\cdot j}\in\mathbb{R}^{G}: column j of the mean
+  signature
+- s: column Euclidean scale (`mean_scale`; default 10 in the
+  nine-scenario grid)
+- \rho\in\[0,1\]: target pairwise cosine (`target_cosine`)
+- \boldsymbol{u}=G^{-1/2}\mathbf{1}\_{G}: shared unit direction
+- \boldsymbol{v}\_{j}: \ell_2-normalised indicator of the gene block
+  assigned to type j (a disjoint partition of \\1,\ldots,G\\)
+
+The private directions are mutually orthogonal:
+\boldsymbol{v}\_{j}^{\mathsf{T}}\boldsymbol{v}\_{k}=0 for j\neq k. Each
+column is the normalised blend
 
 \tilde{\boldsymbol{\mu}}\_{\cdot j} = \sqrt{\rho}\\\boldsymbol{u}
 +\sqrt{1-\rho}\\\boldsymbol{v}\_{j}, \qquad \boldsymbol{\mu}\_{\cdot j}
@@ -174,26 +173,49 @@ to a realised cosine that is **not** exactly \rho for finite G and J:
 
 #### Asymptotic cosine control
 
-For equal blocks (L_j\approx G/J) we have c\_{jk}\approx 2/\sqrt{J}.
-Writing the bias relative to the target,
+> **Note 1: The realised cosine is systematically larger than \rho**
+>
+> For \rho\in(0,1) and finite J, the shared direction \boldsymbol{u} is
+> **not** orthogonal to the private blocks, so
+> \boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}\_{j}=\sqrt{L_j/G}\>0. That
+> strictly positive cross term inflates every pairwise cosine relative
+> to the dial \rho. Increasing J (equal blocks, G/J bounded away from
+> zero) drives the bias to zero like J^{-1/2}, but the sign of the bias
+> does not flip. AutoGeneS uses a related shared-plus-private geometry
+> when it penalises inter-type correlation ([Aliee and Theis
+> 2021](#ref-alieeAutoGeneSAutomaticGene2021)); the closed-form
+> O(J^{-1/2}) remainder below is the finite-(G,J) identity for
+> [`generate_mean_signature_matrix()`](https://bastienchassagnol.github.io/DeCovarT/reference/generate_mean_signature_matrix.md).
 
-\cos\bigl( \boldsymbol{\mu}\_{\cdot j}, \boldsymbol{\mu}\_{\cdot k}
-\bigr) - \rho = \frac{ (1-\rho)\sqrt{\rho(1-\rho)}\\c\_{jk} }{ 1 +
-\sqrt{\rho(1-\rho)}\\c\_{jk} } = O\\\bigl(J^{-1/2}\bigr) = o(1)
-\quad\text{as }J\to\infty \tag{8}
+> **Note**
+>
+> **Theorem 1 (Asymptotic cosine control)** For equal blocks (L_j\approx
+> G/J) we have c\_{jk}\approx 2/\sqrt{J}. Writing the bias relative to
+> the target,
+>
+> \cos\bigl( \boldsymbol{\mu}\_{\cdot j}, \boldsymbol{\mu}\_{\cdot k}
+> \bigr) - \rho = \frac{ (1-\rho)\sqrt{\rho(1-\rho)}\\c\_{jk} }{ 1 +
+> \sqrt{\rho(1-\rho)}\\c\_{jk} } = O\\\bigl(J^{-1/2}\bigr) = o(1)
+> \quad\text{as }J\to\infty \tag{8}
+>
+> (with G/J bounded away from zero). Equivalently,
+>
+> \lim\_{J\to\infty} \cos\bigl( \boldsymbol{\mu}\_{\cdot j},
+> \boldsymbol{\mu}\_{\cdot k} \bigr) = \rho, \tag{9}
+>
+> so the cross terms in [Equation 4](#eq-mean-inner) become negligible
+> relative to \rho and the realised pairwise cosine tracks the dial
+> asymptotically. The scale s sets column norms without changing angles:
+> \\\boldsymbol{\mu}\_{\cdot j}-\boldsymbol{\mu}\_{\cdot k}\\\_2\propto
+> s at fixed \rho. We keep s=10 across scenarios and only vary \rho.
 
-(with G/J bounded away from zero). Equivalently,
-
-\lim\_{J\to\infty} \cos\bigl( \boldsymbol{\mu}\_{\cdot j},
-\boldsymbol{\mu}\_{\cdot k} \bigr) = \rho, \tag{9}
-
-so the cross terms in [Equation 4](#eq-mean-inner) become negligible
-relative to \rho and the realised pairwise cosine tracks the dial
-asymptotically. The scale s sets column norms without changing angles:
-\\\boldsymbol{\mu}\_{\cdot j}-\boldsymbol{\mu}\_{\cdot k}\\\_2\propto s
-at fixed \rho. We keep s=10 across scenarios and only vary \rho.
 [Figure 3](#fig-cosine-convergence) illustrates the finite-sample
 approach to \rho=0.5 on a 3\times 3 grid of (J,G).
+[Figure 4](#fig-cosine-bias-asymptotic) isolates the **positive**
+remainder as a function of J: realised cosine always sits above the
+target (except at the trivial endpoints \rho\in\\0,1\\ up to
+discretisation), and the gap shrinks as more cell types split the gene
+panel into smaller private blocks.
 
 [Figure 2](#fig-mean-signature-schematic) gives a toy schematic for J=3
 cell types: a uniform shared component, three orthogonal private blocks,
@@ -201,12 +223,14 @@ and the resulting mean directions.
 
 ![](figures/fig_mean_signature_shared_private.png)
 
-Figure 2: Schematic of shared-plus-private mean signature construction
-for J=3 cell types. A rank-one shared direction \boldsymbol{u} (grey)
-blends with block-sparse private markers \boldsymbol{v}\_j (coloured) at
-weights \sqrt{\rho} and \sqrt{1-\rho}; columns are normalised and scaled
-to \boldsymbol{\mu}\_{\cdot j}. Illustration generated for this vignette
-in a Nature Methods-style layout.
+Figure 2: Shared-plus-private mean signature for J=3 cell types. **A.**
+Gene-by-cell-type heatmap: each type is high on its private gene block
+and shares a grey baseline elsewhere. **B.** The shared unit direction
+\boldsymbol{u} blends with mutually orthogonal private indicators
+\boldsymbol{v}\_j at weights \sqrt{\rho} and \sqrt{1-\rho}; columns are
+then \ell_2-normalised and scaled to \boldsymbol{\mu}\_{\cdot j}.
+Regenerated for this vignette (two-panel layout; the previous toy PCA
+panel is omitted).
 
 #### Visualising the cosine construction
 
@@ -217,7 +241,17 @@ Figure 3: Realised mean absolute pairwise cosine vs target \rho=0.5 on a
 gene blocks). Thick black line: target; coloured bands: harder (red,
 small J) to easier (green, large J); arrows: residual to the target.
 
-[Figure 4](#fig-cosine-geometry) visualises the same three operating
+![](synthetic-scenarios_files/figure-html/fig-cosine-bias-asymptotic-1.png)
+
+Figure 4: Positive finite-J bias of the realised pairwise cosine at
+target \rho=0.5 and G=400 genes (equal blocks). Points: empirical mean
+absolute cosine from
+[`generate_mean_signature_matrix()`](https://bastienchassagnol.github.io/DeCovarT/reference/generate_mean_signature_matrix.md).
+Solid curve: closed form [Equation 7](#eq-realised-cosine). Dashed line:
+target \rho. The remainder is strictly positive and shrinks like
+J^{-1/2} ([Theorem 1](#thm-cosine-asymptotics)).
+
+[Figure 5](#fig-cosine-geometry) visualises the same three operating
 points (\rho\in\\0,\\0.3,\\1\\) for G=2 genes and J=2 cell types. Cell
 type 1 is fixed along the positive gene-1 axis; only the **angular**
 position of cell type 2 is varied so that \rho=0 is exactly orthogonal.
@@ -238,7 +272,7 @@ after generation.
 
 ![](synthetic-scenarios_files/figure-html/fig-cosine-geometry-1.png)
 
-Figure 4: Cosine-control toy for J=2 cell types and G=2 genes. Cell type
+Figure 5: Cosine-control toy for J=2 cell types and G=2 genes. Cell type
 1 is fixed on the positive gene-1 axis; only the angular position of
 cell type 2 varies (so \rho=0 is orthogonal). Coloured arrows: mean
 directions; shaded wedge: angle between means. Labels report the
@@ -246,31 +280,31 @@ realised cosine. Points are N=20 i.i.d. Gaussian draws around each
 centroid (stars). Styling inspired by panel B of `AutoGeneS` (Aliee and
 Theis ([2021](#ref-alieeAutoGeneSAutomaticGene2021))).
 
-#### Related signature constructions
-
-Blending a common baseline with type-specific markers is standard in
-deconvolution benchmarking. **`AutoGeneS`** ([Aliee and Theis
-2021](#ref-alieeAutoGeneSAutomaticGene2021)) selects genes by jointly
-minimising inter-type correlation and maximising centroid distance; its
-simulations use a similar shared-plus-private logic to control signature
-geometry. **`Schelker et al.`** ([Schelker et al.
-2017](#ref-schelkerEstimationImmuneCell2017)) build tumour-derived
-reference gene expression profiles from single-cell RNA-seq clusters and
-marker genes, then simulate bulk mixtures by combining those
-columns—empirically a shared baseline plus distinct marker programmes
-per immune cell type.
-
-The **`DICEPro`** framework ([Ba et al. 2026](#ref-baWhenLessNot2026))
-targets incomplete reference matrices in supervised deconvolution. Its
-simulation engine generates synthetic signature matrices from
-multivariate Gaussian (or Poisson) models with a prescribed correlation
-structure; a **`bloc=TRUE`** option enforces **block sparsity** by
-zeroing expression outside type-specific gene blocks—closely analogous
-to the private indicators \boldsymbol{v}\_j in
-[Equation 2](#eq-lr-block). DICEPro then optimises reference signatures
-when cell types are missing from the matrix, complementing the
-controlled \rho-dial we use here for method comparison under known
-ground truth.
+> **Note 2: Related signature constructions**
+>
+> Blending a common baseline with type-specific markers is standard in
+> deconvolution benchmarking. **`AutoGeneS`** ([Aliee and Theis
+> 2021](#ref-alieeAutoGeneSAutomaticGene2021)) selects genes by jointly
+> minimising inter-type correlation and maximising centroid distance;
+> its simulations use a similar shared-plus-private logic to control
+> signature geometry. Schelker and colleagues ([Schelker et al.
+> 2017](#ref-schelkerEstimationImmuneCell2017)) build tumour-derived
+> reference gene expression profiles from single-cell RNA-seq clusters
+> and marker genes, then simulate bulk mixtures by combining those
+> columns—empirically a shared baseline plus distinct marker programmes
+> per immune cell type.
+>
+> The **`DICEPro`** framework ([Ba et al. 2026](#ref-baWhenLessNot2026))
+> targets incomplete reference matrices in supervised deconvolution. Its
+> simulation engine generates synthetic signature matrices from
+> multivariate Gaussian (or Poisson) models with a prescribed
+> correlation structure; a **`bloc=TRUE`** option enforces **block
+> sparsity** by zeroing expression outside type-specific gene
+> blocks—closely analogous to the private indicators \boldsymbol{v}\_j
+> in [Equation 2](#eq-lr-block). DICEPro then optimises reference
+> signatures when cell types are missing from the matrix, complementing
+> the controlled \rho-dial we use here for method comparison under known
+> ground truth.
 
 ### Objectives: `compute_mean_profile_objectives()`
 
@@ -290,40 +324,43 @@ quantity to maximise ([Aliee and Theis
 Pearson correlation so that collinear but unequally scaled profiles
 remain penalised.
 
-### Perspectives: a single geometric score for \boldsymbol{\mu}
-
-The present API exposes two AutoGeneS-style objectives. A natural
-refinement is to replace them by one scalar that jointly rewards large
-column norms (and hence Euclidean separation) and penalises alignment.
-
-Two candidates are immediate. The Gram determinant
-
-V(\boldsymbol{\mu}) = \sqrt{ \det\bigl(
-\boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu} \bigr) } \tag{10}
-
-is the volume of the parallelepiped spanned by the columns of
-\boldsymbol{\mu}. It vanishes under exact collinearity and grows when
-columns lengthen or become more orthogonal—precisely the desired MOO
-trade-off in one number.
-
-Equivalently, the reciprocal condition number
-
-\kappa_2(\boldsymbol{\mu})^{-1} =
-\frac{\sigma\_{\min}(\boldsymbol{\mu})}{\sigma\_{\max}(\boldsymbol{\mu})},
-\tag{11}
-
-available in R via `kappa(mean_profiles, exact = TRUE)` (or
-`1 / kappa(...)`), measures how ill-posed linear recovery of
-\boldsymbol{p} from \boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}
-is. Maximising \kappa_2(\boldsymbol{\mu})^{-1} (or minimising
-\kappa_2(\boldsymbol{\mu})) collapses cosine and distance into a
-deconvolution-centric criterion without a Pareto front.
-
-A practical next step is to expose an optional
-`mean_objective = c("autogenes", "volume", "condition")` in
-[`simulate_hierarchical_grn_moments()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_hierarchical_grn_moments.md),
-keep the constructive (\rho,s) generator for controllable scenarios, and
-report the chosen scalar alongside the existing pairwise diagnostics.
+> **Note 3: Perspectives: a single geometric score for
+> \boldsymbol{\mu}**
+>
+> The present API exposes two AutoGeneS-style objectives. A natural
+> refinement is to replace them by one scalar that jointly rewards large
+> column norms (and hence Euclidean separation) and penalises alignment.
+>
+> Two candidates are immediate. The Gram determinant
+>
+> V(\boldsymbol{\mu}) = \sqrt{ \det\bigl(
+> \boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu} \bigr) } \tag{10}
+>
+> is the volume of the parallelepiped spanned by the columns of
+> \boldsymbol{\mu}. It vanishes under exact collinearity and grows when
+> columns lengthen or become more orthogonal—precisely the desired MOO
+> trade-off in one number.
+>
+> Equivalently, the reciprocal condition number
+>
+> \kappa_2(\boldsymbol{\mu})^{-1} =
+> \frac{\sigma\_{\min}(\boldsymbol{\mu})}{\sigma\_{\max}(\boldsymbol{\mu})},
+> \tag{11}
+>
+> available in R via `kappa(mean_profiles, exact = TRUE)` (or
+> `1 / kappa(...)`), measures how ill-posed linear recovery of
+> \boldsymbol{p} from
+> \boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p} is. Maximising
+> \kappa_2(\boldsymbol{\mu})^{-1} (or minimising
+> \kappa_2(\boldsymbol{\mu})) collapses cosine and distance into a
+> deconvolution-centric criterion without a Pareto front.
+>
+> A practical next step is to expose an optional
+> `mean_objective = c("autogenes", "volume", "condition")` in
+> [`simulate_hierarchical_grn_moments()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_hierarchical_grn_moments.md),
+> keep the constructive (\rho,s) generator for controllable scenarios,
+> and report the chosen scalar alongside the existing pairwise
+> diagnostics.
 
 ## Undirected Gaussian Markov network generation
 
@@ -350,10 +387,9 @@ flowchart LR
   Omega --> Latent["Latent Gaussian X"]
   Mu["Mean design μ"] --> Latent
   Latent --> Obs["Observation layer"]
-  Latent -.-> Obs
 ```
 
-Figure 5: Undirected simulation pipeline from topology to observations
+Figure 6: Undirected simulation pipeline from topology to observations
 (optional observation layer dashed).
 
 ### Graph structure generators
@@ -363,7 +399,7 @@ Figure 5: Undirected simulation pipeline from topology to observations
 
 [Table 1](#tbl-topologies) compares the main **undirected** topology
 families used in GGM benchmarks, with R entry points.
-[Figure 6](#fig-topologies) sketches the six families most often used in
+[Figure 7](#fig-topologies) sketches the six families most often used in
 random-like network structure generation.
 
 | Structure | Definition and controls | R entry points | Advantages | Limitations |
@@ -377,7 +413,12 @@ random-like network structure generation.
 
 Table 1: Topology families for undirected GGM simulation (R-focused).
 
-### Biological relevance of the six families
+![](figures/fig_network_topologies_six.png)
+
+Figure 7: Six undirected topology families used in GGM simulation:
+Erdős–Rényi, Barabási–Albert (preferential attachment / scale-free),
+stochastic block (cluster), band / AR, star / hub, and small-world
+(Watts–Strogatz).
 
 Not every topology is equally useful as a **gene-regulatory** prior. The
 three simulation studies in [Table 3](#tbl-studies), together with
@@ -394,60 +435,60 @@ classical network biology, suggest the following reading.
 
 Table 2: Biological interpretability of undirected topology families.
 
-#### The scale-free hypothesis: a useful stress test, not a biological default
-
-The phrase *scale-free network* usually means that the degree
-distribution follows a power law, \Pr(K=k)\propto k^{-\alpha}, at least
-above a lower cut-off. This statistical statement is distinct from the
-Barabási–Albert (BA) growth mechanism. Preferential attachment can
-generate a power law, but observing a heavy-tailed degree distribution
-does not establish preferential attachment; other mechanisms can produce
-similar tails, and variants of preferential attachment need not produce
-a pure power law ([Lima-Mendez and van Helden
-2009](#ref-lima-mendezPowerfulLawPower2009); [Broido and Clauset
-2019](#ref-broidoScalefreeNetworksAre2019)).
-
-Whether biological networks are scale-free has therefore remained
-contested. Early claims often relied on approximately straight log–log
-degree plots. Such plots are not goodness-of-fit tests: binning, the
-plotting scale, a small number of hubs, and incomplete or biased
-sampling can all make non-power-law distributions appear linear. The
-underlying graph representation matters as well. For example, pool
-metabolites can become artificial hubs in metabolic graphs, while
-protein-interaction networks depend strongly on the assay and sampling
-scheme ([Lima-Mendez and van Helden
-2009](#ref-lima-mendezPowerfulLawPower2009)). A power law should instead
-be fitted to the discrete degree data, tested for plausibility, and
-compared on the same support with alternatives such as log-normal,
-exponential, stretched-exponential, and power-law-with-cut-off
-distributions.
-
-The evidence is not uniformly negative. Using adjacency-spectrum
-distributions rather than degree alone, Takahashi and colleagues
-classified eight protein–protein interaction networks as scale-free
-([Takahashi et al.
-2012](#ref-takahashiDiscriminatingDifferentClasses2012)). Importantly,
-this was a relative model-selection result: BA-like networks fitted
-better than the two candidate alternatives, Erdős–Rényi and
-Watts–Strogatz networks. It did not show that a power law was an
-adequate absolute model, that preferential attachment generated the
-observed networks, or that unobserved interactions would preserve the
-classification. The authors explicitly noted both the restricted
-candidate set and possible sampling artefacts.
-
-A broader test of 928 real-world network data sets reached a more
-cautious conclusion ([Broido and Clauset
-2019](#ref-broidoScalefreeNetworksAre2019)). Across all domains, only 4%
-met the strongest scale-free criterion, whereas a log-normal
-distribution fitted as well as or better than a power law for 88% of
-degree distributions. Among the biological networks, 63% showed neither
-direct nor indirect evidence of scale-free structure, although 6% met
-the strongest criterion, principally metabolic networks. These
-proportions depend on the network corpus and the operational definition
-of scale-freeness, but they reject a universal scale-free law rather
-than excluding scale-free structure from every biological system.
-
-#### Evidence from the literature
+> **Note 4: The scale-free hypothesis: a useful stress test, not a
+> biological default**
+>
+> The phrase *scale-free network* usually means that the degree
+> distribution follows a power law, \Pr(K=k)\propto k^{-\alpha}, at
+> least above a lower cut-off. This statistical statement is distinct
+> from the Barabási–Albert (BA) growth mechanism. Preferential
+> attachment can generate a power law, but observing a heavy-tailed
+> degree distribution does not establish preferential attachment; other
+> mechanisms can produce similar tails, and variants of preferential
+> attachment need not produce a pure power law ([Lima-Mendez and van
+> Helden 2009](#ref-lima-mendezPowerfulLawPower2009); [Broido and
+> Clauset 2019](#ref-broidoScalefreeNetworksAre2019)).
+>
+> Whether biological networks are scale-free has therefore remained
+> contested. Early claims often relied on approximately straight log–log
+> degree plots. Such plots are not goodness-of-fit tests: binning, the
+> plotting scale, a small number of hubs, and incomplete or biased
+> sampling can all make non-power-law distributions appear linear. The
+> underlying graph representation matters as well. For example, pool
+> metabolites can become artificial hubs in metabolic graphs, while
+> protein-interaction networks depend strongly on the assay and sampling
+> scheme ([Lima-Mendez and van Helden
+> 2009](#ref-lima-mendezPowerfulLawPower2009)). A power law should
+> instead be fitted to the discrete degree data, tested for
+> plausibility, and compared on the same support with alternatives such
+> as log-normal, exponential, stretched-exponential, and
+> power-law-with-cut-off distributions.
+>
+> The evidence is not uniformly negative. Using adjacency-spectrum
+> distributions rather than degree alone, Takahashi and colleagues
+> classified eight protein–protein interaction networks as scale-free
+> ([Takahashi et al.
+> 2012](#ref-takahashiDiscriminatingDifferentClasses2012)). Importantly,
+> this was a relative model-selection result: BA-like networks fitted
+> better than the two candidate alternatives, Erdős–Rényi and
+> Watts–Strogatz networks. It did not show that a power law was an
+> adequate absolute model, that preferential attachment generated the
+> observed networks, or that unobserved interactions would preserve the
+> classification. The authors explicitly noted both the restricted
+> candidate set and possible sampling artefacts.
+>
+> A broader test of 928 real-world network data sets reached a more
+> cautious conclusion ([Broido and Clauset
+> 2019](#ref-broidoScalefreeNetworksAre2019)). Across all domains, only
+> 4% met the strongest scale-free criterion, whereas a log-normal
+> distribution fitted as well as or better than a power law for 88% of
+> degree distributions. Among the biological networks, 63% showed
+> neither direct nor indirect evidence of scale-free structure, although
+> 6% met the strongest criterion, principally metabolic networks. These
+> proportions depend on the network corpus and the operational
+> definition of scale-freeness, but they reject a universal scale-free
+> law rather than excluding scale-free structure from every biological
+> system.
 
 [Table 3](#tbl-studies) summarises how recent simulation studies combine
 topology, precision construction, and mean / observation models.
@@ -464,58 +505,37 @@ designs.
 Several conclusions follow.
 
 1.  **Band** is not intrinsically a random-graph model: its support is
-    usually deterministic once the bandwidth is fixed (edge weights and
-    signs may still be random). Hub constructions are often partly
-    deterministic as well. Erdős–Rényi, preferential attachment, and
-    stochastic block models are genuinely stochastic.
+    usually deterministic once the bandwidth is fixed. Hub constructions
+    are often partly deterministic as well. Erdős–Rényi, preferential
+    attachment, and stochastic block models are genuinely stochastic.
 2.  A positive off-diagonal entry in \Omega encodes a **negative**
     partial correlation ([Equation 13](#eq-partial-cor)). Uniformly
     positive precision weights therefore induce uniformly negative
     edgewise partial correlations; random or signed biological weights
     are needed when activation-like and inhibition-like associations
     matter.
-3.  These models target **undirected** conditional dependence. Federico
-    and colleagues prefer a Markov-network representation when
-    observational data do not justify edge directionality ([Federico et
-    al. 2023](#ref-federicoStructureLearningGene2023)).
-4.  **BLGGM as a hybrid topology design.** Wu and Luo’s simulation can
-    be read as two nested layers ([Wu and Luo
-    2022](#ref-wuEstimatingHeterogeneousGene2022)). At the **global**
-    scale, genes are partitioned into blocks (a stochastic-block–like
-    partition). Within each block, a **finer** local topology is
-    specified—dense clique-like modules, circles, stars / hubs, or
-    signed dense substructures—so that different blocks can stand for
-    distinct regulatory regimes (e.g. dense co-expression programmes,
-    cyclic signalling motifs, master-regulator hubs). Signs can also
-    differ across modules or cell types. This is richer than a flat ER
-    draw, yet still fully undirected.
+3.  **BLGGM is a two-scale hybrid** ([Wu and Luo
+    2022](#ref-wuEstimatingHeterogeneousGene2022)), shown in
+    [Figure 8](#fig-blggm-two-pronged):
+    - **Global partition.** Genes are assigned to blocks (a
+      stochastic-block–like cut); between-block edges are sparse.
+    - **Local motifs.** Inside each block the topology can be a dense
+      clique, a circle, a star / hub, or a signed dense module, so
+      distinct blocks can stand for distinct regulatory regimes
+      (co-expression programmes, cyclic motifs, master-regulator hubs).
+      Signs may differ across modules or cell types.
 
-For DeCovarT, a BA graph should consequently be interpreted as a
-deliberately demanding **hub-heterogeneity benchmark**. It tests whether
-covariance estimation and deconvolution recover a few high-degree
-vertices without claiming that a gene-regulatory network grew by
-preferential attachment. Results should be compared with density-matched
-SBM, small-world, star, and Erdős–Rényi scenarios. Conclusions that
-depend only on the BA scenario should be labelled topology-specific; hub
-recovery, robustness to vertex removal, and biological realism do not
-follow from a fitted heavy tail alone.
+    The construction remains fully undirected, but it is richer than a
+    flat Erdős–Rényi draw. DeCovarT’s exported generators currently
+    expose the three families most useful as standalone benchmarks:
+    `scale_free`, `stochastic_block_model`, and `small_world`.
 
-**BLGGM as a hybrid.** Wu and Luo combine an SBM-like **global** gene
-partition with **local** dense, circle, star, or signed modules inside
-blocks ([Wu and Luo 2022](#ref-wuEstimatingHeterogeneousGene2022)).
-Distinct local motifs can stand for distinct processes
-(e.g. master-regulator stars vs dense co-expression programmes).
-DeCovarT’s exported generators currently expose the three families most
-useful as standalone benchmarks: `scale_free`, `stochastic_block_model`,
-and `small_world`.
+![](figures/fig_blggm_two_pronged.png)
 
-![](figures/fig_network_topologies_six.png)
-
-Figure 6: Six undirected topology families used in GGM simulation:
-Erdős–Rényi, Barabási–Albert (preferential attachment / scale-free),
-stochastic block (cluster), band / AR, star / hub, and small-world
-(Watts–Strogatz).  
-  
+Figure 8: Two-pronged BLGGM-style topology: a global stochastic-block
+partition of genes, then a local motif (dense module, star, or circle)
+inside each block ([Wu and Luo
+2022](#ref-wuEstimatingHeterogeneousGene2022)).
 
 ### Weight design and random signs
 
@@ -594,18 +614,18 @@ implements the uniform spectral shift below, with diagonal cushion u
 \boldsymbol{\Omega} = \boldsymbol{W} + \bigl(
 \lvert\lambda\_{\min}(\boldsymbol{W})\rvert + u \bigr) \mathbf{I}.
 
-| Construction | Formula | SPD? | Preserves exact support? | Behaviour |
-|----|----|---:|---:|----|
-| Uniform spectral shift | \Omega=W+\max(0,\varepsilon-\lambda\_{\min}(W))I | Yes | Yes | Same shift on every eigenvalue; off-diagonals (hence signs) unchanged |
-| `huge` / PLN-style loading | Diagonal load from \lvert\lambda\_{\min}\rvert, baseline, and u | Yes | Yes | v sets edge magnitude; loading sets conditioning ([Chiquet et al. 2018](#ref-chiquetVariationalInferenceSparse2018)) |
-| Partial-correlation scaling | \Omega=D^{1/2}(I-R)D^{1/2} with \rho(R)\<1 | Yes | Yes | Signs and strengths set on the partial-correlation scale ([Equation 17](#eq-partial-scale)) |
-| Graph Laplacian / M-matrix | \Omega=L_G+\varepsilon I | Yes | Yes | Off-diagonals non-positive ⇒ all edgewise partial correlations positive |
-| G-Wishart | \Omega\sim W_G(b,D) | Yes | Yes | Heterogeneous random weights; `BDgraph::rgwish()` ([Mohammadi and Wit 2025](#ref-R-BDgraph)) |
-| Eigenvalue clipping | Clip \Lambda then reconstruct Q\Lambda Q^{\top} | Yes | **No** | Fills structural zeros |
-| Nearest PD projection | e.g. [`Matrix::nearPD()`](https://rdrr.io/pkg/Matrix/man/nearPD.html) ([Bates et al. 2025](#ref-R-Matrix)) | Yes | **No** (in general) | Repair tool, not a support-preserving truth |
+| Construction | Formula | Support preserved? | Role |
+|----|----|:--:|----|
+| Spectral / PLN loading | \Omega=W+(\lvert\lambda\_{\min}(W)\rvert+u)I | Yes | DeCovarT default; same affine shift as `huge` / PLN ([Chiquet et al. 2018](#ref-chiquetVariationalInferenceSparse2018)) |
+| Partial-correlation scaling | \Omega=D^{1/2}(I-R)D^{1/2}, \rho(R)\<1 | Yes | Signs and strengths set on the partial-correlation scale ([Equation 17](#eq-partial-scale)) |
+| Graph Laplacian / M-matrix | \Omega=L_G+\varepsilon I | Yes | Off-diagonals non-positive ⇒ all edgewise partial correlations positive |
+| G-Wishart | \Omega\sim W_G(b,D) | Yes | Heterogeneous random weights; `BDgraph::rgwish()` ([Mohammadi and Wit 2025](#ref-R-BDgraph)) |
 
-Table 5: Positive-definiteness constructions for graph-constrained
-precisions.
+Table 5: Support-preserving maps from a weighted graph to \Omega\succ 0.
+Eigenvalue clipping (reconstruct Q\Lambda\_{\mathrm{clip}}Q^{\top})
+fills structural zeros, so it is omitted from the generative truth;
+nearest-PD projections are repair tools, not support-preserving
+simulators.
 
 #### Why the uniform spectral shift is attractive
 
@@ -640,11 +660,28 @@ j=1,\ldots,J,
 
 stacked as an array in \mathcal{M}\_{G\times G\times J}. Shared networks
 remain available by supplying the same adjacency (or the same graph
-model seed path) for every type. Downstream bulk simulation uses the
-Gaussian convolution
-\boldsymbol{y}\mid(\boldsymbol{\zeta},\boldsymbol{p})\sim
-\mathcal{N}\_{G}(\boldsymbol{\mu}\boldsymbol{p}, \sum_j
-p_j^{2}\boldsymbol{\Sigma}\_j).
+model seed path) for every type.
+
+> **Note 5: Why the bulk covariance is \sum_j
+> p_j^{2}\boldsymbol{\Sigma}\_j**
+>
+> If each latent profile is \boldsymbol{x}\_{\cdot
+> j}\sim\mathcal{N}\_{G}(\boldsymbol{\mu}\_{\cdot
+> j},\boldsymbol{\Sigma}\_j) independently, the bulk
+> \boldsymbol{y}=\sum_j p_j\boldsymbol{x}\_{\cdot j} is an **affine**
+> image of a stacked Gaussian vector. Affine images of multivariate
+> Gaussians remain Gaussian, with mean \boldsymbol{\mu}\boldsymbol{p}
+> and covariance \sum_j p_j^{2}\boldsymbol{\Sigma}\_j (the p_j^{2}
+> factor is the square of the linear coefficient, not a mixture-weight
+> identity). That is the conditional law used in the article (Gaussian
+> convolution with covariance \sum_j p_j^{2}\boldsymbol{\Sigma}\_j; see
+> the log-likelihood derivation in `article/main.tex`) and by
+> [`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md).
+> Downstream bulk simulation therefore uses
+>
+> \boldsymbol{y}\mid(\boldsymbol{\zeta},\boldsymbol{p}) \sim
+> \mathcal{N}\_{G}\bigl(\boldsymbol{\mu}\boldsymbol{p}, \textstyle\sum_j
+> p_j^{2}\boldsymbol{\Sigma}\_j\bigr).
 
 ### Imbalanced cellular proportions
 
@@ -678,14 +715,91 @@ a complementary pseudo-bulk toolkit with six named fraction scenarios
 (`even`, `random`, `mirror_db`, `weighted`, `pure`, `custom`) when
 aggregating single-cell profiles; see the [SimBu “Simulate pseudo bulk
 datasets”](https://bioconductor.org/packages/release/bioc/vignettes/SimBu/inst/doc/SimBu.html)
-section. DeCovarT’s Gaussian convolution uses the same idea at the
-*moment* layer: supply `p` (or a J\times N matrix of sample-wise ratios)
-to
-[`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md)
-/ the hybrid scenario scripts, and report H^{\star} alongside overlap or
-condition-number diagnostics. The hybrid J=3 use-case vignette uses the
-imbalanced design \boldsymbol{p}=(0.4,0.4,0.2) ([Deconvolution use
-cases](https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.html#sec-scenario-grid)).
+section. [Figure 9](#fig-simbu-entropy) shows five of those designs for
+J=6 types as stacked compositions, labelled by
+H^{\star}(\boldsymbol{p}). High-entropy (`even`) mixtures spread mass
+across types; low-entropy (`pure`) mixtures collapse onto one type.
+DeCovarT’s Gaussian convolution uses the same idea at the *moment*
+layer: supply `p` (or a J\times N matrix of sample-wise ratios) to
+[`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md),
+and report H^{\star} alongside overlap or condition-number diagnostics.
+The hybrid J=3 manuscript scenario uses the imbalanced design
+\boldsymbol{p}=(0.4,0.4,0.2) ([Manuscript synthetic simulation
+scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-manuscript-scenarios.html#sec-scenario-grid)).
+
+![](synthetic-scenarios_files/figure-html/fig-simbu-entropy-1.png)
+
+Figure 9: Illustrative J=6 compositions spanning `SimBu`-style fraction
+scenarios, ordered by decreasing normalised Shannon entropy
+H^{\star}(\boldsymbol{p}). Each bar is one design; `geom_label` reports
+H^{\star}. `mirror_db` is omitted (it copies an empirical atlas rather
+than a fixed simplex vector).
+
+## Conclusions
+
+A reproducible synthetic study should keep three design layers separate,
+then score both the reference geometry and the mixture composition:
+
+1.  **Mean signatures.** Build \boldsymbol{\mu} with
+    [`generate_mean_signature_matrix()`](https://bastienchassagnol.github.io/DeCovarT/reference/generate_mean_signature_matrix.md):
+    hold `mean_scale` s fixed and dial only `target_cosine` \rho. Report
+    the realised pairwise cosine ([Theorem 1](#thm-cosine-asymptotics)),
+    Euclidean separation, and optionally \kappa_2(\boldsymbol{\mu}).
+2.  **Precision graphs.** Draw an undirected skeleton (`scale_free`,
+    `stochastic_block_model`, or `small_world`), assign i.i.d. signed
+    weights (`prop_inhibitory`), and complete \Omega\succ 0 by the
+    uniform spectral shift. Report \kappa(\Omega) and the
+    partial-correlation sign mix.
+3.  **Cellular compositions.** Choose \boldsymbol{p} on a Shannon grid
+    from uniform (H^{\star}=1) to near-pure (H^{\star}\approx 0),
+    matching the `SimBu` fraction vocabulary when comparing to
+    pseudo-bulk tools ([Figure 9](#fig-simbu-entropy)).
+4.  **Bulk draws.** Simulate \boldsymbol{Y} from the Gaussian
+    convolution
+    \boldsymbol{y}\mid(\boldsymbol{\zeta},\boldsymbol{p})\sim\mathcal{N}\_{G}(\boldsymbol{\mu}\boldsymbol{p},\sum_j
+    p_j^{2}\boldsymbol{\Sigma}\_j) and pass the same moments to every
+    solver.
+5.  **Hybrid stress test.** The manuscript scenario (two mean-collinear
+    types told apart only by topology, plus an orthogonal third type) is
+    documented in [Manuscript synthetic simulation
+    scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-manuscript-scenarios.html#sec-scenario-grid).
+
+See [Note 6](#nte-benchmark-spec) for a compact factorial checklist.
+
+> **Important 6: Recommended benchmark specification**
+>
+> Use one pipeline for every topology
+> ([Equation 22](#eq-benchmark-pipe), [Figure 6](#fig-ggm-pipeline)):
+>
+> \text{topology} \rightarrow \text{signed weights} \rightarrow
+> \text{SPD precision} \rightarrow \text{mean design} \rightarrow
+> \text{latent Gaussian} \rightarrow \text{observation model} \tag{22}
+>
+> | Axis | Suggested levels |
+> |----|----|
+> | Dimension (genes) | G \in \\100,500,1000\\ |
+> | Topology | ER, band, hub, scale-free, SBM, small-world |
+> | Expected degree | \approx 2,4,8 (keep graphs sparse) |
+> | Edge weights | Constant; i.i.d. signed; partial-correlation scaling; G-Wishart |
+> | Conditioning | Report \kappa(\Omega) and partial-correlation summaries |
+> | Composition | Pure / weighted / balanced / uniform ([Section 4.5](#sec-imbalanced)); record H^{\star} |
+>
+> Table 7: Compact factorial axes for a reproducible undirected GGM
+> simulation study.
+>
+> Prefer the uniform spectral shift ([Equation 18](#eq-spectral-shift))
+> or partial-correlation scaling ([Equation 17](#eq-partial-scale)) when
+> support and signs must be exact; add the mean layer **independently**
+> of graph generation. The end-to-end **hybrid multi-topology reference
+> scenario** (two mean-collinear cell types distinguished only by
+> network topology, a third orthogonal type, NSGA-II panel curation, and
+> the frequentist solver comparison on imbalanced mixtures) is
+> documented in [Manuscript synthetic simulation
+> scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-manuscript-scenarios.html#sec-scenario-grid).
+> Edge-case numerical checks (gene-wise z-score equivariance, collinear
+> signatures, small bulk perturbations, random ALR starts) live in the
+> [appendix simulation
+> vignette](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT_appendix_simualtion_frameworks.md).
 
 ## Perspectives on high-dimensional or more biologically realistic designs
 
@@ -714,50 +828,6 @@ Beyond the families in [Table 1](#tbl-topologies):
     (\mu_k,\Omega_k) and expression-dependent dropout ([Wu and Luo
     2022](#ref-wuEstimatingHeterogeneousGene2022)).
 
-> **Important 1: Recommended benchmark specification**
->
-> Use one pipeline for every topology
-> ([Equation 22](#eq-benchmark-pipe), [Figure 5](#fig-ggm-pipeline)):
->
-> \text{topology} \rightarrow \text{signed weights} \rightarrow
-> \text{SPD precision} \rightarrow \text{mean design} \rightarrow
-> \text{latent Gaussian} \rightarrow \text{observation model} \tag{22}
->
-> | Axis | Suggested levels |
-> |----|----|
-> | Dimension (genes) | G \in \\100,500,1000\\ |
-> | Topology | ER, band, hub, scale-free, SBM, small-world |
-> | Expected degree | \approx 2,4,8 (keep graphs sparse) |
-> | Edge weights | Constant; i.i.d. signed; partial-correlation scaling; G-Wishart |
-> | Conditioning | Report \kappa(\Omega) and partial-correlation summaries |
-> | Composition | Pure / weighted / balanced / uniform ([Section 4.6](#sec-imbalanced)); record H^{\star} |
->
-> Table 7: Compact factorial axes for a reproducible undirected GGM
-> simulation study.
->
-> Prefer the uniform spectral shift ([Equation 18](#eq-spectral-shift))
-> or partial-correlation scaling ([Equation 17](#eq-partial-scale)) when
-> support and signs must be exact; add the mean layer **independently**
-> of graph generation. The end-to-end **hybrid multi-topology reference
-> scenario** (two mean-collinear cell types distinguished only by
-> network topology, a third orthogonal type, NSGA-II panel curation, and
-> the frequentist solver comparison on imbalanced mixtures) is
-> documented in [Deconvolution use
-> cases](https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.html#sec-scenario-grid).
-> Edge-case numerical checks (gene-wise z-score equivariance, collinear
-> signatures, small bulk perturbations, random ALR starts) live in the
-> [appendix simulation
-> vignette](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT_appendix_simualtion_frameworks.md).
-
-## Conclusions
-
-DeCovarT draws `scale_free`, `stochastic_block_model`, and `small_world`
-skeletons with `igraph`, then i.i.d. signed weights (`prop_inhibitory`)
-and a spectral shift to guarantee \Omega\succ 0. Keep graph generation,
-mean design, and composition imbalance as separate factorial axes, and
-report both network conditioning and H^{\star}(\boldsymbol{p}) when
-comparing solvers.
-
 ## References
 
 Aliee, Hananeh, and Fabian J. Theis. 2021. ‘AutoGeneS: Automatic Gene
@@ -772,10 +842,6 @@ Reference Matrices on Cellular Frequency Deconvolution*. bioRxiv.
 Barabási, Albert-László, and Réka Albert. 1999. ‘Emergence of Scaling in
 Random Networks’. *Science* 286.
 <https://doi.org/10.1126/science.286.5439.509>.
-
-Bates, Douglas, Martin Maechler, and Mikael Jagan. 2025. *Matrix: Sparse
-and Dense Matrix Classes and Methods*.
-<https://Matrix.R-forge.R-project.org>.
 
 Broido, Anna D., and Aaron Clauset. 2019. ‘Scale-Free Networks Are
 Rare’. *Nature Communications* 10.

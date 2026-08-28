@@ -98,7 +98,7 @@ instability ([Gong and Szustakowski
 so do not conflate the condition number of a signature with that of its
 Gram matrix. Eigenvalue ratios apply directly only to an appropriate
 symmetric positive-definite matrix (see also the [synthetic
-scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html#sec-geometric-score)
+scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html#nte-geometric-score)
 vignette).
 
 ## 2 Preprocessing shared by all strategies
@@ -962,7 +962,7 @@ and D-optimality maximises the log **Gram volume** of the mean columns.
 E-optimality maximises \lambda\_{\min} of that Gram matrix and is a
 cousin of minimising \kappa_2(\boldsymbol{\mu}\_{\mathcal{G}}) (see
 [Equation 2](#eq-condition-number)). The [synthetic
-scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html#sec-geometric-score)
+scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html#nte-geometric-score)
 vignette discusses the same objects as `AutoGeneS`-style scalar
 summaries of \boldsymbol{\mu}.
 

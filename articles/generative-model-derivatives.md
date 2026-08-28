@@ -430,8 +430,9 @@ follows Aitchison’s compositional geometry ([Aitchison
 ## Numerical speed-ups and solver safeguards
 
 The analytic maps above are only half of a usable optimiser. Practical
-bottlenecks that showed up on the hybrid scenario in [Deconvolution use
-cases](https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.html#sec-hybrid-deconvolution)
+bottlenecks that showed up on the hybrid scenario in [Manuscript
+synthetic simulation
+scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-manuscript-scenarios.html#sec-hybrid-deconvolution)
 live in `R/03_03_DeCovarT_estimate_ratios_frequentist.R`.
 
 ### Cache a Cholesky factorisation of \boldsymbol{\Sigma}(\boldsymbol{p})
@@ -589,7 +590,7 @@ if (!requireNamespace("numDeriv", quietly = TRUE)) {
 }
 numderiv_report
 #> gradient_rel  hessian_rel 
-#> 2.797001e-11 4.275761e-12
+#> 3.893819e-11 4.275761e-12
 ```
 
 Relative discrepancies of order (10^{-8}) are typical on this three-gene

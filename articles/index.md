@@ -18,8 +18,8 @@
   deconvolution](https://bastienchassagnol.github.io/DeCovarT/articles/feature-selection.md):
 - [In silico inference of gene regulatory
   networks](https://bastienchassagnol.github.io/DeCovarT/articles/network-inference.md):
-- [Deconvolution use cases with
-  DeCovarT](https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.md):
+- [Manuscript synthetic simulation
+  scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-manuscript-scenarios.md):
 
 ### Mathematics
 
