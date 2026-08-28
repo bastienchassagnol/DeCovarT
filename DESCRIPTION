@@ -38,6 +38,7 @@ Suggests:
     nnls,
     numDeriv,
     pkgdown,
+    plotly,
     quarto,
     reactable (>= 0.4.4),
     readr,
@@ -66,5 +67,4 @@ RdMacros: Rdpack
 Language: en-GB
 URL: https://github.com/bastienchassagnol/DeCovarT, https://bastienchassagnol.github.io/DeCovarT/
 BugReports: https://github.com/bastienchassagnol/DeCovarT/issues
-Config/roxygen2/version: 8.0.0
-RoxygenNote: 7.3.3
+Config/roxygen2/version: 8.1.0

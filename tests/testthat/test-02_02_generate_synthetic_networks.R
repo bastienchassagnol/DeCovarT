@@ -60,7 +60,12 @@ test_that("per-cell-type covariances are PD and match precision inverses", {
   for (j in seq_len(3L)) {
     sigma_j <- moments$covariance_matrices[,, j]
     omega_j <- moments$precision_matrices[,, j]
-    expect_equal(sigma_j, solve(omega_j), tolerance = 1e-8)
+    n_genes <- nrow(sigma_j)
+    expect_equal(
+      unname(sigma_j %*% omega_j),
+      diag(n_genes),
+      tolerance = 1e-8
+    )
     eigen_vals <- eigen(sigma_j, only.values = TRUE)$values
     expect_true(all(eigen_vals > 0))
   }

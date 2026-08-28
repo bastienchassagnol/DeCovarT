@@ -577,7 +577,9 @@ build_covariance_array_from_precision <- function(precision_array) {
     dimnames = list(gene_names, gene_names, celltype_names)
   )
   for (j in seq_len(n_celltypes)) {
-    sigma_j <- solve(precision_array[,, j])
+    # qr.solve() rather than solve(): with OpenBLAS, LAPACK solve() can
+    # return a markedly non-symmetric "inverse" that is not Omega^{-1}.
+    sigma_j <- qr.solve(precision_array[,, j])
     covariance_array[,, j] <- (sigma_j + t(sigma_j)) / 2
   }
   covariance_array

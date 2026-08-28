@@ -1,4 +1,10 @@
 {
+  "r.rterm.linux": "/usr/bin/R",
+  "r.rpath.linux": "/usr/bin/R",
+  "r.rterm.option": [
+    "--no-save",
+    "--no-restore"
+  ],
   "cSpell.words": [
     "eamodio"
   ],

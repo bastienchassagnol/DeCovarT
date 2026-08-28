@@ -56,9 +56,3 @@ or
   </object>
 </div>
 ```
-
-A native HTML `object` / `iframe` is used instead of the
-[`embedpdf`](https://github.com/jmgirard/embedpdf) shortcode: under
-pkgdown the shortcode often cannot hydrate (no `html:js` context), so
-only its fallback hyperlink appeared. The PDF is copied to
-`pkgdown/assets/article/main.pdf` and `vignettes/decovart-manuscript.pdf`.

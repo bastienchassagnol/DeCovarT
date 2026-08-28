@@ -296,10 +296,16 @@ test_that("Benchmark standard deconvolution algorithms against DeCovarT", {
     file.path(testthat::test_path(), "..", ".."),
     winslash = "/"
   )
-  source(
-    file.path(pkg_root, "scripts", "configure_bivariate_toy_scenarios.R"),
-    local = TRUE
+  scenario_script <- file.path(
+    pkg_root,
+    "scripts",
+    "configure_bivariate_toy_scenarios.R"
   )
+  skip_if_not(
+    file.exists(scenario_script),
+    "scripts/ is not in the package tarball"
+  )
+  source(scenario_script, local = TRUE)
 
   scenario_config <- build_bivariate_scenario_config(
     proportions = list("balanced" = c(0.50, 0.50)),
