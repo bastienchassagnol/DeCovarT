@@ -155,7 +155,7 @@ jobs:
           needs: website
 
       - name: Generate function call network
-        run: Rscript scripts/generate_package_network_functions.R
+        run: Rscript scripts/auxiliary/generate_package_network_functions.R
 
       # 1) Reveal.js deck first (COPASI-style: slides before the rest of Quarto)
       - name: Render Quarto reveal.js slides
