@@ -1,11 +1,11 @@
 # Simulate bulk mixtures from a multivariate Gaussian convolution
 
 For each bootstrap sample \\i=1,\ldots,N\\, draws **latent** purified
-profiles \\\boldsymbol{x}\_{\cdot
-j}^{(i)}\sim\mathcal{N}\_{G}(\boldsymbol{\mu}\_{\cdot j},
-\boldsymbol{\Sigma}\_j)\\ independently for each cell type
-\\j=1,\ldots,J\\, then forms the bulk by the linear convolution \$\$
-\boldsymbol{y}\_{\cdot i} =\boldsymbol{X}^{(i)}\boldsymbol{p}
+profiles \\\boldsymbol{x}\_{\cdot j}^{(i)}\sim
+\mathcal{N}\_{G}(\boldsymbol{\mu}\_{\cdot j}, \boldsymbol{\Sigma}\_j)\\
+independently for each cell type \\j=1,\ldots,J\\, then forms the bulk
+by the linear convolution \$\$ \boldsymbol{y}\_{\cdot i}
+=\boldsymbol{X}^{(i)}\boldsymbol{p}
 =\sum\_{j=1}^{J}p_j\\\boldsymbol{x}\_{\cdot j}^{(i)}, \$\$ matching the
 article's conditional model
 \\\boldsymbol{y}\\\|\\(\boldsymbol{\zeta},\boldsymbol{p})\sim
@@ -73,7 +73,7 @@ A list with:
 ## See also
 
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md),
-[`benchmark_bivariate_gaussian_convolutions()`](https://bastienchassagnol.github.io/DeCovarT/reference/benchmark_bivariate_gaussian_convolutions.md)
+[`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.md)
 
 ## Examples
 

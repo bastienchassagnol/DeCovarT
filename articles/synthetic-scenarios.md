@@ -34,8 +34,12 @@ design in detail.
 
 The exported entry point orchestrates internal helpers and returns
 moments that can be passed to
-[`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md)
-and then to any deconvolution routine exposed by
+[`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md),
+then to
+[`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.html)
+(scenario grids in analysis scripts such as
+`scripts/configure_bivariate_toy_scenarios.R`) or directly to any solver
+via
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md).
 
 ``` mermaid

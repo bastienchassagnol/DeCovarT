@@ -643,7 +643,7 @@ D
 <span>  loglik_diff <span class="op">=</span> <span class="va">eq_check</span><span class="op">$</span><span class="va">loglik_diff</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;  max_abs_diff   loglik_diff </span></span>
-<span><span class="co">#&gt;  3.670703e-09 -4.440892e-16</span></span></code></pre></div>
+<span><span class="co">#&gt;  5.001416e-09 -2.664535e-15</span></span></code></pre></div>
 </div>
 </section><section class="level2"><h3 id="sec-rna-sieve">RNA-Sieve: CLT likelihood, Fisher and Godambe<a class="anchor" aria-label="anchor" href="#sec-rna-sieve"></a>
 </h3>
@@ -712,7 +712,7 @@ Table 2: What each DeCovarT convergence field does and does not certify.
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="va">fit</span><span class="op">$</span><span class="va">diagnostics</span><span class="op">)</span></span>
 <span><span class="co">#&gt;          boundary_distance near_boundary   score_norm max_eigenvalue</span></span>
-<span><span class="co">#&gt; sample_1         0.2159583         FALSE 1.456634e-09      -8.272874</span></span>
+<span><span class="co">#&gt; sample_1         0.2159583         FALSE 1.456636e-09      -8.272874</span></span>
 <span><span class="co">#&gt; sample_2         0.1832324         FALSE 6.637712e-05      -6.249510</span></span>
 <span><span class="co">#&gt; sample_3         0.1682239         FALSE 1.356752e-04      -5.420747</span></span>
 <span><span class="co">#&gt;          local_maximum</span></span>
@@ -747,7 +747,7 @@ Table 2: What each DeCovarT convergence field does and does not certify.
 <span>  multimodal <span class="op">=</span> <span class="va">restarts</span><span class="op">$</span><span class="va">multimodal</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; loglik_range   multimodal </span></span>
-<span><span class="co">#&gt; 5.393508e-11 0.000000e+00</span></span></code></pre></div>
+<span><span class="co">#&gt;  5.39373e-11  0.00000e+00</span></span></code></pre></div>
 </div>
 <p>A small range is reassuring but not a proof: a converged code, a tiny relative-distance-to-minimum and a negative-definite local Hessian together support a <strong>local</strong> maximum, and none of them rules out a second, equally good or better mode elsewhere on the simplex.</p>
 </section><section class="section level2"><h2 id="sec-recap">Recap: which interval or test to report<a class="anchor" aria-label="anchor" href="#sec-recap"></a>

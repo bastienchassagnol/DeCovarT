@@ -349,7 +349,10 @@
 <span><span class="co">#&gt; ct2 0.388754 0.388754 0.388754</span></span></code></pre></div>
 </div>
 <p>A fuller comparison of normalisation (CPM, log2), tolerance, and dimension <span class="math inline">(G,J)</span> belongs in a later issue.</p>
-</section></section><section class="section level2"><h2 id="sec-s3">S3 accessors<a class="anchor" aria-label="anchor" href="#sec-s3"></a>
+</section></section><section class="section level2"><h2 id="sec-simulation-benchmark">Simulation benchmark wrapper<a class="anchor" aria-label="anchor" href="#sec-simulation-benchmark"></a>
+</h2>
+<p><a href="https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.html"><code>run_simulation_benchmark()</code></a> is the package wrapper around <code><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code>, <code><a href="../reference/deconvolute_ratios.html">deconvolute_ratios()</a></code>, and <code><a href="../reference/compute_benchmark_metrics.html">compute_benchmark_metrics()</a></code>. Generative grids (proportions, correlation sweeps, mean signatures, covariance tensors) should be assembled in scripts—see <code>scripts/configure_bivariate_toy_scenarios.R</code> for the bivariate toy study—and passed as a tibble with a <code>true_theta</code> list column. Deconvolution solvers are supplied as a named list of <code>FUN</code> plus optional <code>additional_parameters</code> for <code><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call()</a></code>. Optional scenario-level parallelism uses <code>furrr</code> and <code>future</code> (Suggests), capped by default at half of detected cores, with per-sample parallelism disabled inside <code><a href="../reference/deconvolute_ratios.html">deconvolute_ratios()</a></code> to avoid nested workers.</p>
+</section><section class="section level2"><h2 id="sec-s3">S3 accessors<a class="anchor" aria-label="anchor" href="#sec-s3"></a>
 </h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">

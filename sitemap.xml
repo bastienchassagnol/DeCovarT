@@ -23,7 +23,6 @@
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/DeCovarT-package.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/assign_iid_signed_weights.html</loc></url>
-<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/benchmark_bivariate_gaussian_convolutions.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_decovart.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/build_covariance_array_from_precision.html</loc></url>
@@ -65,6 +64,7 @@
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_decovart.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/repair_simplex.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_decovart.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/simulate_hierarchical_grn_moments.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.html</loc></url>

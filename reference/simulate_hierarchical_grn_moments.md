@@ -1,10 +1,10 @@
 # Simulate GRN first- and second-order moments
 
 Builds a mean matrix \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\ and
-**cell-type-specific** second-order moments
-\\(\boldsymbol{\Omega}\_j,\boldsymbol{\Sigma}\_j=\boldsymbol{\Omega}\_j^{-1})\_{j=1}^{J}\\
-under a graph-constrained precision model. Means follow the
-AutoGeneS-inspired cosine construction of
+**cell-type-specific** second-order moments \\(\boldsymbol{\Omega}\_j,
+\boldsymbol{\Sigma}\_j=\boldsymbol{\Omega}\_j^{-1})\_{j=1}^{J}\\ under a
+graph-constrained precision model. Means follow the AutoGeneS-inspired
+cosine construction of
 [`generate_mean_signature_matrix()`](https://bastienchassagnol.github.io/DeCovarT/reference/generate_mean_signature_matrix.md)
 with target pairwise cosine \\\rho\\. For each cell type, an adjacency
 is drawn from a random-graph model (or supplied), i.i.d. signed weights

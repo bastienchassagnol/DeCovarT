@@ -14,13 +14,6 @@ screen](https://bastienchassagnol.github.io/DeCovarT/article/main.pdf)
 or [download the
 PDF](https://bastienchassagnol.github.io/DeCovarT/articles/decovart-manuscript.pdf).
 
-A native HTML `object` / `iframe` is used instead of the
-[`embedpdf`](https://github.com/jmgirard/embedpdf) shortcode: under
-pkgdown the shortcode often cannot hydrate (no `html:js` context), so
-only its fallback hyperlink appeared. The PDF is copied to
-`pkgdown/assets/article/main.pdf` and
-`vignettes/decovart-manuscript.pdf`.
-
 Chassagnol, Bastien, Grégory Nuel, and Etienne Becht. 2023. *DeCovarT, a
 Multidimensional Probabilistic Model for the Deconvolution of
 Heterogeneous Transcriptomic Samples*. arXiv.

@@ -9,11 +9,12 @@ network topology.
 ## Bivariate toy model
 
 The manuscript study is implemented by
-[`benchmark_bivariate_gaussian_convolutions()`](https://bastienchassagnol.github.io/DeCovarT/reference/benchmark_bivariate_gaussian_convolutions.md).
-Even when mean profiles are similar, gene–gene correlation can degrade
-mean-only solvers, and is partly recovered once
-\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}\_j
-enters the likelihood.
+[`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.md),
+with scenario grids built in
+`scripts/configure_bivariate_toy_scenarios.R`. Even when mean profiles
+are similar, gene–gene correlation can degrade mean-only solvers, and is
+partly recovered once \boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j
+p_j^2\boldsymbol{\Sigma}\_j enters the likelihood.
 
 With p_1+p_2=1, only one free ALR coordinate is estimated (see
 [derivatives under simplex
@@ -59,22 +60,22 @@ Figure 3: Constrained log-likelihood versus p_1 for one bulk sample from
 the small-centroid, \rho=0.6, balanced design. The dashed line is the
 true p_1=1/2.
 
+Figure 4: Interactive version of [Figure 3](#fig-toy-loglik) (requires
+`plotly`).
+
 ### How to run the factorial grid
 
 ``` r
 
 library(DeCovarT)
+source("scripts/configure_bivariate_toy_scenarios.R")
 
-deconvolution_functions <- list(
-  "nnls" = list(FUN = deconvolute_ratios_nnls),
-  "lsei" = list(FUN = deconvolute_ratios_deconrnaseq),
-  "Marquardt-Levenberg" = list(
-    FUN = deconvolute_ratios_Marquardt_Levenberg,
-    additional_parameters = list(epsilon = 1e-4, itmax = 200)
-  )
+deconvolution_functions <- bivariate_toy_deconvolution_functions(
+  itmax = 200L,
+  epsilon = 1e-4
 )
 
-bivariate <- benchmark_bivariate_gaussian_convolutions(
+scenario_config <- build_bivariate_scenario_config(
   proportions = list(
     "balanced" = c(0.5, 0.5),
     "highly unbalanced" = c(0.95, 0.05)
@@ -84,10 +85,15 @@ bivariate <- benchmark_bivariate_gaussian_convolutions(
     "large CLD" = matrix(c(20, 40, 40, 20), nrow = 2)
   ),
   corr_sequence = seq(-0.8, 0.8, by = 0.2),
-  diagonal_terms = list("homoscedastic" = c(1, 1)),
+  diagonal_terms = list("homoscedastic" = c(1, 1))
+)
+
+bivariate <- run_simulation_benchmark(
+  scenario_config = scenario_config,
   deconvolution_functions = deconvolution_functions,
   n = 500,
-  cores = 1
+  cores = 1,
+  parallel_scenarios = FALSE
 )
 ```
 
@@ -160,7 +166,7 @@ differ in \boldsymbol{\Omega}.
 
 ![](figures/fig_network_topologies.png)
 
-Figure 4: Cell-type-specific block topologies: SBM/hub-like modules
+Figure 5: Cell-type-specific block topologies: SBM/hub-like modules
 (type 1) and a star (type 2) on the 30 `shared_12_vs_3` genes;
 scale-free wiring (type 3) on `marker_3`. The `equal_all` block is
 Erdős–Rényi in every type. Edge colour: precision sign (red inhibitory,
@@ -200,7 +206,7 @@ currently returns MSE, RMSE, MAE, a pseudo-R^{2}, and Pearson
 correlation between \hat{\boldsymbol{p}} and \boldsymbol{p}^{\star}.
 Reconstruction-only scores (no \boldsymbol{p}^{\star}) compare
 \hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}} with
-\boldsymbol{y}. [Figure 5](#fig-metrics-families) summarises the broader
+\boldsymbol{y}. [Figure 6](#fig-metrics-families) summarises the broader
 families used in recent bulk and spatial benchmarks.
 
 ![](figures/fig_compositional_metrics.svg)
@@ -213,11 +219,11 @@ discrepancies between \boldsymbol{p}^{\star} and \hat{\boldsymbol{p}}.
 \(b\) How those distances behave near the centre versus near a vertex of
 the simplex.
 
-Figure 5: Compositional error metrics for \boldsymbol{p} on the simplex.
+Figure 6: Compositional error metrics for \boldsymbol{p} on the simplex.
 
 ![](figures/fig_hierarchical_rmse_metrics.png)
 
-Figure 6: Hierarchical relative RMSE (hrRMSE) used when some reference
+Figure 7: Hierarchical relative RMSE (hrRMSE) used when some reference
 types are missing: residual error is scaled by the biological variance
 of \boldsymbol{p}^{\star} rather than by raw proportion units ([Ba et
 al. 2026](#ref-baWhenLessNot2026)).
@@ -253,7 +259,7 @@ Pseudobulk tools such as `muscat` ([Crowell et al.
 single-cell counts across samples. `scDD` ([Korthauer et al.
 2016](#ref-korthauerStatisticalApproachIdentifying2016)) partitions
 genes into EE, DE, DP, DM, and DB patterns. The hybrid scenario is a
-network-level analogue of three of these ([Figure 7](#fig-dd-taxonomy)):
+network-level analogue of three of these ([Figure 8](#fig-dd-taxonomy)):
 `equal_all` is EE; `marker_3` is DE for type 3; `shared_12_vs_3` has
 **no mean shift between types 1 and 2**, only a precision-topology
 contrast (DM-like for deconvolution, not scDD’s original single-gene
@@ -261,7 +267,7 @@ modality test).
 
 ![](figures/fig_dd_taxonomy_ee_de_dm.jpg)
 
-Figure 7: Schematic EE / DE / DM-like taxonomy for the three gene
+Figure 8: Schematic EE / DE / DM-like taxonomy for the three gene
 blocks.
 
 ## References

@@ -117,13 +117,15 @@ code cannot provide. See
 
 ## Benchmark and evaluation
 
-Quality metrics for estimated proportions, and the bivariate toy
-convolution benchmark.
+Quality metrics for estimated proportions, and the simulation benchmark
+wrapper.
 
 - [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)
   : Compute summary metrics for estimated proportions
-- [`benchmark_bivariate_gaussian_convolutions()`](https://bastienchassagnol.github.io/DeCovarT/reference/benchmark_bivariate_gaussian_convolutions.md)
-  : Benchmark bivariate Gaussian convolutions
+- [`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.md)
+  : Simulate bulk mixtures and benchmark deconvolution algorithms
+- [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)
+  : Parallel deconvolution of a bulk expression matrix
 - [`plot_correlation_Heatmap()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_correlation_Heatmap.md)
   : Plot deconvolution metric heatmaps
 

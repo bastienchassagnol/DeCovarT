@@ -590,7 +590,7 @@ if (!requireNamespace("numDeriv", quietly = TRUE)) {
 }
 numderiv_report
 #> gradient_rel  hessian_rel 
-#> 3.893819e-11 4.275761e-12
+#> 2.797001e-11 4.275761e-12
 ```
 
 Relative discrepancies of order (10^{-8}) are typical on this three-gene
