@@ -27,7 +27,7 @@ test_that("compute_benchmark_metrics scores against true ratios", {
     )
   )
   expect_gt(scores$model_mse, 0)
-  expect_lte(scores$model_mse, Metrics::mse(true_p, true_p) + 1)
+  expect_lte(scores$model_mse, .mse(true_p, true_p) + 1)
 })
 
 test_that("compute_benchmark_metrics scores reconstituted bulk without truth", {
@@ -54,6 +54,7 @@ test_that("compute_benchmark_metrics scores reconstituted bulk without truth", {
 })
 
 test_that("deconvolute_ratios returns a tidy table for nnls", {
+  skip_if_not_installed("nnls")
   genes <- paste0("g", 1:2)
   cts <- paste0("ct", 1:2)
   mu <- matrix(
@@ -83,6 +84,7 @@ test_that("deconvolute_ratios returns a tidy table for nnls", {
 })
 
 test_that("deconvolute_ratios errors on missing values (G2.13)", {
+  skip_if_not_installed("nnls")
   genes <- paste0("g", 1:2)
   cts <- paste0("ct", 1:2)
   mu <- matrix(
@@ -135,6 +137,7 @@ test_that(".match_arg_case_insensitive is case-insensitive (G2.3b)", {
 })
 
 test_that("deconvolute_ratios uses the bundled toy fixture (G5.1)", {
+  skip_if_not_installed("nnls")
   toy <- .toy_deconvolution()
   out <- deconvolute_ratios(
     signature_matrix = toy$signature_matrix,
@@ -151,6 +154,7 @@ test_that("deconvolute_ratios uses the bundled toy fixture (G5.1)", {
 })
 
 test_that("deconvolute_ratios errors on Inf, negatives, and J > G", {
+  skip_if_not_installed("nnls")
   toy <- .toy_deconvolution()
   fns <- list("nnls" = list(FUN = deconvolute_ratios_nnls))
 
@@ -201,6 +205,7 @@ test_that("deconvolute_ratios errors on Inf, negatives, and J > G", {
 })
 
 test_that("deconvolute_ratios rejects log2 mixing (RE2.3)", {
+  skip_if_not_installed("nnls")
   toy <- .toy_deconvolution()
   expect_error(
     deconvolute_ratios(

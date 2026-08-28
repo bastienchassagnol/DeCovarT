@@ -97,36 +97,37 @@ navbar:
           icon: fa-chalkboard-user
           href: articles/deconvolution-seminar-slides.html
         - text: -------
-        - text: Getting started
-        - text: Simulating semi-synthetic pseudo-bulk mixtures
-          icon: fa-flask
-          href: articles/synthetic-scenarios.html
+        - text: Prepare inputs
         - text: In silico GRN inference
           icon: fa-project-diagram
           href: articles/network-inference.html
-        - text: Deconvolution use cases with DeCovarT
-          icon: fa-chart-pie
-          href: articles/DeCoVart-use-cases.html
         - text: Feature selection for reference-based deconvolution
           icon: fa-filter
           href: articles/feature-selection.html
         - text: -------
-        - text: Mathematics
-        - text: Derivatives under simplex transforms
+        - text: Mathematical and Programmatic introduction to DeCovarT
           icon: fa-square-root-variable
           href: articles/generative-model-derivatives.html
+        - text: How to simulate interesting synthetic scenarios with dependency structures
+          icon: fa-flask
+          href: articles/synthetic-scenarios.html
+        - text: Manuscript synthetic simulation scenarios
+          icon: fa-chart-pie
+          href: articles/DeCovarT-manuscript-scenarios.html
+        - text: -------
+        - text: DeCovarT Mathematical appendix
         - text: MLE properties and asymptotic inference
           icon: fa-chart-area
           href: articles/DeCovarT-MLE-properties.html
-        - text: OLS reminders for linear deconvolution
+        - text: Literature review, and comparison to other related methods
           icon: fa-equals
           href: articles/DeCovarT-reminders-OLS.html
-        - text: DeCovarT perspectives (outlook)
+        - text: "DeCovarT perspectives: Bayesian, quasi-likelihood, and more"
           icon: fa-compass
           href: articles/decovart-perspectives.html
         - text: -------
-        - text: Appendix simulations
-        - text: Equivariance, collinearity and perturbations
+        - text: DeCovarT extra-simulation appendix
+        - text: "Edge cases: quasi-collinearity, multi-modal, active zero proportions and perturbations"
           icon: fa-vial
           href: articles/DeCovarT_appendix_simualtion_frameworks.html
     news:
@@ -252,7 +253,7 @@ articles:
       - synthetic-scenarios
       - feature-selection
       - network-inference
-      - DeCoVart-use-cases
+      - DeCovarT-manuscript-scenarios
   - title: Mathematics
     contents:
       - generative-model-derivatives

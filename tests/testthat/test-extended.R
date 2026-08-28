@@ -7,6 +7,7 @@
 skip_if_not_extended()
 
 test_that("hierarchical GRN moments scale to more genes", {
+  skip_if_not_installed("igraph")
   moments <- withr::with_seed(1L, {
     simulate_hierarchical_grn_moments(
       n_genes = 60L,

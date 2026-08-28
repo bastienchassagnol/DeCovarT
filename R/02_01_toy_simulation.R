@@ -3,7 +3,8 @@
 #' @description
 #' For each bootstrap sample \eqn{i=1,\ldots,N}, draws **latent** purified
 #' profiles
-#' \eqn{\boldsymbol{x}_{\cdot j}^{(i)}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},
+#' \eqn{\boldsymbol{x}_{\cdot j}^{(i)}\sim
+#'   \mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},
 #' \boldsymbol{\Sigma}_j)} independently for each cell type
 #' \eqn{j=1,\ldots,J}, then forms the bulk by the linear convolution
 #' \deqn{
@@ -203,6 +204,10 @@ benchmark_bivariate_gaussian_convolutions <- function(
     1
   )
 ) {
+  .check_suggested_package(
+    "MixSim",
+    "benchmark_bivariate_gaussian_convolutions"
+  )
   num_celltypes <- ncol(signature_matrices[[1]])
   num_genes <- nrow(signature_matrices[[1]])
   signature_matrices <- purrr::map(

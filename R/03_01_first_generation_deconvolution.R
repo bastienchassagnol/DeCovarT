@@ -11,6 +11,7 @@
 #'   (CIBERSORT-style); no covariance prior is used.
 #' @export
 deconvolute_ratios_cibersort <- function(y, mean_signature_matrix) {
+  .check_suggested_package("e1071", "deconvolute_ratios_cibersort")
   # nu grid as in CIBERSORT; skip tuning when too few genes for hold-out
   range_nu <- seq(0.2, 0.8, 0.3)
   n_obs <- nrow(mean_signature_matrix)
@@ -83,6 +84,7 @@ deconvolute_ratios_rlm <- function(y, mean_signature_matrix) {
 #'   ([nnls::nnls()]), then simplex projection.
 #' @export
 deconvolute_ratios_nnls <- function(y, mean_signature_matrix) {
+  .check_suggested_package("nnls", "deconvolute_ratios_nnls")
   estimated_p <- nnls::nnls(mean_signature_matrix, as.numeric(y))$x
   names(estimated_p) <- colnames(mean_signature_matrix)
   repair_simplex(estimated_p)
@@ -95,6 +97,7 @@ deconvolute_ratios_nnls <- function(y, mean_signature_matrix) {
 #' \insertAllCited{}
 #' @export
 deconvolute_ratios_deconrnaseq <- function(y, mean_signature_matrix) {
+  .check_suggested_package("limSolve", "deconvolute_ratios_deconrnaseq")
   n_celltypes <- ncol(mean_signature_matrix)
   estimated_p <- limSolve::lsei(
     A = mean_signature_matrix,

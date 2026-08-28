@@ -4,7 +4,8 @@
 # - One colour per source file; node tooltips include formal parameters
 # see also https://pkgmap.app to list dependencies assoicated with a package
 #
-# Run from the package root: Rscript scripts/generate_package_network.R
+# Run from the package root:
+#   Rscript scripts/auxiliary/generate_package_network_functions.R
 
 stop_if_missing <- function(pkg) {
   if (!requireNamespace(pkg, quietly = TRUE)) {

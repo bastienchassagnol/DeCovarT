@@ -144,53 +144,6 @@ saveRDS(
   file = "./data/bivariate/bivariate_parameters.rds"
 )
 
-##################################################################
-##      generate WABi general complexHeatmap       ##
-##################################################################
-load("./data/bivariate_parameters.rda")
-
-splitted_parameters <- split(
-  mean_signature_matrix = bivariate_parameters,
-  f = bivariate_parameters$ID
-)
-bivariate_simulation_heatmap <- purrr::imap(
-  splitted_parameters,
-  function(.data, .name_scenario) {
-    heatmap_per_scenario <- plot_correlation_Heatmap(.data) # actual call to the associated DeCovarT function
-    heatmap_page <- purrr::imap(
-      heatmap_per_scenario,
-      ~ ComplexHeatmap::draw(
-        .mean_signature_matrix,
-        padding = unit(c(0, 0, 0, 0), "cm"),
-        column_title = .y,
-        column_title_gp = grid::gpar(fontsize = 12, fontface = "bold")
-      ) |>
-        grid::grid.grabExpr()
-    )
-    # general organisation: 3 deconvolution algorithms per column
-    heatmap_page <- gridExtra::arrangeGrob(
-      grobs = heatmap_page,
-      ncol = 3,
-      padding = unit(0.1, "line"),
-      top = ggpubr::text_grob(.name_scenario, size = 18, face = "bold")
-    )
-    return(heatmap_page)
-  }
-)
-
-# save the actual output
-ggsave(
-  "./figs/bivariate_Heatmaps_test.pdf",
-  gridExtra::marrangeGrob(
-    grobs = bivariate_simulation_heatmap,
-    top = "",
-    ncol = 1,
-    nrow = 1
-  ),
-  width = 12,
-  height = 12,
-  dpi = 300
-)
 
 #################################################################
 ##                    generate JOBIM figure                    ##

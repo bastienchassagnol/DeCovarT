@@ -15,6 +15,7 @@ default_args <- list(
 )
 
 test_that("simulate_hierarchical_grn_moments returns expected structure", {
+  skip_if_not_installed("igraph")
   moments <- withr::with_seed(1L, {
     do.call(simulate_hierarchical_grn_moments, default_args)
   })

@@ -174,6 +174,7 @@ compute_shannon_entropy <- function(ratios) {
 #' )
 #' compute_average_overlap(theta)
 compute_average_overlap <- function(true_theta, J = NULL) {
+  .check_suggested_package("MixSim", "compute_average_overlap")
   theta <- .parse_true_theta(
     true_theta,
     require_p = TRUE,
@@ -236,6 +237,7 @@ compute_glmnet_gene_scores <- function(
   lambda = NULL,
   ...
 ) {
+  .check_suggested_package("glmnet", "compute_glmnet_gene_scores")
   if (
     is.null(dim(expression_profiles)) ||
       length(dim(expression_profiles)) != 3L

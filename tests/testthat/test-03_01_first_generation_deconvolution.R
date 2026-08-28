@@ -47,6 +47,9 @@
 
 
 test_that("First-generation deconvolution solvers return a valid simplex", {
+  skip_if_not_installed("nnls")
+  skip_if_not_installed("limSolve")
+  skip_if_not_installed("e1071")
   setup <- .first_gen_setup()
 
   # ------------------------------------------------------------------ #

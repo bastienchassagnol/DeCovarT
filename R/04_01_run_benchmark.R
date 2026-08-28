@@ -18,8 +18,8 @@
 #'   `sigma` / `Theta`). Matching is case-insensitive.
 #'
 #' @srrstats {G2.3} Restricted character input (`second_moment`).
-#' @srrstats {G2.3a} Validated via `.match_arg_case_insensitive()` (a `match.arg()`
-#'   equivalent).
+#' @srrstats {G2.3a} Validated via `.match_arg_case_insensitive()` (a
+#'   `match.arg()` equivalent).
 #' @srrstats {G2.3b} Matching is case-insensitive (`tolower()`).
 #'
 #' @return `TRUE` invisibly if the structure is valid; otherwise stops
@@ -276,12 +276,12 @@ compute_benchmark_metrics <- function(
     # when the true parameters are known
     model_coef_determination <- max(
       0,
-      1 - Metrics::rse(true_ratios, estimated_p)
+      1 - .rse(true_ratios, estimated_p)
     )
     scores <- tibble::tibble(
-      model_mse = Metrics::mse(true_ratios, estimated_p),
-      model_rmse = Metrics::rmse(true_ratios, estimated_p),
-      model_mae = Metrics::mae(true_ratios, estimated_p),
+      model_mse = .mse(true_ratios, estimated_p),
+      model_rmse = .rmse(true_ratios, estimated_p),
+      model_mae = .mae(true_ratios, estimated_p),
       model_coef_determination = model_coef_determination,
       model_coef_determination_adjusted = max(
         0,
@@ -297,9 +297,9 @@ compute_benchmark_metrics <- function(
     # when they are unknown
     predicted_values <- as.vector(mean_signature_matrix %*% estimated_p)
     scores <- tibble::tibble(
-      model_mse = Metrics::mse(y, predicted_values),
-      model_rmse = Metrics::rmse(y, predicted_values),
-      model_mae = Metrics::mae(y, predicted_values),
+      model_mse = .mse(y, predicted_values),
+      model_rmse = .rmse(y, predicted_values),
+      model_mae = .mae(y, predicted_values),
       model_cor = suppressWarnings(stats::cor(
         y,
         predicted_values,
@@ -438,7 +438,7 @@ deconvolute_ratios <- function(
             ),
             additional_parameters
           )
-          formal_args <- methods::formalArgs(deconvolution_function$FUN)
+          formal_args <- names(formals(deconvolution_function$FUN))
           success_estimation <- tryCatch(
             {
               estimated_p <- do.call(

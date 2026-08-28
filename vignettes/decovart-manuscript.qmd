@@ -15,10 +15,7 @@ resources:
 format:
   html:
     embed-resources: false
-    toc: true
-embedpdf:
-  height: 800
-  width: 100%
+    toc: false
 ---
 
 The methods paper describes covariance-aware deconvolution of bulk
@@ -27,7 +24,41 @@ simplex-constrained cell-type proportions by maximum likelihood with
 analytic derivatives. The current official source repository is
 [bastienchassagnol/DeCovarT](https://github.com/bastienchassagnol/DeCovarT);
 a preprint is on [arXiv](https://arxiv.org/abs/2309.09557)
-[@chassagnolDeCovarTMultidimensionalProbalistic2023]. The PDF below is
-the working manuscript (`article/main.pdf`).
+[@chassagnolDeCovarTMultidimensionalProbalistic2023]. The viewer below
+is the working manuscript (`article/main.pdf`).
 
-{{< pdf decovart-manuscript.pdf width=100% height=800 >}}
+Open
+[full screen](https://bastienchassagnol.github.io/DeCovarT/article/main.pdf)
+or
+[download the PDF](decovart-manuscript.pdf).
+
+```{=html}
+<div class="decovart-fullwidth">
+  <object
+    class="decovart-pdf-embed"
+    data="../article/main.pdf"
+    type="application/pdf"
+    width="100%"
+    height="1400">
+    <object
+      class="decovart-pdf-embed"
+      data="decovart-manuscript.pdf"
+      type="application/pdf"
+      width="100%"
+      height="1400">
+      <iframe
+        class="decovart-pdf-embed"
+        src="decovart-manuscript.pdf"
+        title="DeCovarT working manuscript"
+        width="100%"
+        height="1400"></iframe>
+    </object>
+  </object>
+</div>
+```
+
+A native HTML `object` / `iframe` is used instead of the
+[`embedpdf`](https://github.com/jmgirard/embedpdf) shortcode: under
+pkgdown the shortcode often cannot hydrate (no `html:js` context), so
+only its fallback hyperlink appeared. The PDF is copied to
+`pkgdown/assets/article/main.pdf` and `vignettes/decovart-manuscript.pdf`.

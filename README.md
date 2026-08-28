@@ -100,7 +100,7 @@ The diagram above summarises the end-to-end workflow.
 Prefer the
 [full-screen network](https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network.html)
 when exploring call relationships. Regenerate locally with
-`source("scripts/generate_package_network_functions.R")`.
+`source("scripts/auxiliary/generate_package_network_functions.R")`.
 
 <div class="decovart-fullwidth">
 <iframe
@@ -220,7 +220,7 @@ Package website: <https://bastienchassagnol.github.io/DeCovarT/>
 **Vignettes**
 
 - [Simulating semi-synthetic pseudo-bulk mixtures](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html)
-- [Deconvolution use cases with DeCovarT](https://bastienchassagnol.github.io/DeCovarT/articles/DeCoVart-use-cases.html)
+- [Manuscript synthetic simulation scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-manuscript-scenarios.html)
 - [Derivatives under simplex transforms](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.html)
 - [MLE properties and asymptotic inference](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.html)
 

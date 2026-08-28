@@ -21,6 +21,7 @@ test_that("check_true_theta: accepts valid theta", {
 })
 
 test_that("check_true_theta: accepts J x N proportions", {
+  skip_if_not_installed("MixSim")
   theta <- list(
     p = cbind(c(0.6, 0.4), c(0.4, 0.6)),
     mu = cbind(c(0, 0), c(3, 0)),
@@ -54,6 +55,7 @@ test_that("check_true_theta: rejects bad dims", {
 })
 
 test_that("compute_average_overlap: closer means overlap more", {
+  skip_if_not_installed("MixSim")
   set.seed(1)
   far <- list(
     p = c(0.5, 0.5),

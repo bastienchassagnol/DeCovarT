@@ -41,7 +41,7 @@ Hunspell wording unchanged (British English / technical terms).
 * Method reference: Chassagnol, Nuel and Becht (2023)
   <doi:10.48550/arXiv.2309.09557>.
 * The CRAN tarball ships two Quarto vignettes
-  (`DeCoVart-use-cases`, `generative-model-derivatives`). Longer articles
+  (`DeCovarT-manuscript-scenarios`, `generative-model-derivatives`). Longer articles
   remain on the pkgdown site and are linked with absolute URLs.
 * Heatmap packages `ComplexHeatmap`, `circlize`, and `viridis` are in
   Suggests only (optional `plot_correlation_Heatmap()`).

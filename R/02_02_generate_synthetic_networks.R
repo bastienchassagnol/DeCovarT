@@ -253,8 +253,8 @@ generate_mean_signature_matrix <- function(
 #'   Matching is case-insensitive.
 #'
 #' @srrstats {G2.3} Restricted character input (`graph_model`).
-#' @srrstats {G2.3a} Validated via `.match_arg_case_insensitive()` (a `match.arg()`
-#'   equivalent).
+#' @srrstats {G2.3a} Validated via `.match_arg_case_insensitive()` (a
+#'   `match.arg()` equivalent).
 #' @srrstats {G2.3b} Matching is case-insensitive (`tolower()`).
 #' @param graph_params Named list of generator parameters:
 #'   \describe{
@@ -283,6 +283,7 @@ generate_random_network_skeleton <- function(
   graph_model,
   graph_params = list()
 ) {
+  .check_suggested_package("igraph", "generate_random_network_skeleton")
   n_genes <- as.integer(n_genes)
   graph_model <- .match_arg_case_insensitive(
     graph_model,
@@ -588,7 +589,8 @@ build_covariance_array_from_precision <- function(precision_array) {
 #' @description
 #' Builds a mean matrix \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}}
 #' and **cell-type-specific** second-order moments
-#' \eqn{(\boldsymbol{\Omega}_j,\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1})_{j=1}^{J}}
+#' \eqn{(\boldsymbol{\Omega}_j,
+#'   \boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1})_{j=1}^{J}}
 #' under a graph-constrained precision model. Means follow the
 #' AutoGeneS-inspired cosine construction of
 #' `generate_mean_signature_matrix()` with target pairwise cosine

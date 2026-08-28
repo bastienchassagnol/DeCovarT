@@ -17,8 +17,8 @@
 ^test_Revbayes\.R$
 ^test_Revbayes\.Rmd$
 ^visualise_representations\.R$
-^\./vignettes/DeCoVart-use-cases\.pdf$
-^\./vignettes/DeCoVart-use-cases\.R$
+^\./vignettes/DeCovarT-manuscript-scenarios\.pdf$
+^\./vignettes/DeCovarT-manuscript-scenarios\.R$
 ^_pkgdown\.yml$
 ^docs$
 ^pkgdown$
@@ -28,7 +28,7 @@
 ^vignettes/.*\.html$
 ^vignettes/.*\.R$
 # CRAN tarball ships only the two Quarto vignettes needed for the methods
-# core (use-cases + softmax/ALR). Other articles stay on the pkgdown site
+# core (manuscript scenarios + softmax/ALR). Other articles stay on the pkgdown site
 # (absolute URLs from CRAN vignettes) to keep rebuild time and Suggests
 # surface small: slides, manuscript PDF embed, long feature-selection /
 # network / perspectives / appendix articles.
@@ -59,6 +59,7 @@
 ^vignettes/figures/sc_transform\.png$
 ^vignettes/figures/synthetic_grn_pipeline\.mmd$
 ^vignettes/figures/fig_dd_taxonomy_ee_de_dm\.png$
+^vignettes/figures/fig_blggm_two_pronged\.png$
 # README / pkgdown use logo.png; skip the embedded-SVG duplicate in the tarball
 ^man/figures/logo\.svg$
 ^\.pre-commit-config\.yaml$

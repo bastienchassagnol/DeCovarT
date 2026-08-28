@@ -693,7 +693,7 @@ bootstrap: the maximised likelihood is equivariant under relabelling.
 
 The analytic maps above are only half of a usable optimiser. Practical
 bottlenecks that showed up on the hybrid scenario in
-[Deconvolution use cases](DeCoVart-use-cases.html#sec-hybrid-deconvolution)
+[Manuscript synthetic simulation scenarios](DeCovarT-manuscript-scenarios.html#sec-hybrid-deconvolution)
 live in `R/03_03_DeCovarT_estimate_ratios_frequentist.R`.
 
 ## Cache a Cholesky factorisation of $\boldsymbol{\Sigma}(\boldsymbol{p})$

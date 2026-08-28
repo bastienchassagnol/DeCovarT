@@ -548,6 +548,15 @@ not** add that fallback — remove it.
 - Avoid copying large objects unnecessarily.
 - Document non-obvious speed-ups (analytic derivatives, tensor tricks,
   constrained reparametrisations) in vignettes / article.
+- **Small-dependency rule:** If an Import contributes fewer than five
+  call sites **and** its used functionality can be reproduced in under
+  200 lines of Air-formatted R (or under 100 lines from the upstream
+  source), remove the dependency, implement `R/utils-<package>.R`, and
+  add testthat parity checks against the original on fixed seeds. Prefer
+  **Suggests + `requireNamespace` gate** (see
+  `.check_heatmap_dependencies()` in `R/04_02_benchmark_visualisation.R`)
+  when reimplementation is large (optimisers, SVM, QP, graph sampling,
+  Monte Carlo overlap).
 
 ## Testing and validation
 
