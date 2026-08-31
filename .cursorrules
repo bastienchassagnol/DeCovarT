@@ -225,6 +225,60 @@ Excluding long Quarto articles from the tarball is justified when it
 cuts rebuild time and Suggests risk; document the list in `.Rbuildignore`
 and `cran-comments.md`, and never leave dangling relative links.
 
+### CRAN Cookbook (code issues)
+
+Encode
+[Code Issues](https://contributor.r-project.org/cran-cookbook/code_issues.html)
+in package `R/`, examples, vignettes, and tests. Prefer **`withr`**
+(already in Suggests) over manual `on.exit()` / `unlink()` when the
+change is temporary.
+
+- **`TRUE` / `FALSE`:** never `T` / `F` as logicals or as object names.
+- **Seeds in package functions:** do not hard-code `set.seed(n)`. If a
+  function needs a seed, take `seed = NULL` and call `set.seed()` only
+  when the caller supplies a value. Tests, examples, and vignettes
+  *should* set a seed for reproducibility (`withr::with_seed()`).
+- **Console output:** do not use unsuppressable `print()` / `cat()` /
+  `writeLines()` in package functions. Use `message()` / `warning()` /
+  `stop()`, or gate with `if (verbose)`. (`print` / `summary` methods
+  and interactive functions are exempt.) See also the `stop()` /
+  `message()` split-argument rule under **Style**.
+- **`options()`, `par()`, `setwd()`:** do not leave the user's state
+  changed. In functions, restore immediately with `on.exit()` (or
+  `withr::local_options()` / `local_par()` / `with_dir()`). In examples
+  and vignettes, assign the previous value and restore it before the
+  chunk ends. Never `options(warn = -1)`; use `suppressWarnings()` on a
+  specific expression if a warning must be silenced.
+- **Writing files:** functions must not write to the home filespace,
+  the package directory, or `getwd()` by default. Omit any default
+  output path (or default to a path the caller must supply). In
+  examples, vignettes, and tests, write only under a **withr** temporary
+  file or directory:
+  `withr::local_tempfile()`, `withr::local_tempdir()`,
+  `withr::with_tempfile()`, `withr::with_tempdir()`. Those helpers
+  delete the artefact when the test / frame exits; do **not** leave
+  detritus in `tempdir()` (CRAN NOTE: “detritus in the temp directory”).
+  Bare `tempfile()` / `tempdir()` plus a later `unlink()` is a last
+  resort. Test helpers that build objects belong in
+  `tests/testthat/helper.R` as in-memory constructors
+  (`new_useful_thing()`); do not `saveRDS()` / `dir.create()` into
+  `tests/testthat/fixtures/` during check. Committed read-only fixtures
+  (e.g. `inst/extdata/`) are fine.
+- **`.GlobalEnv`:** do not assign into the user's workspace. The
+  **never `<<-`** rule under **Style** covers this; shiny apps are the
+  documented exception. Do not `rm(list = ls())` in examples or
+  vignettes.
+- **`installed.packages()`:** never. Use `requireNamespace("pkg")` or
+  `require("pkg")` to test availability (already required for Suggests
+  gates).
+- **Installing software:** do not call `install.packages()`,
+  `BiocManager::install()`, or similar from examples, tests, vignettes,
+  or ordinary package functions. Dedicated install helpers are allowed
+  if they are not exercised during `R CMD check`.
+- **Cores:** examples, vignettes, tests, and installation must use at
+  most **2** CPU cores. Pass `cores = 1L` (or `2L`) explicitly; do not
+  rely on `detectCores()` defaults in check-time code.
+
 ### GitHub and docs bootstrap (new packages)
 
 Early setup via **usethis** (run once after creating the GitHub repo):
@@ -253,7 +307,8 @@ below; validate locally with `pkgdown::build_site()` before pushing.
   (`https://<user>.github.io/`) still need **Settings → Pages** set to
   that branch.
 - Prefer **external shared includes** under `pkgdown/` over raw HTML/JS
-  embedded in `_pkgdown.yml` (e.g. `template.includes.after_body:
+  embedded in `_pkgdown.yml` (e.g. `modfy .cursorrules to ensure that
+    a)late.includes.after_body:
   after_body.html`). Use pkgdown’s `{{#site}}{{root}}{{/site}}` prefix
   for root-relative asset URLs.
 - Put static assets in `pkgdown/assets/` (copied to the site root).
@@ -583,8 +638,16 @@ Follow
   - `expect_type(x, t)` rather than `expect_true(is.<type>(x))`.
   - Split `expect_true(a && b)` into separate `expect_true(a)` and
     `expect_true(b)` calls.
-- Use `set.seed()` for stochastic tests; store fixtures under
-  `tests/testthat/fixtures/` when needed.
+- Stochastic tests: `withr::with_seed()` (or `set.seed()` in the test
+  body). Prefer an in-memory helper in `tests/testthat/helper.R`
+  (`new_useful_thing()`) over golden RDS files when construction is
+  cheap ([r-pkgs testing-advanced](https://r-pkgs.org/testing-advanced.html#create-and-destroy-a-local-useful_thing)).
+  Side-effecting helpers should be `local_*()` wrappers around
+  `withr::defer()`. If a test must write, use `withr::local_tempfile()`
+  / `local_tempdir()` so the file is deleted when the test ends — never
+  write to the package tree, `getwd()`, or the home filespace, and never
+  leave files in `tempdir()`. Committed read-only copies under
+  `tests/testthat/fixtures/` or `inst/extdata/` are acceptable.
 - Interactive: `devtools::test()`, `devtools::test_coverage()`,
   `devtools::test_coverage_active_file()`.
 - Package checks: run `devtools::check()` **and**

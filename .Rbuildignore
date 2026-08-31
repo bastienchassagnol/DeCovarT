@@ -91,6 +91,9 @@
 ^CRAN-SUBMISSION$
 ^graphify-out$
 ^\.graphifyignore$
+# Local leftover; gitignored. Must also be Rbuildignored or R CMD check
+# reports a non-standard top-level directory.
+^temp_benchmakr_metrics$
 ^derive-statistical-properties\.md$
 # Local deep-research notes and Zotero / RAG scratch inputs, also
 # gitignored: merged into inst/REFERENCES.bib and never shipped.

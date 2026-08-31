@@ -8,19 +8,22 @@ Unit tests live in `tests/testthat/` and mirror `R/` stems
 | Object | Where | Used by |
 |---|---|---|
 | `toy_deconvolution` | `inst/extdata/toy_deconvolution.rds` (copy under `tests/testthat/fixtures/`) | Input-check and `deconvolute_ratios()` smoke tests |
-| `bivariate_configuration.rds`, `bivariate_estimation.rds` | `tests/testthat/fixtures/` | Golden-file comparison in `test-03_03_DeCovarT.R` |
 
-Regenerate the bivariate fixtures from the package root after `devtools::load_all()`:
+The bivariate toy scenario used by `test-03_03_DeCovarT.R` is built in
+memory by `new_bivariate_toy_scenario()` in `tests/testthat/helper.R`
+(r-pkgs “create useful_things with a helper”). Construction is cheap, so
+nothing is written to the package tree, `getwd()`, or the home filespace.
+On the CRAN tarball `scripts/` is excluded; that test then skips.
 
-```r
-source("tests/testthat/fixtures/make-useful-things.R")
-```
+If a test must touch disk, wrap the write in `withr::local_tempfile()` /
+`withr::local_tempdir()` (cleaned when the test exits). Do not leave
+files under `tempdir()`.
 
 ## Timing (current suite)
 
 All regular files finish in well under one second on a desktop (slowest:
 `test-02_02_generate_synthetic_networks.R`, hierarchical GRN with 30 genes).
-The bivariate golden-file test re-runs every solver, including simulated
+The bivariate helper re-runs every solver, including simulated
 annealing, and is the heaviest single test.
 
 ## Extended tests (G5.10)

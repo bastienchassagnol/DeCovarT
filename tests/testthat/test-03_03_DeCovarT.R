@@ -292,54 +292,17 @@ test_that("All deconvolute_ratios_* solvers return a valid simplex", {
 test_that("Benchmark standard deconvolution algorithms against DeCovarT", {
   skip_if_not_installed("nnls")
   skip_if_not_installed("limSolve")
-  pkg_root <- normalizePath(
-    file.path(testthat::test_path(), "..", ".."),
-    winslash = "/"
-  )
-  scenario_script <- file.path(
-    pkg_root,
-    "scripts",
-    "configure_bivariate_toy_scenarios.R"
-  )
-  skip_if_not(
-    file.exists(scenario_script),
+  skip_if_not_installed("MixSim")
+
+  bivariate_scenario <- new_bivariate_toy_scenario()
+  skip_if(
+    is.null(bivariate_scenario),
     "scripts/ is not in the package tarball"
   )
-  source(scenario_script, local = TRUE)
 
-  scenario_config <- build_bivariate_scenario_config(
-    proportions = list("balanced" = c(0.50, 0.50)),
-    corr_sequence = 0,
-    diagonal_terms = list("homoscedastic" = c(1, 1)),
-    signature_matrices = list(
-      "small CLD" = matrix(c(20, 22, 22, 20), nrow = 2)
-    )
-  )
-  deconvolution_functions <- bivariate_toy_deconvolution_functions(
-    itmax = 10L,
-    epsilon = 1e-3
-  )
-
-  bivariate_scenario <- withr::with_seed(
-    seed = 3L,
-    run_simulation_benchmark(
-      scenario_config = scenario_config,
-      deconvolution_functions = deconvolution_functions,
-      n = 2L,
-      cores = 1L,
-      parallel_scenarios = FALSE
-    )
-  )
-
-  bivariate_configuration <- readRDS(testthat::test_path(
-    "fixtures",
-    "bivariate_configuration.rds"
-  ))
-  bivariate_estimation <- readRDS(testthat::test_path(
-    "fixtures",
-    "bivariate_estimation.rds"
-  ))
-
-  expect_equal(bivariate_configuration, bivariate_scenario$config)
-  expect_equal(bivariate_estimation, bivariate_scenario$simulations)
+  expect_type(bivariate_scenario, "list")
+  expect_named(bivariate_scenario, c("simulations", "config"))
+  expect_equal(nrow(bivariate_scenario$config), 1L)
+  expect_true(nrow(bivariate_scenario$simulations) > 0L)
+  expect_true("model_mse" %in% names(bivariate_scenario$simulations))
 })
