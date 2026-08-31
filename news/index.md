@@ -1,5 +1,13 @@
 # Changelog
 
+## DeCovarT 2.3.1
+
+- **CRAN resubmission.** Tests no longer write under the package tree.
+  The bivariate toy scenario is built in memory by
+  `new_bivariate_toy_scenario()` in `tests/testthat/helper.R`; the
+  former `fixtures/make-useful-things.R` writer and its golden RDS files
+  are gone.
+
 ## DeCovarT 2.3.0
 
 - **Log-likelihood evaluation.**

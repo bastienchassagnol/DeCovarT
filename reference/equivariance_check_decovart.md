@@ -101,5 +101,5 @@ colnames(mu) <- paste0("ct", 1:2)
 Sigma <- array(c(diag(3), diag(3)), dim = c(3, 3, 2))
 y <- drop(mu %*% c(0.7, 0.3))
 equivariance_check_decovart(y, mu, Sigma)$max_abs_diff
-#> [1] 0
+#> [1] 1.110223e-16
 ```

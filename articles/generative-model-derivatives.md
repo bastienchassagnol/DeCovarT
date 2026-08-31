@@ -547,9 +547,9 @@ fit <- fit_decovart(
   itmax = 80
 )
 coef(fit)
-#>            s1
-#> ct1 0.6501141
-#> ct2 0.3498859
+#>           s1
+#> ct1 0.648736
+#> ct2 0.351264
 nobs(fit)
 #> [1] 1
 #> attr(,"n_genes")
@@ -566,18 +566,18 @@ c(
 #>           3           2
 fitted(fit)
 #>          s1
-#> g1 25.24829
-#> g2 36.50114
-#> g3 23.95034
+#> g1 25.26896
+#> g2 36.48736
+#> g3 23.94621
 residuals(fit)
 #>             s1
-#> g1  0.01498441
-#> g2  0.13025092
-#> g3 -0.08157827
+#> g1 -0.03549669
+#> g2 -0.01537423
+#> g3  0.09402526
 vcov(fit)
 #>              ct1          ct2
-#> ct1  0.001806624 -0.001806624
-#> ct2 -0.001806624  0.001806624
+#> ct1  0.001804864 -0.001804864
+#> ct2 -0.001804864  0.001804864
 ```
 
 [`formula()`](https://rdrr.io/r/stats/formula.html) and
@@ -678,7 +678,7 @@ if (!requireNamespace("numDeriv", quietly = TRUE)) {
 }
 numderiv_report
 #> gradient_rel  hessian_rel 
-#> 2.797001e-11 4.275761e-12
+#> 3.893819e-11 4.275761e-12
 ```
 
 Relative discrepancies of order (10^{-8}) are typical on this three-gene

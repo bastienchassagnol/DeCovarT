@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.3.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -626,9 +626,9 @@ I_{\boldsymbol{\rho}}^{-1}
 <span>  itmax <span class="op">=</span> <span class="fl">80</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt;            s1</span></span>
-<span><span class="co">#&gt; ct1 0.6501141</span></span>
-<span><span class="co">#&gt; ct2 0.3498859</span></span>
+<span><span class="co">#&gt;           s1</span></span>
+<span><span class="co">#&gt; ct1 0.648736</span></span>
+<span><span class="co">#&gt; ct2 0.351264</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/nobs.html" class="external-link">nobs</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 1</span></span>
 <span><span class="co">#&gt; attr(,"n_genes")</span></span>
@@ -645,18 +645,18 @@ I_{\boldsymbol{\rho}}^{-1}
 <span><span class="co">#&gt;           3           2</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;          s1</span></span>
-<span><span class="co">#&gt; g1 25.24829</span></span>
-<span><span class="co">#&gt; g2 36.50114</span></span>
-<span><span class="co">#&gt; g3 23.95034</span></span>
+<span><span class="co">#&gt; g1 25.26896</span></span>
+<span><span class="co">#&gt; g2 36.48736</span></span>
+<span><span class="co">#&gt; g3 23.94621</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;             s1</span></span>
-<span><span class="co">#&gt; g1  0.01498441</span></span>
-<span><span class="co">#&gt; g2  0.13025092</span></span>
-<span><span class="co">#&gt; g3 -0.08157827</span></span>
+<span><span class="co">#&gt; g1 -0.03549669</span></span>
+<span><span class="co">#&gt; g2 -0.01537423</span></span>
+<span><span class="co">#&gt; g3  0.09402526</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt;              ct1          ct2</span></span>
-<span><span class="co">#&gt; ct1  0.001806624 -0.001806624</span></span>
-<span><span class="co">#&gt; ct2 -0.001806624  0.001806624</span></span></code></pre></div>
+<span><span class="co">#&gt; ct1  0.001804864 -0.001804864</span></span>
+<span><span class="co">#&gt; ct2 -0.001804864  0.001804864</span></span></code></pre></div>
 </div>
 <p><code><a href="https://rdrr.io/r/stats/formula.html" class="external-link">formula()</a></code> and <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> are not implemented: DeCovarT does not forecast bulk expression.</p>
 </section><section class="section level2"><h2 id="sec-numerical-consistency">Numerical consistency of the likelihood and its derivatives<a class="anchor" aria-label="anchor" href="#sec-numerical-consistency"></a>
@@ -733,7 +733,7 @@ I_{\boldsymbol{\rho}}^{-1}
 <span><span class="op">}</span></span>
 <span><span class="va">numderiv_report</span></span>
 <span><span class="co">#&gt; gradient_rel  hessian_rel </span></span>
-<span><span class="co">#&gt; 2.797001e-11 4.275761e-12</span></span></code></pre></div>
+<span><span class="co">#&gt; 3.893819e-11 4.275761e-12</span></span></code></pre></div>
 </div>
 <p>Relative discrepancies of order (10^{-8}) are typical on this three-gene toy; that is the same tolerance used in the test suite.</p>
 </section><section class="level2"><h3 id="expected-information-versus-monte-carlo--">Expected information versus Monte Carlo ([-])<a class="anchor" aria-label="anchor" href="#expected-information-versus-monte-carlo--"></a>
