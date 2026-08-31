@@ -67,6 +67,11 @@ jobs:
         with:
           token: ${{ secrets.RHUB_TOKEN }}
           job-config: ${{ matrix.config.job-config }}
+      # Quarto CLI spawns a new R process that cannot see R CMD build's
+      # temporary library on Windows (quarto-dev/quarto-r#217). Installing
+      # into the default library matches GHA extra-packages: local::.
+      - name: Install local package for Quarto vignettes
+        run: Rscript -e "install.packages('.', repos = NULL, type = 'source')"
       - uses: r-hub/actions/run-check@v1
         with:
           token: ${{ secrets.RHUB_TOKEN }}
@@ -99,6 +104,8 @@ jobs:
         with:
           job-config: ${{ matrix.config.job-config }}
           token: ${{ secrets.RHUB_TOKEN }}
+      - name: Install local package for Quarto vignettes
+        run: Rscript -e "install.packages('.', repos = NULL, type = 'source')"
       - uses: r-hub/actions/run-check@v1
         with:
           job-config: ${{ matrix.config.job-config }}

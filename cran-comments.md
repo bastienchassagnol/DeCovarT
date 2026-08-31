@@ -11,6 +11,13 @@ writing under the package directory from
   package tree, or `getwd()`. Where tests still need a file they use
   `withr::local_tempfile()` / `with_tempfile()`, which delete the
   artefact when the test ends.
+* CRAN vignettes (`DeCovarT-manuscript-scenarios`,
+  `generative-model-derivatives`) no longer execute chunks that call
+  `library(DeCovarT)` / `DeCovarT::` during `R CMD build`. Quarto's
+  Windows CLI starts a new R process that cannot see the temporary
+  library used to build vignettes (quarto-dev/quarto-r#217). Live
+  checks remain in testthat. R-hub Windows pre-installs the package
+  (`local::.`), matching GitHub Actions.
 
 Previous 2.3.0 / 2.2.3 tarball notes (still apply): optional heatmap
 Suggests (`ComplexHeatmap`, `circlize`, `viridis`); no

@@ -4,7 +4,9 @@
   The bivariate toy scenario is built in memory by
   `new_bivariate_toy_scenario()` in `tests/testthat/helper.R`; the
   former `fixtures/make-useful-things.R` writer and its golden RDS files
-  are gone.
+  are gone. CRAN Quarto vignettes do not execute `library(DeCovarT)`
+  during rebuild (Windows CLI subprocess cannot see `R CMD build`'s
+  temporary library).
 
 # DeCovarT 2.3.0
 

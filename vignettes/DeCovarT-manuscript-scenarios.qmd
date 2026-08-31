@@ -32,6 +32,9 @@ knitr::opts_chunk$set(
   message = FALSE,
   warning = FALSE
 )
+# Executable DeCovarT chunks stay eval: false in this CRAN vignette:
+# quarto.exe on Windows does not inherit R CMD build's temporary library
+# (https://github.com/quarto-dev/quarto-r/issues/217).
 mu_small <- matrix(
   c(20, 22, 22, 20),
   nrow = 2,
@@ -92,7 +95,7 @@ the bivariate toy. {#fig-toy-design}
 #| fig-width: 8.4
 #| fig-height: 4.4
 #| echo: false
-#| eval: true
+#| eval: false
 set.seed(20260828)
 mu_small <- matrix(
   c(20, 22, 22, 20),
@@ -155,20 +158,20 @@ ggplot2::ggplot(dens_df, ggplot2::aes(x = gene_1, y = gene_2)) +
 
 ## Log-likelihood along the simplex
 
-For $J=2$ the free coordinate is $p_1\in(0,1)$. The chunk below evaluates
+For $J=2$ the free coordinate is $p_1\in(0,1)$. The listing below
+evaluates
 $\ell_{\boldsymbol{y}\mid\boldsymbol{\zeta}}(p_1,1-p_1)$ on one bulk draw
-and, when `plotly` is installed, renders an interactive line.
+(and would feed `plotly` when that Suggests package is installed).
+It is not executed during `R CMD build`: Quarto's Windows CLI starts a
+new R process that cannot see the temporary library where the package
+under construction was just installed
+([quarto-r#217](https://github.com/quarto-dev/quarto-r/issues/217)).
+The same likelihood path is checked in `tests/testthat/`.
 
 ```{r}
 #| label: fig-toy-loglik
-#| fig-cap: >-
-#|   Constrained log-likelihood versus $p_1$ for one bulk sample from the
-#|   small-centroid, $\rho=0.6$, balanced design. The dashed line is the
-#|   true $p_1=1/2$.
-#| fig-width: 6.4
-#| fig-height: 3.6
-#| echo: false
-#| eval: true
+#| echo: true
+#| eval: false
 set.seed(20260828)
 rho <- 0.6
 R <- matrix(c(1, rho, rho, 1), nrow = 2)
@@ -210,10 +213,8 @@ gg_ll
 
 ```{r}
 #| label: fig-toy-loglik-plotly
-#| fig-cap: >-
-#|   Interactive version of @fig-toy-loglik (requires `plotly`).
 #| echo: false
-#| eval: true
+#| eval: false
 if (requireNamespace("plotly", quietly = TRUE)) {
   plotly::ggplotly(gg_ll, tooltip = c("x", "y"))
 }

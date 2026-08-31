@@ -278,6 +278,16 @@ change is temporary.
 - **Cores:** examples, vignettes, tests, and installation must use at
   most **2** CPU cores. Pass `cores = 1L` (or `2L`) explicitly; do not
   rely on `detectCores()` defaults in check-time code.
+- **Quarto vignettes on Windows:** `quarto::html` shells out to
+  `quarto.exe`, which starts a **new** R process that does not see the
+  temporary library `R CMD build` used to install the package
+  ([quarto-r#217](https://github.com/quarto-dev/quarto-r/issues/217)).
+  CRAN-shipped vignettes must not `library(<pkg>)` / `pkg::` during
+  rebuild unless that call is `eval: false` (or the YAML default is
+  `eval: false`). Put live checks in testthat. GitHub Actions and
+  R-hub should pre-install the package (`local::.` /
+  `install.packages(".", repos = NULL, type = "source")`) so optional
+  evaluated chunks still work on those runners.
 
 ### GitHub and docs bootstrap (new packages)
 
