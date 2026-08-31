@@ -1213,7 +1213,7 @@ estimation**. In DeCovarT’s pipeline it is a natural companion to the
 still protect against distribution overfitting. An open-source
 implementation is available at <https://github.com/xiaorudong/berm>.
 
-## 7 Software notes
+### 6.6 Related R packages and workflows
 
 - Variance stabilisation / Pearson residuals: `sctransform` /
   `Seurat::SCTransform` ([Hafemeister and Satija

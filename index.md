@@ -268,7 +268,8 @@ Figure 11: Toy estimation results.
 
 Package vignettes: [synthetic
 scenarios](../vignettes/synthetic-scenarios.qmd) and
-[`benchmark_bivariate_gaussian_convolutions()`](https://bastienchassagnol.github.io/DeCovarT/reference/benchmark_bivariate_gaussian_convolutions.html).
+[`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.html)
+with scenario grids from `scripts/configure_bivariate_toy_scenarios.R`.
 
 # Applications & perspectives
 

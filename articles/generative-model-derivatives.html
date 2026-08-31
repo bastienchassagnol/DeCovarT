@@ -45,10 +45,8 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-vignettes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true"><span class="fa fa-book-open"></span> Vignettes</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-vignettes">
-<li><h6 class="dropdown-header" data-toc-skip>Manuscript</h6></li>
-    <li><a class="dropdown-item" href="../articles/decovart-manuscript.html"><span class="fa fa-file-pdf"></span> DeCovarT methods paper (PDF)</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/deconvolution-seminar-slides.html"><span class="fa fa-chalkboard-user"></span> Doctorants seminar slides (embedded)</a></li>
+<li><h6 class="dropdown-header" data-toc-skip>External resources</h6></li>
+    <li><a class="dropdown-item" href="../articles/decovart-external-resources.html"><span class="fa fa-book-open"></span> Manuscript, preprint &amp; seminar slides</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Prepare inputs</h6></li>
     <li><a class="dropdown-item" href="../articles/network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
@@ -60,7 +58,7 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT Mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> Literature review, and comparison to other related methods</a></li>
+    <li><a class="dropdown-item" href="../articles/Beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
     <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT extra-simulation appendix</h6></li>
@@ -93,7 +91,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Derivatives of the DeCovarT generative model under simplex transforms</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-08-28</p>
+      <p class="date">2026-08-31</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/generative-model-derivatives.qmd" class="external-link"><code>vignettes/generative-model-derivatives.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -518,6 +516,7 @@ e^{\rho_{i}}B_{i}/A^{2}, &amp; i=j,\ i&lt;J,\\
 <p><a href="#eq-chain-second" class="quarto-xref">Eq. 15</a> is the sum of a covariant pull-back of <span class="math inline">\mathbf{H}</span> and a contraction of the ambient score against the map Hessian. Omitting the second summand is a common bug when porting first-order code to Newton methods.</p>
 </blockquote>
 </div>
+<p>Extensions on the same footing include <strong>ILR</strong> or <strong>CLR</strong> coordinates <span class="citation" data-cites="pawlowsky-glahnCompositionalDataAnalysis2011">(<a href="#ref-pawlowsky-glahnCompositionalDataAnalysis2011" role="doc-biblioref">Pawlowsky-Glahn and Buccianti 2011</a>)</span> and Bayesian formulations: a Dirichlet or logistic-normal prior on <span class="math inline">\boldsymbol{p}</span> pairs naturally with the Gaussian bulk likelihood (the experimental MAP <code>CTS</code> path in <code>R/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R</code> is one starting point). Regardless of coordinate system, the workflow is the same: optimise in an unconstrained parameterisation, then map back to the simplex for interpretation.</p>
 </section></section><section class="section level2"><h2 id="sec-fisher-wald">Expected Fisher information and Wald inference<a class="anchor" aria-label="anchor" href="#sec-fisher-wald"></a>
 </h2>
 <p>Point estimation alone does not report uncertainty. Under a regular large-sample regime the MLE is asymptotically normal with covariance given by the inverse Fisher information. DeCovarT builds Wald standard errors from the <em>expected</em> Fisher information of the multivariate-normal convolution, then maps that information through the ALR chart.</p>
@@ -575,30 +574,92 @@ I_{\boldsymbol{\rho}}^{-1}
 <p><a href="#eq-delta-p" class="quarto-xref">Eq. 18</a> linearises the ALR chart at <span class="math inline">\hat{\boldsymbol{p}}</span>, so it is neither invariant to reparametrisation nor confined to <span class="math inline">[0,1]</span>, and it degenerates entirely when a proportion reaches a simplex face. The companion vignette <a href="https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.html">MLE properties and asymptotic inference</a> derives the alternatives: profile likelihood-ratio intervals, the chi-bar-square calibration of Chernoff and of Self and Liang for nulls on the boundary, a parametric bootstrap, and a reference-sample bootstrap of donors or cells (or a Dirichlet composition sweep). It also shows why these limits need replicate samples that share one composition. Shuffling genes or cell-type names of an averaged signature is not a bootstrap: the maximised likelihood is equivariant under relabelling.</p>
 </blockquote>
 </div>
-</section></section><section class="section level2"><h2 id="sec-numerical-speedups">Numerical speed-ups and solver safeguards<a class="anchor" aria-label="anchor" href="#sec-numerical-speedups"></a>
-</h2>
+<div>
+<blockquote>
+<p><strong>Numerical speed-ups and solver safeguards</strong></p>
 <p>The analytic maps above are only half of a usable optimiser. Practical bottlenecks that showed up on the hybrid scenario in <a href="DeCovarT-manuscript-scenarios.html#sec-hybrid-deconvolution">Manuscript synthetic simulation scenarios</a> live in <code>R/03_03_DeCovarT_estimate_ratios_frequentist.R</code>.</p>
-<section class="level2"><h3 id="cache-a-cholesky-factorisation-of-boldsymbolsigmaboldsymbolp">Cache a Cholesky factorisation of <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span>
-<a class="anchor" aria-label="anchor" href="#cache-a-cholesky-factorisation-of-boldsymbolsigmaboldsymbolp"></a>
-</h3>
+<hr>
+<h4 id="cache-a-cholesky-factorisation-of-boldsymbolsigmaboldsymbolp">Cache a Cholesky factorisation of <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span>
+</h4>
 <p>Within one iteration, objective / gradient / Hessian callbacks hit the same trial <span class="math inline">\boldsymbol{p}</span>. The helper <code><a href="../reference/dot-sigma_p_factorisation.html">.sigma_p_factorisation()</a></code> caches a single Cholesky factor <span class="math inline">\boldsymbol{R}</span> with <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\boldsymbol{R}^{\mathsf{T}}\boldsymbol{R}</span> and returns <span class="math inline">\log\det\boldsymbol{\Sigma}(\boldsymbol{p})=2\sum_g\log R_{gg}</span> together with the precision <span class="math inline">\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{R}^{-1}\boldsymbol{R}^{-\mathsf{T}}</span> (via <code>chol2inv</code>) without repeating an <span class="math inline">O(G^{3})</span> factorisation.</p>
 <p><a href="../reference/loglik_multivariate.html"><code>loglik_multivariate()</code></a> then evaluates the Mahalanobis term exactly as <code><a href="https://rdrr.io/pkg/mvtnorm/man/Mvnorm.html" class="external-link">mvtnorm::dmvnorm</a></code> <span class="citation" data-cites="R-mvtnorm">(<a href="#ref-R-mvtnorm" role="doc-biblioref">Genz et al. 2026</a>)</span>: it solves <span class="math inline">\boldsymbol{R}^{\mathsf{T}}\boldsymbol{z}
 =\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}</span> by <code>backsolve(..., transpose = TRUE)</code> and takes <span class="math inline">\lVert\boldsymbol{z}\rVert^{2}</span>, rather than forming <span class="math inline">\boldsymbol{\Theta}(\boldsymbol{p})</span> and a dense quadratic form. The two routes agree to machine precision; the backsolve path is the one used for the objective, while the cached inverse is retained for the analytic score and Hessian, which need <span class="math inline">\boldsymbol{\Theta}(\boldsymbol{p})</span> in several trace and inner-product terms. A QR factorisation of the covariance itself would recover the same log-determinant and quadratic form at a larger <span class="math inline">O(G^{3})</span> constant and is not used: Cholesky is the natural factorisation of a symmetric positive-definite matrix.</p>
 <p>The implemented log-density omits the additive <span class="math inline">-\tfrac{G}{2}\log(2\pi)</span> of the full Gaussian, which does not depend on <span class="math inline">\boldsymbol{p}</span> and therefore cannot change the MLE, the score, or the Hessian. Tests check that subtracting that constant recovers <code>dmvnorm(..., log = TRUE)</code> exactly.</p>
-</section><section class="level2"><h3 id="guard-the-box-constrained-l-bfgs-b-path">Guard the box-constrained L-BFGS-B path<a class="anchor" aria-label="anchor" href="#guard-the-box-constrained-l-bfgs-b-path"></a>
-</h3>
+<hr>
+<h4 id="guard-the-box-constrained-l-bfgs-b-path">Guard the box-constrained L-BFGS-B path</h4>
 <p><code><a href="../reference/deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_L_BFGS_B()</a></code> optimises in <span class="math inline">\boldsymbol{p}</span> with boxes <span class="math inline">[0,1]^{J}</span> that do not enforce <span class="math inline">\mathbf{1}^{\top}\boldsymbol{p}=1</span>. Near <span class="math inline">\sum_{j}p_{j}\approx 0</span> (or on a failed <code><a href="https://rdrr.io/r/base/chol.html" class="external-link">chol()</a></code>), safeguarded wrappers return a finite penalty and a zero gradient rather than aborting <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code>.</p>
-</section><section class="level2"><h3 id="marqlevalg-hessian-sign-under-minimize-false">
+<hr>
+<h4 id="marqlevalg-hessian-sign-under-minimize-false">
 <code>marqLevAlg</code> Hessian sign under <code>minimize = FALSE</code>
-<a class="anchor" aria-label="anchor" href="#marqlevalg-hessian-sign-under-minimize-false"></a>
-</h3>
-<div id="nte-marqlevalg-hess">
-<blockquote>
-<p><strong>Caution 8: <code>marqLevAlg(minimize = FALSE)</code> does not flip <code>hess</code></strong></p>
+</h4>
 <p><a href="https://cran.r-project.org/package=marqLevAlg" class="external-link"><code>marqLevAlg</code></a> <span class="citation" data-cites="R-marqLevAlg">(<a href="#ref-R-marqLevAlg" role="doc-biblioref">Philipps et al. 2023</a>)</span> implements Marquardt–Levenberg with the relative-distance-to-minimum (RDM) rule of Commenges et al. <span class="citation" data-cites="commengesNewtonLikeAlgorithmLikelihood2006">(<a href="#ref-commengesNewtonLikeAlgorithmLikelihood2006" role="doc-biblioref">Commenges et al. 2006</a>)</span>. With <code>minimize = FALSE</code>, the package negates only <code>fn</code> and <code>gr</code>; the analytic <code>hess</code> is passed through unchanged while internal Cholesky routines assume a <strong>positive-definite</strong> matrix at the optimum. When maximising a log-likelihood, pass <code>hess = function(...) -hessian_loglik_constrained(...)</code>. Reported upstream as <a href="https://github.com/VivianePhilipps/marqLevAlgParallel/issues/3" class="external-link">VivianePhilipps/marqLevAlgParallel#3</a>.</p>
 </blockquote>
 </div>
-</section></section><section class="section level2"><h2 id="sec-numerical-consistency">Numerical consistency of the likelihood and its derivatives<a class="anchor" aria-label="anchor" href="#sec-numerical-consistency"></a>
+</section></section><section class="section level2"><h2 id="sec-s3">Model objects and S3 accessors<a class="anchor" aria-label="anchor" href="#sec-s3"></a>
+</h2>
+<p><a href="../reference/fit_decovart.html"><code>fit_decovart()</code></a> returns a <code>decovart_fit</code> object with standard S3 methods for coefficients, fitted values, residuals, and (under regularity) a delta-method covariance. The chunk below mirrors the appendix equivariance setup:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">DeCovarT</a></span><span class="op">)</span></span>
+<span><span class="va">genes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"g"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">cts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"ct"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">mu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">40</span>, <span class="fl">25</span>, <span class="fl">35</span>, <span class="fl">30</span>, <span class="fl">22</span><span class="op">)</span>,</span>
+<span>  nrow <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">genes</span>, <span class="va">cts</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">Sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fl">0</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">3</span>, <span class="fl">2</span><span class="op">)</span>, dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">genes</span>, <span class="va">genes</span>, <span class="va">cts</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">Sigma</span><span class="op">[</span>, , <span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.0</span>, <span class="fl">1.2</span>, <span class="fl">0.8</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">Sigma</span><span class="op">[</span>, , <span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="fl">0.9</span>, <span class="fl">1.1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">p_true</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.65</span>, <span class="fl">0.35</span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="va">mu</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">p_true</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">3</span>, sd <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  ncol <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">genes</span>, <span class="st">"s1"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_decovart.html">fit_decovart</a></span><span class="op">(</span></span>
+<span>  <span class="va">mu</span>,</span>
+<span>  <span class="va">y</span>,</span>
+<span>  Sigma <span class="op">=</span> <span class="va">Sigma</span>,</span>
+<span>  method <span class="op">=</span> <span class="st">"Marquardt-Levenberg"</span>,</span>
+<span>  itmax <span class="op">=</span> <span class="fl">80</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="co">#&gt;            s1</span></span>
+<span><span class="co">#&gt; ct1 0.6501141</span></span>
+<span><span class="co">#&gt; ct2 0.3498859</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/nobs.html" class="external-link">nobs</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 1</span></span>
+<span><span class="co">#&gt; attr(,"n_genes")</span></span>
+<span><span class="co">#&gt; [1] 3</span></span>
+<span><span class="co">#&gt; attr(,"n_celltypes")</span></span>
+<span><span class="co">#&gt; [1] 2</span></span>
+<span><span class="co">#&gt; attr(,"n_samples")</span></span>
+<span><span class="co">#&gt; [1] 1</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  n_genes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/nobs.html" class="external-link">nobs</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, <span class="st">"n_genes"</span><span class="op">)</span>,</span>
+<span>  n_celltypes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/nobs.html" class="external-link">nobs</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, <span class="st">"n_celltypes"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;     n_genes n_celltypes </span></span>
+<span><span class="co">#&gt;           3           2</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="co">#&gt;          s1</span></span>
+<span><span class="co">#&gt; g1 25.24829</span></span>
+<span><span class="co">#&gt; g2 36.50114</span></span>
+<span><span class="co">#&gt; g3 23.95034</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="co">#&gt;             s1</span></span>
+<span><span class="co">#&gt; g1  0.01498441</span></span>
+<span><span class="co">#&gt; g2  0.13025092</span></span>
+<span><span class="co">#&gt; g3 -0.08157827</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="co">#&gt;              ct1          ct2</span></span>
+<span><span class="co">#&gt; ct1  0.001806624 -0.001806624</span></span>
+<span><span class="co">#&gt; ct2 -0.001806624  0.001806624</span></span></code></pre></div>
+</div>
+<p><code><a href="https://rdrr.io/r/stats/formula.html" class="external-link">formula()</a></code> and <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> are not implemented: DeCovarT does not forecast bulk expression.</p>
+</section><section class="section level2"><h2 id="sec-numerical-consistency">Numerical consistency of the likelihood and its derivatives<a class="anchor" aria-label="anchor" href="#sec-numerical-consistency"></a>
 </h2>
 <p>Analytic formulae can be differentiated correctly <em>and</em> still implement the wrong objective. The checks below separate those two questions. They are the same identities that <code>tests/testthat/test-03_03_DeCovarT.R</code> and <code>tests/testthat/test-03_06_decovart_inference.R</code> enforce on every package build; the chunks here are a readable, small-(G) illustration.</p>
 <section class="level2"><h3 id="density-against-mvtnorm">Density against <code>mvtnorm</code>
@@ -606,7 +667,7 @@ I_{\boldsymbol{\rho}}^{-1}
 </h3>
 <p>The first check is against an independent implementation of the multivariate Gaussian log-density, not against our own inverse. With the <span class="math inline">\tfrac{1}{2}\log\det</span> factor restored, DeCovarT and <code><a href="https://rdrr.io/pkg/mvtnorm/man/Mvnorm.html" class="external-link">mvtnorm::dmvnorm</a></code> <span class="citation" data-cites="R-mvtnorm">(<a href="#ref-R-mvtnorm" role="doc-biblioref">Genz et al. 2026</a>)</span> differ by exactly <span class="math inline">\tfrac{G}{2}\log(2\pi)</span> (DeCovarT omits the negative constant):</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n_genes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">y_chk</span><span class="op">)</span></span>
 <span><span class="va">ours</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/loglik_multivariate.html">loglik_multivariate</a></span><span class="op">(</span><span class="va">p_chk</span>, <span class="va">y_chk</span>, <span class="va">mu_chk</span>, <span class="va">Sigma_chk</span><span class="op">)</span></span>
 <span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"mvtnorm"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
@@ -637,7 +698,7 @@ I_{\boldsymbol{\rho}}^{-1}
 </h3>
 <p>Once the objective is the intended Gaussian, the analytic score and Hessian are checked against Richardson extrapolation in <code>numDeriv</code> <span class="citation" data-cites="R-numDeriv">(<a href="#ref-R-numDeriv" role="doc-biblioref">Gilbert and Varadhan 2019</a>)</span>. Richardson’s tableau extrapolates central differences to cancel successive even powers of the step size, which is more accurate than a single two-point stencil at the same <span class="math inline">O(\varepsilon^{-1})</span> cost in function evaluations.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"numDeriv"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">numderiv_report</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>gradient_rel <span class="op">=</span> <span class="cn">NA_real_</span>, hessian_rel <span class="op">=</span> <span class="cn">NA_real_</span><span class="op">)</span></span>
 <span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
@@ -679,7 +740,7 @@ I_{\boldsymbol{\rho}}^{-1}
 </h3>
 <p>Matching <code>numDeriv</code> shows that the derivatives belong to the implemented objective. Matching the <em>expected</em> Fisher information <a href="#eq-fisher-p" class="quarto-xref">Eq. 16</a> to a Monte Carlo average of (-(; )) shows that the objective is the Gaussian whose information matrix we use for Wald intervals. Draw (^{(b)}_G(, ())) at the <em>true</em> () (the parametric bootstrap of <a href="../reference/bootstrap_decovart.html"><code>bootstrap_decovart()</code></a>, used here as a diagnostic rather than as an inferential procedure):</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
 <span><span class="va">n_mc</span> <span class="op">&lt;-</span> <span class="fl">40L</span></span>
 <span><span class="va">info</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/expected_fisher_unconstrained.html">expected_fisher_unconstrained</a></span><span class="op">(</span><span class="va">p_chk</span>, <span class="va">mu_chk</span>, <span class="va">Sigma_chk</span><span class="op">)</span></span>
@@ -720,6 +781,9 @@ Gilbert, Paul, and Ravi Varadhan. 2019. <em>numDeriv: Accurate Numerical Derivat
 </div>
 <div id="ref-oehlertNoteDeltaMethod1992" class="csl-entry" role="listitem">
 Oehlert, Gary W. 1992. <span>‘A Note on the Delta Method’</span>. <em>The American Statistician</em> 46 (1): 27–29. <a href="https://doi.org/10.1080/00031305.1992.10475842" class="external-link">https://doi.org/10.1080/00031305.1992.10475842</a>.
+</div>
+<div id="ref-pawlowsky-glahnCompositionalDataAnalysis2011" class="csl-entry" role="listitem">
+Pawlowsky-Glahn, Vera, and Antonella Buccianti, eds. 2011. <em>Compositional Data Analysis: Theory and Applications</em>. Wiley.
 </div>
 <div id="ref-R-marqLevAlg" class="csl-entry" role="listitem">
 Philipps, Viviane, Cecile Proust-Lima, Melanie Prague, Boris Hejblum, Daniel Commenges, and Amadou Diakite. 2023. <em>marqLevAlg: A Parallelized General-Purpose Optimization Based on Marquardt-Levenberg Algorithm</em>.

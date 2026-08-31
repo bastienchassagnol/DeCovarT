@@ -1,18 +1,13 @@
 # Articles
 
-### Manuscript
+### External resources
 
-- [DeCovarT methods
-  paper](https://bastienchassagnol.github.io/DeCovarT/articles/decovart-manuscript.md):
-
-### Presentations
-
-- [Doctorants seminar slides
-  (embedded)](https://bastienchassagnol.github.io/DeCovarT/articles/deconvolution-seminar-slides.md):
+- [External resources: manuscript, presentations, and
+  preprints](https://bastienchassagnol.github.io/DeCovarT/articles/decovart-external-resources.md):
 
 ### Getting started
 
-- [Simulating synthetic scenarios for
+- [Simulating synthetic pseudo-bulk mixtures for
   benchmarking](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.md):
 - [Feature selection for reference-based
   deconvolution](https://bastienchassagnol.github.io/DeCovarT/articles/feature-selection.md):
@@ -27,8 +22,8 @@
   transforms](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.md):
 - [MLE properties and asymptotic inference for the DeCovarT
   log-likelihood](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.md):
-- [OLS reminders for linear
-  deconvolution](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-reminders-OLS.md):
+- [Beyond ordinary least squares: when linear-model assumptions
+  fail](https://bastienchassagnol.github.io/DeCovarT/articles/Beyond-OLS.md):
 - [DeCovarT
   perspectives](https://bastienchassagnol.github.io/DeCovarT/articles/decovart-perspectives.md):
 

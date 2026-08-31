@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Simulating synthetic scenarios for benchmarking • DeCovarT</title>
+<title>Simulating synthetic pseudo-bulk mixtures for benchmarking • DeCovarT</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -21,7 +21,7 @@
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="synthetic-scenarios_files/libs/quarto-html/popper.min.js"></script><script src="synthetic-scenarios_files/libs/quarto-html/tippy.umd.min.js"></script><link href="synthetic-scenarios_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="synthetic-scenarios_files/libs/quarto-html/light-border.css" rel="stylesheet">
 <script src="synthetic-scenarios_files/libs/quarto-diagram/mermaid.min.js"></script><script src="synthetic-scenarios_files/libs/quarto-diagram/mermaid-init.js"></script><link href="synthetic-scenarios_files/libs/quarto-diagram/mermaid.css" rel="stylesheet">
-<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Simulating synthetic scenarios for benchmarking">
+<!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Simulating synthetic pseudo-bulk mixtures for benchmarking">
 <meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg">
 </head>
 <body>
@@ -46,10 +46,8 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-vignettes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true"><span class="fa fa-book-open"></span> Vignettes</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-vignettes">
-<li><h6 class="dropdown-header" data-toc-skip>Manuscript</h6></li>
-    <li><a class="dropdown-item" href="../articles/decovart-manuscript.html"><span class="fa fa-file-pdf"></span> DeCovarT methods paper (PDF)</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/deconvolution-seminar-slides.html"><span class="fa fa-chalkboard-user"></span> Doctorants seminar slides (embedded)</a></li>
+<li><h6 class="dropdown-header" data-toc-skip>External resources</h6></li>
+    <li><a class="dropdown-item" href="../articles/decovart-external-resources.html"><span class="fa fa-book-open"></span> Manuscript, preprint &amp; seminar slides</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Prepare inputs</h6></li>
     <li><a class="dropdown-item" href="../articles/network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
@@ -61,7 +59,7 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT Mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> Literature review, and comparison to other related methods</a></li>
+    <li><a class="dropdown-item" href="../articles/Beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
     <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT extra-simulation appendix</h6></li>
@@ -91,10 +89,10 @@
 </nav><div class="container template-quarto">
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.svg" class="logo" alt=""><h1>Simulating synthetic scenarios for benchmarking</h1>
+      <img src="../logo.svg" class="logo" alt=""><h1>Simulating synthetic pseudo-bulk mixtures for benchmarking</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-08-28</p>
+      <p class="date">2026-08-31</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/synthetic-scenarios.qmd" class="external-link"><code>vignettes/synthetic-scenarios.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -111,7 +109,7 @@
 <p>Each cell type carries its own graph-constrained signed precision <span class="math inline">\boldsymbol{\Omega}_j</span>, mapped to <span class="math inline">\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1}</span>. An undirected Gaussian Markov simulation separates four layers (<a href="#eq-ggm-pipeline" class="quarto-xref">Equation 12</a>): graph <span class="math inline">G_j</span>, signed weights <span class="math inline">W(G_j)</span>, SPD precision <span class="math inline">\Omega_j</span>, and latent Gaussians (an optional observation layer can add Poisson–log-normal or zero-inflated counts). The <strong>graph</strong> and the <strong>precision</strong> must not be conflated: a binary adjacency is almost never itself positive definite. DeCovarT draws <span class="math inline">G_j</span> via <code><a href="../reference/generate_random_network_skeleton.html">generate_random_network_skeleton()</a></code>, completes <span class="math inline">\Omega_j\succ 0</span> with <code><a href="../reference/build_normalised_precision.html">build_normalised_precision()</a></code>, and stacks the inverted slices with <code><a href="../reference/build_covariance_array_from_precision.html">build_covariance_array_from_precision()</a></code>. <a href="#sec-ggm-networks" class="quarto-xref">Section 4</a> develops the topology, weight, and SPD design in detail.</p>
 </section><section class="section level2"><h2 id="pipeline-api">Pipeline API<a class="anchor" aria-label="anchor" href="#pipeline-api"></a>
 </h2>
-<p>The exported entry point orchestrates internal helpers and returns moments that can be passed to <code><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code>, then to <a href="https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.html"><code>run_simulation_benchmark()</code></a> (scenario grids in analysis scripts such as <code>scripts/configure_bivariate_toy_scenarios.R</code>) or directly to any solver via <code><a href="../reference/deconvolute_ratios.html">deconvolute_ratios()</a></code>.</p>
+<p>The exported entry point orchestrates internal helpers and returns moments that can be passed to <code><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code>. For end-to-end benchmarking, see <a href="DeCovarT-manuscript-scenarios.html#sec-simulation-benchmark">Manuscript synthetic simulation scenarios</a>; scenario grids live in <code>scripts/configure_bivariate_toy_scenarios.R</code>. Direct solver calls use <code><a href="../reference/deconvolute_ratios.html">deconvolute_ratios()</a></code>.</p>
 <div class="cell" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-pipeline-api" class="quarto-float quarto-figure quarto-figure-center">

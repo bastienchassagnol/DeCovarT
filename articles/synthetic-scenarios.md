@@ -1,4 +1,4 @@
-# Simulating synthetic scenarios for benchmarking
+# Simulating synthetic pseudo-bulk mixtures for benchmarking
 
 ## Overview
 
@@ -34,12 +34,11 @@ design in detail.
 
 The exported entry point orchestrates internal helpers and returns
 moments that can be passed to
-[`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md),
-then to
-[`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.html)
-(scenario grids in analysis scripts such as
-`scripts/configure_bivariate_toy_scenarios.R`) or directly to any solver
-via
+[`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md).
+For end-to-end benchmarking, see [Manuscript synthetic simulation
+scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-manuscript-scenarios.html#sec-simulation-benchmark);
+scenario grids live in `scripts/configure_bivariate_toy_scenarios.R`.
+Direct solver calls use
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md).
 
 ``` mermaid

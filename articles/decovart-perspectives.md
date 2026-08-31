@@ -27,9 +27,29 @@ model each reference profile as multivariate Gaussian and recover
 deconvolution tools such as `CIBERSORT` assume gene-wise independence
 instead ([Newman et al. 2015](#ref-newmanRobustEnumerationCell2015)).
 
-## Extending the generative model
+## Mixture design and first-order structure
 
-### Mixture design and first-order structure
+> **Mixture experiments and compositional data**
+>
+> DeCovarT—and bulk deconvolution more generally—sits inside the wider
+> class of **mixture inverse problems** in formulation science,
+> spectroscopy, and designed experiments where component fractions are
+> explicit regressors on the simplex. R offers only a handful of
+> packages for **designed mixture points** (as opposed to random
+> \boldsymbol{p} on \Delta^{J-1}):
+>
+> - **`AlgDesign`** ([Wheeler 2025](#ref-R-AlgDesign)) — lattice and
+>   simplex-centroid mixture designs via `genMixture()` /
+>   `gen.mixture()`, plus D-, A-, and I-optimal designs; the closest
+>   general substitute for classical mixture DOE.
+> - **`skpr`** ([Morgan-Wall and Khoury 2025](#ref-R-skpr)) — optimal
+>   mixture designs from a candidate set under \sum_j p_j=1; preferable
+>   when optimality criteria matter more than fixed simplex-centroid
+>   lattices.
+>
+> A modular Scheffé-type benchmark would combine `AlgDesign` (or `skpr`)
+> to propose \boldsymbol{p}, DeCovarT (or baselines) to invert the
+> mixture, and compositional metrics from the simulation vignettes.
 
 In designed mixture experiments (chemistry, food science, formulation),
 component proportions are explicit regressors with no free intercept
@@ -216,11 +236,11 @@ flexibility for simpler reference construction.
 A natural DeCovarT extension would combine
 [Eq. 2](#eq-gaussian-convolution) with either
 [Eq. 8](#eq-hard-child-split) or [Eq. 10](#eq-soft-penalty), node-local
-marker panels, and ALR optimisation ([Sec. 5.1](#sec-alr-reparam)) when
-a curated lineage tree is supplied—benchmarked at broad, intermediate,
-and terminal resolutions against `HiDecon`, `HIDE`, tree-guided `MuSiC`,
-and `Rectangle`. Spatial `HIDF` applies the same tree idea to spots with
-an `RCTD` back-end ([Zou et al.
+marker panels, and ALR optimisation (**?@sec-alr-reparam**) when a
+curated lineage tree is supplied—benchmarked at broad, intermediate, and
+terminal resolutions against `HiDecon`, `HIDE`, tree-guided `MuSiC`, and
+`Rectangle`. Spatial `HIDF` applies the same tree idea to spots with an
+`RCTD` back-end ([Zou et al.
 2026](#ref-zouHidfIntegratingTreeStructured2026)); `scDETECT` uses a
 lineage prior for differential expression rather than for \boldsymbol{p}
 ([Xu et al. 2025](#ref-xuScdetectNovelStatisticalModel2025)). Archetypes
@@ -362,8 +382,8 @@ through the existing ALR coordinates \boldsymbol{\rho}\_{i},
 \boldsymbol{\rho}\_{i}=B\boldsymbol{z}\_{i}+\boldsymbol{u}\_{i}, \qquad
 \boldsymbol{p}\_{\cdot i}=\psi(\boldsymbol{\rho}\_{i}), \tag{12}
 
-with \psi the additive logistic map ([Eq. 16](#eq-alr-forward)). This is
-the setting in which a future
+with \psi the additive logistic map (**?@eq-alr-forward**). This is the
+setting in which a future
 [`predict()`](https://rdrr.io/r/stats/predict.html) method on new
 \boldsymbol{z} would be meaningful.
 
@@ -610,82 +630,6 @@ polarisation is the standard biological example of a
 microenvironment-dependent continuum rather than two extra columns of
 \boldsymbol{\mu}.
 
-## Compositional geometry and validation
-
-### ALR reparametrisation and links to the maths vignette
-
-Any estimator of \boldsymbol{p} must respect compositional geometry
-([Aitchison 1982](#ref-aitchisonStatisticalAnalysisCompositional1982);
-[Pawlowsky-Glahn and Buccianti
-2011](#ref-pawlowsky-glahnCompositionalDataAnalysis2011)). DeCovarT maps
-unconstrained coordinates \boldsymbol{\rho}\in\mathbb{R}^{J-1} to the
-open simplex via the **additive logistic** (inverse ALR) map implemented
-in
-[`additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md):
-
-p_j=\frac{e^{\rho_j}}{\sum\_{k\<J}e^{\rho_k}+1}\\(j\<J), \qquad
-p_J=\frac{1}{\sum\_{k\<J}e^{\rho_k}+1}. \tag{16}
-
-The inverse
-[`additive_log_ratio()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_log_ratio.md)
-recovers \rho_j=\log(p_j/p_J). The forward and inverse maps, their
-Jacobians, and Hessians used in the constrained likelihood are derived
-in the companion vignette [Derivatives under simplex
-transforms](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.html#eq-alr-maps)
-(`@eq-alr-maps` there). Optimisation therefore runs in
-\boldsymbol{\rho}-space while reported estimates satisfy \sum_j p_j=1.
-
-Extensions on the same footing include **ILR** or **CLR** coordinates
-([Pawlowsky-Glahn and Buccianti
-2011](#ref-pawlowsky-glahnCompositionalDataAnalysis2011)) and Bayesian
-formulations: a Dirichlet or logistic-normal prior on \boldsymbol{p}
-pairs naturally with the Gaussian bulk likelihood (the experimental MAP
-`CTS` path in `R/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R` is one
-starting point). Regardless of coordinate system, the workflow is the
-same: optimise in an unconstrained parameterisation, then map back to
-the simplex for interpretation.
-
-### Validation metrics
-
-Extended models should be checked on **designed mixtures** with known
-\boldsymbol{p}: semi-synthetic bulk profiles (as in [synthetic
-scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.md)),
-chemical standard blends, or mixture-design benchmarks with and without
-injected interaction signals. Because \boldsymbol{p} is compositional,
-error is often summarised with **Aitchison distance** after a log-ratio
-transform ([Aitchison
-1982](#ref-aitchisonStatisticalAnalysisCompositional1982)), or with MAE
-/ RMSE and Pearson correlation on raw proportions (common in
-deconvolution benchmarks). Comparing against mean-only baselines
-(`CIBERSORT`, NNLS, second-generation single-cell-informed tools)
-quantifies the gain from modelling covariance in
-[Eq. 2](#eq-gaussian-convolution) and, eventually, interaction terms in
-[Eq. 3](#eq-interaction-mean)–[Eq. 4](#eq-interaction-cov).
-
-### R tooling for mixture experimental designs
-
-The archived CRAN package `mixexp` formerly provided constrained mixture
-regions, extreme-vertex designs, and ternary contour plots; archived
-releases remain on CRAN but there is no maintained one-package
-replacement. For validation workflows that require **designed simplex
-points** rather than random \boldsymbol{p}, two practical options are:
-
-- **`AlgDesign`** ([Wheeler 2025](#ref-R-AlgDesign)) — lattice and
-  simplex-centroid mixture designs via `genMixture()` / `gen.mixture()`,
-  plus D-, A-, and I-optimal designs; the closest general substitute for
-  classical mixture DOE.
-- **`skpr`** ([Morgan-Wall and Khoury 2025](#ref-R-skpr)) — optimal
-  mixture designs from a candidate set under the \sum_j p_j=1
-  constraint; preferable when optimality criteria matter more than fixed
-  simplex-centroid lattices.
-
-A modular workflow for Scheffé-type benchmarks would combine `AlgDesign`
-(or `skpr`) to propose \boldsymbol{p}, DeCovarT (or baselines) to invert
-the mixture, and standard compositional metrics above. Constrained
-extreme-vertex designs under linear bounds remain less well served in
-current R packages than the original `mixexp` workflow; custom simplex
-sampling may still be required for those regions.
-
 Ahn, Jaeil, Ying Yuan, Giovanni Parmigiani, et al. 2013. ‘DeMix:
 Deconvolution for Mixed Cancer Transcriptomes Using Raw Measured Data’.
 *Bioinformatics (Oxford, England)* 29.
@@ -931,9 +875,6 @@ Experiments Suite: Generate and Evaluate Optimal Designs*.
 Newman, Aaron, Chih Liu, Michael Green, et al. 2015. ‘Robust Enumeration
 of Cell Subsets from Tissue Expression Profiles’. *Nature Methods* 12.
 <https://doi.org/10.1038/nmeth.3337>.
-
-Pawlowsky-Glahn, Vera, and Antonella Buccianti, eds. 2011.
-*Compositional Data Analysis: Theory and Applications*. Wiley.
 
 Racle, Julien, Kaat de Jonge, Petra Baumgaertner, Daniel E Speiser, and
 David Gfeller. 2017. ‘Simultaneous Enumeration of Cancer and Immune Cell

@@ -45,10 +45,8 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-vignettes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true"><span class="fa fa-book-open"></span> Vignettes</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-vignettes">
-<li><h6 class="dropdown-header" data-toc-skip>Manuscript</h6></li>
-    <li><a class="dropdown-item" href="../articles/decovart-manuscript.html"><span class="fa fa-file-pdf"></span> DeCovarT methods paper (PDF)</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/deconvolution-seminar-slides.html"><span class="fa fa-chalkboard-user"></span> Doctorants seminar slides (embedded)</a></li>
+<li><h6 class="dropdown-header" data-toc-skip>External resources</h6></li>
+    <li><a class="dropdown-item" href="../articles/decovart-external-resources.html"><span class="fa fa-book-open"></span> Manuscript, preprint &amp; seminar slides</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Prepare inputs</h6></li>
     <li><a class="dropdown-item" href="../articles/network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
@@ -60,7 +58,7 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT Mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> Literature review, and comparison to other related methods</a></li>
+    <li><a class="dropdown-item" href="../articles/Beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
     <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT extra-simulation appendix</h6></li>
@@ -93,7 +91,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>DeCovarT appendix: affine equivariance, collinearity and perturbations</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-08-28</p>
+      <p class="date">2026-08-31</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/DeCovarT_appendix_simualtion_frameworks.qmd" class="external-link"><code>vignettes/DeCovarT_appendix_simualtion_frameworks.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -349,60 +347,12 @@
 <span><span class="co">#&gt; ct2 0.388754 0.388754 0.388754</span></span></code></pre></div>
 </div>
 <p>A fuller comparison of normalisation (CPM, log2), tolerance, and dimension <span class="math inline">(G,J)</span> belongs in a later issue.</p>
-</section></section><section class="section level2"><h2 id="sec-simulation-benchmark">Simulation benchmark wrapper<a class="anchor" aria-label="anchor" href="#sec-simulation-benchmark"></a>
-</h2>
-<p><a href="https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.html"><code>run_simulation_benchmark()</code></a> is the package wrapper around <code><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code>, <code><a href="../reference/deconvolute_ratios.html">deconvolute_ratios()</a></code>, and <code><a href="../reference/compute_benchmark_metrics.html">compute_benchmark_metrics()</a></code>. Generative grids (proportions, correlation sweeps, mean signatures, covariance tensors) should be assembled in scripts—see <code>scripts/configure_bivariate_toy_scenarios.R</code> for the bivariate toy study—and passed as a tibble with a <code>true_theta</code> list column. Deconvolution solvers are supplied as a named list of <code>FUN</code> plus optional <code>additional_parameters</code> for <code><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call()</a></code>. Optional scenario-level parallelism uses <code>furrr</code> and <code>future</code> (Suggests), capped by default at half of detected cores, with per-sample parallelism disabled inside <code><a href="../reference/deconvolute_ratios.html">deconvolute_ratios()</a></code> to avoid nested workers.</p>
-</section><section class="section level2"><h2 id="sec-s3">S3 accessors<a class="anchor" aria-label="anchor" href="#sec-s3"></a>
-</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_decovart.html">fit_decovart</a></span><span class="op">(</span></span>
-<span>  <span class="va">mu</span>,</span>
-<span>  <span class="va">y</span>,</span>
-<span>  Sigma <span class="op">=</span> <span class="va">Sigma</span>,</span>
-<span>  method <span class="op">=</span> <span class="st">"Marquardt-Levenberg"</span>,</span>
-<span>  itmax <span class="op">=</span> <span class="fl">80</span></span>
-<span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt;            s1</span></span>
-<span><span class="co">#&gt; ct1 0.6489623</span></span>
-<span><span class="co">#&gt; ct2 0.3510377</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/nobs.html" class="external-link">nobs</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 1</span></span>
-<span><span class="co">#&gt; attr(,"n_genes")</span></span>
-<span><span class="co">#&gt; [1] 3</span></span>
-<span><span class="co">#&gt; attr(,"n_celltypes")</span></span>
-<span><span class="co">#&gt; [1] 2</span></span>
-<span><span class="co">#&gt; attr(,"n_samples")</span></span>
-<span><span class="co">#&gt; [1] 1</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  n_genes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/nobs.html" class="external-link">nobs</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, <span class="st">"n_genes"</span><span class="op">)</span>,</span>
-<span>  n_celltypes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/nobs.html" class="external-link">nobs</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, <span class="st">"n_celltypes"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt;     n_genes n_celltypes </span></span>
-<span><span class="co">#&gt;           3           2</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt;          s1</span></span>
-<span><span class="co">#&gt; g1 25.26557</span></span>
-<span><span class="co">#&gt; g2 36.48962</span></span>
-<span><span class="co">#&gt; g3 23.94689</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             s1</span></span>
-<span><span class="co">#&gt; g1 -0.04688787</span></span>
-<span><span class="co">#&gt; g2  0.01955895</span></span>
-<span><span class="co">#&gt; g3 -0.03866839</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt;              ct1          ct2</span></span>
-<span><span class="co">#&gt; ct1  0.001805152 -0.001805152</span></span>
-<span><span class="co">#&gt; ct2 -0.001805152  0.001805152</span></span></code></pre></div>
-</div>
-<p><code><a href="https://rdrr.io/r/stats/formula.html" class="external-link">formula()</a></code> and <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> are not implemented: DeCovarT does not forecast bulk expression.</p>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-newmanRobustEnumerationCell2015" class="csl-entry" role="listitem">
 Newman, Aaron, Chih Liu, Michael Green, et al. 2015. <span>‘Robust Enumeration of Cell Subsets from Tissue Expression Profiles’</span>. <em>Nature Methods</em> 12. <a href="https://doi.org/10.1038/nmeth.3337" class="external-link">https://doi.org/10.1038/nmeth.3337</a>.
 </div>
 </div>
-</section><script id="quarto-html-after-body" type="application/javascript">
+</section></section><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);

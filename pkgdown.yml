@@ -2,18 +2,17 @@ pandoc: 3.8.3
 pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
-  deconvolution-seminar-slides: deconvolution-seminar-slides.html
+  Beyond-OLS: Beyond-OLS.html
   DeCovarT_appendix_simualtion_frameworks: DeCovarT_appendix_simualtion_frameworks.html
+  decovart-external-resources: decovart-external-resources.html
   DeCovarT-manuscript-scenarios: DeCovarT-manuscript-scenarios.html
-  decovart-manuscript: decovart-manuscript.html
   DeCovarT-MLE-properties: DeCovarT-MLE-properties.html
   decovart-perspectives: decovart-perspectives.html
-  DeCovarT-reminders-OLS: DeCovarT-reminders-OLS.html
   feature-selection: feature-selection.html
   generative-model-derivatives: generative-model-derivatives.html
   network-inference: network-inference.html
   synthetic-scenarios: synthetic-scenarios.html
-last_built: 2026-08-28T21:25Z
+last_built: 2026-08-31T13:24Z
 urls:
   reference: https://bastienchassagnol.github.io/DeCovarT/reference
   article: https://bastienchassagnol.github.io/DeCovarT/articles

@@ -6,6 +6,27 @@ gene–gene correlation, and a high-dimensional hybrid reference (G=50,
 J=3) in which two cell types are mean-collinear and must be separated by
 network topology.
 
+## Simulation benchmark wrapper
+
+[`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.html)
+wraps
+[`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md),
+[`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md),
+and
+[`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md).
+Generative grids (proportions, correlation sweeps, mean signatures,
+covariance tensors) should be assembled in scripts—see
+`scripts/configure_bivariate_toy_scenarios.R` for the bivariate toy
+study—and passed as a tibble with a `true_theta` list column.
+Deconvolution solvers are supplied as a named list of `FUN` plus
+optional `additional_parameters` for
+[`do.call()`](https://rdrr.io/r/base/do.call.html). Optional
+scenario-level parallelism uses `furrr` and `future` (Suggests), capped
+by default at half of detected cores, with per-sample parallelism
+disabled inside
+[`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)
+to avoid nested workers.
+
 ## Bivariate toy model
 
 The manuscript study is implemented by

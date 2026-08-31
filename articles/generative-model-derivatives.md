@@ -330,6 +330,16 @@ p\_{i}\partial p\_{l}} \frac{\partial p\_{l}}{\partial\rho\_{k}} \\
 > Hessian. Omitting the second summand is a common bug when porting
 > first-order code to Newton methods.
 
+Extensions on the same footing include **ILR** or **CLR** coordinates
+([Pawlowsky-Glahn and Buccianti
+2011](#ref-pawlowsky-glahnCompositionalDataAnalysis2011)) and Bayesian
+formulations: a Dirichlet or logistic-normal prior on \boldsymbol{p}
+pairs naturally with the Gaussian bulk likelihood (the experimental MAP
+`CTS` path in `R/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R` is one
+starting point). Regardless of coordinate system, the workflow is the
+same: optimise in an unconstrained parameterisation, then map back to
+the simplex for interpretation.
+
 ## Expected Fisher information and Wald inference
 
 Point estimation alone does not report uncertainty. Under a regular
@@ -427,61 +437,66 @@ follows Aitchison’s compositional geometry ([Aitchison
 > signature is not a bootstrap: the maximised likelihood is equivariant
 > under relabelling.
 
-## Numerical speed-ups and solver safeguards
-
-The analytic maps above are only half of a usable optimiser. Practical
-bottlenecks that showed up on the hybrid scenario in [Manuscript
-synthetic simulation
-scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-manuscript-scenarios.html#sec-hybrid-deconvolution)
-live in `R/03_03_DeCovarT_estimate_ratios_frequentist.R`.
-
-### Cache a Cholesky factorisation of \boldsymbol{\Sigma}(\boldsymbol{p})
-
-Within one iteration, objective / gradient / Hessian callbacks hit the
-same trial \boldsymbol{p}. The helper
-[`.sigma_p_factorisation()`](https://bastienchassagnol.github.io/DeCovarT/reference/dot-sigma_p_factorisation.md)
-caches a single Cholesky factor \boldsymbol{R} with
-\boldsymbol{\Sigma}(\boldsymbol{p})=\boldsymbol{R}^{\mathsf{T}}\boldsymbol{R}
-and returns \log\det\boldsymbol{\Sigma}(\boldsymbol{p})=2\sum_g\log
-R\_{gg} together with the precision
-\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{R}^{-1}\boldsymbol{R}^{-\mathsf{T}}
-(via `chol2inv`) without repeating an O(G^{3}) factorisation.
-
-[`loglik_multivariate()`](https://bastienchassagnol.github.io/DeCovarT/reference/loglik_multivariate.md)
-then evaluates the Mahalanobis term exactly as
-[`mvtnorm::dmvnorm`](https://rdrr.io/pkg/mvtnorm/man/Mvnorm.html) ([Genz
-et al. 2026](#ref-R-mvtnorm)): it solves
-\boldsymbol{R}^{\mathsf{T}}\boldsymbol{z}
-=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p} by
-`backsolve(..., transpose = TRUE)` and takes
-\lVert\boldsymbol{z}\rVert^{2}, rather than forming
-\boldsymbol{\Theta}(\boldsymbol{p}) and a dense quadratic form. The two
-routes agree to machine precision; the backsolve path is the one used
-for the objective, while the cached inverse is retained for the analytic
-score and Hessian, which need \boldsymbol{\Theta}(\boldsymbol{p}) in
-several trace and inner-product terms. A QR factorisation of the
-covariance itself would recover the same log-determinant and quadratic
-form at a larger O(G^{3}) constant and is not used: Cholesky is the
-natural factorisation of a symmetric positive-definite matrix.
-
-The implemented log-density omits the additive -\tfrac{G}{2}\log(2\pi)
-of the full Gaussian, which does not depend on \boldsymbol{p} and
-therefore cannot change the MLE, the score, or the Hessian. Tests check
-that subtracting that constant recovers `dmvnorm(..., log = TRUE)`
-exactly.
-
-### Guard the box-constrained L-BFGS-B path
-
-[`deconvolute_ratios_L_BFGS_B()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md)
-optimises in \boldsymbol{p} with boxes \[0,1\]^{J} that do not enforce
-\mathbf{1}^{\top}\boldsymbol{p}=1. Near \sum\_{j}p\_{j}\approx 0 (or on
-a failed [`chol()`](https://rdrr.io/r/base/chol.html)), safeguarded
-wrappers return a finite penalty and a zero gradient rather than
-aborting [`optim()`](https://rdrr.io/r/stats/optim.html).
-
-### `marqLevAlg` Hessian sign under `minimize = FALSE`
-
-> **Caution 8: `marqLevAlg(minimize = FALSE)` does not flip `hess`**
+> **Numerical speed-ups and solver safeguards**
+>
+> The analytic maps above are only half of a usable optimiser. Practical
+> bottlenecks that showed up on the hybrid scenario in [Manuscript
+> synthetic simulation
+> scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-manuscript-scenarios.html#sec-hybrid-deconvolution)
+> live in `R/03_03_DeCovarT_estimate_ratios_frequentist.R`.
+>
+> ------------------------------------------------------------------------
+>
+> #### Cache a Cholesky factorisation of \boldsymbol{\Sigma}(\boldsymbol{p})
+>
+> Within one iteration, objective / gradient / Hessian callbacks hit the
+> same trial \boldsymbol{p}. The helper
+> [`.sigma_p_factorisation()`](https://bastienchassagnol.github.io/DeCovarT/reference/dot-sigma_p_factorisation.md)
+> caches a single Cholesky factor \boldsymbol{R} with
+> \boldsymbol{\Sigma}(\boldsymbol{p})=\boldsymbol{R}^{\mathsf{T}}\boldsymbol{R}
+> and returns \log\det\boldsymbol{\Sigma}(\boldsymbol{p})=2\sum_g\log
+> R\_{gg} together with the precision
+> \boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{R}^{-1}\boldsymbol{R}^{-\mathsf{T}}
+> (via `chol2inv`) without repeating an O(G^{3}) factorisation.
+>
+> [`loglik_multivariate()`](https://bastienchassagnol.github.io/DeCovarT/reference/loglik_multivariate.md)
+> then evaluates the Mahalanobis term exactly as
+> [`mvtnorm::dmvnorm`](https://rdrr.io/pkg/mvtnorm/man/Mvnorm.html)
+> ([Genz et al. 2026](#ref-R-mvtnorm)): it solves
+> \boldsymbol{R}^{\mathsf{T}}\boldsymbol{z}
+> =\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p} by
+> `backsolve(..., transpose = TRUE)` and takes
+> \lVert\boldsymbol{z}\rVert^{2}, rather than forming
+> \boldsymbol{\Theta}(\boldsymbol{p}) and a dense quadratic form. The
+> two routes agree to machine precision; the backsolve path is the one
+> used for the objective, while the cached inverse is retained for the
+> analytic score and Hessian, which need
+> \boldsymbol{\Theta}(\boldsymbol{p}) in several trace and inner-product
+> terms. A QR factorisation of the covariance itself would recover the
+> same log-determinant and quadratic form at a larger O(G^{3}) constant
+> and is not used: Cholesky is the natural factorisation of a symmetric
+> positive-definite matrix.
+>
+> The implemented log-density omits the additive -\tfrac{G}{2}\log(2\pi)
+> of the full Gaussian, which does not depend on \boldsymbol{p} and
+> therefore cannot change the MLE, the score, or the Hessian. Tests
+> check that subtracting that constant recovers
+> `dmvnorm(..., log = TRUE)` exactly.
+>
+> ------------------------------------------------------------------------
+>
+> #### Guard the box-constrained L-BFGS-B path
+>
+> [`deconvolute_ratios_L_BFGS_B()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md)
+> optimises in \boldsymbol{p} with boxes \[0,1\]^{J} that do not enforce
+> \mathbf{1}^{\top}\boldsymbol{p}=1. Near \sum\_{j}p\_{j}\approx 0 (or
+> on a failed [`chol()`](https://rdrr.io/r/base/chol.html)), safeguarded
+> wrappers return a finite penalty and a zero gradient rather than
+> aborting [`optim()`](https://rdrr.io/r/stats/optim.html).
+>
+> ------------------------------------------------------------------------
+>
+> #### `marqLevAlg` Hessian sign under `minimize = FALSE`
 >
 > [`marqLevAlg`](https://cran.r-project.org/package=marqLevAlg)
 > ([Philipps et al. 2023](#ref-R-marqLevAlg)) implements
@@ -495,6 +510,79 @@ aborting [`optim()`](https://rdrr.io/r/stats/optim.html).
 > `hess = function(...) -hessian_loglik_constrained(...)`. Reported
 > upstream as
 > [VivianePhilipps/marqLevAlgParallel#3](https://github.com/VivianePhilipps/marqLevAlgParallel/issues/3).
+
+## Model objects and S3 accessors
+
+[`fit_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md)
+returns a `decovart_fit` object with standard S3 methods for
+coefficients, fitted values, residuals, and (under regularity) a
+delta-method covariance. The chunk below mirrors the appendix
+equivariance setup:
+
+``` r
+
+library(DeCovarT)
+genes <- paste0("g", 1:3)
+cts <- paste0("ct", 1:2)
+mu <- matrix(
+  c(20, 40, 25, 35, 30, 22),
+  nrow = 3,
+  dimnames = list(genes, cts)
+)
+Sigma <- array(0, dim = c(3, 3, 2), dimnames = list(genes, genes, cts))
+Sigma[, , 1] <- diag(c(1.0, 1.2, 0.8))
+Sigma[, , 2] <- diag(c(1.5, 0.9, 1.1))
+p_true <- c(0.65, 0.35)
+y <- matrix(
+  drop(mu %*% p_true + rnorm(3, sd = 0.05)),
+  ncol = 1L,
+  dimnames = list(genes, "s1")
+)
+
+fit <- fit_decovart(
+  mu,
+  y,
+  Sigma = Sigma,
+  method = "Marquardt-Levenberg",
+  itmax = 80
+)
+coef(fit)
+#>            s1
+#> ct1 0.6501141
+#> ct2 0.3498859
+nobs(fit)
+#> [1] 1
+#> attr(,"n_genes")
+#> [1] 3
+#> attr(,"n_celltypes")
+#> [1] 2
+#> attr(,"n_samples")
+#> [1] 1
+c(
+  n_genes = attr(nobs(fit), "n_genes"),
+  n_celltypes = attr(nobs(fit), "n_celltypes")
+)
+#>     n_genes n_celltypes 
+#>           3           2
+fitted(fit)
+#>          s1
+#> g1 25.24829
+#> g2 36.50114
+#> g3 23.95034
+residuals(fit)
+#>             s1
+#> g1  0.01498441
+#> g2  0.13025092
+#> g3 -0.08157827
+vcov(fit)
+#>              ct1          ct2
+#> ct1  0.001806624 -0.001806624
+#> ct2 -0.001806624  0.001806624
+```
+
+[`formula()`](https://rdrr.io/r/stats/formula.html) and
+[`predict()`](https://rdrr.io/r/stats/predict.html) are not implemented:
+DeCovarT does not forecast bulk expression.
 
 ## Numerical consistency of the likelihood and its derivatives
 
@@ -666,6 +754,9 @@ Derivatives*. <http://optimizer.r-forge.r-project.org/>.
 Oehlert, Gary W. 1992. ‘A Note on the Delta Method’. *The American
 Statistician* 46 (1): 27–29.
 <https://doi.org/10.1080/00031305.1992.10475842>.
+
+Pawlowsky-Glahn, Vera, and Antonella Buccianti, eds. 2011.
+*Compositional Data Analysis: Theory and Applications*. Wiley.
 
 Philipps, Viviane, Cecile Proust-Lima, Melanie Prague, Boris Hejblum,
 Daniel Commenges, and Amadou Diakite. 2023. *marqLevAlg: A Parallelized

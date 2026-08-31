@@ -46,10 +46,8 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-vignettes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true"><span class="fa fa-book-open"></span> Vignettes</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-vignettes">
-<li><h6 class="dropdown-header" data-toc-skip>Manuscript</h6></li>
-    <li><a class="dropdown-item" href="../articles/decovart-manuscript.html"><span class="fa fa-file-pdf"></span> DeCovarT methods paper (PDF)</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/deconvolution-seminar-slides.html"><span class="fa fa-chalkboard-user"></span> Doctorants seminar slides (embedded)</a></li>
+<li><h6 class="dropdown-header" data-toc-skip>External resources</h6></li>
+    <li><a class="dropdown-item" href="../articles/decovart-external-resources.html"><span class="fa fa-book-open"></span> Manuscript, preprint &amp; seminar slides</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Prepare inputs</h6></li>
     <li><a class="dropdown-item" href="../articles/network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
@@ -61,7 +59,7 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT Mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT-reminders-OLS.html"><span class="fa fa-equals"></span> Literature review, and comparison to other related methods</a></li>
+    <li><a class="dropdown-item" href="../articles/Beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
     <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT extra-simulation appendix</h6></li>
@@ -94,7 +92,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>DeCovarT perspectives</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-08-28</p>
+      <p class="date">2026-08-31</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/decovart-perspectives.qmd" class="external-link"><code>vignettes/decovart-perspectives.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -112,10 +110,21 @@
 </blockquote>
 </div>
 <p>Bulk transcriptomic deconvolution is one instance of a <strong>mixture inverse problem</strong>: a composite signal (tissue expression, a spectrum, a chromatogram) is observed, and we seek the proportions <span class="math inline">\boldsymbol{p}</span> of underlying components. Because <span class="math inline">\boldsymbol{p}</span> is <strong>compositional</strong> (parts of a whole), estimates must lie on the simplex <span class="math inline">\Delta^{J-1}=\{\boldsymbol{p}\in[0,1]^J:\sum_j p_j=1\}</span>. <span class="citation" data-cites="chassagnolDeCovarTMultidimensionalProbalistic2023">(<a href="#ref-chassagnolDeCovarTMultidimensionalProbalistic2023" role="doc-biblioref">Chassagnol et al. 2023</a>)</span> model each reference profile as multivariate Gaussian and recover <span class="math inline">\boldsymbol{p}</span> by constrained maximum likelihood; classical deconvolution tools such as <code>CIBERSORT</code> assume gene-wise independence instead <span class="citation" data-cites="newmanRobustEnumerationCell2015">(<a href="#ref-newmanRobustEnumerationCell2015" role="doc-biblioref">Newman et al. 2015</a>)</span>.</p>
-<section class="section level2"><h2 id="sec-extending-model">Extending the generative model<a class="anchor" aria-label="anchor" href="#sec-extending-model"></a>
+<section class="section level2"><h2 id="sec-mixture-design-structure">Mixture design and first-order structure<a class="anchor" aria-label="anchor" href="#sec-mixture-design-structure"></a>
 </h2>
-<section class="level2"><h3 id="sec-mixture-design">Mixture design and first-order structure<a class="anchor" aria-label="anchor" href="#sec-mixture-design"></a>
-</h3>
+<div>
+<blockquote>
+<p><strong>Mixture experiments and compositional data</strong></p>
+<p>DeCovarT—and bulk deconvolution more generally—sits inside the wider class of <strong>mixture inverse problems</strong> in formulation science, spectroscopy, and designed experiments where component fractions are explicit regressors on the simplex. R offers only a handful of packages for <strong>designed mixture points</strong> (as opposed to random <span class="math inline">\boldsymbol{p}</span> on <span class="math inline">\Delta^{J-1}</span>):</p>
+<ul>
+<li>
+<strong><code>AlgDesign</code></strong> <span class="citation" data-cites="R-AlgDesign">(<a href="#ref-R-AlgDesign" role="doc-biblioref">Wheeler 2025</a>)</span> — lattice and simplex-centroid mixture designs via <code>genMixture()</code> / <code>gen.mixture()</code>, plus D-, A-, and I-optimal designs; the closest general substitute for classical mixture DOE.</li>
+<li>
+<strong><code>skpr</code></strong> <span class="citation" data-cites="R-skpr">(<a href="#ref-R-skpr" role="doc-biblioref">Morgan-Wall and Khoury 2025</a>)</span> — optimal mixture designs from a candidate set under <span class="math inline">\sum_j p_j=1</span>; preferable when optimality criteria matter more than fixed simplex-centroid lattices.</li>
+</ul>
+<p>A modular Scheffé-type benchmark would combine <code>AlgDesign</code> (or <code>skpr</code>) to propose <span class="math inline">\boldsymbol{p}</span>, DeCovarT (or baselines) to invert the mixture, and compositional metrics from the simulation vignettes.</p>
+</blockquote>
+</div>
 <p>In designed mixture experiments (chemistry, food science, formulation), component proportions are explicit regressors with no free intercept because <span class="math inline">\sum_j p_j=1</span>. A Scheffé cubic model for three components reads</p>
 <p><span id="eq-scheffe-cubic"><span class="math display">
 y = \beta_1 p_1 + \beta_2 p_2 + \beta_3 p_3
@@ -131,7 +140,7 @@ y = \beta_1 p_1 + \beta_2 p_2 + \beta_3 p_3
   \right).
 \tag{2}</span></span></p>
 <p><a href="#eq-gaussian-convolution" class="quarto-xref">Eq. 2</a> is the Gaussian-convolution likelihood optimised in <a href="../reference/deconvolute_ratios.html"><code>deconvolute_ratios()</code></a>; it extends mean-only linear deconvolution by propagating gene–gene covariance, not by adding Scheffé interaction monomials.</p>
-</section><section class="level2"><h3 id="sec-interactions">Interaction and synergy terms<a class="anchor" aria-label="anchor" href="#sec-interactions"></a>
+<section class="level2"><h3 id="sec-interactions">Interaction and synergy terms<a class="anchor" aria-label="anchor" href="#sec-interactions"></a>
 </h3>
 <p>Synergy or antagonism between components corresponds to <strong>second-order</strong> terms in <a href="#eq-scheffe-cubic" class="quarto-xref">Eq. 1</a>: a positive <span class="math inline">\beta_{12}</span> means the joint presence of components 1 and 2 raises the response above the additive prediction <span class="math inline">\beta_1 p_1+\beta_2 p_2</span>. A natural generative extension would enrich the mean and, optionally, the covariance:</p>
 <p><span id="eq-interaction-mean"><span class="math display">
@@ -239,36 +248,36 @@ Table 1: Lineage-aware bulk mRNA deconvolution: constraint regime, enforcing eq
 <div class="cell-output-display">
 <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_h023hyppxgezq64dh6y5 = TinyTable.createTableFunctions("tinytable_h023hyppxgezq64dh6y5");
+      const tableFns_wgq4npq8bnf6ydz8es3f = TinyTable.createTableFunctions("tinytable_wgq4npq8bnf6ydz8es3f");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '7', j: 2 }, { i: '7', j: 3 }, { i: '7', j: 4 } ], css_id: 'tinytable_css_df7f1qmw87ngy3hkr8om',},
-          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 }, { i: '6', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 }, { i: '3', j: 3 }, { i: '4', j: 3 }, { i: '5', j: 3 }, { i: '6', j: 3 }, { i: '1', j: 4 }, { i: '2', j: 4 }, { i: '3', j: 4 }, { i: '4', j: 4 }, { i: '5', j: 4 }, { i: '6', j: 4 } ], css_id: 'tinytable_css_m8b618o37eixmihq9ilz',},
-          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_a4tfqynbir0j1ee0hqzb',},
-          { positions: [ { i: '7', j: 1 } ], css_id: 'tinytable_css_981t9nu3yycqw8ic8t1h',},
-          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_myieh7oeqszgya1y5a30',},
+          { positions: [ { i: '7', j: 2 }, { i: '7', j: 3 }, { i: '7', j: 4 } ], css_id: 'tinytable_css_5c46ru1x3k1hqqp0o0yn',},
+          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 }, { i: '6', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 }, { i: '3', j: 3 }, { i: '4', j: 3 }, { i: '5', j: 3 }, { i: '6', j: 3 }, { i: '1', j: 4 }, { i: '2', j: 4 }, { i: '3', j: 4 }, { i: '4', j: 4 }, { i: '5', j: 4 }, { i: '6', j: 4 } ], css_id: 'tinytable_css_ucckj8kfomhqgpupcqze',},
+          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_2qbkqht7bovwadvz843h',},
+          { positions: [ { i: '7', j: 1 } ], css_id: 'tinytable_css_mwubeowk2mf6asoih10r',},
+          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_w4rvrxda14nh0t8f0i3x',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_h023hyppxgezq64dh6y5.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_wgq4npq8bnf6ydz8es3f.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_h023hyppxgezq64dh6y5 td.tinytable_css_df7f1qmw87ngy3hkr8om, #tinytable_h023hyppxgezq64dh6y5 th.tinytable_css_df7f1qmw87ngy3hkr8om {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
-    #tinytable_h023hyppxgezq64dh6y5 td.tinytable_css_m8b618o37eixmihq9ilz, #tinytable_h023hyppxgezq64dh6y5 th.tinytable_css_m8b618o37eixmihq9ilz { text-align: left }
-    #tinytable_h023hyppxgezq64dh6y5 td.tinytable_css_a4tfqynbir0j1ee0hqzb, #tinytable_h023hyppxgezq64dh6y5 th.tinytable_css_a4tfqynbir0j1ee0hqzb {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
-    #tinytable_h023hyppxgezq64dh6y5 td.tinytable_css_981t9nu3yycqw8ic8t1h, #tinytable_h023hyppxgezq64dh6y5 th.tinytable_css_981t9nu3yycqw8ic8t1h {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_h023hyppxgezq64dh6y5 td.tinytable_css_myieh7oeqszgya1y5a30, #tinytable_h023hyppxgezq64dh6y5 th.tinytable_css_myieh7oeqszgya1y5a30 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_wgq4npq8bnf6ydz8es3f td.tinytable_css_5c46ru1x3k1hqqp0o0yn, #tinytable_wgq4npq8bnf6ydz8es3f th.tinytable_css_5c46ru1x3k1hqqp0o0yn {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
+    #tinytable_wgq4npq8bnf6ydz8es3f td.tinytable_css_ucckj8kfomhqgpupcqze, #tinytable_wgq4npq8bnf6ydz8es3f th.tinytable_css_ucckj8kfomhqgpupcqze { text-align: left }
+    #tinytable_wgq4npq8bnf6ydz8es3f td.tinytable_css_2qbkqht7bovwadvz843h, #tinytable_wgq4npq8bnf6ydz8es3f th.tinytable_css_2qbkqht7bovwadvz843h {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
+    #tinytable_wgq4npq8bnf6ydz8es3f td.tinytable_css_mwubeowk2mf6asoih10r, #tinytable_wgq4npq8bnf6ydz8es3f th.tinytable_css_mwubeowk2mf6asoih10r {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_wgq4npq8bnf6ydz8es3f td.tinytable_css_w4rvrxda14nh0t8f0i3x, #tinytable_wgq4npq8bnf6ydz8es3f th.tinytable_css_w4rvrxda14nh0t8f0i3x {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_h023hyppxgezq64dh6y5" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_wgq4npq8bnf6ydz8es3f" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">method</th>
                 <th scope="col" data-row="0" data-col="2">constraint</th>
@@ -328,7 +337,7 @@ Table 1: Lineage-aware bulk mRNA deconvolution: constraint regime, enforcing eq
 </div>
 </div>
 <p><a href="#tbl-hierarchical-methods" class="quarto-xref">Table 1</a> and <a href="#fig-hierarchical-taxonomy" class="quarto-xref">Figure 1</a> summarise the landscape aligned with <a href="#eq-hierarchical-linear" class="quarto-xref">Eq. 5</a>–<a href="#eq-parent-child" class="quarto-xref">Eq. 7</a>. <strong>Hard</strong> methods (<code>MuSiC</code>, <code>HIDE</code>, <code>Rectangle</code>) are easier to audit node by node but inherit upstream bias; <strong>soft</strong> coupling (<code>HiDecon</code>) can stabilise rare subtypes when the tree is credible. <strong>Node-local gene reweighting</strong> (<code>MuSiC</code>, <code>HIDE</code>, <code>Rectangle</code>) targets collinear siblings; <strong>fixed or level-specific signatures</strong> (<code>SCDC</code>, <code>Kassandra</code>) trade flexibility for simpler reference construction.</p>
-<p>A natural DeCovarT extension would combine <a href="#eq-gaussian-convolution" class="quarto-xref">Eq. 2</a> with either <a href="#eq-hard-child-split" class="quarto-xref">Eq. 8</a> or <a href="#eq-soft-penalty" class="quarto-xref">Eq. 10</a>, node-local marker panels, and ALR optimisation (<a href="#sec-alr-reparam" class="quarto-xref">Sec. 5.1</a>) when a curated lineage tree is supplied—benchmarked at broad, intermediate, and terminal resolutions against <code>HiDecon</code>, <code>HIDE</code>, tree-guided <code>MuSiC</code>, and <code>Rectangle</code>. Spatial <code>HIDF</code> applies the same tree idea to spots with an <code>RCTD</code> back-end <span class="citation" data-cites="zouHidfIntegratingTreeStructured2026">(<a href="#ref-zouHidfIntegratingTreeStructured2026" role="doc-biblioref">Zou et al. 2026</a>)</span>; <code>scDETECT</code> uses a lineage prior for differential expression rather than for <span class="math inline">\boldsymbol{p}</span> <span class="citation" data-cites="xuScdetectNovelStatisticalModel2025">(<a href="#ref-xuScdetectNovelStatisticalModel2025" role="doc-biblioref">Xu et al. 2025</a>)</span>. Archetypes and cell states (type versus shared gene-expression programmes) are taken up in <a href="#sec-archetypes" class="quarto-xref">Sec. 4.1</a>.</p>
+<p>A natural DeCovarT extension would combine <a href="#eq-gaussian-convolution" class="quarto-xref">Eq. 2</a> with either <a href="#eq-hard-child-split" class="quarto-xref">Eq. 8</a> or <a href="#eq-soft-penalty" class="quarto-xref">Eq. 10</a>, node-local marker panels, and ALR optimisation (<strong>?@sec-alr-reparam</strong>) when a curated lineage tree is supplied—benchmarked at broad, intermediate, and terminal resolutions against <code>HiDecon</code>, <code>HIDE</code>, tree-guided <code>MuSiC</code>, and <code>Rectangle</code>. Spatial <code>HIDF</code> applies the same tree idea to spots with an <code>RCTD</code> back-end <span class="citation" data-cites="zouHidfIntegratingTreeStructured2026">(<a href="#ref-zouHidfIntegratingTreeStructured2026" role="doc-biblioref">Zou et al. 2026</a>)</span>; <code>scDETECT</code> uses a lineage prior for differential expression rather than for <span class="math inline">\boldsymbol{p}</span> <span class="citation" data-cites="xuScdetectNovelStatisticalModel2025">(<a href="#ref-xuScdetectNovelStatisticalModel2025" role="doc-biblioref">Xu et al. 2025</a>)</span>. Archetypes and cell states (type versus shared gene-expression programmes) are taken up in <a href="#sec-archetypes" class="quarto-xref">Sec. 4.1</a>.</p>
 </section></section></section><section class="section level2"><h2 id="sec-statistical-perspectives">Statistical perspectives<a class="anchor" aria-label="anchor" href="#sec-statistical-perspectives"></a>
 </h2>
 <p>The present estimator is a <strong>closed-reference, continuous, frequentist</strong> convolution: <span class="math inline">\boldsymbol{\mu}_{\cdot j}</span> and <span class="math inline">\boldsymbol{\Sigma}_{j}</span> are plug-in moments, and only <span class="math inline">\boldsymbol{p}_{\cdot i}</span> is unknown. The subsections below change the observation law, the reference, or the loss, while keeping the simplex constraint (<a href="#eq-simplex-constraint" class="quarto-xref">Eq. 6</a>).</p>
@@ -388,7 +397,7 @@ Figure 2: Taxonomy of observation models for bulk deconvolution, relative to De
 \qquad
 \boldsymbol{p}_{\cdot i}=\psi(\boldsymbol{\rho}_{i}),
 \tag{12}</span></span></p>
-<p>with <span class="math inline">\psi</span> the additive logistic map (<a href="#eq-alr-forward" class="quarto-xref">Eq. 16</a>). This is the setting in which a future <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> method on new <span class="math inline">\boldsymbol{z}</span> would be meaningful.</p>
+<p>with <span class="math inline">\psi</span> the additive logistic map (<strong>?@eq-alr-forward</strong>). This is the setting in which a future <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> method on new <span class="math inline">\boldsymbol{z}</span> would be meaningful.</p>
 <p>A known sequencing exposure <span class="math inline">s_{i}</span> is a <strong>multiplicative</strong> scale, <span class="math inline">\boldsymbol{y}_{\cdot i}\sim\mathcal{N}_G(s_{i}\boldsymbol{\mu}\boldsymbol{p}_{\cdot i},s_{i}^{2}\Sigma(\boldsymbol{p}_{\cdot i}))</span>, not an additive <code>lm</code> offset. Cell-type transcriptome size <span class="math inline">r_{j}</span> is a different parameter (<a href="#sec-uncoupling" class="quarto-xref">Sec. 2.5</a>). A gene-wise affine standardisation applied identically to <span class="math inline">\boldsymbol{y}</span>, <span class="math inline">\boldsymbol{\mu}</span> and every <span class="math inline">\boldsymbol{\Sigma}_{j}</span> leaves <span class="math inline">\hat{\boldsymbol{p}}</span> unchanged in exact arithmetic; column-wise <code><a href="https://rdrr.io/r/base/scale.html" class="external-link">scale()</a></code> on <span class="math inline">\boldsymbol{\mu}</span> does not.</p>
 </section><section class="level2"><h3 id="sec-semi-reference">Incomplete references<a class="anchor" aria-label="anchor" href="#sec-semi-reference"></a>
 </h3>
@@ -443,31 +452,6 @@ W(\boldsymbol{y}_{\cdot i}-\boldsymbol{\mu}\boldsymbol{p}_{\cdot i})</span> <spa
 <section class="level2"><h3 id="sec-archetypes">Archetypes, states, and potency<a class="anchor" aria-label="anchor" href="#sec-archetypes"></a>
 </h3>
 <p>A finite <span class="math inline">J</span>-column signature is a piecewise approximation of within-type continua. <strong>Archetypal analysis</strong> places cells on a simplicial polytope whose vertices are extreme programmes, avoiding NMF/ICA rotational ambiguity <span class="citation" data-cites="hartInferringBiologicalTasks2015 crowleyParetoOptimalityRevealsAtlas2026">(<a href="#ref-hartInferringBiologicalTasks2015" role="doc-biblioref">Hart et al. 2015</a>; <a href="#ref-crowleyParetoOptimalityRevealsAtlas2026" role="doc-biblioref">Crowley et al. 2026</a>)</span>. <code>ACTION</code> separates transcriptional identity (cell type) from activity states (shared gene-expression programmes) and chooses <span class="math inline">k</span> automatically <span class="citation" data-cites="mohammadiAMultiresolutionFrameworkCharacterize2020">(<a href="#ref-mohammadiAMultiresolutionFrameworkCharacterize2020" role="doc-biblioref">Mohammadi et al. 2020</a>)</span>; <code>scAAnet</code> extends that construction with a VAE and a zero-inflated negative-binomial reconstruction <span class="citation" data-cites="wangNonLinearArchetypalAnalysis2022">(<a href="#ref-wangNonLinearArchetypalAnalysis2022" role="doc-biblioref">Wang and Zhao 2022</a>)</span>. <code>tissueResolver</code> builds a virtual tissue without predefined labels, aiming at fine states within types <span class="citation" data-cites="simethVirtualTissueExpressionAnalysis2024">(<a href="#ref-simethVirtualTissueExpressionAnalysis2024" role="doc-biblioref">Simeth et al. 2024</a>)</span>. Potency and differentiation scores, as in hypothalamic–pituitary organoids, replace discrete labels by a continuous axis <span class="citation" data-cites="asanoADeepLearningApproach2024">(<a href="#ref-asanoADeepLearningApproach2024" role="doc-biblioref">Asano et al. 2024</a>)</span>. Macrophage M1/M2 polarisation is the standard biological example of a microenvironment-dependent continuum rather than two extra columns of <span class="math inline">\boldsymbol{\mu}</span>.</p>
-</section></section><section class="section level2"><h2 id="sec-compositional-geometry">Compositional geometry and validation<a class="anchor" aria-label="anchor" href="#sec-compositional-geometry"></a>
-</h2>
-<section class="level2"><h3 id="sec-alr-reparam">ALR reparametrisation and links to the maths vignette<a class="anchor" aria-label="anchor" href="#sec-alr-reparam"></a>
-</h3>
-<p>Any estimator of <span class="math inline">\boldsymbol{p}</span> must respect compositional geometry <span class="citation" data-cites="aitchisonStatisticalAnalysisCompositional1982 pawlowsky-glahnCompositionalDataAnalysis2011">(<a href="#ref-aitchisonStatisticalAnalysisCompositional1982" role="doc-biblioref">Aitchison 1982</a>; <a href="#ref-pawlowsky-glahnCompositionalDataAnalysis2011" role="doc-biblioref">Pawlowsky-Glahn and Buccianti 2011</a>)</span>. DeCovarT maps unconstrained coordinates <span class="math inline">\boldsymbol{\rho}\in\mathbb{R}^{J-1}</span> to the open simplex via the <strong>additive logistic</strong> (inverse ALR) map implemented in <a href="../reference/additive_logistic.html"><code>additive_logistic()</code></a>:</p>
-<p><span id="eq-alr-forward"><span class="math display">
-p_j=\frac{e^{\rho_j}}{\sum_{k&lt;J}e^{\rho_k}+1}\;(j&lt;J),
-\qquad
-p_J=\frac{1}{\sum_{k&lt;J}e^{\rho_k}+1}.
-\tag{16}</span></span></p>
-<p>The inverse <a href="../reference/additive_log_ratio.html"><code>additive_log_ratio()</code></a> recovers <span class="math inline">\rho_j=\log(p_j/p_J)</span>. The forward and inverse maps, their Jacobians, and Hessians used in the constrained likelihood are derived in the companion vignette <a href="generative-model-derivatives.html#eq-alr-maps">Derivatives under simplex transforms</a> (<code>@eq-alr-maps</code> there). Optimisation therefore runs in <span class="math inline">\boldsymbol{\rho}</span>-space while reported estimates satisfy <span class="math inline">\sum_j p_j=1</span>.</p>
-<p>Extensions on the same footing include <strong>ILR</strong> or <strong>CLR</strong> coordinates <span class="citation" data-cites="pawlowsky-glahnCompositionalDataAnalysis2011">(<a href="#ref-pawlowsky-glahnCompositionalDataAnalysis2011" role="doc-biblioref">Pawlowsky-Glahn and Buccianti 2011</a>)</span> and Bayesian formulations: a Dirichlet or logistic-normal prior on <span class="math inline">\boldsymbol{p}</span> pairs naturally with the Gaussian bulk likelihood (the experimental MAP <code>CTS</code> path in <code>R/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R</code> is one starting point). Regardless of coordinate system, the workflow is the same: optimise in an unconstrained parameterisation, then map back to the simplex for interpretation.</p>
-</section><section class="level2"><h3 id="sec-validation">Validation metrics<a class="anchor" aria-label="anchor" href="#sec-validation"></a>
-</h3>
-<p>Extended models should be checked on <strong>designed mixtures</strong> with known <span class="math inline">\boldsymbol{p}</span>: semi-synthetic bulk profiles (as in <a href="synthetic-scenarios.html">synthetic scenarios</a>), chemical standard blends, or mixture-design benchmarks with and without injected interaction signals. Because <span class="math inline">\boldsymbol{p}</span> is compositional, error is often summarised with <strong>Aitchison distance</strong> after a log-ratio transform <span class="citation" data-cites="aitchisonStatisticalAnalysisCompositional1982">(<a href="#ref-aitchisonStatisticalAnalysisCompositional1982" role="doc-biblioref">Aitchison 1982</a>)</span>, or with MAE / RMSE and Pearson correlation on raw proportions (common in deconvolution benchmarks). Comparing against mean-only baselines (<code>CIBERSORT</code>, NNLS, second-generation single-cell-informed tools) quantifies the gain from modelling covariance in <a href="#eq-gaussian-convolution" class="quarto-xref">Eq. 2</a> and, eventually, interaction terms in <a href="#eq-interaction-mean" class="quarto-xref">Eq. 3</a>–<a href="#eq-interaction-cov" class="quarto-xref">Eq. 4</a>.</p>
-</section><section class="level2"><h3 id="sec-mixture-doe-r">R tooling for mixture experimental designs<a class="anchor" aria-label="anchor" href="#sec-mixture-doe-r"></a>
-</h3>
-<p>The archived CRAN package <code>mixexp</code> formerly provided constrained mixture regions, extreme-vertex designs, and ternary contour plots; archived releases remain on CRAN but there is no maintained one-package replacement. For validation workflows that require <strong>designed simplex points</strong> rather than random <span class="math inline">\boldsymbol{p}</span>, two practical options are:</p>
-<ul>
-<li>
-<strong><code>AlgDesign</code></strong> <span class="citation" data-cites="R-AlgDesign">(<a href="#ref-R-AlgDesign" role="doc-biblioref">Wheeler 2025</a>)</span> — lattice and simplex-centroid mixture designs via <code>genMixture()</code> / <code>gen.mixture()</code>, plus D-, A-, and I-optimal designs; the closest general substitute for classical mixture DOE.</li>
-<li>
-<strong><code>skpr</code></strong> <span class="citation" data-cites="R-skpr">(<a href="#ref-R-skpr" role="doc-biblioref">Morgan-Wall and Khoury 2025</a>)</span> — optimal mixture designs from a candidate set under the <span class="math inline">\sum_j p_j=1</span> constraint; preferable when optimality criteria matter more than fixed simplex-centroid lattices.</li>
-</ul>
-<p>A modular workflow for Scheffé-type benchmarks would combine <code>AlgDesign</code> (or <code>skpr</code>) to propose <span class="math inline">\boldsymbol{p}</span>, DeCovarT (or baselines) to invert the mixture, and standard compositional metrics above. Constrained extreme-vertex designs under linear bounds remain less well served in current R packages than the original <code>mixexp</code> workflow; custom simplex sampling may still be required for those regions.</p>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-ahnDeMixDeconvolutionMixed2013" class="csl-entry" role="listitem">
 Ahn, Jaeil, Ying Yuan, Giovanni Parmigiani, et al. 2013. <span>‘<span>DeMix</span>: Deconvolution for Mixed Cancer Transcriptomes Using Raw Measured Data’</span>. <em>Bioinformatics (Oxford, England)</em> 29. <a href="https://doi.org/10.1093/bioinformatics/btt301" class="external-link">https://doi.org/10.1093/bioinformatics/btt301</a>.
@@ -621,9 +605,6 @@ Morgan-Wall, Tyler, and George Khoury. 2025. <em>Skpr: Design of Experiments Sui
 </div>
 <div id="ref-newmanRobustEnumerationCell2015" class="csl-entry" role="listitem">
 Newman, Aaron, Chih Liu, Michael Green, et al. 2015. <span>‘Robust Enumeration of Cell Subsets from Tissue Expression Profiles’</span>. <em>Nature Methods</em> 12. <a href="https://doi.org/10.1038/nmeth.3337" class="external-link">https://doi.org/10.1038/nmeth.3337</a>.
-</div>
-<div id="ref-pawlowsky-glahnCompositionalDataAnalysis2011" class="csl-entry" role="listitem">
-Pawlowsky-Glahn, Vera, and Antonella Buccianti, eds. 2011. <em>Compositional Data Analysis: Theory and Applications</em>. Wiley.
 </div>
 <div id="ref-racleSimultaneousEnumerationCancer2017" class="csl-entry" role="listitem">
 <span class="nocase">Racle, Julien, Kaat de Jonge, Petra Baumgaertner, Daniel E Speiser, and David Gfeller</span>. 2017. <span>‘Simultaneous Enumeration of Cancer and Immune Cell Types from Bulk Tumor Gene Expression Data’</span>. <em>eLife</em> 6. <a href="https://doi.org/10.7554/elife.26476" class="external-link">https://doi.org/10.7554/elife.26476</a>.
