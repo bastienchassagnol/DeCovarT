@@ -547,37 +547,14 @@ fit <- fit_decovart(
   itmax = 80
 )
 coef(fit)
-#>           s1
-#> ct1 0.648736
-#> ct2 0.351264
 nobs(fit)
-#> [1] 1
-#> attr(,"n_genes")
-#> [1] 3
-#> attr(,"n_celltypes")
-#> [1] 2
-#> attr(,"n_samples")
-#> [1] 1
 c(
   n_genes = attr(nobs(fit), "n_genes"),
   n_celltypes = attr(nobs(fit), "n_celltypes")
 )
-#>     n_genes n_celltypes 
-#>           3           2
 fitted(fit)
-#>          s1
-#> g1 25.26896
-#> g2 36.48736
-#> g3 23.94621
 residuals(fit)
-#>             s1
-#> g1 -0.03549669
-#> g2 -0.01537423
-#> g3  0.09402526
 vcov(fit)
-#>              ct1          ct2
-#> ct1  0.001804864 -0.001804864
-#> ct2 -0.001804864  0.001804864
 ```
 
 [`formula()`](https://rdrr.io/r/stats/formula.html) and
@@ -625,8 +602,6 @@ c(
   dmvnorm = reference,
   difference = ours - 0.5 * n_genes * log(2 * pi) - reference
 )
-#> loglik_multivariate             dmvnorm          difference 
-#>           0.9560062          -1.8008094           0.0000000
 ```
 
 A finite-difference check of the *same* objective cannot detect a shared
@@ -677,8 +652,6 @@ if (!requireNamespace("numDeriv", quietly = TRUE)) {
   )
 }
 numderiv_report
-#> gradient_rel  hessian_rel 
-#> 3.893819e-11 4.275761e-12
 ```
 
 Relative discrepancies of order (10^{-8}) are typical on this three-gene
@@ -715,8 +688,6 @@ mc_info <- apply(neg_hess, c(1L, 2L), mean)
 c(
   rel_frobenius = sqrt(sum((mc_info - info)^2)) / sqrt(sum(info^2))
 )
-#> rel_frobenius 
-#>   0.004978603
 ```
 
 The same identity is what closed the factor-of-two inconsistency: with

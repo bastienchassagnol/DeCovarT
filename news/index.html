@@ -62,7 +62,7 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.3.1" id="decovart-231">DeCovarT 2.3.1<a class="anchor" aria-label="anchor" href="#decovart-231"></a></h2>
 <ul><li>
-<strong>CRAN resubmission.</strong> Tests no longer write under the package tree. The bivariate toy scenario is built in memory by <code>new_bivariate_toy_scenario()</code> in <code>tests/testthat/helper.R</code>; the former <code>fixtures/make-useful-things.R</code> writer and its golden RDS files are gone.</li>
+<strong>CRAN resubmission.</strong> Tests no longer write under the package tree. The bivariate toy scenario is built in memory by <code>new_bivariate_toy_scenario()</code> in <code>tests/testthat/helper.R</code>; the former <code>fixtures/make-useful-things.R</code> writer and its golden RDS files are gone. CRAN Quarto vignettes do not execute <code><a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">library(DeCovarT)</a></code> during rebuild (Windows CLI subprocess cannot see <code>R CMD build</code>’s temporary library).</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.3.0" id="decovart-230">DeCovarT 2.3.0<a class="anchor" aria-label="anchor" href="#decovart-230"></a></h2>

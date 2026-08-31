@@ -60,29 +60,57 @@ annotates MixSim overlap.
 Figure 1: Factorial design (left) and correlation-only 2D densities
 (right) for the bivariate toy. {#fig-toy-design}
 
-![](DeCovarT-manuscript-scenarios_files/figure-html/fig-toy-density-ggplot-1.png)
-
-Figure 2: Two-gene mixture densities at fixed means
-\boldsymbol{\mu}\_{\cdot 1}=(20,22), \boldsymbol{\mu}\_{\cdot
-2}=(22,20), \boldsymbol{p}=(1/2,1/2) and unit diagonals. Only the common
-gene–gene correlation \rho changes. Labels report MixSim
-\overline{\omega}
-([`compute_average_overlap()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_overlap.md)).
-
 ### Log-likelihood along the simplex
 
-For J=2 the free coordinate is p_1\in(0,1). The chunk below evaluates
+For J=2 the free coordinate is p_1\in(0,1). The listing below evaluates
 \ell\_{\boldsymbol{y}\mid\boldsymbol{\zeta}}(p_1,1-p_1) on one bulk draw
-and, when `plotly` is installed, renders an interactive line.
+(and would feed `plotly` when that Suggests package is installed). It is
+not executed during `R CMD build`: Quarto’s Windows CLI starts a new R
+process that cannot see the temporary library where the package under
+construction was just installed
+([quarto-r#217](https://github.com/quarto-dev/quarto-r/issues/217)). The
+same likelihood path is checked in `tests/testthat/`.
 
-![](DeCovarT-manuscript-scenarios_files/figure-html/fig-toy-loglik-1.png)
+``` r
 
-Figure 3: Constrained log-likelihood versus p_1 for one bulk sample from
-the small-centroid, \rho=0.6, balanced design. The dashed line is the
-true p_1=1/2.
-
-Figure 4: Interactive version of [Figure 3](#fig-toy-loglik) (requires
-`plotly`).
+set.seed(20260828)
+rho <- 0.6
+R <- matrix(c(1, rho, rho, 1), nrow = 2)
+Sigma <- array(c(R, R), dim = c(2, 2, 2))
+dimnames(Sigma) <- list(
+  rownames(mu_small),
+  rownames(mu_small),
+  colnames(mu_small)
+)
+y_one <- DeCovarT::simulate_bulk_mixture(
+  mu_small,
+  Sigma,
+  p = p_bal,
+  n = 1
+)$Y[, 1]
+p1_grid <- seq(0.02, 0.98, by = 0.01)
+ll_grid <- vapply(
+  p1_grid,
+  function(p1) {
+    DeCovarT::loglik_multivariate(c(p1, 1 - p1), y_one, mu_small, Sigma)
+  },
+  numeric(1)
+)
+ll_df <- data.frame(p1 = p1_grid, loglik = ll_grid)
+gg_ll <- ggplot2::ggplot(ll_df, ggplot2::aes(x = p1, y = loglik)) +
+  ggplot2::geom_line(colour = "#1B4F72", linewidth = 0.8) +
+  ggplot2::geom_vline(
+    xintercept = 0.5,
+    linetype = "dashed",
+    colour = "grey30"
+  ) +
+  ggplot2::labs(
+    x = "p1 (p2 = 1 - p1)",
+    y = "Log-likelihood"
+  ) +
+  ggplot2::theme_bw(base_size = 11)
+gg_ll
+```
 
 ### How to run the factorial grid
 
@@ -187,7 +215,7 @@ differ in \boldsymbol{\Omega}.
 
 ![](figures/fig_network_topologies.png)
 
-Figure 5: Cell-type-specific block topologies: SBM/hub-like modules
+Figure 2: Cell-type-specific block topologies: SBM/hub-like modules
 (type 1) and a star (type 2) on the 30 `shared_12_vs_3` genes;
 scale-free wiring (type 3) on `marker_3`. The `equal_all` block is
 Erdős–Rényi in every type. Edge colour: precision sign (red inhibitory,
@@ -227,7 +255,7 @@ currently returns MSE, RMSE, MAE, a pseudo-R^{2}, and Pearson
 correlation between \hat{\boldsymbol{p}} and \boldsymbol{p}^{\star}.
 Reconstruction-only scores (no \boldsymbol{p}^{\star}) compare
 \hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}} with
-\boldsymbol{y}. [Figure 6](#fig-metrics-families) summarises the broader
+\boldsymbol{y}. [Figure 3](#fig-metrics-families) summarises the broader
 families used in recent bulk and spatial benchmarks.
 
 ![](figures/fig_compositional_metrics.svg)
@@ -240,11 +268,11 @@ discrepancies between \boldsymbol{p}^{\star} and \hat{\boldsymbol{p}}.
 \(b\) How those distances behave near the centre versus near a vertex of
 the simplex.
 
-Figure 6: Compositional error metrics for \boldsymbol{p} on the simplex.
+Figure 3: Compositional error metrics for \boldsymbol{p} on the simplex.
 
 ![](figures/fig_hierarchical_rmse_metrics.png)
 
-Figure 7: Hierarchical relative RMSE (hrRMSE) used when some reference
+Figure 4: Hierarchical relative RMSE (hrRMSE) used when some reference
 types are missing: residual error is scaled by the biological variance
 of \boldsymbol{p}^{\star} rather than by raw proportion units ([Ba et
 al. 2026](#ref-baWhenLessNot2026)).
@@ -280,7 +308,7 @@ Pseudobulk tools such as `muscat` ([Crowell et al.
 single-cell counts across samples. `scDD` ([Korthauer et al.
 2016](#ref-korthauerStatisticalApproachIdentifying2016)) partitions
 genes into EE, DE, DP, DM, and DB patterns. The hybrid scenario is a
-network-level analogue of three of these ([Figure 8](#fig-dd-taxonomy)):
+network-level analogue of three of these ([Figure 5](#fig-dd-taxonomy)):
 `equal_all` is EE; `marker_3` is DE for type 3; `shared_12_vs_3` has
 **no mean shift between types 1 and 2**, only a precision-topology
 contrast (DM-like for deconvolution, not scDD’s original single-gene
@@ -288,7 +316,7 @@ modality test).
 
 ![](figures/fig_dd_taxonomy_ee_de_dm.jpg)
 
-Figure 8: Schematic EE / DE / DM-like taxonomy for the three gene
+Figure 5: Schematic EE / DE / DM-like taxonomy for the three gene
 blocks.
 
 ## References

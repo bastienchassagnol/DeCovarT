@@ -626,37 +626,14 @@ I_{\boldsymbol{\rho}}^{-1}
 <span>  itmax <span class="op">=</span> <span class="fl">80</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt;           s1</span></span>
-<span><span class="co">#&gt; ct1 0.648736</span></span>
-<span><span class="co">#&gt; ct2 0.351264</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/nobs.html" class="external-link">nobs</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 1</span></span>
-<span><span class="co">#&gt; attr(,"n_genes")</span></span>
-<span><span class="co">#&gt; [1] 3</span></span>
-<span><span class="co">#&gt; attr(,"n_celltypes")</span></span>
-<span><span class="co">#&gt; [1] 2</span></span>
-<span><span class="co">#&gt; attr(,"n_samples")</span></span>
-<span><span class="co">#&gt; [1] 1</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>  n_genes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/nobs.html" class="external-link">nobs</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, <span class="st">"n_genes"</span><span class="op">)</span>,</span>
 <span>  n_celltypes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/nobs.html" class="external-link">nobs</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, <span class="st">"n_celltypes"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt;     n_genes n_celltypes </span></span>
-<span><span class="co">#&gt;           3           2</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt;          s1</span></span>
-<span><span class="co">#&gt; g1 25.26896</span></span>
-<span><span class="co">#&gt; g2 36.48736</span></span>
-<span><span class="co">#&gt; g3 23.94621</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt;             s1</span></span>
-<span><span class="co">#&gt; g1 -0.03549669</span></span>
-<span><span class="co">#&gt; g2 -0.01537423</span></span>
-<span><span class="co">#&gt; g3  0.09402526</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
-<span><span class="co">#&gt;              ct1          ct2</span></span>
-<span><span class="co">#&gt; ct1  0.001804864 -0.001804864</span></span>
-<span><span class="co">#&gt; ct2 -0.001804864  0.001804864</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
 </div>
 <p><code><a href="https://rdrr.io/r/stats/formula.html" class="external-link">formula()</a></code> and <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> are not implemented: DeCovarT does not forecast bulk expression.</p>
 </section><section class="section level2"><h2 id="sec-numerical-consistency">Numerical consistency of the likelihood and its derivatives<a class="anchor" aria-label="anchor" href="#sec-numerical-consistency"></a>
@@ -689,9 +666,7 @@ I_{\boldsymbol{\rho}}^{-1}
 <span>  loglik_multivariate <span class="op">=</span> <span class="va">ours</span>,</span>
 <span>  dmvnorm <span class="op">=</span> <span class="va">reference</span>,</span>
 <span>  difference <span class="op">=</span> <span class="va">ours</span> <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="va">n_genes</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span> <span class="op">-</span> <span class="va">reference</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; loglik_multivariate             dmvnorm          difference </span></span>
-<span><span class="co">#&gt;           0.9560062          -1.8008094           0.0000000</span></span></code></pre></div>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
 <p>A finite-difference check of the <em>same</em> objective cannot detect a shared factor-of-two error in the log-likelihood and its derivatives. That is why this density comparison is independent of <code>numDeriv</code>.</p>
 </section><section class="level2"><h3 id="richardson-extrapolation-of-the-score-and-hessian">Richardson extrapolation of the score and Hessian<a class="anchor" aria-label="anchor" href="#richardson-extrapolation-of-the-score-and-hessian"></a>
@@ -731,9 +706,7 @@ I_{\boldsymbol{\rho}}^{-1}
 <span>    hessian_rel <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">hess_a</span> <span class="op">-</span> <span class="va">hess_n</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">abs</a></span><span class="op">(</span><span class="va">hess_n</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="va">numderiv_report</span></span>
-<span><span class="co">#&gt; gradient_rel  hessian_rel </span></span>
-<span><span class="co">#&gt; 3.893819e-11 4.275761e-12</span></span></code></pre></div>
+<span><span class="va">numderiv_report</span></span></code></pre></div>
 </div>
 <p>Relative discrepancies of order (10^{-8}) are typical on this three-gene toy; that is the same tolerance used in the test suite.</p>
 </section><section class="level2"><h3 id="expected-information-versus-monte-carlo--">Expected information versus Monte Carlo ([-])<a class="anchor" aria-label="anchor" href="#expected-information-versus-monte-carlo--"></a>
@@ -758,9 +731,7 @@ I_{\boldsymbol{\rho}}^{-1}
 <span><span class="va">mc_info</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">neg_hess</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="fl">2L</span><span class="op">)</span>, <span class="va">mean</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>  rel_frobenius <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="op">(</span><span class="va">mc_info</span> <span class="op">-</span> <span class="va">info</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">info</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co">#&gt; rel_frobenius </span></span>
-<span><span class="co">#&gt;   0.004978603</span></span></code></pre></div>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
 <p>The same identity is what closed the factor-of-two inconsistency: with the old (-) objective, ([-]) could not equal (I()). A few dozen draws already bring the relative Frobenius gap below (10^{-2}) on this toy; the test suite uses a tighter Monte Carlo.</p>
 <p>A related, weaker check compares the empirical covariance of parametric-bootstrap MLEs to the Cramér–Rao map <a href="../reference/vcov_alr_delta.html"><code>vcov_alr_delta()</code></a>. That comparison is noisy at small replication (see <a href="https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.html#sec-replication">MLE properties</a> for why one bulk column is not an asymptotic sample) and is therefore left to the inference vignette and to <a href="../reference/bootstrap_decovart.html"><code>bootstrap_decovart()</code></a>.</p>
