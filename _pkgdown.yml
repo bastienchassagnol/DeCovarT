@@ -88,14 +88,10 @@ navbar:
       text: Vignettes
       icon: fa-book-open
       menu:
-        - text: Manuscript
-        - text: DeCovarT methods paper (PDF)
-          icon: fa-file-pdf
-          href: articles/decovart-manuscript.html
-        - text: -------
-        - text: Doctorants seminar slides (embedded)
-          icon: fa-chalkboard-user
-          href: articles/deconvolution-seminar-slides.html
+        - text: External resources
+        - text: Manuscript, preprint & seminar slides
+          icon: fa-book-open
+          href: articles/decovart-external-resources.html
         - text: -------
         - text: Prepare inputs
         - text: In silico GRN inference
@@ -119,9 +115,9 @@ navbar:
         - text: MLE properties and asymptotic inference
           icon: fa-chart-area
           href: articles/DeCovarT-MLE-properties.html
-        - text: Literature review, and comparison to other related methods
+        - text: Literature review and alternatives to OLS
           icon: fa-equals
-          href: articles/DeCovarT-reminders-OLS.html
+          href: articles/Beyond-OLS.html
         - text: "DeCovarT perspectives: Bayesian, quasi-likelihood, and more"
           icon: fa-compass
           href: articles/decovart-perspectives.html
@@ -242,12 +238,9 @@ reference:
       - compute_glmnet_gene_scores
 
 articles:
-  - title: Manuscript
+  - title: External resources
     contents:
-      - decovart-manuscript
-  - title: Presentations
-    contents:
-      - deconvolution-seminar-slides
+      - decovart-external-resources
   - title: Getting started
     navbar: ~
     contents:
@@ -259,7 +252,7 @@ articles:
     contents:
       - generative-model-derivatives
       - DeCovarT-MLE-properties
-      - DeCovarT-reminders-OLS
+      - Beyond-OLS
       - decovart-perspectives
   - title: Appendix simulations
     desc: |

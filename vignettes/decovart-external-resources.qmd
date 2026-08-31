@@ -1,0 +1,104 @@
+---
+title: "External resources: manuscript, presentations, and preprints"
+author: "Bastien Chassagnol"
+date: today
+vignette: >
+  %\VignetteIndexEntry{External resources: manuscript, presentations, and preprints}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+bibliography:
+  - ../inst/packages.bib
+  - ../inst/REFERENCES.bib
+link-citations: true
+resources:
+  - decovart-manuscript.pdf
+format:
+  html:
+    embed-resources: false
+    toc: true
+---
+
+This page collects **material outside the package vignette tutorials**:
+the working methods manuscript, seminar slides, and canonical URLs. The
+in-package articles under *Vignettes* document implementation, simulation,
+and mathematical detail; start here when you need the paper PDF or talk
+deck.
+
+| Resource | Link |
+|:---------|:-----|
+| Source repository | [bastienchassagnol/DeCovarT](https://github.com/bastienchassagnol/DeCovarT) |
+| Methods preprint | [arXiv:2309.09557](https://arxiv.org/abs/2309.09557) [@chassagnolDeCovarTMultidimensionalProbalistic2023] |
+| Package site | [bastienchassagnol.github.io/DeCovarT](https://bastienchassagnol.github.io/DeCovarT/) |
+| Function call network | [decovart_function_network.html](https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network.html) |
+
+# Methods manuscript {#sec-manuscript-pdf}
+
+The manuscript describes covariance-aware deconvolution of bulk
+transcriptomes as a multivariate Gaussian convolution. Cell-type
+proportions lie on the simplex; they are recovered by constrained
+maximum likelihood with analytic gradients and Hessians. The PDF below is
+the working build of `article/main.pdf` (Springer Nature `sn-jnl`
+template).
+
+Open
+[full screen](https://bastienchassagnol.github.io/DeCovarT/article/main.pdf)
+or
+[download a copy](decovart-manuscript.pdf).
+
+```{=html}
+<div class="decovart-fullwidth">
+  <object
+    class="decovart-pdf-embed"
+    data="../article/main.pdf"
+    type="application/pdf"
+    width="100%"
+    height="1400">
+    <object
+      class="decovart-pdf-embed"
+      data="decovart-manuscript.pdf"
+      type="application/pdf"
+      width="100%"
+      height="1400">
+      <iframe
+        class="decovart-pdf-embed"
+        src="decovart-manuscript.pdf"
+        title="DeCovarT working manuscript"
+        width="100%"
+        height="1400"></iframe>
+    </object>
+  </object>
+</div>
+```
+
+# Doctorants seminar slides {#sec-seminar-slides}
+
+This embeds the Quarto reveal.js deck from the doctorants deconvolution
+seminar (sources under `slides/` in the repository). Pattern inspired by
+[GTBioSS_slides.qmd](https://github.com/bastienchassagnol/COPASI_Team216_Lo2016/blob/master/vignettes/GTBioSS_slides.qmd)
+and the
+[quarto-webr slide-embed example](https://quarto-webr.thecoatlessprofessor.com/examples/book/slide-embed.html#presentation).
+
+[Open the deck full screen](https://bastienchassagnol.github.io/DeCovarT/slides/index.html).
+
+```{=html}
+<iframe
+  class="slides"
+  src="https://bastienchassagnol.github.io/DeCovarT/slides/index.html"
+  title="DeCovarT doctorants deconvolution slides"
+  width="100%"
+  height="600"
+  style="border: 1px solid #ccc;"
+  allowfullscreen
+></iframe>
+```
+
+```{=html}
+<style>
+iframe.slides {
+  aspect-ratio: 16 / 9;
+  min-height: 480px;
+}
+</style>
+```
+
+# References

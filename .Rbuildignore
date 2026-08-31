@@ -33,14 +33,16 @@
 # surface small: slides, manuscript PDF embed, long feature-selection /
 # network / perspectives / appendix articles.
 ^vignettes/deconvolution-seminar-slides\.qmd$
-^vignettes/DeCovarT-reminders-OLS\.qmd$
+^vignettes/Beyond-OLS\.qmd$
+^vignettes/decovart-external-resources\.qmd$
+^vignettes/decovart-external-resources\.pdf$
+^vignettes/decovart-manuscript\.qmd$
+^vignettes/decovart-manuscript\.pdf$
 ^vignettes/DeCovarT-MLE-properties\.qmd$
 ^vignettes/feature-selection\.qmd$
 ^vignettes/network-inference\.qmd$
 ^vignettes/synthetic-scenarios\.qmd$
 ^vignettes/DeCovarT_appendix_simualtion_frameworks\.qmd$
-^vignettes/decovart-manuscript\.qmd$
-^vignettes/decovart-manuscript\.pdf$
 ^vignettes/decovart-perspectives\.qmd$
 ^vignettes/_extensions/
 # pkgdown-only vignette figures (CRAN vignettes use the two kept below)

@@ -1,9 +1,9 @@
 ---
-title: "OLS reminders for linear deconvolution"
+title: "Beyond ordinary least squares: when linear-model assumptions fail"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
 vignette: >
-  %\VignetteIndexEntry{OLS reminders for linear deconvolution}
+  %\VignetteIndexEntry{Beyond ordinary least squares: when linear-model assumptions fail}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 knitr:
@@ -137,5 +137,5 @@ $\boldsymbol{y}_{\cdot i}\,|\,\boldsymbol{p}_{\cdot i}
 \sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}\bigr)$,
 with precision $\boldsymbol{\Theta}_{j}=\boldsymbol{\Sigma}_{j}^{-1}$
 (typically from `gLasso`). See the article Methods and
-[derivatives under simplex transforms](generative-model-derivatives.html).
+[derivatives under simplex transforms](generative-model-derivatives.html#sec-s3).
 :::

@@ -300,33 +300,3 @@ list(
 
 A fuller comparison of normalisation (CPM, log2), tolerance, and
 dimension $(G,J)$ belongs in a later issue.
-
-# Simulation benchmark wrapper {#sec-simulation-benchmark}
-
-[`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.html) is the package wrapper around `simulate_bulk_mixture()`, `deconvolute_ratios()`, and `compute_benchmark_metrics()`. Generative grids (proportions, correlation sweeps, mean signatures, covariance tensors) should be assembled in scripts—see `scripts/configure_bivariate_toy_scenarios.R` for the bivariate toy study—and passed as a tibble with a `true_theta` list column. Deconvolution solvers are supplied as a named list of `FUN` plus optional `additional_parameters` for `do.call()`. Optional scenario-level parallelism uses `furrr` and `future` (Suggests), capped by default at half of detected cores, with per-sample parallelism disabled inside `deconvolute_ratios()` to avoid nested workers.
-
-# S3 accessors {#sec-s3}
-
-```{r}
-#| label: s3-accessors
-#| warning: false
-fit <- fit_decovart(
-  mu,
-  y,
-  Sigma = Sigma,
-  method = "Marquardt-Levenberg",
-  itmax = 80
-)
-coef(fit)
-nobs(fit)
-c(
-  n_genes = attr(nobs(fit), "n_genes"),
-  n_celltypes = attr(nobs(fit), "n_celltypes")
-)
-fitted(fit)
-residuals(fit)
-vcov(fit)
-```
-
-`formula()` and `predict()` are not implemented: DeCovarT does not
-forecast bulk expression.

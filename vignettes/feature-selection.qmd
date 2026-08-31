@@ -772,7 +772,8 @@ The Bootstrap-Enhanced Regularization Method (**BERM**) of Dong et al. [@dongBoo
 
 Relative to adaptive elastic net / adaptive lasso (weights from one initial fit), random-lasso-style predictor subsampling, or bootstrap-interval methods that stop at selection alone, BERM therefore couples **stable inclusion** with **post-selection coefficient estimation**. In DeCovarT's pipeline it is a natural companion to the `glmnet` multinomial / elastic-net shortlist (@sec-four-scores) when gene blocks are near-collinear on $\boldsymbol{\mu}$ and nested CV (@sec-cv-selection) must still protect against distribution overfitting. An open-source implementation is available at <https://github.com/xiaorudong/berm>.
 
-# Software notes {#sec-software}
+::: {.callout-info}
+## Related R packages and workflows {#sec-software}
 
 - Variance stabilisation / Pearson residuals: `sctransform` / `Seurat::SCTransform` [@hafemeisterNormalizationVarianceStabilization2019].
 - Signature QC / compaction patterns: `DeconvExplorer` (`removePercentZeros`, `removeUnspecificGenes`, `selectGenesByScore` with Gini or entropy).
@@ -784,3 +785,4 @@ Relative to adaptive elastic net / adaptive lasso (weights from one initial fit)
 - Mechanistic annotation: `CARNIVAL` / `CORNETO` [@liuFromExpressionFootprints2019; @rodriguezMierUnifyingMultisample2025].
 - Gold-standard reference-based estimators for downstream validation: CIBERSORT / CIBERSORTx, EPIC, quanTIseq, ABIS, MuSiC, DWLS [@newmanRobustEnumerationCell2015; @newmanDeterminingCellType2019; @racleSimultaneousEnumerationCancer2017; @finotello_etal19; @monacoRNASeqSignaturesNormalized2019; @wangBulkTissueCell2019; @tsoucasAccurateEstimationCelltype2019].
 - Optimal-design background: [@atkinsonOptimumExperimentalDesigns1992; @pukelsheimOptimalDesignExperiments2006].
+:::
