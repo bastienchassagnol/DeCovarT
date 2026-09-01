@@ -65,7 +65,7 @@ tail \eqn{\Pr(\chi^{2}_{0}>D)} is zero for every \eqn{D\ge 0}. The
 component therefore only removes weight: with one active constraint and
 no interior constraint the p-value is
 \eqn{\tfrac{1}{2}\Pr(\chi^{2}_{1}>D)}, capped at \eqn{0.5} when
-\eqn{D=0}. Note \code{\link[stats:pchisq]{stats::pchisq()}} switches to the \emph{closed} tail at
+\eqn{D=0}. Note \code{\link[stats:Chisquare]{stats::pchisq()}} switches to the \emph{closed} tail at
 exactly \code{q = 0} for \code{df = 0}; the strict convention is used here so the
 p-value stays continuous in \code{statistic}.
 }
@@ -86,15 +86,15 @@ chi_bar_square_pvalue(3.84, n_boundary = 0L, df_interior = 1L)
 \seealso{
 \code{\link[=lrt_decovart]{lrt_decovart()}}
 
-Other decovart_inference:
-\code{\link[=bootstrap_decovart]{bootstrap_decovart()}},
-\code{\link[=boundary_diagnostics]{boundary_diagnostics()}},
-\code{\link[=confint_profile_decovart]{confint_profile_decovart()}},
-\code{\link[=equivariance_check_decovart]{equivariance_check_decovart()}},
-\code{\link[=lrt_decovart]{lrt_decovart()}},
-\code{\link[=multistart_decovart]{multistart_decovart()}},
-\code{\link[=profile_loglik_decovart]{profile_loglik_decovart()}},
-\code{\link[=reference_bootstrap_decovart]{reference_bootstrap_decovart()}},
-\code{\link[=restricted_mle_decovart]{restricted_mle_decovart()}}
+Other decovart_inference: 
+\code{\link{bootstrap_decovart}()},
+\code{\link{boundary_diagnostics}()},
+\code{\link{confint_profile_decovart}()},
+\code{\link{equivariance_check_decovart}()},
+\code{\link{lrt_decovart}()},
+\code{\link{multistart_decovart}()},
+\code{\link{profile_loglik_decovart}()},
+\code{\link{reference_bootstrap_decovart}()},
+\code{\link{restricted_mle_decovart}()}
 }
 \concept{decovart_inference}

@@ -94,7 +94,9 @@
 # Local leftover; gitignored. Must also be Rbuildignored or R CMD check
 # reports a non-standard top-level directory.
 ^temp_benchmakr_metrics$
+^temp_rag_optimisation$
 ^derive-statistical-properties\.md$
+^derive-statisticazl-properties\.md$
 # Local deep-research notes and Zotero / RAG scratch inputs, also
 # gitignored: merged into inst/REFERENCES.bib and never shipped.
 ^decovart_mle_proeprties\.md$

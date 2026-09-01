@@ -1,3 +1,26 @@
+# DeCovarT (development version)
+
+* **Structure-aware covariance backends.** New
+  `new_decovart_covariance()` wraps
+  \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j}
+  with a declared `structure` (`"dense"`, `"block"`, `"band"`, `"sparse"`,
+  `"diag_lowrank"`) and exposes operators `sigma_logdet()`,
+  `sigma_solve()`, `sigma_quadform()` and `sigma_trace_precision_times()`
+  that return the log-determinant and solves without materialising a dense
+  precision. Block Cholesky (disconnected modules / stochastic block
+  model), banded Cholesky (band / AR), sparse Cholesky with a cached
+  symbolic ordering (Erdős–Rényi, scale-free, small-world), and the
+  Woodbury / matrix-determinant-lemma path for diagonal-plus-low-rank
+  covariances (shared regulatory programs; `Sigma = W W^T + Psi`) each
+  match the dense default to machine precision.
+  `covariance_structure_from_graph_model()` maps a network topology to the
+  recommended backend, and `.sigma_p_factorisation()` gains an optional
+  `backend` argument. Band and sparse backends use the imported
+  `Matrix` package. See the new
+  "Structure-aware covariance backends" section of
+  `vignette("generative-model-derivatives")` and
+  `scripts/covariance_structure_prototypes.R`.
+
 # DeCovarT 2.3.1
 
 * **CRAN resubmission.** Tests no longer write under the package tree.

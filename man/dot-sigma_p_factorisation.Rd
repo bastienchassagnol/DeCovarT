@@ -4,19 +4,31 @@
 \alias{.sigma_p_factorisation}
 \title{Cached Cholesky factorisation of \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}}
 \usage{
-.sigma_p_factorisation(p, Sigma)
+.sigma_p_factorisation(p, Sigma, backend = NULL)
 }
 \arguments{
 \item{p}{Numeric vector \eqn{\boldsymbol{p}\in\mathbb{R}^{J}}.}
 
 \item{Sigma}{Array of cell-type covariances in
 \eqn{\mathcal{M}_{G\times G\times J}}.}
+
+\item{backend}{Optional \code{\link[=new_decovart_covariance]{new_decovart_covariance()}} object declaring an
+exploitable covariance structure (block, band, sparse or
+diagonal-plus-low-rank). When \code{NULL} (default) the universal dense
+Cholesky is used and cached, exactly as before. When supplied, the
+structured operators of that backend supply \code{log_det} and the \code{solve} /
+\code{quadform} closures; \code{inverse} is then materialised only for drop-in
+compatibility with callers that still expect an explicit precision, and
+the operator path (\code{solve}) should be preferred to keep the structural
+speed-up (a dense \code{chol2inv} would undo it).}
 }
 \value{
 A list with elements: \code{matrix} (\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}
-itself), \code{chol} (upper-triangular Cholesky factor), \code{log_det}
+itself, or \code{NULL} for factored backends), \code{chol} (upper-triangular
+Cholesky factor, or \code{NULL}), \code{log_det}
 (\eqn{\log\det\boldsymbol{\Sigma}(\boldsymbol{p})}) and \code{inverse}
-(\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}}).
+(\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}}). When \code{backend} is
+supplied the list additionally carries \code{solve} and \code{quadform} closures.
 }
 \description{
 Assembles \code{\link[=.compute_global_variance]{.compute_global_variance()}} and factorises it once via
@@ -44,5 +56,8 @@ Profiling on a 38-gene / 3-cell-type scenario showed the redundancy
 p <- c(0.6, 0.4)
 Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
 names(.sigma_p_factorisation(p, Sigma))
+}
+\seealso{
+\code{\link[=new_decovart_covariance]{new_decovart_covariance()}}
 }
 \keyword{internal}

@@ -180,6 +180,21 @@ reference:
     contents:
       - deconvolute_ratios_Marquardt_Levenberg
       - fit_decovart
+  - subtitle: Structure-aware covariance backends
+    desc: |
+      Factorise \(\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2
+      \boldsymbol{\Sigma}_j\) by exploiting declared covariance structure
+      (block, band, sparse, diagonal-plus-low-rank) instead of a dense
+      Cholesky. Operators return the log-determinant and solves without a
+      materialised precision. See
+      `vignette("generative-model-derivatives")`.
+    contents:
+      - new_decovart_covariance
+      - covariance_structure_from_graph_model
+      - sigma_logdet
+      - sigma_solve
+      - sigma_quadform
+      - sigma_trace_precision_times
   - subtitle: Fisher information and Wald intervals
     desc: |
       Expected Fisher information of unconstrained proportions and ALR

@@ -36,6 +36,7 @@ Chassagnol
 Chaussard
 Chernoff
 ChronoStrain
+CHOLMOD
 Codecov
 Commenges
 ComplexHeatmap
@@ -267,8 +268,11 @@ tibble
 tibbles
 tissueResolver
 transcriptomic
+Schur
+supernodal
 transcriptomics
 unmodelled
 voom
 webr
+Woodbury
 xCell

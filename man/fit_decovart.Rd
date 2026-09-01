@@ -93,7 +93,7 @@ intervals are unreliable there; prefer
 
 \item{x, object}{A \code{decovart_fit}.}
 
-\item{...}{Passed to \code{\link[graphics:plot]{graphics::plot()}} (plot method) or ignored.}
+\item{...}{Passed to \code{\link[graphics:plot.default]{graphics::plot()}} (plot method) or ignored.}
 
 \item{parm}{Kept for compatibility with \code{\link[stats:confint]{stats::confint()}}; all
 simplex coordinates are always returned (subsetting by \code{parm} is

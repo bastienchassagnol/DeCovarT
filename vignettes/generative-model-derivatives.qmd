@@ -983,4 +983,116 @@ for why one bulk column is not an asymptotic sample) and is therefore
 left to the inference vignette and to
 [`bootstrap_decovart()`](../reference/bootstrap_decovart.html).
 
+# Structure-aware covariance backends {#sec-structure-backends}
+
+Every solver call factorises
+$\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}\boldsymbol{\Sigma}_j$.
+The dense Cholesky in `.sigma_p_factorisation()` is the universal default and
+the only method that needs no assumptions. When the covariance inherits
+structure from the underlying gene network, the same log-determinant and
+solves can be obtained far more cheaply. Exploiting band, sparse and
+diagonal-plus-low-rank structure in a Newton-type solver is standard
+practice [@boydConvexOptimization2004, §9.7]; the backends below make that
+structure explicit for DeCovarT.
+
+[`new_decovart_covariance()`](../reference/new_decovart_covariance.html)
+wraps the covariance array with a declared `structure`, and the operators
+[`sigma_logdet()`](../reference/sigma_logdet.html),
+[`sigma_solve()`](../reference/sigma_solve.html),
+[`sigma_quadform()`](../reference/sigma_quadform.html) and
+[`sigma_trace_precision_times()`](../reference/sigma_trace_precision_times.html)
+return exactly the quantities the objective, score and Hessian need. They
+expose *operations*, never a materialised dense precision: a sparse or
+Woodbury solve must not be silently undone by a dense `chol2inv`.
+
+## Decision tree {#sec-backend-decision}
+
+Structure is supplied explicitly, never inferred from floating-point
+near-zeros, so a numerical near-zero is never mistaken for an exact
+conditional independence.
+[`covariance_structure_from_graph_model()`](../reference/covariance_structure_from_graph_model.html)
+maps a network topology to the recommended backend. A sparse
+*precision* $\boldsymbol{\Omega}_j$ does not imply a sparse *covariance*
+$\boldsymbol{\Sigma}_j$; only structure that survives in
+$\boldsymbol{\Sigma}(\boldsymbol{p})$ itself accelerates the likelihood.
+
+```{mermaid}
+%%| label: fig-backend-decision
+%%| fig-cap: "Choosing a covariance backend; dense Cholesky is the default and structured backends are exact refinements."
+%%{init: {"theme": "sandstone"}}%%
+flowchart TD
+  A["Sigma(p) = sum_j p_j^2 Sigma_j"] --> B{"Declared covariance structure?"}
+  B -->|"none (default)"| D["Dense Cholesky\nO(G^3)"]
+  B -->|"disconnected modules\n(stochastic block model)"| E["Block Cholesky\nO(sum_b G_b^3)"]
+  B -->|"ordered local dependence\n(band / AR)"| F["Banded Cholesky\nO(G b^2)"]
+  B -->|"fixed sparse pattern\n(Erdos-Renyi, scale-free, small-world)"| G["Sparse Cholesky\nsymbolic ordering computed once"]
+  B -->|"shared programs / bridge hubs\n(pathways, housekeeping genes)"| H["Woodbury / Schur\nO(G r^2)"]
+```
+
+Each refinement is exact, not approximate:
+
+- **Block** (disconnected gene modules, e.g. a stochastic block model with no
+  between-block edges [@hollandStochasticBlockmodelsFirst1983]).
+  $\boldsymbol{\Sigma}(\boldsymbol{p})$ is block-diagonal, so the
+  log-likelihood separates over blocks and one Cholesky per block replaces
+  one dense Cholesky.
+- **Band / AR.** Only genes within bandwidth $b$ covary; a banded Cholesky
+  costs $O(G b^{2})$ [@golubMatrixComputations2013].
+- **Sparse** (Erdős–Rényi, scale-free
+  [@barabasiEmergenceScalingRandom1999], small-world
+  [@wattsCollectiveDynamicsSmallworld1998]). The fill-reducing ordering is
+  a *symbolic factorisation* computed once and reused for every numeric
+  refactor as $\boldsymbol{p}$ changes; only the numerical Cholesky
+  repeats [@chenAlgorithm887CHOLMOD2008].
+- **Diagonal + low rank.** Genes interact through $r\ll G$ shared regulatory
+  programs, $\boldsymbol{\Sigma}_j=\mathbf{D}_j+\mathbf{U}\mathbf{C}_j
+  \mathbf{U}^{\mathsf{T}}$ — the factor-analysis form
+  $\boldsymbol{\Sigma}=\mathbf{W}\mathbf{W}^{\mathsf{T}}+\boldsymbol{\Psi}$.
+  The Woodbury identity and the matrix-determinant lemma
+  [@hagerUpdatingInverseMatrix1989] move the $O(G^{3})$ cost to the low
+  rank $r$. A few bridge / housekeeping hub genes give the arrow-matrix
+  special case handled by the same Schur-complement algebra.
+
+```{r}
+#| label: backend-usage
+#| eval: false
+#| echo: true
+# Declare structure explicitly, then use the operator interface.
+cov <- new_decovart_covariance(Sigma, structure = "diag_lowrank",
+  diagonal = D, loadings = U, core = C)
+ld <- sigma_logdet(cov, p)            # log det Sigma(p)
+z  <- sigma_solve(cov, p, residual)   # Sigma(p)^{-1} r, no dense inverse
+q  <- sigma_quadform(cov, p, residual)
+```
+
+## Computational complexity {#sec-backend-complexity}
+
+For a dense symmetric positive-definite $G\times G$ matrix the Cholesky
+factorisation costs about $G^{3}/3$ flops before the cheaper triangular
+solves [@golubMatrixComputations2013]. The structured backends reduce that
+leading term:
+
+| Structure | When it applies | Factorisation cost | Backend argument |
+|:----------|:----------------|:-------------------|:-----------------|
+| Dense | universal default | $O(G^{3})$ | (default) |
+| Block | disconnected modules (SBM) | $O(\sum_b G_b^{3})$; $\approx B^{2}$ saving for $B$ equal blocks | `structure = "block"` |
+| Band / AR | bandwidth $b$ | $O(G b^{2})$ | `structure = "band"` |
+| Sparse | fixed sparse pattern | pattern-dependent; symbolic ordering reused across $\boldsymbol{p}$ | `structure = "sparse"` |
+| Diagonal + low rank | $r$ shared programs | $O(G r^{2})$ solve, $O(r^{3})$ core | `structure = "diag_lowrank"` |
+
+: Leading factorisation cost per backend. $G$ genes, $J$ cell types, $B$
+blocks of size $G_b$, bandwidth $b$, rank $r\ll G$. {#tbl-backend-complexity}
+
+These are worst-case flop counts and only rough predictors of wall-clock
+time on cache-based hardware with tuned BLAS; the block and low-rank savings
+($\approx B^{2}$ and $O(G^{2})\!\to\!O(Gr^{2})$ respectively) are the most
+robust. The `"band"` and `"sparse"` backends use the imported `Matrix`
+package (supernodal sparse Cholesky in CHOLMOD,
+[@chenAlgorithm887CHOLMOD2008]).
+`scripts/covariance_structure_prototypes.R` verifies each backend against
+the dense path to machine precision. Approximate sparse Cholesky of
+otherwise dense kernel covariances is a separate research line
+[@schäferCompressionInversionApproximate2020]; the `"sparse"` backend here
+is exact for a declared sparse pattern, not that approximation.
+
 # References

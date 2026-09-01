@@ -244,7 +244,7 @@ generate_mean_signature_matrix <- function(
 #' preferential attachment (\code{scale_free}), a stochastic block model
 #' (\code{stochastic_block_model}), or Watts–Strogatz small-world
 #' (\code{small_world})
-#' \insertCite{barabasiEmergenceScalingRandom1999}{DeCovarT}.
+#' \insertCite{barabasiEmergenceScalingRandom1999,hollandStochasticBlockmodelsFirst1983,wattsCollectiveDynamicsSmallworld1998}{DeCovarT}.
 #'
 #' @param n_genes Integer \eqn{G}, number of nodes (genes).
 #' @param graph_model One of \code{"erdos_renyi"}, \code{"hub"},

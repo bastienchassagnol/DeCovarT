@@ -803,8 +803,8 @@ $$ {#eq-partial-cor}
 | **Band / AR** | Edge $j$–$k$ if $1\le\lvert j-k\rvert\le b$ | `huge.generator(graph="band")` [@R-huge]; `BDgraph::bdgraph.sim(graph="AR(1)")` / `"AR(2)"` [@R-BDgraph] | Local dependence and controlled max degree | Artificial gene ordering; no hubs or modules |
 | **Hub / star** | $g$ groups; one centre linked to remaining members | `huge.generator(graph="hub")` [@R-huge]; `graph.sim(graph="hub")` / `"star"` [@R-BDgraph]; DeCovarT `graph_model = "hub"` | Stress-tests high-degree regulators | Pure stars omit cross-talk |
 | **Scale-free** | Preferential attachment (e.g. Barabási–Albert with $m$ edges per new node) | `huge.generator(graph="scale-free")` [@R-huge]; DeCovarT `graph_model = "scale_free"` | Heterogeneous degrees | Weak modularity under plain BA growth |
-| **Cluster / SBM** | Within-block edge probability exceeds between-block | `huge.generator(graph="cluster")` [@R-huge]; DeCovarT `graph_model = "stochastic_block_model"` | Pathway / module structure | Equal blocks can be unrealistically regular |
-| **Small-world / lattice / circle** | High clustering with short paths, or fixed neighbourhoods | DeCovarT `graph_model = "small_world"` (Watts–Strogatz); `BDgraph::graph.sim(graph="smallworld")` [@R-BDgraph] | Local modules and spatial organisation | Narrow degrees; needs a defensible ordering |
+| **Cluster / SBM** | Within-block edge probability exceeds between-block [@hollandStochasticBlockmodelsFirst1983] | `huge.generator(graph="cluster")` [@R-huge]; DeCovarT `graph_model = "stochastic_block_model"` | Pathway / module structure | Equal blocks can be unrealistically regular |
+| **Small-world / lattice / circle** | High clustering with short paths, or fixed neighbourhoods [@wattsCollectiveDynamicsSmallworld1998] | DeCovarT `graph_model = "small_world"` (Watts–Strogatz); `BDgraph::graph.sim(graph="smallworld")` [@R-BDgraph] | Local modules and spatial organisation | Narrow degrees; needs a defensible ordering |
 
 : Topology families for undirected GGM simulation (R-focused). {#tbl-topologies}
 
@@ -817,8 +817,8 @@ Not every topology is equally useful as a **gene-regulatory** prior. The three s
 |----------------|-----------------------|----------------------------------|
 | **Star / hub** | Master-regulator TF with many targets; one-to-many signalling | Stress-tests recovery of a few high-degree hubs that dominate partial correlations [@wuEstimatingHeterogeneousGene2022; @federicoStructureLearningGene2023] |
 | **Scale-free (BA)** | Preferential attachment produces a heavy-tailed degree distribution and several hubs [@barabasiEmergenceScalingRandom1999] | Standard high-dimensional GGM stress test used by SILGGM via `huge` [@zhangSILGGMExtensivePackage2018]; useful for testing degree heterogeneity, but not a default empirical model of gene regulation |
-| **Cluster / SBM** | Co-regulated modules / pathways with dense within-block links | Matches pathway organisation; BLGGM’s global block partition is SBM-like before finer within-block motifs [@wuEstimatingHeterogeneousGene2022] |
-| **Small-world** | High local clustering with short paths (ring + shortcuts) | Local co-expression neighbourhoods plus long-range regulatory shortcuts; useful when modularity is soft rather than hard blocks [@federicoStructureLearningGene2023] |
+| **Cluster / SBM** | Co-regulated modules / pathways with dense within-block links [@hollandStochasticBlockmodelsFirst1983] | Matches pathway organisation; BLGGM’s global block partition is SBM-like before finer within-block motifs [@wuEstimatingHeterogeneousGene2022] |
+| **Small-world** | High local clustering with short paths (ring + shortcuts) [@wattsCollectiveDynamicsSmallworld1998] | Local co-expression neighbourhoods plus long-range regulatory shortcuts; useful when modularity is soft rather than hard blocks [@federicoStructureLearningGene2023] |
 | **Band / AR** | Ordered local dependence only | Useful numerical control, but gene indices rarely encode a natural order—limited biological fidelity [@zhangSILGGMExtensivePackage2018] |
 | **Erdős–Rényi** | Homogeneous random wiring | Null / baseline sparsity; little pathway or hub structure [@zhangSILGGMExtensivePackage2018] |
 

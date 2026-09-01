@@ -55,6 +55,7 @@ Imports:
     dplyr,
     marqLevAlg,
     MASS,
+    Matrix,
     purrr,
     Rdpack (>= 0.7),
     rlang,
@@ -68,3 +69,4 @@ Language: en-GB
 URL: https://github.com/bastienchassagnol/DeCovarT, https://bastienchassagnol.github.io/DeCovarT/
 BugReports: https://github.com/bastienchassagnol/DeCovarT/issues
 Config/roxygen2/version: 8.1.0
+RoxygenNote: 7.3.3

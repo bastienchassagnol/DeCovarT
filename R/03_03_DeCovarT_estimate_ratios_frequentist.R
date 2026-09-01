@@ -190,23 +190,47 @@ additive_log_ratio <- function(p) {
 #' Profiling on a 38-gene / 3-cell-type scenario showed the redundancy
 #'
 #' @inheritParams loglik_multivariate
+#' @param backend Optional [new_decovart_covariance()] object declaring an
+#'   exploitable covariance structure (block, band, sparse or
+#'   diagonal-plus-low-rank). When `NULL` (default) the universal dense
+#'   Cholesky is used and cached, exactly as before. When supplied, the
+#'   structured operators of that backend supply `log_det` and the `solve` /
+#'   `quadform` closures; `inverse` is then materialised only for drop-in
+#'   compatibility with callers that still expect an explicit precision, and
+#'   the operator path (`solve`) should be preferred to keep the structural
+#'   speed-up (a dense `chol2inv` would undo it).
 #'
 #' @return A list with elements: `matrix` (\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}
-#'   itself), `chol` (upper-triangular Cholesky factor), `log_det`
+#'   itself, or `NULL` for factored backends), `chol` (upper-triangular
+#'   Cholesky factor, or `NULL`), `log_det`
 #'   (\eqn{\log\det\boldsymbol{\Sigma}(\boldsymbol{p})}) and `inverse`
-#'   (\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}}).
+#'   (\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}}). When `backend` is
+#'   supplied the list additionally carries `solve` and `quadform` closures.
 #'
 #' @keywords internal
 #' @examples
 #' p <- c(0.6, 0.4)
 #' Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
 #' names(.sigma_p_factorisation(p, Sigma))
+#' @seealso [new_decovart_covariance()]
 #' @export
 .sigma_p_factorisation <- local({
   cache <- new.env(parent = emptyenv())
   cache$value <- NULL
 
-  function(p, Sigma) {
+  function(p, Sigma, backend = NULL) {
+    if (!is.null(backend)) {
+      prep <- .sigma_prepare(backend, p)
+      return(list(
+        matrix = prep$matrix,
+        chol = prep$chol,
+        log_det = prep$logdet,
+        inverse = prep$solve(diag(backend$n_genes)),
+        solve = prep$solve,
+        quadform = prep$quadform
+      ))
+    }
+
     cached <- cache$value
 
     if (

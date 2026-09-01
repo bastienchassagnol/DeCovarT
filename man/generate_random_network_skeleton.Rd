@@ -39,7 +39,7 @@ Draws undirected skeletons with \pkg{igraph}: Erdős–Rényi
 preferential attachment (\code{scale_free}), a stochastic block model
 (\code{stochastic_block_model}), or Watts–Strogatz small-world
 (\code{small_world})
-\insertCite{barabasiEmergenceScalingRandom1999}{DeCovarT}.
+\insertCite{barabasiEmergenceScalingRandom1999,hollandStochasticBlockmodelsFirst1983,wattsCollectiveDynamicsSmallworld1998}{DeCovarT}.
 }
 \examples{
 generate_random_network_skeleton(8L, "erdos_renyi")

@@ -29,7 +29,7 @@ bootstrap_decovart(
 \eqn{\mathcal{M}_{G\times G\times J}}.}
 
 \item{bulk_expression}{Numeric matrix \eqn{\boldsymbol{Y}\in
-\mathcal{M}_{G\times N}} of replicate bulk profiles sharing one
+  \mathcal{M}_{G\times N}} of replicate bulk profiles sharing one
 composition, used instead of \code{y} for the pooled (population) test.}
 
 \item{p}{Composition to simulate from. Defaults to the MLE computed
@@ -92,15 +92,15 @@ bootstrap_decovart(y, mu, Sigma, n_boot = 20)$interval
 \code{\link[=lrt_decovart]{lrt_decovart()}}, \code{\link[=chi_bar_square_pvalue]{chi_bar_square_pvalue()}},
 \code{\link[=reference_bootstrap_decovart]{reference_bootstrap_decovart()}}
 
-Other decovart_inference:
-\code{\link[=boundary_diagnostics]{boundary_diagnostics()}},
-\code{\link[=chi_bar_square_pvalue]{chi_bar_square_pvalue()}},
-\code{\link[=confint_profile_decovart]{confint_profile_decovart()}},
-\code{\link[=equivariance_check_decovart]{equivariance_check_decovart()}},
-\code{\link[=lrt_decovart]{lrt_decovart()}},
-\code{\link[=multistart_decovart]{multistart_decovart()}},
-\code{\link[=profile_loglik_decovart]{profile_loglik_decovart()}},
-\code{\link[=reference_bootstrap_decovart]{reference_bootstrap_decovart()}},
-\code{\link[=restricted_mle_decovart]{restricted_mle_decovart()}}
+Other decovart_inference: 
+\code{\link{boundary_diagnostics}()},
+\code{\link{chi_bar_square_pvalue}()},
+\code{\link{confint_profile_decovart}()},
+\code{\link{equivariance_check_decovart}()},
+\code{\link{lrt_decovart}()},
+\code{\link{multistart_decovart}()},
+\code{\link{profile_loglik_decovart}()},
+\code{\link{reference_bootstrap_decovart}()},
+\code{\link{restricted_mle_decovart}()}
 }
 \concept{decovart_inference}
