@@ -46,8 +46,7 @@ new_bivariate_toy_scenario <- function(
       scenario_config = scenario_config,
       deconvolution_functions = deconvolution_functions,
       n = n,
-      cores = 1L,
-      parallel_scenarios = FALSE
+      cores = 1L
     )
   )
 }

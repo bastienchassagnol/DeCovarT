@@ -39,6 +39,7 @@ Suggests:
     numDeriv,
     pkgdown,
     plotly,
+    ps,
     quarto,
     reactable (>= 0.4.4),
     readr,

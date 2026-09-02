@@ -2,13 +2,25 @@
 % Please edit documentation in R/04_01_run_benchmark.R
 \name{compute_benchmark_metrics}
 \alias{compute_benchmark_metrics}
-\title{Compute summary metrics for estimated proportions}
+\title{Compute deconvolution benchmark metrics}
 \usage{
 compute_benchmark_metrics(
   y,
   mean_signature_matrix,
   estimated_p,
-  true_ratios = NULL
+  true_ratios = NULL,
+  se = NULL,
+  lower = NULL,
+  upper = NULL,
+  elapsed = NULL,
+  memory_bytes = NULL,
+  kkt_residual = NULL,
+  numerical_converged = NULL,
+  loglik_hat = NULL,
+  loglik_true = NULL,
+  presence_threshold = 1e-04,
+  level = 0.95,
+  algorithm = NA_character_
 )
 }
 \arguments{
@@ -18,26 +30,54 @@ compute_benchmark_metrics(
 \item{mean_signature_matrix}{Numeric matrix
 \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} (plug-in means).}
 
-\item{estimated_p}{Estimated proportions
-\eqn{\hat{\boldsymbol{p}}\in\mathbb{R}^{J}}.}
+\item{estimated_p}{Estimated proportions: a length-\eqn{J} vector or a
+numeric matrix \eqn{J\times N}.}
 
-\item{true_ratios}{Optional ground-truth proportions
-\eqn{\boldsymbol{p}^{\star}\in\mathbb{R}^{J}}. When supplied, metrics
-compare \eqn{\hat{\boldsymbol{p}}} to \eqn{\boldsymbol{p}^{\star}};
-otherwise they compare
-\eqn{\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}} to
+\item{true_ratios}{Optional ground truth with the same layout. When
+omitted, reconstitution scores compare
+\eqn{\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}} with
 \eqn{\boldsymbol{y}}.}
+
+\item{se}{Optional standard errors matching \code{estimated_p}.}
+
+\item{lower, upper}{Optional interval bounds matching \code{estimated_p}
+(used for coverage and mean width). When omitted but \code{se} is
+supplied, Wald intervals at \code{level} are used.}
+
+\item{elapsed, memory_bytes, kkt_residual}{Optional per-sample runtime
+diagnostics (recycled to \eqn{N}).}
+
+\item{numerical_converged}{Optional logical per sample: the solver
+returned a finite simplex vector.}
+
+\item{loglik_hat, loglik_true}{Optional per-sample log-likelihoods used
+for theoretical convergence (regret
+\eqn{\ell(\boldsymbol{p}^{\star})-\ell(\hat{\boldsymbol{p}})}).}
+
+\item{presence_threshold}{Threshold \eqn{\varepsilon} for presence /
+F1 / false-positive mass (default \code{1e-4}).}
+
+\item{level}{Wald coverage level when \code{lower} / \code{upper} are omitted
+(default \code{0.95}).}
+
+\item{algorithm}{Optional solver label attached to every row.}
 }
 \value{
-A \code{tibble} with mse/rmse/mae, optionally
-\eqn{R^{2}} / adjusted \eqn{R^{2}}, and Pearson correlation.
+A named list with:
+\itemize{
+\item \code{regression}: \code{global} (one row per sample) and \code{cell_type} (one
+row per cell type);
+\item \code{monte_carlo}: one row per cell type;
+\item \code{optimisation}: one row per sample.
+}
 }
 \description{
-When a ground truth \eqn{\boldsymbol{p}^{\star}} is supplied, scores compare
-\eqn{\hat{\boldsymbol{p}}} to \eqn{\boldsymbol{p}^{\star}}. Otherwise scores
-compare the reconstituted bulk
-\eqn{\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}} to the
-observed \eqn{\boldsymbol{y}}.
+Returns three blocks: composition / regression scores, Monte Carlo
+summaries (ADEMP-style), and optimisation / runtime diagnostics. When
+\eqn{\boldsymbol{p}^{\star}} is a matrix \eqn{J\times N} (or
+\eqn{\hat{\boldsymbol{p}}} is), cell-type Pearson correlation and Monte
+Carlo summaries are computed \strong{across samples}, not within a single
+composition.
 }
 \examples{
 mu <- matrix(c(20, 22, 22, 20), nrow = 2,

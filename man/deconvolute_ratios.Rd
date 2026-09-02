@@ -12,8 +12,7 @@ deconvolute_ratios(
   deconvolution_functions = NULL,
   standardise = FALSE,
   scaled = FALSE,
-  cores = ifelse(.Platform$OS.type == "unix", getOption("mc.cores",
-    parallel::detectCores()), 1)
+  cores = getOption("mc.cores", 1L)
 )
 }
 \arguments{
@@ -43,18 +42,25 @@ supported.}
 
 \item{scaled}{Deprecated. \code{TRUE} (log2 mixing) always errors.}
 
-\item{cores}{Number of parallel workers.}
+\item{cores}{Number of \code{furrr} workers for the \strong{sample} loop.
+Defaults to \code{getOption("mc.cores", 1L)}. Use \code{cores = 1} to stay
+sequential (CRAN examples and nested callers).}
 }
 \value{
-A \code{tibble} of estimated \eqn{\hat{\boldsymbol{p}}} and metrics.
-First-generation solvers still call \code{\link[=repair_simplex]{repair_simplex()}}; the three
-native DeCovarT maps (ALR or \eqn{p/\sum p}) already lie on the simplex.
+A named list from \code{\link[=compute_benchmark_metrics]{compute_benchmark_metrics()}} with
+\code{regression} (global and cell-type subtables), \code{monte_carlo}, and
+\code{optimisation} (per-sample elapsed time, memory, KKT residual, and
+\eqn{\hat{\boldsymbol{p}}}). First-generation solvers still call
+\code{\link[=repair_simplex]{repair_simplex()}}; the three native DeCovarT maps (ALR or
+\eqn{p/\sum p}) already lie on the simplex.
 }
 \description{
 For each column \eqn{\boldsymbol{y}_{\cdot i}} of the bulk matrix
 \eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}}, estimates
-\eqn{\hat{\boldsymbol{p}}_{\cdot i}} with every supplied algorithm. When
-covariance information is provided, DeCovarT methods maximise
+\eqn{\hat{\boldsymbol{p}}_{\cdot i}} with every supplied algorithm.
+Samples are iterated with \code{furrr} when \code{cores > 1}; algorithms are
+sequential, so workers are never nested. When covariance information
+is provided, DeCovarT methods maximise
 \eqn{\ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{p})} under
 \eqn{\boldsymbol{y}\,|\,(\boldsymbol{\zeta},\boldsymbol{p})\sim
 \mathcal{N}_{G}(

@@ -10,9 +10,7 @@ run_simulation_benchmark(
   n = 200,
   standardise = FALSE,
   scaled = FALSE,
-  cores = NULL,
-  parallel_scenarios = FALSE,
-  parallel_cores = NULL
+  cores = 1L
 )
 }
 \arguments{
@@ -30,21 +28,16 @@ has no \code{n} column.}
 \item{standardise, scaled}{Passed to \code{\link[=deconvolute_ratios]{deconvolute_ratios()}}.}
 
 \item{cores}{Workers for the per-sample loop inside
-\code{\link[=deconvolute_ratios]{deconvolute_ratios()}}. When \code{parallel_scenarios = TRUE}, defaults to
-\code{1} to avoid nested parallelism. Otherwise defaults to half of detected
-cores (at most \eqn{\lfloor C/2\rfloor}).}
-
-\item{parallel_scenarios}{If \code{TRUE}, parallelise across scenario rows
-with \code{furrr} (optional Suggests \code{furrr} and \code{future}). Defaults to
-\code{FALSE}.}
-
-\item{parallel_cores}{Maximum workers for scenario-level parallelism;
-defaults to half of detected cores.}
+\code{\link[=deconvolute_ratios]{deconvolute_ratios()}}. Defaults to \code{1L}.}
 }
 \value{
 A list with:
 \itemize{
-\item \code{simulations}: tibble of per-sample estimates and metrics;
+\item \code{regression}: \code{global} (per-sample composition scores) and
+\code{cell_type} (across-sample Pearson / F1 / spillover);
+\item \code{monte_carlo}: ADEMP summaries per cell type;
+\item \code{optimisation}: per-sample elapsed time, memory, KKT residual, and
+\eqn{\hat{\boldsymbol{p}}};
 \item \code{config}: tibble of scenario metadata (one row per scenario).
 }
 }
@@ -54,9 +47,12 @@ Wrapper around \code{\link[=simulate_bulk_mixture]{simulate_bulk_mixture()}}, \c
 Each row of \code{scenario_config} describes one generative model
 (\eqn{\boldsymbol{\mu}}, \eqn{(\boldsymbol{\Sigma}_j)_j},
 \eqn{\boldsymbol{p}}) stored in a list column \code{true_theta}. Scenario
-builders (factorial grids, overlap summaries, etc.) should live in
-analysis scripts; see \code{scripts/configure_bivariate_toy_scenarios.R} and
-the manuscript scenario vignettes.
+rows are always evaluated \strong{sequentially} to avoid nested
+parallelism; sample-level workers live only in
+\code{\link[=deconvolute_ratios]{deconvolute_ratios()}}. Scenario builders (factorial grids, overlap
+summaries, etc.) should live in analysis scripts; see
+\code{scripts/configure_bivariate_toy_scenarios.R} and the manuscript
+scenario vignettes.
 }
 \examples{
 set.seed(1)
@@ -84,7 +80,7 @@ out <- run_simulation_benchmark(
   n = 2,
   cores = 1
 )
-nrow(out$simulations)
+nrow(out$optimisation)
 }
 \seealso{
 \code{\link[=simulate_bulk_mixture]{simulate_bulk_mixture()}}, \code{\link[=deconvolute_ratios]{deconvolute_ratios()}},

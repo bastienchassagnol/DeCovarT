@@ -35,22 +35,21 @@ benchmark_out <- run_simulation_benchmark(
   scenario_config = scenario_config,
   deconvolution_functions = deconvolution_functions,
   n = 2L,
-  cores = 1L,
-  parallel_scenarios = FALSE
+  cores = 1L
 )
 
 message(
   "Bivariate toy benchmark: ",
   nrow(benchmark_out$config),
   " scenario(s), ",
-  nrow(benchmark_out$simulations),
+  nrow(benchmark_out$optimisation),
   " estimation row(s)."
 )
 
 out_dir <- file.path("simulations", "results")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 saveRDS(
-  benchmark_out$simulations,
+  benchmark_out$optimisation,
   file.path(out_dir, "bivariate_scenario.rds")
 )
 saveRDS(

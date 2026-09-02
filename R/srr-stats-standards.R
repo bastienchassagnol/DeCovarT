@@ -193,7 +193,8 @@ NULL
 #'
 #' @srrstats {RE4.0} `fit_decovart()` returns class `decovart_fit` with
 #'   proportions, log-likelihood, Fisher `vcov`, and convergence.
-#'   `deconvolute_ratios()` remains a benchmark tibble of many algorithms.
+#'   `deconvolute_ratios()` returns a three-block benchmark list
+#'   (regression, Monte Carlo, optimisation) across algorithms.
 #'
 #' @srrstats {RE4.2} `coef(fit)` is \(\hat{\boldsymbol{P}}\) (\(J\times N\)).
 #'

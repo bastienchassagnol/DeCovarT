@@ -1,4 +1,4 @@
-ABIS
+ADEMP
 ALR
 AR
 Aitchison
@@ -71,6 +71,7 @@ FIM
 Federico
 Fedorov
 Frobenius
+furrr
 GEPs
 GFM
 GGM
@@ -100,6 +101,7 @@ Jacobians
 Janine
 Jasra
 Kassandra
+KKT
 Kullback
 LSE
 Leibler
@@ -112,6 +114,7 @@ Mahalanobis
 MMAD
 MOGAMUN
 Marquardt
+MaxAE
 MixSim
 MixSim's
 Mompel
@@ -120,6 +123,8 @@ MuSiC
 MuSiC2
 NLBayes
 NNLS
+nMAE
+nRMSE
 NPA
 NSGA
 Natalia
@@ -137,6 +142,7 @@ PLN
 PLNnetwork
 PPI
 PRs
+PSS
 Pandoc
 Papastamoulis
 Penfold
@@ -156,6 +162,7 @@ Richardson
 Rouché
 Rényi
 SBM
+SDID
 SILGGM
 SPD
 SSR

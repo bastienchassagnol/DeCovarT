@@ -301,8 +301,11 @@ test_that("Benchmark standard deconvolution algorithms against DeCovarT", {
   )
 
   expect_type(bivariate_scenario, "list")
-  expect_named(bivariate_scenario, c("simulations", "config"))
+  expect_named(
+    bivariate_scenario,
+    c("regression", "monte_carlo", "optimisation", "config")
+  )
   expect_equal(nrow(bivariate_scenario$config), 1L)
-  expect_true(nrow(bivariate_scenario$simulations) > 0L)
-  expect_true("model_mse" %in% names(bivariate_scenario$simulations))
+  expect_true(nrow(bivariate_scenario$optimisation) > 0L)
+  expect_true("tv" %in% names(bivariate_scenario$regression$global))
 })

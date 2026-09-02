@@ -35,14 +35,15 @@ test_that("run_simulation_benchmark wraps simulate and deconvolute", {
   )
 
   expect_equal(nrow(out$config), 1L)
-  expect_equal(nrow(out$simulations), 2L)
-  expect_true("model_mse" %in% names(out$simulations))
+  expect_equal(nrow(out$optimisation), 2L)
+  expect_true("elapsed_sec" %in% names(out$optimisation))
+  expect_true("tv" %in% names(out$regression$global))
   expect_equal(out$config$nobservations[[1L]], 2L)
-})
-
-test_that(".default_parallel_cores uses half of detected cores", {
-  half <- .default_parallel_cores()
-  expect_type(half, "integer")
-  expect_true(half >= 1L)
-  expect_true(half <= max(1L, floor(parallel::detectCores() / 2L)))
+  expect_false(
+    "parallel_scenarios" %in% names(formals(run_simulation_benchmark))
+  )
+  expect_named(
+    out,
+    c("regression", "monte_carlo", "optimisation", "config")
+  )
 })

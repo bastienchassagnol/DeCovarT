@@ -231,27 +231,45 @@ check_true_theta <- function(
   )
 }
 
-#' Compute summary metrics for estimated proportions
+#' Compute deconvolution benchmark metrics
 #'
 #' @description
-#' When a ground truth \eqn{\boldsymbol{p}^{\star}} is supplied, scores compare
-#' \eqn{\hat{\boldsymbol{p}}} to \eqn{\boldsymbol{p}^{\star}}. Otherwise scores
-#' compare the reconstituted bulk
-#' \eqn{\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}} to the
-#' observed \eqn{\boldsymbol{y}}.
+#' Returns three blocks: composition / regression scores, Monte Carlo
+#' summaries (ADEMP-style), and optimisation / runtime diagnostics. When
+#' \eqn{\boldsymbol{p}^{\star}} is a matrix \eqn{J\times N} (or
+#' \eqn{\hat{\boldsymbol{p}}} is), cell-type Pearson correlation and Monte
+#' Carlo summaries are computed **across samples**, not within a single
+#' composition.
 #'
 #' @inheritParams deconvolute_ratios_Marquardt_Levenberg
-#' @param estimated_p Estimated proportions
-#'   \eqn{\hat{\boldsymbol{p}}\in\mathbb{R}^{J}}.
-#' @param true_ratios Optional ground-truth proportions
-#'   \eqn{\boldsymbol{p}^{\star}\in\mathbb{R}^{J}}. When supplied, metrics
-#'   compare \eqn{\hat{\boldsymbol{p}}} to \eqn{\boldsymbol{p}^{\star}};
-#'   otherwise they compare
-#'   \eqn{\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}} to
+#' @param estimated_p Estimated proportions: a length-\eqn{J} vector or a
+#'   numeric matrix \eqn{J\times N}.
+#' @param true_ratios Optional ground truth with the same layout. When
+#'   omitted, reconstitution scores compare
+#'   \eqn{\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}} with
 #'   \eqn{\boldsymbol{y}}.
+#' @param se Optional standard errors matching `estimated_p`.
+#' @param lower,upper Optional interval bounds matching `estimated_p`
+#'   (used for coverage and mean width). When omitted but `se` is
+#'   supplied, Wald intervals at `level` are used.
+#' @param elapsed,memory_bytes,kkt_residual Optional per-sample runtime
+#'   diagnostics (recycled to \eqn{N}).
+#' @param numerical_converged Optional logical per sample: the solver
+#'   returned a finite simplex vector.
+#' @param loglik_hat,loglik_true Optional per-sample log-likelihoods used
+#'   for theoretical convergence (regret
+#'   \eqn{\ell(\boldsymbol{p}^{\star})-\ell(\hat{\boldsymbol{p}})}).
+#' @param presence_threshold Threshold \eqn{\varepsilon} for presence /
+#'   F1 / false-positive mass (default `1e-4`).
+#' @param level Wald coverage level when `lower` / `upper` are omitted
+#'   (default `0.95`).
+#' @param algorithm Optional solver label attached to every row.
 #'
-#' @return A `tibble` with mse/rmse/mae, optionally
-#'   \eqn{R^{2}} / adjusted \eqn{R^{2}}, and Pearson correlation.
+#' @return A named list with:
+#' * `regression`: `global` (one row per sample) and `cell_type` (one
+#'   row per cell type);
+#' * `monte_carlo`: one row per cell type;
+#' * `optimisation`: one row per sample.
 #'
 #' @examples
 #' mu <- matrix(c(20, 22, 22, 20), nrow = 2,
@@ -265,49 +283,330 @@ compute_benchmark_metrics <- function(
   y,
   mean_signature_matrix,
   estimated_p,
-  true_ratios = NULL
+  true_ratios = NULL,
+  se = NULL,
+  lower = NULL,
+  upper = NULL,
+  elapsed = NULL,
+  memory_bytes = NULL,
+  kkt_residual = NULL,
+  numerical_converged = NULL,
+  loglik_hat = NULL,
+  loglik_true = NULL,
+  presence_threshold = 1e-4,
+  level = 0.95,
+  algorithm = NA_character_
 ) {
-  G <- nrow(mean_signature_matrix)
-  J <- ncol(mean_signature_matrix)
-  # free parameters: J - 1 proportions (simplex); residual df uses G genes
-  df_res <- G - J + 1
-  df_tot <- G - 1
-  if (!is.null(true_ratios)) {
-    # when the true parameters are known
-    model_coef_determination <- max(
-      0,
-      1 - .rse(true_ratios, estimated_p)
-    )
-    scores <- tibble::tibble(
-      model_mse = .mse(true_ratios, estimated_p),
-      model_rmse = .rmse(true_ratios, estimated_p),
-      model_mae = .mae(true_ratios, estimated_p),
-      model_coef_determination = model_coef_determination,
-      model_coef_determination_adjusted = max(
-        0,
-        1 - (1 - model_coef_determination) * df_tot / df_res
-      ),
-      model_cor = suppressWarnings(stats::cor(
-        true_ratios,
-        estimated_p,
-        method = "pearson"
-      ))
-    )
+  cell_names <- colnames(mean_signature_matrix)
+  if (is.null(cell_names)) {
+    j_dim <- if (is.null(dim(estimated_p))) {
+      length(estimated_p)
+    } else {
+      nrow(as.matrix(estimated_p))
+    }
+    cell_names <- paste0("ct", seq_len(j_dim))
+  }
+  p_hat <- .as_p_matrix(estimated_p, cell_names)
+  n_samples <- ncol(p_hat)
+  n_celltypes <- nrow(p_hat)
+  p_true <- if (is.null(true_ratios)) {
+    NULL
   } else {
-    # when they are unknown
-    predicted_values <- as.vector(mean_signature_matrix %*% estimated_p)
-    scores <- tibble::tibble(
-      model_mse = .mse(y, predicted_values),
-      model_rmse = .rmse(y, predicted_values),
-      model_mae = .mae(y, predicted_values),
-      model_cor = suppressWarnings(stats::cor(
-        y,
-        predicted_values,
-        method = "pearson"
-      ))
+    .as_p_matrix(true_ratios, cell_names, n_samples)
+  }
+  se_mat <- .as_optional_matrix(se, n_celltypes, n_samples, cell_names)
+  bounds <- .wald_bounds(p_hat, se_mat, lower, upper, level)
+  elapsed <- .recycle_numeric(elapsed, n_samples)
+  memory_bytes <- .recycle_numeric(memory_bytes, n_samples)
+  kkt_residual <- .recycle_numeric(kkt_residual, n_samples)
+  loglik_hat <- .recycle_numeric(loglik_hat, n_samples)
+  loglik_true <- .recycle_numeric(loglik_true, n_samples)
+  if (is.null(numerical_converged)) {
+    numerical_converged <- apply(p_hat, 2L, function(col) {
+      all(is.finite(col))
+    })
+  }
+  numerical_converged <- as.logical(.recycle_numeric(
+    as.numeric(numerical_converged),
+    n_samples
+  ))
+  regret <- loglik_true - loglik_hat
+  theoretical_converged <- rep(NA, n_samples)
+  finite_regret <- is.finite(regret)
+  theoretical_converged[finite_regret] <- regret[finite_regret] <= 1e-3
+
+  if (is.null(dim(y))) {
+    y_mat <- matrix(as.numeric(y), ncol = 1L)
+  } else {
+    y_mat <- as.matrix(y)
+  }
+  if (ncol(y_mat) == 1L && n_samples > 1L) {
+    y_mat <- y_mat[, rep(1L, n_samples), drop = FALSE]
+  }
+
+  global_rows <- lapply(seq_len(n_samples), function(i) {
+    .regression_global_row(
+      p_true = if (is.null(p_true)) NULL else p_true[, i],
+      p_hat = p_hat[, i],
+      y = y_mat[, i],
+      mean_signature_matrix = mean_signature_matrix,
+      sample_id = paste0("sample_", i),
+      algorithm = algorithm
+    )
+  })
+  regression_global <- dplyr::bind_rows(global_rows)
+
+  cell_type <- .regression_cell_type_table(
+    p_true = p_true,
+    p_hat = p_hat,
+    presence_threshold = presence_threshold,
+    algorithm = algorithm
+  )
+  monte_carlo <- .monte_carlo_table(
+    p_true = p_true,
+    p_hat = p_hat,
+    se = se_mat,
+    lower = bounds$lower,
+    upper = bounds$upper,
+    algorithm = algorithm
+  )
+
+  opt <- tibble::tibble(
+    sample_id = paste0("sample_", seq_len(n_samples)),
+    algorithm = algorithm,
+    elapsed_sec = elapsed,
+    memory_bytes = memory_bytes,
+    kkt_residual = kkt_residual,
+    numerical_converged = numerical_converged,
+    theoretical_converged = theoretical_converged,
+    loglik_regret = regret
+  )
+  p_hat_tbl <- tibble::as_tibble(t(p_hat))
+  optimisation <- dplyr::bind_cols(opt, p_hat_tbl)
+
+  list(
+    regression = list(global = regression_global, cell_type = cell_type),
+    monte_carlo = monte_carlo,
+    optimisation = optimisation
+  )
+}
+
+#' @keywords internal
+#' @noRd
+.as_p_matrix <- function(p, cell_names, n_samples = NULL) {
+  j <- length(cell_names)
+  if (is.null(dim(p))) {
+    p <- matrix(as.numeric(p), ncol = 1L)
+  } else {
+    p <- as.matrix(p)
+    # Prefer J x N (cell types in rows). Transpose N x J only.
+    if (nrow(p) != j && ncol(p) == j) {
+      p <- t(p)
+    }
+  }
+  if (nrow(p) != j) {
+    stop(
+      "`estimated_p` / `true_ratios` must have J rows (cell types).",
+      call. = FALSE
     )
   }
-  return(scores)
+  if (!is.null(n_samples) && ncol(p) == 1L && n_samples > 1L) {
+    p <- p[, rep(1L, n_samples), drop = FALSE]
+  }
+  rownames(p) <- cell_names
+  p
+}
+
+#' @keywords internal
+#' @noRd
+.as_optional_matrix <- function(x, n_celltypes, n_samples, cell_names) {
+  if (is.null(x)) {
+    out <- matrix(NA_real_, n_celltypes, n_samples)
+    rownames(out) <- cell_names
+    return(out)
+  }
+  .as_p_matrix(x, cell_names, n_samples)
+}
+
+#' @keywords internal
+#' @noRd
+.recycle_numeric <- function(x, n) {
+  if (is.null(x)) {
+    return(rep(NA_real_, n))
+  }
+  x <- as.numeric(x)
+  if (length(x) == 1L) {
+    return(rep(x, n))
+  }
+  if (length(x) != n) {
+    stop("Optional per-sample vectors must have length N.", call. = FALSE)
+  }
+  x
+}
+
+#' @keywords internal
+#' @noRd
+.wald_bounds <- function(p_hat, se, lower, upper, level) {
+  n_samples <- ncol(p_hat)
+  cell_names <- rownames(p_hat)
+  if (!is.null(lower) && !is.null(upper)) {
+    return(list(
+      lower = .as_p_matrix(lower, cell_names, n_samples),
+      upper = .as_p_matrix(upper, cell_names, n_samples)
+    ))
+  }
+  z <- stats::qnorm((1 + level) / 2)
+  list(
+    lower = p_hat - z * se,
+    upper = p_hat + z * se
+  )
+}
+
+#' @keywords internal
+#' @noRd
+.regression_global_row <- function(
+  p_true,
+  p_hat,
+  y,
+  mean_signature_matrix,
+  sample_id,
+  algorithm
+) {
+  if (is.null(p_true)) {
+    y_hat <- as.vector(mean_signature_matrix %*% p_hat)
+    return(tibble::tibble(
+      sample_id = sample_id,
+      algorithm = algorithm,
+      tv = NA_real_,
+      rmse = .rmse(y, y_hat),
+      angular = NA_real_,
+      sdid = NA_real_,
+      maxae = NA_real_,
+      reconstitution_mae = .mae(y, y_hat),
+      reconstitution_cor = .pearson_safe(y, y_hat)
+    ))
+  }
+  tibble::tibble(
+    sample_id = sample_id,
+    algorithm = algorithm,
+    tv = .tv(p_true, p_hat),
+    rmse = .rmse(p_true, p_hat),
+    angular = .angular_distance(p_true, p_hat),
+    sdid = .sdid(p_true, p_hat),
+    maxae = .maxae(p_true, p_hat),
+    reconstitution_mae = NA_real_,
+    reconstitution_cor = NA_real_
+  )
+}
+
+#' @keywords internal
+#' @noRd
+.regression_cell_type_table <- function(
+  p_true,
+  p_hat,
+  presence_threshold,
+  algorithm
+) {
+  cell_names <- rownames(p_hat)
+  if (is.null(p_true)) {
+    return(tibble::tibble(
+      algorithm = character(),
+      cell_type = character(),
+      pearson = numeric(),
+      presence_f1 = numeric(),
+      false_positive_mass = numeric()
+    ))
+  }
+  n_celltypes <- nrow(p_hat)
+  n_samples <- ncol(p_hat)
+  purrr::map_dfr(seq_len(n_celltypes), function(j) {
+    counts <- list(tp = 0L, fp = 0L, fn = 0L, false_positive_mass = 0)
+    for (i in seq_len(n_samples)) {
+      one <- .presence_counts(
+        p_true[j, i],
+        p_hat[j, i],
+        threshold = presence_threshold
+      )
+      counts$tp <- counts$tp + as.integer(one$tp)
+      counts$fp <- counts$fp + as.integer(one$fp)
+      counts$fn <- counts$fn + as.integer(one$fn)
+      counts$false_positive_mass <- counts$false_positive_mass +
+        one$false_positive_mass
+    }
+    tibble::tibble(
+      algorithm = algorithm,
+      cell_type = cell_names[[j]],
+      pearson = .pearson_safe(p_true[j, ], p_hat[j, ]),
+      presence_f1 = .f1_from_counts(counts$tp, counts$fp, counts$fn),
+      false_positive_mass = counts$false_positive_mass / n_samples
+    )
+  })
+}
+
+#' @keywords internal
+#' @noRd
+.monte_carlo_table <- function(p_true, p_hat, se, lower, upper, algorithm) {
+  cell_names <- rownames(p_hat)
+  if (is.null(p_true)) {
+    return(tibble::tibble(
+      algorithm = character(),
+      cell_type = character(),
+      bias = numeric(),
+      empirical_sd = numeric(),
+      mean_model_sd = numeric(),
+      mean_model_se = numeric(),
+      se_sd_ratio = numeric(),
+      rmse = numeric(),
+      coverage = numeric(),
+      mean_interval_width = numeric(),
+      mcse_coverage = numeric()
+    ))
+  }
+  n_celltypes <- nrow(p_hat)
+  n_samples <- ncol(p_hat)
+  purrr::map_dfr(seq_len(n_celltypes), function(j) {
+    err <- p_hat[j, ] - p_true[j, ]
+    se_j <- se[j, ]
+    empirical_sd <- if (n_samples < 2L) {
+      NA_real_
+    } else {
+      stats::sd(p_hat[j, ], na.rm = TRUE)
+    }
+    covered <- lower[j, ] <= p_true[j, ] & p_true[j, ] <= upper[j, ]
+    coverage <- if (!any(is.finite(covered))) {
+      NA_real_
+    } else {
+      mean(covered, na.rm = TRUE)
+    }
+    se_finite <- se_j[is.finite(se_j)]
+    mean_model_se <- if (length(se_finite) == 0L) {
+      NA_real_
+    } else {
+      mean(se_finite)
+    }
+    mean_model_sd <- if (length(se_finite) == 0L) {
+      NA_real_
+    } else {
+      sqrt(mean(se_finite^2))
+    }
+    width <- mean(upper[j, ] - lower[j, ], na.rm = TRUE)
+    if (!is.finite(width)) {
+      width <- NA_real_
+    }
+    tibble::tibble(
+      algorithm = algorithm,
+      cell_type = cell_names[[j]],
+      bias = mean(err, na.rm = TRUE),
+      empirical_sd = empirical_sd,
+      mean_model_sd = mean_model_sd,
+      mean_model_se = mean_model_se,
+      se_sd_ratio = mean_model_se / empirical_sd,
+      rmse = sqrt(mean(err^2, na.rm = TRUE)),
+      coverage = coverage,
+      mean_interval_width = width,
+      mcse_coverage = .mcse_coverage(covered)
+    )
+  })
 }
 
 #' Parallel deconvolution of a bulk expression matrix
@@ -315,8 +614,10 @@ compute_benchmark_metrics <- function(
 #' @description
 #' For each column \eqn{\boldsymbol{y}_{\cdot i}} of the bulk matrix
 #' \eqn{\boldsymbol{Y}\in\mathcal{M}_{G\times N}}, estimates
-#' \eqn{\hat{\boldsymbol{p}}_{\cdot i}} with every supplied algorithm. When
-#' covariance information is provided, DeCovarT methods maximise
+#' \eqn{\hat{\boldsymbol{p}}_{\cdot i}} with every supplied algorithm.
+#' Samples are iterated with `furrr` when `cores > 1`; algorithms are
+#' sequential, so workers are never nested. When covariance information
+#' is provided, DeCovarT methods maximise
 #' \eqn{\ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{p})} under
 #' \eqn{\boldsymbol{y}\,|\,(\boldsymbol{\zeta},\boldsymbol{p})\sim
 #' \mathcal{N}_{G}(
@@ -333,11 +634,16 @@ compute_benchmark_metrics <- function(
 #'   of cell-type covariances (numeric; off-diagonals may be negative).
 #' @param deconvolution_functions Named list; each element has `FUN` and
 #'   optional `additional_parameters`.
-#' @param cores Number of parallel workers.
+#' @param cores Number of `furrr` workers for the **sample** loop.
+#'   Defaults to `getOption("mc.cores", 1L)`. Use `cores = 1` to stay
+#'   sequential (CRAN examples and nested callers).
 #'
-#' @return A `tibble` of estimated \eqn{\hat{\boldsymbol{p}}} and metrics.
-#'   First-generation solvers still call [repair_simplex()]; the three
-#'   native DeCovarT maps (ALR or \eqn{p/\sum p}) already lie on the simplex.
+#' @return A named list from [compute_benchmark_metrics()] with
+#'   `regression` (global and cell-type subtables), `monte_carlo`, and
+#'   `optimisation` (per-sample elapsed time, memory, KKT residual, and
+#'   \eqn{\hat{\boldsymbol{p}}}). First-generation solvers still call
+#'   [repair_simplex()]; the three native DeCovarT maps (ALR or
+#'   \eqn{p/\sum p}) already lie on the simplex.
 #'
 #' @examples
 #' set.seed(1)
@@ -397,11 +703,7 @@ deconvolute_ratios <- function(
   deconvolution_functions = NULL,
   standardise = FALSE,
   scaled = FALSE,
-  cores = ifelse(
-    .Platform$OS.type == "unix",
-    getOption("mc.cores", parallel::detectCores()),
-    1
-  )
+  cores = getOption("mc.cores", 1L)
 ) {
   aligned <- .prepare_deconvolution_inputs(
     signature_matrix = signature_matrix,
@@ -415,67 +717,202 @@ deconvolute_ratios <- function(
   Y <- aligned$bulk_expression
   true_ratios <- aligned$true_ratios
   Sigma <- aligned$Sigma
+  cell_names <- colnames(mean_signature_matrix)
+  n_celltypes <- ncol(mean_signature_matrix)
 
-  # estimation itself
-  deconvolution_estimates <- purrr::imap_dfr(
+  if (
+    is.null(deconvolution_functions) || length(deconvolution_functions) == 0L
+  ) {
+    stop("`deconvolution_functions` must be a named list.", call. = FALSE)
+  }
+
+  per_algorithm <- purrr::imap(
     deconvolution_functions,
     function(deconvolution_function, algorithm) {
       additional_parameters <- deconvolution_function$additional_parameters
-      metric_scores <- parallel::mclapply(
-        seq_len(ncol(Y)),
+      sample_fits <- .map_samples(
+        ncol(Y),
         function(i) {
-          y_i <- Y[, i, drop = TRUE]
-          p_i <- if (is.null(true_ratios)) {
-            NULL
-          } else {
-            true_ratios[, i, drop = TRUE]
-          }
-          list_arguments <- c(
-            list(
-              "y" = y_i,
-              "mean_signature_matrix" = mean_signature_matrix,
-              "Sigma" = Sigma
-            ),
-            additional_parameters
+          .fit_one_bulk_sample(
+            i = i,
+            Y = Y,
+            true_ratios = true_ratios,
+            mean_signature_matrix = mean_signature_matrix,
+            Sigma = Sigma,
+            deconvolution_function = deconvolution_function,
+            additional_parameters = additional_parameters,
+            cell_names = cell_names,
+            n_celltypes = n_celltypes
           )
-          formal_args <- names(formals(deconvolution_function$FUN))
-          success_estimation <- tryCatch(
-            {
-              estimated_p <- do.call(
-                deconvolution_function$FUN,
-                list_arguments[names(list_arguments) %in% formal_args]
-              )
-              metric_row <- compute_benchmark_metrics(
-                y = y_i,
-                mean_signature_matrix = mean_signature_matrix,
-                estimated_p = estimated_p,
-                true_ratios = p_i
-              )
-              dplyr::bind_cols(metric_row, tibble::as_tibble_row(estimated_p))
-            },
-            error = function(e) {
-              warning(conditionMessage(e), call. = FALSE)
-              return(e)
-            }
-          )
-          if (!inherits(success_estimation, "error")) {
-            return(success_estimation)
-          }
         },
-        mc.cores = cores
-      ) |>
-        # One estimation with a given deconvolution algorithm terminated.
-        dplyr::bind_rows()
-
-      if (nrow(metric_scores) != 0) {
-        metric_scores <- metric_scores |>
-          dplyr::mutate(
-            OMIC_ID = paste0("sample_", seq_len(nrow(metric_scores))),
-            algorithm = algorithm
-          )
-      }
-      return(metric_scores)
+        cores = cores
+      )
+      .assemble_algorithm_metrics(
+        sample_fits = sample_fits,
+        Y = Y,
+        mean_signature_matrix = mean_signature_matrix,
+        algorithm = algorithm
+      )
     }
   )
-  return(deconvolution_estimates)
+
+  .bind_benchmark_lists(per_algorithm)
+}
+
+#' @keywords internal
+#' @noRd
+.fit_one_bulk_sample <- function(
+  i,
+  Y,
+  true_ratios,
+  mean_signature_matrix,
+  Sigma,
+  deconvolution_function,
+  additional_parameters,
+  cell_names,
+  n_celltypes
+) {
+  y_i <- Y[, i, drop = TRUE]
+  p_i <- if (is.null(true_ratios)) {
+    NULL
+  } else {
+    true_ratios[, i, drop = TRUE]
+  }
+  list_arguments <- c(
+    list(
+      "y" = y_i,
+      "mean_signature_matrix" = mean_signature_matrix,
+      "Sigma" = Sigma
+    ),
+    additional_parameters
+  )
+  formal_args <- names(formals(deconvolution_function$FUN))
+  mem0 <- .process_memory_bytes()
+  t0 <- proc.time()[["elapsed"]]
+  success_estimation <- tryCatch(
+    {
+      raw_out <- do.call(
+        deconvolution_function$FUN,
+        list_arguments[names(list_arguments) %in% formal_args]
+      )
+      estimated_p <- .coerce_estimated_p(raw_out, cell_names)
+      se <- .extract_estimated_se(raw_out, n_celltypes)
+      names(se) <- cell_names
+      list(p = estimated_p, se = se, error = NULL)
+    },
+    error = function(e) {
+      warning(conditionMessage(e), call. = FALSE)
+      list(
+        p = stats::setNames(rep(NA_real_, n_celltypes), cell_names),
+        se = stats::setNames(rep(NA_real_, n_celltypes), cell_names),
+        error = e
+      )
+    }
+  )
+  elapsed <- proc.time()[["elapsed"]] - t0
+  mem1 <- .process_memory_bytes()
+  memory_bytes <- max(c(mem0, mem1), na.rm = TRUE)
+  if (!is.finite(memory_bytes)) {
+    memory_bytes <- NA_real_
+  }
+
+  kkt <- NA_real_
+  loglik_hat <- NA_real_
+  loglik_true <- NA_real_
+  p_hat <- success_estimation$p
+  numerical_converged <- is.null(success_estimation$error) &&
+    all(is.finite(p_hat))
+  if (numerical_converged && !is.null(Sigma)) {
+    kkt <- tryCatch(
+      {
+        grad <- gradient_loglik_unconstrained(
+          p_hat,
+          y_i,
+          mean_signature_matrix,
+          Sigma
+        )
+        .kkt_residual(p_hat, grad)
+      },
+      error = function(e) NA_real_
+    )
+    loglik_hat <- tryCatch(
+      loglik_multivariate(p_hat, y_i, mean_signature_matrix, Sigma),
+      error = function(e) NA_real_
+    )
+    if (!is.null(p_i)) {
+      loglik_true <- tryCatch(
+        loglik_multivariate(p_i, y_i, mean_signature_matrix, Sigma),
+        error = function(e) NA_real_
+      )
+    }
+  }
+
+  list(
+    p = p_hat,
+    se = success_estimation$se,
+    true_p = p_i,
+    y = y_i,
+    elapsed = elapsed,
+    memory_bytes = memory_bytes,
+    kkt_residual = kkt,
+    numerical_converged = numerical_converged,
+    loglik_hat = loglik_hat,
+    loglik_true = loglik_true
+  )
+}
+
+#' @keywords internal
+#' @noRd
+.assemble_algorithm_metrics <- function(
+  sample_fits,
+  Y,
+  mean_signature_matrix,
+  algorithm
+) {
+  p_hat <- do.call(cbind, purrr::map(sample_fits, "p"))
+  se <- do.call(cbind, purrr::map(sample_fits, "se"))
+  true_list <- purrr::map(sample_fits, "true_p")
+  true_ratios <- if (all(purrr::map_lgl(true_list, is.null))) {
+    NULL
+  } else {
+    do.call(cbind, true_list)
+  }
+  compute_benchmark_metrics(
+    y = Y,
+    mean_signature_matrix = mean_signature_matrix,
+    estimated_p = p_hat,
+    true_ratios = true_ratios,
+    se = se,
+    elapsed = purrr::map_dbl(sample_fits, "elapsed"),
+    memory_bytes = purrr::map_dbl(sample_fits, "memory_bytes"),
+    kkt_residual = purrr::map_dbl(sample_fits, "kkt_residual"),
+    numerical_converged = purrr::map_lgl(
+      sample_fits,
+      "numerical_converged"
+    ),
+    loglik_hat = purrr::map_dbl(sample_fits, "loglik_hat"),
+    loglik_true = purrr::map_dbl(sample_fits, "loglik_true"),
+    algorithm = algorithm
+  )
+}
+
+#' @keywords internal
+#' @noRd
+.bind_benchmark_lists <- function(per_algorithm) {
+  list(
+    regression = list(
+      global = dplyr::bind_rows(
+        purrr::map(per_algorithm, \(x) x$regression$global)
+      ),
+      cell_type = dplyr::bind_rows(
+        purrr::map(per_algorithm, \(x) x$regression$cell_type)
+      )
+    ),
+    monte_carlo = dplyr::bind_rows(
+      purrr::map(per_algorithm, "monte_carlo")
+    ),
+    optimisation = dplyr::bind_rows(
+      purrr::map(per_algorithm, "optimisation")
+    )
+  )
 }

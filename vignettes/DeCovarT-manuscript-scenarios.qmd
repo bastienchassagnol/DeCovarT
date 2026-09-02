@@ -51,7 +51,7 @@ separated by network topology.
 
 # Simulation benchmark wrapper {#sec-simulation-benchmark}
 
-[`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.html) wraps `simulate_bulk_mixture()`, `deconvolute_ratios()`, and `compute_benchmark_metrics()`. Generative grids (proportions, correlation sweeps, mean signatures, covariance tensors) should be assembled in scripts—see `scripts/configure_bivariate_toy_scenarios.R` for the bivariate toy study—and passed as a tibble with a `true_theta` list column. Deconvolution solvers are supplied as a named list of `FUN` plus optional `additional_parameters` for `do.call()`. Optional scenario-level parallelism uses `furrr` and `future` (Suggests), capped by default at half of detected cores, with per-sample parallelism disabled inside `deconvolute_ratios()` to avoid nested workers.
+[`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.html) wraps `simulate_bulk_mixture()`, `deconvolute_ratios()`, and `compute_benchmark_metrics()`. Generative grids (proportions, correlation sweeps, mean signatures, covariance tensors) should be assembled in scripts—see `scripts/configure_bivariate_toy_scenarios.R` for the bivariate toy study—and passed as a tibble with a `true_theta` list column. Deconvolution solvers are supplied as a named list of `FUN` plus optional `additional_parameters` for `do.call()`. Scenario rows are always sequential. Parallelism, when requested, is only the sample loop inside `deconvolute_ratios()` (`furrr` / `future`, `cores > 1`), so workers are never nested.
 
 # Bivariate toy model {#sec-bivariate-toy}
 
@@ -251,15 +251,15 @@ bivariate <- run_simulation_benchmark(
   scenario_config = scenario_config,
   deconvolution_functions = deconvolution_functions,
   n = 500,
-  cores = 1,
-  parallel_scenarios = FALSE
+  cores = 1
 )
 ```
 
 `config` stores Shannon entropy of $\boldsymbol{p}$ and MixSim overlap;
-`simulations` stores per-sample $\hat{\boldsymbol{p}}$ and
-`compute_benchmark_metrics()`. The article compares DeCovarT with
-DeconRNASeq / NNLS [@gongDeconRNASeqStatisticalFramework2013].
+`optimisation` stores per-sample $\hat{\boldsymbol{p}}$, elapsed time, and
+memory; `regression` and `monte_carlo` are the composition and ADEMP
+blocks from `compute_benchmark_metrics()`. The article compares DeCovarT
+with DeconRNASeq / NNLS [@gongDeconRNASeqStatisticalFramework2013].
 
 # High-dimensional hybrid scenario {#sec-scenario-grid}
 
@@ -359,13 +359,15 @@ true $\boldsymbol{p}=(0.4,0.4,0.2)$).
 # Benchmark metrics {#sec-benchmark-metrics}
 
 When true $\boldsymbol{p}^{\star}$ is known,
-`compute_benchmark_metrics()` currently returns MSE, RMSE, MAE, a
-pseudo-$R^{2}$, and Pearson correlation between
-$\hat{\boldsymbol{p}}$ and $\boldsymbol{p}^{\star}$. Reconstruction-only
-scores (no $\boldsymbol{p}^{\star}$) compare
+`compute_benchmark_metrics()` returns a three-block list:
+`regression` (global composition scores plus cell-type Pearson / F1),
+`monte_carlo` (ADEMP summaries across Monte Carlo samples), and
+`optimisation` (KKT residual, convergence flags, elapsed time, and
+memory). Reconstruction-only scores (no $\boldsymbol{p}^{\star}$) compare
 $\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}$ with $\boldsymbol{y}$.
-@fig-metrics-families summarises the broader families used in recent
-bulk and spatial benchmarks.
+@fig-metrics-families summarises the simplex geometry; @fig-hrrmse is
+kept as context for hierarchical scores that we do **not** report as
+primary (they need a cell-type ontology).
 
 ::: {#fig-metrics-families layout-ncol=2}
 
@@ -384,30 +386,360 @@ are missing: residual error is scaled by the biological variance of
 $\boldsymbol{p}^{\star}$ rather than by raw proportion units
 [@baWhenLessNot2026].](figures/fig_hierarchical_rmse_metrics.png){#fig-hrrmse width=70%}
 
-Notation matches the article: $\boldsymbol{p}$ on $\Delta^{J-1}$,
-$\hat{\boldsymbol{p}}$ the estimator, $\boldsymbol{y}$ the bulk, and
-$\boldsymbol{\mu}$ the mean signature.
+Notation: $\boldsymbol{p},\hat{\boldsymbol{p}}\in\Delta^{J-1}$,
+$e=\hat{\boldsymbol{p}}-\boldsymbol{p}$, $\boldsymbol{y}$ the bulk, and
+$\boldsymbol{\mu}$ the mean signature. Spillover / presence scores follow
+the transcriptome deconvolution evaluations of
+[@sturmComprehensiveEvaluationTranscriptomebased2019] and
+[@faComprehensiveBenchmarkingComputational2020].
 
-| Family | Metrics | Role for bulk $\boldsymbol{p}$ |
-|:-------|:--------|:------------------------|
-| Implemented now | MSE, RMSE, MAE, Pearson $r$, pseudo-$R^{2}$ | `compute_benchmark_metrics()` |
-| Simplex / compositional | $L_1$, $L_2$, $L_{\infty}$, KL, Aitchison, Jensen–Shannon | HADACA3 error family [@barbotPromisesLimitsMultimodal2026]; $L_p$ and KL also appear in `imply` / RNA-Sieve evaluations [@mengImplyImprovingCelltype2024; @erdmann-phamLikelihoodbasedDeconvolutionBulk2021] |
-| Concordance | Lin CCC, sample- and type-wise Pearson / Spearman | Scale-free agreement; hrRMSE is the relative counterpart [@baWhenLessNot2026] |
-| Spatial reconstruction | RMSE, PCC, JSD, SSIM, cosine similarity, average ranking score | DANST-style spot reconstruction ([Commun. Biol.](https://www.nature.com/articles/s42003-026-09659-y#Sec9)); SSIM is image-valued and is not a simplex metric |
-| Uncertainty | Wald / profile / bootstrap coverage of $\boldsymbol{p}$ | Only when $\boldsymbol{p}^{\star}$ is known (simulations) |
+## Composition and regression scores {#sec-metrics-regression}
 
-: Metric families for comparing $\hat{\boldsymbol{p}}$ with
-$\boldsymbol{p}^{\star}$ (or $\hat{\boldsymbol{y}}$ with $\boldsymbol{y}$). {#tbl-metric-families}
+Global scores are computed **per bulk column** (one Monte Carlo sample).
+Cell-type Pearson, F1, and false-positive mass are aggregated **across
+samples** for each cell type; they are not the within-sample
+$J$-vector correlations, which are unstable for small $J$.
+
+```{r}
+#| label: tbl-metrics-regression-kept
+#| echo: false
+#| eval: !expr requireNamespace("tinytable", quietly = TRUE)
+options(tinytable_html_mathjax = TRUE)
+reg_kept <- data.frame(
+  family = c(
+    "Absolute error", "Absolute error",
+    "Quadratic error",
+    "Angular", "Angular",
+    "Association (cell type)",
+    "Boundary / spillover", "Boundary / spillover"
+  ),
+  Metric = c(
+    "Total variation / nMAE",
+    "MaxAE ($L_\\infty$)",
+    "RMSE",
+    "Normalised angular distance",
+    "SDID",
+    "Pearson $r$ (cell type)",
+    "Presence F1",
+    "False-positive mass"
+  ),
+  Formula = c(
+    "$d_{\\mathrm{TV}}=\\tfrac12\\|e\\|_1=J\\,\\mathrm{MAE}/2$",
+    "$\\max_j |e_j|$",
+    "$\\sqrt{J^{-1}\\sum_j e_j^2}$",
+    "$d_\\theta=(2/\\pi)\\arccos(p^\\top\\hat p/(\\|p\\|_2\\|\\hat p\\|_2))$",
+    "$\\sqrt{\\sin\\theta}=(1-\\cos^2\\theta)^{1/4}$",
+    "$\\mathrm{cor}(\\{p_{ij}\\}_i,\\{\\hat p_{ij}\\}_i)$",
+    "$F_1=2PR/(P+R)$ with threshold $\\varepsilon$",
+    "$\\sum_{j:p_j=0}\\hat p_j$"
+  ),
+  Bounds = c(
+    "$[0,1]$",
+    "$[0,1]$",
+    "$[0,\\sqrt{2/J}]$",
+    "$[0,1]$",
+    "$[0,1]$",
+    "$[-1,1]$",
+    "$[0,1]$ (1 best)",
+    "$[0,1]$"
+  ),
+  Role = c(
+    "Primary global composition error",
+    "Worst cell-type miss (percentage points)",
+    "Large-error-sensitive $L_2$ score",
+    "Direction of the two compositions",
+    "HADACA angular companion of $d_\\theta$",
+    "Calibration-free ranking per type",
+    "Detects missing / extra populations",
+    "Mass spilled onto truly absent types"
+  ),
+  stringsAsFactors = FALSE
+)
+tinytable::tt(reg_kept, caption = "Kept composition / regression scores.") |>
+  tinytable::group_tt(i = reg_kept$family) |>
+  subset(select = -family) |>
+  tinytable::format_tt(j = 2:3, markdown = TRUE)
+```
+
+```{r}
+#| label: tbl-metrics-regression-other
+#| echo: false
+#| eval: !expr requireNamespace("tinytable", quietly = TRUE)
+reg_other <- data.frame(
+  family = c(
+    "Association", "Association", "Association",
+    "Quadratic / information", "Quadratic / information",
+    "Hierarchical",
+    "Boundary", "Boundary",
+    "Log-ratio"
+  ),
+  Metric = c(
+    "Lin CCC",
+    "Spearman $\\rho_S$",
+    "Sample-wise Pearson",
+    "Hellinger distance",
+    "Brier / $\\tfrac12\\|e\\|_2^2$",
+    "hrRMSE",
+    "Presence precision",
+    "Presence recall",
+    "Aitchison distance"
+  ),
+  Why_not_headline = c(
+    "Needs many samples; duplicates RMSE+bias information",
+    "Ignores absolute calibration",
+    "Unstable for small $J$; high $r$ can hide bias",
+    "Monotone with $L_2$ on square-root compositions",
+    "Monotone with RMSE / MSE",
+    "Needs a cell-type ontology / nested grouping",
+    "Folded into F1",
+    "Folded into F1",
+    "Undefined at exact zeros without a replacement"
+  ),
+  stringsAsFactors = FALSE
+)
+tinytable::tt(
+  reg_other,
+  caption = "Related scores that are not displayed as primary."
+) |>
+  tinytable::group_tt(i = reg_other$family) |>
+  subset(select = -family) |>
+  tinytable::format_tt(j = 2, markdown = TRUE)
+```
+
+::: {#nte-angular-metrics .callout-note}
+## Angular distance versus SDID
+
+Both scores are strictly increasing functions of the same angle
+$\theta=\arccos(p^{\mathsf{T}}\hat p/(\|p\|_2\|\hat p\|_2))$. The
+normalised angular distance $d_\theta=2\theta/\pi$ is a metric on
+$[0,1]$. SDID is $\sqrt{\sin\theta}$ (the HADACA convention). They
+rank methods identically; report one in the headline panel and keep the
+other for continuity with HADACA3
+[@barbotPromisesLimitsMultimodal2026].
+:::
+
+::: {#nte-simplex-bounds .callout-note}
+## Simplex bounds for $L_p$ errors
+
+Because $\boldsymbol{p}$ and $\hat{\boldsymbol{p}}$ both sum to one and are
+non-negative, the error $e$ is orthogonal to $\mathbf{1}$ and cannot
+put mass on two opposite vertices at once without taking it from the
+other. Hence $\|e\|_1\le 2$, $\|e\|_2\le\sqrt{2}$, and
+$\|e\|_\infty\le 1$, with equality when all mass sits on one type in
+$\boldsymbol{p}$ and on a different type in $\hat{\boldsymbol{p}}$.
+Normalised MAE is total variation: $J\,\mathrm{MAE}/2=d_{\mathrm{TV}}$.
+Raw RMSE still depends on $J$; divide by $\sqrt{2/J}$ if a
+dimension-free $L_2$ score is needed.
+:::
+
+## Monte Carlo (ADEMP) summaries {#sec-metrics-ademp}
+
+These describe the **estimator as a repeated-sampling procedure**, not
+the distance between one $\hat{\boldsymbol{p}}$ and one
+$\boldsymbol{p}^{\star}$. The layout follows the ADEMP simulation-study
+framework
+([r-statistics.co/ADEMP-Framework-in-R.html](https://r-statistics.co/ADEMP-Framework-in-R.html)).
+Each row of `monte_carlo` is one cell type.
+
+```{r}
+#| label: tbl-metrics-mc-kept
+#| echo: false
+#| eval: !expr requireNamespace("tinytable", quietly = TRUE)
+mc_kept <- data.frame(
+  family = c(
+    "Point estimation", "Point estimation",
+    "Sampling precision", "Reported uncertainty", "SE calibration",
+    "Combined accuracy",
+    "Interval inference", "Interval inference"
+  ),
+  Metric = c(
+    "Bias",
+    "Monte Carlo RMSE",
+    "Empirical SD",
+    "Mean model SE",
+    "SE / SD ratio",
+    "Mean model SD",
+    "Coverage",
+    "Mean interval width"
+  ),
+  Formula = c(
+    "$R^{-1}\\sum_r \\hat p_{rj}-p_j$",
+    "$\\sqrt{R^{-1}\\sum_r(\\hat p_{rj}-p_j)^2}$",
+    "$\\sqrt{(R-1)^{-1}\\sum_r(\\hat p_{rj}-\\bar p_j)^2}$",
+    "$R^{-1}\\sum_r \\widehat{\\mathrm{SE}}_{rj}$",
+    "$\\overline{\\widehat{\\mathrm{SE}}}_j / \\mathrm{SD}(\\hat p_j)$",
+    "$\\sqrt{R^{-1}\\sum_r \\widehat{\\mathrm{SE}}_{rj}^2}$",
+    "$R^{-1}\\sum_r \\mathbf{1}\\{L_{rj}\\le p_j\\le U_{rj}\\}$",
+    "$R^{-1}\\sum_r(U_{rj}-L_{rj})$"
+  ),
+  Ideal = c(
+    "0", "0", "smaller", "matches empirical SD", "1",
+    "matches empirical SD", "nominal (e.g. 0.95)", "small given coverage"
+  ),
+  stringsAsFactors = FALSE
+)
+tinytable::tt(mc_kept, caption = "Kept ADEMP Monte Carlo summaries.") |>
+  tinytable::group_tt(i = mc_kept$family) |>
+  subset(select = -family) |>
+  tinytable::format_tt(j = 2, markdown = TRUE)
+```
+
+```{r}
+#| label: tbl-metrics-mc-other
+#| echo: false
+#| eval: !expr requireNamespace("tinytable", quietly = TRUE)
+mc_other <- data.frame(
+  family = c(
+    "Boundary inference", "Testing", "Testing",
+    "Landscape", "Landscape",
+    "Constraints", "Regularisation",
+    "Linear algebra", "Linear algebra"
+  ),
+  Metric = c(
+    "Endpoint-at-zero rate",
+    "Type-I error",
+    "Power",
+    "Global-mode recovery",
+    "Basin probability",
+    "Simplex violation",
+    "Jitter / regularisation rate",
+    "Factorisation count",
+    "Fill / non-zeros in $L$"
+  ),
+  Why_not_headline = c(
+    "Scenario-specific; not a default column",
+    "Requires an explicit $H_0$ grid",
+    "Requires a designed alternative",
+    "Needs a known global mode beyond $\\boldsymbol{p}^{\\star}$",
+    "Needs multi-start logging",
+    "Solvers already repair onto the simplex",
+    "Useful only for ill-conditioned $\\Sigma(p)$",
+    "Backend diagnostic, not an estimator property",
+    "Sparse-Cholesky diagnostic"
+  ),
+  stringsAsFactors = FALSE
+)
+tinytable::tt(
+  mc_other,
+  caption = "ADEMP-adjacent diagnostics that are not displayed."
+) |>
+  tinytable::group_tt(i = mc_other$family) |>
+  subset(select = -family) |>
+  tinytable::format_tt(j = 1, markdown = TRUE)
+```
+
+::: {#nte-mcse-coverage .callout-note}
+## Monte Carlo standard error of coverage
+
+Coverage is a mean of i.i.d. Bernoulli indicators
+$I_r=\mathbf{1}\{\boldsymbol{p}^{\star}\in\mathrm{CI}_r\}$. With $R$
+independent simulated datasets,
+
+$$
+\widehat{\mathrm{MCSE}}
+=
+\sqrt{\widehat{p}_{\mathrm{cov}}(1-\widehat{p}_{\mathrm{cov}})/R}.
+$$
+
+The denominator is $R$, not $R$ times an inner bootstrap size $B$:
+bootstrap draws belong to the interval algorithm, not to the outer
+simulation. At true 95% coverage, $R=1000$ gives
+$\mathrm{MCSE}\approx 0.0069$. The package stores
+`mcse_coverage` on the `monte_carlo` table. For a generic mean
+$\widehat T=R^{-1}\sum_r T_r$, use
+$\widehat{\mathrm{MCSE}}(\widehat T)=s_T/\sqrt{R}$.
+:::
+
+## Execution and optimisation {#sec-metrics-optimisation}
+
+Numerical convergence is whether the solver returned a finite simplex
+vector. Theoretical convergence asks whether
+$\ell(\hat{\boldsymbol{p}})$ is within $10^{-3}$ of
+$\ell(\boldsymbol{p}^{\star})$ (the generating value, a proxy for the
+expected global maximum in a well-specified Monte Carlo). The default
+stationarity diagnostic is the **simplex KKT / projected-score
+residual**
+$\|\Pi_{\Delta}(\hat{\boldsymbol{p}}+\nabla_p\ell)-\hat{\boldsymbol{p}}\|_2$,
+not the raw ambient gradient nor the ALR score
+$\|J_\psi^{\mathsf{T}}\nabla_p\ell\|_2$ (the latter degenerates as
+$p_j\to 0$).
+
+Elapsed time is the per-sample `proc.time()` elapsed inside each
+worker. Memory is process PSS from `ps` (RSS if PSS is unavailable), so
+copy-on-write pages are not double-counted. Both are stored as
+**full per-sample vectors** in `optimisation`, from which median, mean,
+and SD are computed after the run. There is no end-to-end wall-clock
+for the whole parallel job.
+
+```{r}
+#| label: tbl-metrics-opt-kept
+#| echo: false
+#| eval: !expr requireNamespace("tinytable", quietly = TRUE)
+opt_kept <- data.frame(
+  family = c(
+    "Convergence", "Convergence", "Convergence",
+    "Runtime", "Runtime"
+  ),
+  Metric = c(
+    "Numerical convergence rate",
+    "Theoretical convergence rate",
+    "KKT / projected-score residual",
+    "Elapsed time (per sample)",
+    "Peak memory (PSS)"
+  ),
+  Definition = c(
+    "Finite simplex return; no solver error",
+    "$\\ell(p^{\\star})-\\ell(\\hat p)\\le 10^{-3}$",
+    "$\\|\\Pi_\\Delta(\\hat p+\\nabla_p\\ell)-\\hat p\\|_2$",
+    "Worker `elapsed` for one column of $Y$",
+    "`ps::ps_memory_full_info()$pss` in the worker"
+  ),
+  stringsAsFactors = FALSE
+)
+tinytable::tt(opt_kept, caption = "Kept optimisation and runtime scores.") |>
+  tinytable::group_tt(i = opt_kept$family) |>
+  subset(select = -family) |>
+  tinytable::format_tt(j = 2, markdown = TRUE)
+```
+
+```{r}
+#| label: tbl-metrics-opt-other
+#| echo: false
+#| eval: !expr requireNamespace("tinytable", quietly = TRUE)
+opt_other <- data.frame(
+  family = c("ALR geometry", "Speed", "Memory"),
+  Metric = c(
+    "ALR score norm $\\|\\nabla_\\rho\\ell\\|_2$",
+    "End-to-end wall time of the parallel job",
+    "Sum of worker RSS"
+  ),
+  Why_not_headline = c(
+    "Interior equivalent of KKT, but ill-conditioned on the boundary",
+    "Confounds scheduling with per-sample cost",
+    "Double-counts shared pages under fork"
+  ),
+  stringsAsFactors = FALSE
+)
+tinytable::tt(
+  opt_other,
+  caption = "Optimisation diagnostics that are not displayed."
+) |>
+  tinytable::group_tt(i = opt_other$family) |>
+  subset(select = -family) |>
+  tinytable::format_tt(j = 1, markdown = TRUE)
+```
 
 ::: {#nte-metric-choice .callout-note}
 ## Which metric to report
 
-RMSE and MAE remain the default scalar scores in the package. Add an
-$L_1$ / Aitchison / JSD panel when rare types matter (vertices of the
-simplex), Lin CCC or type-wise correlation when a scale-free ranking is
-needed, and interval coverage whenever the simulation knows
-$\boldsymbol{p}^{\star}$. Do not treat SSIM as a drop-in replacement for
-simplex $L_p$ scores.
+Use TV, RMSE, MaxAE, and (optionally) angular distance / SDID as the
+global panel. Add cell-type Pearson and presence F1 / false-positive
+mass when rare or absent types matter
+[@sturmComprehensiveEvaluationTranscriptomebased2019;
+@faComprehensiveBenchmarkingComputational2020]. Report ADEMP bias,
+empirical SD, SE/SD, coverage (with MCSE), and mean width whenever
+intervals exist. Quote median and IQR of elapsed time and PSS from the
+`optimisation` table rather than a single end-to-end clock.
 :::
 
 ::: {#nte-related-dd .callout-info}

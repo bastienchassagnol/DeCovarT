@@ -38,11 +38,12 @@ test_that("compute_benchmark_metrics uses internal metrics consistently", {
     true_ratios = true_p
   )
 
-  expect_equal(scores$model_mse, Metrics::mse(true_p, estimated_p))
-  expect_equal(scores$model_rmse, Metrics::rmse(true_p, estimated_p))
-  expect_equal(scores$model_mae, Metrics::mae(true_p, estimated_p))
   expect_equal(
-    scores$model_coef_determination,
-    max(0, 1 - Metrics::rse(true_p, estimated_p))
+    scores$regression$global$rmse,
+    Metrics::rmse(true_p, estimated_p)
+  )
+  expect_equal(
+    scores$regression$global$tv,
+    0.5 * sum(abs(true_p - estimated_p))
   )
 })

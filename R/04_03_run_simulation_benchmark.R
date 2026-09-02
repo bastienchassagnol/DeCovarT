@@ -1,13 +1,3 @@
-#' Default parallel worker count (half of detected cores)
-#'
-#' @return Integer in \eqn{[1,\lfloor C/2\rfloor]}.
-#' @keywords internal
-#' @noRd
-.default_parallel_cores <- function() {
-  detected <- parallel::detectCores()
-  as.integer(max(1L, floor(detected / 2L)))
-}
-
 #' Run one generative scenario: simulate bulk mixtures and deconvolve
 #'
 #' @param true_theta Named list with `mu`, `sigma` or `Theta`, and `p`.
@@ -18,7 +8,8 @@
 #' @param scenario_meta Tibble row of scenario metadata (excluding `true_theta`
 #'   and per-row `n`).
 #'
-#' @return List with `simulations` and `config` tibbles.
+#' @return List with `regression`, `monte_carlo`, `optimisation`, and
+#'   `config` tibbles.
 #' @keywords internal
 #' @noRd
 .run_one_simulation_scenario <- function(
@@ -55,14 +46,16 @@
     cores = cores
   ))
 
-  simulations <- estimated_ratios
-  if (
-    nrow(simulations) > 0L &&
-      !is.null(scenario_meta) &&
-      ncol(scenario_meta) > 0L
-  ) {
-    meta_rep <- scenario_meta[rep(1L, nrow(simulations)), , drop = FALSE]
-    simulations <- dplyr::bind_cols(meta_rep, simulations)
+  .attach_scenario_meta <- function(tbl) {
+    if (
+      nrow(tbl) > 0L &&
+        !is.null(scenario_meta) &&
+        ncol(scenario_meta) > 0L
+    ) {
+      meta_rep <- scenario_meta[rep(1L, nrow(tbl)), , drop = FALSE]
+      tbl <- dplyr::bind_cols(meta_rep, tbl)
+    }
+    tbl
   }
 
   config <- scenario_meta
@@ -76,7 +69,17 @@
   }
   config$nobservations <- n_samples
 
-  list(simulations = simulations, config = config)
+  list(
+    regression = list(
+      global = .attach_scenario_meta(estimated_ratios$regression$global),
+      cell_type = .attach_scenario_meta(
+        estimated_ratios$regression$cell_type
+      )
+    ),
+    monte_carlo = .attach_scenario_meta(estimated_ratios$monte_carlo),
+    optimisation = .attach_scenario_meta(estimated_ratios$optimisation),
+    config = config
+  )
 }
 
 #' Simulate bulk mixtures and benchmark deconvolution algorithms
@@ -87,9 +90,12 @@
 #' Each row of `scenario_config` describes one generative model
 #' (\eqn{\boldsymbol{\mu}}, \eqn{(\boldsymbol{\Sigma}_j)_j},
 #' \eqn{\boldsymbol{p}}) stored in a list column `true_theta`. Scenario
-#' builders (factorial grids, overlap summaries, etc.) should live in
-#' analysis scripts; see `scripts/configure_bivariate_toy_scenarios.R` and
-#' the manuscript scenario vignettes.
+#' rows are always evaluated **sequentially** to avoid nested
+#' parallelism; sample-level workers live only in
+#' [deconvolute_ratios()]. Scenario builders (factorial grids, overlap
+#' summaries, etc.) should live in analysis scripts; see
+#' `scripts/configure_bivariate_toy_scenarios.R` and the manuscript
+#' scenario vignettes.
 #'
 #' @param scenario_config Tibble or list of scenario rows. Each row must
 #'   contain a `true_theta` list column (or list element) with at least
@@ -101,17 +107,14 @@
 #'   has no `n` column.
 #' @param standardise,scaled Passed to [deconvolute_ratios()].
 #' @param cores Workers for the per-sample loop inside
-#'   [deconvolute_ratios()]. When `parallel_scenarios = TRUE`, defaults to
-#'   `1` to avoid nested parallelism. Otherwise defaults to half of detected
-#'   cores (at most \eqn{\lfloor C/2\rfloor}).
-#' @param parallel_scenarios If `TRUE`, parallelise across scenario rows
-#'   with `furrr` (optional Suggests `furrr` and `future`). Defaults to
-#'   `FALSE`.
-#' @param parallel_cores Maximum workers for scenario-level parallelism;
-#'   defaults to half of detected cores.
+#'   [deconvolute_ratios()]. Defaults to `1L`.
 #'
 #' @return A list with:
-#' * `simulations`: tibble of per-sample estimates and metrics;
+#' * `regression`: `global` (per-sample composition scores) and
+#'   `cell_type` (across-sample Pearson / F1 / spillover);
+#' * `monte_carlo`: ADEMP summaries per cell type;
+#' * `optimisation`: per-sample elapsed time, memory, KKT residual, and
+#'   \eqn{\hat{\boldsymbol{p}}};
 #' * `config`: tibble of scenario metadata (one row per scenario).
 #'
 #' @examples
@@ -140,7 +143,7 @@
 #'   n = 2,
 #'   cores = 1
 #' )
-#' nrow(out$simulations)
+#' nrow(out$optimisation)
 #' @importFrom rlang .data
 #' @export
 #' @seealso [simulate_bulk_mixture()], [deconvolute_ratios()],
@@ -151,9 +154,7 @@ run_simulation_benchmark <- function(
   n = 200,
   standardise = FALSE,
   scaled = FALSE,
-  cores = NULL,
-  parallel_scenarios = FALSE,
-  parallel_cores = NULL
+  cores = 1L
 ) {
   if (!is.data.frame(scenario_config)) {
     if (!is.list(scenario_config)) {
@@ -169,17 +170,6 @@ run_simulation_benchmark <- function(
   }
   if (nrow(scenario_config) == 0L) {
     stop("`scenario_config` must have at least one row.", call. = FALSE)
-  }
-
-  parallel_cores <- if (is.null(parallel_cores)) {
-    .default_parallel_cores()
-  } else {
-    parallel_cores
-  }
-  if (isTRUE(parallel_scenarios)) {
-    cores <- if (is.null(cores)) 1L else cores
-  } else {
-    cores <- if (is.null(cores)) parallel_cores else cores
   }
 
   has_n_col <- "n" %in% names(scenario_config)
@@ -218,26 +208,22 @@ run_simulation_benchmark <- function(
     )
   }
 
-  if (isTRUE(parallel_scenarios)) {
-    .check_suggested_package("furrr", "run_simulation_benchmark")
-    .check_suggested_package("future", "run_simulation_benchmark")
-    old_plan <- future::plan(
-      future::multisession,
-      workers = parallel_cores
-    )
-    on.exit(future::plan(old_plan), add = TRUE)
-    scenario_results <- furrr::future_map(
-      seq_len(nrow(scenario_config)),
-      .run_row,
-      .options = furrr::furrr_options(seed = TRUE)
-    )
-  } else {
-    scenario_results <- lapply(seq_len(nrow(scenario_config)), .run_row)
-  }
+  scenario_results <- lapply(seq_len(nrow(scenario_config)), .run_row)
 
   list(
-    simulations = dplyr::bind_rows(
-      purrr::map(scenario_results, "simulations")
+    regression = list(
+      global = dplyr::bind_rows(
+        purrr::map(scenario_results, \(x) x$regression$global)
+      ),
+      cell_type = dplyr::bind_rows(
+        purrr::map(scenario_results, \(x) x$regression$cell_type)
+      )
+    ),
+    monte_carlo = dplyr::bind_rows(
+      purrr::map(scenario_results, "monte_carlo")
+    ),
+    optimisation = dplyr::bind_rows(
+      purrr::map(scenario_results, "optimisation")
     ),
     config = dplyr::bind_rows(purrr::map(scenario_results, "config"))
   )

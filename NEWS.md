@@ -1,5 +1,16 @@
 # DeCovarT (development version)
 
+* **Benchmark metrics and sample-level parallelism.**
+  `compute_benchmark_metrics()` now returns a three-block list:
+  composition / regression scores (global TV, RMSE, angular distance,
+  SDID, MaxAE; cell-type Pearson, presence F1, and false-positive
+  mass), ADEMP Monte Carlo summaries, and optimisation / runtime
+  diagnostics (simplex KKT residual, numerical versus theoretical
+  convergence, per-sample elapsed time, and `ps` PSS memory).
+  `deconvolute_ratios()` iterates bulk columns with `furrr` when
+  `cores > 1`. `run_simulation_benchmark()` evaluates scenario rows
+  sequentially, so workers are never nested.
+
 * **Structure-aware covariance backends.** New
   `new_decovart_covariance()` wraps
   \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j}
