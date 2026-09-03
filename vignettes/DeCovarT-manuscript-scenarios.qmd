@@ -651,6 +651,105 @@ $\widehat T=R^{-1}\sum_r T_r$, use
 $\widehat{\mathrm{MCSE}}(\widehat T)=s_T/\sqrt{R}$.
 :::
 
+## Raincloud and forest plots of Monte Carlo draws {#sec-mc-figures}
+
+The `monte_carlo` table compresses each cell type to a handful of ADEMP
+summaries. That is the right object for ranking algorithms, but it
+hides the shape of the sampling distribution of
+$\hat{\boldsymbol{p}}$. `plot_mc_raincloud()` and `plot_mc_forest()` take
+the list returned by `run_simulation_benchmark()` and split scenarios
+with `facet_rows` / `facet_cols` (for example number of genes versus
+pairwise cosine). Within a facet the raincloud puts **cell types on the
+$y$-axis** and **colours / dodges by deconvolution algorithm**.
+
+```{r}
+#| label: fig-mc-raincloud
+#| eval: false
+#| echo: true
+#| fig-cap: "Horizontal rainclouds of Monte Carlo errors. Inner and outer
+#|   bars are the central 50% and 95% of replicates, not a CI for p."
+out <- DeCovarT::run_simulation_benchmark(
+  scenario_config,
+  deconvolution_functions = deconvolution_functions,
+  n = 200,
+  cores = 1
+)
+DeCovarT::plot_mc_raincloud(
+  out,
+  quantity = "error",
+  facet_rows = "n_genes",
+  facet_cols = "cosine"
+)
+```
+
+Read the raincloud as a picture of
+$\{\hat p_j^{(r)}\}_{r=1}^{R}$ (or of the errors
+$\hat p_j^{(r)}-p_j^{\star}$ when `quantity = "error"`, the default).
+The inner bar is the central 50% of Monte Carlo replicates; the outer
+bar is the central 95% [@allenRaincloudPlotsMultiplatform2019;
+@R-ggdist; @R-ggplot2]. Those bands describe the estimator's sampling
+distribution. They are **not** a confidence interval for $p_j$. A
+displacement from the dashed line at 0 is **bias**; the width is
+**variance**; skewness is expected near a simplex face
+($p_j\simeq 0$ or $1$); a spike at exactly 0 or 1 is **boundary
+pile-up**; extra modes can appear when the realised `DeCovarT` likelihood
+is not globally concave. Optimiser failures show up as isolated points
+far from the main cloud.
+
+The forest / dot-whisker plot is the ranking companion. Each
+algorithm $\times$ cell type shows bias, RMSE, MAE, coverage with a
+**Wilson** interval for the coverage *rate*
+[@wilsonProbableInferenceLaw1927], mean interval width, and the
+optimiser failure rate. Coverage is drawn against a reference at
+$0.95$; bias against $0$. Do not put a Wilson bar around the mean of
+$\hat p_j$ itself: that interval belongs to the binomial coverage
+indicator, not to the continuous proportion.
+
+```{r}
+#| label: fig-mc-forest
+#| eval: false
+#| echo: true
+#| fig-cap: "Forest plot of ADEMP summaries. Coverage whiskers are Wilson
+#|   intervals for the coverage rate."
+DeCovarT::plot_mc_forest(
+  out,
+  facet_rows = "n_genes",
+  facet_cols = "cosine"
+)
+```
+
+Paired algorithm contrasts (for example $\Delta\mathrm{MAE}$ versus
+DeCovarT on the same replicate) can be read from the raincloud of
+paired errors. The outer Monte Carlo loop already supplies the sampling
+distribution of those differences; a second bootstrap is unnecessary.
+
+Algorithm **behavioural similarity** is the Pearson correlation of
+\(\hat{\boldsymbol{p}}\) across replicates, displayed with
+`plot_algorithm_similarity()` (`ggplot2::geom_tile()`, order from
+`hclust(1-r)`). That is not numerical agreement. When several ADEMP
+metrics must appear together, `plot_mc_metric_dots()` facets by metric
+and uses a single min-max colour scale; do not map RMSE to colour and
+Aitchison distance to size. There is no default composite score.
+Reporting checklists live in the
+[simulation-reporting](https://bastienchassagnol.github.io/DeCovarT/articles/simulation-reporting.html)
+article ([Nature Methods](https://bastienchassagnol.github.io/DeCovarT/articles/simulation-reporting.html#sec-nmeth),
+[NeurIPS completeness](https://bastienchassagnol.github.io/DeCovarT/articles/simulation-reporting.html#sec-neurips),
+[rOpenSci standards](https://bastienchassagnol.github.io/DeCovarT/articles/simulation-reporting.html#sec-srr)),
+not here.
+
+```{r}
+#| label: fig-mc-similarity
+#| eval: false
+#| echo: true
+#| fig-cap: "Algorithm-similarity correlation heatmap, clustered on 1 - r."
+DeCovarT::plot_algorithm_similarity(out)
+DeCovarT::plot_mc_metric_dots(
+  out,
+  facet_cols = "cosine",
+  metrics = c("rmse", "mae", "coverage")
+)
+```
+
 ## Execution and optimisation {#sec-metrics-optimisation}
 
 Numerical convergence is whether the solver returned a finite simplex

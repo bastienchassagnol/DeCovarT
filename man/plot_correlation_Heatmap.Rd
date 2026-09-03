@@ -34,7 +34,10 @@ A named list of \code{ComplexHeatmap} heatmap objects (one per algorithm).
 For each algorithm, visualises a selected score over the design grid of
 simulated \eqn{\boldsymbol{p}} (and related scenario factors).
 Requires optional Suggests packages \code{ComplexHeatmap}, \code{circlize}, and
-\code{viridis} (install \code{ComplexHeatmap} via Bioconductor).
+\code{viridis} (install \code{ComplexHeatmap} via Bioconductor). Use this
+helper only for \strong{linked, annotated, hierarchical} grids. For
+algorithm-similarity correlation matrices prefer
+\code{\link[=plot_algorithm_similarity]{plot_algorithm_similarity()}} (\code{ggplot2::geom_tile()}).
 }
 \examples{
 metrics <- tibble::tibble(
@@ -51,4 +54,7 @@ if (
   ht <- plot_correlation_Heatmap(metrics, score_variable = "model_mse")
   names(ht)
 }
+}
+\seealso{
+\code{\link[=plot_algorithm_similarity]{plot_algorithm_similarity()}}, \code{\link[=plot_mc_metric_dots]{plot_mc_metric_dots()}}
 }

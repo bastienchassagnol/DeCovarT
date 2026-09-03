@@ -1,5 +1,14 @@
 # DeCovarT (development version)
 
+* **Monte Carlo figures.** `pivot_mc_estimates()`, `plot_mc_raincloud()`
+  (`ggplot2` + `ggdist` horizontal rainclouds of
+  $\hat p_j-p_j^{\star}$), `plot_mc_forest()` (ADEMP summaries with
+  Wilson whiskers on the coverage rate), `plot_algorithm_similarity()`
+  (`geom_tile` + `hclust(1-r)`), and `plot_mc_metric_dots()` (faceted
+  min-max scores; no default composite). Optional Suggests: `ggdist`,
+  `ggdendro`. `ComplexHeatmap` remains for linked multi-omics grids
+  only.
+
 * **Solver starts.** `starting_simplex()` (used by all ILR maps) accepts
   the barycentre (default), a Dirichlet draw (`initial_p = "dirichlet"`,
   `dirichlet_alpha = 1` uniform on the simplex; $\alpha>1$ centre-biased;

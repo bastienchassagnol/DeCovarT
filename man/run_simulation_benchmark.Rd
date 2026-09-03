@@ -98,5 +98,5 @@ nrow(out$optimisation)
 \seealso{
 \code{\link[=simulate_bulk_mixture]{simulate_bulk_mixture()}}, \code{\link[=deconvolute_ratios]{deconvolute_ratios()}},
 \code{\link[=compute_benchmark_metrics]{compute_benchmark_metrics()}}, \code{\link[=describe_simulation_scenario]{describe_simulation_scenario()}},
-\code{\link[=coverage_mc_interval]{coverage_mc_interval()}}
+\code{\link[=coverage_mc_interval]{coverage_mc_interval()}}, \code{\link[=plot_mc_raincloud]{plot_mc_raincloud()}}, \code{\link[=plot_mc_forest]{plot_mc_forest()}}
 }

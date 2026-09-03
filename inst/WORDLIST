@@ -4,6 +4,7 @@ ALR
 AR
 Aitchison
 Aitchison's
+Allen
 AutoGeneS
 BBT
 BLADE
@@ -78,6 +79,7 @@ Federico
 Fedorov
 Frobenius
 furrr
+funkyheatmap
 GEPs
 GFM
 GGM
@@ -142,6 +144,7 @@ NPA
 NSGA
 Natalia
 NeKo
+NeurIPS
 NeighbourNet
 Nonparanormal
 Nuel
@@ -182,6 +185,7 @@ SSR
 SVR
 Scheffé
 Sieve
+Sankey
 SignalingProfiler
 Softmax
 Skrondal
@@ -199,12 +203,14 @@ Vaart
 VivianePhilipps
 WLS
 Wasserstein
+Wellcome
 Wilks
 Wilson
 ZIPLN
 Zotero
 activatory
 alr
+alluvial
 avg
 bMIND
 bastien
@@ -224,6 +230,8 @@ equivariance
 equivariant
 exogeneity
 gLasso
+ggdendro
+ggdist
 gastruloid
 gastruloids
 glasso
@@ -267,6 +275,8 @@ quanTIseq
 recomputation
 regulon
 renormalisation
+raincloud
+rainclouds
 reparametrisation
 residualisation
 reweight

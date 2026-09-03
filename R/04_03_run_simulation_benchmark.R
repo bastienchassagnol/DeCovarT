@@ -59,8 +59,15 @@
         !is.null(scenario_meta) &&
         ncol(scenario_meta) > 0L
     ) {
-      meta_rep <- scenario_meta[rep(1L, nrow(tbl)), , drop = FALSE]
-      tbl <- dplyr::bind_cols(meta_rep, tbl)
+      extra <- setdiff(names(scenario_meta), names(tbl))
+      if (length(extra) > 0L) {
+        meta_rep <- scenario_meta[
+          rep(1L, nrow(tbl)),
+          extra,
+          drop = FALSE
+        ]
+        tbl <- dplyr::bind_cols(meta_rep, tbl)
+      }
     }
     tbl
   }
@@ -169,7 +176,7 @@
 #' @export
 #' @seealso [simulate_bulk_mixture()], [deconvolute_ratios()],
 #'   [compute_benchmark_metrics()], [describe_simulation_scenario()],
-#'   [coverage_mc_interval()]
+#'   [coverage_mc_interval()], [plot_mc_raincloud()], [plot_mc_forest()]
 run_simulation_benchmark <- function(
   scenario_config,
   deconvolution_functions,

@@ -243,6 +243,12 @@ reference:
       - coverage_mc_interval
       - run_simulation_benchmark
       - deconvolute_ratios
+      - pivot_mc_estimates
+      - plot_mc_raincloud
+      - plot_mc_forest
+      - algorithm_similarity
+      - plot_algorithm_similarity
+      - plot_mc_metric_dots
       - plot_correlation_Heatmap
   - title: Simulation
   - subtitle: Toy bulk mixtures

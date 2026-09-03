@@ -20,14 +20,6 @@ format:
     toc: true
 ---
 
-::: {.callout-note}
-## Scope
-
-Material moved out of the Nature Methods Article appendix to keep the main
-manuscript within editorial length. Notation matches the article Methods
-section and MuSiC-style mean references [@wangBulkTissueCell2019].
-:::
-
 # Notation {#sec-ols-notation}
 
 | Symbol | Role |

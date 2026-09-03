@@ -138,6 +138,44 @@ machine-learning reporting summary used at the journal).
 
 : Nature Methods reporting items covered by the simulation API. {#tbl-nmeth}
 
+# NeurIPS code completeness {#sec-neurips}
+
+The [ML Code Completeness Checklist](https://github.com/paperswithcode/releasing-research-code)
+used at NeurIPS is five items. Four are already covered above or in
+the package metadata; this section only records the mapping.
+
+| Checklist item | Where it lives |
+|:--|:--|
+| Specification of dependencies | `DESCRIPTION` (Imports / Suggests with versions) |
+| Fitting (“training”) code | `fit_decovart()`, `deconvolute_ratios()` |
+| Evaluation code | `compute_benchmark_metrics()`, `run_simulation_benchmark()` |
+| Pre-trained models | Not applicable: DeCovarT is an estimator, not a stored neural net. Toy convolution fixtures live in `inst/extdata/` |
+| README table of results plus commands | README / vignette chunks (this article; manuscript scenarios) |
+
+: NeurIPS / Papers with Code completeness mapped onto the package. {#tbl-neurips}
+
+Random-number streams and Monte Carlo error are in @sec-rng and
+@tbl-nmeth, not duplicated here.
+
+# rOpenSci statistical standards {#sec-srr}
+
+rOpenSci [statistical software standards](https://stats-devguide.ropensci.org/standards.html)
+are tagged in `R/srr-stats-standards.R` (srrstats, srrstatsNA,
+srrstatsTODO) and on the exported helpers. The load-bearing blocks
+are:
+
+- **General / testing (G\*):** input checks and missing-data policy on
+  `deconvolute_ratios()`; Monte Carlo tests with
+  `simulate_bulk_mixture()` (G5.0, G5.5, G5.6).
+- **Regression (RE\*):** `fit_decovart()` return value, `coef` /
+  `vcov` / `confint`, convergence, plots (RE4, RE6, RE7).
+- **Probability distributions (PD\*):** Gaussian convolution
+  log-likelihood, score, and Hessian.
+
+Do not add a second copy of those tags in vignettes. Runtime scaling
+of solvers versus \(G\) and \(J\) remains srrstatsTODO (G5.7,
+RE5.0). ADEMP columns themselves are @sec-ademp.
+
 # Parallel random numbers {#sec-rng}
 
 The sample loop in `deconvolute_ratios()` uses

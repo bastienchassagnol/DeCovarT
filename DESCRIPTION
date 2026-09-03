@@ -26,6 +26,8 @@ Suggests:
     flextable,
     furrr,
     future,
+    ggdist,
+    ggdendro,
     ggplot2,
     glmnet,
     igraph,

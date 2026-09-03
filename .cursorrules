@@ -726,7 +726,7 @@ That adds `spelling` to Suggests, `Language: en-GB` in `DESCRIPTION`,
 | Paths | `here`, `fs` (avoid ad-hoc `normalizePath()`) |
 | Tabular data | `dplyr`, `tidyr`, `tibble` (`data.table` if needed) |
 | Out-of-memory data | `duckdb` |
-| Plotting | `ggplot2`; heatmaps: `ComplexHeatmap` (Suggests + `requireNamespace`); interactive: `ggiraph` |
+| Plotting | `ggplot2` + `geom_tile` / `ggdendro` for correlation and simplex-structured heatmaps (`plot_algorithm_similarity()`); `ggplot2` + faceted dots for multi-metric benchmarks (`plot_mc_metric_dots()`); distributions: `ggdist` rainclouds (`plot_mc_raincloud()`); ADEMP summaries: forest / dot-whisker (`plot_mc_forest()`); `ComplexHeatmap` only for complex hierarchical multi-omics; `funkyheatmap` only for mixed quantitative/qualitative tables; interactive: `ggiraph` |
 | Static tables (vignettes / Quarto HTML) | `tinytable` |
 | Slide / HTML interactive tables | `reactable` |
 | Discrete ggplot scales | named vectors via `stats::setNames()` |
@@ -744,6 +744,62 @@ That adds `spelling` to Suggests, `Language: en-GB` in `DESCRIPTION`,
 
 Match `DESCRIPTION` Imports when adding package code; do not introduce
 unused Suggests/Imports without need.
+
+### Plotting (`ggplot2`, distributions, and flows)
+
+- **Monte Carlo distributions** of parameter estimates (histograms,
+  half-eyes, rainclouds): prefer **`ggplot2` + `ggdist`**
+  (`plot_mc_raincloud()`). Horizontal rainclouds show bias (shift from
+  zero), variance, skewness, boundary pile-up, outliers, and
+  multimodality that a mean-plus-interval plot conceals. The inner /
+  outer bands are **empirical Monte Carlo quantiles**, not confidence
+  intervals for \eqn{p}. Whenever you add a raincloud helper, cite
+  Allen, Poggiali, Whitaker, Marshall, van Langen and Kievit
+  ([Wellcome Open Research 4:63](https://wellcomeopenresearch.org/articles/4-63);
+  `\insertCite{allenRaincloudPlotsMultiplatform2019}{DeCovarT}`) in the
+  roxygen.
+- **ADEMP performance summaries** (bias, RMSE/MAE, coverage, interval
+  width, optimiser failure rate): prefer a **forest / dot-whisker**
+  (`plot_mc_forest()`). Coverage whiskers are Wilson intervals for the
+  coverage *rate*, not for continuous \eqn{\hat p_j}; draw a reference
+  at 0.95 (coverage) and at 0 (bias). Cite the raincloud paper on the
+  companion distribution figure; cite Wilson on the coverage interval
+  helper.
+- **Heatmaps — pick the tool from the data, not by habit.**
+  - **`ggplot2::geom_tile()`** (+ `stats::hclust()`, optional
+    `ggdendro`) is the default for **simplex-structured** tables and
+    **correlation / algorithm-similarity** matrices
+    (`plot_algorithm_similarity()`). Cluster on
+    \(d_{ab}=1-r_{ab}\) for *behavioural* similarity of
+    \(\hat{\boldsymbol{p}}\); that is not numerical agreement.
+  - **`ComplexHeatmap`** (Suggests; `.check_heatmap_dependencies()`)
+    only for **complex, multi-modal, multi-omics** displays that need
+    linked heatmaps, hierarchical clustering that drives several
+    panels, and stacked annotations. Do not use it for a 10-algorithm
+    correlation matrix.
+  - **`funkyheatmap`** only for **heterogeneous** algorithm tables that
+    mix quantitative and qualitative columns (bars, circles, text,
+    categorical glyphs on different scales). Do not add it to Suggests
+    until a plot function calls it. Homogeneous numeric benchmarks use
+    `plot_mc_metric_dots()` instead.
+- **Multi-metric performance:** do **not** map two primary scores to
+  colour and size. Facet by metric (`plot_mc_metric_dots()`) and give
+  **colour a single meaning**: min–max normalised score
+  (\(0\) worst, \(1\) best). Coverage is scored as
+  \(|\widehat C-0.95|\), not as “higher coverage is better”. There is
+  **no default composite**; if the caller supplies weights, show the
+  components beside the composite.
+- **Interactive** exploration: `ggiraph` (or `plotly`) when a vignette
+  or app needs hover, not for print figures.
+- **Flows / spillover** across entities (mass moving from one cell type
+  or state to another): use a **chord diagram**
+  ([Data to Viz — chord](https://www.data-to-viz.com/graph/chord.html);
+  typically `circlize`) when there is **no** chronological or staged
+  order. When entities have a **natural order** or the table can be
+  split into stages / sections, use a **Sankey** diagram
+  ([Data to Viz — Sankey](https://www.data-to-viz.com/graph/sankey.html))
+  or an **alluvial** diagram. Do not add a Sankey / alluvial Suggests
+  package until a plot function actually calls it.
 
 ### Parallelism (`furrr` versus `mirai`)
 
@@ -1188,6 +1244,26 @@ specific remedies, not padded criticism. Acknowledge strengths when earned.
 
 - Check **statistical reporting** against the
   [SAMPL guidelines](https://www.equator-network.org/wp-content/uploads/2013/03/SAMPL-Guidelines-3-13-13.pdf).
+- Check **Nature Methods** simulation / ML reporting against
+  `vignettes/simulation-reporting.qmd` `{#sec-nmeth}` (data-generating
+  mechanism, pre-declared estimand, software versions, L'Ecuyer-CMRG
+  streams, no undisclosed composite, Monte Carlo error). Do not invent
+  a second Nature Methods table in other vignettes; link that section.
+- Check **NeurIPS / Papers with Code ML Code Completeness**
+  ([releasing-research-code](https://github.com/paperswithcode/releasing-research-code)):
+  (1) specification of dependencies (`DESCRIPTION`); (2) fitting /
+  “training” code (`fit_decovart()`, `deconvolute_ratios()`); (3)
+  evaluation code (`compute_benchmark_metrics()`,
+  `run_simulation_benchmark()`); (4) pre-trained weights — not
+  applicable (this is an estimator, not a neural net; ship toy
+  fixtures in `inst/extdata/` instead); (5) README / vignette table of
+  results with the commands that produce them.
+- Check **rOpenSci statistical software standards**
+  ([stats-devguide](https://stats-devguide.ropensci.org/standards.html))
+  via existing `@srrstats` / `@srrstatsNA` / `@srrstatsTODO` tags in
+  `R/srr-stats-standards.R` and on exported helpers (`fit_decovart()`
+  RE*, `deconvolute_ratios()` G*, tests G5*). Do not retag a standard
+  that is already `@srrstats`; point to the tag.
 - Check **commit activity** with
   <https://piechowski.io/post/git-commands-before-reading-code>.
 - When literature verification is needed and no Consensus account is
