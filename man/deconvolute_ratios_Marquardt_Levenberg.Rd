@@ -3,7 +3,6 @@
 %   R/03_03_DeCovarT_estimate_ratios_frequentist.R
 \name{deconvolute_ratios_cibersort}
 \alias{deconvolute_ratios_cibersort}
-\alias{deconvolute_ratios_lsfit}
 \alias{deconvolute_ratios_rlm}
 \alias{deconvolute_ratios_nnls}
 \alias{deconvolute_ratios_deconrnaseq}
@@ -15,8 +14,6 @@
 \title{DeCovarT MLE of cellular proportions for one bulk sample}
 \usage{
 deconvolute_ratios_cibersort(y, mean_signature_matrix)
-
-deconvolute_ratios_lsfit(y, mean_signature_matrix)
 
 deconvolute_ratios_rlm(y, mean_signature_matrix)
 
@@ -31,7 +28,8 @@ deconvolute_ratios_Marquardt_Levenberg(
   epsilon = 10^-4,
   itmax = 200,
   return_model = FALSE,
-  initial_p = NULL
+  initial_p = NULL,
+  dirichlet_alpha = 1
 )
 
 deconvolute_ratios_simulated_annealing(
@@ -40,7 +38,8 @@ deconvolute_ratios_simulated_annealing(
   Sigma,
   epsilon = 10^-4,
   itmax = 200,
-  initial_p = NULL
+  initial_p = NULL,
+  dirichlet_alpha = 1
 )
 
 deconvolute_ratios_L_BFGS_B(
@@ -50,7 +49,8 @@ deconvolute_ratios_L_BFGS_B(
   epsilon = 10^-4,
   itmax = 200,
   return_model = FALSE,
-  initial_p = NULL
+  initial_p = NULL,
+  dirichlet_alpha = 1
 )
 
 deconvolute_ratios_Newton_Raphson(
@@ -60,7 +60,8 @@ deconvolute_ratios_Newton_Raphson(
   epsilon = 10^-4,
   itmax = 200,
   return_model = FALSE,
-  initial_p = NULL
+  initial_p = NULL,
+  dirichlet_alpha = 1
 )
 
 deconvolute_ratios_gradient_descent(
@@ -69,7 +70,8 @@ deconvolute_ratios_gradient_descent(
   Sigma,
   epsilon = 10^-4,
   itmax = 200,
-  initial_p = NULL
+  initial_p = NULL,
+  dirichlet_alpha = 1
 )
 }
 \arguments{
@@ -90,11 +92,18 @@ iterations for the optimiser (same roles as \code{reltol} / \code{maxit} in
 ILR coordinates, log-likelihood and optimiser diagnostics instead of
 the proportion vector.}
 
-\item{initial_p}{Optional starting proportions of length \eqn{J}. The
-default is the equi-balanced vector \eqn{(1/J,\ldots,1/J)}. Starts
+\item{initial_p}{Optional start: \code{NULL} / \code{"barycentre"} (default
+equi-balanced), a length-\eqn{J} numeric vector, \code{"dirichlet"}, or
+\code{"qp"} (mean-only simplex QP). See \code{\link[=starting_simplex]{starting_simplex()}}. Starts
 on a simplex face are nudged into the interior so the ILR map is
 defined (ILR methods) and so L-BFGS-B does not start on a
 degenerate \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}.}
+
+\item{dirichlet_alpha}{Dirichlet concentration when
+\code{initial_p = "dirichlet"} (default \code{1}: uniform on the simplex;
+\eqn{\alpha>1} centre-biased; \eqn{\alpha<1} face-biased).
+Independent draws are independent restarts; use
+\code{\link[=multistart_decovart]{multistart_decovart()}} to sequence several.}
 }
 \value{
 Named numeric vector \eqn{\hat{\boldsymbol{p}}} on the simplex
@@ -133,12 +142,6 @@ recovering sample-specific latents is a Bayesian / MAP problem
 \item \code{deconvolute_ratios_cibersort()}: Linear baseline
 \eqn{\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}} via nu-SVR
 (CIBERSORT-style); no covariance prior is used.
-
-\item \code{deconvolute_ratios_lsfit()}: Ordinary least squares
-for \eqn{\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}}
-(\code{\link[stats:lsfit]{stats::lsfit()}}), following
-\insertCite{abbasDeconvolutionBloodMicroarray2009;textual}{DeCovarT};
-estimates are projected back onto the simplex.
 
 \item \code{deconvolute_ratios_rlm()}: Robust linear model
 \eqn{\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}}
@@ -188,5 +191,6 @@ deconvolute_ratios_Marquardt_Levenberg(y, mu, Sigma, itmax = 50)
 \insertAllCited{}
 }
 \seealso{
-\code{\link[=deconvolute_ratios]{deconvolute_ratios()}}, \code{\link[=isometric_logistic]{isometric_logistic()}}
+\code{\link[=deconvolute_ratios]{deconvolute_ratios()}}, \code{\link[=isometric_logistic]{isometric_logistic()}},
+\code{\link[=starting_simplex]{starting_simplex()}}
 }

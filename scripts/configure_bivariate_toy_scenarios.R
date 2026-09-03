@@ -130,7 +130,8 @@ build_bivariate_scenario_config <- function(
 
 #' Default deconvolution solvers for the bivariate toy benchmark
 #'
-#' Omits `lm` / lsfit and CIBERSORT (too few genes for nu-SVR tuning).
+#' Omits CIBERSORT (too few genes for nu-SVR tuning). Unconstrained OLS
+#' (`lsfit`) is not shipped.
 #' DeCovarT optimisers use reduced `itmax` for quick smoke runs; increase
 #' in production scripts.
 #'

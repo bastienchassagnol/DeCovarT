@@ -956,6 +956,23 @@ dispatch) is reserved for APIs that need a fast interactive response,
 not for the published Monte Carlo protocol.
 :::
 
+::: {#nte-gls-competitor .callout-note}
+## Fixed-covariance GLS competitor
+
+When a scenario varies the *covariance structure*, keep a mean-only
+baseline whose residual covariance does **not** depend on $\boldsymbol{p}$.
+Build $W$ with [`fixed_gls_covariance()`](../reference/fixed_gls_covariance.html)
+(default: diagonal of $\Sigma(\bar p)$ at $\bar p_j=1/J$) and fit
+[`deconvolute_ratios_gls()`](../reference/deconvolute_ratios_gls.html)
+(`MASS::lm.gls`). Copying $W$ into every tensor slice is not GLS:
+$\sum_j p_j^2 W=\|p\|_2^2 W$ still depends on $p$. The hierarchy is
+full $\Sigma(p)$, cell-type-diagonal convolution, then this fixed $W$.
+Starts for the convolution MLE: barycentre, Dirichlet
+(`initial_p = "dirichlet"`, $\alpha=1$ uniform, $\alpha>1$ centre,
+$\alpha<1$ faces; several independent draws), or QP
+(`initial_p = "qp"`).
+:::
+
 
 # Perspectives on high-dimensional or more biologically realistic designs
 

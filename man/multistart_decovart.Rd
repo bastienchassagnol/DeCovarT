@@ -11,6 +11,7 @@ multistart_decovart(
   n_starts = 5L,
   solver = deconvolute_ratios_Marquardt_Levenberg,
   loglik_tol = 1e-04,
+  dirichlet_alpha = 1,
   ...
 )
 }
@@ -24,7 +25,7 @@ multistart_decovart(
 \item{Sigma}{Array of cell-type covariances in
 \eqn{\mathcal{M}_{G\times G\times J}}.}
 
-\item{n_starts}{Number of random starts (in addition to the
+\item{n_starts}{Number of Dirichlet restarts (in addition to the
 equi-balanced start).}
 
 \item{solver}{Solver accepting \code{initial_p} and \code{return_model};
@@ -32,6 +33,9 @@ defaults to \code{\link[=deconvolute_ratios_Marquardt_Levenberg]{deconvolute_rat
 
 \item{loglik_tol}{Two starts count as reaching the same mode when their
 log-likelihoods differ by less than this amount.}
+
+\item{dirichlet_alpha}{Concentration for those random starts (default
+\code{1}). See \code{\link[=starting_simplex]{starting_simplex()}}.}
 
 \item{...}{Passed to \code{solver} (e.g. \code{epsilon}, \code{itmax}).}
 }

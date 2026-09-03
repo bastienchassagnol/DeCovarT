@@ -32,10 +32,10 @@ options(tinytable_html_mathjax = TRUE)
 This appendix records four numerical facts that sit behind the
 `decovart_fit` API: gene-wise affine equivariance of the MLE, failure
 under collinear signatures, small bulk perturbations when the covariance
-is full, cell-type diagonal, or global, and the effect of random ALR
-starts on second-order solvers. CPM / log2 normalisation, optimiser
-tolerance, and scaling with $G$, $J$ and overlap are left to a later
-benchmark issue.
+is full, cell-type diagonal, or a **fixed** GLS covariance, and the
+effect of random ILR starts on second-order solvers. CPM / log2
+normalisation, optimiser tolerance, and scaling with $G$, $J$ and
+overlap are left to a later benchmark issue.
 
 # Gene-wise affine equivariance {#sec-affine}
 
@@ -215,14 +215,15 @@ quantified bulk RNA-seq matrices are complete, and the API errors on
 
 With known $\boldsymbol{p}$, a small Gaussian perturbation of
 $\boldsymbol{y}_{\cdot i}$ should move Marquardt--Levenberg estimates only
-slightly. Three covariance specifications are compared:
+slightly. Three covariance *models* are compared:
 
-1. Full cell-type tensor $\boldsymbol{\Sigma}_j$.
+1. Full cell-type tensor $\boldsymbol{\Sigma}_j$ (DeCovarT convolution).
 2. Cell-type diagonal: off-diagonals of each $\boldsymbol{\Sigma}_j$ set to
    zero (gene-wise weighted convolution).
-3. Global competitor: every slice replaced by the convolution covariance
-   $\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}\boldsymbol{\Sigma}_j$
-   evaluated at the known mixing weights.
+3. Fixed global diagonal GLS: $W=\operatorname{diag}\{\Sigma(p^{\star})\}$
+   held **constant**, fitted by [`deconvolute_ratios_gls()`](../reference/deconvolute_ratios_gls.html)
+   (`MASS::lm.gls`). Do **not** copy that $W$ into every tensor slice:
+   $\sum_j p_j^2 W=\|p\|_2^2 W$ still depends on $p$.
 
 ```{r}
 #| label: perturbation
@@ -236,10 +237,7 @@ Sigma_diag <- Sigma
 for (j in 1:2) {
   Sigma_diag[, , j] <- diag(diag(Sigma[, , j]))
 }
-sigma_bar <- .compute_global_variance(p_true, Sigma)
-Sigma_global <- Sigma
-Sigma_global[, , 1] <- sigma_bar
-Sigma_global[, , 2] <- sigma_bar
+w_gls <- fixed_gls_covariance(Sigma, p = p_true, diagonal = TRUE)
 
 fit_spec <- function(y, S) {
   drop(coef(fit_decovart(
@@ -251,12 +249,15 @@ fit_spec <- function(y, S) {
   )))
 }
 
-specs <- list(
-  full = Sigma,
-  celltype_diagonal = Sigma_diag,
-  global_weighted = Sigma_global
+est <- cbind(
+  full = fit_spec(y_pert, Sigma),
+  celltype_diagonal = fit_spec(y_pert, Sigma_diag),
+  gls_fixed = deconvolute_ratios_gls(
+    drop(y_pert),
+    mu,
+    w_gls
+  )
 )
-est <- vapply(specs, function(S) fit_spec(y_pert, S), numeric(2))
 rmse <- apply(est, 2, function(p_hat) sqrt(mean((p_hat - p_true)^2)))
 list(estimates = est, rmse_to_truth = rmse)
 ```
@@ -266,22 +267,24 @@ list(estimates = est, rmse_to_truth = rmse)
 Marquardt--Levenberg and Newton--Raphson maximise the convolution
 log-likelihood with analytic Hessians. That is cheaper per step than a
 first-order quasi-Newton map, but a start near a simplex face can stall
-on a plateau. Three Dirichlet$(1,1)$ draws of $\boldsymbol{p}^{(0)}$
-(seeds 11, 22 and 33) are passed as `initial_p` on the same perturbed
-bulk. On this well-conditioned toy the second-order estimates should
-agree; a spread of several percentage points is a warning that the
-start has trapped the solver.
+on a plateau. Three Dirichlet$(1,1)$ draws (`starting_simplex(...,
+"dirichlet")`, seeds 11, 22 and 33) are passed as `initial_p` on the
+same perturbed bulk. Concentration $\alpha=1$ is uniform on the simplex;
+$\alpha>1$ is centre-biased and $\alpha<1$ is face-biased. Sequence
+several draws (or [`multistart_decovart()`](../reference/multistart_decovart.html))
+rather than a single random start. A QP warm start is
+`initial_p = "qp"`. On this well-conditioned toy the second-order
+estimates should agree; a spread of several percentage points is a
+warning that the start has trapped the solver.
 
 ```{r}
 #| label: initial-seeds
 #| warning: false
-dirichlet_start <- function(seed) {
-  set.seed(seed)
-  g <- stats::rgamma(2, shape = 1, rate = 1)
-  g / sum(g)
-}
 seeds <- c(11L, 22L, 33L)
-starts <- lapply(seeds, dirichlet_start)
+starts <- lapply(seeds, function(s) {
+  set.seed(s)
+  starting_simplex(2L, "dirichlet", nms = cts)
+})
 names(starts) <- paste0("seed_", seeds)
 
 fit_from_start <- function(fun, p0) {

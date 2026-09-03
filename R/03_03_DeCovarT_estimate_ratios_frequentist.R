@@ -925,30 +925,120 @@ hessian_loglik_constrained <- function(
 
 #' Open-simplex start for ILR solvers
 #'
-#' Default is the equi-balanced vector. A supplied `initial_p` is passed
-#' through [repair_simplex()] with `open = TRUE` so
-#' [isometric_log_ratio()] is defined.
+#' The convolution log-likelihood is not globally concave, so the start
+#' can change which basin the solver enters. Draw several independent
+#' Dirichlet starts (different RNG streams or
+#' [multistart_decovart()]) rather than a single draw when probing
+#' multimodality.
 #'
 #' @param n_celltypes Integer \eqn{J}.
-#' @param initial_p `NULL` or a numeric vector of length \eqn{J}.
+#' @param initial_p One of:
+#'   * `NULL` or `"barycentre"`: equi-balanced
+#'     \eqn{(1/J,\ldots,1/J)};
+#'   * a numeric vector of length \eqn{J}: used as-is after
+#'     [repair_simplex()];
+#'   * `"dirichlet"`: one Dirichlet\eqn{(\alpha,\ldots,\alpha)} draw
+#'     (see `dirichlet_alpha`);
+#'   * `"qp"` (aliases `"deconrnaseq"`, `"lsei"`): mean-only simplex QP
+#'     from [deconvolute_ratios_deconrnaseq()] (`y` and
+#'     `mean_signature_matrix` required).
 #' @param nms Optional names (cell-type colnames).
+#' @param y,mean_signature_matrix Bulk and signature, required for a QP
+#'   start.
+#' @param dirichlet_alpha Positive concentration, recycled to length
+#'   \eqn{J}. The default `1` is uniform on the simplex.
+#'   \eqn{\alpha>1} concentrates mass near the barycentre;
+#'   \eqn{\alpha<1} puts extra mass near faces (boundary-biased
+#'   restarts).
 #'
-#' @noRd
-.starting_simplex <- function(n_celltypes, initial_p = NULL, nms = NULL) {
-  if (is.null(initial_p)) {
+#' @return A length-\eqn{J} open-simplex vector.
+#'
+#' @examples
+#' starting_simplex(3L)
+#' set.seed(1)
+#' starting_simplex(3L, "dirichlet")
+#' @export
+#' @seealso [multistart_decovart()], [deconvolute_ratios_deconrnaseq()]
+starting_simplex <- function(
+  n_celltypes,
+  initial_p = NULL,
+  nms = NULL,
+  y = NULL,
+  mean_signature_matrix = NULL,
+  dirichlet_alpha = 1
+) {
+  n_celltypes <- as.integer(n_celltypes)
+  kind <- .start_kind(initial_p, n_celltypes)
+  if (identical(kind, "barycentre")) {
     p <- rep(1 / n_celltypes, n_celltypes)
+  } else if (identical(kind, "numeric")) {
+    p <- as.numeric(initial_p)
+  } else if (identical(kind, "dirichlet")) {
+    if (is.null(nms)) {
+      nms <- paste0("ct", seq_len(n_celltypes))
+    }
+    alpha <- .parse_dirichlet_alpha(dirichlet_alpha, nms)
+    p <- .rdirichlet_one(alpha)
   } else {
-    if (!is.numeric(initial_p) || length(initial_p) != n_celltypes) {
+    if (is.null(y) || is.null(mean_signature_matrix)) {
       stop(
-        "`initial_p` must be a numeric vector of length ",
-        n_celltypes,
-        ".",
+        "A QP start requires `y` and `mean_signature_matrix`.",
         call. = FALSE
       )
     }
-    p <- as.numeric(initial_p)
+    p <- deconvolute_ratios_deconrnaseq(y, mean_signature_matrix)
   }
   repair_simplex(p, open = TRUE, nms = nms)
+}
+
+#' @noRd
+.start_kind <- function(initial_p, n_celltypes) {
+  if (is.null(initial_p)) {
+    return("barycentre")
+  }
+  if (is.character(initial_p) && length(initial_p) == 1L) {
+    kind <- tolower(initial_p)
+    if (kind %in% c("barycentre", "balanced", "equi")) {
+      return("barycentre")
+    }
+    if (identical(kind, "dirichlet")) {
+      return("dirichlet")
+    }
+    if (kind %in% c("qp", "deconrnaseq", "lsei")) {
+      return("qp")
+    }
+    stop(
+      "`initial_p` character start must be 'barycentre', 'dirichlet', ",
+      "or 'qp'.",
+      call. = FALSE
+    )
+  }
+  if (is.numeric(initial_p) && length(initial_p) == n_celltypes) {
+    return("numeric")
+  }
+  stop(
+    "`initial_p` must be NULL, a length-",
+    n_celltypes,
+    " numeric vector, or 'dirichlet' / 'qp'.",
+    call. = FALSE
+  )
+}
+
+#' @noRd
+.solver_start <- function(
+  y,
+  mean_signature_matrix,
+  initial_p,
+  dirichlet_alpha
+) {
+  starting_simplex(
+    n_celltypes = ncol(mean_signature_matrix),
+    initial_p = initial_p,
+    nms = colnames(mean_signature_matrix),
+    y = y,
+    mean_signature_matrix = mean_signature_matrix,
+    dirichlet_alpha = dirichlet_alpha
+  )
 }
 
 
@@ -988,11 +1078,17 @@ hessian_loglik_constrained <- function(
 #' @param return_model If `TRUE`, return a named list with coefficients,
 #'   ILR coordinates, log-likelihood and optimiser diagnostics instead of
 #'   the proportion vector.
-#' @param initial_p Optional starting proportions of length \eqn{J}. The
-#'   default is the equi-balanced vector \eqn{(1/J,\ldots,1/J)}. Starts
+#' @param initial_p Optional start: `NULL` / `"barycentre"` (default
+#'   equi-balanced), a length-\eqn{J} numeric vector, `"dirichlet"`, or
+#'   `"qp"` (mean-only simplex QP). See [starting_simplex()]. Starts
 #'   on a simplex face are nudged into the interior so the ILR map is
 #'   defined (ILR methods) and so L-BFGS-B does not start on a
 #'   degenerate \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}.
+#' @param dirichlet_alpha Dirichlet concentration when
+#'   `initial_p = "dirichlet"` (default `1`: uniform on the simplex;
+#'   \eqn{\alpha>1} centre-biased; \eqn{\alpha<1} face-biased).
+#'   Independent draws are independent restarts; use
+#'   [multistart_decovart()] to sequence several.
 #'
 #' @return Named numeric vector \eqn{\hat{\boldsymbol{p}}} on the simplex
 #'   (ILR methods), or that list when `return_model = TRUE`.
@@ -1011,7 +1107,8 @@ hessian_loglik_constrained <- function(
 #' y <- drop(mu %*% c(0.6, 0.4) + rnorm(2, sd = 0.1))
 #' deconvolute_ratios_Marquardt_Levenberg(y, mu, Sigma, itmax = 50)
 #' @export
-#' @seealso [deconvolute_ratios()], [isometric_logistic()]
+#' @seealso [deconvolute_ratios()], [isometric_logistic()],
+#'   [starting_simplex()]
 deconvolute_ratios_Marquardt_Levenberg <- function(
   y,
   mean_signature_matrix,
@@ -1019,12 +1116,14 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
   epsilon = 10^-4,
   itmax = 200,
   return_model = FALSE,
-  initial_p = NULL
+  initial_p = NULL,
+  dirichlet_alpha = 1
 ) {
-  initial_p <- .starting_simplex(
-    ncol(mean_signature_matrix),
+  initial_p <- .solver_start(
+    y,
+    mean_signature_matrix,
     initial_p,
-    colnames(mean_signature_matrix)
+    dirichlet_alpha
   )
   initial_z <- isometric_log_ratio(initial_p)
   # marqLevAlg() only negates fn/gr internally when minimize = FALSE; hess()
@@ -1114,12 +1213,14 @@ deconvolute_ratios_simulated_annealing <- function(
   Sigma,
   epsilon = 10^-4,
   itmax = 200,
-  initial_p = NULL
+  initial_p = NULL,
+  dirichlet_alpha = 1
 ) {
-  initial_p <- .starting_simplex(
-    ncol(mean_signature_matrix),
+  initial_p <- .solver_start(
+    y,
+    mean_signature_matrix,
     initial_p,
-    colnames(mean_signature_matrix)
+    dirichlet_alpha
   )
   initial_z <- isometric_log_ratio(initial_p)
   # gr is not used in the simulated annealing approach
@@ -1150,12 +1251,14 @@ deconvolute_ratios_L_BFGS_B <- function(
   epsilon = 10^-4,
   itmax = 200,
   return_model = FALSE,
-  initial_p = NULL
+  initial_p = NULL,
+  dirichlet_alpha = 1
 ) {
-  initial_p <- .starting_simplex(
-    ncol(mean_signature_matrix),
+  initial_p <- .solver_start(
+    y,
+    mean_signature_matrix,
     initial_p,
-    colnames(mean_signature_matrix)
+    dirichlet_alpha
   )
   # Box constraints alone do not keep sum(p)=1, so Sigma(p) can become
   # singular during the line search. Guard the objective/gradient and fall
@@ -1233,12 +1336,14 @@ deconvolute_ratios_Newton_Raphson <- function(
   epsilon = 10^-4,
   itmax = 200,
   return_model = FALSE,
-  initial_p = NULL
+  initial_p = NULL,
+  dirichlet_alpha = 1
 ) {
-  initial_p <- .starting_simplex(
-    ncol(mean_signature_matrix),
+  initial_p <- .solver_start(
+    y,
+    mean_signature_matrix,
     initial_p,
-    colnames(mean_signature_matrix)
+    dirichlet_alpha
   )
   initial_z <- isometric_log_ratio(initial_p)
 
@@ -1298,12 +1403,14 @@ deconvolute_ratios_gradient_descent <- function(
   Sigma,
   epsilon = 10^-4,
   itmax = 200,
-  initial_p = NULL
+  initial_p = NULL,
+  dirichlet_alpha = 1
 ) {
-  initial_p <- .starting_simplex(
-    ncol(mean_signature_matrix),
+  initial_p <- .solver_start(
+    y,
+    mean_signature_matrix,
     initial_p,
-    colnames(mean_signature_matrix)
+    dirichlet_alpha
   )
   initial_z <- isometric_log_ratio(initial_p)
 

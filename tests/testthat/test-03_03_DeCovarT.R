@@ -348,6 +348,28 @@ test_that("All deconvolute_ratios_* solvers return a valid simplex", {
   expect_valid_simplex(as.numeric(inferred_gd), "BFGS")
 })
 
+test_that("starting_simplex supports barycentre, Dirichlet, and QP", {
+  p_bar <- starting_simplex(3L)
+  expect_equal(p_bar, rep(1 / 3, 3), tolerance = 1e-12)
+
+  p_dir <- withr::with_seed(11L, starting_simplex(3L, "dirichlet"))
+  expect_length(p_dir, 3L)
+  expect_equal(sum(p_dir), 1, tolerance = 1e-8)
+  expect_true(all(p_dir > 0))
+
+  skip_if_not_installed("limSolve")
+  setup <- .decovart_deriv_setup()
+  p_qp <- starting_simplex(
+    ncol(setup$mean_signature_matrix),
+    "qp",
+    colnames(setup$mean_signature_matrix),
+    y = setup$y,
+    mean_signature_matrix = setup$mean_signature_matrix
+  )
+  expect_equal(sum(p_qp), 1, tolerance = 1e-8)
+  expect_true(all(p_qp > 0))
+})
+
 test_that("Benchmark standard deconvolution algorithms against DeCovarT", {
   skip_if_not_installed("nnls")
   skip_if_not_installed("limSolve")

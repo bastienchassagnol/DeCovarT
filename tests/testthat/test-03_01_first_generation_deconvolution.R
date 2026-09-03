@@ -79,6 +79,17 @@ test_that("First-generation deconvolution solvers return a valid simplex", {
   )
   .expect_valid_simplex(estimated_lsei, setup$p, "deconrnaseq")
 
+  w_gls <- fixed_gls_covariance(
+    array(c(diag(2), diag(2)), dim = c(2, 2, 2)),
+    p = setup$p
+  )
+  estimated_gls <- deconvolute_ratios_gls(
+    y = setup$y,
+    mean_signature_matrix = setup$mean_signature_matrix,
+    W = w_gls
+  )
+  .expect_valid_simplex(estimated_gls, setup$p, "gls")
+
   # ------------------------------------------------------------------ #
   # CIBERSORT-style nu-SVR (e1071); needs more genes than hold-out SVM #
   # ------------------------------------------------------------------ #

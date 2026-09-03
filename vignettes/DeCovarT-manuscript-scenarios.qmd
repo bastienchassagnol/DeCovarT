@@ -336,7 +336,8 @@ type. Edge colour: precision sign (red inhibitory, teal activatory).](figures/fi
 default controls (first-generation linear methods in
 `R/03_01_first_generation_deconvolution.R`; covariance-aware maps in
 `R/03_03_DeCovarT_estimate_ratios_frequentist.R`). All start from the
-open simplex via `.starting_simplex()` unless `initial_p` is supplied.
+open simplex via `starting_simplex()` (barycentre by default;
+Dirichlet or QP starts via `initial_p`).
 Reproduce the hybrid comparison with
 `source("scripts/deconvolute_simulated_scenario.R")` ($N=20$ bulks,
 true $\boldsymbol{p}=(0.4,0.4,0.2)$).
@@ -344,10 +345,10 @@ true $\boldsymbol{p}=(0.4,0.4,0.2)$).
 | Algorithm | Function | Defaults | Constraint |
 |:----------|:---------|:---------|:-----------|
 | $\nu$-SVR (`CIBERSORT`-style) | `deconvolute_ratios_cibersort` | linear kernel; $\nu\in\{0.2,0.5,0.8\}$ if $G\ge 4$, else $\nu=0.5$ | clip negatives, `repair_simplex()` |
-| OLS | `deconvolute_ratios_lsfit` | `stats::lsfit(..., intercept = FALSE)` | `repair_simplex()` |
 | Robust linear (`ABIS`-style) | `deconvolute_ratios_rlm` | `MASS::rlm(..., method = "M")` | `repair_simplex()` |
 | NNLS | `deconvolute_ratios_nnls` | `nnls::nnls()` | `repair_simplex()` |
 | QP (`DeconRNASeq`-style) | `deconvolute_ratios_deconrnaseq` | `limSolve::lsei()` with $\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1$, $\boldsymbol{p}\ge\mathbf{0}$ | simplex equality / inequality |
+| GLS (fixed covariance) | `deconvolute_ratios_gls` | `MASS::lm.gls()` with `W =` `fixed_gls_covariance()` | `repair_simplex()` |
 | Marquardt–Levenberg | `deconvolute_ratios_Marquardt_Levenberg` | `epsilon = 1e-4`, `itmax = 200`, ILR | ILR $\to$ open simplex |
 | Newton–Raphson | `deconvolute_ratios_Newton_Raphson` | `nlminb`; `rel.tol = x.tol = 1e-4`, `iter.max = 200` | ILR |
 | L-BFGS-B | `deconvolute_ratios_L_BFGS_B` | box $[0,1]^J$; `maxit = 200`; then $p/\sum p$ | box + closure |

@@ -354,13 +354,16 @@ $\boldsymbol{p}$.
 
 ### Continuous intensities: frequentist versus Bayesian CTS
 
-DSection is the univariate ancestor of DeCovarT: a Gaussian convolution
-that is heteroscedastic across genes, with Normal / Gamma / Dirichlet
-priors and a Gibbs–Metropolis sampler
-[@erkkilaProbabilisticAnalysisGene2010]. DeMix and DeMixT remain
-frequentist convolutions that treat tumour or stromal profiles as latent
-[@ahnDeMixDeconvolutionMixed2013; @wangTranscriptomeDeconvolutionHeterogeneous2018].
-DeCovarT keeps that convolution but makes it **multivariate** with sparse
+DeMixT (and DeMix) is the closest published **convolution** to DeCovarT:
+a frequentist Gaussian mixture of observed and latent components, but
+with **independent genes** and an unknown tumour or stromal profile
+[@wangTranscriptomeDeconvolutionHeterogeneous2018; @ahnDeMixDeconvolutionMixed2013].
+DSection is a **Bayesian** univariate convolution (Normal / Gamma /
+Dirichlet priors and a Gibbs--Metropolis sampler)
+[@erkkilaProbabilisticAnalysisGene2010]. DeCovarT is frequentist,
+closed-reference, and **multivariate**: plug-in
+$(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})$, no unknown extra
+component, and a gene--gene residual network inside each
 $\boldsymbol{\Sigma}_{j}$.
 
 `RNA-Sieve` is a supervised likelihood, but not that convolution
@@ -523,21 +526,27 @@ CIBERSORT's $\nu$-SVR replaces squared error by a robust hinge
 [@newmanRobustEnumerationCell2015].
 
 **Generalised least squares** uses a single residual covariance
-$\Sigma$, not a cell-type tensor. The equi-balanced approximation
-$p_{j}=1/J$ of the DeCovarT covariance is
-$\Sigma=J^{-2}\sum_{j}\boldsymbol{\Sigma}_{j}$, and
+$W$ that does **not** depend on $\boldsymbol{p}$. With $\boldsymbol{\Sigma}_j$
+known, the gold-standard competitor is [`deconvolute_ratios_gls()`](../reference/deconvolute_ratios_gls.html)
+(`MASS::lm.gls`, `inverse = TRUE`): $W$ is a $G\times G$ covariance,
+typically
+[`fixed_gls_covariance()`](../reference/fixed_gls_covariance.html)
+$\operatorname{diag}\{\sum_j \bar p_j^2\boldsymbol{\Sigma}_j\}$ at
+$\bar p_j=1/J$ (or at a known design $p^{\star}$). Then
 
 $$
 \hat{\boldsymbol{p}}^{\mathrm{GLS}}
-=(\boldsymbol{\mu}^{\top}\Theta\boldsymbol{\mu})^{-1}\boldsymbol{\mu}^{\top}\Theta\boldsymbol{y}_{\cdot i},
-\qquad
-\Theta=\Sigma^{-1},
+=(\boldsymbol{\mu}^{\top}W^{-1}\boldsymbol{\mu})^{-1}\boldsymbol{\mu}^{\top}W^{-1}\boldsymbol{y}_{\cdot i},
 $$ {#eq-gls}
 
-after which the simplex is imposed by ALR or projection. WLS is the
-diagonal special case $\Theta=W$. DeCovarT is strictly richer:
+after which the simplex is imposed by projection. Do **not** copy $W$
+into every DeCovarT tensor slice:
+$\sum_j p_j^2 W=\|p\|_2^2 W$ still depends on $p$. WLS is the
+diagonal special case. DeCovarT is strictly richer:
 $\Sigma(\boldsymbol{p})=\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}$ depends on the
-unknown coefficients.
+unknown coefficients. `nlme::gls()` is for *estimating* a structured
+$\Sigma$ (AR(1), compound symmetry); it is the wrong tool when $W$ is
+already known.
 
 A direct extension, following the BayesPrism–DWLS construction
 [@zhangIntegratedInferenceCellularCompositions2026], is to ingest $W$

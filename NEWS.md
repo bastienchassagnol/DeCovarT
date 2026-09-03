@@ -1,5 +1,19 @@
 # DeCovarT (development version)
 
+* **Solver starts.** `starting_simplex()` (used by all ILR maps) accepts
+  the barycentre (default), a Dirichlet draw (`initial_p = "dirichlet"`,
+  `dirichlet_alpha = 1` uniform on the simplex; $\alpha>1$ centre-biased;
+  $\alpha<1$ face-biased; several independent draws for multistarts), or
+  a mean-only simplex QP (`initial_p = "qp"` via
+  `deconvolute_ratios_deconrnaseq()`). `multistart_decovart()` uses the
+  Dirichlet path.
+
+* **Fixed-covariance GLS competitor.** `deconvolute_ratios_gls()` wraps
+  `MASS::lm.gls()` with a known $G\times G$ residual covariance;
+  `fixed_gls_covariance()` builds the global-diagonal $W$ at a declared
+  $p$ (default $1/J$). Unconstrained OLS (`deconvolute_ratios_lsfit`)
+  has been removed.
+
 * **ILR / Helmert simplex chart.** Frequentist solvers and
   `vcov.decovart_fit()` now use isometric log-ratio coordinates on a
   Helmert basis (`helmert_basis()`, `isometric_logistic()`,

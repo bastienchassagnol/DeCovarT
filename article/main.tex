@@ -443,18 +443,19 @@
 
     In contrast to standard linear regression, DeCovarT relaxes
     \emph{exogeneity} by treating latent cell-type expression profiles as
-    random rather than fixed. The closest published method is DSection
-    \cite{erkkilaProbabilisticAnalysisGene2010}, which implements a
-    \emph{univariate} Gaussian convolution (independent genes, gene-specific
-    variances). DeMix \cite{ahnDeMixDeconvolutionMixed2013}, DeMixT
-    \cite{wangTranscriptomeDeconvolutionHeterogeneous2018} and ISOpureR
-    \cite{anghelISOpureRImplementationComputational2015} likewise treat
-    tumour or stromal profiles as latent rather than observed; Ogundijo and
-    Wang \cite{ogundijoSequentialMonteCarlo2017} extend DSection by
-    approximating the posterior with sequential Monte Carlo. DeCovarT
-    generalises the DSection likelihood to a \emph{multivariate} Gaussian
-    convolution with a sparse cell-type-specific covariance
-    $\boldsymbol{\Sigma}_{j}$.
+    random rather than fixed. The closest published \emph{convolution} is
+    DeMixT \cite{wangTranscriptomeDeconvolutionHeterogeneous2018} (and
+    DeMix \cite{ahnDeMixDeconvolutionMixed2013}): frequentist Gaussian
+    convolutions with an unknown tumour or stromal component, but
+    gene-wise independent variances and no gene--gene residual network.
+    DSection \cite{erkkilaProbabilisticAnalysisGene2010} is a
+    \emph{Bayesian} univariate convolution (independent genes, Gibbs /
+    Metropolis). Ogundijo and Wang
+    \cite{ogundijoSequentialMonteCarlo2017} extend DSection by sequential
+    Monte Carlo. DeCovarT keeps a closed reference
+    $(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})$ and a frequentist
+    multivariate convolution with sparse cell-type-specific
+    $\boldsymbol{\Sigma}_{j}$; there is no unknown extra component.
 
     RNA-Sieve \cite{erdmann-phamLikelihoodbasedDeconvolutionBulk2021} is
     also a supervised, likelihood-based deconvolution, but of a different

@@ -38,7 +38,7 @@ constraint.
 When \code{open = TRUE}, entries on the closed-simplex boundary are nudged
 into the relative interior so that \code{\link[=isometric_log_ratio]{isometric_log_ratio()}} is defined
 (ILR / Marquardt / Newton starts). That open-simplex path is the
-former role of \code{.starting_simplex()}.
+former role of \code{\link[=starting_simplex]{starting_simplex()}}.
 }
 \examples{
 repair_simplex(c(0.2, 0.3, 0.5 + 1e-12))

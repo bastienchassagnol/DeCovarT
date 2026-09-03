@@ -1422,8 +1422,10 @@ boundary_diagnostics <- function(
 #' a second, equally good or better mode.
 #'
 #' @inheritParams loglik_multivariate
-#' @param n_starts Number of random starts (in addition to the
+#' @param n_starts Number of Dirichlet restarts (in addition to the
 #'   equi-balanced start).
+#' @param dirichlet_alpha Concentration for those random starts (default
+#'   `1`). See [starting_simplex()].
 #' @param solver Solver accepting `initial_p` and `return_model`;
 #'   defaults to [deconvolute_ratios_Marquardt_Levenberg()].
 #' @param loglik_tol Two starts count as reaching the same mode when their
@@ -1451,15 +1453,24 @@ multistart_decovart <- function(
   n_starts = 5L,
   solver = deconvolute_ratios_Marquardt_Levenberg,
   loglik_tol = 1e-4,
+  dirichlet_alpha = 1,
   ...
 ) {
   n_celltypes <- ncol(mean_signature_matrix)
   n_starts <- as.integer(n_starts)
   starts <- vector("list", n_starts + 1L)
-  starts[[1L]] <- rep(1 / n_celltypes, n_celltypes)
+  starts[[1L]] <- starting_simplex(
+    n_celltypes,
+    "barycentre",
+    colnames(mean_signature_matrix)
+  )
   for (s in seq_len(n_starts)) {
-    gammas <- stats::rgamma(n_celltypes, shape = 1, rate = 1)
-    starts[[s + 1L]] <- gammas / sum(gammas)
+    starts[[s + 1L]] <- starting_simplex(
+      n_celltypes,
+      "dirichlet",
+      colnames(mean_signature_matrix),
+      dirichlet_alpha = dirichlet_alpha
+    )
   }
   estimates <- matrix(
     NA_real_,
