@@ -21,7 +21,7 @@ Pearson correlations
 \eqn{r_{ab}=\mathrm{cor}(\hat p_a,\hat p_b)} across Monte Carlo
 replicates (and cell types). This is \strong{behavioural similarity}: two
 solvers can correlate near 1 while remaining systematically biased.
-Hierarchical order uses \(d_{ab}=1-r_{ab}\).
+Hierarchical order uses \eqn{d_{ab} = 1 - r_{ab}}.
 }
 \examples{
 set.seed(1)

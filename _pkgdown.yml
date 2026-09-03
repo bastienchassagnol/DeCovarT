@@ -173,6 +173,7 @@ reference:
       - isometric_log_ratio
       - jacobian_isometric_logistic
       - hessian_isometric_logistic
+      - starting_simplex
       - additive_logistic
       - additive_log_ratio
       - jacobian_additive_logistic
@@ -190,6 +191,13 @@ reference:
     contents:
       - deconvolute_ratios_Marquardt_Levenberg
       - fit_decovart
+  - subtitle: Fixed-covariance GLS competitor
+    desc: |
+      `MASS::lm.gls()` wrapper with a known residual covariance
+      (`fixed_gls_covariance()` at a declared composition).
+    contents:
+      - deconvolute_ratios_gls
+      - fixed_gls_covariance
   - subtitle: Structure-aware covariance backends
     desc: |
       Factorise \(\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2
