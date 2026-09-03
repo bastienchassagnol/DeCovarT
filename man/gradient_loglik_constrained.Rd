@@ -4,10 +4,10 @@
 \alias{gradient_loglik_constrained}
 \title{Constrained gradient via the chain rule}
 \usage{
-gradient_loglik_constrained(rho, y, mean_signature_matrix, Sigma)
+gradient_loglik_constrained(z, y, mean_signature_matrix, Sigma, V = NULL)
 }
 \arguments{
-\item{rho}{Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.}
+\item{z}{Numeric vector \eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}}.}
 
 \item{y}{Numeric vector (or one-column matrix)
 \eqn{\boldsymbol{y}\in\mathbb{R}^{G}}.}
@@ -17,6 +17,8 @@ gradient_loglik_constrained(rho, y, mean_signature_matrix, Sigma)
 
 \item{Sigma}{Array of cell-type covariances in
 \eqn{\mathcal{M}_{G\times G\times J}}.}
+
+\item{V}{Optional ILR basis; see \code{\link[=isometric_logistic]{isometric_logistic()}}.}
 }
 \value{
 Numeric vector in \eqn{\mathbb{R}^{J-1}}.
@@ -24,19 +26,23 @@ Numeric vector in \eqn{\mathbb{R}^{J-1}}.
 \description{
 Returns
 \deqn{
-  \nabla_{\boldsymbol{\rho}}\ell
+  \nabla_{\boldsymbol{z}}\ell
   =
-  \bigl(\nabla_{\boldsymbol{p}}\ell\bigr)^{\mathsf{T}}
-  \mathbf{J}_{\boldsymbol{\psi}}(\boldsymbol{\rho}),
+  \mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}
+  \nabla_{\boldsymbol{p}}\ell
+  =
+  \mathbf{V}^{\mathsf{T}}
+  \mathbf{S}(\boldsymbol{p})
+  \nabla_{\boldsymbol{p}}\ell,
 }
-i.e. first-order chain rule for
-\eqn{\ell\circ\boldsymbol{\psi}}.
+i.e. the first-order chain rule for
+\eqn{\ell\circ\boldsymbol{\psi}} in ILR coordinates.
 }
 \examples{
 mu <- matrix(c(20, 22, 22, 20), 2)
 Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
 p <- c(0.6, 0.4)
 y <- drop(mu \%*\% p)
-gradient_loglik_constrained(additive_log_ratio(p), y, mu, Sigma)
+gradient_loglik_constrained(isometric_log_ratio(p), y, mu, Sigma)
 }
 \keyword{internal}

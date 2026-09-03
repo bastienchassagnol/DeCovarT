@@ -19,7 +19,8 @@
   standardise = FALSE,
   scaled = FALSE,
   cores = 1L,
-  scenario_meta = NULL
+  scenario_meta = NULL,
+  coverage_interval = "wilson"
 ) {
   mu <- true_theta$mu
   Sigma <- true_theta$sigma
@@ -27,6 +28,11 @@
     stop("`true_theta` must contain `sigma` for simulation.", call. = FALSE)
   }
   p <- true_theta$p
+
+  described <- describe_simulation_scenario(
+    true_theta = true_theta,
+    adjacency = true_theta$adjacency
+  )
 
   simulated_data <- simulate_bulk_mixture(
     signature_matrix = mu,
@@ -43,7 +49,8 @@
     deconvolution_functions = deconvolution_functions,
     standardise = standardise,
     scaled = scaled,
-    cores = cores
+    cores = cores,
+    coverage_interval = coverage_interval
   ))
 
   .attach_scenario_meta <- function(tbl) {
@@ -78,7 +85,10 @@
     ),
     monte_carlo = .attach_scenario_meta(estimated_ratios$monte_carlo),
     optimisation = .attach_scenario_meta(estimated_ratios$optimisation),
-    config = config
+    config = config,
+    theta_true = described$theta_true,
+    descriptors = .attach_scenario_meta(described$descriptors),
+    supplementary = .attach_scenario_meta(described$supplementary)
   )
 }
 
@@ -108,6 +118,8 @@
 #' @param standardise,scaled Passed to [deconvolute_ratios()].
 #' @param cores Workers for the per-sample loop inside
 #'   [deconvolute_ratios()]. Defaults to `1L`.
+#' @param coverage_interval Coverage interval for the Monte Carlo
+#'   coverage *rate*; see [coverage_mc_interval()].
 #'
 #' @return A list with:
 #' * `regression`: `global` (per-sample composition scores) and
@@ -115,7 +127,16 @@
 #' * `monte_carlo`: ADEMP summaries per cell type;
 #' * `optimisation`: per-sample elapsed time, memory, KKT residual, and
 #'   \eqn{\hat{\boldsymbol{p}}};
-#' * `config`: tibble of scenario metadata (one row per scenario).
+#' * `config`: tibble of scenario metadata (one row per scenario);
+#' * `theta_true`: list of convolution parameters
+#'   (\eqn{\boldsymbol{p}}, \eqn{\boldsymbol{\mu}}, \eqn{\boldsymbol{\Sigma}_j})
+#'   actually used to draw the bulk;
+#' * `descriptors`: kept scenario statistics (composition, mean, SPD,
+#'   network, tangent Fisher, MixSim BarOmega, pairwise Hellinger);
+#' * `supplementary`: Jeffreys overlap, recorded separately;
+#' * `call`: the matched call ([match.call()]).
+#' There is no composite global score: each metric answers a different
+#' question.
 #'
 #' @examples
 #' set.seed(1)
@@ -147,15 +168,18 @@
 #' @importFrom rlang .data
 #' @export
 #' @seealso [simulate_bulk_mixture()], [deconvolute_ratios()],
-#'   [compute_benchmark_metrics()]
+#'   [compute_benchmark_metrics()], [describe_simulation_scenario()],
+#'   [coverage_mc_interval()]
 run_simulation_benchmark <- function(
   scenario_config,
   deconvolution_functions,
   n = 200,
   standardise = FALSE,
   scaled = FALSE,
-  cores = 1L
+  cores = 1L,
+  coverage_interval = "wilson"
 ) {
+  call <- match.call()
   if (!is.data.frame(scenario_config)) {
     if (!is.list(scenario_config)) {
       stop(
@@ -204,7 +228,8 @@ run_simulation_benchmark <- function(
       standardise = standardise,
       scaled = scaled,
       cores = cores,
-      scenario_meta = scenario_meta
+      scenario_meta = scenario_meta,
+      coverage_interval = coverage_interval
     )
   }
 
@@ -225,6 +250,14 @@ run_simulation_benchmark <- function(
     optimisation = dplyr::bind_rows(
       purrr::map(scenario_results, "optimisation")
     ),
-    config = dplyr::bind_rows(purrr::map(scenario_results, "config"))
+    config = dplyr::bind_rows(purrr::map(scenario_results, "config")),
+    theta_true = purrr::map(scenario_results, "theta_true"),
+    descriptors = dplyr::bind_rows(
+      purrr::map(scenario_results, "descriptors")
+    ),
+    supplementary = dplyr::bind_rows(
+      purrr::map(scenario_results, "supplementary")
+    ),
+    call = call
   )
 }

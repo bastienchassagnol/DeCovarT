@@ -20,6 +20,7 @@ compute_benchmark_metrics(
   loglik_true = NULL,
   presence_threshold = 1e-04,
   level = 0.95,
+  coverage_interval = "wilson",
   algorithm = NA_character_
 )
 }
@@ -60,7 +61,12 @@ F1 / false-positive mass (default \code{1e-4}).}
 \item{level}{Wald coverage level when \code{lower} / \code{upper} are omitted
 (default \code{0.95}).}
 
-\item{algorithm}{Optional solver label attached to every row.}
+\item{coverage_interval}{Interval for the Monte Carlo coverage \emph{rate}
+\eqn{\hat\pi}: \code{"wilson"} (default), \code{"wald"}, or \code{"agresti_coull"}.
+This is not the interval for \eqn{p_j} itself.}
+
+\item{algorithm}{Character label stored on each metrics row (typically
+the solver name). Recycled to length one.}
 }
 \value{
 A named list with:

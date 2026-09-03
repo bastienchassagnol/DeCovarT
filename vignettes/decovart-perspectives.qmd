@@ -83,6 +83,15 @@ $$ {#eq-interaction-cov}
 with $f,g$ often taken as $p_j p_k$. Allowing $\operatorname{Cov}(\boldsymbol
 {X}_j,\boldsymbol{X}_k)\neq\boldsymbol{0}$ relaxes DeCovarT's independence assumption between components and captures non-additive mixing. Such a model remains compatible with the same simplex constraint on $\boldsymbol{p}$ and could still be fitted by constrained MLE, at the cost of many additional interaction parameters and careful guard against overfitting.
 
+The present generative framework keeps a **linear** mean map
+$\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}$. When the regression of a
+compositional response on Euclidean predictors is itself nonlinear,
+flexible simplicial nonparametric models
+[@tsagrisFlexibleNonparametricRegression2023] and folded
+$\alpha$-distributions on the simplex
+[@tsagrisFoldedModelCompositional2020] are a natural outlook; they are
+not used in the current convolution.
+
 ## Lineage-aware hierarchical deconvolution {#sec-hierarchical-deconvolution}
 
 Flat deconvolution treats every cell type as a sibling on one simplex.

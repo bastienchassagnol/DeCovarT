@@ -66,7 +66,7 @@ cell-type covariances.}
 
 \item{method}{Optimiser; one of \code{"Marquardt-Levenberg"},
 \code{"L-BFGS-B"}, \code{"Newton-Raphson"} (case-insensitive). These three
-maps already land on the simplex (ALR or \eqn{p/\sum p}); they do
+maps already land on the simplex (ILR or \eqn{p/\sum p}); they do
 \strong{not} call \code{\link[=repair_simplex]{repair_simplex()}}.}
 
 \item{epsilon, itmax}{Absolute convergence tolerance and iteration
@@ -102,9 +102,9 @@ contract with the generic.}
 
 \item{level}{Confidence level \eqn{1-\alpha} (default \code{0.95}). Wald
 intervals use asymptotic normality of the MLE with standard errors
-from \code{\link[=vcov_alr_delta]{vcov_alr_delta()}} /
+from \code{\link[=vcov_ilr_delta]{vcov_ilr_delta()}} /
 \code{\link[=expected_fisher_unconstrained]{expected_fisher_unconstrained()}} (see Details of \code{\link[=fit_decovart]{fit_decovart()}}
-and of \code{\link[=vcov_alr_delta]{vcov_alr_delta()}}):
+and of \code{\link[=vcov_ilr_delta]{vcov_ilr_delta()}}):
 \eqn{\hat{p}_j \pm z_{1-\alpha/2}\,\mathrm{SE}_j}.}
 }
 \value{
@@ -169,21 +169,21 @@ information}, multivariate normal) is
   \bigr).
 }
 Cramer--Rao gives
-\eqn{\mathrm{Var}(\hat{\boldsymbol{\rho}})\succeq I_{\boldsymbol{\rho}}^{-1}}
-in ALR coordinates, with
-\eqn{I_{\boldsymbol{\rho}}
+\eqn{\mathrm{Var}(\hat{\boldsymbol{z}})\succeq I_{\boldsymbol{z}}^{-1}}
+in ILR coordinates, with
+\eqn{I_{\boldsymbol{z}}
 =\mathbf{J}_{\boldsymbol{\psi}}^{\top} I(\boldsymbol{p})
 \mathbf{J}_{\boldsymbol{\psi}}} and
 \eqn{\mathbf{J}_{\boldsymbol{\psi}}
-=\partial\boldsymbol{\psi}/\partial\boldsymbol{\rho}^{\top}}
-(\code{\link[=jacobian_additive_logistic]{jacobian_additive_logistic()}}). The delta method maps the bound
+=\mathbf{S}(\boldsymbol{p})\mathbf{V}}
+(\code{\link[=jacobian_isometric_logistic]{jacobian_isometric_logistic()}}). The delta method maps the bound
 back to the simplex:
 \deqn{
   \mathrm{Var}(\hat{\boldsymbol{p}})
   =
   \mathbf{J}_{\boldsymbol{\psi}}
-  I_{\boldsymbol{\rho}}^{-1}
-  \mathbf{J}_{\boldsymbol{\psi}}^{\top}.
+  I_{\boldsymbol{z}}^{-1}
+  \mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}.
 }
 }
 \examples{
@@ -206,7 +206,7 @@ nobs(fit)
 \seealso{
 \code{\link[=deconvolute_ratios]{deconvolute_ratios()}},
 \code{\link[=deconvolute_ratios_Marquardt_Levenberg]{deconvolute_ratios_Marquardt_Levenberg()}},
-\code{\link[=expected_fisher_unconstrained]{expected_fisher_unconstrained()}}, \code{\link[=vcov_alr_delta]{vcov_alr_delta()}},
+\code{\link[=expected_fisher_unconstrained]{expected_fisher_unconstrained()}}, \code{\link[=vcov_ilr_delta]{vcov_ilr_delta()}},
 \code{\link[=coef.decovart_fit]{coef.decovart_fit()}}, \code{\link[=vcov.decovart_fit]{vcov.decovart_fit()}},
 \code{\link[=confint.decovart_fit]{confint.decovart_fit()}}
 }

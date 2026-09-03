@@ -24,14 +24,14 @@ simplex (\eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1},
 Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
 }
 \description{
-Implements the reparametrisation
-\eqn{\boldsymbol{\psi}:\boldsymbol{\rho}\mapsto\boldsymbol{p}} used in the
-article, sending unconstrained coordinates
-\eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}} to cellular proportions
-\eqn{\boldsymbol{p}\in\Delta^{J-1}}. This is the \emph{additive logistic
-transform} of Aitchison, i.e. the inverse additive log-ratio map
-(\eqn{\mathrm{alr}^{-1}}), equivalently a softmax with the last category
-\eqn{J} pinned as reference (\eqn{\rho_J\equiv 0}).
+Inverse additive log-ratio map
+\eqn{\boldsymbol{\psi}:\boldsymbol{\rho}\mapsto\boldsymbol{p}} of Aitchison
+(\eqn{\mathrm{alr}^{-1}}): a softmax with the last category \eqn{J}
+pinned as reference (\eqn{\rho_J\equiv 0}). Solvers and
+\code{\link[=vcov.decovart_fit]{vcov.decovart_fit()}} use the isometric log-ratio chart
+\code{\link[=isometric_logistic]{isometric_logistic()}} instead. This ALR helper is retained for the
+vignette appendix and for reference-invariance checks against
+\code{\link[=vcov_alr_delta]{vcov_alr_delta()}}.
 
 Recovers the unconstrained additive log-ratio coordinates
 \eqn{\rho_j=\ln(p_j/p_J)} for \eqn{j=1,\ldots,J-1}, with the last part

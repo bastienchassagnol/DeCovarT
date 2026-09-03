@@ -72,173 +72,46 @@ in [`lrt_decovart()`](../reference/lrt_decovart.html),
 ::: {#prp-identifiability}
 ## Identifiability of the composition
 
+The parameter-to-distribution map is
+
+$$
+\boldsymbol{p}
+\longmapsto
+\bigl(
+  \boldsymbol{\mu}\boldsymbol{p},\;
+  \boldsymbol{\Sigma}(\boldsymbol{p})
+  =\textstyle\sum_{j}p_{j}^{2}\boldsymbol{\Sigma}_{j}
+\bigr).
+$$ {#eq-param-map}
+
 Two compositions induce the same law
 $\mathcal{N}_G(\boldsymbol{\mu}\boldsymbol{p},
-\boldsymbol{\Sigma}(\boldsymbol{p}))$ only if they coincide, provided the
-mean map is injective on the simplex. Because
-$\mathbf{1}^{\top}\boldsymbol{p}=1$ removes one degree of freedom,
-injectivity of $\boldsymbol{p}\mapsto\boldsymbol{\mu}\boldsymbol{p}$
-restricted to $\Delta^{J-1}$ requires the $J-1$ **contrast** columns
-$\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot J}$,
-$j=1,\ldots,J-1$, to be linearly independent, i.e.
-$\operatorname{rank}(\boldsymbol{\mu})=J$ with $G\ge J$ in the generic
-case.
+\boldsymbol{\Sigma}(\boldsymbol{p}))$ only if they coincide, **provided that
+map is injective**. Full column rank of $\boldsymbol{\mu}$
+($\operatorname{rank}(\boldsymbol{\mu})=J$, equivalently linearly
+independent contrast columns
+$\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot J}$) is a convenient
+**sufficient** condition, because then the mean map alone is injective on
+the simplex. It is **not necessary**. Two cell types may share identical
+or collinear mean profiles and remain identifiable when their covariances
+differ: the second component of @eq-param-map still separates
+$\boldsymbol{p}$. Conversely, identical means *and* proportional
+covariances ($\boldsymbol{\Sigma}_{2}=c\boldsymbol{\Sigma}_{1}$) make the
+Gaussian family non-injective.
 :::
 
-Identifiability is a property of the *reference*, not of the data: no
-amount of bulk sequencing rescues a signature whose contrast columns are
-collinear. Two cell types with proportional mean profiles are separated
-only through $\boldsymbol{\Sigma}_j$, which is exactly the regime
-DeCovarT targets — and exactly the regime where the mean-based condition
-number $\kappa(\boldsymbol{\mu})$ is a misleading diagnostic (see the
+Identifiability is a property of the *reference*, not of the bulk sample:
+no amount of sequencing rescues a pair of types that agree in both mean
+and covariance. The mean-based condition number $\kappa(\boldsymbol{\mu})$
+is therefore a misleading diagnostic in the covariance-only regime
+DeCovarT targets (see the
 [feature-selection vignette](feature-selection.html#sec-weighted-kappa)).
-Near-collinearity is reported as a warning by
-[`fit_decovart()`](../reference/fit_decovart.html) and studied
-numerically in the
+Near-collinear *means* are still reported as a warning by
+[`fit_decovart()`](../reference/fit_decovart.html); that warning does not
+by itself imply that $\boldsymbol{p}$ is unidentifiable. Numerical
+illustrations live in the
 [appendix simulations](DeCovarT_appendix_simualtion_frameworks.html).
 
-## Label permutation is not a bootstrap {#sec-label-switching}
-
-@prp-identifiability identifies $\boldsymbol{p}$ *given a labelled
-reference*. It does not identify the labels themselves. Write
-$\pi$ for a permutation of $\{1,\ldots,J\}$, and write
-$\boldsymbol{\mu}_{\pi}$, $\boldsymbol{\Sigma}_{\pi}$ and
-$\boldsymbol{p}_{\pi}$ for the corresponding reordering of columns,
-slices and coordinates. The Gaussian convolution is unchanged:
-
-$$
-\boldsymbol{\mu}_{\pi}\boldsymbol{p}_{\pi}
-=
-\boldsymbol{\mu}\boldsymbol{p},
-\qquad
-\boldsymbol{\Sigma}(\boldsymbol{p}_{\pi};\boldsymbol{\Sigma}_{\pi})
-=
-\boldsymbol{\Sigma}(\boldsymbol{p}).
-$$ {#eq-label-equivariance}
-
-::: {#thm-label-equivariance}
-## Equivariance under cell-type relabelling
-
-For every permutation $\pi$ of the cell types and every bulk profile
-$\boldsymbol{y}$,
-
-$$
-\ell(\boldsymbol{p};\,\boldsymbol{y},\,\boldsymbol{\mu},\,\boldsymbol{\Sigma})
-=
-\ell(\boldsymbol{p}_{\pi};\,\boldsymbol{y},\,\boldsymbol{\mu}_{\pi},
-\boldsymbol{\Sigma}_{\pi}).
-$$
-
-In particular the maximised log-likelihood does not depend on how the
-purified columns are named, so a permutation of those names is not a
-useful exchangeability null for $\boldsymbol{p}$.
-:::
-
-This is the same permutation symmetry that makes finite mixture models
-identifiable **only up to labelling**. Ordinary $K$-component mixtures
-are typically identified up to permutation of the component labels, which
-is distinct from degeneracies such as coincident components or zero
-mixing weights
-[@xiaoBayesianIdentificationEstimation2025]. Under an exchangeable prior
-the posterior inherits that symmetry: there are up to $K!$
-permutation-equivalent representations, and component-specific labelled
-summaries are meaningless until a relabelling convention is imposed
-[@grunBayesianFiniteMixture2022; @newmanFastSamplingModel2025]. The
-canonical frequentist and MCMC accounts are
-@stephensDealingLabelSwitching2000, who showed that artificial
-identifiability constraints do not in general solve the inferential
-problem, @jasraMarkovChainMonte2005 for the MCMC review, and
-@papastamoulisLabelSwitchingPackage2016 for systematic post-processing.
-
-DeCovarT is *not* an unlabelled mixture of the bulk. Reviews of
-transcriptomic deconvolution distinguish **reference-based** methods,
-where a named signature supplies the cell-type identities, from
-**reference-free** factorisations in which both the signature and the
-proportions must be inferred
-[@avilacobosComputationalDeconvolutionTranscriptomics2018;
-@nguyenFourteenYearsCellular2024;
-@sturmComprehensiveEvaluationTranscriptomebased2019;
-@gaspard-boulincCelltypeDeconvolutionMethods2025]. Writing $Y\approx SP$
-with a known, named $S$ already anchors “B cell”, “monocyte”, and so on.
-Permuting the columns of $S$ together with the corresponding rows of $P$
-is algebraically harmless; permuting $P$ alone, or shuffling the names of
-an already averaged reference $X$, changes the biological meaning of the
-fit and is not a valid bootstrap.
-
-Gene permutation is not a bootstrap either. Genes are the coordinates of
-the expression space. Reordering them jointly in the bulk *and* the
-reference changes nothing; reordering them in the bulk alone against a
-frozen signature destroys the gene-wise pairing and is not a source of
-sampling uncertainty.
-
-```{r}
-#| label: label-vs-gene-permutation
-mu_lab <- matrix(
-  c(20, 40, 15, 40, 20, 25, 25, 30, 35),
-  nrow = 3,
-  dimnames = list(paste0("g", 1:3), paste0("ct", 1:3))
-)
-sig_lab <- array(
-  0,
-  dim = c(3, 3, 3),
-  dimnames = list(rownames(mu_lab), rownames(mu_lab), colnames(mu_lab))
-)
-for (j in 1:3) {
-  sig_lab[, , j] <- diag(3) * c(1, 1.5, 1.2)[j]
-}
-p_lab <- c(0.5, 0.3, 0.2)
-y_lab <- drop(mu_lab %*% p_lab)
-perm <- c(3L, 1L, 2L)
-mu_perm <- mu_lab[, perm, drop = FALSE]
-colnames(mu_perm) <- colnames(mu_lab)
-sig_perm <- sig_lab[, , perm, drop = FALSE]
-dimnames(sig_perm) <- dimnames(sig_lab)
-
-c(
-  original = loglik_multivariate(p_lab, y_lab, mu_lab, sig_lab),
-  cell_type_relabel = loglik_multivariate(
-    p_lab[perm],
-    y_lab,
-    mu_perm,
-    sig_perm
-  ),
-  gene_shuffle = loglik_multivariate(
-    p_lab,
-    y_lab[c(3L, 1L, 2L)],
-    mu_lab,
-    sig_lab
-  )
-)
-```
-
-The first two values agree to machine precision; the gene shuffle does
-not. That is why
-[`equivariance_check_decovart()`](../reference/equivariance_check_decovart.html)
-only verifies the labelled relabelling, and why
-[`reference_bootstrap_decovart()`](../reference/reference_bootstrap_decovart.html)
-resamples donors or cells rather than names (@sec-reference-bootstrap).
-
-True label switching returns if *both* $S$ and $P$ are unknown: then
-$SP=(SQ)(Q^{-1}P)$ for every permutation matrix $Q$, and component 1 has
-no intrinsic biological meaning across bootstrap or MCMC runs. The remedy
-is to **align inferred signatures to an external anchor** after each
-run, not to permute genes. Near-collinear cell types are a different
-failure: if $S_{\cdot A}\approx S_{\cdot B}$, many splits with
-$p_A+p_B$ fixed produce almost the same bulk, so individual fractions
-wander while their sum is stable. Relabelling does not cure that
-weak identification (@sec-identifiability; the
-[appendix simulations](DeCovarT_appendix_simualtion_frameworks.html)
-study collinear signatures numerically).
-
-| Operation | Appropriate? | What it tests |
-|:--|:--|:--|
-| Bootstrap **cells within cell type** | Yes | Reference-signature uncertainty |
-| Bootstrap **donors within cell type** | Favoured default | Biological / reference-population uncertainty |
-| Resample **compositions** (Dirichlet) | Yes, as a composition sweep | Performance over mixture weights |
-| Permute **cell-type labels** | Only as an equivariance check | Whether $\hat P$ relabels with $S$ |
-| Permute **genes** | No, for ordinary inference | Destroys or trivialises expression structure |
-
-: Reference-based resampling versus label or gene permutation. Only the first three rows estimate uncertainty; label permutation is a software check. {#tbl-reference-ops}
 
 ## Existence {#sec-existence}
 
@@ -317,7 +190,7 @@ negative eigenvalue.
 A negative determinant at a single admissible point is a counterexample,
 so the unconstrained DeCovarT log-likelihood is **not globally concave**
 under the stated positivity and rank assumptions. The same conclusion
-transfers to the additive log-ratio chart, because a $C^{2}$
+transfers to the isometric log-ratio chart, because a $C^{2}$
 diffeomorphism preserves the existence of directions of positive
 curvature. Consequently:
 
@@ -503,10 +376,10 @@ available.
 
 The **Wald** statistic is the cheap one:
 $(\hat{p}_j-c)/\mathrm{SE}_j$ with $\mathrm{SE}_j$ the delta-method
-standard error of [`vcov_alr_delta()`](../reference/vcov_alr_delta.html),
+standard error of [`vcov_ilr_delta()`](../reference/vcov_ilr_delta.html),
 giving the symmetric interval of
 [`confint.decovart_fit()`](../reference/fit_decovart.html). It costs one
-matrix inversion, but it linearises the additive log-ratio chart at
+matrix inversion, but it linearises the isometric log-ratio chart at
 $\hat{\boldsymbol{p}}$ [@oehlertNoteDeltaMethod1992] and is therefore
 *not* invariant to reparametrisation and can place limits outside
 $[0,1]$.
@@ -644,11 +517,11 @@ lrt_decovart(
    exhibit a configuration (their Case 8, a *nuisance* parameter on the
    boundary) whose limit is not a chi-square mixture at all. Pass explicit
    `weights`, or calibrate by simulation (@sec-bootstrap).
-2. **Do not encode the null in ALR coordinates.** $p_j=0$ corresponds to
-   $\rho_j=-\infty$, so the chart cannot represent the hypothesis. The
+2. **Do not encode the null in ILR coordinates.** $p_j=0$ corresponds to
+   an infinite log-ratio, so the chart cannot represent the hypothesis. The
    restricted fits substitute the constrained value directly.
 3. **Wald is unusable here.** The delta-method covariance is undefined on
-   the face; `vcov_alr_delta()` returns `NA` with a warning rather than a
+   the face; `vcov_ilr_delta()` returns `NA` with a warning rather than a
    plausible-looking number.
 :::
 
@@ -868,7 +741,7 @@ specified case the two matrices coincide. Near-collinear cell types
 make the information nearly singular; RNA-Sieve then subsamples genes.
 
 DeCovarT already has the Fisher analogue: the expected information of
-the convolution mapped through the ALR (@sec-interior; the derivatives
+the convolution mapped through the ILR (@sec-interior; the derivatives
 vignette). That Wald interval is the cheap interior tool, and it is
 **undefined** on a simplex face (@sec-boundary). The Godambe sandwich
 would be relevant *if* the multivariate Gaussian convolution is
@@ -889,7 +762,7 @@ three logically distinct claims, and refuses to conflate them:
 | Field | Established by | Does **not** establish |
 |:--|:--|:--|
 | `converged` (`istop` / `code`, `rdm`, `iterations`) | numerical stopping rules met | that the point is a maximum |
-| `local_maximum` (small ALR score norm, negative $\lambda_{\max}(\mathbf{H}_{\boldsymbol{\rho}})$) | stationarity with the right local curvature | global optimality |
+| `local_maximum` (small ILR score norm, negative $\lambda_{\max}(\mathbf{H}_{\boldsymbol{z}})$) | stationarity with the right local curvature | global optimality |
 | `near_boundary` ($\min_j\hat{p}_j$ small) | proximity to a simplex face | optimiser failure |
 | `multimodal` (spread of log-likelihoods over random starts) | evidence *for* several modes | absence of further modes |
 
@@ -911,7 +784,7 @@ do.call(rbind, fit$diagnostics)
 ```
 
 Every sample above converged and every curvature is negative, yet
-`local_maximum` is not uniformly `TRUE`: one iterate stopped with an ALR
+`local_maximum` is not uniformly `TRUE`: one iterate stopped with an ILR
 score norm just above the default `score_tol = 1e-4`. That is the
 distinction of @tbl-diagnostics doing its job rather than a failure —
 `score_tol` bounds the *score*, whereas the solver's `epsilon` bounds the
@@ -923,11 +796,11 @@ distinction of @tbl-diagnostics doing its job rather than a failure —
 Suppose the truth is $\boldsymbol{p}_0=(0,0.3,0.7)$. A fit returning
 $\hat{\boldsymbol{p}}=(10^{-10},0.3001,0.6999)$ is numerically
 *excellent*: the optimiser is correctly approaching a genuine boundary
-optimum, and an interior ALR solver cannot settle at a finite
-$\boldsymbol{\rho}$ there. So $\min_j\hat{p}_j\ll 1$ should not be read
+optimum, and an interior ILR solver cannot settle at a finite
+$\boldsymbol{z}$ there. So $\min_j\hat{p}_j\ll 1$ should not be read
 as "optimisation failed" but as
 
-> the estimate is close to a simplex face, so ALR coordinates and
+> the estimate is close to a simplex face, so ILR coordinates and
 > interior Wald inference may be unreliable.
 
 `boundary_tol` is therefore a **statistical** warning threshold for Wald
@@ -973,7 +846,7 @@ that the geometry of the estimate actually supports.
 
 | Procedure | What it returns | Calibration | Simplex faces | Replication | Function |
 |:--|:--|:--|:--|:--|:--|
-| Wald (ALR delta method) | per-sample CI | $\mathrm{N}(\boldsymbol{0},I(\hat{\boldsymbol{\rho}})^{-1})$ mapped by $\mathbf{J}_{\boldsymbol{\psi}}$ | unusable (`NA`) | one bulk column is a plug-in approximation (@nte-replication) | `confint()` / `vcov_alr_delta()` |
+| Wald (ILR delta method) | per-sample CI | $\mathrm{N}(\boldsymbol{0},I(\hat{\boldsymbol{z}})^{-1})$ mapped by $\mathbf{J}_{\boldsymbol{\psi}}$ | unusable (`NA`) | one bulk column is a plug-in approximation (@nte-replication) | `confint()` / `vcov_ilr_delta()` |
 | Profile likelihood | CI in $[0,1]$ | Wilks $\chi^2_1$ on the deviance (@wilksLargeSampleDistributionLikelihood1938) | stays inside the simplex; endpoints on a face need the next row | pooled replicates, or treat as approximate | `confint_profile_decovart()` |
 | Interior LRT | test of $p_j=c\in(0,1)$ | $\chi^2_1$ | not for $c=0$ or $c=1$ | same as profile | `lrt_decovart()` |
 | Boundary LRT | test of $p_j=0$ | chi-bar-square $\tfrac12\chi^2_0+\tfrac12\chi^2_1$ [@hermanDistributionLikelihoodRatio1954; @selfAsymptoticPropertiesMaximum1987] | designed for this | same as profile | `lrt_decovart()` (automatic) |
@@ -1027,7 +900,7 @@ in rough order of implementation cost.
   that @nte-replication describes — precisely DeCovarT's regime.
 - **Bayesian compositional models.** A logistic-normal or Dirichlet prior
   on $\boldsymbol{p}$ regularises the boundary: the posterior stays
-  proper where the ALR Wald interval degenerates, and credible intervals
+  proper where the ILR Wald interval degenerates, and credible intervals
   are usually more stable near a face. A credible interval is of course
   not an exact frequentist interval, and the prior must be defensible
   scientifically. This sits naturally alongside the MAP treatment of the

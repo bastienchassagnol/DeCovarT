@@ -42,12 +42,13 @@ reparametrised as
 \deqn{
   \boldsymbol{p}_{A^{c}}
   =
-  (1-s)\,\boldsymbol{\psi}(\boldsymbol{\rho}),
+  (1-s)\,\boldsymbol{\psi}(\boldsymbol{z}),
   \qquad
-  \boldsymbol{\rho}\in\mathbb{R}^{|A^{c}|-1},
+  \boldsymbol{z}\in\mathbb{R}^{|A^{c}|-1},
 }
-with \eqn{\boldsymbol{\psi}} the additive logistic map
-(\code{\link[=additive_logistic]{additive_logistic()}}). The constrained coordinates are \emph{substituted}
+with \eqn{\boldsymbol{\psi}} the isometric logistic map
+(\code{\link[=isometric_logistic]{isometric_logistic()}}) on a Helmert basis of the free face.
+The constrained coordinates are \emph{substituted}
 rather than pushed through a logarithm, so a null such as
 \eqn{p_j=0} is representable exactly: this is what makes boundary
 likelihood-ratio tests computable (see \code{\link[=lrt_decovart]{lrt_decovart()}}).
@@ -59,7 +60,7 @@ Zero mass on \eqn{A} keeps
 coordinate remains strictly positive. Optimisation uses
 \code{\link[stats:optim]{stats::optim()}} (\code{"BFGS"}) with the analytic score obtained by
 chaining \code{\link[=gradient_loglik_unconstrained]{gradient_loglik_unconstrained()}} through
-\eqn{(1-s)\mathbf{J}_{\boldsymbol{\psi}}}.
+\eqn{(1-s)\mathbf{J}_{\boldsymbol{\psi}}} on the free-face ILR chart.
 }
 \examples{
 mu <- matrix(c(20, 22, 18, 22, 20, 24), nrow = 2)

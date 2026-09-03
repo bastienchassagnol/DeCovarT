@@ -3,14 +3,14 @@
 #' Additive logistic transform (unconstrained coordinates to the simplex)
 #'
 #' @description
-#' Implements the reparametrisation
-#' \eqn{\boldsymbol{\psi}:\boldsymbol{\rho}\mapsto\boldsymbol{p}} used in the
-#' article, sending unconstrained coordinates
-#' \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}} to cellular proportions
-#' \eqn{\boldsymbol{p}\in\Delta^{J-1}}. This is the *additive logistic
-#' transform* of Aitchison, i.e. the inverse additive log-ratio map
-#' (\eqn{\mathrm{alr}^{-1}}), equivalently a softmax with the last category
-#' \eqn{J} pinned as reference (\eqn{\rho_J\equiv 0}).
+#' Inverse additive log-ratio map
+#' \eqn{\boldsymbol{\psi}:\boldsymbol{\rho}\mapsto\boldsymbol{p}} of Aitchison
+#' (\eqn{\mathrm{alr}^{-1}}): a softmax with the last category \eqn{J}
+#' pinned as reference (\eqn{\rho_J\equiv 0}). Solvers and
+#' [vcov.decovart_fit()] use the isometric log-ratio chart
+#' [isometric_logistic()] instead. This ALR helper is retained for the
+#' vignette appendix and for reference-invariance checks against
+#' [vcov_alr_delta()].
 #'
 #' @details
 #' With \eqn{A=\sum_{k=1}^{J-1}\mathrm{e}^{\rho_k}+1},
@@ -80,6 +80,185 @@ additive_logistic <- function(rho) {
 additive_log_ratio <- function(p) {
   num_cells <- length(p)
   return(log(p[1:num_cells - 1] / p[num_cells]))
+}
+
+#' Helmert contrast matrix for isometric log-ratio coordinates
+#'
+#' @description
+#' Returns the \eqn{J\times(J-1)} Helmert sub-matrix \eqn{\mathbf{V}}
+#' with
+#' \deqn{
+#'   \mathbf{V}^{\mathsf{T}}\mathbf{V}=\mathbf{I}_{J-1},\qquad
+#'   \mathbf{V}^{\mathsf{T}}\mathbf{1}=\mathbf{0}.
+#' }
+#' Column \eqn{k} contrasts the first \eqn{k} parts against part
+#' \eqn{k+1}. This is the standard ILR basis used with
+#' [isometric_log_ratio()] / [isometric_logistic()]; any other valid ILR
+#' basis is \eqn{\mathbf{V}Q} for an orthogonal \eqn{Q}, which rotates
+#' coordinates but leaves simplex geometry, eigenvalues of quadratic
+#' forms, and \eqn{\mathrm{Var}(\hat{\boldsymbol{p}})} unchanged.
+#'
+#' @param n_parts Integer \eqn{J\ge 2} (number of simplex parts).
+#'
+#' @return Numeric matrix \eqn{J\times(J-1)}.
+#'
+#' @examples
+#' V <- helmert_basis(3L)
+#' crossprod(V)
+#' drop(crossprod(V, rep(1, 3)))
+#' @export
+helmert_basis <- function(n_parts) {
+  j <- as.integer(n_parts)
+  if (length(j) != 1L || is.na(j) || j < 2L) {
+    stop("`n_parts` must be an integer of at least 2.", call. = FALSE)
+  }
+  v <- matrix(0, nrow = j, ncol = j - 1L)
+  for (k in seq_len(j - 1L)) {
+    scale_k <- sqrt(k * (k + 1))
+    v[seq_len(k), k] <- 1 / scale_k
+    v[k + 1L, k] <- -k / scale_k
+  }
+  v
+}
+
+#' Isometric logistic transform (ILR coordinates to the simplex)
+#'
+#' @description
+#' Inverse isometric log-ratio map
+#' \eqn{\boldsymbol{\psi}:\boldsymbol{z}\mapsto\boldsymbol{p}} with a
+#' Helmert basis \eqn{\mathbf{V}},
+#' \deqn{
+#'   \boldsymbol{p}
+#'   =
+#'   \operatorname{softmax}(\mathbf{V}\boldsymbol{z})
+#'   =
+#'   \mathcal{C}\bigl(\exp(\mathbf{V}\boldsymbol{z})\bigr).
+#' }
+#' No cell type is pinned as a reference (unlike
+#' [additive_logistic()]). Evaluated with a log-sum-exp shift so large
+#' \eqn{\|\boldsymbol{z}\|} cannot overflow.
+#'
+#' @param z Numeric vector \eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}}.
+#' @param V Optional Helmert (or other ILR) basis with \eqn{J} rows and
+#'   \eqn{J-1} columns. Defaults to [helmert_basis()] for
+#'   \eqn{J=\mathrm{length}(z)+1}.
+#'
+#' @return Numeric vector \eqn{\boldsymbol{p}} on the unit simplex.
+#'
+#' @examples
+#' z <- c(0.2, -0.5)
+#' p <- isometric_logistic(z)
+#' sum(p)
+#' isometric_log_ratio(p)
+#' isometric_logistic(c(800, 1200))
+#' @seealso [isometric_log_ratio()], [helmert_basis()],
+#'   [additive_logistic()]
+#' @export
+isometric_logistic <- function(z, V = NULL) {
+  z <- as.numeric(z)
+  if (is.null(V)) {
+    V <- helmert_basis(length(z) + 1L)
+  }
+  eta <- drop(V %*% z)
+  weights <- exp(eta - max(eta))
+  weights / sum(weights)
+}
+
+#' Isometric log-ratio transform \eqn{\boldsymbol{p}\mapsto\boldsymbol{z}}
+#'
+#' \deqn{
+#'   \boldsymbol{z}
+#'   =
+#'   \mathbf{V}^{\mathsf{T}}\log\boldsymbol{p}
+#'   =
+#'   \mathbf{V}^{\mathsf{T}}\operatorname{clr}(\boldsymbol{p}),
+#' }
+#' which is well-defined because \eqn{\mathbf{V}^{\mathsf{T}}\mathbf{1}=0}.
+#' Requires a strictly positive composition (open simplex).
+#'
+#' @param p Numeric vector on the open simplex.
+#' @param p Numeric vector on the open simplex.
+#' @param V Optional ILR basis; see [isometric_logistic()].
+#'
+#' @return Numeric vector \eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}}.
+#'
+#' @rdname isometric_logistic
+#' @export
+isometric_log_ratio <- function(p, V = NULL) {
+  p <- as.numeric(p)
+  if (is.null(V)) {
+    V <- helmert_basis(length(p))
+  }
+  drop(crossprod(V, log(p)))
+}
+
+#' Jacobian of the isometric logistic map
+#'
+#' \deqn{
+#'   \mathbf{J}_{\boldsymbol{\psi}}(\boldsymbol{z})
+#'   =
+#'   \frac{\partial\boldsymbol{p}}{\partial\boldsymbol{z}^{\mathsf{T}}}
+#'   =
+#'   \mathbf{S}(\boldsymbol{p})\mathbf{V},
+#' }
+#' with \eqn{\mathbf{S}(\boldsymbol{p})=\operatorname{diag}(\boldsymbol{p})
+#' -\boldsymbol{p}\boldsymbol{p}^{\mathsf{T}}}.
+#'
+#' @inheritParams isometric_logistic
+#'
+#' @return Numeric matrix \eqn{J\times(J-1)}.
+#'
+#' @examples
+#' jacobian_isometric_logistic(c(0.2, -0.5))
+#' @export
+jacobian_isometric_logistic <- function(z, V = NULL) {
+  z <- as.numeric(z)
+  if (is.null(V)) {
+    V <- helmert_basis(length(z) + 1L)
+  }
+  p <- isometric_logistic(z, V)
+  s <- diag(p) - tcrossprod(p)
+  s %*% V
+}
+
+#' Hessian tensor of the isometric logistic map
+#'
+#' Slice \eqn{i} is
+#' \deqn{
+#'   \mathbf{H}_{\psi_i}
+#'   =
+#'   p_i\bigl(\boldsymbol{q}_i\boldsymbol{q}_i^{\mathsf{T}}
+#'   -\mathbf{C}_V\bigr),
+#' }
+#' where \eqn{\bar{\boldsymbol{v}}=\mathbf{V}^{\mathsf{T}}\boldsymbol{p}},
+#' \eqn{\boldsymbol{q}_i=\mathbf{V}_{i\cdot}-\bar{\boldsymbol{v}}} and
+#' \eqn{\mathbf{C}_V=\mathbf{V}^{\mathsf{T}}\mathbf{S}(\boldsymbol{p})
+#' \mathbf{V}}. Array shape \eqn{(J-1)\times(J-1)\times J}.
+#'
+#' @inheritParams isometric_logistic
+#'
+#' @return Numeric array used in the constrained Hessian chain rule.
+#'
+#' @examples
+#' hessian_isometric_logistic(c(0.2, -0.5))
+#' @export
+hessian_isometric_logistic <- function(z, V = NULL) {
+  z <- as.numeric(z)
+  if (is.null(V)) {
+    V <- helmert_basis(length(z) + 1L)
+  }
+  p <- isometric_logistic(z, V)
+  j <- length(p)
+  d <- ncol(V)
+  s <- diag(p) - tcrossprod(p)
+  c_v <- crossprod(V, s %*% V)
+  vbar <- drop(crossprod(p, V))
+  out <- array(0, dim = c(d, d, j))
+  for (i in seq_len(j)) {
+    q <- V[i, ] - vbar
+    out[,, i] <- p[i] * (tcrossprod(q) - c_v)
+  }
+  out
 }
 
 #' Evaluate a matrix-induced inner product
@@ -344,7 +523,7 @@ additive_log_ratio <- function(p) {
 #' p <- c(0.6, 0.4)
 #' y <- drop(mu %*% p)
 #' loglik_multivariate(p, y, mu, Sigma)
-#' @seealso [gradient_loglik_unconstrained()], [additive_logistic()]
+#' @seealso [gradient_loglik_unconstrained()], [isometric_logistic()]
 loglik_multivariate <- function(p, y, mean_signature_matrix, Sigma) {
   sigma_p <- .sigma_p_factorisation(p, Sigma)
   residual <- as.numeric(y - drop(mean_signature_matrix %*% p))
@@ -356,15 +535,16 @@ loglik_multivariate <- function(p, y, mean_signature_matrix, Sigma) {
 
 
 #' Constrained log-likelihood
-#' \eqn{\ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{\psi}(\boldsymbol{\rho}))}
+#' \eqn{\ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{\psi}(\boldsymbol{z}))}
 #'
 #' @description
-#' Composes [loglik_multivariate()] with [additive_logistic()], so that
-#' optimisation may be performed over
-#' \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
+#' Composes [loglik_multivariate()] with [isometric_logistic()], so that
+#' optimisation may be performed over unconstrained ILR coordinates
+#' \eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}}.
 #'
 #' @inheritParams loglik_multivariate
-#' @param rho Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
+#' @param z Numeric vector \eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}}.
+#' @param V Optional ILR basis; see [isometric_logistic()].
 #'
 #' @return Scalar log-likelihood on the constrained manifold.
 #'
@@ -374,19 +554,18 @@ loglik_multivariate <- function(p, y, mean_signature_matrix, Sigma) {
 #' Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
 #' p <- c(0.6, 0.4)
 #' y <- drop(mu %*% p)
-#' loglik_multivariate_constrained(additive_log_ratio(p), y, mu, Sigma)
+#' loglik_multivariate_constrained(isometric_log_ratio(p), y, mu, Sigma)
 #' @export
 loglik_multivariate_constrained <- function(
-  rho,
+  z,
   y,
   mean_signature_matrix,
-  Sigma
+  Sigma,
+  V = NULL
 ) {
-  # switch from variable
-  p <- additive_logistic(rho)
+  p <- isometric_logistic(z, V)
   log_lik <- loglik_multivariate(p, y, mean_signature_matrix, Sigma)
   if (any(p < 100 * .Machine$double.eps | p > 1 - 100 * .Machine$double.eps)) {
-    # if the ratios returned present numerical underflows
     warning(
       "The ratios are given by ",
       paste(signif(p, digits = 5), collapse = "//"),
@@ -508,13 +687,17 @@ gradient_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
 #' @description
 #' Returns
 #' \deqn{
-#'   \nabla_{\boldsymbol{\rho}}\ell
+#'   \nabla_{\boldsymbol{z}}\ell
 #'   =
-#'   \bigl(\nabla_{\boldsymbol{p}}\ell\bigr)^{\mathsf{T}}
-#'   \mathbf{J}_{\boldsymbol{\psi}}(\boldsymbol{\rho}),
+#'   \mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}
+#'   \nabla_{\boldsymbol{p}}\ell
+#'   =
+#'   \mathbf{V}^{\mathsf{T}}
+#'   \mathbf{S}(\boldsymbol{p})
+#'   \nabla_{\boldsymbol{p}}\ell,
 #' }
-#' i.e. first-order chain rule for
-#' \eqn{\ell\circ\boldsymbol{\psi}}.
+#' i.e. the first-order chain rule for
+#' \eqn{\ell\circ\boldsymbol{\psi}} in ILR coordinates.
 #'
 #' @inheritParams loglik_multivariate_constrained
 #'
@@ -526,23 +709,26 @@ gradient_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
 #' Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
 #' p <- c(0.6, 0.4)
 #' y <- drop(mu %*% p)
-#' gradient_loglik_constrained(additive_log_ratio(p), y, mu, Sigma)
+#' gradient_loglik_constrained(isometric_log_ratio(p), y, mu, Sigma)
 #' @export
 gradient_loglik_constrained <- function(
-  rho,
+  z,
   y,
   mean_signature_matrix,
-  Sigma
+  Sigma,
+  V = NULL
 ) {
-  p <- additive_logistic(rho)
-  gradient_constrained <- gradient_loglik_unconstrained(
-    p,
-    y,
-    mean_signature_matrix,
-    Sigma
-  ) %*%
-    jacobian_additive_logistic(rho)
-  return(gradient_constrained)
+  p <- isometric_logistic(z, V)
+  jac <- jacobian_isometric_logistic(z, V)
+  drop(crossprod(
+    jac,
+    gradient_loglik_unconstrained(
+      p,
+      y,
+      mean_signature_matrix,
+      Sigma
+    )
+  ))
 }
 
 
@@ -684,17 +870,20 @@ hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
 #' Constrained Hessian of \eqn{\ell\circ\boldsymbol{\psi}}
 #'
 #' @description
-#' Second-order chain rule
+#' Second-order chain rule in ILR coordinates
 #' \deqn{
-#'   \mathbf{H}_{\boldsymbol{\rho}}
+#'   \mathbf{H}_{\boldsymbol{z}}
 #'   =
 #'   \mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}
 #'   \mathbf{H}_{\boldsymbol{p}}
 #'   \mathbf{J}_{\boldsymbol{\psi}}
 #'   +\sum_{i=1}^{J}
 #'   \frac{\partial\ell}{\partial p_i}\,
-#'   \frac{\partial^{2}p_i}{\partial\boldsymbol{\rho}\partial\boldsymbol{\rho}^{\mathsf{T}}}.
+#'   \mathbf{H}_{\psi_i}.
 #' }
+#' The second summand cannot be dropped away from stationarity. At an
+#' interior KKT point \eqn{\nabla_p\ell=\lambda\mathbf{1}} it vanishes
+#' because \eqn{\sum_i\mathbf{H}_{\psi_i}=\mathbf{0}}.
 #'
 #' @inheritParams loglik_multivariate_constrained
 #'
@@ -706,34 +895,39 @@ hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
 #' Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
 #' p <- c(0.6, 0.4)
 #' y <- drop(mu %*% p)
-#' hessian_loglik_constrained(additive_log_ratio(p), y, mu, Sigma)
+#' hessian_loglik_constrained(isometric_log_ratio(p), y, mu, Sigma)
 #' @export
-hessian_loglik_constrained <- function(rho, y, mean_signature_matrix, Sigma) {
-  p <- additive_logistic(rho)
-  jac <- jacobian_additive_logistic(rho)
-  hess_alr <- as.matrix(
+hessian_loglik_constrained <- function(
+  z,
+  y,
+  mean_signature_matrix,
+  Sigma,
+  V = NULL
+) {
+  p <- isometric_logistic(z, V)
+  jac <- jacobian_isometric_logistic(z, V)
+  hess_map <- as.matrix(
     tensor::tensor(
       A = gradient_loglik_unconstrained(p, y, mean_signature_matrix, Sigma),
-      B = hessian_additive_logistic(rho),
+      B = hessian_isometric_logistic(z, V),
       alongA = 1,
       alongB = 3
     )
   )
-  hessian_constrained <- t(jac) %*%
+  t(jac) %*%
     hessian_loglik_unconstrained(p, y, mean_signature_matrix, Sigma) %*%
     jac +
-    hess_alr
-  return(hessian_constrained)
+    hess_map
 }
 
 
 # DeCovarT core optimisation algorithms -----------------------------------
 
-#' Open-simplex start for ALR solvers
+#' Open-simplex start for ILR solvers
 #'
 #' Default is the equi-balanced vector. A supplied `initial_p` is passed
 #' through [repair_simplex()] with `open = TRUE` so
-#' [additive_log_ratio()] is defined.
+#' [isometric_log_ratio()] is defined.
 #'
 #' @param n_celltypes Integer \eqn{J}.
 #' @param initial_p `NULL` or a numeric vector of length \eqn{J}.
@@ -774,9 +968,9 @@ hessian_loglik_constrained <- function(rho, y, mean_signature_matrix, Sigma) {
 #' }
 #' subject to the simplex constraint
 #' \eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1}, \eqn{\boldsymbol{p}\ge\mathbf{0}}.
-#' Optimisation is performed in unconstrained coordinates
-#' \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}} via
-#' \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})}
+#' Optimisation is performed in unconstrained ILR coordinates
+#' \eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}} via
+#' \eqn{\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{z})}
 #' (Marquardt–Levenberg default; see other methods below and
 #' `vignette("generative-model-derivatives", package = "DeCovarT")`).
 #'
@@ -792,16 +986,16 @@ hessian_loglik_constrained <- function(rho, y, mean_signature_matrix, Sigma) {
 #'   iterations for the optimiser (same roles as `reltol` / `maxit` in
 #'   [stats::optim()]).
 #' @param return_model If `TRUE`, return a named list with coefficients,
-#'   ALR coordinates, log-likelihood and optimiser diagnostics instead of
+#'   ILR coordinates, log-likelihood and optimiser diagnostics instead of
 #'   the proportion vector.
 #' @param initial_p Optional starting proportions of length \eqn{J}. The
 #'   default is the equi-balanced vector \eqn{(1/J,\ldots,1/J)}. Starts
-#'   on a simplex face are nudged into the interior so the ALR map is
-#'   defined (ALR methods) and so L-BFGS-B does not start on a
+#'   on a simplex face are nudged into the interior so the ILR map is
+#'   defined (ILR methods) and so L-BFGS-B does not start on a
 #'   degenerate \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}.
 #'
 #' @return Named numeric vector \eqn{\hat{\boldsymbol{p}}} on the simplex
-#'   (ALR methods), or that list when `return_model = TRUE`.
+#'   (ILR methods), or that list when `return_model = TRUE`.
 #'   Benchmark metrics are computed by [deconvolute_ratios()].
 #'
 #' @examples
@@ -817,7 +1011,7 @@ hessian_loglik_constrained <- function(rho, y, mean_signature_matrix, Sigma) {
 #' y <- drop(mu %*% c(0.6, 0.4) + rnorm(2, sd = 0.1))
 #' deconvolute_ratios_Marquardt_Levenberg(y, mu, Sigma, itmax = 50)
 #' @export
-#' @seealso [deconvolute_ratios()], [additive_logistic()]
+#' @seealso [deconvolute_ratios()], [isometric_logistic()]
 deconvolute_ratios_Marquardt_Levenberg <- function(
   y,
   mean_signature_matrix,
@@ -832,7 +1026,7 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
     initial_p,
     colnames(mean_signature_matrix)
   )
-  initial_rho <- additive_log_ratio(initial_p)
+  initial_z <- isometric_log_ratio(initial_p)
   # marqLevAlg() only negates fn/gr internally when minimize = FALSE; hess()
   # is passed through unchanged regardless of `minimize`, because its
   # Cholesky-type step-and-RDM routines (dsinv/dchole) always assume the
@@ -848,11 +1042,11 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
     sink(nullfile())
     on.exit(sink(), add = TRUE)
     marqLevAlg::marqLevAlg(
-      b = initial_rho,
+      b = initial_z,
       fn = loglik_multivariate_constrained,
       gr = gradient_loglik_constrained,
-      hess = function(rho, y, mean_signature_matrix, Sigma) {
-        -hessian_loglik_constrained(rho, y, mean_signature_matrix, Sigma)
+      hess = function(z, y, mean_signature_matrix, Sigma) {
+        -hessian_loglik_constrained(z, y, mean_signature_matrix, Sigma)
       },
       epsa = epsilon,
       epsb = epsilon,
@@ -872,7 +1066,7 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
       "); falling back to the equi-balanced initial guess.",
       call. = FALSE
     )
-    estimated_rho <- initial_rho
+    estimated_z <- initial_z
   } else {
     if (fit$istop != 1) {
       warning(
@@ -885,14 +1079,14 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
         call. = FALSE
       )
     }
-    estimated_rho <- fit$b
+    estimated_z <- fit$b
   }
-  estimated_p <- additive_logistic(estimated_rho)
+  estimated_p <- isometric_logistic(estimated_z)
   names(estimated_p) <- colnames(mean_signature_matrix)
   if (isTRUE(return_model)) {
     return(list(
       coefficients = estimated_p,
-      rho = estimated_rho,
+      z = estimated_z,
       loglik = loglik_multivariate(
         estimated_p,
         y,
@@ -911,7 +1105,8 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
 
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Simulated annealing on
-#'   \eqn{\boldsymbol{\rho}} ([stats::optim()] with `method = "SANN"`).
+#'   ILR coordinates \eqn{\boldsymbol{z}} ([stats::optim()] with
+#'   `method = "SANN"`).
 #' @export
 deconvolute_ratios_simulated_annealing <- function(
   y,
@@ -926,11 +1121,11 @@ deconvolute_ratios_simulated_annealing <- function(
     initial_p,
     colnames(mean_signature_matrix)
   )
-  initial_rho <- additive_log_ratio(initial_p)
+  initial_z <- isometric_log_ratio(initial_p)
   # gr is not used in the simulated annealing approach
   # In SANN, maxit is the total number of point evaluations, not iterations
-  estimated_rho <- stats::optim(
-    par = initial_rho,
+  estimated_z <- stats::optim(
+    par = initial_z,
     fn = loglik_multivariate_constrained,
     y = y,
     mean_signature_matrix = mean_signature_matrix,
@@ -938,7 +1133,7 @@ deconvolute_ratios_simulated_annealing <- function(
     control = list(fnscale = -1, maxit = itmax),
     method = "SANN"
   )$par
-  estimated_p <- additive_logistic(estimated_rho)
+  estimated_p <- isometric_logistic(estimated_z)
   names(estimated_p) <- colnames(mean_signature_matrix)
   repair_simplex(estimated_p)
 }
@@ -1010,7 +1205,7 @@ deconvolute_ratios_L_BFGS_B <- function(
   if (isTRUE(return_model)) {
     return(list(
       coefficients = estimated_p,
-      rho = additive_log_ratio(estimated_p),
+      z = isometric_log_ratio(estimated_p),
       loglik = loglik_multivariate(
         estimated_p,
         y,
@@ -1028,8 +1223,8 @@ deconvolute_ratios_L_BFGS_B <- function(
 }
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Newton–Raphson /
-#'   `nlminb` on \eqn{\boldsymbol{\rho}} using analytic gradient and Hessian
-#'   ([stats::nlminb()]).
+#'   `nlminb` on ILR coordinates \eqn{\boldsymbol{z}} using analytic
+#'   gradient and Hessian ([stats::nlminb()]).
 #' @export
 deconvolute_ratios_Newton_Raphson <- function(
   y,
@@ -1045,19 +1240,19 @@ deconvolute_ratios_Newton_Raphson <- function(
     initial_p,
     colnames(mean_signature_matrix)
   )
-  initial_rho <- additive_log_ratio(initial_p)
+  initial_z <- isometric_log_ratio(initial_p)
 
   # with nlmimb package method (outdated, but works well for our scenario)
   fit <- stats::nlminb(
-    start = initial_rho,
-    objective = function(p, y, mean_signature_matrix, Sigma) {
-      -loglik_multivariate_constrained(p, y, mean_signature_matrix, Sigma)
+    start = initial_z,
+    objective = function(z, y, mean_signature_matrix, Sigma) {
+      -loglik_multivariate_constrained(z, y, mean_signature_matrix, Sigma)
     },
-    gradient = function(p, y, mean_signature_matrix, Sigma) {
-      -gradient_loglik_constrained(p, y, mean_signature_matrix, Sigma)
+    gradient = function(z, y, mean_signature_matrix, Sigma) {
+      -gradient_loglik_constrained(z, y, mean_signature_matrix, Sigma)
     },
-    hessian = function(p, y, mean_signature_matrix, Sigma) {
-      -hessian_loglik_constrained(p, y, mean_signature_matrix, Sigma)
+    hessian = function(z, y, mean_signature_matrix, Sigma) {
+      -hessian_loglik_constrained(z, y, mean_signature_matrix, Sigma)
     },
     y = y,
     mean_signature_matrix = mean_signature_matrix,
@@ -1070,13 +1265,13 @@ deconvolute_ratios_Newton_Raphson <- function(
       abs.tol = epsilon
     )
   )
-  estimated_rho <- fit$par
-  estimated_p <- additive_logistic(estimated_rho)
+  estimated_z <- fit$par
+  estimated_p <- isometric_logistic(estimated_z)
   names(estimated_p) <- colnames(mean_signature_matrix)
   if (isTRUE(return_model)) {
     return(list(
       coefficients = estimated_p,
-      rho = estimated_rho,
+      z = estimated_z,
       loglik = loglik_multivariate(
         estimated_p,
         y,
@@ -1094,7 +1289,8 @@ deconvolute_ratios_Newton_Raphson <- function(
 }
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg BFGS quasi-Newton ascent
-#'   on \eqn{\boldsymbol{\rho}} ([stats::optim()] `method = "BFGS"`).
+#'   on ILR coordinates \eqn{\boldsymbol{z}} ([stats::optim()]
+#'   `method = "BFGS"`).
 #' @export
 deconvolute_ratios_gradient_descent <- function(
   y,
@@ -1109,10 +1305,10 @@ deconvolute_ratios_gradient_descent <- function(
     initial_p,
     colnames(mean_signature_matrix)
   )
-  initial_rho <- additive_log_ratio(initial_p)
+  initial_z <- isometric_log_ratio(initial_p)
 
-  estimated_rho <- stats::optim(
-    par = initial_rho,
+  estimated_z <- stats::optim(
+    par = initial_z,
     fn = loglik_multivariate_constrained,
     gr = gradient_loglik_constrained,
     y = y,
@@ -1126,7 +1322,7 @@ deconvolute_ratios_gradient_descent <- function(
     ),
     method = "BFGS"
   )$par
-  estimated_p <- additive_logistic(estimated_rho)
+  estimated_p <- isometric_logistic(estimated_z)
   names(estimated_p) <- colnames(mean_signature_matrix)
   repair_simplex(estimated_p)
 }

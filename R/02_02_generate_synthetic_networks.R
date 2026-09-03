@@ -82,77 +82,121 @@ compute_mean_profile_objectives <- function(mean_signature_matrix) {
 }
 
 
-#' Generate mean profiles with a target pairwise cosine
+#' Symmetric (spectral) square root of a Gram matrix
+#'
+#' @param k Symmetric nonnegative-definite matrix.
+#' @return The unique symmetric square root.
+#' @keywords internal
+#' @noRd
+.symmetric_matrix_sqrt <- function(k) {
+  k <- (k + t(k)) / 2
+  eig <- eigen(k, symmetric = TRUE)
+  evals <- pmax(eig$values, 0)
+  n <- length(evals)
+  eig$vectors %*% diag(sqrt(evals), n) %*% t(eig$vectors)
+}
+
+#' Thin orthonormal frame in \eqn{\mathbb{R}^{G}}
+#'
+#' @keywords internal
+#' @noRd
+.orthonormal_gene_frame <- function(n_genes, n_celltypes, seed = NULL) {
+  if (!is.null(seed)) {
+    set.seed(seed)
+    z <- matrix(
+      stats::rnorm(n_genes * n_celltypes),
+      n_genes,
+      n_celltypes
+    )
+  } else {
+    z <- matrix(0, n_genes, n_celltypes)
+    n_diag <- min(n_genes, n_celltypes)
+    z[seq_len(n_diag), seq_len(n_diag)] <- diag(n_diag)
+    if (n_genes > n_celltypes) {
+      z[(n_celltypes + 1L):n_genes, ] <- 1 / sqrt(n_genes)
+    }
+  }
+  qr.Q(qr(z), complete = FALSE)[, seq_len(n_celltypes), drop = FALSE]
+}
+
+#' Equicorrelation (constant-correlation) Gram matrix
+#'
+#' \eqn{R=(1-\rho)I+\rho\mathbf{1}\mathbf{1}^{\mathsf{T}}}. Positive
+#' semidefinite for \eqn{\rho\in[-1/(J-1),1]}.
+#'
+#' @param n_celltypes Integer \eqn{J\ge 2}.
+#' @param target_cosine Pairwise cosine \eqn{\rho}.
+#'
+#' @return Symmetric \eqn{J\times J} matrix with unit diagonal.
+#'
+#' @examples
+#' equicorrelation_gram(3L, 0.4)
+#' @export
+equicorrelation_gram <- function(n_celltypes, target_cosine = 0) {
+  j <- as.integer(n_celltypes)
+  if (length(j) != 1L || is.na(j) || j < 2L) {
+    stop("`n_celltypes` must be an integer of at least 2.", call. = FALSE)
+  }
+  rho <- as.numeric(target_cosine)
+  if (length(rho) != 1L || is.na(rho)) {
+    stop("`target_cosine` must be a single numeric value.", call. = FALSE)
+  }
+  rho_min <- -1 / (j - 1)
+  if (rho < rho_min - 1e-10 || rho > 1 + 1e-10) {
+    stop(
+      "`target_cosine` must lie in [",
+      format(rho_min, digits = 4),
+      ", 1] for J = ",
+      j,
+      ".",
+      call. = FALSE
+    )
+  }
+  (1 - rho) * diag(j) + rho
+}
+
+#' Generate mean profiles from a target Gram matrix
 #'
 #' Builds
-#' \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} by blending a shared
-#' unit direction \eqn{\boldsymbol{u}} with cell-type-private orthogonal
-#' marker directions \eqn{\boldsymbol{v}_{j}}:
+#' \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}} whose *unit* columns
+#' realise a prescribed Gram matrix \eqn{R} (pairwise cosines) via the
+#' symmetric square root,
 #' \deqn{
-#'   \tilde{\boldsymbol{\mu}}_{\cdot j}
-#'   =
-#'   \sqrt{\rho}\,\boldsymbol{u}
-#'   +\sqrt{1-\rho}\,\boldsymbol{v}_{j},
-#'   \qquad
-#'   \boldsymbol{\mu}_{\cdot j}
+#'   \boldsymbol{\mu}
 #'   =
 #'   s\,
-#'   \frac{\tilde{\boldsymbol{\mu}}_{\cdot j}}{
-#'     \|\tilde{\boldsymbol{\mu}}_{\cdot j}\|_2
-#'   }.
+#'   \boldsymbol{Q}
+#'   R^{1/2},
+#'   \qquad
+#'   \boldsymbol{Q}^{\mathsf{T}}\boldsymbol{Q}=\boldsymbol{I}_{J}.
 #' }
-#' The private vectors \eqn{\boldsymbol{v}_{j}} are
-#' indicator directions on a partition of the \eqn{G} genes (type
-#' \eqn{j} only) and then \eqn{\ell_2}-normalised, so
-#' \eqn{\boldsymbol{v}_{j}^{\mathsf{T}}\boldsymbol{v}_{k}=0} for
-#' \eqn{j\neq k}. With a shared unit \eqn{\boldsymbol{u}},
-#' \deqn{
-#'   \tilde{\boldsymbol{\mu}}_{\cdot j}^{\mathsf{T}}
-#'   \tilde{\boldsymbol{\mu}}_{\cdot k}
-#'   =
-#'   \rho
-#'   +
-#'   \sqrt{\rho(1-\rho)}\,
-#'   \bigl(
-#'     \boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}_{j}
-#'     +
-#'     \boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}_{k}
-#'   \bigr)
-#'   \qquad (j\neq k).
-#' }
-#' After column normalisation the pairwise cosines of
-#' \eqn{\boldsymbol{\mu}} therefore track \eqn{\rho} closely when the
-#' cross terms
-#' \eqn{\boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}_{j}} are small relative
-#' to the leading \eqn{\rho} (many genes per block). The global scale
-#' \eqn{s} sets column norms (and hence Euclidean separation) without
-#' changing angles: for fixed \eqn{\rho},
-#' \eqn{\|\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\|_2
-#' \propto s}. Prefer dialling \eqn{\rho} when second-order precision
-#' weights already control interaction strength; keep \eqn{s} fixed
-#' across scenarios that compare mean collinearity alone
-#' \insertCite{alieeAutoGeneSAutomaticGene2021}{DeCovarT}.
+#' Then \eqn{\boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu}=s^{2}R} whenever
+#' \eqn{R} has unit diagonal. The default \eqn{R} is the equicorrelation
+#' matrix \eqn{(1-\rho)I+\rho\mathbf{1}\mathbf{1}^{\mathsf{T}}}
+#' ([equicorrelation_gram()]). Supply `target_gram` to set unequal
+#' pairwise cosines (for example two close pairs and a distant background),
+#' provided \(R\) is symmetric nonnegative-definite.
 #'
-#' @details
-#' **Private marker blocks.** Genes are partitioned into \eqn{J} nearly equal
-#' contiguous blocks. Type \eqn{j}'s private direction \eqn{\boldsymbol{v}_{j}}
-#' is the indicator of its block, then \eqn{\ell_2}-normalised. Distinct blocks
-#' are orthogonal, so type-specific signal does not leak across columns before
-#' the shared component is added.
-#'
-#' **Shared–private blend.** With unit shared direction
-#' \eqn{\boldsymbol{u}=G^{-1/2}\mathbf{1}}, each column is
-#' \eqn{\sqrt{\rho}\,\boldsymbol{u}+\sqrt{1-\rho}\,\boldsymbol{v}_{j}},
-#' re-normalised, then scaled by \eqn{s}. Thus \eqn{\rho} dials collinearity
-#' while \eqn{s} dials Euclidean separation without changing angles.
+#' Realisations are unique up to an orthogonal transformation of the gene
+#' space: replacing \eqn{\boldsymbol{Q}} by \eqn{\boldsymbol{Q}U} with
+#' \eqn{U^{\mathsf{T}}U=\boldsymbol{I}_{J}} leaves the Gram unchanged. By
+#' default \eqn{\boldsymbol{Q}} is a deterministic thin QR frame; pass `seed`
+#' for a Haar-like Gaussian frame. Cholesky \eqn{R=LL^{\mathsf{T}}} is an
+#' alternative square root used in Monte Carlo simulation; see the
+#' synthetic-scenarios vignette appendix.
 #'
 #' @param n_genes Integer \eqn{G}; must be at least \code{n_celltypes}.
 #' @param n_celltypes Integer \eqn{J\ge 2}.
 #' @param mean_scale Positive scalar \eqn{s} (centroid norms). Default
-#'   \code{10}, as in the nine factorial scenarios. Hold fixed when
-#'   studying cosine / collinearity alone.
-#' @param target_cosine Numeric in \eqn{[0,1]}, the collinearity dial
-#'   \eqn{\rho}.
+#'   \code{10}. Hold fixed when studying cosine / collinearity alone.
+#' @param target_cosine Numeric pairwise cosine \eqn{\rho} for the
+#'   equicorrelation Gram. Ignored when `target_gram` is supplied.
+#'   Must lie in \eqn{[-1/(J-1),1]}.
+#' @param target_gram Optional symmetric \eqn{J\times J} cosine matrix
+#'   (unit diagonal). Overrides `target_cosine`.
+#' @param seed Optional integer. When supplied, the orthonormal frame
+#'   \eqn{\boldsymbol{Q}} is drawn from a Gaussian QR; otherwise it is
+#'   deterministic.
 #' @param gene_names Optional character vector of length \eqn{G}.
 #' @param celltype_names Optional character vector of length \eqn{J}.
 #'
@@ -165,27 +209,68 @@ compute_mean_profile_objectives <- function(mean_signature_matrix) {
 #'   n_celltypes = 2L,
 #'   target_cosine = 0.5
 #' )
+#' k <- matrix(c(1, 0.98, 0.2, 0.98, 1, 0.2, 0.2, 0.2, 1), 3, 3)
+#' generate_mean_signature_matrix(
+#'   n_genes = 8L,
+#'   n_celltypes = 3L,
+#'   target_gram = k
+#' )
 #' @export
 generate_mean_signature_matrix <- function(
   n_genes,
   n_celltypes,
   mean_scale = 10,
   target_cosine = 0,
+  target_gram = NULL,
+  seed = NULL,
   gene_names = NULL,
   celltype_names = NULL
 ) {
-  if (n_genes < n_celltypes) {
-    stop("`n_genes` must be at least `n_celltypes`.")
+  n_genes <- as.integer(n_genes)
+  n_celltypes <- as.integer(n_celltypes)
+  if (length(n_genes) != 1L || is.na(n_genes) || n_genes < n_celltypes) {
+    stop("`n_genes` must be at least `n_celltypes`.", call. = FALSE)
   }
-  if (n_celltypes < 2L) {
-    stop("`n_celltypes` must be at least 2.")
+  if (
+    length(n_celltypes) != 1L ||
+      is.na(n_celltypes) ||
+      n_celltypes < 2L
+  ) {
+    stop("`n_celltypes` must be at least 2.", call. = FALSE)
   }
   if (mean_scale <= 0) {
-    stop("`mean_scale` must be positive.")
+    stop("`mean_scale` must be positive.", call. = FALSE)
   }
-  if (target_cosine < 0 || target_cosine > 1) {
-    stop("`target_cosine` must lie in [0, 1].")
+
+  if (is.null(target_gram)) {
+    gram <- equicorrelation_gram(n_celltypes, target_cosine)
+  } else {
+    gram <- as.matrix(target_gram)
+    if (
+      nrow(gram) != n_celltypes ||
+        ncol(gram) != n_celltypes
+    ) {
+      stop(
+        "`target_gram` must be a square J x J matrix.",
+        call. = FALSE
+      )
+    }
+    if (max(abs(gram - t(gram))) > 1e-8) {
+      stop("`target_gram` must be symmetric.", call. = FALSE)
+    }
+    gram <- (gram + t(gram)) / 2
+    evals <- eigen(gram, symmetric = TRUE, only.values = TRUE)$values
+    if (min(evals) < -1e-8) {
+      stop(
+        "`target_gram` must be nonnegative-definite.",
+        call. = FALSE
+      )
+    }
   }
+
+  q <- .orthonormal_gene_frame(n_genes, n_celltypes, seed = seed)
+  root <- .symmetric_matrix_sqrt(gram)
+  mean_signature_matrix <- mean_scale * q %*% root
 
   if (is.null(gene_names)) {
     gene_names <- paste0("gene_", seq_len(n_genes))
@@ -193,46 +278,7 @@ generate_mean_signature_matrix <- function(
   if (is.null(celltype_names)) {
     celltype_names <- paste0("celltype_", seq_len(n_celltypes))
   }
-
-  shared_direction <- rep(1 / sqrt(n_genes), n_genes)
-
-  # Partition genes into J contiguous blocks; each block yields an orthogonal
-  # private unit vector v_j (type-specific markers).
-  block_size <- n_genes %/% n_celltypes
-  remainder <- n_genes - block_size * n_celltypes
-  private_directions <- matrix(
-    0,
-    nrow = n_genes,
-    ncol = n_celltypes
-  )
-  start_idx <- 1L
-  for (j in seq_len(n_celltypes)) {
-    len_j <- block_size + if (j <= remainder) 1L else 0L
-    idx <- start_idx:(start_idx + len_j - 1L)
-    private_directions[idx, j] <- 1
-    private_directions[, j] <- private_directions[, j] /
-      sqrt(sum(private_directions[, j]^2))
-    start_idx <- start_idx + len_j
-  }
-
-  sqrt_rho <- sqrt(target_cosine)
-  sqrt_one_minus_rho <- sqrt(1 - target_cosine)
-
-  mean_signature_matrix <- matrix(
-    NA_real_,
-    nrow = n_genes,
-    ncol = n_celltypes,
-    dimnames = list(gene_names, celltype_names)
-  )
-  # Blend shared u and private v_j, then unit-normalise and scale by s.
-  for (j in seq_len(n_celltypes)) {
-    direction <- sqrt_rho *
-      shared_direction +
-      sqrt_one_minus_rho * private_directions[, j]
-    direction <- direction / sqrt(sum(direction^2))
-    mean_signature_matrix[, j] <- mean_scale * direction
-  }
-
+  dimnames(mean_signature_matrix) <- list(gene_names, celltype_names)
   mean_signature_matrix
 }
 
@@ -593,10 +639,10 @@ build_covariance_array_from_precision <- function(precision_array) {
 #' and **cell-type-specific** second-order moments
 #' \eqn{(\boldsymbol{\Omega}_j,
 #'   \boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1})_{j=1}^{J}}
-#' under a graph-constrained precision model. Means follow the
-#' AutoGeneS-inspired cosine construction of
-#' `generate_mean_signature_matrix()` with target pairwise cosine
-#' \eqn{\rho}. For each cell type, an adjacency is drawn from a
+#' under a graph-constrained precision model. Means realise a target
+#' Gram matrix via the symmetric square root of
+#' `generate_mean_signature_matrix()` (equicorrelation \eqn{\rho} by
+#' default, or a full `target_gram`). For each cell type, an adjacency is drawn from a
 #' random-graph model (or supplied), i.i.d. signed weights with
 #' inhibitory fraction \code{prop_inhibitory} form \eqn{\boldsymbol{W}_j},
 #' and the precision is completed by a spectral shift. Distinct cell
@@ -655,6 +701,8 @@ simulate_hierarchical_grn_moments <- function(
   n_celltypes = 2L,
   mean_scale = 10,
   target_cosine = 0,
+  target_gram = NULL,
+  seed = NULL,
   precision_shift,
   precision_scale,
   prop_inhibitory = 0.5,
@@ -719,12 +767,14 @@ simulate_hierarchical_grn_moments <- function(
   gene_names <- paste0("gene_", seq_len(n_genes))
   celltype_names <- paste0("celltype_", seq_len(n_celltypes))
 
-  ## --- step 1: AutoGeneS-inspired mean profiles ------------------------
+  ## --- step 1: Gram-matrix mean profiles -------------------------------
   mean_profiles <- generate_mean_signature_matrix(
     n_genes = n_genes,
     n_celltypes = n_celltypes,
     mean_scale = mean_scale,
     target_cosine = target_cosine,
+    target_gram = target_gram,
+    seed = seed,
     gene_names = gene_names,
     celltype_names = celltype_names
   )

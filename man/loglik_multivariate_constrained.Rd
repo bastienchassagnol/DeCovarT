@@ -3,12 +3,12 @@
 \name{loglik_multivariate_constrained}
 \alias{loglik_multivariate_constrained}
 \title{Constrained log-likelihood
-\eqn{\ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{\psi}(\boldsymbol{\rho}))}}
+\eqn{\ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{\psi}(\boldsymbol{z}))}}
 \usage{
-loglik_multivariate_constrained(rho, y, mean_signature_matrix, Sigma)
+loglik_multivariate_constrained(z, y, mean_signature_matrix, Sigma, V = NULL)
 }
 \arguments{
-\item{rho}{Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.}
+\item{z}{Numeric vector \eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}}.}
 
 \item{y}{Numeric vector (or one-column matrix)
 \eqn{\boldsymbol{y}\in\mathbb{R}^{G}}.}
@@ -18,20 +18,22 @@ loglik_multivariate_constrained(rho, y, mean_signature_matrix, Sigma)
 
 \item{Sigma}{Array of cell-type covariances in
 \eqn{\mathcal{M}_{G\times G\times J}}.}
+
+\item{V}{Optional ILR basis; see \code{\link[=isometric_logistic]{isometric_logistic()}}.}
 }
 \value{
 Scalar log-likelihood on the constrained manifold.
 }
 \description{
-Composes \code{\link[=loglik_multivariate]{loglik_multivariate()}} with \code{\link[=additive_logistic]{additive_logistic()}}, so that
-optimisation may be performed over
-\eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
+Composes \code{\link[=loglik_multivariate]{loglik_multivariate()}} with \code{\link[=isometric_logistic]{isometric_logistic()}}, so that
+optimisation may be performed over unconstrained ILR coordinates
+\eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}}.
 }
 \examples{
 mu <- matrix(c(20, 22, 22, 20), 2)
 Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
 p <- c(0.6, 0.4)
 y <- drop(mu \%*\% p)
-loglik_multivariate_constrained(additive_log_ratio(p), y, mu, Sigma)
+loglik_multivariate_constrained(isometric_log_ratio(p), y, mu, Sigma)
 }
 \keyword{internal}

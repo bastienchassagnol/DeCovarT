@@ -14,12 +14,13 @@
 #' \deqn{
 #'   \boldsymbol{p}_{A^{c}}
 #'   =
-#'   (1-s)\,\boldsymbol{\psi}(\boldsymbol{\rho}),
+#'   (1-s)\,\boldsymbol{\psi}(\boldsymbol{z}),
 #'   \qquad
-#'   \boldsymbol{\rho}\in\mathbb{R}^{|A^{c}|-1},
+#'   \boldsymbol{z}\in\mathbb{R}^{|A^{c}|-1},
 #' }
-#' with \eqn{\boldsymbol{\psi}} the additive logistic map
-#' ([additive_logistic()]). The constrained coordinates are *substituted*
+#' with \eqn{\boldsymbol{\psi}} the isometric logistic map
+#' ([isometric_logistic()]) on a Helmert basis of the free face.
+#' The constrained coordinates are *substituted*
 #' rather than pushed through a logarithm, so a null such as
 #' \eqn{p_j=0} is representable exactly: this is what makes boundary
 #' likelihood-ratio tests computable (see [lrt_decovart()]).
@@ -31,7 +32,7 @@
 #' coordinate remains strictly positive. Optimisation uses
 #' [stats::optim()] (`"BFGS"`) with the analytic score obtained by
 #' chaining [gradient_loglik_unconstrained()] through
-#' \eqn{(1-s)\mathbf{J}_{\boldsymbol{\psi}}}.
+#' \eqn{(1-s)\mathbf{J}_{\boldsymbol{\psi}}} on the free-face ILR chart.
 #'
 #' @inheritParams loglik_multivariate
 #' @param fixed Named or integer-indexed numeric vector of constrained
@@ -74,13 +75,18 @@ restricted_mle_decovart <- function(
   }
   free <- setdiff(seq_len(n_celltypes), idx)
   remaining <- 1 - sum(fixed_value)
-  assemble <- function(rho) {
+  assemble <- function(z) {
     p <- numeric(n_celltypes)
     p[idx] <- fixed_value
-    if (length(free) == 1L) {
+    n_free <- length(free)
+    if (n_free == 1L) {
       p[free] <- remaining
-    } else {
-      p[free] <- remaining * additive_logistic(rho)
+    } else if (n_free > 1L) {
+      if (remaining <= 0) {
+        p[free] <- 0
+      } else {
+        p[free] <- remaining * isometric_logistic(z)
+      }
     }
     names(p) <- nms
     p
@@ -94,18 +100,18 @@ restricted_mle_decovart <- function(
       convergence = list(code = 0L, iterations = 0L, message = "closed form")
     ))
   }
-  objective <- function(rho) {
-    loglik_multivariate(assemble(rho), y, mean_signature_matrix, Sigma)
+  objective <- function(z) {
+    loglik_multivariate(assemble(z), y, mean_signature_matrix, Sigma)
   }
-  score <- function(rho) {
-    p <- assemble(rho)
+  score <- function(z) {
+    p <- assemble(z)
     grad_p <- gradient_loglik_unconstrained(
       p,
       y,
       mean_signature_matrix,
       Sigma
     )
-    drop(grad_p[free] %*% (remaining * jacobian_additive_logistic(rho)))
+    drop(grad_p[free] %*% (remaining * jacobian_isometric_logistic(z)))
   }
   fit <- stats::optim(
     par = rep(0, length(free) - 1L),
@@ -408,7 +414,7 @@ lrt_decovart <- function(
     itmax = itmax
   )
   # The alternative is the CLOSED simplex, so its supremum is at least the
-  # restricted maximum. An interior ALR optimiser only approaches a face,
+  # restricted maximum. An interior ILR optimiser only approaches a face,
   # hence a small negative gap is the signature of a genuine boundary MLE
   # rather than of a failed optimisation.
   gap <- null$loglik - full$loglik
@@ -1334,13 +1340,13 @@ reference_bootstrap_decovart <- function(
 #' `vignette("DeCovarT-MLE-properties")`).
 #'
 #' @details
-#' Reported fields are the ALR score norm
-#' \eqn{\lVert\nabla_{\boldsymbol{\rho}}\ell\rVert}, the largest
-#' eigenvalue \eqn{\lambda_{\max}(\mathbf{H}_{\boldsymbol{\rho}})} (negative
+#' Reported fields are the ILR score norm
+#' \eqn{\lVert\nabla_{\boldsymbol{z}}\ell\rVert}, the largest
+#' eigenvalue \eqn{\lambda_{\max}(\mathbf{H}_{\boldsymbol{z}})} (negative
 #' at a local maximum), `boundary_distance` \eqn{=\min_j\hat{p}_j}, and the
 #' flags `near_boundary` and `local_maximum`.
 #'
-#' `boundary_tol` is a **statistical** warning threshold for Wald / ALR
+#' `boundary_tol` is a **statistical** warning threshold for Wald / ILR
 #' linearisation, deliberately much larger than the machine-precision guard
 #' that decides whether a logarithm is representable. A fit with
 #' \eqn{\min_j\hat{p}_j\ll 1} is not evidence of optimiser failure: the
@@ -1353,7 +1359,7 @@ reference_bootstrap_decovart <- function(
 #' @param p Estimated proportions of length \eqn{J}.
 #' @param boundary_tol Threshold on \eqn{\min_j\hat{p}_j} below which the
 #'   estimate is flagged as near-boundary.
-#' @param score_tol Threshold on the ALR score norm below which the
+#' @param score_tol Threshold on the ILR score norm below which the
 #'   iterate counts as stationary.
 #'
 #' @return A one-row data frame of diagnostics.
@@ -1381,18 +1387,18 @@ boundary_diagnostics <- function(
   score_norm <- NA_real_
   curvature <- NA_real_
   if (!near_boundary && length(p) > 1L) {
-    rho <- additive_log_ratio(p)
+    z <- isometric_log_ratio(p)
     score_norm <- sqrt(sum(
-      gradient_loglik_constrained(rho, y, mean_signature_matrix, Sigma)^2
+      gradient_loglik_constrained(z, y, mean_signature_matrix, Sigma)^2
     ))
-    hessian_rho <- hessian_loglik_constrained(
-      rho,
+    hessian_z <- hessian_loglik_constrained(
+      z,
       y,
       mean_signature_matrix,
       Sigma
     )
     curvature <- max(
-      eigen(hessian_rho, symmetric = TRUE, only.values = TRUE)$values
+      eigen(hessian_z, symmetric = TRUE, only.values = TRUE)$values
     )
   }
   data.frame(
@@ -1601,13 +1607,18 @@ multistart_decovart <- function(
     free <- setdiff(seq_len(n_celltypes), idx)
     remaining <- 1 - sum(fixed_value)
   }
-  assemble <- function(rho) {
+  assemble <- function(z) {
     p <- numeric(n_celltypes)
     p[idx] <- fixed_value
-    if (length(free) == 1L) {
+    n_free <- length(free)
+    if (n_free == 1L) {
       p[free] <- remaining
-    } else if (length(free) > 1L) {
-      p[free] <- remaining * additive_logistic(rho)
+    } else if (n_free > 1L) {
+      if (remaining <= 0) {
+        p[free] <- 0
+      } else {
+        p[free] <- remaining * isometric_logistic(z)
+      }
     }
     names(p) <- nms
     p
@@ -1620,9 +1631,9 @@ multistart_decovart <- function(
       convergence = list(code = 0L, iterations = 0L, message = "closed form")
     ))
   }
-  score <- function(rho) {
-    p <- assemble(rho)
-    jac <- remaining * jacobian_additive_logistic(rho)
+  score <- function(z) {
+    p <- assemble(z)
+    jac <- remaining * jacobian_isometric_logistic(z)
     grad_p <- rowSums(vapply(
       seq_len(ncol(y_mat)),
       function(i) {
@@ -1639,12 +1650,12 @@ multistart_decovart <- function(
   }
   fit <- stats::optim(
     par = rep(0, length(free) - 1L),
-    fn = function(rho) pooled_loglik(assemble(rho)),
+    fn = function(z) pooled_loglik(assemble(z)),
     gr = score,
     method = "BFGS",
     control = list(fnscale = -1, reltol = epsilon, maxit = itmax)
   )
-  list(
+  interior <- list(
     coefficients = assemble(fit$par),
     loglik = fit$value,
     convergence = list(
@@ -1653,6 +1664,29 @@ multistart_decovart <- function(
       message = fit$message
     )
   )
+  # ILR cannot represent an exact zero. If the interior chart stops on a
+  # face, compare the matching restricted fit and keep the better
+  # likelihood (closed-simplex supremum).
+  if (is.null(fixed)) {
+    face_idx <- which(interior$coefficients < 1e-3)
+    if (length(face_idx) > 0L && length(face_idx) < n_celltypes) {
+      face <- .pooled_mle(
+        y_mat,
+        mean_signature_matrix,
+        Sigma,
+        fixed = stats::setNames(
+          rep(0, length(face_idx)),
+          nms[face_idx]
+        ),
+        epsilon = epsilon,
+        itmax = itmax
+      )
+      if (is.finite(face$loglik) && face$loglik >= interior$loglik) {
+        return(face)
+      }
+    }
+  }
+  interior
 }
 
 #' Simulate replicate bulk profiles from the convolution model

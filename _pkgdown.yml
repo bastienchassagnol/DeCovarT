@@ -107,6 +107,9 @@ navbar:
         - text: How to simulate interesting synthetic scenarios with dependency structures
           icon: fa-flask
           href: articles/synthetic-scenarios.html
+        - text: Simulation reporting (ADEMP and Nature Methods)
+          icon: fa-clipboard-check
+          href: articles/simulation-reporting.html
         - text: Manuscript synthetic simulation scenarios
           icon: fa-chart-pie
           href: articles/DeCovarT-manuscript-scenarios.html
@@ -158,11 +161,18 @@ reference:
   - subtitle: Score equations and simplex maps
     desc: |
       Analytic first- and second-order helpers for the unconstrained and
-      ALR-constrained log-likelihood (Jacobian / Hessian of the additive
-      logistic map; gradients and Hessians of \(\ell\)). Documented for
+      ILR-constrained log-likelihood (Helmert basis; Jacobian / Hessian of
+      the isometric logistic map; gradients and Hessians of \(\ell\)).
+      Additive log-ratio maps are kept for the vignette appendix.
+      Documented for
       `?` / source inspection; see also
       `vignette("generative-model-derivatives")`.
     contents:
+      - helmert_basis
+      - isometric_logistic
+      - isometric_log_ratio
+      - jacobian_isometric_logistic
+      - hessian_isometric_logistic
       - additive_logistic
       - additive_log_ratio
       - jacobian_additive_logistic
@@ -197,11 +207,13 @@ reference:
       - sigma_trace_precision_times
   - subtitle: Fisher information and Wald intervals
     desc: |
-      Expected Fisher information of unconstrained proportions and ALR
+      Expected Fisher information of unconstrained proportions and ILR
       delta-method covariance used by `vcov()` / `confint()` on
-      `decovart_fit` objects (see `fit_decovart`).
+      `decovart_fit` objects (see `fit_decovart`). `vcov_alr_delta()` is
+      retained for reference-invariance checks.
     contents:
       - expected_fisher_unconstrained
+      - vcov_ilr_delta
       - vcov_alr_delta
   - subtitle: Likelihood-ratio and boundary inference
     desc: |
@@ -228,6 +240,7 @@ reference:
       benchmark wrapper.
     contents:
       - compute_benchmark_metrics
+      - coverage_mc_interval
       - run_simulation_benchmark
       - deconvolute_ratios
       - plot_correlation_Heatmap
@@ -238,8 +251,10 @@ reference:
       hierarchical GRN moments with graph-constrained covariances.
     contents:
       - generate_mean_signature_matrix
+      - equicorrelation_gram
       - simulate_bulk_mixture
       - simulate_hierarchical_grn_moments
+      - describe_simulation_scenario
   - title: Statistical metrics
     desc: |
       Simplex repair, Shannon entropy, MixSim overlap, Jeffreys divergence,
@@ -260,6 +275,7 @@ articles:
     navbar: ~
     contents:
       - synthetic-scenarios
+      - simulation-reporting
       - feature-selection
       - network-inference
       - DeCovarT-manuscript-scenarios
@@ -275,7 +291,7 @@ articles:
       z-score / affine equivariance of the MLE, failure under collinear
       signatures, impact of small bulk perturbations under full /
       cell-type-diagonal / global covariances, and sensitivity of
-      second-order solvers to random ALR starts.
+      second-order solvers to random ILR starts.
     contents:
       - DeCovarT_appendix_simualtion_frameworks
 

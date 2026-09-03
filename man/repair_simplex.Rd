@@ -36,8 +36,8 @@ projection onto the simplex and not a statistical-identifiability
 constraint.
 
 When \code{open = TRUE}, entries on the closed-simplex boundary are nudged
-into the relative interior so that \code{\link[=additive_log_ratio]{additive_log_ratio()}} is defined
-(ALR / Marquardt / Newton starts). That open-simplex path is the
+into the relative interior so that \code{\link[=isometric_log_ratio]{isometric_log_ratio()}} is defined
+(ILR / Marquardt / Newton starts). That open-simplex path is the
 former role of \code{.starting_simplex()}.
 }
 \examples{

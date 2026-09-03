@@ -228,14 +228,90 @@
 #' @keywords internal
 #' @noRd
 .mcse_coverage <- function(covered) {
+  coverage_mc_interval(covered, method = "wald")$mcse
+}
+
+#' Monte Carlo interval for an empirical coverage probability
+#'
+#' Interval for a binomial coverage rate
+#' \eqn{\hat\pi=X/N} from independent coverage indicators.
+#' Wilson is the default because the parameter is bounded in
+#' \eqn{[0,1]} and Wald intervals behave poorly near 0 or 1.
+#'
+#' @param covered Logical or 0/1 coverage indicators (one per replicate).
+#' @param conf_level Confidence level for the interval around
+#'   \eqn{\hat\pi} (default `0.95`).
+#' @param method `"wilson"` (default), `"wald"`, or `"agresti_coull"`.
+#'
+#' @return A list with `n`, `successes`, `coverage`, `mcse`, `lower`,
+#'   `upper`, and `method`.
+#'
+#' @examples
+#' coverage_mc_interval(c(TRUE, TRUE, TRUE, FALSE))
+#' @export
+coverage_mc_interval <- function(
+  covered,
+  conf_level = 0.95,
+  method = c("wilson", "wald", "agresti_coull")
+) {
+  method <- .match_arg_case_insensitive(
+    method,
+    c(
+      "wilson",
+      "wald",
+      "agresti_coull"
+    )
+  )
   covered <- as.numeric(covered)
   covered <- covered[is.finite(covered)]
   n <- length(covered)
   if (n == 0L) {
-    return(NA_real_)
+    return(list(
+      n = 0L,
+      successes = 0L,
+      coverage = NA_real_,
+      mcse = NA_real_,
+      lower = NA_real_,
+      upper = NA_real_,
+      method = method
+    ))
   }
-  p_hat <- mean(covered)
-  sqrt(p_hat * (1 - p_hat) / n)
+  x <- sum(covered)
+  p_hat <- x / n
+  mcse <- sqrt(p_hat * (1 - p_hat) / n)
+  z <- stats::qnorm(1 - (1 - conf_level) / 2)
+  bounds <- switch(
+    method,
+    wald = {
+      c(
+        max(0, p_hat - z * mcse),
+        min(1, p_hat + z * mcse)
+      )
+    },
+    wilson = {
+      d <- 1 + z^2 / n
+      centre <- (p_hat + z^2 / (2 * n)) / d
+      half <- z /
+        d *
+        sqrt(p_hat * (1 - p_hat) / n + z^2 / (4 * n^2))
+      c(max(0, centre - half), min(1, centre + half))
+    },
+    agresti_coull = {
+      n_tilde <- n + z^2
+      p_tilde <- (x + z^2 / 2) / n_tilde
+      half <- z * sqrt(p_tilde * (1 - p_tilde) / n_tilde)
+      c(max(0, p_tilde - half), min(1, p_tilde + half))
+    }
+  )
+  list(
+    n = n,
+    successes = as.integer(x),
+    coverage = p_hat,
+    mcse = mcse,
+    lower = bounds[[1L]],
+    upper = bounds[[2L]],
+    method = method
+  )
 }
 
 #' Empty three-block benchmark list
@@ -319,6 +395,7 @@
     idx,
     fun,
     .options = furrr::furrr_options(
+      # L'Ecuyer-CMRG streams per worker (R >= 4.1 / future.seed).
       seed = TRUE,
       packages = "DeCovarT"
     )

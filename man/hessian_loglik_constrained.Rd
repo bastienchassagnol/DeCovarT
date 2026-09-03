@@ -4,10 +4,10 @@
 \alias{hessian_loglik_constrained}
 \title{Constrained Hessian of \eqn{\ell\circ\boldsymbol{\psi}}}
 \usage{
-hessian_loglik_constrained(rho, y, mean_signature_matrix, Sigma)
+hessian_loglik_constrained(z, y, mean_signature_matrix, Sigma, V = NULL)
 }
 \arguments{
-\item{rho}{Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.}
+\item{z}{Numeric vector \eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}}.}
 
 \item{y}{Numeric vector (or one-column matrix)
 \eqn{\boldsymbol{y}\in\mathbb{R}^{G}}.}
@@ -17,28 +17,33 @@ hessian_loglik_constrained(rho, y, mean_signature_matrix, Sigma)
 
 \item{Sigma}{Array of cell-type covariances in
 \eqn{\mathcal{M}_{G\times G\times J}}.}
+
+\item{V}{Optional ILR basis; see \code{\link[=isometric_logistic]{isometric_logistic()}}.}
 }
 \value{
 Symmetric matrix in \eqn{\mathcal{M}_{(J-1)\times(J-1)}}.
 }
 \description{
-Second-order chain rule
+Second-order chain rule in ILR coordinates
 \deqn{
-  \mathbf{H}_{\boldsymbol{\rho}}
+  \mathbf{H}_{\boldsymbol{z}}
   =
   \mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}
   \mathbf{H}_{\boldsymbol{p}}
   \mathbf{J}_{\boldsymbol{\psi}}
   +\sum_{i=1}^{J}
   \frac{\partial\ell}{\partial p_i}\,
-  \frac{\partial^{2}p_i}{\partial\boldsymbol{\rho}\partial\boldsymbol{\rho}^{\mathsf{T}}}.
+  \mathbf{H}_{\psi_i}.
 }
+The second summand cannot be dropped away from stationarity. At an
+interior KKT point \eqn{\nabla_p\ell=\lambda\mathbf{1}} it vanishes
+because \eqn{\sum_i\mathbf{H}_{\psi_i}=\mathbf{0}}.
 }
 \examples{
 mu <- matrix(c(20, 22, 22, 20), 2)
 Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
 p <- c(0.6, 0.4)
 y <- drop(mu \%*\% p)
-hessian_loglik_constrained(additive_log_ratio(p), y, mu, Sigma)
+hessian_loglik_constrained(isometric_log_ratio(p), y, mu, Sigma)
 }
 \keyword{internal}

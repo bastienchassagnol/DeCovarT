@@ -87,18 +87,18 @@ iterations for the optimiser (same roles as \code{reltol} / \code{maxit} in
 \code{\link[stats:optim]{stats::optim()}}).}
 
 \item{return_model}{If \code{TRUE}, return a named list with coefficients,
-ALR coordinates, log-likelihood and optimiser diagnostics instead of
+ILR coordinates, log-likelihood and optimiser diagnostics instead of
 the proportion vector.}
 
 \item{initial_p}{Optional starting proportions of length \eqn{J}. The
 default is the equi-balanced vector \eqn{(1/J,\ldots,1/J)}. Starts
-on a simplex face are nudged into the interior so the ALR map is
-defined (ALR methods) and so L-BFGS-B does not start on a
+on a simplex face are nudged into the interior so the ILR map is
+defined (ILR methods) and so L-BFGS-B does not start on a
 degenerate \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}.}
 }
 \value{
 Named numeric vector \eqn{\hat{\boldsymbol{p}}} on the simplex
-(ALR methods), or that list when \code{return_model = TRUE}.
+(ILR methods), or that list when \code{return_model = TRUE}.
 Benchmark metrics are computed by \code{\link[=deconvolute_ratios]{deconvolute_ratios()}}.
 }
 \description{
@@ -115,9 +115,9 @@ Gaussian convolution model
 }
 subject to the simplex constraint
 \eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1}, \eqn{\boldsymbol{p}\ge\mathbf{0}}.
-Optimisation is performed in unconstrained coordinates
-\eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}} via
-\eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})}
+Optimisation is performed in unconstrained ILR coordinates
+\eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}} via
+\eqn{\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{z})}
 (Marquardt–Levenberg default; see other methods below and
 \code{vignette("generative-model-derivatives", package = "DeCovarT")}).
 }
@@ -154,7 +154,8 @@ inequality-constrained least squares on the simplex
 (\code{\link[limSolve:lsei]{limSolve::lsei()}}), in the spirit of \code{deconRNASeq}.
 
 \item \code{deconvolute_ratios_simulated_annealing()}: Simulated annealing on
-\eqn{\boldsymbol{\rho}} (\code{\link[stats:optim]{stats::optim()}} with \code{method = "SANN"}).
+ILR coordinates \eqn{\boldsymbol{z}} (\code{\link[stats:optim]{stats::optim()}} with
+\code{method = "SANN"}).
 
 \item \code{deconvolute_ratios_L_BFGS_B()}: Box-constrained L-BFGS-B
 directly in \eqn{\boldsymbol{p}} (\code{\link[stats:optim]{stats::optim()}} \code{method = "L-BFGS-B"}).
@@ -162,11 +163,12 @@ The box keeps each coordinate in \eqn{[0,1]}; the returned vector is
 closed by \eqn{p/\sum p} (no \code{\link[=repair_simplex]{repair_simplex()}} clipping).
 
 \item \code{deconvolute_ratios_Newton_Raphson()}: Newton–Raphson /
-\code{nlminb} on \eqn{\boldsymbol{\rho}} using analytic gradient and Hessian
-(\code{\link[stats:nlminb]{stats::nlminb()}}).
+\code{nlminb} on ILR coordinates \eqn{\boldsymbol{z}} using analytic
+gradient and Hessian (\code{\link[stats:nlminb]{stats::nlminb()}}).
 
 \item \code{deconvolute_ratios_gradient_descent()}: BFGS quasi-Newton ascent
-on \eqn{\boldsymbol{\rho}} (\code{\link[stats:optim]{stats::optim()}} \code{method = "BFGS"}).
+on ILR coordinates \eqn{\boldsymbol{z}} (\code{\link[stats:optim]{stats::optim()}}
+\code{method = "BFGS"}).
 
 }}
 \examples{
@@ -186,5 +188,5 @@ deconvolute_ratios_Marquardt_Levenberg(y, mu, Sigma, itmax = 50)
 \insertAllCited{}
 }
 \seealso{
-\code{\link[=deconvolute_ratios]{deconvolute_ratios()}}, \code{\link[=additive_logistic]{additive_logistic()}}
+\code{\link[=deconvolute_ratios]{deconvolute_ratios()}}, \code{\link[=isometric_logistic]{isometric_logistic()}}
 }

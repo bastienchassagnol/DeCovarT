@@ -9,8 +9,8 @@
 #' constraint.
 #'
 #' When `open = TRUE`, entries on the closed-simplex boundary are nudged
-#' into the relative interior so that [additive_log_ratio()] is defined
-#' (ALR / Marquardt / Newton starts). That open-simplex path is the
+#' into the relative interior so that [isometric_log_ratio()] is defined
+#' (ILR / Marquardt / Newton starts). That open-simplex path is the
 #' former role of `.starting_simplex()`.
 #'
 #' @param p Numeric vector \eqn{\boldsymbol{p}\in\mathbb{R}^{J}}.

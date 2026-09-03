@@ -263,7 +263,11 @@ check_true_theta <- function(
 #'   F1 / false-positive mass (default `1e-4`).
 #' @param level Wald coverage level when `lower` / `upper` are omitted
 #'   (default `0.95`).
-#' @param algorithm Optional solver label attached to every row.
+#' @param coverage_interval Interval for the Monte Carlo coverage *rate*
+#'   \eqn{\hat\pi}: `"wilson"` (default), `"wald"`, or `"agresti_coull"`.
+#'   This is not the interval for \eqn{p_j} itself.
+#' @param algorithm Character label stored on each metrics row (typically
+#'   the solver name). Recycled to length one.
 #'
 #' @return A named list with:
 #' * `regression`: `global` (one row per sample) and `cell_type` (one
@@ -295,6 +299,7 @@ compute_benchmark_metrics <- function(
   loglik_true = NULL,
   presence_threshold = 1e-4,
   level = 0.95,
+  coverage_interval = "wilson",
   algorithm = NA_character_
 ) {
   cell_names <- colnames(mean_signature_matrix)
@@ -368,6 +373,7 @@ compute_benchmark_metrics <- function(
     se = se_mat,
     lower = bounds$lower,
     upper = bounds$upper,
+    coverage_interval = coverage_interval,
     algorithm = algorithm
   )
 
@@ -545,7 +551,15 @@ compute_benchmark_metrics <- function(
 
 #' @keywords internal
 #' @noRd
-.monte_carlo_table <- function(p_true, p_hat, se, lower, upper, algorithm) {
+.monte_carlo_table <- function(
+  p_true,
+  p_hat,
+  se,
+  lower,
+  upper,
+  coverage_interval,
+  algorithm
+) {
   cell_names <- rownames(p_hat)
   if (is.null(p_true)) {
     return(tibble::tibble(
@@ -558,6 +572,9 @@ compute_benchmark_metrics <- function(
       se_sd_ratio = numeric(),
       rmse = numeric(),
       coverage = numeric(),
+      coverage_lower = numeric(),
+      coverage_upper = numeric(),
+      coverage_interval = character(),
       mean_interval_width = numeric(),
       mcse_coverage = numeric()
     ))
@@ -573,11 +590,10 @@ compute_benchmark_metrics <- function(
       stats::sd(p_hat[j, ], na.rm = TRUE)
     }
     covered <- lower[j, ] <= p_true[j, ] & p_true[j, ] <= upper[j, ]
-    coverage <- if (!any(is.finite(covered))) {
-      NA_real_
-    } else {
-      mean(covered, na.rm = TRUE)
-    }
+    interval <- coverage_mc_interval(
+      covered,
+      method = coverage_interval
+    )
     se_finite <- se_j[is.finite(se_j)]
     mean_model_se <- if (length(se_finite) == 0L) {
       NA_real_
@@ -602,9 +618,12 @@ compute_benchmark_metrics <- function(
       mean_model_se = mean_model_se,
       se_sd_ratio = mean_model_se / empirical_sd,
       rmse = sqrt(mean(err^2, na.rm = TRUE)),
-      coverage = coverage,
+      coverage = interval$coverage,
+      coverage_lower = interval$lower,
+      coverage_upper = interval$upper,
+      coverage_interval = interval$method,
       mean_interval_width = width,
-      mcse_coverage = .mcse_coverage(covered)
+      mcse_coverage = interval$mcse
     )
   })
 }
@@ -636,13 +655,18 @@ compute_benchmark_metrics <- function(
 #'   optional `additional_parameters`.
 #' @param cores Number of `furrr` workers for the **sample** loop.
 #'   Defaults to `getOption("mc.cores", 1L)`. Use `cores = 1` to stay
-#'   sequential (CRAN examples and nested callers).
+#'   sequential (CRAN examples and nested callers). With `cores > 1`,
+#'   `.map_samples()` uses `furrr_options(seed = TRUE)`, which assigns
+#'   an independent L'Ecuyer-CMRG stream per worker (R 4.1 / `future`
+#'   streams). Do not offset a shared seed by the sample index.
+#' @param coverage_interval Passed to [compute_benchmark_metrics()]
+#'   (`"wilson"`, `"wald"`, or `"agresti_coull"`).
 #'
 #' @return A named list from [compute_benchmark_metrics()] with
 #'   `regression` (global and cell-type subtables), `monte_carlo`, and
 #'   `optimisation` (per-sample elapsed time, memory, KKT residual, and
 #'   \eqn{\hat{\boldsymbol{p}}}). First-generation solvers still call
-#'   [repair_simplex()]; the three native DeCovarT maps (ALR or
+#'   [repair_simplex()]; the three native DeCovarT maps (ILR or
 #'   \eqn{p/\sum p}) already lie on the simplex.
 #'
 #' @examples
@@ -703,7 +727,8 @@ deconvolute_ratios <- function(
   deconvolution_functions = NULL,
   standardise = FALSE,
   scaled = FALSE,
-  cores = getOption("mc.cores", 1L)
+  cores = getOption("mc.cores", 1L),
+  coverage_interval = "wilson"
 ) {
   aligned <- .prepare_deconvolution_inputs(
     signature_matrix = signature_matrix,
@@ -751,7 +776,8 @@ deconvolute_ratios <- function(
         sample_fits = sample_fits,
         Y = Y,
         mean_signature_matrix = mean_signature_matrix,
-        algorithm = algorithm
+        algorithm = algorithm,
+        coverage_interval = coverage_interval
       )
     }
   )
@@ -867,7 +893,8 @@ deconvolute_ratios <- function(
   sample_fits,
   Y,
   mean_signature_matrix,
-  algorithm
+  algorithm,
+  coverage_interval = "wilson"
 ) {
   p_hat <- do.call(cbind, purrr::map(sample_fits, "p"))
   se <- do.call(cbind, purrr::map(sample_fits, "se"))
@@ -892,6 +919,7 @@ deconvolute_ratios <- function(
     ),
     loglik_hat = purrr::map_dbl(sample_fits, "loglik_hat"),
     loglik_true = purrr::map_dbl(sample_fits, "loglik_true"),
+    coverage_interval = coverage_interval,
     algorithm = algorithm
   )
 }

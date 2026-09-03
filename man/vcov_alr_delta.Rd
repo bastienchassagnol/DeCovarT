@@ -41,11 +41,9 @@ Under a regular large-sample regime the MLE in ALR coordinates is
 asymptotically normal,
 \eqn{\hat{\boldsymbol{\rho}}
 \overset{a}{\sim}
-\mathcal{N}(\boldsymbol{\rho}_{0}, I_{\boldsymbol{\rho}}^{-1})}
-(Cramer--Rao / asymptotic normality of MLEs; law of large numbers
-for the score). The first-order delta method then yields the
-simplex covariance used by \code{\link[=vcov.decovart_fit]{vcov.decovart_fit()}} and the Wald
-standard errors in \code{\link[=confint.decovart_fit]{confint.decovart_fit()}}:
+\mathcal{N}(\boldsymbol{\rho}_{0}, I_{\boldsymbol{\rho}}^{-1})}.
+The first-order delta method then yields the same simplex covariance
+as \code{\link[=vcov_ilr_delta]{vcov_ilr_delta()}} when both charts are transformed correctly:
 \deqn{
   \mathrm{Var}(\hat{\boldsymbol{p}})
   \approx
@@ -53,17 +51,14 @@ standard errors in \code{\link[=confint.decovart_fit]{confint.decovart_fit()}}:
   I_{\boldsymbol{\rho}}^{-1}
   \mathbf{J}_{\boldsymbol{\psi}}^{\top}.
 }
-Diagonal square roots of this matrix are the asymptotic standard
-errors; Wald intervals at level \eqn{1-\alpha} are
-\eqn{\hat{p}_j \pm z_{1-\alpha/2}\,\mathrm{SE}_j} with
-\eqn{z_{q}=\Phi^{-1}(q)}. The construction is undefined on the
-simplex boundary (ALR chart blows up); the function then returns
-\code{NA} with a warning. See also
+This helper is kept for reference-invariance checks; \code{\link[=vcov.decovart_fit]{vcov.decovart_fit()}}
+uses \code{\link[=vcov_ilr_delta]{vcov_ilr_delta()}}. The construction is undefined on the simplex
+boundary (the ALR chart blows up); the function then returns \code{NA} with
+a warning. See also
 \url{https://en.wikipedia.org/wiki/Delta_method} and
 \url{https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution}.
 }
 \seealso{
-\code{\link[=expected_fisher_unconstrained]{expected_fisher_unconstrained()}}, \code{\link[=vcov.decovart_fit]{vcov.decovart_fit()}},
-\code{\link[=confint.decovart_fit]{confint.decovart_fit()}}, \code{\link[=jacobian_additive_logistic]{jacobian_additive_logistic()}}
+\code{\link[=vcov_ilr_delta]{vcov_ilr_delta()}}, \code{\link[=jacobian_additive_logistic]{jacobian_additive_logistic()}}
 }
 \keyword{internal}

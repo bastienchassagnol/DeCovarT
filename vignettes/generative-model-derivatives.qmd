@@ -43,9 +43,9 @@ DeCovarT maximises a Gaussian-convolution log-likelihood for cellular
 ratios $\boldsymbol{p}\in\Delta^{J-1}$. This vignette derives the
 analytic first- and second-order derivatives used by the frequentist
 solvers, first with respect to unconstrained ambient proportions
-$\boldsymbol{p}$, then after the additive log-ratio (ALR) map that
+$\boldsymbol{p}$, then after the isometric log-ratio (ILR) map that
 enforces the simplex. It closes with the expected Fisher information and
-the ALR delta-method covariance that feed
+the ILR delta-method covariance that feed
 [`vcov.decovart_fit()`](../reference/fit_decovart.html) and
 [`confint.decovart_fit()`](../reference/fit_decovart.html).
 Package entry points are
@@ -55,7 +55,10 @@ Package entry points are
 [`hessian_loglik_constrained()`](../reference/hessian_loglik_constrained.html),
 [`expected_fisher_unconstrained()`](../reference/expected_fisher_unconstrained.html)
 and
-[`vcov_alr_delta()`](../reference/vcov_alr_delta.html).
+[`vcov_ilr_delta()`](../reference/vcov_ilr_delta.html).
+The additive log-ratio chart is retained as an appendix (@sec-alr)
+and as [`vcov_alr_delta()`](../reference/vcov_alr_delta.html) for
+reference-invariance checks.
 
 ::: {#nte-notation .callout-note}
 ## Notation
@@ -67,8 +70,9 @@ and
   $\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}$.
 - $\boldsymbol{p}$: proportions on the open simplex (ambient score
   equations treat them as free coordinates in $(0,1)^{J}$).
-- $\boldsymbol{\rho}\in\mathbb{R}^{J-1}$: ALR coordinates with reference
-  part $J$; $\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})$.
+- $\boldsymbol{z}\in\mathbb{R}^{J-1}$: ILR coordinates on a Helmert
+  basis $\mathbf{V}$; $\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}
+  \boldsymbol{z})$.
 :::
 
 # Matrix calculus reminders {#sec-matrix-calculus}
@@ -256,10 +260,10 @@ change.
 
 @sec-unconstrained treats each $p_{j}$ as an ambient coordinate in
 $(0,1)$ and ignores $\sum_{j}p_{j}=1$. The resulting gradient and
-Hessian are the building blocks of the ALR chain rule in
+Hessian are the building blocks of the ILR chain rule in
 @sec-constrained. They are **not** the coordinates used by
 Marquardt–Levenberg or Newton–Raphson in the package (those optimise in
-$\boldsymbol{\rho}$-space). The box-constrained L-BFGS-B path is the
+$\boldsymbol{z}$-space). The box-constrained L-BFGS-B path is the
 exception: it works directly in $\boldsymbol{p}$ with $[0,1]^{J}$ boxes
 and does not enforce the simplex exactly.
 :::
@@ -421,7 +425,7 @@ and Hessians are checked against Richardson extrapolation in
 Constrained optimisation may eliminate constraints by reparametrisation,
 enforce them softly with penalties or barriers, or enforce them exactly
 with projections / KKT methods. DeCovarT uses a $C^{2}$ diffeomorphism
-from free Euclidean coordinates $\boldsymbol{\rho}\in\mathbb{R}^{J-1}$
+from free Euclidean coordinates $\boldsymbol{z}\in\mathbb{R}^{J-1}$
 onto the open simplex, so every Newton step stays feasible by
 construction.
 
@@ -460,75 +464,114 @@ s_{i}\bigl[
 \bigr].
 $$ {#eq-softmax-hess}
 
-## Additive log-ratio map {#sec-alr}
+## Isometric log-ratio map {#sec-ilr}
 
-Pin the last category as reference ($\rho_{J}\equiv 0$). The *additive
-logistic* transform $\boldsymbol{\psi}$ (inverse ALR) and its inverse are
-[@aitchisonStatisticalAnalysisCompositional1982]
+Choose a Helmert sub-matrix
+$\mathbf{V}\in\mathbb{R}^{J\times(J-1)}$ with
 
 $$
-p_{j}
-=
-\frac{e^{\rho_{j}}}{\sum_{k<J}e^{\rho_{k}}+1}\ (j<J),
+\mathbf{V}^{\mathsf{T}}\mathbf{V}=\mathbf{I}_{J-1},
 \qquad
-p_{J}
+\mathbf{V}^{\mathsf{T}}\mathbf{1}=\mathbf{0}.
+$$ {#eq-helmert}
+
+ILR coordinates and their inverse are
+[@pawlowsky-glahnCompositionalDataAnalysis2011]
+
+$$
+\boldsymbol{z}
 =
-\frac{1}{\sum_{k<J}e^{\rho_{k}}+1},
+\mathbf{V}^{\mathsf{T}}\log\boldsymbol{p}
+=
+\mathbf{V}^{\mathsf{T}}\operatorname{clr}(\boldsymbol{p}),
 \qquad
-\rho_{j}
+\boldsymbol{p}
 =
-\log\!\left(\frac{p_{j}}{p_{J}}\right).
-$$ {#eq-alr-maps}
+\operatorname{softmax}(\mathbf{V}\boldsymbol{z})
+=
+\mathcal{C}\bigl\{\exp(\mathbf{V}\boldsymbol{z})\bigr\},
+$$ {#eq-ilr-maps}
 
-Equivalently,
-$\boldsymbol{p}=\operatorname{softmax}(\rho_{1},\ldots,\rho_{J-1},0)$.
-Package helpers
-[`additive_logistic()`](../reference/additive_logistic.html) and
-[`additive_log_ratio()`](../reference/additive_log_ratio.html) implement
-@eq-alr-maps; they match `compositions::alrInv()` / `alr()` with the last
-part as reference [@R-compositions].
+where $\mathcal{C}$ denotes closure to unit sum. No cell type is pinned
+as a reference (contrast @sec-alr). Package helpers
+[`helmert_basis()`](../reference/helmert_basis.html),
+[`isometric_logistic()`](../reference/isometric_logistic.html) and
+[`isometric_log_ratio()`](../reference/isometric_log_ratio.html)
+implement @eq-helmert--@eq-ilr-maps with a log-sum-exp softmax, matching
+the `compositions::ilr()` / `ilrInv()` convention on a Helmert basis
+[@R-compositions; @egozcueIsometricLogratioTransformations2003].
 
-::: {#prp-alr-diffeo}
-## ALR is a $C^{2}$ diffeomorphism
+::: {#prp-ilr-diffeo}
+## ILR is a $C^{2}$ diffeomorphism
 
 $\boldsymbol{\psi}:\mathbb{R}^{J-1}\to(0,1)^{J}$ with
 $\sum_{j}p_{j}=1$ is bijective and twice continuously differentiable, so
-every critical point in $\boldsymbol{\rho}$-space maps to a unique open
-simplex composition and conversely.
+every critical point in $\boldsymbol{z}$-space maps to a unique open
+simplex composition and conversely. Any other valid ILR basis is
+$\mathbf{V}^{\star}=\mathbf{V}Q$ with $Q^{\mathsf{T}}Q=\mathbf{I}$,
+which rotates coordinates as $\boldsymbol{z}^{\star}=Q^{\mathsf{T}}
+\boldsymbol{z}$ and leaves eigenvalues, condition numbers and traces of
+properly transformed quadratic forms unchanged.
 :::
 
-## Efficient derivatives of $\boldsymbol{\psi}$ {#sec-alr-deriv}
+::: {#nte-ilr-vs-alr .callout-note}
+## Why ILR is the default chart
 
-Write $A=\sum_{j'<J}e^{\rho_{j'}}+1$ and $B_{i}=A-e^{\rho_{i}}$. The
-Jacobian
-$\mathbf{J}_{\boldsymbol{\psi}}\in\mathcal{M}_{J\times(J-1)}$ is the
-softmax Jacobian with the reference column dropped,
+Changing an ALR denominator changes the coordinates, not the composition.
+If derivatives, Fisher information and the delta method are transformed
+correctly, $\hat{\boldsymbol{p}}$, $\ell(\hat{\boldsymbol{p}})$ and
+$\operatorname{Var}(\hat{\boldsymbol{p}})$ must agree after mapping back
+to the simplex. A material change in $\hat{\boldsymbol{p}}$ when the
+reference cell is permuted is therefore numerical or optimisation
+sensitivity, not a statistical reference dependence.
+
+ILR still improves the chart because distinct orthonormal bases differ by
+an orthogonal rotation, whereas changing an ALR denominator is a
+generally non-orthogonal reparametrisation. Euclidean gradient norms,
+Hessian condition numbers and Newton step geometry are then natural up
+to rotation. A fixed Helmert basis introduces an ordering convention,
+not a denominator. The ALR formulae are kept in @sec-alr for comparison
+and for the structural-zero discussion (@sec-structural-zeros).
+:::
+
+## Efficient derivatives of $\boldsymbol{\psi}$ {#sec-ilr-deriv}
+
+Write
+$\mathbf{S}(\boldsymbol{p})=\operatorname{diag}(\boldsymbol{p})
+-\boldsymbol{p}\boldsymbol{p}^{\mathsf{T}}$. The Jacobian is
 
 $$
-\frac{\partial p_{i}}{\partial\rho_{j}}
+\mathbf{J}_{\boldsymbol{\psi}}(\boldsymbol{z})
 =
-\begin{cases}
-e^{\rho_{i}}B_{i}/A^{2}, & i=j,\ i<J,\\
--e^{\rho_{j}}e^{\rho_{i}}/A^{2}, & i\neq j,\ i<J,\\
--e^{\rho_{j}}/A^{2}, & i=J,
-\end{cases}
-$$ {#eq-alr-jac}
+\frac{\partial\boldsymbol{p}}{\partial\boldsymbol{z}^{\mathsf{T}}}
+=
+\mathbf{S}(\boldsymbol{p})\mathbf{V}.
+$$ {#eq-ilr-jac}
 
-or compactly
-$\partial p_{i}/\partial\rho_{a}=p_{i}(\delta_{ia}-p_{a})$ for
-$a=1,\ldots,J-1$. The Hessian is a third-order tensor of shape
-$(J-1)\times(J-1)\times J$; explicit case distinctions appear in the
-manuscript appendix and in
-[`hessian_additive_logistic()`](../reference/hessian_additive_logistic.html).
-In practice DeCovarT evaluates the Jacobian / Hessian from the softmax
-restriction rather than expanding every Boolean case by hand
-([`jacobian_additive_logistic()`](../reference/jacobian_additive_logistic.html)).
+[`jacobian_isometric_logistic()`](../reference/jacobian_isometric_logistic.html)
+returns this $J\times(J-1)$ matrix. Let
+$\bar{\boldsymbol{v}}=\mathbf{V}^{\mathsf{T}}\boldsymbol{p}$,
+$\boldsymbol{q}_{i}=\mathbf{V}_{i\cdot}-\bar{\boldsymbol{v}}$ and
+$\mathbf{C}_{V}=\mathbf{V}^{\mathsf{T}}\mathbf{S}(\boldsymbol{p})
+\mathbf{V}$. Slice $i$ of the map Hessian is
 
-## Change of variables: ambient $\boldsymbol{p}$ to ALR $\boldsymbol{\rho}$ {#sec-chain-rule}
+$$
+\mathbf{H}_{\psi_{i}}
+=
+p_{i}\bigl(
+  \boldsymbol{q}_{i}\boldsymbol{q}_{i}^{\mathsf{T}}
+  -\mathbf{C}_{V}
+\bigr).
+$$ {#eq-ilr-hess}
 
-Let $\ell_{\boldsymbol{\rho}}(\boldsymbol{\rho})
+[`hessian_isometric_logistic()`](../reference/hessian_isometric_logistic.html)
+stores the tensor of shape $(J-1)\times(J-1)\times J$.
+
+## Change of variables: ambient $\boldsymbol{p}$ to ILR $\boldsymbol{z}$ {#sec-chain-rule}
+
+Let $\ell_{\boldsymbol{z}}(\boldsymbol{z})
 =\ell_{\boldsymbol{y}\mid\boldsymbol{\zeta}}
-\bigl(\boldsymbol{\psi}(\boldsymbol{\rho})\bigr)$. The chain rule maps the
+\bigl(\boldsymbol{\psi}(\boldsymbol{z})\bigr)$. The chain rule maps the
 unconstrained derivatives of @sec-unconstrained into free Euclidean
 coordinates.
 
@@ -536,30 +579,36 @@ coordinates.
 ## Constrained score and Hessian
 
 $$
-\frac{\partial\ell_{\boldsymbol{\rho}}}{\partial\rho_{j}}
+\nabla_{\boldsymbol{z}}\ell
 =
-\sum_{i=1}^{J}
-\frac{\partial\ell}{\partial p_{i}}
-\frac{\partial p_{i}}{\partial\rho_{j}},
+\mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}\nabla_{\boldsymbol{p}}\ell
+=
+\mathbf{V}^{\mathsf{T}}\mathbf{S}(\boldsymbol{p})\nabla_{\boldsymbol{p}}\ell,
 $$ {#eq-chain-first}
 
 $$
-\begin{aligned}
-\frac{\partial^{2}\ell_{\boldsymbol{\rho}}}{\partial\rho_{k}\partial\rho_{j}}
-&=
-\sum_{i=1}^{J}
-\sum_{l=1}^{J}
-\frac{\partial p_{i}}{\partial\rho_{j}}
-\frac{\partial^{2}\ell}{\partial p_{i}\partial p_{l}}
-\frac{\partial p_{l}}{\partial\rho_{k}}
-\\
-&\quad+
+\mathbf{H}_{\boldsymbol{z}}
+=
+\mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}
+\mathbf{H}_{\boldsymbol{p}}
+\mathbf{J}_{\boldsymbol{\psi}}
++
 \sum_{i=1}^{J}
 \frac{\partial\ell}{\partial p_{i}}
-\frac{\partial^{2}p_{i}}{\partial\rho_{k}\partial\rho_{j}}.
-\end{aligned}
+\mathbf{H}_{\psi_{i}}.
 $$ {#eq-chain-second}
 :::
+
+At an interior KKT point every active score equals the same multiplier,
+$\partial\ell/\partial p_{i}=\lambda$. Because
+$\sum_{i}p_{i}(\boldsymbol{z})=1$ for every $\boldsymbol{z}$,
+$\sum_{i}\mathbf{H}_{\psi_{i}}=\mathbf{0}$, so the second summand of
+@eq-chain-second vanishes and
+$\mathbf{H}_{\boldsymbol{z}}
+=\mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}
+\mathbf{H}_{\boldsymbol{p}}
+\mathbf{J}_{\boldsymbol{\psi}}$. Away from stationarity that contraction
+must be kept.
 
 ::: {#nte-chain-impl .callout-important}
 ## Implementation map
@@ -567,8 +616,8 @@ $$ {#eq-chain-second}
 | Object | Package function |
 |:--|:--|
 | Ambient score / Hessian | `gradient_loglik_unconstrained()`, `hessian_loglik_unconstrained()` |
-| Map Jacobian / Hessian | `jacobian_additive_logistic()`, `hessian_additive_logistic()` |
-| ALR score / Hessian | `gradient_loglik_constrained()`, `hessian_loglik_constrained()` |
+| Map Jacobian / Hessian | `jacobian_isometric_logistic()`, `hessian_isometric_logistic()` |
+| ILR score / Hessian | `gradient_loglik_constrained()`, `hessian_loglik_constrained()` |
 
 @eq-chain-second is the sum of a covariant pull-back of $\mathbf{H}$ and
 a contraction of the ambient score against the map Hessian. Omitting the
@@ -576,7 +625,14 @@ second summand is a common bug when porting first-order code to Newton
 methods.
 :::
 
-Extensions on the same footing include **ILR** or **CLR** coordinates [@pawlowsky-glahnCompositionalDataAnalysis2011] and Bayesian formulations: a Dirichlet or logistic-normal prior on $\boldsymbol{p}$ pairs naturally with the Gaussian bulk likelihood (the experimental MAP `CTS` path in `R/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R` is one starting point). Regardless of coordinate system, the workflow is the same: optimise in an unconstrained parameterisation, then map back to the simplex for interpretation.
+CLR coordinates and Bayesian formulations sit on the same footing
+[@pawlowsky-glahnCompositionalDataAnalysis2011]: a Dirichlet or
+logistic-normal prior on $\boldsymbol{p}$ pairs naturally with the Gaussian
+bulk likelihood (the experimental MAP `CTS` path in
+`R/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R` is one starting point).
+Regardless of coordinate system, the workflow is the same: optimise in
+an unconstrained parameterisation, then map back to the simplex for
+interpretation.
 
 # Expected Fisher information and Wald inference {#sec-fisher-wald}
 
@@ -584,7 +640,7 @@ Point estimation alone does not report uncertainty. Under a regular
 large-sample regime the MLE is asymptotically normal with covariance
 given by the inverse Fisher information. DeCovarT builds Wald standard
 errors from the *expected* Fisher information of the multivariate-normal
-convolution, then maps that information through the ALR chart.
+convolution, then maps that information through the ILR chart.
 
 ## Unconstrained expected Fisher information {#sec-fisher-p}
 
@@ -635,25 +691,33 @@ $\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})$. That identity only holds with
 the factor $\tfrac{1}{2}$ of @nte-halfdet in place.
 :::
 
-## Constrained case: ALR delta method {#sec-fisher-rho}
+## Constrained case: ILR delta method {#sec-fisher-z}
 
 Fisher information transforms as a covariant quadratic form under the
-ALR chart. With
+ILR chart. With
 $\mathbf{J}_{\boldsymbol{\psi}}
-=\partial\boldsymbol{\psi}/\partial\boldsymbol{\rho}^{\top}$,
+=\mathbf{S}(\boldsymbol{p})\mathbf{V}$,
 
 $$
-I_{\boldsymbol{\rho}}
+I_{\boldsymbol{z}}
 =
-\mathbf{J}_{\boldsymbol{\psi}}^{\top}
+\mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}
 I(\boldsymbol{p})
-\mathbf{J}_{\boldsymbol{\psi}}.
-$$ {#eq-fisher-rho}
+\mathbf{J}_{\boldsymbol{\psi}}
+=
+\mathbf{V}^{\mathsf{T}}
+\mathbf{S}(\boldsymbol{p})
+I(\boldsymbol{p})
+\mathbf{S}(\boldsymbol{p})
+\mathbf{V}.
+$$ {#eq-fisher-z}
 
-Under regularity,
-$\hat{\boldsymbol{\rho}}
+The mean/covariance split of @eq-fisher-p pulls back separately,
+$I_{\boldsymbol{z}}=I_{\boldsymbol{z},\mathrm{mean}}
++I_{\boldsymbol{z},\mathrm{cov}}$. Under regularity,
+$\hat{\boldsymbol{z}}
 \overset{a}{\sim}
-\mathcal{N}(\boldsymbol{\rho}_{0},I_{\boldsymbol{\rho}}^{-1})$
+\mathcal{N}(\boldsymbol{z}_{0},I_{\boldsymbol{z}}^{-1})$
 [@vaartAsymptoticStatistics2000].
 The first-order delta method [@oehlertNoteDeltaMethod1992] then returns
 the simplex covariance used by
@@ -663,8 +727,8 @@ $$
 \mathrm{Var}(\hat{\boldsymbol{p}})
 \approx
 \mathbf{J}_{\boldsymbol{\psi}}
-I_{\boldsymbol{\rho}}^{-1}
-\mathbf{J}_{\boldsymbol{\psi}}^{\top}.
+I_{\boldsymbol{z}}^{-1}
+\mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}.
 $$ {#eq-delta-p}
 
 Diagonal square roots are asymptotic standard errors; Wald intervals at
@@ -672,19 +736,21 @@ level $1-\alpha$ are
 $\hat{p}_{j}\pm z_{1-\alpha/2}\,\mathrm{SE}_{j}$ with
 $z_{q}=\Phi^{-1}(q)$, as in
 [`confint.decovart_fit()`](../reference/fit_decovart.html).
-[`vcov_alr_delta()`](../reference/vcov_alr_delta.html) implements
-@eq-fisher-rho--@eq-delta-p. The construction is undefined on the
-simplex boundary (the ALR chart blows up); the helper then returns `NA`
-with a warning. The ALR chart itself follows Aitchison's compositional
-geometry [@aitchisonStatisticalAnalysisCompositional1982].
+[`vcov_ilr_delta()`](../reference/vcov_ilr_delta.html) implements
+@eq-fisher-z--@eq-delta-p. Orthogonal rotations of $\mathbf{V}$ leave
+@eq-delta-p unchanged. The construction is undefined on the simplex
+boundary (the log-ratio chart blows up); the helper then returns `NA`
+with a warning. [`vcov_alr_delta()`](../reference/vcov_alr_delta.html)
+is the ALR analogue of @sec-alr: the reconstructed simplex covariance
+must agree with @eq-delta-p up to numerical error.
 
 ::: {#nte-wald-limits .callout-warning}
 ## Wald is the cheapest, not the safest, interval
 
-@eq-delta-p linearises the ALR chart at $\hat{\boldsymbol{p}}$, so it is
-neither invariant to reparametrisation nor confined to $[0,1]$, and it
-degenerates entirely when a proportion reaches a simplex face. The
-companion vignette
+@eq-delta-p linearises the ILR chart at $\hat{\boldsymbol{p}}$, so it is
+neither invariant to a non-orthogonal reparametrisation nor confined to
+$[0,1]$, and it degenerates entirely when a proportion reaches a simplex
+face. The companion vignette
 [MLE properties and asymptotic inference](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.html)
 derives the alternatives: profile likelihood-ratio intervals, the
 chi-bar-square calibration of Chernoff and of Self and Liang for nulls on
@@ -976,7 +1042,7 @@ tighter Monte Carlo.
 
 A related, weaker check compares the empirical covariance of
 parametric-bootstrap MLEs to the Cramér–Rao map
-[`vcov_alr_delta()`](../reference/vcov_alr_delta.html). That comparison
+[`vcov_ilr_delta()`](../reference/vcov_ilr_delta.html). That comparison
 is noisy at small replication (see
 [MLE properties](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.html#sec-replication)
 for why one bulk column is not an asymptotic sample) and is therefore
@@ -1094,5 +1160,78 @@ the dense path to machine precision. Approximate sparse Cholesky of
 otherwise dense kernel covariances is a separate research line
 [@schäferCompressionInversionApproximate2020]; the `"sparse"` backend here
 is exact for a declared sparse pattern, not that approximation.
+
+# Appendix: additive log-ratio chart {#sec-alr}
+
+Pin the last category as reference ($\rho_{J}\equiv 0$). The *additive
+logistic* transform $\boldsymbol{\psi}$ (inverse ALR) and its inverse are
+[@aitchisonStatisticalAnalysisCompositional1982]
+
+$$
+p_{j}
+=
+\frac{e^{\rho_{j}}}{\sum_{k<J}e^{\rho_{k}}+1}\ (j<J),
+\qquad
+p_{J}
+=
+\frac{1}{\sum_{k<J}e^{\rho_{k}}+1},
+\qquad
+\rho_{j}
+=
+\log\!\left(\frac{p_{j}}{p_{J}}\right).
+$$ {#eq-alr-maps}
+
+Equivalently,
+$\boldsymbol{p}=\operatorname{softmax}(\rho_{1},\ldots,\rho_{J-1},0)$.
+Package helpers
+[`additive_logistic()`](../reference/additive_logistic.html) and
+[`additive_log_ratio()`](../reference/additive_log_ratio.html) implement
+@eq-alr-maps; they match `compositions::alrInv()` / `alr()` with the last
+part as reference [@R-compositions]. The Jacobian is the softmax Jacobian
+with the reference column dropped,
+$\partial p_{i}/\partial\rho_{a}=p_{i}(\delta_{ia}-p_{a})$ for
+$a=1,\ldots,J-1$
+([`jacobian_additive_logistic()`](../reference/jacobian_additive_logistic.html);
+[`hessian_additive_logistic()`](../reference/hessian_additive_logistic.html)).
+
+::: {#nte-alr-why-not-default .callout-note}
+## Why ALR is not the default
+
+ALR is a valid $C^{2}$ diffeomorphism onto the open simplex, and the
+reconstructed $\operatorname{Var}(\hat{\boldsymbol{p}})$ of
+[`vcov_alr_delta()`](../reference/vcov_alr_delta.html) must match
+[`vcov_ilr_delta()`](../reference/vcov_ilr_delta.html) when both charts
+are implemented correctly. The last cell type is nevertheless a
+privileged denominator: permuting which type occupies position $J$
+changes the Euclidean metric on coordinate space. ILR / Helmert
+(@sec-ilr) removes that privilege up to orthogonal rotation, which is
+why the solvers and `vcov.decovart_fit()` use ILR. Keep ALR when
+comparing against a multinomial-logit reference-category parameterisation,
+or when checking that a change of denominator does not move
+$\hat{\boldsymbol{p}}$.
+:::
+
+## Structural zeros and folded simplex models {#sec-structural-zeros}
+
+Neither ALR nor ILR can represent an exact zero at a finite coordinate,
+because both contain a logarithm. For a true simplex face the package
+therefore does **not** send $\log 0$ through the chart. It fixes the
+inactive set, optimises ILR coordinates on the remaining active face
+([`restricted_mle_decovart()`](../reference/restricted_mle_decovart.html)),
+and checks KKT inequalities for the zero coordinates
+([`boundary_diagnostics()`](../reference/boundary_diagnostics.html);
+see also the MLE-properties vignette).
+
+ALR remains in this appendix as the classical reference-category chart
+[@aitchisonStatisticalAnalysisCompositional1982]. Folded
+$\alpha$-models on the simplex
+[@tsagrisFoldedModelCompositional2020] and nonparametric regressions
+that admit exact zeros without a log-ratio chart
+[@tsagrisFlexibleNonparametricRegression2023] are related *data-side*
+constructions. They are not used in the DeCovarT convolution, whose
+mean map is still linear in $\boldsymbol{p}$. Rounded zeros (detection
+limits) remain an imputation problem; true structural zeros belong on
+a face and should be fitted as an active-set / KKT problem, not by
+substituting a small positive constant into @eq-ilr-maps.
 
 # References

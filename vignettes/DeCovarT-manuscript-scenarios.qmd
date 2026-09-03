@@ -63,7 +63,7 @@ is partly recovered once
 $\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j$
 enters the likelihood.
 
-With $p_1+p_2=1$, only one free ALR coordinate is estimated (see
+With $p_1+p_2=1$, only one free ILR coordinate is estimated (see
 [derivatives under simplex transforms](generative-model-derivatives.html)).
 @fig-toy-design combines the factorial design with a gene-space density
 at fixed means, variances, and $\boldsymbol{p}$.
@@ -348,11 +348,11 @@ true $\boldsymbol{p}=(0.4,0.4,0.2)$).
 | Robust linear (`ABIS`-style) | `deconvolute_ratios_rlm` | `MASS::rlm(..., method = "M")` | `repair_simplex()` |
 | NNLS | `deconvolute_ratios_nnls` | `nnls::nnls()` | `repair_simplex()` |
 | QP (`DeconRNASeq`-style) | `deconvolute_ratios_deconrnaseq` | `limSolve::lsei()` with $\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1$, $\boldsymbol{p}\ge\mathbf{0}$ | simplex equality / inequality |
-| Marquardt–Levenberg | `deconvolute_ratios_Marquardt_Levenberg` | `epsilon = 1e-4`, `itmax = 200`, ALR | ALR $\to$ open simplex |
-| Newton–Raphson | `deconvolute_ratios_Newton_Raphson` | `nlminb`; `rel.tol = x.tol = 1e-4`, `iter.max = 200` | ALR |
+| Marquardt–Levenberg | `deconvolute_ratios_Marquardt_Levenberg` | `epsilon = 1e-4`, `itmax = 200`, ILR | ILR $\to$ open simplex |
+| Newton–Raphson | `deconvolute_ratios_Newton_Raphson` | `nlminb`; `rel.tol = x.tol = 1e-4`, `iter.max = 200` | ILR |
 | L-BFGS-B | `deconvolute_ratios_L_BFGS_B` | box $[0,1]^J$; `maxit = 200`; then $p/\sum p$ | box + closure |
-| BFGS (ALR) | `deconvolute_ratios_gradient_descent` | `method = "BFGS"`, `maxit = 200` | ALR |
-| Simulated annealing | `deconvolute_ratios_simulated_annealing` | `method = "SANN"`, `maxit = 200` | ALR |
+| BFGS (ILR) | `deconvolute_ratios_gradient_descent` | `method = "BFGS"`, `maxit = 200` | ILR |
+| Simulated annealing | `deconvolute_ratios_simulated_annealing` | `method = "SANN"`, `maxit = 200` | ILR |
 
 : Shipped deconvolution algorithms and default hyperparameters. {#tbl-solver-diagnostics}
 

@@ -10,7 +10,8 @@ run_simulation_benchmark(
   n = 200,
   standardise = FALSE,
   scaled = FALSE,
-  cores = 1L
+  cores = 1L,
+  coverage_interval = "wilson"
 )
 }
 \arguments{
@@ -29,6 +30,9 @@ has no \code{n} column.}
 
 \item{cores}{Workers for the per-sample loop inside
 \code{\link[=deconvolute_ratios]{deconvolute_ratios()}}. Defaults to \code{1L}.}
+
+\item{coverage_interval}{Coverage interval for the Monte Carlo
+coverage \emph{rate}; see \code{\link[=coverage_mc_interval]{coverage_mc_interval()}}.}
 }
 \value{
 A list with:
@@ -38,7 +42,16 @@ A list with:
 \item \code{monte_carlo}: ADEMP summaries per cell type;
 \item \code{optimisation}: per-sample elapsed time, memory, KKT residual, and
 \eqn{\hat{\boldsymbol{p}}};
-\item \code{config}: tibble of scenario metadata (one row per scenario).
+\item \code{config}: tibble of scenario metadata (one row per scenario);
+\item \code{theta_true}: list of convolution parameters
+(\eqn{\boldsymbol{p}}, \eqn{\boldsymbol{\mu}}, \eqn{\boldsymbol{\Sigma}_j})
+actually used to draw the bulk;
+\item \code{descriptors}: kept scenario statistics (composition, mean, SPD,
+network, tangent Fisher, MixSim BarOmega, pairwise Hellinger);
+\item \code{supplementary}: Jeffreys overlap, recorded separately;
+\item \code{call}: the matched call (\code{\link[=match.call]{match.call()}}).
+There is no composite global score: each metric answers a different
+question.
 }
 }
 \description{
@@ -84,5 +97,6 @@ nrow(out$optimisation)
 }
 \seealso{
 \code{\link[=simulate_bulk_mixture]{simulate_bulk_mixture()}}, \code{\link[=deconvolute_ratios]{deconvolute_ratios()}},
-\code{\link[=compute_benchmark_metrics]{compute_benchmark_metrics()}}
+\code{\link[=compute_benchmark_metrics]{compute_benchmark_metrics()}}, \code{\link[=describe_simulation_scenario]{describe_simulation_scenario()}},
+\code{\link[=coverage_mc_interval]{coverage_mc_interval()}}
 }

@@ -12,7 +12,8 @@ deconvolute_ratios(
   deconvolution_functions = NULL,
   standardise = FALSE,
   scaled = FALSE,
-  cores = getOption("mc.cores", 1L)
+  cores = getOption("mc.cores", 1L),
+  coverage_interval = "wilson"
 )
 }
 \arguments{
@@ -44,14 +45,20 @@ supported.}
 
 \item{cores}{Number of \code{furrr} workers for the \strong{sample} loop.
 Defaults to \code{getOption("mc.cores", 1L)}. Use \code{cores = 1} to stay
-sequential (CRAN examples and nested callers).}
+sequential (CRAN examples and nested callers). With \code{cores > 1},
+\code{.map_samples()} uses \code{furrr_options(seed = TRUE)}, which assigns
+an independent L'Ecuyer-CMRG stream per worker (R 4.1 / \code{future}
+streams). Do not offset a shared seed by the sample index.}
+
+\item{coverage_interval}{Passed to \code{\link[=compute_benchmark_metrics]{compute_benchmark_metrics()}}
+(\code{"wilson"}, \code{"wald"}, or \code{"agresti_coull"}).}
 }
 \value{
 A named list from \code{\link[=compute_benchmark_metrics]{compute_benchmark_metrics()}} with
 \code{regression} (global and cell-type subtables), \code{monte_carlo}, and
 \code{optimisation} (per-sample elapsed time, memory, KKT residual, and
 \eqn{\hat{\boldsymbol{p}}}). First-generation solvers still call
-\code{\link[=repair_simplex]{repair_simplex()}}; the three native DeCovarT maps (ALR or
+\code{\link[=repair_simplex]{repair_simplex()}}; the three native DeCovarT maps (ILR or
 \eqn{p/\sum p}) already lie on the simplex.
 }
 \description{

@@ -10,10 +10,10 @@ Description: Estimates cell-type proportions in bulk transcriptomic samples
     with a probabilistic convolution model that integrates the gene-gene
     covariance structure of purified reference profiles. Cellular ratios
     are recovered by maximum likelihood under a multivariate Gaussian
-    convolution, using analytic gradients and Hessians, an additive
-    log-ratio reparametrisation that enforces the simplex constraint, and
-    Marquardt-Levenberg or Newton-type optimisers. The methodology is
-    described in Chassagnol, Nuel and Becht (2023)
+    convolution, using analytic gradients and Hessians, an isometric
+    log-ratio reparametrisation (Helmert basis) that enforces the simplex
+    constraint, and Marquardt-Levenberg or Newton-type optimisers. The
+    methodology is described in Chassagnol, Nuel and Becht (2023)
     <doi:10.48550/arXiv.2309.09557>.
 License: MIT + file LICENSE
 Encoding: UTF-8

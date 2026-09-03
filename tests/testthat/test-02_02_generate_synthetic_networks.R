@@ -45,7 +45,7 @@ test_that("simulate_hierarchical_grn_moments returns expected structure", {
     dim(moments$graph_structure$normalised_precision),
     c(30L, 30L, 3L)
   )
-  expect_true(all(moments$mean_profiles >= 0))
+  expect_true(all(is.finite(moments$mean_profiles)))
   expect_named(
     moments$objectives,
     c("mean_abs_cosine", "sum_euclidean_distance")
@@ -240,21 +240,21 @@ test_that("pre-built adjacency list yields cell-type-specific supports", {
   )
 })
 
-test_that("generate_mean_signature_matrix is deterministic and scaled", {
+test_that("generate_mean_signature_matrix realises the target cosine", {
   mu_a <- generate_mean_signature_matrix(
-    n_genes = 2L,
+    n_genes = 6L,
     n_celltypes = 2L,
     mean_scale = 10,
     target_cosine = 0.3
   )
   mu_b <- generate_mean_signature_matrix(
-    n_genes = 2L,
+    n_genes = 6L,
     n_celltypes = 2L,
     mean_scale = 10,
     target_cosine = 0.3
   )
 
-  expect_identical(dim(mu_a), c(2L, 2L))
+  expect_identical(dim(mu_a), c(6L, 2L))
   expect_identical(mu_a, mu_b)
   expect_equal(
     unname(sqrt(colSums(mu_a^2))),
@@ -263,8 +263,23 @@ test_that("generate_mean_signature_matrix is deterministic and scaled", {
   )
   cos_hat <- sum(mu_a[, 1] * mu_a[, 2]) /
     sqrt(sum(mu_a[, 1]^2) * sum(mu_a[, 2]^2))
-  expect_gt(cos_hat, 0)
-  expect_lt(cos_hat, 1)
+  expect_equal(cos_hat, 0.3, tolerance = 1e-8)
+})
+
+test_that("generate_mean_signature_matrix respects a pairwise Gram", {
+  k <- matrix(
+    c(1, 0.9, 0.2, 0.9, 1, 0.2, 0.2, 0.2, 1),
+    3,
+    3
+  )
+  mu <- generate_mean_signature_matrix(
+    n_genes = 8L,
+    n_celltypes = 3L,
+    mean_scale = 4,
+    target_gram = k
+  )
+  gram <- crossprod(mu) / 4^2
+  expect_equal(unname(gram), k, tolerance = 1e-8)
 })
 
 test_that("graph_model matching is case-insensitive", {

@@ -48,7 +48,7 @@ multivariate-normal formula on
 \url{https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution}.
 }
 \seealso{
-\code{\link[=vcov_alr_delta]{vcov_alr_delta()}}, \code{\link[=vcov.decovart_fit]{vcov.decovart_fit()}},
+\code{\link[=vcov_ilr_delta]{vcov_ilr_delta()}}, \code{\link[=vcov.decovart_fit]{vcov.decovart_fit()}},
 \code{\link[=confint.decovart_fit]{confint.decovart_fit()}}, \code{\link[=.inner_product]{.inner_product()}}
 }
 \keyword{internal}

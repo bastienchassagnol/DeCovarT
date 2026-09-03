@@ -90,6 +90,6 @@ y <- drop(mu \%*\% p)
 loglik_multivariate(p, y, mu, Sigma)
 }
 \seealso{
-\code{\link[=gradient_loglik_unconstrained]{gradient_loglik_unconstrained()}}, \code{\link[=additive_logistic]{additive_logistic()}}
+\code{\link[=gradient_loglik_unconstrained]{gradient_loglik_unconstrained()}}, \code{\link[=isometric_logistic]{isometric_logistic()}}
 }
 \keyword{internal}

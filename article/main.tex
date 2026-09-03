@@ -414,7 +414,14 @@
 
     As in most traditional deconvolution models, bulk expression is the linear
     combination of mean cell-type profiles weighted by proportions
-    (\ref{eq-linear-deconvolution}):
+    (\ref{eq-linear-deconvolution}). The mean map is linear in
+    $\boldsymbol{p}$. Each composition lies on the unit simplex
+    (\ref{eq-simplex-constraint}), the setting of constrained
+    least-squares simplicial regression
+    \cite{tsagrisConstrainedLeastSquares2025}. The default open-simplex
+    chart is the isometric log-ratio
+    \cite{egozcueIsometricLogratioTransformations2003}; additive log-ratio
+    maps remain available for comparison.
     \begin{equation}
         \label{eq-linear-deconvolution}
         \boldsymbol{y}=\boldsymbol{\mu}\,\boldsymbol{p}
@@ -422,9 +429,6 @@
         \boldsymbol{y}_{\cdot i}=\boldsymbol{\mu}\,\boldsymbol{p}_{\cdot i}
         \text{ for each }i\text{)}.
     \end{equation}
-
-    In addition, each composition lies on the unit simplex
-    (\ref{eq-simplex-constraint}):
     \begin{equation}
         \label{eq-simplex-constraint}
         \begin{cases}
@@ -1323,19 +1327,26 @@
         the Hessian at the interior point $\boldsymbol{p}=(1/5,3/10)$ has
         eigenvalues $\approx-654.5$ and $+53.9$, hence is indefinite. A converged
         optimiser therefore certifies a local maximum only. Uniqueness is
-        recovered at the \textit{population} level, where the Kullback-Leibler
+        recovered at the \textit{population} level, where the Kullback--Leibler
         identity makes $\boldsymbol{p}_{0}$ the unique maximiser of
-        $\mathbb{E}_{\boldsymbol{p}_{0}}\{\ell(\boldsymbol{p})\}$ under the
-        rank condition of \ref{subsec:model-assumptions-rank}, and the local
-        curvature of that divergence is exactly \ref{eq-expected-fisher}
+        $\mathbb{E}_{\boldsymbol{p}_{0}}\{\ell(\boldsymbol{p})\}$ whenever the
+        map
+        $\boldsymbol{p}\mapsto
+        \bigl(\boldsymbol{\mu}\boldsymbol{p},\,
+        \sum_{j}p_{j}^{2}\boldsymbol{\Sigma}_{j}\bigr)$
+        is injective. Full column rank of $\boldsymbol{\mu}$ is a convenient
+        sufficient condition, but it is not necessary: collinear or even
+        identical mean profiles remain identifiable when the cell-type
+        covariances $\boldsymbol{\Sigma}_{j}$ differ. The local curvature of
+        that divergence is exactly \ref{eq-expected-fisher}
         \cite{vaartAsymptoticStatistics2000}.
 
         Second, testing the absence of a cell type, $H_{0}: p_{j}=0$ against
         $H_{1}: p_{j}\ge 0$, places the null on the boundary of the simplex. The
         local parameter space is then a half-line rather than a vector space, so
         Wilks' theorem \cite{wilksLargeSampleDistributionLikelihood1938} does not
-        apply and the additive log-ratio chart cannot even represent the null
-        ($\rho_{j}=-\infty$). Following
+        apply and the isometric log-ratio chart cannot even represent the null
+        (log-ratio coordinates diverge). Following
         \cite{hermanDistributionLikelihoodRatio1954} and
         \cite{selfAsymptoticPropertiesMaximum1987}, the problem is asymptotically
         equivalent to projecting a Gaussian score onto the tangent cone

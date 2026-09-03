@@ -1,5 +1,32 @@
 # DeCovarT (development version)
 
+* **ILR / Helmert simplex chart.** Frequentist solvers and
+  `vcov.decovart_fit()` now use isometric log-ratio coordinates on a
+  Helmert basis (`helmert_basis()`, `isometric_logistic()`,
+  `isometric_log_ratio()`, `jacobian_isometric_logistic()`,
+  `hessian_isometric_logistic()`, `vcov_ilr_delta()`). No cell type is
+  pinned as a reference; changing the ILR basis by an orthogonal rotation
+  leaves \(\hat{\boldsymbol{p}}\), \(\ell(\hat{\boldsymbol{p}})\) and
+  \(\mathrm{Var}(\hat{\boldsymbol{p}})\) unchanged. Additive log-ratio maps
+  remain exported for the derivatives vignette appendix and for
+  reference-invariance checks (`vcov_alr_delta()`). Restricted MLE
+  assembly treats a fully constrained face without calling ILR on an
+  empty coordinate, and an unrestricted fit that sits near a face is
+  compared with the exact-face restricted MLE so the reported point can
+  be the closed-simplex supremum.
+
+* **Gram-matrix mean signatures.** `generate_mean_signature_matrix()`
+  realises a target cosine Gram via the symmetric square root
+  \(\boldsymbol{\mu}=s\,QR^{1/2}\) (`equicorrelation_gram()` or
+  `target_gram`). Pairwise cosines match \(R\) exactly; the previous
+  shared-plus-private blend is documented as an appendix construction
+  that does not hit \(\rho\) at finite \(J\).
+
+* **Identifiability.** Full column rank of \(\boldsymbol{\mu}\) is
+  sufficient but not necessary: identical means remain identifiable when
+  the cell-type covariances differ. The article and MLE vignette now
+  state injectivity of \(p\mapsto(\mu p,\Sigma(p))\).
+
 * **Benchmark metrics and sample-level parallelism.**
   `compute_benchmark_metrics()` now returns a three-block list:
   composition / regression scores (global TV, RMSE, angular distance,
@@ -7,9 +34,18 @@
   mass), ADEMP Monte Carlo summaries, and optimisation / runtime
   diagnostics (simplex KKT residual, numerical versus theoretical
   convergence, per-sample elapsed time, and `ps` PSS memory).
+  Coverage of the Monte Carlo coverage *rate* uses a Wilson interval by
+  default (`coverage_mc_interval()`; Wald and Agresti--Coull optional).
+  `run_simulation_benchmark()` also returns `theta_true` (the
+  convolution parameters), `descriptors` /
+  `supplementary` from `describe_simulation_scenario()`, and
+  `call` (`match.call()`). MixSim `BarOmega` and averaged pairwise
+  Hellinger are kept in `descriptors`; Jeffreys overlap is
+  supplementary.
   `deconvolute_ratios()` iterates bulk columns with `furrr` when
-  `cores > 1`. `run_simulation_benchmark()` evaluates scenario rows
-  sequentially, so workers are never nested.
+  `cores > 1`, using L'Ecuyer-CMRG streams (`furrr_options(seed = TRUE)`).
+  Scenario rows are sequential, so workers are never nested. There is
+  no composite global score.
 
 * **Structure-aware covariance backends.** New
   `new_decovart_covariance()` wraps

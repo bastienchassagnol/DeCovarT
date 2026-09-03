@@ -9,6 +9,8 @@ simulate_hierarchical_grn_moments(
   n_celltypes = 2L,
   mean_scale = 10,
   target_cosine = 0,
+  target_gram = NULL,
+  seed = NULL,
   precision_shift,
   precision_scale,
   prop_inhibitory = 0.5,
@@ -24,11 +26,18 @@ simulate_hierarchical_grn_moments(
 \item{n_celltypes}{Integer \eqn{J\ge 2}.}
 
 \item{mean_scale}{Positive scalar \eqn{s} (centroid norms). Default
-\code{10}, as in the nine factorial scenarios. Hold fixed when
-studying cosine / collinearity alone.}
+\code{10}. Hold fixed when studying cosine / collinearity alone.}
 
-\item{target_cosine}{Numeric in \eqn{[0,1]}, the collinearity dial
-\eqn{\rho}.}
+\item{target_cosine}{Numeric pairwise cosine \eqn{\rho} for the
+equicorrelation Gram. Ignored when \code{target_gram} is supplied.
+Must lie in \eqn{[-1/(J-1),1]}.}
+
+\item{target_gram}{Optional symmetric \eqn{J\times J} cosine matrix
+(unit diagonal). Overrides \code{target_cosine}.}
+
+\item{seed}{Optional integer. When supplied, the orthonormal frame
+\eqn{\boldsymbol{Q}} is drawn from a Gaussian QR; otherwise it is
+deterministic.}
 
 \item{precision_shift}{Diagonal cushion \eqn{u} for the spectral
 shift (scalar, or length \eqn{J}).}
@@ -72,10 +81,10 @@ Builds a mean matrix \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}}
 and \strong{cell-type-specific} second-order moments
 \eqn{(\boldsymbol{\Omega}_j,
   \boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1})_{j=1}^{J}}
-under a graph-constrained precision model. Means follow the
-AutoGeneS-inspired cosine construction of
-\code{generate_mean_signature_matrix()} with target pairwise cosine
-\eqn{\rho}. For each cell type, an adjacency is drawn from a
+under a graph-constrained precision model. Means realise a target
+Gram matrix via the symmetric square root of
+\code{generate_mean_signature_matrix()} (equicorrelation \eqn{\rho} by
+default, or a full \code{target_gram}). For each cell type, an adjacency is drawn from a
 random-graph model (or supplied), i.i.d. signed weights with
 inhibitory fraction \code{prop_inhibitory} form \eqn{\boldsymbol{W}_j},
 and the precision is completed by a spectral shift. Distinct cell

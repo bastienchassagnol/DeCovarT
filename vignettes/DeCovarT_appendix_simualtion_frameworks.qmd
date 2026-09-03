@@ -148,8 +148,15 @@ would estimate a different $D$ per column and is not supported.
 # Collinearity {#sec-collinearity}
 
 If two signature columns are identical, or a parent profile is an
-affine combination of children, $\boldsymbol{\mu}$ is rank-deficient and
-$\boldsymbol{p}$ is not identifiable (RE2.4b).
+affine combination of children, $\boldsymbol{\mu}$ is rank-deficient.
+That is **not** by itself a proof that $\boldsymbol{p}$ is unidentifiable
+(RE2.4b): the convolution law also depends on
+$\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_{j}p_{j}^{2}\boldsymbol{\Sigma}_{j}$.
+Identical means with *distinct* covariances remain identifiable; the
+negative control is identical means *and* proportional covariances. The
+chunk below still warns, because `fit_decovart()` flags collinear mean
+columns as a numerical hazard even when the covariance tensor separates
+the types.
 
 ```{r}
 #| label: collinear-two
@@ -254,7 +261,7 @@ rmse <- apply(est, 2, function(p_hat) sqrt(mean((p_hat - p_true)^2)))
 list(estimates = est, rmse_to_truth = rmse)
 ```
 
-## Random ALR starts {#sec-init-seeds}
+## Random ILR starts {#sec-init-seeds}
 
 Marquardt--Levenberg and Newton--Raphson maximise the convolution
 log-likelihood with analytic Hessians. That is cheaper per step than a

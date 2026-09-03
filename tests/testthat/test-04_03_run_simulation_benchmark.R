@@ -44,6 +44,21 @@ test_that("run_simulation_benchmark wraps simulate and deconvolute", {
   )
   expect_named(
     out,
-    c("regression", "monte_carlo", "optimisation", "config")
+    c(
+      "regression",
+      "monte_carlo",
+      "optimisation",
+      "config",
+      "theta_true",
+      "descriptors",
+      "supplementary",
+      "call"
+    )
   )
+  expect_equal(nrow(out$descriptors), 1L)
+  expect_true("f_cov" %in% names(out$descriptors))
+  expect_true("mixsim_baromega" %in% names(out$descriptors))
+  expect_true("hellinger" %in% names(out$descriptors))
+  expect_equal(length(out$theta_true), 1L)
+  expect_type(out$call, "language")
 })

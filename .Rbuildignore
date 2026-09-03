@@ -42,6 +42,7 @@
 ^vignettes/feature-selection\.qmd$
 ^vignettes/network-inference\.qmd$
 ^vignettes/synthetic-scenarios\.qmd$
+^vignettes/simulation-reporting\.qmd$
 ^vignettes/DeCovarT_appendix_simualtion_frameworks\.qmd$
 ^vignettes/decovart-perspectives\.qmd$
 ^vignettes/_extensions/
@@ -50,6 +51,7 @@
 ^vignettes/figures/dea_optimal_design_comparison\.png$
 ^vignettes/figures/decovart_leakage_free_validation\.png$
 ^vignettes/figures/fig_mean_signature_shared_private\.png$
+^vignettes/figures/cholesky_vs_spectral_decomposition\.svg$
 ^vignettes/figures/fig_network_topologies_six\.png$
 ^vignettes/figures/gini_coefficient_derivation\.png$
 ^vignettes/figures/simplex_boundary_tangent_cones\.png$
@@ -93,8 +95,7 @@
 ^\.graphifyignore$
 # Local leftover; gitignored. Must also be Rbuildignored or R CMD check
 # reports a non-standard top-level directory.
-^temp_benchmakr_metrics$
-^temp_rag_optimisation$
+^temp_
 ^derive-statistical-properties\.md$
 ^derive-statisticazl-properties\.md$
 # Local deep-research notes and Zotero / RAG scratch inputs, also
@@ -114,5 +115,6 @@
 ^rna-sieve\.md$
 ^rna-sieve-supplementary\.pdf$
 ^error-in-variable\.pdf$
-^temp_rag_CIs_derivation$
-^temp_rag_CIs_derivation/
+^compositional intervals\.bib$
+^Monte Carlo estimates correction\.bib$
+^Simulate different mean profiles\.bib$

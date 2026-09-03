@@ -74,7 +74,7 @@ NULL
 #'   `mvtnorm::dmvnorm` (tested against that reference); that is a
 #'   constant-factor improvement of the objective, not a scaling study.
 #'
-#' @srrstats {G5.9b} The same tests also vary the ALR start
+#' @srrstats {G5.9b} The same tests also vary the ILR start
 #'   (\eqn{\boldsymbol{p}^{(0)}} from three Dirichlet draws). Second-order
 #'   solvers can stall from a poor start; estimates on a
 #'   well-conditioned toy remain close across those starts.
@@ -153,8 +153,8 @@ NULL
 #'
 #' RE2 - Regression: pre-processing
 #'
-#' @srrstats {RE2.0} ALR reparametrisation documented in `?fit_decovart`,
-#'   `?additive_logistic`, and `vignette("generative-model-derivatives")`.
+#' @srrstats {RE2.0} ILR reparametrisation documented in `?fit_decovart`,
+#'   `?isometric_logistic`, and `vignette("generative-model-derivatives")`.
 #'
 #' @srrstats {RE2.1} Missing values in `y` or the signature raise an error
 #'   in `.prepare_deconvolution_inputs()`; no silent imputation.
@@ -198,7 +198,7 @@ NULL
 #'
 #' @srrstats {RE4.2} `coef(fit)` is \(\hat{\boldsymbol{P}}\) (\(J\times N\)).
 #'
-#' @srrstats {RE4.3} `confint(fit)` is the ALR delta-method Wald interval.
+#' @srrstats {RE4.3} `confint(fit)` is the ILR delta-method Wald interval.
 #'   `confint_profile_decovart()` adds reparametrisation-invariant profile
 #'   likelihood-ratio intervals, and `lrt_decovart()` the boundary
 #'   (chi-bar-square) calibration required when a null proportion is zero.
@@ -217,7 +217,7 @@ NULL
 #'
 #' @srrstats {RE4.7} Optimiser stop codes and iteration counts are stored
 #'   on `$convergence` (this tag is **convergence**, not prediction).
-#'   `$diagnostics` adds `boundary_diagnostics()`: the ALR score norm,
+#'   `$diagnostics` adds `boundary_diagnostics()`: the ILR score norm,
 #'   the largest Hessian eigenvalue, `near_boundary` and `local_maximum`.
 #'   With `n_starts > 0`, `$convergence` also carries `loglik_range` and
 #'   `multimodal` from `multistart_decovart()`, because the realised
@@ -235,7 +235,7 @@ NULL
 #' @srrstats {RE4.11} `summary(fit)` reports log-likelihood and AIC, not
 #'   least-squares \(R^{2}\).
 #'
-#' @srrstats {RE4.12} ALR maps: `additive_logistic` / `additive_log_ratio`.
+#' @srrstats {RE4.12} ILR maps: `isometric_logistic` / `isometric_log_ratio`.
 #'
 #' @srrstats {RE4.13} Signature and `Sigma` are stored on the fit.
 #'
@@ -297,7 +297,7 @@ NULL
 #'   in `?fit_decovart`, `?loglik_multivariate`, and the use-cases vignette.
 #'
 #' @srrstats {PD3.0} Log-likelihood, score and Hessian of the Gaussian
-#'   convolution are analytic (ALR reparametrisation); numeric finite
+#'   convolution are analytic (ILR reparametrisation); numeric finite
 #'   differences (`numDeriv` Richardson extrapolation) and a Monte Carlo
 #'   check that the mean observed information equals the expected Fisher
 #'   matrix are used in tests and in the derivatives vignette, not for

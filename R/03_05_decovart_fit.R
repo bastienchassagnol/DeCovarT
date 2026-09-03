@@ -41,7 +41,7 @@
 #'   cell-type covariances.
 #' @param method Optimiser; one of `"Marquardt-Levenberg"`,
 #'   `"L-BFGS-B"`, `"Newton-Raphson"` (case-insensitive). These three
-#'   maps already land on the simplex (ALR or \eqn{p/\sum p}); they do
+#'   maps already land on the simplex (ILR or \eqn{p/\sum p}); they do
 #'   **not** call [repair_simplex()].
 #' @param epsilon,itmax Absolute convergence tolerance and iteration
 #'   budget, in the same roles as `reltol` / `maxit` in
@@ -92,21 +92,21 @@
 #'   \bigr).
 #' }
 #' Cramer--Rao gives
-#' \eqn{\mathrm{Var}(\hat{\boldsymbol{\rho}})\succeq I_{\boldsymbol{\rho}}^{-1}}
-#' in ALR coordinates, with
-#' \eqn{I_{\boldsymbol{\rho}}
+#' \eqn{\mathrm{Var}(\hat{\boldsymbol{z}})\succeq I_{\boldsymbol{z}}^{-1}}
+#' in ILR coordinates, with
+#' \eqn{I_{\boldsymbol{z}}
 #' =\mathbf{J}_{\boldsymbol{\psi}}^{\top} I(\boldsymbol{p})
 #' \mathbf{J}_{\boldsymbol{\psi}}} and
 #' \eqn{\mathbf{J}_{\boldsymbol{\psi}}
-#' =\partial\boldsymbol{\psi}/\partial\boldsymbol{\rho}^{\top}}
-#' ([jacobian_additive_logistic()]). The delta method maps the bound
+#' =\mathbf{S}(\boldsymbol{p})\mathbf{V}}
+#' ([jacobian_isometric_logistic()]). The delta method maps the bound
 #' back to the simplex:
 #' \deqn{
 #'   \mathrm{Var}(\hat{\boldsymbol{p}})
 #'   =
 #'   \mathbf{J}_{\boldsymbol{\psi}}
-#'   I_{\boldsymbol{\rho}}^{-1}
-#'   \mathbf{J}_{\boldsymbol{\psi}}^{\top}.
+#'   I_{\boldsymbol{z}}^{-1}
+#'   \mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}.
 #' }
 #'
 #' @return An object of class `decovart_fit`.
@@ -129,7 +129,7 @@
 #'   fitted values and residuals; cell-type colnames of `mu` label
 #'   `coef()`.
 #' @srrstats {RE1.4} Gaussian convolution, PD Sigma, simplex `p`.
-#' @srrstats {RE2.0} ALR reparametrisation for Marquardt and Newton.
+#' @srrstats {RE2.0} ILR reparametrisation for Marquardt and Newton.
 #' @srrstats {RE2.1} Missing values error in `.prepare_deconvolution_inputs()`.
 #' @srrstats {RE2.3} Gene-wise affine `standardise`; log2 mixing errors.
 #' @srrstats {RE2.4} Collinear signature columns warn (RE2.4a, RE2.4b).
@@ -139,7 +139,7 @@
 #' @srrstats {RE4.0} `decovart_fit` stores coefficients, log-likelihood,
 #'   Fisher `vcov`, and convergence diagnostics.
 #' @srrstats {RE4.2} `coef()` returns \(\hat{\boldsymbol{P}}\) (\(J\times N\)).
-#' @srrstats {RE4.3} `confint()` uses the ALR delta-method Wald bound.
+#' @srrstats {RE4.3} `confint()` uses the ILR delta-method Wald bound.
 #' @srrstats {RE4.5} `nobs()` is \(N\), with attributes `n_genes` and
 #'   `n_celltypes`.
 #' @srrstats {RE4.6} `vcov()` is the Cramer--Rao / delta-method matrix.
@@ -150,8 +150,8 @@
 #'   these are convolution residuals, not OLS residuals. Goodness of fit
 #'   is the MLE log-likelihood (RE4.11), not residual sum of squares.
 #' @srrstats {RE4.11} `summary()` reports log-likelihood (and AIC).
-#' @srrstats {RE4.12} ALR maps are [additive_logistic()] /
-#'   [additive_log_ratio()].
+#' @srrstats {RE4.12} ILR maps are [isometric_logistic()] /
+#'   [isometric_log_ratio()] with [helmert_basis()].
 #' @srrstats {RE4.13} Signature and `Sigma` are stored on the fit.
 #' @srrstats {RE4.17} `print.decovart_fit()` shows proportions and
 #'   log-likelihood.
@@ -171,7 +171,7 @@
 #' @family decovart_fit
 #' @seealso [deconvolute_ratios()],
 #'   [deconvolute_ratios_Marquardt_Levenberg()],
-#'   [expected_fisher_unconstrained()], [vcov_alr_delta()],
+#'   [expected_fisher_unconstrained()], [vcov_ilr_delta()],
 #'   [coef.decovart_fit()], [vcov.decovart_fit()],
 #'   [confint.decovart_fit()]
 fit_decovart <- function(
@@ -264,7 +264,7 @@ fit_decovart <- function(
     }
     coef_mat[, i] <- fit_i$coefficients
     loglik[[i]] <- fit_i$loglik
-    vcov_list[[i]] <- vcov_alr_delta(
+    vcov_list[[i]] <- vcov_ilr_delta(
       fit_i$coefficients,
       mu,
       sigma_arr
@@ -286,7 +286,7 @@ fit_decovart <- function(
     warning(
       "Estimated proportions reach a simplex face in sample(s) ",
       toString(names(diagnostics)[near_boundary]),
-      ". This may be a genuine boundary optimum, but ALR Wald intervals ",
+      ". This may be a genuine boundary optimum, but ILR Wald intervals ",
       "are then undefined; use confint_profile_decovart() or ",
       "lrt_decovart().",
       call. = FALSE
@@ -360,7 +360,7 @@ fit_decovart <- function(
 #' @return Symmetric \eqn{J\times J} expected Fisher information matrix
 #'   \eqn{I(\boldsymbol{p})}.
 #'
-#' @seealso [vcov_alr_delta()], [vcov.decovart_fit()],
+#' @seealso [vcov_ilr_delta()], [vcov.decovart_fit()],
 #'   [confint.decovart_fit()], [.inner_product()]
 #'
 #' @keywords internal
@@ -390,6 +390,95 @@ expected_fisher_unconstrained <- function(
   info
 }
 
+#' Cramer--Rao / ILR delta-method covariance of \eqn{\hat{\boldsymbol{p}}}
+#'
+#' @description
+#' Maps the expected Fisher information of unconstrained proportions
+#' through the isometric log-ratio (ILR) chart and back to the simplex
+#' via the delta method.
+#'
+#' Let \eqn{\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{z})}
+#' with Jacobian
+#' \eqn{\mathbf{J}_{\boldsymbol{\psi}}=\mathbf{S}(\boldsymbol{p})
+#' \mathbf{V}}
+#' ([jacobian_isometric_logistic()]). Fisher information transforms as
+#' \deqn{
+#'   I_{\boldsymbol{z}}
+#'   =
+#'   \mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}
+#'   I(\boldsymbol{p})
+#'   \mathbf{J}_{\boldsymbol{\psi}}
+#'   =
+#'   \mathbf{V}^{\mathsf{T}}
+#'   \mathbf{S}(\boldsymbol{p})
+#'   I(\boldsymbol{p})
+#'   \mathbf{S}(\boldsymbol{p})
+#'   \mathbf{V}.
+#' }
+#' The first-order delta method then yields
+#' \deqn{
+#'   \mathrm{Var}(\hat{\boldsymbol{p}})
+#'   \approx
+#'   \mathbf{J}_{\boldsymbol{\psi}}
+#'   I_{\boldsymbol{z}}^{-1}
+#'   \mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}.
+#' }
+#' This simplex covariance is invariant to orthogonal rotations of
+#' \eqn{\mathbf{V}}. The construction is undefined on the simplex
+#' boundary (the log-ratio chart blows up); the function then returns
+#' `NA` with a warning. [vcov_alr_delta()] is the ALR-chart analogue
+#' used only for reference-invariance checks.
+#'
+#' @inheritParams expected_fisher_unconstrained
+#'
+#' @return Symmetric \eqn{J\times J} asymptotic covariance of
+#'   \eqn{\hat{\boldsymbol{p}}}, or a matrix of `NA` if the bound is
+#'   undefined / singular.
+#'
+#' @seealso [expected_fisher_unconstrained()], [vcov.decovart_fit()],
+#'   [confint.decovart_fit()], [jacobian_isometric_logistic()],
+#'   [vcov_alr_delta()]
+#'
+#' @keywords internal
+#' @export
+vcov_ilr_delta <- function(p, mean_signature_matrix, Sigma) {
+  nms <- names(p)
+  n_celltypes <- length(p)
+  out <- matrix(
+    NA_real_,
+    n_celltypes,
+    n_celltypes,
+    dimnames = list(nms, nms)
+  )
+  if (any(p < 100 * .Machine$double.eps | p > 1 - 100 * .Machine$double.eps)) {
+    warning(
+      "Proportions on the simplex boundary; Wald vcov is undefined.",
+      call. = FALSE
+    )
+    return(out)
+  }
+  info_p <- expected_fisher_unconstrained(p, mean_signature_matrix, Sigma)
+  z <- isometric_log_ratio(p)
+  jac <- jacobian_isometric_logistic(z)
+  info_z <- t(jac) %*% info_p %*% jac
+  vcov_z <- tryCatch(
+    solve(info_z),
+    error = function(e) {
+      warning(
+        "Expected Fisher information in ILR coordinates is singular.",
+        call. = FALSE
+      )
+      NULL
+    }
+  )
+  if (is.null(vcov_z)) {
+    return(out)
+  }
+  vcov_p <- jac %*% vcov_z %*% t(jac)
+  dimnames(vcov_p) <- list(nms, nms)
+  vcov_p
+}
+
 #' Cramer--Rao / ALR delta-method covariance of \eqn{\hat{\boldsymbol{p}}}
 #'
 #' @description
@@ -414,11 +503,9 @@ expected_fisher_unconstrained <- function(
 #' asymptotically normal,
 #' \eqn{\hat{\boldsymbol{\rho}}
 #' \overset{a}{\sim}
-#' \mathcal{N}(\boldsymbol{\rho}_{0}, I_{\boldsymbol{\rho}}^{-1})}
-#' (Cramer--Rao / asymptotic normality of MLEs; law of large numbers
-#' for the score). The first-order delta method then yields the
-#' simplex covariance used by [vcov.decovart_fit()] and the Wald
-#' standard errors in [confint.decovart_fit()]:
+#' \mathcal{N}(\boldsymbol{\rho}_{0}, I_{\boldsymbol{\rho}}^{-1})}.
+#' The first-order delta method then yields the same simplex covariance
+#' as [vcov_ilr_delta()] when both charts are transformed correctly:
 #' \deqn{
 #'   \mathrm{Var}(\hat{\boldsymbol{p}})
 #'   \approx
@@ -426,12 +513,10 @@ expected_fisher_unconstrained <- function(
 #'   I_{\boldsymbol{\rho}}^{-1}
 #'   \mathbf{J}_{\boldsymbol{\psi}}^{\top}.
 #' }
-#' Diagonal square roots of this matrix are the asymptotic standard
-#' errors; Wald intervals at level \eqn{1-\alpha} are
-#' \eqn{\hat{p}_j \pm z_{1-\alpha/2}\,\mathrm{SE}_j} with
-#' \eqn{z_{q}=\Phi^{-1}(q)}. The construction is undefined on the
-#' simplex boundary (ALR chart blows up); the function then returns
-#' `NA` with a warning. See also
+#' This helper is kept for reference-invariance checks; [vcov.decovart_fit()]
+#' uses [vcov_ilr_delta()]. The construction is undefined on the simplex
+#' boundary (the ALR chart blows up); the function then returns `NA` with
+#' a warning. See also
 #' <https://en.wikipedia.org/wiki/Delta_method> and
 #' <https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution>.
 #'
@@ -441,8 +526,7 @@ expected_fisher_unconstrained <- function(
 #'   \eqn{\hat{\boldsymbol{p}}}, or a matrix of `NA` if the bound is
 #'   undefined / singular.
 #'
-#' @seealso [expected_fisher_unconstrained()], [vcov.decovart_fit()],
-#'   [confint.decovart_fit()], [jacobian_additive_logistic()]
+#' @seealso [vcov_ilr_delta()], [jacobian_additive_logistic()]
 #'
 #' @keywords internal
 #' @export
@@ -633,9 +717,9 @@ nobs.decovart_fit <- function(object, ...) {
 #'   contract with the generic.
 #' @param level Confidence level \eqn{1-\alpha} (default `0.95`). Wald
 #'   intervals use asymptotic normality of the MLE with standard errors
-#'   from [vcov_alr_delta()] /
+#'   from [vcov_ilr_delta()] /
 #'   [expected_fisher_unconstrained()] (see Details of [fit_decovart()]
-#'   and of [vcov_alr_delta()]):
+#'   and of [vcov_ilr_delta()]):
 #'   \eqn{\hat{p}_j \pm z_{1-\alpha/2}\,\mathrm{SE}_j}.
 #' @export
 #' @family decovart_fit

@@ -8,8 +8,8 @@
 #' \eqn{\boldsymbol{y}}, mean signature \eqn{\boldsymbol{\mu}}, proportions
 #' \eqn{\boldsymbol{p}}, covariances / precisions
 #' \eqn{\boldsymbol{\Sigma}_j}/\eqn{\boldsymbol{\Theta}_j}. Proportions live on
-#' the open simplex and are optimised in unconstrained ALR coordinates
-#' \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}
+#' the open simplex and are optimised in unconstrained ILR coordinates
+#' \eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}}
 #' (`vignette("generative-model-derivatives", package = "DeCovarT")`).
 #'
 #' The frequentist API plugs in \eqn{\boldsymbol{\mu}} for unobserved latent
@@ -26,14 +26,14 @@
 #' @srrstats {G1.4a} Undocumented internals use `@noRd`; documented
 #'   helpers are exported (with `@keywords internal` when low-level).
 #' @srrstats {G1.3} Terminology: \eqn{\boldsymbol{p}} (simplex proportions),
-#'   ALR coordinates \eqn{\boldsymbol{\rho}}, Gaussian convolution
+#'   ILR coordinates \eqn{\boldsymbol{z}}, Gaussian convolution
 #'   \eqn{\boldsymbol{y}\mid\boldsymbol{p}}, covariance
 #'   \eqn{\boldsymbol{\Sigma}_j}. *Closed-reference*: every abundant type is a
 #'   column of \eqn{\boldsymbol{\mu}}. *Gene-wise affine standardisation*:
 #'   one centre/scale per gene, applied to bulk, means and covariances.
 #'   A *sample-level covariate* \eqn{\boldsymbol{z}_{i}} is not a column of
 #'   \eqn{\boldsymbol{\mu}}; it may shift \eqn{\boldsymbol{\mu}_{j}(\boldsymbol{z}_{i})}
-#'   or the ALR of \eqn{\boldsymbol{p}_{\cdot i}}. *RNA fraction* vs *cell
+#'   or the ILR of \eqn{\boldsymbol{p}_{\cdot i}}. *RNA fraction* vs *cell
 #'   fraction*: transcriptome sizes \eqn{r_{j}} uncouple the two.
 #'   Outlook (pkgdown article *DeCovarT perspectives*):
 #'   *cell-type-specific (CTS)* sample-level latents

@@ -28,7 +28,7 @@ boundary_diagnostics(
 \item{boundary_tol}{Threshold on \eqn{\min_j\hat{p}_j} below which the
 estimate is flagged as near-boundary.}
 
-\item{score_tol}{Threshold on the ALR score norm below which the
+\item{score_tol}{Threshold on the ILR score norm below which the
 iterate counts as stationary.}
 }
 \value{
@@ -43,13 +43,13 @@ not have for a single observed sample (see
 \code{vignette("DeCovarT-MLE-properties")}).
 }
 \details{
-Reported fields are the ALR score norm
-\eqn{\lVert\nabla_{\boldsymbol{\rho}}\ell\rVert}, the largest
-eigenvalue \eqn{\lambda_{\max}(\mathbf{H}_{\boldsymbol{\rho}})} (negative
+Reported fields are the ILR score norm
+\eqn{\lVert\nabla_{\boldsymbol{z}}\ell\rVert}, the largest
+eigenvalue \eqn{\lambda_{\max}(\mathbf{H}_{\boldsymbol{z}})} (negative
 at a local maximum), \code{boundary_distance} \eqn{=\min_j\hat{p}_j}, and the
 flags \code{near_boundary} and \code{local_maximum}.
 
-\code{boundary_tol} is a \strong{statistical} warning threshold for Wald / ALR
+\code{boundary_tol} is a \strong{statistical} warning threshold for Wald / ILR
 linearisation, deliberately much larger than the machine-precision guard
 that decides whether a logarithm is representable. A fit with
 \eqn{\min_j\hat{p}_j\ll 1} is not evidence of optimiser failure: the

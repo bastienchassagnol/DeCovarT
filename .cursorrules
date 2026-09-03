@@ -733,7 +733,7 @@ That adds `spelling` to Suggests, `Language: en-GB` in `DESCRIPTION`,
 | Input checks | `checkmate` |
 | Messages | `cli` |
 | Strings | `glue`, `stringr` |
-| Parallelism | `mirai` (or existing package patterns) |
+| Parallelism | `furrr` (benchmarks / clusters); `mirai` (fast APIs) |
 | JSON | `jsonlite`; large JSON: `yyjsonr` |
 | C++ integration | `Rcpp` |
 | Web apps | `shiny` |
@@ -744,6 +744,29 @@ That adds `spelling` to Suggests, `Language: en-GB` in `DESCRIPTION`,
 
 Match `DESCRIPTION` Imports when adding package code; do not introduce
 unused Suggests/Imports without need.
+
+### Parallelism (`furrr` versus `mirai`)
+
+Prefer **`furrr`** (Future / L'Ecuyer-CMRG streams) for:
+
+- long jobs on a cluster or Slurm (`future.batchtools` when each
+  computation should be a scheduler job);
+- Monte Carlo and **benchmark reproducibility**.
+  In `deconvolute_ratios()`, `.map_samples()` uses
+  `furrr::furrr_options(seed = TRUE)`: independent L'Ecuyer-CMRG
+  streams per worker (R >= 4.1 / `future`), as recommended by
+  Morris, White and Crowther (*Statistics in Medicine* 2019, §4.1.1;
+  DOI 10.1002/sim.8086).
+- **Never nest parallelism:** scenario rows in
+  `run_simulation_benchmark()` stay sequential; only the per-sample
+  loop in `deconvolute_ratios()` may use workers.
+
+Prefer **`mirai`** (dispatcher / persistent daemons, optionally
+`future.mirai` behind `future_map()`) when developing **APIs that
+need a fast response**: many short or irregular tasks, elastic
+worker pools, interactive or service latency. Do not use `mirai` as
+the default for published simulation benchmarks, where stream
+reproducibility and the `furrr` map API come first.
 
 ---
 

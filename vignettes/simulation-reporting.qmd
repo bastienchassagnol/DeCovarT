@@ -1,0 +1,164 @@
+---
+title: "Simulation reporting: ADEMP metrics and Nature Methods checks"
+author: "Bastien Chassagnol"
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteIndexEntry{Simulation reporting: ADEMP metrics and Nature Methods checks}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+bibliography:
+  - ../inst/packages.bib
+  - ../inst/REFERENCES.bib
+link-citations: true
+crossref:
+  eq-prefix: "Eq."
+  tbl-prefix: "Table"
+  sec-prefix: "Sec."
+format:
+  html:
+    embed-resources: true
+    toc: true
+---
+
+```{r}
+#| label: setup-reporting
+#| include: false
+#| eval: true
+options(tinytable_html_mathjax = TRUE)
+```
+
+# Purpose
+
+This article is a reporting checklist for DeCovarT simulation studies,
+not a new experiment. It maps the package outputs onto the ADEMP
+structure of Morris, White and Crowther
+[@morrisUsingSimulationStudies2019] and onto the Nature Methods
+requirements for data, code and statistical reporting
+([reporting standards](https://www.nature.com/nmeth/editorial-policies/reporting-standards)).
+
+There is **no composite global score**. Global composition distances,
+cell-type Pearson / F1, and Monte Carlo operating characteristics answer
+different questions and must stay in separate tables.
+
+# ADEMP mapping {#sec-ademp}
+
+The estimand is the composition $\boldsymbol{p}$ on the simplex. The
+data-generating mechanism is the Gaussian convolution
+$\boldsymbol{y}\mid(\boldsymbol{\zeta},\boldsymbol{p})\sim
+\mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},\sum_j p_j^2\boldsymbol{\Sigma}_j)$.
+Methods are the solvers passed to `deconvolute_ratios()`.
+
+```{r}
+#| label: tbl-ademp
+#| echo: false
+#| eval: true
+#| tbl-cap: "ADEMP performance measures implemented in `compute_benchmark_metrics()` and `coverage_mc_interval()`."
+ademp <- data.frame(
+  ADEMP = c(
+    "Aims",
+    "Data-generating mechanism",
+    "Estimand",
+    "Methods",
+    "Bias",
+    "Empirical SE",
+    "Model SE",
+    "Relative error in SE",
+    "RMSE",
+    "Coverage",
+    "Mean interval width",
+    "Monte Carlo SE of coverage",
+    "Convergence",
+    "Type I / power"
+  ),
+  Package = c(
+    "Compare solvers on a known convolution",
+    "simulate_bulk_mixture() + describe_simulation_scenario()",
+    "p (simplex); cell-type and global scores kept separate",
+    "deconvolute_ratios() / fit_decovart()",
+    "monte_carlo$bias",
+    "monte_carlo$empirical_sd",
+    "monte_carlo$mean_model_se (and mean_model_sd)",
+    "monte_carlo$se_sd_ratio",
+    "monte_carlo$rmse (cell type) and regression$global$rmse",
+    "monte_carlo$coverage with Wilson interval by default",
+    "monte_carlo$mean_interval_width",
+    "monte_carlo$mcse_coverage",
+    "optimisation$numerical_converged, theoretical_converged, kkt_residual",
+    "Not a primary target (composition estimation, not a null test)"
+  ),
+  Status = c(
+    "Kept",
+    "Kept",
+    "Kept",
+    "Kept",
+    "Kept",
+    "Kept",
+    "Kept",
+    "Kept",
+    "Kept",
+    "Kept (Wilson default; Wald / Agresti--Coull optional)",
+    "Kept",
+    "Kept",
+    "Kept",
+    "Out of scope"
+  ),
+  stringsAsFactors = FALSE
+)
+tinytable::tt(ademp, width = 1)
+```
+
+Wilson is the default interval around the *estimated coverage rate*
+$\hat\pi=X/N$, not the interval for $\hat p_j$
+[@wilsonProbableInferenceLaw1927]. Wald and Agresti--Coull
+[@agrestiApproximateBetterExact1998] are available through
+`coverage_interval`. Bias-eliminated coverage (covering
+$\bar{\hat\theta}$ rather than $\theta$) is not implemented; report
+ordinary coverage and bias side by side instead.
+
+# Nature Methods reporting {#sec-nmeth}
+
+Nature Methods requires a reporting summary, a data-availability
+statement, and promptly available code and protocols. The mapping below
+is the package counterpart of that editorial checklist (and of the
+machine-learning reporting summary used at the journal).
+
+| Requirement | Where it lives in DeCovarT |
+|:--|:--|
+| Data-generating mechanism fully specified | `theta_true` (`p`, `mu`, `sigma`) plus `descriptors` and `call` |
+| Estimand and metrics pre-declared | This table; `compute_benchmark_metrics()` blocks |
+| Software versions | `sessioninfo::session_info()` in analysis scripts |
+| Random-number streams | `furrr_options(seed = TRUE)`: L'Ecuyer-CMRG per worker |
+| Code availability | GitHub repository; package functions, not one-off scripts |
+| No undisclosed composite score | Global and cell-type tables remain separate |
+| Sample size / Monte Carlo error | `n` and `mcse_coverage` (and Wilson bounds) |
+
+: Nature Methods reporting items covered by the simulation API. {#tbl-nmeth}
+
+# Parallel random numbers {#sec-rng}
+
+The sample loop in `deconvolute_ratios()` uses
+`furrr::future_map()` with `seed = TRUE`. That is the R 4.1 / `future`
+implementation of independent L'Ecuyer-CMRG streams, which is the
+construction Morris, White and Crowther recommend for parallel Monte
+Carlo [@morrisUsingSimulationStudies2019]. Scenario rows in
+`run_simulation_benchmark()` stay sequential, so streams are never
+nested. Do not use `set.seed(seed + i)` on workers. For an explicit
+cluster script, set `RNGkind("L'Ecuyer-CMRG")` once and advance with
+`parallel::nextRNGStream`. Prefer that `furrr` path over `mirai` for
+published benchmarks; `mirai` is for low-latency APIs.
+
+# What is deliberately absent
+
+- Cholesky fill-in or sparse-solver speed diagnostics (the user must
+  declare the covariance structure; otherwise the dense Cholesky factor
+  of $\Sigma(p)$ is used).
+- Type I error and power as default columns (the target is an estimand,
+  not a null hypothesis).
+
+See also
+[synthetic scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html#sec-scenario-descriptors)
+for the geometry table attached to every bulk draw.

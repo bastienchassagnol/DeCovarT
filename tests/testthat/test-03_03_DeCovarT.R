@@ -22,6 +22,7 @@
       Sigma = Sigma,
       p = p,
       rho = additive_log_ratio(p),
+      z = isometric_log_ratio(p),
       y = y
     )
   })
@@ -117,7 +118,7 @@ test_that("Constrained gradient and Hessian of the objective match numDeriv", {
 
   gradient_numerical <- numDeriv::grad(
     loglik_multivariate_constrained,
-    setup$rho,
+    setup$z,
     method = "Richardson",
     method.args = list(eps = 1e-4, r = 6),
     y = setup$y,
@@ -125,7 +126,7 @@ test_that("Constrained gradient and Hessian of the objective match numDeriv", {
     Sigma = setup$Sigma
   )
   gradient_theoretical <- as.numeric(gradient_loglik_constrained(
-    setup$rho,
+    setup$z,
     setup$y,
     setup$mean_signature_matrix,
     setup$Sigma
@@ -138,7 +139,7 @@ test_that("Constrained gradient and Hessian of the objective match numDeriv", {
 
   hessian_numerical <- numDeriv::hessian(
     loglik_multivariate_constrained,
-    setup$rho,
+    setup$z,
     method = "Richardson",
     method.args = list(eps = 1e-4, r = 6),
     y = setup$y,
@@ -146,7 +147,7 @@ test_that("Constrained gradient and Hessian of the objective match numDeriv", {
     Sigma = setup$Sigma
   )
   hessian_theoretical <- hessian_loglik_constrained(
-    setup$rho,
+    setup$z,
     setup$y,
     setup$mean_signature_matrix,
     setup$Sigma
@@ -183,6 +184,64 @@ test_that("Additive logistic Jacobian and Hessian match numDeriv", {
       tolerance = 1e-4
     )
   }
+})
+
+
+test_that("Helmert ILR maps are orthonormal and invert", {
+  v <- helmert_basis(4L)
+  expect_equal(crossprod(v), diag(3), tolerance = 1e-12)
+  expect_equal(drop(crossprod(v, rep(1, 4))), rep(0, 3), tolerance = 1e-12)
+  p <- c(0.2, 0.3, 0.1, 0.4)
+  z <- isometric_log_ratio(p)
+  expect_equal(isometric_logistic(z), p, tolerance = 1e-10)
+  expect_equal(
+    isometric_log_ratio(isometric_logistic(z)),
+    z,
+    tolerance = 1e-10
+  )
+})
+
+
+test_that("Isometric logistic Jacobian and Hessian match numDeriv", {
+  setup <- .decovart_deriv_setup()
+  z <- setup$z
+
+  jacobian_numerical <- numDeriv::jacobian(isometric_logistic, z)
+  jacobian_theoretical <- jacobian_isometric_logistic(z)
+  testthat::expect_equal(
+    jacobian_numerical,
+    jacobian_theoretical,
+    tolerance = 1e-4
+  )
+
+  hessian_theoretical <- hessian_isometric_logistic(z)
+  for (i in seq_along(setup$p)) {
+    hessian_numerical <- numDeriv::hessian(
+      function(zz) isometric_logistic(zz)[i],
+      z
+    )
+    testthat::expect_equal(
+      hessian_numerical,
+      hessian_theoretical[,, i],
+      tolerance = 1e-4
+    )
+  }
+})
+
+
+test_that("ILR and ALR delta-method covariances agree on the simplex", {
+  setup <- .decovart_deriv_setup()
+  v_ilr <- vcov_ilr_delta(
+    setup$p,
+    setup$mean_signature_matrix,
+    setup$Sigma
+  )
+  v_alr <- vcov_alr_delta(
+    setup$p,
+    setup$mean_signature_matrix,
+    setup$Sigma
+  )
+  expect_equal(v_ilr, v_alr, tolerance = 1e-8)
 })
 
 
@@ -303,7 +362,16 @@ test_that("Benchmark standard deconvolution algorithms against DeCovarT", {
   expect_type(bivariate_scenario, "list")
   expect_named(
     bivariate_scenario,
-    c("regression", "monte_carlo", "optimisation", "config")
+    c(
+      "regression",
+      "monte_carlo",
+      "optimisation",
+      "config",
+      "theta_true",
+      "descriptors",
+      "supplementary",
+      "call"
+    )
   )
   expect_equal(nrow(bivariate_scenario$config), 1L)
   expect_true(nrow(bivariate_scenario$optimisation) > 0L)

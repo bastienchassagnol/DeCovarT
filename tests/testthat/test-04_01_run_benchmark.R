@@ -119,6 +119,9 @@ test_that("Monte Carlo block reports ADEMP columns separately from global scores
       "se_sd_ratio",
       "rmse",
       "coverage",
+      "coverage_lower",
+      "coverage_upper",
+      "coverage_interval",
       "mean_interval_width",
       "mcse_coverage"
     )
@@ -173,6 +176,20 @@ test_that("presence F1 and false-positive mass detect spillover onto a null type
 
 test_that("Monte Carlo coverage MCSE matches the binomial formula", {
   expect_equal(.mcse_coverage(c(1, 1, 1, 0)), sqrt(0.75 * 0.25 / 4))
+})
+
+test_that("coverage_mc_interval defaults to Wilson and can use Wald", {
+  covered <- c(TRUE, TRUE, TRUE, FALSE)
+  wilson <- coverage_mc_interval(covered, method = "wilson")
+  wald <- coverage_mc_interval(covered, method = "wald")
+  ac <- coverage_mc_interval(covered, method = "agresti_coull")
+  expect_equal(wilson$coverage, 0.75)
+  expect_equal(wilson$mcse, sqrt(0.75 * 0.25 / 4))
+  expect_equal(wald$lower, max(0, 0.75 - stats::qnorm(0.975) * wald$mcse))
+  expect_gt(wilson$lower, 0)
+  expect_lt(wilson$upper, 1)
+  expect_true(ac$lower >= 0 && ac$upper <= 1)
+  expect_identical(wilson$method, "wilson")
 })
 
 test_that("deconvolute_ratios returns a three-block metric list for nnls", {
