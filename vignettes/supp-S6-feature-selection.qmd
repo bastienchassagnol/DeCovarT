@@ -83,7 +83,7 @@ $$
 \frac{\sigma_{\max}(\boldsymbol{X})}{\sigma_{\min}(\boldsymbol{X})},
 $$ {#eq-condition-number}
 
-with large $\kappa_2$ indicating multicollinearity and numerical instability [@gongDeconRNASeqStatisticalFramework2013; @newmanRobustEnumerationCell2015]. For a Gram matrix one has $\kappa_2(\boldsymbol{X}^{\top}\boldsymbol{X})=\kappa_2(\boldsymbol{X})^{2}$, so do not conflate the condition number of a signature with that of its Gram matrix. Eigenvalue ratios apply directly only to an appropriate symmetric positive-definite matrix (see also the [synthetic scenarios](synthetic-scenarios.html#nte-geometric-score) vignette).
+with large $\kappa_2$ indicating multicollinearity and numerical instability [@gongDeconRNASeqStatisticalFramework2013; @newmanRobustEnumerationCell2015]. For a Gram matrix one has $\kappa_2(\boldsymbol{X}^{\top}\boldsymbol{X})=\kappa_2(\boldsymbol{X})^{2}$, so do not conflate the condition number of a signature with that of its Gram matrix. Eigenvalue ratios apply directly only to an appropriate symmetric positive-definite matrix (see also the [synthetic scenarios](how-to-build-synthetic-scenarios-mean-covariance.html#nte-geometric-score) vignette).
 
 # Preprocessing shared by all strategies {#sec-preprocess}
 
@@ -657,7 +657,7 @@ $$ {#eq-optimal-design}
 Prefer shrinkage covariances and a small ridge $\epsilon\boldsymbol{I}$ when $|\mathcal{G}|$ is moderate. For combinatorial search, use a greedy / Fedorov exchange as the auditable baseline, and a genetic algorithm only when the objective mixes covariance, overlap, or mechanistic constraints; see @sec-mechanistic.
 :::
 
-**Relation to** $\kappa$ and the Gram volume. If $\boldsymbol{\Sigma}_{\mathcal{G}}=\boldsymbol{I}$, then $\mathcal{I}_{\mathcal{G}}=\boldsymbol{\mu}_{\mathcal{G}}^{\top}\boldsymbol{\mu}_{\mathcal{G}}$ and D-optimality maximises the log **Gram volume** of the mean columns. E-optimality maximises $\lambda_{\min}$ of that Gram matrix and is a cousin of minimising $\kappa_2(\boldsymbol{\mu}_{\mathcal{G}})$ (see @eq-condition-number). The [synthetic scenarios](synthetic-scenarios.html#nte-geometric-score) vignette discusses the same objects as `AutoGeneS`-style scalar summaries of $\boldsymbol{\mu}$.
+**Relation to** $\kappa$ and the Gram volume. If $\boldsymbol{\Sigma}_{\mathcal{G}}=\boldsymbol{I}$, then $\mathcal{I}_{\mathcal{G}}=\boldsymbol{\mu}_{\mathcal{G}}^{\top}\boldsymbol{\mu}_{\mathcal{G}}$ and D-optimality maximises the log **Gram volume** of the mean columns. E-optimality maximises $\lambda_{\min}$ of that Gram matrix and is a cousin of minimising $\kappa_2(\boldsymbol{\mu}_{\mathcal{G}})$ (see @eq-condition-number). The [synthetic scenarios](how-to-build-synthetic-scenarios-mean-covariance.html#nte-geometric-score) vignette discusses the same objects as `AutoGeneS`-style scalar summaries of $\boldsymbol{\mu}$.
 
 #### Software for D-optimal search in R
 

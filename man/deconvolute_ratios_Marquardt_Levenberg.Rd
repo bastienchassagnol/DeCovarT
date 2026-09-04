@@ -128,7 +128,7 @@ Optimisation is performed in unconstrained ILR coordinates
 \eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}} via
 \eqn{\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{z})}
 (Marquardt–Levenberg default; see other methods below and
-\code{vignette("generative-model-derivatives", package = "DeCovarT")}).
+\code{vignette("theory-decovart-generative-model", package = "DeCovarT")}).
 }
 \details{
 \strong{Plug-in signature.} Argument \code{mean_signature_matrix} is the mean

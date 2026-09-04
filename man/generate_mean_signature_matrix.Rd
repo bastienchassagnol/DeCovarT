@@ -70,7 +70,7 @@ space: replacing \eqn{\boldsymbol{Q}} by \eqn{\boldsymbol{Q}U} with
 default \eqn{\boldsymbol{Q}} is a deterministic thin QR frame; pass \code{seed}
 for a Haar-like Gaussian frame. Cholesky \eqn{R=LL^{\mathsf{T}}} is an
 alternative square root used in Monte Carlo simulation; see the
-synthetic-scenarios vignette appendix.
+how-to-build-synthetic-scenarios vignette appendix.
 }
 \examples{
 generate_mean_signature_matrix(

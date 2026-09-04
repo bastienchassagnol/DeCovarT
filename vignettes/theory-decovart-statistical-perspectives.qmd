@@ -26,7 +26,7 @@ format:
 ::: callout-note
 ## Scope
 
-Outlook on extending DeCovarT beyond the closed-reference Gaussian convolution. Sections cover Scheffé-type mixture structure, alternative observation laws and Bayesian CTS inference, sample-level covariates, incomplete references, isoforms, RNA–cell uncoupling, weighted / generalised least squares, lineage and archetypes, time-resolved composition, ensembles, spatial transcriptomics, and multi-omics. Compositional reparametrisation is implemented in [`additive_logistic()`](../reference/additive_logistic.html) and documented numerically in the [derivatives under simplex transforms](generative-model-derivatives.html) vignette. The same catalogue is tracked in [GitHub issue 5](https://github.com/bastienchassagnol/DeCovarT/issues/5).
+Outlook on extending DeCovarT beyond the closed-reference Gaussian convolution. Sections cover Scheffé-type mixture structure, alternative observation laws and Bayesian CTS inference, sample-level covariates, incomplete references, isoforms, RNA–cell uncoupling, weighted / generalised least squares, lineage and archetypes, time-resolved composition, ensembles, spatial transcriptomics, and multi-omics. Compositional reparametrisation is implemented in [`additive_logistic()`](../reference/additive_logistic.html) and documented numerically in the [derivatives under simplex transforms](theory-decovart-generative-model.html) vignette. The same catalogue is tracked in [GitHub issue 5](https://github.com/bastienchassagnol/DeCovarT/issues/5).
 :::
 
 Bulk transcriptomic deconvolution is one instance of a **mixture inverse problem**: a composite signal (tissue expression, a spectrum, a chromatogram) is observed, and we seek the proportions $\boldsymbol{p}$ of underlying components. Because $\boldsymbol{p}$ is **compositional** (parts of a whole), estimates must lie on the simplex $\Delta^{J-1}=\{\boldsymbol{p}\in[0,1]^J:\sum_j p_j=1\}$. [@chassagnolDeCovarTMultidimensionalProbalistic2023] model each reference profile as multivariate Gaussian and recover $\boldsymbol{p}$ by constrained maximum likelihood; classical deconvolution tools such as `CIBERSORT` assume gene-wise independence instead [@newmanRobustEnumerationCell2015].
@@ -377,7 +377,7 @@ shift. DeCovarT instead uses a full $\boldsymbol{\Sigma}(\boldsymbol{p})$ and
 plug-in moments; the resampling counterpart of noisy $M$ is
 [`reference_bootstrap_decovart()`](../reference/reference_bootstrap_decovart.html).
 A side-by-side comparison is in the
-[MLE properties vignette](DeCovarT-MLE-properties.html#sec-rna-sieve).
+[MLE properties vignette](theory-DeCovarT-MLE-properties.html#sec-rna-sieve).
 
 `BLADE` replaces the Gaussian with a **gene-wise log-normal**
 convolution, jointly purifying CTS profiles by variational inference

@@ -497,7 +497,7 @@ for figures, tables, equations, sections, and callouts.
   (`#fig-…`, `#tbl-…`, `#eq-…`, `{#sec-…}`) and cite them mid-sentence
   (`see @fig-…`, `see @eq-…`), never wrapped as `(@fig-…)`. Across
   vignettes use pkgdown HTML links
-  (e.g. `[synthetic scenarios](synthetic-scenarios.html#sec-…)`).
+  (e.g. `[synthetic scenarios](how-to-build-synthetic-scenarios-mean-covariance.html#sec-…)`).
 - **Lists:** only the basic Quarto / Pandoc forms documented at
   [Markdown Basics — Lists](https://quarto.org/docs/authoring/markdown-basics.html#lists)
   — unordered (`-`, `*`, `+`) and ordered (`1.`, `2.`, …), nested as
@@ -1245,7 +1245,7 @@ specific remedies, not padded criticism. Acknowledge strengths when earned.
 - Check **statistical reporting** against the
   [SAMPL guidelines](https://www.equator-network.org/wp-content/uploads/2013/03/SAMPL-Guidelines-3-13-13.pdf).
 - Check **Nature Methods** simulation / ML reporting against
-  `vignettes/simulation-reporting.qmd` `{#sec-nmeth}` (data-generating
+  `vignettes/how-to-build-synthetic-scenarios-mean-covariance.qmd` `{#sec-nmeth}` (data-generating
   mechanism, pre-declared estimand, software versions, L'Ecuyer-CMRG
   streams, no undisclosed composite, Monte Carlo error). Do not invent
   a second Nature Methods table in other vignettes; link that section.

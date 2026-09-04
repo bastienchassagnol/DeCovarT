@@ -1,5 +1,12 @@
 # DeCovarT (development version)
 
+* **Documentation layout.** Paper scenarios live in the
+  `fig02-bivariate-toy` and `fig03-variance-driven` articles (one script
+  each: `scripts/fig02_bivariate_toy.R`,
+  `scripts/fig03_variance_driven.R`). Regular-case MLE checks and
+  identifiability sit in Appendix S1. ADEMP / Nature Methods reporting
+  is at the end of the synthetic-scenarios how-to article.
+
 * **Monte Carlo figures.** `pivot_mc_estimates()`, `plot_mc_raincloud()`
   (`ggplot2` + `ggdist` horizontal rainclouds of
   $\hat p_j-p_j^{\star}$), `plot_mc_forest()` (ADEMP summaries with
@@ -88,8 +95,8 @@
   `backend` argument. Band and sparse backends use the imported
   `Matrix` package. See the new
   "Structure-aware covariance backends" section of
-  `vignette("generative-model-derivatives")` and
-  `scripts/covariance_structure_prototypes.R`.
+  `vignette("theory-decovart-generative-model")` and
+  `scripts/supp_S2_covariance_inversion.R`.
 
 # DeCovarT 2.3.1
 

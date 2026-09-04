@@ -111,8 +111,7 @@
 #' parallelism; sample-level workers live only in
 #' [deconvolute_ratios()]. Scenario builders (factorial grids, overlap
 #' summaries, etc.) should live in analysis scripts; see
-#' `scripts/configure_bivariate_toy_scenarios.R` and the manuscript
-#' scenario vignettes.
+#' `scripts/fig02_bivariate_toy.R` and the paper-scenario vignettes.
 #'
 #' @param scenario_config Tibble or list of scenario rows. Each row must
 #'   contain a `true_theta` list column (or list element) with at least

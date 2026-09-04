@@ -11,8 +11,8 @@ writing under the package directory from
   package tree, or `getwd()`. Where tests still need a file they use
   `withr::local_tempfile()` / `with_tempfile()`, which delete the
   artefact when the test ends.
-* CRAN vignettes (`DeCovarT-manuscript-scenarios`,
-  `generative-model-derivatives`) no longer execute chunks that call
+* CRAN vignettes (`fig02-bivariate-toy`,
+  `theory-decovart-generative-model`) no longer execute chunks that call
   `library(DeCovarT)` / `DeCovarT::` during `R CMD build`. Quarto's
   Windows CLI starts a new R process that cannot see the temporary
   library used to build vignettes (quarto-dev/quarto-r#217). Live
@@ -48,7 +48,7 @@ terms).
 * Method reference: Chassagnol, Nuel and Becht (2023)
   <doi:10.48550/arXiv.2309.09557>.
 * The CRAN tarball ships two Quarto vignettes
-  (`DeCovarT-manuscript-scenarios`, `generative-model-derivatives`). Longer articles
+  (`fig02-bivariate-toy`, `theory-decovart-generative-model`). Longer articles
   remain on the pkgdown site and are linked with absolute URLs.
 * Heatmap packages `ComplexHeatmap`, `circlize`, and `viridis` are in
   Suggests only (optional `plot_correlation_Heatmap()`).

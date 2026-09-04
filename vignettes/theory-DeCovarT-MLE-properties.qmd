@@ -53,7 +53,7 @@ $$
 $$ {#eq-loglik}
 
 The derivatives of @eq-loglik are collected in the
-[derivatives vignette](generative-model-derivatives.html). This companion
+[derivatives vignette](theory-decovart-generative-model.html). This companion
 article asks what the resulting estimator is actually entitled to claim.
 Two answers are uncomfortable and worth stating plainly: the realised
 log-likelihood is **not** concave and its maximiser **need not be
@@ -105,12 +105,12 @@ no amount of sequencing rescues a pair of types that agree in both mean
 and covariance. The mean-based condition number $\kappa(\boldsymbol{\mu})$
 is therefore a misleading diagnostic in the covariance-only regime
 DeCovarT targets (see the
-[feature-selection vignette](feature-selection.html#sec-weighted-kappa)).
+[feature-selection vignette](supp-S6-feature-selection.html#sec-weighted-kappa)).
 Near-collinear *means* are still reported as a warning by
 [`fit_decovart()`](../reference/fit_decovart.html); that warning does not
 by itself imply that $\boldsymbol{p}$ is unidentifiable. Numerical
 illustrations live in the
-[appendix simulations](DeCovarT_appendix_simualtion_frameworks.html).
+[appendix simulations](supp-S1-identifiability.html).
 
 
 ## Existence {#sec-existence}
@@ -342,7 +342,7 @@ therefore expects a non-log linear scale
 normalisation such as CPM/TPM) rather than $\log_2$ values. Monotonicity
 of $\log$ preserves gene-wise rankings, but not the convolution MLE. The
 numerical demonstration lives in the
-[appendix simulations](DeCovarT_appendix_simualtion_frameworks.html#sec-affine).
+[appendix simulations](supp-S1-identifiability.html#sec-affine).
 
 # Asymptotic inference {#sec-inference}
 
@@ -905,7 +905,7 @@ in rough order of implementation cost.
   not an exact frequentist interval, and the prior must be defensible
   scientifically. This sits naturally alongside the MAP treatment of the
   latent profiles sketched in the
-  [perspectives vignette](decovart-perspectives.html).
+  [perspectives vignette](theory-decovart-statistical-perspectives.html).
 - **Information geometry of the composition.** Treating $\Delta^{J-1}$
   with the Fisher–Rao metric of @eq-fisher-metric rather than as a subset
   of $\mathbb{R}^{J}$ would give natural-gradient updates and

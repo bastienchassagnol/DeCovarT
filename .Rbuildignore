@@ -27,25 +27,29 @@
 ^vignettes/.*_files$
 ^vignettes/.*\.html$
 ^vignettes/.*\.R$
-# CRAN tarball ships only the two Quarto vignettes needed for the methods
-# core (manuscript scenarios + softmax/ALR). Other articles stay on the pkgdown site
-# (absolute URLs from CRAN vignettes) to keep rebuild time and Suggests
-# surface small: slides, manuscript PDF embed, long feature-selection /
-# network / perspectives / appendix articles.
+# CRAN tarball ships two Quarto vignettes: methods core plus bivariate toy.
+# Other articles stay on the pkgdown site, linked with absolute URLs,
+# to keep rebuild time and Suggests surface small.
 ^vignettes/deconvolution-seminar-slides\.qmd$
-^vignettes/Beyond-OLS\.qmd$
-^vignettes/decovart-external-resources\.qmd$
-^vignettes/decovart-external-resources\.pdf$
+^vignettes/theory-related-models-beyond-OLS\.qmd$
+^vignettes/decovart-paper-slides\.qmd$
+^vignettes/decovart-paper-slides\.pdf$
 ^vignettes/decovart-manuscript\.qmd$
 ^vignettes/decovart-manuscript\.pdf$
-^vignettes/DeCovarT-MLE-properties\.qmd$
-^vignettes/feature-selection\.qmd$
-^vignettes/network-inference\.qmd$
-^vignettes/synthetic-scenarios\.qmd$
-^vignettes/simulation-reporting\.qmd$
-^vignettes/DeCovarT_appendix_simualtion_frameworks\.qmd$
-^vignettes/decovart-perspectives\.qmd$
+^vignettes/theory-DeCovarT-MLE-properties\.qmd$
+^vignettes/supp-S6-feature-selection\.qmd$
+^vignettes/theory-network-inference\.qmd$
+^vignettes/how-to-build-synthetic-scenarios-mean-covariance\.qmd$
+^vignettes/fig03-variance-driven\.qmd$
+^vignettes/supp-S1-identifiability\.qmd$
+^vignettes/supp-S2-covariance-inversion\.qmd$
+^vignettes/supp-S3-scaling\.qmd$
+^vignettes/supp-S4-covariance-modeling\.qmd$
+^vignettes/supp-S5-misspecification\.qmd$
+^vignettes/theory-decovart-statistical-perspectives\.qmd$
 ^vignettes/_extensions/
+# Temporary solver smoke test (not testthat; requires fig03 GRN cache).
+^tests/manual/
 # pkgdown-only vignette figures (CRAN vignettes use the two kept below)
 ^vignettes/figures/condition_number_poor_performance_correlated_cell_types\.png$
 ^vignettes/figures/dea_optimal_design_comparison\.png$

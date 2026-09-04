@@ -40,7 +40,7 @@ the solver stopped, the iterate is genuinely stationary with the right
 local curvature, and the estimate sits close to a simplex face. None of
 them implies global uniqueness, which the DeCovarT log-likelihood does
 not have for a single observed sample (see
-\code{vignette("DeCovarT-MLE-properties")}).
+\code{vignette("theory-DeCovarT-MLE-properties")}).
 }
 \details{
 Reported fields are the ILR score norm

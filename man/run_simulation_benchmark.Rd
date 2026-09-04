@@ -64,8 +64,7 @@ rows are always evaluated \strong{sequentially} to avoid nested
 parallelism; sample-level workers live only in
 \code{\link[=deconvolute_ratios]{deconvolute_ratios()}}. Scenario builders (factorial grids, overlap
 summaries, etc.) should live in analysis scripts; see
-\code{scripts/configure_bivariate_toy_scenarios.R} and the manuscript
-scenario vignettes.
+\code{scripts/fig02_bivariate_toy.R} and the paper-scenario vignettes.
 }
 \examples{
 set.seed(1)

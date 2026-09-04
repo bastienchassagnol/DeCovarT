@@ -54,7 +54,7 @@ and the reconstructed bulk should be unchanged.
 Columns of \eqn{\boldsymbol{\mu}} and matching slices of
 \eqn{\boldsymbol{\Sigma}_j} are reordered by \code{perm} while the \emph{names}
 stay in the original order, matching the convention of
-\code{vignette("DeCovarT-MLE-properties")}. The labelled MLE on the
+\code{vignette("theory-DeCovarT-MLE-properties")}. The labelled MLE on the
 relabelled reference is then compared with
 \eqn{\hat{\boldsymbol{p}}_{\mathrm{perm}}}.
 

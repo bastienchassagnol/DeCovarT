@@ -14,6 +14,10 @@ bibliography:
   - ../inst/packages.bib
   - ../inst/REFERENCES.bib
 link-citations: true
+crossref:
+  eq-prefix: "Eq."
+  tbl-prefix: "Table"
+  sec-prefix: "Sec."
 format:
   html:
     embed-resources: true
@@ -52,7 +56,7 @@ Each cell type carries its own graph-constrained signed precision $\boldsymbol{\
 
 # Pipeline API
 
-The exported entry point orchestrates internal helpers and returns moments that can be passed to `simulate_bulk_mixture()`. For end-to-end benchmarking, see [Manuscript synthetic simulation scenarios](DeCovarT-manuscript-scenarios.html#sec-simulation-benchmark); scenario grids live in `scripts/configure_bivariate_toy_scenarios.R`. Direct solver calls use `deconvolute_ratios()`.
+The exported entry point orchestrates internal helpers and returns moments that can be passed to `simulate_bulk_mixture()`. For end-to-end benchmarking, see the [bivariate toy](fig02-bivariate-toy.html) and [variance-driven hybrid](fig03-variance-driven.html); scenario grids live in `scripts/fig02_bivariate_toy.R`. Direct solver calls use `deconvolute_ratios()`.
 
 ```{mermaid}
 %%| label: fig-pipeline-api
@@ -780,7 +784,7 @@ sample-wise ratios) to `simulate_bulk_mixture()`, and report $H^{\star}$
 alongside overlap or condition-number diagnostics. The hybrid $J=3$
 manuscript scenario uses the imbalanced design
 $\boldsymbol{p}=(0.4,0.4,0.2)$
-([Manuscript synthetic simulation scenarios](DeCovarT-manuscript-scenarios.html#sec-scenario-grid)).
+([variance-driven hybrid](fig03-variance-driven.html#sec-scenario-grid)).
 
 ```{r}
 #| label: fig-simbu-entropy
@@ -887,7 +891,7 @@ then score both the reference geometry and the mixture composition:
 2. **Precision graphs.** Draw an undirected skeleton (`scale_free`, `stochastic_block_model`, or `small_world`), assign i.i.d. signed weights (`prop_inhibitory`), and complete $\Omega\succ 0$ by the uniform spectral shift. Report $\kappa(\Omega)$ and the partial-correlation sign mix.
 3. **Cellular compositions.** Choose $\boldsymbol{p}$ on a Shannon grid from uniform ($H^{\star}=1$) to near-pure ($H^{\star}\approx 0$), matching the `SimBu` fraction vocabulary when comparing to pseudo-bulk tools (@fig-simbu-entropy).
 4. **Bulk draws.** Simulate $\boldsymbol{Y}$ from the Gaussian convolution $\boldsymbol{y}\mid(\boldsymbol{\zeta},\boldsymbol{p})\sim\mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},\sum_j p_j^{2}\boldsymbol{\Sigma}_j)$ and pass the same moments to every solver.
-5. **Hybrid stress test.** The manuscript scenario (two mean-collinear types told apart only by topology, plus an orthogonal third type) is documented in [Manuscript synthetic simulation scenarios](DeCovarT-manuscript-scenarios.html#sec-scenario-grid).
+5. **Hybrid stress test.** The variance-driven scenario (two mean-collinear types told apart only by topology, plus an orthogonal third type) is documented in [§2.2](fig03-variance-driven.html#sec-scenario-grid).
 
 See @nte-benchmark-spec for a compact factorial checklist.
 
@@ -926,12 +930,12 @@ partial-correlation scaling (@eq-partial-scale) when support and signs
 must be exact; add the mean layer **independently** of graph generation.
 The end-to-end **hybrid multi-topology reference scenario** (two
 mean-collinear cell types distinguished only by network topology, a
-third orthogonal type, NSGA-II panel curation, and the frequentist
+third orthogonal type, and the frequentist
 solver comparison on imbalanced mixtures) is documented in
-[Manuscript synthetic simulation scenarios](DeCovarT-manuscript-scenarios.html#sec-scenario-grid).
+[§2.2 variance-driven hybrid](fig03-variance-driven.html#sec-scenario-grid).
 Edge-case numerical checks (gene-wise z-score equivariance, collinear
-signatures, small bulk perturbations, random ILR starts) live in the
-[appendix simulation vignette](DeCovarT_appendix_simualtion_frameworks.html).
+signatures, small bulk perturbations, random ILR starts) live in
+[Appendix S1](supp-S1-identifiability.html).
 :::
 
 ::: {#nte-parallel-rng .callout-note}
@@ -990,5 +994,164 @@ Beyond the families in @tbl-topologies:
   - **Nonparanormal / Gaussian-copula** margins on a latent Gaussian graph.
   - **Poisson–log-normal / compositional** observation layers on latent log-abundances [@chiquetVariationalInferenceSparse2018].
   - **Zero-inflated mixture GGMs** with cell-type-specific $(\mu_k,\Omega_k)$ and expression-dependent dropout [@wuEstimatingHeterogeneousGene2022].
+
+# Simulation reporting: ADEMP and Nature Methods {#sec-ademp}
+
+This section is a reporting checklist for DeCovarT simulation studies,
+not a new experiment. It maps package outputs onto the ADEMP
+structure of Morris, White and Crowther
+[@morrisUsingSimulationStudies2019] and onto the Nature Methods
+requirements for data, code and statistical reporting
+([reporting standards](https://www.nature.com/nmeth/editorial-policies/reporting-standards)).
+
+There is **no composite global score**. Global composition distances,
+cell-type Pearson / F1, and Monte Carlo operating characteristics answer
+different questions and must stay in separate tables.
+
+The estimand is the composition $\boldsymbol{p}$ on the simplex. The
+data-generating mechanism is the Gaussian convolution
+$\boldsymbol{y}\mid(\boldsymbol{\zeta},\boldsymbol{p})\sim
+\mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},\sum_j p_j^2\boldsymbol{\Sigma}_j)$.
+Methods are the solvers passed to `deconvolute_ratios()`.
+
+```{r}
+#| label: tbl-ademp
+#| echo: false
+#| eval: true
+#| tbl-cap: "ADEMP performance measures implemented in `compute_benchmark_metrics()` and `coverage_mc_interval()`."
+options(tinytable_html_mathjax = TRUE)
+ademp <- data.frame(
+  ADEMP = c(
+    "Aims",
+    "Data-generating mechanism",
+    "Estimand",
+    "Methods",
+    "Bias",
+    "Empirical SE",
+    "Model SE",
+    "Relative error in SE",
+    "RMSE",
+    "Coverage",
+    "Mean interval width",
+    "Monte Carlo SE of coverage",
+    "Convergence",
+    "Type I / power"
+  ),
+  Package = c(
+    "Compare solvers on a known convolution",
+    "simulate_bulk_mixture() + describe_simulation_scenario()",
+    "p (simplex); cell-type and global scores kept separate",
+    "deconvolute_ratios() / fit_decovart()",
+    "monte_carlo$bias",
+    "monte_carlo$empirical_sd",
+    "monte_carlo$mean_model_se (and mean_model_sd)",
+    "monte_carlo$se_sd_ratio",
+    "monte_carlo$rmse (cell type) and regression$global$rmse",
+    "monte_carlo$coverage with Wilson interval by default",
+    "monte_carlo$mean_interval_width",
+    "monte_carlo$mcse_coverage",
+    "optimisation$numerical_converged, theoretical_converged, kkt_residual",
+    "Not a primary target (composition estimation, not a null test)"
+  ),
+  Status = c(
+    "Kept",
+    "Kept",
+    "Kept",
+    "Kept",
+    "Kept",
+    "Kept",
+    "Kept",
+    "Kept",
+    "Kept",
+    "Kept (Wilson default; Wald / Agresti--Coull optional)",
+    "Kept",
+    "Kept",
+    "Kept",
+    "Out of scope"
+  ),
+  stringsAsFactors = FALSE
+)
+tinytable::tt(ademp, width = 1)
+```
+
+Wilson is the default interval around the *estimated coverage rate*
+$\hat\pi=X/N$, not the interval for $\hat p_j$
+[@wilsonProbableInferenceLaw1927]. Wald and Agresti--Coull
+[@agrestiApproximateBetterExact1998] are available through
+`coverage_interval`. Bias-eliminated coverage (covering
+$\bar{\hat\theta}$ rather than $\theta$) is not implemented; report
+ordinary coverage and bias side by side instead.
+
+`plot_mc_raincloud()` shows the sampling distribution of
+$\hat p_j-p_j^{\star}$; inner / outer bars are empirical Monte Carlo
+quantiles, not a CI for $p$
+[@allenRaincloudPlotsMultiplatform2019]. `plot_mc_forest()` is the
+ADEMP ranking companion (Wilson whiskers on the coverage *rate*).
+`plot_algorithm_similarity()` is behavioural correlation of
+$\hat{\boldsymbol{p}}$, not numerical agreement. There is no default
+composite; `plot_mc_metric_dots()` facets by metric with a single
+min–max colour scale.
+
+## Nature Methods reporting {#sec-nmeth}
+
+Nature Methods requires a reporting summary, a data-availability
+statement, and promptly available code and protocols. The mapping below
+is the package counterpart of that editorial checklist.
+
+| Requirement | Where it lives in DeCovarT |
+|:--|:--|
+| Data-generating mechanism fully specified | `theta_true` (`p`, `mu`, `sigma`) plus `descriptors` and `call` |
+| Estimand and metrics pre-declared | This table; `compute_benchmark_metrics()` blocks |
+| Software versions | `sessioninfo::session_info()` in analysis scripts |
+| Random-number streams | `furrr_options(seed = TRUE)`: L'Ecuyer-CMRG per worker (@nte-parallel-rng) |
+| Code availability | GitHub repository; package functions, not one-off scripts |
+| No undisclosed composite score | Global and cell-type tables remain separate |
+| Sample size / Monte Carlo error | `n` and `mcse_coverage` (and Wilson bounds) |
+
+: Nature Methods reporting items covered by the simulation API. {#tbl-nmeth}
+
+## NeurIPS code completeness {#sec-neurips}
+
+The [ML Code Completeness Checklist](https://github.com/paperswithcode/releasing-research-code)
+used at NeurIPS is five items.
+
+| Checklist item | Where it lives |
+|:--|:--|
+| Specification of dependencies | `DESCRIPTION` (Imports / Suggests with versions) |
+| Fitting (“training”) code | `fit_decovart()`, `deconvolute_ratios()` |
+| Evaluation code | `compute_benchmark_metrics()`, `run_simulation_benchmark()` |
+| Pre-trained models | Not applicable: DeCovarT is an estimator, not a stored neural net. Toy convolution fixtures live in `inst/extdata/` |
+| README table of results plus commands | README / vignette chunks (this article; [§2.1](fig02-bivariate-toy.html), [§2.2](fig03-variance-driven.html)) |
+
+: NeurIPS / Papers with Code completeness mapped onto the package. {#tbl-neurips}
+
+## rOpenSci statistical standards {#sec-srr}
+
+rOpenSci [statistical software standards](https://stats-devguide.ropensci.org/standards.html)
+are tagged in `R/srr-stats-standards.R` (srrstats, srrstatsNA,
+srrstatsTODO) and on the exported helpers. The load-bearing blocks
+are:
+
+- **General / testing (G\*):** input checks and missing-data policy on
+  `deconvolute_ratios()`; Monte Carlo tests with
+  `simulate_bulk_mixture()` (G5.0, G5.5, G5.6).
+- **Regression (RE\*):** `fit_decovart()` return value, `coef` /
+  `vcov` / `confint`, convergence, plots (RE4, RE6, RE7).
+- **Probability distributions (PD\*):** Gaussian convolution
+  log-likelihood, score, and Hessian.
+
+Do not add a second copy of those tags in vignettes. Runtime scaling
+of solvers versus \(G\) and \(J\) remains srrstatsTODO (G5.7,
+RE5.0). ADEMP columns themselves are this section.
+
+## What is deliberately absent
+
+- Cholesky fill-in or sparse-solver speed diagnostics (the user must
+  declare the covariance structure; otherwise the dense Cholesky factor
+  of $\Sigma(p)$ is used). See [Appendix S2](supp-S2-covariance-inversion.html).
+- Type I error and power as default columns (the target is an estimand,
+  not a null hypothesis). Boundary tests live in
+  [Appendix S1](supp-S1-identifiability.html) and
+  [MLE properties](theory-DeCovarT-MLE-properties.html#sec-boundary).
 
 # References

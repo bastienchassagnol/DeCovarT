@@ -16,7 +16,7 @@ new_bivariate_toy_scenario <- function(
   scenario_script <- file.path(
     pkg_root,
     "scripts",
-    "configure_bivariate_toy_scenarios.R"
+    "fig02_bivariate_toy.R"
   )
   if (!file.exists(scenario_script)) {
     return(NULL)
@@ -25,6 +25,7 @@ new_bivariate_toy_scenario <- function(
     return(NULL)
   }
 
+  withr::local_envvar(c(DECOVART_SOURCE_HELPERS = "1"))
   source(scenario_script, local = TRUE)
 
   scenario_config <- build_bivariate_scenario_config(

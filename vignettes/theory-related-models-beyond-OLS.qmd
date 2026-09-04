@@ -129,5 +129,5 @@ $\boldsymbol{y}_{\cdot i}\,|\,\boldsymbol{p}_{\cdot i}
 \sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}\bigr)$,
 with precision $\boldsymbol{\Theta}_{j}=\boldsymbol{\Sigma}_{j}^{-1}$
 (typically from `gLasso`). See the article Methods and
-[derivatives under simplex transforms](generative-model-derivatives.html#sec-s3).
+[derivatives under simplex transforms](theory-decovart-generative-model.html#sec-s3).
 :::

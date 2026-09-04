@@ -5,6 +5,11 @@
 *.gz
 /build/
 simulations/*
+# Script simulation outputs: track only PDF figures, ignore everything else
+output/
+!output/**/*.pdf
+# Generated RDS artefacts from simulation scripts
+data/synthetic_networks/*.rds
 
 # LaTeX / pdflatex / latexmk intermediates (keep sources and PDFs)
 *.aux

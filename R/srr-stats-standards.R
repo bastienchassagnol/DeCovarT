@@ -84,7 +84,7 @@ NULL
 #'   choice documented in the vignettes.
 #'
 #' @srrstats {G3.1a} Covariance estimation strategies documented with worked
-#'   examples in the `synthetic-scenarios` vignette.
+#'   examples in the `how-to-build-synthetic-scenarios-mean-covariance` vignette.
 #'
 #' G5 - Testing
 #'
@@ -154,7 +154,7 @@ NULL
 #' RE2 - Regression: pre-processing
 #'
 #' @srrstats {RE2.0} ILR reparametrisation documented in `?fit_decovart`,
-#'   `?isometric_logistic`, and `vignette("generative-model-derivatives")`.
+#'   `?isometric_logistic`, and `vignette("theory-decovart-generative-model")`.
 #'
 #' @srrstats {RE2.1} Missing values in `y` or the signature raise an error
 #'   in `.prepare_deconvolution_inputs()`; no silent imputation.

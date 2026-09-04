@@ -38,7 +38,7 @@ Recovers the unconstrained additive log-ratio coordinates
 \eqn{p_J} as reference. This is Aitchison's additive log-ratio
 (\eqn{\mathrm{alr}}) transform, equivalently the multinomial-logit link
 with reference category \eqn{J} (see \code{\link[compositions:alr]{compositions::alr()}} and
-\code{vignette("generative-model-derivatives", package = "DeCovarT")}).
+\code{vignette("theory-decovart-generative-model", package = "DeCovarT")}).
 }
 \details{
 With \eqn{A=\sum_{k=1}^{J-1}\mathrm{e}^{\rho_k}+1},
@@ -51,7 +51,7 @@ Equivalently,
 \eqn{\boldsymbol{\psi}(\boldsymbol{\rho})\propto
 (\mathrm{e}^{\rho_1},\ldots,\mathrm{e}^{\rho_{J-1}},1)^{\mathsf{T}}}.
 Jacobians and Hessians of both maps are derived in the package vignette
-\code{vignette("generative-model-derivatives", package = "DeCovarT")}.
+\code{vignette("theory-decovart-generative-model", package = "DeCovarT")}.
 See also \code{\link[compositions:alr]{compositions::alrInv()}}.
 }
 \section{Numerical stability}{

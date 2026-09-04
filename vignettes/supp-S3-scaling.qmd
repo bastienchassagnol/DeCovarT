@@ -1,0 +1,202 @@
+---
+title: "Appendix S3 — Solver Scalability"
+subtitle: "Full script: `scripts/supp_S3_scaling.R`"
+vignette: >
+  %\VignetteIndexEntry{Appendix S3 — Solver Scalability}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+format:
+  html:
+    toc: true
+    toc-depth: 3
+execute:
+  echo: true
+  eval: false
+  warning: false
+bibliography:
+  - ../inst/packages.bib
+  - ../inst/REFERENCES.bib
+link-citations: true
+---
+
+```{r setup, eval=FALSE}
+library(DeCovarT)
+```
+
+> **Script:** `scripts/supp_S3_scaling.R` — scalability grid.
+> Outputs in `output/supp_S3/`.
+
+---
+
+## :one: Generative Model
+
+### Motivation
+
+This appendix maps DeCovarT performance across the five main
+statistical difficulty axes identified in the full factorial plan
+(`temp_rag_simualtions_scenarios/detailled_siulation_code.md`):
+
+| Axis | Range |
+|---|---|
+| Cell types $J$ | 2, 4, 8 |
+| Genes $G$ | 20, 50, 100, 250 |
+| Mean cosine $\rho_\mu$ | 0, 0.5, 0.9 |
+| Precision condition $\kappa$ | 3, 10, 100 |
+| Composition entropy $H / \log J$ | $\approx 1.0,\, 0.75,\, 0.40$ |
+
+### Full factorial
+
+$$
+3 \times 4 \times 3 \times 3 \times 3 = 324 \text{ scenarios}
+$$
+
+$N = 100$ Monte Carlo replicates per scenario (smoke test: $n = 2$).
+
+### Realised difficulty descriptors recorded
+
+Each generated problem stores the following descriptors for post-hoc
+analysis (see `detailled_siulation_code.md` §Difficulty descriptors):
+
+| Descriptor | Formula |
+|---|---|
+| Normalised Shannon entropy | $H/\log J$ |
+| Mean pairwise cosine | $\bar{\rho}_\mu$ |
+| Contrast smallest singular value | $\sigma_{\min}(\boldsymbol{M})$ |
+| Pairwise Bhattacharyya distance | closed-form Gaussian |
+| Covariance heterogeneity | $\operatorname{mean}_F$ distance |
+| Precision average degree | $2|E|/G$ |
+| $\kappa(\boldsymbol{\Sigma}_j)$ | spectral condition number |
+
+```{r gen-model}
+# -----------------------------------------------------------------
+# SECTION 1: GENERATIVE MODEL
+# Build the 324-scenario grid
+# -----------------------------------------------------------------
+SEED <- 20260807L
+
+scaling_grid <- tidyr::expand_grid(
+  J           = c(2L, 4L, 8L),
+  G           = c(20L, 50L, 100L, 250L),
+  cosine_mu   = c(0.0, 0.5, 0.9),
+  kappa_target = c(3, 10, 100),
+  entropy_norm = c(1.0, 0.75, 0.40)   # approx Dirichlet concentration
+) |>
+  dplyr::mutate(
+    scenario_id = dplyr::row_number(),
+    mu = purrr::pmap(list(J, G, cosine_mu), \(j, g, rho) {
+      generate_mean_signature_matrix(
+        n_cell_types      = j,
+        n_genes           = g,
+        cosine_similarity = rho,
+        mean_scale        = 100,
+        seed              = SEED + j * g
+      )
+    }),
+    proportions = purrr::map2(J, entropy_norm, \(j, h) {
+      # concentration parameter from normalised entropy
+      alpha <- exp(h * log(j)) / j
+      as.vector(gtools::rdirichlet(1L, rep(alpha, j)))
+    }),
+    covariance = purrr::pmap(list(J, G, kappa_target), \(j, g, kappa) {
+      purrr::map(seq_len(j), \(jj) {
+        net <- generate_random_network_skeleton(g, model = "erdos_renyi",
+                                               seed = SEED + jj)
+        build_normalised_precision(net, target_kappa = kappa) |> solve()
+      })
+    })
+  )
+```
+
+---
+
+## :two: Inference
+
+```{r inference}
+# -----------------------------------------------------------------
+# SECTION 2: INFERENCE
+# -----------------------------------------------------------------
+N_REPLICATES <- as.integer(Sys.getenv("N_REPLICATES", unset = "100"))
+ALGORITHMS   <- c("NNLS", "Marquardt-Levenberg")
+dir.create("output/supp_S3", recursive = TRUE, showWarnings = FALSE)
+
+scaling_results <- purrr::pmap(
+  dplyr::select(scaling_grid, proportions, mu, covariance),
+  \(proportions, mu, covariance) {
+    run_simulation_benchmark(
+      n_replicates          = N_REPLICATES,
+      true_proportions      = proportions,
+      mean_signature_matrix = mu,
+      covariance_matrices   = covariance,
+      algorithm_names       = ALGORITHMS
+    )
+  },
+  .progress = TRUE
+)
+
+saveRDS(scaling_results, "output/supp_S3/scaling_benchmark.rds")
+saveRDS(scaling_grid,    "output/supp_S3/scaling_grid.rds")
+```
+
+---
+
+## :three: Visualisations
+
+| Output | Description |
+|---|---|
+| `output/supp_S3/s3_rmse_by_G.pdf` | RMSE vs $G$ per cosine × kappa |
+| `output/supp_S3/s3_rmse_by_J.pdf` | RMSE vs $J$ per entropy level |
+| `output/supp_S3/s3_convergence_rate.pdf` | Optimiser convergence rate heatmap |
+
+```{r visualisations}
+# -----------------------------------------------------------------
+# SECTION 3: VISUALISATIONS
+# -----------------------------------------------------------------
+scaling_results <- readRDS("output/supp_S3/scaling_benchmark.rds")
+scaling_grid    <- readRDS("output/supp_S3/scaling_grid.rds")
+
+if (N_REPLICATES >= 10) {
+  # Attach RMSE to grid
+  scaling_summary <- scaling_grid |>
+    dplyr::mutate(
+      rmse = purrr::map_dbl(scaling_results, \(res) {
+        mean(res[["Marquardt-Levenberg"]][["RMSE"]], na.rm = TRUE)
+      })
+    )
+
+  p_g <- ggplot2::ggplot(
+    scaling_summary,
+    ggplot2::aes(G, rmse, colour = factor(cosine_mu), linetype = factor(kappa_target))
+  ) +
+    ggplot2::geom_line() +
+    ggplot2::facet_wrap(~J, labeller = ggplot2::label_both) +
+    ggplot2::labs(x = "G (genes)", y = "Mean RMSE", colour = "Cosine μ",
+                  linetype = "κ target") +
+    ggplot2::theme_minimal()
+
+  ggplot2::ggsave("output/supp_S3/s3_rmse_by_G.pdf", p_g, width = 9, height = 5)
+}
+```
+
+## Out-of-scope factors (full factorial plan)
+
+The following factors from the full simulation plan are noted here but not
+yet implemented as they require either additional function support or
+substantial wall-clock time:
+
+- **Low-rank residual $r$** (0, 2, 8, 20): Woodbury inversion advantage.
+- **Reference covariance sample size** (oracle; 20; 50; 200 donors/cells):
+  tests estimation noise rather than assuming a perfect $\boldsymbol{\Sigma}_j$.
+  This is a critical real-data concern — estimated covariances from small
+  single-cell cohorts add noise that is not modelled in the current simulation.
+- **Connected-component structure** (1, 2, 4, $J$-linked): predicts exact
+  block-factorisation gains (see Appendix S2).
+- **BFGS-in-ALR optimiser**: a fair comparison requires implementing gradient
+  descent in the same $J-1$ dimensional ALR chart as Marquardt–Levenberg; see
+  `gradient_loglik_constrained()`.
+
+## See also
+
+- [Appendix S2 — Covariance Inversion](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S2-covariance-inversion.html)
+- [Appendix S4 — Covariance Modelling](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S4-covariance-modeling.html)
+
+## References

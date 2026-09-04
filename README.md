@@ -219,10 +219,11 @@ Package website: <https://bastienchassagnol.github.io/DeCovarT/>
 
 **Vignettes**
 
-- [Simulating semi-synthetic pseudo-bulk mixtures](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html)
-- [Manuscript synthetic simulation scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-manuscript-scenarios.html)
-- [Derivatives under simplex transforms](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.html)
-- [MLE properties and asymptotic inference](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.html)
+- [How to build synthetic scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/how-to-build-synthetic-scenarios-mean-covariance.html)
+- [§2.1 Bivariate toy](https://bastienchassagnol.github.io/DeCovarT/articles/fig02-bivariate-toy.html)
+- [§2.2 Variance-driven hybrid](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-variance-driven.html)
+- [Generative model and derivatives](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html)
+- [MLE properties and asymptotic inference](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html)
 
 In an R session, use `?DeCovarT::deconvolute_ratios` (or any other exported
 function) for help pages.

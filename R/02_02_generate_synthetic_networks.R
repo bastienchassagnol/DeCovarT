@@ -183,7 +183,7 @@ equicorrelation_gram <- function(n_celltypes, target_cosine = 0) {
 #' default \eqn{\boldsymbol{Q}} is a deterministic thin QR frame; pass `seed`
 #' for a Haar-like Gaussian frame. Cholesky \eqn{R=LL^{\mathsf{T}}} is an
 #' alternative square root used in Monte Carlo simulation; see the
-#' synthetic-scenarios vignette appendix.
+#' how-to-build-synthetic-scenarios vignette appendix.
 #'
 #' @param n_genes Integer \eqn{G}; must be at least \code{n_celltypes}.
 #' @param n_celltypes Integer \eqn{J\ge 2}.

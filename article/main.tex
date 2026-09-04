@@ -223,44 +223,49 @@
 
     \subsection{Numerical Simulation Study}
 
-    \subsubsection{Toy Model with two genes, and two cell populations}
+    \subsubsection{Bivariate toy: two genes and two cell types}
+    \label{sec:bivariate-toy}
 
-    To assert numerically the relevance of accounting for the correlation
-    between expressed transcripts, we designed a simple toy example with two genes
-    and two cell proportions. Hence, using the simplex constraint (\ref{eq-simplex-constraint}),
-    we only have to estimate one free unconstrained parameter, $\rho_{1}$, and
-    then uses the mapping function, defined in Appendix A.3 to recover the
-    ratios in their original space.
+    To verify the benefit of modelling gene--gene covariance, we
+    designed a minimal scenario: $G=2$ genes and $J=2$ cell types.
+    The single free ILR coordinate $z_1\in\mathbb{R}$ is mapped to
+    the open simplex via (\ref{eq-mapping-function}), so the likelihood
+    is one-dimensional and directly inspectable.
 
-    We simulated the bulk mixture, $\boldsymbol{y}\in \mathcal{M}_{G \times N}$,
-    for a set of artificial samples $N=500$, with the following generative model:
+    We generated $N=500$ bulk replicates under the following factorial
+    design (648 scenarios in total; code in
+    \texttt{scripts/fig02\_bivariate\_toy.R}):
 
     \begin{itemize}
-        \item We have tested two levels of cellular ratios, one with equi-balanced
-            proportions ($\boldsymbol{p}= (p_{1}, p_{2}=1-p_{1})=(\frac{1}{2}, \frac{1}{2}
-            )$ and one with highly unbalanced cell populations:
-            $\boldsymbol{p}=(0.95, 0.05)$.
+        \item \textbf{Composition:} balanced $\boldsymbol{p}=(1/2,1/2)$
+            or highly unbalanced $\boldsymbol{p}=(19/20,1/20)$.
 
-        \item Then, each purified transcriptomic profile is drawn from a
-            multivariate Gaussian distribution. We compared two scenarios,
-            playing on the mean distance of centroids, respectively $\mu_{.1}=(20
-            , 22), \mu_{.2}=(22, 20)$ and $\mu_{.2}=(20, 40), \mu_{.2}=(40, 20)$)
-            and building the covariance matrix, $\mathbf{\Sigma}\in \mathcal{M}_{2
-            \times 2}$ by assuming equal individual variances for each gene (the
-            diagonal terms of the covariance matrix, $\diag(\boldsymbol{\Sigma_1}
-            )=\diag(\boldsymbol{\Sigma_1})=\boldsymbol{I}_{2}$) but varying the
-            pairwise correlation between gene 1 and gene 2, $\CC{x_{1,2}}$, on
-            the following set of values: $\{-0.8, -0.6, \ldots, 0.8\}$ for each of
-            the cell population.
+        \item \textbf{Mean centroids (CLD):} small separation,
+            $\boldsymbol{\mu}_{\cdot 1}=(20,22)$ and
+            $\boldsymbol{\mu}_{\cdot 2}=(22,20)$; or large separation,
+            $\boldsymbol{\mu}_{\cdot 1}=(20,40)$ and
+            $\boldsymbol{\mu}_{\cdot 2}=(40,20)$.
 
-        \item As stated in \ref{eq-linear-deconvolution}, we assume that the
-            bulk mixture, $\mathbf{y}_{.i}$ could be directly reconstructed by summing
-            up the individual cellular contributions weighted by their abundance,
-            without additional noise.
+        \item \textbf{Gene--gene correlation:} the within-cell-type
+            correlation $\rho_{j}\in\{-0.8,-0.6,\ldots,0.8\}$ (nine
+            levels) was set independently for each of the two cell types.
+
+        \item \textbf{Variance structure:} homoscedastic
+            ($\sigma^{2}=1$ for both genes) or heteroscedastic
+            ($\sigma_{1}^{2}=1$, $\sigma_{2}^{2}=2$).
     \end{itemize}
 
-    We compared the performance of DeCovarT algorithm with DeconRNASeq algorithm
-    (\cite{gongDeconRNASeqStatisticalFramework2013}).
+    Seven solvers were benchmarked: NNLS and DeconRNASeq
+    (mean-only baselines), L-BFGS-B, projected gradient descent,
+    Newton--Raphson, Marquardt--Levenberg, and simulated annealing.
+    DeConRNASeq implements NNLS via the \texttt{lsei} package
+    \cite{gongDeconRNASeqStatisticalFramework2013}.
+    Performance was summarised by the ADEMP framework
+    \cite{morrisUsingSimulationStudies2019} (bias, RMSE, coverage with
+    Wilson intervals, and optimiser failure rate).
+
+    We compared the performance of DeCovarT with DeconRNASeq
+    \cite{gongDeconRNASeqStatisticalFramework2013}.
 
     Even with a limited toy example including two cell populations characterised
     only by two genes, we observe that the overlap was a good proxy of the quality
@@ -292,74 +297,57 @@
     types, genes, and testing the sensitivity of the model by voluntarily including
     noise in the benchmark evaluation.
 
-    \subsubsection{Scaling numerical simulations using methods for generating
-    synthetic networks}
+    \subsubsection{High-dimensional hybrid scenario: $G=50$ genes and three cell types}
+    \label{sec:hybrid-scenario}
 
-    The general framework for generating realistic simulations of single-cell
-    profiles while modelling interactions between genes comprises the following
-    steps. First, generate the structure (skeleton of the graph, namely
-    identfication of the edges's coverage), represented as a binary adjacency
-    matrix. Then, shift the binary network into a weighted structure, with different
-    interaction weights between genes (as available in a precision matrix),
-    normalised between -1 and 1 -> each cell population exhibits its own
-    distribution profile, parametrised by the simulated network structure.
-    Finally, reflect the heteroeignity of cell composition in biological tissues
-    by drawing cellular proportions from a Dirichlet distribution.
+    The bivariate toy isolates the effect of gene--gene covariance in a
+    fully transparent setting but cannot demonstrate scalability or the
+    realistic topology of gene-regulatory networks (GRNs).  We therefore
+    designed a second scenario with $G=50$ genes and $J=3$ cell types
+    (code in \texttt{scripts/fig03\_hybrid\_scenario.R};
+    detailed parameter tables in the package vignette
+    \texttt{fig02-bivariate-toy} / \texttt{fig03-variance-driven}).
 
-    \paragraph{Network generation}
+    \paragraph{Generative model.}
+    The mean matrix $\boldsymbol{\mu}\in\mathbb{R}^{50\times 3}$ is
+    built from three gene blocks:
+    (i)~30 \emph{shared} genes with high pairwise cosine between cell
+    types~1 and~2 ($\rho_{12}\approx 0.97$); these genes carry no
+    discriminative mean signal between the two types;
+    (ii)~10 \emph{marker} genes highly expressed only in cell type~3
+    ($\rho\approx 0.56$ with the shared block); and
+    (iii)~10 \emph{null} genes equally expressed across all three types.
+    Cell-type-specific precision matrices $\boldsymbol{\Omega}_{j}$ are
+    block-diagonal, with each block sampled from a distinct random-graph
+    model: stochastic block model (hub structure, cell type~1), star graph
+    (one regulatory driver, cell type~2), and Erd\H{o}s--R\'enyi (cell
+    type~3 and all null-gene blocks).  Precision matrices are shifted to
+    be positive-definite following (\ref{eq-affine-spectrum-transformation})
+    \cite{chiquetVariationalInferenceSparse2018}.
 
-    Un vaste pan de la littérature explored the generation of random and synthetic
-    networks, each lying with its own assumptions. The most popular approaches are
-    the Erdös-Rényi model (no particular structure), the preferential attachment
-    model wich assumes a scale-free distribution of the degree of the network, and
-    affiliation model, in which local structures prevail (see details in \ref{sec-synthetic-network}).
-    However, all these models return a binary adjacency matrix, encoding only for
-    the presence or absence of an interaction.
+    \paragraph{Inference.}
+    Three solvers were compared on $N=200$ simulated bulks at three
+    composition levels (balanced, moderately unbalanced, and highly
+    unbalanced): NNLS, DeconRNASeq
+    \cite{gongDeconRNASeqStatisticalFramework2013}, and DeCovarT
+    (Marquardt--Levenberg).  Because cell types~1 and~2 are near
+    mean-collinear ($\rho_{12}\approx 0.97$), mean-only methods
+    cannot separate them; the network topology encoded in
+    $\boldsymbol{\Sigma}_{j}$ is the only discriminative signal available
+    to DeCovarT.  Results are reported via the ADEMP operating
+    characteristics \cite{morrisUsingSimulationStudies2019}.
 
-    The advantage of precision matrices precisely lies in the possibility of weighting
-    edges by the strength of interaction, a higher absolute value depicting a
-    stronger regulatory effect. Besides, the precision matrix should have the
-    same sparsity level as the adjacency matrix, while being positive-definite.
-    Inspiring from \cite{chiquetVariationalInferenceSparse2018} and \CRANpkg{huge},
-    we enforce these two constraints with
-    \ref{eq-affine-spectrum-transformation}:
-
-    \begin{equation}
-        \tilde{\boldsymbol{\Omega}}= \boldsymbol{A}\times v, \quad \boldsymbol{\Omega}
-        = \tilde{\boldsymbol{\Omega}}+ \diag \left( \Bigg |\min \left( \text{Spectrum}
-        {\left(\tilde{\boldsymbol{\Omega}}\right)}\right)\Bigg | + u \right) \label{eq-affine-spectrum-transformation}
-    \end{equation}
-
-    with $u$ and $v$ two scalar hyperparameters controlling the degree of connectivity
-    in the graph. Precisely, $v$ controls the magnitude of the interactions,
-    with higher $v$ inducing larger off-diagonal terms, while the second term of
-    the equation $\diag \left(\min \left( |\Spectrum{\left(\tilde{\boldsymbol{\Omega}}\right)}
-    | \right) + u \right)$ guarantees the strict positiveness of the matrix (see
-    \ref{supp-thm-affine}). Accordingly, a fine balance must be found between the
-    two hyperparameters, with a smaller $v$ implying a more diagonal and well-conditioned
-    matrix, while a larger $v$ implies a stronger domination of the off-diagonal,
-    interaction terms, and a larger spreading out of the spectrum.
-
-    \todo{add visual with eigenvalues plots to demonstrate affine invariance of the spectrum}
-
-    Of note, we would have considered other simualtion framework sfor generating
-    interesting Gaussian distirbution scenarios. For instance, the Toeplitz
-    sructure, modelling an exponetial decay with distance beween variables, is
-    commonly used for generating structured covariance matricees. Indeed, it"s
-    controlled by a single paramter $\rho$, making it highly interpretable, and
-    easy to compute with the Cholesky decomposition. However, since its primary
-    focus is on the covariance, the framework can only be used to encode local dependencies
-    (and not global, accounting for all higher-order interactions, as for the
-    precision matrix) \cite{batardiereEvaluatingParameterUncertainty2024,ogierduterrailFedECAFederatedExternal2025}.
-
-    The \CRANpkg{mixSim} package, developed by \cite{melnykovMixSimPackageSimulating2012},
-    and the \CRANpkg{clusterGeneration}, developed by
-    \cite{qiuSeparationIndexPartial2006}, are other interesting alternatives for
-    generating random clusters of cell populations, each modelled by a
-    multivariate Gaussian distributions. However, \CRANpkg{mixSim} plays on the global
-    level of overlap between cell-type specific distributions, while \CRANpkg{clusterGeneration}
-    twists the level of degree separation between clusters, as quantified by a
-    variant of the adjusted Rand Index.
+    \paragraph{GRN construction.}
+    Random adjacency matrices were produced by
+    \texttt{generate\_random\_network\_skeleton()} and converted to
+    positive-definite precision matrices by
+    \texttt{build\_normalised\_precision()}, which adds a diagonal shift
+    $u\boldsymbol{I}_{G}$ to ensure strict positive-definiteness
+    (Appendix~\ref{supp-thm-affine}).  Alternative GRN generators---Toeplitz
+    covariances (one-parameter, encoding local dependencies only) and
+    the \texttt{MixSim} overlap-based framework
+    \cite{melnykovMixSimPackageSimulating2012}---were considered but not
+    adopted: neither models cell-type-specific sparse precision structure.
 
     \subsection{Evaluation of robustness for DeCovarT}
 
@@ -520,7 +508,7 @@
     $\boldsymbol{\psi}$ that enforces the unit-simplex constraint on
     $\boldsymbol{p}$. Classical OLS and Gauss--Markov reminders (Article length)
     are deferred to the package vignette
-    \texttt{Beyond-OLS}.
+    \texttt{theory-related-models-beyond-OLS}.
 
     \begin{figure}[t]
         \centering
@@ -880,7 +868,7 @@
         \subsection{Multivariate Gaussian reminders}
         \label{subsec:ols-assumptions}
         % Classical OLS / Gauss--Markov material lives in the package vignette
-        % vignettes/Beyond-OLS.qmd (kept out of the Article word budget).
+        % vignettes/theory-related-models-beyond-OLS.qmd (kept out of the Article word budget).
 
         \begin{definition}[Multivariate Gaussian distributions]
             \label{def:multivariate-gaussian} If random vector $\boldsymbol{X}$ of

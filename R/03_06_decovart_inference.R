@@ -1,6 +1,6 @@
 # Asymptotic inference for DeCovarT: profile likelihood, likelihood-ratio
 # tests with boundary (chi-bar-square) calibration, and the parametric
-# bootstrap. See vignette("DeCovarT-MLE-properties").
+# bootstrap. See vignette("theory-DeCovarT-MLE-properties").
 
 # Restricted maximisation ------------------------------------------------
 
@@ -717,7 +717,7 @@ bootstrap_decovart <- function(
 #' Columns of \eqn{\boldsymbol{\mu}} and matching slices of
 #' \eqn{\boldsymbol{\Sigma}_j} are reordered by `perm` while the *names*
 #' stay in the original order, matching the convention of
-#' `vignette("DeCovarT-MLE-properties")`. The labelled MLE on the
+#' `vignette("theory-DeCovarT-MLE-properties")`. The labelled MLE on the
 #' relabelled reference is then compared with
 #' \eqn{\hat{\boldsymbol{p}}_{\mathrm{perm}}}.
 #'
@@ -816,7 +816,7 @@ equivariance_check_decovart <- function(
 #' gene-wise pairing of bulk and reference, and the second is algebraic
 #' equivariance rather than a source of uncertainty (see
 #' [equivariance_check_decovart()] and
-#' `vignette("DeCovarT-MLE-properties")`). The three `method` options
+#' `vignette("theory-DeCovarT-MLE-properties")`). The three `method` options
 #' instead resample units that actually vary.
 #'
 #' \describe{
@@ -1337,7 +1337,7 @@ reference_bootstrap_decovart <- function(
 #' local curvature, and the estimate sits close to a simplex face. None of
 #' them implies global uniqueness, which the DeCovarT log-likelihood does
 #' not have for a single observed sample (see
-#' `vignette("DeCovarT-MLE-properties")`).
+#' `vignette("theory-DeCovarT-MLE-properties")`).
 #'
 #' @details
 #' Reported fields are the ILR score norm

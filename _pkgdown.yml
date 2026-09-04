@@ -91,44 +91,58 @@ navbar:
         - text: External resources
         - text: Manuscript, preprint & seminar slides
           icon: fa-book-open
-          href: articles/decovart-external-resources.html
+          href: articles/decovart-paper-slides.html
         - text: -------
         - text: Prepare inputs
         - text: In silico GRN inference
           icon: fa-project-diagram
-          href: articles/network-inference.html
+          href: articles/theory-network-inference.html
         - text: Feature selection for reference-based deconvolution
           icon: fa-filter
-          href: articles/feature-selection.html
+          href: articles/supp-S6-feature-selection.html
         - text: -------
-        - text: Mathematical and Programmatic introduction to DeCovarT
+        - text: Mathematical and programmatic introduction to DeCovarT
           icon: fa-square-root-variable
-          href: articles/generative-model-derivatives.html
-        - text: How to simulate interesting synthetic scenarios with dependency structures
+          href: articles/theory-decovart-generative-model.html
+        - text: How to build synthetic scenarios (means, covariance, ADEMP)
           icon: fa-flask
-          href: articles/synthetic-scenarios.html
-        - text: Simulation reporting (ADEMP and Nature Methods)
-          icon: fa-clipboard-check
-          href: articles/simulation-reporting.html
-        - text: Manuscript synthetic simulation scenarios
-          icon: fa-chart-pie
-          href: articles/DeCovarT-manuscript-scenarios.html
+          href: articles/how-to-build-synthetic-scenarios-mean-covariance.html
         - text: -------
-        - text: DeCovarT Mathematical appendix
+        - text: "Paper: numerical simulation study"
+        - text: "§ 2.1 · Bivariate toy (J = 2, G = 2)"
+          icon: fa-chart-bar
+          href: articles/fig02-bivariate-toy.html
+        - text: "§ 2.2 · Variance-driven hybrid (J = 3, G = 50)"
+          icon: fa-network-wired
+          href: articles/fig03-variance-driven.html
+        - text: -------
+        - text: DeCovarT mathematical appendix
         - text: MLE properties and asymptotic inference
           icon: fa-chart-area
-          href: articles/DeCovarT-MLE-properties.html
+          href: articles/theory-DeCovarT-MLE-properties.html
         - text: Literature review and alternatives to OLS
           icon: fa-equals
-          href: articles/Beyond-OLS.html
+          href: articles/theory-related-models-beyond-OLS.html
         - text: "DeCovarT perspectives: Bayesian, quasi-likelihood, and more"
           icon: fa-compass
-          href: articles/decovart-perspectives.html
+          href: articles/theory-decovart-statistical-perspectives.html
         - text: -------
-        - text: DeCovarT extra-simulation appendix
-        - text: "Edge cases: quasi-collinearity, multi-modal, active zero proportions and perturbations"
+        - text: Supplementary simulation appendix
+        - text: "App. S1 · Regular-case MLE and identifiability"
           icon: fa-vial
-          href: articles/DeCovarT_appendix_simualtion_frameworks.html
+          href: articles/supp-S1-identifiability.html
+        - text: "App. S2 · Covariance inversion strategies"
+          icon: fa-calculator
+          href: articles/supp-S2-covariance-inversion.html
+        - text: "App. S3 · Solver scalability"
+          icon: fa-gauge-high
+          href: articles/supp-S3-scaling.html
+        - text: "App. S4 · Covariance modelling assumptions"
+          icon: fa-layer-group
+          href: articles/supp-S4-covariance-modeling.html
+        - text: "App. S5 · Model mis-specification (outlook)"
+          icon: fa-triangle-exclamation
+          href: articles/supp-S5-misspecification.html
     news:
       text: News
       icon: fa-newspaper
@@ -166,7 +180,7 @@ reference:
       Additive log-ratio maps are kept for the vignette appendix.
       Documented for
       `?` / source inspection; see also
-      `vignette("generative-model-derivatives")`.
+      `vignette("theory-decovart-generative-model")`.
     contents:
       - helmert_basis
       - isometric_logistic
@@ -205,7 +219,7 @@ reference:
       (block, band, sparse, diagonal-plus-low-rank) instead of a dense
       Cholesky. Operators return the log-determinant and solves without a
       materialised precision. See
-      `vignette("generative-model-derivatives")`.
+      `vignette("theory-decovart-generative-model")`.
     contents:
       - new_decovart_covariance
       - covariance_structure_from_graph_model
@@ -230,7 +244,7 @@ reference:
       bootstrap, reference-sample bootstrap (donors, cells, or Dirichlet
       compositions), and the boundary / multimodality diagnostics that a
       bare convergence code cannot provide. See
-      `vignette("DeCovarT-MLE-properties")`.
+      `vignette("theory-DeCovarT-MLE-properties")`.
     contents:
       - restricted_mle_decovart
       - profile_loglik_decovart
@@ -284,30 +298,40 @@ reference:
 articles:
   - title: External resources
     contents:
-      - decovart-external-resources
+      - decovart-paper-slides
   - title: Getting started
     navbar: ~
     contents:
-      - synthetic-scenarios
-      - simulation-reporting
-      - feature-selection
-      - network-inference
-      - DeCovarT-manuscript-scenarios
+      - how-to-build-synthetic-scenarios-mean-covariance
+      - supp-S6-feature-selection
+      - theory-network-inference
+  - title: "Paper: numerical simulation study"
+    desc: |
+      The two simulation scenarios of the DeCovarT article.
+      **§ 2.1** Bivariate toy (J = 2, G = 2): factorial sweep of gene–gene
+      correlation, mean distance, and composition.
+      **§ 2.2** Variance-driven hybrid (J = 3, G = 50): block-structured
+      GRN covariances; cell types 1 and 2 are near mean-collinear.
+    navbar: ~
+    contents:
+      - fig02-bivariate-toy
+      - fig03-variance-driven
   - title: Mathematics
     contents:
-      - generative-model-derivatives
-      - DeCovarT-MLE-properties
-      - Beyond-OLS
-      - decovart-perspectives
-  - title: Appendix simulations
+      - theory-decovart-generative-model
+      - theory-DeCovarT-MLE-properties
+      - theory-related-models-beyond-OLS
+      - theory-decovart-statistical-perspectives
+  - title: Supplementary simulation appendix
     desc: |
-      Edge-case numerical checks behind the `decovart_fit` API: gene-wise
-      z-score / affine equivariance of the MLE, failure under collinear
-      signatures, impact of small bulk perturbations under full /
-      cell-type-diagonal / global covariances, and sensitivity of
-      second-order solvers to random ILR starts.
+      Regular-case MLE checks in the open simplex, identifiability
+      edge cases, and covariance / scaling / misspecification studies.
     contents:
-      - DeCovarT_appendix_simualtion_frameworks
+      - supp-S1-identifiability
+      - supp-S2-covariance-inversion
+      - supp-S3-scaling
+      - supp-S4-covariance-modeling
+      - supp-S5-misspecification
 
 news:
   releases:

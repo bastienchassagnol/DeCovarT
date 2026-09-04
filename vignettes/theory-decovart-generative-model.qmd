@@ -751,7 +751,7 @@ must agree with @eq-delta-p up to numerical error.
 neither invariant to a non-orthogonal reparametrisation nor confined to
 $[0,1]$, and it degenerates entirely when a proportion reaches a simplex
 face. The companion vignette
-[MLE properties and asymptotic inference](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.html)
+[MLE properties and asymptotic inference](theory-DeCovarT-MLE-properties.html)
 derives the alternatives: profile likelihood-ratio intervals, the
 chi-bar-square calibration of Chernoff and of Self and Liang for nulls on
 the boundary, a parametric bootstrap, and a reference-sample bootstrap
@@ -766,7 +766,7 @@ bootstrap: the maximised likelihood is equivariant under relabelling.
 
 The analytic maps above are only half of a usable optimiser. Practical
 bottlenecks that showed up on the hybrid scenario in
-[Manuscript synthetic simulation scenarios](DeCovarT-manuscript-scenarios.html#sec-hybrid-deconvolution)
+[Variance-driven hybrid scenario](fig03-variance-driven.html#sec-hybrid-deconvolution)
 live in `R/03_03_DeCovarT_estimate_ratios_frequentist.R`.
 
 ---
@@ -1044,7 +1044,7 @@ A related, weaker check compares the empirical covariance of
 parametric-bootstrap MLEs to the Cramér–Rao map
 [`vcov_ilr_delta()`](../reference/vcov_ilr_delta.html). That comparison
 is noisy at small replication (see
-[MLE properties](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.html#sec-replication)
+[MLE properties](theory-DeCovarT-MLE-properties.html#sec-replication)
 for why one bulk column is not an asymptotic sample) and is therefore
 left to the inference vignette and to
 [`bootstrap_decovart()`](../reference/bootstrap_decovart.html).
@@ -1155,7 +1155,7 @@ time on cache-based hardware with tuned BLAS; the block and low-rank savings
 robust. The `"band"` and `"sparse"` backends use the imported `Matrix`
 package (supernodal sparse Cholesky in CHOLMOD,
 [@chenAlgorithm887CHOLMOD2008]).
-`scripts/covariance_structure_prototypes.R` verifies each backend against
+`scripts/supp_S2_covariance_inversion.R` verifies each backend against
 the dense path to machine precision. Approximate sparse Cholesky of
 otherwise dense kernel covariances is a separate research line
 [@schäferCompressionInversionApproximate2020]; the `"sparse"` backend here

@@ -15,7 +15,7 @@ types \eqn{j=1,\ldots,J}, samples \eqn{i=1,\ldots,N}; bulk
 \eqn{\boldsymbol{\Sigma}_j}/\eqn{\boldsymbol{\Theta}_j}. Proportions live on
 the open simplex and are optimised in unconstrained ILR coordinates
 \eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}}
-(\code{vignette("generative-model-derivatives", package = "DeCovarT")}).
+(\code{vignette("theory-decovart-generative-model", package = "DeCovarT")}).
 
 The frequentist API plugs in \eqn{\boldsymbol{\mu}} for unobserved latent
 profiles \eqn{\boldsymbol{x}_{\cdot j}}; MAP recovery of those latents is

@@ -1,20 +1,15 @@
-# ---- deconvolute_simulated_scenario.R ---------------------------------------
+# ---- tests/manual/deconvolute_simulated_scenario.R --------------------------
 ##
-## A harder, more realistic DeCovarT deconvolution pass: simulated bulk
-## mixtures drawn from the true (NSGA-II-curated) synthetic scenario
-## produced by scripts/generate_random_markov_network.R, with an
-## IMBALANCED true composition p = (0.4, 0.4, 0.2) rather than equi-
-## balanced proportions. Cell types 1 and 2 are, by design, near
-## mean-collinear on most of the curated panel (target cosine 0.95 on the
-## `shared_12_vs_3` block); with p_1 = p_2 = 0.4 a mean-only deconvolution
-## has essentially nothing to separate them on, so recovering (0.4, 0.4)
-## rather than lumping them into an ambiguous 0.8-mass blob is a genuine
-## test of the covariance-aware (network-topology) signal DeCovarT is
-## designed to exploit.
+## TEMPORARY solver smoke test (Rbuildignored). Not part of testthat.
+## Simulate bulk mixtures from the variance-driven GRN produced by
+## scripts/fig03_variance_driven.R, with imbalanced p = (0.4, 0.4, 0.2).
+## Cell types 1 and 2 are near mean-collinear; recovering both masses
+## rather than lumping them is a check of the covariance-aware signal.
 ##
-## Five solvers from R/03_03_DeCovarT_estimate_ratios_frequentist.R, plus one
-## script-local variant that touches no package code, are compared, all
-## sharing the equi-balanced initial guess `initial_p`:
+## Prerequisite: run fig03 at least once so
+## data/synthetic_networks/true_grn_moments.rds exists.
+##
+## Five solvers from R/03_03_DeCovarT_estimate_ratios_frequentist.R:
 ##   * deconvolute_ratios_simulated_annealing() -- stochastic search on rho
 ##     ([stats::optim()], `method = "SANN"`); no gradient used.
 ##   * deconvolute_ratios_L_BFGS_B()            -- box-constrained ascent
@@ -43,11 +38,12 @@ true_grn_moments <- readRDS(
   file.path("data", "synthetic_networks", "true_grn_moments.rds")
 )
 
-## Restrict the mean signature and covariances to the NSGA-II-curated panel
-## (`final_panel`, a character vector of gene names); `Theta` and the
-## latent tensor `X` describe the full 50-gene design and are not needed
-## for bulk simulation / deconvolution.
+## Restrict to an NSGA-II panel when present (legacy cache); otherwise
+## use the full G = 50 design from fig03.
 final_panel <- true_grn_moments$final_panel
+if (is.null(final_panel)) {
+  final_panel <- rownames(true_grn_moments$mu)
+}
 mu <- true_grn_moments$mu[final_panel, , drop = FALSE]
 Sigma <- true_grn_moments$Sigma[final_panel, final_panel, , drop = FALSE]
 celltype_names <- colnames(mu)

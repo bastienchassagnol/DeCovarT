@@ -57,5 +57,5 @@ See @fig-toy-model and @fig-toy-results.
 :::::
 
 Package vignettes:
-[synthetic scenarios](../vignettes/synthetic-scenarios.qmd) and
-[`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.html) with scenario grids from `scripts/configure_bivariate_toy_scenarios.R`.
+[synthetic scenarios](../vignettes/how-to-build-synthetic-scenarios-mean-covariance.qmd) and
+[`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.html) with scenario grids from `scripts/fig02_bivariate_toy.R`.

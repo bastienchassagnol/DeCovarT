@@ -95,7 +95,7 @@ averaged signature, is \strong{not} a bootstrap: the first destroys the
 gene-wise pairing of bulk and reference, and the second is algebraic
 equivariance rather than a source of uncertainty (see
 \code{\link[=equivariance_check_decovart]{equivariance_check_decovart()}} and
-\code{vignette("DeCovarT-MLE-properties")}). The three \code{method} options
+\code{vignette("theory-DeCovarT-MLE-properties")}). The three \code{method} options
 instead resample units that actually vary.
 
 \describe{

@@ -1,0 +1,205 @@
+---
+title: "Appendix S2 — Covariance Inversion Strategies"
+subtitle: "Full script: `scripts/supp_S2_covariance_inversion.R`"
+vignette: >
+  %\VignetteIndexEntry{Appendix S2 — Covariance Inversion Strategies}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+format:
+  html:
+    toc: true
+    toc-depth: 3
+execute:
+  echo: true
+  eval: false
+  warning: false
+bibliography:
+  - ../inst/packages.bib
+  - ../inst/REFERENCES.bib
+link-citations: true
+---
+
+```{r setup, eval=FALSE}
+library(DeCovarT)
+```
+
+> **Script:** `scripts/supp_S2_covariance_inversion.R` — benchmarks matrix
+> inversion strategies.  Outputs in `output/supp_S2/`.
+
+---
+
+## :one: Generative Model
+
+### Motivation
+
+The DeCovarT log-likelihood requires repeated solves of the form
+$\boldsymbol{\Sigma}_j^{-1} \boldsymbol{v}$.  Three inversion strategies
+are compared for computational efficiency and numerical stability:
+
+| Strategy | When optimal |
+|---|---|
+| **Dense Cholesky** | Small $G$ or near-dense $\boldsymbol{\Sigma}_j$ |
+| **Banded Cholesky** | $\boldsymbol{\Sigma}_j$ from a banded graph (local correlations only) |
+| **Block-diagonal** | $\boldsymbol{\Sigma}_j$ with known block structure (connected components) |
+| **Woodbury / Schur** | $\boldsymbol{\Sigma}_j = \boldsymbol{D} + \boldsymbol{U}\boldsymbol{C}\boldsymbol{U}^\top$ low-rank structure |
+
+The benchmark measures **wall-clock time** and **memory** (peak RSS) as
+functions of $G$ and network structure. The same script first verifies
+each structured backend (`block`, `band`, `sparse`, `diag_lowrank`)
+against a dense Cholesky to machine precision on a small $G$.
+
+### Factorial design
+
+| Factor | Levels |
+|---|---|
+| $G$ (genes) | 20, 50, 100, 250, 500 |
+| Network structure | dense, banded (bandwidth 3), block-diagonal (4 blocks), low-rank ($r = 5$) |
+| Backend | `dense_cholesky`, `banded_cholesky`, `block_diagonal`, `woodbury` |
+| $J$ (cell types) | 2, 3 |
+
+$N_{\text{timing}} = 50$ repeated solves per condition (median reported).
+
+```{r gen-model}
+# -----------------------------------------------------------------
+# SECTION 1: GENERATIVE MODEL
+# Build precision matrices for each (G, structure) combination
+# -----------------------------------------------------------------
+SEED <- 20260807L
+
+G_grid     <- c(20L, 50L, 100L, 250L, 500L)
+structures <- c("dense", "banded", "block_diagonal", "low_rank")
+
+build_precision <- function(G, structure, seed = SEED) {
+  set.seed(seed)
+  switch(structure,
+    dense        = build_normalised_precision(
+      generate_random_network_skeleton(G, model = "erdos_renyi", seed = seed)
+    ),
+    banded       = {
+      adj <- bandSparse(G, G, k = -3:3, symmetric = TRUE,
+                        diagonals = replicate(7, rep(1, G), simplify = FALSE))
+      diag(adj) <- 0
+      build_normalised_precision(as.matrix(adj))
+    },
+    block_diagonal = {
+      block_size <- G %/% 4L
+      adj_block  <- Matrix::bdiag(
+        replicate(4L, {
+          generate_random_network_skeleton(block_size, model = "erdos_renyi",
+                                          seed = seed)
+        }, simplify = FALSE)
+      )
+      build_normalised_precision(as.matrix(adj_block))
+    },
+    low_rank     = {
+      # D + U C U^T structure (rank 5 perturbation)
+      D_vals <- stats::runif(G, 0.5, 2)
+      U_mat  <- matrix(rnorm(G * 5L), G, 5L)
+      diag(D_vals) + tcrossprod(U_mat) * 0.1
+    }
+  )
+}
+
+precision_grids <- tidyr::expand_grid(G = G_grid, structure = structures) |>
+  dplyr::mutate(
+    Omega = purrr::map2(G, structure, build_precision)
+  )
+```
+
+---
+
+## :two: Inference
+
+### Timing benchmark
+
+```{r inference}
+# -----------------------------------------------------------------
+# SECTION 2: INFERENCE / TIMING
+# Compare solve(Omega, v) using different backends
+# -----------------------------------------------------------------
+N_TIMING <- 50L
+dir.create("output/supp_S2", recursive = TRUE, showWarnings = FALSE)
+
+benchmark_results <- precision_grids |>
+  dplyr::mutate(timing = purrr::map2(G, Omega, \(g, Om) {
+    v <- rnorm(g)
+    backends <- list(
+      dense_cholesky  = \() solve(Om, v),
+      block_diagonal  = \() {
+        chol_Om <- chol(Om)
+        backsolve(chol_Om, forwardsolve(t(chol_Om), v))
+      }
+    )
+    purrr::map_dfr(backends, \(fn) {
+      times <- replicate(N_TIMING, system.time(fn())[["elapsed"]])
+      list(mean_ms = mean(times) * 1e3, sd_ms = sd(times) * 1e3)
+    }, .id = "backend")
+  })) |>
+  tidyr::unnest(timing)
+
+saveRDS(benchmark_results, "output/supp_S2/inversion_timing.rds")
+```
+
+---
+
+## :three: Visualisations
+
+| Output | Description |
+|---|---|
+| `output/supp_S2/s2_scaling_time.pdf` | Wall-clock time vs $G$ per structure/backend |
+| `output/supp_S2/s2_speedup_ratio.pdf` | Speedup of sparse over dense Cholesky |
+
+```{r visualisations}
+# -----------------------------------------------------------------
+# SECTION 3: VISUALISATIONS
+# -----------------------------------------------------------------
+benchmark_results <- readRDS("output/supp_S2/inversion_timing.rds")
+
+p_time <- ggplot2::ggplot(
+  benchmark_results,
+  ggplot2::aes(G, mean_ms, colour = backend, linetype = structure)
+) +
+  ggplot2::geom_line() +
+  ggplot2::geom_ribbon(
+    ggplot2::aes(ymin = mean_ms - sd_ms, ymax = mean_ms + sd_ms, fill = backend),
+    alpha = 0.15
+  ) +
+  ggplot2::scale_x_log10() +
+  ggplot2::scale_y_log10() +
+  ggplot2::labs(
+    x = "Number of genes G", y = "Solve time (ms)",
+    title = "Covariance inversion: time vs G"
+  ) +
+  ggplot2::theme_minimal()
+
+ggplot2::ggsave("output/supp_S2/s2_scaling_time.pdf", p_time, width = 8, height = 5)
+```
+
+### Expected findings
+
+Dense Cholesky should dominate for $G \leq 50$ where cache effects matter
+more than sparsity.  For $G \geq 250$ with banded or block-diagonal structure,
+the corresponding sparse solvers should be $5$–$20\times$ faster.  Woodbury is
+competitive for low-rank perturbations (rank $r = 5$) at all $G$.
+
+## Out-of-scope extensions
+
+The following factors from the full simulation plan
+(`temp_rag_simualtions_scenarios/detailled_siulation_code.md` §Full factorial)
+are noted here but not yet implemented:
+
+- **Low-rank residual $r$**: planned levels 0, 2, 8, 20 — would sharpen
+  the Woodbury cross-over point.
+- **Cholesky fill ratio** vs graph density: a finer grid would reveal
+  when sparse-Cholesky reordering (AMD/COLAMD) pays off.
+- **Condition number effect on solve accuracy**: $\kappa(\boldsymbol{\Sigma}_j)
+  \in \{3, 10, 100, 1000\}$ with iterative refinement.
+
+## See also
+
+- [Appendix S3 — Scaling](supp-S3-scaling.html)
+- [How to build synthetic scenarios](how-to-build-synthetic-scenarios-mean-covariance.html)
+- Structure-aware operators:
+  [generative model](theory-decovart-generative-model.html)
+
+## References
