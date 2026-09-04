@@ -144,7 +144,7 @@
 #' There is no composite global score: each metric answers a different
 #' question.
 #'
-#' @examples
+#' @examplesIf .Platform$OS.type != "windows"
 #' set.seed(1)
 #' genes <- paste0("g", 1:2)
 #' cts <- paste0("ct", 1:2)

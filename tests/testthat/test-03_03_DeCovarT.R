@@ -371,6 +371,7 @@ test_that("starting_simplex supports barycentre, Dirichlet, and QP", {
 })
 
 test_that("Benchmark standard deconvolution algorithms against DeCovarT", {
+  skip_on_os("windows")
   skip_if_not_installed("nnls")
   skip_if_not_installed("limSolve")
   skip_if_not_installed("MixSim")

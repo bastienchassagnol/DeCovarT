@@ -43,6 +43,7 @@ outer interval is the central 95\%. These are \strong{not} confidence
 intervals for \eqn{p_j}.
 }
 \examples{
+\dontshow{if (.Platform$OS.type != "windows") withAutoprint(\{ # examplesIf}
 set.seed(1)
 genes <- paste0("g", 1:2)
 cts <- paste0("ct", 1:2)
@@ -67,6 +68,7 @@ out <- run_simulation_benchmark(
 if (requireNamespace("ggdist", quietly = TRUE)) {
   plot_mc_raincloud(out, facet_cols = "cosine")
 }
+\dontshow{\}) # examplesIf}
 }
 \references{
 \insertAllCited{}

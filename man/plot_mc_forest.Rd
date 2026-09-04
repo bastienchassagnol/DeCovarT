@@ -37,6 +37,7 @@ replicates) can be read from the raincloud of paired errors; they do
 not need a second bootstrap.
 }
 \examples{
+\dontshow{if (.Platform$OS.type != "windows") withAutoprint(\{ # examplesIf}
 set.seed(1)
 genes <- paste0("g", 1:2)
 cts <- paste0("ct", 1:2)
@@ -61,6 +62,7 @@ out <- run_simulation_benchmark(
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   plot_mc_forest(out, facet_cols = "cosine")
 }
+\dontshow{\}) # examplesIf}
 }
 \references{
 \insertAllCited{}

@@ -35,6 +35,7 @@ primary score to point size. Coverage is scored as
 coverage are not rewarded. There is no default weighted composite.
 }
 \examples{
+\dontshow{if (.Platform$OS.type != "windows") withAutoprint(\{ # examplesIf}
 set.seed(1)
 genes <- paste0("g", 1:2)
 cts <- paste0("ct", 1:2)
@@ -58,6 +59,7 @@ out <- run_simulation_benchmark(
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   plot_mc_metric_dots(out, facet_cols = "cosine")
 }
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=plot_mc_forest]{plot_mc_forest()}}, \code{\link[=plot_algorithm_similarity]{plot_algorithm_similarity()}}

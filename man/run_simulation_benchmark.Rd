@@ -67,6 +67,7 @@ summaries, etc.) should live in analysis scripts; see
 \code{scripts/fig02_bivariate_toy.R} and the paper-scenario vignettes.
 }
 \examples{
+\dontshow{if (.Platform$OS.type != "windows") withAutoprint(\{ # examplesIf}
 set.seed(1)
 genes <- paste0("g", 1:2)
 cts <- paste0("ct", 1:2)
@@ -93,6 +94,7 @@ out <- run_simulation_benchmark(
   cores = 1
 )
 nrow(out$optimisation)
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=simulate_bulk_mixture]{simulate_bulk_mixture()}}, \code{\link[=deconvolute_ratios]{deconvolute_ratios()}},

@@ -24,6 +24,7 @@ solvers can correlate near 1 while remaining systematically biased.
 Hierarchical order uses \eqn{d_{ab} = 1 - r_{ab}}.
 }
 \examples{
+\dontshow{if (.Platform$OS.type != "windows") withAutoprint(\{ # examplesIf}
 set.seed(1)
 genes <- paste0("g", 1:2)
 cts <- paste0("ct", 1:2)
@@ -45,6 +46,7 @@ out <- run_simulation_benchmark(
   cores = 1
 )
 algorithm_similarity(out)
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=plot_algorithm_similarity]{plot_algorithm_similarity()}}, \code{\link[=pivot_mc_estimates]{pivot_mc_estimates()}}

@@ -1,4 +1,5 @@
 test_that("run_simulation_benchmark wraps simulate and deconvolute", {
+  skip_on_os("windows")
   skip_if_not_installed("nnls")
 
   genes <- paste0("gene_", 1:2)

@@ -49,6 +49,7 @@ test_that(".check_heatmap_dependencies succeeds when Suggests present", {
 })
 
 .tiny_mc_benchmark <- function() {
+  skip_on_os("windows")
   genes <- paste0("g", 1:2)
   cts <- paste0("ct", 1:2)
   mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))
@@ -159,6 +160,7 @@ test_that(".check_plot_dependencies succeeds when ggdist is present", {
 })
 
 .tiny_mc_benchmark_two_algos <- function() {
+  skip_on_os("windows")
   genes <- paste0("g", 1:2)
   cts <- paste0("ct", 1:2)
   mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))

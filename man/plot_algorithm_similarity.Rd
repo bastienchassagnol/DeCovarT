@@ -31,6 +31,7 @@ default for a small correlation matrix; \code{\link[=plot_correlation_Heatmap]{p
 is reserved for linked multi-omics grids.
 }
 \examples{
+\dontshow{if (.Platform$OS.type != "windows") withAutoprint(\{ # examplesIf}
 set.seed(1)
 genes <- paste0("g", 1:2)
 cts <- paste0("ct", 1:2)
@@ -54,6 +55,7 @@ out <- run_simulation_benchmark(
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   plot_algorithm_similarity(out)
 }
+\dontshow{\}) # examplesIf}
 }
 \seealso{
 \code{\link[=algorithm_similarity]{algorithm_similarity()}}, \code{\link[=plot_mc_metric_dots]{plot_mc_metric_dots()}}

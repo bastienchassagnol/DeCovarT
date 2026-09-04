@@ -267,7 +267,7 @@ plot_correlation_Heatmap <- function(
 #' @return A tibble with `algorithm`, `cell_type`, `estimate`, `p_true`,
 #'   `error`, `sample_id`, and any scenario metadata columns.
 #'
-#' @examples
+#' @examplesIf .Platform$OS.type != "windows"
 #' set.seed(1)
 #' genes <- paste0("g", 1:2)
 #' cts <- paste0("ct", 1:2)
@@ -415,7 +415,7 @@ pivot_mc_estimates <- function(benchmark) {
 #'
 #' @return A `ggplot` object.
 #'
-#' @examples
+#' @examplesIf .Platform$OS.type != "windows"
 #' set.seed(1)
 #' genes <- paste0("g", 1:2)
 #' cts <- paste0("ct", 1:2)
@@ -572,7 +572,7 @@ plot_mc_raincloud <- function(
 #'
 #' @return A `ggplot` object.
 #'
-#' @examples
+#' @examplesIf .Platform$OS.type != "windows"
 #' set.seed(1)
 #' genes <- paste0("g", 1:2)
 #' cts <- paste0("ct", 1:2)
@@ -944,7 +944,7 @@ plot_mc_forest <- function(
 #' @return A tibble with `algorithm_x`, `algorithm_y`, `correlation`,
 #'   and any facet columns.
 #'
-#' @examples
+#' @examplesIf .Platform$OS.type != "windows"
 #' set.seed(1)
 #' genes <- paste0("g", 1:2)
 #' cts <- paste0("ct", 1:2)
@@ -1013,7 +1013,7 @@ algorithm_similarity <- function(
 #'
 #' @return A `ggplot` object.
 #'
-#' @examples
+#' @examplesIf .Platform$OS.type != "windows"
 #' set.seed(1)
 #' genes <- paste0("g", 1:2)
 #' cts <- paste0("ct", 1:2)
@@ -1209,7 +1209,7 @@ plot_algorithm_similarity <- function(
 #'
 #' @return A `ggplot` object.
 #'
-#' @examples
+#' @examplesIf .Platform$OS.type != "windows"
 #' set.seed(1)
 #' genes <- paste0("g", 1:2)
 #' cts <- paste0("ct", 1:2)

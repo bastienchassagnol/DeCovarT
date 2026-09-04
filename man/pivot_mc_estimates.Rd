@@ -22,6 +22,7 @@ this table are \strong{empirical Monte Carlo quantiles} of
 \eqn{\boldsymbol{p}} \insertCite{allenRaincloudPlotsMultiplatform2019}{DeCovarT}.
 }
 \examples{
+\dontshow{if (.Platform$OS.type != "windows") withAutoprint(\{ # examplesIf}
 set.seed(1)
 genes <- paste0("g", 1:2)
 cts <- paste0("ct", 1:2)
@@ -43,6 +44,7 @@ out <- run_simulation_benchmark(
   cores = 1
 )
 nrow(pivot_mc_estimates(out))
+\dontshow{\}) # examplesIf}
 }
 \references{
 \insertAllCited{}

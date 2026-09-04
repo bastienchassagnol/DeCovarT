@@ -184,6 +184,9 @@
 
 #' Process memory in bytes (PSS on Linux when `ps` is available)
 #'
+#' Windows `ps` objects have no `pss` field; `x[["pss"]]` on a named
+#' numeric vector then errors with subscript-out-of-bounds.
+#'
 #' @keywords internal
 #' @noRd
 .process_memory_bytes <- function() {
@@ -199,13 +202,23 @@
   if (is.null(info)) {
     return(NA_real_)
   }
-  pss <- info[["pss"]]
-  if (!is.null(pss) && is.finite(pss)) {
-    return(as.numeric(pss))
+  .one_named <- function(nm) {
+    if (!nm %in% names(info)) {
+      return(NULL)
+    }
+    val <- info[[nm]]
+    if (!is.null(val) && length(val) == 1L && is.finite(val)) {
+      return(as.numeric(val))
+    }
+    NULL
   }
-  rss <- info[["rss"]]
-  if (!is.null(rss) && is.finite(rss)) {
-    return(as.numeric(rss))
+  pss <- .one_named("pss")
+  if (!is.null(pss)) {
+    return(pss)
+  }
+  rss <- .one_named("rss")
+  if (!is.null(rss)) {
+    return(rss)
   }
   NA_real_
 }

@@ -1,3 +1,10 @@
+test_that(".process_memory_bytes is a finite NA or a single byte count", {
+  mem <- DeCovarT:::.process_memory_bytes()
+  expect_type(mem, "double")
+  expect_length(mem, 1L)
+  expect_true(is.na(mem) || is.finite(mem))
+})
+
 test_that("internal metrics match Metrics package on fixed vectors", {
   skip_if_not_installed("Metrics")
   set.seed(1L)
