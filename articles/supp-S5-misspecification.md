@@ -47,11 +47,11 @@ Real bulk RNA-seq violates this assumption in at least five ways:
 than NNLS because the covariance captures more of the signal geometry,
 but may be more sensitive than NNLS to heavy-tail contamination.
 
-Connection to HADACA3
-([**barbotPromisesLimitsMultiomics2026?**](#ref-barbotPromisesLimitsMultiomics2026)):
-the `SDC5` dataset uses a copula + NB noise model; `SDE5` uses an
-EM-based noise model. These represent the practical domain of
-mis-specification most relevant to pancreatic tumour deconvolution.
+Connection to HADACA3 ([Barbot and Richard
+2026](#ref-barbotPromisesLimitsMultimodal2026)): the `SDC5` dataset uses
+a copula + NB noise model; `SDE5` uses an EM-based noise model. These
+represent the practical domain of mis-specification most relevant to
+pancreatic tumour deconvolution.
 
 ### S5b — Missing reference component
 
@@ -75,8 +75,8 @@ the proportions estimation.
 | Marginal             | NB (r = 5, \mu = \bar{\mu}\_g)               |
 | Correlation strength | \tau_K \in \\0, 0.2, 0.5\\                   |
 
-This directly mirrors the `SDC5` HADACA3 scenario
-([**barbotPromisesLimitsMultiomics2026?**](#ref-barbotPromisesLimitsMultiomics2026)).
+This directly mirrors the `SDC5` HADACA3 scenario ([Barbot and Richard
+2026](#ref-barbotPromisesLimitsMultimodal2026)).
 
 ------------------------------------------------------------------------
 
@@ -86,8 +86,8 @@ This directly mirrors the `SDC5` HADACA3 scenario
     [`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md)**:
     the current package implementation generates bulk expression as a
     Gaussian mixture. NB/PLN data generation would require a dedicated
-    simulator (e.g. integration with `splatter`
-    ([**zappia2017?**](#ref-zappia2017)) or `SymSim`).
+    simulator (e.g. integration with `splatter` ([Zappia et al.
+    2017](#ref-zappiaSplatterSimulationSinglecell2017a)) or `SymSim`).
 
 2.  **Copula sampling**: copula-correlated NB samples require either a
     dedicated `VineCopula`-based generator or the HADACA3 framework code
@@ -128,3 +128,11 @@ scope:
   scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/how-to-build-synthetic-scenarios-mean-covariance.md)
 
 ## References
+
+Barbot, Hugo, and Magali Richard. 2026. ‘On the Promises and Limits of
+Multimodal Integration for Deconvolution: The HADACA3 Benchmark’.
+*NeurIPS*.
+
+Zappia, Luke, Belinda Phipson, and Alicia Oshlack. 2017. ‘Splatter:
+Simulation of Single-Cell RNA Sequencing Data’. *Genome Biology* 18:
+174. <https://doi.org/10.1186/s13059-017-1305-0>.

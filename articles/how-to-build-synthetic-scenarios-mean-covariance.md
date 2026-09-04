@@ -906,6 +906,51 @@ Wilson is the default interval around the *estimated coverage rate*
 available through `coverage_interval`. Bias-eliminated coverage
 (covering \bar{\hat\theta} rather than \theta) is not implemented;
 report ordinary coverage and bias side by side instead.
+[Note 9](#nte-binomial-coverage-ci) summarises exact, asymptotic, and
+optimisation-based constructions for that binomial rate.
+
+> **Note 9: Intervals for a binomial coverage rate**
+>
+> The Monte Carlo coverage rate \hat\pi=X/N is a binomial proportion on
+> the unit interval. Interval construction for that rate is not a
+> confidence interval for the cell-type vector \boldsymbol{p}. Three
+> strategies are in common use ([Agresti and Coull
+> 1998](#ref-agrestiApproximateBetterExact1998); [Konietschke and
+> Brunner 2026](#ref-konietschkeExactAsymptoticOptimizationbased2026)).
+>
+> - **Asymptotic (Wald, Wilson, Agresti–Coull).** The Wald interval is
+>   \hat\pi\pm z\sqrt{\hat\pi(1-\hat\pi)/N}. Near 0 or 1 the estimated
+>   standard error collapses and the interval can leave \[0,1\] (the
+>   classic edge-case failure). Wald is a poor default for coverage
+>   rates. The Wilson score interval ([Wilson
+>   1927](#ref-wilsonProbableInferenceLaw1927)) is the package default:
+>   it is widely used, remains inside (0,1) for interior \hat\pi, and is
+>   more stable near the boundary. Agresti–Coull is the optional
+>   adjusted-Wald form already exposed by `coverage_interval`.
+> - **Exact (test inversion).** Clopper–Pearson-type intervals invert
+>   binomial tail probabilities and guarantee a minimum coverage of at
+>   least 1-\alpha, at the cost of systematic conservatism.
+>   Length–coverage optimal (LCO) methods change the acceptance region
+>   itself so that minimum coverage is guaranteed while average length
+>   is reduced; they remain conservative by construction.
+> - **Optimisation-based calibration.** Because the binomial sampling
+>   distribution is discrete, no interval attains exact nominal coverage
+>   uniformly in \pi\in(0,1). Numerical level adjustment treats the
+>   critical value or tail probability as a scalar \gamma and retunes a
+>   *fixed* analytical form. Konietschke and Brunner
+>   ([2026](#ref-konietschkeExactAsymptoticOptimizationbased2026))
+>   minimise a risk functional of the exact coverage curve (for example
+>   mean squared deviation from 1-\alpha, or absolute deviation of
+>   average coverage) for Wilson, Agresti–Coull, logit, or
+>   Clopper–Pearson formulae without rewriting those formulae. The
+>   method is aimed at **small** N.
+>
+> DeCovarT does not implement tuned or LCO intervals. Independent Monte
+> Carlo replicates N can be increased arbitrarily, so the small-sample
+> discreteness problem that motivates optimisation-based tuning is not
+> the operating regime. Report ordinary Wilson (or Agresti–Coull)
+> intervals on \hat\pi, together with `mcse_coverage` and bias, rather
+> than a small-sample recalibration of \gamma.
 
 [`plot_mc_raincloud()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_raincloud.md)
 shows the sampling distribution of \hat p_j-p_j^{\star}; inner / outer
@@ -1036,6 +1081,11 @@ Holland, Paul W., Kathryn Blackmond Laskey, and Samuel Leinhardt. 1983.
 
 Jiang, Haoming, Xinyu Fei, Han Liu, et al. 2026. *Huge: High-Dimensional
 Undirected Graph Estimation*. <https://github.com/Gatech-Flash/huge>.
+
+Konietschke, Frank, and Edgar Brunner. 2026. ‘Beyond Exact and
+Asymptotic: Optimization-Based Tuning of Confidence Intervals for
+Proportions’. *Statistical Papers* 67 (5): 115.
+<https://doi.org/10.1007/s00362-026-01892-1>.
 
 Lima-Mendez, Gipsi, and Jacques van Helden. 2009. ‘The Powerful Law of
 the Power Law and Other Myths in Network Biology1’. *Molecular

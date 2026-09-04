@@ -167,7 +167,7 @@
 </tbody>
 </table>
 <p><strong>Hypothesis:</strong> DeCovarT should retain lower bias under log-normal noise than NNLS because the covariance captures more of the signal geometry, but may be more sensitive than NNLS to heavy-tail contamination.</p>
-<p>Connection to HADACA3 <span class="citation" data-cites="barbotPromisesLimitsMultiomics2026">(<a href="#ref-barbotPromisesLimitsMultiomics2026" role="doc-biblioref"><strong>barbotPromisesLimitsMultiomics2026?</strong></a>)</span>: the <code>SDC5</code> dataset uses a copula + NB noise model; <code>SDE5</code> uses an EM-based noise model. These represent the practical domain of mis-specification most relevant to pancreatic tumour deconvolution.</p>
+<p>Connection to HADACA3 <span class="citation" data-cites="barbotPromisesLimitsMultimodal2026">(<a href="#ref-barbotPromisesLimitsMultimodal2026" role="doc-biblioref">Barbot and Richard 2026</a>)</span>: the <code>SDC5</code> dataset uses a copula + NB noise model; <code>SDE5</code> uses an EM-based noise model. These represent the practical domain of mis-specification most relevant to pancreatic tumour deconvolution.</p>
 </section><section class="level3"><h3 id="s5b-missing-reference-component">S5b — Missing reference component<a class="anchor" aria-label="anchor" href="#s5b-missing-reference-component"></a>
 </h3>
 <table class="table caption-top">
@@ -213,11 +213,11 @@
 </tr>
 </tbody>
 </table>
-<p>This directly mirrors the <code>SDC5</code> HADACA3 scenario <span class="citation" data-cites="barbotPromisesLimitsMultiomics2026">(<a href="#ref-barbotPromisesLimitsMultiomics2026" role="doc-biblioref"><strong>barbotPromisesLimitsMultiomics2026?</strong></a>)</span>.</p>
+<p>This directly mirrors the <code>SDC5</code> HADACA3 scenario <span class="citation" data-cites="barbotPromisesLimitsMultimodal2026">(<a href="#ref-barbotPromisesLimitsMultimodal2026" role="doc-biblioref">Barbot and Richard 2026</a>)</span>.</p>
 <hr></section></section><section class="level2"><h2 id="blocking-issues-why-not-implemented-yet">Blocking issues (why not implemented yet)<a class="anchor" aria-label="anchor" href="#blocking-issues-why-not-implemented-yet"></a>
 </h2>
 <ol type="1">
-<li><p><strong>Gaussian-only <code><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code></strong>: the current package implementation generates bulk expression as a Gaussian mixture. NB/PLN data generation would require a dedicated simulator (e.g. integration with <code>splatter</code> <span class="citation" data-cites="zappia2017">(<a href="#ref-zappia2017" role="doc-biblioref"><strong>zappia2017?</strong></a>)</span> or <code>SymSim</code>).</p></li>
+<li><p><strong>Gaussian-only <code><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code></strong>: the current package implementation generates bulk expression as a Gaussian mixture. NB/PLN data generation would require a dedicated simulator (e.g. integration with <code>splatter</code> <span class="citation" data-cites="zappiaSplatterSimulationSinglecell2017a">(<a href="#ref-zappiaSplatterSimulationSinglecell2017a" role="doc-biblioref">Zappia et al. 2017</a>)</span> or <code>SymSim</code>).</p></li>
 <li><p><strong>Copula sampling</strong>: copula-correlated NB samples require either a dedicated <code>VineCopula</code>-based generator or the HADACA3 framework code (currently not a DeCovarT dependency).</p></li>
 <li><p><strong>No count-data likelihood</strong>: DeCovarT fits a Gaussian log-likelihood. Comparing it under NB data requires either a properly mis-specified analysis (fit Gaussian to count data) or a new NB likelihood branch.</p></li>
 </ol>
@@ -265,8 +265,16 @@
 <li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/supp-S1-identifiability.html">Appendix S1 — Identifiability</a></li>
 <li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/supp-S4-covariance-modeling.html">Appendix S4 — Covariance Modelling</a></li>
 <li><a href="how-to-build-synthetic-scenarios-mean-covariance.html">How to build synthetic scenarios</a></li>
-</ul></section><section class="level2"><h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</ul></section><section class="level2 unnumbered"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-barbotPromisesLimitsMultimodal2026" class="csl-entry" role="listitem">
+Barbot, Hugo, and Magali Richard. 2026. <span>‘On the <span>Promises</span> and <span>Limits</span> of <span>Multimodal Integration</span> for <span>Deconvolution</span>: <span>The HADACA3 Benchmark</span>’</span>. <em>NeurIPS</em>.
+</div>
+<div id="ref-zappiaSplatterSimulationSinglecell2017a" class="csl-entry" role="listitem">
+Zappia, Luke, Belinda Phipson, and Alicia Oshlack. 2017. <span>‘Splatter: Simulation of Single-Cell <span>RNA</span> Sequencing Data’</span>. <em>Genome Biology</em> 18: 174. <a href="https://doi.org/10.1186/s13059-017-1305-0" class="external-link">https://doi.org/10.1186/s13059-017-1305-0</a>.
+</div>
+</div>
 </section><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
