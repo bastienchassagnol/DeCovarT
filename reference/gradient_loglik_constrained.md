@@ -1,21 +1,23 @@
 # Constrained gradient via the chain rule
 
-Returns \$\$ \nabla\_{\boldsymbol{\rho}}\ell =
-\bigl(\nabla\_{\boldsymbol{p}}\ell\bigr)^{\mathsf{T}}
-\mathbf{J}\_{\boldsymbol{\psi}}(\boldsymbol{\rho}), \$\$ i.e.
-first-order chain rule for \\\ell\circ\boldsymbol{\psi}\\.
+Returns \$\$ \nabla\_{\boldsymbol{z}}\ell =
+\mathbf{J}\_{\boldsymbol{\psi}}^{\mathsf{T}}
+\nabla\_{\boldsymbol{p}}\ell = \mathbf{V}^{\mathsf{T}}
+\mathbf{S}(\boldsymbol{p}) \nabla\_{\boldsymbol{p}}\ell, \$\$ i.e. the
+first-order chain rule for \\\ell\circ\boldsymbol{\psi}\\ in ILR
+coordinates.
 
 ## Usage
 
 ``` r
-gradient_loglik_constrained(rho, y, mean_signature_matrix, Sigma)
+gradient_loglik_constrained(z, y, mean_signature_matrix, Sigma, V = NULL)
 ```
 
 ## Arguments
 
-- rho:
+- z:
 
-  Numeric vector \\\boldsymbol{\rho}\in\mathbb{R}^{J-1}\\.
+  Numeric vector \\\boldsymbol{z}\in\mathbb{R}^{J-1}\\.
 
 - y:
 
@@ -32,6 +34,11 @@ gradient_loglik_constrained(rho, y, mean_signature_matrix, Sigma)
   Array of cell-type covariances in \\\mathcal{M}\_{G\times G\times
   J}\\.
 
+- V:
+
+  Optional ILR basis; see
+  [`isometric_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/isometric_logistic.md).
+
 ## Value
 
 Numeric vector in \\\mathbb{R}^{J-1}\\.
@@ -43,7 +50,6 @@ mu <- matrix(c(20, 22, 22, 20), 2)
 Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
 p <- c(0.6, 0.4)
 y <- drop(mu %*% p)
-gradient_loglik_constrained(additive_log_ratio(p), y, mu, Sigma)
-#>            [,1]
-#> [1,] -0.1846154
+gradient_loglik_constrained(isometric_log_ratio(p), y, mu, Sigma)
+#> [1] -0.2610856
 ```

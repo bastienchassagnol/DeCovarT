@@ -3,7 +3,8 @@
 Draws undirected skeletons with igraph: Erdős–Rényi (`erdos_renyi`), hub
 / star modules (`hub`), Barabási–Albert preferential attachment
 (`scale_free`), a stochastic block model (`stochastic_block_model`), or
-Watts–Strogatz small-world (`small_world`) (Barabási and Albert 1999) .
+Watts–Strogatz small-world (`small_world`) (Barabási and Albert 1999;
+Holland et al. 1983; Watts and Strogatz 1998) .
 
 ## Usage
 

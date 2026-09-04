@@ -90,7 +90,7 @@ colnames(mu) <- paste0("ct", 1:2)
 Sigma <- array(c(diag(3), diag(3)), dim = c(3, 3, 2))
 y <- drop(mu %*% c(0.6, 0.4))
 confint_profile_decovart(y, mu, Sigma)
-#>      estimate     lower     upper
-#> ct1 0.5993379 0.5530429 0.6473202
-#> ct2 0.4006621 0.3526798 0.4469571
+#>     estimate     lower     upper
+#> ct1 0.599338 0.5530429 0.6473202
+#> ct2 0.400662 0.3526798 0.4469571
 ```

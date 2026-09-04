@@ -7,9 +7,9 @@ cell types \\j=1,\ldots,J\\, samples \\i=1,\ldots,N\\; bulk
 \\\boldsymbol{y}\\, mean signature \\\boldsymbol{\mu}\\, proportions
 \\\boldsymbol{p}\\, covariances / precisions
 \\\boldsymbol{\Sigma}\_j\\/\\\boldsymbol{\Theta}\_j\\. Proportions live
-on the open simplex and are optimised in unconstrained ALR coordinates
-\\\boldsymbol{\rho}\in\mathbb{R}^{J-1}\\
-([`vignette("generative-model-derivatives", package = "DeCovarT")`](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.md)).
+on the open simplex and are optimised in unconstrained ILR coordinates
+\\\boldsymbol{z}\in\mathbb{R}^{J-1}\\
+([`vignette("theory-decovart-generative-model", package = "DeCovarT")`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.md)).
 
 The frequentist API plugs in \\\boldsymbol{\mu}\\ for unobserved latent
 profiles \\\boldsymbol{x}\_{\cdot j}\\; MAP recovery of those latents is
@@ -36,8 +36,3 @@ Useful links:
 
 **Maintainer**: Bastien Chassagnol <bastien_chassagnol@laposte.net>
 ([ORCID](https://orcid.org/0000-0002-8955-2391)) \[copyright holder\]
-
-Authors:
-
-- Bastien Chassagnol <bastien_chassagnol@laposte.net>
-  ([ORCID](https://orcid.org/0000-0002-8955-2391)) \[copyright holder\]

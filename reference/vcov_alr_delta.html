@@ -19,11 +19,9 @@ Under a regular large-sample regime the MLE in ALR coordinates is
 asymptotically normal,
 \(\hat{\boldsymbol{\rho}}
 \overset{a}{\sim}
-\mathcal{N}(\boldsymbol{\rho}_{0}, I_{\boldsymbol{\rho}}^{-1})\)
-(Cramer–Rao / asymptotic normality of MLEs; law of large numbers
-for the score). The first-order delta method then yields the
-simplex covariance used by vcov.decovart_fit() and the Wald
-standard errors in confint.decovart_fit():
+\mathcal{N}(\boldsymbol{\rho}_{0}, I_{\boldsymbol{\rho}}^{-1})\).
+The first-order delta method then yields the same simplex covariance
+as vcov_ilr_delta() when both charts are transformed correctly:
 $$
   \mathrm{Var}(\hat{\boldsymbol{p}})
   \approx
@@ -31,12 +29,10 @@ $$
   I_{\boldsymbol{\rho}}^{-1}
   \mathbf{J}_{\boldsymbol{\psi}}^{\top}.
 $$
-Diagonal square roots of this matrix are the asymptotic standard
-errors; Wald intervals at level \(1-\alpha\) are
-\(\hat{p}_j \pm z_{1-\alpha/2}\,\mathrm{SE}_j\) with
-\(z_{q}=\Phi^{-1}(q)\). The construction is undefined on the
-simplex boundary (ALR chart blows up); the function then returns
-NA with a warning. See also
+This helper is kept for reference-invariance checks; vcov.decovart_fit()
+uses vcov_ilr_delta(). The construction is undefined on the simplex
+boundary (the ALR chart blows up); the function then returns NA with
+a warning. See also
 https://en.wikipedia.org/wiki/Delta_method and
 https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution."><meta property="og:description" content="Maps the expected Fisher information of unconstrained proportions
 through the additive log-ratio (ALR) chart and back to the simplex
@@ -58,11 +54,9 @@ Under a regular large-sample regime the MLE in ALR coordinates is
 asymptotically normal,
 \(\hat{\boldsymbol{\rho}}
 \overset{a}{\sim}
-\mathcal{N}(\boldsymbol{\rho}_{0}, I_{\boldsymbol{\rho}}^{-1})\)
-(Cramer–Rao / asymptotic normality of MLEs; law of large numbers
-for the score). The first-order delta method then yields the
-simplex covariance used by vcov.decovart_fit() and the Wald
-standard errors in confint.decovart_fit():
+\mathcal{N}(\boldsymbol{\rho}_{0}, I_{\boldsymbol{\rho}}^{-1})\).
+The first-order delta method then yields the same simplex covariance
+as vcov_ilr_delta() when both charts are transformed correctly:
 $$
   \mathrm{Var}(\hat{\boldsymbol{p}})
   \approx
@@ -70,12 +64,10 @@ $$
   I_{\boldsymbol{\rho}}^{-1}
   \mathbf{J}_{\boldsymbol{\psi}}^{\top}.
 $$
-Diagonal square roots of this matrix are the asymptotic standard
-errors; Wald intervals at level \(1-\alpha\) are
-\(\hat{p}_j \pm z_{1-\alpha/2}\,\mathrm{SE}_j\) with
-\(z_{q}=\Phi^{-1}(q)\). The construction is undefined on the
-simplex boundary (ALR chart blows up); the function then returns
-NA with a warning. See also
+This helper is kept for reference-invariance checks; vcov.decovart_fit()
+uses vcov_ilr_delta(). The construction is undefined on the simplex
+boundary (the ALR chart blows up); the function then returns NA with
+a warning. See also
 https://en.wikipedia.org/wiki/Delta_method and
 https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution."><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -98,23 +90,30 @@ https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distributio
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-vignettes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true"><span class="fa fa-book-open"></span> Vignettes</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-vignettes"><li><h6 class="dropdown-header" data-toc-skip>External resources</h6></li>
-    <li><a class="dropdown-item" href="../articles/decovart-external-resources.html"><span class="fa fa-book-open"></span> Manuscript, preprint &amp; seminar slides</a></li>
+    <li><a class="dropdown-item" href="../articles/decovart-paper-slides.html"><span class="fa fa-book-open"></span> Manuscript, preprint &amp; seminar slides</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Prepare inputs</h6></li>
-    <li><a class="dropdown-item" href="../articles/network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
-    <li><a class="dropdown-item" href="../articles/feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Mathematical and Programmatic introduction to DeCovarT</a></li>
-    <li><a class="dropdown-item" href="../articles/synthetic-scenarios.html"><span class="fa fa-flask"></span> How to simulate interesting synthetic scenarios with dependency structures</a></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT-manuscript-scenarios.html"><span class="fa fa-chart-pie"></span> Manuscript synthetic simulation scenarios</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
+    <li><a class="dropdown-item" href="../articles/how-to-build-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>DeCovarT Mathematical appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
-    <li><a class="dropdown-item" href="../articles/Beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
-    <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
+    <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig03-variance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Variance-driven hybrid (J = 3, G = 50)</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>DeCovarT extra-simulation appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT_appendix_simualtion_frameworks.html"><span class="fa fa-vial"></span> Edge cases: quasi-collinearity, multi-modal, active zero proportions and perturbations</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-related-models-beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Supplementary simulation appendix</h6></li>
+    <li><a class="dropdown-item" href="../articles/supp-S1-identifiability.html"><span class="fa fa-vial"></span> App. S1 · Regular-case MLE and identifiability</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S2-covariance-inversion.html"><span class="fa fa-calculator"></span> App. S2 · Covariance inversion strategies</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S3-scaling.html"><span class="fa fa-gauge-high"></span> App. S3 · Solver scalability</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S4-covariance-modeling.html"><span class="fa fa-layer-group"></span> App. S4 · Covariance modelling assumptions</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S5-misspecification.html"><span class="fa fa-triangle-exclamation"></span> App. S5 · Model mis-specification (outlook)</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html"><span class="fa fa-newspaper"></span> News</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -159,11 +158,9 @@ Under a regular large-sample regime the MLE in ALR coordinates is
 asymptotically normal,
 \(\hat{\boldsymbol{\rho}}
 \overset{a}{\sim}
-\mathcal{N}(\boldsymbol{\rho}_{0}, I_{\boldsymbol{\rho}}^{-1})\)
-(Cramer–Rao / asymptotic normality of MLEs; law of large numbers
-for the score). The first-order delta method then yields the
-simplex covariance used by <code><a href="fit_decovart.html">vcov.decovart_fit()</a></code> and the Wald
-standard errors in <code><a href="fit_decovart.html">confint.decovart_fit()</a></code>:
+\mathcal{N}(\boldsymbol{\rho}_{0}, I_{\boldsymbol{\rho}}^{-1})\).
+The first-order delta method then yields the same simplex covariance
+as <code><a href="vcov_ilr_delta.html">vcov_ilr_delta()</a></code> when both charts are transformed correctly:
 $$
   \mathrm{Var}(\hat{\boldsymbol{p}})
   \approx
@@ -171,12 +168,10 @@ $$
   I_{\boldsymbol{\rho}}^{-1}
   \mathbf{J}_{\boldsymbol{\psi}}^{\top}.
 $$
-Diagonal square roots of this matrix are the asymptotic standard
-errors; Wald intervals at level \(1-\alpha\) are
-\(\hat{p}_j \pm z_{1-\alpha/2}\,\mathrm{SE}_j\) with
-\(z_{q}=\Phi^{-1}(q)\). The construction is undefined on the
-simplex boundary (ALR chart blows up); the function then returns
-<code>NA</code> with a warning. See also
+This helper is kept for reference-invariance checks; <code><a href="fit_decovart.html">vcov.decovart_fit()</a></code>
+uses <code><a href="vcov_ilr_delta.html">vcov_ilr_delta()</a></code>. The construction is undefined on the simplex
+boundary (the ALR chart blows up); the function then returns <code>NA</code> with
+a warning. See also
 <a href="https://en.wikipedia.org/wiki/Delta_method" class="external-link">https://en.wikipedia.org/wiki/Delta_method</a> and
 <a href="https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution" class="external-link">https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution</a>.</p>
     </div>
@@ -211,8 +206,7 @@ undefined / singular.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="expected_fisher_unconstrained.html">expected_fisher_unconstrained()</a></code>, <code><a href="fit_decovart.html">vcov.decovart_fit()</a></code>,
-<code><a href="fit_decovart.html">confint.decovart_fit()</a></code>, <code><a href="jacobian_additive_logistic.html">jacobian_additive_logistic()</a></code></p></div>
+    <div class="dont-index"><p><code><a href="vcov_ilr_delta.html">vcov_ilr_delta()</a></code>, <code><a href="jacobian_additive_logistic.html">jacobian_additive_logistic()</a></code></p></div>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

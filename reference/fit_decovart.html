@@ -68,23 +68,30 @@ residual sum of squares."><meta property="og:image" content="https://bastienchas
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-vignettes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true"><span class="fa fa-book-open"></span> Vignettes</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-vignettes"><li><h6 class="dropdown-header" data-toc-skip>External resources</h6></li>
-    <li><a class="dropdown-item" href="../articles/decovart-external-resources.html"><span class="fa fa-book-open"></span> Manuscript, preprint &amp; seminar slides</a></li>
+    <li><a class="dropdown-item" href="../articles/decovart-paper-slides.html"><span class="fa fa-book-open"></span> Manuscript, preprint &amp; seminar slides</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Prepare inputs</h6></li>
-    <li><a class="dropdown-item" href="../articles/network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
-    <li><a class="dropdown-item" href="../articles/feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Mathematical and Programmatic introduction to DeCovarT</a></li>
-    <li><a class="dropdown-item" href="../articles/synthetic-scenarios.html"><span class="fa fa-flask"></span> How to simulate interesting synthetic scenarios with dependency structures</a></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT-manuscript-scenarios.html"><span class="fa fa-chart-pie"></span> Manuscript synthetic simulation scenarios</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
+    <li><a class="dropdown-item" href="../articles/how-to-build-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>DeCovarT Mathematical appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
-    <li><a class="dropdown-item" href="../articles/Beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
-    <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
+    <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig03-variance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Variance-driven hybrid (J = 3, G = 50)</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>DeCovarT extra-simulation appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT_appendix_simualtion_frameworks.html"><span class="fa fa-vial"></span> Edge cases: quasi-collinearity, multi-modal, active zero proportions and perturbations</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-related-models-beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Supplementary simulation appendix</h6></li>
+    <li><a class="dropdown-item" href="../articles/supp-S1-identifiability.html"><span class="fa fa-vial"></span> App. S1 · Regular-case MLE and identifiability</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S2-covariance-inversion.html"><span class="fa fa-calculator"></span> App. S2 · Covariance inversion strategies</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S3-scaling.html"><span class="fa fa-gauge-high"></span> App. S3 · Solver scalability</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S4-covariance-modeling.html"><span class="fa fa-layer-group"></span> App. S4 · Covariance modelling assumptions</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S5-misspecification.html"><span class="fa fa-triangle-exclamation"></span> App. S5 · Model mis-specification (outlook)</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html"><span class="fa fa-newspaper"></span> News</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -213,7 +220,7 @@ cell-type covariances.</p></dd>
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
 <dd><p>Optimiser; one of <code>"Marquardt-Levenberg"</code>,
 <code>"L-BFGS-B"</code>, <code>"Newton-Raphson"</code> (case-insensitive). These three
-maps already land on the simplex (ALR or \(p/\sum p\)); they do
+maps already land on the simplex (ILR or \(p/\sum p\)); they do
 <strong>not</strong> call <code><a href="repair_simplex.html">repair_simplex()</a></code>.</p></dd>
 
 
@@ -267,9 +274,9 @@ contract with the generic.</p></dd>
 <dt id="arg-level">level<a class="anchor" aria-label="anchor" href="#arg-level"></a></dt>
 <dd><p>Confidence level \(1-\alpha\) (default <code>0.95</code>). Wald
 intervals use asymptotic normality of the MLE with standard errors
-from <code><a href="vcov_alr_delta.html">vcov_alr_delta()</a></code> /
+from <code><a href="vcov_ilr_delta.html">vcov_ilr_delta()</a></code> /
 <code><a href="expected_fisher_unconstrained.html">expected_fisher_unconstrained()</a></code> (see Details of <code>fit_decovart()</code>
-and of <code><a href="vcov_alr_delta.html">vcov_alr_delta()</a></code>):
+and of <code><a href="vcov_ilr_delta.html">vcov_ilr_delta()</a></code>):
 \(\hat{p}_j \pm z_{1-\alpha/2}\,\mathrm{SE}_j\).</p></dd>
 
 </dl></div>
@@ -309,21 +316,21 @@ $$
   \bigr).
 $$
 Cramer–Rao gives
-\(\mathrm{Var}(\hat{\boldsymbol{\rho}})\succeq I_{\boldsymbol{\rho}}^{-1}\)
-in ALR coordinates, with
-\(I_{\boldsymbol{\rho}}
+\(\mathrm{Var}(\hat{\boldsymbol{z}})\succeq I_{\boldsymbol{z}}^{-1}\)
+in ILR coordinates, with
+\(I_{\boldsymbol{z}}
 =\mathbf{J}_{\boldsymbol{\psi}}^{\top} I(\boldsymbol{p})
 \mathbf{J}_{\boldsymbol{\psi}}\) and
 \(\mathbf{J}_{\boldsymbol{\psi}}
-=\partial\boldsymbol{\psi}/\partial\boldsymbol{\rho}^{\top}\)
-(<code><a href="jacobian_additive_logistic.html">jacobian_additive_logistic()</a></code>). The delta method maps the bound
+=\mathbf{S}(\boldsymbol{p})\mathbf{V}\)
+(<code><a href="jacobian_isometric_logistic.html">jacobian_isometric_logistic()</a></code>). The delta method maps the bound
 back to the simplex:
 $$
   \mathrm{Var}(\hat{\boldsymbol{p}})
   =
   \mathbf{J}_{\boldsymbol{\psi}}
-  I_{\boldsymbol{\rho}}^{-1}
-  \mathbf{J}_{\boldsymbol{\psi}}^{\top}.
+  I_{\boldsymbol{z}}^{-1}
+  \mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}.
 $$</p>
     </div>
     <div class="section level2">
@@ -338,7 +345,7 @@ $$</p>
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="deconvolute_ratios.html">deconvolute_ratios()</a></code>,
 <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_Marquardt_Levenberg()</a></code>,
-<code><a href="expected_fisher_unconstrained.html">expected_fisher_unconstrained()</a></code>, <code><a href="vcov_alr_delta.html">vcov_alr_delta()</a></code>,
+<code><a href="expected_fisher_unconstrained.html">expected_fisher_unconstrained()</a></code>, <code><a href="vcov_ilr_delta.html">vcov_ilr_delta()</a></code>,
 <code>coef.decovart_fit()</code>, <code>vcov.decovart_fit()</code>,
 <code>confint.decovart_fit()</code></p></div>
     </div>

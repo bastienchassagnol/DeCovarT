@@ -8,9 +8,10 @@ simplex and not a statistical-identifiability constraint.
 
 When `open = TRUE`, entries on the closed-simplex boundary are nudged
 into the relative interior so that
-[`additive_log_ratio()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
-is defined (ALR / Marquardt / Newton starts). That open-simplex path is
-the former role of `.starting_simplex()`.
+[`isometric_log_ratio()`](https://bastienchassagnol.github.io/DeCovarT/reference/isometric_logistic.md)
+is defined (ILR / Marquardt / Newton starts). That open-simplex path is
+the former role of
+[`starting_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/starting_simplex.md).
 
 ## Usage
 

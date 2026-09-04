@@ -4,13 +4,14 @@ Maximises the DeCovarT log-likelihood over the simplex while holding a
 subset of coordinates at prescribed values. Writing \\A\\ for the
 constrained index set and \\s=\sum\_{j\in A}c_j\\, the free block is
 reparametrised as \$\$ \boldsymbol{p}\_{A^{c}} =
-(1-s)\\\boldsymbol{\psi}(\boldsymbol{\rho}), \qquad
-\boldsymbol{\rho}\in\mathbb{R}^{\|A^{c}\|-1}, \$\$ with
-\\\boldsymbol{\psi}\\ the additive logistic map
-([`additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)).
-The constrained coordinates are *substituted* rather than pushed through
-a logarithm, so a null such as \\p_j=0\\ is representable exactly: this
-is what makes boundary likelihood-ratio tests computable (see
+(1-s)\\\boldsymbol{\psi}(\boldsymbol{z}), \qquad
+\boldsymbol{z}\in\mathbb{R}^{\|A^{c}\|-1}, \$\$ with
+\\\boldsymbol{\psi}\\ the isometric logistic map
+([`isometric_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/isometric_logistic.md))
+on a Helmert basis of the free face. The constrained coordinates are
+*substituted* rather than pushed through a logarithm, so a null such as
+\\p_j=0\\ is representable exactly: this is what makes boundary
+likelihood-ratio tests computable (see
 [`lrt_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_decovart.md)).
 
 ## Usage
@@ -67,7 +68,8 @@ one coordinate remains strictly positive. Optimisation uses
 [`stats::optim()`](https://rdrr.io/r/stats/optim.html) (`"BFGS"`) with
 the analytic score obtained by chaining
 [`gradient_loglik_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/gradient_loglik_unconstrained.md)
-through \\(1-s)\mathbf{J}\_{\boldsymbol{\psi}}\\.
+through \\(1-s)\mathbf{J}\_{\boldsymbol{\psi}}\\ on the free-face ILR
+chart.
 
 ## See also
 

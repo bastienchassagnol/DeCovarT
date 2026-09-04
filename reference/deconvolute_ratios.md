@@ -2,8 +2,10 @@
 
 For each column \\\boldsymbol{y}\_{\cdot i}\\ of the bulk matrix
 \\\boldsymbol{Y}\in\mathcal{M}\_{G\times N}\\, estimates
-\\\hat{\boldsymbol{p}}\_{\cdot i}\\ with every supplied algorithm. When
-covariance information is provided, DeCovarT methods maximise
+\\\hat{\boldsymbol{p}}\_{\cdot i}\\ with every supplied algorithm.
+Samples are iterated with `furrr` when `cores > 1`; algorithms are
+sequential, so workers are never nested. When covariance information is
+provided, DeCovarT methods maximise
 \\\ell\_{\boldsymbol{y}\\\|\\\boldsymbol{\zeta}}(\boldsymbol{p})\\ under
 \\\boldsymbol{y}\\\|\\(\boldsymbol{\zeta},\boldsymbol{p})\sim
 \mathcal{N}\_{G}( \boldsymbol{\mu}\boldsymbol{p},
@@ -20,8 +22,8 @@ deconvolute_ratios(
   deconvolution_functions = NULL,
   standardise = FALSE,
   scaled = FALSE,
-  cores = ifelse(.Platform$OS.type == "unix", getOption("mc.cores",
-    parallel::detectCores()), 1)
+  cores = getOption("mc.cores", 1L),
+  coverage_interval = "wilson"
 )
 ```
 
@@ -66,14 +68,28 @@ deconvolute_ratios(
 
 - cores:
 
-  Number of parallel workers.
+  Number of `furrr` workers for the **sample** loop. Defaults to
+  `getOption("mc.cores", 1L)`. Use `cores = 1` to stay sequential (CRAN
+  examples and nested callers). With `cores > 1`, `.map_samples()` uses
+  `furrr_options(seed = TRUE)`, which assigns an independent
+  L'Ecuyer-CMRG stream per worker (R 4.1 / `future` streams). Do not
+  offset a shared seed by the sample index.
+
+- coverage_interval:
+
+  Passed to
+  [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)
+  (`"wilson"`, `"wald"`, or `"agresti_coull"`).
 
 ## Value
 
-A `tibble` of estimated \\\hat{\boldsymbol{p}}\\ and metrics.
-First-generation solvers still call
+A named list from
+[`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)
+with `regression` (global and cell-type subtables), `monte_carlo`, and
+`optimisation` (per-sample elapsed time, memory, KKT residual, and
+\\\hat{\boldsymbol{p}}\\). First-generation solvers still call
 [`repair_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/repair_simplex.md);
-the three native DeCovarT maps (ALR or \\p/\sum p\\) already lie on the
+the three native DeCovarT maps (ILR or \\p/\sum p\\) already lie on the
 simplex.
 
 ## References
@@ -138,12 +154,40 @@ deconvolute_ratios(
   ),
   cores = 1
 )
+#> $regression
+#> $regression$global
+#> # A tibble: 2 × 9
+#>   sample_id algorithm     tv   rmse angular  sdid  maxae reconstitution_mae
+#>   <chr>     <chr>      <dbl>  <dbl>   <dbl> <dbl>  <dbl>              <dbl>
+#> 1 sample_1  nnls      0.0806 0.0806   0.102 0.399 0.0806                 NA
+#> 2 sample_2  nnls      0.220  0.220    0.264 0.634 0.220                  NA
+#> # ℹ 1 more variable: reconstitution_cor <dbl>
+#> 
+#> $regression$cell_type
+#> # A tibble: 2 × 5
+#>   algorithm cell_type pearson presence_f1 false_positive_mass
+#>   <chr>     <chr>       <dbl>       <dbl>               <dbl>
+#> 1 nnls      ct1            NA           1                   0
+#> 2 nnls      ct2            NA           1                   0
+#> 
+#> 
+#> $monte_carlo
+#> # A tibble: 2 × 14
+#>   algorithm cell_type    bias empirical_sd mean_model_sd mean_model_se
+#>   <chr>     <chr>       <dbl>        <dbl>         <dbl>         <dbl>
+#> 1 nnls      ct1        0.0696        0.212            NA            NA
+#> 2 nnls      ct2       -0.0696        0.212            NA            NA
+#> # ℹ 8 more variables: se_sd_ratio <dbl>, rmse <dbl>, coverage <dbl>,
+#> #   coverage_lower <dbl>, coverage_upper <dbl>, coverage_interval <chr>,
+#> #   mean_interval_width <dbl>, mcse_coverage <dbl>
+#> 
+#> $optimisation
 #> # A tibble: 2 × 10
-#>   model_mse model_rmse model_mae model_coef_determination model_coef_determina…¹
-#>       <dbl>      <dbl>     <dbl>                    <dbl>                  <dbl>
-#> 1   0.00650     0.0806    0.0806                        0                      0
-#> 2   0.0483      0.220     0.220                         0                      0
-#> # ℹ abbreviated name: ¹​model_coef_determination_adjusted
-#> # ℹ 5 more variables: model_cor <dbl>, ct1 <dbl>, ct2 <dbl>, OMIC_ID <chr>,
-#> #   algorithm <chr>
+#>   sample_id algorithm elapsed_sec memory_bytes kkt_residual numerical_converged
+#>   <chr>     <chr>           <dbl>        <dbl>        <dbl> <lgl>              
+#> 1 sample_1  nnls                0    536678400        0.444 TRUE               
+#> 2 sample_2  nnls                0    540938240        0.152 TRUE               
+#> # ℹ 4 more variables: theoretical_converged <lgl>, loglik_regret <dbl>,
+#> #   ct1 <dbl>, ct2 <dbl>
+#> 
 ```

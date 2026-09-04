@@ -20,23 +20,30 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-vignettes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true"><span class="fa fa-book-open"></span> Vignettes</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-vignettes"><li><h6 class="dropdown-header" data-toc-skip>External resources</h6></li>
-    <li><a class="dropdown-item" href="../articles/decovart-external-resources.html"><span class="fa fa-book-open"></span> Manuscript, preprint &amp; seminar slides</a></li>
+    <li><a class="dropdown-item" href="../articles/decovart-paper-slides.html"><span class="fa fa-book-open"></span> Manuscript, preprint &amp; seminar slides</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Prepare inputs</h6></li>
-    <li><a class="dropdown-item" href="../articles/network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
-    <li><a class="dropdown-item" href="../articles/feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Mathematical and Programmatic introduction to DeCovarT</a></li>
-    <li><a class="dropdown-item" href="../articles/synthetic-scenarios.html"><span class="fa fa-flask"></span> How to simulate interesting synthetic scenarios with dependency structures</a></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT-manuscript-scenarios.html"><span class="fa fa-chart-pie"></span> Manuscript synthetic simulation scenarios</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
+    <li><a class="dropdown-item" href="../articles/how-to-build-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>DeCovarT Mathematical appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
-    <li><a class="dropdown-item" href="../articles/Beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
-    <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
+    <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig03-variance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Variance-driven hybrid (J = 3, G = 50)</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>DeCovarT extra-simulation appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT_appendix_simualtion_frameworks.html"><span class="fa fa-vial"></span> Edge cases: quasi-collinearity, multi-modal, active zero proportions and perturbations</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-related-models-beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Supplementary simulation appendix</h6></li>
+    <li><a class="dropdown-item" href="../articles/supp-S1-identifiability.html"><span class="fa fa-vial"></span> App. S1 · Regular-case MLE and identifiability</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S2-covariance-inversion.html"><span class="fa fa-calculator"></span> App. S2 · Covariance inversion strategies</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S3-scaling.html"><span class="fa fa-gauge-high"></span> App. S3 · Solver scalability</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S4-covariance-modeling.html"><span class="fa fa-layer-group"></span> App. S4 · Covariance modelling assumptions</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S5-misspecification.html"><span class="fa fa-triangle-exclamation"></span> App. S5 · Model mis-specification (outlook)</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html"><span class="fa fa-newspaper"></span> News</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -82,7 +89,7 @@
       <dl></dl></div><div class="section level2">
 
       <h3 id="score-equations-and-simplex-maps">Score equations and simplex maps<a class="anchor" aria-label="anchor" href="#score-equations-and-simplex-maps"></a></h3>
-      <div class="section-desc"><p>Analytic first- and second-order helpers for the unconstrained and ALR-constrained log-likelihood (Jacobian / Hessian of the additive logistic map; gradients and Hessians of ()). Documented for <code>?</code> / source inspection; see also <code><a href="../articles/generative-model-derivatives.html">vignette("generative-model-derivatives")</a></code>.</p></div>
+      <div class="section-desc"><p>Analytic first- and second-order helpers for the unconstrained and ILR-constrained log-likelihood (Helmert basis; Jacobian / Hessian of the isometric logistic map; gradients and Hessians of ()). Additive log-ratio maps are kept for the vignette appendix. Documented for <code>?</code> / source inspection; see also <code><a href="../articles/theory-decovart-generative-model.html">vignette("theory-decovart-generative-model")</a></code>.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -90,6 +97,41 @@
 
 
       <dl><dt>
+
+          <code><a href="helmert_basis.html">helmert_basis()</a></code>
+
+        </dt>
+        <dd>Helmert contrast matrix for isometric log-ratio coordinates</dd>
+
+        <dt>
+
+          <code><a href="isometric_logistic.html">isometric_logistic()</a></code> <code><a href="isometric_logistic.html">isometric_log_ratio()</a></code>
+
+        </dt>
+        <dd>Isometric logistic transform (ILR coordinates to the simplex)</dd>
+
+        <dt>
+
+          <code><a href="jacobian_isometric_logistic.html">jacobian_isometric_logistic()</a></code>
+
+        </dt>
+        <dd>Jacobian of the isometric logistic map</dd>
+
+        <dt>
+
+          <code><a href="hessian_isometric_logistic.html">hessian_isometric_logistic()</a></code>
+
+        </dt>
+        <dd>Hessian tensor of the isometric logistic map</dd>
+
+        <dt>
+
+          <code><a href="starting_simplex.html">starting_simplex()</a></code>
+
+        </dt>
+        <dd>Open-simplex start for ILR solvers</dd>
+
+        <dt>
 
           <code><a href="additive_logistic.html">additive_logistic()</a></code> <code><a href="additive_logistic.html">additive_log_ratio()</a></code>
 
@@ -149,7 +191,7 @@
 
       <dl><dt>
 
-          <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_cibersort()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_lsfit()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_rlm()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_nnls()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_deconrnaseq()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_Marquardt_Levenberg()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_simulated_annealing()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_L_BFGS_B()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_Newton_Raphson()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_gradient_descent()</a></code>
+          <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_cibersort()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_rlm()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_nnls()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_deconrnaseq()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_Marquardt_Levenberg()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_simulated_annealing()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_L_BFGS_B()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_Newton_Raphson()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_gradient_descent()</a></code>
 
         </dt>
         <dd>DeCovarT MLE of cellular proportions for one bulk sample</dd>
@@ -162,8 +204,82 @@
         <dd>Fit the DeCovarT Gaussian-convolution model</dd>
       </dl></div><div class="section level2">
 
+      <h3 id="fixed-covariance-gls-competitor">Fixed-covariance GLS competitor<a class="anchor" aria-label="anchor" href="#fixed-covariance-gls-competitor"></a></h3>
+      <div class="section-desc"><p><code><a href="https://rdrr.io/pkg/MASS/man/lm.gls.html" class="external-link">MASS::lm.gls()</a></code> wrapper with a known residual covariance (<code><a href="../reference/fixed_gls_covariance.html">fixed_gls_covariance()</a></code> at a declared composition).</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="deconvolute_ratios_gls.html">deconvolute_ratios_gls()</a></code>
+
+        </dt>
+        <dd>Generalised least squares with a fixed residual covariance</dd>
+
+        <dt>
+
+          <code><a href="fixed_gls_covariance.html">fixed_gls_covariance()</a></code>
+
+        </dt>
+        <dd>Fixed residual covariance for a GLS competitor</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="structure-aware-covariance-backends">Structure-aware covariance backends<a class="anchor" aria-label="anchor" href="#structure-aware-covariance-backends"></a></h3>
+      <div class="section-desc"><p>Factorise (()=_j p_j^2 _j) by exploiting declared covariance structure (block, band, sparse, diagonal-plus-low-rank) instead of a dense Cholesky. Operators return the log-determinant and solves without a materialised precision. See <code><a href="../articles/theory-decovart-generative-model.html">vignette("theory-decovart-generative-model")</a></code>.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="new_decovart_covariance.html">new_decovart_covariance()</a></code> <code><a href="new_decovart_covariance.html">print(<i>&lt;decovart_covariance&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Structure-aware covariance backend for \(\boldsymbol{\Sigma}(\boldsymbol{p})\)</dd>
+
+        <dt>
+
+          <code><a href="covariance_structure_from_graph_model.html">covariance_structure_from_graph_model()</a></code>
+
+        </dt>
+        <dd>Recommend a covariance backend from a network topology</dd>
+
+        <dt>
+
+          <code><a href="sigma_logdet.html">sigma_logdet()</a></code>
+
+        </dt>
+        <dd>Log-determinant of \(\boldsymbol{\Sigma}(\boldsymbol{p})\)</dd>
+
+        <dt>
+
+          <code><a href="sigma_solve.html">sigma_solve()</a></code>
+
+        </dt>
+        <dd>Precision solve \(\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\mathbf{B}\)</dd>
+
+        <dt>
+
+          <code><a href="sigma_quadform.html">sigma_quadform()</a></code>
+
+        </dt>
+        <dd>Mahalanobis quadratic form \(\mathbf{r}^{\mathsf{T}}\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\mathbf{r}\)</dd>
+
+        <dt>
+
+          <code><a href="sigma_trace_precision_times.html">sigma_trace_precision_times()</a></code>
+
+        </dt>
+        <dd>Trace of the precision times a matrix, \(\operatorname{tr}(\boldsymbol{\Theta}(\boldsymbol{p})\mathbf{S})\)</dd>
+      </dl></div><div class="section level2">
+
       <h3 id="fisher-information-and-wald-intervals">Fisher information and Wald intervals<a class="anchor" aria-label="anchor" href="#fisher-information-and-wald-intervals"></a></h3>
-      <div class="section-desc"><p>Expected Fisher information of unconstrained proportions and ALR delta-method covariance used by <code><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov()</a></code> / <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code> on <code>decovart_fit</code> objects (see <code>fit_decovart</code>).</p></div>
+      <div class="section-desc"><p>Expected Fisher information of unconstrained proportions and ILR delta-method covariance used by <code><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov()</a></code> / <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code> on <code>decovart_fit</code> objects (see <code>fit_decovart</code>). <code><a href="../reference/vcov_alr_delta.html">vcov_alr_delta()</a></code> is retained for reference-invariance checks.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -179,6 +295,13 @@
 
         <dt>
 
+          <code><a href="vcov_ilr_delta.html">vcov_ilr_delta()</a></code>
+
+        </dt>
+        <dd>Cramer–Rao / ILR delta-method covariance of \(\hat{\boldsymbol{p}}\)</dd>
+
+        <dt>
+
           <code><a href="vcov_alr_delta.html">vcov_alr_delta()</a></code>
 
         </dt>
@@ -186,7 +309,7 @@
       </dl></div><div class="section level2">
 
       <h3 id="likelihood-ratio-and-boundary-inference">Likelihood-ratio and boundary inference<a class="anchor" aria-label="anchor" href="#likelihood-ratio-and-boundary-inference"></a></h3>
-      <div class="section-desc"><p>Profile likelihood, likelihood-ratio tests with chi-bar-square (Chernoff / Self–Liang) calibration on simplex faces, parametric bootstrap, reference-sample bootstrap (donors, cells, or Dirichlet compositions), and the boundary / multimodality diagnostics that a bare convergence code cannot provide. See <code><a href="../articles/DeCovarT-MLE-properties.html">vignette("DeCovarT-MLE-properties")</a></code>.</p></div>
+      <div class="section-desc"><p>Profile likelihood, likelihood-ratio tests with chi-bar-square (Chernoff / Self–Liang) calibration on simplex faces, parametric bootstrap, reference-sample bootstrap (donors, cells, or Dirichlet compositions), and the boundary / multimodality diagnostics that a bare convergence code cannot provide. See <code><a href="../articles/theory-DeCovarT-MLE-properties.html">vignette("theory-DeCovarT-MLE-properties")</a></code>.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -277,7 +400,14 @@
           <code><a href="compute_benchmark_metrics.html">compute_benchmark_metrics()</a></code>
 
         </dt>
-        <dd>Compute summary metrics for estimated proportions</dd>
+        <dd>Compute deconvolution benchmark metrics</dd>
+
+        <dt>
+
+          <code><a href="coverage_mc_interval.html">coverage_mc_interval()</a></code>
+
+        </dt>
+        <dd>Monte Carlo interval for an empirical coverage probability</dd>
 
         <dt>
 
@@ -292,6 +422,48 @@
 
         </dt>
         <dd>Parallel deconvolution of a bulk expression matrix</dd>
+
+        <dt>
+
+          <code><a href="pivot_mc_estimates.html">pivot_mc_estimates()</a></code>
+
+        </dt>
+        <dd>Pivot Monte Carlo proportion estimates to a long table</dd>
+
+        <dt>
+
+          <code><a href="plot_mc_raincloud.html">plot_mc_raincloud()</a></code>
+
+        </dt>
+        <dd>Horizontal raincloud of Monte Carlo proportion estimates</dd>
+
+        <dt>
+
+          <code><a href="plot_mc_forest.html">plot_mc_forest()</a></code>
+
+        </dt>
+        <dd>Forest plot of ADEMP Monte Carlo summaries</dd>
+
+        <dt>
+
+          <code><a href="algorithm_similarity.html">algorithm_similarity()</a></code>
+
+        </dt>
+        <dd>Algorithm-similarity correlation from a Monte Carlo benchmark</dd>
+
+        <dt>
+
+          <code><a href="plot_algorithm_similarity.html">plot_algorithm_similarity()</a></code>
+
+        </dt>
+        <dd>Tile heatmap of algorithm-similarity correlations</dd>
+
+        <dt>
+
+          <code><a href="plot_mc_metric_dots.html">plot_mc_metric_dots()</a></code>
+
+        </dt>
+        <dd>Faceted dot plot of several ADEMP metrics</dd>
 
         <dt>
 
@@ -319,7 +491,14 @@
           <code><a href="generate_mean_signature_matrix.html">generate_mean_signature_matrix()</a></code>
 
         </dt>
-        <dd>Generate mean profiles with a target pairwise cosine</dd>
+        <dd>Generate mean profiles from a target Gram matrix</dd>
+
+        <dt>
+
+          <code><a href="equicorrelation_gram.html">equicorrelation_gram()</a></code>
+
+        </dt>
+        <dd>Equicorrelation (constant-correlation) Gram matrix</dd>
 
         <dt>
 
@@ -334,6 +513,13 @@
 
         </dt>
         <dd>Simulate GRN first- and second-order moments</dd>
+
+        <dt>
+
+          <code><a href="describe_simulation_scenario.html">describe_simulation_scenario()</a></code>
+
+        </dt>
+        <dd>Describe a Gaussian-convolution simulation scenario</dd>
       </dl></div><div class="section level2">
       <h2 id="statistical-metrics">Statistical metrics<a class="anchor" aria-label="anchor" href="#statistical-metrics"></a></h2>
 

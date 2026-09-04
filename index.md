@@ -410,7 +410,7 @@ flowchart TD
     C --> D["deconvolute_ratios()<br/>Parallel solvers"]
 
     D --> E["DeCovarT<br/>Covariance-aware MLE<br/>ALR + marqLevAlg"]
-    D --> F["First-generation methods<br/>lsfit · NNLS · QP · rlm · ν-SVR"]
+    D --> F["First-generation methods<br/>NNLS · QP · GLS · rlm · ν-SVR"]
 
     E --> G["Proportion estimates<br/>on the simplex"]
     F --> G
@@ -443,9 +443,9 @@ when exploring call relationships. Regenerate locally with
 | Algorithm | Interface | Notes / upstream |
 |:---|:---|:---|
 | **DeCovarT** (Marquardt–Levenberg) | `deconvolute_ratios_Marquardt_Levenberg` | Covariance-aware MLE [![](https://img.shields.io/badge/GitHub-181717.svg?logo=github&logoColor=white)](https://github.com/bastienchassagnol/DeCovarT) |
-| Ordinary least squares (`lsfit`) | `deconvolute_ratios_lsfit` | Abbas / TIMER-style OLS (base R [`stats::lsfit`](https://rdrr.io/r/stats/lsfit.html)) |
 | Non-negative least squares | `deconvolute_ratios_nnls` | Lawson–Hanson NNLS [![](https://img.shields.io/badge/GitHub-181717.svg?logo=github&logoColor=white)](https://github.com/cran/nnls) |
 | DeconRNASeq-style QP | `deconvolute_ratios_deconrnaseq` | Simplex QP via {limSolve} [![](https://img.shields.io/badge/GitHub-181717.svg?logo=github&logoColor=white)](https://github.com/cran/limSolve) |
+| GLS (fixed covariance) | `deconvolute_ratios_gls` | [`MASS::lm.gls`](https://rdrr.io/pkg/MASS/man/lm.gls.html) with [`fixed_gls_covariance()`](https://bastienchassagnol.github.io/DeCovarT/reference/fixed_gls_covariance.md) |
 | Robust linear model (`rlm`) | `deconvolute_ratios_rlm` | ABIS / Monaco-style RLR [![](https://img.shields.io/badge/GitHub-181717.svg?logo=github&logoColor=white)](https://github.com/cran/MASS) |
 | CIBERSORT-style \nu-SVR | `deconvolute_ratios_cibersort` | Linear-kernel SVR via {e1071} [![](https://img.shields.io/badge/GitHub-181717.svg?logo=github&logoColor=white)](https://github.com/cran/e1071) |
 
@@ -553,14 +553,16 @@ Package website: <https://bastienchassagnol.github.io/DeCovarT/>
 
 **Vignettes**
 
-- [Simulating semi-synthetic pseudo-bulk
-  mixtures](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.html)
-- [Manuscript synthetic simulation
-  scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-manuscript-scenarios.html)
-- [Derivatives under simplex
-  transforms](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.html)
+- [How to build synthetic
+  scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/how-to-build-synthetic-scenarios-mean-covariance.html)
+- [§2.1 Bivariate
+  toy](https://bastienchassagnol.github.io/DeCovarT/articles/fig02-bivariate-toy.html)
+- [§2.2 Variance-driven
+  hybrid](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-variance-driven.html)
+- [Generative model and
+  derivatives](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html)
 - [MLE properties and asymptotic
-  inference](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.html)
+  inference](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html)
 
 In an R session, use
 [`?DeCovarT::deconvolute_ratios`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)

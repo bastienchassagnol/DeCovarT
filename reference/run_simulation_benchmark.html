@@ -4,16 +4,20 @@ compute_benchmark_metrics() (called inside deconvolute_ratios()).
 Each row of scenario_config describes one generative model
 (\(\boldsymbol{\mu}\), \((\boldsymbol{\Sigma}_j)_j\),
 \(\boldsymbol{p}\)) stored in a list column true_theta. Scenario
-builders (factorial grids, overlap summaries, etc.) should live in
-analysis scripts; see scripts/configure_bivariate_toy_scenarios.R and
-the manuscript scenario vignettes."><meta property="og:description" content="Wrapper around simulate_bulk_mixture(), deconvolute_ratios(), and
+rows are always evaluated sequentially to avoid nested
+parallelism; sample-level workers live only in
+deconvolute_ratios(). Scenario builders (factorial grids, overlap
+summaries, etc.) should live in analysis scripts; see
+scripts/fig02_bivariate_toy.R and the paper-scenario vignettes."><meta property="og:description" content="Wrapper around simulate_bulk_mixture(), deconvolute_ratios(), and
 compute_benchmark_metrics() (called inside deconvolute_ratios()).
 Each row of scenario_config describes one generative model
 (\(\boldsymbol{\mu}\), \((\boldsymbol{\Sigma}_j)_j\),
 \(\boldsymbol{p}\)) stored in a list column true_theta. Scenario
-builders (factorial grids, overlap summaries, etc.) should live in
-analysis scripts; see scripts/configure_bivariate_toy_scenarios.R and
-the manuscript scenario vignettes."><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
+rows are always evaluated sequentially to avoid nested
+parallelism; sample-level workers live only in
+deconvolute_ratios(). Scenario builders (factorial grids, overlap
+summaries, etc.) should live in analysis scripts; see
+scripts/fig02_bivariate_toy.R and the paper-scenario vignettes."><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -34,23 +38,30 @@ the manuscript scenario vignettes."><meta property="og:image" content="https://b
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-vignettes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true"><span class="fa fa-book-open"></span> Vignettes</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-vignettes"><li><h6 class="dropdown-header" data-toc-skip>External resources</h6></li>
-    <li><a class="dropdown-item" href="../articles/decovart-external-resources.html"><span class="fa fa-book-open"></span> Manuscript, preprint &amp; seminar slides</a></li>
+    <li><a class="dropdown-item" href="../articles/decovart-paper-slides.html"><span class="fa fa-book-open"></span> Manuscript, preprint &amp; seminar slides</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Prepare inputs</h6></li>
-    <li><a class="dropdown-item" href="../articles/network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
-    <li><a class="dropdown-item" href="../articles/feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Mathematical and Programmatic introduction to DeCovarT</a></li>
-    <li><a class="dropdown-item" href="../articles/synthetic-scenarios.html"><span class="fa fa-flask"></span> How to simulate interesting synthetic scenarios with dependency structures</a></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT-manuscript-scenarios.html"><span class="fa fa-chart-pie"></span> Manuscript synthetic simulation scenarios</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
+    <li><a class="dropdown-item" href="../articles/how-to-build-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>DeCovarT Mathematical appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
-    <li><a class="dropdown-item" href="../articles/Beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
-    <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
+    <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig03-variance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Variance-driven hybrid (J = 3, G = 50)</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>DeCovarT extra-simulation appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT_appendix_simualtion_frameworks.html"><span class="fa fa-vial"></span> Edge cases: quasi-collinearity, multi-modal, active zero proportions and perturbations</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-related-models-beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Supplementary simulation appendix</h6></li>
+    <li><a class="dropdown-item" href="../articles/supp-S1-identifiability.html"><span class="fa fa-vial"></span> App. S1 · Regular-case MLE and identifiability</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S2-covariance-inversion.html"><span class="fa fa-calculator"></span> App. S2 · Covariance inversion strategies</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S3-scaling.html"><span class="fa fa-gauge-high"></span> App. S3 · Solver scalability</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S4-covariance-modeling.html"><span class="fa fa-layer-group"></span> App. S4 · Covariance modelling assumptions</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S5-misspecification.html"><span class="fa fa-triangle-exclamation"></span> App. S5 · Model mis-specification (outlook)</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html"><span class="fa fa-newspaper"></span> News</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -80,9 +91,11 @@ the manuscript scenario vignettes."><meta property="og:image" content="https://b
 Each row of <code>scenario_config</code> describes one generative model
 (\(\boldsymbol{\mu}\), \((\boldsymbol{\Sigma}_j)_j\),
 \(\boldsymbol{p}\)) stored in a list column <code>true_theta</code>. Scenario
-builders (factorial grids, overlap summaries, etc.) should live in
-analysis scripts; see <code>scripts/configure_bivariate_toy_scenarios.R</code> and
-the manuscript scenario vignettes.</p>
+rows are always evaluated <strong>sequentially</strong> to avoid nested
+parallelism; sample-level workers live only in
+<code><a href="deconvolute_ratios.html">deconvolute_ratios()</a></code>. Scenario builders (factorial grids, overlap
+summaries, etc.) should live in analysis scripts; see
+<code>scripts/fig02_bivariate_toy.R</code> and the paper-scenario vignettes.</p>
     </div>
 
     <div class="section level2">
@@ -93,9 +106,8 @@ the manuscript scenario vignettes.</p>
 <span>  n <span class="op">=</span> <span class="fl">200</span>,</span>
 <span>  standardise <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  scaled <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  cores <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  parallel_scenarios <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  parallel_cores <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  cores <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  coverage_interval <span class="op">=</span> <span class="st">"wilson"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -126,31 +138,37 @@ has no <code>n</code> column.</p></dd>
 
 <dt id="arg-cores">cores<a class="anchor" aria-label="anchor" href="#arg-cores"></a></dt>
 <dd><p>Workers for the per-sample loop inside
-<code><a href="deconvolute_ratios.html">deconvolute_ratios()</a></code>. When <code>parallel_scenarios = TRUE</code>, defaults to
-<code>1</code> to avoid nested parallelism. Otherwise defaults to half of detected
-cores (at most \(\lfloor C/2\rfloor\)).</p></dd>
+<code><a href="deconvolute_ratios.html">deconvolute_ratios()</a></code>. Defaults to <code>1L</code>.</p></dd>
 
 
-<dt id="arg-parallel-scenarios">parallel_scenarios<a class="anchor" aria-label="anchor" href="#arg-parallel-scenarios"></a></dt>
-<dd><p>If <code>TRUE</code>, parallelise across scenario rows
-with <code>furrr</code> (optional Suggests <code>furrr</code> and <code>future</code>). Defaults to
-<code>FALSE</code>.</p></dd>
-
-
-<dt id="arg-parallel-cores">parallel_cores<a class="anchor" aria-label="anchor" href="#arg-parallel-cores"></a></dt>
-<dd><p>Maximum workers for scenario-level parallelism;
-defaults to half of detected cores.</p></dd>
+<dt id="arg-coverage-interval">coverage_interval<a class="anchor" aria-label="anchor" href="#arg-coverage-interval"></a></dt>
+<dd><p>Coverage interval for the Monte Carlo
+coverage <em>rate</em>; see <code><a href="coverage_mc_interval.html">coverage_mc_interval()</a></code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list with:</p><ul><li><p><code>simulations</code>: tibble of per-sample estimates and metrics;</p></li>
-<li><p><code>config</code>: tibble of scenario metadata (one row per scenario).</p></li>
+    <p>A list with:</p><ul><li><p><code>regression</code>: <code>global</code> (per-sample composition scores) and
+<code>cell_type</code> (across-sample Pearson / F1 / spillover);</p></li>
+<li><p><code>monte_carlo</code>: ADEMP summaries per cell type;</p></li>
+<li><p><code>optimisation</code>: per-sample elapsed time, memory, KKT residual, and
+\(\hat{\boldsymbol{p}}\);</p></li>
+<li><p><code>config</code>: tibble of scenario metadata (one row per scenario);</p></li>
+<li><p><code>theta_true</code>: list of convolution parameters
+(\(\boldsymbol{p}\), \(\boldsymbol{\mu}\), \(\boldsymbol{\Sigma}_j\))
+actually used to draw the bulk;</p></li>
+<li><p><code>descriptors</code>: kept scenario statistics (composition, mean, SPD,
+network, tangent Fisher, MixSim BarOmega, pairwise Hellinger);</p></li>
+<li><p><code>supplementary</code>: Jeffreys overlap, recorded separately;</p></li>
+<li><p><code>call</code>: the matched call (<code><a href="https://rdrr.io/r/base/match.call.html" class="external-link">match.call()</a></code>).
+There is no composite global score: each metric answers a different
+question.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code>, <code><a href="deconvolute_ratios.html">deconvolute_ratios()</a></code>,
-<code><a href="compute_benchmark_metrics.html">compute_benchmark_metrics()</a></code></p></div>
+<code><a href="compute_benchmark_metrics.html">compute_benchmark_metrics()</a></code>, <code><a href="describe_simulation_scenario.html">describe_simulation_scenario()</a></code>,
+<code><a href="coverage_mc_interval.html">coverage_mc_interval()</a></code>, <code><a href="plot_mc_raincloud.html">plot_mc_raincloud()</a></code>, <code><a href="plot_mc_forest.html">plot_mc_forest()</a></code></p></div>
     </div>
 
     <div class="section level2">
@@ -180,7 +198,7 @@ defaults to half of detected cores.</p></dd>
 <span class="r-in"><span>  n <span class="op">=</span> <span class="fl">2</span>,</span></span>
 <span class="r-in"><span>  cores <span class="op">=</span> <span class="fl">1</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">out</span><span class="op">$</span><span class="va">simulations</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">out</span><span class="op">$</span><span class="va">optimisation</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2</span>
 </code></pre></div>
     </div>

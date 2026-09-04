@@ -3,37 +3,53 @@
 ### External resources
 
 - [External resources: manuscript, presentations, and
-  preprints](https://bastienchassagnol.github.io/DeCovarT/articles/decovart-external-resources.md):
+  preprints](https://bastienchassagnol.github.io/DeCovarT/articles/decovart-paper-slides.md):
 
 ### Getting started
 
 - [Simulating synthetic pseudo-bulk mixtures for
-  benchmarking](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.md):
+  benchmarking](https://bastienchassagnol.github.io/DeCovarT/articles/how-to-build-synthetic-scenarios-mean-covariance.md):
 - [Feature selection for reference-based
-  deconvolution](https://bastienchassagnol.github.io/DeCovarT/articles/feature-selection.md):
+  deconvolution](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S6-feature-selection.md):
 - [In silico inference of gene regulatory
-  networks](https://bastienchassagnol.github.io/DeCovarT/articles/network-inference.md):
-- [Manuscript synthetic simulation
-  scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-manuscript-scenarios.md):
+  networks](https://bastienchassagnol.github.io/DeCovarT/articles/theory-network-inference.md):
+
+### Paper: numerical simulation study
+
+The two simulation scenarios of the DeCovarT article. **§ 2.1**
+Bivariate toy (J = 2, G = 2): factorial sweep of gene–gene correlation,
+mean distance, and composition. **§ 2.2** Variance-driven hybrid (J = 3,
+G = 50): block-structured GRN covariances; cell types 1 and 2 are near
+mean-collinear.
+
+- [§2.1 Bivariate toy model (G = 2 genes, J = 2 cell
+  types)](https://bastienchassagnol.github.io/DeCovarT/articles/fig02-bivariate-toy.md):
+- [§2.2 Variance-driven hybrid scenario (G = 50, J =
+  3)](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-variance-driven.md):
 
 ### Mathematics
 
 - [Derivatives of the DeCovarT generative model under simplex
-  transforms](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.md):
+  transforms](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.md):
 - [MLE properties and asymptotic inference for the DeCovarT
-  log-likelihood](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.md):
+  log-likelihood](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.md):
 - [Beyond ordinary least squares: when linear-model assumptions
-  fail](https://bastienchassagnol.github.io/DeCovarT/articles/Beyond-OLS.md):
+  fail](https://bastienchassagnol.github.io/DeCovarT/articles/theory-related-models-beyond-OLS.md):
 - [DeCovarT
-  perspectives](https://bastienchassagnol.github.io/DeCovarT/articles/decovart-perspectives.md):
+  perspectives](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-statistical-perspectives.md):
 
-### Appendix simulations
+### Supplementary simulation appendix
 
-Edge-case numerical checks behind the `decovart_fit` API: gene-wise
-z-score / affine equivariance of the MLE, failure under collinear
-signatures, impact of small bulk perturbations under full /
-cell-type-diagonal / global covariances, and sensitivity of second-order
-solvers to random ALR starts.
+Regular-case MLE checks in the open simplex, identifiability edge cases,
+and covariance / scaling / misspecification studies.
 
-- [DeCovarT appendix: affine equivariance, collinearity and
-  perturbations](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT_appendix_simualtion_frameworks.md):
+- [Appendix S1 — Regular-case MLE properties and
+  identifiability](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S1-identifiability.md):
+- [Appendix S2 — Covariance Inversion
+  Strategies](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S2-covariance-inversion.md):
+- [Appendix S3 — Solver
+  Scalability](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S3-scaling.md):
+- [Appendix S4 — Covariance Modelling
+  Assumptions](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S4-covariance-modeling.md):
+- [Appendix S5 — Model Mis-specification (Description
+  Only)](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S5-misspecification.md):

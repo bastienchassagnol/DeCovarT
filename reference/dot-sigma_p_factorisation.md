@@ -14,7 +14,7 @@ the factor rather than an independent
 ## Usage
 
 ``` r
-.sigma_p_factorisation(p, Sigma)
+.sigma_p_factorisation(p, Sigma, backend = NULL)
 ```
 
 ## Arguments
@@ -28,12 +28,27 @@ the factor rather than an independent
   Array of cell-type covariances in \\\mathcal{M}\_{G\times G\times
   J}\\.
 
+- backend:
+
+  Optional
+  [`new_decovart_covariance()`](https://bastienchassagnol.github.io/DeCovarT/reference/new_decovart_covariance.md)
+  object declaring an exploitable covariance structure (block, band,
+  sparse or diagonal-plus-low-rank). When `NULL` (default) the universal
+  dense Cholesky is used and cached, exactly as before. When supplied,
+  the structured operators of that backend supply `log_det` and the
+  `solve` / `quadform` closures; `inverse` is then materialised only for
+  drop-in compatibility with callers that still expect an explicit
+  precision, and the operator path (`solve`) should be preferred to keep
+  the structural speed-up (a dense `chol2inv` would undo it).
+
 ## Value
 
 A list with elements: `matrix` (\\\boldsymbol{\Sigma}(\boldsymbol{p})\\
-itself), `chol` (upper-triangular Cholesky factor), `log_det`
+itself, or `NULL` for factored backends), `chol` (upper-triangular
+Cholesky factor, or `NULL`), `log_det`
 (\\\log\det\boldsymbol{\Sigma}(\boldsymbol{p})\\) and `inverse`
-(\\\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\\).
+(\\\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\\). When `backend` is
+supplied the list additionally carries `solve` and `quadform` closures.
 
 ## Details
 
@@ -54,6 +69,10 @@ only the first of those calls actually factorises, and the rest simply
 return the cached result in \\O(G^{2})\\ (the cost of the equality
 check). Profiling on a 38-gene / 3-cell-type scenario showed the
 redundancy
+
+## See also
+
+[`new_decovart_covariance()`](https://bastienchassagnol.github.io/DeCovarT/reference/new_decovart_covariance.md)
 
 ## Examples
 

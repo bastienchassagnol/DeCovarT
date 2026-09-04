@@ -3,7 +3,11 @@
 For each algorithm, visualises a selected score over the design grid of
 simulated \\\boldsymbol{p}\\ (and related scenario factors). Requires
 optional Suggests packages `ComplexHeatmap`, `circlize`, and `viridis`
-(install `ComplexHeatmap` via Bioconductor).
+(install `ComplexHeatmap` via Bioconductor). Use this helper only for
+**linked, annotated, hierarchical** grids. For algorithm-similarity
+correlation matrices prefer
+[`plot_algorithm_similarity()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_algorithm_similarity.md)
+([`ggplot2::geom_tile()`](https://ggplot2.tidyverse.org/reference/geom_tile.html)).
 
 ## Usage
 
@@ -47,6 +51,11 @@ plot_correlation_Heatmap(
 ## Value
 
 A named list of `ComplexHeatmap` heatmap objects (one per algorithm).
+
+## See also
+
+[`plot_algorithm_similarity()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_algorithm_similarity.md),
+[`plot_mc_metric_dots()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_metric_dots.md)
 
 ## Examples
 

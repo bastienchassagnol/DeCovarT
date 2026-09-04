@@ -4,12 +4,12 @@ the solver stopped, the iterate is genuinely stationary with the right
 local curvature, and the estimate sits close to a simplex face. None of
 them implies global uniqueness, which the DeCovarT log-likelihood does
 not have for a single observed sample (see
-vignette("DeCovarT-MLE-properties")).'><meta property="og:description" content='Separates three claims that a bare optimiser return code conflates:
+vignette("theory-DeCovarT-MLE-properties")).'><meta property="og:description" content='Separates three claims that a bare optimiser return code conflates:
 the solver stopped, the iterate is genuinely stationary with the right
 local curvature, and the estimate sits close to a simplex face. None of
 them implies global uniqueness, which the DeCovarT log-likelihood does
 not have for a single observed sample (see
-vignette("DeCovarT-MLE-properties")).'><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
+vignette("theory-DeCovarT-MLE-properties")).'><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -30,23 +30,30 @@ vignette("DeCovarT-MLE-properties")).'><meta property="og:image" content="https:
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-vignettes" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true"><span class="fa fa-book-open"></span> Vignettes</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-vignettes"><li><h6 class="dropdown-header" data-toc-skip>External resources</h6></li>
-    <li><a class="dropdown-item" href="../articles/decovart-external-resources.html"><span class="fa fa-book-open"></span> Manuscript, preprint &amp; seminar slides</a></li>
+    <li><a class="dropdown-item" href="../articles/decovart-paper-slides.html"><span class="fa fa-book-open"></span> Manuscript, preprint &amp; seminar slides</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Prepare inputs</h6></li>
-    <li><a class="dropdown-item" href="../articles/network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
-    <li><a class="dropdown-item" href="../articles/feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/generative-model-derivatives.html"><span class="fa fa-square-root-variable"></span> Mathematical and Programmatic introduction to DeCovarT</a></li>
-    <li><a class="dropdown-item" href="../articles/synthetic-scenarios.html"><span class="fa fa-flask"></span> How to simulate interesting synthetic scenarios with dependency structures</a></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT-manuscript-scenarios.html"><span class="fa fa-chart-pie"></span> Manuscript synthetic simulation scenarios</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
+    <li><a class="dropdown-item" href="../articles/how-to-build-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>DeCovarT Mathematical appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
-    <li><a class="dropdown-item" href="../articles/Beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
-    <li><a class="dropdown-item" href="../articles/decovart-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
+    <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig03-variance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Variance-driven hybrid (J = 3, G = 50)</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>DeCovarT extra-simulation appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/DeCovarT_appendix_simualtion_frameworks.html"><span class="fa fa-vial"></span> Edge cases: quasi-collinearity, multi-modal, active zero proportions and perturbations</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-related-models-beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Supplementary simulation appendix</h6></li>
+    <li><a class="dropdown-item" href="../articles/supp-S1-identifiability.html"><span class="fa fa-vial"></span> App. S1 · Regular-case MLE and identifiability</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S2-covariance-inversion.html"><span class="fa fa-calculator"></span> App. S2 · Covariance inversion strategies</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S3-scaling.html"><span class="fa fa-gauge-high"></span> App. S3 · Solver scalability</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S4-covariance-modeling.html"><span class="fa fa-layer-group"></span> App. S4 · Covariance modelling assumptions</a></li>
+    <li><a class="dropdown-item" href="../articles/supp-S5-misspecification.html"><span class="fa fa-triangle-exclamation"></span> App. S5 · Model mis-specification (outlook)</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html"><span class="fa fa-newspaper"></span> News</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -76,7 +83,7 @@ the solver stopped, the iterate is genuinely stationary with the right
 local curvature, and the estimate sits close to a simplex face. None of
 them implies global uniqueness, which the DeCovarT log-likelihood does
 not have for a single observed sample (see
-<code><a href="../articles/DeCovarT-MLE-properties.html">vignette("DeCovarT-MLE-properties")</a></code>).</p>
+<code><a href="../articles/theory-DeCovarT-MLE-properties.html">vignette("theory-DeCovarT-MLE-properties")</a></code>).</p>
     </div>
 
     <div class="section level2">
@@ -120,7 +127,7 @@ estimate is flagged as near-boundary.</p></dd>
 
 
 <dt id="arg-score-tol">score_tol<a class="anchor" aria-label="anchor" href="#arg-score-tol"></a></dt>
-<dd><p>Threshold on the ALR score norm below which the
+<dd><p>Threshold on the ILR score norm below which the
 iterate counts as stationary.</p></dd>
 
 </dl></div>
@@ -130,12 +137,12 @@ iterate counts as stationary.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Reported fields are the ALR score norm
-\(\lVert\nabla_{\boldsymbol{\rho}}\ell\rVert\), the largest
-eigenvalue \(\lambda_{\max}(\mathbf{H}_{\boldsymbol{\rho}})\) (negative
+    <p>Reported fields are the ILR score norm
+\(\lVert\nabla_{\boldsymbol{z}}\ell\rVert\), the largest
+eigenvalue \(\lambda_{\max}(\mathbf{H}_{\boldsymbol{z}})\) (negative
 at a local maximum), <code>boundary_distance</code> \(=\min_j\hat{p}_j\), and the
 flags <code>near_boundary</code> and <code>local_maximum</code>.</p>
-<p><code>boundary_tol</code> is a <strong>statistical</strong> warning threshold for Wald / ALR
+<p><code>boundary_tol</code> is a <strong>statistical</strong> warning threshold for Wald / ILR
 linearisation, deliberately much larger than the machine-precision guard
 that decides whether a logarithm is representable. A fit with
 \(\min_j\hat{p}_j\ll 1\) is not evidence of optimiser failure: the
@@ -167,7 +174,7 @@ or boundary-calibrated tests of <code><a href="lrt_decovart.html">lrt_decovart()
 <span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="va">mu</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="fl">0.4</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">boundary_diagnostics</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="fl">0.4</span><span class="op">)</span>, <span class="va">y</span>, <span class="va">mu</span>, <span class="va">Sigma</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   boundary_distance near_boundary score_norm max_eigenvalue local_maximum</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1               0.4         FALSE  0.2769231      -100.2504         FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1               0.4         FALSE  0.3916284      -200.5008         FALSE</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

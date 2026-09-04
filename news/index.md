@@ -1,5 +1,129 @@
 # Changelog
 
+## DeCovarT (development version)
+
+- **Documentation layout.** Paper scenarios live in the
+  `fig02-bivariate-toy` and `fig03-variance-driven` articles (one script
+  each: `scripts/fig02_bivariate_toy.R`,
+  `scripts/fig03_variance_driven.R`). Regular-case MLE checks and
+  identifiability sit in Appendix S1. ADEMP / Nature Methods reporting
+  is at the end of the synthetic-scenarios how-to article.
+
+- **Monte Carlo figures.**
+  [`pivot_mc_estimates()`](https://bastienchassagnol.github.io/DeCovarT/reference/pivot_mc_estimates.md),
+  [`plot_mc_raincloud()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_raincloud.md)
+  (`ggplot2` + `ggdist` horizontal rainclouds of \hat p_j-p_j^{\star}),
+  [`plot_mc_forest()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_forest.md)
+  (ADEMP summaries with Wilson whiskers on the coverage rate),
+  [`plot_algorithm_similarity()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_algorithm_similarity.md)
+  (`geom_tile` + `hclust(1-r)`), and
+  [`plot_mc_metric_dots()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_metric_dots.md)
+  (faceted min-max scores; no default composite). Optional Suggests:
+  `ggdist`, `ggdendro`. `ComplexHeatmap` remains for linked multi-omics
+  grids only.
+
+- **Solver starts.**
+  [`starting_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/starting_simplex.md)
+  (used by all ILR maps) accepts the barycentre (default), a Dirichlet
+  draw (`initial_p = "dirichlet"`, `dirichlet_alpha = 1` uniform on the
+  simplex; \alpha\>1 centre-biased; \alpha\<1 face-biased; several
+  independent draws for multistarts), or a mean-only simplex QP
+  (`initial_p = "qp"` via
+  [`deconvolute_ratios_deconrnaseq()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md)).
+  [`multistart_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/multistart_decovart.md)
+  uses the Dirichlet path.
+
+- **Fixed-covariance GLS competitor.**
+  [`deconvolute_ratios_gls()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_gls.md)
+  wraps [`MASS::lm.gls()`](https://rdrr.io/pkg/MASS/man/lm.gls.html)
+  with a known G\times G residual covariance;
+  [`fixed_gls_covariance()`](https://bastienchassagnol.github.io/DeCovarT/reference/fixed_gls_covariance.md)
+  builds the global-diagonal W at a declared p (default 1/J).
+  Unconstrained OLS (`deconvolute_ratios_lsfit`) has been removed.
+
+- **ILR / Helmert simplex chart.** Frequentist solvers and
+  [`vcov.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md)
+  now use isometric log-ratio coordinates on a Helmert basis
+  ([`helmert_basis()`](https://bastienchassagnol.github.io/DeCovarT/reference/helmert_basis.md),
+  [`isometric_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/isometric_logistic.md),
+  [`isometric_log_ratio()`](https://bastienchassagnol.github.io/DeCovarT/reference/isometric_logistic.md),
+  [`jacobian_isometric_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/jacobian_isometric_logistic.md),
+  [`hessian_isometric_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/hessian_isometric_logistic.md),
+  [`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md)).
+  No cell type is pinned as a reference; changing the ILR basis by an
+  orthogonal rotation leaves (), (()) and (()) unchanged. Additive
+  log-ratio maps remain exported for the derivatives vignette appendix
+  and for reference-invariance checks
+  ([`vcov_alr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.md)).
+  Restricted MLE assembly treats a fully constrained face without
+  calling ILR on an empty coordinate, and an unrestricted fit that sits
+  near a face is compared with the exact-face restricted MLE so the
+  reported point can be the closed-simplex supremum.
+
+- **Gram-matrix mean signatures.**
+  [`generate_mean_signature_matrix()`](https://bastienchassagnol.github.io/DeCovarT/reference/generate_mean_signature_matrix.md)
+  realises a target cosine Gram via the symmetric square root
+  (=s,QR^{1/2})
+  ([`equicorrelation_gram()`](https://bastienchassagnol.github.io/DeCovarT/reference/equicorrelation_gram.md)
+  or `target_gram`). Pairwise cosines match (R) exactly; the previous
+  shared-plus-private blend is documented as an appendix construction
+  that does not hit () at finite (J).
+
+- **Identifiability.** Full column rank of () is sufficient but not
+  necessary: identical means remain identifiable when the cell-type
+  covariances differ. The article and MLE vignette now state injectivity
+  of (p(p,(p))).
+
+- **Benchmark metrics and sample-level parallelism.**
+  [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)
+  now returns a three-block list: composition / regression scores
+  (global TV, RMSE, angular distance, SDID, MaxAE; cell-type Pearson,
+  presence F1, and false-positive mass), ADEMP Monte Carlo summaries,
+  and optimisation / runtime diagnostics (simplex KKT residual,
+  numerical versus theoretical convergence, per-sample elapsed time, and
+  `ps` PSS memory). Coverage of the Monte Carlo coverage *rate* uses a
+  Wilson interval by default
+  ([`coverage_mc_interval()`](https://bastienchassagnol.github.io/DeCovarT/reference/coverage_mc_interval.md);
+  Wald and Agresti–Coull optional).
+  [`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.md)
+  also returns `theta_true` (the convolution parameters), `descriptors`
+  / `supplementary` from
+  [`describe_simulation_scenario()`](https://bastienchassagnol.github.io/DeCovarT/reference/describe_simulation_scenario.md),
+  and `call` ([`match.call()`](https://rdrr.io/r/base/match.call.html)).
+  MixSim `BarOmega` and averaged pairwise Hellinger are kept in
+  `descriptors`; Jeffreys overlap is supplementary.
+  [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)
+  iterates bulk columns with `furrr` when `cores > 1`, using
+  L’Ecuyer-CMRG streams (`furrr_options(seed = TRUE)`). Scenario rows
+  are sequential, so workers are never nested. There is no composite
+  global score.
+
+- **Structure-aware covariance backends.** New
+  [`new_decovart_covariance()`](https://bastienchassagnol.github.io/DeCovarT/reference/new_decovart_covariance.md)
+  wraps with a declared `structure` (`"dense"`, `"block"`, `"band"`,
+  `"sparse"`, `"diag_lowrank"`) and exposes operators
+  [`sigma_logdet()`](https://bastienchassagnol.github.io/DeCovarT/reference/sigma_logdet.md),
+  [`sigma_solve()`](https://bastienchassagnol.github.io/DeCovarT/reference/sigma_solve.md),
+  [`sigma_quadform()`](https://bastienchassagnol.github.io/DeCovarT/reference/sigma_quadform.md)
+  and
+  [`sigma_trace_precision_times()`](https://bastienchassagnol.github.io/DeCovarT/reference/sigma_trace_precision_times.md)
+  that return the log-determinant and solves without materialising a
+  dense precision. Block Cholesky (disconnected modules / stochastic
+  block model), banded Cholesky (band / AR), sparse Cholesky with a
+  cached symbolic ordering (Erdős–Rényi, scale-free, small-world), and
+  the Woodbury / matrix-determinant-lemma path for
+  diagonal-plus-low-rank covariances (shared regulatory programs;
+  `Sigma = W W^T + Psi`) each match the dense default to machine
+  precision.
+  [`covariance_structure_from_graph_model()`](https://bastienchassagnol.github.io/DeCovarT/reference/covariance_structure_from_graph_model.md)
+  maps a network topology to the recommended backend, and
+  [`.sigma_p_factorisation()`](https://bastienchassagnol.github.io/DeCovarT/reference/dot-sigma_p_factorisation.md)
+  gains an optional `backend` argument. Band and sparse backends use the
+  imported `Matrix` package. See the new “Structure-aware covariance
+  backends” section of
+  [`vignette("theory-decovart-generative-model")`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.md)
+  and `scripts/supp_S2_covariance_inversion.R`.
+
 ## DeCovarT 2.3.1
 
 - **CRAN resubmission.** Tests no longer write under the package tree.
@@ -76,8 +200,7 @@
   `exp(rho) / sum(exp(rho))`, which overflowed to `NaN` for and could
   make non-factorisable when the MLE approached a simplex face.
 
-- **New vignette**
-  [`vignette("DeCovarT-MLE-properties")`](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.md):
+- **New vignette** `vignette("DeCovarT-MLE-properties")`:
   identifiability, existence, failure of uniqueness for one observed
   sample, population consistency through the Kullback–Leibler divergence
   and the Fisher information metric, affine (but not logarithmic)
@@ -138,10 +261,10 @@
 - **Release** aligned with the GitHub `v2.0.0` tag and the first CRAN
   submission, focused on numerical stability and optimiser cost in
   `R/03_03_DeCovarT_estimate_ratios_frequentist.R` (documented in
-  [`vignette("generative-model-derivatives")`](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.md),
-  section *Numerical speed-ups and solver safeguards*). The CRAN tarball
-  ships the use-cases and softmax/ALR vignettes; remaining articles stay
-  on the pkgdown site.
+  `vignette("generative-model-derivatives")`, section *Numerical
+  speed-ups and solver safeguards*). The CRAN tarball ships the
+  use-cases and softmax/ALR vignettes; remaining articles stay on the
+  pkgdown site.
 
 - **Newton–Raphson evaluation budget.** Removed an erroneous
   `eval.max = 1` control passed to
@@ -190,8 +313,8 @@
   numerical / finite-difference-only paths that could mislead
   Marquardt–Levenberg and related optimisers have been replaced by these
   verified analytic expressions (see
-  [`vignette("generative-model-derivatives")`](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.md)
-  and `tests/testthat/test-03_03_DeCovarT.R`).
+  `vignette("generative-model-derivatives")` and
+  `tests/testthat/test-03_03_DeCovarT.R`).
 
 - **Simulation framework beyond the bivariate toy.** Synthetic first-
   and second-order moments now support arbitrary gene panels (G\gg 2)
@@ -201,9 +324,9 @@
   [`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md).
   A hybrid multi-topology reference scenario (G=50, J=3) in
   `scripts/generate_random_markov_network.R` and
-  [`vignette("synthetic-scenarios")`](https://bastienchassagnol.github.io/DeCovarT/articles/synthetic-scenarios.md)
-  stresses feature selection under EE / DE / differential-modality-like
-  blocks (scDD / `muscat`-inspired taxonomy).
+  `vignette("synthetic-scenarios")` stresses feature selection under EE
+  / DE / differential-modality-like blocks (scDD / `muscat`-inspired
+  taxonomy).
 
 - Feature-selection metrics
   ([`compute_average_overlap()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_overlap.md),
@@ -212,8 +335,7 @@
   and a shared
   [`check_true_theta()`](https://bastienchassagnol.github.io/DeCovarT/reference/check_true_theta.md)
   validator complete the end-to-end simulation → pre-screen → NSGA-II
-  refinement loop documented in
-  [`vignette("feature-selection")`](https://bastienchassagnol.github.io/DeCovarT/articles/feature-selection.md).
+  refinement loop documented in `vignette("feature-selection")`.
 
 ## DeCovarT 0.1.0
 

@@ -17,6 +17,7 @@ multistart_decovart(
   n_starts = 5L,
   solver = deconvolute_ratios_Marquardt_Levenberg,
   loglik_tol = 1e-04,
+  dirichlet_alpha = 1,
   ...
 )
 ```
@@ -40,7 +41,7 @@ multistart_decovart(
 
 - n_starts:
 
-  Number of random starts (in addition to the equi-balanced start).
+  Number of Dirichlet restarts (in addition to the equi-balanced start).
 
 - solver:
 
@@ -51,6 +52,11 @@ multistart_decovart(
 
   Two starts count as reaching the same mode when their log-likelihoods
   differ by less than this amount.
+
+- dirichlet_alpha:
+
+  Concentration for those random starts (default `1`). See
+  [`starting_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/starting_simplex.md).
 
 - ...:
 

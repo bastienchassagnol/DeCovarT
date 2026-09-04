@@ -102,7 +102,7 @@ plot(x, ...)
 
   Optimiser; one of `"Marquardt-Levenberg"`, `"L-BFGS-B"`,
   `"Newton-Raphson"` (case-insensitive). These three maps already land
-  on the simplex (ALR or \\p/\sum p\\); they do **not** call
+  on the simplex (ILR or \\p/\sum p\\); they do **not** call
   [`repair_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/repair_simplex.md).
 
 - epsilon, itmax:
@@ -161,11 +161,11 @@ plot(x, ...)
 
   Confidence level \\1-\alpha\\ (default `0.95`). Wald intervals use
   asymptotic normality of the MLE with standard errors from
-  [`vcov_alr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.md)
+  [`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md)
   /
   [`expected_fisher_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.md)
   (see Details of `fit_decovart()` and of
-  [`vcov_alr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.md)):
+  [`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md)):
   \\\hat{p}\_j \pm z\_{1-\alpha/2}\\\mathrm{SE}\_j\\.
 
 ## Value
@@ -194,16 +194,17 @@ multivariate normal) is \$\$ I(\boldsymbol{p})\_{jk} =
 \boldsymbol{\mu}\_{\cdot k} + 2 p_j p_k\\ \mathrm{tr}\bigl(
 \boldsymbol{\Theta}(\boldsymbol{p})\boldsymbol{\Sigma}\_j
 \boldsymbol{\Theta}(\boldsymbol{p})\boldsymbol{\Sigma}\_k \bigr). \$\$
-Cramer–Rao gives \\\mathrm{Var}(\hat{\boldsymbol{\rho}})\succeq
-I\_{\boldsymbol{\rho}}^{-1}\\ in ALR coordinates, with
-\\I\_{\boldsymbol{\rho}} =\mathbf{J}\_{\boldsymbol{\psi}}^{\top}
+Cramer–Rao gives \\\mathrm{Var}(\hat{\boldsymbol{z}})\succeq
+I\_{\boldsymbol{z}}^{-1}\\ in ILR coordinates, with
+\\I\_{\boldsymbol{z}} =\mathbf{J}\_{\boldsymbol{\psi}}^{\top}
 I(\boldsymbol{p}) \mathbf{J}\_{\boldsymbol{\psi}}\\ and
 \\\mathbf{J}\_{\boldsymbol{\psi}}
-=\partial\boldsymbol{\psi}/\partial\boldsymbol{\rho}^{\top}\\
-([`jacobian_additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/jacobian_additive_logistic.md)).
+=\mathbf{S}(\boldsymbol{p})\mathbf{V}\\
+([`jacobian_isometric_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/jacobian_isometric_logistic.md)).
 The delta method maps the bound back to the simplex: \$\$
 \mathrm{Var}(\hat{\boldsymbol{p}}) = \mathbf{J}\_{\boldsymbol{\psi}}
-I\_{\boldsymbol{\rho}}^{-1} \mathbf{J}\_{\boldsymbol{\psi}}^{\top}. \$\$
+I\_{\boldsymbol{z}}^{-1} \mathbf{J}\_{\boldsymbol{\psi}}^{\mathsf{T}}.
+\$\$
 
 ## References
 
@@ -217,7 +218,7 @@ Expression Profiles.” *Nature methods*, **12**.
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md),
 [`deconvolute_ratios_Marquardt_Levenberg()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md),
 [`expected_fisher_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.md),
-[`vcov_alr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.md),
+[`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md),
 `coef.decovart_fit()`, `vcov.decovart_fit()`, `confint.decovart_fit()`
 
 ## Examples

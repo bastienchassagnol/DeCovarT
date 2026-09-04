@@ -10,17 +10,15 @@ the Gaussian convolution model \$\$
 \$\$ subject to the simplex constraint
 \\\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1\\,
 \\\boldsymbol{p}\ge\mathbf{0}\\. Optimisation is performed in
-unconstrained coordinates \\\boldsymbol{\rho}\in\mathbb{R}^{J-1}\\ via
-\\\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})\\
+unconstrained ILR coordinates \\\boldsymbol{z}\in\mathbb{R}^{J-1}\\ via
+\\\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{z})\\
 (Marquardt–Levenberg default; see other methods below and
-[`vignette("generative-model-derivatives", package = "DeCovarT")`](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.md)).
+[`vignette("theory-decovart-generative-model", package = "DeCovarT")`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.md)).
 
 ## Usage
 
 ``` r
 deconvolute_ratios_cibersort(y, mean_signature_matrix)
-
-deconvolute_ratios_lsfit(y, mean_signature_matrix)
 
 deconvolute_ratios_rlm(y, mean_signature_matrix)
 
@@ -35,7 +33,8 @@ deconvolute_ratios_Marquardt_Levenberg(
   epsilon = 10^-4,
   itmax = 200,
   return_model = FALSE,
-  initial_p = NULL
+  initial_p = NULL,
+  dirichlet_alpha = 1
 )
 
 deconvolute_ratios_simulated_annealing(
@@ -44,7 +43,8 @@ deconvolute_ratios_simulated_annealing(
   Sigma,
   epsilon = 10^-4,
   itmax = 200,
-  initial_p = NULL
+  initial_p = NULL,
+  dirichlet_alpha = 1
 )
 
 deconvolute_ratios_L_BFGS_B(
@@ -54,7 +54,8 @@ deconvolute_ratios_L_BFGS_B(
   epsilon = 10^-4,
   itmax = 200,
   return_model = FALSE,
-  initial_p = NULL
+  initial_p = NULL,
+  dirichlet_alpha = 1
 )
 
 deconvolute_ratios_Newton_Raphson(
@@ -64,7 +65,8 @@ deconvolute_ratios_Newton_Raphson(
   epsilon = 10^-4,
   itmax = 200,
   return_model = FALSE,
-  initial_p = NULL
+  initial_p = NULL,
+  dirichlet_alpha = 1
 )
 
 deconvolute_ratios_gradient_descent(
@@ -73,7 +75,8 @@ deconvolute_ratios_gradient_descent(
   Sigma,
   epsilon = 10^-4,
   itmax = 200,
-  initial_p = NULL
+  initial_p = NULL,
+  dirichlet_alpha = 1
 )
 ```
 
@@ -102,21 +105,31 @@ deconvolute_ratios_gradient_descent(
 
 - return_model:
 
-  If `TRUE`, return a named list with coefficients, ALR coordinates,
+  If `TRUE`, return a named list with coefficients, ILR coordinates,
   log-likelihood and optimiser diagnostics instead of the proportion
   vector.
 
 - initial_p:
 
-  Optional starting proportions of length \\J\\. The default is the
-  equi-balanced vector \\(1/J,\ldots,1/J)\\. Starts on a simplex face
-  are nudged into the interior so the ALR map is defined (ALR methods)
-  and so L-BFGS-B does not start on a degenerate
-  \\\boldsymbol{\Sigma}(\boldsymbol{p})\\.
+  Optional start: `NULL` / `"barycentre"` (default equi-balanced), a
+  length-\\J\\ numeric vector, `"dirichlet"`, or `"qp"` (mean-only
+  simplex QP). See
+  [`starting_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/starting_simplex.md).
+  Starts on a simplex face are nudged into the interior so the ILR map
+  is defined (ILR methods) and so L-BFGS-B does not start on a
+  degenerate \\\boldsymbol{\Sigma}(\boldsymbol{p})\\.
+
+- dirichlet_alpha:
+
+  Dirichlet concentration when `initial_p = "dirichlet"` (default `1`:
+  uniform on the simplex; \\\alpha\>1\\ centre-biased; \\\alpha\<1\\
+  face-biased). Independent draws are independent restarts; use
+  [`multistart_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/multistart_decovart.md)
+  to sequence several.
 
 ## Value
 
-Named numeric vector \\\hat{\boldsymbol{p}}\\ on the simplex (ALR
+Named numeric vector \\\hat{\boldsymbol{p}}\\ on the simplex (ILR
 methods), or that list when `return_model = TRUE`. Benchmark metrics are
 computed by
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md).
@@ -135,11 +148,6 @@ recovering sample-specific latents is a Bayesian / MAP problem
   \\\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}\\ via
   nu-SVR (CIBERSORT-style); no covariance prior is used.
 
-- `deconvolute_ratios_lsfit()`: Ordinary least squares for
-  \\\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}\\
-  ([`stats::lsfit()`](https://rdrr.io/r/stats/lsfit.html)), following
-  Abbas et al. (2009) ; estimates are projected back onto the simplex.
-
 - `deconvolute_ratios_rlm()`: Robust linear model
   \\\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}\\
   ([`MASS::rlm()`](https://rdrr.io/pkg/MASS/man/rlm.html)), as in Monaco
@@ -155,8 +163,8 @@ recovering sample-specific latents is a Bayesian / MAP problem
   ([`limSolve::lsei()`](https://rdrr.io/pkg/limSolve/man/lsei.html)), in
   the spirit of `deconRNASeq`.
 
-- `deconvolute_ratios_simulated_annealing()`: Simulated annealing on
-  \\\boldsymbol{\rho}\\
+- `deconvolute_ratios_simulated_annealing()`: Simulated annealing on ILR
+  coordinates \\\boldsymbol{z}\\
   ([`stats::optim()`](https://rdrr.io/r/stats/optim.html) with
   `method = "SANN"`).
 
@@ -169,22 +177,16 @@ recovering sample-specific latents is a Bayesian / MAP problem
   clipping).
 
 - `deconvolute_ratios_Newton_Raphson()`: Newton–Raphson / `nlminb` on
-  \\\boldsymbol{\rho}\\ using analytic gradient and Hessian
+  ILR coordinates \\\boldsymbol{z}\\ using analytic gradient and Hessian
   ([`stats::nlminb()`](https://rdrr.io/r/stats/nlminb.html)).
 
 - `deconvolute_ratios_gradient_descent()`: BFGS quasi-Newton ascent on
-  \\\boldsymbol{\rho}\\
+  ILR coordinates \\\boldsymbol{z}\\
   ([`stats::optim()`](https://rdrr.io/r/stats/optim.html)
   `method = "BFGS"`).
 
 ## References
 
-Abbas AR, Wolslegel K, Seshasayee D, Modrusan Z, Clark HF (2009).
-“Deconvolution of Blood Microarray Data Identifies Cellular Activation
-Patterns in Systemic Lupus Erythematosus.” *PloS One*, **4**.
-[doi:10.1371/journal.pone.0006098](https://doi.org/10.1371/journal.pone.0006098)
-.  
-  
 Monaco G, Lee B, Xu W, Mustafah S, Hwang YY, Carré C, Burdin N, Visan L,
 Ceccarelli M, Poidinger M, Zippelius A, Pedro de Magalhães J, Larbi A
 (2019). “RNA-Seq Signatures Normalized by mRNA Abundance Allow Absolute
@@ -195,7 +197,8 @@ Deconvolution of Human Immune Cell Types.” *Cell Reports*, **26**.
 ## See also
 
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md),
-[`additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
+[`isometric_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/isometric_logistic.md),
+[`starting_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/starting_simplex.md)
 
 ## Examples
 

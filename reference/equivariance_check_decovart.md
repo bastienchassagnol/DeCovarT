@@ -68,7 +68,7 @@ A list with `perm`, `p_hat`, `p_star` (fit on the relabelled reference),
 Columns of \\\boldsymbol{\mu}\\ and matching slices of
 \\\boldsymbol{\Sigma}\_j\\ are reordered by `perm` while the *names*
 stay in the original order, matching the convention of
-[`vignette("DeCovarT-MLE-properties")`](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.md).
+[`vignette("theory-DeCovarT-MLE-properties")`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.md).
 The labelled MLE on the relabelled reference is then compared with
 \\\hat{\boldsymbol{p}}\_{\mathrm{perm}}\\.
 
@@ -101,5 +101,5 @@ colnames(mu) <- paste0("ct", 1:2)
 Sigma <- array(c(diag(3), diag(3)), dim = c(3, 3, 2))
 y <- drop(mu %*% c(0.7, 0.3))
 equivariance_check_decovart(y, mu, Sigma)$max_abs_diff
-#> [1] 0
+#> [1] 1.110223e-16
 ```

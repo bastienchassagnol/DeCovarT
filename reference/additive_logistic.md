@@ -1,13 +1,15 @@
 # Additive logistic transform (unconstrained coordinates to the simplex)
 
-Implements the reparametrisation
-\\\boldsymbol{\psi}:\boldsymbol{\rho}\mapsto\boldsymbol{p}\\ used in the
-article, sending unconstrained coordinates
-\\\boldsymbol{\rho}\in\mathbb{R}^{J-1}\\ to cellular proportions
-\\\boldsymbol{p}\in\Delta^{J-1}\\. This is the *additive logistic
-transform* of Aitchison, i.e. the inverse additive log-ratio map
-(\\\mathrm{alr}^{-1}\\), equivalently a softmax with the last category
-\\J\\ pinned as reference (\\\rho_J\equiv 0\\).
+Inverse additive log-ratio map
+\\\boldsymbol{\psi}:\boldsymbol{\rho}\mapsto\boldsymbol{p}\\ of
+Aitchison (\\\mathrm{alr}^{-1}\\): a softmax with the last category
+\\J\\ pinned as reference (\\\rho_J\equiv 0\\). Solvers and
+[`vcov.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md)
+use the isometric log-ratio chart
+[`isometric_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/isometric_logistic.md)
+instead. This ALR helper is retained for the vignette appendix and for
+reference-invariance checks against
+[`vcov_alr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.md).
 
 Recovers the unconstrained additive log-ratio coordinates
 \\\rho_j=\ln(p_j/p_J)\\ for \\j=1,\ldots,J-1\\, with the last part
@@ -16,7 +18,7 @@ Recovers the unconstrained additive log-ratio coordinates
 with reference category \\J\\ (see
 [`compositions::alr()`](https://rdrr.io/pkg/compositions/man/alr.html)
 and
-[`vignette("generative-model-derivatives", package = "DeCovarT")`](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.md)).
+[`vignette("theory-decovart-generative-model", package = "DeCovarT")`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.md)).
 
 ## Usage
 
@@ -55,7 +57,7 @@ p_j=\frac{\mathrm{e}^{\rho_j}}{A}\quad(j\<J),\qquad p_J=\frac{1}{A}.
 \\\boldsymbol{\psi}(\boldsymbol{\rho})\propto
 (\mathrm{e}^{\rho_1},\ldots,\mathrm{e}^{\rho\_{J-1}},1)^{\mathsf{T}}\\.
 Jacobians and Hessians of both maps are derived in the package vignette
-[`vignette("generative-model-derivatives", package = "DeCovarT")`](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.md).
+[`vignette("theory-decovart-generative-model", package = "DeCovarT")`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.md).
 See also
 [`compositions::alrInv()`](https://rdrr.io/pkg/compositions/man/alr.html).
 

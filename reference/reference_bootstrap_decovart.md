@@ -122,7 +122,7 @@ gene-wise pairing of bulk and reference, and the second is algebraic
 equivariance rather than a source of uncertainty (see
 [`equivariance_check_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/equivariance_check_decovart.md)
 and
-[`vignette("DeCovarT-MLE-properties")`](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.md)).
+[`vignette("theory-DeCovarT-MLE-properties")`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.md)).
 The three `method` options instead resample units that actually vary.
 
 - `donors`:
@@ -204,6 +204,6 @@ reference_bootstrap_decovart(
   n_boot = 15
 )$interval
 #>          2.5%     97.5%
-#> ct1 0.6016023 0.6234908
-#> ct2 0.3765092 0.3983977
+#> ct1 0.6016025 0.6234909
+#> ct2 0.3765091 0.3983975
 ```

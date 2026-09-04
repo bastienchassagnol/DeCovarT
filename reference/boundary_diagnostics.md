@@ -5,7 +5,7 @@ solver stopped, the iterate is genuinely stationary with the right local
 curvature, and the estimate sits close to a simplex face. None of them
 implies global uniqueness, which the DeCovarT log-likelihood does not
 have for a single observed sample (see
-[`vignette("DeCovarT-MLE-properties")`](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.md)).
+[`vignette("theory-DeCovarT-MLE-properties")`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.md)).
 
 ## Usage
 
@@ -48,7 +48,7 @@ boundary_diagnostics(
 
 - score_tol:
 
-  Threshold on the ALR score norm below which the iterate counts as
+  Threshold on the ILR score norm below which the iterate counts as
   stationary.
 
 ## Value
@@ -57,13 +57,13 @@ A one-row data frame of diagnostics.
 
 ## Details
 
-Reported fields are the ALR score norm
-\\\lVert\nabla\_{\boldsymbol{\rho}}\ell\rVert\\, the largest eigenvalue
-\\\lambda\_{\max}(\mathbf{H}\_{\boldsymbol{\rho}})\\ (negative at a
-local maximum), `boundary_distance` \\=\min_j\hat{p}\_j\\, and the flags
+Reported fields are the ILR score norm
+\\\lVert\nabla\_{\boldsymbol{z}}\ell\rVert\\, the largest eigenvalue
+\\\lambda\_{\max}(\mathbf{H}\_{\boldsymbol{z}})\\ (negative at a local
+maximum), `boundary_distance` \\=\min_j\hat{p}\_j\\, and the flags
 `near_boundary` and `local_maximum`.
 
-`boundary_tol` is a **statistical** warning threshold for Wald / ALR
+`boundary_tol` is a **statistical** warning threshold for Wald / ILR
 linearisation, deliberately much larger than the machine-precision guard
 that decides whether a logarithm is representable. A fit with
 \\\min_j\hat{p}\_j\ll 1\\ is not evidence of optimiser failure: the
@@ -99,5 +99,5 @@ Sigma <- array(c(diag(3), diag(3)), dim = c(3, 3, 2))
 y <- drop(mu %*% c(0.6, 0.4))
 boundary_diagnostics(c(0.6, 0.4), y, mu, Sigma)
 #>   boundary_distance near_boundary score_norm max_eigenvalue local_maximum
-#> 1               0.4         FALSE  0.2769231      -100.2504         FALSE
+#> 1               0.4         FALSE  0.3916284      -200.5008         FALSE
 ```

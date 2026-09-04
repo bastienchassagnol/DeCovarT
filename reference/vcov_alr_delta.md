@@ -13,21 +13,20 @@ I\_{\boldsymbol{\rho}} = \mathbf{J}\_{\boldsymbol{\psi}}^{\top}
 I(\boldsymbol{p}) \mathbf{J}\_{\boldsymbol{\psi}}. \$\$ Under a regular
 large-sample regime the MLE in ALR coordinates is asymptotically normal,
 \\\hat{\boldsymbol{\rho}} \overset{a}{\sim}
-\mathcal{N}(\boldsymbol{\rho}\_{0}, I\_{\boldsymbol{\rho}}^{-1})\\
-(Cramer–Rao / asymptotic normality of MLEs; law of large numbers for the
-score). The first-order delta method then yields the simplex covariance
-used by
-[`vcov.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md)
-and the Wald standard errors in
-[`confint.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md):
-\$\$ \mathrm{Var}(\hat{\boldsymbol{p}}) \approx
+\mathcal{N}(\boldsymbol{\rho}\_{0}, I\_{\boldsymbol{\rho}}^{-1})\\. The
+first-order delta method then yields the same simplex covariance as
+[`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md)
+when both charts are transformed correctly: \$\$
+\mathrm{Var}(\hat{\boldsymbol{p}}) \approx
 \mathbf{J}\_{\boldsymbol{\psi}} I\_{\boldsymbol{\rho}}^{-1}
-\mathbf{J}\_{\boldsymbol{\psi}}^{\top}. \$\$ Diagonal square roots of
-this matrix are the asymptotic standard errors; Wald intervals at level
-\\1-\alpha\\ are \\\hat{p}\_j \pm z\_{1-\alpha/2}\\\mathrm{SE}\_j\\ with
-\\z\_{q}=\Phi^{-1}(q)\\. The construction is undefined on the simplex
-boundary (ALR chart blows up); the function then returns `NA` with a
-warning. See also <https://en.wikipedia.org/wiki/Delta_method> and
+\mathbf{J}\_{\boldsymbol{\psi}}^{\top}. \$\$ This helper is kept for
+reference-invariance checks;
+[`vcov.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md)
+uses
+[`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md).
+The construction is undefined on the simplex boundary (the ALR chart
+blows up); the function then returns `NA` with a warning. See also
+<https://en.wikipedia.org/wiki/Delta_method> and
 <https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution>.
 
 ## Usage
@@ -58,7 +57,5 @@ Symmetric \\J\times J\\ asymptotic covariance of
 
 ## See also
 
-[`expected_fisher_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.md),
-[`vcov.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md),
-[`confint.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md),
+[`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md),
 [`jacobian_additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/jacobian_additive_logistic.md)

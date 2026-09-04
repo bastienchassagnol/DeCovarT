@@ -3,15 +3,16 @@
 Builds a mean matrix \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\ and
 **cell-type-specific** second-order moments \\(\boldsymbol{\Omega}\_j,
 \boldsymbol{\Sigma}\_j=\boldsymbol{\Omega}\_j^{-1})\_{j=1}^{J}\\ under a
-graph-constrained precision model. Means follow the AutoGeneS-inspired
-cosine construction of
+graph-constrained precision model. Means realise a target Gram matrix
+via the symmetric square root of
 [`generate_mean_signature_matrix()`](https://bastienchassagnol.github.io/DeCovarT/reference/generate_mean_signature_matrix.md)
-with target pairwise cosine \\\rho\\. For each cell type, an adjacency
-is drawn from a random-graph model (or supplied), i.i.d. signed weights
-with inhibitory fraction `prop_inhibitory` form \\\boldsymbol{W}\_j\\,
-and the precision is completed by a spectral shift. Distinct cell types
-receive **independent** precision draws by default (biology rarely
-shares one network across types); pass a length-\\J\\ `graph_model` /
+(equicorrelation \\\rho\\ by default, or a full `target_gram`). For each
+cell type, an adjacency is drawn from a random-graph model (or
+supplied), i.i.d. signed weights with inhibitory fraction
+`prop_inhibitory` form \\\boldsymbol{W}\_j\\, and the precision is
+completed by a spectral shift. Distinct cell types receive
+**independent** precision draws by default (biology rarely shares one
+network across types); pass a length-\\J\\ `graph_model` /
 `graph_params` or a pre-built `adjacency` list / array for hybrid
 designs.
 
@@ -23,6 +24,8 @@ simulate_hierarchical_grn_moments(
   n_celltypes = 2L,
   mean_scale = 10,
   target_cosine = 0,
+  target_gram = NULL,
+  seed = NULL,
   precision_shift,
   precision_scale,
   prop_inhibitory = 0.5,
@@ -45,13 +48,24 @@ simulate_hierarchical_grn_moments(
 
 - mean_scale:
 
-  Positive scalar \\s\\ (centroid norms). Default `10`, as in the nine
-  factorial scenarios. Hold fixed when studying cosine / collinearity
-  alone.
+  Positive scalar \\s\\ (centroid norms). Default `10`. Hold fixed when
+  studying cosine / collinearity alone.
 
 - target_cosine:
 
-  Numeric in \\\[0,1\]\\, the collinearity dial \\\rho\\.
+  Numeric pairwise cosine \\\rho\\ for the equicorrelation Gram. Ignored
+  when `target_gram` is supplied. Must lie in \\\[-1/(J-1),1\]\\.
+
+- target_gram:
+
+  Optional symmetric \\J\times J\\ cosine matrix (unit diagonal).
+  Overrides `target_cosine`.
+
+- seed:
+
+  Optional integer. When supplied, the orthonormal frame
+  \\\boldsymbol{Q}\\ is drawn from a Gaussian QR; otherwise it is
+  deterministic.
 
 - precision_shift:
 
@@ -120,7 +134,7 @@ moments <- simulate_hierarchical_grn_moments(
 )
 str(moments, max.level = 2)
 #> List of 5
-#>  $ mean_profiles      : num [1:40, 1:3] 2.61 2.61 2.61 2.61 2.61 ...
+#>  $ mean_profiles      : num [1:40, 1:3] -6.859 -0.264 -0.425 -1.193 -1.193 ...
 #>   ..- attr(*, "dimnames")=List of 2
 #>  $ covariance_matrices: num [1:40, 1:40, 1:3] 1.809 -1.376 -0.62 -0.372 -0.535 ...
 #>   ..- attr(*, "dimnames")=List of 3
@@ -134,6 +148,6 @@ str(moments, max.level = 2)
 #>   ..$ normalised_precision: num [1:40, 1:40, 1:3] 0.967 0.3 0 0 0 ...
 #>   .. ..- attr(*, "dimnames")=List of 3
 #>  $ objectives         :List of 2
-#>   ..$ mean_abs_cosine       : num 0.332
-#>   ..$ sum_euclidean_distance: num 34.7
+#>   ..$ mean_abs_cosine       : num 0.1
+#>   ..$ sum_euclidean_distance: num 40.2
 ```

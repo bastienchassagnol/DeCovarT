@@ -9,10 +9,13 @@ and
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)).
 Each row of `scenario_config` describes one generative model
 (\\\boldsymbol{\mu}\\, \\(\boldsymbol{\Sigma}\_j)\_j\\,
-\\\boldsymbol{p}\\) stored in a list column `true_theta`. Scenario
-builders (factorial grids, overlap summaries, etc.) should live in
-analysis scripts; see `scripts/configure_bivariate_toy_scenarios.R` and
-the manuscript scenario vignettes.
+\\\boldsymbol{p}\\) stored in a list column `true_theta`. Scenario rows
+are always evaluated **sequentially** to avoid nested parallelism;
+sample-level workers live only in
+[`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md).
+Scenario builders (factorial grids, overlap summaries, etc.) should live
+in analysis scripts; see `scripts/fig02_bivariate_toy.R` and the
+paper-scenario vignettes.
 
 ## Usage
 
@@ -23,9 +26,8 @@ run_simulation_benchmark(
   n = 200,
   standardise = FALSE,
   scaled = FALSE,
-  cores = NULL,
-  parallel_scenarios = FALSE,
-  parallel_cores = NULL
+  cores = 1L,
+  coverage_interval = "wilson"
 )
 ```
 
@@ -58,33 +60,49 @@ run_simulation_benchmark(
 
   Workers for the per-sample loop inside
   [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md).
-  When `parallel_scenarios = TRUE`, defaults to `1` to avoid nested
-  parallelism. Otherwise defaults to half of detected cores (at most
-  \\\lfloor C/2\rfloor\\).
+  Defaults to `1L`.
 
-- parallel_scenarios:
+- coverage_interval:
 
-  If `TRUE`, parallelise across scenario rows with `furrr` (optional
-  Suggests `furrr` and `future`). Defaults to `FALSE`.
-
-- parallel_cores:
-
-  Maximum workers for scenario-level parallelism; defaults to half of
-  detected cores.
+  Coverage interval for the Monte Carlo coverage *rate*; see
+  [`coverage_mc_interval()`](https://bastienchassagnol.github.io/DeCovarT/reference/coverage_mc_interval.md).
 
 ## Value
 
 A list with:
 
-- `simulations`: tibble of per-sample estimates and metrics;
+- `regression`: `global` (per-sample composition scores) and `cell_type`
+  (across-sample Pearson / F1 / spillover);
 
-- `config`: tibble of scenario metadata (one row per scenario).
+- `monte_carlo`: ADEMP summaries per cell type;
+
+- `optimisation`: per-sample elapsed time, memory, KKT residual, and
+  \\\hat{\boldsymbol{p}}\\;
+
+- `config`: tibble of scenario metadata (one row per scenario);
+
+- `theta_true`: list of convolution parameters (\\\boldsymbol{p}\\,
+  \\\boldsymbol{\mu}\\, \\\boldsymbol{\Sigma}\_j\\) actually used to
+  draw the bulk;
+
+- `descriptors`: kept scenario statistics (composition, mean, SPD,
+  network, tangent Fisher, MixSim BarOmega, pairwise Hellinger);
+
+- `supplementary`: Jeffreys overlap, recorded separately;
+
+- `call`: the matched call
+  ([`match.call()`](https://rdrr.io/r/base/match.call.html)). There is
+  no composite global score: each metric answers a different question.
 
 ## See also
 
 [`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md),
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md),
-[`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)
+[`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md),
+[`describe_simulation_scenario()`](https://bastienchassagnol.github.io/DeCovarT/reference/describe_simulation_scenario.md),
+[`coverage_mc_interval()`](https://bastienchassagnol.github.io/DeCovarT/reference/coverage_mc_interval.md),
+[`plot_mc_raincloud()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_raincloud.md),
+[`plot_mc_forest()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_forest.md)
 
 ## Examples
 
@@ -114,6 +132,6 @@ out <- run_simulation_benchmark(
   n = 2,
   cores = 1
 )
-nrow(out$simulations)
+nrow(out$optimisation)
 #> [1] 2
 ```

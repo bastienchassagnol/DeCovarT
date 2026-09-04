@@ -1,30 +1,17 @@
-# Generate mean profiles with a target pairwise cosine
+# Generate mean profiles from a target Gram matrix
 
-Builds \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\ by blending a
-shared unit direction \\\boldsymbol{u}\\ with cell-type-private
-orthogonal marker directions \\\boldsymbol{v}\_{j}\\: \$\$
-\tilde{\boldsymbol{\mu}}\_{\cdot j} = \sqrt{\rho}\\\boldsymbol{u}
-+\sqrt{1-\rho}\\\boldsymbol{v}\_{j}, \qquad \boldsymbol{\mu}\_{\cdot j}
-= s\\ \frac{\tilde{\boldsymbol{\mu}}\_{\cdot j}}{
-\\\tilde{\boldsymbol{\mu}}\_{\cdot j}\\\_2 }. \$\$ The private vectors
-\\\boldsymbol{v}\_{j}\\ are indicator directions on a partition of the
-\\G\\ genes (type \\j\\ only) and then \\\ell_2\\-normalised, so
-\\\boldsymbol{v}\_{j}^{\mathsf{T}}\boldsymbol{v}\_{k}=0\\ for \\j\neq
-k\\. With a shared unit \\\boldsymbol{u}\\, \$\$
-\tilde{\boldsymbol{\mu}}\_{\cdot j}^{\mathsf{T}}
-\tilde{\boldsymbol{\mu}}\_{\cdot k} = \rho + \sqrt{\rho(1-\rho)}\\
-\bigl( \boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}\_{j} +
-\boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}\_{k} \bigr) \qquad (j\neq k).
-\$\$ After column normalisation the pairwise cosines of
-\\\boldsymbol{\mu}\\ therefore track \\\rho\\ closely when the cross
-terms \\\boldsymbol{u}^{\mathsf{T}}\boldsymbol{v}\_{j}\\ are small
-relative to the leading \\\rho\\ (many genes per block). The global
-scale \\s\\ sets column norms (and hence Euclidean separation) without
-changing angles: for fixed \\\rho\\, \\\\\boldsymbol{\mu}\_{\cdot
-j}-\boldsymbol{\mu}\_{\cdot k}\\\_2 \propto s\\. Prefer dialling
-\\\rho\\ when second-order precision weights already control interaction
-strength; keep \\s\\ fixed across scenarios that compare mean
-collinearity alone (Aliee and Theis 2021) .
+Builds \\\boldsymbol{\mu}\in\mathcal{M}\_{G\times J}\\ whose *unit*
+columns realise a prescribed Gram matrix \\R\\ (pairwise cosines) via
+the symmetric square root, \$\$ \boldsymbol{\mu} = s\\ \boldsymbol{Q}
+R^{1/2}, \qquad
+\boldsymbol{Q}^{\mathsf{T}}\boldsymbol{Q}=\boldsymbol{I}\_{J}. \$\$ Then
+\\\boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu}=s^{2}R\\ whenever \\R\\
+has unit diagonal. The default \\R\\ is the equicorrelation matrix
+\\(1-\rho)I+\rho\mathbf{1}\mathbf{1}^{\mathsf{T}}\\
+([`equicorrelation_gram()`](https://bastienchassagnol.github.io/DeCovarT/reference/equicorrelation_gram.md)).
+Supply `target_gram` to set unequal pairwise cosines (for example two
+close pairs and a distant background), provided \\R\\ is symmetric
+nonnegative-definite.
 
 ## Usage
 
@@ -34,6 +21,8 @@ generate_mean_signature_matrix(
   n_celltypes,
   mean_scale = 10,
   target_cosine = 0,
+  target_gram = NULL,
+  seed = NULL,
   gene_names = NULL,
   celltype_names = NULL
 )
@@ -51,13 +40,24 @@ generate_mean_signature_matrix(
 
 - mean_scale:
 
-  Positive scalar \\s\\ (centroid norms). Default `10`, as in the nine
-  factorial scenarios. Hold fixed when studying cosine / collinearity
-  alone.
+  Positive scalar \\s\\ (centroid norms). Default `10`. Hold fixed when
+  studying cosine / collinearity alone.
 
 - target_cosine:
 
-  Numeric in \\\[0,1\]\\, the collinearity dial \\\rho\\.
+  Numeric pairwise cosine \\\rho\\ for the equicorrelation Gram. Ignored
+  when `target_gram` is supplied. Must lie in \\\[-1/(J-1),1\]\\.
+
+- target_gram:
+
+  Optional symmetric \\J\times J\\ cosine matrix (unit diagonal).
+  Overrides `target_cosine`.
+
+- seed:
+
+  Optional integer. When supplied, the orthonormal frame
+  \\\boldsymbol{Q}\\ is drawn from a Gaussian QR; otherwise it is
+  deterministic.
 
 - gene_names:
 
@@ -73,18 +73,13 @@ Numeric matrix \\\boldsymbol{\mu}\\ with dimensions \\G\times J\\.
 
 ## Details
 
-**Private marker blocks.** Genes are partitioned into \\J\\ nearly equal
-contiguous blocks. Type \\j\\'s private direction
-\\\boldsymbol{v}\_{j}\\ is the indicator of its block, then
-\\\ell_2\\-normalised. Distinct blocks are orthogonal, so type-specific
-signal does not leak across columns before the shared component is
-added.
-
-**Shared–private blend.** With unit shared direction
-\\\boldsymbol{u}=G^{-1/2}\mathbf{1}\\, each column is
-\\\sqrt{\rho}\\\boldsymbol{u}+\sqrt{1-\rho}\\\boldsymbol{v}\_{j}\\,
-re-normalised, then scaled by \\s\\. Thus \\\rho\\ dials collinearity
-while \\s\\ dials Euclidean separation without changing angles.
+Realisations are unique up to an orthogonal transformation of the gene
+space: replacing \\\boldsymbol{Q}\\ by \\\boldsymbol{Q}U\\ with
+\\U^{\mathsf{T}}U=\boldsymbol{I}\_{J}\\ leaves the Gram unchanged. By
+default \\\boldsymbol{Q}\\ is a deterministic thin QR frame; pass `seed`
+for a Haar-like Gaussian frame. Cholesky \\R=LL^{\mathsf{T}}\\ is an
+alternative square root used in Monte Carlo simulation; see the
+how-to-build-synthetic-scenarios vignette appendix.
 
 ## Examples
 
@@ -95,10 +90,25 @@ generate_mean_signature_matrix(
   target_cosine = 0.5
 )
 #>        celltype_1 celltype_2
-#> gene_1   5.334021   2.209424
-#> gene_2   5.334021   2.209424
-#> gene_3   5.334021   2.209424
-#> gene_4   2.209424   5.334021
-#> gene_5   2.209424   5.334021
-#> gene_6   2.209424   5.334021
+#> gene_1  -6.607061   1.260622
+#> gene_2  -2.187420  -8.163563
+#> gene_3  -3.590332  -2.818114
+#> gene_4  -3.590332  -2.818114
+#> gene_5  -3.590332  -2.818114
+#> gene_6  -3.590332  -2.818114
+k <- matrix(c(1, 0.98, 0.2, 0.98, 1, 0.2, 0.2, 0.2, 1), 3, 3)
+generate_mean_signature_matrix(
+  n_genes = 8L,
+  n_celltypes = 3L,
+  target_gram = k
+)
+#>        celltype_1 celltype_2 celltype_3
+#> gene_1 -3.7888055 -2.2171550   2.058065
+#> gene_2 -5.1519186 -6.3537691   1.730545
+#> gene_3 -0.7386983 -0.7386983  -8.784618
+#> gene_4 -3.4221926 -3.2914485  -1.766356
+#> gene_5 -3.4221926 -3.2914485  -1.766356
+#> gene_6 -3.4221926 -3.2914485  -1.766356
+#> gene_7 -3.4221926 -3.2914485  -1.766356
+#> gene_8 -3.4221926 -3.2914485  -1.766356
 ```

@@ -16,11 +16,23 @@ Gaussian convolution model.
 ### Score equations and simplex maps
 
 Analytic first- and second-order helpers for the unconstrained and
-ALR-constrained log-likelihood (Jacobian / Hessian of the additive
-logistic map; gradients and Hessians of ()). Documented for `?` / source
-inspection; see also
-[`vignette("generative-model-derivatives")`](https://bastienchassagnol.github.io/DeCovarT/articles/generative-model-derivatives.md).
+ILR-constrained log-likelihood (Helmert basis; Jacobian / Hessian of the
+isometric logistic map; gradients and Hessians of ()). Additive
+log-ratio maps are kept for the vignette appendix. Documented for `?` /
+source inspection; see also
+[`vignette("theory-decovart-generative-model")`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.md).
 
+- [`helmert_basis()`](https://bastienchassagnol.github.io/DeCovarT/reference/helmert_basis.md)
+  : Helmert contrast matrix for isometric log-ratio coordinates
+- [`isometric_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/isometric_logistic.md)
+  [`isometric_log_ratio()`](https://bastienchassagnol.github.io/DeCovarT/reference/isometric_logistic.md)
+  : Isometric logistic transform (ILR coordinates to the simplex)
+- [`jacobian_isometric_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/jacobian_isometric_logistic.md)
+  : Jacobian of the isometric logistic map
+- [`hessian_isometric_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/hessian_isometric_logistic.md)
+  : Hessian tensor of the isometric logistic map
+- [`starting_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/starting_simplex.md)
+  : Open-simplex start for ILR solvers
 - [`additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
   [`additive_log_ratio()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
   : Additive logistic transform (unconstrained coordinates to the
@@ -49,7 +61,6 @@ is
 [`fit_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md).
 
 - [`deconvolute_ratios_cibersort()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md)
-  [`deconvolute_ratios_lsfit()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md)
   [`deconvolute_ratios_rlm()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md)
   [`deconvolute_ratios_nnls()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md)
   [`deconvolute_ratios_deconrnaseq()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md)
@@ -72,16 +83,58 @@ is
   [`plot(`*`<decovart_fit>`*`)`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md)
   : Fit the DeCovarT Gaussian-convolution model
 
+### Fixed-covariance GLS competitor
+
+[`MASS::lm.gls()`](https://rdrr.io/pkg/MASS/man/lm.gls.html) wrapper
+with a known residual covariance
+([`fixed_gls_covariance()`](https://bastienchassagnol.github.io/DeCovarT/reference/fixed_gls_covariance.md)
+at a declared composition).
+
+- [`deconvolute_ratios_gls()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_gls.md)
+  : Generalised least squares with a fixed residual covariance
+- [`fixed_gls_covariance()`](https://bastienchassagnol.github.io/DeCovarT/reference/fixed_gls_covariance.md)
+  : Fixed residual covariance for a GLS competitor
+
+### Structure-aware covariance backends
+
+Factorise (()=\_j p_j^2 \_j) by exploiting declared covariance structure
+(block, band, sparse, diagonal-plus-low-rank) instead of a dense
+Cholesky. Operators return the log-determinant and solves without a
+materialised precision. See
+[`vignette("theory-decovart-generative-model")`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.md).
+
+- [`new_decovart_covariance()`](https://bastienchassagnol.github.io/DeCovarT/reference/new_decovart_covariance.md)
+  [`print(`*`<decovart_covariance>`*`)`](https://bastienchassagnol.github.io/DeCovarT/reference/new_decovart_covariance.md)
+  : Structure-aware covariance backend for
+  \\\boldsymbol{\Sigma}(\boldsymbol{p})\\
+- [`covariance_structure_from_graph_model()`](https://bastienchassagnol.github.io/DeCovarT/reference/covariance_structure_from_graph_model.md)
+  : Recommend a covariance backend from a network topology
+- [`sigma_logdet()`](https://bastienchassagnol.github.io/DeCovarT/reference/sigma_logdet.md)
+  : Log-determinant of \\\boldsymbol{\Sigma}(\boldsymbol{p})\\
+- [`sigma_solve()`](https://bastienchassagnol.github.io/DeCovarT/reference/sigma_solve.md)
+  : Precision solve
+  \\\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\mathbf{B}\\
+- [`sigma_quadform()`](https://bastienchassagnol.github.io/DeCovarT/reference/sigma_quadform.md)
+  : Mahalanobis quadratic form
+  \\\mathbf{r}^{\mathsf{T}}\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\mathbf{r}\\
+- [`sigma_trace_precision_times()`](https://bastienchassagnol.github.io/DeCovarT/reference/sigma_trace_precision_times.md)
+  : Trace of the precision times a matrix,
+  \\\operatorname{tr}(\boldsymbol{\Theta}(\boldsymbol{p})\mathbf{S})\\
+
 ### Fisher information and Wald intervals
 
-Expected Fisher information of unconstrained proportions and ALR
+Expected Fisher information of unconstrained proportions and ILR
 delta-method covariance used by
 [`vcov()`](https://rdrr.io/r/stats/vcov.html) /
 [`confint()`](https://rdrr.io/r/stats/confint.html) on `decovart_fit`
 objects (see `fit_decovart`).
+[`vcov_alr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.md)
+is retained for reference-invariance checks.
 
 - [`expected_fisher_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.md)
   : Expected Fisher information of unconstrained \\\boldsymbol{p}\\
+- [`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md)
+  : Cramer–Rao / ILR delta-method covariance of \\\hat{\boldsymbol{p}}\\
 - [`vcov_alr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.md)
   : Cramer–Rao / ALR delta-method covariance of \\\hat{\boldsymbol{p}}\\
 
@@ -92,7 +145,7 @@ Profile likelihood, likelihood-ratio tests with chi-bar-square (Chernoff
 reference-sample bootstrap (donors, cells, or Dirichlet compositions),
 and the boundary / multimodality diagnostics that a bare convergence
 code cannot provide. See
-[`vignette("DeCovarT-MLE-properties")`](https://bastienchassagnol.github.io/DeCovarT/articles/DeCovarT-MLE-properties.md).
+[`vignette("theory-DeCovarT-MLE-properties")`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.md).
 
 - [`restricted_mle_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_decovart.md)
   : Restricted maximum likelihood with fixed cellular ratios
@@ -121,11 +174,25 @@ Quality metrics for estimated proportions, and the simulation benchmark
 wrapper.
 
 - [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)
-  : Compute summary metrics for estimated proportions
+  : Compute deconvolution benchmark metrics
+- [`coverage_mc_interval()`](https://bastienchassagnol.github.io/DeCovarT/reference/coverage_mc_interval.md)
+  : Monte Carlo interval for an empirical coverage probability
 - [`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.md)
   : Simulate bulk mixtures and benchmark deconvolution algorithms
 - [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)
   : Parallel deconvolution of a bulk expression matrix
+- [`pivot_mc_estimates()`](https://bastienchassagnol.github.io/DeCovarT/reference/pivot_mc_estimates.md)
+  : Pivot Monte Carlo proportion estimates to a long table
+- [`plot_mc_raincloud()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_raincloud.md)
+  : Horizontal raincloud of Monte Carlo proportion estimates
+- [`plot_mc_forest()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_forest.md)
+  : Forest plot of ADEMP Monte Carlo summaries
+- [`algorithm_similarity()`](https://bastienchassagnol.github.io/DeCovarT/reference/algorithm_similarity.md)
+  : Algorithm-similarity correlation from a Monte Carlo benchmark
+- [`plot_algorithm_similarity()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_algorithm_similarity.md)
+  : Tile heatmap of algorithm-similarity correlations
+- [`plot_mc_metric_dots()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_metric_dots.md)
+  : Faceted dot plot of several ADEMP metrics
 - [`plot_correlation_Heatmap()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_correlation_Heatmap.md)
   : Plot deconvolution metric heatmaps
 
@@ -137,11 +204,15 @@ Simulate bulk mixtures as convolutions of multivariate Gaussians, and
 hierarchical GRN moments with graph-constrained covariances.
 
 - [`generate_mean_signature_matrix()`](https://bastienchassagnol.github.io/DeCovarT/reference/generate_mean_signature_matrix.md)
-  : Generate mean profiles with a target pairwise cosine
+  : Generate mean profiles from a target Gram matrix
+- [`equicorrelation_gram()`](https://bastienchassagnol.github.io/DeCovarT/reference/equicorrelation_gram.md)
+  : Equicorrelation (constant-correlation) Gram matrix
 - [`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md)
   : Simulate bulk mixtures from a multivariate Gaussian convolution
 - [`simulate_hierarchical_grn_moments()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_hierarchical_grn_moments.md)
   : Simulate GRN first- and second-order moments
+- [`describe_simulation_scenario()`](https://bastienchassagnol.github.io/DeCovarT/reference/describe_simulation_scenario.md)
+  : Describe a Gaussian-convolution simulation scenario
 
 ## Statistical metrics
 

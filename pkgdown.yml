@@ -2,17 +2,22 @@ pandoc: 3.8.3
 pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
-  Beyond-OLS: Beyond-OLS.html
-  DeCovarT_appendix_simualtion_frameworks: DeCovarT_appendix_simualtion_frameworks.html
-  decovart-external-resources: decovart-external-resources.html
-  DeCovarT-manuscript-scenarios: DeCovarT-manuscript-scenarios.html
-  DeCovarT-MLE-properties: DeCovarT-MLE-properties.html
-  decovart-perspectives: decovart-perspectives.html
-  feature-selection: feature-selection.html
-  generative-model-derivatives: generative-model-derivatives.html
-  network-inference: network-inference.html
-  synthetic-scenarios: synthetic-scenarios.html
-last_built: 2026-08-31T14:06Z
+  decovart-paper-slides: decovart-paper-slides.html
+  fig02-bivariate-toy: fig02-bivariate-toy.html
+  fig03-variance-driven: fig03-variance-driven.html
+  how-to-build-synthetic-scenarios-mean-covariance: how-to-build-synthetic-scenarios-mean-covariance.html
+  supp-S1-identifiability: supp-S1-identifiability.html
+  supp-S2-covariance-inversion: supp-S2-covariance-inversion.html
+  supp-S3-scaling: supp-S3-scaling.html
+  supp-S4-covariance-modeling: supp-S4-covariance-modeling.html
+  supp-S5-misspecification: supp-S5-misspecification.html
+  supp-S6-feature-selection: supp-S6-feature-selection.html
+  theory-decovart-generative-model: theory-decovart-generative-model.html
+  theory-DeCovarT-MLE-properties: theory-DeCovarT-MLE-properties.html
+  theory-decovart-statistical-perspectives: theory-decovart-statistical-perspectives.html
+  theory-network-inference: theory-network-inference.html
+  theory-related-models-beyond-OLS: theory-related-models-beyond-OLS.html
+last_built: 2026-09-04T11:12Z
 urls:
   reference: https://bastienchassagnol.github.io/DeCovarT/reference
   article: https://bastienchassagnol.github.io/DeCovarT/articles
