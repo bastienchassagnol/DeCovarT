@@ -30,7 +30,7 @@ lrt_decovart(
 \code{c(celltype_2 = 0)}.}
 
 \item{bulk_expression}{Numeric matrix \eqn{\boldsymbol{Y}\in
-  \mathcal{M}_{G\times N}} of replicate bulk profiles sharing one
+\mathcal{M}_{G\times N}} of replicate bulk profiles sharing one
 composition, used instead of \code{y} for the pooled (population) test.}
 
 \item{n_boundary}{Optional integer override for the number of active
@@ -105,15 +105,15 @@ lrt_decovart(y, mu, Sigma, null_value = c(ct3 = 0))
 \code{\link[=chi_bar_square_pvalue]{chi_bar_square_pvalue()}}, \code{\link[=confint_profile_decovart]{confint_profile_decovart()}},
 \code{\link[=bootstrap_decovart]{bootstrap_decovart()}}
 
-Other decovart_inference: 
-\code{\link{bootstrap_decovart}()},
-\code{\link{boundary_diagnostics}()},
-\code{\link{chi_bar_square_pvalue}()},
-\code{\link{confint_profile_decovart}()},
-\code{\link{equivariance_check_decovart}()},
-\code{\link{multistart_decovart}()},
-\code{\link{profile_loglik_decovart}()},
-\code{\link{reference_bootstrap_decovart}()},
-\code{\link{restricted_mle_decovart}()}
+Other decovart_inference:
+\code{\link[=bootstrap_decovart]{bootstrap_decovart()}},
+\code{\link[=boundary_diagnostics]{boundary_diagnostics()}},
+\code{\link[=chi_bar_square_pvalue]{chi_bar_square_pvalue()}},
+\code{\link[=confint_profile_decovart]{confint_profile_decovart()}},
+\code{\link[=equivariance_check_decovart]{equivariance_check_decovart()}},
+\code{\link[=multistart_decovart]{multistart_decovart()}},
+\code{\link[=profile_loglik_decovart]{profile_loglik_decovart()}},
+\code{\link[=reference_bootstrap_decovart]{reference_bootstrap_decovart()}},
+\code{\link[=restricted_mle_decovart]{restricted_mle_decovart()}}
 }
 \concept{decovart_inference}

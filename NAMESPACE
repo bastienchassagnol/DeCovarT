@@ -92,9 +92,11 @@ export(vcov_alr_delta)
 export(vcov_ilr_delta)
 importFrom(Rdpack,reprompt)
 importFrom(rlang,.data)
-importFrom(stats,coef)
-importFrom(stats,confint)
-importFrom(stats,fitted)
-importFrom(stats,nobs)
-importFrom(stats,residuals)
-importFrom(stats,vcov)
+importFrom(stats,
+  coef,
+  confint,
+  fitted,
+  nobs,
+  residuals,
+  vcov
+)

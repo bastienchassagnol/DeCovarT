@@ -52,16 +52,16 @@ profile_loglik_decovart(y, mu, Sigma, "ct3", c(0, 0.2, 0.4))
 \seealso{
 \code{\link[=lrt_decovart]{lrt_decovart()}}, \code{\link[=confint_profile_decovart]{confint_profile_decovart()}}
 
-Other decovart_inference: 
-\code{\link{bootstrap_decovart}()},
-\code{\link{boundary_diagnostics}()},
-\code{\link{chi_bar_square_pvalue}()},
-\code{\link{confint_profile_decovart}()},
-\code{\link{equivariance_check_decovart}()},
-\code{\link{lrt_decovart}()},
-\code{\link{multistart_decovart}()},
-\code{\link{reference_bootstrap_decovart}()},
-\code{\link{restricted_mle_decovart}()}
+Other decovart_inference:
+\code{\link[=bootstrap_decovart]{bootstrap_decovart()}},
+\code{\link[=boundary_diagnostics]{boundary_diagnostics()}},
+\code{\link[=chi_bar_square_pvalue]{chi_bar_square_pvalue()}},
+\code{\link[=confint_profile_decovart]{confint_profile_decovart()}},
+\code{\link[=equivariance_check_decovart]{equivariance_check_decovart()}},
+\code{\link[=lrt_decovart]{lrt_decovart()}},
+\code{\link[=multistart_decovart]{multistart_decovart()}},
+\code{\link[=reference_bootstrap_decovart]{reference_bootstrap_decovart()}},
+\code{\link[=restricted_mle_decovart]{restricted_mle_decovart()}}
 }
 \concept{decovart_inference}
 \keyword{internal}

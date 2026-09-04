@@ -52,7 +52,7 @@ Equivalently,
 (\mathrm{e}^{\rho_1},\ldots,\mathrm{e}^{\rho_{J-1}},1)^{\mathsf{T}}}.
 Jacobians and Hessians of both maps are derived in the package vignette
 \code{vignette("theory-decovart-generative-model", package = "DeCovarT")}.
-See also \code{\link[compositions:alr]{compositions::alrInv()}}.
+See also \code{\link[compositions:alrInv]{compositions::alrInv()}}.
 }
 \section{Numerical stability}{
 
