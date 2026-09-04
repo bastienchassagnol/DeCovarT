@@ -67,7 +67,7 @@ Real bulk RNA-seq violates this assumption in at least five ways:
 than NNLS because the covariance captures more of the signal geometry, but
 may be more sensitive than NNLS to heavy-tail contamination.
 
-Connection to HADACA3 [@barbotPromisesLimitsMultiomics2026]: the
+Connection to HADACA3 [@barbotPromisesLimitsMultimodal2026]: the
 `SDC5` dataset uses a copula + NB noise model; `SDE5` uses an EM-based
 noise model.  These represent the practical domain of mis-specification most
 relevant to pancreatic tumour deconvolution.
@@ -95,7 +95,7 @@ estimation.
 | Correlation strength | $\tau_K \in \{0, 0.2, 0.5\}$ |
 
 This directly mirrors the `SDC5` HADACA3 scenario
-[@barbotPromisesLimitsMultiomics2026].
+[@barbotPromisesLimitsMultimodal2026].
 
 ---
 
@@ -104,7 +104,8 @@ This directly mirrors the `SDC5` HADACA3 scenario
 1. **Gaussian-only `simulate_bulk_mixture()`**: the current package
    implementation generates bulk expression as a Gaussian mixture.
    NB/PLN data generation would require a dedicated simulator (e.g.
-   integration with `splatter` [@zappia2017] or `SymSim`).
+   integration with `splatter` [@zappiaSplatterSimulationSinglecell2017a]
+   or `SymSim`).
 
 2. **Copula sampling**: copula-correlated NB samples require either a
    dedicated `VineCopula`-based generator or the HADACA3 framework code

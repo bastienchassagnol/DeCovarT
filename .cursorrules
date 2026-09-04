@@ -758,6 +758,39 @@ unused Suggests/Imports without need.
   ([Wellcome Open Research 4:63](https://wellcomeopenresearch.org/articles/4-63);
   `\insertCite{allenRaincloudPlotsMultiplatform2019}{DeCovarT}`) in the
   roxygen.
+- **Histograms** (exploratory univariate displays, residual checks,
+  diagnostic panels — not the default for Monte Carlo \(\hat p\)
+  distributions, which stay with `plot_mc_raincloud()`). Follow
+  [Olszewski (LinkedIn)](https://lnkd.in/p/eF5abHSp)
+  and the four ggplot2 additions below. Do **not** ship a bare
+  `geom_histogram()` as a finished figure.
+  - **Rugs (`ggplot2::geom_rug()`):** tick marks for raw observations.
+    They reveal gaps and local modes that a coarse binning can hide.
+    Use only on **small** samples; on large Monte Carlo or RNA-seq
+    panels a rug clutters the axis — switch to a raincloud, a
+    subsampled rug, or omit it.
+  - **Arithmetic mean:** draw a vertical (or horizontal) reference at
+    the sample mean. If a boxplot is also present, the **mean–median
+    gap** is a quick visual of how skewness pulls the mean.
+  - **Boxplot overlay, adjusted outliers:** a boxplot on the same
+    axis supplies quartiles and the median. Do **not** flag univariate
+    outliers with the naive Tukey \(1.5 \times \mathrm{IQR}\) fence
+    when the sample is skewed. Use the **adjusted boxplot** of Hubert
+    and Vandervieren, which inflates the fence with the **medcouple**
+    robust skewness estimator
+    ([*Computational Statistics & Data Analysis* 52:5186–5201](https://doi.org/10.1016/j.csda.2007.11.008)).
+    In R that is `robustbase::adjbox()` / `adjboxStats()` (or an
+    equivalent medcouple fence), not `geom_boxplot()` defaults.
+    Do not add `robustbase` to Suggests until a package plot helper
+    actually calls it.
+  - **Name the binning rule:** always report how bin count / width
+    was chosen. Common defaults in `ggplot2::stat_bin()` /
+    `graphics::hist()` are **Sturges**, **Scott**, and
+    **Freedman–Diaconis**; none is universally best. Choose from a
+    named rule, domain knowledge (e.g. known simplex bounds), or the
+    purpose of the figure, and **state the choice** in the caption,
+    subtitle, or roxygen (e.g. `bins = "FD"`). Do not leave the
+    ggplot2 default unnamed.
 - **ADEMP performance summaries** (bias, RMSE/MAE, coverage, interval
   width, optimiser failure rate): prefer a **forest / dot-whisker**
   (`plot_mc_forest()`). Coverage whiskers are Wilson intervals for the
