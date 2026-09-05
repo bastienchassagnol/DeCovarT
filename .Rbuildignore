@@ -97,6 +97,8 @@
 ^CRAN-SUBMISSION$
 ^graphify-out$
 ^\.graphifyignore$
+# Local simulation stdout; gitignored but must not enter the tarball.
+^logs$
 # Local leftover; gitignored. Must also be Rbuildignored or R CMD check
 # reports a non-standard top-level directory.
 ^temp_

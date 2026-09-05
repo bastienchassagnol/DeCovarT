@@ -220,7 +220,7 @@ run_simulation_benchmark <- function(
   sample_verbose <- isTRUE(verbose) && n_scen <= 10L
   if (isTRUE(verbose)) {
     .ui_info(
-      "Benchmark: {.val {n_scen}} scenarios · {.val {n_algo}} algorithms · n = {.val {n}}."
+      "Benchmark: {.val {n_scen}} scenarios \u00b7 {.val {n_algo}} algorithms \u00b7 n = {.val {n}}."
     )
   }
 
@@ -251,7 +251,7 @@ run_simulation_benchmark <- function(
     if (isTRUE(verbose)) {
       label <- .ui_scenario_label(row)
       .ui_info(
-        "Scenario {.val {i}}/{.val {n_scen}} · {label} · n = {.val {n_samples}}."
+        "Scenario {.val {i}}/{.val {n_scen}} \u00b7 {label} \u00b7 n = {.val {n_samples}}."
       )
     }
     .run_one_simulation_scenario(

@@ -450,7 +450,7 @@ coverage_mc_interval <- function(
     prefix <- if (is.null(progress_label) || !nzchar(progress_label)) {
       ""
     } else {
-      paste0(progress_label, " · ")
+      paste0(progress_label, " \u00b7 ")
     }
     return(lapply(idx, function(i) {
       out <- fun(i)

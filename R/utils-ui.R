@@ -251,5 +251,5 @@
   if (!length(bits)) {
     return("unnamed scenario")
   }
-  paste(bits, collapse = " · ")
+  paste(bits, collapse = " \u00b7 ")
 }
