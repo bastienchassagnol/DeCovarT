@@ -6,18 +6,24 @@ $$
   =
   \boldsymbol{W}
   +
-  \bigl(\lvert\lambda_{\min}(\boldsymbol{W})\rvert + u\bigr)
+  \bigl(\lvert\min(0,\lambda_{\min}(\boldsymbol{W}))\rvert + u\bigr)
   \mathbf{I}.
-$$"><meta property="og:description" content="Applies a uniform spectral shift that preserves off-diagonal signs and
+$$
+The result is checked with base::chol(); if a factor still fails
+(ill-conditioned graphs), the same loading is increased until
+\(\boldsymbol{\Omega}\succ 0\) strictly."><meta property="og:description" content="Applies a uniform spectral shift that preserves off-diagonal signs and
 support:
 $$
   \boldsymbol{\Omega}
   =
   \boldsymbol{W}
   +
-  \bigl(\lvert\lambda_{\min}(\boldsymbol{W})\rvert + u\bigr)
+  \bigl(\lvert\min(0,\lambda_{\min}(\boldsymbol{W}))\rvert + u\bigr)
   \mathbf{I}.
-$$"><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
+$$
+The result is checked with base::chol(); if a factor still fails
+(ill-conditioned graphs), the same loading is increased until
+\(\boldsymbol{\Omega}\succ 0\) strictly."><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -45,7 +51,7 @@ $$"><meta property="og:image" content="https://bastienchassagnol.github.io/DeCov
     <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
-    <li><a class="dropdown-item" href="../articles/how-to-build-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
@@ -93,9 +99,12 @@ $$
   =
   \boldsymbol{W}
   +
-  \bigl(\lvert\lambda_{\min}(\boldsymbol{W})\rvert + u\bigr)
+  \bigl(\lvert\min(0,\lambda_{\min}(\boldsymbol{W}))\rvert + u\bigr)
   \mathbf{I}.
-$$</p>
+$$
+The result is checked with <code><a href="https://rdrr.io/r/base/chol.html" class="external-link">base::chol()</a></code>; if a factor still fails
+(ill-conditioned graphs), the same loading is increased until
+\(\boldsymbol{\Omega}\succ 0\) strictly.</p>
     </div>
 
     <div class="section level2">

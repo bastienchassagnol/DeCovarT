@@ -45,7 +45,7 @@ scripts/fig02_bivariate_toy.R and the paper-scenario vignettes."><meta property=
     <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
-    <li><a class="dropdown-item" href="../articles/how-to-build-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
@@ -107,7 +107,9 @@ summaries, etc.) should live in analysis scripts; see
 <span>  standardise <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  scaled <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  cores <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  coverage_interval <span class="op">=</span> <span class="st">"wilson"</span></span>
+<span>  coverage_interval <span class="op">=</span> <span class="st">"wilson"</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  progress_every <span class="op">=</span> <span class="fl">10L</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -144,6 +146,18 @@ has no <code>n</code> column.</p></dd>
 <dt id="arg-coverage-interval">coverage_interval<a class="anchor" aria-label="anchor" href="#arg-coverage-interval"></a></dt>
 <dd><p>Coverage interval for the Monte Carlo
 coverage <em>rate</em>; see <code><a href="coverage_mc_interval.html">coverage_mc_interval()</a></code>.</p></dd>
+
+
+<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
+<dd><p>If <code>TRUE</code>, print each scenario row and (when the grid
+has at most 10 scenarios) every <code>progress_every</code> inferred samples.
+Large factorial grids log one line per scenario only, so logs stay
+readable.</p></dd>
+
+
+<dt id="arg-progress-every">progress_every<a class="anchor" aria-label="anchor" href="#arg-progress-every"></a></dt>
+<dd><p>Sample-progress interval passed to
+<code><a href="deconvolute_ratios.html">deconvolute_ratios()</a></code> when <code>verbose</code> is <code>TRUE</code>. Defaults to <code>10L</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">

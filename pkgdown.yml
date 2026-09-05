@@ -5,7 +5,6 @@ articles:
   decovart-paper-slides: decovart-paper-slides.html
   fig02-bivariate-toy: fig02-bivariate-toy.html
   fig03-variance-driven: fig03-variance-driven.html
-  how-to-build-synthetic-scenarios-mean-covariance: how-to-build-synthetic-scenarios-mean-covariance.html
   supp-S1-identifiability: supp-S1-identifiability.html
   supp-S2-covariance-inversion: supp-S2-covariance-inversion.html
   supp-S3-scaling: supp-S3-scaling.html
@@ -17,7 +16,8 @@ articles:
   theory-decovart-statistical-perspectives: theory-decovart-statistical-perspectives.html
   theory-network-inference: theory-network-inference.html
   theory-related-models-beyond-OLS: theory-related-models-beyond-OLS.html
-last_built: 2026-09-04T13:06Z
+  theory-synthetic-scenarios-mean-covariance: theory-synthetic-scenarios-mean-covariance.html
+last_built: 2026-09-05T15:28Z
 urls:
   reference: https://bastienchassagnol.github.io/DeCovarT/reference
   article: https://bastienchassagnol.github.io/DeCovarT/articles

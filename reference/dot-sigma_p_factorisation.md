@@ -7,9 +7,8 @@ and factorises it once via
 itself together with its Cholesky factor, log-determinant (via the
 factor's diagonal, not
 [`base::det()`](https://rdrr.io/r/base/det.html)), and inverse (via
-[`base::chol2inv()`](https://rdrr.io/r/base/chol2inv.html), which reuses
-the factor rather than an independent
-[`base::solve()`](https://rdrr.io/r/base/solve.html)).
+[`qr.solve()`](https://rdrr.io/r/base/qr.html) after a uniform spectral
+shift if the mixture is not numerically SPD).
 
 ## Usage
 

@@ -53,7 +53,7 @@
     <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
-    <li><a class="dropdown-item" href="../articles/how-to-build-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
@@ -98,7 +98,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>§2.2 Variance-driven hybrid scenario (G = 50, J = 3)</h1>
       <p class="subtitle">Full script: <code>scripts/fig03_variance_driven.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-09-04</p>
+      <p class="date">2026-09-05</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/fig03-variance-driven.qmd" class="external-link"><code>vignettes/fig03-variance-driven.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -113,78 +113,32 @@
 <div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">DeCovarT</a></span><span class="op">)</span></span></code></pre></div>
 </div>
-<p>The bivariate toy confirms the theoretical benefit of covariance modelling in a transparent setting but cannot demonstrate realistic gene-regulatory network (GRN) topology. This scenario uses <span class="math inline">G = 50</span> genes and <span class="math inline">J = 3</span> cell types in which types 1 and 2 are <strong>near mean-collinear</strong> (<span class="math inline">\rho_{12} \approx 0.97</span>): the network topology encoded in <span class="math inline">\boldsymbol{\Sigma}_j</span> is the discriminative signal. Construction, ADEMP benchmark, and the static network figure live in a <strong>single</strong> script, <code>scripts/fig03_variance_driven.R</code> (seed <code>20260807</code>).</p>
+<p>The bivariate toy confirms the theoretical benefit of covariance modelling in a transparent setting but cannot demonstrate realistic gene-regulatory network (GRN) topology. This scenario uses <span class="math inline">G = 50</span> genes and <span class="math inline">J = 3</span> cell types in which types 1 and 2 are <strong>mean-collinear</strong> (<span class="math inline">\cos(\boldsymbol{\mu}_{\cdot 1},\boldsymbol{\mu}_{\cdot 2})=0.9</span>): the network topology encoded in <span class="math inline">\boldsymbol{\Sigma}_j</span> is the remaining discriminative signal. Construction, ADEMP benchmark, and the static network figure live in a <strong>single</strong> script, <code>scripts/fig03_variance_driven.R</code> (seed <code>20260807</code>).</p>
 <blockquote>
-<p><strong>Script:</strong> <code>Rscript scripts/fig03_variance_driven.R</code> (full, <span class="math inline">n = 200</span>) or <code>N_REPLICATES=2 Rscript scripts/fig03_variance_driven.R</code> (smoke). Moments: <code>data/synthetic_networks/true_grn_moments.rds</code>. Figures: <code>output/fig03/</code>. ADEMP reporting: <a href="how-to-build-synthetic-scenarios-mean-covariance.html#sec-ademp">how to build synthetic scenarios</a>.</p>
+<p><strong>Script:</strong> <code>Rscript scripts/fig03_variance_driven.R</code> (full, <span class="math inline">n = 50</span>) or <code>N_REPLICATES=2 Rscript scripts/fig03_variance_driven.R</code> (smoke). Figures: <code>output/fig03/</code>. ADEMP reporting: <a href="theory-synthetic-scenarios-mean-covariance.html#sec-ademp">how to build synthetic scenarios</a>. Scenario geometry: <a href="theory-synthetic-scenarios-mean-covariance.html#sec-scenario-descriptors">scenario descriptors</a>.</p>
 </blockquote>
 <section class="section level2"><h2 id="sec-scenario-grid">Generative model<a class="anchor" aria-label="anchor" href="#sec-scenario-grid"></a>
 </h2>
-<p>Types 1 and 2 share a high local cosine on 30 genes and differ only through <span class="math inline">\boldsymbol{\Omega}</span>; type 3 has a compact marker block; 10 genes are a null (<code>equal_all</code>) block.</p>
-<p><span class="math display">
-\underbrace{\mathcal{G}_{12}}_{30\text{ genes}}
-\ \cup\
-\underbrace{\mathcal{G}_{3}}_{10\text{ genes}}
-\ \cup\
-\underbrace{\mathcal{G}_{\mathrm{eq}}}_{10\text{ genes}},
-\qquad
-\boldsymbol{\Omega}_j
+<p>One fixed mean signature <span class="math inline">\boldsymbol{\mu}\in\mathbb{R}^{G\times J}</span> is built with <code><a href="../reference/generate_mean_signature_matrix.html">generate_mean_signature_matrix()</a></code> and an explicit Gram <code>target_gram</code> (<a href="theory-synthetic-scenarios-mean-covariance.html#sec-lr-block-mu">mean signature construction</a>). There is no marker block and no null (<code>equal_all</code>) block: uninformative genes would be removed before deconvolution.</p>
+<p><span id="eq-fig03-gram"><span class="math display">
+R
 =
-\mathrm{blockdiag}\bigl(
-  \boldsymbol{\Omega}_j^{(\mathcal{G}_{12})},\,
-  \boldsymbol{\Omega}_j^{(\mathcal{G}_{3})},\,
-  \boldsymbol{\Omega}_j^{(\mathcal{G}_{\mathrm{eq}})}
-\bigr).
-</span></p>
-<p><span class="math inline">\boldsymbol{\mu}</span> uses two calls to <code><a href="../reference/generate_mean_signature_matrix.html">generate_mean_signature_matrix()</a></code> (<a href="how-to-build-synthetic-scenarios-mean-covariance.html#sec-lr-block-mu">mean signature construction</a>): <span class="math inline">\rho_{12}=0.95</span> on <span class="math inline">\mathcal{G}_{12}</span>, then <span class="math inline">\rho_{3}=0.05</span> on a marker pool for type 3. Local topologies follow the BLGGM two-scale pattern (<a href="#tbl-hybrid-topology-design" class="quarto-xref">Table 1</a>; <a href="how-to-build-synthetic-scenarios-mean-covariance.html#sec-ggm-networks">GGM networks</a>).</p>
-<div id="tbl-hybrid-topology-design" class="quarto-float quarto-figure quarto-figure-center">
-<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-hybrid-topology-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 1: Local topology per (gene block, cell type); block-diagonal precision support.
-</figcaption><div aria-describedby="tbl-hybrid-topology-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="table caption-top">
-<colgroup>
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 20%">
-</colgroup>
-<thead><tr class="header">
-<th>Gene block</th>
-<th># genes</th>
-<th>Cell type 1</th>
-<th>Cell type 2</th>
-<th>Cell type 3</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td><code>shared_12_vs_3</code></td>
-<td>30</td>
-<td>SBM (hub-like modules)</td>
-<td>star (one driver)</td>
-<td>Erdős–Rényi</td>
-</tr>
-<tr class="even">
-<td><code>marker_3</code></td>
-<td>10</td>
-<td>Erdős–Rényi</td>
-<td>Erdős–Rényi</td>
-<td>scale-free</td>
-</tr>
-<tr class="odd">
-<td><code>equal_all</code></td>
-<td>10</td>
-<td>Erdős–Rényi</td>
-<td>Erdős–Rényi</td>
-<td>Erdős–Rényi</td>
-</tr>
-</tbody>
-</table>
-</div>
-</figure>
-</div>
+\begin{pmatrix}
+1 &amp; 0.9 &amp; 0.1 \\
+0.9 &amp; 1 &amp; 0.1 \\
+0.1 &amp; 0.1 &amp; 1
+\end{pmatrix},
+\qquad
+\boldsymbol{\mu}
+=
+s\mathbf{Q}R^{1/2},
+\quad s=10.
+\tag{1}</span></span></p>
+<p>Because <span class="math inline">\mathbf{Q}^{\mathsf{T}}\mathbf{Q}=\mathbf{I}_J</span>, the pairwise cosines of the columns of <span class="math inline">\boldsymbol{\mu}</span> equal <span class="math inline">R</span> exactly (up to rounding). Euclidean gaps follow <span class="math inline">\lVert\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\rVert
+=s\sqrt{2(1-R_{jk})}</span>. The call uses <code>nonnegative = TRUE</code> (disjoint gene-block frame) so that <span class="math inline">\boldsymbol{\mu}\ge 0</span>, as required by <code><a href="../reference/deconvolute_ratios.html">deconvolute_ratios()</a></code>.</p>
 <div id="tbl-mean-geometry" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-mean-geometry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 2: Realised pairwise geometry of the <span class="math inline">50\times 3</span> mean signature (seed 20260807).
+Table 1: Exact pairwise geometry of the <span class="math inline">50\times 3</span> mean signature (<code>target_gram</code>, <code>mean_scale</code> <span class="math inline">=10</span>).
 </figcaption><div aria-describedby="tbl-mean-geometry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table caption-top">
 <thead><tr class="header">
@@ -195,96 +149,64 @@ Table 2: Realised pairwise geometry of the <span class="math inline">50\times 3
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">celltype_1 vs celltype_2</td>
-<td style="text-align: right;">0.973</td>
-<td style="text-align: right;">2.765</td>
+<td style="text-align: right;">0.9</td>
+<td style="text-align: right;"><span class="math inline">10\sqrt{0.2}\approx 4.472</span></td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">celltype_1 vs celltype_3</td>
-<td style="text-align: right;">0.562</td>
-<td style="text-align: right;">11.219</td>
+<td style="text-align: right;">0.1</td>
+<td style="text-align: right;"><span class="math inline">10\sqrt{1.8}\approx 13.416</span></td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">celltype_2 vs celltype_3</td>
-<td style="text-align: right;">0.562</td>
-<td style="text-align: right;">11.219</td>
+<td style="text-align: right;">0.1</td>
+<td style="text-align: right;"><span class="math inline">10\sqrt{1.8}\approx 13.416</span></td>
 </tr>
 </tbody>
 </table>
 </div>
 </figure>
 </div>
-<div id="tbl-topology-diagnostics" class="quarto-float quarto-figure quarto-figure-center">
-<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-topology-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 3: Precision spectra of each cell type’s <span class="math inline">\boldsymbol{\Omega}_j</span> (seed 20260807).
-</figcaption><div aria-describedby="tbl-topology-diagnostics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<p>Each cell type independently draws an undirected skeleton from one of three generators (<code>stochastic_block_model</code>, <code>erdos_renyi</code>, <code>hub</code> / star), then completes a signed precision with <code><a href="../reference/build_normalised_precision.html">build_normalised_precision()</a></code> (<a href="theory-synthetic-scenarios-mean-covariance.html#sec-ggm-networks">GGM networks</a>). The spectral cushion <span class="math inline">u</span> (<code>precision_shift</code>) sets <span class="math inline">\lambda_{\min}(\boldsymbol{\Omega}_j)=u</span> after the shift, so smaller <span class="math inline">u</span> worsens <span class="math inline">\kappa(\boldsymbol{\Omega}_j)=\lambda_{\max}/u</span> and, after inversion and convolution, <span class="math inline">\kappa\{\boldsymbol{\Sigma}(\boldsymbol{p})\}</span>.</p>
+<div id="tbl-cov-factorial" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-cov-factorial-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 2: Covariance factorial (graphs <span class="math inline">\times</span> precision cushion).
+</figcaption><div aria-describedby="tbl-cov-factorial-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table caption-top">
-<colgroup>
-<col style="width: 12%">
-<col style="width: 11%">
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 13%">
-</colgroup>
 <thead><tr class="header">
-<th style="text-align: left;">cell type</th>
-<th style="text-align: left;">topology</th>
-<th style="text-align: right;"><span class="math inline">\lambda_{\min}</span></th>
-<th style="text-align: right;"><span class="math inline">\lambda_{\max}</span></th>
-<th style="text-align: right;"><span class="math inline">\kappa(\Omega)</span></th>
-<th style="text-align: right;">prop. inhib.</th>
+<th>Factor</th>
+<th>Levels</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">celltype_1</td>
-<td style="text-align: left;">SBM</td>
-<td style="text-align: right;">0.100</td>
-<td style="text-align: right;">1.685</td>
-<td style="text-align: right;">16.846</td>
-<td style="text-align: right;">0.500</td>
+<td>Graph model (per cell type)</td>
+<td>SBM, Erdős–Rényi, hub/star</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">celltype_2</td>
-<td style="text-align: left;">star</td>
-<td style="text-align: right;">0.100</td>
-<td style="text-align: right;">3.331</td>
-<td style="text-align: right;">33.311</td>
-<td style="text-align: right;">0.489</td>
+<td>Precision shift <span class="math inline">u</span>
+</td>
+<td>well (<span class="math inline">0.5</span>); moderate (<span class="math inline">0.1</span>); ill (<span class="math inline">0.02</span>)</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;">celltype_3</td>
-<td style="text-align: left;">scale-free</td>
-<td style="text-align: right;">0.100</td>
-<td style="text-align: right;">2.096</td>
-<td style="text-align: right;">20.961</td>
-<td style="text-align: right;">0.500</td>
+<td>Topology assignments</td>
+<td><span class="math inline">3^3=\mathbf{27}</span></td>
+</tr>
+<tr class="even">
+<td>Covariance draws</td>
+<td><span class="math inline">27\times 3=\mathbf{81}</span></td>
 </tr>
 </tbody>
 </table>
 </div>
 </figure>
 </div>
-<p>Types 1 and 2 remain near-collinear on the full <span class="math inline">G=50</span> vector (cosine <span class="math inline">\approx 0.97</span>). Type 3 is only <em>moderately</em> separated (cosine <span class="math inline">\approx 0.56</span>) because the shared <span class="math inline">\mathcal{G}_{12}</span> baseline and the flat <code>equal_all</code> block inflate every pairwise inner product—the finite-<span class="math inline">J</span> cosine bias of <a href="how-to-build-synthetic-scenarios-mean-covariance.html#sec-asymptotic-cosine">asymptotic cosine control</a>. <a href="#tbl-topology-diagnostics" class="quarto-xref">Table 3</a> shows that types 1 and 2 still differ in <span class="math inline">\boldsymbol{\Omega}</span>.</p>
+<p><code><a href="../reference/describe_simulation_scenario.html">describe_simulation_scenario()</a></code> records the realised <span class="math inline">\kappa\{\boldsymbol{\Sigma}(\boldsymbol{p})\}</span> and the covariance-information fraction <span class="math inline">f_{\mathrm{cov}}</span> on every row (see the <a href="theory-synthetic-scenarios-mean-covariance.html#sec-scenario-descriptors">descriptors section</a>, especially the tangent-Fisher callout). Those columns are <strong>measured</strong>, not additional design factors: <span class="math inline">u</span> is the knob; <span class="math inline">f_{\mathrm{cov}}</span> reports how much of the Fisher information is second-order.</p>
 <div id="fig-network-topologies" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-network-topologies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="figures/fig_network_topologies.png" style="width:100.0%">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-network-topologies-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 1: Cell-type-specific block topologies: SBM/hub-like modules (type 1) and a star (type 2) on the 30 <code>shared_12_vs_3</code> genes; scale-free wiring (type 3) on <code>marker_3</code>. The <code>equal_all</code> block is Erdős–Rényi in every type. Edge colour: precision sign (red inhibitory, teal activatory).
-</figcaption></figure>
-</div>
-<div id="nte-related-dd" class="callout-info">
-<section class="level2"><h3 id="related-literature-muscat-scdd">Related literature (<code>muscat</code> / <code>scDD</code>)<a class="anchor" aria-label="anchor" href="#related-literature-muscat-scdd"></a>
-</h3>
-<p>Pseudobulk tools such as <code>muscat</code> <span class="citation" data-cites="crowellMuscatDetectsSubpopulationspecific2020">(<a href="#ref-crowellMuscatDetectsSubpopulationspecific2020" role="doc-biblioref">Crowell et al. 2020</a>)</span> aggregate single-cell counts across samples. <code>scDD</code> <span class="citation" data-cites="korthauerStatisticalApproachIdentifying2016">(<a href="#ref-korthauerStatisticalApproachIdentifying2016" role="doc-biblioref">Korthauer et al. 2016</a>)</span> partitions genes into EE, DE, DP, DM, and DB patterns. The hybrid scenario is a network-level analogue of three of these (<a href="#fig-dd-taxonomy" class="quarto-xref">Fig. 2</a>): <code>equal_all</code> is EE; <code>marker_3</code> is DE for type 3; <code>shared_12_vs_3</code> has <strong>no mean shift between types 1 and 2</strong>, only a precision-topology contrast (DM-like for deconvolution, not scDD’s original single-gene modality test).</p>
-</section>
-</div>
-<div id="fig-dd-taxonomy" class="quarto-float quarto-figure quarto-figure-center">
-<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-dd-taxonomy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<img src="figures/fig_dd_taxonomy_ee_de_dm.jpg" style="width:100.0%">
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-dd-taxonomy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 2: Schematic EE / DE / DM-like taxonomy for the three gene blocks.
+Figure 1: Three generator examples on <span class="math inline">G=50</span> nodes (SBM, Erdős–Rényi, hub/star). Each cell type in the factorial is assigned one of these families independently.
 </figcaption></figure>
 </div>
 <p>Two generators were considered but not adopted:</p>
@@ -295,6 +217,7 @@ Figure 2: Schematic EE / DE / DM-like taxonomy for the three gene blocks.
 <strong><code>MixSim</code> overlap</strong> <span class="citation" data-cites="melnykovMixSimPackageSimulating2012">(<a href="#ref-melnykovMixSimPackageSimulating2012" role="doc-biblioref">Melnykov et al. 2012</a>)</span>: designed for isotropic or full-rank Gaussian clusters; no cell-type-specific precision input.</li>
 </ul></section><section class="section level2"><h2 id="sec-hybrid-deconvolution">Inference<a class="anchor" aria-label="anchor" href="#sec-hybrid-deconvolution"></a>
 </h2>
+<p>Compositions are one-dominant vectors from <code><a href="../reference/composition_from_entropy.html">composition_from_entropy()</a></code> targeting Pielou evenness <span class="math inline">H^{\star}\in\{1,0.5,0.1\}</span> (balanced; moderately unbalanced; highly unbalanced). All DeCovarT solvers start at the barycentre (<code>initial_p = "barycentre"</code>). Other initialisation strategies are reserved for separate scenarios.</p>
 <table class="table caption-top">
 <colgroup>
 <col style="width: 50%">
@@ -308,24 +231,24 @@ Figure 2: Schematic EE / DE / DM-like taxonomy for the three gene blocks.
 <tr class="odd">
 <td>Composition <span class="math inline">\boldsymbol{p}</span>
 </td>
-<td>balanced <span class="math inline">(1/3,1/3,1/3)</span>; moderately unbalanced <span class="math inline">(0.5,0.3,0.2)</span>; highly unbalanced <span class="math inline">(0.7,0.2,0.1)</span>
+<td>
+<span class="math inline">H^{\star}=1</span>; <span class="math inline">H^{\star}=0.5</span>; <span class="math inline">H^{\star}=0.1</span>
 </td>
 </tr>
 <tr class="even">
 <td>Algorithms</td>
-<td>NNLS, DeconRNASeq, Marquardt–Levenberg</td>
+<td>DeconRNASeq (<code>lsei</code>), CIBERSORT, L-BFGS-B, Newton–Raphson, Marquardt–Levenberg</td>
 </tr>
 <tr class="odd">
 <td><strong>Total scenarios</strong></td>
-<td>
-<span class="math inline">3 \times 3 = \mathbf{9}</span> (per fixed GRN realisation)</td>
+<td><span class="math inline">27\times 3\times 3=\mathbf{243}</span></td>
 </tr>
 </tbody>
 </table>
-<p><span class="math inline">N = 200</span> Monte Carlo replicates per scenario (smoke test: <span class="math inline">n = 2</span>). All solvers start from the open simplex via <code><a href="../reference/starting_simplex.html">starting_simplex()</a></code> (barycentre by default; Dirichlet or QP via <code>initial_p</code>).</p>
+<p><span class="math inline">N = 50</span> Monte Carlo replicates per scenario (smoke test: <code>N_REPLICATES=2</code>).</p>
 <div id="tbl-solver-hybrid" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-solver-hybrid-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 4: Solvers used in the variance-driven comparison.
+Table 3: Solvers used in the variance-driven comparison.
 </figcaption><div aria-describedby="tbl-solver-hybrid-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table caption-top">
 <colgroup>
@@ -340,14 +263,26 @@ Table 4: Solvers used in the variance-driven comparison.
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">NNLS</td>
-<td style="text-align: left;"><code>deconvolute_ratios_nnls</code></td>
-<td style="text-align: left;"><code><a href="../reference/repair_simplex.html">repair_simplex()</a></code></td>
-</tr>
-<tr class="even">
 <td style="text-align: left;">QP (<code>DeconRNASeq</code>-style)</td>
 <td style="text-align: left;"><code>deconvolute_ratios_deconrnaseq</code></td>
 <td style="text-align: left;">simplex equality / inequality</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">CIBERSORT-style <span class="math inline">\nu</span>-SVR</td>
+<td style="text-align: left;"><code>deconvolute_ratios_cibersort</code></td>
+<td style="text-align: left;">non-negative then <code><a href="../reference/repair_simplex.html">repair_simplex()</a></code>
+</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">L-BFGS-B</td>
+<td style="text-align: left;"><code>deconvolute_ratios_L_BFGS_B</code></td>
+<td style="text-align: left;">ILR <span class="math inline">\to</span> open simplex</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Newton–Raphson</td>
+<td style="text-align: left;"><code>deconvolute_ratios_Newton_Raphson</code></td>
+<td style="text-align: left;">ILR / <code>nlminb</code>
+</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Marquardt–Levenberg</td>
@@ -359,11 +294,17 @@ Table 4: Solvers used in the variance-driven comparison.
 </div>
 </figure>
 </div>
-<p>The shipped catalogue (CIBERSORT-style <span class="math inline">\nu</span>-SVR, <code><a href="https://rdrr.io/pkg/MASS/man/rlm.html" class="external-link">MASS::rlm</a></code>, GLS, Newton–Raphson, L-BFGS-B, BFGS, simulated annealing) is listed in <a href="../reference/deconvolute_ratios.html"><code>deconvolute_ratios()</code></a>. A temporary solver smoke test on this GRN lives in <code>tests/manual/deconvolute_simulated_scenario.R</code> (Rbuildignored).</p>
+<p>Mean-only baselines (LSEI, CIBERSORT) ignore <span class="math inline">\boldsymbol{\Sigma}_j</span>. The three DeCovarT maps use the same convolution likelihood. The shipped catalogue (robust linear model, GLS, BFGS, simulated annealing) is listed in <a href="../reference/deconvolute_ratios.html"><code>deconvolute_ratios()</code></a>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">N_REPLICATES</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"N_REPLICATES"</span>, unset <span class="op">=</span> <span class="st">"200"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">ALGORITHMS</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"NNLS"</span>, <span class="st">"DeconRNASeq"</span>, <span class="st">"Marquardt-Levenberg"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">N_REPLICATES</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"N_REPLICATES"</span>, unset <span class="op">=</span> <span class="st">"50"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">ALGORITHMS</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>  <span class="st">"lsei"</span>,</span>
+<span>  <span class="st">"cibersort"</span>,</span>
+<span>  <span class="st">"LBFGS"</span>,</span>
+<span>  <span class="st">"Newton-Raphson"</span>,</span>
+<span>  <span class="st">"Marquardt-Levenberg"</span></span>
+<span><span class="op">)</span></span>
 <span><span class="co"># Full pipeline: Rscript scripts/fig03_variance_driven.R</span></span></code></pre></div>
 </div>
 </section><section class="section level2"><h2 id="sec-hybrid-viz">Visualisations<a class="anchor" aria-label="anchor" href="#sec-hybrid-viz"></a>
@@ -380,7 +321,7 @@ Table 4: Solvers used in the variance-driven comparison.
 <tbody>
 <tr class="odd">
 <td><code>output/fig03/fig03_raincloud.pdf</code></td>
-<td>Raincloud of RMSE by algorithm and composition</td>
+<td>Raincloud of Monte Carlo errors, faceted by composition and <span class="math inline">\kappa</span> label</td>
 </tr>
 <tr class="even">
 <td><code>output/fig03/fig03_forest.pdf</code></td>
@@ -388,19 +329,19 @@ Table 4: Solvers used in the variance-driven comparison.
 </tr>
 <tr class="odd">
 <td><code>output/fig03/fig03_metric_dots.pdf</code></td>
-<td>Metric dot plot across compositions</td>
+<td>Metric dot plot (RMSE, MAE, coverage)</td>
 </tr>
 </tbody>
 </table>
 <section class="level3"><h4 id="expected-findings">Expected findings<a class="anchor" aria-label="anchor" href="#expected-findings"></a>
 </h4>
-<p>Because CT 1 and CT 2 share near-identical mean profiles (<span class="math inline">\rho_{12} \approx 0.97</span>), NNLS and DeconRNASeq cannot separate them — their RMSE for that pair should sit near the variance floor. DeCovarT (Marquardt–Levenberg) uses the block-diagonal precision structure; its advantage grows as the composition becomes unbalanced and the rare type (CT 3 at 10%) requires second-order information.</p>
+<p>Because CT 1 and CT 2 share cosine <span class="math inline">0.9</span>, LSEI and CIBERSORT cannot separate them from the mean signature alone. DeCovarT (L-BFGS-B, Newton–Raphson, Marquardt–Levenberg) uses <span class="math inline">\boldsymbol{\Sigma}_j</span>; its advantage should grow where <span class="math inline">f_{\mathrm{cov}}</span> is large, where <span class="math inline">u</span> is small (ill-conditioned but still informative second-order structure), and where the composition is highly unbalanced (<span class="math inline">H^{\star}=0.1</span>).</p>
 </section><section class="level2"><h3 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a>
 </h3>
 <ul>
 <li>Bivariate toy: <a href="fig02-bivariate-toy.html">§2.1</a>
 </li>
-<li>Moment generator: <a href="how-to-build-synthetic-scenarios-mean-covariance.html">How to build synthetic scenarios</a>
+<li>Moment generator: <a href="theory-synthetic-scenarios-mean-covariance.html">How to build synthetic scenarios</a>
 </li>
 <li>Feature-selection on this design: <a href="supp-S6-feature-selection.html">Appendix S6</a>
 </li>
@@ -409,12 +350,6 @@ Table 4: Solvers used in the variance-driven comparison.
 </ul></section><section class="level2 unnumbered"><h3 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h3>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
-<div id="ref-crowellMuscatDetectsSubpopulationspecific2020" class="csl-entry" role="listitem">
-Crowell, Helena L., Charlotte Soneson, Pierre-Luc Germain, et al. 2020. <span>‘Muscat Detects Subpopulation-Specific State Transitions from Multi-Sample Multi-Condition Single-Cell Transcriptomics Data’</span>. <em>Nature Communications</em> 11: 6077. <a href="https://doi.org/10.1038/s41467-020-19894-4" class="external-link">https://doi.org/10.1038/s41467-020-19894-4</a>.
-</div>
-<div id="ref-korthauerStatisticalApproachIdentifying2016" class="csl-entry" role="listitem">
-Korthauer, Keegan D., Li-Fang Chu, Michael A. Newton, et al. 2016. <span>‘A Statistical Approach for Identifying Differential Distributions in Single-Cell <span class="nocase">RNA-seq</span> Experiments’</span>. <em>Genome Biology</em> 17: 222. <a href="https://doi.org/10.1186/s13059-016-1077-y" class="external-link">https://doi.org/10.1186/s13059-016-1077-y</a>.
-</div>
 <div id="ref-melnykovMixSimPackageSimulating2012" class="csl-entry" role="listitem">
 Melnykov, Volodymyr, Wei-Chen Chen, and Ranjan Maitra. 2012. <span>‘<span>MixSim</span>: <span>An R Package</span> for <span>Simulating Data</span> to <span>Study Performance</span> of <span>Clustering Algorithms</span>’</span>. <em>Journal of Statistical Software</em> 51. <a href="https://doi.org/10.18637/jss.v051.i12" class="external-link">https://doi.org/10.18637/jss.v051.i12</a>.
 </div>

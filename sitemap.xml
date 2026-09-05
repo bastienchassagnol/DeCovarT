@@ -7,7 +7,6 @@
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/decovart-paper-slides.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/fig02-bivariate-toy.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/fig03-variance-driven.html</loc></url>
-<url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/how-to-build-synthetic-scenarios-mean-covariance.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/index.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/supp-S1-identifiability.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/supp-S2-covariance-inversion.html</loc></url>
@@ -20,6 +19,7 @@
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-statistical-perspectives.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/theory-network-inference.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/theory-related-models-beyond-OLS.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-scenarios-mean-covariance.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/authors.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/index.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/news/index.html</loc></url>
@@ -34,6 +34,7 @@
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/build_normalised_precision.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/check_true_theta.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/chi_bar_square_pvalue.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/composition_from_entropy.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_jeffreys.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_overlap.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.html</loc></url>

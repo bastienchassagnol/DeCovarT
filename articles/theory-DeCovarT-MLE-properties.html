@@ -53,7 +53,7 @@
     <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
-    <li><a class="dropdown-item" href="../articles/how-to-build-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
@@ -98,7 +98,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>MLE properties and asymptotic inference for the DeCovarT log-likelihood</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-09-04</p>
+      <p class="date">2026-09-05</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-DeCovarT-MLE-properties.qmd" class="external-link"><code>vignettes/theory-DeCovarT-MLE-properties.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -538,8 +538,8 @@ D
 <span>  max_abs_diff <span class="op">=</span> <span class="va">eq_check</span><span class="op">$</span><span class="va">max_abs_diff</span>,</span>
 <span>  loglik_diff <span class="op">=</span> <span class="va">eq_check</span><span class="op">$</span><span class="va">loglik_diff</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; max_abs_diff  loglik_diff </span></span>
-<span><span class="co">#&gt; 1.494243e-10 3.552714e-15</span></span></code></pre></div>
+<span><span class="co">#&gt;  max_abs_diff   loglik_diff </span></span>
+<span><span class="co">#&gt;  9.336033e-10 -3.108624e-15</span></span></code></pre></div>
 </div>
 </section><section class="level2"><h3 id="sec-rna-sieve">RNA-Sieve: CLT likelihood, Fisher and Godambe<a class="anchor" aria-label="anchor" href="#sec-rna-sieve"></a>
 </h3>
@@ -608,9 +608,9 @@ Table 1: What each DeCovarT convergence field does and does not certify.
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="va">fit</span><span class="op">$</span><span class="va">diagnostics</span><span class="op">)</span></span>
 <span><span class="co">#&gt;          boundary_distance near_boundary   score_norm max_eigenvalue</span></span>
-<span><span class="co">#&gt; sample_1         0.2159583         FALSE 2.383264e-09      -24.48051</span></span>
+<span><span class="co">#&gt; sample_1         0.2159583         FALSE 2.383262e-09      -24.48051</span></span>
 <span><span class="co">#&gt; sample_2         0.1832318         FALSE 5.026328e-05      -18.72244</span></span>
-<span><span class="co">#&gt; sample_3         0.1682215         FALSE 1.765208e-08      -16.19907</span></span>
+<span><span class="co">#&gt; sample_3         0.1682215         FALSE 1.765209e-08      -16.19907</span></span>
 <span><span class="co">#&gt;          local_maximum</span></span>
 <span><span class="co">#&gt; sample_1          TRUE</span></span>
 <span><span class="co">#&gt; sample_2          TRUE</span></span>
@@ -643,7 +643,7 @@ Table 1: What each DeCovarT convergence field does and does not certify.
 <span>  multimodal <span class="op">=</span> <span class="va">restarts</span><span class="op">$</span><span class="va">multimodal</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; loglik_range   multimodal </span></span>
-<span><span class="co">#&gt; 6.625949e-10 0.000000e+00</span></span></code></pre></div>
+<span><span class="co">#&gt; 6.625915e-10 0.000000e+00</span></span></code></pre></div>
 </div>
 <p>A small range is reassuring but not a proof: a converged code, a tiny relative-distance-to-minimum and a negative-definite local Hessian together support a <strong>local</strong> maximum, and none of them rules out a second, equally good or better mode elsewhere on the simplex.</p>
 </section><section class="section level2"><h2 id="sec-recap">Recap: which interval or test to report<a class="anchor" aria-label="anchor" href="#sec-recap"></a>

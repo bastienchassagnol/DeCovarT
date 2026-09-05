@@ -53,7 +53,7 @@
     <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
-    <li><a class="dropdown-item" href="../articles/how-to-build-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
@@ -98,7 +98,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>§2.1 Bivariate toy model (G = 2 genes, J = 2 cell types)</h1>
       <p class="subtitle">Full script: <code>scripts/fig02_bivariate_toy.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-09-04</p>
+      <p class="date">2026-09-05</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/fig02-bivariate-toy.qmd" class="external-link"><code>vignettes/fig02-bivariate-toy.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -109,10 +109,10 @@
 
 
 
-    <p>This article is the bivariate Gaussian-convolution toy of the methods paper (<span class="math inline">G=2</span>, <span class="math inline">J=2</span>). It isolates gene–gene correlation from mean separation. The factorial grid and ADEMP pipeline live in a <strong>single</strong> script, <code>scripts/fig02_bivariate_toy.R</code>. Scenario builders (<code>build_bivariate_scenario_config()</code>, <code>bivariate_toy_deconvolution_functions()</code>) sit at the top of that file so tests can source them with <code>DECOVART_SOURCE_HELPERS=1</code> without running 648 scenarios.</p>
-<p><a href="../reference/run_simulation_benchmark.html"><code>run_simulation_benchmark()</code></a> wraps <code><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code>, <code><a href="../reference/deconvolute_ratios.html">deconvolute_ratios()</a></code>, and <code><a href="../reference/compute_benchmark_metrics.html">compute_benchmark_metrics()</a></code>. Scenario rows are sequential; sample-level workers live only in <code><a href="../reference/deconvolute_ratios.html">deconvolute_ratios()</a></code>. Reporting conventions (ADEMP, Nature Methods, raincloud / forest plots) are in <a href="how-to-build-synthetic-scenarios-mean-covariance.html#sec-ademp">how to build synthetic scenarios</a>.</p>
+    <p>This article is the bivariate Gaussian-convolution toy of the methods paper (<span class="math inline">G=2</span>, <span class="math inline">J=2</span>). It isolates gene–gene correlation from mean separation. The factorial grid and ADEMP pipeline live in a <strong>single</strong> script, <code>scripts/fig02_bivariate_toy.R</code>. Scenario builders (<code>build_bivariate_scenario_config()</code>, <code>bivariate_toy_deconvolution_functions()</code>) sit at the top of that file. Sourcing the script from a vignette or from a temp copy in tests defines those functions without launching the 972-scenario pipeline.</p>
+<p><a href="../reference/run_simulation_benchmark.html"><code>run_simulation_benchmark()</code></a> wraps <code><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code>, <code><a href="../reference/deconvolute_ratios.html">deconvolute_ratios()</a></code>, and <code><a href="../reference/compute_benchmark_metrics.html">compute_benchmark_metrics()</a></code>. Scenario rows are sequential; sample-level workers live only in <code><a href="../reference/deconvolute_ratios.html">deconvolute_ratios()</a></code>. Reporting conventions (ADEMP, Nature Methods, raincloud / forest plots) are in <a href="theory-synthetic-scenarios-mean-covariance.html#sec-ademp">how to build synthetic scenarios</a>.</p>
 <blockquote>
-<p><strong>Script:</strong> <code>Rscript scripts/fig02_bivariate_toy.R</code> (full, <span class="math inline">n = 500</span>) or <code>N_REPLICATES=2 Rscript scripts/fig02_bivariate_toy.R</code> (smoke test). Outputs land in <code>output/fig02/</code>.</p>
+<p><strong>Script:</strong> from the repository root, <code>mkdir -p logs &amp;&amp; nohup Rscript --no-save --no-restore scripts/fig02_bivariate_toy.R &gt; "logs/fig02_$(date +%F)_bivariate_toy.log" 2&gt;&amp;1 &amp;</code> (full, <span class="math inline">n = 500</span>) or prefix <code>N_REPLICATES=2</code> for a smoke test. Outputs land in <code>output/fig02/</code>.</p>
 </blockquote>
 <section class="section level2"><h2 id="sec-bivariate-toy">Generative model<a class="anchor" aria-label="anchor" href="#sec-bivariate-toy"></a>
 </h2>
@@ -146,7 +146,7 @@
 Figure 1: Factorial design (left) and correlation-only 2D densities (right) for the bivariate toy. {#fig-toy-design}
 </figcaption></figure>
 </div>
-<section class="level2"><h3 id="factorial-design-648-scenarios">Factorial design (648 scenarios)<a class="anchor" aria-label="anchor" href="#factorial-design-648-scenarios"></a>
+<section class="level2"><h3 id="factorial-design-972-scenarios">Factorial design (972 scenarios)<a class="anchor" aria-label="anchor" href="#factorial-design-972-scenarios"></a>
 </h3>
 <table class="table caption-top">
 <colgroup>
@@ -161,7 +161,7 @@ Figure 1: Factorial design (left) and correlation-only 2D densities (right) for
 <tr class="odd">
 <td>Composition <span class="math inline">\boldsymbol{p}</span>
 </td>
-<td>balanced <span class="math inline">(1/2,\,1/2)</span>; highly unbalanced <span class="math inline">(19/20,\,1/20)</span>
+<td>balanced <span class="math inline">(1/2,\,1/2)</span>; moderately unbalanced <span class="math inline">(17/20,\,3/20)</span>; highly unbalanced <span class="math inline">(99/100,\,1/100)</span>
 </td>
 </tr>
 <tr class="even">
@@ -186,7 +186,7 @@ Figure 1: Factorial design (left) and correlation-only 2D densities (right) for
 </tr>
 <tr class="even">
 <td><strong>Total scenarios</strong></td>
-<td><span class="math inline">2 \times 2 \times 9 \times 9 \times 2 = \mathbf{648}</span></td>
+<td><span class="math inline">3 \times 2 \times 9 \times 9 \times 2 = \mathbf{972}</span></td>
 </tr>
 </tbody>
 </table>
@@ -194,24 +194,9 @@ Figure 1: Factorial design (left) and correlation-only 2D densities (right) for
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">DeCovarT</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html" class="external-link">Sys.setenv</a></span><span class="op">(</span>DECOVART_SOURCE_HELPERS <span class="op">=</span> <span class="st">"1"</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"scripts/fig02_bivariate_toy.R"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">bivariate_config</span> <span class="op">&lt;-</span> <span class="fu">build_bivariate_scenario_config</span><span class="op">(</span></span>
-<span>  proportions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    <span class="st">"balanced"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span><span class="op">)</span>,</span>
-<span>    <span class="st">"highly_unbalanced"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">19</span> <span class="op">/</span> <span class="fl">20</span>, <span class="fl">1</span> <span class="op">/</span> <span class="fl">20</span><span class="op">)</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  signature_matrices <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    <span class="st">"small_CLD"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">22</span>, <span class="fl">22</span>, <span class="fl">20</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
-<span>    <span class="st">"large_CLD"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">40</span>, <span class="fl">40</span>, <span class="fl">20</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span>  <span class="op">)</span>,</span>
-<span>  corr_sequence <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.8</span>, <span class="fl">0.8</span>, by <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span>,</span>
-<span>  diagonal_terms <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
-<span>    <span class="st">"homoscedastic"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
-<span>    <span class="st">"heteroscedastic"</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="op">)</span></span>
+<span><span class="va">bivariate_config</span> <span class="op">&lt;-</span> <span class="fu">build_bivariate_scenario_config</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">bivariate_config</span><span class="op">)</span></span></code></pre></div>
 </div>
 </section><section class="level2"><h3 id="log-likelihood-along-the-simplex">Log-likelihood along the simplex<a class="anchor" aria-label="anchor" href="#log-likelihood-along-the-simplex"></a>
@@ -319,7 +304,7 @@ Figure 1: Factorial design (left) and correlation-only 2D densities (right) for
 <p><code>config</code> stores Shannon entropy of <span class="math inline">\boldsymbol{p}</span> and MixSim overlap; <code>optimisation</code> stores per-sample <span class="math inline">\hat{\boldsymbol{p}}</span>, elapsed time, and memory; <code>regression</code> and <code>monte_carlo</code> are the composition and ADEMP blocks from <code><a href="../reference/compute_benchmark_metrics.html">compute_benchmark_metrics()</a></code>.</p>
 </section><section class="section level2"><h2 id="sec-bivariate-viz">Visualisations<a class="anchor" aria-label="anchor" href="#sec-bivariate-viz"></a>
 </h2>
-<p>When <span class="math inline">n \ge 10</span> replicates, four figures are written to <code>output/fig02/</code>: MSE heatmap on the <span class="math inline">\rho_1 \times \rho_2</span> grid, raincloud of Monte Carlo errors, ADEMP forest plot, and algorithm-similarity tile.</p>
+<p>Four figures are written to <code>output/fig02/</code>: a filled 2-D RMSE display on the <span class="math inline">\rho_1 \times \rho_2</span> plane (<code><a href="https://ggplot2.tidyverse.org/reference/geom_density_2d.html" class="external-link">ggplot2::geom_density_2d_filled()</a></code> is the ggplot analogue), raincloud of Monte Carlo errors, ADEMP forest plot, and algorithm-similarity tile.</p>
 <section class="level3"><h4 id="expected-findings">Expected findings<a class="anchor" aria-label="anchor" href="#expected-findings"></a>
 </h4>
 <p>With <strong>large mean separation</strong> and <span class="math inline">\rho_j = 0</span> both groups of algorithms should perform well. As <span class="math inline">|\rho|</span> increases and the means move closer, NNLS and DeconRNASeq degrade faster than DeCovarT solvers because they ignore covariance information. The MSE heatmap should display a characteristic saddle: lowest error on the diagonal <span class="math inline">\rho_1 = \rho_2</span> and highest near zero mean separation.</p>
@@ -328,7 +313,7 @@ Figure 1: Factorial design (left) and correlation-only 2D densities (right) for
 <ul>
 <li>Variance-driven hybrid (<span class="math inline">G=50</span>, <span class="math inline">J=3</span>): <a href="fig03-variance-driven.html">§2.2</a>
 </li>
-<li>Moment generator and ADEMP reporting: <a href="how-to-build-synthetic-scenarios-mean-covariance.html">How to build synthetic scenarios</a>
+<li>Moment generator and ADEMP reporting: <a href="theory-synthetic-scenarios-mean-covariance.html">How to build synthetic scenarios</a>
 </li>
 <li>Regular-case MLE checks: <a href="supp-S1-identifiability.html">Appendix S1</a>
 </li>

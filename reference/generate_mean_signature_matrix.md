@@ -23,6 +23,7 @@ generate_mean_signature_matrix(
   target_cosine = 0,
   target_gram = NULL,
   seed = NULL,
+  nonnegative = FALSE,
   gene_names = NULL,
   celltype_names = NULL
 )
@@ -57,7 +58,14 @@ generate_mean_signature_matrix(
 
   Optional integer. When supplied, the orthonormal frame
   \\\boldsymbol{Q}\\ is drawn from a Gaussian QR; otherwise it is
-  deterministic.
+  deterministic. Ignored when `nonnegative = TRUE`.
+
+- nonnegative:
+
+  If `TRUE`, use a disjoint-support nonnegative frame so that
+  \\\boldsymbol{\mu}\ge 0\\ whenever \\R^{1/2}\ge 0\\ (required by
+  [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)).
+  The Gram is unchanged.
 
 - gene_names:
 

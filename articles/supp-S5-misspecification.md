@@ -1,14 +1,5 @@
 # Appendix S5 — Model Mis-specification (Description Only)
 
-> **Note**
->
-> This vignette describes **planned but not yet implemented**
-> mis-specification experiments. Implementation is deferred pending
-> realistic network generators and validated noise models for bulk
-> RNA-seq; see §Blocking issues below.
-
-------------------------------------------------------------------------
-
 ## Overview
 
 The DeCovarT model assumes that bulk expression arises from a Gaussian
@@ -125,7 +116,7 @@ scope:
 - [Appendix S4 — Covariance
   Modelling](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S4-covariance-modeling.html)
 - [How to build synthetic
-  scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/how-to-build-synthetic-scenarios-mean-covariance.md)
+  scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-scenarios-mean-covariance.md)
 
 ## References
 

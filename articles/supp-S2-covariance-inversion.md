@@ -187,7 +187,7 @@ factorial) are noted here but not yet implemented:
 - [Appendix S3 —
   Scaling](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S3-scaling.md)
 - [How to build synthetic
-  scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/how-to-build-synthetic-scenarios-mean-covariance.md)
+  scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-scenarios-mean-covariance.md)
 - Structure-aware operators: [generative
   model](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.md)
 

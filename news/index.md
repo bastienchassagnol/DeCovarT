@@ -2,12 +2,34 @@
 
 ## DeCovarT (development version)
 
+- **Scenario 3 (variance-driven).** Fixed Gram \cos(\mu_1,\mu_2)=0.9,
+  \cos(\mu_j,\mu_3)=0.1; 3^3 graph assignments (SBM / Erdős–Rényi / hub)
+  \times three precision cushions; compositions from
+  [`composition_from_entropy()`](https://bastienchassagnol.github.io/DeCovarT/reference/composition_from_entropy.md)
+  at H^{\star}\in\\1,0.5,0.1\\; solvers LSEI, CIBERSORT, L-BFGS-B,
+  Newton–Raphson, Marquardt–Levenberg (n=50). Descriptor docs use one
+  callout per family in the synthetic-scenarios vignette.
+  `kappa_sigma_p` is now returned beside the reciprocal ratio.
+  `generate_mean_signature_matrix(nonnegative = TRUE)` uses a
+  disjoint-support frame so signatures stay nonnegative. Graph
+  precisions are completed by a uniform spectral shift and extra-loaded
+  until both \Omega and \Sigma=\Omega^{-1} admit a Cholesky factor
+  (support and signs of W unchanged).
+
+- **Terminal UI.** Optional Suggests `cli` formats messages, warnings
+  and errors (`cli_alert_*` / `cli_abort`, with base
+  [`message()`](https://rdrr.io/r/base/message.html) /
+  [`stop()`](https://rdrr.io/r/base/stop.html) fallback).
+  `run_simulation_benchmark(verbose = TRUE)` logs each scenario row;
+  grids of 10 or fewer scenarios also tick every 10 inferred samples.
+
 - **Documentation layout.** Paper scenarios live in the
   `fig02-bivariate-toy` and `fig03-variance-driven` articles (one script
   each: `scripts/fig02_bivariate_toy.R`,
   `scripts/fig03_variance_driven.R`). Regular-case MLE checks and
   identifiability sit in Appendix S1. ADEMP / Nature Methods reporting
-  is at the end of the synthetic-scenarios how-to article.
+  is at the end of
+  `vignettes/theory-synthetic-scenarios-mean-covariance.qmd`.
 
 - **Monte Carlo figures.**
   [`pivot_mc_estimates()`](https://bastienchassagnol.github.io/DeCovarT/reference/pivot_mc_estimates.md),

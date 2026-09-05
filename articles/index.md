@@ -8,7 +8,7 @@
 ### Getting started
 
 - [Simulating synthetic pseudo-bulk mixtures for
-  benchmarking](https://bastienchassagnol.github.io/DeCovarT/articles/how-to-build-synthetic-scenarios-mean-covariance.md):
+  benchmarking](https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-scenarios-mean-covariance.md):
 - [Feature selection for reference-based
   deconvolution](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S6-feature-selection.md):
 - [In silico inference of gene regulatory
@@ -19,8 +19,8 @@
 The two simulation scenarios of the DeCovarT article. **§ 2.1**
 Bivariate toy (J = 2, G = 2): factorial sweep of gene–gene correlation,
 mean distance, and composition. **§ 2.2** Variance-driven hybrid (J = 3,
-G = 50): block-structured GRN covariances; cell types 1 and 2 are near
-mean-collinear.
+G = 50): fixed Gram (cosines 0.9 / 0.1), 3^3 graph assignments \times
+three precision cushions, Shannon H^{\star} compositions.
 
 - [§2.1 Bivariate toy model (G = 2 genes, J = 2 cell
   types)](https://bastienchassagnol.github.io/DeCovarT/articles/fig02-bivariate-toy.md):

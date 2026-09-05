@@ -27,7 +27,9 @@ run_simulation_benchmark(
   standardise = FALSE,
   scaled = FALSE,
   cores = 1L,
-  coverage_interval = "wilson"
+  coverage_interval = "wilson",
+  verbose = FALSE,
+  progress_every = 10L
 )
 ```
 
@@ -66,6 +68,18 @@ run_simulation_benchmark(
 
   Coverage interval for the Monte Carlo coverage *rate*; see
   [`coverage_mc_interval()`](https://bastienchassagnol.github.io/DeCovarT/reference/coverage_mc_interval.md).
+
+- verbose:
+
+  If `TRUE`, print each scenario row and (when the grid has at most 10
+  scenarios) every `progress_every` inferred samples. Large factorial
+  grids log one line per scenario only, so logs stay readable.
+
+- progress_every:
+
+  Sample-progress interval passed to
+  [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)
+  when `verbose` is `TRUE`. Defaults to `10L`.
 
 ## Value
 

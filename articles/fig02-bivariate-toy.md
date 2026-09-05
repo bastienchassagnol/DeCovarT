@@ -5,9 +5,9 @@ paper (G=2, J=2). It isolates gene–gene correlation from mean
 separation. The factorial grid and ADEMP pipeline live in a **single**
 script, `scripts/fig02_bivariate_toy.R`. Scenario builders
 (`build_bivariate_scenario_config()`,
-`bivariate_toy_deconvolution_functions()`) sit at the top of that file
-so tests can source them with `DECOVART_SOURCE_HELPERS=1` without
-running 648 scenarios.
+`bivariate_toy_deconvolution_functions()`) sit at the top of that file.
+Sourcing the script from a vignette or from a temp copy in tests defines
+those functions without launching the 972-scenario pipeline.
 
 [`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.md)
 wraps
@@ -19,11 +19,12 @@ Scenario rows are sequential; sample-level workers live only in
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md).
 Reporting conventions (ADEMP, Nature Methods, raincloud / forest plots)
 are in [how to build synthetic
-scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/how-to-build-synthetic-scenarios-mean-covariance.html#sec-ademp).
+scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-scenarios-mean-covariance.html#sec-ademp).
 
-> **Script:** `Rscript scripts/fig02_bivariate_toy.R` (full, n = 500) or
-> `N_REPLICATES=2 Rscript scripts/fig02_bivariate_toy.R` (smoke test).
-> Outputs land in `output/fig02/`.
+> **Script:** from the repository root,
+> `mkdir -p logs && nohup Rscript --no-save --no-restore scripts/fig02_bivariate_toy.R > "logs/fig02_$(date +%F)_bivariate_toy.log" 2>&1 &`
+> (full, n = 500) or prefix `N_REPLICATES=2` for a smoke test. Outputs
+> land in `output/fig02/`.
 
 ## Generative model
 
@@ -52,40 +53,25 @@ annotates MixSim overlap.
 Figure 1: Factorial design (left) and correlation-only 2D densities
 (right) for the bivariate toy. {#fig-toy-design}
 
-### Factorial design (648 scenarios)
+### Factorial design (972 scenarios)
 
 | Factor | Levels |
 |----|----|
-| Composition \boldsymbol{p} | balanced (1/2,\\1/2); highly unbalanced (19/20,\\1/20) |
+| Composition \boldsymbol{p} | balanced (1/2,\\1/2); moderately unbalanced (17/20,\\3/20); highly unbalanced (99/100,\\1/100) |
 | Mean separation (CLD) | small: \boldsymbol{\mu}\_{\cdot 1}=(20,22), \boldsymbol{\mu}\_{\cdot 2}=(22,20); large: (20,40), (40,20) |
 | Gene–gene corr. CT 1 (\rho_1) | \\-0.8,\\-0.6,\\\ldots,\\0.8\\ — 9 levels |
 | Gene–gene corr. CT 2 (\rho_2) | \\-0.8,\\-0.6,\\\ldots,\\0.8\\ — 9 levels |
 | Variance structure | homoscedastic \sigma^2 = (1,1); heteroscedastic \sigma^2 = (1,2) |
-| **Total scenarios** | 2 \times 2 \times 9 \times 9 \times 2 = \mathbf{648} |
+| **Total scenarios** | 3 \times 2 \times 9 \times 9 \times 2 = \mathbf{972} |
 
 N = 500 Monte Carlo replicates per scenario (smoke test: n = 2).
 
 ``` r
 
 library(DeCovarT)
-Sys.setenv(DECOVART_SOURCE_HELPERS = "1")
 source("scripts/fig02_bivariate_toy.R")
 
-bivariate_config <- build_bivariate_scenario_config(
-  proportions = list(
-    "balanced" = c(0.5, 0.5),
-    "highly_unbalanced" = c(19 / 20, 1 / 20)
-  ),
-  signature_matrices = list(
-    "small_CLD" = matrix(c(20, 22, 22, 20), nrow = 2),
-    "large_CLD" = matrix(c(20, 40, 40, 20), nrow = 2)
-  ),
-  corr_sequence = seq(-0.8, 0.8, by = 0.2),
-  diagonal_terms = list(
-    "homoscedastic" = c(1, 1),
-    "heteroscedastic" = c(1, 2)
-  )
-)
+bivariate_config <- build_bivariate_scenario_config()
 nrow(bivariate_config)
 ```
 
@@ -179,9 +165,11 @@ blocks from
 
 ## Visualisations
 
-When n \ge 10 replicates, four figures are written to `output/fig02/`:
-MSE heatmap on the \rho_1 \times \rho_2 grid, raincloud of Monte Carlo
-errors, ADEMP forest plot, and algorithm-similarity tile.
+Four figures are written to `output/fig02/`: a filled 2-D RMSE display
+on the \rho_1 \times \rho_2 plane
+([`ggplot2::geom_density_2d_filled()`](https://ggplot2.tidyverse.org/reference/geom_density_2d.html)
+is the ggplot analogue), raincloud of Monte Carlo errors, ADEMP forest
+plot, and algorithm-similarity tile.
 
 #### Expected findings
 
@@ -197,7 +185,7 @@ highest near zero mean separation.
 - Variance-driven hybrid (G=50, J=3):
   [§2.2](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-variance-driven.md)
 - Moment generator and ADEMP reporting: [How to build synthetic
-  scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/how-to-build-synthetic-scenarios-mean-covariance.md)
+  scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-scenarios-mean-covariance.md)
 - Regular-case MLE checks: [Appendix
   S1](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S1-identifiability.md)
 

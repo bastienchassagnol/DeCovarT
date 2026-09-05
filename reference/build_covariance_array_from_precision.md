@@ -1,9 +1,12 @@
 # Build cell-type-specific covariances from precision slices
 
 For each cell type \\j\\, inverts \\\boldsymbol{\Omega}\_j\\ to
-\\\boldsymbol{\Sigma}\_j=\boldsymbol{\Omega}\_j^{-1}\\ and stacks the
-result as a \\G\times G\times J\\ array. Precisions need not be shared
-across cell types.
+\\\boldsymbol{\Sigma}\_j=\boldsymbol{\Omega}\_j^{-1}\\ (via
+[`qr.solve()`](https://rdrr.io/r/base/qr.html)) and stacks the result as
+a \\G\times G\times J\\ array. If a slice is not numerically SPD, or if
+the inverse fails Cholesky, a further uniform spectral shift is applied
+to that precision (off-diagonal support unchanged). Precisions need not
+be shared across cell types.
 
 ## Usage
 

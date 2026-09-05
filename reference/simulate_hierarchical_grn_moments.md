@@ -26,6 +26,7 @@ simulate_hierarchical_grn_moments(
   target_cosine = 0,
   target_gram = NULL,
   seed = NULL,
+  nonnegative = FALSE,
   precision_shift,
   precision_scale,
   prop_inhibitory = 0.5,
@@ -65,7 +66,14 @@ simulate_hierarchical_grn_moments(
 
   Optional integer. When supplied, the orthonormal frame
   \\\boldsymbol{Q}\\ is drawn from a Gaussian QR; otherwise it is
-  deterministic.
+  deterministic. Ignored when `nonnegative = TRUE`.
+
+- nonnegative:
+
+  If `TRUE`, use a disjoint-support nonnegative frame so that
+  \\\boldsymbol{\mu}\ge 0\\ whenever \\R^{1/2}\ge 0\\ (required by
+  [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)).
+  The Gram is unchanged.
 
 - precision_shift:
 

@@ -63,7 +63,7 @@ provided \(R\) is symmetric nonnegative-definite."><meta property="og:image" con
     <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
-    <li><a class="dropdown-item" href="../articles/how-to-build-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
@@ -134,6 +134,7 @@ provided \(R\) is symmetric nonnegative-definite.</p>
 <span>  target_cosine <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  target_gram <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  nonnegative <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  gene_names <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  celltype_names <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -170,7 +171,13 @@ Must lie in \([-1/(J-1),1]\).</p></dd>
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
 <dd><p>Optional integer. When supplied, the orthonormal frame
 \(\boldsymbol{Q}\) is drawn from a Gaussian QR; otherwise it is
-deterministic.</p></dd>
+deterministic. Ignored when <code>nonnegative = TRUE</code>.</p></dd>
+
+
+<dt id="arg-nonnegative">nonnegative<a class="anchor" aria-label="anchor" href="#arg-nonnegative"></a></dt>
+<dd><p>If <code>TRUE</code>, use a disjoint-support nonnegative
+frame so that \(\boldsymbol{\mu}\ge 0\) whenever \(R^{1/2}\ge 0\)
+(required by <code><a href="deconvolute_ratios.html">deconvolute_ratios()</a></code>). The Gram is unchanged.</p></dd>
 
 
 <dt id="arg-gene-names">gene_names<a class="anchor" aria-label="anchor" href="#arg-gene-names"></a></dt>

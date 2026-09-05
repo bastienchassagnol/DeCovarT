@@ -123,9 +123,9 @@ compute_benchmark_metrics(y, mu, estimated_p = c(0.45, 0.55),
 #> $regression$global
 #> # A tibble: 1 × 9
 #>   sample_id algorithm     tv   rmse angular  sdid maxae reconstitution_mae
-#>   <chr>     <chr>      <dbl>  <dbl>   <dbl> <dbl> <dbl>              <dbl>
-#> 1 sample_1  NA        0.0500 0.0500  0.0622 0.312  0.05                 NA
-#> # ℹ 1 more variable: reconstitution_cor <dbl>
+#>   <chr>     <chr>      <dbl>  <dbl>   <dbl> <dbl> <dbl> <chr>             
+#> 1 sample_1  NA        0.0500 0.0500  0.0622 0.312  0.05 irrelevant        
+#> # ℹ 1 more variable: reconstitution_cor <chr>
 #> 
 #> $regression$cell_type
 #> # A tibble: 2 × 5

@@ -2,8 +2,11 @@
 
 Applies a uniform spectral shift that preserves off-diagonal signs and
 support: \$\$ \boldsymbol{\Omega} = \boldsymbol{W} +
-\bigl(\lvert\lambda\_{\min}(\boldsymbol{W})\rvert + u\bigr) \mathbf{I}.
-\$\$
+\bigl(\lvert\min(0,\lambda\_{\min}(\boldsymbol{W}))\rvert + u\bigr)
+\mathbf{I}. \$\$ The result is checked with
+[`base::chol()`](https://rdrr.io/r/base/chol.html); if a factor still
+fails (ill-conditioned graphs), the same loading is increased until
+\\\boldsymbol{\Omega}\succ 0\\ strictly.
 
 ## Usage
 

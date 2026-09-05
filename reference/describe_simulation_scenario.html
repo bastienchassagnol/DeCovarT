@@ -43,7 +43,7 @@ supplementary."><meta property="og:image" content="https://bastienchassagnol.git
     <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
-    <li><a class="dropdown-item" href="../articles/how-to-build-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
@@ -123,20 +123,22 @@ supplied.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list with:</p><ul><li><p><code>theta_true</code>: the convolution parameters <code>p</code>, <code>mu</code>, <code>sigma</code>;</p></li>
-<li><p><code>descriptors</code>: one-row tibble of kept scenario statistics;</p></li>
+<li><p><code>descriptors</code>: one-row tibble of kept scenario statistics in six
+families (composition, mean geometry, SPD of
+\(\boldsymbol{\Sigma}(\boldsymbol{p})\), tangent Fisher, network,
+component overlap). SPD columns include both
+\(\kappa\{\boldsymbol{\Sigma}(\boldsymbol{p})\}\)
+(<code>kappa_sigma_p</code>) and the reciprocal
+\(\lambda_{\min}/\lambda_{\max}\) (<code>kappa_sigma_reciprocal</code>);</p></li>
 <li><p><code>supplementary</code>: one-row tibble of Jeffreys / symmetrised KL,
 recorded but not treated as a primary score;</p></li>
 <li><p><code>call</code>: the matched call (<code><a href="https://rdrr.io/r/base/match.call.html" class="external-link">match.call()</a></code>).</p></li>
 </ul></div>
     <div class="section level2">
-    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>No Cholesky fill-in or sparse-solver diagnostic is computed: the
-caller must declare the covariance structure used at fit time.</p>
-    </div>
-    <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="run_simulation_benchmark.html">run_simulation_benchmark()</a></code>, <code><a href="expected_fisher_unconstrained.html">expected_fisher_unconstrained()</a></code>,
-<code><a href="compute_shannon_entropy.html">compute_shannon_entropy()</a></code>, <code><a href="helmert_basis.html">helmert_basis()</a></code></p></div>
+<code><a href="compute_shannon_entropy.html">compute_shannon_entropy()</a></code>, <code><a href="composition_from_entropy.html">composition_from_entropy()</a></code>,
+<code><a href="helmert_basis.html">helmert_basis()</a></code></p></div>
     </div>
 
     <div class="section level2">

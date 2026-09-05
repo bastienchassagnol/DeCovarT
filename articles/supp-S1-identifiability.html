@@ -53,7 +53,7 @@
     <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
-    <li><a class="dropdown-item" href="../articles/how-to-build-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
@@ -98,7 +98,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Appendix S1 — Regular-case MLE properties and identifiability</h1>
       <p class="subtitle">Full script: <code>scripts/supp_S1_identifiability.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-09-04</p>
+      <p class="date">2026-09-05</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/supp-S1-identifiability.qmd" class="external-link"><code>vignettes/supp-S1-identifiability.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -331,7 +331,7 @@
 <span>  warning <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">w</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">conditionMessage</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span>,</span>
 <span>  error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">conditionMessage</a></span><span class="op">(</span><span class="va">e</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Signature columns are collinear (rank 1 &lt; J = 2); mixture proportions are not identifiable."</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "Signature columns are collinear.\n✖ rank 1 &lt; J = 2; mixture proportions are not identifiable."</span></span></code></pre></div>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
@@ -362,7 +362,7 @@
 <span>  warning <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">w</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">conditionMessage</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span>,</span>
 <span>  error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">conditionMessage</a></span><span class="op">(</span><span class="va">e</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Signature columns are collinear (rank 2 &lt; J = 3); mixture proportions are not identifiable."</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "Signature columns are collinear.\n✖ rank 2 &lt; J = 3; mixture proportions are not identifiable."</span></span></code></pre></div>
 </div>
 <p>Missing values are not a separate predictor / response policy (RE2.2): quantified bulk RNA-seq matrices are complete, and the API errors on <code>NA</code> / <code>NaN</code> / <code>Inf</code>.</p>
 </section><section class="level2"><h3 id="sec-s1-factorial">Factorial Monte Carlo (script)<a class="anchor" aria-label="anchor" href="#sec-s1-factorial"></a>
@@ -427,7 +427,7 @@
 <li><a href="theory-DeCovarT-MLE-properties.html">MLE properties</a></li>
 <li><a href="supp-S2-covariance-inversion.html">Appendix S2 — Covariance inversion</a></li>
 <li><a href="supp-S3-scaling.html">Appendix S3 — Solver scalability</a></li>
-<li><a href="how-to-build-synthetic-scenarios-mean-covariance.html">How to build synthetic scenarios</a></li>
+<li><a href="theory-synthetic-scenarios-mean-covariance.html">How to build synthetic scenarios</a></li>
 </ul></section><section class="level2 unnumbered"><h3 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h3>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">

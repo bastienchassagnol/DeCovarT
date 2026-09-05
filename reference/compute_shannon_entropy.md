@@ -40,6 +40,10 @@ classes.
 
 ![Gini versus Shannon entropy](figures/gini_vs_entropy_specificity.png)
 
+## See also
+
+[`composition_from_entropy()`](https://bastienchassagnol.github.io/DeCovarT/reference/composition_from_entropy.md)
+
 ## Examples
 
 ``` r

@@ -23,7 +23,9 @@ deconvolute_ratios(
   standardise = FALSE,
   scaled = FALSE,
   cores = getOption("mc.cores", 1L),
-  coverage_interval = "wilson"
+  coverage_interval = "wilson",
+  verbose = FALSE,
+  progress_every = 10L
 )
 ```
 
@@ -80,6 +82,17 @@ deconvolute_ratios(
   Passed to
   [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)
   (`"wilson"`, `"wald"`, or `"agresti_coull"`).
+
+- verbose:
+
+  If `TRUE`, emit progress for sequential sample loops (every
+  `progress_every` samples). Parallel `furrr` runs log a one-line notice
+  instead of per-sample ticks.
+
+- progress_every:
+
+  Sample-progress interval when `verbose` is `TRUE` and `cores = 1`.
+  Defaults to `10L`.
 
 ## Value
 
@@ -158,10 +171,10 @@ deconvolute_ratios(
 #> $regression$global
 #> # A tibble: 2 × 9
 #>   sample_id algorithm     tv   rmse angular  sdid  maxae reconstitution_mae
-#>   <chr>     <chr>      <dbl>  <dbl>   <dbl> <dbl>  <dbl>              <dbl>
-#> 1 sample_1  nnls      0.0806 0.0806   0.102 0.399 0.0806                 NA
-#> 2 sample_2  nnls      0.220  0.220    0.264 0.634 0.220                  NA
-#> # ℹ 1 more variable: reconstitution_cor <dbl>
+#>   <chr>     <chr>      <dbl>  <dbl>   <dbl> <dbl>  <dbl> <chr>             
+#> 1 sample_1  nnls      0.0806 0.0806   0.102 0.399 0.0806 irrelevant        
+#> 2 sample_2  nnls      0.220  0.220    0.264 0.634 0.220  irrelevant        
+#> # ℹ 1 more variable: reconstitution_cor <chr>
 #> 
 #> $regression$cell_type
 #> # A tibble: 2 × 5
@@ -185,8 +198,8 @@ deconvolute_ratios(
 #> # A tibble: 2 × 10
 #>   sample_id algorithm elapsed_sec memory_bytes kkt_residual numerical_converged
 #>   <chr>     <chr>           <dbl>        <dbl>        <dbl> <lgl>              
-#> 1 sample_1  nnls          0          536749056        0.444 TRUE               
-#> 2 sample_2  nnls          0.00100    541275136        0.152 TRUE               
+#> 1 sample_1  nnls                0    490438656        0.444 TRUE               
+#> 2 sample_2  nnls                0    490438656        0.152 TRUE               
 #> # ℹ 4 more variables: theoretical_converged <lgl>, loglik_regret <dbl>,
 #> #   ct1 <dbl>, ct2 <dbl>
 #> 

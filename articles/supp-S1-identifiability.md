@@ -300,7 +300,7 @@ tryCatch(
   warning = function(w) conditionMessage(w),
   error = function(e) conditionMessage(e)
 )
-#> [1] "Signature columns are collinear (rank 1 < J = 2); mixture proportions are not identifiable."
+#> [1] "Signature columns are collinear.\n✖ rank 1 < J = 2; mixture proportions are not identifiable."
 ```
 
 ``` r
@@ -332,7 +332,7 @@ tryCatch(
   warning = function(w) conditionMessage(w),
   error = function(e) conditionMessage(e)
 )
-#> [1] "Signature columns are collinear (rank 2 < J = 3); mixture proportions are not identifiable."
+#> [1] "Signature columns are collinear.\n✖ rank 2 < J = 3; mixture proportions are not identifiable."
 ```
 
 Missing values are not a separate predictor / response policy (RE2.2):
@@ -391,7 +391,7 @@ N_REPLICATES <- as.integer(Sys.getenv("N_REPLICATES", unset = "1000"))
 - [Appendix S3 — Solver
   scalability](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S3-scaling.md)
 - [How to build synthetic
-  scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/how-to-build-synthetic-scenarios-mean-covariance.md)
+  scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-scenarios-mean-covariance.md)
 
 ### References
 
