@@ -11,7 +11,9 @@ run_simulation_benchmark(
   standardise = FALSE,
   scaled = FALSE,
   cores = 1L,
-  coverage_interval = "wilson"
+  coverage_interval = "wilson",
+  verbose = FALSE,
+  progress_every = 10L
 )
 }
 \arguments{
@@ -33,6 +35,14 @@ has no \code{n} column.}
 
 \item{coverage_interval}{Coverage interval for the Monte Carlo
 coverage \emph{rate}; see \code{\link[=coverage_mc_interval]{coverage_mc_interval()}}.}
+
+\item{verbose}{If \code{TRUE}, print each scenario row and (when the grid
+has at most 10 scenarios) every \code{progress_every} inferred samples.
+Large factorial grids log one line per scenario only, so logs stay
+readable.}
+
+\item{progress_every}{Sample-progress interval passed to
+\code{\link[=deconvolute_ratios]{deconvolute_ratios()}} when \code{verbose} is \code{TRUE}. Defaults to \code{10L}.}
 }
 \value{
 A list with:

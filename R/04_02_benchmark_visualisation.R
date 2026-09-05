@@ -13,14 +13,11 @@
     )
   ]
   if (length(missing)) {
-    stop(
-      "plot_correlation_Heatmap() requires the optional package",
-      if (length(missing) > 1L) "s " else " ",
-      toString(paste0("'", missing, "'")),
-      ". Install CRAN dependencies with install.packages(), and ",
-      "'ComplexHeatmap' with BiocManager::install('ComplexHeatmap').",
-      call. = FALSE
-    )
+    .ui_abort(c(
+      "{.fn plot_correlation_Heatmap} requires {.pkg {missing}}.",
+      "i" = "Install CRAN dependencies with install.packages().",
+      "i" = "Install ComplexHeatmap with BiocManager::install(\"ComplexHeatmap\")."
+    ))
   }
   invisible(TRUE)
 }
@@ -186,7 +183,7 @@ plot_correlation_Heatmap <- function(
   return(complex_heatmap_list)
 }
 
-#' Check optional ggplot2 / ggdist Suggests packages
+#' Check ggplot2 (Imports) and optional ggdist / ggdendro Suggests
 #'
 #' @keywords internal
 #' @noRd

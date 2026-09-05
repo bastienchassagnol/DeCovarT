@@ -90,6 +90,7 @@ export(simulate_hierarchical_grn_moments)
 export(starting_simplex)
 export(vcov_alr_delta)
 export(vcov_ilr_delta)
+import(ggplot2)
 importFrom(Rdpack,reprompt)
 importFrom(rlang,.data)
 importFrom(stats,

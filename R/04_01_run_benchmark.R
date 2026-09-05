@@ -661,6 +661,11 @@ compute_benchmark_metrics <- function(
 #'   streams). Do not offset a shared seed by the sample index.
 #' @param coverage_interval Passed to [compute_benchmark_metrics()]
 #'   (`"wilson"`, `"wald"`, or `"agresti_coull"`).
+#' @param verbose If `TRUE`, emit progress for sequential sample loops
+#'   (every `progress_every` samples). Parallel `furrr` runs log a
+#'   one-line notice instead of per-sample ticks.
+#' @param progress_every Sample-progress interval when `verbose` is
+#'   `TRUE` and `cores = 1`. Defaults to `10L`.
 #'
 #' @return A named list from [compute_benchmark_metrics()] with
 #'   `regression` (global and cell-type subtables), `monte_carlo`, and
@@ -728,7 +733,9 @@ deconvolute_ratios <- function(
   standardise = FALSE,
   scaled = FALSE,
   cores = getOption("mc.cores", 1L),
-  coverage_interval = "wilson"
+  coverage_interval = "wilson",
+  verbose = FALSE,
+  progress_every = 10L
 ) {
   aligned <- .prepare_deconvolution_inputs(
     signature_matrix = signature_matrix,
@@ -748,7 +755,7 @@ deconvolute_ratios <- function(
   if (
     is.null(deconvolution_functions) || length(deconvolution_functions) == 0L
   ) {
-    stop("`deconvolution_functions` must be a named list.", call. = FALSE)
+    .ui_abort("{.arg deconvolution_functions} must be a named list.")
   }
 
   per_algorithm <- purrr::imap(
@@ -770,7 +777,10 @@ deconvolute_ratios <- function(
             n_celltypes = n_celltypes
           )
         },
-        cores = cores
+        cores = cores,
+        verbose = verbose,
+        progress_every = progress_every,
+        progress_label = algorithm
       )
       .assemble_algorithm_metrics(
         sample_fits = sample_fits,

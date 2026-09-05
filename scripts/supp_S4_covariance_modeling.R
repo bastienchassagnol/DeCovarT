@@ -7,6 +7,15 @@
 ###############################################################################
 ###############################################################################
 #
+# Background launch from the repository root (vanilla Rscript; no CLI
+# parser — hyperparameters are hard-coded below). stdout and stderr go
+# to logs/:
+#
+#   mkdir -p logs
+#   nohup Rscript --no-save --no-restore \
+#     scripts/supp_S4_covariance_modeling.R \
+#     > "logs/supp_S4_$(date +%F)_covariance_modeling.log" 2>&1 &
+#
 # Article:  DeCovarT – Supplementary: covariance modelling comparison
 # Vignette: vignettes/supp-S4-covariance-modeling.qmd
 #           {#sec-perturb} extends the two-covariance comparison to a
@@ -34,9 +43,8 @@
 #  output/supp_S4/S4_metric_dots.pdf
 ###############################################################################
 
-
 # ==============================================================================
-# SECTION 0 · Dependencies and paths
+# SECTION 0 · Dependencies and paths ----
 # ==============================================================================
 
 if (!requireNamespace("DeCovarT", quietly = TRUE)) {
@@ -48,14 +56,17 @@ if (!requireNamespace("DeCovarT", quietly = TRUE)) {
 } else {
   library(DeCovarT)
 }
+DeCovarT:::.ui_attach_script()
 
 OUT_DIR <- file.path("output", "supp_S4")
 dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
 
+.ui_h1("Supplementary S4 · Covariance modelling")
+
 N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "200"))
 if (interactive()) {
   N_REPL <- 2L
-  message("supp_S4: interactive – smoke test (n = 2).")
+  .ui_warn("Interactive session: smoke test with {.val 2} replicates.")
 }
 
 SEED <- 20260907L
@@ -66,7 +77,7 @@ G_FIXED <- 50L
 
 
 # ==============================================================================
-# SECTION 1 · GENERATIVE MODEL
+# SECTION 1 · GENERATIVE MODEL ----
 #   Three true covariance structures crossed with two mean cosine levels.
 # ==============================================================================
 
@@ -76,33 +87,52 @@ p_eq <- rep(1 / J_FIXED, J_FIXED)
 # Helper: build a sparse block-diagonal Sigma from igraph-based precision
 .make_grn_sigma <- function(G, J, cosine, seed) {
   mu <- generate_mean_signature_matrix(
-    n_genes       = G,
-    n_celltypes   = J,
-    mean_scale    = 20,
+    n_genes = G,
+    n_celltypes = J,
+    mean_scale = 20,
     target_cosine = cosine,
-    seed          = seed
+    seed = seed
   )
-  Omega_arr <- array(0, dim = c(G, G, J),
-                     dimnames = list(rownames(mu), rownames(mu), colnames(mu)))
+  Omega_arr <- array(
+    0,
+    dim = c(G, G, J),
+    dimnames = list(rownames(mu), rownames(mu), colnames(mu))
+  )
   for (j in seq_len(J)) {
     set.seed(seed + j)
-    adj   <- generate_random_network_skeleton(G, "erdos_renyi",
-                                             list(p_erdos_renyi = 0.2))
-    w_adj <- assign_iid_signed_weights(adj, prop_inhibitory = 0.5,
-                                       weight_magnitude = 0.4)
-    Omega_arr[, , j] <- build_normalised_precision(w_adj, precision_shift = 1)
+    adj <- generate_random_network_skeleton(
+      G,
+      "erdos_renyi",
+      list(p_erdos_renyi = 0.2)
+    )
+    w_adj <- assign_iid_signed_weights(
+      adj,
+      prop_inhibitory = 0.5,
+      weight_magnitude = 0.4
+    )
+    Omega_arr[,, j] <- build_normalised_precision(w_adj, precision_shift = 1)
   }
   list(mu = mu, Sigma = build_covariance_array_from_precision(Omega_arr))
 }
 
-message("supp_S4 | building generative models ...")
+.ui_info("Building generative models.")
 scenario_config_S4 <- purrr::map_dfr(COSINE_LEVELS, function(rho) {
   moments_iso <- {
-    mu_r <- generate_mean_signature_matrix(G_FIXED, J_FIXED, 20, rho,
-                                           seed = SEED + round(rho * 100))
-    Sigma_iso <- array(0, dim = c(G_FIXED, G_FIXED, J_FIXED),
-                       dimnames = list(rownames(mu_r), rownames(mu_r), colnames(mu_r)))
-    for (j in seq_len(J_FIXED)) diag(Sigma_iso[, , j]) <- 1
+    mu_r <- generate_mean_signature_matrix(
+      G_FIXED,
+      J_FIXED,
+      20,
+      rho,
+      seed = SEED + round(rho * 100)
+    )
+    Sigma_iso <- array(
+      0,
+      dim = c(G_FIXED, G_FIXED, J_FIXED),
+      dimnames = list(rownames(mu_r), rownames(mu_r), colnames(mu_r))
+    )
+    for (j in seq_len(J_FIXED)) {
+      diag(Sigma_iso[,, j]) <- 1
+    }
     list(mu = mu_r, Sigma = Sigma_iso)
   }
 
@@ -120,8 +150,8 @@ scenario_config_S4 <- purrr::map_dfr(COSINE_LEVELS, function(rho) {
           match(list(m), list(moments_iso, moments_grn))
         ],
         true_theta = list(list(
-          p     = p_eq,
-          mu    = m$mu,
+          p = p_eq,
+          mu = m$mu,
           sigma = m$Sigma
         ))
       )
@@ -134,11 +164,13 @@ scenario_config_S4 <- scenario_config_S4 |>
   dplyr::select(-dplyr::any_of("true_sigma_structure...3")) |>
   dplyr::distinct()
 
-message("supp_S4 | config: ", nrow(scenario_config_S4), " scenarios.")
+.ui_success(
+  "Config: {.val {nrow(scenario_config_S4)}} scenarios."
+)
 
 
 # ==============================================================================
-# SECTION 2 · INFERENCE
+# SECTION 2 · INFERENCE ----
 #   Four solvers: NNLS, CT-diagonal ML, global GLS, full DeCovarT.
 #   The GLS solver uses fixed_gls_covariance() at the equal composition.
 # ==============================================================================
@@ -147,7 +179,7 @@ message("supp_S4 | config: ", nrow(scenario_config_S4), " scenarios.")
 .deconv_ct_diagonal <- function(y, mu, Sigma, ...) {
   Sigma_diag <- Sigma
   for (j in seq_len(dim(Sigma)[3L])) {
-    Sigma_diag[, , j] <- diag(diag(Sigma[, , j]))
+    Sigma_diag[,, j] <- diag(diag(Sigma[,, j]))
   }
   deconvolute_ratios_Marquardt_Levenberg(y, mu, Sigma_diag, ...)
 }
@@ -172,22 +204,26 @@ deconvolution_functions_S4 <- list(
   )
 )
 
-message("supp_S4 | running benchmark (n = ", N_REPL, ") ...")
+.ui_info("Running benchmark with {.val {N_REPL}} replicates.")
 cov_modeling_out <- run_simulation_benchmark(
-  scenario_config        = scenario_config_S4,
+  scenario_config = scenario_config_S4,
   deconvolution_functions = deconvolution_functions_S4,
-  n                      = N_REPL,
-  cores                  = 1L)
-saveRDS(cov_modeling_out, file.path(OUT_DIR, "covariance_modeling_benchmark.rds"))
-message("supp_S4 | benchmark complete.")
+  n = N_REPL,
+  cores = 1L,
+  verbose = TRUE
+)
+saveRDS(
+  cov_modeling_out,
+  file.path(OUT_DIR, "covariance_modeling_benchmark.rds")
+)
 
 
 # ==============================================================================
-# SECTION 3 · VISUALISATIONS
+# SECTION 3 · VISUALISATIONS ----
 # ==============================================================================
 
 if (N_REPL < 10L) {
-  message("supp_S4 | skipping figures (smoke-test run).")
+  .ui_warn("Skipping figures because this is a smoke-test run.")
 } else {
   p_forest <- plot_mc_forest(
     cov_modeling_out,
@@ -196,8 +232,8 @@ if (N_REPL < 10L) {
   )
   ggplot2::ggsave(
     file.path(OUT_DIR, "S4_forest.pdf"),
-    plot   = p_forest,
-    width  = 12,
+    plot = p_forest,
+    width = 12,
     height = 7
   )
 
@@ -205,15 +241,17 @@ if (N_REPL < 10L) {
     cov_modeling_out,
     facet_rows = "true_sigma_structure",
     facet_cols = "target_cosine",
-    metrics    = c("rmse", "bias", "coverage")
+    metrics = c("rmse", "bias", "coverage")
   )
   ggplot2::ggsave(
     file.path(OUT_DIR, "S4_metric_dots.pdf"),
-    plot   = p_dots,
-    width  = 14,
+    plot = p_dots,
+    width = 14,
     height = 7
   )
-  message("supp_S4 | figures saved.")
+  .ui_success("Figures saved.")
 }
 
-message("supp_S4 | done. Outputs in ", normalizePath(OUT_DIR, mustWork = FALSE))
+.ui_success(
+  "Done. Outputs in {.path {normalizePath(OUT_DIR, mustWork = FALSE)}}."
+)

@@ -21,10 +21,10 @@
 #' @noRd
 .match_arg_case_insensitive <- function(arg, choices) {
   if (!is.character(arg) || length(arg) < 1L) {
-    stop("Argument must be a non-empty character vector.", call. = FALSE)
+    .ui_abort("{.arg arg} must be a non-empty character vector.")
   }
   if (anyNA(arg)) {
-    stop("Argument must not contain missing values.", call. = FALSE)
+    .ui_abort("{.arg arg} must not contain missing values.")
   }
   # match.arg() default: omitted arg is the full choices vector.
   if (
@@ -38,12 +38,11 @@
     function(a) {
       hit <- choices[tolower(choices) == tolower(a)]
       if (length(hit) != 1L) {
-        stop(
-          "Argument must be one of ",
-          toString(choices),
-          ".",
-          call. = FALSE
-        )
+        .ui_abort(c(
+          "Invalid value for {.arg arg}: {.val {a}}.",
+          "i" = "Allowed values are {.val {choices}}.",
+          "x" = "Argument must be one of {toString(choices)}."
+        ))
       }
       hit[[1L]]
     },
@@ -75,15 +74,17 @@
 #' @noRd
 .assert_no_missing <- function(x, name) {
   if (anyNA(x)) {
-    stop(
-      "`",
-      name,
-      "` must not contain missing or NaN values.",
-      call. = FALSE
-    )
+    .ui_abort(c(
+      "{.arg {name}} contains missing values.",
+      "x" = "NA and NaN values are not supported.",
+      "i" = "Zeros are valid observations and do not need to be removed."
+    ))
   }
   if (any(!is.finite(x))) {
-    stop("`", name, "` must not contain Inf or -Inf.", call. = FALSE)
+    .ui_abort(c(
+      "{.arg {name}} contains non-finite values.",
+      "x" = "Inf and -Inf are not supported."
+    ))
   }
   invisible(TRUE)
 }
@@ -105,36 +106,27 @@
 #' @keywords internal
 #' @noRd
 .assert_numeric_array <- function(x, name, n_dim, non_negative = FALSE) {
+  kind <- if (n_dim == 2L) "matrix" else "array"
   if (is.factor(x)) {
-    stop("`", name, "` must not be a factor.", call. = FALSE)
+    .ui_abort("{.arg {name}} must not be a factor.")
   }
   if (is.data.frame(x)) {
-    stop(
-      "`",
-      name,
-      "` must be a numeric matrix or array, not a data.frame.",
-      call. = FALSE
+    .ui_abort(
+      "{.arg {name}} must be a numeric matrix or array, not a data.frame."
     )
   }
   dims <- dim(x)
   if (is.null(dims) || length(dims) != n_dim) {
-    stop(
-      "`",
-      name,
-      "` must be a numeric ",
-      if (n_dim == 2L) "matrix" else "array",
-      " with ",
-      n_dim,
-      " dimensions.",
-      call. = FALSE
+    .ui_abort(
+      "{.arg {name}} must be a numeric {kind} with {n_dim} dimensions."
     )
   }
   if (!is.numeric(x)) {
-    stop("`", name, "` must have numeric storage mode.", call. = FALSE)
+    .ui_abort("{.arg {name}} must have numeric storage mode.")
   }
   .assert_no_missing(x, name)
   if (non_negative && any(x < 0)) {
-    stop("`", name, "` must be non-negative.", call. = FALSE)
+    .ui_abort("{.arg {name}} must be non-negative.")
   }
   invisible(TRUE)
 }
@@ -153,7 +145,7 @@
 #' @noRd
 .ensure_file_suffix <- function(path, suffix) {
   if (!is.character(path) || length(path) != 1L || !nzchar(path)) {
-    stop("`path` must be a non-empty character string.", call. = FALSE)
+    .ui_abort("{.arg path} must be a non-empty character string.")
   }
   suffix <- sub("^\\.", "", suffix)
   suffix <- .match_arg_case_insensitive(suffix, c("pdf", "csv", "rds"))
@@ -162,14 +154,7 @@
     return(paste0(path, ".", suffix))
   }
   if (!identical(tolower(ext), suffix)) {
-    stop(
-      "File '",
-      path,
-      "' must use suffix .",
-      suffix,
-      ".",
-      call. = FALSE
-    )
+    .ui_abort("File {.file {path}} must use suffix .{suffix}.")
   }
   path
 }
@@ -235,13 +220,13 @@
 #' @noRd
 .assert_ggj_array <- function(arr, name) {
   if (is.null(dim(arr)) || length(dim(arr)) != 3L) {
-    stop("`", name, "` must be a G x G x J array.", call. = FALSE)
+    .ui_abort("{.arg {name}} must be a G x G x J array.")
   }
   g1 <- dim(arr)[[1L]]
   g2 <- dim(arr)[[2L]]
   jj <- dim(arr)[[3L]]
   if (g1 != g2) {
-    stop("`", name, "` dims must be G x G x J.", call. = FALSE)
+    .ui_abort("{.arg {name}} dims must be G x G x J.")
   }
   list(G = g1, J = jj)
 }
@@ -269,35 +254,28 @@
     return(NULL)
   }
   if (is.factor(true_ratios) || is.data.frame(true_ratios)) {
-    stop(
-      "`true_ratios` must be a numeric vector or matrix.",
-      call. = FALSE
-    )
+    .ui_abort("{.arg true_ratios} must be a numeric vector or matrix.")
   }
   if (is.matrix(true_ratios)) {
     .assert_numeric_array(true_ratios, "true_ratios", 2L, non_negative = TRUE)
     if (nrow(true_ratios) == n_celltypes && ncol(true_ratios) == n_samples) {
       return(true_ratios)
     }
-    stop(
-      "`true_ratios` as a matrix must be J x N ",
-      "(n_celltypes x n_samples).",
-      call. = FALSE
+    .ui_abort(
+      "{.arg true_ratios} as a matrix must be J x N (n_celltypes x n_samples)."
     )
   }
   if (!is.numeric(true_ratios) || length(dim(true_ratios))) {
-    stop(
-      "`true_ratios` must be a numeric vector of length J or a ",
-      "J x N matrix.",
-      call. = FALSE
+    .ui_abort(
+      "{.arg true_ratios} must be a numeric vector of length J or a J x N matrix."
     )
   }
   .assert_no_missing(true_ratios, "true_ratios")
   if (any(true_ratios < 0)) {
-    stop("`true_ratios` must be non-negative.", call. = FALSE)
+    .ui_abort("{.arg true_ratios} must be non-negative.")
   }
   if (length(true_ratios) != n_celltypes) {
-    stop("`true_ratios` must have length J.", call. = FALSE)
+    .ui_abort("{.arg true_ratios} must have length J.")
   }
   matrix(
     true_ratios,
@@ -358,27 +336,24 @@
     is.null(rownames(signature_matrix)) ||
       is.null(rownames(bulk_expression))
   ) {
-    stop(
-      "`signature_matrix` and `bulk_expression` must have gene rownames.",
-      call. = FALSE
+    .ui_abort(
+      "{.arg signature_matrix} and {.arg bulk_expression} must have gene rownames."
     )
   }
   if (is.null(colnames(signature_matrix))) {
-    stop("`signature_matrix` must have cell-type colnames.", call. = FALSE)
+    .ui_abort("{.arg signature_matrix} must have cell-type colnames.")
   }
 
   common_genes <- intersect(
     rownames(signature_matrix),
     rownames(bulk_expression)
   )
-  if (length(common_genes) / nrow(signature_matrix) < 0.5) {
-    stop(
-      "Only ",
-      length(common_genes) / nrow(signature_matrix),
-      " fraction of genes are used in the signature matrix.\n",
-      "Half of common genes are required at least",
-      call. = FALSE
-    )
+  gene_frac <- length(common_genes) / nrow(signature_matrix)
+  if (gene_frac < 0.5) {
+    .ui_abort(c(
+      "Only {gene_frac} fraction of genes are used in the signature matrix.",
+      "i" = "Half of common genes are required at least."
+    ))
   }
   common_genes <- sort(common_genes)
   signature_matrix <- signature_matrix[common_genes, , drop = FALSE]
@@ -389,14 +364,10 @@
   n_samples <- ncol(bulk_expression)
   # J > G: undetermined linear mixture (arxiv:2310.14722, sec. 2.1.5).
   if (n_celltypes > n_genes) {
-    stop(
-      "Undetermined deconvolution: number of cell types J = ",
-      n_celltypes,
-      " exceeds number of genes G = ",
-      n_genes,
-      ".",
-      call. = FALSE
-    )
+    .ui_abort(c(
+      "Undetermined deconvolution: J exceeds G.",
+      "x" = "Number of cell types J = {.val {n_celltypes}} exceeds genes G = {.val {n_genes}}."
+    ))
   }
 
   if (!is.null(Sigma)) {
@@ -409,25 +380,21 @@
           c(n_genes, n_genes, n_celltypes)
         )
       ) {
-        stop(
-          "`Sigma` must be a G x G x J array matching the aligned ",
-          "signature matrix.",
-          call. = FALSE
+        .ui_abort(
+          "{.arg Sigma} must be a G x G x J array matching the aligned signature matrix."
         )
       }
     } else {
       missing_genes <- setdiff(common_genes, dimnames(Sigma)[[1L]])
       if (length(missing_genes)) {
-        stop(
-          "`Sigma` is missing genes present in the signature.",
-          call. = FALSE
+        .ui_abort(
+          "{.arg Sigma} is missing genes present in the signature."
         )
       }
       Sigma <- Sigma[common_genes, common_genes, , drop = FALSE]
       if (dim(Sigma)[[3L]] != n_celltypes) {
-        stop(
-          "`Sigma` must have J slices (one covariance per cell type).",
-          call. = FALSE
+        .ui_abort(
+          "{.arg Sigma} must have J slices (one covariance per cell type)."
         )
       }
     }
@@ -442,16 +409,12 @@
   .warn_collinear_signature(signature_matrix)
 
   if (isTRUE(scaled)) {
-    stop(
-      "`scaled = TRUE` (log2 mixing) is not supported: the logarithm ",
-      "is a nonlinear map and, by Jensen's inequality, changes first ",
-      "and second moments, breaking the linear convolution ",
-      "y = mu p. CIBERSORT likewise requires non-negative expression, ",
-      "no missing values, and a non-log linear scale ",
-      "(Newman et al., 2015). Use `standardise = TRUE` for a gene-wise ",
-      "affine z-score that leaves the theoretical MLE unchanged.",
-      call. = FALSE
-    )
+    .ui_abort(c(
+      "{.arg scaled} = TRUE (log2 mixing) is not supported.",
+      "x" = "The logarithm is a nonlinear map and, by Jensen's inequality, changes first and second moments, breaking the linear convolution y = mu p.",
+      "i" = "CIBERSORT likewise requires non-negative expression, no missing values, and a non-log linear scale (Newman et al., 2015).",
+      "i" = "Use {.code standardise = TRUE} for a gene-wise affine z-score that leaves the theoretical MLE unchanged."
+    ))
   }
 
   centre <- NULL
@@ -487,31 +450,23 @@
   n_celltypes <- ncol(signature_matrix)
   rank_mu <- qr(signature_matrix)$rank
   if (rank_mu < n_celltypes) {
-    warning(
-      "Signature columns are collinear (rank ",
-      rank_mu,
-      " < J = ",
-      n_celltypes,
-      "); mixture proportions are not identifiable.",
-      call. = FALSE
-    )
+    .ui_warning(c(
+      "Signature columns are collinear.",
+      "x" = "rank {.val {rank_mu}} < J = {.val {n_celltypes}}; mixture proportions are not identifiable."
+    ))
     return(invisible(FALSE))
   }
   col_norm <- sqrt(colSums(signature_matrix^2))
   if (any(col_norm < .Machine$double.eps)) {
-    warning(
-      "A signature column is numerically zero.",
-      call. = FALSE
-    )
+    .ui_warning("A signature column is numerically zero.")
     return(invisible(FALSE))
   }
   unit_cols <- sweep(signature_matrix, 2L, col_norm, "/")
   cosine <- abs(crossprod(unit_cols))
   diag(cosine) <- 0
   if (any(cosine > 1 - 1e-8)) {
-    warning(
-      "At least two signature columns are identical up to scaling.",
-      call. = FALSE
+    .ui_warning(
+      "At least two signature columns are identical up to scaling."
     )
   }
   invisible(TRUE)
@@ -535,10 +490,8 @@
   centre <- rowMeans(signature_matrix)
   scale <- apply(signature_matrix, 1L, stats::sd)
   if (any(!is.finite(scale) | scale < .Machine$double.eps)) {
-    stop(
-      "Gene-wise standardisation requires a positive finite standard ",
-      "deviation for every gene in the signature.",
-      call. = FALSE
+    .ui_abort(
+      "Gene-wise standardisation requires a positive finite standard deviation for every gene in the signature."
     )
   }
   signature_star <- (signature_matrix - centre) / scale

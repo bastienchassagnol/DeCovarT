@@ -1,5 +1,11 @@
 # DeCovarT (development version)
 
+* **Terminal UI.** Optional Suggests `cli` formats messages, warnings
+  and errors (`cli_alert_*` / `cli_abort`, with base `message()` /
+  `stop()` fallback). `run_simulation_benchmark(verbose = TRUE)` logs
+  each scenario row; grids of 10 or fewer scenarios also tick every 10
+  inferred samples.
+
 * **Documentation layout.** Paper scenarios live in the
   `fig02-bivariate-toy` and `fig03-variance-driven` articles (one script
   each: `scripts/fig02_bivariate_toy.R`,

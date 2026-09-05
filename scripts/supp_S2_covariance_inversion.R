@@ -7,6 +7,15 @@
 ###############################################################################
 ###############################################################################
 #
+# Background launch from the repository root (vanilla Rscript; no CLI
+# parser — hyperparameters are hard-coded below). stdout and stderr go
+# to logs/:
+#
+#   mkdir -p logs
+#   nohup Rscript --no-save --no-restore \
+#     scripts/supp_S2_covariance_inversion.R \
+#     > "logs/supp_S2_$(date +%F)_covariance_inversion.log" 2>&1 &
+#
 # Article:  DeCovarT – Supplementary S2: covariance backends
 # Vignette: vignettes/supp-S2-covariance-inversion.qmd
 # Package:  new_decovart_covariance() + sigma_solve() / sigma_logdet()
@@ -30,7 +39,7 @@
 ###############################################################################
 
 # ==============================================================================
-# SECTION 0 · Dependencies and paths
+# SECTION 0 · Dependencies and paths ----
 # ==============================================================================
 
 if (!requireNamespace("DeCovarT", quietly = TRUE)) {
@@ -57,7 +66,8 @@ set.seed(SEED)
 
 
 # ==============================================================================
-# SECTION 0b · Backend correctness (formerly covariance_structure_prototypes.R)
+# SECTION 0b · Backend correctness ----
+#   Formerly covariance_structure_prototypes.R.
 #   Each structured backend is checked against a dense Cholesky to machine
 #   precision on a small G. Timing at large G is SECTION 2.
 # ==============================================================================
@@ -206,7 +216,7 @@ if (!requireNamespace("withr", quietly = TRUE)) {
 
 
 # ==============================================================================
-# SECTION 1 · GENERATIVE MODEL
+# SECTION 1 · GENERATIVE MODEL ----
 #   Construct covariance matrices of different sizes and sparsity structures.
 # ==============================================================================
 
@@ -263,7 +273,7 @@ message("supp_S2 | covariance structures built: ", nrow(sigma_cases), " cases.")
 
 
 # ==============================================================================
-# SECTION 2 · INFERENCE (timing)
+# SECTION 2 · INFERENCE (timing) ----
 #   For each (G, structure), time sigma_solve() via the dense backend.
 #   The covariance-backend abstraction (new_decovart_covariance) is compared
 #   against direct base::solve() as baseline.
@@ -350,7 +360,7 @@ message(
 
 
 # ==============================================================================
-# SECTION 3 · VISUALISATIONS
+# SECTION 3 · VISUALISATIONS ----
 # ==============================================================================
 
 if (requireNamespace("ggplot2", quietly = TRUE)) {

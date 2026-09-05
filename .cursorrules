@@ -436,6 +436,37 @@ This repo uses **[Air](https://posit-dev.github.io/air/)** (`air.toml`) and
 - Keep source lines ≤ **80** characters (Air / lintr); wrap prose and
   code rather than silencing the linter.
 - Comment non-obvious logic only; prefer self-explanatory names.
+- **Bannered sections (Cursor / VS Code / RStudio Outline).** The R
+  language server treats a comment as a document symbol when the line
+  ends with four or more `-`, `=`, `*`, or `#` characters. For
+  simulation scripts under `scripts/`, box the heading if you wish,
+  but put the **human-readable title on its own line ending in
+  ` ----`** (space plus four dashes). That title is what Outline
+  shows (e.g. `SECTION 3 · VISUALISATIONS`). Do not put `----` only
+  on the `====` rules — Outline then lists `==`. Prefer:
+
+  ```
+  # ==========================================================================
+  # SECTION 0 · Dependencies and paths ----
+  # ==========================================================================
+  ```
+
+  Number sections 0 (dependencies), 1 (generative model), 2
+  (inference), 3 (visualisations) unless a script needs extra
+  subsections (`0b`, …). Keep a short subtitle on following `#`
+  lines without `----` so it does not clutter Outline.
+- **Simulation script launch header.** At the top of each factorial
+  / ADEMP script in `scripts/` (`fig0*.R`, `supp_S*.R`), document a
+  background `nohup` invocation with vanilla `Rscript --no-save
+  --no-restore`, stdout and stderr redirected into `logs/`, and no
+  CLI parser when hyperparameters are hard-coded in the file. Pattern
+  (from [GastroDeconv2FateMap `02_02_omnideconv.R`](https://github.com/bastienchassagnol/GastroDeconv2FateMap/blob/e5ff600d5adeede1b2d057d59bc932af2b53d637/scripts/02_02_omnideconv.R#L4-L12)):
+
+  ```
+  #   mkdir -p logs
+  #   nohup Rscript --no-save --no-restore scripts/<name>.R \
+  #     > "logs/<stem>_$(date +%F)_<slug>.log" 2>&1 &
+  ```
 - Prefer modular, reusable functions over long scripts.
 - Avoid unnecessary dependencies; use base R when clearly simpler.
   Check existing package helpers before adding new code.

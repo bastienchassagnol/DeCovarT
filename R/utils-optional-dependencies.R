@@ -6,15 +6,10 @@
 #' @noRd
 .check_suggested_package <- function(pkg, fn) {
   if (!requireNamespace(pkg, quietly = TRUE)) {
-    stop(
-      fn,
-      "() requires the optional package '",
-      pkg,
-      "'. Install with install.packages(\"",
-      pkg,
-      "\").",
-      call. = FALSE
-    )
+    .ui_abort(c(
+      "{.fn {fn}} requires the optional package {.pkg {pkg}}.",
+      "i" = "Install it with install.packages(\"{pkg}\")."
+    ))
   }
   invisible(TRUE)
 }

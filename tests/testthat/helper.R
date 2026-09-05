@@ -2,6 +2,12 @@
 # See r-pkgs.org testing-advanced: create useful_things with a helper
 # when construction is fiddly but cheap. Never write to the package
 # tree, getwd(), or the user's home filespace (CRAN policy).
+#
+# The fig02 script is copied into a withr temp directory and sourced
+# from there so builders load without running the 972-scenario pipeline
+# (that path is gated on Rscript --file=...fig02_bivariate_toy.R or an
+# interactive session). The temp copy is deleted when this helper
+# returns.
 
 new_bivariate_toy_scenario <- function(
   seed = 3L,
@@ -25,8 +31,10 @@ new_bivariate_toy_scenario <- function(
     return(NULL)
   }
 
-  withr::local_envvar(c(DECOVART_SOURCE_HELPERS = "1"))
-  source(scenario_script, local = TRUE)
+  tmp_dir <- withr::local_tempdir()
+  tmp_script <- file.path(tmp_dir, "fig02_bivariate_toy.R")
+  file.copy(scenario_script, tmp_script)
+  source(tmp_script, local = TRUE)
 
   scenario_config <- build_bivariate_scenario_config(
     proportions = list("balanced" = c(0.50, 0.50)),

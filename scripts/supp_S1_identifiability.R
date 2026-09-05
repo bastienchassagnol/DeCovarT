@@ -7,6 +7,14 @@
 ###############################################################################
 ###############################################################################
 #
+# Background launch from the repository root (vanilla Rscript; no CLI
+# parser — hyperparameters are hard-coded below). stdout and stderr go
+# to logs/:
+#
+#   mkdir -p logs
+#   nohup Rscript --no-save --no-restore scripts/supp_S1_identifiability.R \
+#     > "logs/supp_S1_$(date +%F)_identifiability.log" 2>&1 &
+#
 # Article:  DeCovarT – Appendix S1 (regular-case MLE + identifiability)
 # Vignette: vignettes/supp-S1-identifiability.qmd
 # Theory:   vignettes/theory-DeCovarT-MLE-properties.qmd
@@ -31,7 +39,7 @@
 ###############################################################################
 
 # ==============================================================================
-# SECTION 0 · Dependencies and paths
+# SECTION 0 · Dependencies and paths ----
 # ==============================================================================
 
 if (!requireNamespace("DeCovarT", quietly = TRUE)) {
@@ -43,14 +51,19 @@ if (!requireNamespace("DeCovarT", quietly = TRUE)) {
 } else {
   library(DeCovarT)
 }
+DeCovarT:::.ui_attach_script()
 
 OUT_DIR <- file.path("output", "supp_S1")
 dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
 
+.ui_h1("Supplementary S1 · Identifiability")
+
 N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "1000"))
 if (interactive()) {
   N_REPL <- 2L
-  message("supp_S1: interactive session – smoke test (n = 2).")
+  .ui_warn(
+    "Interactive session: smoke test with {.val 2} replicates."
+  )
 }
 
 SEED <- 20260904L
@@ -58,7 +71,7 @@ set.seed(SEED)
 
 
 # ==============================================================================
-# SECTION 1 · GENERATIVE MODEL
+# SECTION 1 · GENERATIVE MODEL ----
 #   Three sub-cases designed to stress identifiability limits.
 # ==============================================================================
 
@@ -91,7 +104,7 @@ config_1a <- tibble::tibble(
   p3_true = p_1a[3L],
   true_theta = list(list(p = p_1a, mu = mu_1a, sigma = Sigma_1a))
 )
-message("supp_S1 | S1a generative model built (J=3, G=10, p₃=0).")
+.ui_success("S1a generative model built (J=3, G=10, p3=0).")
 
 
 # ── S1b: Same means, different Σ – identifiability from covariance only ──────
@@ -123,10 +136,8 @@ config_1b <- purrr::map_dfr(rho_grid_1b, function(rho) {
     true_theta = list(list(p = p_1b, mu = mu_1b, sigma = Sigma_b))
   )
 })
-message(
-  "supp_S1 | S1b generative model built (",
-  nrow(config_1b),
-  " ρ levels)."
+.ui_success(
+  "S1b generative model built ({.val {nrow(config_1b)}} rho levels)."
 )
 
 
@@ -155,10 +166,8 @@ config_1c <- purrr::map_dfr(rho_grid_1c, function(rho) {
     true_theta = list(list(p = p_1c, mu = mu_1c, sigma = Sigma_c))
   )
 })
-message(
-  "supp_S1 | S1c generative model built (",
-  nrow(config_1c),
-  " ρ levels)."
+.ui_success(
+  "S1c generative model built ({.val {nrow(config_1c)}} rho levels)."
 )
 
 
@@ -200,11 +209,16 @@ p_ml_starts <- vapply(
   numeric(2)
 )
 start_spread <- max(apply(p_ml_starts, 1L, stats::sd))
-message(
-  "supp_S1 | interior ILR-start spread (max SD across starts) = ",
-  signif(start_spread, 3),
-  if (start_spread < 0.02) " (solvers agree)." else " (WARNING: spread)."
-)
+spread_txt <- format(signif(start_spread, 3))
+if (start_spread < 0.02) {
+  .ui_success(
+    "Interior ILR-start spread (max SD) = {.val {spread_txt}} (solvers agree)."
+  )
+} else {
+  .ui_warn(
+    "Interior ILR-start spread (max SD) = {.val {spread_txt}}."
+  )
+}
 saveRDS(
   list(starts = starts_int, marquardt = p_ml_starts, spread = start_spread),
   file.path(OUT_DIR, "S1_interior_starts.rds")
@@ -212,7 +226,7 @@ saveRDS(
 
 
 # ==============================================================================
-# SECTION 2 · INFERENCE
+# SECTION 2 · INFERENCE ----
 #   S1a: compare Wald vs profile vs bootstrap CI coverage near boundary.
 #   S1b / S1c: Marquardt–Levenberg only (focus is on likelihood shape).
 # ==============================================================================
@@ -224,44 +238,47 @@ deconv_fns_simple <- list(
   )
 )
 
-message("supp_S1 | running S1a (n = ", N_REPL, ") ...")
+.ui_info("Running S1a with {.val {N_REPL}} replicates.")
 out_1a <- run_simulation_benchmark(
   scenario_config = config_1a,
   deconvolution_functions = deconv_fns_simple,
   n = N_REPL,
-  cores = 1L
+  cores = 1L,
+  verbose = TRUE
 )
 saveRDS(out_1a, file.path(OUT_DIR, "S1a_boundary.rds"))
 
-message("supp_S1 | running S1b (n = ", N_REPL, ") ...")
+.ui_info("Running S1b with {.val {N_REPL}} replicates.")
 out_1b <- run_simulation_benchmark(
   scenario_config = config_1b,
   deconvolution_functions = deconv_fns_simple,
   n = N_REPL,
-  cores = 1L
+  cores = 1L,
+  verbose = TRUE
 )
 saveRDS(out_1b, file.path(OUT_DIR, "S1b_same_means.rds"))
 
-message("supp_S1 | running S1c (n = ", N_REPL, ") ...")
+.ui_info("Running S1c with {.val {N_REPL}} replicates.")
 out_1c <- run_simulation_benchmark(
   scenario_config = config_1c,
   deconvolution_functions = deconv_fns_simple,
   n = N_REPL,
-  cores = 1L
+  cores = 1L,
+  verbose = TRUE
 )
 saveRDS(out_1c, file.path(OUT_DIR, "S1c_multimodal.rds"))
-message("supp_S1 | inference complete.")
+.ui_success("Inference complete.")
 
 
 # ==============================================================================
-# SECTION 3 · VISUALISATIONS
+# SECTION 3 · VISUALISATIONS ----
 #   S1a: forest plot of CI widths (Wald vs profile); coverage table.
 #   S1b: log-likelihood contour vs ρ facet.
 #   S1c: log-likelihood 1D slice per ρ.
 # ==============================================================================
 
 if (N_REPL < 10L) {
-  message("supp_S1 | skipping figure export (smoke-test run).")
+  .ui_warn("Skipping figure export because this is a smoke-test run.")
 } else {
   # S1b: dot-metric comparison across ρ levels
   p_dots_1b <- plot_mc_metric_dots(
@@ -290,7 +307,9 @@ if (N_REPL < 10L) {
       height = 5
     )
   }
-  message("supp_S1 | figures saved.")
+  .ui_success("Figures saved.")
 }
 
-message("supp_S1 | done. Outputs in ", normalizePath(OUT_DIR, mustWork = FALSE))
+.ui_success(
+  "Done. Outputs in {.path {normalizePath(OUT_DIR, mustWork = FALSE)}}."
+)

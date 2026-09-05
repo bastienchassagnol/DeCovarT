@@ -13,7 +13,9 @@ deconvolute_ratios(
   standardise = FALSE,
   scaled = FALSE,
   cores = getOption("mc.cores", 1L),
-  coverage_interval = "wilson"
+  coverage_interval = "wilson",
+  verbose = FALSE,
+  progress_every = 10L
 )
 }
 \arguments{
@@ -52,6 +54,13 @@ streams). Do not offset a shared seed by the sample index.}
 
 \item{coverage_interval}{Passed to \code{\link[=compute_benchmark_metrics]{compute_benchmark_metrics()}}
 (\code{"wilson"}, \code{"wald"}, or \code{"agresti_coull"}).}
+
+\item{verbose}{If \code{TRUE}, emit progress for sequential sample loops
+(every \code{progress_every} samples). Parallel \code{furrr} runs log a
+one-line notice instead of per-sample ticks.}
+
+\item{progress_every}{Sample-progress interval when \code{verbose} is
+\code{TRUE} and \code{cores = 1}. Defaults to \code{10L}.}
 }
 \value{
 A named list from \code{\link[=compute_benchmark_metrics]{compute_benchmark_metrics()}} with

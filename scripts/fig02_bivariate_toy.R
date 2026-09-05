@@ -7,19 +7,28 @@
 ###############################################################################
 ###############################################################################
 #
+# Background launch from the repository root (vanilla Rscript; no CLI
+# parser — hyperparameters are hard-coded below). stdout and stderr go
+# to logs/:
+#
+#   mkdir -p logs
+#   nohup Rscript --no-save --no-restore scripts/fig02_bivariate_toy.R \
+#     > "logs/fig02_$(date +%F)_bivariate_toy.log" 2>&1 &
+#
 # Article:  DeCovarT – Section 2.1 "Toy Model with two genes and two cell
 #           populations" (Numerical Simulation Study).
 # Vignette: vignettes/fig02-bivariate-toy.qmd
 #
-# This is the single script for the bivariate toy: scenario builders
-# (sourced by tests/testthat/helper.R) and the ADEMP pipeline.
-# Set DECOVART_SOURCE_HELPERS=1 to load the functions without running
-# the factorial grid.
+# Scenario builders live at the top of this file. Sourcing it from tests
+# or a vignette defines those functions without running the grid:
+# non-interactive `source()` does not see `--file=...fig02_bivariate_toy.R`.
 #
 # ── Factorial design ────────────────────────────────────────────────────────
 #  Factor                  Levels
 #  ─────────────────────── ───────────────────────────────────────────────────
-#  Proportions             balanced (1/2, 1/2); highly unbalanced (19/20, 1/20)
+#  Proportions             balanced (1/2, 1/2);
+#                          moderately unbalanced (17/20, 3/20);
+#                          highly unbalanced (99/100, 1/100)
 #  Mean distance (CLD)     small: μ=(20,22)/(22,20); large: μ=(20,40)/(40,20)
 #  Gene–gene corr CT1 (ρ)  −0.8 to +0.8, step 0.2  (9 levels)
 #  Gene–gene corr CT2 (ρ)  −0.8 to +0.8, step 0.2  (9 levels)
@@ -27,18 +36,26 @@
 #  Algorithms              NNLS, DeconRNASeq (LSEI), L-BFGS-B, gradient,
 #                          Newton–Raphson, Marquardt–Levenberg, SA
 #  ─────────────────────── ───────────────────────────────────────────────────
-#  Total scenarios:  2 × 2 × 9 × 9 × 2 = 648
+#  Total scenarios:  3 × 2 × 9 × 9 × 2 = 972
 #  Replicates (n):   500 (full); 2 (smoke test)
+#
+# ── Solver hyperparameters (pipeline; bivariate_toy_deconvolution_functions)
+#  itmax      200     max. iterations (L-BFGS-B, gradient, Newton,
+#                     Marquardt–Levenberg, SA)
+#  epsilon    1e-4    convergence tolerance for those solvers
+#  cores      1       scenario loop is sequential; do not nest workers
+#  Tests use the factory defaults itmax = 10, epsilon = 1e-3.
 #
 # ── Usage ───────────────────────────────────────────────────────────────────
 #  Full run:    Rscript scripts/fig02_bivariate_toy.R
 #  Smoke test:  N_REPLICATES=2 Rscript scripts/fig02_bivariate_toy.R
-#  Helpers:     DECOVART_SOURCE_HELPERS=1 source("scripts/fig02_bivariate_toy.R")
 #
 # ── Outputs ─────────────────────────────────────────────────────────────────
 #  output/fig02/bivariate_benchmark.rds    – full benchmark list
 #  output/fig02/bivariate_config.rds       – scenario config tibble
-#  output/fig02/fig02_heatmap.pdf          – MSE heatmap (ρ₁ × ρ₂ grid)
+#  output/fig02/fig02_heatmap.pdf          – filled 2-D display of RMSE on
+#                                            the (ρ₁, ρ₂) plane (ggplot2
+#                                            analogue: geom_density_2d_filled)
 #  output/fig02/fig02_raincloud.pdf        – raincloud of MC errors
 #  output/fig02/fig02_forest.pdf           – forest / dot-whisker (ADEMP)
 #  output/fig02/fig02_similarity.pdf       – algorithm similarity tile
@@ -57,11 +74,12 @@
 build_bivariate_scenario_config <- function(
   proportions = list(
     "balanced" = c(0.5, 0.5),
-    "small unbalanced" = c(0.6, 0.4),
-    "highly unbalanced" = c(0.05, 0.95)
+    "moderately unbalanced" = c(0.85, 0.15),
+    "highly unbalanced" = c(0.99, 0.01)
   ),
   signature_matrices = list(
-    "small OVL" = matrix(c(20, 40, 40, 20), nrow = 2)
+    "small_CLD" = matrix(c(20, 22, 22, 20), nrow = 2),
+    "large_CLD" = matrix(c(20, 40, 40, 20), nrow = 2)
   ),
   corr_sequence = seq(-0.8, 0.8, 0.2),
   diagonal_terms = list(
@@ -76,6 +94,7 @@ build_bivariate_scenario_config <- function(
     )
   }
 
+  # Label genes and cell types on each mean signature (G x J).
   num_celltypes <- ncol(signature_matrices[[1L]])
   num_genes <- nrow(signature_matrices[[1L]])
   signature_matrices <- purrr::map(
@@ -89,6 +108,7 @@ build_bivariate_scenario_config <- function(
     }
   )
 
+  # Full factorial grid: centroids x p x rho_1 x rho_2 x variance.
   proportion_list <- proportions
   design <- tidyr::expand_grid(
     centroids = names(signature_matrices),
@@ -122,6 +142,7 @@ build_bivariate_scenario_config <- function(
       p <- proportion_list[[proportion_name]]
       diag_terms <- diagonal_terms[[variance]]
 
+      # Exchangeable correlation per cell type, then Sigma_j = D^{1/2} R D^{1/2}.
       corr_matrix <- array(
         0,
         dim = c(num_genes, num_genes, num_celltypes),
@@ -214,11 +235,22 @@ bivariate_toy_deconvolution_functions <- function(
   )
 }
 
-
-# Pipeline: skip when tests (or callers) only want the helpers.
-if (!nzchar(Sys.getenv("DECOVART_SOURCE_HELPERS"))) {
+# Run the ADEMP pipeline only for an interactive Source or
+# `Rscript scripts/fig02_bivariate_toy.R`. Tests copy this file into a
+# withr temp directory and source it there (builders only).
+if (
+  interactive() ||
+    any(grepl(
+      "fig02_bivariate_toy\\.R$",
+      sub(
+        "^--file=",
+        "",
+        grep("^--file=", commandArgs(trailingOnly = FALSE), value = TRUE)
+      )
+    ))
+) {
   # ==========================================================================
-  # SECTION 0 · Dependencies and paths
+  # SECTION 0 · Dependencies and paths ----
   # ==========================================================================
 
   if (!requireNamespace("DeCovarT", quietly = TRUE)) {
@@ -230,6 +262,7 @@ if (!nzchar(Sys.getenv("DECOVART_SOURCE_HELPERS"))) {
   } else {
     library(DeCovarT)
   }
+  DeCovarT:::.ui_attach_script()
 
   stopifnot(
     requireNamespace("MixSim", quietly = TRUE),
@@ -239,60 +272,36 @@ if (!nzchar(Sys.getenv("DECOVART_SOURCE_HELPERS"))) {
   OUT_DIR <- file.path("output", "fig02")
   dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
 
+  .ui_h1("Figure 02 · Bivariate toy model")
+
   N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "500"))
   if (!interactive() && N_REPL > 2L) {
-    message(
-      "fig02: running FULL benchmark (n = ",
-      N_REPL,
-      "). ",
-      "Set N_REPLICATES=2 for a smoke test."
+    .ui_info(
+      "Running the full benchmark with {.val {N_REPL}} replicates. Set {.envvar N_REPLICATES}=2 for a smoke test."
     )
   } else if (interactive()) {
     N_REPL <- 2L
-    message("fig02: interactive session detected – using n = 2 (smoke test).")
+    .ui_warn(
+      "Interactive session detected: smoke test with {.val 2} replicates."
+    )
   }
 
   SEED <- 20260903L
   set.seed(SEED)
 
   # ==========================================================================
-  # SECTION 1 · GENERATIVE MODEL
+  # SECTION 1 · GENERATIVE MODEL ----
   # ==========================================================================
 
-  PROPORTIONS <- list(
-    "balanced" = c(0.5, 0.5),
-    "highly_unbalanced" = c(19 / 20, 1 / 20)
+  .ui_info("Building scenario config (972 factorial rows).")
+  scenario_config <- build_bivariate_scenario_config()
+  .ui_success(
+    "Config built: {.val {nrow(scenario_config)}} scenarios."
   )
-  SIGNATURE_MATRICES <- list(
-    "small_CLD" = matrix(
-      c(20, 22, 22, 20),
-      nrow = 2L,
-      dimnames = list(NULL, NULL)
-    ),
-    "large_CLD" = matrix(
-      c(20, 40, 40, 20),
-      nrow = 2L,
-      dimnames = list(NULL, NULL)
-    )
-  )
-  CORR_SEQUENCE <- seq(-0.8, 0.8, by = 0.2)
-  DIAGONAL_TERMS <- list(
-    "homoscedastic" = c(1, 1),
-    "heteroscedastic" = c(1, 2)
-  )
-
-  message("fig02 | building scenario config (648 scenarios) ...")
-  scenario_config <- build_bivariate_scenario_config(
-    proportions = PROPORTIONS,
-    signature_matrices = SIGNATURE_MATRICES,
-    corr_sequence = CORR_SEQUENCE,
-    diagonal_terms = DIAGONAL_TERMS
-  )
-  message("fig02 | config built: ", nrow(scenario_config), " scenarios.")
   saveRDS(scenario_config, file.path(OUT_DIR, "bivariate_config.rds"))
 
   # ==========================================================================
-  # SECTION 2 · INFERENCE
+  # SECTION 2 · INFERENCE ----
   # ==========================================================================
 
   ITMAX <- 200L
@@ -302,96 +311,88 @@ if (!nzchar(Sys.getenv("DECOVART_SOURCE_HELPERS"))) {
     epsilon = EPSILON
   )
 
-  message("fig02 | running benchmark (n = ", N_REPL, ") ...")
+  .ui_info(
+    "Running ADEMP benchmark with {.val {N_REPL}} replicates."
+  )
   bivariate_out <- run_simulation_benchmark(
     scenario_config = scenario_config,
     deconvolution_functions = deconvolution_functions,
     n = N_REPL,
-    cores = 1L
+    cores = 1L,
+    verbose = TRUE
   )
-  message("fig02 | benchmark complete.")
   saveRDS(bivariate_out, file.path(OUT_DIR, "bivariate_benchmark.rds"))
 
   # ==========================================================================
-  # SECTION 3 · VISUALISATIONS
+  # SECTION 3 · VISUALISATIONS ----
   # ==========================================================================
 
-  if (N_REPL < 10L) {
-    message(
-      "fig02 | skipping figure export (smoke-test run, n = ",
-      N_REPL,
-      ")."
+  if (
+    requireNamespace("ComplexHeatmap", quietly = TRUE) &&
+      requireNamespace("circlize", quietly = TRUE) &&
+      requireNamespace("viridis", quietly = TRUE)
+  ) {
+    heatmap_metrics <- dplyr::left_join(
+      bivariate_out$optimisation,
+      bivariate_out$config,
+      by = intersect(
+        names(bivariate_out$optimisation),
+        names(bivariate_out$config)
+      )
     )
-    message("fig02 | re-run with N_REPLICATES=500 to generate article figures.")
+    heatmap_list <- plot_correlation_Heatmap(
+      distribution_metrics = heatmap_metrics,
+      score_variable = "model_rmse"
+    )
+    pdf(file.path(OUT_DIR, "fig02_heatmap.pdf"), width = 10, height = 8)
+    purrr::walk(heatmap_list, ComplexHeatmap::draw)
+    grDevices::dev.off()
+    .ui_success("Saved {.file fig02_heatmap.pdf}.")
   } else {
-    if (
-      requireNamespace("ComplexHeatmap", quietly = TRUE) &&
-        requireNamespace("circlize", quietly = TRUE) &&
-        requireNamespace("viridis", quietly = TRUE)
-    ) {
-      heatmap_metrics <- dplyr::left_join(
-        bivariate_out$optimisation,
-        bivariate_out$config,
-        by = intersect(
-          names(bivariate_out$optimisation),
-          names(bivariate_out$config)
-        )
-      )
-      heatmap_list <- plot_correlation_Heatmap(
-        distribution_metrics = heatmap_metrics,
-        score_variable = "model_rmse"
-      )
-      pdf(file.path(OUT_DIR, "fig02_heatmap.pdf"), width = 10, height = 8)
-      purrr::walk(heatmap_list, ComplexHeatmap::draw)
-      grDevices::dev.off()
-      message("fig02 | saved fig02_heatmap.pdf")
-    } else {
-      message("fig02 | ComplexHeatmap not available; skipping heatmap.")
-    }
+    .ui_warn("{.pkg ComplexHeatmap} not available; skipping heatmap.")
+  }
 
-    if (requireNamespace("ggdist", quietly = TRUE)) {
-      p_rain <- plot_mc_raincloud(
-        bivariate_out,
-        quantity = "error",
-        facet_rows = "proportion_name",
-        facet_cols = "centroid"
-      )
-      ggplot2::ggsave(
-        file.path(OUT_DIR, "fig02_raincloud.pdf"),
-        plot = p_rain,
-        width = 12,
-        height = 7
-      )
-      message("fig02 | saved fig02_raincloud.pdf")
-    }
-
-    p_forest <- plot_mc_forest(
+  if (requireNamespace("ggdist", quietly = TRUE)) {
+    p_rain <- plot_mc_raincloud(
       bivariate_out,
+      quantity = "error",
       facet_rows = "proportion_name",
       facet_cols = "centroid"
     )
     ggplot2::ggsave(
-      file.path(OUT_DIR, "fig02_forest.pdf"),
-      plot = p_forest,
+      file.path(OUT_DIR, "fig02_raincloud.pdf"),
+      plot = p_rain,
       width = 12,
       height = 7
     )
-    message("fig02 | saved fig02_forest.pdf")
-
-    if (length(unique(bivariate_out$monte_carlo$algorithm)) >= 2L) {
-      p_sim <- plot_algorithm_similarity(bivariate_out)
-      ggplot2::ggsave(
-        file.path(OUT_DIR, "fig02_similarity.pdf"),
-        plot = p_sim,
-        width = 6,
-        height = 5
-      )
-      message("fig02 | saved fig02_similarity.pdf")
-    }
+    .ui_success("Saved {.file fig02_raincloud.pdf}.")
   }
 
-  message(
-    "fig02 | done. Outputs in ",
-    normalizePath(OUT_DIR, mustWork = FALSE)
+  p_forest <- plot_mc_forest(
+    bivariate_out,
+    facet_rows = "proportion_name",
+    facet_cols = "centroid"
+  )
+  ggplot2::ggsave(
+    file.path(OUT_DIR, "fig02_forest.pdf"),
+    plot = p_forest,
+    width = 12,
+    height = 7
+  )
+  .ui_success("Saved {.file fig02_forest.pdf}.")
+
+  if (length(unique(bivariate_out$monte_carlo$algorithm)) >= 2L) {
+    p_sim <- plot_algorithm_similarity(bivariate_out)
+    ggplot2::ggsave(
+      file.path(OUT_DIR, "fig02_similarity.pdf"),
+      plot = p_sim,
+      width = 6,
+      height = 5
+    )
+    .ui_success("Saved {.file fig02_similarity.pdf}.")
+  }
+
+  .ui_success(
+    "Done. Outputs in {.path {normalizePath(OUT_DIR, mustWork = FALSE)}}."
   )
 }

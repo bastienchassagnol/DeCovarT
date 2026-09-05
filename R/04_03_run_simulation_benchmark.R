@@ -20,12 +20,14 @@
   scaled = FALSE,
   cores = 1L,
   scenario_meta = NULL,
-  coverage_interval = "wilson"
+  coverage_interval = "wilson",
+  verbose = FALSE,
+  progress_every = 10L
 ) {
   mu <- true_theta$mu
   Sigma <- true_theta$sigma
   if (is.null(Sigma)) {
-    stop("`true_theta` must contain `sigma` for simulation.", call. = FALSE)
+    .ui_abort("{.arg true_theta} must contain {.field sigma} for simulation.")
   }
   p <- true_theta$p
 
@@ -50,6 +52,8 @@
     standardise = standardise,
     scaled = scaled,
     cores = cores,
+    verbose = verbose,
+    progress_every = progress_every,
     coverage_interval = coverage_interval
   ))
 
@@ -126,6 +130,12 @@
 #'   [deconvolute_ratios()]. Defaults to `1L`.
 #' @param coverage_interval Coverage interval for the Monte Carlo
 #'   coverage *rate*; see [coverage_mc_interval()].
+#' @param verbose If `TRUE`, print each scenario row and (when the grid
+#'   has at most 10 scenarios) every `progress_every` inferred samples.
+#'   Large factorial grids log one line per scenario only, so logs stay
+#'   readable.
+#' @param progress_every Sample-progress interval passed to
+#'   [deconvolute_ratios()] when `verbose` is `TRUE`. Defaults to `10L`.
 #'
 #' @return A list with:
 #' * `regression`: `global` (per-sample composition scores) and
@@ -183,23 +193,35 @@ run_simulation_benchmark <- function(
   standardise = FALSE,
   scaled = FALSE,
   cores = 1L,
-  coverage_interval = "wilson"
+  coverage_interval = "wilson",
+  verbose = FALSE,
+  progress_every = 10L
 ) {
   call <- match.call()
   if (!is.data.frame(scenario_config)) {
     if (!is.list(scenario_config)) {
-      stop(
-        "`scenario_config` must be a tibble or list of scenario rows.",
-        call. = FALSE
+      .ui_abort(
+        "{.arg scenario_config} must be a tibble or list of scenario rows."
       )
     }
     scenario_config <- dplyr::bind_rows(scenario_config)
   }
   if (!"true_theta" %in% names(scenario_config)) {
-    stop("`scenario_config` must contain a `true_theta` column.", call. = FALSE)
+    .ui_abort(
+      "{.arg scenario_config} must contain a {.field true_theta} column."
+    )
   }
   if (nrow(scenario_config) == 0L) {
-    stop("`scenario_config` must have at least one row.", call. = FALSE)
+    .ui_abort("{.arg scenario_config} must have at least one row.")
+  }
+
+  n_scen <- nrow(scenario_config)
+  n_algo <- length(deconvolution_functions)
+  sample_verbose <- isTRUE(verbose) && n_scen <= 10L
+  if (isTRUE(verbose)) {
+    .ui_info(
+      "Benchmark: {.val {n_scen}} scenarios · {.val {n_algo}} algorithms · n = {.val {n}}."
+    )
   }
 
   has_n_col <- "n" %in% names(scenario_config)
@@ -212,9 +234,8 @@ run_simulation_benchmark <- function(
     row <- scenario_config[i, , drop = FALSE]
     true_theta <- row$true_theta[[1L]]
     if (!is.list(true_theta)) {
-      stop(
-        "`true_theta` entries must be lists with `mu` and `sigma`.",
-        call. = FALSE
+      .ui_abort(
+        "{.arg true_theta} entries must be lists with {.field mu} and {.field sigma}."
       )
     }
     n_samples <- if (has_n_col && !is.na(row$n[1L])) {
@@ -227,6 +248,12 @@ run_simulation_benchmark <- function(
     } else {
       NULL
     }
+    if (isTRUE(verbose)) {
+      label <- .ui_scenario_label(row)
+      .ui_info(
+        "Scenario {.val {i}}/{.val {n_scen}} · {label} · n = {.val {n_samples}}."
+      )
+    }
     .run_one_simulation_scenario(
       true_theta = true_theta,
       n_samples = n_samples,
@@ -235,11 +262,16 @@ run_simulation_benchmark <- function(
       scaled = scaled,
       cores = cores,
       scenario_meta = scenario_meta,
-      coverage_interval = coverage_interval
+      coverage_interval = coverage_interval,
+      verbose = sample_verbose,
+      progress_every = progress_every
     )
   }
 
   scenario_results <- lapply(seq_len(nrow(scenario_config)), .run_row)
+  if (isTRUE(verbose)) {
+    .ui_success("Benchmark complete ({.val {n_scen}} scenarios).")
+  }
 
   list(
     regression = list(

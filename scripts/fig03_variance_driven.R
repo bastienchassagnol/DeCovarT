@@ -7,6 +7,14 @@
 ###############################################################################
 ###############################################################################
 #
+# Background launch from the repository root (vanilla Rscript; no CLI
+# parser — hyperparameters are hard-coded below). stdout and stderr go
+# to logs/:
+#
+#   mkdir -p logs
+#   nohup Rscript --no-save --no-restore scripts/fig03_variance_driven.R \
+#     > "logs/fig03_$(date +%F)_variance_driven.log" 2>&1 &
+#
 # Article:  DeCovarT – Section 2.2 (network topology separates mean-collinear
 #           types). Vignette: vignettes/fig03-variance-driven.qmd
 # Seed:     20260807 (canonical; matches vignette geometry tables)
@@ -39,7 +47,7 @@
 ###############################################################################
 
 # ==============================================================================
-# SECTION 0 · Dependencies and paths
+# SECTION 0 · Dependencies and paths ----
 # ==============================================================================
 
 if (!requireNamespace("DeCovarT", quietly = TRUE)) {
@@ -51,10 +59,11 @@ if (!requireNamespace("DeCovarT", quietly = TRUE)) {
 } else {
   library(DeCovarT)
 }
+DeCovarT:::.ui_attach_script()
 
 if (!requireNamespace("igraph", quietly = TRUE)) {
-  stop(
-    "fig03 requires igraph. Install with install.packages(\"igraph\")."
+  .ui_abort(
+    "fig03 requires {.pkg igraph}. Install with {.code install.packages(\"igraph\")}."
   )
 }
 
@@ -63,10 +72,14 @@ DATA_DIR <- file.path("data", "synthetic_networks")
 dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
 dir.create(DATA_DIR, recursive = TRUE, showWarnings = FALSE)
 
+.ui_h1("Figure 03 · Variance-driven scenario")
+
 N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "200"))
 if (interactive()) {
   N_REPL <- 2L
-  message("fig03: interactive session – smoke test (n = 2).")
+  .ui_warn(
+    "Interactive session detected: smoke test with {.val 2} replicates."
+  )
 }
 
 SEED <- 20260807L
@@ -85,7 +98,7 @@ block_palette <- c(
 
 
 # ==============================================================================
-# SECTION 1 · GENERATIVE MODEL
+# SECTION 1 · GENERATIVE MODEL ----
 #   Canonical G = 50, J = 3 hybrid: types 1–2 mean-collinear on 30 genes;
 #   type 3 has a marker block; 10 genes are a null (equal_all) block.
 # ==============================================================================
@@ -93,10 +106,10 @@ block_palette <- c(
 GRN_CACHE <- file.path(DATA_DIR, "true_grn_moments.rds")
 
 if (file.exists(GRN_CACHE)) {
-  message("fig03 | loading cached GRN moments from ", GRN_CACHE)
+  .ui_info("Loading cached GRN moments from {.path {GRN_CACHE}}.")
   true_grn_moments <- readRDS(GRN_CACHE)
 } else {
-  message("fig03 | generating GRN moments (seed ", SEED, ") ...")
+  .ui_info("Generating GRN moments with seed {.val {SEED}}.")
 
   n_g12 <- 30L
   n_g3 <- 10L
@@ -281,7 +294,7 @@ if (file.exists(GRN_CACHE)) {
   )
   names(true_grn_moments$weighted_adjacencies) <- celltype_names
   saveRDS(true_grn_moments, GRN_CACHE)
-  message("fig03 | GRN moments saved to ", GRN_CACHE)
+  .ui_success("GRN moments saved to {.path {GRN_CACHE}}.")
 }
 
 mu <- true_grn_moments$mu
@@ -295,11 +308,13 @@ cos12 <- as.numeric(
   crossprod(mu[, 1L], mu[, 2L]) /
     (sqrt(sum(mu[, 1L]^2)) * sqrt(sum(mu[, 2L]^2)))
 )
-message(sprintf("fig03 | pairwise cosine CT1–CT2: %.3f", cos12))
+.ui_info(
+  "Pairwise cosine CT1–CT2: {.val {format(round(cos12, 3), nsmall = 3)}}."
+)
 
 
 # ==============================================================================
-# SECTION 2 · INFERENCE
+# SECTION 2 · INFERENCE ----
 # ==============================================================================
 
 PROPORTIONS_3 <- list(
@@ -331,23 +346,25 @@ deconvolution_functions_3 <- list(
   )
 )
 
-message("fig03 | running ADEMP benchmark (n = ", N_REPL, ") ...")
+.ui_info(
+  "Running ADEMP benchmark with {.val {N_REPL}} replicates."
+)
 hybrid_out <- run_simulation_benchmark(
   scenario_config = scenario_config_3,
   deconvolution_functions = deconvolution_functions_3,
   n = N_REPL,
-  cores = 1L
+  cores = 1L,
+  verbose = TRUE
 )
-message("fig03 | benchmark complete.")
 saveRDS(hybrid_out, file.path(OUT_DIR, "hybrid_benchmark.rds"))
 
 
 # ==============================================================================
-# SECTION 3 · VISUALISATIONS
+# SECTION 3 · VISUALISATIONS ----
 # ==============================================================================
 
 if (N_REPL < 10L) {
-  message("fig03 | skipping ADEMP figure export (smoke-test run).")
+  .ui_warn("Skipping ADEMP figure export because this is a smoke-test run.")
 } else {
   if (requireNamespace("ggdist", quietly = TRUE)) {
     p_rain <- plot_mc_raincloud(
@@ -361,7 +378,7 @@ if (N_REPL < 10L) {
       width = 12,
       height = 7
     )
-    message("fig03 | saved fig03_raincloud.pdf")
+    .ui_success("Saved {.file fig03_raincloud.pdf}.")
   }
 
   p_forest <- plot_mc_forest(
@@ -374,7 +391,7 @@ if (N_REPL < 10L) {
     width = 10,
     height = 6
   )
-  message("fig03 | saved fig03_forest.pdf")
+  .ui_success("Saved {.file fig03_forest.pdf}.")
 
   p_dots <- plot_mc_metric_dots(
     hybrid_out,
@@ -387,7 +404,7 @@ if (N_REPL < 10L) {
     width = 12,
     height = 6
   )
-  message("fig03 | saved fig03_metric_dots.pdf")
+  .ui_success("Saved {.file fig03_metric_dots.pdf}.")
 }
 
 # Static network PNG for the vignette (always, even on smoke tests).
@@ -451,7 +468,9 @@ if (!is.null(adjacency_list) && !is.null(gene_block)) {
     horiz = TRUE
   )
   grDevices::dev.off()
-  message("fig03 | wrote ", static_network_path)
+  .ui_success("Wrote {.path {static_network_path}}.")
 }
 
-message("fig03 | done. Outputs in ", normalizePath(OUT_DIR, mustWork = FALSE))
+.ui_success(
+  "Done. Outputs in {.path {normalizePath(OUT_DIR, mustWork = FALSE)}}."
+)

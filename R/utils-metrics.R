@@ -391,14 +391,44 @@ coverage_mc_interval <- function(
 #'
 #' @keywords internal
 #' @noRd
-.map_samples <- function(n, fun, cores) {
+.map_samples <- function(
+  n,
+  fun,
+  cores,
+  verbose = FALSE,
+  progress_every = 10L,
+  progress_label = NULL
+) {
   idx <- seq_len(n)
   cores <- as.integer(cores)
   if (length(cores) != 1L || is.na(cores) || cores < 1L) {
-    stop("`cores` must be a positive integer.", call. = FALSE)
+    .ui_abort("{.arg cores} must be a positive integer.")
   }
   if (cores == 1L) {
-    return(lapply(idx, fun))
+    if (!isTRUE(verbose) || n < 1L) {
+      return(lapply(idx, fun))
+    }
+    every <- as.integer(progress_every)
+    if (length(every) != 1L || is.na(every) || every < 1L) {
+      every <- 10L
+    }
+    prefix <- if (is.null(progress_label) || !nzchar(progress_label)) {
+      ""
+    } else {
+      paste0(progress_label, " · ")
+    }
+    return(lapply(idx, function(i) {
+      out <- fun(i)
+      if (i == n || i == 1L || (i %% every == 0L)) {
+        .ui_info("{prefix}inferred sample {.val {i}}/{.val {n}}.")
+      }
+      out
+    }))
+  }
+  if (isTRUE(verbose)) {
+    .ui_info(
+      "Mapping {.val {n}} samples on {.val {cores}} workers (no per-sample ticks)."
+    )
   }
   .check_suggested_package("furrr", "deconvolute_ratios")
   .check_suggested_package("future", "deconvolute_ratios")

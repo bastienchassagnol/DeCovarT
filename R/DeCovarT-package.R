@@ -60,4 +60,5 @@
 #' `NA` / `NaN` / `Inf` rather than imputing.
 #'
 #' @keywords internal
+#' @import ggplot2
 "_PACKAGE"
