@@ -22,9 +22,12 @@ support:
   =
   \boldsymbol{W}
   +
-  \bigl(\lvert\lambda_{\min}(\boldsymbol{W})\rvert + u\bigr)
+  \bigl(\lvert\min(0,\lambda_{\min}(\boldsymbol{W}))\rvert + u\bigr)
   \mathbf{I}.
 }
+The result is checked with \code{\link[base:chol]{base::chol()}}; if a factor still fails
+(ill-conditioned graphs), the same loading is increased until
+\eqn{\boldsymbol{\Omega}\succ 0} strictly.
 }
 \examples{
 A <- generate_random_network_skeleton(6L, "hub")

@@ -384,6 +384,6 @@ N_REPLICATES <- as.integer(Sys.getenv("N_REPLICATES", unset = "1000"))
 - [MLE properties](theory-DeCovarT-MLE-properties.html)
 - [Appendix S2 — Covariance inversion](supp-S2-covariance-inversion.html)
 - [Appendix S3 — Solver scalability](supp-S3-scaling.html)
-- [How to build synthetic scenarios](how-to-build-synthetic-scenarios-mean-covariance.html)
+- [How to build synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html)
 
 ## References

@@ -712,6 +712,8 @@ $$ {#eq-omega-kappa}
 
 Large loading yields a well-conditioned but weakly dependent network; loading only slightly above $-\lambda_{\min}$ strengthens dependence but can make estimation fragile. Benchmarks should report partial-correlation distributions and $\kappa(\Omega)$, not only the adjacency.
 
+If a Cholesky factor of $\boldsymbol{\Omega}$ still fails after this loading, `build_normalised_precision()` repeats the same affine shift with a larger $u$ until $\boldsymbol{\Omega}\succ 0$ strictly. If $\boldsymbol{\Sigma}=\boldsymbol{\Omega}^{-1}$ then fails to factor—typical of hub graphs with a tiny $u$—`simulate_hierarchical_grn_moments()` (and `build_covariance_array_from_precision()`) increases that same diagonal loading on $\boldsymbol{\Omega}$ until both matrices are strictly positive definite. Off-diagonal support and signs of $W$ are unchanged.
+
 ## Cell-type covariances: `build_covariance_array_from_precision()`
 
 By default each cell type has its own precision (and thus covariance),
@@ -782,8 +784,8 @@ collapse onto one type. DeCovarT’s Gaussian convolution uses the same
 idea at the *moment* layer: supply `p` (or a $J\times N$ matrix of
 sample-wise ratios) to `simulate_bulk_mixture()`, and report $H^{\star}$
 alongside overlap or condition-number diagnostics. The hybrid $J=3$
-manuscript scenario uses the imbalanced design
-$\boldsymbol{p}=(0.4,0.4,0.2)$
+manuscript scenario uses `composition_from_entropy()` at
+$H^{\star}\in\{1,0.5,0.1\}$
 ([variance-driven hybrid](fig03-variance-driven.html#sec-scenario-grid)).
 
 ```{r}
@@ -858,23 +860,202 @@ ggplot2::ggplot(comp_df, ggplot2::aes(x = design, y = p, fill = celltype)) +
 $(\boldsymbol{p},\boldsymbol{\mu},\{\boldsymbol{\Sigma}_j\})$ and a compact
 geometry table. `run_simulation_benchmark()` returns those objects as
 `theta_true`, `descriptors`, `supplementary`, and `call`
-(`match.call()`). Kept measures
-stay in six families. MixSim `BarOmega` and averaged pairwise Hellinger
+(`match.call()`). Kept measures stay in six families (@nte-desc-composition,
+@nte-desc-mean, @nte-desc-spd, @nte-desc-fisher, @nte-desc-network,
+@nte-desc-overlap). MixSim `BarOmega` and averaged pairwise Hellinger
 of the purified Gaussians summarise the same convolution components as
 the bulk law, so they sit in `descriptors`. Jeffreys / symmetrised KL
 is stored in `supplementary`. There is no composite global score: each
 column answers a different question.
 
-| Family | Statistic | Interpretation |
-|:--|:--|:--|
-| Composition | $H^{\star}$, $n_{\mathrm{eff}}$, $n_{\mathrm{active}}$, $\min p_j$, $\sum p_j^2$ | Balance, effective number of types, face proximity, covariance weighting |
-| Mean | mean absolute cosine, $\kappa(\mu)$, Gram volume | Collinearity and volume of the signature parallelepiped |
-| SPD / numerical | $\lambda_{\min}\{\Sigma(p)\}$, $\lambda_{\min}/\lambda_{\max}$ | Distance to a singular mixture covariance (not statistical identifiability) |
-| Tangent Fisher | $\lambda_{\min}(I_T)$, $\kappa(I_T)$, $f_{\mathrm{cov}}$, $f_{\mathrm{cov}}^{\max}$ | Weakest identifiable contrast; share of information from covariance versus means |
-| Network | density, mean degree, Hoyer of $\lvert r_{gh}\rvert$ | Sparsity of the declared graph (or of $\Omega_j$ if no adjacency is supplied) |
-| Component overlap | MixSim `BarOmega`, averaged pairwise Hellinger | Overlap of the purified Gaussians that enter the convolution |
+Compositions on a Shannon grid can be built with
+`composition_from_entropy()` (one-dominant family
+$(1-(J-1)q,q,\ldots,q)$ matching a target $H^{\star}$).
 
-: Kept scenario descriptors returned by `describe_simulation_scenario()`. {#tbl-scenario-descriptors}
+::: {#nte-desc-composition .callout-note}
+## Composition
+
+Let $\boldsymbol{p}\in\Delta^{J-1}$ with the convention
+$0\log 0=0$. The normaliser always uses the full panel size $J$,
+including zeros.
+
+- Normalised Shannon entropy (Pielou evenness)
+  $H^{\star}(\boldsymbol{p})=H(\boldsymbol{p})/\log J$,
+  $H(\boldsymbol{p})=-\sum_j p_j\log p_j$. Zero is a Dirac mass; one is
+  the uniform composition.
+- Effective number of types $n_{\mathrm{eff}}=\exp\{H(\boldsymbol{p})\}$.
+  Equals $J$ at the barycentre and $1$ at a vertex.
+- Active count $n_{\mathrm{active}}=\#\{j:p_j>\varepsilon\}$ and
+  $\min_j p_j$ among active components: simplex stratum and distance
+  to a face.
+- Concentration $\sum_j p_j^2=\lVert\boldsymbol{p}\rVert_2^2$. This is
+  the weight that scales the convolution covariance
+  $\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j$.
+:::
+
+::: {#nte-desc-mean .callout-note}
+## Mean geometry
+
+Columns of $\boldsymbol{\mu}$ are built by
+`generate_mean_signature_matrix()` so that the Gram of unit columns
+equals `target_gram` (or equicorrelation at `target_cosine`). Euclidean
+gaps then scale with `mean_scale` $s$:
+$\lVert\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\rVert
+=s\sqrt{2(1-\cos(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\mu}_{\cdot k}))}$.
+Use `nonnegative = TRUE` for a disjoint-support frame when the
+downstream solver requires $\boldsymbol{\mu}\ge 0$.
+
+- Mean absolute pairwise cosine and the smallest cosine: which types
+  are confusable from first-order signatures alone.
+- Condition number $\kappa(\boldsymbol{\mu})=\sigma_{\max}/\sigma_{\min}$
+  of the singular values of $\boldsymbol{\mu}$: near-collinearity of the
+  signature parallelepiped.
+- Gram volume $\prod_{\ell}\sigma_{\ell}(\boldsymbol{\mu})$ (zero at rank
+  loss).
+:::
+
+::: {#nte-desc-spd .callout-note}
+## SPD / numerical conditioning of $\boldsymbol{\Sigma}(\boldsymbol{p})$
+
+These columns describe the *mixture* covariance, not statistical
+identifiability of $\boldsymbol{p}$. For a Gaussian,
+$\kappa\{\boldsymbol{\Sigma}(\boldsymbol{p})\}
+=\lambda_{\max}/\lambda_{\min}
+=\kappa\{\boldsymbol{\Theta}(\boldsymbol{p})\}$.
+
+- $\lambda_{\min}\{\boldsymbol{\Sigma}(\boldsymbol{p})\}$: distance to a
+  singular convolution covariance.
+- `kappa_sigma_p`
+  $\kappa\{\boldsymbol{\Sigma}(\boldsymbol{p})\}=\lambda_{\max}/\lambda_{\min}$:
+  anisotropy of the bulk ellipsoid. Large $\kappa$ makes Cholesky,
+  log-determinants, and analytic gradients sensitive.
+- `kappa_sigma_reciprocal`
+  $\lambda_{\min}/\lambda_{\max}\in(0,1]$: the same ratio on a
+  bounded scale (one is isotropic).
+:::
+
+::: {#nte-desc-fisher .callout-note}
+## Tangent Fisher information (mean versus covariance)
+
+For a real Gaussian
+$\boldsymbol{y}\mid\boldsymbol{p}\sim
+\mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},\boldsymbol{\Sigma}(\boldsymbol{p}))$,
+the ambient Fisher matrix is the Slepian–Bangs formula with two
+summands: a Mahalanobis (mean) term and a whitened-Frobenius
+(covariance) term. McCulloch
+[@mccullochSymmetricMatrixDerivatives1982] derives that split for the
+multivariate normal by treating $\boldsymbol{\Sigma}$ as *symmetric*
+($\mathrm{vech}$, not $\mathrm{vec}$), which supplies the factor
+$\tfrac12$ on the covariance block. Besson and Abramovich
+[@bessonFisherInformationMatrix2013] extend Slepian–Bangs to
+elliptically contoured laws: the two Gaussian terms survive, scaled
+by expectations of the modular variate; the Gaussian case recovers
+the original formula.
+
+DeCovarT is that Gaussian special case, with $\boldsymbol{p}$ in
+*both* the mean $\boldsymbol{\mu}\boldsymbol{p}$ and
+$\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j$.
+The two summands therefore mix in every coordinate of
+$I(\boldsymbol{p})$. Substituting
+$\partial(\boldsymbol{\mu}\boldsymbol{p})/\partial p_j=\boldsymbol{\mu}_{\cdot j}$
+and
+$\partial\boldsymbol{\Sigma}(\boldsymbol{p})/\partial p_j=2p_j\boldsymbol{\Sigma}_j$
+yields
+
+$$
+I_{jk}(\boldsymbol{p})
+=
+\underbrace{
+  \boldsymbol{\mu}_{\cdot j}^{\mathsf{T}}
+  \boldsymbol{\Theta}(\boldsymbol{p})
+  \boldsymbol{\mu}_{\cdot k}
+}_{I^{\mathrm{mean}}_{jk}}
++
+\underbrace{
+  2 p_j p_k
+  \operatorname{tr}\bigl(
+    \boldsymbol{\Theta}\boldsymbol{\Sigma}_j
+    \boldsymbol{\Theta}\boldsymbol{\Sigma}_k
+  \bigr)
+}_{I^{\mathrm{cov}}_{jk}},
+$$
+
+with
+$\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}$.
+Along a simplex contrast $\mathbf{1}^{\mathsf{T}}\boldsymbol{d}=0$,
+
+$$
+I_{\mathrm{mean}}(\boldsymbol{d})
+=
+(\boldsymbol{\mu}\boldsymbol{d})^{\mathsf{T}}
+\boldsymbol{\Theta}
+(\boldsymbol{\mu}\boldsymbol{d}),
+\qquad
+I_{\mathrm{cov}}(\boldsymbol{d})
+=
+\tfrac12
+\bigl\|
+  \boldsymbol{\Theta}^{1/2}
+  (D_{\boldsymbol{d}}\boldsymbol{\Sigma})
+  \boldsymbol{\Theta}^{1/2}
+\bigr\|_{F}^{2},
+$$
+
+where
+$D_{\boldsymbol{d}}\boldsymbol{\Sigma}=2\sum_j p_j d_j\boldsymbol{\Sigma}_j$.
+The pair contrast $\boldsymbol{d}=\mathbf{e}_j-\mathbf{e}_k$ is the
+squared Mahalanobis gap of the two mean signatures plus a whitened
+Frobenius gap of $p_j\boldsymbol{\Sigma}_j-p_k\boldsymbol{\Sigma}_k$.
+`expected_fisher_unconstrained()` returns $I^{\mathrm{mean}}+I^{\mathrm{cov}}$;
+`.fisher_mean_cov_split()` exposes the two summands. The tangent matrix
+is $I_T=\mathbf{V}^{\mathsf{T}}I\mathbf{V}$ with Helmert basis
+$\mathbf{V}$ ([`helmert_basis()`](../reference/helmert_basis.html)).
+Elliptical (Student) bulk would only rescale these terms
+[@bessonFisherInformationMatrix2013]; the descriptors stay Gaussian.
+
+- $\lambda_{\min}(I_T)$: weakest identifiable simplex contrast.
+- $\kappa(I_T)=\lambda_{\max}(I_T)/\lambda_{\min}(I_T)$: ill-posed
+  directions on the simplex.
+- $f_{\mathrm{cov}}=\operatorname{tr}(I^{\mathrm{cov}})/\operatorname{tr}(I)$:
+  share of ambient information that comes from covariance rather than
+  means. Near one, mean-only solvers (LSEI, CIBERSORT) are
+  under-informed relative to DeCovarT.
+- $f_{\mathrm{cov}}^{\max}$: the same fraction along the pairwise
+  contrast $\mathbf{e}_j-\mathbf{e}_k$ that maximises it.
+:::
+
+::: {#nte-desc-network .callout-note}
+## Network sparsity
+
+When an adjacency array is supplied, density uses that support;
+otherwise the off-diagonal pattern of each $\boldsymbol{\Omega}_j$ is
+used. Magnitude sparsity is summarised on the bulk correlation matrix
+$R=\mathrm{corr}\{\boldsymbol{\Sigma}(\boldsymbol{p})\}$, not on the
+binary graph.
+
+- Edge density $2\lvert E\rvert/(G(G-1))$ (undirected, no loops) and
+  mean degree $2\lvert E\rvert/G$. For fixed $G$ these are equivalent
+  up to the factor $G-1$.
+- Hoyer sparsity of the $M=G(G-1)/2$ off-diagonal absolute
+  correlations
+  $w_e=\lvert r_{gh}\rvert$:
+  $S_{\mathrm{Hoyer}}=(\sqrt{M}-\lVert w\rVert_1/\lVert w\rVert_2)/(\sqrt{M}-1)\in[0,1]$.
+  Zero is a flat spectrum of magnitudes; one is a single dominant
+  edge. The index is scale-free and does not assume a topology.
+:::
+
+::: {#nte-desc-overlap .callout-note}
+## Component overlap (purified Gaussians)
+
+These scores describe the $J$ reference Gaussians
+$\mathcal{N}(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_j)$ that enter
+the convolution, not the estimator.
+
+- MixSim average pairwise misclassification overlap `BarOmega`
+  [@melnykovMixSimPackageSimulating2012].
+- Averaged pairwise Hellinger distance of those Gaussians (closed form
+  through the Bhattacharyya coefficient), weighted by $p_j p_k$.
+:::
 
 Supplementary (not kept as a primary score): Jeffreys divergence.
 Cholesky fill-in and sparse-solver
@@ -891,7 +1072,10 @@ then score both the reference geometry and the mixture composition:
 2. **Precision graphs.** Draw an undirected skeleton (`scale_free`, `stochastic_block_model`, or `small_world`), assign i.i.d. signed weights (`prop_inhibitory`), and complete $\Omega\succ 0$ by the uniform spectral shift. Report $\kappa(\Omega)$ and the partial-correlation sign mix.
 3. **Cellular compositions.** Choose $\boldsymbol{p}$ on a Shannon grid from uniform ($H^{\star}=1$) to near-pure ($H^{\star}\approx 0$), matching the `SimBu` fraction vocabulary when comparing to pseudo-bulk tools (@fig-simbu-entropy).
 4. **Bulk draws.** Simulate $\boldsymbol{Y}$ from the Gaussian convolution $\boldsymbol{y}\mid(\boldsymbol{\zeta},\boldsymbol{p})\sim\mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},\sum_j p_j^{2}\boldsymbol{\Sigma}_j)$ and pass the same moments to every solver.
-5. **Hybrid stress test.** The variance-driven scenario (two mean-collinear types told apart only by topology, plus an orthogonal third type) is documented in [§2.2](fig03-variance-driven.html#sec-scenario-grid).
+5. **Hybrid stress test.** The variance-driven scenario (two
+   mean-collinear types told apart only by topology, plus a weakly
+   aligned third type) is documented in
+   [§2.2](fig03-variance-driven.html#sec-scenario-grid).
 
 See @nte-benchmark-spec for a compact factorial checklist.
 
@@ -930,8 +1114,9 @@ partial-correlation scaling (@eq-partial-scale) when support and signs
 must be exact; add the mean layer **independently** of graph generation.
 The end-to-end **hybrid multi-topology reference scenario** (two
 mean-collinear cell types distinguished only by network topology, a
-third orthogonal type, and the frequentist
-solver comparison on imbalanced mixtures) is documented in
+third weakly aligned type, a $3^3$ graph assignment crossed with three
+precision condition numbers, and the frequentist solver comparison on
+a Shannon-$H^{\star}$ composition grid) is documented in
 [§2.2 variance-driven hybrid](fig03-variance-driven.html#sec-scenario-grid).
 Edge-case numerical checks (gene-wise z-score equivariance, collinear
 signatures, small bulk perturbations, random ILR starts) live in

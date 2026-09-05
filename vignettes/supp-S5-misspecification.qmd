@@ -138,6 +138,6 @@ additional factors that touch on mis-specification and are also out of scope:
 
 - [Appendix S1 — Identifiability](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S1-identifiability.html)
 - [Appendix S4 — Covariance Modelling](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S4-covariance-modeling.html)
-- [How to build synthetic scenarios](how-to-build-synthetic-scenarios-mean-covariance.html)
+- [How to build synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html)
 
 ## References

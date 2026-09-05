@@ -340,8 +340,8 @@ hessian_isometric_logistic <- function(z, V = NULL) {
   # }
   #
   global_cov <- tensor::tensor(p^2, Sigma, alongA = 1, alongB = 3)
-
-  return(global_cov)
+  global_cov <- (global_cov + t(global_cov)) / 2
+  global_cov
 }
 
 #' Cached Cholesky factorisation of \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}
@@ -350,8 +350,8 @@ hessian_isometric_logistic <- function(z, V = NULL) {
 #' Assembles [.compute_global_variance()] and factorises it once via
 #' [base::chol()], returning the matrix itself together with its Cholesky
 #' factor, log-determinant (via the factor's diagonal, not [base::det()]),
-#' and inverse (via [base::chol2inv()], which reuses the factor rather than
-#' an independent [base::solve()]).
+#' and inverse (via [qr.solve()] after a uniform spectral shift if
+#' the mixture is not numerically SPD).
 #'
 #' @details
 #' [stats::optim()], [stats::nlminb()] and [marqLevAlg::marqLevAlg()] each
@@ -421,13 +421,14 @@ hessian_isometric_logistic <- function(z, V = NULL) {
     }
 
     global_cov_matrix <- .compute_global_variance(p, Sigma)
-    chol_factor <- chol(global_cov_matrix)
+    global_cov_matrix <- .ensure_spd(global_cov_matrix)
+    chol_factor <- base::chol(global_cov_matrix)
 
     value <- list(
       matrix = global_cov_matrix,
       chol = chol_factor,
       log_det = 2 * sum(log(diag(chol_factor))),
-      inverse = chol2inv(chol_factor)
+      inverse = .qr_sym_inverse(global_cov_matrix)
     )
 
     cache$value <- list(

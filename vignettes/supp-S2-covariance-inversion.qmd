@@ -198,7 +198,7 @@ are noted here but not yet implemented:
 ## See also
 
 - [Appendix S3 — Scaling](supp-S3-scaling.html)
-- [How to build synthetic scenarios](how-to-build-synthetic-scenarios-mean-covariance.html)
+- [How to build synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html)
 - Structure-aware operators:
   [generative model](theory-decovart-generative-model.html)
 

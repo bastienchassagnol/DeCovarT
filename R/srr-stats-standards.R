@@ -84,7 +84,7 @@ NULL
 #'   choice documented in the vignettes.
 #'
 #' @srrstats {G3.1a} Covariance estimation strategies documented with worked
-#'   examples in the `how-to-build-synthetic-scenarios-mean-covariance` vignette.
+#'   examples in the `theory-synthetic-scenarios-mean-covariance` vignette.
 #'
 #' G5 - Testing
 #'

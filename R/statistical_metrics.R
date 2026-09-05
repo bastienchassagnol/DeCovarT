@@ -118,6 +118,7 @@ repair_simplex <- function(
 #' @examples
 #' compute_shannon_entropy(c(1, 0, 0)) # Dirac -> 0
 #' compute_shannon_entropy(rep(1 / 3, 3)) # uniform -> 1
+#' @seealso [composition_from_entropy()]
 compute_shannon_entropy <- function(ratios) {
   if (!is.numeric(ratios) || length(ratios) == 0L || anyNA(ratios)) {
     stop("`ratios` must be a non-empty numeric vector without missing values.")
@@ -136,6 +137,62 @@ compute_shannon_entropy <- function(ratios) {
   ratios <- ratios / sum(ratios)
   # Pielou evenness: H / log(J)
   -sum(ratios * log(ratios)) / log(J)
+}
+
+#' One-dominant composition with a target normalised Shannon entropy
+#'
+#' Returns a length-\eqn{J} simplex vector of the form
+#' \eqn{(1-(J-1)q,\,q,\ldots,q)} whose Pielou evenness
+#' [compute_shannon_entropy()] equals `h_star`. The uniform composition
+#' (`h_star = 1`) and a Dirac mass (`h_star = 0`) are returned exactly.
+#'
+#' @param h_star Target \eqn{H^{\star}\in[0,1]}.
+#' @param n_celltypes Integer \eqn{J\ge 2}.
+#' @param nms Optional names for the returned vector.
+#'
+#' @return Numeric simplex vector of length \eqn{J}.
+#'
+#' @examples
+#' p <- composition_from_entropy(0.5, n_celltypes = 3L)
+#' compute_shannon_entropy(p)
+#' @export
+#' @seealso [compute_shannon_entropy()]
+composition_from_entropy <- function(
+  h_star,
+  n_celltypes = 3L,
+  nms = NULL
+) {
+  j <- as.integer(n_celltypes)
+  h_star <- as.numeric(h_star)
+  if (length(j) != 1L || is.na(j) || j < 2L) {
+    stop("`n_celltypes` must be an integer of at least 2.", call. = FALSE)
+  }
+  if (length(h_star) != 1L || is.na(h_star) || h_star < 0 || h_star > 1) {
+    stop("`h_star` must lie in [0, 1].", call. = FALSE)
+  }
+
+  if (h_star >= 1 - 1e-12) {
+    p <- rep(1 / j, j)
+    return(repair_simplex(p, nms = nms))
+  }
+  if (h_star <= 1e-12) {
+    p <- c(1, rep(0, j - 1L))
+    return(repair_simplex(p, nms = nms))
+  }
+
+  h_of_q <- function(q) {
+    p1 <- 1 - (j - 1) * q
+    compute_shannon_entropy(c(p1, rep(q, j - 1L))) - h_star
+  }
+  q_max <- (1 / j) * (1 - 1e-8)
+  q <- stats::uniroot(
+    h_of_q,
+    interval = c(1e-12, q_max),
+    tol = 1e-12,
+    maxiter = 200L
+  )$root
+  p <- c(1 - (j - 1) * q, rep(q, j - 1L))
+  repair_simplex(p, nms = nms)
 }
 
 #' Average pairwise overlap of a Gaussian mixture

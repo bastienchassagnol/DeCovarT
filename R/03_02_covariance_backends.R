@@ -334,8 +334,8 @@ sigma_trace_precision_times <- function(backend, p, S) {
 #' @keywords internal
 #' @noRd
 .sigma_prepare_dense <- function(backend, p) {
-  sigma_p <- .compute_global_variance(p, backend$Sigma)
-  chol_factor <- chol(sigma_p)
+  sigma_p <- .ensure_spd(.compute_global_variance(p, backend$Sigma))
+  chol_factor <- base::chol(sigma_p)
   list(
     logdet = 2 * sum(log(diag(chol_factor))),
     solve = function(b) .solve_chol(chol_factor, b),
@@ -352,7 +352,7 @@ sigma_trace_precision_times <- function(backend, p, S) {
 #' @keywords internal
 #' @noRd
 .sigma_prepare_block <- function(backend, p) {
-  sigma_p <- .compute_global_variance(p, backend$Sigma)
+  sigma_p <- .ensure_spd(.compute_global_variance(p, backend$Sigma))
   blocks <- backend$blocks
   chols <- lapply(blocks, function(idx) chol(sigma_p[idx, idx, drop = FALSE]))
   logdet <- sum(vapply(

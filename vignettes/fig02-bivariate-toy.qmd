@@ -58,7 +58,7 @@ wraps `simulate_bulk_mixture()`, `deconvolute_ratios()`, and
 `compute_benchmark_metrics()`. Scenario rows are sequential; sample-level
 workers live only in `deconvolute_ratios()`. Reporting conventions
 (ADEMP, Nature Methods, raincloud / forest plots) are in
-[how to build synthetic scenarios](how-to-build-synthetic-scenarios-mean-covariance.html#sec-ademp).
+[how to build synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html#sec-ademp).
 
 > **Script:** from the repository root,
 > `mkdir -p logs && nohup Rscript --no-save --no-restore scripts/fig02_bivariate_toy.R > "logs/fig02_$(date +%F)_bivariate_toy.log" 2>&1 &`
@@ -286,7 +286,7 @@ zero mean separation.
 - Variance-driven hybrid ($G=50$, $J=3$):
   [§2.2](fig03-variance-driven.html)
 - Moment generator and ADEMP reporting:
-  [How to build synthetic scenarios](how-to-build-synthetic-scenarios-mean-covariance.html)
+  [How to build synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html)
 - Regular-case MLE checks:
   [Appendix S1](supp-S1-identifiability.html)
 

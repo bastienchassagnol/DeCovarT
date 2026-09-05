@@ -1,5 +1,20 @@
 #' Hoyer sparsity of a nonnegative vector
 #'
+#' For a nonnegative weight vector \eqn{\boldsymbol{w}} of length \eqn{M}
+#' (here: absolute off-diagonal partial correlations or
+#' \eqn{\lvert r_{gh}\rvert}),
+#' \deqn{
+#'   S_{\mathrm{Hoyer}}(\boldsymbol{w})
+#'   =
+#'   \frac{
+#'     \sqrt{M}-\lVert\boldsymbol{w}\rVert_1/\lVert\boldsymbol{w}\rVert_2
+#'   }{
+#'     \sqrt{M}-1
+#'   }
+#'   \in[0,1].
+#' }
+#' Zero is a flat spectrum of magnitudes; one is a single dominant edge.
+#'
 #' @keywords internal
 #' @noRd
 .hoyer_sparsity <- function(x) {
@@ -64,6 +79,45 @@
 }
 
 #' Mean / covariance split of the ambient Fisher information
+#'
+#' For the Gaussian convolution
+#' \eqn{\boldsymbol{y}\mid\boldsymbol{p}\sim
+#' \mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},\boldsymbol{\Sigma}(\boldsymbol{p}))}
+#' with \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j}
+#' and \eqn{\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}},
+#' the ambient Fisher matrix splits as
+#' \deqn{
+#'   I_{jk}(\boldsymbol{p})
+#'   =
+#'   \underbrace{\boldsymbol{\mu}_{\cdot j}^{\mathsf{T}}
+#'     \boldsymbol{\Theta}\,
+#'     \boldsymbol{\mu}_{\cdot k}}_{I^{\mathrm{mean}}_{jk}}
+#'   +
+#'   \underbrace{2 p_j p_k
+#'     \mathrm{tr}\bigl(
+#'       \boldsymbol{\Theta}\boldsymbol{\Sigma}_j
+#'       \boldsymbol{\Theta}\boldsymbol{\Sigma}_k
+#'     \bigr)}_{I^{\mathrm{cov}}_{jk}}.
+#' }
+#' Along a simplex contrast \eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{d}=0},
+#' \deqn{
+#'   I_{\mathrm{mean}}(\boldsymbol{d})
+#'   =
+#'   (\boldsymbol{\mu}\boldsymbol{d})^{\mathsf{T}}
+#'   \boldsymbol{\Theta}
+#'   (\boldsymbol{\mu}\boldsymbol{d}),
+#'   \qquad
+#'   I_{\mathrm{cov}}(\boldsymbol{d})
+#'   =
+#'   \tfrac12
+#'   \bigl\|
+#'     \boldsymbol{\Theta}^{1/2}
+#'     (D_{\boldsymbol{d}}\boldsymbol{\Sigma})
+#'     \boldsymbol{\Theta}^{1/2}
+#'   \bigr\|_{F}^{2}.
+#' }
+#' The covariance-information fraction is
+#' \eqn{f_{\mathrm{cov}}=\mathrm{tr}(I^{\mathrm{cov}})/\mathrm{tr}(I)}.
 #'
 #' @keywords internal
 #' @noRd
@@ -154,9 +208,6 @@
 #' are kept in `descriptors`. Jeffreys / symmetrised KL is returned in
 #' `supplementary`.
 #'
-#' No Cholesky fill-in or sparse-solver diagnostic is computed: the
-#' caller must declare the covariance structure used at fit time.
-#'
 #' @param true_theta List with `p`, `mu`, and `sigma` (and optionally
 #'   `Theta` precision). Parsed by [check_true_theta()] /
 #'   `.parse_true_theta()`.
@@ -167,7 +218,13 @@
 #'
 #' @return A list with:
 #' * `theta_true`: the convolution parameters `p`, `mu`, `sigma`;
-#' * `descriptors`: one-row tibble of kept scenario statistics;
+#' * `descriptors`: one-row tibble of kept scenario statistics in six
+#'   families (composition, mean geometry, SPD of
+#'   \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}, tangent Fisher, network,
+#'   component overlap). SPD columns include both
+#'   \eqn{\kappa\{\boldsymbol{\Sigma}(\boldsymbol{p})\}}
+#'   (`kappa_sigma_p`) and the reciprocal
+#'   \eqn{\lambda_{\min}/\lambda_{\max}} (`kappa_sigma_reciprocal`);
 #' * `supplementary`: one-row tibble of Jeffreys / symmetrised KL,
 #'   recorded but not treated as a primary score;
 #' * `call`: the matched call ([match.call()]).
@@ -183,7 +240,8 @@
 #' out$call
 #' @export
 #' @seealso [run_simulation_benchmark()], [expected_fisher_unconstrained()],
-#'   [compute_shannon_entropy()], [helmert_basis()]
+#'   [compute_shannon_entropy()], [composition_from_entropy()],
+#'   [helmert_basis()]
 describe_simulation_scenario <- function(
   true_theta,
   adjacency = NULL,
@@ -394,6 +452,13 @@ describe_simulation_scenario <- function(
     kappa_mu = kappa_mu,
     gram_volume = gram_vol,
     lambda_min_sigma_p = lambda_min_sigma,
+    kappa_sigma_p = if (
+      is.finite(lambda_min_sigma) && abs(lambda_min_sigma) > 0
+    ) {
+      lambda_max_sigma / lambda_min_sigma
+    } else {
+      Inf
+    },
     kappa_sigma_reciprocal = kappa_sigma_reciprocal,
     lambda_min_it = lambda_min_it,
     kappa_it = kappa_it,

@@ -27,6 +27,7 @@ test_that("describe_simulation_scenario splits mean and covariance information",
   expect_gt(out$descriptors$lambda_min_it, 0)
   expect_gte(out$descriptors$f_cov, 0)
   expect_lte(out$descriptors$f_cov, 1)
+  expect_true("kappa_sigma_p" %in% names(out$descriptors))
   expect_false("mixsim_baromega" %in% names(out$supplementary))
   expect_false("hellinger" %in% names(out$supplementary))
 })

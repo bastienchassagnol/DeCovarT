@@ -11,6 +11,7 @@ simulate_hierarchical_grn_moments(
   target_cosine = 0,
   target_gram = NULL,
   seed = NULL,
+  nonnegative = FALSE,
   precision_shift,
   precision_scale,
   prop_inhibitory = 0.5,
@@ -37,7 +38,11 @@ Must lie in \eqn{[-1/(J-1),1]}.}
 
 \item{seed}{Optional integer. When supplied, the orthonormal frame
 \eqn{\boldsymbol{Q}} is drawn from a Gaussian QR; otherwise it is
-deterministic.}
+deterministic. Ignored when \code{nonnegative = TRUE}.}
+
+\item{nonnegative}{If \code{TRUE}, use a disjoint-support nonnegative
+frame so that \eqn{\boldsymbol{\mu}\ge 0} whenever \eqn{R^{1/2}\ge 0}
+(required by \code{\link[=deconvolute_ratios]{deconvolute_ratios()}}). The Gram is unchanged.}
 
 \item{precision_shift}{Diagonal cushion \eqn{u} for the spectral
 shift (scalar, or length \eqn{J}).}

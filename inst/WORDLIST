@@ -4,6 +4,7 @@ ALR
 AR
 Aitchison
 Aitchison's
+Abramovich
 Allen
 AutoGeneS
 BBT
@@ -13,6 +14,7 @@ BLGGM’s
 BN
 BNs
 Badia
+Bangs
 BarOmega
 Barabási
 Bartlett
@@ -21,6 +23,7 @@ Bastien
 BayICE
 BayesPrism
 Becht
+Besson
 Bhattacharyya
 Bretz
 Brunner
@@ -135,6 +138,7 @@ MaxAE
 mirai
 MixSim
 MixSim's
+McCulloch
 Mompel
 Monga
 MuSiC
@@ -192,6 +196,7 @@ SVR
 SymSim
 Scheffé
 Sieve
+Slepian
 Sankey
 SignalingProfiler
 Softmax
@@ -314,6 +319,8 @@ supernodal
 transcriptomics
 unmodelled
 voom
+vech
+Wald
 webr
 Woodbury
 xCell

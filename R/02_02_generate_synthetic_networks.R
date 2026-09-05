@@ -119,6 +119,32 @@ compute_mean_profile_objectives <- function(mean_signature_matrix) {
   qr.Q(qr(z), complete = FALSE)[, seq_len(n_celltypes), drop = FALSE]
 }
 
+#' Nonnegative thin frame with disjoint gene blocks
+#'
+#' Columns are indicator vectors of a partition of the \eqn{G} genes,
+#' scaled to unit Euclidean norm, so \eqn{\mathbf{Q}^{\mathsf{T}}
+#' \mathbf{Q}=\mathbf{I}_{J}} and \eqn{\mathbf{Q}\ge 0}. Combined with
+#' a nonnegative square root of the Gram, \eqn{\boldsymbol{\mu}=s\mathbf{Q}
+#' R^{1/2}} stays nonnegative (required by [deconvolute_ratios()]).
+#'
+#' @keywords internal
+#' @noRd
+.block_orthonormal_gene_frame <- function(n_genes, n_celltypes) {
+  q <- matrix(0, n_genes, n_celltypes)
+  sizes <- rep(n_genes %/% n_celltypes, n_celltypes)
+  rem <- n_genes %% n_celltypes
+  if (rem > 0L) {
+    sizes[seq_len(rem)] <- sizes[seq_len(rem)] + 1L
+  }
+  start <- 1L
+  for (j in seq_len(n_celltypes)) {
+    idx <- start:(start + sizes[[j]] - 1L)
+    q[idx, j] <- 1 / sqrt(sizes[[j]])
+    start <- start + sizes[[j]]
+  }
+  q
+}
+
 #' Equicorrelation (constant-correlation) Gram matrix
 #'
 #' \eqn{R=(1-\rho)I+\rho\mathbf{1}\mathbf{1}^{\mathsf{T}}}. Positive
@@ -196,7 +222,10 @@ equicorrelation_gram <- function(n_celltypes, target_cosine = 0) {
 #'   (unit diagonal). Overrides `target_cosine`.
 #' @param seed Optional integer. When supplied, the orthonormal frame
 #'   \eqn{\boldsymbol{Q}} is drawn from a Gaussian QR; otherwise it is
-#'   deterministic.
+#'   deterministic. Ignored when `nonnegative = TRUE`.
+#' @param nonnegative If `TRUE`, use a disjoint-support nonnegative
+#'   frame so that \eqn{\boldsymbol{\mu}\ge 0} whenever \eqn{R^{1/2}\ge 0}
+#'   (required by [deconvolute_ratios()]). The Gram is unchanged.
 #' @param gene_names Optional character vector of length \eqn{G}.
 #' @param celltype_names Optional character vector of length \eqn{J}.
 #'
@@ -223,6 +252,7 @@ generate_mean_signature_matrix <- function(
   target_cosine = 0,
   target_gram = NULL,
   seed = NULL,
+  nonnegative = FALSE,
   gene_names = NULL,
   celltype_names = NULL
 ) {
@@ -268,9 +298,23 @@ generate_mean_signature_matrix <- function(
     }
   }
 
-  q <- .orthonormal_gene_frame(n_genes, n_celltypes, seed = seed)
+  q <- if (isTRUE(nonnegative)) {
+    .block_orthonormal_gene_frame(n_genes, n_celltypes)
+  } else {
+    .orthonormal_gene_frame(n_genes, n_celltypes, seed = seed)
+  }
   root <- .symmetric_matrix_sqrt(gram)
   mean_signature_matrix <- mean_scale * q %*% root
+  if (isTRUE(nonnegative)) {
+    if (any(mean_signature_matrix < -1e-10)) {
+      stop(
+        "`nonnegative = TRUE` needs a Gram whose symmetric square root ",
+        "is nonnegative (for example all pairwise cosines in [0, 1]).",
+        call. = FALSE
+      )
+    }
+    mean_signature_matrix[mean_signature_matrix < 0] <- 0
+  }
 
   if (is.null(gene_names)) {
     gene_names <- paste0("gene_", seq_len(n_genes))
@@ -542,6 +586,144 @@ assign_iid_signed_weights <- function(
 }
 
 
+#' Test whether a symmetric matrix admits a Cholesky factor
+#'
+#' @keywords internal
+#' @noRd
+.chol_succeeds <- function(mat) {
+  tryCatch(
+    {
+      base::chol(mat)
+      TRUE
+    },
+    error = function(e) FALSE
+  )
+}
+
+#' Uniform spectral shift that preserves off-diagonal support
+#'
+#' Completes a symmetric matrix by
+#' \eqn{A\leftarrow A+(\lvert\min(0,\lambda_{\min})\rvert+u)\mathbf{I}}.
+#' Off-diagonals (graph support and signs) are unchanged.
+#'
+#' @keywords internal
+#' @noRd
+.uniform_spectral_shift <- function(mat, cushion) {
+  mat <- as.matrix(mat)
+  mat <- (mat + t(mat)) / 2
+  cushion <- as.numeric(cushion)
+  if (length(cushion) != 1L || !is.finite(cushion) || cushion <= 0) {
+    stop("`cushion` must be a positive scalar.", call. = FALSE)
+  }
+  evals <- eigen(mat, symmetric = TRUE, only.values = TRUE)$values
+  extra <- max(0, -min(evals)) + cushion
+  diag(mat) <- diag(mat) + extra
+  mat
+}
+
+#' Repeat a uniform spectral shift until Cholesky succeeds
+#'
+#' @keywords internal
+#' @noRd
+.ensure_spd <- function(
+  mat,
+  cushion = sqrt(.Machine$double.eps),
+  max_tries = 8L
+) {
+  mat <- as.matrix(mat)
+  mat <- (mat + t(mat)) / 2
+  for (k in seq_len(as.integer(max_tries))) {
+    if (.chol_succeeds(mat)) {
+      return(mat)
+    }
+    mat <- .uniform_spectral_shift(
+      mat,
+      cushion = cushion * (2^(k - 1L))
+    )
+  }
+  stop(
+    "Could not complete a symmetric matrix to strictly positive ",
+    "definite form by a uniform spectral shift.",
+    call. = FALSE
+  )
+}
+
+#' Symmetric inverse via QR (LAPACK `chol2inv` can fail to invert)
+#'
+#' @keywords internal
+#' @noRd
+.qr_sym_inverse <- function(mat) {
+  mat <- as.matrix(mat)
+  mat <- (mat + t(mat)) / 2
+  inv <- qr.solve(mat)
+  (inv + t(inv)) / 2
+}
+
+#' Precision and covariance pair from a weighted adjacency
+#'
+#' Builds \eqn{\boldsymbol{\Omega}} by [build_normalised_precision()].
+#' The inverse uses [qr.solve()] so
+#' \eqn{\boldsymbol{\Sigma}\boldsymbol{\Omega}=\mathbf{I}} to
+#' working precision. If `chol(Sigma)` still fails (ill-conditioned
+#' hub graphs), the same support-preserving spectral loading is
+#' increased on \eqn{\boldsymbol{\Omega}} until both factors exist.
+#'
+#' @keywords internal
+#' @noRd
+.spd_precision_and_covariance <- function(
+  weighted_adjacency,
+  precision_shift
+) {
+  omega <- build_normalised_precision(
+    weighted_adjacency,
+    precision_shift
+  )
+  extra <- precision_shift
+  for (k in seq_len(8L)) {
+    sigma <- .qr_sym_inverse(omega)
+    if (.chol_succeeds(sigma)) {
+      return(list(precision = omega, covariance = sigma))
+    }
+    extra <- extra * 2
+    omega <- .uniform_spectral_shift(omega, cushion = extra)
+  }
+  stop(
+    "Could not obtain a strictly positive-definite covariance inverse ",
+    "by a uniform spectral shift of the precision.",
+    call. = FALSE
+  )
+}
+
+#' Invert an already completed precision to a Cholesky-able covariance
+#'
+#' Unlike `.spd_precision_and_covariance()`, this does not zero the
+#' diagonal: the input is already an SPD precision, not a weighted
+#' adjacency.
+#'
+#' @keywords internal
+#' @noRd
+.spd_covariance_from_precision <- function(
+  omega,
+  cushion = sqrt(.Machine$double.eps)
+) {
+  omega <- .ensure_spd(omega, cushion = cushion)
+  extra <- cushion
+  for (k in seq_len(8L)) {
+    sigma <- .qr_sym_inverse(omega)
+    if (.chol_succeeds(sigma)) {
+      return(sigma)
+    }
+    extra <- extra * 2
+    omega <- .uniform_spectral_shift(omega, cushion = extra)
+  }
+  stop(
+    "Could not invert a precision slice to a strictly ",
+    "positive-definite covariance.",
+    call. = FALSE
+  )
+}
+
+
 #' Complete a weighted adjacency to an SPD precision
 #'
 #' Applies a uniform spectral shift that preserves off-diagonal signs and
@@ -551,9 +733,12 @@ assign_iid_signed_weights <- function(
 #'   =
 #'   \boldsymbol{W}
 #'   +
-#'   \bigl(\lvert\lambda_{\min}(\boldsymbol{W})\rvert + u\bigr)
+#'   \bigl(\lvert\min(0,\lambda_{\min}(\boldsymbol{W}))\rvert + u\bigr)
 #'   \mathbf{I}.
 #' }
+#' The result is checked with [base::chol()]; if a factor still fails
+#' (ill-conditioned graphs), the same loading is increased until
+#' \eqn{\boldsymbol{\Omega}\succ 0} strictly.
 #'
 #' @param weighted_adjacency Symmetric numeric matrix (zero diagonal).
 #' @param precision_shift Positive diagonal cushion \eqn{u}.
@@ -574,10 +759,10 @@ build_normalised_precision <- function(
     stop("`precision_shift` must be positive.")
   }
   omega <- as.matrix(weighted_adjacency)
+  omega <- (omega + t(omega)) / 2
   diag(omega) <- 0
-  eigenvalues <- eigen(omega, symmetric = TRUE, only.values = TRUE)$values
-  diag(omega) <- abs(min(eigenvalues)) + precision_shift
-  omega
+  omega <- .uniform_spectral_shift(omega, cushion = precision_shift)
+  .ensure_spd(omega, cushion = precision_shift)
 }
 
 
@@ -585,8 +770,11 @@ build_normalised_precision <- function(
 #'
 #' For each cell type \eqn{j}, inverts
 #' \eqn{\boldsymbol{\Omega}_j} to
-#' \eqn{\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1}} and stacks the
-#' result as a \eqn{G\times G\times J} array. Precisions need not be
+#' \eqn{\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1}} (via
+#' [qr.solve()]) and stacks the result as a \eqn{G\times G\times J}
+#' array. If a slice is not numerically SPD, or if the inverse fails
+#' Cholesky, a further uniform spectral shift is applied to that
+#' precision (off-diagonal support unchanged). Precisions need not be
 #' shared across cell types.
 #'
 #' @param precision_array Symmetric positive-definite array
@@ -623,10 +811,9 @@ build_covariance_array_from_precision <- function(precision_array) {
     dimnames = list(gene_names, gene_names, celltype_names)
   )
   for (j in seq_len(n_celltypes)) {
-    # qr.solve() rather than solve(): with OpenBLAS, LAPACK solve() can
-    # return a markedly non-symmetric "inverse" that is not Omega^{-1}.
-    sigma_j <- qr.solve(precision_array[,, j])
-    covariance_array[,, j] <- (sigma_j + t(sigma_j)) / 2
+    covariance_array[,, j] <- .spd_covariance_from_precision(
+      precision_array[,, j]
+    )
   }
   covariance_array
 }
@@ -703,6 +890,7 @@ simulate_hierarchical_grn_moments <- function(
   target_cosine = 0,
   target_gram = NULL,
   seed = NULL,
+  nonnegative = FALSE,
   precision_shift,
   precision_scale,
   prop_inhibitory = 0.5,
@@ -775,6 +963,7 @@ simulate_hierarchical_grn_moments <- function(
     target_cosine = target_cosine,
     target_gram = target_gram,
     seed = seed,
+    nonnegative = nonnegative,
     gene_names = gene_names,
     celltype_names = celltype_names
   )
@@ -867,6 +1056,11 @@ simulate_hierarchical_grn_moments <- function(
     dim = c(n_genes, n_genes, n_celltypes),
     dimnames = list(gene_names, gene_names, celltype_names)
   )
+  covariance_array <- array(
+    NA_real_,
+    dim = c(n_genes, n_genes, n_celltypes),
+    dimnames = list(gene_names, gene_names, celltype_names)
+  )
 
   for (j in seq_len(n_celltypes)) {
     weighted_array[,, j] <- assign_iid_signed_weights(
@@ -874,20 +1068,17 @@ simulate_hierarchical_grn_moments <- function(
       prop_inhibitory = prop_inhibitory[[j]],
       weight_magnitude = precision_scale[[j]]
     )
-    omega_j <- build_normalised_precision(
+    pair <- .spd_precision_and_covariance(
       weighted_adjacency = weighted_array[,, j],
       precision_shift = precision_shift[[j]]
     )
-    precision_array[,, j] <- omega_j
+    precision_array[,, j] <- pair$precision
+    covariance_array[,, j] <- pair$covariance
   }
-
-  covariance_matrices <- build_covariance_array_from_precision(
-    precision_array
-  )
 
   list(
     mean_profiles = mean_profiles,
-    covariance_matrices = covariance_matrices,
+    covariance_matrices = covariance_array,
     precision_matrices = precision_array,
     graph_structure = list(
       adjacency_matrices = adjacency_array,

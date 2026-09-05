@@ -54,3 +54,6 @@ classes.
 compute_shannon_entropy(c(1, 0, 0)) # Dirac -> 0
 compute_shannon_entropy(rep(1 / 3, 3)) # uniform -> 1
 }
+\seealso{
+\code{\link[=composition_from_entropy]{composition_from_entropy()}}
+}

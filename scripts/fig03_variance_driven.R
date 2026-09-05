@@ -1,8 +1,8 @@
 ###############################################################################
 ###############################################################################
 ###                                                                         ###
-###     FIGURE 03 – VARIANCE-DRIVEN HYBRID SCENARIO (article §2.2)         ###
-###     J = 3 cell types · G = 50 genes · GRN-based covariances             ###
+###     FIGURE 03 – VARIANCE-DRIVEN SCENARIO (article §2.2)                ###
+###     J = 3 cell types · G = 50 genes · graph-constrained covariances     ###
 ###                                                                         ###
 ###############################################################################
 ###############################################################################
@@ -17,29 +17,26 @@
 #
 # Article:  DeCovarT – Section 2.2 (network topology separates mean-collinear
 #           types). Vignette: vignettes/fig03-variance-driven.qmd
-# Seed:     20260807 (canonical; matches vignette geometry tables)
-#
-# Single script for this figure: mean signature, block-structured
-# precisions, ADEMP benchmark, and the static network PNG.
-# Feature-selection (NSGA-II) is Appendix S6, not this scenario.
+# Seed:     20260807
 #
 # ── Design ──────────────────────────────────────────────────────────────────
-#  Gene block        Genes  CT 1 topology  CT 2 topology  CT 3 topology
-#  ─────────────     ─────  ─────────────  ─────────────  ─────────────
-#  shared_12_vs_3    30     SBM / hub      star           Erdős–Rényi
-#  marker_3          10     Erdős–Rényi    Erdős–Rényi    scale-free
-#  equal_all         10     Erdős–Rényi    Erdős–Rényi    Erdős–Rényi
-#
-#  Proportions     balanced (1/3,1/3,1/3); mod. unbalanced (0.5,0.3,0.2);
-#                  highly unbalanced (0.7,0.2,0.1)
-#  Algorithms      NNLS, DeconRNASeq (LSEI), Marquardt–Levenberg
-#  Replicates (n)  200
+#  Means           one G x J signature; target Gram R with
+#                  cos(μ1,μ2)=0.9, cos(μ1,μ3)=cos(μ2,μ3)=0.1
+#  Graph models    SBM, Erdős–Rényi, hub/star  (independent per cell type)
+#  Precision κ     well / moderate / ill  (precision_shift u)
+#  Topology grid   3³ = 27 graph assignments
+#  Covariance grid 27 x 3 = 81 (Σ_j, Ω_j) draws
+#  Proportions     H*=1 (balanced); H*=0.5; H*=0.1
+#  Algorithms      DeconRNASeq (LSEI), CIBERSORT, L-BFGS-B,
+#                  Newton–Raphson, Marquardt–Levenberg
+#                  (barycentre start; no NNLS)
+#  Replicates (n)  50
+#  Total scenarios 27 x 3 x 3 = 243
 #
 # ── Usage ────────────────────────────────────────────────────────────────────
 #  Rscript scripts/fig03_variance_driven.R
 #
 # ── Outputs ─────────────────────────────────────────────────────────────────
-#  data/synthetic_networks/true_grn_moments.rds
 #  output/fig03/hybrid_benchmark.rds
 #  output/fig03/fig03_raincloud.pdf, fig03_forest.pdf, fig03_metric_dots.pdf
 #  vignettes/figures/fig_network_topologies.png
@@ -65,277 +62,246 @@ if (!requireNamespace("igraph", quietly = TRUE)) {
     "fig03 requires {.pkg igraph}. Install with {.code install.packages(\"igraph\")}."
   )
 }
+if (!requireNamespace("e1071", quietly = TRUE)) {
+  .ui_abort(
+    "fig03 requires {.pkg e1071} (CIBERSORT). Install with {.code install.packages(\"e1071\")}."
+  )
+}
 
 OUT_DIR <- file.path("output", "fig03")
-DATA_DIR <- file.path("data", "synthetic_networks")
 dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
-dir.create(DATA_DIR, recursive = TRUE, showWarnings = FALSE)
 
 .ui_h1("Figure 03 · Variance-driven scenario")
 
-N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "200"))
-
+N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "50"))
 SEED <- 20260807L
 set.seed(SEED)
+
+N_GENES <- 50L
+N_CELLTYPES <- 3L
+MEAN_SCALE <- 10
+ITMAX <- 200L
+EPSILON <- 1e-4
 
 celltype_palette <- c(
   celltype_1 = "#2B8C99",
   celltype_2 = "#F4B400",
   celltype_3 = "#C1443C"
 )
-block_palette <- c(
-  shared_12_vs_3 = "#4C72B0",
-  marker_3 = "#C1443C",
-  equal_all = "#999999"
+graph_palette <- c(
+  stochastic_block_model = "#4C72B0",
+  erdos_renyi = "#999999",
+  hub = "#C1443C"
+)
+ct_nms <- names(celltype_palette)
+
+GRAPH_MODELS <- c("stochastic_block_model", "erdos_renyi", "hub")
+# Spectral cushion u: lambda_min(Omega_j) = u after the shift, so
+# kappa(Omega_j) = lambda_max / u. Smaller u -> worse-conditioned precision.
+PRECISION_SHIFT <- c(well = 0.5, moderate = 0.1, ill = 0.02)
+PRECISION_SCALE <- 0.3
+PROP_INHIBITORY <- 0.5
+
+GRAPH_PARAMS <- list(
+  n_hubs = 1L,
+  block_prob = c(0.4, 0.3, 0.3),
+  p_within = 0.3,
+  p_between = 0.01
+)
+
+TARGET_GRAM <- matrix(
+  c(
+    1,
+    0.9,
+    0.1,
+    0.9,
+    1,
+    0.1,
+    0.1,
+    0.1,
+    1
+  ),
+  nrow = 3L,
+  dimnames = list(ct_nms, ct_nms)
 )
 
 
 # ==============================================================================
 # SECTION 1 · GENERATIVE MODEL ----
-#   Canonical G = 50, J = 3 hybrid: types 1–2 mean-collinear on 30 genes;
-#   type 3 has a marker block; 10 genes are a null (equal_all) block.
+#   Fixed mean signature (exact Gram). Factorial graphs x precision shift.
 # ==============================================================================
 
-GRN_CACHE <- file.path(DATA_DIR, "true_grn_moments.rds")
+mu <- generate_mean_signature_matrix(
+  n_genes = N_GENES,
+  n_celltypes = N_CELLTYPES,
+  mean_scale = MEAN_SCALE,
+  target_gram = TARGET_GRAM,
+  seed = SEED,
+  nonnegative = TRUE,
+  celltype_names = ct_nms
+)
+cos_mu <- crossprod(mu)
+norms <- sqrt(diag(cos_mu))
+cos_mu <- cos_mu / tcrossprod(norms)
+.ui_info(
+  "Realised cosines: CT1–CT2 {.val {format(round(cos_mu[1, 2], 3), nsmall = 3)}}, CT1–CT3 {.val {format(round(cos_mu[1, 3], 3), nsmall = 3)}}, CT2–CT3 {.val {format(round(cos_mu[2, 3], 3), nsmall = 3)}}."
+)
 
-if (file.exists(GRN_CACHE)) {
-  .ui_info("Loading cached GRN moments from {.path {GRN_CACHE}}.")
-  true_grn_moments <- readRDS(GRN_CACHE)
-} else {
-  .ui_info("Generating GRN moments with seed {.val {SEED}}.")
+topology_grid <- tidyr::expand_grid(
+  graph_ct1 = GRAPH_MODELS,
+  graph_ct2 = GRAPH_MODELS,
+  graph_ct3 = GRAPH_MODELS
+)
+kappa_grid <- tibble::tibble(
+  kappa_label = names(PRECISION_SHIFT),
+  precision_shift = unname(PRECISION_SHIFT)
+)
 
-  n_g12 <- 30L
-  n_g3 <- 10L
-  n_geq <- 10L
-  n_genes <- n_g12 + n_g3 + n_geq
-  celltype_names <- names(celltype_palette)
+cov_grid <- tidyr::expand_grid(topology_grid, kappa_grid)
+.ui_info(
+  "Covariance grid: {.val {nrow(topology_grid)}} topologies x {.val {nrow(kappa_grid)}} precision shifts = {.val {nrow(cov_grid)}}."
+)
 
-  gene_names <- c(
-    paste0("gene_12_", seq_len(n_g12)),
-    paste0("gene_3_", seq_len(n_g3)),
-    paste0("gene_eq_", seq_len(n_geq))
-  )
-  idx_g12 <- seq_len(n_g12)
-  idx_g3 <- n_g12 + seq_len(n_g3)
-  idx_geq <- n_g12 + n_g3 + seq_len(n_geq)
-
-  gene_block <- factor(
-    rep(
-      c("shared_12_vs_3", "marker_3", "equal_all"),
-      c(n_g12, n_g3, n_geq)
-    ),
-    levels = c("shared_12_vs_3", "marker_3", "equal_all")
-  )
-  names(gene_block) <- gene_names
-
-  mean_scale <- 10
-  target_cosine_12 <- 0.95
-  target_cosine_3 <- 0.05
-  background_level <- 0.5
-  equal_level <- 2
-
-  mu_12 <- generate_mean_signature_matrix(
-    n_genes = n_g12,
-    n_celltypes = 2L,
-    mean_scale = mean_scale,
-    target_cosine = target_cosine_12,
-    gene_names = gene_names[idx_g12],
-    celltype_names = c("celltype_1", "celltype_2")
-  )
-  mu_3_pool <- generate_mean_signature_matrix(
-    n_genes = 2L * n_g3,
-    n_celltypes = 2L,
-    mean_scale = mean_scale,
-    target_cosine = target_cosine_3,
-    gene_names = paste0("pool_", seq_len(2L * n_g3)),
-    celltype_names = c("celltype_12_merged", "celltype_3")
-  )
-  mu_3_block <- mu_3_pool[(n_g3 + 1L):(2L * n_g3), , drop = FALSE]
-  rownames(mu_3_block) <- gene_names[idx_g3]
-
-  mu <- matrix(
-    NA_real_,
-    nrow = n_genes,
-    ncol = 3L,
-    dimnames = list(gene_names, celltype_names)
-  )
-  mu[idx_g12, "celltype_1"] <- mu_12[, "celltype_1"]
-  mu[idx_g12, "celltype_2"] <- mu_12[, "celltype_2"]
-  mu[idx_g12, "celltype_3"] <- background_level
-  mu[idx_g3, "celltype_1"] <- mu_3_block[, "celltype_12_merged"]
-  mu[idx_g3, "celltype_2"] <- mu_3_block[, "celltype_12_merged"]
-  mu[idx_g3, "celltype_3"] <- mu_3_block[, "celltype_3"]
-  mu[idx_geq, ] <- equal_level
-  if (any(mu < 0)) {
-    mu <- mu + abs(min(mu))
-  }
-
-  precision_shift <- 0.1
-  precision_scale <- 0.3
-  prop_inhibitory <- 0.5
-
-  build_block_adjacency <- function(n_genes, block_defs) {
-    adjacency <- matrix(0L, n_genes, n_genes)
-    for (blk in block_defs) {
-      adjacency[blk$idx, blk$idx] <- generate_random_network_skeleton(
-        n_genes = length(blk$idx),
-        graph_model = blk$graph_model,
-        graph_params = blk$graph_params
-      )
-    }
-    dimnames(adjacency) <- list(gene_names, gene_names)
-    adjacency
-  }
-
-  block_defs_by_celltype <- list(
-    celltype_1 = list(
-      list(
-        idx = idx_g12,
-        graph_model = "stochastic_block_model",
-        graph_params = list(
-          block_prob = c(0.4, 0.3, 0.3),
-          p_within = 0.3
-        )
-      ),
-      list(
-        idx = idx_g3,
-        graph_model = "erdos_renyi",
-        graph_params = list()
-      ),
-      list(
-        idx = idx_geq,
-        graph_model = "erdos_renyi",
-        graph_params = list()
-      )
-    ),
-    celltype_2 = list(
-      list(
-        idx = idx_g12,
-        graph_model = "hub",
-        graph_params = list(n_hubs = 1L)
-      ),
-      list(
-        idx = idx_g3,
-        graph_model = "erdos_renyi",
-        graph_params = list()
-      ),
-      list(
-        idx = idx_geq,
-        graph_model = "erdos_renyi",
-        graph_params = list()
-      )
-    ),
-    celltype_3 = list(
-      list(
-        idx = idx_g12,
-        graph_model = "erdos_renyi",
-        graph_params = list()
-      ),
-      list(
-        idx = idx_g3,
-        graph_model = "scale_free",
-        graph_params = list(power = 1, edges_per_node = 1L)
-      ),
-      list(
-        idx = idx_geq,
-        graph_model = "erdos_renyi",
-        graph_params = list()
-      )
-    )
-  )
-
-  adjacency_list <- lapply(
-    celltype_names,
-    function(ct) {
-      build_block_adjacency(n_genes, block_defs_by_celltype[[ct]])
-    }
-  )
-  names(adjacency_list) <- celltype_names
-
-  grn_moments <- simulate_hierarchical_grn_moments(
-    n_genes = n_genes,
-    n_celltypes = 3L,
-    mean_scale = mean_scale,
-    target_cosine = 0,
-    precision_shift = precision_shift,
-    precision_scale = precision_scale,
-    prop_inhibitory = prop_inhibitory,
-    adjacency = adjacency_list
-  )
-  grn_moments$mean_profiles <- mu
-  rownames(grn_moments$mean_profiles) <- gene_names
-  colnames(grn_moments$mean_profiles) <- celltype_names
-
-  Sigma <- grn_moments$covariance_matrices
-  Theta <- grn_moments$precision_matrices
-  dimnames(Sigma) <- list(gene_names, gene_names, celltype_names)
-  dimnames(Theta) <- list(gene_names, gene_names, celltype_names)
-
-  true_grn_moments <- list(
-    p = c(celltype_1 = 0.5, celltype_2 = 0.3, celltype_3 = 0.2),
-    mu = mu,
-    Sigma = Sigma,
-    Theta = Theta,
-    gene_block = gene_block,
-    adjacency_list = adjacency_list,
-    weighted_adjacencies = lapply(seq_len(3L), function(j) {
-      w <- grn_moments$graph_structure$weighted_adjacencies[,, j]
-      dimnames(w) <- list(gene_names, gene_names)
-      w
-    }),
-    seed = SEED
-  )
-  names(true_grn_moments$weighted_adjacencies) <- celltype_names
-  saveRDS(true_grn_moments, GRN_CACHE)
-  .ui_success("GRN moments saved to {.path {GRN_CACHE}}.")
-}
-
-mu <- true_grn_moments$mu
-Sigma <- true_grn_moments$Sigma
-ct_nms <- colnames(mu)
-gene_block <- true_grn_moments$gene_block
-adjacency_list <- true_grn_moments$adjacency_list
-weighted_adjacencies <- true_grn_moments$weighted_adjacencies
-
-cos12 <- as.numeric(
-  crossprod(mu[, 1L], mu[, 2L]) /
-    (sqrt(sum(mu[, 1L]^2)) * sqrt(sum(mu[, 2L]^2)))
+p_balanced <- composition_from_entropy(1, N_CELLTYPES, nms = ct_nms)
+p_mod <- composition_from_entropy(0.5, N_CELLTYPES, nms = ct_nms)
+p_rare <- composition_from_entropy(0.1, N_CELLTYPES, nms = ct_nms)
+PROPORTIONS_3 <- list(
+  "balanced" = p_balanced,
+  "moderately unbalanced" = p_mod,
+  "highly unbalanced" = p_rare
 )
 .ui_info(
-  "Pairwise cosine CT1–CT2: {.val {format(round(cos12, 3), nsmall = 3)}}."
+  "Entropies: balanced {.val {round(compute_shannon_entropy(p_balanced), 3)}}, moderate {.val {round(compute_shannon_entropy(p_mod), 3)}}, high {.val {round(compute_shannon_entropy(p_rare), 3)}}."
 )
+
+.ui_info("Drawing one adjacency triple per topology (27 graphs).")
+adj_by_topo <- purrr::pmap(
+  topology_grid,
+  function(graph_ct1, graph_ct2, graph_ct3) {
+    models <- c(graph_ct1, graph_ct2, graph_ct3)
+    lapply(seq_along(models), function(j) {
+      withr::with_seed(
+        SEED +
+          j +
+          10L * match(models[[j]], GRAPH_MODELS),
+        generate_random_network_skeleton(
+          n_genes = N_GENES,
+          graph_model = models[[j]],
+          graph_params = GRAPH_PARAMS
+        )
+      )
+    })
+  }
+)
+
+.ui_info("Completing signed precisions for each topology x kappa draw.")
+cov_draws <- purrr::pmap(
+  cov_grid,
+  function(graph_ct1, graph_ct2, graph_ct3, kappa_label, precision_shift) {
+    topo_idx <- which(
+      topology_grid$graph_ct1 == graph_ct1 &
+        topology_grid$graph_ct2 == graph_ct2 &
+        topology_grid$graph_ct3 == graph_ct3
+    )
+    moments <- withr::with_seed(
+      SEED +
+        1000L * match(kappa_label, names(PRECISION_SHIFT)) +
+        topo_idx,
+      simulate_hierarchical_grn_moments(
+        n_genes = N_GENES,
+        n_celltypes = N_CELLTYPES,
+        mean_scale = MEAN_SCALE,
+        target_gram = TARGET_GRAM,
+        precision_shift = precision_shift,
+        precision_scale = PRECISION_SCALE,
+        prop_inhibitory = PROP_INHIBITORY,
+        nonnegative = TRUE,
+        adjacency = adj_by_topo[[topo_idx]]
+      )
+    )
+    list(
+      sigma = moments$covariance_matrices,
+      theta = moments$precision_matrices,
+      adjacency = lapply(
+        seq_len(N_CELLTYPES),
+        function(j) moments$graph_structure$adjacency_matrices[,, j]
+      )
+    )
+  }
+)
+
+scenario_config_3 <- purrr::map_dfr(
+  seq_len(nrow(cov_grid)),
+  function(i) {
+    row <- cov_grid[i, , drop = FALSE]
+    draw <- cov_draws[[i]]
+    purrr::imap_dfr(PROPORTIONS_3, function(p, prop_name) {
+      described <- describe_simulation_scenario(
+        true_theta = list(
+          p = p,
+          mu = mu,
+          sigma = draw$sigma,
+          Theta = draw$theta
+        ),
+        adjacency = draw$adjacency
+      )
+      tibble::tibble(
+        proportion_name = prop_name,
+        entropy = round(compute_shannon_entropy(p), 3),
+        graph_ct1 = row$graph_ct1,
+        graph_ct2 = row$graph_ct2,
+        graph_ct3 = row$graph_ct3,
+        kappa_label = row$kappa_label,
+        precision_shift = row$precision_shift,
+        f_cov = described$descriptors$f_cov,
+        kappa_sigma_p = described$descriptors$kappa_sigma_p,
+        true_theta = list(list(
+          p = p,
+          mu = mu,
+          sigma = draw$sigma,
+          Theta = draw$theta,
+          adjacency = draw$adjacency
+        ))
+      )
+    })
+  }
+)
+.ui_success(
+  "Config built: {.val {nrow(scenario_config_3)}} scenarios."
+)
+saveRDS(scenario_config_3, file.path(OUT_DIR, "hybrid_config.rds"))
 
 
 # ==============================================================================
 # SECTION 2 · INFERENCE ----
 # ==============================================================================
 
-PROPORTIONS_3 <- list(
-  "balanced" = c(1 / 3, 1 / 3, 1 / 3),
-  "mod_unbalanced" = c(0.5, 0.3, 0.2),
-  "highly_unbalanced" = c(0.7, 0.2, 0.1)
-)
-
-scenario_config_3 <- purrr::imap_dfr(PROPORTIONS_3, function(p, prop_name) {
-  tibble::tibble(
-    proportion_name = prop_name,
-    entropy = round(compute_shannon_entropy(p), 3),
-    true_theta = list(list(
-      p = stats::setNames(p, ct_nms),
-      mu = mu,
-      sigma = Sigma
-    ))
-  )
-})
-
-ITMAX <- 200L
-EPSILON <- 1e-4
 deconvolution_functions_3 <- list(
-  "nnls" = list(FUN = deconvolute_ratios_nnls),
   "lsei" = list(FUN = deconvolute_ratios_deconrnaseq),
+  "cibersort" = list(FUN = deconvolute_ratios_cibersort),
+  "LBFGS" = list(
+    FUN = deconvolute_ratios_L_BFGS_B,
+    additional_parameters = list(
+      epsilon = EPSILON,
+      itmax = ITMAX,
+      initial_p = "barycentre"
+    )
+  ),
+  "Newton-Raphson" = list(
+    FUN = deconvolute_ratios_Newton_Raphson,
+    additional_parameters = list(
+      epsilon = EPSILON,
+      itmax = ITMAX,
+      initial_p = "barycentre"
+    )
+  ),
   "Marquardt-Levenberg" = list(
     FUN = deconvolute_ratios_Marquardt_Levenberg,
-    additional_parameters = list(epsilon = EPSILON, itmax = ITMAX)
+    additional_parameters = list(
+      epsilon = EPSILON,
+      itmax = ITMAX,
+      initial_p = "barycentre"
+    )
   )
 )
 
@@ -360,105 +326,84 @@ if (requireNamespace("ggdist", quietly = TRUE)) {
   p_rain <- plot_mc_raincloud(
     hybrid_out,
     quantity = "error",
-    facet_rows = "proportion_name"
+    facet_rows = "proportion_name",
+    facet_cols = "kappa_label"
   )
   ggplot2::ggsave(
     file.path(OUT_DIR, "fig03_raincloud.pdf"),
     plot = p_rain,
     width = 12,
-    height = 7
+    height = 8
   )
   .ui_success("Saved {.file fig03_raincloud.pdf}.")
 }
 
 p_forest <- plot_mc_forest(
   hybrid_out,
-  facet_rows = "proportion_name"
+  facet_rows = "proportion_name",
+  facet_cols = "kappa_label"
 )
 ggplot2::ggsave(
   file.path(OUT_DIR, "fig03_forest.pdf"),
   plot = p_forest,
-  width = 10,
-  height = 6
+  width = 12,
+  height = 8
 )
 .ui_success("Saved {.file fig03_forest.pdf}.")
 
 p_dots <- plot_mc_metric_dots(
   hybrid_out,
   facet_rows = "proportion_name",
+  facet_cols = "kappa_label",
   metrics = c("rmse", "mae", "coverage")
 )
 ggplot2::ggsave(
   file.path(OUT_DIR, "fig03_metric_dots.pdf"),
   plot = p_dots,
   width = 12,
-  height = 6
+  height = 8
 )
 .ui_success("Saved {.file fig03_metric_dots.pdf}.")
 
-# Static network PNG for the vignette.
-if (!is.null(adjacency_list) && !is.null(gene_block)) {
-  static_network_path <- file.path(
-    "vignettes",
-    "figures",
-    "fig_network_topologies.png"
+# One panel per graph generator (same G, independent of the factorial).
+static_network_path <- file.path(
+  "vignettes",
+  "figures",
+  "fig_network_topologies.png"
+)
+dir.create(
+  dirname(static_network_path),
+  recursive = TRUE,
+  showWarnings = FALSE
+)
+grDevices::png(static_network_path, width = 2700, height = 900, res = 220)
+graphics::par(mfrow = c(1L, 3L), mar = c(1, 1, 3, 1))
+set.seed(SEED)
+for (gm in GRAPH_MODELS) {
+  adj <- generate_random_network_skeleton(
+    n_genes = N_GENES,
+    graph_model = gm,
+    graph_params = GRAPH_PARAMS
   )
-  dir.create(
-    dirname(static_network_path),
-    recursive = TRUE,
-    showWarnings = FALSE
+  graph <- igraph::graph_from_adjacency_matrix(
+    adj,
+    mode = "undirected",
+    diag = FALSE
   )
-  grDevices::png(static_network_path, width = 2700, height = 1150, res = 220)
-  graphics::layout(
-    matrix(c(1L, 2L, 3L, 4L, 4L, 4L), nrow = 2L, byrow = TRUE),
-    heights = c(5, 1)
+  igraph::V(graph)$color <- graph_palette[[gm]]
+  igraph::plot.igraph(
+    graph,
+    vertex.size = 4,
+    vertex.label = NA,
+    vertex.frame.color = "#2f3e4f",
+    edge.color = "#4a5560",
+    edge.width = 0.8,
+    layout = igraph::layout_with_fr(graph),
+    main = gm
   )
-  graphics::par(mar = c(1, 1, 3, 1))
-  set.seed(SEED)
-  gene_names <- rownames(mu)
-  for (ct in ct_nms) {
-    graph <- igraph::graph_from_adjacency_matrix(
-      adjacency_list[[ct]],
-      mode = "undirected",
-      diag = FALSE
-    )
-    edge_ends <- igraph::ends(graph, igraph::E(graph), names = FALSE)
-    edge_weight <- weighted_adjacencies[[ct]][
-      cbind(edge_ends[, 1L], edge_ends[, 2L])
-    ]
-    igraph::V(graph)$color <- unname(
-      block_palette[as.character(gene_block)]
-    )
-    igraph::plot.igraph(
-      graph,
-      vertex.size = 4,
-      vertex.label = NA,
-      vertex.frame.color = "#2f3e4f",
-      edge.color = ifelse(edge_weight > 0, "#C1443C", "#2B8C99"),
-      edge.width = 1.2,
-      layout = igraph::layout_with_fr(graph),
-      main = paste0(ct, " (", sub("celltype_", "type ", ct), ")")
-    )
-  }
-  graphics::par(mar = c(0, 0, 0, 0))
-  graphics::plot.new()
-  graphics::legend(
-    "center",
-    legend = c(
-      names(block_palette),
-      "inhibitory (+)",
-      "activatory (-)"
-    ),
-    col = c(unname(block_palette), "#C1443C", "#2B8C99"),
-    pch = c(19, 19, 19, NA, NA),
-    lty = c(NA, NA, NA, 1, 1),
-    lwd = 2,
-    bty = "n",
-    horiz = TRUE
-  )
-  grDevices::dev.off()
-  .ui_success("Wrote {.path {static_network_path}}.")
 }
+grDevices::dev.off()
+.ui_success("Wrote {.path {static_network_path}}.")
 
 .ui_success(
   "Done. Outputs in {.path {normalizePath(OUT_DIR, mustWork = FALSE)}}."

@@ -40,102 +40,91 @@ library(DeCovarT)
 The bivariate toy confirms the theoretical benefit of covariance
 modelling in a transparent setting but cannot demonstrate realistic
 gene-regulatory network (GRN) topology. This scenario uses $G = 50$
-genes and $J = 3$ cell types in which types 1 and 2 are **near
-mean-collinear** ($\rho_{12} \approx 0.97$): the network topology encoded
-in $\boldsymbol{\Sigma}_j$ is the discriminative signal. Construction,
-ADEMP benchmark, and the static network figure live in a **single**
-script, `scripts/fig03_variance_driven.R` (seed `20260807`).
+genes and $J = 3$ cell types in which types 1 and 2 are **mean-collinear**
+($\cos(\boldsymbol{\mu}_{\cdot 1},\boldsymbol{\mu}_{\cdot 2})=0.9$): the
+network topology encoded in $\boldsymbol{\Sigma}_j$ is the remaining
+discriminative signal. Construction, ADEMP benchmark, and the static
+network figure live in a **single** script,
+`scripts/fig03_variance_driven.R` (seed `20260807`).
 
-> **Script:** `Rscript scripts/fig03_variance_driven.R` (full, $n = 200$)
+> **Script:** `Rscript scripts/fig03_variance_driven.R` (full, $n = 50$)
 > or `N_REPLICATES=2 Rscript scripts/fig03_variance_driven.R` (smoke).
-> Moments: `data/synthetic_networks/true_grn_moments.rds`. Figures:
-> `output/fig03/`. ADEMP reporting:
-> [how to build synthetic scenarios](how-to-build-synthetic-scenarios-mean-covariance.html#sec-ademp).
+> Figures: `output/fig03/`. ADEMP reporting:
+> [how to build synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html#sec-ademp).
+> Scenario geometry:
+> [scenario descriptors](theory-synthetic-scenarios-mean-covariance.html#sec-scenario-descriptors).
 
 # Generative model {#sec-scenario-grid}
 
-Types 1 and 2 share a high local cosine on 30 genes and differ only
-through $\boldsymbol{\Omega}$; type 3 has a compact marker block; 10 genes
-are a null (`equal_all`) block.
+One fixed mean signature $\boldsymbol{\mu}\in\mathbb{R}^{G\times J}$ is
+built with `generate_mean_signature_matrix()` and an explicit Gram
+`target_gram` ([mean signature
+construction](theory-synthetic-scenarios-mean-covariance.html#sec-lr-block-mu)).
+There is no marker block and no null (`equal_all`) block: uninformative
+genes would be removed before deconvolution.
 
 $$
-\underbrace{\mathcal{G}_{12}}_{30\text{ genes}}
-\ \cup\
-\underbrace{\mathcal{G}_{3}}_{10\text{ genes}}
-\ \cup\
-\underbrace{\mathcal{G}_{\mathrm{eq}}}_{10\text{ genes}},
-\qquad
-\boldsymbol{\Omega}_j
+R
 =
-\mathrm{blockdiag}\bigl(
-  \boldsymbol{\Omega}_j^{(\mathcal{G}_{12})},\,
-  \boldsymbol{\Omega}_j^{(\mathcal{G}_{3})},\,
-  \boldsymbol{\Omega}_j^{(\mathcal{G}_{\mathrm{eq}})}
-\bigr).
-$$
+\begin{pmatrix}
+1 & 0.9 & 0.1 \\
+0.9 & 1 & 0.1 \\
+0.1 & 0.1 & 1
+\end{pmatrix},
+\qquad
+\boldsymbol{\mu}
+=
+s\mathbf{Q}R^{1/2},
+\quad s=10.
+$$ {#eq-fig03-gram}
 
-$\boldsymbol{\mu}$ uses two calls to `generate_mean_signature_matrix()`
-([mean signature construction](how-to-build-synthetic-scenarios-mean-covariance.html#sec-lr-block-mu)):
-$\rho_{12}=0.95$ on $\mathcal{G}_{12}$, then $\rho_{3}=0.05$ on a
-marker pool for type 3. Local topologies follow the BLGGM two-scale
-pattern (@tbl-hybrid-topology-design;
-[GGM networks](how-to-build-synthetic-scenarios-mean-covariance.html#sec-ggm-networks)).
-
-| Gene block | # genes | Cell type 1 | Cell type 2 | Cell type 3 |
-|---|---|---|---|---|
-| `shared_12_vs_3` | 30 | SBM (hub-like modules) | star (one driver) | Erdős–Rényi |
-| `marker_3` | 10 | Erdős–Rényi | Erdős–Rényi | scale-free |
-| `equal_all` | 10 | Erdős–Rényi | Erdős–Rényi | Erdős–Rényi |
-
-: Local topology per (gene block, cell type); block-diagonal precision support. {#tbl-hybrid-topology-design}
+Because $\mathbf{Q}^{\mathsf{T}}\mathbf{Q}=\mathbf{I}_J$, the pairwise
+cosines of the columns of $\boldsymbol{\mu}$ equal $R$ exactly (up to
+rounding). Euclidean gaps follow
+$\lVert\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\rVert
+=s\sqrt{2(1-R_{jk})}$. The call uses `nonnegative = TRUE` (disjoint
+gene-block frame) so that $\boldsymbol{\mu}\ge 0$, as required by
+`deconvolute_ratios()`.
 
 | pair | cosine | Euclidean |
 |:-----|-------:|----------:|
-| celltype_1 vs celltype_2 | 0.973 | 2.765 |
-| celltype_1 vs celltype_3 | 0.562 | 11.219 |
-| celltype_2 vs celltype_3 | 0.562 | 11.219 |
+| celltype_1 vs celltype_2 | 0.9 | $10\sqrt{0.2}\approx 4.472$ |
+| celltype_1 vs celltype_3 | 0.1 | $10\sqrt{1.8}\approx 13.416$ |
+| celltype_2 vs celltype_3 | 0.1 | $10\sqrt{1.8}\approx 13.416$ |
 
-: Realised pairwise geometry of the $50\times 3$ mean signature (seed 20260807). {#tbl-mean-geometry}
+: Exact pairwise geometry of the $50\times 3$ mean signature (`target_gram`, `mean_scale` $=10$). {#tbl-mean-geometry}
 
-| cell type | topology | $\lambda_{\min}$ | $\lambda_{\max}$ | $\kappa(\Omega)$ | prop. inhib. |
-|:----------|:---------|-----------------:|-----------------:|-----------------:|-----------:|
-| celltype_1 | SBM | 0.100 | 1.685 | 16.846 | 0.500 |
-| celltype_2 | star | 0.100 | 3.331 | 33.311 | 0.489 |
-| celltype_3 | scale-free | 0.100 | 2.096 | 20.961 | 0.500 |
+Each cell type independently draws an undirected skeleton from one of
+three generators (`stochastic_block_model`, `erdos_renyi`, `hub` /
+star), then completes a signed precision with
+`build_normalised_precision()`
+([GGM networks](theory-synthetic-scenarios-mean-covariance.html#sec-ggm-networks)).
+The spectral cushion $u$ (`precision_shift`) sets
+$\lambda_{\min}(\boldsymbol{\Omega}_j)=u$ after the shift, so smaller $u$
+worsens $\kappa(\boldsymbol{\Omega}_j)=\lambda_{\max}/u$ and, after
+inversion and convolution, $\kappa\{\boldsymbol{\Sigma}(\boldsymbol{p})\}$.
 
-: Precision spectra of each cell type's $\boldsymbol{\Omega}_j$ (seed 20260807). {#tbl-topology-diagnostics}
+| Factor | Levels |
+|---|---|
+| Graph model (per cell type) | SBM, Erdős–Rényi, hub/star |
+| Precision shift $u$ | well ($0.5$); moderate ($0.1$); ill ($0.02$) |
+| Topology assignments | $3^3=\mathbf{27}$ |
+| Covariance draws | $27\times 3=\mathbf{81}$ |
 
-Types 1 and 2 remain near-collinear on the full $G=50$ vector (cosine
-$\approx 0.97$). Type 3 is only *moderately* separated (cosine
-$\approx 0.56$) because the shared $\mathcal{G}_{12}$ baseline and the
-flat `equal_all` block inflate every pairwise inner product—the
-finite-$J$ cosine bias of
-[asymptotic cosine control](how-to-build-synthetic-scenarios-mean-covariance.html#sec-asymptotic-cosine).
-@tbl-topology-diagnostics shows that types 1 and 2 still differ in
-$\boldsymbol{\Omega}$.
+: Covariance factorial (graphs $\times$ precision cushion). {#tbl-cov-factorial}
 
-![Cell-type-specific block topologies: SBM/hub-like modules (type 1) and
-a star (type 2) on the 30 `shared_12_vs_3` genes; scale-free wiring
-(type 3) on `marker_3`. The `equal_all` block is Erdős–Rényi in every
-type. Edge colour: precision sign (red inhibitory, teal activatory).](figures/fig_network_topologies.png){#fig-network-topologies width="100%"}
+`describe_simulation_scenario()` records the realised
+$\kappa\{\boldsymbol{\Sigma}(\boldsymbol{p})\}$ and the covariance-information
+fraction $f_{\mathrm{cov}}$ on every row (see the
+[descriptors section](theory-synthetic-scenarios-mean-covariance.html#sec-scenario-descriptors),
+especially the tangent-Fisher callout). Those columns are
+**measured**, not additional design factors: $u$ is the knob;
+$f_{\mathrm{cov}}$ reports how much of the Fisher information is
+second-order.
 
-::: {#nte-related-dd .callout-info}
-## Related literature (`muscat` / `scDD`)
-
-Pseudobulk tools such as `muscat`
-[@crowellMuscatDetectsSubpopulationspecific2020] aggregate single-cell
-counts across samples. `scDD`
-[@korthauerStatisticalApproachIdentifying2016] partitions genes into
-EE, DE, DP, DM, and DB patterns. The hybrid scenario is a
-network-level analogue of three of these (@fig-dd-taxonomy):
-`equal_all` is EE; `marker_3` is DE for type 3; `shared_12_vs_3` has
-**no mean shift between types 1 and 2**, only a precision-topology
-contrast (DM-like for deconvolution, not scDD's original single-gene
-modality test).
-:::
-
-![Schematic EE / DE / DM-like taxonomy for the three gene
-blocks.](figures/fig_dd_taxonomy_ee_de_dm.jpg){#fig-dd-taxonomy width="100%"}
+![Three generator examples on $G=50$ nodes (SBM, Erdős–Rényi, hub/star).
+Each cell type in the factorial is assigned one of these families
+independently.](figures/fig_network_topologies.png){#fig-network-topologies width="100%"}
 
 Two generators were considered but not adopted:
 
@@ -147,34 +136,47 @@ Two generators were considered but not adopted:
 
 # Inference {#sec-hybrid-deconvolution}
 
+Compositions are one-dominant vectors from
+`composition_from_entropy()` targeting Pielou evenness
+$H^{\star}\in\{1,0.5,0.1\}$ (balanced; moderately unbalanced; highly
+unbalanced). All DeCovarT solvers start at the barycentre
+(`initial_p = "barycentre"`). Other initialisation strategies are
+reserved for separate scenarios.
+
 | Factor | Levels |
 |---|---|
-| Composition $\boldsymbol{p}$ | balanced $(1/3,1/3,1/3)$; moderately unbalanced $(0.5,0.3,0.2)$; highly unbalanced $(0.7,0.2,0.1)$ |
-| Algorithms | NNLS, DeconRNASeq, Marquardt–Levenberg |
-| **Total scenarios** | $3 \times 3 = \mathbf{9}$ (per fixed GRN realisation) |
+| Composition $\boldsymbol{p}$ | $H^{\star}=1$; $H^{\star}=0.5$; $H^{\star}=0.1$ |
+| Algorithms | DeconRNASeq (`lsei`), CIBERSORT, L-BFGS-B, Newton–Raphson, Marquardt–Levenberg |
+| **Total scenarios** | $27\times 3\times 3=\mathbf{243}$ |
 
-$N = 200$ Monte Carlo replicates per scenario (smoke test: $n = 2$).
-All solvers start from the open simplex via `starting_simplex()`
-(barycentre by default; Dirichlet or QP via `initial_p`).
+$N = 50$ Monte Carlo replicates per scenario (smoke test: `N_REPLICATES=2`).
 
 | Algorithm | Function | Constraint |
 |:----------|:---------|:-----------|
-| NNLS | `deconvolute_ratios_nnls` | `repair_simplex()` |
 | QP (`DeconRNASeq`-style) | `deconvolute_ratios_deconrnaseq` | simplex equality / inequality |
+| CIBERSORT-style $\nu$-SVR | `deconvolute_ratios_cibersort` | non-negative then `repair_simplex()` |
+| L-BFGS-B | `deconvolute_ratios_L_BFGS_B` | ILR $\to$ open simplex |
+| Newton–Raphson | `deconvolute_ratios_Newton_Raphson` | ILR / `nlminb` |
 | Marquardt–Levenberg | `deconvolute_ratios_Marquardt_Levenberg` | ILR $\to$ open simplex |
 
 : Solvers used in the variance-driven comparison. {#tbl-solver-hybrid}
 
-The shipped catalogue (CIBERSORT-style $\nu$-SVR, `MASS::rlm`, GLS,
-Newton–Raphson, L-BFGS-B, BFGS, simulated annealing) is listed in
-[`deconvolute_ratios()`](../reference/deconvolute_ratios.html). A
-temporary solver smoke test on this GRN lives in
-`tests/manual/deconvolute_simulated_scenario.R` (Rbuildignored).
+Mean-only baselines (LSEI, CIBERSORT) ignore $\boldsymbol{\Sigma}_j$.
+The three DeCovarT maps use the same convolution likelihood. The shipped
+catalogue (robust linear model, GLS, BFGS, simulated annealing) is
+listed in
+[`deconvolute_ratios()`](../reference/deconvolute_ratios.html).
 
 ```{r}
 #| label: inference
-N_REPLICATES <- as.integer(Sys.getenv("N_REPLICATES", unset = "200"))
-ALGORITHMS <- c("NNLS", "DeconRNASeq", "Marquardt-Levenberg")
+N_REPLICATES <- as.integer(Sys.getenv("N_REPLICATES", unset = "50"))
+ALGORITHMS <- c(
+  "lsei",
+  "cibersort",
+  "LBFGS",
+  "Newton-Raphson",
+  "Marquardt-Levenberg"
+)
 # Full pipeline: Rscript scripts/fig03_variance_driven.R
 ```
 
@@ -182,24 +184,24 @@ ALGORITHMS <- c("NNLS", "DeconRNASeq", "Marquardt-Levenberg")
 
 | Output | Description |
 |---|---|
-| `output/fig03/fig03_raincloud.pdf` | Raincloud of RMSE by algorithm and composition |
+| `output/fig03/fig03_raincloud.pdf` | Raincloud of Monte Carlo errors, faceted by composition and $\kappa$ label |
 | `output/fig03/fig03_forest.pdf` | ADEMP forest plot |
-| `output/fig03/fig03_metric_dots.pdf` | Metric dot plot across compositions |
+| `output/fig03/fig03_metric_dots.pdf` | Metric dot plot (RMSE, MAE, coverage) |
 
 ### Expected findings
 
-Because CT 1 and CT 2 share near-identical mean profiles
-($\rho_{12} \approx 0.97$), NNLS and DeconRNASeq cannot separate them —
-their RMSE for that pair should sit near the variance floor. DeCovarT
-(Marquardt–Levenberg) uses the block-diagonal precision structure;
-its advantage grows as the composition becomes unbalanced and the rare
-type (CT 3 at 10%) requires second-order information.
+Because CT 1 and CT 2 share cosine $0.9$, LSEI and CIBERSORT cannot
+separate them from the mean signature alone. DeCovarT (L-BFGS-B,
+Newton–Raphson, Marquardt–Levenberg) uses $\boldsymbol{\Sigma}_j$; its
+advantage should grow where $f_{\mathrm{cov}}$ is large, where $u$ is
+small (ill-conditioned but still informative second-order structure),
+and where the composition is highly unbalanced ($H^{\star}=0.1$).
 
 ## See also
 
 - Bivariate toy: [§2.1](fig02-bivariate-toy.html)
 - Moment generator:
-  [How to build synthetic scenarios](how-to-build-synthetic-scenarios-mean-covariance.html)
+  [How to build synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html)
 - Feature-selection on this design: [Appendix S6](supp-S6-feature-selection.html)
 - Identifiability of collinear means:
   [Appendix S1](supp-S1-identifiability.html)

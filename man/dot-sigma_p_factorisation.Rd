@@ -34,8 +34,8 @@ supplied the list additionally carries \code{solve} and \code{quadform} closures
 Assembles \code{\link[=.compute_global_variance]{.compute_global_variance()}} and factorises it once via
 \code{\link[base:chol]{base::chol()}}, returning the matrix itself together with its Cholesky
 factor, log-determinant (via the factor's diagonal, not \code{\link[base:det]{base::det()}}),
-and inverse (via \code{\link[base:chol2inv]{base::chol2inv()}}, which reuses the factor rather than
-an independent \code{\link[base:solve]{base::solve()}}).
+and inverse (via \code{\link[=qr.solve]{qr.solve()}} after a uniform spectral shift if
+the mixture is not numerically SPD).
 }
 \details{
 \code{\link[stats:optim]{stats::optim()}}, \code{\link[stats:nlminb]{stats::nlminb()}} and \code{\link[marqLevAlg:marqLevAlg]{marqLevAlg::marqLevAlg()}} each

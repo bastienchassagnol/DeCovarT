@@ -21,7 +21,13 @@ supplied.}
 A list with:
 \itemize{
 \item \code{theta_true}: the convolution parameters \code{p}, \code{mu}, \code{sigma};
-\item \code{descriptors}: one-row tibble of kept scenario statistics;
+\item \code{descriptors}: one-row tibble of kept scenario statistics in six
+families (composition, mean geometry, SPD of
+\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}, tangent Fisher, network,
+component overlap). SPD columns include both
+\eqn{\kappa\{\boldsymbol{\Sigma}(\boldsymbol{p})\}}
+(\code{kappa_sigma_p}) and the reciprocal
+\eqn{\lambda_{\min}/\lambda_{\max}} (\code{kappa_sigma_reciprocal});
 \item \code{supplementary}: one-row tibble of Jeffreys / symmetrised KL,
 recorded but not treated as a primary score;
 \item \code{call}: the matched call (\code{\link[=match.call]{match.call()}}).
@@ -38,10 +44,6 @@ BarOmega and average pairwise Hellinger of the component Gaussians
 are kept in \code{descriptors}. Jeffreys / symmetrised KL is returned in
 \code{supplementary}.
 }
-\details{
-No Cholesky fill-in or sparse-solver diagnostic is computed: the
-caller must declare the covariance structure used at fit time.
-}
 \examples{
 theta <- list(
   p = c(0.5, 0.5),
@@ -54,5 +56,6 @@ out$call
 }
 \seealso{
 \code{\link[=run_simulation_benchmark]{run_simulation_benchmark()}}, \code{\link[=expected_fisher_unconstrained]{expected_fisher_unconstrained()}},
-\code{\link[=compute_shannon_entropy]{compute_shannon_entropy()}}, \code{\link[=helmert_basis]{helmert_basis()}}
+\code{\link[=compute_shannon_entropy]{compute_shannon_entropy()}}, \code{\link[=composition_from_entropy]{composition_from_entropy()}},
+\code{\link[=helmert_basis]{helmert_basis()}}
 }

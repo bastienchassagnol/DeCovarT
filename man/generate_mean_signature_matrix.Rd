@@ -11,6 +11,7 @@ generate_mean_signature_matrix(
   target_cosine = 0,
   target_gram = NULL,
   seed = NULL,
+  nonnegative = FALSE,
   gene_names = NULL,
   celltype_names = NULL
 )
@@ -32,7 +33,11 @@ Must lie in \eqn{[-1/(J-1),1]}.}
 
 \item{seed}{Optional integer. When supplied, the orthonormal frame
 \eqn{\boldsymbol{Q}} is drawn from a Gaussian QR; otherwise it is
-deterministic.}
+deterministic. Ignored when \code{nonnegative = TRUE}.}
+
+\item{nonnegative}{If \code{TRUE}, use a disjoint-support nonnegative
+frame so that \eqn{\boldsymbol{\mu}\ge 0} whenever \eqn{R^{1/2}\ge 0}
+(required by \code{\link[=deconvolute_ratios]{deconvolute_ratios()}}). The Gram is unchanged.}
 
 \item{gene_names}{Optional character vector of length \eqn{G}.}
 

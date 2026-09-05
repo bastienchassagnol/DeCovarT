@@ -4,6 +4,24 @@ test_that("compute_shannon_entropy: Dirac and uniform", {
   expect_equal(compute_shannon_entropy(1), 0, tolerance = .tol_srr)
 })
 
+test_that("composition_from_entropy matches a target H-star", {
+  p_half <- composition_from_entropy(0.5, n_celltypes = 3L)
+  expect_equal(sum(p_half), 1, tolerance = 1e-8)
+  expect_equal(compute_shannon_entropy(p_half), 0.5, tolerance = 1e-6)
+  expect_equal(
+    composition_from_entropy(1, n_celltypes = 3L),
+    rep(1 / 3, 3),
+    tolerance = 1e-8
+  )
+  expect_equal(
+    composition_from_entropy(0, n_celltypes = 3L),
+    c(1, 0, 0)
+  )
+  p_rare <- composition_from_entropy(0.1, n_celltypes = 3L)
+  expect_equal(compute_shannon_entropy(p_rare), 0.1, tolerance = 1e-6)
+  expect_gt(p_rare[[1L]], p_rare[[2L]])
+})
+
 test_that("compute_shannon_entropy: input checks", {
   expect_error(compute_shannon_entropy(numeric()), "`ratios`")
   expect_error(compute_shannon_entropy(c(0.5, NA)), "`ratios`")

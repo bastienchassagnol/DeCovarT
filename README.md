@@ -219,7 +219,7 @@ Package website: <https://bastienchassagnol.github.io/DeCovarT/>
 
 **Vignettes**
 
-- [How to build synthetic scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/how-to-build-synthetic-scenarios-mean-covariance.html)
+- [How to build synthetic scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-scenarios-mean-covariance.html)
 - [§2.1 Bivariate toy](https://bastienchassagnol.github.io/DeCovarT/articles/fig02-bivariate-toy.html)
 - [§2.2 Variance-driven hybrid](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-variance-driven.html)
 - [Generative model and derivatives](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html)

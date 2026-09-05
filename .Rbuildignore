@@ -39,7 +39,7 @@
 ^vignettes/theory-DeCovarT-MLE-properties\.qmd$
 ^vignettes/supp-S6-feature-selection\.qmd$
 ^vignettes/theory-network-inference\.qmd$
-^vignettes/how-to-build-synthetic-scenarios-mean-covariance\.qmd$
+^vignettes/theory-synthetic-scenarios-mean-covariance\.qmd$
 ^vignettes/fig03-variance-driven\.qmd$
 ^vignettes/supp-S1-identifiability\.qmd$
 ^vignettes/supp-S2-covariance-inversion\.qmd$

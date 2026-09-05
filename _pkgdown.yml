@@ -106,7 +106,7 @@ navbar:
           href: articles/theory-decovart-generative-model.html
         - text: How to build synthetic scenarios (means, covariance, ADEMP)
           icon: fa-flask
-          href: articles/how-to-build-synthetic-scenarios-mean-covariance.html
+          href: articles/theory-synthetic-scenarios-mean-covariance.html
         - text: -------
         - text: "Paper: numerical simulation study"
         - text: "§ 2.1 · Bivariate toy (J = 2, G = 2)"
@@ -290,6 +290,7 @@ reference:
     contents:
       - repair_simplex
       - compute_shannon_entropy
+      - composition_from_entropy
       - check_true_theta
       - compute_average_overlap
       - compute_average_jeffreys
@@ -302,7 +303,7 @@ articles:
   - title: Getting started
     navbar: ~
     contents:
-      - how-to-build-synthetic-scenarios-mean-covariance
+      - theory-synthetic-scenarios-mean-covariance
       - supp-S6-feature-selection
       - theory-network-inference
   - title: "Paper: numerical simulation study"
@@ -310,8 +311,9 @@ articles:
       The two simulation scenarios of the DeCovarT article.
       **§ 2.1** Bivariate toy (J = 2, G = 2): factorial sweep of gene–gene
       correlation, mean distance, and composition.
-      **§ 2.2** Variance-driven hybrid (J = 3, G = 50): block-structured
-      GRN covariances; cell types 1 and 2 are near mean-collinear.
+      **§ 2.2** Variance-driven hybrid (J = 3, G = 50): fixed Gram
+      (cosines 0.9 / 0.1), $3^3$ graph assignments $\times$ three
+      precision cushions, Shannon $H^{\star}$ compositions.
     navbar: ~
     contents:
       - fig02-bivariate-toy
@@ -343,3 +345,6 @@ news:
       href: https://github.com/bastienchassagnol/DeCovarT/releases/tag/v1.0.0
     - text: Version 0.1.0 (development)
       href: https://github.com/bastienchassagnol/DeCovarT/blob/main/NEWS.md
+
+redirects:
+  - ["articles/how-to-build-synthetic-scenarios-mean-covariance.html", "articles/theory-synthetic-scenarios-mean-covariance.html"]

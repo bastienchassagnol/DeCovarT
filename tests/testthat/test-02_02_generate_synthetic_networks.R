@@ -282,8 +282,63 @@ test_that("generate_mean_signature_matrix respects a pairwise Gram", {
   expect_equal(unname(gram), k, tolerance = 1e-8)
 })
 
+test_that("nonnegative mean signatures keep the Gram and stay >= 0", {
+  k <- matrix(
+    c(1, 0.9, 0.1, 0.9, 1, 0.1, 0.1, 0.1, 1),
+    3,
+    3
+  )
+  mu <- generate_mean_signature_matrix(
+    n_genes = 12L,
+    n_celltypes = 3L,
+    mean_scale = 10,
+    target_gram = k,
+    nonnegative = TRUE
+  )
+  expect_gte(min(mu), 0)
+  gram <- crossprod(mu) / 10^2
+  expect_equal(unname(gram), k, tolerance = 1e-8)
+})
+
 test_that("graph_model matching is case-insensitive", {
   a_lower <- generate_random_network_skeleton(8L, "erdos_renyi")
   a_upper <- generate_random_network_skeleton(8L, "ERDOS_RENYI")
   expect_identical(dim(a_lower), dim(a_upper))
+})
+
+test_that("spectral shift yields a Cholesky-able mixture covariance", {
+  skip_if_not_installed("igraph")
+  moments <- withr::with_seed(20260807L, {
+    simulate_hierarchical_grn_moments(
+      n_genes = 50L,
+      n_celltypes = 3L,
+      mean_scale = 10,
+      target_cosine = 0.1,
+      precision_shift = 0.02,
+      precision_scale = 0.3,
+      prop_inhibitory = 0.5,
+      graph_model = "hub",
+      graph_params = list(n_hubs = 1L)
+    )
+  })
+  for (j in seq_len(3L)) {
+    expect_silent(chol(moments$precision_matrices[,, j]))
+    expect_silent(chol(moments$covariance_matrices[,, j]))
+    expect_equal(
+      unname(
+        moments$covariance_matrices[,, j] %*%
+          moments$precision_matrices[,, j]
+      ),
+      diag(50L),
+      tolerance = 1e-8
+    )
+  }
+  p <- rep(1 / 3, 3)
+  described <- describe_simulation_scenario(list(
+    p = p,
+    mu = moments$mean_profiles,
+    sigma = moments$covariance_matrices,
+    Theta = moments$precision_matrices
+  ))
+  expect_true(is.finite(described$descriptors$f_cov))
 })
