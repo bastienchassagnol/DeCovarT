@@ -32,10 +32,10 @@
 #  J                   3 (fixed)
 #  G                   50 (fixed; re-uses fig03 network seed)
 #  Mean cosine         0.7, 0.95
-#  Replicates (n)      200 (full); 2 (smoke test)
+#  Replicates (n)      200
 #
 # ── Usage ────────────────────────────────────────────────────────────────────
-#  Smoke test:  N_REPLICATES=2 Rscript scripts/supp_S4_covariance_modeling.R
+#  Rscript scripts/supp_S4_covariance_modeling.R
 #
 # ── Outputs ─────────────────────────────────────────────────────────────────
 #  output/supp_S4/covariance_modeling_benchmark.rds
@@ -47,12 +47,12 @@
 # SECTION 0 · Dependencies and paths ----
 # ==============================================================================
 
-if (!requireNamespace("DeCovarT", quietly = TRUE)) {
-  if (requireNamespace("devtools", quietly = TRUE)) {
-    devtools::load_all(".", quiet = TRUE)
-  } else {
-    stop("Install DeCovarT or devtools before running this script.")
-  }
+# Prefer the working tree over a stale user-library install.
+if (
+  requireNamespace("devtools", quietly = TRUE) &&
+    file.exists("DESCRIPTION")
+) {
+  devtools::load_all(".", quiet = TRUE)
 } else {
   library(DeCovarT)
 }
@@ -64,10 +64,6 @@ dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
 .ui_h1("Supplementary S4 · Covariance modelling")
 
 N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "200"))
-if (interactive()) {
-  N_REPL <- 2L
-  .ui_warn("Interactive session: smoke test with {.val 2} replicates.")
-}
 
 SEED <- 20260907L
 set.seed(SEED)
@@ -222,35 +218,31 @@ saveRDS(
 # SECTION 3 · VISUALISATIONS ----
 # ==============================================================================
 
-if (N_REPL < 10L) {
-  .ui_warn("Skipping figures because this is a smoke-test run.")
-} else {
-  p_forest <- plot_mc_forest(
-    cov_modeling_out,
-    facet_rows = "true_sigma_structure",
-    facet_cols = "target_cosine"
-  )
-  ggplot2::ggsave(
-    file.path(OUT_DIR, "S4_forest.pdf"),
-    plot = p_forest,
-    width = 12,
-    height = 7
-  )
+p_forest <- plot_mc_forest(
+  cov_modeling_out,
+  facet_rows = "true_sigma_structure",
+  facet_cols = "target_cosine"
+)
+ggplot2::ggsave(
+  file.path(OUT_DIR, "S4_forest.pdf"),
+  plot = p_forest,
+  width = 12,
+  height = 7
+)
 
-  p_dots <- plot_mc_metric_dots(
-    cov_modeling_out,
-    facet_rows = "true_sigma_structure",
-    facet_cols = "target_cosine",
-    metrics = c("rmse", "bias", "coverage")
-  )
-  ggplot2::ggsave(
-    file.path(OUT_DIR, "S4_metric_dots.pdf"),
-    plot = p_dots,
-    width = 14,
-    height = 7
-  )
-  .ui_success("Figures saved.")
-}
+p_dots <- plot_mc_metric_dots(
+  cov_modeling_out,
+  facet_rows = "true_sigma_structure",
+  facet_cols = "target_cosine",
+  metrics = c("rmse", "bias", "coverage")
+)
+ggplot2::ggsave(
+  file.path(OUT_DIR, "S4_metric_dots.pdf"),
+  plot = p_dots,
+  width = 14,
+  height = 7
+)
+.ui_success("Figures saved.")
 
 .ui_success(
   "Done. Outputs in {.path {normalizePath(OUT_DIR, mustWork = FALSE)}}."

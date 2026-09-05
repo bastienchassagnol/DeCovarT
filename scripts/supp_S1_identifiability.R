@@ -20,17 +20,17 @@
 # Theory:   vignettes/theory-DeCovarT-MLE-properties.qmd
 #
 # ── Design ──────────────────────────────────────────────────────────────────
-#  Regular interior (live in the vignette; repeated here as a smoke check)
+#  Regular interior (vignette-parity check)
+#    affine equivariance; bulk perturbation; Dirichlet ILR starts
 #    affine equivariance; bulk perturbation; Dirichlet ILR starts
 #  S1a: boundary null (p₃=0)  J=3, G=10        Wald / profile / bootstrap CI
 #  S1b: same means / diff Σ   J=2, G=5         ρ₁₂ ∈ {0, 0.5, 0.9}
 #  S1c: multimodal lik.        J=2, G=2         ρ ∈ {−0.8, 0, 0.8}; low CLD
 #
-#  Replicates (n): 1000 (full); 2 (smoke test)
+#  Replicates (n): 1000
 #
 # ── Usage ────────────────────────────────────────────────────────────────────
-#  Full run:    Rscript scripts/supp_S1_identifiability.R
-#  Smoke test:  N_REPLICATES=2 Rscript scripts/supp_S1_identifiability.R
+#  Rscript scripts/supp_S1_identifiability.R
 #
 # ── Outputs ─────────────────────────────────────────────────────────────────
 #  output/supp_S1/S1a_boundary.rds
@@ -42,12 +42,12 @@
 # SECTION 0 · Dependencies and paths ----
 # ==============================================================================
 
-if (!requireNamespace("DeCovarT", quietly = TRUE)) {
-  if (requireNamespace("devtools", quietly = TRUE)) {
-    devtools::load_all(".", quiet = TRUE)
-  } else {
-    stop("Install DeCovarT or devtools before running this script.")
-  }
+# Prefer the working tree over a stale user-library install.
+if (
+  requireNamespace("devtools", quietly = TRUE) &&
+    file.exists("DESCRIPTION")
+) {
+  devtools::load_all(".", quiet = TRUE)
 } else {
   library(DeCovarT)
 }
@@ -59,12 +59,6 @@ dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
 .ui_h1("Supplementary S1 · Identifiability")
 
 N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "1000"))
-if (interactive()) {
-  N_REPL <- 2L
-  .ui_warn(
-    "Interactive session: smoke test with {.val 2} replicates."
-  )
-}
 
 SEED <- 20260904L
 set.seed(SEED)
@@ -171,9 +165,8 @@ config_1c <- purrr::map_dfr(rho_grid_1c, function(rho) {
 )
 
 
-# ── Regular interior smoke check (matches vignette live chunks) ─────────────
-#   Cheap: one bulk, three Dirichlet starts. Always runs, even when
-#   N_REPL is a smoke-test value.
+# ── Regular interior check (matches vignette live chunks) ────────────────────
+#   Cheap: one bulk, three Dirichlet starts.
 genes_int <- paste0("g", 1:3)
 cts_int <- paste0("ct", 1:2)
 mu_int <- matrix(
@@ -277,38 +270,34 @@ saveRDS(out_1c, file.path(OUT_DIR, "S1c_multimodal.rds"))
 #   S1c: log-likelihood 1D slice per ρ.
 # ==============================================================================
 
-if (N_REPL < 10L) {
-  .ui_warn("Skipping figure export because this is a smoke-test run.")
-} else {
-  # S1b: dot-metric comparison across ρ levels
-  p_dots_1b <- plot_mc_metric_dots(
-    out_1b,
-    facet_cols = "rho_ct1",
-    metrics = c("rmse", "bias", "coverage")
+# S1b: dot-metric comparison across ρ levels
+p_dots_1b <- plot_mc_metric_dots(
+  out_1b,
+  facet_cols = "rho_ct1",
+  metrics = c("rmse", "bias", "coverage")
+)
+ggplot2::ggsave(
+  file.path(OUT_DIR, "S1b_metric_dots.pdf"),
+  plot = p_dots_1b,
+  width = 10,
+  height = 5
+)
+
+# S1c: raincloud of errors per ρ
+if (requireNamespace("ggdist", quietly = TRUE)) {
+  p_rain_1c <- plot_mc_raincloud(
+    out_1c,
+    quantity = "error",
+    facet_cols = "rho"
   )
   ggplot2::ggsave(
-    file.path(OUT_DIR, "S1b_metric_dots.pdf"),
-    plot = p_dots_1b,
+    file.path(OUT_DIR, "S1c_raincloud.pdf"),
+    plot = p_rain_1c,
     width = 10,
     height = 5
   )
-
-  # S1c: raincloud of errors per ρ
-  if (requireNamespace("ggdist", quietly = TRUE)) {
-    p_rain_1c <- plot_mc_raincloud(
-      out_1c,
-      quantity = "error",
-      facet_cols = "rho"
-    )
-    ggplot2::ggsave(
-      file.path(OUT_DIR, "S1c_raincloud.pdf"),
-      plot = p_rain_1c,
-      width = 10,
-      height = 5
-    )
-  }
-  .ui_success("Figures saved.")
 }
+.ui_success("Figures saved.")
 
 .ui_success(
   "Done. Outputs in {.path {normalizePath(OUT_DIR, mustWork = FALSE)}}."

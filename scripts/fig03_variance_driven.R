@@ -33,11 +33,10 @@
 #  Proportions     balanced (1/3,1/3,1/3); mod. unbalanced (0.5,0.3,0.2);
 #                  highly unbalanced (0.7,0.2,0.1)
 #  Algorithms      NNLS, DeconRNASeq (LSEI), Marquardt–Levenberg
-#  Replicates (n)  200 (full); 2 (smoke test)
+#  Replicates (n)  200
 #
 # ── Usage ────────────────────────────────────────────────────────────────────
-#  Full run:    Rscript scripts/fig03_variance_driven.R
-#  Smoke test:  N_REPLICATES=2 Rscript scripts/fig03_variance_driven.R
+#  Rscript scripts/fig03_variance_driven.R
 #
 # ── Outputs ─────────────────────────────────────────────────────────────────
 #  data/synthetic_networks/true_grn_moments.rds
@@ -50,12 +49,12 @@
 # SECTION 0 · Dependencies and paths ----
 # ==============================================================================
 
-if (!requireNamespace("DeCovarT", quietly = TRUE)) {
-  if (requireNamespace("devtools", quietly = TRUE)) {
-    devtools::load_all(".", quiet = TRUE)
-  } else {
-    stop("Install DeCovarT or devtools before running this script.")
-  }
+# Prefer the working tree over a stale user-library install.
+if (
+  requireNamespace("devtools", quietly = TRUE) &&
+    file.exists("DESCRIPTION")
+) {
+  devtools::load_all(".", quiet = TRUE)
 } else {
   library(DeCovarT)
 }
@@ -75,12 +74,6 @@ dir.create(DATA_DIR, recursive = TRUE, showWarnings = FALSE)
 .ui_h1("Figure 03 · Variance-driven scenario")
 
 N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "200"))
-if (interactive()) {
-  N_REPL <- 2L
-  .ui_warn(
-    "Interactive session detected: smoke test with {.val 2} replicates."
-  )
-}
 
 SEED <- 20260807L
 set.seed(SEED)
@@ -363,51 +356,47 @@ saveRDS(hybrid_out, file.path(OUT_DIR, "hybrid_benchmark.rds"))
 # SECTION 3 · VISUALISATIONS ----
 # ==============================================================================
 
-if (N_REPL < 10L) {
-  .ui_warn("Skipping ADEMP figure export because this is a smoke-test run.")
-} else {
-  if (requireNamespace("ggdist", quietly = TRUE)) {
-    p_rain <- plot_mc_raincloud(
-      hybrid_out,
-      quantity = "error",
-      facet_rows = "proportion_name"
-    )
-    ggplot2::ggsave(
-      file.path(OUT_DIR, "fig03_raincloud.pdf"),
-      plot = p_rain,
-      width = 12,
-      height = 7
-    )
-    .ui_success("Saved {.file fig03_raincloud.pdf}.")
-  }
-
-  p_forest <- plot_mc_forest(
+if (requireNamespace("ggdist", quietly = TRUE)) {
+  p_rain <- plot_mc_raincloud(
     hybrid_out,
+    quantity = "error",
     facet_rows = "proportion_name"
   )
   ggplot2::ggsave(
-    file.path(OUT_DIR, "fig03_forest.pdf"),
-    plot = p_forest,
-    width = 10,
-    height = 6
-  )
-  .ui_success("Saved {.file fig03_forest.pdf}.")
-
-  p_dots <- plot_mc_metric_dots(
-    hybrid_out,
-    facet_rows = "proportion_name",
-    metrics = c("rmse", "mae", "coverage")
-  )
-  ggplot2::ggsave(
-    file.path(OUT_DIR, "fig03_metric_dots.pdf"),
-    plot = p_dots,
+    file.path(OUT_DIR, "fig03_raincloud.pdf"),
+    plot = p_rain,
     width = 12,
-    height = 6
+    height = 7
   )
-  .ui_success("Saved {.file fig03_metric_dots.pdf}.")
+  .ui_success("Saved {.file fig03_raincloud.pdf}.")
 }
 
-# Static network PNG for the vignette (always, even on smoke tests).
+p_forest <- plot_mc_forest(
+  hybrid_out,
+  facet_rows = "proportion_name"
+)
+ggplot2::ggsave(
+  file.path(OUT_DIR, "fig03_forest.pdf"),
+  plot = p_forest,
+  width = 10,
+  height = 6
+)
+.ui_success("Saved {.file fig03_forest.pdf}.")
+
+p_dots <- plot_mc_metric_dots(
+  hybrid_out,
+  facet_rows = "proportion_name",
+  metrics = c("rmse", "mae", "coverage")
+)
+ggplot2::ggsave(
+  file.path(OUT_DIR, "fig03_metric_dots.pdf"),
+  plot = p_dots,
+  width = 12,
+  height = 6
+)
+.ui_success("Saved {.file fig03_metric_dots.pdf}.")
+
+# Static network PNG for the vignette.
 if (!is.null(adjacency_list) && !is.null(gene_block)) {
   static_network_path <- file.path(
     "vignettes",

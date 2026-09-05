@@ -21,6 +21,10 @@ test_that("compute_benchmark_metrics scores against true ratios", {
   expect_equal(scores$regression$global$rmse, .rmse(true_p, estimated_p))
   expect_equal(scores$regression$global$sdid, .sdid(true_p, estimated_p))
   expect_equal(scores$regression$global$maxae, .maxae(true_p, estimated_p))
+  expect_identical(
+    scores$regression$global$reconstitution_mae,
+    DeCovarT:::.irrelevant_metric()
+  )
   expect_identical(nrow(scores$regression$cell_type), 2L)
   expect_identical(nrow(scores$monte_carlo), 2L)
   expect_gt(scores$regression$global$rmse, 0)
@@ -43,7 +47,10 @@ test_that("compute_benchmark_metrics scores reconstituted bulk without truth", {
   )
 
   expect_named(scores, c("regression", "monte_carlo", "optimisation"))
-  expect_true(is.na(scores$regression$global$tv))
+  expect_identical(
+    scores$regression$global$tv,
+    DeCovarT:::.irrelevant_metric()
+  )
   expect_true(is.finite(scores$regression$global$rmse))
   expect_identical(nrow(scores$regression$cell_type), 0L)
   expect_identical(nrow(scores$monte_carlo), 0L)

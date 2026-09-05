@@ -483,11 +483,11 @@ compute_benchmark_metrics <- function(
     return(tibble::tibble(
       sample_id = sample_id,
       algorithm = algorithm,
-      tv = NA_real_,
+      tv = .irrelevant_metric(),
       rmse = .rmse(y, y_hat),
-      angular = NA_real_,
-      sdid = NA_real_,
-      maxae = NA_real_,
+      angular = .irrelevant_metric(),
+      sdid = .irrelevant_metric(),
+      maxae = .irrelevant_metric(),
       reconstitution_mae = .mae(y, y_hat),
       reconstitution_cor = .pearson_safe(y, y_hat)
     ))
@@ -500,8 +500,8 @@ compute_benchmark_metrics <- function(
     angular = .angular_distance(p_true, p_hat),
     sdid = .sdid(p_true, p_hat),
     maxae = .maxae(p_true, p_hat),
-    reconstitution_mae = NA_real_,
-    reconstitution_cor = NA_real_
+    reconstitution_mae = .irrelevant_metric(),
+    reconstitution_cor = .irrelevant_metric()
   )
 }
 
@@ -939,17 +939,17 @@ deconvolute_ratios <- function(
 .bind_benchmark_lists <- function(per_algorithm) {
   list(
     regression = list(
-      global = dplyr::bind_rows(
+      global = .bind_metrics_rows(
         purrr::map(per_algorithm, \(x) x$regression$global)
       ),
-      cell_type = dplyr::bind_rows(
+      cell_type = .bind_metrics_rows(
         purrr::map(per_algorithm, \(x) x$regression$cell_type)
       )
     ),
-    monte_carlo = dplyr::bind_rows(
+    monte_carlo = .bind_metrics_rows(
       purrr::map(per_algorithm, "monte_carlo")
     ),
-    optimisation = dplyr::bind_rows(
+    optimisation = .bind_metrics_rows(
       purrr::map(per_algorithm, "optimisation")
     )
   )

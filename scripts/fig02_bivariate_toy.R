@@ -37,7 +37,7 @@
 #                          Newton–Raphson, Marquardt–Levenberg, SA
 #  ─────────────────────── ───────────────────────────────────────────────────
 #  Total scenarios:  3 × 2 × 9 × 9 × 2 = 972
-#  Replicates (n):   500 (full); 2 (smoke test)
+#  Replicates (n):   500
 #
 # ── Solver hyperparameters (pipeline; bivariate_toy_deconvolution_functions)
 #  itmax      200     max. iterations (L-BFGS-B, gradient, Newton,
@@ -47,8 +47,7 @@
 #  Tests use the factory defaults itmax = 10, epsilon = 1e-3.
 #
 # ── Usage ───────────────────────────────────────────────────────────────────
-#  Full run:    Rscript scripts/fig02_bivariate_toy.R
-#  Smoke test:  N_REPLICATES=2 Rscript scripts/fig02_bivariate_toy.R
+#  Rscript scripts/fig02_bivariate_toy.R
 #
 # ── Outputs ─────────────────────────────────────────────────────────────────
 #  output/fig02/bivariate_benchmark.rds    – full benchmark list
@@ -253,12 +252,12 @@ if (
   # SECTION 0 · Dependencies and paths ----
   # ==========================================================================
 
-  if (!requireNamespace("DeCovarT", quietly = TRUE)) {
-    if (requireNamespace("devtools", quietly = TRUE)) {
-      devtools::load_all(".", quiet = TRUE)
-    } else {
-      stop("Install DeCovarT or devtools before running this script.")
-    }
+  # Prefer the working tree over a stale user-library install.
+  if (
+    requireNamespace("devtools", quietly = TRUE) &&
+      file.exists("DESCRIPTION")
+  ) {
+    devtools::load_all(".", quiet = TRUE)
   } else {
     library(DeCovarT)
   }
@@ -275,16 +274,6 @@ if (
   .ui_h1("Figure 02 · Bivariate toy model")
 
   N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "500"))
-  if (!interactive() && N_REPL > 2L) {
-    .ui_info(
-      "Running the full benchmark with {.val {N_REPL}} replicates. Set {.envvar N_REPLICATES}=2 for a smoke test."
-    )
-  } else if (interactive()) {
-    N_REPL <- 2L
-    .ui_warn(
-      "Interactive session detected: smoke test with {.val 2} replicates."
-    )
-  }
 
   SEED <- 20260903L
   set.seed(SEED)
@@ -332,14 +321,24 @@ if (
       requireNamespace("circlize", quietly = TRUE) &&
       requireNamespace("viridis", quietly = TRUE)
   ) {
-    heatmap_metrics <- dplyr::left_join(
-      bivariate_out$optimisation,
-      bivariate_out$config,
-      by = intersect(
-        names(bivariate_out$optimisation),
-        names(bivariate_out$config)
-      )
+    global_tbl <- DeCovarT:::.as_metrics_tbl(
+      bivariate_out$regression$global
     )
+    config_tbl <- DeCovarT:::.as_metrics_tbl(bivariate_out$config)
+    heatmap_metrics <- dplyr::left_join(
+      global_tbl,
+      config_tbl,
+      by = intersect(names(global_tbl), names(config_tbl))
+    )
+    if (
+      !"model_rmse" %in% names(heatmap_metrics) &&
+        "rmse" %in% names(heatmap_metrics)
+    ) {
+      heatmap_metrics <- dplyr::rename(
+        heatmap_metrics,
+        model_rmse = "rmse"
+      )
+    }
     heatmap_list <- plot_correlation_Heatmap(
       distribution_metrics = heatmap_metrics,
       score_variable = "model_rmse"

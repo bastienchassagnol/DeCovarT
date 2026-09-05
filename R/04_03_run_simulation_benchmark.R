@@ -275,20 +275,20 @@ run_simulation_benchmark <- function(
 
   list(
     regression = list(
-      global = dplyr::bind_rows(
+      global = .bind_metrics_rows(
         purrr::map(scenario_results, \(x) x$regression$global)
       ),
-      cell_type = dplyr::bind_rows(
+      cell_type = .bind_metrics_rows(
         purrr::map(scenario_results, \(x) x$regression$cell_type)
       )
     ),
-    monte_carlo = dplyr::bind_rows(
+    monte_carlo = .bind_metrics_rows(
       purrr::map(scenario_results, "monte_carlo")
     ),
-    optimisation = dplyr::bind_rows(
+    optimisation = .bind_metrics_rows(
       purrr::map(scenario_results, "optimisation")
     ),
-    config = dplyr::bind_rows(purrr::map(scenario_results, "config")),
+    config = .bind_metrics_rows(purrr::map(scenario_results, "config")),
     theta_true = purrr::map(scenario_results, "theta_true"),
     descriptors = dplyr::bind_rows(
       purrr::map(scenario_results, "descriptors")

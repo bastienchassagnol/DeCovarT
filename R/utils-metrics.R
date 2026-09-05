@@ -1,3 +1,38 @@
+#' Sentinel for a score that does not apply in this metrics block
+#'
+#' Used instead of `NULL` / `NA` so tables stay joinable.
+#'
+#' @keywords internal
+#' @noRd
+.irrelevant_metric <- function() {
+  "irrelevant"
+}
+
+#' Bind metric tibbles without collapsing to `NULL`
+#'
+#' @keywords internal
+#' @noRd
+.bind_metrics_rows <- function(xs) {
+  out <- dplyr::bind_rows(xs)
+  if (is.null(out)) {
+    tibble::tibble(status = .irrelevant_metric())
+  } else {
+    out
+  }
+}
+
+#' Coerce a metrics table, replacing `NULL` with an explicit sentinel
+#'
+#' @keywords internal
+#' @noRd
+.as_metrics_tbl <- function(x) {
+  if (is.null(x)) {
+    tibble::tibble(status = .irrelevant_metric())
+  } else {
+    tibble::as_tibble(x)
+  }
+}
+
 #' Mean squared error
 #'
 #' @param actual Numeric vector of observed values.

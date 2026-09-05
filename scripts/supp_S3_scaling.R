@@ -30,11 +30,10 @@
 #  Algorithms          NNLS, DeconRNASeq, Marquardt–Levenberg, L-BFGS-B
 #  ─────────────────── ─────────────────────────────────────────────────────
 #  Total:  3 × 3 × 3 × 2 × 2 = 108 scenario grids
-#  Replicates (n):  100 (full); 2 (smoke test)
+#  Replicates (n):  100
 #
 # ── Usage ────────────────────────────────────────────────────────────────────
-#  Smoke test:  N_REPLICATES=2 Rscript scripts/supp_S3_scaling.R
-#  Full run (HPC recommended): Rscript scripts/supp_S3_scaling.R
+#  Rscript scripts/supp_S3_scaling.R
 #
 # ── Outputs ─────────────────────────────────────────────────────────────────
 #  output/supp_S3/scaling_benchmark.rds
@@ -45,12 +44,12 @@
 # SECTION 0 · Dependencies and paths ----
 # ==============================================================================
 
-if (!requireNamespace("DeCovarT", quietly = TRUE)) {
-  if (requireNamespace("devtools", quietly = TRUE)) {
-    devtools::load_all(".", quiet = TRUE)
-  } else {
-    stop("Install DeCovarT or devtools before running this script.")
-  }
+# Prefer the working tree over a stale user-library install.
+if (
+  requireNamespace("devtools", quietly = TRUE) &&
+    file.exists("DESCRIPTION")
+) {
+  devtools::load_all(".", quiet = TRUE)
 } else {
   library(DeCovarT)
 }
@@ -62,10 +61,6 @@ dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
 .ui_h1("Supplementary S3 · High-dimensional scaling")
 
 N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "100"))
-if (interactive()) {
-  N_REPL <- 2L
-  .ui_warn("Interactive session: smoke test with {.val 2} replicates.")
-}
 
 SEED <- 20260906L
 set.seed(SEED)
@@ -169,14 +164,6 @@ deconvolution_functions_S3 <- list(
   )
 )
 
-# Run only a pilot sub-grid in smoke mode (first 6 scenarios)
-if (N_REPL <= 2L) {
-  scenario_config_S3 <- utils::head(scenario_config_S3, 6L)
-  .ui_warn(
-    "Smoke test: running the first {.val {nrow(scenario_config_S3)}} scenarios only."
-  )
-}
-
 .ui_info("Running benchmark with {.val {N_REPL}} replicates.")
 scaling_out <- run_simulation_benchmark(
   scenario_config = scenario_config_S3,
@@ -192,23 +179,19 @@ saveRDS(scaling_out, file.path(OUT_DIR, "scaling_benchmark.rds"))
 # SECTION 3 · VISUALISATIONS ----
 # ==============================================================================
 
-if (N_REPL < 10L) {
-  .ui_warn("Skipping figures because this is a smoke-test run.")
-} else {
-  p_dots <- plot_mc_metric_dots(
-    scaling_out,
-    facet_rows = "condition_lbl",
-    facet_cols = "target_cosine",
-    metrics = c("rmse", "coverage")
-  )
-  ggplot2::ggsave(
-    file.path(OUT_DIR, "S3_metric_dots.pdf"),
-    plot = p_dots,
-    width = 14,
-    height = 8
-  )
-  .ui_success("Saved {.file S3_metric_dots.pdf}.")
-}
+p_dots <- plot_mc_metric_dots(
+  scaling_out,
+  facet_rows = "condition_lbl",
+  facet_cols = "target_cosine",
+  metrics = c("rmse", "coverage")
+)
+ggplot2::ggsave(
+  file.path(OUT_DIR, "S3_metric_dots.pdf"),
+  plot = p_dots,
+  width = 14,
+  height = 8
+)
+.ui_success("Saved {.file S3_metric_dots.pdf}.")
 
 .ui_success(
   "Done. Outputs in {.path {normalizePath(OUT_DIR, mustWork = FALSE)}}."

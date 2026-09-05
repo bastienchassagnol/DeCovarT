@@ -42,12 +42,12 @@
 # SECTION 0 · Dependencies and paths ----
 # ==============================================================================
 
-if (!requireNamespace("DeCovarT", quietly = TRUE)) {
-  if (requireNamespace("devtools", quietly = TRUE)) {
-    devtools::load_all(".", quiet = TRUE)
-  } else {
-    stop("Install DeCovarT or devtools before running this script.")
-  }
+# Prefer the working tree over a stale user-library install.
+if (
+  requireNamespace("devtools", quietly = TRUE) &&
+    file.exists("DESCRIPTION")
+) {
+  devtools::load_all(".", quiet = TRUE)
 } else {
   library(DeCovarT)
 }
@@ -56,10 +56,6 @@ OUT_DIR <- file.path("output", "supp_S2")
 dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
 
 N_TIMING_REPS <- as.integer(Sys.getenv("N_TIMING_REPS", "20"))
-if (interactive()) {
-  N_TIMING_REPS <- 3L
-  message("supp_S2: interactive – using ", N_TIMING_REPS, " timing reps.")
-}
 
 SEED <- 20260905L
 set.seed(SEED)
