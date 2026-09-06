@@ -890,6 +890,107 @@ reproducibility and the `furrr` map API come first.
 
 ---
 
+# Python — tooling and libraries
+
+DeCovarT is an **R package**. Use Python only in `scripts/` (and
+similar helpers, e.g. bibliography CLIs), not as a second package
+API. Follow the language-agnostic layout above. Prefer British
+English in comments and docs.
+
+Inspired by
+[Jana (2026) — 9 modern Python libraries](https://medium.com/no-time/9-modern-python-libraries-you-must-know-in-2026-ff04750c7638),
+but **do not** pull in every library from that list. Add a dependency
+only when a script actually needs it (same rule as R Suggests).
+
+## Toolchain (`uv`, `ruff`, `ty`)
+
+User-level CLIs (already expected on this machine under
+`~/.local/bin/`):
+
+```bash
+# installer / resolver / venvs (not pip / conda / poetry for new work)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv tool install ruff
+uv tool install ty
+```
+
+- **`uv`:** create and lock environments (`uv venv`, `uv add`,
+  `uv run`, `uvx`). Pin with `pyproject.toml` + `uv.lock`. Do not
+  introduce `requirements.txt` for new Python work unless a caller
+  cannot use `uv`. Do not call `pip install` from package code or
+  notebooks that run at check time.
+- **`ruff`:** lint **and** format. Replaces Black, isort, flake8, and
+  pyupgrade. Run `ruff check --fix .` and `ruff format .`. Do not add
+  Black / isort / flake8 to a project that already uses Ruff.
+- **`ty`:** Astral's type checker (static types on functions, classes,
+  and Pydantic models). Run `ty check`. Do not add mypy / Pyright as
+  a second checker unless the user asks.
+
+Project config lives in `pyproject.toml` (`[tool.ruff]`,
+`[tool.ty]`), not in ad-hoc editor-only rules. The user profile
+supplies editor defaults; the lockfile supplies versions.
+
+
+## Libraries (when writing Python)
+
+### Tables and arrays
+
+Pick the **smallest** tool that fits:
+
+1. **`numpy`** — dense numeric arrays, linear algebra, simulation
+   internals. Prefer this over a DataFrame when there are no mixed
+   column types.
+2. **`pandas`** — default tabular API for small and medium tables
+   (exploratory scripts, mixed types, the ecosystem you already
+   know).
+3. **`polars`** — **only** when the frame is genuinely large (multi-GB
+   CSV/Parquet, long transformation chains, memory pressure). Do not
+   rewrite working `pandas` code "for modernity". Lazy `scan_*` +
+   `collect()` for those pipelines.
+
+### Validation
+
+Use **`pydantic`** (v2) for complex, custom objects: configs, API
+payloads, nested records, CLI option groups. Prefer `BaseModel` /
+`Field` over hand-rolled `isinstance` trees. Do not wrap every
+function argument in a model; type hints + `ty` cover simple scalars.
+
+### Command line and terminal UI
+
+- **`typer`** for CLIs (instead of `argparse` or `click`).
+- **`rich`** for human-readable terminal output (tables, panels,
+  tracebacks, progress). Do not `print()` unstructured debug dumps
+  in tools meant to be rerun.
+- **`textual`** only when the tool needs a **full-screen interactive**
+  TUI (forms, dashboards). Do not use Textual for a one-shot script
+  that `typer` + `rich` already covers.
+
+### HTTP
+
+Use **`httpx`** for web and remote-database HTTP (GET/POST, timeouts,
+HTTP/2, async when the caller is already async). Do not add
+`requests` to new code. Always set a timeout; do not fetch unbounded
+bodies in bibliography or data helpers.
+
+
+## Preferred Python dependencies
+
+| Task | Package |
+|------|---------|
+| Install / lock / venv | `uv` |
+| Lint + format | `ruff` |
+| Type check | `ty` |
+| Numeric arrays | `numpy` |
+| Small/medium tables | `pandas` |
+| Large tables | `polars` |
+| Structured objects | `pydantic` |
+| CLI | `typer` |
+| Terminal output | `rich` |
+| Interactive TUI | `textual` (only if needed) |
+| HTTP | `httpx` |
+
+---
+
 # Bibliography
 
 DeCovarT keeps **two separate citation streams**. Do not mix them.
