@@ -53,7 +53,7 @@ Etienne Becht
 
 Anaïs Baudot
 
-2026-09-04
+2026-09-05
 
 ## 
 
@@ -267,7 +267,7 @@ Figure 10: Toy bivariate setup.
 Figure 11: Toy estimation results.
 
 Package vignettes: [synthetic
-scenarios](../vignettes/how-to-build-synthetic-scenarios-mean-covariance.qmd)
+scenarios](../vignettes/theory-synthetic-scenarios-mean-covariance.qmd)
 and
 [`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.html)
 with scenario grids from `scripts/fig02_bivariate_toy.R`.
