@@ -161,6 +161,7 @@
 </table>
 <p><strong>Hypothesis:</strong> DeCovarT should retain lower bias under log-normal noise than NNLS because the covariance captures more of the signal geometry, but may be more sensitive than NNLS to heavy-tail contamination.</p>
 <p>Connection to HADACA3 <span class="citation" data-cites="barbotPromisesLimitsMultimodal2026">(<a href="#ref-barbotPromisesLimitsMultimodal2026" role="doc-biblioref">Barbot and Richard 2026</a>)</span>: the <code>SDC5</code> dataset uses a copula + NB noise model; <code>SDE5</code> uses an EM-based noise model. These represent the practical domain of mis-specification most relevant to pancreatic tumour deconvolution.</p>
+<p>see also use of a multivariate SDtudent <span class="math inline">t_\nu</span> or simpe; Gausisan noise.</p>
 </section><section class="level3"><h3 id="s5b-missing-reference-component">S5b — Missing reference component<a class="anchor" aria-label="anchor" href="#s5b-missing-reference-component"></a>
 </h3>
 <table class="table caption-top">
@@ -184,8 +185,10 @@
 </tbody>
 </table>
 <p><strong>Hypothesis:</strong> closure forces the missing mass onto the <span class="math inline">J</span> modelled cell types; the distribution of the error across types depends on the mean-collinearity structure. DeCovarT may exhibit a different redistribution pattern than NNLS because the second-order term couples the proportions estimation.</p>
-</section><section class="level3"><h3 id="s5c-inter-sample-copula-correlations">S5c — Inter-sample copula correlations<a class="anchor" aria-label="anchor" href="#s5c-inter-sample-copula-correlations"></a>
+</section><section class="level3"><h3 id="s5c-model-complex-dependencies">S5c — Model complex dependencies<a class="anchor" aria-label="anchor" href="#s5c-model-complex-dependencies"></a>
 </h3>
+<section class="level4"><h4 id="copula-correlated-nb-samples">Copula-correlated NB samples<a class="anchor" aria-label="anchor" href="#copula-correlated-nb-samples"></a>
+</h4>
 <table class="table caption-top">
 <thead><tr class="header">
 <th>Factor</th>
@@ -207,16 +210,28 @@
 </tbody>
 </table>
 <p>This directly mirrors the <code>SDC5</code> HADACA3 scenario <span class="citation" data-cites="barbotPromisesLimitsMultimodal2026">(<a href="#ref-barbotPromisesLimitsMultimodal2026" role="doc-biblioref">Barbot and Richard 2026</a>)</span>.</p>
-<hr></section></section><section class="level2"><h2 id="blocking-issues-why-not-implemented-yet">Blocking issues (why not implemented yet)<a class="anchor" aria-label="anchor" href="#blocking-issues-why-not-implemented-yet"></a>
-</h2>
-<ol type="1">
-<li><p><strong>Gaussian-only <code><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code></strong>: the current package implementation generates bulk expression as a Gaussian mixture. NB/PLN data generation would require a dedicated simulator (e.g. integration with <code>splatter</code> <span class="citation" data-cites="zappiaSplatterSimulationSinglecell2017a">(<a href="#ref-zappiaSplatterSimulationSinglecell2017a" role="doc-biblioref">Zappia et al. 2017</a>)</span> or <code>SymSim</code>).</p></li>
-<li><p><strong>Copula sampling</strong>: copula-correlated NB samples require either a dedicated <code>VineCopula</code>-based generator or the HADACA3 framework code (currently not a DeCovarT dependency).</p></li>
-<li><p><strong>No count-data likelihood</strong>: DeCovarT fits a Gaussian log-likelihood. Comparing it under NB data requires either a properly mis-specified analysis (fit Gaussian to count data) or a new NB likelihood branch.</p></li>
-</ol>
-<p>These blockers are tracked as GitHub issues; this vignette will be updated once a count-data simulation pathway is merged.</p>
-<hr></section><section class="level2"><h2 id="connection-to-the-full-factorial-plan">Connection to the full factorial plan<a class="anchor" aria-label="anchor" href="#connection-to-the-full-factorial-plan"></a>
-</h2>
+</section><section class="level4"><h4 id="poisson-log-normal-samples">Poisson-log-normal samples<a class="anchor" aria-label="anchor" href="#poisson-log-normal-samples"></a>
+</h4>
+<table class="table caption-top">
+<thead><tr class="header">
+<th>Factor</th>
+<th>Levels</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Marginal</td>
+<td>PLN (<span class="math inline">\mu = \bar{\mu}_g</span>)</td>
+</tr>
+<tr class="even">
+<td>Correlation strength</td>
+<td><span class="math inline">\tau_K \in \{0, 0.2, 0.5\}</span></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p>Can be simulatd with <code>splatter</code> <span class="citation" data-cites="zappiaSplatterSimulationSinglecell2017a">(<a href="#ref-zappiaSplatterSimulationSinglecell2017a" role="doc-biblioref">Zappia et al. 2017</a>)</span> or <code>SymSim</code>).</p>
+</section></section><section class="level3"><h3 id="s5d-spillover-effect-and-missing-reference-component">S5d : Spillover effect and missing reference component<a class="anchor" aria-label="anchor" href="#s5d-spillover-effect-and-missing-reference-component"></a>
+</h3>
 <p>The full factorial plan (<code>detailled_siulation_code.md</code>) includes these additional factors that touch on mis-specification and are also out of scope:</p>
 <table class="table caption-top">
 <colgroup>
@@ -231,9 +246,9 @@
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td>Data-generating law</td>
-<td>Gaussian; <span class="math inline">t_\nu</span>; PLN; contaminated Gaussian</td>
-<td>S5a above</td>
+<td>spillover strength</td>
+<td><span class="math inline">\alpha \in \{0, 0.2, 0.5\}</span></td>
+<td></td>
 </tr>
 <tr class="even">
 <td>Missing-reference component</td>
@@ -245,14 +260,31 @@
 <td>Oracle; 20; 50; 200 donors</td>
 <td>See Appendix S4</td>
 </tr>
+</tbody>
+</table>
+<p>We my also consider an alterative model sing a linear mixed model to add correlations between cell types.</p>
+</section><section class="level3"><h3 id="s5e-add-outlier-genes-to-test-the-robustness-of-the-estimation">S5e : Add outlier genes to test the robustness of the estimation<a class="anchor" aria-label="anchor" href="#s5e-add-outlier-genes-to-test-the-robustness-of-the-estimation"></a>
+</h3>
+<table class="table caption-top">
+<thead><tr class="header">
+<th>Factor</th>
+<th>Planned levels</th>
+<th>Notes</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Outlier genes</td>
+<td>10% of genes; 20% of genes; 30% of genes</td>
+<td></td>
+</tr>
 <tr class="even">
-<td>Initial composition (multistart)</td>
-<td>Equi-balanced; Dirichlet(1); 10 multistarts</td>
-<td>See Appendix S1</td>
+<td>Outlier strength</td>
+<td><span class="math inline">\sigma \in \{0, 0.2, 0.5\}</span></td>
+<td></td>
 </tr>
 </tbody>
 </table>
-<hr></section><section class="level2"><h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a>
+<hr></section></section><section class="level2"><h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a>
 </h2>
 <ul>
 <li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/supp-S1-identifiability.html">Appendix S1 — Identifiability</a></li>
