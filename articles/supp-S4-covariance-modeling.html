@@ -117,7 +117,8 @@
 <p><strong>Script:</strong> <code>scripts/supp_S4_covariance_modeling.R</code> — compares covariance modelling assumptions. Outputs in <code>output/supp_S4/</code>.</p>
 </blockquote>
 <hr>
-<section class="level2"><h2 id="one-generative-model">:one: Generative Model<a class="anchor" aria-label="anchor" href="#one-generative-model"></a>
+<section class="level2"><h2 id="generative-model">
+<span class="emoji" data-emoji="one">1️⃣</span> Generative Model<a class="anchor" aria-label="anchor" href="#generative-model"></a>
 </h2>
 <section class="level3"><h3 id="motivation">Motivation<a class="anchor" aria-label="anchor" href="#motivation"></a>
 </h3>
@@ -196,7 +197,8 @@
 <span><span class="co"># Build true Sigma matrices and compute mis-specified alternatives</span></span>
 <span><span class="co"># -----------------------------------------------------------------</span></span>
 <span><span class="va">SEED</span> <span class="op">&lt;-</span> <span class="fl">20260807L</span></span>
-<span><span class="va">G</span>    <span class="op">&lt;-</span> <span class="fl">50L</span>;  <span class="va">J</span> <span class="op">&lt;-</span> <span class="fl">3L</span></span>
+<span><span class="va">G</span> <span class="op">&lt;-</span> <span class="fl">50L</span></span>
+<span><span class="va">J</span> <span class="op">&lt;-</span> <span class="fl">3L</span></span>
 <span></span>
 <span><span class="va">cov_models_grid</span> <span class="op">&lt;-</span> <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/expand_grid.html" class="external-link">expand_grid</a></span><span class="op">(</span></span>
 <span>  cosine_mu   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.0</span>, <span class="fl">0.5</span>, <span class="fl">0.9</span><span class="op">)</span>,</span>
@@ -206,8 +208,10 @@
 <span></span>
 <span><span class="va">build_true_cov</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">G</span>, <span class="va">J</span>, <span class="va">seed</span> <span class="op">=</span> <span class="va">SEED</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map.html" class="external-link">map</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="va">J</span><span class="op">)</span>, \<span class="op">(</span><span class="va">j</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">net</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_random_network_skeleton.html">generate_random_network_skeleton</a></span><span class="op">(</span><span class="va">G</span>, model <span class="op">=</span> <span class="st">"erdos_renyi"</span>,</span>
-<span>                                           seed <span class="op">=</span> <span class="va">seed</span> <span class="op">+</span> <span class="va">j</span><span class="op">)</span></span>
+<span>    <span class="va">net</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_random_network_skeleton.html">generate_random_network_skeleton</a></span><span class="op">(</span><span class="va">G</span>,</span>
+<span>      model <span class="op">=</span> <span class="st">"erdos_renyi"</span>,</span>
+<span>      seed <span class="op">=</span> <span class="va">seed</span> <span class="op">+</span> <span class="va">j</span></span>
+<span>    <span class="op">)</span></span>
 <span>    <span class="fu"><a href="../reference/build_normalised_precision.html">build_normalised_precision</a></span><span class="op">(</span><span class="va">net</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/solve.html" class="external-link">solve</a></span><span class="op">(</span><span class="op">)</span></span>
 <span>  <span class="op">}</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
@@ -231,7 +235,8 @@
 <span>  identity        <span class="op">=</span> <span class="va">identity_covs</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
-<hr></section></section><section class="level2"><h2 id="two-inference">:two: Inference<a class="anchor" aria-label="anchor" href="#two-inference"></a>
+<hr></section></section><section class="level2"><h2 id="inference">
+<span class="emoji" data-emoji="two">2️⃣</span> Inference<a class="anchor" aria-label="anchor" href="#inference"></a>
 </h2>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
@@ -239,14 +244,16 @@
 <span><span class="co"># SECTION 2: INFERENCE</span></span>
 <span><span class="co"># -----------------------------------------------------------------</span></span>
 <span><span class="va">N_REPLICATES</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"N_REPLICATES"</span>, unset <span class="op">=</span> <span class="st">"200"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">ALGORITHMS</span>   <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Marquardt-Levenberg"</span><span class="op">)</span>   <span class="co"># fix solver, vary Sigma input</span></span>
+<span><span class="va">ALGORITHMS</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Marquardt-Levenberg"</span><span class="op">)</span> <span class="co"># fix solver, vary Sigma input</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/files2.html" class="external-link">dir.create</a></span><span class="op">(</span><span class="st">"output/supp_S4"</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span>, showWarnings <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">s4_results</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/pmap.html" class="external-link">pmap</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">cov_models_grid</span><span class="op">$</span><span class="va">cosine_mu</span>, <span class="va">cov_models_grid</span><span class="op">$</span><span class="va">cov_model</span><span class="op">)</span>,</span>
 <span>  \<span class="op">(</span><span class="va">rho</span>, <span class="va">model</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">mu</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_mean_signature_matrix.html">generate_mean_signature_matrix</a></span><span class="op">(</span><span class="va">J</span>, <span class="va">G</span>, cosine_similarity <span class="op">=</span> <span class="va">rho</span>,</span>
-<span>                                         mean_scale <span class="op">=</span> <span class="fl">100</span>, seed <span class="op">=</span> <span class="va">SEED</span><span class="op">)</span></span>
+<span>    <span class="va">mu</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_mean_signature_matrix.html">generate_mean_signature_matrix</a></span><span class="op">(</span><span class="va">J</span>, <span class="va">G</span>,</span>
+<span>      cosine_similarity <span class="op">=</span> <span class="va">rho</span>,</span>
+<span>      mean_scale <span class="op">=</span> <span class="fl">100</span>, seed <span class="op">=</span> <span class="va">SEED</span></span>
+<span>    <span class="op">)</span></span>
 <span>    <span class="fu"><a href="../reference/run_simulation_benchmark.html">run_simulation_benchmark</a></span><span class="op">(</span></span>
 <span>      n_replicates          <span class="op">=</span> <span class="va">N_REPLICATES</span>,</span>
 <span>      true_proportions      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span> <span class="op">/</span> <span class="va">J</span>, <span class="va">J</span><span class="op">)</span>,</span>
@@ -261,7 +268,15 @@
 <span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">s4_results</span>, <span class="st">"output/supp_S4/cov_model_benchmark.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">cov_models_grid</span>, <span class="st">"output/supp_S4/cov_models_grid.rds"</span><span class="op">)</span></span></code></pre></div>
 </div>
-<hr></section><section class="level2"><h2 id="three-visualisations">:three: Visualisations<a class="anchor" aria-label="anchor" href="#three-visualisations"></a>
+<p>See details of the gls competitor in <a href="#nte-gls-solver" class="quarto-xref">Note 1</a>.</p>
+<div id="nte-gls-solver">
+<blockquote>
+<p><strong>Important 1: The fixed-covariance GLS (generalized least squares) solver</strong></p>
+<p>When a scenario varies the <em>covariance structure</em>, keep a mean-only baseline whose residual covariance does <strong>not</strong> depend on <span class="math inline">\boldsymbol{p}</span>. Build <span class="math inline">W</span> with <a href="../reference/fixed_gls_covariance.html"><code>fixed_gls_covariance()</code></a> (default: diagonal of <span class="math inline">\Sigma(\bar p)</span> at <span class="math inline">\bar p_j=1/J</span>) and fit <a href="../reference/deconvolute_ratios_gls.html"><code>deconvolute_ratios_gls()</code></a> (<code><a href="https://rdrr.io/pkg/MASS/man/lm.gls.html" class="external-link">MASS::lm.gls</a></code>). Copying <span class="math inline">W</span> into every tensor slice is not GLS: <span class="math inline">\sum_j p_j^2 W=\|p\|_2^2 W</span> still depends on <span class="math inline">p</span>. The hierarchy is full <span class="math inline">\Sigma(p)</span>, cell-type-diagonal convolution, then this fixed <span class="math inline">W</span>. Starts for the convolution MLE: barycentre, Dirichlet (<code>initial_p = "dirichlet"</code>, <span class="math inline">\alpha=1</span> uniform, <span class="math inline">\alpha&gt;1</span> centre, <span class="math inline">\alpha&lt;1</span> faces; several independent draws), or QP (<code>initial_p = "qp"</code>).</p>
+</blockquote>
+</div>
+<hr></section><section class="level2"><h2 id="visualisations">
+<span class="emoji" data-emoji="three">3️⃣</span> Visualisations<a class="anchor" aria-label="anchor" href="#visualisations"></a>
 </h2>
 <table class="table caption-top">
 <colgroup>
@@ -292,7 +307,7 @@
 <code class="sourceCode R"><span><span class="co"># -----------------------------------------------------------------</span></span>
 <span><span class="co"># SECTION 3: VISUALISATIONS</span></span>
 <span><span class="co"># -----------------------------------------------------------------</span></span>
-<span><span class="va">s4_results</span>      <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/supp_S4/cov_model_benchmark.rds"</span><span class="op">)</span></span>
+<span><span class="va">s4_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/supp_S4/cov_model_benchmark.rds"</span><span class="op">)</span></span>
 <span><span class="va">cov_models_grid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/supp_S4/cov_models_grid.rds"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="va">N_REPLICATES</span> <span class="op">&gt;=</span> <span class="fl">10</span><span class="op">)</span> <span class="op">{</span></span>
@@ -308,8 +323,10 @@
 <span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">cosine_mu</span><span class="op">)</span>, <span class="va">rmse</span>, fill <span class="op">=</span> <span class="va">cov_model</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col</a></span><span class="op">(</span>position <span class="op">=</span> <span class="st">"dodge"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>x <span class="op">=</span> <span class="st">"Mean cosine ρ_μ"</span>, y <span class="op">=</span> <span class="st">"Mean RMSE"</span>,</span>
-<span>                  fill <span class="op">=</span> <span class="st">"Covariance model"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
+<span>      x <span class="op">=</span> <span class="st">"Mean cosine &lt;U+03C1&gt;_&lt;U+03BC&gt;"</span>, y <span class="op">=</span> <span class="st">"Mean RMSE"</span>,</span>
+<span>      fill <span class="op">=</span> <span class="st">"Covariance model"</span></span>
+<span>    <span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="st">"output/supp_S4/s4_rmse_by_model.pdf"</span>, <span class="va">p_rmse</span>, width <span class="op">=</span> <span class="fl">8</span>, height <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
@@ -327,10 +344,7 @@
 <li>
 <strong>Identity</strong> (mean-only) should perform comparably to NNLS, confirming that ignoring second-order structure removes the DeCovarT advantage.</li>
 <li>The <strong>RMSE gap</strong> (true full minus alternatives) should increase with cosine <span class="math inline">\rho_\mu</span>, because near-collinear means force greater reliance on the covariance for discrimination.</li>
-</ul></section></section><section class="level2"><h2 id="out-of-scope-reference-noise">Out-of-scope: reference noise<a class="anchor" aria-label="anchor" href="#out-of-scope-reference-noise"></a>
-</h2>
-<p>An important practical extension (noted in the full factorial plan) is testing <strong>reference covariance estimation noise</strong> — supplying <span class="math inline">\hat{\boldsymbol{\Sigma}}_j</span> estimated from a finite sample of <span class="math inline">n_\text{ref} \in \{20, 50, 200\}</span> single-cell donors instead of the oracle. This adds a shrinkage/regularisation dimension to the modelling comparison and is planned for a future update.</p>
-</section><section class="level2"><h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a>
+</ul></section></section><section class="level2"><h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a>
 </h2>
 <ul>
 <li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/supp-S1-identifiability.html">Appendix S1 — Identifiability</a></li>

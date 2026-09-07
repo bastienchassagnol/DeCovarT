@@ -10,7 +10,7 @@ library(DeCovarT)
 
 ------------------------------------------------------------------------
 
-## :one: Generative Model
+## 1️⃣ Generative Model
 
 ### Motivation
 
@@ -49,7 +49,8 @@ test: n = 2).
 # Build true Sigma matrices and compute mis-specified alternatives
 # -----------------------------------------------------------------
 SEED <- 20260807L
-G    <- 50L;  J <- 3L
+G <- 50L
+J <- 3L
 
 cov_models_grid <- tidyr::expand_grid(
   cosine_mu   = c(0.0, 0.5, 0.9),
@@ -59,8 +60,10 @@ cov_models_grid <- tidyr::expand_grid(
 
 build_true_cov <- function(G, J, seed = SEED) {
   purrr::map(seq_len(J), \(j) {
-    net <- generate_random_network_skeleton(G, model = "erdos_renyi",
-                                           seed = seed + j)
+    net <- generate_random_network_skeleton(G,
+      model = "erdos_renyi",
+      seed = seed + j
+    )
     build_normalised_precision(net) |> solve()
   })
 }
@@ -87,7 +90,7 @@ cov_specs <- list(
 
 ------------------------------------------------------------------------
 
-## :two: Inference
+## 2️⃣ Inference
 
 ``` r
 
@@ -95,14 +98,16 @@ cov_specs <- list(
 # SECTION 2: INFERENCE
 # -----------------------------------------------------------------
 N_REPLICATES <- as.integer(Sys.getenv("N_REPLICATES", unset = "200"))
-ALGORITHMS   <- c("Marquardt-Levenberg")   # fix solver, vary Sigma input
+ALGORITHMS <- c("Marquardt-Levenberg") # fix solver, vary Sigma input
 dir.create("output/supp_S4", recursive = TRUE, showWarnings = FALSE)
 
 s4_results <- purrr::pmap(
   list(cov_models_grid$cosine_mu, cov_models_grid$cov_model),
   \(rho, model) {
-    mu <- generate_mean_signature_matrix(J, G, cosine_similarity = rho,
-                                         mean_scale = 100, seed = SEED)
+    mu <- generate_mean_signature_matrix(J, G,
+      cosine_similarity = rho,
+      mean_scale = 100, seed = SEED
+    )
     run_simulation_benchmark(
       n_replicates          = N_REPLICATES,
       true_proportions      = rep(1 / J, J),
@@ -118,9 +123,28 @@ saveRDS(s4_results, "output/supp_S4/cov_model_benchmark.rds")
 saveRDS(cov_models_grid, "output/supp_S4/cov_models_grid.rds")
 ```
 
+See details of the gls competitor in [Note 1](#nte-gls-solver).
+
+> **Important 1: The fixed-covariance GLS (generalized least squares)
+> solver**
+>
+> When a scenario varies the *covariance structure*, keep a mean-only
+> baseline whose residual covariance does **not** depend on
+> \boldsymbol{p}. Build W with
+> [`fixed_gls_covariance()`](https://bastienchassagnol.github.io/DeCovarT/reference/fixed_gls_covariance.md)
+> (default: diagonal of \Sigma(\bar p) at \bar p_j=1/J) and fit
+> [`deconvolute_ratios_gls()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_gls.md)
+> ([`MASS::lm.gls`](https://rdrr.io/pkg/MASS/man/lm.gls.html)). Copying
+> W into every tensor slice is not GLS: \sum_j p_j^2 W=\\p\\\_2^2 W
+> still depends on p. The hierarchy is full \Sigma(p),
+> cell-type-diagonal convolution, then this fixed W. Starts for the
+> convolution MLE: barycentre, Dirichlet (`initial_p = "dirichlet"`,
+> \alpha=1 uniform, \alpha\>1 centre, \alpha\<1 faces; several
+> independent draws), or QP (`initial_p = "qp"`).
+
 ------------------------------------------------------------------------
 
-## :three: Visualisations
+## 3️⃣ Visualisations
 
 | Output | Description |
 |----|----|
@@ -133,7 +157,7 @@ saveRDS(cov_models_grid, "output/supp_S4/cov_models_grid.rds")
 # -----------------------------------------------------------------
 # SECTION 3: VISUALISATIONS
 # -----------------------------------------------------------------
-s4_results      <- readRDS("output/supp_S4/cov_model_benchmark.rds")
+s4_results <- readRDS("output/supp_S4/cov_model_benchmark.rds")
 cov_models_grid <- readRDS("output/supp_S4/cov_models_grid.rds")
 
 if (N_REPLICATES >= 10) {
@@ -149,8 +173,10 @@ if (N_REPLICATES >= 10) {
     ggplot2::aes(factor(cosine_mu), rmse, fill = cov_model)
   ) +
     ggplot2::geom_col(position = "dodge") +
-    ggplot2::labs(x = "Mean cosine ρ_μ", y = "Mean RMSE",
-                  fill = "Covariance model") +
+    ggplot2::labs(
+      x = "Mean cosine <U+03C1>_<U+03BC>", y = "Mean RMSE",
+      fill = "Covariance model"
+    ) +
     ggplot2::theme_minimal()
 
   ggplot2::ggsave("output/supp_S4/s4_rmse_by_model.pdf", p_rmse, width = 8, height = 5)
@@ -169,15 +195,6 @@ if (N_REPLICATES >= 10) {
 - The **RMSE gap** (true full minus alternatives) should increase with
   cosine \rho\_\mu, because near-collinear means force greater reliance
   on the covariance for discrimination.
-
-## Out-of-scope: reference noise
-
-An important practical extension (noted in the full factorial plan) is
-testing **reference covariance estimation noise** — supplying
-\hat{\boldsymbol{\Sigma}}\_j estimated from a finite sample of
-n\_\text{ref} \in \\20, 50, 200\\ single-cell donors instead of the
-oracle. This adds a shrinkage/regularisation dimension to the modelling
-comparison and is planned for a future update.
 
 ## See also
 

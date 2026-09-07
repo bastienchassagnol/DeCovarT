@@ -890,6 +890,409 @@ Cholesky fill-in and sparse-solver timings are *not* reported: the
 caller must declare the covariance structure used at fit time; otherwise
 the dense Cholesky factor of \Sigma(p) is the default.
 
+## Performance metrics
+
+The descriptors above score the *generative* problem
+([`describe_simulation_scenario()`](https://bastienchassagnol.github.io/DeCovarT/reference/describe_simulation_scenario.md),
+Shannon evenness in
+[`compute_shannon_entropy()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_shannon_entropy.md),
+MixSim overlap). This section scores *estimators*. With known
+\boldsymbol{p}^{\star},
+[`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)
+returns three blocks implemented in `R/utils-metrics.R` and assembled in
+`R/04_01_run_benchmark.R`:
+
+- `regression$global`: one row per bulk column (total variation, RMSE,
+  MaxAE, angular distance, SDID).
+- `regression$cell_type`: one row per cell type across samples (Pearson,
+  presence F1, false-positive mass).
+- `monte_carlo`: ADEMP summaries of the sampling distribution of \hat
+  p_j.
+- `optimisation`: per-sample KKT residual, convergence flags,
+  log-likelihood regret, elapsed time, and process memory.
+
+There is **no composite global score**. Absolute, angular, association,
+inference, and optimisation families answer different questions ([Sturm
+et al. 2019](#ref-sturmComprehensiveEvaluationTranscriptomebased2019);
+[Avila Cobos et al.
+2020](#ref-faComprehensiveBenchmarkingComputational2020)). When
+\boldsymbol{p}^{\star} is unknown, the global block switches to
+reconstitution of
+\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}} against
+\boldsymbol{y}. [Sec. 8](#sec-ademp) maps the same columns onto the
+ADEMP checklist.
+
+Every distance below is an **error** unless noted (F1, Pearson,
+coverage): 0 is ideal whenever a canonical bound exists.
+[Figure 8](#fig-metrics-families) shows how L_1, L_2, L\_{\infty},
+Aitchison, and angular balls sit on the simplex;
+[Note 12](#nte-comp-geometry) reads that geometry.
+
+![](figures/fig_compositional_metrics.svg)
+
+\(a\) Simplex geometry of L_1, L_2, L\_{\infty}, Aitchison, and angular
+discrepancies between \boldsymbol{p}^{\star} and \hat{\boldsymbol{p}}.
+
+![](figures/fig_compositional_metrics_interpretation.svg)
+
+\(b\) How those distances behave near the barycentre versus near a
+vertex of the simplex.
+
+Figure 8: Compositional error metrics for \boldsymbol{p} on
+\Delta^{J-1}.
+
+> **Note 12: Euclidean versus log-ratio geometry on the simplex**
+>
+> Compositions live on \Delta^{J-1}, not in \mathbb{R}^{J} ([Aitchison
+> 1982](#ref-aitchisonStatisticalAnalysisCompositional1982)). The same
+> Euclidean vector
+> \boldsymbol{e}=\hat{\boldsymbol{p}}-\boldsymbol{p}^{\star} therefore
+> has a different meaning at the barycentre than near a vertex
+> ([Figure 8 (b)](#fig-comp-interp)).
+>
+> - **RMSE / MAE / MaxAE** treat a 0.05 miss on a type with p_j=0.50
+>   like a 0.05 miss on a type with p_j=0.01. Abundant types dominate.
+>   On the simplex the sharp bounds are \\\boldsymbol{e}\\\_1\le 2,
+>   \\\boldsymbol{e}\\\_2\le\sqrt{2}, \\\boldsymbol{e}\\\_\infty\le 1
+>   (all mass on one type in \boldsymbol{p}^{\star} and on a different
+>   type in \hat{\boldsymbol{p}}), not the coordinate-wise bound of one.
+> - **Total variation** d\_{\mathrm{TV}}=\tfrac12\\\boldsymbol{e}\\\_1
+>   is that L_1 geometry already scaled to \[0,1\]. It is the package
+>   default global absolute error (`tv`); MAE is
+>   \\\boldsymbol{e}\\\_1/J=2\\d\_{\mathrm{TV}}/J.
+> - **Aitchison / CLR** scores *relative* (log-ratio) error, so a
+>   two-fold miss on a rare type weighs like a two-fold miss on an
+>   abundant type. The distance is unbounded and undefined at exact
+>   zeros without a replacement. DeCovarT does **not** return it from
+>   [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)
+>   ([Table 8](#tbl-metrics-regression-other)).
+> - **Jensen–Shannon** is a bounded, symmetric disagreement of two
+>   discrete distributions ([Lin
+>   1991](#ref-linDivergenceMeasuresBased1991)). The associated distance
+>   \sqrt{\mathrm{JSD}/\log 2} is a metric ([Endres and Schindelin
+>   2003](#ref-endresNewMetricProbability2003)). It is gentler than
+>   Aitchison on rare types and finite with zeros after a standard
+>   convention 0\log 0=0. It is likewise not a primary package column.
+> - **Angular / SDID** ignore amplitude along a ray. On the simplex the
+>   total mass is already one, so they mainly capture whether the two
+>   compositions point the same way (including near-orthogonal spills
+>   onto the wrong vertex).
+
+### Composition and regression scores
+
+Global scores are computed **per bulk column**. Cell-type Pearson, F1,
+and false-positive mass are aggregated **across samples** for each type;
+they are not the within-sample correlation of the length-J vectors,
+which is unstable for small J.
+
+| Metric | Formula | Bounds | Captures | Pros_cons |
+|----|----|----|----|----|
+| Absolute error | Absolute error | Absolute error | Absolute error | Absolute error |
+| Total variation / nMAE (`tv`) | \\d\_{\mathrm{TV}}=\tfrac12\\e\\\_1\\ | \\\[0,1\]\\ (equals \\\\e\\\_1/2\\) | Mean absolute percentage-point error, simplex-normalised | Interpretable; \\J\\-free. Underweights relative rare-type error. |
+| MaxAE (`maxae`) | \\\max_j \|e_j\|\\ | \\\[0,1\]\\ | Worst single cell-type miss | Safety diagnostic. Ignores all non-maximum errors. |
+| Quadratic error | Quadratic error | Quadratic error | Quadratic error | Quadratic error |
+| RMSE (`rmse`) | \\\sqrt{J^{-1}\sum_j e_j^2}\\ | \\\[0,\sqrt{2/J}\]\\; \\L_2/\sqrt{2}\\ is \\J\\-free | Large absolute misses (abundant types dominate) | Familiar \\L_2\\ penalty. Dominated by abundant types. |
+| Angular | Angular | Angular | Angular | Angular |
+| Normalised angular distance (`angular`) | \\d\_\theta=(2/\pi)\arccos(p^{\top}\hat p/(\\p\\\_2\\\hat p\\\_2))\\ | \\\[0,1\]\\ | Direction between the two compositions | Bounded metric. Partly redundant once \\\sum p_j=1\\. |
+| SDID (`sdid`) | \\\sqrt{\sin\theta}=(1-\cos^{2}\theta)^{1/4}\\ | \\\[0,1\]\\ | HADACA angular companion of \\d\_\theta\\ | Continuity with HADACA3. Less standard than \\d\_\theta\\. |
+| Association (cell type) | Association (cell type) | Association (cell type) | Association (cell type) | Association (cell type) |
+| Pearson \\r\\ (`pearson`) | \\\mathrm{cor}(\\p\_{ij}\\\_i,\\\hat p\_{ij}\\\_i)\\ | \\\[-1,1\]\\; error \\(1-r)/2\in\[0,1\]\\ | Ranking of samples for one type, not calibration | Detects orderings across samples. High \\r\\ can hide bias. |
+| Boundary / spillover | Boundary / spillover | Boundary / spillover | Boundary / spillover | Boundary / spillover |
+| Presence F1 (`presence_f1`) | \\F_1=2PR/(P+R)\\ at threshold \\\varepsilon=10^{-4}\\ | \\\[0,1\]\\ (\\1\\ best) | Recovery of present versus absent types | Rare/absent types visible. Threshold-sensitive. |
+| False-positive mass | \\N^{-1}\sum_i\sum\_{j:p\_{ij}\le\varepsilon}\hat p\_{ij}\\ | \\\[0,1\]\\ | Mass spilled onto truly absent types | Direct spillover mass. Needs a true zero set. |
+| Reconstitution (no \\p^{\star}\\) | Reconstitution (no \\p^{\star}\\) | Reconstitution (no \\p^{\star}\\) | Reconstitution (no \\p^{\star}\\) | Reconstitution (no \\p^{\star}\\) |
+| Reconstitution MAE / Pearson | \\\\y-\mu\hat p\\\_1/G\\; \\\mathrm{cor}(y,\mu\hat p)\\ | MAE on \\y\\: data-scale; \\r\in\[-1,1\]\\ | How well \\\hat p\\ rebuilds the bulk when \\p^{\star}\\ is unknown | Works without \\p^{\star}\\. Can look good with a wrong \\\hat p\\. |
+
+Table 7: Kept composition and regression scores from
+[`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)
+(`R/utils-metrics.R`).
+
+| Metric | Formula | Bounds | Captures | Why_not |
+|----|----|----|----|----|
+| Absolute error | Absolute error | Absolute error | Absolute error | Absolute error |
+| MAE (helper `.mae()` only) | \\J^{-1}\\e\\\_1=2\\d\_{\mathrm{TV}}/J\\ | \\\[0,2/J\]\\; \\J\\-free form is \\d\_{\mathrm{TV}}\\ | Same \\L_1\\ information as TV at fixed \\J\\ | Report `tv` instead (already \\\[0,1\]\\). |
+| Log-ratio | Log-ratio | Log-ratio | Log-ratio | Log-ratio |
+| Aitchison distance | \\\\\mathrm{clr}(p)-\mathrm{clr}(\hat p)\\\_2\\ | \\\[0,\infty)\\; undefined at structural zeros | Relative (fold-change) error, rare types included | Zero replacement dominates; no canonical \\\[0,1\]\\ bound. |
+| Information | Information | Information | Information | Information |
+| Jensen–Shannon divergence / distance | \\\tfrac12\mathrm{KL}(p\\m)+\tfrac12\mathrm{KL}(\hat p\\m)\\, \\m=(p+\hat p)/2\\ | \\\[0,\log 2\]\\ (nats); distance \\\sqrt{\mathrm{JSD}/\log 2}\in\[0,1\]\\ | Symmetric distributional disagreement | Not implemented in `R/utils-metrics.R`. |
+| Probability geometry | Probability geometry | Probability geometry | Probability geometry | Probability geometry |
+| Hellinger distance of compositions | \\2^{-1/2}\\\sqrt{p}-\sqrt{\hat p}\\\_2\\ | \\\[0,1\]\\ | Hellinger geometry of \\\sqrt{p}\\; zeros allowed | Monotone with \\L_2\\ on square-root compositions; not wired. |
+| Association | Association | Association | Association | Association |
+| Sample-wise Pearson of the \\J\\-vector | \\\mathrm{cor}\_j(p,\hat p)\\ within one sample | \\\[-1,1\]\\ | Within-sample ranking of types | Unstable for small \\J\\; high \\r\\ hides calibration error. |
+| Spearman \\\rho_S\\ | rank correlation across samples | \\\[-1,1\]\\ | Monotone ranking, magnitudes discarded | Ignores absolute fractions. |
+| Hierarchical | Hierarchical | Hierarchical | Hierarchical | Hierarchical |
+| Hierarchical relative RMSE (hrRMSE) | RMSE scaled by nested biological variance | scale depends on the ontology | Error relative to a cell-type hierarchy | Needs a cell-type ontology \[@baWhenLessNot2026\]; [@fig-hrrmse](#fig-hrrmse). |
+
+Table 8: Related composition scores that are not primary
+[`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)
+columns.
+
+![](figures/fig_hierarchical_rmse_metrics.png)
+
+Figure 9: Hierarchical relative RMSE (hrRMSE) used when some reference
+types are missing: residual error is scaled by the biological variance
+of \boldsymbol{p}^{\star} rather than by raw proportion units ([Ba et
+al. 2026](#ref-baWhenLessNot2026)).
+
+> **Note 13: Angular distance versus SDID**
+>
+> Both scores are strictly increasing functions of the same angle
+> \theta=\arccos(p^{\mathsf{T}}\hat p/(\\p\\\_2\\\hat p\\\_2)). The
+> normalised angular distance d\_\theta=2\theta/\pi is a metric on
+> \[0,1\]. SDID is \sqrt{\sin\theta} (the HADACA convention implemented
+> in `.sdid()`). They rank methods identically; report one in the
+> headline panel and keep the other for continuity with HADACA3 ([Barbot
+> and Richard 2026](#ref-barbotPromisesLimitsMultimodal2026)).
+
+> **Note 14: Simplex bounds for L_p errors**
+>
+> Because \boldsymbol{p} and \hat{\boldsymbol{p}} both sum to one and
+> are non-negative, \boldsymbol{e} is orthogonal to \mathbf{1} and
+> cannot put unit mass on two opposite vertices at once without taking
+> it from the other. Hence \\\boldsymbol{e}\\\_1\le 2,
+> \\\boldsymbol{e}\\\_2\le\sqrt{2}, and \\\boldsymbol{e}\\\_\infty\le 1,
+> with equality when all mass sits on one type in \boldsymbol{p} and on
+> a different type in \hat{\boldsymbol{p}}. Normalised MAE is total
+> variation: J\\\mathrm{MAE}/2=d\_{\mathrm{TV}}. Raw RMSE still depends
+> on J; divide by \sqrt{2/J} (equivalently
+> \\\boldsymbol{e}\\\_2/\sqrt{2}) if a dimension-free L_2 score is
+> needed.
+
+### Monte Carlo (ADEMP) summaries
+
+These describe the **estimator as a repeated-sampling procedure**, not
+the distance between one \hat{\boldsymbol{p}} and one
+\boldsymbol{p}^{\star}. Each row of `monte_carlo` is one cell type.
+Coverage intervals around the *rate* \hat\pi are derived in
+[Note 18](#nte-binomial-coverage-ci).
+
+| Metric | Formula | Bounds | Captures | Pros_cons |
+|----|----|----|----|----|
+| Point estimation | Point estimation | Point estimation | Point estimation | Point estimation |
+| Bias (`bias`) | \\B^{-1}\sum_b \hat p\_{jb}-p_j\\ | \\\[-1,1\]\\; \\\|\mathrm{bias}\|\in\[0,1\]\\ | Signed systematic error per cell type | Direction of miscalibration. Joint biases can cancel in a global score. |
+| Monte Carlo RMSE (`rmse`) | \\\sqrt{B^{-1}\sum_b(\hat p\_{jb}-p_j)^2}\\ | \\\[0,1\]\\ on a \\\[0,1\]\\ coordinate | Bias and variance on the composition scale | Single accuracy number. Mixes bias and variance (report both). |
+| Sampling precision | Sampling precision | Sampling precision | Sampling precision | Sampling precision |
+| Empirical SD (`empirical_sd`) | \\\sqrt{(B-1)^{-1}\sum_b(\hat p\_{jb}-\bar p_j)^2}\\ | population SD \\\le 1/2\\ on \\\[0,1\]\\ | Monte Carlo precision of \\\hat p_j\\ | Direct sampling SD. Sample SD can slightly exceed \\1/2\\. |
+| Reported uncertainty | Reported uncertainty | Reported uncertainty | Reported uncertainty | Reported uncertainty |
+| Mean model SE (`mean_model_se`) | \\B^{-1}\sum_b \widehat{\mathrm{SE}}\_{jb}\\ | no guaranteed finite bound (Wald SE) | Mean claimed Wald (or supplied) standard error | Tests the uncertainty estimate itself. Poor near the boundary. |
+| SE calibration | SE calibration | SE calibration | SE calibration | SE calibration |
+| SE / SD ratio (`se_sd_ratio`) | \\\overline{\widehat{\mathrm{SE}}}\_j / \mathrm{SD}(\hat p_j)\\ | \\\[0,\infty)\\; \\1\\ is calibrated | Under- versus over-stated uncertainty | Direct diagnosis. Unstable when empirical SD is tiny. |
+| Combined accuracy | Combined accuracy | Combined accuracy | Combined accuracy | Combined accuracy |
+| Mean model SD (`mean_model_sd`) | \\\sqrt{B^{-1}\sum_b \widehat{\mathrm{SE}}\_{jb}^{2}}\\ | same units as empirical SD | RMS of reported SEs (compares to empirical SD) | Companion to mean SE. Not a substitute for coverage. |
+| Interval inference | Interval inference | Interval inference | Interval inference | Interval inference |
+| Coverage (`coverage`) | \\B^{-1}\sum_b \mathbf{1}\\L\_{jb}\le p_j\le U\_{jb}\\\\ | \\\[0,1\]\\; target \\1-\alpha\\, not \\1\\ | Frequentist calibration of the interval for \\p_j\\ | Essential inferential check. Rewards overly wide intervals if used alone. |
+| Mean interval width | \\B^{-1}\sum_b(U\_{jb}-L\_{jb})\\ | \\\[0,1\]\\ for simplex-clipped intervals | Precision of the interval, given coverage | Separates useful from vacuous coverage. Smaller is not better unless coverage holds. |
+| MCSE of coverage (`mcse_coverage`) | \\\sqrt{\hat\pi(1-\hat\pi)/B}\\ | \\\[0,1/\sqrt{4B}\]\\ | Simulation error of the coverage *rate* | Binomial MCSE. Wald form of the *rate*; interval for \\\hat\pi\\ uses Wilson. |
+
+Table 9: Kept Monte Carlo / ADEMP summaries (`monte_carlo` block and
+[`coverage_mc_interval()`](https://bastienchassagnol.github.io/DeCovarT/reference/coverage_mc_interval.md)).
+
+| Metric | Formula | Bounds | Captures | Why_not |
+|----|----|----|----|----|
+| Boundary inference | Boundary inference | Boundary inference | Boundary inference | Boundary inference |
+| Endpoint-at-zero / active-set F1 | \\B^{-1}\sum_b 1\\\min_j\hat p\_{jb}\le\tau\\\\ | \\\[0,1\]\\ | How often estimates sit on a face | Scenario-specific; presence F1 already summarises support. |
+| Testing | Testing | Testing | Testing | Testing |
+| Type-I error | rejection rate under \\H_0\\ | \\\[0,1\]\\; target \\\alpha\\ | False detections of a cell type | Requires an explicit \\H_0\\ grid (out of ADEMP scope here). |
+| Power | rejection rate under a designed alternative | \\\[0,1\]\\ | Ability to detect a designed shift | Requires a designed alternative (out of scope). |
+| Landscape | Landscape | Landscape | Landscape | Landscape |
+| Multistart likelihood spread | \\\max_s\ell_s-\min_s\ell_s\\ among converged starts | \\\[0,\infty)\\ | Distinct basins of the likelihood | Needs multi-start logging ([`multistart_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/multistart_decovart.md)), not default. |
+| Constraints | Constraints | Constraints | Constraints | Constraints |
+| Simplex violation | distance of \\\hat p\\ to \\\Delta^{J-1}\\ before repair | \\\[0,\infty)\\ | Constraint fidelity of the raw solver return | Solvers already repair onto the simplex ([`repair_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/repair_simplex.md)). |
+| Linear algebra | Linear algebra | Linear algebra | Linear algebra | Linear algebra |
+| Cholesky fill-in / sparse timings | nnz\$(L)\$ or seconds per factorisation | non-negative | Cost of \\\Sigma(p)^{-1}\\ at the chosen structure | [Appendix S2](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S2-covariance-inversion.html); declare the covariance structure. |
+
+Table 10: ADEMP-adjacent diagnostics that are not default columns.
+
+> **Note 15: Monte Carlo standard error of coverage**
+>
+> Coverage is a mean of i.i.d. Bernoulli indicators
+> I_b=\mathbf{1}\\p_j\in\mathrm{CI}\_{jb}\\. With B independent
+> simulated datasets,
+>
+> \widehat{\mathrm{MCSE}} = \sqrt{\hat\pi(1-\hat\pi)/B}.
+>
+> The denominator is B, not B times an inner bootstrap size: bootstrap
+> draws belong to the interval algorithm, not to the outer simulation.
+> At true 95% coverage, B=1000 gives \mathrm{MCSE}\approx 0.0069. The
+> package stores `mcse_coverage` on the `monte_carlo` table. For a
+> generic mean \widehat T=B^{-1}\sum_b T_b, use
+> \widehat{\mathrm{MCSE}}(\widehat T)=s_T/\sqrt{B} (`.mcse_mean()`).
+
+### Execution and optimisation
+
+Numerical convergence is whether the solver returned a finite simplex
+vector. Theoretical convergence asks whether \ell(\hat{\boldsymbol{p}})
+is within 10^{-3} of \ell(\boldsymbol{p}^{\star}) (the generating value,
+a proxy for the expected global maximum in a well-specified Monte
+Carlo). The default stationarity diagnostic stored on
+`optimisation$kkt_residual` is the **simplex projected-score residual**
+`.kkt_residual()` ([Note 16](#nte-kkt-ilr-hessian)), not the raw ambient
+gradient and not the ILR score from
+[`boundary_diagnostics()`](https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.md).
+
+Elapsed time is the per-sample
+[`proc.time()`](https://rdrr.io/r/base/proc.time.html) elapsed inside
+each worker. Memory is process PSS from `ps` (RSS if PSS is
+unavailable). Both are stored as **full per-sample vectors** in
+`optimisation`.
+
+| Metric | Formula | Bounds | Captures | Pros_cons |
+|----|----|----|----|----|
+| Convergence | Convergence | Convergence | Convergence | Convergence |
+| Numerical convergence (`numerical_converged`) | finite simplex return; no solver error | rate in \\\[0,1\]\\ (ideal \\1\\) | Operational reliability of the solver return | Mandatory runtime check. A finite \\p\\ need not be stationary. |
+| Theoretical convergence (`theoretical_converged`) | \\\ell(p^{\star})-\ell(\hat p)\le 10^{-3}\\ | rate in \\\[0,1\]\\ (ideal \\1\\) | Whether \\\hat p\\ attains (nearly) the generating likelihood | Detects poor modes when \\p^{\star}\\ is known. Proxy, not global uniqueness. |
+| KKT / projected-score residual (`kkt_residual`) | \\\\\Pi\_\Delta(\hat p+\nabla_p\ell)-\hat p\\\_2\\ | \\\[0,\infty)\\; \\0\\ is first-order stationary | Simplex KKT first-order residual, including faces | Boundary-aware; solver-independent. Small residual is not global optimality. |
+| Likelihood | Likelihood | Likelihood | Likelihood | Likelihood |
+| Log-likelihood regret (`loglik_regret`) | \\\ell(p^{\star})-\ell(\hat p)\\ | \\(-\infty,\infty)\\; \\0\\ matches \\\ell(p^{\star})\\ | Likelihood gap to the data-generating composition | Scale-free comparison of modes. Requires \\p^{\star}\\ and \\\Sigma\\. |
+| Runtime | Runtime | Runtime | Runtime | Runtime |
+| Elapsed time (`elapsed_sec`) | worker elapsed seconds for one column of \\Y\\ | \\\[0,\infty)\\ | Per-sample computational cost | Direct utility. Hardware-dependent; report median / IQR. |
+| Peak memory (`memory_bytes`) | `ps::ps_memory_full_info()$pss` in the worker | \\\[0,\infty)\\ bytes | Per-sample memory footprint (PSS, not summed RSS) | Avoids double-counting shared pages. Still machine-dependent. |
+
+Table 11: Kept optimisation and runtime scores (`optimisation` block).
+
+| Metric | Formula | Bounds | Captures | Why_not |
+|----|----|----|----|----|
+| ILR geometry | ILR geometry | ILR geometry | ILR geometry | ILR geometry |
+| ILR score norm (`score_norm`) | \\\\\nabla\_{z}\tilde\ell(\hat z)\\\_2=\\J\_{\psi}^{\top}\nabla_p\ell\\\_2\\ | \\\[0,\infty)\\; \\0\\ is interior stationarity | Unconstrained first-order residual in ILR coordinates | Interior equivalent of KKT, but the Jacobian degenerates on faces ([@nte-kkt-ilr-hessian](#nte-kkt-ilr-hessian)). |
+| Curvature | Curvature | Curvature | Curvature | Curvature |
+| Tangent / ILR \\\lambda\_{\max}(H)\\ (`max_eigenvalue`) | \\\lambda\_{\max}(H_z)\\ of [`hessian_loglik_constrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/hessian_loglik_constrained.md) | unbounded; \\\<0\\ at a local maximum | Local max versus saddle in the ILR chart | Local only; `local_maximum` is a flag on [`boundary_diagnostics()`](https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.md), not a column of `optimisation`. |
+| Speed | Speed | Speed | Speed | Speed |
+| End-to-end wall time of the parallel job | clock around [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md) | \\\[0,\infty)\\ | Throughput of the whole Monte Carlo job | Confounds scheduling with per-sample cost. |
+| Memory | Memory | Memory | Memory | Memory |
+| Sum of worker RSS | sum of per-worker RSS | \\\[0,\infty)\\ | Naive memory sum under fork | Double-counts copy-on-write pages. |
+
+Table 12: Optimisation diagnostics computed on fits but not stored as
+headline benchmark columns.
+
+> **Note 16: Interior ILR stationarity, projected KKT residual, and
+> Hessian curvature**
+>
+> Three numbers are easy to confuse. They answer different questions,
+> and only the second is the default `kkt_residual` column.
+>
+> **Ambient score.** DeCovarT differentiates \ell(\boldsymbol{p}) with
+> \boldsymbol{p} treated as free coordinates
+> ([`gradient_loglik_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/gradient_loglik_unconstrained.md)).
+> On the simplex that vector need **not** vanish at a maximum. An
+> interior stationary point satisfies g_1=\cdots=g_J=\lambda: every
+> feasible direction \boldsymbol{d} has
+> \mathbf{1}^{\top}\boldsymbol{d}=0, so
+> \boldsymbol{g}^{\top}\boldsymbol{d}=0 as soon as \boldsymbol{g} is
+> constant. Reporting \\\nabla_p\ell\\\_2 is therefore a bad convergence
+> diagnostic.
+>
+> **Interior ILR score.** Native DeCovarT solvers optimise in isometric
+> log-ratio coordinates z=\mathrm{ilr}(\boldsymbol{p}) (Helmert chart).
+> The unconstrained first-order condition is \nabla_z\tilde\ell(\hat
+> z)=0, implemented as `score_norm` in
+> [`boundary_diagnostics()`](https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.md):
+> \nabla_z\tilde\ell=J\_{\psi}^{\top}\nabla_p\ell. For p_j\>0,
+> J\_{\psi}^{\top}g=0 if and only if P_T g=0 with
+> P_T=I-J^{-1}\mathbf{1}\mathbf{1}^{\top}, because the columns of
+> J\_{\psi} span the simplex tangent space. The **norms are not the
+> same**: \\J\_{\psi}^{\top}g\\\_2\neq\\P_T g\\\_2 in general. Near a
+> face, p_j\to 0 and \\z\\\to\infty; entries of J\_{\psi} contain
+> factors of p_j, so \\\nabla_z\tilde\ell\\ can look small because the
+> chart is flattening rather than because the ambient KKT violation is
+> small.
+> [`boundary_diagnostics()`](https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.md)
+> therefore **skips** `score_norm` when \min_j\hat p_j is below
+> `boundary_tol`.
+>
+> **Projected-score / KKT residual (headline).** For maximisation,
+> R\_{\alpha}(\boldsymbol{p}) = \alpha^{-1}\bigl(
+> \Pi\_{\Delta}(\boldsymbol{p}+\alpha\nabla_p\ell) -\boldsymbol{p}
+> \bigr), with Euclidean projection \Pi\_{\Delta} onto the simplex
+> (`.project_simplex()`) and default \alpha=1. Then
+> \texttt{kkt\\residual}=\\R\_{\alpha}(\hat{\boldsymbol{p}})\\\_2. This
+> vanishes if and only if a first-order feasible step does not move the
+> iterate, including when some p_j=0 (KKT: g_j=\lambda on the support,
+> g_j\le\lambda on inactive types). That is the quantity stored by
+> [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md).
+>
+> **Hessian / curvature.** First-order stationarity does not imply a
+> local maximum.
+> [`boundary_diagnostics()`](https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.md)
+> reports \lambda\_{\max}(H_z) of
+> [`hessian_loglik_constrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/hessian_loglik_constrained.md)
+> and sets `local_maximum` when the ILR score is below `score_tol`
+> **and** that largest eigenvalue is negative. A small KKT residual with
+> \lambda\_{\max}(H_z)\>0 is a saddle (or a local minimum of a
+> maximisation problem). None of these diagnostics implies a unique
+> global mode; the DeCovarT likelihood for one bulk sample is not
+> concave in general ([MLE
+> properties](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.md)).
+
+> **Note 17: Which metric to report**
+>
+> Use TV, RMSE, MaxAE, and (optionally) angular distance / SDID as the
+> global panel. Add cell-type Pearson and presence F1 / false-positive
+> mass when rare or absent types matter ([Sturm et al.
+> 2019](#ref-sturmComprehensiveEvaluationTranscriptomebased2019); [Avila
+> Cobos et al.
+> 2020](#ref-faComprehensiveBenchmarkingComputational2020)). Report
+> ADEMP bias, empirical SD, SE/SD, coverage (with MCSE and a Wilson
+> interval on the rate), and mean width whenever intervals exist. Quote
+> median and IQR of elapsed time and PSS from the `optimisation` table
+> rather than a single end-to-end clock. Pair `kkt_residual` with
+> `numerical_converged`; quote `score_norm` / `local_maximum` only for
+> interior ILR fits.
+
+### Zoom on the coverage rate, and derivation of the intervals
+
+Wilson is the default interval around the *estimated coverage rate*
+\hat\pi=X/N, not the interval for \hat p_j ([Wilson
+1927](#ref-wilsonProbableInferenceLaw1927)). Wald and Agresti–Coull
+([Agresti and Coull 1998](#ref-agrestiApproximateBetterExact1998)) are
+available through `coverage_interval`. Bias-eliminated coverage
+(covering \bar{\hat\theta} rather than \theta) is not implemented;
+report ordinary coverage and bias side by side instead.
+[Note 18](#nte-binomial-coverage-ci) summarises exact, asymptotic, and
+optimisation-based constructions for that binomial rate.
+
+> **Note 18: Intervals for a binomial coverage rate**
+>
+> The Monte Carlo coverage rate \hat\pi=X/N is a binomial proportion on
+> the unit interval. Interval construction for that rate is not a
+> confidence interval for the cell-type vector \boldsymbol{p}. Three
+> strategies are in common use ([Agresti and Coull
+> 1998](#ref-agrestiApproximateBetterExact1998); [Konietschke and
+> Brunner 2026](#ref-konietschkeExactAsymptoticOptimizationbased2026)).
+>
+> - **Asymptotic (Wald, Wilson, Agresti–Coull).** The Wald interval is
+>   \hat\pi\pm z\sqrt{\hat\pi(1-\hat\pi)/N}. Near 0 or 1 the estimated
+>   standard error collapses and the interval can leave \[0,1\] (the
+>   classic edge-case failure). Wald is a poor default for coverage
+>   rates. The Wilson score interval ([Wilson
+>   1927](#ref-wilsonProbableInferenceLaw1927)) is the package default:
+>   it is widely used, remains inside (0,1) for interior \hat\pi, and is
+>   more stable near the boundary. Agresti–Coull is the optional
+>   adjusted-Wald form already exposed by `coverage_interval`.
+> - **Exact (test inversion).** Clopper–Pearson-type intervals invert
+>   binomial tail probabilities and guarantee a minimum coverage of at
+>   least 1-\alpha, at the cost of systematic conservatism.
+>   Length–coverage optimal (LCO) methods change the acceptance region
+>   itself so that minimum coverage is guaranteed while average length
+>   is reduced; they remain conservative by construction.
+> - **Optimisation-based calibration.** Because the binomial sampling
+>   distribution is discrete, no interval attains exact nominal coverage
+>   uniformly in \pi\in(0,1). Numerical level adjustment treats the
+>   critical value or tail probability as a scalar \gamma and retunes a
+>   *fixed* analytical form. Konietschke and Brunner
+>   ([2026](#ref-konietschkeExactAsymptoticOptimizationbased2026))
+>   minimise a risk functional of the exact coverage curve (for example
+>   mean squared deviation from 1-\alpha, or absolute deviation of
+>   average coverage) for Wilson, Agresti–Coull, logit, or
+>   Clopper–Pearson formulae without rewriting those formulae. The
+>   method is aimed at **small** N.
+>
+> DeCovarT does not implement tuned or LCO intervals. Independent Monte
+> Carlo replicates N can be increased arbitrarily, so the small-sample
+> discreteness problem that motivates optimisation-based tuning is not
+> the operating regime. Report ordinary Wilson (or Agresti–Coull)
+> intervals on \hat\pi, together with `mcse_coverage` and bias, rather
+> than a small-sample recalibration of \gamma.
+
 ## Conclusions
 
 A reproducible synthetic study should keep three design layers separate,
@@ -910,55 +1313,29 @@ then score both the reference geometry and the mixture composition:
     from uniform (H^{\star}=1) to near-pure (H^{\star}\approx 0),
     matching the `SimBu` fraction vocabulary when comparing to
     pseudo-bulk tools ([Figure 7](#fig-simbu-entropy)).
-4.  **Bulk draws.** Simulate \boldsymbol{Y} from the Gaussian
-    convolution
-    \boldsymbol{y}\mid(\boldsymbol{\zeta},\boldsymbol{p})\sim\mathcal{N}\_{G}(\boldsymbol{\mu}\boldsymbol{p},\sum_j
-    p_j^{2}\boldsymbol{\Sigma}\_j) and pass the same moments to every
-    solver.
-5.  **Hybrid stress test.** The variance-driven scenario (two
-    mean-collinear types told apart only by topology, plus a weakly
-    aligned third type) is documented in
-    [§2.2](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-variance-driven.html#sec-scenario-grid).
 
-See [Note 12](#nte-benchmark-spec) for a compact factorial checklist.
+See [Note 19](#nte-benchmark-spec) for a compact factorial checklist.
 
-> **Important 12: Recommended benchmark specification**
+> **Important 19: Recommended benchmark specification**
 >
-> Use one pipeline for every topology ([Eq. 16](#eq-benchmark-pipe),
+> Use one pipeline for a given topology of a given cell type’s
+> covariance structure ([Eq. 16](#eq-benchmark-pipe),
 > [Figure 4](#fig-ggm-pipeline)):
 >
 > \text{topology} \rightarrow \text{signed weights} \rightarrow
 > \text{SPD precision} \rightarrow \text{mean design} \rightarrow
 > \text{latent Gaussian} \rightarrow \text{observation model} \tag{16}
 >
-> | Axis | Suggested levels |
-> |----|----|
-> | Dimension (genes) | G \in \\100,500,1000\\ |
-> | Topology | ER, band, hub, scale-free, SBM, small-world |
-> | Expected degree | \approx 2,4,8 (keep graphs sparse) |
-> | Edge weights | Constant; i.i.d. signed; partial-correlation scaling; G-Wishart |
-> | Conditioning | Report \kappa(\Omega) and partial-correlation summaries |
-> | Composition | Pure / weighted / balanced / uniform ([Sec. 4.5](#sec-imbalanced)); record H^{\star} |
->
-> Table 7: Compact factorial axes for a reproducible undirected GGM
-> simulation study.
->
-> Prefer the uniform spectral shift ([Eq. 12](#eq-spectral-shift)) or
+> Prefer: - uniform spectral shift ([Eq. 12](#eq-spectral-shift)) or
 > partial-correlation scaling ([Eq. 11](#eq-partial-scale)) when support
-> and signs must be exact; add the mean layer **independently** of graph
-> generation. The end-to-end **hybrid multi-topology reference
-> scenario** (two mean-collinear cell types distinguished only by
-> network topology, a third weakly aligned type, a 3^3 graph assignment
-> crossed with three precision condition numbers, and the frequentist
-> solver comparison on a Shannon-H^{\star} composition grid) is
-> documented in [§2.2 variance-driven
-> hybrid](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-variance-driven.html#sec-scenario-grid).
-> Edge-case numerical checks (gene-wise z-score equivariance, collinear
-> signatures, small bulk perturbations, random ILR starts) live in
-> [Appendix
-> S1](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S1-identifiability.md).
+> and signs are exact; G-Wishart when support and signs are
+> approximate. - composition grid from uniform (H^{\star}=1) to
+> near-pure (H^{\star}\approx 0), matching the `SimBu` fraction
+> vocabulary when comparing to pseudo-bulk tools
+> ([Figure 7](#fig-simbu-entropy)). - add the mean layer
+> **independently** of graph generation.
 
-> **Note 13: Execution: no nested parallelism, `furrr`, L’Ecuyer
+> **Note 20: Execution: no nested parallelism, `furrr`, L’Ecuyer
 > streams**
 >
 > Sample-level workers live only in
@@ -979,22 +1356,6 @@ See [Note 12](#nte-benchmark-spec) for a compact factorial checklist.
 > benchmarks**. `mirai` (persistent daemons, dynamic dispatch) is
 > reserved for APIs that need a fast interactive response, not for the
 > published Monte Carlo protocol.
-
-> **Note 14: Fixed-covariance GLS competitor**
->
-> When a scenario varies the *covariance structure*, keep a mean-only
-> baseline whose residual covariance does **not** depend on
-> \boldsymbol{p}. Build W with
-> [`fixed_gls_covariance()`](https://bastienchassagnol.github.io/DeCovarT/reference/fixed_gls_covariance.md)
-> (default: diagonal of \Sigma(\bar p) at \bar p_j=1/J) and fit
-> [`deconvolute_ratios_gls()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_gls.md)
-> ([`MASS::lm.gls`](https://rdrr.io/pkg/MASS/man/lm.gls.html)). Copying
-> W into every tensor slice is not GLS: \sum_j p_j^2 W=\\p\\\_2^2 W
-> still depends on p. The hierarchy is full \Sigma(p),
-> cell-type-diagonal convolution, then this fixed W. Starts for the
-> convolution MLE: barycentre, Dirichlet (`initial_p = "dirichlet"`,
-> \alpha=1 uniform, \alpha\>1 centre, \alpha\<1 faces; several
-> independent draws), or QP (`initial_p = "qp"`).
 
 ## Perspectives on high-dimensional or more biologically realistic designs
 
@@ -1044,92 +1405,42 @@ data-generating mechanism is the Gaussian convolution
 p_j^2\boldsymbol{\Sigma}\_j). Methods are the solvers passed to
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md).
 
-| ADEMP | Package | Status |
-|----|----|----|
-| Aims | Compare solvers on a known convolution | Kept |
-| Data-generating mechanism | simulate_bulk_mixture() + describe_simulation_scenario() | Kept |
-| Estimand | p (simplex); cell-type and global scores kept separate | Kept |
-| Methods | deconvolute_ratios() / fit_decovart() | Kept |
-| Bias | monte_carlo\$bias | Kept |
-| Empirical SE | monte_carlo\$empirical_sd | Kept |
-| Model SE | monte_carlo\$mean_model_se (and mean_model_sd) | Kept |
-| Relative error in SE | monte_carlo\$se_sd_ratio | Kept |
-| RMSE | monte_carlo\$rmse (cell type) and regression\$global\$rmse | Kept |
-| Coverage | monte_carlo\$coverage with Wilson interval by default | Kept (Wilson default; Wald / Agresti--Coull optional) |
-| Mean interval width | monte_carlo\$mean_interval_width | Kept |
-| Monte Carlo SE of coverage | monte_carlo\$mcse_coverage | Kept |
-| Convergence | optimisation\$numerical_converged, theoretical_converged, kkt_residual | Kept |
-| Type I / power | Not a primary target (composition estimation, not a null test) | Out of scope |
+| ADEMP | Package |
+|----|----|
+| Aims | Compare solvers on a known convolution |
+| Data-generating mechanism | simulate_bulk_mixture() + describe_simulation_scenario() |
+| Estimand | p (simplex); cell-type and global scores kept separate |
+| Methods | deconvolute_ratios() / fit_decovart() |
+| Bias | bias |
+| Empirical SE | empirical_sd |
+| Model SE | mean_model_se (and mean_model_sd) |
+| Relative error in SE | se_sd_ratio |
+| RMSE | rmse (cell type) and regression\$global\$rmse |
+| Coverage | coverage with Wilson interval by default |
+| Mean interval width | mean_interval_width |
+| Monte Carlo SE of coverage | mcse_coverage |
+| Convergence | numerical_converged, theoretical_converged, kkt_residual |
+| Type I / power | Not a primary target (composition estimation, not a null test) |
 
-Table 8: ADEMP performance measures implemented in
+Table 13: ADEMP performance measures implemented in
 [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)
 and
 [`coverage_mc_interval()`](https://bastienchassagnol.github.io/DeCovarT/reference/coverage_mc_interval.md).
 
-Wilson is the default interval around the *estimated coverage rate*
-\hat\pi=X/N, not the interval for \hat p_j ([Wilson
-1927](#ref-wilsonProbableInferenceLaw1927)). Wald and Agresti–Coull
-([Agresti and Coull 1998](#ref-agrestiApproximateBetterExact1998)) are
-available through `coverage_interval`. Bias-eliminated coverage
-(covering \bar{\hat\theta} rather than \theta) is not implemented;
-report ordinary coverage and bias side by side instead.
-[Note 15](#nte-binomial-coverage-ci) summarises exact, asymptotic, and
-optimisation-based constructions for that binomial rate.
+> Visualisation plots:
 
-> **Note 15: Intervals for a binomial coverage rate**
->
-> The Monte Carlo coverage rate \hat\pi=X/N is a binomial proportion on
-> the unit interval. Interval construction for that rate is not a
-> confidence interval for the cell-type vector \boldsymbol{p}. Three
-> strategies are in common use ([Agresti and Coull
-> 1998](#ref-agrestiApproximateBetterExact1998); [Konietschke and
-> Brunner 2026](#ref-konietschkeExactAsymptoticOptimizationbased2026)).
->
-> - **Asymptotic (Wald, Wilson, Agresti–Coull).** The Wald interval is
->   \hat\pi\pm z\sqrt{\hat\pi(1-\hat\pi)/N}. Near 0 or 1 the estimated
->   standard error collapses and the interval can leave \[0,1\] (the
->   classic edge-case failure). Wald is a poor default for coverage
->   rates. The Wilson score interval ([Wilson
->   1927](#ref-wilsonProbableInferenceLaw1927)) is the package default:
->   it is widely used, remains inside (0,1) for interior \hat\pi, and is
->   more stable near the boundary. Agresti–Coull is the optional
->   adjusted-Wald form already exposed by `coverage_interval`.
-> - **Exact (test inversion).** Clopper–Pearson-type intervals invert
->   binomial tail probabilities and guarantee a minimum coverage of at
->   least 1-\alpha, at the cost of systematic conservatism.
->   Length–coverage optimal (LCO) methods change the acceptance region
->   itself so that minimum coverage is guaranteed while average length
->   is reduced; they remain conservative by construction.
-> - **Optimisation-based calibration.** Because the binomial sampling
->   distribution is discrete, no interval attains exact nominal coverage
->   uniformly in \pi\in(0,1). Numerical level adjustment treats the
->   critical value or tail probability as a scalar \gamma and retunes a
->   *fixed* analytical form. Konietschke and Brunner
->   ([2026](#ref-konietschkeExactAsymptoticOptimizationbased2026))
->   minimise a risk functional of the exact coverage curve (for example
->   mean squared deviation from 1-\alpha, or absolute deviation of
->   average coverage) for Wilson, Agresti–Coull, logit, or
->   Clopper–Pearson formulae without rewriting those formulae. The
->   method is aimed at **small** N.
->
-> DeCovarT does not implement tuned or LCO intervals. Independent Monte
-> Carlo replicates N can be increased arbitrarily, so the small-sample
-> discreteness problem that motivates optimisation-based tuning is not
-> the operating regime. Report ordinary Wilson (or Agresti–Coull)
-> intervals on \hat\pi, together with `mcse_coverage` and bias, rather
-> than a small-sample recalibration of \gamma.
-
-[`plot_mc_raincloud()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_raincloud.md)
-shows the sampling distribution of \hat p_j-p_j^{\star}; inner / outer
-bars are empirical Monte Carlo quantiles, not a CI for p ([Allen et al.
-2019](#ref-allenRaincloudPlotsMultiplatform2019)).
-[`plot_mc_forest()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_forest.md)
-is the ADEMP ranking companion (Wilson whiskers on the coverage *rate*).
-[`plot_algorithm_similarity()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_algorithm_similarity.md)
-is behavioural correlation of \hat{\boldsymbol{p}}, not numerical
-agreement. There is no default composite;
-[`plot_mc_metric_dots()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_metric_dots.md)
-facets by metric with a single min–max colour scale.
+- [`plot_mc_raincloud()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_raincloud.md)
+  shows the sampling distribution of \hat p_j-p_j^{\star}; inner / outer
+  bars are empirical Monte Carlo quantiles, not a CI for p ([Allen et
+  al. 2019](#ref-allenRaincloudPlotsMultiplatform2019)).
+- [`plot_mc_forest()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_forest.md)
+  is the ADEMP ranking companion (Wilson whiskers on the coverage
+  *rate*).
+- [`plot_algorithm_similarity()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_algorithm_similarity.md)
+  is behavioural correlation of \hat{\boldsymbol{p}}, not numerical
+  agreement.
+- [`plot_mc_metric_dots()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_metric_dots.md)
+  facets by metric with a single min–max colour scale.
 
 ### Nature Methods reporting
 
@@ -1142,12 +1453,12 @@ is the package counterpart of that editorial checklist.
 | Data-generating mechanism fully specified | `theta_true` (`p`, `mu`, `sigma`) plus `descriptors` and `call` |
 | Estimand and metrics pre-declared | This table; [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md) blocks |
 | Software versions | [`sessioninfo::session_info()`](https://sessioninfo.r-lib.org/reference/session_info.html) in analysis scripts |
-| Random-number streams | `furrr_options(seed = TRUE)`: L’Ecuyer-CMRG per worker ([Note 13](#nte-parallel-rng)) |
+| Random-number streams | `furrr_options(seed = TRUE)`: L’Ecuyer-CMRG per worker ([Note 20](#nte-parallel-rng)) |
 | Code availability | GitHub repository; package functions, not one-off scripts |
 | No undisclosed composite score | Global and cell-type tables remain separate |
 | Sample size / Monte Carlo error | `n` and `mcse_coverage` (and Wilson bounds) |
 
-Table 9: Nature Methods reporting items covered by the simulation API.
+Table 14: Nature Methods reporting items covered by the simulation API.
 
 ### NeurIPS code completeness
 
@@ -1163,7 +1474,7 @@ used at NeurIPS is five items.
 | Pre-trained models | Not applicable: DeCovarT is an estimator, not a stored neural net. Toy convolution fixtures live in `inst/extdata/` |
 | README table of results plus commands | README / vignette chunks (this article; [§2.1](https://bastienchassagnol.github.io/DeCovarT/articles/fig02-bivariate-toy.md), [§2.2](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-variance-driven.md)) |
 
-Table 10: NeurIPS / Papers with Code completeness mapped onto the
+Table 15: NeurIPS / Papers with Code completeness mapped onto the
 package.
 
 ### rOpenSci statistical standards
@@ -1207,6 +1518,10 @@ Agresti, Alan, and Brent A. Coull. 1998. ‘Approximate Is Better Than
 "Exact" for Interval Estimation of Binomial Proportions’. *The American
 Statistician* 52 (2): 119–26. <https://doi.org/10.2307/2685469>.
 
+Aitchison, J. 1982. ‘The Statistical Analysis of Compositional Data’.
+*Journal of the Royal Statistical Society: Series B (Methodological)* 44
+(2): 139–60. <https://doi.org/10.1111/j.2517-6161.1982.tb01195.x>.
+
 Aliee, Hananeh, and Fabian J. Theis. 2021. ‘AutoGeneS: Automatic Gene
 Selection Using Multi-Objective Optimization for RNA-seq Deconvolution’.
 *Cell Systems* 12. <https://doi.org/10.1016/j.cels.2021.05.006>.
@@ -1216,6 +1531,11 @@ Jordy van Langen, and Rogier A. Kievit. 2019. ‘Raincloud Plots: A
 Multi-Platform Tool for Robust Data Visualization’. *Wellcome Open
 Research* 4: 63. <https://doi.org/10.12688/wellcomeopenres.15191.2>.
 
+Avila Cobos, Francisco, José Alquicira-Hernandez, Joseph Powell, Pieter
+Mestdagh, and Katleen De Preter. 2020. ‘Comprehensive Benchmarking of
+Computational Deconvolution of Transcriptomics Data’. *bioRxiv*, ahead
+of print. <https://doi.org/10.1101/2020.01.10.897116>.
+
 Ba, Kalidou, Rodolphe Thiébaut, Xavier Hinaut, and Boris Hejblum. 2026.
 *When Less Is Not More: DICEPro Mitigates the Impact of Incomplete
 Reference Matrices on Cellular Frequency Deconvolution*. bioRxiv.
@@ -1224,6 +1544,10 @@ Reference Matrices on Cellular Frequency Deconvolution*. bioRxiv.
 Barabási, Albert-László, and Réka Albert. 1999. ‘Emergence of Scaling in
 Random Networks’. *Science* 286.
 <https://doi.org/10.1126/science.286.5439.509>.
+
+Barbot, Hugo, and Magali Richard. 2026. ‘On the Promises and Limits of
+Multimodal Integration for Deconvolution: The HADACA3 Benchmark’.
+*NeurIPS*.
 
 Besson, Olivier, and Yuri I. Abramovich. 2013. ‘On the Fisher
 Information Matrix for Multivariate Elliptically Contoured
@@ -1241,6 +1565,10 @@ Data*. arXiv. <https://doi.org/10.48550/arxiv.1806.03120>.
 Dietrich, Alexander. 2024. *SimBu: Bias-Aware Simulation of Bulk RNA-Seq
 Data with Variable Cell-Type Composition*.
 <https://doi.org/10.18129/B9.bioc.SimBu>.
+
+Endres, D. M., and J. E. Schindelin. 2003. ‘A New Metric for Probability
+Distributions’. *IEEE Transactions on Information Theory* 49 (7):
+1858–60. <https://doi.org/10.1109/tit.2003.813506>.
 
 Federico, Anthony, Joseph Kern, Xaralabos Varelas, and Stefano Monti.
 2023. ‘Structure Learning for Gene Regulatory Networks’. *PLOS
@@ -1262,6 +1590,10 @@ Proportions’. *Statistical Papers* 67 (5): 115.
 Lima-Mendez, Gipsi, and Jacques van Helden. 2009. ‘The Powerful Law of
 the Power Law and Other Myths in Network Biology1’. *Molecular
 BioSystems(MBS)* 5. <https://doi.org/10.1039/b908681a>.
+
+Lin, J. 1991. ‘Divergence Measures Based on the Shannon Entropy’. *IEEE
+Transactions on Information Theory* 37 (1): 145–51.
+<https://doi.org/10.1109/18.61115>.
 
 Madar, Vered. 2015. ‘Direct Formulation to Cholesky Decomposition of a
 General Nonsingular Correlation Matrix’. *Statistics & Probability
@@ -1301,6 +1633,11 @@ Schelker, Max, Sonia Feau, Jinyan Du, et al. 2017. ‘Estimation of Immune
 Cell Content in Tumour Tissue Using Single-Cell RNA-seq Data’. *Nature
 Communications* 8 (1): 2032.
 <https://doi.org/10.1038/s41467-017-02289-3>.
+
+Sturm, Gregor, Francesca Finotello, Florent Petitprez, et al. 2019.
+‘Comprehensive Evaluation of Transcriptome-Based Cell-Type
+Quantification Methods for Immuno-Oncology’. *Bioinformatics (Oxford,
+England)* 35. <https://doi.org/10.1093/bioinformatics/btz363>.
 
 Takahashi, Daniel Yasumasa, João Ricardo Sato, Carlos Eduardo Ferreira,
 and André Fujita. 2012. ‘Discriminating Different Classes of Biological

@@ -99,7 +99,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Simulating synthetic pseudo-bulk mixtures for benchmarking</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-09-06</p>
+      <p class="date">2026-09-07</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-synthetic-scenarios-mean-covariance.qmd" class="external-link"><code>vignettes/theory-synthetic-scenarios-mean-covariance.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -990,6 +990,1037 @@ I_{\mathrm{cov}}(\boldsymbol{d})
 </blockquote>
 </div>
 <p>Supplementary (not kept as a primary score): Jeffreys divergence. Cholesky fill-in and sparse-solver timings are <em>not</em> reported: the caller must declare the covariance structure used at fit time; otherwise the dense Cholesky factor of <span class="math inline">\Sigma(p)</span> is the default.</p>
+</section></section><section class="section level2"><h2 id="sec-performance-metrics">Performance metrics<a class="anchor" aria-label="anchor" href="#sec-performance-metrics"></a>
+</h2>
+<p>The descriptors above score the <em>generative</em> problem (<code><a href="../reference/describe_simulation_scenario.html">describe_simulation_scenario()</a></code>, Shannon evenness in <code><a href="../reference/compute_shannon_entropy.html">compute_shannon_entropy()</a></code>, MixSim overlap). This section scores <em>estimators</em>. With known <span class="math inline">\boldsymbol{p}^{\star}</span>, <a href="../reference/compute_benchmark_metrics.html"><code>compute_benchmark_metrics()</code></a> returns three blocks implemented in <code>R/utils-metrics.R</code> and assembled in <code>R/04_01_run_benchmark.R</code>:</p>
+<ul>
+<li>
+<code>regression$global</code>: one row per bulk column (total variation, RMSE, MaxAE, angular distance, SDID).</li>
+<li>
+<code>regression$cell_type</code>: one row per cell type across samples (Pearson, presence F1, false-positive mass).</li>
+<li>
+<code>monte_carlo</code>: ADEMP summaries of the sampling distribution of <span class="math inline">\hat p_j</span>.</li>
+<li>
+<code>optimisation</code>: per-sample KKT residual, convergence flags, log-likelihood regret, elapsed time, and process memory.</li>
+</ul>
+<p>There is <strong>no composite global score</strong>. Absolute, angular, association, inference, and optimisation families answer different questions <span class="citation" data-cites="sturmComprehensiveEvaluationTranscriptomebased2019 faComprehensiveBenchmarkingComputational2020">(<a href="#ref-sturmComprehensiveEvaluationTranscriptomebased2019" role="doc-biblioref">Sturm et al. 2019</a>; <a href="#ref-faComprehensiveBenchmarkingComputational2020" role="doc-biblioref">Avila Cobos et al. 2020</a>)</span>. When <span class="math inline">\boldsymbol{p}^{\star}</span> is unknown, the global block switches to reconstitution of <span class="math inline">\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}</span> against <span class="math inline">\boldsymbol{y}</span>. <a href="#sec-ademp" class="quarto-xref">Sec. 8</a> maps the same columns onto the ADEMP checklist.</p>
+<p>Every distance below is an <strong>error</strong> unless noted (F1, Pearson, coverage): <span class="math inline">0</span> is ideal whenever a canonical bound exists. <a href="#fig-metrics-families" class="quarto-xref">Figure 8</a> shows how <span class="math inline">L_1</span>, <span class="math inline">L_2</span>, <span class="math inline">L_{\infty}</span>, Aitchison, and angular balls sit on the simplex; <a href="#nte-comp-geometry" class="quarto-xref">Note 12</a> reads that geometry.</p>
+<div id="fig-metrics-families" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-metrics-families-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-metrics-families" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-comp-metrics" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-subfloat-fig"><div aria-describedby="fig-comp-metrics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/fig_compositional_metrics.svg" data-ref-parent="fig-metrics-families">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-comp-metrics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) Simplex geometry of <span class="math inline">L_1</span>, <span class="math inline">L_2</span>, <span class="math inline">L_{\infty}</span>, Aitchison, and angular discrepancies between <span class="math inline">\boldsymbol{p}^{\star}</span> and <span class="math inline">\hat{\boldsymbol{p}}</span>.
+</figcaption></figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-metrics-families" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-comp-interp" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-subfloat-fig"><div aria-describedby="fig-comp-interp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/fig_compositional_metrics_interpretation.svg" data-ref-parent="fig-metrics-families">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-comp-interp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b) How those distances behave near the barycentre versus near a vertex of the simplex.
+</figcaption></figure>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-metrics-families-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 8: Compositional error metrics for <span class="math inline">\boldsymbol{p}</span> on <span class="math inline">\Delta^{J-1}</span>.
+</figcaption></figure>
+</div>
+<div id="nte-comp-geometry">
+<blockquote>
+<p><strong>Note 12: Euclidean versus log-ratio geometry on the simplex</strong></p>
+<p>Compositions live on <span class="math inline">\Delta^{J-1}</span>, not in <span class="math inline">\mathbb{R}^{J}</span> <span class="citation" data-cites="aitchisonStatisticalAnalysisCompositional1982">(<a href="#ref-aitchisonStatisticalAnalysisCompositional1982" role="doc-biblioref">Aitchison 1982</a>)</span>. The same Euclidean vector <span class="math inline">\boldsymbol{e}=\hat{\boldsymbol{p}}-\boldsymbol{p}^{\star}</span> therefore has a different meaning at the barycentre than near a vertex (<a href="#fig-comp-interp" class="quarto-xref">Figure 8 (b)</a>).</p>
+<ul>
+<li>
+<strong>RMSE / MAE / MaxAE</strong> treat a <span class="math inline">0.05</span> miss on a type with <span class="math inline">p_j=0.50</span> like a <span class="math inline">0.05</span> miss on a type with <span class="math inline">p_j=0.01</span>. Abundant types dominate. On the simplex the sharp bounds are <span class="math inline">\|\boldsymbol{e}\|_1\le 2</span>, <span class="math inline">\|\boldsymbol{e}\|_2\le\sqrt{2}</span>, <span class="math inline">\|\boldsymbol{e}\|_\infty\le 1</span> (all mass on one type in <span class="math inline">\boldsymbol{p}^{\star}</span> and on a different type in <span class="math inline">\hat{\boldsymbol{p}}</span>), not the coordinate-wise bound of one.</li>
+<li>
+<strong>Total variation</strong> <span class="math inline">d_{\mathrm{TV}}=\tfrac12\|\boldsymbol{e}\|_1</span> is that <span class="math inline">L_1</span> geometry already scaled to <span class="math inline">[0,1]</span>. It is the package default global absolute error (<code>tv</code>); MAE is <span class="math inline">\|\boldsymbol{e}\|_1/J=2\,d_{\mathrm{TV}}/J</span>.</li>
+<li>
+<strong>Aitchison / CLR</strong> scores <em>relative</em> (log-ratio) error, so a two-fold miss on a rare type weighs like a two-fold miss on an abundant type. The distance is unbounded and undefined at exact zeros without a replacement. DeCovarT does <strong>not</strong> return it from <code><a href="../reference/compute_benchmark_metrics.html">compute_benchmark_metrics()</a></code> (<a href="#tbl-metrics-regression-other" class="quarto-xref">Table 8</a>).</li>
+<li>
+<strong>Jensen–Shannon</strong> is a bounded, symmetric disagreement of two discrete distributions <span class="citation" data-cites="linDivergenceMeasuresBased1991">(<a href="#ref-linDivergenceMeasuresBased1991" role="doc-biblioref">Lin 1991</a>)</span>. The associated distance <span class="math inline">\sqrt{\mathrm{JSD}/\log 2}</span> is a metric <span class="citation" data-cites="endresNewMetricProbability2003">(<a href="#ref-endresNewMetricProbability2003" role="doc-biblioref">Endres and Schindelin 2003</a>)</span>. It is gentler than Aitchison on rare types and finite with zeros after a standard convention <span class="math inline">0\log 0=0</span>. It is likewise not a primary package column.</li>
+<li>
+<strong>Angular / SDID</strong> ignore amplitude along a ray. On the simplex the total mass is already one, so they mainly capture whether the two compositions point the same way (including near-orthogonal spills onto the wrong vertex).</li>
+</ul>
+</blockquote>
+</div>
+<section class="level2"><h3 id="sec-metrics-regression">Composition and regression scores<a class="anchor" aria-label="anchor" href="#sec-metrics-regression"></a>
+</h3>
+<p>Global scores are computed <strong>per bulk column</strong>. Cell-type Pearson, F1, and false-positive mass are aggregated <strong>across samples</strong> for each type; they are not the within-sample correlation of the length-<span class="math inline">J</span> vectors, which is unstable for small <span class="math inline">J</span>.</p>
+<div class="cell">
+<div id="tbl-metrics-regression-kept" class="cell quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-metrics-regression-kept-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 7: Kept composition and regression scores from <code><a href="../reference/compute_benchmark_metrics.html">compute_benchmark_metrics()</a></code> (<code>R/utils-metrics.R</code>).
+</figcaption><div aria-describedby="tbl-metrics-regression-kept-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<!-- tinytable mathjax start -->
+    <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script><script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+    </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
+      // Create table-specific functions using external factory
+      const tableFns_m9ln8ksazbixdvmoag0u = TinyTable.createTableFunctions("tinytable_m9ln8ksazbixdvmoag0u");
+      // tinytable span after
+      window.addEventListener('load', function () { tableFns_m9ln8ksazbixdvmoag0u.spanCell(14, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_m9ln8ksazbixdvmoag0u.spanCell(11, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_m9ln8ksazbixdvmoag0u.spanCell(9, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_m9ln8ksazbixdvmoag0u.spanCell(6, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_m9ln8ksazbixdvmoag0u.spanCell(4, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_m9ln8ksazbixdvmoag0u.spanCell(1, 1, 1, 5) })
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '15', j: 1 }, { i: '15', j: 2 }, { i: '15', j: 3 }, { i: '15', j: 4 }, { i: '15', j: 5 } ], css_id: 'tinytable_css_d94rfdg5pf4zu8s7yo7o',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_aiwrdq5n0phwuzdtn1ct',},
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  tableFns_m9ln8ksazbixdvmoag0u.styleCell(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
+<style>
+    /* tinytable css entries after */
+    #tinytable_m9ln8ksazbixdvmoag0u td.tinytable_css_d94rfdg5pf4zu8s7yo7o, #tinytable_m9ln8ksazbixdvmoag0u th.tinytable_css_d94rfdg5pf4zu8s7yo7o {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_m9ln8ksazbixdvmoag0u td.tinytable_css_aiwrdq5n0phwuzdtn1ct, #tinytable_m9ln8ksazbixdvmoag0u th.tinytable_css_aiwrdq5n0phwuzdtn1ct {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    </style>
+<div class="container">
+      <table class="table tinytable" id="tinytable_m9ln8ksazbixdvmoag0u" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+<thead><tr>
+<th scope="col" data-row="0" data-col="1">Metric</th>
+                <th scope="col" data-row="0" data-col="2">Formula</th>
+                <th scope="col" data-row="0" data-col="3">Bounds</th>
+                <th scope="col" data-row="0" data-col="4">Captures</th>
+                <th scope="col" data-row="0" data-col="5">Pros_cons</th>
+              </tr></thead>
+<tbody>
+<tr>
+<td data-row="1" data-col="1">Absolute error</td>
+                  <td data-row="1" data-col="2">Absolute error</td>
+                  <td data-row="1" data-col="3">Absolute error</td>
+                  <td data-row="1" data-col="4">Absolute error</td>
+                  <td data-row="1" data-col="5">Absolute error</td>
+                </tr>
+<tr>
+<td data-row="2" data-col="1">Total variation / nMAE (<code>tv</code>)</td>
+                  <td data-row="2" data-col="2">\(d_{\mathrm{TV}}=\tfrac12\|e\|_1\)</td>
+                  <td data-row="2" data-col="3">\([0,1]\) (equals \(\|e\|_1/2\))</td>
+                  <td data-row="2" data-col="4">Mean absolute percentage-point error, simplex-normalised</td>
+                  <td data-row="2" data-col="5">Interpretable; \(J\)-free. Underweights relative rare-type error.</td>
+                </tr>
+<tr>
+<td data-row="3" data-col="1">MaxAE (<code>maxae</code>)</td>
+                  <td data-row="3" data-col="2">\(\max_j |e_j|\)</td>
+                  <td data-row="3" data-col="3">\([0,1]\)</td>
+                  <td data-row="3" data-col="4">Worst single cell-type miss</td>
+                  <td data-row="3" data-col="5">Safety diagnostic. Ignores all non-maximum errors.</td>
+                </tr>
+<tr>
+<td data-row="4" data-col="1">Quadratic error</td>
+                  <td data-row="4" data-col="2">Quadratic error</td>
+                  <td data-row="4" data-col="3">Quadratic error</td>
+                  <td data-row="4" data-col="4">Quadratic error</td>
+                  <td data-row="4" data-col="5">Quadratic error</td>
+                </tr>
+<tr>
+<td data-row="5" data-col="1">RMSE (<code>rmse</code>)</td>
+                  <td data-row="5" data-col="2">\(\sqrt{J^{-1}\sum_j e_j^2}\)</td>
+                  <td data-row="5" data-col="3">\([0,\sqrt{2/J}]\); \(L_2/\sqrt{2}\) is \(J\)-free</td>
+                  <td data-row="5" data-col="4">Large absolute misses (abundant types dominate)</td>
+                  <td data-row="5" data-col="5">Familiar \(L_2\) penalty. Dominated by abundant types.</td>
+                </tr>
+<tr>
+<td data-row="6" data-col="1">Angular</td>
+                  <td data-row="6" data-col="2">Angular</td>
+                  <td data-row="6" data-col="3">Angular</td>
+                  <td data-row="6" data-col="4">Angular</td>
+                  <td data-row="6" data-col="5">Angular</td>
+                </tr>
+<tr>
+<td data-row="7" data-col="1">Normalised angular distance (<code>angular</code>)</td>
+                  <td data-row="7" data-col="2">\(d_\theta=(2/\pi)\arccos(p^{\top}\hat p/(\|p\|_2\|\hat p\|_2))\)</td>
+                  <td data-row="7" data-col="3">\([0,1]\)</td>
+                  <td data-row="7" data-col="4">Direction between the two compositions</td>
+                  <td data-row="7" data-col="5">Bounded metric. Partly redundant once \(\sum p_j=1\).</td>
+                </tr>
+<tr>
+<td data-row="8" data-col="1">SDID (<code>sdid</code>)</td>
+                  <td data-row="8" data-col="2">\(\sqrt{\sin\theta}=(1-\cos^{2}\theta)^{1/4}\)</td>
+                  <td data-row="8" data-col="3">\([0,1]\)</td>
+                  <td data-row="8" data-col="4">HADACA angular companion of \(d_\theta\)</td>
+                  <td data-row="8" data-col="5">Continuity with HADACA3. Less standard than \(d_\theta\).</td>
+                </tr>
+<tr>
+<td data-row="9" data-col="1">Association (cell type)</td>
+                  <td data-row="9" data-col="2">Association (cell type)</td>
+                  <td data-row="9" data-col="3">Association (cell type)</td>
+                  <td data-row="9" data-col="4">Association (cell type)</td>
+                  <td data-row="9" data-col="5">Association (cell type)</td>
+                </tr>
+<tr>
+<td data-row="10" data-col="1">Pearson \(r\) (<code>pearson</code>)</td>
+                  <td data-row="10" data-col="2">\(\mathrm{cor}(\{p_{ij}\}_i,\{\hat p_{ij}\}_i)\)</td>
+                  <td data-row="10" data-col="3">\([-1,1]\); error \((1-r)/2\in[0,1]\)</td>
+                  <td data-row="10" data-col="4">Ranking of samples for one type, not calibration</td>
+                  <td data-row="10" data-col="5">Detects orderings across samples. High \(r\) can hide bias.</td>
+                </tr>
+<tr>
+<td data-row="11" data-col="1">Boundary / spillover</td>
+                  <td data-row="11" data-col="2">Boundary / spillover</td>
+                  <td data-row="11" data-col="3">Boundary / spillover</td>
+                  <td data-row="11" data-col="4">Boundary / spillover</td>
+                  <td data-row="11" data-col="5">Boundary / spillover</td>
+                </tr>
+<tr>
+<td data-row="12" data-col="1">Presence F1 (<code>presence_f1</code>)</td>
+                  <td data-row="12" data-col="2">\(F_1=2PR/(P+R)\) at threshold \(\varepsilon=10^{-4}\)</td>
+                  <td data-row="12" data-col="3">\([0,1]\) (\(1\) best)</td>
+                  <td data-row="12" data-col="4">Recovery of present versus absent types</td>
+                  <td data-row="12" data-col="5">Rare/absent types visible. Threshold-sensitive.</td>
+                </tr>
+<tr>
+<td data-row="13" data-col="1">False-positive mass</td>
+                  <td data-row="13" data-col="2">\(N^{-1}\sum_i\sum_{j:p_{ij}\le\varepsilon}\hat p_{ij}\)</td>
+                  <td data-row="13" data-col="3">\([0,1]\)</td>
+                  <td data-row="13" data-col="4">Mass spilled onto truly absent types</td>
+                  <td data-row="13" data-col="5">Direct spillover mass. Needs a true zero set.</td>
+                </tr>
+<tr>
+<td data-row="14" data-col="1">Reconstitution (no \(p^{\star}\))</td>
+                  <td data-row="14" data-col="2">Reconstitution (no \(p^{\star}\))</td>
+                  <td data-row="14" data-col="3">Reconstitution (no \(p^{\star}\))</td>
+                  <td data-row="14" data-col="4">Reconstitution (no \(p^{\star}\))</td>
+                  <td data-row="14" data-col="5">Reconstitution (no \(p^{\star}\))</td>
+                </tr>
+<tr>
+<td data-row="15" data-col="1">Reconstitution MAE / Pearson</td>
+                  <td data-row="15" data-col="2">\(\|y-\mu\hat p\|_1/G\); \(\mathrm{cor}(y,\mu\hat p)\)</td>
+                  <td data-row="15" data-col="3">MAE on \(y\): data-scale; \(r\in[-1,1]\)</td>
+                  <td data-row="15" data-col="4">How well \(\hat p\) rebuilds the bulk when \(p^{\star}\) is unknown</td>
+                  <td data-row="15" data-col="5">Works without \(p^{\star}\). Can look good with a wrong \(\hat p\).</td>
+                </tr>
+</tbody>
+</table>
+</div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</figure>
+</div>
+</div>
+<div class="cell">
+<div id="tbl-metrics-regression-other" class="cell quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-metrics-regression-other-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 8: Related composition scores that are not primary <code><a href="../reference/compute_benchmark_metrics.html">compute_benchmark_metrics()</a></code> columns.
+</figcaption><div aria-describedby="tbl-metrics-regression-other-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<!-- tinytable mathjax start -->
+    <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script><script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+    </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
+      // Create table-specific functions using external factory
+      const tableFns_i4vywsxathqv4dzvz85y = TinyTable.createTableFunctions("tinytable_i4vywsxathqv4dzvz85y");
+      // tinytable span after
+      window.addEventListener('load', function () { tableFns_i4vywsxathqv4dzvz85y.spanCell(12, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_i4vywsxathqv4dzvz85y.spanCell(9, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_i4vywsxathqv4dzvz85y.spanCell(7, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_i4vywsxathqv4dzvz85y.spanCell(5, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_i4vywsxathqv4dzvz85y.spanCell(3, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_i4vywsxathqv4dzvz85y.spanCell(1, 1, 1, 5) })
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '13', j: 1 }, { i: '13', j: 2 }, { i: '13', j: 3 }, { i: '13', j: 4 }, { i: '13', j: 5 } ], css_id: 'tinytable_css_rrdr380cka8k1r6mo32c',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_uog2pczh9k362ozz6u3m',},
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  tableFns_i4vywsxathqv4dzvz85y.styleCell(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
+<style>
+    /* tinytable css entries after */
+    #tinytable_i4vywsxathqv4dzvz85y td.tinytable_css_rrdr380cka8k1r6mo32c, #tinytable_i4vywsxathqv4dzvz85y th.tinytable_css_rrdr380cka8k1r6mo32c {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_i4vywsxathqv4dzvz85y td.tinytable_css_uog2pczh9k362ozz6u3m, #tinytable_i4vywsxathqv4dzvz85y th.tinytable_css_uog2pczh9k362ozz6u3m {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    </style>
+<div class="container">
+      <table class="table tinytable" id="tinytable_i4vywsxathqv4dzvz85y" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+<thead><tr>
+<th scope="col" data-row="0" data-col="1">Metric</th>
+                <th scope="col" data-row="0" data-col="2">Formula</th>
+                <th scope="col" data-row="0" data-col="3">Bounds</th>
+                <th scope="col" data-row="0" data-col="4">Captures</th>
+                <th scope="col" data-row="0" data-col="5">Why_not</th>
+              </tr></thead>
+<tbody>
+<tr>
+<td data-row="1" data-col="1">Absolute error</td>
+                  <td data-row="1" data-col="2">Absolute error</td>
+                  <td data-row="1" data-col="3">Absolute error</td>
+                  <td data-row="1" data-col="4">Absolute error</td>
+                  <td data-row="1" data-col="5">Absolute error</td>
+                </tr>
+<tr>
+<td data-row="2" data-col="1">MAE (helper <code>.mae()</code> only)</td>
+                  <td data-row="2" data-col="2">\(J^{-1}\|e\|_1=2\,d_{\mathrm{TV}}/J\)</td>
+                  <td data-row="2" data-col="3">\([0,2/J]\); \(J\)-free form is \(d_{\mathrm{TV}}\)</td>
+                  <td data-row="2" data-col="4">Same \(L_1\) information as TV at fixed \(J\)</td>
+                  <td data-row="2" data-col="5">Report <code>tv</code> instead (already \([0,1]\)).</td>
+                </tr>
+<tr>
+<td data-row="3" data-col="1">Log-ratio</td>
+                  <td data-row="3" data-col="2">Log-ratio</td>
+                  <td data-row="3" data-col="3">Log-ratio</td>
+                  <td data-row="3" data-col="4">Log-ratio</td>
+                  <td data-row="3" data-col="5">Log-ratio</td>
+                </tr>
+<tr>
+<td data-row="4" data-col="1">Aitchison distance</td>
+                  <td data-row="4" data-col="2">\(\|\mathrm{clr}(p)-\mathrm{clr}(\hat p)\|_2\)</td>
+                  <td data-row="4" data-col="3">\([0,\infty)\); undefined at structural zeros</td>
+                  <td data-row="4" data-col="4">Relative (fold-change) error, rare types included</td>
+                  <td data-row="4" data-col="5">Zero replacement dominates; no canonical \([0,1]\) bound.</td>
+                </tr>
+<tr>
+<td data-row="5" data-col="1">Information</td>
+                  <td data-row="5" data-col="2">Information</td>
+                  <td data-row="5" data-col="3">Information</td>
+                  <td data-row="5" data-col="4">Information</td>
+                  <td data-row="5" data-col="5">Information</td>
+                </tr>
+<tr>
+<td data-row="6" data-col="1">Jensen–Shannon divergence / distance</td>
+                  <td data-row="6" data-col="2">\(\tfrac12\mathrm{KL}(p\|m)+\tfrac12\mathrm{KL}(\hat p\|m)\), \(m=(p+\hat p)/2\)</td>
+                  <td data-row="6" data-col="3">\([0,\log 2]\) (nats); distance \(\sqrt{\mathrm{JSD}/\log 2}\in[0,1]\)</td>
+                  <td data-row="6" data-col="4">Symmetric distributional disagreement</td>
+                  <td data-row="6" data-col="5">Not implemented in <code>R/utils-metrics.R</code>.</td>
+                </tr>
+<tr>
+<td data-row="7" data-col="1">Probability geometry</td>
+                  <td data-row="7" data-col="2">Probability geometry</td>
+                  <td data-row="7" data-col="3">Probability geometry</td>
+                  <td data-row="7" data-col="4">Probability geometry</td>
+                  <td data-row="7" data-col="5">Probability geometry</td>
+                </tr>
+<tr>
+<td data-row="8" data-col="1">Hellinger distance of compositions</td>
+                  <td data-row="8" data-col="2">\(2^{-1/2}\|\sqrt{p}-\sqrt{\hat p}\|_2\)</td>
+                  <td data-row="8" data-col="3">\([0,1]\)</td>
+                  <td data-row="8" data-col="4">Hellinger geometry of \(\sqrt{p}\); zeros allowed</td>
+                  <td data-row="8" data-col="5">Monotone with \(L_2\) on square-root compositions; not wired.</td>
+                </tr>
+<tr>
+<td data-row="9" data-col="1">Association</td>
+                  <td data-row="9" data-col="2">Association</td>
+                  <td data-row="9" data-col="3">Association</td>
+                  <td data-row="9" data-col="4">Association</td>
+                  <td data-row="9" data-col="5">Association</td>
+                </tr>
+<tr>
+<td data-row="10" data-col="1">Sample-wise Pearson of the \(J\)-vector</td>
+                  <td data-row="10" data-col="2">\(\mathrm{cor}_j(p,\hat p)\) within one sample</td>
+                  <td data-row="10" data-col="3">\([-1,1]\)</td>
+                  <td data-row="10" data-col="4">Within-sample ranking of types</td>
+                  <td data-row="10" data-col="5">Unstable for small \(J\); high \(r\) hides calibration error.</td>
+                </tr>
+<tr>
+<td data-row="11" data-col="1">Spearman \(\rho_S\)</td>
+                  <td data-row="11" data-col="2">rank correlation across samples</td>
+                  <td data-row="11" data-col="3">\([-1,1]\)</td>
+                  <td data-row="11" data-col="4">Monotone ranking, magnitudes discarded</td>
+                  <td data-row="11" data-col="5">Ignores absolute fractions.</td>
+                </tr>
+<tr>
+<td data-row="12" data-col="1">Hierarchical</td>
+                  <td data-row="12" data-col="2">Hierarchical</td>
+                  <td data-row="12" data-col="3">Hierarchical</td>
+                  <td data-row="12" data-col="4">Hierarchical</td>
+                  <td data-row="12" data-col="5">Hierarchical</td>
+                </tr>
+<tr>
+<td data-row="13" data-col="1">Hierarchical relative RMSE (hrRMSE)</td>
+                  <td data-row="13" data-col="2">RMSE scaled by nested biological variance</td>
+                  <td data-row="13" data-col="3">scale depends on the ontology</td>
+                  <td data-row="13" data-col="4">Error relative to a cell-type hierarchy</td>
+                  <td data-row="13" data-col="5">Needs a cell-type ontology [@baWhenLessNot2026]; <a href="#fig-hrrmse">@fig-hrrmse</a>.</td>
+                </tr>
+</tbody>
+</table>
+</div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</figure>
+</div>
+</div>
+<div id="fig-hrrmse" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-hrrmse-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/fig_hierarchical_rmse_metrics.png" style="width:70.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-hrrmse-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 9: Hierarchical relative RMSE (hrRMSE) used when some reference types are missing: residual error is scaled by the biological variance of <span class="math inline">\boldsymbol{p}^{\star}</span> rather than by raw proportion units <span class="citation" data-cites="baWhenLessNot2026">(<a href="#ref-baWhenLessNot2026" role="doc-biblioref">Ba et al. 2026</a>)</span>.
+</figcaption></figure>
+</div>
+<div id="nte-angular-metrics">
+<blockquote>
+<p><strong>Note 13: Angular distance versus SDID</strong></p>
+<p>Both scores are strictly increasing functions of the same angle <span class="math inline">\theta=\arccos(p^{\mathsf{T}}\hat p/(\|p\|_2\|\hat p\|_2))</span>. The normalised angular distance <span class="math inline">d_\theta=2\theta/\pi</span> is a metric on <span class="math inline">[0,1]</span>. SDID is <span class="math inline">\sqrt{\sin\theta}</span> (the HADACA convention implemented in <code>.sdid()</code>). They rank methods identically; report one in the headline panel and keep the other for continuity with HADACA3 <span class="citation" data-cites="barbotPromisesLimitsMultimodal2026">(<a href="#ref-barbotPromisesLimitsMultimodal2026" role="doc-biblioref">Barbot and Richard 2026</a>)</span>.</p>
+</blockquote>
+</div>
+<div id="nte-simplex-bounds">
+<blockquote>
+<p><strong>Note 14: Simplex bounds for <span class="math inline">L_p</span> errors</strong></p>
+<p>Because <span class="math inline">\boldsymbol{p}</span> and <span class="math inline">\hat{\boldsymbol{p}}</span> both sum to one and are non-negative, <span class="math inline">\boldsymbol{e}</span> is orthogonal to <span class="math inline">\mathbf{1}</span> and cannot put unit mass on two opposite vertices at once without taking it from the other. Hence <span class="math inline">\|\boldsymbol{e}\|_1\le 2</span>, <span class="math inline">\|\boldsymbol{e}\|_2\le\sqrt{2}</span>, and <span class="math inline">\|\boldsymbol{e}\|_\infty\le 1</span>, with equality when all mass sits on one type in <span class="math inline">\boldsymbol{p}</span> and on a different type in <span class="math inline">\hat{\boldsymbol{p}}</span>. Normalised MAE is total variation: <span class="math inline">J\,\mathrm{MAE}/2=d_{\mathrm{TV}}</span>. Raw RMSE still depends on <span class="math inline">J</span>; divide by <span class="math inline">\sqrt{2/J}</span> (equivalently <span class="math inline">\|\boldsymbol{e}\|_2/\sqrt{2}</span>) if a dimension-free <span class="math inline">L_2</span> score is needed.</p>
+</blockquote>
+</div>
+</section><section class="level2"><h3 id="sec-metrics-ademp">Monte Carlo (ADEMP) summaries<a class="anchor" aria-label="anchor" href="#sec-metrics-ademp"></a>
+</h3>
+<p>These describe the <strong>estimator as a repeated-sampling procedure</strong>, not the distance between one <span class="math inline">\hat{\boldsymbol{p}}</span> and one <span class="math inline">\boldsymbol{p}^{\star}</span>. Each row of <code>monte_carlo</code> is one cell type. Coverage intervals around the <em>rate</em> <span class="math inline">\hat\pi</span> are derived in <a href="#nte-binomial-coverage-ci" class="quarto-xref">Note 18</a>.</p>
+<div class="cell">
+<div id="tbl-metrics-mc-kept" class="cell quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-metrics-mc-kept-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 9: Kept Monte Carlo / ADEMP summaries (<code>monte_carlo</code> block and <code><a href="../reference/coverage_mc_interval.html">coverage_mc_interval()</a></code>).
+</figcaption><div aria-describedby="tbl-metrics-mc-kept-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<!-- tinytable mathjax start -->
+    <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script><script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+    </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
+      // Create table-specific functions using external factory
+      const tableFns_kg50rosqcakuyhhuqfoc = TinyTable.createTableFunctions("tinytable_kg50rosqcakuyhhuqfoc");
+      // tinytable span after
+      window.addEventListener('load', function () { tableFns_kg50rosqcakuyhhuqfoc.spanCell(12, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_kg50rosqcakuyhhuqfoc.spanCell(10, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_kg50rosqcakuyhhuqfoc.spanCell(8, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_kg50rosqcakuyhhuqfoc.spanCell(6, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_kg50rosqcakuyhhuqfoc.spanCell(4, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_kg50rosqcakuyhhuqfoc.spanCell(1, 1, 1, 5) })
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '15', j: 1 }, { i: '15', j: 2 }, { i: '15', j: 3 }, { i: '15', j: 4 }, { i: '15', j: 5 } ], css_id: 'tinytable_css_em3dc4z30alrgbdullhp',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_eunh1n55m1vregspwe9n',},
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  tableFns_kg50rosqcakuyhhuqfoc.styleCell(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
+<style>
+    /* tinytable css entries after */
+    #tinytable_kg50rosqcakuyhhuqfoc td.tinytable_css_em3dc4z30alrgbdullhp, #tinytable_kg50rosqcakuyhhuqfoc th.tinytable_css_em3dc4z30alrgbdullhp {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_kg50rosqcakuyhhuqfoc td.tinytable_css_eunh1n55m1vregspwe9n, #tinytable_kg50rosqcakuyhhuqfoc th.tinytable_css_eunh1n55m1vregspwe9n {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    </style>
+<div class="container">
+      <table class="table tinytable" id="tinytable_kg50rosqcakuyhhuqfoc" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+<thead><tr>
+<th scope="col" data-row="0" data-col="1">Metric</th>
+                <th scope="col" data-row="0" data-col="2">Formula</th>
+                <th scope="col" data-row="0" data-col="3">Bounds</th>
+                <th scope="col" data-row="0" data-col="4">Captures</th>
+                <th scope="col" data-row="0" data-col="5">Pros_cons</th>
+              </tr></thead>
+<tbody>
+<tr>
+<td data-row="1" data-col="1">Point estimation</td>
+                  <td data-row="1" data-col="2">Point estimation</td>
+                  <td data-row="1" data-col="3">Point estimation</td>
+                  <td data-row="1" data-col="4">Point estimation</td>
+                  <td data-row="1" data-col="5">Point estimation</td>
+                </tr>
+<tr>
+<td data-row="2" data-col="1">Bias (<code>bias</code>)</td>
+                  <td data-row="2" data-col="2">\(B^{-1}\sum_b \hat p_{jb}-p_j\)</td>
+                  <td data-row="2" data-col="3">\([-1,1]\); \(|\mathrm{bias}|\in[0,1]\)</td>
+                  <td data-row="2" data-col="4">Signed systematic error per cell type</td>
+                  <td data-row="2" data-col="5">Direction of miscalibration. Joint biases can cancel in a global score.</td>
+                </tr>
+<tr>
+<td data-row="3" data-col="1">Monte Carlo RMSE (<code>rmse</code>)</td>
+                  <td data-row="3" data-col="2">\(\sqrt{B^{-1}\sum_b(\hat p_{jb}-p_j)^2}\)</td>
+                  <td data-row="3" data-col="3">\([0,1]\) on a \([0,1]\) coordinate</td>
+                  <td data-row="3" data-col="4">Bias and variance on the composition scale</td>
+                  <td data-row="3" data-col="5">Single accuracy number. Mixes bias and variance (report both).</td>
+                </tr>
+<tr>
+<td data-row="4" data-col="1">Sampling precision</td>
+                  <td data-row="4" data-col="2">Sampling precision</td>
+                  <td data-row="4" data-col="3">Sampling precision</td>
+                  <td data-row="4" data-col="4">Sampling precision</td>
+                  <td data-row="4" data-col="5">Sampling precision</td>
+                </tr>
+<tr>
+<td data-row="5" data-col="1">Empirical SD (<code>empirical_sd</code>)</td>
+                  <td data-row="5" data-col="2">\(\sqrt{(B-1)^{-1}\sum_b(\hat p_{jb}-\bar p_j)^2}\)</td>
+                  <td data-row="5" data-col="3">population SD \(\le 1/2\) on \([0,1]\)</td>
+                  <td data-row="5" data-col="4">Monte Carlo precision of \(\hat p_j\)</td>
+                  <td data-row="5" data-col="5">Direct sampling SD. Sample SD can slightly exceed \(1/2\).</td>
+                </tr>
+<tr>
+<td data-row="6" data-col="1">Reported uncertainty</td>
+                  <td data-row="6" data-col="2">Reported uncertainty</td>
+                  <td data-row="6" data-col="3">Reported uncertainty</td>
+                  <td data-row="6" data-col="4">Reported uncertainty</td>
+                  <td data-row="6" data-col="5">Reported uncertainty</td>
+                </tr>
+<tr>
+<td data-row="7" data-col="1">Mean model SE (<code>mean_model_se</code>)</td>
+                  <td data-row="7" data-col="2">\(B^{-1}\sum_b \widehat{\mathrm{SE}}_{jb}\)</td>
+                  <td data-row="7" data-col="3">no guaranteed finite bound (Wald SE)</td>
+                  <td data-row="7" data-col="4">Mean claimed Wald (or supplied) standard error</td>
+                  <td data-row="7" data-col="5">Tests the uncertainty estimate itself. Poor near the boundary.</td>
+                </tr>
+<tr>
+<td data-row="8" data-col="1">SE calibration</td>
+                  <td data-row="8" data-col="2">SE calibration</td>
+                  <td data-row="8" data-col="3">SE calibration</td>
+                  <td data-row="8" data-col="4">SE calibration</td>
+                  <td data-row="8" data-col="5">SE calibration</td>
+                </tr>
+<tr>
+<td data-row="9" data-col="1">SE / SD ratio (<code>se_sd_ratio</code>)</td>
+                  <td data-row="9" data-col="2">\(\overline{\widehat{\mathrm{SE}}}_j / \mathrm{SD}(\hat p_j)\)</td>
+                  <td data-row="9" data-col="3">\([0,\infty)\); \(1\) is calibrated</td>
+                  <td data-row="9" data-col="4">Under- versus over-stated uncertainty</td>
+                  <td data-row="9" data-col="5">Direct diagnosis. Unstable when empirical SD is tiny.</td>
+                </tr>
+<tr>
+<td data-row="10" data-col="1">Combined accuracy</td>
+                  <td data-row="10" data-col="2">Combined accuracy</td>
+                  <td data-row="10" data-col="3">Combined accuracy</td>
+                  <td data-row="10" data-col="4">Combined accuracy</td>
+                  <td data-row="10" data-col="5">Combined accuracy</td>
+                </tr>
+<tr>
+<td data-row="11" data-col="1">Mean model SD (<code>mean_model_sd</code>)</td>
+                  <td data-row="11" data-col="2">\(\sqrt{B^{-1}\sum_b \widehat{\mathrm{SE}}_{jb}^{2}}\)</td>
+                  <td data-row="11" data-col="3">same units as empirical SD</td>
+                  <td data-row="11" data-col="4">RMS of reported SEs (compares to empirical SD)</td>
+                  <td data-row="11" data-col="5">Companion to mean SE. Not a substitute for coverage.</td>
+                </tr>
+<tr>
+<td data-row="12" data-col="1">Interval inference</td>
+                  <td data-row="12" data-col="2">Interval inference</td>
+                  <td data-row="12" data-col="3">Interval inference</td>
+                  <td data-row="12" data-col="4">Interval inference</td>
+                  <td data-row="12" data-col="5">Interval inference</td>
+                </tr>
+<tr>
+<td data-row="13" data-col="1">Coverage (<code>coverage</code>)</td>
+                  <td data-row="13" data-col="2">\(B^{-1}\sum_b \mathbf{1}\{L_{jb}\le p_j\le U_{jb}\}\)</td>
+                  <td data-row="13" data-col="3">\([0,1]\); target \(1-\alpha\), not \(1\)</td>
+                  <td data-row="13" data-col="4">Frequentist calibration of the interval for \(p_j\)</td>
+                  <td data-row="13" data-col="5">Essential inferential check. Rewards overly wide intervals if used alone.</td>
+                </tr>
+<tr>
+<td data-row="14" data-col="1">Mean interval width</td>
+                  <td data-row="14" data-col="2">\(B^{-1}\sum_b(U_{jb}-L_{jb})\)</td>
+                  <td data-row="14" data-col="3">\([0,1]\) for simplex-clipped intervals</td>
+                  <td data-row="14" data-col="4">Precision of the interval, given coverage</td>
+                  <td data-row="14" data-col="5">Separates useful from vacuous coverage. Smaller is not better unless coverage holds.</td>
+                </tr>
+<tr>
+<td data-row="15" data-col="1">MCSE of coverage (<code>mcse_coverage</code>)</td>
+                  <td data-row="15" data-col="2">\(\sqrt{\hat\pi(1-\hat\pi)/B}\)</td>
+                  <td data-row="15" data-col="3">\([0,1/\sqrt{4B}]\)</td>
+                  <td data-row="15" data-col="4">Simulation error of the coverage <em>rate</em>
+</td>
+                  <td data-row="15" data-col="5">Binomial MCSE. Wald form of the <em>rate</em>; interval for \(\hat\pi\) uses Wilson.</td>
+                </tr>
+</tbody>
+</table>
+</div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</figure>
+</div>
+</div>
+<div class="cell">
+<div id="tbl-metrics-mc-other" class="cell quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-metrics-mc-other-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 10: ADEMP-adjacent diagnostics that are not default columns.
+</figcaption><div aria-describedby="tbl-metrics-mc-other-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<!-- tinytable mathjax start -->
+    <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script><script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+    </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
+      // Create table-specific functions using external factory
+      const tableFns_mtsq35sdmrtqhk632dtl = TinyTable.createTableFunctions("tinytable_mtsq35sdmrtqhk632dtl");
+      // tinytable span after
+      window.addEventListener('load', function () { tableFns_mtsq35sdmrtqhk632dtl.spanCell(10, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_mtsq35sdmrtqhk632dtl.spanCell(8, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_mtsq35sdmrtqhk632dtl.spanCell(6, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_mtsq35sdmrtqhk632dtl.spanCell(3, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_mtsq35sdmrtqhk632dtl.spanCell(1, 1, 1, 5) })
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '11', j: 1 }, { i: '11', j: 2 }, { i: '11', j: 3 }, { i: '11', j: 4 }, { i: '11', j: 5 } ], css_id: 'tinytable_css_dcjo5yf029zygu048ptr',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_i3vcuq4klrdv8d38626n',},
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  tableFns_mtsq35sdmrtqhk632dtl.styleCell(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
+<style>
+    /* tinytable css entries after */
+    #tinytable_mtsq35sdmrtqhk632dtl td.tinytable_css_dcjo5yf029zygu048ptr, #tinytable_mtsq35sdmrtqhk632dtl th.tinytable_css_dcjo5yf029zygu048ptr {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_mtsq35sdmrtqhk632dtl td.tinytable_css_i3vcuq4klrdv8d38626n, #tinytable_mtsq35sdmrtqhk632dtl th.tinytable_css_i3vcuq4klrdv8d38626n {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    </style>
+<div class="container">
+      <table class="table tinytable" id="tinytable_mtsq35sdmrtqhk632dtl" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+<thead><tr>
+<th scope="col" data-row="0" data-col="1">Metric</th>
+                <th scope="col" data-row="0" data-col="2">Formula</th>
+                <th scope="col" data-row="0" data-col="3">Bounds</th>
+                <th scope="col" data-row="0" data-col="4">Captures</th>
+                <th scope="col" data-row="0" data-col="5">Why_not</th>
+              </tr></thead>
+<tbody>
+<tr>
+<td data-row="1" data-col="1">Boundary inference</td>
+                  <td data-row="1" data-col="2">Boundary inference</td>
+                  <td data-row="1" data-col="3">Boundary inference</td>
+                  <td data-row="1" data-col="4">Boundary inference</td>
+                  <td data-row="1" data-col="5">Boundary inference</td>
+                </tr>
+<tr>
+<td data-row="2" data-col="1">Endpoint-at-zero / active-set F1</td>
+                  <td data-row="2" data-col="2">\(B^{-1}\sum_b 1\{\min_j\hat p_{jb}\le\tau\}\)</td>
+                  <td data-row="2" data-col="3">\([0,1]\)</td>
+                  <td data-row="2" data-col="4">How often estimates sit on a face</td>
+                  <td data-row="2" data-col="5">Scenario-specific; presence F1 already summarises support.</td>
+                </tr>
+<tr>
+<td data-row="3" data-col="1">Testing</td>
+                  <td data-row="3" data-col="2">Testing</td>
+                  <td data-row="3" data-col="3">Testing</td>
+                  <td data-row="3" data-col="4">Testing</td>
+                  <td data-row="3" data-col="5">Testing</td>
+                </tr>
+<tr>
+<td data-row="4" data-col="1">Type-I error</td>
+                  <td data-row="4" data-col="2">rejection rate under \(H_0\)</td>
+                  <td data-row="4" data-col="3">\([0,1]\); target \(\alpha\)</td>
+                  <td data-row="4" data-col="4">False detections of a cell type</td>
+                  <td data-row="4" data-col="5">Requires an explicit \(H_0\) grid (out of ADEMP scope here).</td>
+                </tr>
+<tr>
+<td data-row="5" data-col="1">Power</td>
+                  <td data-row="5" data-col="2">rejection rate under a designed alternative</td>
+                  <td data-row="5" data-col="3">\([0,1]\)</td>
+                  <td data-row="5" data-col="4">Ability to detect a designed shift</td>
+                  <td data-row="5" data-col="5">Requires a designed alternative (out of scope).</td>
+                </tr>
+<tr>
+<td data-row="6" data-col="1">Landscape</td>
+                  <td data-row="6" data-col="2">Landscape</td>
+                  <td data-row="6" data-col="3">Landscape</td>
+                  <td data-row="6" data-col="4">Landscape</td>
+                  <td data-row="6" data-col="5">Landscape</td>
+                </tr>
+<tr>
+<td data-row="7" data-col="1">Multistart likelihood spread</td>
+                  <td data-row="7" data-col="2">\(\max_s\ell_s-\min_s\ell_s\) among converged starts</td>
+                  <td data-row="7" data-col="3">\([0,\infty)\)</td>
+                  <td data-row="7" data-col="4">Distinct basins of the likelihood</td>
+                  <td data-row="7" data-col="5">Needs multi-start logging (<code><a href="../reference/multistart_decovart.html">multistart_decovart()</a></code>), not default.</td>
+                </tr>
+<tr>
+<td data-row="8" data-col="1">Constraints</td>
+                  <td data-row="8" data-col="2">Constraints</td>
+                  <td data-row="8" data-col="3">Constraints</td>
+                  <td data-row="8" data-col="4">Constraints</td>
+                  <td data-row="8" data-col="5">Constraints</td>
+                </tr>
+<tr>
+<td data-row="9" data-col="1">Simplex violation</td>
+                  <td data-row="9" data-col="2">distance of \(\hat p\) to \(\Delta^{J-1}\) before repair</td>
+                  <td data-row="9" data-col="3">\([0,\infty)\)</td>
+                  <td data-row="9" data-col="4">Constraint fidelity of the raw solver return</td>
+                  <td data-row="9" data-col="5">Solvers already repair onto the simplex (<code><a href="../reference/repair_simplex.html">repair_simplex()</a></code>).</td>
+                </tr>
+<tr>
+<td data-row="10" data-col="1">Linear algebra</td>
+                  <td data-row="10" data-col="2">Linear algebra</td>
+                  <td data-row="10" data-col="3">Linear algebra</td>
+                  <td data-row="10" data-col="4">Linear algebra</td>
+                  <td data-row="10" data-col="5">Linear algebra</td>
+                </tr>
+<tr>
+<td data-row="11" data-col="1">Cholesky fill-in / sparse timings</td>
+                  <td data-row="11" data-col="2">nnz$(L)$ or seconds per factorisation</td>
+                  <td data-row="11" data-col="3">non-negative</td>
+                  <td data-row="11" data-col="4">Cost of \(\Sigma(p)^{-1}\) at the chosen structure</td>
+                  <td data-row="11" data-col="5">
+<a href="https://bastienchassagnol.github.io/DeCovarT/articles/supp-S2-covariance-inversion.html">Appendix S2</a>; declare the covariance structure.</td>
+                </tr>
+</tbody>
+</table>
+</div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</figure>
+</div>
+</div>
+<div id="nte-mcse-coverage">
+<blockquote>
+<p><strong>Note 15: Monte Carlo standard error of coverage</strong></p>
+<p>Coverage is a mean of i.i.d. Bernoulli indicators <span class="math inline">I_b=\mathbf{1}\{p_j\in\mathrm{CI}_{jb}\}</span>. With <span class="math inline">B</span> independent simulated datasets,</p>
+<p><span class="math display">
+\widehat{\mathrm{MCSE}}
+=
+\sqrt{\hat\pi(1-\hat\pi)/B}.
+</span></p>
+<p>The denominator is <span class="math inline">B</span>, not <span class="math inline">B</span> times an inner bootstrap size: bootstrap draws belong to the interval algorithm, not to the outer simulation. At true 95% coverage, <span class="math inline">B=1000</span> gives <span class="math inline">\mathrm{MCSE}\approx 0.0069</span>. The package stores <code>mcse_coverage</code> on the <code>monte_carlo</code> table. For a generic mean <span class="math inline">\widehat T=B^{-1}\sum_b T_b</span>, use <span class="math inline">\widehat{\mathrm{MCSE}}(\widehat T)=s_T/\sqrt{B}</span> (<code>.mcse_mean()</code>).</p>
+</blockquote>
+</div>
+</section><section class="level2"><h3 id="sec-metrics-optimisation">Execution and optimisation<a class="anchor" aria-label="anchor" href="#sec-metrics-optimisation"></a>
+</h3>
+<p>Numerical convergence is whether the solver returned a finite simplex vector. Theoretical convergence asks whether <span class="math inline">\ell(\hat{\boldsymbol{p}})</span> is within <span class="math inline">10^{-3}</span> of <span class="math inline">\ell(\boldsymbol{p}^{\star})</span> (the generating value, a proxy for the expected global maximum in a well-specified Monte Carlo). The default stationarity diagnostic stored on <code>optimisation$kkt_residual</code> is the <strong>simplex projected-score residual</strong> <code>.kkt_residual()</code> (<a href="#nte-kkt-ilr-hessian" class="quarto-xref">Note 16</a>), not the raw ambient gradient and not the ILR score from <code><a href="../reference/boundary_diagnostics.html">boundary_diagnostics()</a></code>.</p>
+<p>Elapsed time is the per-sample <code><a href="https://rdrr.io/r/base/proc.time.html" class="external-link">proc.time()</a></code> elapsed inside each worker. Memory is process PSS from <code>ps</code> (RSS if PSS is unavailable). Both are stored as <strong>full per-sample vectors</strong> in <code>optimisation</code>.</p>
+<div class="cell">
+<div id="tbl-metrics-opt-kept" class="cell quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-metrics-opt-kept-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 11: Kept optimisation and runtime scores (<code>optimisation</code> block).
+</figcaption><div aria-describedby="tbl-metrics-opt-kept-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<!-- tinytable mathjax start -->
+    <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script><script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+    </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
+      // Create table-specific functions using external factory
+      const tableFns_na0lzdhl4yayy1enxb6l = TinyTable.createTableFunctions("tinytable_na0lzdhl4yayy1enxb6l");
+      // tinytable span after
+      window.addEventListener('load', function () { tableFns_na0lzdhl4yayy1enxb6l.spanCell(7, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_na0lzdhl4yayy1enxb6l.spanCell(5, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_na0lzdhl4yayy1enxb6l.spanCell(1, 1, 1, 5) })
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '9', j: 1 }, { i: '9', j: 2 }, { i: '9', j: 3 }, { i: '9', j: 4 }, { i: '9', j: 5 } ], css_id: 'tinytable_css_0c8x0zd0skxb59ac8brw',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_f1npzepvlvelvc32jw3n',},
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  tableFns_na0lzdhl4yayy1enxb6l.styleCell(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
+<style>
+    /* tinytable css entries after */
+    #tinytable_na0lzdhl4yayy1enxb6l td.tinytable_css_0c8x0zd0skxb59ac8brw, #tinytable_na0lzdhl4yayy1enxb6l th.tinytable_css_0c8x0zd0skxb59ac8brw {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_na0lzdhl4yayy1enxb6l td.tinytable_css_f1npzepvlvelvc32jw3n, #tinytable_na0lzdhl4yayy1enxb6l th.tinytable_css_f1npzepvlvelvc32jw3n {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    </style>
+<div class="container">
+      <table class="table tinytable" id="tinytable_na0lzdhl4yayy1enxb6l" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+<thead><tr>
+<th scope="col" data-row="0" data-col="1">Metric</th>
+                <th scope="col" data-row="0" data-col="2">Formula</th>
+                <th scope="col" data-row="0" data-col="3">Bounds</th>
+                <th scope="col" data-row="0" data-col="4">Captures</th>
+                <th scope="col" data-row="0" data-col="5">Pros_cons</th>
+              </tr></thead>
+<tbody>
+<tr>
+<td data-row="1" data-col="1">Convergence</td>
+                  <td data-row="1" data-col="2">Convergence</td>
+                  <td data-row="1" data-col="3">Convergence</td>
+                  <td data-row="1" data-col="4">Convergence</td>
+                  <td data-row="1" data-col="5">Convergence</td>
+                </tr>
+<tr>
+<td data-row="2" data-col="1">Numerical convergence (<code>numerical_converged</code>)</td>
+                  <td data-row="2" data-col="2">finite simplex return; no solver error</td>
+                  <td data-row="2" data-col="3">rate in \([0,1]\) (ideal \(1\))</td>
+                  <td data-row="2" data-col="4">Operational reliability of the solver return</td>
+                  <td data-row="2" data-col="5">Mandatory runtime check. A finite \(p\) need not be stationary.</td>
+                </tr>
+<tr>
+<td data-row="3" data-col="1">Theoretical convergence (<code>theoretical_converged</code>)</td>
+                  <td data-row="3" data-col="2">\(\ell(p^{\star})-\ell(\hat p)\le 10^{-3}\)</td>
+                  <td data-row="3" data-col="3">rate in \([0,1]\) (ideal \(1\))</td>
+                  <td data-row="3" data-col="4">Whether \(\hat p\) attains (nearly) the generating likelihood</td>
+                  <td data-row="3" data-col="5">Detects poor modes when \(p^{\star}\) is known. Proxy, not global uniqueness.</td>
+                </tr>
+<tr>
+<td data-row="4" data-col="1">KKT / projected-score residual (<code>kkt_residual</code>)</td>
+                  <td data-row="4" data-col="2">\(\|\Pi_\Delta(\hat p+\nabla_p\ell)-\hat p\|_2\)</td>
+                  <td data-row="4" data-col="3">\([0,\infty)\); \(0\) is first-order stationary</td>
+                  <td data-row="4" data-col="4">Simplex KKT first-order residual, including faces</td>
+                  <td data-row="4" data-col="5">Boundary-aware; solver-independent. Small residual is not global optimality.</td>
+                </tr>
+<tr>
+<td data-row="5" data-col="1">Likelihood</td>
+                  <td data-row="5" data-col="2">Likelihood</td>
+                  <td data-row="5" data-col="3">Likelihood</td>
+                  <td data-row="5" data-col="4">Likelihood</td>
+                  <td data-row="5" data-col="5">Likelihood</td>
+                </tr>
+<tr>
+<td data-row="6" data-col="1">Log-likelihood regret (<code>loglik_regret</code>)</td>
+                  <td data-row="6" data-col="2">\(\ell(p^{\star})-\ell(\hat p)\)</td>
+                  <td data-row="6" data-col="3">\((-\infty,\infty)\); \(0\) matches \(\ell(p^{\star})\)</td>
+                  <td data-row="6" data-col="4">Likelihood gap to the data-generating composition</td>
+                  <td data-row="6" data-col="5">Scale-free comparison of modes. Requires \(p^{\star}\) and \(\Sigma\).</td>
+                </tr>
+<tr>
+<td data-row="7" data-col="1">Runtime</td>
+                  <td data-row="7" data-col="2">Runtime</td>
+                  <td data-row="7" data-col="3">Runtime</td>
+                  <td data-row="7" data-col="4">Runtime</td>
+                  <td data-row="7" data-col="5">Runtime</td>
+                </tr>
+<tr>
+<td data-row="8" data-col="1">Elapsed time (<code>elapsed_sec</code>)</td>
+                  <td data-row="8" data-col="2">worker elapsed seconds for one column of \(Y\)</td>
+                  <td data-row="8" data-col="3">\([0,\infty)\)</td>
+                  <td data-row="8" data-col="4">Per-sample computational cost</td>
+                  <td data-row="8" data-col="5">Direct utility. Hardware-dependent; report median / IQR.</td>
+                </tr>
+<tr>
+<td data-row="9" data-col="1">Peak memory (<code>memory_bytes</code>)</td>
+                  <td data-row="9" data-col="2">
+<code>ps::ps_memory_full_info()$pss</code> in the worker</td>
+                  <td data-row="9" data-col="3">\([0,\infty)\) bytes</td>
+                  <td data-row="9" data-col="4">Per-sample memory footprint (PSS, not summed RSS)</td>
+                  <td data-row="9" data-col="5">Avoids double-counting shared pages. Still machine-dependent.</td>
+                </tr>
+</tbody>
+</table>
+</div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</figure>
+</div>
+</div>
+<div class="cell">
+<div id="tbl-metrics-opt-other" class="cell quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-metrics-opt-other-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 12: Optimisation diagnostics computed on fits but not stored as headline benchmark columns.
+</figcaption><div aria-describedby="tbl-metrics-opt-other-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<!-- tinytable mathjax start -->
+    <script id="MathJax-script" async="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script><script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+    </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
+      // Create table-specific functions using external factory
+      const tableFns_ot13tfjkgc3ul265kapo = TinyTable.createTableFunctions("tinytable_ot13tfjkgc3ul265kapo");
+      // tinytable span after
+      window.addEventListener('load', function () { tableFns_ot13tfjkgc3ul265kapo.spanCell(7, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_ot13tfjkgc3ul265kapo.spanCell(5, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_ot13tfjkgc3ul265kapo.spanCell(3, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_ot13tfjkgc3ul265kapo.spanCell(1, 1, 1, 5) })
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '8', j: 1 }, { i: '8', j: 2 }, { i: '8', j: 3 }, { i: '8', j: 4 }, { i: '8', j: 5 } ], css_id: 'tinytable_css_7bb2n0owze8lm9jh3r04',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_opns4o422fo0vzrlo5we',},
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  tableFns_ot13tfjkgc3ul265kapo.styleCell(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
+<style>
+    /* tinytable css entries after */
+    #tinytable_ot13tfjkgc3ul265kapo td.tinytable_css_7bb2n0owze8lm9jh3r04, #tinytable_ot13tfjkgc3ul265kapo th.tinytable_css_7bb2n0owze8lm9jh3r04 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_ot13tfjkgc3ul265kapo td.tinytable_css_opns4o422fo0vzrlo5we, #tinytable_ot13tfjkgc3ul265kapo th.tinytable_css_opns4o422fo0vzrlo5we {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    </style>
+<div class="container">
+      <table class="table tinytable" id="tinytable_ot13tfjkgc3ul265kapo" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+<thead><tr>
+<th scope="col" data-row="0" data-col="1">Metric</th>
+                <th scope="col" data-row="0" data-col="2">Formula</th>
+                <th scope="col" data-row="0" data-col="3">Bounds</th>
+                <th scope="col" data-row="0" data-col="4">Captures</th>
+                <th scope="col" data-row="0" data-col="5">Why_not</th>
+              </tr></thead>
+<tbody>
+<tr>
+<td data-row="1" data-col="1">ILR geometry</td>
+                  <td data-row="1" data-col="2">ILR geometry</td>
+                  <td data-row="1" data-col="3">ILR geometry</td>
+                  <td data-row="1" data-col="4">ILR geometry</td>
+                  <td data-row="1" data-col="5">ILR geometry</td>
+                </tr>
+<tr>
+<td data-row="2" data-col="1">ILR score norm (<code>score_norm</code>)</td>
+                  <td data-row="2" data-col="2">\(\|\nabla_{z}\tilde\ell(\hat z)\|_2=\|J_{\psi}^{\top}\nabla_p\ell\|_2\)</td>
+                  <td data-row="2" data-col="3">\([0,\infty)\); \(0\) is interior stationarity</td>
+                  <td data-row="2" data-col="4">Unconstrained first-order residual in ILR coordinates</td>
+                  <td data-row="2" data-col="5">Interior equivalent of KKT, but the Jacobian degenerates on faces (<a href="#nte-kkt-ilr-hessian">@nte-kkt-ilr-hessian</a>).</td>
+                </tr>
+<tr>
+<td data-row="3" data-col="1">Curvature</td>
+                  <td data-row="3" data-col="2">Curvature</td>
+                  <td data-row="3" data-col="3">Curvature</td>
+                  <td data-row="3" data-col="4">Curvature</td>
+                  <td data-row="3" data-col="5">Curvature</td>
+                </tr>
+<tr>
+<td data-row="4" data-col="1">Tangent / ILR \(\lambda_{\max}(H)\) (<code>max_eigenvalue</code>)</td>
+                  <td data-row="4" data-col="2">\(\lambda_{\max}(H_z)\) of <code><a href="../reference/hessian_loglik_constrained.html">hessian_loglik_constrained()</a></code>
+</td>
+                  <td data-row="4" data-col="3">unbounded; \(&lt;0\) at a local maximum</td>
+                  <td data-row="4" data-col="4">Local max versus saddle in the ILR chart</td>
+                  <td data-row="4" data-col="5">Local only; <code>local_maximum</code> is a flag on <code><a href="../reference/boundary_diagnostics.html">boundary_diagnostics()</a></code>, not a column of <code>optimisation</code>.</td>
+                </tr>
+<tr>
+<td data-row="5" data-col="1">Speed</td>
+                  <td data-row="5" data-col="2">Speed</td>
+                  <td data-row="5" data-col="3">Speed</td>
+                  <td data-row="5" data-col="4">Speed</td>
+                  <td data-row="5" data-col="5">Speed</td>
+                </tr>
+<tr>
+<td data-row="6" data-col="1">End-to-end wall time of the parallel job</td>
+                  <td data-row="6" data-col="2">clock around <code><a href="../reference/deconvolute_ratios.html">deconvolute_ratios()</a></code>
+</td>
+                  <td data-row="6" data-col="3">\([0,\infty)\)</td>
+                  <td data-row="6" data-col="4">Throughput of the whole Monte Carlo job</td>
+                  <td data-row="6" data-col="5">Confounds scheduling with per-sample cost.</td>
+                </tr>
+<tr>
+<td data-row="7" data-col="1">Memory</td>
+                  <td data-row="7" data-col="2">Memory</td>
+                  <td data-row="7" data-col="3">Memory</td>
+                  <td data-row="7" data-col="4">Memory</td>
+                  <td data-row="7" data-col="5">Memory</td>
+                </tr>
+<tr>
+<td data-row="8" data-col="1">Sum of worker RSS</td>
+                  <td data-row="8" data-col="2">sum of per-worker RSS</td>
+                  <td data-row="8" data-col="3">\([0,\infty)\)</td>
+                  <td data-row="8" data-col="4">Naive memory sum under fork</td>
+                  <td data-row="8" data-col="5">Double-counts copy-on-write pages.</td>
+                </tr>
+</tbody>
+</table>
+</div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</figure>
+</div>
+</div>
+<div id="nte-kkt-ilr-hessian">
+<blockquote>
+<p><strong>Note 16: Interior ILR stationarity, projected KKT residual, and Hessian curvature</strong></p>
+<p>Three numbers are easy to confuse. They answer different questions, and only the second is the default <code>kkt_residual</code> column.</p>
+<p><strong>Ambient score.</strong> DeCovarT differentiates <span class="math inline">\ell(\boldsymbol{p})</span> with <span class="math inline">\boldsymbol{p}</span> treated as free coordinates (<code><a href="../reference/gradient_loglik_unconstrained.html">gradient_loglik_unconstrained()</a></code>). On the simplex that vector need <strong>not</strong> vanish at a maximum. An interior stationary point satisfies <span class="math inline">g_1=\cdots=g_J=\lambda</span>: every feasible direction <span class="math inline">\boldsymbol{d}</span> has <span class="math inline">\mathbf{1}^{\top}\boldsymbol{d}=0</span>, so <span class="math inline">\boldsymbol{g}^{\top}\boldsymbol{d}=0</span> as soon as <span class="math inline">\boldsymbol{g}</span> is constant. Reporting <span class="math inline">\|\nabla_p\ell\|_2</span> is therefore a bad convergence diagnostic.</p>
+<p><strong>Interior ILR score.</strong> Native DeCovarT solvers optimise in isometric log-ratio coordinates <span class="math inline">z=\mathrm{ilr}(\boldsymbol{p})</span> (Helmert chart). The unconstrained first-order condition is <span class="math inline">\nabla_z\tilde\ell(\hat z)=0</span>, implemented as <code>score_norm</code> in <code><a href="../reference/boundary_diagnostics.html">boundary_diagnostics()</a></code>: <span class="math inline">\nabla_z\tilde\ell=J_{\psi}^{\top}\nabla_p\ell</span>. For <span class="math inline">p_j&gt;0</span>, <span class="math inline">J_{\psi}^{\top}g=0</span> if and only if <span class="math inline">P_T g=0</span> with <span class="math inline">P_T=I-J^{-1}\mathbf{1}\mathbf{1}^{\top}</span>, because the columns of <span class="math inline">J_{\psi}</span> span the simplex tangent space. The <strong>norms are not the same</strong>: <span class="math inline">\|J_{\psi}^{\top}g\|_2\neq\|P_T g\|_2</span> in general. Near a face, <span class="math inline">p_j\to 0</span> and <span class="math inline">\|z\|\to\infty</span>; entries of <span class="math inline">J_{\psi}</span> contain factors of <span class="math inline">p_j</span>, so <span class="math inline">\|\nabla_z\tilde\ell\|</span> can look small because the chart is flattening rather than because the ambient KKT violation is small. <code><a href="../reference/boundary_diagnostics.html">boundary_diagnostics()</a></code> therefore <strong>skips</strong> <code>score_norm</code> when <span class="math inline">\min_j\hat p_j</span> is below <code>boundary_tol</code>.</p>
+<p><strong>Projected-score / KKT residual (headline).</strong> For maximisation, <span class="math display">
+R_{\alpha}(\boldsymbol{p})
+=
+\alpha^{-1}\bigl(
+\Pi_{\Delta}(\boldsymbol{p}+\alpha\nabla_p\ell)
+-\boldsymbol{p}
+\bigr),
+</span> with Euclidean projection <span class="math inline">\Pi_{\Delta}</span> onto the simplex (<code>.project_simplex()</code>) and default <span class="math inline">\alpha=1</span>. Then <span class="math inline">\texttt{kkt\_residual}=\|R_{\alpha}(\hat{\boldsymbol{p}})\|_2</span>. This vanishes if and only if a first-order feasible step does not move the iterate, including when some <span class="math inline">p_j=0</span> (KKT: <span class="math inline">g_j=\lambda</span> on the support, <span class="math inline">g_j\le\lambda</span> on inactive types). That is the quantity stored by <code><a href="../reference/deconvolute_ratios.html">deconvolute_ratios()</a></code>.</p>
+<p><strong>Hessian / curvature.</strong> First-order stationarity does not imply a local maximum. <code><a href="../reference/boundary_diagnostics.html">boundary_diagnostics()</a></code> reports <span class="math inline">\lambda_{\max}(H_z)</span> of <code><a href="../reference/hessian_loglik_constrained.html">hessian_loglik_constrained()</a></code> and sets <code>local_maximum</code> when the ILR score is below <code>score_tol</code> <strong>and</strong> that largest eigenvalue is negative. A small KKT residual with <span class="math inline">\lambda_{\max}(H_z)&gt;0</span> is a saddle (or a local minimum of a maximisation problem). None of these diagnostics implies a unique global mode; the DeCovarT likelihood for one bulk sample is not concave in general (<a href="theory-DeCovarT-MLE-properties.html">MLE properties</a>).</p>
+</blockquote>
+</div>
+<div id="nte-metric-choice">
+<blockquote>
+<p><strong>Note 17: Which metric to report</strong></p>
+<p>Use TV, RMSE, MaxAE, and (optionally) angular distance / SDID as the global panel. Add cell-type Pearson and presence F1 / false-positive mass when rare or absent types matter <span class="citation" data-cites="sturmComprehensiveEvaluationTranscriptomebased2019 faComprehensiveBenchmarkingComputational2020">(<a href="#ref-sturmComprehensiveEvaluationTranscriptomebased2019" role="doc-biblioref">Sturm et al. 2019</a>; <a href="#ref-faComprehensiveBenchmarkingComputational2020" role="doc-biblioref">Avila Cobos et al. 2020</a>)</span>. Report ADEMP bias, empirical SD, SE/SD, coverage (with MCSE and a Wilson interval on the rate), and mean width whenever intervals exist. Quote median and IQR of elapsed time and PSS from the <code>optimisation</code> table rather than a single end-to-end clock. Pair <code>kkt_residual</code> with <code>numerical_converged</code>; quote <code>score_norm</code> / <code>local_maximum</code> only for interior ILR fits.</p>
+</blockquote>
+</div>
+</section><section class="level2"><h3 id="zoom-on-the-coverage-rate-and-derivation-of-the-intervals">Zoom on the coverage rate, and derivation of the intervals<a class="anchor" aria-label="anchor" href="#zoom-on-the-coverage-rate-and-derivation-of-the-intervals"></a>
+</h3>
+<p>Wilson is the default interval around the <em>estimated coverage rate</em> <span class="math inline">\hat\pi=X/N</span>, not the interval for <span class="math inline">\hat p_j</span> <span class="citation" data-cites="wilsonProbableInferenceLaw1927">(<a href="#ref-wilsonProbableInferenceLaw1927" role="doc-biblioref">Wilson 1927</a>)</span>. Wald and Agresti–Coull <span class="citation" data-cites="agrestiApproximateBetterExact1998">(<a href="#ref-agrestiApproximateBetterExact1998" role="doc-biblioref">Agresti and Coull 1998</a>)</span> are available through <code>coverage_interval</code>. Bias-eliminated coverage (covering <span class="math inline">\bar{\hat\theta}</span> rather than <span class="math inline">\theta</span>) is not implemented; report ordinary coverage and bias side by side instead. <a href="#nte-binomial-coverage-ci" class="quarto-xref">Note 18</a> summarises exact, asymptotic, and optimisation-based constructions for that binomial rate.</p>
+<div id="nte-binomial-coverage-ci">
+<blockquote>
+<p><strong>Note 18: Intervals for a binomial coverage rate</strong></p>
+<p>The Monte Carlo coverage rate <span class="math inline">\hat\pi=X/N</span> is a binomial proportion on the unit interval. Interval construction for that rate is not a confidence interval for the cell-type vector <span class="math inline">\boldsymbol{p}</span>. Three strategies are in common use <span class="citation" data-cites="agrestiApproximateBetterExact1998 konietschkeExactAsymptoticOptimizationbased2026">(<a href="#ref-agrestiApproximateBetterExact1998" role="doc-biblioref">Agresti and Coull 1998</a>; <a href="#ref-konietschkeExactAsymptoticOptimizationbased2026" role="doc-biblioref">Konietschke and Brunner 2026</a>)</span>.</p>
+<ul>
+<li>
+<strong>Asymptotic (Wald, Wilson, Agresti–Coull).</strong> The Wald interval is <span class="math inline">\hat\pi\pm z\sqrt{\hat\pi(1-\hat\pi)/N}</span>. Near <span class="math inline">0</span> or <span class="math inline">1</span> the estimated standard error collapses and the interval can leave <span class="math inline">[0,1]</span> (the classic edge-case failure). Wald is a poor default for coverage rates. The Wilson score interval <span class="citation" data-cites="wilsonProbableInferenceLaw1927">(<a href="#ref-wilsonProbableInferenceLaw1927" role="doc-biblioref">Wilson 1927</a>)</span> is the package default: it is widely used, remains inside <span class="math inline">(0,1)</span> for interior <span class="math inline">\hat\pi</span>, and is more stable near the boundary. Agresti–Coull is the optional adjusted-Wald form already exposed by <code>coverage_interval</code>.</li>
+<li>
+<strong>Exact (test inversion).</strong> Clopper–Pearson-type intervals invert binomial tail probabilities and guarantee a minimum coverage of at least <span class="math inline">1-\alpha</span>, at the cost of systematic conservatism. Length–coverage optimal (LCO) methods change the acceptance region itself so that minimum coverage is guaranteed while average length is reduced; they remain conservative by construction.</li>
+<li>
+<strong>Optimisation-based calibration.</strong> Because the binomial sampling distribution is discrete, no interval attains exact nominal coverage uniformly in <span class="math inline">\pi\in(0,1)</span>. Numerical level adjustment treats the critical value or tail probability as a scalar <span class="math inline">\gamma</span> and retunes a <em>fixed</em> analytical form. <span class="citation" data-cites="konietschkeExactAsymptoticOptimizationbased2026">Konietschke and Brunner (<a href="#ref-konietschkeExactAsymptoticOptimizationbased2026" role="doc-biblioref">2026</a>)</span> minimise a risk functional of the exact coverage curve (for example mean squared deviation from <span class="math inline">1-\alpha</span>, or absolute deviation of average coverage) for Wilson, Agresti–Coull, logit, or Clopper–Pearson formulae without rewriting those formulae. The method is aimed at <strong>small</strong> <span class="math inline">N</span>.</li>
+</ul>
+<p>DeCovarT does not implement tuned or LCO intervals. Independent Monte Carlo replicates <span class="math inline">N</span> can be increased arbitrarily, so the small-sample discreteness problem that motivates optimisation-based tuning is not the operating regime. Report ordinary Wilson (or Agresti–Coull) intervals on <span class="math inline">\hat\pi</span>, together with <code>mcse_coverage</code> and bias, rather than a small-sample recalibration of <span class="math inline">\gamma</span>.</p>
+</blockquote>
+</div>
 </section></section><section class="section level2"><h2 id="conclusions">Conclusions<a class="anchor" aria-label="anchor" href="#conclusions"></a>
 </h2>
 <p>A reproducible synthetic study should keep three design layers separate, then score both the reference geometry and the mixture composition:</p>
@@ -1000,16 +2031,12 @@ I_{\mathrm{cov}}(\boldsymbol{d})
 <strong>Precision graphs.</strong> Draw an undirected skeleton (<code>scale_free</code>, <code>stochastic_block_model</code>, or <code>small_world</code>), assign i.i.d. signed weights (<code>prop_inhibitory</code>), and complete <span class="math inline">\Omega\succ 0</span> by the uniform spectral shift. Report <span class="math inline">\kappa(\Omega)</span> and the partial-correlation sign mix.</li>
 <li>
 <strong>Cellular compositions.</strong> Choose <span class="math inline">\boldsymbol{p}</span> on a Shannon grid from uniform (<span class="math inline">H^{\star}=1</span>) to near-pure (<span class="math inline">H^{\star}\approx 0</span>), matching the <code>SimBu</code> fraction vocabulary when comparing to pseudo-bulk tools (<a href="#fig-simbu-entropy" class="quarto-xref">Figure 7</a>).</li>
-<li>
-<strong>Bulk draws.</strong> Simulate <span class="math inline">\boldsymbol{Y}</span> from the Gaussian convolution <span class="math inline">\boldsymbol{y}\mid(\boldsymbol{\zeta},\boldsymbol{p})\sim\mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},\sum_j p_j^{2}\boldsymbol{\Sigma}_j)</span> and pass the same moments to every solver.</li>
-<li>
-<strong>Hybrid stress test.</strong> The variance-driven scenario (two mean-collinear types told apart only by topology, plus a weakly aligned third type) is documented in <a href="fig03-variance-driven.html#sec-scenario-grid">§2.2</a>.</li>
 </ol>
-<p>See <a href="#nte-benchmark-spec" class="quarto-xref">Note 12</a> for a compact factorial checklist.</p>
+<p>See <a href="#nte-benchmark-spec" class="quarto-xref">Note 19</a> for a compact factorial checklist.</p>
 <div id="nte-benchmark-spec">
 <blockquote>
-<p><strong>Important 12: Recommended benchmark specification</strong></p>
-<p>Use one pipeline for every topology (<a href="#eq-benchmark-pipe" class="quarto-xref">Eq. 16</a>, <a href="#fig-ggm-pipeline" class="quarto-xref">Figure 4</a>):</p>
+<p><strong>Important 19: Recommended benchmark specification</strong></p>
+<p>Use one pipeline for a given topology of a given cell type’s covariance structure (<a href="#eq-benchmark-pipe" class="quarto-xref">Eq. 16</a>, <a href="#fig-ggm-pipeline" class="quarto-xref">Figure 4</a>):</p>
 <p><span id="eq-benchmark-pipe"><span class="math display">
 \text{topology}
 \rightarrow
@@ -1023,65 +2050,14 @@ I_{\mathrm{cov}}(\boldsymbol{d})
 \rightarrow
 \text{observation model}
 \tag{16}</span></span></p>
-<div id="tbl-benchmark-axes" class="quarto-float quarto-figure quarto-figure-center">
-<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-benchmark-axes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 7: Compact factorial axes for a reproducible undirected GGM simulation study.
-</figcaption><div aria-describedby="tbl-benchmark-axes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="table caption-top">
-<colgroup>
-<col style="width: 32%">
-<col style="width: 67%">
-</colgroup>
-<thead><tr class="header">
-<th>Axis</th>
-<th>Suggested levels</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td>Dimension (genes)</td>
-<td><span class="math inline">G \in \{100,500,1000\}</span></td>
-</tr>
-<tr class="even">
-<td>Topology</td>
-<td>ER, band, hub, scale-free, SBM, small-world</td>
-</tr>
-<tr class="odd">
-<td>Expected degree</td>
-<td>
-<span class="math inline">\approx 2,4,8</span> (keep graphs sparse)</td>
-</tr>
-<tr class="even">
-<td>Edge weights</td>
-<td>Constant; i.i.d. signed; partial-correlation scaling; G-Wishart</td>
-</tr>
-<tr class="odd">
-<td>Conditioning</td>
-<td>Report <span class="math inline">\kappa(\Omega)</span> and partial-correlation summaries</td>
-</tr>
-<tr class="even">
-<td>Composition</td>
-<td>Pure / weighted / balanced / uniform (<a href="#sec-imbalanced" class="quarto-xref">Sec. 4.5</a>); record <span class="math inline">H^{\star}</span>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</figure>
-</div>
-<p>Prefer the uniform spectral shift (<a href="#eq-spectral-shift" class="quarto-xref">Eq. 12</a>) or partial-correlation scaling (<a href="#eq-partial-scale" class="quarto-xref">Eq. 11</a>) when support and signs must be exact; add the mean layer <strong>independently</strong> of graph generation. The end-to-end <strong>hybrid multi-topology reference scenario</strong> (two mean-collinear cell types distinguished only by network topology, a third weakly aligned type, a <span class="math inline">3^3</span> graph assignment crossed with three precision condition numbers, and the frequentist solver comparison on a Shannon-<span class="math inline">H^{\star}</span> composition grid) is documented in <a href="fig03-variance-driven.html#sec-scenario-grid">§2.2 variance-driven hybrid</a>. Edge-case numerical checks (gene-wise z-score equivariance, collinear signatures, small bulk perturbations, random ILR starts) live in <a href="supp-S1-identifiability.html">Appendix S1</a>.</p>
+<p>Prefer: - uniform spectral shift (<a href="#eq-spectral-shift" class="quarto-xref">Eq. 12</a>) or partial-correlation scaling (<a href="#eq-partial-scale" class="quarto-xref">Eq. 11</a>) when support and signs are exact; <span class="math inline">G</span>-Wishart when support and signs are approximate. - composition grid from uniform (<span class="math inline">H^{\star}=1</span>) to near-pure (<span class="math inline">H^{\star}\approx 0</span>), matching the <code>SimBu</code> fraction vocabulary when comparing to pseudo-bulk tools (<a href="#fig-simbu-entropy" class="quarto-xref">Figure 7</a>). - add the mean layer <strong>independently</strong> of graph generation.</p>
 </blockquote>
 </div>
 <div id="nte-parallel-rng">
 <blockquote>
-<p><strong>Note 13: Execution: no nested parallelism, <code>furrr</code>, L’Ecuyer streams</strong></p>
+<p><strong>Note 20: Execution: no nested parallelism, <code>furrr</code>, L’Ecuyer streams</strong></p>
 <p>Sample-level workers live only in <a href="../reference/deconvolute_ratios.html"><code>deconvolute_ratios()</code></a>. <code>.map_samples()</code> calls <code>furrr::furrr_options(seed = TRUE)</code>, which is the R <span class="math inline">\ge 4.1</span> / <code>future</code> implementation of independent L’Ecuyer-CMRG streams per worker <span class="citation" data-cites="morrisUsingSimulationStudies2019">(<a href="#ref-morrisUsingSimulationStudies2019" role="doc-biblioref">Morris et al. 2019</a>)</span>. <a href="../reference/run_simulation_benchmark.html"><code>run_simulation_benchmark()</code></a> evaluates scenario rows <strong>sequentially</strong>, so streams are never nested. Do not offset a shared seed by the sample index (<code>set.seed(seed + i)</code>). For an explicit cluster script, set <code>RNGkind("L'Ecuyer-CMRG")</code> once and advance with <code><a href="https://rdrr.io/r/parallel/RngStream.html" class="external-link">parallel::nextRNGStream</a></code>, or keep <code>furrr</code> <code>seed = TRUE</code>.</p>
 <p>That <code>furrr</code> path is the default for long jobs and for <strong>reproducible benchmarks</strong>. <code>mirai</code> (persistent daemons, dynamic dispatch) is reserved for APIs that need a fast interactive response, not for the published Monte Carlo protocol.</p>
-</blockquote>
-</div>
-<div id="nte-gls-competitor">
-<blockquote>
-<p><strong>Note 14: Fixed-covariance GLS competitor</strong></p>
-<p>When a scenario varies the <em>covariance structure</em>, keep a mean-only baseline whose residual covariance does <strong>not</strong> depend on <span class="math inline">\boldsymbol{p}</span>. Build <span class="math inline">W</span> with <a href="../reference/fixed_gls_covariance.html"><code>fixed_gls_covariance()</code></a> (default: diagonal of <span class="math inline">\Sigma(\bar p)</span> at <span class="math inline">\bar p_j=1/J</span>) and fit <a href="../reference/deconvolute_ratios_gls.html"><code>deconvolute_ratios_gls()</code></a> (<code><a href="https://rdrr.io/pkg/MASS/man/lm.gls.html" class="external-link">MASS::lm.gls</a></code>). Copying <span class="math inline">W</span> into every tensor slice is not GLS: <span class="math inline">\sum_j p_j^2 W=\|p\|_2^2 W</span> still depends on <span class="math inline">p</span>. The hierarchy is full <span class="math inline">\Sigma(p)</span>, cell-type-diagonal convolution, then this fixed <span class="math inline">W</span>. Starts for the convolution MLE: barycentre, Dirichlet (<code>initial_p = "dirichlet"</code>, <span class="math inline">\alpha=1</span> uniform, <span class="math inline">\alpha&gt;1</span> centre, <span class="math inline">\alpha&lt;1</span> faces; several independent draws), or QP (<code>initial_p = "qp"</code>).</p>
 </blockquote>
 </div>
 </section><section class="section level2"><h2 id="perspectives-on-high-dimensional-or-more-biologically-realistic-designs">Perspectives on high-dimensional or more biologically realistic designs<a class="anchor" aria-label="anchor" href="#perspectives-on-high-dimensional-or-more-biologically-realistic-designs"></a>
@@ -1125,7 +2101,7 @@ Table 7: Compact factorial axes for a reproducible undirected GGM simulation st
 <div class="cell">
 <div id="tbl-ademp" class="cell quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-ademp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 8: ADEMP performance measures implemented in <code><a href="../reference/compute_benchmark_metrics.html">compute_benchmark_metrics()</a></code> and <code><a href="../reference/coverage_mc_interval.html">coverage_mc_interval()</a></code>.
+Table 13: ADEMP performance measures implemented in <code><a href="../reference/compute_benchmark_metrics.html">compute_benchmark_metrics()</a></code> and <code><a href="../reference/coverage_mc_interval.html">coverage_mc_interval()</a></code>.
 </figcaption><div aria-describedby="tbl-ademp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
 <!-- tinytable mathjax start -->
@@ -1140,105 +2116,90 @@ Table 8: ADEMP performance measures implemented in <code><a href="../reference/
     };
     </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_9z7ud6rzgyqm4nrpann4 = TinyTable.createTableFunctions("tinytable_9z7ud6rzgyqm4nrpann4");
+      const tableFns_ij6itl73y7zqtl4ccavb = TinyTable.createTableFunctions("tinytable_ij6itl73y7zqtl4ccavb");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '14', j: 1 }, { i: '14', j: 2 }, { i: '14', j: 3 } ], css_id: 'tinytable_css_d7xw2qs03dhocyfsor3a',},
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 } ], css_id: 'tinytable_css_kybunmy9p1mqf2bama0t',},
+          { positions: [ { i: '14', j: 1 }, { i: '14', j: 2 } ], css_id: 'tinytable_css_t705jksjzhlfw3d5ewqk',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 } ], css_id: 'tinytable_css_ylcw2k18l0digph48ic5',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_9z7ud6rzgyqm4nrpann4.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_ij6itl73y7zqtl4ccavb.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_9z7ud6rzgyqm4nrpann4 td.tinytable_css_d7xw2qs03dhocyfsor3a, #tinytable_9z7ud6rzgyqm4nrpann4 th.tinytable_css_d7xw2qs03dhocyfsor3a {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_9z7ud6rzgyqm4nrpann4 td.tinytable_css_kybunmy9p1mqf2bama0t, #tinytable_9z7ud6rzgyqm4nrpann4 th.tinytable_css_kybunmy9p1mqf2bama0t {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_ij6itl73y7zqtl4ccavb td.tinytable_css_t705jksjzhlfw3d5ewqk, #tinytable_ij6itl73y7zqtl4ccavb th.tinytable_css_t705jksjzhlfw3d5ewqk {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_ij6itl73y7zqtl4ccavb td.tinytable_css_ylcw2k18l0digph48ic5, #tinytable_ij6itl73y7zqtl4ccavb th.tinytable_css_ylcw2k18l0digph48ic5 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_9z7ud6rzgyqm4nrpann4" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_ij6itl73y7zqtl4ccavb" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">ADEMP</th>
                 <th scope="col" data-row="0" data-col="2">Package</th>
-                <th scope="col" data-row="0" data-col="3">Status</th>
               </tr></thead>
 <tbody>
 <tr>
 <td data-row="1" data-col="1">Aims</td>
                   <td data-row="1" data-col="2">Compare solvers on a known convolution</td>
-                  <td data-row="1" data-col="3">Kept</td>
                 </tr>
 <tr>
 <td data-row="2" data-col="1">Data-generating mechanism</td>
                   <td data-row="2" data-col="2">simulate_bulk_mixture() + describe_simulation_scenario()</td>
-                  <td data-row="2" data-col="3">Kept</td>
                 </tr>
 <tr>
 <td data-row="3" data-col="1">Estimand</td>
                   <td data-row="3" data-col="2">p (simplex); cell-type and global scores kept separate</td>
-                  <td data-row="3" data-col="3">Kept</td>
                 </tr>
 <tr>
 <td data-row="4" data-col="1">Methods</td>
                   <td data-row="4" data-col="2">deconvolute_ratios() / fit_decovart()</td>
-                  <td data-row="4" data-col="3">Kept</td>
                 </tr>
 <tr>
 <td data-row="5" data-col="1">Bias</td>
-                  <td data-row="5" data-col="2">monte_carlo$bias</td>
-                  <td data-row="5" data-col="3">Kept</td>
+                  <td data-row="5" data-col="2">bias</td>
                 </tr>
 <tr>
 <td data-row="6" data-col="1">Empirical SE</td>
-                  <td data-row="6" data-col="2">monte_carlo$empirical_sd</td>
-                  <td data-row="6" data-col="3">Kept</td>
+                  <td data-row="6" data-col="2">empirical_sd</td>
                 </tr>
 <tr>
 <td data-row="7" data-col="1">Model SE</td>
-                  <td data-row="7" data-col="2">monte_carlo$mean_model_se (and mean_model_sd)</td>
-                  <td data-row="7" data-col="3">Kept</td>
+                  <td data-row="7" data-col="2">mean_model_se (and mean_model_sd)</td>
                 </tr>
 <tr>
 <td data-row="8" data-col="1">Relative error in SE</td>
-                  <td data-row="8" data-col="2">monte_carlo$se_sd_ratio</td>
-                  <td data-row="8" data-col="3">Kept</td>
+                  <td data-row="8" data-col="2">se_sd_ratio</td>
                 </tr>
 <tr>
 <td data-row="9" data-col="1">RMSE</td>
-                  <td data-row="9" data-col="2">monte_carlo$rmse (cell type) and regression$global$rmse</td>
-                  <td data-row="9" data-col="3">Kept</td>
+                  <td data-row="9" data-col="2">rmse (cell type) and regression$global$rmse</td>
                 </tr>
 <tr>
 <td data-row="10" data-col="1">Coverage</td>
-                  <td data-row="10" data-col="2">monte_carlo$coverage with Wilson interval by default</td>
-                  <td data-row="10" data-col="3">Kept (Wilson default; Wald / Agresti--Coull optional)</td>
+                  <td data-row="10" data-col="2">coverage with Wilson interval by default</td>
                 </tr>
 <tr>
 <td data-row="11" data-col="1">Mean interval width</td>
-                  <td data-row="11" data-col="2">monte_carlo$mean_interval_width</td>
-                  <td data-row="11" data-col="3">Kept</td>
+                  <td data-row="11" data-col="2">mean_interval_width</td>
                 </tr>
 <tr>
 <td data-row="12" data-col="1">Monte Carlo SE of coverage</td>
-                  <td data-row="12" data-col="2">monte_carlo$mcse_coverage</td>
-                  <td data-row="12" data-col="3">Kept</td>
+                  <td data-row="12" data-col="2">mcse_coverage</td>
                 </tr>
 <tr>
 <td data-row="13" data-col="1">Convergence</td>
-                  <td data-row="13" data-col="2">optimisation$numerical_converged, theoretical_converged, kkt_residual</td>
-                  <td data-row="13" data-col="3">Kept</td>
+                  <td data-row="13" data-col="2">numerical_converged, theoretical_converged, kkt_residual</td>
                 </tr>
 <tr>
 <td data-row="14" data-col="1">Type I / power</td>
                   <td data-row="14" data-col="2">Not a primary target (composition estimation, not a null test)</td>
-                  <td data-row="14" data-col="3">Out of scope</td>
                 </tr>
 </tbody>
 </table>
@@ -1249,29 +2210,25 @@ Table 8: ADEMP performance measures implemented in <code><a href="../reference/
 </figure>
 </div>
 </div>
-<p>Wilson is the default interval around the <em>estimated coverage rate</em> <span class="math inline">\hat\pi=X/N</span>, not the interval for <span class="math inline">\hat p_j</span> <span class="citation" data-cites="wilsonProbableInferenceLaw1927">(<a href="#ref-wilsonProbableInferenceLaw1927" role="doc-biblioref">Wilson 1927</a>)</span>. Wald and Agresti–Coull <span class="citation" data-cites="agrestiApproximateBetterExact1998">(<a href="#ref-agrestiApproximateBetterExact1998" role="doc-biblioref">Agresti and Coull 1998</a>)</span> are available through <code>coverage_interval</code>. Bias-eliminated coverage (covering <span class="math inline">\bar{\hat\theta}</span> rather than <span class="math inline">\theta</span>) is not implemented; report ordinary coverage and bias side by side instead. <a href="#nte-binomial-coverage-ci" class="quarto-xref">Note 15</a> summarises exact, asymptotic, and optimisation-based constructions for that binomial rate.</p>
-<div id="nte-binomial-coverage-ci">
 <blockquote>
-<p><strong>Note 15: Intervals for a binomial coverage rate</strong></p>
-<p>The Monte Carlo coverage rate <span class="math inline">\hat\pi=X/N</span> is a binomial proportion on the unit interval. Interval construction for that rate is not a confidence interval for the cell-type vector <span class="math inline">\boldsymbol{p}</span>. Three strategies are in common use <span class="citation" data-cites="agrestiApproximateBetterExact1998 konietschkeExactAsymptoticOptimizationbased2026">(<a href="#ref-agrestiApproximateBetterExact1998" role="doc-biblioref">Agresti and Coull 1998</a>; <a href="#ref-konietschkeExactAsymptoticOptimizationbased2026" role="doc-biblioref">Konietschke and Brunner 2026</a>)</span>.</p>
+<p>Visualisation plots:</p>
+</blockquote>
 <ul>
 <li>
-<strong>Asymptotic (Wald, Wilson, Agresti–Coull).</strong> The Wald interval is <span class="math inline">\hat\pi\pm z\sqrt{\hat\pi(1-\hat\pi)/N}</span>. Near <span class="math inline">0</span> or <span class="math inline">1</span> the estimated standard error collapses and the interval can leave <span class="math inline">[0,1]</span> (the classic edge-case failure). Wald is a poor default for coverage rates. The Wilson score interval <span class="citation" data-cites="wilsonProbableInferenceLaw1927">(<a href="#ref-wilsonProbableInferenceLaw1927" role="doc-biblioref">Wilson 1927</a>)</span> is the package default: it is widely used, remains inside <span class="math inline">(0,1)</span> for interior <span class="math inline">\hat\pi</span>, and is more stable near the boundary. Agresti–Coull is the optional adjusted-Wald form already exposed by <code>coverage_interval</code>.</li>
+<code><a href="../reference/plot_mc_raincloud.html">plot_mc_raincloud()</a></code> shows the sampling distribution of <span class="math inline">\hat p_j-p_j^{\star}</span>; inner / outer bars are empirical Monte Carlo quantiles, not a CI for <span class="math inline">p</span> <span class="citation" data-cites="allenRaincloudPlotsMultiplatform2019">(<a href="#ref-allenRaincloudPlotsMultiplatform2019" role="doc-biblioref"><span class="nocase">Allen et al.</span> 2019</a>)</span>.</li>
 <li>
-<strong>Exact (test inversion).</strong> Clopper–Pearson-type intervals invert binomial tail probabilities and guarantee a minimum coverage of at least <span class="math inline">1-\alpha</span>, at the cost of systematic conservatism. Length–coverage optimal (LCO) methods change the acceptance region itself so that minimum coverage is guaranteed while average length is reduced; they remain conservative by construction.</li>
+<code><a href="../reference/plot_mc_forest.html">plot_mc_forest()</a></code> is the ADEMP ranking companion (Wilson whiskers on the coverage <em>rate</em>).</li>
 <li>
-<strong>Optimisation-based calibration.</strong> Because the binomial sampling distribution is discrete, no interval attains exact nominal coverage uniformly in <span class="math inline">\pi\in(0,1)</span>. Numerical level adjustment treats the critical value or tail probability as a scalar <span class="math inline">\gamma</span> and retunes a <em>fixed</em> analytical form. <span class="citation" data-cites="konietschkeExactAsymptoticOptimizationbased2026">Konietschke and Brunner (<a href="#ref-konietschkeExactAsymptoticOptimizationbased2026" role="doc-biblioref">2026</a>)</span> minimise a risk functional of the exact coverage curve (for example mean squared deviation from <span class="math inline">1-\alpha</span>, or absolute deviation of average coverage) for Wilson, Agresti–Coull, logit, or Clopper–Pearson formulae without rewriting those formulae. The method is aimed at <strong>small</strong> <span class="math inline">N</span>.</li>
+<code><a href="../reference/plot_algorithm_similarity.html">plot_algorithm_similarity()</a></code> is behavioural correlation of <span class="math inline">\hat{\boldsymbol{p}}</span>, not numerical agreement.</li>
+<li>
+<code><a href="../reference/plot_mc_metric_dots.html">plot_mc_metric_dots()</a></code> facets by metric with a single min–max colour scale.</li>
 </ul>
-<p>DeCovarT does not implement tuned or LCO intervals. Independent Monte Carlo replicates <span class="math inline">N</span> can be increased arbitrarily, so the small-sample discreteness problem that motivates optimisation-based tuning is not the operating regime. Report ordinary Wilson (or Agresti–Coull) intervals on <span class="math inline">\hat\pi</span>, together with <code>mcse_coverage</code> and bias, rather than a small-sample recalibration of <span class="math inline">\gamma</span>.</p>
-</blockquote>
-</div>
-<p><code><a href="../reference/plot_mc_raincloud.html">plot_mc_raincloud()</a></code> shows the sampling distribution of <span class="math inline">\hat p_j-p_j^{\star}</span>; inner / outer bars are empirical Monte Carlo quantiles, not a CI for <span class="math inline">p</span> <span class="citation" data-cites="allenRaincloudPlotsMultiplatform2019">(<a href="#ref-allenRaincloudPlotsMultiplatform2019" role="doc-biblioref"><span class="nocase">Allen et al.</span> 2019</a>)</span>. <code><a href="../reference/plot_mc_forest.html">plot_mc_forest()</a></code> is the ADEMP ranking companion (Wilson whiskers on the coverage <em>rate</em>). <code><a href="../reference/plot_algorithm_similarity.html">plot_algorithm_similarity()</a></code> is behavioural correlation of <span class="math inline">\hat{\boldsymbol{p}}</span>, not numerical agreement. There is no default composite; <code><a href="../reference/plot_mc_metric_dots.html">plot_mc_metric_dots()</a></code> facets by metric with a single min–max colour scale.</p>
 <section class="level2"><h3 id="sec-nmeth">Nature Methods reporting<a class="anchor" aria-label="anchor" href="#sec-nmeth"></a>
 </h3>
 <p>Nature Methods requires a reporting summary, a data-availability statement, and promptly available code and protocols. The mapping below is the package counterpart of that editorial checklist.</p>
 <div id="tbl-nmeth" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-nmeth-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 9: Nature Methods reporting items covered by the simulation API.
+Table 14: Nature Methods reporting items covered by the simulation API.
 </figcaption><div aria-describedby="tbl-nmeth-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table caption-top">
 <colgroup>
@@ -1301,7 +2258,7 @@ Table 9: Nature Methods reporting items covered by the simulation API.
 <tr class="even">
 <td style="text-align: left;">Random-number streams</td>
 <td style="text-align: left;">
-<code>furrr_options(seed = TRUE)</code>: L’Ecuyer-CMRG per worker (<a href="#nte-parallel-rng" class="quarto-xref">Note 13</a>)</td>
+<code>furrr_options(seed = TRUE)</code>: L’Ecuyer-CMRG per worker (<a href="#nte-parallel-rng" class="quarto-xref">Note 20</a>)</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Code availability</td>
@@ -1326,7 +2283,7 @@ Table 9: Nature Methods reporting items covered by the simulation API.
 <p>The <a href="https://github.com/paperswithcode/releasing-research-code" class="external-link">ML Code Completeness Checklist</a> used at NeurIPS is five items.</p>
 <div id="tbl-neurips" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-neurips-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 10: NeurIPS / Papers with Code completeness mapped onto the package.
+Table 15: NeurIPS / Papers with Code completeness mapped onto the package.
 </figcaption><div aria-describedby="tbl-neurips-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table caption-top">
 <thead><tr class="header">
@@ -1388,17 +2345,26 @@ Table 10: NeurIPS / Papers with Code completeness mapped onto the package.
 <div id="ref-agrestiApproximateBetterExact1998" class="csl-entry" role="listitem">
 Agresti, Alan, and Brent A. Coull. 1998. <span>‘Approximate <span>Is Better</span> Than "<span>Exact</span>" for <span>Interval Estimation</span> of <span>Binomial Proportions</span>’</span>. <em>The American Statistician</em> 52 (2): 119–26. <a href="https://doi.org/10.2307/2685469" class="external-link">https://doi.org/10.2307/2685469</a>.
 </div>
+<div id="ref-aitchisonStatisticalAnalysisCompositional1982" class="csl-entry" role="listitem">
+Aitchison, J. 1982. <span>‘The Statistical Analysis of Compositional Data’</span>. <em>Journal of the Royal Statistical Society: Series B (Methodological)</em> 44 (2): 139–60. <a href="https://doi.org/10.1111/j.2517-6161.1982.tb01195.x" class="external-link">https://doi.org/10.1111/j.2517-6161.1982.tb01195.x</a>.
+</div>
 <div id="ref-alieeAutoGeneSAutomaticGene2021" class="csl-entry" role="listitem">
 Aliee, Hananeh, and Fabian J. Theis. 2021. <span>‘<span>AutoGeneS</span>: <span>Automatic</span> Gene Selection Using Multi-Objective Optimization for <span class="nocase">RNA-seq</span> Deconvolution’</span>. <em>Cell Systems</em> 12. <a href="https://doi.org/10.1016/j.cels.2021.05.006" class="external-link">https://doi.org/10.1016/j.cels.2021.05.006</a>.
 </div>
 <div id="ref-allenRaincloudPlotsMultiplatform2019" class="csl-entry" role="listitem">
 <span class="nocase">Allen, Micah, Davide Poggiali, Kirstie Whitaker, Tom Rhys Marshall, Jordy van Langen, and Rogier A. Kievit</span>. 2019. <span>‘Raincloud Plots: A Multi-Platform Tool for Robust Data Visualization’</span>. <em>Wellcome Open Research</em> 4: 63. <a href="https://doi.org/10.12688/wellcomeopenres.15191.2" class="external-link">https://doi.org/10.12688/wellcomeopenres.15191.2</a>.
 </div>
+<div id="ref-faComprehensiveBenchmarkingComputational2020" class="csl-entry" role="listitem">
+Avila Cobos, Francisco, José Alquicira-Hernandez, Joseph Powell, Pieter Mestdagh, and Katleen De Preter. 2020. <span>‘Comprehensive Benchmarking of Computational Deconvolution of Transcriptomics Data’</span>. <em>bioRxiv</em>, ahead of print. <a href="https://doi.org/10.1101/2020.01.10.897116" class="external-link">https://doi.org/10.1101/2020.01.10.897116</a>.
+</div>
 <div id="ref-baWhenLessNot2026" class="csl-entry" role="listitem">
 Ba, Kalidou, Rodolphe Thiébaut, Xavier Hinaut, and Boris Hejblum. 2026. <em>When <span>Less Is Not More</span>: <span>DICEPro Mitigates</span> the <span>Impact</span> of <span>Incomplete Reference Matrices</span> on <span>Cellular Frequency Deconvolution</span></em>. bioRxiv. <a href="https://doi.org/10.64898/2026.06.17.732876" class="external-link">https://doi.org/10.64898/2026.06.17.732876</a>.
 </div>
 <div id="ref-barabasiEmergenceScalingRandom1999" class="csl-entry" role="listitem">
 Barabási, Albert-László, and Réka Albert. 1999. <span>‘Emergence of <span>Scaling</span> in <span>Random Networks</span>’</span>. <em>Science</em> 286. <a href="https://doi.org/10.1126/science.286.5439.509" class="external-link">https://doi.org/10.1126/science.286.5439.509</a>.
+</div>
+<div id="ref-barbotPromisesLimitsMultimodal2026" class="csl-entry" role="listitem">
+Barbot, Hugo, and Magali Richard. 2026. <span>‘On the <span>Promises</span> and <span>Limits</span> of <span>Multimodal Integration</span> for <span>Deconvolution</span>: <span>The HADACA3 Benchmark</span>’</span>. <em>NeurIPS</em>.
 </div>
 <div id="ref-bessonFisherInformationMatrix2013" class="csl-entry" role="listitem">
 Besson, Olivier, and Yuri I. Abramovich. 2013. <span>‘On the <span>Fisher Information Matrix</span> for <span>Multivariate Elliptically Contoured Distributions</span>’</span>. <em>IEEE Signal Processing Letters</em> 20 (11): 1130–33. <a href="https://doi.org/10.1109/lsp.2013.2281914" class="external-link">https://doi.org/10.1109/lsp.2013.2281914</a>.
@@ -1411,6 +2377,9 @@ Chiquet, Julien, Mahendra Mariadassou, and Stéphane Robin. 2018. <em>Variationa
 </div>
 <div id="ref-R-SimBu" class="csl-entry" role="listitem">
 Dietrich, Alexander. 2024. <em>SimBu: Bias-Aware Simulation of Bulk RNA-Seq Data with Variable Cell-Type Composition</em>. <a href="https://doi.org/10.18129/B9.bioc.SimBu" class="external-link">https://doi.org/10.18129/B9.bioc.SimBu</a>.
+</div>
+<div id="ref-endresNewMetricProbability2003" class="csl-entry" role="listitem">
+Endres, D. M., and J. E. Schindelin. 2003. <span>‘A New Metric for Probability Distributions’</span>. <em>IEEE Transactions on Information Theory</em> 49 (7): 1858–60. <a href="https://doi.org/10.1109/tit.2003.813506" class="external-link">https://doi.org/10.1109/tit.2003.813506</a>.
 </div>
 <div id="ref-federicoStructureLearningGene2023" class="csl-entry" role="listitem">
 Federico, Anthony, Joseph Kern, Xaralabos Varelas, and Stefano Monti. 2023. <span>‘Structure Learning for Gene Regulatory Networks’</span>. <em>PLOS Computational Biology</em> 19. <a href="https://doi.org/10.1371/journal.pcbi.1011118" class="external-link">https://doi.org/10.1371/journal.pcbi.1011118</a>.
@@ -1426,6 +2395,9 @@ Konietschke, Frank, and Edgar Brunner. 2026. <span>‘Beyond Exact and Asymptoti
 </div>
 <div id="ref-lima-mendezPowerfulLawPower2009" class="csl-entry" role="listitem">
 <span class="nocase">Lima-Mendez, Gipsi, and Jacques van Helden</span>. 2009. <span>‘The Powerful Law of the Power Law and Other Myths in Network Biology1’</span>. <em>Molecular BioSystems(MBS)</em> 5. <a href="https://doi.org/10.1039/b908681a" class="external-link">https://doi.org/10.1039/b908681a</a>.
+</div>
+<div id="ref-linDivergenceMeasuresBased1991" class="csl-entry" role="listitem">
+Lin, J. 1991. <span>‘Divergence Measures Based on the <span>Shannon</span> Entropy’</span>. <em>IEEE Transactions on Information Theory</em> 37 (1): 145–51. <a href="https://doi.org/10.1109/18.61115" class="external-link">https://doi.org/10.1109/18.61115</a>.
 </div>
 <div id="ref-madarDirectFormulationCholesky2015" class="csl-entry" role="listitem">
 Madar, Vered. 2015. <span>‘Direct Formulation to <span>Cholesky</span> Decomposition of a General Nonsingular Correlation Matrix’</span>. <em>Statistics &amp; Probability Letters</em> 103: 142–47. <a href="https://doi.org/10.1016/j.spl.2015.03.014" class="external-link">https://doi.org/10.1016/j.spl.2015.03.014</a>.
@@ -1453,6 +2425,9 @@ O’Neill, Ben. 2021. <em>The <span>Double-Constant Matrix</span>, <span>Centeri
 </div>
 <div id="ref-schelkerEstimationImmuneCell2017" class="csl-entry" role="listitem">
 Schelker, Max, Sonia Feau, Jinyan Du, et al. 2017. <span>‘Estimation of Immune Cell Content in Tumour Tissue Using Single-Cell <span class="nocase">RNA-seq</span> Data’</span>. <em>Nature Communications</em> 8 (1): 2032. <a href="https://doi.org/10.1038/s41467-017-02289-3" class="external-link">https://doi.org/10.1038/s41467-017-02289-3</a>.
+</div>
+<div id="ref-sturmComprehensiveEvaluationTranscriptomebased2019" class="csl-entry" role="listitem">
+Sturm, Gregor, Francesca Finotello, Florent Petitprez, et al. 2019. <span>‘Comprehensive Evaluation of Transcriptome-Based Cell-Type Quantification Methods for Immuno-Oncology’</span>. <em>Bioinformatics (Oxford, England)</em> 35. <a href="https://doi.org/10.1093/bioinformatics/btz363" class="external-link">https://doi.org/10.1093/bioinformatics/btz363</a>.
 </div>
 <div id="ref-takahashiDiscriminatingDifferentClasses2012" class="csl-entry" role="listitem">
 Takahashi, Daniel Yasumasa, João Ricardo Sato, Carlos Eduardo Ferreira, and André Fujita. 2012. <span>‘Discriminating <span>Different Classes</span> of <span>Biological Networks</span> by <span>Analyzing</span> the <span>Graphs Spectra Distribution</span>’</span>. <em>PLOS ONE</em> 7. <a href="https://doi.org/10.1371/journal.pone.0049949" class="external-link">https://doi.org/10.1371/journal.pone.0049949</a>.

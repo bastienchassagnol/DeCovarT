@@ -117,7 +117,8 @@
 <p><strong>Script:</strong> <code>scripts/supp_S2_covariance_inversion.R</code> — benchmarks matrix inversion strategies. Outputs in <code>output/supp_S2/</code>.</p>
 </blockquote>
 <hr>
-<section class="level2"><h2 id="one-generative-model">:one: Generative Model<a class="anchor" aria-label="anchor" href="#one-generative-model"></a>
+<section class="level2"><h2 id="generative-model">
+<span class="emoji" data-emoji="one">1️⃣</span> Generative Model<a class="anchor" aria-label="anchor" href="#generative-model"></a>
 </h2>
 <section class="level3"><h3 id="motivation">Motivation<a class="anchor" aria-label="anchor" href="#motivation"></a>
 </h3>
@@ -237,7 +238,8 @@
 <span>    Omega <span class="op">=</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map2.html" class="external-link">map2</a></span><span class="op">(</span><span class="va">G</span>, <span class="va">structure</span>, <span class="va">build_precision</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
 </div>
-<hr></section></section><section class="level2"><h2 id="two-inference">:two: Inference<a class="anchor" aria-label="anchor" href="#two-inference"></a>
+<hr></section></section><section class="level2"><h2 id="inference">
+<span class="emoji" data-emoji="two">2️⃣</span> Inference<a class="anchor" aria-label="anchor" href="#inference"></a>
 </h2>
 <section class="level3"><h3 id="timing-benchmark">Timing benchmark<a class="anchor" aria-label="anchor" href="#timing-benchmark"></a>
 </h3>
@@ -269,8 +271,10 @@
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">benchmark_results</span>, <span class="st">"output/supp_S2/inversion_timing.rds"</span><span class="op">)</span></span></code></pre></div>
 </div>
-<hr></section></section><section class="level2"><h2 id="three-visualisations">:three: Visualisations<a class="anchor" aria-label="anchor" href="#three-visualisations"></a>
+<hr></section></section><section class="level2"><h2 id="visualisations">
+<span class="emoji" data-emoji="three">3️⃣</span> Visualisations<a class="anchor" aria-label="anchor" href="#visualisations"></a>
 </h2>
+<p>The four panels below split into two questions. <a href="#sec-s2-inversion-panels" class="quarto-xref">Section 3.1</a> asks how the <strong>linear algebra</strong> behind <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\boldsymbol{v}</span> scales with <span class="math inline">G</span> and graph sparsity. <a href="#sec-s2-solver-panels" class="quarto-xref">Section 3.2</a> asks how the <strong>iterative MLE solvers</strong> spend that linear algebra: iterations to a tolerance, wall-clock time, memory, simplex / KKT feasibility, and agreement of analytic derivatives with Richardson extrapolation in <code>numDeriv</code> <span class="citation" data-cites="R-numDeriv">(<a href="#ref-R-numDeriv" role="doc-biblioref">Gilbert and Varadhan 2019</a>)</span>. The layout follows the DICEPro supplementary solver and penalty panels (their Figures S1, S2 and S5): log-scaled trajectories for cost, then a separate check that first-order information and constraints are numerically sound. The <span class="math inline">G</span>–sparsity–time surface is the analogue of VIMixR supplementary Figure S4.</p>
 <table class="table caption-top">
 <colgroup>
 <col style="width: 50%">
@@ -282,19 +286,33 @@
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><code>output/supp_S2/s2_scaling_time.pdf</code></td>
-<td>Wall-clock time vs <span class="math inline">G</span> per structure/backend</td>
+<td><code>output/supp_S2/s2_inversion_time.pdf</code></td>
+<td>Panel A: wall-clock solve time vs <span class="math inline">G</span>
+</td>
 </tr>
 <tr class="even">
-<td><code>output/supp_S2/s2_speedup_ratio.pdf</code></td>
-<td>Speedup of sparse over dense Cholesky</td>
+<td><code>output/supp_S2/s2_inversion_complexity.pdf</code></td>
+<td>Panel B: time and peak RSS vs <span class="math inline">G</span> and sparsity</td>
+</tr>
+<tr class="odd">
+<td><code>output/supp_S2/s2_solver_cost.pdf</code></td>
+<td>Panel C: Marquardt, L-BFGS-B, Newton, gradient</td>
+</tr>
+<tr class="even">
+<td><code>output/supp_S2/s2_kkt_gradient.pdf</code></td>
+<td>Panel D: KKT / simplex residual and score check</td>
 </tr>
 </tbody>
 </table>
+<section class="level3"><h3 id="sec-s2-inversion-panels">Covariance inversion: wall-clock time and complexity<a class="anchor" aria-label="anchor" href="#sec-s2-inversion-panels"></a>
+</h3>
+<p>Each likelihood, score, and Hessian evaluation factorises the mixture covariance <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_{j}p_{j}^{2}\boldsymbol{\Sigma}_{j}</span> once and then solves against one or more right-hand sides (<a href="theory-decovart-generative-model.html#sec-numerical-speedups">generative model</a>). Assembling <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span> costs <span class="math inline">O(J G^{2})</span>. A dense Cholesky factorisation of the <span class="math inline">G\times G</span> result costs <span class="math inline">O(G^{3})</span> and dominates when <span class="math inline">G</span> is large. Structured backends (banded, block-diagonal, Woodbury) replace that cubic with a cost that tracks bandwidth, block size, or the low-rank residual <span class="math inline">r</span>, which is why <a href="#fig-s2-inversion" class="quarto-xref">Figure 1</a> must show <strong>structure</strong> and <strong>backend</strong> together, not <span class="math inline">G</span> alone.</p>
+<p><strong>Panel A (running time).</strong> Plot median wall-clock time per <code><a href="../reference/sigma_solve.html">sigma_solve()</a></code> against <span class="math inline">G</span> on <strong>log–log</strong> axes, with one colour per backend and one linetype per network structure. The log scale is the same device as DICEPro Figure S1A: early-<span class="math inline">G</span> cache effects stay visible while the <span class="math inline">G=500</span>–<span class="math inline">1000</span> regime does not collapse the faster solvers onto the axis. A dense Cholesky should approach slope <span class="math inline">3</span> on this plot. Banded and block-diagonal backends should peel away below that line as soon as fill-in stays cheaper than a full <span class="math inline">G^{3}</span> factorisation. Ribbons are Monte Carlo SD across the <span class="math inline">N_{\text{timing}}</span> repeated solves in Section 2, not confidence intervals for a statistical estimand.</p>
+<p><strong>Panel B (complexity and memory).</strong> Following VIMixR Figure S4, treat sparsity as a second experimental factor rather than a colour annotation. Facet or group by edge density (or bandwidth / number of blocks) and show both <strong>seconds per solve</strong> and <strong>peak RSS</strong>. The intended reading is a three-way relationship: larger <span class="math inline">G</span> inflates time cubically for dense <span class="math inline">\boldsymbol{\Sigma}_{j}</span>; a sparser Markov network reduces fill-in and peak memory; the structured backend only pays off once that fill-in advantage exceeds the overhead of the specialised kernel. At small <span class="math inline">G</span> (<span class="math inline">G\le 50</span>) dense Cholesky can still win because of cache locality, as in the expected findings below.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># -----------------------------------------------------------------</span></span>
-<span><span class="co"># SECTION 3: VISUALISATIONS</span></span>
+<span><span class="co"># SECTION 3a: INVERSION PANELS (A, B)</span></span>
 <span><span class="co"># -----------------------------------------------------------------</span></span>
 <span><span class="va">benchmark_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/supp_S2/inversion_timing.rds"</span><span class="op">)</span></span>
 <span></span>
@@ -303,23 +321,119 @@
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">G</span>, <span class="va">mean_ms</span>, colour <span class="op">=</span> <span class="va">backend</span>, linetype <span class="op">=</span> <span class="va">structure</span><span class="op">)</span></span>
 <span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_ribbon.html" class="external-link">geom_ribbon</a></span><span class="op">(</span></span>
 <span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">mean_ms</span> <span class="op">-</span> <span class="va">sd_ms</span>, ymax <span class="op">=</span> <span class="va">mean_ms</span> <span class="op">+</span> <span class="va">sd_ms</span>, fill <span class="op">=</span> <span class="va">backend</span><span class="op">)</span>,</span>
-<span>    alpha <span class="op">=</span> <span class="fl">0.15</span></span>
+<span>    alpha <span class="op">=</span> <span class="fl">0.15</span>,</span>
+<span>    colour <span class="op">=</span> <span class="cn">NA</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_x_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
-<span>    x <span class="op">=</span> <span class="st">"Number of genes G"</span>, y <span class="op">=</span> <span class="st">"Solve time (ms)"</span>,</span>
-<span>    title <span class="op">=</span> <span class="st">"Covariance inversion: time vs G"</span></span>
+<span>    x <span class="op">=</span> <span class="st">"Number of genes G"</span>,</span>
+<span>    y <span class="op">=</span> <span class="st">"Solve time (ms, log10)"</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="st">"output/supp_S2/s2_scaling_time.pdf"</span>, <span class="va">p_time</span>, width <span class="op">=</span> <span class="fl">8</span>, height <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span></span>
+<span>  <span class="st">"output/supp_S2/s2_inversion_time.pdf"</span>,</span>
+<span>  <span class="va">p_time</span>,</span>
+<span>  width <span class="op">=</span> <span class="fl">8</span>,</span>
+<span>  height <span class="op">=</span> <span class="fl">5</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 </div>
-<section class="level3"><h3 id="expected-findings">Expected findings<a class="anchor" aria-label="anchor" href="#expected-findings"></a>
+<div id="fig-s2-inversion" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-s2-inversion-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div id="fig-s2-inversion-time" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-subfloat-fig"><div aria-describedby="fig-s2-inversion-time-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<embed src="../output/supp_S2/s2_inversion_time.pdf" data-ref-parent="fig-s2-inversion"></embed>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-s2-inversion-time-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) Panel A: median wall-clock time per structured solve versus <span class="math inline">G</span> on log–log axes, coloured by backend and lined by network structure.
+</figcaption></figure>
+</div>
+<div id="fig-s2-inversion-complexity" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-subfloat-fig"><div aria-describedby="fig-s2-inversion-complexity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<embed src="../output/supp_S2/s2_inversion_complexity.pdf" data-ref-parent="fig-s2-inversion"></embed>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-s2-inversion-complexity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b) Panel B: solve time and peak RSS versus <span class="math inline">G</span> at several sparsity levels (bandwidth, number of blocks, or edge density), the VIMixR-style complexity surface.
+</figcaption></figure>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-s2-inversion-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 1: Wall-clock cost of <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\boldsymbol{v}</span> as a function of gene count <span class="math inline">G</span> and Markov-network sparsity. Panel A compares inversion backends; panel B relates the same times (and peak memory) to graph sparsity. Assembly of <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span> is linear in <span class="math inline">J</span> and quadratic in <span class="math inline">G</span>; dense Cholesky of the mixture covariance is cubic in <span class="math inline">G</span>.
+</figcaption></figure>
+</div>
+</section><section class="level3"><h3 id="sec-s2-solver-panels">Constrained MLE solvers: cost, feasibility, and gradient checks<a class="anchor" aria-label="anchor" href="#sec-s2-solver-panels"></a>
 </h3>
-<p>Dense Cholesky should dominate for <span class="math inline">G \leq 50</span> where cache effects matter more than sparsity. For <span class="math inline">G \geq 250</span> with banded or block-diagonal structure, the corresponding sparse solvers should be <span class="math inline">5</span>–<span class="math inline">20\times</span> faster. Woodbury is competitive for low-rank perturbations (rank <span class="math inline">r = 5</span>) at all <span class="math inline">G</span>.</p>
+<p>Covariance inversion is one callback. The MLE loop repeats that callback until a convergence test fires. <code><a href="../reference/fit_decovart.html">fit_decovart()</a></code> exposes three second-order or quasi-Newton paths (<a href="../reference/fit_decovart.html"><code>fit_decovart()</code></a>): Marquardt–Levenberg via <code>marqLevAlg</code> <span class="citation" data-cites="R-marqLevAlg commengesNewtonLikeAlgorithmLikelihood2006">(<a href="#ref-R-marqLevAlg" role="doc-biblioref">Philipps et al. 2023</a>; <a href="#ref-commengesNewtonLikeAlgorithmLikelihood2006" role="doc-biblioref">Commenges et al. 2006</a>)</span>, box-constrained L-BFGS-B in <span class="math inline">\boldsymbol{p}</span> via <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code>, and Newton–Raphson / <code>nlminb</code> in ILR coordinates. The projected gradient in ILR is the fourth comparator (the same quartet as the bivariate toy vignette, excluding mean-only NNLS / <code>lsei</code> and simulated annealing). Wall time for one sample therefore scales roughly as <span class="math inline">(\text{iterations})\times\bigl(O(J G^{2})+O(G^{3})\bigr)</span> for a dense backend: <strong>cubic in <span class="math inline">G</span></strong>, and only <strong>linear in <span class="math inline">J</span></strong> through assembly of <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span> and the <span class="math inline">J</span>-vector score, not through an extra matrix inverse per cell type.</p>
+<p><strong>Panel C (solvers).</strong> Three aligned metrics, in the spirit of DICEPro Figure S1A–C:</p>
+<ul>
+<li>iterations (or function evaluations) until the package tolerance;</li>
+<li>total wall-clock time per sample;</li>
+<li>peak memory.</li>
+</ul>
+<p>Do not map two of those scores to colour and size on one scatter. Facet by metric, as in <code><a href="../reference/plot_mc_metric_dots.html">plot_mc_metric_dots()</a></code>. Marquardt and Newton should reach the threshold in few iterations because they use curvature; L-BFGS-B is cheaper per step but may need more evaluations; projected gradient is the slow baseline (DICEPro’s Adam / gradient-descent comparison). Report median and SD across Monte Carlo samples, and keep <span class="math inline">J</span> as a second <span class="math inline">x</span>-axis or facet so the claimed linear-<span class="math inline">J</span> assembly cost is visible beside the cubic-<span class="math inline">G</span> inversion cost.</p>
+<p><strong>Panel D (simplex adherence and analytic gradients).</strong> Two stacked checks, combining DICEPro Figure S5 (unit-sum / reconstruction trade-off) with their Figure S2A (analytical versus finite-difference gradients).</p>
+<p>The ILR / softmax chart is a <span class="math inline">C^{2}</span> diffeomorphism onto the open simplex (<a href="theory-decovart-generative-model.html#sec-constrained">constrained optimisation</a>), so Marquardt, Newton, and the projected gradient keep <span class="math inline">\sum_{j}\hat p_{j}=1</span> by construction. L-BFGS-B only boxes <span class="math inline">[0,1]^{J}</span> and renormalises after <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code>; during the line search <span class="math inline">\lvert 1-\sum_{j}p_{j}\rvert</span> can leave zero, which is why that path needs the guarded objective in <a href="theory-decovart-generative-model.html#sec-numerical-speedups">solver safeguards</a>. The ADEMP field <code>optimisation$kkt_residual</code> (<a href="theory-synthetic-scenarios-mean-covariance.html#sec-ademp">synthetic scenarios</a>) is the projected-score residual <span class="math inline">\lVert\Pi_{\Delta}(\hat{\boldsymbol{p}}+\alpha\nabla\ell)-\hat{\boldsymbol{p}}\rVert_{2}/\alpha</span>. It is the right analogue of DICEPro’s unit-sum violation for an interior (or bound-constrained) stationary point: small residual means the score has no feasible first-order improvement. Plot it on a log scale against iteration or against reconstruction error, with a Pareto outline only if a penalty-weight grid is actually run.</p>
+<p>The companion scatter is analytic <span class="math inline">\nabla\ell</span> (and, where stored, the Hessian) against Richardson extrapolation in <code>numDeriv</code> <span class="citation" data-cites="R-numDeriv">(<a href="#ref-R-numDeriv" role="doc-biblioref">Gilbert and Varadhan 2019</a>)</span>, as already used in <a href="theory-decovart-generative-model.html">the generative-model vignette</a> and in <code>tests/testthat/test-03_03_DeCovarT.R</code>. DICEPro reported relative errors below <span class="math inline">6\times 10^{-6}</span> with central differences <span class="math inline">\varepsilon=10^{-5}</span>. DeCovarT prefers Richardson’s tableau rather than a single-step central difference, because the score mixes traces of <span class="math inline">\boldsymbol{\Theta}(\boldsymbol{p})</span> with quadratic forms that have a wide dynamic range. Points should fall on the identity; stratify by parameter block (ILR coordinates versus unconstrained <span class="math inline">\boldsymbol{p}</span> on the L-BFGS-B path).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># -----------------------------------------------------------------</span></span>
+<span><span class="co"># SECTION 3b: SOLVER PANELS (C, D)</span></span>
+<span><span class="co"># -----------------------------------------------------------------</span></span>
+<span><span class="va">solver_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/supp_S2/solver_timing.rds"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">p_solver</span> <span class="op">&lt;-</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span></span>
+<span>  <span class="va">solver_results</span>,</span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">G</span>, <span class="va">value</span>, colour <span class="op">=</span> <span class="va">solver</span><span class="op">)</span></span>
+<span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span><span class="va">metric</span> <span class="op">~</span> <span class="va">J</span>, scales <span class="op">=</span> <span class="st">"free_y"</span>, labeller <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="va"><a href="https://ggplot2.tidyverse.org/reference/labellers.html" class="external-link">label_both</a></span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_continuous.html" class="external-link">scale_y_log10</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span></span>
+<span>    x <span class="op">=</span> <span class="st">"Number of genes G"</span>,</span>
+<span>    y <span class="op">=</span> <span class="st">"Metric (log10)"</span>,</span>
+<span>    colour <span class="op">=</span> <span class="st">"Solver"</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span></span>
+<span>  <span class="st">"output/supp_S2/s2_solver_cost.pdf"</span>,</span>
+<span>  <span class="va">p_solver</span>,</span>
+<span>  width <span class="op">=</span> <span class="fl">9</span>,</span>
+<span>  height <span class="op">=</span> <span class="fl">6</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="fig-s2-solvers" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-s2-solvers-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div id="fig-s2-solver-cost" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-subfloat-fig"><div aria-describedby="fig-s2-solver-cost-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<embed src="../output/supp_S2/s2_solver_cost.pdf" data-ref-parent="fig-s2-solvers"></embed>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-s2-solver-cost-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) Panel C: iterations to tolerance, wall-clock time, and peak memory for Marquardt–Levenberg, L-BFGS-B, Newton–Raphson (<code>nlminb</code>), and projected gradient, versus <span class="math inline">G</span> and faceted by <span class="math inline">J</span>.
+</figcaption></figure>
+</div>
+<div id="fig-s2-kkt-gradient" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-subfloat-fig"><div aria-describedby="fig-s2-kkt-gradient-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<embed src="../output/supp_S2/s2_kkt_gradient.pdf" data-ref-parent="fig-s2-solvers"></embed>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-s2-kkt-gradient-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b) Panel D: log-scale KKT / simplex residual (feasibility of <span class="math inline">\hat{\boldsymbol{p}}</span>) and analytic score versus Richardson <code>numDeriv</code> gradient, stratified by parameter block.
+</figcaption></figure>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-s2-solvers-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 2: Computational profile of the four DeCovarT MLE solvers and first-order diagnostics. Panel C separates speed of convergence from wall-clock time and memory. Panel D checks unit-simplex / KKT adherence and confirms that analytic derivatives match Richardson extrapolation.
+</figcaption></figure>
+</div>
+</section><section class="level3"><h3 id="expected-findings">Expected findings<a class="anchor" aria-label="anchor" href="#expected-findings"></a>
+</h3>
+<p>Dense Cholesky should dominate for <span class="math inline">G \le 50</span> where cache effects matter more than sparsity. For <span class="math inline">G \ge 250</span> with banded or block-diagonal structure, the corresponding sparse solvers should be <span class="math inline">5</span>–<span class="math inline">20\times</span> faster. Woodbury is competitive for low-rank perturbations (rank <span class="math inline">r = 5</span>) at all <span class="math inline">G</span>. On log–log axes the dense inversion curve should approach slope <span class="math inline">3</span> in <span class="math inline">G</span>; increasing <span class="math inline">J</span> should shift times almost linearly through assembly of <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span>, not cubically.</p>
+<p>Marquardt–Levenberg and Newton–Raphson should need far fewer iterations than projected gradient, at a higher cost per step. L-BFGS-B should sit between them in wall-clock time, with a larger KKT / unit-sum residual before the final renormalisation. Analytic and Richardson gradients should agree to relative error <span class="math inline">\ll 10^{-6}</span> on interior points; discrepancies flag a backend or ILR-chart bug, not optimiser tuning.</p>
 </section></section><section class="level2"><h2 id="out-of-scope-extensions">Out-of-scope extensions<a class="anchor" aria-label="anchor" href="#out-of-scope-extensions"></a>
 </h2>
 <p>The following factors from the full simulation plan (<code>temp_rag_simualtions_scenarios/detailled_siulation_code.md</code> §Full factorial) are noted here but not yet implemented:</p>
@@ -334,12 +448,24 @@
 </ul></section><section class="level2"><h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a>
 </h2>
 <ul>
-<li><a href="supp-S3-scaling.html">Appendix S3 — Scaling</a></li>
-<li><a href="theory-synthetic-scenarios-mean-covariance.html">How to build synthetic scenarios</a></li>
-<li>Structure-aware operators: <a href="theory-decovart-generative-model.html">generative model</a>
+<li>
+<a href="https://bastienchassagnol.github.io/DeCovarT/articles/supp-S3-scaling.html">Appendix S3 — Scaling</a> (RMSE and difficulty axes; this appendix is inversion and solver cost)</li>
+<li><a href="theory-synthetic-scenarios-mean-covariance.html#sec-ademp">How to build synthetic scenarios</a></li>
+<li>Structure-aware operators and solver safeguards: <a href="theory-decovart-generative-model.html#sec-numerical-speedups">generative model</a>
 </li>
-</ul></section><section class="level2"><h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</ul></section><section class="level2 unnumbered"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-commengesNewtonLikeAlgorithmLikelihood2006" class="csl-entry" role="listitem">
+Commenges, Daniel, Helene Jacqmin-Gadda, Cecile Proust, and Jeremie Guedj. 2006. <em>A <span>Newton-Like Algorithm</span> for <span>Likelihood Maximization</span>: <span>The Robust-Variance Scoring Algorithm</span></em>. arXiv. <a href="https://doi.org/10.48550/arxiv.math/0610402" class="external-link">https://doi.org/10.48550/arxiv.math/0610402</a>.
+</div>
+<div id="ref-R-numDeriv" class="csl-entry" role="listitem">
+Gilbert, Paul, and Ravi Varadhan. 2019. <em>numDeriv: Accurate Numerical Derivatives</em>. <a href="http://optimizer.r-forge.r-project.org/" class="external-link">http://optimizer.r-forge.r-project.org/</a>.
+</div>
+<div id="ref-R-marqLevAlg" class="csl-entry" role="listitem">
+Philipps, Viviane, Cecile Proust-Lima, Melanie Prague, Boris Hejblum, Daniel Commenges, and Amadou Diakite. 2023. <em>marqLevAlg: A Parallelized General-Purpose Optimization Based on Marquardt-Levenberg Algorithm</em>.
+</div>
+</div>
 </section><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);

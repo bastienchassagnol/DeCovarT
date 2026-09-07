@@ -10,7 +10,7 @@ library(DeCovarT)
 
 ------------------------------------------------------------------------
 
-## :one: Generative Model
+## 1️⃣ Generative Model
 
 ### Motivation
 
@@ -90,7 +90,7 @@ scaling_grid <- tidyr::expand_grid(
 
 ------------------------------------------------------------------------
 
-## :two: Inference
+## 2️⃣ Inference
 
 ``` r
 
@@ -121,7 +121,7 @@ saveRDS(scaling_grid,    "output/supp_S3/scaling_grid.rds")
 
 ------------------------------------------------------------------------
 
-## :three: Visualisations
+## 3️⃣ Visualisations
 
 | Output | Description |
 |----|----|
