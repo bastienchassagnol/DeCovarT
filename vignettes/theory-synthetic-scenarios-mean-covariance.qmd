@@ -1063,6 +1063,8 @@ timings are *not* reported: the caller must declare the covariance
 structure used at fit time; otherwise the dense Cholesky factor of
 $\Sigma(p)$ is the default.
 
+
+
 # Conclusions
 
 A reproducible synthetic study should keep three design layers separate,
@@ -1071,18 +1073,13 @@ then score both the reference geometry and the mixture composition:
 1. **Mean signatures.** Build $\boldsymbol{\mu}$ with `generate_mean_signature_matrix()`: hold `mean_scale` $s$ fixed and dial the Gram $R$ (`target_cosine` or `target_gram`). Report the realised pairwise cosine (it equals $R$ up to rounding), Euclidean separation, and optionally $\kappa_2(\boldsymbol{\mu})$.
 2. **Precision graphs.** Draw an undirected skeleton (`scale_free`, `stochastic_block_model`, or `small_world`), assign i.i.d. signed weights (`prop_inhibitory`), and complete $\Omega\succ 0$ by the uniform spectral shift. Report $\kappa(\Omega)$ and the partial-correlation sign mix.
 3. **Cellular compositions.** Choose $\boldsymbol{p}$ on a Shannon grid from uniform ($H^{\star}=1$) to near-pure ($H^{\star}\approx 0$), matching the `SimBu` fraction vocabulary when comparing to pseudo-bulk tools (@fig-simbu-entropy).
-4. **Bulk draws.** Simulate $\boldsymbol{Y}$ from the Gaussian convolution $\boldsymbol{y}\mid(\boldsymbol{\zeta},\boldsymbol{p})\sim\mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},\sum_j p_j^{2}\boldsymbol{\Sigma}_j)$ and pass the same moments to every solver.
-5. **Hybrid stress test.** The variance-driven scenario (two
-   mean-collinear types told apart only by topology, plus a weakly
-   aligned third type) is documented in
-   [§2.2](fig03-variance-driven.html#sec-scenario-grid).
 
 See @nte-benchmark-spec for a compact factorial checklist.
 
 ::: {#nte-benchmark-spec .callout-important}
 ## Recommended benchmark specification
 
-Use one pipeline for every topology (@eq-benchmark-pipe, @fig-ggm-pipeline):
+Use one pipeline for a given topology of a given cell type's covariance structure (@eq-benchmark-pipe, @fig-ggm-pipeline):
 
 $$
 \text{topology}
@@ -1098,29 +1095,11 @@ $$
 \text{observation model}
 $$ {#eq-benchmark-pipe}
 
-| Axis | Suggested levels |
-|-----------------------|------------------------------------------------|
-| Dimension (genes) | $G \in \{100,500,1000\}$ |
-| Topology | ER, band, hub, scale-free, SBM, small-world |
-| Expected degree | $\approx 2,4,8$ (keep graphs sparse) |
-| Edge weights | Constant; i.i.d. signed; partial-correlation scaling; G-Wishart |
-| Conditioning | Report $\kappa(\Omega)$ and partial-correlation summaries |
-| Composition | Pure / weighted / balanced / uniform (@sec-imbalanced); record $H^{\star}$ |
+Prefer: 
+- uniform spectral shift (@eq-spectral-shift) or partial-correlation scaling (@eq-partial-scale) when support and signs are exact; $G$-Wishart when support and signs are approximate.
+- composition grid from uniform ($H^{\star}=1$) to near-pure ($H^{\star}\approx 0$), matching the `SimBu` fraction vocabulary when comparing to pseudo-bulk tools (@fig-simbu-entropy).
+- add the mean layer **independently** of graph generation.
 
-: Compact factorial axes for a reproducible undirected GGM simulation study. {#tbl-benchmark-axes}
-
-Prefer the uniform spectral shift (@eq-spectral-shift) or
-partial-correlation scaling (@eq-partial-scale) when support and signs
-must be exact; add the mean layer **independently** of graph generation.
-The end-to-end **hybrid multi-topology reference scenario** (two
-mean-collinear cell types distinguished only by network topology, a
-third weakly aligned type, a $3^3$ graph assignment crossed with three
-precision condition numbers, and the frequentist solver comparison on
-a Shannon-$H^{\star}$ composition grid) is documented in
-[§2.2 variance-driven hybrid](fig03-variance-driven.html#sec-scenario-grid).
-Edge-case numerical checks (gene-wise z-score equivariance, collinear
-signatures, small bulk perturbations, random ILR starts) live in
-[Appendix S1](supp-S1-identifiability.html).
 :::
 
 ::: {#nte-parallel-rng .callout-note}
@@ -1144,24 +1123,6 @@ That `furrr` path is the default for long jobs and for
 dispatch) is reserved for APIs that need a fast interactive response,
 not for the published Monte Carlo protocol.
 :::
-
-::: {#nte-gls-competitor .callout-note}
-## Fixed-covariance GLS competitor
-
-When a scenario varies the *covariance structure*, keep a mean-only
-baseline whose residual covariance does **not** depend on $\boldsymbol{p}$.
-Build $W$ with [`fixed_gls_covariance()`](../reference/fixed_gls_covariance.html)
-(default: diagonal of $\Sigma(\bar p)$ at $\bar p_j=1/J$) and fit
-[`deconvolute_ratios_gls()`](../reference/deconvolute_ratios_gls.html)
-(`MASS::lm.gls`). Copying $W$ into every tensor slice is not GLS:
-$\sum_j p_j^2 W=\|p\|_2^2 W$ still depends on $p$. The hierarchy is
-full $\Sigma(p)$, cell-type-diagonal convolution, then this fixed $W$.
-Starts for the convolution MLE: barycentre, Dirichlet
-(`initial_p = "dirichlet"`, $\alpha=1$ uniform, $\alpha>1$ centre,
-$\alpha<1$ faces; several independent draws), or QP
-(`initial_p = "qp"`).
-:::
-
 
 # Perspectives on high-dimensional or more biologically realistic designs
 
