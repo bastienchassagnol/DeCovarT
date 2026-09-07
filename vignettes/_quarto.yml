@@ -1,0 +1,10 @@
+# Shared Quarto project config for pkgdown articles.
+# pkgdown treats vignettes/ as a Quarto project and reads this file
+# (it does not honour `from:` in the repository-root _pkgdown.yml).
+# https://pkgdown.r-lib.org/articles/quarto.html
+#
+# `from: markdown+emoji` expands GitHub shortcodes such as :one: and
+# :warning: in HTML. Document YAML can still override per article.
+project:
+  render: ["*.qmd"]
+from: markdown+emoji

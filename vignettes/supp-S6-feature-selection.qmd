@@ -6,7 +6,6 @@ vignette: >
   %\VignetteIndexEntry{Feature selection for reference-based deconvolution}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
-from: markdown+emoji
 knitr:
   opts_chunk:
     collapse: true
