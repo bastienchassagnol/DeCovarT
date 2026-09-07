@@ -64,6 +64,8 @@ Connection to HADACA3 [@barbotPromisesLimitsMultimodal2026]: the
 noise model.  These represent the practical domain of mis-specification most
 relevant to pancreatic tumour deconvolution.
 
+see also use of a multivariate SDtudent $t_\nu$ or simpe; Gausisan noise. 
+
 ### S5b — Missing reference component
 
 | Factor | Levels |
@@ -78,7 +80,9 @@ mean-collinearity structure.  DeCovarT may exhibit a different redistribution
 pattern than NNLS because the second-order term couples the proportions
 estimation.
 
-### S5c — Inter-sample copula correlations
+### S5c — Model complex dependencies
+
+#### Copula-correlated NB samples
 
 | Factor | Levels |
 |---|---|
@@ -89,40 +93,41 @@ estimation.
 This directly mirrors the `SDC5` HADACA3 scenario
 [@barbotPromisesLimitsMultimodal2026].
 
+
+#### Poisson-log-normal samples
+
+| Factor | Levels |
+|---|---|
+| Marginal | PLN ($\mu = \bar{\mu}_g$) |
+| Correlation strength | $\tau_K \in \{0, 0.2, 0.5\}$ |
 ---
 
-## Blocking issues (why not implemented yet)
-
-1. **Gaussian-only `simulate_bulk_mixture()`**: the current package
-   implementation generates bulk expression as a Gaussian mixture.
-   NB/PLN data generation would require a dedicated simulator (e.g.
-   integration with `splatter` [@zappiaSplatterSimulationSinglecell2017a]
+Can be simulatd with `splatter` [@zappiaSplatterSimulationSinglecell2017a]
    or `SymSim`).
 
-2. **Copula sampling**: copula-correlated NB samples require either a
-   dedicated `VineCopula`-based generator or the HADACA3 framework code
-   (currently not a DeCovarT dependency).
 
-3. **No count-data likelihood**: DeCovarT fits a Gaussian log-likelihood.
-   Comparing it under NB data requires either a properly mis-specified
-   analysis (fit Gaussian to count data) or a new NB likelihood branch.
-
-These blockers are tracked as GitHub issues; this vignette will be updated
-once a count-data simulation pathway is merged.
-
----
-
-## Connection to the full factorial plan
+### S5d : Spillover effect and missing reference component
 
 The full factorial plan (`detailled_siulation_code.md`) includes these
 additional factors that touch on mis-specification and are also out of scope:
 
 | Factor | Planned levels | Notes |
 |---|---|---|
-| Data-generating law | Gaussian; $t_\nu$; PLN; contaminated Gaussian | S5a above |
+|spillover strength | $\alpha \in \{0, 0.2, 0.5\}$ |
 | Missing-reference component | None; 2%; 10% | S5b above |
 | Reference covariance sample size | Oracle; 20; 50; 200 donors | See Appendix S4 |
-| Initial composition (multistart) | Equi-balanced; Dirichlet(1); 10 multistarts | See Appendix S1 |
+
+
+
+We my also consider an alterative model sing a linear mixed model to add correlations between cell types.
+
+
+### S5e : Add outlier genes to test the robustness of the estimation
+
+| Factor | Planned levels | Notes |
+|---|---|---|
+| Outlier genes | 10% of genes; 20% of genes; 30% of genes |
+| Outlier strength | $\sigma \in \{0, 0.2, 0.5\}$ |
 
 ---
 
