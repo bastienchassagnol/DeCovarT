@@ -8,7 +8,8 @@ simulate_bulk_mixture(
   signature_matrix,
   Sigma,
   p = rep(1/ncol(signature_matrix), ncol(signature_matrix)),
-  n = 500
+  n = 500,
+  truncate_negative = FALSE
 )
 }
 \arguments{
@@ -23,6 +24,12 @@ samples; not the latent profiles).}
 (default: uniform).}
 
 \item{n}{Number of bulk / bootstrap samples \eqn{N}.}
+
+\item{truncate_negative}{If \code{TRUE}, replace negative bulk entries
+with 0 so \eqn{\boldsymbol{Y}} is a valid RNA-seq-style non-negative
+matrix. The latent Gaussian draws are unchanged. Use this when
+passing \code{Y} to \code{\link[=deconvolute_ratios]{deconvolute_ratios()}}, which rejects negative
+bulk expression.}
 }
 \value{
 A list with:

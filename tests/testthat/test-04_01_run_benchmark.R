@@ -161,6 +161,27 @@ test_that("Monte Carlo block reports ADEMP columns separately from global scores
   expect_true(all(scores$monte_carlo$coverage == 1))
 })
 
+test_that("presence F1 treats non-finite estimates as absent", {
+  expect_true(is.na(DeCovarT:::.f1_from_counts(NA, NA, NA)))
+  expect_equal(DeCovarT:::.f1_from_counts(NA, 0, 1), 0)
+
+  mu <- matrix(
+    c(20, 22, 22, 20),
+    nrow = 2,
+    dimnames = list(paste0("g", 1:2), paste0("ct", 1:2))
+  )
+  true_p <- cbind(c(0.5, 0.5), c(0.6, 0.4), c(0.7, 0.3))
+  p_hat <- cbind(c(0.45, 0.55), c(NA_real_, NA_real_), c(0.65, 0.35))
+  y <- mu %*% true_p
+  scores <- compute_benchmark_metrics(
+    y = y,
+    mean_signature_matrix = mu,
+    estimated_p = p_hat,
+    true_ratios = true_p
+  )
+  expect_true(all(is.finite(scores$regression$cell_type$presence_f1)))
+})
+
 test_that("presence F1 and false-positive mass detect spillover onto a null type", {
   mu <- matrix(
     c(20, 22, 24, 22, 20, 18),

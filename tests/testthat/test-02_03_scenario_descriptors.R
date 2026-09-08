@@ -63,3 +63,13 @@ test_that("identical means remain distinguishable through covariance", {
   expect_gt(described$descriptors$f_cov_max, 0.5)
   expect_gt(described$descriptors$lambda_min_it, 0)
 })
+
+test_that("describe_simulation_scenario can skip MixSim overlap", {
+  theta <- list(
+    p = c(0.5, 0.5),
+    mu = cbind(c(10, 0), c(0, 10)),
+    sigma = array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+  )
+  out <- describe_simulation_scenario(theta, include_mixsim = FALSE)
+  expect_true(is.na(out$descriptors$mixsim_baromega))
+})

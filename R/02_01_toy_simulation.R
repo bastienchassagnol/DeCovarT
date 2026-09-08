@@ -43,6 +43,11 @@
 #' @param p Proportion vector \eqn{\boldsymbol{p}\in\Delta^{J-1}}
 #'   (default: uniform).
 #' @param n Number of bulk / bootstrap samples \eqn{N}.
+#' @param truncate_negative If `TRUE`, replace negative bulk entries
+#'   with 0 so \eqn{\boldsymbol{Y}} is a valid RNA-seq-style non-negative
+#'   matrix. The latent Gaussian draws are unchanged. Use this when
+#'   passing `Y` to [deconvolute_ratios()], which rejects negative
+#'   bulk expression.
 #'
 #' @return A list with:
 #' * `latent_profiles`: array
@@ -72,7 +77,8 @@ simulate_bulk_mixture <- function(
   signature_matrix,
   Sigma,
   p = rep(1 / ncol(signature_matrix), ncol(signature_matrix)),
-  n = 500
+  n = 500,
+  truncate_negative = FALSE
 ) {
   ##################################################################
   ##                        check validity                        ##
@@ -127,5 +133,8 @@ simulate_bulk_mixture <- function(
 
   ## Mode-2 contraction: Y = X ×_2 p, i.e. y_{gi} = Σ_j x_{gji} p_j
   Y <- tensor::tensor(p, B = latent_profiles, alongA = 1, alongB = 2)
+  if (isTRUE(truncate_negative)) {
+    Y[Y < 0] <- 0
+  }
   return(list(latent_profiles = latent_profiles, Y = Y))
 }

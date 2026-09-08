@@ -2,7 +2,7 @@
 ###############################################################################
 ###                                                                         ###
 ###     FIGURE 03 – VARIANCE-DRIVEN SCENARIO (article §2.2)                ###
-###     J = 3 cell types · G = 50 genes · graph-constrained covariances     ###
+###     J = 3 cell types · G = 10 genes · graph-constrained covariances     ###
 ###                                                                         ###
 ###############################################################################
 ###############################################################################
@@ -22,16 +22,16 @@
 # ── Design ──────────────────────────────────────────────────────────────────
 #  Means           one G x J signature; target Gram R with
 #                  cos(μ1,μ2)=0.9, cos(μ1,μ3)=cos(μ2,μ3)=0.1
-#  Graph models    SBM, Erdős–Rényi, hub/star  (independent per cell type)
+#  Graph models    Erdős–Rényi, scale-free  (independent per cell type)
 #  Precision κ     well / moderate / ill  (precision_shift u)
-#  Topology grid   3³ = 27 graph assignments
-#  Covariance grid 27 x 3 = 81 (Σ_j, Ω_j) draws
+#  Topology grid   2³ = 8 graph assignments
+#  Covariance grid 8 x 3 = 24 (Σ_j, Ω_j) draws
 #  Proportions     H*=1 (balanced); H*=0.5; H*=0.1
 #  Algorithms      DeconRNASeq (LSEI), CIBERSORT, L-BFGS-B,
 #                  Newton–Raphson, Marquardt–Levenberg
 #                  (barycentre start; no NNLS)
 #  Replicates (n)  50
-#  Total scenarios 27 x 3 x 3 = 243
+#  Total scenarios 8 x 3 x 3 = 72
 #
 # ── Usage ────────────────────────────────────────────────────────────────────
 #  Rscript scripts/fig03_variance_driven.R
@@ -45,7 +45,6 @@
 # ==============================================================================
 # SECTION 0 · Dependencies and paths ----
 # ==============================================================================
-
 
 # Prefer the working tree over a stale user-library install.
 if (
@@ -78,7 +77,7 @@ N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "50"))
 SEED <- 20260807L
 set.seed(SEED)
 
-N_GENES <- 50L
+N_GENES <- 10L
 N_CELLTYPES <- 3L
 MEAN_SCALE <- 10
 ITMAX <- 200L
@@ -90,24 +89,21 @@ celltype_palette <- c(
   celltype_3 = "#C1443C"
 )
 graph_palette <- c(
-  stochastic_block_model = "#4C72B0",
   erdos_renyi = "#999999",
-  hub = "#C1443C"
+  scale_free = "#4C72B0"
 )
 ct_nms <- names(celltype_palette)
 
-GRAPH_MODELS <- c("stochastic_block_model", "erdos_renyi", "hub")
+GRAPH_MODELS <- c("erdos_renyi", "scale_free")
 # Spectral cushion u: lambda_min(Omega_j) = u after the shift, so
 # kappa(Omega_j) = lambda_max / u. Smaller u -> worse-conditioned precision.
-PRECISION_SHIFT <- c(well = 0.5, moderate = 0.1, ill = 0.02)
+# Keep u >= 0.1: u = 0.02 with large G stalled SPD completion.
+PRECISION_SHIFT <- c(well = 0.5, moderate = 0.2, ill = 0.1)
 PRECISION_SCALE <- 0.3
 PROP_INHIBITORY <- 0.5
 
 GRAPH_PARAMS <- list(
-  n_hubs = 1L,
-  block_prob = c(0.4, 0.3, 0.3),
-  p_within = 0.3,
-  p_between = 0.01
+  edges_per_node = 1L
 )
 
 TARGET_GRAM <- matrix(
@@ -175,7 +171,9 @@ PROPORTIONS_3 <- list(
   "Entropies: balanced {.val {round(compute_shannon_entropy(p_balanced), 3)}}, moderate {.val {round(compute_shannon_entropy(p_mod), 3)}}, high {.val {round(compute_shannon_entropy(p_rare), 3)}}."
 )
 
-.ui_info("Drawing one adjacency triple per topology (27 graphs).")
+.ui_info(
+  "Drawing one adjacency triple per topology ({.val {nrow(topology_grid)}} graphs)."
+)
 adj_by_topo <- purrr::pmap(
   topology_grid,
   function(graph_ct1, graph_ct2, graph_ct3) {
@@ -195,45 +193,52 @@ adj_by_topo <- purrr::pmap(
   }
 )
 
-.ui_info("Completing signed precisions for each topology x kappa draw.")
-cov_draws <- purrr::pmap(
-  cov_grid,
-  function(graph_ct1, graph_ct2, graph_ct3, kappa_label, precision_shift) {
-    topo_idx <- which(
-      topology_grid$graph_ct1 == graph_ct1 &
-        topology_grid$graph_ct2 == graph_ct2 &
-        topology_grid$graph_ct3 == graph_ct3
-    )
-    moments <- withr::with_seed(
-      SEED +
-        1000L * match(kappa_label, names(PRECISION_SHIFT)) +
-        topo_idx,
-      simulate_hierarchical_grn_moments(
-        n_genes = N_GENES,
-        n_celltypes = N_CELLTYPES,
-        mean_scale = MEAN_SCALE,
-        target_gram = TARGET_GRAM,
-        precision_shift = precision_shift,
-        precision_scale = PRECISION_SCALE,
-        prop_inhibitory = PROP_INHIBITORY,
-        nonnegative = TRUE,
-        adjacency = adj_by_topo[[topo_idx]]
-      )
-    )
-    list(
-      sigma = moments$covariance_matrices,
-      theta = moments$precision_matrices,
-      adjacency = lapply(
-        seq_len(N_CELLTYPES),
-        function(j) moments$graph_structure$adjacency_matrices[,, j]
-      )
-    )
-  }
+n_cov <- nrow(cov_grid)
+.ui_info(
+  "Completing signed precisions for each topology x kappa draw ({.val {n_cov}})."
 )
+cov_draws <- lapply(seq_len(n_cov), function(i) {
+  if (i == 1L || i %% 8L == 0L || i == n_cov) {
+    .ui_info("Precision draw {.val {i}}/{.val {n_cov}}.")
+  }
+  row <- cov_grid[i, , drop = FALSE]
+  topo_idx <- which(
+    topology_grid$graph_ct1 == row$graph_ct1 &
+      topology_grid$graph_ct2 == row$graph_ct2 &
+      topology_grid$graph_ct3 == row$graph_ct3
+  )[[1L]]
+  moments <- withr::with_seed(
+    SEED +
+      1000L * match(row$kappa_label, names(PRECISION_SHIFT)) +
+      topo_idx,
+    simulate_hierarchical_grn_moments(
+      n_genes = N_GENES,
+      n_celltypes = N_CELLTYPES,
+      mean_scale = MEAN_SCALE,
+      target_gram = TARGET_GRAM,
+      precision_shift = row$precision_shift,
+      precision_scale = PRECISION_SCALE,
+      prop_inhibitory = PROP_INHIBITORY,
+      nonnegative = TRUE,
+      adjacency = adj_by_topo[[topo_idx]]
+    )
+  )
+  list(
+    sigma = moments$covariance_matrices,
+    theta = moments$precision_matrices,
+    adjacency = lapply(
+      seq_len(N_CELLTYPES),
+      function(j) moments$graph_structure$adjacency_matrices[,, j]
+    )
+  )
+})
 
 scenario_config_3 <- purrr::map_dfr(
-  seq_len(nrow(cov_grid)),
+  seq_len(n_cov),
   function(i) {
+    if (i == 1L || i %% 8L == 0L || i == n_cov) {
+      .ui_info("Scenario descriptors {.val {i}}/{.val {n_cov}}.")
+    }
     row <- cov_grid[i, , drop = FALSE]
     draw <- cov_draws[[i]]
     purrr::imap_dfr(PROPORTIONS_3, function(p, prop_name) {
@@ -244,7 +249,8 @@ scenario_config_3 <- purrr::map_dfr(
           sigma = draw$sigma,
           Theta = draw$theta
         ),
-        adjacency = draw$adjacency
+        adjacency = draw$adjacency,
+        include_mixsim = FALSE
       )
       tibble::tibble(
         proportion_name = prop_name,
@@ -377,8 +383,8 @@ dir.create(
   recursive = TRUE,
   showWarnings = FALSE
 )
-grDevices::png(static_network_path, width = 2700, height = 900, res = 220)
-graphics::par(mfrow = c(1L, 3L), mar = c(1, 1, 3, 1))
+grDevices::png(static_network_path, width = 1800, height = 900, res = 220)
+graphics::par(mfrow = c(1L, 2L), mar = c(1, 1, 3, 1))
 set.seed(SEED)
 for (gm in GRAPH_MODELS) {
   adj <- generate_random_network_skeleton(
@@ -394,7 +400,7 @@ for (gm in GRAPH_MODELS) {
   igraph::V(graph)$color <- graph_palette[[gm]]
   igraph::plot.igraph(
     graph,
-    vertex.size = 4,
+    vertex.size = 8,
     vertex.label = NA,
     vertex.frame.color = "#2f3e4f",
     edge.color = "#4a5560",

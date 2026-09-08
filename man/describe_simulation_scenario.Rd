@@ -4,7 +4,12 @@
 \alias{describe_simulation_scenario}
 \title{Describe a Gaussian-convolution simulation scenario}
 \usage{
-describe_simulation_scenario(true_theta, adjacency = NULL, active_tol = 1e-08)
+describe_simulation_scenario(
+  true_theta,
+  adjacency = NULL,
+  active_tol = 1e-08,
+  include_mixsim = TRUE
+)
 }
 \arguments{
 \item{true_theta}{List with \code{p}, \code{mu}, and \code{sigma} (and optionally
@@ -16,6 +21,11 @@ a length-\eqn{J} list of adjacencies, used for network density when
 supplied.}
 
 \item{active_tol}{Threshold for counting an active simplex component.}
+
+\item{include_mixsim}{Logical. If \code{TRUE} (default), compute MixSim
+BarOmega when MixSim is installed. Set \code{FALSE} on high-\eqn{G}
+grids: the overlap Monte Carlo is far slower than the Fisher /
+SPD descriptors.}
 }
 \value{
 A list with:

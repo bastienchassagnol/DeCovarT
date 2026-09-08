@@ -33,3 +33,32 @@ test_that("small simulation testing", {
     tolerance = 10^-3
   )
 })
+
+test_that("simulate_bulk_mixture can truncate negative bulk entries", {
+  mu <- matrix(
+    c(0.1, 0.1, 0.1, 0.1),
+    nrow = 2,
+    dimnames = list(paste0("g", 1:2), paste0("ct", 1:2))
+  )
+  Sigma <- array(
+    c(4, 0, 0, 4, 4, 0, 0, 4),
+    dim = c(2, 2, 2),
+    dimnames = list(paste0("g", 1:2), paste0("g", 1:2), paste0("ct", 1:2))
+  )
+  raw <- withr::with_seed(
+    1L,
+    simulate_bulk_mixture(mu, Sigma, p = c(0.5, 0.5), n = 20L)
+  )
+  truncated <- withr::with_seed(
+    1L,
+    simulate_bulk_mixture(
+      mu,
+      Sigma,
+      p = c(0.5, 0.5),
+      n = 20L,
+      truncate_negative = TRUE
+    )
+  )
+  expect_true(any(raw$Y < 0))
+  expect_true(all(truncated$Y >= 0))
+})

@@ -40,7 +40,8 @@
     signature_matrix = mu,
     Sigma = Sigma,
     p = p,
-    n = n_samples
+    n = n_samples,
+    truncate_negative = TRUE
   )
 
   estimated_ratios <- suppressWarnings(deconvolute_ratios(

@@ -215,6 +215,10 @@
 #'   a length-\eqn{J} list of adjacencies, used for network density when
 #'   supplied.
 #' @param active_tol Threshold for counting an active simplex component.
+#' @param include_mixsim Logical. If `TRUE` (default), compute MixSim
+#'   BarOmega when MixSim is installed. Set `FALSE` on high-\eqn{G}
+#'   grids: the overlap Monte Carlo is far slower than the Fisher /
+#'   SPD descriptors.
 #'
 #' @return A list with:
 #' * `theta_true`: the convolution parameters `p`, `mu`, `sigma`;
@@ -245,7 +249,8 @@
 describe_simulation_scenario <- function(
   true_theta,
   adjacency = NULL,
-  active_tol = 1e-8
+  active_tol = 1e-8,
+  include_mixsim = TRUE
 ) {
   call <- match.call()
   theta <- .parse_true_theta(
@@ -428,7 +433,7 @@ describe_simulation_scenario <- function(
   }
 
   mixsim_overlap <- NA_real_
-  if (requireNamespace("MixSim", quietly = TRUE)) {
+  if (isTRUE(include_mixsim) && requireNamespace("MixSim", quietly = TRUE)) {
     mixsim_overlap <- tryCatch(
       MixSim::overlap(
         Pi = p,

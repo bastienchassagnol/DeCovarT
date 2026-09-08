@@ -1,18 +1,22 @@
 # DeCovarT (development version)
 
 * **Scenario 3 (variance-driven).** Fixed Gram
-  $\cos(\mu_1,\mu_2)=0.9$, $\cos(\mu_j,\mu_3)=0.1$; $3^3$ graph
-  assignments (SBM / Erdős–Rényi / hub) $\times$ three precision
+  $\cos(\mu_1,\mu_2)=0.9$, $\cos(\mu_j,\mu_3)=0.1$; $2^3$ graph
+  assignments (Erdős–Rényi / scale-free) $\times$ three precision
   cushions; compositions from `composition_from_entropy()` at
   $H^{\star}\in\{1,0.5,0.1\}$; solvers LSEI, CIBERSORT, L-BFGS-B,
-  Newton–Raphson, Marquardt–Levenberg ($n=50$). Descriptor docs use
+  Newton–Raphson, Marquardt–Levenberg ($n=50$, $G=10$).
+  Descriptor docs use
   one callout per family in the synthetic-scenarios vignette.
   `kappa_sigma_p` is now returned beside the reciprocal ratio.
   `generate_mean_signature_matrix(nonnegative = TRUE)` uses a
   disjoint-support frame so signatures stay nonnegative. Graph
   precisions are completed by a uniform spectral shift and extra-loaded
   until both $\Omega$ and $\Sigma=\Omega^{-1}$ admit a Cholesky factor
-  (support and signs of $W$ unchanged).
+  (support and signs of $W$ unchanged). Failed $\hat p$ entries are
+  treated as absent when scoring presence F1.
+  `simulate_bulk_mixture(truncate_negative = TRUE)` floors bulk
+  coordinates at 0 (used by `run_simulation_benchmark()`).
 
 * **Terminal UI.** Optional Suggests `cli` formats messages, warnings
   and errors (`cli_alert_*` / `cli_abort`, with base `message()` /

@@ -172,10 +172,17 @@
 #' @keywords internal
 #' @noRd
 .pearson_safe <- function(x, y) {
-  if (length(x) < 2L || length(y) < 2L) {
+  x <- as.numeric(x)
+  y <- as.numeric(y)
+  ok <- is.finite(x) & is.finite(y)
+  x <- x[ok]
+  y <- y[ok]
+  if (length(x) < 2L) {
     return(NA_real_)
   }
-  if (stats::sd(x) <= 0 || stats::sd(y) <= 0) {
+  sx <- stats::sd(x)
+  sy <- stats::sd(y)
+  if (!is.finite(sx) || !is.finite(sy) || sx <= 0 || sy <= 0) {
     return(NA_real_)
   }
   stats::cor(x, y, method = "pearson")
@@ -188,6 +195,9 @@
 .presence_counts <- function(p, p_hat, threshold = 1e-4) {
   p <- as.numeric(p)
   p_hat <- as.numeric(p_hat)
+  # Failed fits store NA in p_hat; treat them as absent (mass 0).
+  p[!is.finite(p)] <- 0
+  p_hat[!is.finite(p_hat)] <- 0
   present_true <- p > threshold
   present_hat <- p_hat > threshold
   list(
@@ -204,11 +214,32 @@
 #' @keywords internal
 #' @noRd
 .f1_from_counts <- function(tp, fp, fn) {
-  if ((tp + fp + fn) == 0L) {
+  tp <- as.numeric(tp)
+  fp <- as.numeric(fp)
+  fn <- as.numeric(fn)
+  if (!is.finite(tp)) {
+    tp <- 0
+  }
+  if (!is.finite(fp)) {
+    fp <- 0
+  }
+  if (!is.finite(fn)) {
+    fn <- 0
+  }
+  denom <- tp + fp + fn
+  if (denom == 0) {
     return(NA_real_)
   }
-  precision <- if ((tp + fp) == 0L) NA_real_ else tp / (tp + fp)
-  recall <- if ((tp + fn) == 0L) NA_real_ else tp / (tp + fn)
+  precision <- if ((tp + fp) == 0) {
+    NA_real_
+  } else {
+    tp / (tp + fp)
+  }
+  recall <- if ((tp + fn) == 0) {
+    NA_real_
+  } else {
+    tp / (tp + fn)
+  }
   if (
     !is.finite(precision) || !is.finite(recall) || (precision + recall) == 0
   ) {

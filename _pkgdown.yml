@@ -112,7 +112,7 @@ navbar:
         - text: "§ 2.1 · Bivariate toy (J = 2, G = 2)"
           icon: fa-chart-bar
           href: articles/fig02-bivariate-toy.html
-        - text: "§ 2.2 · Variance-driven hybrid (J = 3, G = 50)"
+        - text: "§ 2.2 · Variance-driven hybrid (J = 3, G = 10)"
           icon: fa-network-wired
           href: articles/fig03-variance-driven.html
         - text: -------
@@ -311,8 +311,8 @@ articles:
       The two simulation scenarios of the DeCovarT article.
       **§ 2.1** Bivariate toy (J = 2, G = 2): factorial sweep of gene–gene
       correlation, mean distance, and composition.
-      **§ 2.2** Variance-driven hybrid (J = 3, G = 50): fixed Gram
-      (cosines 0.9 / 0.1), $3^3$ graph assignments $\times$ three
+      **§ 2.2** Variance-driven hybrid (J = 3, G = 10): fixed Gram
+      (cosines 0.9 / 0.1), $2^3$ graph assignments $\times$ three
       precision cushions, Shannon $H^{\star}$ compositions.
     navbar: ~
     contents:
