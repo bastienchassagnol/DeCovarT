@@ -136,7 +136,7 @@ test_that("plot_mc_forest shows Wilson coverage whiskers", {
     out,
     facet_rows = "n_genes",
     facet_cols = "cosine",
-    metrics = c("bias", "coverage", "mae")
+    metrics = c("bias", "coverage", "mae", "se_sd_ratio")
   )
   expect_s3_class(p, "ggplot")
   built <- ggplot2::ggplot_build(p)

@@ -94,6 +94,7 @@ for (j in seq_len(J_1a)) {
 p_1a <- c(0.6, 0.4, 0.0) # zero boundary
 
 config_1a <- tibble::tibble(
+  ID = "S1a_1",
   sub_case = "S1a_boundary_null",
   p3_true = p_1a[3L],
   true_theta = list(list(p = p_1a, mu = mu_1a, sigma = Sigma_1a))
@@ -133,6 +134,7 @@ config_1b <- purrr::map_dfr(rho_grid_1b, function(rho) {
 .ui_success(
   "S1b generative model built ({.val {nrow(config_1b)}} rho levels)."
 )
+config_1b$ID <- paste0("S1b_", seq_len(nrow(config_1b)))
 
 
 # ── S1c: Multimodal likelihood – low CLD, symmetric composition ──────────────
@@ -163,6 +165,7 @@ config_1c <- purrr::map_dfr(rho_grid_1c, function(rho) {
 .ui_success(
   "S1c generative model built ({.val {nrow(config_1c)}} rho levels)."
 )
+config_1c$ID <- paste0("S1c_", seq_len(nrow(config_1c)))
 
 
 # ── Regular interior check (matches vignette live chunks) ────────────────────
@@ -240,6 +243,12 @@ out_1a <- run_simulation_benchmark(
   verbose = TRUE
 )
 saveRDS(out_1a, file.path(OUT_DIR, "S1a_boundary.rds"))
+write_simulation_artefacts(
+  out_1a,
+  dir = OUT_DIR,
+  stem = "S1a",
+  config = config_1a
+)
 
 .ui_info("Running S1b with {.val {N_REPL}} replicates.")
 out_1b <- run_simulation_benchmark(
@@ -250,6 +259,12 @@ out_1b <- run_simulation_benchmark(
   verbose = TRUE
 )
 saveRDS(out_1b, file.path(OUT_DIR, "S1b_same_means.rds"))
+write_simulation_artefacts(
+  out_1b,
+  dir = OUT_DIR,
+  stem = "S1b",
+  config = config_1b
+)
 
 .ui_info("Running S1c with {.val {N_REPL}} replicates.")
 out_1c <- run_simulation_benchmark(
@@ -260,6 +275,12 @@ out_1c <- run_simulation_benchmark(
   verbose = TRUE
 )
 saveRDS(out_1c, file.path(OUT_DIR, "S1c_multimodal.rds"))
+write_simulation_artefacts(
+  out_1c,
+  dir = OUT_DIR,
+  stem = "S1c",
+  config = config_1c
+)
 .ui_success("Inference complete.")
 
 

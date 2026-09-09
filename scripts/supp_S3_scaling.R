@@ -16,7 +16,7 @@
 #     > "logs/supp_S3_$(date +%F)_scaling.log" 2>&1 &
 #
 # Article:  DeCovarT – Supplementary: scalability
-# Vignette: vignettes/fig03-variance-driven.qmd  {#sec-scenario-grid}
+# Vignette: vignettes/fig03-covariance-driven.qmd  {#sec-scenario-grid}
 #           (pilot subset; full grid on HPC)
 #
 # ── Factorial design ─────────────────────────────────────────────────────────
@@ -145,6 +145,10 @@ scenario_config_S3 <- purrr::pmap_dfr(
 .ui_success(
   "Config: {.val {nrow(scenario_config_S3)}} valid scenarios."
 )
+scenario_config_S3$ID <- paste0(
+  "S3_",
+  seq_len(nrow(scenario_config_S3))
+)
 
 
 # ==============================================================================
@@ -173,6 +177,12 @@ scaling_out <- run_simulation_benchmark(
   verbose = TRUE
 )
 saveRDS(scaling_out, file.path(OUT_DIR, "scaling_benchmark.rds"))
+write_simulation_artefacts(
+  scaling_out,
+  dir = OUT_DIR,
+  stem = "scaling",
+  config = scenario_config_S3
+)
 
 
 # ==============================================================================

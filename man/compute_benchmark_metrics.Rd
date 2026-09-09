@@ -39,7 +39,10 @@ omitted, reconstitution scores compare
 \eqn{\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}} with
 \eqn{\boldsymbol{y}}.}
 
-\item{se}{Optional standard errors matching \code{estimated_p}.}
+\item{se}{Optional standard errors matching \code{estimated_p}.
+Convolution-likelihood solvers fill these from \code{\link[=vcov_ilr_delta]{vcov_ilr_delta()}}
+(expected Fisher information pulled back through the ILR chart).
+Mean-only solvers (NNLS, LSEI) leave them missing.}
 
 \item{lower, upper}{Optional interval bounds matching \code{estimated_p}
 (used for coverage and mean width). When omitted but \code{se} is

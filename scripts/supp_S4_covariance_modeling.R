@@ -163,6 +163,10 @@ scenario_config_S4 <- scenario_config_S4 |>
 .ui_success(
   "Config: {.val {nrow(scenario_config_S4)}} scenarios."
 )
+scenario_config_S4$ID <- paste0(
+  "S4_",
+  seq_len(nrow(scenario_config_S4))
+)
 
 
 # ==============================================================================
@@ -211,6 +215,12 @@ cov_modeling_out <- run_simulation_benchmark(
 saveRDS(
   cov_modeling_out,
   file.path(OUT_DIR, "covariance_modeling_benchmark.rds")
+)
+write_simulation_artefacts(
+  cov_modeling_out,
+  dir = OUT_DIR,
+  stem = "covariance_modeling",
+  config = scenario_config_S4
 )
 
 

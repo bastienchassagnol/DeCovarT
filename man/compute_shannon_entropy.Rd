@@ -23,7 +23,7 @@ For a probability vector \eqn{\boldsymbol{p}\in\Delta^{J-1}} over
 }
 with the convention \eqn{0\log 0 = 0}. Dividing by the maximum
 entropy \eqn{\log J} (uniform over all \eqn{J} classes) yields
-\strong{Pielou's evenness}
+normalised Shannon entropy
 \deqn{
   H^{\star}(\boldsymbol{p})
   =

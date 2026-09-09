@@ -9,7 +9,10 @@ plot_mc_raincloud(
   quantity = c("error", "estimate"),
   facet_rows = NULL,
   facet_cols = NULL,
-  .width = c(0.5, 0.95)
+  .width = c(0.5, 0.95),
+  include_dots = TRUE,
+  max_dots = 2000L,
+  max_rows = NULL
 )
 }
 \arguments{
@@ -23,6 +26,17 @@ from \code{\link[=pivot_mc_estimates]{pivot_mc_estimates()}}.}
 
 \item{.width}{Passed to \code{\link[ggdist:stat_halfeye]{ggdist::stat_halfeye()}}; default
 \code{c(0.5, 0.95)}.}
+
+\item{include_dots}{If \code{FALSE}, omit \code{\link[ggdist:stat_dots]{ggdist::stat_dots()}} (use this
+on large Monte Carlo tables: the Fortran QP in \code{nudge_bins} cannot
+take long vectors).}
+
+\item{max_dots}{Maximum rows passed to \code{stat_dots} when
+\code{include_dots = TRUE}. Extra rows are subsampled.}
+
+\item{max_rows}{Optional cap on the plotting table (half-eye and
+dots). When the Monte Carlo stack is huge, subsample before
+drawing.}
 }
 \value{
 A \code{ggplot} object.

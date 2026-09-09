@@ -163,7 +163,9 @@ ILR coordinates \eqn{\boldsymbol{z}} (\code{\link[stats:optim]{stats::optim()}} 
 \item \code{deconvolute_ratios_L_BFGS_B()}: Box-constrained L-BFGS-B
 directly in \eqn{\boldsymbol{p}} (\code{\link[stats:optim]{stats::optim()}} \code{method = "L-BFGS-B"}).
 The box keeps each coordinate in \eqn{[0,1]}; the returned vector is
-closed by \eqn{p/\sum p} (no \code{\link[=repair_simplex]{repair_simplex()}} clipping).
+closed by \eqn{p/\sum p} (no \code{\link[=repair_simplex]{repair_simplex()}} clipping). Wald
+standard errors still use the ILR expected-Fisher map
+\code{\link[=vcov_ilr_delta]{vcov_ilr_delta()}}, not a \eqn{\boldsymbol{p}}-space Hessian.
 
 \item \code{deconvolute_ratios_Newton_Raphson()}: Newton–Raphson /
 \code{nlminb} on ILR coordinates \eqn{\boldsymbol{z}} using analytic

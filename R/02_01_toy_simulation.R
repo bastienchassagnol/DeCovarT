@@ -45,9 +45,9 @@
 #' @param n Number of bulk / bootstrap samples \eqn{N}.
 #' @param truncate_negative If `TRUE`, replace negative bulk entries
 #'   with 0 so \eqn{\boldsymbol{Y}} is a valid RNA-seq-style non-negative
-#'   matrix. The latent Gaussian draws are unchanged. Use this when
-#'   passing `Y` to [deconvolute_ratios()], which rejects negative
-#'   bulk expression.
+#'   matrix. The latent Gaussian draws are unchanged. [deconvolute_ratios()]
+#'   allows negative bulk entries (with a warning): Gaussian convolutions
+#'   can produce them. Flooring is optional, not required.
 #'
 #' @return A list with:
 #' * `latent_profiles`: array

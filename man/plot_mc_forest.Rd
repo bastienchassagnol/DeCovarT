@@ -8,7 +8,8 @@ plot_mc_forest(
   benchmark,
   facet_rows = NULL,
   facet_cols = NULL,
-  metrics = c("bias", "rmse", "mae", "coverage", "mean_interval_width", "failure_rate")
+  metrics = c("bias", "rmse", "mae", "coverage", "mean_interval_width", "se_sd_ratio",
+    "failure_rate")
 )
 }
 \arguments{
@@ -25,13 +26,16 @@ A \code{ggplot} object.
 }
 \description{
 Dot-and-whisker display of bias, RMSE, MAE, coverage, mean interval
-width, and optimiser failure rate by algorithm and cell type
+width, SE/SD ratio, and optimiser failure rate by algorithm and cell
+type
 \insertCite{allenRaincloudPlotsMultiplatform2019}{DeCovarT}.
 Coverage whiskers are the Wilson interval already stored on
 \code{monte_carlo} (\code{\link[=coverage_mc_interval]{coverage_mc_interval()}};
 \insertCite{wilsonProbableInferenceLaw1927}{DeCovarT}): they are
 intervals for the coverage \emph{rate}, not for \eqn{p_j}. Bias is
-referenced at 0; coverage at 0.95. Pairwise algorithm contrasts
+referenced at 0; coverage at 0.95; SE/SD (\code{se_sd_ratio}, mean model
+SE / empirical SD) at 1. Interior Wald SEs come from
+\code{\link[=vcov_ilr_delta]{vcov_ilr_delta()}}. Pairwise algorithm contrasts
 (MAE differences versus a reference solver on the same Monte Carlo
 replicates) can be read from the raincloud of paired errors; they do
 not need a second bootstrap.
@@ -68,5 +72,6 @@ if (requireNamespace("ggplot2", quietly = TRUE)) {
 \insertAllCited{}
 }
 \seealso{
-\code{\link[=plot_mc_raincloud]{plot_mc_raincloud()}}, \code{\link[=coverage_mc_interval]{coverage_mc_interval()}}
+\code{\link[=plot_mc_raincloud]{plot_mc_raincloud()}}, \code{\link[=coverage_mc_interval]{coverage_mc_interval()}},
+\code{\link[=vcov_ilr_delta]{vcov_ilr_delta()}}, \code{\link[=theme_decovart_facets]{theme_decovart_facets()}}
 }

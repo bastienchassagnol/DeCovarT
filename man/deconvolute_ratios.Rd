@@ -68,7 +68,15 @@ A named list from \code{\link[=compute_benchmark_metrics]{compute_benchmark_metr
 \code{optimisation} (per-sample elapsed time, memory, KKT residual, and
 \eqn{\hat{\boldsymbol{p}}}). First-generation solvers still call
 \code{\link[=repair_simplex]{repair_simplex()}}; the three native DeCovarT maps (ILR or
-\eqn{p/\sum p}) already lie on the simplex.
+\eqn{p/\sum p}) already lie on the simplex. When \code{Sigma} is
+supplied, Newton-Raphson, Marquardt-Levenberg, L-BFGS-B, BFGS
+(gradient), and simulated annealing attach ILR Wald standard
+errors from \code{\link[=vcov_ilr_delta]{vcov_ilr_delta()}} so \code{monte_carlo} can report
+coverage, mean model SE, and the SE/SD ratio. Those SEs are the
+expected-Fisher delta-method bounds used by
+\code{\link[=confint.decovart_fit]{confint.decovart_fit()}}, not diagonal entries of the observed
+Hessian. Mean-only solvers (NNLS, LSEI) leave Wald columns
+missing: those estimators do not use the convolution likelihood.
 }
 \description{
 For each column \eqn{\boldsymbol{y}_{\cdot i}} of the bulk matrix

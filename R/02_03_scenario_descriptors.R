@@ -196,6 +196,19 @@
   )
 }
 
+#' Mean pairwise Euclidean gap of signature columns (CLD)
+#'
+#' @keywords internal
+#' @noRd
+.mean_euclidean_distance <- function(mu) {
+  obj <- compute_mean_profile_objectives(mu)
+  n_pairs <- choose(ncol(as.matrix(mu)), 2L)
+  if (!is.finite(n_pairs) || n_pairs < 1L) {
+    return(NA_real_)
+  }
+  obj$sum_euclidean_distance / n_pairs
+}
+
 #' Describe a Gaussian-convolution simulation scenario
 #'
 #' Summarises the generating law
@@ -205,8 +218,10 @@
 #' mean geometry, covariance / SPD diagnostics, network sparsity, and
 #' tangent Fisher information (mean versus covariance split). MixSim
 #' BarOmega and average pairwise Hellinger of the component Gaussians
-#' are kept in `descriptors`. Jeffreys / symmetrised KL is returned in
-#' `supplementary`.
+#' are kept in `descriptors` (Hellinger is the unweighted pairwise mean;
+#' `hellinger_weighted` is optional). Jeffreys / symmetrised KL is
+#' returned in `supplementary`. Mean-geometry columns include the
+#' highest pairwise cosine and the mean Euclidean (CLD) gap.
 #'
 #' @param true_theta List with `p`, `mu`, and `sigma` (and optionally
 #'   `Theta` precision). Parsed by [check_true_theta()] /
@@ -410,24 +425,34 @@ describe_simulation_scenario <- function(
     compute_average_jeffreys(true_theta),
     error = function(e) NA_real_
   )
-  hellinger <- 0
-  hellinger_w <- 0
+  hellinger_sum <- 0
+  hellinger_w_sum <- 0
+  weight_sum <- 0
+  n_pairs_h <- 0L
   for (j in seq_len(n_celltypes - 1L)) {
     for (ell in seq.int(j + 1L, n_celltypes)) {
-      w <- p[[j]] * p[[ell]]
-      hellinger <- hellinger +
-        w *
-          .hellinger_gaussian(
-            mu[, j],
-            mu[, ell],
-            Sigma[,, j],
-            Sigma[,, ell]
-          )
-      hellinger_w <- hellinger_w + w
+      h_jl <- .hellinger_gaussian(
+        mu[, j],
+        mu[, ell],
+        Sigma[,, j],
+        Sigma[,, ell]
+      )
+      w_jl <- p[[j]] * p[[ell]]
+      hellinger_sum <- hellinger_sum + h_jl
+      hellinger_w_sum <- hellinger_w_sum + w_jl * h_jl
+      weight_sum <- weight_sum + w_jl
+      n_pairs_h <- n_pairs_h + 1L
     }
   }
-  hellinger <- if (hellinger_w > 0) {
-    hellinger / hellinger_w
+  # Hellinger(f, g) = Hellinger(g, f); do not treat p_j p_k as a
+  # directed divergence. The unweighted mean is the primary score.
+  hellinger <- if (n_pairs_h > 0L) {
+    hellinger_sum / n_pairs_h
+  } else {
+    NA_real_
+  }
+  hellinger_weighted <- if (weight_sum > 0) {
+    hellinger_w_sum / weight_sum
   } else {
     NA_real_
   }
@@ -454,6 +479,8 @@ describe_simulation_scenario <- function(
     concentration = sum(p^2),
     mean_abs_cosine = cos_summ$mean_abs_cosine,
     min_cosine = cos_summ$min_cosine,
+    max_cosine = cos_summ$max_cosine,
+    mean_euclidean = .mean_euclidean_distance(mu),
     kappa_mu = kappa_mu,
     gram_volume = gram_vol,
     lambda_min_sigma_p = lambda_min_sigma,
@@ -473,7 +500,8 @@ describe_simulation_scenario <- function(
     network_mean_degree = network_mean_degree,
     hoyer_abs_correlation = hoyer_r,
     mixsim_baromega = mixsim_overlap,
-    hellinger = hellinger
+    hellinger = hellinger,
+    hellinger_weighted = hellinger_weighted
   )
 
   supplementary <- tibble::tibble(

@@ -56,7 +56,7 @@ Each cell type carries its own graph-constrained signed precision $\boldsymbol{\
 
 # Pipeline API
 
-The exported entry point orchestrates internal helpers and returns moments that can be passed to `simulate_bulk_mixture()`. For end-to-end benchmarking, see the [bivariate toy](fig02-bivariate-toy.html) and [variance-driven hybrid](fig03-variance-driven.html); scenario grids live in `scripts/fig02_bivariate_toy.R`. Direct solver calls use `deconvolute_ratios()`.
+The exported entry point orchestrates internal helpers and returns moments that can be passed to `simulate_bulk_mixture()`. For end-to-end benchmarking, see the [bivariate toy](fig02-bivariate-toy.html) and [covariance-driven hybrid](fig03-covariance-driven.html); scenario grids live in `scripts/fig02_bivariate_toy.R`. Direct solver calls use `deconvolute_ratios()`.
 
 ```{mermaid}
 %%| label: fig-pipeline-api
@@ -786,7 +786,7 @@ sample-wise ratios) to `simulate_bulk_mixture()`, and report $H^{\star}$
 alongside overlap or condition-number diagnostics. The hybrid $J=3$
 manuscript scenario uses `composition_from_entropy()` at
 $H^{\star}\in\{1,0.5,0.1\}$
-([variance-driven hybrid](fig03-variance-driven.html#sec-scenario-grid)).
+([covariance-driven hybrid](fig03-covariance-driven.html#sec-scenario-grid)).
 
 ```{r}
 #| label: fig-simbu-entropy
@@ -854,7 +854,7 @@ ggplot2::ggplot(comp_df, ggplot2::aes(x = design, y = p, fill = celltype)) +
   ggplot2::theme(legend.position = "bottom")
 ```
 
-## Scenario descriptors collected with the bulk draw {#sec-scenario-descriptors}
+# Scenario descriptors collected with the bulk draw {#sec-scenario-descriptors}
 
 `describe_simulation_scenario()` records the convolution parameters
 $(\boldsymbol{p},\boldsymbol{\mu},\{\boldsymbol{\Sigma}_j\})$ and a compact
@@ -872,6 +872,159 @@ Compositions on a Shannon grid can be built with
 `composition_from_entropy()` (one-dominant family
 $(1-(J-1)q,q,\ldots,q)$ matching a target $H^{\star}$).
 
+```{r}
+#| label: tbl-scenario-descriptors-kept
+#| echo: false
+#| eval: true
+#| tbl-cap: "Kept scenario descriptors from `describe_simulation_scenario()` (`R/02_03_scenario_descriptors.R`). Jeffreys sits on the same `ID` key in `supplementary` / the descriptors RDS."
+options(tinytable_html_mathjax = TRUE)
+desc_kept <- data.frame(
+  family = c(
+    "Composition",
+    "Composition",
+    "Composition",
+    "Composition",
+    "Mean geometry",
+    "Mean geometry",
+    "Mean geometry",
+    "Mean geometry",
+    "Mean geometry",
+    "SPD / $\\Sigma(p)$",
+    "SPD / $\\Sigma(p)$",
+    "SPD / $\\Sigma(p)$",
+    "Tangent Fisher",
+    "Tangent Fisher",
+    "Tangent Fisher",
+    "Tangent Fisher",
+    "Network sparsity",
+    "Network sparsity",
+    "Component overlap",
+    "Component overlap",
+    "Supplementary"
+  ),
+  Metric = c(
+    "Normalised Shannon entropy (`h_star`)",
+    "Effective number (`n_eff`)",
+    "Active count (`n_active`)",
+    "Concentration $\\lVert p\\rVert_2^2$",
+    "Mean absolute cosine",
+    "Highest pairwise cosine (`max_cosine`)",
+    "Mean Euclidean gap (`mean_euclidean`)",
+    "Condition number $\\kappa(\\mu)$",
+    "Gram volume",
+    "$\\lambda_{\\min}\\{\\Sigma(p)\\}$",
+    "`kappa_sigma_p`",
+    "`kappa_sigma_reciprocal`",
+    "$\\lambda_{\\min}(I_T)$",
+    "$\\kappa(I_T)$",
+    "$f_{\\mathrm{cov}}$",
+    "$f_{\\mathrm{cov}}^{\\max}$",
+    "Edge density / mean degree",
+    "Hoyer sparsity of $\\lvert r_{gh}\\rvert$",
+    "MixSim `BarOmega`",
+    "Mean pairwise Hellinger",
+    "Jeffreys / symmetrised KL"
+  ),
+  Formula = c(
+    "$H^{\\star}=H(p)/\\log J$",
+    "$n_{\\mathrm{eff}}=\\exp\\{H(p)\\}$",
+    "$\\#\\{j:p_j>\\varepsilon\\}$",
+    "$\\sum_j p_j^2$",
+    "$J^{-1}\\sum_{j<k}\\lvert\\cos(\\mu_{\\cdot j},\\mu_{\\cdot k})\\rvert$",
+    "$\\max_{j<k}\\cos(\\mu_{\\cdot j},\\mu_{\\cdot k})$",
+    "mean of $\\lVert\\mu_{\\cdot j}-\\mu_{\\cdot k}\\rVert_2$",
+    "$\\sigma_{\\max}(\\mu)/\\sigma_{\\min}(\\mu)$",
+    "$\\prod_\\ell \\sigma_\\ell(\\mu)$",
+    "smallest eigenvalue of $\\Sigma(p)$",
+    "$\\lambda_{\\max}/\\lambda_{\\min}$",
+    "$\\lambda_{\\min}/\\lambda_{\\max}\\in(0,1]$",
+    "weakest Helmert contrast of $I$",
+    "$\\lambda_{\\max}(I_T)/\\lambda_{\\min}(I_T)$",
+    "$\\mathrm{tr}(I^{\\mathrm{cov}})/\\mathrm{tr}(I)$",
+    "max of that fraction on $e_j-e_k$",
+    "$2\\lvert E\\rvert/(G(G-1))$; $2\\lvert E\\rvert/G$",
+    "$(\\sqrt{M}-\\lVert w\\rVert_1/\\lVert w\\rVert_2)/(\\sqrt{M}-1)$",
+    "average pairwise misclassification",
+    "$J^{-1}\\sum_{j<k} H_2(f_j,f_k)$ (symmetric)",
+    "$\\tfrac12\\mathrm{KL}(f\\|g)+\\tfrac12\\mathrm{KL}(g\\|f)$"
+  ),
+  Bounds = c(
+    "$[0,1]$",
+    "$[1,J]$",
+    "$\\{0,\\ldots,J\\}$",
+    "$[1/J,1]$",
+    "$[0,1]$",
+    "$[-1,1]$",
+    "$[0,\\infty)$",
+    "$[1,\\infty]$",
+    "$[0,\\infty)$",
+    "$[0,\\infty)$",
+    "$[1,\\infty]$",
+    "$(0,1]$",
+    "$[0,\\infty)$",
+    "$[1,\\infty]$",
+    "$[0,1]$",
+    "$[0,1]$",
+    "$[0,1]$; $[0,G-1]$",
+    "$[0,1]$",
+    "$[0,1]$",
+    "$[0,1]$",
+    "$[0,\\infty)$"
+  ),
+  Captures = c(
+    "Evenness of $p$ (Pielou); $0$ is a vertex",
+    "Hill number of order $1$",
+    "Simplex stratum (how many types are on)",
+    "Weight in $\\Sigma(p)=\\sum_j p_j^2\\Sigma_j$",
+    "Typical mean-profile confusion",
+    "Worst pair of collinear signatures",
+    "Centroid (CLD) separation in $\\mathbb{R}^G$",
+    "Near-collinearity of the signature frame",
+    "Volume of the parallelepiped; $0$ at rank loss",
+    "Distance of the bulk covariance to singularity",
+    "Anisotropy of the bulk ellipsoid",
+    "The same ratio on a bounded scale",
+    "Weakest identifiable simplex contrast",
+    "Ill-posed directions on the simplex",
+    "Share of Fisher information from covariance",
+    "Worst pairwise contrast for mean-only solvers",
+    "Binary graph density (or precision support)",
+    "Magnitude sparsity of bulk correlations",
+    "Overlap of the $J$ purified Gaussians",
+    "Symmetric affinity of those Gaussians",
+    "Symmetrised KL of the same pair average"
+  ),
+  Pros_cons = c(
+    "$J$-normalised. Zeros use $0\\log 0=0$.",
+    "Interpretable count. Not a probability.",
+    "Threshold $\\varepsilon$ is a convention.",
+    "Directly scales $\\Sigma(p)$. Ignores means.",
+    "Scale-free. Misses Euclidean gaps.",
+    "Safety diagnostic for two-type confusion.",
+    "Matches the article CLD factor. Not Aitchison.",
+    "Sensitive to a single tiny singular value.",
+    "Product of singular values; units of $\\mu$.",
+    "Numerical, not statistical, identifiability.",
+    "Flags Cholesky / log-det instability.",
+    "Easier to plot than $\\kappa$.",
+    "Local information, not finite-sample RMSE.",
+    "Large $\\kappa$ hides one easy contrast.",
+    "Near $1$, LSEI / CIBERSORT are under-informed.",
+    "Same interpretation on the hardest pair.",
+    "For fixed $G$, density and mean degree match.",
+    "Scale-free; no topology assumed.",
+    "Needs MixSim; skip on large $G$.",
+    "Closed form; $H_2(f,g)=H_2(g,f)$.",
+    "Not a metric; recorded separately."
+  ),
+  stringsAsFactors = FALSE
+)
+tinytable::tt(desc_kept, width = 1) |>
+  tinytable::group_tt(i = desc_kept$family) |>
+  subset(select = -family) |>
+  tinytable::format_tt(markdown = TRUE)
+```
+
 ::: {#nte-desc-composition .callout-note}
 ## Composition
 
@@ -879,7 +1032,7 @@ Let $\boldsymbol{p}\in\Delta^{J-1}$ with the convention
 $0\log 0=0$. The normaliser always uses the full panel size $J$,
 including zeros.
 
-- Normalised Shannon entropy (Pielou evenness)
+- Normalised Shannon entropy
   $H^{\star}(\boldsymbol{p})=H(\boldsymbol{p})/\log J$,
   $H(\boldsymbol{p})=-\sum_j p_j\log p_j$. Zero is a Dirac mass; one is
   the uniform composition.
@@ -905,13 +1058,66 @@ $\lVert\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\rVert
 Use `nonnegative = TRUE` for a disjoint-support frame when the
 downstream solver requires $\boldsymbol{\mu}\ge 0$.
 
-- Mean absolute pairwise cosine and the smallest cosine: which types
+- Mean absolute pairwise cosine and the highest cosine: which types
   are confusable from first-order signatures alone.
+- Mean pairwise Euclidean gap of the signature columns (the quantity
+  the article labels **CLD**; see @nte-desc-cld).
 - Condition number $\kappa(\boldsymbol{\mu})=\sigma_{\max}/\sigma_{\min}$
   of the singular values of $\boldsymbol{\mu}$: near-collinearity of the
   signature parallelepiped.
 - Gram volume $\prod_{\ell}\sigma_{\ell}(\boldsymbol{\mu})$ (zero at rank
   loss).
+:::
+
+::: {#nte-desc-cld .callout-note}
+## Euclidean centroid gap (CLD)
+
+**CLD** is a shorthand for **centroid (mean-profile) separation**: how
+far two signature columns $\boldsymbol{\mu}_{\cdot 1}$ and
+$\boldsymbol{\mu}_{\cdot 2}$ sit in gene space. The article uses the same
+label (“mean centroids (CLD)”). There is no separate named CLD index
+in the package; `mean_euclidean` is the mean of those pairwise gaps,
+the same Euclidean objective
+`compute_mean_profile_objectives()` maximises. The signatures are
+expression means, not simplex compositions, so this is **not** an
+Aitchison / clr distance.
+
+The Euclidean gap, the inner product, and the cosine of the angle
+$\theta$ are the same geometry
+([dot product, geometric definition](https://en.wikipedia.org/wiki/Dot_product#Geometric_definition)):
+
+$$
+\boldsymbol{\mu}_{\cdot 1}^{\mathsf{T}}\boldsymbol{\mu}_{\cdot 2}
+=
+\lVert\boldsymbol{\mu}_{\cdot 1}\rVert_2
+\lVert\boldsymbol{\mu}_{\cdot 2}\rVert_2
+\cos\theta,
+$$
+
+$$
+d(\boldsymbol{\mu}_{\cdot 1},\boldsymbol{\mu}_{\cdot 2})
+=
+\lVert\boldsymbol{\mu}_{\cdot 1}-\boldsymbol{\mu}_{\cdot 2}\rVert_2
+=
+\sqrt{
+  \lVert\boldsymbol{\mu}_{\cdot 1}\rVert_2^2
+  +
+  \lVert\boldsymbol{\mu}_{\cdot 2}\rVert_2^2
+  -
+  2\,\boldsymbol{\mu}_{\cdot 1}^{\mathsf{T}}\boldsymbol{\mu}_{\cdot 2}
+}.
+$$
+
+On the bivariate toy the two designed levels are:
+
+| Level | $\boldsymbol{\mu}_{\cdot 1}$ | $\boldsymbol{\mu}_{\cdot 2}$ | $d$ | cosine |
+|---|---|---|---|---|
+| small CLD | $(20,22)$ | $(22,20)$ | $\sqrt{8}=2\sqrt{2}\approx 2.83$ | $880/884\approx 0.995$ |
+| large CLD | $(20,40)$ | $(40,20)$ | $\sqrt{800}=20\sqrt{2}\approx 28.3$ | $0.8$ |
+
+Small CLD means nearly overlapping centroids (harder for mean-only
+solvers). Large CLD means the two types are well separated in
+$\mathbb{R}^G$.
 :::
 
 ::: {#nte-desc-spd .callout-note}
@@ -1042,7 +1248,15 @@ binary graph.
   $S_{\mathrm{Hoyer}}=(\sqrt{M}-\lVert w\rVert_1/\lVert w\rVert_2)/(\sqrt{M}-1)\in[0,1]$.
   Zero is a flat spectrum of magnitudes; one is a single dominant
   edge. The index is scale-free and does not assume a topology.
+  For $G=2$, $M=1$ and the index is undefined (`NA`): there is only
+  one off-diagonal. @hoyerNonnegativeMatrixFactorization2004 introduced
+  this normalisation of the $\ell_1/\ell_2$ ratio as a sparseness
+  constraint for non-negative matrix factorisation.
 :::
+
+![Hoyer sparsity of a nonnegative edge-weight vector: a flat spectrum
+scores $0$; a single dominant edge scores $1$
+[@hoyerNonnegativeMatrixFactorization2004].](figures/fig_hoyer_sparsity.png){#fig-hoyer-sparsity}
 
 ::: {#nte-desc-overlap .callout-note}
 ## Component overlap (purified Gaussians)
@@ -1054,10 +1268,19 @@ the convolution, not the estimator.
 - MixSim average pairwise misclassification overlap `BarOmega`
   [@melnykovMixSimPackageSimulating2012].
 - Averaged pairwise Hellinger distance of those Gaussians (closed form
-  through the Bhattacharyya coefficient), weighted by $p_j p_k$.
+  through the Bhattacharyya coefficient). Hellinger is a *metric*:
+  $H_2(f,g)=H_2(g,f)$
+  ([Hellinger distance](https://en.wikipedia.org/wiki/Hellinger_distance);
+  [Bhattacharyya properties](https://en.wikipedia.org/wiki/Bhattacharyya_distance#Properties)).
+  The primary column `hellinger` is the unweighted mean over pairs
+  $j<k$. `hellinger_weighted` optionally reweights by $p_j p_k$ (a
+  prevalence weight, not a directed divergence).
 :::
 
-Supplementary (not kept as a primary score): Jeffreys divergence.
+Supplementary (not kept as a primary score, but written on the
+descriptors RDS keyed by `ID`): Jeffreys divergence, the symmetrised
+Kullback–Leibler average
+$\tfrac12\mathrm{KL}(f\Vert g)+\tfrac12\mathrm{KL}(g\Vert f)$.
 Cholesky fill-in and sparse-solver
 timings are *not* reported: the caller must declare the covariance
 structure used at fit time; otherwise the dense Cholesky factor of
@@ -1718,9 +1941,15 @@ end-to-end clock. Pair `kkt_residual` with `numerical_converged`; quote
 
 Wilson is the default interval around the *estimated coverage rate*
 $\hat\pi=X/N$, not the interval for $\hat p_j$
-[@wilsonProbableInferenceLaw1927]. Wald and Agresti--Coull
+[@wilsonProbableInferenceLaw1927]. The interval *for* $p_j$ on an
+interior composition is the ILR delta-method Wald interval from
+[`vcov_ilr_delta()`](../reference/vcov_ilr_delta.html) /
+[`confint.decovart_fit()`](../reference/fit_decovart.html): expected
+Fisher information of the Gaussian convolution, pulled back through
+the isometric log-ratio chart — not the observed Hessian of a Newton
+step, and not an ALR chart. Wald and Agresti--Coull
 [@agrestiApproximateBetterExact1998] are available through
-`coverage_interval`. Bias-eliminated coverage (covering
+`coverage_interval` for the binomial *rate*. Bias-eliminated coverage (covering
 $\bar{\hat\theta}$ rather than $\theta$) is not implemented; report
 ordinary coverage and bias side by side instead. @nte-binomial-coverage-ci
 summarises exact, asymptotic, and optimisation-based constructions for
@@ -1951,7 +2180,7 @@ used at NeurIPS is five items.
 | Fitting (“training”) code | `fit_decovart()`, `deconvolute_ratios()` |
 | Evaluation code | `compute_benchmark_metrics()`, `run_simulation_benchmark()` |
 | Pre-trained models | Not applicable: DeCovarT is an estimator, not a stored neural net. Toy convolution fixtures live in `inst/extdata/` |
-| README table of results plus commands | README / vignette chunks (this article; [§2.1](fig02-bivariate-toy.html), [§2.2](fig03-variance-driven.html)) |
+| README table of results plus commands | README / vignette chunks (this article; [§2.1](fig02-bivariate-toy.html), [§2.2](fig03-covariance-driven.html)) |
 
 : NeurIPS / Papers with Code completeness mapped onto the package. {#tbl-neurips}
 

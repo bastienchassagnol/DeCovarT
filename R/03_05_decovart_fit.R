@@ -426,22 +426,32 @@ expected_fisher_unconstrained <- function(
 #' This simplex covariance is invariant to orthogonal rotations of
 #' \eqn{\mathbf{V}}. The construction is undefined on the simplex
 #' boundary (the log-ratio chart blows up); the function then returns
-#' `NA` with a warning. [vcov_alr_delta()] is the ALR-chart analogue
-#' used only for reference-invariance checks.
+#' `NA` with a warning.
+#'
+#' Wald intervals in [vcov.decovart_fit()], [confint.decovart_fit()]
+#' and [deconvolute_ratios()] all use this expected-Fisher ILR map.
+#' The observed Hessian [hessian_loglik_constrained()] is for Newton
+#' steps only; it is not the Wald covariance.
 #'
 #' @inheritParams expected_fisher_unconstrained
+#' @param warn If `FALSE`, skip the boundary / singularity warnings
+#'   (Monte Carlo loops). Default `TRUE`.
 #'
 #' @return Symmetric \eqn{J\times J} asymptotic covariance of
 #'   \eqn{\hat{\boldsymbol{p}}}, or a matrix of `NA` if the bound is
 #'   undefined / singular.
 #'
 #' @seealso [expected_fisher_unconstrained()], [vcov.decovart_fit()],
-#'   [confint.decovart_fit()], [jacobian_isometric_logistic()],
-#'   [vcov_alr_delta()]
+#'   [confint.decovart_fit()], [jacobian_isometric_logistic()]
 #'
 #' @keywords internal
 #' @export
-vcov_ilr_delta <- function(p, mean_signature_matrix, Sigma) {
+vcov_ilr_delta <- function(
+  p,
+  mean_signature_matrix,
+  Sigma,
+  warn = TRUE
+) {
   nms <- names(p)
   n_celltypes <- length(p)
   out <- matrix(
@@ -451,10 +461,12 @@ vcov_ilr_delta <- function(p, mean_signature_matrix, Sigma) {
     dimnames = list(nms, nms)
   )
   if (any(p < 100 * .Machine$double.eps | p > 1 - 100 * .Machine$double.eps)) {
-    warning(
-      "Proportions on the simplex boundary; Wald vcov is undefined.",
-      call. = FALSE
-    )
+    if (isTRUE(warn)) {
+      warning(
+        "Proportions on the simplex boundary; Wald vcov is undefined.",
+        call. = FALSE
+      )
+    }
     return(out)
   }
   info_p <- expected_fisher_unconstrained(p, mean_signature_matrix, Sigma)
@@ -464,10 +476,12 @@ vcov_ilr_delta <- function(p, mean_signature_matrix, Sigma) {
   vcov_z <- tryCatch(
     solve(info_z),
     error = function(e) {
-      warning(
-        "Expected Fisher information in ILR coordinates is singular.",
-        call. = FALSE
-      )
+      if (isTRUE(warn)) {
+        warning(
+          "Expected Fisher information in ILR coordinates is singular.",
+          call. = FALSE
+        )
+      }
       NULL
     }
   )
@@ -479,93 +493,30 @@ vcov_ilr_delta <- function(p, mean_signature_matrix, Sigma) {
   vcov_p
 }
 
-#' Cramer--Rao / ALR delta-method covariance of \eqn{\hat{\boldsymbol{p}}}
-#'
-#' @description
-#' Maps the expected Fisher information of unconstrained proportions
-#' through the additive log-ratio (ALR) chart and back to the simplex
-#' via the delta method.
-#'
-#' Let \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})} with
-#' Jacobian
-#' \eqn{\mathbf{J}_{\boldsymbol{\psi}}
-#' =\partial\boldsymbol{\psi}/\partial\boldsymbol{\rho}^{\top}}
-#' ([jacobian_additive_logistic()]). Fisher information transforms as
-#' the covariant quadratic form
-#' \deqn{
-#'   I_{\boldsymbol{\rho}}
-#'   =
-#'   \mathbf{J}_{\boldsymbol{\psi}}^{\top}
-#'   I(\boldsymbol{p})
-#'   \mathbf{J}_{\boldsymbol{\psi}}.
-#' }
-#' Under a regular large-sample regime the MLE in ALR coordinates is
-#' asymptotically normal,
-#' \eqn{\hat{\boldsymbol{\rho}}
-#' \overset{a}{\sim}
-#' \mathcal{N}(\boldsymbol{\rho}_{0}, I_{\boldsymbol{\rho}}^{-1})}.
-#' The first-order delta method then yields the same simplex covariance
-#' as [vcov_ilr_delta()] when both charts are transformed correctly:
-#' \deqn{
-#'   \mathrm{Var}(\hat{\boldsymbol{p}})
-#'   \approx
-#'   \mathbf{J}_{\boldsymbol{\psi}}
-#'   I_{\boldsymbol{\rho}}^{-1}
-#'   \mathbf{J}_{\boldsymbol{\psi}}^{\top}.
-#' }
-#' This helper is kept for reference-invariance checks; [vcov.decovart_fit()]
-#' uses [vcov_ilr_delta()]. The construction is undefined on the simplex
-#' boundary (the ALR chart blows up); the function then returns `NA` with
-#' a warning. See also
-#' <https://en.wikipedia.org/wiki/Delta_method> and
-#' <https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution>.
-#'
-#' @inheritParams expected_fisher_unconstrained
-#'
-#' @return Symmetric \eqn{J\times J} asymptotic covariance of
-#'   \eqn{\hat{\boldsymbol{p}}}, or a matrix of `NA` if the bound is
-#'   undefined / singular.
-#'
-#' @seealso [vcov_ilr_delta()], [jacobian_additive_logistic()]
-#'
-#' @keywords internal
-#' @export
-vcov_alr_delta <- function(p, mean_signature_matrix, Sigma) {
+#' @noRd
+.ilr_wald_se <- function(
+  p,
+  mean_signature_matrix,
+  Sigma,
+  warn = FALSE
+) {
   nms <- names(p)
-  n_celltypes <- length(p)
-  out <- matrix(
-    NA_real_,
-    n_celltypes,
-    n_celltypes,
-    dimnames = list(nms, nms)
-  )
-  if (any(p < 100 * .Machine$double.eps | p > 1 - 100 * .Machine$double.eps)) {
-    warning(
-      "Proportions on the simplex boundary; Wald vcov is undefined.",
-      call. = FALSE
-    )
-    return(out)
+  if (is.null(nms)) {
+    nms <- colnames(mean_signature_matrix)
   }
-  info_p <- expected_fisher_unconstrained(p, mean_signature_matrix, Sigma)
-  rho <- additive_log_ratio(p)
-  jac <- jacobian_additive_logistic(rho)
-  info_rho <- t(jac) %*% info_p %*% jac
-  vcov_rho <- tryCatch(
-    solve(info_rho),
-    error = function(e) {
-      warning(
-        "Expected Fisher information in ALR coordinates is singular.",
-        call. = FALSE
-      )
-      NULL
-    }
+  v <- tryCatch(
+    vcov_ilr_delta(
+      p,
+      mean_signature_matrix,
+      Sigma,
+      warn = warn
+    ),
+    error = function(e) NULL
   )
-  if (is.null(vcov_rho)) {
-    return(out)
+  if (is.null(v)) {
+    return(stats::setNames(rep(NA_real_, length(p)), nms))
   }
-  vcov_p <- jac %*% vcov_rho %*% t(jac)
-  dimnames(vcov_p) <- list(nms, nms)
-  vcov_p
+  stats::setNames(sqrt(pmax(diag(as.matrix(v)), 0)), nms)
 }
 
 #' @rdname fit_decovart

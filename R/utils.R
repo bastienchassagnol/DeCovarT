@@ -330,8 +330,16 @@
     bulk_expression,
     "bulk_expression",
     2L,
-    non_negative = TRUE
+    non_negative = FALSE
   )
+  if (any(bulk_expression < 0, na.rm = TRUE)) {
+    warning(
+      "`bulk_expression` contains negative entries. ",
+      "Gaussian convolution draws may be negative; ",
+      "solvers still run.",
+      call. = FALSE
+    )
+  }
   if (
     is.null(rownames(signature_matrix)) ||
       is.null(rownames(bulk_expression))

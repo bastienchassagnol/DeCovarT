@@ -22,6 +22,10 @@ test_that("describe_simulation_scenario splits mean and covariance information",
   expect_true("mixsim_baromega" %in% names(out$descriptors))
   expect_true("hellinger" %in% names(out$descriptors))
   expect_true("jeffreys" %in% names(out$supplementary))
+  expect_true("max_cosine" %in% names(out$descriptors))
+  expect_true("mean_euclidean" %in% names(out$descriptors))
+  expect_true("hellinger_weighted" %in% names(out$descriptors))
+  expect_gt(out$descriptors$mean_euclidean, 0)
   expect_equal(out$descriptors$h_star, 1)
   expect_equal(out$descriptors$n_eff, 2)
   expect_gt(out$descriptors$lambda_min_it, 0)
@@ -72,4 +76,21 @@ test_that("describe_simulation_scenario can skip MixSim overlap", {
   )
   out <- describe_simulation_scenario(theta, include_mixsim = FALSE)
   expect_true(is.na(out$descriptors$mixsim_baromega))
+})
+
+test_that("CLD Euclidean gap matches the bivariate small-centroid pair", {
+  mu <- cbind(c(20, 22), c(22, 20))
+  expect_equal(DeCovarT:::.mean_euclidean_distance(mu), sqrt(8))
+  cos_summ <- DeCovarT:::.mean_cosine_summaries(mu)
+  expect_gt(cos_summ$max_cosine, 0.99)
+})
+
+test_that("Hellinger of two Gaussians is symmetric", {
+  mu1 <- c(0, 0)
+  mu2 <- c(1, 1)
+  s1 <- diag(2)
+  s2 <- diag(c(1, 2))
+  h12 <- DeCovarT:::.hellinger_gaussian(mu1, mu2, s1, s2)
+  h21 <- DeCovarT:::.hellinger_gaussian(mu2, mu1, s2, s1)
+  expect_equal(h12, h21)
 })

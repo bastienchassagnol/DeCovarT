@@ -27,9 +27,9 @@ samples; not the latent profiles).}
 
 \item{truncate_negative}{If \code{TRUE}, replace negative bulk entries
 with 0 so \eqn{\boldsymbol{Y}} is a valid RNA-seq-style non-negative
-matrix. The latent Gaussian draws are unchanged. Use this when
-passing \code{Y} to \code{\link[=deconvolute_ratios]{deconvolute_ratios()}}, which rejects negative
-bulk expression.}
+matrix. The latent Gaussian draws are unchanged. \code{\link[=deconvolute_ratios]{deconvolute_ratios()}}
+allows negative bulk entries (with a warning): Gaussian convolutions
+can produce them. Flooring is optional, not required.}
 }
 \value{
 A list with:

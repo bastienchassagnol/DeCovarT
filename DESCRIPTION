@@ -2,61 +2,26 @@ Package: DeCovarT
 Title: Covariance-Aware Deconvolution of Bulk Transcriptomic Samples
 Version: 2.3.1
 Authors@R:
-    person("Bastien", "Chassagnol",
-           email = "bastien_chassagnol@laposte.net",
-           role = c("aut", "cre", "cph"),
+    person("Bastien", "Chassagnol", , "bastien_chassagnol@laposte.net", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0002-8955-2391"))
-Description: Estimates cell-type proportions in bulk transcriptomic samples
-    with a probabilistic convolution model that integrates the gene-gene
-    covariance structure of purified reference profiles. Cellular ratios
-    are recovered by maximum likelihood under a multivariate Gaussian
-    convolution, using analytic gradients and Hessians, an isometric
-    log-ratio reparametrisation (Helmert basis) that enforces the simplex
-    constraint, and Marquardt-Levenberg or Newton-type optimisers. The
-    methodology is described in Chassagnol, Nuel and Becht (2023)
-    <doi:10.48550/arXiv.2309.09557>.
+Description: Estimates cell-type proportions in bulk transcriptomic
+    samples with a probabilistic convolution model that integrates the
+    gene-gene covariance structure of purified reference profiles.
+    Cellular ratios are recovered by maximum likelihood under a
+    multivariate Gaussian convolution, using analytic gradients and
+    Hessians, an isometric log-ratio reparametrisation (Helmert basis)
+    that enforces the simplex constraint, and Marquardt-Levenberg or
+    Newton-type optimisers. The methodology is described in Chassagnol,
+    Nuel and Becht (2023) <doi:10.48550/arXiv.2309.09557>.
 License: MIT + file LICENSE
-Encoding: UTF-8
-Roxygen: list(markdown = TRUE, roclets = c("namespace", "rd", "srr::srr_stats_roclet"))
-Suggests:
-    circlize,
-    cli,
-    ComplexHeatmap,
-    compositions,
-    e1071,
-    flextable,
-    furrr,
-    future,
-    ggdist,
-    ggdendro,
-    glmnet,
-    igraph,
-    knitr,
-    limSolve,
-    litedown,
-    Metrics,
-    MixSim,
-    mvtnorm,
-    nnls,
-    numDeriv,
-    pkgdown,
-    plotly,
-    ps,
-    quarto,
-    reactable (>= 0.4.4),
-    readr,
-    rmarkdown,
-    spelling,
-    stringr,
-    testthat (>= 3.0.0),
-    tinytable (>= 0.15.0),
-    viridis,
-    withr
-VignetteBuilder: knitr, quarto
-Config/testthat/edition: 3
+URL: https://github.com/bastienchassagnol/DeCovarT,
+    https://bastienchassagnol.github.io/DeCovarT/
+BugReports: https://github.com/bastienchassagnol/DeCovarT/issues
+Depends:
+    R (>= 4.1.0)
 Imports:
     dplyr,
-    ggplot2,
+    ggplot2 (>= 3.4.0),
     marqLevAlg,
     MASS,
     Matrix,
@@ -66,10 +31,53 @@ Imports:
     tensor,
     tibble,
     tidyr
-Depends:
-    R (>= 4.1.0)
-RdMacros: Rdpack
-Language: en-GB
-URL: https://github.com/bastienchassagnol/DeCovarT, https://bastienchassagnol.github.io/DeCovarT/
-BugReports: https://github.com/bastienchassagnol/DeCovarT/issues
+Suggests:
+    circlize,
+    cli,
+    ComplexHeatmap,
+    compositions,
+    cowplot,
+    e1071,
+    flextable,
+    furrr,
+    future,
+    ggdendro,
+    ggdist,
+    glmnet,
+    gridExtra,
+    igraph,
+    knitr,
+    limSolve,
+    litedown,
+    Metrics,
+    MixSim,
+    mvtnorm,
+    nnls,
+    numDeriv,
+    patchwork,
+    pkgdown,
+    plotly,
+    png,
+    ps,
+    quarto,
+    reactable (>= 0.4.4),
+    readr,
+    rgl,
+    rmarkdown,
+    spelling,
+    stringr,
+    testthat (>= 3.0.0),
+    tinytable (>= 0.15.0),
+    viridis,
+    withr
+VignetteBuilder: 
+    knitr,
+    quarto
+RdMacros: 
+    Rdpack
 Config/roxygen2/version: 8.1.0
+Config/testthat/edition: 3
+Encoding: UTF-8
+Language: en-GB
+Roxygen: list(markdown = TRUE, roclets = c("namespace", "rd",
+    "srr::srr_stats_roclet"))

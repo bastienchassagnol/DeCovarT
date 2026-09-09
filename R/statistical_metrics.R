@@ -86,7 +86,7 @@ repair_simplex <- function(
 #' }
 #' with the convention \eqn{0\log 0 = 0}. Dividing by the maximum
 #' entropy \eqn{\log J} (uniform over all \eqn{J} classes) yields
-#' **Pielou's evenness**
+#' normalised Shannon entropy
 #' \deqn{
 #'   H^{\star}(\boldsymbol{p})
 #'   =
@@ -135,14 +135,14 @@ compute_shannon_entropy <- function(ratios) {
 
   ratios <- ratios[ratios > 0]
   ratios <- ratios / sum(ratios)
-  # Pielou evenness: H / log(J)
+  # normalised Shannon entropy: H / log(J)
   -sum(ratios * log(ratios)) / log(J)
 }
 
 #' One-dominant composition with a target normalised Shannon entropy
 #'
 #' Returns a length-\eqn{J} simplex vector of the form
-#' \eqn{(1-(J-1)q,\,q,\ldots,q)} whose Pielou evenness
+#' \eqn{(1-(J-1)q,\,q,\ldots,q)} whose normalised Shannon entropy
 #' [compute_shannon_entropy()] equals `h_star`. The uniform composition
 #' (`h_star = 1`) and a Dirac mass (`h_star = 0`) are returned exactly.
 #'

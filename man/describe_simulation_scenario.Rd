@@ -51,8 +51,10 @@ Summarises the generating law
 mean geometry, covariance / SPD diagnostics, network sparsity, and
 tangent Fisher information (mean versus covariance split). MixSim
 BarOmega and average pairwise Hellinger of the component Gaussians
-are kept in \code{descriptors}. Jeffreys / symmetrised KL is returned in
-\code{supplementary}.
+are kept in \code{descriptors} (Hellinger is the unweighted pairwise mean;
+\code{hellinger_weighted} is optional). Jeffreys / symmetrised KL is
+returned in \code{supplementary}. Mean-geometry columns include the
+highest pairwise cosine and the mean Euclidean (CLD) gap.
 }
 \examples{
 theta <- list(

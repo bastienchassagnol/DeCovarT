@@ -757,7 +757,7 @@ That adds `spelling` to Suggests, `Language: en-GB` in `DESCRIPTION`,
 | Paths | `here`, `fs` (avoid ad-hoc `normalizePath()`) |
 | Tabular data | `dplyr`, `tidyr`, `tibble` (`data.table` if needed) |
 | Out-of-memory data | `duckdb` |
-| Plotting | `ggplot2` + `geom_tile` / `ggdendro` for correlation and simplex-structured heatmaps (`plot_algorithm_similarity()`); `ggplot2` + faceted dots for multi-metric benchmarks (`plot_mc_metric_dots()`); distributions: `ggdist` rainclouds (`plot_mc_raincloud()`); ADEMP summaries: forest / dot-whisker (`plot_mc_forest()`); `ComplexHeatmap` only for complex hierarchical multi-omics; `funkyheatmap` only for mixed quantitative/qualitative tables; interactive: `ggiraph` |
+| Plotting | `ggplot2` + `geom_tile` / `ggdendro` for correlation and simplex-structured heatmaps (`plot_algorithm_similarity()`); `ggplot2` + faceted dots for multi-metric benchmarks (`plot_mc_metric_dots()`); distributions: `ggdist` rainclouds (`plot_mc_raincloud()`); ADEMP summaries: forest / dot-whisker (`plot_mc_forest()`); combine several ggplots with **`patchwork`** or **`cowplot`** (multi-page grids: `gridExtra::arrangeGrob()`); `ComplexHeatmap` only for complex hierarchical multi-omics; `funkyheatmap` only for mixed quantitative/qualitative tables; interactive: `ggiraph` |
 | Static tables (vignettes / Quarto HTML) | `tinytable` |
 | Slide / HTML interactive tables | `reactable` |
 | Discrete ggplot scales | named vectors via `stats::setNames()` |
@@ -778,6 +778,22 @@ unused Suggests/Imports without need.
 
 ### Plotting (`ggplot2`, distributions, and flows)
 
+- **Faceted ggplot2:** use `theme_decovart_facets()` on every
+  multi-panel forest, raincloud, metric-tile, or similarity plot. It is `theme_minimal()` plus a panel border and white-on-black
+  facet strips, after `theme_features()` in the
+  [atlas-feature-selection-benchmark plotting helpers](https://github.com/theislab/atlas-feature-selection-benchmark/blob/b89fc0f66747062e6e1b4b35bd392b27ad035295/analysis/R/plotting.R)
+  (`theme_features` / `theme_features_pub`). Do **not** rotate
+  `axis.text.x` inside that theme: forest and raincloud keep horizontal
+  numeric axes. Set `strip.clip = "off"` so strip labels are not cropped.
+  Prefer `ggplot2::label_value` over `label_both` when the facet variable
+  name already appears in the figure caption. For dense grids, enlarge
+  the **device** (width / height) rather than shrinking strip text below
+  about 8 pt.
+- **Saving figures:** `ggplot2::ggsave()` with `limitsize = FALSE`,
+  typically **320 dpi**, and a wide canvas (fig02 forest about 22 by
+  16 in; raincloud about 20 by 12 in). Split fig02 outputs into
+  `output/fig02/density_visualisations/` and
+  `output/fig02/performance_visualisations/`.
 - **Monte Carlo distributions** of parameter estimates (histograms,
   half-eyes, rainclouds): prefer **`ggplot2` + `ggdist`**
   (`plot_mc_raincloud()`). Horizontal rainclouds show bias (shift from
@@ -836,6 +852,11 @@ unused Suggests/Imports without need.
     (`plot_algorithm_similarity()`). Cluster on
     \(d_{ab}=1-r_{ab}\) for *behavioural* similarity of
     \(\hat{\boldsymbol{p}}\); that is not numerical agreement.
+    Sequential metric tiles (`plot_bivariate_metric_tiles()`) follow
+    the atlas `plot_metric_counts()` pattern: `scale_fill_viridis_c()`,
+    90-degree x-axis labels, legend at the bottom, `theme_minimal()`
+    family via `theme_decovart_facets()`. Diverging Pearson similarity
+    stays on a midpoint scale (`scale_fill_gradient2()`), not viridis.
   - **`ComplexHeatmap`** (Suggests; `.check_heatmap_dependencies()`)
     only for **complex, multi-modal, multi-omics** displays that need
     linked heatmaps, hierarchical clustering that drives several

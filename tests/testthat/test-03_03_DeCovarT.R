@@ -229,22 +229,6 @@ test_that("Isometric logistic Jacobian and Hessian match numDeriv", {
 })
 
 
-test_that("ILR and ALR delta-method covariances agree on the simplex", {
-  setup <- .decovart_deriv_setup()
-  v_ilr <- vcov_ilr_delta(
-    setup$p,
-    setup$mean_signature_matrix,
-    setup$Sigma
-  )
-  v_alr <- vcov_alr_delta(
-    setup$p,
-    setup$mean_signature_matrix,
-    setup$Sigma
-  )
-  expect_equal(v_ilr, v_alr, tolerance = 1e-8)
-})
-
-
 test_that("All deconvolute_ratios_* solvers return a valid simplex", {
   setup <- .decovart_deriv_setup()
   expect_valid_simplex <- function(estimated_ratios, label) {

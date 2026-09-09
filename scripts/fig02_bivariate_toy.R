@@ -15,6 +15,14 @@
 #   nohup Rscript --no-save --no-restore scripts/fig02_bivariate_toy.R \
 #     > "logs/fig02_$(date +%F)_bivariate_toy.log" 2>&1 &
 #
+# Redraw figures from a finished ADEMP RDS (does not refit the 972
+# scenarios). Wald SEs live on `monte_carlo` from deconvolute_ratios().
+# PDFs: output/fig02/density_visualisations/ and
+#       output/fig02/performance_visualisations/.
+#
+#   FIG02_POSTPROCESS_ONLY=1 Rscript --no-save --no-restore \
+#     scripts/fig02_bivariate_toy.R
+#
 # Article:  DeCovarT – Section 2.1 "Toy Model with two genes and two cell
 #           populations" (Numerical Simulation Study).
 # Vignette: vignettes/fig02-bivariate-toy.qmd
@@ -38,6 +46,7 @@
 #  ─────────────────────── ───────────────────────────────────────────────────
 #  Total scenarios:  3 × 2 × 9 × 9 × 2 = 972
 #  Replicates (n):   500
+#  Scenario ID:      B{idx}_{Ho|He}_{Ba|Mo|Hi}_{Sm|Lg}
 #
 # ── Solver hyperparameters (pipeline; bivariate_toy_deconvolution_functions)
 #  itmax      200     max. iterations (L-BFGS-B, gradient, Newton,
@@ -50,15 +59,49 @@
 #  Rscript scripts/fig02_bivariate_toy.R
 #
 # ── Outputs ─────────────────────────────────────────────────────────────────
-#  output/fig02/bivariate_benchmark.rds    – full benchmark list
-#  output/fig02/bivariate_config.rds       – scenario config tibble
-#  output/fig02/fig02_heatmap.pdf          – filled 2-D display of RMSE on
-#                                            the (ρ₁, ρ₂) plane (ggplot2
-#                                            analogue: geom_density_2d_filled)
-#  output/fig02/fig02_raincloud.pdf        – raincloud of MC errors
-#  output/fig02/fig02_forest.pdf           – forest / dot-whisker (ADEMP)
-#  output/fig02/fig02_similarity.pdf       – algorithm similarity tile
+#  output/fig02/bivariate_config.rds       – slim design grid (keyed by ID)
+#  output/fig02/bivariate_descriptors.rds  – scenario geometry / MixSim /
+#                                            Hellinger / Jeffreys
+#  output/fig02/bivariate_theta.rds        – true_theta list column
+#  output/fig02/bivariate_benchmark.rds    – metrics only (regression,
+#                                            monte_carlo, optimisation, call)
+#  output/fig02/density_visualisations/{purified,bulk,loglik_*}.pdf
+#  output/fig02/performance_visualisations/{heatmap_*,raincloud,forest,similarity}.pdf
 ###############################################################################
+
+#' Encode a bivariate-toy scenario ID
+#'
+#' Pattern `B{index}_{Ho|He}_{Ba|Mo|Hi}_{Sm|Lg}`. Kept in this script so
+#' tests can `source()` the builders without calling unexported helpers.
+.encode_bivariate_id <- function(
+  scenario_idx,
+  variance,
+  proportions,
+  centroids
+) {
+  var_code <- ifelse(variance == "homoscedastic", "Ho", "He")
+  p_code <- dplyr::case_when(
+    proportions == "balanced" ~ "Ba",
+    proportions == "moderately unbalanced" ~ "Mo",
+    proportions == "highly unbalanced" ~ "Hi",
+    TRUE ~ "Xx"
+  )
+  cld_code <- ifelse(
+    grepl("small", centroids, ignore.case = TRUE),
+    "Sm",
+    "Lg"
+  )
+  paste0(
+    "B",
+    as.integer(scenario_idx),
+    "_",
+    var_code,
+    "_",
+    p_code,
+    "_",
+    cld_code
+  )
+}
 
 #' Build bivariate generative-model scenario configuration
 #'
@@ -118,11 +161,11 @@ build_bivariate_scenario_config <- function(
   ) |>
     dplyr::mutate(
       scenario_idx = dplyr::row_number(),
-      ID = paste0(
-        "B",
+      ID = .encode_bivariate_id(
         .data$scenario_idx,
-        "_",
-        ifelse(.data$variance == "homoscedastic", "Ho", "He")
+        .data$variance,
+        .data$proportion_name,
+        .data$centroids
       )
     )
 
@@ -176,18 +219,13 @@ build_bivariate_scenario_config <- function(
 
       tibble::tibble(
         ID = ID,
-        scenario_idx = scenario_idx,
         correlation_celltype1 = correlation_celltype1,
         correlation_celltype2 = correlation_celltype2,
-        rho_ct1 = correlation_celltype1,
-        rho_ct2 = correlation_celltype2,
         overlap = overlap,
         entropy = round(compute_shannon_entropy(p), digits = 3),
         proportions = proportion_name,
-        proportion_name = proportion_name,
         variance = variance,
         centroids = centroids,
-        centroid = centroids,
         true_theta = list(true_theta)
       )
     }
@@ -274,6 +312,10 @@ if (
   .ui_h1("Figure 02 · Bivariate toy model")
 
   N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "500"))
+  POSTPROCESS_ONLY <- identical(
+    Sys.getenv("FIG02_POSTPROCESS_ONLY", "0"),
+    "1"
+  )
 
   SEED <- 20260903L
   set.seed(SEED)
@@ -282,113 +324,202 @@ if (
   # SECTION 1 · GENERATIVE MODEL ----
   # ==========================================================================
 
-  .ui_info("Building scenario config (972 factorial rows).")
-  scenario_config <- build_bivariate_scenario_config()
-  .ui_success(
-    "Config built: {.val {nrow(scenario_config)}} scenarios."
-  )
-  saveRDS(scenario_config, file.path(OUT_DIR, "bivariate_config.rds"))
+  combined_path <- file.path(OUT_DIR, "bivariate_benchmark_combined.rds")
+  bench_path <- file.path(OUT_DIR, "bivariate_benchmark.rds")
+  config_path <- file.path(OUT_DIR, "bivariate_config.rds")
 
-  # ==========================================================================
-  # SECTION 2 · INFERENCE ----
-  # ==========================================================================
+  if (isTRUE(POSTPROCESS_ONLY)) {
+    .ui_info("Post-process only: skipping ADEMP refit.")
+    src <- if (file.exists(combined_path)) {
+      combined_path
+    } else {
+      bench_path
+    }
+    if (!file.exists(src)) {
+      .ui_abort(
+        "No benchmark RDS at {.file {src}}. Run the full script first."
+      )
+    }
+    bivariate_out <- readRDS(src)
+    if (file.exists(config_path)) {
+      cfg_file <- readRDS(config_path)
+      if ("true_theta" %in% names(cfg_file)) {
+        bivariate_out$config <- cfg_file
+      }
+    }
+    if (
+      !file.exists(combined_path) &&
+        !is.null(bivariate_out$optimisation)
+    ) {
+      .ui_info(
+        "Backing up combined benchmark to {.file {combined_path}}."
+      )
+      file.copy(src, combined_path, overwrite = FALSE)
+    }
+  } else {
+    .ui_info("Building scenario config (972 factorial rows).")
+    scenario_config <- build_bivariate_scenario_config()
+    .ui_success(
+      "Config built: {.val {nrow(scenario_config)}} scenarios."
+    )
 
-  ITMAX <- 200L
-  EPSILON <- 1e-4
-  deconvolution_functions <- bivariate_toy_deconvolution_functions(
-    itmax = ITMAX,
-    epsilon = EPSILON
-  )
+    # ========================================================================
+    # SECTION 2 · INFERENCE ----
+    # ========================================================================
 
-  .ui_info(
-    "Running ADEMP benchmark with {.val {N_REPL}} replicates."
+    ITMAX <- 200L
+    EPSILON <- 1e-4
+    deconvolution_functions <- bivariate_toy_deconvolution_functions(
+      itmax = ITMAX,
+      epsilon = EPSILON
+    )
+
+    .ui_info(
+      "Running ADEMP benchmark with {.val {N_REPL}} replicates."
+    )
+    bivariate_out <- run_simulation_benchmark(
+      scenario_config = scenario_config,
+      deconvolution_functions = deconvolution_functions,
+      n = N_REPL,
+      cores = 1L,
+      verbose = TRUE
+    )
+    bivariate_out$config <- scenario_config
+  }
+
+  rewrite_ids <- isTRUE(POSTPROCESS_ONLY)
+  write_simulation_artefacts(
+    benchmark = bivariate_out,
+    dir = OUT_DIR,
+    stem = "bivariate",
+    config = bivariate_out$config,
+    rewrite_bivariate_id = rewrite_ids
   )
-  bivariate_out <- run_simulation_benchmark(
-    scenario_config = scenario_config,
-    deconvolution_functions = deconvolution_functions,
-    n = N_REPL,
-    cores = 1L,
-    verbose = TRUE
+  .ui_success("Wrote split config / descriptors / theta / metrics RDS.")
+
+  artefacts <- read_simulation_artefacts(
+    OUT_DIR,
+    "bivariate",
+    assemble = TRUE
   )
-  saveRDS(bivariate_out, file.path(OUT_DIR, "bivariate_benchmark.rds"))
+  artefacts$theta <- readRDS(file.path(OUT_DIR, "bivariate_theta.rds"))
+
+  DENSITY_DIR <- file.path(OUT_DIR, "density_visualisations")
+  PERF_DIR <- file.path(OUT_DIR, "performance_visualisations")
+  dir.create(DENSITY_DIR, recursive = TRUE, showWarnings = FALSE)
+  dir.create(PERF_DIR, recursive = TRUE, showWarnings = FALSE)
 
   # ==========================================================================
   # SECTION 3 · VISUALISATIONS ----
   # ==========================================================================
 
-  if (
-    requireNamespace("ComplexHeatmap", quietly = TRUE) &&
-      requireNamespace("circlize", quietly = TRUE) &&
-      requireNamespace("viridis", quietly = TRUE)
-  ) {
-    global_tbl <- DeCovarT:::.as_metrics_tbl(
-      bivariate_out$regression$global
+  .ui_info("Drawing RMSE / MAE / Aitchison tile heatmaps.")
+  save_bivariate_metric_heatmaps(artefacts, PERF_DIR)
+  .ui_success("Saved RMSE, MAE, and Aitchison heatmap PDFs.")
+
+  cfg <- artefacts$config
+  theta_tbl <- artefacts$theta
+  if (requireNamespace("gridExtra", quietly = TRUE)) {
+    .ui_info("Drawing 12-page density books (four correlation corners).")
+    save_bivariate_purified_density_book(
+      cfg,
+      theta_tbl,
+      file.path(DENSITY_DIR, "purified_density.pdf")
     )
-    config_tbl <- DeCovarT:::.as_metrics_tbl(bivariate_out$config)
-    heatmap_metrics <- dplyr::left_join(
-      global_tbl,
-      config_tbl,
-      by = intersect(names(global_tbl), names(config_tbl))
+    save_bivariate_bulk_density_book(
+      cfg,
+      theta_tbl,
+      file.path(DENSITY_DIR, "bulk_density.pdf")
     )
-    if (
-      !"model_rmse" %in% names(heatmap_metrics) &&
-        "rmse" %in% names(heatmap_metrics)
-    ) {
-      heatmap_metrics <- dplyr::rename(
-        heatmap_metrics,
-        model_rmse = "rmse"
-      )
-    }
-    heatmap_list <- plot_correlation_Heatmap(
-      distribution_metrics = heatmap_metrics,
-      score_variable = "model_rmse"
+    save_bivariate_loglik_surface_book(
+      cfg,
+      theta_tbl,
+      file.path(DENSITY_DIR, "loglik_surface.pdf")
     )
-    pdf(file.path(OUT_DIR, "fig02_heatmap.pdf"), width = 10, height = 8)
-    purrr::walk(heatmap_list, ComplexHeatmap::draw)
-    grDevices::dev.off()
-    .ui_success("Saved {.file fig02_heatmap.pdf}.")
+    save_bivariate_loglik_rgl_book(
+      cfg,
+      theta_tbl,
+      file.path(DENSITY_DIR, "loglik_rgl.pdf")
+    )
+    .ui_success("Saved density and log-likelihood PDF books.")
   } else {
-    .ui_warn("{.pkg ComplexHeatmap} not available; skipping heatmap.")
+    .ui_warn("{.pkg gridExtra} not available; skipping density books.")
   }
 
   if (requireNamespace("ggdist", quietly = TRUE)) {
     p_rain <- plot_mc_raincloud(
-      bivariate_out,
+      artefacts,
       quantity = "error",
-      facet_rows = "proportion_name",
-      facet_cols = "centroid"
+      facet_rows = "proportions",
+      facet_cols = "centroids",
+      include_dots = FALSE,
+      max_rows = 40000L
     )
-    ggplot2::ggsave(
-      file.path(OUT_DIR, "fig02_raincloud.pdf"),
-      plot = p_rain,
-      width = 12,
-      height = 7
+    DeCovarT:::.save_ggplot(
+      file.path(PERF_DIR, "raincloud.pdf"),
+      p_rain,
+      width = 20,
+      height = 12,
+      dpi = 320
     )
-    .ui_success("Saved {.file fig02_raincloud.pdf}.")
+    .ui_success("Saved {.file raincloud.pdf} (no dots layer).")
   }
 
+  ids00 <- cfg$ID[
+    abs(cfg$correlation_celltype1) < 1e-8 &
+      abs(cfg$correlation_celltype2) < 1e-8
+  ]
+  forest_art <- artefacts
+  forest_art$config <- cfg[cfg$ID %in% ids00, , drop = FALSE]
+  forest_art$monte_carlo <- artefacts$monte_carlo[
+    artefacts$monte_carlo$ID %in% ids00,
+    ,
+    drop = FALSE
+  ]
+  forest_art$optimisation <- artefacts$optimisation[
+    artefacts$optimisation$ID %in% ids00,
+    ,
+    drop = FALSE
+  ]
+  theta_keep <- theta_tbl[match(forest_art$config$ID, theta_tbl$ID), ]
+  forest_art$theta_true <- theta_keep$true_theta
   p_forest <- plot_mc_forest(
-    bivariate_out,
-    facet_rows = "proportion_name",
-    facet_cols = "centroid"
-  )
-  ggplot2::ggsave(
-    file.path(OUT_DIR, "fig02_forest.pdf"),
-    plot = p_forest,
-    width = 12,
-    height = 7
-  )
-  .ui_success("Saved {.file fig02_forest.pdf}.")
-
-  if (length(unique(bivariate_out$monte_carlo$algorithm)) >= 2L) {
-    p_sim <- plot_algorithm_similarity(bivariate_out)
-    ggplot2::ggsave(
-      file.path(OUT_DIR, "fig02_similarity.pdf"),
-      plot = p_sim,
-      width = 6,
-      height = 5
+    forest_art,
+    facet_rows = c("proportions", "centroids"),
+    metrics = c(
+      "bias",
+      "rmse",
+      "coverage",
+      "se_sd_ratio",
+      "failure_rate"
     )
-    .ui_success("Saved {.file fig02_similarity.pdf}.")
+  )
+  DeCovarT:::.save_ggplot(
+    file.path(PERF_DIR, "forest.pdf"),
+    p_forest,
+    width = 22,
+    height = 16,
+    dpi = 320
+  )
+  .ui_success("Saved {.file forest.pdf} (ILR Wald coverage and SE/SD).")
+
+  if (length(unique(artefacts$monte_carlo$algorithm)) >= 2L) {
+    tryCatch(
+      {
+        p_sim <- plot_algorithm_similarity(artefacts)
+        DeCovarT:::.save_ggplot(
+          file.path(PERF_DIR, "similarity.pdf"),
+          p_sim,
+          width = 16,
+          height = 12,
+          dpi = 320
+        )
+        .ui_success("Saved {.file similarity.pdf}.")
+      },
+      error = function(e) {
+        .ui_warn("Similarity plot skipped: {e$message}")
+      }
+    )
   }
 
   .ui_success(

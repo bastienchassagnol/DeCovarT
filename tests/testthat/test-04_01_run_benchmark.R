@@ -68,6 +68,11 @@ test_that("simplex metrics attain the vertex-swap bounds", {
   expect_equal(.tv(p, p), 0)
 })
 
+test_that("Aitchison pair distance vanishes on the same composition", {
+  expect_equal(DeCovarT:::.aitchison_pair(0.5, 0.5, 0.5, 0.5), 0)
+  expect_gt(DeCovarT:::.aitchison_pair(0.2, 0.8, 0.8, 0.2), 0)
+})
+
 test_that("KKT residual vanishes for a constant ambient score", {
   p <- c(0.2, 0.3, 0.5)
   grad <- c(4, 4, 4)
@@ -343,14 +348,14 @@ test_that("deconvolute_ratios errors on Inf, negatives, and J > G", {
 
   bulk_neg <- toy$bulk_expression
   bulk_neg[1, 1] <- -1
-  expect_error(
+  expect_warning(
     deconvolute_ratios(
       signature_matrix = toy$signature_matrix,
       bulk_expression = bulk_neg,
       deconvolution_functions = fns,
       cores = 1
     ),
-    "non-negative"
+    "negative"
   )
 
   expect_error(
@@ -405,4 +410,34 @@ test_that(".write_artefact writes RDS under with_tempfile (G4.0)", {
     expect_identical(tools::file_ext(path), "rds")
     expect_identical(readRDS(path)$true_ratios, toy$true_ratios)
   })
+})
+
+test_that("Newton-Raphson attaches ILR Wald SEs; nnls does not", {
+  skip_if_not_installed("nnls")
+  toy <- .toy_deconvolution()
+  out <- withr::with_seed(
+    11L,
+    deconvolute_ratios(
+      signature_matrix = toy$signature_matrix,
+      bulk_expression = toy$bulk_expression,
+      true_ratios = toy$true_ratios,
+      Sigma = toy$Sigma,
+      deconvolution_functions = list(
+        "nnls" = list(FUN = deconvolute_ratios_nnls),
+        "Newton-Raphson" = list(
+          FUN = deconvolute_ratios_Newton_Raphson,
+          additional_parameters = list(itmax = 40L, epsilon = 1e-4)
+        )
+      ),
+      cores = 1L
+    )
+  )
+  mc <- out$monte_carlo
+  newton <- mc[mc$algorithm == "Newton-Raphson", , drop = FALSE]
+  nnls <- mc[mc$algorithm == "nnls", , drop = FALSE]
+  expect_true(all(is.finite(newton$mean_model_se)))
+  expect_true(all(is.finite(newton$se_sd_ratio)))
+  expect_true(all(is.finite(newton$coverage)))
+  expect_true(all(is.na(nnls$mean_model_se)))
+  expect_true(all(is.na(nnls$coverage)))
 })

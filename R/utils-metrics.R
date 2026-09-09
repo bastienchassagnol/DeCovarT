@@ -127,6 +127,51 @@
   0.5 * sum(abs(as.numeric(p) - as.numeric(p_hat)))
 }
 
+#' Aitchison (clr Euclidean) distance on the simplex
+#'
+#' @keywords internal
+#' @noRd
+.aitchison_distance <- function(p, p_hat) {
+  p <- as.numeric(p)
+  p_hat <- as.numeric(p_hat)
+  if (length(p) != length(p_hat) || length(p) < 2L) {
+    return(NA_real_)
+  }
+  if (any(!is.finite(p)) || any(!is.finite(p_hat))) {
+    return(NA_real_)
+  }
+  eps <- .Machine$double.eps
+  p <- pmax(p, eps)
+  p_hat <- pmax(p_hat, eps)
+  p <- p / sum(p)
+  p_hat <- p_hat / sum(p_hat)
+  clr <- function(x) {
+    log(x) - mean(log(x))
+  }
+  sqrt(sum((clr(p) - clr(p_hat))^2))
+}
+
+#' Vectorised Aitchison distance for two-part compositions
+#'
+#' @keywords internal
+#' @noRd
+.aitchison_pair <- function(p1, p2, h1, h2) {
+  eps <- .Machine$double.eps
+  p1 <- pmax(as.numeric(p1), eps)
+  p2 <- pmax(as.numeric(p2), eps)
+  h1 <- pmax(as.numeric(h1), eps)
+  h2 <- pmax(as.numeric(h2), eps)
+  sp <- p1 + p2
+  sh <- h1 + h2
+  p1 <- p1 / sp
+  p2 <- p2 / sp
+  h1 <- h1 / sh
+  h2 <- h2 / sh
+  mp <- 0.5 * (log(p1) + log(p2))
+  mh <- 0.5 * (log(h1) + log(h2))
+  sqrt((log(p1) - mp - (log(h1) - mh))^2 + (log(p2) - mp - (log(h2) - mh))^2)
+}
+
 #' \eqn{L_\infty} absolute error
 #'
 #' @keywords internal

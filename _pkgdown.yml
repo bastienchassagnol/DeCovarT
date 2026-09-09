@@ -112,9 +112,9 @@ navbar:
         - text: "§ 2.1 · Bivariate toy (J = 2, G = 2)"
           icon: fa-chart-bar
           href: articles/fig02-bivariate-toy.html
-        - text: "§ 2.2 · Variance-driven hybrid (J = 3, G = 10)"
+        - text: "§ 2.2 · Covariance-driven hybrid (J = 3, G = 20)"
           icon: fa-network-wired
-          href: articles/fig03-variance-driven.html
+          href: articles/fig03-covariance-driven.html
         - text: -------
         - text: DeCovarT mathematical appendix
         - text: MLE properties and asymptotic inference
@@ -231,12 +231,10 @@ reference:
     desc: |
       Expected Fisher information of unconstrained proportions and ILR
       delta-method covariance used by `vcov()` / `confint()` on
-      `decovart_fit` objects (see `fit_decovart`). `vcov_alr_delta()` is
-      retained for reference-invariance checks.
+      `decovart_fit` objects (see `fit_decovart`).
     contents:
       - expected_fisher_unconstrained
       - vcov_ilr_delta
-      - vcov_alr_delta
   - subtitle: Likelihood-ratio and boundary inference
     desc: |
       Profile likelihood, likelihood-ratio tests with chi-bar-square
@@ -268,10 +266,21 @@ reference:
       - pivot_mc_estimates
       - plot_mc_raincloud
       - plot_mc_forest
+      - theme_decovart_facets
       - algorithm_similarity
       - plot_algorithm_similarity
       - plot_mc_metric_dots
       - plot_correlation_Heatmap
+      - write_simulation_artefacts
+      - read_simulation_artefacts
+      - slim_scenario_table
+      - plot_purified_density_2d
+      - plot_bulk_convolution_density_2d
+      - gaussian_confidence_ellipse
+      - plot_bulk_loglik_surface
+      - plot_bulk_loglik_rgl
+      - plot_bivariate_metric_tiles
+      - save_bivariate_metric_heatmaps
   - title: Simulation
   - subtitle: Toy bulk mixtures
     desc: |
@@ -311,13 +320,14 @@ articles:
       The two simulation scenarios of the DeCovarT article.
       **§ 2.1** Bivariate toy (J = 2, G = 2): factorial sweep of gene–gene
       correlation, mean distance, and composition.
-      **§ 2.2** Variance-driven hybrid (J = 3, G = 10): fixed Gram
-      (cosines 0.9 / 0.1), $2^3$ graph assignments $\times$ three
-      precision cushions, Shannon $H^{\star}$ compositions.
+      **§ 2.2** Covariance-driven hybrid (J = 3, G = 20): fixed Gram
+      (cosines 0.9 / 0.1), $2^2$ scale-free / cluster-SBM assignments
+      on the mean-collinear types $\times$ three precision cushions,
+      Shannon $H^{\star}$ compositions.
     navbar: ~
     contents:
       - fig02-bivariate-toy
-      - fig03-variance-driven
+      - fig03-covariance-driven
   - title: Mathematics
     contents:
       - theory-decovart-generative-model

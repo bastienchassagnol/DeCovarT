@@ -1,4 +1,50 @@
-# DeCovarT (development version)
+* **Fig03 covariance-driven grid.** $G=20$, $J=3$. Graph generators
+  are scale-free and cluster (stochastic block model) only: a
+  $2^{2}$ assignment on the mean-collinear types, type 3 held at
+  scale-free ($4\times 3$ precision cushions $\times 3$ compositions
+  $= 36$ scenarios). `hybrid_config.rds` stores `graph_generators`
+  (model + `graph_params` per cell type) alongside `true_theta`. Convolution-likelihood solvers
+  attach interior simplex standard errors from `vcov_ilr_delta()`
+  inside `deconvolute_ratios()` (the same object as
+  `vcov.decovart_fit()` / `confint.decovart_fit()`). Mean-only solvers
+  (NNLS, LSEI) leave coverage, mean model SE, and `se_sd_ratio`
+  missing. The ALR helper `vcov_alr_delta()` has been removed.
+
+* **Faceted plots.** `theme_decovart_facets()` (black strips, panel
+  border, after the atlas-feature-selection-benchmark `theme_features`)
+  is the default for forest, raincloud, metric tiles, and similarity
+  heatmaps. Fig02 PDFs are written under
+  `output/fig02/density_visualisations/` and
+  `output/fig02/performance_visualisations/` at a wide canvas and
+  320 dpi.
+
+* **Simulation artefacts.** `write_simulation_artefacts()` /
+  `read_simulation_artefacts()` persist the design grid, scenario
+  descriptors (including Jeffreys), `\theta`, and ADEMP metrics as
+  four RDS files keyed by `ID`. `slim_scenario_table()` drops
+  alias columns (`scenario_idx`, `rho_ct1` / `rho_ct2`,
+  `proportion_name`, `centroid`). Fig02 IDs are
+  `B{idx}_{Ho|He}_{Ba|Mo|Hi}_{Sm|Lg}`.
+
+* **Scenario descriptors.** `describe_simulation_scenario()` now
+  reports `max_cosine`, `mean_euclidean` (centroid / CLD gap),
+  unweighted pairwise Hellinger (`hellinger`; the distance is
+  symmetric) plus optional `hellinger_weighted`, and keeps Jeffreys
+  as a supplementary column on the descriptors artefact.
+
+* **Bivariate figures.** Purified and bulk 2-D densities use
+  `geom_density_2d_filled(contour_var = "ndensity")` on a shared
+  gene-axis scale, with red-circle / green-triangle centroids and
+  exact 95% Gaussian ellipses (`gaussian_confidence_ellipse()`).
+  Bulk pages collect a shared legend with `cowplot::get_legend()`.
+  Log-likelihood books evaluate \(\ell(p_1,p_2)\) on a ratio lattice
+  (not gene space): ggplot rasters versus a true `rgl::persp3d()`
+  surface that marks the simulation proportions. `plot_mc_raincloud(include_dots = FALSE, max_rows = …)`
+  avoids the `quadprog` long-vector crash on the 972-scenario grid.
+
+* **Negative bulk.** `.prepare_deconvolution_inputs()` warns on
+  negative expression instead of aborting. `run_simulation_benchmark()`
+  no longer floors Gaussian draws at 0.
 
 * **Scenario 3 (variance-driven).** Fixed Gram
   $\cos(\mu_1,\mu_2)=0.9$, $\cos(\mu_j,\mu_3)=0.1$; $2^3$ graph
@@ -63,8 +109,8 @@
   pinned as a reference; changing the ILR basis by an orthogonal rotation
   leaves \(\hat{\boldsymbol{p}}\), \(\ell(\hat{\boldsymbol{p}})\) and
   \(\mathrm{Var}(\hat{\boldsymbol{p}})\) unchanged. Additive log-ratio maps
-  remain exported for the derivatives vignette appendix and for
-  reference-invariance checks (`vcov_alr_delta()`). Restricted MLE
+  remain exported for the derivatives vignette appendix.
+  Restricted MLE
   assembly treats a fully constrained face without calling ILR on an
   empty coordinate, and an unrestricted fit that sits near a face is
   compared with the exact-face restricted MLE so the reported point can

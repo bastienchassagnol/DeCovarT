@@ -60,8 +60,8 @@ actually used to draw the bulk;
 network, tangent Fisher, MixSim BarOmega, pairwise Hellinger);
 \item \code{supplementary}: Jeffreys overlap, recorded separately;
 \item \code{call}: the matched call (\code{\link[=match.call]{match.call()}}).
-There is no composite global score: each metric answers a different
-question.
+Scripts should persist those pieces with
+\code{\link[=write_simulation_artefacts]{write_simulation_artefacts()}} rather than saving the whole list.
 }
 }
 \description{
@@ -109,5 +109,6 @@ nrow(out$optimisation)
 \seealso{
 \code{\link[=simulate_bulk_mixture]{simulate_bulk_mixture()}}, \code{\link[=deconvolute_ratios]{deconvolute_ratios()}},
 \code{\link[=compute_benchmark_metrics]{compute_benchmark_metrics()}}, \code{\link[=describe_simulation_scenario]{describe_simulation_scenario()}},
-\code{\link[=coverage_mc_interval]{coverage_mc_interval()}}, \code{\link[=plot_mc_raincloud]{plot_mc_raincloud()}}, \code{\link[=plot_mc_forest]{plot_mc_forest()}}
+\code{\link[=coverage_mc_interval]{coverage_mc_interval()}}, \code{\link[=plot_mc_raincloud]{plot_mc_raincloud()}}, \code{\link[=plot_mc_forest]{plot_mc_forest()}},
+\code{\link[=write_simulation_artefacts]{write_simulation_artefacts()}}
 }

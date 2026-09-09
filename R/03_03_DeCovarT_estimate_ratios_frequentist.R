@@ -9,8 +9,7 @@
 #' pinned as reference (\eqn{\rho_J\equiv 0}). Solvers and
 #' [vcov.decovart_fit()] use the isometric log-ratio chart
 #' [isometric_logistic()] instead. This ALR helper is retained for the
-#' vignette appendix and for reference-invariance checks against
-#' [vcov_alr_delta()].
+#' vignette appendix.
 #'
 #' @details
 #' With \eqn{A=\sum_{k=1}^{J-1}\mathrm{e}^{\rho_k}+1},
@@ -1243,7 +1242,9 @@ deconvolute_ratios_simulated_annealing <- function(
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Box-constrained L-BFGS-B
 #'   directly in \eqn{\boldsymbol{p}} ([stats::optim()] `method = "L-BFGS-B"`).
 #'   The box keeps each coordinate in \eqn{[0,1]}; the returned vector is
-#'   closed by \eqn{p/\sum p} (no [repair_simplex()] clipping).
+#'   closed by \eqn{p/\sum p} (no [repair_simplex()] clipping). Wald
+#'   standard errors still use the ILR expected-Fisher map
+#'   [vcov_ilr_delta()], not a \eqn{\boldsymbol{p}}-space Hessian.
 #' @export
 deconvolute_ratios_L_BFGS_B <- function(
   y,

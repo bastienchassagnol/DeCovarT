@@ -4,7 +4,7 @@
 \alias{vcov_ilr_delta}
 \title{Cramer--Rao / ILR delta-method covariance of \eqn{\hat{\boldsymbol{p}}}}
 \usage{
-vcov_ilr_delta(p, mean_signature_matrix, Sigma)
+vcov_ilr_delta(p, mean_signature_matrix, Sigma, warn = TRUE)
 }
 \arguments{
 \item{p}{Numeric proportions on the open simplex.}
@@ -13,6 +13,9 @@ vcov_ilr_delta(p, mean_signature_matrix, Sigma)
 (\eqn{G\times J}).}
 
 \item{Sigma}{Cell-type covariances \eqn{G\times G\times J}.}
+
+\item{warn}{If \code{FALSE}, skip the boundary / singularity warnings
+(Monte Carlo loops). Default \code{TRUE}.}
 }
 \value{
 Symmetric \eqn{J\times J} asymptotic covariance of
@@ -53,12 +56,15 @@ The first-order delta method then yields
 This simplex covariance is invariant to orthogonal rotations of
 \eqn{\mathbf{V}}. The construction is undefined on the simplex
 boundary (the log-ratio chart blows up); the function then returns
-\code{NA} with a warning. \code{\link[=vcov_alr_delta]{vcov_alr_delta()}} is the ALR-chart analogue
-used only for reference-invariance checks.
+\code{NA} with a warning.
+
+Wald intervals in \code{\link[=vcov.decovart_fit]{vcov.decovart_fit()}}, \code{\link[=confint.decovart_fit]{confint.decovart_fit()}}
+and \code{\link[=deconvolute_ratios]{deconvolute_ratios()}} all use this expected-Fisher ILR map.
+The observed Hessian \code{\link[=hessian_loglik_constrained]{hessian_loglik_constrained()}} is for Newton
+steps only; it is not the Wald covariance.
 }
 \seealso{
 \code{\link[=expected_fisher_unconstrained]{expected_fisher_unconstrained()}}, \code{\link[=vcov.decovart_fit]{vcov.decovart_fit()}},
-\code{\link[=confint.decovart_fit]{confint.decovart_fit()}}, \code{\link[=jacobian_isometric_logistic]{jacobian_isometric_logistic()}},
-\code{\link[=vcov_alr_delta]{vcov_alr_delta()}}
+\code{\link[=confint.decovart_fit]{confint.decovart_fit()}}, \code{\link[=jacobian_isometric_logistic]{jacobian_isometric_logistic()}}
 }
 \keyword{internal}

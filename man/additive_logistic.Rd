@@ -30,8 +30,7 @@ Inverse additive log-ratio map
 pinned as reference (\eqn{\rho_J\equiv 0}). Solvers and
 \code{\link[=vcov.decovart_fit]{vcov.decovart_fit()}} use the isometric log-ratio chart
 \code{\link[=isometric_logistic]{isometric_logistic()}} instead. This ALR helper is retained for the
-vignette appendix and for reference-invariance checks against
-\code{\link[=vcov_alr_delta]{vcov_alr_delta()}}.
+vignette appendix.
 
 Recovers the unconstrained additive log-ratio coordinates
 \eqn{\rho_j=\ln(p_j/p_J)} for \eqn{j=1,\ldots,J-1}, with the last part

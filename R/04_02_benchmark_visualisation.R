@@ -358,12 +358,60 @@ pivot_mc_estimates <- function(benchmark) {
   long
 }
 
+#' Faceted ggplot2 theme (black strips, panel border)
+#'
+#' `theme_minimal()` plus a panel border and white-on-black facet
+#' strips, after `theme_features()` in the
+#' [atlas-feature-selection-benchmark](https://github.com/theislab/atlas-feature-selection-benchmark/blob/b89fc0f66747062e6e1b4b35bd392b27ad035295/analysis/R/plotting.R)
+#' plotting helpers.
+#'
+#' @param base_size Base font size for [ggplot2::theme_minimal()].
+#' @param ... Passed to [ggplot2::theme()].
+#'
+#' @return A `ggplot2` theme object.
+#' @export
+#' @seealso [plot_mc_forest()], [plot_mc_raincloud()],
+#'   [plot_bivariate_metric_tiles()]
+theme_decovart_facets <- function(base_size = 11, ...) {
+  ggplot2::theme_minimal(base_size = base_size) +
+    ggplot2::theme(
+      panel.border = ggplot2::element_rect(
+        colour = "grey35",
+        fill = NA
+      ),
+      strip.text = ggplot2::element_text(colour = "white"),
+      strip.background = ggplot2::element_rect(
+        fill = "black",
+        colour = NA
+      ),
+      strip.clip = "off",
+      panel.spacing = grid::unit(0.45, "lines"),
+      plot.margin = ggplot2::margin(8, 14, 8, 8),
+      ...
+    )
+}
+
+#' @noRd
+.collapse_facet_vars <- function(x) {
+  if (is.null(x) || length(x) == 0L) {
+    return(".")
+  }
+  paste(x, collapse = " + ")
+}
+
 #' Optional `facet_grid` from row and column variable names
 #'
 #' @noRd
-.facet_grid_from_names <- function(data, facet_rows, facet_cols) {
-  for (nm in c(facet_rows, facet_cols)) {
-    if (!is.null(nm) && !nm %in% names(data)) {
+.facet_grid_from_names <- function(
+  data,
+  facet_rows,
+  facet_cols,
+  scales = "fixed"
+) {
+  vars <- unique(c(facet_rows, facet_cols))
+  vars <- vars[!is.na(vars) & nzchar(vars) & vars != "."]
+  for (nm in vars) {
+    if (!nm %in% names(data)) {
       stop(
         "Facet column '",
         nm,
@@ -375,11 +423,37 @@ pivot_mc_estimates <- function(benchmark) {
   if (is.null(facet_rows) && is.null(facet_cols)) {
     return(NULL)
   }
-  rows <- if (is.null(facet_rows)) "." else facet_rows
-  cols <- if (is.null(facet_cols)) "." else facet_cols
   ggplot2::facet_grid(
-    stats::as.formula(paste(rows, "~", cols)),
-    labeller = ggplot2::label_both
+    stats::as.formula(
+      paste(
+        .collapse_facet_vars(facet_rows),
+        "~",
+        .collapse_facet_vars(facet_cols)
+      )
+    ),
+    labeller = ggplot2::label_value,
+    scales = scales,
+    drop = FALSE
+  )
+}
+
+#' Save a ggplot with a wide canvas and print-resolution DPI
+#'
+#' @noRd
+.save_ggplot <- function(
+  file,
+  plot,
+  width,
+  height,
+  dpi = 320
+) {
+  ggplot2::ggsave(
+    filename = file,
+    plot = plot,
+    width = width,
+    height = height,
+    dpi = dpi,
+    limitsize = FALSE
   )
 }
 
@@ -405,6 +479,14 @@ pivot_mc_estimates <- function(benchmark) {
 #'   [ggplot2::facet_grid()] rows and columns.
 #' @param .width Passed to [ggdist::stat_halfeye()]; default
 #'   `c(0.5, 0.95)`.
+#' @param include_dots If `FALSE`, omit [ggdist::stat_dots()] (use this
+#'   on large Monte Carlo tables: the Fortran QP in `nudge_bins` cannot
+#'   take long vectors).
+#' @param max_dots Maximum rows passed to `stat_dots` when
+#'   `include_dots = TRUE`. Extra rows are subsampled.
+#' @param max_rows Optional cap on the plotting table (half-eye and
+#'   dots). When the Monte Carlo stack is huge, subsample before
+#'   drawing.
 #'
 #' @srrstats {G2.3} Restricted character input (`quantity`).
 #' @srrstats {G2.3a} Validated via `.match_arg_case_insensitive()`.
@@ -446,7 +528,10 @@ plot_mc_raincloud <- function(
   quantity = c("error", "estimate"),
   facet_rows = NULL,
   facet_cols = NULL,
-  .width = c(0.5, 0.95)
+  .width = c(0.5, 0.95),
+  include_dots = TRUE,
+  max_dots = 2000L,
+  max_rows = NULL
 ) {
   .check_plot_dependencies(need_ggdist = TRUE)
   quantity <- .match_arg_case_insensitive(quantity, c("error", "estimate"))
@@ -454,6 +539,9 @@ plot_mc_raincloud <- function(
     benchmark
   } else {
     pivot_mc_estimates(benchmark)
+  }
+  if (!is.null(max_rows) && nrow(df) > as.integer(max_rows)) {
+    df <- df[sample.int(nrow(df), as.integer(max_rows)), , drop = FALSE]
   }
   needed <- c("algorithm", "cell_type", "estimate", "p_true", "error")
   missing <- setdiff(needed, names(df))
@@ -490,12 +578,26 @@ plot_mc_raincloud <- function(
       point_interval = ggdist::median_qi,
       normalize = "groups",
       position = dodge
-    ) +
-    ggdist::stat_dots(
-      orientation = "horizontal",
-      side = "bottom",
-      position = dodge
-    ) +
+    )
+  if (isTRUE(include_dots)) {
+    df_dots <- df
+    n_dots <- nrow(df_dots)
+    if (is.finite(max_dots) && n_dots > as.integer(max_dots)) {
+      df_dots <- df_dots[
+        sample.int(n_dots, as.integer(max_dots)),
+        ,
+        drop = FALSE
+      ]
+    }
+    p <- p +
+      ggdist::stat_dots(
+        data = df_dots,
+        orientation = "horizontal",
+        side = "bottom",
+        position = dodge
+      )
+  }
+  p <- p +
     ggplot2::labs(
       x = x_lab,
       y = "Cell type",
@@ -506,7 +608,7 @@ plot_mc_raincloud <- function(
         "not a confidence interval for p."
       )
     ) +
-    ggplot2::theme_bw()
+    theme_decovart_facets()
   if (identical(quantity, "error")) {
     p <- p + ggplot2::geom_vline(xintercept = 0, linetype = "dashed")
   } else {
@@ -551,13 +653,16 @@ plot_mc_raincloud <- function(
 #' Forest plot of ADEMP Monte Carlo summaries
 #'
 #' Dot-and-whisker display of bias, RMSE, MAE, coverage, mean interval
-#' width, and optimiser failure rate by algorithm and cell type
+#' width, SE/SD ratio, and optimiser failure rate by algorithm and cell
+#' type
 #' \insertCite{allenRaincloudPlotsMultiplatform2019}{DeCovarT}.
 #' Coverage whiskers are the Wilson interval already stored on
 #' `monte_carlo` ([coverage_mc_interval()];
 #' \insertCite{wilsonProbableInferenceLaw1927}{DeCovarT}): they are
 #' intervals for the coverage *rate*, not for \eqn{p_j}. Bias is
-#' referenced at 0; coverage at 0.95. Pairwise algorithm contrasts
+#' referenced at 0; coverage at 0.95; SE/SD (`se_sd_ratio`, mean model
+#' SE / empirical SD) at 1. Interior Wald SEs come from
+#' [vcov_ilr_delta()]. Pairwise algorithm contrasts
 #' (MAE differences versus a reference solver on the same Monte Carlo
 #' replicates) can be read from the raincloud of paired errors; they do
 #' not need a second bootstrap.
@@ -595,7 +700,8 @@ plot_mc_raincloud <- function(
 #'   plot_mc_forest(out, facet_cols = "cosine")
 #' }
 #' @export
-#' @seealso [plot_mc_raincloud()], [coverage_mc_interval()]
+#' @seealso [plot_mc_raincloud()], [coverage_mc_interval()],
+#'   [vcov_ilr_delta()], [theme_decovart_facets()]
 #' @references
 #' \insertAllCited{}
 plot_mc_forest <- function(
@@ -608,6 +714,7 @@ plot_mc_forest <- function(
     "mae",
     "coverage",
     "mean_interval_width",
+    "se_sd_ratio",
     "failure_rate"
   )
 ) {
@@ -618,6 +725,7 @@ plot_mc_forest <- function(
     "mae",
     "coverage",
     "mean_interval_width",
+    "se_sd_ratio",
     "failure_rate"
   )
   metrics <- vapply(
@@ -724,6 +832,16 @@ plot_mc_forest <- function(
         reference = NA_real_
       )
   }
+  if ("se_sd_ratio" %in% metrics) {
+    pieces[[length(pieces) + 1L]] <- forest |>
+      dplyr::mutate(
+        metric = "se_sd_ratio",
+        estimate = .data[["se_sd_ratio"]],
+        lower = NA_real_,
+        upper = NA_real_,
+        reference = 1
+      )
+  }
   if ("failure_rate" %in% metrics) {
     fail_keep <- unique(c(
       fail_keys,
@@ -766,6 +884,7 @@ plot_mc_forest <- function(
     function(x) dplyr::select(x, dplyr::any_of(keep))
   )
   plot_df <- dplyr::bind_rows(selected)
+  plot_df <- dplyr::filter(plot_df, is.finite(.data[["estimate"]]))
   plot_df$metric <- factor(plot_df$metric, levels = unique(metrics))
   vline_src <- dplyr::filter(
     plot_df,
@@ -807,22 +926,21 @@ plot_mc_forest <- function(
       colour = "Cell type",
       caption = paste(
         "Coverage whiskers are Wilson intervals for the coverage rate;",
-        "bias reference is 0; coverage reference is 0.95."
+        "bias reference is 0; coverage reference is 0.95;",
+        "SE/SD is mean model SE / empirical SD (1 = calibrated).",
+        "Interior Wald SEs use the ILR expected-Fisher delta method."
       )
     ) +
-    ggplot2::theme_bw()
-  rows <- if (is.null(facet_rows)) "." else facet_rows
-  cols <- if (is.null(facet_cols)) {
-    "metric"
-  } else {
-    paste("metric", "+", facet_cols)
+    theme_decovart_facets()
+  facet <- .facet_grid_from_names(
+    plot_df,
+    facet_rows,
+    unique(c("metric", facet_cols)),
+    scales = "free_x"
+  )
+  if (!is.null(facet)) {
+    p <- p + facet
   }
-  p <- p +
-    ggplot2::facet_grid(
-      stats::as.formula(paste(rows, "~", cols)),
-      scales = "free_x",
-      labeller = ggplot2::label_both
-    )
   p
 }
 
@@ -850,9 +968,13 @@ plot_mc_forest <- function(
 #'
 #' @noRd
 .one_algorithm_cor <- function(part, algos) {
+  id_cols <- c("sample_id", "cell_type")
+  if ("ID" %in% names(part)) {
+    id_cols <- c("ID", id_cols)
+  }
   wide <- tidyr::pivot_wider(
     part,
-    id_cols = dplyr::all_of(c("sample_id", "cell_type")),
+    id_cols = dplyr::all_of(id_cols),
     names_from = "algorithm",
     values_from = "estimate"
   )
@@ -1093,9 +1215,14 @@ plot_algorithm_similarity <- function(
         "not numerical agreement of estimates."
       )
     ) +
-    ggplot2::theme_bw() +
+    theme_decovart_facets() +
     ggplot2::theme(
-      axis.text.x = ggplot2::element_text(angle = 45, hjust = 1)
+      axis.text.x = ggplot2::element_text(
+        angle = 90,
+        hjust = 1,
+        vjust = 0.5
+      ),
+      legend.position = "bottom"
     )
   facet <- .facet_grid_from_names(sim, facet_rows, facet_cols)
   if (!is.null(facet)) {
@@ -1305,16 +1432,11 @@ plot_mc_metric_dots <- function(
         "coverage uses |C - 0.95|. No default composite score."
       )
     ) +
-    ggplot2::theme_bw()
-  rows <- if (is.null(facet_rows)) "." else facet_rows
-  cols <- if (is.null(facet_cols)) {
-    "metric"
-  } else {
-    paste("metric", "+", facet_cols)
-  }
+    theme_decovart_facets()
   p +
-    ggplot2::facet_grid(
-      stats::as.formula(paste(rows, "~", cols)),
-      labeller = ggplot2::label_both
+    .facet_grid_from_names(
+      plot_df,
+      facet_rows,
+      unique(c("metric", facet_cols))
     )
 }

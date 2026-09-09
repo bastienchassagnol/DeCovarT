@@ -56,9 +56,7 @@ Package entry points are
 [`expected_fisher_unconstrained()`](../reference/expected_fisher_unconstrained.html)
 and
 [`vcov_ilr_delta()`](../reference/vcov_ilr_delta.html).
-The additive log-ratio chart is retained as an appendix (@sec-alr)
-and as [`vcov_alr_delta()`](../reference/vcov_alr_delta.html) for
-reference-invariance checks.
+The additive log-ratio chart is retained as an appendix (@sec-alr).
 
 ::: {#nte-notation .callout-note}
 ## Notation
@@ -740,9 +738,7 @@ $z_{q}=\Phi^{-1}(q)$, as in
 @eq-fisher-z--@eq-delta-p. Orthogonal rotations of $\mathbf{V}$ leave
 @eq-delta-p unchanged. The construction is undefined on the simplex
 boundary (the log-ratio chart blows up); the helper then returns `NA`
-with a warning. [`vcov_alr_delta()`](../reference/vcov_alr_delta.html)
-is the ALR analogue of @sec-alr: the reconstructed simplex covariance
-must agree with @eq-delta-p up to numerical error.
+with a warning.
 
 ::: {#nte-wald-limits .callout-warning}
 ## Wald is the cheapest, not the safest, interval
@@ -766,7 +762,7 @@ bootstrap: the maximised likelihood is equivariant under relabelling.
 
 The analytic maps above are only half of a usable optimiser. Practical
 bottlenecks that showed up on the hybrid scenario in
-[Variance-driven hybrid scenario](fig03-variance-driven.html#sec-hybrid-deconvolution)
+[Covariance-driven hybrid scenario](fig03-covariance-driven.html#sec-hybrid-deconvolution)
 live in `R/03_03_DeCovarT_estimate_ratios_frequentist.R`.
 
 ---
@@ -1197,18 +1193,13 @@ $a=1,\ldots,J-1$
 ::: {#nte-alr-why-not-default .callout-note}
 ## Why ALR is not the default
 
-ALR is a valid $C^{2}$ diffeomorphism onto the open simplex, and the
-reconstructed $\operatorname{Var}(\hat{\boldsymbol{p}})$ of
-[`vcov_alr_delta()`](../reference/vcov_alr_delta.html) must match
-[`vcov_ilr_delta()`](../reference/vcov_ilr_delta.html) when both charts
-are implemented correctly. The last cell type is nevertheless a
-privileged denominator: permuting which type occupies position $J$
-changes the Euclidean metric on coordinate space. ILR / Helmert
-(@sec-ilr) removes that privilege up to orthogonal rotation, which is
-why the solvers and `vcov.decovart_fit()` use ILR. Keep ALR when
-comparing against a multinomial-logit reference-category parameterisation,
-or when checking that a change of denominator does not move
-$\hat{\boldsymbol{p}}$.
+ALR is a valid $C^{2}$ diffeomorphism onto the open simplex. The last
+cell type is nevertheless a privileged denominator: permuting which
+type occupies position $J$ changes the Euclidean metric on coordinate
+space. ILR / Helmert (@sec-ilr) removes that privilege up to orthogonal
+rotation, which is why the solvers and `vcov.decovart_fit()` use ILR.
+Keep ALR when comparing against a multinomial-logit reference-category
+parameterisation.
 :::
 
 ## Structural zeros and folded simplex models {#sec-structural-zeros}

@@ -1,8 +1,8 @@
 ###############################################################################
 ###############################################################################
 ###                                                                         ###
-###     FIGURE 03 – VARIANCE-DRIVEN SCENARIO (article §2.2)                ###
-###     J = 3 cell types · G = 10 genes · graph-constrained covariances     ###
+###     FIGURE 03 – COVARIANCE-DRIVEN SCENARIO (article §2.2)              ###
+###     J = 3 cell types · G = 20 genes · graph-constrained covariances     ###
 ###                                                                         ###
 ###############################################################################
 ###############################################################################
@@ -13,31 +13,34 @@
 #
 #   mkdir -p logs
 #   nohup Rscript --no-save --no-restore scripts/fig03_variance_driven.R \
-#     > "logs/fig03_$(date +%F)_variance_driven.log" 2>&1 &
+#     > "logs/fig03_$(date +%F)_covariance_driven.log" 2>&1 &
 #
 # Article:  DeCovarT – Section 2.2 (network topology separates mean-collinear
-#           types). Vignette: vignettes/fig03-variance-driven.qmd
+#           types). Vignette: vignettes/fig03-covariance-driven.qmd
 # Seed:     20260807
 #
 # ── Design ──────────────────────────────────────────────────────────────────
 #  Means           one G x J signature; target Gram R with
 #                  cos(μ1,μ2)=0.9, cos(μ1,μ3)=cos(μ2,μ3)=0.1
-#  Graph models    Erdős–Rényi, scale-free  (independent per cell type)
+#  Graph models    scale-free (Barabasi-Albert) and cluster /
+#                  stochastic block model. No Erdős–Rényi.
+#  Topology grid   2^2 = 4 assignments on mean-collinear CT1 and CT2;
+#                  CT3 (mean-separated) is held at scale-free
 #  Precision κ     well / moderate / ill  (precision_shift u)
-#  Topology grid   2³ = 8 graph assignments
-#  Covariance grid 8 x 3 = 24 (Σ_j, Ω_j) draws
+#  Covariance grid 4 x 3 = 12 (Σ_j, Ω_j) draws
 #  Proportions     H*=1 (balanced); H*=0.5; H*=0.1
 #  Algorithms      DeconRNASeq (LSEI), CIBERSORT, L-BFGS-B,
 #                  Newton–Raphson, Marquardt–Levenberg
 #                  (barycentre start; no NNLS)
 #  Replicates (n)  50
-#  Total scenarios 8 x 3 x 3 = 72
+#  Total scenarios 4 x 3 x 3 = 36
 #
 # ── Usage ────────────────────────────────────────────────────────────────────
 #  Rscript scripts/fig03_variance_driven.R
 #
 # ── Outputs ─────────────────────────────────────────────────────────────────
-#  output/fig03/hybrid_benchmark.rds
+#  output/fig03/hybrid_config.rds (design + graph generator settings)
+#  output/fig03/hybrid_{config,descriptors,theta,benchmark}.rds
 #  output/fig03/fig03_raincloud.pdf, fig03_forest.pdf, fig03_metric_dots.pdf
 #  vignettes/figures/fig_network_topologies.png
 ###############################################################################
@@ -71,13 +74,13 @@ if (!requireNamespace("e1071", quietly = TRUE)) {
 OUT_DIR <- file.path("output", "fig03")
 dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
 
-.ui_h1("Figure 03 · Variance-driven scenario")
+.ui_h1("Figure 03 · Covariance-driven scenario")
 
 N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "50"))
 SEED <- 20260807L
 set.seed(SEED)
 
-N_GENES <- 10L
+N_GENES <- 20L
 N_CELLTYPES <- 3L
 MEAN_SCALE <- 10
 ITMAX <- 200L
@@ -89,12 +92,12 @@ celltype_palette <- c(
   celltype_3 = "#C1443C"
 )
 graph_palette <- c(
-  erdos_renyi = "#999999",
-  scale_free = "#4C72B0"
+  scale_free = "#4C72B0",
+  stochastic_block_model = "#C44E52"
 )
 ct_nms <- names(celltype_palette)
 
-GRAPH_MODELS <- c("erdos_renyi", "scale_free")
+GRAPH_MODELS <- c("scale_free", "stochastic_block_model")
 # Spectral cushion u: lambda_min(Omega_j) = u after the shift, so
 # kappa(Omega_j) = lambda_max / u. Smaller u -> worse-conditioned precision.
 # Keep u >= 0.1: u = 0.02 with large G stalled SPD completion.
@@ -102,9 +105,19 @@ PRECISION_SHIFT <- c(well = 0.5, moderate = 0.2, ill = 0.1)
 PRECISION_SCALE <- 0.3
 PROP_INHIBITORY <- 0.5
 
-GRAPH_PARAMS <- list(
-  edges_per_node = 1L
+# Explicit generator settings (also written onto hybrid_config.rds).
+GRAPH_PARAM_LIBRARY <- list(
+  scale_free = list(
+    power = 1,
+    edges_per_node = 1L
+  ),
+  stochastic_block_model = list(
+    block_prob = c(0.5, 0.25, 0.25),
+    p_within = 0.25,
+    p_between = 0.01
+  )
 )
+GRAPH_CT3 <- "scale_free"
 
 TARGET_GRAM <- matrix(
   c(
@@ -146,9 +159,9 @@ cos_mu <- cos_mu / tcrossprod(norms)
 
 topology_grid <- tidyr::expand_grid(
   graph_ct1 = GRAPH_MODELS,
-  graph_ct2 = GRAPH_MODELS,
-  graph_ct3 = GRAPH_MODELS
+  graph_ct2 = GRAPH_MODELS
 )
+topology_grid$graph_ct3 <- GRAPH_CT3
 kappa_grid <- tibble::tibble(
   kappa_label = names(PRECISION_SHIFT),
   precision_shift = unname(PRECISION_SHIFT)
@@ -186,7 +199,7 @@ adj_by_topo <- purrr::pmap(
         generate_random_network_skeleton(
           n_genes = N_GENES,
           graph_model = models[[j]],
-          graph_params = GRAPH_PARAMS
+          graph_params = GRAPH_PARAM_LIBRARY[[models[[j]]]]
         )
       )
     })
@@ -253,11 +266,27 @@ scenario_config_3 <- purrr::map_dfr(
         include_mixsim = FALSE
       )
       tibble::tibble(
+        n_genes = N_GENES,
+        n_celltypes = N_CELLTYPES,
         proportion_name = prop_name,
         entropy = round(compute_shannon_entropy(p), 3),
         graph_ct1 = row$graph_ct1,
         graph_ct2 = row$graph_ct2,
         graph_ct3 = row$graph_ct3,
+        graph_generators = list(list(
+          celltype_1 = list(
+            graph_model = row$graph_ct1,
+            graph_params = GRAPH_PARAM_LIBRARY[[row$graph_ct1]]
+          ),
+          celltype_2 = list(
+            graph_model = row$graph_ct2,
+            graph_params = GRAPH_PARAM_LIBRARY[[row$graph_ct2]]
+          ),
+          celltype_3 = list(
+            graph_model = row$graph_ct3,
+            graph_params = GRAPH_PARAM_LIBRARY[[row$graph_ct3]]
+          )
+        )),
         kappa_label = row$kappa_label,
         precision_shift = row$precision_shift,
         f_cov = described$descriptors$f_cov,
@@ -267,7 +296,21 @@ scenario_config_3 <- purrr::map_dfr(
           mu = mu,
           sigma = draw$sigma,
           Theta = draw$theta,
-          adjacency = draw$adjacency
+          adjacency = draw$adjacency,
+          graph_generators = list(
+            celltype_1 = list(
+              graph_model = row$graph_ct1,
+              graph_params = GRAPH_PARAM_LIBRARY[[row$graph_ct1]]
+            ),
+            celltype_2 = list(
+              graph_model = row$graph_ct2,
+              graph_params = GRAPH_PARAM_LIBRARY[[row$graph_ct2]]
+            ),
+            celltype_3 = list(
+              graph_model = row$graph_ct3,
+              graph_params = GRAPH_PARAM_LIBRARY[[row$graph_ct3]]
+            )
+          )
         ))
       )
     })
@@ -276,7 +319,10 @@ scenario_config_3 <- purrr::map_dfr(
 .ui_success(
   "Config built: {.val {nrow(scenario_config_3)}} scenarios."
 )
-saveRDS(scenario_config_3, file.path(OUT_DIR, "hybrid_config.rds"))
+scenario_config_3$ID <- paste0(
+  "V",
+  seq_len(nrow(scenario_config_3))
+)
 
 
 # ==============================================================================
@@ -323,6 +369,13 @@ hybrid_out <- run_simulation_benchmark(
   verbose = TRUE
 )
 saveRDS(hybrid_out, file.path(OUT_DIR, "hybrid_benchmark.rds"))
+write_simulation_artefacts(
+  hybrid_out,
+  dir = OUT_DIR,
+  stem = "hybrid",
+  config = scenario_config_3
+)
+saveRDS(scenario_config_3, file.path(OUT_DIR, "hybrid_config.rds"))
 
 
 # ==============================================================================
@@ -334,7 +387,8 @@ if (requireNamespace("ggdist", quietly = TRUE)) {
     hybrid_out,
     quantity = "error",
     facet_rows = "proportion_name",
-    facet_cols = "kappa_label"
+    facet_cols = "kappa_label",
+    include_dots = FALSE
   )
   ggplot2::ggsave(
     file.path(OUT_DIR, "fig03_raincloud.pdf"),
@@ -390,7 +444,7 @@ for (gm in GRAPH_MODELS) {
   adj <- generate_random_network_skeleton(
     n_genes = N_GENES,
     graph_model = gm,
-    graph_params = GRAPH_PARAMS
+    graph_params = GRAPH_PARAM_LIBRARY[[gm]]
   )
   graph <- igraph::graph_from_adjacency_matrix(
     adj,

@@ -249,6 +249,9 @@ check_true_theta <- function(
 #'   \eqn{\hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}}} with
 #'   \eqn{\boldsymbol{y}}.
 #' @param se Optional standard errors matching `estimated_p`.
+#'   Convolution-likelihood solvers fill these from [vcov_ilr_delta()]
+#'   (expected Fisher information pulled back through the ILR chart).
+#'   Mean-only solvers (NNLS, LSEI) leave them missing.
 #' @param lower,upper Optional interval bounds matching `estimated_p`
 #'   (used for coverage and mean width). When omitted but `se` is
 #'   supplied, Wald intervals at `level` are used.
@@ -672,7 +675,15 @@ compute_benchmark_metrics <- function(
 #'   `optimisation` (per-sample elapsed time, memory, KKT residual, and
 #'   \eqn{\hat{\boldsymbol{p}}}). First-generation solvers still call
 #'   [repair_simplex()]; the three native DeCovarT maps (ILR or
-#'   \eqn{p/\sum p}) already lie on the simplex.
+#'   \eqn{p/\sum p}) already lie on the simplex. When `Sigma` is
+#'   supplied, Newton-Raphson, Marquardt-Levenberg, L-BFGS-B, BFGS
+#'   (gradient), and simulated annealing attach ILR Wald standard
+#'   errors from [vcov_ilr_delta()] so `monte_carlo` can report
+#'   coverage, mean model SE, and the SE/SD ratio. Those SEs are the
+#'   expected-Fisher delta-method bounds used by
+#'   [confint.decovart_fit()], not diagonal entries of the observed
+#'   Hessian. Mean-only solvers (NNLS, LSEI) leave Wald columns
+#'   missing: those estimators do not use the convolution likelihood.
 #'
 #' @examples
 #' set.seed(1)
@@ -834,6 +845,19 @@ deconvolute_ratios <- function(
       estimated_p <- .coerce_estimated_p(raw_out, cell_names)
       se <- .extract_estimated_se(raw_out, n_celltypes)
       names(se) <- cell_names
+      if (
+        .uses_ilr_wald_fun(deconvolution_function$FUN) &&
+          !is.null(Sigma) &&
+          !any(is.finite(se)) &&
+          all(is.finite(estimated_p))
+      ) {
+        se <- .ilr_wald_se(
+          estimated_p,
+          mean_signature_matrix,
+          Sigma,
+          warn = FALSE
+        )
+      }
       list(p = estimated_p, se = se, error = NULL)
     },
     error = function(e) {
@@ -932,6 +956,51 @@ deconvolute_ratios <- function(
     coverage_interval = coverage_interval,
     algorithm = algorithm
   )
+}
+
+#' @keywords internal
+#' @noRd
+.uses_ilr_wald_fun <- function(fun) {
+  if (!is.function(fun)) {
+    return(FALSE)
+  }
+  any(
+    vapply(
+      list(
+        deconvolute_ratios_Newton_Raphson,
+        deconvolute_ratios_Marquardt_Levenberg,
+        deconvolute_ratios_L_BFGS_B,
+        deconvolute_ratios_gradient_descent,
+        deconvolute_ratios_simulated_annealing
+      ),
+      function(f) identical(fun, f),
+      logical(1)
+    )
+  )
+}
+
+#' @noRd
+.normalise_algorithm_key <- function(x) {
+  gsub("[^a-z0-9]+", "", tolower(as.character(x)))
+}
+
+#' @noRd
+.uses_ilr_wald_algorithm <- function(name) {
+  .normalise_algorithm_key(name) %in%
+    c(
+      "newtonraphson",
+      "newton",
+      "marquardtlevenberg",
+      "marquardt",
+      "lbfgs",
+      "lbfgsb",
+      "gradient",
+      "gradientdescent",
+      "bfgs",
+      "sa",
+      "sann",
+      "simulatedannealing"
+    )
 }
 
 #' @keywords internal

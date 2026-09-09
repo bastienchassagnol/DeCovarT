@@ -18,7 +18,7 @@ Numeric simplex vector of length \eqn{J}.
 }
 \description{
 Returns a length-\eqn{J} simplex vector of the form
-\eqn{(1-(J-1)q,\,q,\ldots,q)} whose Pielou evenness
+\eqn{(1-(J-1)q,\,q,\ldots,q)} whose normalised Shannon entropy
 \code{\link[=compute_shannon_entropy]{compute_shannon_entropy()}} equals \code{h_star}. The uniform composition
 (\code{h_star = 1}) and a Dirac mass (\code{h_star = 0}) are returned exactly.
 }

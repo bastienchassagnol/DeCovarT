@@ -40,7 +40,7 @@
 ^vignettes/supp-S6-feature-selection\.qmd$
 ^vignettes/theory-network-inference\.qmd$
 ^vignettes/theory-synthetic-scenarios-mean-covariance\.qmd$
-^vignettes/fig03-variance-driven\.qmd$
+^vignettes/fig03-covariance-driven\.qmd$
 ^vignettes/supp-S1-identifiability\.qmd$
 ^vignettes/supp-S2-covariance-inversion\.qmd$
 ^vignettes/supp-S3-scaling\.qmd$
