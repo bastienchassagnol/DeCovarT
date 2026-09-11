@@ -44,6 +44,8 @@ Suggests:
     future,
     ggdendro,
     ggdist,
+    glmnet,
+    gridExtra,
     htmlwidgets,
     igraph,
     knitr,

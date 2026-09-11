@@ -281,7 +281,7 @@ compute_average_overlap <- function(
 #' Gene scores from multinomial elastic-net cell-type classification
 #'
 #' @description
-#' Fits a multinomial (or binomial) elastic net (`glmnet::glmnet()`) that
+#' Fits a multinomial (or binomial) elastic net ([glmnet::glmnet()]) that
 #' predicts cell type from expression features. Inputs are purified
 #' expression profiles
 #' \eqn{\boldsymbol{X}\in\mathcal{M}_{G\times J\times N}} (genes \eqn{\times}
@@ -300,7 +300,7 @@ compute_average_overlap <- function(
 #' @param alpha Elastic-net mixing parameter in \eqn{[0,1]} (default `0.5`).
 #' @param lambda Optional penalty value at which coefficients are extracted.
 #'   When `NULL`, uses the smallest \eqn{\lambda} on the fitted path.
-#' @param ... Additional arguments forwarded to `glmnet::glmnet()`.
+#' @param ... Additional arguments forwarded to [glmnet::glmnet()].
 #'
 #' @return Named numeric vector of length \eqn{G} (gene scores; larger means
 #'   stronger multinomial signal).
@@ -384,8 +384,7 @@ compute_glmnet_gene_scores <- function(
     glm_args[[nm]] <- dots[[nm]]
   }
 
-  glmnet_fit <- .suggested_export("glmnet", "glmnet")
-  fit <- do.call(glmnet_fit, glm_args)
+  fit <- do.call(glmnet::glmnet, glm_args)
   s_use <- if (is.null(lambda)) min(fit$lambda) else lambda
   beta <- stats::coef(fit, s = s_use)
 
