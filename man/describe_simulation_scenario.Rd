@@ -23,9 +23,7 @@ supplied.}
 \item{active_tol}{Threshold for counting an active simplex component.}
 
 \item{include_mixsim}{Logical. If \code{TRUE} (default), compute MixSim
-BarOmega when MixSim is installed. Set \code{FALSE} on high-\eqn{G}
-grids: the overlap Monte Carlo is far slower than the Fisher /
-SPD descriptors.}
+BarOmega via \code{\link[=compute_average_overlap]{compute_average_overlap()}}. Set \code{FALSE} to skip.}
 }
 \value{
 A list with:
@@ -34,7 +32,11 @@ A list with:
 \item \code{descriptors}: one-row tibble of kept scenario statistics in six
 families (composition, mean geometry, SPD of
 \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}, tangent Fisher, network,
-component overlap). SPD columns include both
+component overlap). MixSim BarOmega uses \code{\link[=compute_average_overlap]{compute_average_overlap()}}
+(Davies quadrature for \eqn{G<4}, Sobol Monte Carlo otherwise).
+Average pairwise Hellinger and affine-invariant Riemannian
+distance of the \eqn{\Sigma_j} are kept alongside.
+\code{hellinger_weighted} is optional. SPD columns include both
 \eqn{\kappa\{\boldsymbol{\Sigma}(\boldsymbol{p})\}}
 (\code{kappa_sigma_p}) and the reciprocal
 \eqn{\lambda_{\min}/\lambda_{\max}} (\code{kappa_sigma_reciprocal});
@@ -69,5 +71,6 @@ out$call
 \seealso{
 \code{\link[=run_simulation_benchmark]{run_simulation_benchmark()}}, \code{\link[=expected_fisher_unconstrained]{expected_fisher_unconstrained()}},
 \code{\link[=compute_shannon_entropy]{compute_shannon_entropy()}}, \code{\link[=composition_from_entropy]{composition_from_entropy()}},
-\code{\link[=helmert_basis]{helmert_basis()}}
+\code{\link[=helmert_basis]{helmert_basis()}}, \code{\link[=compute_average_overlap]{compute_average_overlap()}},
+\code{\link[=compute_average_riemannian]{compute_average_riemannian()}}
 }

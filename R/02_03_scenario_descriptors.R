@@ -231,16 +231,18 @@
 #'   supplied.
 #' @param active_tol Threshold for counting an active simplex component.
 #' @param include_mixsim Logical. If `TRUE` (default), compute MixSim
-#'   BarOmega when MixSim is installed. Set `FALSE` on high-\eqn{G}
-#'   grids: the overlap Monte Carlo is far slower than the Fisher /
-#'   SPD descriptors.
+#'   BarOmega via [compute_average_overlap()]. Set `FALSE` to skip.
 #'
 #' @return A list with:
 #' * `theta_true`: the convolution parameters `p`, `mu`, `sigma`;
 #' * `descriptors`: one-row tibble of kept scenario statistics in six
 #'   families (composition, mean geometry, SPD of
 #'   \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}, tangent Fisher, network,
-#'   component overlap). SPD columns include both
+#'   component overlap). MixSim BarOmega uses [compute_average_overlap()]
+#'   (Davies quadrature for \eqn{G<4}, Sobol Monte Carlo otherwise).
+#'   Average pairwise Hellinger and affine-invariant Riemannian
+#'   distance of the \eqn{\Sigma_j} are kept alongside.
+#'   `hellinger_weighted` is optional. SPD columns include both
 #'   \eqn{\kappa\{\boldsymbol{\Sigma}(\boldsymbol{p})\}}
 #'   (`kappa_sigma_p`) and the reciprocal
 #'   \eqn{\lambda_{\min}/\lambda_{\max}} (`kappa_sigma_reciprocal`);
@@ -260,7 +262,8 @@
 #' @export
 #' @seealso [run_simulation_benchmark()], [expected_fisher_unconstrained()],
 #'   [compute_shannon_entropy()], [composition_from_entropy()],
-#'   [helmert_basis()]
+#'   [helmert_basis()], [compute_average_overlap()],
+#'   [compute_average_riemannian()]
 describe_simulation_scenario <- function(
   true_theta,
   adjacency = NULL,
@@ -458,16 +461,20 @@ describe_simulation_scenario <- function(
   }
 
   mixsim_overlap <- NA_real_
-  if (isTRUE(include_mixsim) && requireNamespace("MixSim", quietly = TRUE)) {
+  if (isTRUE(include_mixsim)) {
     mixsim_overlap <- tryCatch(
-      MixSim::overlap(
-        Pi = p,
-        Mu = t(mu),
-        S = Sigma
-      )$BarOmega,
+      compute_average_overlap(
+        true_theta,
+        n_mc = 4000L,
+        verbose = FALSE
+      ),
       error = function(e) NA_real_
     )
   }
+  riemannian <- tryCatch(
+    compute_average_riemannian(true_theta),
+    error = function(e) NA_real_
+  )
 
   descriptors <- tibble::tibble(
     n_genes = n_genes,
@@ -501,7 +508,8 @@ describe_simulation_scenario <- function(
     hoyer_abs_correlation = hoyer_r,
     mixsim_baromega = mixsim_overlap,
     hellinger = hellinger,
-    hellinger_weighted = hellinger_weighted
+    hellinger_weighted = hellinger_weighted,
+    riemannian_sigma = riemannian
   )
 
   supplementary <- tibble::tibble(

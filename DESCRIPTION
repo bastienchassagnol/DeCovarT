@@ -59,6 +59,7 @@ Suggests:
     plotly,
     png,
     ps,
+    qrng,
     quarto,
     reactable (>= 0.4.4),
     readr,

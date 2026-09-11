@@ -23,11 +23,12 @@
 #  Means           one G x J signature; target Gram R with
 #                  cos(μ1,μ2)=0.9, cos(μ1,μ3)=cos(μ2,μ3)=0.1
 #  Graph models    scale-free (Barabasi-Albert) and cluster /
-#                  stochastic block model. No Erdős–Rényi.
+#                  stochastic block model.
 #  Topology grid   2^2 = 4 assignments on mean-collinear CT1 and CT2;
 #                  CT3 (mean-separated) is held at scale-free
-#  Precision κ     well / moderate / ill  (precision_shift u)
-#  Covariance grid 4 x 3 = 12 (Σ_j, Ω_j) draws
+#  Overlap         low / moderate / high target MixSim BarOmega
+#                  (scale Sigma_j, keep precision zeros)
+#  Covariance grid 4 x 3 = 12 (topology x overlap)
 #  Proportions     H*=1 (balanced); H*=0.5; H*=0.1
 #  Algorithms      DeconRNASeq (LSEI), CIBERSORT, L-BFGS-B,
 #                  Newton–Raphson, Marquardt–Levenberg
@@ -37,6 +38,8 @@
 #
 # ── Usage ────────────────────────────────────────────────────────────────────
 #  Rscript scripts/fig03_variance_driven.R
+#  Smoke (one topology, three overlap targets, no ADEMP):
+#  FIG03_SMOKE=1 Rscript --no-save --no-restore scripts/fig03_variance_driven.R
 #
 # ── Outputs ─────────────────────────────────────────────────────────────────
 #  output/fig03/hybrid_config.rds (design + graph generator settings)
@@ -65,13 +68,21 @@ if (!requireNamespace("igraph", quietly = TRUE)) {
     "fig03 requires {.pkg igraph}. Install with {.code install.packages(\"igraph\")}."
   )
 }
-if (!requireNamespace("e1071", quietly = TRUE)) {
+
+FIG03_SMOKE <- identical(Sys.getenv("FIG03_SMOKE", "0"), "1")
+if (
+  !FIG03_SMOKE &&
+    !requireNamespace("e1071", quietly = TRUE)
+) {
   .ui_abort(
     "fig03 requires {.pkg e1071} (CIBERSORT). Install with {.code install.packages(\"e1071\")}."
   )
 }
 
 OUT_DIR <- file.path("output", "fig03")
+if (FIG03_SMOKE) {
+  OUT_DIR <- file.path(OUT_DIR, "smoke")
+}
 dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
 
 .ui_h1("Figure 03 · Covariance-driven scenario")
@@ -79,6 +90,18 @@ dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
 N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "50"))
 SEED <- 20260807L
 set.seed(SEED)
+
+# FIG03_SMOKE=1: one topology x three overlap targets. ADEMP is skipped
+# unless N_REPLICATES is also set (then it is capped at 2).
+N_MC_OVERLAP <- 4000L
+if (FIG03_SMOKE) {
+  N_MC_OVERLAP <- 800L
+  if (!nzchar(Sys.getenv("N_REPLICATES", ""))) {
+    N_REPL <- 0L
+  } else {
+    N_REPL <- min(N_REPL, 2L)
+  }
+}
 
 N_GENES <- 20L
 N_CELLTYPES <- 3L
@@ -98,12 +121,13 @@ graph_palette <- c(
 ct_nms <- names(celltype_palette)
 
 GRAPH_MODELS <- c("scale_free", "stochastic_block_model")
-# Spectral cushion u: lambda_min(Omega_j) = u after the shift, so
-# kappa(Omega_j) = lambda_max / u. Smaller u -> worse-conditioned precision.
-# Keep u >= 0.1: u = 0.02 with large G stalled SPD completion.
-PRECISION_SHIFT <- c(well = 0.5, moderate = 0.2, ill = 0.1)
+# One SPD completion per topology (fixed spectral cushion), then a
+# global covariance scale s so MixSim BarOmega matches the target.
+# Structural zeros of Omega_j are preserved because Omega(s) = Omega/s.
+PRECISION_SHIFT_BASE <- 0.2
 PRECISION_SCALE <- 0.3
 PROP_INHIBITORY <- 0.5
+OVERLAP_TARGET <- c(low = 0.02, moderate = 0.08, high = 0.20)
 
 # Explicit generator settings (also written onto hybrid_config.rds).
 GRAPH_PARAM_LIBRARY <- list(
@@ -138,7 +162,7 @@ TARGET_GRAM <- matrix(
 
 # ==============================================================================
 # SECTION 1 · GENERATIVE MODEL ----
-#   Fixed mean signature (exact Gram). Factorial graphs x precision shift.
+#   Fixed mean signature (exact Gram). Factorial graphs x target BarOmega.
 # ==============================================================================
 
 mu <- generate_mean_signature_matrix(
@@ -162,14 +186,20 @@ topology_grid <- tidyr::expand_grid(
   graph_ct2 = GRAPH_MODELS
 )
 topology_grid$graph_ct3 <- GRAPH_CT3
-kappa_grid <- tibble::tibble(
-  kappa_label = names(PRECISION_SHIFT),
-  precision_shift = unname(PRECISION_SHIFT)
+if (FIG03_SMOKE) {
+  topology_grid <- topology_grid[1L, , drop = FALSE]
+  .ui_info(
+    "FIG03_SMOKE: one topology, n_mc = {.val {N_MC_OVERLAP}}, N_REPL = {.val {N_REPL}}."
+  )
+}
+overlap_grid <- tibble::tibble(
+  overlap_label = names(OVERLAP_TARGET),
+  overlap_target = unname(OVERLAP_TARGET)
 )
 
-cov_grid <- tidyr::expand_grid(topology_grid, kappa_grid)
+cov_grid <- tidyr::expand_grid(topology_grid, overlap_grid)
 .ui_info(
-  "Covariance grid: {.val {nrow(topology_grid)}} topologies x {.val {nrow(kappa_grid)}} precision shifts = {.val {nrow(cov_grid)}}."
+  "Covariance grid: {.val {nrow(topology_grid)}} topologies x {.val {nrow(overlap_grid)}} overlap targets = {.val {nrow(cov_grid)}}."
 )
 
 p_balanced <- composition_from_entropy(1, N_CELLTYPES, nms = ct_nms)
@@ -206,30 +236,21 @@ adj_by_topo <- purrr::pmap(
   }
 )
 
-n_cov <- nrow(cov_grid)
+n_topo <- nrow(topology_grid)
 .ui_info(
-  "Completing signed precisions for each topology x kappa draw ({.val {n_cov}})."
+  "Completing signed precisions for each topology ({.val {n_topo}}), then scaling to target BarOmega."
 )
-cov_draws <- lapply(seq_len(n_cov), function(i) {
-  if (i == 1L || i %% 8L == 0L || i == n_cov) {
-    .ui_info("Precision draw {.val {i}}/{.val {n_cov}}.")
-  }
-  row <- cov_grid[i, , drop = FALSE]
-  topo_idx <- which(
-    topology_grid$graph_ct1 == row$graph_ct1 &
-      topology_grid$graph_ct2 == row$graph_ct2 &
-      topology_grid$graph_ct3 == row$graph_ct3
-  )[[1L]]
+base_draws <- lapply(seq_len(n_topo), function(topo_idx) {
+  .ui_info("Base precision {.val {topo_idx}}/{.val {n_topo}}.")
+  row <- topology_grid[topo_idx, , drop = FALSE]
   moments <- withr::with_seed(
-    SEED +
-      1000L * match(row$kappa_label, names(PRECISION_SHIFT)) +
-      topo_idx,
+    SEED + 100L * topo_idx,
     simulate_hierarchical_grn_moments(
       n_genes = N_GENES,
       n_celltypes = N_CELLTYPES,
       mean_scale = MEAN_SCALE,
       target_gram = TARGET_GRAM,
-      precision_shift = row$precision_shift,
+      precision_shift = PRECISION_SHIFT_BASE,
       precision_scale = PRECISION_SCALE,
       prop_inhibitory = PROP_INHIBITORY,
       nonnegative = TRUE,
@@ -242,7 +263,41 @@ cov_draws <- lapply(seq_len(n_cov), function(i) {
     adjacency = lapply(
       seq_len(N_CELLTYPES),
       function(j) moments$graph_structure$adjacency_matrices[,, j]
-    )
+    ),
+    graph_ct1 = row$graph_ct1,
+    graph_ct2 = row$graph_ct2,
+    graph_ct3 = row$graph_ct3
+  )
+})
+
+n_cov <- nrow(cov_grid)
+cov_draws <- lapply(seq_len(n_cov), function(i) {
+  if (i == 1L || i %% 4L == 0L || i == n_cov) {
+    .ui_info("Overlap scale {.val {i}}/{.val {n_cov}}.")
+  }
+  row <- cov_grid[i, , drop = FALSE]
+  topo_idx <- which(
+    topology_grid$graph_ct1 == row$graph_ct1 &
+      topology_grid$graph_ct2 == row$graph_ct2 &
+      topology_grid$graph_ct3 == row$graph_ct3
+  )[[1L]]
+  base <- base_draws[[topo_idx]]
+  calibrated <- scale_covariances_to_overlap(
+    mu = mu,
+    sigma = base$sigma,
+    p = p_balanced,
+    target = row$overlap_target,
+    n_mc = N_MC_OVERLAP,
+    seed = SEED + i,
+    verbose = FALSE
+  )
+  list(
+    sigma = calibrated$sigma,
+    theta = calibrated$Theta,
+    adjacency = base$adjacency,
+    covariance_scale = calibrated$scale,
+    baromega = calibrated$baromega,
+    overlap_target = calibrated$target
   )
 })
 
@@ -263,7 +318,7 @@ scenario_config_3 <- purrr::map_dfr(
           Theta = draw$theta
         ),
         adjacency = draw$adjacency,
-        include_mixsim = FALSE
+        include_mixsim = TRUE
       )
       tibble::tibble(
         n_genes = N_GENES,
@@ -287,10 +342,13 @@ scenario_config_3 <- purrr::map_dfr(
             graph_params = GRAPH_PARAM_LIBRARY[[row$graph_ct3]]
           )
         )),
-        kappa_label = row$kappa_label,
-        precision_shift = row$precision_shift,
+        overlap_label = row$overlap_label,
+        overlap_target = row$overlap_target,
+        covariance_scale = draw$covariance_scale,
+        mixsim_baromega = described$descriptors$mixsim_baromega,
         f_cov = described$descriptors$f_cov,
         kappa_sigma_p = described$descriptors$kappa_sigma_p,
+        riemannian_sigma = described$descriptors$riemannian_sigma,
         true_theta = list(list(
           p = p,
           mu = mu,
@@ -319,152 +377,168 @@ scenario_config_3 <- purrr::map_dfr(
 .ui_success(
   "Config built: {.val {nrow(scenario_config_3)}} scenarios."
 )
+overlap_check <- scenario_config_3[
+  c(
+    "proportion_name",
+    "overlap_label",
+    "overlap_target",
+    "mixsim_baromega",
+    "f_cov",
+    "covariance_scale",
+    "riemannian_sigma"
+  )
+]
+.ui_info("Realised BarOmega / f_cov by topology and overlap target:")
+print(overlap_check)
 scenario_config_3$ID <- paste0(
   "V",
   seq_len(nrow(scenario_config_3))
 )
+saveRDS(scenario_config_3, file.path(OUT_DIR, "hybrid_config.rds"))
 
 
 # ==============================================================================
 # SECTION 2 · INFERENCE ----
 # ==============================================================================
 
-deconvolution_functions_3 <- list(
-  "lsei" = list(FUN = deconvolute_ratios_deconrnaseq),
-  "cibersort" = list(FUN = deconvolute_ratios_cibersort),
-  "LBFGS" = list(
-    FUN = deconvolute_ratios_L_BFGS_B,
-    additional_parameters = list(
-      epsilon = EPSILON,
-      itmax = ITMAX,
-      initial_p = "barycentre"
-    )
-  ),
-  "Newton-Raphson" = list(
-    FUN = deconvolute_ratios_Newton_Raphson,
-    additional_parameters = list(
-      epsilon = EPSILON,
-      itmax = ITMAX,
-      initial_p = "barycentre"
-    )
-  ),
-  "Marquardt-Levenberg" = list(
-    FUN = deconvolute_ratios_Marquardt_Levenberg,
-    additional_parameters = list(
-      epsilon = EPSILON,
-      itmax = ITMAX,
-      initial_p = "barycentre"
+if (N_REPL < 1L) {
+  .ui_info("N_REPL = 0: skipping ADEMP and figures (config only).")
+} else {
+  deconvolution_functions_3 <- list(
+    "lsei" = list(FUN = deconvolute_ratios_deconrnaseq),
+    "cibersort" = list(FUN = deconvolute_ratios_cibersort),
+    "LBFGS" = list(
+      FUN = deconvolute_ratios_L_BFGS_B,
+      additional_parameters = list(
+        epsilon = EPSILON,
+        itmax = ITMAX,
+        initial_p = "barycentre"
+      )
+    ),
+    "Newton-Raphson" = list(
+      FUN = deconvolute_ratios_Newton_Raphson,
+      additional_parameters = list(
+        epsilon = EPSILON,
+        itmax = ITMAX,
+        initial_p = "barycentre"
+      )
+    ),
+    "Marquardt-Levenberg" = list(
+      FUN = deconvolute_ratios_Marquardt_Levenberg,
+      additional_parameters = list(
+        epsilon = EPSILON,
+        itmax = ITMAX,
+        initial_p = "barycentre"
+      )
     )
   )
-)
 
-.ui_info(
-  "Running ADEMP benchmark with {.val {N_REPL}} replicates."
-)
-hybrid_out <- run_simulation_benchmark(
-  scenario_config = scenario_config_3,
-  deconvolution_functions = deconvolution_functions_3,
-  n = N_REPL,
-  cores = 1L,
-  verbose = TRUE
-)
-saveRDS(hybrid_out, file.path(OUT_DIR, "hybrid_benchmark.rds"))
-write_simulation_artefacts(
-  hybrid_out,
-  dir = OUT_DIR,
-  stem = "hybrid",
-  config = scenario_config_3
-)
-saveRDS(scenario_config_3, file.path(OUT_DIR, "hybrid_config.rds"))
-
-
-# ==============================================================================
-# SECTION 3 · VISUALISATIONS ----
-# ==============================================================================
-
-if (requireNamespace("ggdist", quietly = TRUE)) {
-  p_rain <- plot_mc_raincloud(
+  .ui_info(
+    "Running ADEMP benchmark with {.val {N_REPL}} replicates."
+  )
+  hybrid_out <- run_simulation_benchmark(
+    scenario_config = scenario_config_3,
+    deconvolution_functions = deconvolution_functions_3,
+    n = N_REPL,
+    cores = 1L,
+    verbose = TRUE
+  )
+  saveRDS(hybrid_out, file.path(OUT_DIR, "hybrid_benchmark.rds"))
+  write_simulation_artefacts(
     hybrid_out,
-    quantity = "error",
+    dir = OUT_DIR,
+    stem = "hybrid",
+    config = scenario_config_3
+  )
+
+  # ==============================================================================
+  # SECTION 3 · VISUALISATIONS ----
+  # ==============================================================================
+
+  if (requireNamespace("ggdist", quietly = TRUE)) {
+    p_rain <- plot_mc_raincloud(
+      hybrid_out,
+      quantity = "error",
+      facet_rows = "proportion_name",
+      facet_cols = "overlap_label",
+      include_dots = FALSE
+    )
+    ggplot2::ggsave(
+      file.path(OUT_DIR, "fig03_raincloud.pdf"),
+      plot = p_rain,
+      width = 12,
+      height = 8
+    )
+    .ui_success("Saved {.file fig03_raincloud.pdf}.")
+  }
+
+  p_forest <- plot_mc_forest(
+    hybrid_out,
     facet_rows = "proportion_name",
-    facet_cols = "kappa_label",
-    include_dots = FALSE
+    facet_cols = "overlap_label"
   )
   ggplot2::ggsave(
-    file.path(OUT_DIR, "fig03_raincloud.pdf"),
-    plot = p_rain,
+    file.path(OUT_DIR, "fig03_forest.pdf"),
+    plot = p_forest,
     width = 12,
     height = 8
   )
-  .ui_success("Saved {.file fig03_raincloud.pdf}.")
+  .ui_success("Saved {.file fig03_forest.pdf}.")
+
+  p_dots <- plot_mc_metric_dots(
+    hybrid_out,
+    facet_rows = "proportion_name",
+    facet_cols = "overlap_label",
+    metrics = c("rmse", "mae", "coverage")
+  )
+  ggplot2::ggsave(
+    file.path(OUT_DIR, "fig03_metric_dots.pdf"),
+    plot = p_dots,
+    width = 12,
+    height = 8
+  )
+  .ui_success("Saved {.file fig03_metric_dots.pdf}.")
+
+  # One panel per graph generator (same G, independent of the factorial).
+  static_network_path <- file.path(
+    "vignettes",
+    "figures",
+    "fig_network_topologies.png"
+  )
+  dir.create(
+    dirname(static_network_path),
+    recursive = TRUE,
+    showWarnings = FALSE
+  )
+  grDevices::png(static_network_path, width = 1800, height = 900, res = 220)
+  graphics::par(mfrow = c(1L, 2L), mar = c(1, 1, 3, 1))
+  set.seed(SEED)
+  for (gm in GRAPH_MODELS) {
+    adj <- generate_random_network_skeleton(
+      n_genes = N_GENES,
+      graph_model = gm,
+      graph_params = GRAPH_PARAM_LIBRARY[[gm]]
+    )
+    graph <- igraph::graph_from_adjacency_matrix(
+      adj,
+      mode = "undirected",
+      diag = FALSE
+    )
+    igraph::V(graph)$color <- graph_palette[[gm]]
+    igraph::plot.igraph(
+      graph,
+      vertex.size = 8,
+      vertex.label = NA,
+      vertex.frame.color = "#2f3e4f",
+      edge.color = "#4a5560",
+      edge.width = 0.8,
+      layout = igraph::layout_with_fr(graph),
+      main = gm
+    )
+  }
+  grDevices::dev.off()
+  .ui_success("Wrote {.path {static_network_path}}.")
 }
-
-p_forest <- plot_mc_forest(
-  hybrid_out,
-  facet_rows = "proportion_name",
-  facet_cols = "kappa_label"
-)
-ggplot2::ggsave(
-  file.path(OUT_DIR, "fig03_forest.pdf"),
-  plot = p_forest,
-  width = 12,
-  height = 8
-)
-.ui_success("Saved {.file fig03_forest.pdf}.")
-
-p_dots <- plot_mc_metric_dots(
-  hybrid_out,
-  facet_rows = "proportion_name",
-  facet_cols = "kappa_label",
-  metrics = c("rmse", "mae", "coverage")
-)
-ggplot2::ggsave(
-  file.path(OUT_DIR, "fig03_metric_dots.pdf"),
-  plot = p_dots,
-  width = 12,
-  height = 8
-)
-.ui_success("Saved {.file fig03_metric_dots.pdf}.")
-
-# One panel per graph generator (same G, independent of the factorial).
-static_network_path <- file.path(
-  "vignettes",
-  "figures",
-  "fig_network_topologies.png"
-)
-dir.create(
-  dirname(static_network_path),
-  recursive = TRUE,
-  showWarnings = FALSE
-)
-grDevices::png(static_network_path, width = 1800, height = 900, res = 220)
-graphics::par(mfrow = c(1L, 2L), mar = c(1, 1, 3, 1))
-set.seed(SEED)
-for (gm in GRAPH_MODELS) {
-  adj <- generate_random_network_skeleton(
-    n_genes = N_GENES,
-    graph_model = gm,
-    graph_params = GRAPH_PARAM_LIBRARY[[gm]]
-  )
-  graph <- igraph::graph_from_adjacency_matrix(
-    adj,
-    mode = "undirected",
-    diag = FALSE
-  )
-  igraph::V(graph)$color <- graph_palette[[gm]]
-  igraph::plot.igraph(
-    graph,
-    vertex.size = 8,
-    vertex.label = NA,
-    vertex.frame.color = "#2f3e4f",
-    edge.color = "#4a5560",
-    edge.width = 0.8,
-    layout = igraph::layout_with_fr(graph),
-    main = gm
-  )
-}
-grDevices::dev.off()
-.ui_success("Wrote {.path {static_network_path}}.")
 
 .ui_success(
   "Done. Outputs in {.path {normalizePath(OUT_DIR, mustWork = FALSE)}}."

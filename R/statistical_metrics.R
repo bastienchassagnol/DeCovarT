@@ -214,14 +214,24 @@ composition_from_entropy <- function(
 #' Bayes / MAP rule of [MixSim::overlap()]. Do **not** multiply the
 #' directional masses by \eqn{p_j} again.
 #'
+#' For \eqn{G\ge 4} MixSim's Davies quadrature becomes expensive.
+#' The helper then switches to [overlap_gaussian_mc()]: stratified
+#' Sobol draws, inverse-transform sampling through precomputed
+#' Cholesky factors, and log-density MAP comparisons (`n_mc`
+#' draws per component; default 10,000).
+#'
 #' @param true_theta List validated by [check_true_theta()]: `p` (length
 #'   \eqn{J} or \eqn{J\times N}), `mu` (\eqn{G\times J}), `sigma`
 #'   (\eqn{G\times G\times J}).
 #' @param J Number of cell types (components). Defaults to the third
 #'   dimension of `sigma`.
+#' @param n_mc Monte Carlo draws per component when \eqn{G\ge 4}.
+#' @param seed Optional seed forwarded to [overlap_gaussian_mc()].
+#' @param verbose If `TRUE` (default), announce the MixSim-to-MC switch
+#'   with `cli` when it is installed.
 #' @return Scalar average pairwise overlap (MixSim `BarOmega`).
 #' @export
-#' @seealso [check_true_theta()]
+#' @seealso [check_true_theta()], [overlap_gaussian_mc()]
 #' @examples
 #' set.seed(1)
 #' theta <- list(
@@ -230,15 +240,37 @@ composition_from_entropy <- function(
 #'   sigma = array(c(diag(2), diag(2)), dim = c(2, 2, 2))
 #' )
 #' compute_average_overlap(theta)
-compute_average_overlap <- function(true_theta, J = NULL) {
-  .check_suggested_package("MixSim", "compute_average_overlap")
+compute_average_overlap <- function(
+  true_theta,
+  J = NULL,
+  n_mc = 10000L,
+  seed = NULL,
+  verbose = TRUE
+) {
   theta <- .parse_true_theta(
     true_theta,
     require_p = TRUE,
     J = J,
     second_moment = "sigma"
   )
-  # MixSim::overlap expects Mu as J x G
+  if (theta$G >= 4L) {
+    if (isTRUE(verbose)) {
+      .ui_info(c(
+        "G = {.val {theta$G}} >= 4: MixSim Davies overlap is replaced",
+        "by stratified Sobol Monte Carlo ({.fn overlap_gaussian_mc},",
+        "n_mc = {.val {n_mc}} draws per component)."
+      ))
+    }
+    return(
+      overlap_gaussian_mc(
+        true_theta = theta,
+        n_mc = n_mc,
+        seed = seed,
+        J = theta$J
+      )$BarOmega
+    )
+  }
+  .check_suggested_package("MixSim", "compute_average_overlap")
   MixSim::overlap(
     Pi = theta$p,
     Mu = t(theta$mu),

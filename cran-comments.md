@@ -49,7 +49,8 @@ terms).
   <doi:10.48550/arXiv.2309.09557>.
 * The CRAN tarball ships two Quarto vignettes
   (`fig02-bivariate-toy`, `theory-decovart-generative-model`). Longer articles
-  remain on the pkgdown site and are linked with absolute URLs.
+  (including `theory-distance-covariance`) remain on the pkgdown site
+  and are linked with absolute URLs from CRAN-shipped vignettes.
 * Heatmap packages `ComplexHeatmap`, `circlize`, and `viridis` are in
   Suggests only (optional `plot_correlation_Heatmap()`).
 

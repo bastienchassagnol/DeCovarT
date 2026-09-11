@@ -900,6 +900,7 @@ desc_kept <- data.frame(
     "Network sparsity",
     "Component overlap",
     "Component overlap",
+    "Component overlap",
     "Supplementary"
   ),
   Metric = c(
@@ -923,6 +924,7 @@ desc_kept <- data.frame(
     "Hoyer sparsity of $\\lvert r_{gh}\\rvert$",
     "MixSim `BarOmega`",
     "Mean pairwise Hellinger",
+    "Mean pairwise AIRM (`riemannian_sigma`)",
     "Jeffreys / symmetrised KL"
   ),
   Formula = c(
@@ -946,6 +948,7 @@ desc_kept <- data.frame(
     "$(\\sqrt{M}-\\lVert w\\rVert_1/\\lVert w\\rVert_2)/(\\sqrt{M}-1)$",
     "average pairwise misclassification",
     "$J^{-1}\\sum_{j<k} H_2(f_j,f_k)$ (symmetric)",
+    "mean of $d_R(\\Sigma_j,\\Sigma_\\ell)$",
     "$\\tfrac12\\mathrm{KL}(f\\|g)+\\tfrac12\\mathrm{KL}(g\\|f)$"
   ),
   Bounds = c(
@@ -969,6 +972,7 @@ desc_kept <- data.frame(
     "$[0,1]$",
     "$[0,1]$",
     "$[0,1]$",
+    "$[0,\\infty)$",
     "$[0,\\infty)$"
   ),
   Captures = c(
@@ -992,6 +996,7 @@ desc_kept <- data.frame(
     "Magnitude sparsity of bulk correlations",
     "Overlap of the $J$ purified Gaussians",
     "Symmetric affinity of those Gaussians",
+    "SPD geodesic gap of the $\\Sigma_j$ (not Frobenius)",
     "Symmetrised KL of the same pair average"
   ),
   Pros_cons = c(
@@ -1013,8 +1018,9 @@ desc_kept <- data.frame(
     "Same interpretation on the hardest pair.",
     "For fixed $G$, density and mean degree match.",
     "Scale-free; no topology assumed.",
-    "Needs MixSim; skip on large $G$.",
+    "Davies for $G<4$; Sobol Monte Carlo otherwise.",
     "Closed form; $H_2(f,g)=H_2(g,f)$.",
+    "Inversion-invariant; infinite at singularity.",
     "Not a metric; recorded separately."
   ),
   stringsAsFactors = FALSE
@@ -1266,21 +1272,18 @@ $\mathcal{N}(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_j)$ that enter
 the convolution, not the estimator.
 
 - MixSim average pairwise misclassification overlap `BarOmega`
-  [@melnykovMixSimPackageSimulating2012].
-- Averaged pairwise Hellinger distance of those Gaussians (closed form
-  through the Bhattacharyya coefficient). Hellinger is a *metric*:
-  $H_2(f,g)=H_2(g,f)$
-  ([Hellinger distance](https://en.wikipedia.org/wiki/Hellinger_distance);
-  [Bhattacharyya properties](https://en.wikipedia.org/wiki/Bhattacharyya_distance#Properties)).
+  [@melnykovMixSimPackageSimulating2012; @maitraSimulatingDataStudy2010].
+  Full definitions, Hellinger--TV inequalities, affine-invariant
+  Riemannian distance on SPD matrices, and the Sobol Monte Carlo
+  overlap for $G\ge 4$ are in
+  [distances, overlap, and covariance information](theory-distance-covariance.html).
+- Averaged pairwise Hellinger distance (Bhattacharyya coefficient).
   The primary column `hellinger` is the unweighted mean over pairs
-  $j<k$. `hellinger_weighted` optionally reweights by $p_j p_k$ (a
-  prevalence weight, not a directed divergence).
+  $j<k$.
+- `riemannian_sigma`: mean pairwise affine-invariant Riemannian
+  distance of the $\boldsymbol{\Sigma}_j$ (not Frobenius).
 :::
 
-Supplementary (not kept as a primary score, but written on the
-descriptors RDS keyed by `ID`): Jeffreys divergence, the symmetrised
-Kullback–Leibler average
-$\tfrac12\mathrm{KL}(f\Vert g)+\tfrac12\mathrm{KL}(g\Vert f)$.
 Cholesky fill-in and sparse-solver
 timings are *not* reported: the caller must declare the covariance
 structure used at fit time; otherwise the dense Cholesky factor of

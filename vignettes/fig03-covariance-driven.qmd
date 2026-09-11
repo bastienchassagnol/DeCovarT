@@ -54,16 +54,18 @@ network figure live in a **single** script,
 > [how to build synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html#sec-ademp).
 > Scenario geometry:
 > [scenario descriptors](theory-synthetic-scenarios-mean-covariance.html#sec-scenario-descriptors).
+> Overlap, Hellinger, and Riemannian distances:
+> [distances, overlap, and covariance information](theory-distance-covariance.html).
 
 ```{mermaid}
 %%| label: fig-covariance-design
 %%| eval: true
-%%| fig-cap: "Covariance-driven factorial design: three Shannon compositions, a 2-by-2 graph assignment on the mean-collinear cell types (scale-free versus cluster SBM), type 3 held at scale-free, three precision cushions, and five solvers (4 x 3 x 3 = 36 scenarios)."
+%%| fig-cap: "Covariance-driven factorial design: three Shannon compositions, a 2-by-2 graph assignment on the mean-collinear cell types (scale-free versus cluster SBM), type 3 held at scale-free, three target MixSim average overlaps (scale Sigma, keep precision zeros), and five solvers (4 x 3 x 3 = 36 scenarios)."
 flowchart TD
   P["3 compositions<br/>H* = 1 / 0.5 / 0.1"] --> S["36 scenarios"]
   G["2 x 2 graph assignments<br/>CT1, CT2: scale-free / cluster SBM"] --> S
   C["CT3 graph held at scale-free"] --> S
-  K["3 precision cushions u<br/>well 0.5 / moderate 0.2 / ill 0.1"] --> S
+  K["3 target BarOmega levels<br/>low / moderate / high"] --> S
   S --> A["5 deconvolution solvers"]
 ```
 
@@ -129,29 +131,45 @@ parameter lists are stored on every row of `hybrid_config.rds` as
 `graph_ct1` / `graph_ct2` / `graph_ct3` and the list-column
 `graph_generators`, and again inside each `true_theta`.
 
-The spectral cushion $u$ (`precision_shift`) sets
-$\lambda_{\min}(\boldsymbol{\Omega}_j)=u$ after the shift, so smaller $u$
-worsens $\kappa(\boldsymbol{\Omega}_j)=\lambda_{\max}/u$ and, after
-inversion and convolution, $\kappa\{\boldsymbol{\Sigma}(\boldsymbol{p})\}$.
+The spectral cushion $u$ used at completion is now a **fixed**
+engineering constant (`PRECISION_SHIFT_BASE = 0.2`) so that each
+graph has one SPD precision. The experimental knob is a global
+covariance scale $s$: $\boldsymbol{\Sigma}_j\mapsto s\boldsymbol{\Sigma}_j$
+keeps every structural zero of $\boldsymbol{\Omega}_j$ because
+$\boldsymbol{\Omega}_j(s)=\boldsymbol{\Omega}_j/s$.
+`scale_covariances_to_overlap()` searches $s$ so that MixSim
+`BarOmega` matches a target in $\{0.02,0.08,0.20\}$ (low / moderate /
+high), using Sobol Monte Carlo for $G=20$
+([overlap note](theory-distance-covariance.html#sec-fig03-scale)).
+This is the graph-constrained analogue of MixSim / FSDA average-overlap
+simulation
+([CRAN MixSim](https://cran.r-project.org/web/packages/MixSim/refman/MixSim.html#MixSim);
+[@melnykovMixSimPackageSimulating2012; @rianiSimulatingMixturesMultivariate2015]):
+we do **not** call `MixSim()` as a generator, because it cannot take
+a precision support as input.
+
+Larger $s$ also raises the covariance-information fraction
+$f_{\mathrm{cov}}$ (mean Fisher scales as $1/s$; the covariance block
+is scale-invariant). See the
+[tangent-Fisher callout](theory-synthetic-scenarios-mean-covariance.html#nte-desc-fisher).
 
 | Factor | Levels |
 |---|---|
 | Graph model (CT1, CT2) | scale-free; cluster SBM |
 | Graph model (CT3) | scale-free (fixed) |
-| Precision shift $u$ | well ($0.5$); moderate ($0.2$); ill ($0.1$) |
+| Target `BarOmega` | low ($0.02$); moderate ($0.08$); high ($0.20$) |
 | Topology assignments | $2^{2}=\mathbf{4}$ |
 | Covariance draws | $4\times 3=\mathbf{12}$ |
 
-: Covariance factorial (graphs $\times$ precision cushion). {#tbl-cov-factorial}
+: Covariance factorial (graphs $\times$ target average overlap). {#tbl-cov-factorial}
 
-`describe_simulation_scenario()` records the realised
-$\kappa\{\boldsymbol{\Sigma}(\boldsymbol{p})\}$ and the covariance-information
-fraction $f_{\mathrm{cov}}$ on every row (see the
-[descriptors section](theory-synthetic-scenarios-mean-covariance.html#sec-scenario-descriptors),
-especially the tangent-Fisher callout). Those columns are
-**measured**, not additional design factors: $u$ is the knob;
-$f_{\mathrm{cov}}$ reports how much of the Fisher information is
-second-order.
+`describe_simulation_scenario()` records the realised `BarOmega`,
+$f_{\mathrm{cov}}$, $\kappa\{\boldsymbol{\Sigma}(\boldsymbol{p})\}$, and
+pairwise AIRM distance of the $\boldsymbol{\Sigma}_j$ on every row.
+The overlap target is matched at the **balanced** composition;
+unbalanced $\boldsymbol{p}$ change MixSim's MAP weights, so realised
+`BarOmega` is higher there. AIRM is invariant to the global scale
+$s$ (it scores topology / shape). $f_{\mathrm{cov}}$ rises with $s$.
 
 ![Two generator examples on $G=20$ nodes (scale-free, cluster SBM).
 Mean-collinear cell types 1 and 2 are each assigned one of these
@@ -161,9 +179,10 @@ Two generators were considered but not adopted:
 
 - **Toeplitz covariances**: encode only local (banded) dependencies;
   cannot model cell-type-specific sparse precision.
-- **`MixSim` overlap** [@melnykovMixSimPackageSimulating2012]: designed
-  for isotropic or full-rank Gaussian clusters; no cell-type-specific
-  precision input.
+- **`MixSim()` as a mixture generator**: draws unconstrained means and
+  covariances for a target average overlap; no graph-constrained
+  precision input. DeCovarT keeps the graphs and matches `BarOmega`
+  by scaling $\boldsymbol{\Sigma}_j$ instead.
 
 # Inference {#sec-hybrid-deconvolution}
 
@@ -215,7 +234,7 @@ ALGORITHMS <- c(
 
 | Output | Description |
 |---|---|
-| `output/fig03/fig03_raincloud.pdf` | Raincloud of Monte Carlo errors, faceted by composition and $\kappa$ label |
+| `output/fig03/fig03_raincloud.pdf` | Raincloud of Monte Carlo errors, faceted by composition and overlap label |
 | `output/fig03/fig03_forest.pdf` | ADEMP forest plot |
 | `output/fig03/fig03_metric_dots.pdf` | Metric dot plot (RMSE, MAE, coverage) |
 
@@ -223,16 +242,21 @@ ALGORITHMS <- c(
 
 Because CT 1 and CT 2 share cosine $0.9$, LSEI and CIBERSORT cannot
 separate them from the mean signature alone. DeCovarT (L-BFGS-B,
-Newton–Raphson, Marquardt–Levenberg) uses $\boldsymbol{\Sigma}_j$; its
-advantage should grow where $f_{\mathrm{cov}}$ is large, where $u$ is
-small (ill-conditioned but still informative second-order structure),
-and where the composition is highly unbalanced ($H^{\star}=0.1$).
+Newton--Raphson, Marquardt--Levenberg) uses $\boldsymbol{\Sigma}_j$.
+**Topology** (scale-free versus cluster SBM) still matters, but
+**average overlap** is the stronger predictor of error and of Wald
+uncertainty: high `BarOmega` scenarios remain hard even when the
+graphs differ, whereas low overlap with a large $f_{\mathrm{cov}}$
+is where covariance-aware solvers should pull ahead of mean-only
+baselines, especially at $H^{\star}=0.1$.
 
 ## See also
 
 - Bivariate toy: [§2.1](fig02-bivariate-toy.html)
 - Moment generator:
   [How to build synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html)
+- Overlap and SPD distances:
+  [Distances, overlap, and covariance information](theory-distance-covariance.html)
 - Feature-selection on this design: [Appendix S6](supp-S6-feature-selection.html)
 - Identifiability of collinear means:
   [Appendix S1](supp-S1-identifiability.html)

@@ -6,6 +6,7 @@ Aitchison
 Aitchison's
 Abramovich
 Allen
+AIRM
 AutoGeneS
 BBT
 BLADE
@@ -71,6 +72,7 @@ DeconV
 Deconvolution
 Dictys
 Dirichlet
+Davies
 DoRothEA
 Doctorants
 EE
@@ -188,10 +190,12 @@ Reiczigel
 Richardson
 Rouché
 Rényi
+Riemannian
 SBM
 SDID
 SILGGM
 SPD
+Sobol
 SSR
 SVR
 SymSim
@@ -269,6 +273,7 @@ multiclass
 multicollinear
 multimodality
 nats
+Nielsen
 nonlinear
 nonzero
 numDeriv
@@ -286,7 +291,9 @@ pseudobulk
 pseudobulking
 pseudobulks
 qmd
+qrng
 quanTIseq
+QMC
 recomputation
 regulon
 renormalisation

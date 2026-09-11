@@ -107,6 +107,9 @@ navbar:
         - text: How to build synthetic scenarios (means, covariance, ADEMP)
           icon: fa-flask
           href: articles/theory-synthetic-scenarios-mean-covariance.html
+        - text: Distances, overlap, and covariance information
+          icon: fa-ruler
+          href: articles/theory-distance-covariance.html
         - text: -------
         - text: "Paper: numerical simulation study"
         - text: "§ 2.1 · Bivariate toy (J = 2, G = 2)"
@@ -307,6 +310,11 @@ reference:
       - composition_from_entropy
       - check_true_theta
       - compute_average_overlap
+      - overlap_gaussian_mc
+      - spd_affine_invariant_distance
+      - compute_average_riemannian
+      - scale_covariance_array
+      - scale_covariances_to_overlap
       - compute_average_jeffreys
       - compute_glmnet_gene_scores
 
@@ -318,6 +326,7 @@ articles:
     navbar: ~
     contents:
       - theory-synthetic-scenarios-mean-covariance
+      - theory-distance-covariance
       - supp-S6-feature-selection
       - theory-network-inference
   - title: "Paper: numerical simulation study"
@@ -327,8 +336,9 @@ articles:
       correlation, mean distance, and composition.
       **§ 2.2** Covariance-driven hybrid (J = 3, G = 20): fixed Gram
       (cosines 0.9 / 0.1), $2^2$ scale-free / cluster-SBM assignments
-      on the mean-collinear types $\times$ three precision cushions,
-      Shannon $H^{\star}$ compositions.
+      on the mean-collinear types $\times$ three target MixSim
+      average overlaps (precision zeros kept), Shannon $H^{\star}$
+      compositions.
     navbar: ~
     contents:
       - fig02-bivariate-toy

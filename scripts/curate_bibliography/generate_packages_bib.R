@@ -52,6 +52,7 @@ SOFTWARE_TOOLS <- c(
   "ggdendro",
   "ggplot2",
   "MixSim",
+  "qrng",
   "clusterGeneration",
   "limSolve",
   "glmnet",

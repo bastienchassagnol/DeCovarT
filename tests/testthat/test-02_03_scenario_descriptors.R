@@ -25,6 +25,7 @@ test_that("describe_simulation_scenario splits mean and covariance information",
   expect_true("max_cosine" %in% names(out$descriptors))
   expect_true("mean_euclidean" %in% names(out$descriptors))
   expect_true("hellinger_weighted" %in% names(out$descriptors))
+  expect_true("riemannian_sigma" %in% names(out$descriptors))
   expect_gt(out$descriptors$mean_euclidean, 0)
   expect_equal(out$descriptors$h_star, 1)
   expect_equal(out$descriptors$n_eff, 2)

@@ -4,7 +4,13 @@
 \alias{compute_average_overlap}
 \title{Average pairwise overlap of a Gaussian mixture}
 \usage{
-compute_average_overlap(true_theta, J = NULL)
+compute_average_overlap(
+  true_theta,
+  J = NULL,
+  n_mc = 10000L,
+  seed = NULL,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{true_theta}{List validated by \code{\link[=check_true_theta]{check_true_theta()}}: \code{p} (length
@@ -13,6 +19,13 @@ compute_average_overlap(true_theta, J = NULL)
 
 \item{J}{Number of cell types (components). Defaults to the third
 dimension of \code{sigma}.}
+
+\item{n_mc}{Monte Carlo draws per component when \eqn{G\ge 4}.}
+
+\item{seed}{Optional seed forwarded to \code{\link[=overlap_gaussian_mc]{overlap_gaussian_mc()}}.}
+
+\item{verbose}{If \code{TRUE} (default), announce the MixSim-to-MC switch
+with \code{cli} when it is installed.}
 }
 \value{
 Scalar average pairwise overlap (MixSim \code{BarOmega}).
@@ -33,6 +46,12 @@ overlaps
 already uses the mixture weights \eqn{\boldsymbol{p}} inside the
 Bayes / MAP rule of \code{\link[MixSim:overlap]{MixSim::overlap()}}. Do \strong{not} multiply the
 directional masses by \eqn{p_j} again.
+
+For \eqn{G\ge 4} MixSim's Davies quadrature becomes expensive.
+The helper then switches to \code{\link[=overlap_gaussian_mc]{overlap_gaussian_mc()}}: stratified
+Sobol draws, inverse-transform sampling through precomputed
+Cholesky factors, and log-density MAP comparisons (\code{n_mc}
+draws per component; default 10,000).
 }
 \examples{
 set.seed(1)
@@ -44,5 +63,5 @@ theta <- list(
 compute_average_overlap(theta)
 }
 \seealso{
-\code{\link[=check_true_theta]{check_true_theta()}}
+\code{\link[=check_true_theta]{check_true_theta()}}, \code{\link[=overlap_gaussian_mc]{overlap_gaussian_mc()}}
 }

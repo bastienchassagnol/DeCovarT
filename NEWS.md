@@ -22,8 +22,8 @@
   window (no inner white frame). Bulk pages drop the 95% Gaussian
   ellipses with a \(\chi^2_2\) footnote. ILR profiles use
   \(\rho\in[-4,10]\) so unbalanced compositions are not cropped, and
-#'   plot the relative likelihood \(L/\max L\) on a log10 y-axis with
-#'   `annotation_logticks()`. Page titles follow the same
+  plot the relative likelihood $L/\max L$ on a log10 y-axis with
+  `annotation_logticks()`. Page titles follow the same
   CLD / variance / composition order as the performance books.
   Log-likelihood outputs split into `loglik_surface_p.pdf` (ratio
   lattice), `loglik_ilr_profile.pdf` (ILR \(\rho\) profile with MLE),
@@ -32,14 +32,25 @@
 * **Fig03 covariance-driven grid.** $G=20$, $J=3$. Graph generators
   are scale-free and cluster (stochastic block model) only: a
   $2^{2}$ assignment on the mean-collinear types, type 3 held at
-  scale-free ($4\times 3$ precision cushions $\times 3$ compositions
-  $= 36$ scenarios). `hybrid_config.rds` stores `graph_generators`
-  (model + `graph_params` per cell type) alongside `true_theta`. Convolution-likelihood solvers
+  scale-free, times three *target MixSim average overlaps* (global
+  covariance scale, precision zeros kept; $4\times 3\times 3=36$
+  scenarios). `hybrid_config.rds` stores `graph_generators`
+  (model + `graph_params` per cell type) alongside `true_theta`, plus
+  realised `BarOmega`, $f_{\mathrm{cov}}$, and pairwise AIRM distance.
+  Convolution-likelihood solvers
   attach interior simplex standard errors from `vcov_ilr_delta()`
   inside `deconvolute_ratios()` (the same object as
   `vcov.decovart_fit()` / `confint.decovart_fit()`). Mean-only solvers
   (NNLS, LSEI) leave coverage, mean model SE, and `se_sd_ratio`
   missing. The ALR helper `vcov_alr_delta()` has been removed.
+
+* **Overlap in moderate dimension.** `compute_average_overlap()` uses
+  MixSim Davies quadrature for $G<4$ and stratified Sobol Monte Carlo
+  (`overlap_gaussian_mc()`, default $10^4$ draws per component) when
+  $G\ge 4$. `scale_covariances_to_overlap()` calibrates a global
+  covariance scale to a target average overlap. Affine-invariant
+  Riemannian distance of the $\Sigma_j$ is `riemannian_sigma`.
+  Theory: `vignettes/theory-distance-covariance.qmd`.
 
 * **Faceted plots.** `theme_decovart_facets()` (black strips, panel
   border, after the atlas-feature-selection-benchmark `theme_features`)
