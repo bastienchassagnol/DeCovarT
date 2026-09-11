@@ -243,8 +243,11 @@ gaussian_confidence_ellipse <- function(
   cts <- .celltype_names(true_theta)
   mu <- true_theta$mu
   Sigma <- true_theta$sigma
+  p <- as.numeric(true_theta$p)
+  p <- p / sum(p)
+  n_j <- as.integer(pmax(1L, round(n * p)))
   parts <- lapply(seq_along(cts), function(j) {
-    .rnorm_2d(n, mu[, j], Sigma[,, j], cts[[j]])
+    .rnorm_2d(n_j[[j]], mu[, j], Sigma[,, j], cts[[j]])
   })
   df <- dplyr::bind_rows(parts)
   df$cell_type <- factor(df$component, levels = cts)
@@ -346,6 +349,58 @@ gaussian_confidence_ellipse <- function(
   grid
 }
 
+#' Multivariate Gaussian density on rows of a two-column matrix
+#'
+#' @keywords internal
+#' @noRd
+.dmvnorm_rows <- function(xy, mu, sigma) {
+  xy <- as.matrix(xy)
+  mu <- as.numeric(mu)
+  sigma <- as.matrix(sigma)
+  k <- ncol(sigma)
+  z <- sweep(xy, 2L, mu, "-")
+  qf <- rowSums(z * t(solve(sigma, t(z))))
+  log_det <- as.numeric(determinant(sigma, logarithm = TRUE)$modulus)
+  exp(-0.5 * (k * log(2 * pi) + log_det + qf))
+}
+
+#' Exact p-weighted mixture of purified Gaussians on a gene-axis grid
+#'
+#' Density \eqn{\sum_j p_j\,\varphi(x;\mu_j,\Sigma_j)}, not the
+#' convolution \eqn{\mathcal{N}(\mu p,\Sigma(p))}.
+#'
+#' @keywords internal
+#' @noRd
+.purified_mixture_raster <- function(
+  true_theta,
+  xlim,
+  ylim,
+  n = 80L,
+  panel = NULL
+) {
+  p <- as.numeric(true_theta$p)
+  p <- p / sum(p)
+  mu <- true_theta$mu
+  sigma <- true_theta$sigma
+  xs <- seq(xlim[[1L]], xlim[[2L]], length.out = n)
+  ys <- seq(ylim[[1L]], ylim[[2L]], length.out = n)
+  grid <- expand.grid(
+    gene_1 = xs,
+    gene_2 = ys,
+    KEEP.OUT.ATTRS = FALSE
+  )
+  dens <- numeric(nrow(grid))
+  xy <- cbind(grid$gene_1, grid$gene_2)
+  for (j in seq_len(ncol(mu))) {
+    dens <- dens + p[[j]] * .dmvnorm_rows(xy, mu[, j], sigma[,, j])
+  }
+  grid$density <- dens
+  if (!is.null(panel)) {
+    grid$panel <- panel
+  }
+  grid
+}
+
 #' Faceted (or single) 2-D density raster over shared gene-axis limits
 #'
 #' @keywords internal
@@ -367,23 +422,36 @@ gaussian_confidence_ellipse <- function(
 
 #' 2-D density of purified Gaussians
 #'
-#' A kernel-density raster fills the shared gene-axis window so panels
-#' have no inner white frame. Cell-type 1 is a red circle; cell-type 2
-#' is a green triangle. Outlines are exact 95% Gaussian ellipses for
-#' the known means and covariances ([gaussian_confidence_ellipse()]):
+#' An exact mixture raster
+#' \eqn{\sum_j p_j\,\varphi(x;\boldsymbol{\mu}_j,\boldsymbol{\Sigma}_j)}
+#' fills the shared gene-axis window, so rare types contribute mass in
+#' proportion to the scenario's composition (not an equal-sized kernel
+#' density per cell type). This is **not** the bulk convolution
+#' \eqn{\mathcal{N}(\boldsymbol{\mu}\boldsymbol{p},\boldsymbol{\Sigma}(\boldsymbol{p}))}.
+#' Cell-type 1 is a red circle; cell-type 2 is a green triangle.
+#' Outlines are exact 95% Gaussian ellipses for the known means and
+#' covariances ([gaussian_confidence_ellipse()]):
 #' \eqn{(x-\mu)^{\mathsf{T}}\Sigma^{-1}(x-\mu)\le\chi^{2}_{2,0.95}}.
 #'
 #' @param true_theta List with `p`, `mu`, `sigma` for \eqn{G=2}.
-#' @param n Draws **per cell type**.
+#' @param n Unused for the raster (kept for API compatibility with
+#'   [plot_bulk_convolution_density_2d()]); mixing weights come from
+#'   `true_theta$p`.
 #'
 #' @return A `ggplot`.
 #' @export
 plot_purified_density_2d <- function(true_theta, n = 800L) {
+  if (!is.numeric(n) || length(n) != 1L || !is.finite(n) || n < 1) {
+    stop("`n` must be a single positive number.")
+  }
   cts <- .celltype_names(true_theta)
-  df <- .purified_density_draws(true_theta, n)
   overlay <- .celltype_overlay(true_theta)
   lims <- .gene_axis_limits(list(true_theta))
-  raster_df <- .kde2d_raster(df, lims$xlim, lims$ylim)
+  raster_df <- .purified_mixture_raster(
+    true_theta,
+    lims$xlim,
+    lims$ylim
+  )
   p <- ggplot2::ggplot(
     raster_df,
     ggplot2::aes(x = .data[["gene_1"]], y = .data[["gene_2"]])
@@ -407,7 +475,7 @@ plot_purified_density_2d <- function(true_theta, n = 800L) {
     ggplot2::labs(
       x = "Gene 1",
       y = "Gene 2",
-      title = "Purified Gaussians",
+      title = "Purified Gaussians (p-weighted mixture)",
       caption = .purified_ellipse_caption()
     ) +
     ggplot2::theme(
@@ -420,7 +488,9 @@ plot_purified_density_2d <- function(true_theta, n = 800L) {
 #' @noRd
 .purified_ellipse_caption <- function() {
   paste(
-    "Footnote: outlines are exact 95% Gaussian regions",
+    "Fill is the p-weighted mixture of purified Gaussians,",
+    "sum_j p_j phi(x; mu_j, Sigma_j), not the bulk convolution.",
+    "Outlines are exact 95% Gaussian regions",
     "(x - mu)^T Sigma^{-1} (x - mu) <= chi^2_{2, 0.95}",
     "(stats::qchisq(0.95, df = 2); gaussian_confidence_ellipse())."
   )
@@ -481,17 +551,6 @@ plot_bulk_convolution_density_2d <- function(true_theta, n = 1200L) {
   thetas <- thetas[keep]
   panels <- factor(names(thetas), levels = names(thetas))
   cts <- .celltype_names(thetas[[1L]])
-  draw_fun <- if (identical(which, "purified")) {
-    .purified_density_draws
-  } else {
-    .bulk_density_draws
-  }
-  df <- dplyr::bind_rows(
-    lapply(seq_along(thetas), function(i) {
-      draw_fun(thetas[[i]], n, panel = as.character(panels[[i]]))
-    })
-  )
-  df$panel <- factor(df$panel, levels = levels(panels))
   overlay <- list(
     centroids = dplyr::bind_rows(
       lapply(seq_along(thetas), function(i) {
@@ -519,7 +578,30 @@ plot_bulk_convolution_density_2d <- function(true_theta, n = 1200L) {
     levels = levels(panels)
   )
   lims <- .gene_axis_limits(thetas)
-  raster_df <- .density_raster_table(df, lims)
+  if (identical(which, "purified")) {
+    raster_df <- dplyr::bind_rows(
+      lapply(seq_along(thetas), function(i) {
+        .purified_mixture_raster(
+          thetas[[i]],
+          lims$xlim,
+          lims$ylim,
+          panel = as.character(panels[[i]])
+        )
+      })
+    )
+  } else {
+    df <- dplyr::bind_rows(
+      lapply(seq_along(thetas), function(i) {
+        .bulk_density_draws(
+          thetas[[i]],
+          n,
+          panel = as.character(panels[[i]])
+        )
+      })
+    )
+    df$panel <- factor(df$panel, levels = levels(panels))
+    raster_df <- .density_raster_table(df, lims)
+  }
   raster_df$panel <- factor(raster_df$panel, levels = levels(panels))
   overlay_ellipses <- identical(which, "purified")
   p <- ggplot2::ggplot(
@@ -1102,7 +1184,8 @@ plot_bivariate_metric_tiles <- function(metrics, title) {
 #' @param config Slim config tibble with `ID`.
 #' @param theta_tbl Tibble with `ID` and `true_theta`.
 #' @param file Output PDF path.
-#' @param n Draws per cell type.
+#' @param n Draws for the bulk KDE. Purified panels use the exact
+#'   \eqn{p}-weighted Gaussian mixture and ignore `n`.
 #' @param data_rds Optional directory; when set, writes
 #'   `purified_density.rds` (ggplot raster and overlay tables).
 #' @return `file`, invisibly.
