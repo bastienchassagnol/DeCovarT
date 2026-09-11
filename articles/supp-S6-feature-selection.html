@@ -55,10 +55,11 @@
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
     <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-distance-covariance.html"><span class="fa fa-ruler"></span> Distances, overlap, and covariance information</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
-    <li><a class="dropdown-item" href="../articles/fig03-variance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Variance-driven hybrid (J = 3, G = 50)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig03-covariance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
@@ -99,7 +100,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Feature selection for reference-based deconvolution</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-09-07</p>
+      <p class="date">2026-09-11</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/supp-S6-feature-selection.qmd" class="external-link"><code>vignettes/supp-S6-feature-selection.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -429,7 +430,7 @@ Figure 6: <code>INDEED</code> integrates differential expression with different
 <p>Beyond geometric scores on <span class="math inline">\boldsymbol{\mu}</span> and <span class="math inline">\boldsymbol{\Sigma}</span>, multiclass models that treat cell type as a categorical response are useful <strong>candidate generators</strong>—not as final deconvolution solvers. Embed them in <strong>stability selection</strong>: resample at the donor level, tune penalties inside each resample, and keep genes selected in a high fraction of replicates <span class="citation" data-cites="meinshausenStabilitySelection2010">(<a href="#ref-meinshausenStabilitySelection2010" role="doc-biblioref">Meinshausen and Bühlmann 2010</a>)</span>.</p>
 <ul>
 <li>
-<strong>Multinomial logistic regression with elastic net.</strong> Combined <span class="math inline">\ell_1</span> / <span class="math inline">\ell_2</span> penalties yield sparse class weights while shrinking correlated genes jointly <span class="citation" data-cites="zouRegularizationVariableSelection2005 R-glmnet">(<a href="#ref-zouRegularizationVariableSelection2005" role="doc-biblioref">Zou and Hastie 2005</a>; <a href="#ref-R-glmnet" role="doc-biblioref">Friedman et al. 2025</a>)</span>. Suitable when the number of donor-level pseudobulks is moderate to large.</li>
+<strong>Multinomial logistic regression with elastic net.</strong> Combined <span class="math inline">\ell_1</span> / <span class="math inline">\ell_2</span> penalties yield sparse class weights while shrinking correlated genes jointly <span class="citation" data-cites="zouRegularizationVariableSelection2005 R-glmnet">(<a href="#ref-zouRegularizationVariableSelection2005" role="doc-biblioref">Zou and Hastie 2005</a>; <a href="#ref-R-glmnet" role="doc-biblioref">Friedman et al. 2026</a>)</span>. Suitable when the number of donor-level pseudobulks is moderate to large.</li>
 <li>
 <strong>Sparse / penalised quadratic discriminant analysis.</strong> Maximises a between- / within-class variance ratio with an <span class="math inline">\ell_1</span> penalty on loadings, favouring a compact, non-redundant discriminant gene set <span class="citation" data-cites="wittenPenalizedClassificationUsing2011">(<a href="#ref-wittenPenalizedClassificationUsing2011" role="doc-biblioref">Witten and Tibshirani 2011</a>)</span>.</li>
 <li>
@@ -444,36 +445,36 @@ Table 1: Sparse multiclass methods as panel candidate generators.
 <div class="cell-output-display">
 <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_a70di4612eqe3g6a9t5r = TinyTable.createTableFunctions("tinytable_a70di4612eqe3g6a9t5r");
+      const tableFns_6z6pjuls7q5dd6dk5lze = TinyTable.createTableFunctions("tinytable_6z6pjuls7q5dd6dk5lze");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '3', j: 2 }, { i: '3', j: 3 } ], css_id: 'tinytable_css_mvvn36chq3zppjjejgo1',},
-          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 } ], css_id: 'tinytable_css_23f44euhy812jhojdneq',},
-          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 } ], css_id: 'tinytable_css_9ll4yj37z56e0n73e7kk',},
-          { positions: [ { i: '3', j: 1 } ], css_id: 'tinytable_css_mmlkub5v9kkxg3k4250a',},
-          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_cnx7akcn98b0omtd8svn',},
+          { positions: [ { i: '3', j: 2 }, { i: '3', j: 3 } ], css_id: 'tinytable_css_pmad46ef3xij5glgxdww',},
+          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 } ], css_id: 'tinytable_css_xwv2aggpi9d84etsdfrm',},
+          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 } ], css_id: 'tinytable_css_2gqgc7h6so8quy60gkt0',},
+          { positions: [ { i: '3', j: 1 } ], css_id: 'tinytable_css_o3vokm0a1j1grkubtrec',},
+          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_7cl31j7hp0drjji4pndz',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_a70di4612eqe3g6a9t5r.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_6z6pjuls7q5dd6dk5lze.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_a70di4612eqe3g6a9t5r td.tinytable_css_mvvn36chq3zppjjejgo1, #tinytable_a70di4612eqe3g6a9t5r th.tinytable_css_mvvn36chq3zppjjejgo1 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_a70di4612eqe3g6a9t5r td.tinytable_css_23f44euhy812jhojdneq, #tinytable_a70di4612eqe3g6a9t5r th.tinytable_css_23f44euhy812jhojdneq { text-align: center }
-    #tinytable_a70di4612eqe3g6a9t5r td.tinytable_css_9ll4yj37z56e0n73e7kk, #tinytable_a70di4612eqe3g6a9t5r th.tinytable_css_9ll4yj37z56e0n73e7kk {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_a70di4612eqe3g6a9t5r td.tinytable_css_mmlkub5v9kkxg3k4250a, #tinytable_a70di4612eqe3g6a9t5r th.tinytable_css_mmlkub5v9kkxg3k4250a {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_a70di4612eqe3g6a9t5r td.tinytable_css_cnx7akcn98b0omtd8svn, #tinytable_a70di4612eqe3g6a9t5r th.tinytable_css_cnx7akcn98b0omtd8svn {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_6z6pjuls7q5dd6dk5lze td.tinytable_css_pmad46ef3xij5glgxdww, #tinytable_6z6pjuls7q5dd6dk5lze th.tinytable_css_pmad46ef3xij5glgxdww {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_6z6pjuls7q5dd6dk5lze td.tinytable_css_xwv2aggpi9d84etsdfrm, #tinytable_6z6pjuls7q5dd6dk5lze th.tinytable_css_xwv2aggpi9d84etsdfrm { text-align: center }
+    #tinytable_6z6pjuls7q5dd6dk5lze td.tinytable_css_2gqgc7h6so8quy60gkt0, #tinytable_6z6pjuls7q5dd6dk5lze th.tinytable_css_2gqgc7h6so8quy60gkt0 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_6z6pjuls7q5dd6dk5lze td.tinytable_css_o3vokm0a1j1grkubtrec, #tinytable_6z6pjuls7q5dd6dk5lze th.tinytable_css_o3vokm0a1j1grkubtrec {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_6z6pjuls7q5dd6dk5lze td.tinytable_css_7cl31j7hp0drjji4pndz, #tinytable_6z6pjuls7q5dd6dk5lze th.tinytable_css_7cl31j7hp0drjji4pndz {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_a70di4612eqe3g6a9t5r" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_6z6pjuls7q5dd6dk5lze" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">Method</th>
                 <th scope="col" data-row="0" data-col="2">Role</th>
@@ -601,36 +602,36 @@ Table 2: Comparison of purified-Gaussian separation metrics for panel monitorin
 <div class="cell-output-display">
 <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_h0x37z170neaozkxi9rn = TinyTable.createTableFunctions("tinytable_h0x37z170neaozkxi9rn");
+      const tableFns_sqqi7d5gzteuk6y5y2ut = TinyTable.createTableFunctions("tinytable_sqqi7d5gzteuk6y5y2ut");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '4', j: 3 } ], css_id: 'tinytable_css_wawm3kwu3yv7nufdh2hf',},
-          { positions: [ { i: '0', j: 3 } ], css_id: 'tinytable_css_ywxphvhkegcbw6sdak23',},
-          { positions: [ { i: '4', j: 1 }, { i: '4', j: 2 }, { i: '4', j: 4 } ], css_id: 'tinytable_css_zm273w0iu7sifysup972',},
-          { positions: [ { i: '1', j: 1 }, { i: '2', j: 1 }, { i: '3', j: 1 }, { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '1', j: 4 }, { i: '2', j: 4 }, { i: '3', j: 4 } ], css_id: 'tinytable_css_7dsc340djxzh9svo7n09',},
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_8v34293sx9z2gtsq7zl7',},
+          { positions: [ { i: '4', j: 3 } ], css_id: 'tinytable_css_vobhhjt01fk9xt9k5shs',},
+          { positions: [ { i: '0', j: 3 } ], css_id: 'tinytable_css_0jad12ovui4dxnwtxkxc',},
+          { positions: [ { i: '4', j: 1 }, { i: '4', j: 2 }, { i: '4', j: 4 } ], css_id: 'tinytable_css_xzgumfhcpmfxkh1cb7gh',},
+          { positions: [ { i: '1', j: 1 }, { i: '2', j: 1 }, { i: '3', j: 1 }, { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '1', j: 4 }, { i: '2', j: 4 }, { i: '3', j: 4 } ], css_id: 'tinytable_css_h4otxme08a619h6fkfv9',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_7v8jz2rd1y4h32lkwl0x',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_h0x37z170neaozkxi9rn.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_sqqi7d5gzteuk6y5y2ut.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_h0x37z170neaozkxi9rn td.tinytable_css_wawm3kwu3yv7nufdh2hf, #tinytable_h0x37z170neaozkxi9rn th.tinytable_css_wawm3kwu3yv7nufdh2hf {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_h0x37z170neaozkxi9rn td.tinytable_css_ywxphvhkegcbw6sdak23, #tinytable_h0x37z170neaozkxi9rn th.tinytable_css_ywxphvhkegcbw6sdak23 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_h0x37z170neaozkxi9rn td.tinytable_css_zm273w0iu7sifysup972, #tinytable_h0x37z170neaozkxi9rn th.tinytable_css_zm273w0iu7sifysup972 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_h0x37z170neaozkxi9rn td.tinytable_css_7dsc340djxzh9svo7n09, #tinytable_h0x37z170neaozkxi9rn th.tinytable_css_7dsc340djxzh9svo7n09 { text-align: center }
-    #tinytable_h0x37z170neaozkxi9rn td.tinytable_css_8v34293sx9z2gtsq7zl7, #tinytable_h0x37z170neaozkxi9rn th.tinytable_css_8v34293sx9z2gtsq7zl7 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_sqqi7d5gzteuk6y5y2ut td.tinytable_css_vobhhjt01fk9xt9k5shs, #tinytable_sqqi7d5gzteuk6y5y2ut th.tinytable_css_vobhhjt01fk9xt9k5shs {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_sqqi7d5gzteuk6y5y2ut td.tinytable_css_0jad12ovui4dxnwtxkxc, #tinytable_sqqi7d5gzteuk6y5y2ut th.tinytable_css_0jad12ovui4dxnwtxkxc {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_sqqi7d5gzteuk6y5y2ut td.tinytable_css_xzgumfhcpmfxkh1cb7gh, #tinytable_sqqi7d5gzteuk6y5y2ut th.tinytable_css_xzgumfhcpmfxkh1cb7gh {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_sqqi7d5gzteuk6y5y2ut td.tinytable_css_h4otxme08a619h6fkfv9, #tinytable_sqqi7d5gzteuk6y5y2ut th.tinytable_css_h4otxme08a619h6fkfv9 { text-align: center }
+    #tinytable_sqqi7d5gzteuk6y5y2ut td.tinytable_css_7v8jz2rd1y4h32lkwl0x, #tinytable_sqqi7d5gzteuk6y5y2ut th.tinytable_css_7v8jz2rd1y4h32lkwl0x {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_h0x37z170neaozkxi9rn" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_sqqi7d5gzteuk6y5y2ut" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">Metric</th>
                 <th scope="col" data-row="0" data-col="2">Range</th>
@@ -681,7 +682,7 @@ Table 2: Comparison of purified-Gaussian separation metrics for panel monitorin
 <li>
 <strong><code>DESeq2</code> DEGs.</strong> Negative-binomial GLM contrasts on donor-level pseudobulks flag mean shifts across types <span class="citation" data-cites="loveModeratedEstimationFold2014a">(<a href="#ref-loveModeratedEstimationFold2014a" role="doc-biblioref">Love et al. 2014</a>)</span>. They do not encode covariance geometry, so they seed the panel rather than finish it.</li>
 <li>
-<strong><code>glmnet</code> multinomial elastic net.</strong> Sparse discriminative coefficients for cell-type labels <span class="citation" data-cites="R-glmnet zouRegularizationVariableSelection2005">(<a href="#ref-R-glmnet" role="doc-biblioref">Friedman et al. 2025</a>; <a href="#ref-zouRegularizationVariableSelection2005" role="doc-biblioref">Zou and Hastie 2005</a>)</span>. Relative to sparse QDA, elastic net is less sensitive to non-Gaussian residuals and to poorly estimated type-specific covariances in the <span class="math inline">G\gg n</span> pseudobulk regime; treat non-zeros as proposals (see <a href="#sec-sparse-classifiers" class="quarto-xref">Section 4.3.2</a>).</li>
+<strong><code>glmnet</code> multinomial elastic net.</strong> Sparse discriminative coefficients for cell-type labels <span class="citation" data-cites="R-glmnet zouRegularizationVariableSelection2005">(<a href="#ref-R-glmnet" role="doc-biblioref">Friedman et al. 2026</a>; <a href="#ref-zouRegularizationVariableSelection2005" role="doc-biblioref">Zou and Hastie 2005</a>)</span>. Relative to sparse QDA, elastic net is less sensitive to non-Gaussian residuals and to poorly estimated type-specific covariances in the <span class="math inline">G\gg n</span> pseudobulk regime; treat non-zeros as proposals (see <a href="#sec-sparse-classifiers" class="quarto-xref">Section 4.3.2</a>).</li>
 <li>
 <strong>Jeffreys (symmetric KL).</strong> Closed-form mean–covariance discrepancy <span class="math inline">J(f_{j},f_{\ell})</span> (<a href="#eq-jeffreys" class="quarto-xref">Equation 13</a>): information-theoretic, unbounded, sensitive to both location and second-moment mismatch.</li>
 <li>
@@ -972,7 +973,7 @@ Figure 11: Leakage-free signature validation for DeCovarT: donor-grouped nested
 <ul>
 <li>Variance stabilisation / Pearson residuals: <code>sctransform</code> / <code>Seurat::SCTransform</code> <span class="citation" data-cites="hafemeisterNormalizationVarianceStabilization2019">(<a href="#ref-hafemeisterNormalizationVarianceStabilization2019" role="doc-biblioref">Hafemeister and Satija 2019</a>)</span>.</li>
 <li>Signature QC / compaction patterns: <code>DeconvExplorer</code> (<code>removePercentZeros</code>, <code>removeUnspecificGenes</code>, <code>selectGenesByScore</code> with Gini or entropy).</li>
-<li>Sparse multiclass candidates: <code>glmnet</code> multinomial elastic net <span class="citation" data-cites="R-glmnet zouRegularizationVariableSelection2005">(<a href="#ref-R-glmnet" role="doc-biblioref">Friedman et al. 2025</a>; <a href="#ref-zouRegularizationVariableSelection2005" role="doc-biblioref">Zou and Hastie 2005</a>)</span>; group penalties following <span class="citation" data-cites="yuanModelSelectionEstimation2006">(<a href="#ref-yuanModelSelectionEstimation2006" role="doc-biblioref">Yuan and Lin 2006</a>)</span>; stability selection <span class="citation" data-cites="meinshausenStabilitySelection2010">(<a href="#ref-meinshausenStabilitySelection2010" role="doc-biblioref">Meinshausen and Bühlmann 2010</a>)</span>.</li>
+<li>Sparse multiclass candidates: <code>glmnet</code> multinomial elastic net <span class="citation" data-cites="R-glmnet zouRegularizationVariableSelection2005">(<a href="#ref-R-glmnet" role="doc-biblioref">Friedman et al. 2026</a>; <a href="#ref-zouRegularizationVariableSelection2005" role="doc-biblioref">Zou and Hastie 2005</a>)</span>; group penalties following <span class="citation" data-cites="yuanModelSelectionEstimation2006">(<a href="#ref-yuanModelSelectionEstimation2006" role="doc-biblioref">Yuan and Lin 2006</a>)</span>; stability selection <span class="citation" data-cites="meinshausenStabilitySelection2010">(<a href="#ref-meinshausenStabilitySelection2010" role="doc-biblioref">Meinshausen and Bühlmann 2010</a>)</span>.</li>
 <li>Separation monitors: <code><a href="https://rdrr.io/pkg/MixSim/man/overlap.html" class="external-link">MixSim::overlap()</a></code> <span class="citation" data-cites="R-MixSim melnykovMixSimPackageSimulating2012">(<a href="#ref-R-MixSim" role="doc-biblioref">Melnykov et al. 2024</a>, <a href="#ref-melnykovMixSimPackageSimulating2012" role="doc-biblioref">2012</a>)</span>; Jeffreys via the closed form in <a href="#eq-jeffreys" class="quarto-xref">Equation 13</a>.</li>
 <li>Multi-objective panel search: <code>mco::nsga2()</code> <span class="citation" data-cites="R-mco">(<a href="#ref-R-mco" role="doc-biblioref">Mersmann 2024</a>)</span>; optional scalar refinement with <code>GA</code> / <code>GenSA</code> <span class="citation" data-cites="R-GA R-GenSA">(<a href="#ref-R-GA" role="doc-biblioref">Scrucca 2026</a>; <a href="#ref-R-GenSA" role="doc-biblioref">Gubian et al. 2025</a>)</span>.</li>
 <li>Leakage-aware CV automation: <code>caret</code> workflows; <a href="https://github.com/VeraPancaldiLab/pipeML" class="external-link"><code>pipeML</code></a> for custom fold construction <span class="citation" data-cites="R-pipeML">(<a href="#ref-R-pipeML" role="doc-biblioref">Hurtado and Pancaldi 2026</a>)</span>.</li>
@@ -1012,7 +1013,7 @@ Dong, Xiaoru, Apoorva Goyal, Muxuan Liang, Maigan A. Brusko, Todd M. Brusko, and
 <span class="nocase">Finotello, Francesca, Clemens Mayer, Christina Plattner, et al.</span> 2019. <span>‘Molecular and Pharmacological Modulators of the Tumor Immune Contexture Revealed by Deconvolution of <span class="nocase">RNA-seq</span> Data’</span>. <em>Genome Medicine</em> 11. <a href="https://doi.org/10.1186/s13073-019-0638-6" class="external-link">https://doi.org/10.1186/s13073-019-0638-6</a>.
 </div>
 <div id="ref-R-glmnet" class="csl-entry" role="listitem">
-Friedman, Jerome, Trevor Hastie, Rob Tibshirani, et al. 2025. <em>Glmnet: Lasso and Elastic-Net Regularized Generalized Linear Models</em>. <a href="https://glmnet.stanford.edu" class="external-link">https://glmnet.stanford.edu</a>.
+Friedman, Jerome, Trevor Hastie, Rob Tibshirani, et al. 2026. <em>Glmnet: Lasso and Elastic-Net Regularized Generalized Linear Models</em>. <a href="https://glmnet.stanford.edu" class="external-link">https://glmnet.stanford.edu</a>.
 </div>
 <div id="ref-gaspard-boulincCelltypeDeconvolutionMethods2025" class="csl-entry" role="listitem">
 Gaspard-Boulinc, Lucie C., Luca Gortana, Thomas Walter, Emmanuel Barillot, and Florence M. G. Cavalli. 2025. <span>‘Cell-Type Deconvolution Methods for Spatial Transcriptomics’</span>. <em>Nature Reviews Genetics</em> 26. <a href="https://doi.org/10.1038/s41576-025-00845-y" class="external-link">https://doi.org/10.1038/s41576-025-00845-y</a>.

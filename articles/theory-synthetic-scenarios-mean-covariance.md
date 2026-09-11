@@ -37,8 +37,8 @@ moments that can be passed to
 [`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md).
 For end-to-end benchmarking, see the [bivariate
 toy](https://bastienchassagnol.github.io/DeCovarT/articles/fig02-bivariate-toy.md)
-and [variance-driven
-hybrid](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-variance-driven.md);
+and [covariance-driven
+hybrid](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-covariance-driven.md);
 scenario grids live in `scripts/fig02_bivariate_toy.R`. Direct solver
 calls use
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md).
@@ -696,8 +696,8 @@ layer: supply `p` (or a J\times N matrix of sample-wise ratios) to
 and report H^{\star} alongside overlap or condition-number diagnostics.
 The hybrid J=3 manuscript scenario uses
 [`composition_from_entropy()`](https://bastienchassagnol.github.io/DeCovarT/reference/composition_from_entropy.md)
-at H^{\star}\in\\1,0.5,0.1\\ ([variance-driven
-hybrid](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-variance-driven.html#sec-scenario-grid)).
+at H^{\star}\in\\1,0.5,0.1\\ ([covariance-driven
+hybrid](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-covariance-driven.html#sec-scenario-grid)).
 
 ![](theory-synthetic-scenarios-mean-covariance_files/figure-html/fig-simbu-entropy-1.png)
 
@@ -707,7 +707,7 @@ H^{\star}(\boldsymbol{p}). Each bar is one design; `geom_label` reports
 H^{\star}. `mirror_db` is omitted (it copies an empirical atlas rather
 than a fixed simplex vector).
 
-### Scenario descriptors collected with the bulk draw
+## Scenario descriptors collected with the bulk draw
 
 [`describe_simulation_scenario()`](https://bastienchassagnol.github.io/DeCovarT/reference/describe_simulation_scenario.md)
 records the convolution parameters
@@ -717,9 +717,9 @@ compact geometry table.
 returns those objects as `theta_true`, `descriptors`, `supplementary`,
 and `call` ([`match.call()`](https://rdrr.io/r/base/match.call.html)).
 Kept measures stay in six families ([Note 6](#nte-desc-composition),
-[Note 7](#nte-desc-mean), [Note 8](#nte-desc-spd),
-[Note 9](#nte-desc-fisher), [Note 10](#nte-desc-network),
-[Note 11](#nte-desc-overlap)). MixSim `BarOmega` and averaged pairwise
+[Note 7](#nte-desc-mean), [Note 9](#nte-desc-spd),
+[Note 10](#nte-desc-fisher), [Note 11](#nte-desc-network),
+[Note 12](#nte-desc-overlap)). MixSim `BarOmega` and averaged pairwise
 Hellinger of the purified Gaussians summarise the same convolution
 components as the bulk law, so they sit in `descriptors`. Jeffreys /
 symmetrised KL is stored in `supplementary`. There is no composite
@@ -729,12 +729,49 @@ Compositions on a Shannon grid can be built with
 [`composition_from_entropy()`](https://bastienchassagnol.github.io/DeCovarT/reference/composition_from_entropy.md)
 (one-dominant family (1-(J-1)q,q,\ldots,q) matching a target H^{\star}).
 
+| Metric | Formula | Bounds | Captures | Pros_cons |
+|----|----|----|----|----|
+| Composition | Composition | Composition | Composition | Composition |
+| Normalised Shannon entropy (`h_star`) | \\H^{\star}=H(p)/\log J\\ | \\\[0,1\]\\ | Evenness of \\p\\ (Pielou); \\0\\ is a vertex | \\J\\-normalised. Zeros use \\0\log 0=0\\. |
+| Effective number (`n_eff`) | \\n\_{\mathrm{eff}}=\exp\\H(p)\\\\ | \\\[1,J\]\\ | Hill number of order \\1\\ | Interpretable count. Not a probability. |
+| Active count (`n_active`) | \\\\\\j:p_j\>\varepsilon\\\\ | \\\\0,\ldots,J\\\\ | Simplex stratum (how many types are on) | Threshold \\\varepsilon\\ is a convention. |
+| Concentration \\\lVert p\rVert_2^2\\ | \\\sum_j p_j^2\\ | \\\[1/J,1\]\\ | Weight in \\\Sigma(p)=\sum_j p_j^2\Sigma_j\\ | Directly scales \\\Sigma(p)\\. Ignores means. |
+| Mean geometry | Mean geometry | Mean geometry | Mean geometry | Mean geometry |
+| Mean absolute cosine | \\J^{-1}\sum\_{j\<k}\lvert\cos(\mu\_{\cdot j},\mu\_{\cdot k})\rvert\\ | \\\[0,1\]\\ | Typical mean-profile confusion | Scale-free. Misses Euclidean gaps. |
+| Highest pairwise cosine (`max_cosine`) | \\\max\_{j\<k}\cos(\mu\_{\cdot j},\mu\_{\cdot k})\\ | \\\[-1,1\]\\ | Worst pair of collinear signatures | Safety diagnostic for two-type confusion. |
+| Mean Euclidean gap (`mean_euclidean`) | mean of \\\lVert\mu\_{\cdot j}-\mu\_{\cdot k}\rVert_2\\ | \\\[0,\infty)\\ | Centroid (CLD) separation in \\\mathbb{R}^G\\ | Matches the article CLD factor. Not Aitchison. |
+| Condition number \\\kappa(\mu)\\ | \\\sigma\_{\max}(\mu)/\sigma\_{\min}(\mu)\\ | \\\[1,\infty\]\\ | Near-collinearity of the signature frame | Sensitive to a single tiny singular value. |
+| Gram volume | \\\prod\_\ell \sigma\_\ell(\mu)\\ | \\\[0,\infty)\\ | Volume of the parallelepiped; \\0\\ at rank loss | Product of singular values; units of \\\mu\\. |
+| SPD / \\\Sigma(p)\\ | SPD / \\\Sigma(p)\\ | SPD / \\\Sigma(p)\\ | SPD / \\\Sigma(p)\\ | SPD / \\\Sigma(p)\\ |
+| \\\lambda\_{\min}\\\Sigma(p)\\\\ | smallest eigenvalue of \\\Sigma(p)\\ | \\\[0,\infty)\\ | Distance of the bulk covariance to singularity | Numerical, not statistical, identifiability. |
+| `kappa_sigma_p` | \\\lambda\_{\max}/\lambda\_{\min}\\ | \\\[1,\infty\]\\ | Anisotropy of the bulk ellipsoid | Flags Cholesky / log-det instability. |
+| `kappa_sigma_reciprocal` | \\\lambda\_{\min}/\lambda\_{\max}\in(0,1\]\\ | \\(0,1\]\\ | The same ratio on a bounded scale | Easier to plot than \\\kappa\\. |
+| Tangent Fisher | Tangent Fisher | Tangent Fisher | Tangent Fisher | Tangent Fisher |
+| \\\lambda\_{\min}(I_T)\\ | weakest Helmert contrast of \\I\\ | \\\[0,\infty)\\ | Weakest identifiable simplex contrast | Local information, not finite-sample RMSE. |
+| \\\kappa(I_T)\\ | \\\lambda\_{\max}(I_T)/\lambda\_{\min}(I_T)\\ | \\\[1,\infty\]\\ | Ill-posed directions on the simplex | Large \\\kappa\\ hides one easy contrast. |
+| \\f\_{\mathrm{cov}}\\ | \\\mathrm{tr}(I^{\mathrm{cov}})/\mathrm{tr}(I)\\ | \\\[0,1\]\\ | Share of Fisher information from covariance | Near \\1\\, LSEI / CIBERSORT are under-informed. |
+| \\f\_{\mathrm{cov}}^{\max}\\ | max of that fraction on \\e_j-e_k\\ | \\\[0,1\]\\ | Worst pairwise contrast for mean-only solvers | Same interpretation on the hardest pair. |
+| Network sparsity | Network sparsity | Network sparsity | Network sparsity | Network sparsity |
+| Edge density / mean degree | \\2\lvert E\rvert/(G(G-1))\\; \\2\lvert E\rvert/G\\ | \\\[0,1\]\\; \\\[0,G-1\]\\ | Binary graph density (or precision support) | For fixed \\G\\, density and mean degree match. |
+| Hoyer sparsity of \\\lvert r\_{gh}\rvert\\ | \\(\sqrt{M}-\lVert w\rVert_1/\lVert w\rVert_2)/(\sqrt{M}-1)\\ | \\\[0,1\]\\ | Magnitude sparsity of bulk correlations | Scale-free; no topology assumed. |
+| Component overlap | Component overlap | Component overlap | Component overlap | Component overlap |
+| MixSim `BarOmega` | average pairwise misclassification | \\\[0,1\]\\ | Overlap of the \\J\\ purified Gaussians | Davies for \\G\<4\\; Sobol Monte Carlo otherwise. |
+| Mean pairwise Hellinger | \\J^{-1}\sum\_{j\<k} H_2(f_j,f_k)\\ (symmetric) | \\\[0,1\]\\ | Symmetric affinity of those Gaussians | Closed form; \\H_2(f,g)=H_2(g,f)\\. |
+| Mean pairwise AIRM (`riemannian_sigma`) | mean of \\d_R(\Sigma_j,\Sigma\_\ell)\\ | \\\[0,\infty)\\ | SPD geodesic gap of the \\\Sigma_j\\ (not Frobenius) | Inversion-invariant; infinite at singularity. |
+| Supplementary | Supplementary | Supplementary | Supplementary | Supplementary |
+| Jeffreys / symmetrised KL | \\\tfrac12\mathrm{KL}(f\\g)+\tfrac12\mathrm{KL}(g\\f)\\ | \\\[0,\infty)\\ | Symmetrised KL of the same pair average | Not a metric; recorded separately. |
+
+Table 7: Kept scenario descriptors from
+[`describe_simulation_scenario()`](https://bastienchassagnol.github.io/DeCovarT/reference/describe_simulation_scenario.md)
+(`R/02_03_scenario_descriptors.R`). Jeffreys sits on the same `ID` key
+in `supplementary` / the descriptors RDS.
+
 > **Note 6: Composition**
 >
 > Let \boldsymbol{p}\in\Delta^{J-1} with the convention 0\log 0=0. The
 > normaliser always uses the full panel size J, including zeros.
 >
-> - Normalised Shannon entropy (Pielou evenness)
+> - Normalised Shannon entropy
 >   H^{\star}(\boldsymbol{p})=H(\boldsymbol{p})/\log J,
 >   H(\boldsymbol{p})=-\sum_j p_j\log p_j. Zero is a Dirac mass; one is
 >   the uniform composition.
@@ -761,8 +798,10 @@ Compositions on a Shannon grid can be built with
 > k}))}. Use `nonnegative = TRUE` for a disjoint-support frame when the
 > downstream solver requires \boldsymbol{\mu}\ge 0.
 >
-> - Mean absolute pairwise cosine and the smallest cosine: which types
+> - Mean absolute pairwise cosine and the highest cosine: which types
 >   are confusable from first-order signatures alone.
+> - Mean pairwise Euclidean gap of the signature columns (the quantity
+>   the article labels **CLD**; see [Note 8](#nte-desc-cld)).
 > - Condition number
 >   \kappa(\boldsymbol{\mu})=\sigma\_{\max}/\sigma\_{\min} of the
 >   singular values of \boldsymbol{\mu}: near-collinearity of the
@@ -770,7 +809,45 @@ Compositions on a Shannon grid can be built with
 > - Gram volume \prod\_{\ell}\sigma\_{\ell}(\boldsymbol{\mu}) (zero at
 >   rank loss).
 
-> **Note 8: SPD / numerical conditioning of
+> **Note 8: Euclidean centroid gap (CLD)**
+>
+> **CLD** is a shorthand for **centroid (mean-profile) separation**: how
+> far two signature columns \boldsymbol{\mu}\_{\cdot 1} and
+> \boldsymbol{\mu}\_{\cdot 2} sit in gene space. The article uses the
+> same label (“mean centroids (CLD)”). There is no separate named CLD
+> index in the package; `mean_euclidean` is the mean of those pairwise
+> gaps, the same Euclidean objective
+> [`compute_mean_profile_objectives()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_mean_profile_objectives.md)
+> maximises. The signatures are expression means, not simplex
+> compositions, so this is **not** an Aitchison / clr distance.
+>
+> The Euclidean gap, the inner product, and the cosine of the angle
+> \theta are the same geometry ([dot product, geometric
+> definition](https://en.wikipedia.org/wiki/Dot_product#Geometric_definition)):
+>
+> \boldsymbol{\mu}\_{\cdot 1}^{\mathsf{T}}\boldsymbol{\mu}\_{\cdot 2} =
+> \lVert\boldsymbol{\mu}\_{\cdot 1}\rVert_2
+> \lVert\boldsymbol{\mu}\_{\cdot 2}\rVert_2 \cos\theta,
+>
+> d(\boldsymbol{\mu}\_{\cdot 1},\boldsymbol{\mu}\_{\cdot 2}) =
+> \lVert\boldsymbol{\mu}\_{\cdot 1}-\boldsymbol{\mu}\_{\cdot 2}\rVert_2
+> = \sqrt{ \lVert\boldsymbol{\mu}\_{\cdot 1}\rVert_2^2 +
+> \lVert\boldsymbol{\mu}\_{\cdot 2}\rVert_2^2 -
+> 2\\\boldsymbol{\mu}\_{\cdot 1}^{\mathsf{T}}\boldsymbol{\mu}\_{\cdot 2}
+> }.
+>
+> On the bivariate toy the two designed levels are:
+>
+> | Level | \boldsymbol{\mu}\_{\cdot 1} | \boldsymbol{\mu}\_{\cdot 2} | d | cosine |
+> |----|----|----|----|----|
+> | small CLD | (20,22) | (22,20) | \sqrt{8}=2\sqrt{2}\approx 2.83 | 880/884\approx 0.995 |
+> | large CLD | (20,40) | (40,20) | \sqrt{800}=20\sqrt{2}\approx 28.3 | 0.8 |
+>
+> Small CLD means nearly overlapping centroids (harder for mean-only
+> solvers). Large CLD means the two types are well separated in
+> \mathbb{R}^G.
+
+> **Note 9: SPD / numerical conditioning of
 > \boldsymbol{\Sigma}(\boldsymbol{p})**
 >
 > These columns describe the *mixture* covariance, not statistical
@@ -788,7 +865,7 @@ Compositions on a Shannon grid can be built with
 > - `kappa_sigma_reciprocal` \lambda\_{\min}/\lambda\_{\max}\in(0,1\]:
 >   the same ratio on a bounded scale (one is isotropic).
 
-> **Note 9: Tangent Fisher information (mean versus covariance)**
+> **Note 10: Tangent Fisher information (mean versus covariance)**
 >
 > For a real Gaussian \boldsymbol{y}\mid\boldsymbol{p}\sim
 > \mathcal{N}\_{G}(\boldsymbol{\mu}\boldsymbol{p},\boldsymbol{\Sigma}(\boldsymbol{p})),
@@ -857,7 +934,7 @@ Compositions on a Shannon grid can be built with
 > - f\_{\mathrm{cov}}^{\max}: the same fraction along the pairwise
 >   contrast \mathbf{e}\_j-\mathbf{e}\_k that maximises it.
 
-> **Note 10: Network sparsity**
+> **Note 11: Network sparsity**
 >
 > When an adjacency array is supplied, density uses that support;
 > otherwise the off-diagonal pattern of each \boldsymbol{\Omega}\_j is
@@ -872,20 +949,37 @@ Compositions on a Shannon grid can be built with
 >   w_e=\lvert r\_{gh}\rvert: S\_{\mathrm{Hoyer}}=(\sqrt{M}-\lVert
 >   w\rVert_1/\lVert w\rVert_2)/(\sqrt{M}-1)\in\[0,1\]. Zero is a flat
 >   spectrum of magnitudes; one is a single dominant edge. The index is
->   scale-free and does not assume a topology.
+>   scale-free and does not assume a topology. For G=2, M=1 and the
+>   index is undefined (`NA`): there is only one off-diagonal. Hoyer
+>   ([2004](#ref-hoyerNonnegativeMatrixFactorization2004)) introduced
+>   this normalisation of the \ell_1/\ell_2 ratio as a sparseness
+>   constraint for non-negative matrix factorisation.
 
-> **Note 11: Component overlap (purified Gaussians)**
+![](figures/fig_hoyer_sparsity.png)
+
+Figure 8: Hoyer sparsity of a nonnegative edge-weight vector: a flat
+spectrum scores 0; a single dominant edge scores 1 ([Hoyer
+2004](#ref-hoyerNonnegativeMatrixFactorization2004)).
+
+> **Note 12: Component overlap (purified Gaussians)**
 >
 > These scores describe the J reference Gaussians
 > \mathcal{N}(\boldsymbol{\mu}\_{\cdot j},\boldsymbol{\Sigma}\_j) that
 > enter the convolution, not the estimator.
 >
 > - MixSim average pairwise misclassification overlap `BarOmega`
->   ([Melnykov et al. 2012](#ref-melnykovMixSimPackageSimulating2012)).
-> - Averaged pairwise Hellinger distance of those Gaussians (closed form
->   through the Bhattacharyya coefficient), weighted by p_j p_k.
+>   ([Melnykov et al. 2012](#ref-melnykovMixSimPackageSimulating2012);
+>   [Maitra and Melnykov 2010](#ref-maitraSimulatingDataStudy2010)).
+>   Full definitions, Hellinger–TV inequalities, affine-invariant
+>   Riemannian distance on SPD matrices, and the Sobol Monte Carlo
+>   overlap for G\ge 4 are in [distances, overlap, and covariance
+>   information](https://bastienchassagnol.github.io/DeCovarT/articles/theory-distance-covariance.md).
+> - Averaged pairwise Hellinger distance (Bhattacharyya coefficient).
+>   The primary column `hellinger` is the unweighted mean over pairs
+>   j\<k.
+> - `riemannian_sigma`: mean pairwise affine-invariant Riemannian
+>   distance of the \boldsymbol{\Sigma}\_j (not Frobenius).
 
-Supplementary (not kept as a primary score): Jeffreys divergence.
 Cholesky fill-in and sparse-solver timings are *not* reported: the
 caller must declare the covariance structure used at fit time; otherwise
 the dense Cholesky factor of \Sigma(p) is the default.
@@ -919,14 +1013,14 @@ et al. 2019](#ref-sturmComprehensiveEvaluationTranscriptomebased2019);
 \boldsymbol{p}^{\star} is unknown, the global block switches to
 reconstitution of
 \hat{\boldsymbol{y}}=\boldsymbol{\mu}\hat{\boldsymbol{p}} against
-\boldsymbol{y}. [Sec. 8](#sec-ademp) maps the same columns onto the
+\boldsymbol{y}. [Sec. 9](#sec-ademp) maps the same columns onto the
 ADEMP checklist.
 
 Every distance below is an **error** unless noted (F1, Pearson,
 coverage): 0 is ideal whenever a canonical bound exists.
-[Figure 8](#fig-metrics-families) shows how L_1, L_2, L\_{\infty},
+[Figure 9](#fig-metrics-families) shows how L_1, L_2, L\_{\infty},
 Aitchison, and angular balls sit on the simplex;
-[Note 12](#nte-comp-geometry) reads that geometry.
+[Note 13](#nte-comp-geometry) reads that geometry.
 
 ![](figures/fig_compositional_metrics.svg)
 
@@ -938,17 +1032,17 @@ discrepancies between \boldsymbol{p}^{\star} and \hat{\boldsymbol{p}}.
 \(b\) How those distances behave near the barycentre versus near a
 vertex of the simplex.
 
-Figure 8: Compositional error metrics for \boldsymbol{p} on
+Figure 9: Compositional error metrics for \boldsymbol{p} on
 \Delta^{J-1}.
 
-> **Note 12: Euclidean versus log-ratio geometry on the simplex**
+> **Note 13: Euclidean versus log-ratio geometry on the simplex**
 >
 > Compositions live on \Delta^{J-1}, not in \mathbb{R}^{J} ([Aitchison
 > 1982](#ref-aitchisonStatisticalAnalysisCompositional1982)). The same
 > Euclidean vector
 > \boldsymbol{e}=\hat{\boldsymbol{p}}-\boldsymbol{p}^{\star} therefore
 > has a different meaning at the barycentre than near a vertex
-> ([Figure 8 (b)](#fig-comp-interp)).
+> ([Figure 9 (b)](#fig-comp-interp)).
 >
 > - **RMSE / MAE / MaxAE** treat a 0.05 miss on a type with p_j=0.50
 >   like a 0.05 miss on a type with p_j=0.01. Abundant types dominate.
@@ -965,7 +1059,7 @@ Figure 8: Compositional error metrics for \boldsymbol{p} on
 >   abundant type. The distance is unbounded and undefined at exact
 >   zeros without a replacement. DeCovarT does **not** return it from
 >   [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)
->   ([Table 8](#tbl-metrics-regression-other)).
+>   ([Table 9](#tbl-metrics-regression-other)).
 > - **Jensen–Shannon** is a bounded, symmetric disagreement of two
 >   discrete distributions ([Lin
 >   1991](#ref-linDivergenceMeasuresBased1991)). The associated distance
@@ -1003,7 +1097,7 @@ which is unstable for small J.
 | Reconstitution (no \\p^{\star}\\) | Reconstitution (no \\p^{\star}\\) | Reconstitution (no \\p^{\star}\\) | Reconstitution (no \\p^{\star}\\) | Reconstitution (no \\p^{\star}\\) |
 | Reconstitution MAE / Pearson | \\\\y-\mu\hat p\\\_1/G\\; \\\mathrm{cor}(y,\mu\hat p)\\ | MAE on \\y\\: data-scale; \\r\in\[-1,1\]\\ | How well \\\hat p\\ rebuilds the bulk when \\p^{\star}\\ is unknown | Works without \\p^{\star}\\. Can look good with a wrong \\\hat p\\. |
 
-Table 7: Kept composition and regression scores from
+Table 8: Kept composition and regression scores from
 [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)
 (`R/utils-metrics.R`).
 
@@ -1023,18 +1117,18 @@ Table 7: Kept composition and regression scores from
 | Hierarchical | Hierarchical | Hierarchical | Hierarchical | Hierarchical |
 | Hierarchical relative RMSE (hrRMSE) | RMSE scaled by nested biological variance | scale depends on the ontology | Error relative to a cell-type hierarchy | Needs a cell-type ontology \[@baWhenLessNot2026\]; [@fig-hrrmse](#fig-hrrmse). |
 
-Table 8: Related composition scores that are not primary
+Table 9: Related composition scores that are not primary
 [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)
 columns.
 
 ![](figures/fig_hierarchical_rmse_metrics.png)
 
-Figure 9: Hierarchical relative RMSE (hrRMSE) used when some reference
+Figure 10: Hierarchical relative RMSE (hrRMSE) used when some reference
 types are missing: residual error is scaled by the biological variance
 of \boldsymbol{p}^{\star} rather than by raw proportion units ([Ba et
 al. 2026](#ref-baWhenLessNot2026)).
 
-> **Note 13: Angular distance versus SDID**
+> **Note 14: Angular distance versus SDID**
 >
 > Both scores are strictly increasing functions of the same angle
 > \theta=\arccos(p^{\mathsf{T}}\hat p/(\\p\\\_2\\\hat p\\\_2)). The
@@ -1044,7 +1138,7 @@ al. 2026](#ref-baWhenLessNot2026)).
 > headline panel and keep the other for continuity with HADACA3 ([Barbot
 > and Richard 2026](#ref-barbotPromisesLimitsMultimodal2026)).
 
-> **Note 14: Simplex bounds for L_p errors**
+> **Note 15: Simplex bounds for L_p errors**
 >
 > Because \boldsymbol{p} and \hat{\boldsymbol{p}} both sum to one and
 > are non-negative, \boldsymbol{e} is orthogonal to \mathbf{1} and
@@ -1064,7 +1158,7 @@ These describe the **estimator as a repeated-sampling procedure**, not
 the distance between one \hat{\boldsymbol{p}} and one
 \boldsymbol{p}^{\star}. Each row of `monte_carlo` is one cell type.
 Coverage intervals around the *rate* \hat\pi are derived in
-[Note 18](#nte-binomial-coverage-ci).
+[Note 19](#nte-binomial-coverage-ci).
 
 | Metric | Formula | Bounds | Captures | Pros_cons |
 |----|----|----|----|----|
@@ -1084,7 +1178,7 @@ Coverage intervals around the *rate* \hat\pi are derived in
 | Mean interval width | \\B^{-1}\sum_b(U\_{jb}-L\_{jb})\\ | \\\[0,1\]\\ for simplex-clipped intervals | Precision of the interval, given coverage | Separates useful from vacuous coverage. Smaller is not better unless coverage holds. |
 | MCSE of coverage (`mcse_coverage`) | \\\sqrt{\hat\pi(1-\hat\pi)/B}\\ | \\\[0,1/\sqrt{4B}\]\\ | Simulation error of the coverage *rate* | Binomial MCSE. Wald form of the *rate*; interval for \\\hat\pi\\ uses Wilson. |
 
-Table 9: Kept Monte Carlo / ADEMP summaries (`monte_carlo` block and
+Table 10: Kept Monte Carlo / ADEMP summaries (`monte_carlo` block and
 [`coverage_mc_interval()`](https://bastienchassagnol.github.io/DeCovarT/reference/coverage_mc_interval.md)).
 
 | Metric | Formula | Bounds | Captures | Why_not |
@@ -1101,9 +1195,9 @@ Table 9: Kept Monte Carlo / ADEMP summaries (`monte_carlo` block and
 | Linear algebra | Linear algebra | Linear algebra | Linear algebra | Linear algebra |
 | Cholesky fill-in / sparse timings | nnz\$(L)\$ or seconds per factorisation | non-negative | Cost of \\\Sigma(p)^{-1}\\ at the chosen structure | [Appendix S2](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S2-covariance-inversion.html); declare the covariance structure. |
 
-Table 10: ADEMP-adjacent diagnostics that are not default columns.
+Table 11: ADEMP-adjacent diagnostics that are not default columns.
 
-> **Note 15: Monte Carlo standard error of coverage**
+> **Note 16: Monte Carlo standard error of coverage**
 >
 > Coverage is a mean of i.i.d. Bernoulli indicators
 > I_b=\mathbf{1}\\p_j\in\mathrm{CI}\_{jb}\\. With B independent
@@ -1126,7 +1220,7 @@ is within 10^{-3} of \ell(\boldsymbol{p}^{\star}) (the generating value,
 a proxy for the expected global maximum in a well-specified Monte
 Carlo). The default stationarity diagnostic stored on
 `optimisation$kkt_residual` is the **simplex projected-score residual**
-`.kkt_residual()` ([Note 16](#nte-kkt-ilr-hessian)), not the raw ambient
+`.kkt_residual()` ([Note 17](#nte-kkt-ilr-hessian)), not the raw ambient
 gradient and not the ILR score from
 [`boundary_diagnostics()`](https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.md).
 
@@ -1148,7 +1242,7 @@ unavailable). Both are stored as **full per-sample vectors** in
 | Elapsed time (`elapsed_sec`) | worker elapsed seconds for one column of \\Y\\ | \\\[0,\infty)\\ | Per-sample computational cost | Direct utility. Hardware-dependent; report median / IQR. |
 | Peak memory (`memory_bytes`) | `ps::ps_memory_full_info()$pss` in the worker | \\\[0,\infty)\\ bytes | Per-sample memory footprint (PSS, not summed RSS) | Avoids double-counting shared pages. Still machine-dependent. |
 
-Table 11: Kept optimisation and runtime scores (`optimisation` block).
+Table 12: Kept optimisation and runtime scores (`optimisation` block).
 
 | Metric | Formula | Bounds | Captures | Why_not |
 |----|----|----|----|----|
@@ -1161,10 +1255,10 @@ Table 11: Kept optimisation and runtime scores (`optimisation` block).
 | Memory | Memory | Memory | Memory | Memory |
 | Sum of worker RSS | sum of per-worker RSS | \\\[0,\infty)\\ | Naive memory sum under fork | Double-counts copy-on-write pages. |
 
-Table 12: Optimisation diagnostics computed on fits but not stored as
+Table 13: Optimisation diagnostics computed on fits but not stored as
 headline benchmark columns.
 
-> **Note 16: Interior ILR stationarity, projected KKT residual, and
+> **Note 17: Interior ILR stationarity, projected KKT residual, and
 > Hessian curvature**
 >
 > Three numbers are easy to confuse. They answer different questions,
@@ -1223,7 +1317,7 @@ headline benchmark columns.
 > concave in general ([MLE
 > properties](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.md)).
 
-> **Note 17: Which metric to report**
+> **Note 18: Which metric to report**
 >
 > Use TV, RMSE, MaxAE, and (optionally) angular distance / SDID as the
 > global panel. Add cell-type Pearson and presence F1 / false-positive
@@ -1242,15 +1336,22 @@ headline benchmark columns.
 
 Wilson is the default interval around the *estimated coverage rate*
 \hat\pi=X/N, not the interval for \hat p_j ([Wilson
-1927](#ref-wilsonProbableInferenceLaw1927)). Wald and Agresti–Coull
-([Agresti and Coull 1998](#ref-agrestiApproximateBetterExact1998)) are
-available through `coverage_interval`. Bias-eliminated coverage
-(covering \bar{\hat\theta} rather than \theta) is not implemented;
-report ordinary coverage and bias side by side instead.
-[Note 18](#nte-binomial-coverage-ci) summarises exact, asymptotic, and
+1927](#ref-wilsonProbableInferenceLaw1927)). The interval *for* p_j on
+an interior composition is the ILR delta-method Wald interval from
+[`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md)
+/
+[`confint.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md):
+expected Fisher information of the Gaussian convolution, pulled back
+through the isometric log-ratio chart — not the observed Hessian of a
+Newton step, and not an ALR chart. Wald and Agresti–Coull ([Agresti and
+Coull 1998](#ref-agrestiApproximateBetterExact1998)) are available
+through `coverage_interval` for the binomial *rate*. Bias-eliminated
+coverage (covering \bar{\hat\theta} rather than \theta) is not
+implemented; report ordinary coverage and bias side by side instead.
+[Note 19](#nte-binomial-coverage-ci) summarises exact, asymptotic, and
 optimisation-based constructions for that binomial rate.
 
-> **Note 18: Intervals for a binomial coverage rate**
+> **Note 19: Intervals for a binomial coverage rate**
 >
 > The Monte Carlo coverage rate \hat\pi=X/N is a binomial proportion on
 > the unit interval. Interval construction for that rate is not a
@@ -1314,9 +1415,9 @@ then score both the reference geometry and the mixture composition:
     matching the `SimBu` fraction vocabulary when comparing to
     pseudo-bulk tools ([Figure 7](#fig-simbu-entropy)).
 
-See [Note 19](#nte-benchmark-spec) for a compact factorial checklist.
+See [Note 20](#nte-benchmark-spec) for a compact factorial checklist.
 
-> **Important 19: Recommended benchmark specification**
+> **Important 20: Recommended benchmark specification**
 >
 > Use one pipeline for a given topology of a given cell type’s
 > covariance structure ([Eq. 16](#eq-benchmark-pipe),
@@ -1335,7 +1436,7 @@ See [Note 19](#nte-benchmark-spec) for a compact factorial checklist.
 > ([Figure 7](#fig-simbu-entropy)). - add the mean layer
 > **independently** of graph generation.
 
-> **Note 20: Execution: no nested parallelism, `furrr`, L’Ecuyer
+> **Note 21: Execution: no nested parallelism, `furrr`, L’Ecuyer
 > streams**
 >
 > Sample-level workers live only in
@@ -1422,7 +1523,7 @@ p_j^2\boldsymbol{\Sigma}\_j). Methods are the solvers passed to
 | Convergence | numerical_converged, theoretical_converged, kkt_residual |
 | Type I / power | Not a primary target (composition estimation, not a null test) |
 
-Table 13: ADEMP performance measures implemented in
+Table 14: ADEMP performance measures implemented in
 [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)
 and
 [`coverage_mc_interval()`](https://bastienchassagnol.github.io/DeCovarT/reference/coverage_mc_interval.md).
@@ -1453,12 +1554,12 @@ is the package counterpart of that editorial checklist.
 | Data-generating mechanism fully specified | `theta_true` (`p`, `mu`, `sigma`) plus `descriptors` and `call` |
 | Estimand and metrics pre-declared | This table; [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md) blocks |
 | Software versions | [`sessioninfo::session_info()`](https://sessioninfo.r-lib.org/reference/session_info.html) in analysis scripts |
-| Random-number streams | `furrr_options(seed = TRUE)`: L’Ecuyer-CMRG per worker ([Note 20](#nte-parallel-rng)) |
+| Random-number streams | `furrr_options(seed = TRUE)`: L’Ecuyer-CMRG per worker ([Note 21](#nte-parallel-rng)) |
 | Code availability | GitHub repository; package functions, not one-off scripts |
 | No undisclosed composite score | Global and cell-type tables remain separate |
 | Sample size / Monte Carlo error | `n` and `mcse_coverage` (and Wilson bounds) |
 
-Table 14: Nature Methods reporting items covered by the simulation API.
+Table 15: Nature Methods reporting items covered by the simulation API.
 
 ### NeurIPS code completeness
 
@@ -1472,9 +1573,9 @@ used at NeurIPS is five items.
 | Fitting (“training”) code | [`fit_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md), [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md) |
 | Evaluation code | [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md), [`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.md) |
 | Pre-trained models | Not applicable: DeCovarT is an estimator, not a stored neural net. Toy convolution fixtures live in `inst/extdata/` |
-| README table of results plus commands | README / vignette chunks (this article; [§2.1](https://bastienchassagnol.github.io/DeCovarT/articles/fig02-bivariate-toy.md), [§2.2](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-variance-driven.md)) |
+| README table of results plus commands | README / vignette chunks (this article; [§2.1](https://bastienchassagnol.github.io/DeCovarT/articles/fig02-bivariate-toy.md), [§2.2](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-covariance-driven.md)) |
 
-Table 15: NeurIPS / Papers with Code completeness mapped onto the
+Table 16: NeurIPS / Papers with Code completeness mapped onto the
 package.
 
 ### rOpenSci statistical standards
@@ -1579,6 +1680,10 @@ Holland, Paul W., Kathryn Blackmond Laskey, and Samuel Leinhardt. 1983.
 ‘Stochastic Blockmodels: First Steps’. *Social Networks* 5.
 <https://doi.org/10.1016/0378-8733(83)90021-7>.
 
+Hoyer, Patrik O. 2004. ‘Non-Negative Matrix Factorization with
+Sparseness Constraints’. *The Journal of Machine Learning Research* 5:
+1457–69. <https://www.jmlr.org/papers/v5/hoyer04a.html>.
+
 Jiang, Haoming, Xinyu Fei, Han Liu, et al. 2026. *Huge: High-Dimensional
 Undirected Graph Estimation*. <https://github.com/Gatech-Flash/huge>.
 
@@ -1598,6 +1703,11 @@ Transactions on Information Theory* 37 (1): 145–51.
 Madar, Vered. 2015. ‘Direct Formulation to Cholesky Decomposition of a
 General Nonsingular Correlation Matrix’. *Statistics & Probability
 Letters* 103: 142–47. <https://doi.org/10.1016/j.spl.2015.03.014>.
+
+Maitra, Ranjan, and Volodymyr Melnykov. 2010. ‘Simulating Data to Study
+Performance of Finite Mixture Modeling and Clustering Algorithms’.
+*Journal of Computational and Graphical Statistics* 19 (2): 354–76.
+<https://doi.org/10.1198/jcgs.2009.08054>.
 
 McCulloch, Charles E. 1982. ‘Symmetric Matrix Derivatives with
 Applications’. *Journal of the American Statistical Association* 77

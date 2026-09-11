@@ -532,7 +532,7 @@ fraction of replicates ([Meinshausen and Bühlmann
   / \ell_2 penalties yield sparse class weights while shrinking
   correlated genes jointly ([Zou and Hastie
   2005](#ref-zouRegularizationVariableSelection2005); [Friedman et al.
-  2025](#ref-R-glmnet)). Suitable when the number of donor-level
+  2026](#ref-R-glmnet)). Suitable when the number of donor-level
   pseudobulks is moderate to large.
 - **Sparse / penalised quadratic discriminant analysis.** Maximises a
   between- / within-class variance ratio with an \ell_1 penalty on
@@ -704,7 +704,7 @@ between purified Gaussians:
     covariance geometry, so they seed the panel rather than finish it.
 2.  **`glmnet` multinomial elastic net.** Sparse discriminative
     coefficients for cell-type labels ([Friedman et al.
-    2025](#ref-R-glmnet); [Zou and Hastie
+    2026](#ref-R-glmnet); [Zou and Hastie
     2005](#ref-zouRegularizationVariableSelection2005)). Relative to
     sparse QDA, elastic net is less sensitive to non-Gaussian residuals
     and to poorly estimated type-specific covariances in the G\gg n
@@ -1222,7 +1222,7 @@ implementation is available at <https://github.com/xiaorudong/berm>.
   (`removePercentZeros`, `removeUnspecificGenes`, `selectGenesByScore`
   with Gini or entropy).
 - Sparse multiclass candidates: `glmnet` multinomial elastic net
-  ([Friedman et al. 2025](#ref-R-glmnet); [Zou and Hastie
+  ([Friedman et al. 2026](#ref-R-glmnet); [Zou and Hastie
   2005](#ref-zouRegularizationVariableSelection2005)); group penalties
   following ([Yuan and Lin
   2006](#ref-yuanModelSelectionEstimation2006)); stability selection
@@ -1309,7 +1309,7 @@ Finotello, Francesca, Clemens Mayer, Christina Plattner, et al. 2019.
 Revealed by Deconvolution of RNA-seq Data’. *Genome Medicine* 11.
 <https://doi.org/10.1186/s13073-019-0638-6>.
 
-Friedman, Jerome, Trevor Hastie, Rob Tibshirani, et al. 2025. *Glmnet:
+Friedman, Jerome, Trevor Hastie, Rob Tibshirani, et al. 2026. *Glmnet:
 Lasso and Elastic-Net Regularized Generalized Linear Models*.
 <https://glmnet.stanford.edu>.
 

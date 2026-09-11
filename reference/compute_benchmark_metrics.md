@@ -58,6 +58,10 @@ compute_benchmark_metrics(
 - se:
 
   Optional standard errors matching `estimated_p`.
+  Convolution-likelihood solvers fill these from
+  [`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md)
+  (expected Fisher information pulled back through the ILR chart).
+  Mean-only solvers (NNLS, LSEI) leave them missing.
 
 - lower, upper:
 
@@ -107,7 +111,8 @@ A named list with:
 - `regression`: `global` (one row per sample) and `cell_type` (one row
   per cell type);
 
-- `monte_carlo`: one row per cell type;
+- `monte_carlo`: one row per cell type, including `theoretical_se`
+  (filled later from expected Fisher at \\p^{\star}\\);
 
 - `optimisation`: one row per sample.
 
@@ -136,14 +141,14 @@ compute_benchmark_metrics(y, mu, estimated_p = c(0.45, 0.55),
 #> 
 #> 
 #> $monte_carlo
-#> # A tibble: 2 × 14
+#> # A tibble: 2 × 15
 #>   algorithm cell_type    bias empirical_sd mean_model_sd mean_model_se
 #>   <chr>     <chr>       <dbl>        <dbl>         <dbl>         <dbl>
 #> 1 NA        ct1        0.05             NA            NA            NA
 #> 2 NA        ct2       -0.0500           NA            NA            NA
-#> # ℹ 8 more variables: se_sd_ratio <dbl>, rmse <dbl>, coverage <dbl>,
-#> #   coverage_lower <dbl>, coverage_upper <dbl>, coverage_interval <chr>,
-#> #   mean_interval_width <dbl>, mcse_coverage <dbl>
+#> # ℹ 9 more variables: se_sd_ratio <dbl>, theoretical_se <dbl>, rmse <dbl>,
+#> #   coverage <dbl>, coverage_lower <dbl>, coverage_upper <dbl>,
+#> #   coverage_interval <chr>, mean_interval_width <dbl>, mcse_coverage <dbl>
 #> 
 #> $optimisation
 #> # A tibble: 1 × 10

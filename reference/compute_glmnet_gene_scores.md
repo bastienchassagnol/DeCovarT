@@ -61,6 +61,7 @@ multinomial signal).
 ## Examples
 
 ``` r
+if (FALSE) { # \dontrun{
 set.seed(1)
 G <- 4L
 J <- 3L
@@ -72,5 +73,5 @@ for (j in seq_len(J)) {
 labels <- paste0("ct", seq_len(J))
 scores <- compute_glmnet_gene_scores(profiles, labels)
 names(scores)[which.max(scores)]
-#> [1] "gene_3"
+} # }
 ```

@@ -174,7 +174,9 @@ recovering sample-specific latents is a Bayesian / MAP problem
   `method = "L-BFGS-B"`). The box keeps each coordinate in \\\[0,1\]\\;
   the returned vector is closed by \\p/\sum p\\ (no
   [`repair_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/repair_simplex.md)
-  clipping).
+  clipping). Wald standard errors still use the ILR expected-Fisher map
+  [`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md),
+  not a \\\boldsymbol{p}\\-space Hessian.
 
 - `deconvolute_ratios_Newton_Raphson()`: Newton–Raphson / `nlminb` on
   ILR coordinates \\\boldsymbol{z}\\ using analytic gradient and Hessian

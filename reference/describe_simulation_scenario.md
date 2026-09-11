@@ -7,12 +7,20 @@ p_j^2\boldsymbol{\Sigma}\_j)\\ at five layers: composition, mean
 geometry, covariance / SPD diagnostics, network sparsity, and tangent
 Fisher information (mean versus covariance split). MixSim BarOmega and
 average pairwise Hellinger of the component Gaussians are kept in
-`descriptors`. Jeffreys / symmetrised KL is returned in `supplementary`.
+`descriptors` (Hellinger is the unweighted pairwise mean;
+`hellinger_weighted` is optional). Jeffreys / symmetrised KL is returned
+in `supplementary`. Mean-geometry columns include the highest pairwise
+cosine and the mean Euclidean (CLD) gap.
 
 ## Usage
 
 ``` r
-describe_simulation_scenario(true_theta, adjacency = NULL, active_tol = 1e-08)
+describe_simulation_scenario(
+  true_theta,
+  adjacency = NULL,
+  active_tol = 1e-08,
+  include_mixsim = TRUE
+)
 ```
 
 ## Arguments
@@ -33,6 +41,12 @@ describe_simulation_scenario(true_theta, adjacency = NULL, active_tol = 1e-08)
 
   Threshold for counting an active simplex component.
 
+- include_mixsim:
+
+  Logical. If `TRUE` (default), compute MixSim BarOmega via
+  [`compute_average_overlap()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_overlap.md).
+  Set `FALSE` to skip.
+
 ## Value
 
 A list with:
@@ -42,10 +56,14 @@ A list with:
 - `descriptors`: one-row tibble of kept scenario statistics in six
   families (composition, mean geometry, SPD of
   \\\boldsymbol{\Sigma}(\boldsymbol{p})\\, tangent Fisher, network,
-  component overlap). SPD columns include both
-  \\\kappa\\\boldsymbol{\Sigma}(\boldsymbol{p})\\\\ (`kappa_sigma_p`)
-  and the reciprocal \\\lambda\_{\min}/\lambda\_{\max}\\
-  (`kappa_sigma_reciprocal`);
+  component overlap). MixSim BarOmega uses
+  [`compute_average_overlap()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_overlap.md)
+  (Davies quadrature for \\G\<4\\, Sobol Monte Carlo otherwise). Average
+  pairwise Hellinger and affine-invariant Riemannian distance of the
+  \\\Sigma_j\\ are kept alongside. `hellinger_weighted` is optional. SPD
+  columns include both \\\kappa\\\boldsymbol{\Sigma}(\boldsymbol{p})\\\\
+  (`kappa_sigma_p`) and the reciprocal
+  \\\lambda\_{\min}/\lambda\_{\max}\\ (`kappa_sigma_reciprocal`);
 
 - `supplementary`: one-row tibble of Jeffreys / symmetrised KL, recorded
   but not treated as a primary score;
@@ -59,7 +77,9 @@ A list with:
 [`expected_fisher_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.md),
 [`compute_shannon_entropy()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_shannon_entropy.md),
 [`composition_from_entropy()`](https://bastienchassagnol.github.io/DeCovarT/reference/composition_from_entropy.md),
-[`helmert_basis()`](https://bastienchassagnol.github.io/DeCovarT/reference/helmert_basis.md)
+[`helmert_basis()`](https://bastienchassagnol.github.io/DeCovarT/reference/helmert_basis.md),
+[`compute_average_overlap()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_overlap.md),
+[`compute_average_riemannian()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_riemannian.md)
 
 ## Examples
 

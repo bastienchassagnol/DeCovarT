@@ -9,10 +9,23 @@ f_j}(X\text{ classified as }\ell)\\ already uses the mixture weights
 [`MixSim::overlap()`](https://rdrr.io/pkg/MixSim/man/overlap.html). Do
 **not** multiply the directional masses by \\p_j\\ again.
 
+For \\G\ge 4\\ MixSim's Davies quadrature becomes expensive. The helper
+then switches to
+[`overlap_gaussian_mc()`](https://bastienchassagnol.github.io/DeCovarT/reference/overlap_gaussian_mc.md):
+stratified Sobol draws, inverse-transform sampling through precomputed
+Cholesky factors, and log-density MAP comparisons (`n_mc` draws per
+component; default 10,000).
+
 ## Usage
 
 ``` r
-compute_average_overlap(true_theta, J = NULL)
+compute_average_overlap(
+  true_theta,
+  J = NULL,
+  n_mc = 10000L,
+  seed = NULL,
+  verbose = TRUE
+)
 ```
 
 ## Arguments
@@ -29,13 +42,28 @@ compute_average_overlap(true_theta, J = NULL)
   Number of cell types (components). Defaults to the third dimension of
   `sigma`.
 
+- n_mc:
+
+  Monte Carlo draws per component when \\G\ge 4\\.
+
+- seed:
+
+  Optional seed forwarded to
+  [`overlap_gaussian_mc()`](https://bastienchassagnol.github.io/DeCovarT/reference/overlap_gaussian_mc.md).
+
+- verbose:
+
+  If `TRUE` (default), announce the MixSim-to-MC switch with `cli` when
+  it is installed.
+
 ## Value
 
 Scalar average pairwise overlap (MixSim `BarOmega`).
 
 ## See also
 
-[`check_true_theta()`](https://bastienchassagnol.github.io/DeCovarT/reference/check_true_theta.md)
+[`check_true_theta()`](https://bastienchassagnol.github.io/DeCovarT/reference/check_true_theta.md),
+[`overlap_gaussian_mc()`](https://bastienchassagnol.github.io/DeCovarT/reference/overlap_gaussian_mc.md)
 
 ## Examples
 

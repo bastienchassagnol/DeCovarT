@@ -128,15 +128,11 @@ delta-method covariance used by
 [`vcov()`](https://rdrr.io/r/stats/vcov.html) /
 [`confint()`](https://rdrr.io/r/stats/confint.html) on `decovart_fit`
 objects (see `fit_decovart`).
-[`vcov_alr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.md)
-is retained for reference-invariance checks.
 
 - [`expected_fisher_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.md)
   : Expected Fisher information of unconstrained \\\boldsymbol{p}\\
 - [`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md)
   : Cramer–Rao / ILR delta-method covariance of \\\hat{\boldsymbol{p}}\\
-- [`vcov_alr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.md)
-  : Cramer–Rao / ALR delta-method covariance of \\\hat{\boldsymbol{p}}\\
 
 ### Likelihood-ratio and boundary inference
 
@@ -187,6 +183,8 @@ wrapper.
   : Horizontal raincloud of Monte Carlo proportion estimates
 - [`plot_mc_forest()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_forest.md)
   : Forest plot of ADEMP Monte Carlo summaries
+- [`theme_decovart_facets()`](https://bastienchassagnol.github.io/DeCovarT/reference/theme_decovart_facets.md)
+  : Faceted ggplot2 theme (black strips, panel border)
 - [`algorithm_similarity()`](https://bastienchassagnol.github.io/DeCovarT/reference/algorithm_similarity.md)
   : Algorithm-similarity correlation from a Monte Carlo benchmark
 - [`plot_algorithm_similarity()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_algorithm_similarity.md)
@@ -195,6 +193,52 @@ wrapper.
   : Faceted dot plot of several ADEMP metrics
 - [`plot_correlation_Heatmap()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_correlation_Heatmap.md)
   : Plot deconvolution metric heatmaps
+- [`write_simulation_artefacts()`](https://bastienchassagnol.github.io/DeCovarT/reference/write_simulation_artefacts.md)
+  : Write split simulation artefacts (config, descriptors, theta,
+  metrics)
+- [`read_simulation_artefacts()`](https://bastienchassagnol.github.io/DeCovarT/reference/read_simulation_artefacts.md)
+  : Read split simulation artefacts and optionally reassemble a
+  benchmark list
+- [`slim_scenario_table()`](https://bastienchassagnol.github.io/DeCovarT/reference/slim_scenario_table.md)
+  : Drop duplicated design columns from a scenario-tagged table
+- [`plot_purified_density_2d()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_purified_density_2d.md)
+  : 2-D density of purified Gaussians
+- [`plot_bulk_convolution_density_2d()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_bulk_convolution_density_2d.md)
+  : 2-D density of the bulk convolution \\y\sim N(\mu p,\Sigma(p))\\
+- [`gaussian_confidence_ellipse()`](https://bastienchassagnol.github.io/DeCovarT/reference/gaussian_confidence_ellipse.md)
+  : Exact Gaussian probability ellipse (known mean and covariance)
+- [`plot_bulk_loglik_surface_p()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_bulk_loglik_surface_p.md)
+  : Contour of the bulk log-likelihood on a \\(p_1,p_2)\\ lattice
+- [`plot_bulk_loglik_ilr_profile()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_bulk_loglik_ilr_profile.md)
+  : Log-likelihood profile in the ILR coordinate
+  \\\rho\in\mathbb{R}^{J-1}\\
+- [`plot_bulk_loglik_rgl()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_bulk_loglik_rgl.md)
+  : rgl surface of the bulk log-likelihood on a \\(p_1,p_2)\\ lattice
+- [`plot_bivariate_metric_tiles()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_bivariate_metric_tiles.md)
+  : Tile heatmap of a bivariate metric on the (\\\rho_1\\,\\\rho_2\\)
+  plane
+- [`save_bivariate_metric_heatmaps()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_metric_heatmaps.md)
+  : Write RMSE / MAE / Aitchison tile PDFs for the bivariate toy
+- [`save_bivariate_similarity_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_similarity_book.md)
+  : Multi-page PDF of clustered algorithm-similarity heatmaps
+- [`save_bivariate_forest_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_forest_book.md)
+  : Multi-page PDF of Wald forests at four correlation corners
+- [`save_bivariate_raincloud_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_raincloud_book.md)
+  : Multi-page PDF of rainclouds at four correlation corners
+- [`save_bivariate_solver_dots_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_solver_dots_book.md)
+  : 12-page PDF of RMSE/Aitchison solver dots on the correlation grid
+- [`save_bivariate_bulk_density_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_bulk_density_book.md)
+  : Multi-page PDF of bulk convolution densities
+- [`save_bivariate_loglik_ilr_profile_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_loglik_ilr_profile_book.md)
+  : Multi-page PDF of ILR log-likelihood profiles
+  (\\\rho\in\mathbb{R}\\)
+- [`save_bivariate_loglik_rgl_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_loglik_rgl_book.md)
+  : Multi-page PDF (and optional HTML) of rgl bulk log-likelihood
+  surfaces
+- [`save_bivariate_loglik_surface_p_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_loglik_surface_p_book.md)
+  : Multi-page PDF of bulk log-likelihood surfaces on \\(p_1,p_2)\\
+- [`save_bivariate_purified_density_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_purified_density_book.md)
+  : Multi-page PDF of purified densities at four correlation corners
 
 ## Simulation
 
@@ -229,6 +273,16 @@ and glmnet gene scores for signature design.
   : Validate generative-model parameters \\\theta\\
 - [`compute_average_overlap()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_overlap.md)
   : Average pairwise overlap of a Gaussian mixture
+- [`overlap_gaussian_mc()`](https://bastienchassagnol.github.io/DeCovarT/reference/overlap_gaussian_mc.md)
+  : MixSim-style pairwise overlap via stratified Sobol Monte Carlo
+- [`spd_affine_invariant_distance()`](https://bastienchassagnol.github.io/DeCovarT/reference/spd_affine_invariant_distance.md)
+  : Affine-invariant Riemannian (AIRM) distance between two SPD matrices
+- [`compute_average_riemannian()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_riemannian.md)
+  : Mean pairwise AIRM distance of component covariances
+- [`scale_covariance_array()`](https://bastienchassagnol.github.io/DeCovarT/reference/scale_covariance_array.md)
+  : Scale component covariances, keeping precision zeros
+- [`scale_covariances_to_overlap()`](https://bastienchassagnol.github.io/DeCovarT/reference/scale_covariances_to_overlap.md)
+  : Calibrate a global covariance scale to a target MixSim BarOmega
 - [`compute_average_jeffreys()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_jeffreys.md)
   : Average pairwise Jeffreys divergence of a Gaussian mixture
 - [`compute_glmnet_gene_scores()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_glmnet_gene_scores.md)

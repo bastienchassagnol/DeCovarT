@@ -6,16 +6,20 @@
 mean geometry, covariance / SPD diagnostics, network sparsity, and
 tangent Fisher information (mean versus covariance split). MixSim
 BarOmega and average pairwise Hellinger of the component Gaussians
-are kept in descriptors. Jeffreys / symmetrised KL is returned in
-supplementary."><meta property="og:description" content="Summarises the generating law
+are kept in descriptors (Hellinger is the unweighted pairwise mean;
+hellinger_weighted is optional). Jeffreys / symmetrised KL is
+returned in supplementary. Mean-geometry columns include the
+highest pairwise cosine and the mean Euclidean (CLD) gap."><meta property="og:description" content="Summarises the generating law
 \(\boldsymbol{y}\mid(\boldsymbol{\zeta},\boldsymbol{p})\sim
 \mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},
 \sum_j p_j^2\boldsymbol{\Sigma}_j)\) at five layers: composition,
 mean geometry, covariance / SPD diagnostics, network sparsity, and
 tangent Fisher information (mean versus covariance split). MixSim
 BarOmega and average pairwise Hellinger of the component Gaussians
-are kept in descriptors. Jeffreys / symmetrised KL is returned in
-supplementary."><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
+are kept in descriptors (Hellinger is the unweighted pairwise mean;
+hellinger_weighted is optional). Jeffreys / symmetrised KL is
+returned in supplementary. Mean-geometry columns include the
+highest pairwise cosine and the mean Euclidean (CLD) gap."><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -44,10 +48,11 @@ supplementary."><meta property="og:image" content="https://bastienchassagnol.git
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
     <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-distance-covariance.html"><span class="fa fa-ruler"></span> Distances, overlap, and covariance information</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
-    <li><a class="dropdown-item" href="../articles/fig03-variance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Variance-driven hybrid (J = 3, G = 50)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig03-covariance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
@@ -91,13 +96,20 @@ supplementary."><meta property="og:image" content="https://bastienchassagnol.git
 mean geometry, covariance / SPD diagnostics, network sparsity, and
 tangent Fisher information (mean versus covariance split). MixSim
 BarOmega and average pairwise Hellinger of the component Gaussians
-are kept in <code>descriptors</code>. Jeffreys / symmetrised KL is returned in
-<code>supplementary</code>.</p>
+are kept in <code>descriptors</code> (Hellinger is the unweighted pairwise mean;
+<code>hellinger_weighted</code> is optional). Jeffreys / symmetrised KL is
+returned in <code>supplementary</code>. Mean-geometry columns include the
+highest pairwise cosine and the mean Euclidean (CLD) gap.</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">describe_simulation_scenario</span><span class="op">(</span><span class="va">true_theta</span>, adjacency <span class="op">=</span> <span class="cn">NULL</span>, active_tol <span class="op">=</span> <span class="fl">1e-08</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">describe_simulation_scenario</span><span class="op">(</span></span>
+<span>  <span class="va">true_theta</span>,</span>
+<span>  adjacency <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  active_tol <span class="op">=</span> <span class="fl">1e-08</span>,</span>
+<span>  include_mixsim <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -119,6 +131,11 @@ supplied.</p></dd>
 <dt id="arg-active-tol">active_tol<a class="anchor" aria-label="anchor" href="#arg-active-tol"></a></dt>
 <dd><p>Threshold for counting an active simplex component.</p></dd>
 
+
+<dt id="arg-include-mixsim">include_mixsim<a class="anchor" aria-label="anchor" href="#arg-include-mixsim"></a></dt>
+<dd><p>Logical. If <code>TRUE</code> (default), compute MixSim
+BarOmega via <code><a href="compute_average_overlap.html">compute_average_overlap()</a></code>. Set <code>FALSE</code> to skip.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -126,7 +143,11 @@ supplied.</p></dd>
 <li><p><code>descriptors</code>: one-row tibble of kept scenario statistics in six
 families (composition, mean geometry, SPD of
 \(\boldsymbol{\Sigma}(\boldsymbol{p})\), tangent Fisher, network,
-component overlap). SPD columns include both
+component overlap). MixSim BarOmega uses <code><a href="compute_average_overlap.html">compute_average_overlap()</a></code>
+(Davies quadrature for \(G&lt;4\), Sobol Monte Carlo otherwise).
+Average pairwise Hellinger and affine-invariant Riemannian
+distance of the \(\Sigma_j\) are kept alongside.
+<code>hellinger_weighted</code> is optional. SPD columns include both
 \(\kappa\{\boldsymbol{\Sigma}(\boldsymbol{p})\}\)
 (<code>kappa_sigma_p</code>) and the reciprocal
 \(\lambda_{\min}/\lambda_{\max}\) (<code>kappa_sigma_reciprocal</code>);</p></li>
@@ -138,7 +159,8 @@ recorded but not treated as a primary score;</p></li>
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="run_simulation_benchmark.html">run_simulation_benchmark()</a></code>, <code><a href="expected_fisher_unconstrained.html">expected_fisher_unconstrained()</a></code>,
 <code><a href="compute_shannon_entropy.html">compute_shannon_entropy()</a></code>, <code><a href="composition_from_entropy.html">composition_from_entropy()</a></code>,
-<code><a href="helmert_basis.html">helmert_basis()</a></code></p></div>
+<code><a href="helmert_basis.html">helmert_basis()</a></code>, <code><a href="compute_average_overlap.html">compute_average_overlap()</a></code>,
+<code><a href="compute_average_riemannian.html">compute_average_riemannian()</a></code></p></div>
     </div>
 
     <div class="section level2">

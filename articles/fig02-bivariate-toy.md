@@ -1,4 +1,4 @@
-# §2.1 Bivariate toy model (G = 2 genes, J = 2 cell types)
+# 2.1 Bivariate toy model (G = 2 genes, J = 2 cell types)
 
 This article is the bivariate Gaussian-convolution toy of the methods
 paper (G=2, J=2). It isolates gene–gene correlation from mean
@@ -21,10 +21,91 @@ Reporting conventions (ADEMP, Nature Methods, raincloud / forest plots)
 are in [how to build synthetic
 scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-scenarios-mean-covariance.html#sec-ademp).
 
-> **Script:** from the repository root,
-> `mkdir -p logs && nohup Rscript --no-save --no-restore scripts/fig02_bivariate_toy.R > "logs/fig02_$(date +%F)_bivariate_toy.log" 2>&1 &`
-> (full, n = 500) or prefix `N_REPLICATES=2` for a smoke test. Outputs
-> land in `output/fig02/`.
+``` default
+%%{init: {"theme": "sandstone"}}%%
+flowchart TD
+  P["3 compositions<br/>Ba / Mo / Hi"] --> S["972 scenarios"]
+  V["2 variance structures<br/>Ho homoscedastic / He heteroscedastic"] --> S
+  C["2 CLD mean separations<br/>Sm small / Lg large"] --> S
+  R["9 x 9 gene-gene correlations<br/>rho in -0.8 to 0.8, step 0.2"] --> S
+  S --> A["7 deconvolution solvers"]
+```
+
+``` mermaid
+%%{init: {"theme": "sandstone"}}%%
+flowchart TD
+  P["3 compositions<br/>Ba / Mo / Hi"] --> S["972 scenarios"]
+  V["2 variance structures<br/>Ho homoscedastic / He heteroscedastic"] --> S
+  C["2 CLD mean separations<br/>Sm small / Lg large"] --> S
+  R["9 x 9 gene-gene correlations<br/>rho in -0.8 to 0.8, step 0.2"] --> S
+  S --> A["7 deconvolution solvers"]
+```
+
+Figure 1: Bivariate toy factorial design: three compositions, two
+variance structures, two CLD mean separations, a 9-by-9 gene-gene
+correlation grid, and seven solvers (3 x 2 x 2 x 9 x 9 = 972 scenarios).
+
+``` default
+---
+config:
+  layout: elk
+  theme: sandstone
+---
+flowchart TB
+  ROOT["Bivariate toy"]
+  ROOT --> Sm["Small CLD"]
+  ROOT --> Lg["Large CLD"]
+  Sm --> SmHo["Homoscedastic"]
+  Sm --> SmHe["Heteroscedastic"]
+  Lg --> LgHo["Homoscedastic"]
+  Lg --> LgHe["Heteroscedastic"]
+  SmHo --> SmHoBa["Balanced"]
+  SmHo --> SmHoMo["Moderately unbalanced"]
+  SmHo --> SmHoHi["Highly unbalanced"]
+  SmHe --> SmHeBa["Balanced"]
+  SmHe --> SmHeMo["Moderately unbalanced"]
+  SmHe --> SmHeHi["Highly unbalanced"]
+  LgHo --> LgHoBa["Balanced"]
+  LgHo --> LgHoMo["Moderately unbalanced"]
+  LgHo --> LgHoHi["Highly unbalanced"]
+  LgHe --> LgHeBa["Balanced"]
+  LgHe --> LgHeMo["Moderately unbalanced"]
+  LgHe --> LgHeHi["Highly unbalanced"]
+```
+
+``` mermaid
+---
+config:
+  layout: elk
+  theme: sandstone
+---
+flowchart TB
+  ROOT["Bivariate toy"]
+  ROOT --> Sm["Small CLD"]
+  ROOT --> Lg["Large CLD"]
+  Sm --> SmHo["Homoscedastic"]
+  Sm --> SmHe["Heteroscedastic"]
+  Lg --> LgHo["Homoscedastic"]
+  Lg --> LgHe["Heteroscedastic"]
+  SmHo --> SmHoBa["Balanced"]
+  SmHo --> SmHoMo["Moderately unbalanced"]
+  SmHo --> SmHoHi["Highly unbalanced"]
+  SmHe --> SmHeBa["Balanced"]
+  SmHe --> SmHeMo["Moderately unbalanced"]
+  SmHe --> SmHeHi["Highly unbalanced"]
+  LgHo --> LgHoBa["Balanced"]
+  LgHo --> LgHoMo["Moderately unbalanced"]
+  LgHo --> LgHoHi["Highly unbalanced"]
+  LgHe --> LgHeBa["Balanced"]
+  LgHe --> LgHeMo["Moderately unbalanced"]
+  LgHe --> LgHeHi["Highly unbalanced"]
+```
+
+Figure 2: Hierarchical reading of the same factorial: small versus large
+CLD, then homoscedastic versus heteroscedastic variances, then balanced
+/ moderately unbalanced / highly unbalanced compositions (2 x 2 x 3 = 12
+meta-scenarios). Each leaf is crossed with the 9-by-9 gene-gene
+correlation grid.
 
 ## Generative model
 
@@ -50,7 +131,7 @@ pairwise correlation changes, at fixed means, marginal variances, and
 composition. The ggplot panel below recomputes the same contrast and
 annotates MixSim overlap.
 
-Figure 1: Factorial design (left) and correlation-only 2D densities
+Figure 3: Factorial design (left) and correlation-only 2D densities
 (right) for the bivariate toy. {#fig-toy-design}
 
 ### Factorial design (972 scenarios)
@@ -64,7 +145,53 @@ Figure 1: Factorial design (left) and correlation-only 2D densities
 | Variance structure | homoscedastic \sigma^2 = (1,1); heteroscedastic \sigma^2 = (1,2) |
 | **Total scenarios** | 3 \times 2 \times 9 \times 9 \times 2 = \mathbf{972} |
 
-N = 500 Monte Carlo replicates per scenario (smoke test: n = 2).
+N = 500 Monte Carlo replicates per scenario.
+
+**CLD** is centroid (mean-profile) Euclidean separation
+\lVert\boldsymbol{\mu}\_{\cdot 1}-\boldsymbol{\mu}\_{\cdot 2}\rVert_2,
+not an Aitchison distance; see [the descriptor
+notes](https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-scenarios-mean-covariance.html#nte-desc-cld).
+Small CLD uses \boldsymbol{\mu}\_{\cdot 1}=(20,22),
+\boldsymbol{\mu}\_{\cdot 2}=(22,20) (d=2\sqrt{2}\approx 2.83, cosine
+\approx 0.995). Large CLD uses (20,40) and (40,20) (d=20\sqrt{2}\approx
+28.3, cosine 0.8).
+
+#### Scenario ID
+
+Each row is labelled `B{index}_{variance}_{composition}_{CLD}`. The
+index is the factorial row number (1–972). Example: `B1_Ho_Ba_Sm` is the
+first row, homoscedastic, balanced proportions, small CLD.
+
+| Token | Meaning |
+|----|----|
+| `B` | Bivariate toy (G=2, J=2) |
+| `1`–`972` | Factorial row index |
+| `Ho` / `He` | Homoscedastic / heteroscedastic marginal variances |
+| `Ba` / `Mo` / `Hi` | Balanced / moderately unbalanced / highly unbalanced \boldsymbol{p} |
+| `Sm` / `Lg` | Small / large CLD (Euclidean centroid gap) |
+
+The slim design grid is `output/fig02/bivariate_config.rds` (no
+`true_theta`). Geometry, MixSim `BarOmega`, Hellinger, and Jeffreys live
+in `bivariate_descriptors.rds`. Convolution parameters are
+`bivariate_theta.rds`. ADEMP metrics (`regression`, `monte_carlo`,
+`optimisation`, `call`) are `bivariate_benchmark.rds`. All four files
+share the `ID` key.
+`read_simulation_artefacts(dir, "bivariate", assemble = TRUE)` rejoins
+them for plotting.
+
+The Monte Carlo \hat{\boldsymbol{p}} draws themselves are the cell-type
+columns of `optimisation` (one row per replicate \times algorithm \times
+scenario).
+[`pivot_mc_estimates()`](https://bastienchassagnol.github.io/DeCovarT/reference/pivot_mc_estimates.md)
+stacks those columns into long form. Interior Wald intervals for
+convolution-likelihood solvers use
+[`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md)
+(expected Fisher information through the ILR chart), matching
+[`confint.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md).
+Coverage, `mean_model_se`, and `se_sd_ratio` (mean model SE / empirical
+SD) are then finite. Mean-only solvers (NNLS, LSEI) leave those Wald
+columns missing: they do not maximise the convolution likelihood, so an
+ILR interval would not apply.
 
 ``` r
 
@@ -140,7 +267,9 @@ Seven solvers are evaluated on each scenario:
 
 Performance is summarised using the ADEMP framework ([Morris et al.
 2019](#ref-morrisUsingSimulationStudies2019)): **bias**, **RMSE**,
-**coverage** (Wilson intervals), and optimiser **failure rate**.
+**coverage** of ILR Wald intervals (Wilson intervals on the coverage
+*rate*), **SE/SD**, and optimiser **failure rate**. Mean-only baselines
+have no convolution Wald SE.
 
 ``` r
 
@@ -157,19 +286,42 @@ bivariate <- run_simulation_benchmark(
 )
 ```
 
-`config` stores Shannon entropy of \boldsymbol{p} and MixSim overlap;
-`optimisation` stores per-sample \hat{\boldsymbol{p}}, elapsed time, and
-memory; `regression` and `monte_carlo` are the composition and ADEMP
-blocks from
+`config` on the in-memory benchmark still carries Shannon entropy of
+\boldsymbol{p} and MixSim overlap for tests. Saved artefacts split that
+information: `optimisation` stores per-sample \hat{\boldsymbol{p}},
+elapsed time, and memory; `regression` and `monte_carlo` are the
+composition and ADEMP blocks from
 [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md).
 
 ## Visualisations
 
-Four figures are written to `output/fig02/`: a filled 2-D RMSE display
-on the \rho_1 \times \rho_2 plane
-([`ggplot2::geom_density_2d_filled()`](https://ggplot2.tidyverse.org/reference/geom_density_2d.html)
-is the ggplot analogue), raincloud of Monte Carlo errors, ADEMP forest
-plot, and algorithm-similarity tile.
+Figures are written from the split RDS (no ADEMP refit). Density books
+go to `output/fig02/density_visualisations/`; RMSE / MAE / Aitchison
+tiles, raincloud, forest, similarity, and solver-dot books go to
+`output/fig02/performance_visualisations/`. Tile heatmaps
+([`ggplot2::geom_tile()`](https://ggplot2.tidyverse.org/reference/geom_tile.html))
+show RMSE, MAE, and Aitchison distance on the (\rho_1,\rho_2) plane: one
+PDF per metric, one page per meta-scenario (CLD () variance ()
+composition), seven solver panels. Scenario factors are relevelled
+(small then large CLD; homoscedastic then heteroscedastic; balanced,
+moderately unbalanced, highly unbalanced) when artefacts are read, and
+solvers follow `nnls`, `lsei`, `SA`, `gradient`, `LBFGS`,
+`Newton-Raphson`, `Marquardt-Levenberg`. Density and performance books
+share the four correlation corners
+(\rho_1,\rho_2)\in\\(0,0),(-0.8,-0.8),(0.8,0.8),(-0.8,0.8)\\ (2\times
+2\times 3=12 pages). Similarity heatmaps compute Pearson (r) of paired
+() **within each corner** (not pooled across the 9-by-9 grid), with
+average-linkage clustering of (1-r) and a dendrogram on the right of the
+tiles. Wald forests drop NNLS, LSEI, and SA; solid whiskers are (1.96)
+times the expected-Fisher Wald SE at the true composition, dashed
+whiskers use the empirical Monte Carlo SD, and bold two-line labels (one
+per solver, centred between cell types) report RMSE and coverage, which
+are the same for (p_1) and (p_2) on the simplex. Rainclouds plot (p)
+(not the error) with vertical lines at the two true proportions.
+Solver-dot pages use the same 9-by-9 ((\_1,\_2)) grid as the RMSE
+heatmaps: colour is mean RMSE and size is mean Aitchison distance, with
+horizontal y-axis labels. ggplot `data` tables are saved under
+`output/fig02/ggplot_rds/`.
 
 #### Expected findings
 
@@ -182,8 +334,8 @@ highest near zero mean separation.
 
 ### See also
 
-- Variance-driven hybrid (G=50, J=3):
-  [§2.2](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-variance-driven.md)
+- Variance-driven hybrid (G=20, J=3):
+  [§2.2](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-covariance-driven.md)
 - Moment generator and ADEMP reporting: [How to build synthetic
   scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-scenarios-mean-covariance.md)
 - Regular-case MLE checks: [Appendix

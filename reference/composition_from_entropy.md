@@ -1,7 +1,7 @@
 # One-dominant composition with a target normalised Shannon entropy
 
 Returns a length-\\J\\ simplex vector of the form
-\\(1-(J-1)q,\\q,\ldots,q)\\ whose Pielou evenness
+\\(1-(J-1)q,\\q,\ldots,q)\\ whose normalised Shannon entropy
 [`compute_shannon_entropy()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_shannon_entropy.md)
 equals `h_star`. The uniform composition (`h_star = 1`) and a Dirac mass
 (`h_star = 0`) are returned exactly.

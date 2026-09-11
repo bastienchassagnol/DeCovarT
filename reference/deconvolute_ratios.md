@@ -103,7 +103,16 @@ with `regression` (global and cell-type subtables), `monte_carlo`, and
 \\\hat{\boldsymbol{p}}\\). First-generation solvers still call
 [`repair_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/repair_simplex.md);
 the three native DeCovarT maps (ILR or \\p/\sum p\\) already lie on the
-simplex.
+simplex. When `Sigma` is supplied, Newton-Raphson, Marquardt-Levenberg,
+L-BFGS-B, BFGS (gradient), and simulated annealing attach ILR Wald
+standard errors from
+[`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md)
+so `monte_carlo` can report coverage, mean model SE, and the SE/SD
+ratio. Those SEs are the expected-Fisher delta-method bounds used by
+[`confint.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md),
+not diagonal entries of the observed Hessian. Mean-only solvers (NNLS,
+LSEI) leave Wald columns missing: those estimators do not use the
+convolution likelihood.
 
 ## References
 
@@ -185,21 +194,21 @@ deconvolute_ratios(
 #> 
 #> 
 #> $monte_carlo
-#> # A tibble: 2 × 14
+#> # A tibble: 2 × 15
 #>   algorithm cell_type    bias empirical_sd mean_model_sd mean_model_se
 #>   <chr>     <chr>       <dbl>        <dbl>         <dbl>         <dbl>
 #> 1 nnls      ct1        0.0696        0.212            NA            NA
 #> 2 nnls      ct2       -0.0696        0.212            NA            NA
-#> # ℹ 8 more variables: se_sd_ratio <dbl>, rmse <dbl>, coverage <dbl>,
-#> #   coverage_lower <dbl>, coverage_upper <dbl>, coverage_interval <chr>,
-#> #   mean_interval_width <dbl>, mcse_coverage <dbl>
+#> # ℹ 9 more variables: se_sd_ratio <dbl>, theoretical_se <dbl>, rmse <dbl>,
+#> #   coverage <dbl>, coverage_lower <dbl>, coverage_upper <dbl>,
+#> #   coverage_interval <chr>, mean_interval_width <dbl>, mcse_coverage <dbl>
 #> 
 #> $optimisation
 #> # A tibble: 2 × 10
 #>   sample_id algorithm elapsed_sec memory_bytes kkt_residual numerical_converged
 #>   <chr>     <chr>           <dbl>        <dbl>        <dbl> <lgl>              
-#> 1 sample_1  nnls                0    536718336        0.444 TRUE               
-#> 2 sample_2  nnls                0    539626496        0.152 TRUE               
+#> 1 sample_1  nnls         0.001000    485945344        0.444 TRUE               
+#> 2 sample_2  nnls         0.001000    485945344        0.152 TRUE               
 #> # ℹ 4 more variables: theoretical_converged <lgl>, loglik_regret <dbl>,
 #> #   ct1 <dbl>, ct2 <dbl>
 #> 

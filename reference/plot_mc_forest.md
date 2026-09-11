@@ -1,15 +1,18 @@
 # Forest plot of ADEMP Monte Carlo summaries
 
 Dot-and-whisker display of bias, RMSE, MAE, coverage, mean interval
-width, and optimiser failure rate by algorithm and cell type (Allen et
-al. 2019) . Coverage whiskers are the Wilson interval already stored on
-`monte_carlo`
+width, SE/SD ratio, and optimiser failure rate by algorithm and cell
+type (Allen et al. 2019) . Coverage whiskers are the Wilson interval
+already stored on `monte_carlo`
 ([`coverage_mc_interval()`](https://bastienchassagnol.github.io/DeCovarT/reference/coverage_mc_interval.md);
 (Wilson 1927) ): they are intervals for the coverage *rate*, not for
-\\p_j\\. Bias is referenced at 0; coverage at 0.95. Pairwise algorithm
-contrasts (MAE differences versus a reference solver on the same Monte
-Carlo replicates) can be read from the raincloud of paired errors; they
-do not need a second bootstrap.
+\\p_j\\. Bias is referenced at 0; coverage at 0.95; SE/SD
+(`se_sd_ratio`, mean model SE / empirical SD) at 1. Interior Wald SEs
+come from
+[`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md).
+Pairwise algorithm contrasts (MAE differences versus a reference solver
+on the same Monte Carlo replicates) can be read from the raincloud of
+paired errors; they do not need a second bootstrap.
 
 ## Usage
 
@@ -18,7 +21,8 @@ plot_mc_forest(
   benchmark,
   facet_rows = NULL,
   facet_cols = NULL,
-  metrics = c("bias", "rmse", "mae", "coverage", "mean_interval_width", "failure_rate")
+  metrics = c("bias", "rmse", "mae", "coverage", "mean_interval_width", "se_sd_ratio",
+    "failure_rate")
 )
 ```
 
@@ -61,7 +65,9 @@ Association*, **22**(158), 209–212. ISSN 0162-1459.
 ## See also
 
 [`plot_mc_raincloud()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_raincloud.md),
-[`coverage_mc_interval()`](https://bastienchassagnol.github.io/DeCovarT/reference/coverage_mc_interval.md)
+[`coverage_mc_interval()`](https://bastienchassagnol.github.io/DeCovarT/reference/coverage_mc_interval.md),
+[`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md),
+[`theme_decovart_facets()`](https://bastienchassagnol.github.io/DeCovarT/reference/theme_decovart_facets.md)
 
 ## Examples
 
@@ -90,6 +96,4 @@ out <- run_simulation_benchmark(
 if (requireNamespace("ggplot2", quietly = TRUE)) {
   plot_mc_forest(out, facet_cols = "cosine")
 }
-#> Warning: Removed 4 rows containing missing values or values outside the scale range
-#> (`geom_point()`).
 ```

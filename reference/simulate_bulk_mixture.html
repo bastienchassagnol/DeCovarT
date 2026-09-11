@@ -90,10 +90,11 @@ with \(\boldsymbol{X}^{(i)}\in\mathcal{M}_{G\times J}\)."><meta property="og:ima
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
     <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-distance-covariance.html"><span class="fa fa-ruler"></span> Distances, overlap, and covariance information</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
-    <li><a class="dropdown-item" href="../articles/fig03-variance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Variance-driven hybrid (J = 3, G = 50)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig03-covariance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
@@ -170,7 +171,8 @@ with \(\boldsymbol{X}^{(i)}\in\mathcal{M}_{G\times J}\).</p>
 <span>  <span class="va">signature_matrix</span>,</span>
 <span>  <span class="va">Sigma</span>,</span>
 <span>  p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">signature_matrix</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">signature_matrix</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  n <span class="op">=</span> <span class="fl">500</span></span>
+<span>  n <span class="op">=</span> <span class="fl">500</span>,</span>
+<span>  truncate_negative <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -196,6 +198,14 @@ samples; not the latent profiles).</p></dd>
 
 <dt id="arg-n">n<a class="anchor" aria-label="anchor" href="#arg-n"></a></dt>
 <dd><p>Number of bulk / bootstrap samples \(N\).</p></dd>
+
+
+<dt id="arg-truncate-negative">truncate_negative<a class="anchor" aria-label="anchor" href="#arg-truncate-negative"></a></dt>
+<dd><p>If <code>TRUE</code>, replace negative bulk entries
+with 0 so \(\boldsymbol{Y}\) is a valid RNA-seq-style non-negative
+matrix. The latent Gaussian draws are unchanged. <code><a href="deconvolute_ratios.html">deconvolute_ratios()</a></code>
+allows negative bulk entries (with a warning): Gaussian convolutions
+can produce them. Flooring is optional, not required.</p></dd>
 
 </dl></div>
     <div class="section level2">

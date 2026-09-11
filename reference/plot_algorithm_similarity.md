@@ -4,8 +4,9 @@
 display of
 [`algorithm_similarity()`](https://bastienchassagnol.github.io/DeCovarT/reference/algorithm_similarity.md),
 with rows and columns ordered by average-linkage clustering of \\1-r\\.
-Optional dendrogram via `ggdendro` (Suggests). This is the default for a
-small correlation matrix;
+Optional dendrogram via `ggdendro` (Suggests), drawn to the **right** of
+the tiles with leaves flush against the heatmap. This is the default for
+a small correlation matrix;
 [`plot_correlation_Heatmap()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_correlation_Heatmap.md)
 is reserved for linked multi-omics grids.
 
@@ -34,8 +35,8 @@ plot_algorithm_similarity(
 
 - dendrogram:
 
-  If `TRUE`, attach a `ggdendro` ggplot as attribute `"dendrogram"`
-  (ignored when scenario facets are used).
+  If `TRUE`, attach a `ggdendro` ggplot to the right of the tiles as
+  attribute `"dendrogram"` (ignored when scenario facets are used).
 
 ## Value
 

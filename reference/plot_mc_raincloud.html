@@ -44,10 +44,11 @@ algorithm. Optional facet_rows / facet_cols split scenarios
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
     <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-distance-covariance.html"><span class="fa fa-ruler"></span> Distances, overlap, and covariance information</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
-    <li><a class="dropdown-item" href="../articles/fig03-variance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Variance-driven hybrid (J = 3, G = 50)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig03-covariance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
@@ -102,7 +103,13 @@ algorithm. Optional <code>facet_rows</code> / <code>facet_cols</code> split scen
 <span>  quantity <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"error"</span>, <span class="st">"estimate"</span><span class="op">)</span>,</span>
 <span>  facet_rows <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  facet_cols <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  .width <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.95</span><span class="op">)</span></span>
+<span>  .width <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.95</span><span class="op">)</span>,</span>
+<span>  include_dots <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  max_dots <span class="op">=</span> <span class="fl">2000L</span>,</span>
+<span>  max_rows <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  dodge_width <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  slab_scale <span class="op">=</span> <span class="fl">1.4</span>,</span>
+<span>  slab_alpha <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -127,6 +134,35 @@ from <code><a href="pivot_mc_estimates.html">pivot_mc_estimates()</a></code>.</p
 <dt id="arg--width">.width<a class="anchor" aria-label="anchor" href="#arg--width"></a></dt>
 <dd><p>Passed to <code><a href="https://mjskay.github.io/ggdist/reference/stat_halfeye.html" class="external-link">ggdist::stat_halfeye()</a></code>; default
 <code>c(0.5, 0.95)</code>.</p></dd>
+
+
+<dt id="arg-include-dots">include_dots<a class="anchor" aria-label="anchor" href="#arg-include-dots"></a></dt>
+<dd><p>If <code>FALSE</code>, omit <code><a href="https://mjskay.github.io/ggdist/reference/stat_dots.html" class="external-link">ggdist::stat_dots()</a></code> (use this
+on large Monte Carlo tables: the Fortran QP in <code>nudge_bins</code> cannot
+take long vectors).</p></dd>
+
+
+<dt id="arg-max-dots">max_dots<a class="anchor" aria-label="anchor" href="#arg-max-dots"></a></dt>
+<dd><p>Maximum rows passed to <code>stat_dots</code> when
+<code>include_dots = TRUE</code>. Extra rows are subsampled.</p></dd>
+
+
+<dt id="arg-max-rows">max_rows<a class="anchor" aria-label="anchor" href="#arg-max-rows"></a></dt>
+<dd><p>Optional cap on the plotting table (half-eye and
+dots). When the Monte Carlo stack is huge, subsample before
+drawing.</p></dd>
+
+
+<dt id="arg-dodge-width">dodge_width<a class="anchor" aria-label="anchor" href="#arg-dodge-width"></a></dt>
+<dd><p>Width passed to <code><a href="https://ggplot2.tidyverse.org/reference/position_dodge.html" class="external-link">ggplot2::position_dodge()</a></code>.</p></dd>
+
+
+<dt id="arg-slab-scale">slab_scale<a class="anchor" aria-label="anchor" href="#arg-slab-scale"></a></dt>
+<dd><p>Slab height for <code><a href="https://mjskay.github.io/ggdist/reference/stat_halfeye.html" class="external-link">ggdist::stat_halfeye()</a></code>.</p></dd>
+
+
+<dt id="arg-slab-alpha">slab_alpha<a class="anchor" aria-label="anchor" href="#arg-slab-alpha"></a></dt>
+<dd><p>Transparency of the density slab (<code>1</code> is opaque).</p></dd>
 
 </dl></div>
     <div class="section level2">

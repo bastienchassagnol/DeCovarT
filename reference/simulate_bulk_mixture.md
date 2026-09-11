@@ -32,7 +32,8 @@ simulate_bulk_mixture(
   signature_matrix,
   Sigma,
   p = rep(1/ncol(signature_matrix), ncol(signature_matrix)),
-  n = 500
+  n = 500,
+  truncate_negative = FALSE
 )
 ```
 
@@ -56,6 +57,15 @@ simulate_bulk_mixture(
 - n:
 
   Number of bulk / bootstrap samples \\N\\.
+
+- truncate_negative:
+
+  If `TRUE`, replace negative bulk entries with 0 so \\\boldsymbol{Y}\\
+  is a valid RNA-seq-style non-negative matrix. The latent Gaussian
+  draws are unchanged.
+  [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)
+  allows negative bulk entries (with a warning): Gaussian convolutions
+  can produce them. Flooring is optional, not required.
 
 ## Value
 

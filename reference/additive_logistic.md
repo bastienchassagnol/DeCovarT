@@ -7,9 +7,7 @@ Aitchison (\\\mathrm{alr}^{-1}\\): a softmax with the last category
 [`vcov.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md)
 use the isometric log-ratio chart
 [`isometric_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/isometric_logistic.md)
-instead. This ALR helper is retained for the vignette appendix and for
-reference-invariance checks against
-[`vcov_alr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.md).
+instead. This ALR helper is retained for the vignette appendix.
 
 Recovers the unconstrained additive log-ratio coordinates
 \\\rho_j=\ln(p_j/p_J)\\ for \\j=1,\ldots,J-1\\, with the last part

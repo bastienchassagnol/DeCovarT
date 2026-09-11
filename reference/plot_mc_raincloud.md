@@ -16,7 +16,13 @@ plot_mc_raincloud(
   quantity = c("error", "estimate"),
   facet_rows = NULL,
   facet_cols = NULL,
-  .width = c(0.5, 0.95)
+  .width = c(0.5, 0.95),
+  include_dots = TRUE,
+  max_dots = 2000L,
+  max_rows = NULL,
+  dodge_width = 0.95,
+  slab_scale = 1.4,
+  slab_alpha = 1
 )
 ```
 
@@ -44,6 +50,37 @@ plot_mc_raincloud(
   Passed to
   [`ggdist::stat_halfeye()`](https://mjskay.github.io/ggdist/reference/stat_halfeye.html);
   default `c(0.5, 0.95)`.
+
+- include_dots:
+
+  If `FALSE`, omit
+  [`ggdist::stat_dots()`](https://mjskay.github.io/ggdist/reference/stat_dots.html)
+  (use this on large Monte Carlo tables: the Fortran QP in `nudge_bins`
+  cannot take long vectors).
+
+- max_dots:
+
+  Maximum rows passed to `stat_dots` when `include_dots = TRUE`. Extra
+  rows are subsampled.
+
+- max_rows:
+
+  Optional cap on the plotting table (half-eye and dots). When the Monte
+  Carlo stack is huge, subsample before drawing.
+
+- dodge_width:
+
+  Width passed to
+  [`ggplot2::position_dodge()`](https://ggplot2.tidyverse.org/reference/position_dodge.html).
+
+- slab_scale:
+
+  Slab height for
+  [`ggdist::stat_halfeye()`](https://mjskay.github.io/ggdist/reference/stat_halfeye.html).
+
+- slab_alpha:
+
+  Transparency of the density slab (`1` is opaque).
 
 ## Value
 

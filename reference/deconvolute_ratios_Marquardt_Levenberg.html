@@ -62,10 +62,11 @@ vignette("theory-decovart-generative-model", package = "DeCovarT")).'><meta prop
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
     <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-distance-covariance.html"><span class="fa fa-ruler"></span> Distances, overlap, and covariance information</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
-    <li><a class="dropdown-item" href="../articles/fig03-variance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Variance-driven hybrid (J = 3, G = 50)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig03-covariance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
@@ -271,7 +272,9 @@ ILR coordinates \(\boldsymbol{z}\) (<code><a href="https://rdrr.io/r/stats/optim
 <li><p><code>deconvolute_ratios_L_BFGS_B()</code>: Box-constrained L-BFGS-B
 directly in \(\boldsymbol{p}\) (<code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code> <code>method = "L-BFGS-B"</code>).
 The box keeps each coordinate in \([0,1]\); the returned vector is
-closed by \(p/\sum p\) (no <code><a href="repair_simplex.html">repair_simplex()</a></code> clipping).</p></li>
+closed by \(p/\sum p\) (no <code><a href="repair_simplex.html">repair_simplex()</a></code> clipping). Wald
+standard errors still use the ILR expected-Fisher map
+<code><a href="vcov_ilr_delta.html">vcov_ilr_delta()</a></code>, not a \(\boldsymbol{p}\)-space Hessian.</p></li>
 <li><p><code>deconvolute_ratios_Newton_Raphson()</code>: Newton–Raphson /
 <code>nlminb</code> on ILR coordinates \(\boldsymbol{z}\) using analytic
 gradient and Hessian (<code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">stats::nlminb()</a></code>).</p></li>

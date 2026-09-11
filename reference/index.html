@@ -28,10 +28,11 @@
     <li><hr class="dropdown-divider"></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
     <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-distance-covariance.html"><span class="fa fa-ruler"></span> Distances, overlap, and covariance information</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
-    <li><a class="dropdown-item" href="../articles/fig03-variance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Variance-driven hybrid (J = 3, G = 50)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig03-covariance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
@@ -279,7 +280,7 @@
       </dl></div><div class="section level2">
 
       <h3 id="fisher-information-and-wald-intervals">Fisher information and Wald intervals<a class="anchor" aria-label="anchor" href="#fisher-information-and-wald-intervals"></a></h3>
-      <div class="section-desc"><p>Expected Fisher information of unconstrained proportions and ILR delta-method covariance used by <code><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov()</a></code> / <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code> on <code>decovart_fit</code> objects (see <code>fit_decovart</code>). <code><a href="../reference/vcov_alr_delta.html">vcov_alr_delta()</a></code> is retained for reference-invariance checks.</p></div>
+      <div class="section-desc"><p>Expected Fisher information of unconstrained proportions and ILR delta-method covariance used by <code><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov()</a></code> / <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code> on <code>decovart_fit</code> objects (see <code>fit_decovart</code>).</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -299,13 +300,6 @@
 
         </dt>
         <dd>Cramer–Rao / ILR delta-method covariance of \(\hat{\boldsymbol{p}}\)</dd>
-
-        <dt>
-
-          <code><a href="vcov_alr_delta.html">vcov_alr_delta()</a></code>
-
-        </dt>
-        <dd>Cramer–Rao / ALR delta-method covariance of \(\hat{\boldsymbol{p}}\)</dd>
       </dl></div><div class="section level2">
 
       <h3 id="likelihood-ratio-and-boundary-inference">Likelihood-ratio and boundary inference<a class="anchor" aria-label="anchor" href="#likelihood-ratio-and-boundary-inference"></a></h3>
@@ -446,6 +440,13 @@
 
         <dt>
 
+          <code><a href="theme_decovart_facets.html">theme_decovart_facets()</a></code>
+
+        </dt>
+        <dd>Faceted ggplot2 theme (black strips, panel border)</dd>
+
+        <dt>
+
           <code><a href="algorithm_similarity.html">algorithm_similarity()</a></code>
 
         </dt>
@@ -471,6 +472,146 @@
 
         </dt>
         <dd>Plot deconvolution metric heatmaps</dd>
+
+        <dt>
+
+          <code><a href="write_simulation_artefacts.html">write_simulation_artefacts()</a></code>
+
+        </dt>
+        <dd>Write split simulation artefacts (config, descriptors, theta, metrics)</dd>
+
+        <dt>
+
+          <code><a href="read_simulation_artefacts.html">read_simulation_artefacts()</a></code>
+
+        </dt>
+        <dd>Read split simulation artefacts and optionally reassemble a benchmark list</dd>
+
+        <dt>
+
+          <code><a href="slim_scenario_table.html">slim_scenario_table()</a></code>
+
+        </dt>
+        <dd>Drop duplicated design columns from a scenario-tagged table</dd>
+
+        <dt>
+
+          <code><a href="plot_purified_density_2d.html">plot_purified_density_2d()</a></code>
+
+        </dt>
+        <dd>2-D density of purified Gaussians</dd>
+
+        <dt>
+
+          <code><a href="plot_bulk_convolution_density_2d.html">plot_bulk_convolution_density_2d()</a></code>
+
+        </dt>
+        <dd>2-D density of the bulk convolution \(y\sim N(\mu p,\Sigma(p))\)</dd>
+
+        <dt>
+
+          <code><a href="gaussian_confidence_ellipse.html">gaussian_confidence_ellipse()</a></code>
+
+        </dt>
+        <dd>Exact Gaussian probability ellipse (known mean and covariance)</dd>
+
+        <dt>
+
+          <code><a href="plot_bulk_loglik_surface_p.html">plot_bulk_loglik_surface_p()</a></code>
+
+        </dt>
+        <dd>Contour of the bulk log-likelihood on a \((p_1,p_2)\) lattice</dd>
+
+        <dt>
+
+          <code><a href="plot_bulk_loglik_ilr_profile.html">plot_bulk_loglik_ilr_profile()</a></code>
+
+        </dt>
+        <dd>Log-likelihood profile in the ILR coordinate \(\rho\in\mathbb{R}^{J-1}\)</dd>
+
+        <dt>
+
+          <code><a href="plot_bulk_loglik_rgl.html">plot_bulk_loglik_rgl()</a></code>
+
+        </dt>
+        <dd>rgl surface of the bulk log-likelihood on a \((p_1,p_2)\) lattice</dd>
+
+        <dt>
+
+          <code><a href="plot_bivariate_metric_tiles.html">plot_bivariate_metric_tiles()</a></code>
+
+        </dt>
+        <dd>Tile heatmap of a bivariate metric on the (\(\rho_1\),\(\rho_2\)) plane</dd>
+
+        <dt>
+
+          <code><a href="save_bivariate_metric_heatmaps.html">save_bivariate_metric_heatmaps()</a></code>
+
+        </dt>
+        <dd>Write RMSE / MAE / Aitchison tile PDFs for the bivariate toy</dd>
+
+        <dt>
+
+          <code><a href="save_bivariate_similarity_book.html">save_bivariate_similarity_book()</a></code>
+
+        </dt>
+        <dd>Multi-page PDF of clustered algorithm-similarity heatmaps</dd>
+
+        <dt>
+
+          <code><a href="save_bivariate_forest_book.html">save_bivariate_forest_book()</a></code>
+
+        </dt>
+        <dd>Multi-page PDF of Wald forests at four correlation corners</dd>
+
+        <dt>
+
+          <code><a href="save_bivariate_raincloud_book.html">save_bivariate_raincloud_book()</a></code>
+
+        </dt>
+        <dd>Multi-page PDF of rainclouds at four correlation corners</dd>
+
+        <dt>
+
+          <code><a href="save_bivariate_solver_dots_book.html">save_bivariate_solver_dots_book()</a></code>
+
+        </dt>
+        <dd>12-page PDF of RMSE/Aitchison solver dots on the correlation grid</dd>
+
+        <dt>
+
+          <code><a href="save_bivariate_bulk_density_book.html">save_bivariate_bulk_density_book()</a></code>
+
+        </dt>
+        <dd>Multi-page PDF of bulk convolution densities</dd>
+
+        <dt>
+
+          <code><a href="save_bivariate_loglik_ilr_profile_book.html">save_bivariate_loglik_ilr_profile_book()</a></code>
+
+        </dt>
+        <dd>Multi-page PDF of ILR log-likelihood profiles (\(\rho\in\mathbb{R}\))</dd>
+
+        <dt>
+
+          <code><a href="save_bivariate_loglik_rgl_book.html">save_bivariate_loglik_rgl_book()</a></code>
+
+        </dt>
+        <dd>Multi-page PDF (and optional HTML) of rgl bulk log-likelihood surfaces</dd>
+
+        <dt>
+
+          <code><a href="save_bivariate_loglik_surface_p_book.html">save_bivariate_loglik_surface_p_book()</a></code>
+
+        </dt>
+        <dd>Multi-page PDF of bulk log-likelihood surfaces on \((p_1,p_2)\)</dd>
+
+        <dt>
+
+          <code><a href="save_bivariate_purified_density_book.html">save_bivariate_purified_density_book()</a></code>
+
+        </dt>
+        <dd>Multi-page PDF of purified densities at four correlation corners</dd>
       </dl></div><div class="section level2">
       <h2 id="simulation">Simulation<a class="anchor" aria-label="anchor" href="#simulation"></a></h2>
 
@@ -564,6 +705,41 @@
 
         </dt>
         <dd>Average pairwise overlap of a Gaussian mixture</dd>
+
+        <dt>
+
+          <code><a href="overlap_gaussian_mc.html">overlap_gaussian_mc()</a></code>
+
+        </dt>
+        <dd>MixSim-style pairwise overlap via stratified Sobol Monte Carlo</dd>
+
+        <dt>
+
+          <code><a href="spd_affine_invariant_distance.html">spd_affine_invariant_distance()</a></code>
+
+        </dt>
+        <dd>Affine-invariant Riemannian (AIRM) distance between two SPD matrices</dd>
+
+        <dt>
+
+          <code><a href="compute_average_riemannian.html">compute_average_riemannian()</a></code>
+
+        </dt>
+        <dd>Mean pairwise AIRM distance of component covariances</dd>
+
+        <dt>
+
+          <code><a href="scale_covariance_array.html">scale_covariance_array()</a></code>
+
+        </dt>
+        <dd>Scale component covariances, keeping precision zeros</dd>
+
+        <dt>
+
+          <code><a href="scale_covariances_to_overlap.html">scale_covariances_to_overlap()</a></code>
+
+        </dt>
+        <dd>Calibrate a global covariance scale to a target MixSim BarOmega</dd>
 
         <dt>
 

@@ -4,7 +4,7 @@ For a probability vector \\\boldsymbol{p}\in\Delta^{J-1}\\ over \\J\\
 classes (here: cell types), the Shannon entropy is \$\$
 H(\boldsymbol{p}) = -\sum\_{j=1}^{J} p_j \log p_j, \$\$ with the
 convention \\0\log 0 = 0\\. Dividing by the maximum entropy \\\log J\\
-(uniform over all \\J\\ classes) yields **Pielou's evenness** \$\$
+(uniform over all \\J\\ classes) yields normalised Shannon entropy \$\$
 H^{\star}(\boldsymbol{p}) = \frac{H(\boldsymbol{p})}{\log J} \in\[0,1\],
 \$\$ so \\H^{\star}=0\\ for a Dirac mass on one type and \\H^{\star}=1\\
 for the uniform distribution over the \\J\\ cell types. Zero masses are

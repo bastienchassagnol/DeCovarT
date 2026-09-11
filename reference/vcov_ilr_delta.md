@@ -20,13 +20,20 @@ Fisher information transforms as \$\$ I\_{\boldsymbol{z}} =
 covariance is invariant to orthogonal rotations of \\\mathbf{V}\\. The
 construction is undefined on the simplex boundary (the log-ratio chart
 blows up); the function then returns `NA` with a warning.
-[`vcov_alr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.md)
-is the ALR-chart analogue used only for reference-invariance checks.
+
+Wald intervals in
+[`vcov.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md),
+[`confint.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md)
+and
+[`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)
+all use this expected-Fisher ILR map. The observed Hessian
+[`hessian_loglik_constrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/hessian_loglik_constrained.md)
+is for Newton steps only; it is not the Wald covariance.
 
 ## Usage
 
 ``` r
-vcov_ilr_delta(p, mean_signature_matrix, Sigma)
+vcov_ilr_delta(p, mean_signature_matrix, Sigma, warn = TRUE)
 ```
 
 ## Arguments
@@ -43,6 +50,11 @@ vcov_ilr_delta(p, mean_signature_matrix, Sigma)
 
   Cell-type covariances \\G\times G\times J\\.
 
+- warn:
+
+  If `FALSE`, skip the boundary / singularity warnings (Monte Carlo
+  loops). Default `TRUE`.
+
 ## Value
 
 Symmetric \\J\times J\\ asymptotic covariance of
@@ -54,5 +66,4 @@ Symmetric \\J\times J\\ asymptotic covariance of
 [`expected_fisher_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.md),
 [`vcov.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md),
 [`confint.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md),
-[`jacobian_isometric_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/jacobian_isometric_logistic.md),
-[`vcov_alr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.md)
+[`jacobian_isometric_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/jacobian_isometric_logistic.md)

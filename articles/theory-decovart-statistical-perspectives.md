@@ -550,7 +550,7 @@ as `DCQ` (`glmnet`) select the **support of cell types that change**
 between biological states, rather than recovering a full simplex
 snapshot ([Altboum et al.
 2014](#ref-altboumDigitalCellQuantification2014); [Friedman et al.
-2025](#ref-R-glmnet)). Static benchmarks that score these methods as
+2026](#ref-R-glmnet)). Static benchmarks that score these methods as
 poor deconvolution miss that target ([Jin and Liu
 2021](#ref-jinBenchmarkRNAseqDeconvolution2021)). `DCQ` tracked 213
 immune subtypes across ten influenza time points and reported changes in
@@ -774,7 +774,7 @@ Finotello, Francesca, Clemens Mayer, Christina Plattner, et al. 2019.
 Revealed by Deconvolution of RNA-seq Data’. *Genome Medicine* 11.
 <https://doi.org/10.1186/s13073-019-0638-6>.
 
-Friedman, Jerome, Trevor Hastie, Rob Tibshirani, et al. 2025. *Glmnet:
+Friedman, Jerome, Trevor Hastie, Rob Tibshirani, et al. 2026. *Glmnet:
 Lasso and Elastic-Net Regularized Generalized Linear Models*.
 <https://glmnet.stanford.edu>.
 

@@ -19,9 +19,7 @@ Package entry points are
 and
 [`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md).
 The additive log-ratio chart is retained as an appendix
-([Sec. 8](#sec-alr)) and as
-[`vcov_alr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.md)
-for reference-invariance checks.
+([Sec. 8](#sec-alr)).
 
 > **Note 1: Notation**
 >
@@ -32,9 +30,11 @@ for reference-invariance checks.
 >   \boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}.
 > - \boldsymbol{p}: proportions on the open simplex (ambient score
 >   equations treat them as free coordinates in (0,1)^{J}).
-> - \boldsymbol{z}\in\mathbb{R}^{J-1}: ILR coordinates on a Helmert
->   basis \mathbf{V}; \boldsymbol{p}=\operatorname{softmax}(\mathbf{V}
->   \boldsymbol{z}).
+> - \boldsymbol{\rho}\in\mathbb{R}^{J-1}: unconstrained log-ratio
+>   coordinates (ILR / Helmert chart \mathbf{V});
+>   \boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho}).
+>   The manuscript DAG uses the same letter for the ALR chart; here
+>   \boldsymbol{\rho} denotes the ILR coordinates used by the solvers.
 
 ## Matrix calculus reminders
 
@@ -150,7 +150,7 @@ independent of \boldsymbol{p},
 > gradient and Hessian are the building blocks of the ILR chain rule in
 > [Sec. 3](#sec-constrained). They are **not** the coordinates used by
 > Marquardt–Levenberg or Newton–Raphson in the package (those optimise
-> in \boldsymbol{z}-space). The box-constrained L-BFGS-B path is the
+> in \boldsymbol{\rho}-space). The box-constrained L-BFGS-B path is the
 > exception: it works directly in \boldsymbol{p} with \[0,1\]^{J} boxes
 > and does not enforce the simplex exactly.
 
@@ -230,8 +230,9 @@ Hessians are checked against Richardson extrapolation in `numDeriv`
 Constrained optimisation may eliminate constraints by reparametrisation,
 enforce them softly with penalties or barriers, or enforce them exactly
 with projections / KKT methods. DeCovarT uses a C^{2} diffeomorphism
-from free Euclidean coordinates \boldsymbol{z}\in\mathbb{R}^{J-1} onto
-the open simplex, so every Newton step stays feasible by construction.
+from free Euclidean coordinates \boldsymbol{\rho}\in\mathbb{R}^{J-1}
+onto the open simplex, so every Newton step stays feasible by
+construction.
 
 ### Log-sum-exp and softmax
 
@@ -262,10 +263,10 @@ Choose a Helmert sub-matrix \mathbf{V}\in\mathbb{R}^{J\times(J-1)} with
 ILR coordinates and their inverse are ([Pawlowsky-Glahn and Buccianti
 2011](#ref-pawlowsky-glahnCompositionalDataAnalysis2011))
 
-\boldsymbol{z} = \mathbf{V}^{\mathsf{T}}\log\boldsymbol{p} =
+\boldsymbol{\rho} = \mathbf{V}^{\mathsf{T}}\log\boldsymbol{p} =
 \mathbf{V}^{\mathsf{T}}\operatorname{clr}(\boldsymbol{p}), \qquad
-\boldsymbol{p} = \operatorname{softmax}(\mathbf{V}\boldsymbol{z}) =
-\mathcal{C}\bigl\\\exp(\mathbf{V}\boldsymbol{z})\bigr\\, \tag{13}
+\boldsymbol{p} = \operatorname{softmax}(\mathbf{V}\boldsymbol{\rho}) =
+\mathcal{C}\bigl\\\exp(\mathbf{V}\boldsymbol{\rho})\bigr\\, \tag{13}
 
 where \mathcal{C} denotes closure to unit sum. No cell type is pinned as
 a reference (contrast [Sec. 8](#sec-alr)). Package helpers
@@ -283,10 +284,10 @@ log-sum-exp softmax, matching the
 **Proposition 1 (ILR is a C^{2} diffeomorphism)**
 \boldsymbol{\psi}:\mathbb{R}^{J-1}\to(0,1)^{J} with \sum\_{j}p\_{j}=1 is
 bijective and twice continuously differentiable, so every critical point
-in \boldsymbol{z}-space maps to a unique open simplex composition and
+in \boldsymbol{\rho}-space maps to a unique open simplex composition and
 conversely. Any other valid ILR basis is \mathbf{V}^{\star}=\mathbf{V}Q
 with Q^{\mathsf{T}}Q=\mathbf{I}, which rotates coordinates as
-\boldsymbol{z}^{\star}=Q^{\mathsf{T}} \boldsymbol{z} and leaves
+\boldsymbol{\rho}^{\star}=Q^{\mathsf{T}} \boldsymbol{\rho} and leaves
 eigenvalues, condition numbers and traces of properly transformed
 quadratic forms unchanged.
 
@@ -315,8 +316,8 @@ quadratic forms unchanged.
 Write \mathbf{S}(\boldsymbol{p})=\operatorname{diag}(\boldsymbol{p})
 -\boldsymbol{p}\boldsymbol{p}^{\mathsf{T}}. The Jacobian is
 
-\mathbf{J}\_{\boldsymbol{\psi}}(\boldsymbol{z}) =
-\frac{\partial\boldsymbol{p}}{\partial\boldsymbol{z}^{\mathsf{T}}} =
+\mathbf{J}\_{\boldsymbol{\psi}}(\boldsymbol{\rho}) =
+\frac{\partial\boldsymbol{p}}{\partial\boldsymbol{\rho}^{\mathsf{T}}} =
 \mathbf{S}(\boldsymbol{p})\mathbf{V}. \tag{14}
 
 [`jacobian_isometric_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/jacobian_isometric_logistic.md)
@@ -333,22 +334,22 @@ returns this J\times(J-1) matrix. Let
 [`hessian_isometric_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/hessian_isometric_logistic.md)
 stores the tensor of shape (J-1)\times(J-1)\times J.
 
-### Change of variables: ambient \boldsymbol{p} to ILR \boldsymbol{z}
+### Change of variables: ambient \boldsymbol{p} to ILR \boldsymbol{\rho}
 
-Let \ell\_{\boldsymbol{z}}(\boldsymbol{z})
+Let \ell\_{\boldsymbol{\rho}}(\boldsymbol{\rho})
 =\ell\_{\boldsymbol{y}\mid\boldsymbol{\zeta}}
-\bigl(\boldsymbol{\psi}(\boldsymbol{z})\bigr). The chain rule maps the
-unconstrained derivatives of [Sec. 2](#sec-unconstrained) into free
+\bigl(\boldsymbol{\psi}(\boldsymbol{\rho})\bigr). The chain rule maps
+the unconstrained derivatives of [Sec. 2](#sec-unconstrained) into free
 Euclidean coordinates.
 
 **Theorem 3 (Constrained score and Hessian)**
-\nabla\_{\boldsymbol{z}}\ell =
+\nabla\_{\boldsymbol{\rho}}\ell =
 \mathbf{J}\_{\boldsymbol{\psi}}^{\mathsf{T}}\nabla\_{\boldsymbol{p}}\ell
 =
 \mathbf{V}^{\mathsf{T}}\mathbf{S}(\boldsymbol{p})\nabla\_{\boldsymbol{p}}\ell,
 \tag{16}
 
-\mathbf{H}\_{\boldsymbol{z}} =
+\mathbf{H}\_{\boldsymbol{\rho}} =
 \mathbf{J}\_{\boldsymbol{\psi}}^{\mathsf{T}}
 \mathbf{H}\_{\boldsymbol{p}} \mathbf{J}\_{\boldsymbol{\psi}} +
 \sum\_{i=1}^{J} \frac{\partial\ell}{\partial p\_{i}}
@@ -356,9 +357,9 @@ Euclidean coordinates.
 
 At an interior KKT point every active score equals the same multiplier,
 \partial\ell/\partial p\_{i}=\lambda. Because
-\sum\_{i}p\_{i}(\boldsymbol{z})=1 for every \boldsymbol{z},
+\sum\_{i}p\_{i}(\boldsymbol{\rho})=1 for every \boldsymbol{\rho},
 \sum\_{i}\mathbf{H}\_{\psi\_{i}}=\mathbf{0}, so the second summand of
-[Eq. 17](#eq-chain-second) vanishes and \mathbf{H}\_{\boldsymbol{z}}
+[Eq. 17](#eq-chain-second) vanishes and \mathbf{H}\_{\boldsymbol{\rho}}
 =\mathbf{J}\_{\boldsymbol{\psi}}^{\mathsf{T}}
 \mathbf{H}\_{\boldsymbol{p}} \mathbf{J}\_{\boldsymbol{\psi}}. Away from
 stationarity that contraction must be kept.
@@ -441,23 +442,23 @@ Fisher information transforms as a covariant quadratic form under the
 ILR chart. With \mathbf{J}\_{\boldsymbol{\psi}}
 =\mathbf{S}(\boldsymbol{p})\mathbf{V},
 
-I\_{\boldsymbol{z}} = \mathbf{J}\_{\boldsymbol{\psi}}^{\mathsf{T}}
+I\_{\boldsymbol{\rho}} = \mathbf{J}\_{\boldsymbol{\psi}}^{\mathsf{T}}
 I(\boldsymbol{p}) \mathbf{J}\_{\boldsymbol{\psi}} =
 \mathbf{V}^{\mathsf{T}} \mathbf{S}(\boldsymbol{p}) I(\boldsymbol{p})
 \mathbf{S}(\boldsymbol{p}) \mathbf{V}. \tag{19}
 
 The mean/covariance split of [Eq. 18](#eq-fisher-p) pulls back
-separately, I\_{\boldsymbol{z}}=I\_{\boldsymbol{z},\mathrm{mean}}
-+I\_{\boldsymbol{z},\mathrm{cov}}. Under regularity,
-\hat{\boldsymbol{z}} \overset{a}{\sim}
-\mathcal{N}(\boldsymbol{z}\_{0},I\_{\boldsymbol{z}}^{-1}) ([Vaart
+separately, I\_{\boldsymbol{\rho}}=I\_{\boldsymbol{\rho},\mathrm{mean}}
++I\_{\boldsymbol{\rho},\mathrm{cov}}. Under regularity,
+\hat{\boldsymbol{\rho}} \overset{a}{\sim}
+\mathcal{N}(\boldsymbol{\rho}\_{0},I\_{\boldsymbol{\rho}}^{-1}) ([Vaart
 2000](#ref-vaartAsymptoticStatistics2000)). The first-order delta method
 ([Oehlert 1992](#ref-oehlertNoteDeltaMethod1992)) then returns the
 simplex covariance used by
 [`vcov.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md),
 
 \mathrm{Var}(\hat{\boldsymbol{p}}) \approx
-\mathbf{J}\_{\boldsymbol{\psi}} I\_{\boldsymbol{z}}^{-1}
+\mathbf{J}\_{\boldsymbol{\psi}} I\_{\boldsymbol{\rho}}^{-1}
 \mathbf{J}\_{\boldsymbol{\psi}}^{\mathsf{T}}. \tag{20}
 
 Diagonal square roots are asymptotic standard errors; Wald intervals at
@@ -465,13 +466,10 @@ level 1-\alpha are \hat{p}\_{j}\pm z\_{1-\alpha/2}\\\mathrm{SE}\_{j}
 with z\_{q}=\Phi^{-1}(q), as in
 [`confint.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md).
 [`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md)
-implements [Eq. 19](#eq-fisher-z)–[Eq. 20](#eq-delta-p). Orthogonal
+implements [Eq. 19](#eq-fisher-rho)–[Eq. 20](#eq-delta-p). Orthogonal
 rotations of \mathbf{V} leave [Eq. 20](#eq-delta-p) unchanged. The
 construction is undefined on the simplex boundary (the log-ratio chart
 blows up); the helper then returns `NA` with a warning.
-[`vcov_alr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.md)
-is the ALR analogue of [Sec. 8](#sec-alr): the reconstructed simplex
-covariance must agree with [Eq. 20](#eq-delta-p) up to numerical error.
 
 > **Warning 8: Wald is the cheapest, not the safest, interval**
 >
@@ -493,9 +491,9 @@ covariance must agree with [Eq. 20](#eq-delta-p) up to numerical error.
 > **Numerical speed-ups and solver safeguards**
 >
 > The analytic maps above are only half of a usable optimiser. Practical
-> bottlenecks that showed up on the hybrid scenario in [Variance-driven
-> hybrid
-> scenario](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-variance-driven.html#sec-hybrid-deconvolution)
+> bottlenecks that showed up on the hybrid scenario in
+> [Covariance-driven hybrid
+> scenario](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-covariance-driven.html#sec-hybrid-deconvolution)
 > live in `R/03_03_DeCovarT_estimate_ratios_frequentist.R`.
 >
 > ------------------------------------------------------------------------
@@ -904,20 +902,14 @@ p\_{i}/\partial\rho\_{a}=p\_{i}(\delta\_{ia}-p\_{a}) for a=1,\ldots,J-1
 
 > **Note 9: Why ALR is not the default**
 >
-> ALR is a valid C^{2} diffeomorphism onto the open simplex, and the
-> reconstructed \operatorname{Var}(\hat{\boldsymbol{p}}) of
-> [`vcov_alr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_alr_delta.md)
-> must match
-> [`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md)
-> when both charts are implemented correctly. The last cell type is
-> nevertheless a privileged denominator: permuting which type occupies
-> position J changes the Euclidean metric on coordinate space. ILR /
-> Helmert ([Sec. 3.2](#sec-ilr)) removes that privilege up to orthogonal
-> rotation, which is why the solvers and
+> ALR is a valid C^{2} diffeomorphism onto the open simplex. The last
+> cell type is nevertheless a privileged denominator: permuting which
+> type occupies position J changes the Euclidean metric on coordinate
+> space. ILR / Helmert ([Sec. 3.2](#sec-ilr)) removes that privilege up
+> to orthogonal rotation, which is why the solvers and
 > [`vcov.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md)
 > use ILR. Keep ALR when comparing against a multinomial-logit
-> reference-category parameterisation, or when checking that a change of
-> denominator does not move \hat{\boldsymbol{p}}.
+> reference-category parameterisation.
 
 ### Structural zeros and folded simplex models
 
@@ -974,7 +966,7 @@ Compositional Data Analysis’. *Mathematical Geology* 35 (3): 279–300.
 
 Genz, Alan, Frank Bretz, Tetsuhisa Miwa, Xuefei Mi, and Torsten Hothorn.
 2026. *Mvtnorm: Multivariate Normal and t Distributions*.
-<http://mvtnorm.R-forge.R-project.org>.
+<https://codeberg.org/thothorn/mvtnorm>.
 
 Gilbert, Paul, and Ravi Varadhan. 2019. *numDeriv: Accurate Numerical
 Derivatives*. <http://optimizer.r-forge.r-project.org/>.
