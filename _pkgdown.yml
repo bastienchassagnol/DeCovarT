@@ -277,10 +277,15 @@ reference:
       - plot_purified_density_2d
       - plot_bulk_convolution_density_2d
       - gaussian_confidence_ellipse
-      - plot_bulk_loglik_surface
+      - plot_bulk_loglik_surface_p
+      - plot_bulk_loglik_ilr_profile
       - plot_bulk_loglik_rgl
       - plot_bivariate_metric_tiles
       - save_bivariate_metric_heatmaps
+      - save_bivariate_similarity_book
+      - save_bivariate_forest_book
+      - save_bivariate_raincloud_book
+      - save_bivariate_solver_dots_book
   - title: Simulation
   - subtitle: Toy bulk mixtures
     desc: |

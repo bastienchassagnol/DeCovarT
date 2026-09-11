@@ -1,7 +1,7 @@
 ###############################################################################
 ###############################################################################
 ###                                                                         ###
-###           FIGURE 02 – BIVARIATE TOY MODEL (article §2.1)               ###
+###           FIGURE 02 – BIVARIATE TOY MODEL (article 2.1)               ###
 ###       J = 2 cell types · G = 2 genes · full factorial design            ###
 ###                                                                         ###
 ###############################################################################
@@ -16,9 +16,10 @@
 #     > "logs/fig02_$(date +%F)_bivariate_toy.log" 2>&1 &
 #
 # Redraw figures from a finished ADEMP RDS (does not refit the 972
-# scenarios). Wald SEs live on `monte_carlo` from deconvolute_ratios().
-# PDFs: output/fig02/density_visualisations/ and
-#       output/fig02/performance_visualisations/.
+# scenarios). Expected-Fisher Wald SEs at the true composition are
+# attached to `monte_carlo` without refitting. PDFs:
+#   output/fig02/density_visualisations/ and
+#   output/fig02/performance_visualisations/.
 #
 #   FIG02_POSTPROCESS_ONLY=1 Rscript --no-save --no-restore \
 #     scripts/fig02_bivariate_toy.R
@@ -66,7 +67,9 @@
 #  output/fig02/bivariate_benchmark.rds    – metrics only (regression,
 #                                            monte_carlo, optimisation, call)
 #  output/fig02/density_visualisations/{purified,bulk,loglik_*}.pdf
-#  output/fig02/performance_visualisations/{heatmap_*,raincloud,forest,similarity}.pdf
+#  output/fig02/performance_visualisations/{heatmap_*,raincloud,forest,similarity,solver_dots}.pdf
+#  output/fig02/ggplot_rds/*.rds            – ggplot `data` for each book
+#                                            (not rgl snapshots)
 ###############################################################################
 
 #' Encode a bivariate-toy scenario ID
@@ -235,8 +238,7 @@ build_bivariate_scenario_config <- function(
 
 #' Default deconvolution solvers for the bivariate toy benchmark
 #'
-#' Omits CIBERSORT (too few genes for nu-SVR tuning). Unconstrained OLS
-#' (`lsfit`) is not shipped.
+#' Omits CIBERSORT (too few genes for nu-SVR tuning).
 #'
 #' @param itmax Maximum iterations for gradient-based DeCovarT solvers.
 #' @param epsilon Convergence tolerance for DeCovarT solvers.
@@ -403,18 +405,30 @@ if (
     assemble = TRUE
   )
   artefacts$theta <- readRDS(file.path(OUT_DIR, "bivariate_theta.rds"))
+  artefacts <- DeCovarT:::.attach_expected_fisher_wald(artefacts)
+  write_simulation_artefacts(
+    benchmark = artefacts,
+    dir = OUT_DIR,
+    stem = "bivariate",
+    config = artefacts$config
+  )
+  .ui_success(
+    "Refreshed Wald coverage from expected Fisher at the true composition."
+  )
 
   DENSITY_DIR <- file.path(OUT_DIR, "density_visualisations")
   PERF_DIR <- file.path(OUT_DIR, "performance_visualisations")
+  GGPLOT_RDS_DIR <- file.path(OUT_DIR, "ggplot_rds")
   dir.create(DENSITY_DIR, recursive = TRUE, showWarnings = FALSE)
   dir.create(PERF_DIR, recursive = TRUE, showWarnings = FALSE)
+  dir.create(GGPLOT_RDS_DIR, recursive = TRUE, showWarnings = FALSE)
 
   # ==========================================================================
   # SECTION 3 · VISUALISATIONS ----
   # ==========================================================================
 
   .ui_info("Drawing RMSE / MAE / Aitchison tile heatmaps.")
-  save_bivariate_metric_heatmaps(artefacts, PERF_DIR)
+  save_bivariate_metric_heatmaps(artefacts, PERF_DIR, data_rds = GGPLOT_RDS_DIR)
   .ui_success("Saved RMSE, MAE, and Aitchison heatmap PDFs.")
 
   cfg <- artefacts$config
@@ -424,22 +438,32 @@ if (
     save_bivariate_purified_density_book(
       cfg,
       theta_tbl,
-      file.path(DENSITY_DIR, "purified_density.pdf")
+      file.path(DENSITY_DIR, "purified_density.pdf"),
+      data_rds = GGPLOT_RDS_DIR
     )
     save_bivariate_bulk_density_book(
       cfg,
       theta_tbl,
-      file.path(DENSITY_DIR, "bulk_density.pdf")
+      file.path(DENSITY_DIR, "bulk_density.pdf"),
+      data_rds = GGPLOT_RDS_DIR
     )
-    save_bivariate_loglik_surface_book(
+    save_bivariate_loglik_surface_p_book(
       cfg,
       theta_tbl,
-      file.path(DENSITY_DIR, "loglik_surface.pdf")
+      file.path(DENSITY_DIR, "loglik_surface_p.pdf"),
+      data_rds = GGPLOT_RDS_DIR
+    )
+    save_bivariate_loglik_ilr_profile_book(
+      cfg,
+      theta_tbl,
+      file.path(DENSITY_DIR, "loglik_ilr_profile.pdf"),
+      data_rds = GGPLOT_RDS_DIR
     )
     save_bivariate_loglik_rgl_book(
       cfg,
       theta_tbl,
-      file.path(DENSITY_DIR, "loglik_rgl.pdf")
+      file.path(DENSITY_DIR, "loglik_rgl.pdf"),
+      html_file = file.path(DENSITY_DIR, "loglik_rgl.html")
     )
     .ui_success("Saved density and log-likelihood PDF books.")
   } else {
@@ -447,80 +471,52 @@ if (
   }
 
   if (requireNamespace("ggdist", quietly = TRUE)) {
-    p_rain <- plot_mc_raincloud(
+    .ui_info("Drawing 12-page raincloud book (four correlation corners).")
+    save_bivariate_raincloud_book(
       artefacts,
-      quantity = "error",
-      facet_rows = "proportions",
-      facet_cols = "centroids",
-      include_dots = FALSE,
-      max_rows = 40000L
-    )
-    DeCovarT:::.save_ggplot(
       file.path(PERF_DIR, "raincloud.pdf"),
-      p_rain,
-      width = 20,
-      height = 12,
-      dpi = 320
+      data_rds = GGPLOT_RDS_DIR
     )
-    .ui_success("Saved {.file raincloud.pdf} (no dots layer).")
+    .ui_success("Saved {.file raincloud.pdf}.")
+  } else {
+    .ui_warn("{.pkg ggdist} not available; skipping raincloud book.")
   }
 
-  ids00 <- cfg$ID[
-    abs(cfg$correlation_celltype1) < 1e-8 &
-      abs(cfg$correlation_celltype2) < 1e-8
-  ]
-  forest_art <- artefacts
-  forest_art$config <- cfg[cfg$ID %in% ids00, , drop = FALSE]
-  forest_art$monte_carlo <- artefacts$monte_carlo[
-    artefacts$monte_carlo$ID %in% ids00,
-    ,
-    drop = FALSE
-  ]
-  forest_art$optimisation <- artefacts$optimisation[
-    artefacts$optimisation$ID %in% ids00,
-    ,
-    drop = FALSE
-  ]
-  theta_keep <- theta_tbl[match(forest_art$config$ID, theta_tbl$ID), ]
-  forest_art$theta_true <- theta_keep$true_theta
-  p_forest <- plot_mc_forest(
-    forest_art,
-    facet_rows = c("proportions", "centroids"),
-    metrics = c(
-      "bias",
-      "rmse",
-      "coverage",
-      "se_sd_ratio",
-      "failure_rate"
-    )
-  )
-  DeCovarT:::.save_ggplot(
+  .ui_info("Drawing 12-page Wald forest book (four correlation corners).")
+  save_bivariate_forest_book(
+    artefacts,
     file.path(PERF_DIR, "forest.pdf"),
-    p_forest,
-    width = 22,
-    height = 16,
-    dpi = 320
+    data_rds = GGPLOT_RDS_DIR
   )
-  .ui_success("Saved {.file forest.pdf} (ILR Wald coverage and SE/SD).")
+  .ui_success("Saved {.file forest.pdf} (Wald solvers only).")
 
   if (length(unique(artefacts$monte_carlo$algorithm)) >= 2L) {
-    tryCatch(
-      {
-        p_sim <- plot_algorithm_similarity(artefacts)
-        DeCovarT:::.save_ggplot(
-          file.path(PERF_DIR, "similarity.pdf"),
-          p_sim,
-          width = 16,
-          height = 12,
-          dpi = 320
-        )
-        .ui_success("Saved {.file similarity.pdf}.")
-      },
-      error = function(e) {
-        .ui_warn("Similarity plot skipped: {e$message}")
-      }
-    )
+    if (
+      requireNamespace("ggdendro", quietly = TRUE) &&
+        requireNamespace("cowplot", quietly = TRUE) &&
+        requireNamespace("gridExtra", quietly = TRUE)
+    ) {
+      .ui_info("Drawing 12-page similarity book with dendrograms.")
+      save_bivariate_similarity_book(
+        artefacts,
+        file.path(PERF_DIR, "similarity.pdf"),
+        data_rds = GGPLOT_RDS_DIR
+      )
+      .ui_success("Saved {.file similarity.pdf}.")
+    } else {
+      .ui_warn(
+        "Similarity book skipped (need ggdendro, cowplot, gridExtra)."
+      )
+    }
   }
+
+  .ui_info("Drawing 12-page RMSE / Aitchison solver-dot book.")
+  save_bivariate_solver_dots_book(
+    artefacts,
+    file.path(PERF_DIR, "solver_dots.pdf"),
+    data_rds = GGPLOT_RDS_DIR
+  )
+  .ui_success("Saved {.file solver_dots.pdf}.")
 
   .ui_success(
     "Done. Outputs in {.path {normalizePath(OUT_DIR, mustWork = FALSE)}}."

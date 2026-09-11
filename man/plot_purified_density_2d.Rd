@@ -15,8 +15,9 @@ plot_purified_density_2d(true_theta, n = 800L)
 A \code{ggplot}.
 }
 \description{
-Filled contours use \code{contour_var = "ndensity"} so peak intensity is
-comparable across facets. Cell-type 1 is a red circle; cell-type 2
+A kernel-density raster fills the shared gene-axis window so panels
+have no inner white frame. Cell-type 1 is a red circle; cell-type 2
 is a green triangle. Outlines are exact 95\% Gaussian ellipses for
-the known means and covariances (\code{\link[=gaussian_confidence_ellipse]{gaussian_confidence_ellipse()}}).
+the known means and covariances (\code{\link[=gaussian_confidence_ellipse]{gaussian_confidence_ellipse()}}):
+\eqn{(x-\mu)^{\mathsf{T}}\Sigma^{-1}(x-\mu)\le\chi^{2}_{2,0.95}}.
 }

@@ -275,7 +275,8 @@ check_true_theta <- function(
 #' @return A named list with:
 #' * `regression`: `global` (one row per sample) and `cell_type` (one
 #'   row per cell type);
-#' * `monte_carlo`: one row per cell type;
+#' * `monte_carlo`: one row per cell type, including `theoretical_se`
+#'   (filled later from expected Fisher at \eqn{p^{\star}});
 #' * `optimisation`: one row per sample.
 #'
 #' @examples
@@ -573,6 +574,7 @@ compute_benchmark_metrics <- function(
       mean_model_sd = numeric(),
       mean_model_se = numeric(),
       se_sd_ratio = numeric(),
+      theoretical_se = numeric(),
       rmse = numeric(),
       coverage = numeric(),
       coverage_lower = numeric(),
@@ -620,6 +622,7 @@ compute_benchmark_metrics <- function(
       mean_model_sd = mean_model_sd,
       mean_model_se = mean_model_se,
       se_sd_ratio = mean_model_se / empirical_sd,
+      theoretical_se = NA_real_,
       rmse = sqrt(mean(err^2, na.rm = TRUE)),
       coverage = interval$coverage,
       coverage_lower = interval$lower,

@@ -4,7 +4,13 @@
 \alias{save_bivariate_bulk_density_book}
 \title{Multi-page PDF of bulk convolution densities}
 \usage{
-save_bivariate_bulk_density_book(config, theta_tbl, file, n = 800L)
+save_bivariate_bulk_density_book(
+  config,
+  theta_tbl,
+  file,
+  n = 800L,
+  data_rds = NULL
+)
 }
 \arguments{
 \item{config}{Slim config tibble with \code{ID}.}
@@ -14,6 +20,9 @@ save_bivariate_bulk_density_book(config, theta_tbl, file, n = 800L)
 \item{file}{Output PDF path.}
 
 \item{n}{Draws per cell type.}
+
+\item{data_rds}{Optional directory; when set, writes
+\code{purified_density.rds} (ggplot raster and overlay tables).}
 }
 \description{
 Multi-page PDF of bulk convolution densities

@@ -12,7 +12,10 @@ plot_mc_raincloud(
   .width = c(0.5, 0.95),
   include_dots = TRUE,
   max_dots = 2000L,
-  max_rows = NULL
+  max_rows = NULL,
+  dodge_width = 0.95,
+  slab_scale = 1.4,
+  slab_alpha = 1
 )
 }
 \arguments{
@@ -37,6 +40,12 @@ take long vectors).}
 \item{max_rows}{Optional cap on the plotting table (half-eye and
 dots). When the Monte Carlo stack is huge, subsample before
 drawing.}
+
+\item{dodge_width}{Width passed to \code{\link[ggplot2:position_dodge]{ggplot2::position_dodge()}}.}
+
+\item{slab_scale}{Slab height for \code{\link[ggdist:stat_halfeye]{ggdist::stat_halfeye()}}.}
+
+\item{slab_alpha}{Transparency of the density slab (\code{1} is opaque).}
 }
 \value{
 A \code{ggplot} object.

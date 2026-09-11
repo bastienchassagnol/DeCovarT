@@ -66,19 +66,52 @@ workers live only in `deconvolute_ratios()`. Reporting conventions
 > To redraw figures from a finished ADEMP RDS without refitting,
 > `FIG02_POSTPROCESS_ONLY=1 Rscript --no-save --no-restore scripts/fig02_bivariate_toy.R`.
 > Outputs land in `output/fig02/` (RDS artefacts),
-> `output/fig02/density_visualisations/`, and
-> `output/fig02/performance_visualisations/`.
+> `output/fig02/density_visualisations/`,
+> `output/fig02/performance_visualisations/`, and
+> `output/fig02/ggplot_rds/`.
 
 ```{mermaid}
 %%| label: fig-bivariate-design
 %%| eval: true
 %%| fig-cap: "Bivariate toy factorial design: three compositions, two variance structures, two CLD mean separations, a 9-by-9 gene-gene correlation grid, and seven solvers (3 x 2 x 2 x 9 x 9 = 972 scenarios)."
+%%{init: {"theme": "sandstone"}}%%
 flowchart TD
   P["3 compositions<br/>Ba / Mo / Hi"] --> S["972 scenarios"]
   V["2 variance structures<br/>Ho homoscedastic / He heteroscedastic"] --> S
   C["2 CLD mean separations<br/>Sm small / Lg large"] --> S
   R["9 x 9 gene-gene correlations<br/>rho in -0.8 to 0.8, step 0.2"] --> S
   S --> A["7 deconvolution solvers"]
+```
+
+```{mermaid}
+%%| label: fig-bivariate-design-tree
+%%| eval: true
+%%| fig-cap: "Hierarchical reading of the same factorial: small versus large CLD, then homoscedastic versus heteroscedastic variances, then balanced / moderately unbalanced / highly unbalanced compositions (2 x 2 x 3 = 12 meta-scenarios). Each leaf is crossed with the 9-by-9 gene-gene correlation grid."
+---
+config:
+  layout: elk
+  theme: sandstone
+---
+flowchart TB
+  ROOT["Bivariate toy"]
+  ROOT --> Sm["Small CLD"]
+  ROOT --> Lg["Large CLD"]
+  Sm --> SmHo["Homoscedastic"]
+  Sm --> SmHe["Heteroscedastic"]
+  Lg --> LgHo["Homoscedastic"]
+  Lg --> LgHe["Heteroscedastic"]
+  SmHo --> SmHoBa["Balanced"]
+  SmHo --> SmHoMo["Moderately unbalanced"]
+  SmHo --> SmHoHi["Highly unbalanced"]
+  SmHe --> SmHeBa["Balanced"]
+  SmHe --> SmHeMo["Moderately unbalanced"]
+  SmHe --> SmHeHi["Highly unbalanced"]
+  LgHo --> LgHoBa["Balanced"]
+  LgHo --> LgHoMo["Moderately unbalanced"]
+  LgHo --> LgHoHi["Highly unbalanced"]
+  LgHe --> LgHeBa["Balanced"]
+  LgHe --> LgHeMo["Moderately unbalanced"]
+  LgHe --> LgHeHi["Highly unbalanced"]
 ```
 
 # Generative model {#sec-bivariate-toy}
@@ -332,22 +365,31 @@ composition and ADEMP blocks from `compute_benchmark_metrics()`.
 
 Figures are written from the split RDS (no ADEMP refit). Density books
 go to `output/fig02/density_visualisations/`; RMSE / MAE / Aitchison
-tiles, raincloud, forest, and similarity plots go to
+tiles, raincloud, forest, similarity, and solver-dot books go to
 `output/fig02/performance_visualisations/`. Tile heatmaps
 (`ggplot2::geom_tile()`) show RMSE, MAE, and
 Aitchison distance on the $(\rho_1,\rho_2)$ plane: one PDF per metric,
-one page per meta-scenario (composition $\times$ variance $\times$
-CLD), seven solver panels. Density books share a viridis filled
-contour (`contour_var = "ndensity"`) and the same gene-axis limits
-across the four correlation corners
-$(\rho_1,\rho_2)\in\{(0,0),(-0.8,-0.8),(-0.8,0.8),(0.8,0.8)\}$
-($3\times 2\times 2=12$ pages). Purified and bulk panels overlay
-cell-type centroids (red circle, green triangle) and exact 95%
-Gaussian ellipses. Log-likelihood pages evaluate
-$\ell(p_1,p_2)$ on a ratio lattice; the `rgl` book is a
-`persp3d` surface with the true simulation proportions marked, not a
-second gene-space contour. The raincloud omits the `ggdist` dots
-layer so the Fortran QP is never asked to jiggle millions of points.
+one page per meta-scenario (CLD \(\times\) variance \(\times\)
+composition), seven solver panels. Scenario factors are relevelled
+(small then large CLD; homoscedastic then heteroscedastic; balanced,
+moderately unbalanced, highly unbalanced) when artefacts are read, and
+solvers follow `nnls`, `lsei`, `SA`, `gradient`, `LBFGS`,
+`Newton-Raphson`, `Marquardt-Levenberg`. Density and performance books
+share the four correlation corners
+$(\rho_1,\rho_2)\in\{(0,0),(-0.8,-0.8),(0.8,0.8),(-0.8,0.8)\}$
+($2\times 2\times 3=12$ pages). Similarity heatmaps compute Pearson
+\(r\) of paired \(\hat{\boldsymbol{p}}\) **within each corner** (not pooled
+across the 9-by-9 grid), with average-linkage clustering of \(1-r\) and
+a dendrogram on the right of the tiles. Wald forests drop NNLS, LSEI,
+and SA; solid whiskers are \(1.96\) times the expected-Fisher Wald SE
+at the true composition, dashed whiskers use the empirical Monte Carlo
+SD, and bold two-line labels (one per solver, centred between cell
+types) report RMSE and coverage, which are the same for \(p_1\) and
+\(p_2\) on the simplex. Rainclouds plot \(\hat p\) (not the error) with
+vertical lines at the two true proportions. Solver-dot pages use the
+same 9-by-9 \((\rho_1,\rho_2)\) grid as the RMSE heatmaps: colour is
+mean RMSE and size is mean Aitchison distance, with horizontal y-axis
+labels. ggplot `data` tables are saved under `output/fig02/ggplot_rds/`.
 
 ### Expected findings
 

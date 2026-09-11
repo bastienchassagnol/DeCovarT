@@ -76,7 +76,8 @@ A named list with:
 \itemize{
 \item \code{regression}: \code{global} (one row per sample) and \code{cell_type} (one
 row per cell type);
-\item \code{monte_carlo}: one row per cell type;
+\item \code{monte_carlo}: one row per cell type, including \code{theoretical_se}
+(filled later from expected Fisher at \eqn{p^{\star}});
 \item \code{optimisation}: one row per sample.
 }
 }

@@ -26,9 +26,8 @@ A \code{ggplot} raster of the \code{rgl} snapshot.
 \description{
 Opens an \code{rgl} window, draws \code{\link[rgl:persp3d]{rgl::persp3d()}} of
 \code{\link[=loglik_multivariate]{loglik_multivariate()}} versus hypothesised ratios, and marks the
-true simulation proportions with a sphere (the MLE of \(y=\mu
-p^{\star}\) under the convolution model). Returns a ggplot snapshot
-suitable for a PDF page.
+MLE (true simulation proportions for \(y=\mu p^{\star}\)) with a
+sphere. Returns a ggplot snapshot suitable for a PDF page.
 }
 \examples{
 \dontshow{if (interactive() && requireNamespace("rgl", quietly = TRUE) && requireNamespace("png", quietly = TRUE)) withAutoprint(\{ # examplesIf}

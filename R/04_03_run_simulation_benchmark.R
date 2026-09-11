@@ -623,9 +623,11 @@ read_simulation_artefacts <- function(dir, stem, assemble = FALSE) {
   })
   names(out) <- names(paths)
   if (!isTRUE(assemble)) {
+    out$config <- .relevel_scenario_table(out$config)
+    out$descriptors <- .relevel_scenario_table(out$descriptors)
     return(out)
   }
-  cfg <- out$config
+  cfg <- .relevel_scenario_table(out$config)
   metrics <- out$benchmark
   join_cfg <- function(tbl) {
     if (is.null(tbl) || is.null(cfg) || !"ID" %in% names(tbl)) {
@@ -644,14 +646,16 @@ read_simulation_artefacts <- function(dir, stem, assemble = FALSE) {
   }
   list(
     regression = list(
-      global = join_cfg(metrics$regression$global),
-      cell_type = join_cfg(metrics$regression$cell_type)
+      global = .relevel_scenario_table(join_cfg(metrics$regression$global)),
+      cell_type = .relevel_scenario_table(
+        join_cfg(metrics$regression$cell_type)
+      )
     ),
-    monte_carlo = join_cfg(metrics$monte_carlo),
-    optimisation = join_cfg(metrics$optimisation),
+    monte_carlo = .relevel_scenario_table(join_cfg(metrics$monte_carlo)),
+    optimisation = .relevel_scenario_table(join_cfg(metrics$optimisation)),
     config = cfg,
     theta_true = theta_list,
-    descriptors = out$descriptors,
+    descriptors = .relevel_scenario_table(out$descriptors),
     supplementary = if (
       !is.null(out$descriptors) && "jeffreys" %in% names(out$descriptors)
     ) {

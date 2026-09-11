@@ -2,9 +2,9 @@
 % Please edit documentation in R/04_04_bivariate_visualisation.R
 \name{save_bivariate_loglik_rgl_book}
 \alias{save_bivariate_loglik_rgl_book}
-\title{Multi-page PDF of rgl bulk log-likelihood surfaces on \((p_1,p_2)\)}
+\title{Multi-page PDF (and optional HTML) of rgl bulk log-likelihood surfaces}
 \usage{
-save_bivariate_loglik_rgl_book(config, theta_tbl, file)
+save_bivariate_loglik_rgl_book(config, theta_tbl, file, html_file = NULL)
 }
 \arguments{
 \item{config}{Slim config tibble with \code{ID}.}
@@ -12,8 +12,11 @@ save_bivariate_loglik_rgl_book(config, theta_tbl, file)
 \item{theta_tbl}{Tibble with \code{ID} and \code{true_theta}.}
 
 \item{file}{Output PDF path.}
+
+\item{html_file}{Optional path for a self-contained interactive HTML.}
 }
 \description{
-Requires \code{rgl} (and \code{png} to embed snapshots). Does \strong{not} fall
-back to the ggplot contour book.
+Requires \code{rgl} and \code{png} for PDF snapshots. When \code{html_file} is set,
+also writes an interactive \code{\link[rgl:rglwidget]{rgl::rglwidget()}} HTML (needs
+\code{htmlwidgets}).
 }

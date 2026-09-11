@@ -217,10 +217,50 @@ test_that("plot_algorithm_similarity can attach a ggdendro dendrogram", {
   skip_if_not_installed("nnls")
   skip_if_not_installed("ggplot2")
   skip_if_not_installed("ggdendro")
+  skip_if_not_installed("cowplot")
   out <- .tiny_mc_benchmark_two_algos()
   p <- plot_algorithm_similarity(out, dendrogram = TRUE)
   dend <- attr(p, "dendrogram")
   expect_s3_class(dend, "ggplot")
+})
+
+test_that("expected Fisher Wald SE is constant within a scenario", {
+  skip_on_os("windows")
+  genes <- paste0("g", 1:2)
+  cts <- paste0("ct", 1:2)
+  mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))
+  Sigma <- array(
+    c(1, 0, 0, 1, 1, 0, 0, 1),
+    dim = c(2, 2, 2),
+    dimnames = list(genes, genes, cts)
+  )
+  names(cts) <- NULL
+  p_true <- stats::setNames(c(0.5, 0.5), cts)
+  theta <- list(p = p_true, mu = mu, sigma = Sigma)
+  out <- withr::with_seed(
+    3L,
+    run_simulation_benchmark(
+      tibble::tibble(ID = "B1", true_theta = list(theta)),
+      deconvolution_functions = list(
+        "Newton-Raphson" = list(
+          FUN = deconvolute_ratios_Newton_Raphson,
+          additional_parameters = list(itmax = 20L, epsilon = 1e-4)
+        )
+      ),
+      n = 4L,
+      cores = 1L
+    )
+  )
+  refreshed <- DeCovarT:::.attach_expected_fisher_wald(out)
+  mc <- refreshed$monte_carlo
+  expect_true(all(is.finite(mc$theoretical_se)))
+  se_true <- DeCovarT:::.ilr_wald_se(p_true, mu, Sigma, warn = FALSE)
+  expect_equal(
+    unname(mc$theoretical_se),
+    unname(se_true[as.character(mc$cell_type)]),
+    tolerance = 1e-10
+  )
+  expect_true(all(is.finite(mc$coverage)))
 })
 
 test_that("plot_mc_metric_dots uses one colour scale in [0, 1]", {

@@ -129,6 +129,7 @@ test_that("Monte Carlo block reports ADEMP columns separately from global scores
       "mean_model_sd",
       "mean_model_se",
       "se_sd_ratio",
+      "theoretical_se",
       "rmse",
       "coverage",
       "coverage_lower",

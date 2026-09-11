@@ -17,8 +17,9 @@ plot_algorithm_similarity(
 \item{facet_rows, facet_cols}{Optional scenario columns. When supplied,
 correlations are computed inside each facet cell.}
 
-\item{dendrogram}{If \code{TRUE}, attach a \code{ggdendro} ggplot as attribute
-\code{"dendrogram"} (ignored when scenario facets are used).}
+\item{dendrogram}{If \code{TRUE}, attach a \code{ggdendro} ggplot to the right
+of the tiles as attribute \code{"dendrogram"} (ignored when scenario
+facets are used).}
 }
 \value{
 A \code{ggplot} object.
@@ -26,9 +27,10 @@ A \code{ggplot} object.
 \description{
 \code{ggplot2::geom_tile()} display of \code{\link[=algorithm_similarity]{algorithm_similarity()}}, with
 rows and columns ordered by average-linkage clustering of
-\(1-r\). Optional dendrogram via \code{ggdendro} (Suggests). This is the
-default for a small correlation matrix; \code{\link[=plot_correlation_Heatmap]{plot_correlation_Heatmap()}}
-is reserved for linked multi-omics grids.
+\(1-r\). Optional dendrogram via \code{ggdendro} (Suggests), drawn to
+the \strong{right} of the tiles with leaves flush against the heatmap.
+This is the default for a small correlation matrix;
+\code{\link[=plot_correlation_Heatmap]{plot_correlation_Heatmap()}} is reserved for linked multi-omics grids.
 }
 \examples{
 \dontshow{if (.Platform$OS.type != "windows") withAutoprint(\{ # examplesIf}

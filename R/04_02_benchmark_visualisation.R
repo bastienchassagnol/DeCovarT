@@ -189,7 +189,8 @@ plot_correlation_Heatmap <- function(
 #' @noRd
 .check_plot_dependencies <- function(
   need_ggdist = FALSE,
-  need_ggdendro = FALSE
+  need_ggdendro = FALSE,
+  need_cowplot = FALSE
 ) {
   pkgs <- "ggplot2"
   if (isTRUE(need_ggdist)) {
@@ -197,6 +198,9 @@ plot_correlation_Heatmap <- function(
   }
   if (isTRUE(need_ggdendro)) {
     pkgs <- c(pkgs, "ggdendro")
+  }
+  if (isTRUE(need_cowplot)) {
+    pkgs <- c(pkgs, "cowplot")
   }
   missing <- pkgs[
     !vapply(
@@ -216,6 +220,85 @@ plot_correlation_Heatmap <- function(
     )
   }
   invisible(TRUE)
+}
+
+#' Canonical factor orders for fig02 scenario columns and solvers
+#'
+#' @keywords internal
+#' @noRd
+.scenario_level_orders <- function() {
+  list(
+    centroids = c("small_CLD", "large_CLD"),
+    variance = c("homoscedastic", "heteroscedastic"),
+    proportions = c(
+      "balanced",
+      "moderately unbalanced",
+      "highly unbalanced"
+    )
+  )
+}
+
+#' Solver display order (missing levels are dropped)
+#'
+#' @keywords internal
+#' @noRd
+.algorithm_level_order <- function() {
+  c(
+    "nnls",
+    "lsei",
+    "SA",
+    "gradient",
+    "LBFGS",
+    "LBFGSB",
+    "L-BFGS-B",
+    "Newton-Raphson",
+    "Marquardt-Levenberg"
+  )
+}
+
+#' Relevel a vector, keeping only levels that appear
+#'
+#' @keywords internal
+#' @noRd
+.relevel_existing <- function(x, order) {
+  x_chr <- as.character(x)
+  present <- intersect(order, unique(x_chr))
+  extra <- setdiff(unique(x_chr), present)
+  levels <- c(present, extra)
+  if (length(levels) == 0L) {
+    return(factor(x_chr))
+  }
+  if (requireNamespace("forcats", quietly = TRUE) && length(present) > 0L) {
+    forcats::fct_relevel(factor(x_chr, levels = levels), present)
+  } else {
+    factor(x_chr, levels = levels)
+  }
+}
+
+#' @keywords internal
+#' @noRd
+.relevel_algorithm <- function(x) {
+  .relevel_existing(x, .algorithm_level_order())
+}
+
+#' Relevel scenario and algorithm columns used in fig02 plots
+#'
+#' @keywords internal
+#' @noRd
+.relevel_scenario_table <- function(tbl) {
+  if (is.null(tbl) || !is.data.frame(tbl)) {
+    return(tbl)
+  }
+  orders <- .scenario_level_orders()
+  for (nm in names(orders)) {
+    if (nm %in% names(tbl)) {
+      tbl[[nm]] <- .relevel_existing(tbl[[nm]], orders[[nm]])
+    }
+  }
+  if ("algorithm" %in% names(tbl)) {
+    tbl$algorithm <- .relevel_algorithm(tbl$algorithm)
+  }
+  tbl
 }
 
 #' Atomic scenario keys shared by config and optimisation tables
@@ -355,7 +438,163 @@ pivot_mc_estimates <- function(benchmark) {
     long <- dplyr::left_join(long, truth_tbl, by = "cell_type")
   }
   long$error <- long$estimate - long$p_true
-  long
+  .relevel_scenario_table(long)
+}
+
+#' Fill missing `theta_true` from a theta artefact table
+#'
+#' @noRd
+.fill_theta_true_from_theta <- function(benchmark) {
+  cfg <- benchmark$config
+  truths <- benchmark$theta_true
+  if (!is.null(truths) && length(truths) == nrow(cfg)) {
+    return(benchmark)
+  }
+  th_tbl <- benchmark$theta
+  if (is.null(th_tbl) || !"true_theta" %in% names(th_tbl)) {
+    return(benchmark)
+  }
+  if ("ID" %in% names(cfg) && "ID" %in% names(th_tbl)) {
+    idx <- match(as.character(cfg$ID), as.character(th_tbl$ID))
+    benchmark$theta_true <- lapply(
+      th_tbl$true_theta[idx],
+      .unwrap_true_theta
+    )
+    return(benchmark)
+  }
+  if (nrow(th_tbl) == nrow(cfg)) {
+    benchmark$theta_true <- lapply(th_tbl$true_theta, .unwrap_true_theta)
+  }
+  benchmark
+}
+
+#' Expected-Fisher Wald SE at the true composition of one scenario
+#'
+#' @noRd
+.theoretical_se_from_theta <- function(true_theta) {
+  th <- .unwrap_true_theta(true_theta)
+  nms <- .truth_cell_names(th)
+  p <- stats::setNames(as.numeric(th$p), nms)
+  se <- .ilr_wald_se(p, th$mu, th$sigma, warn = FALSE)
+  tibble::tibble(
+    cell_type = nms,
+    theoretical_se = as.numeric(se[nms])
+  )
+}
+
+#' Refresh Wald coverage from expected Fisher at \eqn{p^{\star}}
+#'
+#' [expected_fisher_unconstrained()] / [vcov_ilr_delta()] depend only on
+#' \eqn{(p,\mu,\Sigma)}, so the Cramer--Rao SE is constant for a
+#' scenario (the same object as [confint.decovart_fit()]). Coverage is
+#' the Monte Carlo rate at which
+#' \eqn{\hat p_j\pm z\,\mathrm{SE}_j(p^{\star})} covers
+#' \eqn{p_j^{\star}}. Mean-only solvers are left unchanged.
+#'
+#' @noRd
+.attach_expected_fisher_wald <- function(benchmark, level = 0.95) {
+  z <- stats::qnorm((1 + level) / 2)
+  cfg <- benchmark$config
+  mc <- benchmark$monte_carlo
+  if (is.null(mc) || is.null(cfg) || nrow(mc) == 0L) {
+    return(benchmark)
+  }
+  benchmark <- .fill_theta_true_from_theta(benchmark)
+  truths <- benchmark$theta_true
+  if (is.null(truths) || length(truths) == 0L) {
+    return(benchmark)
+  }
+  se_pieces <- lapply(seq_along(truths), function(i) {
+    row <- .theoretical_se_from_theta(truths[[i]])
+    if ("ID" %in% names(cfg)) {
+      row$ID <- as.character(cfg$ID[[i]])
+    }
+    row
+  })
+  se_tbl <- dplyr::bind_rows(se_pieces)
+  long <- pivot_mc_estimates(benchmark)
+  join_se <- intersect(c("ID", "cell_type"), names(long))
+  join_se <- join_se[join_se %in% names(se_tbl)]
+  if ("ID" %in% names(long)) {
+    long$ID <- as.character(long$ID)
+  }
+  if ("ID" %in% names(se_tbl)) {
+    se_tbl$ID <- as.character(se_tbl$ID)
+  }
+  long <- dplyr::left_join(long, se_tbl, by = join_se)
+  long$is_wald <- .uses_ilr_wald_algorithm(long$algorithm)
+  long$covered <- long$is_wald &
+    is.finite(long$estimate) &
+    is.finite(long$p_true) &
+    is.finite(long$theoretical_se) &
+    abs(long$estimate - long$p_true) <= z * long$theoretical_se
+  method <- "wilson"
+  if ("coverage_interval" %in% names(mc)) {
+    methods <- unique(stats::na.omit(as.character(mc$coverage_interval)))
+    if (length(methods) == 1L) {
+      method <- methods[[1L]]
+    }
+  }
+  grp <- intersect(c("ID", "algorithm", "cell_type"), names(long))
+  wald_long <- long[long$is_wald, , drop = FALSE]
+  if (nrow(wald_long) == 0L) {
+    return(benchmark)
+  }
+  grouped <- dplyr::group_by(wald_long, dplyr::across(dplyr::all_of(grp)))
+  upd <- dplyr::summarise(
+    grouped,
+    theoretical_se = mean(.data[["theoretical_se"]], na.rm = TRUE),
+    covered_list = list(.data[["covered"]]),
+    .groups = "drop"
+  )
+  intervals <- lapply(
+    upd$covered_list,
+    function(cv) coverage_mc_interval(cv, method = method)
+  )
+  upd$coverage <- vapply(intervals, `[[`, numeric(1), "coverage")
+  upd$coverage_lower <- vapply(intervals, `[[`, numeric(1), "lower")
+  upd$coverage_upper <- vapply(intervals, `[[`, numeric(1), "upper")
+  upd$mcse_coverage <- vapply(intervals, `[[`, numeric(1), "mcse")
+  upd$coverage_interval <- vapply(intervals, `[[`, character(1), "method")
+  upd$mean_model_se <- upd$theoretical_se
+  upd$mean_model_sd <- upd$theoretical_se
+  upd$mean_interval_width <- 2 * z * upd$theoretical_se
+  upd$covered_list <- NULL
+  replace_cols <- c(
+    "theoretical_se",
+    "coverage",
+    "coverage_lower",
+    "coverage_upper",
+    "coverage_interval",
+    "mcse_coverage",
+    "mean_model_se",
+    "mean_model_sd",
+    "mean_interval_width"
+  )
+  is_wald_mc <- .uses_ilr_wald_algorithm(mc$algorithm)
+  mc_wald <- mc[is_wald_mc, , drop = FALSE]
+  mc_rest <- mc[!is_wald_mc, , drop = FALSE]
+  drop_now <- intersect(replace_cols, names(mc_wald))
+  if (length(drop_now) > 0L) {
+    mc_wald <- mc_wald[, setdiff(names(mc_wald), drop_now), drop = FALSE]
+  }
+  join_mc <- intersect(grp, names(mc_wald))
+  if ("ID" %in% names(mc_wald)) {
+    mc_wald$ID <- as.character(mc_wald$ID)
+  }
+  if ("ID" %in% names(upd)) {
+    upd$ID <- as.character(upd$ID)
+  }
+  mc_wald <- dplyr::left_join(mc_wald, upd, by = join_mc)
+  if ("empirical_sd" %in% names(mc_wald)) {
+    mc_wald$se_sd_ratio <- mc_wald$theoretical_se / mc_wald$empirical_sd
+  }
+  if (!"theoretical_se" %in% names(mc_rest)) {
+    mc_rest$theoretical_se <- NA_real_
+  }
+  benchmark$monte_carlo <- dplyr::bind_rows(mc_wald, mc_rest)
+  benchmark$theta_true <- truths
+  benchmark
 }
 
 #' Faceted ggplot2 theme (black strips, panel border)
@@ -379,14 +618,22 @@ theme_decovart_facets <- function(base_size = 11, ...) {
         colour = "grey35",
         fill = NA
       ),
+      panel.background = ggplot2::element_rect(
+        fill = "transparent",
+        colour = NA
+      ),
+      plot.background = ggplot2::element_rect(
+        fill = "transparent",
+        colour = NA
+      ),
       strip.text = ggplot2::element_text(colour = "white"),
       strip.background = ggplot2::element_rect(
         fill = "black",
         colour = NA
       ),
       strip.clip = "off",
-      panel.spacing = grid::unit(0.45, "lines"),
-      plot.margin = ggplot2::margin(8, 14, 8, 8),
+      panel.spacing = grid::unit(0.25, "lines"),
+      plot.margin = ggplot2::margin(4, 6, 4, 4),
       ...
     )
 }
@@ -437,26 +684,6 @@ theme_decovart_facets <- function(base_size = 11, ...) {
   )
 }
 
-#' Save a ggplot with a wide canvas and print-resolution DPI
-#'
-#' @noRd
-.save_ggplot <- function(
-  file,
-  plot,
-  width,
-  height,
-  dpi = 320
-) {
-  ggplot2::ggsave(
-    filename = file,
-    plot = plot,
-    width = width,
-    height = height,
-    dpi = dpi,
-    limitsize = FALSE
-  )
-}
-
 #' Horizontal raincloud of Monte Carlo proportion estimates
 #'
 #' Half-eye densities, dots, and empirical 50% / 95% intervals
@@ -487,6 +714,9 @@ theme_decovart_facets <- function(base_size = 11, ...) {
 #' @param max_rows Optional cap on the plotting table (half-eye and
 #'   dots). When the Monte Carlo stack is huge, subsample before
 #'   drawing.
+#' @param dodge_width Width passed to [ggplot2::position_dodge()].
+#' @param slab_scale Slab height for [ggdist::stat_halfeye()].
+#' @param slab_alpha Transparency of the density slab (`1` is opaque).
 #'
 #' @srrstats {G2.3} Restricted character input (`quantity`).
 #' @srrstats {G2.3a} Validated via `.match_arg_case_insensitive()`.
@@ -531,12 +761,15 @@ plot_mc_raincloud <- function(
   .width = c(0.5, 0.95),
   include_dots = TRUE,
   max_dots = 2000L,
-  max_rows = NULL
+  max_rows = NULL,
+  dodge_width = 0.95,
+  slab_scale = 1.4,
+  slab_alpha = 1
 ) {
   .check_plot_dependencies(need_ggdist = TRUE)
   quantity <- .match_arg_case_insensitive(quantity, c("error", "estimate"))
   df <- if (is.data.frame(benchmark)) {
-    benchmark
+    .relevel_scenario_table(benchmark)
   } else {
     pivot_mc_estimates(benchmark)
   }
@@ -554,14 +787,14 @@ plot_mc_raincloud <- function(
     )
   }
   df$cell_type <- factor(df$cell_type, levels = unique(df$cell_type))
-  df$algorithm <- factor(df$algorithm, levels = unique(df$algorithm))
+  df$algorithm <- .relevel_algorithm(df$algorithm)
   x_var <- if (identical(quantity, "error")) "error" else "estimate"
   x_lab <- if (identical(quantity, "error")) {
     "Monte Carlo error (estimate minus truth)"
   } else {
     "Monte Carlo estimate"
   }
-  dodge <- ggplot2::position_dodge(width = 0.75)
+  dodge <- ggplot2::position_dodge(width = dodge_width)
   p <- ggplot2::ggplot(
     df,
     ggplot2::aes(
@@ -574,9 +807,13 @@ plot_mc_raincloud <- function(
     ggdist::stat_halfeye(
       orientation = "horizontal",
       .width = .width,
-      justification = -0.15,
+      justification = -0.12,
       point_interval = ggdist::median_qi,
       normalize = "groups",
+      scale = slab_scale,
+      interval_size = 2.8,
+      point_size = 1.6,
+      alpha = slab_alpha,
       position = dodge
     )
   if (isTRUE(include_dots)) {
@@ -612,19 +849,33 @@ plot_mc_raincloud <- function(
   if (identical(quantity, "error")) {
     p <- p + ggplot2::geom_vline(xintercept = 0, linetype = "dashed")
   } else {
-    truth_cols <- unique(c("cell_type", "p_true", facet_rows, facet_cols))
-    truth_cols <- truth_cols[truth_cols %in% names(df)]
-    truth <- dplyr::distinct(df, dplyr::across(dplyr::all_of(truth_cols)))
+    truth <- dplyr::distinct(
+      df,
+      .data[["cell_type"]],
+      .data[["p_true"]]
+    )
+    ct_lvls <- unique(as.character(truth$cell_type))
+    pal <- c("#E41A1C", "#4DAF4A", "#377EB8", "#984EA3")
+    pal <- pal[seq_len(length(ct_lvls))]
+    names(pal) <- ct_lvls
+    for (ct in ct_lvls) {
+      xs <- unique(truth$p_true[as.character(truth$cell_type) == ct])
+      p <- p +
+        ggplot2::geom_vline(
+          xintercept = xs,
+          colour = unname(pal[[ct]]),
+          linetype = "longdash",
+          linewidth = 0.7
+        )
+    }
     p <- p +
-      ggplot2::geom_point(
-        data = truth,
-        ggplot2::aes(
-          x = .data[["p_true"]],
-          y = .data[["cell_type"]]
-        ),
-        inherit.aes = FALSE,
-        shape = 124,
-        size = 4
+      ggplot2::labs(
+        caption = paste(
+          "Central 50% and 95% of Monte Carlo replicates;",
+          "not a confidence interval for p.",
+          "Dashed vertical lines: true cell-type proportions",
+          "(type 1 red, type 2 green)."
+        )
       )
   }
   facet <- .facet_grid_from_names(df, facet_rows, facet_cols)
@@ -1095,7 +1346,8 @@ algorithm_similarity <- function(
   facet_cols = NULL
 ) {
   long <- pivot_mc_estimates(benchmark)
-  algos <- sort(unique(as.character(long$algorithm)))
+  long$algorithm <- .relevel_algorithm(long$algorithm)
+  algos <- levels(droplevels(long$algorithm))
   if (length(algos) < 2L) {
     stop(
       "algorithm_similarity() needs at least two algorithms.",
@@ -1122,13 +1374,15 @@ algorithm_similarity <- function(
 #'
 #' `ggplot2::geom_tile()` display of [algorithm_similarity()], with
 #' rows and columns ordered by average-linkage clustering of
-#' \(1-r\). Optional dendrogram via `ggdendro` (Suggests). This is the
-#' default for a small correlation matrix; [plot_correlation_Heatmap()]
-#' is reserved for linked multi-omics grids.
+#' \(1-r\). Optional dendrogram via `ggdendro` (Suggests), drawn to
+#' the **right** of the tiles with leaves flush against the heatmap.
+#' This is the default for a small correlation matrix;
+#' [plot_correlation_Heatmap()] is reserved for linked multi-omics grids.
 #'
 #' @inheritParams algorithm_similarity
-#' @param dendrogram If `TRUE`, attach a `ggdendro` ggplot as attribute
-#'   `"dendrogram"` (ignored when scenario facets are used).
+#' @param dendrogram If `TRUE`, attach a `ggdendro` ggplot to the right
+#'   of the tiles as attribute `"dendrogram"` (ignored when scenario
+#'   facets are used).
 #'
 #' @return A `ggplot` object.
 #'
@@ -1189,6 +1443,7 @@ plot_algorithm_similarity <- function(
   ord <- .hclust_corr_order(r_mat)
   sim$algorithm_x <- factor(sim$algorithm_x, levels = ord)
   sim$algorithm_y <- factor(sim$algorithm_y, levels = rev(ord))
+  add_dend <- isTRUE(dendrogram) && length(group_cols) == 0L
   p <- ggplot2::ggplot(
     sim,
     ggplot2::aes(
@@ -1198,7 +1453,6 @@ plot_algorithm_similarity <- function(
     )
   ) +
     ggplot2::geom_tile(colour = "white") +
-    ggplot2::coord_equal() +
     ggplot2::scale_fill_gradient2(
       limits = c(-1, 1),
       midpoint = 0,
@@ -1224,6 +1478,14 @@ plot_algorithm_similarity <- function(
       ),
       legend.position = "bottom"
     )
+  if (isTRUE(add_dend)) {
+    p <- p +
+      ggplot2::scale_x_discrete(expand = c(0, 0)) +
+      ggplot2::scale_y_discrete(expand = c(0, 0)) +
+      ggplot2::coord_cartesian(expand = FALSE)
+  } else {
+    p <- p + ggplot2::coord_equal()
+  }
   facet <- .facet_grid_from_names(sim, facet_rows, facet_cols)
   if (!is.null(facet)) {
     p <- p + facet
@@ -1235,15 +1497,89 @@ plot_algorithm_similarity <- function(
         call. = FALSE
       )
     } else {
-      .check_plot_dependencies(need_ggdendro = TRUE)
+      .check_plot_dependencies(
+        need_ggdendro = TRUE,
+        need_cowplot = TRUE
+      )
       hc <- stats::hclust(
         stats::as.dist(.corr_distance(r_mat)),
         method = "average"
       )
-      attr(p, "dendrogram") <- ggdendro::ggdendrogram(hc, rotate = TRUE)
+      dend <- .similarity_dendrogram_plot(hc, n_leaf = length(ord))
+      tiles <- p +
+        ggplot2::theme(
+          plot.margin = ggplot2::margin(4, 0, 4, 4)
+        )
+      combined <- cowplot::plot_grid(
+        tiles,
+        dend,
+        nrow = 1,
+        rel_widths = c(1, 0.28),
+        align = "h",
+        axis = "tb"
+      )
+      attr(combined, "dendrogram") <- dend
+      return(combined)
     }
   }
   p
+}
+
+#' Horizontal dendrogram with leaves flush to the left (heatmap side)
+#'
+#' @noRd
+.similarity_dendrogram_plot <- function(hc, n_leaf) {
+  ddata <- ggdendro::dendro_data(
+    stats::as.dendrogram(hc),
+    type = "rectangle"
+  )
+  seg <- ggdendro::segment(ddata)
+  # Leaf 1 of hclust order sits at the top of the heatmap
+  # (`algorithm_y = rev(ord)`). Flip the dendrogram index to match.
+  seg$x <- n_leaf + 1 - seg$x
+  seg$xend <- n_leaf + 1 - seg$xend
+  ggplot2::ggplot(seg) +
+    ggplot2::geom_segment(
+      ggplot2::aes(
+        x = .data[["y"]],
+        y = .data[["x"]],
+        xend = .data[["yend"]],
+        yend = .data[["xend"]]
+      ),
+      linewidth = 0.45,
+      colour = "grey20",
+      lineend = "square"
+    ) +
+    ggplot2::scale_x_continuous(expand = c(0, 0)) +
+    ggplot2::scale_y_continuous(
+      limits = c(0.5, n_leaf + 0.5),
+      expand = c(0, 0)
+    ) +
+    ggplot2::coord_cartesian(clip = "off") +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+      axis.text.y = ggplot2::element_blank(),
+      axis.title = ggplot2::element_blank(),
+      axis.ticks.y = ggplot2::element_blank(),
+      axis.ticks.x = ggplot2::element_blank(),
+      axis.text.x = ggplot2::element_text(
+        angle = 90,
+        hjust = 1,
+        vjust = 0.5,
+        colour = NA
+      ),
+      panel.grid = ggplot2::element_blank(),
+      panel.border = ggplot2::element_blank(),
+      plot.background = ggplot2::element_rect(
+        fill = "transparent",
+        colour = NA
+      ),
+      panel.background = ggplot2::element_rect(
+        fill = "transparent",
+        colour = NA
+      ),
+      plot.margin = ggplot2::margin(4, 4, 4, 0)
+    )
 }
 
 #' Long ADEMP table for faceted metric dots

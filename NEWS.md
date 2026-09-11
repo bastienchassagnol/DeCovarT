@@ -1,3 +1,34 @@
+* **Fig02 performance books.** Twelve meta-scenario pages (small then
+  large CLD; homoscedastic then heteroscedastic; balanced /
+  moderately / highly unbalanced), each a 2-by-2 of correlation
+  corners \((0,0)\), \((-0.8,-0.8)\), \((0.8,0.8)\),
+  \((-0.8,0.8)\). Similarity heatmaps cluster paired \(\hat p\)
+  within each corner and draw a dendrogram on the **right**, flush
+  with the tiles. Wald forests omit NNLS, LSEI, and SA. Whiskers use
+  the expected-Fisher SE at the true composition
+  (`confint.decovart_fit` / `vcov_ilr_delta`; constant per scenario)
+  together with the empirical Monte Carlo SD; bold two-line `geom_label`
+  boxes (one per solver, vertically centred between the two cell types)
+  report RMSE and coverage, which coincide for \(p_1\) and \(p_2\) on
+  the unit simplex. Rainclouds plot \(\hat p\) with vertical lines at
+  the true proportions on a 30-inch canvas and translucent slabs. A
+  12-page solver-dot book uses the same 9-by-9 correlation factorial as
+  the RMSE heatmaps (enrichplot-style: colour RMSE, size Aitchison;
+  horizontal y-axis labels). ggplot `data` for each book (not rgl) is
+  written to `output/fig02/ggplot_rds/`. Scenario factors are relevelled
+  with `forcats` (Suggests) when artefacts are read.
+
+* **Fig02 density books.** Kernel-density rasters fill the gene-axis
+  window (no inner white frame). Bulk pages drop the 95% Gaussian
+  ellipses with a \(\chi^2_2\) footnote. ILR profiles use
+  \(\rho\in[-4,10]\) so unbalanced compositions are not cropped, and
+#'   plot the relative likelihood \(L/\max L\) on a log10 y-axis with
+#'   `annotation_logticks()`. Page titles follow the same
+  CLD / variance / composition order as the performance books.
+  Log-likelihood outputs split into `loglik_surface_p.pdf` (ratio
+  lattice), `loglik_ilr_profile.pdf` (ILR \(\rho\) profile with MLE),
+  and `loglik_rgl.pdf` plus interactive `loglik_rgl.html`.
+
 * **Fig03 covariance-driven grid.** $G=20$, $J=3$. Graph generators
   are scale-free and cluster (stochastic block model) only: a
   $2^{2}$ assignment on the mean-collinear types, type 3 held at
@@ -32,11 +63,12 @@
   symmetric) plus optional `hellinger_weighted`, and keeps Jeffreys
   as a supplementary column on the descriptors artefact.
 
-* **Bivariate figures.** Purified and bulk 2-D densities use
-  `geom_density_2d_filled(contour_var = "ndensity")` on a shared
-  gene-axis scale, with red-circle / green-triangle centroids and
-  exact 95% Gaussian ellipses (`gaussian_confidence_ellipse()`).
-  Bulk pages collect a shared legend with `cowplot::get_legend()`.
+* **Bivariate figures.** Purified and bulk 2-D densities fill the
+  gene-axis window with a `MASS::kde2d()` raster (viridis). Purified
+  pages keep red-circle / green-triangle centroids and exact 95%
+  Gaussian ellipses (`gaussian_confidence_ellipse()`); bulk pages keep
+  centroids only. Bulk pages collect a shared legend with
+  `cowplot::get_legend()`.
   Log-likelihood books evaluate \(\ell(p_1,p_2)\) on a ratio lattice
   (not gene space): ggplot rasters versus a true `rgl::persp3d()`
   surface that marks the simulation proportions. `plot_mc_raincloud(include_dots = FALSE, max_rows = …)`

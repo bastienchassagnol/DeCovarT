@@ -68,9 +68,11 @@ The additive log-ratio chart is retained as an appendix (@sec-alr).
   $\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}$.
 - $\boldsymbol{p}$: proportions on the open simplex (ambient score
   equations treat them as free coordinates in $(0,1)^{J}$).
-- $\boldsymbol{z}\in\mathbb{R}^{J-1}$: ILR coordinates on a Helmert
-  basis $\mathbf{V}$; $\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}
-  \boldsymbol{z})$.
+- $\boldsymbol{\rho}\in\mathbb{R}^{J-1}$: unconstrained log-ratio
+  coordinates (ILR / Helmert chart $\mathbf{V}$);
+  $\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho})$.
+  The manuscript DAG uses the same letter for the ALR chart; here
+  $\boldsymbol{\rho}$ denotes the ILR coordinates used by the solvers.
 :::
 
 # Matrix calculus reminders {#sec-matrix-calculus}
@@ -261,7 +263,7 @@ $(0,1)$ and ignores $\sum_{j}p_{j}=1$. The resulting gradient and
 Hessian are the building blocks of the ILR chain rule in
 @sec-constrained. They are **not** the coordinates used by
 Marquardt–Levenberg or Newton–Raphson in the package (those optimise in
-$\boldsymbol{z}$-space). The box-constrained L-BFGS-B path is the
+$\boldsymbol{\rho}$-space). The box-constrained L-BFGS-B path is the
 exception: it works directly in $\boldsymbol{p}$ with $[0,1]^{J}$ boxes
 and does not enforce the simplex exactly.
 :::
@@ -423,7 +425,7 @@ and Hessians are checked against Richardson extrapolation in
 Constrained optimisation may eliminate constraints by reparametrisation,
 enforce them softly with penalties or barriers, or enforce them exactly
 with projections / KKT methods. DeCovarT uses a $C^{2}$ diffeomorphism
-from free Euclidean coordinates $\boldsymbol{z}\in\mathbb{R}^{J-1}$
+from free Euclidean coordinates $\boldsymbol{\rho}\in\mathbb{R}^{J-1}$
 onto the open simplex, so every Newton step stays feasible by
 construction.
 
@@ -477,7 +479,7 @@ ILR coordinates and their inverse are
 [@pawlowsky-glahnCompositionalDataAnalysis2011]
 
 $$
-\boldsymbol{z}
+\boldsymbol{\rho}
 =
 \mathbf{V}^{\mathsf{T}}\log\boldsymbol{p}
 =
@@ -485,9 +487,9 @@ $$
 \qquad
 \boldsymbol{p}
 =
-\operatorname{softmax}(\mathbf{V}\boldsymbol{z})
+\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho})
 =
-\mathcal{C}\bigl\{\exp(\mathbf{V}\boldsymbol{z})\bigr\},
+\mathcal{C}\bigl\{\exp(\mathbf{V}\boldsymbol{\rho})\bigr\},
 $$ {#eq-ilr-maps}
 
 where $\mathcal{C}$ denotes closure to unit sum. No cell type is pinned
@@ -504,11 +506,11 @@ the `compositions::ilr()` / `ilrInv()` convention on a Helmert basis
 
 $\boldsymbol{\psi}:\mathbb{R}^{J-1}\to(0,1)^{J}$ with
 $\sum_{j}p_{j}=1$ is bijective and twice continuously differentiable, so
-every critical point in $\boldsymbol{z}$-space maps to a unique open
+every critical point in $\boldsymbol{\rho}$-space maps to a unique open
 simplex composition and conversely. Any other valid ILR basis is
 $\mathbf{V}^{\star}=\mathbf{V}Q$ with $Q^{\mathsf{T}}Q=\mathbf{I}$,
-which rotates coordinates as $\boldsymbol{z}^{\star}=Q^{\mathsf{T}}
-\boldsymbol{z}$ and leaves eigenvalues, condition numbers and traces of
+which rotates coordinates as $\boldsymbol{\rho}^{\star}=Q^{\mathsf{T}}
+\boldsymbol{\rho}$ and leaves eigenvalues, condition numbers and traces of
 properly transformed quadratic forms unchanged.
 :::
 
@@ -539,9 +541,9 @@ $\mathbf{S}(\boldsymbol{p})=\operatorname{diag}(\boldsymbol{p})
 -\boldsymbol{p}\boldsymbol{p}^{\mathsf{T}}$. The Jacobian is
 
 $$
-\mathbf{J}_{\boldsymbol{\psi}}(\boldsymbol{z})
+\mathbf{J}_{\boldsymbol{\psi}}(\boldsymbol{\rho})
 =
-\frac{\partial\boldsymbol{p}}{\partial\boldsymbol{z}^{\mathsf{T}}}
+\frac{\partial\boldsymbol{p}}{\partial\boldsymbol{\rho}^{\mathsf{T}}}
 =
 \mathbf{S}(\boldsymbol{p})\mathbf{V}.
 $$ {#eq-ilr-jac}
@@ -565,11 +567,11 @@ $$ {#eq-ilr-hess}
 [`hessian_isometric_logistic()`](../reference/hessian_isometric_logistic.html)
 stores the tensor of shape $(J-1)\times(J-1)\times J$.
 
-## Change of variables: ambient $\boldsymbol{p}$ to ILR $\boldsymbol{z}$ {#sec-chain-rule}
+## Change of variables: ambient $\boldsymbol{p}$ to ILR $\boldsymbol{\rho}$ {#sec-chain-rule}
 
-Let $\ell_{\boldsymbol{z}}(\boldsymbol{z})
+Let $\ell_{\boldsymbol{\rho}}(\boldsymbol{\rho})
 =\ell_{\boldsymbol{y}\mid\boldsymbol{\zeta}}
-\bigl(\boldsymbol{\psi}(\boldsymbol{z})\bigr)$. The chain rule maps the
+\bigl(\boldsymbol{\psi}(\boldsymbol{\rho})\bigr)$. The chain rule maps the
 unconstrained derivatives of @sec-unconstrained into free Euclidean
 coordinates.
 
@@ -577,7 +579,7 @@ coordinates.
 ## Constrained score and Hessian
 
 $$
-\nabla_{\boldsymbol{z}}\ell
+\nabla_{\boldsymbol{\rho}}\ell
 =
 \mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}\nabla_{\boldsymbol{p}}\ell
 =
@@ -585,7 +587,7 @@ $$
 $$ {#eq-chain-first}
 
 $$
-\mathbf{H}_{\boldsymbol{z}}
+\mathbf{H}_{\boldsymbol{\rho}}
 =
 \mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}
 \mathbf{H}_{\boldsymbol{p}}
@@ -599,10 +601,10 @@ $$ {#eq-chain-second}
 
 At an interior KKT point every active score equals the same multiplier,
 $\partial\ell/\partial p_{i}=\lambda$. Because
-$\sum_{i}p_{i}(\boldsymbol{z})=1$ for every $\boldsymbol{z}$,
+$\sum_{i}p_{i}(\boldsymbol{\rho})=1$ for every $\boldsymbol{\rho}$,
 $\sum_{i}\mathbf{H}_{\psi_{i}}=\mathbf{0}$, so the second summand of
 @eq-chain-second vanishes and
-$\mathbf{H}_{\boldsymbol{z}}
+$\mathbf{H}_{\boldsymbol{\rho}}
 =\mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}
 \mathbf{H}_{\boldsymbol{p}}
 \mathbf{J}_{\boldsymbol{\psi}}$. Away from stationarity that contraction
@@ -689,7 +691,7 @@ $\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})$. That identity only holds with
 the factor $\tfrac{1}{2}$ of @nte-halfdet in place.
 :::
 
-## Constrained case: ILR delta method {#sec-fisher-z}
+## Constrained case: ILR delta method {#sec-fisher-rho}
 
 Fisher information transforms as a covariant quadratic form under the
 ILR chart. With
@@ -697,7 +699,7 @@ $\mathbf{J}_{\boldsymbol{\psi}}
 =\mathbf{S}(\boldsymbol{p})\mathbf{V}$,
 
 $$
-I_{\boldsymbol{z}}
+I_{\boldsymbol{\rho}}
 =
 \mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}
 I(\boldsymbol{p})
@@ -708,14 +710,14 @@ I(\boldsymbol{p})
 I(\boldsymbol{p})
 \mathbf{S}(\boldsymbol{p})
 \mathbf{V}.
-$$ {#eq-fisher-z}
+$$ {#eq-fisher-rho}
 
 The mean/covariance split of @eq-fisher-p pulls back separately,
-$I_{\boldsymbol{z}}=I_{\boldsymbol{z},\mathrm{mean}}
-+I_{\boldsymbol{z},\mathrm{cov}}$. Under regularity,
-$\hat{\boldsymbol{z}}
+$I_{\boldsymbol{\rho}}=I_{\boldsymbol{\rho},\mathrm{mean}}
++I_{\boldsymbol{\rho},\mathrm{cov}}$. Under regularity,
+$\hat{\boldsymbol{\rho}}
 \overset{a}{\sim}
-\mathcal{N}(\boldsymbol{z}_{0},I_{\boldsymbol{z}}^{-1})$
+\mathcal{N}(\boldsymbol{\rho}_{0},I_{\boldsymbol{\rho}}^{-1})$
 [@vaartAsymptoticStatistics2000].
 The first-order delta method [@oehlertNoteDeltaMethod1992] then returns
 the simplex covariance used by
@@ -725,7 +727,7 @@ $$
 \mathrm{Var}(\hat{\boldsymbol{p}})
 \approx
 \mathbf{J}_{\boldsymbol{\psi}}
-I_{\boldsymbol{z}}^{-1}
+I_{\boldsymbol{\rho}}^{-1}
 \mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}.
 $$ {#eq-delta-p}
 
@@ -735,7 +737,7 @@ $\hat{p}_{j}\pm z_{1-\alpha/2}\,\mathrm{SE}_{j}$ with
 $z_{q}=\Phi^{-1}(q)$, as in
 [`confint.decovart_fit()`](../reference/fit_decovart.html).
 [`vcov_ilr_delta()`](../reference/vcov_ilr_delta.html) implements
-@eq-fisher-z--@eq-delta-p. Orthogonal rotations of $\mathbf{V}$ leave
+@eq-fisher-rho--@eq-delta-p. Orthogonal rotations of $\mathbf{V}$ leave
 @eq-delta-p unchanged. The construction is undefined on the simplex
 boundary (the log-ratio chart blows up); the helper then returns `NA`
 with a warning.
