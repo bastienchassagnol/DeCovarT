@@ -312,12 +312,14 @@ cell-type-specific (CTS) profiles $\boldsymbol{x}_{\cdot j,i}$.
 
 ```{mermaid}
 %%| label: fig-observation-taxonomy
+%%| eval: true
 %%| fig-cap: "Taxonomy of observation models for bulk deconvolution, relative to DeCovarT's multivariate Gaussian convolution."
 %%{init: {"theme": "sandstone"}}%%
 flowchart TD
   A["Bulk observation law"] --> B["Discrete counts"]
   A --> C["Continuous intensities"]
   B --> D["Multinomial / Dirichlet: ISOpureR, BayesPrism"]
+  B --> LN["Multinomial logit-normal + gLasso"]
   B --> E["Poisson / PLN / ZIPLN: DeconV, Chiquet"]
   C --> F["Univariate Gaussian: DSection, DeMix, BayICE"]
   C --> G["Multivariate Gaussian convolution: DeCovarT"]
@@ -350,7 +352,9 @@ dependence, and a Poisson observation layer yields integer reads
 [@batardiereZeroInflationMultivariatePoisson2025]. A DeCovarT-style
 extension would replace @eq-gaussian-convolution by a PLN (or ZIPLN)
 convolution on the latent log-abundance scale, keeping the ALR map on
-$\boldsymbol{p}$.
+$\boldsymbol{p}$. A multinomial **logit-normal** on the *gene* simplex
+is a different discrete model: it is compositional association, not a
+cell-type convolution (@sec-logit-normal-compositional).
 
 ### Continuous intensities: frequentist versus Bayesian CTS
 
@@ -394,6 +398,107 @@ Zhang et al. benchmark joint $\boldsymbol{p}$ + CTS engines and report
 pseudobulk and real bulk data
 [@zhangIntegratedInferenceCellularCompositions2026]. That is a
 weighted-likelihood analogue of @sec-robust-gls.
+
+### Two simplices without convolution {#sec-logit-normal-compositional}
+
+McGregor et al. model a count vector of $D$ features as
+**compositional**, not as a mixture of cell-type Gaussians
+[@mcgregorProportionalitybasedAssociationMetrics2026]. In DeCovarT
+notation the features are the $G$ genes. Sample $i$ has library size
+$n_i$ and gene composition $\boldsymbol{\pi}_i\in\Delta^{G-1}$. The
+observation is multinomial,
+
+$$
+\boldsymbol{y}_{\cdot i}\mid n_i,\boldsymbol{\pi}_i
+\sim\mathrm{Multinomial}(n_i,\boldsymbol{\pi}_i),
+\qquad
+n_i\sim\mathrm{LogNormal}(\mu_n,\sigma_n^2),
+$$ {#eq-mln-multinomial}
+
+with $n_i\perp\boldsymbol{\pi}_i$ (read depth is treated as a technical
+scale). The composition is logit-normal on the ALR chart that uses gene
+$G$ as the reference,
+
+$$
+\boldsymbol{w}_i
+=\mathrm{alr}(\boldsymbol{\pi}_i)
+=\log(\pi_{1,i}/\pi_{G,i},\ldots,\pi_{G-1,i}/\pi_{G,i}),
+\qquad
+\boldsymbol{w}_i\sim\mathcal{N}_{G-1}(\boldsymbol{\mu}_w,\boldsymbol{\Sigma}_w),
+\qquad
+\boldsymbol{\pi}_i=\psi(\boldsymbol{w}_i),
+$$ {#eq-mln-alr}
+
+where $\psi$ is the additive logistic map already used for cell-type
+ratios ([`additive_logistic()`](../reference/additive_logistic.html)).
+When $G$ is large relative to the number of bulk samples, McGregor et
+al. penalise the Gaussian log-likelihood of the $\boldsymbol{w}_i$ with a
+graphical lasso on the ALR precision
+$\boldsymbol{\Omega}_w=\boldsymbol{\Sigma}_w^{-1}$
+[@friedmanSparseInverseCovariance2008], or the same $\ell_1$ penalty
+on the CLR precision
+$(\mathbf{G}^{\mathsf{T}}\boldsymbol{\Sigma}_w\mathbf{G})^{-1}$. That
+shrinks spurious gene–gene partial correlations. Their target is
+proportionality ($\phi$, $\rho$, log-ratio variances) on the latent
+$\boldsymbol{\pi}_i$, because empirical log-ratios of raw counts are
+biased by variation in $n_i$.
+
+This is **not** DeCovarT's convolution (@eq-gaussian-convolution). There
+is no mixing $\sum_j p_j\boldsymbol{\mu}_j$ of purified profiles, and no
+$\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j$. Current
+DeCovarT treats $\boldsymbol{y}_{\cdot i}$ as an unbounded continuous
+intensity. Library size is omitted: the counts are not constrained to
+sum to $n_i$.
+
+A fully compositional deconvolution would keep **two** simplices. Cell
+ratios $\boldsymbol{p}_i\in\Delta^{J-1}$ stay on the existing ALR chart
+$\boldsymbol{\rho}_i=\mathrm{alr}(\boldsymbol{p}_i)$. Gene composition stays
+on @eq-mln-alr. The two can be coupled by a regression of the gene-ALR
+mean on $\boldsymbol{p}_i$, for example
+$\boldsymbol{\mu}_w(\boldsymbol{p}_i)=\mathbf{B}\boldsymbol{p}_i$, still without
+forming a Gaussian convolution of cell-type covariances. @fig-mln-dag
+is that joint directed graph: grey circles are observed, white circles
+are latent, squares are parameters.
+
+```{mermaid}
+%%| label: fig-mln-dag
+%%| eval: true
+%%| fig-cap: "Directed graph for a logit-normal multinomial gene composition (McGregor et al.) extended with a second simplex for cell-type ratios. Grey circles are observed. White circles are latent. Squares are parameters. The dashed arrow from p_i into mu_w is the optional deconvolution link; it is not a Gaussian convolution of Sigma_j."
+---
+config:
+  theme: sandstone
+---
+flowchart TB
+  n(("$$n_i$$"))
+  y(("$$\boldsymbol{y}_{\cdot i}$$"))
+  pi(("$$\boldsymbol{\pi}_i$$"))
+  w(("$$\boldsymbol{w}_i$$"))
+  p(("$$\boldsymbol{p}_i$$"))
+  rho(("$$\boldsymbol{\rho}_i$$"))
+  mun["$$\mu_n,\sigma_n^2$$"]
+  muw["$$\boldsymbol{\mu}_w(\boldsymbol{p}_i)$$"]
+  Omegaw["$$\boldsymbol{\Omega}_w$$"]
+  mur["$$\boldsymbol{\mu}_{\rho}$$"]
+  Omegar["$$\boldsymbol{\Omega}_{\rho}$$"]
+
+  mun --> n
+  mur --> rho
+  Omegar --> rho
+  rho --> p
+  p -.-> muw
+  Omegaw --> w
+  muw --> w
+  w --> pi
+  n --> y
+  pi --> y
+
+  classDef observed fill:#c8c8c8,stroke:#333,color:#111
+  classDef latent fill:#ffffff,stroke:#333,color:#111
+  classDef param fill:#f4f1ea,stroke:#333,color:#111
+  class n,y observed
+  class pi,w,p,rho latent
+  class mun,muw,Omegaw,mur,Omegar param
+```
 
 ## Sample-level covariates {#sec-covariates}
 

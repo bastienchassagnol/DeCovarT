@@ -38,14 +38,14 @@
 #
 # ── Usage ────────────────────────────────────────────────────────────────────
 #  Rscript scripts/fig03_variance_driven.R
-#  Smoke (one topology, three overlap targets, no ADEMP):
-#  FIG03_SMOKE=1 Rscript --no-save --no-restore scripts/fig03_variance_driven.R
 #
 # ── Outputs ─────────────────────────────────────────────────────────────────
 #  output/fig03/hybrid_config.rds (design + graph generator settings)
 #  output/fig03/hybrid_{config,descriptors,theta,benchmark}.rds
 #  output/fig03/fig03_raincloud.pdf, fig03_forest.pdf, fig03_metric_dots.pdf
-#  vignettes/figures/fig_network_topologies.png
+#  output/fig03/fig03_network_topologies.png
+#  output/fig03/fig03_network_skeletons.rds
+#  vignettes/figures/fig_network_topologies.png (copy of the PNG)
 ###############################################################################
 
 # ==============================================================================
@@ -68,40 +68,21 @@ if (!requireNamespace("igraph", quietly = TRUE)) {
     "fig03 requires {.pkg igraph}. Install with {.code install.packages(\"igraph\")}."
   )
 }
-
-FIG03_SMOKE <- identical(Sys.getenv("FIG03_SMOKE", "0"), "1")
-if (
-  !FIG03_SMOKE &&
-    !requireNamespace("e1071", quietly = TRUE)
-) {
+if (!requireNamespace("e1071", quietly = TRUE)) {
   .ui_abort(
     "fig03 requires {.pkg e1071} (CIBERSORT). Install with {.code install.packages(\"e1071\")}."
   )
 }
 
 OUT_DIR <- file.path("output", "fig03")
-if (FIG03_SMOKE) {
-  OUT_DIR <- file.path(OUT_DIR, "smoke")
-}
 dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
 
 .ui_h1("Figure 03 · Covariance-driven scenario")
 
-N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "50"))
+N_REPL <- 100L
 SEED <- 20260807L
 set.seed(SEED)
-
-# FIG03_SMOKE=1: one topology x three overlap targets. ADEMP is skipped
-# unless N_REPLICATES is also set (then it is capped at 2).
 N_MC_OVERLAP <- 4000L
-if (FIG03_SMOKE) {
-  N_MC_OVERLAP <- 800L
-  if (!nzchar(Sys.getenv("N_REPLICATES", ""))) {
-    N_REPL <- 0L
-  } else {
-    N_REPL <- min(N_REPL, 2L)
-  }
-}
 
 N_GENES <- 20L
 N_CELLTYPES <- 3L
@@ -186,12 +167,6 @@ topology_grid <- tidyr::expand_grid(
   graph_ct2 = GRAPH_MODELS
 )
 topology_grid$graph_ct3 <- GRAPH_CT3
-if (FIG03_SMOKE) {
-  topology_grid <- topology_grid[1L, , drop = FALSE]
-  .ui_info(
-    "FIG03_SMOKE: one topology, n_mc = {.val {N_MC_OVERLAP}}, N_REPL = {.val {N_REPL}}."
-  )
-}
 overlap_grid <- tibble::tibble(
   overlap_label = names(OVERLAP_TARGET),
   overlap_target = unname(OVERLAP_TARGET)
@@ -213,6 +188,11 @@ PROPORTIONS_3 <- list(
 .ui_info(
   "Entropies: balanced {.val {round(compute_shannon_entropy(p_balanced), 3)}}, moderate {.val {round(compute_shannon_entropy(p_mod), 3)}}, high {.val {round(compute_shannon_entropy(p_rare), 3)}}."
 )
+
+# ==============================================================================
+# SECTION 1a · Adjacency skeletons ----
+#   One undirected graph per cell type on each 2-by-2 topology row.
+# ==============================================================================
 
 .ui_info(
   "Drawing one adjacency triple per topology ({.val {nrow(topology_grid)}} graphs)."
@@ -236,9 +216,15 @@ adj_by_topo <- purrr::pmap(
   }
 )
 
+# ==============================================================================
+# SECTION 1b · Signed precision completion ----
+#   simulate_hierarchical_grn_moments() fills Omega_j on the skeleton,
+#   then inverts to Sigma_j at a fixed spectral cushion.
+# ==============================================================================
+
 n_topo <- nrow(topology_grid)
 .ui_info(
-  "Completing signed precisions for each topology ({.val {n_topo}}), then scaling to target BarOmega."
+  "Completing signed precisions for each topology ({.val {n_topo}})."
 )
 base_draws <- lapply(seq_len(n_topo), function(topo_idx) {
   .ui_info("Base precision {.val {topo_idx}}/{.val {n_topo}}.")
@@ -270,7 +256,15 @@ base_draws <- lapply(seq_len(n_topo), function(topo_idx) {
   )
 })
 
+# ==============================================================================
+# SECTION 1c · Scale covariances to target BarOmega ----
+#   Sigma_j |-> s Sigma_j (zeros of the completed Omega_j kept).
+# ==============================================================================
+
 n_cov <- nrow(cov_grid)
+.ui_info(
+  "Scaling each topology to low / moderate / high MixSim BarOmega."
+)
 cov_draws <- lapply(seq_len(n_cov), function(i) {
   if (i == 1L || i %% 4L == 0L || i == n_cov) {
     .ui_info("Overlap scale {.val {i}}/{.val {n_cov}}.")
@@ -301,6 +295,12 @@ cov_draws <- lapply(seq_len(n_cov), function(i) {
   )
 })
 
+# ==============================================================================
+# SECTION 1d · Scenario table and descriptors ----
+#   Cross 12 covariance draws with three Shannon compositions (36 rows).
+# ==============================================================================
+
+.ui_info("Building scenario descriptors (MixSim, f_cov, AIRM).")
 scenario_config_3 <- purrr::map_dfr(
   seq_len(n_cov),
   function(i) {
@@ -377,6 +377,11 @@ scenario_config_3 <- purrr::map_dfr(
 .ui_success(
   "Config built: {.val {nrow(scenario_config_3)}} scenarios."
 )
+
+# ==============================================================================
+# SECTION 1e · Write design table ----
+# ==============================================================================
+
 overlap_check <- scenario_config_3[
   c(
     "proportion_name",
@@ -401,116 +406,123 @@ saveRDS(scenario_config_3, file.path(OUT_DIR, "hybrid_config.rds"))
 # SECTION 2 · INFERENCE ----
 # ==============================================================================
 
-if (N_REPL < 1L) {
-  .ui_info("N_REPL = 0: skipping ADEMP and figures (config only).")
-} else {
-  deconvolution_functions_3 <- list(
-    "lsei" = list(FUN = deconvolute_ratios_deconrnaseq),
-    "cibersort" = list(FUN = deconvolute_ratios_cibersort),
-    "LBFGS" = list(
-      FUN = deconvolute_ratios_L_BFGS_B,
-      additional_parameters = list(
-        epsilon = EPSILON,
-        itmax = ITMAX,
-        initial_p = "barycentre"
-      )
-    ),
-    "Newton-Raphson" = list(
-      FUN = deconvolute_ratios_Newton_Raphson,
-      additional_parameters = list(
-        epsilon = EPSILON,
-        itmax = ITMAX,
-        initial_p = "barycentre"
-      )
-    ),
-    "Marquardt-Levenberg" = list(
-      FUN = deconvolute_ratios_Marquardt_Levenberg,
-      additional_parameters = list(
-        epsilon = EPSILON,
-        itmax = ITMAX,
-        initial_p = "barycentre"
-      )
+deconvolution_functions_3 <- list(
+  "lsei" = list(FUN = deconvolute_ratios_deconrnaseq),
+  "cibersort" = list(FUN = deconvolute_ratios_cibersort),
+  "LBFGS" = list(
+    FUN = deconvolute_ratios_L_BFGS_B,
+    additional_parameters = list(
+      epsilon = EPSILON,
+      itmax = ITMAX,
+      initial_p = "barycentre"
+    )
+  ),
+  "Newton-Raphson" = list(
+    FUN = deconvolute_ratios_Newton_Raphson,
+    additional_parameters = list(
+      epsilon = EPSILON,
+      itmax = ITMAX,
+      initial_p = "barycentre"
+    )
+  ),
+  "Marquardt-Levenberg" = list(
+    FUN = deconvolute_ratios_Marquardt_Levenberg,
+    additional_parameters = list(
+      epsilon = EPSILON,
+      itmax = ITMAX,
+      initial_p = "barycentre"
     )
   )
+)
 
-  .ui_info(
-    "Running ADEMP benchmark with {.val {N_REPL}} replicates."
-  )
-  hybrid_out <- run_simulation_benchmark(
-    scenario_config = scenario_config_3,
-    deconvolution_functions = deconvolution_functions_3,
-    n = N_REPL,
-    cores = 1L,
-    verbose = TRUE
-  )
-  saveRDS(hybrid_out, file.path(OUT_DIR, "hybrid_benchmark.rds"))
-  write_simulation_artefacts(
+.ui_info(
+  "Running ADEMP benchmark with {.val {N_REPL}} replicates."
+)
+hybrid_out <- run_simulation_benchmark(
+  scenario_config = scenario_config_3,
+  deconvolution_functions = deconvolution_functions_3,
+  n = N_REPL,
+  cores = 1L,
+  verbose = TRUE
+)
+saveRDS(hybrid_out, file.path(OUT_DIR, "hybrid_benchmark.rds"))
+write_simulation_artefacts(
+  hybrid_out,
+  dir = OUT_DIR,
+  stem = "hybrid",
+  config = scenario_config_3
+)
+
+# ==============================================================================
+# SECTION 3 · VISUALISATIONS ----
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# SECTION 3a · Raincloud of Monte Carlo errors ----
+# ------------------------------------------------------------------------------
+
+if (requireNamespace("ggdist", quietly = TRUE)) {
+  p_rain <- plot_mc_raincloud(
     hybrid_out,
-    dir = OUT_DIR,
-    stem = "hybrid",
-    config = scenario_config_3
-  )
-
-  # ==============================================================================
-  # SECTION 3 · VISUALISATIONS ----
-  # ==============================================================================
-
-  if (requireNamespace("ggdist", quietly = TRUE)) {
-    p_rain <- plot_mc_raincloud(
-      hybrid_out,
-      quantity = "error",
-      facet_rows = "proportion_name",
-      facet_cols = "overlap_label",
-      include_dots = FALSE
-    )
-    ggplot2::ggsave(
-      file.path(OUT_DIR, "fig03_raincloud.pdf"),
-      plot = p_rain,
-      width = 12,
-      height = 8
-    )
-    .ui_success("Saved {.file fig03_raincloud.pdf}.")
-  }
-
-  p_forest <- plot_mc_forest(
-    hybrid_out,
-    facet_rows = "proportion_name",
-    facet_cols = "overlap_label"
-  )
-  ggplot2::ggsave(
-    file.path(OUT_DIR, "fig03_forest.pdf"),
-    plot = p_forest,
-    width = 12,
-    height = 8
-  )
-  .ui_success("Saved {.file fig03_forest.pdf}.")
-
-  p_dots <- plot_mc_metric_dots(
-    hybrid_out,
+    quantity = "error",
     facet_rows = "proportion_name",
     facet_cols = "overlap_label",
-    metrics = c("rmse", "mae", "coverage")
+    include_dots = FALSE
   )
   ggplot2::ggsave(
-    file.path(OUT_DIR, "fig03_metric_dots.pdf"),
-    plot = p_dots,
+    file.path(OUT_DIR, "fig03_raincloud.pdf"),
+    plot = p_rain,
     width = 12,
     height = 8
   )
-  .ui_success("Saved {.file fig03_metric_dots.pdf}.")
+  .ui_success("Saved {.file fig03_raincloud.pdf}.")
+}
 
-  # One panel per graph generator (same G, independent of the factorial).
-  static_network_path <- file.path(
-    "vignettes",
-    "figures",
-    "fig_network_topologies.png"
-  )
-  dir.create(
-    dirname(static_network_path),
-    recursive = TRUE,
-    showWarnings = FALSE
-  )
-  grDevices::png(static_network_path, width = 1800, height = 900, res = 220)
+# ------------------------------------------------------------------------------
+# SECTION 3b · Forest of ADEMP summaries ----
+# ------------------------------------------------------------------------------
+
+p_forest <- plot_mc_forest(
+  hybrid_out,
+  facet_rows = "proportion_name",
+  facet_cols = "overlap_label"
+)
+ggplot2::ggsave(
+  file.path(OUT_DIR, "fig03_forest.pdf"),
+  plot = p_forest,
+  width = 12,
+  height = 8
+)
+.ui_success("Saved {.file fig03_forest.pdf}.")
+
+# ------------------------------------------------------------------------------
+# SECTION 3c · Faceted metric dots ----
+# ------------------------------------------------------------------------------
+
+p_dots <- plot_mc_metric_dots(
+  hybrid_out,
+  facet_rows = "proportion_name",
+  facet_cols = "overlap_label",
+  metrics = c("rmse", "mae", "coverage")
+)
+ggplot2::ggsave(
+  file.path(OUT_DIR, "fig03_metric_dots.pdf"),
+  plot = p_dots,
+  width = 12,
+  height = 8
+)
+.ui_success("Saved {.file fig03_metric_dots.pdf}.")
+
+# ------------------------------------------------------------------------------
+# SECTION 3d · Graph generators used in the factorial ----
+#   PNG in output/fig03 (copied to the vignette figures folder).
+#   RDS: generator skeletons plus the four adjacency triples actually
+#   used for CT1 / CT2 / CT3.
+# ------------------------------------------------------------------------------
+
+.draw_fig03_network_png <- function(path) {
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  grDevices::png(path, width = 1800, height = 900, res = 220)
   graphics::par(mfrow = c(1L, 2L), mar = c(1, 1, 3, 1))
   set.seed(SEED)
   for (gm in GRAPH_MODELS) {
@@ -537,8 +549,29 @@ if (N_REPL < 1L) {
     )
   }
   grDevices::dev.off()
-  .ui_success("Wrote {.path {static_network_path}}.")
+  invisible(path)
 }
+
+network_png <- file.path(OUT_DIR, "fig03_network_topologies.png")
+.draw_fig03_network_png(network_png)
+vignette_network_png <- file.path(
+  "vignettes",
+  "figures",
+  "fig_network_topologies.png"
+)
+file.copy(network_png, vignette_network_png, overwrite = TRUE)
+saveRDS(
+  list(
+    generators = GRAPH_MODELS,
+    graph_params = GRAPH_PARAM_LIBRARY,
+    topology_grid = topology_grid,
+    adjacency_by_topology = adj_by_topo
+  ),
+  file.path(OUT_DIR, "fig03_network_skeletons.rds")
+)
+.ui_success(
+  "Wrote {.path {network_png}}, {.path {vignette_network_png}}, and {.file fig03_network_skeletons.rds}."
+)
 
 .ui_success(
   "Done. Outputs in {.path {normalizePath(OUT_DIR, mustWork = FALSE)}}."
