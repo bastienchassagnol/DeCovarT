@@ -666,7 +666,7 @@ c(
   loglik_diff = eq_check$loglik_diff
 )
 #>  max_abs_diff   loglik_diff 
-#>  9.336033e-10 -3.108624e-15
+#>  8.965458e-10 -2.664535e-15
 ```
 
 ### RNA-Sieve: CLT likelihood, Fisher and Godambe
@@ -749,9 +749,9 @@ fit <- fit_decovart(
 )
 do.call(rbind, fit$diagnostics)
 #>          boundary_distance near_boundary   score_norm max_eigenvalue
-#> sample_1         0.2159583         FALSE 2.383262e-09      -24.48051
+#> sample_1         0.2159583         FALSE 2.383263e-09      -24.48051
 #> sample_2         0.1832318         FALSE 5.026328e-05      -18.72244
-#> sample_3         0.1682215         FALSE 1.765209e-08      -16.19907
+#> sample_3         0.1682215         FALSE 1.765213e-08      -16.19907
 #>          local_maximum
 #> sample_1          TRUE
 #> sample_2          TRUE
@@ -803,7 +803,7 @@ c(
   multimodal = restarts$multimodal
 )
 #> loglik_range   multimodal 
-#> 6.625915e-10 0.000000e+00
+#> 6.625969e-10 0.000000e+00
 ```
 
 A small range is reassuring but not a proof: a converged code, a tiny

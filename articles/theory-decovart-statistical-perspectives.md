@@ -278,6 +278,7 @@ flowchart TD
   A["Bulk observation law"] --> B["Discrete counts"]
   A --> C["Continuous intensities"]
   B --> D["Multinomial / Dirichlet: ISOpureR, BayesPrism"]
+  B --> LN["Multinomial logit-normal + gLasso"]
   B --> E["Poisson / PLN / ZIPLN: DeconV, Chiquet"]
   C --> F["Univariate Gaussian: DSection, DeMix, BayICE"]
   C --> G["Multivariate Gaussian convolution: DeCovarT"]
@@ -316,7 +317,10 @@ Bernoulli zero-inflation layer for dropout ([Batardière et al.
 2025](#ref-batardiereZeroInflationMultivariatePoisson2025)). A
 DeCovarT-style extension would replace [Eq. 2](#eq-gaussian-convolution)
 by a PLN (or ZIPLN) convolution on the latent log-abundance scale,
-keeping the ALR map on \boldsymbol{p}.
+keeping the ALR map on \boldsymbol{p}. A multinomial **logit-normal** on
+the *gene* simplex is a different discrete model: it is compositional
+association, not a cell-type convolution
+([Sec. 2.1.3](#sec-logit-normal-compositional)).
 
 #### Continuous intensities: frequentist versus Bayesian CTS
 
@@ -366,6 +370,104 @@ pseudobulk and real bulk data ([Zhang et al.
 2026](#ref-zhangIntegratedInferenceCellularCompositions2026)). That is a
 weighted-likelihood analogue of [Sec. 2.6](#sec-robust-gls).
 
+#### Two simplices without convolution
+
+McGregor et al. model a count vector of D features as **compositional**,
+not as a mixture of cell-type Gaussians ([McGregor et al.
+2026](#ref-mcgregorProportionalitybasedAssociationMetrics2026)). In
+DeCovarT notation the features are the G genes. Sample i has library
+size n_i and gene composition \boldsymbol{\pi}\_i\in\Delta^{G-1}. The
+observation is multinomial,
+
+\boldsymbol{y}\_{\cdot i}\mid n_i,\boldsymbol{\pi}\_i
+\sim\mathrm{Multinomial}(n_i,\boldsymbol{\pi}\_i), \qquad
+n_i\sim\mathrm{LogNormal}(\mu_n,\sigma_n^2), \tag{11}
+
+with n_i\perp\boldsymbol{\pi}\_i (read depth is treated as a technical
+scale). The composition is logit-normal on the ALR chart that uses gene
+G as the reference,
+
+\boldsymbol{w}\_i =\mathrm{alr}(\boldsymbol{\pi}\_i)
+=\log(\pi\_{1,i}/\pi\_{G,i},\ldots,\pi\_{G-1,i}/\pi\_{G,i}), \qquad
+\boldsymbol{w}\_i\sim\mathcal{N}\_{G-1}(\boldsymbol{\mu}\_w,\boldsymbol{\Sigma}\_w),
+\qquad \boldsymbol{\pi}\_i=\psi(\boldsymbol{w}\_i), \tag{12}
+
+where \psi is the additive logistic map already used for cell-type
+ratios
+([`additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)).
+When G is large relative to the number of bulk samples, McGregor et
+al. penalise the Gaussian log-likelihood of the \boldsymbol{w}\_i with a
+graphical lasso on the ALR precision
+\boldsymbol{\Omega}\_w=\boldsymbol{\Sigma}\_w^{-1} ([Friedman et al.
+2008](#ref-friedmanSparseInverseCovariance2008)), or the same \ell_1
+penalty on the CLR precision
+(\mathbf{G}^{\mathsf{T}}\boldsymbol{\Sigma}\_w\mathbf{G})^{-1}. That
+shrinks spurious gene–gene partial correlations. Their target is
+proportionality (\phi, \rho, log-ratio variances) on the latent
+\boldsymbol{\pi}\_i, because empirical log-ratios of raw counts are
+biased by variation in n_i.
+
+This is **not** DeCovarT’s convolution
+([Eq. 2](#eq-gaussian-convolution)). There is no mixing \sum_j
+p_j\boldsymbol{\mu}\_j of purified profiles, and no
+\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}\_j.
+Current DeCovarT treats \boldsymbol{y}\_{\cdot i} as an unbounded
+continuous intensity. Library size is omitted: the counts are not
+constrained to sum to n_i.
+
+A fully compositional deconvolution would keep **two** simplices. Cell
+ratios \boldsymbol{p}\_i\in\Delta^{J-1} stay on the existing ALR chart
+\boldsymbol{\rho}\_i=\mathrm{alr}(\boldsymbol{p}\_i). Gene composition
+stays on [Eq. 12](#eq-mln-alr). The two can be coupled by a regression
+of the gene-ALR mean on \boldsymbol{p}\_i, for example
+\boldsymbol{\mu}\_w(\boldsymbol{p}\_i)=\mathbf{B}\boldsymbol{p}\_i,
+still without forming a Gaussian convolution of cell-type covariances.
+[Figure 3](#fig-mln-dag) is that joint directed graph: grey circles are
+observed, white circles are latent, squares are parameters.
+
+``` mermaid
+---
+config:
+  theme: sandstone
+---
+flowchart TB
+  n(("$$n_i$$"))
+  y(("$$\boldsymbol{y}_{\cdot i}$$"))
+  pi(("$$\boldsymbol{\pi}_i$$"))
+  w(("$$\boldsymbol{w}_i$$"))
+  p(("$$\boldsymbol{p}_i$$"))
+  rho(("$$\boldsymbol{\rho}_i$$"))
+  mun["$$\mu_n,\sigma_n^2$$"]
+  muw["$$\boldsymbol{\mu}_w(\boldsymbol{p}_i)$$"]
+  Omegaw["$$\boldsymbol{\Omega}_w$$"]
+  mur["$$\boldsymbol{\mu}_{\rho}$$"]
+  Omegar["$$\boldsymbol{\Omega}_{\rho}$$"]
+
+  mun --> n
+  mur --> rho
+  Omegar --> rho
+  rho --> p
+  p -.-> muw
+  Omegaw --> w
+  muw --> w
+  w --> pi
+  n --> y
+  pi --> y
+
+  classDef observed fill:#c8c8c8,stroke:#333,color:#111
+  classDef latent fill:#ffffff,stroke:#333,color:#111
+  classDef param fill:#f4f1ea,stroke:#333,color:#111
+  class n,y observed
+  class pi,w,p,rho latent
+  class mun,muw,Omegaw,mur,Omegar param
+```
+
+Figure 3: Directed graph for a logit-normal multinomial gene composition
+(McGregor et al.) extended with a second simplex for cell-type ratios.
+Grey circles are observed. White circles are latent. Squares are
+parameters. The dashed arrow from p_i into mu_w is the optional
+deconvolution link; it is not a Gaussian convolution of Sigma_j.
+
 ### Sample-level covariates
 
 A condition, tissue, batch, sex or age vector \boldsymbol{z}\_{i} is
@@ -378,7 +480,7 @@ et al. 2022](#ref-fanMusic2CellTypeDeconvolution2022)).
 
 \boldsymbol{x}\_{\cdot j,i}\mid\boldsymbol{z}\_{i} \sim\mathcal{N}\_G
 \bigl(\boldsymbol{\mu}\_{j}(\boldsymbol{z}\_{i}),\boldsymbol{\Sigma}\_{j}(\boldsymbol{z}\_{i})\bigr),
-\tag{11}
+\tag{13}
 
 for example
 \boldsymbol{\mu}\_{j}(\boldsymbol{z}\_{i})=\boldsymbol{\mu}\_{j}+B\_{j}\boldsymbol{z}\_{i}.
@@ -393,7 +495,7 @@ cannot invent novel types ([Fan et al.
 through the existing ALR coordinates \boldsymbol{\rho}\_{i},
 
 \boldsymbol{\rho}\_{i}=B\boldsymbol{z}\_{i}+\boldsymbol{u}\_{i}, \qquad
-\boldsymbol{p}\_{\cdot i}=\psi(\boldsymbol{\rho}\_{i}), \tag{12}
+\boldsymbol{p}\_{\cdot i}=\psi(\boldsymbol{\rho}\_{i}), \tag{14}
 
 with \psi the additive logistic map (**?@eq-alr-forward**). This is the
 setting in which a future
@@ -420,7 +522,7 @@ structured gene vector \boldsymbol{u}\_{i}, not a scalar intercept:
 \boldsymbol{y}\_{\cdot i} =\boldsymbol{\mu}\\\boldsymbol{p}\_{\cdot
 i}^{\mathrm{known}}
 +p\_{u,i}\boldsymbol{u}\_{i}+\boldsymbol{\varepsilon}\_{i}, \qquad
-\sum\_{j}p\_{ji}+p\_{u,i}=1. \tag{13}
+\sum\_{j}p\_{ji}+p\_{u,i}=1. \tag{15}
 
 `DICEPro` shows that supervised engines remain stable while most types
 are present and then collapse as \boldsymbol{\mu} becomes incomplete,
@@ -465,7 +567,7 @@ r\_{j} (mean transcripts per cell) are homogeneous. With \hat p\_{j} the
 RNA-scale estimate,
 
 \hat p\_{j}^{\ast} =\frac{\hat p\_{j}/r\_{j}}{\sum\_{k=1}^{J}\hat
-p\_{k}/r\_{k}}. \tag{14}
+p\_{k}/r\_{k}}. \tag{16}
 
 **Post-correction** treats r\_{j} as measured (or proxied). `EPIC` and
 `quanTIseq` rescale \hat{\boldsymbol{p}} using kit-based mRNA content or
@@ -511,7 +613,7 @@ p_j=1/J (or at a known design p^{\star}). Then
 
 \hat{\boldsymbol{p}}^{\mathrm{GLS}}
 =(\boldsymbol{\mu}^{\top}W^{-1}\boldsymbol{\mu})^{-1}\boldsymbol{\mu}^{\top}W^{-1}\boldsymbol{y}\_{\cdot
-i}, \tag{15}
+i}, \tag{17}
 
 after which the simplex is imposed by projection. Do **not** copy W into
 every DeCovarT tensor slice: \sum_j p_j^2 W=\\p\\\_2^2 W still depends
@@ -778,6 +880,10 @@ Friedman, Jerome, Trevor Hastie, Rob Tibshirani, et al. 2026. *Glmnet:
 Lasso and Elastic-Net Regularized Generalized Linear Models*.
 <https://glmnet.stanford.edu>.
 
+Friedman, Jerome, Trevor Hastie, and Robert Tibshirani. 2008. ‘Sparse
+Inverse Covariance Estimation with the Graphical Lasso’. *Biostatistics
+(Oxford, England)* 9. <https://doi.org/10.1093/biostatistics/kxm045>.
+
 Frishberg, Amit, Avital Brodt, Yael Steuerman, and Irit Gat-Viks. 2016.
 ‘ImmQuant: A User-Friendly Tool for Inferring Immune Cell-Type
 Composition from Gene-Expression Data’. *Bioinformatics* 32.
@@ -879,6 +985,11 @@ M. van Baarsen, and Perry D. Moerland. 2025. *Systematic Evaluation of
 Robustness of Deconvolution Methods for Spatial Transcriptomics Data in
 Case of Cell Type Mismatch*. bioRxiv.
 <https://doi.org/10.1101/2025.08.12.669903>.
+
+McGregor, Kevin, Nneka Okaeme, Reihane Khorasaniha, et al. 2026.
+‘Proportionality-Based Association Metrics in Count Compositional Data’.
+*NAR Genomics and Bioinformatics* 8 (3): lqag102.
+<https://doi.org/10.1093/nargab/lqag102>.
 
 Mohammadi, Shahin, Jose Davila-Velderrain, and Manolis Kellis. 2020. ‘A
 Multiresolution Framework to Characterize Single-Cell State Landscapes’.

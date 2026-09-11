@@ -193,6 +193,8 @@
 ".bulk_density_draws","04_04_bivariate_visualisation.R","true_theta, n, panel"
 ".add_celltype_overlay_layers","04_04_bivariate_visualisation.R","p, overlay, cts, ellipses"
 ".kde2d_raster","04_04_bivariate_visualisation.R","df, xlim, ylim, n"
+".dmvnorm_rows","04_04_bivariate_visualisation.R","xy, mu, sigma"
+".purified_mixture_raster","04_04_bivariate_visualisation.R","true_theta, xlim, ylim, n, panel"
 ".density_raster_table","04_04_bivariate_visualisation.R","df, lims, n"
 "plot_purified_density_2d","04_04_bivariate_visualisation.R","true_theta, n"
 ".purified_ellipse_caption","04_04_bivariate_visualisation.R","<none>"
