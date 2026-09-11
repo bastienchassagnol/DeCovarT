@@ -2,7 +2,7 @@
 % Please edit documentation in R/04_04_bivariate_visualisation.R
 \name{save_bivariate_loglik_surface_p_book}
 \alias{save_bivariate_loglik_surface_p_book}
-\title{Multi-page PDF of bulk log-likelihood surfaces on \((p_1,p_2)\)}
+\title{Multi-page PDF of bulk log-likelihood surfaces on \eqn{(p_1,p_2)}}
 \usage{
 save_bivariate_loglik_surface_p_book(config, theta_tbl, file, data_rds = NULL)
 }
@@ -17,5 +17,5 @@ save_bivariate_loglik_surface_p_book(config, theta_tbl, file, data_rds = NULL)
 \code{purified_density.rds} (ggplot raster and overlay tables).}
 }
 \description{
-Multi-page PDF of bulk log-likelihood surfaces on \((p_1,p_2)\)
+Multi-page PDF of bulk log-likelihood surfaces on \eqn{(p_1,p_2)}
 }

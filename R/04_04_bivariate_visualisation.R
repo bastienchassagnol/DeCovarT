@@ -39,11 +39,11 @@
 #'
 #' Boundary of the set
 #' \eqn{(x-\mu)^{\mathsf{T}}\Sigma^{-1}(x-\mu)\le\chi^2_{2,\alpha}}
-#' for a bivariate Gaussian with **known** \(\mu\) and \(\Sigma\).
-#' The squared Mahalanobis distance is exactly \(\chi^2_2\).
+#' for a bivariate Gaussian with **known** \eqn{\mu} and \eqn{\Sigma}.
+#' The squared Mahalanobis distance is exactly \eqn{\chi^2_2}.
 #'
 #' @param mu Length-2 mean.
-#' @param Sigma \(2\times 2\) covariance.
+#' @param Sigma \eqn{2 \times 2} covariance.
 #' @param level Probability content (default 0.95).
 #' @param n Number of boundary points.
 #'
@@ -652,15 +652,15 @@ plot_bulk_convolution_density_2d <- function(true_theta, n = 1200L) {
   )
 }
 
-#' Contour of the bulk log-likelihood on a \((p_1,p_2)\) lattice
+#' Contour of the bulk log-likelihood on a \eqn{(p_1,p_2)} lattice
 #'
 #' Axes are hypothesised cell-type ratios, not gene expression. The
-#' true simulation proportions (MLE for \(y=\mu p^{\star}\)) are marked;
-#' the dashed line is the simplex \(p_1+p_2=1\).
+#' true simulation proportions (MLE for \eqn{y=\mu p^{\star}}) are marked;
+#' the dashed line is the simplex \eqn{p_1+p_2=1}.
 #'
 #' @inheritParams plot_purified_density_2d
 #' @param grid Length of the lattice per axis.
-#' @param y Optional bulk observation. Default is \(\mu p^{\star}\).
+#' @param y Optional bulk observation. Default is \eqn{\mu p^{\star}}.
 #'
 #' @return A `ggplot`.
 #' @export
@@ -724,19 +724,19 @@ plot_bulk_loglik_surface_p <- function(
 
 #' Log-likelihood profile in the ILR coordinate \eqn{\rho\in\mathbb{R}^{J-1}}
 #'
-#' For the bivariate toy (\(J=2\)) the free coordinate is scalar. The
+#' For the bivariate toy (\eqn{J=2}) the free coordinate is scalar. The
 #' profile evaluates [loglik_multivariate_constrained()] on a grid of
-#' \(\rho\) (Helmert ILR). The MLE for \(y=\mu p^{\star}\) is marked at
-#' [isometric_log_ratio()]\((p^{\star})\).
+#' \eqn{\rho} (Helmert ILR). The MLE for \eqn{y=\mu p^{\star}} is marked at
+#' [isometric_log_ratio()]\eqn{(p^{\star})}.
 #'
 #' @inheritParams plot_bulk_loglik_surface_p
-#' @param grid Number of \(\rho\) evaluation points.
-#' @param rho_lim Length-2 range for \(\rho\). Default spans -4 to 10,
+#' @param grid Number of \eqn{\rho} evaluation points.
+#' @param rho_lim Length-2 range for \eqn{\rho}. Default spans -4 to 10,
 #'   expanded if needed to include the ILR image of
-#'   \(p^{\star}\) (unbalanced compositions sit at large positive
-#'   \(\rho\)).
+#'   \eqn{p^{\star}} (unbalanced compositions sit at large positive
+#'   \eqn{\rho}).
 #'
-#' @return A `ggplot` (likelihood versus \(\rho\) on a log10 y-axis).
+#' @return A `ggplot` (likelihood versus \eqn{\rho} on a log10 y-axis).
 #' @export
 plot_bulk_loglik_ilr_profile <- function(
   true_theta,
@@ -961,11 +961,11 @@ plot_bulk_loglik_ilr_profile <- function(
   invisible(TRUE)
 }
 
-#' rgl surface of the bulk log-likelihood on a \((p_1,p_2)\) lattice
+#' rgl surface of the bulk log-likelihood on a \eqn{(p_1,p_2)} lattice
 #'
 #' Opens an `rgl` window, draws [rgl::persp3d()] of
 #' [loglik_multivariate()] versus hypothesised ratios, and marks the
-#' MLE (true simulation proportions for \(y=\mu p^{\star}\)) with a
+#' MLE (true simulation proportions for \eqn{y=\mu p^{\star}}) with a
 #' sphere. Returns a ggplot snapshot suitable for a PDF page.
 #'
 #' @inheritParams plot_bulk_loglik_surface_p
@@ -1145,7 +1145,7 @@ save_bivariate_bulk_density_book <- function(
   )
 }
 
-#' Multi-page PDF of bulk log-likelihood surfaces on \((p_1,p_2)\)
+#' Multi-page PDF of bulk log-likelihood surfaces on \eqn{(p_1,p_2)}
 #'
 #' @inheritParams save_bivariate_purified_density_book
 #' @export
@@ -1164,7 +1164,7 @@ save_bivariate_loglik_surface_p_book <- function(
   )
 }
 
-#' Multi-page PDF of ILR log-likelihood profiles (\(\rho\in\mathbb{R}\))
+#' Multi-page PDF of ILR log-likelihood profiles (\eqn{\rho\in\mathbb{R}})
 #'
 #' @inheritParams save_bivariate_purified_density_book
 #' @export
@@ -1875,7 +1875,7 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
 
 #' Multi-page PDF of clustered algorithm-similarity heatmaps
 #'
-#' Twelve pages (CLD \(\times\) variance \(\times\) composition). Each
+#' Twelve pages (CLD \eqn{\times} variance \eqn{\times} composition). Each
 #' page is a 2-by-2 of the correlation corners, with average-linkage
 #' clustering of \(1-r\) and a dendrogram to the right of the tiles,
 #' with leaves flush against the heatmap.
@@ -2029,7 +2029,7 @@ save_bivariate_raincloud_book <- function(
 #' 12-page PDF of RMSE/Aitchison solver dots on the correlation grid
 #'
 #' One page per meta-scenario. Each page facets solvers on the same
-#' 9-by-9 \((\rho_1,\rho_2)\) factorial as the metric heatmaps
+#' 9-by-9 \eqn{(\rho_1,\rho_2)} factorial as the metric heatmaps
 #' (enrichplot-style dots: colour = RMSE, size = Aitchison).
 #'
 #' @inheritParams save_bivariate_similarity_book

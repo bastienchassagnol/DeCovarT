@@ -9,7 +9,7 @@ gaussian_confidence_ellipse(mu, Sigma, level = 0.95, n = 200L)
 \arguments{
 \item{mu}{Length-2 mean.}
 
-\item{Sigma}{\(2\times 2\) covariance.}
+\item{Sigma}{\eqn{2 \times 2} covariance.}
 
 \item{level}{Probability content (default 0.95).}
 
@@ -21,8 +21,8 @@ A data frame with \code{x} and \code{y}.
 \description{
 Boundary of the set
 \eqn{(x-\mu)^{\mathsf{T}}\Sigma^{-1}(x-\mu)\le\chi^2_{2,\alpha}}
-for a bivariate Gaussian with \strong{known} \(\mu\) and \(\Sigma\).
-The squared Mahalanobis distance is exactly \(\chi^2_2\).
+for a bivariate Gaussian with \strong{known} \eqn{\mu} and \eqn{\Sigma}.
+The squared Mahalanobis distance is exactly \eqn{\chi^2_2}.
 }
 \examples{
 mu <- c(20, 22)

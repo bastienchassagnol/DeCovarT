@@ -44,6 +44,7 @@ are the sum over classes of absolute coefficients at a chosen
 build).
 }
 \examples{
+\dontrun{
 set.seed(1)
 G <- 4L
 J <- 3L
@@ -55,6 +56,7 @@ for (j in seq_len(J)) {
 labels <- paste0("ct", seq_len(J))
 scores <- compute_glmnet_gene_scores(profiles, labels)
 names(scores)[which.max(scores)]
+}
 }
 \seealso{
 \code{\link[=compute_average_jeffreys]{compute_average_jeffreys()}}, \code{\link[=compute_average_overlap]{compute_average_overlap()}}

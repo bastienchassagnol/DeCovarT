@@ -1,5 +1,5 @@
 ---
-title: "§2.1 Bivariate toy model (G = 2 genes, J = 2 cell types)"
+title: "2.1 Bivariate toy model (G = 2 genes, J = 2 cell types)"
 subtitle: "Full script: `scripts/fig02_bivariate_toy.R`"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
@@ -59,16 +59,6 @@ wraps `simulate_bulk_mixture()`, `deconvolute_ratios()`, and
 workers live only in `deconvolute_ratios()`. Reporting conventions
 (ADEMP, Nature Methods, raincloud / forest plots) are in
 [how to build synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html#sec-ademp).
-
-> **Script:** from the repository root,
-> `mkdir -p logs && nohup Rscript --no-save --no-restore scripts/fig02_bivariate_toy.R > "logs/fig02_$(date +%F)_bivariate_toy.log" 2>&1 &`
-> (full, $n = 500$).
-> To redraw figures from a finished ADEMP RDS without refitting,
-> `FIG02_POSTPROCESS_ONLY=1 Rscript --no-save --no-restore scripts/fig02_bivariate_toy.R`.
-> Outputs land in `output/fig02/` (RDS artefacts),
-> `output/fig02/density_visualisations/`,
-> `output/fig02/performance_visualisations/`, and
-> `output/fig02/ggplot_rds/`.
 
 ```{mermaid}
 %%| label: fig-bivariate-design

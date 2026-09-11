@@ -9,21 +9,21 @@ plot_bulk_loglik_ilr_profile(true_theta, grid = 400L, y = NULL, rho_lim = NULL)
 \arguments{
 \item{true_theta}{List with \code{p}, \code{mu}, \code{sigma} for \eqn{G=2}.}
 
-\item{grid}{Number of \(\rho\) evaluation points.}
+\item{grid}{Number of \eqn{\rho} evaluation points.}
 
-\item{y}{Optional bulk observation. Default is \(\mu p^{\star}\).}
+\item{y}{Optional bulk observation. Default is \eqn{\mu p^{\star}}.}
 
-\item{rho_lim}{Length-2 range for \(\rho\). Default spans -4 to 10,
+\item{rho_lim}{Length-2 range for \eqn{\rho}. Default spans -4 to 10,
 expanded if needed to include the ILR image of
-\(p^{\star}\) (unbalanced compositions sit at large positive
-\(\rho\)).}
+\eqn{p^{\star}} (unbalanced compositions sit at large positive
+\eqn{\rho}).}
 }
 \value{
-A \code{ggplot} (likelihood versus \(\rho\) on a log10 y-axis).
+A \code{ggplot} (likelihood versus \eqn{\rho} on a log10 y-axis).
 }
 \description{
-For the bivariate toy (\(J=2\)) the free coordinate is scalar. The
+For the bivariate toy (\eqn{J=2}) the free coordinate is scalar. The
 profile evaluates \code{\link[=loglik_multivariate_constrained]{loglik_multivariate_constrained()}} on a grid of
-\(\rho\) (Helmert ILR). The MLE for \(y=\mu p^{\star}\) is marked at
-\code{\link[=isometric_log_ratio]{isometric_log_ratio()}}\((p^{\star})\).
+\eqn{\rho} (Helmert ILR). The MLE for \eqn{y=\mu p^{\star}} is marked at
+\code{\link[=isometric_log_ratio]{isometric_log_ratio()}}\eqn{(p^{\star})}.
 }

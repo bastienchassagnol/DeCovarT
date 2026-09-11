@@ -2,7 +2,7 @@
 % Please edit documentation in R/04_04_bivariate_visualisation.R
 \name{save_bivariate_loglik_ilr_profile_book}
 \alias{save_bivariate_loglik_ilr_profile_book}
-\title{Multi-page PDF of ILR log-likelihood profiles (\(\rho\in\mathbb{R}\))}
+\title{Multi-page PDF of ILR log-likelihood profiles (\eqn{\rho\in\mathbb{R}})}
 \usage{
 save_bivariate_loglik_ilr_profile_book(
   config,
@@ -22,5 +22,5 @@ save_bivariate_loglik_ilr_profile_book(
 \code{purified_density.rds} (ggplot raster and overlay tables).}
 }
 \description{
-Multi-page PDF of ILR log-likelihood profiles (\(\rho\in\mathbb{R}\))
+Multi-page PDF of ILR log-likelihood profiles (\eqn{\rho\in\mathbb{R}})
 }

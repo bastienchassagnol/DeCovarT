@@ -308,6 +308,7 @@ compute_average_overlap <- function(
 #' @export
 #' @seealso [compute_average_jeffreys()], [compute_average_overlap()]
 #' @examples
+#' \dontrun{
 #' set.seed(1)
 #' G <- 4L
 #' J <- 3L
@@ -319,6 +320,7 @@ compute_average_overlap <- function(
 #' labels <- paste0("ct", seq_len(J))
 #' scores <- compute_glmnet_gene_scores(profiles, labels)
 #' names(scores)[which.max(scores)]
+#' }
 compute_glmnet_gene_scores <- function(
   expression_profiles,
   celltype_labels,

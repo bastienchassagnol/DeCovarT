@@ -18,7 +18,7 @@ save_bivariate_similarity_book(artefacts, file, data_rds = NULL)
 \code{file}, invisibly.
 }
 \description{
-Twelve pages (CLD \(\times\) variance \(\times\) composition). Each
+Twelve pages (CLD \eqn{\times} variance \eqn{\times} composition). Each
 page is a 2-by-2 of the correlation corners, with average-linkage
 clustering of \(1-r\) and a dendrogram to the right of the tiles,
 with leaves flush against the heatmap.

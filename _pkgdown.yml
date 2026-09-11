@@ -289,6 +289,11 @@ reference:
       - save_bivariate_forest_book
       - save_bivariate_raincloud_book
       - save_bivariate_solver_dots_book
+      - save_bivariate_bulk_density_book
+      - save_bivariate_loglik_ilr_profile_book
+      - save_bivariate_loglik_rgl_book
+      - save_bivariate_loglik_surface_p_book
+      - save_bivariate_purified_density_book
   - title: Simulation
   - subtitle: Toy bulk mixtures
     desc: |

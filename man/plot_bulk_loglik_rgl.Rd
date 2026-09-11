@@ -2,7 +2,7 @@
 % Please edit documentation in R/04_04_bivariate_visualisation.R
 \name{plot_bulk_loglik_rgl}
 \alias{plot_bulk_loglik_rgl}
-\title{rgl surface of the bulk log-likelihood on a \((p_1,p_2)\) lattice}
+\title{rgl surface of the bulk log-likelihood on a \eqn{(p_1,p_2)} lattice}
 \usage{
 plot_bulk_loglik_rgl(
   true_theta,
@@ -16,7 +16,7 @@ plot_bulk_loglik_rgl(
 
 \item{grid}{Length of the lattice per axis.}
 
-\item{y}{Optional bulk observation. Default is \(\mu p^{\star}\).}
+\item{y}{Optional bulk observation. Default is \eqn{\mu p^{\star}}.}
 
 \item{title}{Plot title (bold).}
 }
@@ -26,7 +26,7 @@ A \code{ggplot} raster of the \code{rgl} snapshot.
 \description{
 Opens an \code{rgl} window, draws \code{\link[rgl:persp3d]{rgl::persp3d()}} of
 \code{\link[=loglik_multivariate]{loglik_multivariate()}} versus hypothesised ratios, and marks the
-MLE (true simulation proportions for \(y=\mu p^{\star}\)) with a
+MLE (true simulation proportions for \eqn{y=\mu p^{\star}}) with a
 sphere. Returns a ggplot snapshot suitable for a PDF page.
 }
 \examples{

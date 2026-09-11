@@ -16,6 +16,6 @@ save_bivariate_solver_dots_book(artefacts, file, data_rds = NULL)
 }
 \description{
 One page per meta-scenario. Each page facets solvers on the same
-9-by-9 \((\rho_1,\rho_2)\) factorial as the metric heatmaps
+9-by-9 \eqn{(\rho_1,\rho_2)} factorial as the metric heatmaps
 (enrichplot-style dots: colour = RMSE, size = Aitchison).
 }
