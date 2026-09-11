@@ -24,14 +24,14 @@ compute_glmnet_gene_scores(
 \item{lambda}{Optional penalty value at which coefficients are extracted.
 When \code{NULL}, uses the smallest \eqn{\lambda} on the fitted path.}
 
-\item{...}{Additional arguments forwarded to \code{\link[glmnet:glmnet]{glmnet::glmnet()}}.}
+\item{...}{Additional arguments forwarded to \code{glmnet::glmnet()}.}
 }
 \value{
 Named numeric vector of length \eqn{G} (gene scores; larger means
 stronger multinomial signal).
 }
 \description{
-Fits a multinomial (or binomial) elastic net (\code{\link[glmnet:glmnet]{glmnet::glmnet()}}) that
+Fits a multinomial (or binomial) elastic net (\code{glmnet::glmnet()}) that
 predicts cell type from expression features. Inputs are purified
 expression profiles
 \eqn{\boldsymbol{X}\in\mathcal{M}_{G\times J\times N}} (genes \eqn{\times}

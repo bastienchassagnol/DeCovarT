@@ -13,3 +13,14 @@
   }
   invisible(TRUE)
 }
+
+#' Exported function from an optional package (no `pkg::` in source)
+#'
+#' `R CMD check` flags `pkg::fun` when `pkg` is not in Imports. Optional
+#' helpers that must not pull Suggests onto CI use this instead.
+#'
+#' @keywords internal
+#' @noRd
+.suggested_export <- function(pkg, name) {
+  getExportedValue(pkg, name)
+}

@@ -1083,6 +1083,24 @@ plot_bivariate_metric_tiles <- function(metrics, title) {
   paste(cents, var, prop, sep = " / ")
 }
 
+#' Print a 2-by-2 ggplot page with a title (uses cowplot, not gridExtra)
+#'
+#' @keywords internal
+#' @noRd
+.print_bivariate_page_grid <- function(plots, page_title) {
+  .check_suggested_package("cowplot", ".print_bivariate_page_grid")
+  body <- cowplot::plot_grid(plotlist = plots, ncol = 2L)
+  titled <- cowplot::plot_grid(
+    cowplot::ggdraw() +
+      cowplot::draw_label(page_title, fontface = "bold", size = 14),
+    body,
+    ncol = 1,
+    rel_heights = c(0.06, 1)
+  )
+  print(titled)
+  invisible(titled)
+}
+
 #' Persist ggplot `data` (not rgl snapshots) for a fig02 book
 #'
 #' @keywords internal
@@ -1301,7 +1319,7 @@ save_bivariate_loglik_rgl_book <- function(
   which <- match.arg(which)
   config <- .relevel_scenario_table(config)
   theta_tbl <- .relevel_scenario_table(theta_tbl)
-  .check_suggested_package("gridExtra", "save_bivariate_loglik_ggplot_book")
+  .check_suggested_package("cowplot", "save_bivariate_loglik_ggplot_book")
   meta <- .bivariate_page_meta(config)
   collected <- list()
   grDevices::pdf(file, width = 14, height = 12)
@@ -1338,18 +1356,7 @@ save_bivariate_loglik_rgl_book <- function(
           plot.title = ggplot2::element_text(face = "bold")
         )
     }
-    grob <- gridExtra::arrangeGrob(
-      grobs = plots,
-      ncol = 2L,
-      top = grid::textGrob(
-        page_title,
-        gp = grid::gpar(fontface = "bold", fontsize = 14)
-      )
-    )
-    grid::grid.draw(grob)
-    if (i < nrow(meta)) {
-      grid::grid.newpage()
-    }
+    .print_bivariate_page_grid(plots, page_title)
   }
   stem <- if (identical(which, "ilr_profile")) {
     "loglik_ilr_profile"
@@ -1890,7 +1897,6 @@ save_bivariate_similarity_book <- function(
   file,
   data_rds = NULL
 ) {
-  .check_suggested_package("gridExtra", "save_bivariate_similarity_book")
   .check_plot_dependencies(need_ggdendro = TRUE, need_cowplot = TRUE)
   cfg <- artefacts$config
   meta <- .bivariate_page_meta(cfg)
@@ -1924,18 +1930,7 @@ save_bivariate_similarity_book <- function(
         rel_heights = c(0.08, 1)
       )
     }
-    grob <- gridExtra::arrangeGrob(
-      grobs = panels,
-      ncol = 2L,
-      top = grid::textGrob(
-        page_title,
-        gp = grid::gpar(fontface = "bold", fontsize = 14)
-      )
-    )
-    grid::grid.draw(grob)
-    if (i < nrow(meta)) {
-      grid::grid.newpage()
-    }
+    .print_bivariate_page_grid(panels, page_title)
   }
   if (length(collected) > 0L) {
     .write_ggplot_rds(dplyr::bind_rows(collected), data_rds, "similarity")
@@ -1948,7 +1943,6 @@ save_bivariate_similarity_book <- function(
 #' @inheritParams save_bivariate_similarity_book
 #' @export
 save_bivariate_forest_book <- function(artefacts, file, data_rds = NULL) {
-  .check_suggested_package("gridExtra", "save_bivariate_forest_book")
   artefacts <- .attach_expected_fisher_wald(artefacts)
   cfg <- artefacts$config
   meta <- .bivariate_page_meta(cfg)
