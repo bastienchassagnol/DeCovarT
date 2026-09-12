@@ -1,0 +1,4 @@
+{
+  "name": "DeCovarT",
+  "install": "bash .cursor/install.sh"
+}
