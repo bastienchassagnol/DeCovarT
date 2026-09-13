@@ -294,6 +294,13 @@ reference:
       - save_bivariate_loglik_rgl_book
       - save_bivariate_loglik_surface_p_book
       - save_bivariate_purified_density_book
+      - save_mean_signature_heatmap
+      - save_network_topology_book
+      - save_pairwise_network_distance_heatmap
+      - save_scenario_metrics_funkyheatmap
+      - save_hybrid_latent_projection_book
+      - save_hybrid_runtime_book
+      - save_hybrid_memory_book
   - title: Simulation
   - subtitle: Toy bulk mixtures
     desc: |

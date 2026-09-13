@@ -15,6 +15,7 @@ save_scenario_metrics_funkyheatmap(artefacts, file, data_rds = NULL)
 \item{data_rds}{Optional directory for ggplot \code{data} RDS files.}
 }
 \description{
-Rows follow the fig03 factor order (proportions, CT1/CT2 graphs,
-MixSim overlap). No clustering.
+Rows nest Shannon composition, MixSim overlap, then the four
+CT1/CT2 graph pairs. Circles are min--max scaled within each
+column. No clustering.
 }

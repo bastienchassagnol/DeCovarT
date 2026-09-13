@@ -47,9 +47,10 @@
 #  output/fig03/hybrid_config.rds (design + graph generator settings)
 #  output/fig03/hybrid_{config,descriptors,theta,benchmark}.rds
 #  output/fig03/density_visualisations/{mean_signature,scenario_metrics,
-#    pairwise_hellinger,loglik_surface_p,network_topologies}.pdf
+#    pairwise_hellinger,loglik_surface_p,network_topologies,
+#    latent_projections}.pdf
 #  output/fig03/performance_visualisations/{heatmap_rmse,raincloud,forest,
-#    similarity,solver_dots}.pdf
+#    similarity,solver_dots,runtime,memory}.pdf
 #  output/fig03/ggplot_rds/*.rds
 #  vignettes/figures/fig_network_topologies.png
 ###############################################################################
@@ -620,6 +621,45 @@ save_bivariate_solver_dots_book(
   data_rds = GGPLOT_RDS_DIR
 )
 .ui_success("Saved {.file solver_dots.pdf}.")
+
+if (
+  requireNamespace("EMMIXmfa", quietly = TRUE) &&
+    requireNamespace("mclust", quietly = TRUE) &&
+    requireNamespace("cowplot", quietly = TRUE)
+) {
+  .ui_info("Drawing 16-page 2D latent-projection book.")
+  save_hybrid_latent_projection_book(
+    artefacts,
+    file.path(DENSITY_DIR, "latent_projections.pdf"),
+    n = 300L,
+    seed = SEED,
+    data_rds = GGPLOT_RDS_DIR
+  )
+  .ui_success("Saved {.file latent_projections.pdf}.")
+} else {
+  .ui_warn(
+    "Latent-projection book skipped (need EMMIXmfa, mclust, cowplot)."
+  )
+}
+
+if (requireNamespace("ggdist", quietly = TRUE)) {
+  .ui_info("Drawing solver runtime rainclouds (3 pages).")
+  save_hybrid_runtime_book(
+    artefacts,
+    file.path(PERF_DIR, "runtime.pdf"),
+    data_rds = GGPLOT_RDS_DIR
+  )
+  .ui_success("Saved {.file runtime.pdf}.")
+  .ui_info("Drawing solver memory rainclouds (3 pages).")
+  save_hybrid_memory_book(
+    artefacts,
+    file.path(PERF_DIR, "memory.pdf"),
+    data_rds = GGPLOT_RDS_DIR
+  )
+  .ui_success("Saved {.file memory.pdf}.")
+} else {
+  .ui_warn("{.pkg ggdist} not available; skipping runtime / memory books.")
+}
 
 .ui_success(
   "Done. Outputs in {.path {normalizePath(OUT_DIR, mustWork = FALSE)}}."

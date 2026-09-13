@@ -44,6 +44,17 @@
   (NNLS, LSEI) leave coverage, mean model SE, and `se_sd_ratio`
   missing. The ALR helper `vcov_alr_delta()` has been removed.
 
+* **Fig03 latent-space and resource books.**
+  `save_hybrid_latent_projection_book()` writes a 16-page 2-D book
+  (extreme MixSim overlap \(\times\) extreme Shannon composition
+  \(\times\) four CT1/CT2 topologies). The top row is independent
+  Thomson `factanal()` scores per type; the bottom row is a shared
+  MCFA plane on convolution draws, MCFA on an unsupervised mixture
+  with weights \(\boldsymbol{p}\), and supervised `MclustDR`. Runtime and
+  memory rainclouds (`save_hybrid_runtime_book()`,
+  `save_hybrid_memory_book()`) use one page per composition, facet
+  overlap, and log10 y with a rug of Monte Carlo draws.
+
 * **Overlap in moderate dimension.** `compute_average_overlap()` uses
   MixSim Davies quadrature for $G<4$ and stratified Sobol Monte Carlo
   (`overlap_gaussian_mc()`, default $10^4$ draws per component) when

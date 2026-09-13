@@ -828,6 +828,10 @@ theme_decovart_facets <- function(base_size = 11, ...) {
 #' @param dodge_width Width passed to [ggplot2::position_dodge()].
 #' @param slab_scale Slab height for [ggdist::stat_halfeye()].
 #' @param slab_alpha Transparency of the density slab (`1` is opaque).
+#' @param category_spacing Vertical gap between discrete y categories
+#'   (cell types). Values greater than 1 insert extra space so slabs
+#'   from neighbouring types do not overlap; the axis still shows the
+#'   original labels.
 #'
 #' @srrstats {G2.3} Restricted character input (`quantity`).
 #' @srrstats {G2.3a} Validated via `.match_arg_case_insensitive()`.
@@ -875,7 +879,8 @@ plot_mc_raincloud <- function(
   max_rows = NULL,
   dodge_width = 0.95,
   slab_scale = 1.4,
-  slab_alpha = 1
+  slab_alpha = 1,
+  category_spacing = 1
 ) {
   .check_plot_dependencies(need_ggdist = TRUE)
   quantity <- .match_arg_case_insensitive(quantity, c("error", "estimate"))
@@ -899,6 +904,18 @@ plot_mc_raincloud <- function(
   }
   df$cell_type <- factor(df$cell_type, levels = unique(df$cell_type))
   df$algorithm <- .relevel_algorithm(df$algorithm)
+  y_levels <- levels(df$cell_type)
+  use_spaced_y <- is.finite(category_spacing) &&
+    category_spacing > 1 &&
+    length(y_levels) > 0L
+  if (isTRUE(use_spaced_y)) {
+    df$y_plot <- (as.numeric(df$cell_type) - 1) * category_spacing + 1
+    y_breaks <- (seq_along(y_levels) - 1) * category_spacing + 1
+    y_aes <- "y_plot"
+  } else {
+    df$y_plot <- df$cell_type
+    y_aes <- "cell_type"
+  }
   x_var <- if (identical(quantity, "error")) "error" else "estimate"
   x_lab <- if (identical(quantity, "error")) {
     "Monte Carlo error (estimate minus truth)"
@@ -910,7 +927,7 @@ plot_mc_raincloud <- function(
     df,
     ggplot2::aes(
       x = .data[[x_var]],
-      y = .data[["cell_type"]],
+      y = .data[[y_aes]],
       fill = .data[["algorithm"]],
       colour = .data[["algorithm"]]
     )
@@ -918,7 +935,7 @@ plot_mc_raincloud <- function(
     ggdist::stat_halfeye(
       orientation = "horizontal",
       .width = .width,
-      justification = -0.12,
+      justification = -0.08,
       point_interval = ggdist::median_qi,
       normalize = "groups",
       scale = slab_scale,
@@ -957,6 +974,14 @@ plot_mc_raincloud <- function(
       )
     ) +
     theme_decovart_facets()
+  if (isTRUE(use_spaced_y)) {
+    p <- p +
+      ggplot2::scale_y_continuous(
+        breaks = y_breaks,
+        labels = y_levels,
+        expand = ggplot2::expansion(add = 0.45 * category_spacing)
+      )
+  }
   if (identical(quantity, "error")) {
     p <- p + ggplot2::geom_vline(xintercept = 0, linetype = "dashed")
   } else {
@@ -1378,7 +1403,7 @@ plot_mc_forest <- function(
   r_mat
 }
 
-#' Dissimilarity 1 - r for average-linkage clustering
+#' Dissimilarity 1 - r for Ward hierarchical clustering
 #'
 #' @noRd
 .corr_distance <- function(r_mat) {
@@ -1387,6 +1412,13 @@ plot_mc_forest <- function(
   d[d < 0] <- 0
   diag(d) <- 0
   d
+}
+
+#' Ward D2 clustering of \eqn{d_{ab}=1-r_{ab}}
+#'
+#' @noRd
+.hclust_corr_ward <- function(r_mat) {
+  stats::hclust(stats::as.dist(.corr_distance(r_mat)), method = "ward.D2")
 }
 
 #' Long form of a named correlation matrix
@@ -1399,12 +1431,11 @@ plot_mc_forest <- function(
   tibble::as_tibble(tbl)
 }
 
-#' Hierarchical order from 1 - r
+#' Hierarchical order from 1 - r (Ward D2)
 #'
 #' @noRd
 .hclust_corr_order <- function(r_mat) {
-  d <- .corr_distance(r_mat)
-  hc <- stats::hclust(stats::as.dist(d), method = "average")
+  hc <- .hclust_corr_ward(r_mat)
   hc$labels[hc$order]
 }
 
@@ -1414,7 +1445,7 @@ plot_mc_forest <- function(
 #' \eqn{r_{ab}=\mathrm{cor}(\hat p_a,\hat p_b)} across Monte Carlo
 #' replicates (and cell types). This is **behavioural similarity**: two
 #' solvers can correlate near 1 while remaining systematically biased.
-#' Hierarchical order uses \eqn{d_{ab} = 1 - r_{ab}}.
+#' Hierarchical order uses Ward D2 on \eqn{d_{ab} = 1 - r_{ab}}.
 #'
 #' @param benchmark List from [run_simulation_benchmark()].
 #' @param facet_rows,facet_cols Optional scenario columns. When supplied,
@@ -1572,11 +1603,7 @@ plot_algorithm_similarity <- function(
     ggplot2::labs(
       x = "Algorithm",
       y = "Algorithm",
-      fill = "Pearson r",
-      caption = paste(
-        "Clustering uses 1 - r (behavioural similarity),",
-        "not numerical agreement of estimates."
-      )
+      fill = "Pearson r"
     ) +
     theme_decovart_facets() +
     ggplot2::theme(
@@ -1610,14 +1637,12 @@ plot_algorithm_similarity <- function(
         need_ggdendro = TRUE,
         need_cowplot = TRUE
       )
-      hc <- stats::hclust(
-        stats::as.dist(.corr_distance(r_mat)),
-        method = "average"
-      )
+      hc <- .hclust_corr_ward(r_mat)
       dend <- .similarity_dendrogram_plot(hc, n_leaf = length(ord))
       tiles <- p +
         ggplot2::theme(
-          plot.margin = ggplot2::margin(4, 0, 4, 4)
+          plot.margin = ggplot2::margin(4, 0, 4, 4),
+          legend.position = "none"
         )
       combined <- cowplot::plot_grid(
         tiles,
@@ -1647,6 +1672,23 @@ plot_algorithm_similarity <- function(
   # (`algorithm_y = rev(ord)`). Flip the dendrogram index to match.
   seg$x <- n_leaf + 1 - seg$x
   seg$xend <- n_leaf + 1 - seg$xend
+  merge_seg <- dplyr::filter(
+    seg,
+    abs(.data[["y"]] - .data[["yend"]]) < 1e-8,
+    abs(.data[["x"]] - .data[["xend"]]) > 1e-8
+  )
+  merge_lab <- dplyr::mutate(
+    merge_seg,
+    lab_x = .data[["y"]],
+    lab_y = (.data[["x"]] + .data[["xend"]]) / 2,
+    lab = sprintf("%.2f", .data[["y"]])
+  )
+  merge_lab <- dplyr::distinct(
+    merge_lab,
+    .data[["lab"]],
+    .data[["lab_y"]],
+    .keep_all = TRUE
+  )
   ggplot2::ggplot(seg) +
     ggplot2::geom_segment(
       ggplot2::aes(
@@ -1659,7 +1701,22 @@ plot_algorithm_similarity <- function(
       colour = "grey20",
       lineend = "square"
     ) +
-    ggplot2::scale_x_continuous(expand = c(0, 0)) +
+    ggplot2::geom_text(
+      data = merge_lab,
+      ggplot2::aes(
+        x = .data[["lab_x"]],
+        y = .data[["lab_y"]],
+        label = .data[["lab"]]
+      ),
+      size = 2.1,
+      colour = "grey15",
+      hjust = -0.15,
+      vjust = 0.5,
+      inherit.aes = FALSE
+    ) +
+    ggplot2::scale_x_continuous(
+      expand = ggplot2::expansion(mult = c(0, 0.18))
+    ) +
     ggplot2::scale_y_continuous(
       limits = c(0.5, n_leaf + 0.5),
       expand = c(0, 0)
@@ -1687,7 +1744,7 @@ plot_algorithm_similarity <- function(
         fill = "transparent",
         colour = NA
       ),
-      plot.margin = ggplot2::margin(4, 4, 4, 0)
+      plot.margin = ggplot2::margin(4, 8, 4, 0)
     )
 }
 

@@ -254,11 +254,148 @@ ALGORITHMS <- c(
 
 | Output | Description |
 |---|---|
-| `output/fig03/fig03_raincloud.pdf` | Raincloud of Monte Carlo errors, faceted by composition and overlap label |
-| `output/fig03/fig03_forest.pdf` | ADEMP forest plot |
-| `output/fig03/fig03_metric_dots.pdf` | Metric dot plot (RMSE, MAE, coverage) |
+| `output/fig03/density_visualisations/mean_signature.pdf` | Unscaled \(\boldsymbol{\mu}\) heatmap |
+| `output/fig03/density_visualisations/latent_projections.pdf` | 16-page 2D latent-space book (Thomson / MCFA / `MclustDR`) |
+| `output/fig03/density_visualisations/network_topologies.pdf` | Graph skeletons, one page per MixSim overlap |
+| `output/fig03/performance_visualisations/heatmap_rmse.pdf` | RMSE tiles |
+| `output/fig03/performance_visualisations/raincloud.pdf` | Monte Carlo \(\hat{\boldsymbol{p}}\) rainclouds |
+| `output/fig03/performance_visualisations/forest.pdf` | ADEMP Wald forest |
+| `output/fig03/performance_visualisations/runtime.pdf` | Solver wall-clock (log10 seconds) |
+| `output/fig03/performance_visualisations/memory.pdf` | Peak memory (log10 MiB) |
 
-### Expected findings
+Redraw with `FIG03_POSTPROCESS_ONLY=1 Rscript scripts/fig03_variance_driven.R`
+(no ADEMP refit). ggplot `data` tables go under
+`output/fig03/ggplot_rds/`.
+
+## Two-dimensional projections of a Gaussian convolution {#sec-hybrid-2d-proj}
+
+With \(G=20\) the purified Gaussians and the bulk convolution are no
+longer drawable in the gene plane. The 16-page book
+`latent_projections.pdf` therefore maps each selected scenario to a
+2D latent display. Pages keep the **lowest and highest** MixSim
+overlap (low / high; the moderate arm is omitted) and the **highest
+and lowest** Shannon entropy of \(\boldsymbol{p}\) (balanced versus
+highly unbalanced), crossed with the four CT1/CT2 graph assignments
+(\(2\times 2\times 4=16\)). Each page is a \(3\times 2\) of
+scatterplots with 95% Gaussian ellipses, cell-type colour, axis
+labels that report the share of variability on the first two
+coordinates, and a cowplot scree inset
+([drawing on plots](https://wilkelab.org/cowplot/articles/drawing_with_on_plots.html#making-inset-plots))
+of the first ten scaled eigenvalues. The layout follows the
+`fviz_pca` style (points, ellipses, percentage axes) without
+importing `factoextra`.
+
+The three routes below all return an ordered set of eigenvalues
+that summarise how much variability sits in the plotted plane. They
+are **not** interchangeable with the DeCovarT likelihood: the bulk
+profile is a **convolution** of Gaussians, not a Gaussian mixture.
+
+::: {#nte-conv-not-gmm .callout-warning}
+A $J$-type bulk draw is
+$Y\mid\boldsymbol{p}\sim\mathcal{N}\bigl(\boldsymbol{\mu}(\boldsymbol{p}),\boldsymbol{\Sigma}(\boldsymbol{p})\bigr)$
+with
+$\boldsymbol{\mu}(\boldsymbol{p})=\sum_j p_j\boldsymbol{\mu}_{\cdot j}$ and
+$\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j$.
+Every observation is a weighted sum of **all** types
+([`simulate_bulk_mixture()`](../reference/simulate_bulk_mixture.html)).
+A finite mixture instead draws a latent label and then one
+component,
+$f(\boldsymbol{y})=\sum_k\pi_k\,\phi(\boldsymbol{y};\boldsymbol{\mu}_k,\boldsymbol{\Sigma}_k)$,
+with mixing weights \(\boldsymbol{p}\) (not \(\boldsymbol{p}^2\)).
+`MclustDR` and mixtures of factor analysers target that mixture.
+Their \(\pi_k\) are not cell-type proportions, and their component
+densities are not the convolution law used for deconvolution.
+:::
+
+### Independent factor analyses per cell type
+
+The top row fits a two-factor Gaussian factor model **separately**
+to purified draws from each type (`stats::factanal()`, Thomson /
+regression scores
+[@thomsonMethodsEstimatingMental1938]). The orthogonal-factor model
+is
+$\boldsymbol{x}=\boldsymbol{\mu}+\Lambda\boldsymbol{f}+\boldsymbol{\varepsilon}$
+with $\boldsymbol{f}\sim N(\boldsymbol{0},I)$ and diagonal uniquenesses
+$\Psi$, so
+$\boldsymbol{\Sigma}=\Lambda\Lambda^\top+\Psi$.
+Thomson scores are the posterior mean
+$\hat{\boldsymbol{f}}_R=E[\boldsymbol{f}\mid\boldsymbol{x}]=\Lambda^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{\mu})$.
+That is the natural probabilistic answer to “where does this
+20-gene profile sit in the plane?”. Bartlett scores (uniqueness-
+weighted GLS) remain a `factanal(..., scores = "Bartlett")`
+sensitivity check and are not plotted. Gene-wise marginal variances
+are comparable after the global MixSim scale, so uniquenesses are
+less heterogeneous than in a typical psychometric battery.
+Independent per-type fits do **not** share a loading matrix: the
+three planes are not superimposed.
+
+```{r}
+#| label: fa-thomson-sketch
+#| eval: false
+fit <- stats::factanal(
+  X,
+  factors = 2,
+  rotation = "none",
+  scores = "regression"
+)
+scores <- as.data.frame(fit$scores)
+ggplot2::ggplot(scores, ggplot2::aes(Factor1, Factor2)) +
+  ggplot2::geom_point() +
+  ggplot2::coord_equal() +
+  ggplot2::theme_classic()
+```
+
+### Shared MCFA plane (`EMMIXmfa`)
+
+The bottom-left and bottom-centre panels use mixtures of common
+factor analysers [@MixturesFactorAnalyzers2000; @R-EMMIXmfa]: a
+shared loading matrix $A$ with
+$\boldsymbol{\mu}_i=A\boldsymbol{\xi}_i$ and
+$\boldsymbol{\Sigma}_i=A\Omega_i A^\top+D$, so that posterior factor
+means live in **one** $q=2$ plane. The eigenvalues of
+$A\bar{\Omega}A^\top+D$ are the scree inset.
+
+- **Convolution (panel D).** Bulk columns come from
+  `simulate_bulk_mixture()` (covariance weights $p_j^2$). MCFA is
+  fitted to those unlabelled bulk draws, then the *latent* purified
+  slices \(\mathcal{X}\) from the same simulation are scored into
+  that shared plane and coloured by true type.
+- **Unsupervised mixture (panel E).** Each draw is from **one**
+  component with probability $p_j$ (not $p_j^2$). MCFA does not
+  use the labels; colour is the generating type, so the plot shows
+  how well the shared factors recover overlap.
+
+### Supervised `MclustDR` plane
+
+The bottom-right panel takes the same labelled mixture draws and
+fits `mclust::MclustDA(..., modelType = "EDDA")` then
+`mclust::MclustDR()`
+[@R-mclust; @scruccaDimensionReductionModelbased2010a;
+@scruccaGraphicalToolsModelbased2015].
+See the [`MclustDR` reference](https://mclust-org.github.io/mclust/reference/MclustDR.html).
+The kernel blends between-class mean separation with covariance
+differences (`lambda = 1` emphasises separation). The generalised
+eigenvalues (`evalues`) are the scree inset: they are
+cluster-relevant variability, not ordinary PCA variance. This is
+the right 2D plot **if** class labels are known. On bulk
+convolution draws a one-component Gaussian is the truth, so
+`Mclust` would split a single ellipsoid; that misspecified fit is
+not shown.
+
+## Solver runtime and memory {#sec-hybrid-resources}
+
+`runtime.pdf` and `memory.pdf` use the same composition order as
+the other performance books (balanced, then moderately unbalanced,
+then highly unbalanced): **one page per** \(\boldsymbol{p}\). Each page
+facets the three MixSim overlap levels, puts CT1/CT2 topology on
+the x-axis (`SF/SF`, `SF/SBM`, `SBM/SF`, `SBM/SBM`), and maps
+solver to colour, fill, and grouping. The geometry is a vertical
+ggdist half-eye (raincloud) of the per-sample
+`optimisation$elapsed_sec` or `memory_bytes` (converted to MiB),
+with a left-side `geom_rug()` of the raw Monte Carlo draws and a
+log10 y-axis.
+
+## Expected findings
 
 Because CT 1 and CT 2 share cosine $0.9$, LSEI and CIBERSORT cannot
 separate them from the mean signature alone. DeCovarT (L-BFGS-B,

@@ -231,7 +231,6 @@ gaussian_confidence_ellipse <- function(
 }
 
 
-
 #' @keywords internal
 #' @noRd
 .pad_limits <- function(x, pad = 0.06) {
@@ -1219,7 +1218,7 @@ plot_bivariate_metric_tiles <- function(metrics, title) {
   hybrid <- .is_hybrid_config(metrics)
   n_alg <- dplyr::n_distinct(metrics$algorithm)
   ncol_alg <- if (isTRUE(hybrid)) {
-    min(5L, n_alg)
+    min(3L, n_alg)
   } else {
     4L
   }
@@ -1243,12 +1242,11 @@ plot_bivariate_metric_tiles <- function(metrics, title) {
     )
   ) +
     ggplot2::geom_tile(colour = "white", linewidth = 0.1) +
-    ggplot2::facet_wrap(~algorithm, ncol = ncol_alg)
-  if (!isTRUE(hybrid)) {
-    p <- p + ggplot2::coord_equal()
-  }
+    ggplot2::facet_wrap(~algorithm, ncol = ncol_alg) +
+    ggplot2::theme(aspect.ratio = 1)
   p +
     ggplot2::scale_fill_viridis_c() +
+    .rmse_colourbar_guides("fill") +
     theme_decovart_facets() +
     ggplot2::theme(
       plot.title = ggplot2::element_text(face = "bold"),
@@ -1257,14 +1255,102 @@ plot_bivariate_metric_tiles <- function(metrics, title) {
         hjust = 1,
         vjust = 0.5
       ),
-      legend.position = "bottom"
+      legend.position = "bottom",
+      legend.key.width = grid::unit(2.2, "cm")
     ) +
     ggplot2::labs(
       x = x_lab,
       y = y_lab,
-      fill = NULL,
+      fill = "RMSE",
       title = title
-    )
+    ) +
+    ggplot2::coord_fixed(ratio = 1)
+}
+
+#' Mean-only solvers (no convolution Wald intervals)
+#'
+#' @keywords internal
+#' @noRd
+.mean_only_algorithms <- function() {
+  c("nnls", "lsei", "cibersort")
+}
+
+#' Convolution MLE solvers
+#'
+#' @keywords internal
+#' @noRd
+.convolution_algorithms <- function() {
+  c("LBFGS", "Marquardt-Levenberg", "Newton-Raphson")
+}
+
+#' Shared wide RMSE colourbar
+#'
+#' @keywords internal
+#' @noRd
+.rmse_colourbar_guides <- function(aesthetic = "fill") {
+  bar <- ggplot2::guide_colourbar(
+    barwidth = grid::unit(4.8, "cm"),
+    barheight = grid::unit(0.45, "cm")
+  )
+  if (identical(aesthetic, "colour")) {
+    ggplot2::guides(colour = bar)
+  } else {
+    ggplot2::guides(fill = bar)
+  }
+}
+
+#' Force each ggplot panel to a square absolute size
+#'
+#' @keywords internal
+#' @noRd
+.square_facet_panels <- function(p, size_cm = 4) {
+  g <- ggplot2::ggplotGrob(p)
+  is_panel <- grepl("^panel", g$layout$name)
+  panel_cols <- unique(g$layout$l[is_panel])
+  panel_rows <- unique(g$layout$t[is_panel])
+  sz <- grid::unit(size_cm, "cm")
+  g$widths[panel_cols] <- rep(sz, length(panel_cols))
+  g$heights[panel_rows] <- rep(sz, length(panel_rows))
+  g$respect <- TRUE
+  g
+}
+
+#' Stack mean-only solvers above convolution solvers
+#'
+#' @keywords internal
+#' @noRd
+.split_hybrid_solver_plots <- function(df, make_plot) {
+  .check_suggested_package("cowplot", ".split_hybrid_solver_plots")
+  df$algorithm <- .relevel_algorithm(df$algorithm)
+  top <- df[
+    .algorithm_in(df$algorithm, c("lsei", "cibersort")),
+    ,
+    drop = FALSE
+  ]
+  bot <- df[
+    .algorithm_in(df$algorithm, .convolution_algorithms()),
+    ,
+    drop = FALSE
+  ]
+  p_top <- make_plot(top) +
+    ggplot2::theme(legend.position = "none")
+  p_bot <- make_plot(bot)
+  g_top <- .square_facet_panels(p_top, size_cm = 4.8)
+  g_bot <- .square_facet_panels(p_bot, size_cm = 4.8)
+  top_row <- cowplot::plot_grid(
+    g_top,
+    cowplot::ggdraw(),
+    nrow = 1,
+    rel_widths = c(2, 1),
+    greedy = FALSE
+  )
+  cowplot::plot_grid(
+    top_row,
+    g_bot,
+    ncol = 1,
+    rel_heights = c(1, 1.2),
+    greedy = FALSE
+  )
 }
 
 #' @keywords internal
@@ -1691,8 +1777,8 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
   write_metric_pdf <- function(metric, path, stem) {
     meta <- .bivariate_page_meta(agg)
     pages <- list()
-    pdf_w <- if (isTRUE(hybrid)) 18 else 16
-    pdf_h <- if (isTRUE(hybrid)) 6 else 10
+    pdf_w <- if (isTRUE(hybrid)) 16 else 16
+    pdf_h <- if (isTRUE(hybrid)) 11 else 10
     grDevices::pdf(path, width = pdf_w, height = pdf_h)
     on.exit(grDevices::dev.off(), add = TRUE)
     for (i in seq_len(nrow(meta))) {
@@ -1701,7 +1787,17 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
       page$value <- page[[metric]]
       page$page <- .page_title(row)
       title <- paste(toupper(metric), .page_title(row), sep = " / ")
-      print(plot_bivariate_metric_tiles(page, title))
+      if (isTRUE(hybrid)) {
+        print(
+          .split_hybrid_solver_plots(
+            page,
+            function(d) plot_bivariate_metric_tiles(d, title)
+          ),
+          newpage = i > 1L
+        )
+      } else {
+        print(plot_bivariate_metric_tiles(page, title), newpage = i > 1L)
+      }
       pages[[i]] <- page
     }
     .write_ggplot_rds(dplyr::bind_rows(pages), data_rds, stem)
@@ -1928,8 +2024,13 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
     hi <- pmax(plot_df$emp_hi, plot_df$ci_hi, plot_df$mean_est, na.rm = TRUE)
     annot_df$lab_x <- ifelse(is.finite(hi), hi, plot_df$mean_est)
     annot_df$annot <- paste0(
-      sprintf("%.3f", annot_df$rmse),
-      " / ",
+      "RMSE: ",
+      ifelse(
+        is.finite(annot_df$rmse),
+        sprintf("%.3f", annot_df$rmse),
+        "NA"
+      ),
+      "\nCoverage: ",
       ifelse(
         is.finite(annot_df$coverage),
         sprintf("%.0f%%", 100 * annot_df$coverage),
@@ -1937,7 +2038,7 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
       )
     )
     annot_df$y_lab <- annot_df$y_dodge
-    annot_size <- 2.4
+    annot_size <- 2.35
   } else {
     annot_df <- plot_df |>
       dplyr::group_by(.data[["panel"]], .data[["algorithm"]]) |>
@@ -1947,12 +2048,13 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
     annot_size <- 3.4
   }
   caption_txt <- if (n_ct > 2L) {
-    paste(
-      "Solid whiskers: mean estimate plus or minus 1.96 times the",
-      "expected-Fisher Wald SE at the true composition when available.",
-      "Dashed whiskers: plus or minus 1.96 times the empirical",
-      "Monte Carlo SD.",
-      "Vertical dashed lines: true proportions (one colour per type).",
+    paste0(
+      "[=====]  Solid whiskers: mean estimate plus or minus 1.96 times ",
+      "the expected-Fisher Wald SE at the true composition when available.\n",
+      "[- - -]  Dashed whiskers: plus or minus 1.96 times the empirical ",
+      "Monte Carlo SD.\n",
+      ":  :  :  Vertical dashed lines: true proportions ",
+      "(one colour per type).\n",
       "Labels: RMSE and Wald coverage for each cell type."
     )
   } else {
@@ -2023,7 +2125,7 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
 
   if (n_ct > 2L) {
     p <- p +
-      ggplot2::geom_text(
+      ggplot2::geom_label(
         data = annot_df,
         ggplot2::aes(
           x = .data[["lab_x"]],
@@ -2032,14 +2134,17 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
           colour = .data[["cell_type"]]
         ),
         inherit.aes = FALSE,
-        hjust = -0.08,
+        hjust = -0.04,
         vjust = 0.5,
         size = annot_size,
         fontface = "bold",
-        lineheight = 0.9,
+        lineheight = 0.95,
+        label.size = 0.2,
+        label.padding = grid::unit(0.18, "lines"),
+        fill = ggplot2::alpha("white", 0.88),
         show.legend = FALSE
       )
-    x_expand <- c(0.04, 0.22)
+    x_expand <- c(0.04, 0.42)
   } else {
     p <- p +
       ggplot2::geom_label(
@@ -2085,7 +2190,11 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
     theme_decovart_facets() +
     ggplot2::theme(
       plot.title = ggplot2::element_text(face = "bold"),
-      plot.caption = ggplot2::element_text(hjust = 0, size = 8),
+      plot.caption = ggplot2::element_text(
+        hjust = 0,
+        size = 8,
+        lineheight = 1.15
+      ),
       legend.position = "bottom",
       plot.margin = ggplot2::margin(4, 10, 4, 4)
     )
@@ -2193,9 +2302,11 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
       ggplot2::geom_point() +
       ggplot2::facet_wrap(
         ~algorithm,
-        ncol = min(5L, dplyr::n_distinct(df$algorithm))
+        ncol = min(3L, dplyr::n_distinct(df$algorithm))
       ) +
+      ggplot2::theme(aspect.ratio = 1) +
       ggplot2::scale_colour_viridis_c(name = "RMSE") +
+      .rmse_colourbar_guides("colour") +
       ggplot2::scale_size_continuous(
         name = "Aitchison",
         range = c(1.5, 10)
@@ -2258,16 +2369,18 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
         hjust = 1,
         vjust = 0.5
       ),
-      legend.position = "bottom"
-    )
+      legend.position = "bottom",
+      legend.key.width = grid::unit(2.2, "cm")
+    ) +
+    ggplot2::coord_fixed(ratio = 1)
 }
 
 #' Multi-page PDF of clustered algorithm-similarity heatmaps
 #'
 #' Twelve pages (CLD \eqn{\times} variance \eqn{\times} composition). Each
-#' page is a 2-by-2 of the correlation corners, with average-linkage
-#' clustering of \(1-r\) and a dendrogram to the right of the tiles,
-#' with leaves flush against the heatmap.
+#' page is a 2-by-2 of the correlation corners, with Ward D2 clustering
+#' of \(1-r\) and a dendrogram to the right of the tiles, with leaves
+#' flush against the heatmap. One shared colourbar per page.
 #'
 #' @inheritParams save_bivariate_metric_heatmaps
 #' @param file Output PDF path.
@@ -2292,6 +2405,7 @@ save_bivariate_similarity_book <- function(
     labs <- names(ids)
     page_title <- .page_title(row)
     panels <- vector("list", length(ids))
+    legend <- NULL
     for (k in seq_along(ids)) {
       if (is.na(ids[[k]])) {
         panels[[k]] <- ggplot2::ggplot() +
@@ -2305,6 +2419,15 @@ save_bivariate_similarity_book <- function(
       sim$panel <- labs[[k]]
       collected[[length(collected) + 1L]] <- sim
       p <- plot_algorithm_similarity(sub, dendrogram = TRUE)
+      if (is.null(legend)) {
+        legend <- tryCatch(
+          cowplot::get_legend(
+            plot_algorithm_similarity(sub, dendrogram = FALSE) +
+              ggplot2::theme(legend.position = "bottom")
+          ),
+          error = function(e) NULL
+        )
+      }
       panels[[k]] <- cowplot::plot_grid(
         cowplot::ggdraw() +
           cowplot::draw_label(labs[[k]], fontface = "bold", size = 11),
@@ -2313,13 +2436,38 @@ save_bivariate_similarity_book <- function(
         rel_heights = c(0.08, 1)
       )
     }
-    grob <- gridExtra::arrangeGrob(
-      grobs = panels,
-      ncol = 2L,
-      top = grid::textGrob(
+    grid_panels <- gridExtra::arrangeGrob(grobs = panels, ncol = 2L)
+    caption <- paste(
+      "Ward D2 hierarchical clustering of d = 1 - Pearson r",
+      "(hclust(as.dist(1 - cor(X)), method = \"ward.D2\")).",
+      "Branch labels are Ward merge heights."
+    )
+    grobs <- list(
+      grid::textGrob(
         page_title,
         gp = grid::gpar(fontface = "bold", fontsize = 14)
-      )
+      ),
+      grid_panels
+    )
+    heights <- c(0.06, 1)
+    if (!is.null(legend)) {
+      grobs <- c(grobs, list(legend))
+      heights <- c(0.06, 1, 0.08)
+    }
+    grobs <- c(
+      grobs,
+      list(grid::textGrob(
+        caption,
+        gp = grid::gpar(fontsize = 9),
+        x = 0.02,
+        hjust = 0
+      ))
+    )
+    heights <- c(heights, 0.05)
+    grob <- gridExtra::arrangeGrob(
+      grobs = grobs,
+      ncol = 1L,
+      heights = heights
     )
     grid::grid.draw(grob)
     if (i < nrow(meta)) {
@@ -2341,7 +2489,7 @@ save_bivariate_forest_book <- function(artefacts, file, data_rds = NULL) {
   artefacts <- .attach_expected_fisher_wald(artefacts)
   cfg <- artefacts$config
   meta <- .bivariate_page_meta(cfg)
-  filter_wald <- !.is_hybrid_config(cfg)
+  filter_wald <- TRUE
   collected <- list()
   grDevices::pdf(file, width = 18, height = 12)
   on.exit(grDevices::dev.off(), add = TRUE)
@@ -2381,9 +2529,11 @@ save_bivariate_raincloud_book <- function(
   meta <- .bivariate_page_meta(cfg)
   hybrid <- .is_hybrid_config(cfg)
   collected <- list()
-  pdf_h <- if (isTRUE(hybrid)) 22 else 30
-  slab_s <- if (isTRUE(hybrid)) 1.45 else 1.05
-  slab_a <- if (isTRUE(hybrid)) 0.35 else 0.45
+  pdf_h <- if (isTRUE(hybrid)) 20 else 30
+  slab_s <- if (isTRUE(hybrid)) 0.65 else 1.05
+  slab_a <- if (isTRUE(hybrid)) 0.45 else 0.45
+  y_gap <- if (isTRUE(hybrid)) 6.2 else 1
+  dodge_w <- if (isTRUE(hybrid)) 0.7 else 1
   grDevices::pdf(file, width = 16, height = pdf_h)
   on.exit(grDevices::dev.off(), add = TRUE)
   for (i in seq_len(nrow(meta))) {
@@ -2409,14 +2559,18 @@ save_bivariate_raincloud_book <- function(
       df,
       quantity = "estimate",
       include_dots = FALSE,
-      dodge_width = 1,
+      dodge_width = dodge_w,
       slab_scale = slab_s,
-      slab_alpha = slab_a
+      slab_alpha = slab_a,
+      category_spacing = y_gap
     )
     p <- p +
       ggplot2::facet_wrap(~panel, ncol = 2L) +
       ggplot2::ggtitle(.page_title(row)) +
-      ggplot2::theme(plot.title = ggplot2::element_text(face = "bold"))
+      ggplot2::theme(
+        plot.title = ggplot2::element_text(face = "bold"),
+        axis.text.y = ggplot2::element_text(face = "bold")
+      )
     print(p)
   }
   if (length(collected) > 0L) {
@@ -2442,8 +2596,8 @@ save_bivariate_solver_dots_book <- function(
   meta <- .bivariate_page_meta(agg)
   collected <- list()
   hybrid <- .is_hybrid_config(agg)
-  pdf_w <- if (isTRUE(hybrid)) 18 else 16
-  pdf_h <- if (isTRUE(hybrid)) 6 else 10
+  pdf_w <- if (isTRUE(hybrid)) 16 else 16
+  pdf_h <- if (isTRUE(hybrid)) 11 else 10
   grDevices::pdf(file, width = pdf_w, height = pdf_h)
   on.exit(grDevices::dev.off(), add = TRUE)
   for (i in seq_len(nrow(meta))) {
@@ -2454,7 +2608,22 @@ save_bivariate_solver_dots_book <- function(
     }
     page$page <- .page_title(row)
     collected[[length(collected) + 1L]] <- page
-    print(.plot_bivariate_solver_dots_page(page, .page_title(row)))
+    if (isTRUE(hybrid)) {
+      print(
+        .split_hybrid_solver_plots(
+          page,
+          function(d) {
+            .plot_bivariate_solver_dots_page(d, .page_title(row))
+          }
+        ),
+        newpage = i > 1L
+      )
+    } else {
+      print(
+        .plot_bivariate_solver_dots_page(page, .page_title(row)),
+        newpage = i > 1L
+      )
+    }
   }
   if (length(collected) > 0L) {
     .write_ggplot_rds(dplyr::bind_rows(collected), data_rds, "solver_dots")
@@ -2502,7 +2671,7 @@ save_bivariate_solver_dots_book <- function(
 #'
 #' @keywords internal
 #' @noRd
-.pairwise_gaussian_scores <- function(th) {
+.pairwise_gaussian_scores <- function(th, overlap = FALSE, n_mc = 1200L) {
   mu <- th$mu
   Sigma <- th$sigma
   j_dim <- ncol(mu)
@@ -2514,6 +2683,22 @@ save_bivariate_solver_dots_book <- function(
   k <- 1L
   for (j in seq_len(j_dim - 1L)) {
     for (ell in seq.int(j + 1L, j_dim)) {
+      ovl <- NA_real_
+      if (isTRUE(overlap)) {
+        th2 <- list(
+          p = c(0.5, 0.5),
+          mu = mu[, c(j, ell), drop = FALSE],
+          sigma = Sigma[,, c(j, ell), drop = FALSE]
+        )
+        ovl <- tryCatch(
+          overlap_gaussian_mc(
+            true_theta = th2,
+            n_mc = n_mc,
+            seed = 20260807L + 1000L * j + ell
+          )$BarOmega,
+          error = function(e) NA_real_
+        )
+      }
       rows[[k]] <- tibble::tibble(
         pair = paste(ct[[j]], ct[[ell]], sep = "--"),
         i = j,
@@ -2523,6 +2708,11 @@ save_bivariate_solver_dots_book <- function(
           mu[, ell],
           Sigma[,, j],
           Sigma[,, ell]
+        ),
+        overlap = ovl,
+        riemannian = tryCatch(
+          spd_affine_invariant_distance(Sigma[,, j], Sigma[,, ell]),
+          error = function(e) NA_real_
         ),
         jeffreys = tryCatch(
           .jeffreys_gaussian(
@@ -2573,7 +2763,22 @@ save_bivariate_solver_dots_book <- function(
   desc_join <- NULL
   if (!is.null(desc) && "ID" %in% names(desc)) {
     keep <- intersect(
-      c("ID", "mixsim_baromega", "network_density", "jeffreys", "h_star"),
+      c(
+        "ID",
+        "h_star",
+        "n_active",
+        "concentration",
+        "mixsim_baromega",
+        "network_density",
+        "network_mean_degree",
+        "hoyer_abs_correlation",
+        "jeffreys",
+        "hellinger",
+        "f_cov",
+        "f_cov_max",
+        "kappa_sigma_p",
+        "kappa_it"
+      ),
       names(desc)
     )
     desc_join <- desc[, keep, drop = FALSE]
@@ -2593,9 +2798,11 @@ save_bivariate_solver_dots_book <- function(
       ),
       error = function(e) NULL
     )
+    h_raw <- compute_shannon_entropy(p)
+    j_dim <- max(length(p), 1L)
     tibble::tibble(
       ID = id,
-      shannon_entropy = compute_shannon_entropy(p),
+      h_star = h_raw / log(j_dim),
       avg_overlap = if (!is.null(ovl)) ovl$BarOmega else NA_real_,
       max_overlap = if (!is.null(ovl)) ovl$MaxOmega else NA_real_,
       max_kl = if (any(is.finite(pair$jeffreys))) {
@@ -2604,12 +2811,32 @@ save_bivariate_solver_dots_book <- function(
         NA_real_
       },
       kappa_precision = .mean_kappa_precision(th),
-      edge_density = NA_real_
+      n_active = sum(p > 1e-8),
+      concentration = sum(p^2)
     )
   })
   out <- dplyr::bind_rows(rows)
   if (!is.null(desc_join)) {
-    out <- dplyr::left_join(out, desc_join, by = "ID")
+    out <- dplyr::left_join(out, desc_join, by = "ID", suffix = c("", "_desc"))
+    if ("h_star_desc" %in% names(out)) {
+      out$h_star <- ifelse(
+        is.finite(out$h_star_desc),
+        out$h_star_desc,
+        out$h_star
+      )
+      out$h_star_desc <- NULL
+    }
+    for (nm in c("n_active", "concentration")) {
+      dnm <- paste0(nm, "_desc")
+      if (dnm %in% names(out)) {
+        out[[nm]] <- ifelse(
+          is.finite(out[[dnm]]),
+          out[[dnm]],
+          out[[nm]]
+        )
+        out[[dnm]] <- NULL
+      }
+    }
     if ("mixsim_baromega" %in% names(out)) {
       out$avg_overlap <- ifelse(
         is.finite(out$avg_overlap),
@@ -2617,11 +2844,38 @@ save_bivariate_solver_dots_book <- function(
         out$mixsim_baromega
       )
     }
-    if ("network_density" %in% names(out)) {
-      out$edge_density <- out$network_density
+  }
+  cfg_keys <- intersect(
+    c(
+      "ID",
+      "proportions",
+      "graph_ct1",
+      "graph_ct2",
+      "graph_ct3",
+      "overlap_label"
+    ),
+    names(cfg)
+  )
+  out <- dplyr::left_join(out, cfg[, cfg_keys, drop = FALSE], by = "ID")
+  extra <- c(
+    "network_density",
+    "network_mean_degree",
+    "hoyer_abs_correlation",
+    "jeffreys",
+    "hellinger",
+    "f_cov",
+    "f_cov_max",
+    "kappa_sigma_p",
+    "kappa_it",
+    "n_active",
+    "concentration"
+  )
+  for (nm in extra) {
+    if (!nm %in% names(out)) {
+      out[[nm]] <- NA_real_
     }
   }
-  dplyr::left_join(out, cfg, by = "ID")
+  out
 }
 
 #' Tile heatmap of the unscaled mean signature \eqn{\mu}
@@ -2689,10 +2943,66 @@ save_mean_signature_heatmap <- function(
   invisible(file)
 }
 
+#' Short CT1/CT2 topology tag (Scale-free / Cluster SBM)
+#'
+#' @keywords internal
+#' @noRd
+.graph_pair_short <- function(graph_ct1, graph_ct2) {
+  short_one <- function(x) {
+    dplyr::case_when(
+      as.character(x) == "Scale-free" ~ "SF",
+      as.character(x) == "Cluster SBM" ~ "SBM",
+      TRUE ~ as.character(x)
+    )
+  }
+  paste(short_one(graph_ct1), short_one(graph_ct2), sep = "/")
+}
+
+#' Widen cropped funkyheatmap legend titles
+#'
+#' @keywords internal
+#' @noRd
+.widen_funkyheatmap_legends <- function(p, extra_x = 12) {
+  if (!inherits(p, "patchwork")) {
+    return(p)
+  }
+  n <- tryCatch(length(p$patches$plots), error = function(e) 0L)
+  if (n < 1L) {
+    return(p)
+  }
+  last <- p[[n]]
+  expand_one <- function(plt) {
+    if (!inherits(plt, "ggplot") && !inherits(plt, "patchwork")) {
+      return(plt)
+    }
+    if (inherits(plt, "patchwork")) {
+      m <- length(plt$patches$plots)
+      for (j in seq_len(m)) {
+        plt[[j]] <- expand_one(plt[[j]])
+      }
+      if (!is.null(plt$width)) {
+        plt$width <- plt$width + extra_x / 4
+      }
+      return(plt)
+    }
+    out <- plt + ggplot2::expand_limits(x = extra_x)
+    if (!is.null(plt$width)) {
+      out$width <- plt$width + extra_x / 4
+    }
+    out
+  }
+  p[[n]] <- expand_one(last)
+  if (!is.null(p$width)) {
+    p$width <- p$width + extra_x / 3
+  }
+  p
+}
+
 #' Funky heatmap of scenario-level geometry metrics
 #'
-#' Rows follow the fig03 factor order (proportions, CT1/CT2 graphs,
-#' MixSim overlap). No clustering.
+#' Rows nest Shannon composition, MixSim overlap, then the four
+#' CT1/CT2 graph pairs. Circles are min--max scaled within each
+#' column. No clustering.
 #'
 #' @inheritParams save_bivariate_similarity_book
 #' @export
@@ -2704,79 +3014,154 @@ save_scenario_metrics_funkyheatmap <- function(
   .check_suggested_package("funkyheatmap", "save_scenario_metrics_funkyheatmap")
   metrics <- .scenario_global_metrics(artefacts)
   metrics <- .relevel_scenario_table(metrics)
+  metrics$topology <- factor(
+    .graph_pair_short(metrics$graph_ct1, metrics$graph_ct2),
+    levels = c("SF/SF", "SF/SBM", "SBM/SF", "SBM/SBM")
+  )
   metrics <- dplyr::arrange(
     metrics,
     .data[["proportions"]],
-    .data[["graph_ct1"]],
-    .data[["graph_ct2"]],
-    .data[["overlap_label"]]
+    .data[["overlap_label"]],
+    .data[["topology"]]
   )
   metrics$id <- as.character(metrics$ID)
-  graph_short <- function(x) {
-    dplyr::case_when(
-      as.character(x) == "Scale-free" ~ "SF",
-      as.character(x) == "Cluster SBM" ~ "SBM",
-      TRUE ~ as.character(x)
-    )
-  }
-  metrics$label <- paste(
-    paste(
-      graph_short(metrics$graph_ct1),
-      graph_short(metrics$graph_ct2),
-      sep = "/"
-    ),
+  metrics$group_id <- paste(
+    as.character(metrics$proportions),
     as.character(metrics$overlap_label),
     sep = " | "
   )
   data <- tibble::tibble(
     id = metrics$id,
-    scenario = metrics$label,
-    shannon_entropy = metrics$shannon_entropy,
+    topology = as.character(metrics$topology),
+    h_star = metrics$h_star,
+    n_active = metrics$n_active,
+    concentration = metrics$concentration,
+    network_density = metrics$network_density,
+    network_mean_degree = metrics$network_mean_degree,
+    hoyer_abs_correlation = metrics$hoyer_abs_correlation,
     avg_overlap = metrics$avg_overlap,
     max_overlap = metrics$max_overlap,
+    jeffreys = metrics$jeffreys,
     max_kl = metrics$max_kl,
+    f_cov = metrics$f_cov,
+    f_cov_max = metrics$f_cov_max,
+    kappa_sigma_p = metrics$kappa_sigma_p,
     kappa_precision = metrics$kappa_precision,
-    edge_density = metrics$edge_density
+    kappa_it = metrics$kappa_it
   )
+  circle_w <- 2.4
   column_info <- tibble::tibble(
     id = c(
-      "scenario",
-      "shannon_entropy",
+      "topology",
+      "h_star",
+      "n_active",
+      "concentration",
+      "network_density",
+      "network_mean_degree",
+      "hoyer_abs_correlation",
       "avg_overlap",
       "max_overlap",
+      "jeffreys",
       "max_kl",
+      "f_cov",
+      "f_cov_max",
+      "kappa_sigma_p",
       "kappa_precision",
-      "edge_density"
+      "kappa_it"
     ),
     name = c(
-      "Scenario",
-      "Shannon entropy",
-      "Average overlap",
-      "Maximum overlap",
-      "Largest KL",
-      "Precision kappa",
-      "Mean edge density"
+      "CT1 / CT2",
+      "Shannon\nH*",
+      "Active\ncount",
+      "Concentration\n||p||^2",
+      "Edge\ndensity",
+      "Mean\ndegree",
+      "Hoyer\nsparsity",
+      "Average\noverlap",
+      "Maximum\noverlap",
+      "Jeffreys\nKL",
+      "Largest\nKL",
+      "f_cov",
+      "f_cov max",
+      "kappa\nSigma(p)",
+      "Precision\nkappa",
+      "kappa\n(I_T)"
     ),
-    geom = c("text", rep("bar", 6L)),
-    group = c("id", rep("geometry", 6L)),
-    palette = c("Greys", rep("Blues", 6L)),
-    legend = c(FALSE, rep(TRUE, 6L)),
-    width = c(4, rep(1.2, 6L))
+    geom = c("text", rep("circle", 15L)),
+    group = c(
+      "id",
+      rep("composition", 3L),
+      rep("network", 3L),
+      rep("information", 6L),
+      rep("complexity", 3L)
+    ),
+    palette = c(
+      NA_character_,
+      rep("composition", 3L),
+      rep("network", 3L),
+      rep("information", 6L),
+      rep("complexity", 3L)
+    ),
+    legend = c(FALSE, TRUE, rep(TRUE, 14L)),
+    width = c(10, rep(circle_w, 15L)),
+    hjust = c(1, rep(0.5, 15L))
   )
   row_info <- tibble::tibble(
     id = metrics$id,
-    group = as.character(metrics$proportions)
+    group = metrics$group_id
   )
+  grp <- unique(metrics$group_id)
+  grp_split <- strsplit(grp, " | ", fixed = TRUE)
   row_groups <- tibble::tibble(
-    group = unique(as.character(metrics$proportions)),
-    level1 = unique(as.character(metrics$proportions))
+    group = grp,
+    level1 = paste(
+      vapply(grp_split, `[[`, character(1), 1L),
+      vapply(grp_split, `[[`, character(1), 2L),
+      sep = "  |  "
+    )
   )
   column_groups <- tibble::tibble(
-    group = c("id", "geometry"),
-    palette = c("Greys", "Blues"),
-    level1 = c("Id", "Geometry")
+    group = c("id", "composition", "network", "information", "complexity"),
+    palette = c(
+      "black",
+      "composition",
+      "network",
+      "information",
+      "complexity"
+    ),
+    level1 = c(
+      "Topology",
+      "Cellular composition",
+      "Network structure",
+      "Statistical information",
+      "Numerical complexity"
+    )
   )
-  palettes <- list(Blues = "Blues", Greys = "Greys")
+  palettes <- list(
+    composition = "Greens",
+    network = "Greys",
+    information = "Blues",
+    complexity = grDevices::colorRampPalette(
+      c("#FEE6CE", "#E6550D", "#7F2704")
+    )(9L),
+    black = c("black", "black")
+  )
+  circle_legend <- function(title, palette) {
+    list(
+      title = title,
+      palette = palette,
+      geom = "circle",
+      labels = c("column min", "", "column max"),
+      size = c(0.25, 0.6, 1)
+    )
+  }
+  legends <- list(
+    circle_legend("Cellular composition", "composition"),
+    circle_legend("Network structure", "network"),
+    circle_legend("Numerical gradient", "information"),
+    circle_legend("Numerical complexity", "complexity"),
+    list(palette = "black", enabled = FALSE)
+  )
   p <- funkyheatmap::funky_heatmap(
     data = data,
     column_info = column_info,
@@ -2784,16 +3169,43 @@ save_scenario_metrics_funkyheatmap <- function(
     row_groups = row_groups,
     column_groups = column_groups,
     palettes = palettes,
+    legends = legends,
     scale_column = TRUE,
     add_abc = FALSE,
     position_args = funkyheatmap::position_arguments(
-      col_annot_offset = 3.5,
-      expand_xmax = 2
+      col_annot_offset = 6.5,
+      col_annot_angle = 40,
+      col_bigspace = 0.8,
+      row_bigspace = 1.8,
+      expand_xmin = 3,
+      expand_xmax = 4,
+      expand_ymax = 1
     )
   )
+  p <- .widen_funkyheatmap_legends(p, extra_x = 12)
+  caption <- paste(
+    "SF: Scale-free (Barabasi-Albert) on the named cell type;",
+    "SBM: Cluster stochastic block model.",
+    "Row tags are CT1/CT2; CT3 is always Scale-free.",
+    "Circles are min-max scaled within each column",
+    "(not a shared unit across families)."
+  )
+  if (requireNamespace("patchwork", quietly = TRUE)) {
+    p <- p +
+      patchwork::plot_annotation(
+        caption = caption,
+        theme = ggplot2::theme(
+          plot.caption = ggplot2::element_text(
+            hjust = 0,
+            size = 9,
+            colour = "grey20"
+          )
+        )
+      )
+  }
   dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
-  w <- max(if (!is.null(p$width)) p$width else 12, 14)
-  h <- max(if (!is.null(p$height)) p$height else 14, 16)
+  w <- max(if (!is.null(p$width)) p$width else 22, 24)
+  h <- max(if (!is.null(p$height)) p$height else 16, 18)
   ggplot2::ggsave(
     file,
     plot = p,
@@ -2833,7 +3245,7 @@ save_pairwise_network_distance_heatmap <- function(
     th <- .unwrap_true_theta(
       theta_tbl$true_theta[as.character(theta_tbl$ID) == id][[1L]]
     )
-    pair <- .pairwise_gaussian_scores(th)
+    pair <- .pairwise_gaussian_scores(th, overlap = TRUE)
     pair$ID <- id
     pair$graph_ct1 <- pick$graph_ct1[[i]]
     pair$graph_ct2 <- pick$graph_ct2[[i]]
@@ -2856,64 +3268,118 @@ save_pairwise_network_distance_heatmap <- function(
     levels = c("CT1--CT2", "CT1--CT3", "CT2--CT3")
   )
   df <- .relevel_scenario_table(df)
-  p <- ggplot2::ggplot(
-    df,
-    ggplot2::aes(
-      x = .data[["graph_ct1"]],
-      y = .data[["graph_ct2"]],
-      fill = .data[["hellinger"]]
-    )
-  ) +
-    ggplot2::geom_tile(colour = "white", linewidth = 0.2) +
-    ggplot2::facet_grid(pair ~ overlap_label) +
-    ggplot2::scale_fill_viridis_c(name = "Hellinger") +
-    ggplot2::coord_equal() +
-    theme_decovart_facets() +
-    ggplot2::theme(
-      plot.title = ggplot2::element_text(face = "bold"),
-      axis.text.x = ggplot2::element_text(
-        angle = 90,
-        hjust = 1,
-        vjust = 0.5
-      ),
-      legend.position = "bottom"
-    ) +
-    ggplot2::labs(
-      x = "CT1 graph",
-      y = "CT2 graph",
+  pages <- list(
+    list(
+      col = "hellinger",
+      fill = "Hellinger",
       title = "Pairwise Hellinger distance of cell-type Gaussians",
       caption = paste(
         "Each facet is one cell-type pair (rows) and MixSim overlap",
         "(columns). Inner 2-by-2: CT1 / CT2 topologies; CT3 is Scale-free."
       )
+    ),
+    list(
+      col = "overlap",
+      fill = "Pairwise overlap",
+      title = "Pairwise MixSim overlap of cell-type Gaussians",
+      caption = paste(
+        "For two components BarOmega equals MaxOmega.",
+        "G >= 4 uses stratified Sobol Monte Carlo (overlap_gaussian_mc).",
+        "Inner 2-by-2: CT1 / CT2 topologies; CT3 is Scale-free."
+      )
+    ),
+    list(
+      col = "riemannian",
+      fill = "AIRM",
+      title = paste(
+        "Pairwise affine-invariant Riemannian distance of Sigma_j"
+      ),
+      caption = paste(
+        "AIRM (inversion- and rotation-invariant SPD geodesic),",
+        "not the Frobenius chord. Inner 2-by-2: CT1 / CT2 topologies;",
+        "CT3 is Scale-free."
+      )
     )
-  dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
-  ggplot2::ggsave(
-    file,
-    plot = p,
-    width = 12,
-    height = 11,
-    dpi = 320,
-    limitsize = FALSE
   )
+  dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
+  grDevices::pdf(file, width = 12, height = 11)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  n_page <- length(pages)
+  for (k in seq_len(n_page)) {
+    spec <- pages[[k]]
+    p <- ggplot2::ggplot(
+      df,
+      ggplot2::aes(
+        x = .data[["graph_ct1"]],
+        y = .data[["graph_ct2"]],
+        fill = .data[[spec$col]]
+      )
+    ) +
+      ggplot2::geom_tile(colour = "white", linewidth = 0.2) +
+      ggplot2::facet_grid(pair ~ overlap_label) +
+      ggplot2::scale_fill_viridis_c(name = spec$fill) +
+      ggplot2::coord_equal() +
+      theme_decovart_facets() +
+      ggplot2::theme(
+        plot.title = ggplot2::element_text(face = "bold"),
+        axis.text.x = ggplot2::element_text(
+          angle = 90,
+          hjust = 1,
+          vjust = 0.5
+        ),
+        legend.position = "bottom"
+      ) +
+      ggplot2::labs(
+        x = "CT1 graph",
+        y = "CT2 graph",
+        title = spec$title,
+        caption = spec$caption
+      )
+    print(p)
+  }
   .write_ggplot_rds(df, data_rds, "pairwise_hellinger")
   invisible(file)
 }
 
-#' Absolute covariance on the undirected skeleton, shared colour scale
+#' Signed covariance on the undirected skeleton
+#'
+#' Off-support and diagonal entries are set to 0. Signs are those of
+#' \eqn{\Sigma_{ij}}, not of the precision.
 #'
 #' @keywords internal
 #' @noRd
-.sigma_edge_weights <- function(adj, sigma) {
+.sigma_edge_signed <- function(adj, sigma) {
   adj <- as.matrix(adj)
   sigma <- as.matrix(sigma)
-  w <- abs(sigma)
-  w[as.matrix(adj) == 0] <- 0
+  w <- sigma
+  w[adj == 0] <- 0
   diag(w) <- 0
   w
 }
 
-#' Draw one igraph with edge widths proportional to |Sigma|
+#' Absolute covariance on the undirected skeleton, shared width scale
+#'
+#' @keywords internal
+#' @noRd
+.sigma_edge_weights <- function(adj, sigma) {
+  abs(.sigma_edge_signed(adj, sigma))
+}
+
+#' Map |Sigma_ij| to igraph edge width (shared scale)
+#'
+#' \eqn{0.35 + 6 \sqrt{|\Sigma_{ij}| / w_{\max}}}.
+#'
+#' @keywords internal
+#' @noRd
+.network_edge_lwd <- function(abs_w, w_max) {
+  abs_w <- as.numeric(abs_w)
+  if (!is.finite(w_max) || w_max <= 0) {
+    return(rep(0.8, length(abs_w)))
+  }
+  0.35 + 6 * sqrt(pmax(abs_w, 0) / w_max)
+}
+
+#' Draw one igraph with width |Sigma| and colour by sign(Sigma)
 #'
 #' @keywords internal
 #' @noRd
@@ -2932,21 +3398,22 @@ save_pairwise_network_distance_heatmap <- function(
     weighted = NULL
   )
   el <- igraph::as_edgelist(g, names = FALSE)
-  w <- .sigma_edge_weights(adj, sigma)
-  ew <- if (nrow(el) == 0L) {
+  signed <- .sigma_edge_signed(adj, sigma)
+  ew_signed <- if (nrow(el) == 0L) {
     numeric(0)
   } else {
     vapply(
       seq_len(nrow(el)),
-      function(k) w[el[k, 1L], el[k, 2L]],
+      function(k) signed[el[k, 1L], el[k, 2L]],
       numeric(1)
     )
   }
-  width <- if (is.finite(w_max) && w_max > 0) {
-    0.35 + 6 * sqrt(pmax(ew, 0) / w_max)
-  } else {
-    rep(0.8, length(ew))
-  }
+  width <- .network_edge_lwd(abs(ew_signed), w_max)
+  edge_col <- ifelse(
+    ew_signed >= 0,
+    "#2B6CB0",
+    "#C53030"
+  )
   igraph::V(g)$color <- vertex_col
   igraph::plot.igraph(
     g,
@@ -2954,17 +3421,90 @@ save_pairwise_network_distance_heatmap <- function(
     vertex.size = 8,
     vertex.label = NA,
     vertex.frame.color = "#2f3e4f",
-    edge.color = "#4a5560",
+    edge.color = edge_col,
     edge.width = width,
     main = main
+  )
+}
+
+#' Legend for network edge width and sign
+#'
+#' @keywords internal
+#' @noRd
+.draw_network_topology_legend <- function(w_max, n_pos, n_neg) {
+  graphics::plot.new()
+  graphics::plot.window(xlim = c(0, 1), ylim = c(0, 1))
+  graphics::par(xpd = NA)
+  abs_vals <- c(0, w_max / 4, w_max / 2, w_max)
+  lwd <- .network_edge_lwd(abs_vals, w_max)
+  x0 <- 0.04
+  y_w <- 0.72
+  graphics::text(
+    0.02,
+    0.92,
+    "Edge width: |Sigma_ij| on the undirected skeleton",
+    adj = c(0, 0.5),
+    cex = 1.05,
+    font = 2
+  )
+  for (k in seq_along(abs_vals)) {
+    x <- x0 + (k - 1L) * 0.16
+    graphics::segments(
+      x,
+      y_w,
+      x + 0.10,
+      y_w,
+      lwd = lwd[[k]],
+      col = "#2B6CB0"
+    )
+    graphics::text(
+      x + 0.05,
+      y_w - 0.18,
+      sprintf("%.2f", abs_vals[[k]]),
+      cex = 0.9
+    )
+  }
+  graphics::text(
+    0.02,
+    0.38,
+    sprintf(
+      "lwd = 0.35 + 6 * sqrt(|Sigma| / w_max),  w_max = %.2f (shared).",
+      w_max
+    ),
+    adj = c(0, 0.5),
+    cex = 0.9
+  )
+  graphics::segments(0.02, 0.18, 0.12, 0.18, lwd = 3, col = "#2B6CB0")
+  graphics::text(0.14, 0.18, "positive Sigma_ij", adj = c(0, 0.5), cex = 0.95)
+  graphics::segments(0.42, 0.18, 0.52, 0.18, lwd = 3, col = "#C53030")
+  graphics::text(0.54, 0.18, "negative Sigma_ij", adj = c(0, 0.5), cex = 0.95)
+  n_tot <- n_pos + n_neg
+  frac_pos <- if (n_tot > 0L) n_pos / n_tot else NA_real_
+  graphics::text(
+    0.02,
+    0.04,
+    sprintf(
+      paste(
+        "Not all edges are positive: %d positive and %d negative",
+        "covariance weights on plotted skeletons (%.0f%% positive).",
+        "Width uses the absolute value; colour encodes the sign."
+      ),
+      n_pos,
+      n_neg,
+      100 * frac_pos
+    ),
+    adj = c(0, 0.5),
+    cex = 0.85
   )
 }
 
 #' Three-page network book (increasing MixSim overlap)
 #'
 #' Each page: CT3 (Scale-free) centred at the top; 2-by-2 of CT1 / CT2
-#' topologies below. Edge widths use |Sigma_ij| on the skeleton with one
-#' shared scale across pages.
+#' topologies below. Edge widths use \eqn{|\Sigma_{ij}|} on the skeleton
+#' with one shared scale across pages. Edge colour is the sign of
+#' \eqn{\Sigma_{ij}} (inhibitory precision completion can yield
+#' negative covariances).
 #'
 #' @inheritParams save_bivariate_similarity_book
 #' @param png_file Optional PNG copy (vignette / README).
@@ -2994,6 +3534,8 @@ save_network_topology_book <- function(
   )
   layouts <- list()
   w_max <- 0
+  n_pos <- 0L
+  n_neg <- 0L
   pages <- lapply(ovl_lvls, function(ovl) {
     sub <- cfg[as.character(cfg$overlap_label) == ovl, , drop = FALSE]
     panels <- .hybrid_topology_panels()
@@ -3018,10 +3560,12 @@ save_network_topology_book <- function(
       )
       if (!is.null(adj)) {
         for (j in seq_along(adj)) {
-          w_max <<- max(
-            w_max,
-            max(.sigma_edge_weights(adj[[j]], th$sigma[,, j]), na.rm = TRUE)
-          )
+          signed <- .sigma_edge_signed(adj[[j]], th$sigma[,, j])
+          up <- upper.tri(signed) & signed != 0
+          vals <- signed[up]
+          n_pos <<- n_pos + sum(vals > 0)
+          n_neg <<- n_neg + sum(vals < 0)
+          w_max <<- max(w_max, max(abs(vals), 0, na.rm = TRUE))
         }
       }
     }
@@ -3053,11 +3597,14 @@ save_network_topology_book <- function(
     )
   }
   draw_page <- function(page) {
-    graphics::layout(matrix(
-      c(0, 1, 1, 0, 2, 3, 4, 5, 6, 7, 8, 9),
-      nrow = 3L,
-      byrow = TRUE
-    ))
+    graphics::layout(
+      matrix(
+        c(0, 1, 1, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10),
+        nrow = 4L,
+        byrow = TRUE
+      ),
+      heights = c(1.15, 1, 1, 0.55)
+    )
     graphics::par(mar = c(0.3, 0.2, 2.1, 0.2))
     first <- page$slots[[1L]]
     draw_one(first, 3L, "Scale-free", "CT3 Scale-free (held)")
@@ -3075,9 +3622,11 @@ save_network_topology_book <- function(
       draw_one(slot, 1L, pair[[1L]], paste("CT1", pair[[1L]]))
       draw_one(slot, 2L, pair[[2L]], paste("CT2", pair[[2L]]))
     }
+    graphics::par(mar = c(0.4, 0.6, 0.2, 0.6))
+    .draw_network_topology_legend(w_max, n_pos, n_neg)
   }
   dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
-  grDevices::pdf(file, width = 12, height = 11)
+  grDevices::pdf(file, width = 12, height = 13)
   for (i in seq_along(pages)) {
     graphics::par(oma = c(0.2, 0.2, 2.4, 0.2))
     draw_page(pages[[i]])
@@ -3092,7 +3641,7 @@ save_network_topology_book <- function(
   if (!is.null(png_file) && length(pages) > 0L) {
     dir.create(dirname(png_file), recursive = TRUE, showWarnings = FALSE)
     mid <- min(2L, length(pages))
-    grDevices::png(png_file, width = 2400, height = 2200, res = 220)
+    grDevices::png(png_file, width = 2400, height = 2600, res = 220)
     graphics::par(oma = c(0.2, 0.2, 2.4, 0.2))
     draw_page(pages[[mid]])
     graphics::mtext(
@@ -3106,7 +3655,9 @@ save_network_topology_book <- function(
   meta <- tibble::tibble(
     overlap = vapply(pages, `[[`, character(1), "overlap"),
     n_slots = vapply(pages, function(p) length(p$slots), integer(1)),
-    w_max = w_max
+    w_max = w_max,
+    n_pos = n_pos,
+    n_neg = n_neg
   )
   .write_ggplot_rds(meta, data_rds, "network_topologies")
   invisible(file)

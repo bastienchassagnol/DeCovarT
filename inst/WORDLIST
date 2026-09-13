@@ -81,6 +81,7 @@ EnsDeconv
 Equi
 Ecuyer
 Egozcue
+EMMIXmfa
 Erdős
 Erdmann
 FIM
@@ -138,6 +139,8 @@ MMAD
 MOGAMUN
 Marquardt
 MaxAE
+MCFA
+MclustDR
 mirai
 MixSim
 MixSim's
@@ -318,12 +321,14 @@ silico
 softmax
 standalone
 th
+Thomson
 Tsagris
 tibble
 tibbles
 tissueResolver
 transcriptomic
 Schur
+Scrucca
 supernodal
 transcriptomics
 unmodelled

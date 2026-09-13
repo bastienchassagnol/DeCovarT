@@ -19,7 +19,7 @@ save_bivariate_similarity_book(artefacts, file, data_rds = NULL)
 }
 \description{
 Twelve pages (CLD \eqn{\times} variance \eqn{\times} composition). Each
-page is a 2-by-2 of the correlation corners, with average-linkage
-clustering of \(1-r\) and a dendrogram to the right of the tiles,
-with leaves flush against the heatmap.
+page is a 2-by-2 of the correlation corners, with Ward D2 clustering
+of \(1-r\) and a dendrogram to the right of the tiles, with leaves
+flush against the heatmap. One shared colourbar per page.
 }

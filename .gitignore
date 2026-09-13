@@ -5,9 +5,13 @@
 *.gz
 /build/
 simulations/*
-# Script simulation outputs: track only PDF figures, ignore everything else
-output/
+# Script simulation outputs: track PDF / PNG figures; ignore RDS and other
+# bulky artefacts. Directories must be un-ignored first or Git will not
+# see the files inside `output/`.
+output/**
+!output/**/
 !output/**/*.pdf
+!output/**/*.png
 # Generated RDS artefacts from simulation scripts
 data/synthetic_networks/*.rds
 
@@ -120,6 +124,7 @@ compositional intervals.bib
 Monte Carlo estimates correction.bib
 Simulate different mean profiles.bib
 raincloud_biblio.bib
+factorial analysis.bib
 2D_density_export.svg
 toy_model_parameters_benchamrk.svg
 decovart_mle_proeprties.md

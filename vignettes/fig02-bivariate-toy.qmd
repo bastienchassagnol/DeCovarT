@@ -381,7 +381,7 @@ same 9-by-9 \((\rho_1,\rho_2)\) grid as the RMSE heatmaps: colour is
 mean RMSE and size is mean Aitchison distance, with horizontal y-axis
 labels. ggplot `data` tables are saved under `output/fig02/ggplot_rds/`.
 
-### Expected findings
+## Expected findings
 
 With **large mean separation** and $\rho_j = 0$ both groups of algorithms
 should perform well. As $|\rho|$ increases and the means move closer, NNLS

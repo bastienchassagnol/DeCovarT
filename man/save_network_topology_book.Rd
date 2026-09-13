@@ -18,6 +18,8 @@ save_network_topology_book(artefacts, file, data_rds = NULL, png_file = NULL)
 }
 \description{
 Each page: CT3 (Scale-free) centred at the top; 2-by-2 of CT1 / CT2
-topologies below. Edge widths use |Sigma_ij| on the skeleton with one
-shared scale across pages.
+topologies below. Edge widths use \eqn{|\Sigma_{ij}|} on the skeleton
+with one shared scale across pages. Edge colour is the sign of
+\eqn{\Sigma_{ij}} (inhibitory precision completion can yield
+negative covariances).
 }
