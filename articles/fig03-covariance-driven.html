@@ -100,7 +100,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>2.2 Covariance-driven scenario (G = 20, J = 3)</h1>
       <p class="subtitle">Full script: <code>scripts/fig03_variance_driven.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-09-11</p>
+      <p class="date">2026-09-13</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/fig03-covariance-driven.qmd" class="external-link"><code>vignettes/fig03-covariance-driven.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -420,21 +420,83 @@ Table 3: Solvers used in the covariance-driven comparison.
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><code>output/fig03/fig03_raincloud.pdf</code></td>
-<td>Raincloud of Monte Carlo errors, faceted by composition and overlap label</td>
+<td><code>output/fig03/density_visualisations/mean_signature.pdf</code></td>
+<td>Unscaled () heatmap</td>
 </tr>
 <tr class="even">
-<td><code>output/fig03/fig03_forest.pdf</code></td>
-<td>ADEMP forest plot</td>
+<td><code>output/fig03/density_visualisations/latent_projections.pdf</code></td>
+<td>16-page 2D latent-space book (Thomson / MCFA / <code>MclustDR</code>)</td>
 </tr>
 <tr class="odd">
-<td><code>output/fig03/fig03_metric_dots.pdf</code></td>
-<td>Metric dot plot (RMSE, MAE, coverage)</td>
+<td><code>output/fig03/density_visualisations/network_topologies.pdf</code></td>
+<td>Graph skeletons, one page per MixSim overlap</td>
+</tr>
+<tr class="even">
+<td><code>output/fig03/performance_visualisations/heatmap_rmse.pdf</code></td>
+<td>RMSE tiles</td>
+</tr>
+<tr class="odd">
+<td><code>output/fig03/performance_visualisations/raincloud.pdf</code></td>
+<td>Monte Carlo () rainclouds</td>
+</tr>
+<tr class="even">
+<td><code>output/fig03/performance_visualisations/forest.pdf</code></td>
+<td>ADEMP Wald forest</td>
+</tr>
+<tr class="odd">
+<td><code>output/fig03/performance_visualisations/runtime.pdf</code></td>
+<td>Solver wall-clock (log10 seconds)</td>
+</tr>
+<tr class="even">
+<td><code>output/fig03/performance_visualisations/memory.pdf</code></td>
+<td>Peak memory (log10 MiB)</td>
 </tr>
 </tbody>
 </table>
-<section class="level3"><h4 id="expected-findings">Expected findings<a class="anchor" aria-label="anchor" href="#expected-findings"></a>
+<p>Redraw with <code>FIG03_POSTPROCESS_ONLY=1 Rscript scripts/fig03_variance_driven.R</code> (no ADEMP refit). ggplot <code>data</code> tables go under <code>output/fig03/ggplot_rds/</code>.</p>
+<section class="level2"><h3 id="sec-hybrid-2d-proj">Two-dimensional projections of a Gaussian convolution<a class="anchor" aria-label="anchor" href="#sec-hybrid-2d-proj"></a>
+</h3>
+<p>With (G=20) the purified Gaussians and the bulk convolution are no longer drawable in the gene plane. The 16-page book <code>latent_projections.pdf</code> therefore maps each selected scenario to a 2D latent display. Pages keep the <strong>lowest and highest</strong> MixSim overlap (low / high; the moderate arm is omitted) and the <strong>highest and lowest</strong> Shannon entropy of () (balanced versus highly unbalanced), crossed with the four CT1/CT2 graph assignments ((2=16)). Each page is a (3) of scatterplots with 95% Gaussian ellipses, cell-type colour, axis labels that report the share of variability on the first two coordinates, and a cowplot scree inset (<a href="https://wilkelab.org/cowplot/articles/drawing_with_on_plots.html#making-inset-plots" class="external-link">drawing on plots</a>) of the first ten scaled eigenvalues. The layout follows the <code>fviz_pca</code> style (points, ellipses, percentage axes) without importing <code>factoextra</code>.</p>
+<p>The three routes below all return an ordered set of eigenvalues that summarise how much variability sits in the plotted plane. They are <strong>not</strong> interchangeable with the DeCovarT likelihood: the bulk profile is a <strong>convolution</strong> of Gaussians, not a Gaussian mixture.</p>
+<div id="nte-conv-not-gmm">
+<blockquote>
+<p><strong>Warning 1</strong></p>
+<p>A <span class="math inline">J</span>-type bulk draw is <span class="math inline">Y\mid\boldsymbol{p}\sim\mathcal{N}\bigl(\boldsymbol{\mu}(\boldsymbol{p}),\boldsymbol{\Sigma}(\boldsymbol{p})\bigr)</span> with <span class="math inline">\boldsymbol{\mu}(\boldsymbol{p})=\sum_j p_j\boldsymbol{\mu}_{\cdot j}</span> and <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j</span>. Every observation is a weighted sum of <strong>all</strong> types (<a href="../reference/simulate_bulk_mixture.html"><code>simulate_bulk_mixture()</code></a>). A finite mixture instead draws a latent label and then one component, <span class="math inline">f(\boldsymbol{y})=\sum_k\pi_k\,\phi(\boldsymbol{y};\boldsymbol{\mu}_k,\boldsymbol{\Sigma}_k)</span>, with mixing weights () (not (^2)). <code>MclustDR</code> and mixtures of factor analysers target that mixture. Their (_k) are not cell-type proportions, and their component densities are not the convolution law used for deconvolution.</p>
+</blockquote>
+</div>
+<section class="level3"><h4 id="independent-factor-analyses-per-cell-type">Independent factor analyses per cell type<a class="anchor" aria-label="anchor" href="#independent-factor-analyses-per-cell-type"></a>
 </h4>
+<p>The top row fits a two-factor Gaussian factor model <strong>separately</strong> to purified draws from each type (<code><a href="https://rdrr.io/r/stats/factanal.html" class="external-link">stats::factanal()</a></code>, Thomson / regression scores <span class="citation" data-cites="thomsonMethodsEstimatingMental1938">(<a href="#ref-thomsonMethodsEstimatingMental1938" role="doc-biblioref">Thomson 1938</a>)</span>). The orthogonal-factor model is <span class="math inline">\boldsymbol{x}=\boldsymbol{\mu}+\Lambda\boldsymbol{f}+\boldsymbol{\varepsilon}</span> with <span class="math inline">\boldsymbol{f}\sim N(\boldsymbol{0},I)</span> and diagonal uniquenesses <span class="math inline">\Psi</span>, so <span class="math inline">\boldsymbol{\Sigma}=\Lambda\Lambda^\top+\Psi</span>. Thomson scores are the posterior mean <span class="math inline">\hat{\boldsymbol{f}}_R=E[\boldsymbol{f}\mid\boldsymbol{x}]=\Lambda^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{\mu})</span>. That is the natural probabilistic answer to “where does this 20-gene profile sit in the plane?”. Bartlett scores (uniqueness- weighted GLS) remain a <code>factanal(..., scores = "Bartlett")</code> sensitivity check and are not plotted. Gene-wise marginal variances are comparable after the global MixSim scale, so uniquenesses are less heterogeneous than in a typical psychometric battery. Independent per-type fits do <strong>not</strong> share a loading matrix: the three planes are not superimposed.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/factanal.html" class="external-link">factanal</a></span><span class="op">(</span></span>
+<span>  <span class="va">X</span>,</span>
+<span>  factors <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  rotation <span class="op">=</span> <span class="st">"none"</span>,</span>
+<span>  scores <span class="op">=</span> <span class="st">"regression"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">scores</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">scores</span><span class="op">)</span></span>
+<span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">scores</span>, <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">Factor1</span>, <span class="va">Factor2</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_equal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_classic</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+</div>
+</section><section class="level3"><h4 id="shared-mcfa-plane-emmixmfa">Shared MCFA plane (<code>EMMIXmfa</code>)<a class="anchor" aria-label="anchor" href="#shared-mcfa-plane-emmixmfa"></a>
+</h4>
+<p>The bottom-left and bottom-centre panels use mixtures of common factor analysers <span class="citation" data-cites="MixturesFactorAnalyzers2000 R-EMMIXmfa">(<a href="#ref-MixturesFactorAnalyzers2000" role="doc-biblioref">McLachlan and Peel 2000</a>; <a href="#ref-R-EMMIXmfa" role="doc-biblioref">Rathnayake et al. 2024</a>)</span>: a shared loading matrix <span class="math inline">A</span> with <span class="math inline">\boldsymbol{\mu}_i=A\boldsymbol{\xi}_i</span> and <span class="math inline">\boldsymbol{\Sigma}_i=A\Omega_i A^\top+D</span>, so that posterior factor means live in <strong>one</strong> <span class="math inline">q=2</span> plane. The eigenvalues of <span class="math inline">A\bar{\Omega}A^\top+D</span> are the scree inset.</p>
+<ul>
+<li>
+<strong>Convolution (panel D).</strong> Bulk columns come from <code><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code> (covariance weights <span class="math inline">p_j^2</span>). MCFA is fitted to those unlabelled bulk draws, then the <em>latent</em> purified slices () from the same simulation are scored into that shared plane and coloured by true type.</li>
+<li>
+<strong>Unsupervised mixture (panel E).</strong> Each draw is from <strong>one</strong> component with probability <span class="math inline">p_j</span> (not <span class="math inline">p_j^2</span>). MCFA does not use the labels; colour is the generating type, so the plot shows how well the shared factors recover overlap.</li>
+</ul></section><section class="level3"><h4 id="supervised-mclustdr-plane">Supervised <code>MclustDR</code> plane<a class="anchor" aria-label="anchor" href="#supervised-mclustdr-plane"></a>
+</h4>
+<p>The bottom-right panel takes the same labelled mixture draws and fits <code>mclust::MclustDA(..., modelType = "EDDA")</code> then <code><a href="https://mclust-org.github.io/mclust/reference/MclustDR.html" class="external-link">mclust::MclustDR()</a></code> <span class="citation" data-cites="R-mclust scruccaDimensionReductionModelbased2010a scruccaGraphicalToolsModelbased2015">(<a href="#ref-R-mclust" role="doc-biblioref">Fraley et al. 2026</a>; <a href="#ref-scruccaDimensionReductionModelbased2010a" role="doc-biblioref">Scrucca 2010</a>, <a href="#ref-scruccaGraphicalToolsModelbased2015" role="doc-biblioref">2015</a>)</span>. See the <a href="https://mclust-org.github.io/mclust/reference/MclustDR.html" class="external-link"><code>MclustDR</code> reference</a>. The kernel blends between-class mean separation with covariance differences (<code>lambda = 1</code> emphasises separation). The generalised eigenvalues (<code>evalues</code>) are the scree inset: they are cluster-relevant variability, not ordinary PCA variance. This is the right 2D plot <strong>if</strong> class labels are known. On bulk convolution draws a one-component Gaussian is the truth, so <code>Mclust</code> would split a single ellipsoid; that misspecified fit is not shown.</p>
+</section></section><section class="level2"><h3 id="sec-hybrid-resources">Solver runtime and memory<a class="anchor" aria-label="anchor" href="#sec-hybrid-resources"></a>
+</h3>
+<p><code>runtime.pdf</code> and <code>memory.pdf</code> use the same composition order as the other performance books (balanced, then moderately unbalanced, then highly unbalanced): <strong>one page per</strong> (). Each page facets the three MixSim overlap levels, puts CT1/CT2 topology on the x-axis (<code>SF/SF</code>, <code>SF/SBM</code>, <code>SBM/SF</code>, <code>SBM/SBM</code>), and maps solver to colour, fill, and grouping. The geometry is a vertical ggdist half-eye (raincloud) of the per-sample <code>optimisation$elapsed_sec</code> or <code>memory_bytes</code> (converted to MiB), with a left-side <code>geom_rug()</code> of the raw Monte Carlo draws and a log10 y-axis.</p>
+</section><section class="level2"><h3 id="expected-findings">Expected findings<a class="anchor" aria-label="anchor" href="#expected-findings"></a>
+</h3>
 <p>Because CT 1 and CT 2 share cosine <span class="math inline">0.9</span>, LSEI and CIBERSORT cannot separate them from the mean signature alone. DeCovarT (L-BFGS-B, Newton–Raphson, Marquardt–Levenberg) uses <span class="math inline">\boldsymbol{\Sigma}_j</span>. <strong>Topology</strong> (scale-free versus cluster SBM) still matters, but <strong>average overlap</strong> is the stronger predictor of error and of Wald uncertainty: high <code>BarOmega</code> scenarios remain hard even when the graphs differ, whereas low overlap with a large <span class="math inline">f_{\mathrm{cov}}</span> is where covariance-aware solvers should pull ahead of mean-only baselines, especially at <span class="math inline">H^{\star}=0.1</span>.</p>
 </section><section class="level2"><h3 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a>
 </h3>
@@ -452,11 +514,29 @@ Table 3: Solvers used in the covariance-driven comparison.
 </ul></section><section class="level2 unnumbered"><h3 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h3>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-R-mclust" class="csl-entry" role="listitem">
+Fraley, Chris, Adrian E. Raftery, and Luca Scrucca. 2026. <em>Mclust: Gaussian Mixture Modelling for Model-Based Clustering, Classification, and Density Estimation</em>. <a href="https://mclust-org.github.io/mclust/" class="external-link">https://mclust-org.github.io/mclust/</a>.
+</div>
+<div id="ref-MixturesFactorAnalyzers2000" class="csl-entry" role="listitem">
+McLachlan, Geoffrey J., and David Peel. 2000. <span>‘Mixtures of Factor Analyzers’</span>. In <em>Finite Mixture Models</em>. John Wiley &amp; Sons, Ltd. <a href="https://doi.org/10.1002/0471721182.ch8" class="external-link">https://doi.org/10.1002/0471721182.ch8</a>.
+</div>
 <div id="ref-melnykovMixSimPackageSimulating2012" class="csl-entry" role="listitem">
 Melnykov, Volodymyr, Wei-Chen Chen, and Ranjan Maitra. 2012. <span>‘<span>MixSim</span>: <span>An R Package</span> for <span>Simulating Data</span> to <span>Study Performance</span> of <span>Clustering Algorithms</span>’</span>. <em>Journal of Statistical Software</em> 51. <a href="https://doi.org/10.18637/jss.v051.i12" class="external-link">https://doi.org/10.18637/jss.v051.i12</a>.
 </div>
+<div id="ref-R-EMMIXmfa" class="csl-entry" role="listitem">
+Rathnayake, Suren, Geoff McLachlan, David Peel, and Jangsun Baek. 2024. <em>EMMIXmfa: Mixture Models with Component-Wise Factor Analyzers</em>. <a href="https://github.com/suren-rathnayake/EMMIXmfa" class="external-link">https://github.com/suren-rathnayake/EMMIXmfa</a>.
+</div>
 <div id="ref-rianiSimulatingMixturesMultivariate2015" class="csl-entry" role="listitem">
 Riani, Marco, Andrea Cerioli, Domenico Perrotta, and Francesca Torti. 2015. <span>‘Simulating Mixtures of Multivariate Data with Fixed Cluster Overlap in <span>FSDA</span> Library’</span>. <em>Advances in Data Analysis and Classification</em> 9 (4): 461–81. <a href="https://doi.org/10.1007/s11634-015-0223-9" class="external-link">https://doi.org/10.1007/s11634-015-0223-9</a>.
+</div>
+<div id="ref-scruccaDimensionReductionModelbased2010a" class="csl-entry" role="listitem">
+Scrucca, Luca. 2010. <span>‘Dimension Reduction for Model-Based Clustering’</span>. <em>Statistics and Computing</em> 20 (4): 471–84. <a href="https://doi.org/10.1007/s11222-009-9138-7" class="external-link">https://doi.org/10.1007/s11222-009-9138-7</a>.
+</div>
+<div id="ref-scruccaGraphicalToolsModelbased2015" class="csl-entry" role="listitem">
+Scrucca, Luca. 2015. <em>Graphical Tools for Model-Based Mixture Discriminant Analysis</em>. Https://arxiv.org/abs/1508.01695v1. <a href="https://doi.org/10.1007/s11634-013-0147-1" class="external-link">https://doi.org/10.1007/s11634-013-0147-1</a>.
+</div>
+<div id="ref-thomsonMethodsEstimatingMental1938" class="csl-entry" role="listitem">
+Thomson, Godfrey H. 1938. <span>‘Methods of Estimating Mental Factors’</span>. <em>Nature</em> 141 (3562): 246–46. <a href="https://doi.org/10.1038/141246a0" class="external-link">https://doi.org/10.1038/141246a0</a>.
 </div>
 </div>
 </section></section><script id="quarto-html-after-body" type="application/javascript">

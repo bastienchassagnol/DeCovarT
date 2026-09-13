@@ -109,7 +109,8 @@ algorithm. Optional <code>facet_rows</code> / <code>facet_cols</code> split scen
 <span>  max_rows <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  dodge_width <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  slab_scale <span class="op">=</span> <span class="fl">1.4</span>,</span>
-<span>  slab_alpha <span class="op">=</span> <span class="fl">1</span></span>
+<span>  slab_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  category_spacing <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -163,6 +164,13 @@ drawing.</p></dd>
 
 <dt id="arg-slab-alpha">slab_alpha<a class="anchor" aria-label="anchor" href="#arg-slab-alpha"></a></dt>
 <dd><p>Transparency of the density slab (<code>1</code> is opaque).</p></dd>
+
+
+<dt id="arg-category-spacing">category_spacing<a class="anchor" aria-label="anchor" href="#arg-category-spacing"></a></dt>
+<dd><p>Vertical gap between discrete y categories
+(cell types). Values greater than 1 insert extra space so slabs
+from neighbouring types do not overlap; the axis still shows the
+original labels.</p></dd>
 
 </dl></div>
     <div class="section level2">

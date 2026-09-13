@@ -22,7 +22,8 @@ plot_mc_raincloud(
   max_rows = NULL,
   dodge_width = 0.95,
   slab_scale = 1.4,
-  slab_alpha = 1
+  slab_alpha = 1,
+  category_spacing = 1
 )
 ```
 
@@ -81,6 +82,12 @@ plot_mc_raincloud(
 - slab_alpha:
 
   Transparency of the density slab (`1` is opaque).
+
+- category_spacing:
+
+  Vertical gap between discrete y categories (cell types). Values
+  greater than 1 insert extra space so slabs from neighbouring types do
+  not overlap; the axis still shows the original labels.
 
 ## Value
 

@@ -3,8 +3,8 @@
 Pearson correlations \\r\_{ab}=\mathrm{cor}(\hat p_a,\hat p_b)\\ across
 Monte Carlo replicates (and cell types). This is **behavioural
 similarity**: two solvers can correlate near 1 while remaining
-systematically biased. Hierarchical order uses \\d\_{ab} = 1 -
-r\_{ab}\\.
+systematically biased. Hierarchical order uses Ward D2 on \\d\_{ab} =
+1 - r\_{ab}\\.
 
 ## Usage
 

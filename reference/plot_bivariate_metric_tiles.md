@@ -1,7 +1,8 @@
-# Tile heatmap of a bivariate metric on the (\\\rho_1\\,\\\rho_2\\) plane
+# Tile heatmap of a scenario metric on the inner 2-by-2 design
 
-One page per meta-scenario (composition \\\times\\ variance structure
-\\\times\\ CLD), with one panel per solver.
+Fig02: one page per meta-scenario (composition \\\times\\ variance
+\\\times\\ CLD) with tiles on \\(\rho_1,\rho_2)\\ and one panel per
+solver. Fig03: tiles on the CT1 / CT2 graph families.
 
 ## Usage
 
@@ -13,7 +14,7 @@ plot_bivariate_metric_tiles(metrics, title)
 
 - metrics:
 
-  Long table with `algorithm`, correlations, and `value`.
+  Long table with `algorithm`, design columns, and `value`.
 
 - title:
 

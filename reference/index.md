@@ -208,15 +208,14 @@ wrapper.
 - [`gaussian_confidence_ellipse()`](https://bastienchassagnol.github.io/DeCovarT/reference/gaussian_confidence_ellipse.md)
   : Exact Gaussian probability ellipse (known mean and covariance)
 - [`plot_bulk_loglik_surface_p()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_bulk_loglik_surface_p.md)
-  : Contour of the bulk log-likelihood on a \\(p_1,p_2)\\ lattice
+  : Contour of the bulk log-likelihood on hypothesised ratios
 - [`plot_bulk_loglik_ilr_profile()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_bulk_loglik_ilr_profile.md)
   : Log-likelihood profile in the ILR coordinate
   \\\rho\in\mathbb{R}^{J-1}\\
 - [`plot_bulk_loglik_rgl()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_bulk_loglik_rgl.md)
   : rgl surface of the bulk log-likelihood on a \\(p_1,p_2)\\ lattice
 - [`plot_bivariate_metric_tiles()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_bivariate_metric_tiles.md)
-  : Tile heatmap of a bivariate metric on the (\\\rho_1\\,\\\rho_2\\)
-  plane
+  : Tile heatmap of a scenario metric on the inner 2-by-2 design
 - [`save_bivariate_metric_heatmaps()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_metric_heatmaps.md)
   : Write RMSE / MAE / Aitchison tile PDFs for the bivariate toy
 - [`save_bivariate_similarity_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_similarity_book.md)
@@ -239,6 +238,20 @@ wrapper.
   : Multi-page PDF of bulk log-likelihood surfaces on \\(p_1,p_2)\\
 - [`save_bivariate_purified_density_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_purified_density_book.md)
   : Multi-page PDF of purified densities at four correlation corners
+- [`save_mean_signature_heatmap()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_mean_signature_heatmap.md)
+  : Tile heatmap of the unscaled mean signature \\\mu\\
+- [`save_network_topology_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_network_topology_book.md)
+  : Three-page network book (increasing MixSim overlap)
+- [`save_pairwise_network_distance_heatmap()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_pairwise_network_distance_heatmap.md)
+  : 3-by-3 Hellinger heatmaps of cell-type pairs versus MixSim overlap
+- [`save_scenario_metrics_funkyheatmap()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_scenario_metrics_funkyheatmap.md)
+  : Funky heatmap of scenario-level geometry metrics
+- [`save_hybrid_latent_projection_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_hybrid_latent_projection_book.md)
+  : 16-page 2D latent-space book for the covariance-driven scenario
+- [`save_hybrid_runtime_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_hybrid_runtime_book.md)
+  : Solver wall-clock time (one page per composition)
+- [`save_hybrid_memory_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_hybrid_memory_book.md)
+  : Solver peak memory (one page per composition)
 
 ## Simulation
 

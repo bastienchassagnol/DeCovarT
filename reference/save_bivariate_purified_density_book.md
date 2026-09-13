@@ -30,7 +30,8 @@ save_bivariate_purified_density_book(
 
 - n:
 
-  Draws per cell type.
+  Draws for the bulk KDE. Purified panels use the exact \\p\\-weighted
+  Gaussian mixture and ignore `n`.
 
 - data_rds:
 

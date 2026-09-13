@@ -1,9 +1,9 @@
 # Multi-page PDF of clustered algorithm-similarity heatmaps
 
 Twelve pages (CLD \\\times\\ variance \\\times\\ composition). Each page
-is a 2-by-2 of the correlation corners, with average-linkage clustering
-of \\1-r\\ and a dendrogram to the right of the tiles, with leaves flush
-against the heatmap.
+is a 2-by-2 of the correlation corners, with Ward D2 clustering of
+\\1-r\\ and a dendrogram to the right of the tiles, with leaves flush
+against the heatmap. One shared colourbar per page.
 
 ## Usage
 

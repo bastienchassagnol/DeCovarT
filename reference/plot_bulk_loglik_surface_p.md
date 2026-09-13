@@ -1,8 +1,11 @@
-# Contour of the bulk log-likelihood on a \\(p_1,p_2)\\ lattice
+# Contour of the bulk log-likelihood on hypothesised ratios
 
-Axes are hypothesised cell-type ratios, not gene expression. The true
-simulation proportions (MLE for \\y=\mu p^{\star}\\) are marked; the
-dashed line is the simplex \\p_1+p_2=1\\.
+For \\J=2\\ the axes are \\(p_1,p_2)\\ on the unit square (the dashed
+line is the simplex). For \\J=3\\ the axes are additive log-ratio
+coordinates \\\rho_1=\ln(p_1/p_3)\\, \\\rho_2=\ln(p_2/p_3)\\
+([`additive_log_ratio()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)).
+The true simulation proportions (MLE for \\y=\mu p^{\star}\\) are
+marked.
 
 ## Usage
 

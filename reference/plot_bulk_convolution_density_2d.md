@@ -17,7 +17,9 @@ plot_bulk_convolution_density_2d(true_theta, n = 1200L)
 
 - n:
 
-  Draws **per cell type**.
+  Unused for the raster (kept for API compatibility with
+  `plot_bulk_convolution_density_2d()`); mixing weights come from
+  `true_theta$p`.
 
 ## Value
 
