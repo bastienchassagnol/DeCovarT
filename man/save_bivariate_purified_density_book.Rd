@@ -19,7 +19,8 @@ save_bivariate_purified_density_book(
 
 \item{file}{Output PDF path.}
 
-\item{n}{Draws per cell type.}
+\item{n}{Draws for the bulk KDE. Purified panels use the exact
+\eqn{p}-weighted Gaussian mixture and ignore \code{n}.}
 
 \item{data_rds}{Optional directory; when set, writes
 \code{purified_density.rds} (ggplot raster and overlay tables).}

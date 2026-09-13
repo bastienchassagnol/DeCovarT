@@ -2,7 +2,7 @@
 % Please edit documentation in R/04_04_bivariate_visualisation.R
 \name{plot_bulk_loglik_surface_p}
 \alias{plot_bulk_loglik_surface_p}
-\title{Contour of the bulk log-likelihood on a \eqn{(p_1,p_2)} lattice}
+\title{Contour of the bulk log-likelihood on hypothesised ratios}
 \usage{
 plot_bulk_loglik_surface_p(true_theta, grid = 50L, y = NULL)
 }
@@ -17,7 +17,10 @@ plot_bulk_loglik_surface_p(true_theta, grid = 50L, y = NULL)
 A \code{ggplot}.
 }
 \description{
-Axes are hypothesised cell-type ratios, not gene expression. The
-true simulation proportions (MLE for \eqn{y=\mu p^{\star}}) are marked;
-the dashed line is the simplex \eqn{p_1+p_2=1}.
+For \eqn{J=2} the axes are \eqn{(p_1,p_2)} on the unit square (the
+dashed line is the simplex). For \eqn{J=3} the axes are additive
+log-ratio coordinates
+\eqn{\rho_1=\ln(p_1/p_3)}, \eqn{\rho_2=\ln(p_2/p_3)}
+(\code{\link[=additive_log_ratio]{additive_log_ratio()}}). The true simulation proportions (MLE for
+\eqn{y=\mu p^{\star}}) are marked.
 }

@@ -9,7 +9,9 @@ plot_bulk_convolution_density_2d(true_theta, n = 1200L)
 \arguments{
 \item{true_theta}{List with \code{p}, \code{mu}, \code{sigma} for \eqn{G=2}.}
 
-\item{n}{Draws \strong{per cell type}.}
+\item{n}{Unused for the raster (kept for API compatibility with
+\code{\link[=plot_bulk_convolution_density_2d]{plot_bulk_convolution_density_2d()}}); mixing weights come from
+\code{true_theta$p}.}
 }
 \value{
 A \code{ggplot}.

@@ -35,6 +35,35 @@
   )
 }
 
+#' Fig03 2-by-2 of CT1 / CT2 graph families (CT3 held at Scale-free)
+#'
+#' Labels match `.relevel_scenario_table()` display names.
+#'
+#' @keywords internal
+#' @noRd
+.hybrid_topology_panels <- function() {
+  sf <- unname(.graph_display_labels()[["scale_free"]])
+  sb <- unname(.graph_display_labels()[["stochastic_block_model"]])
+  list(
+    "CT1 Scale-free / CT2 Scale-free" = c(sf, sf),
+    "CT1 Scale-free / CT2 Cluster SBM" = c(sf, sb),
+    "CT1 Cluster SBM / CT2 Scale-free" = c(sb, sf),
+    "CT1 Cluster SBM / CT2 Cluster SBM" = c(sb, sb)
+  )
+}
+
+#' Covariance-driven (fig03) factorial: graph families plus MixSim overlap
+#'
+#' @keywords internal
+#' @noRd
+.is_hybrid_config <- function(x) {
+  if (is.null(x)) {
+    return(FALSE)
+  }
+  nms <- names(x)
+  all(c("graph_ct1", "graph_ct2", "overlap_label") %in% nms)
+}
+
 #' Exact Gaussian probability ellipse (known mean and covariance)
 #'
 #' Boundary of the set
@@ -200,6 +229,8 @@ gaussian_confidence_ellipse <- function(
       legend.box.margin = ggplot2::margin(0, 0, 0, 0)
     )
 }
+
+
 
 #' @keywords internal
 #' @noRd
@@ -734,11 +765,14 @@ plot_bulk_convolution_density_2d <- function(true_theta, n = 1200L) {
   )
 }
 
-#' Contour of the bulk log-likelihood on a \eqn{(p_1,p_2)} lattice
+#' Contour of the bulk log-likelihood on hypothesised ratios
 #'
-#' Axes are hypothesised cell-type ratios, not gene expression. The
-#' true simulation proportions (MLE for \eqn{y=\mu p^{\star}}) are marked;
-#' the dashed line is the simplex \eqn{p_1+p_2=1}.
+#' For \eqn{J=2} the axes are \eqn{(p_1,p_2)} on the unit square (the
+#' dashed line is the simplex). For \eqn{J=3} the axes are additive
+#' log-ratio coordinates
+#' \eqn{\rho_1=\ln(p_1/p_3)}, \eqn{\rho_2=\ln(p_2/p_3)}
+#' ([additive_log_ratio()]). The true simulation proportions (MLE for
+#' \eqn{y=\mu p^{\star}}) are marked.
 #'
 #' @inheritParams plot_purified_density_2d
 #' @param grid Length of the lattice per axis.
@@ -751,6 +785,10 @@ plot_bulk_loglik_surface_p <- function(
   grid = 50L,
   y = NULL
 ) {
+  p_true <- as.numeric(true_theta$p)
+  if (length(p_true) >= 3L) {
+    return(.plot_bulk_loglik_surface_alr(true_theta, grid = grid, y = y))
+  }
   lat <- .proportion_loglik_lattice(true_theta, grid = grid, y = y)
   grid_df <- expand.grid(p1 = lat$p1, p2 = lat$p2)
   grid_df$loglik <- as.vector(lat$z)
@@ -801,6 +839,99 @@ plot_bulk_loglik_surface_p <- function(
       x = expression(p[1]),
       y = expression(p[2]),
       title = "Bulk log-likelihood"
+    )
+}
+
+#' ALR-plane bulk log-likelihood lattice for \eqn{J=3}
+#'
+#' @keywords internal
+#' @noRd
+.alr_loglik_lattice <- function(true_theta, grid = 50L, y = NULL) {
+  p_true <- as.numeric(true_theta$p)
+  mu <- true_theta$mu
+  Sigma <- true_theta$sigma
+  if (length(p_true) < 3L) {
+    stop(".alr_loglik_lattice() requires J >= 3.", call. = FALSE)
+  }
+  if (is.null(y)) {
+    y <- drop(mu %*% p_true)
+  }
+  y <- as.numeric(y)
+  rho_true <- as.numeric(additive_log_ratio(p_true))
+  span <- max(4, abs(rho_true) + 1.5)
+  rho1_seq <- seq(-span, span, length.out = grid)
+  rho2_seq <- seq(-span, span, length.out = grid)
+  z <- matrix(NA_real_, grid, grid)
+  for (i in seq_len(grid)) {
+    for (j in seq_len(grid)) {
+      p_hat <- additive_logistic(c(rho1_seq[[i]], rho2_seq[[j]]))
+      z[i, j] <- tryCatch(
+        loglik_multivariate(p_hat, y, mu, Sigma),
+        error = function(e) NA_real_
+      )
+    }
+  }
+  z_true <- tryCatch(
+    loglik_multivariate(p_true, y, mu, Sigma),
+    error = function(e) NA_real_
+  )
+  list(
+    rho1 = rho1_seq,
+    rho2 = rho2_seq,
+    z = z,
+    p_true = p_true,
+    rho_true = rho_true,
+    z_true = z_true,
+    y = y
+  )
+}
+
+#' @keywords internal
+#' @noRd
+.plot_bulk_loglik_surface_alr <- function(
+  true_theta,
+  grid = 50L,
+  y = NULL
+) {
+  lat <- .alr_loglik_lattice(true_theta, grid = grid, y = y)
+  grid_df <- expand.grid(rho1 = lat$rho1, rho2 = lat$rho2)
+  grid_df$loglik <- as.vector(lat$z)
+  true_df <- data.frame(
+    rho1 = lat$rho_true[[1L]],
+    rho2 = lat$rho_true[[2L]]
+  )
+  ggplot2::ggplot(
+    grid_df,
+    ggplot2::aes(x = .data[["rho1"]], y = .data[["rho2"]])
+  ) +
+    ggplot2::geom_raster(
+      ggplot2::aes(fill = .data[["loglik"]]),
+      interpolate = TRUE
+    ) +
+    ggplot2::scale_fill_viridis_c(name = "log lik.") +
+    ggplot2::geom_point(
+      data = true_df,
+      ggplot2::aes(x = .data[["rho1"]], y = .data[["rho2"]]),
+      inherit.aes = FALSE,
+      colour = "white",
+      fill = "#E41A1C",
+      shape = 21,
+      size = 3.2,
+      stroke = 0.8
+    ) +
+    ggplot2::coord_equal(expand = FALSE) +
+    theme_decovart_facets() +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(face = "bold"),
+      plot.margin = ggplot2::margin(2, 4, 2, 2),
+      panel.background = ggplot2::element_rect(fill = NA, colour = NA),
+      plot.background = ggplot2::element_rect(fill = NA, colour = NA),
+      legend.position = "right"
+    ) +
+    ggplot2::labs(
+      x = expression(rho[1] == log(p[1] / p[3])),
+      y = expression(rho[2] == log(p[2] / p[3])),
+      title = "Bulk log-likelihood (ALR)"
     )
 }
 
@@ -1074,27 +1205,49 @@ plot_bulk_loglik_rgl <- function(
   .rgl_window_to_ggplot(title)
 }
 
-#' Tile heatmap of a bivariate metric on the (\eqn{\rho_1},\eqn{\rho_2}) plane
+#' Tile heatmap of a scenario metric on the inner 2-by-2 design
 #'
-#' One page per meta-scenario (composition \eqn{\times} variance
-#' structure \eqn{\times} CLD), with one panel per solver.
+#' Fig02: one page per meta-scenario (composition \eqn{\times} variance
+#' \eqn{\times} CLD) with tiles on \eqn{(\rho_1,\rho_2)} and one panel
+#' per solver. Fig03: tiles on the CT1 / CT2 graph families.
 #'
-#' @param metrics Long table with `algorithm`, correlations, and `value`.
+#' @param metrics Long table with `algorithm`, design columns, and `value`.
 #' @param title Page title.
 #' @return A `ggplot`.
 #' @export
 plot_bivariate_metric_tiles <- function(metrics, title) {
-  ggplot2::ggplot(
+  hybrid <- .is_hybrid_config(metrics)
+  n_alg <- dplyr::n_distinct(metrics$algorithm)
+  ncol_alg <- if (isTRUE(hybrid)) {
+    min(5L, n_alg)
+  } else {
+    4L
+  }
+  if (isTRUE(hybrid)) {
+    x_col <- "graph_ct1"
+    y_col <- "graph_ct2"
+    x_lab <- "CT1 graph"
+    y_lab <- "CT2 graph"
+  } else {
+    x_col <- "correlation_celltype1"
+    y_col <- "correlation_celltype2"
+    x_lab <- expression(rho[1])
+    y_lab <- expression(rho[2])
+  }
+  p <- ggplot2::ggplot(
     metrics,
     ggplot2::aes(
-      x = .data[["correlation_celltype1"]],
-      y = .data[["correlation_celltype2"]],
+      x = .data[[x_col]],
+      y = .data[[y_col]],
       fill = .data[["value"]]
     )
   ) +
     ggplot2::geom_tile(colour = "white", linewidth = 0.1) +
-    ggplot2::facet_wrap(~algorithm, ncol = 4L) +
-    ggplot2::coord_equal() +
+    ggplot2::facet_wrap(~algorithm, ncol = ncol_alg)
+  if (!isTRUE(hybrid)) {
+    p <- p + ggplot2::coord_equal()
+  }
+  p +
     ggplot2::scale_fill_viridis_c() +
     theme_decovart_facets() +
     ggplot2::theme(
@@ -1107,8 +1260,8 @@ plot_bivariate_metric_tiles <- function(metrics, title) {
       legend.position = "bottom"
     ) +
     ggplot2::labs(
-      x = expression(rho[1]),
-      y = expression(rho[2]),
+      x = x_lab,
+      y = y_lab,
       fill = NULL,
       title = title
     )
@@ -1117,23 +1270,18 @@ plot_bivariate_metric_tiles <- function(metrics, title) {
 #' @keywords internal
 #' @noRd
 .corner_thetas <- function(config, theta_tbl, row) {
-  corners <- .bivariate_corr_corners()
-  out <- lapply(names(corners), function(lab) {
-    rho <- corners[[lab]]
-    hit <- config$proportions == row$proportions &
-      config$variance == row$variance &
-      config$centroids == row$centroids &
-      abs(config$correlation_celltype1 - rho[[1L]]) < 1e-8 &
-      abs(config$correlation_celltype2 - rho[[2L]]) < 1e-8
+  ids <- .corner_ids(config, row)
+  out <- lapply(ids, function(id) {
+    if (is.na(id) || !nzchar(id)) {
+      return(NULL)
+    }
+    hit <- as.character(theta_tbl$ID) == as.character(id)
     if (!any(hit)) {
       return(NULL)
     }
-    id <- config$ID[which(hit)[[1L]]]
-    .unwrap_true_theta(
-      theta_tbl$true_theta[theta_tbl$ID == id][[1L]]
-    )
+    .unwrap_true_theta(theta_tbl$true_theta[which(hit)[[1L]]])
   })
-  names(out) <- names(corners)
+  names(out) <- names(ids)
   out
 }
 
@@ -1141,17 +1289,29 @@ plot_bivariate_metric_tiles <- function(metrics, title) {
 #' @noRd
 .bivariate_page_meta <- function(config) {
   config <- .relevel_scenario_table(config)
-  dplyr::distinct(
-    config,
-    .data[["centroids"]],
-    .data[["variance"]],
-    .data[["proportions"]]
-  ) |>
-    dplyr::arrange(
+  if (.is_hybrid_config(config)) {
+    dplyr::distinct(
+      config,
+      .data[["proportions"]],
+      .data[["overlap_label"]]
+    ) |>
+      dplyr::arrange(
+        .data[["proportions"]],
+        .data[["overlap_label"]]
+      )
+  } else {
+    dplyr::distinct(
+      config,
       .data[["centroids"]],
       .data[["variance"]],
       .data[["proportions"]]
-    )
+    ) |>
+      dplyr::arrange(
+        .data[["centroids"]],
+        .data[["variance"]],
+        .data[["proportions"]]
+      )
+  }
 }
 
 #' Page title matching performance-book factor order
@@ -1159,10 +1319,34 @@ plot_bivariate_metric_tiles <- function(metrics, title) {
 #' @keywords internal
 #' @noRd
 .page_title <- function(row) {
-  cents <- as.character(row$centroids)
-  var <- as.character(row$variance)
-  prop <- as.character(row$proportions)
-  paste(cents, var, prop, sep = " / ")
+  if ("overlap_label" %in% names(row)) {
+    paste(
+      as.character(row$proportions[[1L]]),
+      as.character(row$overlap_label[[1L]]),
+      sep = " / "
+    )
+  } else {
+    cents <- as.character(row$centroids[[1L]])
+    var <- as.character(row$variance[[1L]])
+    prop <- as.character(row$proportions[[1L]])
+    paste(cents, var, prop, sep = " / ")
+  }
+}
+
+#' Rows of a long table that belong on one performance-book page
+#'
+#' @keywords internal
+#' @noRd
+.rows_on_page <- function(df, row) {
+  if ("overlap_label" %in% names(df) && "overlap_label" %in% names(row)) {
+    keep <- df$proportions == row$proportions[[1L]] &
+      as.character(df$overlap_label) == as.character(row$overlap_label[[1L]])
+  } else {
+    keep <- df$proportions == row$proportions[[1L]] &
+      df$variance == row$variance[[1L]] &
+      df$centroids == row$centroids[[1L]]
+  }
+  df[keep, , drop = FALSE]
 }
 
 #' Persist ggplot `data` (not rgl snapshots) for a fig02 book
@@ -1502,30 +1686,21 @@ save_bivariate_loglik_rgl_book <- function(
 save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
   dir.create(dir, recursive = TRUE, showWarnings = FALSE)
   agg <- .aggregate_bivariate_metrics(artefacts)
+  hybrid <- .is_hybrid_config(agg)
 
   write_metric_pdf <- function(metric, path, stem) {
     meta <- .bivariate_page_meta(agg)
     pages <- list()
-    grDevices::pdf(path, width = 16, height = 10)
+    pdf_w <- if (isTRUE(hybrid)) 18 else 16
+    pdf_h <- if (isTRUE(hybrid)) 6 else 10
+    grDevices::pdf(path, width = pdf_w, height = pdf_h)
     on.exit(grDevices::dev.off(), add = TRUE)
     for (i in seq_len(nrow(meta))) {
       row <- meta[i, , drop = FALSE]
-      page <- agg[
-        agg$proportions == row$proportions &
-          agg$variance == row$variance &
-          agg$centroids == row$centroids,
-        ,
-        drop = FALSE
-      ]
+      page <- .rows_on_page(agg, row)
       page$value <- page[[metric]]
       page$page <- .page_title(row)
-      title <- paste(
-        toupper(metric),
-        row$proportions,
-        row$variance,
-        row$centroids,
-        sep = " / "
-      )
+      title <- paste(toupper(metric), .page_title(row), sep = " / ")
       print(plot_bivariate_metric_tiles(page, title))
       pages[[i]] <- page
     }
@@ -1533,23 +1708,26 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
     path
   }
 
-  list(
+  out <- list(
     rmse = write_metric_pdf(
       "rmse",
       file.path(dir, "heatmap_rmse.pdf"),
       "heatmap_rmse"
-    ),
-    mae = write_metric_pdf(
+    )
+  )
+  if (!isTRUE(hybrid)) {
+    out$mae <- write_metric_pdf(
       "mae",
       file.path(dir, "heatmap_mae.pdf"),
       "heatmap_mae"
-    ),
-    aitchison = write_metric_pdf(
+    )
+    out$aitchison <- write_metric_pdf(
       "aitchison",
       file.path(dir, "heatmap_aitchison.pdf"),
       "heatmap_aitchison"
     )
-  )
+  }
+  out
 }
 
 #' @keywords internal
@@ -1572,25 +1750,29 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
     theta_map,
     function(ID, true_theta, ...) {
       th <- .unwrap_true_theta(true_theta)
-      tibble::tibble(
-        ID = ID,
-        p1 = as.numeric(th$p)[[1L]],
-        p2 = as.numeric(th$p)[[2L]]
-      )
+      tibble::tibble(ID = ID, p_true = list(as.numeric(th$p)))
     }
   )
   scored <- dplyr::left_join(opt, p_true, by = "ID")
-  scored$mae <- 0.5 *
-    (abs(scored$celltype_1 - scored$p1) + abs(scored$celltype_2 - scored$p2))
-  scored$rmse_row <- sqrt(
-    0.5 *
-      ((scored$celltype_1 - scored$p1)^2 + (scored$celltype_2 - scored$p2)^2)
-  )
-  scored$aitchison <- .aitchison_pair(
-    scored$p1,
-    scored$p2,
-    scored$celltype_1,
-    scored$celltype_2
+  ct_cols <- grep("^celltype_[0-9]+$", names(scored), value = TRUE)
+  if (length(ct_cols) < 2L) {
+    stop("Need celltype_* columns on `optimisation`.", call. = FALSE)
+  }
+  p_hat <- as.matrix(scored[, ct_cols, drop = FALSE])
+  p_star <- do.call(rbind, scored$p_true)
+  if (ncol(p_star) != ncol(p_hat)) {
+    n_use <- min(ncol(p_star), ncol(p_hat))
+    p_star <- p_star[, seq_len(n_use), drop = FALSE]
+    p_hat <- p_hat[, seq_len(n_use), drop = FALSE]
+  }
+  scored$mae <- rowMeans(abs(p_hat - p_star), na.rm = TRUE)
+  scored$rmse_row <- sqrt(rowMeans((p_hat - p_star)^2, na.rm = TRUE))
+  scored$aitchison <- vapply(
+    seq_len(nrow(scored)),
+    function(i) {
+      .aitchison_distance(p_star[i, ], p_hat[i, ])
+    },
+    numeric(1)
   )
   scored |>
     dplyr::group_by(.data[["ID"]], .data[["algorithm"]]) |>
@@ -1608,23 +1790,43 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
 #' @keywords internal
 #' @noRd
 .corner_ids <- function(config, row) {
-  corners <- .bivariate_corr_corners()
-  vapply(
-    names(corners),
-    function(lab) {
-      rho <- corners[[lab]]
-      hit <- config$proportions == row$proportions &
-        config$variance == row$variance &
-        config$centroids == row$centroids &
-        abs(config$correlation_celltype1 - rho[[1L]]) < 1e-8 &
-        abs(config$correlation_celltype2 - rho[[2L]]) < 1e-8
-      if (!any(hit)) {
-        return(NA_character_)
-      }
-      as.character(config$ID[which(hit)[[1L]]])
-    },
-    character(1)
-  )
+  if (.is_hybrid_config(config)) {
+    panels <- .hybrid_topology_panels()
+    vapply(
+      names(panels),
+      function(lab) {
+        pair <- panels[[lab]]
+        hit <- config$proportions == row$proportions &
+          as.character(config$overlap_label) ==
+            as.character(row$overlap_label) &
+          as.character(config$graph_ct1) == pair[[1L]] &
+          as.character(config$graph_ct2) == pair[[2L]]
+        if (!any(hit)) {
+          return(NA_character_)
+        }
+        as.character(config$ID[which(hit)[[1L]]])
+      },
+      character(1)
+    )
+  } else {
+    corners <- .bivariate_corr_corners()
+    vapply(
+      names(corners),
+      function(lab) {
+        rho <- corners[[lab]]
+        hit <- config$proportions == row$proportions &
+          config$variance == row$variance &
+          config$centroids == row$centroids &
+          abs(config$correlation_celltype1 - rho[[1L]]) < 1e-8 &
+          abs(config$correlation_celltype2 - rho[[2L]]) < 1e-8
+        if (!any(hit)) {
+          return(NA_character_)
+        }
+        as.character(config$ID[which(hit)[[1L]]])
+      },
+      character(1)
+    )
+  }
 }
 
 #' Restrict a benchmark list to selected scenario IDs
@@ -1677,17 +1879,22 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
 #' @noRd
 .plot_bivariate_wald_forest_page <- function(plot_df, title) {
   plot_df$algorithm <- .relevel_algorithm(plot_df$algorithm)
+  panel_lvls <- unique(as.character(plot_df$panel))
+  hybrid_lvls <- names(.hybrid_topology_panels())
+  canon <- if (any(panel_lvls %in% hybrid_lvls)) {
+    hybrid_lvls
+  } else {
+    names(.bivariate_corr_corners())
+  }
   plot_df$panel <- factor(
     plot_df$panel,
-    levels = names(.bivariate_corr_corners())
+    levels = c(intersect(canon, panel_lvls), setdiff(panel_lvls, canon))
   )
   plot_df$cell_type <- factor(
     plot_df$cell_type,
     levels = unique(as.character(plot_df$cell_type))
   )
-  pal <- c("#E41A1C", "#4DAF4A")
-  ct <- levels(plot_df$cell_type)
-  names(pal) <- ct[seq_len(min(2L, length(ct)))]
+  pal <- .cell_type_colours(levels(plot_df$cell_type))
   alg_lvls <- levels(droplevels(plot_df$algorithm))
   n_ct <- nlevels(plot_df$cell_type)
   dodge_width <- 0.55
@@ -1716,12 +1923,52 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
       is.finite(.data[["p_true"]]) &
       abs(.data[["mean_est"]] - .data[["p_true"]]) > 0.008
   )
-  annot_df <- plot_df |>
-    dplyr::group_by(.data[["panel"]], .data[["algorithm"]]) |>
-    dplyr::slice(1L) |>
-    dplyr::ungroup() |>
-    dplyr::mutate(y_lab = as.numeric(.data[["algorithm"]]))
-  ggplot2::ggplot(
+  if (n_ct > 2L) {
+    annot_df <- plot_df
+    hi <- pmax(plot_df$emp_hi, plot_df$ci_hi, plot_df$mean_est, na.rm = TRUE)
+    annot_df$lab_x <- ifelse(is.finite(hi), hi, plot_df$mean_est)
+    annot_df$annot <- paste0(
+      sprintf("%.3f", annot_df$rmse),
+      " / ",
+      ifelse(
+        is.finite(annot_df$coverage),
+        sprintf("%.0f%%", 100 * annot_df$coverage),
+        "NA"
+      )
+    )
+    annot_df$y_lab <- annot_df$y_dodge
+    annot_size <- 2.4
+  } else {
+    annot_df <- plot_df |>
+      dplyr::group_by(.data[["panel"]], .data[["algorithm"]]) |>
+      dplyr::slice(1L) |>
+      dplyr::ungroup() |>
+      dplyr::mutate(y_lab = as.numeric(.data[["algorithm"]]))
+    annot_size <- 3.4
+  }
+  caption_txt <- if (n_ct > 2L) {
+    paste(
+      "Solid whiskers: mean estimate plus or minus 1.96 times the",
+      "expected-Fisher Wald SE at the true composition when available.",
+      "Dashed whiskers: plus or minus 1.96 times the empirical",
+      "Monte Carlo SD.",
+      "Vertical dashed lines: true proportions (one colour per type).",
+      "Labels: RMSE and Wald coverage for each cell type."
+    )
+  } else {
+    paste(
+      "Solid whiskers: mean estimate plus or minus 1.96 times the",
+      "expected-Fisher Wald SE at the true composition",
+      "(confint.decovart_fit / vcov_ilr_delta).",
+      "Dashed whiskers: plus or minus 1.96 times the empirical",
+      "Monte Carlo SD.",
+      "Horizontal arrows: bias toward the true proportion.",
+      "Bold labels (right, one per solver): RMSE and coverage of",
+      "those Wald intervals (identical for p1 and p2 on the unit",
+      "simplex). NNLS, LSEI, and SA omitted (no convolution Wald SE)."
+    )
+  }
+  p <- ggplot2::ggplot(
     plot_df,
     ggplot2::aes(
       x = .data[["mean_est"]],
@@ -1772,26 +2019,51 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
       alpha = 0.9,
       inherit.aes = FALSE
     ) +
-    ggplot2::geom_point(size = 2.6) +
-    ggplot2::geom_label(
-      data = annot_df,
-      ggplot2::aes(
-        x = Inf,
-        y = .data[["y_lab"]],
-        label = .data[["annot"]]
-      ),
-      inherit.aes = FALSE,
-      hjust = 1.08,
-      vjust = 0.5,
-      size = 3.4,
-      fontface = "bold",
-      lineheight = 0.95,
-      label.size = 0.25,
-      label.padding = grid::unit(0.28, "lines"),
-      fill = "#F4F1EA",
-      colour = "grey20",
-      show.legend = FALSE
-    ) +
+    ggplot2::geom_point(size = 2.6)
+
+  if (n_ct > 2L) {
+    p <- p +
+      ggplot2::geom_text(
+        data = annot_df,
+        ggplot2::aes(
+          x = .data[["lab_x"]],
+          y = .data[["y_lab"]],
+          label = .data[["annot"]],
+          colour = .data[["cell_type"]]
+        ),
+        inherit.aes = FALSE,
+        hjust = -0.08,
+        vjust = 0.5,
+        size = annot_size,
+        fontface = "bold",
+        lineheight = 0.9,
+        show.legend = FALSE
+      )
+    x_expand <- c(0.04, 0.22)
+  } else {
+    p <- p +
+      ggplot2::geom_label(
+        data = annot_df,
+        ggplot2::aes(
+          x = Inf,
+          y = .data[["y_lab"]],
+          label = .data[["annot"]]
+        ),
+        inherit.aes = FALSE,
+        hjust = 1.08,
+        vjust = 0.5,
+        size = annot_size,
+        fontface = "bold",
+        lineheight = 0.95,
+        label.size = 0.25,
+        label.padding = grid::unit(0.28, "lines"),
+        fill = "#F4F1EA",
+        colour = "grey20",
+        show.legend = FALSE
+      )
+    x_expand <- c(0.04, 0.38)
+  }
+  p +
     ggplot2::scale_colour_manual(values = pal, drop = FALSE) +
     ggplot2::scale_y_continuous(
       breaks = seq_along(alg_lvls),
@@ -1799,7 +2071,7 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
       expand = ggplot2::expansion(add = 0.45)
     ) +
     ggplot2::scale_x_continuous(
-      expand = ggplot2::expansion(mult = c(0.04, 0.38))
+      expand = ggplot2::expansion(mult = x_expand)
     ) +
     ggplot2::coord_cartesian(clip = "off") +
     ggplot2::facet_wrap(~panel, ncol = 2L) +
@@ -1808,17 +2080,7 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
       y = NULL,
       colour = "Cell type",
       title = title,
-      caption = paste(
-        "Solid whiskers: mean estimate plus or minus 1.96 times the",
-        "expected-Fisher Wald SE at the true composition",
-        "(confint.decovart_fit / vcov_ilr_delta).",
-        "Dashed whiskers: plus or minus 1.96 times the empirical",
-        "Monte Carlo SD.",
-        "Horizontal arrows: bias toward the true proportion.",
-        "Bold labels (right, one per solver): RMSE and coverage of",
-        "those Wald intervals (identical for p1 and p2 on the unit",
-        "simplex). NNLS, LSEI, and SA omitted (no convolution Wald SE)."
-      )
+      caption = caption_txt
     ) +
     theme_decovart_facets() +
     ggplot2::theme(
@@ -1833,7 +2095,12 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
 #'
 #' @keywords internal
 #' @noRd
-.bivariate_wald_forest_table <- function(artefacts, ids, labels) {
+.bivariate_wald_forest_table <- function(
+  artefacts,
+  ids,
+  labels,
+  filter_wald = TRUE
+) {
   z <- stats::qnorm(0.975)
   pieces <- lapply(seq_along(ids), function(k) {
     id <- ids[[k]]
@@ -1852,10 +2119,12 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
     if (is.null(mc) || nrow(mc) == 0L) {
       return(NULL)
     }
-    keep <- .algorithm_in(mc$algorithm, .bivariate_wald_algorithms())
-    mc <- mc[keep, , drop = FALSE]
-    if (nrow(mc) == 0L) {
-      return(NULL)
+    if (isTRUE(filter_wald)) {
+      keep <- .algorithm_in(mc$algorithm, .bivariate_wald_algorithms())
+      mc <- mc[keep, , drop = FALSE]
+      if (nrow(mc) == 0L) {
+        return(NULL)
+      }
     }
     long <- pivot_mc_estimates(sub)
     truth <- dplyr::distinct(
@@ -1910,48 +2179,85 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
 #' @noRd
 .plot_bivariate_solver_dots_page <- function(df, title) {
   df$algorithm <- .relevel_algorithm(df$algorithm)
-  rho1 <- sort(unique(df$correlation_celltype1))
-  rho2 <- sort(unique(df$correlation_celltype2))
-  df$rho1 <- factor(
-    df$correlation_celltype1,
-    levels = rho1,
-    labels = format(rho1, digits = 2, trim = TRUE)
-  )
-  df$rho2 <- factor(
-    df$correlation_celltype2,
-    levels = rho2,
-    labels = format(rho2, digits = 2, trim = TRUE)
-  )
-  ggplot2::ggplot(
-    df,
-    ggplot2::aes(
-      x = .data[["rho1"]],
-      y = .data[["rho2"]],
-      colour = .data[["rmse"]],
-      size = .data[["aitchison"]]
-    )
-  ) +
-    ggplot2::geom_point() +
-    ggplot2::facet_wrap(~algorithm, ncol = 4L) +
-    ggplot2::scale_colour_viridis_c(name = "RMSE") +
-    ggplot2::scale_size_continuous(
-      name = "Aitchison",
-      range = c(1.5, 10)
-    ) +
-    ggplot2::labs(
-      x = expression(rho[1]),
-      y = expression(rho[2]),
-      title = title,
-      caption = paste(
-        "Each panel is the 9-by-9 correlation factorial (81 cells).",
-        "Colour: mean RMSE; size: mean Aitchison distance."
+  hybrid <- .is_hybrid_config(df)
+  if (isTRUE(hybrid)) {
+    p <- ggplot2::ggplot(
+      df,
+      ggplot2::aes(
+        x = .data[["graph_ct1"]],
+        y = .data[["graph_ct2"]],
+        colour = .data[["rmse"]],
+        size = .data[["aitchison"]]
       )
     ) +
+      ggplot2::geom_point() +
+      ggplot2::facet_wrap(
+        ~algorithm,
+        ncol = min(5L, dplyr::n_distinct(df$algorithm))
+      ) +
+      ggplot2::scale_colour_viridis_c(name = "RMSE") +
+      ggplot2::scale_size_continuous(
+        name = "Aitchison",
+        range = c(1.5, 10)
+      ) +
+      ggplot2::labs(
+        x = "CT1 graph",
+        y = "CT2 graph",
+        title = title,
+        caption = paste(
+          "Each panel is the 2-by-2 of CT1 / CT2 graph families.",
+          "Colour: mean RMSE; size: mean Aitchison distance."
+        )
+      )
+  } else {
+    rho1 <- sort(unique(df$correlation_celltype1))
+    rho2 <- sort(unique(df$correlation_celltype2))
+    df$rho1 <- factor(
+      df$correlation_celltype1,
+      levels = rho1,
+      labels = format(rho1, digits = 2, trim = TRUE)
+    )
+    df$rho2 <- factor(
+      df$correlation_celltype2,
+      levels = rho2,
+      labels = format(rho2, digits = 2, trim = TRUE)
+    )
+    p <- ggplot2::ggplot(
+      df,
+      ggplot2::aes(
+        x = .data[["rho1"]],
+        y = .data[["rho2"]],
+        colour = .data[["rmse"]],
+        size = .data[["aitchison"]]
+      )
+    ) +
+      ggplot2::geom_point() +
+      ggplot2::facet_wrap(~algorithm, ncol = 4L) +
+      ggplot2::scale_colour_viridis_c(name = "RMSE") +
+      ggplot2::scale_size_continuous(
+        name = "Aitchison",
+        range = c(1.5, 10)
+      ) +
+      ggplot2::labs(
+        x = expression(rho[1]),
+        y = expression(rho[2]),
+        title = title,
+        caption = paste(
+          "Each panel is the 9-by-9 correlation factorial (81 cells).",
+          "Colour: mean RMSE; size: mean Aitchison distance."
+        )
+      )
+  }
+  p +
     theme_decovart_facets() +
     ggplot2::theme(
       plot.title = ggplot2::element_text(face = "bold"),
       axis.text.y = ggplot2::element_text(angle = 0, hjust = 1),
-      axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 0.5),
+      axis.text.x = ggplot2::element_text(
+        angle = 90,
+        hjust = 1,
+        vjust = 0.5
+      ),
       legend.position = "bottom"
     )
 }
@@ -2035,13 +2341,19 @@ save_bivariate_forest_book <- function(artefacts, file, data_rds = NULL) {
   artefacts <- .attach_expected_fisher_wald(artefacts)
   cfg <- artefacts$config
   meta <- .bivariate_page_meta(cfg)
+  filter_wald <- !.is_hybrid_config(cfg)
   collected <- list()
   grDevices::pdf(file, width = 18, height = 12)
   on.exit(grDevices::dev.off(), add = TRUE)
   for (i in seq_len(nrow(meta))) {
     row <- meta[i, , drop = FALSE]
     ids <- .corner_ids(cfg, row)
-    tbl <- .bivariate_wald_forest_table(artefacts, ids, names(ids))
+    tbl <- .bivariate_wald_forest_table(
+      artefacts,
+      ids,
+      names(ids),
+      filter_wald = filter_wald
+    )
     if (is.null(tbl) || nrow(tbl) == 0L) {
       next
     }
@@ -2067,8 +2379,12 @@ save_bivariate_raincloud_book <- function(
   .check_plot_dependencies(need_ggdist = TRUE)
   cfg <- artefacts$config
   meta <- .bivariate_page_meta(cfg)
+  hybrid <- .is_hybrid_config(cfg)
   collected <- list()
-  grDevices::pdf(file, width = 16, height = 30)
+  pdf_h <- if (isTRUE(hybrid)) 22 else 30
+  slab_s <- if (isTRUE(hybrid)) 1.45 else 1.05
+  slab_a <- if (isTRUE(hybrid)) 0.35 else 0.45
+  grDevices::pdf(file, width = 16, height = pdf_h)
   on.exit(grDevices::dev.off(), add = TRUE)
   for (i in seq_len(nrow(meta))) {
     row <- meta[i, , drop = FALSE]
@@ -2094,8 +2410,8 @@ save_bivariate_raincloud_book <- function(
       quantity = "estimate",
       include_dots = FALSE,
       dodge_width = 1,
-      slab_scale = 1.05,
-      slab_alpha = 0.45
+      slab_scale = slab_s,
+      slab_alpha = slab_a
     )
     p <- p +
       ggplot2::facet_wrap(~panel, ncol = 2L) +
@@ -2125,17 +2441,14 @@ save_bivariate_solver_dots_book <- function(
   agg <- .aggregate_bivariate_metrics(artefacts)
   meta <- .bivariate_page_meta(agg)
   collected <- list()
-  grDevices::pdf(file, width = 16, height = 10)
+  hybrid <- .is_hybrid_config(agg)
+  pdf_w <- if (isTRUE(hybrid)) 18 else 16
+  pdf_h <- if (isTRUE(hybrid)) 6 else 10
+  grDevices::pdf(file, width = pdf_w, height = pdf_h)
   on.exit(grDevices::dev.off(), add = TRUE)
   for (i in seq_len(nrow(meta))) {
     row <- meta[i, , drop = FALSE]
-    page <- agg[
-      agg$proportions == row$proportions &
-        agg$variance == row$variance &
-        agg$centroids == row$centroids,
-      ,
-      drop = FALSE
-    ]
+    page <- .rows_on_page(agg, row)
     if (nrow(page) == 0L) {
       next
     }
@@ -2146,5 +2459,655 @@ save_bivariate_solver_dots_book <- function(
   if (length(collected) > 0L) {
     .write_ggplot_rds(dplyr::bind_rows(collected), data_rds, "solver_dots")
   }
+  invisible(file)
+}
+
+#' Mean of SPD condition numbers of the precision matrices \eqn{\Theta_j}
+#'
+#' @keywords internal
+#' @noRd
+.mean_kappa_precision <- function(th) {
+  Sigma <- th$sigma
+  Theta <- th$Theta
+  j_dim <- dim(Sigma)[[3L]]
+  kappas <- vapply(
+    seq_len(j_dim),
+    function(j) {
+      mat <- NULL
+      if (!is.null(Theta)) {
+        mat <- Theta[,, j]
+      }
+      if (is.null(mat)) {
+        mat <- tryCatch(
+          solve(Sigma[,, j]),
+          error = function(e) NULL
+        )
+      }
+      if (is.null(mat)) {
+        return(NA_real_)
+      }
+      ev <- eigen(mat, symmetric = TRUE, only.values = TRUE)$values
+      ev <- ev[is.finite(ev) & ev > 0]
+      if (length(ev) < 1L) {
+        return(NA_real_)
+      }
+      max(ev) / min(ev)
+    },
+    numeric(1)
+  )
+  mean(kappas, na.rm = TRUE)
+}
+
+#' Pairwise Hellinger and Jeffreys scores among cell-type Gaussians
+#'
+#' @keywords internal
+#' @noRd
+.pairwise_gaussian_scores <- function(th) {
+  mu <- th$mu
+  Sigma <- th$sigma
+  j_dim <- ncol(mu)
+  ct <- colnames(mu)
+  if (is.null(ct)) {
+    ct <- paste0("CT", seq_len(j_dim))
+  }
+  rows <- list()
+  k <- 1L
+  for (j in seq_len(j_dim - 1L)) {
+    for (ell in seq.int(j + 1L, j_dim)) {
+      rows[[k]] <- tibble::tibble(
+        pair = paste(ct[[j]], ct[[ell]], sep = "--"),
+        i = j,
+        l = ell,
+        hellinger = .hellinger_gaussian(
+          mu[, j],
+          mu[, ell],
+          Sigma[,, j],
+          Sigma[,, ell]
+        ),
+        jeffreys = tryCatch(
+          .jeffreys_gaussian(
+            mu[, j],
+            mu[, ell],
+            Sigma[,, j],
+            Sigma[,, ell]
+          ),
+          error = function(e) NA_real_
+        )
+      )
+      k <- k + 1L
+    }
+  }
+  dplyr::bind_rows(rows)
+}
+
+#' Adjacency list (one matrix per cell type) from `true_theta`
+#'
+#' @keywords internal
+#' @noRd
+.theta_adjacency <- function(th) {
+  adj <- th$adjacency
+  if (is.null(adj)) {
+    return(NULL)
+  }
+  if (is.list(adj)) {
+    return(adj)
+  }
+  if (is.array(adj) && length(dim(adj)) == 3L) {
+    lapply(seq_len(dim(adj)[[3L]]), function(j) adj[,, j])
+  } else {
+    NULL
+  }
+}
+
+#' Scenario-level geometry metrics for the funkyheatmap
+#'
+#' @keywords internal
+#' @noRd
+.scenario_global_metrics <- function(artefacts, n_mc = 1500L) {
+  cfg <- .relevel_scenario_table(artefacts$config)
+  theta_tbl <- artefacts$theta
+  desc <- artefacts$descriptors
+  if (is.null(theta_tbl) || !"true_theta" %in% names(theta_tbl)) {
+    stop("`artefacts$theta$true_theta` is required.", call. = FALSE)
+  }
+  desc_join <- NULL
+  if (!is.null(desc) && "ID" %in% names(desc)) {
+    keep <- intersect(
+      c("ID", "mixsim_baromega", "network_density", "jeffreys", "h_star"),
+      names(desc)
+    )
+    desc_join <- desc[, keep, drop = FALSE]
+  }
+  rows <- lapply(seq_len(nrow(cfg)), function(i) {
+    id <- as.character(cfg$ID[[i]])
+    th <- .unwrap_true_theta(
+      theta_tbl$true_theta[as.character(theta_tbl$ID) == id][[1L]]
+    )
+    p <- as.numeric(th$p)
+    pair <- .pairwise_gaussian_scores(th)
+    ovl <- tryCatch(
+      overlap_gaussian_mc(
+        true_theta = th,
+        n_mc = n_mc,
+        seed = 20260807L + i
+      ),
+      error = function(e) NULL
+    )
+    tibble::tibble(
+      ID = id,
+      shannon_entropy = compute_shannon_entropy(p),
+      avg_overlap = if (!is.null(ovl)) ovl$BarOmega else NA_real_,
+      max_overlap = if (!is.null(ovl)) ovl$MaxOmega else NA_real_,
+      max_kl = if (any(is.finite(pair$jeffreys))) {
+        max(pair$jeffreys, na.rm = TRUE)
+      } else {
+        NA_real_
+      },
+      kappa_precision = .mean_kappa_precision(th),
+      edge_density = NA_real_
+    )
+  })
+  out <- dplyr::bind_rows(rows)
+  if (!is.null(desc_join)) {
+    out <- dplyr::left_join(out, desc_join, by = "ID")
+    if ("mixsim_baromega" %in% names(out)) {
+      out$avg_overlap <- ifelse(
+        is.finite(out$avg_overlap),
+        out$avg_overlap,
+        out$mixsim_baromega
+      )
+    }
+    if ("network_density" %in% names(out)) {
+      out$edge_density <- out$network_density
+    }
+  }
+  dplyr::left_join(out, cfg, by = "ID")
+}
+
+#' Tile heatmap of the unscaled mean signature \eqn{\mu}
+#'
+#' @param true_theta A `true_theta` list (`mu` is \eqn{G\times J}).
+#' @param file Output PDF path.
+#' @param data_rds Optional directory for the ggplot `data` RDS.
+#' @return `file`, invisibly.
+#' @export
+save_mean_signature_heatmap <- function(
+  true_theta,
+  file,
+  data_rds = NULL
+) {
+  th <- .unwrap_true_theta(true_theta)
+  mu <- as.matrix(th$mu)
+  genes <- rownames(mu)
+  if (is.null(genes)) {
+    genes <- paste0("g", seq_len(nrow(mu)))
+  }
+  cts <- colnames(mu)
+  if (is.null(cts)) {
+    cts <- paste0("celltype_", seq_len(ncol(mu)))
+  }
+  df <- expand.grid(
+    gene = factor(genes, levels = rev(genes)),
+    cell_type = factor(cts, levels = cts),
+    stringsAsFactors = FALSE
+  )
+  df$value <- as.vector(mu)
+  p <- ggplot2::ggplot(
+    df,
+    ggplot2::aes(
+      x = .data[["cell_type"]],
+      y = .data[["gene"]],
+      fill = .data[["value"]]
+    )
+  ) +
+    ggplot2::geom_tile(colour = "white", linewidth = 0.2) +
+    ggplot2::scale_fill_viridis_c(name = "mean") +
+    theme_decovart_facets() +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(face = "bold"),
+      axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5),
+      legend.position = "right"
+    ) +
+    ggplot2::labs(
+      x = NULL,
+      y = "Gene",
+      title = "Mean signature (unscaled)",
+      caption = paste(
+        "Raw mu (G genes by J cell types); no row or column scaling."
+      )
+    )
+  dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
+  ggplot2::ggsave(
+    file,
+    plot = p,
+    width = 7,
+    height = 8,
+    dpi = 320,
+    limitsize = FALSE
+  )
+  .write_ggplot_rds(df, data_rds, "mean_signature")
+  invisible(file)
+}
+
+#' Funky heatmap of scenario-level geometry metrics
+#'
+#' Rows follow the fig03 factor order (proportions, CT1/CT2 graphs,
+#' MixSim overlap). No clustering.
+#'
+#' @inheritParams save_bivariate_similarity_book
+#' @export
+save_scenario_metrics_funkyheatmap <- function(
+  artefacts,
+  file,
+  data_rds = NULL
+) {
+  .check_suggested_package("funkyheatmap", "save_scenario_metrics_funkyheatmap")
+  metrics <- .scenario_global_metrics(artefacts)
+  metrics <- .relevel_scenario_table(metrics)
+  metrics <- dplyr::arrange(
+    metrics,
+    .data[["proportions"]],
+    .data[["graph_ct1"]],
+    .data[["graph_ct2"]],
+    .data[["overlap_label"]]
+  )
+  metrics$id <- as.character(metrics$ID)
+  graph_short <- function(x) {
+    dplyr::case_when(
+      as.character(x) == "Scale-free" ~ "SF",
+      as.character(x) == "Cluster SBM" ~ "SBM",
+      TRUE ~ as.character(x)
+    )
+  }
+  metrics$label <- paste(
+    paste(
+      graph_short(metrics$graph_ct1),
+      graph_short(metrics$graph_ct2),
+      sep = "/"
+    ),
+    as.character(metrics$overlap_label),
+    sep = " | "
+  )
+  data <- tibble::tibble(
+    id = metrics$id,
+    scenario = metrics$label,
+    shannon_entropy = metrics$shannon_entropy,
+    avg_overlap = metrics$avg_overlap,
+    max_overlap = metrics$max_overlap,
+    max_kl = metrics$max_kl,
+    kappa_precision = metrics$kappa_precision,
+    edge_density = metrics$edge_density
+  )
+  column_info <- tibble::tibble(
+    id = c(
+      "scenario",
+      "shannon_entropy",
+      "avg_overlap",
+      "max_overlap",
+      "max_kl",
+      "kappa_precision",
+      "edge_density"
+    ),
+    name = c(
+      "Scenario",
+      "Shannon entropy",
+      "Average overlap",
+      "Maximum overlap",
+      "Largest KL",
+      "Precision kappa",
+      "Mean edge density"
+    ),
+    geom = c("text", rep("bar", 6L)),
+    group = c("id", rep("geometry", 6L)),
+    palette = c("Greys", rep("Blues", 6L)),
+    legend = c(FALSE, rep(TRUE, 6L)),
+    width = c(4, rep(1.2, 6L))
+  )
+  row_info <- tibble::tibble(
+    id = metrics$id,
+    group = as.character(metrics$proportions)
+  )
+  row_groups <- tibble::tibble(
+    group = unique(as.character(metrics$proportions)),
+    level1 = unique(as.character(metrics$proportions))
+  )
+  column_groups <- tibble::tibble(
+    group = c("id", "geometry"),
+    palette = c("Greys", "Blues"),
+    level1 = c("Id", "Geometry")
+  )
+  palettes <- list(Blues = "Blues", Greys = "Greys")
+  p <- funkyheatmap::funky_heatmap(
+    data = data,
+    column_info = column_info,
+    row_info = row_info,
+    row_groups = row_groups,
+    column_groups = column_groups,
+    palettes = palettes,
+    scale_column = TRUE,
+    add_abc = FALSE,
+    position_args = funkyheatmap::position_arguments(
+      col_annot_offset = 3.5,
+      expand_xmax = 2
+    )
+  )
+  dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
+  w <- max(if (!is.null(p$width)) p$width else 12, 14)
+  h <- max(if (!is.null(p$height)) p$height else 14, 16)
+  ggplot2::ggsave(
+    file,
+    plot = p,
+    width = w,
+    height = h,
+    dpi = 320,
+    limitsize = FALSE
+  )
+  .write_ggplot_rds(metrics, data_rds, "scenario_metrics")
+  invisible(file)
+}
+
+#' 3-by-3 Hellinger heatmaps of cell-type pairs versus MixSim overlap
+#'
+#' Facets are pairwise comparisons (rows) by overlap (columns). Each
+#' panel is the 2-by-2 of CT1 / CT2 graph families (CT3 is Scale-free).
+#' Hellinger does not depend on \eqn{p}, so compositions are collapsed.
+#'
+#' @inheritParams save_bivariate_similarity_book
+#' @export
+save_pairwise_network_distance_heatmap <- function(
+  artefacts,
+  file,
+  data_rds = NULL
+) {
+  cfg <- .relevel_scenario_table(artefacts$config)
+  theta_tbl <- artefacts$theta
+  pick <- cfg
+  if ("proportions" %in% names(pick)) {
+    bal <- as.character(pick$proportions) == "balanced"
+    if (any(bal)) {
+      pick <- pick[bal, , drop = FALSE]
+    }
+  }
+  pieces <- lapply(seq_len(nrow(pick)), function(i) {
+    id <- as.character(pick$ID[[i]])
+    th <- .unwrap_true_theta(
+      theta_tbl$true_theta[as.character(theta_tbl$ID) == id][[1L]]
+    )
+    pair <- .pairwise_gaussian_scores(th)
+    pair$ID <- id
+    pair$graph_ct1 <- pick$graph_ct1[[i]]
+    pair$graph_ct2 <- pick$graph_ct2[[i]]
+    pair$overlap_label <- pick$overlap_label[[i]]
+    pair
+  })
+  df <- dplyr::bind_rows(pieces)
+  pair_map <- c(
+    "celltype_1--celltype_2" = "CT1--CT2",
+    "celltype_1--celltype_3" = "CT1--CT3",
+    "celltype_2--celltype_3" = "CT2--CT3",
+    "CT1--CT2" = "CT1--CT2",
+    "CT1--CT3" = "CT1--CT3",
+    "CT2--CT3" = "CT2--CT3"
+  )
+  mapped <- unname(pair_map[as.character(df$pair)])
+  df$pair <- ifelse(is.na(mapped), as.character(df$pair), mapped)
+  df$pair <- factor(
+    df$pair,
+    levels = c("CT1--CT2", "CT1--CT3", "CT2--CT3")
+  )
+  df <- .relevel_scenario_table(df)
+  p <- ggplot2::ggplot(
+    df,
+    ggplot2::aes(
+      x = .data[["graph_ct1"]],
+      y = .data[["graph_ct2"]],
+      fill = .data[["hellinger"]]
+    )
+  ) +
+    ggplot2::geom_tile(colour = "white", linewidth = 0.2) +
+    ggplot2::facet_grid(pair ~ overlap_label) +
+    ggplot2::scale_fill_viridis_c(name = "Hellinger") +
+    ggplot2::coord_equal() +
+    theme_decovart_facets() +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(face = "bold"),
+      axis.text.x = ggplot2::element_text(
+        angle = 90,
+        hjust = 1,
+        vjust = 0.5
+      ),
+      legend.position = "bottom"
+    ) +
+    ggplot2::labs(
+      x = "CT1 graph",
+      y = "CT2 graph",
+      title = "Pairwise Hellinger distance of cell-type Gaussians",
+      caption = paste(
+        "Each facet is one cell-type pair (rows) and MixSim overlap",
+        "(columns). Inner 2-by-2: CT1 / CT2 topologies; CT3 is Scale-free."
+      )
+    )
+  dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
+  ggplot2::ggsave(
+    file,
+    plot = p,
+    width = 12,
+    height = 11,
+    dpi = 320,
+    limitsize = FALSE
+  )
+  .write_ggplot_rds(df, data_rds, "pairwise_hellinger")
+  invisible(file)
+}
+
+#' Absolute covariance on the undirected skeleton, shared colour scale
+#'
+#' @keywords internal
+#' @noRd
+.sigma_edge_weights <- function(adj, sigma) {
+  adj <- as.matrix(adj)
+  sigma <- as.matrix(sigma)
+  w <- abs(sigma)
+  w[as.matrix(adj) == 0] <- 0
+  diag(w) <- 0
+  w
+}
+
+#' Draw one igraph with edge widths proportional to |Sigma|
+#'
+#' @keywords internal
+#' @noRd
+.plot_weighted_skeleton <- function(
+  adj,
+  sigma,
+  layout,
+  vertex_col,
+  w_max,
+  main
+) {
+  g <- igraph::graph_from_adjacency_matrix(
+    adj,
+    mode = "undirected",
+    diag = FALSE,
+    weighted = NULL
+  )
+  el <- igraph::as_edgelist(g, names = FALSE)
+  w <- .sigma_edge_weights(adj, sigma)
+  ew <- if (nrow(el) == 0L) {
+    numeric(0)
+  } else {
+    vapply(
+      seq_len(nrow(el)),
+      function(k) w[el[k, 1L], el[k, 2L]],
+      numeric(1)
+    )
+  }
+  width <- if (is.finite(w_max) && w_max > 0) {
+    0.35 + 6 * sqrt(pmax(ew, 0) / w_max)
+  } else {
+    rep(0.8, length(ew))
+  }
+  igraph::V(g)$color <- vertex_col
+  igraph::plot.igraph(
+    g,
+    layout = layout,
+    vertex.size = 8,
+    vertex.label = NA,
+    vertex.frame.color = "#2f3e4f",
+    edge.color = "#4a5560",
+    edge.width = width,
+    main = main
+  )
+}
+
+#' Three-page network book (increasing MixSim overlap)
+#'
+#' Each page: CT3 (Scale-free) centred at the top; 2-by-2 of CT1 / CT2
+#' topologies below. Edge widths use |Sigma_ij| on the skeleton with one
+#' shared scale across pages.
+#'
+#' @inheritParams save_bivariate_similarity_book
+#' @param png_file Optional PNG copy (vignette / README).
+#' @export
+save_network_topology_book <- function(
+  artefacts,
+  file,
+  data_rds = NULL,
+  png_file = NULL
+) {
+  .check_suggested_package("igraph", "save_network_topology_book")
+  cfg <- .relevel_scenario_table(artefacts$config)
+  theta_tbl <- artefacts$theta
+  if ("proportions" %in% names(cfg)) {
+    bal <- as.character(cfg$proportions) == "balanced"
+    if (any(bal)) {
+      cfg <- cfg[bal, , drop = FALSE]
+    }
+  }
+  ovl_lvls <- levels(cfg$overlap_label)
+  if (is.null(ovl_lvls)) {
+    ovl_lvls <- unique(as.character(cfg$overlap_label))
+  }
+  pal <- c(
+    "Scale-free" = "#4C72B0",
+    "Cluster SBM" = "#C44E52"
+  )
+  layouts <- list()
+  w_max <- 0
+  pages <- lapply(ovl_lvls, function(ovl) {
+    sub <- cfg[as.character(cfg$overlap_label) == ovl, , drop = FALSE]
+    panels <- .hybrid_topology_panels()
+    slot_list <- list()
+    for (lab in names(panels)) {
+      pair <- panels[[lab]]
+      hit <- as.character(sub$graph_ct1) == pair[[1L]] &
+        as.character(sub$graph_ct2) == pair[[2L]]
+      if (!any(hit)) {
+        next
+      }
+      id <- as.character(sub$ID[which(hit)[[1L]]])
+      th <- .unwrap_true_theta(
+        theta_tbl$true_theta[as.character(theta_tbl$ID) == id][[1L]]
+      )
+      adj <- .theta_adjacency(th)
+      slot_list[[lab]] <- list(
+        th = th,
+        adj = adj,
+        graph_ct1 = pair[[1L]],
+        graph_ct2 = pair[[2L]]
+      )
+      if (!is.null(adj)) {
+        for (j in seq_along(adj)) {
+          w_max <<- max(
+            w_max,
+            max(.sigma_edge_weights(adj[[j]], th$sigma[,, j]), na.rm = TRUE)
+          )
+        }
+      }
+    }
+    list(overlap = ovl, slots = slot_list)
+  })
+  layout_key <- function(j, family) {
+    paste(j, family, sep = "::")
+  }
+  ensure_layout <- function(j, family, adj) {
+    key <- layout_key(j, family)
+    if (is.null(layouts[[key]])) {
+      g <- igraph::graph_from_adjacency_matrix(
+        adj,
+        mode = "undirected",
+        diag = FALSE
+      )
+      layouts[[key]] <<- igraph::layout_with_fr(g)
+    }
+    layouts[[key]]
+  }
+  draw_one <- function(slot, j, family, main) {
+    .plot_weighted_skeleton(
+      slot$adj[[j]],
+      slot$th$sigma[,, j],
+      ensure_layout(j, family, slot$adj[[j]]),
+      pal[[family]],
+      w_max,
+      main
+    )
+  }
+  draw_page <- function(page) {
+    graphics::layout(matrix(
+      c(0, 1, 1, 0, 2, 3, 4, 5, 6, 7, 8, 9),
+      nrow = 3L,
+      byrow = TRUE
+    ))
+    graphics::par(mar = c(0.3, 0.2, 2.1, 0.2))
+    first <- page$slots[[1L]]
+    draw_one(first, 3L, "Scale-free", "CT3 Scale-free (held)")
+    labs <- names(.hybrid_topology_panels())
+    for (lab in labs) {
+      slot <- page$slots[[lab]]
+      pair <- .hybrid_topology_panels()[[lab]]
+      if (is.null(slot)) {
+        graphics::plot.new()
+        graphics::title(paste("CT1", pair[[1L]]))
+        graphics::plot.new()
+        graphics::title(paste("CT2", pair[[2L]]))
+        next
+      }
+      draw_one(slot, 1L, pair[[1L]], paste("CT1", pair[[1L]]))
+      draw_one(slot, 2L, pair[[2L]], paste("CT2", pair[[2L]]))
+    }
+  }
+  dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
+  grDevices::pdf(file, width = 12, height = 11)
+  for (i in seq_along(pages)) {
+    graphics::par(oma = c(0.2, 0.2, 2.4, 0.2))
+    draw_page(pages[[i]])
+    graphics::mtext(
+      pages[[i]]$overlap,
+      outer = TRUE,
+      cex = 1.3,
+      font = 2
+    )
+  }
+  grDevices::dev.off()
+  if (!is.null(png_file) && length(pages) > 0L) {
+    dir.create(dirname(png_file), recursive = TRUE, showWarnings = FALSE)
+    mid <- min(2L, length(pages))
+    grDevices::png(png_file, width = 2400, height = 2200, res = 220)
+    graphics::par(oma = c(0.2, 0.2, 2.4, 0.2))
+    draw_page(pages[[mid]])
+    graphics::mtext(
+      pages[[mid]]$overlap,
+      outer = TRUE,
+      cex = 1.2,
+      font = 2
+    )
+    grDevices::dev.off()
+  }
+  meta <- tibble::tibble(
+    overlap = vapply(pages, `[[`, character(1), "overlap"),
+    n_slots = vapply(pages, function(p) length(p$slots), integer(1)),
+    w_max = w_max
+  )
+  .write_ggplot_rds(meta, data_rds, "network_topologies")
   invisible(file)
 }

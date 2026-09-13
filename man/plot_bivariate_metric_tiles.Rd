@@ -2,12 +2,12 @@
 % Please edit documentation in R/04_04_bivariate_visualisation.R
 \name{plot_bivariate_metric_tiles}
 \alias{plot_bivariate_metric_tiles}
-\title{Tile heatmap of a bivariate metric on the (\eqn{\rho_1},\eqn{\rho_2}) plane}
+\title{Tile heatmap of a scenario metric on the inner 2-by-2 design}
 \usage{
 plot_bivariate_metric_tiles(metrics, title)
 }
 \arguments{
-\item{metrics}{Long table with \code{algorithm}, correlations, and \code{value}.}
+\item{metrics}{Long table with \code{algorithm}, design columns, and \code{value}.}
 
 \item{title}{Page title.}
 }
@@ -15,6 +15,7 @@ plot_bivariate_metric_tiles(metrics, title)
 A \code{ggplot}.
 }
 \description{
-One page per meta-scenario (composition \eqn{\times} variance
-structure \eqn{\times} CLD), with one panel per solver.
+Fig02: one page per meta-scenario (composition \eqn{\times} variance
+\eqn{\times} CLD) with tiles on \eqn{(\rho_1,\rho_2)} and one panel
+per solver. Fig03: tiles on the CT1 / CT2 graph families.
 }

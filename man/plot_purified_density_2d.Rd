@@ -9,15 +9,22 @@ plot_purified_density_2d(true_theta, n = 800L)
 \arguments{
 \item{true_theta}{List with \code{p}, \code{mu}, \code{sigma} for \eqn{G=2}.}
 
-\item{n}{Draws \strong{per cell type}.}
+\item{n}{Unused for the raster (kept for API compatibility with
+\code{\link[=plot_bulk_convolution_density_2d]{plot_bulk_convolution_density_2d()}}); mixing weights come from
+\code{true_theta$p}.}
 }
 \value{
 A \code{ggplot}.
 }
 \description{
-A kernel-density raster fills the shared gene-axis window so panels
-have no inner white frame. Cell-type 1 is a red circle; cell-type 2
-is a green triangle. Outlines are exact 95\% Gaussian ellipses for
-the known means and covariances (\code{\link[=gaussian_confidence_ellipse]{gaussian_confidence_ellipse()}}):
+An exact mixture raster
+\eqn{\sum_j p_j\,\varphi(x;\boldsymbol{\mu}_j,\boldsymbol{\Sigma}_j)}
+fills the shared gene-axis window, so rare types contribute mass in
+proportion to the scenario's composition (not an equal-sized kernel
+density per cell type). This is \strong{not} the bulk convolution
+\eqn{\mathcal{N}(\boldsymbol{\mu}\boldsymbol{p},\boldsymbol{\Sigma}(\boldsymbol{p}))}.
+Cell-type 1 is a red circle; cell-type 2 is a green triangle.
+Outlines are exact 95\% Gaussian ellipses for the known means and
+covariances (\code{\link[=gaussian_confidence_ellipse]{gaussian_confidence_ellipse()}}):
 \eqn{(x-\mu)^{\mathsf{T}}\Sigma^{-1}(x-\mu)\le\chi^{2}_{2,0.95}}.
 }

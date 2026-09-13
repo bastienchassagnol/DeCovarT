@@ -40,6 +40,7 @@ Suggests:
     e1071,
     flextable,
     forcats,
+    funkyheatmap,
     furrr,
     future,
     ggdendro,

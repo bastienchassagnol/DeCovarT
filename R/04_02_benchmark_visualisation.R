@@ -222,7 +222,10 @@ plot_correlation_Heatmap <- function(
   invisible(TRUE)
 }
 
-#' Canonical factor orders for fig02 scenario columns and solvers
+#' Canonical factor orders for fig02 / fig03 scenario columns
+#'
+#' Codes are releveled first, then display labels are applied with
+#' [forcats::fct_relabel()] (graph families and MixSim overlap).
 #'
 #' @keywords internal
 #' @noRd
@@ -234,11 +237,22 @@ plot_correlation_Heatmap <- function(
       "balanced",
       "moderately unbalanced",
       "highly unbalanced"
-    )
+    ),
+    proportion_name = c(
+      "balanced",
+      "moderately unbalanced",
+      "highly unbalanced"
+    ),
+    graph_ct1 = c("scale_free", "stochastic_block_model"),
+    graph_ct2 = c("scale_free", "stochastic_block_model"),
+    graph_ct3 = c("scale_free", "stochastic_block_model"),
+    overlap_label = c("low", "moderate", "high")
   )
 }
 
 #' Solver display order (missing levels are dropped)
+#'
+#' Convolution solvers keep Marquardt–Levenberg before Newton–Raphson.
 #'
 #' @keywords internal
 #' @noRd
@@ -246,14 +260,89 @@ plot_correlation_Heatmap <- function(
   c(
     "nnls",
     "lsei",
+    "cibersort",
     "SA",
     "gradient",
     "LBFGS",
     "LBFGSB",
     "L-BFGS-B",
-    "Newton-Raphson",
-    "Marquardt-Levenberg"
+    "Marquardt-Levenberg",
+    "Newton-Raphson"
   )
+}
+
+#' Graph-family codes to facet / axis labels
+#'
+#' @keywords internal
+#' @noRd
+.graph_display_labels <- function() {
+  c(
+    scale_free = "Scale-free",
+    stochastic_block_model = "Cluster SBM"
+  )
+}
+
+#' MixSim overlap codes to facet / axis labels
+#'
+#' @keywords internal
+#' @noRd
+.overlap_display_labels <- function() {
+  c(
+    low = "low OVL",
+    moderate = "moderate OVL",
+    high = "high OVL"
+  )
+}
+
+#' Map a labelled or raw graph / overlap string back to its code
+#'
+#' @keywords internal
+#' @noRd
+.canonical_code <- function(x, labels) {
+  x <- as.character(x)
+  codes <- names(labels)
+  labs <- unname(labels)
+  out <- x
+  hit_lab <- match(x, labs)
+  out[!is.na(hit_lab)] <- codes[hit_lab[!is.na(hit_lab)]]
+  hit_code <- x %in% codes
+  out[hit_code] <- x[hit_code]
+  out
+}
+
+#' Relevel codes then [forcats::fct_relabel()] to display names
+#'
+#' @keywords internal
+#' @noRd
+.relevel_relabel <- function(x, code_order, labels) {
+  x_code <- .canonical_code(x, labels)
+  x_fac <- .relevel_existing(x_code, code_order)
+  lab_fun <- function(lvl) {
+    mapped <- unname(labels[lvl])
+    ifelse(is.na(mapped), lvl, mapped)
+  }
+  if (requireNamespace("forcats", quietly = TRUE)) {
+    forcats::fct_relabel(x_fac, lab_fun)
+  } else {
+    new_levels <- lab_fun(levels(x_fac))
+    factor(
+      lab_fun(as.character(x_fac)),
+      levels = unique(new_levels)
+    )
+  }
+}
+
+#' Discrete colours for cell-type overlays (raincloud / forest)
+#'
+#' @keywords internal
+#' @noRd
+.cell_type_colours <- function(levels) {
+  levels <- as.character(levels)
+  pal <- c("#E41A1C", "#4DAF4A", "#377EB8", "#984EA3")
+  n <- length(levels)
+  out <- pal[seq_len(n)]
+  names(out) <- levels
+  out
 }
 
 #' Relevel a vector, keeping only levels that appear
@@ -281,7 +370,11 @@ plot_correlation_Heatmap <- function(
   .relevel_existing(x, .algorithm_level_order())
 }
 
-#' Relevel scenario and algorithm columns used in fig02 plots
+#' Relevel scenario and algorithm columns used in fig02 / fig03 plots
+#'
+#' Graph families and MixSim overlap are releveled as codes, then
+#' relabelled with [forcats::fct_relabel()] (`Scale-free`,
+#' `Cluster SBM`, `low OVL`, …).
 #'
 #' @keywords internal
 #' @noRd
@@ -290,8 +383,26 @@ plot_correlation_Heatmap <- function(
     return(tbl)
   }
   orders <- .scenario_level_orders()
+  graph_nms <- c("graph_ct1", "graph_ct2", "graph_ct3")
+  graph_labs <- .graph_display_labels()
+  ovl_labs <- .overlap_display_labels()
   for (nm in names(orders)) {
-    if (nm %in% names(tbl)) {
+    if (!nm %in% names(tbl)) {
+      next
+    }
+    if (nm %in% graph_nms) {
+      tbl[[nm]] <- .relevel_relabel(
+        tbl[[nm]],
+        orders[[nm]],
+        graph_labs
+      )
+    } else if (identical(nm, "overlap_label")) {
+      tbl[[nm]] <- .relevel_relabel(
+        tbl[[nm]],
+        orders[[nm]],
+        ovl_labs
+      )
+    } else {
       tbl[[nm]] <- .relevel_existing(tbl[[nm]], orders[[nm]])
     }
   }
@@ -855,9 +966,7 @@ plot_mc_raincloud <- function(
       .data[["p_true"]]
     )
     ct_lvls <- unique(as.character(truth$cell_type))
-    pal <- c("#E41A1C", "#4DAF4A", "#377EB8", "#984EA3")
-    pal <- pal[seq_len(length(ct_lvls))]
-    names(pal) <- ct_lvls
+    pal <- .cell_type_colours(ct_lvls)
     for (ct in ct_lvls) {
       xs <- unique(truth$p_true[as.character(truth$cell_type) == ct])
       p <- p +
@@ -874,7 +983,7 @@ plot_mc_raincloud <- function(
           "Central 50% and 95% of Monte Carlo replicates;",
           "not a confidence interval for p.",
           "Dashed vertical lines: true cell-type proportions",
-          "(type 1 red, type 2 green)."
+          "(one colour per type)."
         )
       )
   }
