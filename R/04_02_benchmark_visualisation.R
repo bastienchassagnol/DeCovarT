@@ -345,6 +345,95 @@ plot_correlation_Heatmap <- function(
   out
 }
 
+#' True-ratio labels: abundant type to the right, others to the left
+#'
+#' @keywords internal
+#' @noRd
+.true_ratio_label_df <- function(df, extra_keys = NULL) {
+  keys <- unique(c("cell_type", extra_keys))
+  keys <- keys[keys %in% names(df)]
+  if (!all(c("cell_type", "p_true") %in% names(df))) {
+    return(df[0, , drop = FALSE])
+  }
+  truth <- dplyr::distinct(
+    df,
+    dplyr::across(dplyr::all_of(c(keys, "p_true")))
+  )
+  grp <- setdiff(keys, "cell_type")
+  add_one <- function(part) {
+    ord <- order(as.character(part$cell_type), na.last = TRUE)
+    part <- part[ord, , drop = FALSE]
+    p <- as.numeric(part$p_true)
+    abundant <- which.max(p)
+    if (length(abundant) != 1L || !is.finite(p[[abundant]])) {
+      abundant <- 1L
+    }
+    n <- nrow(part)
+    side <- ifelse(seq_len(n) == abundant, "right", "left")
+    left_rank <- cumsum(side == "left")
+    right_rank <- cumsum(side == "right")
+    rank <- ifelse(side == "left", left_rank, right_rank)
+    nudge <- 0.04
+    part$lab_x <- ifelse(side == "right", p + nudge, p - nudge)
+    part$lab_x <- pmin(pmax(part$lab_x, 0.02), 0.98)
+    part$lab_y <- Inf
+    part$hjust <- ifelse(side == "right", 0, 1)
+    part$vjust <- 1.08 + 1.2 * (rank - 1)
+    part$lab <- paste0(
+      as.character(part$cell_type),
+      ": ",
+      sprintf("%.2f", p)
+    )
+    part
+  }
+  if (length(grp) == 0L) {
+    return(add_one(truth))
+  }
+  spl <- split(
+    truth,
+    interaction(truth[grp], drop = TRUE, lex.order = TRUE),
+    drop = TRUE
+  )
+  dplyr::bind_rows(lapply(spl, add_one))
+}
+
+#' Add coloured true-ratio `geom_label`s (no shared colour scale)
+#'
+#' @keywords internal
+#' @noRd
+.add_true_ratio_labels <- function(p, lab_df, pal, size = 2.6) {
+  if (!is.data.frame(lab_df) || nrow(lab_df) == 0L) {
+    return(p)
+  }
+  cts <- unique(as.character(lab_df$cell_type))
+  for (ct in cts) {
+    sub <- lab_df[as.character(lab_df$cell_type) == ct, , drop = FALSE]
+    col <- unname(pal[[ct]])
+    if (is.null(col) || !nzchar(col)) {
+      col <- "#222222"
+    }
+    p <- p +
+      ggplot2::geom_label(
+        data = sub,
+        mapping = ggplot2::aes(
+          x = .data[["lab_x"]],
+          y = .data[["lab_y"]],
+          label = .data[["lab"]],
+          hjust = .data[["hjust"]],
+          vjust = .data[["vjust"]]
+        ),
+        inherit.aes = FALSE,
+        colour = col,
+        fill = ggplot2::alpha("white", 0.92),
+        size = size,
+        fontface = "bold",
+        label.size = 0.25,
+        label.padding = grid::unit(0.12, "lines")
+      )
+  }
+  p
+}
+
 #' Relevel a vector, keeping only levels that appear
 #'
 #' @keywords internal
@@ -806,6 +895,12 @@ theme_decovart_facets <- function(base_size = 11, ...) {
 #' algorithm. Optional `facet_rows` / `facet_cols` split scenarios
 #' (for example number of genes versus pairwise cosine).
 #'
+#' When `quantity = "estimate"`, slabs use a bounded kernel on
+#' \eqn{[0,1]} ([ggdist::density_bounded()]) with a coloured outline
+#' (`slab_colour` / `slab_linewidth`). True proportions are labelled at
+#' the top of each panel (the most abundant type to the right of its
+#' reference line; the others to the left).
+#'
 #' The inner interval is the central 50% of Monte Carlo replicates; the
 #' outer interval is the central 95%. These are **not** confidence
 #' intervals for \eqn{p_j}.
@@ -923,6 +1018,16 @@ plot_mc_raincloud <- function(
     "Monte Carlo estimate"
   }
   dodge <- ggplot2::position_dodge(width = dodge_width)
+  slab_density <- if (identical(quantity, "estimate")) {
+    ggdist::density_bounded(bounds = c(0, 1))
+  } else {
+    ggdist::density_unbounded()
+  }
+  slab_limits <- if (identical(quantity, "estimate")) {
+    c(0, 1)
+  } else {
+    NULL
+  }
   p <- ggplot2::ggplot(
     df,
     ggplot2::aes(
@@ -933,15 +1038,18 @@ plot_mc_raincloud <- function(
     )
   ) +
     ggdist::stat_halfeye(
+      ggplot2::aes(slab_colour = ggplot2::after_scale(.data[["fill"]])),
       orientation = "horizontal",
       .width = .width,
       justification = -0.08,
       point_interval = ggdist::median_qi,
       normalize = "groups",
       scale = slab_scale,
+      density = slab_density,
+      limits = slab_limits,
       interval_size = 2.8,
       point_size = 1.6,
-      slab_linewidth = 0.45,
+      slab_linewidth = 0.6,
       slab_alpha = slab_alpha,
       position = dodge
     )
@@ -986,15 +1094,13 @@ plot_mc_raincloud <- function(
   if (identical(quantity, "error")) {
     p <- p + ggplot2::geom_vline(xintercept = 0, linetype = "dashed")
   } else {
-    truth <- dplyr::distinct(
-      df,
-      .data[["cell_type"]],
-      .data[["p_true"]]
-    )
-    ct_lvls <- unique(as.character(truth$cell_type))
+    extra <- unique(c(facet_rows, facet_cols, "panel", "page"))
+    extra <- extra[extra %in% names(df)]
+    lab_df <- .true_ratio_label_df(df, extra_keys = extra)
+    ct_lvls <- unique(as.character(lab_df$cell_type))
     pal <- .cell_type_colours(ct_lvls)
     for (ct in ct_lvls) {
-      xs <- unique(truth$p_true[as.character(truth$cell_type) == ct])
+      xs <- unique(lab_df$p_true[as.character(lab_df$cell_type) == ct])
       p <- p +
         ggplot2::geom_vline(
           xintercept = xs,
@@ -1003,13 +1109,16 @@ plot_mc_raincloud <- function(
           linewidth = 0.7
         )
     }
+    p <- .add_true_ratio_labels(p, lab_df, pal)
     p <- p +
+      ggplot2::coord_cartesian(clip = "off") +
       ggplot2::labs(
         caption = paste(
           "Central 50% and 95% of Monte Carlo replicates;",
           "not a confidence interval for p.",
-          "Dashed vertical lines: true cell-type proportions",
-          "(one colour per type)."
+          "Dashed vertical lines and labels: true cell-type proportions",
+          "(abundant type to the right, others to the left).",
+          "Slabs are bounded to [0, 1] (unit simplex)."
         )
       )
   }

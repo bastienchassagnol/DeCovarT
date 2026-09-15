@@ -126,6 +126,24 @@ test_that("plot_mc_raincloud builds a horizontal raincloud ggplot", {
   expect_s3_class(p_hat, "ggplot")
   built_hat <- ggplot2::ggplot_build(p_hat)
   expect_type(built_hat$data, "list")
+  geoms <- vapply(p_hat$layers, function(ly) class(ly$geom)[[1L]], character(1))
+  expect_true(any(grepl("GeomLabel", geoms, fixed = TRUE)))
+})
+
+test_that(".true_ratio_label_df puts the abundant type on the right", {
+  df <- tibble::tibble(
+    cell_type = c("celltype_1", "celltype_2", "celltype_3"),
+    p_true = c(0.8, 0.1, 0.1),
+    panel = "highly unbalanced"
+  )
+  lab <- DeCovarT:::.true_ratio_label_df(df, extra_keys = "panel")
+  expect_identical(nrow(lab), 3L)
+  ct1 <- lab[lab$cell_type == "celltype_1", ]
+  expect_true(ct1$lab_x > ct1$p_true)
+  expect_identical(ct1$hjust, 0)
+  others <- lab[lab$cell_type != "celltype_1", ]
+  expect_true(all(others$lab_x < others$p_true))
+  expect_true(all(others$hjust == 1))
 })
 
 test_that("plot_mc_forest shows Wilson coverage whiskers", {

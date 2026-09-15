@@ -715,6 +715,48 @@ plot_bulk_convolution_density_2d <- function(true_theta, n = 1200L) {
   out
 }
 
+#' Inset a ggplot legend onto one facet (cowplot)
+#'
+#' @keywords internal
+#' @noRd
+.inset_cowplot_legend <- function(
+  p,
+  x = 0.72,
+  y = 0.12,
+  width = 0.24,
+  height = 0.32
+) {
+  if (!requireNamespace("cowplot", quietly = TRUE)) {
+    return(p)
+  }
+  p_leg <- p + ggplot2::theme(legend.position = "right")
+  legend <- tryCatch(
+    cowplot::get_legend(p_leg),
+    error = function(e) {
+      tryCatch(
+        cowplot::get_plot_component(
+          p_leg,
+          "guide-box",
+          return_all = TRUE
+        )[[1L]],
+        error = function(e2) NULL
+      )
+    }
+  )
+  if (is.null(legend)) {
+    return(p_leg)
+  }
+  p_main <- p + ggplot2::theme(legend.position = "none")
+  cowplot::ggdraw(p_main) +
+    cowplot::draw_plot(
+      legend,
+      x = x,
+      y = y,
+      width = width,
+      height = height
+    )
+}
+
 #' Shared legend to the right of a faceted ggplot
 #'
 #' @keywords internal
@@ -747,6 +789,51 @@ plot_bulk_convolution_density_2d <- function(true_theta, n = 1200L) {
     nrow = 1L,
     rel_widths = c(4.2, 1)
   )
+}
+
+#' Argmax of a 2-D log-likelihood lattice
+#'
+#' @keywords internal
+#' @noRd
+.lattice_argmax <- function(x, y, z) {
+  z <- as.matrix(z)
+  ok <- is.finite(z)
+  if (!any(ok)) {
+    return(list(x = NA_real_, y = NA_real_, z = NA_real_))
+  }
+  ij <- which(z == max(z[ok], na.rm = TRUE), arr.ind = TRUE)
+  i <- ij[1L, 1L]
+  j <- ij[1L, 2L]
+  list(x = x[[i]], y = y[[j]], z = z[i, j])
+}
+
+#' True p* and numerical MLE markers (no fill scale; viridis already used)
+#'
+#' @keywords internal
+#' @noRd
+.add_loglik_truth_mle_points <- function(p, true_df, mle_df, x, y) {
+  p <- p +
+    ggplot2::geom_point(
+      data = true_df,
+      ggplot2::aes(x = .data[[x]], y = .data[[y]]),
+      inherit.aes = FALSE,
+      shape = 23,
+      size = 3.4,
+      fill = "#F7F7F7",
+      colour = "#E41A1C",
+      stroke = 1
+    ) +
+    ggplot2::geom_point(
+      data = mle_df,
+      ggplot2::aes(x = .data[[x]], y = .data[[y]]),
+      inherit.aes = FALSE,
+      shape = 21,
+      size = 3.2,
+      fill = "#E41A1C",
+      colour = "#111111",
+      stroke = 1.05
+    )
+  p
 }
 
 #' Relative likelihood exp(ell - max ell), floored for log10 scales
@@ -793,12 +880,16 @@ plot_bulk_convolution_density_2d <- function(true_theta, n = 1200L) {
     loglik_multivariate(p_true, y, mu, Sigma),
     error = function(e) NA_real_
   )
+  mle <- .lattice_argmax(p_seq, p_seq, z)
   list(
     p1 = p_seq,
     p2 = p_seq,
     z = z,
     p_true = p_true,
     z_true = z_true,
+    mle_x = mle$x,
+    mle_y = mle$y,
+    mle_z = mle$z,
     y = y
   )
 }
@@ -809,8 +900,11 @@ plot_bulk_convolution_density_2d <- function(true_theta, n = 1200L) {
 #' dashed line is the simplex). For \eqn{J=3} the axes are additive
 #' log-ratio coordinates
 #' \eqn{\rho_1=\ln(p_1/p_3)}, \eqn{\rho_2=\ln(p_2/p_3)}
-#' ([additive_log_ratio()]). The true simulation proportions (MLE for
-#' \eqn{y=\mu p^{\star}}) are marked.
+#' ([additive_log_ratio()]). White diamonds mark the true simulation
+#' proportions; red circles with a black stroke mark the numerical MLE
+#' (grid argmax of \eqn{\ell}). For a single observation
+#' \eqn{y=\mu p^{\star}} these two typically diverge unless
+#' \eqn{p^{\star}} is equi-balanced.
 #'
 #' @inheritParams plot_purified_density_2d
 #' @param grid Length of the lattice per axis.
@@ -835,7 +929,11 @@ plot_bulk_loglik_surface_p <- function(
     p1 = lat$p_true[[1L]],
     p2 = lat$p_true[[2L]]
   )
-  ggplot2::ggplot(
+  mle_df <- data.frame(
+    p1 = lat$mle_x,
+    p2 = lat$mle_y
+  )
+  p <- ggplot2::ggplot(
     grid_df,
     ggplot2::aes(x = .data[["p1"]], y = .data[["p2"]])
   ) +
@@ -853,17 +951,9 @@ plot_bulk_loglik_surface_p <- function(
       linetype = 2,
       colour = "grey40",
       linewidth = 0.4
-    ) +
-    ggplot2::geom_point(
-      data = true_df,
-      ggplot2::aes(x = .data[["p1"]], y = .data[["p2"]]),
-      inherit.aes = FALSE,
-      colour = "white",
-      fill = "#E41A1C",
-      shape = 21,
-      size = 3.2,
-      stroke = 0.8
-    ) +
+    )
+  p <- .add_loglik_truth_mle_points(p, true_df, mle_df, "p1", "p2")
+  p +
     ggplot2::coord_equal(
       xlim = c(0, 1),
       ylim = c(0, 1),
@@ -881,7 +971,11 @@ plot_bulk_loglik_surface_p <- function(
     ggplot2::labs(
       x = expression(p[1]),
       y = expression(p[2]),
-      title = "Bulk relative likelihood"
+      title = "Bulk relative likelihood",
+      caption = paste(
+        "White diamond: true p*.",
+        "Red circle, black stroke: numerical MLE (grid argmax)."
+      )
     )
 }
 
@@ -918,6 +1012,7 @@ plot_bulk_loglik_surface_p <- function(
     loglik_multivariate(p_true, y, mu, Sigma),
     error = function(e) NA_real_
   )
+  mle <- .lattice_argmax(rho1_seq, rho2_seq, z)
   list(
     rho1 = rho1_seq,
     rho2 = rho2_seq,
@@ -925,6 +1020,9 @@ plot_bulk_loglik_surface_p <- function(
     p_true = p_true,
     rho_true = rho_true,
     z_true = z_true,
+    mle_x = mle$x,
+    mle_y = mle$y,
+    mle_z = mle$z,
     y = y
   )
 }
@@ -944,7 +1042,11 @@ plot_bulk_loglik_surface_p <- function(
     rho1 = lat$rho_true[[1L]],
     rho2 = lat$rho_true[[2L]]
   )
-  ggplot2::ggplot(
+  mle_df <- data.frame(
+    rho1 = lat$mle_x,
+    rho2 = lat$mle_y
+  )
+  p <- ggplot2::ggplot(
     grid_df,
     ggplot2::aes(x = .data[["rho1"]], y = .data[["rho2"]])
   ) +
@@ -955,17 +1057,9 @@ plot_bulk_loglik_surface_p <- function(
     ggplot2::scale_fill_viridis_c(
       name = "L / max(L)",
       trans = "log10"
-    ) +
-    ggplot2::geom_point(
-      data = true_df,
-      ggplot2::aes(x = .data[["rho1"]], y = .data[["rho2"]]),
-      inherit.aes = FALSE,
-      colour = "white",
-      fill = "#E41A1C",
-      shape = 21,
-      size = 3.2,
-      stroke = 0.8
-    ) +
+    )
+  p <- .add_loglik_truth_mle_points(p, true_df, mle_df, "rho1", "rho2")
+  p +
     ggplot2::coord_equal(expand = FALSE) +
     theme_decovart_facets() +
     ggplot2::theme(
@@ -979,7 +1073,11 @@ plot_bulk_loglik_surface_p <- function(
     ggplot2::labs(
       x = expression(rho[1] == log(p[1] / p[3])),
       y = expression(rho[2] == log(p[2] / p[3])),
-      title = "Bulk relative likelihood (ALR)"
+      title = "Bulk relative likelihood (ALR)",
+      caption = paste(
+        "White diamond: true p*.",
+        "Red circle, black stroke: numerical MLE (grid argmax)."
+      )
     )
 }
 
@@ -987,8 +1085,9 @@ plot_bulk_loglik_surface_p <- function(
 #'
 #' For the bivariate toy (\eqn{J=2}) the free coordinate is scalar. The
 #' profile evaluates [loglik_multivariate_constrained()] on a grid of
-#' \eqn{\rho} (Helmert ILR). The MLE for \eqn{y=\mu p^{\star}} is marked at
-#' [isometric_log_ratio()]\eqn{(p^{\star})}.
+#' \eqn{\rho} (Helmert ILR). A white diamond marks
+#' [isometric_log_ratio()]\eqn{(p^{\star})}; a red circle with a black
+#' stroke marks the numerical MLE (grid argmax of \eqn{\ell}).
 #'
 #' @inheritParams plot_bulk_loglik_surface_p
 #' @param grid Number of \eqn{\rho} evaluation points.
@@ -1033,19 +1132,28 @@ plot_bulk_loglik_ilr_profile <- function(
     },
     numeric(1)
   )
-  rho_mle <- rho_true
-  ll_mle <- tryCatch(
-    loglik_multivariate_constrained(rho_mle, y, mu, Sigma),
+  ll_true <- tryCatch(
+    loglik_multivariate_constrained(rho_true, y, mu, Sigma),
     error = function(e) NA_real_
   )
   if (!any(is.finite(ll))) {
     lik <- rep(NA_real_, length(ll))
     ll_max <- NA_real_
+    rho_mle <- NA_real_
+    ll_mle <- NA_real_
   } else {
     ll_max <- max(ll[is.finite(ll)], na.rm = TRUE)
+    i_mle <- which.max(replace(ll, !is.finite(ll), -Inf))
+    rho_mle <- rho_seq[[i_mle]]
+    ll_mle <- ll[[i_mle]]
     lik <- exp(pmin(ll - ll_max, 0))
     lik[!is.finite(ll)] <- NA_real_
     lik <- pmax(lik, 1e-16)
+  }
+  lik_true <- if (is.finite(ll_true) && is.finite(ll_max)) {
+    pmax(exp(min(ll_true - ll_max, 0)), 1e-16)
+  } else {
+    NA_real_
   }
   lik_mle <- if (is.finite(ll_mle) && is.finite(ll_max)) {
     pmax(exp(min(ll_mle - ll_max, 0)), 1e-16)
@@ -1053,32 +1161,35 @@ plot_bulk_loglik_ilr_profile <- function(
     NA_real_
   }
   df <- data.frame(rho = rho_seq, loglik = ll, likelihood = lik)
+  true_df <- data.frame(
+    rho = rho_true,
+    loglik = ll_true,
+    likelihood = lik_true
+  )
   mle_df <- data.frame(
     rho = rho_mle,
     loglik = ll_mle,
     likelihood = lik_mle
   )
-  ggplot2::ggplot(
+  p <- ggplot2::ggplot(
     df,
     ggplot2::aes(x = .data[["rho"]], y = .data[["likelihood"]])
   ) +
     ggplot2::geom_line(colour = "#1B4F72", linewidth = 0.8) +
     ggplot2::geom_vline(
-      xintercept = rho_mle,
+      xintercept = rho_true,
       linetype = 2,
       colour = "grey40",
       linewidth = 0.4
     ) +
-    ggplot2::geom_point(
-      data = mle_df,
-      ggplot2::aes(x = .data[["rho"]], y = .data[["likelihood"]]),
-      inherit.aes = FALSE,
-      colour = "white",
-      fill = "#E41A1C",
-      shape = 21,
-      size = 3.2,
-      stroke = 0.8
-    ) +
+    ggplot2::geom_vline(
+      xintercept = rho_mle,
+      linetype = 3,
+      colour = "#111111",
+      linewidth = 0.45
+    )
+  p <- .add_loglik_truth_mle_points(p, true_df, mle_df, "rho", "likelihood")
+  p +
     ggplot2::scale_y_log10() +
     ggplot2::annotation_logticks(sides = "l") +
     theme_decovart_facets() +
@@ -1096,8 +1207,9 @@ plot_bulk_loglik_ilr_profile <- function(
       y = "Relative likelihood (log10 scale)",
       title = "Bulk log-likelihood (ILR)",
       caption = paste(
-        "Y-axis is L / max(L) = exp(ell - max ell) on a log10 scale",
-        "(ggplot2::annotation_logticks)."
+        "Y-axis is L / max(L) = exp(ell - max ell) on a log10 scale.",
+        "Dashed: true p* (white diamond).",
+        "Dotted: numerical MLE (red circle, black stroke)."
       )
     )
 }
@@ -1116,6 +1228,9 @@ plot_bulk_loglik_ilr_profile <- function(
   mark_x = NULL,
   mark_y = NULL,
   mark_z = NULL,
+  mle_x = NULL,
+  mle_y = NULL,
+  mle_z = NULL,
   simplex = NULL
 ) {
   z_plot <- z
@@ -1161,20 +1276,53 @@ plot_bulk_loglik_ilr_profile <- function(
       is.finite(mark_z)
   ) {
     zr <- diff(range(z_plot, na.rm = TRUE))
+    rad <- 0.025 * max(diff(range(x)), 1)
     rgl::spheres3d(
       mark_x,
       mark_y,
       mark_z,
-      radius = 0.025 * max(diff(range(x)), 1),
-      col = "#E41A1C"
+      radius = rad,
+      col = "#F7F7F7"
     )
     rgl::texts3d(
       mark_x,
       mark_y,
       mark_z + 0.06 * max(zr, 1),
-      texts = "MLE",
+      texts = "true p*",
       col = "#222222",
-      cex = 0.55,
+      cex = 0.5,
+      adj = c(0.5, 0)
+    )
+  }
+  if (
+    length(mle_x) == 1L &&
+      length(mle_y) == 1L &&
+      length(mle_z) == 1L &&
+      is.finite(mle_z)
+  ) {
+    zr <- diff(range(z_plot, na.rm = TRUE))
+    rad <- 0.025 * max(diff(range(x)), 1)
+    rgl::spheres3d(
+      mle_x,
+      mle_y,
+      mle_z,
+      radius = 1.2 * rad,
+      col = "#111111"
+    )
+    rgl::spheres3d(
+      mle_x,
+      mle_y,
+      mle_z,
+      radius = rad,
+      col = "#E41A1C"
+    )
+    rgl::texts3d(
+      mle_x,
+      mle_y,
+      mle_z + 0.1 * max(zr, 1),
+      texts = "MLE",
+      col = "#111111",
+      cex = 0.5,
       adj = c(0.5, 0)
     )
   }
@@ -1207,6 +1355,9 @@ plot_bulk_loglik_ilr_profile <- function(
     mark_x = lat$p_true[[1L]],
     mark_y = lat$p_true[[2L]],
     mark_z = lat$z_true,
+    mle_x = lat$mle_x,
+    mle_y = lat$mle_y,
+    mle_z = lat$mle_z,
     simplex = list(x = p_line, y = 1 - p_line, z = z_line)
   )
 }
@@ -1225,7 +1376,10 @@ plot_bulk_loglik_ilr_profile <- function(
     lab = lab,
     mark_x = lat$rho_true[[1L]],
     mark_y = lat$rho_true[[2L]],
-    mark_z = lat$z_true
+    mark_z = lat$z_true,
+    mle_x = lat$mle_x,
+    mle_y = lat$mle_y,
+    mle_z = lat$mle_z
   )
 }
 
@@ -1285,8 +1439,8 @@ plot_bulk_loglik_ilr_profile <- function(
 #' the ALR plane \eqn{(\rho_1,\rho_2)}.
 #'
 #' Opens an `rgl` window, draws [rgl::persp3d()] of
-#' [loglik_multivariate()], and marks the MLE (true simulation
-#' proportions for \eqn{y=\mu p^{\star}}) with a sphere. Returns a
+#' [loglik_multivariate()], and marks the true composition (pale
+#' sphere) and the numerical MLE (red sphere with a dark halo). Returns a
 #' ggplot snapshot suitable for a PDF page.
 #'
 #' @inheritParams plot_bulk_loglik_surface_p
@@ -2165,8 +2319,8 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
       "the expected-Fisher Wald SE at the true composition when available.\n",
       "[- - -]  Dashed whiskers: plus or minus 1.96 times the empirical ",
       "Monte Carlo SD.\n",
-      ":  :  :  Vertical dashed lines: true proportions ",
-      "(one colour per type).\n",
+      ":  :  :  Vertical dashed lines and top labels: true proportions ",
+      "(abundant type to the right of its line, others to the left).\n",
       "Labels: RMSE and Wald coverage for each cell type."
     )
   } else {
@@ -2177,6 +2331,8 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
       "Dashed whiskers: plus or minus 1.96 times the empirical",
       "Monte Carlo SD.",
       "Horizontal arrows: bias toward the true proportion.",
+      "Top labels: true cell-type proportions (abundant type to the",
+      "right of its dashed line, others to the left).",
       "Labels (one per cell type): RMSE and coverage of those Wald",
       "intervals. NNLS, LSEI, and SA omitted (no convolution Wald SE)."
     )
@@ -2253,7 +2409,14 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
       show.legend = FALSE
     )
   x_expand <- c(0.04, 0.42)
-  p +
+  lab_df <- .true_ratio_label_df(plot_df, extra_keys = "panel")
+  p <- .add_true_ratio_labels(
+    p,
+    lab_df,
+    pal,
+    size = if (n_ct > 2L) 2.4 else 2.7
+  )
+  out <- p +
     ggplot2::scale_colour_manual(values = pal, drop = FALSE) +
     ggplot2::scale_y_continuous(
       breaks = seq_along(alg_lvls),
@@ -2283,6 +2446,13 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
       legend.position = "bottom",
       plot.margin = ggplot2::margin(4, 10, 4, 4)
     )
+  .inset_cowplot_legend(
+    out,
+    x = 0.70,
+    y = 0.10,
+    width = 0.24,
+    height = 0.22
+  )
 }
 
 #' Build the Wald-forest table for one meta-scenario (four corners)
@@ -2609,7 +2779,7 @@ save_bivariate_raincloud_book <- function(
   file,
   data_rds = NULL
 ) {
-  .check_plot_dependencies(need_ggdist = TRUE)
+  .check_plot_dependencies(need_ggdist = TRUE, need_cowplot = TRUE)
   cfg <- artefacts$config
   meta <- .bivariate_page_meta(cfg)
   hybrid <- .is_hybrid_config(cfg)
@@ -2656,7 +2826,15 @@ save_bivariate_raincloud_book <- function(
         plot.title = ggplot2::element_text(face = "bold"),
         axis.text.y = ggplot2::element_text(face = "bold")
       )
-    print(p)
+    print(
+      .inset_cowplot_legend(
+        p,
+        x = 0.68,
+        y = 0.08,
+        width = 0.28,
+        height = 0.38
+      )
+    )
   }
   if (length(collected) > 0L) {
     .write_ggplot_rds(dplyr::bind_rows(collected), data_rds, "raincloud")
@@ -3247,7 +3425,14 @@ save_scenario_metrics_funkyheatmap <- function(
       rep("information", 6L),
       rep("complexity", 3L)
     ),
-    legend = c(FALSE, TRUE, rep(TRUE, 14L)),
+    legend = c(
+      FALSE,
+      rep(FALSE, 3L),
+      rep(FALSE, 3L),
+      TRUE,
+      rep(FALSE, 5L),
+      rep(FALSE, 3L)
+    ),
     width = c(10, rep(circle_w, 15L)),
     hjust = c(1, rep(0.5, 15L))
   )
@@ -3291,20 +3476,18 @@ save_scenario_metrics_funkyheatmap <- function(
     )(9L),
     black = c("black", "black")
   )
-  circle_legend <- function(title, palette) {
+  legends <- list(
     list(
-      title = title,
-      palette = palette,
+      title = "Statistical information",
+      palette = "information",
       geom = "circle",
       labels = c("column min", "", "column max"),
-      size = c(0.25, 0.6, 1)
-    )
-  }
-  legends <- list(
-    circle_legend("Cellular composition", "composition"),
-    circle_legend("Network structure", "network"),
-    circle_legend("Statistical information", "information"),
-    circle_legend("Numerical complexity", "complexity"),
+      size = c(0.3, 0.65, 1),
+      enabled = TRUE
+    ),
+    list(palette = "composition", enabled = FALSE),
+    list(palette = "network", enabled = FALSE),
+    list(palette = "complexity", enabled = FALSE),
     list(palette = "black", enabled = FALSE)
   )
   p <- funkyheatmap::funky_heatmap(
@@ -3323,8 +3506,8 @@ save_scenario_metrics_funkyheatmap <- function(
       col_bigspace = 0.8,
       row_bigspace = 1.8,
       expand_xmin = 3,
-      expand_xmax = 8,
-      expand_ymax = 1
+      expand_xmax = 12,
+      expand_ymax = 3
     )
   )
   p <- .round_funkyheatmap_header_rects(p)
@@ -3334,7 +3517,9 @@ save_scenario_metrics_funkyheatmap <- function(
     "SBM: Cluster stochastic block model.",
     "Row tags are CT1/CT2; CT3 is always Scale-free.",
     "Circles are min-max scaled within each column",
-    "(not a shared unit across families)."
+    "(column min to column max); not a shared unit across families.",
+    "Column-group colours already encode the metric family;",
+    "only the Statistical information size scale is shown."
   )
   if (requireNamespace("patchwork", quietly = TRUE)) {
     p <- p +
