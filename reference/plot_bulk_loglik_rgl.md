@@ -1,12 +1,7 @@
-# rgl surface of the bulk log-likelihood on a \\(p_1,p_2)\\ lattice
+# rgl surface of the bulk log-likelihood
 
-Opens an `rgl` window, draws
-[`rgl::persp3d()`](https://dmurdoch.github.io/rgl/dev/reference/persp3d.html)
-of
-[`loglik_multivariate()`](https://bastienchassagnol.github.io/DeCovarT/reference/loglik_multivariate.md)
-versus hypothesised ratios, and marks the MLE (true simulation
-proportions for \\y=\mu p^{\star}\\) with a sphere. Returns a ggplot
-snapshot suitable for a PDF page.
+For \\J=2\\ the lattice is \\(p_1,p_2)\\. For \\J\ge 3\\ it is the ALR
+plane \\(\rho_1,\rho_2)\\.
 
 ## Usage
 
@@ -40,6 +35,15 @@ plot_bulk_loglik_rgl(
 ## Value
 
 A `ggplot` raster of the `rgl` snapshot.
+
+## Details
+
+Opens an `rgl` window, draws
+[`rgl::persp3d()`](https://dmurdoch.github.io/rgl/dev/reference/persp3d.html)
+of
+[`loglik_multivariate()`](https://bastienchassagnol.github.io/DeCovarT/reference/loglik_multivariate.md),
+and marks the MLE (true simulation proportions for \\y=\mu p^{\star}\\)
+with a sphere. Returns a ggplot snapshot suitable for a PDF page.
 
 ## Examples
 

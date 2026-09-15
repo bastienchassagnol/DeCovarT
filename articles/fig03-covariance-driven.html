@@ -100,7 +100,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>2.2 Covariance-driven scenario (G = 20, J = 3)</h1>
       <p class="subtitle">Full script: <code>scripts/fig03_variance_driven.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-09-13</p>
+      <p class="date">2026-09-15</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/fig03-covariance-driven.qmd" class="external-link"><code>vignettes/fig03-covariance-driven.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -428,12 +428,20 @@ Table 3: Solvers used in the covariance-driven comparison.
 <td>16-page 2D latent-space book (Thomson / MCFA / <code>MclustDR</code>)</td>
 </tr>
 <tr class="odd">
+<td><code>output/fig03/density_visualisations/loglik_rgl.pdf</code></td>
+<td>3D ALR log-likelihood (<code>rgl</code>, (_1,_2,))</td>
+</tr>
+<tr class="even">
 <td><code>output/fig03/density_visualisations/network_topologies.pdf</code></td>
 <td>Graph skeletons, one page per MixSim overlap</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>output/fig03/performance_visualisations/heatmap_rmse.pdf</code></td>
 <td>RMSE tiles</td>
+</tr>
+<tr class="even">
+<td><code>output/fig03/performance_visualisations/heatmap_aitchison.pdf</code></td>
+<td>Aitchison tiles</td>
 </tr>
 <tr class="odd">
 <td><code>output/fig03/performance_visualisations/raincloud.pdf</code></td>
@@ -456,7 +464,7 @@ Table 3: Solvers used in the covariance-driven comparison.
 <p>Redraw with <code>FIG03_POSTPROCESS_ONLY=1 Rscript scripts/fig03_variance_driven.R</code> (no ADEMP refit). ggplot <code>data</code> tables go under <code>output/fig03/ggplot_rds/</code>.</p>
 <section class="level2"><h3 id="sec-hybrid-2d-proj">Two-dimensional projections of a Gaussian convolution<a class="anchor" aria-label="anchor" href="#sec-hybrid-2d-proj"></a>
 </h3>
-<p>With (G=20) the purified Gaussians and the bulk convolution are no longer drawable in the gene plane. The 16-page book <code>latent_projections.pdf</code> therefore maps each selected scenario to a 2D latent display. Pages keep the <strong>lowest and highest</strong> MixSim overlap (low / high; the moderate arm is omitted) and the <strong>highest and lowest</strong> Shannon entropy of () (balanced versus highly unbalanced), crossed with the four CT1/CT2 graph assignments ((2=16)). Each page is a (3) of scatterplots with 95% Gaussian ellipses, cell-type colour, axis labels that report the share of variability on the first two coordinates, and a cowplot scree inset (<a href="https://wilkelab.org/cowplot/articles/drawing_with_on_plots.html#making-inset-plots" class="external-link">drawing on plots</a>) of the first ten scaled eigenvalues. The layout follows the <code>fviz_pca</code> style (points, ellipses, percentage axes) without importing <code>factoextra</code>.</p>
+<p>With (G=20) the purified Gaussians and the bulk convolution are no longer drawable in the gene plane. The 16-page book <code>latent_projections.pdf</code> therefore maps each selected scenario to a 2D latent display. Pages keep the <strong>lowest and highest</strong> MixSim overlap (low / high; the moderate arm is omitted) and the <strong>highest and lowest</strong> Shannon entropy of () (balanced versus highly unbalanced), crossed with the four CT1/CT2 graph assignments ((2=16)). Each page is a (3) of scatterplots with 95% Gaussian ellipses, cell-type colour, axis labels that report the share of variability on the first two coordinates, a transparent cowplot scree inset of the first ten scaled eigenvalues, and a six-line footnote for panels A–F. Square panels use a unit aspect ratio (not <code>coord_equal</code>), so unequal factor-score ranges no longer squash the shared-plane row.</p>
 <p>The three routes below all return an ordered set of eigenvalues that summarise how much variability sits in the plotted plane. They are <strong>not</strong> interchangeable with the DeCovarT likelihood: the bulk profile is a <strong>convolution</strong> of Gaussians, not a Gaussian mixture.</p>
 <div id="nte-conv-not-gmm">
 <blockquote>

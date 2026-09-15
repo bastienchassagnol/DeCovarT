@@ -213,7 +213,7 @@ wrapper.
   : Log-likelihood profile in the ILR coordinate
   \\\rho\in\mathbb{R}^{J-1}\\
 - [`plot_bulk_loglik_rgl()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_bulk_loglik_rgl.md)
-  : rgl surface of the bulk log-likelihood on a \\(p_1,p_2)\\ lattice
+  : rgl surface of the bulk log-likelihood
 - [`plot_bivariate_metric_tiles()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_bivariate_metric_tiles.md)
   : Tile heatmap of a scenario metric on the inner 2-by-2 design
 - [`save_bivariate_metric_heatmaps()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_metric_heatmaps.md)
@@ -252,6 +252,10 @@ wrapper.
   : Solver wall-clock time (one page per composition)
 - [`save_hybrid_memory_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_hybrid_memory_book.md)
   : Solver peak memory (one page per composition)
+- [`save_bivariate_runtime_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_runtime_book.md)
+  : Solver wall-clock time for the bivariate toy (12 pages)
+- [`save_bivariate_memory_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_memory_book.md)
+  : Solver peak memory for the bivariate toy (12 pages)
 
 ## Simulation
 
