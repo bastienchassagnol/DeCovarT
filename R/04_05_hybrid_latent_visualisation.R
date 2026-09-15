@@ -51,11 +51,13 @@
     ggplot2::theme_classic(base_size = 7) +
     ggplot2::theme(
       plot.background = ggplot2::element_rect(
-        fill = "white",
-        colour = "grey55",
-        linewidth = 0.3
+        fill = "transparent",
+        colour = NA
       ),
-      panel.background = ggplot2::element_rect(fill = "white"),
+      panel.background = ggplot2::element_rect(
+        fill = "transparent",
+        colour = NA
+      ),
       axis.text = ggplot2::element_text(size = 6),
       axis.title = ggplot2::element_text(size = 7),
       plot.margin = ggplot2::margin(2, 4, 2, 2)
@@ -308,10 +310,11 @@
       drop = FALSE,
       name = "Cell type"
     ) +
-    ggplot2::coord_equal() +
+    ggplot2::coord_cartesian(clip = "off") +
     ggplot2::labs(x = xlab, y = ylab, title = title) +
     theme_decovart_facets() +
     ggplot2::theme(
+      aspect.ratio = 1,
       plot.title = ggplot2::element_text(face = "bold", size = 10),
       legend.position = "bottom",
       legend.title = ggplot2::element_text(size = 8),
@@ -322,9 +325,9 @@
     cowplot::draw_plot(
       inset,
       x = 0.62,
-      y = 0.62,
-      width = 0.35,
-      height = 0.32
+      y = 0.58,
+      width = 0.32,
+      height = 0.30
     )
 }
 
@@ -470,7 +473,24 @@
     nrow = 2L,
     labels = c("A", "B", "C", "D", "E", "F"),
     label_size = 11,
-    label_fontface = "bold"
+    label_fontface = "bold",
+    align = "none"
+  )
+}
+
+#' Six-line footnote for one latent-projection page
+#'
+#' @keywords internal
+#' @noRd
+.hybrid_latent_caption <- function() {
+  paste(
+    "A: Independent Thomson factanal() on purified type 1 (regression scores).",
+    "B: Independent Thomson factanal() on purified type 2 (regression scores).",
+    "C: Independent Thomson factanal() on purified type 3 (regression scores).",
+    "D: MCFA fitted to convolution bulk draws (weights p_j^2); purified slices scored in that plane.",
+    "E: MCFA fitted to unsupervised mixture draws (one type per draw, weights p_j).",
+    "F: Supervised MclustDA (EDDA) then MclustDR on labelled mixture draws. Insets: first 10 eigenvalues.",
+    sep = "\n"
   )
 }
 
@@ -563,8 +583,9 @@ save_hybrid_latent_projection_book <- function(
   theta_tbl <- .relevel_scenario_table(theta_tbl)
   collected <- list()
   dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
-  grDevices::pdf(file, width = 18, height = 12)
+  grDevices::pdf(file, width = 20, height = 14)
   on.exit(grDevices::dev.off(), add = TRUE)
+  caption <- .hybrid_latent_caption()
   for (i in seq_len(nrow(cfg))) {
     row <- cfg[i, , drop = FALSE]
     id <- as.character(row$ID[[1L]])
@@ -582,12 +603,23 @@ save_hybrid_latent_projection_book <- function(
     )
     header <- cowplot::ggdraw() +
       cowplot::draw_label(title, fontface = "bold", size = 14)
+    foot <- cowplot::ggdraw() +
+      cowplot::draw_label(
+        caption,
+        size = 8,
+        hjust = 0,
+        vjust = 1,
+        x = 0.01,
+        y = 0.98,
+        lineheight = 1.15
+      )
     print(
       cowplot::plot_grid(
         header,
         page,
+        foot,
         ncol = 1L,
-        rel_heights = c(0.05, 0.95)
+        rel_heights = c(0.05, 0.78, 0.17)
       ),
       newpage = i > 1L
     )
@@ -625,9 +657,15 @@ save_hybrid_latent_projection_book <- function(
 #'
 #' @keywords internal
 #' @noRd
-.plot_hybrid_resource_page <- function(df, y_lab, title) {
+.plot_hybrid_resource_page <- function(
+  df,
+  y_lab,
+  title,
+  x_lab = "CT1 / CT2 topology",
+  facet = TRUE
+) {
   dodge <- ggplot2::position_dodge(width = 0.78)
-  ggplot2::ggplot(
+  p <- ggplot2::ggplot(
     df,
     ggplot2::aes(
       x = .data[["topology"]],
@@ -646,7 +684,8 @@ save_hybrid_latent_projection_book <- function(
       scale = 0.7,
       interval_size = 2.2,
       point_size = 1.3,
-      alpha = 0.55,
+      slab_linewidth = 0.45,
+      slab_alpha = 0.55,
       position = dodge
     ) +
     ggplot2::geom_rug(
@@ -657,9 +696,8 @@ save_hybrid_latent_projection_book <- function(
       inherit.aes = TRUE
     ) +
     ggplot2::scale_y_log10() +
-    ggplot2::facet_wrap(~overlap_label, nrow = 1L) +
     ggplot2::labs(
-      x = "CT1 / CT2 topology",
+      x = x_lab,
       y = y_lab,
       fill = "Solver",
       colour = "Solver",
@@ -675,6 +713,10 @@ save_hybrid_latent_projection_book <- function(
       axis.text.x = ggplot2::element_text(size = 9),
       legend.position = "bottom"
     )
+  if (isTRUE(facet) && "overlap_label" %in% names(df)) {
+    p <- p + ggplot2::facet_wrap(~overlap_label, nrow = 1L)
+  }
+  p
 }
 
 #' Shared worker for runtime / memory books
@@ -811,6 +853,181 @@ save_hybrid_runtime_book <- function(artefacts, file, data_rds = NULL) {
 #' }
 save_hybrid_memory_book <- function(artefacts, file, data_rds = NULL) {
   .save_hybrid_resource_book(
+    artefacts,
+    file,
+    column = "memory_bytes",
+    y_lab = "Peak memory (MiB)",
+    stem = "memory",
+    scale = 1 / (1024^2),
+    data_rds = data_rds
+  )
+}
+
+#' Fig02 runtime / memory worker (one page per CLD / variance / composition)
+#'
+#' @keywords internal
+#' @noRd
+.save_bivariate_resource_book <- function(
+  artefacts,
+  file,
+  column,
+  y_lab,
+  stem,
+  scale = 1,
+  data_rds = NULL
+) {
+  .check_plot_dependencies(need_ggdist = TRUE)
+  cfg <- artefacts$config
+  opt <- artefacts$optimisation
+  if (is.null(opt) || !column %in% names(opt)) {
+    stop(
+      "`artefacts$optimisation` must contain `",
+      column,
+      "`.",
+      call. = FALSE
+    )
+  }
+  cfg <- .relevel_scenario_table(cfg)
+  opt <- .relevel_scenario_table(opt)
+  meta <- .bivariate_page_meta(cfg)
+  collected <- list()
+  dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
+  grDevices::pdf(file, width = 16, height = 8)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  for (i in seq_len(nrow(meta))) {
+    row <- meta[i, , drop = FALSE]
+    ids <- .corner_ids(cfg, row)
+    parts <- lapply(seq_along(ids), function(k) {
+      id <- ids[[k]]
+      if (is.na(id) || !nzchar(id)) {
+        return(NULL)
+      }
+      piece <- opt[as.character(opt$ID) == id, , drop = FALSE]
+      if (nrow(piece) == 0L) {
+        return(NULL)
+      }
+      piece$topology <- names(ids)[[k]]
+      piece
+    })
+    page <- dplyr::bind_rows(parts)
+    if (nrow(page) == 0L) {
+      next
+    }
+    page$value <- as.numeric(page[[column]]) * scale
+    page$value[!is.finite(page$value) | page$value <= 0] <- NA_real_
+    page <- page[is.finite(page$value), , drop = FALSE]
+    if (nrow(page) == 0L) {
+      next
+    }
+    page$topology <- factor(page$topology, levels = names(ids))
+    page$page <- .page_title(row)
+    collected[[length(collected) + 1L]] <- page
+    print(
+      .plot_hybrid_resource_page(
+        page,
+        y_lab,
+        page$page[[1L]],
+        x_lab = "Correlation corner",
+        facet = FALSE
+      ),
+      newpage = i > 1L
+    )
+  }
+  if (length(collected) > 0L) {
+    keep <- intersect(
+      c(
+        "ID",
+        "sample_id",
+        "algorithm",
+        "topology",
+        "proportions",
+        "value",
+        "page"
+      ),
+      names(dplyr::bind_rows(collected))
+    )
+    .write_ggplot_rds(
+      dplyr::bind_rows(collected)[, keep, drop = FALSE],
+      data_rds,
+      stem
+    )
+  }
+  invisible(file)
+}
+
+#' Solver wall-clock time for the bivariate toy (12 pages)
+#'
+#' One page per CLD / variance / composition. The x-axis is the four
+#' correlation corners; colour, fill, and grouping are solvers. y is
+#' elapsed seconds on a log10 scale, with a left-side rug.
+#'
+#' @inheritParams save_hybrid_runtime_book
+#' @return `file`, invisibly.
+#' @export
+#' @seealso [save_hybrid_runtime_book()], [save_bivariate_memory_book()]
+#' @examples
+#' if (requireNamespace("ggdist", quietly = TRUE)) {
+#'   opt <- tibble::tibble(
+#'     ID = rep(c("A", "B", "C", "D"), each = 8),
+#'     sample_id = paste0("s", 1:32),
+#'     algorithm = rep(c("lsei", "LBFGS"), 16),
+#'     elapsed_sec = runif(32, 0.01, 0.2)
+#'   )
+#'   cfg <- tibble::tibble(
+#'     ID = c("A", "B", "C", "D"),
+#'     centroids = "small_CLD",
+#'     variance = "homoscedastic",
+#'     proportions = "balanced",
+#'     correlation_celltype1 = c(0, -0.8, 0.8, -0.8),
+#'     correlation_celltype2 = c(0, -0.8, 0.8, 0.8)
+#'   )
+#'   artefacts <- list(config = cfg, optimisation = opt)
+#'   tf <- withr::local_tempfile(fileext = ".pdf")
+#'   save_bivariate_runtime_book(artefacts, tf)
+#' }
+save_bivariate_runtime_book <- function(artefacts, file, data_rds = NULL) {
+  .save_bivariate_resource_book(
+    artefacts,
+    file,
+    column = "elapsed_sec",
+    y_lab = "Elapsed time (s)",
+    stem = "runtime",
+    scale = 1,
+    data_rds = data_rds
+  )
+}
+
+#' Solver peak memory for the bivariate toy (12 pages)
+#'
+#' Same layout as [save_bivariate_runtime_book()]. Memory is plotted in
+#' mebibytes (`memory_bytes / 2^20`) on a log10 y-axis.
+#'
+#' @inheritParams save_hybrid_runtime_book
+#' @return `file`, invisibly.
+#' @export
+#' @seealso [save_bivariate_runtime_book()]
+#' @examples
+#' if (requireNamespace("ggdist", quietly = TRUE)) {
+#'   opt <- tibble::tibble(
+#'     ID = rep(c("A", "B", "C", "D"), each = 8),
+#'     sample_id = paste0("s", 1:32),
+#'     algorithm = rep(c("lsei", "LBFGS"), 16),
+#'     memory_bytes = runif(32, 3.8e8, 4.2e8)
+#'   )
+#'   cfg <- tibble::tibble(
+#'     ID = c("A", "B", "C", "D"),
+#'     centroids = "small_CLD",
+#'     variance = "homoscedastic",
+#'     proportions = "balanced",
+#'     correlation_celltype1 = c(0, -0.8, 0.8, -0.8),
+#'     correlation_celltype2 = c(0, -0.8, 0.8, 0.8)
+#'   )
+#'   artefacts <- list(config = cfg, optimisation = opt)
+#'   tf <- withr::local_tempfile(fileext = ".pdf")
+#'   save_bivariate_memory_book(artefacts, tf)
+#' }
+save_bivariate_memory_book <- function(artefacts, file, data_rds = NULL) {
+  .save_bivariate_resource_book(
     artefacts,
     file,
     column = "memory_bytes",

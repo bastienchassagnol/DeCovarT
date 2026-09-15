@@ -226,7 +226,11 @@ gaussian_confidence_ellipse <- function(
       panel.grid.minor = ggplot2::element_blank(),
       legend.position = "right",
       legend.margin = ggplot2::margin(0, 0, 0, 0),
-      legend.box.margin = ggplot2::margin(0, 0, 0, 0)
+      legend.box.margin = ggplot2::margin(0, 0, 0, 0),
+      axis.title.y = ggplot2::element_text(
+        angle = 0,
+        vjust = 0.5
+      )
     )
 }
 
@@ -315,6 +319,26 @@ gaussian_confidence_ellipse <- function(
       !is.null(overlay$ellipses) &&
       nrow(overlay$ellipses) > 0L
   ) {
+    ell <- overlay$ellipses
+    for (ct in cts) {
+      part <- ell[as.character(ell$cell_type) == ct, , drop = FALSE]
+      if (nrow(part) < 3L) {
+        next
+      }
+      fill_col <- unname(pal[[ct]])
+      p <- p +
+        ggplot2::geom_polygon(
+          data = part,
+          ggplot2::aes(
+            x = .data[["gene_1"]],
+            y = .data[["gene_2"]]
+          ),
+          inherit.aes = FALSE,
+          fill = fill_col,
+          alpha = 0.2,
+          colour = NA
+        )
+    }
     p <- p +
       ggplot2::geom_path(
         data = overlay$ellipses,
@@ -725,6 +749,21 @@ plot_bulk_convolution_density_2d <- function(true_theta, n = 1200L) {
   )
 }
 
+#' Relative likelihood exp(ell - max ell), floored for log10 scales
+#'
+#' @keywords internal
+#' @noRd
+.relative_likelihood <- function(ll) {
+  ll <- as.numeric(ll)
+  out <- rep(NA_real_, length(ll))
+  ok <- is.finite(ll)
+  if (!any(ok)) {
+    return(out)
+  }
+  out[ok] <- pmax(exp(ll[ok] - max(ll[ok])), 1e-16)
+  out
+}
+
 #' Log-likelihood lattice over hypothesised cell-type ratios
 #'
 #' Evaluates [loglik_multivariate()] of \(y=\mu p^{\star}\) on a grid
@@ -791,6 +830,7 @@ plot_bulk_loglik_surface_p <- function(
   lat <- .proportion_loglik_lattice(true_theta, grid = grid, y = y)
   grid_df <- expand.grid(p1 = lat$p1, p2 = lat$p2)
   grid_df$loglik <- as.vector(lat$z)
+  grid_df$likelihood <- .relative_likelihood(grid_df$loglik)
   true_df <- data.frame(
     p1 = lat$p_true[[1L]],
     p2 = lat$p_true[[2L]]
@@ -800,10 +840,13 @@ plot_bulk_loglik_surface_p <- function(
     ggplot2::aes(x = .data[["p1"]], y = .data[["p2"]])
   ) +
     ggplot2::geom_raster(
-      ggplot2::aes(fill = .data[["loglik"]]),
+      ggplot2::aes(fill = .data[["likelihood"]]),
       interpolate = TRUE
     ) +
-    ggplot2::scale_fill_viridis_c(name = "log lik.") +
+    ggplot2::scale_fill_viridis_c(
+      name = "L / max(L)",
+      trans = "log10"
+    ) +
     ggplot2::geom_abline(
       intercept = 1,
       slope = -1,
@@ -832,12 +875,13 @@ plot_bulk_loglik_surface_p <- function(
       plot.margin = ggplot2::margin(2, 4, 2, 2),
       panel.background = ggplot2::element_rect(fill = NA, colour = NA),
       plot.background = ggplot2::element_rect(fill = NA, colour = NA),
-      legend.position = "right"
+      legend.position = "right",
+      axis.title.y = ggplot2::element_text(angle = 0, vjust = 0.5)
     ) +
     ggplot2::labs(
       x = expression(p[1]),
       y = expression(p[2]),
-      title = "Bulk log-likelihood"
+      title = "Bulk relative likelihood"
     )
 }
 
@@ -895,6 +939,7 @@ plot_bulk_loglik_surface_p <- function(
   lat <- .alr_loglik_lattice(true_theta, grid = grid, y = y)
   grid_df <- expand.grid(rho1 = lat$rho1, rho2 = lat$rho2)
   grid_df$loglik <- as.vector(lat$z)
+  grid_df$likelihood <- .relative_likelihood(grid_df$loglik)
   true_df <- data.frame(
     rho1 = lat$rho_true[[1L]],
     rho2 = lat$rho_true[[2L]]
@@ -904,10 +949,13 @@ plot_bulk_loglik_surface_p <- function(
     ggplot2::aes(x = .data[["rho1"]], y = .data[["rho2"]])
   ) +
     ggplot2::geom_raster(
-      ggplot2::aes(fill = .data[["loglik"]]),
+      ggplot2::aes(fill = .data[["likelihood"]]),
       interpolate = TRUE
     ) +
-    ggplot2::scale_fill_viridis_c(name = "log lik.") +
+    ggplot2::scale_fill_viridis_c(
+      name = "L / max(L)",
+      trans = "log10"
+    ) +
     ggplot2::geom_point(
       data = true_df,
       ggplot2::aes(x = .data[["rho1"]], y = .data[["rho2"]]),
@@ -925,12 +973,13 @@ plot_bulk_loglik_surface_p <- function(
       plot.margin = ggplot2::margin(2, 4, 2, 2),
       panel.background = ggplot2::element_rect(fill = NA, colour = NA),
       plot.background = ggplot2::element_rect(fill = NA, colour = NA),
-      legend.position = "right"
+      legend.position = "right",
+      axis.title.y = ggplot2::element_text(angle = 0, vjust = 0.5)
     ) +
     ggplot2::labs(
       x = expression(rho[1] == log(p[1] / p[3])),
       y = expression(rho[2] == log(p[2] / p[3])),
-      title = "Bulk log-likelihood (ALR)"
+      title = "Bulk relative likelihood (ALR)"
     )
 }
 
@@ -1038,7 +1087,8 @@ plot_bulk_loglik_ilr_profile <- function(
       plot.margin = ggplot2::margin(2, 8, 2, 2),
       panel.background = ggplot2::element_rect(fill = NA, colour = NA),
       plot.background = ggplot2::element_rect(fill = NA, colour = NA),
-      panel.grid.minor = ggplot2::element_blank()
+      panel.grid.minor = ggplot2::element_blank(),
+      axis.title.y = ggplot2::element_text(angle = 0, vjust = 0.5)
     ) +
     ggplot2::coord_cartesian(xlim = rho_lim, clip = "off") +
     ggplot2::labs(
@@ -1052,17 +1102,28 @@ plot_bulk_loglik_ilr_profile <- function(
     )
 }
 
-#' Draw the proportion log-likelihood surface in an open rgl device
+#' Draw a 3-D log-likelihood surface in an open rgl device
 #'
 #' @keywords internal
 #' @noRd
-.draw_proportion_loglik_rgl <- function(lat, lab) {
-  z <- lat$z
-  z[!is.finite(z)] <- min(z[is.finite(z)], na.rm = TRUE)
+.draw_loglik_rgl_surface <- function(
+  x,
+  y,
+  z,
+  xlab,
+  ylab,
+  lab,
+  mark_x = NULL,
+  mark_y = NULL,
+  mark_z = NULL,
+  simplex = NULL
+) {
+  z_plot <- z
+  z_plot[!is.finite(z_plot)] <- min(z_plot[is.finite(z_plot)], na.rm = TRUE)
   rgl::persp3d(
-    lat$p1,
-    lat$p2,
-    z,
+    x,
+    y,
+    z_plot,
     xlab = "",
     ylab = "",
     zlab = "",
@@ -1077,13 +1138,55 @@ plot_bulk_loglik_ilr_profile <- function(
   rgl::axes3d(cex = 0.55, nticks = 4L)
   rgl::title3d(
     main = lab,
-    xlab = "p1",
-    ylab = "p2",
+    xlab = xlab,
+    ylab = ylab,
     zlab = "log lik.",
     cex = 0.7,
     font = 2L,
     line = 1
   )
+  if (!is.null(simplex)) {
+    rgl::lines3d(
+      simplex$x,
+      simplex$y,
+      simplex$z,
+      col = "grey30",
+      lwd = 2
+    )
+  }
+  if (
+    length(mark_x) == 1L &&
+      length(mark_y) == 1L &&
+      length(mark_z) == 1L &&
+      is.finite(mark_z)
+  ) {
+    zr <- diff(range(z_plot, na.rm = TRUE))
+    rgl::spheres3d(
+      mark_x,
+      mark_y,
+      mark_z,
+      radius = 0.025 * max(diff(range(x)), 1),
+      col = "#E41A1C"
+    )
+    rgl::texts3d(
+      mark_x,
+      mark_y,
+      mark_z + 0.06 * max(zr, 1),
+      texts = "MLE",
+      col = "#222222",
+      cex = 0.55,
+      adj = c(0.5, 0)
+    )
+  }
+  invisible(z)
+}
+
+#' Draw the proportion log-likelihood surface in an open rgl device
+#'
+#' @keywords internal
+#' @noRd
+.draw_proportion_loglik_rgl <- function(lat, lab) {
+  z <- lat$z
   p_line <- seq(0.02, 0.98, length.out = 80L)
   z_line <- vapply(
     p_line,
@@ -1094,33 +1197,36 @@ plot_bulk_loglik_ilr_profile <- function(
     },
     numeric(1)
   )
-  rgl::lines3d(
-    p_line,
-    1 - p_line,
-    z_line,
-    col = "grey30",
-    lwd = 2
+  .draw_loglik_rgl_surface(
+    lat$p1,
+    lat$p2,
+    z,
+    xlab = "p1",
+    ylab = "p2",
+    lab = lab,
+    mark_x = lat$p_true[[1L]],
+    mark_y = lat$p_true[[2L]],
+    mark_z = lat$z_true,
+    simplex = list(x = p_line, y = 1 - p_line, z = z_line)
   )
-  if (length(lat$p_true) >= 2L && is.finite(lat$z_true)) {
-    zr <- diff(range(z, na.rm = TRUE))
-    rgl::spheres3d(
-      lat$p_true[[1L]],
-      lat$p_true[[2L]],
-      lat$z_true,
-      radius = 0.025,
-      col = "#E41A1C"
-    )
-    rgl::texts3d(
-      lat$p_true[[1L]],
-      lat$p_true[[2L]],
-      lat$z_true + 0.06 * max(zr, 1),
-      texts = "MLE",
-      col = "#222222",
-      cex = 0.55,
-      adj = c(0.5, 0)
-    )
-  }
-  invisible(lat)
+}
+
+#' ALR-plane log-likelihood surface in an open rgl device
+#'
+#' @keywords internal
+#' @noRd
+.draw_alr_loglik_rgl <- function(lat, lab) {
+  .draw_loglik_rgl_surface(
+    lat$rho1,
+    lat$rho2,
+    lat$z,
+    xlab = "rho1",
+    ylab = "rho2",
+    lab = lab,
+    mark_x = lat$rho_true[[1L]],
+    mark_y = lat$rho_true[[2L]],
+    mark_z = lat$z_true
+  )
 }
 
 #' Snapshot the current rgl window as a ggplot raster
@@ -1173,12 +1279,15 @@ plot_bulk_loglik_ilr_profile <- function(
   invisible(TRUE)
 }
 
-#' rgl surface of the bulk log-likelihood on a \eqn{(p_1,p_2)} lattice
+#' rgl surface of the bulk log-likelihood
+#'
+#' For \eqn{J=2} the lattice is \eqn{(p_1,p_2)}. For \eqn{J\ge 3} it is
+#' the ALR plane \eqn{(\rho_1,\rho_2)}.
 #'
 #' Opens an `rgl` window, draws [rgl::persp3d()] of
-#' [loglik_multivariate()] versus hypothesised ratios, and marks the
-#' MLE (true simulation proportions for \eqn{y=\mu p^{\star}}) with a
-#' sphere. Returns a ggplot snapshot suitable for a PDF page.
+#' [loglik_multivariate()], and marks the MLE (true simulation
+#' proportions for \eqn{y=\mu p^{\star}}) with a sphere. Returns a
+#' ggplot snapshot suitable for a PDF page.
 #'
 #' @inheritParams plot_bulk_loglik_surface_p
 #' @param title Plot title (bold).
@@ -1197,10 +1306,16 @@ plot_bulk_loglik_rgl <- function(
   title = "Bulk log-likelihood"
 ) {
   .check_suggested_package("rgl", "plot_bulk_loglik_rgl")
-  lat <- .proportion_loglik_lattice(true_theta, grid = grid, y = y)
+  p_true <- as.numeric(true_theta$p)
   .rgl_open_hires()
   on.exit(try(rgl::close3d(), silent = TRUE), add = TRUE)
-  .draw_proportion_loglik_rgl(lat, title)
+  if (length(p_true) >= 3L) {
+    lat <- .alr_loglik_lattice(true_theta, grid = grid, y = y)
+    .draw_alr_loglik_rgl(lat, title)
+  } else {
+    lat <- .proportion_loglik_lattice(true_theta, grid = grid, y = y)
+    .draw_proportion_loglik_rgl(lat, title)
+  }
   .rgl_window_to_ggplot(title)
 }
 
@@ -1573,8 +1688,14 @@ save_bivariate_loglik_rgl_book <- function(
       if (is.null(th)) {
         next
       }
-      lat <- .proportion_loglik_lattice(th, grid = 35L)
-      .draw_proportion_loglik_rgl(lat, lab)
+      p_len <- length(as.numeric(th$p))
+      if (p_len >= 3L) {
+        lat <- .alr_loglik_lattice(th, grid = 28L)
+        .draw_alr_loglik_rgl(lat, lab)
+      } else {
+        lat <- .proportion_loglik_lattice(th, grid = 35L)
+        .draw_proportion_loglik_rgl(lat, lab)
+      }
     }
     print(.rgl_window_to_ggplot(page_title))
     if (
@@ -1632,8 +1753,8 @@ save_bivariate_loglik_rgl_book <- function(
   }
   index_body <- paste0(
     "<!DOCTYPE html><html><head><meta charset=\"utf-8\">",
-    "<title>Fig02 log-likelihood (rgl)</title></head><body>",
-    "<h1>Fig02 bulk log-likelihood (interactive rgl)</h1>",
+    "<title>Bulk log-likelihood (rgl)</title></head><body>",
+    "<h1>Bulk log-likelihood (interactive rgl)</h1>",
     "<ol>\n",
     paste(links, collapse = "\n"),
     "\n</ol></body></html>"
@@ -1809,6 +1930,11 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
       "rmse",
       file.path(dir, "heatmap_rmse.pdf"),
       "heatmap_rmse"
+    ),
+    aitchison = write_metric_pdf(
+      "aitchison",
+      file.path(dir, "heatmap_aitchison.pdf"),
+      "heatmap_aitchison"
     )
   )
   if (!isTRUE(hybrid)) {
@@ -1816,11 +1942,6 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
       "mae",
       file.path(dir, "heatmap_mae.pdf"),
       "heatmap_mae"
-    )
-    out$aitchison <- write_metric_pdf(
-      "aitchison",
-      file.path(dir, "heatmap_aitchison.pdf"),
-      "heatmap_aitchison"
     )
   }
   out
@@ -2019,34 +2140,25 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
       is.finite(.data[["p_true"]]) &
       abs(.data[["mean_est"]] - .data[["p_true"]]) > 0.008
   )
-  if (n_ct > 2L) {
-    annot_df <- plot_df
-    hi <- pmax(plot_df$emp_hi, plot_df$ci_hi, plot_df$mean_est, na.rm = TRUE)
-    annot_df$lab_x <- ifelse(is.finite(hi), hi, plot_df$mean_est)
-    annot_df$annot <- paste0(
-      "RMSE: ",
-      ifelse(
-        is.finite(annot_df$rmse),
-        sprintf("%.3f", annot_df$rmse),
-        "NA"
-      ),
-      "\nCoverage: ",
-      ifelse(
-        is.finite(annot_df$coverage),
-        sprintf("%.0f%%", 100 * annot_df$coverage),
-        "NA"
-      )
+  annot_df <- plot_df
+  hi <- pmax(plot_df$emp_hi, plot_df$ci_hi, plot_df$mean_est, na.rm = TRUE)
+  annot_df$lab_x <- ifelse(is.finite(hi), hi, plot_df$mean_est)
+  annot_df$annot <- paste0(
+    "RMSE: ",
+    ifelse(
+      is.finite(annot_df$rmse),
+      sprintf("%.3f", annot_df$rmse),
+      "NA"
+    ),
+    "\nCoverage: ",
+    ifelse(
+      is.finite(annot_df$coverage),
+      sprintf("%.0f%%", 100 * annot_df$coverage),
+      "NA"
     )
-    annot_df$y_lab <- annot_df$y_dodge
-    annot_size <- 2.35
-  } else {
-    annot_df <- plot_df |>
-      dplyr::group_by(.data[["panel"]], .data[["algorithm"]]) |>
-      dplyr::slice(1L) |>
-      dplyr::ungroup() |>
-      dplyr::mutate(y_lab = as.numeric(.data[["algorithm"]]))
-    annot_size <- 3.4
-  }
+  )
+  annot_df$y_lab <- annot_df$y_dodge
+  annot_size <- if (n_ct > 2L) 2.35 else 2.8
   caption_txt <- if (n_ct > 2L) {
     paste0(
       "[=====]  Solid whiskers: mean estimate plus or minus 1.96 times ",
@@ -2065,9 +2177,8 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
       "Dashed whiskers: plus or minus 1.96 times the empirical",
       "Monte Carlo SD.",
       "Horizontal arrows: bias toward the true proportion.",
-      "Bold labels (right, one per solver): RMSE and coverage of",
-      "those Wald intervals (identical for p1 and p2 on the unit",
-      "simplex). NNLS, LSEI, and SA omitted (no convolution Wald SE)."
+      "Labels (one per cell type): RMSE and coverage of those Wald",
+      "intervals. NNLS, LSEI, and SA omitted (no convolution Wald SE)."
     )
   }
   p <- ggplot2::ggplot(
@@ -2121,53 +2232,27 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
       alpha = 0.9,
       inherit.aes = FALSE
     ) +
-    ggplot2::geom_point(size = 2.6)
-
-  if (n_ct > 2L) {
-    p <- p +
-      ggplot2::geom_label(
-        data = annot_df,
-        ggplot2::aes(
-          x = .data[["lab_x"]],
-          y = .data[["y_lab"]],
-          label = .data[["annot"]],
-          colour = .data[["cell_type"]]
-        ),
-        inherit.aes = FALSE,
-        hjust = -0.04,
-        vjust = 0.5,
-        size = annot_size,
-        fontface = "bold",
-        lineheight = 0.95,
-        label.size = 0.2,
-        label.padding = grid::unit(0.18, "lines"),
-        fill = ggplot2::alpha("white", 0.88),
-        show.legend = FALSE
-      )
-    x_expand <- c(0.04, 0.42)
-  } else {
-    p <- p +
-      ggplot2::geom_label(
-        data = annot_df,
-        ggplot2::aes(
-          x = Inf,
-          y = .data[["y_lab"]],
-          label = .data[["annot"]]
-        ),
-        inherit.aes = FALSE,
-        hjust = 1.08,
-        vjust = 0.5,
-        size = annot_size,
-        fontface = "bold",
-        lineheight = 0.95,
-        label.size = 0.25,
-        label.padding = grid::unit(0.28, "lines"),
-        fill = "#F4F1EA",
-        colour = "grey20",
-        show.legend = FALSE
-      )
-    x_expand <- c(0.04, 0.38)
-  }
+    ggplot2::geom_point(size = 2.6) +
+    ggplot2::geom_label(
+      data = annot_df,
+      ggplot2::aes(
+        x = .data[["lab_x"]],
+        y = .data[["y_lab"]],
+        label = .data[["annot"]],
+        colour = .data[["cell_type"]]
+      ),
+      inherit.aes = FALSE,
+      hjust = -0.04,
+      vjust = 0.5,
+      size = annot_size,
+      fontface = "bold",
+      lineheight = 0.95,
+      label.size = 0.2,
+      label.padding = grid::unit(0.18, "lines"),
+      fill = ggplot2::alpha("white", 0.88),
+      show.legend = FALSE
+    )
+  x_expand <- c(0.04, 0.42)
   p +
     ggplot2::scale_colour_manual(values = pal, drop = FALSE) +
     ggplot2::scale_y_continuous(
@@ -2266,12 +2351,12 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
       sprintf("%.0f%%", 100 * out$coverage),
       "NA"
     )
-    rmse_lab <- ifelse(
-      is.finite(out$rmse),
-      sprintf("RMSE %.3f", out$rmse),
-      "RMSE NA"
+    out$annot <- paste0(
+      "RMSE: ",
+      ifelse(is.finite(out$rmse), sprintf("%.3f", out$rmse), "NA"),
+      "\nCoverage: ",
+      cov_pct
     )
-    out$annot <- paste(rmse_lab, cov_pct, sep = "\n")
     out$panel <- labels[[k]]
     out <- out[is.finite(out$mean_est), , drop = FALSE]
     out
@@ -2529,11 +2614,11 @@ save_bivariate_raincloud_book <- function(
   meta <- .bivariate_page_meta(cfg)
   hybrid <- .is_hybrid_config(cfg)
   collected <- list()
-  pdf_h <- if (isTRUE(hybrid)) 20 else 30
-  slab_s <- if (isTRUE(hybrid)) 0.65 else 1.05
-  slab_a <- if (isTRUE(hybrid)) 0.45 else 0.45
-  y_gap <- if (isTRUE(hybrid)) 6.2 else 1
-  dodge_w <- if (isTRUE(hybrid)) 0.7 else 1
+  pdf_h <- if (isTRUE(hybrid)) 32 else 30
+  slab_s <- 1.05
+  slab_a <- 0.45
+  y_gap <- if (isTRUE(hybrid)) 2.6 else 1
+  dodge_w <- 1
   grDevices::pdf(file, width = 16, height = pdf_h)
   on.exit(grDevices::dev.off(), add = TRUE)
   for (i in seq_len(nrow(meta))) {
@@ -2958,6 +3043,66 @@ save_mean_signature_heatmap <- function(
   paste(short_one(graph_ct1), short_one(graph_ct2), sep = "/")
 }
 
+#' Replace rectangular column-group headers with rounded rectangles
+#'
+#' @keywords internal
+#' @noRd
+.round_funkyheatmap_header_rects <- function(p) {
+  round_one <- function(g) {
+    if (inherits(g, "patchwork")) {
+      n <- tryCatch(length(g$patches$plots), error = function(e) 0L)
+      if (n >= 1L) {
+        g[[1L]] <- round_one(g[[1L]])
+      }
+      return(g)
+    }
+    if (!inherits(g, "ggplot")) {
+      return(g)
+    }
+    for (i in seq_along(g$layers)) {
+      lyr <- g$layers[[i]]
+      if (!inherits(lyr$geom, "GeomRect")) {
+        next
+      }
+      dat <- lyr$data
+      if (!is.data.frame(dat)) {
+        next
+      }
+      nms <- names(dat)
+      if (!all(c("xmin", "xmax", "ymin", "ymax") %in% nms)) {
+        next
+      }
+      if (!"colour" %in% nms) {
+        next
+      }
+      dat$radius <- 0.15
+      if (!"border_colour" %in% nms) {
+        dat$border_colour <- "black"
+      }
+      if (!"alpha" %in% nms) {
+        dat$alpha <- 1
+      }
+      g$layers[[i]] <- funkyheatmap::geom_rounded_rect(
+        data = dat,
+        mapping = ggplot2::aes(
+          xmin = .data[["xmin"]],
+          xmax = .data[["xmax"]],
+          ymin = .data[["ymin"]],
+          ymax = .data[["ymax"]],
+          radius = .data[["radius"]],
+          fill = .data[["colour"]],
+          colour = .data[["border_colour"]],
+          alpha = .data[["alpha"]]
+        ),
+        linewidth = 0.6,
+        inherit.aes = FALSE
+      )
+    }
+    g
+  }
+  round_one(p)
+}
+
 #' Widen cropped funkyheatmap legend titles
 #'
 #' @keywords internal
@@ -3158,7 +3303,7 @@ save_scenario_metrics_funkyheatmap <- function(
   legends <- list(
     circle_legend("Cellular composition", "composition"),
     circle_legend("Network structure", "network"),
-    circle_legend("Numerical gradient", "information"),
+    circle_legend("Statistical information", "information"),
     circle_legend("Numerical complexity", "complexity"),
     list(palette = "black", enabled = FALSE)
   )
@@ -3173,16 +3318,17 @@ save_scenario_metrics_funkyheatmap <- function(
     scale_column = TRUE,
     add_abc = FALSE,
     position_args = funkyheatmap::position_arguments(
-      col_annot_offset = 6.5,
+      col_annot_offset = 7.5,
       col_annot_angle = 40,
       col_bigspace = 0.8,
       row_bigspace = 1.8,
       expand_xmin = 3,
-      expand_xmax = 4,
+      expand_xmax = 8,
       expand_ymax = 1
     )
   )
-  p <- .widen_funkyheatmap_legends(p, extra_x = 12)
+  p <- .round_funkyheatmap_header_rects(p)
+  p <- .widen_funkyheatmap_legends(p, extra_x = 18)
   caption <- paste(
     "SF: Scale-free (Barabasi-Albert) on the named cell type;",
     "SBM: Cluster stochastic block model.",

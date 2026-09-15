@@ -67,7 +67,7 @@
 #  output/fig02/bivariate_benchmark.rds    – metrics only (regression,
 #                                            monte_carlo, optimisation, call)
 #  output/fig02/density_visualisations/{purified,bulk,loglik_*}.pdf
-#  output/fig02/performance_visualisations/{heatmap_*,raincloud,forest,similarity,solver_dots}.pdf
+#  output/fig02/performance_visualisations/{heatmap_*,raincloud,forest,similarity,solver_dots,runtime,memory}.pdf
 #  output/fig02/ggplot_rds/*.rds            – ggplot `data` for each book
 #                                            (not rgl snapshots)
 ###############################################################################
@@ -517,6 +517,24 @@ if (
     data_rds = GGPLOT_RDS_DIR
   )
   .ui_success("Saved {.file solver_dots.pdf}.")
+
+  if (requireNamespace("ggdist", quietly = TRUE)) {
+    .ui_info("Drawing 12-page solver runtime rainclouds.")
+    save_bivariate_runtime_book(
+      artefacts,
+      file.path(PERF_DIR, "runtime.pdf"),
+      data_rds = GGPLOT_RDS_DIR
+    )
+    .ui_info("Drawing 12-page solver memory rainclouds.")
+    save_bivariate_memory_book(
+      artefacts,
+      file.path(PERF_DIR, "memory.pdf"),
+      data_rds = GGPLOT_RDS_DIR
+    )
+    .ui_success("Saved {.file runtime.pdf} and {.file memory.pdf}.")
+  } else {
+    .ui_warn("{.pkg ggdist} not available; skipping runtime / memory books.")
+  }
 
   .ui_success(
     "Done. Outputs in {.path {normalizePath(OUT_DIR, mustWork = FALSE)}}."

@@ -54,6 +54,31 @@ test_that("runtime book writes a PDF from optimisation rows", {
   })
 })
 
+test_that("bivariate runtime book writes a PDF from corner IDs", {
+  skip_if_not_installed("ggdist")
+  ids <- c("A", "B", "C", "D")
+  opt <- tibble::tibble(
+    ID = rep(ids, each = 8),
+    sample_id = paste0("s", 1:32),
+    algorithm = rep(c("lsei", "LBFGS"), 16),
+    elapsed_sec = withr::with_seed(13L, runif(32, 0.01, 0.2))
+  )
+  cfg <- tibble::tibble(
+    ID = ids,
+    centroids = "small_CLD",
+    variance = "homoscedastic",
+    proportions = "balanced",
+    correlation_celltype1 = c(0, -0.8, 0.8, -0.8),
+    correlation_celltype2 = c(0, -0.8, 0.8, 0.8)
+  )
+  artefacts <- list(config = cfg, optimisation = opt)
+  withr::with_tempfile("tf", fileext = ".pdf", {
+    save_bivariate_runtime_book(artefacts, tf)
+    expect_true(file.exists(tf))
+    expect_gt(file.info(tf)$size, 0)
+  })
+})
+
 test_that("memory book writes a PDF from optimisation rows", {
   skip_if_not_installed("ggdist")
   opt <- tibble::tibble(

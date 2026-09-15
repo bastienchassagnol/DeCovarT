@@ -941,7 +941,8 @@ plot_mc_raincloud <- function(
       scale = slab_scale,
       interval_size = 2.8,
       point_size = 1.6,
-      alpha = slab_alpha,
+      slab_linewidth = 0.45,
+      slab_alpha = slab_alpha,
       position = dodge
     )
   if (isTRUE(include_dots)) {
@@ -1513,9 +1514,10 @@ algorithm_similarity <- function(
 #' Tile heatmap of algorithm-similarity correlations
 #'
 #' `ggplot2::geom_tile()` display of [algorithm_similarity()], with
-#' rows and columns ordered by average-linkage clustering of
+#' rows and columns ordered by Ward D2 clustering of
 #' \(1-r\). Optional dendrogram via `ggdendro` (Suggests), drawn to
-#' the **right** of the tiles with leaves flush against the heatmap.
+#' the **right** of the tiles with leaves flush against the heatmap
+#' and Ward merge heights on the axis.
 #' This is the default for a small correlation matrix;
 #' [plot_correlation_Heatmap()] is reserved for linked multi-omics grids.
 #'
@@ -1714,6 +1716,7 @@ plot_algorithm_similarity <- function(
       vjust = 0.5,
       inherit.aes = FALSE
     ) +
+    ggplot2::labs(x = "Ward D2 height", y = NULL) +
     ggplot2::scale_x_continuous(
       expand = ggplot2::expansion(mult = c(0, 0.18))
     ) +
@@ -1725,14 +1728,14 @@ plot_algorithm_similarity <- function(
     ggplot2::theme_minimal() +
     ggplot2::theme(
       axis.text.y = ggplot2::element_blank(),
-      axis.title = ggplot2::element_blank(),
+      axis.title.y = ggplot2::element_blank(),
+      axis.title.x = ggplot2::element_text(size = 8),
       axis.ticks.y = ggplot2::element_blank(),
-      axis.ticks.x = ggplot2::element_blank(),
       axis.text.x = ggplot2::element_text(
         angle = 90,
         hjust = 1,
         vjust = 0.5,
-        colour = NA
+        size = 6
       ),
       panel.grid = ggplot2::element_blank(),
       panel.border = ggplot2::element_blank(),

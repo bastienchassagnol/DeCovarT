@@ -47,9 +47,9 @@
 #  output/fig03/hybrid_config.rds (design + graph generator settings)
 #  output/fig03/hybrid_{config,descriptors,theta,benchmark}.rds
 #  output/fig03/density_visualisations/{mean_signature,scenario_metrics,
-#    pairwise_hellinger,loglik_surface_p,network_topologies,
+#    pairwise_hellinger,loglik_surface_p,loglik_rgl,network_topologies,
 #    latent_projections}.pdf
-#  output/fig03/performance_visualisations/{heatmap_rmse,raincloud,forest,
+#  output/fig03/performance_visualisations/{heatmap_rmse,heatmap_aitchison,raincloud,forest,
 #    similarity,solver_dots,runtime,memory}.pdf
 #  output/fig03/ggplot_rds/*.rds
 #  vignettes/figures/fig_network_topologies.png
@@ -539,6 +539,21 @@ if (requireNamespace("gridExtra", quietly = TRUE)) {
     data_rds = GGPLOT_RDS_DIR
   )
   .ui_success("Saved {.file loglik_surface_p.pdf}.")
+  if (
+    requireNamespace("rgl", quietly = TRUE) &&
+      requireNamespace("png", quietly = TRUE)
+  ) {
+    .ui_info("Drawing ALR log-likelihood rgl surfaces (9 pages).")
+    save_bivariate_loglik_rgl_book(
+      artefacts$config,
+      artefacts$theta,
+      file.path(DENSITY_DIR, "loglik_rgl.pdf"),
+      html_file = file.path(DENSITY_DIR, "loglik_rgl.html")
+    )
+    .ui_success("Saved {.file loglik_rgl.pdf}.")
+  } else {
+    .ui_warn("{.pkg rgl} / {.pkg png} not available; skipping ALR rgl.")
+  }
 } else {
   .ui_warn("{.pkg gridExtra} not available; skipping ALR log-likelihood.")
 }
@@ -566,7 +581,7 @@ if (requireNamespace("igraph", quietly = TRUE)) {
   .ui_warn("{.pkg igraph} not available; skipping network book.")
 }
 
-.ui_info("Drawing RMSE tile heatmaps.")
+.ui_info("Drawing RMSE and Aitchison tile heatmaps.")
 save_bivariate_metric_heatmaps(
   artefacts,
   PERF_DIR,

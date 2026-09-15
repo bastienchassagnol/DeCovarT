@@ -2,7 +2,7 @@
 % Please edit documentation in R/04_04_bivariate_visualisation.R
 \name{plot_bulk_loglik_rgl}
 \alias{plot_bulk_loglik_rgl}
-\title{rgl surface of the bulk log-likelihood on a \eqn{(p_1,p_2)} lattice}
+\title{rgl surface of the bulk log-likelihood}
 \usage{
 plot_bulk_loglik_rgl(
   true_theta,
@@ -24,10 +24,14 @@ plot_bulk_loglik_rgl(
 A \code{ggplot} raster of the \code{rgl} snapshot.
 }
 \description{
+For \eqn{J=2} the lattice is \eqn{(p_1,p_2)}. For \eqn{J\ge 3} it is
+the ALR plane \eqn{(\rho_1,\rho_2)}.
+}
+\details{
 Opens an \code{rgl} window, draws \code{\link[rgl:persp3d]{rgl::persp3d()}} of
-\code{\link[=loglik_multivariate]{loglik_multivariate()}} versus hypothesised ratios, and marks the
-MLE (true simulation proportions for \eqn{y=\mu p^{\star}}) with a
-sphere. Returns a ggplot snapshot suitable for a PDF page.
+\code{\link[=loglik_multivariate]{loglik_multivariate()}}, and marks the MLE (true simulation
+proportions for \eqn{y=\mu p^{\star}}) with a sphere. Returns a
+ggplot snapshot suitable for a PDF page.
 }
 \examples{
 \dontshow{if (interactive() && requireNamespace("rgl", quietly = TRUE) && requireNamespace("png", quietly = TRUE)) withAutoprint(\{ # examplesIf}

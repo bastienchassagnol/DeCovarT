@@ -26,9 +26,10 @@ A \code{ggplot} object.
 }
 \description{
 \code{ggplot2::geom_tile()} display of \code{\link[=algorithm_similarity]{algorithm_similarity()}}, with
-rows and columns ordered by average-linkage clustering of
+rows and columns ordered by Ward D2 clustering of
 \(1-r\). Optional dendrogram via \code{ggdendro} (Suggests), drawn to
-the \strong{right} of the tiles with leaves flush against the heatmap.
+the \strong{right} of the tiles with leaves flush against the heatmap
+and Ward merge heights on the axis.
 This is the default for a small correlation matrix;
 \code{\link[=plot_correlation_Heatmap]{plot_correlation_Heatmap()}} is reserved for linked multi-omics grids.
 }

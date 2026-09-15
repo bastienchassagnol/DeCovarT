@@ -53,7 +53,9 @@
   with weights \(\boldsymbol{p}\), and supervised `MclustDR`. Runtime and
   memory rainclouds (`save_hybrid_runtime_book()`,
   `save_hybrid_memory_book()`) use one page per composition, facet
-  overlap, and log10 y with a rug of Monte Carlo draws.
+  overlap, and log10 y with a rug of Monte Carlo draws. Fig02 has the
+  matching pair `save_bivariate_runtime_book()` /
+  `save_bivariate_memory_book()` (correlation corners on the x-axis).
 
 * **Overlap in moderate dimension.** `compute_average_overlap()` uses
   MixSim Davies quadrature for $G<4$ and stratified Sobol Monte Carlo

@@ -256,8 +256,10 @@ ALGORITHMS <- c(
 |---|---|
 | `output/fig03/density_visualisations/mean_signature.pdf` | Unscaled \(\boldsymbol{\mu}\) heatmap |
 | `output/fig03/density_visualisations/latent_projections.pdf` | 16-page 2D latent-space book (Thomson / MCFA / `MclustDR`) |
+| `output/fig03/density_visualisations/loglik_rgl.pdf` | 3D ALR log-likelihood (`rgl`, \(\rho_1,\rho_2,\ell\)) |
 | `output/fig03/density_visualisations/network_topologies.pdf` | Graph skeletons, one page per MixSim overlap |
 | `output/fig03/performance_visualisations/heatmap_rmse.pdf` | RMSE tiles |
+| `output/fig03/performance_visualisations/heatmap_aitchison.pdf` | Aitchison tiles |
 | `output/fig03/performance_visualisations/raincloud.pdf` | Monte Carlo \(\hat{\boldsymbol{p}}\) rainclouds |
 | `output/fig03/performance_visualisations/forest.pdf` | ADEMP Wald forest |
 | `output/fig03/performance_visualisations/runtime.pdf` | Solver wall-clock (log10 seconds) |
@@ -279,11 +281,10 @@ highly unbalanced), crossed with the four CT1/CT2 graph assignments
 (\(2\times 2\times 4=16\)). Each page is a \(3\times 2\) of
 scatterplots with 95% Gaussian ellipses, cell-type colour, axis
 labels that report the share of variability on the first two
-coordinates, and a cowplot scree inset
-([drawing on plots](https://wilkelab.org/cowplot/articles/drawing_with_on_plots.html#making-inset-plots))
-of the first ten scaled eigenvalues. The layout follows the
-`fviz_pca` style (points, ellipses, percentage axes) without
-importing `factoextra`.
+coordinates, a transparent cowplot scree inset of the first ten
+scaled eigenvalues, and a six-line footnote for panels A--F. Square
+panels use a unit aspect ratio (not `coord_equal`), so unequal
+factor-score ranges no longer squash the shared-plane row.
 
 The three routes below all return an ordered set of eigenvalues
 that summarise how much variability sits in the plotted plane. They
