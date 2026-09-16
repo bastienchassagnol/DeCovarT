@@ -309,6 +309,121 @@ data.frame(
 The two columns agree to the order of $\lVert\boldsymbol{d}\rVert^{3}$,
 as @eq-fisher-metric predicts.
 
+## Finite-sample bias versus asymptotic unbiasedness {#sec-finite-sample}
+
+@thm-population is a statement about the *expected* criterion
+$Q(\boldsymbol{p};\boldsymbol{p}_0)$. It does not say that the maximiser of
+one realised log-likelihood equals $\boldsymbol{p}_0$. Typical bulk
+deconvolution observes a single $G$-vector
+$\boldsymbol{Y}_{\cdot i}\sim\mathcal{N}_G(\boldsymbol{\mu}
+\boldsymbol{p}_{\cdot i},\boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i}))$
+and treats that column as $N=1$. The resulting MLE is then a nonlinear
+function of one Gaussian draw, so
+$\mathbb{E}_{\boldsymbol{p}_0}(\hat{\boldsymbol{p}})\neq\boldsymbol{p}_0$
+in general: the leading bias of a regular MLE is $O(N^{-1})$
+[@vaartAsymptoticStatistics2000, Ch. 5]. The same map becomes consistent,
+and $\sqrt{N}$-normal with variance $I(\boldsymbol{p}_0)^{-1}$, once
+$N$ i.i.d. bulk columns share one composition, because the averaged
+criterion converges to $Q$ and $Q$ has a unique maximiser at
+$\boldsymbol{p}_0$.
+
+Two calculations are easy to confuse and are not the same.
+
+**Score identity.** If the convolution is correctly specified,
+$\mathbb{E}_{\boldsymbol{p}_0}\{\nabla\ell_{\boldsymbol{Y}}(\boldsymbol{p}_0)\}=\boldsymbol{0}$.
+The identity is a property of the *random* bulk. It is what the Fisher
+metric of @eq-fisher-metric linearises.
+
+**Mean-profile remainder.** Substituting the *conditional mean*
+$\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}_0$ into the score of @eq-loglik
+kills the Mahalanobis terms and leaves only the derivative of
+$-\tfrac12\log\det\boldsymbol{\Sigma}(\boldsymbol{p})$. In unconstrained
+$\boldsymbol{p}$-coordinates that remainder is
+$-p_j\operatorname{tr}\bigl(\boldsymbol{\Theta}(\boldsymbol{p})
+\boldsymbol{\Sigma}_j\bigr)$ at each $j$, with
+$\boldsymbol{\Theta}=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}$. Mapped through
+the ILR chart it vanishes by symmetry when
+$\boldsymbol{p}_0=(1/2,1/2)$ and $\boldsymbol{\Sigma}_1=\boldsymbol{\Sigma}_2$,
+and it does **not** vanish at an unbalanced interior point. Hence the
+maximiser of $\ell(\,\cdot\,;\boldsymbol{\mu}\boldsymbol{p}_0)$ need not equal
+$\boldsymbol{p}_0$ even though that bulk sits at the centre of the
+model. The bias of the *random* MLE is a different, typically larger,
+effect: $\hat{\boldsymbol{p}}$ is a nonlinear function of $\boldsymbol{Y}$,
+and near a simplex face the ILR chart sends $p_j\to 0$ to
+$|\rho|\to\infty$ so that a plateau in $\ell$ (see @sec-boundary)
+inflates the $O(N^{-1})$ term.
+
+Convex-optimisation guarantees do not close the gap. Boyd and
+Vandenberghe emphasise that a local maximum of a non-concave objective
+need not be global, and that first-order stationarity certifies
+optimality only under convexity
+[@boydConvexOptimization2004, Ch. 1 and 4]. @nte-nonconcave already
+exhibits an indefinite Hessian for one bulk, so a converged solver
+certifies a *local* maximiser of that sample's $\ell$, not uniqueness
+and not unbiasedness. What *is* uniquely maximised is $Q$, and only
+after $N\to\infty$ (or after pooling genuine replicates; @sec-replication)
+does $\hat{\boldsymbol{p}}_N$ concentrate there.
+
+```{r}
+#| label: finite-sample-score
+mu_cld <- matrix(c(20, 22, 22, 20), nrow = 2)
+Sigma_id <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+p_balanced <- c(0.5, 0.5)
+p_rare <- c(0.99, 0.01)
+y_at_mean <- function(p) {
+  drop(mu_cld %*% p)
+}
+score_at_mean <- function(p) {
+  gradient_loglik_constrained(
+    isometric_log_ratio(p),
+    y_at_mean(p),
+    mu_cld,
+    Sigma_id
+  )
+}
+set.seed(1)
+cov_rare <- .compute_global_variance(p_rare, Sigma_id)
+mean_score_random <- mean(replicate(200, {
+  y <- MASS::mvrnorm(
+    n = 1,
+    mu = y_at_mean(p_rare),
+    Sigma = cov_rare
+  )
+  gradient_loglik_constrained(
+    isometric_log_ratio(p_rare),
+    y,
+    mu_cld,
+    Sigma_id
+  )
+}))
+data.frame(
+  composition = c("balanced 50-50", "rare type 0.01"),
+  ilr_score_at_conditional_mean = c(
+    score_at_mean(p_balanced),
+    score_at_mean(p_rare)
+  ),
+  mean_ilr_score_at_truth = c(NA_real_, mean_score_random)
+)
+```
+
+The ILR score at the conditional mean is zero in the balanced isotropic
+case and of order $10^{-2}$ at $p=(0.99,0.01)$. Averaging the same score
+over random $\boldsymbol{Y}\sim\mathcal{N}_G(\boldsymbol{\mu}\boldsymbol{p}_0,
+\boldsymbol{\Sigma}(\boldsymbol{p}_0))$ returns a number consistent with
+zero, as the information identity requires. Finite-sample bias of
+$\hat{\boldsymbol{p}}$ is therefore not a failure of
+$\mathbb{E}(\nabla\ell)=0$; it is the nonlinearity of the maximiser,
+amplified when @eq-loglik is nearly flat along a simplex face. The
+bivariate and covariance-driven Monte Carlo packs in
+`output/fig02/mle_explanation/` and `output/fig03/mle_explanation/`
+quantify that geometry for $N=1$ (see
+[the bivariate toy](fig02-bivariate-toy.html#sec-bivariate-findings) and
+[the covariance-driven scenario](fig03-covariance-driven.html#sec-hybrid-findings)).
+A Jeffreys / Firth adjustment of $\ell$
+[@firthBiasReductionMaximum1993] is an outlook for shrinking the
+$O(N^{-1})$ term when replicates are scarce
+([perspectives](theory-decovart-statistical-perspectives.html#sec-firth)).
+
 ## Equivariance: affine yes, logarithmic no {#sec-equivariance}
 
 ::: {#prp-equivariance}
@@ -528,7 +643,9 @@ lrt_decovart(
 ## Replication is what makes the asymptotics meaningful {#sec-replication}
 
 @eq-lrt and @eq-chibar are limits as the amount of information about
-**one** composition grows. That is a strong requirement in deconvolution.
+**one** composition grows. That is a strong requirement in deconvolution,
+and it is the same $N\to\infty$ that turns the $O(N^{-1})$ bias of
+@sec-finite-sample into consistency.
 
 For each bulk sample $i$, DeCovarT observes a single $G$-vector
 $\boldsymbol{Y}_{\cdot i}\sim\mathcal{N}_G(\boldsymbol{\mu}

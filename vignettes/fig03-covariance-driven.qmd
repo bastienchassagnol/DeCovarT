@@ -396,17 +396,128 @@ ggdist half-eye (raincloud) of the per-sample
 with a left-side `geom_rug()` of the raw Monte Carlo draws and a
 log10 y-axis.
 
-## Expected findings
+## Likelihood geometry and solver behaviour {#sec-hybrid-findings}
 
-Because CT 1 and CT 2 share cosine $0.9$, LSEI and CIBERSORT cannot
-separate them from the mean signature alone. DeCovarT (L-BFGS-B,
-Newton--Raphson, Marquardt--Levenberg) uses $\boldsymbol{\Sigma}_j$.
-**Topology** (scale-free versus cluster SBM) still matters, but
-**average overlap** is the stronger predictor of error and of Wald
-uncertainty: high `BarOmega` scenarios remain hard even when the
-graphs differ, whereas low overlap with a large $f_{\mathrm{cov}}$
-is where covariance-aware solvers should pull ahead of mean-only
-baselines, especially at $H^{\star}=0.1$.
+Cell types 1 and 2 share cosine $0.9$, so the mean map
+$\boldsymbol{\mu}\boldsymbol{p}$ is close to singular in the
+$(p_1,p_2)$ plane: type 3 is the only well-separated mean. MixSim
+$\bar\omega$ then sets how much of the remaining signal lives in
+$\{\boldsymbol{\Sigma}_j\}$. The pack in
+`output/fig03/mle_explanation/` (descriptors, ILR slices of $\ell$ at
+$\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}^{\star}$, expected-Fisher SEs,
+Newton/Marquardt forests on **balanced** compositions, and a
+quantile-sampled raincloud across all $H^{\star}$) is the numerical
+reading of that geometry. As in the bivariate toy, three layers must be
+kept apart: the convolution $\ell$, the surrogate each solver
+optimises, and the chart / KKT / stopping rule.
+
+### Surrogates versus the convolution
+
+`lsei` (`limSolve`) is again a convex QP for
+$\|\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}\|_2^2$ on the simplex
+[@R-limSolve; @gongDeconRNASeqStatisticalFramework2013;
+@dessoleLawsonHansonAlgorithmDeviation2023;
+@boydConvexOptimization2004]. With two nearly collinear
+signature columns the QP is under-determined in the $(p_1,p_2)$
+direction; the equality $\sum p_j=1$ plus bounds then put mass on a
+face. `CIBERSORT` replaces squares by a $\nu$-SVR hinge
+[@newmanRobustEnumerationCell2015]. The dual is a convex quadratic
+programme solved by sequential working-set methods
+[@fanWorkingSetSelection2005]. The wrapper
+does **not** constrain coefficients to the simplex during the fit:
+negatives are clipped to zero and the remainder is renormalised. Clipping
+is a Euclidean projection onto the positive orthant, not a constrained
+MLE, so a support vector that overshoots becomes a vertex of
+$\Delta^{2}$. Neither method sees $p_j^2\boldsymbol{\Sigma}_j$.
+
+DeCovarT solvers maximise the Gaussian convolution. `Newton-Raphson`
+and `Marquardt-Levenberg` do so in ILR, with a full Hessian versus
+Marquardt damping plus RDM
+[@marquardtAlgorithmLeastSquaresEstimation1963;
+@commengesNewtonLikeAlgorithmLikelihood2006;
+@philippsRobustEfficientOptimization2021; @R-marqLevAlg]. `L-BFGS-B`
+uses a limited-memory inverse Hessian with box constraints on $p$, then
+$p/\sum p$
+[@byrdLimitedMemoryAlgorithm1995; @zhuAlgorithm778LBFGSB1997]. The
+same caveats as in
+[the bivariate interpretation](fig02-bivariate-toy.html#sec-bivariate-findings)
+apply: Boyd's local-quadratic Newton rate needs a locally strongly
+concave $\ell$; RDM stops when further ILR steps are smaller than
+statistical error; box-constrained BFGS may sit on a face after
+renormalisation. All of this is still $N=1$ per bulk
+([finite-sample MLE](theory-DeCovarT-MLE-properties.html#sec-finite-sample)).
+
+### Balanced compositions (forest + Fisher)
+
+The Newton/Marquardt forest in the pack is restricted to
+$H^{\star}=1$ ($p^{\star}=(1/3,1/3,1/3)$). On that slice the two
+second-order solvers are interchangeable. At low overlap (`V1`, both
+graphs scale-free) RMSE for $p_1$ is $0.113$, bias $0.012$, empirical
+SD $0.113$, coverage $0.99$. At high overlap (`V7`) RMSE rises only to
+$0.124$ and coverage stays $0.99$. Median RMSE for $p_1$ across the
+four graph assignments is $0.122$ (low $\bar\omega$), $0.134$
+(moderate), $0.147$ (high); type 3, whose mean is not collinear, stays
+easier at low overlap (median RMSE $0.064$) and catches up as overlap
+grows ($0.130$). Expected-Fisher ILR standard errors in
+`theoretical_wald_se.csv` tell the same story:
+$\mathrm{SE}_{\rho_1}$ goes from $0.63$ (`V1`) to $0.97$ (`V7`), and
+the condition number of the ILR information drops from $6.8$ to $1.7$
+— not because the problem becomes better posed, but because *both*
+eigenvalues shrink and the ellipsoid becomes a large, round disk.
+Graph assignment (scale-free versus cluster SBM) moves those SEs by a
+smaller amount than $\bar\omega$ does. Topology is visible;
+**average overlap is the dominant knob**, matching the design claim,
+for *balanced* $p^{\star}$ and for *second-order convolution MLEs*.
+
+### Boundary pile-up (raincloud, all $H^{\star}$)
+
+The sampled raincloud (`raincloud_sampled.csv`) includes moderately and
+highly unbalanced Shannon targets. Among non-missing point estimates,
+$76\%$ of `CIBERSORT` values lie at $0$ or $1$. At the scenario-wise
+median (`sample_role = q50`), type 3 is exactly zero in $35$ of $36$
+scenarios (mean $\hat p_3=0.0008$). That is the clip-and-renormalise
+step, not a convolution mode on a face. `lsei` sits on a bound in
+$42\%$ of sampled cells overall and in $58\%$ of highly unbalanced
+cells; `LBFGS` in $26\%$ and $36\%$; Marquardt in $10\%$ and $17\%$;
+Newton in $4\%$ and $12\%$. On balanced raincloud rows Newton and
+Marquardt never hit $\{0,1\}$; LSEI still does ($21\%$). Mean-only and
+SVR methods convert a collinear mean map into a **hard** boundary
+estimate; ILR convolution methods convert it into a **soft** interior
+mode, until $p^{\star}$ itself is a rare-type vertex.
+
+Median absolute error of the $q_{50}$ $p_1$ fit across scenarios is
+$0.048$ (Newton), $0.100$ (`lsei`), $0.114$ (`LBFGS`), $0.142$
+(Marquardt), $0.159$ (`CIBERSORT`). The Marquardt figure is not a
+contradiction of the balanced forest: on the highly unbalanced scenario
+`V3` ($p^{\star}\approx(0.980,0.010,0.010)$) the $q_{50}$ estimates are
+$0.92$ (Newton), $0.93$ (`lsei`), $1.00$ (`CIBERSORT`), $0.82$
+(`LBFGS`), and $0.78$ (Marquardt). LSEI is closer to the vertex because
+the QP *wants* a vertex; Marquardt is pulled toward the barycentre
+because RDM refuses a long ILR walk, the same mechanism as `B811` in
+the bivariate pack. Covariance information therefore helps only if the
+solver actually follows the convolution ridge to the rare-type
+coordinate. A mean-only vertex can beat a damped interior MLE on raw
+$p_1$ error when the truth is already a vertex; it will still report
+$\hat p_3=0$ and cannot support a chi-bar-square test that the type is
+absent ([boundary inference](theory-DeCovarT-MLE-properties.html#sec-boundary)).
+
+### Ridges in the ILR slices
+
+`ilr_loglik_profiles.csv` slices $\ell(\rho_1,\rho_2)$ at
+$\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}^{\star}$. High $\bar\omega$
+produces ridges along the type-1/type-2 contrast (the collinear mean
+direction): many $(\rho_1,\rho_2)$ give almost the same convolution
+Gaussian. Newton follows the ridge until the Hessian in the remaining
+well-identified direction (type 3 versus $\{1,2\}$) stops it. Marquardt
+stops earlier when RDM sees no inferential gain. `L-BFGS-B`, stepping
+in $p$ with only box bounds, can leave the simplex during the line
+search and land near a face after $p/\sum p$, which is the raincloud's
+$26\%$ bound rate. None of these paths is the Godambe sandwich or a
+Firth penalty [@firthBiasReductionMaximum1993]; both remain outlook
+([perspectives](theory-decovart-statistical-perspectives.html#sec-firth)).
+With $N=1$, the honest frequentist statement for a rare type is still
+the restricted LRT / parametric bootstrap of the MLE article, not a
+Wald ellipse from `vcov_ilr_delta()`.
 
 ## See also
 

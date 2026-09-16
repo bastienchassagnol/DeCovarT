@@ -25,9 +25,11 @@ BayICE
 BayesPrism
 Becht
 Besson
+BFGS
 Bhattacharyya
 Bretz
 Brunner
+Byrd
 CDState
 CIBERSORT
 CIBERSORTx
@@ -68,6 +70,7 @@ DeCovarT's
 DeCovarT’s
 DecOT
 DeconRNASeq
+Dessole
 DeconV
 Deconvolution
 Dictys
@@ -87,6 +90,7 @@ Erdmann
 FIM
 Federico
 Fedorov
+Firth
 Frobenius
 furrr
 funkyheatmap
@@ -162,6 +166,7 @@ NeKo
 NeurIPS
 NeighbourNet
 Nonparanormal
+Nocedal
 Nuel
 Nguyen
 OOD
@@ -201,6 +206,7 @@ SILGGM
 SPD
 Sobol
 SSR
+SMO
 SVR
 SymSim
 Scheffé

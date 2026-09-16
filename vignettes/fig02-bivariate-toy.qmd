@@ -316,7 +316,7 @@ Seven solvers are evaluated on each scenario:
 
 | Solver | Description |
 |---|---|
-| `NNLS` | Non-negative least squares (mean-only baseline) |
+| `NNLS` | Lawson–Hanson non-negative least squares [@dessoleLawsonHansonAlgorithmDeviation2023] |
 | `DeconRNASeq` | NNLS via `lsei` [@gongDeconRNASeqStatisticalFramework2013] |
 | `L-BFGS-B` | Quasi-Newton on box-constrained simplex |
 | `gradient` | Projected gradient descent in ILR |
@@ -386,14 +386,167 @@ same 9-by-9 \((\rho_1,\rho_2)\) grid as the RMSE heatmaps: colour is
 mean RMSE and size is mean Aitchison distance, with horizontal y-axis
 labels. ggplot `data` tables are saved under `output/fig02/ggplot_rds/`.
 
-## Expected findings
+## Likelihood geometry and solver behaviour {#sec-bivariate-findings}
 
-With **large mean separation** and $\rho_j = 0$ both groups of algorithms
-should perform well. As $|\rho|$ increases and the means move closer, NNLS
-and DeconRNASeq degrade faster than DeCovarT solvers because they ignore
-covariance information. The MSE heatmap should display a characteristic
-saddle: lowest error on the diagonal $\rho_1 = \rho_2$ and highest near
-zero mean separation.
+The factorial heatmaps remain the right *design* summary: large CLD and
+$\rho_j=0$ make the mean map injective, so every solver is accurate;
+small CLD plus aligned correlations flatten the mean residual and raise
+RMSE off the diagonal $\rho_1=\rho_2$. That saddle is a statement about
+**identifiability of $\boldsymbol{\mu}\boldsymbol{p}$**, not about which
+numerical method is used. The pack in `output/fig02/mle_explanation/`
+(scenario descriptors, ILR profiles evaluated at
+$\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}^{\star}$, expected-Fisher Wald
+standard errors, and Newton versus Marquardt forests) is what separates
+three mechanisms that the heatmaps mix: the shape of
+$\ell(\boldsymbol{p};\boldsymbol{y})$, the surrogate each solver actually
+minimises, and the chart / stopping rule that walks that surrogate.
+
+### What is being optimised
+
+Mean-only `NNLS` and `DeconRNASeq` (`lsei` in `limSolve`)
+minimise a **convex** quadratic
+$(\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
+(\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})$ on the simplex
+[@dessoleLawsonHansonAlgorithmDeviation2023;
+@gongDeconRNASeqStatisticalFramework2013; @R-limSolve]. For a convex
+objective a local minimiser is global
+[@boydConvexOptimization2004, Ch. 4], so those fits are unique
+solutions of the *least-squares* problem. They are **not** maximisers of
+the convolution log-likelihood: $\boldsymbol{\Sigma}(\boldsymbol{p})$ never
+enters the quadratic. When $\boldsymbol{\mu}_{\cdot 1}$ and
+$\boldsymbol{\mu}_{\cdot 2}$ are close, that quadratic is a ridge along the
+simplex. A strictly feasible QP with bound constraints then has vertices
+as KKT candidates, which is why mean-only fits pile up at $(1,0)$ and
+$(0,1)$ whenever the residual is uninformative. Simulated annealing
+explores the same non-concave $\ell$ as DeCovarT but without curvature,
+so it is a robustness check, not an MLE.
+
+The convolution solvers maximise the Gaussian-convolution log-likelihood
+of the
+[MLE properties article](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html)
+(that article is pkgdown-only; this vignette is the CRAN-shipped
+companion). None of them inherits Boyd's global certificate, because
+that likelihood is not concave. They differ in **coordinates and
+damping**:
+
+- `L-BFGS-B` (`stats::optim`) runs limited-memory BFGS with box
+  constraints $0\le p_j\le 1$
+  [@byrdLimitedMemoryAlgorithm1995; @zhuAlgorithm778LBFGSB1997], then
+  closes the simplex by $p/\sum p$. The equality
+  $\mathbf{1}^{\top}\boldsymbol{p}=1$ is **not** a constraint of the
+  line search, so $\boldsymbol{\Sigma}(\boldsymbol{p})$ can approach
+  singularity mid-iteration; the implementation guards that with a
+  finite penalty. Faces of the cube remain admissible, which is how a
+  limited-memory quasi-Newton method sits on a simplex face after
+  renormalisation.
+- `Newton-Raphson` (`stats::nlminb`) and `Marquardt-Levenberg`
+  (`marqLevAlg`; [@R-marqLevAlg; @philippsRobustEfficientOptimization2021])
+  work in ILR coordinates, so the walk stays in the relative interior
+  until a coordinate diverges. Newton uses the analytic Hessian. Marquardt
+  adds a Levenberg damping term so that the working matrix stays
+  positive definite [@marquardtAlgorithmLeastSquaresEstimation1963] even
+  when the Hessian of $\ell$ is indefinite, and stops on the
+  relative-distance-to-maximum (RDM) criterion: the ratio of
+  *optimisation* error to *statistical* error
+  [@commengesNewtonLikeAlgorithmLikelihood2006]. On a plateau, RDM is a
+  feature — further progress along a flat ridge does not change
+  inferential accuracy — and a bias: the iterate can halt nearer the
+  barycentre than the true face.
+
+The `gradient` solver is ILR BFGS without a Hessian, so it inherits the
+chart but not Newton's local quadratic rate. Boyd's Newton analysis
+(quadratic convergence in a neighbourhood of a strict local maximiser
+with positive-definite Hessian) applies to `nlminb` only when the
+realised $\ell$ is locally strongly concave. The bivariate small-CLD
+profiles are not.
+
+### One bulk, $N=1$
+
+Every Monte Carlo replicate here is a **single** $G=2$ bulk. The MLE is
+therefore the $N=1$ estimator of
+[the finite-sample section](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-finite-sample):
+biased at $O(1)$, with Wald SEs that describe the Monte Carlo spread of
+that one-observation maximiser, not a sampling experiment with growing
+$N$. Pooling $N$ i.i.d. columns with a shared $\boldsymbol{p}^{\star}$ is
+what would make $\hat{\boldsymbol{p}}_N$ consistent. The ILR profiles in
+the pack are evaluated at the *conditional mean*
+$\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}^{\star}$, which isolates the
+log-determinant remainder; the forests average over random
+$\boldsymbol{Y}$.
+
+### Reading the twelve meta-scenarios
+
+Numbers below are from `forest_newton_marquardt.csv`,
+`theoretical_wald_se.csv`, and the range of `ilr_loglik_profiles.csv`
+(max minus min of $\ell(\rho)$ on the plotting grid).
+
+**Large CLD, balanced, $\rho_j=0$ (`B567`).** The mean map is well
+conditioned. The ILR profile spans about $101$ nats and
+$\mathrm{SE}_{\rho}=0.071$. Newton and Marquardt agree to numerical
+noise: bias of $p_1$ about $0$, RMSE $0.024$, coverage $0.96$, and the
+empirical SD matches the expected-Fisher SE ($0.025$). This is the
+textbook interior MLE: strongly concave locally, RDM and Newton stop at
+the same point.
+
+**Large CLD, balanced, $\rho_j=-0.8$ (`B487`).** Equal negative
+correlation inflates variance along the anti-diagonal of gene space but
+does not destroy the mean contrast. Profile range $56$,
+$\mathrm{SE}_{\rho}=0.095$, RMSE $0.033$ for both second-order solvers.
+Covariance-aware curvature is still enough.
+
+**Small CLD, balanced (`B1`, `B81`).** Means $(20,22)$ versus $(22,20)$
+almost collinear. Profile range drops to $1.2$--$1.7$ nats;
+$\mathrm{SE}_{\rho}$ is $0.95$ (both $\rho=-0.8$) or $0.71$
+($\rho=0$). RMSE of $p_1$ is $0.19$--$0.23$ and Wald coverage is
+conservative ($0.98$--$1$). Marquardt is slightly *less* variable than
+Newton here (RMSE $0.192$ versus $0.234$ on `B1`): damping and RDM cut
+walks along the ridge, which for a *balanced* truth is a small bias
+toward $1/2$ that happens to reduce RMSE. Mean-only QPs see an even
+flatter residual and are the ones that snap to vertices.
+
+**Highly unbalanced, small CLD (`B325`, `B405`, $p^{\star}=(0.99,0.01)$).**
+The ILR chart sends the rare type to $\rho\to+\infty$. Fisher curvature
+in $\rho$ collapses: $\mathrm{SE}_{\rho}$ is $24$ (both $\rho=-0.8$) or
+$20$ ($\rho=0$), while the profile range on a finite grid is only
+$2.4$--$4.1$ nats — a plateau, not a peak. Newton bias for $p_1$ is
+$-0.22$ and $-0.18$; Marquardt bias is $-0.40$ and $-0.38$. Both
+shrink toward the barycentre, Marquardt more so, exactly as RDM
+predicts on a flat tail. Coverage stays near $0.92$--$0.94$ because the
+Wald interval is already huge. This is the geometry behind
+chi-bar-square calibration on a face
+([boundary LRTs](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-boundary)):
+the tangent cone is a half-line, Wilks does not apply, and a Wald SE in
+ILR is not a calibrated rare-type interval.
+
+**Highly unbalanced, large CLD (`B811`, `B891`).** The profile in
+$\rho$ is *not* flat in the raw log-likelihood (range $218$--$392$),
+because a $1\%$ contamination still shifts a well-separated mean. The
+ILR SE remains large ($3.3$ and $2.5$) because a small $p_2$ is a long
+way out on the chart. Newton follows that peak: bias $-0.017$ and
+$-0.010$, RMSE $0.035$ and $0.026$, coverage $0.97$. Marquardt does
+**not**: bias $-0.26$ and $-0.29$, RMSE $0.35$ and $0.37$, coverage
+$0.47$ and $0.40$. The damping / RDM pair stops in ILR before
+$|\rho|$ is large enough to represent $p_2=0.01$. A sharp peak in $p$
+can still look like a long walk in $\rho$; Marquardt's statistical
+stopping rule then under-shoots a rare type even when the convolution
+likelihood is informative. That failure is an optimiser-chart
+interaction, not a lack of covariance signal.
+
+Moderately unbalanced rows sit between these extremes: small-CLD RMSE
+$0.23$--$0.31$ with Marquardt again more barycentric; large-CLD RMSE
+about $0.03$--$0.04$ with the two second-order solvers aligned.
+
+### What the heatmaps still add
+
+The $9\times 9$ $(\rho_1,\rho_2)$ tiles, which are **not** in the
+twelve-row explanation pack, remain the place to see mean-only methods
+lose first as $|\rho|$ grows at small CLD, and to see DeCovarT retain
+the diagonal saddle. The pack's message is narrower and sharper: with
+$N=1$, a plateau in ILR makes every interior solver noisy; Marquardt's
+RDM is the right stop on a balanced ridge and the wrong stop on a rare
+type; Newton with a full Hessian tracks $p^{\star}$ once the means
+separate; convex QPs solve a different problem and are entitled only to
+that problem's unique minimiser.
 
 ## See also
 

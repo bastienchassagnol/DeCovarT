@@ -26,7 +26,7 @@ format:
 ::: callout-note
 ## Scope
 
-Outlook on extending DeCovarT beyond the closed-reference Gaussian convolution. Sections cover Scheffé-type mixture structure, alternative observation laws and Bayesian CTS inference, sample-level covariates, incomplete references, isoforms, RNA–cell uncoupling, weighted / generalised least squares, lineage and archetypes, time-resolved composition, ensembles, spatial transcriptomics, and multi-omics. Compositional reparametrisation is implemented in [`additive_logistic()`](../reference/additive_logistic.html) and documented numerically in the [derivatives under simplex transforms](theory-decovart-generative-model.html) vignette. The same catalogue is tracked in [GitHub issue 5](https://github.com/bastienchassagnol/DeCovarT/issues/5).
+Outlook on extending DeCovarT beyond the closed-reference Gaussian convolution. Sections cover Scheffé-type mixture structure, alternative observation laws and Bayesian CTS inference, sample-level covariates, incomplete references, isoforms, RNA–cell uncoupling, weighted / generalised least squares, Firth penalisation for few bulk samples, lineage and archetypes, time-resolved composition, ensembles, spatial transcriptomics, and multi-omics. Compositional reparametrisation is implemented in [`additive_logistic()`](../reference/additive_logistic.html) and documented numerically in the [derivatives under simplex transforms](theory-decovart-generative-model.html) vignette. The same catalogue is tracked in [GitHub issue 5](https://github.com/bastienchassagnol/DeCovarT/issues/5).
 :::
 
 Bulk transcriptomic deconvolution is one instance of a **mixture inverse problem**: a composite signal (tissue expression, a spectrum, a chromatogram) is observed, and we seek the proportions $\boldsymbol{p}$ of underlying components. Because $\boldsymbol{p}$ is **compositional** (parts of a whole), estimates must lie on the simplex $\Delta^{J-1}=\{\boldsymbol{p}\in[0,1]^J:\sum_j p_j=1\}$. [@chassagnolDeCovarTMultidimensionalProbalistic2023] model each reference profile as multivariate Gaussian and recover $\boldsymbol{p}$ by constrained maximum likelihood; classical deconvolution tools such as `CIBERSORT` assume gene-wise independence instead [@newmanRobustEnumerationCell2015].
@@ -672,6 +672,42 @@ methylation [@chenUnicoUnifiedModelCell2025]. Interaction monomials
 $p_{j}p_{k}$ in the mean (@eq-interaction-mean) are the Scheffé /
 general-linear-model route; `DecOT` instead changes the discrepancy to
 an optimal-transport loss [@liuDecotBulkDeconvolutionOptimal2022].
+
+## Firth penalisation for few bulk samples {#sec-firth}
+
+Firth penalisation is a third route when only a few bulk columns share
+one composition [@firthBiasReductionMaximum1993]. Ordinary MLE bias is
+$O(N^{-1})$
+([finite-sample section of the MLE vignette](theory-DeCovarT-MLE-properties.html#sec-finite-sample)).
+The Jeffreys-invariant adjustment maximises
+
+$$
+\ell_{\mathrm{F}}(\boldsymbol{p})
+=
+\ell_{\boldsymbol{y}}(\boldsymbol{p})
++\tfrac12\log\det I(\boldsymbol{p}),
+$$ {#eq-firth}
+
+where $I(\boldsymbol{p})$ is the expected Fisher information of the
+convolution in the working chart (ILR, or the unconstrained $p$-block
+returned by
+[`expected_fisher_unconstrained()`](../reference/expected_fisher_unconstrained.html)).
+There is no extra tuning parameter: the penalty is the log-volume of
+the local information ellipsoid, equivalently a MAP under Jeffreys'
+prior $\pi(\boldsymbol{p})\propto\sqrt{\det I(\boldsymbol{p})}$. In
+exponential families the construction removes the $O(N^{-1})$ term and
+leaves an $O(N^{-2})$ remainder; it is the standard cure for logistic
+separation. For DeCovarT the same geometry is attractive for a
+different reason. $\det I(\boldsymbol{p})$ collapses when cell types are
+near-collinear or when $\boldsymbol{p}$ approaches a simplex face, whereas
+the GLS competitor of @eq-gls uses a *fixed* $W$. Adding
+$\tfrac12\log\det I(\boldsymbol{p})$ therefore *discourages* plateaux and
+boundary pile-up rather than shrinking coefficients toward zero as ridge
+or lasso would. It is not implemented: `fit_decovart()` maximises the
+convolution likelihood of @eq-gaussian-convolution, not @eq-firth. A
+prototype would add the log-determinant of the ILR information to
+[`loglik_multivariate_constrained()`](../reference/loglik_multivariate_constrained.html)
+and reuse the existing Marquardt / Newton solvers.
 
 ## Time-resolved composition {#sec-dynamics}
 
