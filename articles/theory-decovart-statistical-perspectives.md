@@ -6,9 +6,10 @@
 > convolution. Sections cover Scheffé-type mixture structure,
 > alternative observation laws and Bayesian CTS inference, sample-level
 > covariates, incomplete references, isoforms, RNA–cell uncoupling,
-> weighted / generalised least squares, lineage and archetypes,
-> time-resolved composition, ensembles, spatial transcriptomics, and
-> multi-omics. Compositional reparametrisation is implemented in
+> weighted / generalised least squares, Firth penalisation for few bulk
+> samples, lineage and archetypes, time-resolved composition, ensembles,
+> spatial transcriptomics, and multi-omics. Compositional
+> reparametrisation is implemented in
 > [`additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
 > and documented numerically in the [derivatives under simplex
 > transforms](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.md)
@@ -645,6 +646,41 @@ Interaction monomials p\_{j}p\_{k} in the mean
 route; `DecOT` instead changes the discrepancy to an optimal-transport
 loss ([Liu et al. 2022](#ref-liuDecotBulkDeconvolutionOptimal2022)).
 
+### Firth penalisation for few bulk samples
+
+Firth penalisation is a third route when only a few bulk columns share
+one composition ([Firth 1993](#ref-firthBiasReductionMaximum1993)).
+Ordinary MLE bias is O(N^{-1}) ([finite-sample section of the MLE
+vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-finite-sample)).
+The Jeffreys-invariant adjustment maximises
+
+\ell\_{\mathrm{F}}(\boldsymbol{p}) =
+\ell\_{\boldsymbol{y}}(\boldsymbol{p}) +\tfrac12\log\det
+I(\boldsymbol{p}), \tag{18}
+
+where I(\boldsymbol{p}) is the expected Fisher information of the
+convolution in the working chart (ILR, or the unconstrained p-block
+returned by
+[`expected_fisher_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.md)).
+There is no extra tuning parameter: the penalty is the log-volume of the
+local information ellipsoid, equivalently a MAP under Jeffreys’ prior
+\pi(\boldsymbol{p})\propto\sqrt{\det I(\boldsymbol{p})}. In exponential
+families the construction removes the O(N^{-1}) term and leaves an
+O(N^{-2}) remainder; it is the standard cure for logistic separation.
+For DeCovarT the same geometry is attractive for a different reason.
+\det I(\boldsymbol{p}) collapses when cell types are near-collinear or
+when \boldsymbol{p} approaches a simplex face, whereas the GLS
+competitor of [Eq. 17](#eq-gls) uses a *fixed* W. Adding
+\tfrac12\log\det I(\boldsymbol{p}) therefore *discourages* plateaux and
+boundary pile-up rather than shrinking coefficients toward zero as ridge
+or lasso would. It is not implemented:
+[`fit_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md)
+maximises the convolution likelihood of
+[Eq. 2](#eq-gaussian-convolution), not [Eq. 18](#eq-firth). A prototype
+would add the log-determinant of the ILR information to
+[`loglik_multivariate_constrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/loglik_multivariate_constrained.md)
+and reuse the existing Marquardt / Newton solvers.
+
 ### Time-resolved composition
 
 When J\>G the linear map is under-determined. Elastic-net methods such
@@ -875,6 +911,9 @@ Finotello, Francesca, Clemens Mayer, Christina Plattner, et al. 2019.
 ‘Molecular and Pharmacological Modulators of the Tumor Immune Contexture
 Revealed by Deconvolution of RNA-seq Data’. *Genome Medicine* 11.
 <https://doi.org/10.1186/s13073-019-0638-6>.
+
+Firth, David. 1993. ‘Bias Reduction of Maximum Likelihood Estimates’.
+*Biometrika* 80 (1): 27–38. <https://doi.org/10.1093/biomet/80.1.27>.
 
 Friedman, Jerome, Trevor Hastie, Rob Tibshirani, et al. 2026. *Glmnet:
 Lasso and Elastic-Net Regularized Generalized Linear Models*.

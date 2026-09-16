@@ -99,7 +99,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>MLE properties and asymptotic inference for the DeCovarT log-likelihood</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-09-15</p>
+      <p class="date">2026-09-16</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-DeCovarT-MLE-properties.qmd" class="external-link"><code>vignettes/theory-DeCovarT-MLE-properties.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -279,6 +279,61 @@ o(\lVert\boldsymbol{d}\rVert^{2}) ,
 <span><span class="co">#&gt; 3 1e-04     2.428298e-08   2.428254e-08</span></span></code></pre></div>
 </div>
 <p>The two columns agree to the order of <span class="math inline">\lVert\boldsymbol{d}\rVert^{3}</span>, as <a href="#eq-fisher-metric" class="quarto-xref">Eq. 5</a> predicts.</p>
+</section><section class="level2"><h3 id="sec-finite-sample">Finite-sample bias versus asymptotic unbiasedness<a class="anchor" aria-label="anchor" href="#sec-finite-sample"></a>
+</h3>
+<p><a href="#thm-population" class="quarto-xref">Theorem 1</a> is a statement about the <em>expected</em> criterion <span class="math inline">Q(\boldsymbol{p};\boldsymbol{p}_0)</span>. It does not say that the maximiser of one realised log-likelihood equals <span class="math inline">\boldsymbol{p}_0</span>. Typical bulk deconvolution observes a single <span class="math inline">G</span>-vector <span class="math inline">\boldsymbol{Y}_{\cdot i}\sim\mathcal{N}_G(\boldsymbol{\mu}
+\boldsymbol{p}_{\cdot i},\boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i}))</span> and treats that column as <span class="math inline">N=1</span>. The resulting MLE is then a nonlinear function of one Gaussian draw, so <span class="math inline">\mathbb{E}_{\boldsymbol{p}_0}(\hat{\boldsymbol{p}})\neq\boldsymbol{p}_0</span> in general: the leading bias of a regular MLE is <span class="math inline">O(N^{-1})</span> <span class="citation" data-cites="vaartAsymptoticStatistics2000">(<a href="#ref-vaartAsymptoticStatistics2000" role="doc-biblioref">Vaart 2000, ch. 5</a>)</span>. The same map becomes consistent, and <span class="math inline">\sqrt{N}</span>-normal with variance <span class="math inline">I(\boldsymbol{p}_0)^{-1}</span>, once <span class="math inline">N</span> i.i.d. bulk columns share one composition, because the averaged criterion converges to <span class="math inline">Q</span> and <span class="math inline">Q</span> has a unique maximiser at <span class="math inline">\boldsymbol{p}_0</span>.</p>
+<p>Two calculations are easy to confuse and are not the same.</p>
+<p><strong>Score identity.</strong> If the convolution is correctly specified, <span class="math inline">\mathbb{E}_{\boldsymbol{p}_0}\{\nabla\ell_{\boldsymbol{Y}}(\boldsymbol{p}_0)\}=\boldsymbol{0}</span>. The identity is a property of the <em>random</em> bulk. It is what the Fisher metric of <a href="#eq-fisher-metric" class="quarto-xref">Eq. 5</a> linearises.</p>
+<p><strong>Mean-profile remainder.</strong> Substituting the <em>conditional mean</em> <span class="math inline">\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}_0</span> into the score of <a href="#eq-loglik" class="quarto-xref">Eq. 1</a> kills the Mahalanobis terms and leaves only the derivative of <span class="math inline">-\tfrac12\log\det\boldsymbol{\Sigma}(\boldsymbol{p})</span>. In unconstrained <span class="math inline">\boldsymbol{p}</span>-coordinates that remainder is <span class="math inline">-p_j\operatorname{tr}\bigl(\boldsymbol{\Theta}(\boldsymbol{p})
+\boldsymbol{\Sigma}_j\bigr)</span> at each <span class="math inline">j</span>, with <span class="math inline">\boldsymbol{\Theta}=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}</span>. Mapped through the ILR chart it vanishes by symmetry when <span class="math inline">\boldsymbol{p}_0=(1/2,1/2)</span> and <span class="math inline">\boldsymbol{\Sigma}_1=\boldsymbol{\Sigma}_2</span>, and it does <strong>not</strong> vanish at an unbalanced interior point. Hence the maximiser of <span class="math inline">\ell(\,\cdot\,;\boldsymbol{\mu}\boldsymbol{p}_0)</span> need not equal <span class="math inline">\boldsymbol{p}_0</span> even though that bulk sits at the centre of the model. The bias of the <em>random</em> MLE is a different, typically larger, effect: <span class="math inline">\hat{\boldsymbol{p}}</span> is a nonlinear function of <span class="math inline">\boldsymbol{Y}</span>, and near a simplex face the ILR chart sends <span class="math inline">p_j\to 0</span> to <span class="math inline">|\rho|\to\infty</span> so that a plateau in <span class="math inline">\ell</span> (see <a href="#sec-boundary" class="quarto-xref">Sec. 2.3</a>) inflates the <span class="math inline">O(N^{-1})</span> term.</p>
+<p>Convex-optimisation guarantees do not close the gap. Boyd and Vandenberghe emphasise that a local maximum of a non-concave objective need not be global, and that first-order stationarity certifies optimality only under convexity <span class="citation" data-cites="boydConvexOptimization2004">(<a href="#ref-boydConvexOptimization2004" role="doc-biblioref">Boyd et al. 2004, ch. 1</a> and 4)</span>. <a href="#nte-nonconcave" class="quarto-xref">Note 1</a> already exhibits an indefinite Hessian for one bulk, so a converged solver certifies a <em>local</em> maximiser of that sample’s <span class="math inline">\ell</span>, not uniqueness and not unbiasedness. What <em>is</em> uniquely maximised is <span class="math inline">Q</span>, and only after <span class="math inline">N\to\infty</span> (or after pooling genuine replicates; <a href="#sec-replication" class="quarto-xref">Sec. 2.4</a>) does <span class="math inline">\hat{\boldsymbol{p}}_N</span> concentrate there.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mu_cld</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">22</span>, <span class="fl">22</span>, <span class="fl">20</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">Sigma_id</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">p_balanced</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.5</span><span class="op">)</span></span>
+<span><span class="va">p_rare</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.99</span>, <span class="fl">0.01</span><span class="op">)</span></span>
+<span><span class="va">y_at_mean</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="va">mu_cld</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">p</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="va">score_at_mean</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">p</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="../reference/gradient_loglik_constrained.html">gradient_loglik_constrained</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="../reference/isometric_logistic.html">isometric_log_ratio</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span>,</span>
+<span>    <span class="fu">y_at_mean</span><span class="op">(</span><span class="va">p</span><span class="op">)</span>,</span>
+<span>    <span class="va">mu_cld</span>,</span>
+<span>    <span class="va">Sigma_id</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">cov_rare</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/dot-compute_global_variance.html">.compute_global_variance</a></span><span class="op">(</span><span class="va">p_rare</span>, <span class="va">Sigma_id</span><span class="op">)</span></span>
+<span><span class="va">mean_score_random</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">replicate</a></span><span class="op">(</span><span class="fl">200</span>, <span class="op">{</span></span>
+<span>  <span class="va">y</span> <span class="op">&lt;-</span> <span class="fu">MASS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html" class="external-link">mvrnorm</a></span><span class="op">(</span></span>
+<span>    n <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>    mu <span class="op">=</span> <span class="fu">y_at_mean</span><span class="op">(</span><span class="va">p_rare</span><span class="op">)</span>,</span>
+<span>    Sigma <span class="op">=</span> <span class="va">cov_rare</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="fu"><a href="../reference/gradient_loglik_constrained.html">gradient_loglik_constrained</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="../reference/isometric_logistic.html">isometric_log_ratio</a></span><span class="op">(</span><span class="va">p_rare</span><span class="op">)</span>,</span>
+<span>    <span class="va">y</span>,</span>
+<span>    <span class="va">mu_cld</span>,</span>
+<span>    <span class="va">Sigma_id</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  composition <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"balanced 50-50"</span>, <span class="st">"rare type 0.01"</span><span class="op">)</span>,</span>
+<span>  ilr_score_at_conditional_mean <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="fu">score_at_mean</span><span class="op">(</span><span class="va">p_balanced</span><span class="op">)</span>,</span>
+<span>    <span class="fu">score_at_mean</span><span class="op">(</span><span class="va">p_rare</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  mean_ilr_score_at_truth <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">NA_real_</span>, <span class="va">mean_score_random</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;      composition ilr_score_at_conditional_mean mean_ilr_score_at_truth</span></span>
+<span><span class="co">#&gt; 1 balanced 50-50                    0.00000000                      NA</span></span>
+<span><span class="co">#&gt; 2 rare type 0.01                   -0.02799572            0.0004500902</span></span></code></pre></div>
+</div>
+<p>The ILR score at the conditional mean is zero in the balanced isotropic case and of order <span class="math inline">10^{-2}</span> at <span class="math inline">p=(0.99,0.01)</span>. Averaging the same score over random <span class="math inline">\boldsymbol{Y}\sim\mathcal{N}_G(\boldsymbol{\mu}\boldsymbol{p}_0,
+\boldsymbol{\Sigma}(\boldsymbol{p}_0))</span> returns a number consistent with zero, as the information identity requires. Finite-sample bias of <span class="math inline">\hat{\boldsymbol{p}}</span> is therefore not a failure of <span class="math inline">\mathbb{E}(\nabla\ell)=0</span>; it is the nonlinearity of the maximiser, amplified when <a href="#eq-loglik" class="quarto-xref">Eq. 1</a> is nearly flat along a simplex face. The bivariate and covariance-driven Monte Carlo packs in <code>output/fig02/mle_explanation/</code> and <code>output/fig03/mle_explanation/</code> quantify that geometry for <span class="math inline">N=1</span> (see <a href="fig02-bivariate-toy.html#sec-bivariate-findings">the bivariate toy</a> and <a href="fig03-covariance-driven.html#sec-hybrid-findings">the covariance-driven scenario</a>). A Jeffreys / Firth adjustment of <span class="math inline">\ell</span> <span class="citation" data-cites="firthBiasReductionMaximum1993">(<a href="#ref-firthBiasReductionMaximum1993" role="doc-biblioref">Firth 1993</a>)</span> is an outlook for shrinking the <span class="math inline">O(N^{-1})</span> term when replicates are scarce (<a href="theory-decovart-statistical-perspectives.html#sec-firth">perspectives</a>).</p>
 </section><section class="level2"><h3 id="sec-equivariance">Equivariance: affine yes, logarithmic no<a class="anchor" aria-label="anchor" href="#sec-equivariance"></a>
 </h3>
 <div id="prp-equivariance" class="theorem proposition">
@@ -326,7 +381,7 @@ D_j(c)
 \tag{6}</span></span></p>
 <p>concentrates out the other <span class="math inline">J-2</span> proportions instead. Because a smooth bijection leaves likelihood ratios unchanged, <a href="#eq-lrt" class="quarto-xref">Eq. 6</a> needs <strong>no</strong> delta method and respects the simplex automatically. Inverting it gives the asymmetric intervals of <a href="../reference/confint_profile_decovart.html"><code>confint_profile_decovart()</code></a>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">signature</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">40</span>, <span class="fl">15</span>, <span class="fl">40</span>, <span class="fl">20</span>, <span class="fl">25</span>, <span class="fl">25</span>, <span class="fl">30</span>, <span class="fl">35</span><span class="op">)</span>,</span>
 <span>  nrow <span class="op">=</span> <span class="fl">3</span>,</span>
@@ -369,7 +424,7 @@ D_j(c)
 <span><span class="co">#&gt; ct3   0.1895 0.1598 0.2182</span></span></code></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/lrt_decovart.html">lrt_decovart</a></span><span class="op">(</span></span>
 <span>  bulk_expression <span class="op">=</span> <span class="va">replicates</span>,</span>
 <span>  mean_signature_matrix <span class="op">=</span> <span class="va">signature</span>,</span>
@@ -399,7 +454,7 @@ D
 </div>
 <p><a href="../reference/chi_bar_square_pvalue.html"><code>chi_bar_square_pvalue()</code></a> evaluates <a href="#eq-chibar" class="quarto-xref">Eq. 7</a>, and <a href="../reference/lrt_decovart.html"><code>lrt_decovart()</code></a> selects it automatically when a tested value reaches 0 or 1.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">11</span><span class="op">)</span></span>
 <span><span class="va">replicates_absent</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture</a></span><span class="op">(</span></span>
 <span>  signature_matrix <span class="op">=</span> <span class="va">signature</span>,</span>
@@ -434,7 +489,7 @@ D
 </div>
 </section><section class="level2"><h3 id="sec-replication">Replication is what makes the asymptotics meaningful<a class="anchor" aria-label="anchor" href="#sec-replication"></a>
 </h3>
-<p><a href="#eq-lrt" class="quarto-xref">Eq. 6</a> and <a href="#eq-chibar" class="quarto-xref">Eq. 7</a> are limits as the amount of information about <strong>one</strong> composition grows. That is a strong requirement in deconvolution.</p>
+<p><a href="#eq-lrt" class="quarto-xref">Eq. 6</a> and <a href="#eq-chibar" class="quarto-xref">Eq. 7</a> are limits as the amount of information about <strong>one</strong> composition grows. That is a strong requirement in deconvolution, and it is the same <span class="math inline">N\to\infty</span> that turns the <span class="math inline">O(N^{-1})</span> bias of <a href="#sec-finite-sample" class="quarto-xref">Sec. 1.5</a> into consistency.</p>
 <p>For each bulk sample <span class="math inline">i</span>, DeCovarT observes a single <span class="math inline">G</span>-vector <span class="math inline">\boldsymbol{Y}_{\cdot i}\sim\mathcal{N}_G(\boldsymbol{\mu}
 \boldsymbol{p}_{\cdot i},\boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i}))</span> and estimates its own <span class="math inline">\boldsymbol{p}_{\cdot i}</span>. Increasing the number of samples <span class="math inline">N</span> therefore adds parameters exactly as fast as observations, and provides <strong>no</strong> extra replication for any single <span class="math inline">\boldsymbol{p}_{\cdot i}</span>. The <span class="math inline">G</span> genes are not <span class="math inline">G</span> independent observations either: their dependence through <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span> is the whole point of the model.</p>
 <div id="nte-replication">
@@ -457,7 +512,7 @@ D
 \boldsymbol{\Sigma}(\boldsymbol{p}))</span>, refits, and — when <code>null_value</code> is supplied — regenerates under the <strong>restricted</strong> MLE so the likelihood-ratio statistic is recalibrated without invoking the <span class="math inline">50{:}50</span> weights <span class="citation" data-cites="rochModernDiscreteProbability2024">(<a href="#ref-rochModernDiscreteProbability2024" role="doc-biblioref">Roch 2024</a> reviews the concentration tools behind such Monte Carlo guarantees)</span>.</p>
 <p>The atom at zero is directly observable: under a true boundary null, about half of the replicates should return <span class="math inline">D=0</span>, because the unrestricted MLE itself falls on the face.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span></span>
 <span><span class="va">calibration</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bootstrap_decovart.html">bootstrap_decovart</a></span><span class="op">(</span></span>
 <span>  bulk_expression <span class="op">=</span> <span class="va">replicates_absent</span>,</span>
@@ -495,7 +550,7 @@ D
 <p>By default the observed bulk is held fixed for <code>donors</code> and <code>cells</code> (reference uncertainty for a given mixture). Setting <code>regenerate_bulk = TRUE</code> follows the fuller pipeline <span class="math inline">\text{reference units}\to S^{(b)}\to Y^{(b)}\to\hat{\boldsymbol{p}}^{(b)}</span>.</p>
 <p>A related design point for <strong>simulation studies</strong>, not implemented as an argument here, is to split reference-building cells from pseudobulk-generating cells, ideally at the donor level. Using the same cells, or cells from the same individual, in both the signature and the artificial bulk makes a benchmark unrealistically easy <span class="citation" data-cites="sturmComprehensiveEvaluationTranscriptomebased2019 avilacobosBenchmarkingCellType2020 zhaoEvaluatingReferencemixtureMatching2026">(<a href="#ref-sturmComprehensiveEvaluationTranscriptomebased2019" role="doc-biblioref">Sturm et al. 2019</a>; <a href="#ref-avilacobosBenchmarkingCellType2020" role="doc-biblioref">Avila Cobos et al. 2020</a>; <a href="#ref-zhaoEvaluatingReferencemixtureMatching2026" role="doc-biblioref">Zhao et al. 2026</a>)</span>. <span class="citation" data-cites="nguyenFourteenYearsCellular2024">Nguyen et al. (<a href="#ref-nguyenFourteenYearsCellular2024" role="doc-biblioref">2024</a>)</span> review 53 bulk methods and stress incomplete references and missing cell types; <span class="citation" data-cites="avilacobosBenchmarkingCellType2020">Avila Cobos et al. (<a href="#ref-avilacobosBenchmarkingCellType2020" role="doc-biblioref">2020</a>)</span> show that omitted types and the expression scale dominate error on pseudobulk mixtures. The simulation generator used to evaluate <code>imply</code> is a useful reference-based template: cell-type parameters are drawn from a multivariate Gaussian, purified-like expression is realised from a Gamma (negative-binomial-like) law fitted to RNA-seq counts, and bulk mixtures are then formed from those profiles with Dirichlet compositions <span class="citation" data-cites="mengImplyImprovingCelltype2024">(<a href="#ref-mengImplyImprovingCelltype2024" role="doc-biblioref">Meng et al. 2024</a>)</span>. That is distinct from DeCovarT’s Gaussian convolution of the <em>bulk</em>; it is a design for how to build a labelled <span class="math inline">S</span> and a synthetic <span class="math inline">Y</span> with known <span class="math inline">p</span>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">9</span><span class="op">)</span></span>
 <span><span class="va">refs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">signature</span><span class="op">)</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">j</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">draws</span> <span class="op">&lt;-</span> <span class="fu">MASS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html" class="external-link">mvrnorm</a></span><span class="op">(</span></span>
@@ -527,7 +582,7 @@ D
 </div>
 <p><a href="../reference/equivariance_check_decovart.html"><code>equivariance_check_decovart()</code></a> is the software counterpart of <strong>?@thm-label-equivariance</strong>: permute the signature columns, refit, and confirm that <span class="math inline">\hat{\boldsymbol{p}}</span> merely relabels. It is not the distribution used for confidence intervals.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">eq_check</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/equivariance_check_decovart.html">equivariance_check_decovart</a></span><span class="op">(</span></span>
 <span>  y <span class="op">=</span> <span class="va">replicates</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>,</span>
 <span>  mean_signature_matrix <span class="op">=</span> <span class="va">signature</span>,</span>
@@ -600,7 +655,7 @@ Table 1: What each DeCovarT convergence field does and does not certify.
 </div>
 <p><a href="../reference/boundary_diagnostics.html"><code>boundary_diagnostics()</code></a> computes the first three per sample; they are stored in <code>fit$diagnostics</code>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_decovart.html">fit_decovart</a></span><span class="op">(</span></span>
 <span>  signature_matrix <span class="op">=</span> <span class="va">signature</span>,</span>
 <span>  bulk_expression <span class="op">=</span> <span class="va">replicates</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span>,</span>
@@ -630,7 +685,7 @@ Table 1: What each DeCovarT convergence field does and does not certify.
 </div>
 <p>Multimodality is the one property that restarts address directly. <a href="../reference/multistart_decovart.html"><code>multistart_decovart()</code></a> refits from independent Dirichlet<span class="math inline">(1,\ldots,1)</span> starts and reports the spread of attained optima; <code>fit_decovart(n_starts = )</code> wires it into the S3 workflow and keeps the best mode.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">restarts</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/multistart_decovart.html">multistart_decovart</a></span><span class="op">(</span></span>
 <span>  y <span class="op">=</span> <span class="va">replicates</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>,</span>
@@ -798,6 +853,9 @@ Efron, B. 1979. <span>‘Bootstrap Methods: Another Look at the Jackknife’</sp
 </div>
 <div id="ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021" class="csl-entry" role="listitem">
 Erdmann-Pham, Dan D., Jonathan Fischer, Justin Hong, and Yun S. Song. 2021. <span>‘Likelihood-Based Deconvolution of Bulk Gene Expression Data Using Single-Cell References’</span>. <em>Genome Research</em> 31 (10): 1794–806. <a href="https://doi.org/10.1101/gr.272344.120" class="external-link">https://doi.org/10.1101/gr.272344.120</a>.
+</div>
+<div id="ref-firthBiasReductionMaximum1993" class="csl-entry" role="listitem">
+Firth, David. 1993. <span>‘Bias Reduction of Maximum Likelihood Estimates’</span>. <em>Biometrika</em> 80 (1): 27–38. <a href="https://doi.org/10.1093/biomet/80.1.27" class="external-link">https://doi.org/10.1093/biomet/80.1.27</a>.
 </div>
 <div id="ref-malagoInformationGeometryGaussian2015" class="csl-entry" role="listitem">
 Malago, Luigi, and Giovanni Pistone. 2015. <span>‘Information Geometry of the Gaussian Distribution in View of Stochastic Optimization’</span>. In <em>Proceedings of the 2015 ACM Conference on Foundations of Genetic Algorithms XIII</em>. Association for Computing Machinery. <a href="https://doi.org/10.1145/2725494.2725510" class="external-link">https://doi.org/10.1145/2725494.2725510</a>.

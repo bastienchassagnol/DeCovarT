@@ -399,17 +399,130 @@ per-sample `optimisation$elapsed_sec` or `memory_bytes` (converted to
 MiB), with a left-side `geom_rug()` of the raw Monte Carlo draws and a
 log10 y-axis.
 
-### Expected findings
+### Likelihood geometry and solver behaviour
 
-Because CT 1 and CT 2 share cosine 0.9, LSEI and CIBERSORT cannot
-separate them from the mean signature alone. DeCovarT (L-BFGS-B,
-Newton–Raphson, Marquardt–Levenberg) uses \boldsymbol{\Sigma}\_j.
-**Topology** (scale-free versus cluster SBM) still matters, but
-**average overlap** is the stronger predictor of error and of Wald
-uncertainty: high `BarOmega` scenarios remain hard even when the graphs
-differ, whereas low overlap with a large f\_{\mathrm{cov}} is where
-covariance-aware solvers should pull ahead of mean-only baselines,
-especially at H^{\star}=0.1.
+Cell types 1 and 2 share cosine 0.9, so the mean map
+\boldsymbol{\mu}\boldsymbol{p} is close to singular in the (p_1,p_2)
+plane: type 3 is the only well-separated mean. MixSim \bar\omega then
+sets how much of the remaining signal lives in
+\\\boldsymbol{\Sigma}\_j\\. The pack in `output/fig03/mle_explanation/`
+(descriptors, ILR slices of \ell at
+\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}^{\star}, expected-Fisher
+SEs, Newton/Marquardt forests on **balanced** compositions, and a
+quantile-sampled raincloud across all H^{\star}) is the numerical
+reading of that geometry. As in the bivariate toy, three layers must be
+kept apart: the convolution \ell, the surrogate each solver optimises,
+and the chart / KKT / stopping rule.
+
+#### Surrogates versus the convolution
+
+`lsei` (`limSolve`) is again a convex QP for
+\\\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}\\\_2^2 on the simplex
+([Soetaert et al. 2026](#ref-R-limSolve); [Gong and Szustakowski
+2013](#ref-gongDeconRNASeqStatisticalFramework2013); [Dessole et al.
+2023](#ref-dessoleLawsonHansonAlgorithmDeviation2023); [Boyd et al.
+2004](#ref-boydConvexOptimization2004)). With two nearly collinear
+signature columns the QP is under-determined in the (p_1,p_2) direction;
+the equality \sum p_j=1 plus bounds then put mass on a face. `CIBERSORT`
+replaces squares by a \nu-SVR hinge ([Newman et al.
+2015](#ref-newmanRobustEnumerationCell2015)). The dual is a convex
+quadratic programme solved by sequential working-set methods ([Fan et
+al. 2005](#ref-fanWorkingSetSelection2005)). The wrapper does **not**
+constrain coefficients to the simplex during the fit: negatives are
+clipped to zero and the remainder is renormalised. Clipping is a
+Euclidean projection onto the positive orthant, not a constrained MLE,
+so a support vector that overshoots becomes a vertex of \Delta^{2}.
+Neither method sees p_j^2\boldsymbol{\Sigma}\_j.
+
+DeCovarT solvers maximise the Gaussian convolution. `Newton-Raphson` and
+`Marquardt-Levenberg` do so in ILR, with a full Hessian versus Marquardt
+damping plus RDM ([Marquardt
+1963](#ref-marquardtAlgorithmLeastSquaresEstimation1963); [Commenges et
+al. 2006](#ref-commengesNewtonLikeAlgorithmLikelihood2006); [Philipps et
+al. 2021](#ref-philippsRobustEfficientOptimization2021),
+[2023](#ref-R-marqLevAlg)). `L-BFGS-B` uses a limited-memory inverse
+Hessian with box constraints on p, then p/\sum p ([Byrd et al.
+1995](#ref-byrdLimitedMemoryAlgorithm1995); [Zhu et al.
+1997](#ref-zhuAlgorithm778LBFGSB1997)). The same caveats as in [the
+bivariate
+interpretation](https://bastienchassagnol.github.io/DeCovarT/articles/fig02-bivariate-toy.html#sec-bivariate-findings)
+apply: Boyd’s local-quadratic Newton rate needs a locally strongly
+concave \ell; RDM stops when further ILR steps are smaller than
+statistical error; box-constrained BFGS may sit on a face after
+renormalisation. All of this is still N=1 per bulk ([finite-sample
+MLE](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-finite-sample)).
+
+#### Balanced compositions (forest + Fisher)
+
+The Newton/Marquardt forest in the pack is restricted to H^{\star}=1
+(p^{\star}=(1/3,1/3,1/3)). On that slice the two second-order solvers
+are interchangeable. At low overlap (`V1`, both graphs scale-free) RMSE
+for p_1 is 0.113, bias 0.012, empirical SD 0.113, coverage 0.99. At high
+overlap (`V7`) RMSE rises only to 0.124 and coverage stays 0.99. Median
+RMSE for p_1 across the four graph assignments is 0.122 (low
+\bar\omega), 0.134 (moderate), 0.147 (high); type 3, whose mean is not
+collinear, stays easier at low overlap (median RMSE 0.064) and catches
+up as overlap grows (0.130). Expected-Fisher ILR standard errors in
+`theoretical_wald_se.csv` tell the same story: \mathrm{SE}\_{\rho_1}
+goes from 0.63 (`V1`) to 0.97 (`V7`), and the condition number of the
+ILR information drops from 6.8 to 1.7 — not because the problem becomes
+better posed, but because *both* eigenvalues shrink and the ellipsoid
+becomes a large, round disk. Graph assignment (scale-free versus cluster
+SBM) moves those SEs by a smaller amount than \bar\omega does. Topology
+is visible; **average overlap is the dominant knob**, matching the
+design claim, for *balanced* p^{\star} and for *second-order convolution
+MLEs*.
+
+#### Boundary pile-up (raincloud, all H^{\star})
+
+The sampled raincloud (`raincloud_sampled.csv`) includes moderately and
+highly unbalanced Shannon targets. Among non-missing point estimates,
+76\\ of `CIBERSORT` values lie at 0 or 1. At the scenario-wise median
+(`sample_role = q50`), type 3 is exactly zero in 35 of 36 scenarios
+(mean \hat p_3=0.0008). That is the clip-and-renormalise step, not a
+convolution mode on a face. `lsei` sits on a bound in 42\\ of sampled
+cells overall and in 58\\ of highly unbalanced cells; `LBFGS` in 26\\
+and 36\\; Marquardt in 10\\ and 17\\; Newton in 4\\ and 12\\. On
+balanced raincloud rows Newton and Marquardt never hit \\0,1\\; LSEI
+still does (21\\). Mean-only and SVR methods convert a collinear mean
+map into a **hard** boundary estimate; ILR convolution methods convert
+it into a **soft** interior mode, until p^{\star} itself is a rare-type
+vertex.
+
+Median absolute error of the q\_{50} p_1 fit across scenarios is 0.048
+(Newton), 0.100 (`lsei`), 0.114 (`LBFGS`), 0.142 (Marquardt), 0.159
+(`CIBERSORT`). The Marquardt figure is not a contradiction of the
+balanced forest: on the highly unbalanced scenario `V3`
+(p^{\star}\approx(0.980,0.010,0.010)) the q\_{50} estimates are 0.92
+(Newton), 0.93 (`lsei`), 1.00 (`CIBERSORT`), 0.82 (`LBFGS`), and 0.78
+(Marquardt). LSEI is closer to the vertex because the QP *wants* a
+vertex; Marquardt is pulled toward the barycentre because RDM refuses a
+long ILR walk, the same mechanism as `B811` in the bivariate pack.
+Covariance information therefore helps only if the solver actually
+follows the convolution ridge to the rare-type coordinate. A mean-only
+vertex can beat a damped interior MLE on raw p_1 error when the truth is
+already a vertex; it will still report \hat p_3=0 and cannot support a
+chi-bar-square test that the type is absent ([boundary
+inference](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-boundary)).
+
+#### Ridges in the ILR slices
+
+`ilr_loglik_profiles.csv` slices \ell(\rho_1,\rho_2) at
+\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}^{\star}. High \bar\omega
+produces ridges along the type-1/type-2 contrast (the collinear mean
+direction): many (\rho_1,\rho_2) give almost the same convolution
+Gaussian. Newton follows the ridge until the Hessian in the remaining
+well-identified direction (type 3 versus \\1,2\\) stops it. Marquardt
+stops earlier when RDM sees no inferential gain. `L-BFGS-B`, stepping in
+p with only box bounds, can leave the simplex during the line search and
+land near a face after p/\sum p, which is the raincloud’s 26\\ bound
+rate. None of these paths is the Godambe sandwich or a Firth penalty
+([Firth 1993](#ref-firthBiasReductionMaximum1993)); both remain outlook
+([perspectives](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-statistical-perspectives.html#sec-firth)).
+With N=1, the honest frequentist statement for a rare type is still the
+restricted LRT / parametric bootstrap of the MLE article, not a Wald
+ellipse from
+[`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md).
 
 ### See also
 
@@ -426,9 +539,44 @@ especially at H^{\star}=0.1.
 
 ### References
 
+Boyd, Stephen, Stephen P. Boyd, and Lieven Vandenberghe. 2004. *Convex
+Optimization*. 1st edn. Cambridge University Press; Cambridge University
+Press. <https://doi.org/10.1017/cbo9780511804441>.
+
+Byrd, Richard H., Peihuang Lu, Jorge Nocedal, and Ciyou Zhu. 1995. ‘A
+Limited Memory Algorithm for Bound Constrained Optimization’. *SIAM
+Journal on Scientific Computing* 16 (5): 1190–208.
+<https://doi.org/10.1137/0916069>.
+
+Commenges, Daniel, Helene Jacqmin-Gadda, Cecile Proust, and Jeremie
+Guedj. 2006. *A Newton-Like Algorithm for Likelihood Maximization: The
+Robust-Variance Scoring Algorithm*. arXiv.
+<https://doi.org/10.48550/arxiv.math/0610402>.
+
+Dessole, Monica, Marco Dell’Orto, and Fabio Marcuzzi. 2023. ‘The
+Lawson-Hanson Algorithm with Deviation Maximization: Finite Convergence
+and Sparse Recovery’. *Numerical Linear Algebra with Applications* 30
+(5): e2490. <https://doi.org/10.1002/nla.2490>.
+
+Fan, Rong-En, Pai-Hsuen Chen, and Chih-Jen Lin. 2005. ‘Working Set
+Selection Using Second Order Information for Training Support Vector
+Machines’. *Journal of Machine Learning Research* 6 (63): 1889–918.
+
+Firth, David. 1993. ‘Bias Reduction of Maximum Likelihood Estimates’.
+*Biometrika* 80 (1): 27–38. <https://doi.org/10.1093/biomet/80.1.27>.
+
 Fraley, Chris, Adrian E. Raftery, and Luca Scrucca. 2026. *Mclust:
 Gaussian Mixture Modelling for Model-Based Clustering, Classification,
 and Density Estimation*. <https://mclust-org.github.io/mclust/>.
+
+Gong, Ting, and Joseph D. Szustakowski. 2013. ‘DeconRNASeq: A
+Statistical Framework for Deconvolution of Heterogeneous Tissue Samples
+Based on mRNA-Seq Data’. *Bioinformatics (Oxford, England)* 29.
+<https://doi.org/10.1093/bioinformatics/btt090>.
+
+Marquardt, Donald W. 1963. ‘An Algorithm for Least-Squares Estimation of
+Nonlinear Parameters’. *Journal of the Society for Industrial and
+Applied Mathematics* 11. <https://doi.org/10.1137/0111030>.
 
 McLachlan, Geoffrey J., and David Peel. 2000. ‘Mixtures of Factor
 Analyzers’. In *Finite Mixture Models*. John Wiley & Sons, Ltd.
@@ -438,6 +586,19 @@ Melnykov, Volodymyr, Wei-Chen Chen, and Ranjan Maitra. 2012. ‘MixSim: An
 R Package for Simulating Data to Study Performance of Clustering
 Algorithms’. *Journal of Statistical Software* 51.
 <https://doi.org/10.18637/jss.v051.i12>.
+
+Newman, Aaron, Chih Liu, Michael Green, et al. 2015. ‘Robust Enumeration
+of Cell Subsets from Tissue Expression Profiles’. *Nature Methods* 12.
+<https://doi.org/10.1038/nmeth.3337>.
+
+Philipps, Viviane, Boris P. Hejblum, Mélanie Prague, Daniel Commenges,
+and Cécile Proust-Lima. 2021. ‘Robust and Efficient Optimization Using a
+Marquardt-Levenberg Algorithm with R Package marqLevAlg’. *The R
+Journal* 13. <https://doi.org/10.32614/rj-2021-089>.
+
+Philipps, Viviane, Cecile Proust-Lima, Melanie Prague, Boris Hejblum,
+Daniel Commenges, and Amadou Diakite. 2023. *marqLevAlg: A Parallelized
+General-Purpose Optimization Based on Marquardt-Levenberg Algorithm*.
 
 Rathnayake, Suren, Geoff McLachlan, David Peel, and Jangsun Baek. 2024.
 *EMMIXmfa: Mixture Models with Component-Wise Factor Analyzers*.
@@ -456,5 +617,13 @@ Scrucca, Luca. 2015. *Graphical Tools for Model-Based Mixture
 Discriminant Analysis*. Https://arxiv.org/abs/1508.01695v1.
 <https://doi.org/10.1007/s11634-013-0147-1>.
 
+Soetaert, Karline, Karel Van den Meersche, and Dick van Oevelen. 2026.
+*limSolve: Solving Linear Inverse Models*.
+
 Thomson, Godfrey H. 1938. ‘Methods of Estimating Mental Factors’.
 *Nature* 141 (3562): 246–46. <https://doi.org/10.1038/141246a0>.
+
+Zhu, Ciyou, Richard H. Byrd, Peihuang Lu, and Jorge Nocedal. 1997.
+‘Algorithm 778: L-BFGS-B: Fortran Subroutines for Large-Scale
+Bound-Constrained Optimization’. *ACM Transactions on Mathematical
+Software* 23 (4): 550–60. <https://doi.org/10.1145/279232.279236>.
