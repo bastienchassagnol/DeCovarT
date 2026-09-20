@@ -126,6 +126,70 @@ Machine-readable, human-readable, and sort-friendly
 Edit badge labels when the dependency set changes; do not invent unused
 stacks (e.g. PyTorch) for this R package.
 
+## Editor: local vs Remote SSH executables
+
+Cursor / VS Code **User settings** are reused on SSH remotes. Paths to
+interpreters and interactive terminals (`python.defaultInterpreterPath`,
+`r.rterm.linux`, `r.rpath.linux`, and similar) **must** differ between
+the laptop and each cluster: a local `radian` or `~/.local` Python is
+not on the remote PATH, and `/usr/bin/R` on the cluster is not the
+local interactive terminal.
+
+Use **host-specific Remote settings**, not a single User path and not
+the repo workspace file.
+
+Precedence
+([VS Code settings](https://code.visualstudio.com/docs/configure/settings);
+[Remote SSH](https://code.visualstudio.com/docs/remote/ssh)):
+
+```
+User settings
+    ↓ overridden by
+Remote / Machine settings (per SSH host)
+    ↓ overridden by
+Workspace settings (.vscode/settings.json)
+```
+
+**Local User settings** (laptop only), e.g.
+`~/.config/Cursor/User/settings.json`: keep `radian` and any local
+Python interpreter. Typical R block:
+
+```jsonc
+"r.bracketedPaste": true,
+"r.plot.useHttpgd": true,
+"r.plot.defaults.fullWindowMode": true,
+"r.removeLeadingComments": true,
+"r.session.levelOfObjectDetail": "Normal",
+"r.rterm.linux": "/home/bastien/.local/bin/radian",
+"r.rterm.option": ["--no-save", "--no-restore", "--quiet"]
+```
+
+**Remote settings** (cluster, while SSH-connected): Command Palette →
+`Preferences: Open Remote Settings (JSON)` (or the **Remote** tab in
+Settings). That writes Machine settings on the host (Cursor:
+`~/.cursor-server/data/Machine/settings.json`). Override **only** the
+executables that differ, with **absolute** paths (`~` is unreliable):
+
+```jsonc
+{
+  "r.rterm.linux": "/usr/bin/R",
+  "r.rpath.linux": "/usr/bin/R",
+  "python.defaultInterpreterPath": "/usr/bin/python3"
+}
+```
+
+`r.rterm.linux` is the interactive R terminal; `r.rpath.linux` is the
+R binary the vscode-R / Cursor R extension uses for non-terminal work.
+Set both on the cluster. Repeat per host if clusters use different R
+or Python.
+
+**Do not** put host-specific interpreter or terminal paths in
+`.vscode/settings.json`. Workspace settings win over Remote settings,
+so a committed `radian` path would break the cluster, and a committed
+`/usr/bin/R` would replace local `radian` on the laptop. Keep formatter,
+spell-check, and LaTeX-workshop keys in the workspace file; keep
+executables in User (local) and Remote (cluster).
+
 ---
 
 # R — package and tooling (DeCovarT)
@@ -924,6 +988,11 @@ but **do not** pull in every library from that list. Add a dependency
 only when a script actually needs it (same rule as R Suggests).
 
 ## Toolchain (`uv`, `ruff`, `ty`)
+
+Point the editor at a **host-specific** Python (User settings on the
+laptop; Remote / Machine settings on each SSH cluster). Do not commit
+`python.defaultInterpreterPath` in `.vscode/settings.json`. See
+**Editor: local vs Remote SSH executables**.
 
 User-level CLIs (already expected on this machine under
 `~/.local/bin/`):
