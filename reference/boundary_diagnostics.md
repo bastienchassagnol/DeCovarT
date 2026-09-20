@@ -58,9 +58,12 @@ A one-row data frame of diagnostics.
 ## Details
 
 Reported fields are the ILR score norm
-\\\lVert\nabla\_{\boldsymbol{z}}\ell\rVert\\, the largest eigenvalue
-\\\lambda\_{\max}(\mathbf{H}\_{\boldsymbol{z}})\\ (negative at a local
-maximum), `boundary_distance` \\=\min_j\hat{p}\_j\\, and the flags
+\\\lVert\nabla\_{\boldsymbol{z}}\ell\rVert\\, the extreme eigenvalues
+\\\lambda\_{\min}(\mathbf{H}\_{\boldsymbol{z}})\\ and
+\\\lambda\_{\max}(\mathbf{H}\_{\boldsymbol{z}})\\ of the ILR Hessian (a
+local maximum requires the Hessian to be negative definite, so both must
+be strictly negative; \\\lambda\_{\min}\<0\<\lambda\_{\max}\\ is a
+saddle), `boundary_distance` \\=\min_j\hat{p}\_j\\, and the flags
 `near_boundary` and `local_maximum`.
 
 `boundary_tol` is a **statistical** warning threshold for Wald / ILR
@@ -98,6 +101,8 @@ colnames(mu) <- paste0("ct", 1:2)
 Sigma <- array(c(diag(3), diag(3)), dim = c(3, 3, 2))
 y <- drop(mu %*% c(0.6, 0.4))
 boundary_diagnostics(c(0.6, 0.4), y, mu, Sigma)
-#>   boundary_distance near_boundary score_norm max_eigenvalue local_maximum
-#> 1               0.4         FALSE  0.3916284      -200.5008         FALSE
+#>   boundary_distance near_boundary score_norm min_eigenvalue max_eigenvalue
+#> 1               0.4         FALSE  0.3916284      -200.5008      -200.5008
+#>   local_maximum
+#> 1         FALSE
 ```

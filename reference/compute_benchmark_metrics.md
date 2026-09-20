@@ -24,6 +24,10 @@ compute_benchmark_metrics(
   numerical_converged = NULL,
   loglik_hat = NULL,
   loglik_true = NULL,
+  converged = NULL,
+  local_maximum = NULL,
+  min_eigenvalue = NULL,
+  max_eigenvalue = NULL,
   presence_threshold = 1e-04,
   level = 0.95,
   coverage_interval = "wilson",
@@ -82,6 +86,21 @@ compute_benchmark_metrics(
 
   Optional per-sample log-likelihoods used for theoretical convergence
   (regret \\\ell(\boldsymbol{p}^{\star})-\ell(\hat{\boldsymbol{p}})\\).
+
+- converged:
+
+  Optional list of length \\N\\ with homogenised optimiser fields
+  (`iterations`, `criterion`, `code`, `rdm`). Closed-form solvers store
+  `NA` entries.
+
+- local_maximum:
+
+  Optional logical per sample: ILR score small and Hessian negative
+  definite (\\\lambda\_{\min}\<0\\ and \\\lambda\_{\max}\<0\\).
+
+- min_eigenvalue, max_eigenvalue:
+
+  Optional ILR Hessian extrema.
 
 - presence_threshold:
 
@@ -151,11 +170,12 @@ compute_benchmark_metrics(y, mu, estimated_p = c(0.45, 0.55),
 #> #   coverage_interval <chr>, mean_interval_width <dbl>, mcse_coverage <dbl>
 #> 
 #> $optimisation
-#> # A tibble: 1 × 10
+#> # A tibble: 1 × 14
 #>   sample_id algorithm elapsed_sec memory_bytes kkt_residual numerical_converged
 #>   <chr>     <chr>           <dbl>        <dbl>        <dbl> <lgl>              
 #> 1 sample_1  NA                 NA           NA           NA TRUE               
-#> # ℹ 4 more variables: theoretical_converged <lgl>, loglik_regret <dbl>,
-#> #   ct1 <dbl>, ct2 <dbl>
+#> # ℹ 8 more variables: theoretical_converged <lgl>, loglik_regret <dbl>,
+#> #   local_maximum <lgl>, min_eigenvalue <dbl>, max_eigenvalue <dbl>,
+#> #   converged <list>, ct1 <dbl>, ct2 <dbl>
 #> 
 ```

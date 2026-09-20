@@ -23,7 +23,8 @@ plot_mc_raincloud(
   dodge_width = 0.95,
   slab_scale = 1.4,
   slab_alpha = 1,
-  category_spacing = 1
+  category_spacing = 1,
+  slab = c("halfeye", "dotsinterval")
 )
 ```
 
@@ -89,11 +90,26 @@ plot_mc_raincloud(
   greater than 1 insert extra space so slabs from neighbouring types do
   not overlap; the axis still shows the original labels.
 
+- slab:
+
+  `"halfeye"` (default KDE raincloud) or `"dotsinterval"` (quantile dots
+  plus interval; avoids empty bounded slabs).
+
 ## Value
 
 A `ggplot` object.
 
 ## Details
+
+When `quantity = "estimate"` and `slab = "halfeye"`, slabs use a bounded
+kernel on \\\[0,1\]\\
+([`ggdist::density_bounded()`](https://mjskay.github.io/ggdist/reference/density_bounded.html))
+with a coloured outline (`slab_colour` / `slab_linewidth`). Vertex
+pile-up can leave that KDE empty; `slab = "dotsinterval"`
+([`ggdist::stat_dotsinterval()`](https://mjskay.github.io/ggdist/reference/stat_dotsinterval.html))
+draws quantile dots instead. True proportions are labelled at the top of
+each panel (the most abundant type to the right of its reference line;
+the others to the left).
 
 The inner interval is the central 50% of Monte Carlo replicates; the
 outer interval is the central 95%. These are **not** confidence

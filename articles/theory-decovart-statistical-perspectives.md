@@ -3,12 +3,13 @@
 > **Scope**
 >
 > Outlook on extending DeCovarT beyond the closed-reference Gaussian
-> convolution. Sections cover Scheffé-type mixture structure,
-> alternative observation laws and Bayesian CTS inference, sample-level
-> covariates, incomplete references, isoforms, RNA–cell uncoupling,
-> weighted / generalised least squares, Firth penalisation for few bulk
-> samples, lineage and archetypes, time-resolved composition, ensembles,
-> spatial transcriptomics, and multi-omics. Compositional
+> convolution. Sections cover Scheffé-type mixture structure, ordinary
+> least squares and Gauss–Markov, alternative observation laws and
+> Bayesian CTS inference, sample-level covariates, incomplete
+> references, isoforms, RNA–cell uncoupling, weighted / generalised
+> least squares, sandwich / Godambe uncertainty, Firth penalisation for
+> few bulk samples, lineage and archetypes, time-resolved composition,
+> ensembles, spatial transcriptomics, and multi-omics. Compositional
 > reparametrisation is implemented in
 > [`additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
 > and documented numerically in the [derivatives under simplex
@@ -369,7 +370,7 @@ Zhang et al. benchmark joint \boldsymbol{p} + CTS engines and report
 **BayesPrism with DWLS gene weights** as the strongest combination on
 pseudobulk and real bulk data ([Zhang et al.
 2026](#ref-zhangIntegratedInferenceCellularCompositions2026)). That is a
-weighted-likelihood analogue of [Sec. 2.6](#sec-robust-gls).
+weighted-likelihood analogue of [Sec. 2.7](#sec-robust-gls).
 
 #### Two simplices without convolution
 
@@ -590,6 +591,96 @@ analogue would introduce r\_{j} inside the mean
 product-simplex constraint on (p\_{j}r\_{j})), rather than assuming
 r\_{j} known.
 
+### Ordinary least squares and Gauss–Markov
+
+This subsection used to live in a standalone article
+(`theory-related-models-beyond-OLS`); it is kept here so the OLS
+baseline and the convolution MLE sit in one place.
+
+#### Notation
+
+| Symbol | Role |
+|:---|:---|
+| g=1,\ldots,G | genes |
+| j=1,\ldots,J | cell types |
+| i=1,\ldots,N | samples (subjects); independence across i |
+| \boldsymbol{y}=(y\_{gi})\in\mathbb{R}\_{+}^{G\times N} | bulk; column \boldsymbol{y}\_{\cdot i} |
+| \boldsymbol{\mu}=(\mu\_{gj})\in\mathbb{R}^{G\times J} | mean signature; column \boldsymbol{\mu}\_{\cdot j} |
+| \boldsymbol{p}=(p\_{ji})\in\\\]0,1\[^{J\times N} | proportions; column \boldsymbol{p}\_{\cdot i} |
+
+Ideal noiseless model for sample i:
+
+\boldsymbol{y}\_{\cdot i}=\boldsymbol{\mu}\\\boldsymbol{p}\_{\cdot i},
+\qquad y\_{gi}=\sum\_{j=1}^{J}\mu\_{gj}p\_{ji}. \tag{17}
+
+With G\>J and \operatorname{rank}(\boldsymbol{\mu})=J, the system is
+overdetermined ([Abbas et al.
+2009](#ref-abbasDeconvolutionBloodMicroarray2009)); uniqueness in the
+square full-rank case follows from the Rouché–Capelli theorem
+([Shafarevich and Remizov 2013](#ref-shafarevichLinearEquations2013)).
+
+#### Ordinary least squares
+
+With additive residual \epsilon\_{gi}, OLS minimises squared error for
+each sample (independently):
+
+\hat{\boldsymbol{p}}\_{\cdot i}^{\mathrm{OLS}} \equiv
+\arg\min\_{\boldsymbol{p}\_{\cdot i}} \bigl\\\boldsymbol{y}\_{\cdot
+i}-\boldsymbol{\mu}\\\boldsymbol{p}\_{\cdot i}\bigr\\\_{2}^{2}. \tag{18}
+
+When \boldsymbol{\mu}^{\top}\boldsymbol{\mu} is invertible, the normal
+equations give
+
+\hat{\boldsymbol{p}}\_{\cdot i}^{\mathrm{OLS}} =
+\bigl(\boldsymbol{\mu}^{\top}\boldsymbol{\mu}\bigr)^{-1}
+\boldsymbol{\mu}^{\top}\boldsymbol{y}\_{\cdot i}. \tag{19}
+
+Existence of this inverse requires full column rank J (no cell-type
+profile is an exact linear combination of the others; parent/child
+lineages that are collinear cannot both be estimated).
+
+#### Homoscedastic Gaussian noise and MLE
+
+Under the classical linear model,
+
+y\_{gi}=\sum\_{j=1}^{J}\mu\_{gj}p\_{ji}+\epsilon\_{gi}, \qquad
+\epsilon\_{gi}\sim\mathcal{N}(0,\sigma\_{i}^{2}), \tag{20}
+
+the MLE for \boldsymbol{p}\_{\cdot i} coincides with
+[Eq. 19](#eq-ols-estimate).
+
+#### Gauss–Markov assumptions
+
+Under weak exogeneity of \boldsymbol{\mu}, homoscedasticity
+\operatorname{Var}(\epsilon\_{gi})=\sigma\_{i}^{2} for all g, zero mean
+\mathbb{E}(\epsilon\_{gi})=0, and uncorrelated residuals across genes,
+the OLS estimator is the BLUE (best linear unbiased estimator). With
+i.i.d. Gaussian errors the sample log-likelihood for sample i is (up to
+constants)
+
+\ell(\boldsymbol{p}\_{\cdot i},\sigma\_{i}\\\|\\\boldsymbol{y}\_{\cdot
+i},\boldsymbol{\mu}) = -G\log\sigma\_{i} -\frac{1}{2\sigma\_{i}^{2}}
+\sum\_{g=1}^{G} \Bigl(y\_{gi}-\sum\_{j=1}^{J}\mu\_{gj}p\_{ji}\Bigr)^{2},
+
+so maximising \ell in \boldsymbol{p}\_{\cdot i} recovers
+[Eq. 18](#eq-ols-task). Independence across samples i=1,\ldots,N is the
+modelling assumption used throughout DeCovarT; microarray literature
+sometimes questions gene-wise independence ([Efron
+2009](#ref-efronAreSetMicroarrays2009)).
+
+> **What DeCovarT changes**
+>
+> DeCovarT replaces gene-wise scalar noise with a multivariate
+> convolution: latent \boldsymbol{x}\_{\cdot
+> j}\sim\mathcal{N}\_{G}(\boldsymbol{\mu}\_{\cdot j},
+> \boldsymbol{\Sigma}\_{j}), and \boldsymbol{y}\_{\cdot
+> i}\\\|\\\boldsymbol{p}\_{\cdot i}
+> \sim\mathcal{N}\_{G}\bigl(\boldsymbol{\mu}\\\boldsymbol{p}\_{\cdot i},
+> \sum\_{j}p\_{ji}^{2}\boldsymbol{\Sigma}\_{j}\bigr), with precision
+> \boldsymbol{\Theta}\_{j}=\boldsymbol{\Sigma}\_{j}^{-1} (typically from
+> `gLasso`). See the article Methods and [derivatives under simplex
+> transforms](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html#sec-s3).
+
 ### Robust regression, GLS, and gene weights
 
 Let W=\mathrm{diag}(w\_{1},\ldots,w\_{G}) be gene-specific precision
@@ -614,7 +705,7 @@ p_j=1/J (or at a known design p^{\star}). Then
 
 \hat{\boldsymbol{p}}^{\mathrm{GLS}}
 =(\boldsymbol{\mu}^{\top}W^{-1}\boldsymbol{\mu})^{-1}\boldsymbol{\mu}^{\top}W^{-1}\boldsymbol{y}\_{\cdot
-i}, \tag{17}
+i}, \tag{21}
 
 after which the simplex is imposed by projection. Do **not** copy W into
 every DeCovarT tensor slice: \sum_j p_j^2 W=\\p\\\_2^2 W still depends
@@ -656,7 +747,7 @@ The Jeffreys-invariant adjustment maximises
 
 \ell\_{\mathrm{F}}(\boldsymbol{p}) =
 \ell\_{\boldsymbol{y}}(\boldsymbol{p}) +\tfrac12\log\det
-I(\boldsymbol{p}), \tag{18}
+I(\boldsymbol{p}), \tag{22}
 
 where I(\boldsymbol{p}) is the expected Fisher information of the
 convolution in the working chart (ILR, or the unconstrained p-block
@@ -670,13 +761,13 @@ O(N^{-2}) remainder; it is the standard cure for logistic separation.
 For DeCovarT the same geometry is attractive for a different reason.
 \det I(\boldsymbol{p}) collapses when cell types are near-collinear or
 when \boldsymbol{p} approaches a simplex face, whereas the GLS
-competitor of [Eq. 17](#eq-gls) uses a *fixed* W. Adding
+competitor of [Eq. 21](#eq-gls) uses a *fixed* W. Adding
 \tfrac12\log\det I(\boldsymbol{p}) therefore *discourages* plateaux and
 boundary pile-up rather than shrinking coefficients toward zero as ridge
 or lasso would. It is not implemented:
 [`fit_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md)
 maximises the convolution likelihood of
-[Eq. 2](#eq-gaussian-convolution), not [Eq. 18](#eq-firth). A prototype
+[Eq. 2](#eq-gaussian-convolution), not [Eq. 22](#eq-firth). A prototype
 would add the log-determinant of the ILR information to
 [`loglik_multivariate_constrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/loglik_multivariate_constrained.md)
 and reuse the existing Marquardt / Newton solvers.
@@ -790,6 +881,68 @@ polarisation is the standard biological example of a
 microenvironment-dependent continuum rather than two extra columns of
 \boldsymbol{\mu}.
 
+## Beyond first-order asymptotics
+
+> **Tip 1: Uncertainty quantification beyond Wald**
+>
+> Directions that would strengthen DeCovarT intervals, in rough order of
+> implementation cost.
+>
+> - **Godambe sandwich for a misspecified convolution.** `RNA-Sieve`
+>   replaces Fisher by the Godambe information when the CLT model is
+>   wrong ([Erdmann-Pham et al.
+>   2021](#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021)) ([MLE
+>   properties](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-rna-sieve)).
+>   The same sandwich on DeCovarT’s score would widen Wald intervals
+>   under protocol shift without discarding the multivariate covariance.
+>   It remains a first-order *interior* device: faces still need the
+>   chi-bar-square LRT or a restricted bootstrap.
+> - **Sandwich for a variational estimator is a different object.**
+>   Westling and McCormick give the profile M-estimation sandwich for
+>   variational approximations in mixture models ([Westling and
+>   McCormick 2019](#ref-westlingPredictionFrameworkInference2019)).
+>   Batardière, Chiquet and Mariadassou specialise that construction to
+>   Poisson-log-normal *variational* parameters ([Batardière et al.
+>   2024](#ref-batardiereEvaluatingParameterUncertainty2024)). That
+>   estimator is not a maximum-likelihood estimator and does not inherit
+>   the usual MLE consistency / \sqrt{n} theory; the sandwich is an
+>   M-estimation correction for a surrogate ELBO. DeCovarT’s
+>   \hat{\boldsymbol{p}} *is* the MLE of the Gaussian convolution on one
+>   bulk column (when the solver reaches a local maximum), so expected
+>   Fisher at p^{\star} is the regular-case asymptotic variance. Do not
+>   paste their coverage plots onto DeCovarT Wald intervals.
+> - **Score-test inversion.** Inverting a one-sided score test avoids
+>   refitting under every candidate value, so it is cheaper than the
+>   profile scan of
+>   [`confint_profile_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_decovart.md)
+>   while keeping the one-sided boundary geometry.
+> - **Higher-order likelihood corrections.** Bartlett-type adjustments
+>   of the likelihood-ratio statistic, or modified profile likelihoods,
+>   improve the \chi^{2} approximation in the small-replication regime
+>   described in the [MLE
+>   properties](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#nte-replication)
+>   vignette — precisely DeCovarT’s regime.
+> - **Bayesian compositional models.** A logistic-normal or Dirichlet
+>   prior on \boldsymbol{p} regularises the boundary: the posterior
+>   stays proper where the ILR Wald interval degenerates, and credible
+>   intervals are usually more stable near a face. A credible interval
+>   is not an exact frequentist interval, and the prior must be
+>   defensible scientifically.
+> - **Information geometry of the composition.** Treating \Delta^{J-1}
+>   with the Fisher–Rao metric of the [MLE
+>   properties](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#eq-fisher-metric)
+>   vignette rather than as a subset of \mathbb{R}^{J} would give
+>   natural-gradient updates and reparametrisation-invariant confidence
+>   regions ([Malago and Pistone
+>   2015](#ref-malagoInformationGeometryGaussian2015); [Aitchison
+>   1982](#ref-aitchisonStatisticalAnalysisCompositional1982)).
+
+Abbas, Alexander R., Kristen Wolslegel, Dhaya Seshasayee, Zora Modrusan,
+and Hilary F. Clark. 2009. ‘Deconvolution of Blood Microarray Data
+Identifies Cellular Activation Patterns in Systemic Lupus
+Erythematosus’. *PloS One* 4.
+<https://doi.org/10.1371/journal.pone.0006098>.
+
 Ahn, Jaeil, Ying Yuan, Giovanni Parmigiani, et al. 2013. ‘DeMix:
 Deconvolution for Mixed Cancer Transcriptomes Using Raw Measured Data’.
 *Bioinformatics (Oxford, England)* 29.
@@ -837,6 +990,11 @@ Batardière, Bastien, Julien Chiquet, François Gindraud, and Mahendra
 Mariadassou. 2025. ‘Zero-Inflation in the Multivariate Poisson Lognormal
 Family’. *Statistics and Computing* 35 (6).
 <https://doi.org/10.1007/s11222-025-10729-0>.
+
+Batardière, Bastien, Julien Chiquet, and Mahendra Mariadassou. 2024.
+*Evaluating Parameter Uncertainty in the Poisson Lognormal Model with
+Corrected Variational Estimators*. arXiv.
+<https://doi.org/10.48550/arxiv.2411.08524>.
 
 Brown, L., A. N. Donev, and A. C. Bissett. 2015. ‘General Blending
 Models for Data from Mixture Experiments’. *Technometrics* 57 (4):
@@ -891,6 +1049,10 @@ Eder, Bernhard, Irene Rigato, Alexander Dietrich, et al. 2026.
 *Rectangle: Robust and Scalable Multiscale Deconvolution Informed by
 Single-Cell RNA Sequencing Data*. bioRxiv.
 <https://doi.org/10.64898/2026.07.07.736950>.
+
+Efron, Bradley. 2009. ‘Are a Set of Microarrays Independent of Each
+Other?’ *The Annals of Applied Statistics* 3.
+<https://doi.org/10.1214/09-aoas236>.
 
 Erdmann-Pham, Dan D., Jonathan Fischer, Justin Hong, and Yun S. Song.
 2021. ‘Likelihood-Based Deconvolution of Bulk Gene Expression Data Using
@@ -1025,6 +1187,12 @@ Robustness of Deconvolution Methods for Spatial Transcriptomics Data in
 Case of Cell Type Mismatch*. bioRxiv.
 <https://doi.org/10.1101/2025.08.12.669903>.
 
+Malago, Luigi, and Giovanni Pistone. 2015. ‘Information Geometry of the
+Gaussian Distribution in View of Stochastic Optimization’. In
+*Proceedings of the 2015 ACM Conference on Foundations of Genetic
+Algorithms XIII*. Association for Computing Machinery.
+<https://doi.org/10.1145/2725494.2725510>.
+
 McGregor, Kevin, Nneka Okaeme, Reihane Khorasaniha, et al. 2026.
 ‘Proportionality-Based Association Metrics in Count Compositional Data’.
 *NAR Genomics and Bioinformatics* 8 (3): lqag102.
@@ -1057,6 +1225,10 @@ Saqib, Jahanzeb, and Junil Kim. 2025. ‘From Pixels to Cell Types: A
 Comprehensive Review of Computational Methods for Spatial
 Transcriptomics Deconvolution’. *Genomics & Informatics* 23.
 <https://doi.org/10.1186/s44342-025-00055-2>.
+
+Shafarevich, Igor R., and Alexey O. Remizov. 2013. ‘Linear Equations’.
+In *Linear Algebra and Geometry*. Springer Berlin Heidelberg.
+<https://doi.org/10.1007/978-3-642-30994-6_1>.
 
 Simeth, Jakob, Paul Hüttl, Marian Schön, et al. 2024. ‘Virtual Tissue
 Expression Analysis’. *Bioinformatics* 40 (12).
@@ -1113,6 +1285,10 @@ Biology* 18 (4): e1010025.
 Wang, Zeya, Shaolong Cao, Jeffrey S. Morris, et al. 2018. ‘Transcriptome
 Deconvolution of Heterogeneous Tumor Samples with Immune Infiltration’.
 *iScience* 9. <https://doi.org/10.1016/j.isci.2018.10.028>.
+
+Westling, Ted, and Tyler H. McCormick. 2019. *Beyond Prediction: A
+Framework for Inference with Variational Approximations in Mixture
+Models*. arXiv. <https://doi.org/10.48550/arxiv.1510.08151>.
 
 Wheeler, Bob. 2025. *AlgDesign: Algorithmic Experimental Design*.
 <https://github.com/jvbraun/AlgDesign>.

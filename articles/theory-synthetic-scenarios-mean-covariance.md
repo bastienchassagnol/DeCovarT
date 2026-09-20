@@ -1158,7 +1158,7 @@ These describe the **estimator as a repeated-sampling procedure**, not
 the distance between one \hat{\boldsymbol{p}} and one
 \boldsymbol{p}^{\star}. Each row of `monte_carlo` is one cell type.
 Coverage intervals around the *rate* \hat\pi are derived in
-[Note 19](#nte-binomial-coverage-ci).
+[Note 20](#nte-binomial-coverage-ci).
 
 | Metric | Formula | Bounds | Captures | Pros_cons |
 |----|----|----|----|----|
@@ -1249,14 +1249,14 @@ Table 12: Kept optimisation and runtime scores (`optimisation` block).
 | ILR geometry | ILR geometry | ILR geometry | ILR geometry | ILR geometry |
 | ILR score norm (`score_norm`) | \\\\\nabla\_{z}\tilde\ell(\hat z)\\\_2=\\J\_{\psi}^{\top}\nabla_p\ell\\\_2\\ | \\\[0,\infty)\\; \\0\\ is interior stationarity | Unconstrained first-order residual in ILR coordinates | Interior equivalent of KKT, but the Jacobian degenerates on faces ([@nte-kkt-ilr-hessian](#nte-kkt-ilr-hessian)). |
 | Curvature | Curvature | Curvature | Curvature | Curvature |
-| Tangent / ILR \\\lambda\_{\max}(H)\\ (`max_eigenvalue`) | \\\lambda\_{\max}(H_z)\\ of [`hessian_loglik_constrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/hessian_loglik_constrained.md) | unbounded; \\\<0\\ at a local maximum | Local max versus saddle in the ILR chart | Local only; `local_maximum` is a flag on [`boundary_diagnostics()`](https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.md), not a column of `optimisation`. |
+| Tangent / ILR \\\lambda\_{\min},\lambda\_{\max}(H)\\ (`min_eigenvalue`, `max_eigenvalue`) | \\\lambda\_{\min}(H_z),\lambda\_{\max}(H_z)\\ of [`hessian_loglik_constrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/hessian_loglik_constrained.md) | unbounded; both \\\<0\\ at a local maximum | Local max versus saddle in the ILR chart | Local only; `local_maximum` is a flag on [`boundary_diagnostics()`](https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.md), not a column of `optimisation`. |
 | Speed | Speed | Speed | Speed | Speed |
 | End-to-end wall time of the parallel job | clock around [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md) | \\\[0,\infty)\\ | Throughput of the whole Monte Carlo job | Confounds scheduling with per-sample cost. |
 | Memory | Memory | Memory | Memory | Memory |
 | Sum of worker RSS | sum of per-worker RSS | \\\[0,\infty)\\ | Naive memory sum under fork | Double-counts copy-on-write pages. |
 
-Table 13: Optimisation diagnostics computed on fits but not stored as
-headline benchmark columns.
+Table 13: ILR score and Hessian extrema are now stored on
+`optimisation`; wall time of the whole job is not.
 
 > **Note 17: Interior ILR stationarity, projected KKT residual, and
 > Hessian curvature**
@@ -1307,14 +1307,14 @@ headline benchmark columns.
 > **Hessian / curvature.** First-order stationarity does not imply a
 > local maximum.
 > [`boundary_diagnostics()`](https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.md)
-> reports \lambda\_{\max}(H_z) of
+> reports both \lambda\_{\min}(H_z) and \lambda\_{\max}(H_z) of
 > [`hessian_loglik_constrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/hessian_loglik_constrained.md)
 > and sets `local_maximum` when the ILR score is below `score_tol`
-> **and** that largest eigenvalue is negative. A small KKT residual with
-> \lambda\_{\max}(H_z)\>0 is a saddle (or a local minimum of a
-> maximisation problem). None of these diagnostics implies a unique
-> global mode; the DeCovarT likelihood for one bulk sample is not
-> concave in general ([MLE
+> **and** the Hessian is negative definite (both eigenvalues strictly
+> negative). A small KKT residual with
+> \lambda\_{\min}\<0\<\lambda\_{\max} is a saddle. None of these
+> diagnostics implies a unique global mode; the DeCovarT likelihood for
+> one bulk sample is not concave in general ([MLE
 > properties](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.md)).
 
 > **Note 18: Which metric to report**
@@ -1329,8 +1329,46 @@ headline benchmark columns.
 > interval on the rate), and mean width whenever intervals exist. Quote
 > median and IQR of elapsed time and PSS from the `optimisation` table
 > rather than a single end-to-end clock. Pair `kkt_residual` with
-> `numerical_converged`; quote `score_norm` / `local_maximum` only for
-> interior ILR fits.
+> `numerical_converged` and `theoretical_converged`; the three
+> stacked-bar outcomes in [Figure 11](#fig-simulation-outcomes-venn)
+> partition every replicate. Quote `score_norm` / `local_maximum` only
+> for interior ILR fits, and report both \lambda\_{\min}(H_z) and
+> \lambda\_{\max}(H_z) so a saddle (\lambda\_{\min}\<0\<\lambda\_{\max})
+> is not mistaken for a maximum.
+
+![](figures/fig-simulation-outcomes-venn.png)
+
+Monte Carlo solver outcomes as an Euler diagram: numerical failure is
+nested in theoretical failure; theoretical success is disjoint.
+
+Figure 11: Euler diagram of the three ADEMP solver outcomes. Numerical
+failure (solver crash or a non-finite simplex) implies theoretical
+failure, so the red disc sits inside the amber set. Theoretical success
+is the disjoint green disc. Stacked bars in
+`output/fig02/performance_visualisations/convergence_stacked.pdf` and
+the fig03 counterpart count these three categories on the same corner
+layout as the Wald forest.
+
+> **Warning 19: Why some raincloud panels look empty**
+>
+> Two distinct mechanisms produced blank \hat p rainclouds on the fig02
+> book.
+>
+> - **Legend overlay.** The four correlation corners are arranged as a
+>   2\times 2. `rho = (-0.8, 0.8)` is the bottom-right facet. An inset
+>   cowplot legend at (x,y)=(0.68,0.08) sat on top of that panel. The
+>   legend now sits to the right of the facets
+>   ([`cowplot::get_legend()`](https://wilkelab.org/cowplot/)).
+> - **Vertex pile-up.** On highly unbalanced compositions
+>   (`rho = (0, 0)`, small CLD, homoscedastic), many solvers pin a rare
+>   type at 0 and the abundant type at 1. A bounded kernel density on
+>   \[0,1\] with almost no unique values emits an empty slab. The
+>   raincloud helper now overlays Monte Carlo dots whenever a group has
+>   two or fewer distinct estimates.
+>
+> Neither blank is a missing `numerical_converged` flag. Check the
+> stacked-bar book before interpreting an empty density as a solver
+> crash.
 
 ### Zoom on the coverage rate, and derivation of the intervals
 
@@ -1348,10 +1386,10 @@ Coull 1998](#ref-agrestiApproximateBetterExact1998)) are available
 through `coverage_interval` for the binomial *rate*. Bias-eliminated
 coverage (covering \bar{\hat\theta} rather than \theta) is not
 implemented; report ordinary coverage and bias side by side instead.
-[Note 19](#nte-binomial-coverage-ci) summarises exact, asymptotic, and
+[Note 20](#nte-binomial-coverage-ci) summarises exact, asymptotic, and
 optimisation-based constructions for that binomial rate.
 
-> **Note 19: Intervals for a binomial coverage rate**
+> **Note 20: Intervals for a binomial coverage rate**
 >
 > The Monte Carlo coverage rate \hat\pi=X/N is a binomial proportion on
 > the unit interval. Interval construction for that rate is not a
@@ -1394,6 +1432,80 @@ optimisation-based constructions for that binomial rate.
 > intervals on \hat\pi, together with `mcse_coverage` and bias, rather
 > than a small-sample recalibration of \gamma.
 
+### Asymptotic normality of \hat{\boldsymbol{p}}
+
+Batardière, Chiquet and Mariadassou inspect studentised variational
+estimates against N(0,1) with Q-Q plots and a one-sample
+Kolmogorov–Smirnov test ([Batardière et al.
+2024](#ref-batardiereEvaluatingParameterUncertainty2024)). The same two
+displays are useful here, with one modelling caveat: DeCovarT’s
+\hat{\boldsymbol{p}} is a constrained maximum-likelihood estimator of
+the Gaussian convolution, so first-order MLE theory applies on the
+interior of the simplex. Their sandwich correction is for a
+*variational* estimator of a Poisson-log-normal latent-variable model,
+which is not itself an MLE and does not inherit those consistency
+guarantees ([Westling and McCormick
+2019](#ref-westlingPredictionFrameworkInference2019)). Do not treat the
+two studentisations as interchangeable.
+
+Q-Q plots of the **whitened ILR** coordinates
+W=I\_{\boldsymbol{z}}(p^{\star})^{1/2}(\hat{\boldsymbol{z}}-\boldsymbol{z}^{\star})
+use a single tail-sensitive `qqplotr` band ([Aldor-Noiman et al.
+2013](#ref-aldorNoimanPowerSee2013)) calibrated to the theoretical
+N(0,1) law (`identity = TRUE`, `mu = 0`, `sigma = 1`; not detrended).
+Colour and fill distinguish L-BFGS, Marquardt–Levenberg and
+Newton–Raphson; gradient and simulated annealing are omitted. A
+companion PDF Q-Q-plots the joint Mahalanobis statistic
+D^{2}=W^{\mathsf{T}}W against \chi^{2}\_{J-1}. The KS lollipops report
+one p-value per scenario \times solver: below 0.05 we reject normality
+at the conventional 5% level. `qqplotr` needs system `libfftw3`. The
+books are `output/fig02/performance_visualisations/qq_normal.pdf`,
+`qq_chi2.pdf` and `ks_normal.pdf` (and the fig03 counterparts).
+
+[![](figures/fig-qqplot-explainer.png)](https://datainterview.com)
+
+Figure 12: Q-Q plots: points hug the diagonal when the normal assumption
+holds, and curve away when it does not. Normal: points on the line.
+Heavy tails: S-curve, ends flare. Right-skewed: concave-up bend. Light
+tails: flatter S-shape.
+
+Hazen plotting positions p_i=(i-0.5)/n against \Phi^{-1}(p_i), after
+Aldor-Noiman et al. and the DataInterview explainer. Curvature direction
+diagnoses tail weight and skew; a 95% band helps separate signal from
+Monte Carlo wiggle.
+
+> **Warning 21: Do not promote a Kolmogorov–Smirnov p-value to a
+> verdict**
+>
+> The KS lollipops are a companion to the Q-Q books, not a substitute.
+>
+> - **The p-value fallacy.** A small p does not measure the *size* of
+>   the departure from normality, and a large p does not prove the
+>   normal approximation ([Goodman
+>   1999](#ref-goodmanTowardEvidenceBased1999)). Increasing the Monte
+>   Carlo size N will reject any fixed alternative, however tiny.
+> - **Compare magnitudes, not stars.** Olszewski’s argument against
+>   two-sample t-tests of arithmetic means applies equally here: [plot
+>   the
+>   distributions](https://www.linkedin.com/posts/adrianolszewski_lets-imagine-you-want-to-compare-two-arithmetic-activity-7431004197229056000-i0Rx/),
+>   and [prefer estimation over ritualised
+>   p-values](https://www.linkedin.com/posts/adrianolszewski_important-post-in-my-work-i-rarely-use-activity-7506412403962744833-Y4LB/).
+>   Rainclouds already show bias, variance, skew and boundary pile-up;
+>   the Q-Q plot shows tail behaviour. The KS p adds a single scalar
+>   that conflates those features.
+
+> **Note 22: No p-value for the coverage rate**
+>
+> Coverage of a Wald interval is the Monte Carlo mean of the indicator
+> I\\\theta_0\in\mathrm{CI}\_m\\, not a test of
+> \|(\hat\theta-\bar{\hat\theta})/s\|\<1.96. That second quantity
+> studentises against the *Monte Carlo* mean rather than against
+> \theta_0, and the unit-simplex constraint already invalidates a
+> symmetric \pm 1.96\\\widehat{\mathrm{SE}} statement near a face.
+> Reporting a p-value for the coverage rate would duplicate the
+> indicator without adding a new estimand. Report \hat\pi, its Wilson
+> interval, `mcse_coverage`, and bias side by side instead.
+
 ## Conclusions
 
 A reproducible synthetic study should keep three design layers separate,
@@ -1415,9 +1527,9 @@ then score both the reference geometry and the mixture composition:
     matching the `SimBu` fraction vocabulary when comparing to
     pseudo-bulk tools ([Figure 7](#fig-simbu-entropy)).
 
-See [Note 20](#nte-benchmark-spec) for a compact factorial checklist.
+See [Note 23](#nte-benchmark-spec) for a compact factorial checklist.
 
-> **Important 20: Recommended benchmark specification**
+> **Important 23: Recommended benchmark specification**
 >
 > Use one pipeline for a given topology of a given cell type’s
 > covariance structure ([Eq. 16](#eq-benchmark-pipe),
@@ -1436,7 +1548,7 @@ See [Note 20](#nte-benchmark-spec) for a compact factorial checklist.
 > ([Figure 7](#fig-simbu-entropy)). - add the mean layer
 > **independently** of graph generation.
 
-> **Note 21: Execution: no nested parallelism, `furrr`, L’Ecuyer
+> **Note 24: Execution: no nested parallelism, `furrr`, L’Ecuyer
 > streams**
 >
 > Sample-level workers live only in
@@ -1554,7 +1666,7 @@ is the package counterpart of that editorial checklist.
 | Data-generating mechanism fully specified | `theta_true` (`p`, `mu`, `sigma`) plus `descriptors` and `call` |
 | Estimand and metrics pre-declared | This table; [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md) blocks |
 | Software versions | [`sessioninfo::session_info()`](https://sessioninfo.r-lib.org/reference/session_info.html) in analysis scripts |
-| Random-number streams | `furrr_options(seed = TRUE)`: L’Ecuyer-CMRG per worker ([Note 21](#nte-parallel-rng)) |
+| Random-number streams | `furrr_options(seed = TRUE)`: L’Ecuyer-CMRG per worker ([Note 24](#nte-parallel-rng)) |
 | Code availability | GitHub repository; package functions, not one-off scripts |
 | No undisclosed composite score | Global and cell-type tables remain separate |
 | Sample size / Monte Carlo error | `n` and `mcse_coverage` (and Wilson bounds) |
@@ -1623,6 +1735,11 @@ Aitchison, J. 1982. ‘The Statistical Analysis of Compositional Data’.
 *Journal of the Royal Statistical Society: Series B (Methodological)* 44
 (2): 139–60. <https://doi.org/10.1111/j.2517-6161.1982.tb01195.x>.
 
+Aldor-Noiman, Shari, Lawrence D. Hooper, Galit Shmueli, and Ayala Cohen.
+2013. ‘The Power to See: A New Graphical Test of Normality’. *The
+American Statistician* 67 (4): 249–67.
+<https://doi.org/10.1080/00031305.2013.847865>.
+
 Aliee, Hananeh, and Fabian J. Theis. 2021. ‘AutoGeneS: Automatic Gene
 Selection Using Multi-Objective Optimization for RNA-seq Deconvolution’.
 *Cell Systems* 12. <https://doi.org/10.1016/j.cels.2021.05.006>.
@@ -1650,6 +1767,11 @@ Barbot, Hugo, and Magali Richard. 2026. ‘On the Promises and Limits of
 Multimodal Integration for Deconvolution: The HADACA3 Benchmark’.
 *NeurIPS*.
 
+Batardière, Bastien, Julien Chiquet, and Mahendra Mariadassou. 2024.
+*Evaluating Parameter Uncertainty in the Poisson Lognormal Model with
+Corrected Variational Estimators*. arXiv.
+<https://doi.org/10.48550/arxiv.2411.08524>.
+
 Besson, Olivier, and Yuri I. Abramovich. 2013. ‘On the Fisher
 Information Matrix for Multivariate Elliptically Contoured
 Distributions’. *IEEE Signal Processing Letters* 20 (11): 1130–33.
@@ -1675,6 +1797,10 @@ Federico, Anthony, Joseph Kern, Xaralabos Varelas, and Stefano Monti.
 2023. ‘Structure Learning for Gene Regulatory Networks’. *PLOS
 Computational Biology* 19.
 <https://doi.org/10.1371/journal.pcbi.1011118>.
+
+Goodman, Steven N. 1999. ‘Toward Evidence-Based Medical Statistics. 1:
+The P Value Fallacy’. *Annals of Internal Medicine* 130 (12): 995–1004.
+<https://doi.org/10.7326/0003-4819-130-12-199906150-00008>.
 
 Holland, Paul W., Kathryn Blackmond Laskey, and Samuel Leinhardt. 1983.
 ‘Stochastic Blockmodels: First Steps’. *Social Networks* 5.
@@ -1757,6 +1883,10 @@ Networks by Analyzing the Graphs Spectra Distribution’. *PLOS ONE* 7.
 Watts, Duncan J., and Steven H. Strogatz. 1998. ‘Collective Dynamics of
 “Small-World” Networks’. *Nature* 393 (6684): 440–42.
 <https://doi.org/10.1038/30918>.
+
+Westling, Ted, and Tyler H. McCormick. 2019. *Beyond Prediction: A
+Framework for Inference with Variational Approximations in Mixture
+Models*. arXiv. <https://doi.org/10.48550/arxiv.1510.08151>.
 
 Wilson, Edwin B. 1927. ‘Probable Inference, the Law of Succession, and
 Statistical Inference’. *Journal of the American Statistical

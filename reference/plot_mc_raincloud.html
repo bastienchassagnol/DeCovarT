@@ -52,8 +52,7 @@ algorithm. Optional facet_rows / facet_cols split scenarios
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-related-models-beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: OLS, Bayesian, quasi-likelihood, and more</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary simulation appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/supp-S1-identifiability.html"><span class="fa fa-vial"></span> App. S1 · Regular-case MLE and identifiability</a></li>
@@ -110,7 +109,8 @@ algorithm. Optional <code>facet_rows</code> / <code>facet_cols</code> split scen
 <span>  dodge_width <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  slab_scale <span class="op">=</span> <span class="fl">1.4</span>,</span>
 <span>  slab_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  category_spacing <span class="op">=</span> <span class="fl">1</span></span>
+<span>  category_spacing <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  slab <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"halfeye"</span>, <span class="st">"dotsinterval"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -172,6 +172,11 @@ drawing.</p></dd>
 from neighbouring types do not overlap; the axis still shows the
 original labels.</p></dd>
 
+
+<dt id="arg-slab">slab<a class="anchor" aria-label="anchor" href="#arg-slab"></a></dt>
+<dd><p><code>"halfeye"</code> (default KDE raincloud) or <code>"dotsinterval"</code>
+(quantile dots plus interval; avoids empty bounded slabs).</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -179,7 +184,15 @@ original labels.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The inner interval is the central 50% of Monte Carlo replicates; the
+    <p>When <code>quantity = "estimate"</code> and <code>slab = "halfeye"</code>, slabs use a
+bounded kernel on \([0,1]\) (<code><a href="https://mjskay.github.io/ggdist/reference/density_bounded.html" class="external-link">ggdist::density_bounded()</a></code>) with a
+coloured outline (<code>slab_colour</code> / <code>slab_linewidth</code>). Vertex pile-up
+can leave that KDE empty; <code>slab = "dotsinterval"</code>
+(<code><a href="https://mjskay.github.io/ggdist/reference/stat_dotsinterval.html" class="external-link">ggdist::stat_dotsinterval()</a></code>) draws quantile dots instead.
+True proportions are labelled at the top of each panel (the most
+abundant type to the right of its reference line; the others to the
+left).</p>
+<p>The inner interval is the central 50% of Monte Carlo replicates; the
 outer interval is the central 95%. These are <strong>not</strong> confidence
 intervals for \(p_j\).</p>
     </div>

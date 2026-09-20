@@ -63,8 +63,7 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-related-models-beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: OLS, Bayesian, quasi-likelihood, and more</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary simulation appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/supp-S1-identifiability.html"><span class="fa fa-vial"></span> App. S1 · Regular-case MLE and identifiability</a></li>
@@ -114,7 +113,7 @@
     <div>
 <blockquote>
 <p><strong>Scope</strong></p>
-<p>Outlook on extending DeCovarT beyond the closed-reference Gaussian convolution. Sections cover Scheffé-type mixture structure, alternative observation laws and Bayesian CTS inference, sample-level covariates, incomplete references, isoforms, RNA–cell uncoupling, weighted / generalised least squares, Firth penalisation for few bulk samples, lineage and archetypes, time-resolved composition, ensembles, spatial transcriptomics, and multi-omics. Compositional reparametrisation is implemented in <a href="../reference/additive_logistic.html"><code>additive_logistic()</code></a> and documented numerically in the <a href="theory-decovart-generative-model.html">derivatives under simplex transforms</a> vignette. The same catalogue is tracked in <a href="https://github.com/bastienchassagnol/DeCovarT/issues/5" class="external-link">GitHub issue 5</a>.</p>
+<p>Outlook on extending DeCovarT beyond the closed-reference Gaussian convolution. Sections cover Scheffé-type mixture structure, ordinary least squares and Gauss–Markov, alternative observation laws and Bayesian CTS inference, sample-level covariates, incomplete references, isoforms, RNA–cell uncoupling, weighted / generalised least squares, sandwich / Godambe uncertainty, Firth penalisation for few bulk samples, lineage and archetypes, time-resolved composition, ensembles, spatial transcriptomics, and multi-omics. Compositional reparametrisation is implemented in <a href="../reference/additive_logistic.html"><code>additive_logistic()</code></a> and documented numerically in the <a href="theory-decovart-generative-model.html">derivatives under simplex transforms</a> vignette. The same catalogue is tracked in <a href="https://github.com/bastienchassagnol/DeCovarT/issues/5" class="external-link">GitHub issue 5</a>.</p>
 </blockquote>
 </div>
 <p>Bulk transcriptomic deconvolution is one instance of a <strong>mixture inverse problem</strong>: a composite signal (tissue expression, a spectrum, a chromatogram) is observed, and we seek the proportions <span class="math inline">\boldsymbol{p}</span> of underlying components. Because <span class="math inline">\boldsymbol{p}</span> is <strong>compositional</strong> (parts of a whole), estimates must lie on the simplex <span class="math inline">\Delta^{J-1}=\{\boldsymbol{p}\in[0,1]^J:\sum_j p_j=1\}</span>. <span class="citation" data-cites="chassagnolDeCovarTMultidimensionalProbalistic2023">(<a href="#ref-chassagnolDeCovarTMultidimensionalProbalistic2023" role="doc-biblioref">Chassagnol et al. 2023</a>)</span> model each reference profile as multivariate Gaussian and recover <span class="math inline">\boldsymbol{p}</span> by constrained maximum likelihood; classical deconvolution tools such as <code>CIBERSORT</code> assume gene-wise independence instead <span class="citation" data-cites="newmanRobustEnumerationCell2015">(<a href="#ref-newmanRobustEnumerationCell2015" role="doc-biblioref">Newman et al. 2015</a>)</span>.</p>
@@ -257,36 +256,36 @@ Table 1: Lineage-aware bulk mRNA deconvolution: constraint regime, enforcing eq
 <div class="cell-output-display">
 <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_2p05mamj6tknumj96eje = TinyTable.createTableFunctions("tinytable_2p05mamj6tknumj96eje");
+      const tableFns_gycy31qkek40bynrjgzv = TinyTable.createTableFunctions("tinytable_gycy31qkek40bynrjgzv");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '7', j: 2 }, { i: '7', j: 3 }, { i: '7', j: 4 } ], css_id: 'tinytable_css_q4qbv4cl4nr8ahnegsx9',},
-          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 }, { i: '6', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 }, { i: '3', j: 3 }, { i: '4', j: 3 }, { i: '5', j: 3 }, { i: '6', j: 3 }, { i: '1', j: 4 }, { i: '2', j: 4 }, { i: '3', j: 4 }, { i: '4', j: 4 }, { i: '5', j: 4 }, { i: '6', j: 4 } ], css_id: 'tinytable_css_wiqanzate8v22q7w9f6n',},
-          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_8fbvec4a017c8iqautyj',},
-          { positions: [ { i: '7', j: 1 } ], css_id: 'tinytable_css_9befmc83jwvxjohjqzbh',},
-          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_gck0liltpx8n4o5m9in7',},
+          { positions: [ { i: '7', j: 2 }, { i: '7', j: 3 }, { i: '7', j: 4 } ], css_id: 'tinytable_css_lglflf9c3mlsbd0hf47p',},
+          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 }, { i: '6', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 }, { i: '3', j: 3 }, { i: '4', j: 3 }, { i: '5', j: 3 }, { i: '6', j: 3 }, { i: '1', j: 4 }, { i: '2', j: 4 }, { i: '3', j: 4 }, { i: '4', j: 4 }, { i: '5', j: 4 }, { i: '6', j: 4 } ], css_id: 'tinytable_css_i8e0ojdymkm4h2a5s5ow',},
+          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_j28wiylrch7uy3z98p9s',},
+          { positions: [ { i: '7', j: 1 } ], css_id: 'tinytable_css_btor1a6aiyc5tgxs4xnq',},
+          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_n7mwsyjz8jdl1qjg1qha',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_2p05mamj6tknumj96eje.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_gycy31qkek40bynrjgzv.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_2p05mamj6tknumj96eje td.tinytable_css_q4qbv4cl4nr8ahnegsx9, #tinytable_2p05mamj6tknumj96eje th.tinytable_css_q4qbv4cl4nr8ahnegsx9 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
-    #tinytable_2p05mamj6tknumj96eje td.tinytable_css_wiqanzate8v22q7w9f6n, #tinytable_2p05mamj6tknumj96eje th.tinytable_css_wiqanzate8v22q7w9f6n { text-align: left }
-    #tinytable_2p05mamj6tknumj96eje td.tinytable_css_8fbvec4a017c8iqautyj, #tinytable_2p05mamj6tknumj96eje th.tinytable_css_8fbvec4a017c8iqautyj {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
-    #tinytable_2p05mamj6tknumj96eje td.tinytable_css_9befmc83jwvxjohjqzbh, #tinytable_2p05mamj6tknumj96eje th.tinytable_css_9befmc83jwvxjohjqzbh {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_2p05mamj6tknumj96eje td.tinytable_css_gck0liltpx8n4o5m9in7, #tinytable_2p05mamj6tknumj96eje th.tinytable_css_gck0liltpx8n4o5m9in7 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_gycy31qkek40bynrjgzv td.tinytable_css_lglflf9c3mlsbd0hf47p, #tinytable_gycy31qkek40bynrjgzv th.tinytable_css_lglflf9c3mlsbd0hf47p {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
+    #tinytable_gycy31qkek40bynrjgzv td.tinytable_css_i8e0ojdymkm4h2a5s5ow, #tinytable_gycy31qkek40bynrjgzv th.tinytable_css_i8e0ojdymkm4h2a5s5ow { text-align: left }
+    #tinytable_gycy31qkek40bynrjgzv td.tinytable_css_j28wiylrch7uy3z98p9s, #tinytable_gycy31qkek40bynrjgzv th.tinytable_css_j28wiylrch7uy3z98p9s {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
+    #tinytable_gycy31qkek40bynrjgzv td.tinytable_css_btor1a6aiyc5tgxs4xnq, #tinytable_gycy31qkek40bynrjgzv th.tinytable_css_btor1a6aiyc5tgxs4xnq {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_gycy31qkek40bynrjgzv td.tinytable_css_n7mwsyjz8jdl1qjg1qha, #tinytable_gycy31qkek40bynrjgzv th.tinytable_css_n7mwsyjz8jdl1qjg1qha {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_2p05mamj6tknumj96eje" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_gycy31qkek40bynrjgzv" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">method</th>
                 <th scope="col" data-row="0" data-col="2">constraint</th>
@@ -390,7 +389,7 @@ Figure 2: Taxonomy of observation models for bulk deconvolution, relative to De
 <p>DeMixT (and DeMix) is the closest published <strong>convolution</strong> to DeCovarT: a frequentist Gaussian mixture of observed and latent components, but with <strong>independent genes</strong> and an unknown tumour or stromal profile <span class="citation" data-cites="wangTranscriptomeDeconvolutionHeterogeneous2018 ahnDeMixDeconvolutionMixed2013">(<a href="#ref-wangTranscriptomeDeconvolutionHeterogeneous2018" role="doc-biblioref">Wang et al. 2018</a>; <a href="#ref-ahnDeMixDeconvolutionMixed2013" role="doc-biblioref">Ahn et al. 2013</a>)</span>. DSection is a <strong>Bayesian</strong> univariate convolution (Normal / Gamma / Dirichlet priors and a Gibbs–Metropolis sampler) <span class="citation" data-cites="erkkilaProbabilisticAnalysisGene2010">(<a href="#ref-erkkilaProbabilisticAnalysisGene2010" role="doc-biblioref">Erkkilä et al. 2010</a>)</span>. DeCovarT is frequentist, closed-reference, and <strong>multivariate</strong>: plug-in <span class="math inline">(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})</span>, no unknown extra component, and a gene–gene residual network inside each <span class="math inline">\boldsymbol{\Sigma}_{j}</span>.</p>
 <p><code>RNA-Sieve</code> is a supervised likelihood, but not that convolution <span class="citation" data-cites="erdmann-phamLikelihoodbasedDeconvolutionBulk2021">(<a href="#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021" role="doc-biblioref">Erdmann-Pham et al. 2021</a>)</span>. Their <span class="math inline">M</span>, <span class="math inline">\alpha</span> and <span class="math inline">b</span> are DeCovarT’s <span class="math inline">\boldsymbol{\mu}</span>, <span class="math inline">\boldsymbol{p}</span> and <span class="math inline">\boldsymbol{y}</span>. The bulk is modelled as the sum of <span class="math inline">n</span> cells with a <em>gene-wise</em> central-limit Gaussian, plus measurement error in <span class="math inline">M</span> (errors-in-variables). Genes are independent. Wald regions use the inverse Fisher information, or the Godambe sandwich under protocol shift. DeCovarT instead uses a full <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span> and plug-in moments; the resampling counterpart of noisy <span class="math inline">M</span> is <a href="../reference/reference_bootstrap_decovart.html"><code>reference_bootstrap_decovart()</code></a>. A side-by-side comparison is in the <a href="theory-DeCovarT-MLE-properties.html#sec-rna-sieve">MLE properties vignette</a>.</p>
 <p><code>BLADE</code> replaces the Gaussian with a <strong>gene-wise log-normal</strong> convolution, jointly purifying CTS profiles by variational inference <span class="citation" data-cites="andrade-barbosaBayesianLogNormalDeconvolution2021">(<a href="#ref-andrade-barbosaBayesianLogNormalDeconvolution2021" role="doc-biblioref">Andrade Barbosa et al. 2021</a>)</span>. <code>bMIND</code> estimates sample-level CTS with an scRNA-seq-derived prior <span class="citation" data-cites="wangBayesianEstimationCelltypespecific2020">(<a href="#ref-wangBayesianEstimationCelltypespecific2020" role="doc-biblioref">Wang et al. 2020</a>)</span>. The experimental MAP path in <code>R/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R</code> is the corresponding DeCovarT starting point: recover <span class="math inline">\boldsymbol{x}_{\cdot j,i}</span> given <span class="math inline">\boldsymbol{y}_{\cdot i}</span> and <span class="math inline">\boldsymbol{p}_{\cdot i}</span> under <a href="#eq-gaussian-convolution" class="quarto-xref">Eq. 2</a> rather than under independent genes.</p>
-<p>Zhang et al. benchmark joint <span class="math inline">\boldsymbol{p}</span> + CTS engines and report <strong>BayesPrism with DWLS gene weights</strong> as the strongest combination on pseudobulk and real bulk data <span class="citation" data-cites="zhangIntegratedInferenceCellularCompositions2026">(<a href="#ref-zhangIntegratedInferenceCellularCompositions2026" role="doc-biblioref">Zhang et al. 2026</a>)</span>. That is a weighted-likelihood analogue of <a href="#sec-robust-gls" class="quarto-xref">Sec. 2.6</a>.</p>
+<p>Zhang et al. benchmark joint <span class="math inline">\boldsymbol{p}</span> + CTS engines and report <strong>BayesPrism with DWLS gene weights</strong> as the strongest combination on pseudobulk and real bulk data <span class="citation" data-cites="zhangIntegratedInferenceCellularCompositions2026">(<a href="#ref-zhangIntegratedInferenceCellularCompositions2026" role="doc-biblioref">Zhang et al. 2026</a>)</span>. That is a weighted-likelihood analogue of <a href="#sec-robust-gls" class="quarto-xref">Sec. 2.7</a>.</p>
 </section><section class="level3"><h4 id="sec-logit-normal-compositional">Two simplices without convolution<a class="anchor" aria-label="anchor" href="#sec-logit-normal-compositional"></a>
 </h4>
 <p>McGregor et al. model a count vector of <span class="math inline">D</span> features as <strong>compositional</strong>, not as a mixture of cell-type Gaussians <span class="citation" data-cites="mcgregorProportionalitybasedAssociationMetrics2026">(<a href="#ref-mcgregorProportionalitybasedAssociationMetrics2026" role="doc-biblioref">McGregor et al. 2026</a>)</span>. In DeCovarT notation the features are the <span class="math inline">G</span> genes. Sample <span class="math inline">i</span> has library size <span class="math inline">n_i</span> and gene composition <span class="math inline">\boldsymbol{\pi}_i\in\Delta^{G-1}</span>. The observation is multinomial,</p>
@@ -502,7 +501,106 @@ Figure 3: Directed graph for a logit-normal multinomial gene composition (McGre
 \tag{16}</span></span></p>
 <p><strong>Post-correction</strong> treats <span class="math inline">r_{j}</span> as measured (or proxied). <code>EPIC</code> and <code>quanTIseq</code> rescale <span class="math inline">\hat{\boldsymbol{p}}</span> using kit-based mRNA content or housekeeping-gene / proteasome-subunit surrogates <span class="citation" data-cites="racleSimultaneousEnumerationCancer2017 finotello_etal19">(<a href="#ref-racleSimultaneousEnumerationCancer2017" role="doc-biblioref"><span class="nocase">Racle et al.</span> 2017</a>; <a href="#ref-finotello_etal19" role="doc-biblioref"><span class="nocase">Finotello et al.</span> 2019</a>)</span>. <code>MuSiC</code> uses average cell-type library size as a size proxy and warns that TPM can discard the information needed to recover cell fractions <span class="citation" data-cites="wangBulkTissueCell2019">(<a href="#ref-wangBulkTissueCell2019" role="doc-biblioref">Wang et al. 2019</a>)</span>. <code>ReDeconv</code> separates global library-size normalisation from cell-type transcriptome size <span class="citation" data-cites="luTranscriptomeSizeMatters2025">(<a href="#ref-luTranscriptomeSizeMatters2025" role="doc-biblioref">Lu et al. 2025</a>)</span>.</p>
 <p><strong>Joint estimation</strong> treats <span class="math inline">r_{j}</span> as unknown. <code>MMAD</code> estimates extraction efficiencies by non-linear conjugate gradients, so the mixture is no longer linear <span class="citation" data-cites="liebnerMMADMicroarrayMicrodissection2014">(<a href="#ref-liebnerMMADMicroarrayMicrodissection2014" role="doc-biblioref">Liebner et al. 2014</a>)</span>. A DeCovarT analogue would introduce <span class="math inline">r_{j}</span> inside the mean <span class="math inline">\sum_{j}p_{ji}r_{j}\boldsymbol{\mu}_{\cdot j}</span> (with a product-simplex constraint on <span class="math inline">(p_{j}r_{j})</span>), rather than assuming <span class="math inline">r_{j}</span> known.</p>
-</section><section class="level2"><h3 id="sec-robust-gls">Robust regression, GLS, and gene weights<a class="anchor" aria-label="anchor" href="#sec-robust-gls"></a>
+</section><section class="level2"><h3 id="sec-ols">Ordinary least squares and Gauss–Markov<a class="anchor" aria-label="anchor" href="#sec-ols"></a>
+</h3>
+<p>This subsection used to live in a standalone article (<code>theory-related-models-beyond-OLS</code>); it is kept here so the OLS baseline and the convolution MLE sit in one place.</p>
+<section class="level3"><h4 id="sec-ols-notation">Notation<a class="anchor" aria-label="anchor" href="#sec-ols-notation"></a>
+</h4>
+<table class="table caption-top">
+<colgroup>
+<col style="width: 57%">
+<col style="width: 42%">
+</colgroup>
+<thead><tr class="header">
+<th style="text-align: left;">Symbol</th>
+<th style="text-align: left;">Role</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">g=1,\ldots,G</span></td>
+<td style="text-align: left;">genes</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">j=1,\ldots,J</span></td>
+<td style="text-align: left;">cell types</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">i=1,\ldots,N</span></td>
+<td style="text-align: left;">samples (subjects); independence across <span class="math inline">i</span>
+</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\boldsymbol{y}=(y_{gi})\in\mathbb{R}_{+}^{G\times N}</span></td>
+<td style="text-align: left;">bulk; column <span class="math inline">\boldsymbol{y}_{\cdot i}</span>
+</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\boldsymbol{\mu}=(\mu_{gj})\in\mathbb{R}^{G\times J}</span></td>
+<td style="text-align: left;">mean signature; column <span class="math inline">\boldsymbol{\mu}_{\cdot j}</span>
+</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\boldsymbol{p}=(p_{ji})\in\,]0,1[^{J\times N}</span></td>
+<td style="text-align: left;">proportions; column <span class="math inline">\boldsymbol{p}_{\cdot i}</span>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Ideal noiseless model for sample <span class="math inline">i</span>:</p>
+<p><span id="eq-ols-lin"><span class="math display">
+\boldsymbol{y}_{\cdot i}=\boldsymbol{\mu}\,\boldsymbol{p}_{\cdot i},
+\qquad
+y_{gi}=\sum_{j=1}^{J}\mu_{gj}p_{ji}.
+\tag{17}</span></span></p>
+<p>With <span class="math inline">G&gt;J</span> and <span class="math inline">\operatorname{rank}(\boldsymbol{\mu})=J</span>, the system is overdetermined <span class="citation" data-cites="abbasDeconvolutionBloodMicroarray2009">(<a href="#ref-abbasDeconvolutionBloodMicroarray2009" role="doc-biblioref">Abbas et al. 2009</a>)</span>; uniqueness in the square full-rank case follows from the Rouché–Capelli theorem <span class="citation" data-cites="shafarevichLinearEquations2013">(<a href="#ref-shafarevichLinearEquations2013" role="doc-biblioref">Shafarevich and Remizov 2013</a>)</span>.</p>
+</section><section class="level3"><h4 id="sec-ols-task">Ordinary least squares<a class="anchor" aria-label="anchor" href="#sec-ols-task"></a>
+</h4>
+<p>With additive residual <span class="math inline">\epsilon_{gi}</span>, OLS minimises squared error for each sample (independently):</p>
+<p><span id="eq-ols-task"><span class="math display">
+\hat{\boldsymbol{p}}_{\cdot i}^{\mathrm{OLS}}
+\equiv
+\arg\min_{\boldsymbol{p}_{\cdot i}}
+\bigl\|\boldsymbol{y}_{\cdot i}-\boldsymbol{\mu}\,\boldsymbol{p}_{\cdot i}\bigr\|_{2}^{2}.
+\tag{18}</span></span></p>
+<p>When <span class="math inline">\boldsymbol{\mu}^{\top}\boldsymbol{\mu}</span> is invertible, the normal equations give</p>
+<p><span id="eq-ols-estimate"><span class="math display">
+\hat{\boldsymbol{p}}_{\cdot i}^{\mathrm{OLS}}
+=
+\bigl(\boldsymbol{\mu}^{\top}\boldsymbol{\mu}\bigr)^{-1}
+\boldsymbol{\mu}^{\top}\boldsymbol{y}_{\cdot i}.
+\tag{19}</span></span></p>
+<p>Existence of this inverse requires full column rank <span class="math inline">J</span> (no cell-type profile is an exact linear combination of the others; parent/child lineages that are collinear cannot both be estimated).</p>
+</section><section class="level3"><h4 id="sec-ols-gauss">Homoscedastic Gaussian noise and MLE<a class="anchor" aria-label="anchor" href="#sec-ols-gauss"></a>
+</h4>
+<p>Under the classical linear model,</p>
+<p><span id="eq-white-noise"><span class="math display">
+y_{gi}=\sum_{j=1}^{J}\mu_{gj}p_{ji}+\epsilon_{gi},
+\qquad
+\epsilon_{gi}\sim\mathcal{N}(0,\sigma_{i}^{2}),
+\tag{20}</span></span></p>
+<p>the MLE for <span class="math inline">\boldsymbol{p}_{\cdot i}</span> coincides with <a href="#eq-ols-estimate" class="quarto-xref">Eq. 19</a>.</p>
+</section><section class="level3"><h4 id="sec-gauss-markov">Gauss–Markov assumptions<a class="anchor" aria-label="anchor" href="#sec-gauss-markov"></a>
+</h4>
+<p>Under weak exogeneity of <span class="math inline">\boldsymbol{\mu}</span>, homoscedasticity <span class="math inline">\operatorname{Var}(\epsilon_{gi})=\sigma_{i}^{2}</span> for all <span class="math inline">g</span>, zero mean <span class="math inline">\mathbb{E}(\epsilon_{gi})=0</span>, and uncorrelated residuals across genes, the OLS estimator is the BLUE (best linear unbiased estimator). With i.i.d. Gaussian errors the sample log-likelihood for sample <span class="math inline">i</span> is (up to constants)</p>
+<p><span class="math display">
+\ell(\boldsymbol{p}_{\cdot i},\sigma_{i}\,|\,\boldsymbol{y}_{\cdot i},\boldsymbol{\mu})
+=
+-G\log\sigma_{i}
+-\frac{1}{2\sigma_{i}^{2}}
+\sum_{g=1}^{G}
+\Bigl(y_{gi}-\sum_{j=1}^{J}\mu_{gj}p_{ji}\Bigr)^{2},
+</span></p>
+<p>so maximising <span class="math inline">\ell</span> in <span class="math inline">\boldsymbol{p}_{\cdot i}</span> recovers <a href="#eq-ols-task" class="quarto-xref">Eq. 18</a>. Independence across samples <span class="math inline">i=1,\ldots,N</span> is the modelling assumption used throughout DeCovarT; microarray literature sometimes questions gene-wise independence <span class="citation" data-cites="efronAreSetMicroarrays2009">(<a href="#ref-efronAreSetMicroarrays2009" role="doc-biblioref">Efron 2009</a>)</span>.</p>
+<div>
+<blockquote>
+<p><strong>What DeCovarT changes</strong></p>
+<p>DeCovarT replaces gene-wise scalar noise with a multivariate convolution: latent <span class="math inline">\boldsymbol{x}_{\cdot j}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},
+\boldsymbol{\Sigma}_{j})</span>, and <span class="math inline">\boldsymbol{y}_{\cdot i}\,|\,\boldsymbol{p}_{\cdot i}
+\sim\mathcal{N}_{G}\bigl(\boldsymbol{\mu}\,\boldsymbol{p}_{\cdot i},
+\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}\bigr)</span>, with precision <span class="math inline">\boldsymbol{\Theta}_{j}=\boldsymbol{\Sigma}_{j}^{-1}</span> (typically from <code>gLasso</code>). See the article Methods and <a href="theory-decovart-generative-model.html#sec-s3">derivatives under simplex transforms</a>.</p>
+</blockquote>
+</div>
+</section></section><section class="level2"><h3 id="sec-robust-gls">Robust regression, GLS, and gene weights<a class="anchor" aria-label="anchor" href="#sec-robust-gls"></a>
 </h3>
 <p>Let <span class="math inline">W=\mathrm{diag}(w_{1},\ldots,w_{G})</span> be gene-specific precision weights (DWLS dampening, voom mean–variance weights, or inverse leverage). Weighted least squares minimises <span class="math inline">(\boldsymbol{y}_{\cdot i}-\boldsymbol{\mu}\boldsymbol{p}_{\cdot i})^{\top}
 W(\boldsymbol{y}_{\cdot i}-\boldsymbol{\mu}\boldsymbol{p}_{\cdot i})</span> <span class="citation" data-cites="tsoucasAccurateEstimationCelltype2019 lawVoomPrecisionWeights2014">(<a href="#ref-tsoucasAccurateEstimationCelltype2019" role="doc-biblioref">Tsoucas et al. 2019</a>; <a href="#ref-lawVoomPrecisionWeights2014" role="doc-biblioref">Law et al. 2014</a>)</span>. CIBERSORT’s <span class="math inline">\nu</span>-SVR replaces squared error by a robust hinge <span class="citation" data-cites="newmanRobustEnumerationCell2015">(<a href="#ref-newmanRobustEnumerationCell2015" role="doc-biblioref">Newman et al. 2015</a>)</span>.</p>
@@ -510,7 +608,7 @@ W(\boldsymbol{y}_{\cdot i}-\boldsymbol{\mu}\boldsymbol{p}_{\cdot i})</span> <spa
 <p><span id="eq-gls"><span class="math display">
 \hat{\boldsymbol{p}}^{\mathrm{GLS}}
 =(\boldsymbol{\mu}^{\top}W^{-1}\boldsymbol{\mu})^{-1}\boldsymbol{\mu}^{\top}W^{-1}\boldsymbol{y}_{\cdot i},
-\tag{17}</span></span></p>
+\tag{21}</span></span></p>
 <p>after which the simplex is imposed by projection. Do <strong>not</strong> copy <span class="math inline">W</span> into every DeCovarT tensor slice: <span class="math inline">\sum_j p_j^2 W=\|p\|_2^2 W</span> still depends on <span class="math inline">p</span>. WLS is the diagonal special case. DeCovarT is strictly richer: <span class="math inline">\Sigma(\boldsymbol{p})=\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}</span> depends on the unknown coefficients. <code><a href="https://rdrr.io/pkg/nlme/man/gls.html" class="external-link">nlme::gls()</a></code> is for <em>estimating</em> a structured <span class="math inline">\Sigma</span> (AR(1), compound symmetry); it is the wrong tool when <span class="math inline">W</span> is already known.</p>
 <p>A direct extension, following the BayesPrism–DWLS construction <span class="citation" data-cites="zhangIntegratedInferenceCellularCompositions2026">(<a href="#ref-zhangIntegratedInferenceCellularCompositions2026" role="doc-biblioref">Zhang et al. 2026</a>)</span>, is to ingest <span class="math inline">W</span> into the convolution: transform <span class="math inline">\boldsymbol{y}^{\star}=W^{1/2}\boldsymbol{y}_{\cdot i}</span>, <span class="math inline">\boldsymbol{\mu}^{\star}=W^{1/2}\boldsymbol{\mu}</span>, <span class="math inline">\boldsymbol{\Sigma}_{j}^{\star}=W^{1/2}\boldsymbol{\Sigma}_{j}W^{1/2}</span> and run the existing solver — weighted GLS with cell-type-specific networks retained.</p>
 <p><code>cellGeometry</code> estimates uncertainty from gene-wise heteroscedasticity and the cross-sample variance of each gene, i.e. a <strong>global</strong> gene/sample covariance rather than <span class="math inline">\boldsymbol{\Sigma}_{j}</span> <span class="citation" data-cites="lauCellGeometryUltrafastSinglecell2026">(<a href="#ref-lauCellGeometryUltrafastSinglecell2026" role="doc-biblioref">Lau et al. 2026</a>)</span>. <code>Unico</code> deconvolves a 2-D bulk matrix into a 3-D sample <span class="math inline">\times</span> feature <span class="math inline">\times</span> cell-type tensor and explicitly models cell-type-level covariances, including on methylation <span class="citation" data-cites="chenUnicoUnifiedModelCell2025">(<a href="#ref-chenUnicoUnifiedModelCell2025" role="doc-biblioref">Chen et al. 2025</a>)</span>. Interaction monomials <span class="math inline">p_{j}p_{k}</span> in the mean (<a href="#eq-interaction-mean" class="quarto-xref">Eq. 3</a>) are the Scheffé / general-linear-model route; <code>DecOT</code> instead changes the discrepancy to an optimal-transport loss <span class="citation" data-cites="liuDecotBulkDeconvolutionOptimal2022">(<a href="#ref-liuDecotBulkDeconvolutionOptimal2022" role="doc-biblioref">Liu et al. 2022</a>)</span>.</p>
@@ -522,8 +620,8 @@ W(\boldsymbol{y}_{\cdot i}-\boldsymbol{\mu}\boldsymbol{p}_{\cdot i})</span> <spa
 =
 \ell_{\boldsymbol{y}}(\boldsymbol{p})
 +\tfrac12\log\det I(\boldsymbol{p}),
-\tag{18}</span></span></p>
-<p>where <span class="math inline">I(\boldsymbol{p})</span> is the expected Fisher information of the convolution in the working chart (ILR, or the unconstrained <span class="math inline">p</span>-block returned by <a href="../reference/expected_fisher_unconstrained.html"><code>expected_fisher_unconstrained()</code></a>). There is no extra tuning parameter: the penalty is the log-volume of the local information ellipsoid, equivalently a MAP under Jeffreys’ prior <span class="math inline">\pi(\boldsymbol{p})\propto\sqrt{\det I(\boldsymbol{p})}</span>. In exponential families the construction removes the <span class="math inline">O(N^{-1})</span> term and leaves an <span class="math inline">O(N^{-2})</span> remainder; it is the standard cure for logistic separation. For DeCovarT the same geometry is attractive for a different reason. <span class="math inline">\det I(\boldsymbol{p})</span> collapses when cell types are near-collinear or when <span class="math inline">\boldsymbol{p}</span> approaches a simplex face, whereas the GLS competitor of <a href="#eq-gls" class="quarto-xref">Eq. 17</a> uses a <em>fixed</em> <span class="math inline">W</span>. Adding <span class="math inline">\tfrac12\log\det I(\boldsymbol{p})</span> therefore <em>discourages</em> plateaux and boundary pile-up rather than shrinking coefficients toward zero as ridge or lasso would. It is not implemented: <code><a href="../reference/fit_decovart.html">fit_decovart()</a></code> maximises the convolution likelihood of <a href="#eq-gaussian-convolution" class="quarto-xref">Eq. 2</a>, not <a href="#eq-firth" class="quarto-xref">Eq. 18</a>. A prototype would add the log-determinant of the ILR information to <a href="../reference/loglik_multivariate_constrained.html"><code>loglik_multivariate_constrained()</code></a> and reuse the existing Marquardt / Newton solvers.</p>
+\tag{22}</span></span></p>
+<p>where <span class="math inline">I(\boldsymbol{p})</span> is the expected Fisher information of the convolution in the working chart (ILR, or the unconstrained <span class="math inline">p</span>-block returned by <a href="../reference/expected_fisher_unconstrained.html"><code>expected_fisher_unconstrained()</code></a>). There is no extra tuning parameter: the penalty is the log-volume of the local information ellipsoid, equivalently a MAP under Jeffreys’ prior <span class="math inline">\pi(\boldsymbol{p})\propto\sqrt{\det I(\boldsymbol{p})}</span>. In exponential families the construction removes the <span class="math inline">O(N^{-1})</span> term and leaves an <span class="math inline">O(N^{-2})</span> remainder; it is the standard cure for logistic separation. For DeCovarT the same geometry is attractive for a different reason. <span class="math inline">\det I(\boldsymbol{p})</span> collapses when cell types are near-collinear or when <span class="math inline">\boldsymbol{p}</span> approaches a simplex face, whereas the GLS competitor of <a href="#eq-gls" class="quarto-xref">Eq. 21</a> uses a <em>fixed</em> <span class="math inline">W</span>. Adding <span class="math inline">\tfrac12\log\det I(\boldsymbol{p})</span> therefore <em>discourages</em> plateaux and boundary pile-up rather than shrinking coefficients toward zero as ridge or lasso would. It is not implemented: <code><a href="../reference/fit_decovart.html">fit_decovart()</a></code> maximises the convolution likelihood of <a href="#eq-gaussian-convolution" class="quarto-xref">Eq. 2</a>, not <a href="#eq-firth" class="quarto-xref">Eq. 22</a>. A prototype would add the log-determinant of the ILR information to <a href="../reference/loglik_multivariate_constrained.html"><code>loglik_multivariate_constrained()</code></a> and reuse the existing Marquardt / Newton solvers.</p>
 </section><section class="level2"><h3 id="sec-dynamics">Time-resolved composition<a class="anchor" aria-label="anchor" href="#sec-dynamics"></a>
 </h3>
 <p>When <span class="math inline">J&gt;G</span> the linear map is under-determined. Elastic-net methods such as <code>DCQ</code> (<code>glmnet</code>) select the <strong>support of cell types that change</strong> between biological states, rather than recovering a full simplex snapshot <span class="citation" data-cites="altboumDigitalCellQuantification2014 R-glmnet">(<a href="#ref-altboumDigitalCellQuantification2014" role="doc-biblioref">Altboum et al. 2014</a>; <a href="#ref-R-glmnet" role="doc-biblioref">Friedman et al. 2026</a>)</span>. Static benchmarks that score these methods as poor deconvolution miss that target <span class="citation" data-cites="jinBenchmarkRNAseqDeconvolution2021">(<a href="#ref-jinBenchmarkRNAseqDeconvolution2021" role="doc-biblioref">Jin and Liu 2021</a>)</span>. <code>DCQ</code> tracked 213 immune subtypes across ten influenza time points and reported changes in about 70 types; <code>ImmQuant</code> packages a similar pipeline <span class="citation" data-cites="frishbergImmQuantUserfriendlyTool2016">(<a href="#ref-frishbergImmQuantUserfriendlyTool2016" role="doc-biblioref">Frishberg et al. 2016</a>)</span>.</p>
@@ -540,7 +638,32 @@ W(\boldsymbol{y}_{\cdot i}-\boldsymbol{\mu}\boldsymbol{p}_{\cdot i})</span> <spa
 <section class="level2"><h3 id="sec-archetypes">Archetypes, states, and potency<a class="anchor" aria-label="anchor" href="#sec-archetypes"></a>
 </h3>
 <p>A finite <span class="math inline">J</span>-column signature is a piecewise approximation of within-type continua. <strong>Archetypal analysis</strong> places cells on a simplicial polytope whose vertices are extreme programmes, avoiding NMF/ICA rotational ambiguity <span class="citation" data-cites="hartInferringBiologicalTasks2015 crowleyParetoOptimalityRevealsAtlas2026">(<a href="#ref-hartInferringBiologicalTasks2015" role="doc-biblioref">Hart et al. 2015</a>; <a href="#ref-crowleyParetoOptimalityRevealsAtlas2026" role="doc-biblioref">Crowley et al. 2026</a>)</span>. <code>ACTION</code> separates transcriptional identity (cell type) from activity states (shared gene-expression programmes) and chooses <span class="math inline">k</span> automatically <span class="citation" data-cites="mohammadiAMultiresolutionFrameworkCharacterize2020">(<a href="#ref-mohammadiAMultiresolutionFrameworkCharacterize2020" role="doc-biblioref">Mohammadi et al. 2020</a>)</span>; <code>scAAnet</code> extends that construction with a VAE and a zero-inflated negative-binomial reconstruction <span class="citation" data-cites="wangNonLinearArchetypalAnalysis2022">(<a href="#ref-wangNonLinearArchetypalAnalysis2022" role="doc-biblioref">Wang and Zhao 2022</a>)</span>. <code>tissueResolver</code> builds a virtual tissue without predefined labels, aiming at fine states within types <span class="citation" data-cites="simethVirtualTissueExpressionAnalysis2024">(<a href="#ref-simethVirtualTissueExpressionAnalysis2024" role="doc-biblioref">Simeth et al. 2024</a>)</span>. Potency and differentiation scores, as in hypothalamic–pituitary organoids, replace discrete labels by a continuous axis <span class="citation" data-cites="asanoADeepLearningApproach2024">(<a href="#ref-asanoADeepLearningApproach2024" role="doc-biblioref">Asano et al. 2024</a>)</span>. Macrophage M1/M2 polarisation is the standard biological example of a microenvironment-dependent continuum rather than two extra columns of <span class="math inline">\boldsymbol{\mu}</span>.</p>
+</section></section><section class="section level2"><h2 id="sec-beyond-asymptotics">Beyond first-order asymptotics<a class="anchor" aria-label="anchor" href="#sec-beyond-asymptotics"></a>
+</h2>
+<div id="nte-perspectives">
+<blockquote>
+<p><strong>Tip 1: Uncertainty quantification beyond Wald</strong></p>
+<p>Directions that would strengthen DeCovarT intervals, in rough order of implementation cost.</p>
+<ul>
+<li>
+<strong>Godambe sandwich for a misspecified convolution.</strong> <code>RNA-Sieve</code> replaces Fisher by the Godambe information when the CLT model is wrong <span class="citation" data-cites="erdmann-phamLikelihoodbasedDeconvolutionBulk2021">(<a href="#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021" role="doc-biblioref">Erdmann-Pham et al. 2021</a>)</span> (<a href="theory-DeCovarT-MLE-properties.html#sec-rna-sieve">MLE properties</a>). The same sandwich on DeCovarT’s score would widen Wald intervals under protocol shift without discarding the multivariate covariance. It remains a first-order <em>interior</em> device: faces still need the chi-bar-square LRT or a restricted bootstrap.</li>
+<li>
+<strong>Sandwich for a variational estimator is a different object.</strong> Westling and McCormick give the profile M-estimation sandwich for variational approximations in mixture models <span class="citation" data-cites="westlingPredictionFrameworkInference2019">(<a href="#ref-westlingPredictionFrameworkInference2019" role="doc-biblioref">Westling and McCormick 2019</a>)</span>. Batardière, Chiquet and Mariadassou specialise that construction to Poisson-log-normal <em>variational</em> parameters <span class="citation" data-cites="batardiereEvaluatingParameterUncertainty2024">(<a href="#ref-batardiereEvaluatingParameterUncertainty2024" role="doc-biblioref">Batardière et al. 2024</a>)</span>. That estimator is not a maximum-likelihood estimator and does not inherit the usual MLE consistency / <span class="math inline">\sqrt{n}</span> theory; the sandwich is an M-estimation correction for a surrogate ELBO. DeCovarT’s <span class="math inline">\hat{\boldsymbol{p}}</span> <em>is</em> the MLE of the Gaussian convolution on one bulk column (when the solver reaches a local maximum), so expected Fisher at <span class="math inline">p^{\star}</span> is the regular-case asymptotic variance. Do not paste their coverage plots onto DeCovarT Wald intervals.</li>
+<li>
+<strong>Score-test inversion.</strong> Inverting a one-sided score test avoids refitting under every candidate value, so it is cheaper than the profile scan of <code><a href="../reference/confint_profile_decovart.html">confint_profile_decovart()</a></code> while keeping the one-sided boundary geometry.</li>
+<li>
+<strong>Higher-order likelihood corrections.</strong> Bartlett-type adjustments of the likelihood-ratio statistic, or modified profile likelihoods, improve the <span class="math inline">\chi^{2}</span> approximation in the small-replication regime described in the <a href="theory-DeCovarT-MLE-properties.html#nte-replication">MLE properties</a> vignette — precisely DeCovarT’s regime.</li>
+<li>
+<strong>Bayesian compositional models.</strong> A logistic-normal or Dirichlet prior on <span class="math inline">\boldsymbol{p}</span> regularises the boundary: the posterior stays proper where the ILR Wald interval degenerates, and credible intervals are usually more stable near a face. A credible interval is not an exact frequentist interval, and the prior must be defensible scientifically.</li>
+<li>
+<strong>Information geometry of the composition.</strong> Treating <span class="math inline">\Delta^{J-1}</span> with the Fisher–Rao metric of the <a href="theory-DeCovarT-MLE-properties.html#eq-fisher-metric">MLE properties</a> vignette rather than as a subset of <span class="math inline">\mathbb{R}^{J}</span> would give natural-gradient updates and reparametrisation-invariant confidence regions <span class="citation" data-cites="malagoInformationGeometryGaussian2015 aitchisonStatisticalAnalysisCompositional1982">(<a href="#ref-malagoInformationGeometryGaussian2015" role="doc-biblioref">Malago and Pistone 2015</a>; <a href="#ref-aitchisonStatisticalAnalysisCompositional1982" role="doc-biblioref">Aitchison 1982</a>)</span>.</li>
+</ul>
+</blockquote>
+</div>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-abbasDeconvolutionBloodMicroarray2009" class="csl-entry" role="listitem">
+Abbas, Alexander R., Kristen Wolslegel, Dhaya Seshasayee, Zora Modrusan, and Hilary F. Clark. 2009. <span>‘Deconvolution of Blood Microarray Data Identifies Cellular Activation Patterns in Systemic Lupus Erythematosus’</span>. <em>PloS One</em> 4. <a href="https://doi.org/10.1371/journal.pone.0006098" class="external-link">https://doi.org/10.1371/journal.pone.0006098</a>.
+</div>
 <div id="ref-ahnDeMixDeconvolutionMixed2013" class="csl-entry" role="listitem">
 Ahn, Jaeil, Ying Yuan, Giovanni Parmigiani, et al. 2013. <span>‘<span>DeMix</span>: Deconvolution for Mixed Cancer Transcriptomes Using Raw Measured Data’</span>. <em>Bioinformatics (Oxford, England)</em> 29. <a href="https://doi.org/10.1093/bioinformatics/btt301" class="external-link">https://doi.org/10.1093/bioinformatics/btt301</a>.
 </div>
@@ -570,6 +693,9 @@ Barbot, Hugo, and Magali Richard. 2026. <span>‘On the <span>Promises</span> an
 </div>
 <div id="ref-batardiereZeroInflationMultivariatePoisson2025" class="csl-entry" role="listitem">
 Batardière, Bastien, Julien Chiquet, François Gindraud, and Mahendra Mariadassou. 2025. <span>‘Zero-Inflation in the Multivariate Poisson Lognormal Family’</span>. <em>Statistics and Computing</em> 35 (6). <a href="https://doi.org/10.1007/s11222-025-10729-0" class="external-link">https://doi.org/10.1007/s11222-025-10729-0</a>.
+</div>
+<div id="ref-batardiereEvaluatingParameterUncertainty2024" class="csl-entry" role="listitem">
+Batardière, Bastien, Julien Chiquet, and Mahendra Mariadassou. 2024. <em>Evaluating <span>Parameter Uncertainty</span> in the <span>Poisson Lognormal Model</span> with <span>Corrected Variational Estimators</span></em>. arXiv. <a href="https://doi.org/10.48550/arxiv.2411.08524" class="external-link">https://doi.org/10.48550/arxiv.2411.08524</a>.
 </div>
 <div id="ref-brownGeneralBlendingModels2015" class="csl-entry" role="listitem">
 Brown, L., A. N. Donev, and A. C. Bissett. 2015. <span>‘General Blending Models for Data from Mixture Experiments’</span>. <em>Technometrics</em> 57 (4): 449–56. <a href="https://doi.org/10.1080/00401706.2014.947003" class="external-link">https://doi.org/10.1080/00401706.2014.947003</a>.
@@ -603,6 +729,9 @@ Dong, Meichen, Aatish Thennavan, Eugene Urrutia, et al. 2021. <span>‘<span>SCD
 </div>
 <div id="ref-ederRectangleRobustScalable2026" class="csl-entry" role="listitem">
 Eder, Bernhard, Irene Rigato, Alexander Dietrich, et al. 2026. <em>Rectangle: Robust and Scalable Multiscale Deconvolution Informed by Single-Cell <span>RNA</span> Sequencing Data</em>. bioRxiv. <a href="https://doi.org/10.64898/2026.07.07.736950" class="external-link">https://doi.org/10.64898/2026.07.07.736950</a>.
+</div>
+<div id="ref-efronAreSetMicroarrays2009" class="csl-entry" role="listitem">
+Efron, Bradley. 2009. <span>‘Are a Set of Microarrays Independent of Each Other?’</span> <em>The Annals of Applied Statistics</em> 3. <a href="https://doi.org/10.1214/09-aoas236" class="external-link">https://doi.org/10.1214/09-aoas236</a>.
 </div>
 <div id="ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021" class="csl-entry" role="listitem">
 Erdmann-Pham, Dan D., Jonathan Fischer, Justin Hong, and Yun S. Song. 2021. <span>‘Likelihood-Based Deconvolution of Bulk Gene Expression Data Using Single-Cell References’</span>. <em>Genome Research</em> 31 (10): 1794–806. <a href="https://doi.org/10.1101/gr.272344.120" class="external-link">https://doi.org/10.1101/gr.272344.120</a>.
@@ -688,6 +817,9 @@ Lu, Songjian, Jiyuan Yang, Lei Yan, et al. 2025. <span>‘Transcriptome Size Mat
 <div id="ref-mahamuneSystematicEvaluationRobustnessDeconvolution2025" class="csl-entry" role="listitem">
 Mahamune, Utkarsh M., Aldo Jongejan, Antoine H. C. van Kampen, Lisa G. M. van Baarsen, and Perry D. Moerland. 2025. <em>Systematic Evaluation of Robustness of Deconvolution Methods for Spatial Transcriptomics Data in Case of Cell Type Mismatch</em>. bioRxiv. <a href="https://doi.org/10.1101/2025.08.12.669903" class="external-link">https://doi.org/10.1101/2025.08.12.669903</a>.
 </div>
+<div id="ref-malagoInformationGeometryGaussian2015" class="csl-entry" role="listitem">
+Malago, Luigi, and Giovanni Pistone. 2015. <span>‘Information Geometry of the Gaussian Distribution in View of Stochastic Optimization’</span>. In <em>Proceedings of the 2015 ACM Conference on Foundations of Genetic Algorithms XIII</em>. Association for Computing Machinery. <a href="https://doi.org/10.1145/2725494.2725510" class="external-link">https://doi.org/10.1145/2725494.2725510</a>.
+</div>
 <div id="ref-mcgregorProportionalitybasedAssociationMetrics2026" class="csl-entry" role="listitem">
 McGregor, Kevin, Nneka Okaeme, Reihane Khorasaniha, et al. 2026. <span>‘Proportionality-Based Association Metrics in Count Compositional Data’</span>. <em>NAR Genomics and Bioinformatics</em> 8 (3): lqag102. <a href="https://doi.org/10.1093/nargab/lqag102" class="external-link">https://doi.org/10.1093/nargab/lqag102</a>.
 </div>
@@ -708,6 +840,9 @@ Newman, Aaron, Chih Liu, Michael Green, et al. 2015. <span>‘Robust Enumeration
 </div>
 <div id="ref-saqibPixelsCellTypes2025" class="csl-entry" role="listitem">
 Saqib, Jahanzeb, and Junil Kim. 2025. <span>‘From Pixels to Cell Types: A Comprehensive Review of Computational Methods for Spatial Transcriptomics Deconvolution’</span>. <em>Genomics &amp; Informatics</em> 23. <a href="https://doi.org/10.1186/s44342-025-00055-2" class="external-link">https://doi.org/10.1186/s44342-025-00055-2</a>.
+</div>
+<div id="ref-shafarevichLinearEquations2013" class="csl-entry" role="listitem">
+Shafarevich, Igor R., and Alexey O. Remizov. 2013. <span>‘Linear <span>Equations</span>’</span>. In <em>Linear Algebra and Geometry</em>. Springer Berlin Heidelberg. <a href="https://doi.org/10.1007/978-3-642-30994-6_1" class="external-link">https://doi.org/10.1007/978-3-642-30994-6_1</a>.
 </div>
 <div id="ref-simethVirtualTissueExpressionAnalysis2024" class="csl-entry" role="listitem">
 Simeth, Jakob, Paul Hüttl, Marian Schön, et al. 2024. <span>‘Virtual Tissue Expression Analysis’</span>. <em>Bioinformatics</em> 40 (12). <a href="https://doi.org/10.1093/bioinformatics/btae709" class="external-link">https://doi.org/10.1093/bioinformatics/btae709</a>.
@@ -745,6 +880,9 @@ Wang, Yuge, and Hongyu Zhao. 2022. <span>‘Non-Linear Archetypal Analysis of Si
 <div id="ref-wangTranscriptomeDeconvolutionHeterogeneous2018" class="csl-entry" role="listitem">
 Wang, Zeya, Shaolong Cao, Jeffrey S. Morris, et al. 2018. <span>‘Transcriptome <span>Deconvolution</span> of <span>Heterogeneous Tumor Samples</span> with <span>Immune Infiltration</span>’</span>. <em>iScience</em> 9. <a href="https://doi.org/10.1016/j.isci.2018.10.028" class="external-link">https://doi.org/10.1016/j.isci.2018.10.028</a>.
 </div>
+<div id="ref-westlingPredictionFrameworkInference2019" class="csl-entry" role="listitem">
+Westling, Ted, and Tyler H. McCormick. 2019. <em>Beyond Prediction: <span>A</span> Framework for Inference with Variational Approximations in Mixture Models</em>. arXiv. <a href="https://doi.org/10.48550/arxiv.1510.08151" class="external-link">https://doi.org/10.48550/arxiv.1510.08151</a>.
+</div>
 <div id="ref-R-AlgDesign" class="csl-entry" role="listitem">
 Wheeler, Bob. 2025. <em>AlgDesign: Algorithmic Experimental Design</em>. <a href="https://github.com/jvbraun/AlgDesign" class="external-link">https://github.com/jvbraun/AlgDesign</a>.
 </div>
@@ -773,7 +911,7 @@ Zhao, Tianyi, Renjie Liu, Yuzhi Sun, et al. 2026. <span>‘<span>DECODE</span>: 
 Zou, Zhiyi, Yuting Bai, Bo Wang, Wanwan Shi, Xiao Liang, and Jiawei Luo. 2026. <span>‘<span>HIDF</span>: Integrating Tree‐structured scRNA‐seq Heterogeneity for Hierarchical Deconvolution of Spatial Transcriptomics’</span>. <em>Advanced Science</em> 13 (12). <a href="https://doi.org/10.1002/advs.202514073" class="external-link">https://doi.org/10.1002/advs.202514073</a>.
 </div>
 </div>
-</section></section><script id="quarto-html-after-body" type="application/javascript">
+</section><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);

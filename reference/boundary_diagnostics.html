@@ -46,8 +46,7 @@ vignette("theory-DeCovarT-MLE-properties")).'><meta property="og:image" content=
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-related-models-beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: OLS, Bayesian, quasi-likelihood, and more</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary simulation appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/supp-S1-identifiability.html"><span class="fa fa-vial"></span> App. S1 · Regular-case MLE and identifiability</a></li>
@@ -139,9 +138,12 @@ iterate counts as stationary.</p></dd>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Reported fields are the ILR score norm
-\(\lVert\nabla_{\boldsymbol{z}}\ell\rVert\), the largest
-eigenvalue \(\lambda_{\max}(\mathbf{H}_{\boldsymbol{z}})\) (negative
-at a local maximum), <code>boundary_distance</code> \(=\min_j\hat{p}_j\), and the
+\(\lVert\nabla_{\boldsymbol{z}}\ell\rVert\), the extreme eigenvalues
+\(\lambda_{\min}(\mathbf{H}_{\boldsymbol{z}})\) and
+\(\lambda_{\max}(\mathbf{H}_{\boldsymbol{z}})\) of the ILR Hessian
+(a local maximum requires the Hessian to be negative definite, so
+both must be strictly negative; \(\lambda_{\min}&lt;0&lt;\lambda_{\max}\)
+is a saddle), <code>boundary_distance</code> \(=\min_j\hat{p}_j\), and the
 flags <code>near_boundary</code> and <code>local_maximum</code>.</p>
 <p><code>boundary_tol</code> is a <strong>statistical</strong> warning threshold for Wald / ILR
 linearisation, deliberately much larger than the machine-precision guard
@@ -174,8 +176,10 @@ or boundary-calibrated tests of <code><a href="lrt_decovart.html">lrt_decovart()
 <span class="r-in"><span><span class="va">Sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">3</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="va">mu</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="fl">0.4</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">boundary_diagnostics</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="fl">0.4</span><span class="op">)</span>, <span class="va">y</span>, <span class="va">mu</span>, <span class="va">Sigma</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   boundary_distance near_boundary score_norm max_eigenvalue local_maximum</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1               0.4         FALSE  0.3916284      -200.5008         FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   boundary_distance near_boundary score_norm min_eigenvalue max_eigenvalue</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1               0.4         FALSE  0.3916284      -200.5008      -200.5008</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   local_maximum</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1         FALSE</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

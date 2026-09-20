@@ -204,12 +204,13 @@ deconvolute_ratios(
 #> #   coverage_interval <chr>, mean_interval_width <dbl>, mcse_coverage <dbl>
 #> 
 #> $optimisation
-#> # A tibble: 2 × 10
+#> # A tibble: 2 × 14
 #>   sample_id algorithm elapsed_sec memory_bytes kkt_residual numerical_converged
 #>   <chr>     <chr>           <dbl>        <dbl>        <dbl> <lgl>              
-#> 1 sample_1  nnls                0    526369792        0.444 TRUE               
-#> 2 sample_2  nnls                0    526369792        0.152 TRUE               
-#> # ℹ 4 more variables: theoretical_converged <lgl>, loglik_regret <dbl>,
-#> #   ct1 <dbl>, ct2 <dbl>
+#> 1 sample_1  nnls         0           480281600        0.444 TRUE               
+#> 2 sample_2  nnls         0.001000    480281600        0.152 TRUE               
+#> # ℹ 8 more variables: theoretical_converged <lgl>, loglik_regret <dbl>,
+#> #   local_maximum <lgl>, min_eigenvalue <dbl>, max_eigenvalue <dbl>,
+#> #   converged <list>, ct1 <dbl>, ct2 <dbl>
 #> 
 ```

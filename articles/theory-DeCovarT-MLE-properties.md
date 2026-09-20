@@ -789,7 +789,7 @@ c(
   loglik_diff = eq_check$loglik_diff
 )
 #>  max_abs_diff   loglik_diff 
-#>  9.336033e-10 -3.108624e-15
+#>  8.965458e-10 -2.664535e-15
 ```
 
 ### RNA-Sieve: CLT likelihood, Fisher and Godambe
@@ -833,8 +833,11 @@ the convolution mapped through the ILR ([Sec. 2.2](#sec-interior); the
 derivatives vignette). That Wald interval is the cheap interior tool,
 and it is **undefined** on a simplex face ([Sec. 2.3](#sec-boundary)).
 The Godambe sandwich would be relevant *if* the multivariate Gaussian
-convolution is misspecified (counts, protocol shift, omitted types). It
-does not replace the chi-bar-square LRT or the restricted parametric
+convolution is misspecified (counts, protocol shift, omitted types). The
+variational sandwich of Westling and McCormick ([Westling and McCormick
+2019](#ref-westlingPredictionFrameworkInference2019)) is a different
+object: it corrects an ELBO estimator, not this convolution MLE. It does
+not replace the chi-bar-square LRT or the restricted parametric
 bootstrap on the boundary, and it does not replace
 [`reference_bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_decovart.md),
 which is the resampling counterpart of RNA-Sieve’s noisy-M term.
@@ -851,8 +854,8 @@ conflate them:
 
 | Field | Established by | Does **not** establish |
 |:---|:---|:---|
-| `converged` (`istop` / `code`, `rdm`, `iterations`) | numerical stopping rules met | that the point is a maximum |
-| `local_maximum` (small ILR score norm, negative \lambda\_{\max}(\mathbf{H}\_{\boldsymbol{z}})) | stationarity with the right local curvature | global optimality |
+| `converged` (`iterations`, `criterion`, `code`, `rdm`) | numerical stopping rules met (iterative solvers; `NA` for NNLS / LSEI / CIBERSORT) | that the point is a maximum |
+| `local_maximum` (small ILR score, \lambda\_{\min}(H_z)\<0 and \lambda\_{\max}(H_z)\<0) | stationarity with a negative-definite Hessian | global optimality |
 | `near_boundary` (\min_j\hat{p}\_j small) | proximity to a simplex face | optimiser failure |
 | `multimodal` (spread of log-likelihoods over random starts) | evidence *for* several modes | absence of further modes |
 
@@ -871,14 +874,14 @@ fit <- fit_decovart(
   itmax = 100
 )
 do.call(rbind, fit$diagnostics)
-#>          boundary_distance near_boundary   score_norm max_eigenvalue
-#> sample_1         0.2159583         FALSE 2.383262e-09      -24.48051
-#> sample_2         0.1832318         FALSE 5.026328e-05      -18.72244
-#> sample_3         0.1682215         FALSE 1.765209e-08      -16.19907
-#>          local_maximum
-#> sample_1          TRUE
-#> sample_2          TRUE
-#> sample_3          TRUE
+#>          boundary_distance near_boundary   score_norm min_eigenvalue
+#> sample_1         0.2159583         FALSE 2.383263e-09      -160.1989
+#> sample_2         0.1832318         FALSE 5.026328e-05      -167.0961
+#> sample_3         0.1682215         FALSE 1.765213e-08      -171.3536
+#>          max_eigenvalue local_maximum
+#> sample_1      -24.48051          TRUE
+#> sample_2      -18.72244          TRUE
+#> sample_3      -16.19907          TRUE
 ```
 
 Every sample above converged and every curvature is negative, yet
@@ -926,7 +929,7 @@ c(
   multimodal = restarts$multimodal
 )
 #> loglik_range   multimodal 
-#> 6.625915e-10 0.000000e+00
+#> 6.625969e-10 0.000000e+00
 ```
 
 A small range is reassuring but not a proof: a converged code, a tiny
@@ -978,51 +981,14 @@ previous row:
 
 ## Perspectives
 
-> **Tip 5: Beyond first-order asymptotics**
->
-> Directions that would strengthen DeCovarT uncertainty quantification,
-> in rough order of implementation cost.
->
-> - **Godambe sandwich for a misspecified convolution.** `RNA-Sieve`
->   replaces Fisher by the Godambe information when the CLT model is
->   wrong ([Erdmann-Pham et al.
->   2021](#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021))
->   ([Sec. 2.7](#sec-rna-sieve)). The same sandwich on DeCovarT’s score
->   would widen Wald intervals under protocol shift without discarding
->   the multivariate covariance. It remains a first-order interior
->   device: faces still need the chi-bar-square LRT or a restricted
->   bootstrap.
-> - **Score-test inversion.** Inverting a one-sided score test avoids
->   refitting under every candidate value, so it is cheaper than the
->   profile scan of
->   [`confint_profile_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_decovart.md)
->   while keeping the one-sided boundary geometry.
-> - **Higher-order likelihood corrections.** Bartlett-type adjustments
->   of the likelihood-ratio statistic, or modified profile likelihoods,
->   improve the \chi^{2} approximation in the small-replication regime
->   that [Note 3](#nte-replication) describes — precisely DeCovarT’s
->   regime.
-> - **Bayesian compositional models.** A logistic-normal or Dirichlet
->   prior on \boldsymbol{p} regularises the boundary: the posterior
->   stays proper where the ILR Wald interval degenerates, and credible
->   intervals are usually more stable near a face. A credible interval
->   is of course not an exact frequentist interval, and the prior must
->   be defensible scientifically. This sits naturally alongside the MAP
->   treatment of the latent profiles sketched in the [perspectives
->   vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-statistical-perspectives.md).
-> - **Information geometry of the composition.** Treating \Delta^{J-1}
->   with the Fisher–Rao metric of [Eq. 5](#eq-fisher-metric) rather than
->   as a subset of \mathbb{R}^{J} would give natural-gradient updates
->   and reparametrisation-invariant confidence regions ([Malago and
->   Pistone 2015](#ref-malagoInformationGeometryGaussian2015);
->   [Aitchison
->   1982](#ref-aitchisonStatisticalAnalysisCompositional1982)).
+Outlook items that used to live here (Godambe sandwich, score-test
+inversion, Bartlett corrections, Bayesian compositions, Fisher–Rao
+geometry) now sit once in the [perspectives
+vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-statistical-perspectives.html#sec-beyond-asymptotics),
+alongside the OLS / Gauss–Markov background and the contrast with
+variational sandwich estimators.
 
 ## References
-
-Aitchison, J. 1982. ‘The Statistical Analysis of Compositional Data’.
-*Journal of the Royal Statistical Society: Series B (Methodological)* 44
-(2): 139–60. <https://doi.org/10.1111/j.2517-6161.1982.tb01195.x>.
 
 Avila Cobos, Francisco, José Alquicira-Hernandez, Joseph E. Powell,
 Pieter Mestdagh, and Katleen De Preter. 2020. ‘Benchmarking of Cell Type
@@ -1110,6 +1076,10 @@ Vellame, Dorothea Seiler, Gemma Shireby, Ailsa MacCalman, et al. 2023.
 ‘Uncertainty Quantification of Reference-Based Cellular Deconvolution
 Algorithms’. *Epigenetics* 18.
 <https://doi.org/10.1080/15592294.2022.2137659>.
+
+Westling, Ted, and Tyler H. McCormick. 2019. *Beyond Prediction: A
+Framework for Inference with Variational Approximations in Mixture
+Models*. arXiv. <https://doi.org/10.48550/arxiv.1510.08151>.
 
 Wilks, S. S. 1938. ‘The Large-Sample Distribution of the Likelihood
 Ratio for Testing Composite Hypotheses’. *The Annals of Mathematical

@@ -297,8 +297,10 @@ composition and ADEMP blocks from
 
 Figures are written from the split RDS (no ADEMP refit). Density books
 go to `output/fig02/density_visualisations/`; RMSE / MAE / Aitchison
-tiles, raincloud, forest, similarity, solver-dot, runtime, and memory
-books go to `output/fig02/performance_visualisations/`. Tile heatmaps
+tiles, raincloud, quantile-dot raincloud, forest, KKT raincloud, stacked
+convergence, whitened-ILR Q-Q / \chi^{2} Q-Q / KS lollipops, similarity,
+solver-dot, runtime, and memory books go to
+`output/fig02/performance_visualisations/`. Tile heatmaps
 ([`ggplot2::geom_tile()`](https://ggplot2.tidyverse.org/reference/geom_tile.html))
 show RMSE, MAE, and Aitchison distance on the (\rho_1,\rho_2) plane: one
 PDF per metric, one page per meta-scenario (CLD () variance ()
@@ -317,13 +319,35 @@ true composition, dashed whiskers use the empirical Monte Carlo SD, and
 coloured `geom_label` boxes (one per cell type, matching fig03) report
 RMSE and coverage. The native-space log-likelihood surface uses a log10
 colour scale of the relative likelihood (L/L) so boundary peaks are
-visible. Rainclouds plot (p) with solver fill **and** stroke, using the
-same vertical spacing as this 12-page book. Runtime and memory
-rainclouds use one page per meta-scenario, the four correlation corners
-on the x-axis, and a log10 y-axis. Solver-dot pages use the same 9-by-9
-((\_1,\_2)) grid as the RMSE heatmaps: colour is mean RMSE and size is
-mean Aitchison distance, with horizontal y-axis labels. ggplot `data`
-tables are saved under `output/fig02/ggplot_rds/`.
+visible. The matching `rgl` book uses the same log10 relative-likelihood
+z-axis. Rainclouds plot (p) with solver fill **and** stroke and a bottom
+legend. A companion `dotsinterval.pdf` book replaces the bounded \[0,1\]
+KDE slab with quantile dots. Runtime and memory rainclouds use one page
+per meta-scenario, the four correlation corners on the x-axis, and a
+log10 y-axis. Solver-dot pages use the same 9-by-9 ((\_1,\_2)) grid as
+the RMSE heatmaps: colour is mean RMSE and size is mean Aitchison
+distance, with horizontal y-axis labels. ggplot `data` tables are saved
+under `output/fig02/ggplot_rds/`.
+
+> **Tip 1: Other one-sample log-likelihood slices (not drawn)**
+>
+> The current `loglik_rgl.pdf` holds the two mean profiles fixed and
+> varies only \boldsymbol{p} (or the ALR coordinates of \boldsymbol{p}).
+> White diamonds mark p^{\star} and red circles the numerical MLE; a 3D
+> legend repeats those two markers. Expected log-likelihood surfaces
+> \mathbb{E}\_{\boldsymbol{y}\mid\boldsymbol{p}^{\star}}\[\ell(\boldsymbol{p};\boldsymbol{y})\]
+> are drawn separately as `loglik_expected_surface_p.pdf` and
+> `loglik_expected_ilr_profile.pdf` (not overlaid on the one-draw
+> books). Useful alternatives, left as outlook:
+>
+> - Hold \boldsymbol{p}^{\star} fixed and vary one column of
+>   \boldsymbol{\mu} (a mean-shift slice) to show how centroid collision
+>   flattens \ell.
+> - Hold \boldsymbol{p}^{\star} and \boldsymbol{\mu} fixed and vary one
+>   correlation \rho_j, so the surface is a covariance diagnostic rather
+>   than a mixing-weight diagnostic.
+> - Overlay several independent bulk draws as translucent surfaces to
+>   display sampling variability of \ell(\boldsymbol{p};\boldsymbol{y}).
 
 ### Likelihood geometry and solver behaviour
 

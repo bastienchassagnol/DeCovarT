@@ -63,8 +63,7 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-related-models-beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: OLS, Bayesian, quasi-likelihood, and more</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary simulation appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/supp-S1-identifiability.html"><span class="fa fa-vial"></span> App. S1 · Regular-case MLE and identifiability</a></li>
@@ -429,33 +428,62 @@ Table 3: Solvers used in the covariance-driven comparison.
 </tr>
 <tr class="odd">
 <td><code>output/fig03/density_visualisations/loglik_rgl.pdf</code></td>
-<td>3D ALR log-likelihood (<code>rgl</code>, (_1,_2,))</td>
+<td>3D ALR relative likelihood (<code>rgl</code>, log10 <span class="math inline">L/\max L</span>; white diamond <span class="math inline">p^{\star}</span>, red MLE, 3D legend)</td>
 </tr>
 <tr class="even">
+<td><code>output/fig03/density_visualisations/loglik_expected_surface_p.pdf</code></td>
+<td>Expected log-likelihood on the ALR plane</td>
+</tr>
+<tr class="odd">
 <td><code>output/fig03/density_visualisations/network_topologies.pdf</code></td>
 <td>Graph skeletons, one page per MixSim overlap</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>output/fig03/performance_visualisations/heatmap_rmse.pdf</code></td>
 <td>RMSE tiles</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>output/fig03/performance_visualisations/heatmap_aitchison.pdf</code></td>
 <td>Aitchison tiles</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>output/fig03/performance_visualisations/raincloud.pdf</code></td>
-<td>Monte Carlo () rainclouds</td>
+<td>Monte Carlo <span class="math inline">\hat{\boldsymbol{p}}</span> rainclouds (legend at the bottom)</td>
+</tr>
+<tr class="odd">
+<td><code>output/fig03/performance_visualisations/dotsinterval.pdf</code></td>
+<td>Quantile-dot companion (no bounded KDE slab)</td>
 </tr>
 <tr class="even">
 <td><code>output/fig03/performance_visualisations/forest.pdf</code></td>
 <td>ADEMP Wald forest</td>
 </tr>
 <tr class="odd">
+<td><code>output/fig03/performance_visualisations/kkt_raincloud.pdf</code></td>
+<td>Projected-score KKT residual rainclouds</td>
+</tr>
+<tr class="even">
+<td><code>output/fig03/performance_visualisations/convergence_stacked.pdf</code></td>
+<td>Theoretical success / numerical / theoretical failure</td>
+</tr>
+<tr class="odd">
+<td><code>output/fig03/performance_visualisations/qq_normal.pdf</code></td>
+<td>Whitened ILR versus <span class="math inline">N(0,1)</span> (TS band)</td>
+</tr>
+<tr class="even">
+<td><code>output/fig03/performance_visualisations/qq_chi2.pdf</code></td>
+<td>Joint <span class="math inline">D^{2}</span> versus <span class="math inline">\chi^{2}_{J-1}</span>
+</td>
+</tr>
+<tr class="odd">
+<td><code>output/fig03/performance_visualisations/ks_normal.pdf</code></td>
+<td>KS lollipops versus <span class="math inline">N(0,1)</span> (reject below <span class="math inline">0.05</span>)</td>
+</tr>
+<tr class="even">
 <td><code>output/fig03/performance_visualisations/runtime.pdf</code></td>
 <td>Solver wall-clock (log10 seconds)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>output/fig03/performance_visualisations/memory.pdf</code></td>
 <td>Peak memory (log10 MiB)</td>
 </tr>

@@ -4,13 +4,16 @@ For \\J=2\\ the axes are \\(p_1,p_2)\\ on the unit square (the dashed
 line is the simplex). For \\J=3\\ the axes are additive log-ratio
 coordinates \\\rho_1=\ln(p_1/p_3)\\, \\\rho_2=\ln(p_2/p_3)\\
 ([`additive_log_ratio()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)).
-The true simulation proportions (MLE for \\y=\mu p^{\star}\\) are
-marked.
+White diamonds mark the true simulation proportions; red circles with a
+black stroke mark the numerical MLE (grid argmax of \\\ell\\). For a
+single observation \\y=\mu p^{\star}\\ these two typically diverge
+unless \\p^{\star}\\ is equi-balanced. Set `expected = TRUE` to plot
+\\\mathbb{E}\_{Y\mid p^{\star}}\[\ell(p;Y)\]\\ instead.
 
 ## Usage
 
 ``` r
-plot_bulk_loglik_surface_p(true_theta, grid = 50L, y = NULL)
+plot_bulk_loglik_surface_p(true_theta, grid = 50L, y = NULL, expected = FALSE)
 ```
 
 ## Arguments
@@ -25,7 +28,13 @@ plot_bulk_loglik_surface_p(true_theta, grid = 50L, y = NULL)
 
 - y:
 
-  Optional bulk observation. Default is \\\mu p^{\star}\\.
+  Optional bulk observation. Default is \\\mu p^{\star}\\. Ignored when
+  `expected = TRUE`.
+
+- expected:
+
+  If `TRUE`, evaluate the expected log-likelihood under
+  \\Y\sim\mathcal{N}(\mu p^{\star},\Sigma(p^{\star}))\\.
 
 ## Value
 

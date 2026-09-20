@@ -224,6 +224,28 @@ wrapper.
   : Multi-page PDF of Wald forests at four correlation corners
 - [`save_bivariate_raincloud_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_raincloud_book.md)
   : Multi-page PDF of rainclouds at four correlation corners
+- [`save_bivariate_dotsinterval_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_dotsinterval_book.md)
+  : Multi-page PDF of quantile-dot rainclouds at four corners
+- [`save_bivariate_kkt_raincloud_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_kkt_raincloud_book.md)
+  : Multi-page KKT raincloud book
+- [`save_bivariate_convergence_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_convergence_book.md)
+  : Multi-page stacked-bar book of solver outcomes
+- [`save_bivariate_qq_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_qq_book.md)
+  : Multi-page Q-Q book of whitened ILR coordinates versus N(0, 1)
+- [`save_bivariate_ks_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_ks_book.md)
+  : Multi-page KS lollipop book of whitened ILR normality
+- [`save_bivariate_chi2_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_chi2_book.md)
+  : Multi-page Q-Q book of joint Mahalanobis D^2 versus chi-square
+- [`plot_kkt_raincloud()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_kkt_raincloud.md)
+  : Raincloud of projected-score KKT residuals
+- [`plot_convergence_stacked()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_convergence_stacked.md)
+  : Stacked bar counts of theoretical success and both failure modes
+- [`plot_mc_qq_normal()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_qq_normal.md)
+  : Q-Q plot of whitened ILR coordinates versus N(0, 1)
+- [`plot_mc_chi2_qq()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_chi2_qq.md)
+  : Q-Q plot of joint Mahalanobis D^2 versus chi-square_J-1
+- [`plot_ks_normality_box()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_ks_normality_box.md)
+  : Kolmogorov-Smirnov p-values versus N(0, 1) by algorithm
 - [`save_bivariate_solver_dots_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_solver_dots_book.md)
   : 12-page PDF of RMSE/Aitchison solver dots on the correlation grid
 - [`save_bivariate_bulk_density_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_bulk_density_book.md)
@@ -236,6 +258,10 @@ wrapper.
   surfaces
 - [`save_bivariate_loglik_surface_p_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_loglik_surface_p_book.md)
   : Multi-page PDF of bulk log-likelihood surfaces on \\(p_1,p_2)\\
+- [`save_bivariate_expected_loglik_surface_p_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_expected_loglik_surface_p_book.md)
+  : Multi-page PDF of expected log-likelihood surfaces
+- [`save_bivariate_expected_loglik_ilr_profile_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_expected_loglik_ilr_profile_book.md)
+  : Multi-page PDF of expected ILR log-likelihood profiles (\\J=2\\)
 - [`save_bivariate_purified_density_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_purified_density_book.md)
   : Multi-page PDF of purified densities at four correlation corners
 - [`save_mean_signature_heatmap()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_mean_signature_heatmap.md)

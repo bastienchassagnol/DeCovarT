@@ -26,7 +26,8 @@ plot_bulk_loglik_rgl(
 
 - y:
 
-  Optional bulk observation. Default is \\\mu p^{\star}\\.
+  Optional bulk observation. Default is \\\mu p^{\star}\\. Ignored when
+  `expected = TRUE`.
 
 - title:
 
@@ -42,8 +43,10 @@ Opens an `rgl` window, draws
 [`rgl::persp3d()`](https://dmurdoch.github.io/rgl/dev/reference/persp3d.html)
 of
 [`loglik_multivariate()`](https://bastienchassagnol.github.io/DeCovarT/reference/loglik_multivariate.md),
-and marks the MLE (true simulation proportions for \\y=\mu p^{\star}\\)
-with a sphere. Returns a ggplot snapshot suitable for a PDF page.
+and marks the true composition (pale sphere) and the numerical MLE (red
+sphere with a dark halo). The snapshot is a ggplot raster; a **single**
+ggplot2 legend is attached once per PDF page (including 2-by-2 books),
+not per subplot.
 
 ## Examples
 

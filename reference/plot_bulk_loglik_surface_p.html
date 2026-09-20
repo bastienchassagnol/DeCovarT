@@ -3,13 +3,21 @@
 dashed line is the simplex). For \(J=3\) the axes are additive
 log-ratio coordinates
 \(\rho_1=\ln(p_1/p_3)\), \(\rho_2=\ln(p_2/p_3)\)
-(additive_log_ratio()). The true simulation proportions (MLE for
-\(y=\mu p^{\star}\)) are marked."><meta property="og:description" content="For \(J=2\) the axes are \((p_1,p_2)\) on the unit square (the
+(additive_log_ratio()). White diamonds mark the true simulation
+proportions; red circles with a black stroke mark the numerical MLE
+(grid argmax of \(\ell\)). For a single observation
+\(y=\mu p^{\star}\) these two typically diverge unless
+\(p^{\star}\) is equi-balanced. Set expected = TRUE to plot
+\(\mathbb{E}_{Y\mid p^{\star}}[\ell(p;Y)]\) instead."><meta property="og:description" content="For \(J=2\) the axes are \((p_1,p_2)\) on the unit square (the
 dashed line is the simplex). For \(J=3\) the axes are additive
 log-ratio coordinates
 \(\rho_1=\ln(p_1/p_3)\), \(\rho_2=\ln(p_2/p_3)\)
-(additive_log_ratio()). The true simulation proportions (MLE for
-\(y=\mu p^{\star}\)) are marked."><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
+(additive_log_ratio()). White diamonds mark the true simulation
+proportions; red circles with a black stroke mark the numerical MLE
+(grid argmax of \(\ell\)). For a single observation
+\(y=\mu p^{\star}\) these two typically diverge unless
+\(p^{\star}\) is equi-balanced. Set expected = TRUE to plot
+\(\mathbb{E}_{Y\mid p^{\star}}[\ell(p;Y)]\) instead."><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -46,8 +54,7 @@ log-ratio coordinates
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-related-models-beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: OLS, Bayesian, quasi-likelihood, and more</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary simulation appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/supp-S1-identifiability.html"><span class="fa fa-vial"></span> App. S1 · Regular-case MLE and identifiability</a></li>
@@ -83,13 +90,17 @@ log-ratio coordinates
 dashed line is the simplex). For \(J=3\) the axes are additive
 log-ratio coordinates
 \(\rho_1=\ln(p_1/p_3)\), \(\rho_2=\ln(p_2/p_3)\)
-(<code><a href="additive_logistic.html">additive_log_ratio()</a></code>). The true simulation proportions (MLE for
-\(y=\mu p^{\star}\)) are marked.</p>
+(<code><a href="additive_logistic.html">additive_log_ratio()</a></code>). White diamonds mark the true simulation
+proportions; red circles with a black stroke mark the numerical MLE
+(grid argmax of \(\ell\)). For a single observation
+\(y=\mu p^{\star}\) these two typically diverge unless
+\(p^{\star}\) is equi-balanced. Set <code>expected = TRUE</code> to plot
+\(\mathbb{E}_{Y\mid p^{\star}}[\ell(p;Y)]\) instead.</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_bulk_loglik_surface_p</span><span class="op">(</span><span class="va">true_theta</span>, grid <span class="op">=</span> <span class="fl">50L</span>, y <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">plot_bulk_loglik_surface_p</span><span class="op">(</span><span class="va">true_theta</span>, grid <span class="op">=</span> <span class="fl">50L</span>, y <span class="op">=</span> <span class="cn">NULL</span>, expected <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -105,7 +116,13 @@ log-ratio coordinates
 
 
 <dt id="arg-y">y<a class="anchor" aria-label="anchor" href="#arg-y"></a></dt>
-<dd><p>Optional bulk observation. Default is \(\mu p^{\star}\).</p></dd>
+<dd><p>Optional bulk observation. Default is \(\mu p^{\star}\).
+Ignored when <code>expected = TRUE</code>.</p></dd>
+
+
+<dt id="arg-expected">expected<a class="anchor" aria-label="anchor" href="#arg-expected"></a></dt>
+<dd><p>If <code>TRUE</code>, evaluate the expected log-likelihood
+under \(Y\sim\mathcal{N}(\mu p^{\star},\Sigma(p^{\star}))\).</p></dd>
 
 </dl></div>
     <div class="section level2">

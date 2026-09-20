@@ -62,8 +62,7 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-related-models-beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: OLS, Bayesian, quasi-likelihood, and more</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary simulation appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/supp-S1-identifiability.html"><span class="fa fa-vial"></span> App. S1 · Regular-case MLE and identifiability</a></li>
@@ -595,7 +594,7 @@ D
 <span>  loglik_diff <span class="op">=</span> <span class="va">eq_check</span><span class="op">$</span><span class="va">loglik_diff</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;  max_abs_diff   loglik_diff </span></span>
-<span><span class="co">#&gt;  9.336033e-10 -3.108624e-15</span></span></code></pre></div>
+<span><span class="co">#&gt;  8.965458e-10 -2.664535e-15</span></span></code></pre></div>
 </div>
 </section><section class="level2"><h3 id="sec-rna-sieve">RNA-Sieve: CLT likelihood, Fisher and Godambe<a class="anchor" aria-label="anchor" href="#sec-rna-sieve"></a>
 </h3>
@@ -604,7 +603,7 @@ D
 \boldsymbol{\Sigma}_{j})</span>, and observes the weighted sum <span class="math inline">\boldsymbol{y}=\sum_{j}p_{j}\boldsymbol{x}_{\cdot j}</span>, hence <span class="math inline">\boldsymbol{y}\sim\mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},
 \sum_{j}p_{j}^{2}\boldsymbol{\Sigma}_{j})</span> with a <em>full</em> gene–gene covariance. The plug-in <span class="math inline">(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})</span> is treated as known in the likelihood. RNA-Sieve’s <span class="math inline">n</span>-cell average is a univariate CLT on each gene; DeCovarT’s <span class="math inline">p_{j}^{2}\boldsymbol{\Sigma}_{j}</span> term is a finite-<span class="math inline">J</span> multivariate convolution.</p>
 <p>The interval constructions differ in the same way. When the CLT model holds, RNA-Sieve uses the inverse Fisher information of <span class="math inline">(\hat\alpha,\hat n)</span> after a simplex reparametrisation, and reports <span class="math inline">\chi^{2}_{K-1}</span> ellipsoids. When protocol shift takes the truth outside the model family, they replace Fisher by the <strong>Godambe</strong> sandwich, which describes Gaussian fluctuations around the Kullback–Leibler projection onto the fitted family. In the correctly specified case the two matrices coincide. Near-collinear cell types make the information nearly singular; RNA-Sieve then subsamples genes.</p>
-<p>DeCovarT already has the Fisher analogue: the expected information of the convolution mapped through the ILR (<a href="#sec-interior" class="quarto-xref">Sec. 2.2</a>; the derivatives vignette). That Wald interval is the cheap interior tool, and it is <strong>undefined</strong> on a simplex face (<a href="#sec-boundary" class="quarto-xref">Sec. 2.3</a>). The Godambe sandwich would be relevant <em>if</em> the multivariate Gaussian convolution is misspecified (counts, protocol shift, omitted types). It does not replace the chi-bar-square LRT or the restricted parametric bootstrap on the boundary, and it does not replace <code><a href="../reference/reference_bootstrap_decovart.html">reference_bootstrap_decovart()</a></code>, which is the resampling counterpart of RNA-Sieve’s noisy-<span class="math inline">M</span> term. Implementing a Godambe correction for DeCovarT is an outlook item, not a present interval.</p>
+<p>DeCovarT already has the Fisher analogue: the expected information of the convolution mapped through the ILR (<a href="#sec-interior" class="quarto-xref">Sec. 2.2</a>; the derivatives vignette). That Wald interval is the cheap interior tool, and it is <strong>undefined</strong> on a simplex face (<a href="#sec-boundary" class="quarto-xref">Sec. 2.3</a>). The Godambe sandwich would be relevant <em>if</em> the multivariate Gaussian convolution is misspecified (counts, protocol shift, omitted types). The variational sandwich of Westling and McCormick <span class="citation" data-cites="westlingPredictionFrameworkInference2019">(<a href="#ref-westlingPredictionFrameworkInference2019" role="doc-biblioref">Westling and McCormick 2019</a>)</span> is a different object: it corrects an ELBO estimator, not this convolution MLE. It does not replace the chi-bar-square LRT or the restricted parametric bootstrap on the boundary, and it does not replace <code><a href="../reference/reference_bootstrap_decovart.html">reference_bootstrap_decovart()</a></code>, which is the resampling counterpart of RNA-Sieve’s noisy-<span class="math inline">M</span> term. Implementing a Godambe correction for DeCovarT is an outlook item, not a present interval.</p>
 </section></section><section class="section level2"><h2 id="sec-diagnostics">Convergence and boundary diagnostics<a class="anchor" aria-label="anchor" href="#sec-diagnostics"></a>
 </h2>
 <p>Because <a href="#nte-nonconcave" class="quarto-xref">Note 1</a> rules out global guarantees, a single optimiser return code carries less information than it appears to. <a href="../reference/fit_decovart.html"><code>fit_decovart()</code></a> therefore records three logically distinct claims, and refuses to conflate them:</p>
@@ -626,14 +625,14 @@ Table 1: What each DeCovarT convergence field does and does not certify.
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">
-<code>converged</code> (<code>istop</code> / <code>code</code>, <code>rdm</code>, <code>iterations</code>)</td>
-<td style="text-align: left;">numerical stopping rules met</td>
+<code>converged</code> (<code>iterations</code>, <code>criterion</code>, <code>code</code>, <code>rdm</code>)</td>
+<td style="text-align: left;">numerical stopping rules met (iterative solvers; <code>NA</code> for NNLS / LSEI / CIBERSORT)</td>
 <td style="text-align: left;">that the point is a maximum</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">
-<code>local_maximum</code> (small ILR score norm, negative <span class="math inline">\lambda_{\max}(\mathbf{H}_{\boldsymbol{z}})</span>)</td>
-<td style="text-align: left;">stationarity with the right local curvature</td>
+<code>local_maximum</code> (small ILR score, <span class="math inline">\lambda_{\min}(H_z)&lt;0</span> and <span class="math inline">\lambda_{\max}(H_z)&lt;0</span>)</td>
+<td style="text-align: left;">stationarity with a negative-definite Hessian</td>
 <td style="text-align: left;">global optimality</td>
 </tr>
 <tr class="odd">
@@ -663,14 +662,14 @@ Table 1: What each DeCovarT convergence field does and does not certify.
 <span>  itmax <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="va">fit</span><span class="op">$</span><span class="va">diagnostics</span><span class="op">)</span></span>
-<span><span class="co">#&gt;          boundary_distance near_boundary   score_norm max_eigenvalue</span></span>
-<span><span class="co">#&gt; sample_1         0.2159583         FALSE 2.383262e-09      -24.48051</span></span>
-<span><span class="co">#&gt; sample_2         0.1832318         FALSE 5.026328e-05      -18.72244</span></span>
-<span><span class="co">#&gt; sample_3         0.1682215         FALSE 1.765209e-08      -16.19907</span></span>
-<span><span class="co">#&gt;          local_maximum</span></span>
-<span><span class="co">#&gt; sample_1          TRUE</span></span>
-<span><span class="co">#&gt; sample_2          TRUE</span></span>
-<span><span class="co">#&gt; sample_3          TRUE</span></span></code></pre></div>
+<span><span class="co">#&gt;          boundary_distance near_boundary   score_norm min_eigenvalue</span></span>
+<span><span class="co">#&gt; sample_1         0.2159583         FALSE 2.383263e-09      -160.1989</span></span>
+<span><span class="co">#&gt; sample_2         0.1832318         FALSE 5.026328e-05      -167.0961</span></span>
+<span><span class="co">#&gt; sample_3         0.1682215         FALSE 1.765213e-08      -171.3536</span></span>
+<span><span class="co">#&gt;          max_eigenvalue local_maximum</span></span>
+<span><span class="co">#&gt; sample_1      -24.48051          TRUE</span></span>
+<span><span class="co">#&gt; sample_2      -18.72244          TRUE</span></span>
+<span><span class="co">#&gt; sample_3      -16.19907          TRUE</span></span></code></pre></div>
 </div>
 <p>Every sample above converged and every curvature is negative, yet <code>local_maximum</code> is not uniformly <code>TRUE</code>: one iterate stopped with an ILR score norm just above the default <code>score_tol = 1e-4</code>. That is the distinction of <a href="#tbl-diagnostics" class="quarto-xref">Table 1</a> doing its job rather than a failure — <code>score_tol</code> bounds the <em>score</em>, whereas the solver’s <code>epsilon</code> bounds the <em>objective</em>, so the two should be tightened together.</p>
 <div id="nte-boundary-wording">
@@ -699,7 +698,7 @@ Table 1: What each DeCovarT convergence field does and does not certify.
 <span>  multimodal <span class="op">=</span> <span class="va">restarts</span><span class="op">$</span><span class="va">multimodal</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; loglik_range   multimodal </span></span>
-<span><span class="co">#&gt; 6.625915e-10 0.000000e+00</span></span></code></pre></div>
+<span><span class="co">#&gt; 6.625969e-10 0.000000e+00</span></span></code></pre></div>
 </div>
 <p>A small range is reassuring but not a proof: a converged code, a tiny relative-distance-to-minimum and a negative-definite local Hessian together support a <strong>local</strong> maximum, and none of them rules out a second, equally good or better mode elsewhere on the simplex.</p>
 </section><section class="section level2"><h2 id="sec-recap">Recap: which interval or test to report<a class="anchor" aria-label="anchor" href="#sec-recap"></a>
@@ -812,30 +811,10 @@ Table 2: Inferential procedures implemented for DeCovarT proportions. Wald is t
 <li>If the question is performance across mixture weights rather than a CI for one bulk, use <code>reference_bootstrap_decovart(method = "dirichlet")</code>.</li>
 </ol></section><section class="section level2"><h2 id="sec-perspectives">Perspectives<a class="anchor" aria-label="anchor" href="#sec-perspectives"></a>
 </h2>
-<div id="nte-perspectives">
-<blockquote>
-<p><strong>Tip 5: Beyond first-order asymptotics</strong></p>
-<p>Directions that would strengthen DeCovarT uncertainty quantification, in rough order of implementation cost.</p>
-<ul>
-<li>
-<strong>Godambe sandwich for a misspecified convolution.</strong> <code>RNA-Sieve</code> replaces Fisher by the Godambe information when the CLT model is wrong <span class="citation" data-cites="erdmann-phamLikelihoodbasedDeconvolutionBulk2021">(<a href="#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021" role="doc-biblioref">Erdmann-Pham et al. 2021</a>)</span> (<a href="#sec-rna-sieve" class="quarto-xref">Sec. 2.7</a>). The same sandwich on DeCovarT’s score would widen Wald intervals under protocol shift without discarding the multivariate covariance. It remains a first-order interior device: faces still need the chi-bar-square LRT or a restricted bootstrap.</li>
-<li>
-<strong>Score-test inversion.</strong> Inverting a one-sided score test avoids refitting under every candidate value, so it is cheaper than the profile scan of <code><a href="../reference/confint_profile_decovart.html">confint_profile_decovart()</a></code> while keeping the one-sided boundary geometry.</li>
-<li>
-<strong>Higher-order likelihood corrections.</strong> Bartlett-type adjustments of the likelihood-ratio statistic, or modified profile likelihoods, improve the <span class="math inline">\chi^{2}</span> approximation in the small-replication regime that <a href="#nte-replication" class="quarto-xref">Note 3</a> describes — precisely DeCovarT’s regime.</li>
-<li>
-<strong>Bayesian compositional models.</strong> A logistic-normal or Dirichlet prior on <span class="math inline">\boldsymbol{p}</span> regularises the boundary: the posterior stays proper where the ILR Wald interval degenerates, and credible intervals are usually more stable near a face. A credible interval is of course not an exact frequentist interval, and the prior must be defensible scientifically. This sits naturally alongside the MAP treatment of the latent profiles sketched in the <a href="theory-decovart-statistical-perspectives.html">perspectives vignette</a>.</li>
-<li>
-<strong>Information geometry of the composition.</strong> Treating <span class="math inline">\Delta^{J-1}</span> with the Fisher–Rao metric of <a href="#eq-fisher-metric" class="quarto-xref">Eq. 5</a> rather than as a subset of <span class="math inline">\mathbb{R}^{J}</span> would give natural-gradient updates and reparametrisation-invariant confidence regions <span class="citation" data-cites="malagoInformationGeometryGaussian2015 aitchisonStatisticalAnalysisCompositional1982">(<a href="#ref-malagoInformationGeometryGaussian2015" role="doc-biblioref">Malago and Pistone 2015</a>; <a href="#ref-aitchisonStatisticalAnalysisCompositional1982" role="doc-biblioref">Aitchison 1982</a>)</span>.</li>
-</ul>
-</blockquote>
-</div>
+<p>Outlook items that used to live here (Godambe sandwich, score-test inversion, Bartlett corrections, Bayesian compositions, Fisher–Rao geometry) now sit once in the <a href="theory-decovart-statistical-perspectives.html#sec-beyond-asymptotics">perspectives vignette</a>, alongside the OLS / Gauss–Markov background and the contrast with variational sandwich estimators.</p>
 </section><section class="section level2"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
-<div id="ref-aitchisonStatisticalAnalysisCompositional1982" class="csl-entry" role="listitem">
-Aitchison, J. 1982. <span>‘The Statistical Analysis of Compositional Data’</span>. <em>Journal of the Royal Statistical Society: Series B (Methodological)</em> 44 (2): 139–60. <a href="https://doi.org/10.1111/j.2517-6161.1982.tb01195.x" class="external-link">https://doi.org/10.1111/j.2517-6161.1982.tb01195.x</a>.
-</div>
 <div id="ref-avilacobosBenchmarkingCellType2020" class="csl-entry" role="listitem">
 Avila Cobos, Francisco, José Alquicira-Hernandez, Joseph E. Powell, Pieter Mestdagh, and Katleen De Preter. 2020. <span>‘Benchmarking of Cell Type Deconvolution Pipelines for Transcriptomics Data’</span>. <em>Nature Communications</em> 11 (1): 5650. <a href="https://doi.org/10.1038/s41467-020-19015-1" class="external-link">https://doi.org/10.1038/s41467-020-19015-1</a>.
 </div>
@@ -892,6 +871,9 @@ Vaart, A. W. van der. 2000. <em>Asymptotic Statistics</em>. Cambridge University
 </div>
 <div id="ref-vellameUncertaintyQuantificationReferencebased2023" class="csl-entry" role="listitem">
 Vellame, Dorothea Seiler, Gemma Shireby, Ailsa MacCalman, et al. 2023. <span>‘Uncertainty Quantification of Reference-Based Cellular Deconvolution Algorithms’</span>. <em>Epigenetics</em> 18. <a href="https://doi.org/10.1080/15592294.2022.2137659" class="external-link">https://doi.org/10.1080/15592294.2022.2137659</a>.
+</div>
+<div id="ref-westlingPredictionFrameworkInference2019" class="csl-entry" role="listitem">
+Westling, Ted, and Tyler H. McCormick. 2019. <em>Beyond Prediction: <span>A</span> Framework for Inference with Variational Approximations in Mixture Models</em>. arXiv. <a href="https://doi.org/10.48550/arxiv.1510.08151" class="external-link">https://doi.org/10.48550/arxiv.1510.08151</a>.
 </div>
 <div id="ref-wilksLargeSampleDistributionLikelihood1938" class="csl-entry" role="listitem">
 Wilks, S. S. 1938. <span>‘The Large-Sample Distribution of the Likelihood Ratio for Testing Composite Hypotheses’</span>. <em>The Annals of Mathematical Statistics</em> 9 (1): 60–62. <a href="https://doi.org/10.1214/aoms/1177732360" class="external-link">https://doi.org/10.1214/aoms/1177732360</a>.
