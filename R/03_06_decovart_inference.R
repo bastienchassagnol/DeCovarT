@@ -1341,9 +1341,12 @@ reference_bootstrap_decovart <- function(
 #'
 #' @details
 #' Reported fields are the ILR score norm
-#' \eqn{\lVert\nabla_{\boldsymbol{z}}\ell\rVert}, the largest
-#' eigenvalue \eqn{\lambda_{\max}(\mathbf{H}_{\boldsymbol{z}})} (negative
-#' at a local maximum), `boundary_distance` \eqn{=\min_j\hat{p}_j}, and the
+#' \eqn{\lVert\nabla_{\boldsymbol{z}}\ell\rVert}, the extreme eigenvalues
+#' \eqn{\lambda_{\min}(\mathbf{H}_{\boldsymbol{z}})} and
+#' \eqn{\lambda_{\max}(\mathbf{H}_{\boldsymbol{z}})} of the ILR Hessian
+#' (a local maximum requires the Hessian to be negative definite, so
+#' both must be strictly negative; \eqn{\lambda_{\min}<0<\lambda_{\max}}
+#' is a saddle), `boundary_distance` \eqn{=\min_j\hat{p}_j}, and the
 #' flags `near_boundary` and `local_maximum`.
 #'
 #' `boundary_tol` is a **statistical** warning threshold for Wald / ILR
@@ -1385,7 +1388,8 @@ boundary_diagnostics <- function(
   boundary_distance <- min(p)
   near_boundary <- boundary_distance < boundary_tol
   score_norm <- NA_real_
-  curvature <- NA_real_
+  min_eigenvalue <- NA_real_
+  max_eigenvalue <- NA_real_
   if (!near_boundary && length(p) > 1L) {
     z <- isometric_log_ratio(p)
     score_norm <- sqrt(sum(
@@ -1397,16 +1401,20 @@ boundary_diagnostics <- function(
       mean_signature_matrix,
       Sigma
     )
-    curvature <- max(
-      eigen(hessian_z, symmetric = TRUE, only.values = TRUE)$values
-    )
+    ev <- eigen(hessian_z, symmetric = TRUE, only.values = TRUE)$values
+    min_eigenvalue <- min(ev)
+    max_eigenvalue <- max(ev)
   }
+  negative_definite <- isTRUE(max_eigenvalue < 0) &&
+    isTRUE(min_eigenvalue < 0)
   data.frame(
     boundary_distance = boundary_distance,
     near_boundary = near_boundary,
     score_norm = score_norm,
-    max_eigenvalue = curvature,
-    local_maximum = isTRUE(score_norm < score_tol) && isTRUE(curvature < 0),
+    min_eigenvalue = min_eigenvalue,
+    max_eigenvalue = max_eigenvalue,
+    local_maximum = isTRUE(score_norm < score_tol) &&
+      isTRUE(negative_definite),
     stringsAsFactors = FALSE
   )
 }

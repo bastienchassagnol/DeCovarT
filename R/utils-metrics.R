@@ -555,3 +555,153 @@ coverage_mc_interval <- function(
     )
   )
 }
+
+#' Closed-form (non-iterative) deconvolution keys
+#'
+#' @keywords internal
+#' @noRd
+.closed_form_algorithm <- function(algorithm) {
+  .normalise_algorithm_key(algorithm) %in%
+    c("nnls", "lsei", "cibersort", "deconrnaseq")
+}
+
+#' Empty homogenised optimiser record
+#'
+#' @keywords internal
+#' @noRd
+.empty_convergence <- function() {
+  list(
+    iterations = NA_integer_,
+    criterion = NA_character_,
+    code = NA_integer_,
+    rdm = NA_real_
+  )
+}
+
+#' First finite scalar of the requested type
+#'
+#' @keywords internal
+#' @noRd
+.first_scalar <- function(..., type = "integer") {
+  vals <- list(...)
+  for (v in vals) {
+    if (is.null(v) || length(v) < 1L) {
+      next
+    }
+    x <- v[[1L]]
+    if (identical(type, "character")) {
+      x <- as.character(x)
+      if (is.na(x) || !nzchar(x)) {
+        next
+      }
+      return(x)
+    }
+    if (identical(type, "double")) {
+      x <- suppressWarnings(as.numeric(x))
+      if (length(x) == 1L && is.finite(x)) {
+        return(x)
+      }
+      next
+    }
+    x <- suppressWarnings(as.integer(x))
+    if (length(x) == 1L && !is.na(x)) {
+      return(x)
+    }
+  }
+  if (identical(type, "character")) {
+    return(NA_character_)
+  }
+  if (identical(type, "double")) {
+    return(NA_real_)
+  }
+  NA_integer_
+}
+
+#' Homogenised optimiser diagnostics (iterative solvers only)
+#'
+#' Closed-form methods (NNLS, LSEI, CIBERSORT) return `NA` fields.
+#'
+#' @keywords internal
+#' @noRd
+.homogenise_convergence <- function(raw_out, algorithm) {
+  if (.closed_form_algorithm(algorithm)) {
+    return(.empty_convergence())
+  }
+  conv <- NULL
+  if (is.list(raw_out) && !is.null(raw_out$convergence)) {
+    conv <- raw_out$convergence
+  }
+  if (!is.list(conv)) {
+    return(.empty_convergence())
+  }
+  list(
+    iterations = .first_scalar(conv$iterations, conv$ni, type = "integer"),
+    criterion = .first_scalar(
+      conv$criterion,
+      conv$message,
+      type = "character"
+    ),
+    code = .first_scalar(
+      conv$code,
+      conv$istop,
+      conv$convergence,
+      type = "integer"
+    ),
+    rdm = .first_scalar(conv$rdm, type = "double")
+  )
+}
+
+#' Partition of one Monte Carlo replicate
+#'
+#' Numerical failure is nested in theoretical failure: a crashed solver
+#' cannot be a theoretical success. The three *stacked-bar* labels are
+#' disjoint: numerical failure, theoretical failure with a finite
+#' simplex, and theoretical success.
+#'
+#' @keywords internal
+#' @noRd
+.simulation_outcome <- function(
+  numerical_converged,
+  theoretical_converged
+) {
+  num <- as.logical(numerical_converged)
+  th <- as.logical(theoretical_converged)
+  n <- length(num)
+  if (length(th) != n) {
+    th <- rep_len(th, n)
+  }
+  out <- rep("numerical_failure", n)
+  ok <- !is.na(num) & num
+  success <- ok & !is.na(th) & th
+  out[success] <- "theoretical_success"
+  out[ok & !success] <- "theoretical_failure"
+  out
+}
+
+#' Relative likelihood on a log10 scale
+#'
+#' Converts a log-likelihood array to
+#' \eqn{\log_{10}(L / \max L)=\ell-\max\ell} in log10 units, matching
+#' the ILR profile plots.
+#'
+#' @keywords internal
+#' @noRd
+.relative_log10_likelihood <- function(z, z_ref = NULL) {
+  d <- dim(z)
+  z <- as.numeric(z)
+  if (is.null(z_ref) || !is.finite(z_ref)) {
+    finite <- z[is.finite(z)]
+    z_ref <- if (length(finite) == 0L) {
+      0
+    } else {
+      max(finite)
+    }
+  }
+  rel <- exp(z - z_ref)
+  rel[!is.finite(rel) | rel <= 0] <- .Machine$double.xmin
+  out <- log10(pmax(rel, .Machine$double.xmin))
+  if (is.null(d)) {
+    return(out)
+  }
+  array(out, dim = d)
+}

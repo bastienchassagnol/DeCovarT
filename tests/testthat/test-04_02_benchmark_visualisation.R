@@ -128,6 +128,16 @@ test_that("plot_mc_raincloud builds a horizontal raincloud ggplot", {
   expect_type(built_hat$data, "list")
   geoms <- vapply(p_hat$layers, function(ly) class(ly$geom)[[1L]], character(1))
   expect_true(any(grepl("GeomLabel", geoms, fixed = TRUE)))
+
+  p_dots <- plot_mc_raincloud(
+    out,
+    quantity = "estimate",
+    slab = "dotsinterval",
+    include_dots = FALSE
+  )
+  expect_s3_class(p_dots, "ggplot")
+  built_dots <- ggplot2::ggplot_build(p_dots)
+  expect_type(built_dots$data, "list")
 })
 
 test_that(".true_ratio_label_df puts the abundant type on the right", {

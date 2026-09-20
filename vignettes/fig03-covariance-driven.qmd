@@ -256,12 +256,19 @@ ALGORITHMS <- c(
 |---|---|
 | `output/fig03/density_visualisations/mean_signature.pdf` | Unscaled \(\boldsymbol{\mu}\) heatmap |
 | `output/fig03/density_visualisations/latent_projections.pdf` | 16-page 2D latent-space book (Thomson / MCFA / `MclustDR`) |
-| `output/fig03/density_visualisations/loglik_rgl.pdf` | 3D ALR log-likelihood (`rgl`, \(\rho_1,\rho_2,\ell\)) |
+| `output/fig03/density_visualisations/loglik_rgl.pdf` | 3D ALR relative likelihood (`rgl`, log10 $L/\max L$; white diamond $p^{\star}$, red MLE, 3D legend) |
+| `output/fig03/density_visualisations/loglik_expected_surface_p.pdf` | Expected log-likelihood on the ALR plane |
 | `output/fig03/density_visualisations/network_topologies.pdf` | Graph skeletons, one page per MixSim overlap |
 | `output/fig03/performance_visualisations/heatmap_rmse.pdf` | RMSE tiles |
 | `output/fig03/performance_visualisations/heatmap_aitchison.pdf` | Aitchison tiles |
-| `output/fig03/performance_visualisations/raincloud.pdf` | Monte Carlo \(\hat{\boldsymbol{p}}\) rainclouds |
+| `output/fig03/performance_visualisations/raincloud.pdf` | Monte Carlo $\hat{\boldsymbol{p}}$ rainclouds (legend at the bottom) |
+| `output/fig03/performance_visualisations/dotsinterval.pdf` | Quantile-dot companion (no bounded KDE slab) |
 | `output/fig03/performance_visualisations/forest.pdf` | ADEMP Wald forest |
+| `output/fig03/performance_visualisations/kkt_raincloud.pdf` | Projected-score KKT residual rainclouds |
+| `output/fig03/performance_visualisations/convergence_stacked.pdf` | Theoretical success / numerical / theoretical failure |
+| `output/fig03/performance_visualisations/qq_normal.pdf` | Whitened ILR versus $N(0,1)$ (TS band) |
+| `output/fig03/performance_visualisations/qq_chi2.pdf` | Joint $D^{2}$ versus $\chi^{2}_{J-1}$ |
+| `output/fig03/performance_visualisations/ks_normal.pdf` | KS lollipops versus $N(0,1)$ (reject below $0.05$) |
 | `output/fig03/performance_visualisations/runtime.pdf` | Solver wall-clock (log10 seconds) |
 | `output/fig03/performance_visualisations/memory.pdf` | Peak memory (log10 MiB) |
 

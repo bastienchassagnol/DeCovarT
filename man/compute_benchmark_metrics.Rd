@@ -18,6 +18,10 @@ compute_benchmark_metrics(
   numerical_converged = NULL,
   loglik_hat = NULL,
   loglik_true = NULL,
+  converged = NULL,
+  local_maximum = NULL,
+  min_eigenvalue = NULL,
+  max_eigenvalue = NULL,
   presence_threshold = 1e-04,
   level = 0.95,
   coverage_interval = "wilson",
@@ -57,6 +61,16 @@ returned a finite simplex vector.}
 \item{loglik_hat, loglik_true}{Optional per-sample log-likelihoods used
 for theoretical convergence (regret
 \eqn{\ell(\boldsymbol{p}^{\star})-\ell(\hat{\boldsymbol{p}})}).}
+
+\item{converged}{Optional list of length \eqn{N} with homogenised
+optimiser fields (\code{iterations}, \code{criterion}, \code{code}, \code{rdm}).
+Closed-form solvers store \code{NA} entries.}
+
+\item{local_maximum}{Optional logical per sample: ILR score small and
+Hessian negative definite (\eqn{\lambda_{\min}<0} and
+\eqn{\lambda_{\max}<0}).}
+
+\item{min_eigenvalue, max_eigenvalue}{Optional ILR Hessian extrema.}
 
 \item{presence_threshold}{Threshold \eqn{\varepsilon} for presence /
 F1 / false-positive mass (default \code{1e-4}).}

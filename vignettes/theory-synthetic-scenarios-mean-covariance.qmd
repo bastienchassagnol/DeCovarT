@@ -1817,7 +1817,7 @@ tinytable::tt(opt_kept, width = 1) |>
 #| label: tbl-metrics-opt-other
 #| echo: false
 #| eval: true
-#| tbl-cap: "Optimisation diagnostics computed on fits but not stored as headline benchmark columns."
+#| tbl-cap: "ILR score and Hessian extrema are now stored on `optimisation`; wall time of the whole job is not."
 opt_other <- data.frame(
   family = c(
     "ILR geometry",
@@ -1827,19 +1827,19 @@ opt_other <- data.frame(
   ),
   Metric = c(
     "ILR score norm (`score_norm`)",
-    "Tangent / ILR $\\lambda_{\\max}(H)$ (`max_eigenvalue`)",
+    "Tangent / ILR $\\lambda_{\\min},\\lambda_{\\max}(H)$ (`min_eigenvalue`, `max_eigenvalue`)",
     "End-to-end wall time of the parallel job",
     "Sum of worker RSS"
   ),
   Formula = c(
     "$\\|\\nabla_{z}\\tilde\\ell(\\hat z)\\|_2=\\|J_{\\psi}^{\\top}\\nabla_p\\ell\\|_2$",
-    "$\\lambda_{\\max}(H_z)$ of `hessian_loglik_constrained()`",
+    "$\\lambda_{\\min}(H_z),\\lambda_{\\max}(H_z)$ of `hessian_loglik_constrained()`",
     "clock around `deconvolute_ratios()`",
     "sum of per-worker RSS"
   ),
   Bounds = c(
     "$[0,\\infty)$; $0$ is interior stationarity",
-    "unbounded; $<0$ at a local maximum",
+    "unbounded; both $<0$ at a local maximum",
     "$[0,\\infty)$",
     "$[0,\\infty)$"
   ),
@@ -1914,13 +1914,14 @@ $g_j=\lambda$ on the support, $g_j\le\lambda$ on inactive types). That
 is the quantity stored by `deconvolute_ratios()`.
 
 **Hessian / curvature.** First-order stationarity does not imply a local
-maximum. `boundary_diagnostics()` reports
-$\lambda_{\max}(H_z)$ of `hessian_loglik_constrained()` and sets
-`local_maximum` when the ILR score is below `score_tol` **and** that
-largest eigenvalue is negative. A small KKT residual with
-$\lambda_{\max}(H_z)>0$ is a saddle (or a local minimum of a maximisation
-problem). None of these diagnostics implies a unique global mode; the
-DeCovarT likelihood for one bulk sample is not concave in general
+maximum. `boundary_diagnostics()` reports both
+$\lambda_{\min}(H_z)$ and $\lambda_{\max}(H_z)$ of
+`hessian_loglik_constrained()` and sets `local_maximum` when the ILR
+score is below `score_tol` **and** the Hessian is negative definite
+(both eigenvalues strictly negative). A small KKT residual with
+$\lambda_{\min}<0<\lambda_{\max}$ is a saddle. None of these
+diagnostics implies a unique global mode; the DeCovarT likelihood for
+one bulk sample is not concave in general
 ([MLE properties](theory-DeCovarT-MLE-properties.html)).
 :::
 
@@ -1935,8 +1936,41 @@ mass when rare or absent types matter
 empirical SD, SE/SD, coverage (with MCSE and a Wilson interval on the
 rate), and mean width whenever intervals exist. Quote median and IQR of
 elapsed time and PSS from the `optimisation` table rather than a single
-end-to-end clock. Pair `kkt_residual` with `numerical_converged`; quote
-`score_norm` / `local_maximum` only for interior ILR fits.
+end-to-end clock. Pair `kkt_residual` with `numerical_converged` and
+`theoretical_converged`; the three stacked-bar outcomes in
+@fig-simulation-outcomes-venn partition every replicate. Quote
+`score_norm` / `local_maximum` only for interior ILR fits, and report
+both $\lambda_{\min}(H_z)$ and $\lambda_{\max}(H_z)$ so a saddle
+($\lambda_{\min}<0<\lambda_{\max}$) is not mistaken for a maximum.
+:::
+
+::: {#fig-simulation-outcomes-venn}
+![Monte Carlo solver outcomes as an Euler diagram: numerical failure is nested in theoretical failure; theoretical success is disjoint.](figures/fig-simulation-outcomes-venn.png)
+
+Euler diagram of the three ADEMP solver outcomes. Numerical failure (solver crash or a non-finite simplex) implies theoretical failure, so the red disc sits inside the amber set. Theoretical success is the disjoint green disc. Stacked bars in `output/fig02/performance_visualisations/convergence_stacked.pdf` and the fig03 counterpart count these three categories on the same corner layout as the Wald forest.
+:::
+
+::: {#nte-empty-rainclouds .callout-warning}
+## Why some raincloud panels look empty
+
+Two distinct mechanisms produced blank $\hat p$ rainclouds on the
+fig02 book.
+
+- **Legend overlay.** The four correlation corners are arranged as a
+  $2\times 2$. `rho = (-0.8, 0.8)` is the bottom-right facet. An
+  inset cowplot legend at $(x,y)=(0.68,0.08)$ sat on top of that
+  panel. The legend now sits to the right of the facets
+  ([`cowplot::get_legend()`](https://wilkelab.org/cowplot/)).
+- **Vertex pile-up.** On highly unbalanced compositions
+  (`rho = (0, 0)`, small CLD, homoscedastic), many solvers pin a rare
+  type at $0$ and the abundant type at $1$. A bounded kernel density
+  on $[0,1]$ with almost no unique values emits an empty slab. The
+  raincloud helper now overlays Monte Carlo dots whenever a group has
+  two or fewer distinct estimates.
+
+Neither blank is a missing `numerical_converged` flag. Check the
+stacked-bar book before interpreting an empty density as a solver
+crash.
 :::
 
 ## Zoom on the coverage rate, and derivation of the intervals
@@ -2001,6 +2035,76 @@ discreteness problem that motivates optimisation-based tuning is not
 the operating regime. Report ordinary Wilson (or Agresti--Coull)
 intervals on $\hat\pi$, together with `mcse_coverage` and bias, rather
 than a small-sample recalibration of $\gamma$.
+:::
+
+## Asymptotic normality of $\hat{\boldsymbol{p}}$ {#sec-mc-qq}
+
+Batardière, Chiquet and Mariadassou inspect studentised variational
+estimates against $N(0,1)$ with Q-Q plots and a one-sample
+Kolmogorov--Smirnov test
+[@batardiereEvaluatingParameterUncertainty2024]. The same two displays
+are useful here, with one modelling caveat: DeCovarT's $\hat{\boldsymbol{p}}$
+is a constrained maximum-likelihood estimator of the Gaussian
+convolution, so first-order MLE theory applies on the interior of the
+simplex. Their sandwich correction is for a *variational* estimator of
+a Poisson-log-normal latent-variable model, which is not itself an
+MLE and does not inherit those consistency guarantees
+[@westlingPredictionFrameworkInference2019]. Do not treat
+the two studentisations as interchangeable.
+
+Q-Q plots of the **whitened ILR** coordinates
+$W=I_{\boldsymbol{z}}(p^{\star})^{1/2}(\hat{\boldsymbol{z}}-\boldsymbol{z}^{\star})$
+use a single tail-sensitive `qqplotr` band
+[@aldorNoimanPowerSee2013] calibrated to the theoretical $N(0,1)$
+law (`identity = TRUE`, `mu = 0`, `sigma = 1`; not detrended). Colour
+and fill distinguish L-BFGS, Marquardt--Levenberg and
+Newton--Raphson; gradient and simulated annealing are omitted. A
+companion PDF Q-Q-plots the joint Mahalanobis statistic
+$D^{2}=W^{\mathsf{T}}W$ against $\chi^{2}_{J-1}$. The KS lollipops
+report one $p$-value per scenario $\times$ solver: below $0.05$ we
+reject normality at the conventional 5% level. `qqplotr` needs system
+`libfftw3`. The books are
+`output/fig02/performance_visualisations/qq_normal.pdf`,
+`qq_chi2.pdf` and `ks_normal.pdf` (and the fig03 counterparts).
+
+[![Q-Q plots: points hug the diagonal when the normal assumption holds, and curve away when it does not. Normal: points on the line. Heavy tails: S-curve, ends flare. Right-skewed: concave-up bend. Light tails: flatter S-shape.](figures/fig-qqplot-explainer.png){#fig-qqplot-explainer}](https://datainterview.com)
+
+Hazen plotting positions $p_i=(i-0.5)/n$ against $\Phi^{-1}(p_i)$,
+after Aldor-Noiman et al. and the DataInterview explainer. Curvature
+direction diagnoses tail weight and skew; a 95% band helps separate
+signal from Monte Carlo wiggle.
+
+::: {#nte-ks-pvalue-fallacy .callout-warning}
+## Do not promote a Kolmogorov--Smirnov $p$-value to a verdict
+
+The KS lollipops are a companion to the Q-Q books, not a substitute.
+
+- **The $p$-value fallacy.** A small $p$ does not measure the *size*
+  of the departure from normality, and a large $p$ does not prove the
+  normal approximation
+  [@goodmanTowardEvidenceBased1999]. Increasing the Monte Carlo size
+  $N$ will reject any fixed alternative, however tiny.
+- **Compare magnitudes, not stars.** Olszewski's argument against
+  two-sample $t$-tests of arithmetic means applies equally here:
+  [plot the distributions](https://www.linkedin.com/posts/adrianolszewski_lets-imagine-you-want-to-compare-two-arithmetic-activity-7431004197229056000-i0Rx/),
+  and [prefer estimation over ritualised $p$-values](https://www.linkedin.com/posts/adrianolszewski_important-post-in-my-work-i-rarely-use-activity-7506412403962744833-Y4LB/).
+  Rainclouds already show bias, variance, skew and boundary pile-up;
+  the Q-Q plot shows tail behaviour. The KS $p$ adds a single scalar
+  that conflates those features.
+:::
+
+::: {#nte-no-coverage-pvalue .callout-note}
+## No $p$-value for the coverage rate
+
+Coverage of a Wald interval is the Monte Carlo mean of the indicator
+$I\{\theta_0\in\mathrm{CI}_m\}$, not a test of
+$|(\hat\theta-\bar{\hat\theta})/s|<1.96$. That second quantity
+studentises against the *Monte Carlo* mean rather than against
+$\theta_0$, and the unit-simplex constraint already invalidates a
+symmetric $\pm 1.96\,\widehat{\mathrm{SE}}$ statement near a face.
+Reporting a $p$-value for the coverage rate would duplicate the
+indicator without adding a new estimand. Report $\hat\pi$, its Wilson
+interval, `mcse_coverage`, and bias side by side instead.
 :::
 
 

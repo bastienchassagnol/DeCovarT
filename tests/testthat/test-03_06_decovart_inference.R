@@ -273,6 +273,7 @@ test_that("boundary_diagnostics flags faces and certifies interior optima", {
   )
   expect_false(interior$near_boundary)
   expect_lt(interior$max_eigenvalue, 0)
+  expect_lt(interior$min_eigenvalue, 0)
 })
 
 
@@ -328,6 +329,7 @@ test_that("fit_decovart stores boundary diagnostics and multi-start spread", {
       "boundary_distance",
       "near_boundary",
       "score_norm",
+      "min_eigenvalue",
       "max_eigenvalue",
       "local_maximum"
     )

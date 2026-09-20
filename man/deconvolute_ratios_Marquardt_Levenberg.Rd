@@ -38,6 +38,7 @@ deconvolute_ratios_simulated_annealing(
   Sigma,
   epsilon = 10^-4,
   itmax = 200,
+  return_model = FALSE,
   initial_p = NULL,
   dirichlet_alpha = 1
 )
@@ -70,6 +71,7 @@ deconvolute_ratios_gradient_descent(
   Sigma,
   epsilon = 10^-4,
   itmax = 200,
+  return_model = FALSE,
   initial_p = NULL,
   dirichlet_alpha = 1
 )

@@ -262,6 +262,13 @@ check_true_theta <- function(
 #' @param loglik_hat,loglik_true Optional per-sample log-likelihoods used
 #'   for theoretical convergence (regret
 #'   \eqn{\ell(\boldsymbol{p}^{\star})-\ell(\hat{\boldsymbol{p}})}).
+#' @param converged Optional list of length \eqn{N} with homogenised
+#'   optimiser fields (`iterations`, `criterion`, `code`, `rdm`).
+#'   Closed-form solvers store `NA` entries.
+#' @param local_maximum Optional logical per sample: ILR score small and
+#'   Hessian negative definite (\eqn{\lambda_{\min}<0} and
+#'   \eqn{\lambda_{\max}<0}).
+#' @param min_eigenvalue,max_eigenvalue Optional ILR Hessian extrema.
 #' @param presence_threshold Threshold \eqn{\varepsilon} for presence /
 #'   F1 / false-positive mass (default `1e-4`).
 #' @param level Wald coverage level when `lower` / `upper` are omitted
@@ -301,6 +308,10 @@ compute_benchmark_metrics <- function(
   numerical_converged = NULL,
   loglik_hat = NULL,
   loglik_true = NULL,
+  converged = NULL,
+  local_maximum = NULL,
+  min_eigenvalue = NULL,
+  max_eigenvalue = NULL,
   presence_threshold = 1e-4,
   level = 0.95,
   coverage_interval = "wilson",
@@ -343,6 +354,23 @@ compute_benchmark_metrics <- function(
   theoretical_converged <- rep(NA, n_samples)
   finite_regret <- is.finite(regret)
   theoretical_converged[finite_regret] <- regret[finite_regret] <= 1e-3
+  local_maximum <- if (is.null(local_maximum)) {
+    rep(NA, n_samples)
+  } else {
+    as.logical(.recycle_numeric(as.numeric(local_maximum), n_samples))
+  }
+  min_eigenvalue <- .recycle_numeric(min_eigenvalue, n_samples)
+  max_eigenvalue <- .recycle_numeric(max_eigenvalue, n_samples)
+  if (is.null(converged)) {
+    converged <- replicate(
+      n_samples,
+      .empty_convergence(),
+      simplify = FALSE
+    )
+  }
+  if (!is.list(converged) || length(converged) != n_samples) {
+    stop("`converged` must be a list of length N.", call. = FALSE)
+  }
 
   if (is.null(dim(y))) {
     y_mat <- matrix(as.numeric(y), ncol = 1L)
@@ -389,7 +417,11 @@ compute_benchmark_metrics <- function(
     kkt_residual = kkt_residual,
     numerical_converged = numerical_converged,
     theoretical_converged = theoretical_converged,
-    loglik_regret = regret
+    loglik_regret = regret,
+    local_maximum = local_maximum,
+    min_eigenvalue = min_eigenvalue,
+    max_eigenvalue = max_eigenvalue,
+    converged = converged
   )
   p_hat_tbl <- tibble::as_tibble(t(p_hat))
   optimisation <- dplyr::bind_cols(opt, p_hat_tbl)
@@ -788,7 +820,8 @@ deconvolute_ratios <- function(
             deconvolution_function = deconvolution_function,
             additional_parameters = additional_parameters,
             cell_names = cell_names,
-            n_celltypes = n_celltypes
+            n_celltypes = n_celltypes,
+            algorithm = algorithm
           )
         },
         cores = cores,
@@ -820,7 +853,8 @@ deconvolute_ratios <- function(
   deconvolution_function,
   additional_parameters,
   cell_names,
-  n_celltypes
+  n_celltypes,
+  algorithm = NA_character_
 ) {
   y_i <- Y[, i, drop = TRUE]
   p_i <- if (is.null(true_ratios)) {
@@ -837,6 +871,9 @@ deconvolute_ratios <- function(
     additional_parameters
   )
   formal_args <- names(formals(deconvolution_function$FUN))
+  if ("return_model" %in% formal_args) {
+    list_arguments$return_model <- TRUE
+  }
   mem0 <- .process_memory_bytes()
   t0 <- proc.time()[["elapsed"]]
   success_estimation <- tryCatch(
@@ -861,14 +898,20 @@ deconvolute_ratios <- function(
           warn = FALSE
         )
       }
-      list(p = estimated_p, se = se, error = NULL)
+      list(
+        p = estimated_p,
+        se = se,
+        error = NULL,
+        converged = .homogenise_convergence(raw_out, algorithm)
+      )
     },
     error = function(e) {
       warning(conditionMessage(e), call. = FALSE)
       list(
         p = stats::setNames(rep(NA_real_, n_celltypes), cell_names),
         se = stats::setNames(rep(NA_real_, n_celltypes), cell_names),
-        error = e
+        error = e,
+        converged = .empty_convergence()
       )
     }
   )
@@ -882,6 +925,9 @@ deconvolute_ratios <- function(
   kkt <- NA_real_
   loglik_hat <- NA_real_
   loglik_true <- NA_real_
+  loc_max <- NA
+  lam_min <- NA_real_
+  lam_max <- NA_real_
   p_hat <- success_estimation$p
   numerical_converged <- is.null(success_estimation$error) &&
     all(is.finite(p_hat))
@@ -908,6 +954,25 @@ deconvolute_ratios <- function(
         error = function(e) NA_real_
       )
     }
+    bd <- tryCatch(
+      boundary_diagnostics(
+        p_hat,
+        y_i,
+        mean_signature_matrix,
+        Sigma
+      ),
+      error = function(e) NULL
+    )
+    if (!is.null(bd)) {
+      loc_max <- isTRUE(bd$local_maximum)
+      lam_min <- bd$min_eigenvalue
+      lam_max <- bd$max_eigenvalue
+    }
+  }
+
+  conv <- success_estimation$converged
+  if (is.null(conv)) {
+    conv <- .empty_convergence()
   }
 
   list(
@@ -920,7 +985,11 @@ deconvolute_ratios <- function(
     kkt_residual = kkt,
     numerical_converged = numerical_converged,
     loglik_hat = loglik_hat,
-    loglik_true = loglik_true
+    loglik_true = loglik_true,
+    converged = conv,
+    local_maximum = loc_max,
+    min_eigenvalue = lam_min,
+    max_eigenvalue = lam_max
   )
 }
 
@@ -956,6 +1025,10 @@ deconvolute_ratios <- function(
     ),
     loglik_hat = purrr::map_dbl(sample_fits, "loglik_hat"),
     loglik_true = purrr::map_dbl(sample_fits, "loglik_true"),
+    converged = purrr::map(sample_fits, "converged"),
+    local_maximum = purrr::map_lgl(sample_fits, "local_maximum"),
+    min_eigenvalue = purrr::map_dbl(sample_fits, "min_eigenvalue"),
+    max_eigenvalue = purrr::map_dbl(sample_fits, "max_eigenvalue"),
     coverage_interval = coverage_interval,
     algorithm = algorithm
   )

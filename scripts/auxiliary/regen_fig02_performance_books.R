@@ -36,12 +36,51 @@ save_bivariate_raincloud_book(
   data_rds = GGPLOT_RDS_DIR
 )
 
+message("dotsinterval…")
+save_bivariate_dotsinterval_book(
+  artefacts,
+  file.path(PERF_DIR, "dotsinterval.pdf"),
+  data_rds = GGPLOT_RDS_DIR
+)
+
 message("forest…")
 save_bivariate_forest_book(
   artefacts,
   file.path(PERF_DIR, "forest.pdf"),
   data_rds = GGPLOT_RDS_DIR
 )
+
+message("kkt raincloud…")
+save_bivariate_kkt_raincloud_book(
+  artefacts,
+  file.path(PERF_DIR, "kkt_raincloud.pdf"),
+  data_rds = GGPLOT_RDS_DIR
+)
+
+message("convergence stacked…")
+save_bivariate_convergence_book(
+  artefacts,
+  file.path(PERF_DIR, "convergence_stacked.pdf"),
+  data_rds = GGPLOT_RDS_DIR,
+  icon_dir = "temp_logos"
+)
+
+message("qq / ks…")
+  save_bivariate_qq_book(
+    artefacts,
+    file.path(PERF_DIR, "qq_normal.pdf"),
+    data_rds = GGPLOT_RDS_DIR
+  )
+  save_bivariate_ks_book(
+    artefacts,
+    file.path(PERF_DIR, "ks_normal.pdf"),
+    data_rds = GGPLOT_RDS_DIR
+  )
+  save_bivariate_chi2_book(
+    artefacts,
+    file.path(PERF_DIR, "qq_chi2.pdf"),
+    data_rds = GGPLOT_RDS_DIR
+  )
 
 message("similarity…")
 save_bivariate_similarity_book(

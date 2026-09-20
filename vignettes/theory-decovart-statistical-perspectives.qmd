@@ -26,7 +26,7 @@ format:
 ::: callout-note
 ## Scope
 
-Outlook on extending DeCovarT beyond the closed-reference Gaussian convolution. Sections cover Scheffé-type mixture structure, alternative observation laws and Bayesian CTS inference, sample-level covariates, incomplete references, isoforms, RNA–cell uncoupling, weighted / generalised least squares, Firth penalisation for few bulk samples, lineage and archetypes, time-resolved composition, ensembles, spatial transcriptomics, and multi-omics. Compositional reparametrisation is implemented in [`additive_logistic()`](../reference/additive_logistic.html) and documented numerically in the [derivatives under simplex transforms](theory-decovart-generative-model.html) vignette. The same catalogue is tracked in [GitHub issue 5](https://github.com/bastienchassagnol/DeCovarT/issues/5).
+Outlook on extending DeCovarT beyond the closed-reference Gaussian convolution. Sections cover Scheffé-type mixture structure, ordinary least squares and Gauss--Markov, alternative observation laws and Bayesian CTS inference, sample-level covariates, incomplete references, isoforms, RNA–cell uncoupling, weighted / generalised least squares, sandwich / Godambe uncertainty, Firth penalisation for few bulk samples, lineage and archetypes, time-resolved composition, ensembles, spatial transcriptomics, and multi-omics. Compositional reparametrisation is implemented in [`additive_logistic()`](../reference/additive_logistic.html) and documented numerically in the [derivatives under simplex transforms](theory-decovart-generative-model.html) vignette. The same catalogue is tracked in [GitHub issue 5](https://github.com/bastienchassagnol/DeCovarT/issues/5).
 :::
 
 Bulk transcriptomic deconvolution is one instance of a **mixture inverse problem**: a composite signal (tissue expression, a spectrum, a chromatogram) is observed, and we seek the proportions $\boldsymbol{p}$ of underlying components. Because $\boldsymbol{p}$ is **compositional** (parts of a whole), estimates must lie on the simplex $\Delta^{J-1}=\{\boldsymbol{p}\in[0,1]^J:\sum_j p_j=1\}$. [@chassagnolDeCovarTMultidimensionalProbalistic2023] model each reference profile as multivariate Gaussian and recover $\boldsymbol{p}$ by constrained maximum likelihood; classical deconvolution tools such as `CIBERSORT` assume gene-wise independence instead [@newmanRobustEnumerationCell2015].
@@ -619,6 +619,110 @@ introduce $r_{j}$ inside the mean
 $\sum_{j}p_{ji}r_{j}\boldsymbol{\mu}_{\cdot j}$ (with a product-simplex
 constraint on $(p_{j}r_{j})$), rather than assuming $r_{j}$ known.
 
+## Ordinary least squares and Gauss--Markov {#sec-ols}
+
+This subsection used to live in a standalone article
+(`theory-related-models-beyond-OLS`); it is kept here so the OLS
+baseline and the convolution MLE sit in one place.
+
+### Notation {#sec-ols-notation}
+
+| Symbol | Role |
+|:-------|:-----|
+| $g=1,\ldots,G$ | genes |
+| $j=1,\ldots,J$ | cell types |
+| $i=1,\ldots,N$ | samples (subjects); independence across $i$ |
+| $\boldsymbol{y}=(y_{gi})\in\mathbb{R}_{+}^{G\times N}$ | bulk; column $\boldsymbol{y}_{\cdot i}$ |
+| $\boldsymbol{\mu}=(\mu_{gj})\in\mathbb{R}^{G\times J}$ | mean signature; column $\boldsymbol{\mu}_{\cdot j}$ |
+| $\boldsymbol{p}=(p_{ji})\in\,]0,1[^{J\times N}$ | proportions; column $\boldsymbol{p}_{\cdot i}$ |
+
+Ideal noiseless model for sample $i$:
+
+$$
+\boldsymbol{y}_{\cdot i}=\boldsymbol{\mu}\,\boldsymbol{p}_{\cdot i},
+\qquad
+y_{gi}=\sum_{j=1}^{J}\mu_{gj}p_{ji}.
+$$ {#eq-ols-lin}
+
+With $G>J$ and $\operatorname{rank}(\boldsymbol{\mu})=J$, the system is
+overdetermined [@abbasDeconvolutionBloodMicroarray2009]; uniqueness in the
+square full-rank case follows from the Rouché--Capelli theorem
+[@shafarevichLinearEquations2013].
+
+### Ordinary least squares {#sec-ols-task}
+
+With additive residual $\epsilon_{gi}$, OLS minimises squared error for each
+sample (independently):
+
+$$
+\hat{\boldsymbol{p}}_{\cdot i}^{\mathrm{OLS}}
+\equiv
+\arg\min_{\boldsymbol{p}_{\cdot i}}
+\bigl\|\boldsymbol{y}_{\cdot i}-\boldsymbol{\mu}\,\boldsymbol{p}_{\cdot i}\bigr\|_{2}^{2}.
+$$ {#eq-ols-task}
+
+When $\boldsymbol{\mu}^{\top}\boldsymbol{\mu}$ is invertible, the normal
+equations give
+
+$$
+\hat{\boldsymbol{p}}_{\cdot i}^{\mathrm{OLS}}
+=
+\bigl(\boldsymbol{\mu}^{\top}\boldsymbol{\mu}\bigr)^{-1}
+\boldsymbol{\mu}^{\top}\boldsymbol{y}_{\cdot i}.
+$$ {#eq-ols-estimate}
+
+Existence of this inverse requires full column rank $J$ (no cell-type profile
+is an exact linear combination of the others; parent/child lineages that are
+collinear cannot both be estimated).
+
+### Homoscedastic Gaussian noise and MLE {#sec-ols-gauss}
+
+Under the classical linear model,
+
+$$
+y_{gi}=\sum_{j=1}^{J}\mu_{gj}p_{ji}+\epsilon_{gi},
+\qquad
+\epsilon_{gi}\sim\mathcal{N}(0,\sigma_{i}^{2}),
+$$ {#eq-white-noise}
+
+the MLE for $\boldsymbol{p}_{\cdot i}$ coincides with @eq-ols-estimate.
+
+### Gauss--Markov assumptions {#sec-gauss-markov}
+
+Under weak exogeneity of $\boldsymbol{\mu}$, homoscedasticity
+$\operatorname{Var}(\epsilon_{gi})=\sigma_{i}^{2}$ for all $g$, zero mean
+$\mathbb{E}(\epsilon_{gi})=0$, and uncorrelated residuals across genes, the OLS
+estimator is the BLUE (best linear unbiased estimator). With i.i.d. Gaussian
+errors the sample log-likelihood for sample $i$ is (up to constants)
+
+$$
+\ell(\boldsymbol{p}_{\cdot i},\sigma_{i}\,|\,\boldsymbol{y}_{\cdot i},\boldsymbol{\mu})
+=
+-G\log\sigma_{i}
+-\frac{1}{2\sigma_{i}^{2}}
+\sum_{g=1}^{G}
+\Bigl(y_{gi}-\sum_{j=1}^{J}\mu_{gj}p_{ji}\Bigr)^{2},
+$$
+
+so maximising $\ell$ in $\boldsymbol{p}_{\cdot i}$ recovers @eq-ols-task.
+Independence across samples $i=1,\ldots,N$ is the modelling assumption used
+throughout DeCovarT; microarray literature sometimes questions gene-wise
+independence [@efronAreSetMicroarrays2009].
+
+::: {.callout-warning}
+## What DeCovarT changes
+
+DeCovarT replaces gene-wise scalar noise with a multivariate convolution:
+latent $\boldsymbol{x}_{\cdot j}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},
+\boldsymbol{\Sigma}_{j})$, and
+$\boldsymbol{y}_{\cdot i}\,|\,\boldsymbol{p}_{\cdot i}
+\sim\mathcal{N}_{G}\bigl(\boldsymbol{\mu}\,\boldsymbol{p}_{\cdot i},
+\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}\bigr)$,
+with precision $\boldsymbol{\Theta}_{j}=\boldsymbol{\Sigma}_{j}^{-1}$
+(typically from `gLasso`). See the article Methods and
+[derivatives under simplex transforms](theory-decovart-generative-model.html#sec-s3).
+:::
+
 ## Robust regression, GLS, and gene weights {#sec-robust-gls}
 
 Let $W=\mathrm{diag}(w_{1},\ldots,w_{G})$ be gene-specific precision
@@ -803,3 +907,60 @@ discrete labels by a continuous axis
 [@asanoADeepLearningApproach2024]. Macrophage M1/M2 polarisation is the
 standard biological example of a microenvironment-dependent continuum
 rather than two extra columns of $\boldsymbol{\mu}$.
+
+# Beyond first-order asymptotics {#sec-beyond-asymptotics}
+
+::: {#nte-perspectives .callout-tip}
+## Uncertainty quantification beyond Wald
+
+Directions that would strengthen DeCovarT intervals, in rough order of
+implementation cost.
+
+- **Godambe sandwich for a misspecified convolution.** `RNA-Sieve`
+  replaces Fisher by the Godambe information when the CLT model is
+  wrong [@erdmann-phamLikelihoodbasedDeconvolutionBulk2021]
+  ([MLE properties](theory-DeCovarT-MLE-properties.html#sec-rna-sieve)).
+  The same sandwich on DeCovarT's score would widen Wald intervals
+  under protocol shift without discarding the multivariate covariance.
+  It remains a first-order *interior* device: faces still need the
+  chi-bar-square LRT or a restricted bootstrap.
+- **Sandwich for a variational estimator is a different object.**
+  Westling and McCormick give the profile M-estimation sandwich for
+  variational approximations in mixture models
+  [@westlingPredictionFrameworkInference2019]. Batardière, Chiquet and
+  Mariadassou specialise that construction to Poisson-log-normal
+  *variational* parameters
+  [@batardiereEvaluatingParameterUncertainty2024]. That estimator is
+  not a maximum-likelihood estimator and does not inherit the usual
+  MLE consistency / $\sqrt{n}$ theory; the sandwich is an
+  M-estimation correction for a surrogate ELBO. DeCovarT's
+  $\hat{\boldsymbol{p}}$ *is* the MLE of the Gaussian convolution on one
+  bulk column (when the solver reaches a local maximum), so expected
+  Fisher at $p^{\star}$ is the regular-case asymptotic variance. Do
+  not paste their coverage plots onto DeCovarT Wald intervals.
+- **Score-test inversion.** Inverting a one-sided score test avoids
+  refitting under every candidate value, so it is cheaper than the
+  profile scan of `confint_profile_decovart()` while keeping the
+  one-sided boundary geometry.
+- **Higher-order likelihood corrections.** Bartlett-type adjustments of
+  the likelihood-ratio statistic, or modified profile likelihoods,
+  improve the $\chi^{2}$ approximation in the small-replication
+  regime described in the
+  [MLE properties](theory-DeCovarT-MLE-properties.html#nte-replication)
+  vignette — precisely DeCovarT's regime.
+- **Bayesian compositional models.** A logistic-normal or Dirichlet
+  prior on $\boldsymbol{p}$ regularises the boundary: the posterior stays
+  proper where the ILR Wald interval degenerates, and credible
+  intervals are usually more stable near a face. A credible interval
+  is not an exact frequentist interval, and the prior must be
+  defensible scientifically.
+- **Information geometry of the composition.** Treating
+  $\Delta^{J-1}$ with the Fisher--Rao metric of the
+  [MLE properties](theory-DeCovarT-MLE-properties.html#eq-fisher-metric)
+  vignette rather than as a subset of $\mathbb{R}^{J}$ would give
+  natural-gradient updates and reparametrisation-invariant confidence
+  regions
+  [@malagoInformationGeometryGaussian2015;
+  @aitchisonStatisticalAnalysisCompositional1982].
+:::
+
