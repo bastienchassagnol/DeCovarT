@@ -370,6 +370,28 @@ Early setup via **usethis** (run once after creating the GitHub repo):
 Customise the resulting pkgdown site per **pkgdown site customisation**
 below; validate locally with `pkgdown::build_site()` before pushing.
 
+### GitHub Actions: system libraries via `setup-r-dependencies`
+
+Do **not** add a custom `ci_sysreqs.R` / bash apt list as the default.
+Use [`r-lib/actions/setup-r-dependencies@v2`](https://github.com/r-lib/actions/tree/v2/setup-r-dependencies)
+after `setup-r`. It installs `pak`, caches the library, and on Ubuntu
+(and other supported Linux distros) installs system libraries through
+`pak` / `rstudio/r-system-requirements`.
+
+This repo already does that for R-CMD-check, coverage, and pkgdown
+(`extra-packages: any::rcmdcheck, local::.` / `needs: check|coverage|website`).
+
+`pak` sysreqs for the current DESCRIPTION on Ubuntu 22.04 map to
+`libglpk-dev`, `libxml2-dev`, `pandoc`, `cmake`, `make`,
+`libuv1-dev`, `libicu-dev` (`igraph` → GLPK/XML2; `fs` / `stringi` /
+`knitr` / `rmarkdown` / `sass` → the rest). Treat that as the
+**expected** set, not a second installer.
+
+Install extra apt/brew/choco packages **only** when the action cannot:
+Windows, macOS, other Linux, or Bioconductor sysreqs
+([action README — System dependencies](https://github.com/r-lib/actions/tree/v2/setup-r-dependencies#system-dependencies)).
+Those steps must run *before* `setup-r-dependencies`.
+
 ### pkgdown site customisation
 
 - Initiate GitHub Pages once with `quarto publish gh-pages` (from the
