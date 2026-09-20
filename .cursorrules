@@ -370,6 +370,28 @@ Early setup via **usethis** (run once after creating the GitHub repo):
 Customise the resulting pkgdown site per **pkgdown site customisation**
 below; validate locally with `pkgdown::build_site()` before pushing.
 
+### GitHub Actions: system libraries via `setup-r-dependencies`
+
+Do **not** add a custom `ci_sysreqs.R` / bash apt list as the default.
+Use [`r-lib/actions/setup-r-dependencies@v2`](https://github.com/r-lib/actions/tree/v2/setup-r-dependencies)
+after `setup-r`. It installs `pak`, caches the library, and on Ubuntu
+(and other supported Linux distros) installs system libraries through
+`pak` / `rstudio/r-system-requirements`.
+
+This repo already does that for R-CMD-check, coverage, and pkgdown
+(`extra-packages: any::rcmdcheck, local::.` / `needs: check|coverage|website`).
+
+`pak` sysreqs for the current DESCRIPTION on Ubuntu 22.04 map to
+`libglpk-dev`, `libxml2-dev`, `pandoc`, `cmake`, `make`,
+`libuv1-dev`, `libicu-dev` (`igraph` → GLPK/XML2; `fs` / `stringi` /
+`knitr` / `rmarkdown` / `sass` → the rest). Treat that as the
+**expected** set, not a second installer.
+
+Install extra apt/brew/choco packages **only** when the action cannot:
+Windows, macOS, other Linux, or Bioconductor sysreqs
+([action README — System dependencies](https://github.com/r-lib/actions/tree/v2/setup-r-dependencies#system-dependencies)).
+Those steps must run *before* `setup-r-dependencies`.
+
 ### pkgdown site customisation
 
 - Initiate GitHub Pages once with `quarto publish gh-pages` (from the
@@ -1570,34 +1592,59 @@ figures, or any cited web resource):
 Do not invent content when a conversion is available. Use a
 **structural converter**, then a **cleanup pass** (YAML, headings,
 tables, captions, image paths, alt-text). Do not ask an LLM to read a
-whole DOCX/PPTX when Pandoc can parse its structure.
+whole office file or PDF when a converter can parse its structure.
 
-**Documents (DOCX / PDF → `.qmd`).** DOCX is structured; convert with
-Pandoc, then clean:
+**Default converter: [anydoc](https://github.com/firecrawl/anydoc)**
+(Firecrawl). It turns Word, PowerPoint, Excel, OpenDocument, RTF,
+EPUB, CSV, and PDF into GitHub-Flavored Markdown with one CLI. The
+Cursor skill is `convert-documents-to-markdown` (user-level:
+`npx skills add firecrawl/anydoc -g -y -a cursor`). Needs Node 20+.
+
+```bash
+npx -y @firecrawl/anydoc document.docx -o document.md
+npx -y @firecrawl/anydoc notes.pdf -o notes.md
+npx -y @firecrawl/anydoc talk.pptx -o talk.md
+```
+
+Text-based PDFs convert **locally** (no network). Scanned or
+image-only pages exit with code 3 (`NeedsOcr`). Rerun with hosted OCR
+via [Firecrawl Parse](https://firecrawl.dev/parse):
+
+```bash
+npx -y @firecrawl/anydoc scan.pdf --ocr hosted -o scan.md
+# optional: --api-key, or export FIRECRAWL_API_KEY (higher limits)
+```
+
+Store `FIRECRAWL_API_KEY` in the **user** environment (shell rc or
+Cursor/Remote machine settings), never in the repository. Keyless
+Parse works at low volume; create a key at
+<https://docs.firecrawl.dev/introduction> when rate-limited.
+
+Then run the same cleanup pass: Quarto YAML, heading hierarchy,
+tables, captions, notes, cross-references, image paths, and alt-text.
+Do **not** rewrite scientific content. `pdftoppm` remains a fallback
+only for figures the Markdown conversion missed.
+
+**Pandoc** is optional when you need `--extract-media` into a folder
+the cleanup pass can rewrite, or when anydoc is unavailable:
 
 ```bash
 pandoc document.docx --extract-media=images -t markdown -o document.qmd
 ```
 
 That yields `document.qmd` plus `images/media/…`, referenced as
-`![…](images/media/image1.png)`. The cleanup pass fixes Quarto YAML,
-heading hierarchy, Word tables, captions, notes, cross-references,
-image paths, and alt-text — it does **not** rewrite scientific content.
-For PDFs (literature, notes, reviews, vignette drafts), use Stephen
-Turner’s **[pdfdown](https://stephenturner.github.io/pdfdown/)** (local
-browser drop-zone) first, then the same cleanup pass; `pdftoppm` only
-for figures pdfdown misses.
+`![…](images/media/image1.png)`.
 
 **Slides (PDF / PPTX → Quarto reveal.js).** Prefer sources in this
-order: Markdown (structure and wording), then PPTX, then PDF.
+order: Markdown (structure and wording), then PPTX, then PDF. Convert
+with anydoc first:
 
 ```bash
-pandoc talk.pptx --extract-media=slides/images -t markdown -o talk.md
+npx -y @firecrawl/anydoc talk.pptx -o talk.md
 ```
 
-Pandoc extracts images, hyperlinks, lists, and OMML equations (to
-LaTeX). Keep extracted media; restore equations as `$...$` / `$$...$$`
-when Pandoc emitted LaTeX, otherwise transcribe from the slide;
+Keep extracted media; restore equations as `$...$` / `$$...$$` when
+the converter emitted LaTeX, otherwise transcribe from the slide;
 preserve links as `[text](url)`. Then restyle per **Slide design** —
 never ship raw PDF/PPTX as the live deck.
 
