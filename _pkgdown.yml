@@ -123,10 +123,7 @@ navbar:
         - text: MLE properties and asymptotic inference
           icon: fa-chart-area
           href: articles/theory-DeCovarT-MLE-properties.html
-        - text: Literature review and alternatives to OLS
-          icon: fa-equals
-          href: articles/theory-related-models-beyond-OLS.html
-        - text: "DeCovarT perspectives: Bayesian, quasi-likelihood, and more"
+        - text: "DeCovarT perspectives: OLS, Bayesian, quasi-likelihood, and more"
           icon: fa-compass
           href: articles/theory-decovart-statistical-perspectives.html
         - text: -------
@@ -288,11 +285,24 @@ reference:
       - save_bivariate_similarity_book
       - save_bivariate_forest_book
       - save_bivariate_raincloud_book
+      - save_bivariate_dotsinterval_book
+      - save_bivariate_kkt_raincloud_book
+      - save_bivariate_convergence_book
+      - save_bivariate_qq_book
+      - save_bivariate_ks_book
+      - save_bivariate_chi2_book
+      - plot_kkt_raincloud
+      - plot_convergence_stacked
+      - plot_mc_qq_normal
+      - plot_mc_chi2_qq
+      - plot_ks_normality_box
       - save_bivariate_solver_dots_book
       - save_bivariate_bulk_density_book
       - save_bivariate_loglik_ilr_profile_book
       - save_bivariate_loglik_rgl_book
       - save_bivariate_loglik_surface_p_book
+      - save_bivariate_expected_loglik_surface_p_book
+      - save_bivariate_expected_loglik_ilr_profile_book
       - save_bivariate_purified_density_book
       - save_mean_signature_heatmap
       - save_network_topology_book
@@ -387,3 +397,4 @@ news:
 
 redirects:
   - ["articles/how-to-build-synthetic-scenarios-mean-covariance.html", "articles/theory-synthetic-scenarios-mean-covariance.html"]
+  - ["articles/theory-related-models-beyond-OLS.html", "articles/theory-decovart-statistical-perspectives.html"]

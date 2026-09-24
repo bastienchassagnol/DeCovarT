@@ -190,7 +190,9 @@ plot_correlation_Heatmap <- function(
 .check_plot_dependencies <- function(
   need_ggdist = FALSE,
   need_ggdendro = FALSE,
-  need_cowplot = FALSE
+  need_cowplot = FALSE,
+  need_qqplotr = FALSE,
+  need_ggtext = FALSE
 ) {
   pkgs <- "ggplot2"
   if (isTRUE(need_ggdist)) {
@@ -201,6 +203,12 @@ plot_correlation_Heatmap <- function(
   }
   if (isTRUE(need_cowplot)) {
     pkgs <- c(pkgs, "cowplot")
+  }
+  if (isTRUE(need_qqplotr)) {
+    pkgs <- c(pkgs, "qqplotr")
+  }
+  if (isTRUE(need_ggtext)) {
+    pkgs <- c(pkgs, "ggtext")
   }
   missing <- pkgs[
     !vapply(
@@ -217,6 +225,30 @@ plot_correlation_Heatmap <- function(
       toString(paste0("'", missing, "'")),
       ". Install with install.packages().",
       call. = FALSE
+    )
+  }
+  invisible(TRUE)
+}
+
+#' Open a PDF device with cairo when it is available
+#'
+#' @keywords internal
+#' @noRd
+.open_ggplot_pdf <- function(file, width, height) {
+  if (isTRUE(capabilities("cairo"))) {
+    grDevices::cairo_pdf(
+      file,
+      width = width,
+      height = height,
+      antialias = "subpixel",
+      fallback_resolution = 320
+    )
+  } else {
+    grDevices::pdf(
+      file,
+      width = width,
+      height = height,
+      useDingbats = FALSE
     )
   }
   invisible(TRUE)
@@ -895,11 +927,14 @@ theme_decovart_facets <- function(base_size = 11, ...) {
 #' algorithm. Optional `facet_rows` / `facet_cols` split scenarios
 #' (for example number of genes versus pairwise cosine).
 #'
-#' When `quantity = "estimate"`, slabs use a bounded kernel on
-#' \eqn{[0,1]} ([ggdist::density_bounded()]) with a coloured outline
-#' (`slab_colour` / `slab_linewidth`). True proportions are labelled at
-#' the top of each panel (the most abundant type to the right of its
-#' reference line; the others to the left).
+#' When `quantity = "estimate"` and `slab = "halfeye"`, slabs use a
+#' bounded kernel on \eqn{[0,1]} ([ggdist::density_bounded()]) with a
+#' coloured outline (`slab_colour` / `slab_linewidth`). Vertex pile-up
+#' can leave that KDE empty; `slab = "dotsinterval"`
+#' ([ggdist::stat_dotsinterval()]) draws quantile dots instead.
+#' True proportions are labelled at the top of each panel (the most
+#' abundant type to the right of its reference line; the others to the
+#' left).
 #'
 #' The inner interval is the central 50% of Monte Carlo replicates; the
 #' outer interval is the central 95%. These are **not** confidence
@@ -927,6 +962,8 @@ theme_decovart_facets <- function(base_size = 11, ...) {
 #'   (cell types). Values greater than 1 insert extra space so slabs
 #'   from neighbouring types do not overlap; the axis still shows the
 #'   original labels.
+#' @param slab `"halfeye"` (default KDE raincloud) or `"dotsinterval"`
+#'   (quantile dots plus interval; avoids empty bounded slabs).
 #'
 #' @srrstats {G2.3} Restricted character input (`quantity`).
 #' @srrstats {G2.3a} Validated via `.match_arg_case_insensitive()`.
@@ -975,10 +1012,12 @@ plot_mc_raincloud <- function(
   dodge_width = 0.95,
   slab_scale = 1.4,
   slab_alpha = 1,
-  category_spacing = 1
+  category_spacing = 1,
+  slab = c("halfeye", "dotsinterval")
 ) {
   .check_plot_dependencies(need_ggdist = TRUE)
   quantity <- .match_arg_case_insensitive(quantity, c("error", "estimate"))
+  slab <- .match_arg_case_insensitive(slab, c("halfeye", "dotsinterval"))
   df <- if (is.data.frame(benchmark)) {
     .relevel_scenario_table(benchmark)
   } else {
@@ -1017,17 +1056,29 @@ plot_mc_raincloud <- function(
   } else {
     "Monte Carlo estimate"
   }
+  if (
+    identical(quantity, "estimate") &&
+      identical(slab, "halfeye") &&
+      !isTRUE(include_dots)
+  ) {
+    grp_cols <- c("algorithm", "cell_type")
+    if ("panel" %in% names(df)) {
+      grp_cols <- c(grp_cols, "panel")
+    }
+    nuniq <- df |>
+      dplyr::group_by(dplyr::across(dplyr::all_of(grp_cols))) |>
+      dplyr::summarise(
+        n_unique = dplyr::n_distinct(round(.data[[x_var]], 8)),
+        .groups = "drop"
+      )
+    if (any(nuniq$n_unique <= 2L, na.rm = TRUE)) {
+      include_dots <- TRUE
+    }
+  }
+  if (identical(slab, "dotsinterval")) {
+    include_dots <- FALSE
+  }
   dodge <- ggplot2::position_dodge(width = dodge_width)
-  slab_density <- if (identical(quantity, "estimate")) {
-    ggdist::density_bounded(bounds = c(0, 1))
-  } else {
-    ggdist::density_unbounded()
-  }
-  slab_limits <- if (identical(quantity, "estimate")) {
-    c(0, 1)
-  } else {
-    NULL
-  }
   p <- ggplot2::ggplot(
     df,
     ggplot2::aes(
@@ -1036,23 +1087,54 @@ plot_mc_raincloud <- function(
       fill = .data[["algorithm"]],
       colour = .data[["algorithm"]]
     )
-  ) +
-    ggdist::stat_halfeye(
-      ggplot2::aes(slab_colour = ggplot2::after_scale(.data[["fill"]])),
-      orientation = "horizontal",
-      .width = .width,
-      justification = -0.08,
-      point_interval = ggdist::median_qi,
-      normalize = "groups",
-      scale = slab_scale,
-      density = slab_density,
-      limits = slab_limits,
-      interval_size = 2.8,
-      point_size = 1.6,
-      slab_linewidth = 0.6,
-      slab_alpha = slab_alpha,
-      position = dodge
-    )
+  )
+  if (identical(slab, "dotsinterval")) {
+    p <- p +
+      ggdist::stat_dotsinterval(
+        orientation = "horizontal",
+        .width = .width,
+        quantiles = 100,
+        layout = "weave",
+        overflow = "compress",
+        justification = -0.08,
+        point_interval = ggdist::median_qi,
+        normalize = "groups",
+        scale = slab_scale,
+        interval_size = 2.8,
+        point_size = 1.6,
+        slab_linewidth = 0.4,
+        slab_alpha = slab_alpha,
+        position = dodge
+      )
+  } else {
+    slab_density <- if (identical(quantity, "estimate")) {
+      ggdist::density_bounded(bounds = c(0, 1))
+    } else {
+      ggdist::density_unbounded()
+    }
+    slab_limits <- if (identical(quantity, "estimate")) {
+      c(0, 1)
+    } else {
+      NULL
+    }
+    p <- p +
+      ggdist::stat_halfeye(
+        ggplot2::aes(slab_colour = ggplot2::after_scale(.data[["fill"]])),
+        orientation = "horizontal",
+        .width = .width,
+        justification = -0.08,
+        point_interval = ggdist::median_qi,
+        normalize = "groups",
+        scale = slab_scale,
+        density = slab_density,
+        limits = slab_limits,
+        interval_size = 2.8,
+        point_size = 1.6,
+        slab_linewidth = 0.6,
+        slab_alpha = slab_alpha,
+        position = dodge
+      )
+  }
   if (isTRUE(include_dots)) {
     df_dots <- df
     n_dots <- nrow(df_dots)
@@ -1111,14 +1193,21 @@ plot_mc_raincloud <- function(
     }
     p <- .add_true_ratio_labels(p, lab_df, pal)
     p <- p +
-      ggplot2::coord_cartesian(clip = "off") +
+      ggplot2::coord_cartesian(xlim = c(-0.04, 1.04), clip = "off") +
       ggplot2::labs(
         caption = paste(
           "Central 50% and 95% of Monte Carlo replicates;",
           "not a confidence interval for p.",
           "Dashed vertical lines and labels: true cell-type proportions",
           "(abundant type to the right, others to the left).",
-          "Slabs are bounded to [0, 1] (unit simplex)."
+          if (identical(slab, "dotsinterval")) {
+            "Dots show 100 quantiles per group (no bounded KDE slab)."
+          } else {
+            paste(
+              "Slabs are bounded to [0, 1] (unit simplex).",
+              "When a panel piles on a vertex, dots replace an empty KDE slab."
+            )
+          }
         )
       )
   }

@@ -862,7 +862,10 @@ the convolution mapped through the ILR (@sec-interior; the derivatives
 vignette). That Wald interval is the cheap interior tool, and it is
 **undefined** on a simplex face (@sec-boundary). The Godambe sandwich
 would be relevant *if* the multivariate Gaussian convolution is
-misspecified (counts, protocol shift, omitted types). It does not
+misspecified (counts, protocol shift, omitted types). The variational
+sandwich of Westling and McCormick
+[@westlingPredictionFrameworkInference2019] is a different object: it
+corrects an ELBO estimator, not this convolution MLE. It does not
 replace the chi-bar-square LRT or the restricted parametric bootstrap
 on the boundary, and it does not replace
 `reference_bootstrap_decovart()`, which is the resampling counterpart of
@@ -878,8 +881,8 @@ three logically distinct claims, and refuses to conflate them:
 
 | Field | Established by | Does **not** establish |
 |:--|:--|:--|
-| `converged` (`istop` / `code`, `rdm`, `iterations`) | numerical stopping rules met | that the point is a maximum |
-| `local_maximum` (small ILR score norm, negative $\lambda_{\max}(\mathbf{H}_{\boldsymbol{z}})$) | stationarity with the right local curvature | global optimality |
+| `converged` (`iterations`, `criterion`, `code`, `rdm`) | numerical stopping rules met (iterative solvers; `NA` for NNLS / LSEI / CIBERSORT) | that the point is a maximum |
+| `local_maximum` (small ILR score, $\lambda_{\min}(H_z)<0$ and $\lambda_{\max}(H_z)<0$) | stationarity with a negative-definite Hessian | global optimality |
 | `near_boundary` ($\min_j\hat{p}_j$ small) | proximity to a simplex face | optimiser failure |
 | `multimodal` (spread of log-likelihoods over random starts) | evidence *for* several modes | absence of further modes |
 
@@ -994,40 +997,11 @@ previous row:
 
 # Perspectives {#sec-perspectives}
 
-::: {#nte-perspectives .callout-tip}
-## Beyond first-order asymptotics
-
-Directions that would strengthen DeCovarT uncertainty quantification,
-in rough order of implementation cost.
-
-- **Godambe sandwich for a misspecified convolution.** `RNA-Sieve`
-  replaces Fisher by the Godambe information when the CLT model is
-  wrong [@erdmann-phamLikelihoodbasedDeconvolutionBulk2021]
-  (@sec-rna-sieve). The same sandwich on DeCovarT's score would
-  widen Wald intervals under protocol shift without discarding the
-  multivariate covariance. It remains a first-order interior device:
-  faces still need the chi-bar-square LRT or a restricted bootstrap.
-- **Score-test inversion.** Inverting a one-sided score test avoids
-  refitting under every candidate value, so it is cheaper than the
-  profile scan of `confint_profile_decovart()` while keeping the
-  one-sided boundary geometry.
-- **Higher-order likelihood corrections.** Bartlett-type adjustments of
-  the likelihood-ratio statistic, or modified profile likelihoods,
-  improve the $\chi^{2}$ approximation in the small-replication regime
-  that @nte-replication describes — precisely DeCovarT's regime.
-- **Bayesian compositional models.** A logistic-normal or Dirichlet prior
-  on $\boldsymbol{p}$ regularises the boundary: the posterior stays
-  proper where the ILR Wald interval degenerates, and credible intervals
-  are usually more stable near a face. A credible interval is of course
-  not an exact frequentist interval, and the prior must be defensible
-  scientifically. This sits naturally alongside the MAP treatment of the
-  latent profiles sketched in the
-  [perspectives vignette](theory-decovart-statistical-perspectives.html).
-- **Information geometry of the composition.** Treating $\Delta^{J-1}$
-  with the Fisher–Rao metric of @eq-fisher-metric rather than as a subset
-  of $\mathbb{R}^{J}$ would give natural-gradient updates and
-  reparametrisation-invariant confidence regions
-  [@malagoInformationGeometryGaussian2015; @aitchisonStatisticalAnalysisCompositional1982].
-:::
+Outlook items that used to live here (Godambe sandwich, score-test
+inversion, Bartlett corrections, Bayesian compositions, Fisher--Rao
+geometry) now sit once in the
+[perspectives vignette](theory-decovart-statistical-perspectives.html#sec-beyond-asymptotics),
+alongside the OLS / Gauss--Markov background and the contrast with
+variational sandwich estimators.
 
 # References

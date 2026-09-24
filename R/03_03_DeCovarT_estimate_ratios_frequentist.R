@@ -1213,6 +1213,7 @@ deconvolute_ratios_simulated_annealing <- function(
   Sigma,
   epsilon = 10^-4,
   itmax = 200,
+  return_model = FALSE,
   initial_p = NULL,
   dirichlet_alpha = 1
 ) {
@@ -1225,7 +1226,7 @@ deconvolute_ratios_simulated_annealing <- function(
   initial_z <- isometric_log_ratio(initial_p)
   # gr is not used in the simulated annealing approach
   # In SANN, maxit is the total number of point evaluations, not iterations
-  estimated_z <- stats::optim(
+  fit <- stats::optim(
     par = initial_z,
     fn = loglik_multivariate_constrained,
     y = y,
@@ -1233,10 +1234,29 @@ deconvolute_ratios_simulated_annealing <- function(
     Sigma = Sigma,
     control = list(fnscale = -1, maxit = itmax),
     method = "SANN"
-  )$par
+  )
+  estimated_z <- fit$par
   estimated_p <- isometric_logistic(estimated_z)
   names(estimated_p) <- colnames(mean_signature_matrix)
-  repair_simplex(estimated_p)
+  estimated_p <- repair_simplex(estimated_p)
+  if (isTRUE(return_model)) {
+    return(list(
+      coefficients = estimated_p,
+      z = estimated_z,
+      loglik = loglik_multivariate(
+        estimated_p,
+        y,
+        mean_signature_matrix,
+        Sigma
+      ),
+      convergence = list(
+        code = fit$convergence,
+        iterations = unname(fit$counts[["function"]]),
+        message = fit$message
+      )
+    ))
+  }
+  estimated_p
 }
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Box-constrained L-BFGS-B
@@ -1405,6 +1425,7 @@ deconvolute_ratios_gradient_descent <- function(
   Sigma,
   epsilon = 10^-4,
   itmax = 200,
+  return_model = FALSE,
   initial_p = NULL,
   dirichlet_alpha = 1
 ) {
@@ -1416,7 +1437,7 @@ deconvolute_ratios_gradient_descent <- function(
   )
   initial_z <- isometric_log_ratio(initial_p)
 
-  estimated_z <- stats::optim(
+  fit <- stats::optim(
     par = initial_z,
     fn = loglik_multivariate_constrained,
     gr = gradient_loglik_constrained,
@@ -1430,8 +1451,28 @@ deconvolute_ratios_gradient_descent <- function(
       maxit = itmax
     ),
     method = "BFGS"
-  )$par
+  )
+  estimated_z <- fit$par
   estimated_p <- isometric_logistic(estimated_z)
   names(estimated_p) <- colnames(mean_signature_matrix)
-  repair_simplex(estimated_p)
+  estimated_p <- repair_simplex(estimated_p)
+  if (isTRUE(return_model)) {
+    return(list(
+      coefficients = estimated_p,
+      z = estimated_z,
+      loglik = loglik_multivariate(
+        estimated_p,
+        y,
+        mean_signature_matrix,
+        Sigma
+      ),
+      convergence = list(
+        code = fit$convergence,
+        iterations = unname(fit$counts[["function"]]),
+        message = fit$message,
+        criterion = "reltol/abstol"
+      )
+    ))
+  }
+  estimated_p
 }

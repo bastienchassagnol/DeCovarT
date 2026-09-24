@@ -442,3 +442,58 @@ test_that("Newton-Raphson attaches ILR Wald SEs; nnls does not", {
   expect_true(all(is.na(nnls$mean_model_se)))
   expect_true(all(is.na(nnls$coverage)))
 })
+
+test_that("simulation outcomes partition numerical and theoretical flags", {
+  out <- .simulation_outcome(
+    c(TRUE, TRUE, FALSE, TRUE),
+    c(TRUE, FALSE, FALSE, NA)
+  )
+  expect_identical(
+    out,
+    c(
+      "theoretical_success",
+      "theoretical_failure",
+      "numerical_failure",
+      "theoretical_failure"
+    )
+  )
+})
+
+test_that("closed-form solvers store NA homogenised convergence", {
+  conv <- .homogenise_convergence(c(0.5, 0.5), "nnls")
+  expect_true(is.na(conv$iterations))
+  expect_true(is.na(conv$code))
+  iterative <- .homogenise_convergence(
+    list(convergence = list(code = 0L, iterations = 12L, rdm = 1e-6)),
+    "Marquardt-Levenberg"
+  )
+  expect_identical(iterative$iterations, 12L)
+  expect_identical(iterative$code, 0L)
+})
+
+test_that("optimisation table stores Hessian extrema and converged lists", {
+  mu <- matrix(
+    c(20, 22, 22, 20),
+    nrow = 2,
+    dimnames = list(paste0("g", 1:2), paste0("ct", 1:2))
+  )
+  scores <- compute_benchmark_metrics(
+    y = drop(mu %*% c(0.4, 0.6)),
+    mean_signature_matrix = mu,
+    estimated_p = c(0.45, 0.55),
+    true_ratios = c(0.4, 0.6)
+  )
+  opt <- scores$optimisation
+  expect_true("converged" %in% names(opt))
+  expect_true("local_maximum" %in% names(opt))
+  expect_true("min_eigenvalue" %in% names(opt))
+  expect_type(opt$converged, "list")
+  expect_true(is.na(opt$converged[[1L]]$iterations))
+})
+
+test_that("relative log10 likelihood peaks at zero", {
+  z <- matrix(c(-10, -1, -4, -2), nrow = 2)
+  rel <- .relative_log10_likelihood(z)
+  expect_equal(max(rel), 0)
+  expect_true(all(rel <= 0))
+})

@@ -1168,3 +1168,59 @@ discrete labels by a continuous axis
 [@asanoADeepLearningApproach2024]. Macrophage M1/M2 polarisation is the
 standard biological example of a microenvironment-dependent continuum
 rather than two extra columns of $\boldsymbol{\mu}$.
+
+# Beyond first-order asymptotics {#sec-beyond-asymptotics}
+
+::: {#nte-perspectives .callout-tip}
+## Uncertainty quantification beyond Wald
+
+Directions that would strengthen DeCovarT intervals, in rough order of
+implementation cost.
+
+- **Godambe sandwich for a misspecified convolution.** `RNA-Sieve`
+  replaces Fisher by the Godambe information when the CLT model is
+  wrong [@erdmann-phamLikelihoodbasedDeconvolutionBulk2021]
+  ([MLE properties](theory-DeCovarT-MLE-properties.html#sec-rna-sieve)).
+  The same sandwich on DeCovarT's score would widen Wald intervals
+  under protocol shift without discarding the multivariate covariance.
+  It remains a first-order *interior* device: faces still need the
+  chi-bar-square LRT or a restricted bootstrap.
+- **Sandwich for a variational estimator is a different object.**
+  Westling and McCormick give the profile M-estimation sandwich for
+  variational approximations in mixture models
+  [@westlingPredictionFrameworkInference2019]. Batardière, Chiquet and
+  Mariadassou specialise that construction to Poisson-log-normal
+  *variational* parameters
+  [@batardiereEvaluatingParameterUncertainty2024]. That estimator is
+  not a maximum-likelihood estimator and does not inherit the usual
+  MLE consistency / $\sqrt{n}$ theory; the sandwich is an
+  M-estimation correction for a surrogate ELBO. DeCovarT's
+  $\hat{\boldsymbol{p}}$ *is* the MLE of the Gaussian convolution on one
+  bulk column (when the solver reaches a local maximum), so expected
+  Fisher at $p^{\star}$ is the regular-case asymptotic variance. Do
+  not paste their coverage plots onto DeCovarT Wald intervals.
+- **Score-test inversion.** Inverting a one-sided score test avoids
+  refitting under every candidate value, so it is cheaper than the
+  profile scan of `confint_profile_decovart()` while keeping the
+  one-sided boundary geometry.
+- **Higher-order likelihood corrections.** Bartlett-type adjustments of
+  the likelihood-ratio statistic, or modified profile likelihoods,
+  improve the $\chi^{2}$ approximation in the small-replication
+  regime described in the
+  [MLE properties](theory-DeCovarT-MLE-properties.html#nte-replication)
+  vignette — precisely DeCovarT's regime.
+- **Bayesian compositional models.** A logistic-normal or Dirichlet
+  prior on $\boldsymbol{p}$ regularises the boundary: the posterior stays
+  proper where the ILR Wald interval degenerates, and credible
+  intervals are usually more stable near a face. A credible interval
+  is not an exact frequentist interval, and the prior must be
+  defensible scientifically.
+- **Information geometry of the composition.** Treating
+  $\Delta^{J-1}$ with the Fisher--Rao metric of the
+  [MLE properties](theory-DeCovarT-MLE-properties.html#eq-fisher-metric)
+  vignette rather than as a subset of $\mathbb{R}^{J}$ would give
+  natural-gradient updates and reparametrisation-invariant confidence
+  regions
+  [@malagoInformationGeometryGaussian2015;
+  @aitchisonStatisticalAnalysisCompositional1982].
+:::

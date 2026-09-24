@@ -16,7 +16,8 @@ plot_bulk_loglik_rgl(
 
 \item{grid}{Length of the lattice per axis.}
 
-\item{y}{Optional bulk observation. Default is \eqn{\mu p^{\star}}.}
+\item{y}{Optional bulk observation. Default is \eqn{\mu p^{\star}}.
+Ignored when \code{expected = TRUE}.}
 
 \item{title}{Plot title (bold).}
 }
@@ -29,9 +30,10 @@ the ALR plane \eqn{(\rho_1,\rho_2)}.
 }
 \details{
 Opens an \code{rgl} window, draws \code{\link[rgl:persp3d]{rgl::persp3d()}} of
-\code{\link[=loglik_multivariate]{loglik_multivariate()}}, and marks the MLE (true simulation
-proportions for \eqn{y=\mu p^{\star}}) with a sphere. Returns a
-ggplot snapshot suitable for a PDF page.
+\code{\link[=loglik_multivariate]{loglik_multivariate()}}, and marks the true composition (pale
+sphere) and the numerical MLE (red sphere with a dark halo). The
+snapshot is a ggplot raster; a \strong{single} ggplot2 legend is attached
+once per PDF page (including 2-by-2 books), not per subplot.
 }
 \examples{
 \dontshow{if (interactive() && requireNamespace("rgl", quietly = TRUE) && requireNamespace("png", quietly = TRUE)) withAutoprint(\{ # examplesIf}

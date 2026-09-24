@@ -44,9 +44,12 @@ not have for a single observed sample (see
 }
 \details{
 Reported fields are the ILR score norm
-\eqn{\lVert\nabla_{\boldsymbol{z}}\ell\rVert}, the largest
-eigenvalue \eqn{\lambda_{\max}(\mathbf{H}_{\boldsymbol{z}})} (negative
-at a local maximum), \code{boundary_distance} \eqn{=\min_j\hat{p}_j}, and the
+\eqn{\lVert\nabla_{\boldsymbol{z}}\ell\rVert}, the extreme eigenvalues
+\eqn{\lambda_{\min}(\mathbf{H}_{\boldsymbol{z}})} and
+\eqn{\lambda_{\max}(\mathbf{H}_{\boldsymbol{z}})} of the ILR Hessian
+(a local maximum requires the Hessian to be negative definite, so
+both must be strictly negative; \eqn{\lambda_{\min}<0<\lambda_{\max}}
+is a saddle), \code{boundary_distance} \eqn{=\min_j\hat{p}_j}, and the
 flags \code{near_boundary} and \code{local_maximum}.
 
 \code{boundary_tol} is a \strong{statistical} warning threshold for Wald / ILR

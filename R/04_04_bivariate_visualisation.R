@@ -851,33 +851,108 @@ plot_bulk_convolution_density_2d <- function(true_theta, n = 1200L) {
   out
 }
 
-#' Log-likelihood lattice over hypothesised cell-type ratios
-#'
-#' Evaluates [loglik_multivariate()] of \(y=\mu p^{\star}\) on a grid
-#' of \((p_1,p_2)\in(0,1)^2\) (unnormalised mixture weights).
+#' Caption for 2-D log-likelihood heatmaps
 #'
 #' @keywords internal
 #' @noRd
-.proportion_loglik_lattice <- function(true_theta, grid = 50L, y = NULL) {
+.loglik_surface_caption <- function(expected = FALSE) {
+  if (isTRUE(expected)) {
+    paste(
+      "Expected relative likelihood E[L] / max E[L] under Y ~ N(mu p*, Sigma(p*)).",
+      "White diamond: true p*.",
+      "Red circle, black stroke: maximiser of the expected log-likelihood."
+    )
+  } else {
+    paste(
+      "White diamond: true p*.",
+      "Red circle, black stroke: numerical MLE (grid argmax of one bulk draw)."
+    )
+  }
+}
+
+#' Expected convolution log-likelihood under Y ~ N(mu p*, Sigma(p*))
+#'
+#' Omits the additive -G/2 log(2 pi) term, matching
+#' [loglik_multivariate()].
+#'
+#' @keywords internal
+#' @noRd
+.expected_loglik_multivariate <- function(
+  p,
+  p_true,
+  mean_signature_matrix,
+  Sigma
+) {
+  sigma_p <- .sigma_p_factorisation(p, Sigma)
+  sigma_star <- .sigma_p_factorisation(p_true, Sigma)
+  mean_gap <- drop(mean_signature_matrix %*% (p_true - p))
+  z <- backsolve(sigma_p$chol, mean_gap, transpose = TRUE)
+  quad <- sum(z * z)
+  tr_term <- sum(sigma_p$inverse * sigma_star$matrix)
+  -0.5 * sigma_p$log_det - 0.5 * (quad + tr_term)
+}
+
+#' Observed or expected bulk log-likelihood at a hypothesised p
+#'
+#' @keywords internal
+#' @noRd
+.evaluate_bulk_loglik <- function(
+  p,
+  true_theta,
+  y = NULL,
+  expected = FALSE
+) {
+  p <- as.numeric(p)
   p_true <- as.numeric(true_theta$p)
   mu <- true_theta$mu
   Sigma <- true_theta$sigma
+  if (isTRUE(expected)) {
+    return(.expected_loglik_multivariate(p, p_true, mu, Sigma))
+  }
   if (is.null(y)) {
     y <- drop(mu %*% p_true)
   }
-  y <- as.numeric(y)
+  loglik_multivariate(p, as.numeric(y), mu, Sigma)
+}
+
+#' Log-likelihood lattice over hypothesised cell-type ratios
+#'
+#' Evaluates [loglik_multivariate()] of \(y=\mu p^{\star}\) (or the
+#' expected log-likelihood under \(Y\sim\mathcal{N}(\mu p^{\star},
+#' \Sigma(p^{\star}))\)) on a grid of \((p_1,p_2)\in(0,1)^2\)
+#' (unnormalised mixture weights).
+#'
+#' @keywords internal
+#' @noRd
+.proportion_loglik_lattice <- function(
+  true_theta,
+  grid = 50L,
+  y = NULL,
+  expected = FALSE
+) {
+  p_true <- as.numeric(true_theta$p)
   p_seq <- seq(0.02, 0.98, length.out = grid)
   z <- matrix(NA_real_, grid, grid)
   for (i in seq_len(grid)) {
     for (j in seq_len(grid)) {
       z[i, j] <- tryCatch(
-        loglik_multivariate(c(p_seq[[i]], p_seq[[j]]), y, mu, Sigma),
+        .evaluate_bulk_loglik(
+          c(p_seq[[i]], p_seq[[j]]),
+          true_theta,
+          y = y,
+          expected = expected
+        ),
         error = function(e) NA_real_
       )
     }
   }
   z_true <- tryCatch(
-    loglik_multivariate(p_true, y, mu, Sigma),
+    .evaluate_bulk_loglik(
+      p_true,
+      true_theta,
+      y = y,
+      expected = expected
+    ),
     error = function(e) NA_real_
   )
   mle <- .lattice_argmax(p_seq, p_seq, z)
@@ -890,7 +965,8 @@ plot_bulk_convolution_density_2d <- function(true_theta, n = 1200L) {
     mle_x = mle$x,
     mle_y = mle$y,
     mle_z = mle$z,
-    y = y
+    y = y,
+    expected = isTRUE(expected)
   )
 }
 
@@ -904,24 +980,41 @@ plot_bulk_convolution_density_2d <- function(true_theta, n = 1200L) {
 #' proportions; red circles with a black stroke mark the numerical MLE
 #' (grid argmax of \eqn{\ell}). For a single observation
 #' \eqn{y=\mu p^{\star}} these two typically diverge unless
-#' \eqn{p^{\star}} is equi-balanced.
+#' \eqn{p^{\star}} is equi-balanced. Set `expected = TRUE` to plot
+#' \eqn{\mathbb{E}_{Y\mid p^{\star}}[\ell(p;Y)]} instead.
 #'
 #' @inheritParams plot_purified_density_2d
 #' @param grid Length of the lattice per axis.
 #' @param y Optional bulk observation. Default is \eqn{\mu p^{\star}}.
+#'   Ignored when `expected = TRUE`.
+#' @param expected If `TRUE`, evaluate the expected log-likelihood
+#'   under \eqn{Y\sim\mathcal{N}(\mu p^{\star},\Sigma(p^{\star}))}.
 #'
 #' @return A `ggplot`.
 #' @export
 plot_bulk_loglik_surface_p <- function(
   true_theta,
   grid = 50L,
-  y = NULL
+  y = NULL,
+  expected = FALSE
 ) {
   p_true <- as.numeric(true_theta$p)
   if (length(p_true) >= 3L) {
-    return(.plot_bulk_loglik_surface_alr(true_theta, grid = grid, y = y))
+    return(
+      .plot_bulk_loglik_surface_alr(
+        true_theta,
+        grid = grid,
+        y = y,
+        expected = expected
+      )
+    )
   }
-  lat <- .proportion_loglik_lattice(true_theta, grid = grid, y = y)
+  lat <- .proportion_loglik_lattice(
+    true_theta,
+    grid = grid,
+    y = y,
+    expected = expected
+  )
   grid_df <- expand.grid(p1 = lat$p1, p2 = lat$p2)
   grid_df$loglik <- as.vector(lat$z)
   grid_df$likelihood <- .relative_likelihood(grid_df$loglik)
@@ -971,11 +1064,12 @@ plot_bulk_loglik_surface_p <- function(
     ggplot2::labs(
       x = expression(p[1]),
       y = expression(p[2]),
-      title = "Bulk relative likelihood",
-      caption = paste(
-        "White diamond: true p*.",
-        "Red circle, black stroke: numerical MLE (grid argmax)."
-      )
+      title = if (isTRUE(expected)) {
+        "Expected bulk relative likelihood"
+      } else {
+        "Bulk relative likelihood"
+      },
+      caption = .loglik_surface_caption(expected)
     )
 }
 
@@ -983,17 +1077,16 @@ plot_bulk_loglik_surface_p <- function(
 #'
 #' @keywords internal
 #' @noRd
-.alr_loglik_lattice <- function(true_theta, grid = 50L, y = NULL) {
+.alr_loglik_lattice <- function(
+  true_theta,
+  grid = 50L,
+  y = NULL,
+  expected = FALSE
+) {
   p_true <- as.numeric(true_theta$p)
-  mu <- true_theta$mu
-  Sigma <- true_theta$sigma
   if (length(p_true) < 3L) {
     stop(".alr_loglik_lattice() requires J >= 3.", call. = FALSE)
   }
-  if (is.null(y)) {
-    y <- drop(mu %*% p_true)
-  }
-  y <- as.numeric(y)
   rho_true <- as.numeric(additive_log_ratio(p_true))
   span <- max(4, abs(rho_true) + 1.5)
   rho1_seq <- seq(-span, span, length.out = grid)
@@ -1003,13 +1096,23 @@ plot_bulk_loglik_surface_p <- function(
     for (j in seq_len(grid)) {
       p_hat <- additive_logistic(c(rho1_seq[[i]], rho2_seq[[j]]))
       z[i, j] <- tryCatch(
-        loglik_multivariate(p_hat, y, mu, Sigma),
+        .evaluate_bulk_loglik(
+          p_hat,
+          true_theta,
+          y = y,
+          expected = expected
+        ),
         error = function(e) NA_real_
       )
     }
   }
   z_true <- tryCatch(
-    loglik_multivariate(p_true, y, mu, Sigma),
+    .evaluate_bulk_loglik(
+      p_true,
+      true_theta,
+      y = y,
+      expected = expected
+    ),
     error = function(e) NA_real_
   )
   mle <- .lattice_argmax(rho1_seq, rho2_seq, z)
@@ -1023,7 +1126,8 @@ plot_bulk_loglik_surface_p <- function(
     mle_x = mle$x,
     mle_y = mle$y,
     mle_z = mle$z,
-    y = y
+    y = y,
+    expected = isTRUE(expected)
   )
 }
 
@@ -1032,9 +1136,15 @@ plot_bulk_loglik_surface_p <- function(
 .plot_bulk_loglik_surface_alr <- function(
   true_theta,
   grid = 50L,
-  y = NULL
+  y = NULL,
+  expected = FALSE
 ) {
-  lat <- .alr_loglik_lattice(true_theta, grid = grid, y = y)
+  lat <- .alr_loglik_lattice(
+    true_theta,
+    grid = grid,
+    y = y,
+    expected = expected
+  )
   grid_df <- expand.grid(rho1 = lat$rho1, rho2 = lat$rho2)
   grid_df$loglik <- as.vector(lat$z)
   grid_df$likelihood <- .relative_likelihood(grid_df$loglik)
@@ -1073,11 +1183,12 @@ plot_bulk_loglik_surface_p <- function(
     ggplot2::labs(
       x = expression(rho[1] == log(p[1] / p[3])),
       y = expression(rho[2] == log(p[2] / p[3])),
-      title = "Bulk relative likelihood (ALR)",
-      caption = paste(
-        "White diamond: true p*.",
-        "Red circle, black stroke: numerical MLE (grid argmax)."
-      )
+      title = if (isTRUE(expected)) {
+        "Expected bulk relative likelihood (ALR)"
+      } else {
+        "Bulk relative likelihood (ALR)"
+      },
+      caption = .loglik_surface_caption(expected)
     )
 }
 
@@ -1102,21 +1213,16 @@ plot_bulk_loglik_ilr_profile <- function(
   true_theta,
   grid = 400L,
   y = NULL,
-  rho_lim = NULL
+  rho_lim = NULL,
+  expected = FALSE
 ) {
   p_true <- as.numeric(true_theta$p)
-  mu <- true_theta$mu
-  Sigma <- true_theta$sigma
   if (length(p_true) != 2L) {
     stop(
       "plot_bulk_loglik_ilr_profile() is defined for J = 2.",
       call. = FALSE
     )
   }
-  if (is.null(y)) {
-    y <- drop(mu %*% p_true)
-  }
-  y <- as.numeric(y)
   rho_true <- as.numeric(isometric_log_ratio(p_true))
   if (is.null(rho_lim)) {
     rho_lim <- range(-4, 10, rho_true)
@@ -1126,14 +1232,24 @@ plot_bulk_loglik_ilr_profile <- function(
     rho_seq,
     function(rho) {
       tryCatch(
-        loglik_multivariate_constrained(rho, y, mu, Sigma),
+        .evaluate_bulk_loglik(
+          isometric_logistic(rho),
+          true_theta,
+          y = y,
+          expected = expected
+        ),
         error = function(e) NA_real_
       )
     },
     numeric(1)
   )
   ll_true <- tryCatch(
-    loglik_multivariate_constrained(rho_true, y, mu, Sigma),
+    .evaluate_bulk_loglik(
+      p_true,
+      true_theta,
+      y = y,
+      expected = expected
+    ),
     error = function(e) NA_real_
   )
   if (!any(is.finite(ll))) {
@@ -1205,13 +1321,150 @@ plot_bulk_loglik_ilr_profile <- function(
     ggplot2::labs(
       x = expression(rho),
       y = "Relative likelihood (log10 scale)",
-      title = "Bulk log-likelihood (ILR)",
+      title = if (isTRUE(expected)) {
+        "Expected bulk log-likelihood (ILR)"
+      } else {
+        "Bulk log-likelihood (ILR)"
+      },
       caption = paste(
-        "Y-axis is L / max(L) = exp(ell - max ell) on a log10 scale.",
+        if (isTRUE(expected)) {
+          "Y-axis is E[L] / max E[L] on a log10 scale."
+        } else {
+          "Y-axis is L / max(L) = exp(ell - max ell) on a log10 scale."
+        },
         "Dashed: true p* (white diamond).",
         "Dotted: numerical MLE (red circle, black stroke)."
       )
     )
+}
+
+#' Nearest lattice height for an (x, y) marker
+#'
+#' @keywords internal
+#' @noRd
+.lattice_z_nearest <- function(px, py, x, y, z) {
+  if (
+    length(px) != 1L ||
+      length(py) != 1L ||
+      !is.finite(px) ||
+      !is.finite(py)
+  ) {
+    return(NA_real_)
+  }
+  i <- which.min(abs(x - px))
+  j <- which.min(abs(y - py))
+  z[i, j]
+}
+
+#' Spheres for true p* and the numerical MLE on an rgl surface
+#'
+#' `pch3d()` sprites often vanish in `snapshot3d()`; solid spheres survive
+#' the raster and remain visible on the PDF page.
+#'
+#' @keywords internal
+#' @noRd
+.rgl_draw_truth_mle_spheres <- function(
+  x,
+  y,
+  z_plot,
+  mark_x,
+  mark_y,
+  mle_x,
+  mle_y
+) {
+  zr <- diff(range(z_plot, na.rm = TRUE))
+  lift <- 0.04 * max(zr, 1)
+  xy_span <- max(
+    diff(range(x, na.rm = TRUE)),
+    diff(range(y, na.rm = TRUE)),
+    1e-6
+  )
+  nudge <- 0.045 * xy_span
+  draw_pt <- function(px, py, col_fill) {
+    z0 <- .lattice_z_nearest(px, py, x, y, z_plot)
+    if (!is.finite(z0)) {
+      return(invisible(NULL))
+    }
+    z_off <- z0 + lift
+    rgl::points3d(px, py, z_off, color = col_fill, size = 16)
+    invisible(NULL)
+  }
+  if (
+    length(mark_x) == 1L &&
+      length(mark_y) == 1L &&
+      is.finite(mark_x) &&
+      is.finite(mark_y)
+  ) {
+    draw_pt(mark_x, mark_y, "#F7F7F7")
+  }
+  if (
+    length(mle_x) == 1L &&
+      length(mle_y) == 1L &&
+      is.finite(mle_x) &&
+      is.finite(mle_y)
+  ) {
+    if (
+      length(mark_x) == 1L &&
+        is.finite(mark_x) &&
+        is.finite(mark_y)
+    ) {
+      dxy <- sqrt((mle_x - mark_x)^2 + (mle_y - mark_y)^2)
+      if (is.finite(dxy) && dxy < nudge) {
+        mle_x <- mle_x + nudge
+      }
+    }
+    draw_pt(mle_x, mle_y, "#E41A1C")
+  }
+  invisible(NULL)
+}
+
+#' Shared ggplot legend for rgl true-p* / MLE markers
+#'
+#' One legend for a 2-by-2 rgl page (not a per-subplot `legend3d()`).
+#'
+#' @keywords internal
+#' @noRd
+.rgl_shared_marker_legend <- function() {
+  df <- data.frame(
+    lab = factor(
+      c("true p*", "numerical MLE"),
+      levels = c("true p*", "numerical MLE")
+    ),
+    x = c(1, 2),
+    y = c(1, 1)
+  )
+  p <- ggplot2::ggplot(
+    df,
+    ggplot2::aes(
+      x = .data[["x"]],
+      y = .data[["y"]],
+      fill = .data[["lab"]],
+      shape = .data[["lab"]]
+    )
+  ) +
+    ggplot2::geom_point(size = 4.4, colour = "#111111", stroke = 1.05) +
+    ggplot2::scale_shape_manual(
+      name = NULL,
+      values = c("true p*" = 23, "numerical MLE" = 21)
+    ) +
+    ggplot2::scale_fill_manual(
+      name = NULL,
+      values = c("true p*" = "#F7F7F7", "numerical MLE" = "#E41A1C")
+    ) +
+    ggplot2::guides(
+      fill = ggplot2::guide_legend(
+        nrow = 1L,
+        override.aes = list(shape = c(23, 21), size = 4.4)
+      ),
+      shape = "none"
+    ) +
+    ggplot2::theme_void() +
+    ggplot2::theme(
+      legend.position = "bottom",
+      legend.direction = "horizontal",
+      legend.text = ggplot2::element_text(size = 11)
+    )
+  cowplot::get_legend(p)
 }
 
 #' Draw a 3-D log-likelihood surface in an open rgl device
@@ -1233,8 +1486,12 @@ plot_bulk_loglik_ilr_profile <- function(
   mle_z = NULL,
   simplex = NULL
 ) {
-  z_plot <- z
-  z_plot[!is.finite(z_plot)] <- min(z_plot[is.finite(z_plot)], na.rm = TRUE)
+  z_ref <- max(z[is.finite(z)], na.rm = TRUE)
+  z_plot <- .relative_log10_likelihood(z, z_ref)
+  z_plot[!is.finite(z_plot)] <- min(
+    z_plot[is.finite(z_plot)],
+    na.rm = TRUE
+  )
   rgl::persp3d(
     x,
     y,
@@ -1243,7 +1500,7 @@ plot_bulk_loglik_ilr_profile <- function(
     ylab = "",
     zlab = "",
     col = "steelblue",
-    alpha = 0.85,
+    alpha = 0.72,
     polygon_offset = 1,
     axes = FALSE,
     box = TRUE,
@@ -1255,12 +1512,13 @@ plot_bulk_loglik_ilr_profile <- function(
     main = lab,
     xlab = xlab,
     ylab = ylab,
-    zlab = "log lik.",
+    zlab = "rel. L (log10)",
     cex = 0.7,
     font = 2L,
-    line = 1
+    line = 3
   )
   if (!is.null(simplex)) {
+    simplex$z <- .relative_log10_likelihood(simplex$z, z_ref)
     rgl::lines3d(
       simplex$x,
       simplex$y,
@@ -1269,63 +1527,15 @@ plot_bulk_loglik_ilr_profile <- function(
       lwd = 2
     )
   }
-  if (
-    length(mark_x) == 1L &&
-      length(mark_y) == 1L &&
-      length(mark_z) == 1L &&
-      is.finite(mark_z)
-  ) {
-    zr <- diff(range(z_plot, na.rm = TRUE))
-    rad <- 0.025 * max(diff(range(x)), 1)
-    rgl::spheres3d(
-      mark_x,
-      mark_y,
-      mark_z,
-      radius = rad,
-      col = "#F7F7F7"
-    )
-    rgl::texts3d(
-      mark_x,
-      mark_y,
-      mark_z + 0.06 * max(zr, 1),
-      texts = "true p*",
-      col = "#222222",
-      cex = 0.5,
-      adj = c(0.5, 0)
-    )
-  }
-  if (
-    length(mle_x) == 1L &&
-      length(mle_y) == 1L &&
-      length(mle_z) == 1L &&
-      is.finite(mle_z)
-  ) {
-    zr <- diff(range(z_plot, na.rm = TRUE))
-    rad <- 0.025 * max(diff(range(x)), 1)
-    rgl::spheres3d(
-      mle_x,
-      mle_y,
-      mle_z,
-      radius = 1.2 * rad,
-      col = "#111111"
-    )
-    rgl::spheres3d(
-      mle_x,
-      mle_y,
-      mle_z,
-      radius = rad,
-      col = "#E41A1C"
-    )
-    rgl::texts3d(
-      mle_x,
-      mle_y,
-      mle_z + 0.1 * max(zr, 1),
-      texts = "MLE",
-      col = "#111111",
-      cex = 0.5,
-      adj = c(0.5, 0)
-    )
-  }
+  .rgl_draw_truth_mle_spheres(
+    x,
+    y,
+    z_plot,
+    mark_x,
+    mark_y,
+    mle_x,
+    mle_y
+  )
   invisible(z)
 }
 
@@ -1387,7 +1597,7 @@ plot_bulk_loglik_ilr_profile <- function(
 #'
 #' @keywords internal
 #' @noRd
-.rgl_window_to_ggplot <- function(title) {
+.rgl_window_to_ggplot <- function(title, caption = NULL) {
   if (!requireNamespace("png", quietly = TRUE)) {
     stop(
       "plot_bulk_loglik_rgl() needs the Suggests package png.",
@@ -1401,7 +1611,7 @@ plot_bulk_loglik_ilr_profile <- function(
     stop("rgl::snapshot3d() did not write a PNG.", call. = FALSE)
   }
   img <- png::readPNG(tmp)
-  ggplot2::ggplot() +
+  p_img <- ggplot2::ggplot() +
     ggplot2::annotation_raster(
       img,
       xmin = 0,
@@ -1417,17 +1627,53 @@ plot_bulk_loglik_ilr_profile <- function(
     ggplot2::theme_void() +
     ggplot2::theme(
       plot.title = ggplot2::element_text(face = "bold"),
-      plot.margin = ggplot2::margin(2, 2, 2, 2),
+      plot.caption = ggplot2::element_text(
+        hjust = 0,
+        size = 8,
+        lineheight = 1.15
+      ),
+      plot.margin = ggplot2::margin(2, 2, 8, 2),
       plot.background = ggplot2::element_rect(fill = NA, colour = NA)
     ) +
-    ggplot2::labs(title = title)
+    ggplot2::labs(title = title, caption = caption)
+  if (!requireNamespace("cowplot", quietly = TRUE)) {
+    return(p_img)
+  }
+  cowplot::plot_grid(
+    p_img,
+    .rgl_shared_marker_legend(),
+    ncol = 1L,
+    rel_heights = c(1, 0.08)
+  )
+}
+
+#' Shared three-line caption for rgl log-likelihood snapshots
+#'
+#' @keywords internal
+#' @noRd
+.rgl_log10_caption <- function() {
+  paste(
+    c(
+      "Convolution log-likelihood for one bulk sample (means fixed; only p varies).",
+      paste(
+        "Surface values are L / max(L) = exp(ell - max ell),",
+        "shown on a log10 z-axis."
+      ),
+      paste(
+        "White point: true p*.",
+        "Red point: numerical MLE.",
+        "One shared legend for all four panels on the page."
+      )
+    ),
+    collapse = "\n"
+  )
 }
 
 #' Open a high-resolution rgl window
 #'
 #' @keywords internal
 #' @noRd
-.rgl_open_hires <- function(width = 1600L, height = 1200L) {
+.rgl_open_hires <- function(width = 2400L, height = 1800L) {
   rgl::open3d()
   rgl::par3d(windowRect = c(40L, 40L, 40L + width, 40L + height))
   invisible(TRUE)
@@ -1440,8 +1686,9 @@ plot_bulk_loglik_ilr_profile <- function(
 #'
 #' Opens an `rgl` window, draws [rgl::persp3d()] of
 #' [loglik_multivariate()], and marks the true composition (pale
-#' sphere) and the numerical MLE (red sphere with a dark halo). Returns a
-#' ggplot snapshot suitable for a PDF page.
+#' sphere) and the numerical MLE (red sphere with a dark halo). The
+#' snapshot is a ggplot raster; a **single** ggplot2 legend is attached
+#' once per PDF page (including 2-by-2 books), not per subplot.
 #'
 #' @inheritParams plot_bulk_loglik_surface_p
 #' @param title Plot title (bold).
@@ -1460,6 +1707,7 @@ plot_bulk_loglik_rgl <- function(
   title = "Bulk log-likelihood"
 ) {
   .check_suggested_package("rgl", "plot_bulk_loglik_rgl")
+  .check_suggested_package("png", "plot_bulk_loglik_rgl")
   p_true <- as.numeric(true_theta$p)
   .rgl_open_hires()
   on.exit(try(rgl::close3d(), silent = TRUE), add = TRUE)
@@ -1470,7 +1718,7 @@ plot_bulk_loglik_rgl <- function(
     lat <- .proportion_loglik_lattice(true_theta, grid = grid, y = y)
     .draw_proportion_loglik_rgl(lat, title)
   }
-  .rgl_window_to_ggplot(title)
+  .rgl_window_to_ggplot(title, caption = .rgl_log10_caption())
 }
 
 #' Tile heatmap of a scenario metric on the inner 2-by-2 design
@@ -1805,6 +2053,49 @@ save_bivariate_loglik_ilr_profile_book <- function(
   )
 }
 
+#' Multi-page PDF of expected log-likelihood surfaces
+#'
+#' Same layout as [save_bivariate_loglik_surface_p_book()], but each
+#' panel is
+#' \eqn{\mathbb{E}_{Y\mid p^{\star}}[\ell(p;Y)]} rather than one
+#' realised bulk column \eqn{y=\mu p^{\star}}.
+#'
+#' @inheritParams save_bivariate_purified_density_book
+#' @export
+save_bivariate_expected_loglik_surface_p_book <- function(
+  config,
+  theta_tbl,
+  file,
+  data_rds = NULL
+) {
+  .save_bivariate_loglik_ggplot_book(
+    config,
+    theta_tbl,
+    file,
+    which = "expected_surface_p",
+    data_rds = data_rds
+  )
+}
+
+#' Multi-page PDF of expected ILR log-likelihood profiles (\eqn{J=2})
+#'
+#' @inheritParams save_bivariate_purified_density_book
+#' @export
+save_bivariate_expected_loglik_ilr_profile_book <- function(
+  config,
+  theta_tbl,
+  file,
+  data_rds = NULL
+) {
+  .save_bivariate_loglik_ggplot_book(
+    config,
+    theta_tbl,
+    file,
+    which = "expected_ilr_profile",
+    data_rds = data_rds
+  )
+}
+
 #' Multi-page PDF (and optional HTML) of rgl bulk log-likelihood surfaces
 #'
 #' Requires `rgl` and `png` for PDF snapshots. When `html_file` is set,
@@ -1822,15 +2113,16 @@ save_bivariate_loglik_rgl_book <- function(
 ) {
   .check_suggested_package("rgl", "save_bivariate_loglik_rgl_book")
   .check_suggested_package("png", "save_bivariate_loglik_rgl_book")
+  .check_suggested_package("cowplot", "save_bivariate_loglik_rgl_book")
   meta <- .bivariate_page_meta(config)
   widgets <- list()
-  grDevices::pdf(file, width = 14, height = 12)
+  .open_ggplot_pdf(file, width = 14, height = 12)
   on.exit(grDevices::dev.off(), add = TRUE)
   for (i in seq_len(nrow(meta))) {
     row <- meta[i, , drop = FALSE]
     thetas <- .corner_thetas(config, theta_tbl, row)
     page_title <- .page_title(row)
-    .rgl_open_hires(width = 1600L, height = 1200L)
+    .rgl_open_hires(width = 2400L, height = 1800L)
     rgl::mfrow3d(2, 2, sharedMouse = TRUE)
     labs <- names(thetas)
     for (k in seq_along(thetas)) {
@@ -1851,7 +2143,9 @@ save_bivariate_loglik_rgl_book <- function(
         .draw_proportion_loglik_rgl(lat, lab)
       }
     }
-    print(.rgl_window_to_ggplot(page_title))
+    print(
+      .rgl_window_to_ggplot(page_title, caption = .rgl_log10_caption())
+    )
     if (
       !is.null(html_file) && requireNamespace("htmlwidgets", quietly = TRUE)
     ) {
@@ -1923,7 +2217,12 @@ save_bivariate_loglik_rgl_book <- function(
   config,
   theta_tbl,
   file,
-  which = c("surface_p", "ilr_profile"),
+  which = c(
+    "surface_p",
+    "ilr_profile",
+    "expected_surface_p",
+    "expected_ilr_profile"
+  ),
   data_rds = NULL
 ) {
   which <- match.arg(which)
@@ -1932,7 +2231,7 @@ save_bivariate_loglik_rgl_book <- function(
   .check_suggested_package("gridExtra", "save_bivariate_loglik_ggplot_book")
   meta <- .bivariate_page_meta(config)
   collected <- list()
-  grDevices::pdf(file, width = 14, height = 12)
+  .open_ggplot_pdf(file, width = 14, height = 12)
   on.exit(grDevices::dev.off(), add = TRUE)
   for (i in seq_len(nrow(meta))) {
     row <- meta[i, , drop = FALSE]
@@ -1952,7 +2251,15 @@ save_bivariate_loglik_rgl_book <- function(
       p <- switch(
         which,
         surface_p = plot_bulk_loglik_surface_p(th),
-        ilr_profile = plot_bulk_loglik_ilr_profile(th)
+        ilr_profile = plot_bulk_loglik_ilr_profile(th),
+        expected_surface_p = plot_bulk_loglik_surface_p(
+          th,
+          expected = TRUE
+        ),
+        expected_ilr_profile = plot_bulk_loglik_ilr_profile(
+          th,
+          expected = TRUE
+        )
       )
       d <- p$data
       if (is.data.frame(d) && nrow(d) > 0L) {
@@ -1979,11 +2286,13 @@ save_bivariate_loglik_rgl_book <- function(
       grid::grid.newpage()
     }
   }
-  stem <- if (identical(which, "ilr_profile")) {
-    "loglik_ilr_profile"
-  } else {
+  stem <- switch(
+    which,
+    ilr_profile = "loglik_ilr_profile",
+    expected_surface_p = "loglik_expected_surface_p",
+    expected_ilr_profile = "loglik_expected_ilr_profile",
     "loglik_surface_p"
-  }
+  )
   if (length(collected) > 0L) {
     .write_ggplot_rds(dplyr::bind_rows(collected), data_rds, stem)
   }
@@ -2446,13 +2755,7 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
       legend.position = "bottom",
       plot.margin = ggplot2::margin(4, 10, 4, 4)
     )
-  .inset_cowplot_legend(
-    out,
-    x = 0.70,
-    y = 0.10,
-    width = 0.24,
-    height = 0.22
-  )
+  .attach_cowplot_legend(out)
 }
 
 #' Build the Wald-forest table for one meta-scenario (four corners)
@@ -2779,7 +3082,46 @@ save_bivariate_raincloud_book <- function(
   file,
   data_rds = NULL
 ) {
-  .check_plot_dependencies(need_ggdist = TRUE, need_cowplot = TRUE)
+  .save_bivariate_raincloud_like_book(
+    artefacts,
+    file,
+    data_rds = data_rds,
+    slab = "halfeye",
+    rds_stem = "raincloud"
+  )
+}
+
+#' Multi-page PDF of quantile-dot rainclouds at four corners
+#'
+#' Same layout as [save_bivariate_raincloud_book()], but
+#' [ggdist::stat_dotsinterval()] replaces the bounded half-eye KDE.
+#'
+#' @inheritParams save_bivariate_raincloud_book
+#' @export
+save_bivariate_dotsinterval_book <- function(
+  artefacts,
+  file,
+  data_rds = NULL
+) {
+  .save_bivariate_raincloud_like_book(
+    artefacts,
+    file,
+    data_rds = data_rds,
+    slab = "dotsinterval",
+    rds_stem = "dotsinterval"
+  )
+}
+
+#' @keywords internal
+#' @noRd
+.save_bivariate_raincloud_like_book <- function(
+  artefacts,
+  file,
+  data_rds = NULL,
+  slab = "halfeye",
+  rds_stem = "raincloud"
+) {
+  .check_plot_dependencies(need_ggdist = TRUE)
   cfg <- artefacts$config
   meta <- .bivariate_page_meta(cfg)
   hybrid <- .is_hybrid_config(cfg)
@@ -2789,7 +3131,7 @@ save_bivariate_raincloud_book <- function(
   slab_a <- 0.45
   y_gap <- if (isTRUE(hybrid)) 2.6 else 1
   dodge_w <- 1
-  grDevices::pdf(file, width = 16, height = pdf_h)
+  .open_ggplot_pdf(file, width = 16, height = pdf_h)
   on.exit(grDevices::dev.off(), add = TRUE)
   for (i in seq_len(nrow(meta))) {
     row <- meta[i, , drop = FALSE]
@@ -2817,27 +3159,27 @@ save_bivariate_raincloud_book <- function(
       dodge_width = dodge_w,
       slab_scale = slab_s,
       slab_alpha = slab_a,
-      category_spacing = y_gap
+      category_spacing = y_gap,
+      slab = slab
     )
     p <- p +
       ggplot2::facet_wrap(~panel, ncol = 2L) +
       ggplot2::ggtitle(.page_title(row)) +
+      ggplot2::guides(
+        fill = ggplot2::guide_legend(nrow = 1L, byrow = TRUE),
+        colour = ggplot2::guide_legend(nrow = 1L, byrow = TRUE)
+      ) +
       ggplot2::theme(
         plot.title = ggplot2::element_text(face = "bold"),
-        axis.text.y = ggplot2::element_text(face = "bold")
+        axis.text.y = ggplot2::element_text(face = "bold"),
+        legend.position = "bottom",
+        legend.box = "horizontal",
+        legend.direction = "horizontal"
       )
-    print(
-      .inset_cowplot_legend(
-        p,
-        x = 0.68,
-        y = 0.08,
-        width = 0.28,
-        height = 0.38
-      )
-    )
+    print(p)
   }
   if (length(collected) > 0L) {
-    .write_ggplot_rds(dplyr::bind_rows(collected), data_rds, "raincloud")
+    .write_ggplot_rds(dplyr::bind_rows(collected), data_rds, rds_stem)
   }
   invisible(file)
 }

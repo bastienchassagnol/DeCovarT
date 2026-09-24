@@ -4,14 +4,18 @@
 \alias{plot_bulk_loglik_surface_p}
 \title{Contour of the bulk log-likelihood on hypothesised ratios}
 \usage{
-plot_bulk_loglik_surface_p(true_theta, grid = 50L, y = NULL)
+plot_bulk_loglik_surface_p(true_theta, grid = 50L, y = NULL, expected = FALSE)
 }
 \arguments{
 \item{true_theta}{List with \code{p}, \code{mu}, \code{sigma} for \eqn{G=2}.}
 
 \item{grid}{Length of the lattice per axis.}
 
-\item{y}{Optional bulk observation. Default is \eqn{\mu p^{\star}}.}
+\item{y}{Optional bulk observation. Default is \eqn{\mu p^{\star}}.
+Ignored when \code{expected = TRUE}.}
+
+\item{expected}{If \code{TRUE}, evaluate the expected log-likelihood
+under \eqn{Y\sim\mathcal{N}(\mu p^{\star},\Sigma(p^{\star}))}.}
 }
 \value{
 A \code{ggplot}.
@@ -21,6 +25,10 @@ For \eqn{J=2} the axes are \eqn{(p_1,p_2)} on the unit square (the
 dashed line is the simplex). For \eqn{J=3} the axes are additive
 log-ratio coordinates
 \eqn{\rho_1=\ln(p_1/p_3)}, \eqn{\rho_2=\ln(p_2/p_3)}
-(\code{\link[=additive_log_ratio]{additive_log_ratio()}}). The true simulation proportions (MLE for
-\eqn{y=\mu p^{\star}}) are marked.
+(\code{\link[=additive_log_ratio]{additive_log_ratio()}}). White diamonds mark the true simulation
+proportions; red circles with a black stroke mark the numerical MLE
+(grid argmax of \eqn{\ell}). For a single observation
+\eqn{y=\mu p^{\star}} these two typically diverge unless
+\eqn{p^{\star}} is equi-balanced. Set \code{expected = TRUE} to plot
+\eqn{\mathbb{E}_{Y\mid p^{\star}}[\ell(p;Y)]} instead.
 }

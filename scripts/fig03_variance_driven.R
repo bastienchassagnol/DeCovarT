@@ -539,6 +539,13 @@ if (requireNamespace("gridExtra", quietly = TRUE)) {
     data_rds = GGPLOT_RDS_DIR
   )
   .ui_success("Saved {.file loglik_surface_p.pdf}.")
+  save_bivariate_expected_loglik_surface_p_book(
+    artefacts$config,
+    artefacts$theta,
+    file.path(DENSITY_DIR, "loglik_expected_surface_p.pdf"),
+    data_rds = GGPLOT_RDS_DIR
+  )
+  .ui_success("Saved {.file loglik_expected_surface_p.pdf}.")
   if (
     requireNamespace("rgl", quietly = TRUE) &&
       requireNamespace("png", quietly = TRUE)
@@ -597,6 +604,13 @@ if (requireNamespace("ggdist", quietly = TRUE)) {
     data_rds = GGPLOT_RDS_DIR
   )
   .ui_success("Saved {.file raincloud.pdf}.")
+  .ui_info("Drawing 9-page quantile-dot raincloud book.")
+  save_bivariate_dotsinterval_book(
+    artefacts,
+    file.path(PERF_DIR, "dotsinterval.pdf"),
+    data_rds = GGPLOT_RDS_DIR
+  )
+  .ui_success("Saved {.file dotsinterval.pdf}.")
 } else {
   .ui_warn("{.pkg ggdist} not available; skipping raincloud book.")
 }
@@ -608,6 +622,47 @@ save_bivariate_forest_book(
   data_rds = GGPLOT_RDS_DIR
 )
 .ui_success("Saved {.file forest.pdf}.")
+
+if (requireNamespace("ggdist", quietly = TRUE)) {
+  .ui_info("Drawing KKT raincloud book.")
+  save_bivariate_kkt_raincloud_book(
+    artefacts,
+    file.path(PERF_DIR, "kkt_raincloud.pdf"),
+    data_rds = GGPLOT_RDS_DIR
+  )
+  .ui_success("Saved {.file kkt_raincloud.pdf}.")
+}
+
+if (requireNamespace("cowplot", quietly = TRUE)) {
+  .ui_info("Drawing stacked convergence book.")
+  save_bivariate_convergence_book(
+    artefacts,
+    file.path(PERF_DIR, "convergence_stacked.pdf"),
+    data_rds = GGPLOT_RDS_DIR,
+    icon_dir = "temp_logos"
+  )
+  .ui_success("Saved {.file convergence_stacked.pdf}.")
+}
+
+.ui_info("Drawing Q-Q and KS normality books.")
+save_bivariate_qq_book(
+  artefacts,
+  file.path(PERF_DIR, "qq_normal.pdf"),
+  data_rds = GGPLOT_RDS_DIR
+)
+save_bivariate_ks_book(
+  artefacts,
+  file.path(PERF_DIR, "ks_normal.pdf"),
+  data_rds = GGPLOT_RDS_DIR
+)
+save_bivariate_chi2_book(
+  artefacts,
+  file.path(PERF_DIR, "qq_chi2.pdf"),
+  data_rds = GGPLOT_RDS_DIR
+)
+.ui_success(
+  "Saved {.file qq_normal.pdf}, {.file ks_normal.pdf} and {.file qq_chi2.pdf}."
+)
 
 if (length(unique(artefacts$monte_carlo$algorithm)) >= 2L) {
   if (

@@ -57,6 +57,20 @@ save_bivariate_loglik_ilr_profile_book(
   file.path(DENSITY_DIR, "loglik_ilr_profile.pdf"),
   data_rds = GGPLOT_RDS_DIR
 )
+message("expected surface_p…")
+save_bivariate_expected_loglik_surface_p_book(
+  cfg,
+  theta_tbl,
+  file.path(DENSITY_DIR, "loglik_expected_surface_p.pdf"),
+  data_rds = GGPLOT_RDS_DIR
+)
+message("expected ilr profile…")
+save_bivariate_expected_loglik_ilr_profile_book(
+  cfg,
+  theta_tbl,
+  file.path(DENSITY_DIR, "loglik_expected_ilr_profile.pdf"),
+  data_rds = GGPLOT_RDS_DIR
+)
 skip_rgl <- identical(Sys.getenv("FIG02_SKIP_RGL", "0"), "1")
 if (isTRUE(skip_rgl)) {
   message("skipping rgl (FIG02_SKIP_RGL=1)")

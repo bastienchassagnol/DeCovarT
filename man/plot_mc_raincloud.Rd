@@ -16,7 +16,8 @@ plot_mc_raincloud(
   dodge_width = 0.95,
   slab_scale = 1.4,
   slab_alpha = 1,
-  category_spacing = 1
+  category_spacing = 1,
+  slab = c("halfeye", "dotsinterval")
 )
 }
 \arguments{
@@ -52,6 +53,9 @@ drawing.}
 (cell types). Values greater than 1 insert extra space so slabs
 from neighbouring types do not overlap; the axis still shows the
 original labels.}
+
+\item{slab}{\code{"halfeye"} (default KDE raincloud) or \code{"dotsinterval"}
+(quantile dots plus interval; avoids empty bounded slabs).}
 }
 \value{
 A \code{ggplot} object.
@@ -67,6 +71,15 @@ algorithm. Optional \code{facet_rows} / \code{facet_cols} split scenarios
 (for example number of genes versus pairwise cosine).
 }
 \details{
+When \code{quantity = "estimate"} and \code{slab = "halfeye"}, slabs use a
+bounded kernel on \eqn{[0,1]} (\code{\link[ggdist:density_bounded]{ggdist::density_bounded()}}) with a
+coloured outline (\code{slab_colour} / \code{slab_linewidth}). Vertex pile-up
+can leave that KDE empty; \code{slab = "dotsinterval"}
+(\code{\link[ggdist:stat_dotsinterval]{ggdist::stat_dotsinterval()}}) draws quantile dots instead.
+True proportions are labelled at the top of each panel (the most
+abundant type to the right of its reference line; the others to the
+left).
+
 The inner interval is the central 50\% of Monte Carlo replicates; the
 outer interval is the central 95\%. These are \strong{not} confidence
 intervals for \eqn{p_j}.
