@@ -44,7 +44,7 @@ a copula + NB noise model; `SDE5` uses an EM-based noise model. These
 represent the practical domain of mis-specification most relevant to
 pancreatic tumour deconvolution.
 
-see also use of a multivariate SDtudent t\_\nu or simpe; Gausisan noise.
+see also use of a multivariate Student t\_\nu or simple Gaussian noise.
 
 ### S5b — Missing reference component
 
@@ -82,7 +82,7 @@ This directly mirrors the `SDC5` HADACA3 scenario ([Barbot and Richard
 
 ------------------------------------------------------------------------
 
-Can be simulatd with `splatter` ([Zappia et al.
+Can be simulated with `splatter` ([Zappia et al.
 2017](#ref-zappiaSplatterSimulationSinglecell2017a)) or `SymSim`).
 
 ### S5d : Spillover effect and missing reference component
@@ -97,8 +97,8 @@ scope:
 | Missing-reference component | None; 2%; 10% | S5b above |
 | Reference covariance sample size | Oracle; 20; 50; 200 donors | See Appendix S4 |
 
-We my also consider an alterative model sing a linear mixed model to add
-correlations between cell types.
+We may also consider an alternative model using a linear mixed model to
+add correlations between cell types.
 
 ### S5e : Add outlier genes to test the robustness of the estimation
 

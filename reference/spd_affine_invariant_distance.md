@@ -25,3 +25,16 @@ Non-negative scalar.
 ## See also
 
 [`compute_average_riemannian()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_riemannian.md)
+
+## Examples
+
+``` r
+# Two bivariate Gaussians: identity vs a correlated SPD covariance.
+a <- diag(2)
+b <- matrix(c(2, 0.5, 0.5, 1), nrow = 2)
+spd_affine_invariant_distance(a, a)
+#> [1] 0
+d <- spd_affine_invariant_distance(a, b)
+d > 0
+#> [1] TRUE
+```

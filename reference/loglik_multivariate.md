@@ -77,8 +77,7 @@ Argument `mean_signature_matrix` stores the plug-in mean signature
 \\\boldsymbol{x}\_{\cdot j}\\ are **not** observed; the frequentist
 likelihood treats \\\boldsymbol{\mu}\\ as a fixed proxy. Estimating
 those latents jointly with \\\boldsymbol{p}\\ requires a Bayesian / MAP
-step (see
-[`.map_gaussian_convolution()`](https://bastienchassagnol.github.io/DeCovarT/reference/dot-map_gaussian_convolution.md)).
+step (see `.map_gaussian_convolution()`).
 
 ## See also
 

@@ -129,8 +129,6 @@ delta-method covariance used by
 [`confint()`](https://rdrr.io/r/stats/confint.html) on `decovart_fit`
 objects (see `fit_decovart`).
 
-- [`expected_fisher_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.md)
-  : Expected Fisher information of unconstrained \\\boldsymbol{p}\\
 - [`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md)
   : Cramer–Rao / ILR delta-method covariance of \\\hat{\boldsymbol{p}}\\
 
@@ -183,8 +181,6 @@ wrapper.
   : Horizontal raincloud of Monte Carlo proportion estimates
 - [`plot_mc_forest()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_forest.md)
   : Forest plot of ADEMP Monte Carlo summaries
-- [`theme_decovart_facets()`](https://bastienchassagnol.github.io/DeCovarT/reference/theme_decovart_facets.md)
-  : Faceted ggplot2 theme (black strips, panel border)
 - [`algorithm_similarity()`](https://bastienchassagnol.github.io/DeCovarT/reference/algorithm_similarity.md)
   : Algorithm-similarity correlation from a Monte Carlo benchmark
 - [`plot_algorithm_similarity()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_algorithm_similarity.md)
@@ -193,95 +189,6 @@ wrapper.
   : Faceted dot plot of several ADEMP metrics
 - [`plot_correlation_Heatmap()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_correlation_Heatmap.md)
   : Plot deconvolution metric heatmaps
-- [`write_simulation_artefacts()`](https://bastienchassagnol.github.io/DeCovarT/reference/write_simulation_artefacts.md)
-  : Write split simulation artefacts (config, descriptors, theta,
-  metrics)
-- [`read_simulation_artefacts()`](https://bastienchassagnol.github.io/DeCovarT/reference/read_simulation_artefacts.md)
-  : Read split simulation artefacts and optionally reassemble a
-  benchmark list
-- [`slim_scenario_table()`](https://bastienchassagnol.github.io/DeCovarT/reference/slim_scenario_table.md)
-  : Drop duplicated design columns from a scenario-tagged table
-- [`plot_purified_density_2d()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_purified_density_2d.md)
-  : 2-D density of purified Gaussians
-- [`plot_bulk_convolution_density_2d()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_bulk_convolution_density_2d.md)
-  : 2-D density of the bulk convolution \\y\sim N(\mu p,\Sigma(p))\\
-- [`gaussian_confidence_ellipse()`](https://bastienchassagnol.github.io/DeCovarT/reference/gaussian_confidence_ellipse.md)
-  : Exact Gaussian probability ellipse (known mean and covariance)
-- [`plot_bulk_loglik_surface_p()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_bulk_loglik_surface_p.md)
-  : Contour of the bulk log-likelihood on hypothesised ratios
-- [`plot_bulk_loglik_ilr_profile()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_bulk_loglik_ilr_profile.md)
-  : Log-likelihood profile in the ILR coordinate
-  \\\rho\in\mathbb{R}^{J-1}\\
-- [`plot_bulk_loglik_rgl()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_bulk_loglik_rgl.md)
-  : rgl surface of the bulk log-likelihood
-- [`plot_bivariate_metric_tiles()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_bivariate_metric_tiles.md)
-  : Tile heatmap of a scenario metric on the inner 2-by-2 design
-- [`save_bivariate_metric_heatmaps()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_metric_heatmaps.md)
-  : Write RMSE / MAE / Aitchison tile PDFs for the bivariate toy
-- [`save_bivariate_similarity_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_similarity_book.md)
-  : Multi-page PDF of clustered algorithm-similarity heatmaps
-- [`save_bivariate_forest_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_forest_book.md)
-  : Multi-page PDF of Wald forests at four correlation corners
-- [`save_bivariate_raincloud_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_raincloud_book.md)
-  : Multi-page PDF of rainclouds at four correlation corners
-- [`save_bivariate_dotsinterval_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_dotsinterval_book.md)
-  : Multi-page PDF of quantile-dot rainclouds at four corners
-- [`save_bivariate_kkt_raincloud_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_kkt_raincloud_book.md)
-  : Multi-page KKT raincloud book
-- [`save_bivariate_convergence_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_convergence_book.md)
-  : Multi-page stacked-bar book of solver outcomes
-- [`save_bivariate_qq_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_qq_book.md)
-  : Multi-page Q-Q book of whitened ILR coordinates versus N(0, 1)
-- [`save_bivariate_ks_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_ks_book.md)
-  : Multi-page KS lollipop book of whitened ILR normality
-- [`save_bivariate_chi2_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_chi2_book.md)
-  : Multi-page Q-Q book of joint Mahalanobis D^2 versus chi-square
-- [`plot_kkt_raincloud()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_kkt_raincloud.md)
-  : Raincloud of projected-score KKT residuals
-- [`plot_convergence_stacked()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_convergence_stacked.md)
-  : Stacked bar counts of theoretical success and both failure modes
-- [`plot_mc_qq_normal()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_qq_normal.md)
-  : Q-Q plot of whitened ILR coordinates versus N(0, 1)
-- [`plot_mc_chi2_qq()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_chi2_qq.md)
-  : Q-Q plot of joint Mahalanobis D^2 versus chi-square_J-1
-- [`plot_ks_normality_box()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_ks_normality_box.md)
-  : Kolmogorov-Smirnov p-values versus N(0, 1) by algorithm
-- [`save_bivariate_solver_dots_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_solver_dots_book.md)
-  : 12-page PDF of RMSE/Aitchison solver dots on the correlation grid
-- [`save_bivariate_bulk_density_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_bulk_density_book.md)
-  : Multi-page PDF of bulk convolution densities
-- [`save_bivariate_loglik_ilr_profile_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_loglik_ilr_profile_book.md)
-  : Multi-page PDF of ILR log-likelihood profiles
-  (\\\rho\in\mathbb{R}\\)
-- [`save_bivariate_loglik_rgl_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_loglik_rgl_book.md)
-  : Multi-page PDF (and optional HTML) of rgl bulk log-likelihood
-  surfaces
-- [`save_bivariate_loglik_surface_p_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_loglik_surface_p_book.md)
-  : Multi-page PDF of bulk log-likelihood surfaces on \\(p_1,p_2)\\
-- [`save_bivariate_expected_loglik_surface_p_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_expected_loglik_surface_p_book.md)
-  : Multi-page PDF of expected log-likelihood surfaces
-- [`save_bivariate_expected_loglik_ilr_profile_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_expected_loglik_ilr_profile_book.md)
-  : Multi-page PDF of expected ILR log-likelihood profiles (\\J=2\\)
-- [`save_bivariate_purified_density_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_purified_density_book.md)
-  : Multi-page PDF of purified densities at four correlation corners
-- [`save_mean_signature_heatmap()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_mean_signature_heatmap.md)
-  : Tile heatmap of the unscaled mean signature \\\mu\\
-- [`save_network_topology_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_network_topology_book.md)
-  : Three-page network book (increasing MixSim overlap)
-- [`save_pairwise_network_distance_heatmap()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_pairwise_network_distance_heatmap.md)
-  : 3-by-3 Hellinger heatmaps of cell-type pairs versus MixSim overlap
-- [`save_scenario_metrics_funkyheatmap()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_scenario_metrics_funkyheatmap.md)
-  : Funky heatmap of scenario-level geometry metrics
-- [`save_hybrid_latent_projection_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_hybrid_latent_projection_book.md)
-  : 16-page 2D latent-space book for the covariance-driven scenario
-- [`save_hybrid_runtime_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_hybrid_runtime_book.md)
-  : Solver wall-clock time (one page per composition)
-- [`save_hybrid_memory_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_hybrid_memory_book.md)
-  : Solver peak memory (one page per composition)
-- [`save_bivariate_runtime_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_runtime_book.md)
-  : Solver wall-clock time for the bivariate toy (12 pages)
-- [`save_bivariate_memory_book()`](https://bastienchassagnol.github.io/DeCovarT/reference/save_bivariate_memory_book.md)
-  : Solver peak memory for the bivariate toy (12 pages)
 
 ## Simulation
 
@@ -322,10 +229,6 @@ and glmnet gene scores for signature design.
   : Affine-invariant Riemannian (AIRM) distance between two SPD matrices
 - [`compute_average_riemannian()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_riemannian.md)
   : Mean pairwise AIRM distance of component covariances
-- [`scale_covariance_array()`](https://bastienchassagnol.github.io/DeCovarT/reference/scale_covariance_array.md)
-  : Scale component covariances, keeping precision zeros
-- [`scale_covariances_to_overlap()`](https://bastienchassagnol.github.io/DeCovarT/reference/scale_covariances_to_overlap.md)
-  : Calibrate a global covariance scale to a target MixSim BarOmega
 - [`compute_average_jeffreys()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_jeffreys.md)
   : Average pairwise Jeffreys divergence of a Gaussian mixture
 - [`compute_glmnet_gene_scores()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_glmnet_gene_scores.md)

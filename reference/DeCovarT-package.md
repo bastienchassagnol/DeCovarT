@@ -36,8 +36,3 @@ Useful links:
 
 **Maintainer**: Bastien Chassagnol <bastien_chassagnol@laposte.net>
 ([ORCID](https://orcid.org/0000-0002-8955-2391)) \[copyright holder\]
-
-Authors:
-
-- Bastien Chassagnol <bastien_chassagnol@laposte.net>
-  ([ORCID](https://orcid.org/0000-0002-8955-2391)) \[copyright holder\]

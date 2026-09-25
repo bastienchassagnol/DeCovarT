@@ -30,5 +30,4 @@ A `ggplot2` theme object.
 ## See also
 
 [`plot_mc_forest()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_forest.md),
-[`plot_mc_raincloud()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_raincloud.md),
-[`plot_bivariate_metric_tiles()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_bivariate_metric_tiles.md)
+[`plot_mc_raincloud()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_raincloud.md)

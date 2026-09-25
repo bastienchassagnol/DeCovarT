@@ -161,7 +161,7 @@
 </table>
 <p><strong>Hypothesis:</strong> DeCovarT should retain lower bias under log-normal noise than NNLS because the covariance captures more of the signal geometry, but may be more sensitive than NNLS to heavy-tail contamination.</p>
 <p>Connection to HADACA3 <span class="citation" data-cites="barbotPromisesLimitsMultimodal2026">(<a href="#ref-barbotPromisesLimitsMultimodal2026" role="doc-biblioref">Barbot and Richard 2026</a>)</span>: the <code>SDC5</code> dataset uses a copula + NB noise model; <code>SDE5</code> uses an EM-based noise model. These represent the practical domain of mis-specification most relevant to pancreatic tumour deconvolution.</p>
-<p>see also use of a multivariate SDtudent <span class="math inline">t_\nu</span> or simpe; Gausisan noise.</p>
+<p>see also use of a multivariate Student <span class="math inline">t_\nu</span> or simple Gaussian noise.</p>
 </section><section class="level3"><h3 id="s5b-missing-reference-component">S5b — Missing reference component<a class="anchor" aria-label="anchor" href="#s5b-missing-reference-component"></a>
 </h3>
 <table class="table caption-top">
@@ -229,7 +229,7 @@
 </tbody>
 </table>
 <hr>
-<p>Can be simulatd with <code>splatter</code> <span class="citation" data-cites="zappiaSplatterSimulationSinglecell2017a">(<a href="#ref-zappiaSplatterSimulationSinglecell2017a" role="doc-biblioref">Zappia et al. 2017</a>)</span> or <code>SymSim</code>).</p>
+<p>Can be simulated with <code>splatter</code> <span class="citation" data-cites="zappiaSplatterSimulationSinglecell2017a">(<a href="#ref-zappiaSplatterSimulationSinglecell2017a" role="doc-biblioref">Zappia et al. 2017</a>)</span> or <code>SymSim</code>).</p>
 </section></section><section class="level3"><h3 id="s5d-spillover-effect-and-missing-reference-component">S5d : Spillover effect and missing reference component<a class="anchor" aria-label="anchor" href="#s5d-spillover-effect-and-missing-reference-component"></a>
 </h3>
 <p>The full factorial plan (<code>detailled_siulation_code.md</code>) includes these additional factors that touch on mis-specification and are also out of scope:</p>
@@ -262,7 +262,7 @@
 </tr>
 </tbody>
 </table>
-<p>We my also consider an alterative model sing a linear mixed model to add correlations between cell types.</p>
+<p>We may also consider an alternative model using a linear mixed model to add correlations between cell types.</p>
 </section><section class="level3"><h3 id="s5e-add-outlier-genes-to-test-the-robustness-of-the-estimation">S5e : Add outlier genes to test the robustness of the estimation<a class="anchor" aria-label="anchor" href="#s5e-add-outlier-genes-to-test-the-robustness-of-the-estimation"></a>
 </h3>
 <table class="table caption-top">

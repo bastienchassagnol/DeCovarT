@@ -142,7 +142,7 @@ computed by
 \\\boldsymbol{\mu}\\, used as a proxy for the unobserved cell-type
 profiles \\\boldsymbol{x}\_{\cdot j}\\. This is the frequentist plug-in;
 recovering sample-specific latents is a Bayesian / MAP problem
-([`.map_gaussian_convolution()`](https://bastienchassagnol.github.io/DeCovarT/reference/dot-map_gaussian_convolution.md)).
+(`.map_gaussian_convolution()`).
 
 ## Functions
 

@@ -53,7 +53,7 @@ Etienne Becht
 
 Anaïs Baudot
 
-2026-09-24
+2026-09-25
 
 ## 
 
@@ -460,14 +460,14 @@ required).
 
 ## Installation
 
-Install from CRAN:
+Once the package is on CRAN:
 
 ``` r
 
 install.packages("DeCovarT")
 ```
 
-The development version from GitHub with
+Until then, install the development version from GitHub with
 [{pak}](https://pak.r-lib.org/):
 
 ``` r

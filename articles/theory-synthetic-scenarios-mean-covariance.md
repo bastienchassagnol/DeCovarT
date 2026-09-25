@@ -1694,8 +1694,8 @@ package.
 
 rOpenSci [statistical software
 standards](https://stats-devguide.ropensci.org/standards.html) are
-tagged in `R/srr-stats-standards.R` (srrstats, srrstatsNA, srrstatsTODO)
-and on the exported helpers. The load-bearing blocks are:
+tagged in `R/srr-stats-standards.R` (`@srrstats` or `@srrstatsNA`) and
+on the exported helpers. The load-bearing blocks are:
 
 - **General / testing (G\*):** input checks and missing-data policy on
   [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md);
@@ -1710,8 +1710,8 @@ and on the exported helpers. The load-bearing blocks are:
   log-likelihood, score, and Hessian.
 
 Do not add a second copy of those tags in vignettes. Runtime scaling of
-solvers versus (G) and (J) remains srrstatsTODO (G5.7, RE5.0). ADEMP
-columns themselves are this section.
+solvers versus (G) and (J) is documented as not applicable (G5.7, RE5.0;
+companion repository). ADEMP columns themselves are this section.
 
 ### What is deliberately absent
 

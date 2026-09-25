@@ -67,3 +67,21 @@ Symmetric \\J\times J\\ asymptotic covariance of
 [`vcov.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md),
 [`confint.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md),
 [`jacobian_isometric_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/jacobian_isometric_logistic.md)
+
+## Examples
+
+``` r
+# Two cell types: a single unconstrained ILR coordinate maps back to
+# a rank-1 covariance on the simplex (rows sum to zero).
+p <- c(ct1 = 0.6, ct2 = 0.4)
+mu <- cbind(ct1 = c(0, 0), ct2 = c(3, 0))
+Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+v <- vcov_ilr_delta(p, mu, Sigma)
+round(v, 4)
+#>         ct1     ct2
+#> ct1  0.0559 -0.0559
+#> ct2 -0.0559  0.0559
+abs(rowSums(v)) < 1e-10
+#>  ct1  ct2 
+#> TRUE TRUE 
+```
