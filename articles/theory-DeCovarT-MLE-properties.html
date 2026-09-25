@@ -98,7 +98,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>MLE properties and asymptotic inference for the DeCovarT log-likelihood</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-09-24</p>
+      <p class="date">2026-09-25</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-DeCovarT-MLE-properties.qmd" class="external-link"><code>vignettes/theory-DeCovarT-MLE-properties.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -284,8 +284,8 @@ o(\lVert\boldsymbol{d}\rVert^{2}) ,
 \boldsymbol{p}_{\cdot i},\boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i}))</span> and treats that column as <span class="math inline">N=1</span>. The resulting MLE is then a nonlinear function of one Gaussian draw, so <span class="math inline">\mathbb{E}_{\boldsymbol{p}_0}(\hat{\boldsymbol{p}})\neq\boldsymbol{p}_0</span> in general: the leading bias of a regular MLE is <span class="math inline">O(N^{-1})</span> <span class="citation" data-cites="vaartAsymptoticStatistics2000">(<a href="#ref-vaartAsymptoticStatistics2000" role="doc-biblioref">Vaart 2000, ch. 5</a>)</span>. The same map becomes consistent, and <span class="math inline">\sqrt{N}</span>-normal with variance <span class="math inline">I(\boldsymbol{p}_0)^{-1}</span>, once <span class="math inline">N</span> i.i.d. bulk columns share one composition, because the averaged criterion converges to <span class="math inline">Q</span> and <span class="math inline">Q</span> has a unique maximiser at <span class="math inline">\boldsymbol{p}_0</span>.</p>
 <p>Two calculations are easy to confuse and are not the same.</p>
 <p><strong>Score identity.</strong> If the convolution is correctly specified, <span class="math inline">\mathbb{E}_{\boldsymbol{p}_0}\{\nabla\ell_{\boldsymbol{Y}}(\boldsymbol{p}_0)\}=\boldsymbol{0}</span>. The identity is a property of the <em>random</em> bulk. It is what the Fisher metric of <a href="#eq-fisher-metric" class="quarto-xref">Eq. 5</a> linearises.</p>
-<p><strong>Mean-profile remainder.</strong> Substituting the <em>conditional mean</em> <span class="math inline">\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}_0</span> into the score of <a href="#eq-loglik" class="quarto-xref">Eq. 1</a> kills the Mahalanobis terms and leaves only the derivative of <span class="math inline">-\tfrac12\log\det\boldsymbol{\Sigma}(\boldsymbol{p})</span>. In unconstrained <span class="math inline">\boldsymbol{p}</span>-coordinates that remainder is <span class="math inline">-p_j\operatorname{tr}\bigl(\boldsymbol{\Theta}(\boldsymbol{p})
-\boldsymbol{\Sigma}_j\bigr)</span> at each <span class="math inline">j</span>, with <span class="math inline">\boldsymbol{\Theta}=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}</span>. Mapped through the ILR chart it vanishes by symmetry when <span class="math inline">\boldsymbol{p}_0=(1/2,1/2)</span> and <span class="math inline">\boldsymbol{\Sigma}_1=\boldsymbol{\Sigma}_2</span>, and it does <strong>not</strong> vanish at an unbalanced interior point. Hence the maximiser of <span class="math inline">\ell(\,\cdot\,;\boldsymbol{\mu}\boldsymbol{p}_0)</span> need not equal <span class="math inline">\boldsymbol{p}_0</span> even though that bulk sits at the centre of the model. The bias of the <em>random</em> MLE is a different, typically larger, effect: <span class="math inline">\hat{\boldsymbol{p}}</span> is a nonlinear function of <span class="math inline">\boldsymbol{Y}</span>, and near a simplex face the ILR chart sends <span class="math inline">p_j\to 0</span> to <span class="math inline">|\rho|\to\infty</span> so that a plateau in <span class="math inline">\ell</span> (see <a href="#sec-boundary" class="quarto-xref">Sec. 2.3</a>) inflates the <span class="math inline">O(N^{-1})</span> term.</p>
+<p><strong>Mean-profile remainder.</strong> Substituting the <em>conditional mean</em> <span class="math inline">\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}_0</span> into the score of <a href="#eq-loglik" class="quarto-xref">Eq. 1</a> kills the Mahalanobis terms and leaves only the derivative of <span class="math inline">-\tfrac12\log\det\boldsymbol{\Sigma}(\boldsymbol{p})</span>. In unconstrained <span class="math inline">\boldsymbol{p}</span>-coordinates that remainder is <span class="math inline">-p_j\operatorname{tr}\bigl(\boldsymbol{\Omega}(\boldsymbol{p})
+\boldsymbol{\Sigma}_j\bigr)</span> at each <span class="math inline">j</span>, with <span class="math inline">\boldsymbol{\Omega}=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}</span>. Mapped through the ILR chart it vanishes by symmetry when <span class="math inline">\boldsymbol{p}_0=(1/2,1/2)</span> and <span class="math inline">\boldsymbol{\Sigma}_1=\boldsymbol{\Sigma}_2</span>, and it does <strong>not</strong> vanish at an unbalanced interior point. Hence the maximiser of <span class="math inline">\ell(\,\cdot\,;\boldsymbol{\mu}\boldsymbol{p}_0)</span> need not equal <span class="math inline">\boldsymbol{p}_0</span> even though that bulk sits at the centre of the model. The bias of the <em>random</em> MLE is a different, typically larger, effect: <span class="math inline">\hat{\boldsymbol{p}}</span> is a nonlinear function of <span class="math inline">\boldsymbol{Y}</span>, and near a simplex face the ILR chart sends <span class="math inline">p_j\to 0</span> to <span class="math inline">|\rho|\to\infty</span> so that a plateau in <span class="math inline">\ell</span> (see <a href="#sec-boundary" class="quarto-xref">Sec. 2.3</a>) inflates the <span class="math inline">O(N^{-1})</span> term.</p>
 <p>Convex-optimisation guarantees do not close the gap. Boyd and Vandenberghe emphasise that a local maximum of a non-concave objective need not be global, and that first-order stationarity certifies optimality only under convexity <span class="citation" data-cites="boydConvexOptimization2004">(<a href="#ref-boydConvexOptimization2004" role="doc-biblioref">Boyd et al. 2004, ch. 1</a> and 4)</span>. <a href="#nte-nonconcave" class="quarto-xref">Note 1</a> already exhibits an indefinite Hessian for one bulk, so a converged solver certifies a <em>local</em> maximiser of that sample’s <span class="math inline">\ell</span>, not uniqueness and not unbiasedness. What <em>is</em> uniquely maximised is <span class="math inline">Q</span>, and only after <span class="math inline">N\to\infty</span> (or after pooling genuine replicates; <a href="#sec-replication" class="quarto-xref">Sec. 2.4</a>) does <span class="math inline">\hat{\boldsymbol{p}}_N</span> concentrate there.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
@@ -594,7 +594,7 @@ D
 <span>  loglik_diff <span class="op">=</span> <span class="va">eq_check</span><span class="op">$</span><span class="va">loglik_diff</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;  max_abs_diff   loglik_diff </span></span>
-<span><span class="co">#&gt;  9.336033e-10 -3.108624e-15</span></span></code></pre></div>
+<span><span class="co">#&gt;  8.965458e-10 -2.664535e-15</span></span></code></pre></div>
 </div>
 </section><section class="level2"><h3 id="sec-rna-sieve">RNA-Sieve: CLT likelihood, Fisher and Godambe<a class="anchor" aria-label="anchor" href="#sec-rna-sieve"></a>
 </h3>
@@ -663,9 +663,9 @@ Table 1: What each DeCovarT convergence field does and does not certify.
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="va">fit</span><span class="op">$</span><span class="va">diagnostics</span><span class="op">)</span></span>
 <span><span class="co">#&gt;          boundary_distance near_boundary   score_norm min_eigenvalue</span></span>
-<span><span class="co">#&gt; sample_1         0.2159583         FALSE 2.383262e-09      -160.1989</span></span>
+<span><span class="co">#&gt; sample_1         0.2159583         FALSE 2.383263e-09      -160.1989</span></span>
 <span><span class="co">#&gt; sample_2         0.1832318         FALSE 5.026328e-05      -167.0961</span></span>
-<span><span class="co">#&gt; sample_3         0.1682215         FALSE 1.765209e-08      -171.3536</span></span>
+<span><span class="co">#&gt; sample_3         0.1682215         FALSE 1.765213e-08      -171.3536</span></span>
 <span><span class="co">#&gt;          max_eigenvalue local_maximum</span></span>
 <span><span class="co">#&gt; sample_1      -24.48051          TRUE</span></span>
 <span><span class="co">#&gt; sample_2      -18.72244          TRUE</span></span>
@@ -698,7 +698,7 @@ Table 1: What each DeCovarT convergence field does and does not certify.
 <span>  multimodal <span class="op">=</span> <span class="va">restarts</span><span class="op">$</span><span class="va">multimodal</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; loglik_range   multimodal </span></span>
-<span><span class="co">#&gt; 6.625915e-10 0.000000e+00</span></span></code></pre></div>
+<span><span class="co">#&gt; 6.625969e-10 0.000000e+00</span></span></code></pre></div>
 </div>
 <p>A small range is reassuring but not a proof: a converged code, a tiny relative-distance-to-minimum and a negative-definite local Hessian together support a <strong>local</strong> maximum, and none of them rules out a second, equally good or better mode elsewhere on the simplex.</p>
 </section><section class="section level2"><h2 id="sec-recap">Recap: which interval or test to report<a class="anchor" aria-label="anchor" href="#sec-recap"></a>

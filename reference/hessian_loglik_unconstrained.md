@@ -3,7 +3,7 @@
 Analytic Hessian \\\mathbf{H}\in\mathcal{M}\_{J\times J}\\ with entries
 \\\mathbf{H}\_{i,j}=\partial^{2}\ell/(\partial p_i\partial p_j)\\,
 matching the matrix formulae of the article (quadratic forms in
-\\\boldsymbol{\Theta}\\, \\\boldsymbol{\Sigma}\_i\\,
+\\\boldsymbol{\Omega}\\, \\\boldsymbol{\Sigma}\_i\\,
 \\\boldsymbol{\mu}\_{\cdot i}\\ and residual
 \\\boldsymbol{r}=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}\\).
 
@@ -41,9 +41,9 @@ Symmetric numeric matrix \\\mathbf{H}\\.
 ## Details
 
 The log-determinant contributes
-\\-\delta\_{ij}\mathrm{Tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}\_j)
-+2p_ip_j\mathrm{Tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}\_i
-\boldsymbol{\Theta}\boldsymbol{\Sigma}\_j)\\, i.e. half the coefficients
+\\-\delta\_{ij}\mathrm{Tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}\_j)
++2p_ip_j\mathrm{Tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}\_i
+\boldsymbol{\Omega}\boldsymbol{\Sigma}\_j)\\, i.e. half the coefficients
 of the pre-2.3.0 objective, which used
 \\-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})\\. Residual terms are
 unchanged. Taking expectations under

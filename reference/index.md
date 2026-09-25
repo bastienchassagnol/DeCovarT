@@ -119,7 +119,7 @@ materialised precision. See
   \\\mathbf{r}^{\mathsf{T}}\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\mathbf{r}\\
 - [`sigma_trace_precision_times()`](https://bastienchassagnol.github.io/DeCovarT/reference/sigma_trace_precision_times.md)
   : Trace of the precision times a matrix,
-  \\\operatorname{tr}(\boldsymbol{\Theta}(\boldsymbol{p})\mathbf{S})\\
+  \\\operatorname{tr}(\boldsymbol{\Omega}(\boldsymbol{p})\mathbf{S})\\
 
 ### Fisher information and Wald intervals
 

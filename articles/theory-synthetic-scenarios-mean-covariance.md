@@ -854,7 +854,7 @@ in `supplementary` / the descriptors RDS.
 > identifiability of \boldsymbol{p}. For a Gaussian,
 > \kappa\\\boldsymbol{\Sigma}(\boldsymbol{p})\\
 > =\lambda\_{\max}/\lambda\_{\min}
-> =\kappa\\\boldsymbol{\Theta}(\boldsymbol{p})\\.
+> =\kappa\\\boldsymbol{\Omega}(\boldsymbol{p})\\.
 >
 > - \lambda\_{\min}\\\boldsymbol{\Sigma}(\boldsymbol{p})\\: distance to
 >   a singular convolution covariance.
@@ -892,23 +892,23 @@ in `supplementary` / the descriptors RDS.
 > p_j=2p_j\boldsymbol{\Sigma}\_j yields
 >
 > I\_{jk}(\boldsymbol{p}) = \underbrace{ \boldsymbol{\mu}\_{\cdot
-> j}^{\mathsf{T}} \boldsymbol{\Theta}(\boldsymbol{p})
+> j}^{\mathsf{T}} \boldsymbol{\Omega}(\boldsymbol{p})
 > \boldsymbol{\mu}\_{\cdot k} }\_{I^{\mathrm{mean}}\_{jk}} +
 > \underbrace{ 2 p_j p_k \operatorname{tr}\bigl(
-> \boldsymbol{\Theta}\boldsymbol{\Sigma}\_j
-> \boldsymbol{\Theta}\boldsymbol{\Sigma}\_k \bigr)
+> \boldsymbol{\Omega}\boldsymbol{\Sigma}\_j
+> \boldsymbol{\Omega}\boldsymbol{\Sigma}\_k \bigr)
 > }\_{I^{\mathrm{cov}}\_{jk}},
 >
 > with
-> \boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}.
+> \boldsymbol{\Omega}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}.
 > Along a simplex contrast \mathbf{1}^{\mathsf{T}}\boldsymbol{d}=0,
 >
 > I\_{\mathrm{mean}}(\boldsymbol{d}) =
-> (\boldsymbol{\mu}\boldsymbol{d})^{\mathsf{T}} \boldsymbol{\Theta}
+> (\boldsymbol{\mu}\boldsymbol{d})^{\mathsf{T}} \boldsymbol{\Omega}
 > (\boldsymbol{\mu}\boldsymbol{d}), \qquad
 > I\_{\mathrm{cov}}(\boldsymbol{d}) = \tfrac12 \bigl\\
-> \boldsymbol{\Theta}^{1/2} (D\_{\boldsymbol{d}}\boldsymbol{\Sigma})
-> \boldsymbol{\Theta}^{1/2} \bigr\\\_{F}^{2},
+> \boldsymbol{\Omega}^{1/2} (D\_{\boldsymbol{d}}\boldsymbol{\Sigma})
+> \boldsymbol{\Omega}^{1/2} \bigr\\\_{F}^{2},
 >
 > where D\_{\boldsymbol{d}}\boldsymbol{\Sigma}=2\sum_j p_j
 > d_j\boldsymbol{\Sigma}\_j. The pair contrast

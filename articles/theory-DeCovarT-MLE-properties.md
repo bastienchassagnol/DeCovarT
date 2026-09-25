@@ -278,9 +278,9 @@ metric of [Eq. 5](#eq-fisher-metric) linearises.
 [Eq. 1](#eq-loglik) kills the Mahalanobis terms and leaves only the
 derivative of -\tfrac12\log\det\boldsymbol{\Sigma}(\boldsymbol{p}). In
 unconstrained \boldsymbol{p}-coordinates that remainder is
--p_j\operatorname{tr}\bigl(\boldsymbol{\Theta}(\boldsymbol{p})
+-p_j\operatorname{tr}\bigl(\boldsymbol{\Omega}(\boldsymbol{p})
 \boldsymbol{\Sigma}\_j\bigr) at each j, with
-\boldsymbol{\Theta}=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}. Mapped
+\boldsymbol{\Omega}=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}. Mapped
 through the ILR chart it vanishes by symmetry when
 \boldsymbol{p}\_0=(1/2,1/2) and
 \boldsymbol{\Sigma}\_1=\boldsymbol{\Sigma}\_2, and it does **not**
@@ -789,7 +789,7 @@ c(
   loglik_diff = eq_check$loglik_diff
 )
 #>  max_abs_diff   loglik_diff 
-#>  9.336033e-10 -3.108624e-15
+#>  8.965458e-10 -2.664535e-15
 ```
 
 ### RNA-Sieve: CLT likelihood, Fisher and Godambe
@@ -875,9 +875,9 @@ fit <- fit_decovart(
 )
 do.call(rbind, fit$diagnostics)
 #>          boundary_distance near_boundary   score_norm min_eigenvalue
-#> sample_1         0.2159583         FALSE 2.383262e-09      -160.1989
+#> sample_1         0.2159583         FALSE 2.383263e-09      -160.1989
 #> sample_2         0.1832318         FALSE 5.026328e-05      -167.0961
-#> sample_3         0.1682215         FALSE 1.765209e-08      -171.3536
+#> sample_3         0.1682215         FALSE 1.765213e-08      -171.3536
 #>          max_eigenvalue local_maximum
 #> sample_1      -24.48051          TRUE
 #> sample_2      -18.72244          TRUE
@@ -929,7 +929,7 @@ c(
   multimodal = restarts$multimodal
 )
 #> loglik_range   multimodal 
-#> 6.625915e-10 0.000000e+00
+#> 6.625969e-10 0.000000e+00
 ```
 
 A small range is reassuring but not a proof: a converged code, a tiny

@@ -99,7 +99,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Derivatives of the DeCovarT generative model under simplex transforms</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-09-24</p>
+      <p class="date">2026-09-25</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-decovart-generative-model.qmd" class="external-link"><code>vignettes/theory-decovart-generative-model.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -118,7 +118,7 @@
 <li>
 <span class="math inline">\boldsymbol{\mu}\in\mathbb{R}^{G\times J}</span>: mean signature.</li>
 <li>
-<span class="math inline">\boldsymbol{\Sigma}_j\in\mathrm{SPD}(G)</span>: cell-type covariance; <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}\boldsymbol{\Sigma}_j</span> and <span class="math inline">\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}</span>.</li>
+<span class="math inline">\boldsymbol{\Sigma}_j\in\mathrm{SPD}(G)</span>: cell-type covariance; <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}\boldsymbol{\Sigma}_j</span> and <span class="math inline">\boldsymbol{\Omega}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}</span>.</li>
 <li>
 <span class="math inline">\boldsymbol{p}</span>: proportions on the open simplex (ambient score equations treat them as free coordinates in <span class="math inline">(0,1)^{J}</span>).</li>
 <li>
@@ -172,18 +172,18 @@
   \frac{\partial\boldsymbol{A}}{\partial p}
 \right).
 \tag{2}</span></span></p>
-<p>For a residual quadratic form with symmetric precision <span class="math inline">\boldsymbol{\Theta}</span> and mean map linear in <span class="math inline">p</span>,</p>
+<p>For a residual quadratic form with symmetric precision <span class="math inline">\boldsymbol{\Omega}</span> and mean map linear in <span class="math inline">p</span>,</p>
 <p><span id="eq-quad-form-deriv"><span class="math display">
 \frac{\partial}{\partial p}
 \bigl(
   (\boldsymbol{y}-\boldsymbol{x}p)^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   (\boldsymbol{y}-\boldsymbol{x}p)
 \bigr)
 =
 -2\,
 \boldsymbol{x}^{\top}
-\boldsymbol{\Theta}
+\boldsymbol{\Omega}
 (\boldsymbol{y}-\boldsymbol{x}p).
 \tag{3}</span></span></p>
 </div>
@@ -232,7 +232,7 @@
 <div id="nte-inner-products">
 <blockquote>
 <p><strong>Tip 2: Inner products in the score</strong></p>
-<p>Several terms are <span class="math inline">\boldsymbol{\Theta}</span>-inner products of signature columns, <span class="math inline">\boldsymbol{\mu}_{\cdot j}^{\top}\boldsymbol{\Theta}\boldsymbol{\mu}_{\cdot k}</span>. Package helper <a href="../reference/dot-inner_product.html"><code>.inner_product()</code></a> evaluates that bilinear form; see also the squared Mahalanobis distance helper in the same family.</p>
+<p>Several terms are <span class="math inline">\boldsymbol{\Omega}</span>-inner products of signature columns, <span class="math inline">\boldsymbol{\mu}_{\cdot j}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}_{\cdot k}</span>. Package helper <a href="../reference/dot-inner_product.html"><code>.inner_product()</code></a> evaluates that bilinear form; see also the squared Mahalanobis distance helper in the same family.</p>
 </blockquote>
 </div>
 </section><section class="section level2"><h2 id="sec-unconstrained">Unconstrained score and Hessian<a class="anchor" aria-label="anchor" href="#sec-unconstrained"></a>
@@ -243,17 +243,17 @@
 <p><span id="eq-loglik"><span class="math display">
 \ell_{\boldsymbol{y}\mid\boldsymbol{\zeta}}(\boldsymbol{p})
 =
-\tfrac{1}{2}\log\det\boldsymbol{\Theta}(\boldsymbol{p})
+\tfrac{1}{2}\log\det\boldsymbol{\Omega}(\boldsymbol{p})
 -
 \tfrac{1}{2}
 (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-\boldsymbol{\Theta}(\boldsymbol{p})
+\boldsymbol{\Omega}(\boldsymbol{p})
 (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}).
 \tag{6}</span></span></p>
 <div id="nte-halfdet">
 <blockquote>
 <p><strong>Important 3: The determinant term carries a factor <span class="math inline">\tfrac{1}{2}</span></strong></p>
-<p>Both terms of <a href="#eq-loglik" class="quarto-xref">Eq. 6</a> are halved, because <span class="math inline">\log\det\boldsymbol{\Theta}=-\log\det\boldsymbol{\Sigma}</span> enters the Gaussian log-density as <span class="math inline">-\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})</span>. DeCovarT releases before 2.3.0 implemented <span class="math inline">-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})</span>, which doubled the determinant contribution. The objective was then <em>not</em> the stated Gaussian model, and it disagreed with the expected Fisher information of <a href="#sec-fisher-wald" class="quarto-xref">Sec. 4</a>, which had always been the one implied by the correct density. With the factor restored, <code><a href="../reference/loglik_multivariate.html">loglik_multivariate()</a></code> matches <code>mvtnorm::dmvnorm(..., log = TRUE)</code> up to the constant <span class="math inline">\tfrac{G}{2}\log(2\pi)</span>, and <span class="math inline">\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})</span> holds exactly (see <a href="#nte-obs-vs-exp" class="quarto-xref">Note 7</a>). Point estimates move only slightly, because the two terms trade off differently, but likelihood <strong>values</strong>, AIC, likelihood-ratio statistics, and any curvature-based standard error do change.</p>
+<p>Both terms of <a href="#eq-loglik" class="quarto-xref">Eq. 6</a> are halved, because <span class="math inline">\log\det\boldsymbol{\Omega}=-\log\det\boldsymbol{\Sigma}</span> enters the Gaussian log-density as <span class="math inline">-\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})</span>. DeCovarT releases before 2.3.0 implemented <span class="math inline">-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})</span>, which doubled the determinant contribution. The objective was then <em>not</em> the stated Gaussian model, and it disagreed with the expected Fisher information of <a href="#sec-fisher-wald" class="quarto-xref">Sec. 4</a>, which had always been the one implied by the correct density. With the factor restored, <code><a href="../reference/loglik_multivariate.html">loglik_multivariate()</a></code> matches <code>mvtnorm::dmvnorm(..., log = TRUE)</code> up to the constant <span class="math inline">\tfrac{G}{2}\log(2\pi)</span>, and <span class="math inline">\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})</span> holds exactly (see <a href="#nte-obs-vs-exp" class="quarto-xref">Note 7</a>). Point estimates move only slightly, because the two terms trade off differently, but likelihood <strong>values</strong>, AIC, likelihood-ratio statistics, and any curvature-based standard error do change.</p>
 </blockquote>
 </div>
 <div id="nte-unconstrained-meaning">
@@ -269,12 +269,12 @@
 \frac{\partial\ell}{\partial p_{j}}
 &amp;=
 \underbrace{-p_{j}\,\mathrm{tr}\bigl(
-  \boldsymbol{\Theta}\boldsymbol{\Sigma}_{j}
+  \boldsymbol{\Omega}\boldsymbol{\Sigma}_{j}
 \bigr)}_{\text{purple}}
 +
 \underbrace{
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\mu}_{\cdot j}
 }_{\text{blue}}
 \\
@@ -282,9 +282,9 @@
 \underbrace{
   p_{j}\,
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\Sigma}_{j}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})
 }_{\text{orange}}.
 \end{aligned}
@@ -300,10 +300,10 @@
 \frac{\partial^{2}\ell}{\partial p_{i}^{2}}
 =
 \underbrace{
-  -\,\mathrm{tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}_{i})
+  -\,\mathrm{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}_{i})
   +
   2p_{i}^{2}\,\mathrm{tr}\bigl(
-    (\boldsymbol{\Theta}\boldsymbol{\Sigma}_{i})^{2}
+    (\boldsymbol{\Omega}\boldsymbol{\Sigma}_{i})^{2}
   \bigr)
 }_{\text{purple}}
 \\
@@ -311,13 +311,13 @@
 \underbrace{
   -2p_{i}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\Sigma}_{i}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\mu}_{\cdot i}
   -
   \boldsymbol{\mu}_{\cdot i}^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\mu}_{\cdot i}
 }_{\text{blue}}
 \\
@@ -325,19 +325,19 @@
 \underbrace{
   -2p_{i}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\Sigma}_{i}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\mu}_{\cdot i}
   -
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \bigl(
-    4p_{i}^{2}\boldsymbol{\Sigma}_{i}\boldsymbol{\Theta}\boldsymbol{\Sigma}_{i}
+    4p_{i}^{2}\boldsymbol{\Sigma}_{i}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{i}
     -
     \boldsymbol{\Sigma}_{i}
   \bigr)
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})
 }_{\text{orange}},
 \end{aligned}
@@ -352,8 +352,8 @@
 \underbrace{
   2p_{i}p_{j}\,
   \mathrm{tr}\bigl(
-    \boldsymbol{\Theta}\boldsymbol{\Sigma}_{j}
-    \boldsymbol{\Theta}\boldsymbol{\Sigma}_{i}
+    \boldsymbol{\Omega}\boldsymbol{\Sigma}_{j}
+    \boldsymbol{\Omega}\boldsymbol{\Sigma}_{i}
   \bigr)
 }_{\text{purple}}
 \\
@@ -361,13 +361,13 @@
 \underbrace{
   -2p_{i}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\Sigma}_{i}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\mu}_{\cdot j}
   -
   \boldsymbol{\mu}_{\cdot i}^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\mu}_{\cdot j}
 }_{\text{blue}}
 \\
@@ -375,18 +375,18 @@
 \underbrace{
   -2p_{j}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\Sigma}_{j}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\mu}_{\cdot i}
   -
   4p_{i}p_{j}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\Sigma}_{i}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\Sigma}_{j}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})
 }_{\text{orange}}.
 \end{aligned}
@@ -558,16 +558,16 @@ p_{i}\bigl(
 I(\boldsymbol{p})_{jk}
 =
 \boldsymbol{\mu}_{\cdot j}^{\top}
-\boldsymbol{\Theta}(\boldsymbol{p})
+\boldsymbol{\Omega}(\boldsymbol{p})
 \boldsymbol{\mu}_{\cdot k}
 +
 2p_{j}p_{k}\,
 \mathrm{tr}\bigl(
-  \boldsymbol{\Theta}(\boldsymbol{p})\boldsymbol{\Sigma}_{j}
-  \boldsymbol{\Theta}(\boldsymbol{p})\boldsymbol{\Sigma}_{k}
+  \boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_{j}
+  \boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_{k}
 \bigr).
 \tag{18}</span></span></p>
-<p>The first summand is the mean contribution (a <span class="math inline">\boldsymbol{\Theta}</span>-inner product of signature columns); the second is the covariance contribution of the quadratic map <span class="math inline">\boldsymbol{p}\mapsto\boldsymbol{\Sigma}(\boldsymbol{p})</span>. See the multivariate-normal formula on <a href="https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution" class="external-link">Wikipedia: Fisher information</a>. <a href="../reference/expected_fisher_unconstrained.html"><code>expected_fisher_unconstrained()</code></a> implements <a href="#eq-fisher-p" class="quarto-xref">Eq. 18</a>.</p>
+<p>The first summand is the mean contribution (a <span class="math inline">\boldsymbol{\Omega}</span>-inner product of signature columns); the second is the covariance contribution of the quadratic map <span class="math inline">\boldsymbol{p}\mapsto\boldsymbol{\Sigma}(\boldsymbol{p})</span>. See the multivariate-normal formula on <a href="https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution" class="external-link">Wikipedia: Fisher information</a>. <a href="../reference/expected_fisher_unconstrained.html"><code>expected_fisher_unconstrained()</code></a> implements <a href="#eq-fisher-p" class="quarto-xref">Eq. 18</a>.</p>
 <div id="nte-obs-vs-exp">
 <blockquote>
 <p><strong>Note 7: Observed versus expected information</strong></p>
@@ -618,9 +618,9 @@ I_{\boldsymbol{\rho}}^{-1}
 <hr>
 <h4 id="cache-a-cholesky-factorisation-of-boldsymbolsigmaboldsymbolp">Cache a Cholesky factorisation of <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span>
 </h4>
-<p>Within one iteration, objective / gradient / Hessian callbacks hit the same trial <span class="math inline">\boldsymbol{p}</span>. The helper <code><a href="../reference/dot-sigma_p_factorisation.html">.sigma_p_factorisation()</a></code> caches a single Cholesky factor <span class="math inline">\boldsymbol{R}</span> with <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\boldsymbol{R}^{\mathsf{T}}\boldsymbol{R}</span> and returns <span class="math inline">\log\det\boldsymbol{\Sigma}(\boldsymbol{p})=2\sum_g\log R_{gg}</span> together with the precision <span class="math inline">\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{R}^{-1}\boldsymbol{R}^{-\mathsf{T}}</span> (via <code>chol2inv</code>) without repeating an <span class="math inline">O(G^{3})</span> factorisation.</p>
+<p>Within one iteration, objective / gradient / Hessian callbacks hit the same trial <span class="math inline">\boldsymbol{p}</span>. The helper <code><a href="../reference/dot-sigma_p_factorisation.html">.sigma_p_factorisation()</a></code> caches a single Cholesky factor <span class="math inline">\boldsymbol{R}</span> with <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\boldsymbol{R}^{\mathsf{T}}\boldsymbol{R}</span> and returns <span class="math inline">\log\det\boldsymbol{\Sigma}(\boldsymbol{p})=2\sum_g\log R_{gg}</span> together with the precision <span class="math inline">\boldsymbol{\Omega}(\boldsymbol{p})=\boldsymbol{R}^{-1}\boldsymbol{R}^{-\mathsf{T}}</span> (via <code>chol2inv</code>) without repeating an <span class="math inline">O(G^{3})</span> factorisation.</p>
 <p><a href="../reference/loglik_multivariate.html"><code>loglik_multivariate()</code></a> then evaluates the Mahalanobis term exactly as <code><a href="https://rdrr.io/pkg/mvtnorm/man/Mvnorm.html" class="external-link">mvtnorm::dmvnorm</a></code> <span class="citation" data-cites="R-mvtnorm">(<a href="#ref-R-mvtnorm" role="doc-biblioref">Genz et al. 2026</a>)</span>: it solves <span class="math inline">\boldsymbol{R}^{\mathsf{T}}\boldsymbol{z}
-=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}</span> by <code>backsolve(..., transpose = TRUE)</code> and takes <span class="math inline">\lVert\boldsymbol{z}\rVert^{2}</span>, rather than forming <span class="math inline">\boldsymbol{\Theta}(\boldsymbol{p})</span> and a dense quadratic form. The two routes agree to machine precision; the backsolve path is the one used for the objective, while the cached inverse is retained for the analytic score and Hessian, which need <span class="math inline">\boldsymbol{\Theta}(\boldsymbol{p})</span> in several trace and inner-product terms. A QR factorisation of the covariance itself would recover the same log-determinant and quadratic form at a larger <span class="math inline">O(G^{3})</span> constant and is not used: Cholesky is the natural factorisation of a symmetric positive-definite matrix.</p>
+=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}</span> by <code>backsolve(..., transpose = TRUE)</code> and takes <span class="math inline">\lVert\boldsymbol{z}\rVert^{2}</span>, rather than forming <span class="math inline">\boldsymbol{\Omega}(\boldsymbol{p})</span> and a dense quadratic form. The two routes agree to machine precision; the backsolve path is the one used for the objective, while the cached inverse is retained for the analytic score and Hessian, which need <span class="math inline">\boldsymbol{\Omega}(\boldsymbol{p})</span> in several trace and inner-product terms. A QR factorisation of the covariance itself would recover the same log-determinant and quadratic form at a larger <span class="math inline">O(G^{3})</span> constant and is not used: Cholesky is the natural factorisation of a symmetric positive-definite matrix.</p>
 <p>The implemented log-density omits the additive <span class="math inline">-\tfrac{G}{2}\log(2\pi)</span> of the full Gaussian, which does not depend on <span class="math inline">\boldsymbol{p}</span> and therefore cannot change the MLE, the score, or the Hessian. Tests check that subtracting that constant recovers <code>dmvnorm(..., log = TRUE)</code> exactly.</p>
 <hr>
 <h4 id="guard-the-box-constrained-l-bfgs-b-path">Guard the box-constrained L-BFGS-B path</h4>

@@ -6,7 +6,7 @@ and covariances. Notation follows the article: genes \\g=1,\ldots,G\\,
 cell types \\j=1,\ldots,J\\, samples \\i=1,\ldots,N\\; bulk
 \\\boldsymbol{y}\\, mean signature \\\boldsymbol{\mu}\\, proportions
 \\\boldsymbol{p}\\, covariances / precisions
-\\\boldsymbol{\Sigma}\_j\\/\\\boldsymbol{\Theta}\_j\\. Proportions live
+\\\boldsymbol{\Sigma}\_j\\/\\\boldsymbol{\Omega}\_j\\. Proportions live
 on the open simplex and are optimised in unconstrained ILR coordinates
 \\\boldsymbol{z}\in\mathbb{R}^{J-1}\\
 ([`vignette("theory-decovart-generative-model", package = "DeCovarT")`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.md)).

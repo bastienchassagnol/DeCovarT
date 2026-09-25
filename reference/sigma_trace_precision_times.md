@@ -1,4 +1,4 @@
-# Trace of the precision times a matrix, \\\operatorname{tr}(\boldsymbol{\Theta}(\boldsymbol{p})\mathbf{S})\\
+# Trace of the precision times a matrix, \\\operatorname{tr}(\boldsymbol{\Omega}(\boldsymbol{p})\mathbf{S})\\
 
 Computes \\\operatorname{tr}(\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}
 \mathbf{S})\\ through solves only, never materialising the dense

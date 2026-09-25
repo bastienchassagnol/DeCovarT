@@ -67,7 +67,7 @@ the Mahalanobis term is then \\\lVert\boldsymbol{R}^{-\mathsf{T}}
 (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})\rVert^{2}\\, obtained by
 [`base::backsolve()`](https://rdrr.io/r/base/backsolve.html) without
 forming the explicit inverse. The inverse is still cached because the
-analytic score and Hessian need \\\boldsymbol{\Theta}(\boldsymbol{p})
+analytic score and Hessian need \\\boldsymbol{\Omega}(\boldsymbol{p})
 =\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\\. A QR factorisation of
 \\\boldsymbol{\Sigma}(\boldsymbol{p})\\ would be a more expensive route
 to the same SPD quantities; Cholesky is the natural factorisation.

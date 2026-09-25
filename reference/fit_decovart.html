@@ -298,7 +298,7 @@ A gene-wise affine map
 \(\boldsymbol{\Sigma}_j^\star=D^{-1}\boldsymbol{\Sigma}_j D^{-1}\) leaves the
 MLE of \(\boldsymbol{p}\) unchanged (equivariance).</p>
 <p><strong>Wald covariance.</strong> Let
-\(\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\).
+\(\boldsymbol{\Omega}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\).
 The expected Fisher information of the unconstrained mean–covariance
 map (multivariate normal; see e.g. the Wikipedia entry <em>Fisher
 information</em>, multivariate normal) is
@@ -306,13 +306,13 @@ $$
   I(\boldsymbol{p})_{jk}
   =
   \boldsymbol{\mu}_{\cdot j}^{\top}
-  \boldsymbol{\Theta}(\boldsymbol{p})
+  \boldsymbol{\Omega}(\boldsymbol{p})
   \boldsymbol{\mu}_{\cdot k}
   +
   2 p_j p_k\,
   \mathrm{tr}\bigl(
-    \boldsymbol{\Theta}(\boldsymbol{p})\boldsymbol{\Sigma}_j
-    \boldsymbol{\Theta}(\boldsymbol{p})\boldsymbol{\Sigma}_k
+    \boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_j
+    \boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_k
   \bigr).
 $$
 Cramer–Rao gives

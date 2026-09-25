@@ -98,7 +98,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>In silico inference of gene regulatory networks</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-09-24</p>
+      <p class="date">2026-09-25</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-network-inference.qmd" class="external-link"><code>vignettes/theory-network-inference.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -150,12 +150,12 @@
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><span class="math inline">\boldsymbol{\Sigma}_j</span></td>
-<td style="text-align: left;">cell-type covariance <span class="math inline">\mathcal{M}_{G\times G}</span>; precision <span class="math inline">\boldsymbol{\Theta}_j=\boldsymbol{\Sigma}_j^{-1}</span>
+<td style="text-align: left;">cell-type covariance <span class="math inline">\mathcal{M}_{G\times G}</span>
 </td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><span class="math inline">\boldsymbol{\Omega}</span></td>
-<td style="text-align: left;">precision of an undirected GGM (distinct from DeCovarT’s cell-type <span class="math inline">\boldsymbol{\Theta}_j</span> when discussing GRN inference)</td>
+<td style="text-align: left;"><span class="math inline">\boldsymbol{\Omega}_j\equiv\boldsymbol{\Sigma}_j^{-1}</span></td>
+<td style="text-align: left;">sparse precision of the type-<span class="math inline">j</span> GGM (not a generic parameter <span class="math inline">\theta</span>)</td>
 </tr>
 </tbody>
 </table>
@@ -177,23 +177,23 @@
 <li>
 <strong>Seeds then expand</strong> — select a small discriminating gene set (e.g. low condition number / high centroid separation, in the spirit of <span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">Aliee and Theis (<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">2021</a>)</span>), then grow a prior-informed network with tools such as <a href="https://doi.org/10.1371/journal.pcbi.1013300" class="external-link">NeKo</a>.</li>
 <li>
-<strong>Structure then parameters</strong> — estimate a sparse skeleton (glasso, NeighbourNet, CeSpGRN), then fit continuous weights, possibly under hard zeros on <span class="math inline">\Theta_{ij}</span> for <span class="math inline">(i,j)\notin E</span>.</li>
+<strong>Structure then parameters</strong> — estimate a sparse skeleton (glasso, NeighbourNet, CeSpGRN), then fit continuous weights, possibly under hard zeros on <span class="math inline">\Omega_{ij}</span> for <span class="math inline">(i,j)\notin E</span>.</li>
 </ol>
 <p>Count-aware extensions replace the Gaussian likelihood by Poisson–log-normal (PLN) or copula models <span class="citation" data-cites="chiquetPoissonLognormalModelVersatile2021 chiquetVariationalInferenceSparse2018">(<a href="#ref-chiquetPoissonLognormalModelVersatile2021" role="doc-biblioref">Chiquet et al. 2021</a>, <a href="#ref-chiquetVariationalInferenceSparse2018" role="doc-biblioref">2018</a>)</span> and <a href="https://doi.org/10.1093/bioinformatics/btag324" class="external-link">CeSpGRN</a>, which matters when DeCovarT moves from Gaussian convolutions to sequencing counts.</p>
 </section><section class="level2"><h3 id="sec-grn-regularisation">Regularisation and topological constraints<a class="anchor" aria-label="anchor" href="#sec-grn-regularisation"></a>
 </h3>
 <p>Three standard devices:</p>
 <p><span id="eq-hard-cov-selection"><span class="math display">
-\max_{\boldsymbol{\Theta} \succ 0}
-\log\det\boldsymbol{\Theta} - \operatorname{tr}(S\boldsymbol{\Theta})
+\max_{\boldsymbol{\Omega} \succ 0}
+\log\det\boldsymbol{\Omega} - \operatorname{tr}(S\boldsymbol{\Omega})
 \quad\text{s.t.}\quad
-\boldsymbol{\Theta}_{ij}=0\;\forall\,(i,j)\notin E
+\boldsymbol{\Omega}_{ij}=0\;\forall\,(i,j)\notin E
 \tag{1}</span></span></p>
 <p>(hard covariance selection);</p>
 <p><span id="eq-edge-penalty"><span class="math display">
-\max_{\boldsymbol{\Theta} \succ 0}
-\log\det\boldsymbol{\Theta} - \operatorname{tr}(S\boldsymbol{\Theta})
-- \sum_{i\neq j}\lambda_{ij}\,|\boldsymbol{\Theta}_{ij}|
+\max_{\boldsymbol{\Omega} \succ 0}
+\log\det\boldsymbol{\Omega} - \operatorname{tr}(S\boldsymbol{\Omega})
+- \sum_{i\neq j}\lambda_{ij}\,|\boldsymbol{\Omega}_{ij}|
 \tag{2}</span></span></p>
 <p>(edge-specific / hybrid penalties); and structured group or fused graphical lasso for hubs, modules, or shared biological constraints <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015</a>)</span>. Trees and chordal graphs remain PD-friendly (<a href="https://doi.org/10.1214/11-AOS957" class="external-link">Uhler <em>et al.</em> (2012)</a>). DeCovarT’s affine spectral shift of a binary adjacency is a constructive PD completion compatible with hard zeros off <span class="math inline">E</span>.</p>
 </section><section class="level2"><h3 id="sec-grn-unrolling">Algorithm unrolling and deep inference<a class="anchor" aria-label="anchor" href="#sec-grn-unrolling"></a>

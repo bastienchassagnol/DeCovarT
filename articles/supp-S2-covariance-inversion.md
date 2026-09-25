@@ -307,7 +307,7 @@ and in `tests/testthat/test-03_03_DeCovarT.R`. DICEPro reported relative
 errors below 6\times 10^{-6} with central differences
 \varepsilon=10^{-5}. DeCovarT prefers Richardson’s tableau rather than a
 single-step central difference, because the score mixes traces of
-\boldsymbol{\Theta}(\boldsymbol{p}) with quadratic forms that have a
+\boldsymbol{\Omega}(\boldsymbol{p}) with quadratic forms that have a
 wide dynamic range. Points should fall on the identity; stratify by
 parameter block (ILR coordinates versus unconstrained \boldsymbol{p} on
 the L-BFGS-B path).

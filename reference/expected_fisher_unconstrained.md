@@ -6,14 +6,14 @@ convolution,
 \boldsymbol{\Sigma}(\boldsymbol{p}))\\ with
 \\\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j
 p_j^{2}\boldsymbol{\Sigma}\_j\\ and precision
-\\\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\\,
+\\\boldsymbol{\Omega}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\\,
 the expected Fisher information has entries \$\$ I(\boldsymbol{p})\_{jk}
-= \boldsymbol{\mu}\_{\cdot j}^{\top} \boldsymbol{\Theta}(\boldsymbol{p})
+= \boldsymbol{\mu}\_{\cdot j}^{\top} \boldsymbol{\Omega}(\boldsymbol{p})
 \boldsymbol{\mu}\_{\cdot k} + 2 p_j p_k\\ \mathrm{tr}\bigl(
-\boldsymbol{\Theta}(\boldsymbol{p})\boldsymbol{\Sigma}\_j
-\boldsymbol{\Theta}(\boldsymbol{p})\boldsymbol{\Sigma}\_k \bigr). \$\$
+\boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}\_j
+\boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}\_k \bigr). \$\$
 The first summand is the mean contribution (an
-\\\boldsymbol{\Theta}\\-inner product of signature columns); the second
+\\\boldsymbol{\Omega}\\-inner product of signature columns); the second
 is the covariance contribution of the quadratic map
 \\\boldsymbol{p}\mapsto\boldsymbol{\Sigma}(\boldsymbol{p})\\. See the
 multivariate-normal formula on

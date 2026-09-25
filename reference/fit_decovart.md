@@ -186,14 +186,14 @@ D^{-1}(\boldsymbol{x}-\boldsymbol{m})\\ with the **same**
 leaves the MLE of \\\boldsymbol{p}\\ unchanged (equivariance).
 
 **Wald covariance.** Let
-\\\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\\.
+\\\boldsymbol{\Omega}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\\.
 The expected Fisher information of the unconstrained mean–covariance map
 (multivariate normal; see e.g. the Wikipedia entry *Fisher information*,
 multivariate normal) is \$\$ I(\boldsymbol{p})\_{jk} =
-\boldsymbol{\mu}\_{\cdot j}^{\top} \boldsymbol{\Theta}(\boldsymbol{p})
+\boldsymbol{\mu}\_{\cdot j}^{\top} \boldsymbol{\Omega}(\boldsymbol{p})
 \boldsymbol{\mu}\_{\cdot k} + 2 p_j p_k\\ \mathrm{tr}\bigl(
-\boldsymbol{\Theta}(\boldsymbol{p})\boldsymbol{\Sigma}\_j
-\boldsymbol{\Theta}(\boldsymbol{p})\boldsymbol{\Sigma}\_k \bigr). \$\$
+\boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}\_j
+\boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}\_k \bigr). \$\$
 Cramer–Rao gives \\\mathrm{Var}(\hat{\boldsymbol{z}})\succeq
 I\_{\boldsymbol{z}}^{-1}\\ in ILR coordinates, with
 \\I\_{\boldsymbol{z}} =\mathbf{J}\_{\boldsymbol{\psi}}^{\top}

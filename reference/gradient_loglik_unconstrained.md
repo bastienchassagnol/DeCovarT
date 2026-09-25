@@ -3,14 +3,14 @@
 Analytic gradient of
 [`loglik_multivariate()`](https://bastienchassagnol.github.io/DeCovarT/reference/loglik_multivariate.md)
 with respect to \\\boldsymbol{p}\\. Writing
-\\\boldsymbol{\Theta}=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\\ and
+\\\boldsymbol{\Omega}=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\\ and
 \\\boldsymbol{r}=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}\\, the
 \\j\\-th coordinate is \$\$ \frac{\partial\ell}{\partial p_j} =
--p_j\\\mathrm{Tr}\\\bigl(\boldsymbol{\Theta}\boldsymbol{\Sigma}\_j\bigr)
-+\boldsymbol{r}^{\mathsf{T}}\boldsymbol{\Theta}\boldsymbol{\mu}\_{\cdot
+-p_j\\\mathrm{Tr}\\\bigl(\boldsymbol{\Omega}\boldsymbol{\Sigma}\_j\bigr)
++\boldsymbol{r}^{\mathsf{T}}\boldsymbol{\Omega}\boldsymbol{\mu}\_{\cdot
 j} +p_j\\\boldsymbol{r}^{\mathsf{T}}
-\boldsymbol{\Theta}\boldsymbol{\Sigma}\_j\boldsymbol{\Theta}\boldsymbol{r}.
-\$\$ The determinant score is \\-p_j\mathrm{Tr}(\boldsymbol{\Theta}
+\boldsymbol{\Omega}\boldsymbol{\Sigma}\_j\boldsymbol{\Omega}\boldsymbol{r}.
+\$\$ The determinant score is \\-p_j\mathrm{Tr}(\boldsymbol{\Omega}
 \boldsymbol{\Sigma}\_j)\\ because \\\partial\boldsymbol{\Sigma}/\partial
 p_j=2p_j\boldsymbol{\Sigma}\_j\\ enters
 \\-\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})\\; the two

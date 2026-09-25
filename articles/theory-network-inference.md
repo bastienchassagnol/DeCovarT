@@ -10,8 +10,8 @@
 > | x\_{gji} | latent expression of gene g in cell type j, replicate i |
 > | \mathcal{X}=(x\_{gji}) | tensor \mathcal{M}\_{G\times J\times N} of **single-cell** (purified) profiles |
 > | \boldsymbol{\mu}=(\mu\_{gj}) | mean signature \mathcal{M}\_{G\times J}; column \boldsymbol{\mu}\_{\cdot j} is the **aggregated** reference for type j |
-> | \boldsymbol{\Sigma}\_j | cell-type covariance \mathcal{M}\_{G\times G}; precision \boldsymbol{\Theta}\_j=\boldsymbol{\Sigma}\_j^{-1} |
-> | \boldsymbol{\Omega} | precision of an undirected GGM (distinct from DeCovarT’s cell-type \boldsymbol{\Theta}\_j when discussing GRN inference) |
+> | \boldsymbol{\Sigma}\_j | cell-type covariance \mathcal{M}\_{G\times G} |
+> | \boldsymbol{\Omega}\_j\equiv\boldsymbol{\Sigma}\_j^{-1} | sparse precision of the type-j GGM (not a generic parameter \theta) |
 >
 > DeCovarT treats purified draws \boldsymbol{x}\_{\cdot
 > j}^{(i)}\sim\mathcal{N}\_G(\boldsymbol{\mu}\_{\cdot j},
@@ -66,7 +66,7 @@ Two practical workflows appear repeatedly:
     [NeKo](https://doi.org/10.1371/journal.pcbi.1013300).
 2.  **Structure then parameters** — estimate a sparse skeleton (glasso,
     NeighbourNet, CeSpGRN), then fit continuous weights, possibly under
-    hard zeros on \Theta\_{ij} for (i,j)\notin E.
+    hard zeros on \Omega\_{ij} for (i,j)\notin E.
 
 Count-aware extensions replace the Gaussian likelihood by
 Poisson–log-normal (PLN) or copula models ([Chiquet et al.
@@ -79,15 +79,15 @@ when DeCovarT moves from Gaussian convolutions to sequencing counts.
 
 Three standard devices:
 
-\max\_{\boldsymbol{\Theta} \succ 0} \log\det\boldsymbol{\Theta} -
-\operatorname{tr}(S\boldsymbol{\Theta}) \quad\text{s.t.}\quad
-\boldsymbol{\Theta}\_{ij}=0\\\forall\\(i,j)\notin E \tag{1}
+\max\_{\boldsymbol{\Omega} \succ 0} \log\det\boldsymbol{\Omega} -
+\operatorname{tr}(S\boldsymbol{\Omega}) \quad\text{s.t.}\quad
+\boldsymbol{\Omega}\_{ij}=0\\\forall\\(i,j)\notin E \tag{1}
 
 (hard covariance selection);
 
-\max\_{\boldsymbol{\Theta} \succ 0} \log\det\boldsymbol{\Theta} -
-\operatorname{tr}(S\boldsymbol{\Theta}) - \sum\_{i\neq
-j}\lambda\_{ij}\\\|\boldsymbol{\Theta}\_{ij}\| \tag{2}
+\max\_{\boldsymbol{\Omega} \succ 0} \log\det\boldsymbol{\Omega} -
+\operatorname{tr}(S\boldsymbol{\Omega}) - \sum\_{i\neq
+j}\lambda\_{ij}\\\|\boldsymbol{\Omega}\_{ij}\| \tag{2}
 
 (edge-specific / hybrid penalties); and structured group or fused
 graphical lasso for hubs, modules, or shared biological constraints
