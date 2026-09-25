@@ -487,7 +487,7 @@ hessian_isometric_logistic <- function(z, V = NULL) {
 #' (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})\rVert^{2}},
 #' obtained by [base::backsolve()] without forming the explicit inverse.
 #' The inverse is still cached because the analytic score and Hessian
-#' need \eqn{\boldsymbol{\Theta}(\boldsymbol{p})
+#' need \eqn{\boldsymbol{\Omega}(\boldsymbol{p})
 #' =\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}}. A QR factorisation of
 #' \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})} would be a more expensive route
 #' to the same SPD quantities; Cholesky is the natural factorisation.
@@ -609,18 +609,18 @@ jacobian_additive_logistic <- function(rho) {
 #' @description
 #' Analytic gradient of [loglik_multivariate()] with respect to
 #' \eqn{\boldsymbol{p}}. Writing
-#' \eqn{\boldsymbol{\Theta}=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}} and
+#' \eqn{\boldsymbol{\Omega}=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}} and
 #' \eqn{\boldsymbol{r}=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}}, the
 #' \eqn{j}-th coordinate is
 #' \deqn{
 #'   \frac{\partial\ell}{\partial p_j}
 #'   =
-#'   -p_j\,\mathrm{Tr}\!\bigl(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\bigr)
-#'   +\boldsymbol{r}^{\mathsf{T}}\boldsymbol{\Theta}\boldsymbol{\mu}_{\cdot j}
+#'   -p_j\,\mathrm{Tr}\!\bigl(\boldsymbol{\Omega}\boldsymbol{\Sigma}_j\bigr)
+#'   +\boldsymbol{r}^{\mathsf{T}}\boldsymbol{\Omega}\boldsymbol{\mu}_{\cdot j}
 #'   +p_j\,\boldsymbol{r}^{\mathsf{T}}
-#'   \boldsymbol{\Theta}\boldsymbol{\Sigma}_j\boldsymbol{\Theta}\boldsymbol{r}.
+#'   \boldsymbol{\Omega}\boldsymbol{\Sigma}_j\boldsymbol{\Omega}\boldsymbol{r}.
 #' }
-#' The determinant score is \eqn{-p_j\mathrm{Tr}(\boldsymbol{\Theta}
+#' The determinant score is \eqn{-p_j\mathrm{Tr}(\boldsymbol{\Omega}
 #' \boldsymbol{\Sigma}_j)} because
 #' \eqn{\partial\boldsymbol{\Sigma}/\partial p_j=2p_j\boldsymbol{\Sigma}_j}
 #' enters \eqn{-\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})}; the
@@ -772,15 +772,15 @@ hessian_additive_logistic <- function(rho) {
 #' \eqn{\mathbf{H}\in\mathcal{M}_{J\times J}} with entries
 #' \eqn{\mathbf{H}_{i,j}=\partial^{2}\ell/(\partial p_i\partial p_j)},
 #' matching the matrix formulae of the article (quadratic forms in
-#' \eqn{\boldsymbol{\Theta}}, \eqn{\boldsymbol{\Sigma}_i},
+#' \eqn{\boldsymbol{\Omega}}, \eqn{\boldsymbol{\Sigma}_i},
 #' \eqn{\boldsymbol{\mu}_{\cdot i}} and residual
 #' \eqn{\boldsymbol{r}=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}}).
 #'
 #' @details
 #' The log-determinant contributes
-#' \eqn{-\delta_{ij}\mathrm{Tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j)
-#' +2p_ip_j\mathrm{Tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i
-#' \boldsymbol{\Theta}\boldsymbol{\Sigma}_j)}, i.e. half the coefficients of
+#' \eqn{-\delta_{ij}\mathrm{Tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}_j)
+#' +2p_ip_j\mathrm{Tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}_i
+#' \boldsymbol{\Omega}\boldsymbol{\Sigma}_j)}, i.e. half the coefficients of
 #' the pre-2.3.0 objective, which used
 #' \eqn{-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})}. Residual terms are
 #' unchanged. Taking expectations under

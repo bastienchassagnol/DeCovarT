@@ -266,7 +266,7 @@ sigma_quadform <- function(backend, p, r) {
 }
 
 #' Trace of the precision times a matrix,
-#' \eqn{\operatorname{tr}(\boldsymbol{\Theta}(\boldsymbol{p})\mathbf{S})}
+#' \eqn{\operatorname{tr}(\boldsymbol{\Omega}(\boldsymbol{p})\mathbf{S})}
 #'
 #' @description
 #' Computes \eqn{\operatorname{tr}(\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}

@@ -25,18 +25,18 @@ Numeric vector
 \description{
 Analytic gradient of \code{\link[=loglik_multivariate]{loglik_multivariate()}} with respect to
 \eqn{\boldsymbol{p}}. Writing
-\eqn{\boldsymbol{\Theta}=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}} and
+\eqn{\boldsymbol{\Omega}=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}} and
 \eqn{\boldsymbol{r}=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}}, the
 \eqn{j}-th coordinate is
 \deqn{
   \frac{\partial\ell}{\partial p_j}
   =
-  -p_j\,\mathrm{Tr}\!\bigl(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j\bigr)
-  +\boldsymbol{r}^{\mathsf{T}}\boldsymbol{\Theta}\boldsymbol{\mu}_{\cdot j}
+  -p_j\,\mathrm{Tr}\!\bigl(\boldsymbol{\Omega}\boldsymbol{\Sigma}_j\bigr)
+  +\boldsymbol{r}^{\mathsf{T}}\boldsymbol{\Omega}\boldsymbol{\mu}_{\cdot j}
   +p_j\,\boldsymbol{r}^{\mathsf{T}}
-  \boldsymbol{\Theta}\boldsymbol{\Sigma}_j\boldsymbol{\Theta}\boldsymbol{r}.
+  \boldsymbol{\Omega}\boldsymbol{\Sigma}_j\boldsymbol{\Omega}\boldsymbol{r}.
 }
-The determinant score is \eqn{-p_j\mathrm{Tr}(\boldsymbol{\Theta}
+The determinant score is \eqn{-p_j\mathrm{Tr}(\boldsymbol{\Omega}
 \boldsymbol{\Sigma}_j)} because
 \eqn{\partial\boldsymbol{\Sigma}/\partial p_j=2p_j\boldsymbol{\Sigma}_j}
 enters \eqn{-\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})}; the

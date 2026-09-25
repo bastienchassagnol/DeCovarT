@@ -151,7 +151,7 @@ A gene-wise affine map
 MLE of \eqn{\boldsymbol{p}} unchanged (equivariance).
 
 \strong{Wald covariance.} Let
-\eqn{\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}}.
+\eqn{\boldsymbol{\Omega}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}}.
 The expected Fisher information of the unconstrained mean--covariance
 map (multivariate normal; see e.g. the Wikipedia entry \emph{Fisher
 information}, multivariate normal) is
@@ -159,13 +159,13 @@ information}, multivariate normal) is
   I(\boldsymbol{p})_{jk}
   =
   \boldsymbol{\mu}_{\cdot j}^{\top}
-  \boldsymbol{\Theta}(\boldsymbol{p})
+  \boldsymbol{\Omega}(\boldsymbol{p})
   \boldsymbol{\mu}_{\cdot k}
   +
   2 p_j p_k\,
   \mathrm{tr}\bigl(
-    \boldsymbol{\Theta}(\boldsymbol{p})\boldsymbol{\Sigma}_j
-    \boldsymbol{\Theta}(\boldsymbol{p})\boldsymbol{\Sigma}_k
+    \boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_j
+    \boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_k
   \bigr).
 }
 Cramer--Rao gives

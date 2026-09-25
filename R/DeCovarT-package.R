@@ -7,7 +7,7 @@
 #' types \eqn{j=1,\ldots,J}, samples \eqn{i=1,\ldots,N}; bulk
 #' \eqn{\boldsymbol{y}}, mean signature \eqn{\boldsymbol{\mu}}, proportions
 #' \eqn{\boldsymbol{p}}, covariances / precisions
-#' \eqn{\boldsymbol{\Sigma}_j}/\eqn{\boldsymbol{\Theta}_j}. Proportions live on
+#' \eqn{\boldsymbol{\Sigma}_j}/\eqn{\boldsymbol{\Omega}_j}. Proportions live on
 #' the open simplex and are optimised in unconstrained ILR coordinates
 #' \eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}}
 #' (`vignette("theory-decovart-generative-model", package = "DeCovarT")`).

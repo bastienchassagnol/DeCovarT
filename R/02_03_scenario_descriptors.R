@@ -84,19 +84,19 @@
 #' \eqn{\boldsymbol{y}\mid\boldsymbol{p}\sim
 #' \mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},\boldsymbol{\Sigma}(\boldsymbol{p}))}
 #' with \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j}
-#' and \eqn{\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}},
+#' and \eqn{\boldsymbol{\Omega}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}},
 #' the ambient Fisher matrix splits as
 #' \deqn{
 #'   I_{jk}(\boldsymbol{p})
 #'   =
 #'   \underbrace{\boldsymbol{\mu}_{\cdot j}^{\mathsf{T}}
-#'     \boldsymbol{\Theta}\,
+#'     \boldsymbol{\Omega}\,
 #'     \boldsymbol{\mu}_{\cdot k}}_{I^{\mathrm{mean}}_{jk}}
 #'   +
 #'   \underbrace{2 p_j p_k
 #'     \mathrm{tr}\bigl(
-#'       \boldsymbol{\Theta}\boldsymbol{\Sigma}_j
-#'       \boldsymbol{\Theta}\boldsymbol{\Sigma}_k
+#'       \boldsymbol{\Omega}\boldsymbol{\Sigma}_j
+#'       \boldsymbol{\Omega}\boldsymbol{\Sigma}_k
 #'     \bigr)}_{I^{\mathrm{cov}}_{jk}}.
 #' }
 #' Along a simplex contrast \eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{d}=0},
@@ -104,16 +104,16 @@
 #'   I_{\mathrm{mean}}(\boldsymbol{d})
 #'   =
 #'   (\boldsymbol{\mu}\boldsymbol{d})^{\mathsf{T}}
-#'   \boldsymbol{\Theta}
+#'   \boldsymbol{\Omega}
 #'   (\boldsymbol{\mu}\boldsymbol{d}),
 #'   \qquad
 #'   I_{\mathrm{cov}}(\boldsymbol{d})
 #'   =
 #'   \tfrac12
 #'   \bigl\|
-#'     \boldsymbol{\Theta}^{1/2}
+#'     \boldsymbol{\Omega}^{1/2}
 #'     (D_{\boldsymbol{d}}\boldsymbol{\Sigma})
-#'     \boldsymbol{\Theta}^{1/2}
+#'     \boldsymbol{\Omega}^{1/2}
 #'   \bigr\|_{F}^{2}.
 #' }
 #' The covariance-information fraction is

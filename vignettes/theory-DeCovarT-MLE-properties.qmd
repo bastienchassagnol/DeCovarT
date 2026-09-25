@@ -339,9 +339,9 @@ $\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}_0$ into the score of @eq-loglik
 kills the Mahalanobis terms and leaves only the derivative of
 $-\tfrac12\log\det\boldsymbol{\Sigma}(\boldsymbol{p})$. In unconstrained
 $\boldsymbol{p}$-coordinates that remainder is
-$-p_j\operatorname{tr}\bigl(\boldsymbol{\Theta}(\boldsymbol{p})
+$-p_j\operatorname{tr}\bigl(\boldsymbol{\Omega}(\boldsymbol{p})
 \boldsymbol{\Sigma}_j\bigr)$ at each $j$, with
-$\boldsymbol{\Theta}=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}$. Mapped through
+$\boldsymbol{\Omega}=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}$. Mapped through
 the ILR chart it vanishes by symmetry when
 $\boldsymbol{p}_0=(1/2,1/2)$ and $\boldsymbol{\Sigma}_1=\boldsymbol{\Sigma}_2$,
 and it does **not** vanish at an unbalanced interior point. Hence the

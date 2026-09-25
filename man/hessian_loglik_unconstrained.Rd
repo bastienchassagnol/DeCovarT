@@ -26,15 +26,15 @@ Analytic Hessian
 \eqn{\mathbf{H}\in\mathcal{M}_{J\times J}} with entries
 \eqn{\mathbf{H}_{i,j}=\partial^{2}\ell/(\partial p_i\partial p_j)},
 matching the matrix formulae of the article (quadratic forms in
-\eqn{\boldsymbol{\Theta}}, \eqn{\boldsymbol{\Sigma}_i},
+\eqn{\boldsymbol{\Omega}}, \eqn{\boldsymbol{\Sigma}_i},
 \eqn{\boldsymbol{\mu}_{\cdot i}} and residual
 \eqn{\boldsymbol{r}=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}}).
 }
 \details{
 The log-determinant contributes
-\eqn{-\delta_{ij}\mathrm{Tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}_j)
-+2p_ip_j\mathrm{Tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}_i
-\boldsymbol{\Theta}\boldsymbol{\Sigma}_j)}, i.e. half the coefficients of
+\eqn{-\delta_{ij}\mathrm{Tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}_j)
++2p_ip_j\mathrm{Tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}_i
+\boldsymbol{\Omega}\boldsymbol{\Sigma}_j)}, i.e. half the coefficients of
 the pre-2.3.0 objective, which used
 \eqn{-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})}. Residual terms are
 unchanged. Taking expectations under

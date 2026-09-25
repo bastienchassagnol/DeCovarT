@@ -65,7 +65,7 @@ The additive log-ratio chart is retained as an appendix (@sec-alr).
 - $\boldsymbol{\Sigma}_j\in\mathrm{SPD}(G)$: cell-type covariance;
   $\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}\boldsymbol{\Sigma}_j$
   and
-  $\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}$.
+  $\boldsymbol{\Omega}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}$.
 - $\boldsymbol{p}$: proportions on the open simplex (ambient score
   equations treat them as free coordinates in $(0,1)^{J}$).
 - $\boldsymbol{\rho}\in\mathbb{R}^{J-1}$: unconstrained log-ratio
@@ -134,19 +134,19 @@ $$
 $$ {#eq-logdet}
 
 For a residual quadratic form with symmetric precision
-$\boldsymbol{\Theta}$ and mean map linear in $p$,
+$\boldsymbol{\Omega}$ and mean map linear in $p$,
 
 $$
 \frac{\partial}{\partial p}
 \bigl(
   (\boldsymbol{y}-\boldsymbol{x}p)^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   (\boldsymbol{y}-\boldsymbol{x}p)
 \bigr)
 =
 -2\,
 \boldsymbol{x}^{\top}
-\boldsymbol{\Theta}
+\boldsymbol{\Omega}
 (\boldsymbol{y}-\boldsymbol{x}p).
 $$ {#eq-quad-form-deriv}
 :::
@@ -204,9 +204,9 @@ $$ {#eq-logdet-hess}
 ::: {#nte-inner-products .callout-tip}
 ## Inner products in the score
 
-Several terms are $\boldsymbol{\Theta}$-inner products of signature
+Several terms are $\boldsymbol{\Omega}$-inner products of signature
 columns,
-$\boldsymbol{\mu}_{\cdot j}^{\top}\boldsymbol{\Theta}\boldsymbol{\mu}_{\cdot k}$.
+$\boldsymbol{\mu}_{\cdot j}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}_{\cdot k}$.
 Package helper [`.inner_product()`](../reference/dot-inner_product.html)
 evaluates that bilinear form; see also the squared Mahalanobis distance
 helper in the same family.
@@ -225,11 +225,11 @@ independent of $\boldsymbol{p}$,
 $$
 \ell_{\boldsymbol{y}\mid\boldsymbol{\zeta}}(\boldsymbol{p})
 =
-\tfrac{1}{2}\log\det\boldsymbol{\Theta}(\boldsymbol{p})
+\tfrac{1}{2}\log\det\boldsymbol{\Omega}(\boldsymbol{p})
 -
 \tfrac{1}{2}
 (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-\boldsymbol{\Theta}(\boldsymbol{p})
+\boldsymbol{\Omega}(\boldsymbol{p})
 (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}).
 $$ {#eq-loglik}
 
@@ -237,7 +237,7 @@ $$ {#eq-loglik}
 ## The determinant term carries a factor $\tfrac{1}{2}$
 
 Both terms of @eq-loglik are halved, because
-$\log\det\boldsymbol{\Theta}=-\log\det\boldsymbol{\Sigma}$ enters the
+$\log\det\boldsymbol{\Omega}=-\log\det\boldsymbol{\Sigma}$ enters the
 Gaussian log-density as
 $-\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})$. DeCovarT
 releases before 2.3.0 implemented
@@ -282,12 +282,12 @@ $$
 \frac{\partial\ell}{\partial p_{j}}
 &=
 \underbrace{-p_{j}\,\mathrm{tr}\bigl(
-  \boldsymbol{\Theta}\boldsymbol{\Sigma}_{j}
+  \boldsymbol{\Omega}\boldsymbol{\Sigma}_{j}
 \bigr)}_{\text{purple}}
 +
 \underbrace{
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\mu}_{\cdot j}
 }_{\text{blue}}
 \\
@@ -295,9 +295,9 @@ $$
 \underbrace{
   p_{j}\,
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\Sigma}_{j}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})
 }_{\text{orange}}.
 \end{aligned}
@@ -320,10 +320,10 @@ $$
 \frac{\partial^{2}\ell}{\partial p_{i}^{2}}
 =
 \underbrace{
-  -\,\mathrm{tr}(\boldsymbol{\Theta}\boldsymbol{\Sigma}_{i})
+  -\,\mathrm{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}_{i})
   +
   2p_{i}^{2}\,\mathrm{tr}\bigl(
-    (\boldsymbol{\Theta}\boldsymbol{\Sigma}_{i})^{2}
+    (\boldsymbol{\Omega}\boldsymbol{\Sigma}_{i})^{2}
   \bigr)
 }_{\text{purple}}
 \\
@@ -331,13 +331,13 @@ $$
 \underbrace{
   -2p_{i}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\Sigma}_{i}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\mu}_{\cdot i}
   -
   \boldsymbol{\mu}_{\cdot i}^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\mu}_{\cdot i}
 }_{\text{blue}}
 \\
@@ -345,19 +345,19 @@ $$
 \underbrace{
   -2p_{i}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\Sigma}_{i}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\mu}_{\cdot i}
   -
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \bigl(
-    4p_{i}^{2}\boldsymbol{\Sigma}_{i}\boldsymbol{\Theta}\boldsymbol{\Sigma}_{i}
+    4p_{i}^{2}\boldsymbol{\Sigma}_{i}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{i}
     -
     \boldsymbol{\Sigma}_{i}
   \bigr)
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})
 }_{\text{orange}},
 \end{aligned}
@@ -374,8 +374,8 @@ $$
 \underbrace{
   2p_{i}p_{j}\,
   \mathrm{tr}\bigl(
-    \boldsymbol{\Theta}\boldsymbol{\Sigma}_{j}
-    \boldsymbol{\Theta}\boldsymbol{\Sigma}_{i}
+    \boldsymbol{\Omega}\boldsymbol{\Sigma}_{j}
+    \boldsymbol{\Omega}\boldsymbol{\Sigma}_{i}
   \bigr)
 }_{\text{purple}}
 \\
@@ -383,13 +383,13 @@ $$
 \underbrace{
   -2p_{i}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\Sigma}_{i}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\mu}_{\cdot j}
   -
   \boldsymbol{\mu}_{\cdot i}^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\mu}_{\cdot j}
 }_{\text{blue}}
 \\
@@ -397,18 +397,18 @@ $$
 \underbrace{
   -2p_{j}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\Sigma}_{j}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\mu}_{\cdot i}
   -
   4p_{i}p_{j}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\Sigma}_{i}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   \boldsymbol{\Sigma}_{j}
-  \boldsymbol{\Theta}
+  \boldsymbol{\Omega}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})
 }_{\text{orange}}.
 \end{aligned}
@@ -653,17 +653,17 @@ $$
 I(\boldsymbol{p})_{jk}
 =
 \boldsymbol{\mu}_{\cdot j}^{\top}
-\boldsymbol{\Theta}(\boldsymbol{p})
+\boldsymbol{\Omega}(\boldsymbol{p})
 \boldsymbol{\mu}_{\cdot k}
 +
 2p_{j}p_{k}\,
 \mathrm{tr}\bigl(
-  \boldsymbol{\Theta}(\boldsymbol{p})\boldsymbol{\Sigma}_{j}
-  \boldsymbol{\Theta}(\boldsymbol{p})\boldsymbol{\Sigma}_{k}
+  \boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_{j}
+  \boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_{k}
 \bigr).
 $$ {#eq-fisher-p}
 
-The first summand is the mean contribution (a $\boldsymbol{\Theta}$-inner
+The first summand is the mean contribution (a $\boldsymbol{\Omega}$-inner
 product of signature columns); the second is the covariance contribution
 of the quadratic map
 $\boldsymbol{p}\mapsto\boldsymbol{\Sigma}(\boldsymbol{p})$. See the
@@ -779,7 +779,7 @@ $\boldsymbol{\Sigma}(\boldsymbol{p})=\boldsymbol{R}^{\mathsf{T}}\boldsymbol{R}$
 and returns
 $\log\det\boldsymbol{\Sigma}(\boldsymbol{p})=2\sum_g\log R_{gg}$
 together with the precision
-$\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{R}^{-1}\boldsymbol{R}^{-\mathsf{T}}$
+$\boldsymbol{\Omega}(\boldsymbol{p})=\boldsymbol{R}^{-1}\boldsymbol{R}^{-\mathsf{T}}$
 (via `chol2inv`) without repeating an $O(G^{3})$ factorisation.
 
 [`loglik_multivariate()`](../reference/loglik_multivariate.html) then
@@ -788,11 +788,11 @@ evaluates the Mahalanobis term exactly as `mvtnorm::dmvnorm`
 =\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}$ by
 `backsolve(..., transpose = TRUE)` and takes
 $\lVert\boldsymbol{z}\rVert^{2}$, rather than forming
-$\boldsymbol{\Theta}(\boldsymbol{p})$ and a dense quadratic form. The two
+$\boldsymbol{\Omega}(\boldsymbol{p})$ and a dense quadratic form. The two
 routes agree to machine precision; the backsolve path is the one used
 for the objective, while the cached inverse is retained for the analytic
 score and Hessian, which need
-$\boldsymbol{\Theta}(\boldsymbol{p})$ in several trace and inner-product
+$\boldsymbol{\Omega}(\boldsymbol{p})$ in several trace and inner-product
 terms. A QR factorisation of the covariance itself would recover the
 same log-determinant and quadratic form at a larger $O(G^{3})$ constant
 and is not used: Cholesky is the natural factorisation of a symmetric

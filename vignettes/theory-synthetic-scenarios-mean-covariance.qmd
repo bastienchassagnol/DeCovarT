@@ -1133,7 +1133,7 @@ These columns describe the *mixture* covariance, not statistical
 identifiability of $\boldsymbol{p}$. For a Gaussian,
 $\kappa\{\boldsymbol{\Sigma}(\boldsymbol{p})\}
 =\lambda_{\max}/\lambda_{\min}
-=\kappa\{\boldsymbol{\Theta}(\boldsymbol{p})\}$.
+=\kappa\{\boldsymbol{\Omega}(\boldsymbol{p})\}$.
 
 - $\lambda_{\min}\{\boldsymbol{\Sigma}(\boldsymbol{p})\}$: distance to a
   singular convolution covariance.
@@ -1179,37 +1179,37 @@ I_{jk}(\boldsymbol{p})
 =
 \underbrace{
   \boldsymbol{\mu}_{\cdot j}^{\mathsf{T}}
-  \boldsymbol{\Theta}(\boldsymbol{p})
+  \boldsymbol{\Omega}(\boldsymbol{p})
   \boldsymbol{\mu}_{\cdot k}
 }_{I^{\mathrm{mean}}_{jk}}
 +
 \underbrace{
   2 p_j p_k
   \operatorname{tr}\bigl(
-    \boldsymbol{\Theta}\boldsymbol{\Sigma}_j
-    \boldsymbol{\Theta}\boldsymbol{\Sigma}_k
+    \boldsymbol{\Omega}\boldsymbol{\Sigma}_j
+    \boldsymbol{\Omega}\boldsymbol{\Sigma}_k
   \bigr)
 }_{I^{\mathrm{cov}}_{jk}},
 $$
 
 with
-$\boldsymbol{\Theta}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}$.
+$\boldsymbol{\Omega}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}$.
 Along a simplex contrast $\mathbf{1}^{\mathsf{T}}\boldsymbol{d}=0$,
 
 $$
 I_{\mathrm{mean}}(\boldsymbol{d})
 =
 (\boldsymbol{\mu}\boldsymbol{d})^{\mathsf{T}}
-\boldsymbol{\Theta}
+\boldsymbol{\Omega}
 (\boldsymbol{\mu}\boldsymbol{d}),
 \qquad
 I_{\mathrm{cov}}(\boldsymbol{d})
 =
 \tfrac12
 \bigl\|
-  \boldsymbol{\Theta}^{1/2}
+  \boldsymbol{\Omega}^{1/2}
   (D_{\boldsymbol{d}}\boldsymbol{\Sigma})
-  \boldsymbol{\Theta}^{1/2}
+  \boldsymbol{\Omega}^{1/2}
 \bigr\|_{F}^{2},
 $$
 

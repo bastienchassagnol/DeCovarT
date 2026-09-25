@@ -3,7 +3,7 @@
 \name{sigma_trace_precision_times}
 \alias{sigma_trace_precision_times}
 \title{Trace of the precision times a matrix,
-\eqn{\operatorname{tr}(\boldsymbol{\Theta}(\boldsymbol{p})\mathbf{S})}}
+\eqn{\operatorname{tr}(\boldsymbol{\Omega}(\boldsymbol{p})\mathbf{S})}}
 \usage{
 sigma_trace_precision_times(backend, p, S)
 }
