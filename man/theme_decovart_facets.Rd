@@ -7,7 +7,7 @@
 theme_decovart_facets(base_size = 11, ...)
 }
 \arguments{
-\item{base_size}{Base font size for \code{\link[ggplot2:theme_minimal]{ggplot2::theme_minimal()}}.}
+\item{base_size}{Base font size for \code{\link[ggplot2:ggtheme]{ggplot2::theme_minimal()}}.}
 
 \item{...}{Passed to \code{\link[ggplot2:theme]{ggplot2::theme()}}.}
 }
@@ -21,6 +21,6 @@ strips, after \code{theme_features()} in the
 plotting helpers.
 }
 \seealso{
-\code{\link[=plot_mc_forest]{plot_mc_forest()}}, \code{\link[=plot_mc_raincloud]{plot_mc_raincloud()}},
-\code{\link[=plot_bivariate_metric_tiles]{plot_bivariate_metric_tiles()}}
+\code{\link[=plot_mc_forest]{plot_mc_forest()}}, \code{\link[=plot_mc_raincloud]{plot_mc_raincloud()}}
 }
+\keyword{internal}

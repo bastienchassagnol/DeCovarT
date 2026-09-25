@@ -396,7 +396,7 @@ run_simulation_benchmark <- function(
 #'
 #' @param tbl A tibble that may contain redundant aliases.
 #' @return The same table without alias columns.
-#' @export
+#' @keywords internal
 slim_scenario_table <- function(tbl) {
   tbl <- tibble::as_tibble(tbl)
   if ("proportion_name" %in% names(tbl) && !"proportions" %in% names(tbl)) {
@@ -506,7 +506,7 @@ slim_scenario_table <- function(tbl) {
 #'
 #' @return Invisibly, a named list of written paths.
 #' @seealso [read_simulation_artefacts()]
-#' @export
+#' @keywords internal
 write_simulation_artefacts <- function(
   benchmark,
   dir,
@@ -606,7 +606,7 @@ write_simulation_artefacts <- function(
 #'
 #' @return Named list of tibbles, or a benchmark-like list when
 #'   `assemble = TRUE`.
-#' @export
+#' @keywords internal
 read_simulation_artefacts <- function(dir, stem, assemble = FALSE) {
   paths <- list(
     config = file.path(dir, paste0(stem, "_config.rds")),

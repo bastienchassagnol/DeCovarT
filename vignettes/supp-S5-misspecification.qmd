@@ -64,7 +64,7 @@ Connection to HADACA3 [@barbotPromisesLimitsMultimodal2026]: the
 noise model.  These represent the practical domain of mis-specification most
 relevant to pancreatic tumour deconvolution.
 
-see also use of a multivariate SDtudent $t_\nu$ or simpe; Gausisan noise. 
+see also use of a multivariate Student $t_\nu$ or simple Gaussian noise.
 
 ### S5b — Missing reference component
 
@@ -102,7 +102,7 @@ This directly mirrors the `SDC5` HADACA3 scenario
 | Correlation strength | $\tau_K \in \{0, 0.2, 0.5\}$ |
 ---
 
-Can be simulatd with `splatter` [@zappiaSplatterSimulationSinglecell2017a]
+Can be simulated with `splatter` [@zappiaSplatterSimulationSinglecell2017a]
    or `SymSim`).
 
 
@@ -119,7 +119,7 @@ additional factors that touch on mis-specification and are also out of scope:
 
 
 
-We my also consider an alterative model sing a linear mixed model to add correlations between cell types.
+We may also consider an alternative model using a linear mixed model to add correlations between cell types.
 
 
 ### S5e : Add outlier genes to test the robustness of the estimation

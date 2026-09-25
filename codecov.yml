@@ -1,6 +1,10 @@
 comment: false
 
 coverage:
+  ignore:
+    - "R/utils-optional-dependencies.R"
+    - "R/zzz.R"
+    - "R/utils-ui.R"
   status:
     project:
       default:

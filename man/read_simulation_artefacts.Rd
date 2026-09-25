@@ -21,3 +21,4 @@ Named list of tibbles, or a benchmark-like list when
 \description{
 Read split simulation artefacts and optionally reassemble a benchmark list
 }
+\keyword{internal}

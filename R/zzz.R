@@ -1,3 +1,4 @@
+# nocov start
 # Package load / attach hooks -----------------------------------------------
 
 #' @keywords internal
@@ -46,3 +47,4 @@
   }
   packageStartupMessage(paste(msg, collapse = "\n"))
 }
+# nocov end

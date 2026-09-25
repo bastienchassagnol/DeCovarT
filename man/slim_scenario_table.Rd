@@ -17,3 +17,4 @@ Aliases (\code{scenario_idx}, \code{rho_ct1} / \code{rho_ct2}, \code{proportion_
 \code{centroid}) are removed after copying them onto the canonical names
 \code{proportions} and \code{centroids} when those are missing.
 }
+\keyword{internal}

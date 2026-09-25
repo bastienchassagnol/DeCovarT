@@ -7,12 +7,12 @@ NULL
 #' rOpenSci Statistical Software Standards - General (G), Regression (RE)
 #' and Probability Distributions (PD) categories.  Standards already
 #' addressed are tagged `@srrstats`. Standards not applicable are tagged
-#' `@srrstatsNA` in the block below. Remaining standards keep
-#' `@srrstatsTODO` for full review.
+#' `@srrstatsNA` in the block below.
 #'
-#' Tags are intentionally placed in both `R/` (this file and exported
-#' helpers) and `tests/testthat/` so `srr::srr_stats_pre_submit()` sees
-#' documentation in multiple package directories.
+#' Tags are placed in both `R/` (this file and exported helpers) and
+#' `tests/testthat/` so `srr::srr_stats_pre_submit()` sees
+#' documentation in multiple package directories. Every standard is
+#' either `@srrstats` or `@srrstatsNA`; none remain `@srrstatsTODO`.
 #'
 #' G1 - Documentation and references
 #'
@@ -30,19 +30,20 @@ NULL
 #'
 #' G2 - Input validation
 #'
-#' @srrstats {G2.0} Input length assertions implemented via `checkmate`
-#'   (e.g. `assert_matrix`, `assert_numeric`) throughout estimation functions.
+#' @srrstats {G2.0} Input length and dimension assertions use
+#'   `.assert_numeric_array()`, `.assert_ggj_array()` and
+#'   `.prepare_deconvolution_inputs()` throughout the estimation path.
 #'
 #' @srrstats {G2.0a} Expected dimensions and lengths documented in `@param`
 #'   of all exported functions.
 #'
-#' @srrstats {G2.1} Type assertions performed via `checkmate` on all inputs
-#'   (numeric matrices, positive-definite covariance matrices, etc.).
+#' @srrstats {G2.1} Type assertions require numeric matrices / arrays
+#'   (positive-definite cell-type covariances, simplex proportions).
 #'
 #' @srrstats {G2.1a} Expected types of all inputs documented in `@param`.
 #'
-#' @srrstats {G2.2} Scalar parameters are checked with `assert_scalar` or
-#'   equivalent.
+#' @srrstats {G2.2} Scalar parameters (`epsilon`, `itmax`, `cores`,
+#'   `n_starts`, tolerances) are checked as length-1 numeric / integer.
 #'
 #' G2.3, G2.3a, G2.3b: see `.match_arg_case_insensitive()` in `R/utils.R`.
 #' G2.13, G2.15, G2.16: see `.assert_no_missing()` and
@@ -68,11 +69,8 @@ NULL
 #'   Newton--Raphson is repeated with three simulation seeds in
 #'   `tests/testthat/test-03_05_decovart_fit.R`.
 #'
-#' @srrstatsTODO {G5.7} Runtime scaling of the *solvers* vs \(G\) and
-#'   \(J\) remains for a companion benchmark. The Gaussian log-likelihood
-#'   itself is now the Cholesky-and-backsolve evaluation of
-#'   `mvtnorm::dmvnorm` (tested against that reference); that is a
-#'   constant-factor improvement of the objective, not a scaling study.
+#' G5.7 is tagged `@srrstatsNA` (companion scaling / biological
+#'   benchmark; see the NA block and rOpenSci software-review#798).
 #'
 #' @srrstats {G5.9b} The same tests also vary the ILR start
 #'   (\eqn{\boldsymbol{p}^{(0)}} from three Dirichlet draws). Second-order
@@ -121,7 +119,8 @@ NULL
 #'
 #' @srrstats {G5.8a} Zero-length input matrices trigger informative errors.
 #'
-#' @srrstats {G5.8b} Non-numeric inputs raise errors via `checkmate`.
+#' @srrstats {G5.8b} Non-numeric inputs raise errors via
+#'   `.assert_numeric_array()` / `.prepare_deconvolution_inputs()`.
 #'
 #' @srrstats {G5.8c} All-`NA` columns trigger an early-exit error.
 #'
@@ -138,8 +137,7 @@ NULL
 #' RE1 - Regression: input specification
 #'
 #' @srrstats {RE1.2} Expected input classes documented in every `@param`
-#'   block; unsupported types raise `checkmate` / `.assert_numeric_array`
-#'   errors.
+#'   block; unsupported types raise `.assert_numeric_array()` errors.
 #'
 #' @srrstats {RE1.3} Gene rownames of \(Y\) and \(\mu\) identify genes;
 #'   colnames of \(Y\) identify samples; colnames of \(\mu\) identify
@@ -245,10 +243,7 @@ NULL
 #'
 #' RE5 - Regression: scaling
 #'
-#' @srrstatsTODO {RE5.0} Runtime vs \(G\), \(J\), overlap, CPM / log2
-#'   normalisation, and tolerance will be reported in a later benchmark
-#'   paper / issue, not in this package release. Profile / boundary
-#'   intervals close RE4.3, not this scaling standard.
+#' RE5.0 is tagged `@srrstatsNA` (same justification as G5.7).
 #'
 #' RE6 - Regression: visualisation
 #'
@@ -274,8 +269,8 @@ NULL
 #' @srrstats {RE7.1a} Noiseless fitting is checked under three
 #'   second-moment specifications (full \eqn{\boldsymbol{\Sigma}_j}; cell-type
 #'   diagonal; global \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}
-#'   \boldsymbol{\Sigma}_j} with known mixing weights). Runtime vs noisy
-#'   data and vs \eqn{G,J} remains with RE5.0.
+#'   \boldsymbol{\Sigma}_j} with known mixing weights). Solver runtime vs
+#'   \(G,J\) is documented as not applicable (RE5.0 / G5.7).
 #'
 #' @srrstats {RE7.2} Tests confirm dimnames of \(Y\) and \(\mu\) on
 #'   `decovart_fit` accessors.
@@ -353,14 +348,29 @@ NULL
 #'   implementation to test against.
 #' @srrstatsNA {G5.4c} There is likewise no published numerical oracle for
 #'   this estimator (same G1.1 justification).
-#' @srrstatsNA {G1.5} Reproduction code for article figures is deliberately
-#'   out of this package. Performance claims in the manuscript will be
-#'   reproduced from a companion repository if one is published; they are
-#'   not shipped as vignette or test assets here.
+#' @srrstatsNA {G1.5} Reproduction code for article-scale figures and
+#'   biological pipelines lives in the companion repository
+#'   https://github.com/bastienchassagnol/DeCovarT_reproducibility
+#'   (Quarto book: feature selection, GRN inference, population
+#'   alignment, gastruloid deconvolution). Those assets are not shipped
+#'   in the CRAN tarball.
 #' @srrstatsNA {G1.6} No other R package implements this variance-based
-#'   Gaussian-convolution regression (G1.1). Mean-only deconvolution
-#'   tools are not alternative implementations of the same estimator, so
-#'   an in-package like-for-like comparison is not applicable.
+#'   Gaussian-convolution regression (G1.1). Mean-only and second-generation
+#'   single-cell deconvolution tools are related but not alternative
+#'   implementations of the same estimator; the statistical contrast is
+#'   in `vignettes/theory-decovart-statistical-perspectives.qmd`, and the
+#'   gastruloid pipeline comparison is in the companion repository.
+#' @srrstatsNA {G5.7} Runtime scaling of the *solvers* versus \(G\) and
+#'   \(J\) is not a claim of this package release. The rOpenSci editors
+#'   (software-review#798, 24 August 2026) agreed that algorithmic
+#'   benchmarking and scaling behaviour need not be complied with here:
+#'   DeCovarT is the first implementation of this estimator (G1.1), and
+#'   a like-for-like comparison against mean-only methods would also
+#'   require \(\boldsymbol{\Sigma}_j\). Manuscript-scale runtime and
+#'   biological pipelines live in DeCovarT_reproducibility. The Gaussian
+#'   log-likelihood itself uses a Cholesky / backsolve evaluation (tested
+#'   against `mvtnorm::dmvnorm`); that is a constant-factor improvement
+#'   of the objective, not a scaling study.
 #' @srrstatsNA {G5.11} Unit tests do not download assets. Paper-scale data
 #'   will live in the companion reproducibility repository.
 #' @srrstatsNA {G5.11a} See G5.11.
@@ -389,6 +399,10 @@ NULL
 #'   or extrapolation).
 #' @srrstatsNA {RE6.3} Interpolated vs extrapolated predictions do not
 #'   arise (no `predict()`).
+#' @srrstatsNA {RE5.0} Runtime versus \(G\), \(J\), overlap, CPM / log2
+#'   normalisation, and tolerance is the same scaling artefact as G5.7
+#'   and is not reported in this package release (software-review#798).
+#'   Profile / boundary intervals close RE4.3, not this standard.
 #' @srrstatsNA {RE7.4} Forecast-horizon tests do not apply (see RE4.15).
 #'
 #' Probability Distributions NAs (fixed MVN generative model; see PD1.0):

@@ -63,8 +63,17 @@ and \code{\link[=deconvolute_ratios]{deconvolute_ratios()}} all use this expecte
 The observed Hessian \code{\link[=hessian_loglik_constrained]{hessian_loglik_constrained()}} is for Newton
 steps only; it is not the Wald covariance.
 }
+\examples{
+# Two cell types: a single unconstrained ILR coordinate maps back to
+# a rank-1 covariance on the simplex (rows sum to zero).
+p <- c(ct1 = 0.6, ct2 = 0.4)
+mu <- cbind(ct1 = c(0, 0), ct2 = c(3, 0))
+Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+v <- vcov_ilr_delta(p, mu, Sigma)
+round(v, 4)
+abs(rowSums(v)) < 1e-10
+}
 \seealso{
 \code{\link[=expected_fisher_unconstrained]{expected_fisher_unconstrained()}}, \code{\link[=vcov.decovart_fit]{vcov.decovart_fit()}},
 \code{\link[=confint.decovart_fit]{confint.decovart_fit()}}, \code{\link[=jacobian_isometric_logistic]{jacobian_isometric_logistic()}}
 }
-\keyword{internal}

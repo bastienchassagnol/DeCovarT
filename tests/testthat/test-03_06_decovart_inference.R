@@ -1,3 +1,15 @@
+# rOpenSci srr tags for interior / boundary inference live here so
+# compliance is documented under tests/ as well as R/.
+#
+#' @srrstats {RE4.3} Profile intervals (`confint_profile_decovart()`),
+#'   interior and boundary LRTs (`lrt_decovart()`), and bootstrap
+#'   calibrations (`bootstrap_decovart()`,
+#'   `reference_bootstrap_decovart()`) are exercised below.
+#' @srrstats {G5.8} Zero-proportion (active-face) nulls use the
+#'   chi-bar-square mixture rather than a Wald / Wilks \(\chi^2_1\).
+#' @srrstats {G5.9b} `multistart_decovart()` sequences several
+#'   Dirichlet starts; spread of attained log-likelihoods is recorded.
+
 .inference_setup <- function() {
   signature <- matrix(
     c(20, 40, 15, 40, 20, 25, 25, 30, 35),

@@ -21,7 +21,7 @@ Depends:
     R (>= 4.1.0)
 Imports:
     dplyr,
-    ggplot2 (>= 3.4.0),
+    ggplot2 (>= 3.5.0),
     marqLevAlg,
     MASS,
     Matrix,
@@ -78,10 +78,10 @@ Suggests:
     tinytable (>= 0.15.0),
     viridis,
     withr
-VignetteBuilder: 
+VignetteBuilder:
     knitr,
     quarto
-RdMacros: 
+RdMacros:
     Rdpack
 Config/roxygen2/version: 8.1.0
 Config/testthat/edition: 3
@@ -89,3 +89,4 @@ Encoding: UTF-8
 Language: en-GB
 Roxygen: list(markdown = TRUE, roclets = c("namespace", "rd",
     "srr::srr_stats_roclet"))
+RoxygenNote: 8.1.0

@@ -1,3 +1,4 @@
+# nocov start
 #' Check that an optional Suggests package is installed
 #'
 #' @param pkg Package name.
@@ -13,3 +14,4 @@
   }
   invisible(TRUE)
 }
+# nocov end

@@ -2139,7 +2139,7 @@ $$
 \text{observation model}
 $$ {#eq-benchmark-pipe}
 
-Prefer: 
+Prefer:
 - uniform spectral shift (@eq-spectral-shift) or partial-correlation scaling (@eq-partial-scale) when support and signs are exact; $G$-Wishart when support and signs are approximate.
 - composition grid from uniform ($H^{\star}=1$) to near-pure ($H^{\star}\approx 0$), matching the `SimBu` fraction vocabulary when comparing to pseudo-bulk tools (@fig-simbu-entropy).
 - add the mean layer **independently** of graph generation.
@@ -2248,12 +2248,12 @@ ademp <- data.frame(
 tinytable::tt(ademp, width = 1)
 ```
 
-> Visualisation plots: 
+> Visualisation plots:
 
 - `plot_mc_raincloud()` shows the sampling distribution of
 $\hat p_j-p_j^{\star}$; inner / outer bars are empirical Monte Carlo
 quantiles, not a CI for $p$
-[@allenRaincloudPlotsMultiplatform2019]. 
+[@allenRaincloudPlotsMultiplatform2019].
 - `plot_mc_forest()` is the ADEMP ranking companion (Wilson whiskers on the coverage *rate*).
 - `plot_algorithm_similarity()` is behavioural correlation of $\hat{\boldsymbol{p}}$, not numerical agreement.
 - `plot_mc_metric_dots()` facets by metric with a single min–max colour scale.
@@ -2294,8 +2294,8 @@ used at NeurIPS is five items.
 ## rOpenSci statistical standards {#sec-srr}
 
 rOpenSci [statistical software standards](https://stats-devguide.ropensci.org/standards.html)
-are tagged in `R/srr-stats-standards.R` (srrstats, srrstatsNA,
-srrstatsTODO) and on the exported helpers. The load-bearing blocks
+are tagged in `R/srr-stats-standards.R` (`@srrstats` or
+`@srrstatsNA`) and on the exported helpers. The load-bearing blocks
 are:
 
 - **General / testing (G\*):** input checks and missing-data policy on
@@ -2307,8 +2307,9 @@ are:
   log-likelihood, score, and Hessian.
 
 Do not add a second copy of those tags in vignettes. Runtime scaling
-of solvers versus \(G\) and \(J\) remains srrstatsTODO (G5.7,
-RE5.0). ADEMP columns themselves are this section.
+of solvers versus \(G\) and \(J\) is documented as not applicable
+(G5.7, RE5.0; companion repository). ADEMP columns themselves are
+this section.
 
 ## What is deliberately absent
 

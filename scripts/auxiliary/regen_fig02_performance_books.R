@@ -66,21 +66,21 @@ save_bivariate_convergence_book(
 )
 
 message("qq / ks…")
-  save_bivariate_qq_book(
-    artefacts,
-    file.path(PERF_DIR, "qq_normal.pdf"),
-    data_rds = GGPLOT_RDS_DIR
-  )
-  save_bivariate_ks_book(
-    artefacts,
-    file.path(PERF_DIR, "ks_normal.pdf"),
-    data_rds = GGPLOT_RDS_DIR
-  )
-  save_bivariate_chi2_book(
-    artefacts,
-    file.path(PERF_DIR, "qq_chi2.pdf"),
-    data_rds = GGPLOT_RDS_DIR
-  )
+save_bivariate_qq_book(
+  artefacts,
+  file.path(PERF_DIR, "qq_normal.pdf"),
+  data_rds = GGPLOT_RDS_DIR
+)
+save_bivariate_ks_book(
+  artefacts,
+  file.path(PERF_DIR, "ks_normal.pdf"),
+  data_rds = GGPLOT_RDS_DIR
+)
+save_bivariate_chi2_book(
+  artefacts,
+  file.path(PERF_DIR, "qq_chi2.pdf"),
+  data_rds = GGPLOT_RDS_DIR
+)
 
 message("similarity…")
 save_bivariate_similarity_book(

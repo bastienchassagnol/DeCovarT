@@ -28,6 +28,7 @@ format:
 #| label: setup
 #| include: false
 library(DeCovarT)
+expected_fisher_unconstrained <- DeCovarT:::expected_fisher_unconstrained
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",

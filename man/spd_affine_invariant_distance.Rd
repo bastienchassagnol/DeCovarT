@@ -20,6 +20,14 @@ Do \strong{not} use the Frobenius
 \eqn{\lVert A-B\rVert_F}: that Euclidean chord leaves the cone,
 is not inversion-invariant, and suffers the swelling effect.
 }
+\examples{
+# Two bivariate Gaussians: identity vs a correlated SPD covariance.
+a <- diag(2)
+b <- matrix(c(2, 0.5, 0.5, 1), nrow = 2)
+spd_affine_invariant_distance(a, a)
+d <- spd_affine_invariant_distance(a, b)
+d > 0
+}
 \seealso{
 \code{\link[=compute_average_riemannian]{compute_average_riemannian()}}
 }

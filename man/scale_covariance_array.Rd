@@ -22,3 +22,4 @@ Replaces each \eqn{\Sigma_j} by \eqn{s\Sigma_j}. Then
 \seealso{
 \code{\link[=scale_covariances_to_overlap]{scale_covariances_to_overlap()}}
 }
+\keyword{internal}

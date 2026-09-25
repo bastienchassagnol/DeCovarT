@@ -34,3 +34,4 @@ does not duplicate geometry, MixSim, or \verb{\\theta}.
 \seealso{
 \code{\link[=read_simulation_artefacts]{read_simulation_artefacts()}}
 }
+\keyword{internal}

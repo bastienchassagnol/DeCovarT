@@ -2,32 +2,39 @@
 #'
 #' @keywords internal
 #' @noRd
-.sobol_unit_cube <- function(n, d, seed = NULL) {
-  n <- as.integer(n)
-  d <- as.integer(d)
-  if (n < 1L || d < 1L) {
-    stop("`n` and `d` must be positive integers.", call. = FALSE)
-  }
-  if (requireNamespace("qrng", quietly = TRUE)) {
-    args <- list(n = n, d = d, randomize = "digital.shift")
+.sobol_unit_cube <- local({
+  cache <- new.env(parent = emptyenv())
+  cache$warned <- FALSE
+  function(n, d, seed = NULL) {
+    n <- as.integer(n)
+    d <- as.integer(d)
+    if (n < 1L || d < 1L) {
+      stop("`n` and `d` must be positive integers.", call. = FALSE)
+    }
+    if (requireNamespace("qrng", quietly = TRUE)) {
+      args <- list(n = n, d = d, randomize = "digital.shift")
+      if (!is.null(seed)) {
+        args$seed <- as.integer(seed)
+      }
+      u <- do.call(qrng::sobol, args)
+      if (is.null(dim(u))) {
+        u <- matrix(u, ncol = 1L)
+      }
+      return(u)
+    }
+    if (!isTRUE(cache$warned)) {
+      .ui_warn(
+        "{.pkg qrng} is not installed; Sobol points fall back to",
+        " {.fn stats::runif}."
+      )
+      cache$warned <- TRUE
+    }
     if (!is.null(seed)) {
-      args$seed <- as.integer(seed)
+      set.seed(seed)
     }
-    u <- do.call(qrng::sobol, args)
-    if (is.null(dim(u))) {
-      u <- matrix(u, ncol = 1L)
-    }
-    return(u)
+    matrix(stats::runif(n * d), nrow = n, ncol = d)
   }
-  .ui_warn(
-    "{.pkg qrng} is not installed; Sobol points fall back to",
-    " {.fn stats::runif}."
-  )
-  if (!is.null(seed)) {
-    set.seed(seed)
-  }
-  matrix(stats::runif(n * d), nrow = n, ncol = d)
-}
+})
 
 #' Inverse-transform Gaussian draws from unit-cube points
 #'
@@ -215,6 +222,13 @@ overlap_gaussian_mc <- function(
 #' @return Non-negative scalar.
 #' @export
 #' @seealso [compute_average_riemannian()]
+#' @examples
+#' # Two bivariate Gaussians: identity vs a correlated SPD covariance.
+#' a <- diag(2)
+#' b <- matrix(c(2, 0.5, 0.5, 1), nrow = 2)
+#' spd_affine_invariant_distance(a, a)
+#' d <- spd_affine_invariant_distance(a, b)
+#' d > 0
 spd_affine_invariant_distance <- function(a, b) {
   a <- as.matrix(a)
   b <- as.matrix(b)
@@ -240,6 +254,19 @@ spd_affine_invariant_distance <- function(a, b) {
 #'   \eqn{j<\ell}.
 #' @export
 #' @seealso [spd_affine_invariant_distance()]
+#' @examples
+#' a <- diag(2)
+#' b <- matrix(c(2, 0.5, 0.5, 1), nrow = 2)
+#' theta <- list(
+#'   mu = cbind(c(0, 0), c(1, 0)),
+#'   sigma = array(c(a, b), dim = c(2, 2, 2))
+#' )
+#' compute_average_riemannian(theta)
+#' # J = 2 has a single pair, so the average equals the pairwise AIRM.
+#' all.equal(
+#'   compute_average_riemannian(theta),
+#'   spd_affine_invariant_distance(a, b)
+#' )
 compute_average_riemannian <- function(true_theta, J = NULL) {
   theta <- .parse_true_theta(
     true_theta,
@@ -273,7 +300,7 @@ compute_average_riemannian <- function(true_theta, J = NULL) {
 #' @param sigma \eqn{G\times G\times J} covariance array.
 #' @param scale Positive scalar \eqn{s}.
 #' @return Scaled array.
-#' @export
+#' @keywords internal
 #' @seealso [scale_covariances_to_overlap()]
 scale_covariance_array <- function(sigma, scale) {
   scale <- as.numeric(scale)
@@ -319,7 +346,7 @@ scale_covariance_array <- function(sigma, scale) {
 #'
 #' @return A list with `sigma`, `Theta`, `scale`, `baromega`, and
 #'   `target`.
-#' @export
+#' @keywords internal
 scale_covariances_to_overlap <- function(
   mu,
   sigma,

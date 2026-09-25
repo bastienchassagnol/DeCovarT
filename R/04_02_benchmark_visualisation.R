@@ -459,7 +459,7 @@ plot_correlation_Heatmap <- function(
         fill = ggplot2::alpha("white", 0.92),
         size = size,
         fontface = "bold",
-        label.size = 0.25,
+        linewidth = 0.25,
         label.padding = grid::unit(0.12, "lines")
       )
   }
@@ -840,9 +840,8 @@ pivot_mc_estimates <- function(benchmark) {
 #' @param ... Passed to [ggplot2::theme()].
 #'
 #' @return A `ggplot2` theme object.
-#' @export
-#' @seealso [plot_mc_forest()], [plot_mc_raincloud()],
-#'   [plot_bivariate_metric_tiles()]
+#' @keywords internal
+#' @seealso [plot_mc_forest()], [plot_mc_raincloud()]
 theme_decovart_facets <- function(base_size = 11, ...) {
   ggplot2::theme_minimal(base_size = base_size) +
     ggplot2::theme(

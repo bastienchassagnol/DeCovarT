@@ -364,7 +364,6 @@ fit_decovart <- function(
 #'   [confint.decovart_fit()], [.inner_product()]
 #'
 #' @keywords internal
-#' @export
 expected_fisher_unconstrained <- function(
   p,
   mean_signature_matrix,
@@ -444,8 +443,16 @@ expected_fisher_unconstrained <- function(
 #' @seealso [expected_fisher_unconstrained()], [vcov.decovart_fit()],
 #'   [confint.decovart_fit()], [jacobian_isometric_logistic()]
 #'
-#' @keywords internal
 #' @export
+#' @examples
+#' # Two cell types: a single unconstrained ILR coordinate maps back to
+#' # a rank-1 covariance on the simplex (rows sum to zero).
+#' p <- c(ct1 = 0.6, ct2 = 0.4)
+#' mu <- cbind(ct1 = c(0, 0), ct2 = c(3, 0))
+#' Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+#' v <- vcov_ilr_delta(p, mu, Sigma)
+#' round(v, 4)
+#' abs(rowSums(v)) < 1e-10
 vcov_ilr_delta <- function(
   p,
   mean_signature_matrix,

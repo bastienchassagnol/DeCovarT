@@ -1,3 +1,7 @@
+if (!exists("theme_decovart_facets", mode = "function", inherits = TRUE)) {
+  theme_decovart_facets <- DeCovarT:::theme_decovart_facets
+}
+
 #' Convolution covariance \eqn{\Sigma(p)=\sum_j p_j^2 \Sigma_j}
 #'
 #' @keywords internal
@@ -2712,7 +2716,7 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
       size = annot_size,
       fontface = "bold",
       lineheight = 0.95,
-      label.size = 0.2,
+      linewidth = 0.2,
       label.padding = grid::unit(0.18, "lines"),
       fill = ggplot2::alpha("white", 0.88),
       show.legend = FALSE

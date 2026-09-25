@@ -48,3 +48,4 @@ average overlap while leaving graph zeros intact. This is the
 graph-constrained analogue of MixSim / FSDA's average-overlap
 generator, which cannot take a precision support as input.
 }
+\keyword{internal}

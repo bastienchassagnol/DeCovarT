@@ -233,7 +233,6 @@ reference:
       delta-method covariance used by `vcov()` / `confint()` on
       `decovart_fit` objects (see `fit_decovart`).
     contents:
-      - expected_fisher_unconstrained
       - vcov_ilr_delta
   - subtitle: Likelihood-ratio and boundary inference
     desc: |
@@ -266,53 +265,10 @@ reference:
       - pivot_mc_estimates
       - plot_mc_raincloud
       - plot_mc_forest
-      - theme_decovart_facets
       - algorithm_similarity
       - plot_algorithm_similarity
       - plot_mc_metric_dots
       - plot_correlation_Heatmap
-      - write_simulation_artefacts
-      - read_simulation_artefacts
-      - slim_scenario_table
-      - plot_purified_density_2d
-      - plot_bulk_convolution_density_2d
-      - gaussian_confidence_ellipse
-      - plot_bulk_loglik_surface_p
-      - plot_bulk_loglik_ilr_profile
-      - plot_bulk_loglik_rgl
-      - plot_bivariate_metric_tiles
-      - save_bivariate_metric_heatmaps
-      - save_bivariate_similarity_book
-      - save_bivariate_forest_book
-      - save_bivariate_raincloud_book
-      - save_bivariate_dotsinterval_book
-      - save_bivariate_kkt_raincloud_book
-      - save_bivariate_convergence_book
-      - save_bivariate_qq_book
-      - save_bivariate_ks_book
-      - save_bivariate_chi2_book
-      - plot_kkt_raincloud
-      - plot_convergence_stacked
-      - plot_mc_qq_normal
-      - plot_mc_chi2_qq
-      - plot_ks_normality_box
-      - save_bivariate_solver_dots_book
-      - save_bivariate_bulk_density_book
-      - save_bivariate_loglik_ilr_profile_book
-      - save_bivariate_loglik_rgl_book
-      - save_bivariate_loglik_surface_p_book
-      - save_bivariate_expected_loglik_surface_p_book
-      - save_bivariate_expected_loglik_ilr_profile_book
-      - save_bivariate_purified_density_book
-      - save_mean_signature_heatmap
-      - save_network_topology_book
-      - save_pairwise_network_distance_heatmap
-      - save_scenario_metrics_funkyheatmap
-      - save_hybrid_latent_projection_book
-      - save_hybrid_runtime_book
-      - save_hybrid_memory_book
-      - save_bivariate_runtime_book
-      - save_bivariate_memory_book
   - title: Simulation
   - subtitle: Toy bulk mixtures
     desc: |
@@ -337,8 +293,6 @@ reference:
       - overlap_gaussian_mc
       - spd_affine_invariant_distance
       - compute_average_riemannian
-      - scale_covariance_array
-      - scale_covariances_to_overlap
       - compute_average_jeffreys
       - compute_glmnet_gene_scores
 
