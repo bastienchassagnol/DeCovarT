@@ -36,8 +36,7 @@
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
-    <li><a class="dropdown-item" href="articles/theory-related-models-beyond-OLS.html"><span class="fa fa-equals"></span> Literature review and alternatives to OLS</a></li>
-    <li><a class="dropdown-item" href="articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: Bayesian, quasi-likelihood, and more</a></li>
+    <li><a class="dropdown-item" href="articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: OLS, Bayesian, quasi-likelihood, and more</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary simulation appendix</h6></li>
     <li><a class="dropdown-item" href="articles/supp-S1-identifiability.html"><span class="fa fa-vial"></span> App. S1 · Regular-case MLE and identifiability</a></li>
@@ -68,9 +67,9 @@
     </div>
 
 <div class="section level2">
-<h2 id="checks-for-decovart-v201">Checks for <a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">DeCovarT (v2.0.1)</a>
-<a class="anchor" aria-label="anchor" href="#checks-for-decovart-v201"></a></h2>
-<p>git hash: <a href="https://github.com/bastienchassagnol/DeCovarT/tree/0029d1d44f0aefd4798840244042ec008d56d188" class="external-link">0029d1d4</a></p>
+<h2 id="checks-for-decovart-v231">Checks for <a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">DeCovarT (v2.3.1)</a>
+<a class="anchor" aria-label="anchor" href="#checks-for-decovart-v231"></a></h2>
+<p>git hash: <a href="https://github.com/bastienchassagnol/DeCovarT/tree/14d0df9e2bbdb56b814de4e5056f757f1ef6133c" class="external-link">14d0df9e</a></p>
 <ul><li>
 <span class="emoji" data-emoji="heavy_check_mark">✔️</span> Package name is available</li>
 <li>
@@ -88,9 +87,11 @@
 <li>
 <span class="emoji" data-emoji="heavy_check_mark">✔️</span> Repository has a website</li>
 <li>
-<span class="emoji" data-emoji="heavy_check_mark">✔️</span> Package has continuous integration checks.</li>
+<span class="emoji" data-emoji="heavy_multiplication_x">✖️</span> Package has no continuous integration checks.</li>
 <li>
-<span class="emoji" data-emoji="heavy_check_mark">✔️</span> Package coverage is 86.1%.</li>
+<span class="emoji" data-emoji="heavy_check_mark">✔️</span> Package coverage is 81.4%.</li>
+<li>
+<span class="emoji" data-emoji="heavy_check_mark">✔️</span> This is a statistical package which complies with all applicable standards</li>
 <li>
 <span class="emoji" data-emoji="heavy_check_mark">✔️</span> R CMD check found no errors.</li>
 <li>
@@ -98,11 +99,19 @@
 <li>
 <span class="emoji" data-emoji="eyes">👀</span> Some goodpractice linters failed.</li>
 <li>
-<span class="emoji" data-emoji="eyes">👀</span> Package has unusually large number of 20 Imports (&gt; 98% of all packages)</li>
-</ul><p>(Checks marked with <span class="emoji" data-emoji="eyes">👀</span> may be optionally addressed.)</p>
+<span class="emoji" data-emoji="eyes">👀</span> Examples should not use <code>\dontrun{}</code> unless really necessary.</li>
+</ul><p><strong>Important:</strong> All failing checks above must be addressed prior to proceeding</p>
+<p>(Checks marked with <span class="emoji" data-emoji="eyes">👀</span> may be optionally addressed.)</p>
 <p>Package License: MIT + file LICENSE</p>
 <hr><div class="section level3">
-<h3 id="id_1-package-dependencies">1. Package Dependencies<a class="anchor" aria-label="anchor" href="#id_1-package-dependencies"></a></h3>
+<h3 id="id_1-ropensci-statistical-standards-srr-package">1. rOpenSci Statistical Standards (<a href="https://github.com/ropensci-review-tools/srr" class="external-link"><code>srr</code> package</a>)<a class="anchor" aria-label="anchor" href="#id_1-ropensci-statistical-standards-srr-package"></a></h3>
+<p>This package is in the following category:</p>
+<ul><li><em>Regression and Supervised Learning</em></li>
+</ul><p><span class="emoji" data-emoji="heavy_check_mark">✔️</span> All applicable standards [v0.2.0] have been documented in this package (162 complied with; 37 N/A standards)</p>
+<p>Click to see the <a href="/home/bastien/.cache/R/pkgcheck/static/DeCovarT_srr14d0df9e.html">report of author-reported standards compliance of the package with links to associated lines of code</a>, which can be re-generated locally by running the <a href="https://docs.ropensci.org/srr/reference/srr_report.html" class="external-link"><code>srr_report()</code> function</a> from within a local clone of the repository.</p>
+<hr></div>
+<div class="section level3">
+<h3 id="id_2-package-dependencies">2. Package Dependencies<a class="anchor" aria-label="anchor" href="#id_2-package-dependencies"></a></h3>
 <details><summary>
 Details of Package Dependency Usage (click to open)
 </summary><p>
@@ -113,79 +122,61 @@ Details of Package Dependency Usage (click to open)
 <th align="right">ncalls</th>
 </tr></thead><tbody><tr><td align="left">internal</td>
 <td align="left">base</td>
-<td align="right">294</td>
+<td align="right">1562</td>
 </tr><tr><td align="left">internal</td>
 <td align="left">DeCovarT</td>
-<td align="right">54</td>
+<td align="right">146</td>
 </tr><tr><td align="left">internal</td>
 <td align="left">stats</td>
-<td align="right">22</td>
-</tr><tr><td align="left">internal</td>
-<td align="left">boot</td>
-<td align="right">10</td>
-</tr><tr><td align="left">internal</td>
-<td align="left">grid</td>
-<td align="right">7</td>
+<td align="right">137</td>
 </tr><tr><td align="left">internal</td>
 <td align="left">utils</td>
-<td align="right">6</td>
+<td align="right">52</td>
 </tr><tr><td align="left">internal</td>
 <td align="left">graphics</td>
-<td align="right">4</td>
+<td align="right">28</td>
 </tr><tr><td align="left">internal</td>
-<td align="left">Matrix</td>
+<td align="left">mgcv</td>
+<td align="right">17</td>
+</tr><tr><td align="left">internal</td>
+<td align="left">grid</td>
+<td align="right">9</td>
+</tr><tr><td align="left">internal</td>
+<td align="left">boot</td>
 <td align="right">2</td>
 </tr><tr><td align="left">internal</td>
-<td align="left">parallel</td>
+<td align="left">lattice</td>
 <td align="right">1</td>
+</tr><tr><td align="left">internal</td>
+<td align="left">methods</td>
+<td align="right">1</td>
+</tr><tr><td align="left">internal</td>
+<td align="left">tools</td>
+<td align="right">1</td>
+</tr><tr><td align="left">imports</td>
+<td align="left">ggplot2</td>
+<td align="right">46</td>
+</tr><tr><td align="left">imports</td>
+<td align="left">dplyr</td>
+<td align="right">40</td>
+</tr><tr><td align="left">imports</td>
+<td align="left">purrr</td>
+<td align="right">15</td>
+</tr><tr><td align="left">imports</td>
+<td align="left">Matrix</td>
+<td align="right">14</td>
+</tr><tr><td align="left">imports</td>
+<td align="left">tibble</td>
+<td align="right">14</td>
 </tr><tr><td align="left">imports</td>
 <td align="left">tensor</td>
 <td align="right">6</td>
 </tr><tr><td align="left">imports</td>
-<td align="left">dplyr</td>
-<td align="right">5</td>
-</tr><tr><td align="left">imports</td>
-<td align="left">purrr</td>
-<td align="right">5</td>
-</tr><tr><td align="left">imports</td>
-<td align="left">tibble</td>
-<td align="right">5</td>
-</tr><tr><td align="left">imports</td>
-<td align="left">igraph</td>
+<td align="left">MASS</td>
 <td align="right">4</td>
 </tr><tr><td align="left">imports</td>
-<td align="left">e1071</td>
-<td align="right">3</td>
-</tr><tr><td align="left">imports</td>
-<td align="left">Metrics</td>
-<td align="right">3</td>
-</tr><tr><td align="left">imports</td>
-<td align="left">circlize</td>
-<td align="right">2</td>
-</tr><tr><td align="left">imports</td>
-<td align="left">MASS</td>
-<td align="right">2</td>
-</tr><tr><td align="left">imports</td>
-<td align="left">ComplexHeatmap</td>
-<td align="right">1</td>
-</tr><tr><td align="left">imports</td>
-<td align="left">limSolve</td>
-<td align="right">1</td>
-</tr><tr><td align="left">imports</td>
-<td align="left">methods</td>
-<td align="right">1</td>
-</tr><tr><td align="left">imports</td>
-<td align="left">MixSim</td>
-<td align="right">1</td>
-</tr><tr><td align="left">imports</td>
-<td align="left">nnls</td>
-<td align="right">1</td>
-</tr><tr><td align="left">imports</td>
-<td align="left">glmnet</td>
-<td align="right">1</td>
-</tr><tr><td align="left">imports</td>
 <td align="left">tidyr</td>
-<td align="right">1</td>
+<td align="right">2</td>
 </tr><tr><td align="left">imports</td>
 <td align="left">marqLevAlg</td>
 <td align="right">NA</td>
@@ -195,17 +186,74 @@ Details of Package Dependency Usage (click to open)
 </tr><tr><td align="left">imports</td>
 <td align="left">rlang</td>
 <td align="right">NA</td>
-</tr><tr><td align="left">imports</td>
-<td align="left">viridis</td>
-<td align="right">NA</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">future</td>
+<td align="right">4</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">igraph</td>
+<td align="right">4</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">e1071</td>
+<td align="right">3</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">circlize</td>
+<td align="right">2</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">cli</td>
+<td align="right">2</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">ggdendro</td>
+<td align="right">2</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">ggdist</td>
+<td align="right">2</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">ComplexHeatmap</td>
+<td align="right">1</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">cowplot</td>
+<td align="right">1</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">furrr</td>
+<td align="right">1</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">glmnet</td>
+<td align="right">1</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">limSolve</td>
+<td align="right">1</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">nnls</td>
+<td align="right">1</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">ps</td>
+<td align="right">1</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">qrng</td>
+<td align="right">1</td>
 </tr><tr><td align="left">suggests</td>
 <td align="left">compositions</td>
+<td align="right">NA</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">EMMIXmfa</td>
 <td align="right">NA</td>
 </tr><tr><td align="left">suggests</td>
 <td align="left">flextable</td>
 <td align="right">NA</td>
 </tr><tr><td align="left">suggests</td>
-<td align="left">ggplot2</td>
+<td align="left">forcats</td>
+<td align="right">NA</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">funkyheatmap</td>
+<td align="right">NA</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">ggtext</td>
+<td align="right">NA</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">gridExtra</td>
+<td align="right">NA</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">htmlwidgets</td>
 <td align="right">NA</td>
 </tr><tr><td align="left">suggests</td>
 <td align="left">knitr</td>
@@ -214,13 +262,37 @@ Details of Package Dependency Usage (click to open)
 <td align="left">litedown</td>
 <td align="right">NA</td>
 </tr><tr><td align="left">suggests</td>
+<td align="left">mclust</td>
+<td align="right">NA</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">Metrics</td>
+<td align="right">NA</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">MixSim</td>
+<td align="right">NA</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">mvtnorm</td>
+<td align="right">NA</td>
+</tr><tr><td align="left">suggests</td>
 <td align="left">numDeriv</td>
+<td align="right">NA</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">patchwork</td>
 <td align="right">NA</td>
 </tr><tr><td align="left">suggests</td>
 <td align="left">pkgdown</td>
 <td align="right">NA</td>
 </tr><tr><td align="left">suggests</td>
+<td align="left">plotly</td>
+<td align="right">NA</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">png</td>
+<td align="right">NA</td>
+</tr><tr><td align="left">suggests</td>
 <td align="left">quarto</td>
+<td align="right">NA</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">qqplotr</td>
 <td align="right">NA</td>
 </tr><tr><td align="left">suggests</td>
 <td align="left">reactable</td>
@@ -229,7 +301,13 @@ Details of Package Dependency Usage (click to open)
 <td align="left">readr</td>
 <td align="right">NA</td>
 </tr><tr><td align="left">suggests</td>
+<td align="left">rgl</td>
+<td align="right">NA</td>
+</tr><tr><td align="left">suggests</td>
 <td align="left">rmarkdown</td>
+<td align="right">NA</td>
+</tr><tr><td align="left">suggests</td>
+<td align="left">spelling</td>
 <td align="right">NA</td>
 </tr><tr><td align="left">suggests</td>
 <td align="left">stringr</td>
@@ -241,6 +319,9 @@ Details of Package Dependency Usage (click to open)
 <td align="left">tinytable</td>
 <td align="right">NA</td>
 </tr><tr><td align="left">suggests</td>
+<td align="left">viridis</td>
+<td align="right">NA</td>
+</tr><tr><td align="left">suggests</td>
 <td align="left">withr</td>
 <td align="right">NA</td>
 </tr><tr><td align="left">linking_to</td>
@@ -250,27 +331,62 @@ Details of Package Dependency Usage (click to open)
 <details><summary>
 base
 </summary><p>
-list (36), for (17), if (16), seq_len (16), rep (14), is.null (12), length (11), dim (10), nrow (9), matrix (8), ncol (8), array (7), as.matrix (7), c (6), as.numeric (5), paste0 (5), sum (5), diag (4), names (4), return (4), solve (4), sqrt (4), t (4), beta (3), colnames (3), dimnames (3), drop (3), max (3), tcrossprod (3), all.equal (2), chol (2), col (2), do.call (2), factor (2), gsub (2), isTRUE (2), lapply (2), min (2), numeric (2), round (2), rownames (2), seq_along (2), suppressWarnings (2), tryCatch (2), as.character (1), as.integer (1), as.list (1), as.vector (1), character (1), chol2inv (1), crossprod (1), eigen (1), emptyenv (1), exp (1), F (1), intersect (1), levels (1), local (1), log (1), mean (1), new.env (1), proportions (1), row.names (1), rowSums (1), sample.int (1), scale (1), search (1), seq (1), seq.int (1), switch (1), unique (1), upper.tri (1), which (1), which.max (1)
+list (149), c (83), drop (67), for (60), if (59), seq_len (53), length (49), names (36), sum (36), nrow (33), ncol (32), matrix (30), dim (27), numeric (27), is.null (26), lapply (25), return (25), unique (25), message (24), rep (24), as.numeric (21), mean (19), as.matrix (18), as.character (17), max (17), colnames (16), diag (16), tryCatch (16), abs (14), chol (14), intersect (13), setdiff (13), sqrt (13), array (12), paste0 (12), seq_along (12), vapply (12), min (11), scale (11), as.integer (10), log (10), solve (10), t (10), crossprod (9), is.finite (9), isTRUE (9), levels (9), row (9), unname (9), by (8), dir (8), file.path (8), labels (8), vector (8), eigen (7), tcrossprod (7), backsolve (6), call (6), do.call (6), identical (6), split (6), args (5), col (5), data.frame (5), exp (5), parent.frame (5), q (5), seq.int (5), switch (5), apply (4), as.data.frame (4), cbind (4), character (4), dimnames (4), emptyenv (4), factor (4), ifelse (4), is.na (4), local (4), missing (4), new.env (4), paste (4), pmax (4), rownames (4), which (4), as.vector (3), beta (3), cumsum (3), match (3), order (3), row.names (3), sample.int (3), sub (3), tolower (3), unlist (3), upper.tri (3), which.max (3), all.equal (2), as.list (2), as.logical (2), colSums (2), format (2), integer (2), interaction (2), match.call (2), proc.time (2), proportions (2), qr (2), rank (2), raw (2), replace (2), round (2), sort (2), structure (2), system (2), use (2), all (1), any (1), as.factor (1), as.table (1), attr (1), body (1), choose (1), diff (1), droplevels (1), environment (1), expression (1), F (1), file (1), floor (1), formals (1), gsub (1), is.data.frame (1), is.list (1), log10 (1), Map (1), nzchar (1), options (1), outer (1), qr.Q (1), qr.solve (1), range (1), regexec (1), regmatches (1), rowMeans (1), rowSums (1), sample (1), search (1), seq (1), sprintf (1), suppressWarnings (1), svd (1), sweep (1), toString (1), toupper (1)
 </p>
 </details><details><summary>
 DeCovarT
 </summary><p>
-additive_logistic (10), additive_log_ratio (5), loglik_multivariate_constrained (3), build_covariance_array_from_precision (2), build_normalised_precision (2), compute_mean_profile_objectives (2), compute_shannon_entropy (2), deconvolute_ratios (2), gradient_loglik_constrained (2), gradient_loglik_unconstrained (2), assign_iid_signed_weights (1), benchmark_bivariate_gaussian_convolutions (1), check_true_theta (1), compute_average_jeffreys (1), compute_average_overlap (1), compute_benchmark_metrics (1), compute_glmnet_gene_scores (1), deconvolute_ratios_cibersort (1), deconvolute_ratios_deconrnaseq (1), deconvolute_ratios_gradient_descent (1), deconvolute_ratios_L_BFGS_B (1), deconvolute_ratios_lsfit (1), deconvolute_ratios_Marquardt_Levenberg (1), deconvolute_ratios_Newton_Raphson (1), deconvolute_ratios_nnls (1), generate_mean_signature_matrix (1), hessian_additive_logistic (1), jacobian_additive_logistic (1), loglik_multivariate (1), safe_gradient (1), safe_loglik (1), simulate_bulk_mixture (1)
+fn (14), isometric_logistic (9), assemble (8), isometric_log_ratio (7), loglik_multivariate (7), deviance (6), solve_fun (5), jacobian_isometric_logistic (4), log_det (4), overlap_at (4), pivot_mc_estimates (4), slim_metrics (4), additive_logistic (3), compute_mean_profile_objectives (3), coverage_mc_interval (3), gradient_loglik_unconstrained (3), join_cfg (3), loglik_multivariate_constrained (3), score (3), algorithm_similarity (2), build_normalised_precision (2), chi_bar_square_pvalue (2), compute_shannon_entropy (2), deconvolute_ratios (2), describe_simulation_scenario (2), gradient_loglik_constrained (2), scale_covariance_array (2), add_one (1), additive_log_ratio (1), assign_iid_signed_weights (1), bootstrap_decovart (1), boundary_diagnostics (1), build_covariance_array_from_precision (1), check_true_theta (1), clr (1), coef.decovart_fit (1), composition_from_entropy (1), compute_average_jeffreys (1), compute_average_overlap (1), compute_average_riemannian (1), compute_benchmark_metrics (1), compute_glmnet_gene_scores (1), confint_profile_decovart (1), confint.decovart_fit (1), covariance_structure_from_graph_model (1), deconvolute_ratios_L_BFGS_B (1), deconvolute_ratios_Marquardt_Levenberg (1), equicorrelation_gram (1), expected_fisher_unconstrained (1), generate_mean_signature_matrix (1), helmert_basis (1), hessian_isometric_logistic (1), hessian_loglik_constrained (1), lab_fun (1), multistart_decovart (1), objective (1), pooled_loglik (1), safe_gradient (1), safe_loglik (1), simulate_bulk_mixture (1)
 </p>
 </details><details><summary>
 stats
 </summary><p>
-sigma (6), family (3), optim (3), coef (2), start (2), cor (1), kernel (1), lsfit (1), median (1), nlminb (1), power (1)
+sigma (17), df (14), loadings (14), coefficients (12), setNames (7), weights (7), cov (6), density (6), start (6), optim (5), qnorm (5), sd (4), coef (3), cor (3), family (3), rgamma (3), dbinom (2), qchisq (2), uniroot (2), as.dist (1), fitted (1), fitted.values (1), formula (1), hclust (1), kernel (1), median (1), na.omit (1), nlminb (1), pchisq (1), power (1), reformulate (1), residuals (1), step (1), vcov (1), xtabs (1)
 </p>
 </details><details><summary>
-boot
+utils
 </summary><p>
-control (10)
+data (46), fix (3), methods (1), packageVersion (1), write.csv (1)
+</p>
+</details><details><summary>
+ggplot2
+</summary><p>
+element_rect (6), aes (5), element_blank (5), element_text (4), expansion (4), ggplot (4), position_dodge (4), coord_cartesian (3), margin (3), geom_vline (2), after_scale (1), alpha (1), geom_point (1), geom_tile (1), label_value (1), scale_x_discrete (1)
+</p>
+</details><details><summary>
+dplyr
+</summary><p>
+left_join (10), bind_rows (6), all_of (4), distinct (3), filter (3), mutate (3), any_of (2), select (2), across (1), bind_cols (1), case_when (1), group_by (1), n_distinct (1), pull (1), summarise (1)
+</p>
+</details><details><summary>
+graphics
+</summary><p>
+stem (8), par (5), text (4), clip (3), title (3), lines (2), abline (1), axis (1), layout (1)
+</p>
+</details><details><summary>
+mgcv
+</summary><p>
+s (11), ridge (5), intervals (1)
+</p>
+</details><details><summary>
+purrr
+</summary><p>
+map (9), imap (2), map_dfr (2), map_lgl (1), pmap_dfr (1)
+</p>
+</details><details><summary>
+Matrix
+</summary><p>
+expand (5), Cholesky (4), solve (2), determinant (1), forceSymmetric (1), Matrix (1)
+</p>
+</details><details><summary>
+tibble
+</summary><p>
+tibble (12), as_tibble (2)
 </p>
 </details><details><summary>
 grid
 </summary><p>
-gpar (5), unit (2)
+gpar (5), unit (4)
 </p>
 </details><details><summary>
 tensor
@@ -278,29 +394,9 @@ tensor
 tensor (6)
 </p>
 </details><details><summary>
-utils
+future
 </summary><p>
-fix (3), data (1), packageDescription (1), packageVersion (1)
-</p>
-</details><details><summary>
-dplyr
-</summary><p>
-all_of (2), bind_rows (2), row_number (1)
-</p>
-</details><details><summary>
-purrr
-</summary><p>
-map (2), imap (1), imap_dfr (1), pmap (1)
-</p>
-</details><details><summary>
-tibble
-</summary><p>
-tibble (3), as_tibble (2)
-</p>
-</details><details><summary>
-graphics
-</summary><p>
-par (3), title (1)
+multisession (2), plan (2)
 </p>
 </details><details><summary>
 igraph
@@ -308,14 +404,19 @@ igraph
 make_empty_graph (2), sample_gnp (2)
 </p>
 </details><details><summary>
+MASS
+</summary><p>
+mvrnorm (2), lm.gls (1), rlm (1)
+</p>
+</details><details><summary>
 e1071
 </summary><p>
 tune.control (3)
 </p>
 </details><details><summary>
-Metrics
+boot
 </summary><p>
-mae (1), mse (1), rmse (1)
+boot (2)
 </p>
 </details><details><summary>
 circlize
@@ -323,14 +424,24 @@ circlize
 colorRamp2 (2)
 </p>
 </details><details><summary>
-MASS
+cli
 </summary><p>
-mvrnorm (1), rlm (1)
+format_inline (2)
 </p>
 </details><details><summary>
-Matrix
+ggdendro
 </summary><p>
-s (2)
+dendro_data (1), segment (1)
+</p>
+</details><details><summary>
+ggdist
+</summary><p>
+density_bounded (1), median_qi (1)
+</p>
+</details><details><summary>
+tidyr
+</summary><p>
+pivot_longer (1), pivot_wider (1)
 </p>
 </details><details><summary>
 ComplexHeatmap
@@ -338,9 +449,24 @@ ComplexHeatmap
 Heatmap (1)
 </p>
 </details><details><summary>
+cowplot
+</summary><p>
+plot_grid (1)
+</p>
+</details><details><summary>
+furrr
+</summary><p>
+furrr_options (1)
+</p>
+</details><details><summary>
 glmnet
 </summary><p>
 glmnet (1)
+</p>
+</details><details><summary>
+lattice
+</summary><p>
+panel.grid (1)
 </p>
 </details><details><summary>
 limSolve
@@ -350,12 +476,7 @@ lsei (1)
 </details><details><summary>
 methods
 </summary><p>
-formalArgs (1)
-</p>
-</details><details><summary>
-MixSim
-</summary><p>
-overlap (1)
+is (1)
 </p>
 </details><details><summary>
 nnls
@@ -363,33 +484,38 @@ nnls
 nnls (1)
 </p>
 </details><details><summary>
-parallel
+ps
 </summary><p>
-mclapply (1)
+ps_memory_info (1)
 </p>
 </details><details><summary>
-tidyr
+qrng
 </summary><p>
-expand_grid (1)
+sobol (1)
+</p>
+</details><details><summary>
+tools
+</summary><p>
+file_ext (1)
 </p>
 </details><p><strong>NOTE:</strong> Some imported packages appear to have no associated function calls; please ensure with author that these ‘Imports’ are listed appropriately.</p>
 
 </details><hr></div>
 <div class="section level3">
-<h3 id="id_2-statistical-properties">2. Statistical Properties<a class="anchor" aria-label="anchor" href="#id_2-statistical-properties"></a></h3>
+<h3 id="id_3-statistical-properties">3. Statistical Properties<a class="anchor" aria-label="anchor" href="#id_3-statistical-properties"></a></h3>
 <p>This package features some noteworthy statistical properties which may need to be clarified by a handling editor prior to progressing.</p>
 <details><summary>
 Details of statistical properties (click to open)
 </summary><p>
 </p>
 <p>The package has:</p>
-<ul><li>code in R (37% in 10 files) and TeX (63% in 2 files)</li>
+<ul><li>code in R (66% in 20 files) and TeX (34% in 2 files)</li>
 <li>1 authors</li>
-<li>7 vignettes</li>
+<li>16 vignettes</li>
 <li>no internal data file</li>
-<li>20 imported packages</li>
-<li>43 exported functions (median 15 lines of code)</li>
-<li>3 non-exported functions in R (median 25 lines of code)</li>
+<li>11 imported packages</li>
+<li>97 exported functions (median 22 lines of code)</li>
+<li>167 non-exported functions in R (median 12 lines of code)</li>
 </ul><hr><p>Statistical properties of package structure as distributional percentiles in relation to all current CRAN packages The following terminology is used:</p>
 <ul><li>
 <code>loc</code> = “Lines of Code”</li>
@@ -404,192 +530,211 @@ Details of statistical properties (click to open)
 <th align="right">percentile</th>
 <th align="left">noteworthy</th>
 </tr></thead><tbody><tr><td align="left">files_R</td>
-<td align="right">10</td>
-<td align="right">74.8</td>
+<td align="right">20</td>
+<td align="right">88.6</td>
 <td align="left"></td>
 </tr><tr><td align="left">files_inst</td>
 <td align="right">2</td>
-<td align="right">85.2</td>
+<td align="right">84.9</td>
 <td align="left"></td>
 </tr><tr><td align="left">files_vignettes</td>
-<td align="right">4</td>
-<td align="right">96.1</td>
+<td align="right">3</td>
+<td align="right">94.6</td>
 <td align="left"></td>
 </tr><tr><td align="left">files_tests</td>
-<td align="right">10</td>
-<td align="right">94.2</td>
+<td align="right">24</td>
+<td align="right">98.4</td>
 <td align="left"></td>
 </tr><tr><td align="left">loc_R</td>
-<td align="right">1814</td>
-<td align="right">89.8</td>
-<td align="left"></td>
+<td align="right">8296</td>
+<td align="right">98.7</td>
+<td align="left">TRUE</td>
 </tr><tr><td align="left">loc_inst</td>
-<td align="right">3143</td>
-<td align="right">95.0</td>
+<td align="right">4342</td>
+<td align="right">96.9</td>
 <td align="left">TRUE</td>
 </tr><tr><td align="left">loc_vignettes</td>
-<td align="right">224</td>
-<td align="right">57.4</td>
+<td align="right">205</td>
+<td align="right">55.9</td>
 <td align="left"></td>
 </tr><tr><td align="left">loc_tests</td>
-<td align="right">931</td>
-<td align="right">87.7</td>
-<td align="left"></td>
+<td align="right">3754</td>
+<td align="right">97.3</td>
+<td align="left">TRUE</td>
 </tr><tr><td align="left">num_vignettes</td>
-<td align="right">7</td>
-<td align="right">98.4</td>
+<td align="right">16</td>
+<td align="right">100.0</td>
 <td align="left">TRUE</td>
 </tr><tr><td align="left">n_fns_r</td>
-<td align="right">46</td>
-<td align="right">86.9</td>
-<td align="left"></td>
+<td align="right">264</td>
+<td align="right">98.1</td>
+<td align="left">TRUE</td>
 </tr><tr><td align="left">n_fns_r_exported</td>
-<td align="right">43</td>
-<td align="right">91.2</td>
-<td align="left"></td>
+<td align="right">97</td>
+<td align="right">96.5</td>
+<td align="left">TRUE</td>
 </tr><tr><td align="left">n_fns_r_not_exported</td>
-<td align="right">3</td>
-<td align="right">68.1</td>
-<td align="left"></td>
+<td align="right">167</td>
+<td align="right">98.9</td>
+<td align="left">TRUE</td>
 </tr><tr><td align="left">n_fns_per_file_r</td>
-<td align="right">5</td>
-<td align="right">86.5</td>
-<td align="left"></td>
+<td align="right">15</td>
+<td align="right">97.3</td>
+<td align="left">TRUE</td>
 </tr><tr><td align="left">num_params_per_fn</td>
-<td align="right">4</td>
-<td align="right">74.4</td>
+<td align="right">3</td>
+<td align="right">66.6</td>
 <td align="left"></td>
 </tr><tr><td align="left">loc_per_fn_r</td>
-<td align="right">16</td>
-<td align="right">71.4</td>
+<td align="right">14</td>
+<td align="right">70.3</td>
 <td align="left"></td>
 </tr><tr><td align="left">loc_per_fn_r_exp</td>
-<td align="right">15</td>
-<td align="right">65.7</td>
+<td align="right">22</td>
+<td align="right">73.7</td>
 <td align="left"></td>
 </tr><tr><td align="left">loc_per_fn_r_not_exp</td>
-<td align="right">25</td>
-<td align="right">92.7</td>
+<td align="right">12</td>
+<td align="right">83.4</td>
 <td align="left"></td>
 </tr><tr><td align="left">rel_whitespace_R</td>
-<td align="right">9</td>
-<td align="right">81.9</td>
+<td align="right">5</td>
+<td align="right">93.5</td>
 <td align="left"></td>
 </tr><tr><td align="left">rel_whitespace_inst</td>
-<td align="right">13</td>
-<td align="right">94.7</td>
-<td align="left"></td>
+<td align="right">12</td>
+<td align="right">95.6</td>
+<td align="left">TRUE</td>
 </tr><tr><td align="left">rel_whitespace_vignettes</td>
-<td align="right">10</td>
-<td align="right">41.6</td>
+<td align="right">14</td>
+<td align="right">43.5</td>
 <td align="left"></td>
 </tr><tr><td align="left">rel_whitespace_tests</td>
-<td align="right">10</td>
-<td align="right">83.6</td>
+<td align="right">9</td>
+<td align="right">93.6</td>
 <td align="left"></td>
 </tr><tr><td align="left">doclines_per_fn_exp</td>
-<td align="right">40</td>
-<td align="right">70.8</td>
+<td align="right">52</td>
+<td align="right">80.4</td>
 <td align="left"></td>
 </tr><tr><td align="left">doclines_per_fn_not_exp</td>
-<td align="right">15</td>
-<td align="right">97.1</td>
-<td align="left">TRUE</td>
-</tr><tr><td align="left">fn_call_network_size</td>
-<td align="right">69</td>
-<td align="right">84.7</td>
+<td align="right">3</td>
+<td align="right">91.5</td>
 <td align="left"></td>
+</tr><tr><td align="left">fn_call_network_size</td>
+<td align="right">559</td>
+<td align="right">96.3</td>
+<td align="left">TRUE</td>
 </tr></tbody></table><hr></details></div>
 <div class="section level3">
-<h3 id="id_2a-network-visualisation">2a. Network visualisation<a class="anchor" aria-label="anchor" href="#id_2a-network-visualisation"></a></h3>
-<p>Click to see the <a href="/home/bastien/.cache/R/pkgcheck/static/DeCovarT_pkgstats0029d1d4.html">interactive network visualisation of calls between objects in package</a></p>
+<h3 id="id_3a-network-visualisation">3a. Network visualisation<a class="anchor" aria-label="anchor" href="#id_3a-network-visualisation"></a></h3>
+<p>Click to see the <a href="/home/bastien/.cache/R/pkgcheck/static/DeCovarT_pkgstats14d0df9e.html">interactive network visualisation of calls between objects in package</a></p>
 <hr></div>
 <div class="section level3">
-<h3 id="id_3-goodpractice-and-other-checks">3. <code>goodpractice</code> and other checks<a class="anchor" aria-label="anchor" href="#id_3-goodpractice-and-other-checks"></a></h3>
+<h3 id="id_4-goodpractice-and-other-checks">4. <code>goodpractice</code> and other checks<a class="anchor" aria-label="anchor" href="#id_4-goodpractice-and-other-checks"></a></h3>
 <details><summary>
 Details of goodpractice checks (click to open)
 </summary><p>
 </p>
-<div class="section level4">
-<h4 id="id_3a-continuous-integration-badges">3a. Continuous Integration Badges<a class="anchor" aria-label="anchor" href="#id_3a-continuous-integration-badges"></a></h4>
-<p><a href="https://github.com/bastienchassagnol/DeCovarT/actions" class="external-link"><img src="https://github.com/bastienchassagnol/DeCovarT/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check.yaml"></a> <a href="https://github.com/bastienchassagnol/DeCovarT/actions" class="external-link"><img src="https://github.com/bastienchassagnol/DeCovarT/actions/workflows/render-readme.yaml/badge.svg" alt="render-readme.yaml"></a></p>
-<p><strong>GitHub Workflow Results</strong></p>
-<table style="width:100%;" class="table"><colgroup><col width="18%"><col width="21%"><col width="16%"><col width="10%"><col width="16%"><col width="16%"></colgroup><thead><tr><th align="right">id</th>
-<th align="left">name</th>
-<th align="left">conclusion</th>
-<th align="left">sha</th>
-<th align="right">run_number</th>
-<th align="left">date</th>
-</tr></thead><tbody><tr><td align="right">31188274365</td>
-<td align="left">pre-commit</td>
-<td align="left">success</td>
-<td align="left">c1a7bb</td>
-<td align="right">17</td>
-<td align="left">2026-08-07</td>
-</tr><tr><td align="right">31219996293</td>
-<td align="left">R package CI</td>
-<td align="left">success</td>
-<td align="left">1d7c88</td>
-<td align="right">87</td>
-<td align="left">2026-08-07</td>
-</tr><tr><td align="right">31252824642</td>
-<td align="left">R-CMD-check</td>
-<td align="left">success</td>
-<td align="left">0029d1</td>
-<td align="right">88</td>
-<td align="left">2026-08-08</td>
-</tr><tr><td align="right">31219391627</td>
-<td align="left">render-readme</td>
-<td align="left">success</td>
-<td align="left">a7c4e2</td>
-<td align="right">13</td>
-<td align="left">2026-08-07</td>
-</tr></tbody></table><hr></div>
-<div class="section level4">
+<hr><div class="section level4">
 <h4 id="id_3b-goodpractice-results">3b. <code>goodpractice</code> results<a class="anchor" aria-label="anchor" href="#id_3b-goodpractice-results"></a></h4>
 </div>
 <div class="section level4">
 <h4 id="test-coverage-with-covr">Test coverage with <a href="https://covr.r-lib.org/" class="external-link">covr</a>
 <a class="anchor" aria-label="anchor" href="#test-coverage-with-covr"></a></h4>
-<p>Package coverage: 86.07</p>
+<p>Package coverage: 81.44</p>
 </div>
 <div class="section level4">
 <h4 id="cyclocomplexity-with-cyclocomp">Cyclocomplexity with <a href="https://github.com/MangoTheCat/cyclocomp" class="external-link">cyclocomp</a>
 <a class="anchor" aria-label="anchor" href="#cyclocomplexity-with-cyclocomp"></a></h4>
-<p>Error : Failed to install ‘DeCovarT’ from local: can’t convert package ComplexHeatmap with RemoteType ‘bioc’ to remote</p>
-</div>
+<p>The following functions have cyclocomplexity &gt;= 15:</p>
+<table class="table"><thead><tr><th>function</th>
+<th>cyclocomplexity</th>
+</tr></thead><tbody><tr><td>describe_simulation_scenario</td>
+<td>52</td>
+</tr><tr><td>simulate_hierarchical_grn_moments</td>
+<td>46</td>
+</tr><tr><td>compute_glmnet_gene_scores</td>
+<td>38</td>
+</tr><tr><td>plot_mc_raincloud</td>
+<td>34</td>
+</tr><tr><td>reference_bootstrap_decovart</td>
+<td>31</td>
+</tr><tr><td>generate_mean_signature_matrix</td>
+<td>25</td>
+</tr><tr><td>scale_covariances_to_overlap</td>
+<td>24</td>
+</tr><tr><td>repair_simplex</td>
+<td>22</td>
+</tr><tr><td>composition_from_entropy</td>
+<td>21</td>
+</tr><tr><td>overlap_gaussian_mc</td>
+<td>19</td>
+</tr><tr><td>read_simulation_artefacts</td>
+<td>17</td>
+</tr><tr><td>generate_random_network_skeleton</td>
+<td>16</td>
+</tr><tr><td>compute_benchmark_metrics</td>
+<td>15</td>
+</tr><tr><td>run_simulation_benchmark</td>
+<td>15</td>
+</tr></tbody></table></div>
 <div class="section level4">
 <h4 id="static-code-analyses-with-lintr">Static code analyses with <a href="https://github.com/jimhester/lintr" class="external-link">lintr</a>
 <a class="anchor" aria-label="anchor" href="#static-code-analyses-with-lintr"></a></h4>
-<p><a href="https://github.com/jimhester/lintr" class="external-link">lintr</a> found the following 51 potential issues:</p>
+<p><a href="https://github.com/jimhester/lintr" class="external-link">lintr</a> found the following 238 potential issues:</p>
 <table class="table"><colgroup><col width="50%"><col width="50%"></colgroup><thead><tr><th>message</th>
 <th>number of times</th>
-</tr></thead><tbody><tr><td>Avoid implicit assignments in function calls.</td>
-<td>1</td>
+</tr></thead><tbody><tr><td>!all(x) is better than any(!x).</td>
+<td>6</td>
+</tr><tr><td>Avoid duplicate arguments in function calls.</td>
+<td>2</td>
 </tr><tr><td>Avoid undesirable operator <code>:::</code>.</td>
-<td>1</td>
-</tr><tr><td>Don’t nest pipes inside other calls.</td>
-<td>1</td>
-</tr><tr><td>Don’t use paste to build stop strings.</td>
-<td>3</td>
-</tr><tr><td>Don’t use paste0 to build stop strings.</td>
-<td>2</td>
-</tr><tr><td>expect_length(x, n) is better than expect_identical(length(x), n)</td>
-<td>2</td>
-</tr><tr><td>expect_type(x, t) is better than expect_true(is.<t>(x))</t></td>
-<td>2</td>
-</tr><tr><td>Lines should not be more than 80 characters.</td>
 <td>27</td>
-</tr><tr><td>toString(.) is more expressive than paste(., collapse = “,”).</td>
-<td>1</td>
-</tr><tr><td>unexpected SPECIAL</td>
+</tr><tr><td>Avoid undesirable operator <code>&lt;&lt;-</code>.</td>
+<td>3</td>
+</tr><tr><td>Don’t nest pipes inside other calls.</td>
 <td>2</td>
+</tr><tr><td>expect_gt(x, y) is better than expect_true(x &gt; y).</td>
+<td>2</td>
+</tr><tr><td>expect_length(x, n) is better than expect_equal(length(x), n)</td>
+<td>1</td>
+</tr><tr><td>expect_lte(x, y) is better than expect_true(x &lt;= y).</td>
+<td>1</td>
+</tr><tr><td>Lines should not be more than 80 characters.</td>
+<td>107</td>
+</tr><tr><td>Pass .match_arg_case_insensitive directly as a symbol to vapply() instead of wrapping it in an unnecessary anonymous function.</td>
+<td>2</td>
+</tr><tr><td>Pass cli::format_inline directly as a symbol to vapply() instead of wrapping it in an unnecessary anonymous function.</td>
+<td>1</td>
+</tr><tr><td>Pass coverage_mc_interval directly as a symbol to lapply() instead of wrapping it in an unnecessary anonymous function.</td>
+<td>1</td>
+</tr><tr><td>Prefer <code>if (A) x else y</code> to the less-readable <code>if (!A) y else x</code> in a simple if/else statement.</td>
+<td>1</td>
+</tr><tr><td>Prefer as.numeric(!x) to ifelse(x, 0, 1) if really needed.</td>
+<td>1</td>
+</tr><tr><td>Remove unnecessary c() of a constant.</td>
+<td>2</td>
+</tr><tr><td>strrep(x, times) is better than paste(rep(x, times), collapse = ““).</td>
+<td>1</td>
+</tr><tr><td>toString(.) is more expressive than paste(., collapse = “,”).</td>
+<td>4</td>
+</tr><tr><td>unexpected SPECIAL</td>
+<td>7</td>
+</tr><tr><td>Use “collinear” with fixed = TRUE here.</td>
+<td>1</td>
+</tr><tr><td>Use dplyr::filter(DF, A, B) instead of dplyr::filter(DF, A &amp; B).</td>
+<td>1</td>
 </tr><tr><td>Use expect_identical(x, y) by default; resort to expect_equal() only when needed, e.g.</td>
-<td>9</td>
+<td>61</td>
+</tr><tr><td>Use inherits(x, ‘class-name’), is.<class> for S3 classes, or is(x, ‘S4Class’) for S4 classes, instead of comparing class(x) with %in%.</class></td>
+<td>3</td>
+</tr><tr><td>Write multiple expectations like expect_true(A) and expect_true(B) instead of expect_true(A &amp;&amp; B).</td>
+<td>1</td>
 </tr></tbody></table></div>
 <div class="section level4">
 <h4 id="other-goodpractice-checks">Other goodpractice checks<a class="anchor" aria-label="anchor" href="#other-goodpractice-checks"></a></h4>
-<p><span class="emoji" data-emoji="heavy_multiplication_x">✖️</span> Exported functions have in .Rd <span class="emoji" data-emoji="heavy_multiplication_x">✖️</span> Documented functions have @export, @noRd, or @rdname <span class="emoji" data-emoji="heavy_multiplication_x">✖️</span> Avoid duplicated @param documentation across functions</p>
+<p><span class="emoji" data-emoji="heavy_multiplication_x">✖️</span> All internal functions are used <span class="emoji" data-emoji="heavy_multiplication_x">✖️</span> Packages are not imported as a whole <span class="emoji" data-emoji="heavy_multiplication_x">✖️</span> Documented functions have @export, @noRd, or @rdname <span class="emoji" data-emoji="heavy_multiplication_x">✖️</span> Avoid duplicated @param documentation across functions <span class="emoji" data-emoji="heavy_multiplication_x">✖️</span> No misspelled words in documentation</p>
 
 
 <hr><details><summary>
@@ -602,6 +747,8 @@ Package Versions
 <td align="left">0.2.4.1</td>
 </tr><tr><td align="left">pkgcheck</td>
 <td align="left">0.1.3.13</td>
+</tr><tr><td align="left">srr</td>
+<td align="left">1.0.0.5</td>
 </tr></tbody></table></details></div>
 </details></div>
 </div>

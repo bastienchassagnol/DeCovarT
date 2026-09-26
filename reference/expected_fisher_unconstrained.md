@@ -50,3 +50,17 @@ Symmetric \\J\times J\\ expected Fisher information matrix
 [`vcov.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md),
 [`confint.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md),
 [`.inner_product()`](https://bastienchassagnol.github.io/DeCovarT/reference/dot-inner_product.md)
+
+## Examples
+
+``` r
+# Two cell types, bivariate Gaussians: I(p) is 2 x 2.
+p <- c(0.6, 0.4)
+mu <- cbind(c(0, 0), c(3, 0))
+Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+I <- expected_fisher_unconstrained(p, mu, Sigma)
+I
+#>          [,1]      [,2]
+#> [1,] 5.325444  3.550296
+#> [2,] 3.550296 19.674556
+```

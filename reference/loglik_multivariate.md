@@ -48,13 +48,7 @@ Up to an additive constant independent of \\\boldsymbol{p}\\, \$\$
 -\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p}) -\tfrac{1}{2}
 (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\mathsf{T}}
 \boldsymbol{\Sigma}(\boldsymbol{p})^{-1}
-(\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}). \$\$ Both terms carry
-the factor \\1/2\\ of the Gaussian log-density. An earlier release used
-\\-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})\\, which doubled the
-determinant contribution and left the objective inconsistent with
-[`expected_fisher_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.md).
-With the factor restored,
-\\\mathbb{E}\[-\mathbf{H}\]=I(\boldsymbol{p})\\ exactly.
+(\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}). \$\$
 
 Computationally this is the same Cholesky-and-backsolve evaluation as
 `mvtnorm::dmvnorm(..., log = TRUE)` (Genz and Bretz), omitting only the

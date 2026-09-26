@@ -787,6 +787,8 @@ delta-method covariance used by
 [`confint()`](https://rdrr.io/r/stats/confint.html) on `decovart_fit`
 objects (see `fit_decovart`).
 
+- [`expected_fisher_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.md)
+  : Expected Fisher information of unconstrained \\\boldsymbol{p}\\
 - [`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md)
   : Cramer–Rao / ILR delta-method covariance of \\\hat{\boldsymbol{p}}\\
 
@@ -839,6 +841,8 @@ wrapper.
   : Horizontal raincloud of Monte Carlo proportion estimates
 - [`plot_mc_forest()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_forest.md)
   : Forest plot of ADEMP Monte Carlo summaries
+- [`theme_decovart_facets()`](https://bastienchassagnol.github.io/DeCovarT/reference/theme_decovart_facets.md)
+  : Faceted ggplot2 theme (black strips, panel border)
 - [`algorithm_similarity()`](https://bastienchassagnol.github.io/DeCovarT/reference/algorithm_similarity.md)
   : Algorithm-similarity correlation from a Monte Carlo benchmark
 - [`plot_algorithm_similarity()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_algorithm_similarity.md)
@@ -887,6 +891,8 @@ and glmnet gene scores for signature design.
   : Affine-invariant Riemannian (AIRM) distance between two SPD matrices
 - [`compute_average_riemannian()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_riemannian.md)
   : Mean pairwise AIRM distance of component covariances
+- [`scale_covariance_array()`](https://bastienchassagnol.github.io/DeCovarT/reference/scale_covariance_array.md)
+  : Scale component covariances, keeping precision zeros
 - [`compute_average_jeffreys()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_jeffreys.md)
   : Average pairwise Jeffreys divergence of a Gaussian mixture
 - [`compute_glmnet_gene_scores()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_glmnet_gene_scores.md)

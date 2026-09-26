@@ -177,7 +177,6 @@
 ".redundant_scenario_columns","04_03_run_simulation_benchmark.R","<none>"
 ".descriptor_metric_columns","04_03_run_simulation_benchmark.R","<none>"
 ".encode_bivariate_id","04_03_run_simulation_benchmark.R","scenario_idx, variance, proportions, centroids"
-"slim_scenario_table","04_03_run_simulation_benchmark.R","tbl"
 ".unwrap_true_theta","04_03_run_simulation_benchmark.R","th"
 ".ensure_scenario_id","04_03_run_simulation_benchmark.R","tbl, prefix"
 ".rewrite_bivariate_ids","04_03_run_simulation_benchmark.R","tbl"

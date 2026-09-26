@@ -1,9 +1,9 @@
 # NA
 
-## Checks for [DeCovarT (v2.0.1)](https://github.com/bastienchassagnol/DeCovarT)
+## Checks for [DeCovarT (v2.3.1)](https://github.com/bastienchassagnol/DeCovarT)
 
 git hash:
-[0029d1d4](https://github.com/bastienchassagnol/DeCovarT/tree/0029d1d44f0aefd4798840244042ec008d56d188)
+[14d0df9e](https://github.com/bastienchassagnol/DeCovarT/tree/14d0df9e2bbdb56b814de4e5056f757f1ef6133c)
 
 - ✔️ Package name is available
 - ✔️ has a ‘contributing’ file.
@@ -13,13 +13,17 @@ git hash:
 - ✔️ Package has at least one HTML vignette
 - ✔️ All functions have examples.
 - ✔️ Repository has a website
-- ✔️ Package has continuous integration checks.
-- ✔️ Package coverage is 86.1%.
+- ✖️ Package has no continuous integration checks.
+- ✔️ Package coverage is 81.4%.
+- ✔️ This is a statistical package which complies with all applicable
+  standards
 - ✔️ R CMD check found no errors.
 - ✔️ R CMD check found no warnings.
 - 👀 Some goodpractice linters failed.
-- 👀 Package has unusually large number of 20 Imports (\> 98% of all
-  packages)
+- 👀 Examples should not use `\dontrun{}` unless really necessary.
+
+**Important:** All failing checks above must be addressed prior to
+proceeding
 
 (Checks marked with 👀 may be optionally addressed.)
 
@@ -27,7 +31,25 @@ Package License: MIT + file LICENSE
 
 ------------------------------------------------------------------------
 
-### 1. Package Dependencies
+### 1. rOpenSci Statistical Standards ([`srr` package](https://github.com/ropensci-review-tools/srr))
+
+This package is in the following category:
+
+- *Regression and Supervised Learning*
+
+✔️ All applicable standards \[v0.2.0\] have been documented in this
+package (162 complied with; 37 N/A standards)
+
+Click to see the [report of author-reported standards compliance of the
+package with links to associated lines of
+code](https://bastienchassagnol.github.io/home/bastien/.cache/R/pkgcheck/static/DeCovarT_srr14d0df9e.md),
+which can be re-generated locally by running the [`srr_report()`
+function](https://docs.ropensci.org/srr/reference/srr_report.html) from
+within a local clone of the repository.
+
+------------------------------------------------------------------------
+
+### 2. Package Dependencies
 
 Details of Package Dependency Usage (click to open)
 
@@ -40,49 +62,73 @@ system which may not be entirely accurate.
 
 | type       | package        | ncalls |
 |:-----------|:---------------|-------:|
-| internal   | base           |    294 |
-| internal   | DeCovarT       |     54 |
-| internal   | stats          |     22 |
-| internal   | boot           |     10 |
-| internal   | grid           |      7 |
-| internal   | utils          |      6 |
-| internal   | graphics       |      4 |
-| internal   | Matrix         |      2 |
-| internal   | parallel       |      1 |
+| internal   | base           |   1562 |
+| internal   | DeCovarT       |    146 |
+| internal   | stats          |    137 |
+| internal   | utils          |     52 |
+| internal   | graphics       |     28 |
+| internal   | mgcv           |     17 |
+| internal   | grid           |      9 |
+| internal   | boot           |      2 |
+| internal   | lattice        |      1 |
+| internal   | methods        |      1 |
+| internal   | tools          |      1 |
+| imports    | ggplot2        |     46 |
+| imports    | dplyr          |     40 |
+| imports    | purrr          |     15 |
+| imports    | Matrix         |     14 |
+| imports    | tibble         |     14 |
 | imports    | tensor         |      6 |
-| imports    | dplyr          |      5 |
-| imports    | purrr          |      5 |
-| imports    | tibble         |      5 |
-| imports    | igraph         |      4 |
-| imports    | e1071          |      3 |
-| imports    | Metrics        |      3 |
-| imports    | circlize       |      2 |
-| imports    | MASS           |      2 |
-| imports    | ComplexHeatmap |      1 |
-| imports    | limSolve       |      1 |
-| imports    | methods        |      1 |
-| imports    | MixSim         |      1 |
-| imports    | nnls           |      1 |
-| imports    | glmnet         |      1 |
-| imports    | tidyr          |      1 |
+| imports    | MASS           |      4 |
+| imports    | tidyr          |      2 |
 | imports    | marqLevAlg     |     NA |
 | imports    | Rdpack         |     NA |
 | imports    | rlang          |     NA |
-| imports    | viridis        |     NA |
+| suggests   | future         |      4 |
+| suggests   | igraph         |      4 |
+| suggests   | e1071          |      3 |
+| suggests   | circlize       |      2 |
+| suggests   | cli            |      2 |
+| suggests   | ggdendro       |      2 |
+| suggests   | ggdist         |      2 |
+| suggests   | ComplexHeatmap |      1 |
+| suggests   | cowplot        |      1 |
+| suggests   | furrr          |      1 |
+| suggests   | glmnet         |      1 |
+| suggests   | limSolve       |      1 |
+| suggests   | nnls           |      1 |
+| suggests   | ps             |      1 |
+| suggests   | qrng           |      1 |
 | suggests   | compositions   |     NA |
+| suggests   | EMMIXmfa       |     NA |
 | suggests   | flextable      |     NA |
-| suggests   | ggplot2        |     NA |
+| suggests   | forcats        |     NA |
+| suggests   | funkyheatmap   |     NA |
+| suggests   | ggtext         |     NA |
+| suggests   | gridExtra      |     NA |
+| suggests   | htmlwidgets    |     NA |
 | suggests   | knitr          |     NA |
 | suggests   | litedown       |     NA |
+| suggests   | mclust         |     NA |
+| suggests   | Metrics        |     NA |
+| suggests   | MixSim         |     NA |
+| suggests   | mvtnorm        |     NA |
 | suggests   | numDeriv       |     NA |
+| suggests   | patchwork      |     NA |
 | suggests   | pkgdown        |     NA |
+| suggests   | plotly         |     NA |
+| suggests   | png            |     NA |
 | suggests   | quarto         |     NA |
+| suggests   | qqplotr        |     NA |
 | suggests   | reactable      |     NA |
 | suggests   | readr          |     NA |
+| suggests   | rgl            |     NA |
 | suggests   | rmarkdown      |     NA |
+| suggests   | spelling       |     NA |
 | suggests   | stringr        |     NA |
 | suggests   | testthat       |     NA |
 | suggests   | tinytable      |     NA |
+| suggests   | viridis        |     NA |
 | suggests   | withr          |     NA |
 | linking_to | NA             |     NA |
 
@@ -92,109 +138,178 @@ pkgstats::pkgstats()’, and examining the ‘external_calls’ table.
 
 base
 
-list (36), for (17), if (16), seq_len (16), rep (14), is.null (12),
-length (11), dim (10), nrow (9), matrix (8), ncol (8), array (7),
-as.matrix (7), c (6), as.numeric (5), paste0 (5), sum (5), diag (4),
-names (4), return (4), solve (4), sqrt (4), t (4), beta (3), colnames
-(3), dimnames (3), drop (3), max (3), tcrossprod (3), all.equal (2),
-chol (2), col (2), do.call (2), factor (2), gsub (2), isTRUE (2), lapply
-(2), min (2), numeric (2), round (2), rownames (2), seq_along (2),
-suppressWarnings (2), tryCatch (2), as.character (1), as.integer (1),
-as.list (1), as.vector (1), character (1), chol2inv (1), crossprod (1),
-eigen (1), emptyenv (1), exp (1), F (1), intersect (1), levels (1),
-local (1), log (1), mean (1), new.env (1), proportions (1), row.names
-(1), rowSums (1), sample.int (1), scale (1), search (1), seq (1),
-seq.int (1), switch (1), unique (1), upper.tri (1), which (1), which.max
-(1)
+list (149), c (83), drop (67), for (60), if (59), seq_len (53), length
+(49), names (36), sum (36), nrow (33), ncol (32), matrix (30), dim (27),
+numeric (27), is.null (26), lapply (25), return (25), unique (25),
+message (24), rep (24), as.numeric (21), mean (19), as.matrix (18),
+as.character (17), max (17), colnames (16), diag (16), tryCatch (16),
+abs (14), chol (14), intersect (13), setdiff (13), sqrt (13), array
+(12), paste0 (12), seq_along (12), vapply (12), min (11), scale (11),
+as.integer (10), log (10), solve (10), t (10), crossprod (9), is.finite
+(9), isTRUE (9), levels (9), row (9), unname (9), by (8), dir (8),
+file.path (8), labels (8), vector (8), eigen (7), tcrossprod (7),
+backsolve (6), call (6), do.call (6), identical (6), split (6), args
+(5), col (5), data.frame (5), exp (5), parent.frame (5), q (5), seq.int
+(5), switch (5), apply (4), as.data.frame (4), cbind (4), character (4),
+dimnames (4), emptyenv (4), factor (4), ifelse (4), is.na (4), local
+(4), missing (4), new.env (4), paste (4), pmax (4), rownames (4), which
+(4), as.vector (3), beta (3), cumsum (3), match (3), order (3),
+row.names (3), sample.int (3), sub (3), tolower (3), unlist (3),
+upper.tri (3), which.max (3), all.equal (2), as.list (2), as.logical
+(2), colSums (2), format (2), integer (2), interaction (2), match.call
+(2), proc.time (2), proportions (2), qr (2), rank (2), raw (2), replace
+(2), round (2), sort (2), structure (2), system (2), use (2), all (1),
+any (1), as.factor (1), as.table (1), attr (1), body (1), choose (1),
+diff (1), droplevels (1), environment (1), expression (1), F (1), file
+(1), floor (1), formals (1), gsub (1), is.data.frame (1), is.list (1),
+log10 (1), Map (1), nzchar (1), options (1), outer (1), qr.Q (1),
+qr.solve (1), range (1), regexec (1), regmatches (1), rowMeans (1),
+rowSums (1), sample (1), search (1), seq (1), sprintf (1),
+suppressWarnings (1), svd (1), sweep (1), toString (1), toupper (1)
 
 DeCovarT
 
-additive_logistic (10), additive_log_ratio (5),
-loglik_multivariate_constrained (3),
-build_covariance_array_from_precision (2), build_normalised_precision
-(2), compute_mean_profile_objectives (2), compute_shannon_entropy (2),
-deconvolute_ratios (2), gradient_loglik_constrained (2),
-gradient_loglik_unconstrained (2), assign_iid_signed_weights (1),
-benchmark_bivariate_gaussian_convolutions (1), check_true_theta (1),
-compute_average_jeffreys (1), compute_average_overlap (1),
+fn (14), isometric_logistic (9), assemble (8), isometric_log_ratio (7),
+loglik_multivariate (7), deviance (6), solve_fun (5),
+jacobian_isometric_logistic (4), log_det (4), overlap_at (4),
+pivot_mc_estimates (4), slim_metrics (4), additive_logistic (3),
+compute_mean_profile_objectives (3), coverage_mc_interval (3),
+gradient_loglik_unconstrained (3), join_cfg (3),
+loglik_multivariate_constrained (3), score (3), algorithm_similarity
+(2), build_normalised_precision (2), chi_bar_square_pvalue (2),
+compute_shannon_entropy (2), deconvolute_ratios (2),
+describe_simulation_scenario (2), gradient_loglik_constrained (2),
+scale_covariance_array (2), add_one (1), additive_log_ratio (1),
+assign_iid_signed_weights (1), bootstrap_decovart (1),
+boundary_diagnostics (1), build_covariance_array_from_precision (1),
+check_true_theta (1), clr (1), coef.decovart_fit (1),
+composition_from_entropy (1), compute_average_jeffreys (1),
+compute_average_overlap (1), compute_average_riemannian (1),
 compute_benchmark_metrics (1), compute_glmnet_gene_scores (1),
-deconvolute_ratios_cibersort (1), deconvolute_ratios_deconrnaseq (1),
-deconvolute_ratios_gradient_descent (1), deconvolute_ratios_L_BFGS_B
-(1), deconvolute_ratios_lsfit (1),
-deconvolute_ratios_Marquardt_Levenberg (1),
-deconvolute_ratios_Newton_Raphson (1), deconvolute_ratios_nnls (1),
-generate_mean_signature_matrix (1), hessian_additive_logistic (1),
-jacobian_additive_logistic (1), loglik_multivariate (1), safe_gradient
-(1), safe_loglik (1), simulate_bulk_mixture (1)
+confint_profile_decovart (1), confint.decovart_fit (1),
+covariance_structure_from_graph_model (1), deconvolute_ratios_L_BFGS_B
+(1), deconvolute_ratios_Marquardt_Levenberg (1), equicorrelation_gram
+(1), expected_fisher_unconstrained (1), generate_mean_signature_matrix
+(1), helmert_basis (1), hessian_isometric_logistic (1),
+hessian_loglik_constrained (1), lab_fun (1), multistart_decovart (1),
+objective (1), pooled_loglik (1), safe_gradient (1), safe_loglik (1),
+simulate_bulk_mixture (1)
 
 stats
 
-sigma (6), family (3), optim (3), coef (2), start (2), cor (1), kernel
-(1), lsfit (1), median (1), nlminb (1), power (1)
+sigma (17), df (14), loadings (14), coefficients (12), setNames (7),
+weights (7), cov (6), density (6), start (6), optim (5), qnorm (5), sd
+(4), coef (3), cor (3), family (3), rgamma (3), dbinom (2), qchisq (2),
+uniroot (2), as.dist (1), fitted (1), fitted.values (1), formula (1),
+hclust (1), kernel (1), median (1), na.omit (1), nlminb (1), pchisq (1),
+power (1), reformulate (1), residuals (1), step (1), vcov (1), xtabs (1)
 
-boot
+utils
 
-control (10)
+data (46), fix (3), methods (1), packageVersion (1), write.csv (1)
+
+ggplot2
+
+element_rect (6), aes (5), element_blank (5), element_text (4),
+expansion (4), ggplot (4), position_dodge (4), coord_cartesian (3),
+margin (3), geom_vline (2), after_scale (1), alpha (1), geom_point (1),
+geom_tile (1), label_value (1), scale_x_discrete (1)
+
+dplyr
+
+left_join (10), bind_rows (6), all_of (4), distinct (3), filter (3),
+mutate (3), any_of (2), select (2), across (1), bind_cols (1), case_when
+(1), group_by (1), n_distinct (1), pull (1), summarise (1)
+
+graphics
+
+stem (8), par (5), text (4), clip (3), title (3), lines (2), abline (1),
+axis (1), layout (1)
+
+mgcv
+
+s (11), ridge (5), intervals (1)
+
+purrr
+
+map (9), imap (2), map_dfr (2), map_lgl (1), pmap_dfr (1)
+
+Matrix
+
+expand (5), Cholesky (4), solve (2), determinant (1), forceSymmetric
+(1), Matrix (1)
+
+tibble
+
+tibble (12), as_tibble (2)
 
 grid
 
-gpar (5), unit (2)
+gpar (5), unit (4)
 
 tensor
 
 tensor (6)
 
-utils
+future
 
-fix (3), data (1), packageDescription (1), packageVersion (1)
-
-dplyr
-
-all_of (2), bind_rows (2), row_number (1)
-
-purrr
-
-map (2), imap (1), imap_dfr (1), pmap (1)
-
-tibble
-
-tibble (3), as_tibble (2)
-
-graphics
-
-par (3), title (1)
+multisession (2), plan (2)
 
 igraph
 
 make_empty_graph (2), sample_gnp (2)
 
+MASS
+
+mvrnorm (2), lm.gls (1), rlm (1)
+
 e1071
 
 tune.control (3)
 
-Metrics
+boot
 
-mae (1), mse (1), rmse (1)
+boot (2)
 
 circlize
 
 colorRamp2 (2)
 
-MASS
+cli
 
-mvrnorm (1), rlm (1)
+format_inline (2)
 
-Matrix
+ggdendro
 
-s (2)
+dendro_data (1), segment (1)
+
+ggdist
+
+density_bounded (1), median_qi (1)
+
+tidyr
+
+pivot_longer (1), pivot_wider (1)
 
 ComplexHeatmap
 
 Heatmap (1)
 
+cowplot
+
+plot_grid (1)
+
+furrr
+
+furrr_options (1)
+
 glmnet
 
 glmnet (1)
+
+lattice
+
+panel.grid (1)
 
 limSolve
 
@@ -202,23 +317,23 @@ lsei (1)
 
 methods
 
-formalArgs (1)
-
-MixSim
-
-overlap (1)
+is (1)
 
 nnls
 
 nnls (1)
 
-parallel
+ps
 
-mclapply (1)
+ps_memory_info (1)
 
-tidyr
+qrng
 
-expand_grid (1)
+sobol (1)
+
+tools
+
+file_ext (1)
 
 **NOTE:** Some imported packages appear to have no associated function
 calls; please ensure with author that these ‘Imports’ are listed
@@ -226,7 +341,7 @@ appropriately.
 
 ------------------------------------------------------------------------
 
-### 2. Statistical Properties
+### 3. Statistical Properties
 
 This package features some noteworthy statistical properties which may
 need to be clarified by a handling editor prior to progressing.
@@ -235,13 +350,13 @@ Details of statistical properties (click to open)
 
 The package has:
 
-- code in R (37% in 10 files) and TeX (63% in 2 files)
+- code in R (66% in 20 files) and TeX (34% in 2 files)
 - 1 authors
-- 7 vignettes
+- 16 vignettes
 - no internal data file
-- 20 imported packages
-- 43 exported functions (median 15 lines of code)
-- 3 non-exported functions in R (median 25 lines of code)
+- 11 imported packages
+- 97 exported functions (median 22 lines of code)
+- 167 non-exported functions in R (median 12 lines of code)
 
 ------------------------------------------------------------------------
 
@@ -264,58 +379,44 @@ lie in the upper or lower 5th percentile.
 
 | measure                  | value | percentile | noteworthy |
 |:-------------------------|------:|-----------:|:-----------|
-| files_R                  |    10 |       74.8 |            |
-| files_inst               |     2 |       85.2 |            |
-| files_vignettes          |     4 |       96.1 |            |
-| files_tests              |    10 |       94.2 |            |
-| loc_R                    |  1814 |       89.8 |            |
-| loc_inst                 |  3143 |       95.0 | TRUE       |
-| loc_vignettes            |   224 |       57.4 |            |
-| loc_tests                |   931 |       87.7 |            |
-| num_vignettes            |     7 |       98.4 | TRUE       |
-| n_fns_r                  |    46 |       86.9 |            |
-| n_fns_r_exported         |    43 |       91.2 |            |
-| n_fns_r_not_exported     |     3 |       68.1 |            |
-| n_fns_per_file_r         |     5 |       86.5 |            |
-| num_params_per_fn        |     4 |       74.4 |            |
-| loc_per_fn_r             |    16 |       71.4 |            |
-| loc_per_fn_r_exp         |    15 |       65.7 |            |
-| loc_per_fn_r_not_exp     |    25 |       92.7 |            |
-| rel_whitespace_R         |     9 |       81.9 |            |
-| rel_whitespace_inst      |    13 |       94.7 |            |
-| rel_whitespace_vignettes |    10 |       41.6 |            |
-| rel_whitespace_tests     |    10 |       83.6 |            |
-| doclines_per_fn_exp      |    40 |       70.8 |            |
-| doclines_per_fn_not_exp  |    15 |       97.1 | TRUE       |
-| fn_call_network_size     |    69 |       84.7 |            |
+| files_R                  |    20 |       88.6 |            |
+| files_inst               |     2 |       84.9 |            |
+| files_vignettes          |     3 |       94.6 |            |
+| files_tests              |    24 |       98.4 |            |
+| loc_R                    |  8296 |       98.7 | TRUE       |
+| loc_inst                 |  4342 |       96.9 | TRUE       |
+| loc_vignettes            |   205 |       55.9 |            |
+| loc_tests                |  3754 |       97.3 | TRUE       |
+| num_vignettes            |    16 |      100.0 | TRUE       |
+| n_fns_r                  |   264 |       98.1 | TRUE       |
+| n_fns_r_exported         |    97 |       96.5 | TRUE       |
+| n_fns_r_not_exported     |   167 |       98.9 | TRUE       |
+| n_fns_per_file_r         |    15 |       97.3 | TRUE       |
+| num_params_per_fn        |     3 |       66.6 |            |
+| loc_per_fn_r             |    14 |       70.3 |            |
+| loc_per_fn_r_exp         |    22 |       73.7 |            |
+| loc_per_fn_r_not_exp     |    12 |       83.4 |            |
+| rel_whitespace_R         |     5 |       93.5 |            |
+| rel_whitespace_inst      |    12 |       95.6 | TRUE       |
+| rel_whitespace_vignettes |    14 |       43.5 |            |
+| rel_whitespace_tests     |     9 |       93.6 |            |
+| doclines_per_fn_exp      |    52 |       80.4 |            |
+| doclines_per_fn_not_exp  |     3 |       91.5 |            |
+| fn_call_network_size     |   559 |       96.3 | TRUE       |
 
 ------------------------------------------------------------------------
 
-### 2a. Network visualisation
+### 3a. Network visualisation
 
 Click to see the [interactive network visualisation of calls between
 objects in
-package](https://bastienchassagnol.github.io/home/bastien/.cache/R/pkgcheck/static/DeCovarT_pkgstats0029d1d4.md)
+package](https://bastienchassagnol.github.io/home/bastien/.cache/R/pkgcheck/static/DeCovarT_pkgstats14d0df9e.md)
 
 ------------------------------------------------------------------------
 
-### 3. `goodpractice` and other checks
+### 4. `goodpractice` and other checks
 
 Details of goodpractice checks (click to open)
-
-#### 3a. Continuous Integration Badges
-
-[![R-CMD-check.yaml](https://github.com/bastienchassagnol/DeCovarT/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bastienchassagnol/DeCovarT/actions)
-[![render-readme.yaml](https://github.com/bastienchassagnol/DeCovarT/actions/workflows/render-readme.yaml/badge.svg)](https://github.com/bastienchassagnol/DeCovarT/actions)
-
-**GitHub Workflow Results**
-
-|          id | name          | conclusion | sha    | run_number | date       |
-|------------:|:--------------|:-----------|:-------|-----------:|:-----------|
-| 31188274365 | pre-commit    | success    | c1a7bb |         17 | 2026-08-07 |
-| 31219996293 | R package CI  | success    | 1d7c88 |         87 | 2026-08-07 |
-| 31252824642 | R-CMD-check   | success    | 0029d1 |         88 | 2026-08-08 |
-| 31219391627 | render-readme | success    | a7c4e2 |         13 | 2026-08-07 |
 
 ------------------------------------------------------------------------
 
@@ -323,37 +424,66 @@ Details of goodpractice checks (click to open)
 
 #### Test coverage with [covr](https://covr.r-lib.org/)
 
-Package coverage: 86.07
+Package coverage: 81.44
 
 #### Cyclocomplexity with [cyclocomp](https://github.com/MangoTheCat/cyclocomp)
 
-Error : Failed to install ‘DeCovarT’ from local: can’t convert package
-ComplexHeatmap with RemoteType ‘bioc’ to remote
+The following functions have cyclocomplexity \>= 15:
+
+| function                          | cyclocomplexity |
+|-----------------------------------|-----------------|
+| describe_simulation_scenario      | 52              |
+| simulate_hierarchical_grn_moments | 46              |
+| compute_glmnet_gene_scores        | 38              |
+| plot_mc_raincloud                 | 34              |
+| reference_bootstrap_decovart      | 31              |
+| generate_mean_signature_matrix    | 25              |
+| scale_covariances_to_overlap      | 24              |
+| repair_simplex                    | 22              |
+| composition_from_entropy          | 21              |
+| overlap_gaussian_mc               | 19              |
+| read_simulation_artefacts         | 17              |
+| generate_random_network_skeleton  | 16              |
+| compute_benchmark_metrics         | 15              |
+| run_simulation_benchmark          | 15              |
 
 #### Static code analyses with [lintr](https://github.com/jimhester/lintr)
 
-[lintr](https://github.com/jimhester/lintr) found the following 51
+[lintr](https://github.com/jimhester/lintr) found the following 238
 potential issues:
 
 | message | number of times |
 |----|----|
-| Avoid implicit assignments in function calls. | 1 |
-| Avoid undesirable operator `:::`. | 1 |
-| Don’t nest pipes inside other calls. | 1 |
-| Don’t use paste to build stop strings. | 3 |
-| Don’t use paste0 to build stop strings. | 2 |
-| expect_length(x, n) is better than expect_identical(length(x), n) | 2 |
-| expect_type(x, t) is better than expect_true(is.(x)) | 2 |
-| Lines should not be more than 80 characters. | 27 |
-| toString(.) is more expressive than paste(., collapse = “,”). | 1 |
-| unexpected SPECIAL | 2 |
-| Use expect_identical(x, y) by default; resort to expect_equal() only when needed, e.g. | 9 |
+| !all(x) is better than any(!x). | 6 |
+| Avoid duplicate arguments in function calls. | 2 |
+| Avoid undesirable operator `:::`. | 27 |
+| Avoid undesirable operator `<<-`. | 3 |
+| Don’t nest pipes inside other calls. | 2 |
+| expect_gt(x, y) is better than expect_true(x \> y). | 2 |
+| expect_length(x, n) is better than expect_equal(length(x), n) | 1 |
+| expect_lte(x, y) is better than expect_true(x \<= y). | 1 |
+| Lines should not be more than 80 characters. | 107 |
+| Pass .match_arg_case_insensitive directly as a symbol to vapply() instead of wrapping it in an unnecessary anonymous function. | 2 |
+| Pass cli::format_inline directly as a symbol to vapply() instead of wrapping it in an unnecessary anonymous function. | 1 |
+| Pass coverage_mc_interval directly as a symbol to lapply() instead of wrapping it in an unnecessary anonymous function. | 1 |
+| Prefer `if (A) x else y` to the less-readable `if (!A) y else x` in a simple if/else statement. | 1 |
+| Prefer as.numeric(!x) to ifelse(x, 0, 1) if really needed. | 1 |
+| Remove unnecessary c() of a constant. | 2 |
+| strrep(x, times) is better than paste(rep(x, times), collapse = ““). | 1 |
+| toString(.) is more expressive than paste(., collapse = “,”). | 4 |
+| unexpected SPECIAL | 7 |
+| Use “collinear” with fixed = TRUE here. | 1 |
+| Use dplyr::filter(DF, A, B) instead of dplyr::filter(DF, A & B). | 1 |
+| Use expect_identical(x, y) by default; resort to expect_equal() only when needed, e.g. | 61 |
+| Use inherits(x, ‘class-name’), is. for S3 classes, or is(x, ‘S4Class’) for S4 classes, instead of comparing class(x) with %in%. | 3 |
+| Write multiple expectations like expect_true(A) and expect_true(B) instead of expect_true(A && B). | 1 |
 
 #### Other goodpractice checks
 
-✖️ Exported functions have in .Rd ✖️ Documented functions have @export,
-@noRd, or @rdname ✖️ Avoid duplicated @param documentation across
-functions
+✖️ All internal functions are used ✖️ Packages are not imported as a
+whole ✖️ Documented functions have @export, @noRd, or @rdname ✖️ Avoid
+duplicated @param documentation across functions ✖️ No misspelled words
+in documentation
 
 ------------------------------------------------------------------------
 
@@ -363,3 +493,4 @@ Package Versions
 |:---------|:---------|
 | pkgstats | 0.2.4.1  |
 | pkgcheck | 0.1.3.13 |
+| srr      | 1.0.0.5  |

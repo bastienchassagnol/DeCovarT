@@ -147,12 +147,7 @@ $$
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\mathsf{T}}
   \boldsymbol{\Sigma}(\boldsymbol{p})^{-1}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}).
-$$
-Both terms carry the factor \(1/2\) of the Gaussian log-density. An
-earlier release used \(-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})\),
-which doubled the determinant contribution and left the objective
-inconsistent with <code><a href="expected_fisher_unconstrained.html">expected_fisher_unconstrained()</a></code>. With the factor
-restored, \(\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})\) exactly.</p>
+$$</p>
 <p>Computationally this is the same Cholesky-and-backsolve evaluation as
 <code>mvtnorm::dmvnorm(..., log = TRUE)</code> (Genz and Bretz), omitting only the
 additive \(-\tfrac{G}{2}\log(2\pi)\) that does not depend on

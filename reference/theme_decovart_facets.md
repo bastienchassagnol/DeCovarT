@@ -31,3 +31,12 @@ A `ggplot2` theme object.
 
 [`plot_mc_forest()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_forest.md),
 [`plot_mc_raincloud()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_raincloud.md)
+
+## Examples
+
+``` r
+ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) +
+  ggplot2::geom_point() +
+  ggplot2::facet_wrap(~cyl) +
+  theme_decovart_facets()
+```
