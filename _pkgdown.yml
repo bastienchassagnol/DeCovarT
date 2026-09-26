@@ -233,6 +233,7 @@ reference:
       delta-method covariance used by `vcov()` / `confint()` on
       `decovart_fit` objects (see `fit_decovart`).
     contents:
+      - expected_fisher_unconstrained
       - vcov_ilr_delta
   - subtitle: Likelihood-ratio and boundary inference
     desc: |
@@ -265,6 +266,7 @@ reference:
       - pivot_mc_estimates
       - plot_mc_raincloud
       - plot_mc_forest
+      - theme_decovart_facets
       - algorithm_similarity
       - plot_algorithm_similarity
       - plot_mc_metric_dots
@@ -293,6 +295,7 @@ reference:
       - overlap_gaussian_mc
       - spd_affine_invariant_distance
       - compute_average_riemannian
+      - scale_covariance_array
       - compute_average_jeffreys
       - compute_glmnet_gene_scores
 

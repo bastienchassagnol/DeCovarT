@@ -68,7 +68,7 @@ if (
 } else {
   library(DeCovarT)
 }
-DeCovarT:::.ui_attach_script()
+.ui_attach_script()
 
 if (!requireNamespace("igraph", quietly = TRUE)) {
   .ui_abort(
@@ -344,7 +344,7 @@ if (isTRUE(POSTPROCESS_ONLY)) {
         tibble::tibble(
           n_genes = N_GENES,
           n_celltypes = N_CELLTYPES,
-          proportion_name = prop_name,
+          proportions = prop_name,
           entropy = round(compute_shannon_entropy(p), 3),
           graph_ct1 = row$graph_ct1,
           graph_ct2 = row$graph_ct2,
@@ -405,7 +405,7 @@ if (isTRUE(POSTPROCESS_ONLY)) {
 
   overlap_check <- scenario_config_3[
     c(
-      "proportion_name",
+      "proportions",
       "overlap_label",
       "overlap_target",
       "mixsim_baromega",

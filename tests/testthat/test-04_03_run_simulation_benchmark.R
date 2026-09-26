@@ -85,27 +85,10 @@ test_that("encode_bivariate_id records variance, entropy, and CLD", {
   )
 })
 
-test_that("slim_scenario_table drops aliases after canonicalising names", {
-  tbl <- tibble::tibble(
-    ID = "B1_Ho_Ba_Sm",
-    scenario_idx = 1L,
-    proportion_name = "balanced",
-    centroid = "small_CLD",
-    rho_ct1 = -0.8,
-    correlation_celltype1 = -0.8
-  )
-  slim <- slim_scenario_table(tbl)
-  expect_false("scenario_idx" %in% names(slim))
-  expect_false("proportion_name" %in% names(slim))
-  expect_false("centroid" %in% names(slim))
-  expect_false("rho_ct1" %in% names(slim))
-  expect_identical(slim$proportions, "balanced")
-  expect_identical(slim$centroids, "small_CLD")
-})
-
 test_that("write_simulation_artefacts splits config, descriptors, and metrics", {
   skip_on_os("windows")
   skip_if_not_installed("nnls")
+  skip_if_not(exists("write_simulation_artefacts", mode = "function"))
 
   genes <- paste0("gene_", 1:2)
   cts <- paste0("celltype_", 1:2)

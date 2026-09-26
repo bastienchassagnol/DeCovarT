@@ -20,7 +20,12 @@ strips, after \code{theme_features()} in the
 \href{https://github.com/theislab/atlas-feature-selection-benchmark/blob/b89fc0f66747062e6e1b4b35bd392b27ad035295/analysis/R/plotting.R}{atlas-feature-selection-benchmark}
 plotting helpers.
 }
+\examples{
+ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) +
+  ggplot2::geom_point() +
+  ggplot2::facet_wrap(~cyl) +
+  theme_decovart_facets()
+}
 \seealso{
 \code{\link[=plot_mc_forest]{plot_mc_forest()}}, \code{\link[=plot_mc_raincloud]{plot_mc_raincloud()}}
 }
-\keyword{internal}

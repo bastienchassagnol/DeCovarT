@@ -10,10 +10,10 @@ GGPLOT_RDS_DIR <- file.path(OUT_DIR, "ggplot_rds")
 dir.create(DENSITY_DIR, recursive = TRUE, showWarnings = FALSE)
 dir.create(GGPLOT_RDS_DIR, recursive = TRUE, showWarnings = FALSE)
 
-cfg <- DeCovarT:::.relevel_scenario_table(
+cfg <- .relevel_scenario_table(
   readRDS(file.path(OUT_DIR, "bivariate_config.rds"))
 )
-theta_tbl <- DeCovarT:::.relevel_scenario_table(
+theta_tbl <- .relevel_scenario_table(
   readRDS(file.path(OUT_DIR, "bivariate_theta.rds"))
 )
 message(

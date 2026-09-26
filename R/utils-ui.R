@@ -218,33 +218,6 @@
   assign(".ui_success", .ui_success, envir = env)
   assign(".ui_warn", .ui_warn, envir = env)
   assign(".ui_abort", .ui_abort, envir = env)
-  assign(
-    "theme_decovart_facets",
-    theme_decovart_facets,
-    envir = env
-  )
-  assign(
-    "write_simulation_artefacts",
-    write_simulation_artefacts,
-    envir = env
-  )
-  assign(
-    "read_simulation_artefacts",
-    read_simulation_artefacts,
-    envir = env
-  )
-  assign("slim_scenario_table", slim_scenario_table, envir = env)
-  assign("scale_covariance_array", scale_covariance_array, envir = env)
-  assign(
-    "scale_covariances_to_overlap",
-    scale_covariances_to_overlap,
-    envir = env
-  )
-  assign(
-    "expected_fisher_unconstrained",
-    expected_fisher_unconstrained,
-    envir = env
-  )
   invisible(NULL)
 }
 

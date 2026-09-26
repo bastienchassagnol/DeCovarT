@@ -157,7 +157,7 @@ build_bivariate_scenario_config <- function(
   proportion_list <- proportions
   design <- tidyr::expand_grid(
     centroids = names(signature_matrices),
-    proportion_name = names(proportion_list),
+    proportions = names(proportion_list),
     correlation_celltype1 = corr_sequence,
     correlation_celltype2 = corr_sequence,
     variance = names(diagonal_terms)
@@ -167,7 +167,7 @@ build_bivariate_scenario_config <- function(
       ID = .encode_bivariate_id(
         .data$scenario_idx,
         .data$variance,
-        .data$proportion_name,
+        .data$proportions,
         .data$centroids
       )
     )
@@ -176,7 +176,7 @@ build_bivariate_scenario_config <- function(
     design,
     function(
       centroids,
-      proportion_name,
+      proportions,
       correlation_celltype1,
       correlation_celltype2,
       variance,
@@ -184,7 +184,7 @@ build_bivariate_scenario_config <- function(
       ID
     ) {
       mu <- signature_matrices[[centroids]]
-      p <- proportion_list[[proportion_name]]
+      p <- proportion_list[[proportions]]
       diag_terms <- diagonal_terms[[variance]]
 
       # Exchangeable correlation per cell type, then Sigma_j = D^{1/2} R D^{1/2}.
@@ -226,7 +226,7 @@ build_bivariate_scenario_config <- function(
         correlation_celltype2 = correlation_celltype2,
         overlap = overlap,
         entropy = round(compute_shannon_entropy(p), digits = 3),
-        proportions = proportion_name,
+        proportions = proportions,
         variance = variance,
         centroids = centroids,
         true_theta = list(true_theta)
@@ -301,7 +301,7 @@ if (
   } else {
     library(DeCovarT)
   }
-  DeCovarT:::.ui_attach_script()
+  .ui_attach_script()
 
   stopifnot(
     requireNamespace("MixSim", quietly = TRUE),
@@ -405,7 +405,7 @@ if (
     assemble = TRUE
   )
   artefacts$theta <- readRDS(file.path(OUT_DIR, "bivariate_theta.rds"))
-  artefacts <- DeCovarT:::.attach_expected_fisher_wald(artefacts)
+  artefacts <- .attach_expected_fisher_wald(artefacts)
   write_simulation_artefacts(
     benchmark = artefacts,
     dir = OUT_DIR,

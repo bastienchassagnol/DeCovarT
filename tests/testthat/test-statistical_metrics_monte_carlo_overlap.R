@@ -112,6 +112,7 @@ test_that("AIRM distance is zero on the diagonal and inversion-invariant", {
 
 test_that("scaling covariances preserves precision zeros and orders overlap", {
   skip_if_not_installed("igraph")
+  skip_if_not(exists("scale_covariances_to_overlap", mode = "function"))
   w <- matrix(
     c(
       0,

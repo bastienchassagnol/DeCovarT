@@ -1,7 +1,3 @@
-if (!exists("theme_decovart_facets", mode = "function", inherits = TRUE)) {
-  theme_decovart_facets <- DeCovarT:::theme_decovart_facets
-}
-
 #' Cell-type colours for the G = 20, J = 3 latent-space book
 #'
 #' @keywords internal

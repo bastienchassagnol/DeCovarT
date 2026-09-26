@@ -47,8 +47,15 @@ second is the covariance contribution of the quadratic map
 multivariate-normal formula on
 \url{https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution}.
 }
+\examples{
+# Two cell types, bivariate Gaussians: I(p) is 2 x 2.
+p <- c(0.6, 0.4)
+mu <- cbind(c(0, 0), c(3, 0))
+Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+I <- expected_fisher_unconstrained(p, mu, Sigma)
+I
+}
 \seealso{
 \code{\link[=vcov_ilr_delta]{vcov_ilr_delta()}}, \code{\link[=vcov.decovart_fit]{vcov.decovart_fit()}},
 \code{\link[=confint.decovart_fit]{confint.decovart_fit()}}, \code{\link[=.inner_product]{.inner_product()}}
 }
-\keyword{internal}

@@ -19,7 +19,11 @@ Replaces each \eqn{\Sigma_j} by \eqn{s\Sigma_j}. Then
 \eqn{\Omega_j(s)=\Omega_j/s}, so the \strong{support} of the precision
 (structural zeros from the graph) is unchanged.
 }
+\examples{
+sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+scaled <- scale_covariance_array(sigma, 4)
+scaled[, , 1]
+}
 \seealso{
 \code{\link[=scale_covariances_to_overlap]{scale_covariances_to_overlap()}}
 }
-\keyword{internal}

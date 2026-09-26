@@ -46,11 +46,6 @@ Up to an additive constant independent of \eqn{\boldsymbol{p}},
   \boldsymbol{\Sigma}(\boldsymbol{p})^{-1}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}).
 }
-Both terms carry the factor \eqn{1/2} of the Gaussian log-density. An
-earlier release used \eqn{-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})},
-which doubled the determinant contribution and left the objective
-inconsistent with \code{\link[=expected_fisher_unconstrained]{expected_fisher_unconstrained()}}. With the factor
-restored, \eqn{\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})} exactly.
 
 Computationally this is the same Cholesky-and-backsolve evaluation as
 \code{mvtnorm::dmvnorm(..., log = TRUE)} (Genz and Bretz), omitting only the

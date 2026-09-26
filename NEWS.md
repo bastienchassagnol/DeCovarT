@@ -76,10 +76,10 @@
 * **Simulation artefacts.** `write_simulation_artefacts()` /
   `read_simulation_artefacts()` persist the design grid, scenario
   descriptors (including Jeffreys), `\theta`, and ADEMP metrics as
-  four RDS files keyed by `ID`. `slim_scenario_table()` drops
-  alias columns (`scenario_idx`, `rho_ct1` / `rho_ct2`,
-  `proportion_name`, `centroid`). Fig02 IDs are
-  `B{idx}_{Ho|He}_{Ba|Mo|Hi}_{Sm|Lg}`.
+  four RDS files keyed by `ID`. The written config uses the canonical
+  design columns (`proportions`, `centroids`) and drops `true_theta`
+  (stored in the theta artefact) and `scenario_idx` (encoded in `ID`).
+  Fig02 IDs are `B{idx}_{Ho|He}_{Ba|Mo|Hi}_{Sm|Lg}`.
 
 * **Scenario descriptors.** `describe_simulation_scenario()` now
   reports `max_cosine`, `mean_euclidean` (centroid / CLD gap),

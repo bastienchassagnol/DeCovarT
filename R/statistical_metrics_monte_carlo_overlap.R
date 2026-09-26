@@ -300,8 +300,12 @@ compute_average_riemannian <- function(true_theta, J = NULL) {
 #' @param sigma \eqn{G\times G\times J} covariance array.
 #' @param scale Positive scalar \eqn{s}.
 #' @return Scaled array.
-#' @keywords internal
+#' @export
 #' @seealso [scale_covariances_to_overlap()]
+#' @examples
+#' sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+#' scaled <- scale_covariance_array(sigma, 4)
+#' scaled[, , 1]
 scale_covariance_array <- function(sigma, scale) {
   scale <- as.numeric(scale)
   if (length(scale) != 1L || !is.finite(scale) || scale <= 0) {

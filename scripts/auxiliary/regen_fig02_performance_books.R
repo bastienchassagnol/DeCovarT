@@ -11,7 +11,7 @@ dir.create(GGPLOT_RDS_DIR, recursive = TRUE, showWarnings = FALSE)
 
 artefacts <- read_simulation_artefacts(OUT_DIR, "bivariate", assemble = TRUE)
 artefacts$theta <- readRDS(file.path(OUT_DIR, "bivariate_theta.rds"))
-artefacts <- DeCovarT:::.attach_expected_fisher_wald(artefacts)
+artefacts <- .attach_expected_fisher_wald(artefacts)
 write_simulation_artefacts(
   artefacts,
   OUT_DIR,

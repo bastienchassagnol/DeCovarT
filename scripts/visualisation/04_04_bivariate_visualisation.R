@@ -1,7 +1,3 @@
-if (!exists("theme_decovart_facets", mode = "function", inherits = TRUE)) {
-  theme_decovart_facets <- DeCovarT:::theme_decovart_facets
-}
-
 #' Convolution covariance \eqn{\Sigma(p)=\sum_j p_j^2 \Sigma_j}
 #'
 #' @keywords internal

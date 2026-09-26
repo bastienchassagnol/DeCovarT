@@ -9,26 +9,6 @@
 # interactive session). The temp copy is deleted when this helper
 # returns.
 
-if (!exists("slim_scenario_table", mode = "function", inherits = TRUE)) {
-  slim_scenario_table <- DeCovarT:::slim_scenario_table
-}
-if (!exists("write_simulation_artefacts", mode = "function", inherits = TRUE)) {
-  write_simulation_artefacts <- DeCovarT:::write_simulation_artefacts
-}
-if (!exists("read_simulation_artefacts", mode = "function", inherits = TRUE)) {
-  read_simulation_artefacts <- DeCovarT:::read_simulation_artefacts
-}
-if (
-  !exists("scale_covariances_to_overlap", mode = "function", inherits = TRUE)
-) {
-  scale_covariances_to_overlap <- DeCovarT:::scale_covariances_to_overlap
-}
-if (
-  !exists("expected_fisher_unconstrained", mode = "function", inherits = TRUE)
-) {
-  expected_fisher_unconstrained <- DeCovarT:::expected_fisher_unconstrained
-}
-
 new_bivariate_toy_scenario <- function(
   seed = 3L,
   n = 2L,

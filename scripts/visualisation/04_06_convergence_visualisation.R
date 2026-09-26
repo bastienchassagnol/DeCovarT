@@ -1,12 +1,3 @@
-if (!exists("theme_decovart_facets", mode = "function", inherits = TRUE)) {
-  theme_decovart_facets <- DeCovarT:::theme_decovart_facets
-}
-if (
-  !exists("expected_fisher_unconstrained", mode = "function", inherits = TRUE)
-) {
-  expected_fisher_unconstrained <- DeCovarT:::expected_fisher_unconstrained
-}
-
 #' Default files for the three Monte Carlo outcomes
 #'
 #' @keywords internal

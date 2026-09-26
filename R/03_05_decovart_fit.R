@@ -363,7 +363,14 @@ fit_decovart <- function(
 #' @seealso [vcov_ilr_delta()], [vcov.decovart_fit()],
 #'   [confint.decovart_fit()], [.inner_product()]
 #'
-#' @keywords internal
+#' @export
+#' @examples
+#' # Two cell types, bivariate Gaussians: I(p) is 2 x 2.
+#' p <- c(0.6, 0.4)
+#' mu <- cbind(c(0, 0), c(3, 0))
+#' Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+#' I <- expected_fisher_unconstrained(p, mu, Sigma)
+#' I
 expected_fisher_unconstrained <- function(
   p,
   mean_signature_matrix,

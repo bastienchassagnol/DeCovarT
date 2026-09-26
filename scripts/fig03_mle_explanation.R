@@ -23,7 +23,7 @@ if (
 } else {
   library(DeCovarT)
 }
-DeCovarT:::.ui_attach_script()
+.ui_attach_script()
 
 OUT_DIR <- file.path("output", "fig03", "mle_explanation")
 dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
@@ -83,7 +83,7 @@ desc <- desc[as.character(desc$ID) %in% ids, , drop = FALSE]
 
 .theta_for_id <- function(id) {
   hit <- as.character(artefacts$theta$ID) == id
-  DeCovarT:::.unwrap_true_theta(
+  .unwrap_true_theta(
     artefacts$theta$true_theta[which(hit)[[1L]]]
   )
 }
@@ -242,7 +242,7 @@ ilr_loglik_profiles <- dplyr::bind_rows(profile_chunks)
 mc <- artefacts$monte_carlo
 mc <- mc[
   as.character(mc$proportions) == "balanced" &
-    DeCovarT:::.algorithm_in(
+    .algorithm_in(
       mc$algorithm,
       c("Newton-Raphson", "Marquardt-Levenberg")
     ),

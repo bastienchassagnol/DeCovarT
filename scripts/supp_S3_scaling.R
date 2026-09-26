@@ -53,7 +53,7 @@ if (
 } else {
   library(DeCovarT)
 }
-DeCovarT:::.ui_attach_script()
+.ui_attach_script()
 
 OUT_DIR <- file.path("output", "supp_S3")
 dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)

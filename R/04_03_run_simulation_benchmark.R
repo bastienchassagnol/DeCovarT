@@ -388,30 +388,6 @@ run_simulation_benchmark <- function(
   )
 }
 
-#' Drop duplicated design columns from a scenario-tagged table
-#'
-#' Aliases (`scenario_idx`, `rho_ct1` / `rho_ct2`, `proportion_name`,
-#' `centroid`) are removed after copying them onto the canonical names
-#' `proportions` and `centroids` when those are missing.
-#'
-#' @param tbl A tibble that may contain redundant aliases.
-#' @return The same table without alias columns.
-#' @keywords internal
-slim_scenario_table <- function(tbl) {
-  tbl <- tibble::as_tibble(tbl)
-  if ("proportion_name" %in% names(tbl) && !"proportions" %in% names(tbl)) {
-    tbl$proportions <- tbl$proportion_name
-  }
-  if ("centroid" %in% names(tbl) && !"centroids" %in% names(tbl)) {
-    tbl$centroids <- tbl$centroid
-  }
-  drop <- intersect(.redundant_scenario_columns(), names(tbl))
-  if (length(drop) > 0L) {
-    tbl <- tbl[, setdiff(names(tbl), drop), drop = FALSE]
-  }
-  tbl
-}
-
 #' Unwrap a list-column `true_theta` cell
 #'
 #' @keywords internal
@@ -548,10 +524,9 @@ write_simulation_artefacts <- function(
   )
   descriptors <- descriptors[, keep_desc, drop = FALSE]
 
-  config_slim <- slim_scenario_table(config)
-  if ("true_theta" %in% names(config_slim)) {
-    config_slim$true_theta <- NULL
-  }
+  config_slim <- tibble::as_tibble(config)
+  config_slim$true_theta <- NULL
+  config_slim$scenario_idx <- NULL
 
   slim_metrics <- function(tbl) {
     if (is.null(tbl) || ncol(tbl) == 0L) {

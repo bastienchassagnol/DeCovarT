@@ -840,8 +840,13 @@ pivot_mc_estimates <- function(benchmark) {
 #' @param ... Passed to [ggplot2::theme()].
 #'
 #' @return A `ggplot2` theme object.
-#' @keywords internal
+#' @export
 #' @seealso [plot_mc_forest()], [plot_mc_raincloud()]
+#' @examples
+#' ggplot2::ggplot(mtcars, ggplot2::aes(wt, mpg)) +
+#'   ggplot2::geom_point() +
+#'   ggplot2::facet_wrap(~cyl) +
+#'   theme_decovart_facets()
 theme_decovart_facets <- function(base_size = 11, ...) {
   ggplot2::theme_minimal(base_size = base_size) +
     ggplot2::theme(
