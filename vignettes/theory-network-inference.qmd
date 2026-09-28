@@ -52,6 +52,11 @@ $\boldsymbol{x}_{\cdot j}^{(i)}\sim\mathcal{N}_G(\boldsymbol{\mu}_{\cdot j},
 $\boldsymbol{y}_{\cdot i}=\sum_j p_j\,\boldsymbol{x}_{\cdot j}^{(i)}$.
 GRN inference instead targets the **conditional dependence structure**
 among genes within each purified profile—or across a pooled design matrix.
+When $\boldsymbol{p}$ is already known, `CSNet` estimates type-level
+co-expression from the same convolution; the mapping onto DeCovarT's
+precision $\boldsymbol{\Omega}_j$ is in the
+[perspectives vignette](theory-decovart-statistical-perspectives.html#sec-csnet)
+[@suEstimatingCellTypeSpecificGene2024].
 :::
 
 # General reviews {#sec-grn-reviews}

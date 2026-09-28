@@ -31,7 +31,6 @@
 # Other articles stay on the pkgdown site, linked with absolute URLs,
 # to keep rebuild time and Suggests surface small.
 ^vignettes/deconvolution-seminar-slides\.qmd$
-^vignettes/theory-related-models-beyond-OLS\.qmd$
 ^vignettes/decovart-paper-slides\.qmd$
 ^vignettes/decovart-paper-slides\.pdf$
 ^vignettes/decovart-manuscript\.qmd$

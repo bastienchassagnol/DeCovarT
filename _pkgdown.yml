@@ -328,7 +328,6 @@ articles:
     contents:
       - theory-decovart-generative-model
       - theory-DeCovarT-MLE-properties
-      - theory-related-models-beyond-OLS
       - theory-decovart-statistical-perspectives
   - title: Supplementary simulation appendix
     desc: |

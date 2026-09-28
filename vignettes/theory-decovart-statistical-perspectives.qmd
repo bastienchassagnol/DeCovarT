@@ -26,7 +26,7 @@ format:
 ::: callout-note
 ## Scope
 
-Outlook on extending DeCovarT beyond the closed-reference Gaussian convolution. @sec-notation fixes the index set. @sec-sc-moments derives the mean and the three covariance layers from single-cell replicates, then compares regression and probabilistic engines. Later sections cover Scheffé-type mixture structure, alternative observation laws and Bayesian CTS inference, sample-level covariates, incomplete references, isoforms, RNA–cell uncoupling, weighted / generalised least squares, Firth penalisation for few bulk samples, lineage and archetypes, time-resolved composition, ensembles, spatial transcriptomics, and multi-omics. Compositional reparametrisation is implemented in [`additive_logistic()`](../reference/additive_logistic.html) and documented numerically in the [derivatives under simplex transforms](theory-decovart-generative-model.html) vignette. The same catalogue is tracked in [GitHub issue 5](https://github.com/bastienchassagnol/DeCovarT/issues/5).
+Outlook on extending DeCovarT beyond the closed-reference Gaussian convolution. @sec-notation fixes the index set. @sec-sc-moments derives the mean and the three covariance layers from single-cell replicates, then compares regression and probabilistic engines. Later sections cover Scheffé-type mixture structure, alternative observation laws, MAP / BLUP purification of sample-level profiles, CSNet-style type-level networks given known $\boldsymbol{p}$, sample-level covariates, incomplete references, isoforms, RNA–cell uncoupling, weighted / generalised least squares, Firth penalisation for few bulk samples, lineage and archetypes, time-resolved composition, ensembles, spatial transcriptomics, and multi-omics. Compositional reparametrisation is implemented in [`additive_logistic()`](../reference/additive_logistic.html) and documented numerically in the [derivatives under simplex transforms](theory-decovart-generative-model.html) vignette. The same catalogue is tracked in [GitHub issue 5](https://github.com/bastienchassagnol/DeCovarT/issues/5).
 :::
 
 # Notation {#sec-notation}
@@ -53,6 +53,8 @@ Indices and random objects below are fixed for the rest of this vignette, includ
 | $\boldsymbol{\theta}_{\cdot j}$ | Relative abundance inside type $j$, $\sum_g\theta_{gj}=1$, so $\boldsymbol{\mu}_{\cdot j}=S_j\boldsymbol{\theta}_{\cdot j}$ |
 | $a_i>0$ | Sample-wise scale (depth, tissue size). Shared by all genes |
 | $\boldsymbol{d}\in\mathbb{R}^{G}_{+}$ | Optional gene-wise platform scale. Not free inside one bulk fit |
+| $\boldsymbol{x}_{\cdot j,i}\in\mathbb{R}^{G}$ | Latent purified profile of type $j$ in sample $i$ |
+| $\boldsymbol{\Omega}_j=\boldsymbol{\Sigma}_j^{-1}$ | Sparse precision of the type-$j$ Gaussian graphical model |
 
 The current DeCovarT convolution (@eq-gaussian-convolution) is the special case in which each reference is one random population profile with covariance $\boldsymbol{\Sigma}_j=\boldsymbol{\Sigma}_{B,j}$, the sample scale is absorbed into $\boldsymbol{y}_{\cdot i}$, and both $\boldsymbol{\Sigma}_{W,j}$ and $\boldsymbol{\Sigma}_{\mathrm{obs},i}$ are omitted. $\boldsymbol{\rho}_i$ in the README diagram is the unconstrained coordinate with $\boldsymbol{p}_{\cdot i}=\psi(\boldsymbol{\rho}_i)$ the soft-max.
 
@@ -540,7 +542,7 @@ flowchart TD
   oneRef --> tca["Wang 2022: matrix completion of the cell-type transcriptome"]
 ```
 
-**Reference uncertainty.** `MuSiC` down-weights genes whose cross-subject variance is large relative to their cross-cell variance, which is an empirical stand-in for $\boldsymbol{\Sigma}_{B,j}$ versus $\boldsymbol{\Sigma}_{W,j}$ [@wangBulkTissueCell2019]. `MuSiC2` keeps that weighting and iteratively removes genes that are differentially expressed between the reference condition and the bulk condition [@fanMusic2CellTypeDeconvolution2022]. `DWLS` averages cells to form $\boldsymbol{\mu}_{\cdot j}$ and dampens high-leverage genes; the artificial bulk used for weighting is a **sum** of single-cell profiles, which matches @nte-sum-versus-mean [@tsoucasAccurateEstimationCelltype2019]. `Bisque` reduces single-cell noise by aggregating to a pseudobulk before learning $\boldsymbol{d}$ [@jewAccurateEstimationCell2020]. The 2022 matrix-completion preprint reconstructs the cell-type-resolution transcriptome rather than a single $\boldsymbol{\mu}_{\cdot j}$; it is a bulk completion method, not a covariance model [@wangAccurateEstimationCelltype2022]. None of these five returns $\boldsymbol{\Sigma}_{W,j}$ as a linear mixture weight. `RCTD` is the spatial analogue for reference uncertainty: it learns cell-type profiles from scRNA-seq, then decomposes spatial mixtures while correcting platform scale [@cableRobustDecompositionCell2022a].
+**Reference uncertainty.** `MuSiC` down-weights genes whose cross-subject variance is large relative to their cross-cell variance, which is an empirical stand-in for $\boldsymbol{\Sigma}_{B,j}$ versus $\boldsymbol{\Sigma}_{W,j}$ [@wangBulkTissueCell2019]. `MuSiC2` keeps that weighting and iteratively removes genes that are differentially expressed between the reference condition and the bulk condition [@fanMusic2CellTypeDeconvolution2022]. `DWLS` averages cells to form $\boldsymbol{\mu}_{\cdot j}$ and dampens high-leverage genes; the artificial bulk used for weighting is a **sum** of single-cell profiles, which matches @nte-sum-versus-mean [@tsoucasAccurateEstimationCelltype2019]. `Bisque` reduces single-cell noise by aggregating to a pseudobulk before learning $\boldsymbol{d}$ [@jewAccurateEstimationCell2020]. The 2022 matrix-completion preprint reconstructs the cell-type-resolution transcriptome rather than a single $\boldsymbol{\mu}_{\cdot j}$; it is a bulk completion method, not a covariance model [@wangAccurateEstimationCelltype2022]. None of these five returns $\boldsymbol{\Sigma}_{W,j}$ as a linear mixture weight. The same averaging of cells to a **fixed** $\boldsymbol{\mu}_{\cdot j}$ is the first step of `RCTD`; the rest of that method is a Poisson–log-normal likelihood, treated in @sec-probabilistic-engines [@cableRobustDecompositionCell2022a].
 
 **Alignment.** `MuSiC` and `MuSiC2` keep $S_j$ inside the design and use a sample-level normalisation so that $a_i$ does not have to be a free parameter [@wangBulkTissueCell2019; @fanMusic2CellTypeDeconvolution2022]. `Bisque` is the explicit $\boldsymbol{d}$ method, estimated from the pairing of assays, not from the bulk sample alone [@jewAccurateEstimationCell2020]. `DWLS` inherits whatever scale the averaged signature was built on [@tsoucasAccurateEstimationCelltype2019]. CLTS is the normalisation that matches @eq-music-mean; CPM does not [@luTranscriptomeSizeMatters2025].
 
@@ -581,13 +583,13 @@ flowchart TB
 
 ### Probabilistic engines, set against DeCovarT {#sec-probabilistic-engines}
 
-`RNA-Sieve` and `MEAD` are errors-in-variables models: the design $\boldsymbol{\mu}$ is observed with error, and a regression that ignores that error is attenuated [@erdmann-phamLikelihoodbasedDeconvolutionBulk2021; @xieRobustStatisticalInference2023]. `DECALS` keeps a subject-specific covariance but estimates $\boldsymbol{p}_{\cdot i}$ by constrained least squares, with an asymptotic covariance that does not require a Gaussian bulk [@caiStatisticalInferenceCelltype2024]. `ReDeconv` and DeCovarT both put a parametric law on the bulk pointwise, not only in the large-gene limit. They differ in the law and in the dependence on $\boldsymbol{p}_{\cdot i}$.
+`RNA-Sieve` and `MEAD` are errors-in-variables models: the design $\boldsymbol{\mu}$ is observed with error, and a regression that ignores that error is attenuated [@erdmann-phamLikelihoodbasedDeconvolutionBulk2021; @xieRobustStatisticalInference2023]. `DECALS` keeps a subject-specific covariance but estimates $\boldsymbol{p}_{\cdot i}$ by constrained least squares, with an asymptotic covariance that does not require a Gaussian bulk [@caiStatisticalInferenceCelltype2024]. `ReDeconv`, `RCTD`, and DeCovarT all put a parametric law on the bulk **pointwise**, not only in the large-gene limit. They differ in the law, in whether $\boldsymbol{\mu}_{\cdot j}$ is random, and in the dependence on $\boldsymbol{p}_{\cdot i}$.
 
-`DECALS` and `MEAD` are cited from the second-generation literature [@caiStatisticalInferenceCelltype2024; @xieRobustStatisticalInference2023], as are `RNA-Sieve` and `ReDeconv` [@erdmann-phamLikelihoodbasedDeconvolutionBulk2021; @luTranscriptomeSizeMatters2025].
+`DECALS` and `MEAD` are cited from the second-generation literature [@caiStatisticalInferenceCelltype2024; @xieRobustStatisticalInference2023], as are `RNA-Sieve` and `ReDeconv` [@erdmann-phamLikelihoodbasedDeconvolutionBulk2021; @luTranscriptomeSizeMatters2025]. `RCTD` is written for spatial pixels; statistically it never uses neighbourhood structure, so each pixel is just an independent bulk sample $i$ with library size $N_i$ [@cableRobustDecompositionCell2022a]. Indices below follow @sec-notation (gene $g$, type $j$, sample $i$), not the paper's $(j,k,i)$.
 
 ```{mermaid}
 %%| label: fig-prob-tree
-%%| fig-cap: "Probabilistic deconvolution split by how the bulk law depends on p. RNA-Sieve and MEAD share an errors-in-variables design. DECALS uses constrained least squares. ReDeconv and DeCovarT are parametric, univariate mixture versus sparse multivariate convolution."
+%%| fig-cap: "Probabilistic deconvolution split by how the bulk law depends on p. RNA-Sieve and MEAD share an errors-in-variables design. DECALS uses constrained least squares. RCTD is a read-level Poisson-log-normal mixture. ReDeconv and DeCovarT are parametric on averaged expression, univariate mixture versus sparse multivariate convolution."
 %%{init: {"theme": "sandstone", "flowchart": {"curve": "basis"}}}%%
 flowchart TD
   root["Probabilistic deconvolution of y_i"]
@@ -597,13 +599,14 @@ flowchart TD
   eiv --> sieve["RNA-Sieve: gene-wise CLT, mean and variance"]
   eiv --> mead["MEAD: multivariate extension, gene-gene correlation, scales a_i and d"]
   cls --> decals["DECALS: subject-specific Sigma_i of p, constrained LS, asymptotic covariance"]
+  par --> rctd["RCTD: Poisson-log-normal mixture of reads, mu fixed"]
   par --> rede["ReDeconv: univariate variances, linear in p, CLTS scale S_j"]
   par --> deco["DeCovarT: sparse multivariate Gaussian, quadratic in p"]
 ```
 
-**Reference uncertainty.** `RNA-Sieve` estimates a per-gene mean and variance from the reference cells and treats both the reference moments and the bulk as noisy. The marginal law of a random cell is a mixture; the bulk, as a sum of many cells, is handled by a central-limit normal likelihood. Dependence across genes is not a full $\boldsymbol{\Sigma}_{W,j}$ [@erdmann-phamLikelihoodbasedDeconvolutionBulk2021]. `MEAD` is the multivariate extension: the reference enters as a noisy design, gene–gene correlation is retained, and the model allows a sample scale and a gene-wise scale [@xieRobustStatisticalInference2023]. `DECALS` estimates cell-type-specific covariances from the bulk residuals themselves, because $\operatorname{Cov}(\boldsymbol{y}_{\cdot i})$ depends on $\boldsymbol{p}_{\cdot i}$, and then builds a subject-specific $\boldsymbol{\Sigma}_i$ [@caiStatisticalInferenceCelltype2024]. It argues that the sandwich covariance used for `MEAD` does not consistently estimate that subject-specific matrix. `ReDeconv` uses a per-gene, per-type variance with linear weight $p_{ji}$, which is the diagonal of @eq-linear-within, together with CLTS so that $S_j$ is not normalised away [@luTranscriptomeSizeMatters2025]. DeCovarT estimates a sparse precision per type and inserts it only as $\boldsymbol{\Sigma}_{B,j}$.
+**Reference uncertainty.** `RNA-Sieve` estimates a per-gene mean and variance from the reference cells and treats both the reference moments and the bulk as noisy. The marginal law of a random cell is a mixture; the bulk, as a sum of many cells, is handled by a central-limit normal likelihood. Dependence across genes is not a full $\boldsymbol{\Sigma}_{W,j}$ [@erdmann-phamLikelihoodbasedDeconvolutionBulk2021]. `MEAD` is the multivariate extension: the reference enters as a noisy design, gene–gene correlation is retained, and the model allows a sample scale and a gene-wise scale [@xieRobustStatisticalInference2023]. `DECALS` estimates cell-type-specific covariances from the bulk residuals themselves, because $\operatorname{Cov}(\boldsymbol{y}_{\cdot i})$ depends on $\boldsymbol{p}_{\cdot i}$, and then builds a subject-specific $\boldsymbol{\Sigma}_i$ [@caiStatisticalInferenceCelltype2024]. It argues that the sandwich covariance used for `MEAD` does not consistently estimate that subject-specific matrix. `ReDeconv` uses a per-gene, per-type variance with linear weight $p_{ji}$, which is the diagonal of @eq-linear-within, together with CLTS so that $S_j$ is not normalised away [@luTranscriptomeSizeMatters2025]. `RCTD` averages library-normalised cells to a **point** $\hat{\boldsymbol{\mu}}_{\cdot j}$ and then treats that vector as known [@cableRobustDecompositionCell2022a]. There is no $\boldsymbol{\Sigma}_{B,j}$ and no $\boldsymbol{\Sigma}_{W,j}$ in the bulk law: purified type expression is fixed, whereas DeCovarT treats it as a random population profile with known covariance. Residual gene-wise overdispersion $\varepsilon_{gi}$ is the only randomness left around the mean. DeCovarT estimates a sparse precision per type and inserts it only as $\boldsymbol{\Sigma}_{B,j}$.
 
-**Alignment.** `RNA-Sieve` rescales genes so that reference and bulk live on a comparable relative scale; the scale is not a free $\boldsymbol{d}$ inside the simplex fit. `MEAD` writes $\boldsymbol{y}_{\cdot i}=a_i\operatorname{diag}(\boldsymbol{d})\boldsymbol{X}_i\boldsymbol{p}_{\cdot i}+\boldsymbol{\varepsilon}_i$ and gives identifiability conditions under which $\boldsymbol{p}_{\cdot i}$ survives an arbitrary $\boldsymbol{d}$. Those conditions are structural constraints on the signature, not "more bulk samples". This matches the warning in @sec-alignment. `ReDeconv` is the method that refuses CP10K precisely because it erases $S_j$ [@luTranscriptomeSizeMatters2025].
+**Alignment.** `RNA-Sieve` rescales genes so that reference and bulk live on a comparable relative scale; the scale is not a free $\boldsymbol{d}$ inside the simplex fit. `MEAD` writes $\boldsymbol{y}_{\cdot i}=a_i\operatorname{diag}(\boldsymbol{d})\boldsymbol{X}_i\boldsymbol{p}_{\cdot i}+\boldsymbol{\varepsilon}_i$ and gives identifiability conditions under which $\boldsymbol{p}_{\cdot i}$ survives an arbitrary $\boldsymbol{d}$. Those conditions are structural constraints on the signature, not "more bulk samples". This matches the warning in @sec-alignment. `ReDeconv` is the method that refuses CP10K precisely because it erases $S_j$ [@luTranscriptomeSizeMatters2025]. `RCTD` is the method that **does** estimate a gene-wise platform $\boldsymbol{d}$, but not from the sample being deconvolved. The reference mean is the arithmetic mean of $\boldsymbol{X}_{jrc}/(\mathbf{1}^{\top}\boldsymbol{X}_{jrc})$ over cells of type $j$, so $S_j$ is already divided out (@sec-norm-linear). On the bulk side, $N_i$ is the observed library size (total UMIs) and acts as a GLM offset: it multiplies the mixture rate, exactly the proportional scaling $a_i$ would play if depth were known. A remaining sample effect $\alpha_i$ absorbs leftover capture. A gene-specific platform $d_g$ is identified from a **pseudobulk** of all samples, because a free $\boldsymbol{d}$ inside one fit would be interchangeable with $\boldsymbol{p}_{\cdot i}$ (@sec-alignment). After that plug-in, $\hat{\boldsymbol{\mu}}_{\cdot j}$ is replaced by $d_g\hat{\mu}_{gj}$.
 
 **Generative model.**
 
@@ -639,20 +642,103 @@ flowchart TB
   SW -.->|"kappa_i p_ji"| yi
 ```
 
+`RCTD` sits one layer below that plate. Each UMI is first assigned a type with probability $p_{ji}$, then a gene from that type's relative profile: a read-level **mixture**, not a convolution of random population vectors [@cableRobustDecompositionCell2022a]. Conditional on the rate, the gene counts are Poisson; the rate is log-normal around a linear mixture of the **fixed** means. In DeCovarT symbols,
+
+$$
+y_{gi}\mid\lambda_{gi}
+\sim
+\mathrm{Poisson}(N_i\lambda_{gi}),
+\qquad
+\log\lambda_{gi}
+=
+\alpha_i
++
+\log\Bigl(\sum_j p_{ji}\mu_{gj}\Bigr)
++
+\log d_g
++
+\varepsilon_{gi},
+$$ {#eq-rctd-pln}
+
+with $\varepsilon_{gi}$ independent $\mathcal{N}(0,\sigma_\varepsilon^2)$ (heavy-tailed in the implementation). The Poisson mean is therefore
+
+$$
+\mathbb{E}[y_{gi}\mid\varepsilon_{gi}]
+=
+\underbrace{N_i e^{\alpha_i}}_{a_i}
+\,
+d_g
+\,
+e^{\varepsilon_{gi}}
+\sum_j p_{ji}\mu_{gj}.
+$$ {#eq-rctd-mean}
+
+$N_i$ is observed depth; $\alpha_i$ is a leftover sample scale; $d_g$ is the gene-wise platform that DeCovarT's $\boldsymbol{d}$ names. The diagonal residual $\varepsilon_{gi}$ is technical plus unmodelled gene-wise extra-Poisson noise, the count-scale cousin of $\boldsymbol{\Sigma}_{\mathrm{obs},i}$. Genes are independent given $\varepsilon$. Because $\boldsymbol{\mu}_{\cdot j}$ is plugged in, @eq-rctd-mean is a mixture of rates. DeCovarT's @eq-gaussian-convolution is a convolution of **random** type profiles: after averaging to a continuous expression vector, the bulk is $\sum_j p_{ji}\boldsymbol{Z}_{ij}$ with $\boldsymbol{Z}_{ij}$ Gaussian, hence quadratic in $\boldsymbol{p}$. A mixture is the right generative story at the UMI; a convolution is the right story at the aligned population mean.
+
+```{mermaid}
+%%| label: fig-dag-rctd
+%%| fig-cap: "Plate diagram for RCTD in DeCovarT notation. The reference is collapsed to a fixed mu_j. Sample i carries observed depth N_i, a leftover scale alpha_i, composition p_i, and a gene-wise overdispersion. Platform d is shared across samples and is not estimated inside the per-sample fit."
+%%{init: {"theme": "sandstone", "flowchart": {"curve": "basis"}}}%%
+flowchart TB
+  cells["library-normalised cells of type j"]
+  mu["mu_j fixed"]
+  d["d_g platform"]
+  cells --> mu
+  subgraph plateI["i = 1 to N"]
+    direction TB
+    Ni["N_i observed"]
+    ai["alpha_i"]
+    pi["p_i"]
+    eps["epsilon_gi gene-wise"]
+    yi["y_i Poisson"]
+    Ni --> yi
+    ai --> yi
+    pi --> yi
+    eps --> yi
+  end
+  mu --> yi
+  d --> yi
+```
+
+The fit is two-stage for the same identifiability reason as @sec-alignment: $\boldsymbol{d}$ cannot be free inside one sample.
+
+```{mermaid}
+%%| label: fig-rctd-two-stage
+%%| fig-cap: "RCTD estimation. Stage 1 identifies the gene-wise platform from a pseudobulk. Stage 2 fits each sample independently by sequential quadratic programming on unnormalised weights w_ji = p_ji exp(alpha_i)."
+%%{init: {"theme": "sandstone", "flowchart": {"curve": "basis"}}}%%
+flowchart TD
+  avg["Average library-normalised cells to mu_j"]
+  filt["Keep differentially expressed genes"]
+  pool["Pool samples to a pseudobulk S"]
+  stage1["Stage 1: MLE of platform d and a bulk-wide mix W"]
+  plug["Plug mu_j and d into the Poisson-log-normal"]
+  stage2["Stage 2: per-sample SQP for w_ji = p_ji exp(alpha_i), w >= 0"]
+  rec["Recover p_i by normalising w_i"]
+  avg --> filt
+  filt --> stage1
+  pool --> stage1
+  stage1 --> plug
+  plug --> stage2
+  stage2 --> rec
+```
+
 | | Design error | Bulk law | Weight of type covariance | Scale | Estimator |
 |---|---|---|---|---|---|
 | `RNA-Sieve` | Yes, gene-wise | Asymptotic normal, genes separate | Variance, not a precision matrix | Relative rescaling | Maximum likelihood, asymptotic regions |
 | `MEAD` | Yes, multivariate | Moment conditions, not a full density | Gene–gene correlation retained | $a_i$ and $\boldsymbol{d}$, with identifiability conditions | Errors-in-variables estimator, delta-method intervals |
 | `DECALS` | Through $\boldsymbol{\Sigma}_i(\boldsymbol{p})$ | None | Subject-specific $\boldsymbol{\Sigma}_i$ built from cell-type blocks | Absorbed before regression | Constrained least squares, asymptotic covariance |
+| `RCTD` | No, $\boldsymbol{\mu}$ plugged in | Poisson–log-normal **mixture** of reads, genes independent given $\varepsilon$ | None | $N_i$ known, $\alpha_i$ and $\boldsymbol{d}$ | Two-stage MLE; SQP on $w\ge 0$ |
 | `ReDeconv` | No | Univariate parametric, pointwise | Linear in $p_{ji}$ | CLTS keeps $S_j$ | Variance-aware regression |
-| DeCovarT now | No | Sparse multivariate normal, pointwise | Quadratic in $p_{ji}$ | $a_i$ profiled, $S_j$ not in the likelihood | Constrained maximum likelihood |
+| DeCovarT now | No | Sparse multivariate normal, pointwise **convolution** | Quadratic in $p_{ji}$ | $a_i$ profiled, $S_j$ not in the likelihood | Constrained MLE on the ILR chart |
 | DeCovarT in @eq-three-layer | Only via $\boldsymbol{\Sigma}_{W,j}/C_{jr}$ | Same normal family | Quadratic $\boldsymbol{\Sigma}_{B,j}$ plus linear $\boldsymbol{\Sigma}_{W,j}$ plus diagonal $\boldsymbol{\Sigma}_{\mathrm{obs},i}$ | $a_i$ outside, $S_j$ in the mean | Constrained maximum likelihood |
 
-`RNA-Sieve` and DeCovarT both obtain a normal bulk from a sum of random contributions. `RNA-Sieve` sums **cells** (linear variances, central limit, gene by gene). DeCovarT convolves **population profiles** (quadratic covariances, exact Gaussian, sparse precision). `MEAD` keeps the multivariate second-moment structure that `RNA-Sieve` drops, and adds the platform scales. `DECALS` wants the same subject-specific covariance but will not commit to a density; the price is a least-squares point estimate whose efficiency depends on how well $\boldsymbol{\Sigma}_i$ is estimated. `ReDeconv` is the univariate, mixture-weighted cousin of the linear term in @eq-three-layer.
+`RNA-Sieve` and DeCovarT both obtain a normal bulk from a sum of random contributions. `RNA-Sieve` sums **cells** (linear variances, central limit, gene by gene). DeCovarT convolves **population profiles** (quadratic covariances, exact Gaussian, sparse precision). `MEAD` keeps the multivariate second-moment structure that `RNA-Sieve` drops, and adds the platform scales. `DECALS` wants the same subject-specific covariance but will not commit to a density; the price is a least-squares point estimate whose efficiency depends on how well $\boldsymbol{\Sigma}_i$ is estimated. `ReDeconv` is the univariate, mixture-weighted cousin of the linear term in @eq-three-layer. `RCTD` is a **read-level mixture** with a Poisson–log-normal margin: each molecule comes from one type, $\boldsymbol{\mu}_{\cdot j}$ is fixed, and extra-Poisson noise is gene-wise rather than a type-level $\boldsymbol{\Sigma}_j$.
+
+**SQP versus second-order descent.** After stage 1, `RCTD` maximises a non-convex Poisson–log-normal log-likelihood in the unnormalised weights $w_{ji}=p_{ji}e^{\alpha_i}$, subject to $w\ge 0$ only (the simplex is recovered by normalising). The local quadratic Taylor model of that objective is a **constrained** quadratic programme. The Hessian is often indefinite, so a plain Newton step is not a descent direction; sequential quadratic programming keeps the positive-semidefinite part of the Hessian (eigenvalue clipping) and solves the QP with `quadprog`, a sequential convex programme in the sense of Duchi, reused from `DWLS` [@tsoucasAccurateEstimationCelltype2019]. Inequality constraints and doublet/triplet cardinality penalties (active-set zeros) are native to that orthant formulation. DeCovarT instead maps $\boldsymbol{p}$ to an unconstrained ILR chart and uses an analytic score and Hessian of a Gaussian convolution, with Marquardt damping when the Hessian is poorly conditioned. That second-order path is available because the observation is already an averaged, aligned intensity and the simplex is handled by the chart rather than by $w\ge 0$. It is the wrong local model for @eq-rctd-pln: the likelihood is non-convex in $w$, the support is the non-negative orthant, and many samples are expected to sit on a face.
 
 The practical fork is the reference design, not a choice of optimiser.
 
-- **$R=1$.** Fit @eq-linear-within. Report $\boldsymbol{q}_{\cdot i}$ unless $S_j$ is known, in which case apply @eq-rna-to-cell or insert $S_j$ in @eq-music-mean. Do not publish $\boldsymbol{\Sigma}_{W,j}$ as a DeCovarT $\boldsymbol{\Sigma}_j$.
+- **$R=1$.** Fit @eq-linear-within. Report $\boldsymbol{q}_{\cdot i}$ unless $S_j$ is known, in which case apply @eq-rna-to-cell or insert $S_j$ in @eq-music-mean. Do not publish $\boldsymbol{\Sigma}_{W,j}$ as a DeCovarT $\boldsymbol{\Sigma}_j$. `RCTD`'s plugged-in $\boldsymbol{\mu}_{\cdot j}$ is this regime's mean; its Poisson–log-normal is an alternative observation law for the same $R=1$ design, not a substitute for $\boldsymbol{\Sigma}_{B,j}$.
 - **$R\ge 2$ with a sparse or low-rank between-replicate precision.** Fit @eq-three-layer. The original quadratic term is then $\boldsymbol{\Sigma}_{B,j}$ and has a sampling interpretation. $\boldsymbol{\Sigma}_{\mathrm{obs},i}$ stays diagonal.
 
 # Statistical perspectives {#sec-statistical-perspectives}
@@ -681,10 +767,12 @@ flowchart TD
   B --> D["Multinomial / Dirichlet: ISOpureR, BayesPrism"]
   B --> LN["Multinomial logit-normal + gLasso"]
   B --> E["Poisson / PLN / ZIPLN: DeconV, Chiquet"]
+  B --> RCTD["Poisson-log-normal mixture: RCTD"]
   C --> F["Univariate Gaussian: DSection, DeMix, BayICE"]
   C --> G["Multivariate Gaussian convolution: DeCovarT"]
   C --> RS["CLT Gaussian + noisy M: RNA-Sieve"]
   C --> H["Log-normal convolution: BLADE"]
+  C --> CSN["Moments of the convolution: CSNet"]
   D --> I["Bayesian joint p and CTS"]
   G --> J["Frequentist plug-in mu, Sigma"]
   H --> I
@@ -703,6 +791,11 @@ and sample-level CTS expression [@chuCellTypeGeneExpression2022].
 (sums of independent Poissons remain Poisson) and returns interval
 estimates of $\boldsymbol{p}_{\cdot i}$
 [@gynterDeconvProbabilisticCellType2023].
+`RCTD` is the Poisson–log-normal **mixture** of @eq-rctd-pln: each
+UMI picks a type, then a gene, with a gene-wise log-normal
+overdispersion and a two-stage platform correction
+[@cableRobustDecompositionCell2022a]; the comparison with DeCovarT's
+convolution is in @sec-probabilistic-engines.
 
 Over-dispersed, correlated counts are the domain of the multivariate
 **Poisson–log-normal (PLN)** family: a latent Gaussian vector induces
@@ -747,17 +840,192 @@ A side-by-side comparison is in the
 convolution, jointly purifying CTS profiles by variational inference
 [@andrade-barbosaBayesianLogNormalDeconvolution2021]. `bMIND` estimates
 sample-level CTS with an scRNA-seq-derived prior
-[@wangBayesianEstimationCelltypespecific2020]. The experimental MAP path
-in `R/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R` is the corresponding
-DeCovarT starting point: recover $\boldsymbol{x}_{\cdot j,i}$ given
-$\boldsymbol{y}_{\cdot i}$ and $\boldsymbol{p}_{\cdot i}$ under
-@eq-gaussian-convolution rather than under independent genes.
+[@wangBayesianEstimationCelltypespecific2020]. The three Gaussian
+devices that recover $\boldsymbol{x}_{\cdot j,i}$ given
+$\boldsymbol{p}_{\cdot i}$ are in @sec-map-blup. The inverse problem
+that recovers type-level $\boldsymbol{\mu}_{\cdot j}$ and a sparse
+second-moment network given $\boldsymbol{p}$ is @sec-csnet.
 
 Zhang et al. benchmark joint $\boldsymbol{p}$ + CTS engines and report
 **BayesPrism with DWLS gene weights** as the strongest combination on
 pseudobulk and real bulk data
 [@zhangIntegratedInferenceCellularCompositions2026]. That is a
 weighted-likelihood analogue of @sec-robust-gls.
+
+### MAP, BLUP, and the Wiener filter {#sec-map-blup}
+
+Released DeCovarT estimates $\boldsymbol{p}_{\cdot i}$ after plugging
+$\boldsymbol{x}_{\cdot j,i}$ by $\boldsymbol{\mu}_{\cdot j}$. The latent
+profiles themselves remain recoverable once
+$\boldsymbol{p}_{\cdot i}$ is treated as known. Write the convolution
+explicitly,
+
+$$
+\boldsymbol{x}_{\cdot j,i}
+\sim
+\mathcal{N}(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_j),
+\qquad
+\boldsymbol{y}_{\cdot i}
+=
+\sum_j p_{ji}\,\boldsymbol{x}_{\cdot j,i},
+$$ {#eq-latent-convolution}
+
+independent across $j$ given $\boldsymbol{p}_{\cdot i}$. Then
+$\boldsymbol{y}_{\cdot i}\sim\mathcal{N}(\boldsymbol{\mu}\boldsymbol{p}_{\cdot i},\boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i}))$
+with $\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_{ji}^{2}\boldsymbol{\Sigma}_j$ as
+in @eq-gaussian-convolution. The joint law of
+$(\boldsymbol{x}_{\cdot j,i},\boldsymbol{y}_{\cdot i})$ is Gaussian, so three
+classical criteria coincide:
+
+- the **maximum a posteriori** $\arg\max_{\boldsymbol{x}_j} p(\boldsymbol{x}_j\mid\boldsymbol{y}_{\cdot i},\boldsymbol{p}_{\cdot i})$;
+- the **best linear unbiased predictor** (Henderson) of the random
+  effect $\boldsymbol{x}_{\cdot j,i}$ in a linear mixed model whose variance
+  components $\boldsymbol{\mu}_{\cdot j}$ and $\boldsymbol{\Sigma}_j$ are known;
+- the **Wiener filter**, the linear minimum mean-square estimator of
+  $\boldsymbol{x}_{\cdot j,i}$ from $\boldsymbol{y}_{\cdot i}$.
+
+All three equal the posterior mean
+
+$$
+\hat{\boldsymbol{x}}_{\cdot j,i}
+=
+\boldsymbol{\mu}_{\cdot j}
++
+p_{ji}\,\boldsymbol{\Sigma}_j\,
+\boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i})^{-1}
+(\boldsymbol{y}_{\cdot i}-\boldsymbol{\mu}\boldsymbol{p}_{\cdot i}).
+$$ {#eq-map-blup}
+
+If a diagonal residual $\boldsymbol{\Sigma}_{\mathrm{obs},i}$ is present
+(@eq-three-layer), replace
+$\boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i})$ by
+$\boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i})+\boldsymbol{\Sigma}_{\mathrm{obs},i}$.
+The gain $p_{ji}\boldsymbol{\Sigma}_j\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}$
+shrinks the bulk residual back onto type $j$ in proportion to that
+type's weight and covariance. The experimental helper
+[`scripts/experimental/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R`](https://github.com/bastienchassagnol/DeCovarT/blob/main/scripts/experimental/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R)
+is this update with $\boldsymbol{\Sigma}(\boldsymbol{p})$ assembled by
+[`.compute_global_variance()`](../reference/dot-compute_global_variance.html).
+A production path must pass the fitted $\boldsymbol{p}_{\cdot i}$, not a
+vector of ones.
+
+`bMIND` is the same BLUP with an scRNA-seq prior on
+$(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_j)$ and a posterior mean per
+sample [@wangBayesianEstimationCelltypespecific2020]. `BLADE` replaces
+the Gaussian by a gene-wise log-normal and infers the latents
+variationally [@andrade-barbosaBayesianLogNormalDeconvolution2021].
+Neither estimates a sparse $\boldsymbol{\Omega}_j$. @eq-map-blup purifies
+**one** bulk column. It does not, by itself, re-estimate the type-level
+moments $(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_j)$ from a cohort.
+
+### Type-level moments given known proportions {#sec-csnet}
+
+`CSNet` inverts the DeCovarT arrow [@suEstimatingCellTypeSpecificGene2024].
+DeCovarT takes $(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_j\})$ as plug-in and
+returns $\boldsymbol{p}_{\cdot i}$. `CSNet` takes
+$\{\boldsymbol{p}_{\cdot i}\}_{i=1}^{N}$ as known (from CIBERSORT, MuSiC,
+or DeCovarT itself) and returns type-level means and a **sparse
+correlation network**. The generative identities are the same
+convolution as @eq-latent-convolution and @eq-gaussian-convolution, written
+across a cohort rather than one sample:
+
+$$
+\mathbb{E}[\boldsymbol{y}_{\cdot i}\mid\boldsymbol{p}_{\cdot i}]
+=
+\sum_j p_{ji}\,\boldsymbol{\mu}_{\cdot j},
+\qquad
+\operatorname{Cov}(\boldsymbol{y}_{\cdot i}\mid\boldsymbol{p}_{\cdot i})
+=
+\sum_j p_{ji}^{2}\,\boldsymbol{\Sigma}_j.
+$$ {#eq-csnet-moments}
+
+No Gaussian law is required for the moments. Let
+$P\in\mathbb{R}^{N\times J}$ have entries $P_{ij}=p_{ji}$ and
+$H\in\mathbb{R}^{N\times J}$ have entries $H_{ij}=p_{ji}^{2}$.
+Gene-wise ordinary least squares on the linear mean recovers
+
+$$
+\hat{\boldsymbol{\mu}}_{g\cdot}
+=
+(P^{\top}P)^{-1}P^{\top}\boldsymbol{y}_{g\cdot},
+$$ {#eq-csnet-mean}
+
+the bulk analogue of a reference average, now identified from
+**compositional contrast across samples** rather than from purified
+cells. Centred residuals $z_{gi}=y_{gi}-\sum_j p_{ji}\hat{\mu}_{gj}$
+then satisfy the pairwise identity
+$z_{gi}z_{g'i}=\sum_j p_{ji}^{2}\Sigma_{gg',j}+\varepsilon_{gg'i}$.
+Least squares of the Hadamard products on $H$ estimates each
+covariance entry,
+
+$$
+\hat{\Sigma}_{gg',j}
+=
+\bigl[(H^{\top}H)^{-1}H^{\top}(\boldsymbol{z}_{g\cdot}\odot\boldsymbol{z}_{g'\cdot})\bigr]_{j}.
+$$ {#eq-csnet-cov}
+
+`CSNet` converts $\hat{\boldsymbol{\Sigma}}_j$ to a correlation
+$\hat{R}_j$ and applies an element-wise SCAD threshold. That is a
+**marginal co-expression** graph, not a Gaussian Markov precision.
+The Gaussian convolution log-likelihood in $\{\boldsymbol{\Sigma}_j\}$,
+which is the natural DeCovarT loss for the same parameters, is neither
+convex nor biconvex in those matrices; pairwise least squares is how
+`CSNet` avoids that optimisation [@suEstimatingCellTypeSpecificGene2024].
+
+A DeCovarT-native sequel would keep @eq-csnet-mean--@eq-csnet-cov as
+the moment step, then map $\hat{\boldsymbol{\Sigma}}_j$ to a sparse
+precision $\boldsymbol{\Omega}_j$ (graphical lasso, or SCAD on the inverse)
+so that the purified network is the same object DeCovarT already
+inserts into @eq-gaussian-convolution. That pipeline is
+[in silico GRN inference](theory-network-inference.html) run **after**
+$\boldsymbol{p}$ has been estimated, not in place of it.
+
+```{mermaid}
+%%| label: fig-csnet-two-arrows
+%%| fig-cap: "Two inverse problems on the same convolution. DeCovarT estimates p given mu and Sigma. Given p, the MAP / BLUP recovers sample-level purified profiles, and CSNet recovers type-level means and a sparse co-expression network. A precision Omega_j estimated there can be fed back as the DeCovarT plug-in."
+%%{init: {"theme": "sandstone", "flowchart": {"curve": "basis"}}}%%
+flowchart TD
+  bulk["Bulk matrix y over i = 1 to N"]
+  plug["Plug-in mu_j and Sigma_j from a reference"]
+  deco["DeCovarT: p_i given mu and Sigma"]
+  map["MAP / BLUP / Wiener: x_j,i given y_i and p_i"]
+  csnet["CSNet: mu_j and sparse R_j given y and p"]
+  omega["Optional: sparse Omega_j from Sigma_j"]
+  bulk --> deco
+  plug --> deco
+  deco --> map
+  bulk --> map
+  deco --> csnet
+  bulk --> csnet
+  csnet --> omega
+  omega -->|"updated plug-in"| deco
+```
+
+$P$ and $H$ must have full column rank, so $\boldsymbol{p}_{\cdot i}$ has
+to **vary** across the $N$ bulks. One sample identifies $\boldsymbol{p}$
+given $(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_j\})$; it does not identify
+$J$ covariance matrices. Rare types with almost constant $p_{ji}$
+leave the corresponding column of $H$ weak, which is why `CSNet`
+recovers abundant-type co-expression more easily than microglia-scale
+weights. The method is a moment estimator: modest errors in the
+supplied $\boldsymbol{p}$ are averaged over $N$, whereas DeCovarT's
+likelihood for a single column is concentrated in $\boldsymbol{p}_{\cdot i}$.
+
+| | DeCovarT | MAP / BLUP (@eq-map-blup) | `CSNet` |
+|---|---|---|---|
+| Known | $\boldsymbol{\mu}_{\cdot j}$, $\boldsymbol{\Sigma}_j$ (reference) | $\boldsymbol{\mu}_{\cdot j}$, $\boldsymbol{\Sigma}_j$, $\boldsymbol{p}_{\cdot i}$ | $\boldsymbol{p}_{\cdot i}$ (external or DeCovarT) |
+| Unknown | $\boldsymbol{p}_{\cdot i}$ | $\boldsymbol{x}_{\cdot j,i}$ (one sample) | $\boldsymbol{\mu}_{\cdot j}$, sparse $R_j$ (cohort) |
+| Law | Multivariate Gaussian convolution | Same, posterior of the latents | Moments only; Gaussian optional |
+| Second moment | Sparse **precision** $\boldsymbol{\Omega}_j$ as input | Uses $\boldsymbol{\Sigma}_j$, does not re-estimate it | Sparse **correlation** $R_j$ as output |
+| Replication | One bulk column is enough | One bulk column | $N\gg J$ bulks with varying $\boldsymbol{p}$ |
+| Estimator | Constrained MLE on the ILR chart | Posterior mean / Wiener gain | Gene-wise OLS, then pairwise LS, then SCAD |
+
+The two problems compose. Fit DeCovarT to obtain $\hat{\boldsymbol{p}}_{\cdot i}$;
+run @eq-map-blup if the scientific target is a purified profile in that
+sample; run @eq-csnet-mean--@eq-csnet-cov if the target is a type-level
+network; optionally replace the reference $\boldsymbol{\Omega}_j$ by that
+network and refit $\boldsymbol{p}$. Do not treat a `CSNet` correlation graph
+as a DeCovarT precision.
 
 ### Two simplices without convolution {#sec-logit-normal-compositional}
 
@@ -1114,7 +1382,10 @@ individual method [@whiteCommunityAssessmentMethodsDeconvolve2024].
 Each spot (or pixel) $s$ is a local mixture $\boldsymbol{y}(s)$ with its own
 $\boldsymbol{p}(s)\in\Delta^{J-1}$. The Gaussian convolution still applies
 per location; space enters as dependence among neighbouring
-$\boldsymbol{p}(s)$. Sequencing-based surveys classify probabilistic
+$\boldsymbol{p}(s)$. `RCTD` does **not** use that dependence: each pixel is
+an independent count mixture (@eq-rctd-pln), so the statistical
+comparison belongs in @sec-probabilistic-engines
+[@cableRobustDecompositionCell2022a]. Sequencing-based surveys classify probabilistic
 assumptions and provide practical benchmarks
 [@saqibPixelsCellTypes2025; @gaspard-boulincCelltypeDeconvolutionMethods2025; @liComprehensiveBenchmarkingPractical2023].
 Imaging-based reconstruction goes the other way: `HistoMap` generates
