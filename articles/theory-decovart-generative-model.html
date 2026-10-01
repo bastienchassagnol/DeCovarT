@@ -64,6 +64,7 @@
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: OLS, Bayesian, quasi-likelihood, and more</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-bulk-alignment.html"><span class="fa fa-align-left"></span> Single-cell to bulk alignment: cell counts, averages, compositions</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary simulation appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/supp-S1-identifiability.html"><span class="fa fa-vial"></span> App. S1 · Regular-case MLE and identifiability</a></li>
@@ -99,7 +100,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Derivatives of the DeCovarT generative model under simplex transforms</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-09-26</p>
+      <p class="date">2026-10-01</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-decovart-generative-model.qmd" class="external-link"><code>vignettes/theory-decovart-generative-model.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -546,7 +547,7 @@ p_{i}\bigl(
 <p><a href="#eq-chain-second" class="quarto-xref">Eq. 17</a> is the sum of a covariant pull-back of <span class="math inline">\mathbf{H}</span> and a contraction of the ambient score against the map Hessian. Omitting the second summand is a common bug when porting first-order code to Newton methods.</p>
 </blockquote>
 </div>
-<p>CLR coordinates and Bayesian formulations sit on the same footing <span class="citation" data-cites="pawlowsky-glahnCompositionalDataAnalysis2011">(<a href="#ref-pawlowsky-glahnCompositionalDataAnalysis2011" role="doc-biblioref">Pawlowsky-Glahn and Buccianti 2011</a>)</span>: a Dirichlet or logistic-normal prior on <span class="math inline">\boldsymbol{p}</span> pairs naturally with the Gaussian bulk likelihood (the experimental MAP <code>CTS</code> path in <code>R/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R</code> is one starting point). Regardless of coordinate system, the workflow is the same: optimise in an unconstrained parameterisation, then map back to the simplex for interpretation.</p>
+<p>CLR coordinates and Bayesian formulations sit on the same footing <span class="citation" data-cites="pawlowsky-glahnCompositionalDataAnalysis2011">(<a href="#ref-pawlowsky-glahnCompositionalDataAnalysis2011" role="doc-biblioref">Pawlowsky-Glahn and Buccianti 2011</a>)</span>: a Dirichlet or logistic-normal prior on <span class="math inline">\boldsymbol{p}</span> pairs naturally with the Gaussian bulk likelihood (the experimental MAP <code>CTS</code> path in <code>scripts/experimental/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R</code>, derived in the <a href="theory-decovart-statistical-perspectives.html#sec-map-blup">perspectives</a> vignette, is one starting point). Regardless of coordinate system, the workflow is the same: optimise in an unconstrained parameterisation, then map back to the simplex for interpretation.</p>
 </section></section><section class="section level2"><h2 id="sec-fisher-wald">Expected Fisher information and Wald inference<a class="anchor" aria-label="anchor" href="#sec-fisher-wald"></a>
 </h2>
 <p>Point estimation alone does not report uncertainty. Under a regular large-sample regime the MLE is asymptotically normal with covariance given by the inverse Fisher information. DeCovarT builds Wald standard errors from the <em>expected</em> Fisher information of the multivariate-normal convolution, then maps that information through the ILR chart.</p>

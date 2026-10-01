@@ -19,7 +19,11 @@
 > \boldsymbol{y}\_{\cdot i}=\sum_j p_j\\\boldsymbol{x}\_{\cdot j}^{(i)}.
 > GRN inference instead targets the **conditional dependence structure**
 > among genes within each purified profile—or across a pooled design
-> matrix.
+> matrix. When \boldsymbol{p} is already known, `CSNet` estimates
+> type-level co-expression from the same convolution; the mapping onto
+> DeCovarT’s precision \boldsymbol{\Omega}\_j is in the [perspectives
+> vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-statistical-perspectives.html#sec-csnet)
+> ([Su et al. 2024](#ref-suEstimatingCellTypeSpecificGene2024)).
 
 ## General reviews
 
@@ -281,6 +285,12 @@ Challenge’. *PLOS ONE* 5.
 
 Scutari, Marco. 2026. *Bnlearn: Bayesian Network Structure Learning,
 Parameter Learning and Inference*. <https://www.bnlearn.com/>.
+
+Su, Chang, Jingfei Zhang, and Hongyu Zhao. 2024. ‘Estimating
+Cell-Type-Specific Gene Co-Expression Networks from Bulk Gene Expression
+Data with an Application to Alzheimer’s Disease’. *Journal of the
+American Statistical Association* 119 (546): 811–24.
+<https://doi.org/10.1080/01621459.2023.2297467>.
 
 Svinin, Gleb, and Enrico Glaab. 2025. ‘Causal Network Analysis of Omics
 Data Using Prior Knowledge Databases’. *Briefings in Bioinformatics* 26.

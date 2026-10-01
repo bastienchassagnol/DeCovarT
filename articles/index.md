@@ -36,10 +36,10 @@ average overlaps (precision zeros kept), Shannon H^{\star} compositions.
   transforms](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.md):
 - [MLE properties and asymptotic inference for the DeCovarT
   log-likelihood](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.md):
-- [Beyond ordinary least squares: when linear-model assumptions
-  fail](https://bastienchassagnol.github.io/DeCovarT/articles/theory-related-models-beyond-OLS.md):
 - [DeCovarT
   perspectives](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-statistical-perspectives.md):
+- [Aligning single-cell references with bulk: three generative
+  formulations](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-bulk-alignment.md):
 
 ### Supplementary simulation appendix
 

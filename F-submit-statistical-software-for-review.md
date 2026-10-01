@@ -7,6 +7,8 @@ Repository: <https://github.com/bastienchassagnol/DeCovarT> Version
 submitted: 2.3.1 Submission type: Stats Badge grade: silver Editor: TBD
 Reviewers: TBD Archive: TBD Version accepted: TBD Language: en
 
+------------------------------------------------------------------------
+
 This follows the approved pre-submission inquiry
 [\#798](https://github.com/ropensci/software-review/issues/798).
 
@@ -154,14 +156,13 @@ not in the CRAN tarball.
 - Paste your responses to our [*General Standard* **G1.1**
   here](https://stats-devguide.ropensci.org/standards.html#general-standards):
 
-**The first implementation of a novel algorithm**, with related software
-documented rather than treated as the same estimator.
-
-DeCovarT maximises a *multivariate* Gaussian convolution likelihood for
-bulk mixtures, with cell-type-specific covariances entering as (\_j
-p_j^2 \_j), an isometric log-ratio chart on the simplex, and analytic
-score and Hessian. The closest published statistical method is the
-*univariate* Gaussian convolution of DSection ([Erkkilä *et al.*
+DeCovarT is the first implementation of a novel generative model that
+maximises a weighted constrained *multivariate* Gaussian convolution
+likelihood. I apply it for bulk mixtures, with cell-type-specific
+covariances entering as (\_j p_j^2 \_j), an isometric log-ratio chart on
+the simplex, and analytic score and Hessian. The closest published
+statistical method is the *univariate* Gaussian convolution of DSection
+([Erkkilä *et al.*
 2010](https://doi.org/10.1093/bioinformatics/btq470)); DeMixT ([Wang *et
 al.* 2018](https://www.bioconductor.org/packages/DeMixT);
 [GitHub](https://github.com/wwylab/DeMixT)) and
@@ -202,9 +203,6 @@ the package has also gained:
   active zeros, and parametric / reference bootstrap, so Wald is no
   longer the only interior interval;
 
-- the Godambe sandwich covariance remains an **outlook** item in the
-  statistical-perspectives vignette, not a shipped estimator;
-
 - the companion reproducibility repository for high-dimensional
   bottlenecks that do not belong in the package API (feature selection,
   GGM comparison, population alignment, gastruloid pipeline).
@@ -235,15 +233,20 @@ the package.
     perspectives), S3 `decovart_fit` methods, and testthat coverage of
     the estimator, intervals, and edge cases (collinear means, active
     zeros, multi-start).
-3.  **Generality.** The API is any bulk matrix plus cell-type means and
-    covariances, not one tissue atlas. First-generation mean-only
-    solvers are included for comparison; the gastruloid pipeline is one
-    use case in the companion repository, not the only supported
-    workflow.
-
-(Internal design of the convolution MLE — analytic derivatives, ILR
-chart, cached factorisation of (V(p)) — is a possible fourth aspect; I
-do not rely on it alone.)
+3.  **Generality.** The shipped API is any bulk matrix plus type-level
+    means and covariances, not one tissue atlas. How those Gaussians are
+    *lifted* from labelled cells is assay- and design-specific, and
+    lives in the companion chapter [From single cells to type-level
+    Gaussians](https://github.com/bastienchassagnol/DeCovarT_reproducibility/blob/main/docs/06-population-alignment.qmd):
+    FACS- or MACS-purified bulk libraries already match DeCovarT’s
+    quadratic convolution; a single-cell reference with **one**
+    biological replicate identifies only the within-cell covariance
+    (\_{W,j}) (a linear mixture, not (\_j p_j^2*j)); **two or more**
+    replicates identify a between-replicate (*{B,j}) and the three-layer
+    bulk covariance. Affine aggregation and cell-level resampling
+    (bootstrap / `scDesign2`) are the two lifts used there. The
+    gastruloid pipeline is one worked example of that fork, not the only
+    supported workflow.
 
 ## Technical checks
 
@@ -269,10 +272,9 @@ confirms this package may be submitted.
 
 The [`pkgcheck()`
 function](https://docs.ropensci.org/pkgcheck/reference/pkgcheck.html)
-confirms this package may be submitted *(coverage was ~54% while
-manuscript figure-book helpers still lived in `R/`; those helpers have
-been moved to `scripts/visualisation/`. I will re-run `pkgcheck` before
-posting.)*.
+confirms this package may be submitted *(local run: test coverage 81.4%;
+manuscript figure-book helpers now live under `scripts/visualisation/`
+rather than `R/`)*.
 
 This package:
 
@@ -288,10 +290,10 @@ version](https://devguide.ropensci.org/building.html#readme).
 Generative AI tools were used to produce some of the material in this
 submission.
 
-Cursor / LLMs were used for documentation, SRR tagging, packaging
-hygiene, and this issue text. The estimator, proofs, and simulation
-design are the author’s. Project-local programming conventions were
-enforced via the repository
+Cursor was used for documentation, SRR tagging, packaging hygiene, and
+this issue text. The estimator, proofs, and simulation design are the
+author’s, a non-native English speaker. Project-local programming
+conventions were enforced via the repository
 [`.cursorrules`](https://github.com/bastienchassagnol/DeCovarT/blob/main/.cursorrules).
 Background: [rOpenSci AI
 policy](https://ropensci.org/blog/2026/02/26/ropensci-ai-policy/).
@@ -302,15 +304,12 @@ Do you intend for this package to go on CRAN?
 
 Do you intend for this package to go on Bioconductor?
 
-I intend to submit to CRAN. I am also balancing a later relocation to
-Bioconductor: the companion chapter [From single cells to type-level
+I’m still balancing between Bioconductor and CRAN: indeed, the companion
+chapter [From single cells to type-level
 Gaussians](https://github.com/bastienchassagnol/DeCovarT_reproducibility/blob/main/docs/06-population-alignment.qmd)
 discusses parameterisations that are quite specific to single-cell and
 bulk RNA-seq technical modalities (multiplicative rather than additive
-noise, library-depth normalisation, and related assay structure). Those
-pipelines live in the companion repository today; a Bioconductor home
-would make more sense if that assay-specific layer is later folded into
-the package.
+noise, library-depth normalisation, and related assay structure).
 
 ## Code of conduct
 

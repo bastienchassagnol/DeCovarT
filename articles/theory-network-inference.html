@@ -63,6 +63,7 @@
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: OLS, Bayesian, quasi-likelihood, and more</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-bulk-alignment.html"><span class="fa fa-align-left"></span> Single-cell to bulk alignment: cell counts, averages, compositions</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary simulation appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/supp-S1-identifiability.html"><span class="fa fa-vial"></span> App. S1 · Regular-case MLE and identifiability</a></li>
@@ -98,7 +99,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>In silico inference of gene regulatory networks</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-09-26</p>
+      <p class="date">2026-10-01</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-network-inference.qmd" class="external-link"><code>vignettes/theory-network-inference.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -160,7 +161,7 @@
 </tbody>
 </table>
 <p>DeCovarT treats purified draws <span class="math inline">\boldsymbol{x}_{\cdot j}^{(i)}\sim\mathcal{N}_G(\boldsymbol{\mu}_{\cdot j},
-\boldsymbol{\Sigma}_j)</span> as latent and forms bulk mixtures <span class="math inline">\boldsymbol{y}_{\cdot i}=\sum_j p_j\,\boldsymbol{x}_{\cdot j}^{(i)}</span>. GRN inference instead targets the <strong>conditional dependence structure</strong> among genes within each purified profile—or across a pooled design matrix.</p>
+\boldsymbol{\Sigma}_j)</span> as latent and forms bulk mixtures <span class="math inline">\boldsymbol{y}_{\cdot i}=\sum_j p_j\,\boldsymbol{x}_{\cdot j}^{(i)}</span>. GRN inference instead targets the <strong>conditional dependence structure</strong> among genes within each purified profile—or across a pooled design matrix. When <span class="math inline">\boldsymbol{p}</span> is already known, <code>CSNet</code> estimates type-level co-expression from the same convolution; the mapping onto DeCovarT’s precision <span class="math inline">\boldsymbol{\Omega}_j</span> is in the <a href="theory-decovart-statistical-perspectives.html#sec-csnet">perspectives vignette</a> <span class="citation" data-cites="suEstimatingCellTypeSpecificGene2024">(<a href="#ref-suEstimatingCellTypeSpecificGene2024" role="doc-biblioref">Su et al. 2024</a>)</span>.</p>
 </blockquote>
 </div>
 <section class="section level2"><h2 id="sec-grn-reviews">General reviews<a class="anchor" aria-label="anchor" href="#sec-grn-reviews"></a>
@@ -292,6 +293,9 @@ Menéndez, Patricia, Yiannis A. I. Kourmpetis, Cajo J. F. ter Braak, and Fred A.
 </div>
 <div id="ref-R-bnlearn" class="csl-entry" role="listitem">
 Scutari, Marco. 2026. <em>Bnlearn: Bayesian Network Structure Learning, Parameter Learning and Inference</em>. <a href="https://www.bnlearn.com/" class="external-link">https://www.bnlearn.com/</a>.
+</div>
+<div id="ref-suEstimatingCellTypeSpecificGene2024" class="csl-entry" role="listitem">
+Su, Chang, Jingfei Zhang, and Hongyu Zhao. 2024. <span>‘Estimating <span>Cell-Type-Specific Gene Co-Expression Networks</span> from <span>Bulk Gene Expression Data</span> with an <span>Application</span> to <span>Alzheimer</span>’s <span>Disease</span>’</span>. <em>Journal of the American Statistical Association</em> 119 (546): 811–24. <a href="https://doi.org/10.1080/01621459.2023.2297467" class="external-link">https://doi.org/10.1080/01621459.2023.2297467</a>.
 </div>
 <div id="ref-svininCausalNetworkAnalysis2025" class="csl-entry" role="listitem">
 Svinin, Gleb, and Enrico Glaab. 2025. <span>‘Causal Network Analysis of Omics Data Using Prior Knowledge Databases’</span>. <em>Briefings in Bioinformatics</em> 26. <a href="https://doi.org/10.1093/bib/bbaf654" class="external-link">https://doi.org/10.1093/bib/bbaf654</a>.

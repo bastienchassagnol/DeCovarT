@@ -382,10 +382,12 @@ CLR coordinates and Bayesian formulations sit on the same footing
 2011](#ref-pawlowsky-glahnCompositionalDataAnalysis2011)): a Dirichlet
 or logistic-normal prior on \boldsymbol{p} pairs naturally with the
 Gaussian bulk likelihood (the experimental MAP `CTS` path in
-`R/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R` is one starting point).
-Regardless of coordinate system, the workflow is the same: optimise in
-an unconstrained parameterisation, then map back to the simplex for
-interpretation.
+`scripts/experimental/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R`,
+derived in the
+[perspectives](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-statistical-perspectives.html#sec-map-blup)
+vignette, is one starting point). Regardless of coordinate system, the
+workflow is the same: optimise in an unconstrained parameterisation,
+then map back to the simplex for interpretation.
 
 ## Expected Fisher information and Wald inference
 
