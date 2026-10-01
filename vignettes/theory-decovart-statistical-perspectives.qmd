@@ -778,6 +778,33 @@ flowchart TD
   H --> I
 ```
 
+### Measurement model versus expression model {#sec-measurement-expression}
+
+Sarkar and Stephens review the count laws used for scRNA-seq by
+splitting every observation model into two pieces
+[@sarkarSeparatingMeasurementExpression2021]. The **expression model**
+is the law of the latent abundance. The **measurement model** is the
+conditional law of the observed counts given that abundance. Their
+default measurement model, for UMI data, is Poisson: the count for
+gene $g$ in cell $c$ is $\mathrm{Poisson}(x_{c+}\lambda_{gc})$, with
+$x_{c+}$ the observed depth. A large fraction of zeros is then ordinary
+Poisson variation at a small rate. It is not a separate dropout event,
+and a zero is not a missing value: it still says that $\lambda_{gc}$ is
+unlikely to be large.
+
+What changes across methods is the expression model placed under that
+Poisson layer. A Gamma expression model yields a negative binomial
+observation. A point-Gamma expression model, a point mass at zero mixed
+with a Gamma, yields a zero-inflated negative binomial observation.
+Zero-inflation therefore belongs in the expression model when the data
+require it, and the review finds no support for a zero-inflated
+*measurement* model (including on spike-in controls). Multi-gene
+expression models add a low-rank factor for shared cell states on top
+of that gene-wise law. The discrete bulk laws below are the same split
+written for a mixture: multinomial and Poisson are measurement models;
+the Poisson–log-normal, ZIPLN and the logit-normal are expression
+models.
+
 ### Discrete counts
 
 A multinomial (or Dirichlet–multinomial) model treats
@@ -1251,6 +1278,27 @@ $\sum_{j}p_{ji}S_{j}\boldsymbol{\theta}_{\cdot j}$ (with a product-simplex
 constraint on $(p_{j}S_{j})$), rather than assuming $S_j$ known.
 If $S_j$ is observed, plug it in. Do not estimate a free gene-wise
 platform vector $\boldsymbol{d}$ in the same fit (@sec-alignment).
+
+**Bayesian transcript totals.** With no RNA-content assay and no
+cytometry ground truth, $S_j$ has to come from a measurement model on
+the single-cell counts. `bayNorm` takes the observed count of gene $g$
+in cell $c$ as a binomial draw from an unobserved original count, with
+cell-specific capture efficiency $b_c$, and a negative binomial prior
+fit by empirical Bayes
+[@tangBayNormBayesianGene2020]. The posterior is a shifted negative
+binomial for that original count. Summing the posterior means over
+genes is that cell's inferred transcript total. $S_j$ is the mean of
+those totals inside type $j$. A single mean capture efficiency scales
+every cell, so it cancels in the ratios of @eq-rna-to-cell; the
+absolute molecule number still needs an external anchor (the paper uses
+smFISH for that check). `Sanity` is the expression-model counterpart
+of the split in @sec-measurement-expression: a Poisson measurement
+model and a prior on the expression state, with the posterior reported as a
+denoised activity and an error bar, not as a molecule count
+[@bredaBayesianInferenceGene2021]. Use the `bayNorm` total as $S_j$.
+Use `Sanity` when $\boldsymbol{\theta}_{\cdot j}$ itself must be corrected
+for sampling noise before it enters @eq-music-mean. The observed
+library size is a capture total, not this $S_j$.
 
 ## Robust regression, GLS, and gene weights {#sec-robust-gls}
 

@@ -47,6 +47,7 @@
 ^vignettes/supp-S4-covariance-modeling\.qmd$
 ^vignettes/supp-S5-misspecification\.qmd$
 ^vignettes/theory-decovart-statistical-perspectives\.qmd$
+^vignettes/theory-decovart-single-cell-bulk-alignment\.qmd$
 ^vignettes/_extensions/
 # Temporary solver smoke test (not testthat; requires fig03 GRN cache).
 ^tests/manual/

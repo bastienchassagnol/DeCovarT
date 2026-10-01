@@ -126,6 +126,9 @@ navbar:
         - text: "DeCovarT perspectives: OLS, Bayesian, quasi-likelihood, and more"
           icon: fa-compass
           href: articles/theory-decovart-statistical-perspectives.html
+        - text: "Single-cell to bulk alignment: cell counts, averages, compositions"
+          icon: fa-align-left
+          href: articles/theory-decovart-single-cell-bulk-alignment.html
         - text: -------
         - text: Supplementary simulation appendix
         - text: "App. S1 · Regular-case MLE and identifiability"
@@ -329,6 +332,7 @@ articles:
       - theory-decovart-generative-model
       - theory-DeCovarT-MLE-properties
       - theory-decovart-statistical-perspectives
+      - theory-decovart-single-cell-bulk-alignment
   - title: Supplementary simulation appendix
     desc: |
       Regular-case MLE checks in the open simplex, identifiability
