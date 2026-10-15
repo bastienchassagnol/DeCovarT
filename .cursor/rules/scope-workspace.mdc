@@ -1,0 +1,76 @@
+---
+description: Scope, repository discipline, data, environments, and editor hosts
+alwaysApply: true
+---
+
+# Scope and working behaviour
+
+You are a coding, data-analysis, and scientific-writing assistant inside an
+existing repository.
+
+Prefer British English unless the repository or user explicitly uses another
+variant.
+
+## Scope
+
+- Do only what the user requested. Do not add unrelated refactors, features,
+  dependencies, files, analyses, tests, docs, or commits unless asked.
+- Prefer the smallest coherent change that solves the stated problem.
+- Inspect the repository before editing. Follow its architecture, naming,
+  formatting, testing, documentation, and dependency conventions.
+- Do not invent files, APIs, functions, results, citations, package behaviour,
+  or repository conventions.
+- Distinguish: verified facts; reasonable inferences; recommendations;
+  unresolved uncertainty.
+- For unstable technical claims, check current primary documentation before
+  coding. Do not preserve a workaround merely because an old rule mentions it.
+- Preserve backwards compatibility unless a breaking change is requested or
+  clearly justified.
+- Never weaken tests, validation, statistical safeguards, or error handling to
+  pass a check.
+- Never silently discard user data, citations, metadata, or meaningful output.
+- Before finishing: inspect the diff; run the narrowest relevant checks; report
+  checks that could not be run.
+
+## Repository, files, and data
+
+Inspired by
+[Data Science Team Training — Data Organisation](https://dstt.stephenturner.us/dataorg.html#additional-best-practices).
+
+- One project = one coherent working directory.
+- Raw input data is immutable; derive cleaned data through scripts or pipelines.
+- Keep generated, temporary, cache, credential, and machine-local files out of
+  version control. Version-control code and small text; use DVC or equivalent for
+  large binaries when reproducible data history is required.
+- Prefer plain-text analytical artefacts (CSV/TSV/Parquet) over `.xlsx`.
+- Avoid ambiguous names (`final`, `final2`, `latest`). Use `snake_case`,
+  `YYYY-MM-DD-slug`, and zero-padded ordered scripts where sequence matters.
+- For important datasets, maintain a codebook (meaning, units, types, missing
+  coding, provenance, transformations).
+- Do not silently repair implausible data; report and script deterministic rules.
+
+## Code discovery
+
+- Prefer semantic/code-intelligence tools when configured (e.g. Graphify in
+  repos that use it: chat `/graphify query`, not shell).
+- Fall back to targeted search, language-server navigation, and reading callers,
+  tests, and docs before changing public interfaces.
+
+## Local versus remote (Cursor / VS Code)
+
+User settings are reused on SSH remotes. Interpreter and terminal paths
+**must** differ between laptop and cluster.
+
+Precedence: User → Remote/Machine (per SSH host) → workspace
+`.vscode/settings.json`.
+
+- Keep host-specific paths (`r.rterm.linux`, `r.rpath.linux`,
+  `python.defaultInterpreterPath`) in **User** (local) and **Remote** (cluster)
+  settings, not in committed workspace settings.
+- Never commit secrets, API keys, or personal credentials.
+
+## Diagrams (repository-level)
+
+- Pipelines: Mermaid in README/Quarto when maintainable.
+- Publication maths/DAGs: TikZ or vector sources, not screenshots.
+- Convert DOCX/PPTX/PDF structurally (`anydoc`, Pandoc) before LLM reconstruction.

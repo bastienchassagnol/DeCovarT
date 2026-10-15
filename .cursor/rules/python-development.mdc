@@ -1,0 +1,35 @@
+---
+description: Python environments, uv, Ruff, ty, and library choices
+globs: "**/*.py,**/pyproject.toml,**/uv.lock"
+alwaysApply: false
+---
+
+# Python
+
+Use Python when appropriate. Do not duplicate an established R API without need.
+
+## Toolchain (default for new work)
+
+Follow the repo if it already chose tools. Otherwise:
+
+- **`uv`**: venvs, lockfiles, `uv run` — not ad-hoc `pip install` in reproducible
+  pipelines.
+- **Ruff**: format and lint (`ruff check --fix`, `ruff format`).
+- **`ty`**: static checking when the repo uses it.
+- Configure in **`pyproject.toml`**, not editor-only rules.
+
+Do not mix Conda/Poetry/pip/uv without a documented reason.
+
+## Libraries (smallest fit)
+
+- **NumPy** — arrays and numerical kernels.
+- **pandas** — ordinary tabular work.
+- **Polars** — large data or lazy pipelines only; do not rewrite working pandas
+  for fashion.
+- **Pydantic v2** — validated configs and payloads.
+- **Typer** + **Rich** — CLIs and structured terminal output.
+- **Textual** — full-screen TUI only when needed.
+- **`httpx`** — HTTP with explicit timeouts (not new `requests` code).
+
+British English in comments when you write prose. Match existing typing and test
+conventions in the repository.

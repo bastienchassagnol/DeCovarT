@@ -1,0 +1,111 @@
+---
+description: Statistical modelling, resampling, bootstrap, permutation, and model review
+alwaysApply: true
+---
+
+# Statistical modelling and LLM review
+
+Statistical correctness takes priority over framework convenience.
+
+## Source hierarchy
+
+For non-trivial models:
+
+1. Estimand, outcome type, design, dependence, sample size, missingness,
+   covariates.
+2. Primary literature, textbooks, official package documentation.
+3. Practitioner review (commentary only — verify before treating as fact):
+   - Adrian Olszewski (LinkedIn recent activity)
+   - R Clinical Research / `r.clin.res` (Medium)
+   - Natalie Rodrigue (LinkedIn)
+4. Social posts are search leads and warnings, not primary evidence.
+
+Do not choose a model because an R package makes it convenient.
+
+## Cross-validation and predictive validation
+
+**Small-to-medium** independent data (house rule):
+
+- Consider **LOOCV** when computation is practical and the resampling unit is
+  truly the observation.
+- Never use observation-level LOOCV when the unit should be subject, cluster,
+  site, batch, or time block.
+
+**Larger** samples, many hyperparameters, or heavy tuning:
+
+- Prefer **nested k-fold cross-validation** (inner loop tuning/selection, outer
+  loop generalisation). Justify fold count and stratification.
+- Keep feature selection and tuning out of the outer evaluation fold.
+
+**R workflow:**
+
+- Prefer **`mlr3`** (`mlr3`, `mlr3learners`, `mlr3tuning`, `mlr3resampling`)
+  for resampling and tuning pipelines — explicit tasks/learners/resamplers,
+  closer to scikit-learn than monolithic workflows.
+- Do **not** default to **`tidymodels`** for inference or resampling merely for
+  a unified API. `rsample::loo_cv()` exists; the issue is integration and fit
+  for the problem, not literal absence of LOOCV.
+- Review: https://mansthulin.se/posts/tidymodels/#missing-feature-cross-validation
+
+## Bootstrap inference
+
+Identify the random unit in the design before resampling.
+
+References:
+
+- https://modernstatisticswithr.com/modchapter.html#bootstrap
+- https://mansthulin.se/posts/tidymodels/#missing-feature-resampling-regression-models
+- https://mthulin.github.io/boot.pval/
+
+- Prefer coherent bootstrap p-values and intervals; do not mix incompatible
+  procedures without explanation.
+- Use enough replicates; assess Monte Carlo error near decision boundaries.
+
+**`boot.pval::boot_summary()`:**
+
+- `lm` / `nls`: residual bootstrap supported; case bootstrap available.
+- `glm`: documented method is **case** bootstrap only — do **not** use residual
+  bootstrap via `boot.pval` for GLMs.
+
+**GLMs and related:**
+
+- Prefer **`glmPerm`** (and its documented procedures) for GLM bootstrap /
+  permutation-style inference when that package matches the model and target.
+- Verify current `glmPerm` documentation before implementation.
+
+**Regression generally:**
+
+- Residual resampling for `lm`/`nls` when predictors are fixed and assumptions
+  hold; case/row resampling when rows are random or heteroscedasticity makes
+  case bootstrap preferable.
+- Resample clusters, not rows, for grouped/repeated data.
+
+## Permutation inference (nuisance covariates)
+
+Do not conflate bootstrap with permutation.
+
+- **Freedman–Lane**: fit reduced (nuisance) model → permute residuals under valid
+  exchangeability → refit full model → null distribution. Not a `boot.pval`
+  method.
+- Respect blocking for clustered/repeated designs.
+- Do not transplant linear-model residual permutation to GLMs without a
+  method whose documentation establishes residual definition and calibration.
+- Reference: https://pmc.ncbi.nlm.nih.gov/articles/PMC4010955/
+
+## Dimensionality and clustering
+
+- Do not use elbow/scree alone to choose \(k\) or component count.
+- Clustering: prefer stability (`clav` bootstrap overlap, agreement across \(k\))
+  plus interpretability — see clav.bryer.org articles.
+- PCA/components: stability or predictive criteria; do not claim `clav` selects
+  PCA unless current docs say so.
+
+## Model-review checklist
+
+Estimand, design, sampling unit, link/distribution, interactions, confounding,
+clustering, missing data, influence, multiplicity, calibration, uncertainty,
+sensitivity, leakage from tuning/selection.
+
+No normality test as automatic gatekeeper. Prefer estimates and intervals over
+significance-only reporting. Predefine simulation DGP, metrics, RNG, and
+replications before interpreting benchmarks.

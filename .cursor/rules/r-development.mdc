@@ -1,0 +1,101 @@
+---
+description: R packages, CRAN hygiene, style, testing, ggplot2, parallelism
+globs: "**/*.{R,r},**/DESCRIPTION,**/NAMESPACE,**/tests/**/*,**/R/**/*"
+alwaysApply: false
+---
+
+# R and statistical computing
+
+When R is primary, follow the repository first. Defaults below apply when the repo
+is silent.
+
+## Package workflow
+
+Standard layout: `DESCRIPTION`, roxygen-driven `NAMESPACE`, `R/`, `man/`,
+`tests/testthat/`, `vignettes/`, `inst/`.
+
+Prefer `usethis`, `devtools`, `roxygen2`, `testthat`. Document and export the
+public API deliberately; `@inheritParams` for shared parameters; `@noRd` only for
+undocumented internals.
+
+After API/doc changes:
+
+```r
+devtools::document()
+devtools::load_all()
+devtools::test()
+devtools::check()
+```
+
+Use `pkgcheck::pkgcheck()` and `--as-cran` checks when the package targets CRAN.
+
+### CRAN-quality hygiene (summary)
+
+- `Suggests` + `requireNamespace()` for optional deps; no `install.packages()` in
+  examples/tests/vignettes.
+- No writes to home, package dir, or `getwd()` by default; `withr` temp files.
+- Restore `options()`, `par()`, wd; no `<<-` / `.GlobalEnv` mutation.
+- `TRUE`/`FALSE`; seeds only when caller supplies; ≤2 cores in check-time code.
+- ASCII-only `R/` strings when required for portability.
+
+### Formatting and pre-commit
+
+- **Air** for R formatting (line width 80, 2 spaces) when configured.
+- **pre-commit** when the repo has `.pre-commit-config.yaml`:
+  `pre-commit clean` → stage all → `pre-commit run` → re-stage autofixes → commit.
+  No `--no-verify` unless the user asks.
+
+Do not add `lintr` to global defaults; honour project `.lintr` if present.
+
+## R coding style
+
+`snake_case`; `<-`; native `|>`; `pkg::fun()` in package code; explicit missing
+values; `file.path()`/`fs`; `fixed = TRUE` for literal `grep`; cohesive functions.
+
+**dplyr:** `{{ }}`, `.data[[var]]`, `all_of()`/`any_of()`, `:=` for dynamic names.
+
+**Interfaces:** validate at boundary; forward `...` only with clear semantics;
+actionable `stop()`/`warning()` without `paste()` wrappers.
+
+## Performance, testing, reproducibility
+
+Profile first; vectorise; `data.table` or DuckDB when scale demands it.
+
+`testthat` edition 3: behaviour, edges, regressions, controlled RNG (`withr`).
+
+Record seeds and `sessioninfo` for scientific outputs; `renv` when the repo uses
+it; `targets` for heavy pipelines when justified.
+
+## Visualisation (`ggplot2`)
+
+Before custom hacks: [R Graphics Cookbook](https://r-graphics.org/),
+[ggplot2 book](https://ggplot2-book.org/), then current package docs.
+
+Question-first plots; reusable theme helper; explicit `ggsave()` size/dpi;
+PDF/SVG for vector output.
+
+**Distributions:** `ggdist` rainclouds when shape matters; report binning rule
+for histograms.
+
+**Benchmarks:** forest/dot-whisker for summaries; facet metrics — do not map two
+primary metrics to colour and size.
+
+**Heatmaps:** `geom_tile()` default; `ComplexHeatmap` only for rich annotations.
+
+**Interactive:** prefer **`ggiraph`** (scales better in HTML than Plotly for many
+points). Keep a static archival figure.
+
+## Parallelism and Shiny
+
+`furrr` for reproducible map-style parallel work (independent RNG streams);
+`mirai` for low-latency async when appropriate; no nested parallelism; configurable
+workers.
+
+Shiny: modules; no globals; testable domain logic.
+
+## Preferred tools (when justified by repo)
+
+`dplyr`/`tidyr`, `purrr`, `fs`/`here`, `ggplot2`, `tinytable` for static HTML
+tables, `checkmate`, `cli`, `glue`/`stringr`, `jsonlite`, `devtools` stack.
+
+Resampling/tuning: **`mlr3`** ecosystem (see statistical-modelling rule).

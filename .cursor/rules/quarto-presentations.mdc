@@ -1,0 +1,66 @@
+---
+description: Quarto authoring, Mermaid, tables, reveal.js slides
+globs: "**/*.{qmd,Rmd},**/slides/**/*,_quarto.yml,_publish.yml"
+alwaysApply: false
+---
+
+# Quarto and reveal.js
+
+British English; reproducible execution; cite at point of use.
+
+## Markdown and cross-references
+
+- Labels: `#fig-…`, `#tbl-…`, `#eq-…`, `{#sec-…}`; cite mid-sentence (`@fig-…`).
+- Lists: standard Markdown only — no Pandoc example lists, task checkboxes, or
+  unicode step markers (Visual Editor safe).
+- Package names in backticks; citations `@key` unchanged.
+- Callouts: `::: {#nte-… .callout-warning}` with `@nte-…` references.
+- Emoji: `:shortcode:` with `from: markdown+emoji` when needed.
+
+## Tables
+
+- Manuscripts / static HTML: **`tinytable::tt()`** when the project uses it;
+  otherwise repo convention.
+- Slides / interactive HTML: **`reactable`** with `pagination = FALSE`,
+  `echo: false` unless teaching code.
+
+## Mermaid
+
+Executable chunks:
+
+````markdown
+```{mermaid}
+%%| label: fig-example
+%%| fig-cap: "Caption."
+flowchart TD
+  A --> B
+```
+````
+
+`eval: true` in site config or chunk. Inspect `pre.mermaid` + quarto-diagram JS
+before client-side fallbacks.
+
+## reveal.js slides
+
+Read `~/.cursor/skills/quarto-revealjs/SKILL.md` (Slidecrafting) before major
+deck edits. Official docs: https://quarto.org/docs/presentations/revealjs/
+
+- One headline claim per slide; preview after edits (overflow is the main failure).
+- Hierarchy: title → content → detail → attribution.
+- `echo: false` by default; preserve citations when converting legacy decks.
+- Optional: `quarto-revealjs-editable` in project `slides/` when already installed.
+- Mermaid theme **sandstone** unless the deck defines otherwise.
+
+## Slide design (dense decks)
+
+| Element | Target size |
+|---------|-------------|
+| Diagram labels | 18–20px |
+| Section headers | 14–16px |
+| Body bullets | 12–13px |
+| Metadata | 10–11px |
+
+Below 10px: split the slide. Reuse backbone diagrams at section transitions.
+
+Attribution plugin when configured: compact right-edge credits, not duplicate
+HTML footers.

@@ -61,8 +61,19 @@ jobs:
           r-version: ${{ matrix.config.r }}
           use-public-rspm: true
 
+      # setup-r-dependencies caches the pak library with actions/cache.
+      # The key is OS, R version, cache-version, and the pak lockfile
+      # hash; a prefix restore still reuses the last library when the
+      # lockfile changes. `always` saves that cache even if a later step
+      # fails. This package has no renv lockfile: the cached path is
+      # R_LIBS_USER (the action also caches renv/library when one exists).
+      # Do not set lockfile-create-lib. On a hosted runner that library
+      # is empty until after the cache restore, and the default empty
+      # library keeps the lockfile hash stable. r-lib/actions#814 is for
+      # images that already contain a site library.
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
+          cache: always
           extra-packages: any::rcmdcheck, local::.
           needs: check
 
@@ -95,6 +106,7 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
+          cache: always
           extra-packages: any::covr, any::xml2
           needs: coverage
 
@@ -155,6 +167,7 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
+          cache: always
           extra-packages: >-
             any::pkgdown, any::visNetwork, github::r-lib/pkgapi, local::.
           needs: website

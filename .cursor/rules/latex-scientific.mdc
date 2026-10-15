@@ -1,0 +1,128 @@
+---
+description: LuaLaTeX, preamble layout, maths, floats, TikZ, minted, bibliography
+globs: "**/*.{tex,cls,sty,bib},**/article/**/*"
+alwaysApply: false
+---
+
+# Modern LaTeX (scientific articles)
+
+Semantic markup, modular sources, maintainable packages. References:
+[latex-advice](https://github.com/dspinellis/latex-advice),
+[TeXtidote](http://kohm.de.tf/markus/texidate.html).
+
+For prose tone in `\section{}` text, use the **deslop** skill; keep maths and
+citations intact.
+
+## Engine and preamble layout
+
+- Compile with **LuaLaTeX** (XeLaTeX acceptable). Do **not** use `inputenc` or
+  `fontenc` with LuaLaTeX — use **`fontspec`** and UTF-8 source directly.
+- Guard legacy pdfLaTeX accidentally:
+
+```latex
+\usepackage{iftex}
+\ifPDFTeX
+  \PackageError{project}{Use LuaLaTeX or XeLaTeX}{}
+\fi
+\usepackage{fontspec}
+```
+
+**Two-block preamble habit** for new PDFs:
+
+1. **Packages block** — load with options once (`amsmath`, `geometry`, `xcolor`,
+   `tikz`, `pgfplots`, `tcolorbox`, `siunitx`, `microtype`, `cleveref`,
+   `enumitem`, `booktabs`, `graphicx`, **`fancyhdr`**, **`titlesec`**, etc.).
+2. **Macros block** — `\definecolor{...}`, `\DeclareMathOperator`, custom maths
+   shortcuts, `\newtcolorbox` callout styles.
+
+Large projects:
+
+```text
+project/
+├── main.tex
+├── preamble/
+├── chapters/
+├── figures/
+├── bibliography/
+└── appendices/
+```
+
+`\include` chapters; `\input` snippets; `\includeonly` while debugging.
+
+## Document structure and spacing
+
+`\frontmatter` / `\mainmatter` / `\backmatter` for theses. Prefer `\medskip` or
+`\setlength{\parskip}{1ex}` over decorative `\\`.
+
+## Mathematics
+
+- Default display: **`equation`** (numbered, `\label` + `\cref`), not bare `$$`.
+- No `eqnarray`. Use `align`, `split`, `cases`, `mathtools`.
+- Operators: `\DeclareMathOperator{\Var}{var}` etc., not `\text{var}`.
+- Subscripts upright where semantic: `x_{\mathrm{max}}`.
+
+## Text
+
+`\textbf`, `\textit`, `\emph` — not `\bf`/`\it`. `csquotes` + `\enquote{}`.
+
+## Figures and tables
+
+- Float specifier **`[tbp]`**; avoid habitual `[H]`.
+- Inside floats: **`\centering`**, not `center` environment.
+- **`caption`** with `singlelinecheck=off` when captions contain lists.
+- Tables: `booktabs`, `longtable`, `tabularx`.
+
+## Headers and callouts
+
+**`fancyhdr`** for informative running headers/footers (chapter/section titles).
+
+**`tcolorbox`** with `[most]` (loads `enhanced` skins). Callout pattern:
+
+```latex
+\usepackage[most]{tcolorbox}
+\newtcolorbox{notebox}[1][]{
+  colback=mainblue!5!white, colframe=mainblue!80!black,
+  fonttitle=\bfseries, coltitle=white, colbacktitle=mainblue!90!black,
+  enhanced,
+  attach boxed title to top left={yshift=-2mm, xshift=5mm},
+  boxed title style={sharp corners},
+  title={\textcolor{white}{Note}}, #1}
+```
+
+## Code listings
+
+Prefer **`minted`** + Pygments over **`listings`** for R/Python — UTF-8 and
+GitHub-like highlighting:
+
+```latex
+\usepackage{minted}
+\setminted{breaklines,fontsize=\footnotesize}
+% build: -shell-escape; style=github-dark or monokai as appropriate
+\begin{minted}{r}
+# code
+\end{minted}
+```
+
+Use `listings` only when `minted` is unavailable; then shared `literate` table for
+UTF-8 in comments.
+
+## Graphics
+
+- **TikZ** (+ `arrows.meta`, `positioning`, `shapes.geometric`, `calc`, `fit`) for
+  DAGs, pipelines, and Mermaid-like box diagrams in print.
+- **`pgfplots`** (`\pgfplotsset{compat=1.18}`) for true vector function/data plots.
+- Analytic plots from R: **`ggplot2::ggsave(..., device = cairo_pdf)`** (or PDF)
+  via `\includegraphics`; use pgfplots when the curve must live entirely in TeX.
+
+## Bibliography
+
+Clean `.bib` from **Zotero + Better BibTeX / native keys** (see
+documentation-bibliography rule). `cleveref` for `\cref{eq:...}` / `\Cref{...}`.
+Validate with BibTeX Tidy; never invent entries.
+
+## Anti-patterns
+
+`$$` in `.tex` sources, `eqnarray`, deprecated font switches, hard-coded visual
+spacing, decorative `\\`, unlabelled maths, floats without `\centering`.
+
+Run the **latex-modern-audit** skill before treating a manuscript as complete.
