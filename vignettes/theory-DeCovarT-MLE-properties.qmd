@@ -846,6 +846,16 @@ $\hat{\boldsymbol{p}}$ [@oehlertNoteDeltaMethod1992] and is therefore
 *not* invariant to reparametrisation and can place limits outside
 $[0,1]$.
 
+The Wald statistic also fails non-monotonically near a boundary. As the
+estimate moves away from the null, the statistic can shrink towards
+zero, which is the Hauck–Donner effect [@yeeHauckDonnerEffectWald2022].
+The effect corresponds to estimates near the boundary of the parameter
+space, and @yeeHauckDonnerEffectWald2022 shows it is detected by
+comparing pairwise ratios of Wald, score and likelihood-ratio
+statistics. So a large $p$-value from a near-simplex-vertex Wald test
+can be an artefact, not evidence for the null. Use the profile
+likelihood-ratio statistic below in that regime.
+
 The **profile likelihood-ratio** statistic
 
 $$
@@ -983,7 +993,9 @@ lrt_decovart(
    an infinite log-ratio, so the chart cannot represent the hypothesis. The
    restricted fits substitute the constrained value directly.
 3. **Wald is unusable here.** The delta-method covariance is undefined on
-   the face; `vcov_ilr_delta()` returns `NA` with a warning rather than a
+   the face, and the Hauck–Donner effect
+   [@yeeHauckDonnerEffectWald2022] makes its test unreliable as the
+   estimate approaches it; `vcov_ilr_delta()` returns `NA` with a warning rather than a
    plausible-looking number.
 :::
 
