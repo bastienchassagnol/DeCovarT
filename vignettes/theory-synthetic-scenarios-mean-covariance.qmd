@@ -58,18 +58,23 @@ Each cell type carries its own graph-constrained signed precision $\boldsymbol{\
 
 The exported entry point orchestrates internal helpers and returns moments that can be passed to `simulate_bulk_mixture()`. For end-to-end benchmarking, see the [bivariate toy](fig02-bivariate-toy.html) and [covariance-driven hybrid](fig03-covariance-driven.html); scenario grids live in `scripts/fig02_bivariate_toy.R`. Direct solver calls use `deconvolute_ratios()`.
 
-```{mermaid}
+```{.tikz}
 %%| label: fig-pipeline-api
-%%| fig-cap: "Pipeline from synthetic moment generation to deconvolution."
-%%{init: {"theme": "sandstone"}}%%
-flowchart LR
-  A["Graph G"] --> B["Weights W(G)"]
-  B --> C["Precision Ω ≻ 0"]
-  C --> D["Σ = Ω^{-1}"]
-  E["Means μ_j\n(Gram R^{1/2})"] --> F["simulate_hierarchical_grn_moments()"]
-  D --> F
-  F --> G["simulate_bulk_mixture()"]
-  G --> H["deconvolute_ratios()"]
+%%| fig-cap: Pipeline from synthetic moment generation to deconvolution.
+%%| filename: fig-pipeline-api
+%%| alt: Pipeline. A graph G_j gives signed weights W(G_j), then a positive-definite precision Omega_j, then the covariance Sigma_j as its inverse. Sigma_j and the means mu = s Q R to the one half feed simulate_hierarchical_grn_moments, whose output goes to simulate_bulk_mixture and then deconvolute_ratios.
+\begin{tikzpicture}[node distance=6mm and 7mm]
+\node[box] (A) {Graph $G_j$};
+\node[box, right=of A] (B) {Weights $W(G_j)$};
+\node[box, right=of B] (C) {Precision $\boldsymbol{\Omega}_j\succ 0$};
+\node[box, right=of C] (D) {$\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1}$};
+\node[keybox, below=9mm of D] (F) {\texttt{simulate\_hierarchical\_grn\_moments()}};
+\node[box, left=12mm of F] (E) {Means $\boldsymbol{\mu}=s\mathbf{Q}R^{1/2}$\\ (target Gram $R$)};
+\node[keybox, below=of F] (G) {\texttt{simulate\_bulk\_mixture()}};
+\node[keybox, below=of G] (H) {\texttt{deconvolute\_ratios()}};
+\draw[edge] (A) -- (B); \draw[edge] (B) -- (C); \draw[edge] (C) -- (D);
+\draw[edge] (D) -- (F); \draw[edge] (E) -- (F); \draw[edge] (F) -- (G); \draw[edge] (G) -- (H);
+\end{tikzpicture}
 ```
 
 ```{r moments-example}
@@ -518,16 +523,27 @@ $$ {#eq-ggm-pipeline}
 
 Here $G$ is an **undirected** graph, $W(G)$ a symmetric weighted matrix with the same off-diagonal support, $\Omega$ a strictly positive-definite precision, and $X_i$ an expression profile. This section covers **undirected** Gaussian Markov / precision-graph simulation only. `generate_random_network_skeleton()` draws $G$; `build_normalised_precision()` completes it to $\Omega\succ 0$ by an affine spectral shift; `build_covariance_array_from_precision()` maps each slice $\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1}$ (cell types need not share one network).
 
-```{mermaid}
+```{.tikz}
 %%| label: fig-ggm-pipeline
-%%| fig-cap: "Undirected simulation pipeline from topology to observations (optional observation layer dashed)."
-%%{init: {"theme": "sandstone"}}%%
-flowchart LR
-  G["Undirected graph G"] --> W["Signed weights W(G)"]
-  W --> Omega["SPD precision Ω"]
-  Omega --> Latent["Latent Gaussian X"]
-  Mu["Mean design μ"] --> Latent
-  Latent --> Obs["Observation layer"]
+%%| fig-cap: Undirected simulation pipeline from topology to observations (optional observation layer dashed).
+%%| filename: fig-ggm-pipeline
+%%| alt: Graphical model. A fixed graph G determines signed weights W(G), which determine the positive-definite precision Omega. Inside a plate over i = 1 to n, Omega and a fixed mean mu_i generate the latent Gaussian profile X_i, which optionally generates observed counts Y_i through a dashed arrow.
+\begin{tikzpicture}[node distance=14mm]
+\node[const] (G) {$G$};
+\node[det, right=of G] (W) {$W(G)$};
+\node[det, right=of W] (O) {$\boldsymbol{\Omega}$};
+\node[stoch, right=of O] (X) {$\boldsymbol{X}_i$};
+\node[const, above=10mm of X] (mu) {$\boldsymbol{\mu}_i$};
+\node[obs, right=of X] (Y) {$\boldsymbol{Y}_i$};
+\node[note, below=2mm of G] {graph};
+\node[note, below=2mm of W] {signed weights};
+\node[note, below=2mm of O] {$\boldsymbol{\Omega}\succ 0$};
+\node[note, below=2mm of X] (nx) {$\mathcal{N}_p(\boldsymbol{\mu}_i,\boldsymbol{\Omega}^{-1})$};
+\node[note, below=2mm of Y] (ny) {optional counts};
+\draw[edge] (G) -- (W); \draw[edge] (W) -- (O); \draw[edge] (O) -- (X);
+\draw[edge] (mu) -- (X); \draw[dashededge] (X) -- (Y);
+\plate{pi}{(mu)(X)(Y)(nx)(ny)}{$i=1,\ldots,n$}
+\end{tikzpicture}
 ```
 
 ## Graph structure generators

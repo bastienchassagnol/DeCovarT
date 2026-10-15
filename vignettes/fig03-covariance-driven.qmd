@@ -47,17 +47,21 @@ discriminative signal. Construction, ADEMP benchmark, and the static
 network figure live in a **single** script,
 `scripts/fig03_variance_driven.R` (seed `20260807`).
 
-```{mermaid}
+```{.tikz}
 %%| label: fig-covariance-design
-%%| eval: true
-%%| fig-cap: "Covariance-driven factorial: one fixed Gram (cosines 0.9 / 0.1), a 2-by-2 graph assignment on the mean-collinear types (scale-free versus cluster SBM; type 3 held at scale-free), three target MixSim average overlaps, three Shannon compositions, and five solvers (4 x 3 x 3 = 36 scenarios)."
-%%{init: {"theme": "sandstone"}}%%
-flowchart TD
-  P["3 compositions<br/>H* = 1 / 0.5 / 0.1"] --> S["36 scenarios"]
-  G["2 x 2 graph assignments<br/>CT1, CT2: scale-free / cluster SBM"] --> S
-  C["CT3 graph held at scale-free"] --> S
-  K["3 target BarOmega levels<br/>low / moderate / high"] --> S
-  S --> A["5 deconvolution solvers"]
+%%| fig-cap: Covariance-driven factorial: one fixed Gram (cosines 0.9 / 0.1), a 2-by-2 graph assignment on the mean-collinear types (scale-free versus cluster SBM; type 3 held at scale-free), three target MixSim average overlaps, three Shannon compositions, and five solvers (4 x 3 x 3 = 36 scenarios).
+%%| filename: fig-covariance-design
+%%| alt: Four design factors, three Shannon compositions H star, a 2 by 2 graph assignment for cell types 1 and 2, cell type 3 held at scale-free, and three target MixSim BarOmega levels, combine into 36 scenarios, each analysed by 5 deconvolution solvers.
+\begin{tikzpicture}
+\node[box, text width=3.1cm] (P) at (0,0) {3 compositions\\ $H^{\star}=1,\ 0.5,\ 0.1$};
+\node[box, text width=3.1cm] (G) at (3.6,0) {$2\times 2$ graph assignments\\ CT1, CT2: scale-free or cluster SBM};
+\node[box, text width=3.1cm] (C) at (7.2,0) {CT3 graph held at scale-free};
+\node[box, text width=3.1cm] (K) at (10.8,0) {3 target \texttt{BarOmega} levels $\bar\omega$\\ low, moderate, high};
+\node[keybox] (S) at (5.4,-2.2) {36 scenarios\\ $4\times3\times3$};
+\node[keybox] (A) at (5.4,-3.9) {5 deconvolution solvers};
+\foreach \n in {P,G,C,K} \draw[edge] (\n.south) -- (S.north);
+\draw[edge] (S) -- (A);
+\end{tikzpicture}
 ```
 
 ```{mermaid}

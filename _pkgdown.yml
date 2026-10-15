@@ -126,7 +126,7 @@ navbar:
         - text: "DeCovarT perspectives: OLS, Bayesian, quasi-likelihood, and more"
           icon: fa-compass
           href: articles/theory-decovart-statistical-perspectives.html
-        - text: "Single-cell to bulk alignment: cell counts, averages, compositions"
+        - text: "Single-cell to bulk alignment: measurement models, engines, four strategies"
           icon: fa-align-left
           href: articles/theory-decovart-single-cell-bulk-alignment.html
         - text: -------

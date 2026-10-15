@@ -1,0 +1,124 @@
+\section{Bivariate plot books}
+\label{app:fig02}
+
+Directory of the \(G=2\), \(J=2\) books
+(\(N=500\) bulks, \(972\) scenarios):
+
+\url{https://github.com/bastienchassagnol/DeCovarT/tree/main/output/fig02}
+
+Density pages under \texttt{density\_visualisations/}.
+Shared corners
+\((\rho_{1},\rho_{2})\in\{(0,0),(-0.8,-0.8),(0.8,0.8),(-0.8,0.8)\}\),
+twelve meta-scenarios (centroid gap \(\times\) variance \(\times\) composition).
+
+\begin{itemize}
+  \item \texttt{purified\_density.pdf}: the two cell-type Gaussians before mixing
+  \item \texttt{bulk\_density.pdf}: the convolution that DeCovarT fits
+  \item \texttt{loglik\_surface\_p.pdf}: log-likelihood of one bulk on the simplex;
+        colour is \(\log_{10}(L/\max L)\)
+  \item \texttt{loglik\_ilr\_profile.pdf}: the same surface as a curve in the
+        single isometric log-ratio coordinate
+  \item \texttt{loglik\_expected\_surface\_p.pdf},
+        \texttt{loglik\_expected\_ilr\_profile.pdf}:
+        expected log-likelihood at the true \(\boldsymbol{p}\), not one draw
+  \item \texttt{loglik\_rgl.pdf}: the same relative likelihood as a 3D surface;
+        white marker at \(\boldsymbol{p}^{\star}\), red marker at the numerical maximum
+\end{itemize}
+
+Performance pages under \texttt{performance\_visualisations/}.
+
+\begin{itemize}
+  \item \texttt{heatmap\_rmse.pdf}, \texttt{heatmap\_mae.pdf},
+        \texttt{heatmap\_aitchison.pdf}:
+        tiles on \((\rho_{1},\rho_{2})\); one page per meta-scenario; seven solver panels
+  \item \texttt{forest.pdf}: ADEMP dot-whisker for the convolution solvers
+        \cite{morrisUsingSimulationStudies2019,allenRaincloudPlotsMultiplatform2019}
+  \begin{itemize}
+    \item solid whisker: \(1.96\) times the expected-Fisher Wald standard error
+          at the true composition
+    \item dashed whisker: empirical Monte Carlo standard deviation
+    \item labels: RMSE and coverage of that cell type
+  \end{itemize}
+  \item \texttt{raincloud.pdf}: full Monte Carlo law of \(\hat{p}\),
+        including pile-up at \(0\) and \(1\)
+  \item \texttt{dotsinterval.pdf}: the same quantiles without a kernel density on \([0,1]\)
+  \item \texttt{qq\_normal.pdf}: whitened isometric log-ratio coordinate against \(N(0,1)\)
+  \item \texttt{qq\_chi2.pdf}: squared Mahalanobis distance against \(\chi^{2}_{1}\)
+  \item \texttt{ks\_normal.pdf}: Kolmogorov--Smirnov statistic versus \(N(0,1)\)
+  \item \texttt{similarity.pdf}: Pearson correlation of paired \(\hat{\boldsymbol{p}}\)
+        inside one correlation corner; Ward clustering of \(1-r\)
+  \item \texttt{solver\_dots.pdf}: the same \(9\times 9\) grid;
+        colour is mean RMSE, size is mean Aitchison distance
+  \item \texttt{kkt\_raincloud.pdf}: projected-score residual
+  \item \texttt{convergence\_stacked.pdf}: theoretical success, numerical trouble,
+        theoretical failure
+  \item \texttt{runtime.pdf}, \texttt{memory.pdf}: \(\log_{10}\) seconds and \(\log_{10}\) MiB
+\end{itemize}
+
+\subsection{How to read them}
+\label{app:fig02-reading}
+
+\begin{itemize}
+  \item heatmaps: where on \((\rho_{1},\rho_{2})\) a mean-only fit breaks, at fixed centroid gap
+  \item large gap and \(\rho_{j}=0\): the mean map is injective; every solver is accurate
+  \item small gap: the least-squares residual is a ridge; NNLS and \texttt{lsei} snap to vertices
+  \item rainclouds: bias, skew, and boundary mass that a mean-plus-interval hides
+  \item forests: whether the Wald standard error matches the Monte Carlo spread
+  \item likelihood curves: a flat isometric log-ratio profile means a rare type or colliding means
+  \item Marquardt--Levenberg stops on the relative distance to the maximum
+        \cite{commengesNewtonLikeAlgorithmLikelihood2006,philippsRobustEfficientOptimization2021}
+  \item that stop suits a balanced ridge and fires early on a rare-type tail
+  \item Q--Q and Kolmogorov--Smirnov: the \(N=1\) normal approximation in isometric
+        log-ratio coordinates; Wilks does not apply on a face
+        \cite{wilksLargeSampleDistributionLikelihood1938,selfAsymptoticPropertiesMaximum1987}
+\end{itemize}
+
+\section{Covariance-driven plot books}
+\label{app:fig03}
+
+Directory of the \(G=20\), \(J=3\) books
+(\(N=50\) bulks, \(36\) scenarios):
+
+\url{https://github.com/bastienchassagnol/DeCovarT/tree/main/output/fig03}
+
+Density pages under \texttt{density\_visualisations/}.
+
+\begin{itemize}
+  \item \texttt{mean\_signature.pdf}: heatmap of \(\boldsymbol{\mu}\) before scaling
+  \item \texttt{network\_topologies.pdf}: graph skeletons, one page per overlap target
+  \item \texttt{scenario\_metrics.pdf}: realised overlap, entropy, conditioning,
+        and related descriptors
+  \item \texttt{latent\_projections.pdf}: two-dimensional views of the convolution
+        (Thomson, MCFA, \texttt{MclustDR})
+  \item \texttt{pairwise\_hellinger.pdf}: pairwise discrepancy of the purified laws
+  \item \texttt{loglik\_surface\_p.pdf}, \texttt{loglik\_expected\_surface\_p.pdf}:
+        one-draw and expected log-likelihood on the additive log-ratio plane
+  \item \texttt{loglik\_rgl.pdf}: 3D relative likelihood; same markers as in the bivariate book
+\end{itemize}
+
+Performance pages under \texttt{performance\_visualisations/}.
+Same ADEMP family as Appendix~\ref{app:fig02}, with five solvers and no MAE tile book.
+
+\begin{itemize}
+  \item \texttt{heatmap\_rmse.pdf}, \texttt{heatmap\_aitchison.pdf}
+  \item \texttt{forest.pdf}, \texttt{raincloud.pdf}, \texttt{dotsinterval.pdf}
+  \item \texttt{qq\_normal.pdf}, \texttt{qq\_chi2.pdf} (reference \(\chi^{2}_{2}\)),
+        \texttt{ks\_normal.pdf}
+  \item \texttt{similarity.pdf}, \texttt{solver\_dots.pdf}
+  \item \texttt{kkt\_raincloud.pdf}, \texttt{convergence\_stacked.pdf}
+  \item \texttt{runtime.pdf}, \texttt{memory.pdf}
+\end{itemize}
+
+\subsection{How to read them}
+\label{app:fig03-reading}
+
+\begin{itemize}
+  \item signature heatmap: types 1 and 2 are the collinear pair; type 3 is the separated column
+  \item networks: scale-free versus stochastic block model on types 1 and 2
+  \item descriptor strip: overlap target and \(H^{\star}\) against the design
+  \item forests at high overlap: whether an isometric log-ratio solver splits types 1 and 2
+        when \texttt{lsei} and \emph{CIBERSORT} have only the mean
+  \item rainclouds at \(H^{\star}=0.1\): boundary pile-up of the rare weight
+  \item latent projections: whether a linear plane still shows three clouds
+  \item likelihood surfaces: ridges in the two-dimensional isometric log-ratio chart
+\end{itemize}

@@ -118,6 +118,8 @@ SKIP_QMD_PREFIXES = (
     "wrn-",
     "imp-",
     "cau-",
+    # rOpenSci roxygen tags (@srrstats, @srrstatsNA, @srrstatsTODO), not citekeys.
+    "srrstats",
 )
 SKIP_QMD_KEYS = {
     "r",

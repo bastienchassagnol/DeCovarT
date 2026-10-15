@@ -129,3 +129,6 @@ factorial analysis.bib
 toy_model_parameters_benchamrk.svg
 decovart_mle_proeprties.md
 decovart_statistical_properties.md
+
+# Machine-specific Quarto environment (TIKZ_BIN for scripts/tikz-lualatex.sh)
+vignettes/_environment.local

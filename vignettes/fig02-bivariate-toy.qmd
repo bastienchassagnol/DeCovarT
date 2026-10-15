@@ -60,17 +60,21 @@ workers live only in `deconvolute_ratios()`. Reporting conventions
 (ADEMP, Nature Methods, raincloud / forest plots) are in
 [how to build synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html#sec-ademp).
 
-```{mermaid}
+```{.tikz}
 %%| label: fig-bivariate-design
-%%| eval: true
-%%| fig-cap: "Bivariate toy factorial design: three compositions, two variance structures, two CLD mean separations, a 9-by-9 gene-gene correlation grid, and seven solvers (3 x 2 x 2 x 9 x 9 = 972 scenarios)."
-%%{init: {"theme": "sandstone"}}%%
-flowchart TD
-  P["3 compositions<br/>Ba / Mo / Hi"] --> S["972 scenarios"]
-  V["2 variance structures<br/>Ho homoscedastic / He heteroscedastic"] --> S
-  C["2 CLD mean separations<br/>Sm small / Lg large"] --> S
-  R["9 x 9 gene-gene correlations<br/>rho in -0.8 to 0.8, step 0.2"] --> S
-  S --> A["7 deconvolution solvers"]
+%%| fig-cap: Bivariate toy factorial design: three compositions, two variance structures, two CLD mean separations, a 9-by-9 gene-gene correlation grid, and seven solvers (3 x 2 x 2 x 9 x 9 = 972 scenarios).
+%%| filename: fig-bivariate-design
+%%| alt: Four design factors, three compositions, two variance structures, two CLD mean separations, and a 9 by 9 grid of gene-gene correlations rho from -0.8 to 0.8, combine into 972 scenarios, each analysed by 7 deconvolution solvers.
+\begin{tikzpicture}
+\node[box, text width=3.1cm] (P) at (0,0) {3 compositions\\ Ba / Mo / Hi};
+\node[box, text width=3.1cm] (V) at (3.6,0) {2 variance structures\\ Ho homoscedastic,\\ He heteroscedastic};
+\node[box, text width=3.1cm] (C) at (7.2,0) {2 CLD mean separations\\ Sm small, Lg large};
+\node[box, text width=3.1cm] (R) at (10.8,0) {$9\times 9$ gene--gene correlations\\ $\rho\in[-0.8,0.8]$, step $0.2$};
+\node[keybox] (S) at (5.4,-2.2) {972 scenarios\\ $3\times2\times2\times9\times9$};
+\node[keybox] (A) at (5.4,-3.9) {7 deconvolution solvers};
+\foreach \n in {P,V,C,R} \draw[edge] (\n.south) -- (S.north);
+\draw[edge] (S) -- (A);
+\end{tikzpicture}
 ```
 
 ```{mermaid}

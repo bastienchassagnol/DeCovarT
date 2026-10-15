@@ -8,3 +8,61 @@
 project:
   render: ["*.qmd"]
 from: markdown+emoji
+
+filters:
+  # pre-ast so Quarto's cross-referencing sees the #fig- labels.
+  - at: pre-ast
+    path: _extensions/pandoc-ext/diagram/diagram.lua
+
+# TikZ graphical models (pandoc-ext/diagram), RevBayes symbol convention.
+# No `%` comments inside header-includes: the filter re-wraps that block.
+# Flowchart styles (box, keybox, dimbox, choice) reuse the same palette.
+# const = fixed square, stoch = latent circle, obs = observed grey circle,
+# det = dotted deterministic node, note = equation beside a node.
+# The SVG cache is committed, so CI renders without TeX. To compile new
+# diagrams, set TIKZ_BIN in vignettes/_environment.local to the absolute
+# path of scripts/tikz-lualatex.sh (LuaLaTeX, then Ghostscript outlines).
+# Delete _diagram-cache/ after changing the styles below: the cache key is
+# the diagram source only.
+diagram:
+  cache: true
+  cache-dir: _diagram-cache
+  engine:
+    tikz:
+      header-includes: |
+        \usepackage{amsmath}
+        \usepackage{amssymb}
+        \usepackage{amsfonts}
+        \usepackage{bm}
+        \usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc,shapes.geometric}
+        \definecolor{ink}{HTML}{1F2937}
+        \definecolor{latfill}{HTML}{DAE9FB}
+        \definecolor{latdraw}{HTML}{4477B5}
+        \definecolor{obsfill}{HTML}{C9CDD3}
+        \definecolor{obsdraw}{HTML}{747B86}
+        \definecolor{platedraw}{HTML}{98A2B3}
+        \tikzset{
+          every node/.style={text=ink},
+          const/.style={rectangle, draw=ink, fill=white, minimum size=9mm, line width=0.8pt},
+          stoch/.style={circle, draw=latdraw, fill=latfill, minimum size=11mm, line width=0.9pt},
+          obs/.style={circle, draw=obsdraw, fill=obsfill, minimum size=11mm, line width=0.9pt},
+          det/.style={circle, draw=ink, densely dotted, fill=white, minimum size=11mm, line width=0.9pt},
+          var/.style={ellipse, draw=obsdraw, fill=obsfill, minimum height=9mm, inner xsep=2mm, line width=0.9pt},
+          plate/.style={draw=platedraw, dashed, rounded corners=5pt, inner sep=4mm, line width=0.8pt},
+          platelabel/.style={anchor=north east, font=\small\itshape, text=obsdraw, inner sep=1mm},
+          note/.style={font=\small, text=ink!80},
+          edge/.style={-{Stealth[length=2.6mm]}, line width=0.8pt, draw=ink}
+        }
+        \newcommand{\plate}[3]{%
+          \begin{scope}[on background layer]
+            \node[plate, fit=#2] (#1) {};
+          \end{scope}
+          \node[platelabel] (#1-lab) at (#1.south east) {#3};}
+        \tikzset{
+          box/.style={rectangle, rounded corners=3pt, draw=ink, fill=white, line width=0.8pt, align=flush center, inner sep=2.2mm, font=\small},
+          keybox/.style={box, draw=latdraw, fill=latfill},
+          dimbox/.style={box, draw=obsdraw, fill=obsfill!45},
+          choice/.style={diamond, aspect=2.4, draw=ink, fill=obsfill!35, line width=0.8pt, align=flush center, inner sep=0.6mm, font=\small},
+          elabel/.style={font=\footnotesize\itshape, text=ink!85, fill=white, inner sep=1.2pt, align=center},
+          dashededge/.style={edge, densely dashed}
+        }

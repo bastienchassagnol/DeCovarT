@@ -41,20 +41,27 @@ The focus is **second-generation** signatures built from single-cell pseudobulks
 
 Interactive signature refinement utilities (zero filtering, specificity binning, Gini / entropy compaction) are implemented in [`DeconvExplorer`](https://github.com/omnideconv/deconvExplorer) (omnideconv ecosystem; cite as software once added to `packages.bib`).
 
-```{mermaid}
+```{.tikz}
 %%| label: fig-feature-selection-layout
-%%| fig-cap: "Layout of this vignette: univariate and multivariate selection, each split into one-versus-others then all-versus-all, followed by perspectives for continuous cell states."
-%%{init: {"theme": "sandstone"}}%%
-flowchart TD
-  A["Reference μ, Σ from sc / bulk"] --> B["Univariate"]
-  A --> C["Multivariate"]
-  B --> B1["One vs others"]
-  B --> B2["All vs all"]
-  C --> C1["One vs others <br/> (GGM / DiffNet)"]
-  C --> C2["All vs all <br/> (κ, overlap)"]
-  B2 --> D["Consensual panel G"]
-  C2 --> D
-  D --> E["Perspectives: <br/> mechanistic / potency / archetypes"]
+%%| fig-cap: Layout of this vignette: univariate and multivariate selection, each split into one-versus-others then all-versus-all, followed by perspectives for continuous cell states.
+%%| filename: fig-feature-selection-layout
+%%| alt: Flowchart. A reference mean and covariance from single-cell or bulk data splits into univariate and multivariate selection. Each splits into one-versus-others and all-versus-all; the multivariate branches use GGM or DiffNet, and the condition number kappa or overlap. Both all-versus-all branches feed a consensual gene panel, followed by perspectives on mechanistic, potency and archetype selection.
+\begin{tikzpicture}
+\node[keybox] (A) at (0,0) {Reference $\boldsymbol{\mu}$, $\boldsymbol{\Sigma}$ from single-cell or bulk};
+\node[box] (B) at (-3.4,-1.6) {Univariate};
+\node[box] (C) at (3.4,-1.6) {Multivariate};
+\node[box] (B1) at (-5.1,-3.2) {One vs others};
+\node[box] (B2) at (-1.8,-3.2) {All vs all};
+\node[box] (C1) at (1.8,-3.2) {One vs others\\ (GGM, DiffNet)};
+\node[box] (C2) at (5.1,-3.2) {All vs all\\ ($\kappa$, overlap)};
+\node[keybox] (D) at (0,-4.9) {Consensual gene panel};
+\node[dimbox] (E) at (0,-6.4) {Perspectives: mechanistic, potency, archetypes};
+\draw[edge] (A) -- (B); \draw[edge] (A) -- (C);
+\draw[edge] (B) -- (B1); \draw[edge] (B) -- (B2);
+\draw[edge] (C) -- (C1); \draw[edge] (C) -- (C2);
+\draw[edge] (B2) -- (D); \draw[edge] (C2) -- (D);
+\draw[edge] (D) -- (E);
+\end{tikzpicture}
 ```
 
 Sections are cross-linked below: @sec-preprocess builds moments; @sec-precision-timing places sparse $\boldsymbol{\Omega}_{j}$ estimation after gene filtering; @sec-univariate and @sec-multivariate score genes; @sec-four-scores and @sec-pareto-panel assemble a working panel; @sec-cv-selection and @sec-recommended assemble a pipeline; @sec-perspectives covers continua, Markov blankets, mechanistic priors (see @sec-mechanistic), information-optimal design as an extension (see @sec-optimal-design), and caveats (see @sec-caveats).
@@ -555,20 +562,25 @@ Scalar alternatives (weighted sums inside `GA` / `GenSA`) remain useful for audi
 6.  **Optional extension** (see @sec-optimal-design). Information-optimal (D/E/A) subset search over a composition grid if Fisher-design criteria are desired beyond overlap monitors.
 7.  **Mechanistic annotation** (see @sec-mechanistic). Optional `CARNIVAL` / `CORNETO` pathway hypotheses as soft coverage constraints.
 
-```{mermaid}
+```{.tikz}
 %%| label: fig-recommended-pipeline
-%%| fig-cap: "Recommended reference-based feature-selection pipeline from donor pseudobulks to validated, mechanistically annotated panels."
-%%{init: {"theme": "sandstone"}}%%
-flowchart TD
-  A["Donor split + pseudobulk"] --> B["SCTransform HVGs <br/> (no cell-type regression)"]
-  B --> C["Reliability / dropout filter"]
-  C --> D["Four-score shortlist: <br/> DESeq2 + glmnet + <br/> Jeffreys + MixSim"]
-  D --> E["Stability selection"]
-  E --> F["NSGA-II / greedy Pareto <br/> min κ2 and overlap"]
-  F --> G["Nested CV panel selection <br/> + held-out donor assessment"]
-  G --> H["Optional D/E/A design <br/> (perspective)"]
-  H --> I["CARNIVAL / CORNETO <br/> annotation"]
-  I --> J["External cohort check <br/> (see caveats)"]
+%%| fig-cap: Recommended reference-based feature-selection pipeline from donor pseudobulks to validated, mechanistically annotated panels.
+%%| filename: fig-recommended-pipeline
+%%| alt: Ten-step pipeline drawn as two rows: donor split and pseudobulk; SCTransform highly variable genes; reliability and dropout filter; four-score shortlist with DESeq2, glmnet, Jeffreys and MixSim; stability selection; NSGA-II or greedy Pareto minimising the condition number kappa 2 and overlap; nested cross-validated panel selection with held-out donors; optional D-, E- or A-optimal design; CARNIVAL or CORNETO annotation; external cohort check.
+\begin{tikzpicture}[every node/.append style={text width=2.55cm}]
+\node[keybox] (A) at (0,0) {Donor split and pseudobulk};
+\node[box] (B) at (3.2,0) {\texttt{SCTransform} HVGs\\ (no cell-type regression)};
+\node[box] (C) at (6.4,0) {Reliability and dropout filter};
+\node[box] (D) at (9.6,0) {Four-score shortlist: \texttt{DESeq2}, \texttt{glmnet}, Jeffreys, MixSim};
+\node[box] (E) at (12.8,0) {Stability selection};
+\node[box] (F) at (12.8,-2.4) {NSGA-II or greedy Pareto:\\ $\min\kappa_2$ and overlap};
+\node[box] (G) at (9.6,-2.4) {Nested CV panel selection, held-out donor assessment};
+\node[dimbox] (H) at (6.4,-2.4) {Optional $D$-, $E$-, $A$-optimal design (perspective)};
+\node[box] (I) at (3.2,-2.4) {\texttt{CARNIVAL} / \texttt{CORNETO} annotation};
+\node[keybox] (J) at (0,-2.4) {External cohort check (see caveats)};
+\draw[edge] (A) -- (B); \draw[edge] (B) -- (C); \draw[edge] (C) -- (D); \draw[edge] (D) -- (E);
+\draw[edge] (E) -- (F); \draw[edge] (F) -- (G); \draw[edge] (G) -- (H); \draw[edge] (H) -- (I); \draw[edge] (I) -- (J);
+\end{tikzpicture}
 ```
 
 The distinctive contribution for DeCovarT-style second-generation models is a **bulk-calibrated, variance-weighted information criterion plus overlap**, exploiting paired sc/bulk designs when available.

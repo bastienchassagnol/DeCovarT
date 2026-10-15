@@ -48,7 +48,12 @@
 ^vignettes/supp-S5-misspecification\.qmd$
 ^vignettes/theory-decovart-statistical-perspectives\.qmd$
 ^vignettes/theory-decovart-single-cell-bulk-alignment\.qmd$
-^vignettes/_extensions/
+# Quarto extensions used only by pkgdown-only articles. pandoc-ext/diagram
+# is kept: vignettes/_quarto.yml loads it for every article, and the
+# committed vignettes/_diagram-cache/ lets it render without TeX.
+^vignettes/_extensions/jmgirard/
+^vignettes/_extensions/sun123zxy/
+^vignettes/_environment\.local$
 # Temporary solver smoke test (not testthat; requires fig03 GRN cache).
 ^tests/manual/
 # pkgdown-only vignette figures (CRAN vignettes use the two kept below)
@@ -85,6 +90,7 @@
 ^\.vscode$
 ^\.quarto$
 ^\.cursor$
+^\.claude$
 ^\.nojekyll$
 ^\.lintr$
 ^\.zotc$
