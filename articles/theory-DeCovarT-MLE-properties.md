@@ -578,18 +578,18 @@ knitr::kable(route_summary, digits = 3)
 
 | route      | cell_type | coverage | outside_unit_interval | median_width |
 |:-----------|:----------|---------:|----------------------:|-------------:|
-| delta      | ct1       |    0.920 |                 0.080 |        0.174 |
-| delta      | ct2       |    0.945 |                 0.360 |        0.208 |
-| delta      | ct3       |    0.949 |                 0.724 |        0.090 |
-| logit      | ct1       |    0.920 |                 0.000 |        0.176 |
-| logit      | ct2       |    0.920 |                 0.000 |        0.220 |
-| logit      | ct3       |    0.895 |                 0.000 |        0.116 |
-| simulation | ct1       |    0.869 |                 0.000 |        0.215 |
-| simulation | ct2       |    0.938 |                 0.000 |        0.226 |
-| simulation | ct3       |    0.927 |                 0.000 |        0.119 |
+| delta      | ct1       |    0.923 |                 0.077 |        0.174 |
+| delta      | ct2       |    0.949 |                 0.347 |        0.209 |
+| delta      | ct3       |    0.953 |                 0.719 |        0.090 |
+| logit      | ct1       |    0.916 |                 0.000 |        0.177 |
+| logit      | ct2       |    0.912 |                 0.000 |        0.219 |
+| logit      | ct3       |    0.898 |                 0.000 |        0.116 |
+| simulation | ct1       |    0.876 |                 0.000 |        0.213 |
+| simulation | ct2       |    0.945 |                 0.000 |        0.223 |
+| simulation | ct3       |    0.927 |                 0.000 |        0.116 |
 
-Out of 300 fits, 25 returned an estimate on a simplex face, where no
-Wald-type route is defined; the table is computed on the 275 interior
+Out of 300 fits, 26 returned an estimate on a simplex face, where no
+Wald-type route is defined; the table is computed on the 274 interior
 fits. Three readings follow.
 
 - The delta method places 72% of the intervals for the rare type partly
@@ -825,6 +825,17 @@ chart at \hat{\boldsymbol{p}} ([Oehlert
 1992](#ref-oehlertNoteDeltaMethod1992)) and is therefore *not* invariant
 to reparametrisation and can place limits outside \[0,1\].
 
+The Wald statistic also fails non-monotonically near a boundary. As the
+estimate moves away from the null, the statistic can shrink towards
+zero, which is the Hauck–Donner effect ([Yee
+2022](#ref-yeeHauckDonnerEffectWald2022)). The effect corresponds to
+estimates near the boundary of the parameter space, and Yee
+([2022](#ref-yeeHauckDonnerEffectWald2022)) shows it is detected by
+comparing pairwise ratios of Wald, score and likelihood-ratio
+statistics. So a large p-value from a near-simplex-vertex Wald test can
+be an artefact, not evidence for the null. Use the profile
+likelihood-ratio statistic below in that regime.
+
 The **profile likelihood-ratio** statistic
 
 D_j(c) = 2\bigl\\ \ell(\hat{\boldsymbol{p}}) -
@@ -960,7 +971,9 @@ lrt_decovart(
 >     hypothesis. The restricted fits substitute the constrained value
 >     directly.
 > 3.  **Wald is unusable here.** The delta-method covariance is
->     undefined on the face;
+>     undefined on the face, and the Hauck–Donner effect ([Yee
+>     2022](#ref-yeeHauckDonnerEffectWald2022)) makes its test
+>     unreliable as the estimate approaches it;
 >     [`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md)
 >     returns `NA` with a warning rather than a plausible-looking
 >     number.
@@ -1162,7 +1175,7 @@ c(
   loglik_diff = eq_check$loglik_diff
 )
 #>  max_abs_diff   loglik_diff 
-#>  9.336033e-10 -3.108624e-15
+#>  8.965458e-10 -2.664535e-15
 ```
 
 ### RNA-Sieve: CLT likelihood, Fisher and Godambe
@@ -1248,9 +1261,9 @@ fit <- fit_decovart(
 )
 do.call(rbind, fit$diagnostics)
 #>          boundary_distance near_boundary   score_norm min_eigenvalue
-#> sample_1         0.2159583         FALSE 2.383262e-09      -160.1989
+#> sample_1         0.2159583         FALSE 2.383263e-09      -160.1989
 #> sample_2         0.1832318         FALSE 5.026328e-05      -167.0961
-#> sample_3         0.1682215         FALSE 1.765209e-08      -171.3536
+#> sample_3         0.1682215         FALSE 1.765213e-08      -171.3536
 #>          max_eigenvalue local_maximum
 #> sample_1      -24.48051          TRUE
 #> sample_2      -18.72244          TRUE
@@ -1302,7 +1315,7 @@ c(
   multimodal = restarts$multimodal
 )
 #> loglik_range   multimodal 
-#> 6.625915e-10 0.000000e+00
+#> 6.625969e-10 0.000000e+00
 ```
 
 A small range is reassuring but not a proof: a converged code, a tiny
@@ -1742,6 +1755,11 @@ Xie, Dongyue, Lin Gui, and Jingshu Wang. 2026. ‘Statistical Inference
 for Cell Type Deconvolution’. *Journal of the Royal Statistical Society
 Series B: Statistical Methodology* 88 (4): 1449–68.
 <https://doi.org/10.1093/jrsssb/qkag054>.
+
+Yee, Thomas William. 2022. ‘On the Hauck-Donner Effect in Wald Tests:
+Detection, Tipping Points, and Parameter Space Characterization’.
+*Journal of the American Statistical Association* 117 (540): 1763–74.
+<https://doi.org/10.1080/01621459.2021.1886936>.
 
 Zhao, Yifan, Brian E Vestal, and Camille M Moore. 2026. ‘Evaluating
 Reference-Mixture Matching in Cell-Type Deconvolution with Single-Cell

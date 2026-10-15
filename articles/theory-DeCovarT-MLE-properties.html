@@ -475,71 +475,71 @@ o(\lVert\boldsymbol{d}\rVert^{2}) ,
 <tr class="odd">
 <td style="text-align: left;">delta</td>
 <td style="text-align: left;">ct1</td>
-<td style="text-align: right;">0.920</td>
-<td style="text-align: right;">0.080</td>
+<td style="text-align: right;">0.923</td>
+<td style="text-align: right;">0.077</td>
 <td style="text-align: right;">0.174</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">delta</td>
 <td style="text-align: left;">ct2</td>
-<td style="text-align: right;">0.945</td>
-<td style="text-align: right;">0.360</td>
-<td style="text-align: right;">0.208</td>
+<td style="text-align: right;">0.949</td>
+<td style="text-align: right;">0.347</td>
+<td style="text-align: right;">0.209</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">delta</td>
 <td style="text-align: left;">ct3</td>
-<td style="text-align: right;">0.949</td>
-<td style="text-align: right;">0.724</td>
+<td style="text-align: right;">0.953</td>
+<td style="text-align: right;">0.719</td>
 <td style="text-align: right;">0.090</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">logit</td>
 <td style="text-align: left;">ct1</td>
-<td style="text-align: right;">0.920</td>
+<td style="text-align: right;">0.916</td>
 <td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.176</td>
+<td style="text-align: right;">0.177</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">logit</td>
 <td style="text-align: left;">ct2</td>
-<td style="text-align: right;">0.920</td>
+<td style="text-align: right;">0.912</td>
 <td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.220</td>
+<td style="text-align: right;">0.219</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">logit</td>
 <td style="text-align: left;">ct3</td>
-<td style="text-align: right;">0.895</td>
+<td style="text-align: right;">0.898</td>
 <td style="text-align: right;">0.000</td>
 <td style="text-align: right;">0.116</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">simulation</td>
 <td style="text-align: left;">ct1</td>
-<td style="text-align: right;">0.869</td>
+<td style="text-align: right;">0.876</td>
 <td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.215</td>
+<td style="text-align: right;">0.213</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">simulation</td>
 <td style="text-align: left;">ct2</td>
-<td style="text-align: right;">0.938</td>
+<td style="text-align: right;">0.945</td>
 <td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.226</td>
+<td style="text-align: right;">0.223</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">simulation</td>
 <td style="text-align: left;">ct3</td>
 <td style="text-align: right;">0.927</td>
 <td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.119</td>
+<td style="text-align: right;">0.116</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
-<p>Out of 300 fits, 25 returned an estimate on a simplex face, where no Wald-type route is defined; the table is computed on the 275 interior fits. Three readings follow.</p>
+<p>Out of 300 fits, 26 returned an estimate on a simplex face, where no Wald-type route is defined; the table is computed on the 274 interior fits. Three readings follow.</p>
 <ul>
 <li>The delta method places 72% of the intervals for the rare type partly below zero. Truncating them at zero would hide, not fix, the problem.</li>
 <li>The logit and simulation routes never leave <span class="math inline">(0,1)</span> and are wider for the rare type, as an asymmetric interval should be.</li>
@@ -601,6 +601,7 @@ Figure 1: Strata of the tetrahedron <span class="math inline">\Delta^{3}</span>
 </h3>
 <p>For an interior null <span class="math inline">H_0:p_j=c</span> with <span class="math inline">0&lt;c&lt;1</span>, two statistics are available.</p>
 <p>The <strong>Wald</strong> statistic is the cheap one: <span class="math inline">(\hat{p}_j-c)/\mathrm{SE}_j</span> with <span class="math inline">\mathrm{SE}_j</span> the delta-method standard error of <a href="../reference/vcov_ilr_delta.html"><code>vcov_ilr_delta()</code></a>, giving the symmetric interval of <a href="../reference/fit_decovart.html"><code>confint.decovart_fit()</code></a>. It costs one matrix inversion, but it linearises the isometric log-ratio chart at <span class="math inline">\hat{\boldsymbol{p}}</span> <span class="citation" data-cites="oehlertNoteDeltaMethod1992">(<a href="#ref-oehlertNoteDeltaMethod1992" role="doc-biblioref">Oehlert 1992</a>)</span> and is therefore <em>not</em> invariant to reparametrisation and can place limits outside <span class="math inline">[0,1]</span>.</p>
+<p>The Wald statistic also fails non-monotonically near a boundary. As the estimate moves away from the null, the statistic can shrink towards zero, which is the Hauck–Donner effect <span class="citation" data-cites="yeeHauckDonnerEffectWald2022">(<a href="#ref-yeeHauckDonnerEffectWald2022" role="doc-biblioref">Yee 2022</a>)</span>. The effect corresponds to estimates near the boundary of the parameter space, and <span class="citation" data-cites="yeeHauckDonnerEffectWald2022">Yee (<a href="#ref-yeeHauckDonnerEffectWald2022" role="doc-biblioref">2022</a>)</span> shows it is detected by comparing pairwise ratios of Wald, score and likelihood-ratio statistics. So a large <span class="math inline">p</span>-value from a near-simplex-vertex Wald test can be an artefact, not evidence for the null. Use the profile likelihood-ratio statistic below in that regime.</p>
 <p>The <strong>profile likelihood-ratio</strong> statistic</p>
 <p><span id="eq-lrt"><span class="math display">
 D_j(c)
@@ -716,7 +717,7 @@ D
 <li>
 <strong>Do not encode the null in ILR coordinates.</strong> <span class="math inline">p_j=0</span> corresponds to an infinite log-ratio, so the chart cannot represent the hypothesis. The restricted fits substitute the constrained value directly.</li>
 <li>
-<strong>Wald is unusable here.</strong> The delta-method covariance is undefined on the face; <code><a href="../reference/vcov_ilr_delta.html">vcov_ilr_delta()</a></code> returns <code>NA</code> with a warning rather than a plausible-looking number.</li>
+<strong>Wald is unusable here.</strong> The delta-method covariance is undefined on the face, and the Hauck–Donner effect <span class="citation" data-cites="yeeHauckDonnerEffectWald2022">(<a href="#ref-yeeHauckDonnerEffectWald2022" role="doc-biblioref">Yee 2022</a>)</span> makes its test unreliable as the estimate approaches it; <code><a href="../reference/vcov_ilr_delta.html">vcov_ilr_delta()</a></code> returns <code>NA</code> with a warning rather than a plausible-looking number.</li>
 </ol>
 </blockquote>
 </div>
@@ -828,7 +829,7 @@ D
 <span>  loglik_diff <span class="op">=</span> <span class="va">eq_check</span><span class="op">$</span><span class="va">loglik_diff</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;  max_abs_diff   loglik_diff </span></span>
-<span><span class="co">#&gt;  9.336033e-10 -3.108624e-15</span></span></code></pre></div>
+<span><span class="co">#&gt;  8.965458e-10 -2.664535e-15</span></span></code></pre></div>
 </div>
 </section><section class="level2"><h3 id="sec-rna-sieve">RNA-Sieve: CLT likelihood, Fisher and Godambe<a class="anchor" aria-label="anchor" href="#sec-rna-sieve"></a>
 </h3>
@@ -897,9 +898,9 @@ Table 1: What each DeCovarT convergence field does and does not certify.
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="va">fit</span><span class="op">$</span><span class="va">diagnostics</span><span class="op">)</span></span>
 <span><span class="co">#&gt;          boundary_distance near_boundary   score_norm min_eigenvalue</span></span>
-<span><span class="co">#&gt; sample_1         0.2159583         FALSE 2.383262e-09      -160.1989</span></span>
+<span><span class="co">#&gt; sample_1         0.2159583         FALSE 2.383263e-09      -160.1989</span></span>
 <span><span class="co">#&gt; sample_2         0.1832318         FALSE 5.026328e-05      -167.0961</span></span>
-<span><span class="co">#&gt; sample_3         0.1682215         FALSE 1.765209e-08      -171.3536</span></span>
+<span><span class="co">#&gt; sample_3         0.1682215         FALSE 1.765213e-08      -171.3536</span></span>
 <span><span class="co">#&gt;          max_eigenvalue local_maximum</span></span>
 <span><span class="co">#&gt; sample_1      -24.48051          TRUE</span></span>
 <span><span class="co">#&gt; sample_2      -18.72244          TRUE</span></span>
@@ -932,7 +933,7 @@ Table 1: What each DeCovarT convergence field does and does not certify.
 <span>  multimodal <span class="op">=</span> <span class="va">restarts</span><span class="op">$</span><span class="va">multimodal</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; loglik_range   multimodal </span></span>
-<span><span class="co">#&gt; 6.625915e-10 0.000000e+00</span></span></code></pre></div>
+<span><span class="co">#&gt; 6.625969e-10 0.000000e+00</span></span></code></pre></div>
 </div>
 <p>A small range is reassuring but not a proof: a converged code, a tiny relative-distance-to-minimum and a negative-definite local Hessian together support a <strong>local</strong> maximum, and none of them rules out a second, equally good or better mode elsewhere on the simplex.</p>
 </section><section class="section level2"><h2 id="sec-glm">A generalised linear model view of DeCovarT<a class="anchor" aria-label="anchor" href="#sec-glm"></a>
@@ -1269,6 +1270,9 @@ Wilks, S. S. 1938. <span>‘The Large-Sample Distribution of the Likelihood Rati
 </div>
 <div id="ref-xieStatisticalInferenceCell2026" class="csl-entry" role="listitem">
 Xie, Dongyue, Lin Gui, and Jingshu Wang. 2026. <span>‘Statistical Inference for Cell Type Deconvolution’</span>. <em>Journal of the Royal Statistical Society Series B: Statistical Methodology</em> 88 (4): 1449–68. <a href="https://doi.org/10.1093/jrsssb/qkag054" class="external-link">https://doi.org/10.1093/jrsssb/qkag054</a>.
+</div>
+<div id="ref-yeeHauckDonnerEffectWald2022" class="csl-entry" role="listitem">
+Yee, Thomas William. 2022. <span>‘On the <span>Hauck-Donner Effect</span> in <span>Wald Tests</span>: <span>Detection</span>, <span>Tipping Points</span>, and <span>Parameter Space Characterization</span>’</span>. <em>Journal of the American Statistical Association</em> 117 (540): 1763–74. <a href="https://doi.org/10.1080/01621459.2021.1886936" class="external-link">https://doi.org/10.1080/01621459.2021.1886936</a>.
 </div>
 <div id="ref-zhaoEvaluatingReferencemixtureMatching2026" class="csl-entry" role="listitem">
 Zhao, Yifan, Brian E Vestal, and Camille M Moore. 2026. <span>‘Evaluating Reference-Mixture Matching in Cell-Type Deconvolution with Single-Cell <span class="nocase">RNA-seq</span> References’</span>. <em>Briefings in Bioinformatics</em> 27 (2): bbag184. <a href="https://doi.org/10.1093/bib/bbag184" class="external-link">https://doi.org/10.1093/bib/bbag184</a>.

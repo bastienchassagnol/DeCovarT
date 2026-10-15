@@ -170,7 +170,7 @@
 <section class="section level2"><h2 id="sec-grn-reviews">General reviews<a class="anchor" aria-label="anchor" href="#sec-grn-reviews"></a>
 </h2>
 <p>Marginal co-expression is a poor proxy for regulation. Shared upstream TFs, cell-type programmes, and common stimuli induce correlation without a direct edge; time lags and nonlinear kinetics can hide true edges. Conditional graphical models target <strong>direct</strong> dependence via the precision <span class="math inline">\boldsymbol{\Omega}</span>, while causal / interventional designs are needed for direction and mechanism (<a href="https://doi.org/10.1038/s41576-023-00618-5" class="external-link">Gene regulatory network inference in the era of single-cell multi-omics</a>; <span class="citation" data-cites="svininCausalNetworkAnalysis2025">Svinin and Glaab (<a href="#ref-svininCausalNetworkAnalysis2025" role="doc-biblioref">2025</a>)</span>; <a href="https://doi.org/10.1016/j.copbio.2019.12.002" class="external-link">Network inference in systems biology</a>).</p>
-<p><a href="https://doi.org/10.1038/s41576-023-00618-5" class="external-link">Badia-i-Mompel <em>et al.</em> (2023)</a> review single-cell multi-omics GRN tools and prior databases. <span class="citation" data-cites="svininCausalNetworkAnalysis2025">Svinin and Glaab (<a href="#ref-svininCausalNetworkAnalysis2025" role="doc-biblioref">2025</a>)</span> place association, prior-informed, and causal network analyses in one taxonomy. Together they motivate separating undirected skeletons (<a href="#sec-grn-undirected" class="quarto-xref">Sec. 2</a>) from DAG / perturbation work (<a href="#sec-grn-directed" class="quarto-xref">Sec. 3</a>).</p>
+<p><a href="https://doi.org/10.1038/s41576-023-00618-5" class="external-link">Badia-i-Mompel <em>et al.</em> (2023)</a> review single-cell multi-omics GRN tools and prior databases. <span class="citation" data-cites="svininCausalNetworkAnalysis2025">Svinin and Glaab (<a href="#ref-svininCausalNetworkAnalysis2025" role="doc-biblioref">2025</a>)</span> place association, prior-informed, and causal network analyses in one taxonomy. Together they motivate separating undirected skeletons (<a href="#sec-grn-undirected" class="quarto-xref">Sec. 2</a>) from DAG / perturbation work (<a href="#sec-grn-directed" class="quarto-xref">Sec. 6</a>).</p>
 </section><section class="section level2"><h2 id="sec-grn-undirected">Undirected probabilistic strategies<a class="anchor" aria-label="anchor" href="#sec-grn-undirected"></a>
 </h2>
 <section class="level2"><h3 id="sec-grn-undirected-general">General inference<a class="anchor" aria-label="anchor" href="#sec-grn-undirected-general"></a>
@@ -205,8 +205,467 @@
 <p>Algorithm unrolling turns iterative sparse-precision solvers into trainable layers (<a href="https://doi.org/10.1109/MSP.2020.3016905" class="external-link">Monga <em>et al.</em> (2021)</a>; <a href="https://arxiv.org/abs/1906.00271" class="external-link">GLAD</a>). For hierarchical count ecosystems, <a href="https://hal.science/hal-04622671v1" class="external-link">Chaussard <em>et al.</em> (2024)</a> introduce <strong>PLN-Tree</strong>: a tree-structured extension of PLN with backward Markov variational inference and identifiability results—an attractive route when taxonomy or gene modules should inform <span class="math inline">\boldsymbol{\Omega}</span>.</p>
 </section><section class="level2"><h3 id="sec-grn-priors">Prior knowledge and PPI<a class="anchor" aria-label="anchor" href="#sec-grn-priors"></a>
 </h3>
-<p>Priors from TF–target, chromatin, and PPI databases can enter as <span class="math inline">\lambda_{ij}</span> masks or as Bayesian edge probabilities (<a href="https://doi.org/10.1038/s41576-023-00618-5" class="external-link">Badia-i-Mompel <em>et al.</em> (2023)</a>; <span class="citation" data-cites="svininCausalNetworkAnalysis2025">Svinin and Glaab (<a href="#ref-svininCausalNetworkAnalysis2025" role="doc-biblioref">2025</a>)</span>; <a href="https://doi.org/10.1371/journal.pcbi.1013300" class="external-link">NeKo</a>). This is the undirected analogue of pathway contextualisation in <a href="#sec-grn-directed" class="quarto-xref">Sec. 3</a>: association graphs become biologically constrained without claiming full causality.</p>
-</section></section><section class="section level2"><h2 id="sec-grn-directed">Directed approaches<a class="anchor" aria-label="anchor" href="#sec-grn-directed"></a>
+<p>Priors from TF–target, chromatin, and PPI databases can enter as <span class="math inline">\lambda_{ij}</span> masks or as Bayesian edge probabilities (<a href="https://doi.org/10.1038/s41576-023-00618-5" class="external-link">Badia-i-Mompel <em>et al.</em> (2023)</a>; <span class="citation" data-cites="svininCausalNetworkAnalysis2025">Svinin and Glaab (<a href="#ref-svininCausalNetworkAnalysis2025" role="doc-biblioref">2025</a>)</span>; <a href="https://doi.org/10.1371/journal.pcbi.1013300" class="external-link">NeKo</a>). This is the undirected analogue of pathway contextualisation in <a href="#sec-grn-directed" class="quarto-xref">Sec. 6</a>: association graphs become biologically constrained without claiming full causality.</p>
+</section></section><section class="section level2"><h2 id="sec-grn-estimators">Per-type precisions from single-cell profiles<a class="anchor" aria-label="anchor" href="#sec-grn-estimators"></a>
+</h2>
+<p>The reproducibility book estimates one sparse precision <span class="math inline">\boldsymbol{\Omega}_{j,t}</span> per labelled type <span class="math inline">j</span> and time <span class="math inline">t</span>. It uses the Suppinger gastruloid resource <span class="citation" data-cites="suppingerMultimodalCharacterizationMurine2023">(<a href="#ref-suppingerMultimodalCharacterizationMurine2023" role="doc-biblioref">Suppinger et al. 2023</a>)</span> and a 500-gene panel selected for between-type separation. The resource is a single technical scRNA-seq experiment. Cells are therefore draws from one specimen, and the estimate targets the within-type cell-to-cell covariance: the linear layer of the <a href="theory-decovart-single-cell-tailored.html#sec-one-replicate">one-replicate regime</a>, not a between-specimen covariance.</p>
+<div id="tbl-grn-estimators" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-grn-estimators-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 1: Estimators of the reproducibility pipeline.
+</figcaption><div aria-describedby="tbl-grn-estimators-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table caption-top">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead><tr class="header">
+<th>Estimator</th>
+<th>Input</th>
+<th>Sparsity device</th>
+<th>Exported object</th>
+<th>Main caveat</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>
+<code>ppcor</code> baseline</td>
+<td>Gaussian table, <span class="math inline">n&gt;p</span>
+</td>
+<td>none; <span class="math inline">t</span> test, BH</td>
+<td>SPD refit on the support</td>
+<td>
+<span class="math inline">n&gt;p</span> only</td>
+</tr>
+<tr class="even">
+<td><code>glasso</code></td>
+<td>correlation of <span class="math inline">\log(1+y)</span>
+</td>
+<td>
+<span class="math inline">\ell_1</span> off the diagonal; EBIC path</td>
+<td>
+<span class="math inline">\widehat{\boldsymbol{\Omega}}_R</span>, rescaled to the data</td>
+<td>same detection limit as any <span class="math inline">\ell_1</span> fit</td>
+</tr>
+<tr class="odd">
+<td>
+<code>SILGGM</code> <code>D-S_GL</code>
+</td>
+<td>nonparanormal scores</td>
+<td>glasso, one Newton step, global FDR</td>
+<td>SPD refit on the FDR support</td>
+<td>debiased matrix is dense</td>
+</tr>
+<tr class="even">
+<td><code>PLNnetwork</code></td>
+<td>UMI counts, offset <span class="math inline">\log L_c</span>
+</td>
+<td>
+<span class="math inline">\ell_1</span> on the latent precision</td>
+<td>latent Gaussian precision</td>
+<td>variational; no edgewise FDR</td>
+</tr>
+<tr class="odd">
+<td>
+<code>corpcor</code> shrinkage</td>
+<td>Gaussian table</td>
+<td>none; correlations shrunk to 0</td>
+<td>dense <span class="math inline">\widehat{\boldsymbol{\Sigma}}</span>
+</td>
+<td>no graph</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Sources for each estimator:</p>
+<ul>
+<li>graphical lasso <span class="citation" data-cites="friedmanSparseInverseCovariance2008">(<a href="#ref-friedmanSparseInverseCovariance2008" role="doc-biblioref">Friedman et al. 2008</a>)</span>, fitted with <code>glasso</code> and an unpenalised diagonal (<code>huge</code> <span class="citation" data-cites="zhaoHugePackageHighdimensional">(<a href="#ref-zhaoHugePackageHighdimensional" role="doc-biblioref">Zhao et al. 2012</a>)</span> penalises it, see <a href="#sec-grn-penalise-diagonal" class="quarto-xref">Sec. 5.5</a>);</li>
+<li>nonparanormal map <span class="citation" data-cites="liuNonparanormalSemiparametricEstimation2009">(<a href="#ref-liuNonparanormalSemiparametricEstimation2009" role="doc-biblioref">Liu et al. 2009</a>)</span>;</li>
+<li>de-sparsified graphical lasso <span class="citation" data-cites="jankovaConfidenceIntervalsHighdimensional2015">(<a href="#ref-jankovaConfidenceIntervalsHighdimensional2015" role="doc-biblioref">Jankova and Geer 2015</a>)</span> with the global FDR rule <span class="citation" data-cites="liuGaussianGraphicalModel2013 zhangSILGGMExtensivePackage2018">(<a href="#ref-liuGaussianGraphicalModel2013" role="doc-biblioref">Liu 2013</a>; <a href="#ref-zhangSILGGMExtensivePackage2018" role="doc-biblioref">Zhang et al. 2018</a>)</span>;</li>
+<li>Poisson–lognormal network <span class="citation" data-cites="chiquetVariationalInferenceSparse2018">(<a href="#ref-chiquetVariationalInferenceSparse2018" role="doc-biblioref">Chiquet et al. 2018</a>)</span>;</li>
+<li>shrinkage covariance <span class="citation" data-cites="schäferShrinkageApproachLargescale2005">(<a href="#ref-sch%C3%A4ferShrinkageApproachLargescale2005" role="doc-biblioref">Schäfer and Strimmer 2005</a>)</span>, judged by held-out Gaussian log-likelihood (<a href="#sec-grn-need-sparsity" class="quarto-xref">Sec. 5.6</a>).</li>
+</ul>
+<p>The penalty is chosen by EBIC <span class="citation" data-cites="foygelExtendedBayesianInformation2010">(<a href="#ref-foygelExtendedBayesianInformation2010" role="doc-biblioref">Foygel and Drton 2010</a>)</span> with a safeguarded log-interval search between <span class="math inline">\lambda_{\max}=\max_{g\neq g'}|R_{gg'}|</span> and <span class="math inline">\lambda_{\min}\asymp\sqrt{\log p/n}</span>. Three alternatives are documented:</p>
+<ul>
+<li>StARS <span class="citation" data-cites="liuStabilityApproachRegularization2010">(<a href="#ref-liuStabilityApproachRegularization2010" role="doc-biblioref">Liu et al. 2010</a>)</span>, kept as a diagnostic because it costs <span class="math inline">B\times L</span> fits;</li>
+<li>thresholded adaptive validation, when the target is the support <span class="citation" data-cites="laszkiewiczThresholdedAdaptiveValidation2021">(<a href="#ref-laszkiewiczThresholdedAdaptiveValidation2021" role="doc-biblioref">Laszkiewicz et al. 2021</a>)</span>;</li>
+<li>a graphical horseshoe, in place of a penalty path <span class="citation" data-cites="liGraphicalHorseshoeEstimator2019">(<a href="#ref-liGraphicalHorseshoeEstimator2019" role="doc-biblioref">Li et al. 2019</a>)</span>.</li>
+</ul></section><section class="section level2"><h2 id="sec-grn-diagonal">Critical review: near-diagonal precisions<a class="anchor" aria-label="anchor" href="#sec-grn-diagonal"></a>
+</h2>
+<p>On Suppinger, the <code>huge</code> graphical lasso selected by EBIC returns mostly <strong>diagonal</strong> <span class="math inline">\widehat{\boldsymbol{\Omega}}_{j,t}</span>: no conditional dependence among panel genes. Four explanations compete with “no regulation”, and the first three are checkable.</p>
+<section class="level2"><h3 id="sec-grn-pipeline">Pipeline behaviour to rule out first<a class="anchor" aria-label="anchor" href="#sec-grn-pipeline"></a>
+</h3>
+<div id="wrn-grn-pipeline">
+<blockquote>
+<p><strong>Warning 1: Check the reproducibility code before the method</strong></p>
+<p>Reading <code>scripts/03_01_grn_huge.R</code>, <code>R/ebic_regularisation_path.R</code>, and the <code>huge</code> 1.5.1 sources (<code>huge.glasso()</code> and <code>src/huge_core.cpp</code>) showed three ways to obtain a diagonal precision that are unrelated to biology. All three are now corrected in the reproducibility code; the Suppinger networks must be refitted before the diagonal result is interpreted.</p>
+<ol type="1">
+<li>
+<strong>One constant gene emptied the whole type.</strong> If any panel gene was constant across the cells of a type (typically all-zero), the script returned a diagonal covariance for <strong>all</strong> 500 genes of that type. <em>Fix:</em> the constant gene is left out of that type’s graph and recorded; pairwise scores use the genes both types keep. The presence filter of the feature-selection chapter (detection and positive variance in every type) prevents the case upstream.</li>
+<li>
+<strong>Failed solves fell back to a diagonal.</strong> When a <code>huge</code> solve failed at a small penalty, <code>diagonal_precision_fallback()</code> replaced it, and EBIC could then select that diagonal. <em>Fix:</em> a failed penalty is dropped from the path and reported in <code>failed_lambda</code>.</li>
+<li>
+<strong>Two scales were mixed.</strong> <code>huge.glasso()</code> runs <code>scale(x)</code> and fits the correlation matrix <span class="math inline">R</span>. The script computed the <span class="math inline">\lambda</span> endpoints and the EBIC log-likelihood from <span class="math inline">S=\operatorname{cov}(\log(1+y))</span>. The log-likelihood <span class="math inline">\log\det\widehat{\boldsymbol{\Omega}}_R-\operatorname{tr}(S\widehat{\boldsymbol{\Omega}}_R)</span> combined a correlation-scale precision with a covariance-scale <span class="math inline">S</span>, which biases EBIC. <em>Fix:</em> the solver is now <code>glasso::glasso(R, penalize.diagonal = FALSE)</code>; endpoints and EBIC use <span class="math inline">R</span>; the selected fit is exported as <span class="math inline">D^{-1/2}\widehat{\boldsymbol{\Omega}}_R D^{-1/2}</span> and <span class="math inline">D^{1/2}WD^{1/2}</span>, with <span class="math inline">D=\operatorname{diag}(S)</span>.</li>
+</ol>
+<p>On a simulated chain of 30 genes with <span class="math inline">n=300</span>, the corrected path recovers all 29 edges, with 20 false positives at the EBIC penalty. The exported covariance keeps the sample variances exactly.</p>
+</blockquote>
+</div>
+</section><section class="level2"><h3 id="sec-grn-screening">A screening threshold, not an estimated absence<a class="anchor" aria-label="anchor" href="#sec-grn-screening"></a>
+</h3>
+<p>For any <span class="math inline">\lambda</span>, the graphical lasso on a correlation matrix returns a diagonal <span class="math inline">\widehat{\boldsymbol{\Omega}}</span> <strong>exactly</strong> when <span class="math inline">\max_{g\neq g'}|R_{gg'}|\le\lambda</span>. This holds with or without a penalised diagonal: at the diagonal solution, the stationarity conditions reduce to <span class="math inline">|R_{gg'}|\le\lambda</span> off the diagonal <span class="citation" data-cites="mazumderGraphicalLassoNew2011">(<a href="#ref-mazumderGraphicalLassoNew2011" role="doc-biblioref">Mazumder and Hastie 2011</a>)</span>. Chiquet’s review states the same: “A large enough penalty level produces an empty graph” <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 39</a>)</span>. Our path starts at that value.</p>
+<p>Two orders of magnitude make an empty graph likely on scRNA-seq.</p>
+<ul>
+<li>
+<strong>Noise level.</strong> Under independence, the largest of the <span class="math inline">p(p-1)/2</span> sample correlations is about <span class="math inline">\sqrt{4\log p/n}</span>: <span class="math inline">0.35</span> for <span class="math inline">p=500</span> and <span class="math inline">n=200</span>. To control false edges, <span class="math inline">\lambda</span> must sit near that level.</li>
+<li>
+<strong>EBIC cost per edge.</strong> With <span class="math inline">\gamma=0.5</span>, EBIC charges <span class="math inline">\log n+4\gamma\log p\approx17.7</span> per edge at the same <span class="math inline">p</span> and <span class="math inline">n</span>. One edge with partial correlation <span class="math inline">\rho</span> raises twice the log-likelihood by about <span class="math inline">-n\log(1-\rho^{2})\approx n\rho^{2}</span>, so only <span class="math inline">|\rho|\gtrsim0.30</span> survives. That is the intended effect of <span class="math inline">\gamma&gt;0</span>, which corrects “the tendency of the usual BIC […] to choose overly dense graphs in the high-dimensional setting” <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 43</a>)</span>.</li>
+</ul>
+<p>Neighbourhood selection has the same behaviour. Its finite-sample rule for <span class="math inline">\lambda</span> sets every coefficient to zero when all <span class="math inline">|r_{ab}|\le\tilde\Phi^{-1}\{\alpha/(2p^{2})\}/\sqrt n</span>. That bound is about <span class="math inline">0.55</span> for <span class="math inline">p=1000</span>, <span class="math inline">n=100</span> and <span class="math inline">\alpha=0.05</span> (<a href="https://doi.org/10.1214/009053606000000281" class="external-link">Meinshausen &amp; Bühlmann 2006</a>, eq. 9). Their signal-strength assumption states the general point: edges with partial correlation below order <span class="math inline">n^{-(1-\xi)/2}</span> are not detected. A diagonal estimate therefore says that no partial correlation is large <strong>relative to <span class="math inline">\sqrt{\log p/n}</span></strong>. It does not say that the partial correlations are zero.</p>
+</section><section class="level2"><h3 id="sec-grn-attenuation">Measurement attenuation on counts<a class="anchor" aria-label="anchor" href="#sec-grn-attenuation"></a>
+</h3>
+<p>On UMI counts, the observed covariance is the latent covariance plus a <strong>diagonal</strong> sampling term. Under the Poisson–lognormal model of <a href="#fig-grn-pln" class="quarto-xref">Figure 1</a>, <span class="math inline">\operatorname{Var}(y_{cg})</span> contains <span class="math inline">\mathbb{E}(L_{c}e^{z_{cg}})</span> from Poisson sampling, while covariances between genes come only from the latent layer. Every correlation is therefore attenuated, most strongly for lowly expressed genes <span class="citation" data-cites="sarkarSeparatingMeasurementExpression2021 chiquetPoissonLognormalModelVersatile2021">(<a href="#ref-sarkarSeparatingMeasurementExpression2021" role="doc-biblioref">Sarkar and Stephens 2021</a>; <a href="#ref-chiquetPoissonLognormalModelVersatile2021" role="doc-biblioref">Chiquet et al. 2021</a>)</span>. Attenuation pushes <span class="math inline">\max|R_{gg'}|</span> under the screening threshold of <a href="#sec-grn-screening" class="quarto-xref">Sec. 4.2</a>.</p>
+<div id="fig-grn-pln" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-grn-pln-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="theory-network-inference_files/mediabag/fig-grn-pln.svg">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-grn-pln-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca"><p>Figure 1: Poisson–lognormal measurement layer for one cell type. The latent log-expression <span class="math inline">\boldsymbol{z}_c</span> carries the precision <span class="math inline">\boldsymbol{\Omega}_j</span>; the observed counts add independent Poisson noise given <span class="math inline">\boldsymbol{z}_c</span> and the library size <span class="math inline">L_c</span>. Off-diagonal covariances of <span class="math inline">\boldsymbol{y}_c</span> come only from <span class="math inline">\boldsymbol{z}_c</span>; the Poisson term adds to the diagonal only.</p>
+</figcaption></figure>
+</div>
+<p>A two-gene simulation shows the size of the effect at a typical 10x depth.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">20261015</span><span class="op">)</span></span>
+<span><span class="va">n_cells</span> <span class="op">&lt;-</span> <span class="fl">5000</span></span>
+<span><span class="va">latent_cor</span> <span class="op">&lt;-</span> <span class="fl">0.6</span></span>
+<span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu">MASS</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html" class="external-link">mvrnorm</a></span><span class="op">(</span></span>
+<span>  <span class="va">n_cells</span>,</span>
+<span>  mu <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.5</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>,</span>
+<span>  Sigma <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">latent_cor</span>, <span class="va">latent_cor</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">rpois</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">z</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">z</span><span class="op">)</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    latent <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">z</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">]</span>,</span>
+<span>    log1p_counts <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log1p</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">]</span>,</span>
+<span>    mean_count <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  <span class="fl">2</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;       latent log1p_counts   mean_count </span></span>
+<span><span class="co">#&gt;         0.59         0.19         0.81</span></span></code></pre></div>
+</div>
+<p>The hypothesis that raw-count variance reflects per-gene autoregulation or feedback has to be read against this simulation. In a Gaussian graph the precision diagonal is <span class="math inline">\omega_{gg}=1/\operatorname{Var}(x_g\mid\boldsymbol{x}_{-g})</span>. That is the variance the other panel genes do not explain. It mixes:</p>
+<ul>
+<li>transcriptional bursting and autoregulation;</li>
+<li>regulators that are not on the panel;</li>
+<li>on counts, Poisson sampling.</li>
+</ul>
+<p><span class="math inline">S</span> alone cannot separate these terms. At droplet depths, sampling is the largest share for most genes <span class="citation" data-cites="sarkarSeparatingMeasurementExpression2021">(<a href="#ref-sarkarSeparatingMeasurementExpression2021" role="doc-biblioref">Sarkar and Stephens 2021</a>)</span>. A measurement layer (<code>PLNnetwork</code>, <a href="#tbl-grn-estimators" class="quarto-xref">Table 1</a>) is therefore the principled correction, not a change to the penalty.</p>
+</section><section class="level2"><h3 id="sec-grn-panel">A panel built against within-type edges<a class="anchor" aria-label="anchor" href="#sec-grn-panel"></a>
+</h3>
+<p>The panel is selected for a large between-type to within-type ratio. Its genes therefore have, by construction, small within-type variance relative to the type shifts. Edges are estimated <strong>within</strong> a type, where that variance is mostly sampling noise (<a href="#sec-grn-attenuation" class="quarto-xref">Sec. 4.3</a>). Discriminating genes and network genes need not coincide. Use one of two designs:</p>
+<ul>
+<li>estimate the network on a within-type variable panel (a union of per-type highly variable genes) and project it onto the discriminative panel;</li>
+<li>accept that the discriminative genes are close to conditionally independent within each type. That result is informative for DeCovarT: the covariance then adds little to the mean signature.</li>
+</ul></section></section><section class="section level2"><h2 id="sec-grn-remedies">Remedies, critically<a class="anchor" aria-label="anchor" href="#sec-grn-remedies"></a>
+</h2>
+<section class="level2"><h3 id="sec-grn-ppcor">(i) Unpenalised partial correlations first<a class="anchor" aria-label="anchor" href="#sec-grn-ppcor"></a>
+</h3>
+<p>When <span class="math inline">n&gt;p</span>, the precision <span class="math inline">\widehat{\boldsymbol{\Omega}}=S^{-1}</span> needs no penalty. <code>ppcor</code> returns the partial correlations <span class="math inline">\rho_{gg'\mid\mathrm{rest}}=-\omega_{gg'}/\sqrt{\omega_{gg}\omega_{g'g'}}</span> and a <span class="math inline">t</span> test with <span class="math inline">n-p</span> degrees of freedom <span class="citation" data-cites="R-ppcor">(<a href="#ref-R-ppcor" role="doc-biblioref">Kim 2015</a>)</span>. That gives:</p>
+<ul>
+<li>an <strong>edgewise</strong> test with FDR control, which the lasso path lacks;</li>
+<li>no diagonal penalty;</li>
+<li>a direct check of whether the partial correlations are small or the penalty is too strict.</li>
+</ul>
+<p>Rescaling back to a precision uses the <strong>conditional</strong> variances, <span class="math inline">\omega_{gg}=1/\operatorname{Var}(x_g\mid\boldsymbol{x}_{-g})</span>, not the marginal ones. Marginal rescaling understates <span class="math inline">\omega_{gg}</span> by the factor <span class="math inline">1-R^{2}_{g\cdot\mathrm{rest}}</span>. After the non-significant partial correlations are set to zero, refit under those zeros (<a href="#eq-hard-cov-selection" class="quarto-xref">Eq. 1</a>) to restore positive definiteness.</p>
+<p>The limits are sharp:</p>
+<ul>
+<li>With <span class="math inline">p\ge n</span>, <code>ppcor</code> uses a Moore–Penrose inverse and returns no test. At 500 genes, only the largest types qualify, unless the panel is cut to a few dozen genes per type.</li>
+<li>Even when <span class="math inline">p&lt;n</span>, the <span class="math inline">t</span> test loses power as <span class="math inline">p/n\to1</span>.</li>
+<li>The shrinkage partial correlation of <code>GeneNet</code>/<code>corpcor</code> <span class="citation" data-cites="schäferShrinkageApproachLargescale2005">(<a href="#ref-sch%C3%A4ferShrinkageApproachLargescale2005" role="doc-biblioref">Schäfer and Strimmer 2005</a>)</span> is the unpenalised-graph analogue for <span class="math inline">p\ge n</span>. It shrinks towards the identity, so it attenuates as well.</li>
+<li>Chiquet notes that the MLE needs “n to be larger than p to be able to even define this estimator” <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 38</a>)</span>. That is the regime of this baseline, and the reason sparsity or shrinkage is needed below it.</li>
+</ul></section><section class="level2"><h3 id="sec-grn-neighbourhood">(ii) Neighbourhood selection and SPACE<a class="anchor" aria-label="anchor" href="#sec-grn-neighbourhood"></a>
+</h3>
+<p><a href="https://doi.org/10.1214/009053606000000281" class="external-link">Meinshausen &amp; Bühlmann (2006)</a> regress each gene on all others with a lasso, <span class="math inline">\theta^{a}_{b}=-\omega_{ab}/\omega_{aa}</span>. They combine the neighbourhoods by the AND or the OR rule, and prove consistent graph recovery under four assumptions:</p>
+<ul>
+<li>a sparsity bound on the degree;</li>
+<li>a minimum signal strength;</li>
+<li>a “neighbourhood stability” (irrepresentability) condition, which cannot be relaxed;</li>
+<li>
+<span class="math inline">\operatorname{Var}(x_a\mid\boldsymbol{x}_{-a})</span> bounded away from 0.</li>
+</ul>
+<p>Advantages over the graphical lasso:</p>
+<ul>
+<li>a smaller sample size for consistent selection: of order <span class="math inline">d\log p</span> against <span class="math inline">d^{2}\log p</span> for the graphical lasso, “even if the corresponding ‘irrepresentability conditions’ are not strictly comparable” <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 41</a>)</span>. The graphical lasso also estimates the precision itself;</li>
+<li>the <span class="math inline">p</span> lasso fits are independent and parallel, <span class="math inline">O(np\min(n,p))</span> each, against <span class="math inline">O(p^{3})</span> per penalty;</li>
+<li>there is no positive-definiteness constraint, so a node-wise model can use a count GLM per gene.</li>
+</ul>
+<p>Costs:</p>
+<ul>
+<li>no estimate of the precision itself, only its support;</li>
+<li>an asymmetric <span class="math inline">\hat\theta</span>;</li>
+<li>“all variables are assumed to share the same variance in this formulation” <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 41</a>)</span>, so standardise the genes first;</li>
+<li>the same screening behaviour (<a href="#sec-grn-screening" class="quarto-xref">Sec. 4.2</a>).</li>
+</ul>
+<p>The irrepresentability conditions also differ. <a href="https://doi.org/10.1214/11-EJS631" class="external-link">Ravikumar <em>et al.</em> (2011)</a> give the graphical lasso’s version on <span class="math inline">\boldsymbol{\Sigma}\otimes\boldsymbol{\Sigma}</span>. In Zhang &amp; Zou’s AR(1) and AR(3) examples it fails for a range of coefficients where the D-trace condition still holds <span class="citation" data-cites="zhangSparsePrecisionMatrix2014">(<a href="#ref-zhangSparsePrecisionMatrix2014" role="doc-biblioref">Zhang and Zou 2014</a>)</span>.</p>
+<p>SPACE <span class="citation" data-cites="pengPartialCorrelationEstimation2009">(<a href="#ref-pengPartialCorrelationEstimation2009" role="doc-biblioref">Peng et al. 2009</a>)</span> makes the regressions joint and symmetric. It penalises <span class="math inline">\lambda\sum_{g&lt;g'}|\rho^{gg'}|</span> directly, with <span class="math inline">\beta_{gg'}=\rho^{gg'}\sqrt{\omega_{g'g'}/\omega_{gg}}</span>. The consequences:</p>
+<ul>
+<li>
+<strong>No diagonal penalty.</strong> It <strong>re-estimates</strong> the diagonal <span class="math inline">1/\hat\omega_{gg}</span> from residual variances, alternating with the penalised step (usually within three iterations).</li>
+<li>
+<strong>Better hub recovery.</strong> Penalising globally rather than node by node recovers hubs better on power-law graphs. Uniform-degree graphs show no gain.</li>
+<li><strong>Positive definiteness is not guaranteed.</strong></li>
+</ul>
+<p>For TF-hub structures, SPACE is the stronger candidate. Chiquet describes it as embedding “the computational advantage of neighborhood selection while estimating the conditional variance as in the graphical-Lasso” <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 42</a>)</span>.</p>
+<p>CLIME is a third regression-type estimator worth a sensitivity run. It fits one constrained <span class="math inline">\ell_1</span> problem per column, so it needs a symmetrisation step afterwards. Chiquet notes that “no particular assumption like a irrepresentability condition – which can never be established in practice – is required” <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 42</a>)</span>.</p>
+<p>All three regression methods need the same order of signal as the graphical lasso. They change the bias, the assumptions and the computation, not the detection limit.</p>
+</section><section class="level2"><h3 id="sec-grn-joint">(iii) Joint and differential networks across types<a class="anchor" aria-label="anchor" href="#sec-grn-joint"></a>
+</h3>
+<p>Early gastruloid slots contain one dominant population and several types with few cells. Estimating each <span class="math inline">\boldsymbol{\Omega}_{j}</span> alone wastes the shared structure. The relevant families differ in <strong>what</strong> they share.</p>
+<ul>
+<li>
+<strong>Shrunk covariances.</strong> The intertwined lasso fits each type on <span class="math inline">\tilde S^{(j)}=\alpha S^{(j)}+(1-\alpha)\bar S</span>, with <span class="math inline">\bar S</span> the cell-weighted pooled covariance and <span class="math inline">\alpha</span> chosen by cross-validation <span class="citation" data-cites="chiquetInferringMultipleGraphical2011 chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetInferringMultipleGraphical2011" role="doc-biblioref">Chiquet et al. 2011</a>; <a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 49–50</a>)</span>. It is the simplest way to borrow strength from the dominant population.</li>
+<li>
+<strong>Shared support, free weights.</strong> The group graphical lasso <span class="citation" data-cites="danaherJointGraphicalLasso2012">(<a href="#ref-danaherJointGraphicalLasso2012" role="doc-biblioref">Danaher et al. 2012</a>)</span> and the cooperative lasso <span class="citation" data-cites="chiquetInferringMultipleGraphical2011 chiquetSparsitySigncoherentGroups2012">(<a href="#ref-chiquetInferringMultipleGraphical2011" role="doc-biblioref">Chiquet et al. 2011</a>, <a href="#ref-chiquetSparsitySigncoherentGroups2012" role="doc-biblioref">2012</a>)</span> share the edges across types. The cooperative lasso also assumes <strong>sign coherence</strong>: an edge may change magnitude between types but not sign, because “sign swaps are very unlikely” <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 51</a>)</span>. This matches the idea of penalising sign changes while leaving weights free.</li>
+<li>
+<strong>Shared weights.</strong> The fused graphical lasso penalises <span class="math inline">|\omega^{(j)}_{gg'}-\omega^{(j')}_{gg'}|</span> <span class="citation" data-cites="danaherJointGraphicalLasso2012">(<a href="#ref-danaherJointGraphicalLasso2012" role="doc-biblioref">Danaher et al. 2012</a>)</span>. A PLN version also exists <span class="citation" data-cites="zhaiPLNFGLJointEstimation2026">(<a href="#ref-zhaiPLNFGLJointEstimation2026" role="doc-biblioref">Zhai et al. 2026</a>)</span>.</li>
+<li>
+<strong>Block priors.</strong> SIMoNe places a stochastic block model on the edges (<a href="https://doi.org/10.1093/bioinformatics/btn637" class="external-link">Chiquet <em>et al.</em> 2009</a>; <a href="https://doi.org/10.1214/08-EJS314" class="external-link">Ambroise <em>et al.</em> 2009</a>; <span class="citation" data-cites="hollandStochasticBlockmodelsFirst1983">Holland et al. (<a href="#ref-hollandStochasticBlockmodelsFirst1983" role="doc-biblioref">1983</a>)</span>). Edges within a module are penalised less than edges between modules, and the modules are learnt by variational EM. The rationale: “while sparsity is necessary to solve the problem when few observations are available, biasing the estimation of the network towards a given topology can help us find the correct graph in a more robust way” <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 44</a>)</span>.</li>
+<li>
+<strong>The difference itself.</strong> The D-trace loss <span class="math inline">\tfrac12\langle\boldsymbol{\Omega}^{2},S\rangle-\operatorname{tr}\boldsymbol{\Omega}</span> <span class="citation" data-cites="zhangSparsePrecisionMatrix2014">(<a href="#ref-zhangSparsePrecisionMatrix2014" role="doc-biblioref">Zhang and Zou 2014</a>)</span> extends to <span class="math inline">\boldsymbol{\Delta}=\boldsymbol{\Omega}_{1}-\boldsymbol{\Omega}_{2}</span> <span class="citation" data-cites="yuanDifferentialNetworkAnalysis2017">(<a href="#ref-yuanDifferentialNetworkAnalysis2017" role="doc-biblioref">Yuan et al. 2017</a>)</span>. The rewiring is estimated without estimating either network, and only <span class="math inline">\boldsymbol{\Delta}</span> needs to be sparse <span class="citation" data-cites="plaksienkoMethodsDifferentialNetwork2025">(<a href="#ref-plaksienkoMethodsDifferentialNetwork2025" role="doc-biblioref">Plaksienko et al. 2025</a>)</span>.</li>
+</ul>
+<p>Separate fits per type, as in our pipeline, are defensible only with one penalty per type. A common <span class="math inline">\lambda</span> “is sensible […] provided that the C samples have similar sizes and originate from similar distributions, in particular regarding scaling and sparseness” <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 49</a>)</span>. Our types differ by orders of magnitude in <span class="math inline">n_j</span>, hence a per-type EBIC search on the correlation scale.</p>
+<p><strong>The caveat for DeCovarT.</strong> DeCovarT separates types partly <strong>through</strong> their covariance differences. Fusion shrinks those differences, and with a dominant population it pulls the rare types towards the dominant network. Prefer shared-support or sign-coherent penalties to fused weights. Use <span class="math inline">\boldsymbol{\Delta}</span>-estimation when the question is rewiring, and check that held-out type discrimination does not degrade.</p>
+</section><section class="level2"><h3 id="sec-grn-conditions">(iv) When can sparse recovery work?<a class="anchor" aria-label="anchor" href="#sec-grn-conditions"></a>
+</h3>
+<p>Keep three thresholds apart; they are often conflated.</p>
+<ol type="1">
+<li>
+<strong>The estimator exists.</strong> With the off-diagonal-only penalty, the graphical lasso has a unique solution for any <span class="math inline">\lambda&gt;0</span> once <span class="math inline">S_{gg}&gt;0</span>, even when <span class="math inline">p&gt;n</span> <span class="citation" data-cites="carterExistencePenalisedLikelihood2025">(<a href="#ref-carterExistencePenalisedLikelihood2025" role="doc-biblioref">Carter 2025</a>)</span>. No sparsity is needed. The penalised-diagonal version (<code>huge</code>) exists as well.</li>
+<li>
+<strong>The MLE on a fixed graph exists.</strong> Dempster’s refit under the zeros of <span class="math inline">E</span> (<a href="#eq-hard-cov-selection" class="quarto-xref">Eq. 1</a>) needs <span class="math inline">n</span> at least the maximum-likelihood threshold of the graph. That threshold lies between the clique number and the treewidth plus one, and equals the clique number for chordal graphs (<a href="https://doi.org/10.1214/11-AOS957" class="external-link">Uhler 2012</a>; <a href="https://arxiv.org/abs/2312.03145" class="external-link">Bernstein &amp; Outlaw 2023</a>).</li>
+<li>
+<strong>The graph is recovered.</strong> This requires <span class="math inline">n\gtrsim d^{2}\log p</span> for maximum degree <span class="math inline">d</span>, an irrepresentability condition, bounded eigenvalues, and a minimum <span class="math inline">|\omega_{gg'}|</span> (<a href="https://doi.org/10.1214/11-EJS631" class="external-link">Ravikumar <em>et al.</em> 2011</a>). Chiquet draws the practical consequence: “this should prevent blindly applying the graphical-Lasso in situations where the sample size n is too small compared to p. Similarly, when the presence of hub nodes with high degree is suspected, the estimated graph should be interpreted with care” <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 40</a>)</span>.</li>
+</ol>
+<p>The third condition decides the matter here. With <span class="math inline">p=500</span> and <span class="math inline">d=10</span>, <span class="math inline">d^{2}\log p\approx620</span> before constants. Any type with fewer cells is outside the recovery regime, and hubs raise <span class="math inline">d</span>. <span class="citation" data-cites="heinävaaraInconsistencyℓ1penalisedSparse2016">Heinävaara et al. (<a href="#ref-hein%C3%A4vaaraInconsistency%E2%84%931penalisedSparse2016" role="doc-biblioref">2016</a>)</span> report that on models derived from gene expression the irrepresentability conditions <strong>never</strong> held, even for modest networks. <span class="math inline">\ell_1</span> methods also failed when dependencies were nearly linear. These conditions involve the unknown <span class="math inline">\boldsymbol{\Sigma}</span>: “we can never verify them on real data” <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 77</a>)</span>. Even inside the supported regime, “sparse GGM fail to reconstruct real regulatory networks at a low false positive rate, when only based upon transcriptomic data” <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 60</a>)</span>. They can be <strong>probed</strong> by simulation: draw precisions with <code><a href="../reference/simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments()</a></code> at the observed <span class="math inline">n_j</span>, fit, and measure recovery.</p>
+</section><section class="level2"><h3 id="sec-grn-penalise-diagonal">(v) Penalising the diagonal<a class="anchor" aria-label="anchor" href="#sec-grn-penalise-diagonal"></a>
+</h3>
+<p>With a penalised diagonal, the stationarity conditions give <span class="math inline">W_{gg}=S_{gg}+\lambda</span> for <span class="math inline">W=\widehat{\boldsymbol{\Omega}}^{-1}</span> <span class="citation" data-cites="friedmanSparseInverseCovariance2008 mazumderGraphicalLassoNew2011">(<a href="#ref-friedmanSparseInverseCovariance2008" role="doc-biblioref">Friedman et al. 2008</a>; <a href="#ref-mazumderGraphicalLassoNew2011" role="doc-biblioref">Mazumder and Hastie 2011</a>)</span>. <code>huge</code> does this on the correlation scale, so <span class="math inline">W_{gg}=1+\lambda</span>, and an isolated gene gets <span class="math inline">\hat\omega_{gg}=1/(1+\lambda)</span>.</p>
+<p>What the diagonal penalty does:</p>
+<ul>
+<li>It <strong>does not</strong> move the empty-graph threshold (<a href="#sec-grn-screening" class="quarto-xref">Sec. 4.2</a>).</li>
+<li>It adds <span class="math inline">\lambda</span> to every variance. Compared with the off-diagonal-only fit, the implied correlations shrink by about <span class="math inline">1/(1+\lambda)</span>, so the surviving partial correlations and the diagonal of the precision are both biased downwards.</li>
+<li>On counts it acts in the same direction as Poisson sampling (<a href="#sec-grn-attenuation" class="quarto-xref">Sec. 4.3</a>).</li>
+</ul>
+<p>Its main justifications are numerical (CLIME, the full-norm D-trace) or a Laplace prior on every entry. For DeCovarT, leave the diagonal free, or penalise a scale-free quantity. The original <code>glasso</code> package <span class="citation" data-cites="friedmanSparseInverseCovariance2008">(<a href="#ref-friedmanSparseInverseCovariance2008" role="doc-biblioref">Friedman et al. 2008</a>)</span> penalises the diagonal <strong>by default</strong> (<code>penalize.diagonal = TRUE</code> in version 1.11), so the argument must be set to <code>FALSE</code>; <code>huge.glasso()</code> offers no such switch. The reproducibility pipeline now uses <code>glasso::glasso(R, penalize.diagonal = FALSE)</code>.</p>
+<p><strong>Iterative schemes that readjust the diagonal.</strong> The partial correlation graphical lasso, PCGLASSO (<a href="https://doi.org/10.1111/sjos.12675" class="external-link">Carter, Rossell &amp; Smith 2024</a>), writes <span class="math inline">\boldsymbol{\Omega}=\boldsymbol{\theta}^{1/2}\boldsymbol{\Delta}\boldsymbol{\theta}^{1/2}</span>, with <span class="math inline">\boldsymbol{\theta}</span> diagonal and <span class="math inline">\boldsymbol{\Delta}</span> of unit diagonal. It penalises <span class="math inline">\rho\sum_{g\neq g'}|\Delta_{gg'}|</span>, the partial correlations only. The estimate is <strong>scale invariant</strong>, which the graphical lasso is only after standardisation.</p>
+<p><span class="citation" data-cites="carterExistenceOptimisationPartial2025">Carter and Molinari (<a href="#ref-carterExistenceOptimisationPartial2025" role="doc-biblioref">2025</a>)</span> prove that it exists for <span class="math inline">n&lt;p</span> when a logarithmic diagonal term has weight <span class="math inline">c&lt;1-k/p</span>. They compute it by <strong>alternating</strong> two convex blocks:</p>
+<ol type="1">
+<li>the partial correlations <span class="math inline">\boldsymbol{\Delta}</span> given the diagonal;</li>
+<li>the diagonal given <span class="math inline">\boldsymbol{\Delta}</span>.</li>
+</ol>
+<p>The R package is <code>PCGLASSO</code> on GitHub. This is the recent “off-diagonal first, then readjust the diagonal” scheme. SPACE (<a href="#sec-grn-neighbourhood" class="quarto-xref">Sec. 5.2</a>) is its regression-based ancestor. The simplest version of the same idea is a two-stage fit: select the support with any penalised method, then refit <span class="math inline">\boldsymbol{\Omega}</span> without penalty on that support (<a href="#eq-hard-cov-selection" class="quarto-xref">Eq. 1</a>).</p>
+</section><section class="level2"><h3 id="sec-grn-need-sparsity">(vi) Does DeCovarT need a sparse precision?<a class="anchor" aria-label="anchor" href="#sec-grn-need-sparsity"></a>
+</h3>
+<p>Sparsity buys four things:</p>
+<ul>
+<li>
+<strong>Existence</strong> when <span class="math inline">p\ge n</span>. Any regulariser provides this, including ridge and shrinkage, so sparsity is not necessary.</li>
+<li>
+<strong>Lower variance</strong>, with <span class="math inline">|E|+p</span> free parameters instead of <span class="math inline">p(p+1)/2</span>.</li>
+<li>
+<strong>Interpretation</strong>: zeros are conditional independences.</li>
+<li>
+<strong>The recovery theory</strong> of <a href="#sec-grn-conditions" class="quarto-xref">Sec. 5.4</a>.</li>
+</ul>
+<p>DeCovarT uses only the second of these. Its likelihood needs <span class="math inline">\boldsymbol{\Sigma}_{j}</span>, and the bulk covariance <span class="math inline">\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}</span> of the <a href="theory-review-distribution-aware-deconvolution.html#eq-gaussian-convolution">convolution</a> has <strong>no</strong> sparse precision, even when every <span class="math inline">\boldsymbol{\Omega}_{j}</span> is sparse. The graph matters for interpretation and for priors (<a href="#sec-grn-priors" class="quarto-xref">Sec. 2.4</a>), not for the deconvolution likelihood.</p>
+<p><strong>What <code>cov.output</code> returns.</strong> <code>huge(..., cov.output = TRUE)</code> returns the dual matrix of the same fit, <span class="math inline">W=\widehat{\boldsymbol{\Omega}}^{-1}</span>. It is neither the plain inverse of a separate estimate nor a refit under the zeros. On the selected edges, <span class="math inline">W_{gg'}=R_{gg'}+\lambda\,\mathrm{sign}(\hat\omega_{gg'})</span>; off them, <span class="math inline">|W_{gg'}-R_{gg'}|\le\lambda</span>; and <span class="math inline">W_{gg}=1+\lambda</span>. A <strong>topology-constrained</strong> covariance, which matches <span class="math inline">S</span> exactly on the diagonal and on the edges, is Dempster’s refit (<a href="#eq-hard-cov-selection" class="quarto-xref">Eq. 1</a>). An empty graph discards all covariance and reduces DeCovarT to an independent-gene model. A dense, well-conditioned estimate is then the safer plug-in:</p>
+<ul>
+<li>Ledoit–Wolf or Schäfer–Strimmer shrinkage;</li>
+<li>factor-plus-diagonal;</li>
+<li>the PLN latent covariance.</li>
+</ul>
+<p>Judge it by held-out Gaussian log-likelihood and by deconvolution accuracy, not by graph recovery. The reproducibility book implements this as a fifth strategy: Schäfer–Strimmer shrinkage of the correlations with the variances kept, <span class="math inline">\hat\lambda^{\ast}</span> in closed form, and <span class="math inline">K</span>-fold held-out log-likelihood against the diagonal, the <code>glasso</code> refit and the PLN covariance <span class="citation" data-cites="schäferShrinkageApproachLargescale2005">(<a href="#ref-sch%C3%A4ferShrinkageApproachLargescale2005" role="doc-biblioref">Schäfer and Strimmer 2005</a>)</span>. Chiquet recommends <span class="math inline">K</span>-fold cross-validation when prediction, not the true model, is the target <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 78</a>)</span>.</p>
+</section><section class="level2"><h3 id="sec-grn-chiquet">What the sparse-GGM review supports<a class="anchor" aria-label="anchor" href="#sec-grn-chiquet"></a>
+</h3>
+<p><span class="citation" data-cites="chiquetContributionsSparseMethods2015">Chiquet (<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">2015</a>)</span> reviews sparse GGM inference in chapter 2 and sparse regularisation in chapter 3. Page numbers below are the printed pages; the PDF page is the printed page plus 10.</p>
+<p><strong>Naive gene selection before any penalty.</strong> The review does not recommend a data-driven pre-filter of genes before a GGM. It offers three related points.</p>
+<ul>
+<li>Screening exists in regression. Marginal-correlation “sure screening” aims “to reduce the initial number of predictors p to an order similar to n”. Safe rules discard only variables that cannot enter the model, whereas “the strong rule is not safe and a relevant variable may be discarded” (pp. 74–75).</li>
+<li>For the graphical lasso, the safe rule is exact: the block-diagonal decomposition cited on p. 39 <span class="citation" data-cites="mazumderGraphicalLassoNew2011">(<a href="#ref-mazumderGraphicalLassoNew2011" role="doc-biblioref">Mazumder and Hastie 2011</a>)</span>. A gene with <span class="math inline">\max_{g'}|R_{gg'}|\le\lambda</span> is isolated at that <span class="math inline">\lambda</span>. Removing it beforehand changes nothing. <em>Our inference:</em> this is the only lossless naive filter. Filters by variance, marginal correlation or differential expression change the conditioning set of every other gene. Partial correlations are defined relative to the panel, so they change too.</li>
+<li>Chiquet’s own analyses keep <span class="math inline">p</span> at or below <span class="math inline">n</span> with knowledge-based gene sets: 26 genes for <span class="math inline">n=133</span> (p. 48), 91 proteins for <span class="math inline">n=60</span> (p. 59). They also restrict candidate edges to TF–target pairs when that knowledge exists (p. 61). Low-order partial-correlation tests are set aside for their cost, or for “strong assumptions […] that correspond to regimes never attained in real situations” (p. 38).</li>
+</ul>
+<p>For DeCovarT, the discriminative panel of the feature-selection chapter is a choice made for the deconvolution, not a GGM screen. Keep the presence filter, report <span class="math inline">\max|R_{gg'}|</span> per type, and for small types reduce <span class="math inline">p</span> towards <span class="math inline">n_j</span> before reading the graph.</p>
+<p><strong>Approaches worth trying.</strong></p>
+<div id="tbl-grn-chiquet-approaches" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-grn-chiquet-approaches-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 2: Approaches from the HDR. Page numbers refer to <span class="citation" data-cites="chiquetContributionsSparseMethods2015">Chiquet (<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">2015</a>)</span>.
+</figcaption><div aria-describedby="tbl-grn-chiquet-approaches-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table caption-top">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+<col style="width: 25%">
+</colgroup>
+<thead><tr class="header">
+<th>Approach</th>
+<th>What it adds here</th>
+<th>Verdict</th>
+<th>Pages</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Neighbourhood selection with resampling</td>
+<td>selection at <span class="math inline">n\asymp d\log p</span>; “quite competitive, especially when coupled with additional bootstrap or resampling techniques”</td>
+<td>second opinion for large types</td>
+<td>40–41</td>
+</tr>
+<tr class="even">
+<td>CLIME</td>
+<td>no irrepresentability assumption</td>
+<td>sensitivity run</td>
+<td>41–42</td>
+</tr>
+<tr class="odd">
+<td>SPACE and its convex refinement</td>
+<td>hubs; conditional variances estimated, not penalised</td>
+<td>candidate for TF hubs</td>
+<td>42</td>
+</tr>
+<tr class="even">
+<td>SIMoNe, SBM-weighted penalty</td>
+<td>modules and prior topology</td>
+<td>when modules are expected</td>
+<td>44–48</td>
+</tr>
+<tr class="odd">
+<td>Intertwined, group and cooperative lasso</td>
+<td>borrowing strength across types</td>
+<td>rare types at 48 h</td>
+<td>49–51</td>
+</tr>
+<tr class="even">
+<td>Adaptive (two-step weighted) lasso</td>
+<td>weights from a first fit; “state-of-the-art versions of the Lasso”</td>
+<td>cheap upgrade of <code>glasso</code>
+</td>
+<td>77</td>
+</tr>
+<tr class="odd">
+<td>Bayesian GGMs</td>
+<td>priors on <span class="math inline">\boldsymbol{\Omega}</span>; MCMC limits size</td>
+<td>not at <span class="math inline">p=500</span>
+</td>
+<td>38</td>
+</tr>
+<tr class="even">
+<td>Poisson neighbourhood GLMs</td>
+<td>counts, but “a null partial correlation does not mean conditional dependency in the non-Gaussian case”</td>
+<td>prefer PLN</td>
+<td>43</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p><strong>Theory on sparsity, degree and dimension.</strong> The review states the following conditions; <a href="#sec-grn-conditions" class="quarto-xref">Sec. 5.4</a> adds the more recent results.</p>
+<ul>
+<li>The MLE needs <span class="math inline">n&gt;p</span> (p. 38).</li>
+<li>The graphical lasso is consistent for <span class="math inline">n</span> of order <span class="math inline">d^{2}\log p</span>, under irrepresentability (p. 40). Neighbourhood selection needs <span class="math inline">d\log p</span> (p. 41).</li>
+<li>Restricted-eigenvalue and compatibility conditions give estimation bounds, not selection. Selection further needs a minimum signal (“if βmin not too small”), and none of these conditions can be verified on real data (pp. 76–77).</li>
+</ul>
+<p>How the pipeline choices map to these sources:</p>
+<div id="tbl-grn-choices" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-grn-choices-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 3: Pipeline choices and the sources that justify them.
+</figcaption><div aria-describedby="tbl-grn-choices-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table caption-top">
+<thead><tr class="header">
+<th>Implementation choice</th>
+<th>Justification</th>
+<th>Source</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Fit the graphical lasso on <span class="math inline">R</span>, not <span class="math inline">S</span>
+</td>
+<td>one <span class="math inline">\lambda</span> needs a common scale; neighbourhood selection assumes equal variances</td>
+<td>
+<span class="citation" data-cites="chiquetContributionsSparseMethods2015">Chiquet (<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">2015</a>)</span>, pp. 41, 49; <a href="https://doi.org/10.1111/sjos.12675" class="external-link">Carter, Rossell &amp; Smith 2024</a>
+</td>
+</tr>
+<tr class="even">
+<td>Unpenalised diagonal</td>
+<td>the diagonal penalty biases the variances by <span class="math inline">\lambda</span> and leaves the empty-graph threshold unchanged</td>
+<td>
+<span class="citation" data-cites="friedmanSparseInverseCovariance2008">Friedman et al. (<a href="#ref-friedmanSparseInverseCovariance2008" role="doc-biblioref">2008</a>)</span>; <span class="citation" data-cites="mazumderGraphicalLassoNew2011">Mazumder and Hastie (<a href="#ref-mazumderGraphicalLassoNew2011" role="doc-biblioref">2011</a>)</span>
+</td>
+</tr>
+<tr class="odd">
+<td>Path from <span class="math inline">\lambda_{\max}=\max\lvert R_{gg'}\rvert</span> down to <span class="math inline">\sqrt{\log p/n}</span>
+</td>
+<td>above <span class="math inline">\lambda_{\max}</span> the graph is empty</td>
+<td>
+<span class="citation" data-cites="chiquetContributionsSparseMethods2015">Chiquet (<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">2015</a>)</span>, p. 39</td>
+</tr>
+<tr class="even">
+<td>One EBIC search per type</td>
+<td>a common <span class="math inline">\lambda</span> only for similar sizes and scales</td>
+<td>
+<span class="citation" data-cites="chiquetContributionsSparseMethods2015">Chiquet (<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">2015</a>)</span>, pp. 43, 49; <span class="citation" data-cites="foygelExtendedBayesianInformation2010">Foygel and Drton (<a href="#ref-foygelExtendedBayesianInformation2010" role="doc-biblioref">2010</a>)</span>
+</td>
+</tr>
+<tr class="odd">
+<td>Read an empty graph as a detection limit</td>
+<td>
+<span class="math inline">n\asymp d^{2}\log p</span>; conditions unverifiable</td>
+<td>
+<span class="citation" data-cites="chiquetContributionsSparseMethods2015">Chiquet (<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">2015</a>)</span>, pp. 40, 77; <span class="citation" data-cites="heinävaaraInconsistencyℓ1penalisedSparse2016">Heinävaara et al. (<a href="#ref-hein%C3%A4vaaraInconsistency%E2%84%931penalisedSparse2016" role="doc-biblioref">2016</a>)</span>
+</td>
+</tr>
+<tr class="even">
+<td>PLN for counts, nonparanormal for <code>SILGGM</code>
+</td>
+<td>Poisson GLM graphs lose the partial-correlation meaning; the nonparanormal costs little</td>
+<td>
+<span class="citation" data-cites="chiquetContributionsSparseMethods2015">Chiquet (<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">2015</a>)</span>, p. 43; <span class="citation" data-cites="chiquetVariationalInferenceSparse2018">Chiquet et al. (<a href="#ref-chiquetVariationalInferenceSparse2018" role="doc-biblioref">2018</a>)</span>
+</td>
+</tr>
+<tr class="odd">
+<td>Dense shrinkage covariance as the DeCovarT plug-in</td>
+<td>positive definite for any <span class="math inline">n</span>, <span class="math inline">p</span>; judged by cross-validated likelihood</td>
+<td>
+<span class="citation" data-cites="schäferShrinkageApproachLargescale2005">Schäfer and Strimmer (<a href="#ref-sch%C3%A4ferShrinkageApproachLargescale2005" role="doc-biblioref">2005</a>)</span>; <span class="citation" data-cites="chiquetContributionsSparseMethods2015">Chiquet (<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">2015</a>)</span>, p. 78</td>
+</tr>
+<tr class="even">
+<td>Joint estimation for rare types (planned)</td>
+<td>coupling helps “especially for small sample sizes”</td>
+<td>
+<span class="citation" data-cites="chiquetContributionsSparseMethods2015">Chiquet (<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">2015</a>)</span>, p. 50; <span class="citation" data-cites="chiquetInferringMultipleGraphical2011">Chiquet et al. (<a href="#ref-chiquetInferringMultipleGraphical2011" role="doc-biblioref">2011</a>)</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section><section class="level2"><h3 id="sec-grn-recommendation">Recommended order<a class="anchor" aria-label="anchor" href="#sec-grn-recommendation"></a>
+</h3>
+<ol type="1">
+<li>Refit with the corrected pipeline of <a href="#wrn-grn-pipeline" class="quarto-xref">Warning 1</a> (<code>glasso</code>, unpenalised diagonal, correlation scale), and with <span class="math inline">\gamma=0</span> as a sensitivity check.</li>
+<li>Report <span class="math inline">\max_{g\neq g'}|R_{gg'}|</span> per type next to <span class="math inline">\sqrt{4\log p/n_j}</span>. If the two are close, no penalised method will find edges.</li>
+<li>Compare with <code>PLNnetwork</code>. Edges that appear only after the Poisson layer is modelled were attenuated, not absent.</li>
+<li>For large types, run the <code>ppcor</code> baseline on a reduced panel, with BH edges and an SPD refit.</li>
+<li>Leave the diagonal unpenalised, or use PCGLASSO; refit on the support.</li>
+<li>For rare types, borrow strength with a shared-support or sign-coherent joint penalty, and check discrimination on held-out cells.</li>
+<li>If the goal is only the DeCovarT plug-in, compare against a dense shrinkage covariance by held-out likelihood before investing in sparse graphs.</li>
+</ol></section></section><section class="section level2"><h2 id="sec-grn-directed">Directed approaches<a class="anchor" aria-label="anchor" href="#sec-grn-directed"></a>
 </h2>
 <p>Gaussian Bayesian networks orient edges under Markov and faithfulness assumptions; interventions (Perturb-seq and related CRISPR screens) supply the environments needed for stronger causal claims (<a href="https://doi.org/10.1111/rssb.12167" class="external-link">Peters <em>et al.</em> (2016)</a>; <span class="citation" data-cites="svininCausalNetworkAnalysis2025">Svinin and Glaab (<a href="#ref-svininCausalNetworkAnalysis2025" role="doc-biblioref">2025</a>)</span>). Pathway tools (NPA, SignalingProfiler, LIONESS/PANDA, NLBayes) contextualise expression on signed graphs but often stop short of a full weighted GRN MLE—treat them as priors or downstream scorers rather than drop-in replacements for <span class="math inline">\boldsymbol{\Omega}</span>.</p>
 <div id="nte-gbn-joint">
@@ -279,8 +738,20 @@ b_{ij}=0 \text{ unless } j\in\mathrm{Pa}(i).
 <div id="ref-alieeAutoGeneSAutomaticGene2021" class="csl-entry" role="listitem">
 Aliee, Hananeh, and Fabian J. Theis. 2021. <span>‘<span>AutoGeneS</span>: <span>Automatic</span> Gene Selection Using Multi-Objective Optimization for <span class="nocase">RNA-seq</span> Deconvolution’</span>. <em>Cell Systems</em> 12. <a href="https://doi.org/10.1016/j.cels.2021.05.006" class="external-link">https://doi.org/10.1016/j.cels.2021.05.006</a>.
 </div>
+<div id="ref-carterExistencePenalisedLikelihood2025" class="csl-entry" role="listitem">
+Carter, Jack Storror. 2025. <span>‘Existence of Penalised Likelihood Estimates and Posterior Propriety of Separable Prior Distributions for <span>Gaussian</span> Precision Matrices’</span>. In <em>arXiv.org</em>. Https://arxiv.org/abs/2505.20005v2.
+</div>
+<div id="ref-carterExistenceOptimisationPartial2025" class="csl-entry" role="listitem">
+Carter, Jack Storror, and Cesare Molinari. 2025. <em>Existence and Optimisation of the Partial Correlation Graphical Lasso</em>. arXiv:2510.25712. arXiv. <a href="https://doi.org/10.48550/arxiv.2510.25712" class="external-link">https://doi.org/10.48550/arxiv.2510.25712</a>.
+</div>
 <div id="ref-chiquetContributionsSparseMethods2015" class="csl-entry" role="listitem">
 Chiquet, Julien. 2015. <span>‘Contributions to <span>Sparse Methods</span> for <span>Complex Data Analysis</span>’</span>. PhD thesis, Universit<span>é</span> Paris-Saclay / AgroParisTech.
+</div>
+<div id="ref-chiquetInferringMultipleGraphical2011" class="csl-entry" role="listitem">
+Chiquet, Julien, Yves Grandvalet, and Christophe Ambroise. 2011. <span>‘Inferring <span>Multiple Graphical Structures</span>’</span>. <em>Statistics and Computing</em> 21 (4): 537. <a href="https://doi.org/10.1007/s11222-010-9191-2" class="external-link">https://doi.org/10.1007/s11222-010-9191-2</a>.
+</div>
+<div id="ref-chiquetSparsitySigncoherentGroups2012" class="csl-entry" role="listitem">
+Chiquet, Julien, Yves Grandvalet, and Camille Charbonnier. 2012. <span>‘Sparsity with Sign-Coherent Groups of Variables via the Cooperative-<span>Lasso</span>’</span>. <em>The Annals of Applied Statistics</em> 6. <a href="https://doi.org/10.1214/11-aoas520" class="external-link">https://doi.org/10.1214/11-aoas520</a>.
 </div>
 <div id="ref-chiquetVariationalInferenceSparse2018" class="csl-entry" role="listitem">
 Chiquet, Julien, Mahendra Mariadassou, and Stéphane Robin. 2018. <em>Variational Inference for Sparse Network Reconstruction from Count Data</em>. arXiv. <a href="https://doi.org/10.48550/arxiv.1806.03120" class="external-link">https://doi.org/10.48550/arxiv.1806.03120</a>.
@@ -288,11 +759,59 @@ Chiquet, Julien, Mahendra Mariadassou, and Stéphane Robin. 2018. <em>Variationa
 <div id="ref-chiquetPoissonLognormalModelVersatile2021" class="csl-entry" role="listitem">
 Chiquet, Julien, Mahendra Mariadassou, and Stéphane Robin. 2021. <span>‘The Poisson-Lognormal Model as a Versatile Framework for the Joint Analysis of Species Abundances’</span>. <em>Frontiers in Ecology and Evolution</em> 9. <a href="https://doi.org/10.3389/fevo.2021.588292" class="external-link">https://doi.org/10.3389/fevo.2021.588292</a>.
 </div>
+<div id="ref-danaherJointGraphicalLasso2012" class="csl-entry" role="listitem">
+Danaher, Patrick, Pei Wang, and Daniela M. Witten. 2012. <em>The Joint Graphical Lasso for Inverse Covariance Estimation Across Multiple Classes</em>. arXiv:1111.0324. arXiv. <a href="https://doi.org/10.48550/arxiv.1111.0324" class="external-link">https://doi.org/10.48550/arxiv.1111.0324</a>.
+</div>
+<div id="ref-foygelExtendedBayesianInformation2010" class="csl-entry" role="listitem">
+Foygel, Rina, and Mathias Drton. 2010. <em>Extended <span>Bayesian Information Criteria</span> for <span>Gaussian Graphical Models</span></em>. arXiv:1011.6640. arXiv. <a href="https://doi.org/10.48550/arxiv.1011.6640" class="external-link">https://doi.org/10.48550/arxiv.1011.6640</a>.
+</div>
 <div id="ref-friedmanSparseInverseCovariance2008" class="csl-entry" role="listitem">
 Friedman, Jerome, Trevor Hastie, and Robert Tibshirani. 2008. <span>‘Sparse Inverse Covariance Estimation with the Graphical Lasso’</span>. <em>Biostatistics (Oxford, England)</em> 9. <a href="https://doi.org/10.1093/biostatistics/kxm045" class="external-link">https://doi.org/10.1093/biostatistics/kxm045</a>.
 </div>
+<div id="ref-heinävaaraInconsistencyℓ1penalisedSparse2016" class="csl-entry" role="listitem">
+Heinävaara, Otte, Janne Leppä-aho, Jukka Corander, and Antti Honkela. 2016. <span>‘On the Inconsistency of <span><span class="math inline">\ell</span></span>1-Penalised Sparse Precision Matrix Estimation’</span>. <em>BMC Bioinformatics</em> 17 (Suppl 16): 448. <a href="https://doi.org/10.1186/s12859-016-1309-x" class="external-link">https://doi.org/10.1186/s12859-016-1309-x</a>.
+</div>
+<div id="ref-hollandStochasticBlockmodelsFirst1983" class="csl-entry" role="listitem">
+Holland, Paul W., Kathryn Blackmond Laskey, and Samuel Leinhardt. 1983. <span>‘Stochastic Blockmodels: <span>First</span> Steps’</span>. <em>Social Networks</em> 5. <a href="https://doi.org/10.1016/0378-8733(83)90021-7" class="external-link">https://doi.org/10.1016/0378-8733(83)90021-7</a>.
+</div>
+<div id="ref-jankovaConfidenceIntervalsHighdimensional2015" class="csl-entry" role="listitem">
+Jankova, Jana, and Sara van de Geer. 2015. <span>‘Confidence Intervals for High-Dimensional Inverse Covariance Estimation’</span>. <em>Electronic Journal of Statistics</em> 9 (1). <a href="https://doi.org/10.1214/15-ejs1031" class="external-link">https://doi.org/10.1214/15-ejs1031</a>.
+</div>
+<div id="ref-R-ppcor" class="csl-entry" role="listitem">
+Kim, Seongho. 2015. <em>Ppcor: Partial and Semi-Partial (Part) Correlation</em>. <a href="https://doi.org/10.32614/cran.package.ppcor" class="external-link">https://doi.org/10.32614/cran.package.ppcor</a>.
+</div>
+<div id="ref-laszkiewiczThresholdedAdaptiveValidation2021" class="csl-entry" role="listitem">
+Laszkiewicz, Mike, Asja Fischer, and Johannes Lederer. 2021. <span>‘Thresholded <span>Adaptive Validation</span>: <span>Tuning</span> the <span>Graphical Lasso</span> for <span>Graph Recovery</span>’</span>. <em>Proceedings of <span>The</span> 24th <span>International Conference</span> on <span>Artificial Intelligence</span> and <span>Statistics</span></em>, 1864–72.
+</div>
+<div id="ref-liGraphicalHorseshoeEstimator2019" class="csl-entry" role="listitem">
+Li, Yunfan, Bruce A. Craig, and Anindya Bhadra. 2019. <em>The <span>Graphical Horseshoe Estimator</span> for <span>Inverse Covariance Matrices</span></em>. arXiv:1707.06661. arXiv. <a href="https://doi.org/10.48550/arxiv.1707.06661" class="external-link">https://doi.org/10.48550/arxiv.1707.06661</a>.
+</div>
+<div id="ref-liuNonparanormalSemiparametricEstimation2009" class="csl-entry" role="listitem">
+Liu, Han, John Lafferty, and Larry Wasserman. 2009. <span>‘The Nonparanormal: Semiparametric Estimation of High Dimensional Undirected Graphs’</span>. <em>Journal of Machine Learning Research</em> 10 (80): 2295–328.
+</div>
+<div id="ref-liuStabilityApproachRegularization2010" class="csl-entry" role="listitem">
+Liu, Han, Kathryn Roeder, and Larry Wasserman. 2010. <span>‘Stability Approach to Regularization Selection (<span>StARS</span>) for High Dimensional Graphical Models’</span>. <em>Advances in Neural Information Processing Systems</em> 24 (2): 1432–40.
+</div>
+<div id="ref-liuGaussianGraphicalModel2013" class="csl-entry" role="listitem">
+Liu, Weidong. 2013. <em>Gaussian <span>Graphical Model Estimation</span> with <span>False Discovery Rate Control</span></em>. arXiv:1306.0976. arXiv. <a href="https://doi.org/10.48550/arxiv.1306.0976" class="external-link">https://doi.org/10.48550/arxiv.1306.0976</a>.
+</div>
+<div id="ref-mazumderGraphicalLassoNew2011" class="csl-entry" role="listitem">
+Mazumder, Rahul, and Trevor Hastie. 2011. <span>‘The <span>Graphical Lasso</span>: <span>New Insights</span> and <span>Alternatives</span>’</span>. <em>Electronic Journal of Statistics</em> 6. <a href="https://doi.org/10.1214/12-ejs740" class="external-link">https://doi.org/10.1214/12-ejs740</a>.
+</div>
 <div id="ref-menendezGeneRegulatoryNetworks2010" class="csl-entry" role="listitem">
 Menéndez, Patricia, Yiannis A. I. Kourmpetis, Cajo J. F. ter Braak, and Fred A. van Eeuwijk. 2010. <span>‘Gene <span>Regulatory Networks</span> from <span>Multifactorial Perturbations Using Graphical Lasso</span>: <span>Application</span> to the <span>DREAM4 Challenge</span>’</span>. <em>PLOS ONE</em> 5. <a href="https://doi.org/10.1371/journal.pone.0014147" class="external-link">https://doi.org/10.1371/journal.pone.0014147</a>.
+</div>
+<div id="ref-pengPartialCorrelationEstimation2009" class="csl-entry" role="listitem">
+Peng, Jie, Pei Wang, Nengfeng Zhou, and Ji Zhu. 2009. <span>‘Partial <span>Correlation Estimation</span> by <span>Joint Sparse Regression Models</span>’</span>. <em>Journal of the American Statistical Association</em> 104 (486): 735–46. <a href="https://doi.org/10.1198/jasa.2009.0126" class="external-link">https://doi.org/10.1198/jasa.2009.0126</a>.
+</div>
+<div id="ref-plaksienkoMethodsDifferentialNetwork2025" class="csl-entry" role="listitem">
+Plaksienko, Anna, Magne Thoresen, and Vera Djordjilović. 2025. <em>Methods for Differential Network Estimation: An Empirical Comparison</em>. arXiv:2412.17922. arXiv. <a href="https://doi.org/10.48550/arxiv.2412.17922" class="external-link">https://doi.org/10.48550/arxiv.2412.17922</a>.
+</div>
+<div id="ref-sarkarSeparatingMeasurementExpression2021" class="csl-entry" role="listitem">
+Sarkar, Abhishek, and Matthew Stephens. 2021. <span>‘Separating Measurement and Expression Models Clarifies Confusion in Single-Cell <span>RNA</span> Sequencing Analysis’</span>. <em>Nature Genetics</em> 53 (6): 770–77. <a href="https://doi.org/10.1038/s41588-021-00873-4" class="external-link">https://doi.org/10.1038/s41588-021-00873-4</a>.
+</div>
+<div id="ref-schäferShrinkageApproachLargescale2005" class="csl-entry" role="listitem">
+Schäfer, Juliane, and Korbinian Strimmer. 2005. <span>‘A Shrinkage Approach to Large-Scale Covariance Matrix Estimation and Implications for Functional Genomics’</span>. <em>Statistical Applications in Genetics and Molecular Biology</em> 4: Article32. <a href="https://doi.org/10.2202/1544-6115.1175" class="external-link">https://doi.org/10.2202/1544-6115.1175</a>.
 </div>
 <div id="ref-R-bnlearn" class="csl-entry" role="listitem">
 Scutari, Marco. 2026. <em>Bnlearn: Bayesian Network Structure Learning, Parameter Learning and Inference</em>. <a href="https://www.bnlearn.com/" class="external-link">https://www.bnlearn.com/</a>.
@@ -300,8 +819,26 @@ Scutari, Marco. 2026. <em>Bnlearn: Bayesian Network Structure Learning, Paramete
 <div id="ref-suEstimatingCellTypeSpecificGene2024" class="csl-entry" role="listitem">
 Su, Chang, Jingfei Zhang, and Hongyu Zhao. 2024. <span>‘Estimating <span>Cell-Type-Specific Gene Co-Expression Networks</span> from <span>Bulk Gene Expression Data</span> with an <span>Application</span> to <span>Alzheimer</span>’s <span>Disease</span>’</span>. <em>Journal of the American Statistical Association</em> 119 (546): 811–24. <a href="https://doi.org/10.1080/01621459.2023.2297467" class="external-link">https://doi.org/10.1080/01621459.2023.2297467</a>.
 </div>
+<div id="ref-suppingerMultimodalCharacterizationMurine2023" class="csl-entry" role="listitem">
+Suppinger, Simon, Marietta Zinner, Nadim Aizarani, et al. 2023. <span>‘Multimodal Characterization of Murine Gastruloid Development’</span>. <em>Cell Stem Cell</em> 30. <a href="https://doi.org/10.1016/j.stem.2023.04.018" class="external-link">https://doi.org/10.1016/j.stem.2023.04.018</a>.
+</div>
 <div id="ref-svininCausalNetworkAnalysis2025" class="csl-entry" role="listitem">
 Svinin, Gleb, and Enrico Glaab. 2025. <span>‘Causal Network Analysis of Omics Data Using Prior Knowledge Databases’</span>. <em>Briefings in Bioinformatics</em> 26. <a href="https://doi.org/10.1093/bib/bbaf654" class="external-link">https://doi.org/10.1093/bib/bbaf654</a>.
+</div>
+<div id="ref-yuanDifferentialNetworkAnalysis2017" class="csl-entry" role="listitem">
+Yuan, Huili, Ruibin Xi, Chong Chen, and Minghua Deng. 2017. <em>Differential <span>Network Analysis</span> via the <span>Lasso Penalized D-Trace Loss</span></em>. arXiv:1511.09188. arXiv. <a href="https://doi.org/10.48550/arxiv.1511.09188" class="external-link">https://doi.org/10.48550/arxiv.1511.09188</a>.
+</div>
+<div id="ref-zhaiPLNFGLJointEstimation2026" class="csl-entry" role="listitem">
+Zhai, Wenli, Dan Zhou, Zhongshang Yuan, and Jiadong Ji. 2026. <span>‘<span>PLNFGL</span>: Joint Estimation of Multi-Condition Gene Networks from Single-Cell <span class="nocase">RNA-seq</span> Data’</span>. <em>Bioinformatics</em> 42 (7): btag485. <a href="https://doi.org/10.1093/bioinformatics/btag485" class="external-link">https://doi.org/10.1093/bioinformatics/btag485</a>.
+</div>
+<div id="ref-zhangSILGGMExtensivePackage2018" class="csl-entry" role="listitem">
+Zhang, Rong, Zhao Ren, and Wei Chen. 2018. <span>‘<span>SILGGM</span>: <span>An</span> Extensive <span>R</span> Package for Efficient Statistical Inference in Large-Scale Gene Networks’</span>. <em>PLOS Computational Biology</em> 14. <a href="https://doi.org/10.1371/journal.pcbi.1006369" class="external-link">https://doi.org/10.1371/journal.pcbi.1006369</a>.
+</div>
+<div id="ref-zhangSparsePrecisionMatrix2014" class="csl-entry" role="listitem">
+Zhang, Teng, and Hui Zou. 2014. <span>‘Sparse Precision Matrix Estimation via Lasso Penalized <span class="nocase">D-trace</span> Loss’</span>. <em>Biometrika</em> 101 (1): 103–20.
+</div>
+<div id="ref-zhaoHugePackageHighdimensional" class="csl-entry" role="listitem">
+Zhao, Tuo, Han Liu, Kathryn Roeder, John Lafferty, and Larry Wasserman. 2012. <span>‘The Huge <span>Package</span> for <span class="nocase">High-dimensional Undirected Graph Estimation</span> in <span>R</span>’</span>. <em>Journal of Machine Learning Research</em> 13 (37): 1059–62. <a href="https://jmlr.org/papers/v13/zhao12a.html" class="external-link">https://jmlr.org/papers/v13/zhao12a.html</a>.
 </div>
 </div>
 </section><script id="quarto-html-after-body" type="application/javascript">
