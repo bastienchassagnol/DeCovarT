@@ -384,7 +384,7 @@ or logistic-normal prior on \boldsymbol{p} pairs naturally with the
 Gaussian bulk likelihood (the experimental MAP `CTS` path in
 `scripts/experimental/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R`,
 derived in the
-[perspectives](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-statistical-perspectives.html#sec-map-blup)
+[perspectives](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-bayesian-wiener.html#sec-map-blup)
 vignette, is one starting point). Regardless of coordinate system, the
 workflow is the same: optimise in an unconstrained parameterisation,
 then map back to the simplex for interpretation.

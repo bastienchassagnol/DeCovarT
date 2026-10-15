@@ -57,9 +57,12 @@ is provided, DeCovarT methods maximise
     <li><a class="dropdown-item" href="../articles/fig03-covariance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: OLS, Bayesian, quasi-likelihood, and more</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-bulk-alignment.html"><span class="fa fa-align-left"></span> Single-cell to bulk alignment: measurement models, engines, four strategies</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> Inference: MLE properties, intervals and a GLM formulation</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-review-distribution-aware-deconvolution.html"><span class="fa fa-book"></span> Review: deconvolution with reference distributions</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-tailored.html"><span class="fa fa-align-left"></span> DeCovarT tailored to single-cell references</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-bayesian-wiener.html"><span class="fa fa-wave-square"></span> Bayesian DeCovarT: latent profiles and the Wiener filter</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-extensions-roadmap.html"><span class="fa fa-compass"></span> Extensions roadmap: lineages, covariates, modalities</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-mixture-regression-applications.html"><span class="fa fa-flask-vial"></span> DeCovarT as a mixture model: designed mixture experiments</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary simulation appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/supp-S1-identifiability.html"><span class="fa fa-vial"></span> App. S1 · Regular-case MLE and identifiability</a></li>
@@ -316,8 +319,8 @@ Newman A, Liu C, Green M, Gentles A, Feng W, Xu Y, Hoang C, Diehn M, Alizadeh A 
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 14</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   sample_id algorithm elapsed_sec memory_bytes kkt_residual numerical_converged</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>              </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> sample_1  nnls         0           480<span style="text-decoration: underline;">094</span>208        0.444 TRUE               </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> sample_2  nnls         0.001<span style="text-decoration: underline;">000</span>    480<span style="text-decoration: underline;">094</span>208        0.152 TRUE               </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> sample_1  nnls                0    491<span style="text-decoration: underline;">932</span>672        0.444 TRUE               </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> sample_2  nnls                0    491<span style="text-decoration: underline;">932</span>672        0.152 TRUE               </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 8 more variables: theoretical_converged &lt;lgl&gt;, loglik_regret &lt;dbl&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   local_maximum &lt;lgl&gt;, min_eigenvalue &lt;dbl&gt;, max_eigenvalue &lt;dbl&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   converged &lt;list&gt;, ct1 &lt;dbl&gt;, ct2 &lt;dbl&gt;</span></span>

@@ -22,7 +22,7 @@
 > matrix. When \boldsymbol{p} is already known, `CSNet` estimates
 > type-level co-expression from the same convolution; the mapping onto
 > DeCovarT’s precision \boldsymbol{\Omega}\_j is in the [perspectives
-> vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-statistical-perspectives.html#sec-csnet)
+> vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-review-distribution-aware-deconvolution.html#sec-csnet)
 > ([Su et al. 2024](#ref-suEstimatingCellTypeSpecificGene2024)).
 
 ## General reviews

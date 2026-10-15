@@ -53,7 +53,7 @@ Etienne Becht
 
 Anaïs Baudot
 
-2026-10-01
+2026-10-15
 
 ## 
 
@@ -934,13 +934,22 @@ average overlaps (precision zeros kept), Shannon H^{\star} compositions.
 
 - [Derivatives of the DeCovarT generative model under simplex
   transforms](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.md):
-- [MLE properties and asymptotic inference for the DeCovarT
-  log-likelihood](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.md):
-- [DeCovarT
-  perspectives](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-statistical-perspectives.md):
-- [Aligning single-cell references with bulk: measurement models,
-  deconvolution engines and four alignment
-  strategies](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-bulk-alignment.md):
+- [DeCovarT inference: MLE properties, intervals for proportions and a
+  GLM
+  formulation](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.md):
+- [Deconvolution with reference distributions: a review of methods that
+  use more than the
+  mean](https://bastienchassagnol.github.io/DeCovarT/articles/theory-review-distribution-aware-deconvolution.md):
+- [DeCovarT tailored to single-cell references: reference moments,
+  scales and four alignment
+  strategies](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.md):
+- [A Bayesian DeCovarT: latent purified profiles, the Wiener filter and
+  variational
+  EM](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-bayesian-wiener.md):
+- [DeCovarT extensions roadmap: lineages, covariates, modalities and
+  beyond](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-extensions-roadmap.md):
+- [DeCovarT as a mixture model: links with designed mixture
+  experiments](https://bastienchassagnol.github.io/DeCovarT/articles/theory-mixture-regression-applications.md):
 
 ### Supplementary simulation appendix
 

@@ -41,10 +41,8 @@ selection, each split into one-versus-others then all-versus-all,
 followed by perspectives for continuous cell states.
 
 Sections are cross-linked below: [Section 2](#sec-preprocess) builds
-moments; **?@sec-precision-timing** places sparse
-\boldsymbol{\Omega}\_{j} estimation after gene filtering;
-[Section 3](#sec-univariate) and [Section 4](#sec-multivariate) score
-genes; [Section 4.4](#sec-four-scores) and
+moments; [Section 3](#sec-univariate) and [Section 4](#sec-multivariate)
+score genes; [Section 4.4](#sec-four-scores) and
 [Section 5](#sec-pareto-panel) assemble a working panel;
 [Section 6.5.1](#sec-cv-selection) and [Section 5.1](#sec-recommended)
 assemble a pipeline; [Section 6](#sec-perspectives) covers continua,

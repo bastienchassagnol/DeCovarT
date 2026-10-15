@@ -507,7 +507,7 @@ p with only box bounds, can leave the simplex during the line search and
 land near a face after p/\sum p, which is the raincloud’s 26\\ bound
 rate. None of these paths is the Godambe sandwich or a Firth penalty
 ([Firth 1993](#ref-firthBiasReductionMaximum1993)); both remain outlook
-([perspectives](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-statistical-perspectives.html#sec-firth)).
+([perspectives](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-firth)).
 With N=1, the honest frequentist statement for a rare type is still the
 restricted LRT / parametric bootstrap of the MLE article, not a Wald
 ellipse from
