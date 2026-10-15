@@ -46,8 +46,11 @@
 ^vignettes/supp-S3-scaling\.qmd$
 ^vignettes/supp-S4-covariance-modeling\.qmd$
 ^vignettes/supp-S5-misspecification\.qmd$
-^vignettes/theory-decovart-statistical-perspectives\.qmd$
-^vignettes/theory-decovart-single-cell-bulk-alignment\.qmd$
+^vignettes/theory-review-distribution-aware-deconvolution\.qmd$
+^vignettes/theory-decovart-single-cell-tailored\.qmd$
+^vignettes/theory-decovart-extensions-roadmap\.qmd$
+^vignettes/theory-decovart-bayesian-wiener\.qmd$
+^vignettes/theory-mixture-regression-applications\.qmd$
 # Quarto extensions used only by pkgdown-only articles. pandoc-ext/diagram
 # is kept: vignettes/_quarto.yml loads it for every article, and the
 # committed vignettes/_diagram-cache/ lets it render without TeX.
@@ -135,3 +138,4 @@
 ^Simulate different mean profiles\.bib$
 ^raincloud_biblio\.bib$
 ^factorial analysis\.bib$
+^vignettes/burakov-logistic-regression\.pdf$

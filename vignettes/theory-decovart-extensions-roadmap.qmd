@@ -1,0 +1,611 @@
+---
+title: "DeCovarT extensions roadmap: lineages, covariates, modalities and beyond"
+author: "Bastien Chassagnol"
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteIndexEntry{DeCovarT extensions roadmap}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+bibliography:
+  - ../inst/packages.bib
+  - ../inst/REFERENCES.bib
+link-citations: true
+crossref:
+  eq-prefix: "Eq."
+  sec-prefix: "Sec."
+format:
+  html:
+    embed-resources: true
+    toc: true
+---
+
+::: callout-note
+## Scope
+
+Extensions that are not implemented but fit the DeCovarT likelihood
+without changing its core: the convolution
+$\boldsymbol{y}_{\cdot i}\mid\boldsymbol{p}_{\cdot i}\sim
+\mathcal{N}_G(\boldsymbol{\mu}\boldsymbol{p}_{\cdot i},
+\boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i}))$ with
+$\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_jp_j^{2}\boldsymbol{\Sigma}_j$
+([derivatives vignette](theory-decovart-generative-model.html#sec-unconstrained)).
+The same catalogue is tracked in
+[GitHub issue 5](https://github.com/bastienchassagnol/DeCovarT/issues/5).
+The single-cell-specific model (scales, within- and between-replicate
+covariance) is in the
+[tailored vignette](theory-decovart-single-cell-tailored.html); the
+Bayesian purification of sample-level profiles is in the
+[Bayesian Wiener-filter vignette](theory-decovart-bayesian-wiener.html);
+inference is in the
+[MLE and inference vignette](theory-DeCovarT-MLE-properties.html).
+:::
+
+| Extension | What changes in DeCovarT | Section |
+|---|---|---|
+| Lineage hierarchy | parent–child equality or penalty on $\boldsymbol{p}$ | @sec-hierarchical-deconvolution |
+| Sample covariates | $\boldsymbol{p}_{\cdot i}$ or $\boldsymbol{\mu}$ depend on covariates | @sec-covariates |
+| Incomplete reference | one unknown component | @sec-semi-reference |
+| Isoforms, proteins, other modalities | stacked features, block covariance | @sec-isoforms, @sec-multiomics |
+| Spatial spots | neighbouring spots share information | @sec-spatial |
+| Time-resolved composition | $\boldsymbol{p}$ evolves along time | @sec-dynamics |
+| Continuous states | archetypes instead of discrete types | @sec-archetypes |
+| Ensembles | combine several estimators | @sec-ensembles |
+| Weights and robust losses | GLS, gene weights, robust regression | @sec-robust-gls |
+| Gene compositions | a second simplex for genes | @sec-logit-normal-compositional |
+
+: Extensions and the part of the model each one changes. {#tbl-roadmap}
+
+Notation: gene $g$, cell type $j$, bulk sample $i$;
+$\boldsymbol{y}_{\cdot i}$ the bulk profile; $\boldsymbol{p}_{\cdot i}$
+the cell fractions; $\boldsymbol{\mu}_{\cdot j}$ and
+$\boldsymbol{\Sigma}_j$ the reference moments;
+$\boldsymbol{x}_{\cdot j,i}$ the purified profile of type $j$ in
+sample $i$.
+
+# Lineage-aware hierarchical deconvolution {#sec-hierarchical-deconvolution}
+
+Flat deconvolution treats every cell type as a sibling on one simplex.
+**Hierarchical** methods instead estimate proportions at several granularities
+linked by a cell-type tree: broad compartments first, then closely related
+subtypes whose mean signatures are collinear at the leaf level.
+
+We reuse the DeCovarT set-up from the [article](../article/main.pdf): gene
+$g=1,\ldots,G$; cell type or tree node $j$; sample $i=1,\ldots,N$
+(independence across $i$). Slices follow the usual dot notation
+($\boldsymbol{\mu}_{\cdot j}$, $\boldsymbol{y}_{\cdot i}$).
+
+* $\boldsymbol{y}=(y_{gi})\in\mathbb{R}_{+}^{G\times N}$: bulk expression;
+  $\boldsymbol{y}_{\cdot i}\in\mathbb{R}_{+}^{G}$ is sample $i$.
+* $\boldsymbol{\mu}=(\mu_{gj})\in\mathbb{R}^{G\times J}$: mean signature;
+  $\boldsymbol{\mu}_{\cdot j}\in\mathbb{R}^{G}$ is the cross-sample mean
+  profile of type $j$ (as in `MuSiC` [@wangBulkTissueCell2019]).
+* $\boldsymbol{p}=(p_{ji})\in\,]0,1[^{J\times N}$: unknown relative
+  proportions; $\boldsymbol{p}_{\cdot i}\in\,]0,1[^{J}$ is the composition
+  of sample $i$.
+
+$$
+\boldsymbol{y}_{\cdot i}=\boldsymbol{\mu}\,\boldsymbol{p}_{\cdot i},
+$$ {#eq-hierarchical-linear}
+
+$$
+\sum_{j=1}^{J} p_{ji}=1,
+\qquad p_{ji}\ge 0
+\qquad (i=1,\ldots,N).
+$$ {#eq-simplex-constraint}
+
+$$
+p_{j,i}=\sum_{c\in\mathcal{C}(j)} p_{c,i}
+\qquad (i=1,\ldots,N).
+$$ {#eq-parent-child}
+
+At each tree level the bulk mixture satisfies @eq-hierarchical-linear with
+each composition on the unit simplex (@eq-simplex-constraint). For a parent
+node $j$ with child set $\mathcal{C}(j)$, coherent hierarchical estimates
+require @eq-parent-child.
+
+## Hard versus soft lineage constraints {#sec-hard-soft-constraints}
+
+Despite diverse implementations, hierarchical bulk mRNA deconvolution
+methods fall into **two constraint regimes**:
+
+* **Hard constraints** — child lineage ratios are forced to sum exactly to
+  the parent estimate (@eq-parent-child). `MuSiC` and `SCDC` (tree-guided
+  mode) first fix a parent total $\hat{p}_{j,i}$, then fit children
+  $q_{c,i}$ on the within-parent simplex so that
+  $\hat{p}_{c,i}=q_{c,i}\,\hat{p}_{j,i}$
+  [@wangBulkTissueCell2019; @dongSCDCBulkGene2021]. `HIDE` applies the same
+  equality by renormalising child estimates after each top-down split
+  [@voelklHIDEHierarchicalCelltype2025]; `Rectangle` propagates coarse
+  cluster fractions as hard bounds on fine-grained estimates
+  [@ederRectangleRobustScalable2026].
+* **Soft constraints** — parent–child coherence is encouraged but not
+  enforced exactly. `HiDecon` adds a squared mismatch penalty to the
+  deconvolution loss [@huangAccurateEstimationRare2024]; `Kassandra` trains
+  separate predictors at predefined hierarchy levels without an explicit
+  parent–child equality [@zaitsevPreciseReconstructionTME2022].
+
+Hard splitting after fixing the parent (@eq-hard-child-split):
+
+$$
+\hat{p}_{c,i}=q_{c,i}\,\hat{p}_{j,i},
+\quad
+q_{c,i}\ge 0,\;
+\sum_{c\in\mathcal{C}(j)} q_{c,i}=1.
+$$ {#eq-hard-child-split}
+
+`HIDE` renormalisation (@eq-hide-renorm):
+
+$$
+\hat{p}_{c,i}\leftarrow
+\hat{p}_{c,i}\,
+\frac{\hat{p}_{j,i}}{\sum_{c'\in\mathcal{C}(j)}\hat{p}_{c',i}}.
+$$ {#eq-hide-renorm}
+
+`HiDecon` soft penalty (@eq-soft-penalty):
+
+$$
+\mathcal{L}_{\mathrm{tot}}
+=
+\mathcal{L}_{\mathrm{deconv}}
++
+\lambda\sum_{j}\sum_{i=1}^{N}
+\Bigl(
+p_{j,i}-\sum_{c\in\mathcal{C}(j)} p_{c,i}
+\Bigr)^{2}.
+$$ {#eq-soft-penalty}
+
+Within each regime, methods further differ by whether they reuse a **single
+reference signature** at every granularity or **reselect / reweight genes**
+locally at each internal node (@fig-hierarchical-taxonomy).
+
+```{mermaid}
+%%| label: fig-hierarchical-taxonomy
+%%| fig-cap: "Taxonomy of lineage-aware bulk mRNA deconvolution: parent–child constraint (hard vs soft) and reference-gene strategy (fixed matrix vs node-local weights)."
+%%{init: {"theme": "sandstone"}}%%
+flowchart TD
+  A["Lineage-aware bulk mRNA deconvolution"] --> B{"Parent–child linkage"}
+  B -->|"Hard equality (Eq. parent–child)"| C["MuSiC, SCDC, HIDE, Rectangle"]
+  B -->|"Soft / uncoupled levels"| D["HiDecon, Kassandra"]
+  C --> E{"Genes at each node"}
+  D --> F{"Genes at each node"}
+  E -->|"Fixed reference matrix"| G["SCDC ensemble"]
+  E -->|"Node-local reweighting"| H["MuSiC, HIDE, Rectangle"]
+  F -->|"Shared matrix + penalty"| I["HiDecon"]
+  F -->|"Level-specific signatures"| J["Kassandra"]
+```
+
+`xCell` 2.0 [@angelXCell20Robust2025] uses Cell Ontology ancestry to build
+signatures and control spillover between related labels, but its outputs are
+enrichment scores rather than a compositional tree; it sits outside the
+hard/soft fraction taxonomy above.
+
+```{r}
+#| label: tbl-hierarchical-methods
+#| tbl-cap: "Lineage-aware bulk mRNA deconvolution: constraint regime, enforcing equation, and gene strategy (2019–2026 census)."
+#| echo: false
+#| message: false
+#| warning: false
+hier_tbl <- data.frame(
+  method = c(
+    "MuSiC",
+    "SCDC",
+    "HIDE",
+    "Rectangle",
+    "HiDecon",
+    "Kassandra",
+    "xCell 2.0"
+  ),
+  constraint = c(
+    "Hard",
+    "Hard (tree-guided)",
+    "Hard",
+    "Hard (multiscale)",
+    "Soft",
+    "Soft / uncoupled",
+    "None (scores)"
+  ),
+  `lineage constraint` = c(
+    paste0(
+      "Fix $\\hat{p}_{j,i}$; ",
+      "$\\hat{p}_{c,i}=q_{c,i}\\hat{p}_{j,i}$, ",
+      "$\\sum_c q_{c,i}=1$"
+    ),
+    paste0(
+      "MuSiC step; ",
+      "$\\hat{p}_{c,i}=q_{c,i}\\hat{p}_{j,i}$"
+    ),
+    paste0(
+      "Fit then renormalise: ",
+      "$\\hat{p}_{c,i}\\leftarrow",
+      "\\hat{p}_{c,i}\\hat{p}_{j,i}/",
+      "\\sum_{c'}\\hat{p}_{c',i}$"
+    ),
+    "Coarse $\\boldsymbol{p}^{(\\mathrm{coarse})}$ bounds fine estimates",
+    paste0(
+      "$\\mathcal{L}_{\\mathrm{tot}}=\\mathcal{L}_{\\mathrm{deconv}}+",
+      "\\lambda\\sum_{j,i}(p_{j,i}-\\sum_c p_{c,i})^2$"
+    ),
+    "Separate models; no parent–child equality",
+    "Ontology spillover control only"
+  ),
+  `gene strategy` = c(
+    "Node-local consistent genes",
+    "Full reference; optional node split",
+    "Parent-specific learned weights",
+    "Clustered + direct signatures",
+    "Shared $\\boldsymbol{\\mu}$; joint penalised fit",
+    "Level-specific trained signatures",
+    "Ontology-aware signature generation"
+  ),
+  check.names = FALSE
+)
+tinytable::tt(hier_tbl) |>
+  tinytable::style_tt(j = 2:4, align = "l") |>
+  tinytable::format_tt(j = 3, markdown = TRUE)
+```
+
+@tbl-hierarchical-methods and @fig-hierarchical-taxonomy summarise the
+landscape aligned with @eq-hierarchical-linear–@eq-parent-child. **Hard**
+methods (`MuSiC`, `HIDE`, `Rectangle`) are easier to audit node by node but
+inherit upstream bias; **soft** coupling (`HiDecon`) can stabilise rare
+subtypes when the tree is credible. **Node-local gene reweighting** (`MuSiC`,
+`HIDE`, `Rectangle`) targets collinear siblings; **fixed or level-specific
+signatures** (`SCDC`, `Kassandra`) trade flexibility for simpler reference
+construction.
+
+A natural DeCovarT extension would combine [the Gaussian convolution](theory-mixture-regression-applications.html#eq-gaussian-convolution) with
+either @eq-hard-child-split or @eq-soft-penalty, node-local marker panels,
+and [ALR optimisation](theory-decovart-generative-model.html#sec-alr)
+when a curated lineage tree is
+supplied—benchmarked at broad, intermediate, and terminal resolutions against
+`HiDecon`, `HIDE`, tree-guided `MuSiC`, and `Rectangle`. Spatial
+`HIDF` applies the same tree idea to spots with an `RCTD` back-end
+[@zouHidfIntegratingTreeStructured2026]; `scDETECT` uses a lineage prior
+for differential expression rather than for $\boldsymbol{p}$
+[@xuScdetectNovelStatisticalModel2025]. Archetypes and cell states
+(type versus shared gene-expression programmes) are taken up in
+@sec-archetypes.
+
+# Sample-level covariates {#sec-covariates}
+
+A condition, tissue, batch, sex or age vector $\boldsymbol{z}_{i}$ is indexed
+by sample $i$, whereas $\boldsymbol{\mu}$ has genes in rows and cell types in
+columns. Covariates therefore cannot be appended as extra columns of the
+signature. Two generative extensions are distinct
+[@fanMusic2CellTypeDeconvolution2022].
+
+**State model.** Condition alters the reference distribution,
+
+$$
+\boldsymbol{x}_{\cdot j,i}\mid\boldsymbol{z}_{i}
+\sim\mathcal{N}_G
+\bigl(\boldsymbol{\mu}_{j}(\boldsymbol{z}_{i}),\boldsymbol{\Sigma}_{j}(\boldsymbol{z}_{i})\bigr),
+$$ {#eq-covariate-state}
+
+for example $\boldsymbol{\mu}_{j}(\boldsymbol{z}_{i})=\boldsymbol{\mu}_{j}+B_{j}\boldsymbol{z}_{i}$.
+The bulk law is then [the Gaussian convolution](theory-mixture-regression-applications.html#eq-gaussian-convolution) with those
+condition-dependent moments. `MuSiC2` addresses the same mismatch by
+iteratively dropping cell-type-specific DE genes between the bulk
+condition and the scRNA-seq reference; it remains closed-reference and
+cannot invent novel types [@fanMusic2CellTypeDeconvolution2022].
+
+**Composition model.** Condition alters $\boldsymbol{p}_{\cdot i}$ through the
+existing ALR coordinates $\boldsymbol{\rho}_{i}$,
+
+$$
+\boldsymbol{\rho}_{i}=B\boldsymbol{z}_{i}+\boldsymbol{u}_{i},
+\qquad
+\boldsymbol{p}_{\cdot i}=\psi(\boldsymbol{\rho}_{i}),
+$$ {#eq-covariate-composition}
+
+with $\psi$ the
+[additive logistic map](theory-decovart-generative-model.html#eq-alr-maps).
+This is the
+setting in which a future `predict()` method on new $\boldsymbol{z}$ would be
+meaningful.
+
+A known sequencing exposure $s_{i}$ is a **multiplicative** scale,
+$\boldsymbol{y}_{\cdot i}\sim\mathcal{N}_G(s_{i}\boldsymbol{\mu}\boldsymbol{p}_{\cdot i},s_{i}^{2}\Sigma(\boldsymbol{p}_{\cdot i}))$,
+not an additive `lm` offset. Cell-type transcriptome size $r_{j}$ is a
+different parameter ([RNA versus cell fractions](theory-decovart-single-cell-tailored.html#sec-uncoupling)). A gene-wise affine
+standardisation applied identically to $\boldsymbol{y}$, $\boldsymbol{\mu}$ and every
+$\boldsymbol{\Sigma}_{j}$ leaves $\hat{\boldsymbol{p}}$ unchanged in exact
+arithmetic; column-wise `scale()` on $\boldsymbol{\mu}$ does not.
+
+# Incomplete references {#sec-semi-reference}
+
+Closed-reference DeCovarT assumes every abundant type appears as a
+column of $\boldsymbol{\mu}$. An unrepresented population contributes a
+structured gene vector $\boldsymbol{u}_{i}$, not a scalar intercept:
+
+$$
+\boldsymbol{y}_{\cdot i}
+=\boldsymbol{\mu}\,\boldsymbol{p}_{\cdot i}^{\mathrm{known}}
++p_{u,i}\boldsymbol{u}_{i}+\boldsymbol{\varepsilon}_{i},
+\qquad
+\sum_{j}p_{ji}+p_{u,i}=1.
+$$ {#eq-unknown-component}
+
+`DICEPro` shows that supervised engines remain stable while most types
+are present and then collapse as $\boldsymbol{\mu}$ becomes incomplete,
+especially when the missing type is abundant; it wraps existing methods
+by adjusting reference signatures
+[@baWhenLessNot2026]. `BayICE` is a univariate-Gaussian Bayesian
+semi-reference model that estimates known types **and one unknown
+type**, with spike-and-slab selection of genes and columns of
+$\boldsymbol{\mu}$ [@taiBayiceBayesianHierarchicalModel2021]. Montierth et al.
+convolve negative binomials for known components plus an unknown tumour
+component, assuming proportions shift means but not dispersions
+[@montierthDeconvolutionSparsecountRNA2025]. `CDState` reconstructs
+malignant **states** rather than a single tumour column
+[@kraftCdstateResolvesMalignantCell2026]. `EPIC` already includes an
+uncharacterised compartment in its signature
+[@racleSimultaneousEnumerationCancer2017]. Semi-CAM uses partial marker
+information [@dongSemiCAMSemisupervisedDeconvolution2020]; `BLEND`
+automates reference-panel selection
+[@huangBLENDProbabilisticCellular2024].
+
+# Isoform-level observations {#sec-isoforms}
+
+Gene-level $\boldsymbol{y}\in\mathbb{R}_{+}^{G}$ discards differential isoform
+usage. Expanding the observation to transcripts
+$t=1,\ldots,T$ (short-read quantification or long-read) yields a taller
+signature $\boldsymbol{\mu}^{\mathrm{iso}}\in\mathbb{R}^{T\times J}$.
+`IsoDeconvMM` estimates $\boldsymbol{p}$ from isoform-level expression, even
+from a single gene, by exploiting differential isoform usage rather than
+gene-level DE; full-length long-read or spatial RNA-seq are the natural
+sources of cell-type- and isoform-specific references when droplet
+scRNA-seq misses isoforms [@heilingEstimatingCellTypeComposition2023].
+
+# Multi-modal and multi-omics {#sec-multiomics}
+
+Bulk deconvolution is one arm of a multi-scale tumour-immune map that
+also includes scRNA-seq and spatial assays
+[@sunMultiScaleTranscriptomicsRedefining2026]. `DECODE` trains a shared
+deconvolution architecture across omics
+[@zhaoDecodeDeepLearningBased2026]. Yao et al. reconstruct
+cell-type-specific regulatory processes from paired ATAC-seq and bulk
+RNA-seq, benchmarking against CIBERSORTx
+[@yaoHighResolutionReconstructionCell2026]. Proteomics-constrained
+deconvolution uses protein abundance as a regulariser on transcriptomic
+$\boldsymbol{p}$ / CTS
+[@isikProteomicsConstrainedDeconvolutionReveals2026]. `Unico` already
+treats expression and DNA methylation under one tensor model
+[@chenUnicoUnifiedModelCell2025]. The HADACA3 community benchmark
+stresses the limits of naive multimodal concatenation
+[@barbotPromisesLimitsMultimodal2026].
+
+# Spatial transcriptomics {#sec-spatial}
+
+Each spot (or pixel) $s$ is a local mixture $\boldsymbol{y}(s)$ with its own
+$\boldsymbol{p}(s)\in\Delta^{J-1}$. The Gaussian convolution still applies
+per location; space enters as dependence among neighbouring
+$\boldsymbol{p}(s)$. `RCTD` does **not** use that dependence: each pixel is
+an independent count mixture ([the `RCTD` Poisson--log-normal law](theory-review-distribution-aware-deconvolution.html#eq-rctd-pln)), so the statistical
+comparison belongs in [the `RCTD` comparison](theory-review-distribution-aware-deconvolution.html#sec-rctd)
+[@cableRobustDecompositionCell2022a]. Sequencing-based surveys classify probabilistic
+assumptions and provide practical benchmarks
+[@saqibPixelsCellTypes2025; @gaspard-boulincCelltypeDeconvolutionMethods2025; @liComprehensiveBenchmarkingPractical2023].
+Imaging-based reconstruction goes the other way: `HistoMap` generates
+single-cell-like profiles from bulk with a variational autoencoder and
+maps them onto histological coordinates with an H-ViT
+[@heHistomapReconstructingSpatiallyResolved2026]; `HEDeST` pairs H&E
+with spot-level $\hat{\boldsymbol{p}}(s)$
+[@gortanaHedestIntegrativeApproachEnhance2026]. `SpaDecoder` aligns
+slices, infers neighbourhoods, and uses 3-D Gaussian kernels, with an
+explicit simplex constraint and a penalty on the number of types per
+spot [@loboSpatiotemporalCellTypeDeconvolution2026]. Under **cell-type
+mismatch**, missing types are mostly absorbed by the most similar
+column of $\boldsymbol{\mu}$
+[@mahamuneSystematicEvaluationRobustnessDeconvolution2025] — the spatial
+counterpart of @sec-semi-reference.
+
+# Time-resolved composition {#sec-dynamics}
+
+When $J>G$ the linear map is under-determined. Elastic-net methods such
+as `DCQ` (`glmnet`) select the **support of cell types that change**
+between biological states, rather than recovering a full simplex
+snapshot [@altboumDigitalCellQuantification2014; @R-glmnet]. Static
+benchmarks that score these methods as poor deconvolution miss that
+target [@jinBenchmarkRNAseqDeconvolution2021]. `DCQ` tracked 213 immune
+subtypes across ten influenza time points and reported changes in about
+70 types; `ImmQuant` packages a similar pipeline
+[@frishbergImmQuantUserfriendlyTool2016].
+
+A DeCovarT trajectory would put a temporal prior on ALR coordinates,
+e.g. $\boldsymbol{\rho}_{i}(t)=\boldsymbol{\rho}_{i}(t-1)+\boldsymbol{\eta}_{t}$, as in
+`ChronoStrain`'s Bayesian strain trajectories
+[@kimLongitudinalProfilingLowAbundance2025]. `scTREND` supplies an
+annotation-free single-cell hazard clock for organoid / gastruloid time
+courses [@yukiSctrendAnnotationFreeSingle2026]. `SpaDecoder` adds
+space–time kernels on spots
+[@loboSpatiotemporalCellTypeDeconvolution2026].
+
+# Archetypes, states, and potency {#sec-archetypes}
+
+A finite $J$-column signature is a piecewise approximation of within-type
+continua. **Archetypal analysis** places cells on a simplicial polytope
+whose vertices are extreme programmes, avoiding NMF/ICA rotational
+ambiguity [@hartInferringBiologicalTasks2015; @crowleyParetoOptimalityRevealsAtlas2026].
+`ACTION` separates transcriptional identity (cell type) from activity
+states (shared gene-expression programmes) and chooses $k$
+automatically [@mohammadiAMultiresolutionFrameworkCharacterize2020];
+`scAAnet` extends that construction with a VAE and a zero-inflated
+negative-binomial reconstruction
+[@wangNonLinearArchetypalAnalysis2022]. `tissueResolver` builds a
+virtual tissue without predefined labels, aiming at fine states within
+types [@simethVirtualTissueExpressionAnalysis2024]. Potency and
+differentiation scores, as in hypothalamic–pituitary organoids, replace
+discrete labels by a continuous axis
+[@asanoADeepLearningApproach2024]. Macrophage M1/M2 polarisation is the
+standard biological example of a microenvironment-dependent continuum
+rather than two extra columns of $\boldsymbol{\mu}$.
+
+# Ensembles {#sec-ensembles}
+
+Two operations are easily confused. **Several references, one
+algorithm:** `MuSiC` weights subjects and `SCDC` weights scRNA-seq
+studies [@wangBulkTissueCell2019; @dongSCDCBulkGene2021]. **Several
+algorithms, one consensus $\hat{\boldsymbol{p}}$:** `EnsDeconv` fuses 11 bulk
+engines plus variation in references, markers and normalisation by
+cell-type-specific robust regression, on 4,937 samples with measured
+fractions [@caiRobustAccurateEstimation2022]. `EnDecon` runs 14 spatial
+(and bulk) methods and forms a weighted-median consensus, down-weighting
+discordant engines [@tuEndeconCellTypeDeconvolution2023]. The DREAM
+community assessment found that a mean-rank ensemble beat every
+individual method [@whiteCommunityAssessmentMethodsDeconvolve2024].
+
+# Robust regression, GLS, and gene weights {#sec-robust-gls}
+
+Let $W=\mathrm{diag}(w_{1},\ldots,w_{G})$ be gene-specific precision
+weights (DWLS dampening, voom mean–variance weights, or inverse
+leverage). Weighted least squares minimises
+$(\boldsymbol{y}_{\cdot i}-\boldsymbol{\mu}\boldsymbol{p}_{\cdot i})^{\top}
+W(\boldsymbol{y}_{\cdot i}-\boldsymbol{\mu}\boldsymbol{p}_{\cdot i})$
+[@tsoucasAccurateEstimationCelltype2019; @lawVoomPrecisionWeights2014].
+CIBERSORT's $\nu$-SVR replaces squared error by a robust hinge
+[@newmanRobustEnumerationCell2015].
+
+**Generalised least squares** uses a single residual covariance
+$W$ that does **not** depend on $\boldsymbol{p}$. With $\boldsymbol{\Sigma}_j$
+known, the gold-standard competitor is [`deconvolute_ratios_gls()`](../reference/deconvolute_ratios_gls.html)
+(`MASS::lm.gls`, `inverse = TRUE`): $W$ is a $G\times G$ covariance,
+typically
+[`fixed_gls_covariance()`](../reference/fixed_gls_covariance.html)
+$\operatorname{diag}\{\sum_j \bar p_j^2\boldsymbol{\Sigma}_j\}$ at
+$\bar p_j=1/J$ (or at a known design $p^{\star}$). Then
+
+$$
+\hat{\boldsymbol{p}}^{\mathrm{GLS}}
+=(\boldsymbol{\mu}^{\top}W^{-1}\boldsymbol{\mu})^{-1}\boldsymbol{\mu}^{\top}W^{-1}\boldsymbol{y}_{\cdot i},
+$$ {#eq-gls}
+
+after which the simplex is imposed by projection. Do **not** copy $W$
+into every DeCovarT tensor slice:
+$\sum_j p_j^2 W=\|p\|_2^2 W$ still depends on $p$. WLS is the
+diagonal special case. DeCovarT is strictly richer:
+$\Sigma(\boldsymbol{p})=\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}$ depends on the
+unknown coefficients. `nlme::gls()` is for *estimating* a structured
+$\Sigma$ (AR(1), compound symmetry); it is the wrong tool when $W$ is
+already known.
+
+A direct extension, following the BayesPrism–DWLS construction
+[@zhangIntegratedInferenceCellularCompositions2026], is to ingest $W$
+into the convolution: transform
+$\boldsymbol{y}^{\star}=W^{1/2}\boldsymbol{y}_{\cdot i}$,
+$\boldsymbol{\mu}^{\star}=W^{1/2}\boldsymbol{\mu}$,
+$\boldsymbol{\Sigma}_{j}^{\star}=W^{1/2}\boldsymbol{\Sigma}_{j}W^{1/2}$
+and run the existing solver — weighted GLS with cell-type-specific
+networks retained.
+
+`cellGeometry` estimates uncertainty from gene-wise heteroscedasticity
+and the cross-sample variance of each gene, i.e. a **global**
+gene/sample covariance rather than $\boldsymbol{\Sigma}_{j}$
+[@lauCellGeometryUltrafastSinglecell2026]. `Unico` deconvolves a 2-D
+bulk matrix into a 3-D sample $\times$ feature $\times$ cell-type tensor
+and explicitly models cell-type-level covariances, including on
+methylation [@chenUnicoUnifiedModelCell2025]. Interaction monomials
+$p_{j}p_{k}$ in the mean ([the interaction mean](theory-mixture-regression-applications.html#eq-interaction-mean)) are the Scheffé /
+general-linear-model route; `DecOT` instead changes the discrepancy to
+an optimal-transport loss [@liuDecotBulkDeconvolutionOptimal2022].
+
+# Two simplices without convolution {#sec-logit-normal-compositional}
+
+McGregor et al. model a count vector of $D$ features as
+**compositional**, not as a mixture of cell-type Gaussians
+[@mcgregorProportionalitybasedAssociationMetrics2026]. In DeCovarT
+notation the features are the $G$ genes. Sample $i$ has library size
+$n_i$ and gene composition $\boldsymbol{\pi}_i\in\Delta^{G-1}$. The
+observation is multinomial,
+
+$$
+\boldsymbol{y}_{\cdot i}\mid n_i,\boldsymbol{\pi}_i
+\sim\mathrm{Multinomial}(n_i,\boldsymbol{\pi}_i),
+\qquad
+n_i\sim\mathrm{LogNormal}(\mu_n,\sigma_n^2),
+$$ {#eq-mln-multinomial}
+
+with $n_i\perp\boldsymbol{\pi}_i$ (read depth is treated as a technical
+scale). The composition is logit-normal on the ALR chart that uses gene
+$G$ as the reference,
+
+$$
+\boldsymbol{w}_i
+=\mathrm{alr}(\boldsymbol{\pi}_i)
+=\log(\pi_{1,i}/\pi_{G,i},\ldots,\pi_{G-1,i}/\pi_{G,i}),
+\qquad
+\boldsymbol{w}_i\sim\mathcal{N}_{G-1}(\boldsymbol{\mu}_w,\boldsymbol{\Sigma}_w),
+\qquad
+\boldsymbol{\pi}_i=\psi(\boldsymbol{w}_i),
+$$ {#eq-mln-alr}
+
+where $\psi$ is the additive logistic map already used for cell-type
+ratios ([`additive_logistic()`](../reference/additive_logistic.html)).
+When $G$ is large relative to the number of bulk samples, McGregor et
+al. penalise the Gaussian log-likelihood of the $\boldsymbol{w}_i$ with a
+graphical lasso on the ALR precision
+$\boldsymbol{\Omega}_w=\boldsymbol{\Sigma}_w^{-1}$
+[@friedmanSparseInverseCovariance2008], or the same $\ell_1$ penalty
+on the CLR precision
+$(\mathbf{G}^{\mathsf{T}}\boldsymbol{\Sigma}_w\mathbf{G})^{-1}$. That
+shrinks spurious gene–gene partial correlations. Their target is
+proportionality ($\phi$, $\rho$, log-ratio variances) on the latent
+$\boldsymbol{\pi}_i$, because empirical log-ratios of raw counts are
+biased by variation in $n_i$.
+
+This is **not** DeCovarT's convolution ([the Gaussian convolution](theory-mixture-regression-applications.html#eq-gaussian-convolution)). There
+is no mixing $\sum_j p_j\boldsymbol{\mu}_j$ of purified profiles, and no
+$\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j$. Current
+DeCovarT treats $\boldsymbol{y}_{\cdot i}$ as an unbounded continuous
+intensity. Library size is omitted: the counts are not constrained to
+sum to $n_i$.
+
+A fully compositional deconvolution would keep **two** simplices. Cell
+ratios $\boldsymbol{p}_i\in\Delta^{J-1}$ stay on the existing ALR chart
+$\boldsymbol{\rho}_i=\mathrm{alr}(\boldsymbol{p}_i)$. Gene composition stays
+on @eq-mln-alr. The two can be coupled by a regression of the gene-ALR
+mean on $\boldsymbol{p}_i$, for example
+$\boldsymbol{\mu}_w(\boldsymbol{p}_i)=\mathbf{B}\boldsymbol{p}_i$, still without
+forming a Gaussian convolution of cell-type covariances. @fig-mln-dag
+is that joint directed graph, drawn with the symbol key of the other
+plate diagrams: grey circles observed, blue circles latent, dotted
+circles deterministic, squares fixed.
+
+```{.tikz}
+%%| label: fig-mln-dag
+%%| fig-cap: Directed graph for a logit-normal multinomial gene composition (McGregor et al.) extended with a second simplex for cell-type ratios. Grey circles are observed, blue circles are latent, dotted circles are deterministic and squares are fixed parameters. The dashed arrow from $\boldsymbol{p}_{\cdot i}$ into $\boldsymbol{\mu}_w$ is the optional deconvolution link; it is not a Gaussian convolution of $\boldsymbol{\Sigma}_j$.
+%%| filename: fig-mln-dag
+%%| alt: Graphical model inside a plate over bulk samples i. Fixed mu_rho and Omega_rho generate the latent ALR coordinate rho_i; p_i is computed from rho_i; a dashed arrow from p_i to the deterministic mean mu_w = B p_i marks the optional deconvolution link. mu_w and the fixed precision Omega_w generate the latent gene log-ratios w_i; the gene composition pi_i is computed from w_i; the observed library size n_i, drawn from fixed mu_n and sigma_n squared, and pi_i generate the observed counts y_i through a multinomial.
+\begin{tikzpicture}[node distance=12mm]
+\node[const] (mur) {$\boldsymbol{\mu}_{\rho}$};
+\node[const, right=6mm of mur] (Or) {$\boldsymbol{\Omega}_{\rho}$};
+\node[stoch, below=of $(mur)!0.5!(Or)$] (rho) {$\boldsymbol{\rho}_i$};
+\node[det, below=of rho] (p) {$\boldsymbol{p}_{\cdot i}$};
+\node[det, right=14mm of p] (muw) {$\boldsymbol{\mu}_w$};
+\node[const, right=14mm of muw] (Ow) {$\boldsymbol{\Omega}_w$};
+\node[stoch, below=of $(muw)!0.5!(Ow)$] (w) {$\boldsymbol{w}_i$};
+\node[det, below=of w] (pi) {$\boldsymbol{\pi}_i$};
+\node[obs, below=of pi] (y) {$\boldsymbol{y}_{\cdot i}$};
+\node[obs, left=16mm of y] (n) {$n_i$};
+\node[const, left=10mm of n] (mun) {$\mu_n,\sigma_n^{2}$};
+\node[note, left=1mm of rho] (nr) {$\mathcal{N}(\boldsymbol{\mu}_{\rho},\boldsymbol{\Omega}_{\rho}^{-1})$};
+\node[note, left=1mm of p] (np) {$\mathrm{alr}^{-1}(\boldsymbol{\rho}_i)$};
+\node[note, right=1mm of w] (nw) {$\mathcal{N}_{G-1}(\boldsymbol{\mu}_w,\boldsymbol{\Omega}_w^{-1})$};
+\node[note, right=1mm of pi] (npi) {$\psi(\boldsymbol{w}_i)$};
+\node[note, right=1mm of y] (ny) {$\mathrm{Multinomial}(n_i,\boldsymbol{\pi}_i)$};
+\node[note, above=1mm of muw] (nmw) {$\mathbf{B}\boldsymbol{p}_{\cdot i}$};
+\draw[edge] (mur) -- (rho); \draw[edge] (Or) -- (rho);
+\draw[edge] (rho) -- (p);
+\draw[dashededge] (p) -- (muw);
+\draw[edge] (muw) -- (w); \draw[edge] (Ow) -- (w);
+\draw[edge] (w) -- (pi); \draw[edge] (pi) -- (y);
+\draw[edge] (mun) -- (n); \draw[edge] (n) -- (y);
+\plate{samples}{(rho)(p)(muw)(nmw)(w)(pi)(y)(n)(nr)(np)(nw)(npi)(ny)}{$i=1,\ldots,N$}
+\end{tikzpicture}
+```
+
+# References

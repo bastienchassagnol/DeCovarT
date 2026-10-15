@@ -525,7 +525,7 @@ in $p$ with only box bounds, can leave the simplex during the line
 search and land near a face after $p/\sum p$, which is the raincloud's
 $26\%$ bound rate. None of these paths is the Godambe sandwich or a
 Firth penalty [@firthBiasReductionMaximum1993]; both remain outlook
-([perspectives](theory-decovart-statistical-perspectives.html#sec-firth)).
+([perspectives](theory-DeCovarT-MLE-properties.html#sec-firth)).
 With $N=1$, the honest frequentist statement for a rare type is still
 the restricted LRT / parametric bootstrap of the MLE article, not a
 Wald ellipse from `vcov_ilr_delta()`.

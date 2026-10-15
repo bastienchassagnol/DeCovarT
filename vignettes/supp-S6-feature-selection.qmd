@@ -64,7 +64,7 @@ Interactive signature refinement utilities (zero filtering, specificity binning,
 \end{tikzpicture}
 ```
 
-Sections are cross-linked below: @sec-preprocess builds moments; @sec-precision-timing places sparse $\boldsymbol{\Omega}_{j}$ estimation after gene filtering; @sec-univariate and @sec-multivariate score genes; @sec-four-scores and @sec-pareto-panel assemble a working panel; @sec-cv-selection and @sec-recommended assemble a pipeline; @sec-perspectives covers continua, Markov blankets, mechanistic priors (see @sec-mechanistic), information-optimal design as an extension (see @sec-optimal-design), and caveats (see @sec-caveats).
+Sections are cross-linked below: @sec-preprocess builds moments; @sec-univariate and @sec-multivariate score genes; @sec-four-scores and @sec-pareto-panel assemble a working panel; @sec-cv-selection and @sec-recommended assemble a pipeline; @sec-perspectives covers continua, Markov blankets, mechanistic priors (see @sec-mechanistic), information-optimal design as an extension (see @sec-optimal-design), and caveats (see @sec-caveats).
 
 # Notation {#sec-notation}
 

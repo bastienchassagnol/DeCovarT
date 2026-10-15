@@ -19,7 +19,8 @@ NULL
 #' G1.0, G1.1: see [deconvolute_ratios()] (DSection as closest method;
 #' first multivariate Gaussian-convolution MLE).
 #' G1.3, G1.4, G1.4a: see `DeCovarT-package`.
-#' G2.3 / G2.3a / G2.3b: see `.match_arg_case_insensitive()`, [check_true_theta()],
+#' G2.3 / G2.3a / G2.3b: see `.match_arg_case_insensitive()`,
+#' [check_true_theta()],
 #' [generate_random_network_skeleton()], [plot_correlation_Heatmap()].
 #' G2.4-G2.16, G4.0, G5.8d: see `R/utils.R` and [deconvolute_ratios()].
 #' G3.0: see [repair_simplex()] and tests (`100 * .Machine$double.eps`).
@@ -226,7 +227,8 @@ NULL
 #'
 #' @srrstats {RE4.9} `fitted(fit)` is \(\boldsymbol{\mu}\hat{\boldsymbol{P}}\).
 #'
-#' @srrstats {RE4.10} `residuals(fit)` is \(\boldsymbol{Y}-\hat{\boldsymbol{Y}}\).
+#' @srrstats {RE4.10} `residuals(fit)` is
+#'   \(\boldsymbol{Y}-\hat{\boldsymbol{Y}}\).
 #'   These are convolution residuals, not OLS residuals; GoF is the MLE
 #'   log-likelihood (RE4.11).
 #'
@@ -279,7 +281,8 @@ NULL
 #'   `vcov`, `nobs`, `print`, `summary`, `plot`.
 #'
 #' PD - Probability Distributions (v0.2.0)
-#' See <https://stats-devguide.ropensci.org/standards.html#standards-distributions>.
+#' See
+#' <https://stats-devguide.ropensci.org/standards.html#standards-distributions>.
 #' DeCovarT is primarily Regression/Supervised Learning; the generative
 #' model is a fixed multivariate Gaussian convolution of purified cell-type
 #' profiles, so PD standards apply to that distributional core only.
@@ -358,7 +361,7 @@ NULL
 #'   Gaussian-convolution regression (G1.1). Mean-only and second-generation
 #'   single-cell deconvolution tools are related but not alternative
 #'   implementations of the same estimator; the statistical contrast is
-#'   in `vignettes/theory-decovart-statistical-perspectives.qmd`, and the
+#'   in `vignettes/theory-review-distribution-aware-deconvolution.qmd`, and the
 #'   gastruloid pipeline comparison is in the companion repository.
 #' @srrstatsNA {G5.7} Runtime scaling of the *solvers* versus \(G\) and
 #'   \(J\) is not a claim of this package release. The rOpenSci editors

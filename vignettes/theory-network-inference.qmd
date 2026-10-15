@@ -55,7 +55,7 @@ among genes within each purified profile—or across a pooled design matrix.
 When $\boldsymbol{p}$ is already known, `CSNet` estimates type-level
 co-expression from the same convolution; the mapping onto DeCovarT's
 precision $\boldsymbol{\Omega}_j$ is in the
-[perspectives vignette](theory-decovart-statistical-perspectives.html#sec-csnet)
+[perspectives vignette](theory-review-distribution-aware-deconvolution.html#sec-csnet)
 [@suEstimatingCellTypeSpecificGene2024].
 :::
 
