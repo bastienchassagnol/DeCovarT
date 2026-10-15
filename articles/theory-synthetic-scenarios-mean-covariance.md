@@ -43,17 +43,7 @@ scenario grids live in `scripts/fig02_bivariate_toy.R`. Direct solver
 calls use
 [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md).
 
-``` mermaid
-%%{init: {"theme": "sandstone"}}%%
-flowchart LR
-  A["Graph G"] --> B["Weights W(G)"]
-  B --> C["Precision Ω ≻ 0"]
-  C --> D["Σ = Ω^{-1}"]
-  E["Means μ_j\n(Gram R^{1/2})"] --> F["simulate_hierarchical_grn_moments()"]
-  D --> F
-  F --> G["simulate_bulk_mixture()"]
-  G --> H["deconvolute_ratios()"]
-```
+![](theory-synthetic-scenarios-mean-covariance_files/mediabag/fig-pipeline-api.svg)
 
 Figure 1: Pipeline from synthetic moment generation to deconvolution.
 
@@ -337,15 +327,7 @@ completes it to \Omega\succ 0 by an affine spectral shift;
 maps each slice \boldsymbol{\Sigma}\_j=\boldsymbol{\Omega}\_j^{-1} (cell
 types need not share one network).
 
-``` mermaid
-%%{init: {"theme": "sandstone"}}%%
-flowchart LR
-  G["Undirected graph G"] --> W["Signed weights W(G)"]
-  W --> Omega["SPD precision Ω"]
-  Omega --> Latent["Latent Gaussian X"]
-  Mu["Mean design μ"] --> Latent
-  Latent --> Obs["Observation layer"]
-```
+![](theory-synthetic-scenarios-mean-covariance_files/mediabag/fig-ggm-pipeline.svg)
 
 Figure 4: Undirected simulation pipeline from topology to observations
 (optional observation layer dashed).

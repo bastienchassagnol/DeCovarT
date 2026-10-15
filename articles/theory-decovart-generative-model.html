@@ -20,7 +20,6 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="theory-decovart-generative-model_files/libs/quarto-html/popper.min.js"></script><script src="theory-decovart-generative-model_files/libs/quarto-html/tippy.umd.min.js"></script><link href="theory-decovart-generative-model_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="theory-decovart-generative-model_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<script src="theory-decovart-generative-model_files/libs/quarto-diagram/mermaid.min.js"></script><script src="theory-decovart-generative-model_files/libs/quarto-diagram/mermaid-init.js"></script><link href="theory-decovart-generative-model_files/libs/quarto-diagram/mermaid.css" rel="stylesheet">
 <!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Derivatives of the DeCovarT generative model under simplex transforms">
 <meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg">
 </head>
@@ -64,7 +63,7 @@
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: OLS, Bayesian, quasi-likelihood, and more</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-bulk-alignment.html"><span class="fa fa-align-left"></span> Single-cell to bulk alignment: cell counts, averages, compositions</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-bulk-alignment.html"><span class="fa fa-align-left"></span> Single-cell to bulk alignment: measurement models, engines, four strategies</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary simulation appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/supp-S1-identifiability.html"><span class="fa fa-vial"></span> App. S1 · Regular-case MLE and identifiability</a></li>
@@ -100,7 +99,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Derivatives of the DeCovarT generative model under simplex transforms</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-01</p>
+      <p class="date">2026-10-15</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-decovart-generative-model.qmd" class="external-link"><code>vignettes/theory-decovart-generative-model.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -780,27 +779,12 @@ I_{\boldsymbol{\rho}}^{-1}
 <section class="level2"><h3 id="sec-backend-decision">Decision tree<a class="anchor" aria-label="anchor" href="#sec-backend-decision"></a>
 </h3>
 <p>Structure is supplied explicitly, never inferred from floating-point near-zeros, so a numerical near-zero is never mistaken for an exact conditional independence. <a href="../reference/covariance_structure_from_graph_model.html"><code>covariance_structure_from_graph_model()</code></a> maps a network topology to the recommended backend. A sparse <em>precision</em> <span class="math inline">\boldsymbol{\Omega}_j</span> does not imply a sparse <em>covariance</em> <span class="math inline">\boldsymbol{\Sigma}_j</span>; only structure that survives in <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span> itself accelerates the likelihood.</p>
-<div class="cell" data-layout-align="default">
-<div class="cell-output-display">
 <div id="fig-backend-decision" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-backend-decision-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div>
-<pre class="mermaid mermaid-js" data-label="fig-backend-decision">%%{init: {"theme": "sandstone"}}%%
-flowchart TD
-  A["Sigma(p) = sum_j p_j^2 Sigma_j"] --&gt; B{"Declared covariance structure?"}
-  B --&gt;|"none (default)"| D["Dense Cholesky\nO(G^3)"]
-  B --&gt;|"disconnected modules\n(stochastic block model)"| E["Block Cholesky\nO(sum_b G_b^3)"]
-  B --&gt;|"ordered local dependence\n(band / AR)"| F["Banded Cholesky\nO(G b^2)"]
-  B --&gt;|"fixed sparse pattern\n(Erdos-Renyi, scale-free, small-world)"| G["Sparse Cholesky\nsymbolic ordering computed once"]
-  B --&gt;|"shared programs / bridge hubs\n(pathways, housekeeping genes)"| H["Woodbury / Schur\nO(G r^2)"]
-</pre>
+<img src="theory-decovart-generative-model_files/mediabag/fig-backend-decision.svg">
 </div>
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-backend-decision-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 1: Choosing a covariance backend; dense Cholesky is the default and structured backends are exact refinements.
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-backend-decision-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca"><p>Figure 1: Choosing a covariance backend; dense Cholesky is the default and structured backends are exact refinements.</p>
 </figcaption></figure>
-</div>
-</div>
 </div>
 <p>Each refinement is exact, not approximate:</p>
 <ul>

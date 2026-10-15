@@ -64,7 +64,7 @@
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: OLS, Bayesian, quasi-likelihood, and more</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-bulk-alignment.html"><span class="fa fa-align-left"></span> Single-cell to bulk alignment: cell counts, averages, compositions</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-bulk-alignment.html"><span class="fa fa-align-left"></span> Single-cell to bulk alignment: measurement models, engines, four strategies</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary simulation appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/supp-S1-identifiability.html"><span class="fa fa-vial"></span> App. S1 · Regular-case MLE and identifiability</a></li>
@@ -100,7 +100,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>2.2 Covariance-driven scenario (G = 20, J = 3)</h1>
       <p class="subtitle">Full script: <code>scripts/fig03_variance_driven.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-01</p>
+      <p class="date">2026-10-15</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/fig03-covariance-driven.qmd" class="external-link"><code>vignettes/fig03-covariance-driven.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -116,58 +116,37 @@
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">DeCovarT</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 <p>The bivariate toy confirms the theoretical benefit of covariance modelling in a transparent setting but cannot demonstrate realistic gene-regulatory network (GRN) topology. This scenario uses <span class="math inline">G = 20</span> genes and <span class="math inline">J = 3</span> cell types in which types 1 and 2 are <strong>mean-collinear</strong> (<span class="math inline">\cos(\boldsymbol{\mu}_{\cdot 1},\boldsymbol{\mu}_{\cdot 2})=0.9</span>): the network topology encoded in <span class="math inline">\boldsymbol{\Sigma}_j</span> is the remaining discriminative signal. Construction, ADEMP benchmark, and the static network figure live in a <strong>single</strong> script, <code>scripts/fig03_variance_driven.R</code> (seed <code>20260807</code>).</p>
-<div class="cell" data-eval="true" data-layout-align="default">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>%%{init: {"theme": "sandstone"}}%%</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>flowchart TD</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  P["3 compositions&lt;br/&gt;H* = 1 / 0.5 / 0.1"] --&gt; S["36 scenarios"]</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  G["2 x 2 graph assignments&lt;br/&gt;CT1, CT2: scale-free / cluster SBM"] --&gt; S</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  C["CT3 graph held at scale-free"] --&gt; S</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  K["3 target BarOmega levels&lt;br/&gt;low / moderate / high"] --&gt; S</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  S --&gt; A["5 deconvolution solvers"]</span></code></pre></div>
-<div class="cell-output-display">
 <div id="fig-covariance-design" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-covariance-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div>
-<pre class="mermaid mermaid-js" data-label="fig-covariance-design">%%{init: {"theme": "sandstone"}}%%
-flowchart TD
-  P["3 compositions&lt;br/&gt;H* = 1 / 0.5 / 0.1"] --&gt; S["36 scenarios"]
-  G["2 x 2 graph assignments&lt;br/&gt;CT1, CT2: scale-free / cluster SBM"] --&gt; S
-  C["CT3 graph held at scale-free"] --&gt; S
-  K["3 target BarOmega levels&lt;br/&gt;low / moderate / high"] --&gt; S
-  S --&gt; A["5 deconvolution solvers"]
-</pre>
+<img src="fig03-covariance-driven_files/mediabag/fig-covariance-design.svg">
 </div>
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-covariance-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 1: Covariance-driven factorial: one fixed Gram (cosines 0.9 / 0.1), a 2-by-2 graph assignment on the mean-collinear types (scale-free versus cluster SBM; type 3 held at scale-free), three target MixSim average overlaps, three Shannon compositions, and five solvers (4 x 3 x 3 = 36 scenarios).
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-covariance-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca"><p>Figure 1: Covariance-driven factorial: one fixed Gram (cosines 0.9 / 0.1), a 2-by-2 graph assignment on the mean-collinear types (scale-free versus cluster SBM; type 3 held at scale-free), three target MixSim average overlaps, three Shannon compositions, and five solvers (4 x 3 x 3 = 36 scenarios).</p>
 </figcaption></figure>
 </div>
-</div>
-</div>
 <div class="cell" data-eval="true" data-layout-align="default">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>config:</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  layout: elk</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  theme: sandstone</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>flowchart TB</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  ROOT["Covariance-driven G=20, J=3"]</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SfSf["CT1 SF, CT2 SF"]</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SfSb["CT1 SF, CT2 SBM"]</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SbSf["CT1 SBM, CT2 SF"]</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SbSb["CT1 SBM, CT2 SBM"]</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  SfSf --&gt; SfSfLo["Low overlap"]</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  SfSf --&gt; SfSfMo["Moderate overlap"]</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>  SfSf --&gt; SfSfHi["High overlap"]</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  SfSb --&gt; SfSbLo["Low overlap"]</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  SfSb --&gt; SfSbMo["Moderate overlap"]</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  SfSb --&gt; SfSbHi["High overlap"]</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  SbSf --&gt; SbSfLo["Low overlap"]</span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  SbSf --&gt; SbSfMo["Moderate overlap"]</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  SbSf --&gt; SbSfHi["High overlap"]</span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbLo["Low overlap"]</span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbMo["Moderate overlap"]</span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbHi["High overlap"]</span></code></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>config:</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  layout: elk</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  theme: sandstone</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>flowchart TB</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  ROOT["Covariance-driven G=20, J=3"]</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SfSf["CT1 SF, CT2 SF"]</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SfSb["CT1 SF, CT2 SBM"]</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SbSf["CT1 SBM, CT2 SF"]</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; SbSb["CT1 SBM, CT2 SBM"]</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  SfSf --&gt; SfSfLo["Low overlap"]</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  SfSf --&gt; SfSfMo["Moderate overlap"]</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  SfSf --&gt; SfSfHi["High overlap"]</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  SfSb --&gt; SfSbLo["Low overlap"]</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  SfSb --&gt; SfSbMo["Moderate overlap"]</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  SfSb --&gt; SfSbHi["High overlap"]</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  SbSf --&gt; SbSfLo["Low overlap"]</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  SbSf --&gt; SbSfMo["Moderate overlap"]</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  SbSf --&gt; SbSfHi["High overlap"]</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbLo["Low overlap"]</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbMo["Moderate overlap"]</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbHi["High overlap"]</span></code></pre></div>
 <div class="cell-output-display">
 <div id="fig-covariance-design-tree" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-covariance-design-tree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -396,7 +375,7 @@ Table 3: Solvers used in the covariance-driven comparison.
 </div>
 <p>Mean-only baselines (LSEI, CIBERSORT) ignore <span class="math inline">\boldsymbol{\Sigma}_j</span>. The three DeCovarT maps use the same convolution likelihood. The shipped catalogue (robust linear model, GLS, BFGS, simulated annealing) is listed in <a href="../reference/deconvolute_ratios.html"><code>deconvolute_ratios()</code></a>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">N_REPLICATES</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"N_REPLICATES"</span>, unset <span class="op">=</span> <span class="st">"50"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">ALGORITHMS</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>  <span class="st">"lsei"</span>,</span>
@@ -505,7 +484,7 @@ Table 3: Solvers used in the covariance-driven comparison.
 </h4>
 <p>The top row fits a two-factor Gaussian factor model <strong>separately</strong> to purified draws from each type (<code><a href="https://rdrr.io/r/stats/factanal.html" class="external-link">stats::factanal()</a></code>, Thomson / regression scores <span class="citation" data-cites="thomsonMethodsEstimatingMental1938">(<a href="#ref-thomsonMethodsEstimatingMental1938" role="doc-biblioref">Thomson 1938</a>)</span>). The orthogonal-factor model is <span class="math inline">\boldsymbol{x}=\boldsymbol{\mu}+\Lambda\boldsymbol{f}+\boldsymbol{\varepsilon}</span> with <span class="math inline">\boldsymbol{f}\sim N(\boldsymbol{0},I)</span> and diagonal uniquenesses <span class="math inline">\Psi</span>, so <span class="math inline">\boldsymbol{\Sigma}=\Lambda\Lambda^\top+\Psi</span>. Thomson scores are the posterior mean <span class="math inline">\hat{\boldsymbol{f}}_R=E[\boldsymbol{f}\mid\boldsymbol{x}]=\Lambda^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{\mu})</span>. That is the natural probabilistic answer to “where does this 20-gene profile sit in the plane?”. Bartlett scores (uniqueness- weighted GLS) remain a <code>factanal(..., scores = "Bartlett")</code> sensitivity check and are not plotted. Gene-wise marginal variances are comparable after the global MixSim scale, so uniquenesses are less heterogeneous than in a typical psychometric battery. Independent per-type fits do <strong>not</strong> share a loading matrix: the three planes are not superimposed.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/factanal.html" class="external-link">factanal</a></span><span class="op">(</span></span>
 <span>  <span class="va">X</span>,</span>
 <span>  factors <span class="op">=</span> <span class="fl">2</span>,</span>

@@ -21,25 +21,7 @@ Reporting conventions (ADEMP, Nature Methods, raincloud / forest plots)
 are in [how to build synthetic
 scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-scenarios-mean-covariance.html#sec-ademp).
 
-``` default
-%%{init: {"theme": "sandstone"}}%%
-flowchart TD
-  P["3 compositions<br/>Ba / Mo / Hi"] --> S["972 scenarios"]
-  V["2 variance structures<br/>Ho homoscedastic / He heteroscedastic"] --> S
-  C["2 CLD mean separations<br/>Sm small / Lg large"] --> S
-  R["9 x 9 gene-gene correlations<br/>rho in -0.8 to 0.8, step 0.2"] --> S
-  S --> A["7 deconvolution solvers"]
-```
-
-``` mermaid
-%%{init: {"theme": "sandstone"}}%%
-flowchart TD
-  P["3 compositions<br/>Ba / Mo / Hi"] --> S["972 scenarios"]
-  V["2 variance structures<br/>Ho homoscedastic / He heteroscedastic"] --> S
-  C["2 CLD mean separations<br/>Sm small / Lg large"] --> S
-  R["9 x 9 gene-gene correlations<br/>rho in -0.8 to 0.8, step 0.2"] --> S
-  S --> A["7 deconvolution solvers"]
-```
+![](fig02-bivariate-toy_files/mediabag/fig-bivariate-design.svg)
 
 Figure 1: Bivariate toy factorial design: three compositions, two
 variance structures, two CLD mean separations, a 9-by-9 gene-gene

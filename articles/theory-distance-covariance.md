@@ -155,19 +155,7 @@ emits a `cli` note and uses this estimator. Hellinger of the purified
 Gaussians remains a cheap closed-form *descriptor*, not a MixSim
 `BarOmega` substitute.
 
-``` default
-flowchart TD
-  A["Component Gaussians"] --> B{"G < 4?"}
-  B -->|yes| C["MixSim::overlap Davies"]
-  B -->|no| D["overlap_gaussian_mc Sobol"]
-```
-
-``` mermaid
-flowchart TD
-  A["Component Gaussians"] --> B{"G < 4?"}
-  B -->|yes| C["MixSim::overlap Davies"]
-  B -->|no| D["overlap_gaussian_mc Sobol"]
-```
+![](theory-distance-covariance_files/mediabag/fig-overlap-routes.svg)
 
 Figure 1: Routes to MixSim-style average overlap. Exact Davies
 quadrature is used only for G \< 4; otherwise stratified Sobol Monte

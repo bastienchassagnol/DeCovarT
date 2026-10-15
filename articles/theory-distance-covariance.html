@@ -20,7 +20,6 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="theory-distance-covariance_files/libs/quarto-html/popper.min.js"></script><script src="theory-distance-covariance_files/libs/quarto-html/tippy.umd.min.js"></script><link href="theory-distance-covariance_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="theory-distance-covariance_files/libs/quarto-html/light-border.css" rel="stylesheet">
-<script src="theory-distance-covariance_files/libs/quarto-diagram/mermaid.min.js"></script><script src="theory-distance-covariance_files/libs/quarto-diagram/mermaid-init.js"></script><link href="theory-distance-covariance_files/libs/quarto-diagram/mermaid.css" rel="stylesheet">
 <!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Distances, overlap, and covariance information">
 <meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg">
 </head>
@@ -64,7 +63,7 @@
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: OLS, Bayesian, quasi-likelihood, and more</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-bulk-alignment.html"><span class="fa fa-align-left"></span> Single-cell to bulk alignment: cell counts, averages, compositions</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-bulk-alignment.html"><span class="fa fa-align-left"></span> Single-cell to bulk alignment: measurement models, engines, four strategies</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary simulation appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/supp-S1-identifiability.html"><span class="fa fa-vial"></span> App. S1 · Regular-case MLE and identifiability</a></li>
@@ -100,7 +99,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Distances, overlap, and covariance information</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-01</p>
+      <p class="date">2026-10-15</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-distance-covariance.qmd" class="external-link"><code>vignettes/theory-distance-covariance.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -182,27 +181,12 @@ d_R(A,B)
 <strong>Inverse-transform sampling</strong> then maps each coordinate <span class="math inline">u_g\mapsto\Phi^{-1}(u_g)</span> and left-multiplies by the Cholesky factor of <span class="math inline">\Sigma_j</span>, so the image is exactly <span class="math inline">\mathcal{N}(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_j)</span>. Without that map, Sobol points would not have the right Gaussian law.</li>
 </ul>
 <p>The remaining implementation details are precomputed Cholesky factors, log-density evaluation, and stratification by component (not draws from the mixture). When <span class="math inline">G\ge 4</span>, <code><a href="../reference/compute_average_overlap.html">compute_average_overlap()</a></code> emits a <code>cli</code> note and uses this estimator. Hellinger of the purified Gaussians remains a cheap closed-form <em>descriptor</em>, not a MixSim <code>BarOmega</code> substitute.</p>
-<div class="cell" data-eval="true" data-layout-align="default">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>flowchart TD</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  A["Component Gaussians"] --&gt; B{"G &lt; 4?"}</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  B --&gt;|yes| C["MixSim::overlap Davies"]</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  B --&gt;|no| D["overlap_gaussian_mc Sobol"]</span></code></pre></div>
-<div class="cell-output-display">
 <div id="fig-overlap-routes" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-overlap-routes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div>
-<pre class="mermaid mermaid-js" data-label="fig-overlap-routes">flowchart TD
-  A["Component Gaussians"] --&gt; B{"G &lt; 4?"}
-  B --&gt;|yes| C["MixSim::overlap Davies"]
-  B --&gt;|no| D["overlap_gaussian_mc Sobol"]
-</pre>
+<img src="theory-distance-covariance_files/mediabag/fig-overlap-routes.svg">
 </div>
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-overlap-routes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 1: Routes to MixSim-style average overlap. Exact Davies quadrature is used only for G &lt; 4; otherwise stratified Sobol Monte Carlo.
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-overlap-routes-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca"><p>Figure 1: Routes to MixSim-style average overlap. Exact Davies quadrature is used only for G &lt; 4; otherwise stratified Sobol Monte Carlo.</p>
 </figcaption></figure>
-</div>
-</div>
 </div>
 </section></section><section class="section level2"><h2 id="sec-fig03-scale">Fig03: topology fixed, overlap as the knob<a class="anchor" aria-label="anchor" href="#sec-fig03-scale"></a>
 </h2>

@@ -38,8 +38,9 @@ average overlaps (precision zeros kept), Shannon H^{\star} compositions.
   log-likelihood](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.md):
 - [DeCovarT
   perspectives](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-statistical-perspectives.md):
-- [Aligning single-cell references with bulk: three generative
-  formulations](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-bulk-alignment.md):
+- [Aligning single-cell references with bulk: measurement models,
+  deconvolution engines and four alignment
+  strategies](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-bulk-alignment.md):
 
 ### Supplementary simulation appendix
 

@@ -15,25 +15,7 @@ discriminative signal. Construction, ADEMP benchmark, and the static
 network figure live in a **single** script,
 `scripts/fig03_variance_driven.R` (seed `20260807`).
 
-``` default
-%%{init: {"theme": "sandstone"}}%%
-flowchart TD
-  P["3 compositions<br/>H* = 1 / 0.5 / 0.1"] --> S["36 scenarios"]
-  G["2 x 2 graph assignments<br/>CT1, CT2: scale-free / cluster SBM"] --> S
-  C["CT3 graph held at scale-free"] --> S
-  K["3 target BarOmega levels<br/>low / moderate / high"] --> S
-  S --> A["5 deconvolution solvers"]
-```
-
-``` mermaid
-%%{init: {"theme": "sandstone"}}%%
-flowchart TD
-  P["3 compositions<br/>H* = 1 / 0.5 / 0.1"] --> S["36 scenarios"]
-  G["2 x 2 graph assignments<br/>CT1, CT2: scale-free / cluster SBM"] --> S
-  C["CT3 graph held at scale-free"] --> S
-  K["3 target BarOmega levels<br/>low / moderate / high"] --> S
-  S --> A["5 deconvolution solvers"]
-```
+![](fig03-covariance-driven_files/mediabag/fig-covariance-design.svg)
 
 Figure 1: Covariance-driven factorial: one fixed Gram (cosines 0.9 /
 0.1), a 2-by-2 graph assignment on the mean-collinear types (scale-free

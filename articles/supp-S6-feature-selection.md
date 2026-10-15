@@ -34,19 +34,7 @@ binning, Gini / entropy compaction) are implemented in
 [`DeconvExplorer`](https://github.com/omnideconv/deconvExplorer)
 (omnideconv ecosystem; cite as software once added to `packages.bib`).
 
-``` mermaid
-%%{init: {"theme": "sandstone"}}%%
-flowchart TD
-  A["Reference μ, Σ from sc / bulk"] --> B["Univariate"]
-  A --> C["Multivariate"]
-  B --> B1["One vs others"]
-  B --> B2["All vs all"]
-  C --> C1["One vs others <br/> (GGM / DiffNet)"]
-  C --> C2["All vs all <br/> (κ, overlap)"]
-  B2 --> D["Consensual panel G"]
-  C2 --> D
-  D --> E["Perspectives: <br/> mechanistic / potency / archetypes"]
-```
+![](supp-S6-feature-selection_files/mediabag/fig-feature-selection-layout.svg)
 
 Figure 1: Layout of this vignette: univariate and multivariate
 selection, each split into one-versus-others then all-versus-all,
@@ -816,19 +804,7 @@ the signature to nested CV ([Section 6.5.1](#sec-cv-selection)).
     Optional `CARNIVAL` / `CORNETO` pathway hypotheses as soft coverage
     constraints.
 
-``` mermaid
-%%{init: {"theme": "sandstone"}}%%
-flowchart TD
-  A["Donor split + pseudobulk"] --> B["SCTransform HVGs <br/> (no cell-type regression)"]
-  B --> C["Reliability / dropout filter"]
-  C --> D["Four-score shortlist: <br/> DESeq2 + glmnet + <br/> Jeffreys + MixSim"]
-  D --> E["Stability selection"]
-  E --> F["NSGA-II / greedy Pareto <br/> min κ2 and overlap"]
-  F --> G["Nested CV panel selection <br/> + held-out donor assessment"]
-  G --> H["Optional D/E/A design <br/> (perspective)"]
-  H --> I["CARNIVAL / CORNETO <br/> annotation"]
-  I --> J["External cohort check <br/> (see caveats)"]
-```
+![](supp-S6-feature-selection_files/mediabag/fig-recommended-pipeline.svg)
 
 Figure 8: Recommended reference-based feature-selection pipeline from
 donor pseudobulks to validated, mechanistically annotated panels.

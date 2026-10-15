@@ -64,7 +64,7 @@
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> MLE properties and asymptotic inference</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-statistical-perspectives.html"><span class="fa fa-compass"></span> DeCovarT perspectives: OLS, Bayesian, quasi-likelihood, and more</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-bulk-alignment.html"><span class="fa fa-align-left"></span> Single-cell to bulk alignment: cell counts, averages, compositions</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-bulk-alignment.html"><span class="fa fa-align-left"></span> Single-cell to bulk alignment: measurement models, engines, four strategies</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Supplementary simulation appendix</h6></li>
     <li><a class="dropdown-item" href="../articles/supp-S1-identifiability.html"><span class="fa fa-vial"></span> App. S1 · Regular-case MLE and identifiability</a></li>
@@ -100,7 +100,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>2.1 Bivariate toy model (G = 2 genes, J = 2 cell types)</h1>
       <p class="subtitle">Full script: <code>scripts/fig02_bivariate_toy.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-01</p>
+      <p class="date">2026-10-15</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/fig02-bivariate-toy.qmd" class="external-link"><code>vignettes/fig02-bivariate-toy.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -113,60 +113,39 @@
 
     <p>This article is the bivariate Gaussian-convolution toy of the methods paper (<span class="math inline">G=2</span>, <span class="math inline">J=2</span>). It isolates gene–gene correlation from mean separation. The factorial grid and ADEMP pipeline live in a <strong>single</strong> script, <code>scripts/fig02_bivariate_toy.R</code>. Scenario builders (<code>build_bivariate_scenario_config()</code>, <code>bivariate_toy_deconvolution_functions()</code>) sit at the top of that file. Sourcing the script from a vignette or from a temp copy in tests defines those functions without launching the 972-scenario pipeline.</p>
 <p><a href="../reference/run_simulation_benchmark.html"><code>run_simulation_benchmark()</code></a> wraps <code><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code>, <code><a href="../reference/deconvolute_ratios.html">deconvolute_ratios()</a></code>, and <code><a href="../reference/compute_benchmark_metrics.html">compute_benchmark_metrics()</a></code>. Scenario rows are sequential; sample-level workers live only in <code><a href="../reference/deconvolute_ratios.html">deconvolute_ratios()</a></code>. Reporting conventions (ADEMP, Nature Methods, raincloud / forest plots) are in <a href="theory-synthetic-scenarios-mean-covariance.html#sec-ademp">how to build synthetic scenarios</a>.</p>
-<div class="cell" data-eval="true" data-layout-align="default">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>%%{init: {"theme": "sandstone"}}%%</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>flowchart TD</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  P["3 compositions&lt;br/&gt;Ba / Mo / Hi"] --&gt; S["972 scenarios"]</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  V["2 variance structures&lt;br/&gt;Ho homoscedastic / He heteroscedastic"] --&gt; S</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  C["2 CLD mean separations&lt;br/&gt;Sm small / Lg large"] --&gt; S</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  R["9 x 9 gene-gene correlations&lt;br/&gt;rho in -0.8 to 0.8, step 0.2"] --&gt; S</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  S --&gt; A["7 deconvolution solvers"]</span></code></pre></div>
-<div class="cell-output-display">
 <div id="fig-bivariate-design" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-bivariate-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div>
-<pre class="mermaid mermaid-js" data-label="fig-bivariate-design">%%{init: {"theme": "sandstone"}}%%
-flowchart TD
-  P["3 compositions&lt;br/&gt;Ba / Mo / Hi"] --&gt; S["972 scenarios"]
-  V["2 variance structures&lt;br/&gt;Ho homoscedastic / He heteroscedastic"] --&gt; S
-  C["2 CLD mean separations&lt;br/&gt;Sm small / Lg large"] --&gt; S
-  R["9 x 9 gene-gene correlations&lt;br/&gt;rho in -0.8 to 0.8, step 0.2"] --&gt; S
-  S --&gt; A["7 deconvolution solvers"]
-</pre>
+<img src="fig02-bivariate-toy_files/mediabag/fig-bivariate-design.svg">
 </div>
-</div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-bivariate-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure 1: Bivariate toy factorial design: three compositions, two variance structures, two CLD mean separations, a 9-by-9 gene-gene correlation grid, and seven solvers (3 x 2 x 2 x 9 x 9 = 972 scenarios).
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-bivariate-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca"><p>Figure 1: Bivariate toy factorial design: three compositions, two variance structures, two CLD mean separations, a 9-by-9 gene-gene correlation grid, and seven solvers (3 x 2 x 2 x 9 x 9 = 972 scenarios).</p>
 </figcaption></figure>
 </div>
-</div>
-</div>
 <div class="cell" data-eval="true" data-layout-align="default">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>config:</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  layout: elk</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  theme: sandstone</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>---</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>flowchart TB</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  ROOT["Bivariate toy"]</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; Sm["Small CLD"]</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; Lg["Large CLD"]</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  Sm --&gt; SmHo["Homoscedastic"]</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  Sm --&gt; SmHe["Heteroscedastic"]</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  Lg --&gt; LgHo["Homoscedastic"]</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  Lg --&gt; LgHe["Heteroscedastic"]</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  SmHo --&gt; SmHoBa["Balanced"]</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  SmHo --&gt; SmHoMo["Moderately unbalanced"]</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  SmHo --&gt; SmHoHi["Highly unbalanced"]</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  SmHe --&gt; SmHeBa["Balanced"]</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  SmHe --&gt; SmHeMo["Moderately unbalanced"]</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>  SmHe --&gt; SmHeHi["Highly unbalanced"]</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  LgHo --&gt; LgHoBa["Balanced"]</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  LgHo --&gt; LgHoMo["Moderately unbalanced"]</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  LgHo --&gt; LgHoHi["Highly unbalanced"]</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  LgHe --&gt; LgHeBa["Balanced"]</span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  LgHe --&gt; LgHeMo["Moderately unbalanced"]</span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  LgHe --&gt; LgHeHi["Highly unbalanced"]</span></code></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>config:</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  layout: elk</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  theme: sandstone</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>flowchart TB</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  ROOT["Bivariate toy"]</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; Sm["Small CLD"]</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  ROOT --&gt; Lg["Large CLD"]</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  Sm --&gt; SmHo["Homoscedastic"]</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  Sm --&gt; SmHe["Heteroscedastic"]</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  Lg --&gt; LgHo["Homoscedastic"]</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  Lg --&gt; LgHe["Heteroscedastic"]</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  SmHo --&gt; SmHoBa["Balanced"]</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  SmHo --&gt; SmHoMo["Moderately unbalanced"]</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  SmHo --&gt; SmHoHi["Highly unbalanced"]</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  SmHe --&gt; SmHeBa["Balanced"]</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>  SmHe --&gt; SmHeMo["Moderately unbalanced"]</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  SmHe --&gt; SmHeHi["Highly unbalanced"]</span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  LgHo --&gt; LgHoBa["Balanced"]</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  LgHo --&gt; LgHoMo["Moderately unbalanced"]</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  LgHo --&gt; LgHoHi["Highly unbalanced"]</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  LgHe --&gt; LgHeBa["Balanced"]</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  LgHe --&gt; LgHeMo["Moderately unbalanced"]</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  LgHe --&gt; LgHeHi["Highly unbalanced"]</span></code></pre></div>
 <div class="cell-output-display">
 <div id="fig-bivariate-design-tree" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-bivariate-design-tree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -330,7 +309,7 @@ Figure 3: Factorial design (left) and correlation-only 2D densities (right) for
 <p>The slim design grid is <code>output/fig02/bivariate_config.rds</code> (no <code>true_theta</code>). Geometry, MixSim <code>BarOmega</code>, Hellinger, and Jeffreys live in <code>bivariate_descriptors.rds</code>. Convolution parameters are <code>bivariate_theta.rds</code>. ADEMP metrics (<code>regression</code>, <code>monte_carlo</code>, <code>optimisation</code>, <code>call</code>) are <code>bivariate_benchmark.rds</code>. All four files share the <code>ID</code> key. <code>read_simulation_artefacts(dir, "bivariate", assemble = TRUE)</code> rejoins them for plotting.</p>
 <p>The Monte Carlo <span class="math inline">\hat{\boldsymbol{p}}</span> draws themselves are the cell-type columns of <code>optimisation</code> (one row per replicate <span class="math inline">\times</span> algorithm <span class="math inline">\times</span> scenario). <code><a href="../reference/pivot_mc_estimates.html">pivot_mc_estimates()</a></code> stacks those columns into long form. Interior Wald intervals for convolution-likelihood solvers use <a href="../reference/vcov_ilr_delta.html"><code>vcov_ilr_delta()</code></a> (expected Fisher information through the ILR chart), matching <a href="../reference/fit_decovart.html"><code>confint.decovart_fit()</code></a>. Coverage, <code>mean_model_se</code>, and <code>se_sd_ratio</code> (mean model SE / empirical SD) are then finite. Mean-only solvers (NNLS, LSEI) leave those Wald columns missing: they do not maximise the convolution likelihood, so an ILR interval would not apply.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">DeCovarT</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"scripts/fig02_bivariate_toy.R"</span><span class="op">)</span></span>
 <span></span>
@@ -341,7 +320,7 @@ Figure 3: Factorial design (left) and correlation-only 2D densities (right) for
 </h3>
 <p>For <span class="math inline">J=2</span> the free coordinate is <span class="math inline">p_1\in(0,1)</span>. The listing below evaluates <span class="math inline">\ell_{\boldsymbol{y}\mid\boldsymbol{\zeta}}(p_1,1-p_1)</span> on one bulk draw. It is not executed during <code>R CMD build</code>: Quarto’s Windows CLI starts a new R process that cannot see the temporary library (<a href="https://github.com/quarto-dev/quarto-r/issues/217" class="external-link">quarto-r#217</a>). The same likelihood path is checked in <code>tests/testthat/</code>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">20260828</span><span class="op">)</span></span>
 <span><span class="va">rho</span> <span class="op">&lt;-</span> <span class="fl">0.6</span></span>
 <span><span class="va">R</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">rho</span>, <span class="va">rho</span>, <span class="fl">1</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
@@ -427,7 +406,7 @@ Figure 3: Factorial design (left) and correlation-only 2D densities (right) for
 </table>
 <p>Performance is summarised using the ADEMP framework <span class="citation" data-cites="morrisUsingSimulationStudies2019">(<a href="#ref-morrisUsingSimulationStudies2019" role="doc-biblioref">Morris et al. 2019</a>)</span>: <strong>bias</strong>, <strong>RMSE</strong>, <strong>coverage</strong> of ILR Wald intervals (Wilson intervals on the coverage <em>rate</em>), <strong>SE/SD</strong>, and optimiser <strong>failure rate</strong>. Mean-only baselines have no convolution Wald SE.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">N_REPLICATES</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"N_REPLICATES"</span>, unset <span class="op">=</span> <span class="st">"500"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">deconvolution_functions</span> <span class="op">&lt;-</span> <span class="fu">bivariate_toy_deconvolution_functions</span><span class="op">(</span></span>
 <span>  itmax <span class="op">=</span> <span class="fl">200L</span>,</span>

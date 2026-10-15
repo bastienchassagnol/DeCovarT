@@ -793,16 +793,7 @@ maps a network topology to the recommended backend. A sparse *precision*
 \boldsymbol{\Sigma}\_j; only structure that survives in
 \boldsymbol{\Sigma}(\boldsymbol{p}) itself accelerates the likelihood.
 
-``` mermaid
-%%{init: {"theme": "sandstone"}}%%
-flowchart TD
-  A["Sigma(p) = sum_j p_j^2 Sigma_j"] --> B{"Declared covariance structure?"}
-  B -->|"none (default)"| D["Dense Cholesky\nO(G^3)"]
-  B -->|"disconnected modules\n(stochastic block model)"| E["Block Cholesky\nO(sum_b G_b^3)"]
-  B -->|"ordered local dependence\n(band / AR)"| F["Banded Cholesky\nO(G b^2)"]
-  B -->|"fixed sparse pattern\n(Erdos-Renyi, scale-free, small-world)"| G["Sparse Cholesky\nsymbolic ordering computed once"]
-  B -->|"shared programs / bridge hubs\n(pathways, housekeeping genes)"| H["Woodbury / Schur\nO(G r^2)"]
-```
+![](theory-decovart-generative-model_files/mediabag/fig-backend-decision.svg)
 
 Figure 1: Choosing a covariance backend; dense Cholesky is the default
 and structured backends are exact refinements.
