@@ -120,15 +120,24 @@ navbar:
           href: articles/fig03-covariance-driven.html
         - text: -------
         - text: DeCovarT mathematical appendix
-        - text: MLE properties and asymptotic inference
+        - text: "Inference: MLE properties, intervals and a GLM formulation"
           icon: fa-chart-area
           href: articles/theory-DeCovarT-MLE-properties.html
-        - text: "DeCovarT perspectives: OLS, Bayesian, quasi-likelihood, and more"
-          icon: fa-compass
-          href: articles/theory-decovart-statistical-perspectives.html
-        - text: "Single-cell to bulk alignment: measurement models, engines, four strategies"
+        - text: "Review: deconvolution with reference distributions"
+          icon: fa-book
+          href: articles/theory-review-distribution-aware-deconvolution.html
+        - text: "DeCovarT tailored to single-cell references"
           icon: fa-align-left
-          href: articles/theory-decovart-single-cell-bulk-alignment.html
+          href: articles/theory-decovart-single-cell-tailored.html
+        - text: "Bayesian DeCovarT: latent profiles and the Wiener filter"
+          icon: fa-wave-square
+          href: articles/theory-decovart-bayesian-wiener.html
+        - text: "Extensions roadmap: lineages, covariates, modalities"
+          icon: fa-compass
+          href: articles/theory-decovart-extensions-roadmap.html
+        - text: "DeCovarT as a mixture model: designed mixture experiments"
+          icon: fa-flask-vial
+          href: articles/theory-mixture-regression-applications.html
         - text: -------
         - text: Supplementary simulation appendix
         - text: "App. S1 · Regular-case MLE and identifiability"
@@ -331,8 +340,11 @@ articles:
     contents:
       - theory-decovart-generative-model
       - theory-DeCovarT-MLE-properties
-      - theory-decovart-statistical-perspectives
-      - theory-decovart-single-cell-bulk-alignment
+      - theory-review-distribution-aware-deconvolution
+      - theory-decovart-single-cell-tailored
+      - theory-decovart-bayesian-wiener
+      - theory-decovart-extensions-roadmap
+      - theory-mixture-regression-applications
   - title: Supplementary simulation appendix
     desc: |
       Regular-case MLE checks in the open simplex, identifiability
@@ -357,4 +369,6 @@ news:
 
 redirects:
   - ["articles/how-to-build-synthetic-scenarios-mean-covariance.html", "articles/theory-synthetic-scenarios-mean-covariance.html"]
-  - ["articles/theory-related-models-beyond-OLS.html", "articles/theory-decovart-statistical-perspectives.html"]
+  - ["articles/theory-related-models-beyond-OLS.html", "articles/theory-decovart-extensions-roadmap.html"]
+  - ["articles/theory-decovart-statistical-perspectives.html", "articles/theory-decovart-extensions-roadmap.html"]
+  - ["articles/theory-decovart-single-cell-bulk-alignment.html", "articles/theory-decovart-single-cell-tailored.html"]
