@@ -1140,7 +1140,7 @@ These describe the **estimator as a repeated-sampling procedure**, not
 the distance between one \hat{\boldsymbol{p}} and one
 \boldsymbol{p}^{\star}. Each row of `monte_carlo` is one cell type.
 Coverage intervals around the *rate* \hat\pi are derived in
-[Note 20](#nte-binomial-coverage-ci).
+[Note 19](#nte-binomial-coverage-ci).
 
 | Metric | Formula | Bounds | Captures | Pros_cons |
 |----|----|----|----|----|
@@ -1331,27 +1331,6 @@ is the disjoint green disc. Stacked bars in
 the fig03 counterpart count these three categories on the same corner
 layout as the Wald forest.
 
-> **Warning 19: Why some raincloud panels look empty**
->
-> Two distinct mechanisms produced blank \hat p rainclouds on the fig02
-> book.
->
-> - **Legend overlay.** The four correlation corners are arranged as a
->   2\times 2. `rho = (-0.8, 0.8)` is the bottom-right facet. An inset
->   cowplot legend at (x,y)=(0.68,0.08) sat on top of that panel. The
->   legend now sits to the right of the facets
->   ([`cowplot::get_legend()`](https://wilkelab.org/cowplot/)).
-> - **Vertex pile-up.** On highly unbalanced compositions
->   (`rho = (0, 0)`, small CLD, homoscedastic), many solvers pin a rare
->   type at 0 and the abundant type at 1. A bounded kernel density on
->   \[0,1\] with almost no unique values emits an empty slab. The
->   raincloud helper now overlays Monte Carlo dots whenever a group has
->   two or fewer distinct estimates.
->
-> Neither blank is a missing `numerical_converged` flag. Check the
-> stacked-bar book before interpreting an empty density as a solver
-> crash.
-
 ### Zoom on the coverage rate, and derivation of the intervals
 
 Wilson is the default interval around the *estimated coverage rate*
@@ -1368,10 +1347,10 @@ Coull 1998](#ref-agrestiApproximateBetterExact1998)) are available
 through `coverage_interval` for the binomial *rate*. Bias-eliminated
 coverage (covering \bar{\hat\theta} rather than \theta) is not
 implemented; report ordinary coverage and bias side by side instead.
-[Note 20](#nte-binomial-coverage-ci) summarises exact, asymptotic, and
+[Note 19](#nte-binomial-coverage-ci) summarises exact, asymptotic, and
 optimisation-based constructions for that binomial rate.
 
-> **Note 20: Intervals for a binomial coverage rate**
+> **Note 19: Intervals for a binomial coverage rate**
 >
 > The Monte Carlo coverage rate \hat\pi=X/N is a binomial proportion on
 > the unit interval. Interval construction for that rate is not a
@@ -1456,7 +1435,7 @@ Aldor-Noiman et al. and the DataInterview explainer. Curvature direction
 diagnoses tail weight and skew; a 95% band helps separate signal from
 Monte Carlo wiggle.
 
-> **Warning 21: Do not promote a Kolmogorov–Smirnov p-value to a
+> **Warning 20: Do not promote a Kolmogorov–Smirnov p-value to a
 > verdict**
 >
 > The KS lollipops are a companion to the Q-Q books, not a substitute.
@@ -1476,7 +1455,7 @@ Monte Carlo wiggle.
 >   the Q-Q plot shows tail behaviour. The KS p adds a single scalar
 >   that conflates those features.
 
-> **Note 22: No p-value for the coverage rate**
+> **Note 21: No p-value for the coverage rate**
 >
 > Coverage of a Wald interval is the Monte Carlo mean of the indicator
 > I\\\theta_0\in\mathrm{CI}\_m\\, not a test of
@@ -1509,9 +1488,9 @@ then score both the reference geometry and the mixture composition:
     matching the `SimBu` fraction vocabulary when comparing to
     pseudo-bulk tools ([Figure 7](#fig-simbu-entropy)).
 
-See [Note 23](#nte-benchmark-spec) for a compact factorial checklist.
+See [Note 22](#nte-benchmark-spec) for a compact factorial checklist.
 
-> **Important 23: Recommended benchmark specification**
+> **Important 22: Recommended benchmark specification**
 >
 > Use one pipeline for a given topology of a given cell type’s
 > covariance structure ([Eq. 16](#eq-benchmark-pipe),
@@ -1530,7 +1509,7 @@ See [Note 23](#nte-benchmark-spec) for a compact factorial checklist.
 > ([Figure 7](#fig-simbu-entropy)). - add the mean layer
 > **independently** of graph generation.
 
-> **Note 24: Execution: no nested parallelism, `furrr`, L’Ecuyer
+> **Note 23: Execution: no nested parallelism, `furrr`, L’Ecuyer
 > streams**
 >
 > Sample-level workers live only in
@@ -1648,7 +1627,7 @@ is the package counterpart of that editorial checklist.
 | Data-generating mechanism fully specified | `theta_true` (`p`, `mu`, `sigma`) plus `descriptors` and `call` |
 | Estimand and metrics pre-declared | This table; [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md) blocks |
 | Software versions | [`sessioninfo::session_info()`](https://sessioninfo.r-lib.org/reference/session_info.html) in analysis scripts |
-| Random-number streams | `furrr_options(seed = TRUE)`: L’Ecuyer-CMRG per worker ([Note 24](#nte-parallel-rng)) |
+| Random-number streams | `furrr_options(seed = TRUE)`: L’Ecuyer-CMRG per worker ([Note 23](#nte-parallel-rng)) |
 | Code availability | GitHub repository; package functions, not one-off scripts |
 | No undisclosed composite score | Global and cell-type tables remain separate |
 | Sample size / Monte Carlo error | `n` and `mcse_coverage` (and Wilson bounds) |
