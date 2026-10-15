@@ -17,10 +17,15 @@
 \usepackage{algpseudocode}%
 \usepackage{listings}%
 \usepackage{enumitem}%
+\usepackage{float}%
+\usepackage{array}%
 \usepackage{tikz}%
 \usepackage{xurl}%
 \usetikzlibrary{bayesnet,positioning,fit,calc}%
 \setlist[itemize]{leftmargin=1.5em,itemsep=0.2em,topsep=0.3em,parsep=0pt}
+
+% to add notes
+\usepackage[colorinlistoftodos]{todonotes}
 
 \theoremstyle{thmstyleone}%
 \newtheorem{theorem}{Theorem}%
@@ -39,13 +44,14 @@
 
 \input{macros}
 
+% Links to the package website and repository (hyperref is loaded by sn-jnl).
+\newcommand{\vignette}[2]{\href{https://bastienchassagnol.github.io/DeCovarT/articles/#1}{#2}}
+\newcommand{\repo}[2]{\href{https://github.com/bastienchassagnol/DeCovarT/#1}{#2}}
+
 \raggedbottom
 
 \begin{document}
-    \title[DeCovarT: A Probabilistic and Multidimensional Framework for Cellular
-    Deconvolution in Heterogeneous Biological Samples]{DeCovarT: A Probabilistic
-    and Multidimensional Framework for Cellular Deconvolution in Heterogeneous Biological
-    Samples}
+    \title[DeCovarT: a Covariance-driven statistical framework to retrieve the cellular composition of bulk transcriptomic profiles]{DeCovarT: a Covariance-driven statistical framework to retrieve the cellular composition of bulk transcriptomic profiles}
 
     \author*[1,2]{\fnm{Bastien} \sur{Chassagnol}}
     \email{bastien\_chassagnol@laposte.net}
@@ -148,10 +154,10 @@
         give rise to mature cell types.
 
         \textbf{Code and resources.}
-        Theory, graphical models, and derivations:
-        \url{https://cnrs.hal.science/hal-04208010}.
-        The R package:
-        \url{https://github.com/bastienchassagnol/DeCovarT}.
+        Theory, graphical models and derivations are in the
+        \href{https://cnrs.hal.science/hal-04208010}{HAL preprint};
+        the R package and its vignettes are on
+        \href{https://github.com/bastienchassagnol/DeCovarT}{GitHub}.
         }
 
         \keywords{deconvolution, bulk RNA-seq, weighted multivariate Gaussian distribution, covariance-driven model}
@@ -161,100 +167,169 @@
 \section{Introduction}
 \label{sec:intro}
 
-\subsection{Bulk versus single-cell}
+\subsection{Bulk versus single-cell transcriptomics}
 \label{sec:context}
 
 \begin{itemize}
-  \item bulk RNA-seq: one profile per sample, summed over every cell present at that time
-  \item that sum hides cell-specific signal
-  \item two losses follow
+  \item bulk RNA-seq returns one profile per sample, summed over every cell present at that time
+  \item that sum hides cell-specific signal, with two consequences
   \begin{itemize}
-    \item specificity: a shift in cell fractions read as differential expression
-    \item sensitivity: genes of a minor type masked by a variable major type
+    \item loss of specificity: a gene is called differentially expressed when only the
+          fraction of the cell type producing it has increased
+    \item loss of sensitivity: genes of a minor type are masked by the variable expression
+          of a major type
   \end{itemize}
   \item gastruloids: morphotypes diverge along a trajectory of lineage fractions
-        and cell states, even among structures from the same protocol
+        and cell states, even among structures grown with the same protocol
         \cite{suppingerMultimodalCharacterizationMurine2023}
-  \item bulk time series: many gastruloids and many time points, one lysate each
   \begin{itemize}
-    \item a stalled lineage, a changed mix of germ layers, and a
-          micro-environmental shift are the same change in the average
-    \item the morphotype is seen, the cell population that drove it is not
+    \item viability and morphotype vary from batch to batch under matched conditions,
+          which limits the wider use of organoids
+          \todo[inline]{List the biological sources of batch-to-batch variability in gastruloid
+          protocols (initial cell number, Wnt-agonist pulse timing, culture medium lot), each with
+          a citation from \cite{suppingerMultimodalCharacterizationMurine2023} or its references.}
+    \item early cell-type composition is a candidate predictor of the morphotype a
+          gastruloid will reach
   \end{itemize}
-  \item single-cell RNA-seq: types, states, and within-type spread at one snapshot
+  \item single-cell RNA-seq resolves types, states and within-type spread at one snapshot
   \begin{itemize}
-    \item names the driver: a missing lineage, a stalled state, or extra
-          variance inside a type
-    \item dissociation ends that gastruloid, and each gastruloid yields few
-          cells, so the same structure cannot be followed through time
+    \item it names the driver of a failed structure: a missing lineage, a stalled state,
+          or extra variance inside a type
+    \item cost and analysis burden limit cohorts to a few structures per condition
+    \item dissociation destroys the gastruloid and each structure yields few cells, so one
+          gastruloid cannot be followed through time; every profile is a unique snapshot
   \end{itemize}
-  \item deconvolution: fractions from bulk, using a purified or single-cell reference
-  \begin{itemize}
-    \item the reference names the populations; repeated bulk then traces
-          their fractions along the morphotype trajectory
-  \end{itemize}
-  \item published engines still fail when mean profiles nearly coincide,
-        and most return only a point estimate of \(\boldsymbol{p}\)
+  \item developmental cells lie on a continuum of differentiation with graded potency,
+        unlike mature blood cells that fall into discrete lineages; neighbouring states
+        then share most of their mean expression
+  \item deconvolution bridges the two technologies: a single-cell reference supplies
+        type-specific profiles, and cheap bulk samples supply the cohort
 \end{itemize}
 
-\subsection{Review of alternative deconvolution methods}
+\subsection{Related deconvolution methods}
 \label{sec:gap}
 
+Every method below writes the bulk on a linear scale,
+\(\boldsymbol{y}_{\cdot i}=\sum_{j}p_{ji}\boldsymbol{x}_{\cdot j,i}\).
+The methods differ in the law of the purified profiles, in whether genes are
+independent, and in whether the variance of type \(j\) enters the bulk with
+weight \(p_{ji}\) (independent cells) or \(p_{ji}^{2}\) (one random population
+profile).
+Methods that infer cell-type-specific expression given the composition, and
+semi-reference and reference-free methods, are reviewed in Appendix~\ref{app:review}.
+
 \begin{itemize}
-  \item most engines treat the signature as a fixed mean matrix
-  \item gene--gene dependence inside each type is omitted
-  \item regression and many machine-learning fits return a point \(\hat{\boldsymbol{p}}\) only
-  \item \emph{CIBERSORT}: \(\nu\)-SVR on a mean signature; genes treated as independent
-        \cite{newmanRobustEnumerationCell2015,newmanDeterminingCellType2019}
-  \item \emph{DeconRNASeq}: non-negative least squares on the same mean map
-        \cite{gongDeconRNASeqStatisticalFramework2013,dessoleLawsonHansonAlgorithmDeviation2023}
-  \item \emph{DSection}: Bayesian univariate Gaussian convolution
-        \cite{erkkilaProbabilisticAnalysisGene2010}
-  \item \emph{DeMix} / \emph{DeMixT}: frequentist Gaussian mixture, independent genes,
-        one unknown component
-        \cite{ahnDeMixDeconvolutionMixed2013,wangTranscriptomeDeconvolutionHeterogeneous2018}
-  \item \emph{RNA-Sieve}: gene-wise central-limit Gaussian, noisy reference, independent genes;
-        Wald or Godambe intervals
-        \cite{erdmann-phamLikelihoodbasedDeconvolutionBulk2021}
-  \item \emph{MuSiC}: cross-sample means, dropout, protocol shift; still a mean-weighted regression
-        \cite{wangBulkTissueCell2019}
-  \item \emph{DWLS}: dampened gene weights on the mean residual
-        \cite{tsoucasAccurateEstimationCelltype2019}
-  \item \emph{DECALS}: decorrelated constrained least squares;
-        sampling distribution of \(\hat{\boldsymbol{p}}\) under a subject-specific bulk covariance
-        \cite{caiStatisticalInferenceCelltype2024}
-  \item \emph{MEAD}: errors-in-variables intervals when gene-specific platform scales
-        are unknown; identifiability of \(\boldsymbol{p}\) under those scales
-        \cite{xieStatisticalInferenceCell2026}
-  \item joint estimation of \(\boldsymbol{p}\) and \(\{\boldsymbol{\Sigma}_{j}\}\) from the same bulks
-        is weakly identified
-  \item DeCovarT keeps \((\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})\) as a plug-in and estimates \(\boldsymbol{p}\) only
+  \item regression on reference means is the baseline:
+        \emph{CIBERSORT} \cite{newmanRobustEnumerationCell2015,newmanDeterminingCellType2019},
+        \emph{DeconRNASeq} \cite{gongDeconRNASeqStatisticalFramework2013},
+        \emph{MuSiC} \cite{wangBulkTissueCell2019},
+        \emph{DWLS} \cite{tsoucasAccurateEstimationCelltype2019},
+        \emph{Bisque} \cite{jewAccurateEstimationCell2020}
+  \begin{itemize}
+    \item shared assumption: \(\mathbb{E}[\boldsymbol{y}_{\cdot i}]=\boldsymbol{\mu}\boldsymbol{p}_{\cdot i}\)
+          with independent genes; profile variability enters, at most, as a fixed weight per gene
+    \item \emph{MuSiC} weights gene \(g\) by the inverse of a between-subject variance;
+          \emph{DWLS} by the inverse squared fitted mean, capped by a dampening constant;
+          \emph{Bisque} learns a gene-wise affine map from bulk to pseudo-bulk
+    \item no measurement model: least squares on intensities, TPM or CPM, a Gaussian working model
+    \item output: a point estimate on the simplex, from \(\nu\)-support vector regression,
+          quadratic programming or weighted non-negative least squares (NNLS)
+          \cite{dessoleLawsonHansonAlgorithmDeviation2023}; no interval
+  \end{itemize}
+  \item univariate distribution-aware likelihoods:
+        \emph{RNA-Sieve} \cite{erdmann-phamLikelihoodbasedDeconvolutionBulk2021},
+        \emph{ReDeconv} \cite{luTranscriptomeSizeMatters2025},
+        \emph{RCTD} \cite{cableRobustDecompositionCell2022a},
+        \emph{DeconV} \cite{gynterDeconvProbabilisticCellType2023}
+  \begin{itemize}
+    \item the bulk is a sum of independent cells, so a type's variance enters linearly in
+          \(p_{ji}\); genes stay independent
+    \item \emph{RNA-Sieve} and \emph{ReDeconv} use a central-limit Gaussian per gene;
+          \emph{RCTD} a Poisson law with log-normal overdispersion and a platform factor
+          \(d_{g}\) estimated in a first stage; \emph{DeconV} a Poisson bulk
+    \item \emph{RNA-Sieve} models noisy reference means across several bulks and returns
+          Fisher or Godambe confidence regions; \emph{RCTD} and \emph{ReDeconv} return
+          point estimates
+  \end{itemize}
+  \item multivariate, covariance-aware methods:
+        \emph{DECALS} \cite{caiStatisticalInferenceCelltype2024} and
+        \emph{MEAD} \cite{xieStatisticalInferenceCell2026}
+  \begin{itemize}
+    \item \emph{DECALS} assumes \(\operatorname{Cov}(\boldsymbol{y}_{\cdot i})=\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}\),
+          the first two moments of DeCovarT without a density;
+          it estimates \(\boldsymbol{\Sigma}_{j}\) by regressing residual outer products
+          on \(\hat p_{ji}^{2}\) across bulks, then returns constrained least squares with a
+          sandwich covariance
+    \item \emph{MEAD} is an errors-in-variables model with a sample scale and a random
+          gene-wise platform ratio; it returns delta-method intervals as \(G\to\infty\) under
+          an almost-sparse dependence graph estimated from the bulk
+    \item both need many bulk samples of varying composition; in \emph{MEAD} the gene
+          dependence enters only the sandwich, not the point estimate
+  \end{itemize}
+  \item Bayesian estimation of proportions:
+        \emph{DSection} \cite{erkkilaProbabilisticAnalysisGene2010},
+        \emph{BLADE} \cite{andrade-barbosaBayesianLogNormalDeconvolution2021},
+        \emph{BEDwARS} \cite{ghaffariBEDwARSRobustBayesian2023},
+        \emph{BayesPrism} \cite{chuCellTypeGeneExpression2022}
+  \begin{itemize}
+    \item Dirichlet prior on \(\boldsymbol{p}_{\cdot i}\), linear mixing, profiles drawn around
+          the reference (Gaussian, log-normal or a single-cell prior)
+    \item posterior summaries by Gibbs, Metropolis--Hastings or variational inference;
+          none models a \(G\times G\) gene covariance
+  \end{itemize}
+  \item two gaps remain
+  \begin{itemize}
+    \item no reference-based method uses a type-specific gene--gene covariance to shape
+          the point estimate itself
+    \item few methods return calibrated intervals for a single bulk sample, and none handles
+          a proportion on the boundary of the simplex
+  \end{itemize}
+  \item jointly estimating \(\boldsymbol{p}\) and \(\{\boldsymbol{\Sigma}_{j}\}\) from the same bulks
+        is weakly identified; DeCovarT plugs in \((\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})\) from
+        the reference and estimates \(\boldsymbol{p}\) only
 \end{itemize}
 
 \subsection{DeCovarT}
 \label{sec:decovart}
 
 \begin{itemize}
-  \item First innovation: model cell-type specific variability with a multivariate Gaussian convolution
-  \item Second innovation: model the cell-type composition with a constrained maximum likelihood approach on the isometric log-ratio chart
-  \cite{egozcueIsometricLogratioTransformations2003}
-  \item Thrid innnovation: deive theroetical intervals to assess the gain of accuracy when 
-  accounting for the cell-type specific variability compared to a mean-only approach. In addition, proposes
-  new asymtotic tests to evaluate the absnce or presence of one or several cell proportions (referred to as active null
-  cell types).
+  \item model: each cell-type profile is a multivariate Gaussian with a sparse precision
+        (a gene-regulatory network), and the bulk is their weighted convolution, itself a
+        multivariate Gaussian with an explicit likelihood
+        \cite{chassagnolDeCovarTMultidimensionalProbalistic2023}
+  \item reference second moments: five estimators of the cell-type-specific covariance are
+        compared on a single-cell reference (Section~\ref{sec:cov-estimation}): partial
+        correlations, the graphical lasso with an unpenalised diagonal, a de-sparsified
+        graphical lasso with false discovery rate control, a Poisson--log-normal network,
+        and a dense shrinkage covariance
+  \item estimation: constrained maximum likelihood on the isometric log-ratio (ILR) chart
+        of the simplex \cite{egozcueIsometricLogratioTransformations2003}
+  \item inference: Wald and profile-likelihood intervals for each proportion, and boundary
+        likelihood-ratio tests for the absence of one or several cell types
+        (active null proportions) with chi-bar-square null laws
+        \cite{selfAsymptoticPropertiesMaximum1987}
+  \item a synthetic simulator that controls the difficulty of each scenario
+  \begin{itemize}
+    \item Gram construction of the mean signature to a target cosine
+    \item random network topologies for the precision of each type
+    \item a covariance scale tuned to a target MixSim overlap
+          \cite{melnykovMixSimPackageSimulating2012,rianiSimulatingMixturesMultivariate2015}:
+          the probability of misassigning a cell from its own profile, hence a lower bound
+          on the error of any composition estimate built from those profiles
+    \item normalised Shannon entropy of \(\boldsymbol{p}\) to control imbalance
+  \end{itemize}
 \end{itemize}
 
+\subsection{Outline}
+\label{sec:outline}
+
 \begin{itemize}
-      \item A new modelling and versatile framework to test the impact of the covariance structure on the deconvolution performance
-\begin{itemize}
-      \item Gram matrix decompsotion to target the cosine of the mean profiles.
-      \item Use a variety of random network topologies to parametrize the covariance structure.
-      \item MixSim average overlap of the purified Gaussians: misassignment probability
-            of a labelled cell, hence a lower bound on compositional error
-            \cite{melnykovMixSimPackageSimulating2012,rianiSimulatingMixturesMultivariate2015}
-     \item normalised Shannon entropy of \(\boldsymbol{p}\)
-     
-          \end{itemize}
+  \item Section~\ref{sec:results}: two synthetic settings, then the gastruloid application
+  \item Section~\ref{sec:methods}: the generative model, inference, the simulator, and how a
+        single-cell reference is turned into DeCovarT inputs
+  \item Section~\ref{sec:perspectives}: extensions, including a Bayesian formulation
+  \item appendices: reviews of network inference and of deconvolution, maximum-likelihood
+        theory, performance metrics and supplementary simulations
 \end{itemize}
 
 \section{Results}
@@ -264,17 +339,17 @@
 \label{sec:overview}
 
 \begin{itemize}
-  \item Figure~\ref{fig:overview}: generative model, bulk constructions, and the linear mixture
-  \item Figure~\ref{fig:scenarios}: synthetic means, precision graphs, overlap, and scores
+  \item Figure~\ref{fig:overview}: generative model, bulk constructions and the linear mixture
+  \item Figure~\ref{fig:scenarios}: synthetic means, precision graphs, overlap and scores
   \item claim to test: a shared mean is not enough to separate close types
   \item larger effect expected on interval coverage than on point bias
   \item separation is possible when means match and precision graphs do not
-  \item rare types: wide intervals; pool them, or treat them as a residual component
-  \item reporting frame: ADEMP (bias, RMSE, coverage, failure), no default composite score
+  \item rare types give wide intervals; pool them, or treat them as a residual component
+  \item reporting frame: ADEMP (bias, RMSE, coverage, failure), no composite score
         \cite{morrisUsingSimulationStudies2019}
 \end{itemize}
 
-\begin{figure}[tbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{"figs/Figure 1_ DeCovarT overview.png"}
   \caption{Overview of DeCovarT.
@@ -293,7 +368,7 @@
   \label{fig:overview}
 \end{figure}
 
-\begin{figure}[tbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{"figs/Figure 2_ the synthetic simulation framework.jpg"}
   \caption{Synthetic simulation framework.
@@ -310,11 +385,10 @@
 \subsection{Bivariate toy: two genes, two cell types}
 \label{sec:bivariate}
 
-
 \begin{itemize}
   \item purpose: check that gene--gene correlation changes the estimated fractions
         when only two genes and two cell types are observed
-  \item one free isometric log-ratio coordinate on the simplex;
+  \item one free ILR coordinate on the simplex;
         the likelihood is a curve, then mapped back to \(\boldsymbol{p}\)
   \item each purified profile is Gaussian;
         the bulk is their abundance-weighted sum, with no extra noise
@@ -333,16 +407,13 @@
         Newton--Raphson; Marquardt--Levenberg; simulated annealing
   \item mean-only solvers minimise \(\|\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}\|^{2}\)
         and carry no convolution Wald standard error
-  \item script
-        \url{https://github.com/bastienchassagnol/DeCovarT/blob/main/scripts/fig02_bivariate_toy.R}
-  \item vignette
-        \url{https://bastienchassagnol.github.io/DeCovarT/articles/fig02-bivariate-toy.html}
-  \item books
-        \url{https://github.com/bastienchassagnol/DeCovarT/tree/main/output/fig02}
-  \item file-by-file reading: Appendix~\ref{app:fig02}
+  \item code and outputs: \repo{blob/main/scripts/fig02_bivariate_toy.R}{script},
+        \vignette{fig02-bivariate-toy.html}{vignette},
+        \repo{tree/main/output/fig02}{plot books};
+        file-by-file reading in Appendix~\ref{app:fig02}
 \end{itemize}
 
-\begin{figure}[tbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{"figs/Figure 3, panel A.png"}
   \caption{Bivariate toy, panel~A.
@@ -360,27 +431,38 @@
 \label{sec:hd}
 
 \begin{itemize}
-  \item role: mean-collinear types, discriminative signal moved into the precision graphs
-  \item script
-        \url{https://github.com/bastienchassagnol/DeCovarT/blob/main/scripts/fig03_variance_driven.R}
-  \item vignette
-        \url{https://bastienchassagnol.github.io/DeCovarT/articles/fig03-covariance-driven.html}
-  \item books
-        \url{https://github.com/bastienchassagnol/DeCovarT/tree/main/output/fig03}
-  \item file-by-file reading: Appendix~\ref{app:fig03}
-  \item \(G=20\), \(J=3\), \(N=50\) bulks per scenario, \(36\) scenarios, seed \texttt{20260807}
-  \item one Gram: cosines \(0.9\) (types 1--2) and \(0.1\) (either of those versus type 3); scale \(s=10\)
-  \item types 1 and 2: scale-free or cluster stochastic block model, \(2\times 2\) assignments
-        \cite{barabasiEmergenceScalingRandom1999,hollandStochasticBlockmodelsFirst1983}
-  \item type 3: scale-free, held fixed
-  \item covariance scale chosen so MixSim average overlap hits \(0.02\), \(0.08\), or \(0.20\)
-  \item overlap matched at the balanced composition; unbalanced \(\boldsymbol{p}\) raises the realised overlap
-  \item compositions from normalised Shannon entropy \(H^{\star}\in\{1,0.5,0.1\}\)
+  \item role: two types with nearly collinear means, so the discriminative signal sits in
+        the precision graphs (design in Section~\ref{sec:synthetic})
+  \item \(G=20\), \(J=3\), seed \texttt{20260807}
+  \item one Gram: cosines \(0.9\) (types 1--2) and \(0.1\) (either of those versus type 3);
+        scale \(s_{\mu}=10\), so the Euclidean gaps are about \(4.5\) and \(13.4\)
+  \item types 1 and 2: scale-free or stochastic block model graphs, \(2\times 2\) assignments
+        \cite{barabasiEmergenceScalingRandom1999,hollandStochasticBlockmodelsFirst1983};
+        type 3: scale-free, held fixed
+  \item covariance scale chosen so the MixSim average overlap hits \(0.02\), \(0.08\) or \(0.20\),
+        matched at the balanced composition; unbalanced \(\boldsymbol{p}\) raises the realised overlap
+  \item compositions from normalised Shannon entropy \(H^{\star}\in\{1,0.5,0.1\}\):
+        \((1/3,1/3,1/3)\), \((0.84,0.08,0.08)\) and \((0.98,0.01,0.01)\);
+        \(4\times3\times3=36\) scenarios
   \item solvers: \emph{DeconRNASeq} (\texttt{lsei}); \emph{CIBERSORT}; L-BFGS-B;
         Newton--Raphson; Marquardt--Levenberg
+        \todo[inline]{Replicates: the vignette states \(N=50\) bulks per scenario,
+        \texttt{scripts/fig03\_variance\_driven.R} uses \(N=100\). Align both before reporting.}
+  \item code and outputs: \repo{blob/main/scripts/fig03_variance_driven.R}{script},
+        \vignette{fig03-covariance-driven.html}{vignette},
+        \repo{tree/main/output/fig03}{plot books};
+        file-by-file reading in Appendix~\ref{app:fig03}
+  \item[] \todo[inline]{Planned benchmark: add \emph{RNA-Sieve}
+        \cite{erdmann-phamLikelihoodbasedDeconvolutionBulk2021}, \emph{DECALS}
+        \cite{caiStatisticalInferenceCelltype2024}, \emph{MEAD}
+        \cite{xieStatisticalInferenceCell2026} and \emph{ReDeconv}
+        \cite{luTranscriptomeSizeMatters2025} to the bivariate and covariance-driven grids,
+        with the same descriptors and the metrics of Appendix~\ref{app:metrics}.
+        \emph{DECALS} and \emph{MEAD} need several bulks per fit: give them the \(N\) replicates
+        of one scenario as a cohort, and report that their design differs from a one-sample fit.}
 \end{itemize}
 
-\begin{figure}[tbp]
+\begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{figs/Fig4_HD_framework.png}
   \caption{Covariance-driven scenario.
@@ -398,30 +480,51 @@
   \label{fig:hd}
 \end{figure}
 
-\subsection{Planned biological application}
+\subsection{Biological application: gastruloid development}
 \label{sec:gastruloid}
 
 \begin{itemize}
-  \item dataset: murine gastruloids, multimodal characterisation
-        \cite{suppingerMultimodalCharacterizationMurine2023}
-  \item batch-to-batch viability and morphotype vary under matched protocols
-  \item developmental states form a potency gradient, unlike discrete blood lineages
-  \item comparison set: DeCovarT against mean-only engines on the same genes and the same reference
-  \item not yet run
-\end{itemize}
-
-\subsection{Planned robustness}
-\label{sec:robustness}
-
-\begin{itemize}
-  \item extra diagonal bulk noise on top of \(\boldsymbol{\Sigma}(\boldsymbol{p})\)
-  \item counts that are not Gaussian (negative binomial, Poisson--log-normal)
-        \cite{chiquetPoissonLognormalModelVersatile2021,wangBulkTissueCell2019}
-  \item dropout, as in \emph{MuSiC} \cite{wangBulkTissueCell2019}
-  \item a reference that omits one type \cite{wangBulkTissueCell2019}
-  \item protocol shift between the reference and the bulk \cite{wangBulkTissueCell2019}
-  \item vignette
-        \url{https://bastienchassagnol.github.io/DeCovarT/articles/supp-S5-misspecification.html}
+  \item dataset: murine gastruloids with a multimodal characterisation at 48, 72 and 96 hours
+        \cite{suppingerMultimodalCharacterizationMurine2023}; single-cell reference and bulk
+        profiles described in Section~\ref{sec:suppinger}
+  \item why gastruloids test deconvolution
+  \begin{itemize}
+    \item high batch-to-batch variability of viability and morphotype under matched protocols
+    \item developmental states form a potency gradient, so adjacent states share most of their
+          mean expression; mean-only engines are expected to confuse them
+    \item one dominant population at early stages, with several rare types
+  \end{itemize}
+  \item comparison set: DeCovarT against the mean-only and distribution-aware engines of
+        Section~\ref{sec:gap}, on the same genes and the same reference
+  \item ablation design, run as a factorial on pseudo-bulks of known composition built from
+        held-out cells
+  \begin{enumerate}
+    \item gene-selection stringency: the presence filter plus the cell-type main-effect test of
+          Section~\ref{sec:feature-selection}, at increasing effect-size thresholds that yield
+          nested panels from a few dozen to several thousand genes
+    \item covariance or precision estimator: the five strategies of
+          Section~\ref{sec:cov-estimation} (partial correlations, graphical lasso with an
+          unpenalised diagonal, de-sparsified graphical lasso, Poisson--log-normal network,
+          dense shrinkage), plus the diagonal as a mean-only control
+    \item single-cell to bulk alignment: the model of Section~\ref{sec:sc-tailored} against the
+          released quadratic-weight model and the alternatives of Appendix~\ref{app:alignment}
+    \item engines: DeCovarT and the comparison set, each at every panel size
+  \end{enumerate}
+  \item expected pattern, to be tested
+  \begin{itemize}
+    \item too few genes: every engine fails, because the mean signature is rank deficient for
+          close types and the covariance has too few coordinates
+    \item many genes, with noisy and platform-dependent genes removed: engines converge to
+          similar accuracy, because the mean signature alone becomes injective
+    \item an intermediate range, or scenarios with strongly correlated types, where
+          covariance-driven engines outperform mean-only ones
+    \item the result is a calibration curve of accuracy against panel size, stratified by
+          the overlap of the purified types
+  \end{itemize}
+  \item[] \todo[inline]{Run the ablation; report each stage against the overlap and entropy
+        descriptors of Section~\ref{sec:synthetic}, not only the panel size.}
+  \item[] \todo[inline]{Potency score: define it from the estimated proportions and validate it
+        against the morphotype annotations.}
 \end{itemize}
 
 \section{Methods}
@@ -434,16 +537,16 @@ Bulk sample \(i\) is fixed inside a derivation.
 The index \(i\) is restored in the model statements.
 Base indices used throughout: gene \(g=1,\ldots,G\), cell type \(j=1,\ldots,J\),
 sample \(i=1,\ldots,N\).
-Table~\ref{tab:notation} is the alignment layer
-(\url{https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-bulk-alignment.html}).
+Table~\ref{tab:notation} is the alignment layer used in the
+\vignette{theory-decovart-single-cell-tailored.html}{single-cell alignment vignette}.
 
-\begin{table}[tbp]
+\begin{table}[h]
   \centering
   \caption{Cell counts, scales, and the two covariance mixtures.
     \(\boldsymbol{\rho}\) elsewhere in the paper is the isometric log-ratio
     coordinate of \(\boldsymbol{p}\), so the within-type correlation is \(\varrho\).}
   \label{tab:notation}
-  \begin{tabular}{@{}lp{0.62\textwidth}@{}}
+  \begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.56\textwidth}@{}}
     \toprule
     Symbol & Meaning \\
     \midrule
@@ -484,12 +587,12 @@ Table~\ref{tab:notation} is the alignment layer
 \label{sec:model}
 
 \begin{itemize}
-  \item ideal model in this section: no platform scale yet (alignment is \S\ref{sec:alignment})
-  \item latent profile \(\boldsymbol{x}_{\cdot j,i}\sim\mathcal{N}(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j})\)
+  \item ideal model in this section: no platform scale yet (alignment is Section~\ref{sec:sc-tailored})
+  \item latent profile \(\boldsymbol{x}_{\cdot j,i}\sim\mathcal{N}(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j})\),
+        independent across types
   \item bulk \(\boldsymbol{y}_{\cdot i}=\sum_{j}p_{ji}\,\boldsymbol{x}_{\cdot j,i}\)
-  \item implied law, the estimating equation of DeCovarT
-  \item derivatives, ILR chain rule, and Fisher information
-        \url{https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html}
+  \item implied law, the estimating equation of DeCovarT; derivatives, ILR chain rule and Fisher
+        information are in the \vignette{theory-decovart-generative-model.html}{generative-model vignette}
 \end{itemize}
 
 \begin{equation}
@@ -503,12 +606,16 @@ Table~\ref{tab:notation} is the alignment layer
 \end{equation}
 
 \begin{itemize}
-  \item the factor \(p_{ji}^{2}\) is the variance of a sum of independent types
-  \item plug-in \((\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})\); unknown is \(\boldsymbol{p}_{\cdot i}\) only
-  \item \(\boldsymbol{S}_{B}(\boldsymbol{p}_{\cdot i})\) in Table~\ref{tab:notation} is this quadratic mixture
-        when the weights are the cell fractions
-  \item sparse \(\boldsymbol{\Omega}_{j}=\boldsymbol{\Sigma}_{j}^{-1}\) may be supplied by a Gaussian Markov graph
-        \cite{friedmanSparseInverseCovariance2008,chiquetVariationalInferenceSparse2018}
+  \item the factor \(p_{ji}^{2}\) is the variance of a scaled random population profile;
+        \(\boldsymbol{S}_{B}(\boldsymbol{p}_{\cdot i})\) in Table~\ref{tab:notation} is this quadratic mixture
+  \item plug-in \((\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})\); the unknown is \(\boldsymbol{p}_{\cdot i}\) only
+  \item a sparse \(\boldsymbol{\Omega}_{j}=\boldsymbol{\Sigma}_{j}^{-1}\) encodes a Gaussian Markov graph
+        \cite{friedmanSparseInverseCovariance2008,chiquetVariationalInferenceSparse2018}, but the bulk
+        precision \((\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j})^{-1}\) is dense in general
+  \item identifiability: \(\boldsymbol{p}\) is identified when
+        \(\boldsymbol{p}\mapsto(\boldsymbol{\mu}\boldsymbol{p},\sum_{j}p_{j}^{2}\boldsymbol{\Sigma}_{j})\) is
+        injective; \(\operatorname{rank}(\boldsymbol{\mu})=J\) is sufficient but not necessary, since types
+        with collinear means stay identified when their covariances differ
 \end{itemize}
 
 \subsection{Inference}
@@ -516,204 +623,427 @@ Table~\ref{tab:notation} is the alignment layer
 
 \begin{itemize}
   \item objective: Gaussian log-likelihood of \eqref{eq:convolution}
-  \item default chart: isometric log-ratio, a \(C^{2}\) diffeomorphism of the open simplex
-        \cite{egozcueIsometricLogratioTransformations2003}
-  \item additive log-ratio kept as an appendix chart, not the default
-  \item L-BFGS-B: box constraints in \(\boldsymbol{p}\), then renormalise
-        \cite{byrdLimitedMemoryAlgorithm1995}
-  \item Newton--Raphson: analytic Hessian in isometric log-ratio coordinates
-  \item Marquardt--Levenberg: damped Newton (\texttt{marqLevAlg}),
-        stop on the relative distance to the maximum
-        \cite{marquardtAlgorithmLeastSquaresEstimation1963,philippsRobustEfficientOptimization2021,commengesNewtonLikeAlgorithmLikelihood2006}
-  \item the log-likelihood is not concave; a local maximum is not certified global
-  \item interior interval: Wald standard error from the expected Fisher information,
-        delta method back to \(\boldsymbol{p}\)
-  \item one bulk column is an \(N=1\) fit: the interval describes that maximiser
-  \item on a face of the simplex the likelihood-ratio null is chi-bar-square, not \(\chi^{2}\)
-        \cite{selfAsymptoticPropertiesMaximum1987}
-  \item full argument
-        \url{https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html}
+  \item default chart: isometric log-ratio, \(\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho})\)
+        with a Helmert basis \(\mathbf{V}\), a \(C^{2}\) diffeomorphism of the open simplex
+        \cite{egozcueIsometricLogratioTransformations2003}; additive log-ratio kept as an alternative chart
+  \item solvers
+  \begin{itemize}
+    \item L-BFGS-B: box constraints in \(\boldsymbol{p}\), then renormalisation
+          \cite{byrdLimitedMemoryAlgorithm1995}
+    \item Newton--Raphson: analytic Hessian in ILR coordinates
+    \item Marquardt--Levenberg: damped Newton (\texttt{marqLevAlg}), stopped on the relative distance
+          to the maximum
+          \cite{marquardtAlgorithmLeastSquaresEstimation1963,philippsRobustEfficientOptimization2021,commengesNewtonLikeAlgorithmLikelihood2006}
+  \end{itemize}
+  \item the log-likelihood is not concave, also in the ILR chart; a converged solver certifies a
+        local maximum at best, hence Dirichlet multistarts (Appendix~\ref{app:sim-init})
+  \item one bulk column is an \(N=1\) fit: the interval describes that maximiser, and the
+        maximum-likelihood bias is of order \(N^{-1}\)
+  \item intervals (Appendix~\ref{app:mle})
+  \begin{itemize}
+    \item Wald: expected Fisher information in ILR coordinates, delta method back to \(\boldsymbol{p}\)
+          \cite{oehlertNoteDeltaMethod1992}; symmetric, and leaves \([0,1]\) for unbalanced mixtures
+    \item profile likelihood: \(\chi^{2}_{1}\) on the deviance \cite{wilksLargeSampleDistributionLikelihood1938},
+          invariant to the chart and inside the simplex
+    \item near a boundary the Wald statistic can shrink as the estimate moves away from the
+          null (Hauck--Donner effect) \cite{yeeHauckDonnerEffectWald2022}; profile or
+          likelihood-ratio inference is used there
+  \end{itemize}
+  \item boundary tests: on a face of the simplex the likelihood-ratio null is chi-bar-square,
+        \(\tfrac12\chi^{2}_{0}+\tfrac12\chi^{2}_{1}\) for one absent type, not \(\chi^{2}_{1}\)
+        \cite{hermanDistributionLikelihoodRatio1954,selfAsymptoticPropertiesMaximum1987}
+  \item[] \todo[inline]{Planned: intervals from the generalised-linear-model view of DeCovarT.
+        Compute the \(1-\alpha/2\) and \(\alpha/2\) quantiles in ILR or logit coordinates, where the
+        quasi-score \(\boldsymbol{D}^{\top}\boldsymbol{V}^{-1}(\boldsymbol{y}-\boldsymbol{m})=\boldsymbol{0}\)
+        has information \(\boldsymbol{D}^{\top}\boldsymbol{V}^{-1}\boldsymbol{D}\), then map both bounds back
+        to the simplex. Compare their coverage with the delta-method intervals, which currently
+        exceed the unit simplex for highly unbalanced mixtures (Appendix~\ref{app:mle-intervals}).}
+  \item full argument: \vignette{theory-DeCovarT-MLE-properties.html}{maximum-likelihood vignette}
 \end{itemize}
 
 \subsection{Synthetic scenarios}
 \label{sec:synthetic}
 
 \begin{itemize}
-  \item pipeline
-        \url{https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-scenarios-mean-covariance.html}
-  \item means: orthonormal frame times a Gram square root, optional non-negativity
-        (Figure~\ref{fig:scenarios}A)
-  \item graphs: scale-free preferential attachment, stochastic block model;
-        precision shifted to be positive definite
-  \item overlap: global covariance scale, support of \(\boldsymbol{\Omega}_{j}\) held fixed
-  \item descriptors to report with every scenario
+  \item purified profiles \(\boldsymbol{x}_{\cdot j}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j})\)
+        are combined by the convolution \eqref{eq:convolution}, not drawn from a finite mixture;
+        five layers are generated separately (pipeline in the
+        \vignette{theory-synthetic-scenarios-mean-covariance.html}{synthetic-scenarios vignette})
+  \item mean signature with a target Gram matrix (Figure~\ref{fig:scenarios}A)
   \begin{itemize}
-    \item Shannon entropy of \(\boldsymbol{p}\)
-    \item cosine and Euclidean centroid gap of \(\boldsymbol{\mu}\)
-    \item MixSim average overlap of the purified components
-    \item condition number of \(\boldsymbol{\Sigma}(\boldsymbol{p})\)
-    \item fraction of tangent Fisher information carried by the covariance block
-    \item edge density of each precision graph
+    \item target cosines in \(R\), by default equicorrelation \(R_{J}(\rho)=(1-\rho)\mathbf{I}_{J}+\rho\mathbf{1}\mathbf{1}^{\top}\)
+    \item \(\boldsymbol{\mu}=s_{\mu}\mathbf{Q}R^{1/2}\) with an orthonormal frame \(\mathbf{Q}\) and the symmetric
+          spectral root, so \(\boldsymbol{\mu}^{\top}\boldsymbol{\mu}=s_{\mu}^{2}R\) exactly; a disjoint-support frame
+          gives \(\boldsymbol{\mu}\ge 0\) for quadratic-programming baselines
   \end{itemize}
-  \item scores: Euclidean and Aitchison error on \(\boldsymbol{p}\); RMSE; MAE; bias;
-        coverage with a Wilson interval; optimiser failure
-        \cite{morrisUsingSimulationStudies2019}
-  \item do not collapse those scores into one weighted index unless the weights are shown beside it
+  \item precision graphs
+  \begin{itemize}
+    \item skeletons: preferential-attachment scale-free \cite{barabasiEmergenceScalingRandom1999},
+          stochastic block model \cite{hollandStochasticBlockmodelsFirst1983}, small-world
+          \cite{wattsCollectiveDynamicsSmallworld1998}, Erd\H{o}s--R\'enyi or hub graphs; scale-free graphs
+          stress degree heterogeneity and are not a biological default \cite{broidoScalefreeNetworksAre2019}
+    \item signed weights \(\pm v\) with an inhibitory fraction \(\pi_{-}\), then a spectral shift
+          \(\boldsymbol{\Omega}=\boldsymbol{W}+(|\lambda_{\min}(\boldsymbol{W})|+u)\mathbf{I}\) that keeps the support and signs
+  \end{itemize}
+  \item global covariance scale \(s\): replacing \(\boldsymbol{\Sigma}_{j}\) by \(s\boldsymbol{\Sigma}_{j}\) keeps every
+        structural zero and partial correlation, and only shrinks the Mahalanobis separation of the means;
+        the covariance share of the Fisher information rises with \(s\)
+  \item composition: one-dominant family \((1-(J-1)q,q,\ldots,q)\) solved for a target normalised entropy
+        \(H^{\star}(\boldsymbol{p})=-\sum_{j}p_{j}\log p_{j}/\log J\)
+  \item scenario at a target overlap \(\bar\omega^{\star}\)
+  \begin{enumerate}
+    \item fix \(\boldsymbol{\mu}\), the graphs, signs, weights and cushion, giving base covariances
+          \(\boldsymbol{\Sigma}^{(0)}_{j}\); calibrate at the barycentre
+    \item solve \(\bar\omega(s)=\bar\omega^{\star}\) on \(s\in[10^{-3},10^{3}]\) by Brent's method, with the
+          same Monte Carlo points at every evaluation (common random numbers) so the objective is
+          deterministic in \(s\)
+    \item return \(s^{\star}\boldsymbol{\Sigma}^{(0)}_{j}\); held fixed are the means, supports, signs and partial
+          correlations
+  \end{enumerate}
+  \item overlap estimator
+  \begin{itemize}
+    \item pairwise MixSim overlap
+          \(\omega_{j\ell}=\Pr_{f_{j}}(\pi_{\ell}f_{\ell}>\pi_{j}f_{j})+\Pr_{f_{\ell}}(\pi_{j}f_{j}>\pi_{\ell}f_{\ell})\),
+          averaged over pairs into \(\bar\omega\) \cite{maitraSimulatingDataStudy2010,melnykovMixSimPackageSimulating2012}
+    \item exact route for \(G<4\) (\texttt{MixSim::overlap()}); for \(G\ge4\), our Monte Carlo route draws
+          \(n\) points per component from a scrambled Sobol sequence mapped through \(\Phi^{-1}\) and the
+          Cholesky factor of \(\boldsymbol{\Sigma}_{j}\), and counts Bayes-rule misassignments
+          (\vignette{theory-distance-covariance.html}{distance vignette})
+    \item Monte Carlo error is close to the binomial \(\sqrt{\omega(1-\omega)/n}\): standard deviations of
+          \(0.0008\) to \(0.0032\) with \(n=4000\) over the three fig03 targets, and agreement with the
+          exact route to within one standard deviation on a three-gene block
+          \todo{Confirm these Monte Carlo errors with the script seed and report them in the vignette.}
+    \item for two equally weighted components, \(\omega=1-\operatorname{TV}(f_{j},f_{\ell})\); the closed-form
+          Hellinger distance brackets it, \(1-H\sqrt{2-H^{2}}\le\omega\le1-H^{2}\), and is kept as a cheap descriptor
+  \end{itemize}
+  \item descriptors reported with every scenario, with no composite score
+  \begin{itemize}
+    \item composition: \(H^{\star}\), effective number of types, \(\lVert\boldsymbol{p}\rVert_{2}^{2}\)
+    \item mean geometry: pairwise cosines, Euclidean gaps, condition number of \(\boldsymbol{\mu}\)
+    \item conditioning of \(\boldsymbol{\Sigma}(\boldsymbol{p})\)
+    \item tangent Fisher information and the share carried by the covariance block
+          \cite{bessonFisherInformationMatrix2013}
+    \item edge density of each precision graph
+    \item separation: MixSim overlap, mean pairwise Hellinger distance, affine-invariant Riemannian distance
+  \end{itemize}
+  \item scores and their pitfalls: Appendix~\ref{app:metrics}
 \end{itemize}
 
-\subsection{Reference alignment and the gastruloid cohort}
+\subsection{From a single-cell reference to DeCovarT inputs}
 \label{sec:alignment}
 
 \subsubsection{Suppinger gastruloids}
+\label{sec:suppinger}
 
 \begin{itemize}
-  \item source: multimodal murine gastruloid characterisation
-        \cite{suppingerMultimodalCharacterizationMurine2023}
-  \item to extract: batches, viability, annotated states, matched bulk if any
-  \item status: not yet analysed in this repository
+  \item source: 10x Chromium 3\textsuperscript{\(\prime\)} UMI profiles of murine gastruloids at 48, 72 and
+        96 hours, with annotated cell states \cite{suppingerMultimodalCharacterizationMurine2023}
+  \item one technical scRNA-seq experiment: cells are draws from one specimen, not biological
+        replicates \cite{zimmermanPracticalSolutionPseudoreplication2021,squairConfrontingFalseDiscoveries2021}
+  \item models are fitted separately at each time point; types with fewer than 20 cells are left out
+  \item[] \todo[inline]{Extract batches, viability and matched bulk profiles, if any, and state which
+        analyses use them.}
 \end{itemize}
 
 \subsubsection{Which genes enter the signature}
+\label{sec:feature-selection}
 
 \begin{itemize}
-  \item aim: genes that separate close types, using means and variances
-  \item one biological replicate: the sample covariance is unstable; use a structured precision
-  \item several biological replicates: cross-sample covariance of pseudobulk or sorted profiles
-  \item three reference regimes
-        \url{https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-statistical-perspectives.html}:
-        sorted populations; one single-cell replicate;
-        enough replicates to split within-type and between-replicate covariance
+  \item aim: genes that separate close types and that have a non-degenerate distribution in every type
+  \item presence gate, fixed before ranking: detection rate \(\pi_{gj}\ge0.05\) and within-type variance
+        \(v_{gj}>0\) in every type; a constant gene makes \(\boldsymbol{\Sigma}_{j}\) singular
+  \item main effect of cell type, tested against the technical null
+  \begin{itemize}
+    \item \(M_{0}:\log\mu_{cg}=\beta_{0g}+\log L_{c}\), \(y_{cg}\sim\mathrm{NB}(\mu_{cg},\theta_{g})\), with library size
+          \(L_{c}\) \cite{hafemeisterNormalizationVarianceStabilization2019}; \(M_{1}\) adds the type effect, a joint
+          test on \(J-1\) degrees of freedom \cite{agrestiFoundationsLinearGeneralized2015}
+    \item likelihood-ratio statistic \(D_{g}(M_{0})-D_{g}(M_{1})\); the Wald test is avoided because an all-zero
+          type sends \(\hat\beta_{gj}\to-\infty\) (Hauck--Donner effect) \cite{yeeHauckDonnerEffectWald2022}
+    \item the between-type sum of squares of Pearson residuals under \(M_{0}\) is, up to weight heterogeneity,
+          the Rao score statistic of this test; divided by the within-type dispersion it is a quasi-likelihood
+          \(F\) test \cite{lundDetectingDifferentialExpression2012,glmGamPoi2020}
+    \item overdispersed genes are kept: their within-type scatter is the covariance DeCovarT models
+  \end{itemize}
+  \item calibration and stability
+  \begin{itemize}
+    \item the nominal \(F\) tail is optimistic on clipped, discrete residuals
+          \cite{lauseAnalyticPearsonResiduals2021}; the null is calibrated by permuting cell-type labels,
+          with Freedman--Lane residual permutation when covariates are present
+          \cite{freedmanNonstochasticInterpretation1983}
+    \item a bootstrap of cells within type measures how often a gene stays in the panel
+          \cite{meinshausenStabilitySelection2010}; it does not generate a null
+  \end{itemize}
+  \item ranking: with thousands of cells nearly every expressed gene rejects the null, so the test is a gate
+        and genes are ranked by effect size (between-type share of variance, deviance explained, or the
+        smallest pairwise Hellinger distance between type-specific laws)
+  \item the \(p\)-values calibrate a screen inside one specimen, not population-level differential expression
+  \item details: feature-selection chapter of the reproducibility book
 \end{itemize}
 
-\subsubsection{Platform scale}
-
-Three strategies, written out in
-\url{https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-bulk-alignment.html}.
+\subsubsection{Cell-type-specific covariance and precision}
+\label{sec:cov-estimation}
 
 \begin{itemize}
-  \item cell-count convolution: covariance linear in \(m_{ji}\)
-        (\(\boldsymbol{S}_{W}\) in Table~\ref{tab:notation})
-  \item averaged mixture: profile per cell, library size kept as a scale \(\kappa_{i}\)
-  \item library-size closure (TPM, RPKM): gene fractions on a simplex
-  \item working position on absolute cell counts: capture efficiency is not observed
-  \item working position on library-size closure: dividing by the total induces
-        gene--gene correlation, including for genes that were independent
-  \item estimand under \eqref{eq:convolution}: relative transcriptomic contribution
-  \item that contribution equals the cell fraction only if capture and RNA content per cell
-        are shared across types
-        \cite{racleSimultaneousEnumerationCancer2017}
-  \item both equalities are unlikely for gastruloid states; state the estimand next to \(\hat{\boldsymbol{p}}\)
+  \item target: one precision \(\boldsymbol{\Omega}_{j,t}\) per type and time point; with one specimen, the
+        estimand is the within-type cell-to-cell covariance
+  \item five estimators, compared in the gastruloid ablation
+  \begin{itemize}
+    \item partial correlations by inversion with Benjamini--Hochberg edges and a positive-definite refit on the
+          support \cite{R-ppcor}; valid only when \(n_{j}>G\)
+    \item graphical lasso \cite{friedmanSparseInverseCovariance2008} on the correlation matrix, with an
+          unpenalised diagonal and a per-type extended BIC \cite{foygelExtendedBayesianInformation2010}, then
+          rescaled to the data
+    \item de-sparsified graphical lasso on nonparanormal scores with global false discovery rate control
+          \cite{jankovaConfidenceIntervalsHighdimensional2015,liuNonparanormalSemiparametricEstimation2009,liuGaussianGraphicalModel2013,zhangSILGGMExtensivePackage2018}
+    \item Poisson--log-normal network on raw UMI counts with a library-size offset
+          \cite{chiquetVariationalInferenceSparse2018}
+    \item dense shrinkage of the correlations with the variances kept
+          \cite{schäferShrinkageApproachLargescale2005}, judged by held-out Gaussian log-likelihood
+  \end{itemize}
+  \item sparsity is secondary for DeCovarT: the likelihood needs \(\boldsymbol{\Sigma}_{j}\), and
+        \(\sum_{j}p_{j}^{2}\boldsymbol{\Sigma}_{j}\) has no sparse precision even when every \(\boldsymbol{\Omega}_{j}\) is sparse
+  \item empty graphs are a detection limit: above \(\max_{g\neq g'}|R_{gg'}|\) the graphical lasso returns a
+        diagonal precision, and recovery needs \(n\asymp d^{2}\log G\) for maximum degree \(d\)
+        \cite{chiquetContributionsSparseMethods2015,heinävaaraInconsistencyℓ1penalisedSparse2016};
+        the dense shrinkage estimate is the fallback plug-in
+  \item review of the estimators and their conditions: Appendix~\ref{app:networks}
+\end{itemize}
+
+\subsubsection{Tailoring DeCovarT to a single-cell reference}
+\label{sec:sc-tailored}
+
+\begin{itemize}
+  \item setting: one UMI reference from one donor, few unrelated bulk samples, no gene-wise
+        scale within the UMI platform, and cell-size correction after the fit
+  \item the released covariance \(\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}\) is exact for one random population
+        profile per type (sorted references); a single-cell reference supplies a cell-to-cell covariance,
+        and the bulk is a physical sum of cells
+  \item recommended model (\vignette{theory-DeCovarT-MLE-properties.html\#sec-final-choice}{final choice})
+\end{itemize}
+
+\begin{equation}
+  \begin{aligned}
+    \boldsymbol{y}_{\cdot i}\mid\boldsymbol{q}_{\cdot i}
+    &\sim\mathcal{N}_{G}\Bigl(
+      a_{i}\boldsymbol{\Theta}\boldsymbol{q}_{\cdot i},\;
+      a_{i}^{2}\kappa_{i}\sum_{j}q_{ji}\boldsymbol{\Sigma}_{W,j}
+      +\phi\operatorname{diag}(a_{i}\boldsymbol{\Theta}\boldsymbol{q}_{\cdot i})
+    \Bigr),\\
+    \boldsymbol{q}_{\cdot i}&=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho}_{i}),
+    \qquad
+    p_{ji}=\frac{q_{ji}/S_{j}}{\sum_{k}q_{ki}/S_{k}}
+  \end{aligned}
+  \label{eq:sc-model}
+\end{equation}
+
+\begin{itemize}
+  \item reference profiles: columns of \(\boldsymbol{\Theta}\) are mean profiles normalised to sum to one, with the
+        mean taken over cells, not over library-size-normalised cells; the fit returns transcript fractions
+        \(\boldsymbol{q}_{\cdot i}\), converted to cell fractions with \(S_{j}\), the mean UMI total per cell of type \(j\)
+        \cite{wangBulkTissueCell2019,racleSimultaneousEnumerationCancer2017}; only the ratios \(S_{j}/S_{k}\) matter
+  \item sample scale: \(\mathbf{1}^{\top}\boldsymbol{\Theta}\boldsymbol{q}_{\cdot i}=1\), so the bulk library size
+        \(\hat a_{i}=\mathbf{1}^{\top}\boldsymbol{y}_{\cdot i}\) is a free moment estimator, plugged in before the fit
+  \item covariance: within-type layer only, linear in \(q_{ji}\) because independent cell fluctuations add;
+        one donor cannot identify the between-donor layer \(\boldsymbol{\Sigma}_{B,j}\)
+        \cite{zimmermanPracticalSolutionPseudoreplication2021}; \(\boldsymbol{\Sigma}_{W,j}\) is estimated from cells
+        after removing the Poisson diagonal and the technical size-factor term
+        \cite{sarkarSeparatingMeasurementExpression2021,fangExtrinsicBiologicalStochasticity2025}, then sparsified
+        (Section~\ref{sec:cov-estimation})
+  \item \(\kappa_{i}\): one scalar per sample on a log chart, identified by the off-diagonal structure; when its
+        profile likelihood is flat, fix it on a grid and report the sensitivity of \(\hat{\boldsymbol{q}}_{\cdot i}\)
+  \item measurement diagonal: Poisson (\(\phi=1\)) during the fit; afterwards
+        \(\hat\phi=\lVert\boldsymbol{L}^{-1}(\boldsymbol{y}_{\cdot i}-\hat{\boldsymbol{m}}_{i})\rVert^{2}/(G-J+1)\) from whitened
+        Pearson residuals inflates the variance when \(\hat\phi>1\)
+  \item no gene-wise scale: the platform ratio \(d_{g}\) is not identified from one bulk sample
+        \cite{xieStatisticalInferenceCell2026}; it is handled by keeping genes detected consistently in both assays
+  \item solver: the ILR solver and Marquardt--Levenberg are reused; only the covariance assembler changes, and
+        because the covariance is linear in \(\boldsymbol{q}\) its second derivatives in \(\boldsymbol{q}\) vanish, which
+        simplifies the Hessian
+  \item inference: logit or profile-likelihood intervals, Firth's penalty
+        \cite{firthBiasReductionMaximum1993} when a proportion nears zero, and a bootstrap of cells within type
+        for reference uncertainty (\texttt{reference\_bootstrap\_decovart(method = "cells")})
+  \item other alignment strategies and why they were not chosen: Appendix~\ref{app:alignment}
+  \item[] \todo[inline]{Implement \eqref{eq:sc-model} in \texttt{fit\_decovart()} (new covariance assembler, joint
+        \(\kappa_{i}\), post-fit \(\hat\phi\) and \(S_{j}\) conversion) and validate it in an ADEMP simulation study
+        \cite{morrisUsingSimulationStudies2019} before any claim rests on it.}
+\end{itemize}
+
+\subsubsection{Estimand: transcript fraction versus cell fraction}
+\label{sec:estimand}
+
+\begin{itemize}
+  \item under \eqref{eq:convolution}, \(\boldsymbol{p}\) is the relative transcriptomic contribution of each type
+  \item it equals the cell fraction only if capture efficiency and RNA content per cell are shared across types
+        \cite{racleSimultaneousEnumerationCancer2017}; \eqref{eq:sc-model} makes the conversion explicit through \(S_{j}\)
+  \item absolute cell counts are not targeted: capture efficiency is not observed
+  \item library-size closure (TPM, RPKM) is avoided: dividing by the total induces negative gene--gene correlation,
+        including for genes that were independent
+\end{itemize}
+
+\subsection{Performance metrics}
+\label{sec:metrics}
+
+\begin{itemize}
+  \item primary accuracy scores on the simplex: total variation \(\tfrac12\lVert\hat{\boldsymbol{p}}-\boldsymbol{p}^{\star}\rVert_{1}\),
+        RMSE and the maximum absolute error; all are finite with zeros, but abundant types dominate them
+  \item compositional scores (Aitchison distance) measure fold-change error and weigh rare types fairly, but are
+        undefined at zero; they are reported only on interior estimates, with the fraction of zeros
+        \cite{aitchisonStatisticalAnalysisCompositional1982}
+  \item Monte Carlo summaries: bias, empirical standard deviation, the ratio of model standard error to
+        empirical standard deviation, coverage with its Wilson interval \cite{wilsonProbableInferenceLaw1927},
+        and mean interval width
+  \item optimisation: numerical and theoretical convergence, and the projected-score residual
+  \item formulas, pitfalls and the recommended table: Appendix~\ref{app:metrics}
 \end{itemize}
 
 \section{Discussion and Perspectives}
 \label{sec:perspectives}
 
-\subsection{DeCovarT's limitations}
+\subsection{DeCovarT's core innovations}
 \label{sec:limitations}
 
 \begin{itemize}
-  \item cell-type composition: a relevant prognostic biomarker of gastruloid fate
-  \item single-cell RNA-seq: abnormal cell states, at higher resolution than bulk
-  \item cost and technical burden limit large-scale studies with enough power
-  \item dissociation destroys the organoid, and each organoid has few cells,
-        so the same organoid cannot be followed across time points
-  \item DeCovarT collects, in one likelihood, ideas from algorithms that
-        model within-cell-type variability
+  \item cell-type composition is a candidate prognostic marker of gastruloid fate
+  \item single-cell RNA-seq resolves abnormal cell states, at higher resolution than bulk, but cost and
+        dissociation limit it to few structures and one time point per structure
+  \item DeCovarT collects, in one likelihood, ideas from algorithms that model within-type variability
   \begin{itemize}
-    \item \emph{MuSiC}: one scale aligns the bulk average with the single-cell
-          average, for library size and capture efficiency across platforms
-          \cite{wangBulkTissueCell2019}
-    \item \emph{RNA-Sieve}: cell-type profiles as Gaussian.
-          With enough single cells, a central-limit argument applies to the
-          moments (mean and variance), even when the observations themselves
-          are not Gaussian.
-          DeCovarT drops the assumption that genes are independent
+    \item \emph{MuSiC}: one scale aligns the bulk average with the single-cell average, for library size and
+          capture efficiency across platforms \cite{wangBulkTissueCell2019}
+    \item \emph{RNA-Sieve}: Gaussian cell-type profiles justified by a central-limit argument on the moments,
+          with independent genes; DeCovarT drops gene independence
           \cite{erdmann-phamLikelihoodbasedDeconvolutionBulk2021}
-    \item \emph{DECALS}: joint estimate of the composition and of the
-          cell-type covariances, so both within-type and cross-sample
-          variability enter the fit
-          \cite{caiStatisticalInferenceCelltype2024}
-    \item \emph{MEAD}: an errors-in-variables Gaussian model, and confidence
-          intervals for the estimated proportions
+    \item \emph{DECALS}: composition and cell-type covariances estimated together, so within-type and
+          cross-sample variability both enter the fit \cite{caiStatisticalInferenceCelltype2024}
+    \item \emph{MEAD}: an errors-in-variables Gaussian model with confidence intervals for the proportions
           \cite{xieStatisticalInferenceCell2026}
   \end{itemize}
-  \item benchmarks that cross algorithms with normalisation choices:
-        raw counts as the proxy of mRNA abundance
-  \item library-size normalisations such as TPM turn the problem into a
-        composition on the gene simplex
-  \item the scaling assumptions in Figure~\ref{fig:overview} are unlikely
-        to hold; absolute mRNA content per cell type then needs an external
-        reference or an orthogonal assay
-  \item estimand: share of transcriptomic content per cell type, not the
-        cell-count composition
+  \item benchmarks that cross algorithms with normalisation choices use raw counts as the proxy of mRNA
+        abundance; library-size normalisations turn the problem into a composition on the gene simplex
+  \item the scaling assumptions of Figure~\ref{fig:overview} are unlikely to hold; absolute mRNA content per
+        type then needs an external reference or an orthogonal assay
+  \item estimand: share of transcriptomic content per type, not the cell-count composition
 \end{itemize}
 
-\subsection{Other observation laws and inverse problems}
+\subsection{Improve DeCovarT}
+\label{sec:improve}
+
+\subsubsection{A lineage-aware framework for closely related cell types}
+\label{sec:lineage}
+
+\begin{itemize}
+  \item a lineage tree can constrain the composition, either by hard parent--child equality
+        \cite{wangBulkTissueCell2019,dongSCDCBulkGene2021,voelklHIDEHierarchicalCelltype2025,ederRectangleRobustScalable2026}
+        or by a soft mismatch penalty \cite{huangAccurateEstimationRare2024}
+  \item continuous states can replace discrete types through archetypes
+        \cite{hartInferringBiologicalTasks2015,wangNonLinearArchetypalAnalysis2022}, which suits the potency
+        gradient of gastruloids
+\end{itemize}
+
+\subsubsection{Other observation laws allow correlation between genes}
 \label{sec:outlook}
 
 \begin{itemize}
-  \item \emph{RNA-Sieve}, \emph{MEAD}, and \emph{DECALS} support a
-        multivariate Gaussian model for the genes, and only asymptotically
-  \item none of the three states a lower bound on the number of single-cell
-        profiles per cell type
-  \item with few profiles, a logit-normal law can give better-calibrated
-        intervals
+  \item \emph{RNA-Sieve}, \emph{MEAD} and \emph{DECALS} support a multivariate Gaussian model for the genes,
+        and only asymptotically; none states a lower bound on the number of single-cell profiles per type
+  \item with few profiles, a logit-normal law can give better-calibrated intervals
         \cite{mcgregorProportionalitybasedAssociationMetrics2026}
-  \item multivariate counts rarely have a closed form
-        (negative-binomial or log-normal margins)
-  \item a convolution under those laws needs numerical integration or
-        Monte Carlo
+  \item multivariate counts rarely have a closed form (negative-binomial or log-normal margins), so a
+        convolution under those laws needs numerical integration or Monte Carlo
+  \item alternative laws already used for deconvolution
+  \begin{itemize}
+    \item discrete counts: \emph{ISOpureR}, \emph{BayesPrism} (multinomial)
+          \cite{anghelISOpureRImplementationComputational2015,chuCellTypeGeneExpression2022};
+          \emph{DeconV} (Poisson) \cite{gynterDeconvProbabilisticCellType2023};
+          Poisson--log-normal and zero-inflated extensions
+          \cite{chiquetPoissonLognormalModelVersatile2021,batardiereZeroInflationMultivariatePoisson2025};
+          \emph{RCTD} \cite{cableRobustDecompositionCell2022a}
+    \item continuous, gene-wise: \emph{BLADE} \cite{andrade-barbosaBayesianLogNormalDeconvolution2021};
+          \emph{bMIND} \cite{wangBayesianEstimationCelltypespecific2020}
+  \end{itemize}
+  \item \emph{CSNet} reverses \eqref{eq:convolution}: \(\boldsymbol{p}\) treated as known, type-level means and a
+        sparse correlation estimated by least squares \cite{suEstimatingCellTypeSpecificGene2024}; its output is
+        a co-expression graph, and a graphical lasso on \(\hat{\boldsymbol{\Sigma}}_{j}\) gives the precision
+        DeCovarT can plug in
 \end{itemize}
 
-Alternative distributions already used for deconvolution:
+\subsubsection{A Bayesian framework: the Wiener filter}
+\label{sec:wiener}
 
 \begin{itemize}
-  \item discrete counts: \emph{ISOpureR}, \emph{BayesPrism} (multinomial)
-        \cite{anghelISOpureRImplementationComputational2015,chuCellTypeGeneExpression2022};
-        \emph{DeconV} (Poisson) \cite{gynterDeconvProbabilisticCellType2023};
-        Poisson--log-normal and zero-inflated extensions
-        \cite{chiquetPoissonLognormalModelVersatile2021,batardiereZeroInflationMultivariatePoisson2025};
-        \emph{RCTD} \cite{cableRobustDecompositionCell2022a}
-  \item continuous, gene-wise: \emph{BLADE} (log-normal, variational cell-type profiles)
-        \cite{andrade-barbosaBayesianLogNormalDeconvolution2021};
-        \emph{bMIND} \cite{wangBayesianEstimationCelltypespecific2020}
-  \item once \(\boldsymbol{p}_{\cdot i}\) is known, the conditional mean of \(\boldsymbol{x}_{\cdot j,i}\)
-        is the MAP, the BLUP, and the Wiener filter of the Gaussian convolution
-  \item \emph{CSNet} reverses \eqref{eq:convolution}: \(\boldsymbol{p}\) treated as known,
-        type-level means and a sparse correlation estimated by least squares
-        \cite{suEstimatingCellTypeSpecificGene2024}
-  \item a \emph{CSNet} correlation is a co-expression graph;
-        a graphical lasso on \(\hat{\boldsymbol{\Sigma}}_{j}\) is the precision
-        DeCovarT can plug in
-        \cite{friedmanSparseInverseCovariance2008}
+  \item keeping the profiles as latent variables, with a diagonal residual \(\boldsymbol{D}\),
+        \(\boldsymbol{y}_{\cdot i}\mid\boldsymbol{p}_{\cdot i},\{\boldsymbol{x}_{\cdot j,i}\}\sim\mathcal{N}_{G}(\sum_{j}p_{ji}\boldsymbol{x}_{\cdot j,i},\boldsymbol{D})\),
+        returns the DeCovarT likelihood after integration; \(\boldsymbol{D}\neq\boldsymbol{0}\) is needed for a
+        non-degenerate posterior
+  \item given \(\boldsymbol{p}_{\cdot i}\) the maximum a posteriori estimate, the best linear unbiased predictor
+        and the Wiener filter coincide:
+        \(\hat{\boldsymbol{x}}_{\cdot j,i}=\boldsymbol{\mu}_{\cdot j}+p_{ji}\boldsymbol{\Sigma}_{j}\{\boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i})+\boldsymbol{D}\}^{-1}(\boldsymbol{y}_{\cdot i}-\boldsymbol{\mu}\boldsymbol{p}_{\cdot i})\);
+        the cell-type covariance then shapes the purified profiles as well as \(\hat{\boldsymbol{p}}\)
+  \item the posterior covariance gives per-sample uncertainty on cell-type-specific profiles, which
+        \emph{bMIND} obtains with a gene-wise single-cell prior \cite{wangBayesianEstimationCelltypespecific2020}
+  \item the latent form yields an EM algorithm \cite{dempsterMaximumLikelihoodIncomplete1977} whose iterations
+        increase the marginal likelihood, and a mean-field variant that keeps the sparse precisions
+  \item priors on the composition: Dirichlet, concave in ILR coordinates for every \(\alpha_{j}>0\), or
+        logistic-normal; either keeps the posterior proper where Wald intervals degenerate
+  \item routes to the full posterior: Laplace approximation with the analytic Hessian, Hamiltonian Monte Carlo
+        on the closed-form marginal likelihood, or stochastic variational inference
+  \item open problems: nothing is implemented in \texttt{fit\_decovart()}; EM stalls as \(\boldsymbol{D}\to\boldsymbol{0}\);
+        plugging in \(\hat{\boldsymbol{p}}\) ignores its uncertainty
+        (\vignette{theory-decovart-bayesian-wiener.html}{Wiener-filter vignette})
 \end{itemize}
 
-\subsection{Regulatory networks from single-cell profiles}
+\subsubsection{A dynamic and time-resolved perspective}
+\label{sec:dynamic-inference}
+
+\begin{itemize}
+  \item a few time points (at least three) are needed to recover dynamic interactions between genes
+  \item without prior knowledge or perturbation data, temporal ordering is the main route to directed,
+        mechanistic interactions, and hence to sparser and more contextualised networks
+  \item time-resolved compositions can carry a random-walk prior on log-ratio coordinates
+        \cite{kimLongitudinalProfilingLowAbundance2025}
+\end{itemize}
+
+\subsubsection{Alternative strategies for cell-type-specific covariances}
 \label{sec:grn}
 
-Beside the mean of each cell type, DeCovarT needs
-\(\boldsymbol{\Sigma}_{j}\) or \(\boldsymbol{\Omega}_{j}\).
-Gene--gene dependence estimated from single cells is still an open problem.
+Besides the mean of each cell type, DeCovarT needs \(\boldsymbol{\Sigma}_{j}\) or \(\boldsymbol{\Omega}_{j}\).
+Gene--gene dependence estimated from single cells remains an open problem.
 
 \begin{itemize}
-  \item the fitted precision is undirected; most regulatory interactions are directed
+  \item the fitted precision is undirected, while most regulatory interactions are directed
   \begin{itemize}
     \item orient edges by pairing observations with interventions
-    \item or add chromatin accessibility, or transcription-factor binding
+    \item or add chromatin accessibility or transcription-factor binding
           \cite{badia-i-mompelGeneRegulatoryNetwork2023,maizelsGeneRegulatoryNetworks2026}
   \end{itemize}
-  \item open question: whether a causal graph improves \(\hat{\boldsymbol{p}}\),
-        or a consistent covariance is enough
-  \item current fits use the variability inside one single-cell biological replicate
-  \item several independent replicates would separate that within-type term
-        from cross-sample variability, for example with a two-level
-        hierarchical random effect
-  \item \emph{DECALS} already splits those two variance layers;
-        DeCovarT does not implement that split yet
-        \cite{caiStatisticalInferenceCelltype2024}
+  \item benchmarks show that inference can fail in common regimes even with multi-omic inputs
+        \cite{nourisaGeneRNIBLivingBenchmark2025}
+  \item open question: whether a causal graph improves \(\hat{\boldsymbol{p}}\), or a consistent covariance is enough
+  \item current fits use the variability inside one single-cell biological replicate; several independent
+        replicates would separate that within-type term from cross-sample variability, for example with a
+        two-level random effect, as \emph{DECALS} already does \cite{caiStatisticalInferenceCelltype2024}
 \end{itemize}
 
+\subsubsection{Roadmap of other extensions}
+\label{sec:roadmap}
 
+Each extension keeps the convolution \eqref{eq:convolution} and changes one part of it; none is implemented
+(\vignette{theory-decovart-extensions-roadmap.html}{roadmap vignette}).
+
+\begin{itemize}
+  \item composition structure: sample covariates in a composition model on the log-ratio chart
+        \cite{fanMusic2CellTypeDeconvolution2022}
+  \item reference completeness: one unknown component absorbing an unrepresented population
+        \cite{taiBayiceBayesianHierarchicalModel2021,montierthDeconvolutionSparsecountRNA2025,racleSimultaneousEnumerationCancer2017}
+  \item observation space: isoforms \cite{heilingEstimatingCellTypeComposition2023}, stacked multi-omics with a
+        block covariance \cite{chenUnicoUnifiedModelCell2025,barbotPromisesLimitsMultimodal2026}, and spatial spots
+        whose compositions depend on their neighbours \cite{cableRobustDecompositionCell2022a}
+  \item estimation: ensembles over references \cite{caiRobustAccurateEstimation2022}, gene weights folded into the
+        convolution as \(\boldsymbol{W}^{1/2}\boldsymbol{y}\), \(\boldsymbol{W}^{1/2}\boldsymbol{\mu}\) and
+        \(\boldsymbol{W}^{1/2}\boldsymbol{\Sigma}_{j}\boldsymbol{W}^{1/2}\) with the solver unchanged
+        \cite{tsoucasAccurateEstimationCelltype2019,lawVoomPrecisionWeights2014}, and robust losses
+        \cite{liuDecotBulkDeconvolutionOptimal2022}
+\end{itemize}
 
 \begin{appendices}
 \input{appendix_layout}

@@ -1966,28 +1966,6 @@ both $\lambda_{\min}(H_z)$ and $\lambda_{\max}(H_z)$ so a saddle
 Euler diagram of the three ADEMP solver outcomes. Numerical failure (solver crash or a non-finite simplex) implies theoretical failure, so the red disc sits inside the amber set. Theoretical success is the disjoint green disc. Stacked bars in `output/fig02/performance_visualisations/convergence_stacked.pdf` and the fig03 counterpart count these three categories on the same corner layout as the Wald forest.
 :::
 
-::: {#nte-empty-rainclouds .callout-warning}
-## Why some raincloud panels look empty
-
-Two distinct mechanisms produced blank $\hat p$ rainclouds on the
-fig02 book.
-
-- **Legend overlay.** The four correlation corners are arranged as a
-  $2\times 2$. `rho = (-0.8, 0.8)` is the bottom-right facet. An
-  inset cowplot legend at $(x,y)=(0.68,0.08)$ sat on top of that
-  panel. The legend now sits to the right of the facets
-  ([`cowplot::get_legend()`](https://wilkelab.org/cowplot/)).
-- **Vertex pile-up.** On highly unbalanced compositions
-  (`rho = (0, 0)`, small CLD, homoscedastic), many solvers pin a rare
-  type at $0$ and the abundant type at $1$. A bounded kernel density
-  on $[0,1]$ with almost no unique values emits an empty slab. The
-  raincloud helper now overlays Monte Carlo dots whenever a group has
-  two or fewer distinct estimates.
-
-Neither blank is a missing `numerical_converged` flag. Check the
-stacked-bar book before interpreting an empty density as a solver
-crash.
-:::
 
 ## Zoom on the coverage rate, and derivation of the intervals
 
