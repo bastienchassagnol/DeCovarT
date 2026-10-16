@@ -229,34 +229,34 @@ jobs:
             texlive-bibtex-extra \
             biber
 
-      - name: Build article PDF with latexmk
-        if: >-
-          github.event_name == 'push' &&
-          contains(github.event.head_commit.message, 'article generation')
-        working-directory: article
-        run: |
-          latexmk -pdf -f -interaction=nonstopmode -file-line-error \
-            -synctex=1 main.tex
-          test -f main.pdf
+      # - name: Build article PDF with latexmk
+      #   if: >-
+      #     github.event_name == 'push' &&
+      #     contains(github.event.head_commit.message, 'article generation')
+      #   working-directory: article
+      #   run: |
+      #     latexmk -pdf -f -interaction=nonstopmode -file-line-error \
+      #       -synctex=1 main_layout.tex
+      #     test -f main_layout.pdf
 
-      - name: Upload article PDF artifact
-        if: >-
-          github.event_name == 'push' &&
-          contains(github.event.head_commit.message, 'article generation')
-        uses: actions/upload-artifact@v7
-        with:
-          name: article-main-pdf
-          path: article/main.pdf
-          if-no-files-found: error
+      # - name: Upload article PDF artifact
+      #   if: >-
+      #     github.event_name == 'push' &&
+      #     contains(github.event.head_commit.message, 'article generation')
+      #   uses: actions/upload-artifact@v7
+      #   with:
+      #     name: article-main-pdf
+      #     path: article/main_layout.pdf
+      #     if-no-files-found: error
 
-      - name: Copy article PDF into pkgdown docs
-        if: >-
-          github.event_name == 'push' &&
-          contains(github.event.head_commit.message, 'article generation')
-        run: |
-          mkdir -p docs/article
-          cp -a article/main.pdf docs/article/main.pdf
-          test -f docs/article/main.pdf
+      # - name: Copy article PDF into pkgdown docs
+      #   if: >-
+      #     github.event_name == 'push' &&
+      #     contains(github.event.head_commit.message, 'article generation')
+      #   run: |
+      #     mkdir -p docs/article
+      #     cp -a article/main_layout.pdf docs/article/main.pdf
+      #     test -f docs/article/main.pdf
 
       - name: Deploy to GitHub Pages
         if: github.event_name != 'pull_request'

@@ -58,6 +58,56 @@ Detailed review in the \vignette{theory-network-inference.html}{network-inferenc
         \cite{liGraphicalHorseshoeEstimator2019}
 \end{itemize}
 
+\section{A covariance-driven statistical simulator}
+\label{app:simulator}
+
+\subsection{Synthetic network simulation}
+\label{sec-synthetic-network}
+
+Three families of random graphs generate the skeletons of the precision matrices.
+\begin{itemize}
+    \item Erd\H{o}s--R\'enyi model: each pair of nodes is joined independently with a fixed
+        probability, which gives a homogeneous random graph
+        \todo{Add Erd\H{o}s and R\'enyi (1959) to Zotero and cite it here.}
+    \item Preferential attachment: nodes are added one at a time and connect preferentially to
+        well-connected nodes \cite{barabasiEmergenceScalingRandom1999,newmanStructureDynamicsNetworks2011}.
+        The degree distribution follows a power law, which produces hubs; such scale-free graphs are often
+        assumed for biological networks, although the evidence is debated
+        \cite{lima-mendezPowerfulLawPower2009,broidoScalefreeNetworksAre2019}.
+    \item Stochastic block model (affiliation model): a latent label assigns each node to a community,
+        and edges are more likely within a block than between blocks
+        \cite{hollandStochasticBlockmodelsFirst1983}.
+\end{itemize}
+
+Signed weights on the edges give a symmetric matrix \(\boldsymbol{W}\), which is turned into a
+\gls{posdef} precision by the affine spectrum transformation
+\begin{equation}
+  \boldsymbol{\Omega}=\boldsymbol{W}+\bigl(\lvert\lambda_{\min}(\boldsymbol{W})\rvert+u\bigr)\mathbf{I}_{G},
+  \qquad u>0,
+  \label{eq-affine-spectrum-transformation}
+\end{equation}
+which keeps the off-diagonal support and signs (Theorem~\ref{supp-thm-affine}) and sets the
+smallest eigenvalue of \(\boldsymbol{\Omega}\) to \(u\) \cite{chiquetVariationalInferenceSparse2018}.
+
+
+
+\begin{theorem}[Invariance of the spectrum function by affine
+transformation]
+    \label{supp-thm-affine}
+
+    Let $X$ be any square matrix, and consider the affine transformation:
+
+    \[
+        Y = aX + bI
+    \]
+
+    with $a$ and $b$ positive scalars, and $I$ the identity matrix. Then
+    $Y$ has the same eigenvectors as $X$, and every eigenvalue
+    $\lambda$ of $X$ becomes $a\lambda+b$: the \gls{spectrum} is scaled by $a$ and shifted by $b$.
+\end{theorem}
+
+
+
 \section{Review of deconvolution algorithms leveraging cell-type-specific variances}
 \label{app:review}
 
@@ -144,6 +194,154 @@ Detailed review in the \vignette{theory-review-distribution-aware-deconvolution.
 \section{Methodological details on DeCovarT}
 \label{app:methods}
 
+\subsection{Derivation of the unconstrained likelihood}
+\label{app:derivation}
+
+\begin{definition}[Multivariate Gaussian distribution]
+  \label{def:multivariate-gaussian}
+  A random vector \(\boldsymbol{X}\in\mathbb{R}^{G}\) follows \(\mathcal{N}_{G}(\boldsymbol{\mu},\boldsymbol{\Sigma})\) when its density is
+  \(\det(2\pi\boldsymbol{\Sigma})^{-1/2}\exp\{-\tfrac12(\boldsymbol{x}-\boldsymbol{\mu})^{\top}\boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{\mu})\}\), with mean
+  \(\boldsymbol{\mu}=\mathbb{E}[\boldsymbol{X}]\) and a \gls{posdef} covariance \(\boldsymbol{\Sigma}\).
+  The diagonal of \(\boldsymbol{\Sigma}\) holds the variances of the genes, the off-diagonal entries their
+  covariances, and \(\boldsymbol{\Omega}=\boldsymbol{\Sigma}^{-1}\) is the \gls{precision}.
+  If \(\boldsymbol{\Sigma}\) is not positive definite, some linear combination of the genes has zero or
+  negative variance, and the distribution is degenerate.
+\end{definition}
+
+\begin{remark}[Scaling and sums of independent Gaussian vectors]
+  \label{pr:multivariate-affine-transformation}
+  If \(\boldsymbol{X}\sim\mathcal{N}_{G}(\boldsymbol{\mu},\boldsymbol{\Sigma})\) and \(p\) is a constant, then
+  \(p\boldsymbol{X}\sim\mathcal{N}_{G}(p\boldsymbol{\mu},p^{2}\boldsymbol{\Sigma})\).
+  If \(\boldsymbol{X}_{1}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{1},\boldsymbol{\Sigma}_{1})\) and \(\boldsymbol{X}_{2}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{2},\boldsymbol{\Sigma}_{2})\) are
+  independent, then \(\boldsymbol{X}_{1}+\boldsymbol{X}_{2}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{1}+\boldsymbol{\mu}_{2},\boldsymbol{\Sigma}_{1}+\boldsymbol{\Sigma}_{2})\).
+  Both follow from the characteristic function, and by induction they give the
+  \gls{convolution} \eqref{eq:convolution} of \(J\) independent cell-type profiles.
+\end{remark}
+
+\begin{remark}[Equivariance of the DeCovarT maximum-likelihood estimate]
+  \label{pr:decovart-affine-equivariance}
+  DeCovarT is equivariant to any fixed, invertible, gene-wise affine transformation applied
+  consistently to bulk expression, reference means and reference covariances.
+  Let \(\boldsymbol{D}=\operatorname{diag}(s_{1},\ldots,s_{G})\) with \(s_{g}\neq0\) and \(\boldsymbol{m}\in\mathbb{R}^{G}\).
+  The map
+  \(\boldsymbol{y}^{\star}_{\cdot i}=\boldsymbol{D}^{-1}(\boldsymbol{y}_{\cdot i}-\boldsymbol{m})\),
+  \(\boldsymbol{\mu}^{\star}=\boldsymbol{D}^{-1}(\boldsymbol{\mu}-\boldsymbol{m}\mathbf{1}_{J}^{\top})\),
+  \(\boldsymbol{\Sigma}_{j}^{\star}=\boldsymbol{D}^{-1}\boldsymbol{\Sigma}_{j}\boldsymbol{D}^{-1}\)
+  preserves the linear convolution with the same \(\boldsymbol{p}_{\cdot i}\), because
+  \(\mathbf{1}_{J}^{\top}\boldsymbol{p}_{\cdot i}=1\).
+  The Mahalanobis residual is unchanged and the log-determinant shifts by a constant, so the
+  maximiser \(\hat{\boldsymbol{p}}\) is unchanged; a gene-wise \(z\)-score computed once from \(\boldsymbol{\mu}\) is a special
+  case.
+  Transformations estimated separately for each cell type or each bulk sample are not
+  equivalent.
+  A logarithm is not affine: by Jensen's inequality it changes the first and second moments, and
+  \(\log(\boldsymbol{\mu}\boldsymbol{p})\neq(\log\boldsymbol{\mu})\boldsymbol{p}\), so the convolution is no longer linear; for that
+  reason \emph{CIBERSORT} also requires a non-log linear scale \cite{newmanRobustEnumerationCell2015}.
+\end{remark}
+
+\begin{remark}[Matrix calculus]
+  \label{pr:matrix-calculus}
+  For an invertible matrix \(\boldsymbol{A}=\boldsymbol{A}(p)\) of a scalar \(p\) and constant matrices \(\boldsymbol{U}\),
+  \(\boldsymbol{V}\):
+  \(\partial\det\boldsymbol{A}/\partial p=\det\boldsymbol{A}\,\operatorname{tr}(\boldsymbol{A}^{-1}\partial\boldsymbol{A}/\partial p)\), hence
+  \(\partial\log\det\boldsymbol{A}/\partial p=\operatorname{tr}(\boldsymbol{A}^{-1}\partial\boldsymbol{A}/\partial p)\);
+  \(\partial(\boldsymbol{U}\boldsymbol{A}\boldsymbol{V})/\partial p=\boldsymbol{U}(\partial\boldsymbol{A}/\partial p)\boldsymbol{V}\);
+  \(\partial\boldsymbol{A}^{-1}/\partial p=-\boldsymbol{A}^{-1}(\partial\boldsymbol{A}/\partial p)\boldsymbol{A}^{-1}\);
+  and \(\partial^{2}\boldsymbol{A}^{-1}/\partial p_{k}\partial p_{l}
+  =\boldsymbol{A}^{-1}\{\boldsymbol{A}_{k}\boldsymbol{A}^{-1}\boldsymbol{A}_{l}-\boldsymbol{A}_{kl}+\boldsymbol{A}_{l}\boldsymbol{A}^{-1}\boldsymbol{A}_{k}\}\boldsymbol{A}^{-1}\),
+  with \(\boldsymbol{A}_{k}=\partial\boldsymbol{A}/\partial p_{k}\).
+  For the convolution, \(\partial\boldsymbol{\Sigma}/\partial p_{k}=2p_{k}\boldsymbol{\Sigma}_{k}\) and
+  \(\partial\boldsymbol{r}/\partial p_{k}=-\boldsymbol{\mu}_{\cdot k}\), which give the score
+  \eqref{eq-derivative-log-likelihood-unconstrained}.
+\end{remark}
+
+Differentiating \eqref{eq-derivative-log-likelihood-unconstrained} once more gives the Hessian
+\(\mathbf{H}\in\mathbb{R}^{J\times J}\), with \(\delta_{kl}\) the Kronecker delta:
+\begin{equation}
+  \begin{aligned}
+    \mathbf{H}_{kl}
+    ={}&-\delta_{kl}\operatorname{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}_{k})
+       +2p_{k}p_{l}\operatorname{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}_{k}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{l})
+       -\boldsymbol{\mu}_{\cdot k}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}_{\cdot l}\\
+     &-2p_{l}\,\boldsymbol{\mu}_{\cdot k}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{l}\boldsymbol{\Omega}\boldsymbol{r}
+       -2p_{k}\,\boldsymbol{\mu}_{\cdot l}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{k}\boldsymbol{\Omega}\boldsymbol{r}
+       +\delta_{kl}\,\boldsymbol{r}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{k}\boldsymbol{\Omega}\boldsymbol{r}
+       -4p_{k}p_{l}\,\boldsymbol{r}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{k}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{l}\boldsymbol{\Omega}\boldsymbol{r}.
+  \end{aligned}
+  \label{eq-hessian-log-likelihood-unconstrained}
+\end{equation}
+
+\begin{remark}[Expected Fisher information and Wald intervals]
+  \label{pr:decovart-expected-fisher}
+  Taking expectations of \eqref{eq-hessian-log-likelihood-unconstrained} under the generative model,
+  with \(\mathbb{E}[\boldsymbol{r}]=\boldsymbol{0}\) and \(\mathbb{E}[\boldsymbol{r}\boldsymbol{r}^{\top}]=\boldsymbol{\Sigma}(\boldsymbol{p})\), cancels the
+  determinant traces against the residual traces and returns \(\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})\), with
+  \begin{equation}
+    I(\boldsymbol{p})_{jk}
+    =\boldsymbol{\mu}_{\cdot j}^{\top}\boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\mu}_{\cdot k}
+    +2p_{j}p_{k}\operatorname{tr}\bigl(\boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_{j}\boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_{k}\bigr).
+    \label{eq-expected-fisher-p}
+  \end{equation}
+  The identity holds only with the factor \(\tfrac12\) on both terms of
+  \eqref{eq-loglikelihood-multivariate-gaussian}; doubling the log-determinant, as an early version of
+  the implementation did, breaks it.
+  In log-ratio coordinates \(\boldsymbol{\rho}\), the Cram\'er--Rao bound is
+  \(\operatorname{Var}(\hat{\boldsymbol{\rho}})\succeq I_{\boldsymbol{\rho}}^{-1}\) with
+  \(I_{\boldsymbol{\rho}}=\mathbf{J}_{\psi}^{\top}I(\boldsymbol{p})\mathbf{J}_{\psi}\), and the delta method maps it back to the
+  simplex:
+  \begin{equation}
+    \operatorname{Var}(\hat{\boldsymbol{p}})=\mathbf{J}_{\psi}I_{\boldsymbol{\rho}}^{-1}\mathbf{J}_{\psi}^{\top}.
+    \label{eq-delta-method-p}
+  \end{equation}
+  This is the matrix returned by \texttt{vcov()} on a fitted DeCovarT object.
+  It is not an ordinary least-squares residual variance: goodness of fit is the convolution
+  log-likelihood, and the estimator does not forecast bulk expression.
+\end{remark}
+
+\subsection{Derivation of the constrained likelihood on log-ratio charts}
+\label{app:constrained}
+
+\begin{itemize}
+  \item constrained optimisation can eliminate the constraints by reparametrisation, enforce them
+        softly with penalties or barriers, or enforce feasibility exactly by projections, Lagrangian or
+        Karush--Kuhn--Tucker methods; reparametrisation and penalties are simple but can be poorly
+        conditioned, barrier and interior-point methods suit convex problems, and Lagrangian methods
+        (augmented Lagrangian, sequential quadratic programming) are the most general
+  \item DeCovarT reparametrises: with \(\boldsymbol{\eta}=\mathbf{V}\boldsymbol{\rho}\) and \(\boldsymbol{\rho}\in\mathbb{R}^{J-1}\),
+        \begin{equation}
+          p_{k}=\psi_{k}(\boldsymbol{\rho})=\frac{e^{\eta_{k}}}{\sum_{m=1}^{J}e^{\eta_{m}}},
+          \qquad
+          \boldsymbol{\rho}=\mathbf{V}^{\top}\log\boldsymbol{p},
+          \label{eq-mapping-function}
+        \end{equation}
+        where \(\mathbf{V}\) is a \(J\times(J-1)\) Helmert basis orthogonal to \(\mathbf{1}\) for the \gls{ilr} chart;
+        the additive log-ratio chart is the case \(\mathbf{V}=[\mathbf{I}_{J-1};\boldsymbol{0}^{\top}]\), which gives
+        \(p_{k}=e^{\rho_{k}}/(1+\sum_{m<J}e^{\rho_{m}})\) and \(p_{J}=1/(1+\sum_{m<J}e^{\rho_{m}})\), with
+        \(\rho_{k}=\log(p_{k}/p_{J})\)
+  \item \(\boldsymbol{\psi}\) is a \(C^{2}\)-diffeomorphism between \(\mathbb{R}^{J-1}\) and the open simplex; the
+        log-sum-exp trick evaluates it and its derivatives without overflow
+  \item Jacobian and second derivatives:
+        \begin{equation}
+          \mathbf{J}_{\psi}=\bigl(\operatorname{diag}(\boldsymbol{p})-\boldsymbol{p}\boldsymbol{p}^{\top}\bigr)\mathbf{V},
+          \qquad
+          \frac{\partial^{2}p_{k}}{\partial\eta_{m}\partial\eta_{n}}
+          =p_{k}\bigl[(\delta_{km}-p_{m})(\delta_{kn}-p_{n})-p_{m}(\delta_{mn}-p_{n})\bigr],
+          \label{eq-mapping-function-gradient}
+        \end{equation}
+        and \(\partial^{2}p_{k}/\partial\rho_{a}\partial\rho_{b}=\sum_{m,n}V_{ma}V_{nb}\,\partial^{2}p_{k}/\partial\eta_{m}\partial\eta_{n}\),
+        a third-order tensor symmetric in \((a,b)\) by Schwarz's theorem
+  \item chain rules, in \(\mathbb{R}^{J-1}\) and \(\mathbb{R}^{(J-1)\times(J-1)}\):
+        \begin{equation}
+          \nabla_{\boldsymbol{\rho}}\ell=\mathbf{J}_{\psi}^{\top}\nabla_{\boldsymbol{p}}\ell,
+          \qquad
+          \nabla^{2}_{\boldsymbol{\rho}}\ell=\mathbf{J}_{\psi}^{\top}\mathbf{H}\mathbf{J}_{\psi}
+          +\sum_{k=1}^{J}\frac{\partial\ell}{\partial p_{k}}\nabla^{2}_{\boldsymbol{\rho}}p_{k}
+          \label{eq-chain-rule-second-order}
+        \end{equation}
+        with \(\mathbf{H}\) from \eqref{eq-hessian-log-likelihood-unconstrained}; the second term vanishes at a
+        stationary point of the unconstrained problem but not in general
+\end{itemize}
+
 \subsection{Alternative alignment strategies}
 \label{app:alignment}
 
@@ -180,6 +378,8 @@ Derivations in the \vignette{theory-decovart-single-cell-tailored.html}{single-c
         with \(a_{i}\) and \(S_{j}\) plugged in as in strategy 4
 \end{itemize}
 
+
+
 \subsection{Numerical optimisation algorithms}
 \label{app:optim}
 
@@ -190,8 +390,12 @@ Derivations in the \vignette{theory-decovart-single-cell-tailored.html}{single-c
         projected gradient; Newton--Raphson and Marquardt--Levenberg on the ILR chart with the analytic Hessian
         \cite{marquardtAlgorithmLeastSquaresEstimation1963,commengesNewtonLikeAlgorithmLikelihood2006,philippsRobustEfficientOptimization2021};
         simulated annealing as a global reference
-  \item the relative-distance-to-maximum stop of Marquardt--Levenberg suits a balanced ridge and fires early on a
-        rare-type tail
+  \item the Marquardt--Levenberg algorithm \cite{marquardtAlgorithmLeastSquaresEstimation1963} moves between
+        steepest ascent (first order) and Newton--Raphson (second order) by inflating the diagonal of the
+        Hessian: it takes Newton-like steps where the quadratic model is reliable and short gradient steps
+        where it is not; the \texttt{marqLevAlg} implementation adds the relative distance to the maximum,
+        which separates maxima from saddle points \cite{philippsRobustEfficientOptimization2021}
+  \item that stopping rule suits a balanced ridge and fires early on a rare-type tail
   \item failure is split into numerical failure (no finite estimate) and theoretical failure (estimate below the
         likelihood at the truth); stationarity is measured by the projected-score residual, valid on faces
   \item[] \todo[inline]{Report run time and memory per solver from the fig02 and fig03 books.}
@@ -208,8 +412,13 @@ Proofs and simulations in the \vignette{theory-DeCovarT-MLE-properties.html}{max
   \item existence: with symmetric positive-definite \(\boldsymbol{\Sigma}_{j}\), \(\boldsymbol{\Sigma}(\boldsymbol{p})\) is positive definite
         on the closed simplex, so the log-likelihood is continuous on a compact set and attains its supremum,
         possibly on a face
-  \item non-uniqueness: the model is heteroscedastic, and a three-gene, two-type example has an indefinite Hessian;
-        the log-likelihood is therefore not concave, in \(\boldsymbol{p}\) or in the ILR chart
+  \item non-uniqueness: the model is heteroscedastic; with \(\boldsymbol{\Sigma}_{1}=\boldsymbol{\Sigma}_{2}=\mathbf{I}_{3}\),
+        \(\boldsymbol{\mu}_{\cdot1}=(2,1,1)^{\top}\), \(\boldsymbol{\mu}_{\cdot2}=(1,2,6/5)^{\top}\) and \(\boldsymbol{y}=\boldsymbol{\mu}(1/2,1/2)^{\top}\), the
+        Hessian \eqref{eq-hessian-log-likelihood-unconstrained} at \(\boldsymbol{p}=(1/5,3/10)\) has eigenvalues of about
+        \(-654.5\) and \(+53.9\); the log-likelihood is therefore not concave, in \(\boldsymbol{p}\) or in the ILR
+        chart, and a converged solver certifies a local maximum only
+  \item a single bulk profile provides no replication of its own composition, so every asymptotic
+        statement below is taken in the number of replicate samples sharing one composition
   \item population uniqueness: the expected log-likelihood is maximised only at the true composition under
         identifiability, because the gap is a Kullback--Leibler divergence \cite{vaartAsymptoticStatistics2000}
   \item ILR versus \emph{MEAD}: \emph{MEAD} truncates or softplus-transforms its estimate, which is inconsistent for a
@@ -276,7 +485,7 @@ Proofs and simulations in the \vignette{theory-DeCovarT-MLE-properties.html}{max
         of Section~\ref{sec:inference}
 \end{itemize}
 
-\begin{table}[H]
+\begin{table}[h]
   \centering
   \small
   \caption{Which interval or test to report for DeCovarT proportions.}
@@ -296,6 +505,36 @@ Proofs and simulations in the \vignette{theory-DeCovarT-MLE-properties.html}{max
     \bottomrule
   \end{tabular}
 \end{table}
+
+\section{Special cases of the generative model}
+\label{app:special}
+
+DeCovarT's residual covariance \(\boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i})=\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}\) depends on the unknown
+composition.
+Freezing it at the barycentre \(p_{j}=1/J\) gives a single residual covariance,
+\begin{equation}
+  \operatorname{Cov}(\boldsymbol{y}_{\cdot i}\mid\boldsymbol{\mu})=\frac{1}{J^{2}}\sum_{j=1}^{J}\boldsymbol{\Sigma}_{j},
+  \label{eq-gls-barycentre}
+\end{equation}
+so the variance of the purified profiles no longer depends on their mixing weights.
+The fit is then generalised least squares on the linear mean \eqref{eq-linear-deconvolution}.
+Weighted least squares is the diagonal case \(\boldsymbol{\Omega}=\operatorname{diag}(w_{1},\ldots,w_{G})\), for which \emph{DWLS}
+supplies dampened gene weights \cite{tsoucasAccurateEstimationCelltype2019}.
+Interaction monomials \(p_{j}p_{k}\) in the mean (a Scheff\'e expansion) can be added on the same
+residual, at the cost of many extra parameters.
+
+\begin{theorem}[Generalised least squares]
+  \label{th:generalized-least-squares-estimate}
+  Consider \(\boldsymbol{y}_{\cdot i}=\boldsymbol{\mu}\boldsymbol{p}_{\cdot i}+\boldsymbol{\varepsilon}\) with \(\mathbb{E}(\boldsymbol{\varepsilon}\mid\boldsymbol{\mu})=\boldsymbol{0}\) and
+  \(\operatorname{Cov}(\boldsymbol{\varepsilon}\mid\boldsymbol{\mu})=\boldsymbol{\Sigma}\), a known non-singular covariance.
+  The estimate that minimises the squared Mahalanobis norm of the residuals is
+  \(\hat{\boldsymbol{p}}^{\mathrm{GLS}}=(\boldsymbol{\mu}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu})^{-1}\boldsymbol{\mu}^{\top}\boldsymbol{\Omega}\boldsymbol{y}_{\cdot i}\), with \(\boldsymbol{\Omega}=\boldsymbol{\Sigma}^{-1}\).
+  It is the best linear unbiased estimator of \(\boldsymbol{p}_{\cdot i}\), and it equals the unconstrained
+  maximum-likelihood estimate under a Gaussian error.
+  A Cholesky factor \(\boldsymbol{\Sigma}=\boldsymbol{C}\boldsymbol{C}^{\top}\) reduces the problem to ordinary least squares on
+  \(\boldsymbol{C}^{-1}\boldsymbol{y}_{\cdot i}\), which removes heteroscedasticity and residual correlation.
+  The simplex constraint is imposed afterwards, or through the chart \eqref{eq-mapping-function}.
+\end{theorem}
 
 \section{Performance metrics}
 \label{app:metrics}
@@ -339,7 +578,7 @@ Notation: \(\boldsymbol{e}=\hat{\boldsymbol{p}}-\boldsymbol{p}^{\star}\).
   \item failure categories: theoretical success; theoretical failure with numerical success; numerical failure
 \end{itemize}
 
-\begin{table}[H]
+\begin{table}[h]
   \centering
   \small
   \caption{Accuracy metrics for \(\hat{\boldsymbol{p}}\) on the simplex, with \(\boldsymbol{e}=\hat{\boldsymbol{p}}-\boldsymbol{p}^{\star}\).}
@@ -409,7 +648,7 @@ Performance pages, under \texttt{performance\_visualisations/}:
   \item \texttt{runtime.pdf}, \texttt{memory.pdf}: \(\log_{10}\) seconds and \(\log_{10}\) MiB
 \end{itemize}
 
-Reading the books:
+
 
 \begin{itemize}
   \item heatmaps: where on \((\rho_{1},\rho_{2})\) a mean-only fit breaks, at fixed centroid gap
@@ -489,8 +728,35 @@ The designs below are specified in the supplementary vignettes; none reports res
         oracle grows with the mean cosine (\vignette{supp-S4-covariance-modeling.html}{covariance-modelling vignette})
 \end{itemize}
 
-\subsection{Model robustness and sensitivity analyses}
+\subsection{Model robustness}
 \label{sec:robustness}
+
+\subsubsection{Ablation analysis}
+\label{app:ablation}
+
+\begin{itemize}
+  \item timing: once a first relevant gene selection and a model adapted to single-cell data
+        (Section~\ref{sec:sc-tailored}) are available, run a complete ablation study
+  \item open design question: use the Suppinger bulk profiles with the matched single-cell profiles as
+        ground truth, or pseudo-bulks built from the Suppinger single-cell data, whose composition is
+        known exactly \cite{suppingerMultimodalCharacterizationMurine2023}
+  \item factors
+  \begin{enumerate}[label=(\alph*)]
+    \item gene-selection method: our analysis of deviance (Section~\ref{sec:feature-selection}), which
+          plays the role of an ANOVA for non-Gaussian counts; a coarse selection of regulators with
+          \emph{GRNBoost2} \cite{moermanGRNBoost2ArboretoEfficient2019}; and highly variable genes as a
+          baseline \cite{hafemeisterNormalizationVarianceStabilization2019}
+    \item gene-selection stringency: nested panels of increasing size
+    \item covariance-structure inference: the graphical lasso; a direct, dense covariance estimate
+          that is not sparse \cite{schäferShrinkageApproachLargescale2005}; and partial correlations as a
+          basic baseline (Section~\ref{sec:cov-estimation})
+  \end{enumerate}
+  \item expected result: a calibration curve, analogous to the bias--variance trade-off, with an optimum
+        for a parsimonious number of genes; as the number of genes grows, performance stabilises or
+        degrades, and DeCovarT no longer outperforms methods that use mean profiles only
+\end{itemize}
+
+\subsubsection{Sensitivity to the reference covariance}
 
 \begin{itemize}
   \item observation law: Gaussian baseline, multivariate \(t_{3}\), log-normal or Poisson--log-normal counts
@@ -502,5 +768,8 @@ The designs below are specified in the supplementary vignettes; none reports res
   \item spillover between types, and a reference covariance estimated from \(20\), \(50\) or \(200\) donors
   \item outlier genes (\(10\) to \(30\%\)), dropout and protocol shift between reference and bulk
         \cite{wangBulkTissueCell2019}
-  \item status: planned (\vignette{supp-S5-misspecification.html}{misspecification vignette})
+  \item \todo{status: planned}
 \end{itemize}
+
+\glsaddall
+\printnoidxglossary[title={Glossary},toctitle={Glossary}]

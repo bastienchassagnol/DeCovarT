@@ -208,7 +208,7 @@ GitHub Actions on this repository currently cover:
 - **render-readme** — Quarto GFM render; verify on PRs, commit on `main`
 - **test-coverage** — Codecov reporting (commit message contains `test coverage`)
 - **pkgdown** — documentation site on GitHub Pages
-- **article generation** — optional `latexmk` build of `article/main.tex` when the
+- **article generation** — optional `latexmk` build of `article/main_layout.tex` when the
   commit message contains `article generation` (PDF artefact +
   `docs/article/main.pdf` on Pages)
 - **R-hub** — optional Ubuntu + Windows checks (`workflow_dispatch`)
@@ -306,19 +306,20 @@ $$
 
 ## Compiling the LaTeX article
 
-Source file: `article/main.tex` (bibliography: `article/decovart_library.bib`).
+Source files: `article/main_layout.tex` and `article/appendix_layout.tex` (bibliography:
+`article/decovart_library.bib` and `article/packages.bib`).
 DAG panels in Fig.~DAG-model are drawn with [`tikz-bayesnet`](https://ctan.org/pkg/tikz-bayesnet).
 
 **Published PDF:** the peer-reviewed / preprint PDF is on
 [arXiv:2309.09557](https://arxiv.org/pdf/2309.09557). When a `main` commit
-message contains `article generation`, CI also builds `article/main.tex`
+message contains `article generation`, CI also builds `article/main_layout.tex`
 and may publish `docs/article/main.pdf` on the pkgdown site.
 
-From the repository root, generate `article/main.pdf` locally with:
+From the repository root, generate `article/main_layout.pdf` locally with:
 
 ``` sh
 cd article
-latexmk -pdf -interaction=nonstopmode -file-line-error -synctex=1 main.tex
+latexmk -pdf -f -interaction=nonstopmode -file-line-error -synctex=1 main_layout.tex
 ```
 
 <!-- ## Speed up computation with AutoZyme

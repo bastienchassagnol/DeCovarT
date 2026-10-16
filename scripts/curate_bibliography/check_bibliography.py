@@ -4,7 +4,8 @@
 Literature (Zotero / Better BibTeX):
   - article/decovart_library.bib
   - inst/REFERENCES.bib
-  Field whitelist, DOI-dedupe, copies identical; main.tex cites resolve here.
+  Field whitelist, DOI-dedupe, copies identical; article cites (main_layout.tex and
+  appendix_layout.tex) resolve here.
 
 Software (knitr::write_bib — not Zotero):
   - inst/packages.bib
@@ -39,7 +40,8 @@ ARTICLE_BIB = ROOT / "article" / "decovart_library.bib"
 INST_BIB = ROOT / "inst" / "REFERENCES.bib"
 INST_PKG_BIB = ROOT / "inst" / "packages.bib"
 ARTICLE_PKG_BIB = ROOT / "article" / "packages.bib"
-MAIN_TEX = ROOT / "article" / "main.tex"
+MAIN_TEX = ROOT / "article" / "main_layout.tex"
+APPENDIX_TEX = ROOT / "article" / "appendix_layout.tex"
 VIGNETTES = ROOT / "vignettes"
 
 ALLOWED_FIELDS = {
@@ -354,6 +356,14 @@ def check_copies_identical() -> list[str]:
     return errors
 
 
+def article_tex_source() -> str:
+    """Text of the article sources whose citations must resolve."""
+    parts = [MAIN_TEX.read_text(encoding="utf-8", errors="replace")]
+    if APPENDIX_TEX.is_file():
+        parts.append(APPENDIX_TEX.read_text(encoding="utf-8", errors="replace"))
+    return "\n".join(parts)
+
+
 def check_main_tex() -> list[str]:
     errors: list[str] = []
     if not MAIN_TEX.is_file():
@@ -363,7 +373,7 @@ def check_main_tex() -> list[str]:
     keys = bib_keys(ARTICLE_BIB)
     if ARTICLE_PKG_BIB.is_file():
         keys |= bib_keys(ARTICLE_PKG_BIB)
-    tex = MAIN_TEX.read_text(encoding="utf-8", errors="replace")
+    tex = article_tex_source()
     cited: set[str] = set()
     for m in CITE_CMD_RE.finditer(tex):
         for part in m.group(1).split(","):
@@ -372,7 +382,7 @@ def check_main_tex() -> list[str]:
                 cited.add(k)
     missing = sorted(cited - keys)
     for k in missing:
-        errors.append(f"article/main.tex: unresolved citation {k!r}")
+        errors.append(f"article: unresolved citation {k!r}")
     return errors
 
 
@@ -435,7 +445,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--skip-main-tex",
         action="store_true",
-        help="do not validate article/main.tex citations",
+        help="do not validate article/main_layout.tex and appendix_layout.tex citations",
     )
     args = parser.parse_args(argv)
 
@@ -466,13 +476,11 @@ def main(argv: list[str] | None = None) -> int:
     if not args.skip_main_tex and MAIN_TEX.is_file():
         cited = {
             p.strip()
-            for m in CITE_CMD_RE.finditer(
-                MAIN_TEX.read_text(encoding="utf-8", errors="replace")
-            )
+            for m in CITE_CMD_RE.finditer(article_tex_source())
             for p in m.group(1).split(",")
             if p.strip()
         }
-        print(f"  article/main.tex: {len(cited)} citation keys resolved")
+        print(f"  article/main_layout.tex + appendix: {len(cited)} citation keys resolved")
     return 0
 
 
