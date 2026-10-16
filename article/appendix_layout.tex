@@ -66,9 +66,9 @@ Detailed review in the \vignette{theory-network-inference.html}{network-inferenc
 
 Three families of random graphs generate the skeletons of the precision matrices.
 \begin{itemize}
-    \item Erd\H{o}s--R\'enyi model: each pair of nodes is joined independently with a fixed
-        probability, which gives a homogeneous random graph
-        \todo{Add Erd\H{o}s and R\'enyi (1959) to Zotero and cite it here.}
+    \item generalised random graph: given an arbitrary degree distribution, edges are placed so that
+        the graph is no longer forced to be homogeneous
+        \cite{newmanRandomGraphsModels2002}
     \item Preferential attachment: nodes are added one at a time and connect preferentially to
         well-connected nodes \cite{barabasiEmergenceScalingRandom1999,newmanStructureDynamicsNetworks2011}.
         The degree distribution follows a power law, which produces hubs; such scale-free graphs are often

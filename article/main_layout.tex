@@ -111,6 +111,9 @@
     \author[4]{\fnm{Etienne} \sur{Becht}}
     \email{etienne.becht@inserm.fr}
 
+    \author[5]{\fnm{Elias} \sur{Ventre}}
+    \email{elias.ventre@inria.fr}
+
     \author[1]{\fnm{Ana\"{i}s} \sur{Baudot}}
     \email{anais.baudot@univ-amu.fr}
 
@@ -135,6 +138,11 @@
       \orgaddress{\street{Facult\'{e} de m\'{e}decine -- site Bichat,
         16 rue Henri Huchard},
         \city{Paris}, \postcode{75018}, \country{France}}}
+
+    \affil[5]{\orgdiv{team COMPO (COMPutational pharmacology and clinical
+      Oncology)},
+      \orgname{Inria},
+      \orgaddress{\city{Marseille}, \country{France}}}
 
 
         \abstract{%
@@ -1235,7 +1243,9 @@ likelihood \cite{nguyenDeOPUSCellularDeconvolution2026}.
           weights \cite{zhangIntegratedInferenceCellularCompositions2026}; the solver is unchanged
     \item M-estimation on gene-wise standardised residuals
           \(e_{g}=r_{g}/\{\boldsymbol{\Sigma}(\boldsymbol{p})\}_{gg}^{1/2}\): replace \(\tfrac12\sum_{g}e_{g}^{2}\) by \(\sum_{g}\varrho_{c}(e_{g})\)
-          with a Huber or bisquare loss, solved by iteratively reweighted least squares with weights
+          with a Huber or bisquare loss
+          \cite{hampelIntroductionHuber19641992,GeneralizedLinearModels2018}, solved by iteratively
+          reweighted least squares with weights
           \(w_{g}=\varrho_{c}'(e_{g})/e_{g}\), and report the sandwich variance
           \(\boldsymbol{H}^{-1}\boldsymbol{K}\boldsymbol{H}^{-1}\) (Appendix~\ref{app:mle-firth})
     \item trimmed likelihood: drop the genes with the largest contributions to
@@ -1247,8 +1257,6 @@ likelihood \cite{nguyenDeOPUSCellularDeconvolution2026}.
   \end{enumerate}
   \item caution: the Cholesky whitening mixes genes, so down-weighting one whitened coordinate does not
         down-weight one gene; gene-level weights must act on gene-wise standardised residuals
-  \item[] \todo[inline]{Add Huber (1964) and a robust-statistics textbook (Maronna et al.) to Zotero, then cite
-        them for the M-estimation route.}
 \end{itemize}
 
 \subsubsection{Other observation laws allow correlation between genes}
@@ -1390,7 +1398,8 @@ that generate every figure.
 B.C.\ conceived the method, implemented the \texttt{DeCovarT} package, designed the simulation studies,
 and wrote the manuscript. M.P.\ contributed equally to the methodological development and manuscript
 drafting. M.A.C.\ contributed to the benchmarking of gene-regulatory-network inference techniques used in
-the synthetic scenarios. G.N., E.B.\ and A.B.\ jointly supervised the work and revised the manuscript. All
+the synthetic scenarios. E.V.\ suggested the ablation study and the GRNBoost2-based gene selection.
+G.N., E.B.\ and A.B.\ jointly supervised the work and revised the manuscript. All
 authors approved the final version.
 
 \bmhead{Conflicts of interest}
@@ -1404,9 +1413,9 @@ of the log-sum-exp trick for evaluating the additive logistic (softmax) map and 
 Kalidou~Ba for suggestions on pre-processing and normalisation of bulk and single-cell omics inputs to
 deconvolution algorithms. We thank Annesh~Pal for ideas on more realistic synthetic scenarios for
 DeCovarT, in particular the use of random graph models to generate richer topological structures for
-gene-regulatory networks.
-\todo[inline]{Thank Elias (full name to add) for suggesting the ablation study and the GRNBoost2-based gene
-selection.}
+gene-regulatory networks. Elias~Ventre, whose work covers stochastic models of gene expression,
+gene-regulatory-network inference and trajectory reconstruction from single-cell data, suggested the
+ablation study and the GRNBoost2-based gene selection.
 
 \begin{appendices}
 \input{appendix_layout}
