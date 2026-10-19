@@ -246,10 +246,10 @@ Wall-clock cost of $\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\boldsymbol{v}$ as a
 Covariance inversion is one callback. The MLE loop repeats that callback
 until a convergence test fires. `fit_decovart()` exposes three second-order
 or quasi-Newton paths
-([`fit_decovart()`](../reference/fit_decovart.html)): Marquardt--Levenberg
-via `marqLevAlg` [@R-marqLevAlg; @commengesNewtonLikeAlgorithmLikelihood2006],
-box-constrained L-BFGS-B in $\boldsymbol{p}$ via `stats::optim()`, and
-Newton--Raphson / `nlminb` in ILR coordinates. The projected gradient
+([`fit_decovart()`](../reference/fit_decovart.html)): Newton--Raphson /
+`nlminb` in ILR coordinates (the default), Marquardt--Levenberg via
+`marqLevAlg` [@R-marqLevAlg; @commengesNewtonLikeAlgorithmLikelihood2006],
+and box-constrained L-BFGS-B in $\boldsymbol{p}$ via `stats::optim()`. The projected gradient
 in ILR is the fourth comparator (the same quartet as the bivariate toy
 vignette, excluding mean-only NNLS / `lsei` and simulated annealing).
 Wall time for one sample therefore scales roughly as

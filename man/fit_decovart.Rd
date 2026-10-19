@@ -19,7 +19,7 @@ fit_decovart(
   bulk_expression,
   true_ratios = NULL,
   Sigma = NULL,
-  method = c("Marquardt-Levenberg", "L-BFGS-B", "Newton-Raphson"),
+  method = c("Newton-Raphson", "Marquardt-Levenberg", "L-BFGS-B"),
   epsilon = 10^-4,
   itmax = 200,
   standardise = FALSE,
@@ -64,8 +64,8 @@ colnames = samples).}
 \eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}} of
 cell-type covariances.}
 
-\item{method}{Optimiser; one of \code{"Marquardt-Levenberg"},
-\code{"L-BFGS-B"}, \code{"Newton-Raphson"} (case-insensitive). These three
+\item{method}{Optimiser; one of \code{"Newton-Raphson"} (default),
+\code{"Marquardt-Levenberg"}, \code{"L-BFGS-B"} (case-insensitive). These three
 maps already land on the simplex (ILR or \eqn{p/\sum p}); they do
 \strong{not} call \code{\link[=repair_simplex]{repair_simplex()}}.}
 

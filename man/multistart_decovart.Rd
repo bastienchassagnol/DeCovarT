@@ -9,7 +9,7 @@ multistart_decovart(
   mean_signature_matrix,
   Sigma,
   n_starts = 5L,
-  solver = deconvolute_ratios_Marquardt_Levenberg,
+  solver = deconvolute_ratios_Newton_Raphson,
   loglik_tol = 1e-04,
   dirichlet_alpha = 1,
   ...
@@ -29,7 +29,7 @@ multistart_decovart(
 equi-balanced start).}
 
 \item{solver}{Solver accepting \code{initial_p} and \code{return_model};
-defaults to \code{\link[=deconvolute_ratios_Marquardt_Levenberg]{deconvolute_ratios_Marquardt_Levenberg()}}.}
+defaults to \code{\link[=deconvolute_ratios_Newton_Raphson]{deconvolute_ratios_Newton_Raphson()}}.}
 
 \item{loglik_tol}{Two starts count as reaching the same mode when their
 log-likelihoods differ by less than this amount.}

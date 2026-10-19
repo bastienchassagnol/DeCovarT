@@ -89,6 +89,33 @@
 \newglossaryentry{closure}{name={closure},sort={closure},
   description={the division of a vector of positive values by its total, as in TPM or CPM
   normalisation; the result lies on a simplex and its entries are no longer free}}
+\newglossaryentry{ambient}{name={ambient likelihood and Hessian},sort={ambient},
+  description={the log-likelihood \(\ell(\boldsymbol{p})\) and its derivatives taken with respect to the
+  \(J\) proportions as if they were free coordinates of \((0,1)^{J}\), ignoring
+  \(\sum_{j}p_{j}=1\); the constrained derivatives follow by the chain rule through a chart}}
+\newglossaryentry{chart}{name={chart},sort={chart},
+  description={a local coordinate map: a smooth bijection between an open subset of
+  \(\mathbb{R}^{d}\) and a manifold, here between \(\mathbb{R}^{J-1}\) and the open simplex,
+  whose inverse is also smooth; optimising in a chart turns a constrained problem into an
+  unconstrained one}}
+\newglossaryentry{isometry}{name={isometry},sort={isometry},
+  description={a map that preserves distances; the ILR chart is an isometry between the simplex
+  with the Aitchison distance and \(\mathbb{R}^{J-1}\) with the Euclidean distance, so a
+  given fold change between two cell types has the same length whatever their abundance}}
+\newglossaryentry{helmert}{name={Helmert basis},sort={Helmert},
+  description={an explicit orthonormal basis of the hyperplane \(\mathbf{1}_{J}^{\perp}\) of vectors summing to
+  zero; column \(j\) is \((1,\ldots,1,-j,0,\ldots,0)^{\top}/\sqrt{j(j+1)}\), the Gram--Schmidt
+  orthonormalisation of the successive differences \(\boldsymbol{e}_{j}-\boldsymbol{e}_{j+1}\)}}
+\newglossaryentry{kkt}{name={Karush--Kuhn--Tucker (KKT) conditions},sort={KKT},
+  description={the first-order conditions met by a local optimum of a problem with equality and
+  inequality constraints under a constraint qualification: stationarity of the Lagrangian,
+  feasibility, non-negative multipliers for the inequalities, and complementary slackness;
+  linear constraints, such as those of the simplex, always qualify}}
+\newglossaryentry{slackness}{name={complementary slackness},sort={complementary slackness},
+  description={the KKT condition \(\nu_{j}p_{j}=0\) pairing each inequality constraint with its multiplier:
+  either the constraint is inactive (\(p_{j}>0\)) and its multiplier is zero, or it binds exactly
+  (\(p_{j}=0\)) and its multiplier may be positive; it identifies the constraints that determine
+  the optimum}}
 
 \raggedbottom
 
@@ -173,7 +200,7 @@
         Reference profiles supply the means; the cell-type covariances are estimated
         from single cells by the graphical lasso or by covariance shrinkage, and weights
         on the \(\ell_{1}\) penalty can carry prior mechanistic knowledge.
-        We estimate the proportions by maximum likelihood with the Levenberg--Marquardt
+        We estimate the proportions by maximum likelihood with a Newton--Raphson
         algorithm, after a reparametrisation of the log-likelihood on the isometric
         log-ratio chart that enforces the simplex constraint exactly.
         The likelihood also supplies Wald and profile-likelihood intervals, and
@@ -270,13 +297,21 @@ semi-reference and reference-free methods, are reviewed in Appendix~\ref{app:rev
         \emph{DeconRNASeq} \cite{gongDeconRNASeqStatisticalFramework2013},
         \emph{MuSiC} \cite{wangBulkTissueCell2019},
         \emph{DWLS} \cite{tsoucasAccurateEstimationCelltype2019},
-        \emph{Bisque} \cite{jewAccurateEstimationCell2020}
+        \emph{Bisque} \cite{jewAccurateEstimationCell2020},
+        \emph{deMixSC} (\href{https://doi.org/10.1101/gr.278822.123}{Guo et al.\ 2025})
   \begin{itemize}
     \item shared assumption: \(\mathbb{E}[\boldsymbol{y}_{\cdot i}]=\boldsymbol{\mu}\boldsymbol{p}_{\cdot i}\)
           with independent genes; profile variability enters, at most, as a fixed weight per gene
     \item \emph{MuSiC} weights gene \(g\) by the inverse of a between-subject variance;
-          \emph{DWLS} by the inverse squared fitted mean, capped by a dampening constant;
+          \emph{DWLS} by the inverse squared fitted mean, capped by a dampening constant, so that rare and
+          abundant types are estimated with comparable relative error;
           \emph{Bisque} learns a gene-wise affine map from bulk to pseudo-bulk
+    \item \emph{deMixSC} keeps weighted NNLS and combines the \emph{DWLS} and \emph{MuSiC} weights; a matched bulk and
+          single-nucleus benchmark selects platform-sensitive genes, which are down-weighted rather than corrected
+    \item all these weighted least-squares fits are generalised-method-of-moments estimators: they solve sample
+          moment conditions and return a point estimate, with no interval unless a variance model, a sandwich or a
+          resampling unit is added
+    \item[] \todo[inline]{Add Guo et al.\ 2025 (\emph{deMixSC}) to Zotero and replace the link by a citation key.}
     \item no measurement model: least squares on intensities, often after TPM or CPM normalisation
     \item that normalisation is a \gls{closure}: the profile is divided by its own total, so the
           expression of the last gene is fixed by the others, the covariance becomes singular, and
@@ -288,7 +323,7 @@ semi-reference and reference-free methods, are reviewed in Appendix~\ref{app:rev
           network of the normalised bulk, and the target becomes transcript fractions
     \item output: a point estimate on the simplex, from \(\nu\)-support vector regression,
           quadratic programming or weighted non-negative least squares (NNLS)
-          \cite{dessoleLawsonHansonAlgorithmDeviation2023}; no interval
+          \cite{dessoleLawsonHansonAlgorithmDeviation2023}
   \end{itemize}
   \item univariate distribution-aware likelihoods:
         \emph{RNA-Sieve} \cite{erdmann-phamLikelihoodbasedDeconvolutionBulk2021},
@@ -298,9 +333,18 @@ semi-reference and reference-free methods, are reviewed in Appendix~\ref{app:rev
   \begin{itemize}
     \item the bulk is a sum of independent cells, so a type's variance enters linearly in
           \(p_{ji}\); genes stay independent
+    \item the number of cells per observation decides the law: a spatial spot holds a handful of
+          cells and a few hundred molecules, so the count distribution and its mean--variance
+          relationship must be modelled explicitly for unbiased and consistent estimates; a bulk
+          sample sums thousands to millions of cells, which puts each gene in the central-limit
+          regime, and when the target is the mean composition with averaged cell-type moments
+          plugged in, a Gaussian with the first two moments suffices; \emph{RNA-Sieve},
+          \emph{DECALS} and \emph{ReDeconv} rely on this device
+          \cite{erdmann-phamLikelihoodbasedDeconvolutionBulk2021,caiStatisticalInferenceCelltype2024,luTranscriptomeSizeMatters2025}
     \item \emph{RNA-Sieve} and \emph{ReDeconv} use a central-limit Gaussian per gene;
-          \emph{RCTD} a Poisson law with log-normal overdispersion and a platform factor
-          \(d_{g}\) estimated in a first stage; \emph{DeconV} a Poisson bulk
+          \emph{RCTD}, designed for spatial spots, a Poisson law with log-normal overdispersion and a
+          gene-wise platform ratio \(\tilde b_{g}=e^{\gamma_{g}}\) estimated in a first stage
+          \cite{cableRobustDecompositionCell2022a}; \emph{DeconV} a Poisson bulk
     \item \emph{RNA-Sieve} models noisy reference means across several bulks and returns
           Fisher or Godambe confidence regions; \emph{RCTD} and \emph{ReDeconv} return
           point estimates
@@ -633,14 +677,16 @@ to DeCovarT.
 
 Bulk sample \(i\) is fixed inside a derivation.
 The index \(i\) is restored in the model statements.
-Base indices used throughout: gene \(g=1,\ldots,G\), cell type \(j=1,\ldots,J\),
-sample \(i=1,\ldots,N\).
+Base indices used throughout: gene \(g=1,\ldots,G\), cell type \(j,\ell=1,\ldots,J\),
+sample \(i=1,\ldots,N\), reference donor \(r\), cell \(c\).
 Table~\ref{tab:notation} is the alignment layer used in the
 \vignette{theory-decovart-single-cell-tailored.html}{single-cell alignment vignette}.
 
 \begin{table}[h]
   \centering
-  \caption{Cell counts, scales, and the two covariance mixtures.
+  \caption{Cell counts, single-cell moments, scales, and the two covariance mixtures.
+    A tilde marks a quantity rescaled to a reference unit: per cell (\(\tilde{\boldsymbol{y}}\),
+    \(\tilde{\boldsymbol{\mu}}\)) or relative to the reference protocol (\(\tilde{\boldsymbol{b}}\)).
     \(\boldsymbol{\rho}\) elsewhere in the paper is the isometric log-ratio
     coordinate of \(\boldsymbol{p}\), so the within-type correlation is \(\varrho\).}
   \label{tab:notation}
@@ -653,17 +699,29 @@ Table~\ref{tab:notation} is the alignment layer used in the
       (\emph{MuSiC} writes \(m_{kj}\)). \\
     \(n_{i}=\sum_{j}m_{ji}\) &
       Total number of cells in bulk sample \(i\). \\
-    \(\boldsymbol{m}_{\cdot i}=(m_{1i},\ldots,m_{Ji})^{\top}\) &
-      Cell-count vector; \(\boldsymbol{p}_{\cdot i}=\boldsymbol{m}_{\cdot i}/n_{i}\). \\
-    \(\kappa_{i}=1/n_{i}\) &
-      Per-cell averaging factor. \\
-    \(\boldsymbol{w}_{\cdot i}=a_{i}\boldsymbol{m}_{\cdot i}\) &
-      Effective counts on the bulk molecule scale. \\
+    \(\boldsymbol{p}_{\cdot i}=\boldsymbol{m}_{\cdot i}/n_{i}\) &
+      Cell fractions, with \(\boldsymbol{m}_{\cdot i}=(m_{1i},\ldots,m_{Ji})^{\top}\). \\
+    \(\tilde{\boldsymbol{y}}_{\cdot i}=\boldsymbol{y}_{\cdot i}/n_{i}\) &
+      Bulk expression per cell. \\
+    \(\tilde{\boldsymbol{\mu}}_{\cdot j}=C_{j}^{-1}\sum_{c\in j}\boldsymbol{x}_{\cdot c}\) &
+      Per-cell mean of the raw UMI counts \(\boldsymbol{x}_{\cdot c}\) of the \(C_{j}\) reference cells of
+      type \(j\), without library-size normalisation. \\
+    \(S_{j}=\mathbf{1}^{\top}\tilde{\boldsymbol{\mu}}_{\cdot j}\), \(\boldsymbol{\theta}_{\cdot j}=\tilde{\boldsymbol{\mu}}_{\cdot j}/S_{j}\) &
+      Mean transcriptome size of a type-\(j\) cell and its relative abundance profile. \\
+    \(q_{ji}=p_{ji}S_{j}/\sum_{\ell}p_{\ell i}S_{\ell}\) &
+      Transcript fractions. \\
+    \(a_{i}\) &
+      Sample-wide scale between the reference and the bulk library. \\
+    \(b_{g}\), \(\tilde b_{g}=b_{g}^{\mathrm{bulk}}/b_{g}^{\mathrm{ref}}\) &
+      Capture efficiency of gene \(g\) in one protocol, and the gene-wise platform ratio,
+      \(\tilde{\boldsymbol{b}}=(\tilde b_{1},\ldots,\tilde b_{G})^{\top}\). \\
     \(\boldsymbol{D}_{i}=\boldsymbol{\Sigma}_{\mathrm{obs},i}
       =\operatorname{diag}(\tau_{1i}^{2},\ldots,\tau_{Gi}^{2})\) &
       Diagonal, heteroscedastic bulk measurement noise. \\
     \(\boldsymbol{T}_{ji}=\sum_{c=1}^{m_{ji}}\boldsymbol{X}_{jic}\) &
       Total expression contributed by type \(j\) to sample \(i\). \\
+    \(\boldsymbol{\Sigma}_{W,j}\), \(\boldsymbol{\Sigma}_{B,j}\) &
+      Within-donor cell-to-cell covariance and between-donor covariance of type \(j\). \\
     \(\boldsymbol{S}_{W}(\boldsymbol{v})=\sum_{j}v_{j}\boldsymbol{\Sigma}_{W,j}\) &
       Linear covariance mixture with weights \(\boldsymbol{v}\). \\
     \(\boldsymbol{S}_{B}(\boldsymbol{v})=\sum_{j}v_{j}^{2}\boldsymbol{\Sigma}_{B,j}\) &
@@ -671,8 +729,7 @@ Table~\ref{tab:notation} is the alignment layer used in the
     \(\varrho_{j}\in[-1/(m_{ji}-1),1]\) &
       Cell-to-cell correlation inside type \(j\). \\
     \(\boldsymbol{\vartheta}\) &
-      Generic parameter vector;
-      \(\boldsymbol{\theta}_{\cdot j}\) keeps the meaning of relative abundance. \\
+      Generic parameter vector. \\
     \(\boldsymbol{\mu}_{k},\boldsymbol{\Sigma}_{k},
       \boldsymbol{\mu}_{kl},\boldsymbol{\Sigma}_{kl}\) &
       First and second partial derivatives of the mean and covariance
@@ -817,41 +874,80 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
   \item keeping the factor \(\frac12\) of the Gaussian log-density on both terms of
         \eqref{eq-loglikelihood-multivariate-gaussian} makes the expected negative Hessian equal to the
         Fisher information used for the Wald intervals
-  \item the score and Hessian above ignore the simplex constraint; the solvers work on a reparametrised
-        log-likelihood instead (Appendix~\ref{app:constrained})
-  \item default chart: \gls{ilr}, \(\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho})\)
-        with a Helmert basis \(\mathbf{V}\), a \(C^{2}\) diffeomorphism of the open simplex
+  \item the score and Hessian above are \gls{ambient}: they ignore the simplex constraint, and the solvers
+        work on a reparametrised log-likelihood instead (Section~\ref{sec:ilr-choice},
+        Appendix~\ref{app:constrained})
+  \item default \gls{chart}: \gls{ilr}, \(\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho})\)
+        with a \gls{helmert} \(\mathbf{V}\), a \(C^{2}\) diffeomorphism of the open simplex
         \cite{egozcueIsometricLogratioTransformations2003}; additive log-ratio kept as an alternative chart
   \item solvers
   \begin{itemize}
-    \item Newton--Raphson: analytic Hessian in ILR coordinates
-    \item Marquardt--Levenberg: damped Newton (\texttt{marqLevAlg}), stopped on the relative distance
-          to the maximum
+    \item Newton--Raphson (default): analytic score and Hessian in ILR coordinates, with the trust-region
+          safeguards of \texttt{stats::nlminb}
+    \item Marquardt--Levenberg (alternative): damped Newton (\texttt{marqLevAlg}), stopped on the relative
+          distance to the maximum
           \cite{marquardtAlgorithmLeastSquaresEstimation1963,philippsRobustEfficientOptimization2021,commengesNewtonLikeAlgorithmLikelihood2006}
   \end{itemize}
   \item the log-likelihood is not concave, also in the ILR chart; a converged solver certifies a
         local maximum at best, hence Dirichlet multistarts (Appendix~\ref{app:sim-init})
   \item one bulk column is an \(N=1\) fit: the interval describes that maximiser, and the
         maximum-likelihood bias is of order \(N^{-1}\)
-  \item intervals (Appendix~\ref{app:mle})
+\end{itemize}
+
+\subsection{Why the isometric log-ratio chart}
+\label{sec:ilr-choice}
+
+\begin{itemize}
+  \item four charts map free coordinates onto the open simplex: the softmax of \(J\) scores, the additive
+        log-ratio (ALR) to a reference type, the centred log-ratio (CLR) and the ILR
+        \cite{aitchisonStatisticalAnalysisCompositional1982,CoordinateRepresentation2015}; derivations and a
+        side-by-side comparison are in Appendix~\ref{app:constrained} and the
+        \vignette{theory-decovart-generative-model.html\#sec-chart-choice}{generative-model vignette}
+  \item same statistics: the likelihood depends on \(\boldsymbol{p}\) only, so the maximiser, the maximised
+        log-likelihood and the delta-method covariance of \(\hat{\boldsymbol{p}}\) are the same in every chart
+  \item different numerics: the charts differ in the geometry seen by the solver, that is, gradient norms,
+        step safeguards and the \gls{condnum} of the Hessian, which sets the accuracy of every linear solve
+  \item why ILR
   \begin{itemize}
-    \item Wald: expected Fisher information in ILR coordinates, delta method back to \(\boldsymbol{p}\)
-          \cite{oehlertNoteDeltaMethod1992}; symmetric, and leaves \([0,1]\) for unbalanced mixtures
-    \item profile likelihood: \(\chi^{2}_{1}\) on the deviance \cite{wilksLargeSampleDistributionLikelihood1938},
-          invariant to the chart and inside the simplex
-    \item near a boundary the Wald statistic can shrink as the estimate moves away from the
-          null (Hauck--Donner effect) \cite{yeeHauckDonnerEffectWald2022}; profile or
-          likelihood-ratio inference is used there
+    \item it is the only one of the four charts that is minimal (\(J-1\) free coordinates), symmetric in the
+          cell types and an \gls{isometry} for the Aitchison distance: a log-ratio between two types has the
+          same length whatever their abundance, so a rare type weighs as much as an abundant one
+          \cite{egozcueIsometricLogratioTransformations2003,CoordinateRepresentation2015}
+    \item its stationary points are exactly the interior \gls{kkt} points of the Lagrangian of the simplex
+          problem: the chart absorbs the multiplier of \(\sum_{j}p_{j}=1\), and in the interior the
+          inequality multipliers are zero by \gls{slackness}, so no constraint is left to handle
+          \cite{boydConvexOptimization2004}
+    \item it is numerically invariant: another orthonormal basis is an orthogonal rotation
+          \(\boldsymbol{\rho}^{\star}=\boldsymbol{Q}^{\top}\boldsymbol{\rho}\), which keeps the Hessian eigenvalues; a change of ALR
+          reference is an oblique map whose condition number is \(\sqrt{J}\), and it divides the curvature
+          along the reference's own direction by up to \(J\), which hurts when the reference type is rare or
+          poorly identified; the free softmax adds a redundant direction along \(\mathbf{1}\) with a zero Hessian
+          eigenvalue, and CLR keeps \(J\) coordinates for \(J-1\) degrees of freedom
   \end{itemize}
-  \item boundary tests: on a face of the simplex the likelihood-ratio null is chi-bar-square,
-        \(\tfrac12\chi^{2}_{0}+\tfrac12\chi^{2}_{1}\) for one absent type, not \(\chi^{2}_{1}\)
-        \cite{hermanDistributionLikelihoodRatio1954,selfAsymptoticPropertiesMaximum1987}
+  \item cost: a zero proportion lies at infinity in ILR coordinates, so faces of the simplex need the
+        restricted fits of Appendix~\ref{app:mle}
+\end{itemize}
+
+\subsection{Confidence intervals for interior compositions}
+\label{sec:intervals}
+
+\begin{itemize}
+  \item scope: every \(\hat p_{j}\) strictly positive; estimates on a face or a vertex of the simplex, and
+        boundary tests for absent types, are treated in Appendix~\ref{app:mle}
+  \item Wald: expected Fisher information \(I(\boldsymbol{p})\) (Appendix~\ref{app:derivation}) pulled back to ILR
+        coordinates, \(I_{\boldsymbol{\rho}}=\mathbf{J}_{\psi}^{\top}I(\boldsymbol{p})\mathbf{J}_{\psi}\) with
+        \(\mathbf{J}_{\psi}=(\operatorname{diag}\boldsymbol{p}-\boldsymbol{p}\boldsymbol{p}^{\top})\mathbf{V}\), then the delta method back to
+        \(\boldsymbol{p}\) \cite{oehlertNoteDeltaMethod1992}; symmetric, and it can leave \([0,1]\) for a rare type
+  \item intervals computed in ILR or logit coordinates and mapped back respect the bounds
+  \item profile likelihood: \(\chi^{2}_{1}\) on the deviance \cite{wilksLargeSampleDistributionLikelihood1938},
+        invariant to the chart and inside the simplex; preferred near a face, where the Wald statistic can
+        shrink as the estimate moves away from the null (Hauck--Donner effect) \cite{yeeHauckDonnerEffectWald2022}
   \item[] \todo[inline]{Planned: intervals from the generalised-linear-model view of DeCovarT.
         Compute the \(1-\alpha/2\) and \(\alpha/2\) quantiles in ILR or logit coordinates, where the
         quasi-score \(\boldsymbol{D}^{\top}\boldsymbol{V}^{-1}(\boldsymbol{y}-\boldsymbol{m})=\boldsymbol{0}\)
-        has information \(\boldsymbol{D}^{\top}\boldsymbol{V}^{-1}\boldsymbol{D}\), then map both bounds back
-        to the simplex. Compare their coverage with the delta-method intervals, which currently
-        exceed the unit simplex for highly unbalanced mixtures (Appendix~\ref{app:mle-intervals}).}
+        has information \(\boldsymbol{D}^{\top}\boldsymbol{V}^{-1}\boldsymbol{D}\) (Section~\ref{sec:generalized-linear-model}),
+        then map both bounds back to the simplex. Compare their coverage with the delta-method intervals,
+        which currently exceed the unit simplex for highly unbalanced mixtures (Appendix~\ref{app:mle-intervals}).}
   \item full argument: \vignette{theory-DeCovarT-MLE-properties.html}{maximum-likelihood vignette}
 \end{itemize}
 
@@ -1007,59 +1103,154 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
 \label{sec:sc-tailored}
 
 \begin{itemize}
-  \item setting: one UMI reference from one donor, few unrelated bulk samples, no gene-wise
-        scale within the UMI platform, and cell-size correction after the fit
+  \item setting: one UMI reference from one donor, one bulk sample at a time, no external covariate, no
+        gene-wise scale estimated from other bulks, and no split of size factors into technical and
+        biological parts
   \item the released covariance \(\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}\) is exact for one random population
         profile per type (sorted references); a single-cell reference supplies a cell-to-cell covariance,
         and the bulk is a physical sum of cells
-  \item recommended model (\vignette{theory-DeCovarT-MLE-properties.html\#sec-final-choice}{final choice})
+  \item reference moments, computed on raw UMI counts without library-size normalisation:
+        \(\tilde{\boldsymbol{\mu}}_{\cdot j}=C_{j}^{-1}\sum_{c\in j}\boldsymbol{x}_{\cdot c}\), so that
+        \(S_{j}=\mathbf{1}^{\top}\tilde{\boldsymbol{\mu}}_{\cdot j}\) is the mean transcriptome size of a type-\(j\) cell, and
+        \(\boldsymbol{\Sigma}_{W,j}\), the within-type cell-to-cell covariance estimated after removing the Poisson
+        diagonal and the technical size-factor term
+        \cite{sarkarSeparatingMeasurementExpression2021,fangExtrinsicBiologicalStochasticity2025}, then
+        regularised (Section~\ref{sec:cov-estimation})
+  \item bulk: \(\boldsymbol{y}_{\cdot i}=a_{i}\sum_{j}\boldsymbol{T}_{ji}\), with \(m_{ji}=n_{i}p_{ji}\) independent cells per type; the
+        bulk expression per cell on the reference scale is
+        \(\tilde{\boldsymbol{y}}_{\cdot i}=\boldsymbol{y}_{\cdot i}/(a_{i}n_{i})\), that is \(\boldsymbol{y}_{\cdot i}/n_{i}\) when the two
+        platforms share their scale (\(a_{i}=1\))
+  \item recommended model (\vignette{theory-DeCovarT-MLE-properties.html\#sec-final-choice}{final choice}),
+        exact for independent Gaussian cells and a central-limit approximation for counts, since
+        \(n_{i}\) runs from thousands to millions
 \end{itemize}
 
 \begin{equation}
   \begin{aligned}
-    \boldsymbol{y}_{\cdot i}\mid\boldsymbol{q}_{\cdot i}
+    \boldsymbol{y}_{\cdot i}\mid\boldsymbol{p}_{\cdot i}
     &\sim\mathcal{N}_{G}\Bigl(
-      a_{i}\boldsymbol{\Theta}\boldsymbol{q}_{\cdot i},\;
-      a_{i}^{2}\kappa_{i}\sum_{j}q_{ji}\boldsymbol{\Sigma}_{W,j}
-      +\phi\operatorname{diag}(a_{i}\boldsymbol{\Theta}\boldsymbol{q}_{\cdot i})
-    \Bigr),\\
-    \boldsymbol{q}_{\cdot i}&=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho}_{i}),
+      a_{i}n_{i}\,\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i},\;
+      a_{i}^{2}n_{i}\sum_{j}p_{ji}\boldsymbol{\Sigma}_{W,j}
+    \Bigr),
     \qquad
-    p_{ji}=\frac{q_{ji}/S_{j}}{\sum_{k}q_{ki}/S_{k}}
+    \boldsymbol{p}_{\cdot i}=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho}_{i}),\\
+    \text{equivalently}\quad
+    \tilde{\boldsymbol{y}}_{\cdot i}
+    &\sim\mathcal{N}_{G}\bigl(\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i},\;n_{i}^{-1}\boldsymbol{S}_{W}(\boldsymbol{p}_{\cdot i})\bigr)
   \end{aligned}
   \label{eq:sc-model}
 \end{equation}
 
 \begin{itemize}
-  \item reference profiles: columns of \(\boldsymbol{\Theta}\) are mean profiles normalised to sum to one, with the
-        mean taken over cells, not over library-size-normalised cells; the fit returns transcript fractions
-        \(\boldsymbol{q}_{\cdot i}\), converted to cell fractions with \(S_{j}\), the mean UMI total per cell of type \(j\)
-        \cite{wangBulkTissueCell2019,racleSimultaneousEnumerationCancer2017}; only the ratios \(S_{j}/S_{k}\) matter
-  \item sample scale: \(\mathbf{1}^{\top}\boldsymbol{\Theta}\boldsymbol{q}_{\cdot i}=1\), so the bulk library size
-        \(\hat a_{i}=\mathbf{1}^{\top}\boldsymbol{y}_{\cdot i}\) is a free moment estimator, plugged in before the fit
-  \item covariance: within-type layer only, linear in \(q_{ji}\) because independent cell fluctuations add;
-        one donor cannot identify the between-donor layer \(\boldsymbol{\Sigma}_{B,j}\)
-        \cite{zimmermanPracticalSolutionPseudoreplication2021}; \(\boldsymbol{\Sigma}_{W,j}\) is estimated from cells
-        after removing the Poisson diagonal and the technical size-factor term
-        \cite{sarkarSeparatingMeasurementExpression2021,fangExtrinsicBiologicalStochasticity2025}, then sparsified
-        (Section~\ref{sec:cov-estimation})
-  \item \(\kappa_{i}\): one scalar per sample on a log chart, identified by the off-diagonal structure; when its
-        profile likelihood is flat, fix it on a grid and report the sensitivity of \(\hat{\boldsymbol{q}}_{\cdot i}\)
-  \item measurement diagonal: Poisson (\(\phi=1\)) during the fit; afterwards
-        \(\hat\phi=\lVert\boldsymbol{L}^{-1}(\boldsymbol{y}_{\cdot i}-\hat{\boldsymbol{m}}_{i})\rVert^{2}/(G-J+1)\) from whitened
-        Pearson residuals inflates the variance when \(\hat\phi>1\)
-  \item no gene-wise scale: the platform ratio \(d_{g}\) is not identified from one bulk sample
-        \cite{xieStatisticalInferenceCell2026}; it is handled by keeping genes detected consistently in both assays
-  \item solver: the ILR solver and Marquardt--Levenberg are reused; only the covariance assembler changes, and
-        because the covariance is linear in \(\boldsymbol{q}\) its second derivatives in \(\boldsymbol{q}\) vanish, which
-        simplifies the Hessian
-  \item inference: logit or profile-likelihood intervals, Firth's penalty
-        \cite{firthBiasReductionMaximum1993} when a proportion nears zero, and a bootstrap of cells within type
-        for reference uncertainty (\texttt{reference\_bootstrap\_decovart(method = "cells")})
+  \item estimand: \(\tilde{\boldsymbol{\mu}}\) keeps the cell sizes \(S_{j}\), so \(\boldsymbol{p}_{\cdot i}\) are cell fractions
+        directly; transcript fractions follow as \(q_{ji}=p_{ji}S_{j}/\sum_{\ell}p_{\ell i}S_{\ell}\), with no post-fit
+        conversion \cite{wangBulkTissueCell2019,racleSimultaneousEnumerationCancer2017}; only the ratios
+        \(S_{j}/S_{\ell}\) matter
+  \item covariance weights (our remark): an earlier version of this model weighted the cell-to-cell covariance
+        by transcript fractions \(q_{ji}\); independent cells add with their counts \(m_{ji}=n_{i}p_{ji}\), so the
+        linear layer is weighted by \(\boldsymbol{p}_{\cdot i}\)
+  \item scales: \(a_{i}\) and \(n_{i}\) enter only through \(c_{i}=a_{i}n_{i}\) in the mean and
+        \(\phi_{i}=a_{i}c_{i}=a_{i}^{2}n_{i}\) in the covariance, two free positive scalars; \(n_{i}\) reads as a
+        number of cells only when \(a_{i}\) is known (same platform, or paired samples)
+  \item computing \(\tilde{\boldsymbol{y}}_{\cdot i}\): since \(\mathbf{1}^{\top}\mathbb{E}\boldsymbol{y}_{\cdot i}=c_{i}\sum_{j}p_{ji}S_{j}\), the
+        library size gives the moment estimator \(\hat c_{i}=\mathbf{1}^{\top}\boldsymbol{y}_{\cdot i}/\sum_{j}\hat p_{ji}S_{j}\), and
+        \(\hat{\tilde{\boldsymbol{y}}}_{\cdot i}=\boldsymbol{y}_{\cdot i}/\hat c_{i}\); the likelihood profile of
+        Section~\ref{sec:sc-newton} replaces it by a generalised least-squares estimate
+  \item no extra bulk noise: a Poisson or negative-binomial measurement term
+        \(\phi\operatorname{diag}(\boldsymbol{m}_{i})\) is left out; with one bulk sample and no technical replicate it
+        cannot be separated from the scale \(\phi_{i}\) and from the cell-type variability without further
+        assumptions
+  \item one donor cannot identify the between-donor layer \(\boldsymbol{S}_{B}(\boldsymbol{p}_{\cdot i})\)
+        \cite{zimmermanPracticalSolutionPseudoreplication2021}; with \(R\ge2\) donors it is added as
+        \(a_{i}^{2}n_{i}^{2}\boldsymbol{S}_{B}(\boldsymbol{p}_{\cdot i})\) (Appendix~\ref{app:alignment})
+  \item link with Poisson measurement models
+  \begin{itemize}
+    \item \emph{RCTD} writes \(y_{gi}\sim\mathrm{Poisson}(N_{i}\sum_{j}w_{ji}\mu_{jg}e^{\gamma_{g}})\) with
+          log-normal overdispersion, per-UMI reference profiles \(\mu_{jg}\), a platform ratio
+          \(\tilde b_{g}=e^{\gamma_{g}}\) and \(\boldsymbol{w}_{\cdot i}=\boldsymbol{p}_{\cdot i}e^{\alpha_{i}}\) left unconstrained
+          \cite{cableRobustDecompositionCell2022a}; Sarkar and Stephens write a UMI count as
+          \(\mathrm{Poisson}(x_{+}b_{g}\lambda_{g})\) given the total \(x_{+}\) and the capture \(b_{g}\)
+          \cite{sarkarSeparatingMeasurementExpression2021}
+    \item \eqref{eq:sc-model} has the same multiplicative mean, but the rate is carried by cell types: an
+          average type-\(j\) cell contributes \(S_{j}\boldsymbol{\theta}_{\cdot j}\), multiplied by the number of cells and by
+          the sample scale, instead of a free rate per gene
+    \item its variance comes from the cell-to-cell covariance, not from the Poisson law that equates
+          variance and mean, which is why it carries gene--gene dependence
+    \item the scale (\(n\) in \emph{RNA-Sieve}, \(N_{i}e^{\alpha_{i}}\) in \emph{RCTD}, \(c_{i}\) here) is not, in
+          general, the number of cells: that reading needs the same sequencing platform, or paired samples
+          with similar biological and technical size factors
+  \end{itemize}
   \item other alignment strategies and why they were not chosen: Appendix~\ref{app:alignment}
-  \item[] \todo[inline]{Implement \eqref{eq:sc-model} in \texttt{fit\_decovart()} (new covariance assembler, joint
-        \(\kappa_{i}\), post-fit \(\hat\phi\) and \(S_{j}\) conversion) and validate it in an ADEMP simulation study
-        \cite{morrisUsingSimulationStudies2019} before any claim rests on it.}
+\end{itemize}
+
+\subsubsection{Estimation with Newton--Raphson on the ILR chart}
+\label{sec:sc-newton}
+
+\begin{itemize}
+  \item parameters \(\boldsymbol{\vartheta}=(\boldsymbol{\rho},\log c,\log\phi)\) for one bulk sample, with
+        \(c=an\) and \(\phi=a^{2}n\); with \(\boldsymbol{W}=\boldsymbol{S}_{W}(\boldsymbol{p})^{-1}\) and
+        \(\boldsymbol{r}=\boldsymbol{y}-c\tilde{\boldsymbol{\mu}}\boldsymbol{p}\),
+        \begin{equation}
+          \ell(\boldsymbol{\vartheta})
+          =-\frac{G}{2}\log\phi-\frac12\log\det\boldsymbol{S}_{W}(\boldsymbol{p})
+          -\frac{1}{2\phi}\,\boldsymbol{r}^{\top}\boldsymbol{W}\boldsymbol{r}
+          \label{eq:sc-loglik}
+        \end{equation}
+  \item closed-form profiles for fixed \(\boldsymbol{p}\): the generalised least-squares scale
+        \(\hat c(\boldsymbol{p})=(\tilde{\boldsymbol{\mu}}\boldsymbol{p})^{\top}\boldsymbol{W}\boldsymbol{y}/(\tilde{\boldsymbol{\mu}}\boldsymbol{p})^{\top}\boldsymbol{W}\tilde{\boldsymbol{\mu}}\boldsymbol{p}\)
+        and \(\hat\phi(\boldsymbol{p})=Q(\boldsymbol{p})/G\), with \(Q\) the minimised Mahalanobis residual
+        \(\hat{\boldsymbol{r}}^{\top}\boldsymbol{W}\hat{\boldsymbol{r}}\); the profile log-likelihood is
+        \(\ell^{\ast}(\boldsymbol{\rho})=-\tfrac{G}{2}\log Q(\boldsymbol{\psi}(\boldsymbol{\rho}))-\tfrac12\log\det\boldsymbol{S}_{W}(\boldsymbol{\psi}(\boldsymbol{\rho}))\),
+        a function of \(J-1\) coordinates
+  \item profile score, by the envelope theorem,
+        \(\partial\ell^{\ast}/\partial p_{j}=(G/Q)\{\hat c\,\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top}\boldsymbol{W}\hat{\boldsymbol{r}}
+        +\tfrac12\hat{\boldsymbol{r}}^{\top}\boldsymbol{W}\boldsymbol{\Sigma}_{W,j}\boldsymbol{W}\hat{\boldsymbol{r}}\}
+        -\tfrac12\operatorname{tr}(\boldsymbol{W}\boldsymbol{\Sigma}_{W,j})\), mapped to ILR coordinates by
+        \(\mathbf{J}_{\psi}^{\top}\)
+  \item Newton--Raphson on the full \(\boldsymbol{\vartheta}\): score and Hessian of a Gaussian with parametrised mean
+        and covariance
+        (\vignette{theory-decovart-single-cell-tailored.html\#sec-general}{general score and Hessian}); the mean
+        \(c\tilde{\boldsymbol{\mu}}\boldsymbol{p}\) and the covariance \(\phi\boldsymbol{S}_{W}(\boldsymbol{p})\) are linear in \(\boldsymbol{p}\), so the
+        only second derivatives in \(\boldsymbol{p}\) come from the curvature of the chart
+        \eqref{eq-chain-rule-second-order}
+  \item expected information: \(I_{c\phi}=0\), \(I_{\phi\phi}=G/(2\phi^{2})\),
+        \(I_{p_{j}\phi}=\operatorname{tr}(\boldsymbol{W}\boldsymbol{\Sigma}_{W,j})/(2\phi)\neq0\) and
+        \(I_{p_{j}c}=c\,\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top}\boldsymbol{W}\tilde{\boldsymbol{\mu}}\boldsymbol{p}/\phi\neq0\); the covariance
+        of \(\hat{\boldsymbol{\rho}}\) is the inverse of the Schur complement
+        \(I_{\rho\rho}-I_{\rho\eta}I_{\eta\eta}^{-1}I_{\eta\rho}\), \(\boldsymbol{\eta}=(c,\phi)\), so estimating the scales
+        widens the intervals automatically
+  \item start from a non-negative least-squares fit \(\boldsymbol{y}\approx\tilde{\boldsymbol{\mu}}\boldsymbol{w}\), with
+        \(\boldsymbol{p}^{(0)}=\boldsymbol{w}/\mathbf{1}^{\top}\boldsymbol{w}\) floored away from zero and \(c^{(0)}=\mathbf{1}^{\top}\boldsymbol{w}\), plus
+        Dirichlet multistarts because \(\ell^{\ast}\) is not concave; stop on the norm of the ILR score, which
+        does not depend on the Helmert basis
+  \item joint versus plug-in nuisance scales
+        (\vignette{theory-decovart-single-cell-tailored.html\#sec-strategy-plugin}{plug-in strategy})
+  \begin{itemize}
+    \item with one bulk sample and no external data there is no genuine plug-in: a two-step moment
+          estimate of \(c\) and \(\phi\) from the same bulk is possible, but the variance of
+          \(\hat{\boldsymbol{p}}\) then needs the correction
+          \(I_{pp}^{-1}+I_{pp}^{-1}I_{p\eta}\boldsymbol{V}_{\eta}I_{\eta p}I_{pp}^{-1}\) for an estimate
+          \(\hat{\boldsymbol{\eta}}\) of covariance \(\boldsymbol{V}_{\eta}\); the joint fit accounts for it through the
+          Schur complement
+    \item external data would make one scale a true plug-in: cell counts per sample give \(n_{i}\), spike-ins
+          or paired bulk and single-cell profiles give \(a_{i}\) or \(\tilde{\boldsymbol{b}}\), and then
+          \(\boldsymbol{p}_{\cdot i}\) are cell fractions free of technical scale
+  \end{itemize}
+  \item limitations (our assessment)
+  \begin{itemize}
+    \item \(N=1\): the \(G\) genes are not independent replicates, so asymptotics in \(G\) need weak
+          dependence between genes, as assumed by \emph{MEAD} \cite{xieStatisticalInferenceCell2026}
+    \item one donor gives no between-donor layer: \(\phi\) inflates the covariance globally but cannot correct
+          its shape, so the intervals are expected to under-cover; the sandwich covariance or the reference
+          bootstrap of cells (\texttt{reference\_bootstrap\_decovart(method = "cells")}) is the safeguard
+    \item dropping the bulk Poisson diagonal assumes a deep bulk library; \(\boldsymbol{\Sigma}_{W,j}\) must be the
+          denoised biological covariance, otherwise the reference sampling noise is counted \(n_{i}\) times
+    \item the determinant term of \eqref{eq:sc-loglik} adds information only if the variance function is right;
+          otherwise the quasi-score of Section~\ref{sec:generalized-linear-model} is the safer estimator
+  \end{itemize}
+  \item[] \todo[inline]{Implement \eqref{eq:sc-model} in \texttt{fit\_decovart()} (covariance assembler linear in
+        \(\boldsymbol{p}\), profiled \(c\) and \(\phi\), Schur-complement Wald intervals) and validate it in an ADEMP
+        simulation study \cite{morrisUsingSimulationStudies2019} before any claim rests on it.}
 \end{itemize}
 
 \subsubsection{Estimand: transcript fraction versus cell fraction}
@@ -1068,7 +1259,8 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
 \begin{itemize}
   \item under \eqref{eq:convolution}, \(\boldsymbol{p}\) is the relative transcriptomic contribution of each type
   \item it equals the cell fraction only if capture efficiency and RNA content per cell are shared across types
-        \cite{racleSimultaneousEnumerationCancer2017}; \eqref{eq:sc-model} makes the conversion explicit through \(S_{j}\)
+        \cite{racleSimultaneousEnumerationCancer2017}; \eqref{eq:sc-model} estimates cell fractions directly because
+        \(\tilde{\boldsymbol{\mu}}\) keeps the cell sizes \(S_{j}\)
   \item absolute cell counts are not targeted: capture efficiency is not observed
   \item library-size closure (TPM, RPKM) is avoided: dividing by the total induces negative gene--gene correlation,
         including for genes that were independent
@@ -1171,18 +1363,36 @@ benchmark; the closure induced by library-size normalisation is discussed in Sec
 
 DeCovarT already has the structure of a generalised linear model (GLM).
 It models the mean of the response through an inverse link on the parameter,
-\(\boldsymbol{m}(\boldsymbol{\rho})=a\boldsymbol{\mu}\boldsymbol{\psi}(\boldsymbol{\rho})\) with \(\boldsymbol{\psi}\) the softmax map of the ILR chart,
+\(\boldsymbol{m}(\boldsymbol{\rho})=c\,\tilde{\boldsymbol{\mu}}\boldsymbol{\psi}(\boldsymbol{\rho})\) with \(\boldsymbol{\psi}\) the softmax map of the ILR chart,
 instead of transforming the response, which would change the estimand and break the additive
 mixture \cite{agrestiFoundationsLinearGeneralized2015}.
-Its variance function
-\(\boldsymbol{V}(\boldsymbol{\rho})=a^{2}\kappa\boldsymbol{S}_{W}+a^{2}\boldsymbol{S}_{B}+\phi\operatorname{diag}(\boldsymbol{m})\) depends on the same
-parameter.
-Two estimators follow: the full Gaussian likelihood, which uses that dependence, and the
-quasi-score \(\boldsymbol{D}^{\top}\boldsymbol{V}^{-1}(\boldsymbol{y}-\boldsymbol{m})=\boldsymbol{0}\) with \(\boldsymbol{D}=a\boldsymbol{\mu}\mathbf{J}_{\psi}\), whose
-information is \(\boldsymbol{D}^{\top}\boldsymbol{V}^{-1}\boldsymbol{D}\).
+Its variance function \(\boldsymbol{V}(\boldsymbol{\rho})=\phi\,\boldsymbol{S}_{W}(\boldsymbol{\psi}(\boldsymbol{\rho}))\) depends on the same parameter,
+up to the dispersion \(\phi\) of \eqref{eq:sc-model}; with \(R\ge2\) reference donors it gains the quadratic
+between-donor layer \(\boldsymbol{S}_{B}\).
 Transformation-based methods such as \emph{DeOPUS} fix the gene weights in advance and have no
 likelihood \cite{nguyenDeOPUSCellularDeconvolution2026}.
 
+\paragraph{Quasi-likelihood version.}
+Only the mean--variance relationship matters for the composition, so the model can be stated by its first
+two moments, without a distributional form
+(\vignette{theory-DeCovarT-MLE-properties.html\#sec-decovart-glm}{GLM view}).
+\begin{itemize}
+  \item specification: \(\mathbb{E}(\boldsymbol{y}\mid\boldsymbol{\rho})=\boldsymbol{m}(\boldsymbol{\rho})\) and
+        \(\operatorname{Cov}(\boldsymbol{y}\mid\boldsymbol{\rho})=\phi\boldsymbol{V}_{0}(\boldsymbol{\rho})\), with
+        \(\boldsymbol{V}_{0}=\boldsymbol{S}_{W}(\boldsymbol{\psi}(\boldsymbol{\rho}))\) known up to \(\phi\)
+  \item quasi-score \(\boldsymbol{D}^{\top}\boldsymbol{V}_{0}^{-1}\{\boldsymbol{y}-\boldsymbol{m}(\boldsymbol{\rho})\}=\boldsymbol{0}\), with
+        \(\boldsymbol{D}=\partial\boldsymbol{m}/\partial\boldsymbol{\rho}^{\top}=c\,\tilde{\boldsymbol{\mu}}\mathbf{J}_{\psi}\); it is unbiased whenever the
+        mean is right, whatever the law of the residuals
+  \item information \(\phi^{-1}\boldsymbol{D}^{\top}\boldsymbol{V}_{0}^{-1}\boldsymbol{D}\), the mean part of the Fisher information;
+        the Gaussian likelihood adds the covariance part, which is informative only if \(\boldsymbol{V}_{0}\) is right
+  \item dispersion from the Pearson statistic,
+        \(\hat\phi=\{\boldsymbol{y}-\boldsymbol{m}(\hat{\boldsymbol{\rho}})\}^{\top}\boldsymbol{V}_{0}^{-1}\{\boldsymbol{y}-\boldsymbol{m}(\hat{\boldsymbol{\rho}})\}/(G-J)\),
+        and a sandwich covariance when \(\boldsymbol{V}_{0}\) is misspecified
+  \item the iteration is Fisher scoring, with the same ILR chart and Newton machinery as
+        Section~\ref{sec:sc-newton}
+\end{itemize}
+
+\paragraph{Several bulk samples.}
 \begin{itemize}
   \item current scope: independent bulk samples and one single-cell reference donor; each composition
         is a free parameter
@@ -1192,19 +1402,19 @@ likelihood \cite{nguyenDeOPUSCellularDeconvolution2026}.
         the samples are tied through \(\boldsymbol{B}\)
   \item benefits
   \begin{itemize}
-    \item shared technical scales (\(a_{i}\), \(\kappa_{i}\), gene-wise ratios) estimated jointly over samples,
+    \item shared technical scales (\(a_{i}\), \(n_{i}\), gene-wise ratios \(\tilde{\boldsymbol{b}}\)) estimated jointly over samples,
           and therefore more stably than from one bulk sample
     \item contrast matrices on \(\boldsymbol{B}\) test differential abundance of cell types between conditions,
           with likelihood-ratio or Wald tests that use the covariance of \(\hat{\boldsymbol{\rho}}_{i}\)
   \end{itemize}
-  \item precedent: \emph{MEAD} regresses \(\mathbb{E}\boldsymbol{p}_{i}=h(\boldsymbol{b}+\boldsymbol{A}^{\top}\boldsymbol{f}_{i})\) by estimating
+  \item precedent: \emph{MEAD} regresses \(\mathbb{E}\boldsymbol{p}_{\cdot i}=h(\boldsymbol{\beta}_{0}+\boldsymbol{A}^{\top}\boldsymbol{f}_{i})\) by estimating
         equations with a sandwich variance; plugging in estimated proportions is valid when \(N=o(G)\),
         and the reported coverage of group differences falls from 0.93 with 86 samples to 0.81 with
         1000 \cite{xieStatisticalInferenceCell2026}
   \item caution: regressing ILR coordinates linearly on \(\boldsymbol{z}_{i}\) targets \(\mathbb{E}(\operatorname{ilr}\boldsymbol{p})\), not
         \(\operatorname{ilr}\mathbb{E}(\boldsymbol{p})\), so the two parametrisations answer different questions
   \item sample-level covariates cannot be appended as extra columns of \(\boldsymbol{\mu}\); they may instead
-        modulate the cell-state moments \(\boldsymbol{\mu}_{j}(\boldsymbol{z}_{i})\), as \emph{MuSiC2} does by removing
+        modulate the cell-state moments \(\boldsymbol{\mu}_{\cdot j}(\boldsymbol{z}_{i})\), as \emph{MuSiC2} does by removing
         condition-specific genes \cite{fanMusic2CellTypeDeconvolution2022}, or the log-ratio coordinates as above
         (\vignette{theory-DeCovarT-MLE-properties.html\#sec-decovart-glm}{GLM view})
   \item[] \todo[inline]{Implement the design-based fit \(\boldsymbol{\rho}_{i}=\boldsymbol{B}\boldsymbol{z}_{i}+\boldsymbol{u}_{i}\) and evaluate the
@@ -1441,8 +1651,9 @@ DeCovarT is an R package \cite{R-base}, available on
 \href{https://github.com/bastienchassagnol/DeCovarT}{GitHub} with its vignettes and the scripts
 that generate every figure.
 \begin{itemize}
-  \item numerical optimisation: Marquardt--Levenberg with the relative-distance-to-maximum criterion
-        from \texttt{marqLevAlg} \cite{R-marqLevAlg,philippsRobustEfficientOptimization2021}; L-BFGS-B from
+  \item numerical optimisation: Newton--Raphson on the ILR chart with \texttt{stats::nlminb} (default);
+        Marquardt--Levenberg with the relative-distance-to-maximum criterion from \texttt{marqLevAlg}
+        \cite{R-marqLevAlg,philippsRobustEfficientOptimization2021}; L-BFGS-B from
         \texttt{stats::optim} \cite{byrdLimitedMemoryAlgorithm1995}; matrix algebra and Cholesky factors with
         \texttt{Matrix} and \texttt{MASS} \cite{R-Matrix,R-MASS}; analytic derivatives checked with
         \texttt{numDeriv} \cite{R-numDeriv}; mean-only baselines with \texttt{limSolve}

@@ -39,8 +39,8 @@
 #' @param Sigma Array
 #'   \eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}} of
 #'   cell-type covariances.
-#' @param method Optimiser; one of `"Marquardt-Levenberg"`,
-#'   `"L-BFGS-B"`, `"Newton-Raphson"` (case-insensitive). These three
+#' @param method Optimiser; one of `"Newton-Raphson"` (default),
+#'   `"Marquardt-Levenberg"`, `"L-BFGS-B"` (case-insensitive). These three
 #'   maps already land on the simplex (ILR or \eqn{p/\sum p}); they do
 #'   **not** call [repair_simplex()].
 #' @param epsilon,itmax Absolute convergence tolerance and iteration
@@ -180,9 +180,9 @@ fit_decovart <- function(
   true_ratios = NULL,
   Sigma = NULL,
   method = c(
+    "Newton-Raphson",
     "Marquardt-Levenberg",
-    "L-BFGS-B",
-    "Newton-Raphson"
+    "L-BFGS-B"
   ),
   epsilon = 10^-4,
   itmax = 200,
@@ -193,7 +193,7 @@ fit_decovart <- function(
 ) {
   method <- .match_arg_case_insensitive(
     method,
-    c("Marquardt-Levenberg", "L-BFGS-B", "Newton-Raphson")
+    c("Newton-Raphson", "Marquardt-Levenberg", "L-BFGS-B")
   )
   if (is.null(Sigma)) {
     stop(

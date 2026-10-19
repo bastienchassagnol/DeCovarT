@@ -1435,7 +1435,7 @@ boundary_diagnostics <- function(
 #' @param dirichlet_alpha Concentration for those random starts (default
 #'   `1`). See [starting_simplex()].
 #' @param solver Solver accepting `initial_p` and `return_model`;
-#'   defaults to [deconvolute_ratios_Marquardt_Levenberg()].
+#'   defaults to [deconvolute_ratios_Newton_Raphson()].
 #' @param loglik_tol Two starts count as reaching the same mode when their
 #'   log-likelihoods differ by less than this amount.
 #' @param ... Passed to `solver` (e.g. `epsilon`, `itmax`).
@@ -1459,7 +1459,7 @@ multistart_decovart <- function(
   mean_signature_matrix,
   Sigma,
   n_starts = 5L,
-  solver = deconvolute_ratios_Marquardt_Levenberg,
+  solver = deconvolute_ratios_Newton_Raphson,
   loglik_tol = 1e-4,
   dirichlet_alpha = 1,
   ...

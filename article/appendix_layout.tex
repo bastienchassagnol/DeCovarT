@@ -129,6 +129,30 @@ Detailed review in the \vignette{theory-review-distribution-aware-deconvolution.
         whose only second moment was a between-replicate variance
 \end{itemize}
 
+\subsection{Errors in variables and moment estimators}
+\label{app:eiv}
+
+\begin{itemize}
+  \item errors-in-variables reading: every method fits \(\boldsymbol{y}_{\cdot i}=\hat{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i}+\boldsymbol{e}_{i}\) with latent
+        profiles \(\boldsymbol{x}_{\cdot j,i}=\boldsymbol{\mu}_{\cdot j}+\boldsymbol{u}_{\cdot j,i}\) and reference error
+        \(\hat{\boldsymbol{\mu}}=\boldsymbol{\mu}+\boldsymbol{v}\); \emph{RNA-Sieve} and \emph{MEAD} model \(\boldsymbol{v}\)
+        \cite{erdmann-phamLikelihoodbasedDeconvolutionBulk2021,xieStatisticalInferenceCell2026}, the others plug
+        \(\hat{\boldsymbol{\mu}}\) in
+  \item the error law is parametric (DeCovarT, \emph{RCTD}), asymptotic (\emph{RNA-Sieve}, \emph{MEAD}) or given by its
+        first two moments only (\emph{DECALS}, \emph{MuSiC}, \emph{DWLS}, \emph{deMixSC})
+        \cite{agrestiFoundationsLinearGeneralized2015}; the classical assumptions fail because the error variance
+        \(\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}\) (DeCovarT) or the Poisson mean (\emph{RCTD}) depends on \(\boldsymbol{p}\)
+  \item our reading: \(\boldsymbol{u}\) is a Berkson error weighted by \(p_{ji}\); \(\boldsymbol{v}\) is a classical error that
+        DeCovarT ignores
+  \item weighted NNLS (\emph{MuSiC}, \emph{DWLS}, \emph{deMixSC}) and \emph{Unico} are generalised-method-of-moments
+        estimators: point estimates, and no interval without a variance model, a sandwich or a resampling unit
+        \cite{wangBulkTissueCell2019,tsoucasAccurateEstimationCelltype2019,chenUnicoUnifiedModelCell2025}
+  \item \emph{deMixSC} (\href{https://doi.org/10.1101/gr.278822.123}{Guo et al.\ 2025}): weighted NNLS with weight
+        \(w_{gi}^{-1}=\hat y_{gi}^{2}+(y_{gi}-\hat y_{gi})^{2}+2\), combining the \emph{DWLS} relative-error term and
+        \emph{MuSiC}'s residual variance; genes discordant between matched bulk and pseudo-bulk are down-weighted by
+        \(a^{-2}=10^{-6}\); point estimates
+\end{itemize}
+
 \subsection{Cell-type-specific moments given the composition}
 \label{app:cts}
 
@@ -140,8 +164,10 @@ Detailed review in the \vignette{theory-review-distribution-aware-deconvolution.
   \item \emph{bMIND}: a \(J\times J\) covariance across types within each gene, with an inverse-Wishart prior from
         single-cell summaries; proportions fixed beforehand \cite{wangBayesianEstimationCelltypespecific2020}
   \item \emph{EPIC-unmix} re-centres that prior on a first-step posterior, using the target samples twice
-        \cite{tangCellTypespecificInference2025}; \emph{Unico} drops the independence of cell types
-        \cite{chenUnicoUnifiedModelCell2025}
+        \cite{tangCellTypespecificInference2025}
+  \item \emph{Unico}: proportions given, \(\operatorname{Var}(y_{gi})=\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\Gamma}_{g}\boldsymbol{p}_{\cdot i}+\tau_{g}^{2}\) with a
+        \(J\times J\) covariance \(\boldsymbol{\Gamma}_{g}\) across cell types, fitted by moments; sample-level profiles by a
+        conditional expectation \cite{chenUnicoUnifiedModelCell2025}
   \item a \(J\times J\) covariance within a gene and DeCovarT's \(G\times G\) covariance within a type answer different
         questions; no reviewed method fits both
 \end{itemize}
@@ -247,26 +273,26 @@ Detailed review in the \vignette{theory-review-distribution-aware-deconvolution.
   \(\partial\log\det\boldsymbol{A}/\partial p=\operatorname{tr}(\boldsymbol{A}^{-1}\partial\boldsymbol{A}/\partial p)\);
   \(\partial(\boldsymbol{U}\boldsymbol{A}\boldsymbol{V})/\partial p=\boldsymbol{U}(\partial\boldsymbol{A}/\partial p)\boldsymbol{V}\);
   \(\partial\boldsymbol{A}^{-1}/\partial p=-\boldsymbol{A}^{-1}(\partial\boldsymbol{A}/\partial p)\boldsymbol{A}^{-1}\);
-  and \(\partial^{2}\boldsymbol{A}^{-1}/\partial p_{k}\partial p_{l}
-  =\boldsymbol{A}^{-1}\{\boldsymbol{A}_{k}\boldsymbol{A}^{-1}\boldsymbol{A}_{l}-\boldsymbol{A}_{kl}+\boldsymbol{A}_{l}\boldsymbol{A}^{-1}\boldsymbol{A}_{k}\}\boldsymbol{A}^{-1}\),
-  with \(\boldsymbol{A}_{k}=\partial\boldsymbol{A}/\partial p_{k}\).
-  For the convolution, \(\partial\boldsymbol{\Sigma}/\partial p_{k}=2p_{k}\boldsymbol{\Sigma}_{k}\) and
-  \(\partial\boldsymbol{r}/\partial p_{k}=-\boldsymbol{\mu}_{\cdot k}\), which give the score
+  and \(\partial^{2}\boldsymbol{A}^{-1}/\partial p_{j}\partial p_{\ell}
+  =\boldsymbol{A}^{-1}\{\boldsymbol{A}_{j}\boldsymbol{A}^{-1}\boldsymbol{A}_{\ell}-\boldsymbol{A}_{j\ell}+\boldsymbol{A}_{\ell}\boldsymbol{A}^{-1}\boldsymbol{A}_{j}\}\boldsymbol{A}^{-1}\),
+  with \(\boldsymbol{A}_{j}=\partial\boldsymbol{A}/\partial p_{j}\).
+  For the convolution, \(\partial\boldsymbol{\Sigma}/\partial p_{j}=2p_{j}\boldsymbol{\Sigma}_{j}\) and
+  \(\partial\boldsymbol{r}/\partial p_{j}=-\boldsymbol{\mu}_{\cdot j}\), which give the score
   \eqref{eq-derivative-log-likelihood-unconstrained}.
 \end{remark}
 
 Differentiating \eqref{eq-derivative-log-likelihood-unconstrained} once more gives the Hessian
-\(\mathbf{H}\in\mathbb{R}^{J\times J}\), with \(\delta_{kl}\) the Kronecker delta:
+\(\mathbf{H}\in\mathbb{R}^{J\times J}\), with \(\delta_{j\ell}\) the Kronecker delta:
 \begin{equation}
   \begin{aligned}
-    \mathbf{H}_{kl}
-    ={}&-\delta_{kl}\operatorname{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}_{k})
-       +2p_{k}p_{l}\operatorname{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}_{k}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{l})
-       -\boldsymbol{\mu}_{\cdot k}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}_{\cdot l}\\
-     &-2p_{l}\,\boldsymbol{\mu}_{\cdot k}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{l}\boldsymbol{\Omega}\boldsymbol{r}
-       -2p_{k}\,\boldsymbol{\mu}_{\cdot l}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{k}\boldsymbol{\Omega}\boldsymbol{r}
-       +\delta_{kl}\,\boldsymbol{r}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{k}\boldsymbol{\Omega}\boldsymbol{r}
-       -4p_{k}p_{l}\,\boldsymbol{r}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{k}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{l}\boldsymbol{\Omega}\boldsymbol{r}.
+    \mathbf{H}_{j\ell}
+    ={}&-\delta_{j\ell}\operatorname{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}_{j})
+       +2p_{j}p_{\ell}\operatorname{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}_{j}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{\ell})
+       -\boldsymbol{\mu}_{\cdot j}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}_{\cdot\ell}\\
+     &-2p_{\ell}\,\boldsymbol{\mu}_{\cdot j}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{\ell}\boldsymbol{\Omega}\boldsymbol{r}
+       -2p_{j}\,\boldsymbol{\mu}_{\cdot\ell}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{j}\boldsymbol{\Omega}\boldsymbol{r}
+       +\delta_{j\ell}\,\boldsymbol{r}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{j}\boldsymbol{\Omega}\boldsymbol{r}
+       -4p_{j}p_{\ell}\,\boldsymbol{r}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{j}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{\ell}\boldsymbol{\Omega}\boldsymbol{r}.
   \end{aligned}
   \label{eq-hessian-log-likelihood-unconstrained}
 \end{equation}
@@ -277,9 +303,9 @@ Differentiating \eqref{eq-derivative-log-likelihood-unconstrained} once more giv
   with \(\mathbb{E}[\boldsymbol{r}]=\boldsymbol{0}\) and \(\mathbb{E}[\boldsymbol{r}\boldsymbol{r}^{\top}]=\boldsymbol{\Sigma}(\boldsymbol{p})\), cancels the
   determinant traces against the residual traces and returns \(\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})\), with
   \begin{equation}
-    I(\boldsymbol{p})_{jk}
-    =\boldsymbol{\mu}_{\cdot j}^{\top}\boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\mu}_{\cdot k}
-    +2p_{j}p_{k}\operatorname{tr}\bigl(\boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_{j}\boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_{k}\bigr).
+    I(\boldsymbol{p})_{j\ell}
+    =\boldsymbol{\mu}_{\cdot j}^{\top}\boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\mu}_{\cdot\ell}
+    +2p_{j}p_{\ell}\operatorname{tr}\bigl(\boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_{j}\boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_{\ell}\bigr).
     \label{eq-expected-fisher-p}
   \end{equation}
   The identity holds only with the factor \(\tfrac12\) on both terms of
@@ -301,45 +327,161 @@ Differentiating \eqref{eq-derivative-log-likelihood-unconstrained} once more giv
 \subsection{Derivation of the constrained likelihood on log-ratio charts}
 \label{app:constrained}
 
+Full derivations, worked examples and a figure in the
+\vignette{theory-decovart-generative-model.html\#sec-constrained}{generative-model vignette}.
+
+\subsubsection{Four charts of the simplex}
+\label{app:charts}
+
 \begin{itemize}
   \item constrained optimisation can eliminate the constraints by reparametrisation, enforce them
         softly with penalties or barriers, or enforce feasibility exactly by projections, Lagrangian or
-        Karush--Kuhn--Tucker methods; reparametrisation and penalties are simple but can be poorly
+        \gls{kkt} methods; reparametrisation and penalties are simple but can be poorly
         conditioned, barrier and interior-point methods suit convex problems, and Lagrangian methods
         (augmented Lagrangian, sequential quadratic programming) are the most general
-  \item DeCovarT reparametrises: with \(\boldsymbol{\eta}=\mathbf{V}\boldsymbol{\rho}\) and \(\boldsymbol{\rho}\in\mathbb{R}^{J-1}\),
+  \item DeCovarT reparametrises with a \gls{chart} of the open simplex; the derivatives of
+        Appendix~\ref{app:derivation} are \gls{ambient} and are mapped to the chart by the chain rule
+  \item softmax of \(J\) scores \(\boldsymbol{z}\): \(\boldsymbol{p}=\operatorname{softmax}(\boldsymbol{z})=\exp(\boldsymbol{z})/\mathbf{1}^{\top}\exp(\boldsymbol{z})\);
+        it is over-parametrised, \(\operatorname{softmax}(\boldsymbol{z}+t\mathbf{1})=\operatorname{softmax}(\boldsymbol{z})\), and its Jacobian
+        \(\boldsymbol{S}(\boldsymbol{p})=\operatorname{diag}(\boldsymbol{p})-\boldsymbol{p}\boldsymbol{p}^{\top}\) satisfies \(\boldsymbol{S}(\boldsymbol{p})\mathbf{1}=\boldsymbol{0}\), so a
+        Newton system in \(\boldsymbol{z}\) is singular
+  \item the three log-ratio charts remove that direction
+        \cite{aitchisonStatisticalAnalysisCompositional1982,CoordinateRepresentation2015}: the additive log-ratio
+        \(\boldsymbol{\rho}^{\mathrm{alr}}=\boldsymbol{D}_{r}\log\boldsymbol{p}\), whose rows \(\boldsymbol{e}_{j}^{\top}-\boldsymbol{e}_{r}^{\top}\) pin a
+        reference type \(r\); the centred log-ratio \(\boldsymbol{\xi}=\boldsymbol{H}_{J}\log\boldsymbol{p}\), with
+        \(\boldsymbol{H}_{J}=\mathbf{I}_{J}-J^{-1}\mathbf{1}\mathbf{1}^{\top}\), whose \(J\) coordinates sum to zero; and the isometric
+        log-ratio
         \begin{equation}
-          p_{k}=\psi_{k}(\boldsymbol{\rho})=\frac{e^{\eta_{k}}}{\sum_{m=1}^{J}e^{\eta_{m}}},
+          p_{j}=\psi_{j}(\boldsymbol{\rho})=\frac{e^{z_{j}}}{\sum_{\ell=1}^{J}e^{z_{\ell}}},
+          \qquad
+          \boldsymbol{z}=\mathbf{V}\boldsymbol{\rho},
           \qquad
           \boldsymbol{\rho}=\mathbf{V}^{\top}\log\boldsymbol{p},
           \label{eq-mapping-function}
         \end{equation}
-        where \(\mathbf{V}\) is a \(J\times(J-1)\) Helmert basis orthogonal to \(\mathbf{1}\) for the \gls{ilr} chart;
-        the additive log-ratio chart is the case \(\mathbf{V}=[\mathbf{I}_{J-1};\boldsymbol{0}^{\top}]\), which gives
-        \(p_{k}=e^{\rho_{k}}/(1+\sum_{m<J}e^{\rho_{m}})\) and \(p_{J}=1/(1+\sum_{m<J}e^{\rho_{m}})\), with
-        \(\rho_{k}=\log(p_{k}/p_{J})\)
+        where \(\mathbf{V}\) is a \(J\times(J-1)\) \gls{helmert}; the additive log-ratio is the softmax of
+        \((\boldsymbol{\rho}^{\mathrm{alr}},0)\) when \(r=J\)
   \item \(\boldsymbol{\psi}\) is a \(C^{2}\)-diffeomorphism between \(\mathbb{R}^{J-1}\) and the open simplex; the
         log-sum-exp trick evaluates it and its derivatives without overflow
+\end{itemize}
+
+\begin{table}[h]
+  \centering
+  \small
+  \caption{Four charts of the open simplex. \(\kappa\) is the condition number; \(\boldsymbol{A}_{r}=\boldsymbol{D}_{r}\mathbf{V}\)
+    maps ILR to ALR coordinates.}
+  \label{tab:charts}
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.21\textwidth}>{\raggedright\arraybackslash}p{0.14\textwidth}>{\raggedright\arraybackslash}p{0.16\textwidth}>{\raggedright\arraybackslash}p{0.16\textwidth}>{\raggedright\arraybackslash}p{0.16\textwidth}@{}}
+    \toprule
+    Property & Softmax & ALR & CLR & ILR \\
+    \midrule
+    Free coordinates & \(J\), one redundant & \(J-1\) & \(J\) summing to zero & \(J-1\) \\
+    Privileged cell type & none & reference \(r\) & none & none \\
+    \Gls{isometry} for the Aitchison distance & no & no (oblique basis) & yes & yes \\
+    Change of convention & -- & oblique, \(\kappa(\boldsymbol{A}_{r})=\sqrt{J}\) & -- & orthogonal rotation \\
+    Hessian conditioning & singular & depends on \(r\) & singular & invariant \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsubsection{The Helmert basis}
+\label{app:helmert}
+
+\begin{itemize}
+  \item column \(j=1,\ldots,J-1\) of \(\mathbf{V}\) is
+        \(\boldsymbol{v}_{j}=(1,\ldots,1,-j,0,\ldots,0)^{\top}/\sqrt{j(j+1)}\), with \(j\) ones; then
+        \(\mathbf{V}^{\top}\mathbf{V}=\mathbf{I}_{J-1}\), \(\mathbf{V}^{\top}\mathbf{1}=\boldsymbol{0}\) and \(\mathbf{V}\mathbf{V}^{\top}=\boldsymbol{H}_{J}\)
+        \cite{egozcueIsometricLogratioTransformations2003,CoordinateRepresentation2015}
+  \item each coordinate is a balance,
+        \(\rho_{j}=\sqrt{j/(j+1)}\,\log\{g(p_{1},\ldots,p_{j})/p_{j+1}\}\) with \(g\) the geometric mean: the first \(j\)
+        types against type \(j+1\)
+  \item construction: Gram--Schmidt applied to the successive differences \(\boldsymbol{e}_{j}-\boldsymbol{e}_{j+1}\), which span
+        \(\mathbf{1}^{\perp}\), returns exactly these columns; every other orthonormal basis of \(\mathbf{1}^{\perp}\) is
+        \(\mathbf{V}\boldsymbol{Q}\) with \(\boldsymbol{Q}^{\top}\boldsymbol{Q}=\mathbf{I}_{J-1}\), so the order of the cell types fixes which balances
+        are reported, not the estimate
+\end{itemize}
+
+\subsubsection{Derivatives, invariance and conditioning}
+\label{app:chart-derivatives}
+
+\begin{itemize}
   \item Jacobian and second derivatives:
         \begin{equation}
-          \mathbf{J}_{\psi}=\bigl(\operatorname{diag}(\boldsymbol{p})-\boldsymbol{p}\boldsymbol{p}^{\top}\bigr)\mathbf{V},
+          \mathbf{J}_{\psi}=\boldsymbol{S}(\boldsymbol{p})\mathbf{V},
           \qquad
-          \frac{\partial^{2}p_{k}}{\partial\eta_{m}\partial\eta_{n}}
-          =p_{k}\bigl[(\delta_{km}-p_{m})(\delta_{kn}-p_{n})-p_{m}(\delta_{mn}-p_{n})\bigr],
+          \frac{\partial^{2}p_{j}}{\partial z_{\ell}\partial z_{\ell'}}
+          =p_{j}\bigl[(\delta_{j\ell}-p_{\ell})(\delta_{j\ell'}-p_{\ell'})-p_{\ell}(\delta_{\ell\ell'}-p_{\ell'})\bigr],
           \label{eq-mapping-function-gradient}
         \end{equation}
-        and \(\partial^{2}p_{k}/\partial\rho_{a}\partial\rho_{b}=\sum_{m,n}V_{ma}V_{nb}\,\partial^{2}p_{k}/\partial\eta_{m}\partial\eta_{n}\),
+        and \(\partial^{2}p_{j}/\partial\rho_{a}\partial\rho_{b}=\sum_{\ell,\ell'}V_{\ell a}V_{\ell' b}\,\partial^{2}p_{j}/\partial z_{\ell}\partial z_{\ell'}\),
         a third-order tensor symmetric in \((a,b)\) by Schwarz's theorem
   \item chain rules, in \(\mathbb{R}^{J-1}\) and \(\mathbb{R}^{(J-1)\times(J-1)}\):
         \begin{equation}
           \nabla_{\boldsymbol{\rho}}\ell=\mathbf{J}_{\psi}^{\top}\nabla_{\boldsymbol{p}}\ell,
           \qquad
           \nabla^{2}_{\boldsymbol{\rho}}\ell=\mathbf{J}_{\psi}^{\top}\mathbf{H}\mathbf{J}_{\psi}
-          +\sum_{k=1}^{J}\frac{\partial\ell}{\partial p_{k}}\nabla^{2}_{\boldsymbol{\rho}}p_{k}
+          +\sum_{j=1}^{J}\frac{\partial\ell}{\partial p_{j}}\nabla^{2}_{\boldsymbol{\rho}}p_{j}
           \label{eq-chain-rule-second-order}
         \end{equation}
-        with \(\mathbf{H}\) from \eqref{eq-hessian-log-likelihood-unconstrained}; the second term vanishes at a
-        stationary point of the unconstrained problem but not in general
+        with \(\mathbf{H}\) from \eqref{eq-hessian-log-likelihood-unconstrained}; the second term vanishes at an
+        interior KKT point (below) but not in general
+  \item statistical invariance: for any invertible linear change of coordinates
+        \(\boldsymbol{\rho}'=\boldsymbol{A}\boldsymbol{\rho}\), the maximiser, the maximised log-likelihood and the delta-method
+        covariance are unchanged, since
+        \((\mathbf{J}_{\psi}\boldsymbol{A}^{-1})(\boldsymbol{A}^{-\top}I_{\boldsymbol{\rho}}\boldsymbol{A}^{-1})^{-1}(\mathbf{J}_{\psi}\boldsymbol{A}^{-1})^{\top}=\mathbf{J}_{\psi}I_{\boldsymbol{\rho}}^{-1}\mathbf{J}_{\psi}^{\top}\);
+        the pure Newton step is also affine invariant \cite{boydConvexOptimization2004}
+  \item numerical invariance: a change of ILR basis gives \(\mathbf{H}_{\boldsymbol{\rho}^{\star}}=\boldsymbol{Q}^{\top}\mathbf{H}_{\boldsymbol{\rho}}\boldsymbol{Q}\), with the
+        same eigenvalues; the ALR map \(\boldsymbol{A}_{r}=\boldsymbol{D}_{r}\mathbf{V}\) has \(J-2\) singular values equal to \(1\) and
+        one equal to \(\sqrt{J}\), along the log-abundance of the reference \(\mathbf{V}^{\top}\boldsymbol{e}_{r}\), so
+        \(\kappa(\mathbf{H}_{\boldsymbol{\rho}})/J\le\kappa(\boldsymbol{A}_{r}^{-\top}\mathbf{H}_{\boldsymbol{\rho}}\boldsymbol{A}_{r}^{-1})\le J\,\kappa(\mathbf{H}_{\boldsymbol{\rho}})\)
+  \item consequence: gradient norms, damping, stopping rules and the floating-point accuracy of
+        \(I_{\boldsymbol{\rho}}^{-1}\) are the same in every ILR basis but change with the ALR reference, most when the
+        reference type is rare or poorly identified
+\end{itemize}
+
+\subsubsection{Lagrangian and Karush--Kuhn--Tucker conditions}
+\label{app:kkt}
+
+\begin{itemize}
+  \item without a chart, the problem is \(\max_{\boldsymbol{p}}\ell(\boldsymbol{p})\) subject to \(\mathbf{1}^{\top}\boldsymbol{p}=1\) and
+        \(\boldsymbol{p}\ge\boldsymbol{0}\), with Lagrangian
+        \(\mathcal{L}(\boldsymbol{p},\lambda,\boldsymbol{\nu})=\ell(\boldsymbol{p})-\lambda(\mathbf{1}^{\top}\boldsymbol{p}-1)+\boldsymbol{\nu}^{\top}\boldsymbol{p}\)
+  \item the constraints are linear, so a constraint qualification holds and every local maximiser satisfies
+        the \gls{kkt} conditions \cite{boydConvexOptimization2004}:
+        \begin{equation}
+          \nabla_{\boldsymbol{p}}\ell(\hat{\boldsymbol{p}})-\lambda\mathbf{1}+\boldsymbol{\nu}=\boldsymbol{0},
+          \qquad
+          \mathbf{1}^{\top}\hat{\boldsymbol{p}}=1,
+          \qquad
+          \boldsymbol{\nu}\ge\boldsymbol{0},
+          \qquad
+          \nu_{j}\hat p_{j}=0
+          \label{eq-kkt}
+        \end{equation}
+  \item \gls{slackness}, \(\nu_{j}\hat p_{j}=0\), says which constraints determine the optimum: either
+        \(\hat p_{j}>0\), the constraint is inactive and \(\nu_{j}=0\), or \(\hat p_{j}=0\), the constraint binds and
+        \(\nu_{j}\) may be positive
+
+  \item[] \todo[inline]{The reading of complementary slackness follows teaching slides (\emph{Optimization in
+        Statistics}, StatHarbor Analytics, 2026; local extraction under \texttt{.firecrawl/extract/}), which are
+        not in Zotero; add them, or keep Boyd and Vandenberghe only.}
+  \item interior point: \(\boldsymbol{\nu}=\boldsymbol{0}\) and \(\partial\ell/\partial p_{j}=\lambda\) for every \(j\), with
+        \(\lambda=\hat{\boldsymbol{p}}^{\top}\nabla_{\boldsymbol{p}}\ell(\hat{\boldsymbol{p}})\); boundary point: \(\partial\ell/\partial p_{j}\le\lambda\)
+        for every absent type
+  \item the chart removes the multiplier: since \(\boldsymbol{S}(\boldsymbol{p})\mathbf{1}=\boldsymbol{0}\),
+        \(\nabla_{\boldsymbol{\rho}}\ell=\mathbf{V}^{\top}\boldsymbol{S}(\boldsymbol{p})\{\nabla_{\boldsymbol{p}}\ell-\lambda(\boldsymbol{p})\mathbf{1}\}\) with
+        \(\lambda(\boldsymbol{p})=\boldsymbol{p}^{\top}\nabla_{\boldsymbol{p}}\ell\), and
+        \(\lVert\nabla_{\boldsymbol{\rho}}\ell\rVert=\lVert\boldsymbol{S}(\boldsymbol{p})\nabla_{\boldsymbol{p}}\ell\rVert\); hence
+        \(\nabla_{\boldsymbol{\rho}}\ell=\boldsymbol{0}\) if and only if \(\nabla_{\boldsymbol{p}}\ell=\lambda\mathbf{1}\): stationary points in
+        \(\boldsymbol{\rho}\) are exactly the interior KKT points, and the score norm does not depend on the basis
+  \item reduced Hessian: at an interior KKT point the second term of \eqref{eq-chain-rule-second-order} vanishes,
+        because \(\sum_{j}\nabla^{2}_{\boldsymbol{\rho}}p_{j}=\boldsymbol{0}\), and
+        \(\nabla^{2}_{\boldsymbol{\rho}}\ell=\mathbf{J}_{\psi}^{\top}\nabla^{2}_{\boldsymbol{p}\boldsymbol{p}}\mathcal{L}\,\mathbf{J}_{\psi}\); the columns of
+        \(\mathbf{J}_{\psi}\) span the tangent space \(\{\boldsymbol{t}:\mathbf{1}^{\top}\boldsymbol{t}=0\}\), so a negative-definite ILR Hessian is
+        the second-order sufficient condition of the constrained problem
+  \item limit: for finite \(\boldsymbol{\rho}\) every \(p_{j}>0\), so the inequality multipliers never activate; an
+        estimate on a face lies at infinity in \(\boldsymbol{\rho}\) and is handled by restricted fits and boundary
+        tests (Appendix~\ref{app:mle})
 \end{itemize}
 
 \subsection{Alternative alignment strategies}
@@ -352,10 +494,10 @@ Derivations in the \vignette{theory-decovart-single-cell-tailored.html}{single-c
   \begin{itemize}
     \item sorted profiles: one random population vector per type scaled by \(p_{ji}\), so
           \(\operatorname{Cov}=\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{B,j}\), the released DeCovarT covariance
-    \item one single-cell replicate: \(\kappa_{i}\sum_{j}p_{ji}\boldsymbol{\Sigma}_{W,j}+\boldsymbol{\Sigma}_{\mathrm{obs},i}\)
+    \item one single-cell replicate: \(n_{i}^{-1}\sum_{j}p_{ji}\boldsymbol{\Sigma}_{W,j}+\boldsymbol{\Sigma}_{\mathrm{obs},i}\) for the bulk per cell
     \item \(R\ge2\) replicates: method-of-moments \(\hat{\boldsymbol{\Sigma}}_{B,j}=\boldsymbol{S}_{B,j}-\hat{\boldsymbol{\Sigma}}_{W,j}/\bar C_{j}\),
           projected on the positive semidefinite cone, and the three-layer law
-          \(\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{B,j}+\kappa_{i}\sum_{j}p_{ji}\boldsymbol{\Sigma}_{W,j}+\boldsymbol{\Sigma}_{\mathrm{obs},i}\);
+          \(\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{B,j}+n_{i}^{-1}\sum_{j}p_{ji}\boldsymbol{\Sigma}_{W,j}+\boldsymbol{\Sigma}_{\mathrm{obs},i}\);
           small cohorts support a scalar or sparse \(\boldsymbol{\Sigma}_{B,j}\), not a dense one
     \item one identity covers all three: \(\operatorname{Cov}(\sum_{r=1}^{a}\boldsymbol{X}_{r})=a[1+(a-1)\varrho]\boldsymbol{\Sigma}\)
   \end{itemize}
@@ -363,19 +505,20 @@ Derivations in the \vignette{theory-decovart-single-cell-tailored.html}{single-c
         \(\boldsymbol{m}_{\cdot i}\), as in \emph{MuSiC} before library division \cite{wangBulkTissueCell2019}; the variance
         identifies the number of cells, as in \emph{RNA-Sieve} \cite{erdmann-phamLikelihoodbasedDeconvolutionBulk2021}
   \item strategy 2, averaged mixture on the simplex:
-        \(\mathcal{N}_{G}(a_{i}\boldsymbol{\mu}\boldsymbol{p}_{\cdot i},a_{i}^{2}[\boldsymbol{S}_{B}(\boldsymbol{p}_{\cdot i})+\kappa_{i}\boldsymbol{S}_{W}(\boldsymbol{p}_{\cdot i})]+\boldsymbol{D}_{i})\);
-        released DeCovarT is the limit \(\kappa_{i}\to0\), \(a_{i}=1\); \emph{DECALS} keeps \(\boldsymbol{S}_{B}\) only
+        \(\mathcal{N}_{G}(a_{i}\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i},a_{i}^{2}[\boldsymbol{S}_{B}(\boldsymbol{p}_{\cdot i})+n_{i}^{-1}\boldsymbol{S}_{W}(\boldsymbol{p}_{\cdot i})]+\boldsymbol{D}_{i})\);
+        released DeCovarT is the limit \(n_{i}\to\infty\), \(a_{i}=1\); \emph{DECALS} keeps \(\boldsymbol{S}_{B}\) only
         \cite{caiStatisticalInferenceCelltype2024}; strategies 1 and 2 are one Gaussian family
   \item strategy 3, library-size closure: the closed bulk has a singular covariance and independent genes become
         negatively correlated; the target becomes RNA fractions \cite{aitchisonStatisticalAnalysisCompositional1982}
-  \item strategy 4, plug-in scales: technical size factor, \(S_{j}\), platform ratio \(\boldsymbol{d}\) or library offset
+  \item strategy 4, plug-in scales: technical size factor, \(S_{j}\), platform ratio \(\tilde{\boldsymbol{b}}\) or library offset
         estimated from auxiliary data, as in \emph{RCTD} \cite{cableRobustDecompositionCell2022a}; the variance of
         \(\hat{\boldsymbol{p}}\) gains \(I_{pp}^{-1}I_{p\eta}\boldsymbol{V}_{\eta}I_{\eta p}I_{pp}^{-1}\) for a plug-in
         \(\hat{\boldsymbol{\eta}}\) of covariance \(\boldsymbol{V}_{\eta}\)
-  \item why the model of Section~\ref{sec:sc-tailored} was chosen: strategy 1 needs the covariance on the molecule
-        scale and a lattice search for rare types; the full strategy 2 needs \(R\ge2\); strategy 3 breaks the additive
-        mixture; a gene-wise \(\boldsymbol{d}\) needs a paired cohort; with one donor, strategy 2 reduces to its linear layer
-        with \(a_{i}\) and \(S_{j}\) plugged in as in strategy 4
+  \item why the model of Section~\ref{sec:sc-tailored} was chosen: strategy 1 needs a lattice search over integer
+        cell counts for rare types; the full strategy 2 needs \(R\ge2\) donors; strategy 3 breaks the additive
+        mixture; a gene-wise \(\tilde{\boldsymbol{b}}\) needs a paired cohort; with one donor, strategies 1 and 2 meet in the
+        linear layer, with the two scales \(c_{i}=a_{i}n_{i}\) and \(\phi_{i}=a_{i}^{2}n_{i}\) estimated jointly and \(S_{j}\)
+        kept in \(\tilde{\boldsymbol{\mu}}\)
 \end{itemize}
 
 
@@ -387,7 +530,8 @@ Derivations in the \vignette{theory-decovart-single-cell-tailored.html}{single-c
   \item mean-only baselines: NNLS and quadratic programming (\texttt{lsei}) on \(\|\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}\|^{2}\)
         \cite{gongDeconRNASeqStatisticalFramework2013,dessoleLawsonHansonAlgorithmDeviation2023}
   \item likelihood solvers: L-BFGS-B with box constraints and renormalisation \cite{byrdLimitedMemoryAlgorithm1995};
-        projected gradient; Newton--Raphson and Marquardt--Levenberg on the ILR chart with the analytic Hessian
+        projected gradient; Newton--Raphson (default, \texttt{stats::nlminb}) and Marquardt--Levenberg on the ILR
+        chart with the analytic Hessian
         \cite{marquardtAlgorithmLeastSquaresEstimation1963,commengesNewtonLikeAlgorithmLikelihood2006,philippsRobustEfficientOptimization2021};
         simulated annealing as a global reference
   \item the Marquardt--Levenberg algorithm \cite{marquardtAlgorithmLeastSquaresEstimation1963} moves between
@@ -520,7 +664,7 @@ so the variance of the purified profiles no longer depends on their mixing weigh
 The fit is then generalised least squares on the linear mean \eqref{eq-linear-deconvolution}.
 Weighted least squares is the diagonal case \(\boldsymbol{\Omega}=\operatorname{diag}(w_{1},\ldots,w_{G})\), for which \emph{DWLS}
 supplies dampened gene weights \cite{tsoucasAccurateEstimationCelltype2019}.
-Interaction monomials \(p_{j}p_{k}\) in the mean (a Scheff\'e expansion) can be added on the same
+Interaction monomials \(p_{j}p_{\ell}\) in the mean (a Scheff\'e expansion) can be added on the same
 residual, at the cost of many extra parameters.
 
 \begin{theorem}[Generalised least squares]
