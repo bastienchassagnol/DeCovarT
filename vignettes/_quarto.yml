@@ -13,6 +13,12 @@ filters:
   # pre-ast so Quarto's cross-referencing sees the #fig- labels.
   - at: pre-ast
     path: _extensions/pandoc-ext/diagram/diagram.lua
+  # pkgdown's minimal HTML turns callouts into blockquotes; keep their type.
+  # Same file twice: it tags callouts before rendering, wraps them after.
+  - at: pre-render
+    path: pkgdown-callouts.lua
+  - at: post-render
+    path: pkgdown-callouts.lua
 
 # TikZ graphical models (pandoc-ext/diagram), RevBayes symbol convention.
 # No `%` comments inside header-includes: the filter re-wraps that block.

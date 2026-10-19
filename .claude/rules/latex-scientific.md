@@ -61,7 +61,7 @@ project/
 
 ## Figures and tables
 
-- Float specifier **`[tbp]`**; avoid habitual `[H]`.
+- Float specifier **`[ht]`**. A lone `[h]` is rewritten to `[ht]` and warns.
 - Inside floats: **`\centering`**, not `center` environment.
 - **`caption`** with `singlelinecheck=off` when captions contain lists.
 - Tables: `booktabs`, `longtable`, `tabularx`.

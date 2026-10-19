@@ -1286,6 +1286,72 @@ likelihood \cite{nguyenDeOPUSCellularDeconvolution2026}.
         DeCovarT can plug in
 \end{itemize}
 
+\subsubsection{Deconvolution in a latent space: factor models and foundation-model embeddings}
+\label{sec:latent-space}
+
+DeCovarT deconvolves in the original gene space.
+An alternative projects the bulk profiles and the reference into a lower-dimensional latent space
+and solves the mixture there.
+
+\begin{itemize}
+  \item linear latent factor models keep the mixture linear, because a linear projection maps
+        \(\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}\) to \(\boldsymbol{L}\boldsymbol{y}=(\boldsymbol{L}\boldsymbol{\mu})\boldsymbol{p}\)
+  \begin{itemize}
+    \item non-negative matrix factorisation writes the bulk matrix as a product of non-negative profiles
+          and proportions, reference-free or guided by markers
+          \cite{tangNITUMIDNonnegativeMatrix2020,hoyerNonnegativeMatrixFactorization2004}; NMF is ill-posed, and
+          \emph{GSNMF+} restores the solvability conditions by augmenting the bulk with pseudo-bulks simulated
+          from single-cell data, then corrects the remaining rescaling of the solution
+          \cite{liAugmentedGSNMFModel2025}
+    \item convex analysis of mixtures uses the geometry of the problem: bulk samples lie in the convex
+          hull of the subtype profiles, the vertices identify marker genes, and minimum description length
+          sets the number of subtypes \cite{chenCAMTHCConvexAnalysis2019}
+    \item \emph{swCAM} adds sample-wise deviations \(\Delta\boldsymbol{S}_{i}\) to the subtype profiles, penalised by a
+          nuclear norm and solved by ADMM, to recover subtype-specific expression in each sample; recovery is
+          good for abundant subtypes and poor for rare ones (estimate--truth correlation from 0.20 to 0.71
+          across abundance quartiles in its realistic simulation) \cite{chenSwCAMEstimationSubtypespecific2022}
+  \end{itemize}
+  \item non-linear embeddings learn the latent space
+  \begin{itemize}
+    \item deep networks trained on simulated pseudo-bulks predict proportions directly
+          \cite{mendenDeepLearningBased2020}
+    \item \emph{DECONVersation} embeds each bulk sample, treated as a pseudo-cell, and each cell-type signature
+          with single-cell foundation models (Geneformer, Cell2Sentence, scGPT, CellHermes), then runs
+          non-negative least squares on the embeddings \cite{okuDECONVersationSingleCell2026}; on six bulk datasets with ground
+          truth it matched \emph{DWLS} and outperformed \emph{MuSiC} and \emph{BayesPrism}, and its advantage grew
+          with the technical dissimilarity between reference and bulk
+  \end{itemize}
+  \item advantages of a latent space
+  \begin{itemize}
+    \item robustness: embeddings trained on large and heterogeneous corpora are less sensitive to batch and
+          platform effects, and rank-based tokenisation acts as a normalisation
+    \item no marker-selection step, whose choice changes the estimates; the signature is also better
+          conditioned in embedding space than on raw genes
+    \item gene interactions: mean-only methods ignore them, and DeCovarT captures only linear dependence
+          through a Gaussian graphical model; deep models can encode non-linear, higher-order interactions
+          between genes
+  \end{itemize}
+  \item drawbacks
+  \begin{itemize}
+    \item interpretation: latent coordinates carry no direct biological meaning, and attention-based marker
+          enrichment is an indirect check
+    \item the linear relationship between bulk and single-cell expression breaks: for a non-linear map
+          \(f\), \(f(\sum_{j}p_{j}\boldsymbol{x}_{\cdot j})\neq\sum_{j}p_{j}f(\boldsymbol{x}_{\cdot j})\), so the proportions are no longer
+          the parameters of a generative model; \emph{DECONVersation} checks additivity only by a cosine
+          similarity that anisotropy inflates, and bulk samples are out of distribution for models trained on
+          single cells
+    \item inference: without a likelihood there is no finite-sample or asymptotic interval for
+          \(\boldsymbol{p}\), no boundary test for an absent type, and no marginal effect of explanatory covariates
+          (Section~\ref{sec:generalized-linear-model}); resampling remains, at a high computational cost
+    \item cost and variability: fine-tuning needs a GPU, and results change with the chosen model
+  \end{itemize}
+  \item a bridge we suggest: a fixed linear projection \(\boldsymbol{L}\), such as factor loadings, keeps DeCovarT exact
+        on \(\boldsymbol{y}^{\star}=\boldsymbol{L}\boldsymbol{y}\), \(\boldsymbol{\mu}^{\star}=\boldsymbol{L}\boldsymbol{\mu}\) and
+        \(\boldsymbol{\Sigma}_{j}^{\star}=\boldsymbol{L}\boldsymbol{\Sigma}_{j}\boldsymbol{L}^{\top}\), so a low-dimensional covariance-driven fit keeps its
+        likelihood and intervals; non-linear embeddings are then better used for gene or feature selection
+        than as the space of the likelihood
+\end{itemize}
+
 \subsubsection{A Bayesian framework: the Wiener filter}
 \label{sec:wiener}
 

@@ -1,0 +1,153 @@
+# Scientific document extraction (.qmd, .pdf)
+
+Use this rule when the task is to read, summarise, index, or mine a Quarto
+source or a PDF (article, preprint, thesis, report, slide export) for its
+scientific content. Keep both the **text** and the **figures**. Combine it
+with the Firecrawl skills named below; this rule decides which one to call.
+
+## Routing
+
+| Input | First tool | Fallback / complement |
+| --- | --- | --- |
+| Local `.pdf`, `.docx`, `.html` | `firecrawl-parse` (`firecrawl parse`) | `pdftotext -layout`, `mutool` (offline) |
+| Local `.qmd`, `.Rmd`, `.md` | Read the source directly (plain text) | `quarto render` for computed figures |
+| PDF or page behind a URL | `firecrawl-scrape` | `firecrawl-download` for a whole site or supplement |
+| Paper metadata, references, citers | `firecrawl-research-index` | `firecrawl-research-papers` for a synthesis |
+| Many documents → reusable corpus | `firecrawl-knowledge-base` (RAG mode) | `firecrawl-crawl` for a docs section |
+| Office files you cannot read | `convert-documents-to-markdown` | Pandoc |
+
+Do not send a `.qmd` to `firecrawl parse`: it is not a supported type, and
+the source is already text.
+
+## Confidentiality first
+
+`firecrawl parse` uploads the file to the Firecrawl API. Use **local tools
+only** (`pdftotext`, `pdfimages`, `pdftoppm`, `mutool`) for manuscripts under
+review, unpublished results, patient or trial data, and anything under
+embargo or contract. Ask when the status of a file is unclear.
+
+## Output layout
+
+One folder per document, kept out of Git (`.firecrawl/` in `.gitignore`):
+
+```text
+.firecrawl/extract/<slug>/
+├── text.md          # full text, headings preserved, page markers <!-- p. 7 -->
+├── figures/         # fig-01.png, fig-02.png, ... (raster or page crop)
+├── figures.json     # one record per figure (see below)
+├── content.md       # structured scientific summary (see below)
+└── meta.json        # title, authors, year, DOI, citekey, source path, tool + date
+```
+
+`<slug>` is the citekey when known, otherwise `YYYY-firstauthor-shortword`.
+Check for an existing folder before parsing again (Firecrawl costs about one
+credit per PDF page; the 50 MB upload limit applies).
+
+## PDF: text
+
+```bash
+mkdir -p .firecrawl/extract/<slug>
+firecrawl parse "paper.pdf" -o .firecrawl/extract/<slug>/text.md
+# offline, keeps columns and page breaks (form feed = new page)
+pdftotext -layout "paper.pdf" .firecrawl/extract/<slug>/text.txt
+```
+
+Read outputs with bounded reads (`head`, `rg`, offsets), never in one dump.
+Check tables and equations against the page image: both converters damage
+them. Mark any repaired passage.
+
+## PDF: figures
+
+Figures come in two kinds, and need two tools:
+
+```bash
+# 1. embedded raster images, with page numbers in the filename
+pdfimages -png -p "paper.pdf" .firecrawl/extract/<slug>/figures/raw
+# 2. vector figures (most plots): render the page, then crop if needed
+pdftoppm -png -r 200 -f 7 -l 7 "paper.pdf" .firecrawl/extract/<slug>/figures/p07
+```
+
+- Find figure pages by grepping captions in the text (`^(Figure|Fig\.)\s*[0-9]+`).
+- Discard logos, icons, and decorative fragments from `pdfimages`.
+- Look at each kept image (vision) before describing it. A description is
+  written from the image and the caption, not from the caption alone.
+
+## Quarto (.qmd)
+
+- Parse the YAML header (title, authors, bibliography, format), then the
+  heading tree with `{#sec-…}` labels.
+- Static figures: `![caption](path){#fig-…}` gives path, caption, and label.
+- Computed figures: chunk options `#| label: fig-…` and `#| fig-cap:`. The
+  image exists only after rendering; take it from `_freeze/`, the
+  `*_files/figure-html/` folder, or `_book/` when already built. Render
+  (`quarto render file.qmd --to html`) only in the user's own repository,
+  since rendering executes the code.
+- Diagrams (`{mermaid}`, `.tikz`): keep the source as the figure record; the
+  source is more exact than the picture.
+- Citations `@key` stay as keys; resolve them through the project `.bib`.
+
+## figures.json
+
+```json
+{
+  "id": "fig-03",
+  "label": "fig-roc",
+  "page": 7,
+  "file": "figures/p07-1.png",
+  "kind": "vector-page-render",
+  "caption": "verbatim caption",
+  "description": "what is plotted: axes, groups, main pattern",
+  "finding": "the claim the figure supports, with numbers when shown",
+  "source": "author figure; licence if stated",
+  "description_by": "model"
+}
+```
+
+Keep `caption` verbatim. `description` and `finding` are model output and are
+marked so (`description_by`). Reuse of a figure outside the extraction follows
+the figure-sources rule (licence check first).
+
+## content.md: scientific content
+
+Extract, in this order, each item with a page or section anchor:
+
+1. Question and estimand (or aim, for non-inferential work).
+2. Data: population, sample size, units, provenance, missingness.
+3. Design: study type, randomisation, resampling unit, dependence.
+4. Methods: models, priors, software and versions, tuning, validation.
+5. Results: estimates with intervals or uncertainty, not p-values alone;
+   the figure or table each result comes from.
+6. Limitations stated by the authors, then limitations you see (labelled).
+7. Claims vs evidence: one line per headline claim, with its support.
+
+Distinguish quotation (in quotes, with page) from paraphrase. Never fill a
+gap with a plausible number. Write "not reported" instead.
+
+## Literature context
+
+- `firecrawl research search-papers "<title or DOI>"` to find the record,
+  `inspect-paper <id>` for canonical metadata, `related-papers <id> --intent
+  "..." --mode references|citers` for what it builds on and who builds on it.
+- `read-paper <id> --question "..."` to check one load-bearing detail.
+- Index metadata is a lead, not a citation: BibTeX comes from Zotero
+  (documentation-bibliography rule). Never write a `.bib` entry from it.
+
+## Corpus for RAG
+
+When several documents feed retrieval, follow `firecrawl-knowledge-base` in
+RAG mode, with these additions:
+
+- Chunk by section heading, not by fixed token count; keep the anchor
+  (`slug#sec` or page) in each chunk's metadata.
+- Each figure becomes its own chunk: caption + description + finding, with the
+  image path, so text queries can retrieve figures.
+- Tables become Markdown or CSV chunks with their caption.
+- `manifest.json` lists every document, its `meta.json`, chunk count, and
+  extraction tool and date.
+
+## Done when
+
+`text.md`, `figures/`, `figures.json`, `content.md`, and `meta.json` exist;
+every figure in the caption list has a record; every result in `content.md`
+has an anchor; and the reply states which tools ran, which steps were
+skipped, and any figure or table that could not be recovered.

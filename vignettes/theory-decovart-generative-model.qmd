@@ -24,6 +24,27 @@ format:
   html:
     embed-resources: true
     toc: true
+filters:
+  - callouty-theorem
+callouty-theorem:
+  thm:
+    override-title: false
+    callout:
+      type: important
+      appearance: default
+      icon: true
+  prp:
+    override-title: false
+    callout:
+      type: note
+      appearance: default
+      icon: true
+  exm:
+    override-title: false
+    callout:
+      type: tip
+      appearance: default
+      icon: true
 ---
 
 ```{r}
@@ -56,7 +77,8 @@ Package entry points are
 [`expected_fisher_unconstrained()`](../reference/expected_fisher_unconstrained.html)
 and
 [`vcov_ilr_delta()`](../reference/vcov_ilr_delta.html).
-The additive log-ratio chart is retained as an appendix (@sec-alr).
+@sec-constrained compares the softmax, additive, centred and isometric
+log-ratio charts and explains why the solvers use ILR.
 
 ::: {#nte-notation .callout-note}
 ## Notation
@@ -72,7 +94,8 @@ The additive log-ratio chart is retained as an appendix (@sec-alr).
   coordinates (ILR / Helmert chart $\mathbf{V}$);
   $\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho})$.
   The manuscript DAG uses the same letter for the ALR chart; here
-  $\boldsymbol{\rho}$ denotes the ILR coordinates used by the solvers.
+  $\boldsymbol{\rho}$ denotes the ILR coordinates used by the solvers,
+  and $\boldsymbol{\eta}$ the ALR coordinates (@sec-simplex-notation).
 :::
 
 # Matrix calculus reminders {#sec-matrix-calculus}
@@ -270,9 +293,7 @@ and does not enforce the simplex exactly.
 
 Applying @eq-logdet and @eq-quad-form-deriv with
 $\partial\boldsymbol{\Sigma}/\partial p_{j}=2p_{j}\boldsymbol{\Sigma}_{j}$
-gives the ambient score. Colour coding matches the manuscript: purple
-determinant / precision terms, blue mean residual, orange covariance
-quadratic.
+gives the ambient score.
 
 ::: {#thm-score-unconstrained}
 ## Unconstrained gradient
@@ -422,16 +443,76 @@ and Hessians are checked against Richardson extrapolation in
 
 # Constrained optimisation on the simplex {#sec-constrained}
 
-Constrained optimisation may eliminate constraints by reparametrisation,
-enforce them softly with penalties or barriers, or enforce them exactly
-with projections / KKT methods. DeCovarT uses a $C^{2}$ diffeomorphism
-from free Euclidean coordinates $\boldsymbol{\rho}\in\mathbb{R}^{J-1}$
-onto the open simplex, so every Newton step stays feasible by
-construction.
+The cellular ratios satisfy $p_{j}\ge 0$ and $\sum_{j}p_{j}=1$, the
+*compositional* or unit-simplex constraint. An optimiser can handle it in
+three ways: eliminate it with a reparametrisation, enforce it softly with
+penalties or barriers, or enforce it exactly with projections and
+Karush--Kuhn--Tucker (KKT) conditions. DeCovarT uses the first route: a
+$C^{2}$ diffeomorphism from free Euclidean coordinates onto the open
+simplex, so every Newton step stays feasible by construction. Four such
+charts are common: the softmax, the additive log-ratio (ALR), the centred
+log-ratio (CLR) and the isometric log-ratio (ILR). This section defines
+the notation they share (@sec-simplex-notation), presents each chart
+(@sec-lse--@sec-ilr), explains why DeCovarT uses ILR (@sec-chart-choice)
+and compares the four side by side (@sec-chart-comparison). The
+derivatives of the ILR chart (@sec-ilr-deriv, @sec-chain-rule), their
+link to the Lagrangian (@sec-kkt) and the treatment of exact zeros
+(@sec-structural-zeros) follow.
 
-## Log-sum-exp and softmax {#sec-lse}
+The compositional background is chapter 4 of
+*Modelling and Analysis of Compositional Data*
+[@CoordinateRepresentation2015], cited below by page.
 
-The softmax of scores $\boldsymbol{z}\in\mathbb{R}^{K}$ is evaluated
+## Notation for compositions and charts {#sec-simplex-notation}
+
+| Symbol | Meaning |
+|:--|:--|
+| $\Delta^{J-1}=\{\boldsymbol{p}\in\mathbb{R}^{J}:p_{j}\ge 0,\ \mathbf{1}_{J}^{\mathsf{T}}\boldsymbol{p}=1\}$ | closed unit simplex of $J$ cell types; its interior $\mathring{\Delta}^{J-1}$ has $p_{j}>0$ for all $j$ |
+| $\mathbf{1}_{J}$, $\mathbf{I}_{J}$ | vector of ones, identity matrix |
+| $\mathbf{H}_{J}=\mathbf{I}_{J}-\tfrac{1}{J}\mathbf{1}_{J}\mathbf{1}_{J}^{\mathsf{T}}$ | centring matrix: orthogonal projector onto $\mathbf{1}_{J}^{\perp}=\{\boldsymbol{w}:\mathbf{1}_{J}^{\mathsf{T}}\boldsymbol{w}=0\}$ |
+| $\mathcal{C}(\boldsymbol{x})=\boldsymbol{x}/(\mathbf{1}_{J}^{\mathsf{T}}\boldsymbol{x})$ | closure of a positive vector $\boldsymbol{x}\in(0,\infty)^{J}$ |
+| $\log\boldsymbol{p}$, $\exp\boldsymbol{z}$ | applied component by component |
+| $g(\boldsymbol{p})=\bigl(\prod_{j}p_{j}\bigr)^{1/J}$ | geometric mean |
+| $\operatorname{softmax}(\boldsymbol{z})=\mathcal{C}(\exp\boldsymbol{z})$ | closure of exponentiated scores $\boldsymbol{z}\in\mathbb{R}^{J}$ |
+| $\boldsymbol{\psi}$ | a chart: a smooth bijection from free coordinates onto $\mathring{\Delta}^{J-1}$ |
+| $\boldsymbol{z}\in\mathbb{R}^{J}$, $\boldsymbol{\eta}\in\mathbb{R}^{J-1}$, $\boldsymbol{\xi}\in\mathbf{1}_{J}^{\perp}$, $\boldsymbol{\rho}\in\mathbb{R}^{J-1}$ | softmax scores, ALR, CLR and ILR coordinates |
+| $\mathbf{V}\in\mathbb{R}^{J\times(J-1)}$ | Helmert basis of the ILR chart (@sec-helmert) |
+| $\mathbf{D}_{r}\in\mathbb{R}^{(J-1)\times J}$ | ALR contrast with reference $r$: rows $\boldsymbol{e}_{j}^{\mathsf{T}}-\boldsymbol{e}_{r}^{\mathsf{T}}$, $j\neq r$ |
+| $\mathbf{S}(\boldsymbol{p})=\operatorname{diag}(\boldsymbol{p})-\boldsymbol{p}\boldsymbol{p}^{\mathsf{T}}$ | Jacobian of the softmax at $\boldsymbol{p}$ |
+
+: Notation for compositions and their charts. {#tbl-simplex-notation}
+
+**The closure operator.** $\mathcal{C}$ rescales any positive vector to
+unit sum. It discards the total and keeps the relative sizes:
+$\mathcal{C}(c\boldsymbol{x})=\mathcal{C}(\boldsymbol{x})$ for every
+$c>0$. A composition is therefore an equivalence class of proportional
+positive vectors, and $\mathcal{C}$ picks its representative on the
+simplex [@CoordinateRepresentation2015, pp. 33--35]. Two consequences
+matter here.
+
+- Only scale-free functions of $\boldsymbol{p}$ are meaningful, and the
+  log-ratios $\log(p_{i}/p_{k})$ are the simplest. A constant added to
+  $\log\boldsymbol{p}$ does not change the composition, so every
+  log-ratio chart must cancel the direction $\mathbf{1}_{J}$.
+- Closure creates dependence. Library-size normalisation of counts is a
+  closure, and it induces negative covariances between parts that need
+  not exist in the absolute abundances.
+
+Closure also gives the simplex a Euclidean vector-space structure, the
+*Aitchison geometry*: perturbation
+$\boldsymbol{x}\oplus\boldsymbol{y}=\mathcal{C}(\boldsymbol{x}\circ\boldsymbol{y})$
+plays the role of addition, powering
+$\alpha\odot\boldsymbol{x}=\mathcal{C}(\boldsymbol{x}^{\alpha})$ the role
+of scalar multiplication, and the inner product is
+$\langle\boldsymbol{x},\boldsymbol{y}\rangle_{a}
+=\operatorname{clr}(\boldsymbol{x})^{\mathsf{T}}\operatorname{clr}(\boldsymbol{y})$
+[@CoordinateRepresentation2015, Property 4.2, p. 35]. The log-ratio charts
+below are linear maps for this structure; they differ in whether they
+also preserve its inner product.
+
+## Softmax and log-sum-exp {#sec-lse}
+
+The softmax of scores $\boldsymbol{z}\in\mathbb{R}^{J}$ is evaluated
 through the log-sum-exp (LSE) to avoid overflow,
 
 $$
@@ -449,10 +530,10 @@ m=\max_{k}z_{k}.
 $$ {#eq-softmax}
 
 Its Jacobian is
-$\mathbf{J}_{\mathrm{softmax}}=\operatorname{diag}(\boldsymbol{s})
--\boldsymbol{s}\boldsymbol{s}^{\top}$, which is also
-$\nabla^{2}\operatorname{LSE}(\boldsymbol{z})$. The second derivative is
-the third-order tensor
+$\mathbf{J}_{\mathrm{softmax}}=\mathbf{S}(\boldsymbol{s})
+=\operatorname{diag}(\boldsymbol{s})-\boldsymbol{s}\boldsymbol{s}^{\mathsf{T}}$,
+which is also $\nabla^{2}\operatorname{LSE}(\boldsymbol{z})$. The second
+derivative is the third-order tensor
 
 $$
 H_{ijk}
@@ -464,15 +545,168 @@ s_{i}\bigl[
 \bigr].
 $$ {#eq-softmax-hess}
 
-## Isometric log-ratio map {#sec-ilr}
+The softmax with $J$ free scores is over-parametrised:
+$\operatorname{softmax}(\boldsymbol{z}+c\mathbf{1}_{J})
+=\operatorname{softmax}(\boldsymbol{z})$, because closure removes the
+common factor $e^{c}$. Accordingly $\mathbf{S}(\boldsymbol{s})\mathbf{1}_{J}=\boldsymbol{0}$,
+the Jacobian has rank $J-1$, and the Hessian of
+$\ell(\operatorname{softmax}(\boldsymbol{z}))$ has a zero eigenvalue along
+$\mathbf{1}_{J}$: a Newton system in $\boldsymbol{z}$ is singular. The
+three log-ratio charts are three ways to remove this redundant
+direction. Each writes
+$\boldsymbol{p}=\operatorname{softmax}(\mathbf{B}\boldsymbol{\theta})$
+with $\boldsymbol{\theta}\in\mathbb{R}^{J-1}$ and a matrix
+$\mathbf{B}\in\mathbb{R}^{J\times(J-1)}$ whose columns, together with
+$\mathbf{1}_{J}$, span $\mathbb{R}^{J}$. ALR pins one score to zero, CLR
+constrains the scores to sum to zero, and ILR spans $\mathbf{1}_{J}^{\perp}$
+with an orthonormal basis.
 
-Choose a Helmert sub-matrix
+## Additive log-ratio chart {#sec-alr}
+
+Pin a reference cell type $r$, by default the last one ($r=J$). The ALR
+coordinates and their inverse, the *additive logistic* transform, are
+[@aitchisonStatisticalAnalysisCompositional1982]
+
+$$
+\eta_{j}
+=
+\log\!\left(\frac{p_{j}}{p_{J}}\right),
+\qquad
+p_{j}
+=
+\frac{e^{\eta_{j}}}{1+\sum_{k<J}e^{\eta_{k}}}\ (j<J),
+\qquad
+p_{J}
+=
+\frac{1}{1+\sum_{k<J}e^{\eta_{k}}}.
+$$ {#eq-alr-maps}
+
+Equivalently
+$\boldsymbol{p}=\operatorname{softmax}(\eta_{1},\ldots,\eta_{J-1},0)$
+and $\boldsymbol{\eta}=\mathbf{D}_{J}\log\boldsymbol{p}$. The "1" in the
+denominator is the reference part; the word *additive* refers to the
+sum of exponentials in that denominator, not to the Aitchison
+perturbation [@CoordinateRepresentation2015, p. 47]. Package helpers
+[`additive_logistic()`](../reference/additive_logistic.html) and
+[`additive_log_ratio()`](../reference/additive_logistic.html) implement
+@eq-alr-maps and match `compositions::alrInv()` / `alr()` with the last
+part as reference [@R-compositions]. The Jacobian is the softmax
+Jacobian with the reference column dropped,
+$\partial p_{i}/\partial\eta_{a}=p_{i}(\delta_{ia}-p_{a})$ for
+$a=1,\ldots,J-1$
+([`jacobian_additive_logistic()`](../reference/jacobian_additive_logistic.html);
+[`hessian_additive_logistic()`](../reference/hessian_additive_logistic.html)).
+
+::: {#exm-alr-numeric}
+## ALR in both directions for $\boldsymbol{p}=(0.5,0.3,0.2)$
+
+Colours track each cell type: $\textcolor{#1d4e89}{p_{1}}$,
+$\textcolor{#c45c26}{p_{2}}$ and the reference
+$\textcolor{#7b3294}{p_{3}}$.
+
+*Forward.* Each coordinate compares one cell type with the reference,
+so the reference enters both coordinates:
+
+$$
+\begin{aligned}
+\eta_{1}
+&=\log\frac{\textcolor{#1d4e89}{p_{1}}}{\textcolor{#7b3294}{p_{3}}}
+=\log\frac{\textcolor{#1d4e89}{0.5}}{\textcolor{#7b3294}{0.2}}
+=\log 2.5\approx 0.916,\\
+\eta_{2}
+&=\log\frac{\textcolor{#c45c26}{p_{2}}}{\textcolor{#7b3294}{p_{3}}}
+=\log\frac{\textcolor{#c45c26}{0.3}}{\textcolor{#7b3294}{0.2}}
+=\log 1.5\approx 0.405.
+\end{aligned}
+$$
+
+*Backward.* Exponentiate, append the reference weight $e^{0}=1$, then
+close:
+
+$$
+\bigl(e^{\eta_{1}},e^{\eta_{2}},e^{0}\bigr)
+=(\textcolor{#1d4e89}{2.5},\textcolor{#c45c26}{1.5},\textcolor{#7b3294}{1}),
+\qquad
+\mathcal{C}(\cdot)
+=\Bigl(\frac{\textcolor{#1d4e89}{2.5}}{5},\frac{\textcolor{#c45c26}{1.5}}{5},\frac{\textcolor{#7b3294}{1}}{5}\Bigr)
+=(\textcolor{#1d4e89}{0.5},\textcolor{#c45c26}{0.3},\textcolor{#7b3294}{0.2}).
+$$
+
+*Changing the reference.* With $\textcolor{#1d4e89}{p_{1}}$ as reference,
+$\eta'_{1}=\log(\textcolor{#c45c26}{p_{2}}/\textcolor{#1d4e89}{p_{1}})\approx-0.511$
+and
+$\eta'_{2}=\log(\textcolor{#7b3294}{p_{3}}/\textcolor{#1d4e89}{p_{1}})\approx-0.916$,
+that is $\eta'_{1}=\eta_{2}-\eta_{1}$ and $\eta'_{2}=-\eta_{1}$. The
+two charts are related by the matrix
+$\bigl(\begin{smallmatrix}-1&1\\-1&0\end{smallmatrix}\bigr)$, which is
+invertible but not orthogonal: its singular values are $1.618$ and
+$0.618$, so it stretches some directions $2.6$ times more than others.
+:::
+
+**What the reference changes, and what it does not.** All ALR charts
+describe the same family of compositions; only the coordinates differ.
+@sec-chart-choice shows that the estimate $\hat{\boldsymbol{p}}$, the
+maximised log-likelihood and the delta-method covariance of
+$\hat{\boldsymbol{p}}$ do not depend on the reference. The numerical
+geometry does: ALR coordinates refer to an oblique, non-orthogonal basis
+of the simplex [@CoordinateRepresentation2015, p. 47], so Euclidean
+lengths, angles and Hessian condition numbers in $\boldsymbol{\eta}$
+change with the reference.
+
+## Centred log-ratio coefficients {#sec-clr}
+
+The CLR transform divides each part by the geometric mean
+[@aitchisonStatisticalAnalysisCompositional1982]:
+
+$$
+\boldsymbol{\xi}
+=
+\operatorname{clr}(\boldsymbol{p})
+=
+\log\frac{\boldsymbol{p}}{g(\boldsymbol{p})}
+=
+\mathbf{H}_{J}\log\boldsymbol{p},
+\qquad
+\boldsymbol{p}
+=
+\mathcal{C}(\exp\boldsymbol{\xi})
+=
+\operatorname{softmax}(\boldsymbol{\xi}).
+$$ {#eq-clr-maps}
+
+CLR treats every cell type symmetrically and preserves the Aitchison
+geometry: distances and inner products between compositions equal
+Euclidean ones between their CLR vectors
+[@CoordinateRepresentation2015, Property 4.2, p. 35]. Pairwise log-ratios are differences,
+$\log(p_{i}/p_{k})=\xi_{i}-\xi_{k}$. The price is a constraint on the
+coefficients: $\mathbf{1}_{J}^{\mathsf{T}}\boldsymbol{\xi}=0$. CLR gives
+$J$ coefficients for $J-1$ degrees of freedom, so they are not
+coordinates in a basis, a random CLR vector has a singular covariance
+matrix, and the coefficients change when a subcomposition is analysed
+[@CoordinateRepresentation2015, pp. 34--35]. Optimising over a free
+$\boldsymbol{\xi}\in\mathbb{R}^{J}$ is the over-parametrised softmax of
+@sec-lse again.
+
+CLR is nevertheless the hub between the other charts. Since
+$\mathbf{D}_{r}\mathbf{1}_{J}=\boldsymbol{0}$ and
+$\mathbf{V}^{\mathsf{T}}\mathbf{1}_{J}=\boldsymbol{0}$, both ALR and ILR
+are linear images of CLR:
+$\boldsymbol{\eta}=\mathbf{D}_{r}\boldsymbol{\xi}$ and
+$\boldsymbol{\rho}=\mathbf{V}^{\mathsf{T}}\boldsymbol{\xi}$.
+
+## Isometric log-ratio chart {#sec-ilr}
+
+ILR expresses $\boldsymbol{\xi}$ in an orthonormal basis of the
+hyperplane $\mathbf{1}_{J}^{\perp}$
+[@egozcueIsometricLogratioTransformations2003]. Choose
 $\mathbf{V}\in\mathbb{R}^{J\times(J-1)}$ with
 
 $$
 \mathbf{V}^{\mathsf{T}}\mathbf{V}=\mathbf{I}_{J-1},
 \qquad
-\mathbf{V}^{\mathsf{T}}\mathbf{1}=\mathbf{0}.
+\mathbf{V}^{\mathsf{T}}\mathbf{1}_{J}=\mathbf{0},
+\qquad
+\mathbf{V}\mathbf{V}^{\mathsf{T}}=\mathbf{H}_{J}.
 $$ {#eq-helmert}
 
 ILR coordinates and their inverse are
@@ -489,50 +723,357 @@ $$
 =
 \operatorname{softmax}(\mathbf{V}\boldsymbol{\rho})
 =
-\mathcal{C}\bigl\{\exp(\mathbf{V}\boldsymbol{\rho})\bigr\},
+\mathcal{C}\bigl\{\exp(\mathbf{V}\boldsymbol{\rho})\bigr\}.
 $$ {#eq-ilr-maps}
 
-where $\mathcal{C}$ denotes closure to unit sum. No cell type is pinned
-as a reference (contrast @sec-alr). Package helpers
+In the book's notation the contrast matrix is
+$\boldsymbol{\Psi}=\mathbf{V}^{\mathsf{T}}$, and @eq-helmert is its
+Eq. (4.5); @eq-ilr-maps is Eqs. (4.7)--(4.8)
+[@CoordinateRepresentation2015, pp. 36--37]. ILR keeps the strengths of both previous charts: like
+ALR it gives $J-1$ unconstrained coordinates, and like CLR it preserves
+the Aitchison geometry, now with
+$d_{a}(\boldsymbol{x},\boldsymbol{y})
+=\lVert\operatorname{ilr}(\boldsymbol{x})-\operatorname{ilr}(\boldsymbol{y})\rVert$
+(Property 4.5, p. 37). No cell type is a reference. Package helpers
 [`helmert_basis()`](../reference/helmert_basis.html),
 [`isometric_logistic()`](../reference/isometric_logistic.html) and
 [`isometric_log_ratio()`](../reference/isometric_log_ratio.html)
 implement @eq-helmert--@eq-ilr-maps with a log-sum-exp softmax, matching
 the `compositions::ilr()` / `ilrInv()` convention on a Helmert basis
-[@R-compositions; @egozcueIsometricLogratioTransformations2003].
+[@R-compositions].
+
+### The Helmert basis: definition, role and use {#sec-helmert}
+
+**Definition.** The ILR chart needs one orthonormal basis of
+$\mathbf{1}_{J}^{\perp}$; there are infinitely many. The Helmert basis
+is the one with a closed form. Column $k=1,\ldots,J-1$ of
+[`helmert_basis()`](../reference/helmert_basis.html) is
+
+$$
+\boldsymbol{v}_{k}
+=
+\frac{1}{\sqrt{k(k+1)}}
+\bigl(\underbrace{1,\ldots,1}_{k},\,-k,\,\underbrace{0,\ldots,0}_{J-k-1}\bigr)^{\mathsf{T}}.
+$$ {#eq-helmert-columns}
+
+Each column sums to zero and has unit norm, and two columns are
+orthogonal because the later one is constant on the support of the
+earlier one. The basis is the Gram--Schmidt orthonormalisation of the
+generating system of the simplex
+[@egozcueIsometricLogratioTransformations2003], and its contrast matrix
+is a Helmert matrix without the constant row
+[@CoordinateRepresentation2015, Example 4.6, p. 40]. The book lists the same basis in reverse
+order, with the first coordinate contrasting the first $J-1$ parts with
+the last one.
+
+**Role: every coordinate is a balance.** Inserting
+@eq-helmert-columns into @eq-ilr-maps gives
+
+$$
+\rho_{k}
+=
+\boldsymbol{v}_{k}^{\mathsf{T}}\log\boldsymbol{p}
+=
+\sqrt{\frac{k}{k+1}}\,
+\log\frac{g(p_{1},\ldots,p_{k})}{p_{k+1}},
+$$ {#eq-helmert-balance}
+
+the normalised log-ratio between the geometric mean of the first $k$
+cell types and type $k+1$. This is the *balance* of a sequential binary
+partition: level $k$ splits $\{1,\ldots,k+1\}$ into $\{1,\ldots,k\}$
+(sign $+$) and $\{k+1\}$ (sign $-$)
+[@CoordinateRepresentation2015, Eq. (4.9), pp. 38--39]. For $J=4$ the sign matrix is
+
+| Level | $p_{1}$ | $p_{2}$ | $p_{3}$ | $p_{4}$ |
+|:--|:--:|:--:|:--:|:--:|
+| $\rho_{1}$ | $+$ | $-$ | $0$ | $0$ |
+| $\rho_{2}$ | $+$ | $+$ | $-$ | $0$ |
+| $\rho_{3}$ | $+$ | $+$ | $+$ | $-$ |
+
+: Sequential binary partition encoded by the Helmert basis for $J=4$. {#tbl-helmert-sbp}
+
+The factor $\sqrt{k/(k+1)}$ makes balances comparable across levels.
+Balances are geometrically orthogonal, so each carries information the
+others do not; geometric orthogonality does not imply that their
+estimates are uncorrelated [@CoordinateRepresentation2015, p. 41].
+The Helmert basis thus does three jobs at once:
+
+- it cancels the closure direction, because every column sums to zero:
+  adding a constant to $\log\boldsymbol{p}$ leaves $\boldsymbol{\rho}$
+  unchanged;
+- it removes the redundant softmax direction while keeping Euclidean
+  geometry, because the columns are orthonormal;
+- it is explicit and sparse, so $\mathbf{V}\boldsymbol{\rho}$ costs
+  $O(J)$ operations per column and needs no QR or Gram--Schmidt step at
+  run time.
+
+**Use in practice.** DeCovarT builds $\mathbf{V}$ once from $J$ and
+proceeds as follows.
+
+1. Map a starting composition to coordinates with
+   `isometric_log_ratio(p)`, which computes $\mathbf{V}^{\mathsf{T}}\log\boldsymbol{p}$.
+2. Iterate on $\boldsymbol{\rho}\in\mathbb{R}^{J-1}$ with the score and
+   Hessian of @thm-chain-rule; no step can leave the simplex.
+3. Map back with `isometric_logistic(rho)`, a log-sum-exp softmax of
+   $\mathbf{V}\boldsymbol{\rho}$.
+4. Push the covariance of $\hat{\boldsymbol{\rho}}$ to
+   $\hat{\boldsymbol{p}}$ with the Jacobian $\mathbf{S}(\boldsymbol{p})\mathbf{V}$
+   (@sec-fisher-rho).
+
+The order of the cell types fixes which balances are reported, not the
+estimate. Both helpers accept another basis through their `V` argument:
+for instance, a partition that first contrasts immune with stromal
+types gives coordinates with a biological reading. Any such basis is
+$\mathbf{V}Q$ for an orthogonal $Q$ (@prp-ilr-rotation).
+
+::: {#exm-ilr-numeric}
+## ILR in both directions for $\boldsymbol{p}=(0.5,0.3,0.2)$
+
+For $J=3$ the Helmert columns are
+$\boldsymbol{v}_{1}=(1,-1,0)^{\mathsf{T}}/\sqrt{2}$ and
+$\boldsymbol{v}_{2}=(1,1,-2)^{\mathsf{T}}/\sqrt{6}$. The entries of
+$\mathbf{V}$ are the weights each coordinate gives to each
+$\log\textcolor{#1d4e89}{p_{1}}$, $\log\textcolor{#c45c26}{p_{2}}$ and
+$\log\textcolor{#7b3294}{p_{3}}$; in each coordinate the weights sum to zero.
+
+*Forward*, $\boldsymbol{\rho}=\mathbf{V}^{\mathsf{T}}\log\boldsymbol{p}$:
+
+$$
+\begin{aligned}
+\rho_{1}
+&=\tfrac{1}{\sqrt{2}}\log\textcolor{#1d4e89}{p_{1}}
+ -\tfrac{1}{\sqrt{2}}\log\textcolor{#c45c26}{p_{2}}
+ +0\cdot\log\textcolor{#7b3294}{p_{3}}
+ =\tfrac{1}{\sqrt{2}}\log\frac{\textcolor{#1d4e89}{0.5}}{\textcolor{#c45c26}{0.3}}
+ \approx 0.361,\\
+\rho_{2}
+&=\tfrac{1}{\sqrt{6}}\log\textcolor{#1d4e89}{p_{1}}
+ +\tfrac{1}{\sqrt{6}}\log\textcolor{#c45c26}{p_{2}}
+ -\tfrac{2}{\sqrt{6}}\log\textcolor{#7b3294}{p_{3}}
+ =\sqrt{\tfrac{2}{3}}\log\frac{\sqrt{\textcolor{#1d4e89}{0.5}\times\textcolor{#c45c26}{0.3}}}{\textcolor{#7b3294}{0.2}}
+ \approx 0.540.
+\end{aligned}
+$$
+
+$\rho_{1}$ balances type 1 against type 2; $\rho_{2}$ balances their
+geometric mean against type 3.
+
+*Backward*, first $\boldsymbol{\xi}=\mathbf{V}\boldsymbol{\rho}$, read
+row by row, so row $j$ of $\mathbf{V}$ rebuilds the CLR coefficient of
+cell type $j$:
+
+$$
+\begin{aligned}
+\textcolor{#1d4e89}{\xi_{1}}
+&=\tfrac{1}{\sqrt{2}}\rho_{1}+\tfrac{1}{\sqrt{6}}\rho_{2}
+\approx 0.255+0.220=0.476,\\
+\textcolor{#c45c26}{\xi_{2}}
+&=-\tfrac{1}{\sqrt{2}}\rho_{1}+\tfrac{1}{\sqrt{6}}\rho_{2}
+\approx -0.255+0.220=-0.035,\\
+\textcolor{#7b3294}{\xi_{3}}
+&=0\cdot\rho_{1}-\tfrac{2}{\sqrt{6}}\rho_{2}
+\approx -0.441,
+\end{aligned}
+$$
+
+then exponentiate and close:
+$\exp\boldsymbol{\xi}\approx(\textcolor{#1d4e89}{1.609},
+\textcolor{#c45c26}{0.966},\textcolor{#7b3294}{0.644})$, with sum
+$3.218$, so
+$\mathcal{C}(\exp\boldsymbol{\xi})=(\textcolor{#1d4e89}{0.5},
+\textcolor{#c45c26}{0.3},\textcolor{#7b3294}{0.2})$. The intermediate
+$\boldsymbol{\xi}$ is exactly $\operatorname{clr}(\boldsymbol{p})$.
+
+*Link with ALR.* Since $\eta_{j}=\xi_{j}-\xi_{3}$,
+
+$$
+\eta_{1}=\tfrac{1}{\sqrt{2}}\rho_{1}+\tfrac{3}{\sqrt{6}}\rho_{2}\approx 0.916,
+\qquad
+\eta_{2}=-\tfrac{1}{\sqrt{2}}\rho_{1}+\tfrac{3}{\sqrt{6}}\rho_{2}\approx 0.405,
+$$
+
+which recovers @exm-alr-numeric. The matrix
+$\mathbf{A}_{3}=\mathbf{D}_{3}\mathbf{V}$ of this map has orthogonal
+columns of lengths $1$ and $\sqrt{3}$: ALR keeps $\rho_{1}$ at unit
+scale and stretches $\rho_{2}$, the balance of the reference
+$\textcolor{#7b3294}{p_{3}}$ against the rest, by $\sqrt{3}$.
+:::
 
 ::: {#prp-ilr-diffeo}
 ## ILR is a $C^{2}$ diffeomorphism
 
-$\boldsymbol{\psi}:\mathbb{R}^{J-1}\to(0,1)^{J}$ with
-$\sum_{j}p_{j}=1$ is bijective and twice continuously differentiable, so
-every critical point in $\boldsymbol{\rho}$-space maps to a unique open
-simplex composition and conversely. Any other valid ILR basis is
-$\mathbf{V}^{\star}=\mathbf{V}Q$ with $Q^{\mathsf{T}}Q=\mathbf{I}$,
-which rotates coordinates as $\boldsymbol{\rho}^{\star}=Q^{\mathsf{T}}
-\boldsymbol{\rho}$ and leaves eigenvalues, condition numbers and traces of
-properly transformed quadratic forms unchanged.
+$\boldsymbol{\psi}:\mathbb{R}^{J-1}\to\mathring{\Delta}^{J-1}$,
+$\boldsymbol{\rho}\mapsto\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho})$,
+is bijective and infinitely differentiable, with inverse
+$\mathbf{V}^{\mathsf{T}}\log\boldsymbol{p}$. Every critical point in
+$\boldsymbol{\rho}$-space maps to a unique composition in the open
+simplex, and conversely.
 :::
+
+## Why DeCovarT uses the ILR chart {#sec-chart-choice}
+
+The question is which chart to optimise in, given that all of them
+describe the same model. Two kinds of invariance answer it: statistical
+invariance, which every chart has, and numerical invariance, which only
+ILR has under a change of convention.
+
+**Statistical invariance holds for every chart.** Let
+$\boldsymbol{\theta}'=\mathbf{A}\boldsymbol{\theta}$ be any invertible
+linear change of coordinates, for instance between ILR and ALR
+($\boldsymbol{\eta}=\mathbf{A}_{r}\boldsymbol{\rho}$ with
+$\mathbf{A}_{r}=\mathbf{D}_{r}\mathbf{V}$) or between two ALR
+references. The likelihood is a function of $\boldsymbol{p}$ alone, so
+the maximiser is equivariant and $\hat{\boldsymbol{p}}$ and
+$\ell(\hat{\boldsymbol{p}})$ are the same in every chart. The delta
+method is invariant too: the Jacobian becomes
+$\mathbf{J}_{\boldsymbol{\psi}}\mathbf{A}^{-1}$ and the information
+$\mathbf{A}^{-\mathsf{T}}\mathcal{I}\mathbf{A}^{-1}$, so
+
+$$
+\bigl(\mathbf{J}_{\boldsymbol{\psi}}\mathbf{A}^{-1}\bigr)
+\bigl(\mathbf{A}^{-\mathsf{T}}\mathcal{I}\mathbf{A}^{-1}\bigr)^{-1}
+\bigl(\mathbf{J}_{\boldsymbol{\psi}}\mathbf{A}^{-1}\bigr)^{\mathsf{T}}
+=
+\mathbf{J}_{\boldsymbol{\psi}}\mathcal{I}^{-1}\mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}.
+$$ {#eq-delta-invariance}
+
+In this sense ALR is reference-invariant: whichever cell type is the
+denominator, a correct implementation returns the same
+$\hat{\boldsymbol{p}}$ and the same Wald covariance for
+$\hat{\boldsymbol{p}}$. A material change in $\hat{\boldsymbol{p}}$ when
+the reference is permuted signals a numerical or convergence problem,
+not a statistical dependence on the reference. Pure Newton steps share
+this invariance, because the Newton step is invariant under affine
+changes of coordinates [@boydConvexOptimization2004, sec. 9.5].
+
+**Numerical invariance differs.** What changes with the chart is the
+Euclidean geometry the solver sees: gradient norms, damping, stopping
+rules and the condition number of the Hessian, which controls the
+floating-point accuracy of every linear solve and of
+$\mathcal{I}^{-1}$.
+
+::: {#prp-ilr-rotation}
+## Conditioning under a change of chart
+
+(i) *ILR.* Any two orthonormal bases of $\mathbf{1}_{J}^{\perp}$ satisfy
+$\mathbf{V}^{\star}=\mathbf{V}Q$ with $Q^{\mathsf{T}}Q=\mathbf{I}_{J-1}$.
+Then $\boldsymbol{\rho}^{\star}=Q^{\mathsf{T}}\boldsymbol{\rho}$,
+$\nabla_{\boldsymbol{\rho}^{\star}}\ell=Q^{\mathsf{T}}\nabla_{\boldsymbol{\rho}}\ell$
+and
+$\mathbf{H}_{\boldsymbol{\rho}^{\star}}=Q^{\mathsf{T}}\mathbf{H}_{\boldsymbol{\rho}}Q$.
+Gradient norms, Hessian eigenvalues and condition numbers are identical
+in every orthonormal basis.
+
+(ii) *ALR.* For every reference $r$, $\mathbf{A}_{r}=\mathbf{D}_{r}\mathbf{V}$
+has $J-2$ singular values equal to $1$ and one equal to $\sqrt{J}$, so
+$\kappa(\mathbf{A}_{r})=\sqrt{J}$. The stretched direction is
+$\mathbf{V}^{\mathsf{T}}\boldsymbol{e}_{r}$, the log-abundance of the
+reference against all other types. Since
+$\mathbf{H}_{\boldsymbol{\eta}}=\mathbf{A}_{r}^{-\mathsf{T}}\mathbf{H}_{\boldsymbol{\rho}}\mathbf{A}_{r}^{-1}$,
+
+$$
+\frac{\kappa(\mathbf{H}_{\boldsymbol{\rho}})}{J}
+\le
+\kappa(\mathbf{H}_{\boldsymbol{\eta}})
+\le
+J\,\kappa(\mathbf{H}_{\boldsymbol{\rho}}),
+$$ {#eq-alr-conditioning}
+
+and the curvature along the reference's own direction is divided by
+$J$.
+:::
+
+*Proof sketch.* (i) is a similarity by an orthogonal matrix. For (ii),
+the rows of $\mathbf{D}_{r}$ are $\boldsymbol{e}_{j}-\boldsymbol{e}_{r}$, so
+$\mathbf{D}_{r}\mathbf{D}_{r}^{\mathsf{T}}=\mathbf{I}_{J-1}+\mathbf{1}_{J-1}\mathbf{1}_{J-1}^{\mathsf{T}}$,
+with eigenvalues $1$ (multiplicity $J-2$) and $J$. Because
+$\mathbf{D}_{r}\mathbf{1}_{J}=\boldsymbol{0}$ and $\mathbf{V}$ is an
+orthonormal basis of $\mathbf{1}_{J}^{\perp}$, $\mathbf{A}_{r}$ has the
+same singular values as $\mathbf{D}_{r}$. The right singular vector for
+$\sqrt{J}$ is proportional to
+$\mathbf{V}^{\mathsf{T}}\mathbf{D}_{r}^{\mathsf{T}}\mathbf{1}_{J-1}
+=\mathbf{V}^{\mathsf{T}}(\mathbf{1}_{J}-J\boldsymbol{e}_{r})
+=-J\,\mathbf{V}^{\mathsf{T}}\boldsymbol{e}_{r}$. The bounds follow from
+$\kappa(\mathbf{A}^{-\mathsf{T}}\mathbf{H}\mathbf{A}^{-1})
+\le\kappa(\mathbf{A})^{2}\kappa(\mathbf{H})$ applied in both directions.
+$\square$
+
+The constant $\kappa(\mathbf{A}_{r})=\sqrt{J}$ does not depend on $r$,
+but the direction it distorts does, so the condition number of the ALR
+Hessian depends on the reference. Even a perfectly conditioned problem,
+$\mathbf{H}_{\boldsymbol{\rho}}=-\mathbf{I}$, has
+$\kappa(\mathbf{H}_{\boldsymbol{\eta}})=J$ in ALR coordinates. For an
+illustrative random negative-definite Hessian with $J=6$ (not a DeCovarT
+fit), $\kappa=171$ in every orthonormal basis, but between $164$ and
+$420$ across the six ALR references. A rare cell type, or one whose
+signature is nearly collinear with others, already has weak curvature
+along its own direction; choosing it as the ALR reference divides that
+curvature by $J$ and makes the problem harder.
+
+These differences affect the solver, not the target:
+
+| Solver ingredient | ILR basis change ($Q$ orthogonal) | ALR reference change ($\mathbf{A}$ oblique) |
+|:--|:--|:--|
+| Maximiser $\hat{\boldsymbol{p}}$, $\ell(\hat{\boldsymbol{p}})$, delta-method $\operatorname{Var}(\hat{\boldsymbol{p}})$ | invariant | invariant |
+| Pure Newton step | invariant | invariant |
+| Gradient norm, steepest-ascent and BFGS steps from an identity start | invariant | changed |
+| Isotropic damping $\mathbf{H}-\mu\mathbf{I}$ | invariant | changed |
+| Hessian condition number, accuracy of $\mathcal{I}^{-1}$ | invariant | changed by a factor up to $J$ |
+
+: Which parts of the optimisation depend on the chart convention. {#tbl-chart-invariance}
+
+`marqLevAlg` [@R-marqLevAlg], the default solver, stops on the squared
+step length, the change in log-likelihood and the relative distance to
+the maximum $\boldsymbol{g}^{\mathsf{T}}\mathbf{H}^{-1}\boldsymbol{g}/(J-1)$;
+the first is invariant under rotations and the last two under any
+linear change of chart. Its damping adds
+$\delta[(1-\gamma)\lvert H_{ii}\rvert+\gamma\,\overline{\lvert H_{jj}\rvert}]$
+to each diagonal entry. The term in $\lvert H_{ii}\rvert$ depends on the
+basis even under a rotation, so the cell-type order can change the path
+of the iterates, though not the maximiser.
 
 ::: {#nte-ilr-vs-alr .callout-note}
-## Why ILR is the default chart
+## Decision: DeCovarT optimises in ILR coordinates
 
-Changing an ALR denominator changes the coordinates, not the composition.
-If derivatives, Fisher information and the delta method are transformed
-correctly, $\hat{\boldsymbol{p}}$, $\ell(\hat{\boldsymbol{p}})$ and
-$\operatorname{Var}(\hat{\boldsymbol{p}})$ must agree after mapping back
-to the simplex. A material change in $\hat{\boldsymbol{p}}$ when the
-reference cell is permuted is therefore numerical or optimisation
-sensitivity, not a statistical reference dependence.
-
-ILR still improves the chart because distinct orthonormal bases differ by
-an orthogonal rotation, whereas changing an ALR denominator is a
-generally non-orthogonal reparametrisation. Euclidean gradient norms,
-Hessian condition numbers and Newton step geometry are then natural up
-to rotation. A fixed Helmert basis introduces an ordering convention,
-not a denominator. The ALR formulae are kept in @sec-alr for comparison
-and for the structural-zero discussion (@sec-structural-zeros).
+ILR is the only chart of the four that is minimal ($J-1$ free
+coordinates), free of a privileged cell type and isometric for the
+Aitchison geometry. A change of its convention, the order of cell types
+or a different balance basis, is an orthogonal rotation, which leaves
+gradient norms and Hessian condition numbers unchanged. A change of ALR
+reference is an oblique map whose effect on conditioning depends on the
+reference. The solvers, `vcov.decovart_fit()` and the boundary
+diagnostics therefore work in ILR coordinates. ALR is kept for
+comparison with multinomial-logit models, which use a reference
+category.
 :::
+
+## Side-by-side comparison of the four charts {#sec-chart-comparison}
+
+| Property | Softmax | ALR | CLR | ILR |
+|:--|:--|:--|:--|:--|
+| Coordinates | $\boldsymbol{z}\in\mathbb{R}^{J}$ | $\boldsymbol{\eta}=\mathbf{D}_{r}\log\boldsymbol{p}\in\mathbb{R}^{J-1}$ | $\boldsymbol{\xi}=\mathbf{H}_{J}\log\boldsymbol{p}$, with $\mathbf{1}^{\mathsf{T}}\boldsymbol{\xi}=0$ | $\boldsymbol{\rho}=\mathbf{V}^{\mathsf{T}}\log\boldsymbol{p}\in\mathbb{R}^{J-1}$ |
+| Inverse map | $\operatorname{softmax}(\boldsymbol{z})$ | $\operatorname{softmax}(\boldsymbol{\eta},0)$ | $\operatorname{softmax}(\boldsymbol{\xi})$ | $\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho})$ |
+| Feasible after inverse map | yes | yes | yes | yes |
+| Free and minimal ($J-1$ coordinates) | no: one redundant direction | yes | no: $J$ coordinates on a hyperplane | yes |
+| Jacobian of the inverse map | rank $J-1$ out of $J$ | full rank | full rank on $\mathbf{1}^{\perp}$ only | full rank |
+| Privileged cell type | none | the reference $r$ | none | none (order fixes the balances) |
+| Isometry with Aitchison geometry | no | no (oblique basis) | yes | yes |
+| Change of convention | not applicable | oblique, $\kappa(\mathbf{A}_{r})=\sqrt{J}$ | not applicable | orthogonal rotation |
+| Hessian conditioning across conventions | singular | depends on the reference | singular | invariant |
+| Exact zeros at finite coordinates | no | no | no | no |
+| Reading of a coordinate | none (shift-invariant) | log-ratio to the reference | log-ratio to the geometric mean | balance between groups |
+| Typical use | neural networks, mixture weights | reference-category regression | exploration, visualisation | likelihood inference, optimisation |
+
+: Four charts for the unit-simplex constraint. {#tbl-chart-comparison}
+
+All four charts guarantee feasibility, and none reaches a face of the
+simplex at finite coordinates. For likelihood inference ILR is usually
+the best suited: it is the only chart that is at once minimal,
+symmetric in the cell types and isometric, which is why Egozcue et al.
+introduced it to avoid the drawbacks of both ALR and CLR
+[@egozcueIsometricLogratioTransformations2003; @CoordinateRepresentation2015, p. 33]. Its cost is interpretation: a balance is less direct than
+a ratio to one reference, and the Helmert balances depend on the order
+of cell types unless a partition with a biological meaning is chosen.
 
 ## Efficient derivatives of $\boldsymbol{\psi}$ {#sec-ilr-deriv}
 
@@ -599,17 +1140,6 @@ $$
 $$ {#eq-chain-second}
 :::
 
-At an interior KKT point every active score equals the same multiplier,
-$\partial\ell/\partial p_{i}=\lambda$. Because
-$\sum_{i}p_{i}(\boldsymbol{\rho})=1$ for every $\boldsymbol{\rho}$,
-$\sum_{i}\mathbf{H}_{\psi_{i}}=\mathbf{0}$, so the second summand of
-@eq-chain-second vanishes and
-$\mathbf{H}_{\boldsymbol{\rho}}
-=\mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}
-\mathbf{H}_{\boldsymbol{p}}
-\mathbf{J}_{\boldsymbol{\psi}}$. Away from stationarity that contraction
-must be kept.
-
 ::: {#nte-chain-impl .callout-important}
 ## Implementation map
 
@@ -624,6 +1154,169 @@ a contraction of the ambient score against the map Hessian. Omitting the
 second summand is a common bug when porting first-order code to Newton
 methods.
 :::
+
+## Lagrangian, KKT conditions and what the ILR chart removes {#sec-kkt}
+
+Without a chart, the estimation problem is
+
+$$
+\max_{\boldsymbol{p}\in\mathbb{R}^{J}}\ \ell(\boldsymbol{p})
+\quad\text{subject to}\quad
+\mathbf{1}_{J}^{\mathsf{T}}\boldsymbol{p}=1,
+\qquad
+\boldsymbol{p}\ge\boldsymbol{0},
+$$
+
+with Lagrangian
+
+$$
+\mathcal{L}(\boldsymbol{p},\lambda,\boldsymbol{\nu})
+=
+\ell(\boldsymbol{p})
+-\lambda\bigl(\mathbf{1}_{J}^{\mathsf{T}}\boldsymbol{p}-1\bigr)
++\boldsymbol{\nu}^{\mathsf{T}}\boldsymbol{p}.
+$$ {#eq-lagrangian}
+
+The constraints are linear, so a constraint qualification holds and
+every local maximiser satisfies the KKT conditions
+[@boydConvexOptimization2004, sec. 5.5.3]:
+
+$$
+\nabla_{\boldsymbol{p}}\ell(\hat{\boldsymbol{p}})
+-\lambda\mathbf{1}_{J}
++\boldsymbol{\nu}
+=\boldsymbol{0},
+\qquad
+\mathbf{1}_{J}^{\mathsf{T}}\hat{\boldsymbol{p}}=1,
+\qquad
+\boldsymbol{\nu}\ge\boldsymbol{0},
+\qquad
+\nu_{j}\hat{p}_{j}=0.
+$$ {#eq-kkt}
+
+- *Interior point* ($\hat{p}_{j}>0$ for all $j$): complementary
+  slackness gives $\boldsymbol{\nu}=\boldsymbol{0}$, hence
+  $\partial\ell/\partial p_{j}=\lambda$ for every $j$. Every cell type
+  has the same marginal gain, so moving mass from one type to another
+  does not change $\ell$ to first order. Multiplying by
+  $\hat{\boldsymbol{p}}^{\mathsf{T}}$ gives the multiplier,
+  $\lambda=\hat{\boldsymbol{p}}^{\mathsf{T}}\nabla_{\boldsymbol{p}}\ell(\hat{\boldsymbol{p}})$.
+- *Boundary point* ($\hat{p}_{j}=0$): $\partial\ell/\partial p_{j}
+  =\lambda-\nu_{j}\le\lambda$. Adding some of type $j$ would not
+  increase the likelihood.
+
+**The chart removes the multiplier.** Because
+$\mathbf{S}(\boldsymbol{p})\mathbf{1}_{J}=\boldsymbol{p}-\boldsymbol{p}(\mathbf{1}_{J}^{\mathsf{T}}\boldsymbol{p})=\boldsymbol{0}$,
+the ILR score of @eq-chain-first ignores any multiple of $\mathbf{1}_{J}$
+added to the ambient score:
+
+$$
+\nabla_{\boldsymbol{\rho}}\ell
+=
+\mathbf{V}^{\mathsf{T}}\mathbf{S}(\boldsymbol{p})
+\bigl(\nabla_{\boldsymbol{p}}\ell-c\,\mathbf{1}_{J}\bigr)
+\quad\text{for every }c,
+\qquad
+\mathbf{S}(\boldsymbol{p})\nabla_{\boldsymbol{p}}\ell
+=
+\operatorname{diag}(\boldsymbol{p})
+\bigl(\nabla_{\boldsymbol{p}}\ell-\lambda(\boldsymbol{p})\mathbf{1}_{J}\bigr),
+$$ {#eq-ilr-score-kkt}
+
+with $\lambda(\boldsymbol{p})=\boldsymbol{p}^{\mathsf{T}}\nabla_{\boldsymbol{p}}\ell$.
+The ILR score is therefore the KKT stationarity residual of
+@eq-kkt, weighted by $\boldsymbol{p}$, with the multiplier set to its
+current value. The vector $\mathbf{S}(\boldsymbol{p})\nabla_{\boldsymbol{p}}\ell$
+lies in $\mathbf{1}_{J}^{\perp}$, on which $\mathbf{V}^{\mathsf{T}}$ is an
+isometry, so
+
+$$
+\bigl\lVert\nabla_{\boldsymbol{\rho}}\ell\bigr\rVert
+=
+\bigl\lVert\mathbf{S}(\boldsymbol{p})\nabla_{\boldsymbol{p}}\ell\bigr\rVert,
+\qquad
+\nabla_{\boldsymbol{\rho}}\ell=\boldsymbol{0}
+\iff
+\nabla_{\boldsymbol{p}}\ell=\lambda\mathbf{1}_{J}.
+$$
+
+Stationary points in $\boldsymbol{\rho}$ are exactly the interior KKT
+points, the multiplier is recovered afterwards as
+$\hat{\lambda}=\hat{\boldsymbol{p}}^{\mathsf{T}}\nabla_{\boldsymbol{p}}\ell(\hat{\boldsymbol{p}})$,
+and the score norm that `boundary_diagnostics()` reports does not depend
+on the basis. Under ALR the same equivalence holds, but the score norm
+changes with the reference.
+
+**Second order: the Hessian of the Lagrangian.** Since
+$\sum_{i}\psi_{i}(\boldsymbol{\rho})=1$ for every $\boldsymbol{\rho}$,
+$\sum_{i}\mathbf{H}_{\psi_{i}}=\mathbf{0}$, and the curvature term of
+@eq-chain-second also ignores the multiplier:
+
+$$
+\sum_{i=1}^{J}\frac{\partial\ell}{\partial p_{i}}\mathbf{H}_{\psi_{i}}
+=
+\sum_{i=1}^{J}\Bigl(\frac{\partial\ell}{\partial p_{i}}-\lambda\Bigr)
+\mathbf{H}_{\psi_{i}}.
+$$
+
+At an interior KKT point every bracket vanishes, so
+
+$$
+\mathbf{H}_{\boldsymbol{\rho}}
+=
+\mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}
+\nabla^{2}_{\boldsymbol{p}\boldsymbol{p}}\mathcal{L}\,
+\mathbf{J}_{\boldsymbol{\psi}},
+\qquad
+\nabla^{2}_{\boldsymbol{p}\boldsymbol{p}}\mathcal{L}=\mathbf{H}_{\boldsymbol{p}},
+$$ {#eq-reduced-hessian}
+
+because linear constraints add no curvature to the Lagrangian. The
+columns of $\mathbf{J}_{\boldsymbol{\psi}}=\mathbf{S}(\boldsymbol{p})\mathbf{V}$
+span $\mathbf{1}_{J}^{\perp}$, the directions $\boldsymbol{d}$ with
+$\mathbf{1}_{J}^{\mathsf{T}}\boldsymbol{d}=0$ that keep the sum equal to
+one. @eq-reduced-hessian is thus the Hessian of the Lagrangian reduced
+to the tangent space of the constraint, and
+$\mathbf{H}_{\boldsymbol{\rho}}\prec 0$ is the classical second-order
+sufficient condition
+$\boldsymbol{d}^{\mathsf{T}}\mathbf{H}_{\boldsymbol{p}}\boldsymbol{d}<0$
+for all $\boldsymbol{d}\neq\boldsymbol{0}$ with
+$\mathbf{1}_{J}^{\mathsf{T}}\boldsymbol{d}=0$. Away from stationarity
+the curvature term must be kept: it is the price of a curved chart.
+
+**What the chart cannot do.** For finite $\boldsymbol{\rho}$ every
+$p_{j}$ is strictly positive, so the inequality multipliers
+$\boldsymbol{\nu}$ never become active. A maximiser on a face of the
+simplex lies at infinity in $\boldsymbol{\rho}$: the iterates drift,
+$\lVert\nabla_{\boldsymbol{\rho}}\ell\rVert$ decays only through the
+factor $\operatorname{diag}(\boldsymbol{p})$ in @eq-ilr-score-kkt, and
+the Hessian becomes singular. The boundary is handled separately
+(@sec-structural-zeros). The benchmark reports the projected-gradient
+residual
+$\lVert\Pi_{\Delta}(\hat{\boldsymbol{p}}+\nabla_{\boldsymbol{p}}\ell)-\hat{\boldsymbol{p}}\rVert$,
+which is zero exactly at a KKT point, interior or not.
+
+## Structural zeros and folded simplex models {#sec-structural-zeros}
+
+No chart above can represent an exact zero at finite coordinates,
+because each contains a logarithm. For a true simplex face the package
+therefore does **not** send $\log 0$ through the chart. It fixes the
+inactive set, optimises ILR coordinates on the remaining active face
+([`restricted_mle_decovart()`](../reference/restricted_mle_decovart.html)),
+and checks the KKT inequalities $\partial\ell/\partial p_{j}\le\lambda$
+for the zero coordinates
+([`boundary_diagnostics()`](../reference/boundary_diagnostics.html);
+see also the MLE-properties vignette).
+
+Folded $\alpha$-models on the simplex
+[@tsagrisFoldedModelCompositional2020] and nonparametric regressions
+that admit exact zeros without a log-ratio chart
+[@tsagrisFlexibleNonparametricRegression2023] are related *data-side*
+constructions. They are not used in the DeCovarT convolution, whose
+mean map is still linear in $\boldsymbol{p}$. Rounded zeros (detection
+limits) remain an imputation problem; true structural zeros belong on
+a face and should be fitted as an active-set / KKT problem, not by
+substituting a small positive constant into @eq-ilr-maps.
 
 CLR coordinates and Bayesian formulations sit on the same footing
 [@pawlowsky-glahnCompositionalDataAnalysis2011]: a Dirichlet or
@@ -1165,73 +1858,5 @@ the dense path to machine precision. Approximate sparse Cholesky of
 otherwise dense kernel covariances is a separate research line
 [@schäferCompressionInversionApproximate2020]; the `"sparse"` backend here
 is exact for a declared sparse pattern, not that approximation.
-
-# Appendix: additive log-ratio chart {#sec-alr}
-
-Pin the last category as reference ($\rho_{J}\equiv 0$). The *additive
-logistic* transform $\boldsymbol{\psi}$ (inverse ALR) and its inverse are
-[@aitchisonStatisticalAnalysisCompositional1982]
-
-$$
-p_{j}
-=
-\frac{e^{\rho_{j}}}{\sum_{k<J}e^{\rho_{k}}+1}\ (j<J),
-\qquad
-p_{J}
-=
-\frac{1}{\sum_{k<J}e^{\rho_{k}}+1},
-\qquad
-\rho_{j}
-=
-\log\!\left(\frac{p_{j}}{p_{J}}\right).
-$$ {#eq-alr-maps}
-
-Equivalently,
-$\boldsymbol{p}=\operatorname{softmax}(\rho_{1},\ldots,\rho_{J-1},0)$.
-Package helpers
-[`additive_logistic()`](../reference/additive_logistic.html) and
-[`additive_log_ratio()`](../reference/additive_log_ratio.html) implement
-@eq-alr-maps; they match `compositions::alrInv()` / `alr()` with the last
-part as reference [@R-compositions]. The Jacobian is the softmax Jacobian
-with the reference column dropped,
-$\partial p_{i}/\partial\rho_{a}=p_{i}(\delta_{ia}-p_{a})$ for
-$a=1,\ldots,J-1$
-([`jacobian_additive_logistic()`](../reference/jacobian_additive_logistic.html);
-[`hessian_additive_logistic()`](../reference/hessian_additive_logistic.html)).
-
-::: {#nte-alr-why-not-default .callout-note}
-## Why ALR is not the default
-
-ALR is a valid $C^{2}$ diffeomorphism onto the open simplex. The last
-cell type is nevertheless a privileged denominator: permuting which
-type occupies position $J$ changes the Euclidean metric on coordinate
-space. ILR / Helmert (@sec-ilr) removes that privilege up to orthogonal
-rotation, which is why the solvers and `vcov.decovart_fit()` use ILR.
-Keep ALR when comparing against a multinomial-logit reference-category
-parameterisation.
-:::
-
-## Structural zeros and folded simplex models {#sec-structural-zeros}
-
-Neither ALR nor ILR can represent an exact zero at a finite coordinate,
-because both contain a logarithm. For a true simplex face the package
-therefore does **not** send $\log 0$ through the chart. It fixes the
-inactive set, optimises ILR coordinates on the remaining active face
-([`restricted_mle_decovart()`](../reference/restricted_mle_decovart.html)),
-and checks KKT inequalities for the zero coordinates
-([`boundary_diagnostics()`](../reference/boundary_diagnostics.html);
-see also the MLE-properties vignette).
-
-ALR remains in this appendix as the classical reference-category chart
-[@aitchisonStatisticalAnalysisCompositional1982]. Folded
-$\alpha$-models on the simplex
-[@tsagrisFoldedModelCompositional2020] and nonparametric regressions
-that admit exact zeros without a log-ratio chart
-[@tsagrisFlexibleNonparametricRegression2023] are related *data-side*
-constructions. They are not used in the DeCovarT convolution, whose
-mean map is still linear in $\boldsymbol{p}$. Rounded zeros (detection
-limits) remain an imputation problem; true structural zeros belong on
-a face and should be fitted as an active-set / KKT problem, not by
-substituting a small positive constant into @eq-ilr-maps.
 
 # References

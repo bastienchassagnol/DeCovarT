@@ -136,3 +136,6 @@ vignettes/_environment.local
 # Local reference PDF (about 3 MB). Kept out of Git; the pre-commit
 # large-file hook rejects anything over 2000 KB.
 vignettes/burakov-logistic-regression.pdf
+
+# Document extractions (document-extraction rule)
+.firecrawl/

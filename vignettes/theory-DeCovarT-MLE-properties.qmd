@@ -1583,20 +1583,6 @@ implementation cost.
   under protocol shift without discarding the multivariate covariance.
   It remains a first-order *interior* device: faces still need the
   chi-bar-square LRT or a restricted bootstrap.
-- **Sandwich for a variational estimator is a different object.**
-  Westling and McCormick give the profile M-estimation sandwich for
-  variational approximations in mixture models
-  [@westlingPredictionFrameworkInference2019]. Batardière, Chiquet and
-  Mariadassou specialise that construction to Poisson-log-normal
-  *variational* parameters
-  [@batardiereEvaluatingParameterUncertainty2024]. That estimator is
-  not a maximum-likelihood estimator and does not inherit the usual
-  MLE consistency / $\sqrt{n}$ theory; the sandwich is an
-  M-estimation correction for a surrogate ELBO. DeCovarT's
-  $\hat{\boldsymbol{p}}$ *is* the MLE of the Gaussian convolution on one
-  bulk column (when the solver reaches a local maximum), so expected
-  Fisher at $p^{\star}$ is the regular-case asymptotic variance. Do
-  not paste their coverage plots onto DeCovarT Wald intervals.
 - **Score-test inversion.** Inverting a one-sided score test avoids
   refitting under every candidate value, so it is cheaper than the
   profile scan of `confint_profile_decovart()` while keeping the
