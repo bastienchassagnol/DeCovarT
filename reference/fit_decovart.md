@@ -36,7 +36,7 @@ fit_decovart(
   bulk_expression,
   true_ratios = NULL,
   Sigma = NULL,
-  method = c("Marquardt-Levenberg", "L-BFGS-B", "Newton-Raphson"),
+  method = c("Newton-Raphson", "Marquardt-Levenberg", "L-BFGS-B"),
   epsilon = 10^-4,
   itmax = 200,
   standardise = FALSE,
@@ -100,9 +100,10 @@ plot(x, ...)
 
 - method:
 
-  Optimiser; one of `"Marquardt-Levenberg"`, `"L-BFGS-B"`,
-  `"Newton-Raphson"` (case-insensitive). These three maps already land
-  on the simplex (ILR or \\p/\sum p\\); they do **not** call
+  Optimiser; one of `"Newton-Raphson"` (default),
+  `"Marquardt-Levenberg"`, `"L-BFGS-B"` (case-insensitive). These three
+  maps already land on the simplex (ILR or \\p/\sum p\\); they do
+  **not** call
   [`repair_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/repair_simplex.md).
 
 - epsilon, itmax:
@@ -236,8 +237,8 @@ fit <- fit_decovart(
 )
 coef(fit)
 #>      sample_1  sample_2
-#> ct1 0.4461301 0.7062033
-#> ct2 0.5538699 0.2937967
+#> ct1 0.4461307 0.7062023
+#> ct2 0.5538693 0.2937977
 nobs(fit)
 #> [1] 2
 #> attr(,"n_genes")

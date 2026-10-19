@@ -44,10 +44,10 @@
 
 > **Note 1: Notation**
 >
-> Indices: gene g=1,\ldots,G; cell type j=1,\ldots,J; bulk sample
-> i=1,\ldots,N; independent biological replicate (donor) of the
-> single-cell reference r=1,\ldots,R; cell c, with C\_{jr} cells of type
-> j in replicate r.
+> Indices: gene g=1,\ldots,G; cell type j=1,\ldots,J (a second type is
+> \ell); bulk sample i=1,\ldots,N; independent biological replicate
+> (donor) of the single-cell reference r=1,\ldots,R; cell c, with
+> C\_{jr} cells of type j in replicate r and C_j in total.
 >
 > | Symbol | Meaning |
 > |----|----|
@@ -55,26 +55,44 @@
 > | \boldsymbol{m}\_{\cdot c} | True molecule content of cell c |
 > | s_c=s^{\mathrm{bio}}\_cs^{\mathrm{tech}}\_c | Cell size factor: biological (cell volume, cycle) times technical (capture, depth); \mathbb{E}\[s_c\]=1 |
 > | \nu=\operatorname{CV}^{2}(s_c) | Extrinsic noise, 1+\nu=(1+\nu^{\mathrm{bio}})(1+\nu^{\mathrm{tech}}) |
-> | b_g | Gene-specific capture efficiency of a protocol |
+> | b_g | Capture efficiency of gene g in one protocol |
+> | \tilde b_g=b_g^{\mathrm{bulk}}/b_g^{\mathrm{ref}}, \tilde{\mathbf{B}}=\operatorname{diag}(\tilde{\boldsymbol{b}}) | Gene-wise platform ratio between the bulk and the reference protocols |
 > | \boldsymbol{\lambda}\_{\cdot c}, \boldsymbol{\Sigma}^{\lambda}\_j | Size-free expression of cell c and its covariance inside type j |
-> | \boldsymbol{y}\_{\cdot i}\in\mathbb{R}^{G} | Bulk profile of sample i |
+> | \boldsymbol{y}\_{\cdot i}\in\mathbb{R}^{G} | Raw bulk profile of sample i |
 > | m\_{ji}\in\mathbb{N}, n_i=\sum_j m\_{ji} | Cells of type j in bulk sample i, total cells (`MuSiC` writes m_j^{k}, `RNA-Sieve` n) |
+> | \tilde{\boldsymbol{y}}\_{\cdot i}=\boldsymbol{y}\_{\cdot i}/n_i | Bulk profile per cell |
 > | \boldsymbol{p}\_{\cdot i}=\boldsymbol{m}\_{\cdot i}/n_i\in\Delta^{J-1} | Cell-number fractions |
-> | \boldsymbol{q}\_{\cdot i}, q\_{ji}=p\_{ji}S_j/\sum_kp\_{ki}S_k | RNA fractions |
-> | \kappa_i=1/n_i | Per-cell averaging factor |
-> | \boldsymbol{\mu}\_{\cdot j}=S_j\boldsymbol{\theta}\_{\cdot j} | Per-cell mean of type j: cell size times relative abundance, \sum_g\theta\_{gj}=1 |
-> | S_j | Mean transcriptome size (RNA content) of one cell of type j |
+> | \boldsymbol{q}\_{\cdot i}, q\_{ji}=p\_{ji}S_j/\sum\_\ell p\_{\ell i}S\_\ell | RNA (transcript) fractions |
+> | \tilde{\boldsymbol{\mu}}\_{\cdot j}=C_j^{-1}\sum\_{c\in j}\boldsymbol{x}\_{\cdot c}=S_j\boldsymbol{\theta}\_{\cdot j} | Per-cell mean of type j on raw UMI counts, without library normalisation: cell size times relative abundance, \mathbf{1}^{\top}\boldsymbol{\theta}\_{\cdot j}=1; \tilde{\boldsymbol{\mu}} is the G\times J matrix of these columns |
+> | \boldsymbol{\mu}\_{\cdot j} | Mean of one sorted population profile, as in released DeCovarT |
+> | S_j=\mathbf{1}^{\top}\tilde{\boldsymbol{\mu}}\_{\cdot j} | Mean transcriptome size (RNA content) of one cell of type j |
 > | \boldsymbol{\Sigma}\_{W,j} | Within-replicate cell-to-cell covariance of type j |
 > | \boldsymbol{\Sigma}\_{B,j} | Between-replicate covariance of the type-j population mean |
-> | \boldsymbol{M}\_{jr}, \boldsymbol{B}\_{jr} | Replicate population mean and its deviation \boldsymbol{M}\_{jr}-\boldsymbol{\mu}\_{\cdot j} |
-> | a_i\>0 | Sample-wide scale (cell number, depth, capture), shared by all genes |
-> | \boldsymbol{d}\in\mathbb{R}^{G}\_{+} | Gene-wise platform ratio between bulk and reference protocols |
+> | \boldsymbol{M}\_{jr}, \boldsymbol{B}\_{jr} | Replicate population mean and its deviation \boldsymbol{M}\_{jr}-\tilde{\boldsymbol{\mu}}\_{\cdot j} |
+> | a_i\>0 | Capture ratio between the bulk library and the reference cells (depth, capture), shared by all genes |
+> | c_i=a_in_i, \phi_i=a_i^{2}n_i | Mean scale and covariance scale of bulk sample i ([Sec. 4.2.2](#sec-av-scale)) |
 > | \boldsymbol{D}\_i=\boldsymbol{\Sigma}\_{\mathrm{obs},i} | Diagonal bulk measurement noise, \operatorname{diag}(\tau\_{1i}^{2},\ldots,\tau\_{Gi}^{2}) |
 > | \boldsymbol{T}\_{ji}=\sum\_{c=1}^{m\_{ji}}\boldsymbol{X}\_{jic} | Total expression contributed by type j to sample i |
 > | \boldsymbol{S}\_W(\boldsymbol{v})=\sum_jv_j\boldsymbol{\Sigma}\_{W,j}, \boldsymbol{S}\_B(\boldsymbol{v})=\sum_jv_j^{2}\boldsymbol{\Sigma}\_{B,j} | Linear and quadratic covariance mixtures |
 > | \varrho_j | Cell-to-cell correlation inside type j; \boldsymbol{\rho} stays the ILR coordinate |
 > | \boldsymbol{\vartheta}, \boldsymbol{\eta} | Generic parameter vector; nuisance scales of [Sec. 4.4](#sec-strategy-plugin) |
 > | \boldsymbol{\mu}\_k,\boldsymbol{\Sigma}\_k,\boldsymbol{\mu}\_{kl},\boldsymbol{\Sigma}\_{kl} | First and second partial derivatives of the mean and covariance in \vartheta_k,\vartheta_l |
+>
+> A tilde marks a quantity rescaled to a reference unit: per cell for
+> expression (\tilde{\boldsymbol{y}}\_{\cdot i},
+> \tilde{\boldsymbol{\mu}}\_{\cdot j}), or relative to the reference
+> protocol for capture (\tilde{\boldsymbol{b}}). The capture efficiency
+> b_g of one protocol multiplies every cell measured with it, so it
+> cancels from any contrast inside that protocol; between a single-cell
+> reference and a bulk library only the ratio \tilde b_g survives. That
+> ratio is the gene-wise platform effect: `RCTD` estimates it on a
+> pseudo-bulk of all spots as e^{\hat\gamma_g}, with
+> \hat\gamma_g=\log\bar Y_g-\log\sum_j\mu\_{gj}\hat W_j for the pooled
+> count \bar Y_g and average type weights \hat W_j, then renormalises
+> the reference means to \bar\mu\_{gj}=\mu\_{gj}e^{\hat\gamma_g} ([Cable
+> et al. 2022](#ref-cableRobustDecompositionCell2022a)). The ratio
+> \lambda_g of `MEAD` and the gene-wise slope of `Bisque` are the same
+> nuisance.
 >
 > When one bulk sample is fixed, the index i is dropped inside
 > derivations and restored in the model statements. The single-cell
@@ -136,17 +154,18 @@ were captured. With raw counts on an additive scale,
 
 \bar{\boldsymbol{X}}\_{jr} =
 \frac{1}{C\_{jr}}\sum\_{c=1}^{C\_{jr}}\boldsymbol{X}\_{jrc}, \qquad
-\hat{\boldsymbol{\mu}}\_{\cdot j} =
+\hat{\tilde{\boldsymbol{\mu}}}\_{\cdot j} =
 \frac{1}{R}\sum\_{r=1}^{R}\bar{\boldsymbol{X}}\_{jr}. \tag{1}
 
 Divide by the **cell count** C\_{jr}, not by the library size.
 Library-size weights w_c=L_c/\sum_d L_d are functions of
 \boldsymbol{X}\_c itself. Their probability limit is
-\boldsymbol{\mu}+\boldsymbol{\Sigma}\mathbf{1}/(\mathbf{1}^{\top}\boldsymbol{\mu}),
-so they target an RNA-weighted cell and destroy the exact Gaussian scale
-that leaves the precision graph unchanged. Under i.i.d. cells the
-arithmetic mean also has the largest effective sample size among
-deterministic convex weights.
+\tilde{\boldsymbol{\mu}}\_{\cdot
+j}+\boldsymbol{\Sigma}\_{W,j}\mathbf{1}/S_j, so they target an
+RNA-weighted cell and destroy the exact Gaussian scale that leaves the
+precision graph unchanged. Under i.i.d. cells the arithmetic mean also
+has the largest effective sample size among deterministic convex
+weights.
 
 Pool cells across replicates only after the within-replicate mean. A
 replicate with 10\\000 cells must not outweigh a replicate with 500
@@ -167,7 +186,7 @@ call the result S_j.
 >
 > Summing is the correct total for a physical pool of exactly C\_{jr}
 > cells, \boldsymbol{T}\_{jr}=\sum_c\boldsymbol{X}\_{jrc}, with mean
-> C\_{jr}\boldsymbol{\mu}\_{\cdot j} and covariance
+> C\_{jr}\tilde{\boldsymbol{\mu}}\_{\cdot j} and covariance
 > C\_{jr}\boldsymbol{\Sigma}\_{W,j}. Using \boldsymbol{T}\_{jr} as a
 > DeCovarT column inserts the arbitrary capture count into
 > \boldsymbol{p}. A type with ten times more reference cells looks ten
@@ -187,19 +206,20 @@ call the result S_j.
 
 Write the cell as a sum of a replicate effect and a cell effect,
 
-\boldsymbol{X}\_{jrc} = \boldsymbol{\mu}\_{\cdot
+\boldsymbol{X}\_{jrc} = \tilde{\boldsymbol{\mu}}\_{\cdot
 j}+\boldsymbol{B}\_{jr}+\boldsymbol{\varepsilon}\_{jrc}, \tag{2}
 
 with
 \boldsymbol{B}\_{jr}\sim\mathcal{N}(\boldsymbol{0},\boldsymbol{\Sigma}\_{B,j})
 and
 \boldsymbol{\varepsilon}\_{jrc}\sim\mathcal{N}(\boldsymbol{0},\boldsymbol{\Sigma}\_{W,j}),
-independent across j given \boldsymbol{p}\_{\cdot i}. The bulk average
-per cell in a tissue of N_i cells is
+independent across j given \boldsymbol{p}\_{\cdot i}. The bulk profile
+per cell of a tissue of n_i cells is
 
-\boldsymbol{A}\_i = \sum_j p\_{ji}(\boldsymbol{\mu}\_{\cdot
-j}+\boldsymbol{B}\_{jr(i)}) + \frac{1}{N_i}\sum_j\sum\_{c=1}^{N_i
-p\_{ji}}\boldsymbol{\varepsilon}\_{ijc}. \tag{3}
+\tilde{\boldsymbol{y}}\_{\cdot i} = \sum_j
+p\_{ji}(\tilde{\boldsymbol{\mu}}\_{\cdot j}+\boldsymbol{B}\_{jr(i)}) +
+\frac{1}{n_i}\sum_j\sum\_{c=1}^{m\_{ji}}\boldsymbol{\varepsilon}\_{jic}.
+\tag{3}
 
 #### FACS-sorted population profiles
 
@@ -218,18 +238,12 @@ not because p\_{ji} cells were added. This is the covariance in [the
 released
 convolution](https://bastienchassagnol.github.io/DeCovarT/articles/theory-review-distribution-aware-deconvolution.html#eq-gaussian-convolution).
 If several types are sorted from the same donors, cross-type blocks
-\boldsymbol{\Sigma}\_{B,jk} add terms p\_{ji}p\_{ki}. Before droplet
-scRNA-seq, those population profiles came from FACS- or MACS-purified
-bulk libraries. Szaniszlo et al. showed that mixture expression reflects
-composition and that a minor subset is recovered only after physical
-sorting, while also stressing coexpression among genes inside a purified
-type ([Szaniszlo et al. 2004](#ref-szaniszloGettingRightCells)).
-Novershtern et al. profiled 38 marker-defined haematopoietic populations
-and used coexpression modules plus promoter *cis*-circuits as the
-gene–gene structure of each state ([Novershtern et al.
-2011](#ref-novershternDenselyInterconnectedTranscriptional2011)). Those
-studies are the historical FACS reference that
-[Eq. 4](#eq-facs-quadratic) still describes.
+\boldsymbol{\Sigma}\_{B,j\ell} add terms p\_{ji}p\_{\ell i}. Before
+droplet scRNA-seq, such population profiles came from FACS- or
+MACS-purified bulk libraries, already with coexpression among the genes
+of a purified type ([Szaniszlo et al.
+2004](#ref-szaniszloGettingRightCells); [Novershtern et al.
+2011](#ref-novershternDenselyInterconnectedTranscriptional2011)).
 
 #### One single-cell replicate (R=1)
 
@@ -239,17 +253,18 @@ does not identify \boldsymbol{\Sigma}\_{B,j}: extra cells shrink
 \boldsymbol{B}\_{j1} untouched. The coherent bulk covariance is the
 **mixture / physical sum**, linear in p\_{ji}:
 
-\operatorname{Cov}(\boldsymbol{A}\_i\mid\boldsymbol{p}\_{\cdot i}) =
-\kappa_i\sum_j p\_{ji}\\\boldsymbol{\Sigma}\_{W,j} +
+\operatorname{Cov}(\tilde{\boldsymbol{y}}\_{\cdot
+i}\mid\boldsymbol{p}\_{\cdot i}) = \frac{1}{n_i}\sum_j
+p\_{ji}\\\boldsymbol{\Sigma}\_{W,j} +
 \boldsymbol{\Sigma}\_{\mathrm{obs},i}. \tag{5}
 
-Here \kappa_i is an effective cells-per-bulk scale. The ideal value is
-1/N_i. The number of reference cells C\_{j1} is not N_i. A finite-cell
-reference mean adds a separate quadratic term \sum_j
-p\_{ji}^{2}\boldsymbol{\Sigma}\_{W,j}/C\_{j1}. That term is Monte Carlo
-error of \hat{\boldsymbol{\mu}}\_{\cdot j}, not biological between-donor
-covariance. Do not drop \boldsymbol{\Sigma}\_{W,j} into the p\_{ji}^{2}
-slot of [the released
+Here n_i is the number of cells behind the bulk library, in practice an
+effective number ([Sec. 4.2.2](#sec-av-scale)). The number of reference
+cells C\_{j1} is not n_i. A finite-cell reference mean adds a separate
+quadratic term \sum_j p\_{ji}^{2}\boldsymbol{\Sigma}\_{W,j}/C\_{j1}.
+That term is Monte Carlo error of \hat{\tilde{\boldsymbol{\mu}}}\_{\cdot
+j}, not biological between-donor covariance. Do not drop
+\boldsymbol{\Sigma}\_{W,j} into the p\_{ji}^{2} slot of [the released
 convolution](https://bastienchassagnol.github.io/DeCovarT/articles/theory-review-distribution-aware-deconvolution.html#eq-gaussian-convolution).
 
 For a rare type, p\_{ji}=0.01 makes p\_{ji}^{2} a hundred times smaller
@@ -293,13 +308,15 @@ within-versus-between split is the same hierarchy as
 \boldsymbol{\Sigma}\_{W,j} versus \boldsymbol{\Sigma}\_{B,j} when a
 single-cell reference is aligned with bulk.
 
-With that split, the bulk law DeCovarT should use is
+With that split, the bulk law per cell is
 
-\boldsymbol{y}\_{\cdot i}\mid\boldsymbol{p}\_{\cdot i} \sim
-\mathcal{N}\\\Big( a_i\sum_j p\_{ji}\boldsymbol{\mu}\_{\cdot j},\\
-\sum_j p\_{ji}^{2}\\\boldsymbol{\Sigma}\_{B,j} + \kappa_i\sum_j
+\tilde{\boldsymbol{y}}\_{\cdot i}\mid\boldsymbol{p}\_{\cdot i} \sim
+\mathcal{N}\\\Big( \sum_j p\_{ji}\tilde{\boldsymbol{\mu}}\_{\cdot j},\\
+\sum_j p\_{ji}^{2}\\\boldsymbol{\Sigma}\_{B,j} + \frac{1}{n_i}\sum_j
 p\_{ji}\\\boldsymbol{\Sigma}\_{W,j} +
 \boldsymbol{\Sigma}\_{\mathrm{obs},i} \Big). \tag{8}
+
+[Sec. 4.2](#sec-averaged) puts it back on the scale of the bulk library.
 
 \boldsymbol{\Sigma}\_{\mathrm{obs},i} is diagonal. Gene–gene correlation
 is already inside \boldsymbol{\Sigma}\_{B,j} and
@@ -320,16 +337,20 @@ diagonal bulk residual.
 library. Three scales sit between them. Only two belong inside the
 estimator.
 
-**Sample scale a_i.** On an absolute molecule scale,
-\boldsymbol{y}\_{\cdot i}=a_i\boldsymbol{\mu}\boldsymbol{p}\_{\cdot i}
-plus noise. a_i absorbs cell number, sequencing depth, and capture. It
-is one positive number per bulk sample. Profile it out, or estimate it
-jointly with \boldsymbol{p}\_{\cdot i}. It is not a biological
-composition parameter.
+**Sample scales a_i and n_i.** On the raw molecule scale,
+\boldsymbol{y}\_{\cdot
+i}=a_in_i\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot i} plus noise:
+n_i is the number of cells and a_i the capture ratio between the bulk
+library and the reference cells (depth and capture), one positive number
+per bulk sample shared by all genes. The mean identifies only
+c_i=a_in_i; [Sec. 4.2.2](#sec-av-scale) shows that the covariance
+identifies the second scalar. Neither is a composition parameter.
 
-**Cell size S_j.** RNA content differs by cell type, so
+**Cell size S_j.** RNA content differs by cell type,
+\tilde{\boldsymbol{\mu}}\_{\cdot j}=S_j\boldsymbol{\theta}\_{\cdot j},
+so
 
-\boldsymbol{y}\_{\cdot i} = a_i\sum_j p\_{ji}
+\boldsymbol{y}\_{\cdot i} = a_in_i\sum_j p\_{ji}
 S_j\boldsymbol{\theta}\_{\cdot j} + \boldsymbol{\varepsilon}\_i. \tag{9}
 
 `MuSiC` states the same product: cell fraction, average cell size,
@@ -339,40 +360,33 @@ S_j is measured, insert it. Do not re-estimate it. Free S_j and
 \boldsymbol{y}\_{\cdot i} alone, because only the products p\_{ji}S_j
 enter [Eq. 9](#eq-music-mean). The RNA fraction
 
-q\_{ji} = \frac{p\_{ji}S_j}{\sum_k p\_{ki}S_k} \tag{10}
+q\_{ji} = \frac{p\_{ji}S_j}{\sum\_\ell p\_{\ell i}S\_\ell} \tag{10}
 
 is what a normalised bulk identifies. \boldsymbol{q}\_{\cdot
 i}=\boldsymbol{p}\_{\cdot i} when S_j is constant across j. That
 constant-efficiency hypothesis is assumption A3' of `MuSiC`: the ratio
 of average library size equals the ratio of average cell size,
 equivalently a common capture efficiency \gamma_j=L_j/S_j
-([Figure 3](#fig-music-assumptions)). Under A3', the arithmetic mean
-across cells is the right signature and the fitted weights are cytometry
-fractions. If A3' fails, the fitted weights are RNA fractions and a
-later division by S_j ([RNA-to-cell
-correction](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#eq-rna-to-cell))
-is required.
+([Figure 3](#fig-music-assumptions)). Under A3', the per-cell mean of
+raw counts \tilde{\boldsymbol{\mu}}\_{\cdot j} carries the true size
+ratios and the fitted weights are cytometry fractions
+\boldsymbol{p}\_{\cdot i}. A library-normalised signature
+\boldsymbol{\theta}\_{\cdot j} returns RNA fractions
+\boldsymbol{q}\_{\cdot i} instead; and if A3' fails, the UMI totals S_j
+mix cell size with type-specific capture. Both cases need the
+RNA-to-cell correction of [Sec. 5](#sec-uncoupling), which also compares
+`EPIC`, `quanTIseq`, `MMAD` and `ReDeconv`.
 
-`EPIC` and `quanTIseq` apply that division **after** a linear fit, using
-an external RNA-content assay, so the optimiser itself returns
-transcriptomic ratios ([Racle et al.
-2017](#ref-racleSimultaneousEnumerationCancer2017); [Finotello et al.
-2019](#ref-finotello_etal19)). `MMAD` estimates the extraction
-efficiencies inside a non-linear conjugate-gradient step ([Liebner et
-al. 2014](#ref-liebnerMMADMicroarrayMicrodissection2014)). `ReDeconv`
-keeps transcriptome size in the reference by Count-based Linearised
-Transcriptome Size (CLTS) normalisation, instead of dividing every cell
-by its own total ([Lu et al.
-2025](#ref-luTranscriptomeSizeMatters2025)).
-
-**Gene-wise scale \boldsymbol{d}.** A platform shift can be
-gene-specific, y\_{gi}\approx d_g a_i\sum_j p\_{ji}\mu\_{gj}. `Bisque`
-learns such a map from paired bulk and single-cell measurements when
-technical variation between the two assays is large ([Jew et al.
-2020](#ref-jewAccurateEstimationCell2020)). Fitting \\d_g\\ on the same
-bulk sample that is being deconvolved lets the scale absorb any
+**Gene-wise platform ratio \tilde{\boldsymbol{b}}.** A platform shift
+can be gene-specific, y\_{gi}\approx\tilde b_g a_in_i\sum_j
+p\_{ji}\tilde\mu\_{gj}. `Bisque` learns such a map from paired bulk and
+single-cell measurements ([Jew et al.
+2020](#ref-jewAccurateEstimationCell2020)), `RCTD` from a pseudo-bulk of
+all spots ([Note 1](#nte-notation)). Fitting \tilde{\boldsymbol{b}} on
+the bulk sample that is being deconvolved lets the scale absorb any
 residual, and \boldsymbol{p}\_{\cdot i} is then unidentified. Estimate
-\boldsymbol{d} on an external paired cohort, or do not estimate it.
+\tilde{\boldsymbol{b}} on an external paired cohort or a pool of many
+samples, or do not estimate it.
 
 #### Normalisation that preserves the linear mixture
 
@@ -388,7 +402,7 @@ the reference unless the bulk was length-normalised in the same way.
 UMI single-cell counts uncorrected for length ([Lu et al.
 2025](#ref-luTranscriptomeSizeMatters2025)).
 
-| Procedure | What it estimates | Use for \boldsymbol{\mu}\_{\cdot j} |
+| Procedure | What it estimates | Use for \tilde{\boldsymbol{\mu}}\_{\cdot j} |
 |----|----|----|
 | Arithmetic mean of raw counts | Per-cell mean | Default signature |
 | CPM / CP10K | Library-size relative profile | Erases S_j |
@@ -502,8 +516,8 @@ of type j, summing m_j independent cells yields
 m_j\boldsymbol{\Sigma}\_j. If \boldsymbol{\Sigma}\_j is the covariance
 of **one latent type-level profile** that is multiplied by a weight, the
 contribution is p_j^{2}\boldsymbol{\Sigma}\_j. Released DeCovarT is the
-second case. The random-effects decomposition of the [perspectives
-vignette](#sec-three-regimes),
+second case. The random-effects decomposition of
+[Sec. 1.2](#sec-three-regimes),
 
 \boldsymbol{X}\_{jc}=\boldsymbol{M}\_j+\boldsymbol{\varepsilon}\_{jc},
 \qquad
@@ -679,20 +693,20 @@ the \boldsymbol{\Sigma}\_{kl} traces cancel and
 > \boldsymbol{\mu}(\boldsymbol{p})=\boldsymbol{\mu}\boldsymbol{p} and
 > \boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j
 > p_j^{2}\boldsymbol{\Sigma}\_j. Then
-> \boldsymbol{\mu}\_{p_k}=\boldsymbol{\mu}\_{\cdot k},
-> \boldsymbol{\mu}\_{p_kp_l}=\boldsymbol{0}, the covariance derivative
-> is \boldsymbol{\Sigma}\_{p_k}=2p_k\boldsymbol{\Sigma}\_k with
-> \boldsymbol{\Sigma}\_k the type covariance,
-> \boldsymbol{\Sigma}\_{p_kp_k}=2\boldsymbol{\Sigma}\_k and
-> \boldsymbol{\Sigma}\_{p_kp_l}=\boldsymbol{0} for k\neq l. Substituting
-> into [Eq. 20](#eq-score-general) to [Eq. 22](#eq-fisher-general)
-> recovers the [unconstrained
+> \boldsymbol{\mu}\_{p_j}=\boldsymbol{\mu}\_{\cdot j},
+> \boldsymbol{\mu}\_{p_jp\_\ell}=\boldsymbol{0}, the covariance
+> derivative is \boldsymbol{\Sigma}\_{p_j}=2p_j\boldsymbol{\Sigma}\_j
+> with \boldsymbol{\Sigma}\_j the type covariance,
+> \boldsymbol{\Sigma}\_{p_jp_j}=2\boldsymbol{\Sigma}\_j and
+> \boldsymbol{\Sigma}\_{p_jp\_\ell}=\boldsymbol{0} for j\neq\ell.
+> Substituting into [Eq. 20](#eq-score-general) to
+> [Eq. 22](#eq-fisher-general) recovers the [unconstrained
 > gradient](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html#thm-score-unconstrained),
 > [Hessian](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html#thm-hess-unconstrained)
 > and [expected Fisher
 > information](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html#sec-fisher-p)
-> of the derivatives vignette term by term, including the factor 2p_kp_l
-> in front of the covariance trace.
+> of the derivatives vignette term by term, including the factor
+> 2p_jp\_\ell in front of the covariance trace.
 
 Every model below is therefore specified by its tuple
 (\boldsymbol{\mu}\_k,\boldsymbol{\Sigma}\_k,\boldsymbol{\mu}\_{kl},\boldsymbol{\Sigma}\_{kl}).
@@ -700,10 +714,10 @@ When a parameter block lives on the simplex, the ILR chain rule
 ([constrained score and
 Hessian](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html#thm-chain-rule))
 is applied to that block only; the Jacobian of the full map is block
-diagonal with identity blocks for the scalar parameters a_i, \kappa_i
-and \tau\_{gi}^{2}. Positivity of scalars is handled by a log chart
-(a_i=e^{\eta_i}), which multiplies the corresponding row of the score by
-a_i and adds the score itself to the diagonal of the Hessian.
+diagonal with identity blocks for the scalar parameters (c_i, \phi_i,
+\tau\_{gi}^{2}). Positivity of a scalar s\>0 is handled by the log chart
+s=e^{t}, which multiplies the corresponding row of the score by s and
+adds the score itself to the diagonal of the Hessian.
 
 ### Compound parametrisations and nuisance scales
 
@@ -715,17 +729,17 @@ I\_{kl}=\boldsymbol{\mu}\_k^{\top}\boldsymbol{\Sigma}^{-1}\boldsymbol{\mu}\_l
 ([Fisher information of the multivariate
 normal](https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution)).
 Every model below is **compound**: \boldsymbol{\vartheta} is itself a
-function \boldsymbol{\vartheta}=\boldsymbol{h}(\boldsymbol{\eta}) of the
-parameters that are optimised (ILR coordinates, log scales, counts and
-sizes). With the Jacobian
-\mathbf{J}=\partial\boldsymbol{\vartheta}/\partial\boldsymbol{\eta}^{\top},
+function \boldsymbol{\vartheta}=\boldsymbol{h}(\boldsymbol{t}) of the
+free coordinates \boldsymbol{t} that are optimised (ILR coordinates, log
+scales, counts and sizes). With the Jacobian
+\mathbf{J}=\partial\boldsymbol{\vartheta}/\partial\boldsymbol{t}^{\top},
 
-\nabla\_{\boldsymbol{\eta}}\ell=\mathbf{J}^{\top}\nabla\_{\boldsymbol{\vartheta}}\ell,
-\qquad \frac{\partial^{2}\ell}{\partial\eta_a\partial\eta_b}
+\nabla\_{\boldsymbol{t}}\ell=\mathbf{J}^{\top}\nabla\_{\boldsymbol{\vartheta}}\ell,
+\qquad \frac{\partial^{2}\ell}{\partial t_a\partial t_b}
 =\bigl(\mathbf{J}^{\top}\mathbf{H}\_{\boldsymbol{\vartheta}}\mathbf{J}\bigr)\_{ab}
-+\sum_k\frac{\partial\ell}{\partial\vartheta_k}\frac{\partial^{2}\vartheta_k}{\partial\eta_a\partial\eta_b},
-\qquad
-I(\boldsymbol{\eta})=\mathbf{J}^{\top}I(\boldsymbol{\vartheta})\mathbf{J}.
++\sum_k\frac{\partial\ell}{\partial\vartheta_k}\frac{\partial^{2}\vartheta_k}{\partial
+t_a\partial t_b}, \qquad
+I(\boldsymbol{t})=\mathbf{J}^{\top}I(\boldsymbol{\vartheta})\mathbf{J}.
 \tag{23}
 
 The second Hessian term is the score contraction of the map Hessian; it
@@ -733,11 +747,11 @@ vanishes in expectation, which is why the information transforms without
 it.
 
 Most strategies below carry nuisance scales
-\boldsymbol{\eta}=(a_i,\kappa_i,\boldsymbol{\tau}^{2},\ldots) next to
-the composition. Partition the information into a \boldsymbol{p} block
-and an \boldsymbol{\eta} block, with cross block
-I\_{p\eta,kl}=\boldsymbol{\mu}\_{p_k}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}\_{\eta_l}
-+\tfrac12\operatorname{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{p_k}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{\eta_l})
+\boldsymbol{\eta}=(c_i,\phi_i,\boldsymbol{\tau}^{2},\ldots) next to the
+composition. Partition the information into a \boldsymbol{p} block and
+an \boldsymbol{\eta} block, with cross block
+I\_{p\eta,jl}=\boldsymbol{\mu}\_{p_j}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}\_{\eta_l}
++\tfrac12\operatorname{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{p_j}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{\eta_l})
 from [Eq. 22](#eq-fisher-general). When \boldsymbol{\eta} is estimated
 jointly, the information left for \boldsymbol{p} is the Schur complement
 
@@ -769,14 +783,13 @@ scale are plug-ins (Strategy 4).
 
 The first formulation keeps the bulk on an absolute molecule scale and
 asks how many cells of each type it contains. It is the cell-level
-reading of `MuSiC`’s equation (2), X\_{jg}=\sum_k
-m\_{kj}S\_{kj}\theta\_{kjg}, where m\_{kj} is the number of cells of
-type k in subject j ([Wang et al. 2019](#ref-wangBulkTissueCell2019)).
-With \boldsymbol{\mu}\_{\cdot j}=S_j\boldsymbol{\theta}\_{\cdot j} the
-mean below is exactly that identity before `MuSiC` divides by the
-library total. The estimand is \boldsymbol{m}\_{\cdot
-i}\in\mathbb{N}^{J}, proportions follow by division, and no simplex
-constraint is imposed.
+reading of `MuSiC`’s equation (2), which in our indices reads
+y\_{gi}=\sum_j m\_{ji}S\_{j}\theta\_{gj} with subject-specific sizes and
+abundances ([Wang et al. 2019](#ref-wangBulkTissueCell2019)). With
+\tilde{\boldsymbol{\mu}}\_{\cdot j}=S_j\boldsymbol{\theta}\_{\cdot j}
+the mean below is that identity before `MuSiC` divides by the library
+total. The estimand is \boldsymbol{m}\_{\cdot i}\in\mathbb{N}^{J},
+proportions follow by division, and no simplex constraint is imposed.
 
 #### Layer 1: independent cells, linear covariance
 
@@ -784,8 +797,8 @@ Assume one single-cell replicate (R=1) and, conditional on the counts,
 independent cells
 
 \boldsymbol{X}\_{jic}\overset{\text{i.i.d.}}{\sim}
-\mathcal{N}\_G(\boldsymbol{\mu}\_{\cdot j},\boldsymbol{\Sigma}\_{W,j}),
-\qquad c=1,\ldots,m\_{ji}, \tag{25}
+\mathcal{N}\_G(\tilde{\boldsymbol{\mu}}\_{\cdot
+j},\boldsymbol{\Sigma}\_{W,j}), \qquad c=1,\ldots,m\_{ji}, \tag{25}
 
 independent across types. The bulk is the physical sum
 
@@ -797,54 +810,55 @@ Applying [Eq. 14](#eq-master-identity) with
 across types,
 
 \boldsymbol{y}\_{\cdot i}\mid\boldsymbol{m}\_{\cdot i}
-\sim\mathcal{N}\_G\Bigl( \boldsymbol{\mu}\boldsymbol{m}\_{\cdot i},\\
-\boldsymbol{S}\_W(\boldsymbol{m}\_{\cdot i}) \Bigr), \qquad
+\sim\mathcal{N}\_G\Bigl( \tilde{\boldsymbol{\mu}}\boldsymbol{m}\_{\cdot
+i},\\ \boldsymbol{S}\_W(\boldsymbol{m}\_{\cdot i}) \Bigr), \qquad
 \boldsymbol{S}\_W(\boldsymbol{m}\_{\cdot i})=\sum_j
 m\_{ji}\boldsymbol{\Sigma}\_{W,j}. \tag{27}
 
-Each term has one meaning. \boldsymbol{\mu}\boldsymbol{m}\_{\cdot i} is
-the expected molecule count of a tissue made of m\_{ji} average cells of
-each type. m\_{ji}\boldsymbol{\Sigma}\_{W,j} is the accumulated
-cell-to-cell scatter of type j: independent deviations add, so the
-weight is linear. There is no \boldsymbol{\Sigma}\_{B,j} because one
-replicate cannot identify it. The law is exact under Gaussian cells.
-Under non-Gaussian cells it is the central-limit approximation of
-`RNA-Sieve`, applied here to the full vector rather than gene by gene
-([Erdmann-Pham et al.
+Each term has one meaning.
+\tilde{\boldsymbol{\mu}}\boldsymbol{m}\_{\cdot i} is the expected
+molecule count of a tissue made of m\_{ji} average cells of each type.
+m\_{ji}\boldsymbol{\Sigma}\_{W,j} is the accumulated cell-to-cell
+scatter of type j: independent deviations add, so the weight is linear.
+There is no \boldsymbol{\Sigma}\_{B,j} because one replicate cannot
+identify it. The law is exact under Gaussian cells. Under non-Gaussian
+cells it is the central-limit approximation of `RNA-Sieve`, applied here
+to the full vector rather than gene by gene ([Erdmann-Pham et al.
 2021](#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021)).
 
 Treat \boldsymbol{m}\_{\cdot i} as a point of (0,\infty)^{J} for the
 moment. The tuple of [Theorem 1](#thm-score-general) is
 
-\boldsymbol{\mu}\_k=\boldsymbol{\mu}\_{\cdot k}, \qquad
-\boldsymbol{\Sigma}\_k=\boldsymbol{\Sigma}\_{W,k}, \qquad
-\boldsymbol{\mu}\_{kl}=\boldsymbol{0}, \qquad
-\boldsymbol{\Sigma}\_{kl}=\boldsymbol{0}. \tag{28}
+\boldsymbol{\mu}\_{m_j}=\tilde{\boldsymbol{\mu}}\_{\cdot j}, \qquad
+\boldsymbol{\Sigma}\_{m_j}=\boldsymbol{\Sigma}\_{W,j}, \qquad
+\boldsymbol{\mu}\_{m_jm\_\ell}=\boldsymbol{0}, \qquad
+\boldsymbol{\Sigma}\_{m_jm\_\ell}=\boldsymbol{0}. \tag{28}
 
 **Theorem 2 (Score, Hessian and information for cell counts)** With
 \boldsymbol{\Omega}=\boldsymbol{S}\_W(\boldsymbol{m})^{-1} and
-\boldsymbol{r}=\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{m},
+\boldsymbol{r}=\boldsymbol{y}-\tilde{\boldsymbol{\mu}}\boldsymbol{m},
 
-\frac{\partial\ell}{\partial m_k}
-=-\tfrac12\\\mathrm{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,k})
-+\boldsymbol{\mu}\_{\cdot k}^{\top}\boldsymbol{\Omega}\boldsymbol{r}
-+\tfrac12\\\boldsymbol{r}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,k}\boldsymbol{\Omega}\boldsymbol{r},
+\frac{\partial\ell}{\partial m_j}
+=-\tfrac12\\\mathrm{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,j})
++\tilde{\boldsymbol{\mu}}\_{\cdot
+j}^{\top}\boldsymbol{\Omega}\boldsymbol{r}
++\tfrac12\\\boldsymbol{r}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,j}\boldsymbol{\Omega}\boldsymbol{r},
 \tag{29}
 
-\frac{\partial^{2}\ell}{\partial m_k\partial m_l}
-=\tfrac12\\\mathrm{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,k}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,l})
--\boldsymbol{\mu}\_{\cdot
-k}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}\_{\cdot l}
--\boldsymbol{\mu}\_{\cdot
-k}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,l}\boldsymbol{\Omega}\boldsymbol{r}
--\boldsymbol{\mu}\_{\cdot
-l}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,k}\boldsymbol{\Omega}\boldsymbol{r}
--\boldsymbol{r}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,k}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,l}\boldsymbol{\Omega}\boldsymbol{r},
+\frac{\partial^{2}\ell}{\partial m_j\partial m\_\ell}
+=\tfrac12\\\mathrm{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,j}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,\ell})
+-\tilde{\boldsymbol{\mu}}\_{\cdot
+j}^{\top}\boldsymbol{\Omega}\tilde{\boldsymbol{\mu}}\_{\cdot \ell}
+-\tilde{\boldsymbol{\mu}}\_{\cdot
+j}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,\ell}\boldsymbol{\Omega}\boldsymbol{r}
+-\tilde{\boldsymbol{\mu}}\_{\cdot
+\ell}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,j}\boldsymbol{\Omega}\boldsymbol{r}
+-\boldsymbol{r}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,j}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,\ell}\boldsymbol{\Omega}\boldsymbol{r},
 \tag{30}
 
-I(\boldsymbol{m})\_{kl} =\boldsymbol{\mu}\_{\cdot
-k}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}\_{\cdot l}
-+\tfrac12\\\mathrm{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,k}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,l}).
+I(\boldsymbol{m})\_{j\ell} =\tilde{\boldsymbol{\mu}}\_{\cdot
+j}^{\top}\boldsymbol{\Omega}\tilde{\boldsymbol{\mu}}\_{\cdot \ell}
++\tfrac12\\\mathrm{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,j}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,\ell}).
 \tag{31}
 
 Compared with released DeCovarT the Hessian loses two terms, because
@@ -878,12 +892,12 @@ is not needed here.
 > **Important 4: Where the GRN precision goes**
 >
 > The reproducibility book estimates one sparse precision per type from
-> single cells and exports \\\hat{\boldsymbol{\mu}}\_{\cdot
+> single cells and exports \\\hat{\tilde{\boldsymbol{\mu}}}\_{\cdot
 > j},\hat{\boldsymbol{\Sigma}}\_j,\hat{\boldsymbol{\Omega}}\_j\\ on the
 > linear count scale ([GGM
 > chapter](https://github.com/bastienchassagnol/DeCovarT_reproducibility/blob/main/docs/02-grn-graphical-lasso.qmd)).
 > The rows of that Gaussian table are **cells** from one experiment, so
-> the estimate is (\boldsymbol{\mu}\_{\cdot
+> the estimate is (\tilde{\boldsymbol{\mu}}\_{\cdot
 > j},\boldsymbol{\Sigma}\_{W,j},\boldsymbol{\Omega}\_{W,j}), not a
 > population-profile covariance. Its slot is the linear term
 > m\_{ji}\boldsymbol{\Sigma}\_{W,j} of [Eq. 27](#eq-cc-law), and the
@@ -933,7 +947,8 @@ amplified,
 \boldsymbol{y}\_{\cdot i}
 =a_i\sum_j\sum\_{c=1}^{m\_{ji}}\boldsymbol{X}\_{jic}, \qquad
 \boldsymbol{y}\_{\cdot i}\mid\boldsymbol{m}\_{\cdot i},a_i
-\sim\mathcal{N}\_G\Bigl( a_i\boldsymbol{\mu}\boldsymbol{m}\_{\cdot i},\\
+\sim\mathcal{N}\_G\Bigl(
+a_i\tilde{\boldsymbol{\mu}}\boldsymbol{m}\_{\cdot i},\\
 a_i^{2}\boldsymbol{S}\_W(\boldsymbol{m}\_{\cdot i}) \Bigr). \tag{33}
 
 The two scalings of [Sec. 2](#sec-one-formula) appear side by side:
@@ -943,14 +958,14 @@ times. Reparametrise to effective counts \boldsymbol{w}\_{\cdot
 i}=a_i\boldsymbol{m}\_{\cdot i}:
 
 \boldsymbol{y}\_{\cdot i}\mid\boldsymbol{w}\_{\cdot i},a_i
-\sim\mathcal{N}\_G\Bigl( \boldsymbol{\mu}\boldsymbol{w}\_{\cdot i},\\
-a_i\boldsymbol{S}\_W(\boldsymbol{w}\_{\cdot i}) \Bigr). \tag{34}
+\sim\mathcal{N}\_G\Bigl( \tilde{\boldsymbol{\mu}}\boldsymbol{w}\_{\cdot
+i},\\ a_i\boldsymbol{S}\_W(\boldsymbol{w}\_{\cdot i}) \Bigr). \tag{34}
 
 The mean identifies \boldsymbol{w}\_{\cdot i} alone; the covariance
 magnitude then identifies a_i, and \boldsymbol{m}\_{\cdot
 i}=\boldsymbol{w}\_{\cdot i}/a_i. That is the route by which `RNA-Sieve`
-infers its total cell number n: the variance of a sum of n cells grows
-like n while the mean grows like n too, so their ratio pins the count
+infers its total cell number n: the mean grows like an and the variance
+like a^{2}n, so their ratio separates the capture ratio from the count
 ([Erdmann-Pham et al.
 2021](#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021)). Its
 supplement states the caveat that applies here as well: n is physically
@@ -963,15 +978,15 @@ of the reference cells, which is where the GRN estimates of
 
 In the (\boldsymbol{w},a) chart the tuple is
 
-\boldsymbol{\mu}\_{w_k}=\boldsymbol{\mu}\_{\cdot k},\quad
+\boldsymbol{\mu}\_{w_j}=\tilde{\boldsymbol{\mu}}\_{\cdot j},\quad
 \boldsymbol{\mu}\_{a}=\boldsymbol{0},\quad
-\boldsymbol{\Sigma}\_{w_k}=a\boldsymbol{\Sigma}\_{W,k},\quad
+\boldsymbol{\Sigma}\_{w_j}=a\boldsymbol{\Sigma}\_{W,j},\quad
 \boldsymbol{\Sigma}\_{a}=\boldsymbol{S}\_W(\boldsymbol{w}),\quad
-\boldsymbol{\Sigma}\_{w_ka}=\boldsymbol{\Sigma}\_{W,k},\quad
-\boldsymbol{\Sigma}\_{w_kw_l}=\boldsymbol{\Sigma}\_{aa}=\boldsymbol{0},
+\boldsymbol{\Sigma}\_{w_ja}=\boldsymbol{\Sigma}\_{W,j},\quad
+\boldsymbol{\Sigma}\_{w_jw\_\ell}=\boldsymbol{\Sigma}\_{aa}=\boldsymbol{0},
 \tag{35}
 
-and all \boldsymbol{\mu}\_{kl}=\boldsymbol{0}. The scale score is
+and all second mean derivatives vanish. The scale score is
 
 \frac{\partial\ell}{\partial a}
 =-\tfrac12\\\mathrm{tr}\bigl(\boldsymbol{\Omega}\boldsymbol{S}\_W(\boldsymbol{w})\bigr)
@@ -1003,8 +1018,8 @@ Add technical bulk noise that is independent across genes,
 
 \boldsymbol{D}\_i is diagonal by construction: gene to gene correlation
 is already carried by the \boldsymbol{\Sigma}\_{W,j}, and an
-off-diagonal residual would count the network twice ([perspectives,
-three-layer law](#sec-enough-replicates)). The new derivatives are
+off-diagonal residual would count the network twice
+([Eq. 8](#eq-three-layer)). The new derivatives are
 \boldsymbol{\Sigma}\_{\tau_g^{2}}=\boldsymbol{e}\_g\boldsymbol{e}\_g^{\top}
 and all second derivatives involving \boldsymbol{\tau}^{2} vanish, so
 
@@ -1023,21 +1038,22 @@ deconvolution has no off-diagonal entries and cannot separate the two;
 `MuSiC` and `RNA-Sieve` accordingly keep a single gene-wise variance.
 With one bulk column and G free \tau\_{gi}^{2} the model is
 over-parametrised; constrain \boldsymbol{D}\_i=\tau_i^{2}\mathbf{I}\_G,
-or \tau\_{gi}^{2}=\tau_i^{2}\\\mu_g(\boldsymbol{w})^{\gamma} with a
-mean–variance exponent, or estimate \boldsymbol{D} from technical bulk
-replicates.
+or
+\tau\_{gi}^{2}=\tau_i^{2}\\(\tilde{\boldsymbol{\mu}}\boldsymbol{w})\_g^{\gamma}
+with a mean–variance exponent, or estimate \boldsymbol{D} from technical
+bulk replicates.
 
 #### Layer 5: several single-cell replicates
 
 With R\ge 2 biological replicates in the reference, write
-\boldsymbol{X}\_{jrc}=\boldsymbol{\mu}\_{\cdot
-j}+\boldsymbol{B}\_{jr}+\boldsymbol{\varepsilon}\_{jrc} as in the
-perspectives vignette, with
+\boldsymbol{X}\_{jrc}=\tilde{\boldsymbol{\mu}}\_{\cdot
+j}+\boldsymbol{B}\_{jr}+\boldsymbol{\varepsilon}\_{jrc} as in
+[Eq. 2](#eq-cell-hierarchy), with
 \boldsymbol{B}\_{jr}\sim\mathcal{N}(\boldsymbol{0},\boldsymbol{\Sigma}\_{B,j})
 shared by all cells of type j in replicate r. A new bulk donor i draws
 its own \boldsymbol{B}\_{ji}, so
 
-\boldsymbol{T}\_{ji} =m\_{ji}(\boldsymbol{\mu}\_{\cdot
+\boldsymbol{T}\_{ji} =m\_{ji}(\tilde{\boldsymbol{\mu}}\_{\cdot
 j}+\boldsymbol{B}\_{ji})
 +\sum\_{c=1}^{m\_{ji}}\boldsymbol{\varepsilon}\_{jic}, \qquad
 \operatorname{Cov}(\boldsymbol{T}\_{ji})
@@ -1047,7 +1063,8 @@ j}+\boldsymbol{B}\_{ji})
 and the full five-layer law is
 
 \boldsymbol{y}\_{\cdot i}\mid\boldsymbol{m}\_{\cdot i},a_i
-\sim\mathcal{N}\_G\Bigl( a_i\boldsymbol{\mu}\boldsymbol{m}\_{\cdot i},\\
+\sim\mathcal{N}\_G\Bigl(
+a_i\tilde{\boldsymbol{\mu}}\boldsymbol{m}\_{\cdot i},\\
 a_i^{2}\bigl\[\boldsymbol{S}\_W(\boldsymbol{m}\_{\cdot
 i})+\boldsymbol{S}\_B(\boldsymbol{m}\_{\cdot i})\bigr\]
 +\boldsymbol{D}\_i \Bigr). \tag{40}
@@ -1055,19 +1072,17 @@ i})+\boldsymbol{S}\_B(\boldsymbol{m}\_{\cdot i})\bigr\]
 The quadratic term is DeCovarT’s original covariance written in cell
 counts. In the \boldsymbol{m} chart the new derivatives are
 
-\boldsymbol{\Sigma}\_{m_k}
-=a^{2}\bigl(\boldsymbol{\Sigma}\_{W,k}+2m_k\boldsymbol{\Sigma}\_{B,k}\bigr),
-\qquad \boldsymbol{\Sigma}\_{m_km_k}=2a^{2}\boldsymbol{\Sigma}\_{B,k},
-\qquad \boldsymbol{\Sigma}\_{m_km_l}=\boldsymbol{0}\\ (k\neq l),
+\boldsymbol{\Sigma}\_{m_j}
+=a^{2}\bigl(\boldsymbol{\Sigma}\_{W,j}+2m_j\boldsymbol{\Sigma}\_{B,j}\bigr),
+\qquad \boldsymbol{\Sigma}\_{m_jm_j}=2a^{2}\boldsymbol{\Sigma}\_{B,j},
+\qquad \boldsymbol{\Sigma}\_{m_jm\_\ell}=\boldsymbol{0}\\ (j\neq\ell),
 \tag{41}
 
 so the two Hessian terms that vanished in [Sec. 4.1.1](#sec-cc-linear)
-return, carried by \boldsymbol{\Sigma}\_{B,k} alone. Estimation of
-\boldsymbol{\Sigma}\_{B,j} follows the method-of-moments contrast of the
-[perspectives vignette](#sec-enough-replicates): the replicate means
-have covariance
-\boldsymbol{\Sigma}\_{B,j}+\boldsymbol{\Sigma}\_{W,j}/C\_{jr}. A dense
-G\times G between-replicate covariance needs many more replicates than a
+return, carried by \boldsymbol{\Sigma}\_{B,j} alone.
+\boldsymbol{\Sigma}\_{B,j} is estimated by the method-of-moments
+contrast of [Sec. 1.2.3](#sec-enough-replicates). A dense G\times G
+between-replicate covariance needs many more replicates than a
 single-cell study provides; with R around ten, independent donors
 justify a **diagonal** \boldsymbol{\Sigma}\_{B,j} whose G marginal
 variances are estimable, and the gene network stays inside
@@ -1075,60 +1090,33 @@ variances are estimable, and the gene network stays inside
 
 #### Strategy 1 and the reviewed methods
 
-**`MuSiC`.** Equation (2) of Wang et al.
-([2019](#ref-wangBulkTissueCell2019)) is the mean of
-[Eq. 27](#eq-cc-law) with \boldsymbol{\mu}\_{\cdot
-j}=S_j\boldsymbol{\theta}\_{\cdot j}. `MuSiC` then divides by the
-library total, which removes m_j and leaves relative abundances; it
-never estimates counts. Its variance, equations (9) and (10),
-\operatorname{Var}(Y\_{jg}\mid p_j)=C_j^{2}\delta\_{jg}^{2}
-+C_j^{2}\sum_k p\_{jk}^{2}S_k^{2}\sigma\_{gk}^{2}, has a normalising
-constant squared and **quadratic** weights p\_{jk}^{2}. The quadratic
-weights arise because \theta\_{kjg} is a subject-level random profile
-with cross-subject variance \sigma\_{gk}^{2}: that is the
-\boldsymbol{\Sigma}\_{B,j} layer of [Eq. 40](#eq-cc-five-layer),
-restricted to its diagonal, and \delta\_{jg}^{2} is \boldsymbol{D}\_i.
-The within-type cell scatter \boldsymbol{\Sigma}\_{W,j} has no
-counterpart in the `MuSiC` variance; it is used only to select
-consistent genes.
+Three reviewed methods sit on this branch; their models are in the
+review
+([`MuSiC`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-review-distribution-aware-deconvolution.html#sec-music),
+[`RNA-Sieve`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-review-distribution-aware-deconvolution.html#sec-rnasieve),
+[`DWLS`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-review-distribution-aware-deconvolution.html#sec-dwls)).
+Only the contrast with [Eq. 40](#eq-cc-five-layer) is kept here.
 
-**`RNA-Sieve`.** The bulk is a sum of n cells and the likelihood,
-equation (8) of Erdmann-Pham et al.
-([2021](#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021)), is
-\prod_g\mathcal{N}\bigl(\tilde
-b_g;\\n(M\alpha)\_g,\\n\sigma_g^{2}(M,\alpha,S)\bigr) with
-\sigma_g^{2}=\sum_k\alpha_k\[s\_{g,k}+m\_{g,k}^{2}\]-b_g^{2}. Two
-differences with [Eq. 27](#eq-cc-law) matter. First, the variance is
-linear in n, as here, but it is the variance of a **randomly labelled**
-cell: the term \sum_k\alpha_k m\_{g,k}^{2}-b_g^{2} is the spread of type
-means and comes from drawing each cell’s type at random.
-[Eq. 27](#eq-cc-law) conditions on the counts and therefore omits that
-term; the multinomial-label version adds n\sum_j
-p_j(\boldsymbol{\mu}\_{\cdot
-j}-\bar{\boldsymbol{\mu}})(\boldsymbol{\mu}\_{\cdot
-j}-\bar{\boldsymbol{\mu}})^{\top}, a rank-(J-1) matrix that the
-cell-count model deliberately does not carry. Second, `RNA-Sieve` treats
-genes as independent and uses a Godambe sandwich for intervals;
-[Eq. 27](#eq-cc-law) keeps the full \boldsymbol{\Sigma}\_{W,j}.
-`RNA-Sieve` also models the reference means as noisy, \tilde
-M=M+\epsilon_M with variance s\_{g,k}/c_k. The analogue here is an
-errors-in-variables term \sum_j
-m\_{ji}^{2}\boldsymbol{\Sigma}\_{W,j}/C_j on the bulk covariance,
-quadratic in the counts and shrinking with the number of reference
-cells, which [Sec. 6](#sec-summary) lists as an alternative.
-
-**`DWLS`.** Tsoucas et al.
-([2019](#ref-tsoucasAccurateEstimationCelltype2019)) average cells to a
-signature, build an artificial bulk by summing single-cell profiles, and
-fit weighted least squares with weights
-1/(\boldsymbol{\mu}\hat{\boldsymbol{p}})\_g^{2} plus a dampening
-constant. In the present notation that is [Eq. 37](#eq-cc-noise-law)
-with \boldsymbol{\Sigma}\_{W,j}=\boldsymbol{0} and
-\boldsymbol{D}\_i\propto\operatorname{diag}(\boldsymbol{\mu}\boldsymbol{p})^{2},
-a multiplicative noise model without a cell-count scale. The paper
-states the equal-total-RNA-per-cell assumption under which its weights
-are cell fractions rather than RNA fractions; that is the S_j question
-of [Sec. 4.3](#sec-compositional).
+- **`MuSiC`** has the mean of [Eq. 27](#eq-cc-law) before division by
+  the library total, so it never estimates counts. Its variance carries
+  quadratic weights p\_{ji}^{2} on a cross-subject variance: the
+  diagonal of the \boldsymbol{S}\_B layer, plus a residual in the role
+  of \boldsymbol{D}\_i. The cell scatter \boldsymbol{\Sigma}\_{W,j} only
+  selects genes ([Wang et al. 2019](#ref-wangBulkTissueCell2019)).
+- **`RNA-Sieve`** has a variance linear in n, as here, but for a
+  randomly labelled cell: it adds the spread of the type means
+  ([Eq. 17](#eq-mixture-cell)), which [Eq. 27](#eq-cc-law) drops by
+  conditioning on the counts. Genes are independent, and the noisy
+  reference means add the errors-in-variables term listed in
+  [Sec. 6](#sec-summary).
+- **`DWLS`** weights genes by
+  1/(\tilde{\boldsymbol{\mu}}\hat{\boldsymbol{p}})\_g^{2} plus a
+  dampening constant: [Eq. 37](#eq-cc-noise-law) with
+  \boldsymbol{\Sigma}\_{W,j}=\boldsymbol{0} and
+  \boldsymbol{D}\_i\propto\operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p})^{2},
+  a multiplicative noise without a count scale, whose weights are cell
+  fractions only if every cell carries the same RNA ([Tsoucas et al.
+  2019](#ref-tsoucasAccurateEstimationCelltype2019)).
 
 ### Strategy 2: averaged mixture on the simplex
 
@@ -1144,17 +1132,17 @@ gap.
 
 Divide [Eq. 26](#eq-cc-sum) by n_i:
 
-\bar{\boldsymbol{y}}\_{\cdot i}
+\tilde{\boldsymbol{y}}\_{\cdot i}
 =\frac{1}{n_i}\sum_j\sum\_{c=1}^{m\_{ji}}\boldsymbol{X}\_{jic}, \qquad
-\bar{\boldsymbol{y}}\_{\cdot i}\mid\boldsymbol{p}\_{\cdot i},n_i
-\sim\mathcal{N}\_G\Bigl( \boldsymbol{\mu}\boldsymbol{p}\_{\cdot i},\\
-\kappa_i\boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot i}) \Bigr),
-\qquad\kappa_i=\frac{1}{n_i}. \tag{42}
+\tilde{\boldsymbol{y}}\_{\cdot i}\mid\boldsymbol{p}\_{\cdot i},n_i
+\sim\mathcal{N}\_G\Bigl( \tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot
+i},\\ \frac{1}{n_i}\boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot i}) \Bigr).
+\tag{42}
 
 The mean is the DeCovarT mean. The covariance is the linear mixture of
-the [perspectives vignette](#sec-one-replicate) with the ideal value
-\kappa_i=1/n_i: averaging n_i independent cells shrinks the cell-level
-covariance by 1/n_i. The quadratic weights also appear algebraically,
+[Sec. 1.2.2](#sec-one-replicate): averaging n_i independent cells
+shrinks the cell-level covariance by 1/n_i. The quadratic weights also
+appear algebraically,
 \operatorname{Cov}(p\_{ji}\bar{\boldsymbol{X}}\_{ji})
 =p\_{ji}^{2}\boldsymbol{\Sigma}\_{W,j}/m\_{ji}=p\_{ji}\boldsymbol{\Sigma}\_{W,j}/n_i,
 but the covariance of the type-specific average depends on its own cell
@@ -1162,87 +1150,110 @@ count, which turns the square into a linear weight.
 
 n_i is unobserved. Three ways to supply it:
 
-- **Variance route (`RNA-Sieve`).** Estimate \kappa_i jointly with
+- **Variance route (`RNA-Sieve`).** Estimate n_i jointly with
   \boldsymbol{p}\_{\cdot i} from the covariance magnitude, as in
   1.  This needs \boldsymbol{\Sigma}\_{W,j} on the molecule scale of the
       bulk.
-- **Pairing route (`Bisque`).** Jew et al.
-  ([2020](#ref-jewAccurateEstimationCell2020)) form a pseudo-bulk
-  \boldsymbol{Y}=\boldsymbol{Z}\boldsymbol{p} from the reference profile
-  and the proportions counted in the single-cell data of paired
-  individuals, then fit a per-gene linear map
-  Y_j=\beta_jX'\_j+\epsilon_j (their equation 1) from observed bulk to
-  pseudo-bulk, or match first and second moments gene by gene (their
-  equation 3). A multivariate Gaussian version of that step is natural
-  here: for a paired sample i' with counted \boldsymbol{m}\_{\cdot i'},
-  the pseudo-bulk law is [Eq. 27](#eq-cc-law) and the observed bulk is
-  an affine image of it, \boldsymbol{y}\_{\cdot
-  i'}\sim\mathcal{N}\_G\bigl(\boldsymbol{c}+\boldsymbol{B}\boldsymbol{\mu}\boldsymbol{m}\_{\cdot
-  i'}, \boldsymbol{B}\boldsymbol{S}\_W(\boldsymbol{m}\_{\cdot
-  i'})\boldsymbol{B}^{\top}+\boldsymbol{D}\bigr) with diagonal
-  \boldsymbol{B}; (\boldsymbol{c},\boldsymbol{B},\boldsymbol{D}) are
-  estimated once on the paired cohort and \kappa_i for an unpaired
-  sample follows from the fitted mean scale
-  ([Sec. 4.4.4](#sec-persp-affine)).
+- **Pairing route (`Bisque`).** A gene-wise map from observed bulk to a
+  pseudo-bulk of paired individuals, whose compositions are counted in
+  their single-cell data, is learned once ([Jew et al.
+  2020](#ref-jewAccurateEstimationCell2020)). Its multivariate Gaussian
+  version takes the observed bulk of a paired sample i' as an affine
+  image of [Eq. 27](#eq-cc-law), \boldsymbol{y}\_{\cdot
+  i'}\sim\mathcal{N}\_G\bigl(\boldsymbol{o}+\tilde{\mathbf{B}}\tilde{\boldsymbol{\mu}}\boldsymbol{m}\_{\cdot
+  i'}, \tilde{\mathbf{B}}\boldsymbol{S}\_W(\boldsymbol{m}\_{\cdot
+  i'})\tilde{\mathbf{B}}+\boldsymbol{D}\bigr), with an intercept
+  \boldsymbol{o}; (\boldsymbol{o},\tilde{\mathbf{B}},\boldsymbol{D}) are
+  estimated on the paired cohort, and n_i for an unpaired sample follows
+  from the fitted mean scale ([Sec. 4.4.4](#sec-persp-affine)).
 - **External counts.** Nuclei counts, DNA content or tissue mass give
-  n_i directly; then \kappa_i is a known offset.
+  n_i directly, as a known offset.
 
-With \boldsymbol{\vartheta}=(\boldsymbol{p},\kappa) the tuple is
+With \boldsymbol{\vartheta}=(\boldsymbol{p},\log n) the tuple is
 
-\boldsymbol{\mu}\_{p_k}=\boldsymbol{\mu}\_{\cdot k},\quad
-\boldsymbol{\Sigma}\_{p_k}=\kappa\boldsymbol{\Sigma}\_{W,k},\quad
-\boldsymbol{\Sigma}\_{\kappa}=\boldsymbol{S}\_W(\boldsymbol{p}),\quad
-\boldsymbol{\Sigma}\_{p_k\kappa}=\boldsymbol{\Sigma}\_{W,k},\quad
-\boldsymbol{\Sigma}\_{p_kp_l}=\boldsymbol{\Sigma}\_{\kappa\kappa}=\boldsymbol{0},
-\tag{43}
+\boldsymbol{\mu}\_{p_j}=\tilde{\boldsymbol{\mu}}\_{\cdot j},\quad
+\boldsymbol{\Sigma}\_{p_j}=n^{-1}\boldsymbol{\Sigma}\_{W,j},\quad
+\boldsymbol{\Sigma}\_{\log
+n}=-n^{-1}\boldsymbol{S}\_W(\boldsymbol{p}),\quad
+\boldsymbol{\Sigma}\_{p_j\log n}=-n^{-1}\boldsymbol{\Sigma}\_{W,j},\quad
+\boldsymbol{\Sigma}\_{\log n\log
+n}=n^{-1}\boldsymbol{S}\_W(\boldsymbol{p}), \tag{43}
 
-with all \boldsymbol{\mu}\_{kl}=\boldsymbol{0}. The simplex is imposed
-on the \boldsymbol{p} block by the ILR chart,
+with \boldsymbol{\Sigma}\_{p_jp\_\ell}=\boldsymbol{0} and all second
+mean derivatives zero. The simplex is imposed on the \boldsymbol{p}
+block by the ILR chart,
 \boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho}), with
 Jacobian \mathbf{J}\_\psi=\mathbf{S}(\boldsymbol{p})\mathbf{V} and the
 score contraction of the map Hessian exactly as in the [chain
 rule](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html#sec-chain-rule);
-the \kappa row is untouched. In particular the stationarity condition
+the \log n row is untouched. In particular the stationarity condition
 \mathbf{V}^{\top}\mathbf{S}(\boldsymbol{p})\nabla\_{\boldsymbol{p}}\ell=\boldsymbol{0}
 is the same equation with \nabla\_{\boldsymbol{p}}\ell taken from
 [Eq. 20](#eq-score-general) and the tuple [Eq. 43](#eq-av-tuple).
 
 #### Layer 2: a global scale, per sample or shared
 
-On an absolute scale the bulk is \boldsymbol{y}\_{\cdot
-i}=a_i\bar{\boldsymbol{y}}\_{\cdot i} with the same a_i as in 1, now
-absorbing n_i as well as capture:
+On the raw scale the bulk is \boldsymbol{y}\_{\cdot
+i}=a_in_i\tilde{\boldsymbol{y}}\_{\cdot i}, with the capture ratio a_i
+of 1:
 
-\boldsymbol{y}\_{\cdot i}\mid\boldsymbol{p}\_{\cdot i},a_i,\kappa_i
-\sim\mathcal{N}\_G\Bigl( a_i\boldsymbol{\mu}\boldsymbol{p}\_{\cdot i},\\
-a_i^{2}\kappa_i\boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot i}) \Bigr).
-\tag{44}
+\boldsymbol{y}\_{\cdot i}\mid\boldsymbol{p}\_{\cdot i},a_i,n_i
+\sim\mathcal{N}\_G\Bigl(
+a_in_i\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot i},\\
+a_i^{2}n_i\boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot i}) \Bigr)
+=\mathcal{N}\_G\Bigl( c_i\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot
+i},\\ \phi_i\boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot i}) \Bigr), \qquad
+c_i=a_in_i,\quad\phi_i=a_i^{2}n_i . \tag{44}
 
-Here the simplex constraint buys identifiability. Because
-\mathbf{1}^{\top}\boldsymbol{p}\_{\cdot i}=1, the mean
-a_i\boldsymbol{\mu}\boldsymbol{p}\_{\cdot i} pins a_i from first moments
-alone, and \kappa_i is then read from the covariance magnitude. In
-Strategy 1 the mean fixes only the product a_i\boldsymbol{m}\_{\cdot i}.
-The tuple adds
+It is [Eq. 33](#eq-cc-scale-law) with \boldsymbol{m}\_{\cdot
+i}=n_i\boldsymbol{p}\_{\cdot i}. The two scales enter only through the
+mean scale c_i and the covariance scale \phi_i, and
+(a_i,n_i)\mapsto(c_i,\phi_i) is a bijection of (0,\infty)^{2}, with
+a_i=\phi_i/c_i and n_i=c_i^{2}/\phi_i. Here the simplex constraint buys
+identifiability: because \mathbf{1}^{\top}\boldsymbol{p}\_{\cdot i}=1,
+the mean pins c_i from first moments alone, and \phi_i is read from the
+covariance magnitude. In Strategy 1 the mean fixes only the product
+a_i\boldsymbol{m}\_{\cdot i}. In the (\boldsymbol{p},c,\phi) chart the
+tuple is
 
-\boldsymbol{\mu}\_{a}=\boldsymbol{\mu}\boldsymbol{p},\quad
-\boldsymbol{\mu}\_{p_k}=a\boldsymbol{\mu}\_{\cdot k},\quad
-\boldsymbol{\mu}\_{p_ka}=\boldsymbol{\mu}\_{\cdot k},\quad
-\boldsymbol{\Sigma}\_{a}=2a\kappa\boldsymbol{S}\_W(\boldsymbol{p}),\quad
-\boldsymbol{\Sigma}\_{aa}=2\kappa\boldsymbol{S}\_W(\boldsymbol{p}),\quad
-\boldsymbol{\Sigma}\_{p_ka}=2a\kappa\boldsymbol{\Sigma}\_{W,k},\quad
-\boldsymbol{\Sigma}\_{a\kappa}=2a\boldsymbol{S}\_W(\boldsymbol{p}),
-\tag{45}
+\boldsymbol{\mu}\_{p_j}=c\tilde{\boldsymbol{\mu}}\_{\cdot j},\quad
+\boldsymbol{\mu}\_{c}=\tilde{\boldsymbol{\mu}}\boldsymbol{p},\quad
+\boldsymbol{\mu}\_{p_jc}=\tilde{\boldsymbol{\mu}}\_{\cdot j},\quad
+\boldsymbol{\Sigma}\_{p_j}=\phi\boldsymbol{\Sigma}\_{W,j},\quad
+\boldsymbol{\Sigma}\_{\phi}=\boldsymbol{S}\_W(\boldsymbol{p}),\quad
+\boldsymbol{\Sigma}\_{p_j\phi}=\boldsymbol{\Sigma}\_{W,j}, \tag{45}
 
-and the p and \kappa entries of [Eq. 43](#eq-av-tuple) are multiplied by
-a^{2}. When N bulk samples share one protocol, a **shared** scale a
-replaces a_i and the pooled log-likelihood
-\sum_i\ell_i(\boldsymbol{p}\_{\cdot i},a,\kappa_i) is maximised; its a
-score is the sum of the per-sample scores, and the Hessian is block
-arrow-shaped with the a row coupling all samples. This pooling is what
-`MuSiC` achieves with its sample-level normalising constant C_j and what
-`RCTD` achieves with a known depth offset ([probabilistic
-engines](#sec-rctd)).
+and every other derivative is zero: the mean is bilinear in
+(c,\boldsymbol{p}) and the covariance bilinear in (\phi,\boldsymbol{p}).
+At fixed \boldsymbol{p}, \hat c is the generalised least-squares
+coefficient of \boldsymbol{y} on \tilde{\boldsymbol{\mu}}\boldsymbol{p}
+and \hat\phi the mean squared Mahalanobis residual, as in
+[Eq. 36](#eq-cc-score-a), so both scales can be profiled out. When N
+bulk samples share one protocol, a **shared** capture ratio a ties the
+two scales, \phi_i=ac_i, and the pooled log-likelihood \sum_i\ell_i
+couples all samples through the a row of a block arrow-shaped Hessian.
+This pooling is what `MuSiC` achieves with its sample-level normalising
+constant and `RCTD` with a known depth offset
+([`RCTD`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-review-distribution-aware-deconvolution.html#sec-rctd)).
+
+**A Poisson reading of the scales (our remark).** The mean
+a_in_i\sum_jp\_{ji}S_j\boldsymbol{\theta}\_{\cdot j} has the
+multiplicative structure of a Poisson measurement model: `RCTD` writes
+y\_{gi}\sim\mathrm{Poisson}(N_i\sum_jw\_{ji}\bar\mu\_{gj}) with
+w\_{ji}=p\_{ji}e^{\alpha_i} ([Cable et al.
+2022](#ref-cableRobustDecompositionCell2022a)), and Sarkar and Stephens
+x\_{gc}\sim\mathrm{Poisson}(s_cb_g\lambda\_{gc}) ([Sarkar and Stephens
+2021](#ref-sarkarSeparatingMeasurementExpression2021)). Here the rate is
+carried by cell type rather than by gene: an average type-j cell
+contributes S_j\boldsymbol{\theta}\_{\cdot j}, multiplied by its number
+of cells and by the capture ratio. The variance does not follow the
+Poisson mean–variance law; it comes from the cell-to-cell covariance
+\boldsymbol{\Sigma}\_{W,j}. The scale (n in `RNA-Sieve`, N_ie^{\alpha_i}
+in `RCTD`) is the total number of cells only when bulk and reference
+share the platform, or for paired samples with similar biological and
+technical size factors ([Erdmann-Pham et al.
+2021](#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021)); otherwise
+n_i is an effective number of reference-equivalent cells.
 
 #### Layer 3: a residual bulk term
 
@@ -1250,47 +1261,52 @@ Adding
 \boldsymbol{\epsilon}\_i\sim\mathcal{N}\_G(\boldsymbol{0},\boldsymbol{D}\_i)
 gives
 
-\boldsymbol{\Sigma}(\boldsymbol{p},a,\kappa,\boldsymbol{\tau}^{2})
-=a^{2}\kappa\boldsymbol{S}\_W(\boldsymbol{p})+\boldsymbol{D}\_i,
-\tag{46}
+\boldsymbol{\Sigma}(\boldsymbol{p},\phi,\boldsymbol{\tau}^{2})
+=\phi\boldsymbol{S}\_W(\boldsymbol{p})+\boldsymbol{D}\_i, \tag{46}
 
 with
 \boldsymbol{\Sigma}\_{\tau_g^{2}}=\boldsymbol{e}\_g\boldsymbol{e}\_g^{\top}
-as in [Eq. 38](#eq-cc-score-tau). \kappa_i and \boldsymbol{D}\_i both
+as in [Eq. 38](#eq-cc-score-tau). \phi_i and \boldsymbol{D}\_i both
 inflate the variance and are separated by structure, not by magnitude:
 the network entries of \boldsymbol{S}\_W(\boldsymbol{p}) identify
-\kappa_i, the diagonal excess identifies \boldsymbol{D}\_i. If the
-reference network is weak, a free \boldsymbol{D}\_i will absorb
-\kappa_i, and n_i becomes unidentifiable; constrain \boldsymbol{D}\_i as
-in [Sec. 4.1.4](#sec-cc-noise) or fix \kappa_i externally.
+\phi_i, the diagonal excess identifies \boldsymbol{D}\_i. If the
+reference network is weak, a free \boldsymbol{D}\_i absorbs \phi_i, and
+n_i becomes unidentifiable; constrain \boldsymbol{D}\_i as in
+[Sec. 4.1.4](#sec-cc-noise), fix n_i externally, or drop
+\boldsymbol{D}\_i, as the [final
+model](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-final-choice)
+does.
 
 #### Layer 4: within and between covariance from R replicates
 
-With R\ge 2 replicates, divide [Eq. 39](#eq-cc-replicate-type) by n_i:
-the between term
-m\_{ji}^{2}\boldsymbol{\Sigma}\_{B,j}/n_i^{2}=p\_{ji}^{2}\boldsymbol{\Sigma}\_{B,j}
+With R\ge 2 replicates, multiply [Eq. 39](#eq-cc-replicate-type) by a_i
+and set \boldsymbol{m}\_{\cdot i}=n_i\boldsymbol{p}\_{\cdot i}: the
+between term
+a_i^{2}m\_{ji}^{2}\boldsymbol{\Sigma}\_{B,j}=c_i^{2}p\_{ji}^{2}\boldsymbol{\Sigma}\_{B,j}
 keeps its quadratic weight, the within term becomes
-\kappa_ip\_{ji}\boldsymbol{\Sigma}\_{W,j}. The four-layer law is the
-three-layer law of the perspectives vignette with the scale written out,
+\phi_ip\_{ji}\boldsymbol{\Sigma}\_{W,j}. The four-layer law is
+[Eq. 8](#eq-three-layer) on the scale of the bulk library,
 
-\boldsymbol{y}\_{\cdot i}\mid\boldsymbol{p}\_{\cdot i},a_i,\kappa_i
-\sim\mathcal{N}\_G\Bigl( a_i\boldsymbol{\mu}\boldsymbol{p}\_{\cdot i},\\
-a_i^{2}\bigl\[\boldsymbol{S}\_B(\boldsymbol{p}\_{\cdot
-i})+\kappa_i\boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot i})\bigr\]
+\boldsymbol{y}\_{\cdot i}\mid\boldsymbol{p}\_{\cdot i},c_i,\phi_i
+\sim\mathcal{N}\_G\Bigl(
+c_i\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot i},\\
+c_i^{2}\boldsymbol{S}\_B(\boldsymbol{p}\_{\cdot
+i})+\phi_i\boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot i})
 +\boldsymbol{D}\_i \Bigr), \tag{47}
 
 and the covariance derivatives in \boldsymbol{p} are
 
-\boldsymbol{\Sigma}\_{p_k}
-=a^{2}\bigl(2p_k\boldsymbol{\Sigma}\_{B,k}+\kappa\boldsymbol{\Sigma}\_{W,k}\bigr),
-\qquad \boldsymbol{\Sigma}\_{p_kp_k}=2a^{2}\boldsymbol{\Sigma}\_{B,k},
-\qquad \boldsymbol{\Sigma}\_{p_kp_l}=\boldsymbol{0}\\ (k\neq l).
+\boldsymbol{\Sigma}\_{p_j}
+=2c^{2}p_j\boldsymbol{\Sigma}\_{B,j}+\phi\boldsymbol{\Sigma}\_{W,j},
+\qquad \boldsymbol{\Sigma}\_{p_jp_j}=2c^{2}\boldsymbol{\Sigma}\_{B,j},
+\qquad \boldsymbol{\Sigma}\_{p_jp\_\ell}=\boldsymbol{0}\\ (j\neq\ell).
 \tag{48}
 
-Setting \kappa_i\to 0 (a bulk of infinitely many cells),
-\boldsymbol{D}\_i=\boldsymbol{0} and a_i=1 returns the released DeCovarT
-derivatives with \boldsymbol{\Sigma}\_j=\boldsymbol{\Sigma}\_{B,j}.
-Released DeCovarT is therefore the large-n_i, noise-free limit of this
+Setting n_i\to\infty at fixed c_i=1 (so \phi_i\to 0),
+\boldsymbol{D}\_i=\boldsymbol{0}, returns the released DeCovarT
+derivatives with \boldsymbol{\mu}=\tilde{\boldsymbol{\mu}} on the bulk
+scale and \boldsymbol{\Sigma}\_j=\boldsymbol{\Sigma}\_{B,j}. Released
+DeCovarT is therefore the large-n_i, noise-free limit of this
 formulation, which is why its \boldsymbol{\Sigma}\_j must be a
 between-replicate covariance to carry a sampling interpretation. The
 diagonal-\boldsymbol{\Sigma}\_{B,j} remark of
@@ -1301,57 +1317,39 @@ backends of the derivatives vignette see only the structure of
 
 #### Strategy 2, DECALS and MEAD
 
-`DECALS` is the method closest to released DeCovarT ([Cai et al.
-2024](#ref-caiStatisticalInferenceCelltype2024)). Its model (their
-equation 2) is y\_{ij}=\sum_k\pi\_{ik}w\_{kj}+\epsilon\_{ij} on FPKM,
-fitted by constrained ordinary least squares (their equation 3), and its
-subject-specific covariance under independent cell-type profiles is
-\boldsymbol{\Sigma}\_i=\operatorname{Cov}(\sum_k\pi\_{ik}\boldsymbol{x}\_i^{(k)})
-=\sum_k\pi\_{ik}^{2}\boldsymbol{\Sigma}^{(k)} (their Section 2.3): the
-quadratic layer \boldsymbol{S}\_B(\boldsymbol{p}) and nothing else.
-Three contrasts with [Eq. 47](#eq-av-four-layer):
+`DECALS` and `MEAD` sit on this branch; their models are in the review
+([`DECALS`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-review-distribution-aware-deconvolution.html#sec-decals),
+[`MEAD`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-review-distribution-aware-deconvolution.html#sec-mead)).
+In our indices the `DECALS` bulk covariance is
+\operatorname{Cov}(\boldsymbol{y}\_{\cdot
+i})=\sum_jp\_{ji}^{2}\boldsymbol{\Sigma}\_j (their Section 2.3), the
+quadratic layer \boldsymbol{S}\_B(\boldsymbol{p}) and nothing else ([Cai
+et al. 2024](#ref-caiStatisticalInferenceCelltype2024)). Three contrasts
+with [Eq. 47](#eq-av-four-layer) remain.
 
-- **Where \boldsymbol{\Sigma}^{(k)} comes from.** `DECALS` regresses the
-  residual outer products \hat z\_{ij}\hat z\_{ij'} on
-  (\hat\pi\_{i1}^{2},\ldots,\hat\pi\_{iK}^{2}) across the n bulk samples
-  (their equation 6). The design matrix
-  \boldsymbol{H}=\[\hat\pi\_{ik}^{2}\] must have full column rank, so it
-  needs N\ge J bulk samples with varying composition. DeCovarT plugs in
-  reference estimates and needs no bulk replication for the covariance.
-  The two sources are complementary: a residual regression on N bulk
-  samples is a route to \boldsymbol{\Sigma}\_{B,j} when R=1 in the
-  reference.
-- **Estimator.** `DECALS` keeps constrained OLS for the point estimate
-  and uses \boldsymbol{\Sigma}\_i only for the asymptotic covariance
-  V_i=UDU^{\top} with
-  D=(\tfrac1pW^{\top}W)^{-1}\tfrac1pW^{\top}\boldsymbol{\Sigma}\_iW(\tfrac1pW^{\top}W)^{-1}.
-  It considers constrained GLS with \boldsymbol{\Sigma}\_i^{-1/2} and
-  rejects it because the estimated inverse square root is too noisy per
-  sample. DeCovarT maximises the full Gaussian likelihood, whose
-  determinant term and covariance-quadratic term are absent from any GLS
-  criterion ([GLS
+- **Source of \boldsymbol{\Sigma}\_j.** `DECALS` regresses residual
+  outer products on \hat p\_{ji}^{2} across bulk samples, which needs
+  N\ge J samples of varying composition; DeCovarT plugs in reference
+  estimates. With R=1, that regression is a route to
+  \boldsymbol{\Sigma}\_{B,j}.
+- **Estimator.** `DECALS` keeps constrained least squares for
+  \hat{\boldsymbol{p}} and uses \boldsymbol{\Sigma}\_j only in a
+  sandwich variance; DeCovarT maximises the Gaussian likelihood, whose
+  determinant and covariance-quadratic terms no least-squares criterion
+  has ([GLS
   competitor](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-extensions-roadmap.html#sec-robust-gls)).
-- **Finite-sample correction.** The `DECALS` bias correction (their
-  equation 7, Proposition 1) targets the moment estimator of
-  \boldsymbol{\Sigma}^{(k)}, not the proportion estimator. [Firth
-  penalisation](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-firth)
-  sets it beside Firth’s adjustment.
+- **Finite-sample correction.** The `DECALS` correction targets its
+  covariance estimator, not \hat{\boldsymbol{p}} ([Firth
+  penalisation](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-firth)).
 
-`MEAD` sits on the same branch with a different nuisance parametrisation
-([Xie et al. 2026](#ref-xieStatisticalInferenceCell2026)). Its
-\boldsymbol{\beta}\_i=\gamma_i\boldsymbol{p}\_i is the
-(a_i,\boldsymbol{p}\_{\cdot i}) pair of [Eq. 44](#eq-av-scale-law), and
-the simplex is imposed only at the end, by normalising
-\hat{\boldsymbol{\beta}}\_i. Its random platform ratio adds
-(\boldsymbol{\Lambda}-\mathbf{I})\mathbf{U}\boldsymbol{\beta}\_i to the
-error: a diagonal, mean-proportional inflation like \boldsymbol{D}\_i,
-but shared by all samples and therefore correlated across them. Its
-reference covariance \hat{\mathbf{V}}\_g is the errors-in-variables term
-\sum_jp\_{ji}^{2}\boldsymbol{\Sigma}\_{W,j}/C_j of
-[Sec. 6](#sec-summary), not a biological layer; neither
-\boldsymbol{S}\_W nor \boldsymbol{S}\_B enters its estimating equation,
-and gene–gene dependence enters only the sandwich variance
-([`MEAD`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-review-distribution-aware-deconvolution.html#sec-mead)).
+`MEAD` estimates \boldsymbol{\beta}\_i=\gamma_i\boldsymbol{p}\_{\cdot
+i}, the (c_i,\boldsymbol{p}\_{\cdot i}) pair of
+[Eq. 44](#eq-av-scale-law), and normalises at the end ([Xie et al.
+2026](#ref-xieStatisticalInferenceCell2026)). Its random platform ratio
+\lambda_g, our \tilde b_g, is a mean-proportional diagonal inflation
+shared by all samples, and its reference covariance is the
+errors-in-variables term of [Sec. 6](#sec-summary); neither
+\boldsymbol{S}\_W nor \boldsymbol{S}\_B enters its estimating equation.
 
 > **Important 5: Strategies 1 and 2 are one model with one redundant
 > coordinate**
@@ -1359,19 +1357,19 @@ and gene–gene dependence enters only the sandwich variance
 > Start from the five-layer law [Eq. 40](#eq-cc-five-layer) and set
 > \boldsymbol{m}\_{\cdot i}=n_i\boldsymbol{p}\_{\cdot i}:
 >
-> \begin{aligned} a_i\boldsymbol{\mu}\boldsymbol{m}\_{\cdot i}
-> &=(a_in_i)\\\boldsymbol{\mu}\boldsymbol{p}\_{\cdot i}, \\
+> \begin{aligned} a_i\tilde{\boldsymbol{\mu}}\boldsymbol{m}\_{\cdot i}
+> &=c_i\\\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot i}, \\
 > a_i^{2}\bigl\[\boldsymbol{S}\_W(\boldsymbol{m}\_{\cdot
 > i})+\boldsymbol{S}\_B(\boldsymbol{m}\_{\cdot i})\bigr\]
-> &=(a_in_i)^{2}\Bigl\[\frac{1}{n_i}\boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot
-> i})+\boldsymbol{S}\_B(\boldsymbol{p}\_{\cdot i})\Bigr\]. \end{aligned}
+> &=\phi_i\boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot
+> i})+c_i^{2}\boldsymbol{S}\_B(\boldsymbol{p}\_{\cdot i}), \end{aligned}
 > \tag{49}
 >
-> Renaming a_in_i\mapsto a_i and 1/n_i\mapsto\kappa_i gives
+> with c_i=a_in_i and \phi_i=a_i^{2}n_i, which is
 > [Eq. 47](#eq-av-four-layer) exactly. The map (\boldsymbol{m}\_{\cdot
-> i},a_i)\mapsto(\boldsymbol{p}\_{\cdot i},\kappa_i,a_in_i) is a
-> bijection from (0,\infty)^{J}\times(0,\infty) onto
-> \Delta^{J-1}\times(0,\infty)^{2}, so the two strategies are
+> i},a_i)\mapsto(\boldsymbol{p}\_{\cdot i},c_i,\phi_i) is a bijection
+> from (0,\infty)^{J}\times(0,\infty) onto
+> \mathring{\Delta}^{J-1}\times(0,\infty)^{2}, so the two strategies are
 > reparametrisations of the same Gaussian family. The cellular ratio
 > p\_{ji} is the count m\_{ji} averaged by n_i, and the quadratic
 > DeCovarT weight is the between-population layer written per cell:
@@ -1380,9 +1378,9 @@ and gene–gene dependence enters only the sandwich variance
 > What differs is how the redundant degree of freedom is spent. Strategy
 > 1 has J+1 free parameters (\boldsymbol{m},a) and the mean identifies
 > only a\boldsymbol{m}; the count scale comes from the covariance.
-> Strategy 2 has (J-1)+2 free parameters (\boldsymbol{p},\kappa,a); the
-> simplex removes one coordinate and lets the mean identify a outright,
-> leaving \kappa to the covariance. The integer constraint of
+> Strategy 2 has (J-1)+2 free parameters (\boldsymbol{p},c,\phi); the
+> simplex removes one coordinate and lets the mean identify c outright,
+> leaving \phi to the covariance. The integer constraint of
 > [Sec. 4.1.2](#sec-cc-integer) exists only in Strategy 1, because
 > n_i\boldsymbol{p}\_{\cdot i} is not constrained to the lattice once
 > n_i is a continuous nuisance. Choose by the question: counts and a
@@ -1425,16 +1423,15 @@ v_g\delta\_{gg'}-z_gv\_{g'}-z\_{g'}v_g+z_gz\_{g'}\sum_hv_h \Bigr),
 so independent genes become negatively correlated after normalisation,
 and the gene network estimated on raw counts is no longer the network of
 the normalised bulk. The target also changes: with
-\boldsymbol{\mu}\_{\cdot j}=S_j\boldsymbol{\theta}\_{\cdot j} the
-normalised mean is \sum_jq\_{ji}\boldsymbol{\theta}\_{\cdot j} with RNA
-fractions q\_{ji}=m\_{ji}S_j/\sum_km\_{ki}S_k, which equal cell
-fractions only when S_j is constant ([RNA fraction versus cell
-fraction](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-uncoupling)).
-This vignette does not develop Strategy 3 further: it removes the count
-scale that Strategies 1 and 2 estimate, breaks the additive mixture that
-the convolution needs ([normalisation that preserves the linear
-mixture](#sec-norm-linear)), and is the regime in which `MuSiC` and
-`DECALS` operate by choice.
+\tilde{\boldsymbol{\mu}}\_{\cdot j}=S_j\boldsymbol{\theta}\_{\cdot j}
+the normalised mean is \sum_jq\_{ji}\boldsymbol{\theta}\_{\cdot j} with
+RNA fractions q\_{ji}=m\_{ji}S_j/\sum\_\ell m\_{\ell i}S\_\ell, which
+equal cell fractions only when S_j is constant
+([Sec. 5](#sec-uncoupling)). This vignette does not develop Strategy 3
+further: it removes the count scale that Strategies 1 and 2 estimate,
+breaks the additive mixture that the convolution needs ([normalisation
+that preserves the linear mixture](#sec-norm-linear)), and is the regime
+in which `MuSiC` and `DECALS` operate by choice.
 
 ### Strategy 4: plug-in scales before deconvolution
 
@@ -1460,9 +1457,9 @@ fits \boldsymbol{p}\_{\cdot i} with \hat{\boldsymbol{\eta}} held fixed.
 | Technical size factor s^{\mathrm{tech}}\_c, extrinsic noise \nu^{\mathrm{tech}} | [the Poisson-gene size factor](https://bastienchassagnol.github.io/DeCovarT/articles/theory-review-distribution-aware-deconvolution.html#eq-poisson-size-factor) on Poisson genes; spike-ins | reference cells | Fang and Pachter; [the denoised within-type covariance](https://bastienchassagnol.github.io/DeCovarT/articles/theory-review-distribution-aware-deconvolution.html#eq-denoised-within) |
 | Cell size S_j | mean UMI total per type; CLTS; RNA-content assay | reference, or external assay | `MuSiC`, `ReDeconv`, `EPIC`, `quanTIseq` |
 | Reference scale a^{\mathrm{ref}}\_r | grand mean of the reference matrix | reference alone | `MEAD` (\hat\gamma_j) |
-| Gene-wise platform \boldsymbol{d} | regression on paired samples; moment matching; pseudo-bulk MLE | paired cohort, or all bulks | `Bisque`, `RCTD` stage 1 |
-| Sample scale a_i | observed library size as an offset | bulk total | `RCTD` (N_i) |
-| Type moments \boldsymbol{\mu}\_{\cdot j}, \boldsymbol{\Sigma}\_j | reference averages and covariances | reference | every method except `RNA-Sieve` and `MEAD` |
+| Gene-wise platform ratio \tilde{\boldsymbol{b}} | regression on paired samples; moment matching; pseudo-bulk MLE | paired cohort, or all bulks | `Bisque`, `RCTD` stage 1 |
+| Sample scale c_i | observed library size as an offset | bulk total | `RCTD` (N_i) |
+| Type moments \tilde{\boldsymbol{\mu}}\_{\cdot j}, \boldsymbol{\Sigma}\_{W,j} | reference averages and covariances | reference | every method except `RNA-Sieve` and `MEAD` |
 
 Table 2: Quantities that the reviewed methods estimate before the
 deconvolution and then hold fixed.
@@ -1471,25 +1468,25 @@ With the plug-ins, the bulk law of Strategy 2 becomes
 
 \boldsymbol{y}\_{\cdot i}\mid\boldsymbol{p}\_{\cdot
 i};\hat{\boldsymbol{\eta}} \sim\mathcal{N}\_G\Bigl( \hat
-a_i\\\hat{\boldsymbol{\mathcal{D}}}\hat{\boldsymbol{\Theta}}\hat{\boldsymbol{S}}\boldsymbol{p}\_{\cdot
-i},\\ \hat
-a_i^{2}\\\hat{\boldsymbol{\mathcal{D}}}\bigl\[\boldsymbol{S}\_B(\boldsymbol{p}\_{\cdot
-i})+\hat\kappa_i\boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot
-i})\bigr\]\hat{\boldsymbol{\mathcal{D}}} +\boldsymbol{D}\_i\Bigr),
-\tag{53}
+c_i\\\hat{\tilde{\mathbf{B}}}\sum_jp\_{ji}\hat
+S_j\hat{\boldsymbol{\theta}}\_{\cdot j},\\
+\hat{\tilde{\mathbf{B}}}\bigl\[\hat
+c_i^{2}\boldsymbol{S}\_B(\boldsymbol{p}\_{\cdot
+i})+\hat\phi_i\boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot
+i})\bigr\]\hat{\tilde{\mathbf{B}}} +\boldsymbol{D}\_i\Bigr), \tag{53}
 
 with
-\hat{\boldsymbol{\mathcal{D}}}=\operatorname{diag}(\hat{\boldsymbol{d}}),
-\hat{\boldsymbol{S}}=\operatorname{diag}(\hat S_1,\ldots,\hat S_J) and
-\boldsymbol{S}\_W built from [the denoised within-type
+\hat{\tilde{\mathbf{B}}}=\operatorname{diag}(\hat{\tilde{\boldsymbol{b}}}),
+plugged-in sizes \hat S_j and relative abundances
+\hat{\boldsymbol{\theta}}\_{\cdot j}, and \boldsymbol{S}\_W built from
+[the denoised within-type
 covariance](https://bastienchassagnol.github.io/DeCovarT/articles/theory-review-distribution-aware-deconvolution.html#eq-denoised-within).
 The tuple of [Theorem 1](#thm-score-general) is that of
-[Sec. 4.2.4](#sec-av-replicates) with \boldsymbol{\mu}\_{\cdot j}
-replaced by \hat
-a_i\hat{\boldsymbol{\mathcal{D}}}\hat{\boldsymbol{\mu}}\_{\cdot j} and
-every covariance block sandwiched by \hat{\boldsymbol{\mathcal{D}}};
-only \boldsymbol{p}\_{\cdot i} (and, if kept free,
-\boldsymbol{\tau}^{2}) remains in the score.
+[Sec. 4.2.4](#sec-av-replicates) with \tilde{\boldsymbol{\mu}}\_{\cdot
+j} replaced by \hat c_i\hat{\tilde{\mathbf{B}}}\hat
+S_j\hat{\boldsymbol{\theta}}\_{\cdot j} and every covariance block
+sandwiched by \hat{\tilde{\mathbf{B}}}; only \boldsymbol{p}\_{\cdot i}
+(and, if kept free, \boldsymbol{\tau}^{2}) remains in the score.
 
 #### Why plug in: identifiability
 
@@ -1500,12 +1497,12 @@ is not a convenience but the only route.
   ([Eq. 9](#eq-music-mean)). Fitting with a wrong \hat S_j makes the
   estimator converge to \tilde p\_{ji}\propto p\_{ji}S_j/\hat S_j: the
   cell fractions are rescaled by the ratio of true to plugged-in sizes.
-  That is `MEAD`’s \delta_k rescaling and `MuSiC`’s assumption A3'.
-- **Gene-wise platform and composition.** A free \boldsymbol{d} fitted
-  on the sample being deconvolved absorbs any residual, and with perfect
-  markers it absorbs a type-specific factor (`MEAD`, Theorem 1). `RCTD`
-  and `Bisque` estimate it on all bulks or on a paired cohort; `MEAD`
-  declines to estimate it and treats it as noise.
+  That is `MEAD`’s cell-size rescaling and `MuSiC`’s assumption A3'.
+- **Gene-wise platform and composition.** A free \tilde{\boldsymbol{b}}
+  fitted on the sample being deconvolved absorbs any residual, and with
+  perfect markers it absorbs a type-specific factor (`MEAD`, Theorem 1).
+  `RCTD` and `Bisque` estimate it on all bulks or on a paired cohort;
+  `MEAD` declines to estimate it and treats it as noise.
 - **Technical versus biological size factors.** One cell’s counts
   identify only the product s^{\mathrm{bio}}\_cs^{\mathrm{tech}}\_c;
   spike-ins or ambient RNA separate them ([Fang and Pachter
@@ -1548,70 +1545,60 @@ merely noisier, when the auxiliary data measure a different scale
 1 used one scalar a_i. Capture efficiency in single-cell protocols is
 gene dependent and technology dependent, so the alignment between
 reference and bulk is in general an affine map. Let
-\boldsymbol{c}\in\mathbb{R}^{G} be a background intercept and
-\boldsymbol{B}\_j=\operatorname{diag}(\boldsymbol{d}\_j) a gene-wise,
-type-wise scale. Affine invariance of the Gaussian family gives exactly
+\boldsymbol{o}\in\mathbb{R}^{G} be a background intercept and
+\tilde{\mathbf{B}}\_j=\operatorname{diag}(\tilde{\boldsymbol{b}}\_j) a
+gene-wise, type-wise platform ratio that also carries the sample scale.
+Affine invariance of the Gaussian family gives exactly
 
 \boldsymbol{y}\_{\cdot i}
-=\boldsymbol{c}+\sum_j\boldsymbol{B}\_j\boldsymbol{T}\_{ji}+\boldsymbol{\epsilon}\_i
+=\boldsymbol{o}+\sum_j\tilde{\mathbf{B}}\_j\boldsymbol{T}\_{ji}+\boldsymbol{\epsilon}\_i
 \sim\mathcal{N}\_G\Bigl(
-\boldsymbol{c}+\sum_jm\_{ji}\boldsymbol{B}\_j\boldsymbol{\mu}\_{\cdot
+\boldsymbol{o}+\sum_jm\_{ji}\tilde{\mathbf{B}}\_j\tilde{\boldsymbol{\mu}}\_{\cdot
 j},\\
-\sum_jm\_{ji}\boldsymbol{B}\_j\boldsymbol{\Sigma}\_{W,j}\boldsymbol{B}\_j^{\top}+\boldsymbol{D}\_i
+\sum_jm\_{ji}\tilde{\mathbf{B}}\_j\boldsymbol{\Sigma}\_{W,j}\tilde{\mathbf{B}}\_j+\boldsymbol{D}\_i
 \Bigr), \tag{56}
 
 and the tuple of [Theorem 1](#thm-score-general) follows by replacing
-\boldsymbol{\mu}\_{\cdot j} with
-\boldsymbol{B}\_j\boldsymbol{\mu}\_{\cdot j} and
+\tilde{\boldsymbol{\mu}}\_{\cdot j} with
+\tilde{\mathbf{B}}\_j\tilde{\boldsymbol{\mu}}\_{\cdot j} and
 \boldsymbol{\Sigma}\_{W,j} with
-\boldsymbol{B}\_j\boldsymbol{\Sigma}\_{W,j}\boldsymbol{B}\_j. Three
-special cases are already in the literature.
-\boldsymbol{B}\_j=a_i\mathbf{I}\_G, \boldsymbol{c}=\boldsymbol{0} is 1.
-\boldsymbol{c}=(\alpha\_{jg})\_g with \boldsymbol{B}\_j=\mathbf{I}\_G is
-the gene- and subject-specific intercept `MuSiC` adds to its equation
+\tilde{\mathbf{B}}\_j\boldsymbol{\Sigma}\_{W,j}\tilde{\mathbf{B}}\_j.
+Three special cases are already in the literature.
+\tilde{\mathbf{B}}\_j=a_i\mathbf{I}\_G, \boldsymbol{o}=\boldsymbol{0}
+is 1. A gene- and subject-specific intercept \boldsymbol{o} with
+\tilde{\mathbf{B}}\_j=\mathbf{I}\_G is what `MuSiC` adds to its equation
 (8) to absorb protocol bias ([Wang et al.
 2019](#ref-wangBulkTissueCell2019)).
-\boldsymbol{B}\_j=\operatorname{diag}(\boldsymbol{d}) shared across
-types, with a per-gene intercept, is the `Bisque` transformation learned
-on paired individuals ([Jew et al.
-2020](#ref-jewAccurateEstimationCell2020)) and the \boldsymbol{d} of
-`MEAD` and `RCTD` ([alignment](#sec-alignment)).
+\tilde{\mathbf{B}}\_j=\tilde{\mathbf{B}} shared across types, with a
+per-gene intercept, is the `Bisque` transformation learned on paired
+individuals ([Jew et al. 2020](#ref-jewAccurateEstimationCell2020)) and
+the platform ratio of `MEAD` and `RCTD` ([Sec. 1.3](#sec-alignment)).
 
-Two warnings carry over. A free \boldsymbol{d} fitted on the sample
-being deconvolved is not identified from \boldsymbol{p}\_{\cdot i}; it
-must come from a paired cohort, a pseudo-bulk of all samples, or an
-external measurement model. A type-wise \boldsymbol{d}\_j is weaker
-still and is a candidate only when sorted bulk profiles of type j exist
-on the bulk platform. The quantity that an external model could supply
-is the gene-specific capture probability of the single-cell protocol.
-Sarkar and Stephens separate that protocol from the biological state: an
-observation model is a measurement model given the latent abundance,
-plus an expression model for the abundance ([Sarkar and Stephens
-2021](#ref-sarkarSeparatingMeasurementExpression2021)). `bayNorm` is a
-binomial measurement model for the unobserved original count, so the sum
-of posterior means over genes is a cell’s inferred transcript total and
-the within-type mean of those totals is S_j ([Tang et al.
-2020](#ref-tangBayNormBayesianGene2020)). `Sanity` is the
-expression-model step: a posterior on transcriptional activity after
-Poisson sampling noise, not a molecule count ([Breda et al.
-2021](#ref-bredaBayesianInferenceGene2021)). The ratios of those S_j are
-what the RNA-to-cell correction needs; one shared mean capture
-efficiency cancels. Any such plug-in is protocol specific, so
-\boldsymbol{B}\_j and S_j would be stored with the reference, never
-re-estimated per bulk sample. The longer statement is in the
-[perspectives
-vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-uncoupling).
+Two warnings carry over. A free \tilde{\boldsymbol{b}} fitted on the
+sample being deconvolved is not identified from \boldsymbol{p}\_{\cdot
+i}; it must come from a paired cohort, a pseudo-bulk of all samples, or
+an external measurement model of the capture probabilities b_g of both
+protocols ([Sarkar and Stephens
+2021](#ref-sarkarSeparatingMeasurementExpression2021)). A type-wise
+\tilde{\boldsymbol{b}}\_j is weaker still, and a candidate only when
+sorted bulk profiles of type j exist on the bulk platform. Any such
+plug-in is protocol specific, so \tilde{\mathbf{B}}\_j and S_j are
+stored with the reference, never re-estimated per bulk sample; the
+measurement-model estimates of S_j are in [Sec. 5](#sec-uncoupling).
 
 ## RNA fraction versus cell fraction
 
-DeCovarT, like most linear engines, estimates the **RNA mass fraction**
-\boldsymbol{q}\_{\cdot i} of type j, not the cytometric cell fraction
-\boldsymbol{p}\_{\cdot i}, unless transcriptome sizes S_j (mean
-transcripts per cell; [Note 1](#nte-notation)) are homogeneous. With
-\hat q\_{j} the RNA-scale estimate,
+A linear engine fitted on a library-normalised signature
+\boldsymbol{\theta}\_{\cdot j}, or on a normalised bulk, estimates the
+**RNA mass fraction** \boldsymbol{q}\_{\cdot i}, not the cytometric cell
+fraction \boldsymbol{p}\_{\cdot i}, unless transcriptome sizes S_j (mean
+transcripts per cell; [Note 1](#nte-notation)) are homogeneous. Fitted
+on the raw per-cell means \tilde{\boldsymbol{\mu}}\_{\cdot j}, it
+returns \boldsymbol{p}\_{\cdot i} directly, provided their UMI totals
+S_j reflect RNA content. With \hat q\_{j} an RNA-scale estimate,
 
-\hat p\_{j} =\frac{\hat q\_{j}/S\_{j}}{\sum\_{k=1}^{J}\hat
-q\_{k}/S\_{k}}. \tag{57}
+\hat p\_{j} =\frac{\hat q\_{j}/S\_{j}}{\sum\_{\ell=1}^{J}\hat
+q\_{\ell}/S\_{\ell}}. \tag{57}
 
 **Post-correction** treats S_j as measured (or proxied). `EPIC` and
 `quanTIseq` rescale \hat{\boldsymbol{q}} using kit-based mRNA content or
@@ -1632,8 +1619,8 @@ analogue would introduce S_j inside the mean
 \sum\_{j}p\_{ji}S\_{j}\boldsymbol{\theta}\_{\cdot j} (with a
 product-simplex constraint on (p\_{j}S\_{j})), rather than assuming S_j
 known. If S_j is observed, plug it in. Do not estimate a free gene-wise
-platform vector \boldsymbol{d} in the same fit ([alignment
-scales](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-alignment)).
+platform ratio \tilde{\boldsymbol{b}} in the same fit
+([Sec. 1.3](#sec-alignment)).
 
 **Bayesian transcript totals.** With no RNA-content assay and no
 cytometry ground truth, S_j has to come from a measurement model on the
@@ -1664,34 +1651,38 @@ The observed library size is a capture total, not this S_j.
 |  | Strategy 1: cell counts | Strategy 2: averaged mixture | Strategy 3: compositional | Strategy 4: plug-in scales | Released DeCovarT |
 |----|----|----|----|----|----|
 | Target | \boldsymbol{m}\_{\cdot i}\in\mathbb{N}^{J}, then \boldsymbol{p}=\boldsymbol{m}/n | \boldsymbol{p}\_{\cdot i}\in\Delta^{J-1}, n_i nuisance | RNA fractions \boldsymbol{q}\_{\cdot i} | \boldsymbol{p}\_{\cdot i} given \hat{\boldsymbol{\eta}} | \boldsymbol{p}\_{\cdot i}\in\Delta^{J-1} |
-| Covariance weights | linear m\_{ji} in \boldsymbol{\Sigma}\_{W,j}; quadratic m\_{ji}^{2} in \boldsymbol{\Sigma}\_{B,j} | linear \kappa_ip\_{ji}; quadratic p\_{ji}^{2} | delta-method image of either | as Strategy 2, rescaled by \hat{\boldsymbol{d}}, \hat a_i | quadratic p\_{ji}^{2} only |
+| Covariance weights | linear m\_{ji} in \boldsymbol{\Sigma}\_{W,j}; quadratic m\_{ji}^{2} in \boldsymbol{\Sigma}\_{B,j} | linear \phi_ip\_{ji}; quadratic c_i^{2}p\_{ji}^{2} | delta-method image of either | as Strategy 2, rescaled by \hat{\tilde{\boldsymbol{b}}}, \hat c_i | quadratic p\_{ji}^{2} only |
 | Constraint | none; lattice | simplex via ILR | closure, singular | simplex via ILR | simplex via ILR |
-| Scale identification | mean fixes a\boldsymbol{m}; covariance fixes a | mean fixes a; covariance fixes \kappa | scale removed | from auxiliary data | a absorbed in \boldsymbol{y} |
+| Scale identification | mean fixes a\boldsymbol{m}; covariance fixes a | mean fixes c; covariance fixes \phi | scale removed | from auxiliary data | c_i=1 |
 | Reviewed methods | `RNA-Sieve`, `DWLS`, `MuSiC` eq. (2) | `DECALS`, `MEAD`, DeCovarT | `MuSiC`, `Bisque`, `DECALS` | `MuSiC` (S_j), `RCTD`, `Bisque`, `MEAD` (\hat\gamma) | – |
-| Advantages | counts are the physical quantity; zeros are ordinary points; linear covariance, one Cholesky per iteration | DeCovarT is its noise-free limit; simplex identifies a; direct comparison with `DECALS`, `MEAD` | matches CPM/TPM pipelines; no scale to estimate | breaks non-identifiability of S_j and \boldsymbol{d}; uses external information | implemented; exact Gaussian; sparse \boldsymbol{\Omega}\_j as declared input |
-| Drawbacks | a needs \boldsymbol{\Sigma}\_{W,j} on the reference molecule scale; integer search for rare types | \kappa and \boldsymbol{D} separated only through off-diagonal structure | induced correlations; \boldsymbol{q}\neq\boldsymbol{p} unless S_j constant | biased if the auxiliary scale differs; variance needs [Eq. 54](#eq-plugin-variance) | \boldsymbol{\Sigma}\_j must be a between-replicate covariance; silences \boldsymbol{\Sigma}\_{W,j} for rare types |
+| Advantages | counts are the physical quantity; zeros are ordinary points; linear covariance, one Cholesky per iteration | DeCovarT is its noise-free limit; simplex identifies a; direct comparison with `DECALS`, `MEAD` | matches CPM/TPM pipelines; no scale to estimate | breaks non-identifiability of S_j and \tilde{\boldsymbol{b}}; uses external information | implemented; exact Gaussian; sparse \boldsymbol{\Omega}\_j as declared input |
+| Drawbacks | a needs \boldsymbol{\Sigma}\_{W,j} on the reference molecule scale; integer search for rare types | \phi and \boldsymbol{D} separated only through off-diagonal structure | induced correlations; \boldsymbol{q}\neq\boldsymbol{p} unless S_j constant | biased if the auxiliary scale differs; variance needs [Eq. 54](#eq-plugin-variance) | \boldsymbol{\Sigma}\_j must be a between-replicate covariance; silences \boldsymbol{\Sigma}\_{W,j} for rare types |
 
 Table 3: The four formulations and the released model.
 
-[Table 3](#tbl-strategies) points to Strategy 2 with the four layers of
-[Sec. 4.2.4](#sec-av-replicates) as the model DeCovarT should fit when a
-single-cell reference is used, with S_j and \boldsymbol{d} plugged in as
-in Strategy 4 and the within-type covariance cleaned as in [the denoised
-within-type
-covariance](https://bastienchassagnol.github.io/DeCovarT/articles/theory-review-distribution-aware-deconvolution.html#eq-denoised-within).
-Strategy 1 is its count-scale chart. The resulting model for one UMI
-donor and few bulk samples, written as a quasi-likelihood GLM with its
-inference, is the [final
+[Table 3](#tbl-strategies) points to Strategy 2, with Strategy 1 as its
+count-scale chart. For one UMI donor, one bulk sample and no covariates,
+the model kept is its linear layer, [Eq. 44](#eq-av-scale-law), on raw
+per-cell means, with both scales c_i,\phi_i estimated or profiled and no
+\boldsymbol{S}\_B or \boldsymbol{D}\_i layer: \boldsymbol{S}\_B needs
+R\ge 2 donors, and a bulk residual cannot be separated from the scales
+without further assumptions. Its quasi-likelihood form and inference are
+the [final
 choice](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-final-choice)
-of the inference vignette. Four further alternatives stay inside the
-multivariate Gaussian regime and deserve a place in a simulation study
-before any is implemented.
+of the inference vignette. With R\ge 2 donors the four layers of
+[Sec. 4.2.4](#sec-av-replicates) apply, with S_j and
+\tilde{\boldsymbol{b}} plugged in as in Strategy 4 and the within-type
+covariance cleaned as in [the denoised within-type
+covariance](https://bastienchassagnol.github.io/DeCovarT/articles/theory-review-distribution-aware-deconvolution.html#eq-denoised-within).
+Four further alternatives stay inside the multivariate Gaussian regime
+and deserve a place in a simulation study before any is implemented.
 
 1.  **Errors in variables for the signature.** The reference mean is
-    itself an average of C_j cells, so \hat{\boldsymbol{\mu}}\_{\cdot
-    j}\sim\mathcal{N}(\boldsymbol{\mu}\_{\cdot
+    itself an average of C_j cells, so
+    \hat{\tilde{\boldsymbol{\mu}}}\_{\cdot
+    j}\sim\mathcal{N}(\tilde{\boldsymbol{\mu}}\_{\cdot
     j},\boldsymbol{\Sigma}\_{W,j}/C_j). Marginalising it adds
-    \sum_jp\_{ji}^{2}\boldsymbol{\Sigma}\_{W,j}/C_j to
+    c_i^{2}\sum_jp\_{ji}^{2}\boldsymbol{\Sigma}\_{W,j}/C_j to
     [Eq. 47](#eq-av-four-layer): a quadratic within-type term that is
     Monte Carlo error of the signature, not biology, and that vanishes
     as the reference grows. `RNA-Sieve` and `MEAD` carry it
@@ -1706,9 +1697,8 @@ before any is implemented.
     diagonal restriction keeps it estimable.
 3.  **Multi-sample pooling.** Shared a across samples
     ([Sec. 4.2.2](#sec-av-scale)), shared \boldsymbol{D} across
-    technical replicates, or shared \kappa across samples of the same
-    tissue mass turn weakly identified per-sample scalars into pooled
-    ones.
+    technical replicates, or shared n across samples of the same tissue
+    mass turn weakly identified per-sample scalars into pooled ones.
 4.  **Compositional Gaussian on the bulk side.** If a pipeline insists
     on normalised bulk, model \operatorname{clr}(\boldsymbol{Z}\_i) or
     \operatorname{ilr}(\boldsymbol{Z}\_i) as Gaussian (a logistic-normal
@@ -1728,10 +1718,10 @@ is the natural competitor.
 Strategy 4 is orthogonal to that choice: any of the laws above can be
 fitted with plug-in scales. The rule that follows from
 [Sec. 4.4](#sec-strategy-plugin) is to plug in what the bulk cannot
-identify (S_j, \boldsymbol{d}, s^{\mathrm{tech}}\_c), to estimate
-jointly what it identifies well (a_i on the simplex chart), and in both
-cases to report [Eq. 54](#eq-plugin-variance) rather than the naive
-I\_{pp}^{-1}.
+identify (S_j, \tilde{\boldsymbol{b}}, s^{\mathrm{tech}}\_c), to
+estimate jointly what it identifies well (c_i and \phi_i on the simplex
+chart), and in both cases to report [Eq. 54](#eq-plugin-variance) rather
+than the naive I\_{pp}^{-1}.
 
 ## References
 
@@ -1743,6 +1733,11 @@ Breda, Jérémie, Mihaela Zavolan, and Erik van Nimwegen. 2021. ‘Bayesian
 Inference of Gene Expression States from Single-Cell RNA-Seq Data’.
 *Nature Biotechnology* 39 (8): 1008–16.
 <https://doi.org/10.1038/s41587-021-00875-x>.
+
+Cable, Dylan M., Evan Murray, Luli S. Zou, et al. 2022. ‘Robust
+Decomposition of Cell Type Mixtures in Spatial Transcriptomics’. *Nature
+Biotechnology* 40 (4): 517–26.
+<https://doi.org/10.1038/s41587-021-00830-w>.
 
 Cai, Biao, Emma Jingfei Zhang, Hongyu Li, Chang Su, and Hongyu Zhao.
 2024. ‘Statistical Inference of Cell-Type Proportions Estimated from

@@ -102,7 +102,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>DeCovarT inference: MLE properties, intervals for proportions and a GLM formulation</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-15</p>
+      <p class="date">2026-10-19</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-DeCovarT-MLE-properties.qmd" class="external-link"><code>vignettes/theory-DeCovarT-MLE-properties.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -215,15 +215,17 @@
 </div>
 <p>Every entry of <span class="math inline">\boldsymbol{y}</span> and <span class="math inline">\boldsymbol{\mu}</span> is strictly positive, <span class="math inline">\operatorname{rank}(\boldsymbol{\mu})=2</span>, <span class="math inline">G=3&gt;J=2</span>, and both covariances are positive definite. Yet the Hessian at the strictly interior point <span class="math inline">\boldsymbol{p}=(1/5,3/10)</span> has one positive and one negative eigenvalue.</p>
 <div id="nte-nonconcave">
+<div class="decovart-callout callout-important">
 <blockquote>
 <p><strong>Important 1: One indefinite Hessian disproves global concavity</strong></p>
 <p>A negative determinant at a single admissible point is a counterexample, so the unconstrained DeCovarT log-likelihood is <strong>not globally concave</strong> under the stated positivity and rank assumptions. The same conclusion transfers to the isometric log-ratio chart, because a <span class="math inline">C^{2}</span> diffeomorphism preserves the existence of directions of positive curvature. Consequently:</p>
 <ul>
 <li>a converged optimiser certifies a <strong>local</strong> maximum at best;</li>
 <li>several starts may reach different modes (see <a href="#sec-diagnostics" class="quarto-xref">Sec. 5</a>);</li>
-<li>convex-optimisation guarantees — a unique global optimum reachable by descent, and duality certificates — do not apply <span class="citation" data-cites="boydConvexOptimization2004">(<a href="#ref-boydConvexOptimization2004" role="doc-biblioref">Boyd et al. 2004</a>)</span>. The Marquardt–Levenberg damping of <code>marqLevAlg</code> <span class="citation" data-cites="R-marqLevAlg philippsRobustEfficientOptimization2021">(<a href="#ref-R-marqLevAlg" role="doc-biblioref">Philipps et al. 2023</a>, <a href="#ref-philippsRobustEfficientOptimization2021" role="doc-biblioref">2021</a>)</span> and the relative-distance-to-minimum criterion of <span class="citation" data-cites="commengesNewtonLikeAlgorithmLikelihood2006">Commenges et al. (<a href="#ref-commengesNewtonLikeAlgorithmLikelihood2006" role="doc-biblioref">2006</a>)</span> buy robustness against saddle points, not global optimality.</li>
+<li>convex-optimisation guarantees — a unique global optimum reachable by descent, and duality certificates — do not apply <span class="citation" data-cites="boydConvexOptimization2004">(<a href="#ref-boydConvexOptimization2004" role="doc-biblioref">Boyd et al. 2004</a>)</span>. The step safeguards of second-order solvers, the Newton trust region of <code>nlminb</code> and the Marquardt–Levenberg damping of <code>marqLevAlg</code> <span class="citation" data-cites="R-marqLevAlg philippsRobustEfficientOptimization2021">(<a href="#ref-R-marqLevAlg" role="doc-biblioref">Philipps et al. 2023</a>, <a href="#ref-philippsRobustEfficientOptimization2021" role="doc-biblioref">2021</a>)</span>, and the relative-distance-to-minimum criterion of <span class="citation" data-cites="commengesNewtonLikeAlgorithmLikelihood2006">Commenges et al. (<a href="#ref-commengesNewtonLikeAlgorithmLikelihood2006" role="doc-biblioref">2006</a>)</span> buy robustness against saddle points, not global optimality.</li>
 </ul>
 </blockquote>
+</div>
 </div>
 </section><section class="level2"><h3 id="sec-population">Population consistency and efficiency<a class="anchor" aria-label="anchor" href="#sec-population"></a>
 </h3>
@@ -475,73 +477,73 @@ o(\lVert\boldsymbol{d}\rVert^{2}) ,
 <tr class="odd">
 <td style="text-align: left;">delta</td>
 <td style="text-align: left;">ct1</td>
-<td style="text-align: right;">0.920</td>
-<td style="text-align: right;">0.080</td>
+<td style="text-align: right;">0.950</td>
+<td style="text-align: right;">0.097</td>
 <td style="text-align: right;">0.174</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">delta</td>
 <td style="text-align: left;">ct2</td>
-<td style="text-align: right;">0.945</td>
-<td style="text-align: right;">0.360</td>
-<td style="text-align: right;">0.208</td>
+<td style="text-align: right;">0.970</td>
+<td style="text-align: right;">0.363</td>
+<td style="text-align: right;">0.209</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">delta</td>
 <td style="text-align: left;">ct3</td>
-<td style="text-align: right;">0.949</td>
-<td style="text-align: right;">0.724</td>
+<td style="text-align: right;">0.980</td>
+<td style="text-align: right;">0.770</td>
 <td style="text-align: right;">0.090</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">logit</td>
 <td style="text-align: left;">ct1</td>
-<td style="text-align: right;">0.920</td>
+<td style="text-align: right;">0.950</td>
 <td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.176</td>
+<td style="text-align: right;">0.177</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">logit</td>
 <td style="text-align: left;">ct2</td>
-<td style="text-align: right;">0.920</td>
+<td style="text-align: right;">0.943</td>
 <td style="text-align: right;">0.000</td>
 <td style="text-align: right;">0.220</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">logit</td>
 <td style="text-align: left;">ct3</td>
-<td style="text-align: right;">0.895</td>
+<td style="text-align: right;">0.927</td>
 <td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.116</td>
+<td style="text-align: right;">0.127</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">simulation</td>
 <td style="text-align: left;">ct1</td>
-<td style="text-align: right;">0.869</td>
+<td style="text-align: right;">0.897</td>
 <td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.215</td>
+<td style="text-align: right;">0.226</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">simulation</td>
 <td style="text-align: left;">ct2</td>
-<td style="text-align: right;">0.938</td>
+<td style="text-align: right;">0.973</td>
 <td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.226</td>
+<td style="text-align: right;">0.230</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">simulation</td>
 <td style="text-align: left;">ct3</td>
-<td style="text-align: right;">0.927</td>
+<td style="text-align: right;">0.963</td>
 <td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.119</td>
+<td style="text-align: right;">0.126</td>
 </tr>
 </tbody>
 </table>
 </div>
 </div>
-<p>Out of 300 fits, 25 returned an estimate on a simplex face, where no Wald-type route is defined; the table is computed on the 275 interior fits. Three readings follow.</p>
+<p>Out of 300 fits, 0 returned an estimate on a simplex face, where no Wald-type route is defined; the table is computed on the 300 interior fits. Three readings follow.</p>
 <ul>
-<li>The delta method places 72% of the intervals for the rare type partly below zero. Truncating them at zero would hide, not fix, the problem.</li>
+<li>The delta method places 77% of the intervals for the rare type partly below zero. Truncating them at zero would hide, not fix, the problem.</li>
 <li>The logit and simulation routes never leave <span class="math inline">(0,1)</span> and are wider for the rare type, as an asymmetric interval should be.</li>
 <li>No route reaches 95% everywhere. One bulk column is a single observation of one composition (<a href="#sec-replication" class="quarto-xref">Sec. 4.4</a>): the normal approximation of <span class="math inline">\hat{\boldsymbol{\rho}}</span> is itself the weak link, and the routes only change how its error is mapped to the simplex.</li>
 </ul>
@@ -561,7 +563,7 @@ o(\lVert\boldsymbol{d}\rVert^{2}) ,
 =-\boldsymbol{\mu}_{\cdot k}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{W,q}\boldsymbol{\Omega}\boldsymbol{\mu}_{\cdot l}
 -\mathrm{tr}\bigl(\boldsymbol{\Omega}\boldsymbol{\Sigma}_{W,k}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{W,q}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{W,l}\bigr),
 \tag{8}</span></span></p>
-<p>where the two trace terms of the product rule coincide by transposition and cyclicity. Both summands are negative semidefinite contributions: information about counts <strong>decreases</strong> as counts grow, because more cells inflate <span class="math inline">\boldsymbol{S}_W(\boldsymbol{m})</span> and deflate <span class="math inline">\boldsymbol{\Omega}</span>. Jeffreys’ prior <span class="math inline">\sqrt{\det I}</span> therefore favours small totals, and the Firth penalty on the cell-count chart pulls <span class="math inline">\hat n_i</span> downward. That is a prior statement, not a proven bias reduction: Firth’s exact removal of the <span class="math inline">O(N^{-1})</span> term holds for the canonical parameter of a full exponential family, whereas a Gaussian whose mean and covariance both depend on <span class="math inline">\boldsymbol{\vartheta}</span> is a curved family, where the Jeffreys penalty is one of several bias-reducing modified scores and does not cancel the first-order bias exactly. On the simplex chart of Strategy 2 the same derivative applies to the <span class="math inline">\boldsymbol{p}</span> block with <span class="math inline">\kappa</span> fixed, and the collapse of <span class="math inline">\det I</span> near faces and under collinear signatures is the regularising effect already argued in the perspectives vignette. A simulation under the ADEMP template of the <a href="theory-synthetic-scenarios-mean-covariance.html">synthetic-scenarios vignette</a> is the only way to decide whether the pull is a correction or a bias.</p>
+<p>where the two trace terms of the product rule coincide by transposition and cyclicity. Both summands are negative semidefinite contributions: information about counts <strong>decreases</strong> as counts grow, because more cells inflate <span class="math inline">\boldsymbol{S}_W(\boldsymbol{m})</span> and deflate <span class="math inline">\boldsymbol{\Omega}</span>. Jeffreys’ prior <span class="math inline">\sqrt{\det I}</span> therefore favours small totals, and the Firth penalty on the cell-count chart pulls <span class="math inline">\hat n_i</span> downward. That is a prior statement, not a proven bias reduction: Firth’s exact removal of the <span class="math inline">O(N^{-1})</span> term holds for the canonical parameter of a full exponential family, whereas a Gaussian whose mean and covariance both depend on <span class="math inline">\boldsymbol{\vartheta}</span> is a curved family, where the Jeffreys penalty is one of several bias-reducing modified scores and does not cancel the first-order bias exactly. On the simplex chart of Strategy 2 the same derivative applies to the <span class="math inline">\boldsymbol{p}</span> block with the scales <span class="math inline">c_i</span> and <span class="math inline">\phi_i</span> fixed, and the collapse of <span class="math inline">\det I</span> near faces and under collinear signatures is the regularising effect already argued in the perspectives vignette. A simulation under the ADEMP template of the <a href="theory-synthetic-scenarios-mean-covariance.html">synthetic-scenarios vignette</a> is the only way to decide whether the pull is a correction or a bias.</p>
 <p><code>DECALS</code> corrects a different estimator. Its moment regression estimates the type-level covariances from residuals computed with <span class="math inline">\hat{\boldsymbol{\pi}}_i</span> instead of <span class="math inline">\boldsymbol{\pi}_i</span>, and the finite-sample gap between <span class="math inline">\hat{\boldsymbol{H}}=[\hat\pi_{ik}^{2}]</span> and <span class="math inline">\boldsymbol{H}=[\pi_{ik}^{2}]</span> deflates the estimated covariance and the coverage of its intervals. Proposition 1 of <span class="citation" data-cites="caiStatisticalInferenceCelltype2024">Cai et al. (<a href="#ref-caiStatisticalInferenceCelltype2024" role="doc-biblioref">2024</a>)</span> quantifies <span class="math inline">\mathbb{E}[\hat{\boldsymbol{H}}^{\top}\hat{\boldsymbol{H}}-\boldsymbol{H}^{\top}\boldsymbol{H}]</span> and <span class="math inline">\mathbb{E}[\hat{\boldsymbol{H}}-\boldsymbol{H}]</span> in terms of the asymptotic covariance <span class="math inline">V_i</span> of <span class="math inline">\hat{\boldsymbol{\pi}}_i</span> and subtracts them (their equation 7). The DeCovarT analogue is the plug-in of estimated covariances. If <span class="math inline">\hat{\boldsymbol{\Sigma}}_{W,j}</span> is the sample covariance of <span class="math inline">C_j</span> Gaussian cells, <span class="math inline">\nu_j=C_j-1</span>, then <span class="math inline">\mathbb{E}[\hat{\boldsymbol{\Sigma}}_{W,j}^{-1}]=\tfrac{\nu_j}{\nu_j-G-1}\boldsymbol{\Sigma}_{W,j}^{-1}</span> for <span class="math inline">\nu_j&gt;G+1</span>: the plug-in precision is inflated by a factor that is far from one for rare types with few cells and many genes. The first-order correction multiplies <span class="math inline">\hat{\boldsymbol{\Omega}}_{W,j}</span> by <span class="math inline">(\nu_j-G-1)/\nu_j</span>; the graphical-lasso shrinkage of the reproducibility book is the regularised alternative when <span class="math inline">\nu_j\le G+1</span>. The two corrections are complementary: Firth acts on the likelihood geometry of the composition, the Wishart or <code>DECALS</code> correction acts on the covariance that the likelihood plugs in. A <code>DECALS</code>-style iteration, alternating between <span class="math inline">\hat{\boldsymbol{p}}_{\cdot i}</span> and a bias-corrected <span class="math inline">\hat{\boldsymbol{\Sigma}}_{B,j}</span> regressed on <span class="math inline">\hat p_{ji}^{2}</span> across <span class="math inline">N</span> bulk samples, is the route to a between-population covariance when the reference has a single replicate.</p>
 <p>In the <span class="math inline">\boldsymbol{\rho}</span> chart the penalty has a further effect. The information <span class="math inline">I_{\boldsymbol{\rho}}=\mathbf{J}_{\boldsymbol{\psi}}^{\top}I(\boldsymbol{p})\mathbf{J}_{\boldsymbol{\psi}}</span> inherits the factor <span class="math inline">\mathbf{S}(\boldsymbol{p})</span>, whose determinant tends to zero as any <span class="math inline">p_j\to 0</span>, so <span class="math inline">\tfrac12\log\det I_{\boldsymbol{\rho}}\to-\infty</span> at the faces. The penalised estimate is therefore always finite in <span class="math inline">\boldsymbol{\rho}</span>, and Wald-type intervals around it are always defined (our remark; the effect on coverage has to be checked by simulation). The penalty is the log of the Jeffreys prior, so the penalised estimate is also a posterior mode (<a href="theory-decovart-bayesian-wiener.html#sec-bw-priors">Bayesian vignette</a>).</p>
 </section><section class="level2"><h3 id="sec-sandwich">The sandwich for a misspecified convolution<a class="anchor" aria-label="anchor" href="#sec-sandwich"></a>
@@ -709,6 +711,7 @@ D
 <span><span class="co">#&gt; ct3 chi-bar-square (Self-Liang)</span></span></code></pre></div>
 </div>
 <div id="nte-chibar-caveats">
+<div class="decovart-callout callout-warning">
 <blockquote>
 <p><strong>Warning 2: Three caveats on <a href="#eq-chibar" class="quarto-xref">Eq. 11</a></strong></p>
 <ol type="1">
@@ -721,12 +724,14 @@ D
 </ol>
 </blockquote>
 </div>
+</div>
 </section><section class="level2"><h3 id="sec-replication">Replication is what makes the asymptotics meaningful<a class="anchor" aria-label="anchor" href="#sec-replication"></a>
 </h3>
 <p><a href="#eq-lrt" class="quarto-xref">Eq. 10</a> and <a href="#eq-chibar" class="quarto-xref">Eq. 11</a> are limits as the amount of information about <strong>one</strong> composition grows. That is a strong requirement in deconvolution, and it is the same <span class="math inline">N\to\infty</span> that turns the <span class="math inline">O(N^{-1})</span> bias of <a href="#sec-finite-sample" class="quarto-xref">Sec. 2.5</a> into consistency.</p>
 <p>For each bulk sample <span class="math inline">i</span>, DeCovarT observes a single <span class="math inline">G</span>-vector <span class="math inline">\boldsymbol{Y}_{\cdot i}\sim\mathcal{N}_G(\boldsymbol{\mu}
 \boldsymbol{p}_{\cdot i},\boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i}))</span> and estimates its own <span class="math inline">\boldsymbol{p}_{\cdot i}</span>. Increasing the number of samples <span class="math inline">N</span> therefore adds parameters exactly as fast as observations, and provides <strong>no</strong> extra replication for any single <span class="math inline">\boldsymbol{p}_{\cdot i}</span>. The <span class="math inline">G</span> genes are not <span class="math inline">G</span> independent observations either: their dependence through <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span> is the whole point of the model.</p>
 <div id="nte-replication">
+<div class="decovart-callout callout-important">
 <blockquote>
 <p><strong>Important 3: Per-sample intervals are plug-in approximations</strong></p>
 <p>The default per-sample <code>vcov</code> and <code>confint</code> of a <code>decovart_fit</code> are one-observation plug-in quantities. Treat them as descriptive curvature summaries, not as calibrated frequentist intervals.</p>
@@ -739,6 +744,7 @@ D
 </ul>
 <p>Reference uncertainty is a third, separate gap: <span class="math inline">\boldsymbol{\mu}</span> and <span class="math inline">\boldsymbol{\Sigma}_j</span> are plug-in estimates from purified populations, and none of the intervals above propagate their sampling variability. <a href="../reference/reference_bootstrap_decovart.html"><code>reference_bootstrap_decovart()</code></a> resamples those profiles (<a href="#sec-reference-bootstrap" class="quarto-xref">Sec. 4.6</a>); see <span class="citation" data-cites="vellameUncertaintyQuantificationReferencebased2023">Vellame et al. (<a href="#ref-vellameUncertaintyQuantificationReferencebased2023" role="doc-biblioref">2023</a>)</span> for the analogous accuracy metric in methylation deconvolution.</p>
 </blockquote>
+</div>
 </div>
 </section><section class="level2"><h3 id="sec-bootstrap">Parametric bootstrap calibration<a class="anchor" aria-label="anchor" href="#sec-bootstrap"></a>
 </h3>
@@ -898,16 +904,17 @@ Table 1: What each DeCovarT convergence field does and does not certify.
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="va">fit</span><span class="op">$</span><span class="va">diagnostics</span><span class="op">)</span></span>
 <span><span class="co">#&gt;          boundary_distance near_boundary   score_norm min_eigenvalue</span></span>
-<span><span class="co">#&gt; sample_1         0.2159583         FALSE 2.383262e-09      -160.1989</span></span>
-<span><span class="co">#&gt; sample_2         0.1832318         FALSE 5.026328e-05      -167.0961</span></span>
-<span><span class="co">#&gt; sample_3         0.1682215         FALSE 1.765209e-08      -171.3536</span></span>
+<span><span class="co">#&gt; sample_1         0.2159583         FALSE 1.026578e-09      -160.1989</span></span>
+<span><span class="co">#&gt; sample_2         0.1832317         FALSE 3.836661e-05      -167.0961</span></span>
+<span><span class="co">#&gt; sample_3         0.1682215         FALSE 4.077970e-08      -171.3536</span></span>
 <span><span class="co">#&gt;          max_eigenvalue local_maximum</span></span>
 <span><span class="co">#&gt; sample_1      -24.48051          TRUE</span></span>
-<span><span class="co">#&gt; sample_2      -18.72244          TRUE</span></span>
+<span><span class="co">#&gt; sample_2      -18.72240          TRUE</span></span>
 <span><span class="co">#&gt; sample_3      -16.19907          TRUE</span></span></code></pre></div>
 </div>
 <p>Every sample above converged and every curvature is negative, yet <code>local_maximum</code> is not uniformly <code>TRUE</code>: one iterate stopped with an ILR score norm just above the default <code>score_tol = 1e-4</code>. That is the distinction of <a href="#tbl-diagnostics" class="quarto-xref">Table 1</a> doing its job rather than a failure — <code>score_tol</code> bounds the <em>score</em>, whereas the solver’s <code>epsilon</code> bounds the <em>objective</em>, so the two should be tightened together.</p>
 <div id="nte-boundary-wording">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 4: Near-boundary is not failure</strong></p>
 <p>Suppose the truth is <span class="math inline">\boldsymbol{p}_0=(0,0.3,0.7)</span>. A fit returning <span class="math inline">\hat{\boldsymbol{p}}=(10^{-10},0.3001,0.6999)</span> is numerically <em>excellent</em>: the optimiser is correctly approaching a genuine boundary optimum, and an interior ILR solver cannot settle at a finite <span class="math inline">\boldsymbol{z}</span> there. So <span class="math inline">\min_j\hat{p}_j\ll 1</span> should not be read as “optimisation failed” but as</p>
@@ -916,6 +923,7 @@ Table 1: What each DeCovarT convergence field does and does not certify.
 </blockquote>
 <p><code>boundary_tol</code> is therefore a <strong>statistical</strong> warning threshold for Wald linearisation, deliberately far larger than the machine-precision guard that decides whether a logarithm is representable. The two serve different purposes and should not share a value.</p>
 </blockquote>
+</div>
 </div>
 <p>Multimodality is the one property that restarts address directly. <a href="../reference/multistart_decovart.html"><code>multistart_decovart()</code></a> refits from independent Dirichlet<span class="math inline">(1,\ldots,1)</span> starts and reports the spread of attained optima; <code>fit_decovart(n_starts = )</code> wires it into the S3 workflow and keeps the best mode.</p>
 <div class="cell">
@@ -933,7 +941,7 @@ Table 1: What each DeCovarT convergence field does and does not certify.
 <span>  multimodal <span class="op">=</span> <span class="va">restarts</span><span class="op">$</span><span class="va">multimodal</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; loglik_range   multimodal </span></span>
-<span><span class="co">#&gt; 6.625915e-10 0.000000e+00</span></span></code></pre></div>
+<span><span class="co">#&gt; 1.038282e-09 0.000000e+00</span></span></code></pre></div>
 </div>
 <p>A small range is reassuring but not a proof: a converged code, a tiny relative-distance-to-minimum and a negative-definite local Hessian together support a <strong>local</strong> maximum, and none of them rules out a second, equally good or better mode elsewhere on the simplex.</p>
 </section><section class="section level2"><h2 id="sec-glm">A generalised linear model view of DeCovarT<a class="anchor" aria-label="anchor" href="#sec-glm"></a>
@@ -969,55 +977,50 @@ Table 1: What each DeCovarT convergence field does and does not certify.
 <p>The aim, data that look Gaussian with a constant variance, is the transformation route. A variance function derived from the measurement model reaches the same weighting, keeps the mean on its scale, and comes with inference.</p>
 </section><section class="level2"><h3 id="sec-decovart-glm">DeCovarT as a multivariate quasi-likelihood model<a class="anchor" aria-label="anchor" href="#sec-decovart-glm"></a>
 </h3>
-<p>Write the single-cell-tailored DeCovarT (<a href="theory-decovart-single-cell-tailored.html#sec-strategies">tailored vignette</a>) in GLM terms, for one bulk sample:</p>
+<p>Write the single-cell-tailored DeCovarT (<a href="theory-decovart-single-cell-tailored.html#sec-strategies">tailored vignette</a>) in GLM terms, for one bulk sample with mean scale <span class="math inline">c=a n</span>, covariance scale <span class="math inline">\phi=a^{2}n</span> and raw per-cell means <span class="math inline">\tilde{\boldsymbol{\mu}}</span>:</p>
 <p><span id="eq-decovart-glm"><span class="math display">
-\mathbb{E}(\boldsymbol{y}\mid\boldsymbol{\rho})=\boldsymbol{m}(\boldsymbol{\rho})=a\,\boldsymbol{\mu}\,\boldsymbol{\psi}(\boldsymbol{\rho}),
+\mathbb{E}(\boldsymbol{y}\mid\boldsymbol{\rho})=\boldsymbol{m}(\boldsymbol{\rho})=c\,\tilde{\boldsymbol{\mu}}\,\boldsymbol{\psi}(\boldsymbol{\rho}),
 \qquad
 \operatorname{Cov}(\boldsymbol{y}\mid\boldsymbol{\rho})=\boldsymbol{V}(\boldsymbol{\rho})
-=a^{2}\kappa\,\boldsymbol{S}_W(\boldsymbol{p})+a^{2}\boldsymbol{S}_B(\boldsymbol{p})+\phi\operatorname{diag}\{\boldsymbol{m}(\boldsymbol{\rho})\}.
+=\phi\,\boldsymbol{S}_W(\boldsymbol{p})+c^{2}\boldsymbol{S}_B(\boldsymbol{p})+\omega\operatorname{diag}\{\boldsymbol{m}(\boldsymbol{\rho})\}.
 \tag{12}</span></span></p>
-<p>The mean is the systematic component: identity on the mixing scale, inverse link <span class="math inline">\boldsymbol{\psi}</span> on the composition. The covariance is the variance function, and each term comes from a model rather than from a transformation: independent cells (linear weight), shared population fluctuations (quadratic weight, needs replicates), and the Poisson measurement of the bulk with a dispersion <span class="math inline">\phi</span> (variance equal to the mean when <span class="math inline">\phi=1</span>).</p>
+<p>The mean is the systematic component: identity on the mixing scale, inverse link <span class="math inline">\boldsymbol{\psi}</span> on the composition. The covariance is the variance function, and each term comes from a model rather than from a transformation: independent cells (linear weight), shared population fluctuations (quadratic weight, needs replicates), and the Poisson measurement of the bulk with a dispersion <span class="math inline">\omega</span> (variance equal to the mean when <span class="math inline">\omega=1</span>). The final model of <a href="#sec-final-choice" class="quarto-xref">Sec. 6.4</a> keeps only the first term, <span class="math inline">\boldsymbol{V}(\boldsymbol{\rho})=\phi\boldsymbol{S}_W(\boldsymbol{\psi}(\boldsymbol{\rho}))</span>: a known variance function times a dispersion, as in a quasi-likelihood GLM.</p>
 <p>Two estimators share <a href="#eq-decovart-glm" class="quarto-xref">Eq. 12</a>.</p>
 <ul>
 <li>
 <strong>Gaussian likelihood</strong> with this mean and covariance, as released DeCovarT does for its own covariance. It uses the dependence of <span class="math inline">\boldsymbol{V}</span> on <span class="math inline">\boldsymbol{\rho}</span> (the determinant and covariance terms of the score), which adds information when the Gaussian shape holds.</li>
 <li>
-<strong>Quasi-score</strong>, <span class="math inline">\boldsymbol{D}^{\top}\boldsymbol{V}^{-1}\{\boldsymbol{y}-\boldsymbol{m}(\boldsymbol{\rho})\}=\boldsymbol{0}</span> with <span class="math inline">\boldsymbol{D}=\partial\boldsymbol{m}/\partial\boldsymbol{\rho}^{\top}=a\boldsymbol{\mu}\mathbf{J}_{\boldsymbol{\psi}}</span>. It needs only the first two moments, its information is <span class="math inline">\boldsymbol{D}^{\top}\boldsymbol{V}^{-1}\boldsymbol{D}</span> (the mean part of the Fisher information), and the sandwich of <a href="#sec-sandwich" class="quarto-xref">Sec. 3.3</a> keeps it valid when <span class="math inline">\boldsymbol{V}</span> is misspecified. The dispersion is estimated after the fit from the Pearson statistic, <span class="math inline">\hat\phi=\lVert\boldsymbol{L}^{-1}(\boldsymbol{y}-\hat{\boldsymbol{m}})\rVert^{2}/(G-J+1)</span>.</li>
+<strong>Quasi-score</strong>, <span class="math inline">\boldsymbol{D}^{\top}\boldsymbol{V}^{-1}\{\boldsymbol{y}-\boldsymbol{m}(\boldsymbol{\rho})\}=\boldsymbol{0}</span> with <span class="math inline">\boldsymbol{D}=\partial\boldsymbol{m}/\partial\boldsymbol{\rho}^{\top}=c\tilde{\boldsymbol{\mu}}\mathbf{J}_{\boldsymbol{\psi}}</span>. It needs only the first two moments, its information is <span class="math inline">\boldsymbol{D}^{\top}\boldsymbol{V}^{-1}\boldsymbol{D}</span> (the mean part of the Fisher information), and the sandwich of <a href="#sec-sandwich" class="quarto-xref">Sec. 3.3</a> keeps it valid when <span class="math inline">\boldsymbol{V}</span> is misspecified. With <span class="math inline">\boldsymbol{V}=\phi\boldsymbol{S}_W</span>, the dispersion cancels from the quasi-score and is estimated after the fit from the Pearson statistic, <span class="math inline">\hat\phi=\lVert\boldsymbol{L}^{-1}(\boldsymbol{y}-\hat{\boldsymbol{m}})\rVert^{2}/(G-J)</span>, with <span class="math inline">\boldsymbol{L}</span> the Cholesky factor of <span class="math inline">\boldsymbol{S}_W(\hat{\boldsymbol{p}})</span> and <span class="math inline">J</span> free mean parameters (<span class="math inline">J-1</span> ILR coordinates and <span class="math inline">c</span>).</li>
 </ul>
 <p><strong>Across samples.</strong> With several bulk samples and covariates <span class="math inline">\boldsymbol{f}_i</span>, <code>MEAD</code> models the composition itself as a GLM, <span class="math inline">\mathbb{E}(\boldsymbol{p}_{\cdot i})=h(\boldsymbol{b}_0+\boldsymbol{A}_0^{\top}\boldsymbol{f}_i)</span> with <span class="math inline">h</span> the identity or the softmax, fitted by the estimating equation <span class="math inline">\frac1N\sum_i\{\hat{\boldsymbol{p}}_{1:(J-1),i}-h(\boldsymbol{b}+\boldsymbol{A}^{\top}\boldsymbol{f}_i)_{1:(J-1)}\}\tilde{\boldsymbol{f}}_i^{\top}=\boldsymbol{0}</span> with <span class="math inline">\tilde{\boldsymbol{f}}_i=(1,\boldsymbol{f}_i)</span> and a sandwich variance <span class="citation" data-cites="xieStatisticalInferenceCell2026">(<a href="#ref-xieStatisticalInferenceCell2026" role="doc-biblioref">Xie et al. 2026</a>)</span>. Plugging in estimated proportions is valid when <span class="math inline">N=o(G)</span>; when the number of samples approaches the number of genes, estimation errors accumulate, and the reported coverage of group differences falls from 0.93 with 86 samples to 0.81 with 1000. The transformation trap reappears at this level: regressing the ILR coordinates <span class="math inline">\hat{\boldsymbol{\rho}}_i</span> linearly on <span class="math inline">\boldsymbol{f}_i</span> targets <span class="math inline">\mathbb{E}(\operatorname{ilr}\boldsymbol{p})</span>, not <span class="math inline">\operatorname{ilr}\mathbb{E}(\boldsymbol{p})</span>.</p>
 </section><section class="level2"><h3 id="sec-final-choice">The final choice for real data<a class="anchor" aria-label="anchor" href="#sec-final-choice"></a>
 </h3>
-<p>The constraints of the intended application are: one single-cell reference from one donor (<span class="math inline">R=1</span>) counted with UMIs; one or a few bulk samples that share neither composition nor technical scale; no gene-wise scale within the UMI platform; and cell-size normalisation applied after the fit. Under them, the recommended model is <a href="#eq-decovart-glm" class="quarto-xref">Eq. 12</a> reduced to what one donor identifies:</p>
+<p>The constraints of the intended application are: one single-cell reference from one donor (<span class="math inline">R=1</span>) counted with UMIs; one bulk sample at a time, with no covariates and no paired cohort; and no gene-wise platform ratio within the UMI platform. Under them, the recommended model is <a href="#eq-decovart-glm" class="quarto-xref">Eq. 12</a> reduced to what one donor and one bulk sample identify:</p>
 <p><span id="eq-final-model"><span class="math display">
-\boldsymbol{y}_{\cdot i}\mid\boldsymbol{q}_{\cdot i}
+\boldsymbol{y}_{\cdot i}\mid\boldsymbol{p}_{\cdot i}
 \sim\mathcal{N}_G\Bigl(
-a_i\boldsymbol{\Theta}\boldsymbol{q}_{\cdot i},\
-a_i^{2}\kappa_i\sum_jq_{ji}\boldsymbol{\Sigma}^{\theta}_{W,j}
-+\phi\operatorname{diag}(a_i\boldsymbol{\Theta}\boldsymbol{q}_{\cdot i})
+a_in_i\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i},\;
+a_i^{2}n_i\sum_jp_{ji}\boldsymbol{\Sigma}_{W,j}
 \Bigr),
 \qquad
-\boldsymbol{q}_{\cdot i}=\boldsymbol{\psi}(\boldsymbol{\rho}_i),
-\qquad
-p_{ji}=\frac{q_{ji}/S_j}{\sum_kq_{ki}/S_k}.
+\boldsymbol{p}_{\cdot i}=\boldsymbol{\psi}(\boldsymbol{\rho}_i).
 \tag{13}</span></span></p>
-<p>Each term is a choice with a reason.</p>
+<p>Equivalently <span class="math inline">\boldsymbol{y}_{\cdot i}=a_in_i\tilde{\boldsymbol{y}}_{\cdot i}</span> with <span class="math inline">\tilde{\boldsymbol{y}}_{\cdot i}\sim\mathcal{N}_G\bigl(\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i},n_i^{-1}\boldsymbol{S}_W(\boldsymbol{p}_{\cdot i})\bigr)</span>. Each term is a choice with a reason.</p>
 <ol type="1">
 <li>
-<strong>Normalised reference, transcript fractions, then cell sizes.</strong> The columns of <span class="math inline">\boldsymbol{\Theta}</span> are mean relative profiles of each type (<span class="math inline">\mathbf{1}^{\top}\boldsymbol{\theta}_{\cdot j}=1</span>), so the fit returns transcript fractions <span class="math inline">\boldsymbol{q}_{\cdot i}</span>, converted afterwards with <span class="math inline">S_j</span>, the mean UMI total per cell of type <span class="math inline">j</span> (<a href="theory-decovart-single-cell-tailored.html#sec-uncoupling">RNA versus cell fractions</a>). Use either this route or raw per-cell means without the conversion, never both.</li>
+<strong>Raw per-cell means, cell fractions directly.</strong> The columns of <span class="math inline">\tilde{\boldsymbol{\mu}}</span> are per-cell means of raw UMI counts, <span class="math inline">\tilde{\boldsymbol{\mu}}_{\cdot j}=S_j\boldsymbol{\theta}_{\cdot j}</span>, so the cell size <span class="math inline">S_j</span> stays in the mean and the fit returns cell fractions <span class="math inline">\boldsymbol{p}_{\cdot i}</span>. Transcript fractions follow as <span class="math inline">q_{ji}=p_{ji}S_j/\sum_\ell p_{\ell i}S_\ell</span> (<a href="theory-decovart-single-cell-tailored.html#sec-uncoupling">RNA versus cell fractions</a>). A library-normalised signature <span class="math inline">\boldsymbol{\theta}_{\cdot j}</span> would return <span class="math inline">\boldsymbol{q}_{\cdot i}</span> and need the conversion; use one route, never both.</li>
 <li>
-<strong>The sample scale is plugged in.</strong> Because <span class="math inline">\mathbf{1}^{\top}\boldsymbol{\Theta}\boldsymbol{q}=1</span>, the mean of the bulk total is <span class="math inline">a_i</span>, and <span class="math inline">\hat a_i=\mathbf{1}^{\top}\boldsymbol{y}_{\cdot i}</span> is a moment estimator that costs nothing (Strategy 4 of the <a href="theory-decovart-single-cell-tailored.html#sec-strategy-plugin">tailored vignette</a>).</li>
+<strong>Two scales, not three.</strong> The capture ratio <span class="math inline">a_i</span> and the number of cells <span class="math inline">n_i</span> enter only through the mean scale <span class="math inline">c_i=a_in_i</span> and the covariance scale <span class="math inline">\phi_i=a_i^{2}n_i</span> (<a href="theory-decovart-single-cell-tailored.html#sec-av-scale">global scale</a>). At fixed <span class="math inline">\boldsymbol{\rho}_i</span>, <span class="math inline">\hat c_i</span> is the generalised least-squares coefficient of <span class="math inline">\boldsymbol{y}_{\cdot i}</span> on <span class="math inline">\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i}</span> and <span class="math inline">\hat\phi_i</span> the mean squared Mahalanobis residual, so both are profiled out; <span class="math inline">a_i=\phi_i/c_i</span> and <span class="math inline">n_i=c_i^{2}/\phi_i</span> are read afterwards and are interpretable only when the bulk and the reference share the platform.</li>
 <li>
-<strong>Only the within-type covariance.</strong> One donor identifies the cell-to-cell covariance, not the between-donor one (<a href="theory-decovart-single-cell-tailored.html#sec-three-regimes">three reference regimes</a>). It enters with a <strong>linear</strong> weight. Estimate it from cells after removing the Poisson diagonal and the technical size-factor term (<a href="theory-review-distribution-aware-deconvolution.html#eq-denoised-within">denoised covariance</a>), with a sparse precision from the graphical lasso.</li>
+<strong>Only the within-type covariance.</strong> One donor identifies the cell-to-cell covariance, not the between-donor one (<a href="theory-decovart-single-cell-tailored.html#sec-three-regimes">three reference regimes</a>). Estimate it from cells after removing the Poisson diagonal and the technical size-factor term (<a href="theory-review-distribution-aware-deconvolution.html#eq-denoised-within">denoised covariance</a>), with a sparse precision from the graphical lasso. <em>Our remark:</em> independent cells add with cell-count weights <span class="math inline">m_{ji}=n_ip_{ji}</span>, so this linear covariance layer is weighted by <span class="math inline">\boldsymbol{p}_{\cdot i}</span>, not by the transcript fractions <span class="math inline">\boldsymbol{q}_{\cdot i}</span>.</li>
 <li>
-<strong>One scalar for the number of cells.</strong> <span class="math inline">\kappa_i</span> is estimated jointly, on a log chart, as one extra coordinate next to <span class="math inline">\boldsymbol{\rho}_i</span>; it is identified by the gene–gene structure, which the diagonal measurement term does not have. If its profile likelihood is flat, fix it on a grid and report the sensitivity.</li>
+<strong>No extra bulk noise term.</strong> A Poisson or negative-binomial diagonal for the bulk measurement is not added: without further assumptions it cannot be separated from the scale <span class="math inline">\phi_i</span> and the cell-to-cell covariance on one sample. Misspecification of the variance is handled by the sandwich of <a href="#sec-sandwich" class="quarto-xref">Sec. 3.3</a> instead.</li>
 <li>
-<strong>The measurement model sets the diagonal.</strong> <span class="math inline">\phi=1</span> is the Poisson measurement; estimate <span class="math inline">\phi</span> afterwards from the Pearson statistic and inflate the variance of <span class="math inline">\hat{\boldsymbol{\rho}}</span> when <span class="math inline">\hat\phi&gt;1</span>, as for read counts without UMIs.</li>
-<li>
-<strong>No gene-wise scale.</strong> With UMIs it cancels within the reference platform; between platforms it is not identified from one sample (<a href="theory-review-distribution-aware-deconvolution.html#sec-mead"><code>MEAD</code></a>), so it is handled by gene selection, keeping genes detected consistently in both assays, not by estimation.</li>
+<strong>No gene-wise platform ratio.</strong> With UMIs it cancels within the reference platform; between platforms it is not identified from one sample (<a href="theory-review-distribution-aware-deconvolution.html#sec-mead"><code>MEAD</code></a>), so it is handled by gene selection, keeping genes detected consistently in both assays, not by estimation.</li>
 <li>
 <strong>Inference.</strong> Report the logit or simulation route of <a href="#sec-wald-routes" class="quarto-xref">Sec. 3.1</a>, or the profile interval; switch to Firth’s penalty when a proportion approaches zero, and to the boundary likelihood-ratio test when absence is the question (<a href="#sec-boundary" class="quarto-xref">Sec. 4.3</a>). With one donor, the reference uncertainty comes from <code>reference_bootstrap_decovart(method = "cells")</code>.</li>
 </ol>
-<p><strong>Why this is the fastest valid route from the existing code.</strong> The ILR solver, the analytic score and the Marquardt–Levenberg optimiser are kept. Only the covariance assembler changes, from <span class="math inline">\sum_jp_j^{2}\boldsymbol{\Sigma}_j</span> to the linear form of <a href="#eq-final-model" class="quarto-xref">Eq. 13</a>, whose derivative in <span class="math inline">q_k</span> is the constant matrix <span class="math inline">a^{2}\kappa\boldsymbol{\Sigma}^{\theta}_{W,k}+\phi a\operatorname{diag}(\boldsymbol{\theta}_{\cdot k})</span>; second derivatives of the covariance vanish, so the Hessian is simpler than the released one (<a href="theory-decovart-single-cell-tailored.html#sec-general">general score and Hessian</a>). No replicate, no paired cohort and no second bulk sample is needed. The model still has to pass a simulation study under the ADEMP template before it is used for claims (<a href="theory-synthetic-scenarios-mean-covariance.html">synthetic scenarios</a>).</p>
+<p><strong>Why this is the fastest valid route from the existing code.</strong> The ILR chart, the analytic score and the default Newton–Raphson optimiser are kept, with <span class="math inline">c_i</span> and <span class="math inline">\phi_i</span> profiled out at each iteration. Only the covariance assembler changes, from <span class="math inline">\sum_jp_j^{2}\boldsymbol{\Sigma}_j</span> to the linear form of <a href="#eq-final-model" class="quarto-xref">Eq. 13</a>, whose derivative in <span class="math inline">p_j</span> is the constant matrix <span class="math inline">\phi_i\boldsymbol{\Sigma}_{W,j}</span>; second derivatives of the covariance vanish, so the Hessian is simpler than the released one (<a href="theory-decovart-single-cell-tailored.html#sec-general">general score and Hessian</a>). No replicate, no paired cohort and no second bulk sample is needed. The model still has to pass a simulation study under the ADEMP template before it is used for claims (<a href="theory-synthetic-scenarios-mean-covariance.html">synthetic scenarios</a>).</p>
 </section></section><section class="section level2"><h2 id="sec-recap">Recap: which interval or test to report<a class="anchor" aria-label="anchor" href="#sec-recap"></a>
 </h2>
 <p>The procedures below all target the same composition <span class="math inline">\boldsymbol{p}\in\Delta^{J-1}</span>, but they rest on different approximations. <a href="#tbl-inference-recap" class="quarto-xref">Table 2</a> is the practical counterpart of the Wald warning in the derivatives vignette: use the cheapest method that the geometry of the estimate actually supports.</p>
@@ -1173,14 +1176,13 @@ Table 2: Inferential procedures for DeCovarT proportions. Wald is the default o
 </ol></section><section class="section level2"><h2 id="sec-beyond-asymptotics">Outlook: beyond first-order asymptotics<a class="anchor" aria-label="anchor" href="#sec-beyond-asymptotics"></a>
 </h2>
 <div id="nte-perspectives">
+<div class="decovart-callout callout-tip">
 <blockquote>
 <p><strong>Tip 5: Uncertainty quantification beyond Wald</strong></p>
 <p>Directions that would strengthen DeCovarT intervals, in rough order of implementation cost.</p>
 <ul>
 <li>
 <strong>Godambe sandwich for a misspecified convolution.</strong> <code>RNA-Sieve</code> replaces Fisher by the Godambe information when the CLT model is wrong <span class="citation" data-cites="erdmann-phamLikelihoodbasedDeconvolutionBulk2021">(<a href="#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021" role="doc-biblioref">Erdmann-Pham et al. 2021</a>)</span> (<a href="#sec-rna-sieve" class="quarto-xref">Sec. 4.7</a>; the one-column construction is <a href="#sec-sandwich" class="quarto-xref">Sec. 3.3</a>). The same sandwich on DeCovarT’s score would widen Wald intervals under protocol shift without discarding the multivariate covariance. It remains a first-order <em>interior</em> device: faces still need the chi-bar-square LRT or a restricted bootstrap.</li>
-<li>
-<strong>Sandwich for a variational estimator is a different object.</strong> Westling and McCormick give the profile M-estimation sandwich for variational approximations in mixture models <span class="citation" data-cites="westlingPredictionFrameworkInference2019">(<a href="#ref-westlingPredictionFrameworkInference2019" role="doc-biblioref">Westling and McCormick 2019</a>)</span>. Batardière, Chiquet and Mariadassou specialise that construction to Poisson-log-normal <em>variational</em> parameters <span class="citation" data-cites="batardiereEvaluatingParameterUncertainty2024">(<a href="#ref-batardiereEvaluatingParameterUncertainty2024" role="doc-biblioref">Batardière et al. 2024</a>)</span>. That estimator is not a maximum-likelihood estimator and does not inherit the usual MLE consistency / <span class="math inline">\sqrt{n}</span> theory; the sandwich is an M-estimation correction for a surrogate ELBO. DeCovarT’s <span class="math inline">\hat{\boldsymbol{p}}</span> <em>is</em> the MLE of the Gaussian convolution on one bulk column (when the solver reaches a local maximum), so expected Fisher at <span class="math inline">p^{\star}</span> is the regular-case asymptotic variance. Do not paste their coverage plots onto DeCovarT Wald intervals.</li>
 <li>
 <strong>Score-test inversion.</strong> Inverting a one-sided score test avoids refitting under every candidate value, so it is cheaper than the profile scan of <code><a href="../reference/confint_profile_decovart.html">confint_profile_decovart()</a></code> while keeping the one-sided boundary geometry.</li>
 <li>
@@ -1190,6 +1192,7 @@ Table 2: Inferential procedures for DeCovarT proportions. Wald is the default o
 </ul>
 </blockquote>
 </div>
+</div>
 </section><section class="section level2"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
@@ -1198,9 +1201,6 @@ Agresti, Alan. 2015. <em>Foundations of Linear and Generalized Linear Models</em
 </div>
 <div id="ref-avilacobosBenchmarkingCellType2020" class="csl-entry" role="listitem">
 Avila Cobos, Francisco, José Alquicira-Hernandez, Joseph E. Powell, Pieter Mestdagh, and Katleen De Preter. 2020. <span>‘Benchmarking of Cell Type Deconvolution Pipelines for Transcriptomics Data’</span>. <em>Nature Communications</em> 11 (1): 5650. <a href="https://doi.org/10.1038/s41467-020-19015-1" class="external-link">https://doi.org/10.1038/s41467-020-19015-1</a>.
-</div>
-<div id="ref-batardiereEvaluatingParameterUncertainty2024" class="csl-entry" role="listitem">
-Batardière, Bastien, Julien Chiquet, and Mahendra Mariadassou. 2024. <em>Evaluating <span>Parameter Uncertainty</span> in the <span>Poisson Lognormal Model</span> with <span>Corrected Variational Estimators</span></em>. arXiv. <a href="https://doi.org/10.48550/arxiv.2411.08524" class="external-link">https://doi.org/10.48550/arxiv.2411.08524</a>.
 </div>
 <div id="ref-boydConvexOptimization2004" class="csl-entry" role="listitem">
 Boyd, Stephen, Stephen P. Boyd, and Lieven Vandenberghe. 2004. <em>Convex <span>Optimization</span></em>. 1st edn. Cambridge University Press; Cambridge University Press. <a href="https://doi.org/10.1017/cbo9780511804441" class="external-link">https://doi.org/10.1017/cbo9780511804441</a>.

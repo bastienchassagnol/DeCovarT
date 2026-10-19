@@ -103,7 +103,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>2.2 Covariance-driven scenario (G = 20, J = 3)</h1>
       <p class="subtitle">Full script: <code>scripts/fig03_variance_driven.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-15</p>
+      <p class="date">2026-10-19</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/fig03-covariance-driven.qmd" class="external-link"><code>vignettes/fig03-covariance-driven.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -478,10 +478,12 @@ Table 3: Solvers used in the covariance-driven comparison.
 <p>With (G=20) the purified Gaussians and the bulk convolution are no longer drawable in the gene plane. The 16-page book <code>latent_projections.pdf</code> therefore maps each selected scenario to a 2D latent display. Pages keep the <strong>lowest and highest</strong> MixSim overlap (low / high; the moderate arm is omitted) and the <strong>highest and lowest</strong> Shannon entropy of () (balanced versus highly unbalanced), crossed with the four CT1/CT2 graph assignments ((2=16)). Each page is a (3) of scatterplots with 95% Gaussian ellipses, cell-type colour, axis labels that report the share of variability on the first two coordinates, a transparent cowplot scree inset of the first ten scaled eigenvalues, and a six-line footnote for panels A–F. Square panels use a unit aspect ratio (not <code>coord_equal</code>), so unequal factor-score ranges no longer squash the shared-plane row.</p>
 <p>The three routes below all return an ordered set of eigenvalues that summarise how much variability sits in the plotted plane. They are <strong>not</strong> interchangeable with the DeCovarT likelihood: the bulk profile is a <strong>convolution</strong> of Gaussians, not a Gaussian mixture.</p>
 <div id="nte-conv-not-gmm">
+<div class="decovart-callout callout-warning">
 <blockquote>
 <p><strong>Warning 1</strong></p>
 <p>A <span class="math inline">J</span>-type bulk draw is <span class="math inline">Y\mid\boldsymbol{p}\sim\mathcal{N}\bigl(\boldsymbol{\mu}(\boldsymbol{p}),\boldsymbol{\Sigma}(\boldsymbol{p})\bigr)</span> with <span class="math inline">\boldsymbol{\mu}(\boldsymbol{p})=\sum_j p_j\boldsymbol{\mu}_{\cdot j}</span> and <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j</span>. Every observation is a weighted sum of <strong>all</strong> types (<a href="../reference/simulate_bulk_mixture.html"><code>simulate_bulk_mixture()</code></a>). A finite mixture instead draws a latent label and then one component, <span class="math inline">f(\boldsymbol{y})=\sum_k\pi_k\,\phi(\boldsymbol{y};\boldsymbol{\mu}_k,\boldsymbol{\Sigma}_k)</span>, with mixing weights () (not (^2)). <code>MclustDR</code> and mixtures of factor analysers target that mixture. Their (_k) are not cell-type proportions, and their component densities are not the convolution law used for deconvolution.</p>
 </blockquote>
+</div>
 </div>
 <section class="level3"><h4 id="independent-factor-analyses-per-cell-type">Independent factor analyses per cell type<a class="anchor" aria-label="anchor" href="#independent-factor-analyses-per-cell-type"></a>
 </h4>

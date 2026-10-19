@@ -102,7 +102,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Simulating synthetic pseudo-bulk mixtures for benchmarking</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-15</p>
+      <p class="date">2026-10-19</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-synthetic-scenarios-mean-covariance.qmd" class="external-link"><code>vignettes/theory-synthetic-scenarios-mean-covariance.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -202,6 +202,7 @@ R^{1/2}.
 \tag{2}</span></span></p>
 <p>Then <span class="math inline">\boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu}=s^{2}R</span> exactly (up to rounding), so pairwise cosines match <span class="math inline">R</span> and every column has Euclidean norm <span class="math inline">s</span>. No cell type is a privileged reference; changing <span class="math inline">\mathbf{Q}</span> by an orthogonal factor in <span class="math inline">\mathbb{R}^{J}</span> does not change the Gram (see <a href="#thm-gram-q" class="quarto-xref">Theorem 1</a> and the uniqueness of vector realisations of a Gram matrix).</p>
 <div id="nte-equicorr-factors">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 1: Role of each factor in the equicorrelation Gram</strong></p>
 <ul>
@@ -218,14 +219,17 @@ R^{1/2}.
 </ul>
 </blockquote>
 </div>
+</div>
 <div>
+<div class="decovart-callout callout-note">
 <blockquote>
-<p><strong>Note</strong></p>
+<p><strong>Theorem 1 (Orthonormal frame)</strong></p>
 <div id="thm-gram-q" class="theorem">
-<p><span class="theorem-title"><strong>Theorem 1 (Orthonormal frame)</strong></span> Any thin <span class="math inline">\mathbf{Q}</span> with <span class="math inline">\mathbf{Q}^{\mathsf{T}}\mathbf{Q}=\mathbf{I}_{J}</span> yields a valid embedding of <span class="math inline">R</span> into <span class="math inline">\mathbb{R}^{G}</span> (<span class="math inline">G\ge J</span>). If <span class="math inline">\mathbf{Q}_{\star}=\mathbf{Q}U</span> with <span class="math inline">U^{\mathsf{T}}U=\mathbf{I}_{J}</span>, then <span class="math inline">(\mathbf{Q}_{\star}R^{1/2})^{\mathsf{T}}
+<p>Any thin <span class="math inline">\mathbf{Q}</span> with <span class="math inline">\mathbf{Q}^{\mathsf{T}}\mathbf{Q}=\mathbf{I}_{J}</span> yields a valid embedding of <span class="math inline">R</span> into <span class="math inline">\mathbb{R}^{G}</span> (<span class="math inline">G\ge J</span>). If <span class="math inline">\mathbf{Q}_{\star}=\mathbf{Q}U</span> with <span class="math inline">U^{\mathsf{T}}U=\mathbf{I}_{J}</span>, then <span class="math inline">(\mathbf{Q}_{\star}R^{1/2})^{\mathsf{T}}
 (\mathbf{Q}_{\star}R^{1/2})=R</span> still holds. The package default is a deterministic QR frame; passing <code>seed</code> draws a Gaussian QR (Haar-like) frame instead.</p>
 </div>
 </blockquote>
+</div>
 </div>
 <p><a href="#fig-cholesky-vs-spectral" class="quarto-xref">Figure 2</a> compares the symmetric square root used here with the lower-triangular Cholesky factor of the same <span class="math inline">R</span>. Both are matrix square roots; they differ by an orthogonal transformation of the coordinate axes, which is exactly the Gram uniqueness (realisations are unique up to orthogonal maps of the ambient space).</p>
 <div id="fig-cholesky-vs-spectral" class="quarto-float quarto-figure quarto-figure-center">
@@ -252,11 +256,13 @@ Figure 3: Cosine-control toy for <span class="math inline">J=2</span> cell type
 </div>
 </div>
 <div id="nte-related-signatures">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 2: Related signature constructions</strong></p>
 <p>Blending a common baseline with type-specific markers is standard in deconvolution benchmarking. <strong><code>AutoGeneS</code></strong> <span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">(<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">Aliee and Theis 2021</a>)</span> selects genes by jointly minimising inter-type correlation and maximising centroid distance; its simulations use a similar shared-plus-private logic to control signature geometry. Schelker and colleagues <span class="citation" data-cites="schelkerEstimationImmuneCell2017">(<a href="#ref-schelkerEstimationImmuneCell2017" role="doc-biblioref">Schelker et al. 2017</a>)</span> build tumour-derived reference gene expression profiles from single-cell RNA-seq clusters and marker genes, then simulate bulk mixtures by combining those columns—empirically a shared baseline plus distinct marker programmes per immune cell type.</p>
 <p>The <strong><code>DICEPro</code></strong> framework <span class="citation" data-cites="baWhenLessNot2026">(<a href="#ref-baWhenLessNot2026" role="doc-biblioref">Ba et al. 2026</a>)</span> targets incomplete reference matrices in supervised deconvolution. Its simulation engine generates synthetic signature matrices from multivariate Gaussian (or Poisson) models with a prescribed correlation structure; a <strong><code>bloc=TRUE</code></strong> option enforces <strong>block sparsity</strong> by zeroing expression outside type-specific gene blocks—the common-factor construction of <a href="#sec-common-factor" class="quarto-xref">Sec. 3.3.1</a>. DICEPro then optimises reference signatures when cell types are missing from the matrix, complementing the Gram <span class="math inline">R</span> we use here for method comparison under known ground truth.</p>
 </blockquote>
+</div>
 </div>
 </section><section class="level2"><h3 id="objectives-compute_mean_profile_objectives">Objectives: <code>compute_mean_profile_objectives()</code>
 <a class="anchor" aria-label="anchor" href="#objectives-compute_mean_profile_objectives"></a>
@@ -285,6 +291,7 @@ D_{\mathrm{Euc}}
 </span></p>
 <p>AutoGeneS treats the first as a quantity to minimise and the second as a quantity to maximise <span class="citation" data-cites="alieeAutoGeneSAutomaticGene2021">(<a href="#ref-alieeAutoGeneSAutomaticGene2021" role="doc-biblioref">Aliee and Theis 2021</a>)</span>. Cosine is preferred to Pearson correlation so that collinear but unequally scaled profiles remain penalised.</p>
 <div id="nte-geometric-score">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 3: Perspectives: a single geometric score for <span class="math inline">\boldsymbol{\mu}</span></strong></p>
 <p>The present API exposes two AutoGeneS-style objectives. A natural refinement is to replace them by one scalar that jointly rewards large column norms (and hence Euclidean separation) and penalises alignment.</p>
@@ -308,6 +315,7 @@ V(\boldsymbol{\mu})
 <p>available in R via <code>kappa(mean_profiles, exact = TRUE)</code> (or <code>1 / kappa(...)</code>), measures how ill-posed linear recovery of <span class="math inline">\boldsymbol{p}</span> from <span class="math inline">\boldsymbol{y}\approx\boldsymbol{\mu}\boldsymbol{p}</span> is. Maximising <span class="math inline">\kappa_2(\boldsymbol{\mu})^{-1}</span> (or minimising <span class="math inline">\kappa_2(\boldsymbol{\mu})</span>) collapses cosine and distance into a deconvolution-centric criterion without a Pareto front.</p>
 <p>A practical next step is to expose an optional <code>mean_objective = c("autogenes", "volume", "condition")</code> in <code><a href="../reference/simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments()</a></code>, keep the constructive Gram generator for controllable scenarios, and report the chosen scalar alongside the existing pairwise diagnostics.</p>
 </blockquote>
+</div>
 </div>
 </section><section class="level2"><h3 id="sec-chol-mc">Appendix: Cholesky, uniqueness, and the common-factor blend<a class="anchor" aria-label="anchor" href="#sec-chol-mc"></a>
 </h3>
@@ -497,6 +505,7 @@ Table 2: Biological interpretability of undirected topology families.
 </figure>
 </div>
 <div id="nte-scale-free">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 4: The scale-free hypothesis: a useful stress test, not a biological default</strong></p>
 <p>The phrase <em>scale-free network</em> usually means that the degree distribution follows a power law, <span class="math inline">\Pr(K=k)\propto k^{-\alpha}</span>, at least above a lower cut-off. This statistical statement is distinct from the Barabási–Albert (BA) growth mechanism. Preferential attachment can generate a power law, but observing a heavy-tailed degree distribution does not establish preferential attachment; other mechanisms can produce similar tails, and variants of preferential attachment need not produce a pure power law <span class="citation" data-cites="lima-mendezPowerfulLawPower2009 broidoScalefreeNetworksAre2019">(<a href="#ref-lima-mendezPowerfulLawPower2009" role="doc-biblioref"><span class="nocase">Lima-Mendez and van Helden</span> 2009</a>; <a href="#ref-broidoScalefreeNetworksAre2019" role="doc-biblioref">Broido and Clauset 2019</a>)</span>.</p>
@@ -504,6 +513,7 @@ Table 2: Biological interpretability of undirected topology families.
 <p>The evidence is not uniformly negative. Using adjacency-spectrum distributions rather than degree alone, Takahashi and colleagues classified eight protein–protein interaction networks as scale-free <span class="citation" data-cites="takahashiDiscriminatingDifferentClasses2012">(<a href="#ref-takahashiDiscriminatingDifferentClasses2012" role="doc-biblioref">Takahashi et al. 2012</a>)</span>. Importantly, this was a relative model-selection result: BA-like networks fitted better than the two candidate alternatives, Erdős–Rényi and Watts–Strogatz networks. It did not show that a power law was an adequate absolute model, that preferential attachment generated the observed networks, or that unobserved interactions would preserve the classification. The authors explicitly noted both the restricted candidate set and possible sampling artefacts.</p>
 <p>A broader test of 928 real-world network data sets reached a more cautious conclusion <span class="citation" data-cites="broidoScalefreeNetworksAre2019">(<a href="#ref-broidoScalefreeNetworksAre2019" role="doc-biblioref">Broido and Clauset 2019</a>)</span>. Across all domains, only 4% met the strongest scale-free criterion, whereas a log-normal distribution fitted as well as or better than a power law for 88% of degree distributions. Among the biological networks, 63% showed neither direct nor indirect evidence of scale-free structure, although 6% met the strongest criterion, principally metabolic networks. These proportions depend on the network corpus and the operational definition of scale-freeness, but they reject a universal scale-free law rather than excluding scale-free structure from every biological system.</p>
 </blockquote>
+</div>
 </div>
 <p><a href="#tbl-studies" class="quarto-xref">Table 3</a> summarises how recent simulation studies combine topology, precision construction, and mean / observation models.</p>
 <div id="tbl-studies" class="quarto-float quarto-figure quarto-figure-center">
@@ -763,6 +773,7 @@ j=1,\ldots,J,
 </span></p>
 <p>stacked as an array in <span class="math inline">\mathcal{M}_{G\times G\times J}</span>. Shared networks remain available by supplying the same adjacency (or the same graph model seed path) for every type.</p>
 <div id="nte-gaussian-convolution">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 5: Why the bulk covariance is <span class="math inline">\sum_j p_j^{2}\boldsymbol{\Sigma}_j</span></strong></p>
 <p>If each latent profile is <span class="math inline">\boldsymbol{x}_{\cdot j}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_j)</span> independently, the bulk <span class="math inline">\boldsymbol{y}=\sum_j p_j\boldsymbol{x}_{\cdot j}</span> is an <strong>affine</strong> image of a stacked Gaussian vector. Affine images of multivariate Gaussians remain Gaussian, with mean <span class="math inline">\boldsymbol{\mu}\boldsymbol{p}</span> and covariance <span class="math inline">\sum_j p_j^{2}\boldsymbol{\Sigma}_j</span> (the <span class="math inline">p_j^{2}</span> factor is the square of the linear coefficient, not a mixture-weight identity). That is the conditional law used in the article (Gaussian convolution with covariance <span class="math inline">\sum_j p_j^{2}\boldsymbol{\Sigma}_j</span>; see the log-likelihood derivation in <code>article/main.tex</code>) and by <code><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code>. Downstream bulk simulation therefore uses</p>
@@ -773,6 +784,7 @@ j=1,\ldots,J,
 \textstyle\sum_j p_j^{2}\boldsymbol{\Sigma}_j\bigr).
 </span></p>
 </blockquote>
+</div>
 </div>
 </section><section class="level2"><h3 id="sec-imbalanced">Imbalanced cellular proportions<a class="anchor" aria-label="anchor" href="#sec-imbalanced"></a>
 </h3>
@@ -867,37 +879,37 @@ Table 7: Kept scenario descriptors from <code><a href="../reference/describe_si
     };
     </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_je7xn5063tk6pj1rg4aa = TinyTable.createTableFunctions("tinytable_je7xn5063tk6pj1rg4aa");
+      const tableFns_hvz4947c6w5kctjx7ugs = TinyTable.createTableFunctions("tinytable_hvz4947c6w5kctjx7ugs");
       // tinytable span after
-      window.addEventListener('load', function () { tableFns_je7xn5063tk6pj1rg4aa.spanCell(28, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_je7xn5063tk6pj1rg4aa.spanCell(24, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_je7xn5063tk6pj1rg4aa.spanCell(21, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_je7xn5063tk6pj1rg4aa.spanCell(16, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_je7xn5063tk6pj1rg4aa.spanCell(12, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_je7xn5063tk6pj1rg4aa.spanCell(6, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_je7xn5063tk6pj1rg4aa.spanCell(1, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_hvz4947c6w5kctjx7ugs.spanCell(28, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_hvz4947c6w5kctjx7ugs.spanCell(24, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_hvz4947c6w5kctjx7ugs.spanCell(21, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_hvz4947c6w5kctjx7ugs.spanCell(16, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_hvz4947c6w5kctjx7ugs.spanCell(12, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_hvz4947c6w5kctjx7ugs.spanCell(6, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_hvz4947c6w5kctjx7ugs.spanCell(1, 1, 1, 5) })
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '29', j: 1 }, { i: '29', j: 2 }, { i: '29', j: 3 }, { i: '29', j: 4 }, { i: '29', j: 5 } ], css_id: 'tinytable_css_ojvwa7cuojtbvhpvd9km',},
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_yjnn82ei071m1l99t8qc',},
+          { positions: [ { i: '29', j: 1 }, { i: '29', j: 2 }, { i: '29', j: 3 }, { i: '29', j: 4 }, { i: '29', j: 5 } ], css_id: 'tinytable_css_wp8s02x6qmznhvd6kf11',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_abimtfirun6xtferxtn9',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_je7xn5063tk6pj1rg4aa.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_hvz4947c6w5kctjx7ugs.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_je7xn5063tk6pj1rg4aa td.tinytable_css_ojvwa7cuojtbvhpvd9km, #tinytable_je7xn5063tk6pj1rg4aa th.tinytable_css_ojvwa7cuojtbvhpvd9km {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_je7xn5063tk6pj1rg4aa td.tinytable_css_yjnn82ei071m1l99t8qc, #tinytable_je7xn5063tk6pj1rg4aa th.tinytable_css_yjnn82ei071m1l99t8qc {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_hvz4947c6w5kctjx7ugs td.tinytable_css_wp8s02x6qmznhvd6kf11, #tinytable_hvz4947c6w5kctjx7ugs th.tinytable_css_wp8s02x6qmznhvd6kf11 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_hvz4947c6w5kctjx7ugs td.tinytable_css_abimtfirun6xtferxtn9, #tinytable_hvz4947c6w5kctjx7ugs th.tinytable_css_abimtfirun6xtferxtn9 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_je7xn5063tk6pj1rg4aa" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_hvz4947c6w5kctjx7ugs" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">Metric</th>
                 <th scope="col" data-row="0" data-col="2">Formula</th>
@@ -1120,6 +1132,7 @@ Table 7: Kept scenario descriptors from <code><a href="../reference/describe_si
 </div>
 </div>
 <div id="nte-desc-composition">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 6: Composition</strong></p>
 <p>Let <span class="math inline">\boldsymbol{p}\in\Delta^{J-1}</span> with the convention <span class="math inline">0\log 0=0</span>. The normaliser always uses the full panel size <span class="math inline">J</span>, including zeros.</p>
@@ -1131,7 +1144,9 @@ Table 7: Kept scenario descriptors from <code><a href="../reference/describe_si
 </ul>
 </blockquote>
 </div>
+</div>
 <div id="nte-desc-mean">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 7: Mean geometry</strong></p>
 <p>Columns of <span class="math inline">\boldsymbol{\mu}</span> are built by <code><a href="../reference/generate_mean_signature_matrix.html">generate_mean_signature_matrix()</a></code> so that the Gram of unit columns equals <code>target_gram</code> (or equicorrelation at <code>target_cosine</code>). Euclidean gaps then scale with <code>mean_scale</code> <span class="math inline">s</span>: <span class="math inline">\lVert\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\rVert
@@ -1144,7 +1159,9 @@ Table 7: Kept scenario descriptors from <code><a href="../reference/describe_si
 </ul>
 </blockquote>
 </div>
+</div>
 <div id="nte-desc-cld">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 8: Euclidean centroid gap (CLD)</strong></p>
 <p><strong>CLD</strong> is a shorthand for <strong>centroid (mean-profile) separation</strong>: how far two signature columns <span class="math inline">\boldsymbol{\mu}_{\cdot 1}</span> and <span class="math inline">\boldsymbol{\mu}_{\cdot 2}</span> sit in gene space. The article uses the same label (“mean centroids (CLD)”). There is no separate named CLD index in the package; <code>mean_euclidean</code> is the mean of those pairwise gaps, the same Euclidean objective <code><a href="../reference/compute_mean_profile_objectives.html">compute_mean_profile_objectives()</a></code> maximises. The signatures are expression means, not simplex compositions, so this is <strong>not</strong> an Aitchison / clr distance.</p>
@@ -1205,7 +1222,9 @@ d(\boldsymbol{\mu}_{\cdot 1},\boldsymbol{\mu}_{\cdot 2})
 <p>Small CLD means nearly overlapping centroids (harder for mean-only solvers). Large CLD means the two types are well separated in <span class="math inline">\mathbb{R}^G</span>.</p>
 </blockquote>
 </div>
+</div>
 <div id="nte-desc-spd">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 9: SPD / numerical conditioning of <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span></strong></p>
 <p>These columns describe the <em>mixture</em> covariance, not statistical identifiability of <span class="math inline">\boldsymbol{p}</span>. For a Gaussian, <span class="math inline">\kappa\{\boldsymbol{\Sigma}(\boldsymbol{p})\}
@@ -1221,7 +1240,9 @@ d(\boldsymbol{\mu}_{\cdot 1},\boldsymbol{\mu}_{\cdot 2})
 </ul>
 </blockquote>
 </div>
+</div>
 <div id="nte-desc-fisher">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 10: Tangent Fisher information (mean versus covariance)</strong></p>
 <p>For a real Gaussian <span class="math inline">\boldsymbol{y}\mid\boldsymbol{p}\sim
@@ -1274,7 +1295,9 @@ I_{\mathrm{cov}}(\boldsymbol{d})
 </ul>
 </blockquote>
 </div>
+</div>
 <div id="nte-desc-network">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 11: Network sparsity</strong></p>
 <p>When an adjacency array is supplied, density uses that support; otherwise the off-diagonal pattern of each <span class="math inline">\boldsymbol{\Omega}_j</span> is used. Magnitude sparsity is summarised on the bulk correlation matrix <span class="math inline">R=\mathrm{corr}\{\boldsymbol{\Sigma}(\boldsymbol{p})\}</span>, not on the binary graph.</p>
@@ -1283,6 +1306,7 @@ I_{\mathrm{cov}}(\boldsymbol{d})
 <li>Hoyer sparsity of the <span class="math inline">M=G(G-1)/2</span> off-diagonal absolute correlations <span class="math inline">w_e=\lvert r_{gh}\rvert</span>: <span class="math inline">S_{\mathrm{Hoyer}}=(\sqrt{M}-\lVert w\rVert_1/\lVert w\rVert_2)/(\sqrt{M}-1)\in[0,1]</span>. Zero is a flat spectrum of magnitudes; one is a single dominant edge. The index is scale-free and does not assume a topology. For <span class="math inline">G=2</span>, <span class="math inline">M=1</span> and the index is undefined (<code>NA</code>): there is only one off-diagonal. <span class="citation" data-cites="hoyerNonnegativeMatrixFactorization2004">Hoyer (<a href="#ref-hoyerNonnegativeMatrixFactorization2004" role="doc-biblioref">2004</a>)</span> introduced this normalisation of the <span class="math inline">\ell_1/\ell_2</span> ratio as a sparseness constraint for non-negative matrix factorisation.</li>
 </ul>
 </blockquote>
+</div>
 </div>
 <div id="fig-hoyer-sparsity" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-hoyer-sparsity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -1293,6 +1317,7 @@ Figure 8: Hoyer sparsity of a nonnegative edge-weight vector: a flat spectrum s
 </figcaption></figure>
 </div>
 <div id="nte-desc-overlap">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 12: Component overlap (purified Gaussians)</strong></p>
 <p>These scores describe the <span class="math inline">J</span> reference Gaussians <span class="math inline">\mathcal{N}(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_j)</span> that enter the convolution, not the estimator.</p>
@@ -1303,6 +1328,7 @@ Figure 8: Hoyer sparsity of a nonnegative edge-weight vector: a flat spectrum s
 <code>riemannian_sigma</code>: mean pairwise affine-invariant Riemannian distance of the <span class="math inline">\boldsymbol{\Sigma}_j</span> (not Frobenius).</li>
 </ul>
 </blockquote>
+</div>
 </div>
 <p>Cholesky fill-in and sparse-solver timings are <em>not</em> reported: the caller must declare the covariance structure used at fit time; otherwise the dense Cholesky factor of <span class="math inline">\Sigma(p)</span> is the default.</p>
 </section><section class="section level2"><h2 id="sec-performance-metrics">Performance metrics<a class="anchor" aria-label="anchor" href="#sec-performance-metrics"></a>
@@ -1350,6 +1376,7 @@ Figure 9: Compositional error metrics for <span class="math inline">\boldsymbol
 </figcaption></figure>
 </div>
 <div id="nte-comp-geometry">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 13: Euclidean versus log-ratio geometry on the simplex</strong></p>
 <p>Compositions live on <span class="math inline">\Delta^{J-1}</span>, not in <span class="math inline">\mathbb{R}^{J}</span> <span class="citation" data-cites="aitchisonStatisticalAnalysisCompositional1982">(<a href="#ref-aitchisonStatisticalAnalysisCompositional1982" role="doc-biblioref">Aitchison 1982</a>)</span>. The same Euclidean vector <span class="math inline">\boldsymbol{e}=\hat{\boldsymbol{p}}-\boldsymbol{p}^{\star}</span> therefore has a different meaning at the barycentre than near a vertex (<a href="#fig-comp-interp" class="quarto-xref">Figure 9 (b)</a>).</p>
@@ -1366,6 +1393,7 @@ Figure 9: Compositional error metrics for <span class="math inline">\boldsymbol
 <strong>Angular / SDID</strong> ignore amplitude along a ray. On the simplex the total mass is already one, so they mainly capture whether the two compositions point the same way (including near-orthogonal spills onto the wrong vertex).</li>
 </ul>
 </blockquote>
+</div>
 </div>
 <section class="level2"><h3 id="sec-metrics-regression">Composition and regression scores<a class="anchor" aria-label="anchor" href="#sec-metrics-regression"></a>
 </h3>
@@ -1388,36 +1416,36 @@ Table 8: Kept composition and regression scores from <code><a href="../referenc
     };
     </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_gvr34huer9zbgkeg7z5i = TinyTable.createTableFunctions("tinytable_gvr34huer9zbgkeg7z5i");
+      const tableFns_yex6px49wl3k4iw6zp1f = TinyTable.createTableFunctions("tinytable_yex6px49wl3k4iw6zp1f");
       // tinytable span after
-      window.addEventListener('load', function () { tableFns_gvr34huer9zbgkeg7z5i.spanCell(14, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_gvr34huer9zbgkeg7z5i.spanCell(11, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_gvr34huer9zbgkeg7z5i.spanCell(9, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_gvr34huer9zbgkeg7z5i.spanCell(6, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_gvr34huer9zbgkeg7z5i.spanCell(4, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_gvr34huer9zbgkeg7z5i.spanCell(1, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_yex6px49wl3k4iw6zp1f.spanCell(14, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_yex6px49wl3k4iw6zp1f.spanCell(11, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_yex6px49wl3k4iw6zp1f.spanCell(9, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_yex6px49wl3k4iw6zp1f.spanCell(6, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_yex6px49wl3k4iw6zp1f.spanCell(4, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_yex6px49wl3k4iw6zp1f.spanCell(1, 1, 1, 5) })
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '15', j: 1 }, { i: '15', j: 2 }, { i: '15', j: 3 }, { i: '15', j: 4 }, { i: '15', j: 5 } ], css_id: 'tinytable_css_aakig0tcb5vhrddfjk92',},
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_oiauknrkty5wmmbf6zd9',},
+          { positions: [ { i: '15', j: 1 }, { i: '15', j: 2 }, { i: '15', j: 3 }, { i: '15', j: 4 }, { i: '15', j: 5 } ], css_id: 'tinytable_css_ddr52uyvb9tog2jbrpwk',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_laz6u6ru5ets216v4b2c',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_gvr34huer9zbgkeg7z5i.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_yex6px49wl3k4iw6zp1f.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_gvr34huer9zbgkeg7z5i td.tinytable_css_aakig0tcb5vhrddfjk92, #tinytable_gvr34huer9zbgkeg7z5i th.tinytable_css_aakig0tcb5vhrddfjk92 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_gvr34huer9zbgkeg7z5i td.tinytable_css_oiauknrkty5wmmbf6zd9, #tinytable_gvr34huer9zbgkeg7z5i th.tinytable_css_oiauknrkty5wmmbf6zd9 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_yex6px49wl3k4iw6zp1f td.tinytable_css_ddr52uyvb9tog2jbrpwk, #tinytable_yex6px49wl3k4iw6zp1f th.tinytable_css_ddr52uyvb9tog2jbrpwk {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_yex6px49wl3k4iw6zp1f td.tinytable_css_laz6u6ru5ets216v4b2c, #tinytable_yex6px49wl3k4iw6zp1f th.tinytable_css_laz6u6ru5ets216v4b2c {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_gvr34huer9zbgkeg7z5i" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_yex6px49wl3k4iw6zp1f" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">Metric</th>
                 <th scope="col" data-row="0" data-col="2">Formula</th>
@@ -1558,36 +1586,36 @@ Table 9: Related composition scores that are not primary <code><a href="../refe
     };
     </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_q8xb4td4ve0elbtm4brz = TinyTable.createTableFunctions("tinytable_q8xb4td4ve0elbtm4brz");
+      const tableFns_x6x1h1txevlzivwoerr1 = TinyTable.createTableFunctions("tinytable_x6x1h1txevlzivwoerr1");
       // tinytable span after
-      window.addEventListener('load', function () { tableFns_q8xb4td4ve0elbtm4brz.spanCell(12, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_q8xb4td4ve0elbtm4brz.spanCell(9, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_q8xb4td4ve0elbtm4brz.spanCell(7, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_q8xb4td4ve0elbtm4brz.spanCell(5, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_q8xb4td4ve0elbtm4brz.spanCell(3, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_q8xb4td4ve0elbtm4brz.spanCell(1, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_x6x1h1txevlzivwoerr1.spanCell(12, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_x6x1h1txevlzivwoerr1.spanCell(9, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_x6x1h1txevlzivwoerr1.spanCell(7, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_x6x1h1txevlzivwoerr1.spanCell(5, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_x6x1h1txevlzivwoerr1.spanCell(3, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_x6x1h1txevlzivwoerr1.spanCell(1, 1, 1, 5) })
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '13', j: 1 }, { i: '13', j: 2 }, { i: '13', j: 3 }, { i: '13', j: 4 }, { i: '13', j: 5 } ], css_id: 'tinytable_css_nife9s73yx3igpv1csym',},
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_whyq2h5fd389opray4av',},
+          { positions: [ { i: '13', j: 1 }, { i: '13', j: 2 }, { i: '13', j: 3 }, { i: '13', j: 4 }, { i: '13', j: 5 } ], css_id: 'tinytable_css_qlikebvd14mwrduiw9ru',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_nnr6l8h8ugg07kgs479w',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_q8xb4td4ve0elbtm4brz.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_x6x1h1txevlzivwoerr1.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_q8xb4td4ve0elbtm4brz td.tinytable_css_nife9s73yx3igpv1csym, #tinytable_q8xb4td4ve0elbtm4brz th.tinytable_css_nife9s73yx3igpv1csym {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_q8xb4td4ve0elbtm4brz td.tinytable_css_whyq2h5fd389opray4av, #tinytable_q8xb4td4ve0elbtm4brz th.tinytable_css_whyq2h5fd389opray4av {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_x6x1h1txevlzivwoerr1 td.tinytable_css_qlikebvd14mwrduiw9ru, #tinytable_x6x1h1txevlzivwoerr1 th.tinytable_css_qlikebvd14mwrduiw9ru {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_x6x1h1txevlzivwoerr1 td.tinytable_css_nnr6l8h8ugg07kgs479w, #tinytable_x6x1h1txevlzivwoerr1 th.tinytable_css_nnr6l8h8ugg07kgs479w {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_q8xb4td4ve0elbtm4brz" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_x6x1h1txevlzivwoerr1" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">Metric</th>
                 <th scope="col" data-row="0" data-col="2">Formula</th>
@@ -1705,16 +1733,20 @@ Figure 10: Hierarchical relative RMSE (hrRMSE) used when some reference types a
 </figcaption></figure>
 </div>
 <div id="nte-angular-metrics">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 14: Angular distance versus SDID</strong></p>
 <p>Both scores are strictly increasing functions of the same angle <span class="math inline">\theta=\arccos(p^{\mathsf{T}}\hat p/(\|p\|_2\|\hat p\|_2))</span>. The normalised angular distance <span class="math inline">d_\theta=2\theta/\pi</span> is a metric on <span class="math inline">[0,1]</span>. SDID is <span class="math inline">\sqrt{\sin\theta}</span> (the HADACA convention implemented in <code>.sdid()</code>). They rank methods identically; report one in the headline panel and keep the other for continuity with HADACA3 <span class="citation" data-cites="barbotPromisesLimitsMultimodal2026">(<a href="#ref-barbotPromisesLimitsMultimodal2026" role="doc-biblioref">Barbot and Richard 2026</a>)</span>.</p>
 </blockquote>
 </div>
+</div>
 <div id="nte-simplex-bounds">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 15: Simplex bounds for <span class="math inline">L_p</span> errors</strong></p>
 <p>Because <span class="math inline">\boldsymbol{p}</span> and <span class="math inline">\hat{\boldsymbol{p}}</span> both sum to one and are non-negative, <span class="math inline">\boldsymbol{e}</span> is orthogonal to <span class="math inline">\mathbf{1}</span> and cannot put unit mass on two opposite vertices at once without taking it from the other. Hence <span class="math inline">\|\boldsymbol{e}\|_1\le 2</span>, <span class="math inline">\|\boldsymbol{e}\|_2\le\sqrt{2}</span>, and <span class="math inline">\|\boldsymbol{e}\|_\infty\le 1</span>, with equality when all mass sits on one type in <span class="math inline">\boldsymbol{p}</span> and on a different type in <span class="math inline">\hat{\boldsymbol{p}}</span>. Normalised MAE is total variation: <span class="math inline">J\,\mathrm{MAE}/2=d_{\mathrm{TV}}</span>. Raw RMSE still depends on <span class="math inline">J</span>; divide by <span class="math inline">\sqrt{2/J}</span> (equivalently <span class="math inline">\|\boldsymbol{e}\|_2/\sqrt{2}</span>) if a dimension-free <span class="math inline">L_2</span> score is needed.</p>
 </blockquote>
+</div>
 </div>
 </section><section class="level2"><h3 id="sec-metrics-ademp">Monte Carlo (ADEMP) summaries<a class="anchor" aria-label="anchor" href="#sec-metrics-ademp"></a>
 </h3>
@@ -1737,36 +1769,36 @@ Table 10: Kept Monte Carlo / ADEMP summaries (<code>monte_carlo</code> block an
     };
     </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_rbotkrjotmsmek3iu19l = TinyTable.createTableFunctions("tinytable_rbotkrjotmsmek3iu19l");
+      const tableFns_tt187mrthj1jbvp3xmyg = TinyTable.createTableFunctions("tinytable_tt187mrthj1jbvp3xmyg");
       // tinytable span after
-      window.addEventListener('load', function () { tableFns_rbotkrjotmsmek3iu19l.spanCell(12, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_rbotkrjotmsmek3iu19l.spanCell(10, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_rbotkrjotmsmek3iu19l.spanCell(8, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_rbotkrjotmsmek3iu19l.spanCell(6, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_rbotkrjotmsmek3iu19l.spanCell(4, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_rbotkrjotmsmek3iu19l.spanCell(1, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_tt187mrthj1jbvp3xmyg.spanCell(12, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_tt187mrthj1jbvp3xmyg.spanCell(10, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_tt187mrthj1jbvp3xmyg.spanCell(8, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_tt187mrthj1jbvp3xmyg.spanCell(6, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_tt187mrthj1jbvp3xmyg.spanCell(4, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_tt187mrthj1jbvp3xmyg.spanCell(1, 1, 1, 5) })
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '15', j: 1 }, { i: '15', j: 2 }, { i: '15', j: 3 }, { i: '15', j: 4 }, { i: '15', j: 5 } ], css_id: 'tinytable_css_85dpzz39nvrfhd9l3j67',},
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_bdyhhhmmmzrdp2qbk6g3',},
+          { positions: [ { i: '15', j: 1 }, { i: '15', j: 2 }, { i: '15', j: 3 }, { i: '15', j: 4 }, { i: '15', j: 5 } ], css_id: 'tinytable_css_jm3fxgxzdhjyx2r64a79',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_cusolx46po6bn7zzro9d',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_rbotkrjotmsmek3iu19l.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_tt187mrthj1jbvp3xmyg.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_rbotkrjotmsmek3iu19l td.tinytable_css_85dpzz39nvrfhd9l3j67, #tinytable_rbotkrjotmsmek3iu19l th.tinytable_css_85dpzz39nvrfhd9l3j67 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_rbotkrjotmsmek3iu19l td.tinytable_css_bdyhhhmmmzrdp2qbk6g3, #tinytable_rbotkrjotmsmek3iu19l th.tinytable_css_bdyhhhmmmzrdp2qbk6g3 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_tt187mrthj1jbvp3xmyg td.tinytable_css_jm3fxgxzdhjyx2r64a79, #tinytable_tt187mrthj1jbvp3xmyg th.tinytable_css_jm3fxgxzdhjyx2r64a79 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_tt187mrthj1jbvp3xmyg td.tinytable_css_cusolx46po6bn7zzro9d, #tinytable_tt187mrthj1jbvp3xmyg th.tinytable_css_cusolx46po6bn7zzro9d {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_rbotkrjotmsmek3iu19l" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_tt187mrthj1jbvp3xmyg" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">Metric</th>
                 <th scope="col" data-row="0" data-col="2">Formula</th>
@@ -1908,35 +1940,35 @@ Table 11: ADEMP-adjacent diagnostics that are not default columns.
     };
     </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_3h1pyn5cos8yef5x4g5l = TinyTable.createTableFunctions("tinytable_3h1pyn5cos8yef5x4g5l");
+      const tableFns_koydtxve9rbwzg4vx5ex = TinyTable.createTableFunctions("tinytable_koydtxve9rbwzg4vx5ex");
       // tinytable span after
-      window.addEventListener('load', function () { tableFns_3h1pyn5cos8yef5x4g5l.spanCell(10, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_3h1pyn5cos8yef5x4g5l.spanCell(8, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_3h1pyn5cos8yef5x4g5l.spanCell(6, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_3h1pyn5cos8yef5x4g5l.spanCell(3, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_3h1pyn5cos8yef5x4g5l.spanCell(1, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_koydtxve9rbwzg4vx5ex.spanCell(10, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_koydtxve9rbwzg4vx5ex.spanCell(8, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_koydtxve9rbwzg4vx5ex.spanCell(6, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_koydtxve9rbwzg4vx5ex.spanCell(3, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_koydtxve9rbwzg4vx5ex.spanCell(1, 1, 1, 5) })
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '11', j: 1 }, { i: '11', j: 2 }, { i: '11', j: 3 }, { i: '11', j: 4 }, { i: '11', j: 5 } ], css_id: 'tinytable_css_2votm68igsvh4am31n1o',},
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_7ydqz0iwiej5a50zvtr8',},
+          { positions: [ { i: '11', j: 1 }, { i: '11', j: 2 }, { i: '11', j: 3 }, { i: '11', j: 4 }, { i: '11', j: 5 } ], css_id: 'tinytable_css_rfzluvxv1tjx9rvmimap',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_l4gx0vv6s6gmlphaonai',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_3h1pyn5cos8yef5x4g5l.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_koydtxve9rbwzg4vx5ex.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_3h1pyn5cos8yef5x4g5l td.tinytable_css_2votm68igsvh4am31n1o, #tinytable_3h1pyn5cos8yef5x4g5l th.tinytable_css_2votm68igsvh4am31n1o {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_3h1pyn5cos8yef5x4g5l td.tinytable_css_7ydqz0iwiej5a50zvtr8, #tinytable_3h1pyn5cos8yef5x4g5l th.tinytable_css_7ydqz0iwiej5a50zvtr8 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_koydtxve9rbwzg4vx5ex td.tinytable_css_rfzluvxv1tjx9rvmimap, #tinytable_koydtxve9rbwzg4vx5ex th.tinytable_css_rfzluvxv1tjx9rvmimap {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_koydtxve9rbwzg4vx5ex td.tinytable_css_l4gx0vv6s6gmlphaonai, #tinytable_koydtxve9rbwzg4vx5ex th.tinytable_css_l4gx0vv6s6gmlphaonai {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_3h1pyn5cos8yef5x4g5l" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_koydtxve9rbwzg4vx5ex" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">Metric</th>
                 <th scope="col" data-row="0" data-col="2">Formula</th>
@@ -2033,6 +2065,7 @@ Table 11: ADEMP-adjacent diagnostics that are not default columns.
 </div>
 </div>
 <div id="nte-mcse-coverage">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 16: Monte Carlo standard error of coverage</strong></p>
 <p>Coverage is a mean of i.i.d. Bernoulli indicators <span class="math inline">I_b=\mathbf{1}\{p_j\in\mathrm{CI}_{jb}\}</span>. With <span class="math inline">B</span> independent simulated datasets,</p>
@@ -2043,6 +2076,7 @@ Table 11: ADEMP-adjacent diagnostics that are not default columns.
 </span></p>
 <p>The denominator is <span class="math inline">B</span>, not <span class="math inline">B</span> times an inner bootstrap size: bootstrap draws belong to the interval algorithm, not to the outer simulation. At true 95% coverage, <span class="math inline">B=1000</span> gives <span class="math inline">\mathrm{MCSE}\approx 0.0069</span>. The package stores <code>mcse_coverage</code> on the <code>monte_carlo</code> table. For a generic mean <span class="math inline">\widehat T=B^{-1}\sum_b T_b</span>, use <span class="math inline">\widehat{\mathrm{MCSE}}(\widehat T)=s_T/\sqrt{B}</span> (<code>.mcse_mean()</code>).</p>
 </blockquote>
+</div>
 </div>
 </section><section class="level2"><h3 id="sec-metrics-optimisation">Execution and optimisation<a class="anchor" aria-label="anchor" href="#sec-metrics-optimisation"></a>
 </h3>
@@ -2066,33 +2100,33 @@ Table 12: Kept optimisation and runtime scores (<code>optimisation</code> block
     };
     </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_lsqop13i5s459cbqoach = TinyTable.createTableFunctions("tinytable_lsqop13i5s459cbqoach");
+      const tableFns_m2taopdi1lmmwmri627u = TinyTable.createTableFunctions("tinytable_m2taopdi1lmmwmri627u");
       // tinytable span after
-      window.addEventListener('load', function () { tableFns_lsqop13i5s459cbqoach.spanCell(7, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_lsqop13i5s459cbqoach.spanCell(5, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_lsqop13i5s459cbqoach.spanCell(1, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_m2taopdi1lmmwmri627u.spanCell(7, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_m2taopdi1lmmwmri627u.spanCell(5, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_m2taopdi1lmmwmri627u.spanCell(1, 1, 1, 5) })
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '9', j: 1 }, { i: '9', j: 2 }, { i: '9', j: 3 }, { i: '9', j: 4 }, { i: '9', j: 5 } ], css_id: 'tinytable_css_wengav259d090q9yaom8',},
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_h6qmpzjtqnmm000rnnx4',},
+          { positions: [ { i: '9', j: 1 }, { i: '9', j: 2 }, { i: '9', j: 3 }, { i: '9', j: 4 }, { i: '9', j: 5 } ], css_id: 'tinytable_css_2m3e8f4c1hotruaf90j5',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_bi46k3gxteoqotr6d4n4',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_lsqop13i5s459cbqoach.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_m2taopdi1lmmwmri627u.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_lsqop13i5s459cbqoach td.tinytable_css_wengav259d090q9yaom8, #tinytable_lsqop13i5s459cbqoach th.tinytable_css_wengav259d090q9yaom8 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_lsqop13i5s459cbqoach td.tinytable_css_h6qmpzjtqnmm000rnnx4, #tinytable_lsqop13i5s459cbqoach th.tinytable_css_h6qmpzjtqnmm000rnnx4 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_m2taopdi1lmmwmri627u td.tinytable_css_2m3e8f4c1hotruaf90j5, #tinytable_m2taopdi1lmmwmri627u th.tinytable_css_2m3e8f4c1hotruaf90j5 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_m2taopdi1lmmwmri627u td.tinytable_css_bi46k3gxteoqotr6d4n4, #tinytable_m2taopdi1lmmwmri627u th.tinytable_css_bi46k3gxteoqotr6d4n4 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_lsqop13i5s459cbqoach" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_m2taopdi1lmmwmri627u" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">Metric</th>
                 <th scope="col" data-row="0" data-col="2">Formula</th>
@@ -2192,34 +2226,34 @@ Table 13: ILR score and Hessian extrema are now stored on <code>optimisation</c
     };
     </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_8v1by2e2rxiyqvs8tvjd = TinyTable.createTableFunctions("tinytable_8v1by2e2rxiyqvs8tvjd");
+      const tableFns_48up6y44bnaait50bl1h = TinyTable.createTableFunctions("tinytable_48up6y44bnaait50bl1h");
       // tinytable span after
-      window.addEventListener('load', function () { tableFns_8v1by2e2rxiyqvs8tvjd.spanCell(7, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_8v1by2e2rxiyqvs8tvjd.spanCell(5, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_8v1by2e2rxiyqvs8tvjd.spanCell(3, 1, 1, 5) })
-      window.addEventListener('load', function () { tableFns_8v1by2e2rxiyqvs8tvjd.spanCell(1, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_48up6y44bnaait50bl1h.spanCell(7, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_48up6y44bnaait50bl1h.spanCell(5, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_48up6y44bnaait50bl1h.spanCell(3, 1, 1, 5) })
+      window.addEventListener('load', function () { tableFns_48up6y44bnaait50bl1h.spanCell(1, 1, 1, 5) })
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '8', j: 1 }, { i: '8', j: 2 }, { i: '8', j: 3 }, { i: '8', j: 4 }, { i: '8', j: 5 } ], css_id: 'tinytable_css_ci19o36qs5vb6p17wwfs',},
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_h4sc305ys2cx1lwtu2df',},
+          { positions: [ { i: '8', j: 1 }, { i: '8', j: 2 }, { i: '8', j: 3 }, { i: '8', j: 4 }, { i: '8', j: 5 } ], css_id: 'tinytable_css_s1htnicdj7jwyceijkkn',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 } ], css_id: 'tinytable_css_m4zi467d4iblhpibav8w',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_8v1by2e2rxiyqvs8tvjd.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_48up6y44bnaait50bl1h.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_8v1by2e2rxiyqvs8tvjd td.tinytable_css_ci19o36qs5vb6p17wwfs, #tinytable_8v1by2e2rxiyqvs8tvjd th.tinytable_css_ci19o36qs5vb6p17wwfs {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_8v1by2e2rxiyqvs8tvjd td.tinytable_css_h4sc305ys2cx1lwtu2df, #tinytable_8v1by2e2rxiyqvs8tvjd th.tinytable_css_h4sc305ys2cx1lwtu2df {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_48up6y44bnaait50bl1h td.tinytable_css_s1htnicdj7jwyceijkkn, #tinytable_48up6y44bnaait50bl1h th.tinytable_css_s1htnicdj7jwyceijkkn {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_48up6y44bnaait50bl1h td.tinytable_css_m4zi467d4iblhpibav8w, #tinytable_48up6y44bnaait50bl1h th.tinytable_css_m4zi467d4iblhpibav8w {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_8v1by2e2rxiyqvs8tvjd" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_48up6y44bnaait50bl1h" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">Metric</th>
                 <th scope="col" data-row="0" data-col="2">Formula</th>
@@ -2296,6 +2330,7 @@ Table 13: ILR score and Hessian extrema are now stored on <code>optimisation</c
 </div>
 </div>
 <div id="nte-kkt-ilr-hessian">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 17: Interior ILR stationarity, projected KKT residual, and Hessian curvature</strong></p>
 <p>Three numbers are easy to confuse. They answer different questions, and only the second is the default <code>kkt_residual</code> column.</p>
@@ -2312,11 +2347,14 @@ R_{\alpha}(\boldsymbol{p})
 <p><strong>Hessian / curvature.</strong> First-order stationarity does not imply a local maximum. <code><a href="../reference/boundary_diagnostics.html">boundary_diagnostics()</a></code> reports both <span class="math inline">\lambda_{\min}(H_z)</span> and <span class="math inline">\lambda_{\max}(H_z)</span> of <code><a href="../reference/hessian_loglik_constrained.html">hessian_loglik_constrained()</a></code> and sets <code>local_maximum</code> when the ILR score is below <code>score_tol</code> <strong>and</strong> the Hessian is negative definite (both eigenvalues strictly negative). A small KKT residual with <span class="math inline">\lambda_{\min}&lt;0&lt;\lambda_{\max}</span> is a saddle. None of these diagnostics implies a unique global mode; the DeCovarT likelihood for one bulk sample is not concave in general (<a href="theory-DeCovarT-MLE-properties.html">MLE properties</a>).</p>
 </blockquote>
 </div>
+</div>
 <div id="nte-metric-choice">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 18: Which metric to report</strong></p>
 <p>Use TV, RMSE, MaxAE, and (optionally) angular distance / SDID as the global panel. Add cell-type Pearson and presence F1 / false-positive mass when rare or absent types matter <span class="citation" data-cites="sturmComprehensiveEvaluationTranscriptomebased2019 faComprehensiveBenchmarkingComputational2020">(<a href="#ref-sturmComprehensiveEvaluationTranscriptomebased2019" role="doc-biblioref">Sturm et al. 2019</a>; <a href="#ref-faComprehensiveBenchmarkingComputational2020" role="doc-biblioref">Avila Cobos et al. 2020</a>)</span>. Report ADEMP bias, empirical SD, SE/SD, coverage (with MCSE and a Wilson interval on the rate), and mean width whenever intervals exist. Quote median and IQR of elapsed time and PSS from the <code>optimisation</code> table rather than a single end-to-end clock. Pair <code>kkt_residual</code> with <code>numerical_converged</code> and <code>theoretical_converged</code>; the three stacked-bar outcomes in <a href="#fig-simulation-outcomes-venn" class="quarto-xref">Figure 11</a> partition every replicate. Quote <code>score_norm</code> / <code>local_maximum</code> only for interior ILR fits, and report both <span class="math inline">\lambda_{\min}(H_z)</span> and <span class="math inline">\lambda_{\max}(H_z)</span> so a saddle (<span class="math inline">\lambda_{\min}&lt;0&lt;\lambda_{\max}</span>) is not mistaken for a maximum.</p>
 </blockquote>
+</div>
 </div>
 <div id="fig-simulation-outcomes-venn" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-simulation-outcomes-venn-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -2333,6 +2371,7 @@ Figure 11: Euler diagram of the three ADEMP solver outcomes. Numerical failure 
 </h3>
 <p>Wilson is the default interval around the <em>estimated coverage rate</em> <span class="math inline">\hat\pi=X/N</span>, not the interval for <span class="math inline">\hat p_j</span> <span class="citation" data-cites="wilsonProbableInferenceLaw1927">(<a href="#ref-wilsonProbableInferenceLaw1927" role="doc-biblioref">Wilson 1927</a>)</span>. The interval <em>for</em> <span class="math inline">p_j</span> on an interior composition is the ILR delta-method Wald interval from <a href="../reference/vcov_ilr_delta.html"><code>vcov_ilr_delta()</code></a> / <a href="../reference/fit_decovart.html"><code>confint.decovart_fit()</code></a>: expected Fisher information of the Gaussian convolution, pulled back through the isometric log-ratio chart — not the observed Hessian of a Newton step, and not an ALR chart. Wald and Agresti–Coull <span class="citation" data-cites="agrestiApproximateBetterExact1998">(<a href="#ref-agrestiApproximateBetterExact1998" role="doc-biblioref">Agresti and Coull 1998</a>)</span> are available through <code>coverage_interval</code> for the binomial <em>rate</em>. Bias-eliminated coverage (covering <span class="math inline">\bar{\hat\theta}</span> rather than <span class="math inline">\theta</span>) is not implemented; report ordinary coverage and bias side by side instead. <a href="#nte-binomial-coverage-ci" class="quarto-xref">Note 19</a> summarises exact, asymptotic, and optimisation-based constructions for that binomial rate.</p>
 <div id="nte-binomial-coverage-ci">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 19: Intervals for a binomial coverage rate</strong></p>
 <p>The Monte Carlo coverage rate <span class="math inline">\hat\pi=X/N</span> is a binomial proportion on the unit interval. Interval construction for that rate is not a confidence interval for the cell-type vector <span class="math inline">\boldsymbol{p}</span>. Three strategies are in common use <span class="citation" data-cites="agrestiApproximateBetterExact1998 konietschkeExactAsymptoticOptimizationbased2026">(<a href="#ref-agrestiApproximateBetterExact1998" role="doc-biblioref">Agresti and Coull 1998</a>; <a href="#ref-konietschkeExactAsymptoticOptimizationbased2026" role="doc-biblioref">Konietschke and Brunner 2026</a>)</span>.</p>
@@ -2346,6 +2385,7 @@ Figure 11: Euler diagram of the three ADEMP solver outcomes. Numerical failure 
 </ul>
 <p>DeCovarT does not implement tuned or LCO intervals. Independent Monte Carlo replicates <span class="math inline">N</span> can be increased arbitrarily, so the small-sample discreteness problem that motivates optimisation-based tuning is not the operating regime. Report ordinary Wilson (or Agresti–Coull) intervals on <span class="math inline">\hat\pi</span>, together with <code>mcse_coverage</code> and bias, rather than a small-sample recalibration of <span class="math inline">\gamma</span>.</p>
 </blockquote>
+</div>
 </div>
 </section><section class="level2"><h3 id="sec-mc-qq">Asymptotic normality of <span class="math inline">\hat{\boldsymbol{p}}</span>
 <a class="anchor" aria-label="anchor" href="#sec-mc-qq"></a>
@@ -2362,6 +2402,7 @@ Figure 12: Q-Q plots: points hug the diagonal when the normal assumption holds,
 </div>
 <p>Hazen plotting positions <span class="math inline">p_i=(i-0.5)/n</span> against <span class="math inline">\Phi^{-1}(p_i)</span>, after Aldor-Noiman et al. and the DataInterview explainer. Curvature direction diagnoses tail weight and skew; a 95% band helps separate signal from Monte Carlo wiggle.</p>
 <div id="nte-ks-pvalue-fallacy">
+<div class="decovart-callout callout-warning">
 <blockquote>
 <p><strong>Warning 20: Do not promote a Kolmogorov–Smirnov <span class="math inline">p</span>-value to a verdict</strong></p>
 <p>The KS lollipops are a companion to the Q-Q books, not a substitute.</p>
@@ -2373,11 +2414,14 @@ Figure 12: Q-Q plots: points hug the diagonal when the normal assumption holds,
 </ul>
 </blockquote>
 </div>
+</div>
 <div id="nte-no-coverage-pvalue">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 21: No <span class="math inline">p</span>-value for the coverage rate</strong></p>
 <p>Coverage of a Wald interval is the Monte Carlo mean of the indicator <span class="math inline">I\{\theta_0\in\mathrm{CI}_m\}</span>, not a test of <span class="math inline">|(\hat\theta-\bar{\hat\theta})/s|&lt;1.96</span>. That second quantity studentises against the <em>Monte Carlo</em> mean rather than against <span class="math inline">\theta_0</span>, and the unit-simplex constraint already invalidates a symmetric <span class="math inline">\pm 1.96\,\widehat{\mathrm{SE}}</span> statement near a face. Reporting a <span class="math inline">p</span>-value for the coverage rate would duplicate the indicator without adding a new estimand. Report <span class="math inline">\hat\pi</span>, its Wilson interval, <code>mcse_coverage</code>, and bias side by side instead.</p>
 </blockquote>
+</div>
 </div>
 </section></section><section class="section level2"><h2 id="conclusions">Conclusions<a class="anchor" aria-label="anchor" href="#conclusions"></a>
 </h2>
@@ -2392,6 +2436,7 @@ Figure 12: Q-Q plots: points hug the diagonal when the normal assumption holds,
 </ol>
 <p>See <a href="#nte-benchmark-spec" class="quarto-xref">Note 22</a> for a compact factorial checklist.</p>
 <div id="nte-benchmark-spec">
+<div class="decovart-callout callout-important">
 <blockquote>
 <p><strong>Important 22: Recommended benchmark specification</strong></p>
 <p>Use one pipeline for a given topology of a given cell type’s covariance structure (<a href="#eq-benchmark-pipe" class="quarto-xref">Eq. 16</a>, <a href="#fig-ggm-pipeline" class="quarto-xref">Figure 4</a>):</p>
@@ -2411,12 +2456,15 @@ Figure 12: Q-Q plots: points hug the diagonal when the normal assumption holds,
 <p>Prefer: - uniform spectral shift (<a href="#eq-spectral-shift" class="quarto-xref">Eq. 12</a>) or partial-correlation scaling (<a href="#eq-partial-scale" class="quarto-xref">Eq. 11</a>) when support and signs are exact; <span class="math inline">G</span>-Wishart when support and signs are approximate. - composition grid from uniform (<span class="math inline">H^{\star}=1</span>) to near-pure (<span class="math inline">H^{\star}\approx 0</span>), matching the <code>SimBu</code> fraction vocabulary when comparing to pseudo-bulk tools (<a href="#fig-simbu-entropy" class="quarto-xref">Figure 7</a>). - add the mean layer <strong>independently</strong> of graph generation.</p>
 </blockquote>
 </div>
+</div>
 <div id="nte-parallel-rng">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 23: Execution: no nested parallelism, <code>furrr</code>, L’Ecuyer streams</strong></p>
 <p>Sample-level workers live only in <a href="../reference/deconvolute_ratios.html"><code>deconvolute_ratios()</code></a>. <code>.map_samples()</code> calls <code>furrr::furrr_options(seed = TRUE)</code>, which is the R <span class="math inline">\ge 4.1</span> / <code>future</code> implementation of independent L’Ecuyer-CMRG streams per worker <span class="citation" data-cites="morrisUsingSimulationStudies2019">(<a href="#ref-morrisUsingSimulationStudies2019" role="doc-biblioref">Morris et al. 2019</a>)</span>. <a href="../reference/run_simulation_benchmark.html"><code>run_simulation_benchmark()</code></a> evaluates scenario rows <strong>sequentially</strong>, so streams are never nested. Do not offset a shared seed by the sample index (<code>set.seed(seed + i)</code>). For an explicit cluster script, set <code>RNGkind("L'Ecuyer-CMRG")</code> once and advance with <code><a href="https://rdrr.io/r/parallel/RngStream.html" class="external-link">parallel::nextRNGStream</a></code>, or keep <code>furrr</code> <code>seed = TRUE</code>.</p>
 <p>That <code>furrr</code> path is the default for long jobs and for <strong>reproducible benchmarks</strong>. <code>mirai</code> (persistent daemons, dynamic dispatch) is reserved for APIs that need a fast interactive response, not for the published Monte Carlo protocol.</p>
 </blockquote>
+</div>
 </div>
 </section><section class="section level2"><h2 id="perspectives-on-high-dimensional-or-more-biologically-realistic-designs">Perspectives on high-dimensional or more biologically realistic designs<a class="anchor" aria-label="anchor" href="#perspectives-on-high-dimensional-or-more-biologically-realistic-designs"></a>
 </h2>
@@ -2474,30 +2522,30 @@ Table 14: ADEMP performance measures implemented in <code><a href="../reference
     };
     </script><!-- tinytable mathjax end --><script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_ldm27r018h4u4x97zfr1 = TinyTable.createTableFunctions("tinytable_ldm27r018h4u4x97zfr1");
+      const tableFns_efxl4nb6qinjcdrb4yoj = TinyTable.createTableFunctions("tinytable_efxl4nb6qinjcdrb4yoj");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '14', j: 1 }, { i: '14', j: 2 } ], css_id: 'tinytable_css_qvuzbev46ek33q74qkll',},
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 } ], css_id: 'tinytable_css_wg3y8zfdknvx54cs2awt',},
+          { positions: [ { i: '14', j: 1 }, { i: '14', j: 2 } ], css_id: 'tinytable_css_m45xuokjsc1xhde5d0u4',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 } ], css_id: 'tinytable_css_vhg2thoz9rnybihtey32',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_ldm27r018h4u4x97zfr1.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_efxl4nb6qinjcdrb4yoj.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_ldm27r018h4u4x97zfr1 td.tinytable_css_qvuzbev46ek33q74qkll, #tinytable_ldm27r018h4u4x97zfr1 th.tinytable_css_qvuzbev46ek33q74qkll {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_ldm27r018h4u4x97zfr1 td.tinytable_css_wg3y8zfdknvx54cs2awt, #tinytable_ldm27r018h4u4x97zfr1 th.tinytable_css_wg3y8zfdknvx54cs2awt {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_efxl4nb6qinjcdrb4yoj td.tinytable_css_m45xuokjsc1xhde5d0u4, #tinytable_efxl4nb6qinjcdrb4yoj th.tinytable_css_m45xuokjsc1xhde5d0u4 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_efxl4nb6qinjcdrb4yoj td.tinytable_css_vhg2thoz9rnybihtey32, #tinytable_efxl4nb6qinjcdrb4yoj th.tinytable_css_vhg2thoz9rnybihtey32 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_ldm27r018h4u4x97zfr1" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_efxl4nb6qinjcdrb4yoj" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">ADEMP</th>
                 <th scope="col" data-row="0" data-col="2">Package</th>

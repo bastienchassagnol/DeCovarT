@@ -103,7 +103,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>DeCovarT extensions roadmap: lineages, covariates, modalities and beyond</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-15</p>
+      <p class="date">2026-10-19</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-decovart-extensions-roadmap.qmd" class="external-link"><code>vignettes/theory-decovart-extensions-roadmap.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -115,12 +115,14 @@
 
 
     <div>
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Scope</strong></p>
 <p>Extensions that are not implemented but fit the DeCovarT likelihood without changing its core: the convolution <span class="math inline">\boldsymbol{y}_{\cdot i}\mid\boldsymbol{p}_{\cdot i}\sim
 \mathcal{N}_G(\boldsymbol{\mu}\boldsymbol{p}_{\cdot i},
 \boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i}))</span> with <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_jp_j^{2}\boldsymbol{\Sigma}_j</span> (<a href="theory-decovart-generative-model.html#sec-unconstrained">derivatives vignette</a>). The same catalogue is tracked in <a href="https://github.com/bastienchassagnol/DeCovarT/issues/5" class="external-link">GitHub issue 5</a>. The single-cell-specific model (scales, within- and between-replicate covariance) is in the <a href="theory-decovart-single-cell-tailored.html">tailored vignette</a>; the Bayesian purification of sample-level profiles is in the <a href="theory-decovart-bayesian-wiener.html">Bayesian Wiener-filter vignette</a>; inference is in the <a href="theory-DeCovarT-MLE-properties.html">MLE and inference vignette</a>.</p>
 </blockquote>
+</div>
 </div>
 <div id="tbl-roadmap" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-roadmap-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -292,36 +294,36 @@ Table 2: Lineage-aware bulk mRNA deconvolution: constraint regime, enforcing eq
 <div class="cell-output-display">
 <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_jm3mg3qj3id04xk3lmk7 = TinyTable.createTableFunctions("tinytable_jm3mg3qj3id04xk3lmk7");
+      const tableFns_0hyqte6aesjvo00ir256 = TinyTable.createTableFunctions("tinytable_0hyqte6aesjvo00ir256");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '7', j: 2 }, { i: '7', j: 3 }, { i: '7', j: 4 } ], css_id: 'tinytable_css_4l3wkd1to5am2dtdwddm',},
-          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 }, { i: '6', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 }, { i: '3', j: 3 }, { i: '4', j: 3 }, { i: '5', j: 3 }, { i: '6', j: 3 }, { i: '1', j: 4 }, { i: '2', j: 4 }, { i: '3', j: 4 }, { i: '4', j: 4 }, { i: '5', j: 4 }, { i: '6', j: 4 } ], css_id: 'tinytable_css_wehhx1vmxbwrs08gx5k0',},
-          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_rvoi8auhkn97qut8ikcd',},
-          { positions: [ { i: '7', j: 1 } ], css_id: 'tinytable_css_t876ul4w92vv2seri7kz',},
-          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_3modpaw7b5v8s6ogltgi',},
+          { positions: [ { i: '7', j: 2 }, { i: '7', j: 3 }, { i: '7', j: 4 } ], css_id: 'tinytable_css_ts2h5abva2wdhhtwdw7d',},
+          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '4', j: 2 }, { i: '5', j: 2 }, { i: '6', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 }, { i: '3', j: 3 }, { i: '4', j: 3 }, { i: '5', j: 3 }, { i: '6', j: 3 }, { i: '1', j: 4 }, { i: '2', j: 4 }, { i: '3', j: 4 }, { i: '4', j: 4 }, { i: '5', j: 4 }, { i: '6', j: 4 } ], css_id: 'tinytable_css_y43wf2qqkpkidsmmg65k',},
+          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_rzivc6lasxoreltgm11v',},
+          { positions: [ { i: '7', j: 1 } ], css_id: 'tinytable_css_gbmlr9p0i1b38pp425th',},
+          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_ophajra417lmrczzccd5',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_jm3mg3qj3id04xk3lmk7.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_0hyqte6aesjvo00ir256.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_jm3mg3qj3id04xk3lmk7 td.tinytable_css_4l3wkd1to5am2dtdwddm, #tinytable_jm3mg3qj3id04xk3lmk7 th.tinytable_css_4l3wkd1to5am2dtdwddm {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
-    #tinytable_jm3mg3qj3id04xk3lmk7 td.tinytable_css_wehhx1vmxbwrs08gx5k0, #tinytable_jm3mg3qj3id04xk3lmk7 th.tinytable_css_wehhx1vmxbwrs08gx5k0 { text-align: left }
-    #tinytable_jm3mg3qj3id04xk3lmk7 td.tinytable_css_rvoi8auhkn97qut8ikcd, #tinytable_jm3mg3qj3id04xk3lmk7 th.tinytable_css_rvoi8auhkn97qut8ikcd {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
-    #tinytable_jm3mg3qj3id04xk3lmk7 td.tinytable_css_t876ul4w92vv2seri7kz, #tinytable_jm3mg3qj3id04xk3lmk7 th.tinytable_css_t876ul4w92vv2seri7kz {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_jm3mg3qj3id04xk3lmk7 td.tinytable_css_3modpaw7b5v8s6ogltgi, #tinytable_jm3mg3qj3id04xk3lmk7 th.tinytable_css_3modpaw7b5v8s6ogltgi {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_0hyqte6aesjvo00ir256 td.tinytable_css_ts2h5abva2wdhhtwdw7d, #tinytable_0hyqte6aesjvo00ir256 th.tinytable_css_ts2h5abva2wdhhtwdw7d {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
+    #tinytable_0hyqte6aesjvo00ir256 td.tinytable_css_y43wf2qqkpkidsmmg65k, #tinytable_0hyqte6aesjvo00ir256 th.tinytable_css_y43wf2qqkpkidsmmg65k { text-align: left }
+    #tinytable_0hyqte6aesjvo00ir256 td.tinytable_css_rzivc6lasxoreltgm11v, #tinytable_0hyqte6aesjvo00ir256 th.tinytable_css_rzivc6lasxoreltgm11v {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: left }
+    #tinytable_0hyqte6aesjvo00ir256 td.tinytable_css_gbmlr9p0i1b38pp425th, #tinytable_0hyqte6aesjvo00ir256 th.tinytable_css_gbmlr9p0i1b38pp425th {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_0hyqte6aesjvo00ir256 td.tinytable_css_ophajra417lmrczzccd5, #tinytable_0hyqte6aesjvo00ir256 th.tinytable_css_ophajra417lmrczzccd5 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_jm3mg3qj3id04xk3lmk7" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_0hyqte6aesjvo00ir256" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">method</th>
                 <th scope="col" data-row="0" data-col="2">constraint</th>

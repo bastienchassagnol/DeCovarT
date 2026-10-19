@@ -312,7 +312,7 @@ flowchart TD
 <li>
 <strong>pkgdown</strong> — documentation site on GitHub Pages</li>
 <li>
-<strong>article generation</strong> — optional <code>latexmk</code> build of <code>article/main.tex</code> when the commit message contains <code>article generation</code> (PDF artefact + <code>docs/article/main.pdf</code> on Pages)</li>
+<strong>article generation</strong> — optional <code>latexmk</code> build of <code>article/main_layout.tex</code> when the commit message contains <code>article generation</code> (PDF artefact + <code>docs/article/main.pdf</code> on Pages)</li>
 <li>
 <strong>R-hub</strong> — optional Ubuntu + Windows checks (<code>workflow_dispatch</code>)</li>
 <li>
@@ -398,11 +398,11 @@ p_{J}=\frac{1}{\sum_{k&lt;J}e^{\rho_{k}}+1},\qquad
 <div class="section level2">
 <h2 id="compiling-the-latex-article">Compiling the LaTeX article<a class="anchor" aria-label="anchor" href="#compiling-the-latex-article"></a>
 </h2>
-<p>Source file: <code>article/main.tex</code> (bibliography: <code>article/decovart_library.bib</code>). DAG panels in Fig.~DAG-model are drawn with <a href="https://ctan.org/pkg/tikz-bayesnet" class="external-link"><code>tikz-bayesnet</code></a>.</p>
-<p><strong>Published PDF:</strong> the peer-reviewed / preprint PDF is on <a href="https://arxiv.org/pdf/2309.09557" class="external-link">arXiv:2309.09557</a>. When a <code>main</code> commit message contains <code>article generation</code>, CI also builds <code>article/main.tex</code> and may publish <code>docs/article/main.pdf</code> on the pkgdown site.</p>
-<p>From the repository root, generate <code>article/main.pdf</code> locally with:</p>
+<p>Source files: <code>article/main_layout.tex</code> and <code>article/appendix_layout.tex</code> (bibliography: <code>article/decovart_library.bib</code> and <code>article/packages.bib</code>). DAG panels in Fig.~DAG-model are drawn with <a href="https://ctan.org/pkg/tikz-bayesnet" class="external-link"><code>tikz-bayesnet</code></a>.</p>
+<p><strong>Published PDF:</strong> the peer-reviewed / preprint PDF is on <a href="https://arxiv.org/pdf/2309.09557" class="external-link">arXiv:2309.09557</a>. When a <code>main</code> commit message contains <code>article generation</code>, CI also builds <code>article/main_layout.tex</code> and may publish <code>docs/article/main.pdf</code> on the pkgdown site.</p>
+<p>From the repository root, generate <code>article/main_layout.pdf</code> locally with:</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="bu">cd</span> article</span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="ex">latexmk</span> <span class="at">-pdf</span> <span class="at">-interaction</span><span class="op">=</span>nonstopmode <span class="at">-file-line-error</span> <span class="at">-synctex</span><span class="op">=</span>1 main.tex</span></code></pre></div>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="ex">latexmk</span> <span class="at">-pdf</span> <span class="at">-f</span> <span class="at">-interaction</span><span class="op">=</span>nonstopmode <span class="at">-file-line-error</span> <span class="at">-synctex</span><span class="op">=</span>1 main_layout.tex</span></code></pre></div>
 <!-- ## Speed up computation with AutoZyme
 &#10;[AutoZyme](https://autozyme.com/docs/users/usage-guide/) ships drop-in
 accelerators for common scientific R packages (Seurat, WGCNA, and others in the

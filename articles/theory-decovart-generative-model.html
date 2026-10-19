@@ -102,7 +102,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Derivatives of the DeCovarT generative model under simplex transforms</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-15</p>
+      <p class="date">2026-10-19</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-decovart-generative-model.qmd" class="external-link"><code>vignettes/theory-decovart-generative-model.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -113,11 +113,13 @@
 
 
 
-    <p>DeCovarT maximises a Gaussian-convolution log-likelihood for cellular ratios <span class="math inline">\boldsymbol{p}\in\Delta^{J-1}</span>. This vignette derives the analytic first- and second-order derivatives used by the frequentist solvers, first with respect to unconstrained ambient proportions <span class="math inline">\boldsymbol{p}</span>, then after the isometric log-ratio (ILR) map that enforces the simplex. It closes with the expected Fisher information and the ILR delta-method covariance that feed <a href="../reference/fit_decovart.html"><code>vcov.decovart_fit()</code></a> and <a href="../reference/fit_decovart.html"><code>confint.decovart_fit()</code></a>. Package entry points are <a href="../reference/gradient_loglik_unconstrained.html"><code>gradient_loglik_unconstrained()</code></a>, <a href="../reference/hessian_loglik_unconstrained.html"><code>hessian_loglik_unconstrained()</code></a>, <a href="../reference/gradient_loglik_constrained.html"><code>gradient_loglik_constrained()</code></a>, <a href="../reference/hessian_loglik_constrained.html"><code>hessian_loglik_constrained()</code></a>, <a href="../reference/expected_fisher_unconstrained.html"><code>expected_fisher_unconstrained()</code></a> and <a href="../reference/vcov_ilr_delta.html"><code>vcov_ilr_delta()</code></a>. The additive log-ratio chart is retained as an appendix (<a href="#sec-alr" class="quarto-xref">Sec. 8</a>).</p>
+    <p>DeCovarT maximises a Gaussian-convolution log-likelihood for cellular ratios <span class="math inline">\boldsymbol{p}\in\Delta^{J-1}</span>. This vignette derives the analytic first- and second-order derivatives used by the frequentist solvers, first with respect to unconstrained ambient proportions <span class="math inline">\boldsymbol{p}</span>, then after the isometric log-ratio (ILR) map that enforces the simplex. It closes with the expected Fisher information and the ILR delta-method covariance that feed <a href="../reference/fit_decovart.html"><code>vcov.decovart_fit()</code></a> and <a href="../reference/fit_decovart.html"><code>confint.decovart_fit()</code></a>. Package entry points are <a href="../reference/gradient_loglik_unconstrained.html"><code>gradient_loglik_unconstrained()</code></a>, <a href="../reference/hessian_loglik_unconstrained.html"><code>hessian_loglik_unconstrained()</code></a>, <a href="../reference/gradient_loglik_constrained.html"><code>gradient_loglik_constrained()</code></a>, <a href="../reference/hessian_loglik_constrained.html"><code>hessian_loglik_constrained()</code></a>, <a href="../reference/expected_fisher_unconstrained.html"><code>expected_fisher_unconstrained()</code></a> and <a href="../reference/vcov_ilr_delta.html"><code>vcov_ilr_delta()</code></a>. <a href="#sec-constrained" class="quarto-xref">Sec. 3</a> compares the softmax, additive, centred and isometric log-ratio charts and explains why the solvers use ILR.</p>
 <div id="nte-notation">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 1: Notation</strong></p>
 <ul>
+<li>Indices: gene <span class="math inline">g</span>; cell types <span class="math inline">j,\ell\in\{1,\ldots,J\}</span>; one bulk sample is fixed, so the sample index <span class="math inline">i</span> is dropped; <span class="math inline">a,b</span> index ILR coordinates.</li>
 <li>
 <span class="math inline">\boldsymbol{\mu}\in\mathbb{R}^{G\times J}</span>: mean signature.</li>
 <li>
@@ -125,9 +127,10 @@
 <li>
 <span class="math inline">\boldsymbol{p}</span>: proportions on the open simplex (ambient score equations treat them as free coordinates in <span class="math inline">(0,1)^{J}</span>).</li>
 <li>
-<span class="math inline">\boldsymbol{\rho}\in\mathbb{R}^{J-1}</span>: unconstrained log-ratio coordinates (ILR / Helmert chart <span class="math inline">\mathbf{V}</span>); <span class="math inline">\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho})</span>. The manuscript DAG uses the same letter for the ALR chart; here <span class="math inline">\boldsymbol{\rho}</span> denotes the ILR coordinates used by the solvers.</li>
+<span class="math inline">\boldsymbol{\rho}\in\mathbb{R}^{J-1}</span>: unconstrained log-ratio coordinates (ILR / Helmert chart <span class="math inline">\mathbf{V}</span>); <span class="math inline">\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho})</span>. The manuscript DAG uses the same letter for the ALR chart; here <span class="math inline">\boldsymbol{\rho}</span> denotes the ILR coordinates used by the solvers, and <span class="math inline">\boldsymbol{\rho}^{\mathrm{alr}}</span> the ALR coordinates (<a href="#sec-simplex-notation" class="quarto-xref">Sec. 3.1</a>).</li>
 </ul>
 </blockquote>
+</div>
 </div>
 <section class="section level2"><h2 id="sec-matrix-calculus">Matrix calculus reminders<a class="anchor" aria-label="anchor" href="#sec-matrix-calculus"></a>
 </h2>
@@ -193,50 +196,52 @@
 <div id="rem-second-order-matrix" class="proof remark">
 <p><span class="proof-title"><em>Remark 2</em> (Second-order matrix calculus). </span>Differentiating the inverse once more gives</p>
 <p><span id="eq-matrix-second-order"><span class="math display">
-\frac{\partial^{2}\boldsymbol{A}^{-1}}{\partial p_{i}\partial p_{j}}
+\frac{\partial^{2}\boldsymbol{A}^{-1}}{\partial p_{j}\partial p_{\ell}}
 =
 \boldsymbol{A}^{-1}
 \Biggl(
-  \frac{\partial\boldsymbol{A}}{\partial p_{i}}
-  \boldsymbol{A}^{-1}
   \frac{\partial\boldsymbol{A}}{\partial p_{j}}
+  \boldsymbol{A}^{-1}
+  \frac{\partial\boldsymbol{A}}{\partial p_{\ell}}
   -
-  \frac{\partial^{2}\boldsymbol{A}}{\partial p_{i}\partial p_{j}}
+  \frac{\partial^{2}\boldsymbol{A}}{\partial p_{j}\partial p_{\ell}}
   +
-  \frac{\partial\boldsymbol{A}}{\partial p_{j}}
+  \frac{\partial\boldsymbol{A}}{\partial p_{\ell}}
   \boldsymbol{A}^{-1}
-  \frac{\partial\boldsymbol{A}}{\partial p_{i}}
+  \frac{\partial\boldsymbol{A}}{\partial p_{j}}
 \Biggr)
 \boldsymbol{A}^{-1},
 \tag{4}</span></span></p>
-<p>and the trace is linear, <span class="math inline">\partial\mathrm{tr}(\boldsymbol{A})/\partial p_{i}
-=\mathrm{tr}(\partial\boldsymbol{A}/\partial p_{i})</span>. Combining <a href="#eq-matrix-first-order" class="quarto-xref">Eq. 1</a> with that linearity yields</p>
+<p>and the trace is linear, <span class="math inline">\partial\mathrm{tr}(\boldsymbol{A})/\partial p_{j}
+=\mathrm{tr}(\partial\boldsymbol{A}/\partial p_{j})</span>. Combining <a href="#eq-matrix-first-order" class="quarto-xref">Eq. 1</a> with that linearity yields</p>
 <p><span id="eq-logdet-hess"><span class="math display">
-\frac{\partial^{2}\log\det(\boldsymbol{A}^{-1})}{\partial p_{i}\partial p_{j}}
+\frac{\partial^{2}\log\det(\boldsymbol{A}^{-1})}{\partial p_{j}\partial p_{\ell}}
 =
 -
 \mathrm{tr}\!\left[
   \boldsymbol{A}^{-1}
-  \frac{\partial^{2}\boldsymbol{A}}{\partial p_{i}\partial p_{j}}
+  \frac{\partial^{2}\boldsymbol{A}}{\partial p_{j}\partial p_{\ell}}
 \right]
 +
 \mathrm{tr}\!\left[
   \left(
     \boldsymbol{A}^{-1}
-    \frac{\partial\boldsymbol{A}}{\partial p_{i}}
+    \frac{\partial\boldsymbol{A}}{\partial p_{j}}
   \right)
   \left(
     \boldsymbol{A}^{-1}
-    \frac{\partial\boldsymbol{A}}{\partial p_{j}}
+    \frac{\partial\boldsymbol{A}}{\partial p_{\ell}}
   \right)
 \right].
 \tag{5}</span></span></p>
 </div>
 <div id="nte-inner-products">
+<div class="decovart-callout callout-tip">
 <blockquote>
 <p><strong>Tip 2: Inner products in the score</strong></p>
-<p>Several terms are <span class="math inline">\boldsymbol{\Omega}</span>-inner products of signature columns, <span class="math inline">\boldsymbol{\mu}_{\cdot j}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}_{\cdot k}</span>. Package helper <a href="../reference/dot-inner_product.html"><code>.inner_product()</code></a> evaluates that bilinear form; see also the squared Mahalanobis distance helper in the same family.</p>
+<p>Several terms are <span class="math inline">\boldsymbol{\Omega}</span>-inner products of signature columns, <span class="math inline">\boldsymbol{\mu}_{\cdot j}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}_{\cdot \ell}</span>. Package helper <a href="../reference/dot-inner_product.html"><code>.inner_product()</code></a> evaluates that bilinear form; see also the squared Mahalanobis distance helper in the same family.</p>
 </blockquote>
+</div>
 </div>
 </section><section class="section level2"><h2 id="sec-unconstrained">Unconstrained score and Hessian<a class="anchor" aria-label="anchor" href="#sec-unconstrained"></a>
 </h2>
@@ -254,20 +259,28 @@
 (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}).
 \tag{6}</span></span></p>
 <div id="nte-halfdet">
+<div class="decovart-callout callout-important">
 <blockquote>
 <p><strong>Important 3: The determinant term carries a factor <span class="math inline">\tfrac{1}{2}</span></strong></p>
-<p>Both terms of <a href="#eq-loglik" class="quarto-xref">Eq. 6</a> are halved, because <span class="math inline">\log\det\boldsymbol{\Omega}=-\log\det\boldsymbol{\Sigma}</span> enters the Gaussian log-density as <span class="math inline">-\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})</span>. DeCovarT releases before 2.3.0 implemented <span class="math inline">-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})</span>, which doubled the determinant contribution. The objective was then <em>not</em> the stated Gaussian model, and it disagreed with the expected Fisher information of <a href="#sec-fisher-wald" class="quarto-xref">Sec. 4</a>, which had always been the one implied by the correct density. With the factor restored, <code><a href="../reference/loglik_multivariate.html">loglik_multivariate()</a></code> matches <code>mvtnorm::dmvnorm(..., log = TRUE)</code> up to the constant <span class="math inline">\tfrac{G}{2}\log(2\pi)</span>, and <span class="math inline">\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})</span> holds exactly (see <a href="#nte-obs-vs-exp" class="quarto-xref">Note 7</a>). Point estimates move only slightly, because the two terms trade off differently, but likelihood <strong>values</strong>, AIC, likelihood-ratio statistics, and any curvature-based standard error do change.</p>
+<p>Both terms of <a href="#eq-loglik" class="quarto-xref">Eq. 6</a> are halved, because <span class="math inline">\log\det\boldsymbol{\Omega}=-\log\det\boldsymbol{\Sigma}</span> enters the Gaussian log-density as <span class="math inline">-\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})</span>. DeCovarT releases before 2.3.0 implemented <span class="math inline">-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})</span>, which doubled the determinant contribution. The objective was then <em>not</em> the stated Gaussian model, and it disagreed with the expected Fisher information of <a href="#sec-fisher-wald" class="quarto-xref">Sec. 4</a>, which had always been the one implied by the correct density. With the factor restored, <code><a href="../reference/loglik_multivariate.html">loglik_multivariate()</a></code> matches <code>mvtnorm::dmvnorm(..., log = TRUE)</code> up to the constant <span class="math inline">\tfrac{G}{2}\log(2\pi)</span>, and <span class="math inline">\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})</span> holds exactly (see <a href="#nte-obs-vs-exp" class="quarto-xref">Note 8</a>). Point estimates move only slightly, because the two terms trade off differently, but likelihood <strong>values</strong>, AIC, likelihood-ratio statistics, and any curvature-based standard error do change.</p>
 </blockquote>
 </div>
+</div>
 <div id="nte-unconstrained-meaning">
+<div class="decovart-callout callout-warning">
 <blockquote>
 <p><strong>Warning 4: What “unconstrained” means here</strong></p>
 <p><a href="#sec-unconstrained" class="quarto-xref">Sec. 2</a> treats each <span class="math inline">p_{j}</span> as an ambient coordinate in <span class="math inline">(0,1)</span> and ignores <span class="math inline">\sum_{j}p_{j}=1</span>. The resulting gradient and Hessian are the building blocks of the ILR chain rule in <a href="#sec-constrained" class="quarto-xref">Sec. 3</a>. They are <strong>not</strong> the coordinates used by Marquardt–Levenberg or Newton–Raphson in the package (those optimise in <span class="math inline">\boldsymbol{\rho}</span>-space). The box-constrained L-BFGS-B path is the exception: it works directly in <span class="math inline">\boldsymbol{p}</span> with <span class="math inline">[0,1]^{J}</span> boxes and does not enforce the simplex exactly.</p>
 </blockquote>
 </div>
-<p>Applying <a href="#eq-logdet" class="quarto-xref">Eq. 2</a> and <a href="#eq-quad-form-deriv" class="quarto-xref">Eq. 3</a> with <span class="math inline">\partial\boldsymbol{\Sigma}/\partial p_{j}=2p_{j}\boldsymbol{\Sigma}_{j}</span> gives the ambient score. Colour coding matches the manuscript: purple determinant / precision terms, blue mean residual, orange covariance quadratic.</p>
+</div>
+<p>Applying <a href="#eq-logdet" class="quarto-xref">Eq. 2</a> and <a href="#eq-quad-form-deriv" class="quarto-xref">Eq. 3</a> with <span class="math inline">\partial\boldsymbol{\Sigma}/\partial p_{j}=2p_{j}\boldsymbol{\Sigma}_{j}</span> gives the ambient score.</p>
+<div>
+<div class="decovart-callout callout-important">
+<blockquote>
+<p><strong>Theorem 1 (Unconstrained gradient)</strong></p>
 <div id="thm-score-unconstrained" class="theorem">
-<p><span class="theorem-title"><strong>Theorem 1 (Unconstrained gradient)</strong></span> <span id="eq-grad-unconstrained"><span class="math display">
+<p><span id="eq-grad-unconstrained"><span class="math display">
 \begin{aligned}
 \frac{\partial\ell}{\partial p_{j}}
 &amp;=
@@ -293,83 +306,40 @@
 \end{aligned}
 \tag{7}</span></span></p>
 </div>
+</blockquote>
+</div>
+</div>
 <p>Differentiating <a href="#eq-grad-unconstrained" class="quarto-xref">Eq. 7</a> once more yields the ambient Hessian <span class="math inline">\mathbf{H}\in\mathcal{M}_{J\times J}</span>. Diagonal and off-diagonal blocks keep the same colour pairing.</p>
+<div>
+<div class="decovart-callout callout-important">
+<blockquote>
+<p><strong>Theorem 2 (Unconstrained Hessian)</strong></p>
 <div id="thm-hess-unconstrained" class="theorem">
-<p><span class="theorem-title"><strong>Theorem 2 (Unconstrained Hessian)</strong></span> For <span class="math inline">i\in\{1,\ldots,J\}</span>,</p>
+<p>For <span class="math inline">j\in\{1,\ldots,J\}</span>,</p>
 <p><span id="eq-hess-diag"><span class="math display">
 \begin{aligned}
-\mathbf{H}_{ii}
+\mathbf{H}_{jj}
 &amp;=
-\frac{\partial^{2}\ell}{\partial p_{i}^{2}}
+\frac{\partial^{2}\ell}{\partial p_{j}^{2}}
 =
 \underbrace{
-  -\,\mathrm{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}_{i})
+  -\,\mathrm{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}_{j})
   +
-  2p_{i}^{2}\,\mathrm{tr}\bigl(
-    (\boldsymbol{\Omega}\boldsymbol{\Sigma}_{i})^{2}
+  2p_{j}^{2}\,\mathrm{tr}\bigl(
+    (\boldsymbol{\Omega}\boldsymbol{\Sigma}_{j})^{2}
   \bigr)
 }_{\text{purple}}
 \\
 &amp;\quad
 \underbrace{
-  -2p_{i}
+  -2p_{j}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
   \boldsymbol{\Omega}
-  \boldsymbol{\Sigma}_{i}
-  \boldsymbol{\Omega}
-  \boldsymbol{\mu}_{\cdot i}
-  -
-  \boldsymbol{\mu}_{\cdot i}^{\top}
-  \boldsymbol{\Omega}
-  \boldsymbol{\mu}_{\cdot i}
-}_{\text{blue}}
-\\
-&amp;\quad
-\underbrace{
-  -2p_{i}
-  (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-  \boldsymbol{\Omega}
-  \boldsymbol{\Sigma}_{i}
-  \boldsymbol{\Omega}
-  \boldsymbol{\mu}_{\cdot i}
-  -
-  (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-  \boldsymbol{\Omega}
-  \bigl(
-    4p_{i}^{2}\boldsymbol{\Sigma}_{i}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{i}
-    -
-    \boldsymbol{\Sigma}_{i}
-  \bigr)
-  \boldsymbol{\Omega}
-  (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})
-}_{\text{orange}},
-\end{aligned}
-\tag{8}</span></span></p>
-<p>and for <span class="math inline">i\neq j</span>,</p>
-<p><span id="eq-hess-off"><span class="math display">
-\begin{aligned}
-\mathbf{H}_{ij}
-&amp;=
-\frac{\partial^{2}\ell}{\partial p_{i}\partial p_{j}}
-=
-\underbrace{
-  2p_{i}p_{j}\,
-  \mathrm{tr}\bigl(
-    \boldsymbol{\Omega}\boldsymbol{\Sigma}_{j}
-    \boldsymbol{\Omega}\boldsymbol{\Sigma}_{i}
-  \bigr)
-}_{\text{purple}}
-\\
-&amp;\quad
-\underbrace{
-  -2p_{i}
-  (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
-  \boldsymbol{\Omega}
-  \boldsymbol{\Sigma}_{i}
+  \boldsymbol{\Sigma}_{j}
   \boldsymbol{\Omega}
   \boldsymbol{\mu}_{\cdot j}
   -
-  \boldsymbol{\mu}_{\cdot i}^{\top}
+  \boldsymbol{\mu}_{\cdot j}^{\top}
   \boldsymbol{\Omega}
   \boldsymbol{\mu}_{\cdot j}
 }_{\text{blue}}
@@ -381,59 +351,289 @@
   \boldsymbol{\Omega}
   \boldsymbol{\Sigma}_{j}
   \boldsymbol{\Omega}
-  \boldsymbol{\mu}_{\cdot i}
+  \boldsymbol{\mu}_{\cdot j}
   -
-  4p_{i}p_{j}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
   \boldsymbol{\Omega}
-  \boldsymbol{\Sigma}_{i}
+  \bigl(
+    4p_{j}^{2}\boldsymbol{\Sigma}_{j}\boldsymbol{\Omega}\boldsymbol{\Sigma}_{j}
+    -
+    \boldsymbol{\Sigma}_{j}
+  \bigr)
+  \boldsymbol{\Omega}
+  (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})
+}_{\text{orange}},
+\end{aligned}
+\tag{8}</span></span></p>
+<p>and for <span class="math inline">j\neq\ell</span>,</p>
+<p><span id="eq-hess-off"><span class="math display">
+\begin{aligned}
+\mathbf{H}_{j\ell}
+&amp;=
+\frac{\partial^{2}\ell}{\partial p_{j}\partial p_{\ell}}
+=
+\underbrace{
+  2p_{j}p_{\ell}\,
+  \mathrm{tr}\bigl(
+    \boldsymbol{\Omega}\boldsymbol{\Sigma}_{\ell}
+    \boldsymbol{\Omega}\boldsymbol{\Sigma}_{j}
+  \bigr)
+}_{\text{purple}}
+\\
+&amp;\quad
+\underbrace{
+  -2p_{j}
+  (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
   \boldsymbol{\Omega}
   \boldsymbol{\Sigma}_{j}
+  \boldsymbol{\Omega}
+  \boldsymbol{\mu}_{\cdot \ell}
+  -
+  \boldsymbol{\mu}_{\cdot j}^{\top}
+  \boldsymbol{\Omega}
+  \boldsymbol{\mu}_{\cdot \ell}
+}_{\text{blue}}
+\\
+&amp;\quad
+\underbrace{
+  -2p_{\ell}
+  (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
+  \boldsymbol{\Omega}
+  \boldsymbol{\Sigma}_{\ell}
+  \boldsymbol{\Omega}
+  \boldsymbol{\mu}_{\cdot j}
+  -
+  4p_{j}p_{\ell}
+  (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})^{\top}
+  \boldsymbol{\Omega}
+  \boldsymbol{\Sigma}_{j}
+  \boldsymbol{\Omega}
+  \boldsymbol{\Sigma}_{\ell}
   \boldsymbol{\Omega}
   (\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})
 }_{\text{orange}}.
 \end{aligned}
 \tag{9}</span></span></p>
 </div>
+</blockquote>
+</div>
+</div>
 <p>The stationary equation <span class="math inline">\nabla\ell(\boldsymbol{p})=\boldsymbol{0}</span> has no closed root, so DeCovarT uses iterative solvers. Analytic gradients and Hessians are checked against Richardson extrapolation in <code>numDeriv</code> <span class="citation" data-cites="R-numDeriv">(<a href="#ref-R-numDeriv" role="doc-biblioref">Gilbert and Varadhan 2019</a>)</span>.</p>
 </section><section class="section level2"><h2 id="sec-constrained">Constrained optimisation on the simplex<a class="anchor" aria-label="anchor" href="#sec-constrained"></a>
 </h2>
-<p>Constrained optimisation may eliminate constraints by reparametrisation, enforce them softly with penalties or barriers, or enforce them exactly with projections / KKT methods. DeCovarT uses a <span class="math inline">C^{2}</span> diffeomorphism from free Euclidean coordinates <span class="math inline">\boldsymbol{\rho}\in\mathbb{R}^{J-1}</span> onto the open simplex, so every Newton step stays feasible by construction.</p>
-<section class="level2"><h3 id="sec-lse">Log-sum-exp and softmax<a class="anchor" aria-label="anchor" href="#sec-lse"></a>
+<p>The cellular ratios satisfy <span class="math inline">p_{j}\ge 0</span> and <span class="math inline">\sum_{j}p_{j}=1</span>, the <em>compositional</em> or unit-simplex constraint. An optimiser can handle it in three ways: eliminate it with a reparametrisation, enforce it softly with penalties or barriers, or enforce it exactly with projections and Karush–Kuhn–Tucker (KKT) conditions. DeCovarT uses the first route: a <span class="math inline">C^{2}</span> diffeomorphism from free Euclidean coordinates onto the open simplex, so every Newton step stays feasible by construction. Four such charts are common: the softmax, the additive log-ratio (ALR), the centred log-ratio (CLR) and the isometric log-ratio (ILR). This section defines the notation they share (<a href="#sec-simplex-notation" class="quarto-xref">Sec. 3.1</a>), presents each chart (<a href="#sec-lse" class="quarto-xref">Sec. 3.2</a>–<a href="#sec-ilr" class="quarto-xref">Sec. 3.5</a>), explains why DeCovarT uses ILR (<a href="#sec-chart-choice" class="quarto-xref">Sec. 3.6</a>) and compares the four side by side (<a href="#sec-chart-comparison" class="quarto-xref">Sec. 3.7</a>). The derivatives of the ILR chart (<a href="#sec-ilr-deriv" class="quarto-xref">Sec. 3.8</a>, <a href="#sec-chain-rule" class="quarto-xref">Sec. 3.9</a>), their link to the Lagrangian (<a href="#sec-kkt" class="quarto-xref">Sec. 3.10</a>) and perspectives on Bayesian charts and exact zeros (<a href="#sec-structural-zeros" class="quarto-xref">Sec. 3.11</a>) follow.</p>
+<p>The compositional background is chapter 4 of <em>Modelling and Analysis of Compositional Data</em> <span class="citation" data-cites="CoordinateRepresentation2015">(<a href="#ref-CoordinateRepresentation2015" role="doc-biblioref">Pawlowsky-Glahn et al. 2015</a>)</span>, cited below by page.</p>
+<section class="level2"><h3 id="sec-simplex-notation">Notation for compositions and charts<a class="anchor" aria-label="anchor" href="#sec-simplex-notation"></a>
 </h3>
-<p>The softmax of scores <span class="math inline">\boldsymbol{z}\in\mathbb{R}^{K}</span> is evaluated through the log-sum-exp (LSE) to avoid overflow,</p>
+<div id="tbl-simplex-notation" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-simplex-notation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 1: Notation for compositions and their charts.
+</figcaption><div aria-describedby="tbl-simplex-notation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table caption-top">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead><tr class="header">
+<th style="text-align: left;">Symbol</th>
+<th style="text-align: left;">Meaning</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\Delta^{J-1}=\{\boldsymbol{p}\in\mathbb{R}^{J}:p_{j}\ge 0,\ \mathbf{1}_{J}^{\mathsf{T}}\boldsymbol{p}=1\}</span></td>
+<td style="text-align: left;">closed unit simplex of <span class="math inline">J</span> cell types; its interior <span class="math inline">\mathring{\Delta}^{J-1}</span> has <span class="math inline">p_{j}&gt;0</span> for all <span class="math inline">j</span>
+</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">
+<span class="math inline">\mathbf{1}_{J}</span>, <span class="math inline">\mathbf{I}_{J}</span>
+</td>
+<td style="text-align: left;">vector of ones, identity matrix</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\mathbf{H}_{J}=\mathbf{I}_{J}-\tfrac{1}{J}\mathbf{1}_{J}\mathbf{1}_{J}^{\mathsf{T}}</span></td>
+<td style="text-align: left;">centring matrix: orthogonal projector onto <span class="math inline">\mathbf{1}_{J}^{\perp}=\{\boldsymbol{w}:\mathbf{1}_{J}^{\mathsf{T}}\boldsymbol{w}=0\}</span>
+</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\mathcal{C}(\boldsymbol{x})=\boldsymbol{x}/(\mathbf{1}_{J}^{\mathsf{T}}\boldsymbol{x})</span></td>
+<td style="text-align: left;">closure of a positive vector <span class="math inline">\boldsymbol{x}\in(0,\infty)^{J}</span>
+</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">
+<span class="math inline">\log\boldsymbol{p}</span>, <span class="math inline">\exp\boldsymbol{z}</span>
+</td>
+<td style="text-align: left;">applied component by component</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">g(\boldsymbol{p})=\bigl(\prod_{j}p_{j}\bigr)^{1/J}</span></td>
+<td style="text-align: left;">geometric mean</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\operatorname{softmax}(\boldsymbol{z})=\mathcal{C}(\exp\boldsymbol{z})</span></td>
+<td style="text-align: left;">closure of exponentiated scores <span class="math inline">\boldsymbol{z}\in\mathbb{R}^{J}</span>
+</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\boldsymbol{\psi}</span></td>
+<td style="text-align: left;">a chart: a smooth bijection from free coordinates onto <span class="math inline">\mathring{\Delta}^{J-1}</span>
+</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">
+<span class="math inline">\boldsymbol{z}\in\mathbb{R}^{J}</span>, <span class="math inline">\boldsymbol{\rho}^{\mathrm{alr}}\in\mathbb{R}^{J-1}</span>, <span class="math inline">\boldsymbol{\xi}\in\mathbf{1}_{J}^{\perp}</span>, <span class="math inline">\boldsymbol{\rho}\in\mathbb{R}^{J-1}</span>
+</td>
+<td style="text-align: left;">softmax scores, ALR coordinates (reference <span class="math inline">J</span> unless a superscript names it), CLR and ILR coordinates</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\mathbf{V}\in\mathbb{R}^{J\times(J-1)}</span></td>
+<td style="text-align: left;">Helmert basis of the ILR chart (<a href="#sec-helmert" class="quarto-xref">Sec. 3.5.1</a>)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\mathbf{D}_{r}\in\mathbb{R}^{(J-1)\times J}</span></td>
+<td style="text-align: left;">ALR contrast with reference <span class="math inline">r</span>: rows <span class="math inline">\boldsymbol{e}_{j}^{\mathsf{T}}-\boldsymbol{e}_{r}^{\mathsf{T}}</span>, <span class="math inline">j\neq r</span>
+</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\mathbf{S}(\boldsymbol{p})=\operatorname{diag}(\boldsymbol{p})-\boldsymbol{p}\boldsymbol{p}^{\mathsf{T}}</span></td>
+<td style="text-align: left;">Jacobian of the softmax at <span class="math inline">\boldsymbol{p}</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p><strong>The closure operator.</strong> <span class="math inline">\mathcal{C}</span> rescales any positive vector to unit sum. It discards the total and keeps the relative sizes: <span class="math inline">\mathcal{C}(c\boldsymbol{x})=\mathcal{C}(\boldsymbol{x})</span> for every <span class="math inline">c&gt;0</span>. A composition is therefore an equivalence class of proportional positive vectors, and <span class="math inline">\mathcal{C}</span> picks its representative on the simplex <span class="citation" data-cites="CoordinateRepresentation2015">(<a href="#ref-CoordinateRepresentation2015" role="doc-biblioref">Pawlowsky-Glahn et al. 2015, 33–35</a>)</span>. Two consequences matter here.</p>
+<ul>
+<li>Only scale-free functions of <span class="math inline">\boldsymbol{p}</span> are meaningful, and the log-ratios <span class="math inline">\log(p_{j}/p_{\ell})</span> are the simplest. A constant added to <span class="math inline">\log\boldsymbol{p}</span> does not change the composition, so every log-ratio chart must cancel the direction <span class="math inline">\mathbf{1}_{J}</span>.</li>
+<li>Closure creates dependence. Library-size normalisation of counts is a closure, and it induces negative covariances between parts that need not exist in the absolute abundances.</li>
+</ul>
+<p>Closure also gives the simplex a Euclidean vector-space structure, the <em>Aitchison geometry</em>: perturbation <span class="math inline">\boldsymbol{x}\oplus\boldsymbol{y}=\mathcal{C}(\boldsymbol{x}\circ\boldsymbol{y})</span> plays the role of addition, powering <span class="math inline">\alpha\odot\boldsymbol{x}=\mathcal{C}(\boldsymbol{x}^{\alpha})</span> the role of scalar multiplication, and the inner product is <span class="math inline">\langle\boldsymbol{x},\boldsymbol{y}\rangle_{a}
+=\operatorname{clr}(\boldsymbol{x})^{\mathsf{T}}\operatorname{clr}(\boldsymbol{y})</span> <span class="citation" data-cites="CoordinateRepresentation2015">(<a href="#ref-CoordinateRepresentation2015" role="doc-biblioref">Pawlowsky-Glahn et al. 2015</a>, Property 4.2, p. 35)</span>. The log-ratio charts below are linear maps for this structure; they differ in whether they also preserve its inner product.</p>
+</section><section class="level2"><h3 id="sec-lse">Softmax and log-sum-exp<a class="anchor" aria-label="anchor" href="#sec-lse"></a>
+</h3>
+<p>The softmax of scores <span class="math inline">\boldsymbol{z}\in\mathbb{R}^{J}</span> is evaluated through the log-sum-exp (LSE) to avoid overflow,</p>
 <p><span id="eq-softmax"><span class="math display">
-s_{i}
+s_{j}
 =
-\frac{e^{z_{i}}}{\sum_{k}e^{z_{k}}}
+\frac{e^{z_{j}}}{\sum_{\ell}e^{z_{\ell}}}
 =
-e^{z_{i}-\operatorname{LSE}(\boldsymbol{z})},
+e^{z_{j}-\operatorname{LSE}(\boldsymbol{z})},
 \qquad
 \operatorname{LSE}(\boldsymbol{z})
 =
-m+\log\sum_{k}e^{z_{k}-m},
+z_{\max}+\log\sum_{\ell}e^{z_{\ell}-z_{\max}},
 \quad
-m=\max_{k}z_{k}.
+z_{\max}=\max_{\ell}z_{\ell}.
 \tag{10}</span></span></p>
-<p>Its Jacobian is <span class="math inline">\mathbf{J}_{\mathrm{softmax}}=\operatorname{diag}(\boldsymbol{s})
--\boldsymbol{s}\boldsymbol{s}^{\top}</span>, which is also <span class="math inline">\nabla^{2}\operatorname{LSE}(\boldsymbol{z})</span>. The second derivative is the third-order tensor</p>
+<p>Its Jacobian is <span class="math inline">\mathbf{J}_{\mathrm{softmax}}=\mathbf{S}(\boldsymbol{s})
+=\operatorname{diag}(\boldsymbol{s})-\boldsymbol{s}\boldsymbol{s}^{\mathsf{T}}</span>, which is also <span class="math inline">\nabla^{2}\operatorname{LSE}(\boldsymbol{z})</span>. The second derivative is the third-order tensor</p>
 <p><span id="eq-softmax-hess"><span class="math display">
-H_{ijk}
+H_{j\ell m}
 =
-s_{i}\bigl[
-  (\delta_{ij}-s_{j})(\delta_{ik}-s_{k})
+s_{j}\bigl[
+  (\delta_{j\ell}-s_{\ell})(\delta_{jm}-s_{m})
   -
-  s_{j}(\delta_{jk}-s_{k})
+  s_{\ell}(\delta_{\ell m}-s_{m})
 \bigr].
 \tag{11}</span></span></p>
-</section><section class="level2"><h3 id="sec-ilr">Isometric log-ratio map<a class="anchor" aria-label="anchor" href="#sec-ilr"></a>
+<p>The softmax with <span class="math inline">J</span> free scores is over-parametrised: <span class="math inline">\operatorname{softmax}(\boldsymbol{z}+c\mathbf{1}_{J})
+=\operatorname{softmax}(\boldsymbol{z})</span>, because closure removes the common factor <span class="math inline">e^{c}</span>. Accordingly <span class="math inline">\mathbf{S}(\boldsymbol{s})\mathbf{1}_{J}=\boldsymbol{0}</span>, the Jacobian has rank <span class="math inline">J-1</span>, and the Hessian of <span class="math inline">\ell(\operatorname{softmax}(\boldsymbol{z}))</span> has a zero eigenvalue along <span class="math inline">\mathbf{1}_{J}</span>: a Newton system in <span class="math inline">\boldsymbol{z}</span> is singular. The three log-ratio charts are three ways to remove this redundant direction. Each writes <span class="math inline">\boldsymbol{p}=\operatorname{softmax}(\mathbf{B}\boldsymbol{\theta})</span> with <span class="math inline">\boldsymbol{\theta}\in\mathbb{R}^{J-1}</span> and a matrix <span class="math inline">\mathbf{B}\in\mathbb{R}^{J\times(J-1)}</span> whose columns, together with <span class="math inline">\mathbf{1}_{J}</span>, span <span class="math inline">\mathbb{R}^{J}</span>. ALR pins one score to zero, CLR constrains the scores to sum to zero, and ILR spans <span class="math inline">\mathbf{1}_{J}^{\perp}</span> with an orthonormal basis.</p>
+</section><section class="level2"><h3 id="sec-alr">Additive log-ratio chart<a class="anchor" aria-label="anchor" href="#sec-alr"></a>
 </h3>
-<p>Choose a Helmert sub-matrix <span class="math inline">\mathbf{V}\in\mathbb{R}^{J\times(J-1)}</span> with</p>
+<p>Pin a reference cell type <span class="math inline">r</span>, by default the last one (<span class="math inline">r=J</span>). The ALR coordinates and their inverse, the <em>additive logistic</em> transform, are <span class="citation" data-cites="aitchisonStatisticalAnalysisCompositional1982">(<a href="#ref-aitchisonStatisticalAnalysisCompositional1982" role="doc-biblioref">Aitchison 1982</a>)</span></p>
+<p><span id="eq-alr-maps"><span class="math display">
+\rho^{\mathrm{alr}}_{j}
+=
+\log\!\left(\frac{p_{j}}{p_{J}}\right),
+\qquad
+p_{j}
+=
+\frac{e^{\rho^{\mathrm{alr}}_{j}}}{1+\sum_{\ell&lt;J}e^{\rho^{\mathrm{alr}}_{\ell}}}\ (j&lt;J),
+\qquad
+p_{J}
+=
+\frac{1}{1+\sum_{\ell&lt;J}e^{\rho^{\mathrm{alr}}_{\ell}}}.
+\tag{12}</span></span></p>
+<p>Equivalently <span class="math inline">\boldsymbol{p}=\operatorname{softmax}(\rho^{\mathrm{alr}}_{1},\ldots,\rho^{\mathrm{alr}}_{J-1},0)</span> and <span class="math inline">\boldsymbol{\rho}^{\mathrm{alr}}=\mathbf{D}_{J}\log\boldsymbol{p}</span>. The “1” in the denominator is the reference part; the word <em>additive</em> refers to the sum of exponentials in that denominator, not to the Aitchison perturbation <span class="citation" data-cites="CoordinateRepresentation2015">(<a href="#ref-CoordinateRepresentation2015" role="doc-biblioref">Pawlowsky-Glahn et al. 2015, 47</a>)</span>. Package helpers <a href="../reference/additive_logistic.html"><code>additive_logistic()</code></a> and <a href="../reference/additive_logistic.html"><code>additive_log_ratio()</code></a> implement <a href="#eq-alr-maps" class="quarto-xref">Eq. 12</a> and match <code><a href="https://rdrr.io/pkg/compositions/man/alr.html" class="external-link">compositions::alrInv()</a></code> / <code>alr()</code> with the last part as reference <span class="citation" data-cites="R-compositions">(<a href="#ref-R-compositions" role="doc-biblioref"><span class="nocase">van den Boogaart et al.</span> 2025</a>)</span>. The Jacobian is the softmax Jacobian with the reference column dropped, <span class="math inline">\partial p_{j}/\partial\rho^{\mathrm{alr}}_{a}=p_{j}(\delta_{ja}-p_{a})</span> for <span class="math inline">a=1,\ldots,J-1</span> (<a href="../reference/jacobian_additive_logistic.html"><code>jacobian_additive_logistic()</code></a>; <a href="../reference/hessian_additive_logistic.html"><code>hessian_additive_logistic()</code></a>).</p>
+<div>
+<div class="decovart-callout callout-tip">
+<blockquote>
+<p><strong>Example 1 (ALR in both directions for <span class="math inline">\boldsymbol{p}=(0.5,0.3,0.2)</span>)</strong></p>
+<div id="exm-alr-numeric" class="theorem example">
+<p>Colours track each cell type: <span class="math inline">\textcolor{#1d4e89}{p_{1}}</span>, <span class="math inline">\textcolor{#c45c26}{p_{2}}</span> and the reference <span class="math inline">\textcolor{#7b3294}{p_{3}}</span>.</p>
+<p><em>Forward.</em> Each coordinate compares one cell type with the reference, so the reference enters both coordinates:</p>
+<p><span class="math display">
+\left\{
+\begin{aligned}
+\rho^{\mathrm{alr}}_{1}
+&amp;=\log\frac{\textcolor{#1d4e89}{p_{1}}}{\textcolor{#7b3294}{p_{3}}}
+=\log\frac{\textcolor{#1d4e89}{0.5}}{\textcolor{#7b3294}{0.2}}
+=\log 2.5\approx 0.916\\
+\rho^{\mathrm{alr}}_{2}
+&amp;=\log\frac{\textcolor{#c45c26}{p_{2}}}{\textcolor{#7b3294}{p_{3}}}
+=\log\frac{\textcolor{#c45c26}{0.3}}{\textcolor{#7b3294}{0.2}}
+=\log 1.5\approx 0.405
+\end{aligned}
+\right.
+</span></p>
+<p><em>Backward.</em> Exponentiate each coordinate, give the reference the weight <span class="math inline">e^{0}=1</span>, then close; the common denominator is <span class="math inline">1+e^{\rho^{\mathrm{alr}}_{1}}+e^{\rho^{\mathrm{alr}}_{2}}=1+2.5+1.5=5</span>:</p>
+<p><span class="math display">
+\left\{
+\begin{aligned}
+\textcolor{#1d4e89}{p_{1}}
+&amp;=\frac{e^{\rho^{\mathrm{alr}}_{1}}}{1+e^{\rho^{\mathrm{alr}}_{1}}+e^{\rho^{\mathrm{alr}}_{2}}}
+=\frac{\textcolor{#1d4e89}{2.5}}{5}
+=\textcolor{#1d4e89}{0.5}\\
+\textcolor{#c45c26}{p_{2}}
+&amp;=\frac{e^{\rho^{\mathrm{alr}}_{2}}}{1+e^{\rho^{\mathrm{alr}}_{1}}+e^{\rho^{\mathrm{alr}}_{2}}}
+=\frac{\textcolor{#c45c26}{1.5}}{5}
+=\textcolor{#c45c26}{0.3}\\
+\textcolor{#7b3294}{p_{3}}
+&amp;=\frac{1}{1+e^{\rho^{\mathrm{alr}}_{1}}+e^{\rho^{\mathrm{alr}}_{2}}}
+=\frac{\textcolor{#7b3294}{1}}{5}
+=\textcolor{#7b3294}{0.2}
+\end{aligned}
+\right.
+</span></p>
+<p><em>Changing the reference.</em> With <span class="math inline">\textcolor{#1d4e89}{p_{1}}</span> as reference (superscript <span class="math inline">1</span>), <span class="math inline">\rho^{\mathrm{alr},1}_{1}=\log(\textcolor{#c45c26}{p_{2}}/\textcolor{#1d4e89}{p_{1}})\approx-0.511</span> and <span class="math inline">\rho^{\mathrm{alr},1}_{2}=\log(\textcolor{#7b3294}{p_{3}}/\textcolor{#1d4e89}{p_{1}})\approx-0.916</span>, that is <span class="math inline">\rho^{\mathrm{alr},1}_{1}=\rho^{\mathrm{alr}}_{2}-\rho^{\mathrm{alr}}_{1}</span> and <span class="math inline">\rho^{\mathrm{alr},1}_{2}=-\rho^{\mathrm{alr}}_{1}</span>. The two charts are related by the matrix <span class="math inline">\bigl(\begin{smallmatrix}-1&amp;1\\-1&amp;0\end{smallmatrix}\bigr)</span>, which is invertible but not orthogonal: its singular values are <span class="math inline">1.618</span> and <span class="math inline">0.618</span>, so it stretches some directions <span class="math inline">2.6</span> times more than others.</p>
+</div>
+</blockquote>
+</div>
+</div>
+<p><strong>What the reference changes, and what it does not.</strong> All ALR charts describe the same family of compositions; only the coordinates differ. <a href="#sec-chart-choice" class="quarto-xref">Sec. 3.6</a> shows that the estimate <span class="math inline">\hat{\boldsymbol{p}}</span>, the maximised log-likelihood and the delta-method covariance of <span class="math inline">\hat{\boldsymbol{p}}</span> do not depend on the reference. The numerical geometry does: ALR coordinates refer to an oblique, non-orthogonal basis of the simplex <span class="citation" data-cites="CoordinateRepresentation2015">(<a href="#ref-CoordinateRepresentation2015" role="doc-biblioref">Pawlowsky-Glahn et al. 2015, 47</a>)</span>, so Euclidean lengths, angles and Hessian condition numbers in <span class="math inline">\boldsymbol{\rho}^{\mathrm{alr}}</span> change with the reference.</p>
+</section><section class="level2"><h3 id="sec-clr">Centred log-ratio coefficients<a class="anchor" aria-label="anchor" href="#sec-clr"></a>
+</h3>
+<p>The CLR transform divides each part by the geometric mean <span class="citation" data-cites="aitchisonStatisticalAnalysisCompositional1982">(<a href="#ref-aitchisonStatisticalAnalysisCompositional1982" role="doc-biblioref">Aitchison 1982</a>)</span>:</p>
+<p><span id="eq-clr-maps"><span class="math display">
+\boldsymbol{\xi}
+=
+\operatorname{clr}(\boldsymbol{p})
+=
+\log\frac{\boldsymbol{p}}{g(\boldsymbol{p})}
+=
+\mathbf{H}_{J}\log\boldsymbol{p},
+\qquad
+\boldsymbol{p}
+=
+\mathcal{C}(\exp\boldsymbol{\xi})
+=
+\operatorname{softmax}(\boldsymbol{\xi}).
+\tag{13}</span></span></p>
+<p>CLR treats every cell type symmetrically and preserves the Aitchison geometry: distances and inner products between compositions equal Euclidean ones between their CLR vectors <span class="citation" data-cites="CoordinateRepresentation2015">(<a href="#ref-CoordinateRepresentation2015" role="doc-biblioref">Pawlowsky-Glahn et al. 2015</a>, Property 4.2, p. 35)</span>. Pairwise log-ratios are differences, <span class="math inline">\log(p_{j}/p_{\ell})=\xi_{j}-\xi_{\ell}</span>. The price is a constraint on the coefficients: <span class="math inline">\mathbf{1}_{J}^{\mathsf{T}}\boldsymbol{\xi}=0</span>. CLR gives <span class="math inline">J</span> coefficients for <span class="math inline">J-1</span> degrees of freedom, so they are not coordinates in a basis, a random CLR vector has a singular covariance matrix, and the coefficients change when a subcomposition is analysed <span class="citation" data-cites="CoordinateRepresentation2015">(<a href="#ref-CoordinateRepresentation2015" role="doc-biblioref">Pawlowsky-Glahn et al. 2015, 34–35</a>)</span>. Optimising over a free <span class="math inline">\boldsymbol{\xi}\in\mathbb{R}^{J}</span> is the over-parametrised softmax of <a href="#sec-lse" class="quarto-xref">Sec. 3.2</a> again.</p>
+<p>CLR is nevertheless the hub between the other charts. Since <span class="math inline">\mathbf{D}_{r}\mathbf{1}_{J}=\boldsymbol{0}</span> and <span class="math inline">\mathbf{V}^{\mathsf{T}}\mathbf{1}_{J}=\boldsymbol{0}</span>, both ALR and ILR are linear images of CLR: <span class="math inline">\boldsymbol{\rho}^{\mathrm{alr}}=\mathbf{D}_{r}\boldsymbol{\xi}</span> and <span class="math inline">\boldsymbol{\rho}=\mathbf{V}^{\mathsf{T}}\boldsymbol{\xi}</span>.</p>
+</section><section class="level2"><h3 id="sec-ilr">Isometric log-ratio chart<a class="anchor" aria-label="anchor" href="#sec-ilr"></a>
+</h3>
+<p>ILR expresses <span class="math inline">\boldsymbol{\xi}</span> in an orthonormal basis of the hyperplane <span class="math inline">\mathbf{1}_{J}^{\perp}</span> <span class="citation" data-cites="egozcueIsometricLogratioTransformations2003">(<a href="#ref-egozcueIsometricLogratioTransformations2003" role="doc-biblioref">Egozcue et al. 2003</a>)</span>. Choose <span class="math inline">\mathbf{V}\in\mathbb{R}^{J\times(J-1)}</span> with</p>
 <p><span id="eq-helmert"><span class="math display">
 \mathbf{V}^{\mathsf{T}}\mathbf{V}=\mathbf{I}_{J-1},
 \qquad
-\mathbf{V}^{\mathsf{T}}\mathbf{1}=\mathbf{0}.
-\tag{12}</span></span></p>
+\mathbf{V}^{\mathsf{T}}\mathbf{1}_{J}=\mathbf{0},
+\qquad
+\mathbf{V}\mathbf{V}^{\mathsf{T}}=\mathbf{H}_{J}.
+\tag{14}</span></span></p>
 <p>ILR coordinates and their inverse are <span class="citation" data-cites="pawlowsky-glahnCompositionalDataAnalysis2011">(<a href="#ref-pawlowsky-glahnCompositionalDataAnalysis2011" role="doc-biblioref">Pawlowsky-Glahn and Buccianti 2011</a>)</span></p>
 <p><span id="eq-ilr-maps"><span class="math display">
 \boldsymbol{\rho}
@@ -446,20 +646,394 @@ s_{i}\bigl[
 =
 \operatorname{softmax}(\mathbf{V}\boldsymbol{\rho})
 =
-\mathcal{C}\bigl\{\exp(\mathbf{V}\boldsymbol{\rho})\bigr\},
-\tag{13}</span></span></p>
-<p>where <span class="math inline">\mathcal{C}</span> denotes closure to unit sum. No cell type is pinned as a reference (contrast <a href="#sec-alr" class="quarto-xref">Sec. 8</a>). Package helpers <a href="../reference/helmert_basis.html"><code>helmert_basis()</code></a>, <a href="../reference/isometric_logistic.html"><code>isometric_logistic()</code></a> and <a href="../reference/isometric_log_ratio.html"><code>isometric_log_ratio()</code></a> implement <a href="#eq-helmert" class="quarto-xref">Eq. 12</a>–<a href="#eq-ilr-maps" class="quarto-xref">Eq. 13</a> with a log-sum-exp softmax, matching the <code><a href="https://rdrr.io/pkg/compositions/man/ilr.html" class="external-link">compositions::ilr()</a></code> / <code>ilrInv()</code> convention on a Helmert basis <span class="citation" data-cites="R-compositions egozcueIsometricLogratioTransformations2003">(<a href="#ref-R-compositions" role="doc-biblioref"><span class="nocase">van den Boogaart et al.</span> 2025</a>; <a href="#ref-egozcueIsometricLogratioTransformations2003" role="doc-biblioref">Egozcue et al. 2003</a>)</span>.</p>
-<div id="prp-ilr-diffeo" class="theorem proposition">
-<p><span class="theorem-title"><strong>Proposition 1 (ILR is a <span class="math inline">C^{2}</span> diffeomorphism)</strong></span> <span class="math inline">\boldsymbol{\psi}:\mathbb{R}^{J-1}\to(0,1)^{J}</span> with <span class="math inline">\sum_{j}p_{j}=1</span> is bijective and twice continuously differentiable, so every critical point in <span class="math inline">\boldsymbol{\rho}</span>-space maps to a unique open simplex composition and conversely. Any other valid ILR basis is <span class="math inline">\mathbf{V}^{\star}=\mathbf{V}Q</span> with <span class="math inline">Q^{\mathsf{T}}Q=\mathbf{I}</span>, which rotates coordinates as <span class="math inline">\boldsymbol{\rho}^{\star}=Q^{\mathsf{T}}
-\boldsymbol{\rho}</span> and leaves eigenvalues, condition numbers and traces of properly transformed quadratic forms unchanged.</p>
+\mathcal{C}\bigl\{\exp(\mathbf{V}\boldsymbol{\rho})\bigr\}.
+\tag{15}</span></span></p>
+<p>In the book’s notation the contrast matrix is <span class="math inline">\boldsymbol{\Psi}=\mathbf{V}^{\mathsf{T}}</span>, and <a href="#eq-helmert" class="quarto-xref">Eq. 14</a> is its Eq. (4.5); <a href="#eq-ilr-maps" class="quarto-xref">Eq. 15</a> is Eqs. (4.7)–(4.8) <span class="citation" data-cites="CoordinateRepresentation2015">(<a href="#ref-CoordinateRepresentation2015" role="doc-biblioref">Pawlowsky-Glahn et al. 2015, 36–37</a>)</span>. ILR keeps the strengths of both previous charts: like ALR it gives <span class="math inline">J-1</span> unconstrained coordinates, and like CLR it preserves the Aitchison geometry, now with <span class="math inline">d_{a}(\boldsymbol{x},\boldsymbol{y})
+=\lVert\operatorname{ilr}(\boldsymbol{x})-\operatorname{ilr}(\boldsymbol{y})\rVert</span> (Property 4.5, p. 37). No cell type is a reference. Package helpers <a href="../reference/helmert_basis.html"><code>helmert_basis()</code></a>, <a href="../reference/isometric_logistic.html"><code>isometric_logistic()</code></a> and <a href="../reference/isometric_log_ratio.html"><code>isometric_log_ratio()</code></a> implement <a href="#eq-helmert" class="quarto-xref">Eq. 14</a>–<a href="#eq-ilr-maps" class="quarto-xref">Eq. 15</a> with a log-sum-exp softmax, matching the <code><a href="https://rdrr.io/pkg/compositions/man/ilr.html" class="external-link">compositions::ilr()</a></code> / <code>ilrInv()</code> convention on a Helmert basis <span class="citation" data-cites="R-compositions">(<a href="#ref-R-compositions" role="doc-biblioref"><span class="nocase">van den Boogaart et al.</span> 2025</a>)</span>.</p>
+<section class="level3"><h4 id="sec-helmert">The Helmert basis: definition, role and use<a class="anchor" aria-label="anchor" href="#sec-helmert"></a>
+</h4>
+<p><strong>Definition.</strong> The ILR chart needs one orthonormal basis of <span class="math inline">\mathbf{1}_{J}^{\perp}</span>; there are infinitely many. The Helmert basis is the one with a closed form. Column <span class="math inline">k=1,\ldots,J-1</span> of <a href="../reference/helmert_basis.html"><code>helmert_basis()</code></a> is</p>
+<p><span id="eq-helmert-columns"><span class="math display">
+\boldsymbol{v}_{k}
+=
+\frac{1}{\sqrt{k(k+1)}}
+\bigl(\underbrace{1,\ldots,1}_{k},\,-k,\,\underbrace{0,\ldots,0}_{J-k-1}\bigr)^{\mathsf{T}}.
+\tag{16}</span></span></p>
+<p>Each column sums to zero and has unit norm, and two columns are orthogonal because the later one is constant on the support of the earlier one. The basis is the Gram–Schmidt orthonormalisation of the generating system of the simplex <span class="citation" data-cites="egozcueIsometricLogratioTransformations2003">(<a href="#ref-egozcueIsometricLogratioTransformations2003" role="doc-biblioref">Egozcue et al. 2003</a>)</span>, and its contrast matrix is a Helmert matrix without the constant row <span class="citation" data-cites="CoordinateRepresentation2015">(<a href="#ref-CoordinateRepresentation2015" role="doc-biblioref">Pawlowsky-Glahn et al. 2015</a>, Example 4.6, p. 40)</span>. The book lists the same basis in reverse order, with the first coordinate contrasting the first <span class="math inline">J-1</span> parts with the last one.</p>
+<p><strong>Role: every coordinate is a balance.</strong> Inserting <a href="#eq-helmert-columns" class="quarto-xref">Eq. 16</a> into <a href="#eq-ilr-maps" class="quarto-xref">Eq. 15</a> gives</p>
+<p><span id="eq-helmert-balance"><span class="math display">
+\rho_{k}
+=
+\boldsymbol{v}_{k}^{\mathsf{T}}\log\boldsymbol{p}
+=
+\sqrt{\frac{k}{k+1}}\,
+\log\frac{g(p_{1},\ldots,p_{k})}{p_{k+1}},
+\tag{17}</span></span></p>
+<p>the normalised log-ratio between the geometric mean of the first <span class="math inline">k</span> cell types and type <span class="math inline">k+1</span>. This is the <em>balance</em> of a sequential binary partition: level <span class="math inline">k</span> splits <span class="math inline">\{1,\ldots,k+1\}</span> into <span class="math inline">\{1,\ldots,k\}</span> (sign <span class="math inline">+</span>) and <span class="math inline">\{k+1\}</span> (sign <span class="math inline">-</span>) <span class="citation" data-cites="CoordinateRepresentation2015">(<a href="#ref-CoordinateRepresentation2015" role="doc-biblioref">Pawlowsky-Glahn et al. 2015</a>, Eq. (4.9), pp. 38–39)</span>. For <span class="math inline">J=4</span> the sign matrix is</p>
+<div id="tbl-helmert-sbp" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-helmert-sbp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 2: Sequential binary partition encoded by the Helmert basis for <span class="math inline">J=4</span>.
+</figcaption><div aria-describedby="tbl-helmert-sbp-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table caption-top">
+<thead><tr class="header">
+<th style="text-align: left;">Level</th>
+<th style="text-align: center;"><span class="math inline">p_{1}</span></th>
+<th style="text-align: center;"><span class="math inline">p_{2}</span></th>
+<th style="text-align: center;"><span class="math inline">p_{3}</span></th>
+<th style="text-align: center;"><span class="math inline">p_{4}</span></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\rho_{1}</span></td>
+<td style="text-align: center;"><span class="math inline">+</span></td>
+<td style="text-align: center;"><span class="math inline">-</span></td>
+<td style="text-align: center;"><span class="math inline">0</span></td>
+<td style="text-align: center;"><span class="math inline">0</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\rho_{2}</span></td>
+<td style="text-align: center;"><span class="math inline">+</span></td>
+<td style="text-align: center;"><span class="math inline">+</span></td>
+<td style="text-align: center;"><span class="math inline">-</span></td>
+<td style="text-align: center;"><span class="math inline">0</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\rho_{3}</span></td>
+<td style="text-align: center;"><span class="math inline">+</span></td>
+<td style="text-align: center;"><span class="math inline">+</span></td>
+<td style="text-align: center;"><span class="math inline">+</span></td>
+<td style="text-align: center;"><span class="math inline">-</span></td>
+</tr>
+</tbody>
+</table>
 </div>
-<div id="nte-ilr-vs-alr">
+</figure>
+</div>
+<p>The factor <span class="math inline">\sqrt{k/(k+1)}</span> makes balances comparable across levels. Balances are geometrically orthogonal, so each carries information the others do not; geometric orthogonality does not imply that their estimates are uncorrelated <span class="citation" data-cites="CoordinateRepresentation2015">(<a href="#ref-CoordinateRepresentation2015" role="doc-biblioref">Pawlowsky-Glahn et al. 2015, 41</a>)</span>. The Helmert basis thus does three jobs at once:</p>
+<ul>
+<li>it cancels the closure direction, because every column sums to zero: adding a constant to <span class="math inline">\log\boldsymbol{p}</span> leaves <span class="math inline">\boldsymbol{\rho}</span> unchanged;</li>
+<li>it removes the redundant softmax direction while keeping Euclidean geometry, because the columns are orthonormal;</li>
+<li>it is explicit and sparse, so <span class="math inline">\mathbf{V}\boldsymbol{\rho}</span> costs <span class="math inline">O(J)</span> operations per column and needs no QR or Gram–Schmidt step at run time.</li>
+</ul>
+<p><strong>Use in practice.</strong> DeCovarT builds <span class="math inline">\mathbf{V}</span> once from <span class="math inline">J</span> and proceeds as follows.</p>
+<ol type="1">
+<li>Map a starting composition to coordinates with <code>isometric_log_ratio(p)</code>, which computes <span class="math inline">\mathbf{V}^{\mathsf{T}}\log\boldsymbol{p}</span>.</li>
+<li>Iterate on <span class="math inline">\boldsymbol{\rho}\in\mathbb{R}^{J-1}</span> with the score and Hessian of <a href="#thm-chain-rule" class="quarto-xref">Theorem 3</a>; no step can leave the simplex.</li>
+<li>Map back with <code>isometric_logistic(rho)</code>, a log-sum-exp softmax of <span class="math inline">\mathbf{V}\boldsymbol{\rho}</span>.</li>
+<li>Push the covariance of <span class="math inline">\hat{\boldsymbol{\rho}}</span> to <span class="math inline">\hat{\boldsymbol{p}}</span> with the Jacobian <span class="math inline">\mathbf{S}(\boldsymbol{p})\mathbf{V}</span> (<a href="#sec-fisher-rho" class="quarto-xref">Sec. 4.2</a>).</li>
+</ol>
+<p>The order of the cell types fixes which balances are reported, not the estimate. Both helpers accept another basis through their <code>V</code> argument: for instance, a partition that first contrasts immune with stromal types gives coordinates with a biological reading. Any such basis is <span class="math inline">\mathbf{V}Q</span> for an orthogonal <span class="math inline">Q</span> (<a href="#prp-ilr-rotation" class="quarto-xref">Proposition 2</a>).</p>
+<div id="fig-ilr-isometry" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-ilr-isometry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/ilr_isometry_gram_schmidt.png" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ilr-isometry-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure 1: The ILR chart is an isometry from the simplex to Euclidean space. <strong>A</strong> (<span class="math inline">J=2</span>): the simplex is a segment and the ILR chart a line; equally spaced values of <span class="math inline">\rho</span> (colour) map to compositions that crowd towards the vertices. <strong>B</strong> (<span class="math inline">J=3</span>): lines of constant <span class="math inline">\rho_{1}</span> (solid) and <span class="math inline">\rho_{2}</span> (dotted) on the ternary triangle, the composition <span class="math inline">(0.5,0.3,0.2)</span> and two segments of Aitchison length 1, one near the barycentre (green) and one near the vertex <span class="math inline">p_{3}=1</span> (gold). <strong>C</strong>: the same objects in ILR coordinates, where the grid is orthonormal and both segments have Euclidean length 1. <strong>D</strong>: in the plane orthogonal to <span class="math inline">\mathbf{1}_{3}</span>, Gram–Schmidt applied to <span class="math inline">\boldsymbol{a}_{1}=\boldsymbol{e}_{1}-\boldsymbol{e}_{2}</span> and <span class="math inline">\boldsymbol{a}_{2}=\boldsymbol{e}_{2}-\boldsymbol{e}_{3}</span> normalises <span class="math inline">\boldsymbol{a}_{1}</span> into <span class="math inline">\boldsymbol{v}_{1}</span>, removes from <span class="math inline">\boldsymbol{a}_{2}</span> its projection on <span class="math inline">\boldsymbol{v}_{1}</span> (orange), and normalises the residual into <span class="math inline">\boldsymbol{v}_{2}</span>: the two Helmert columns of <a href="#eq-helmert-columns" class="quarto-xref">Eq. 16</a>. Dashed lines are the CLR images of the canonical vectors. Script: <code>scripts/auxiliary/generate_ilr_isometry_figure.R</code>.
+</figcaption></figure>
+</div>
+<p><a href="#fig-ilr-isometry" class="quarto-xref">Figure 1</a> summarises the construction. Gram–Schmidt applied to the successive differences <span class="math inline">\boldsymbol{e}_{k}-\boldsymbol{e}_{k+1}</span>, which span <span class="math inline">\mathbf{1}_{J}^{\perp}</span>, returns exactly the columns of <a href="#eq-helmert-columns" class="quarto-xref">Eq. 16</a> for every <span class="math inline">J</span> (panel D); the resulting chart is isometric, so equal Aitchison lengths become equal Euclidean lengths (panels B–C).</p>
+<div>
+<div class="decovart-callout callout-tip">
 <blockquote>
-<p><strong>Note 5: Why ILR is the default chart</strong></p>
-<p>Changing an ALR denominator changes the coordinates, not the composition. If derivatives, Fisher information and the delta method are transformed correctly, <span class="math inline">\hat{\boldsymbol{p}}</span>, <span class="math inline">\ell(\hat{\boldsymbol{p}})</span> and <span class="math inline">\operatorname{Var}(\hat{\boldsymbol{p}})</span> must agree after mapping back to the simplex. A material change in <span class="math inline">\hat{\boldsymbol{p}}</span> when the reference cell is permuted is therefore numerical or optimisation sensitivity, not a statistical reference dependence.</p>
-<p>ILR still improves the chart because distinct orthonormal bases differ by an orthogonal rotation, whereas changing an ALR denominator is a generally non-orthogonal reparametrisation. Euclidean gradient norms, Hessian condition numbers and Newton step geometry are then natural up to rotation. A fixed Helmert basis introduces an ordering convention, not a denominator. The ALR formulae are kept in <a href="#sec-alr" class="quarto-xref">Sec. 8</a> for comparison and for the structural-zero discussion (<a href="#sec-structural-zeros" class="quarto-xref">Sec. 8.1</a>).</p>
+<p><strong>Example 2 (ILR in both directions for <span class="math inline">\boldsymbol{p}=(0.5,0.3,0.2)</span>)</strong></p>
+<div id="exm-ilr-numeric" class="theorem example">
+<p>For <span class="math inline">J=3</span> the Helmert columns are <span class="math inline">\boldsymbol{v}_{1}=(1,-1,0)^{\mathsf{T}}/\sqrt{2}</span> and <span class="math inline">\boldsymbol{v}_{2}=(1,1,-2)^{\mathsf{T}}/\sqrt{6}</span>. The entries of <span class="math inline">\mathbf{V}</span> are the weights each coordinate gives to each <span class="math inline">\log\textcolor{#1d4e89}{p_{1}}</span>, <span class="math inline">\log\textcolor{#c45c26}{p_{2}}</span> and <span class="math inline">\log\textcolor{#7b3294}{p_{3}}</span>; in each coordinate the weights sum to zero.</p>
+<p><em>Forward</em>, <span class="math inline">\boldsymbol{\rho}=\mathbf{V}^{\mathsf{T}}\log\boldsymbol{p}</span>:</p>
+<p><span class="math display">
+\left\{
+\begin{aligned}
+\rho_{1}
+&amp;=\tfrac{1}{\sqrt{2}}\log\textcolor{#1d4e89}{p_{1}}
+-\tfrac{1}{\sqrt{2}}\log\textcolor{#c45c26}{p_{2}}
++0\cdot\log\textcolor{#7b3294}{p_{3}}
+=\tfrac{1}{\sqrt{2}}\log\frac{\textcolor{#1d4e89}{0.5}}{\textcolor{#c45c26}{0.3}}
+\approx 0.361\\
+\rho_{2}
+&amp;=\tfrac{1}{\sqrt{6}}\log\textcolor{#1d4e89}{p_{1}}
++\tfrac{1}{\sqrt{6}}\log\textcolor{#c45c26}{p_{2}}
+-\tfrac{2}{\sqrt{6}}\log\textcolor{#7b3294}{p_{3}}
+=\sqrt{\tfrac{2}{3}}\log\frac{\sqrt{\textcolor{#1d4e89}{0.5}\times\textcolor{#c45c26}{0.3}}}{\textcolor{#7b3294}{0.2}}
+\approx 0.540
+\end{aligned}
+\right.
+</span></p>
+<p><span class="math inline">\rho_{1}</span> balances type 1 against type 2; <span class="math inline">\rho_{2}</span> balances their geometric mean against type 3.</p>
+<p><em>Backward</em>, in two steps. First <span class="math inline">\boldsymbol{\xi}=\mathbf{V}\boldsymbol{\rho}</span>, read row by row, so row <span class="math inline">j</span> of <span class="math inline">\mathbf{V}</span> rebuilds the CLR coefficient of cell type <span class="math inline">j</span>:</p>
+<p><span class="math display">
+\left\{
+\begin{aligned}
+\textcolor{#1d4e89}{\xi_{1}}
+&amp;=\tfrac{1}{\sqrt{2}}\rho_{1}+\tfrac{1}{\sqrt{6}}\rho_{2}
+\approx 0.255+0.220=0.476\\
+\textcolor{#c45c26}{\xi_{2}}
+&amp;=-\tfrac{1}{\sqrt{2}}\rho_{1}+\tfrac{1}{\sqrt{6}}\rho_{2}
+\approx -0.255+0.220=-0.035\\
+\textcolor{#7b3294}{\xi_{3}}
+&amp;=0\cdot\rho_{1}-\tfrac{2}{\sqrt{6}}\rho_{2}
+\approx -0.441
+\end{aligned}
+\right.
+</span></p>
+<p>Then exponentiate and close; the common denominator is <span class="math inline">e^{\xi_{1}}+e^{\xi_{2}}+e^{\xi_{3}}\approx 1.609+0.966+0.644=3.218</span>:</p>
+<p><span class="math display">
+\left\{
+\begin{aligned}
+\textcolor{#1d4e89}{p_{1}}
+&amp;=\frac{e^{\xi_{1}}}{e^{\xi_{1}}+e^{\xi_{2}}+e^{\xi_{3}}}
+\approx\frac{\textcolor{#1d4e89}{1.609}}{3.218}
+=\textcolor{#1d4e89}{0.5}\\
+\textcolor{#c45c26}{p_{2}}
+&amp;=\frac{e^{\xi_{2}}}{e^{\xi_{1}}+e^{\xi_{2}}+e^{\xi_{3}}}
+\approx\frac{\textcolor{#c45c26}{0.966}}{3.218}
+=\textcolor{#c45c26}{0.3}\\
+\textcolor{#7b3294}{p_{3}}
+&amp;=\frac{e^{\xi_{3}}}{e^{\xi_{1}}+e^{\xi_{2}}+e^{\xi_{3}}}
+\approx\frac{\textcolor{#7b3294}{0.644}}{3.218}
+=\textcolor{#7b3294}{0.2}
+\end{aligned}
+\right.
+</span></p>
+<p>The intermediate <span class="math inline">\boldsymbol{\xi}</span> is exactly <span class="math inline">\operatorname{clr}(\boldsymbol{p})</span>.</p>
+<p><em>Link with ALR.</em> Since <span class="math inline">\rho^{\mathrm{alr}}_{j}=\xi_{j}-\xi_{3}</span>,</p>
+<p><span class="math display">
+\left\{
+\begin{aligned}
+\rho^{\mathrm{alr}}_{1}&amp;=\tfrac{1}{\sqrt{2}}\rho_{1}+\tfrac{3}{\sqrt{6}}\rho_{2}\approx 0.255+0.661=0.916\\
+\rho^{\mathrm{alr}}_{2}&amp;=-\tfrac{1}{\sqrt{2}}\rho_{1}+\tfrac{3}{\sqrt{6}}\rho_{2}\approx -0.255+0.661=0.405
+\end{aligned}
+\right.
+</span></p>
+<p>which recovers <a href="#exm-alr-numeric" class="quarto-xref">Example 1</a>. The matrix <span class="math inline">\mathbf{A}_{3}=\mathbf{D}_{3}\mathbf{V}</span> of this map has orthogonal columns of lengths <span class="math inline">1</span> and <span class="math inline">\sqrt{3}</span>: ALR keeps <span class="math inline">\rho_{1}</span> at unit scale and stretches <span class="math inline">\rho_{2}</span>, the balance of the reference <span class="math inline">\textcolor{#7b3294}{p_{3}}</span> against the rest, by <span class="math inline">\sqrt{3}</span>.</p>
+</div>
 </blockquote>
 </div>
+</div>
+<div>
+<div class="decovart-callout callout-note">
+<blockquote>
+<p><strong>Proposition 1 (ILR is a <span class="math inline">C^{2}</span> diffeomorphism)</strong></p>
+<div id="prp-ilr-diffeo" class="theorem proposition">
+<p><span class="math inline">\boldsymbol{\psi}:\mathbb{R}^{J-1}\to\mathring{\Delta}^{J-1}</span>, <span class="math inline">\boldsymbol{\rho}\mapsto\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho})</span>, is bijective and infinitely differentiable, with inverse <span class="math inline">\mathbf{V}^{\mathsf{T}}\log\boldsymbol{p}</span>. Every critical point in <span class="math inline">\boldsymbol{\rho}</span>-space maps to a unique composition in the open simplex, and conversely.</p>
+</div>
+</blockquote>
+</div>
+</div>
+</section></section><section class="level2"><h3 id="sec-chart-choice">Why DeCovarT uses the ILR chart<a class="anchor" aria-label="anchor" href="#sec-chart-choice"></a>
+</h3>
+<p>The question is which chart to optimise in, given that all of them describe the same model. Two kinds of invariance answer it: statistical invariance, which every chart has, and numerical invariance, which only ILR has under a change of convention.</p>
+<p><strong>Statistical invariance holds for every chart.</strong> Let <span class="math inline">\boldsymbol{\theta}'=\mathbf{A}\boldsymbol{\theta}</span> be any invertible linear change of coordinates, for instance between ILR and ALR (<span class="math inline">\boldsymbol{\rho}^{\mathrm{alr}}=\mathbf{A}_{r}\boldsymbol{\rho}</span> with <span class="math inline">\mathbf{A}_{r}=\mathbf{D}_{r}\mathbf{V}</span>) or between two ALR references. The likelihood is a function of <span class="math inline">\boldsymbol{p}</span> alone, so the maximiser is equivariant and <span class="math inline">\hat{\boldsymbol{p}}</span> and <span class="math inline">\ell(\hat{\boldsymbol{p}})</span> are the same in every chart. The delta method is invariant too: the Jacobian becomes <span class="math inline">\mathbf{J}_{\boldsymbol{\psi}}\mathbf{A}^{-1}</span> and the information <span class="math inline">\mathbf{A}^{-\mathsf{T}}\mathcal{I}\mathbf{A}^{-1}</span>, so</p>
+<p><span id="eq-delta-invariance"><span class="math display">
+\bigl(\mathbf{J}_{\boldsymbol{\psi}}\mathbf{A}^{-1}\bigr)
+\bigl(\mathbf{A}^{-\mathsf{T}}\mathcal{I}\mathbf{A}^{-1}\bigr)^{-1}
+\bigl(\mathbf{J}_{\boldsymbol{\psi}}\mathbf{A}^{-1}\bigr)^{\mathsf{T}}
+=
+\mathbf{J}_{\boldsymbol{\psi}}\mathcal{I}^{-1}\mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}.
+\tag{18}</span></span></p>
+<p>In this sense ALR is reference-invariant: whichever cell type is the denominator, a correct implementation returns the same <span class="math inline">\hat{\boldsymbol{p}}</span> and the same Wald covariance for <span class="math inline">\hat{\boldsymbol{p}}</span>. A material change in <span class="math inline">\hat{\boldsymbol{p}}</span> when the reference is permuted signals a numerical or convergence problem, not a statistical dependence on the reference. Pure Newton steps share this invariance, because the Newton step is invariant under affine changes of coordinates <span class="citation" data-cites="boydConvexOptimization2004">(<a href="#ref-boydConvexOptimization2004" role="doc-biblioref">Boyd et al. 2004</a>, sec. 9.5)</span>.</p>
+<p><strong>Numerical invariance differs.</strong> What changes with the chart is the Euclidean geometry the solver sees: gradient norms, damping, stopping rules and the condition number of the Hessian, which controls the floating-point accuracy of every linear solve and of <span class="math inline">\mathcal{I}^{-1}</span>.</p>
+<div>
+<div class="decovart-callout callout-note">
+<blockquote>
+<p><strong>Proposition 2 (Conditioning under a change of chart)</strong></p>
+<div id="prp-ilr-rotation" class="theorem proposition">
+<ol type="i">
+<li><p><em>ILR.</em> Any two orthonormal bases of <span class="math inline">\mathbf{1}_{J}^{\perp}</span> satisfy <span class="math inline">\mathbf{V}^{\star}=\mathbf{V}Q</span> with <span class="math inline">Q^{\mathsf{T}}Q=\mathbf{I}_{J-1}</span>. Then <span class="math inline">\boldsymbol{\rho}^{\star}=Q^{\mathsf{T}}\boldsymbol{\rho}</span>, <span class="math inline">\nabla_{\boldsymbol{\rho}^{\star}}\ell=Q^{\mathsf{T}}\nabla_{\boldsymbol{\rho}}\ell</span> and <span class="math inline">\mathbf{H}_{\boldsymbol{\rho}^{\star}}=Q^{\mathsf{T}}\mathbf{H}_{\boldsymbol{\rho}}Q</span>. Gradient norms, Hessian eigenvalues and condition numbers are identical in every orthonormal basis.</p></li>
+<li><p><em>ALR.</em> For every reference <span class="math inline">r</span>, <span class="math inline">\mathbf{A}_{r}=\mathbf{D}_{r}\mathbf{V}</span> has <span class="math inline">J-2</span> singular values equal to <span class="math inline">1</span> and one equal to <span class="math inline">\sqrt{J}</span>, so <span class="math inline">\kappa(\mathbf{A}_{r})=\sqrt{J}</span>. The stretched direction is <span class="math inline">\mathbf{V}^{\mathsf{T}}\boldsymbol{e}_{r}</span>, the log-abundance of the reference against all other types. Since <span class="math inline">\mathbf{H}_{\boldsymbol{\rho}^{\mathrm{alr}}}=\mathbf{A}_{r}^{-\mathsf{T}}\mathbf{H}_{\boldsymbol{\rho}}\mathbf{A}_{r}^{-1}</span>,</p></li>
+</ol>
+<p><span id="eq-alr-conditioning"><span class="math display">
+\frac{\kappa(\mathbf{H}_{\boldsymbol{\rho}})}{J}
+\le
+\kappa(\mathbf{H}_{\boldsymbol{\rho}^{\mathrm{alr}}})
+\le
+J\,\kappa(\mathbf{H}_{\boldsymbol{\rho}}),
+\tag{19}</span></span></p>
+<p>and the curvature along the reference’s own direction is divided by <span class="math inline">J</span>.</p>
+</div>
+</blockquote>
+</div>
+</div>
+<p><em>Proof sketch.</em> (i) is a similarity by an orthogonal matrix. For (ii), the rows of <span class="math inline">\mathbf{D}_{r}</span> are <span class="math inline">\boldsymbol{e}_{j}-\boldsymbol{e}_{r}</span>, so <span class="math inline">\mathbf{D}_{r}\mathbf{D}_{r}^{\mathsf{T}}=\mathbf{I}_{J-1}+\mathbf{1}_{J-1}\mathbf{1}_{J-1}^{\mathsf{T}}</span>, with eigenvalues <span class="math inline">1</span> (multiplicity <span class="math inline">J-2</span>) and <span class="math inline">J</span>. Because <span class="math inline">\mathbf{D}_{r}\mathbf{1}_{J}=\boldsymbol{0}</span> and <span class="math inline">\mathbf{V}</span> is an orthonormal basis of <span class="math inline">\mathbf{1}_{J}^{\perp}</span>, <span class="math inline">\mathbf{A}_{r}</span> has the same singular values as <span class="math inline">\mathbf{D}_{r}</span>. The right singular vector for <span class="math inline">\sqrt{J}</span> is proportional to <span class="math inline">\mathbf{V}^{\mathsf{T}}\mathbf{D}_{r}^{\mathsf{T}}\mathbf{1}_{J-1}
+=\mathbf{V}^{\mathsf{T}}(\mathbf{1}_{J}-J\boldsymbol{e}_{r})
+=-J\,\mathbf{V}^{\mathsf{T}}\boldsymbol{e}_{r}</span>. The bounds follow from <span class="math inline">\kappa(\mathbf{A}^{-\mathsf{T}}\mathbf{H}\mathbf{A}^{-1})
+\le\kappa(\mathbf{A})^{2}\kappa(\mathbf{H})</span> applied in both directions. <span class="math inline">\square</span></p>
+<p>The constant <span class="math inline">\kappa(\mathbf{A}_{r})=\sqrt{J}</span> does not depend on <span class="math inline">r</span>, but the direction it distorts does, so the condition number of the ALR Hessian depends on the reference. Even a perfectly conditioned problem, <span class="math inline">\mathbf{H}_{\boldsymbol{\rho}}=-\mathbf{I}</span>, has <span class="math inline">\kappa(\mathbf{H}_{\boldsymbol{\rho}^{\mathrm{alr}}})=J</span> in ALR coordinates. For an illustrative random negative-definite Hessian with <span class="math inline">J=6</span> (not a DeCovarT fit), <span class="math inline">\kappa=171</span> in every orthonormal basis, but between <span class="math inline">164</span> and <span class="math inline">420</span> across the six ALR references. A rare cell type, or one whose signature is nearly collinear with others, already has weak curvature along its own direction; choosing it as the ALR reference divides that curvature by <span class="math inline">J</span> and makes the problem harder.</p>
+<p>These differences affect the solver, not the target:</p>
+<div id="tbl-chart-invariance" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-chart-invariance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 3: Which parts of the optimisation depend on the chart convention.
+</figcaption><div aria-describedby="tbl-chart-invariance-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table caption-top">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead><tr class="header">
+<th style="text-align: left;">Solver ingredient</th>
+<th style="text-align: left;">ILR basis change (<span class="math inline">Q</span> orthogonal)</th>
+<th style="text-align: left;">ALR reference change (<span class="math inline">\mathbf{A}</span> oblique)</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Maximiser <span class="math inline">\hat{\boldsymbol{p}}</span>, <span class="math inline">\ell(\hat{\boldsymbol{p}})</span>, delta-method <span class="math inline">\operatorname{Var}(\hat{\boldsymbol{p}})</span>
+</td>
+<td style="text-align: left;">invariant</td>
+<td style="text-align: left;">invariant</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Pure Newton step</td>
+<td style="text-align: left;">invariant</td>
+<td style="text-align: left;">invariant</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Gradient norm, steepest-ascent and BFGS steps from an identity start</td>
+<td style="text-align: left;">invariant</td>
+<td style="text-align: left;">changed</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Spherical trust region, isotropic damping <span class="math inline">\mathbf{H}-\mu\mathbf{I}</span>
+</td>
+<td style="text-align: left;">invariant</td>
+<td style="text-align: left;">changed</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Hessian condition number, accuracy of <span class="math inline">\mathcal{I}^{-1}</span>
+</td>
+<td style="text-align: left;">invariant</td>
+<td style="text-align: left;">changed by a factor up to <span class="math inline">J</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>The default solver is Newton–Raphson on <span class="math inline">\boldsymbol{\rho}</span> (<a href="../reference/deconvolute_ratios_Marquardt_Levenberg.html"><code>deconvolute_ratios_Newton_Raphson()</code></a>), a second-order ascent that uses the analytic ILR score and Hessian of <a href="#thm-chain-rule" class="quarto-xref">Theorem 3</a>. Its pure Newton direction is the same in every chart; its safeguards, a spherical trust region and Euclidean step-length tolerances in <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">stats::nlminb()</a></code>, are unchanged by a rotation of the ILR basis but not by a change of ALR reference.</p>
+<div id="nte-ilr-vs-alr">
+<div class="decovart-callout callout-note">
+<blockquote>
+<p><strong>Note 5: Decision: DeCovarT optimises in ILR coordinates</strong></p>
+<p>ILR is the only chart of the four that is minimal (<span class="math inline">J-1</span> free coordinates), free of a privileged cell type and isometric for the Aitchison geometry. A change of its convention, the order of cell types or a different balance basis, is an orthogonal rotation, which leaves gradient norms and Hessian condition numbers unchanged. A change of ALR reference is an oblique map whose effect on conditioning depends on the reference. The solvers, <code><a href="../reference/fit_decovart.html">vcov.decovart_fit()</a></code> and the boundary diagnostics therefore work in ILR coordinates. ALR is kept for comparison with multinomial-logit models, which use a reference category.</p>
+</blockquote>
+</div>
+</div>
+</section><section class="level2"><h3 id="sec-chart-comparison">Side-by-side comparison of the four charts<a class="anchor" aria-label="anchor" href="#sec-chart-comparison"></a>
+</h3>
+<div id="tbl-chart-comparison" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-chart-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 4: Four charts for the unit-simplex constraint.
+</figcaption><div aria-describedby="tbl-chart-comparison-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table caption-top">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead><tr class="header">
+<th style="text-align: left;">Property</th>
+<th style="text-align: left;">Softmax</th>
+<th style="text-align: left;">ALR</th>
+<th style="text-align: left;">CLR</th>
+<th style="text-align: left;">ILR</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Coordinates</td>
+<td style="text-align: left;"><span class="math inline">\boldsymbol{z}\in\mathbb{R}^{J}</span></td>
+<td style="text-align: left;"><span class="math inline">\boldsymbol{\rho}^{\mathrm{alr}}=\mathbf{D}_{r}\log\boldsymbol{p}\in\mathbb{R}^{J-1}</span></td>
+<td style="text-align: left;">
+<span class="math inline">\boldsymbol{\xi}=\mathbf{H}_{J}\log\boldsymbol{p}</span>, with <span class="math inline">\mathbf{1}^{\mathsf{T}}\boldsymbol{\xi}=0</span>
+</td>
+<td style="text-align: left;"><span class="math inline">\boldsymbol{\rho}=\mathbf{V}^{\mathsf{T}}\log\boldsymbol{p}\in\mathbb{R}^{J-1}</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Inverse map</td>
+<td style="text-align: left;"><span class="math inline">\operatorname{softmax}(\boldsymbol{z})</span></td>
+<td style="text-align: left;"><span class="math inline">\operatorname{softmax}(\boldsymbol{\rho}^{\mathrm{alr}},0)</span></td>
+<td style="text-align: left;"><span class="math inline">\operatorname{softmax}(\boldsymbol{\xi})</span></td>
+<td style="text-align: left;"><span class="math inline">\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho})</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Feasible after inverse map</td>
+<td style="text-align: left;">yes</td>
+<td style="text-align: left;">yes</td>
+<td style="text-align: left;">yes</td>
+<td style="text-align: left;">yes</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Free and minimal (<span class="math inline">J-1</span> coordinates)</td>
+<td style="text-align: left;">no: one redundant direction</td>
+<td style="text-align: left;">yes</td>
+<td style="text-align: left;">no: <span class="math inline">J</span> coordinates on a hyperplane</td>
+<td style="text-align: left;">yes</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Jacobian of the inverse map</td>
+<td style="text-align: left;">rank <span class="math inline">J-1</span> out of <span class="math inline">J</span>
+</td>
+<td style="text-align: left;">full rank</td>
+<td style="text-align: left;">full rank on <span class="math inline">\mathbf{1}^{\perp}</span> only</td>
+<td style="text-align: left;">full rank</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Privileged cell type</td>
+<td style="text-align: left;">none</td>
+<td style="text-align: left;">the reference <span class="math inline">r</span>
+</td>
+<td style="text-align: left;">none</td>
+<td style="text-align: left;">none (order fixes the balances)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Isometry with Aitchison geometry</td>
+<td style="text-align: left;">no</td>
+<td style="text-align: left;">no (oblique basis)</td>
+<td style="text-align: left;">yes</td>
+<td style="text-align: left;">yes</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Change of convention</td>
+<td style="text-align: left;">not applicable</td>
+<td style="text-align: left;">oblique, <span class="math inline">\kappa(\mathbf{A}_{r})=\sqrt{J}</span>
+</td>
+<td style="text-align: left;">not applicable</td>
+<td style="text-align: left;">orthogonal rotation</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Hessian conditioning across conventions</td>
+<td style="text-align: left;">singular</td>
+<td style="text-align: left;">depends on the reference</td>
+<td style="text-align: left;">singular</td>
+<td style="text-align: left;">invariant</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Exact zeros at finite coordinates</td>
+<td style="text-align: left;">no</td>
+<td style="text-align: left;">no</td>
+<td style="text-align: left;">no</td>
+<td style="text-align: left;">no</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Reading of a coordinate</td>
+<td style="text-align: left;">none (shift-invariant)</td>
+<td style="text-align: left;">log-ratio to the reference</td>
+<td style="text-align: left;">log-ratio to the geometric mean</td>
+<td style="text-align: left;">balance between groups</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Typical use</td>
+<td style="text-align: left;">neural networks, mixture weights</td>
+<td style="text-align: left;">reference-category regression</td>
+<td style="text-align: left;">exploration, visualisation</td>
+<td style="text-align: left;">likelihood inference, optimisation</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>All four charts guarantee feasibility, and none reaches a face of the simplex at finite coordinates. For likelihood inference ILR is usually the best suited: it is the only chart that is at once minimal, symmetric in the cell types and isometric, which is why Egozcue et al. introduced it to avoid the drawbacks of both ALR and CLR <span class="citation" data-cites="egozcueIsometricLogratioTransformations2003 CoordinateRepresentation2015">(<a href="#ref-egozcueIsometricLogratioTransformations2003" role="doc-biblioref">Egozcue et al. 2003</a>; <a href="#ref-CoordinateRepresentation2015" role="doc-biblioref">Pawlowsky-Glahn et al. 2015, 33</a>)</span>. Its cost is interpretation: a balance is less direct than a ratio to one reference, and the Helmert balances depend on the order of cell types unless a partition with a biological meaning is chosen.</p>
 </section><section class="level2"><h3 id="sec-ilr-deriv">Efficient derivatives of <span class="math inline">\boldsymbol{\psi}</span>
 <a class="anchor" aria-label="anchor" href="#sec-ilr-deriv"></a>
 </h3>
@@ -471,17 +1045,17 @@ s_{i}\bigl[
 \frac{\partial\boldsymbol{p}}{\partial\boldsymbol{\rho}^{\mathsf{T}}}
 =
 \mathbf{S}(\boldsymbol{p})\mathbf{V}.
-\tag{14}</span></span></p>
-<p><a href="../reference/jacobian_isometric_logistic.html"><code>jacobian_isometric_logistic()</code></a> returns this <span class="math inline">J\times(J-1)</span> matrix. Let <span class="math inline">\bar{\boldsymbol{v}}=\mathbf{V}^{\mathsf{T}}\boldsymbol{p}</span>, <span class="math inline">\boldsymbol{q}_{i}=\mathbf{V}_{i\cdot}-\bar{\boldsymbol{v}}</span> and <span class="math inline">\mathbf{C}_{V}=\mathbf{V}^{\mathsf{T}}\mathbf{S}(\boldsymbol{p})
-\mathbf{V}</span>. Slice <span class="math inline">i</span> of the map Hessian is</p>
+\tag{20}</span></span></p>
+<p><a href="../reference/jacobian_isometric_logistic.html"><code>jacobian_isometric_logistic()</code></a> returns this <span class="math inline">J\times(J-1)</span> matrix. Let <span class="math inline">\bar{\boldsymbol{v}}=\mathbf{V}^{\mathsf{T}}\boldsymbol{p}</span>, <span class="math inline">\boldsymbol{h}_{j}=\mathbf{V}_{j\cdot}-\bar{\boldsymbol{v}}</span> and <span class="math inline">\mathbf{C}_{V}=\mathbf{V}^{\mathsf{T}}\mathbf{S}(\boldsymbol{p})
+\mathbf{V}</span>. Slice <span class="math inline">j</span> of the map Hessian is</p>
 <p><span id="eq-ilr-hess"><span class="math display">
-\mathbf{H}_{\psi_{i}}
+\mathbf{H}_{\psi_{j}}
 =
-p_{i}\bigl(
-  \boldsymbol{q}_{i}\boldsymbol{q}_{i}^{\mathsf{T}}
+p_{j}\bigl(
+  \boldsymbol{h}_{j}\boldsymbol{h}_{j}^{\mathsf{T}}
   -\mathbf{C}_{V}
 \bigr).
-\tag{15}</span></span></p>
+\tag{21}</span></span></p>
 <p><a href="../reference/hessian_isometric_logistic.html"><code>hessian_isometric_logistic()</code></a> stores the tensor of shape <span class="math inline">(J-1)\times(J-1)\times J</span>.</p>
 </section><section class="level2"><h3 id="sec-chain-rule">Change of variables: ambient <span class="math inline">\boldsymbol{p}</span> to ILR <span class="math inline">\boldsymbol{\rho}</span>
 <a class="anchor" aria-label="anchor" href="#sec-chain-rule"></a>
@@ -489,14 +1063,18 @@ p_{i}\bigl(
 <p>Let <span class="math inline">\ell_{\boldsymbol{\rho}}(\boldsymbol{\rho})
 =\ell_{\boldsymbol{y}\mid\boldsymbol{\zeta}}
 \bigl(\boldsymbol{\psi}(\boldsymbol{\rho})\bigr)</span>. The chain rule maps the unconstrained derivatives of <a href="#sec-unconstrained" class="quarto-xref">Sec. 2</a> into free Euclidean coordinates.</p>
+<div>
+<div class="decovart-callout callout-important">
+<blockquote>
+<p><strong>Theorem 3 (Constrained score and Hessian)</strong></p>
 <div id="thm-chain-rule" class="theorem">
-<p><span class="theorem-title"><strong>Theorem 3 (Constrained score and Hessian)</strong></span> <span id="eq-chain-first"><span class="math display">
+<p><span id="eq-chain-first"><span class="math display">
 \nabla_{\boldsymbol{\rho}}\ell
 =
 \mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}\nabla_{\boldsymbol{p}}\ell
 =
 \mathbf{V}^{\mathsf{T}}\mathbf{S}(\boldsymbol{p})\nabla_{\boldsymbol{p}}\ell,
-\tag{16}</span></span></p>
+\tag{22}</span></span></p>
 <p><span id="eq-chain-second"><span class="math display">
 \mathbf{H}_{\boldsymbol{\rho}}
 =
@@ -504,16 +1082,16 @@ p_{i}\bigl(
 \mathbf{H}_{\boldsymbol{p}}
 \mathbf{J}_{\boldsymbol{\psi}}
 +
-\sum_{i=1}^{J}
-\frac{\partial\ell}{\partial p_{i}}
-\mathbf{H}_{\psi_{i}}.
-\tag{17}</span></span></p>
+\sum_{j=1}^{J}
+\frac{\partial\ell}{\partial p_{j}}
+\mathbf{H}_{\psi_{j}}.
+\tag{23}</span></span></p>
 </div>
-<p>At an interior KKT point every active score equals the same multiplier, <span class="math inline">\partial\ell/\partial p_{i}=\lambda</span>. Because <span class="math inline">\sum_{i}p_{i}(\boldsymbol{\rho})=1</span> for every <span class="math inline">\boldsymbol{\rho}</span>, <span class="math inline">\sum_{i}\mathbf{H}_{\psi_{i}}=\mathbf{0}</span>, so the second summand of <a href="#eq-chain-second" class="quarto-xref">Eq. 17</a> vanishes and <span class="math inline">\mathbf{H}_{\boldsymbol{\rho}}
-=\mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}
-\mathbf{H}_{\boldsymbol{p}}
-\mathbf{J}_{\boldsymbol{\psi}}</span>. Away from stationarity that contraction must be kept.</p>
+</blockquote>
+</div>
+</div>
 <div id="nte-chain-impl">
+<div class="decovart-callout callout-important">
 <blockquote>
 <p><strong>Important 6: Implementation map</strong></p>
 <table class="table caption-top">
@@ -546,10 +1124,122 @@ p_{i}\bigl(
 </tr>
 </tbody>
 </table>
-<p><a href="#eq-chain-second" class="quarto-xref">Eq. 17</a> is the sum of a covariant pull-back of <span class="math inline">\mathbf{H}</span> and a contraction of the ambient score against the map Hessian. Omitting the second summand is a common bug when porting first-order code to Newton methods.</p>
+<p><a href="#eq-chain-second" class="quarto-xref">Eq. 23</a> is the sum of a covariant pull-back of <span class="math inline">\mathbf{H}</span> and a contraction of the ambient score against the map Hessian. Omitting the second summand is a common bug when porting first-order code to Newton methods.</p>
 </blockquote>
 </div>
-<p>CLR coordinates and Bayesian formulations sit on the same footing <span class="citation" data-cites="pawlowsky-glahnCompositionalDataAnalysis2011">(<a href="#ref-pawlowsky-glahnCompositionalDataAnalysis2011" role="doc-biblioref">Pawlowsky-Glahn and Buccianti 2011</a>)</span>: a Dirichlet or logistic-normal prior on <span class="math inline">\boldsymbol{p}</span> pairs naturally with the Gaussian bulk likelihood (the experimental MAP <code>CTS</code> path in <code>scripts/experimental/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R</code>, derived in the <a href="theory-decovart-bayesian-wiener.html#sec-map-blup">perspectives</a> vignette, is one starting point). Regardless of coordinate system, the workflow is the same: optimise in an unconstrained parameterisation, then map back to the simplex for interpretation.</p>
+</div>
+</section><section class="level2"><h3 id="sec-kkt">Lagrangian, KKT conditions and what the ILR chart removes<a class="anchor" aria-label="anchor" href="#sec-kkt"></a>
+</h3>
+<p>Without a chart, the estimation problem is</p>
+<p><span class="math display">
+\max_{\boldsymbol{p}\in\mathbb{R}^{J}}\ \ell(\boldsymbol{p})
+\quad\text{subject to}\quad
+\mathbf{1}_{J}^{\mathsf{T}}\boldsymbol{p}=1,
+\qquad
+\boldsymbol{p}\ge\boldsymbol{0},
+</span></p>
+<p>with Lagrangian</p>
+<p><span id="eq-lagrangian"><span class="math display">
+\mathcal{L}(\boldsymbol{p},\lambda,\boldsymbol{\nu})
+=
+\ell(\boldsymbol{p})
+-\lambda\bigl(\mathbf{1}_{J}^{\mathsf{T}}\boldsymbol{p}-1\bigr)
++\boldsymbol{\nu}^{\mathsf{T}}\boldsymbol{p}.
+\tag{24}</span></span></p>
+<p>The constraints are linear, so a constraint qualification holds and every local maximiser satisfies the KKT conditions <span class="citation" data-cites="boydConvexOptimization2004">(<a href="#ref-boydConvexOptimization2004" role="doc-biblioref">Boyd et al. 2004</a>, sec. 5.5.3)</span>:</p>
+<p><span id="eq-kkt"><span class="math display">
+\nabla_{\boldsymbol{p}}\ell(\hat{\boldsymbol{p}})
+-\lambda\mathbf{1}_{J}
++\boldsymbol{\nu}
+=\boldsymbol{0},
+\qquad
+\mathbf{1}_{J}^{\mathsf{T}}\hat{\boldsymbol{p}}=1,
+\qquad
+\boldsymbol{\nu}\ge\boldsymbol{0},
+\qquad
+\nu_{j}\hat{p}_{j}=0.
+\tag{25}</span></span></p>
+<ul>
+<li>
+<em>Interior point</em> (<span class="math inline">\hat{p}_{j}&gt;0</span> for all <span class="math inline">j</span>): complementary slackness gives <span class="math inline">\boldsymbol{\nu}=\boldsymbol{0}</span>, hence <span class="math inline">\partial\ell/\partial p_{j}=\lambda</span> for every <span class="math inline">j</span>. Every cell type has the same marginal gain, so moving mass from one type to another does not change <span class="math inline">\ell</span> to first order. Multiplying by <span class="math inline">\hat{\boldsymbol{p}}^{\mathsf{T}}</span> gives the multiplier, <span class="math inline">\lambda=\hat{\boldsymbol{p}}^{\mathsf{T}}\nabla_{\boldsymbol{p}}\ell(\hat{\boldsymbol{p}})</span>.</li>
+<li>
+<em>Boundary point</em> (<span class="math inline">\hat{p}_{j}=0</span>): <span class="math inline">\partial\ell/\partial p_{j}
+=\lambda-\nu_{j}\le\lambda</span>. Adding some of type <span class="math inline">j</span> would not increase the likelihood.</li>
+</ul>
+<p><strong>The chart removes the multiplier.</strong> Because <span class="math inline">\mathbf{S}(\boldsymbol{p})\mathbf{1}_{J}=\boldsymbol{p}-\boldsymbol{p}(\mathbf{1}_{J}^{\mathsf{T}}\boldsymbol{p})=\boldsymbol{0}</span>, the ILR score of <a href="#eq-chain-first" class="quarto-xref">Eq. 22</a> ignores any multiple of <span class="math inline">\mathbf{1}_{J}</span> added to the ambient score:</p>
+<p><span id="eq-ilr-score-kkt"><span class="math display">
+\nabla_{\boldsymbol{\rho}}\ell
+=
+\mathbf{V}^{\mathsf{T}}\mathbf{S}(\boldsymbol{p})
+\bigl(\nabla_{\boldsymbol{p}}\ell-c\,\mathbf{1}_{J}\bigr)
+\quad\text{for every }c,
+\qquad
+\mathbf{S}(\boldsymbol{p})\nabla_{\boldsymbol{p}}\ell
+=
+\operatorname{diag}(\boldsymbol{p})
+\bigl(\nabla_{\boldsymbol{p}}\ell-\lambda(\boldsymbol{p})\mathbf{1}_{J}\bigr),
+\tag{26}</span></span></p>
+<p>with <span class="math inline">\lambda(\boldsymbol{p})=\boldsymbol{p}^{\mathsf{T}}\nabla_{\boldsymbol{p}}\ell</span>. The ILR score is therefore the KKT stationarity residual of <a href="#eq-kkt" class="quarto-xref">Eq. 25</a>, weighted by <span class="math inline">\boldsymbol{p}</span>, with the multiplier set to its current value. The vector <span class="math inline">\mathbf{S}(\boldsymbol{p})\nabla_{\boldsymbol{p}}\ell</span> lies in <span class="math inline">\mathbf{1}_{J}^{\perp}</span>, on which <span class="math inline">\mathbf{V}^{\mathsf{T}}</span> is an isometry, so</p>
+<p><span class="math display">
+\bigl\lVert\nabla_{\boldsymbol{\rho}}\ell\bigr\rVert
+=
+\bigl\lVert\mathbf{S}(\boldsymbol{p})\nabla_{\boldsymbol{p}}\ell\bigr\rVert,
+\qquad
+\nabla_{\boldsymbol{\rho}}\ell=\boldsymbol{0}
+\iff
+\nabla_{\boldsymbol{p}}\ell=\lambda\mathbf{1}_{J}.
+</span></p>
+<p>Stationary points in <span class="math inline">\boldsymbol{\rho}</span> are exactly the interior KKT points, the multiplier is recovered afterwards as <span class="math inline">\hat{\lambda}=\hat{\boldsymbol{p}}^{\mathsf{T}}\nabla_{\boldsymbol{p}}\ell(\hat{\boldsymbol{p}})</span>, and the score norm that <code><a href="../reference/boundary_diagnostics.html">boundary_diagnostics()</a></code> reports does not depend on the basis. Under ALR the same equivalence holds, but the score norm changes with the reference.</p>
+<p><strong>Second order: the Hessian of the Lagrangian.</strong> Since <span class="math inline">\sum_{j}\psi_{j}(\boldsymbol{\rho})=1</span> for every <span class="math inline">\boldsymbol{\rho}</span>, <span class="math inline">\sum_{j}\mathbf{H}_{\psi_{j}}=\mathbf{0}</span>, and the curvature term of <a href="#eq-chain-second" class="quarto-xref">Eq. 23</a> also ignores the multiplier:</p>
+<p><span class="math display">
+\sum_{j=1}^{J}\frac{\partial\ell}{\partial p_{j}}\mathbf{H}_{\psi_{j}}
+=
+\sum_{j=1}^{J}\Bigl(\frac{\partial\ell}{\partial p_{j}}-\lambda\Bigr)
+\mathbf{H}_{\psi_{j}}.
+</span></p>
+<p>At an interior KKT point every bracket vanishes, so</p>
+<p><span id="eq-reduced-hessian"><span class="math display">
+\mathbf{H}_{\boldsymbol{\rho}}
+=
+\mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}
+\nabla^{2}_{\boldsymbol{p}\boldsymbol{p}}\mathcal{L}\,
+\mathbf{J}_{\boldsymbol{\psi}},
+\qquad
+\nabla^{2}_{\boldsymbol{p}\boldsymbol{p}}\mathcal{L}=\mathbf{H}_{\boldsymbol{p}},
+\tag{27}</span></span></p>
+<p>because linear constraints add no curvature to the Lagrangian. The columns of <span class="math inline">\mathbf{J}_{\boldsymbol{\psi}}=\mathbf{S}(\boldsymbol{p})\mathbf{V}</span> span <span class="math inline">\mathbf{1}_{J}^{\perp}</span>, the directions <span class="math inline">\boldsymbol{d}</span> with <span class="math inline">\mathbf{1}_{J}^{\mathsf{T}}\boldsymbol{d}=0</span> that keep the sum equal to one. <a href="#eq-reduced-hessian" class="quarto-xref">Eq. 27</a> is thus the Hessian of the Lagrangian reduced to the tangent space of the constraint, and <span class="math inline">\mathbf{H}_{\boldsymbol{\rho}}\prec 0</span> is the classical second-order sufficient condition <span class="math inline">\boldsymbol{d}^{\mathsf{T}}\mathbf{H}_{\boldsymbol{p}}\boldsymbol{d}&lt;0</span> for all <span class="math inline">\boldsymbol{d}\neq\boldsymbol{0}</span> with <span class="math inline">\mathbf{1}_{J}^{\mathsf{T}}\boldsymbol{d}=0</span>. Away from stationarity the curvature term must be kept: it is the price of a curved chart.</p>
+<p><strong>What the chart cannot do.</strong> For finite <span class="math inline">\boldsymbol{\rho}</span> every <span class="math inline">p_{j}</span> is strictly positive, so the inequality multipliers <span class="math inline">\boldsymbol{\nu}</span> never become active. A maximiser on a face of the simplex lies at infinity in <span class="math inline">\boldsymbol{\rho}</span>: the iterates drift, <span class="math inline">\lVert\nabla_{\boldsymbol{\rho}}\ell\rVert</span> decays only through the factor <span class="math inline">\operatorname{diag}(\boldsymbol{p})</span> in <a href="#eq-ilr-score-kkt" class="quarto-xref">Eq. 26</a>, and the Hessian becomes singular. The boundary is handled separately (<a href="#sec-structural-zeros" class="quarto-xref">Sec. 3.11</a>). The benchmark reports the projected-gradient residual <span class="math inline">\lVert\Pi_{\Delta}(\hat{\boldsymbol{p}}+\nabla_{\boldsymbol{p}}\ell)-\hat{\boldsymbol{p}}\rVert</span>, which is zero exactly at a KKT point, interior or not.</p>
+</section><section class="level2"><h3 id="sec-structural-zeros">Perspectives: Bayesian charts and the simplex boundary<a class="anchor" aria-label="anchor" href="#sec-structural-zeros"></a>
+</h3>
+<div id="nte-perspectives-charts">
+<div class="decovart-callout callout-note">
+<blockquote>
+<p><strong>Note 7: Going further: priors on log-ratio coordinates and estimates on a face</strong></p>
+<p><strong>What DeCovarT does today.</strong> No chart above represents an exact zero at finite coordinates, because each contains a logarithm. For a true simplex face the package does <strong>not</strong> send <span class="math inline">\log 0</span> through the chart: it fixes the inactive set, optimises ILR coordinates on the remaining active face (<a href="../reference/restricted_mle_decovart.html"><code>restricted_mle_decovart()</code></a>), and checks the KKT inequalities <span class="math inline">\partial\ell/\partial p_{j}\le\lambda</span> of <a href="#sec-kkt" class="quarto-xref">Sec. 3.10</a> for the zero coordinates (<a href="../reference/boundary_diagnostics.html"><code>boundary_diagnostics()</code></a>; see also the MLE-properties vignette).</p>
+<p><strong>Bayesian versions of the same charts.</strong> A log-ratio chart turns a prior on the simplex into a prior on Euclidean coordinates, and the Gaussian bulk likelihood then combines with standard tools <span class="citation" data-cites="pawlowsky-glahnCompositionalDataAnalysis2011">(<a href="#ref-pawlowsky-glahnCompositionalDataAnalysis2011" role="doc-biblioref">Pawlowsky-Glahn and Buccianti 2011</a>)</span>.</p>
+<ul>
+<li>
+<em>Logistic-normal prior.</em> A Gaussian prior <span class="math inline">\boldsymbol{\rho}\sim\mathcal{N}_{J-1}(\boldsymbol{m},\boldsymbol{\Lambda})</span> is a logistic-normal law on <span class="math inline">\boldsymbol{p}</span>. Its log-density adds a quadratic penalty to <span class="math inline">\ell(\boldsymbol{\rho})</span>, so the posterior mode is a ridge-penalised Newton problem in the same coordinates.</li>
+<li>
+<em>Dirichlet prior.</em> The density of <span class="math inline">\boldsymbol{p}</span> written in ILR coordinates gains the Jacobian factor <span class="math inline">\lvert\det\partial(p_{1},\ldots,p_{J-1})/\partial\boldsymbol{\rho}\rvert
+=\sqrt{J}\prod_{j}p_{j}</span>. A Dirichlet<span class="math inline">(\boldsymbol{\alpha})</span> prior therefore becomes <span class="math inline">\sum_{j}\alpha_{j}\log p_{j}</span> in <span class="math inline">\boldsymbol{\rho}</span>, a concave function that pushes the mode away from the boundary. Even the uniform prior (<span class="math inline">\boldsymbol{\alpha}=\mathbf{1}</span>) is not flat in <span class="math inline">\boldsymbol{\rho}</span>, so a posterior mode depends on the chart in which it is computed; posterior means and intervals for <span class="math inline">\boldsymbol{p}</span> do not.</li>
+<li>
+<em>CLR or ILR regression.</em> Covariates enter linearly on the log-ratio scale, <span class="math inline">\boldsymbol{\rho}_{i}=\mathbf{B}\boldsymbol{z}_{i}+\boldsymbol{u}_{i}</span>, which is the compositional analogue of a multinomial-logit model and gives the marginal effect of a covariate on the composition.</li>
+<li>The experimental MAP <code>CTS</code> path (<code>scripts/experimental/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R</code>, derived in the <a href="theory-decovart-bayesian-wiener.html#sec-map-blup">perspectives</a> vignette) is one starting point.</li>
+</ul>
+<p><strong>Estimates on the boundary.</strong> Several routes go beyond the active-set approach; none is implemented.</p>
+<ul>
+<li>
+<em>Projection methods</em> work in <span class="math inline">\boldsymbol{p}</span> itself: a projected Newton or projected-gradient step onto <span class="math inline">\Delta^{J-1}</span> reaches a face in finitely many iterations, and its residual is the KKT residual the benchmark already reports.</li>
+<li>
+<em>Spike-and-slab or hurdle priors</em> put positive mass on <span class="math inline">p_{j}=0</span>, so the posterior probability that a cell type is absent becomes an output, alongside the boundary likelihood-ratio tests of the MLE-properties vignette.</li>
+<li>
+<em>Charts without a logarithm</em> reach the boundary at finite coordinates, for instance the folded <span class="math inline">\alpha</span>-transformation <span class="citation" data-cites="tsagrisFoldedModelCompositional2020">(<a href="#ref-tsagrisFoldedModelCompositional2020" role="doc-biblioref">Tsagris and Stewart 2020</a>)</span> or nonparametric regressions that admit exact zeros <span class="citation" data-cites="tsagrisFlexibleNonparametricRegression2023">(<a href="#ref-tsagrisFlexibleNonparametricRegression2023" role="doc-biblioref">Tsagris et al. 2023</a>)</span>. They are data-side constructions and lose the isometry of ILR.</li>
+</ul>
+<p>Rounded zeros (detection limits) remain an imputation problem. True structural zeros belong on a face and should be fitted as an active-set or KKT problem, not by substituting a small positive constant into <a href="#eq-ilr-maps" class="quarto-xref">Eq. 15</a>.</p>
+</blockquote>
+</div>
+</div>
 </section></section><section class="section level2"><h2 id="sec-fisher-wald">Expected Fisher information and Wald inference<a class="anchor" aria-label="anchor" href="#sec-fisher-wald"></a>
 </h2>
 <p>Point estimation alone does not report uncertainty. Under a regular large-sample regime the MLE is asymptotically normal with covariance given by the inverse Fisher information. DeCovarT builds Wald standard errors from the <em>expected</em> Fisher information of the multivariate-normal convolution, then maps that information through the ILR chart.</p>
@@ -558,26 +1248,28 @@ p_{i}\bigl(
 <p>For <span class="math inline">\boldsymbol{y}\sim\mathcal{N}_{G}\bigl(\boldsymbol{\mu}\boldsymbol{p},
 \boldsymbol{\Sigma}(\boldsymbol{p})\bigr)</span> the expected Fisher information has entries</p>
 <p><span id="eq-fisher-p"><span class="math display">
-I(\boldsymbol{p})_{jk}
+I(\boldsymbol{p})_{j\ell}
 =
 \boldsymbol{\mu}_{\cdot j}^{\top}
 \boldsymbol{\Omega}(\boldsymbol{p})
-\boldsymbol{\mu}_{\cdot k}
+\boldsymbol{\mu}_{\cdot \ell}
 +
-2p_{j}p_{k}\,
+2p_{j}p_{\ell}\,
 \mathrm{tr}\bigl(
   \boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_{j}
-  \boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_{k}
+  \boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_{\ell}
 \bigr).
-\tag{18}</span></span></p>
-<p>The first summand is the mean contribution (a <span class="math inline">\boldsymbol{\Omega}</span>-inner product of signature columns); the second is the covariance contribution of the quadratic map <span class="math inline">\boldsymbol{p}\mapsto\boldsymbol{\Sigma}(\boldsymbol{p})</span>. See the multivariate-normal formula on <a href="https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution" class="external-link">Wikipedia: Fisher information</a>. <a href="../reference/expected_fisher_unconstrained.html"><code>expected_fisher_unconstrained()</code></a> implements <a href="#eq-fisher-p" class="quarto-xref">Eq. 18</a>.</p>
+\tag{28}</span></span></p>
+<p>The first summand is the mean contribution (a <span class="math inline">\boldsymbol{\Omega}</span>-inner product of signature columns); the second is the covariance contribution of the quadratic map <span class="math inline">\boldsymbol{p}\mapsto\boldsymbol{\Sigma}(\boldsymbol{p})</span>. See the multivariate-normal formula on <a href="https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution" class="external-link">Wikipedia: Fisher information</a>. <a href="../reference/expected_fisher_unconstrained.html"><code>expected_fisher_unconstrained()</code></a> implements <a href="#eq-fisher-p" class="quarto-xref">Eq. 28</a>.</p>
 <div id="nte-obs-vs-exp">
+<div class="decovart-callout callout-note">
 <blockquote>
-<p><strong>Note 7: Observed versus expected information</strong></p>
-<p>The analytic Hessian of <a href="#sec-unconstrained" class="quarto-xref">Sec. 2</a> is the <em>observed</em> information (up to sign). Wald intervals in <code>decovart_fit</code> use the <em>expected</em> information <a href="#eq-fisher-p" class="quarto-xref">Eq. 18</a>, which does not depend on the residual <span class="math inline">\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}</span> and is positive definite under the usual full-rank assumptions on <span class="math inline">(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})</span>.</p>
+<p><strong>Note 8: Observed versus expected information</strong></p>
+<p>The analytic Hessian of <a href="#sec-unconstrained" class="quarto-xref">Sec. 2</a> is the <em>observed</em> information (up to sign). Wald intervals in <code>decovart_fit</code> use the <em>expected</em> information <a href="#eq-fisher-p" class="quarto-xref">Eq. 28</a>, which does not depend on the residual <span class="math inline">\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}</span> and is positive definite under the usual full-rank assumptions on <span class="math inline">(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})</span>.</p>
 <p>The two are consistent by construction. Substituting <span class="math inline">\mathbb{E}[\boldsymbol{r}]=\boldsymbol{0}</span> and <span class="math inline">\mathbb{E}[\boldsymbol{r}\boldsymbol{r}^{\top}]
-=\boldsymbol{\Sigma}(\boldsymbol{p})</span> into <a href="#eq-hess-diag" class="quarto-xref">Eq. 8</a> and <a href="#eq-hess-off" class="quarto-xref">Eq. 9</a> cancels the determinant traces against the residual traces and returns <a href="#eq-fisher-p" class="quarto-xref">Eq. 18</a> exactly, i.e. <span class="math inline">\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})</span>. That identity only holds with the factor <span class="math inline">\tfrac{1}{2}</span> of <a href="#nte-halfdet" class="quarto-xref">Note 3</a> in place.</p>
+=\boldsymbol{\Sigma}(\boldsymbol{p})</span> into <a href="#eq-hess-diag" class="quarto-xref">Eq. 8</a> and <a href="#eq-hess-off" class="quarto-xref">Eq. 9</a> cancels the determinant traces against the residual traces and returns <a href="#eq-fisher-p" class="quarto-xref">Eq. 28</a> exactly, i.e. <span class="math inline">\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})</span>. That identity only holds with the factor <span class="math inline">\tfrac{1}{2}</span> of <a href="#nte-halfdet" class="quarto-xref">Note 3</a> in place.</p>
 </blockquote>
+</div>
 </div>
 </section><section class="level2"><h3 id="sec-fisher-rho">Constrained case: ILR delta method<a class="anchor" aria-label="anchor" href="#sec-fisher-rho"></a>
 </h3>
@@ -595,8 +1287,8 @@ I(\boldsymbol{p})
 I(\boldsymbol{p})
 \mathbf{S}(\boldsymbol{p})
 \mathbf{V}.
-\tag{19}</span></span></p>
-<p>The mean/covariance split of <a href="#eq-fisher-p" class="quarto-xref">Eq. 18</a> pulls back separately, <span class="math inline">I_{\boldsymbol{\rho}}=I_{\boldsymbol{\rho},\mathrm{mean}}
+\tag{29}</span></span></p>
+<p>The mean/covariance split of <a href="#eq-fisher-p" class="quarto-xref">Eq. 28</a> pulls back separately, <span class="math inline">I_{\boldsymbol{\rho}}=I_{\boldsymbol{\rho},\mathrm{mean}}
 +I_{\boldsymbol{\rho},\mathrm{cov}}</span>. Under regularity, <span class="math inline">\hat{\boldsymbol{\rho}}
 \overset{a}{\sim}
 \mathcal{N}(\boldsymbol{\rho}_{0},I_{\boldsymbol{\rho}}^{-1})</span> <span class="citation" data-cites="vaartAsymptoticStatistics2000">(<a href="#ref-vaartAsymptoticStatistics2000" role="doc-biblioref">Vaart 2000</a>)</span>. The first-order delta method <span class="citation" data-cites="oehlertNoteDeltaMethod1992">(<a href="#ref-oehlertNoteDeltaMethod1992" role="doc-biblioref">Oehlert 1992</a>)</span> then returns the simplex covariance used by <a href="../reference/fit_decovart.html"><code>vcov.decovart_fit()</code></a>,</p>
@@ -606,15 +1298,18 @@ I(\boldsymbol{p})
 \mathbf{J}_{\boldsymbol{\psi}}
 I_{\boldsymbol{\rho}}^{-1}
 \mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}.
-\tag{20}</span></span></p>
-<p>Diagonal square roots are asymptotic standard errors; Wald intervals at level <span class="math inline">1-\alpha</span> are <span class="math inline">\hat{p}_{j}\pm z_{1-\alpha/2}\,\mathrm{SE}_{j}</span> with <span class="math inline">z_{q}=\Phi^{-1}(q)</span>, as in <a href="../reference/fit_decovart.html"><code>confint.decovart_fit()</code></a>. <a href="../reference/vcov_ilr_delta.html"><code>vcov_ilr_delta()</code></a> implements <a href="#eq-fisher-rho" class="quarto-xref">Eq. 19</a>–<a href="#eq-delta-p" class="quarto-xref">Eq. 20</a>. Orthogonal rotations of <span class="math inline">\mathbf{V}</span> leave <a href="#eq-delta-p" class="quarto-xref">Eq. 20</a> unchanged. The construction is undefined on the simplex boundary (the log-ratio chart blows up); the helper then returns <code>NA</code> with a warning.</p>
+\tag{30}</span></span></p>
+<p>Diagonal square roots are asymptotic standard errors; Wald intervals at level <span class="math inline">1-\alpha</span> are <span class="math inline">\hat{p}_{j}\pm z_{1-\alpha/2}\,\mathrm{SE}_{j}</span> with <span class="math inline">z_{q}=\Phi^{-1}(q)</span>, as in <a href="../reference/fit_decovart.html"><code>confint.decovart_fit()</code></a>. <a href="../reference/vcov_ilr_delta.html"><code>vcov_ilr_delta()</code></a> implements <a href="#eq-fisher-rho" class="quarto-xref">Eq. 29</a>–<a href="#eq-delta-p" class="quarto-xref">Eq. 30</a>. Orthogonal rotations of <span class="math inline">\mathbf{V}</span> leave <a href="#eq-delta-p" class="quarto-xref">Eq. 30</a> unchanged. The construction is undefined on the simplex boundary (the log-ratio chart blows up); the helper then returns <code>NA</code> with a warning.</p>
 <div id="nte-wald-limits">
+<div class="decovart-callout callout-warning">
 <blockquote>
-<p><strong>Warning 8: Wald is the cheapest, not the safest, interval</strong></p>
-<p><a href="#eq-delta-p" class="quarto-xref">Eq. 20</a> linearises the ILR chart at <span class="math inline">\hat{\boldsymbol{p}}</span>, so it is neither invariant to a non-orthogonal reparametrisation nor confined to <span class="math inline">[0,1]</span>, and it degenerates entirely when a proportion reaches a simplex face. The companion vignette <a href="theory-DeCovarT-MLE-properties.html">MLE properties and asymptotic inference</a> derives the alternatives: profile likelihood-ratio intervals, the chi-bar-square calibration of Chernoff and of Self and Liang for nulls on the boundary, a parametric bootstrap, and a reference-sample bootstrap of donors or cells (or a Dirichlet composition sweep). It also shows why these limits need replicate samples that share one composition. Shuffling genes or cell-type names of an averaged signature is not a bootstrap: the maximised likelihood is equivariant under relabelling.</p>
+<p><strong>Warning 9: Wald is the cheapest, not the safest, interval</strong></p>
+<p><a href="#eq-delta-p" class="quarto-xref">Eq. 30</a> linearises the ILR chart at <span class="math inline">\hat{\boldsymbol{p}}</span>, so it is neither invariant to a non-orthogonal reparametrisation nor confined to <span class="math inline">[0,1]</span>, and it degenerates entirely when a proportion reaches a simplex face. The companion vignette <a href="theory-DeCovarT-MLE-properties.html">MLE properties and asymptotic inference</a> derives the alternatives: profile likelihood-ratio intervals, the chi-bar-square calibration of Chernoff and of Self and Liang for nulls on the boundary, a parametric bootstrap, and a reference-sample bootstrap of donors or cells (or a Dirichlet composition sweep). It also shows why these limits need replicate samples that share one composition. Shuffling genes or cell-type names of an averaged signature is not a bootstrap: the maximised likelihood is equivariant under relabelling.</p>
 </blockquote>
 </div>
+</div>
 <div>
+<div class="decovart-callout callout-warning">
 <blockquote>
 <p><strong>Numerical speed-ups and solver safeguards</strong></p>
 <p>The analytic maps above are only half of a usable optimiser. Practical bottlenecks that showed up on the hybrid scenario in <a href="fig03-covariance-driven.html#sec-hybrid-deconvolution">Covariance-driven hybrid scenario</a> live in <code>R/03_03_DeCovarT_estimate_ratios_frequentist.R</code>.</p>
@@ -632,8 +1327,9 @@ I_{\boldsymbol{\rho}}^{-1}
 <h4 id="marqlevalg-hessian-sign-under-minimize-false">
 <code>marqLevAlg</code> Hessian sign under <code>minimize = FALSE</code>
 </h4>
-<p><a href="https://cran.r-project.org/package=marqLevAlg" class="external-link"><code>marqLevAlg</code></a> <span class="citation" data-cites="R-marqLevAlg">(<a href="#ref-R-marqLevAlg" role="doc-biblioref">Philipps et al. 2023</a>)</span> implements Marquardt–Levenberg with the relative-distance-to-minimum (RDM) rule of Commenges et al. <span class="citation" data-cites="commengesNewtonLikeAlgorithmLikelihood2006">(<a href="#ref-commengesNewtonLikeAlgorithmLikelihood2006" role="doc-biblioref">Commenges et al. 2006</a>)</span>. With <code>minimize = FALSE</code>, the package negates only <code>fn</code> and <code>gr</code>; the analytic <code>hess</code> is passed through unchanged while internal Cholesky routines assume a <strong>positive-definite</strong> matrix at the optimum. When maximising a log-likelihood, pass <code>hess = function(...) -hessian_loglik_constrained(...)</code>. Reported upstream as <a href="https://github.com/VivianePhilipps/marqLevAlgParallel/issues/3" class="external-link">VivianePhilipps/marqLevAlgParallel#3</a>.</p>
+<p>The optional Marquardt–Levenberg solver (<code>fit_decovart(method = "Marquardt-Levenberg")</code>) calls <a href="https://cran.r-project.org/package=marqLevAlg" class="external-link"><code>marqLevAlg</code></a> <span class="citation" data-cites="R-marqLevAlg">(<a href="#ref-R-marqLevAlg" role="doc-biblioref">Philipps et al. 2023</a>)</span>, which implements Marquardt–Levenberg with the relative-distance-to-minimum (RDM) rule of Commenges et al. <span class="citation" data-cites="commengesNewtonLikeAlgorithmLikelihood2006">(<a href="#ref-commengesNewtonLikeAlgorithmLikelihood2006" role="doc-biblioref">Commenges et al. 2006</a>)</span>. With <code>minimize = FALSE</code>, the package negates only <code>fn</code> and <code>gr</code>; the analytic <code>hess</code> is passed through unchanged while internal Cholesky routines assume a <strong>positive-definite</strong> matrix at the optimum. When maximising a log-likelihood, pass <code>hess = function(...) -hessian_loglik_constrained(...)</code>. Reported upstream as <a href="https://github.com/VivianePhilipps/marqLevAlgParallel/issues/3" class="external-link">VivianePhilipps/marqLevAlgParallel#3</a>.</p>
 </blockquote>
+</div>
 </div>
 </section></section><section class="section level2"><h2 id="sec-s3">Model objects and S3 accessors<a class="anchor" aria-label="anchor" href="#sec-s3"></a>
 </h2>
@@ -662,7 +1358,6 @@ I_{\boldsymbol{\rho}}^{-1}
 <span>  <span class="va">mu</span>,</span>
 <span>  <span class="va">y</span>,</span>
 <span>  Sigma <span class="op">=</span> <span class="va">Sigma</span>,</span>
-<span>  method <span class="op">=</span> <span class="st">"Marquardt-Levenberg"</span>,</span>
 <span>  itmax <span class="op">=</span> <span class="fl">80</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
@@ -751,7 +1446,7 @@ I_{\boldsymbol{\rho}}^{-1}
 <p>Relative discrepancies of order (10^{-8}) are typical on this three-gene toy; that is the same tolerance used in the test suite.</p>
 </section><section class="level2"><h3 id="expected-information-versus-monte-carlo--">Expected information versus Monte Carlo ([-])<a class="anchor" aria-label="anchor" href="#expected-information-versus-monte-carlo--"></a>
 </h3>
-<p>Matching <code>numDeriv</code> shows that the derivatives belong to the implemented objective. Matching the <em>expected</em> Fisher information <a href="#eq-fisher-p" class="quarto-xref">Eq. 18</a> to a Monte Carlo average of (-(; )) shows that the objective is the Gaussian whose information matrix we use for Wald intervals. Draw (^{(b)}_G(, ())) at the <em>true</em> () (the parametric bootstrap of <a href="../reference/bootstrap_decovart.html"><code>bootstrap_decovart()</code></a>, used here as a diagnostic rather than as an inferential procedure):</p>
+<p>Matching <code>numDeriv</code> shows that the derivatives belong to the implemented objective. Matching the <em>expected</em> Fisher information <a href="#eq-fisher-p" class="quarto-xref">Eq. 28</a> to a Monte Carlo average of (-(; )) shows that the objective is the Gaussian whose information matrix we use for Wald intervals. Draw (^{(b)}_G(, ())) at the <em>true</em> () (the parametric bootstrap of <a href="../reference/bootstrap_decovart.html"><code>bootstrap_decovart()</code></a>, used here as a diagnostic rather than as an inferential procedure):</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
@@ -786,7 +1481,7 @@ I_{\boldsymbol{\rho}}^{-1}
 <figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-backend-decision-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="theory-decovart-generative-model_files/mediabag/fig-backend-decision.svg">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-backend-decision-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca"><p>Figure 1: Choosing a covariance backend; dense Cholesky is the default and structured backends are exact refinements.</p>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-backend-decision-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca"><p>Figure 2: Choosing a covariance backend; dense Cholesky is the default and structured backends are exact refinements.</p>
 </figcaption></figure>
 </div>
 <p>Each refinement is exact, not approximate:</p>
@@ -815,7 +1510,7 @@ I_{\boldsymbol{\rho}}^{-1}
 <p>For a dense symmetric positive-definite <span class="math inline">G\times G</span> matrix the Cholesky factorisation costs about <span class="math inline">G^{3}/3</span> flops before the cheaper triangular solves <span class="citation" data-cites="golubMatrixComputations2013">(<a href="#ref-golubMatrixComputations2013" role="doc-biblioref">Golub and Van Loan 2013</a>)</span>. The structured backends reduce that leading term:</p>
 <div id="tbl-backend-complexity" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-backend-complexity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 1: Leading factorisation cost per backend. <span class="math inline">G</span> genes, <span class="math inline">J</span> cell types, <span class="math inline">B</span> blocks of size <span class="math inline">G_b</span>, bandwidth <span class="math inline">b</span>, rank <span class="math inline">r\ll G</span>.
+Table 5: Leading factorisation cost per backend. <span class="math inline">G</span> genes, <span class="math inline">J</span> cell types, <span class="math inline">B</span> blocks of size <span class="math inline">G_b</span>, bandwidth <span class="math inline">b</span>, rank <span class="math inline">r\ll G</span>.
 </figcaption><div aria-describedby="tbl-backend-complexity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table caption-top">
 <colgroup>
@@ -872,33 +1567,6 @@ Table 1: Leading factorisation cost per backend. <span class="math inline">G</s
 </figure>
 </div>
 <p>These are worst-case flop counts and only rough predictors of wall-clock time on cache-based hardware with tuned BLAS; the block and low-rank savings (<span class="math inline">\approx B^{2}</span> and <span class="math inline">O(G^{2})\!\to\!O(Gr^{2})</span> respectively) are the most robust. The <code>"band"</code> and <code>"sparse"</code> backends use the imported <code>Matrix</code> package (supernodal sparse Cholesky in CHOLMOD, <span class="citation" data-cites="chenAlgorithm887CHOLMOD2008">(<a href="#ref-chenAlgorithm887CHOLMOD2008" role="doc-biblioref">Chen et al. 2008</a>)</span>). <code>scripts/supp_S2_covariance_inversion.R</code> verifies each backend against the dense path to machine precision. Approximate sparse Cholesky of otherwise dense kernel covariances is a separate research line <span class="citation" data-cites="schäferCompressionInversionApproximate2020">(<a href="#ref-sch%C3%A4ferCompressionInversionApproximate2020" role="doc-biblioref">Schäfer et al. 2020</a>)</span>; the <code>"sparse"</code> backend here is exact for a declared sparse pattern, not that approximation.</p>
-</section></section><section class="section level2"><h2 id="sec-alr">Appendix: additive log-ratio chart<a class="anchor" aria-label="anchor" href="#sec-alr"></a>
-</h2>
-<p>Pin the last category as reference (<span class="math inline">\rho_{J}\equiv 0</span>). The <em>additive logistic</em> transform <span class="math inline">\boldsymbol{\psi}</span> (inverse ALR) and its inverse are <span class="citation" data-cites="aitchisonStatisticalAnalysisCompositional1982">(<a href="#ref-aitchisonStatisticalAnalysisCompositional1982" role="doc-biblioref">Aitchison 1982</a>)</span></p>
-<p><span id="eq-alr-maps"><span class="math display">
-p_{j}
-=
-\frac{e^{\rho_{j}}}{\sum_{k&lt;J}e^{\rho_{k}}+1}\ (j&lt;J),
-\qquad
-p_{J}
-=
-\frac{1}{\sum_{k&lt;J}e^{\rho_{k}}+1},
-\qquad
-\rho_{j}
-=
-\log\!\left(\frac{p_{j}}{p_{J}}\right).
-\tag{21}</span></span></p>
-<p>Equivalently, <span class="math inline">\boldsymbol{p}=\operatorname{softmax}(\rho_{1},\ldots,\rho_{J-1},0)</span>. Package helpers <a href="../reference/additive_logistic.html"><code>additive_logistic()</code></a> and <a href="../reference/additive_log_ratio.html"><code>additive_log_ratio()</code></a> implement <a href="#eq-alr-maps" class="quarto-xref">Eq. 21</a>; they match <code><a href="https://rdrr.io/pkg/compositions/man/alr.html" class="external-link">compositions::alrInv()</a></code> / <code>alr()</code> with the last part as reference <span class="citation" data-cites="R-compositions">(<a href="#ref-R-compositions" role="doc-biblioref"><span class="nocase">van den Boogaart et al.</span> 2025</a>)</span>. The Jacobian is the softmax Jacobian with the reference column dropped, <span class="math inline">\partial p_{i}/\partial\rho_{a}=p_{i}(\delta_{ia}-p_{a})</span> for <span class="math inline">a=1,\ldots,J-1</span> (<a href="../reference/jacobian_additive_logistic.html"><code>jacobian_additive_logistic()</code></a>; <a href="../reference/hessian_additive_logistic.html"><code>hessian_additive_logistic()</code></a>).</p>
-<div id="nte-alr-why-not-default">
-<blockquote>
-<p><strong>Note 9: Why ALR is not the default</strong></p>
-<p>ALR is a valid <span class="math inline">C^{2}</span> diffeomorphism onto the open simplex. The last cell type is nevertheless a privileged denominator: permuting which type occupies position <span class="math inline">J</span> changes the Euclidean metric on coordinate space. ILR / Helmert (<a href="#sec-ilr" class="quarto-xref">Sec. 3.2</a>) removes that privilege up to orthogonal rotation, which is why the solvers and <code><a href="../reference/fit_decovart.html">vcov.decovart_fit()</a></code> use ILR. Keep ALR when comparing against a multinomial-logit reference-category parameterisation.</p>
-</blockquote>
-</div>
-<section class="level2"><h3 id="sec-structural-zeros">Structural zeros and folded simplex models<a class="anchor" aria-label="anchor" href="#sec-structural-zeros"></a>
-</h3>
-<p>Neither ALR nor ILR can represent an exact zero at a finite coordinate, because both contain a logarithm. For a true simplex face the package therefore does <strong>not</strong> send <span class="math inline">\log 0</span> through the chart. It fixes the inactive set, optimises ILR coordinates on the remaining active face (<a href="../reference/restricted_mle_decovart.html"><code>restricted_mle_decovart()</code></a>), and checks KKT inequalities for the zero coordinates (<a href="../reference/boundary_diagnostics.html"><code>boundary_diagnostics()</code></a>; see also the MLE-properties vignette).</p>
-<p>ALR remains in this appendix as the classical reference-category chart <span class="citation" data-cites="aitchisonStatisticalAnalysisCompositional1982">(<a href="#ref-aitchisonStatisticalAnalysisCompositional1982" role="doc-biblioref">Aitchison 1982</a>)</span>. Folded <span class="math inline">\alpha</span>-models on the simplex <span class="citation" data-cites="tsagrisFoldedModelCompositional2020">(<a href="#ref-tsagrisFoldedModelCompositional2020" role="doc-biblioref">Tsagris and Stewart 2020</a>)</span> and nonparametric regressions that admit exact zeros without a log-ratio chart <span class="citation" data-cites="tsagrisFlexibleNonparametricRegression2023">(<a href="#ref-tsagrisFlexibleNonparametricRegression2023" role="doc-biblioref">Tsagris et al. 2023</a>)</span> are related <em>data-side</em> constructions. They are not used in the DeCovarT convolution, whose mean map is still linear in <span class="math inline">\boldsymbol{p}</span>. Rounded zeros (detection limits) remain an imputation problem; true structural zeros belong on a face and should be fitted as an active-set / KKT problem, not by substituting a small positive constant into <a href="#eq-ilr-maps" class="quarto-xref">Eq. 13</a>.</p>
 </section></section><section class="section level2"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
@@ -940,6 +1608,9 @@ Oehlert, Gary W. 1992. <span>‘A Note on the Delta Method’</span>. <em>The Am
 </div>
 <div id="ref-pawlowsky-glahnCompositionalDataAnalysis2011" class="csl-entry" role="listitem">
 Pawlowsky-Glahn, Vera, and Antonella Buccianti, eds. 2011. <em>Compositional Data Analysis: Theory and Applications</em>. Wiley.
+</div>
+<div id="ref-CoordinateRepresentation2015" class="csl-entry" role="listitem">
+Pawlowsky-Glahn, Vera, Juan Jose Egozcue, and Raimon Tolosana-Delgado. 2015. <span>‘Coordinate Representation’</span>. In <em>Modelling and Analysis of Compositional Data</em>. John Wiley &amp; Sons, Ltd. <a href="https://doi.org/10.1002/9781119003144.ch4" class="external-link">https://doi.org/10.1002/9781119003144.ch4</a>.
 </div>
 <div id="ref-R-marqLevAlg" class="csl-entry" role="listitem">
 Philipps, Viviane, Cecile Proust-Lima, Melanie Prague, Boris Hejblum, Daniel Commenges, and Amadou Diakite. 2023. <em>marqLevAlg: A Parallelized General-Purpose Optimization Based on Marquardt-Levenberg Algorithm</em>.

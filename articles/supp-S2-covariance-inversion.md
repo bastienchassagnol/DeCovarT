@@ -243,15 +243,15 @@ until a convergence test fires.
 [`fit_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md)
 exposes three second-order or quasi-Newton paths
 ([`fit_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md)):
+Newton–Raphson / `nlminb` in ILR coordinates (the default),
 Marquardt–Levenberg via `marqLevAlg` ([Philipps et al.
 2023](#ref-R-marqLevAlg); [Commenges et al.
-2006](#ref-commengesNewtonLikeAlgorithmLikelihood2006)), box-constrained
-L-BFGS-B in \boldsymbol{p} via
-[`stats::optim()`](https://rdrr.io/r/stats/optim.html), and
-Newton–Raphson / `nlminb` in ILR coordinates. The projected gradient in
-ILR is the fourth comparator (the same quartet as the bivariate toy
-vignette, excluding mean-only NNLS / `lsei` and simulated annealing).
-Wall time for one sample therefore scales roughly as
+2006](#ref-commengesNewtonLikeAlgorithmLikelihood2006)), and
+box-constrained L-BFGS-B in \boldsymbol{p} via
+[`stats::optim()`](https://rdrr.io/r/stats/optim.html). The projected
+gradient in ILR is the fourth comparator (the same quartet as the
+bivariate toy vignette, excluding mean-only NNLS / `lsei` and simulated
+annealing). Wall time for one sample therefore scales roughly as
 (\text{iterations})\times\bigl(O(J G^{2})+O(G^{3})\bigr) for a dense
 backend: **cubic in G**, and only **linear in J** through assembly of
 \boldsymbol{\Sigma}(\boldsymbol{p}) and the J-vector score, not through

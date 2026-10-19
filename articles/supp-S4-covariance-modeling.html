@@ -274,10 +274,12 @@
 </div>
 <p>See details of the gls competitor in <a href="#nte-gls-solver" class="quarto-xref">Note 1</a>.</p>
 <div id="nte-gls-solver">
+<div class="decovart-callout callout-important">
 <blockquote>
 <p><strong>Important 1: The fixed-covariance GLS (generalized least squares) solver</strong></p>
 <p>When a scenario varies the <em>covariance structure</em>, keep a mean-only baseline whose residual covariance does <strong>not</strong> depend on <span class="math inline">\boldsymbol{p}</span>. Build <span class="math inline">W</span> with <a href="../reference/fixed_gls_covariance.html"><code>fixed_gls_covariance()</code></a> (default: diagonal of <span class="math inline">\Sigma(\bar p)</span> at <span class="math inline">\bar p_j=1/J</span>) and fit <a href="../reference/deconvolute_ratios_gls.html"><code>deconvolute_ratios_gls()</code></a> (<code><a href="https://rdrr.io/pkg/MASS/man/lm.gls.html" class="external-link">MASS::lm.gls</a></code>). Copying <span class="math inline">W</span> into every tensor slice is not GLS: <span class="math inline">\sum_j p_j^2 W=\|p\|_2^2 W</span> still depends on <span class="math inline">p</span>. The hierarchy is full <span class="math inline">\Sigma(p)</span>, cell-type-diagonal convolution, then this fixed <span class="math inline">W</span>. Starts for the convolution MLE: barycentre, Dirichlet (<code>initial_p = "dirichlet"</code>, <span class="math inline">\alpha=1</span> uniform, <span class="math inline">\alpha&gt;1</span> centre, <span class="math inline">\alpha&lt;1</span> faces; several independent draws), or QP (<code>initial_p = "qp"</code>).</p>
 </blockquote>
+</div>
 </div>
 <hr></section><section class="level2"><h2 id="visualisations">
 <span class="emoji" data-emoji="three">3️⃣</span> Visualisations<a class="anchor" aria-label="anchor" href="#visualisations"></a>

@@ -102,7 +102,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>DeCovarT as a mixture model: links with designed mixture experiments</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-15</p>
+      <p class="date">2026-10-19</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-mixture-regression-applications.qmd" class="external-link"><code>vignettes/theory-mixture-regression-applications.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -114,16 +114,19 @@
 
 
     <div>
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Scope</strong></p>
 <p>Bulk deconvolution is one instance of a problem that appears wherever a measured signal is a blend of known ingredients. This vignette places DeCovarT in the vocabulary of <strong>mixture experiments</strong>, where the proportions are regressors on the simplex, and lists the modelling devices of that field (Scheffé polynomials, interaction terms, designed mixture points) that could be borrowed. Extensions specific to transcriptomics are in the <a href="theory-decovart-extensions-roadmap.html">extensions roadmap</a>.</p>
 </blockquote>
+</div>
 </div>
 <p>Write <span class="math inline">g=1,\ldots,G</span> for the measured features (genes), <span class="math inline">j=1,\ldots,J</span> for the components (cell types), <span class="math inline">\boldsymbol{p}\in\Delta^{J-1}</span> for the proportions, <span class="math inline">\boldsymbol{\mu}_j</span> and <span class="math inline">\boldsymbol{\Sigma}_j</span> for the mean and covariance of component <span class="math inline">j</span>.</p>
 <p>Bulk transcriptomic deconvolution is one instance of a <strong>mixture inverse problem</strong>: a composite signal (tissue expression, a spectrum, a chromatogram) is observed, and we seek the proportions <span class="math inline">\boldsymbol{p}</span> of underlying components. Because <span class="math inline">\boldsymbol{p}</span> is <strong>compositional</strong> (parts of a whole), estimates must lie on the simplex <span class="math inline">\Delta^{J-1}=\{\boldsymbol{p}\in[0,1]^J:\sum_j p_j=1\}</span>. <span class="citation" data-cites="chassagnolDeCovarTMultidimensionalProbalistic2023">(<a href="#ref-chassagnolDeCovarTMultidimensionalProbalistic2023" role="doc-biblioref">Chassagnol et al. 2023</a>)</span> model each reference profile as multivariate Gaussian and recover <span class="math inline">\boldsymbol{p}</span> by constrained maximum likelihood; classical deconvolution tools such as <code>CIBERSORT</code> assume gene-wise independence instead <span class="citation" data-cites="newmanRobustEnumerationCell2015">(<a href="#ref-newmanRobustEnumerationCell2015" role="doc-biblioref">Newman et al. 2015</a>)</span>.</p>
 <section class="section level2"><h2 id="sec-mixture-design-structure">Mixture design and first-order structure<a class="anchor" aria-label="anchor" href="#sec-mixture-design-structure"></a>
 </h2>
 <div>
+<div class="decovart-callout callout-tip">
 <blockquote>
 <p><strong>Mixture experiments and compositional data</strong></p>
 <p>DeCovarT—and bulk deconvolution more generally—sits inside the wider class of <strong>mixture inverse problems</strong> in formulation science, spectroscopy, and designed experiments where component fractions are explicit regressors on the simplex. R offers only a handful of packages for <strong>designed mixture points</strong> (as opposed to random <span class="math inline">\boldsymbol{p}</span> on <span class="math inline">\Delta^{J-1}</span>):</p>
@@ -135,6 +138,7 @@
 </ul>
 <p>A modular Scheffé-type benchmark would combine <code>AlgDesign</code> (or <code>skpr</code>) to propose <span class="math inline">\boldsymbol{p}</span>, DeCovarT (or baselines) to invert the mixture, and compositional metrics from the simulation vignettes.</p>
 </blockquote>
+</div>
 </div>
 <p>In designed mixture experiments (chemistry, food science, formulation), component proportions are explicit regressors with no free intercept because <span class="math inline">\sum_j p_j=1</span>. A Scheffé cubic model for three components reads</p>
 <p><span id="eq-scheffe-cubic"><span class="math display">

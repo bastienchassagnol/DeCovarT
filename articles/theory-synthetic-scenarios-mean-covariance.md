@@ -134,9 +134,9 @@ Gram matrix).
 > - s multiplies all columns after the unit embedding, so Euclidean gaps
 >   scale with s while angles stay those of R.
 
-> **Note**
+> **Theorem 1 (Orthonormal frame)**
 >
-> **Theorem 1 (Orthonormal frame)** Any thin \mathbf{Q} with
+> Any thin \mathbf{Q} with
 > \mathbf{Q}^{\mathsf{T}}\mathbf{Q}=\mathbf{I}\_{J} yields a valid
 > embedding of R into \mathbb{R}^{G} (G\ge J). If
 > \mathbf{Q}\_{\star}=\mathbf{Q}U with U^{\mathsf{T}}U=\mathbf{I}\_{J},

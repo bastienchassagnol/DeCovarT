@@ -102,7 +102,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Feature selection for reference-based deconvolution</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-15</p>
+      <p class="date">2026-10-19</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/supp-S6-feature-selection.qmd" class="external-link"><code>vignettes/supp-S6-feature-selection.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -185,17 +185,21 @@ Figure 2: <code>SCTransform</code> workflow: negative-binomial mean–variance 
 </span></p>
 <p><strong>without intercept</strong>, so the estimated coefficients contrast each labelled type against the <strong>global mean expression across cell types and samples</strong>. Rank genes by residual variance (or the corresponding model <span class="math inline">F</span> / deviance explained) and keep the top <span class="math inline">2{,}000</span> HVGs as the working universe for the selectors in <a href="#sec-univariate" class="quarto-xref">Section 3</a> and <a href="#sec-multivariate" class="quarto-xref">Section 4</a>. Downstream deconvolution still uses <strong>linear-scale</strong> <span class="math inline">\mu_{gj}</span> on that gene set <span class="citation" data-cites="sturmComprehensiveEvaluationTranscriptomebased2019">(<a href="#ref-sturmComprehensiveEvaluationTranscriptomebased2019" role="doc-biblioref">Sturm et al. 2019</a>)</span>.</p>
 <div id="nte-sctransform-check">
+<div class="decovart-callout callout-tip">
 <blockquote>
 <p><strong>Tip 1: <span class="emoji" data-emoji="information_source">ℹ️</span> Sanity check after <code>SCTransform</code></strong></p>
 <p>Per gene, residual histograms and mean–variance plots of <span class="math inline">r_{ig}</span> should look roughly Gaussian and flat. Strong remaining depth trends or heavy tails indicate that the offset / covariate design is misspecified before any marker ranking.</p>
 </blockquote>
 </div>
+</div>
 <div id="nte-precision-timing">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 2: <span class="emoji" data-emoji="information_source">ℹ️</span> When to estimate sparse precision matrices</strong></p>
 <p>Sparse cell-type precision matrices <span class="math inline">\boldsymbol{\Omega}_{j}</span> are inputs to multivariate selectors. However, they should <strong>not</strong> be estimated on the full transcriptome first, since even high dimensional techniques, such as graphical lasso is computationally heavy an unstable when <span class="math inline">G\gg n</span>.</p>
 <p>Instead, it is recommended to <strong>filter and subset first</strong>, then estimate networks.</p>
 </blockquote>
+</div>
 </div>
 </section></section><section class="section level2" data-number="3"><h2 data-number="3" id="sec-univariate">
 <span class="header-section-number">3</span> Univariate approaches<a class="anchor" aria-label="anchor" href="#sec-univariate"></a>
@@ -287,10 +291,12 @@ Figure 4: Gini versus Shannon entropy for cell-type specificity: formulas, simp
 </div>
 <p>“Redundancy when panels are concatenated” means the following. High Gini markers are specific, but not automatically non-redundant: a gene with high Gini for type <span class="math inline">A</span> and another with high Gini for type <span class="math inline">B</span> need not be collinear if they separate <em>different</em> contrasts, yet they <strong>can</strong> be nearly collinear as rows of <span class="math inline">\boldsymbol{\mu}</span> when both types co-express correlated programmes (shared lineage, activation axis). Redundancy arises mainly when multiple markers reflect the same contrast. Concatenating the top-<span class="math inline">k</span> genes per type therefore often inflates <span class="math inline">|\mathcal{G}|</span> without improving the geometry of <span class="math inline">\boldsymbol{\mu}_{\mathcal{G}}</span>: <span class="math inline">\kappa_2(\boldsymbol{\mu}_{\mathcal{G}})</span> stays large and NNLS / SVR / GLS remain unstable <span class="citation" data-cites="newmanRobustEnumerationCell2015">(<a href="#ref-newmanRobustEnumerationCell2015" role="doc-biblioref">Newman et al. 2015</a>)</span>. Likewise, edges in a partial-correlation graph flag candidate influences, not assured independence. That is why <a href="#sec-univ-one-vs-others" class="quarto-xref">Section 3.1</a> must be followed by an all-versus-all stage (see <a href="#sec-univ-all-vs-all" class="quarto-xref">Section 3.2</a> and <a href="#sec-multi-all-vs-all" class="quarto-xref">Section 4.3</a>).</p>
 <div id="nte-ovr-concat">
+<div class="decovart-callout callout-warning">
 <blockquote>
 <p><strong>Warning 3: <span class="emoji" data-emoji="warning">⚠️</span> Limitation of one-versus-rest concatenation</strong></p>
 <p>Union of per-type markers often yields a multicollinear <span class="math inline">\boldsymbol{\mu}_{\mathcal{G}}</span> that is still too large for stable NNLS / SVR / GLS <span class="citation" data-cites="newmanRobustEnumerationCell2015 avilacobosComputationalDeconvolutionTranscriptomics2018">(<a href="#ref-newmanRobustEnumerationCell2015" role="doc-biblioref">Newman et al. 2015</a>; <a href="#ref-avilacobosComputationalDeconvolutionTranscriptomics2018" role="doc-biblioref">Avila Cobos et al. 2018</a>)</span>. A global all-versus-all refinement is therefore required (see <a href="#sec-multi-all-vs-all" class="quarto-xref">Section 4.3</a>).</p>
 </blockquote>
+</div>
 </div>
 </section></section><section class="level2" data-number="3.2"><h3 data-number="3.2" id="sec-univ-all-vs-all">
 <span class="header-section-number">3.2</span> All versus all<a class="anchor" aria-label="anchor" href="#sec-univ-all-vs-all"></a>
@@ -317,10 +323,12 @@ Figure 5: Condition-number pruning on correlated developmental cell types (gast
 </figcaption></figure>
 </div>
 <div id="nte-kappa-means">
+<div class="decovart-callout callout-important">
 <blockquote>
 <p><strong>Important 4: <span class="emoji" data-emoji="warning">⚠️</span> When <span class="math inline">\kappa(\boldsymbol{\mu})</span> is not enough</strong></p>
 <p>Use <span class="math inline">\kappa</span> as a <strong>diagnostic</strong> of mean geometry, not as the sole selector, whenever cell states form a continuum or when discriminatory signal lives in <span class="math inline">\boldsymbol{\Sigma}_{j}</span> (see <a href="#sec-indeed" class="quarto-xref">Section 4.2.1</a> and <a href="#sec-optimal-design" class="quarto-xref">Section 6.2</a>). Pair it with overlap (see <a href="#eq-overlap" class="quarto-xref">Equation 12</a>), Fisher information (see <a href="#eq-fisher" class="quarto-xref">Equation 17</a>), or differential-network candidates.</p>
 </blockquote>
+</div>
 </div>
 </section><section class="level2" data-number="4.2"><h3 data-number="4.2" id="sec-multi-one-vs-others">
 <span class="header-section-number">4.2</span> One versus others<a class="anchor" aria-label="anchor" href="#sec-multi-one-vs-others"></a>
@@ -386,10 +394,12 @@ Figure 6: <code>INDEED</code> integrates differential expression with different
 </h4>
 <p>Cell-type precision matrices <span class="math inline">\boldsymbol{\Omega}_{j}=\boldsymbol{\Sigma}_{j}^{-1}</span> estimated by graphical lasso are shrunk; non-zero partial correlations are typically underestimated. A practical mitigation is to take the gLasso <strong>support</strong> as topological constraints and re-estimate by constrained MLE when the graph is chordal (otherwise the mapping is non-trivial) <span class="citation" data-cites="dahlMaximumLikelihoodEstimation2005">(<a href="#ref-dahlMaximumLikelihoodEstimation2005" role="doc-biblioref">Dahl et al. 2005</a>)</span>. Cooperative / sign-coherent group lasso penalties can encode pathway modules and PPI-informed edge weights <span class="citation" data-cites="chiquetSparsitySigncoherentGroups2012">(<a href="#ref-chiquetSparsitySigncoherentGroups2012" role="doc-biblioref">Chiquet et al. 2012</a>)</span>. PPI priors also shrink the combinatorial space of undirected graphs explored per cell type.</p>
 <div id="nte-network-candidates">
+<div class="decovart-callout callout-warning">
 <blockquote>
 <p><strong>Warning 5: <span class="emoji" data-emoji="warning">⚠️</span> From one-versus-others networks to a panel</strong></p>
 <p>Network-based one-versus-others lists still concatenate into a redundant design (see <a href="#nte-ovr-concat" class="quarto-xref">Note 3</a>). Treat them as <strong>candidate generators</strong> for the all-versus-all stage in <a href="#sec-multi-all-vs-all" class="quarto-xref">Section 4.3</a>.</p>
 </blockquote>
+</div>
 </div>
 </section></section><section class="level2" data-number="4.3"><h3 data-number="4.3" id="sec-multi-all-vs-all">
 <span class="header-section-number">4.3</span> All versus all<a class="anchor" aria-label="anchor" href="#sec-multi-all-vs-all"></a>
@@ -429,36 +439,36 @@ Table 1: Sparse multiclass methods as panel candidate generators.
 <div class="cell-output-display">
 <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_2jygr9nv018vjxpp8mcw = TinyTable.createTableFunctions("tinytable_2jygr9nv018vjxpp8mcw");
+      const tableFns_hovh1ostinscbdsz93uk = TinyTable.createTableFunctions("tinytable_hovh1ostinscbdsz93uk");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '3', j: 2 }, { i: '3', j: 3 } ], css_id: 'tinytable_css_xu02inhm7g08n9z7yn1b',},
-          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 } ], css_id: 'tinytable_css_kwv3hcqv0mh3uqfit390',},
-          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 } ], css_id: 'tinytable_css_0jcvs7hga1kyx4mrauxu',},
-          { positions: [ { i: '3', j: 1 } ], css_id: 'tinytable_css_kw5y9bnfuhoy6hrvyiwn',},
-          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_7p2fwnw41yhr9wrtm18n',},
+          { positions: [ { i: '3', j: 2 }, { i: '3', j: 3 } ], css_id: 'tinytable_css_g551935vj6afa46qrwnu',},
+          { positions: [ { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '1', j: 3 }, { i: '2', j: 3 } ], css_id: 'tinytable_css_nv0ey8bs89pz69veutmg',},
+          { positions: [ { i: '0', j: 2 }, { i: '0', j: 3 } ], css_id: 'tinytable_css_diqdq5i58xgi1uu2ygp0',},
+          { positions: [ { i: '3', j: 1 } ], css_id: 'tinytable_css_tbzd08m7t19xkyxmcti8',},
+          { positions: [ { i: '0', j: 1 } ], css_id: 'tinytable_css_gh2cs0f720o91hg1s98k',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_2jygr9nv018vjxpp8mcw.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_hovh1ostinscbdsz93uk.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_2jygr9nv018vjxpp8mcw td.tinytable_css_xu02inhm7g08n9z7yn1b, #tinytable_2jygr9nv018vjxpp8mcw th.tinytable_css_xu02inhm7g08n9z7yn1b {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_2jygr9nv018vjxpp8mcw td.tinytable_css_kwv3hcqv0mh3uqfit390, #tinytable_2jygr9nv018vjxpp8mcw th.tinytable_css_kwv3hcqv0mh3uqfit390 { text-align: center }
-    #tinytable_2jygr9nv018vjxpp8mcw td.tinytable_css_0jcvs7hga1kyx4mrauxu, #tinytable_2jygr9nv018vjxpp8mcw th.tinytable_css_0jcvs7hga1kyx4mrauxu {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_2jygr9nv018vjxpp8mcw td.tinytable_css_kw5y9bnfuhoy6hrvyiwn, #tinytable_2jygr9nv018vjxpp8mcw th.tinytable_css_kw5y9bnfuhoy6hrvyiwn {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_2jygr9nv018vjxpp8mcw td.tinytable_css_7p2fwnw41yhr9wrtm18n, #tinytable_2jygr9nv018vjxpp8mcw th.tinytable_css_7p2fwnw41yhr9wrtm18n {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_hovh1ostinscbdsz93uk td.tinytable_css_g551935vj6afa46qrwnu, #tinytable_hovh1ostinscbdsz93uk th.tinytable_css_g551935vj6afa46qrwnu {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_hovh1ostinscbdsz93uk td.tinytable_css_nv0ey8bs89pz69veutmg, #tinytable_hovh1ostinscbdsz93uk th.tinytable_css_nv0ey8bs89pz69veutmg { text-align: center }
+    #tinytable_hovh1ostinscbdsz93uk td.tinytable_css_diqdq5i58xgi1uu2ygp0, #tinytable_hovh1ostinscbdsz93uk th.tinytable_css_diqdq5i58xgi1uu2ygp0 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_hovh1ostinscbdsz93uk td.tinytable_css_tbzd08m7t19xkyxmcti8, #tinytable_hovh1ostinscbdsz93uk th.tinytable_css_tbzd08m7t19xkyxmcti8 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_hovh1ostinscbdsz93uk td.tinytable_css_gh2cs0f720o91hg1s98k, #tinytable_hovh1ostinscbdsz93uk th.tinytable_css_gh2cs0f720o91hg1s98k {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_2jygr9nv018vjxpp8mcw" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_hovh1ostinscbdsz93uk" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">Method</th>
                 <th scope="col" data-row="0" data-col="2">Role</th>
@@ -506,6 +516,7 @@ Figure 7: Overlap of purified Gaussians: univariate (left) versus multivariate 
 </figcaption></figure>
 </div>
 <div id="nte-separation-metrics">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 6: <span class="emoji" data-emoji="information_source">ℹ️</span> Probabilistic separation metrics</strong></p>
 <p><strong><code>MixSim</code> pairwise overlap.</strong> For densities <span class="math inline">f_{j}</span> and <span class="math inline">f_{\ell}</span>, the one-sided directional mass <span class="math inline">\Omega_{j\ell}=\Pr_{X\sim f_{j}}(X\text{ classified as }\ell)</span> (Bayes / MAP rule) yields the pairwise overlap</p>
@@ -578,6 +589,7 @@ W_{2}^{2}\bigl(
 <p>with <span class="math inline">\mathfrak{B}^{2}</span> the Bures metric (matrix square-root term). It is a true metric and reduces to Euclidean mean distance when covariances coincide.</p>
 </blockquote>
 </div>
+</div>
 <div class="cell">
 <div id="tbl-separation-metrics" class="cell quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-separation-metrics-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -586,36 +598,36 @@ Table 2: Comparison of purified-Gaussian separation metrics for panel monitorin
 <div class="cell-output-display">
 <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script><script>
       // Create table-specific functions using external factory
-      const tableFns_tyawgs920p5ehfrcrur4 = TinyTable.createTableFunctions("tinytable_tyawgs920p5ehfrcrur4");
+      const tableFns_qp2j4hsc0oabpqyygxeu = TinyTable.createTableFunctions("tinytable_qp2j4hsc0oabpqyygxeu");
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: '4', j: 3 } ], css_id: 'tinytable_css_5boymz5216h1qsg9hbjz',},
-          { positions: [ { i: '0', j: 3 } ], css_id: 'tinytable_css_mel62dsjuvkpfnzz2txf',},
-          { positions: [ { i: '4', j: 1 }, { i: '4', j: 2 }, { i: '4', j: 4 } ], css_id: 'tinytable_css_l74vjkqblhfchohf8976',},
-          { positions: [ { i: '1', j: 1 }, { i: '2', j: 1 }, { i: '3', j: 1 }, { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '1', j: 4 }, { i: '2', j: 4 }, { i: '3', j: 4 } ], css_id: 'tinytable_css_npmbjbwl4cj8s9qoxvvl',},
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_aeprw214vjf03kjmdg5f',},
+          { positions: [ { i: '4', j: 3 } ], css_id: 'tinytable_css_v2g14x3zz871f3hw8lfk',},
+          { positions: [ { i: '0', j: 3 } ], css_id: 'tinytable_css_2lm4jkp88h1ogwv66eeq',},
+          { positions: [ { i: '4', j: 1 }, { i: '4', j: 2 }, { i: '4', j: 4 } ], css_id: 'tinytable_css_zj0ua3p0tkh9776b8uup',},
+          { positions: [ { i: '1', j: 1 }, { i: '2', j: 1 }, { i: '3', j: 1 }, { i: '1', j: 2 }, { i: '2', j: 2 }, { i: '3', j: 2 }, { i: '1', j: 4 }, { i: '2', j: 4 }, { i: '3', j: 4 } ], css_id: 'tinytable_css_kqah3arkv5v1zi5dy94v',},
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_bld09k1abavnxtrcrpuc',},
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  tableFns_tyawgs920p5ehfrcrur4.styleCell(cell.i, cell.j, group.css_id);
+                  tableFns_qp2j4hsc0oabpqyygxeu.styleCell(cell.i, cell.j, group.css_id);
               });
           });
       });
     </script><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
 <style>
     /* tinytable css entries after */
-    #tinytable_tyawgs920p5ehfrcrur4 td.tinytable_css_5boymz5216h1qsg9hbjz, #tinytable_tyawgs920p5ehfrcrur4 th.tinytable_css_5boymz5216h1qsg9hbjz {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_tyawgs920p5ehfrcrur4 td.tinytable_css_mel62dsjuvkpfnzz2txf, #tinytable_tyawgs920p5ehfrcrur4 th.tinytable_css_mel62dsjuvkpfnzz2txf {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_tyawgs920p5ehfrcrur4 td.tinytable_css_l74vjkqblhfchohf8976, #tinytable_tyawgs920p5ehfrcrur4 th.tinytable_css_l74vjkqblhfchohf8976 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
-    #tinytable_tyawgs920p5ehfrcrur4 td.tinytable_css_npmbjbwl4cj8s9qoxvvl, #tinytable_tyawgs920p5ehfrcrur4 th.tinytable_css_npmbjbwl4cj8s9qoxvvl { text-align: center }
-    #tinytable_tyawgs920p5ehfrcrur4 td.tinytable_css_aeprw214vjf03kjmdg5f, #tinytable_tyawgs920p5ehfrcrur4 th.tinytable_css_aeprw214vjf03kjmdg5f {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_qp2j4hsc0oabpqyygxeu td.tinytable_css_v2g14x3zz871f3hw8lfk, #tinytable_qp2j4hsc0oabpqyygxeu th.tinytable_css_v2g14x3zz871f3hw8lfk {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_qp2j4hsc0oabpqyygxeu td.tinytable_css_2lm4jkp88h1ogwv66eeq, #tinytable_qp2j4hsc0oabpqyygxeu th.tinytable_css_2lm4jkp88h1ogwv66eeq {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_qp2j4hsc0oabpqyygxeu td.tinytable_css_zj0ua3p0tkh9776b8uup, #tinytable_qp2j4hsc0oabpqyygxeu th.tinytable_css_zj0ua3p0tkh9776b8uup {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
+    #tinytable_qp2j4hsc0oabpqyygxeu td.tinytable_css_kqah3arkv5v1zi5dy94v, #tinytable_qp2j4hsc0oabpqyygxeu th.tinytable_css_kqah3arkv5v1zi5dy94v { text-align: center }
+    #tinytable_qp2j4hsc0oabpqyygxeu td.tinytable_css_bld09k1abavnxtrcrpuc, #tinytable_qp2j4hsc0oabpqyygxeu th.tinytable_css_bld09k1abavnxtrcrpuc {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --line-type-bottom: solid; --line-type-left: solid; --line-type-right: solid; --line-type-top: solid; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%; ; text-align: center }
     </style>
 <div class="container">
-      <table class="table tinytable" id="tinytable_tyawgs920p5ehfrcrur4" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table tinytable" id="tinytable_qp2j4hsc0oabpqyygxeu" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
 <thead><tr>
 <th scope="col" data-row="0" data-col="1">Metric</th>
                 <th scope="col" data-row="0" data-col="2">Range</th>
@@ -802,6 +814,7 @@ Figure 9: D-, E- and A-optimal design for gene-panel selection: shared Fisher i
 </figcaption></figure>
 </div>
 <div id="nte-dea-proscons">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 7: <span class="emoji" data-emoji="information_source">ℹ️</span> Pros and cons of D / E / A</strong></p>
 <ul>
@@ -814,6 +827,7 @@ Figure 9: D-, E- and A-optimal design for gene-panel selection: shared Fisher i
 </ul>
 <p>Prefer shrinkage covariances and a small ridge <span class="math inline">\epsilon\boldsymbol{I}</span> when <span class="math inline">|\mathcal{G}|</span> is moderate. For combinatorial search, use a greedy / Fedorov exchange as the auditable baseline, and a genetic algorithm only when the objective mixes covariance, overlap, or mechanistic constraints; see <a href="#sec-mechanistic" class="quarto-xref">Section 6.1</a>.</p>
 </blockquote>
+</div>
 </div>
 <p><strong>Relation to</strong> <span class="math inline">\kappa</span> and the Gram volume. If <span class="math inline">\boldsymbol{\Sigma}_{\mathcal{G}}=\boldsymbol{I}</span>, then <span class="math inline">\mathcal{I}_{\mathcal{G}}=\boldsymbol{\mu}_{\mathcal{G}}^{\top}\boldsymbol{\mu}_{\mathcal{G}}</span> and D-optimality maximises the log <strong>Gram volume</strong> of the mean columns. E-optimality maximises <span class="math inline">\lambda_{\min}</span> of that Gram matrix and is a cousin of minimising <span class="math inline">\kappa_2(\boldsymbol{\mu}_{\mathcal{G}})</span> (see <a href="#eq-condition-number" class="quarto-xref">Equation 2</a>). The <a href="theory-synthetic-scenarios-mean-covariance.html#nte-geometric-score">synthetic scenarios</a> vignette discusses the same objects as <code>AutoGeneS</code>-style scalar summaries of <span class="math inline">\boldsymbol{\mu}</span>.</p>
 <section class="level4" data-number="6.2.0.1"><h5 data-number="6.2.0.1" id="software-for-d-optimal-search-in-r">
@@ -876,6 +890,7 @@ Figure 9: D-, E- and A-optimal design for gene-panel selection: shared Fisher i
 <p>A complementary panel-expansion strategy starts from a small set of <strong>seeds</strong>—genes that are already highly discriminatory for <span class="math inline">\boldsymbol{p}</span> under <a href="#eq-mixture" class="quarto-xref">Equation 1</a> or <a href="#eq-indeed-as" class="quarto-xref">Equation 9</a>—then grows each seed by its <strong>Markov boundary</strong> in a cell-type (or differential) GGM.</p>
 <p>In an undirected graphical model, a Markov blanket of gene <span class="math inline">g</span> is any set <span class="math inline">S</span> such that <span class="math inline">g</span> is conditionally independent of all other genes given <span class="math inline">S</span>; a <strong>Markov boundary</strong> is a minimal such set <span class="citation" data-cites="pearlProbabilisticReasoningIntelligent1988">(<a href="#ref-pearlProbabilisticReasoningIntelligent1988" role="doc-biblioref">Pearl 1988</a>)</span>. For a Gaussian Markov random field / GGM, the Markov boundary of <span class="math inline">g</span> coincides with its graph neighbours: the indices <span class="math inline">g'</span> with <span class="math inline">\omega_{gg'}\neq 0</span> in <span class="math inline">\boldsymbol{\Omega}</span> <span class="citation" data-cites="bolinExplicitLinkGraphical2026">(<a href="#ref-bolinExplicitLinkGraphical2026" role="doc-biblioref">Bolin et al. 2026</a>)</span>. Expanding seeds by these neighbours therefore adds genes that are <strong>not</strong> redundant once the seed is conditioned on—they carry residual information about the local dependency structure.</p>
 <div id="nte-u-vs-dsep">
+<div class="decovart-callout callout-important">
 <blockquote>
 <p><strong>Important 8: <span class="emoji" data-emoji="warning">⚠️</span> Undirected (<span class="math inline">U</span>) separation, not <span class="math inline">d</span>-separation</strong></p>
 <p>This construction uses the <strong>undirected</strong> Markov property (conditioning on neighbours in <span class="math inline">\boldsymbol{\Omega}</span>). Classical <span class="math inline">d</span>-separation applies to <strong>directed</strong> acyclic Gaussian Bayesian networks and is the wrong language for GGM / glasso supports. Do not treat directed path blocking rules as interchangeable with undirected Markov boundaries <span class="citation" data-cites="pearlProbabilisticReasoningIntelligent1988 bolinExplicitLinkGraphical2026">(<a href="#ref-pearlProbabilisticReasoningIntelligent1988" role="doc-biblioref">Pearl 1988</a>; <a href="#ref-bolinExplicitLinkGraphical2026" role="doc-biblioref">Bolin et al. 2026</a>)</span>. <a href="#fig-u-vs-dsep" class="quarto-xref">Figure 10</a> contrasts the undirected Markov boundary (neighbours of the target) with the directed Markov blanket (parents, children and spouses).</p>
@@ -888,6 +903,7 @@ Figure 10: Undirected Markov boundary versus directed Markov blanket: left, nei
 </figcaption></figure>
 </div>
 </blockquote>
+</div>
 </div>
 <p>Operational sketch:</p>
 <ol type="1">

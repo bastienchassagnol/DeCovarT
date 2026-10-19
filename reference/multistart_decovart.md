@@ -15,7 +15,7 @@ multistart_decovart(
   mean_signature_matrix,
   Sigma,
   n_starts = 5L,
-  solver = deconvolute_ratios_Marquardt_Levenberg,
+  solver = deconvolute_ratios_Newton_Raphson,
   loglik_tol = 1e-04,
   dirichlet_alpha = 1,
   ...
@@ -46,7 +46,7 @@ multistart_decovart(
 - solver:
 
   Solver accepting `initial_p` and `return_model`; defaults to
-  [`deconvolute_ratios_Marquardt_Levenberg()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md).
+  [`deconvolute_ratios_Newton_Raphson()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md).
 
 - loglik_tol:
 

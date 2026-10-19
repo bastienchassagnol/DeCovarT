@@ -237,9 +237,9 @@ and the two give different maximum a posteriori estimates.
 - **Logistic-normal on \boldsymbol{\rho}.** A Gaussian prior
   \boldsymbol{\rho}\sim\mathcal{N}(\boldsymbol{m},\boldsymbol{V}\_{\rho})
   adds -\boldsymbol{V}\_{\rho}^{-1} to the Hessian of the released
-  solver and leaves its Marquardt–Levenberg machinery unchanged. It is
-  the natural prior when compositions of related samples are expected to
-  be correlated, which a Dirichlet cannot express.
+  solver and leaves its Newton–Raphson machinery unchanged. It is the
+  natural prior when compositions of related samples are expected to be
+  correlated, which a Dirichlet cannot express.
 
 Either prior regularises the boundary: where the Wald interval of a
 proportion near zero degenerates, the posterior stays proper. A credible

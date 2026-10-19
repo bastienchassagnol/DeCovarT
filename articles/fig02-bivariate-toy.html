@@ -103,7 +103,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>2.1 Bivariate toy model (G = 2 genes, J = 2 cell types)</h1>
       <p class="subtitle">Full script: <code>scripts/fig02_bivariate_toy.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-15</p>
+      <p class="date">2026-10-19</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/fig02-bivariate-toy.qmd" class="external-link"><code>vignettes/fig02-bivariate-toy.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -427,6 +427,7 @@ Figure 3: Factorial design (left) and correlation-only 2D densities (right) for
 </h2>
 <p>Figures are written from the split RDS (no ADEMP refit). Density books go to <code>output/fig02/density_visualisations/</code>; RMSE / MAE / Aitchison tiles, raincloud, quantile-dot raincloud, forest, KKT raincloud, stacked convergence, whitened-ILR Q-Q / <span class="math inline">\chi^{2}</span> Q-Q / KS lollipops, similarity, solver-dot, runtime, and memory books go to <code>output/fig02/performance_visualisations/</code>. Tile heatmaps (<code><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">ggplot2::geom_tile()</a></code>) show RMSE, MAE, and Aitchison distance on the <span class="math inline">(\rho_1,\rho_2)</span> plane: one PDF per metric, one page per meta-scenario (CLD () variance () composition), seven solver panels. Scenario factors are relevelled (small then large CLD; homoscedastic then heteroscedastic; balanced, moderately unbalanced, highly unbalanced) when artefacts are read, and solvers follow <code>nnls</code>, <code>lsei</code>, <code>SA</code>, <code>gradient</code>, <code>LBFGS</code>, <code>Newton-Raphson</code>, <code>Marquardt-Levenberg</code>. Density and performance books share the four correlation corners <span class="math inline">(\rho_1,\rho_2)\in\{(0,0),(-0.8,-0.8),(0.8,0.8),(-0.8,0.8)\}</span> (<span class="math inline">2\times 2\times 3=12</span> pages). Similarity heatmaps compute Pearson (r) of paired () <strong>within each corner</strong>, with Ward D2 clustering of (1-r) and Ward merge heights on the right dendrogram. Wald forests drop NNLS, LSEI, and SA; solid whiskers are (1.96) times the expected-Fisher Wald SE at the true composition, dashed whiskers use the empirical Monte Carlo SD, and coloured <code>geom_label</code> boxes (one per cell type, matching fig03) report RMSE and coverage. The native-space log-likelihood surface uses a log10 colour scale of the relative likelihood (L/L) so boundary peaks are visible. The matching <code>rgl</code> book uses the same log10 relative-likelihood <span class="math inline">z</span>-axis. Rainclouds plot (p) with solver fill <strong>and</strong> stroke and a bottom legend. A companion <code>dotsinterval.pdf</code> book replaces the bounded <span class="math inline">[0,1]</span> KDE slab with quantile dots. Runtime and memory rainclouds use one page per meta-scenario, the four correlation corners on the x-axis, and a log10 y-axis. Solver-dot pages use the same 9-by-9 ((_1,_2)) grid as the RMSE heatmaps: colour is mean RMSE and size is mean Aitchison distance, with horizontal y-axis labels. ggplot <code>data</code> tables are saved under <code>output/fig02/ggplot_rds/</code>.</p>
 <div id="nte-rgl-alternatives">
+<div class="decovart-callout callout-tip">
 <blockquote>
 <p><strong>Tip 1: Other one-sample log-likelihood slices (not drawn)</strong></p>
 <p>The current <code>loglik_rgl.pdf</code> holds the two mean profiles fixed and varies only <span class="math inline">\boldsymbol{p}</span> (or the ALR coordinates of <span class="math inline">\boldsymbol{p}</span>). White diamonds mark <span class="math inline">p^{\star}</span> and red circles the numerical MLE; a 3D legend repeats those two markers. Expected log-likelihood surfaces <span class="math inline">\mathbb{E}_{\boldsymbol{y}\mid\boldsymbol{p}^{\star}}[\ell(\boldsymbol{p};\boldsymbol{y})]</span> are drawn separately as <code>loglik_expected_surface_p.pdf</code> and <code>loglik_expected_ilr_profile.pdf</code> (not overlaid on the one-draw books). Useful alternatives, left as outlook:</p>
@@ -436,6 +437,7 @@ Figure 3: Factorial design (left) and correlation-only 2D densities (right) for
 <li>Overlay several independent bulk draws as translucent surfaces to display sampling variability of <span class="math inline">\ell(\boldsymbol{p};\boldsymbol{y})</span>.</li>
 </ul>
 </blockquote>
+</div>
 </div>
 <section class="level2"><h3 id="sec-bivariate-findings">Likelihood geometry and solver behaviour<a class="anchor" aria-label="anchor" href="#sec-bivariate-findings"></a>
 </h3>

@@ -97,7 +97,7 @@ a second, equally good or better mode.</p>
 <span>  <span class="va">mean_signature_matrix</span>,</span>
 <span>  <span class="va">Sigma</span>,</span>
 <span>  n_starts <span class="op">=</span> <span class="fl">5L</span>,</span>
-<span>  solver <span class="op">=</span> <span class="va">deconvolute_ratios_Marquardt_Levenberg</span>,</span>
+<span>  solver <span class="op">=</span> <span class="va">deconvolute_ratios_Newton_Raphson</span>,</span>
 <span>  loglik_tol <span class="op">=</span> <span class="fl">1e-04</span>,</span>
 <span>  dirichlet_alpha <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  <span class="va">...</span></span>
@@ -130,7 +130,7 @@ equi-balanced start).</p></dd>
 
 <dt id="arg-solver">solver<a class="anchor" aria-label="anchor" href="#arg-solver"></a></dt>
 <dd><p>Solver accepting <code>initial_p</code> and <code>return_model</code>;
-defaults to <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_Marquardt_Levenberg()</a></code>.</p></dd>
+defaults to <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_Newton_Raphson()</a></code>.</p></dd>
 
 
 <dt id="arg-loglik-tol">loglik_tol<a class="anchor" aria-label="anchor" href="#arg-loglik-tol"></a></dt>

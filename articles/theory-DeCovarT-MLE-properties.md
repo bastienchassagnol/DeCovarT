@@ -201,9 +201,11 @@ are positive definite. Yet the Hessian at the strictly interior point
 >   [Sec. 5](#sec-diagnostics));
 > - convex-optimisation guarantees — a unique global optimum reachable
 >   by descent, and duality certificates — do not apply ([Boyd et al.
->   2004](#ref-boydConvexOptimization2004)). The Marquardt–Levenberg
->   damping of `marqLevAlg` ([Philipps et al. 2023](#ref-R-marqLevAlg),
->   [2021](#ref-philippsRobustEfficientOptimization2021)) and the
+>   2004](#ref-boydConvexOptimization2004)). The step safeguards of
+>   second-order solvers, the Newton trust region of `nlminb` and the
+>   Marquardt–Levenberg damping of `marqLevAlg` ([Philipps et al.
+>   2023](#ref-R-marqLevAlg),
+>   [2021](#ref-philippsRobustEfficientOptimization2021)), and the
 >   relative-distance-to-minimum criterion of Commenges et al.
 >   ([2006](#ref-commengesNewtonLikeAlgorithmLikelihood2006)) buy
 >   robustness against saddle points, not global optimality.
@@ -578,21 +580,21 @@ knitr::kable(route_summary, digits = 3)
 
 | route      | cell_type | coverage | outside_unit_interval | median_width |
 |:-----------|:----------|---------:|----------------------:|-------------:|
-| delta      | ct1       |    0.920 |                 0.080 |        0.174 |
-| delta      | ct2       |    0.945 |                 0.360 |        0.208 |
-| delta      | ct3       |    0.949 |                 0.724 |        0.090 |
-| logit      | ct1       |    0.920 |                 0.000 |        0.176 |
-| logit      | ct2       |    0.920 |                 0.000 |        0.220 |
-| logit      | ct3       |    0.895 |                 0.000 |        0.116 |
-| simulation | ct1       |    0.869 |                 0.000 |        0.215 |
-| simulation | ct2       |    0.938 |                 0.000 |        0.226 |
-| simulation | ct3       |    0.927 |                 0.000 |        0.119 |
+| delta      | ct1       |    0.950 |                 0.097 |        0.174 |
+| delta      | ct2       |    0.970 |                 0.363 |        0.209 |
+| delta      | ct3       |    0.980 |                 0.770 |        0.090 |
+| logit      | ct1       |    0.950 |                 0.000 |        0.177 |
+| logit      | ct2       |    0.943 |                 0.000 |        0.220 |
+| logit      | ct3       |    0.927 |                 0.000 |        0.127 |
+| simulation | ct1       |    0.897 |                 0.000 |        0.226 |
+| simulation | ct2       |    0.973 |                 0.000 |        0.230 |
+| simulation | ct3       |    0.963 |                 0.000 |        0.126 |
 
-Out of 300 fits, 25 returned an estimate on a simplex face, where no
-Wald-type route is defined; the table is computed on the 275 interior
+Out of 300 fits, 0 returned an estimate on a simplex face, where no
+Wald-type route is defined; the table is computed on the 300 interior
 fits. Three readings follow.
 
-- The delta method places 72% of the intervals for the rare type partly
+- The delta method places 77% of the intervals for the rare type partly
   below zero. Truncating them at zero would hide, not fix, the problem.
 - The logit and simulation routes never leave (0,1) and are wider for
   the rare type, as an asymmetric interval should be.
@@ -653,10 +655,10 @@ and covariance both depend on \boldsymbol{\vartheta} is a curved family,
 where the Jeffreys penalty is one of several bias-reducing modified
 scores and does not cancel the first-order bias exactly. On the simplex
 chart of Strategy 2 the same derivative applies to the \boldsymbol{p}
-block with \kappa fixed, and the collapse of \det I near faces and under
-collinear signatures is the regularising effect already argued in the
-perspectives vignette. A simulation under the ADEMP template of the
-[synthetic-scenarios
+block with the scales c_i and \phi_i fixed, and the collapse of \det I
+near faces and under collinear signatures is the regularising effect
+already argued in the perspectives vignette. A simulation under the
+ADEMP template of the [synthetic-scenarios
 vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-scenarios-mean-covariance.md)
 is the only way to decide whether the pull is a correction or a bias.
 
@@ -1261,12 +1263,12 @@ fit <- fit_decovart(
 )
 do.call(rbind, fit$diagnostics)
 #>          boundary_distance near_boundary   score_norm min_eigenvalue
-#> sample_1         0.2159583         FALSE 2.383262e-09      -160.1989
-#> sample_2         0.1832318         FALSE 5.026328e-05      -167.0961
-#> sample_3         0.1682215         FALSE 1.765209e-08      -171.3536
+#> sample_1         0.2159583         FALSE 1.026578e-09      -160.1989
+#> sample_2         0.1832317         FALSE 3.836661e-05      -167.0961
+#> sample_3         0.1682215         FALSE 4.077970e-08      -171.3536
 #>          max_eigenvalue local_maximum
 #> sample_1      -24.48051          TRUE
-#> sample_2      -18.72244          TRUE
+#> sample_2      -18.72240          TRUE
 #> sample_3      -16.19907          TRUE
 ```
 
@@ -1315,7 +1317,7 @@ c(
   multimodal = restarts$multimodal
 )
 #> loglik_range   multimodal 
-#> 6.625915e-10 0.000000e+00
+#> 1.038282e-09 0.000000e+00
 ```
 
 A small range is reassuring but not a proof: a converged code, a tiny
@@ -1410,12 +1412,13 @@ with inference.
 
 Write the single-cell-tailored DeCovarT ([tailored
 vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-strategies))
-in GLM terms, for one bulk sample:
+in GLM terms, for one bulk sample with mean scale c=a n, covariance
+scale \phi=a^{2}n and raw per-cell means \tilde{\boldsymbol{\mu}}:
 
-\mathbb{E}(\boldsymbol{y}\mid\boldsymbol{\rho})=\boldsymbol{m}(\boldsymbol{\rho})=a\\\boldsymbol{\mu}\\\boldsymbol{\psi}(\boldsymbol{\rho}),
+\mathbb{E}(\boldsymbol{y}\mid\boldsymbol{\rho})=\boldsymbol{m}(\boldsymbol{\rho})=c\\\tilde{\boldsymbol{\mu}}\\\boldsymbol{\psi}(\boldsymbol{\rho}),
 \qquad
 \operatorname{Cov}(\boldsymbol{y}\mid\boldsymbol{\rho})=\boldsymbol{V}(\boldsymbol{\rho})
-=a^{2}\kappa\\\boldsymbol{S}\_W(\boldsymbol{p})+a^{2}\boldsymbol{S}\_B(\boldsymbol{p})+\phi\operatorname{diag}\\\boldsymbol{m}(\boldsymbol{\rho})\\.
+=\phi\\\boldsymbol{S}\_W(\boldsymbol{p})+c^{2}\boldsymbol{S}\_B(\boldsymbol{p})+\omega\operatorname{diag}\\\boldsymbol{m}(\boldsymbol{\rho})\\.
 \tag{12}
 
 The mean is the systematic component: identity on the mixing scale,
@@ -1423,8 +1426,12 @@ inverse link \boldsymbol{\psi} on the composition. The covariance is the
 variance function, and each term comes from a model rather than from a
 transformation: independent cells (linear weight), shared population
 fluctuations (quadratic weight, needs replicates), and the Poisson
-measurement of the bulk with a dispersion \phi (variance equal to the
-mean when \phi=1).
+measurement of the bulk with a dispersion \omega (variance equal to the
+mean when \omega=1). The final model of [Sec. 6.4](#sec-final-choice)
+keeps only the first term,
+\boldsymbol{V}(\boldsymbol{\rho})=\phi\boldsymbol{S}\_W(\boldsymbol{\psi}(\boldsymbol{\rho})):
+a known variance function times a dispersion, as in a quasi-likelihood
+GLM.
 
 Two estimators share [Eq. 12](#eq-decovart-glm).
 
@@ -1436,14 +1443,18 @@ Two estimators share [Eq. 12](#eq-decovart-glm).
 - **Quasi-score**,
   \boldsymbol{D}^{\top}\boldsymbol{V}^{-1}\\\boldsymbol{y}-\boldsymbol{m}(\boldsymbol{\rho})\\=\boldsymbol{0}
   with
-  \boldsymbol{D}=\partial\boldsymbol{m}/\partial\boldsymbol{\rho}^{\top}=a\boldsymbol{\mu}\mathbf{J}\_{\boldsymbol{\psi}}.
+  \boldsymbol{D}=\partial\boldsymbol{m}/\partial\boldsymbol{\rho}^{\top}=c\tilde{\boldsymbol{\mu}}\mathbf{J}\_{\boldsymbol{\psi}}.
   It needs only the first two moments, its information is
   \boldsymbol{D}^{\top}\boldsymbol{V}^{-1}\boldsymbol{D} (the mean part
   of the Fisher information), and the sandwich of
   [Sec. 3.3](#sec-sandwich) keeps it valid when \boldsymbol{V} is
-  misspecified. The dispersion is estimated after the fit from the
-  Pearson statistic,
-  \hat\phi=\lVert\boldsymbol{L}^{-1}(\boldsymbol{y}-\hat{\boldsymbol{m}})\rVert^{2}/(G-J+1).
+  misspecified. With \boldsymbol{V}=\phi\boldsymbol{S}\_W, the
+  dispersion cancels from the quasi-score and is estimated after the fit
+  from the Pearson statistic,
+  \hat\phi=\lVert\boldsymbol{L}^{-1}(\boldsymbol{y}-\hat{\boldsymbol{m}})\rVert^{2}/(G-J),
+  with \boldsymbol{L} the Cholesky factor of
+  \boldsymbol{S}\_W(\hat{\boldsymbol{p}}) and J free mean parameters
+  (J-1 ILR coordinates and c).
 
 **Across samples.** With several bulk samples and covariates
 \boldsymbol{f}\_i, `MEAD` models the composition itself as a GLM,
@@ -1465,60 +1476,70 @@ linearly on \boldsymbol{f}\_i targets
 ### The final choice for real data
 
 The constraints of the intended application are: one single-cell
-reference from one donor (R=1) counted with UMIs; one or a few bulk
-samples that share neither composition nor technical scale; no gene-wise
-scale within the UMI platform; and cell-size normalisation applied after
-the fit. Under them, the recommended model is [Eq. 12](#eq-decovart-glm)
-reduced to what one donor identifies:
+reference from one donor (R=1) counted with UMIs; one bulk sample at a
+time, with no covariates and no paired cohort; and no gene-wise platform
+ratio within the UMI platform. Under them, the recommended model is
+[Eq. 12](#eq-decovart-glm) reduced to what one donor and one bulk sample
+identify:
 
-\boldsymbol{y}\_{\cdot i}\mid\boldsymbol{q}\_{\cdot i}
-\sim\mathcal{N}\_G\Bigl( a_i\boldsymbol{\Theta}\boldsymbol{q}\_{\cdot
-i},\\ a_i^{2}\kappa_i\sum_jq\_{ji}\boldsymbol{\Sigma}^{\theta}\_{W,j}
-+\phi\operatorname{diag}(a_i\boldsymbol{\Theta}\boldsymbol{q}\_{\cdot
-i}) \Bigr), \qquad \boldsymbol{q}\_{\cdot
-i}=\boldsymbol{\psi}(\boldsymbol{\rho}\_i), \qquad
-p\_{ji}=\frac{q\_{ji}/S_j}{\sum_kq\_{ki}/S_k}. \tag{13}
+\boldsymbol{y}\_{\cdot i}\mid\boldsymbol{p}\_{\cdot i}
+\sim\mathcal{N}\_G\Bigl(
+a_in_i\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot i},\\
+a_i^{2}n_i\sum_jp\_{ji}\boldsymbol{\Sigma}\_{W,j} \Bigr), \qquad
+\boldsymbol{p}\_{\cdot i}=\boldsymbol{\psi}(\boldsymbol{\rho}\_i).
+\tag{13}
 
-Each term is a choice with a reason.
+Equivalently \boldsymbol{y}\_{\cdot
+i}=a_in_i\tilde{\boldsymbol{y}}\_{\cdot i} with
+\tilde{\boldsymbol{y}}\_{\cdot
+i}\sim\mathcal{N}\_G\bigl(\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot
+i},n_i^{-1}\boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot i})\bigr). Each term
+is a choice with a reason.
 
-1.  **Normalised reference, transcript fractions, then cell sizes.** The
-    columns of \boldsymbol{\Theta} are mean relative profiles of each
-    type (\mathbf{1}^{\top}\boldsymbol{\theta}\_{\cdot j}=1), so the fit
-    returns transcript fractions \boldsymbol{q}\_{\cdot i}, converted
-    afterwards with S_j, the mean UMI total per cell of type j ([RNA
-    versus cell
+1.  **Raw per-cell means, cell fractions directly.** The columns of
+    \tilde{\boldsymbol{\mu}} are per-cell means of raw UMI counts,
+    \tilde{\boldsymbol{\mu}}\_{\cdot j}=S_j\boldsymbol{\theta}\_{\cdot
+    j}, so the cell size S_j stays in the mean and the fit returns cell
+    fractions \boldsymbol{p}\_{\cdot i}. Transcript fractions follow as
+    q\_{ji}=p\_{ji}S_j/\sum\_\ell p\_{\ell i}S\_\ell ([RNA versus cell
     fractions](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-uncoupling)).
-    Use either this route or raw per-cell means without the conversion,
-    never both.
-2.  **The sample scale is plugged in.** Because
-    \mathbf{1}^{\top}\boldsymbol{\Theta}\boldsymbol{q}=1, the mean of
-    the bulk total is a_i, and \hat
-    a_i=\mathbf{1}^{\top}\boldsymbol{y}\_{\cdot i} is a moment estimator
-    that costs nothing (Strategy 4 of the [tailored
-    vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-strategy-plugin)).
+    A library-normalised signature \boldsymbol{\theta}\_{\cdot j} would
+    return \boldsymbol{q}\_{\cdot i} and need the conversion; use one
+    route, never both.
+2.  **Two scales, not three.** The capture ratio a_i and the number of
+    cells n_i enter only through the mean scale c_i=a_in_i and the
+    covariance scale \phi_i=a_i^{2}n_i ([global
+    scale](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-av-scale)).
+    At fixed \boldsymbol{\rho}\_i, \hat c_i is the generalised
+    least-squares coefficient of \boldsymbol{y}\_{\cdot i} on
+    \tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot i} and \hat\phi_i the
+    mean squared Mahalanobis residual, so both are profiled out;
+    a_i=\phi_i/c_i and n_i=c_i^{2}/\phi_i are read afterwards and are
+    interpretable only when the bulk and the reference share the
+    platform.
 3.  **Only the within-type covariance.** One donor identifies the
     cell-to-cell covariance, not the between-donor one ([three reference
     regimes](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-three-regimes)).
-    It enters with a **linear** weight. Estimate it from cells after
-    removing the Poisson diagonal and the technical size-factor term
-    ([denoised
+    Estimate it from cells after removing the Poisson diagonal and the
+    technical size-factor term ([denoised
     covariance](https://bastienchassagnol.github.io/DeCovarT/articles/theory-review-distribution-aware-deconvolution.html#eq-denoised-within)),
-    with a sparse precision from the graphical lasso.
-4.  **One scalar for the number of cells.** \kappa_i is estimated
-    jointly, on a log chart, as one extra coordinate next to
-    \boldsymbol{\rho}\_i; it is identified by the gene–gene structure,
-    which the diagonal measurement term does not have. If its profile
-    likelihood is flat, fix it on a grid and report the sensitivity.
-5.  **The measurement model sets the diagonal.** \phi=1 is the Poisson
-    measurement; estimate \phi afterwards from the Pearson statistic and
-    inflate the variance of \hat{\boldsymbol{\rho}} when \hat\phi\>1, as
-    for read counts without UMIs.
-6.  **No gene-wise scale.** With UMIs it cancels within the reference
-    platform; between platforms it is not identified from one sample
+    with a sparse precision from the graphical lasso. *Our remark:*
+    independent cells add with cell-count weights m\_{ji}=n_ip\_{ji}, so
+    this linear covariance layer is weighted by \boldsymbol{p}\_{\cdot
+    i}, not by the transcript fractions \boldsymbol{q}\_{\cdot i}.
+4.  **No extra bulk noise term.** A Poisson or negative-binomial
+    diagonal for the bulk measurement is not added: without further
+    assumptions it cannot be separated from the scale \phi_i and the
+    cell-to-cell covariance on one sample. Misspecification of the
+    variance is handled by the sandwich of [Sec. 3.3](#sec-sandwich)
+    instead.
+5.  **No gene-wise platform ratio.** With UMIs it cancels within the
+    reference platform; between platforms it is not identified from one
+    sample
     ([`MEAD`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-review-distribution-aware-deconvolution.html#sec-mead)),
     so it is handled by gene selection, keeping genes detected
     consistently in both assays, not by estimation.
-7.  **Inference.** Report the logit or simulation route of
+6.  **Inference.** Report the logit or simulation route of
     [Sec. 3.1](#sec-wald-routes), or the profile interval; switch to
     Firth’s penalty when a proportion approaches zero, and to the
     boundary likelihood-ratio test when absence is the question
@@ -1527,14 +1548,13 @@ Each term is a choice with a reason.
     `reference_bootstrap_decovart(method = "cells")`.
 
 **Why this is the fastest valid route from the existing code.** The ILR
-solver, the analytic score and the Marquardt–Levenberg optimiser are
-kept. Only the covariance assembler changes, from
-\sum_jp_j^{2}\boldsymbol{\Sigma}\_j to the linear form of
-[Eq. 13](#eq-final-model), whose derivative in q_k is the constant
-matrix a^{2}\kappa\boldsymbol{\Sigma}^{\theta}\_{W,k}+\phi
-a\operatorname{diag}(\boldsymbol{\theta}\_{\cdot k}); second derivatives
-of the covariance vanish, so the Hessian is simpler than the released
-one ([general score and
+chart, the analytic score and the default Newton–Raphson optimiser are
+kept, with c_i and \phi_i profiled out at each iteration. Only the
+covariance assembler changes, from \sum_jp_j^{2}\boldsymbol{\Sigma}\_j
+to the linear form of [Eq. 13](#eq-final-model), whose derivative in p_j
+is the constant matrix \phi_i\boldsymbol{\Sigma}\_{W,j}; second
+derivatives of the covariance vanish, so the Hessian is simpler than the
+released one ([general score and
 Hessian](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-general)).
 No replicate, no paired cohort and no second bulk sample is needed. The
 model still has to pass a simulation study under the ADEMP template
@@ -1605,20 +1625,6 @@ previous row:
 >   the multivariate covariance. It remains a first-order *interior*
 >   device: faces still need the chi-bar-square LRT or a restricted
 >   bootstrap.
-> - **Sandwich for a variational estimator is a different object.**
->   Westling and McCormick give the profile M-estimation sandwich for
->   variational approximations in mixture models ([Westling and
->   McCormick 2019](#ref-westlingPredictionFrameworkInference2019)).
->   Batardière, Chiquet and Mariadassou specialise that construction to
->   Poisson-log-normal *variational* parameters ([Batardière et al.
->   2024](#ref-batardiereEvaluatingParameterUncertainty2024)). That
->   estimator is not a maximum-likelihood estimator and does not inherit
->   the usual MLE consistency / \sqrt{n} theory; the sandwich is an
->   M-estimation correction for a surrogate ELBO. DeCovarT’s
->   \hat{\boldsymbol{p}} *is* the MLE of the Gaussian convolution on one
->   bulk column (when the solver reaches a local maximum), so expected
->   Fisher at p^{\star} is the regular-case asymptotic variance. Do not
->   paste their coverage plots onto DeCovarT Wald intervals.
 > - **Score-test inversion.** Inverting a one-sided score test avoids
 >   refitting under every candidate value, so it is cheaper than the
 >   profile scan of
@@ -1646,11 +1652,6 @@ Pieter Mestdagh, and Katleen De Preter. 2020. ‘Benchmarking of Cell Type
 Deconvolution Pipelines for Transcriptomics Data’. *Nature
 Communications* 11 (1): 5650.
 <https://doi.org/10.1038/s41467-020-19015-1>.
-
-Batardière, Bastien, Julien Chiquet, and Mahendra Mariadassou. 2024.
-*Evaluating Parameter Uncertainty in the Poisson Lognormal Model with
-Corrected Variational Estimators*. arXiv.
-<https://doi.org/10.48550/arxiv.2411.08524>.
 
 Boyd, Stephen, Stephen P. Boyd, and Lieven Vandenberghe. 2004. *Convex
 Optimization*. 1st edn. Cambridge University Press; Cambridge University

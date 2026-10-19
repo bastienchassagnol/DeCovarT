@@ -102,7 +102,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>A Bayesian DeCovarT: latent purified profiles, the Wiener filter and variational EM</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-15</p>
+      <p class="date">2026-10-19</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-decovart-bayesian-wiener.qmd" class="external-link"><code>vignettes/theory-decovart-bayesian-wiener.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -114,10 +114,12 @@
 
 
     <div>
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Scope</strong></p>
 <p>Released DeCovarT integrates the purified profiles out and maximises the marginal likelihood of the bulk in the proportions (<a href="theory-decovart-generative-model.html#sec-unconstrained">derivatives vignette</a>). This vignette keeps the profiles as latent variables. That gives three things the marginal likelihood hides: a closed-form estimate of each sample’s purified profiles once the proportions are known (the Wiener filter), an EM algorithm for the same maximum-likelihood estimate, and a Bayesian version with a prior on the proportions. The Bayesian methods already published for this task are reviewed in the <a href="theory-review-distribution-aware-deconvolution.html#sec-bayesian">distribution-aware deconvolution review</a>. Nothing here is implemented in <code><a href="../reference/fit_decovart.html">fit_decovart()</a></code>.</p>
 </blockquote>
+</div>
 </div>
 <section class="section level2"><h2 id="sec-bw-model">Generative model with latent profiles<a class="anchor" aria-label="anchor" href="#sec-bw-model"></a>
 </h2>
@@ -226,7 +228,7 @@ T_{jk}=\operatorname{tr}\bigl(\boldsymbol{D}^{-1}\boldsymbol{C}_{jk}\bigr),
 <li>
 <strong>Dirichlet on <span class="math inline">\boldsymbol{p}</span>.</strong> In <span class="math inline">\boldsymbol{p}</span>, the log-prior <span class="math inline">\sum_j(\alpha_j-1)\log p_j</span> is concave only when every <span class="math inline">\alpha_j\ge 1</span>. Values below one encourage sparse compositions but make the MAP problem non-concave. After the change of variables to <span class="math inline">\boldsymbol{\rho}</span>, the density picks up the Jacobian <span class="math inline">\prod_jp_j</span> (up to a constant), and the log-prior becomes <span class="math inline">\sum_j\alpha_j\log p_j(\boldsymbol{\rho})</span>. Each <span class="math inline">\log p_j(\boldsymbol{\rho})=(\mathbf{V}\boldsymbol{\rho})_j-\operatorname{LSE}(\mathbf{V}\boldsymbol{\rho})</span> is concave, so the log-prior is concave in <span class="math inline">\boldsymbol{\rho}</span> for every <span class="math inline">\alpha_j&gt;0</span> and its MAP stays in the interior.</li>
 <li>
-<strong>Logistic-normal on <span class="math inline">\boldsymbol{\rho}</span>.</strong> A Gaussian prior <span class="math inline">\boldsymbol{\rho}\sim\mathcal{N}(\boldsymbol{m},\boldsymbol{V}_{\rho})</span> adds <span class="math inline">-\boldsymbol{V}_{\rho}^{-1}</span> to the Hessian of the released solver and leaves its Marquardt–Levenberg machinery unchanged. It is the natural prior when compositions of related samples are expected to be correlated, which a Dirichlet cannot express.</li>
+<strong>Logistic-normal on <span class="math inline">\boldsymbol{\rho}</span>.</strong> A Gaussian prior <span class="math inline">\boldsymbol{\rho}\sim\mathcal{N}(\boldsymbol{m},\boldsymbol{V}_{\rho})</span> adds <span class="math inline">-\boldsymbol{V}_{\rho}^{-1}</span> to the Hessian of the released solver and leaves its Newton–Raphson machinery unchanged. It is the natural prior when compositions of related samples are expected to be correlated, which a Dirichlet cannot express.</li>
 </ul>
 <p>Either prior regularises the boundary: where the Wald interval of a proportion near zero degenerates, the posterior stays proper. A credible interval is not a frequentist confidence interval, and the prior has to be defended on biological grounds (<a href="theory-DeCovarT-MLE-properties.html#sec-intervals">MLE and inference vignette</a>).</p>
 </section><section class="section level2"><h2 id="sec-bw-posterior">Full posterior<a class="anchor" aria-label="anchor" href="#sec-bw-posterior"></a>

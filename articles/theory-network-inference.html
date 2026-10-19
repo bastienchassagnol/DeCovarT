@@ -102,7 +102,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>In silico inference of gene regulatory networks</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-15</p>
+      <p class="date">2026-10-19</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-network-inference.qmd" class="external-link"><code>vignettes/theory-network-inference.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -114,6 +114,7 @@
 
 
     <div id="nte-grn-notation">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 1: Notation (aligned with the DeCovarT manuscript)</strong></p>
 <table class="table caption-top">
@@ -166,6 +167,7 @@
 <p>DeCovarT treats purified draws <span class="math inline">\boldsymbol{x}_{\cdot j}^{(i)}\sim\mathcal{N}_G(\boldsymbol{\mu}_{\cdot j},
 \boldsymbol{\Sigma}_j)</span> as latent and forms bulk mixtures <span class="math inline">\boldsymbol{y}_{\cdot i}=\sum_j p_j\,\boldsymbol{x}_{\cdot j}^{(i)}</span>. GRN inference instead targets the <strong>conditional dependence structure</strong> among genes within each purified profile—or across a pooled design matrix. When <span class="math inline">\boldsymbol{p}</span> is already known, <code>CSNet</code> estimates type-level co-expression from the same convolution; the mapping onto DeCovarT’s precision <span class="math inline">\boldsymbol{\Omega}_j</span> is in the <a href="theory-review-distribution-aware-deconvolution.html#sec-csnet">perspectives vignette</a> <span class="citation" data-cites="suEstimatingCellTypeSpecificGene2024">(<a href="#ref-suEstimatingCellTypeSpecificGene2024" role="doc-biblioref">Su et al. 2024</a>)</span>.</p>
 </blockquote>
+</div>
 </div>
 <section class="section level2"><h2 id="sec-grn-reviews">General reviews<a class="anchor" aria-label="anchor" href="#sec-grn-reviews"></a>
 </h2>
@@ -300,6 +302,7 @@ Table 1: Estimators of the reproducibility pipeline.
 <section class="level2"><h3 id="sec-grn-pipeline">Pipeline behaviour to rule out first<a class="anchor" aria-label="anchor" href="#sec-grn-pipeline"></a>
 </h3>
 <div id="wrn-grn-pipeline">
+<div class="decovart-callout callout-warning">
 <blockquote>
 <p><strong>Warning 1: Check the reproducibility code before the method</strong></p>
 <p>Reading <code>scripts/03_01_grn_huge.R</code>, <code>R/ebic_regularisation_path.R</code>, and the <code>huge</code> 1.5.1 sources (<code>huge.glasso()</code> and <code>src/huge_core.cpp</code>) showed three ways to obtain a diagonal precision that are unrelated to biology. All three are now corrected in the reproducibility code; the Suppinger networks must be refitted before the diagonal result is interpreted.</p>
@@ -313,6 +316,7 @@ Table 1: Estimators of the reproducibility pipeline.
 </ol>
 <p>On a simulated chain of 30 genes with <span class="math inline">n=300</span>, the corrected path recovers all 29 edges, with 20 false positives at the EBIC penalty. The exported covariance keeps the sample variances exactly.</p>
 </blockquote>
+</div>
 </div>
 </section><section class="level2"><h3 id="sec-grn-screening">A screening threshold, not an estimated absence<a class="anchor" aria-label="anchor" href="#sec-grn-screening"></a>
 </h3>
@@ -669,6 +673,7 @@ Table 3: Pipeline choices and the sources that justify them.
 </h2>
 <p>Gaussian Bayesian networks orient edges under Markov and faithfulness assumptions; interventions (Perturb-seq and related CRISPR screens) supply the environments needed for stronger causal claims (<a href="https://doi.org/10.1111/rssb.12167" class="external-link">Peters <em>et al.</em> (2016)</a>; <span class="citation" data-cites="svininCausalNetworkAnalysis2025">Svinin and Glaab (<a href="#ref-svininCausalNetworkAnalysis2025" role="doc-biblioref">2025</a>)</span>). Pathway tools (NPA, SignalingProfiler, LIONESS/PANDA, NLBayes) contextualise expression on signed graphs but often stop short of a full weighted GRN MLE—treat them as priors or downstream scorers rather than drop-in replacements for <span class="math inline">\boldsymbol{\Omega}</span>.</p>
 <div id="nte-gbn-joint">
+<div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Note 2: From factorised Gaussian BNs to a joint multivariate normal</strong></p>
 <p>Consider a directed acyclic graph on <span class="math inline">G</span> genes with topological order <span class="math inline">1,\ldots,G</span>. A <strong>linear Gaussian Bayesian network</strong> specifies, for each gene <span class="math inline">i</span>,</p>
@@ -707,6 +712,7 @@ b_{ij}=0 \text{ unless } j\in\mathrm{Pa}(i).
 <p>In R, <code>bnlearn::gbn2mvnorm()</code> <span class="citation" data-cites="R-bnlearn">(<a href="#ref-R-bnlearn" role="doc-biblioref">Scutari 2026</a>)</span> returns <span class="math inline">(\boldsymbol{\mu},
 \boldsymbol{\Sigma})</span> from a fitted Gaussian BN—the directed counterpart of taking <span class="math inline">\boldsymbol{\Sigma}=\boldsymbol{\Omega}^{-1}</span> in an undirected GGM. For DeCovarT simulation, the same construction can populate cell-type-specific <span class="math inline">\boldsymbol{\Sigma}_j</span> when a DAG is the ground truth for purified profiles <span class="math inline">\boldsymbol{x}_{\cdot j}^{(i)}</span>, before bulk convolution with <span class="math inline">\boldsymbol{p}</span>.</p>
 </blockquote>
+</div>
 </div>
 </section><section class="section level2"><h2 id="sec-grn-benchmarks">Benchmarks<a class="anchor" aria-label="anchor" href="#sec-grn-benchmarks"></a>
 </h2>
