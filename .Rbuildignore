@@ -54,8 +54,9 @@
 # Quarto extensions used only by pkgdown-only articles. pandoc-ext/diagram
 # is kept: vignettes/_quarto.yml loads it for every article, and the
 # committed vignettes/_diagram-cache/ lets it render without TeX.
+# sun123zxy/callouty-theorem is kept: the shipped generative-model
+# vignette loads that filter.
 ^vignettes/_extensions/jmgirard/
-^vignettes/_extensions/sun123zxy/
 ^vignettes/_environment\.local$
 # Temporary solver smoke test (not testthat; requires fig03 GRN cache).
 ^tests/manual/
