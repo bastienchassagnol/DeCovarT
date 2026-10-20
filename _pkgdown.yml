@@ -209,60 +209,49 @@ reference:
     desc: |
       Marquardt–Levenberg deconvolution (exported entry point). Related
       first- and second-order variants live in
-      `R/02_03_decovart_estimate_ratios.R`. The S3 model
+      `R/02_02_decovart_estimate_ratios.R`. The S3 model
       wrapper is `fit_decovart()`.
     contents:
       - deconvolute_ratios_Marquardt_Levenberg
       - fit_decovart
-  - subtitle: Fixed-covariance GLS competitor
+  - subtitle: Multiple starts
     desc: |
-      `MASS::lm.gls()` wrapper with a known residual covariance
-      (`fixed_gls_covariance()` at a declared composition).
+      Refits from Dirichlet starts, the direct probe of multimodality of the
+      convolution log-likelihood (`R/02_02_decovart_estimate_ratios.R`).
     contents:
-      - deconvolute_ratios_gls
-      - fixed_gls_covariance
-  - subtitle: Structure-aware covariance backends
+      - multistart_decovart
+  - subtitle: Interior intervals
     desc: |
-      Factorise \(\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2
-      \boldsymbol{\Sigma}_j\) by exploiting declared covariance structure
-      (block, band, sparse, diagonal-plus-low-rank) instead of a dense
-      Cholesky. Operators return the log-determinant and solves without a
-      materialised precision. See
-      `vignette("theory-decovart-generative-model")`.
-    contents:
-      - new_decovart_covariance
-      - covariance_structure_from_graph_model
-      - sigma_logdet
-      - sigma_solve
-      - sigma_quadform
-      - sigma_trace_precision_times
-  - subtitle: Fisher information and Wald intervals
-    desc: |
-      Expected Fisher information of unconstrained proportions and ILR
-      delta-method covariance used by `vcov()` / `confint()` on
-      `decovart_fit` objects (see `fit_decovart`).
+      Intervals for compositions in the open simplex: expected Fisher
+      information, ILR delta-method (Wald) covariance used by `vcov()` /
+      `confint()` on `decovart_fit` objects, and profile-likelihood
+      intervals that invert the Wilks calibration
+      (`R/03_01_interior_intervals.R`).
     contents:
       - expected_fisher_unconstrained
       - vcov_ilr_delta
-  - subtitle: Likelihood-ratio and boundary inference
+      - confint_profile_decovart
+  - subtitle: Boundary tests
     desc: |
-      Profile likelihood, likelihood-ratio tests with chi-bar-square
-      (Chernoff / Self--Liang) calibration on simplex faces, parametric
-      bootstrap, reference-sample bootstrap (donors, cells, or Dirichlet
-      compositions), and the boundary / multimodality diagnostics that a
-      bare convergence code cannot provide. See
+      Maximum likelihood on simplex faces, likelihood-ratio tests with
+      chi-bar-square (Chernoff / Self--Liang) calibration when a null lies on
+      a face, edge or vertex, and the boundary diagnostics that a bare
+      convergence code cannot provide (`R/03_02_boundary_tests.R`). See
       `vignette("theory-DeCovarT-MLE-properties")`.
     contents:
       - restricted_mle_decovart
-      - profile_loglik_decovart
       - lrt_decovart
-      - confint_profile_decovart
       - chi_bar_square_pvalue
+      - boundary_diagnostics
+  - subtitle: Resampling inference
+    desc: |
+      Parametric bootstrap (percentile intervals and Monte Carlo calibration
+      of boundary tests), reference-sample bootstrap over donors or cells,
+      and the label-equivariance check (`R/03_03_resampling_inference.R`).
+    contents:
       - bootstrap_decovart
       - reference_bootstrap_decovart
       - equivariance_check_decovart
-      - boundary_diagnostics
-      - multistart_decovart
   - title: Benchmark and evaluation
     desc: |
       Quality metrics for estimated proportions, and the simulation

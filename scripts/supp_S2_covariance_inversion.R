@@ -18,8 +18,9 @@
 #
 # Article:  DeCovarT – Supplementary S2: covariance backends
 # Vignette: vignettes/supp-S2-covariance-inversion.qmd
-# Package:  new_decovart_covariance() + sigma_solve() / sigma_logdet()
-#           (correctness prototypes live in this script, not a second file)
+# Backends: new_decovart_covariance() + sigma_solve() / sigma_logdet(),
+#           sourced from scripts/experimental/covariance_backends.R (not
+#           exported by the package, which assumes a dense Sigma(p))
 
 #
 # ── Factorial design ─────────────────────────────────────────────────────────
@@ -51,6 +52,8 @@ if (
 } else {
   library(DeCovarT)
 }
+# Structured backends rely on package internals: load the package first.
+source(file.path("scripts", "experimental", "covariance_backends.R"))
 
 OUT_DIR <- file.path("output", "supp_S2")
 dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)

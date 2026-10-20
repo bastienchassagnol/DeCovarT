@@ -42,10 +42,11 @@ network_groups <- list(
   list(
     files = c(
       "02_01_first_generation_deconvolution.R",
-      "02_02_covariance_backends.R",
-      "02_03_decovart_estimate_ratios.R",
-      "02_04_decovart_fit.R",
-      "03_01_decovart_inference.R"
+      "02_02_decovart_estimate_ratios.R",
+      "02_03_decovart_fit.R",
+      "03_01_interior_intervals.R",
+      "03_02_boundary_tests.R",
+      "03_03_resampling_inference.R"
     ),
     csv = "decovart_functions_core.csv",
     html = "decovart_function_network_core.html",

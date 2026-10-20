@@ -1318,7 +1318,7 @@ replicates <- simulate_bulk_mixture(
 
 round(
   confint_profile_decovart(
-    bulk_expression = replicates,
+    y = replicates,
     mean_signature_matrix = signature,
     Sigma = Sigma
   ),
@@ -1329,7 +1329,7 @@ round(
 ```{r}
 #| label: interior-lrt
 lrt_decovart(
-  bulk_expression = replicates,
+  y = replicates,
   mean_signature_matrix = signature,
   Sigma = Sigma,
   null_value = c(ct1 = 0.30)
@@ -1383,7 +1383,7 @@ replicates_absent <- simulate_bulk_mixture(
 )$Y
 
 lrt_decovart(
-  bulk_expression = replicates_absent,
+  y = replicates_absent,
   mean_signature_matrix = signature,
   Sigma = Sigma,
   null_value = c(ct3 = 0)
@@ -1438,7 +1438,7 @@ Two things restore the asymptotics, and both are implemented:
 
 - **Pool genuine replicates.** Supply several bulk columns that really
   do share one composition (technical replicates, or aliquots of one
-  tissue) through the `bulk_expression` argument of
+  tissue) as the columns of the `y` matrix of
   `lrt_decovart()` / `confint_profile_decovart()`. Those functions
   maximise the *summed* log-likelihood over the replicates, so the
   limit is taken in the number of replicates.
@@ -1473,7 +1473,7 @@ unrestricted MLE itself falls on the face.
 #| label: bootstrap-calibration
 set.seed(5)
 calibration <- bootstrap_decovart(
-  bulk_expression = replicates_absent,
+  y = replicates_absent,
   mean_signature_matrix = signature,
   Sigma = Sigma,
   null_value = c(ct3 = 0),
@@ -1574,7 +1574,7 @@ donor_ids <- lapply(refs, function(x) {
   rep(paste0("d", 1:3), length.out = ncol(x))
 })
 ref_boot <- reference_bootstrap_decovart(
-  bulk_expression = replicates,
+  y = replicates,
   reference_profiles = refs,
   donor_ids = donor_ids,
   method = "donors",

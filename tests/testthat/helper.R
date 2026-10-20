@@ -59,3 +59,26 @@ new_bivariate_toy_scenario <- function(
     )
   )
 }
+
+# Three genes, three cell types with isotropic covariances: shared by the
+# estimation (02_*) and inference (03_*) tests.
+.inference_setup <- function() {
+  signature <- matrix(
+    c(20, 40, 15, 40, 20, 25, 25, 30, 35),
+    nrow = 3,
+    dimnames = list(paste0("gene_", 1:3), paste0("ct", 1:3))
+  )
+  Sigma <- array(
+    0,
+    dim = c(3, 3, 3),
+    dimnames = list(
+      rownames(signature),
+      rownames(signature),
+      colnames(signature)
+    )
+  )
+  for (j in 1:3) {
+    Sigma[,, j] <- diag(3) * c(1, 1.5, 1.2)[j]
+  }
+  list(signature = signature, Sigma = Sigma)
+}

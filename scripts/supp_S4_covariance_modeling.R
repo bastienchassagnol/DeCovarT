@@ -172,7 +172,7 @@ scenario_config_S4$ID <- paste0(
 # ==============================================================================
 # SECTION 2 · INFERENCE ----
 #   Four solvers: NNLS, CT-diagonal ML, global GLS, full DeCovarT.
-#   The GLS solver uses fixed_gls_covariance() at the equal composition.
+#   The GLS solver fixes Sigma(p) at the equal composition (local helper).
 # ==============================================================================
 
 # CT-diagonal solver: zero off-diagonals of each Σ_j before passing to ML
@@ -184,11 +184,17 @@ scenario_config_S4$ID <- paste0(
   deconvolute_ratios_Marquardt_Levenberg(y, mu, Sigma_diag, ...)
 }
 
-# Global GLS solver: fixed covariance at equi-balanced composition
+# Global GLS solver: mean-only generalised least squares with the fixed
+# residual covariance W = Sigma(p) = sum_j p_j^2 Sigma_j evaluated at the
+# equi-balanced composition (known, so W does not move with the estimate),
+# then simplex repair. W is not copied into every slice of a DeCovarT tensor:
+# that would give ||p||^2 W, which still depends on p.
 .deconv_global_gls <- function(y, mu, Sigma, ...) {
   p_equal <- rep(1 / dim(Sigma)[3L], dim(Sigma)[3L])
-  w_global <- fixed_gls_covariance(Sigma, p = p_equal, diagonal = FALSE)
-  deconvolute_ratios_gls(y, mu, w_global)
+  w_global <- .compute_global_variance(p_equal, Sigma)
+  w_inv_mu <- solve(w_global, mu)
+  p_hat <- solve(crossprod(mu, w_inv_mu), crossprod(w_inv_mu, as.numeric(y)))
+  repair_simplex(stats::setNames(drop(p_hat), colnames(mu)))
 }
 
 deconvolution_functions_S4 <- list(

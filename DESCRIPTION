@@ -24,7 +24,6 @@ Imports:
     ggplot2 (>= 3.5.0),
     marqLevAlg,
     MASS,
-    Matrix,
     purrr,
     Rdpack (>= 0.7),
     rlang,

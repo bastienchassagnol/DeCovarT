@@ -28,23 +28,6 @@
 }
 
 
-test_that(".inner_product matches the closed-form quadratic product", {
-  x <- c(1, 2)
-  y <- c(3, -1)
-  a <- matrix(c(2, 0.5, 0.5, 3), 2L)
-
-  expect_equal(
-    .inner_product(x, a, y),
-    as.numeric(t(x) %*% a %*% y),
-    tolerance = .tol_srr
-  )
-  expect_equal(
-    .inner_product(x, a),
-    as.numeric(t(x) %*% a %*% x),
-    tolerance = .tol_srr
-  )
-})
-
 test_that(".sigma_p_factorisation caches by exact (p, Sigma)", {
   setup <- .decovart_deriv_setup()
   first <- .sigma_p_factorisation(setup$p, setup$Sigma)
@@ -109,6 +92,34 @@ test_that("Unconstrained objective gradient/Hessian match numDeriv", {
     hessian_theoretical,
     tolerance = 1e-4
   )
+})
+
+
+test_that("Unconstrained Hessian is symmetric and matches numDeriv for J = 4", {
+  # Regression: the former symmetrisation H[lower.tri] <- H[upper.tri]
+  # paired the wrong entries as soon as J >= 4.
+  withr::local_seed(3L)
+  n_genes <- 8L
+  n_celltypes <- 4L
+  mu <- matrix(stats::rexp(n_genes * n_celltypes, 0.1), n_genes, n_celltypes)
+  Sigma <- array(0, dim = c(n_genes, n_genes, n_celltypes))
+  for (j in seq_len(n_celltypes)) {
+    a <- matrix(stats::rnorm(n_genes^2), n_genes)
+    Sigma[,, j] <- crossprod(a) / n_genes + diag(0.3, n_genes)
+  }
+  p <- c(0.4, 0.3, 0.2, 0.1)
+  y <- drop(mu %*% p) + stats::rnorm(n_genes)
+
+  hessian_theoretical <- hessian_loglik_unconstrained(p, y, mu, Sigma)
+  hessian_numerical <- numDeriv::hessian(
+    loglik_multivariate,
+    p,
+    y = y,
+    mean_signature_matrix = mu,
+    Sigma = Sigma
+  )
+  expect_true(isSymmetric(hessian_theoretical))
+  expect_equal(hessian_theoretical, hessian_numerical, tolerance = 1e-6)
 })
 
 
@@ -355,4 +366,118 @@ test_that("Benchmark standard deconvolution algorithms against DeCovarT", {
   expect_equal(nrow(bivariate_scenario$config), 1L)
   expect_true(nrow(bivariate_scenario$optimisation) > 0L)
   expect_true("tv" %in% names(bivariate_scenario$regression$global))
+})
+
+
+test_that("loglik_multivariate is the Gaussian log-density up to a constant", {
+  setup <- .inference_setup()
+  p <- c(0.5, 0.3, 0.2)
+  y <- drop(setup$signature %*% p) + c(0.4, -0.2, 0.1)
+
+  covariance <- .compute_global_variance(p, setup$Sigma)
+  residual <- y - drop(setup$signature %*% p)
+  reference <- -0.5 *
+    as.numeric(determinant(covariance, logarithm = TRUE)$modulus) -
+    0.5 * drop(t(residual) %*% solve(covariance) %*% residual)
+
+  expect_equal(
+    loglik_multivariate(p, y, setup$signature, setup$Sigma),
+    reference,
+    tolerance = 1e-10
+  )
+})
+
+test_that("loglik_multivariate matches dmvnorm up to the 2 pi constant", {
+  skip_if_not_installed("mvtnorm")
+  setup <- .inference_setup()
+  p <- c(0.5, 0.3, 0.2)
+  y <- drop(setup$signature %*% p) + c(0.4, -0.2, 0.1)
+  covariance <- .compute_global_variance(p, setup$Sigma)
+  n_genes <- length(y)
+
+  expect_equal(
+    loglik_multivariate(p, y, setup$signature, setup$Sigma) -
+      0.5 * n_genes * log(2 * pi),
+    as.numeric(mvtnorm::dmvnorm(
+      y,
+      mean = drop(setup$signature %*% p),
+      sigma = covariance,
+      log = TRUE
+    )),
+    tolerance = 1e-10
+  )
+})
+
+test_that("Cholesky backsolve matches the explicit-inverse Mahalanobis term", {
+  setup <- .inference_setup()
+  p <- c(0.45, 0.35, 0.20)
+  y <- drop(setup$signature %*% p) + c(0.1, -0.3, 0.2)
+  residual <- as.numeric(y - drop(setup$signature %*% p))
+  sigma_p <- .sigma_p_factorisation(p, setup$Sigma)
+  z <- backsolve(sigma_p$chol, residual, transpose = TRUE)
+
+  expect_equal(
+    sum(z * z),
+    drop(crossprod(residual, sigma_p$inverse %*% residual)),
+    tolerance = 1e-10
+  )
+})
+
+test_that("cell-type permutation leaves the Gaussian log-likelihood invariant", {
+  setup <- .inference_setup()
+  p <- c(0.5, 0.3, 0.2)
+  perm <- c(3L, 1L, 2L)
+  y <- drop(setup$signature %*% p)
+  mu_perm <- setup$signature[, perm, drop = FALSE]
+  colnames(mu_perm) <- colnames(setup$signature)
+  sigma_perm <- setup$Sigma[,, perm, drop = FALSE]
+  if (!is.null(dimnames(setup$Sigma))) {
+    dimnames(sigma_perm) <- dimnames(setup$Sigma)
+  }
+
+  expect_equal(
+    loglik_multivariate(p, y, setup$signature, setup$Sigma),
+    loglik_multivariate(p[perm], y, mu_perm, sigma_perm),
+    tolerance = 1e-10
+  )
+
+  gene_perm <- c(3L, 1L, 2L)
+  y_gene <- y[gene_perm]
+  expect_false(
+    isTRUE(all.equal(
+      loglik_multivariate(p, y, setup$signature, setup$Sigma),
+      loglik_multivariate(p, y_gene, setup$signature, setup$Sigma),
+      tolerance = 1e-8
+    ))
+  )
+})
+
+test_that("isometric_logistic stays finite for extreme ILR coordinates", {
+  p <- isometric_logistic(c(800, 1200))
+
+  expect_false(anyNA(p))
+  expect_equal(sum(p), 1, tolerance = 1e-12)
+})
+
+#' @srrstats {G5.9b} `multistart_decovart()` sequences several
+#'   Dirichlet starts; spread of attained log-likelihoods is recorded.
+test_that("multistart_decovart explores several starts", {
+  setup <- .inference_setup()
+  y <- drop(setup$signature %*% c(0.45, 0.35, 0.20))
+
+  restarts <- withr::with_seed(
+    3L,
+    multistart_decovart(
+      y = y,
+      mean_signature_matrix = setup$signature,
+      Sigma = setup$Sigma,
+      n_starts = 3L,
+      itmax = 100
+    )
+  )
+
+  expect_identical(dim(restarts$starts), c(3L, 4L))
+  expect_length(restarts$logliks, 4L)
+  expect_type(restarts$multimodal, "logical")
+  expect_equal(sum(restarts$coefficients), 1, tolerance = 1e-6)
 })

@@ -94,7 +94,6 @@ isometric_logistic <- function(z, V = NULL) {
 #' Requires a strictly positive composition (open simplex).
 #'
 #' @param p Numeric vector on the open simplex.
-#' @param p Numeric vector on the open simplex.
 #' @param V Optional ILR basis; see [isometric_logistic()].
 #'
 #' @return Numeric vector \eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}}.
@@ -178,56 +177,6 @@ hessian_isometric_logistic <- function(z, V = NULL) {
   out
 }
 
-#' Evaluate a matrix-induced inner product
-#'
-#' Computes \eqn{\langle\boldsymbol{x},\boldsymbol{y}\rangle_{\boldsymbol{A}}
-#' =\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{y}}.
-#' When \eqn{\boldsymbol{A}} is symmetric positive definite (as for a
-#' non-degenerate Gaussian covariance or precision), this is the
-#' \eqn{\boldsymbol{A}}-inner product on
-#' \eqn{\mathbb{R}^{p}}
-#' (<https://en.wikipedia.org/wiki/Inner_product_space#Basic_properties>).
-#' Prefer this name over the generic "bilinear form" when \eqn{\boldsymbol{A}}
-#' is SPD; the Euclidean inner product is the special case
-#' \eqn{\boldsymbol{A}=\mathbf{I}}
-#' (\eqn{\boldsymbol{x}^{\mathsf{T}}\boldsymbol{y}}).
-#'
-#' Implementation uses [base::crossprod()] as
-#' `drop(crossprod(x, A %*% y))`, which is the standard efficient route to
-#' a bilinear / quadratic form in R (avoids an explicit transpose of
-#' \eqn{\boldsymbol{x}} and a temporary outer product).
-#'
-#' @param x Numeric vector.
-#' @param A Numeric square matrix, compatible with `x` and `y`
-#'   (SPD when interpreted as an inner-product metric).
-#' @param y Numeric vector of the same length as `x` (default `x`,
-#'   which yields the squared \eqn{\boldsymbol{A}}-norm
-#'   \eqn{\boldsymbol{x}^{\mathsf{T}}\boldsymbol{A}\boldsymbol{x}}).
-#'
-#' @return Numeric scalar.
-#' @keywords internal
-#' @examples
-#' .inner_product(c(1, 2), diag(2), c(3, 4))
-#' @export
-.inner_product <- function(x, A, y = x) {
-  x <- as.numeric(x)
-  y <- as.numeric(y)
-  A <- as.matrix(A)
-  p <- length(x)
-
-  if (length(y) != p) {
-    stop("`x` and `y` must have the same length.", call. = FALSE)
-  }
-  if (!identical(dim(A), c(p, p))) {
-    stop(
-      "`A` must be a square matrix compatible with `x` and `y`.",
-      call. = FALSE
-    )
-  }
-
-  drop(crossprod(x, A %*% y))
-}
-
 #' Bulk mixture covariance \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}
 #'
 #' @description
@@ -250,12 +199,6 @@ hessian_isometric_logistic <- function(z, V = NULL) {
 #' .compute_global_variance(p, Sigma)
 #' @export
 .compute_global_variance <- function(p, Sigma) {
-  ###  Sigma and TensorA packages
-  # global_cov <- matrix(0, nrow = dim(Sigma)[1], ncol=dim(Sigma)[2])
-  # for (j in 1:length(p)) {
-  #   global_cov <- global_cov + p[j]^2*Sigma[,,j]
-  # }
-  #
   global_cov <- tensor::tensor(p^2, Sigma, alongA = 1, alongB = 3)
   global_cov <- (global_cov + t(global_cov)) / 2
   global_cov
@@ -265,70 +208,38 @@ hessian_isometric_logistic <- function(z, V = NULL) {
 #'
 #' @description
 #' Assembles [.compute_global_variance()] and factorises it once via
-#' [base::chol()], returning the matrix itself together with its Cholesky
-#' factor, log-determinant (via the factor's diagonal, not [base::det()]),
-#' and inverse (via [qr.solve()] after a uniform spectral shift if
-#' the mixture is not numerically SPD).
+#' [base::chol()], returning the matrix, its upper Cholesky factor, the
+#' log-determinant (from the factor's diagonal) and the precision
+#' \eqn{\boldsymbol{\Omega}(\boldsymbol{p})} (from the same factor, via
+#' [base::chol2inv()]). The covariance is treated as dense: no sparsity or
+#' low-rank structure is assumed.
 #'
 #' @details
-#' [stats::optim()], [stats::nlminb()] and [marqLevAlg::marqLevAlg()] each
-#' treat the log-likelihood, gradient and Hessian as three independent
-#' callback functions, but all Newton-type solvers evaluate them at the
-#' SAME trial point \eqn{\boldsymbol{p}} within one iteration (the Hessian
-#' chain rule in [hessian_loglik_constrained()] even re-evaluates the
-#' unconstrained gradient a second time internally). Without sharing work,
-#' one (log-lik, gradient, Hessian) triple pays for the
-#' \eqn{O(G^{3})} assembly-and-factorisation of
-#' \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})} up to four times over; this
-#' single-slot cache, keyed on exact equality of `p` and `Sigma`, means only
-#' the first of those calls actually factorises, and the rest simply return
-#' the cached result in \eqn{O(G^{2})} (the cost of the equality check).
-#' Profiling on a 38-gene / 3-cell-type scenario showed the redundancy
+#' Newton-type solvers evaluate the log-likelihood, score and Hessian at the
+#' same trial \eqn{\boldsymbol{p}} within one iteration. This single-slot
+#' cache, keyed on exact equality of `p` and `Sigma`, factorises
+#' \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})} once (\eqn{O(G^{3})}) and
+#' returns the cached result to the later calls.
 #'
 #' @inheritParams loglik_multivariate
-#' @param backend Optional [new_decovart_covariance()] object declaring an
-#'   exploitable covariance structure (block, band, sparse or
-#'   diagonal-plus-low-rank). When `NULL` (default) the universal dense
-#'   Cholesky is used and cached, exactly as before. When supplied, the
-#'   structured operators of that backend supply `log_det` and the `solve` /
-#'   `quadform` closures; `inverse` is then materialised only for drop-in
-#'   compatibility with callers that still expect an explicit precision, and
-#'   the operator path (`solve`) should be preferred to keep the structural
-#'   speed-up (a dense `chol2inv` would undo it).
 #'
-#' @return A list with elements: `matrix` (\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}
-#'   itself, or `NULL` for factored backends), `chol` (upper-triangular
-#'   Cholesky factor, or `NULL`), `log_det`
+#' @return A list with `matrix` (\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}),
+#'   `chol` (upper-triangular Cholesky factor), `log_det`
 #'   (\eqn{\log\det\boldsymbol{\Sigma}(\boldsymbol{p})}) and `inverse`
-#'   (\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}}). When `backend` is
-#'   supplied the list additionally carries `solve` and `quadform` closures.
+#'   (\eqn{\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}}).
 #'
 #' @keywords internal
 #' @examples
 #' p <- c(0.6, 0.4)
 #' Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
 #' names(.sigma_p_factorisation(p, Sigma))
-#' @seealso [new_decovart_covariance()]
 #' @export
 .sigma_p_factorisation <- local({
   cache <- new.env(parent = emptyenv())
   cache$value <- NULL
 
-  function(p, Sigma, backend = NULL) {
-    if (!is.null(backend)) {
-      prep <- .sigma_prepare(backend, p)
-      return(list(
-        matrix = prep$matrix,
-        chol = prep$chol,
-        log_det = prep$logdet,
-        inverse = prep$solve(diag(backend$n_genes)),
-        solve = prep$solve,
-        quadform = prep$quadform
-      ))
-    }
-
+  function(p, Sigma) {
     cached <- cache$value
-
     if (
       !is.null(cached) &&
         identical(cached$p, p) &&
@@ -337,23 +248,15 @@ hessian_isometric_logistic <- function(z, V = NULL) {
       return(cached$value)
     }
 
-    global_cov_matrix <- .compute_global_variance(p, Sigma)
-    global_cov_matrix <- .ensure_spd(global_cov_matrix)
+    global_cov_matrix <- .ensure_spd(.compute_global_variance(p, Sigma))
     chol_factor <- base::chol(global_cov_matrix)
-
     value <- list(
       matrix = global_cov_matrix,
       chol = chol_factor,
       log_det = 2 * sum(log(diag(chol_factor))),
-      inverse = .qr_sym_inverse(global_cov_matrix)
+      inverse = chol2inv(chol_factor)
     )
-
-    cache$value <- list(
-      p = p,
-      Sigma = Sigma,
-      value = value
-    )
-
+    cache$value <- list(p = p, Sigma = Sigma, value = value)
     value
   }
 })
@@ -545,29 +448,23 @@ loglik_multivariate_constrained <- function(
 #' @export
 #' @seealso [numDeriv::grad()], [hessian_loglik_unconstrained()]
 gradient_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
-  # shared, cached factorisation of Sigma(p) -- see .sigma_p_factorisation()
-  global_precision_matrix <- .sigma_p_factorisation(p, Sigma)$inverse
-
-  # compute the gradient itself
-  gradient_unconstrained <- numeric(0)
-  for (j in seq_along(p)) {
-    gradient_unconstrained <- c(
-      gradient_unconstrained,
-      -p[j] *
-        sum(diag(global_precision_matrix %*% Sigma[,, j])) +
-        .inner_product(
-          y - mean_signature_matrix %*% p,
-          global_precision_matrix,
-          mean_signature_matrix[, j]
-        ) +
-        p[j] *
-          .inner_product(
-            y - mean_signature_matrix %*% p,
-            global_precision_matrix %*% Sigma[,, j] %*% global_precision_matrix
-          )
-    )
-  }
-  return(gradient_unconstrained)
+  omega <- .sigma_p_factorisation(p, Sigma)$inverse
+  # w = Omega r: every term of the score is a product with it.
+  w <- drop(omega %*% (y - mean_signature_matrix %*% p))
+  # Sigma_j and Omega are symmetric, so Tr(Omega Sigma_j) = sum(Omega * Sigma_j).
+  trace_term <- vapply(
+    seq_along(p),
+    function(j) sum(omega * Sigma[,, j]),
+    numeric(1)
+  )
+  residual_term <- vapply(
+    seq_along(p),
+    function(j) sum(w * (Sigma[,, j] %*% w)),
+    numeric(1)
+  )
+  as.numeric(
+    -p * trace_term + crossprod(mean_signature_matrix, w) + p * residual_term
+  )
 }
 
 
@@ -661,67 +558,61 @@ gradient_loglik_constrained <- function(
 #' hessian_loglik_unconstrained(p, y, mu, Sigma)
 #' @export
 hessian_loglik_unconstrained <- function(p, y, mean_signature_matrix, Sigma) {
-  num_celltypes <- length(p)
-  hessian_unconstrained <- matrix(0, nrow = num_celltypes, ncol = num_celltypes)
-  # shared, cached factorisation of Sigma(p) -- see .sigma_p_factorisation()
-  global_precision_matrix <- .sigma_p_factorisation(p, Sigma)$inverse
-  for (i in 1:num_celltypes) {
-    for (j in i:num_celltypes) {
-      hessian_unconstrained[i, j] <- 2 *
-        p[i] *
-        p[j] *
-        sum(diag(
-          global_precision_matrix %*%
-            Sigma[,, i] %*%
-            global_precision_matrix %*%
-            Sigma[,, j]
-        )) -
-        .inner_product(
-          mean_signature_matrix[, i],
-          global_precision_matrix,
-          mean_signature_matrix[, j]
-        ) -
-        2 *
-          p[i] *
-          .inner_product(
-            y - mean_signature_matrix %*% p,
-            global_precision_matrix %*% Sigma[,, i] %*% global_precision_matrix,
-            mean_signature_matrix[, j]
-          ) -
-        2 *
-          p[j] *
-          .inner_product(
-            y - mean_signature_matrix %*% p,
-            global_precision_matrix %*% Sigma[,, j] %*% global_precision_matrix,
-            mean_signature_matrix[, i]
-          ) -
-        4 *
-          p[i] *
-          p[j] *
-          .inner_product(
-            y - mean_signature_matrix %*% p,
-            global_precision_matrix %*%
-              Sigma[,, j] %*%
-              global_precision_matrix %*%
-              Sigma[,, i] %*%
-              global_precision_matrix
-          )
-      if (i == j) {
-        # add diagonal terms
-        hessian_unconstrained[i, i] <- hessian_unconstrained[i, i] -
-          sum(diag(global_precision_matrix %*% Sigma[,, i])) +
-          .inner_product(
-            y - mean_signature_matrix %*% p,
-            global_precision_matrix %*% Sigma[,, i] %*% global_precision_matrix
-          )
-      }
+  blocks <- .information_blocks(p, mean_signature_matrix, Sigma)
+  w <- drop(blocks$precision %*% (y - mean_signature_matrix %*% p))
+  # Column j of s is Sigma_j Omega r, column j of u is Omega Sigma_j Omega r.
+  s <- matrix(
+    vapply(
+      seq_along(p),
+      function(j) drop(Sigma[,, j] %*% w),
+      numeric(length(w))
+    ),
+    nrow = length(w)
+  )
+  u <- blocks$precision %*% s
+  # cross[i, j] = p_i r' Omega Sigma_i Omega mu_j
+  cross <- p * crossprod(u, mean_signature_matrix)
+  hessian <- blocks$cov -
+    blocks$mean -
+    2 * (cross + t(cross)) -
+    4 * tcrossprod(p) * crossprod(s, u)
+  diag(hessian) <- diag(hessian) - blocks$traces + colSums(s * w)
+  unname(hessian)
+}
+
+
+#' Mean and covariance blocks of the expected information
+#'
+#' Shared by [hessian_loglik_unconstrained()],
+#' [expected_fisher_unconstrained()] and the scenario descriptors:
+#' `mean` is \eqn{\boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\Omega}
+#' \boldsymbol{\mu}}, `cov` is \eqn{2p_jp_k\,\mathrm{Tr}(\boldsymbol{\Omega}
+#' \boldsymbol{\Sigma}_j\boldsymbol{\Omega}\boldsymbol{\Sigma}_k)},
+#' `traces` is \eqn{\mathrm{Tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}_j)}
+#' and `precision` is \eqn{\boldsymbol{\Omega}(\boldsymbol{p})}.
+#'
+#' @noRd
+.information_blocks <- function(p, mean_signature_matrix, Sigma) {
+  omega <- .sigma_p_factorisation(p, Sigma)$inverse
+  n_celltypes <- length(p)
+  omega_sigma <- lapply(seq_len(n_celltypes), function(j) omega %*% Sigma[,, j])
+  trace_products <- matrix(0, n_celltypes, n_celltypes)
+  for (j in seq_len(n_celltypes)) {
+    for (k in j:n_celltypes) {
+      # Tr(A B) = sum(A * t(B))
+      trace_products[j, k] <- sum(omega_sigma[[j]] * t(omega_sigma[[k]]))
+      trace_products[k, j] <- trace_products[j, k]
     }
   }
-  # enforce symmetry
-  hessian_unconstrained[lower.tri(
-    hessian_unconstrained
-  )] <- hessian_unconstrained[upper.tri(hessian_unconstrained)]
-  return(hessian_unconstrained)
+  list(
+    precision = omega,
+    traces = vapply(omega_sigma, function(a) sum(diag(a)), numeric(1)),
+    mean = unname(crossprod(
+      mean_signature_matrix,
+      omega %*% mean_signature_matrix
+    )),
+    cov = 2 * tcrossprod(p) * trace_products
+  )
 }
 
 
@@ -858,11 +749,19 @@ starting_simplex <- function(
   } else if (identical(kind, "numeric")) {
     p <- as.numeric(initial_p)
   } else if (identical(kind, "dirichlet")) {
-    if (is.null(nms)) {
-      nms <- paste0("ct", seq_len(n_celltypes))
+    alpha <- rep_len(as.numeric(dirichlet_alpha), n_celltypes)
+    if (
+      !length(dirichlet_alpha) %in% c(1L, n_celltypes) ||
+        any(!is.finite(alpha) | alpha <= 0)
+    ) {
+      stop(
+        "`dirichlet_alpha` must be positive and finite, of length 1 or J.",
+        call. = FALSE
+      )
     }
-    alpha <- .parse_dirichlet_alpha(dirichlet_alpha, nms)
-    p <- .rdirichlet_one(alpha)
+    # One Dirichlet draw: normalised independent Gamma(alpha_j, 1) variates.
+    p <- stats::rgamma(n_celltypes, shape = alpha, rate = 1)
+    p <- p / sum(p)
   } else {
     if (is.null(y) || is.null(mean_signature_matrix)) {
       stop(
@@ -873,6 +772,140 @@ starting_simplex <- function(
     p <- deconvolute_ratios_deconrnaseq(y, mean_signature_matrix)
   }
   repair_simplex(p, open = TRUE, nms = nms)
+}
+
+#' Refit DeCovarT from several random starts to probe multimodality
+#'
+#' @description
+#' The realised DeCovarT log-likelihood is not globally concave, so a
+#' successful convergence code, a small relative-distance-to-minimum and a
+#' negative-definite local Hessian together establish a **local** maximum
+#' only. Refitting from independent Dirichlet\eqn{(1,\ldots,1)} starts and
+#' comparing the attained log-likelihoods is the cheapest direct probe of
+#' a second, equally good or better mode.
+#'
+#' @inheritParams loglik_multivariate
+#' @param n_starts Number of Dirichlet restarts (in addition to the
+#'   equi-balanced start).
+#' @param dirichlet_alpha Concentration for those random starts (default
+#'   `1`). See [starting_simplex()].
+#' @param solver Solver accepting `initial_p` and `return_model`;
+#'   defaults to [deconvolute_ratios_Newton_Raphson()].
+#' @param loglik_tol Two starts count as reaching the same mode when their
+#'   log-likelihoods differ by less than this amount.
+#' @param ... Passed to `solver` (e.g. `epsilon`, `itmax`).
+#'
+#' @return A list with `coefficients` (best fit), `loglik`,
+#'   `loglik_range`, `starts` (matrix of per-start estimates),
+#'   `logliks`, and `multimodal`.
+#'
+#' @seealso [boundary_diagnostics()], [fit_decovart()]
+#' @family decovart_inference
+#' @export
+#' @examples
+#' mu <- matrix(c(20, 40, 15, 40, 20, 25), nrow = 3)
+#' colnames(mu) <- paste0("ct", 1:2)
+#' Sigma <- array(c(diag(3), diag(3)), dim = c(3, 3, 2))
+#' y <- drop(mu %*% c(0.6, 0.4))
+#' set.seed(1)
+#' multistart_decovart(y, mu, Sigma, n_starts = 3L)$multimodal
+multistart_decovart <- function(
+  y,
+  mean_signature_matrix,
+  Sigma,
+  n_starts = 5L,
+  solver = deconvolute_ratios_Newton_Raphson,
+  loglik_tol = 1e-4,
+  dirichlet_alpha = 1,
+  ...
+) {
+  n_celltypes <- ncol(mean_signature_matrix)
+  n_starts <- as.integer(n_starts)
+  starts <- vector("list", n_starts + 1L)
+  starts[[1L]] <- starting_simplex(
+    n_celltypes,
+    "barycentre",
+    colnames(mean_signature_matrix)
+  )
+  for (s in seq_len(n_starts)) {
+    starts[[s + 1L]] <- starting_simplex(
+      n_celltypes,
+      "dirichlet",
+      colnames(mean_signature_matrix),
+      dirichlet_alpha = dirichlet_alpha
+    )
+  }
+  estimates <- matrix(
+    NA_real_,
+    nrow = n_celltypes,
+    ncol = length(starts),
+    dimnames = list(colnames(mean_signature_matrix), NULL)
+  )
+  logliks <- rep(NA_real_, length(starts))
+  for (s in seq_along(starts)) {
+    fit <- tryCatch(
+      suppressWarnings(solver(
+        y = y,
+        mean_signature_matrix = mean_signature_matrix,
+        Sigma = Sigma,
+        return_model = TRUE,
+        initial_p = starts[[s]],
+        ...
+      )),
+      error = function(e) NULL
+    )
+    if (is.null(fit)) {
+      next
+    }
+    estimates[, s] <- fit$coefficients
+    logliks[[s]] <- fit$loglik
+  }
+  if (!any(is.finite(logliks))) {
+    stop("Every random start failed to converge.", call. = FALSE)
+  }
+  best <- which.max(logliks)
+  loglik_range <- diff(range(logliks, na.rm = TRUE))
+  list(
+    coefficients = estimates[, best],
+    loglik = logliks[[best]],
+    loglik_range = loglik_range,
+    starts = estimates,
+    logliks = logliks,
+    multimodal = loglik_range > loglik_tol
+  )
+}
+
+#' Shared return value of the DeCovarT solvers
+#'
+#' Names the estimate by cell type and, when `return_model = TRUE`, adds
+#' the ILR coordinates, the attained log-likelihood and the optimiser
+#' diagnostics.
+#'
+#' @noRd
+.solver_result <- function(
+  estimated_p,
+  estimated_z,
+  y,
+  mean_signature_matrix,
+  Sigma,
+  convergence,
+  return_model
+) {
+  names(estimated_p) <- colnames(mean_signature_matrix)
+  if (!isTRUE(return_model)) {
+    return(estimated_p)
+  }
+  list(
+    coefficients = estimated_p,
+    z = estimated_z,
+    loglik = loglik_multivariate(
+      estimated_p,
+      y,
+      mean_signature_matrix,
+      Sigma
+    ),
+    convergence = convergence
+  )
 }
 
 #' DeCovarT MLE of cellular proportions for one bulk sample
@@ -953,12 +986,12 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
   dirichlet_alpha = 1
 ) {
   initial_p <- starting_simplex(
-    n_celltypes = ncol(mean_signature_matrix),
-    initial_p = initial_p,
-    nms = colnames(mean_signature_matrix),
-    y = y,
-    mean_signature_matrix = mean_signature_matrix,
-    dirichlet_alpha = dirichlet_alpha
+    ncol(mean_signature_matrix),
+    initial_p,
+    colnames(mean_signature_matrix),
+    y,
+    mean_signature_matrix,
+    dirichlet_alpha
   )
   initial_z <- isometric_log_ratio(initial_p)
   # marqLevAlg() only negates fn/gr internally when minimize = FALSE; hess()
@@ -1015,26 +1048,15 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
     }
     estimated_z <- fit$b
   }
-  estimated_p <- isometric_logistic(estimated_z)
-  names(estimated_p) <- colnames(mean_signature_matrix)
-  if (isTRUE(return_model)) {
-    return(list(
-      coefficients = estimated_p,
-      z = estimated_z,
-      loglik = loglik_multivariate(
-        estimated_p,
-        y,
-        mean_signature_matrix,
-        Sigma
-      ),
-      convergence = list(
-        istop = fit$istop,
-        rdm = fit$rdm,
-        iterations = fit$ni
-      )
-    ))
-  }
-  estimated_p
+  .solver_result(
+    isometric_logistic(estimated_z),
+    estimated_z,
+    y,
+    mean_signature_matrix,
+    Sigma,
+    list(istop = fit$istop, rdm = fit$rdm, iterations = fit$ni),
+    return_model
+  )
 }
 
 
@@ -1053,12 +1075,12 @@ deconvolute_ratios_simulated_annealing <- function(
   dirichlet_alpha = 1
 ) {
   initial_p <- starting_simplex(
-    n_celltypes = ncol(mean_signature_matrix),
-    initial_p = initial_p,
-    nms = colnames(mean_signature_matrix),
-    y = y,
-    mean_signature_matrix = mean_signature_matrix,
-    dirichlet_alpha = dirichlet_alpha
+    ncol(mean_signature_matrix),
+    initial_p,
+    colnames(mean_signature_matrix),
+    y,
+    mean_signature_matrix,
+    dirichlet_alpha
   )
   initial_z <- isometric_log_ratio(initial_p)
   # gr is not used in the simulated annealing approach
@@ -1072,28 +1094,19 @@ deconvolute_ratios_simulated_annealing <- function(
     control = list(fnscale = -1, maxit = itmax),
     method = "SANN"
   )
-  estimated_z <- fit$par
-  estimated_p <- isometric_logistic(estimated_z)
-  names(estimated_p) <- colnames(mean_signature_matrix)
-  estimated_p <- repair_simplex(estimated_p)
-  if (isTRUE(return_model)) {
-    return(list(
-      coefficients = estimated_p,
-      z = estimated_z,
-      loglik = loglik_multivariate(
-        estimated_p,
-        y,
-        mean_signature_matrix,
-        Sigma
-      ),
-      convergence = list(
-        code = fit$convergence,
-        iterations = unname(fit$counts[["function"]]),
-        message = fit$message
-      )
-    ))
-  }
-  estimated_p
+  .solver_result(
+    repair_simplex(isometric_logistic(fit$par)),
+    fit$par,
+    y,
+    mean_signature_matrix,
+    Sigma,
+    list(
+      code = fit$convergence,
+      iterations = unname(fit$counts[["function"]]),
+      message = fit$message
+    ),
+    return_model
+  )
 }
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Box-constrained L-BFGS-B
@@ -1114,12 +1127,12 @@ deconvolute_ratios_L_BFGS_B <- function(
   dirichlet_alpha = 1
 ) {
   initial_p <- starting_simplex(
-    n_celltypes = ncol(mean_signature_matrix),
-    initial_p = initial_p,
-    nms = colnames(mean_signature_matrix),
-    y = y,
-    mean_signature_matrix = mean_signature_matrix,
-    dirichlet_alpha = dirichlet_alpha
+    ncol(mean_signature_matrix),
+    initial_p,
+    colnames(mean_signature_matrix),
+    y,
+    mean_signature_matrix,
+    dirichlet_alpha
   )
   # Box constraints alone do not keep sum(p)=1, so Sigma(p) can become
   # singular during the line search. Guard the objective/gradient and fall
@@ -1161,29 +1174,23 @@ deconvolute_ratios_L_BFGS_B <- function(
     upper = rep(1, length(initial_p))
   )
   estimated_p <- fit$par
-  names(estimated_p) <- colnames(mean_signature_matrix)
   total <- sum(estimated_p)
   if (is.finite(total) && total > 0) {
     estimated_p <- estimated_p / total
   }
-  if (isTRUE(return_model)) {
-    return(list(
-      coefficients = estimated_p,
-      z = isometric_log_ratio(estimated_p),
-      loglik = loglik_multivariate(
-        estimated_p,
-        y,
-        mean_signature_matrix,
-        Sigma
-      ),
-      convergence = list(
-        code = fit$convergence,
-        iterations = unname(fit$counts[["function"]]),
-        message = fit$message
-      )
-    ))
-  }
-  estimated_p
+  .solver_result(
+    estimated_p,
+    isometric_log_ratio(estimated_p),
+    y,
+    mean_signature_matrix,
+    Sigma,
+    list(
+      code = fit$convergence,
+      iterations = unname(fit$counts[["function"]]),
+      message = fit$message
+    ),
+    return_model
+  )
 }
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Newton–Raphson /
@@ -1201,12 +1208,12 @@ deconvolute_ratios_Newton_Raphson <- function(
   dirichlet_alpha = 1
 ) {
   initial_p <- starting_simplex(
-    n_celltypes = ncol(mean_signature_matrix),
-    initial_p = initial_p,
-    nms = colnames(mean_signature_matrix),
-    y = y,
-    mean_signature_matrix = mean_signature_matrix,
-    dirichlet_alpha = dirichlet_alpha
+    ncol(mean_signature_matrix),
+    initial_p,
+    colnames(mean_signature_matrix),
+    y,
+    mean_signature_matrix,
+    dirichlet_alpha
   )
   initial_z <- isometric_log_ratio(initial_p)
 
@@ -1233,27 +1240,19 @@ deconvolute_ratios_Newton_Raphson <- function(
       abs.tol = epsilon
     )
   )
-  estimated_z <- fit$par
-  estimated_p <- isometric_logistic(estimated_z)
-  names(estimated_p) <- colnames(mean_signature_matrix)
-  if (isTRUE(return_model)) {
-    return(list(
-      coefficients = estimated_p,
-      z = estimated_z,
-      loglik = loglik_multivariate(
-        estimated_p,
-        y,
-        mean_signature_matrix,
-        Sigma
-      ),
-      convergence = list(
-        code = fit$convergence,
-        iterations = fit$iterations,
-        message = fit$message
-      )
-    ))
-  }
-  estimated_p
+  .solver_result(
+    isometric_logistic(fit$par),
+    fit$par,
+    y,
+    mean_signature_matrix,
+    Sigma,
+    list(
+      code = fit$convergence,
+      iterations = fit$iterations,
+      message = fit$message
+    ),
+    return_model
+  )
 }
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg BFGS quasi-Newton ascent
@@ -1271,12 +1270,12 @@ deconvolute_ratios_gradient_descent <- function(
   dirichlet_alpha = 1
 ) {
   initial_p <- starting_simplex(
-    n_celltypes = ncol(mean_signature_matrix),
-    initial_p = initial_p,
-    nms = colnames(mean_signature_matrix),
-    y = y,
-    mean_signature_matrix = mean_signature_matrix,
-    dirichlet_alpha = dirichlet_alpha
+    ncol(mean_signature_matrix),
+    initial_p,
+    colnames(mean_signature_matrix),
+    y,
+    mean_signature_matrix,
+    dirichlet_alpha
   )
   initial_z <- isometric_log_ratio(initial_p)
 
@@ -1295,27 +1294,18 @@ deconvolute_ratios_gradient_descent <- function(
     ),
     method = "BFGS"
   )
-  estimated_z <- fit$par
-  estimated_p <- isometric_logistic(estimated_z)
-  names(estimated_p) <- colnames(mean_signature_matrix)
-  estimated_p <- repair_simplex(estimated_p)
-  if (isTRUE(return_model)) {
-    return(list(
-      coefficients = estimated_p,
-      z = estimated_z,
-      loglik = loglik_multivariate(
-        estimated_p,
-        y,
-        mean_signature_matrix,
-        Sigma
-      ),
-      convergence = list(
-        code = fit$convergence,
-        iterations = unname(fit$counts[["function"]]),
-        message = fit$message,
-        criterion = "reltol/abstol"
-      )
-    ))
-  }
-  estimated_p
+  .solver_result(
+    repair_simplex(isometric_logistic(fit$par)),
+    fit$par,
+    y,
+    mean_signature_matrix,
+    Sigma,
+    list(
+      code = fit$convergence,
+      iterations = unname(fit$counts[["function"]]),
+      message = fit$message,
+      criterion = "reltol/abstol"
+    ),
+    return_model
+  )
 }

@@ -147,10 +147,9 @@ See details of the gls competitor in @nte-gls-solver.
 
 When a scenario varies the *covariance structure*, keep a mean-only
 baseline whose residual covariance does **not** depend on $\boldsymbol{p}$.
-Build $W$ with [`fixed_gls_covariance()`](../reference/fixed_gls_covariance.html)
-(default: diagonal of $\Sigma(\bar p)$ at $\bar p_j=1/J$) and fit
-[`deconvolute_ratios_gls()`](../reference/deconvolute_ratios_gls.html)
-(`MASS::lm.gls`). Copying $W$ into every tensor slice is not GLS:
+Build $W=\Sigma(\bar p)$ at $\bar p_j=1/J$ and fit mean-only GLS with
+it held fixed (local helper `.deconv_global_gls()` in
+`scripts/supp_S4_covariance_modeling.R`). Copying $W$ into every tensor slice is not GLS:
 $\sum_j p_j^2 W=\|p\|_2^2 W$ still depends on $p$. The hierarchy is
 full $\Sigma(p)$, cell-type-diagonal convolution, then this fixed $W$.
 Starts for the convolution MLE: barycentre, Dirichlet

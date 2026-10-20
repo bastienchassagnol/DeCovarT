@@ -26,6 +26,21 @@ library(DeCovarT)
 > **Script:** `scripts/supp_S2_covariance_inversion.R` — benchmarks matrix
 > inversion strategies.  Outputs in `output/supp_S2/`.
 
+::: {.callout-note}
+## Structured backends are experimental
+
+The block, band, sparse and diagonal-plus-low-rank backends
+(`new_decovart_covariance()`, `sigma_logdet()`, `sigma_solve()`,
+`sigma_quadform()`, `sigma_trace_precision_times()`,
+`covariance_structure_from_graph_model()`) are no longer part of the
+package. They live in `scripts/experimental/covariance_backends.R`, which
+the S2 script sources after `devtools::load_all()`. The package fit assumes
+a dense $\boldsymbol{\Sigma}(\boldsymbol{p})$ and factorises it with one
+dense Cholesky: with more cell types, gene--gene correlations make any
+declared sparsity pattern unreliable, and the current priority is the
+single-cell model rather than computational speed.
+:::
+
 ---
 
 ## :one: Generative Model
@@ -300,7 +315,7 @@ The companion scatter is analytic $\nabla\ell$ (and, where stored, the
 Hessian) against Richardson extrapolation in `numDeriv` [@R-numDeriv],
 as already used in
 [the generative-model vignette](theory-decovart-generative-model.html)
-and in `tests/testthat/test-02_03_decovart_estimate_ratios.R`. DICEPro reported relative
+and in `tests/testthat/test-02_02_decovart_estimate_ratios.R`. DICEPro reported relative
 errors below $6\times 10^{-6}$ with central differences
 $\varepsilon=10^{-5}$. DeCovarT prefers Richardson's tableau rather than
 a single-step central difference, because the score mixes traces of

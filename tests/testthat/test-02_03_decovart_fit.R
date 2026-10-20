@@ -395,3 +395,42 @@ test_that("L-BFGS-B and Newton-Raphson return models without repair_simplex", {
     expect_true(all(p >= 0 & p <= 1))
   }
 })
+
+
+test_that("fit_decovart stores boundary diagnostics and multi-start spread", {
+  setup <- .inference_setup()
+  replicates <- withr::with_seed(
+    7L,
+    simulate_bulk_mixture(
+      signature_matrix = setup$signature,
+      Sigma = setup$Sigma,
+      p = c(0.45, 0.35, 0.20),
+      n = 2L
+    )$Y
+  )
+
+  fit <- withr::with_seed(
+    2L,
+    fit_decovart(
+      signature_matrix = setup$signature,
+      bulk_expression = replicates,
+      Sigma = setup$Sigma,
+      itmax = 100,
+      n_starts = 2L
+    )
+  )
+
+  expect_length(fit$diagnostics, 2L)
+  expect_named(
+    fit$diagnostics[[1L]],
+    c(
+      "boundary_distance",
+      "near_boundary",
+      "score_norm",
+      "min_eigenvalue",
+      "max_eigenvalue",
+      "local_maximum"
+    )
+  )
+  expect_false(is.null(fit$convergence[[1L]]$multimodal))
+})

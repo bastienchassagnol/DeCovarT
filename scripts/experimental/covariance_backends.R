@@ -1,50 +1,59 @@
-# Structure-aware factorisation backends for the bulk covariance
-# Sigma(p) = sum_j p_j^2 Sigma_j. The dense Cholesky in
-# .sigma_p_factorisation() is the universal default; the backends here
-# exploit *declared* structure (block, band, sparse, diagonal-plus-low-rank)
-# to obtain log-determinant and solves without a dense G x G inverse.
+# EXPERIMENTAL -- not part of the DeCovarT package namespace.
 #
-# Design follows the numerical-linear-algebra notes: expose OPERATORS
-# (logdet, solve, quadform, trace of precision times a matrix) rather than a
-# materialised precision, so a sparse or Woodbury solve is not silently
-# undone by a dense chol2inv. Structure is supplied explicitly, never
-# inferred from floating-point near-zeros.
+# Structure-aware factorisation backends for the bulk covariance
+# Sigma(p) = sum_j p_j^2 Sigma_j (block, band, sparse, diagonal-plus-low-rank).
+# They were moved out of R/ (formerly R/02_02_covariance_backends.R) because
+# the package now assumes a dense Sigma(p): adding cell types adds gene-gene
+# correlations, and the current priority is the single-cell model, not
+# computational speed. The package fit uses the dense Cholesky in
+# .sigma_p_factorisation() (R/02_02_decovart_estimate_ratios.R).
+#
+# Usage: load the package internals first, then source this file, e.g.
+#   devtools::load_all(".")
+#   source("scripts/experimental/covariance_backends.R")
+# It relies on the internal helpers .compute_global_variance(),
+# .ensure_spd() and .match_arg_case_insensitive(), and on the Matrix package
+# (sparse / band backends). Consumer: scripts/supp_S2_covariance_inversion.R
+# and vignettes/supp-S2-covariance-inversion.qmd.
+#
+# Design: expose OPERATORS (logdet, solve, quadform, trace of precision times
+# a matrix) rather than a materialised precision, so a sparse or Woodbury
+# solve is not undone by a dense chol2inv. Structure is declared explicitly,
+# never inferred from floating-point near-zeros.
 
-#' Recommend a covariance backend from a network topology
-#'
-#' @description
-#' Maps a `graph_model` name (see
-#' [generate_random_network_skeleton()]) to the covariance-factorisation
-#' `structure` most likely to help. This encodes the decision-tree workflow:
-#' the dense Cholesky is always a safe default; the structured backends are
-#' refinements when the covariance (not merely the precision) inherits
-#' exploitable structure.
-#'
-#' @details
-#' A sparse gene-network **precision** matrix
-#' \eqn{\boldsymbol{\Omega}_j=\boldsymbol{\Sigma}_j^{-1}} does **not** imply a
-#' sparse **covariance** \eqn{\boldsymbol{\Sigma}_j}; the inverse of a sparse
-#' precision is generally dense. The mapping below therefore expresses
-#' modelling intent, and the returned structure only accelerates the
-#' likelihood when \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})} itself (or a
-#' cheap representation of it) has that structure. Disconnected gene modules
-#' give an exactly block-diagonal covariance; shared regulatory programs give
-#' a diagonal-plus-low-rank covariance; a small set of bridge / housekeeping
-#' hubs gives an arrow pattern handled by the Schur complement.
-#'
-#' @param graph_model One of `"erdos_renyi"`, `"hub"`, `"star"`,
-#'   `"scale_free"`, `"stochastic_block_model"`, `"small_world"`, `"band"`,
-#'   `"ar"`. Matching is case-insensitive.
-#'
-#' @return A single string: one of `"dense"`, `"block"`, `"band"`,
-#'   `"sparse"`, `"diag_lowrank"`.
-#'
-#' @keywords internal
-#' @examples
-#' covariance_structure_from_graph_model("stochastic_block_model")
-#' covariance_structure_from_graph_model("erdos_renyi")
-#' @seealso [new_decovart_covariance()]
-#' @export
+# Recommend a covariance backend from a network topology
+#
+# @description
+# Maps a `graph_model` name (see
+# [generate_random_network_skeleton()]) to the covariance-factorisation
+# `structure` most likely to help. This encodes the decision-tree workflow:
+# the dense Cholesky is always a safe default; the structured backends are
+# refinements when the covariance (not merely the precision) inherits
+# exploitable structure.
+#
+# @details
+# A sparse gene-network **precision** matrix
+# \eqn{\boldsymbol{\Omega}_j=\boldsymbol{\Sigma}_j^{-1}} does **not** imply a
+# sparse **covariance** \eqn{\boldsymbol{\Sigma}_j}; the inverse of a sparse
+# precision is generally dense. The mapping below therefore expresses
+# modelling intent, and the returned structure only accelerates the
+# likelihood when \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})} itself (or a
+# cheap representation of it) has that structure. Disconnected gene modules
+# give an exactly block-diagonal covariance; shared regulatory programs give
+# a diagonal-plus-low-rank covariance; a small set of bridge / housekeeping
+# hubs gives an arrow pattern handled by the Schur complement.
+#
+# @param graph_model One of `"erdos_renyi"`, `"hub"`, `"star"`,
+#   `"scale_free"`, `"stochastic_block_model"`, `"small_world"`, `"band"`,
+#   `"ar"`. Matching is case-insensitive.
+#
+# @return A single string: one of `"dense"`, `"block"`, `"band"`,
+#   `"sparse"`, `"diag_lowrank"`.
+#
+# @examples
+# covariance_structure_from_graph_model("stochastic_block_model")
+# covariance_structure_from_graph_model("erdos_renyi")
+# @seealso [new_decovart_covariance()]
 covariance_structure_from_graph_model <- function(graph_model) {
   graph_model <- .match_arg_case_insensitive(
     graph_model,
@@ -72,73 +81,65 @@ covariance_structure_from_graph_model <- function(graph_model) {
   )
 }
 
-#' Structure-aware covariance backend for \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}
-#'
-#' @description
-#' Wraps the cell-type covariance array together with a declared
-#' `structure`, so that the bulk covariance
-#' \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j}
-#' can be factorised with the cheapest exact method. The object exposes
-#' operators via [sigma_logdet()], [sigma_solve()], [sigma_quadform()] and
-#' [sigma_trace_precision_times()]; the dense array is always accepted and
-#' wrapped as `"dense"`.
-#'
-#' @details
-#' Supported structures:
-#' * `"dense"`: universal fallback; one Cholesky of the assembled matrix.
-#' * `"block"`: exactly block-diagonal covariance (disconnected gene
-#'   modules); one Cholesky per block, so the factorisation cost drops by
-#'   roughly the squared number of equal blocks.
-#' * `"band"`: covariance with bandwidth \eqn{b}
-#'   (\eqn{\Sigma_{jk}=0} for \eqn{|j-k|>b}); a banded / sparse Cholesky.
-#' * `"sparse"`: sparse covariance with a fixed nonzero pattern across
-#'   \eqn{\boldsymbol{p}}; the fill-reducing ordering (symbolic
-#'   factorisation) is computed once and reused for every numeric refactor.
-#' * `"diag_lowrank"`: \eqn{\boldsymbol{\Sigma}_j=\mathbf{D}_j+
-#'   \mathbf{U}\mathbf{C}_j\mathbf{U}^{\mathsf{T}}} with shared loadings
-#'   \eqn{\mathbf{U}}; solves use the Woodbury identity and the
-#'   log-determinant uses the matrix-determinant lemma, transferring the
-#'   \eqn{O(G^3)} cost to the low rank \eqn{r\ll G}.
-#'
-#' Band and sparse factorisations use \pkg{Matrix} (CHOLMOD;
-#' \insertCite{chenAlgorithm887CHOLMOD2008}{DeCovarT}).
-#' Dense Cholesky complexity follows
-#' \insertCite{golubMatrixComputations2013}{DeCovarT};
-#' the low-rank path uses the Woodbury identity
-#' \insertCite{hagerUpdatingInverseMatrix1989}{DeCovarT}.
-#'
-#' @param Sigma Numeric array of cell-type covariances in
-#'   \eqn{\mathcal{M}_{G\times G\times J}}. For `"diag_lowrank"` it may be
-#'   omitted and is then reconstructed from `diagonal`, `loadings`, `core`.
-#' @param structure One of `"dense"`, `"block"`, `"band"`, `"sparse"`,
-#'   `"diag_lowrank"`. Matching is case-insensitive.
-#' @param blocks For `"block"`: an integer / factor vector of length
-#'   \eqn{G} giving block membership, or a list of index vectors.
-#' @param bandwidth For `"band"`: non-negative integer bandwidth \eqn{b}.
-#' @param diagonal For `"diag_lowrank"`: numeric \eqn{G\times J} matrix whose
-#'   column \eqn{j} is the diagonal of \eqn{\mathbf{D}_j}.
-#' @param loadings For `"diag_lowrank"`: shared loadings
-#'   \eqn{\mathbf{U}\in\mathcal{M}_{G\times r}}.
-#' @param core For `"diag_lowrank"`: array \eqn{\mathcal{M}_{r\times r\times J}}
-#'   of cores \eqn{\mathbf{C}_j}.
-#' @param tol Relative tolerance for validating that off-structure entries
-#'   vanish (block / band).
-#'
-#' @return An object of class `"decovart_covariance"`.
-#'
-#' @keywords internal
-#' @examples
-#' Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
-#' cov_dense <- new_decovart_covariance(Sigma, "dense")
-#' sigma_logdet(cov_dense, c(0.6, 0.4))
-#' @seealso [sigma_logdet()], [covariance_structure_from_graph_model()]
-#' @references
-#' \insertRef{chenAlgorithm887CHOLMOD2008}{DeCovarT}
-#'
-#' \insertRef{golubMatrixComputations2013}{DeCovarT}
-#'
-#' \insertRef{hagerUpdatingInverseMatrix1989}{DeCovarT}
-#' @export
+# Structure-aware covariance backend for \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}
+#
+# @description
+# Wraps the cell-type covariance array together with a declared
+# `structure`, so that the bulk covariance
+# \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j}
+# can be factorised with the cheapest exact method. The object exposes
+# operators via [sigma_logdet()], [sigma_solve()], [sigma_quadform()] and
+# [sigma_trace_precision_times()]; the dense array is always accepted and
+# wrapped as `"dense"`.
+#
+# @details
+# Supported structures:
+# * `"dense"`: universal fallback; one Cholesky of the assembled matrix.
+# * `"block"`: exactly block-diagonal covariance (disconnected gene
+#   modules); one Cholesky per block, so the factorisation cost drops by
+#   roughly the squared number of equal blocks.
+# * `"band"`: covariance with bandwidth \eqn{b}
+#   (\eqn{\Sigma_{jk}=0} for \eqn{|j-k|>b}); a banded / sparse Cholesky.
+# * `"sparse"`: sparse covariance with a fixed nonzero pattern across
+#   \eqn{\boldsymbol{p}}; the fill-reducing ordering (symbolic
+#   factorisation) is computed once and reused for every numeric refactor.
+# * `"diag_lowrank"`: \eqn{\boldsymbol{\Sigma}_j=\mathbf{D}_j+
+#   \mathbf{U}\mathbf{C}_j\mathbf{U}^{\mathsf{T}}} with shared loadings
+#   \eqn{\mathbf{U}}; solves use the Woodbury identity and the
+#   log-determinant uses the matrix-determinant lemma, transferring the
+#   \eqn{O(G^3)} cost to the low rank \eqn{r\ll G}.
+#
+# Band and sparse factorisations use \pkg{Matrix} (CHOLMOD;
+# \insertCite{chenAlgorithm887CHOLMOD2008}{DeCovarT}).
+# Dense Cholesky complexity follows
+# \insertCite{golubMatrixComputations2013}{DeCovarT};
+# the low-rank path uses the Woodbury identity
+# \insertCite{hagerUpdatingInverseMatrix1989}{DeCovarT}.
+#
+# @param Sigma Numeric array of cell-type covariances in
+#   \eqn{\mathcal{M}_{G\times G\times J}}. For `"diag_lowrank"` it may be
+#   omitted and is then reconstructed from `diagonal`, `loadings`, `core`.
+# @param structure One of `"dense"`, `"block"`, `"band"`, `"sparse"`,
+#   `"diag_lowrank"`. Matching is case-insensitive.
+# @param blocks For `"block"`: an integer / factor vector of length
+#   \eqn{G} giving block membership, or a list of index vectors.
+# @param bandwidth For `"band"`: non-negative integer bandwidth \eqn{b}.
+# @param diagonal For `"diag_lowrank"`: numeric \eqn{G\times J} matrix whose
+#   column \eqn{j} is the diagonal of \eqn{\mathbf{D}_j}.
+# @param loadings For `"diag_lowrank"`: shared loadings
+#   \eqn{\mathbf{U}\in\mathcal{M}_{G\times r}}.
+# @param core For `"diag_lowrank"`: array \eqn{\mathcal{M}_{r\times r\times J}}
+#   of cores \eqn{\mathbf{C}_j}.
+# @param tol Relative tolerance for validating that off-structure entries
+#   vanish (block / band).
+#
+# @return An object of class `"decovart_covariance"`.
+#
+# @examples
+# Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+# cov_dense <- new_decovart_covariance(Sigma, "dense")
+# sigma_logdet(cov_dense, c(0.6, 0.4))
+# @seealso [sigma_logdet()], [covariance_structure_from_graph_model()]
 new_decovart_covariance <- function(
   Sigma = NULL,
   structure = c("dense", "block", "band", "sparse", "diag_lowrank"),
@@ -184,11 +185,8 @@ new_decovart_covariance <- function(
   structure(backend, class = "decovart_covariance")
 }
 
-#' @rdname new_decovart_covariance
-#' @param x A `decovart_covariance` object (print method).
-#' @param ... Ignored.
-#' @export
-#' @method print decovart_covariance
+# @param x A `decovart_covariance` object (print method).
+# @param ... Ignored.
 print.decovart_covariance <- function(x, ...) {
   cat(
     "<decovart_covariance>",
@@ -212,80 +210,72 @@ print.decovart_covariance <- function(x, ...) {
 
 # Operators ---------------------------------------------------------------
 
-#' Log-determinant of \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}
-#'
-#' @param backend A [new_decovart_covariance()] object.
-#' @param p Numeric proportions vector \eqn{\boldsymbol{p}\in\mathbb{R}^{J}}.
-#'
-#' @return Scalar \eqn{\log\det\boldsymbol{\Sigma}(\boldsymbol{p})}.
-#'
-#' @keywords internal
-#' @examples
-#' Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
-#' sigma_logdet(new_decovart_covariance(Sigma, "dense"), c(0.6, 0.4))
-#' @seealso [sigma_solve()], [sigma_quadform()]
-#' @export
+# Log-determinant of \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}
+#
+# @param backend A [new_decovart_covariance()] object.
+# @param p Numeric proportions vector \eqn{\boldsymbol{p}\in\mathbb{R}^{J}}.
+#
+# @return Scalar \eqn{\log\det\boldsymbol{\Sigma}(\boldsymbol{p})}.
+#
+# @examples
+# Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+# sigma_logdet(new_decovart_covariance(Sigma, "dense"), c(0.6, 0.4))
+# @seealso [sigma_solve()], [sigma_quadform()]
 sigma_logdet <- function(backend, p) {
   .sigma_prepare(backend, p)$logdet
 }
 
-#' Precision solve \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\mathbf{B}}
-#'
-#' @inheritParams sigma_logdet
-#' @param b Numeric vector or matrix of right-hand sides.
-#'
-#' @return \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\mathbf{b}}, shaped
-#'   like `b`.
-#'
-#' @keywords internal
-#' @examples
-#' Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
-#' sigma_solve(new_decovart_covariance(Sigma, "dense"), c(0.6, 0.4), c(1, 2))
-#' @seealso [sigma_logdet()]
-#' @export
+# Precision solve \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\mathbf{B}}
+#
+# @inheritParams sigma_logdet
+# @param b Numeric vector or matrix of right-hand sides.
+#
+# @return \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\mathbf{b}}, shaped
+#   like `b`.
+#
+# @examples
+# Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+# sigma_solve(new_decovart_covariance(Sigma, "dense"), c(0.6, 0.4), c(1, 2))
+# @seealso [sigma_logdet()]
 sigma_solve <- function(backend, p, b) {
   .sigma_prepare(backend, p)$solve(b)
 }
 
-#' Mahalanobis quadratic form
-#' \eqn{\mathbf{r}^{\mathsf{T}}\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\mathbf{r}}
-#'
-#' @inheritParams sigma_logdet
-#' @param r Numeric residual vector.
-#'
-#' @return Scalar quadratic form.
-#'
-#' @keywords internal
-#' @examples
-#' Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
-#' sigma_quadform(new_decovart_covariance(Sigma, "dense"), c(0.6, 0.4), c(1, 2))
-#' @seealso [sigma_logdet()]
-#' @export
+# Mahalanobis quadratic form
+# \eqn{\mathbf{r}^{\mathsf{T}}\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\mathbf{r}}
+#
+# @inheritParams sigma_logdet
+# @param r Numeric residual vector.
+#
+# @return Scalar quadratic form.
+#
+# @examples
+# Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+# sigma_quadform(new_decovart_covariance(Sigma, "dense"), c(0.6, 0.4), c(1, 2))
+# @seealso [sigma_logdet()]
 sigma_quadform <- function(backend, p, r) {
   .sigma_prepare(backend, p)$quadform(r)
 }
 
-#' Trace of the precision times a matrix,
-#' \eqn{\operatorname{tr}(\boldsymbol{\Omega}(\boldsymbol{p})\mathbf{S})}
-#'
-#' @description
-#' Computes \eqn{\operatorname{tr}(\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}
-#' \mathbf{S})} through solves only, never materialising the dense precision.
-#' This is the trace term that appears in the analytic gradient and Hessian.
-#'
-#' @inheritParams sigma_logdet
-#' @param S Numeric \eqn{G\times G} matrix (typically a cell-type covariance
-#'   slice \eqn{\boldsymbol{\Sigma}_j}).
-#'
-#' @return Scalar trace.
-#'
-#' @keywords internal
-#' @examples
-#' Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
-#' cov <- new_decovart_covariance(Sigma, "dense")
-#' sigma_trace_precision_times(cov, c(0.6, 0.4), Sigma[, , 1])
-#' @seealso [sigma_solve()]
-#' @export
+# Trace of the precision times a matrix,
+# \eqn{\operatorname{tr}(\boldsymbol{\Omega}(\boldsymbol{p})\mathbf{S})}
+#
+# @description
+# Computes \eqn{\operatorname{tr}(\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}
+# \mathbf{S})} through solves only, never materialising the dense precision.
+# This is the trace term that appears in the analytic gradient and Hessian.
+#
+# @inheritParams sigma_logdet
+# @param S Numeric \eqn{G\times G} matrix (typically a cell-type covariance
+#   slice \eqn{\boldsymbol{\Sigma}_j}).
+#
+# @return Scalar trace.
+#
+# @examples
+# Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+# cov <- new_decovart_covariance(Sigma, "dense")
+# sigma_trace_precision_times(cov, c(0.6, 0.4), Sigma[, , 1])
+# @seealso [sigma_solve()]
 sigma_trace_precision_times <- function(backend, p, S) {
   solved <- .sigma_prepare(backend, p)$solve(S)
   sum(diag(solved))
@@ -293,10 +283,8 @@ sigma_trace_precision_times <- function(backend, p, S) {
 
 # Preparation and dispatch ------------------------------------------------
 
-#' Prepare (and cache) a structured factorisation at one trial p
-#' @return List with `logdet`, `solve`, `quadform`, `matrix`, `chol`.
-#' @keywords internal
-#' @noRd
+# Prepare (and cache) a structured factorisation at one trial p
+# @return List with `logdet`, `solve`, `quadform`, `matrix`, `chol`.
 .sigma_prepare <- function(backend, p) {
   if (!inherits(backend, "decovart_covariance")) {
     stop("`backend` must be a `decovart_covariance` object.", call. = FALSE)
@@ -330,9 +318,7 @@ sigma_trace_precision_times <- function(backend, p, S) {
   prep
 }
 
-#' Dense Cholesky (universal default)
-#' @keywords internal
-#' @noRd
+# Dense Cholesky (universal default)
 .sigma_prepare_dense <- function(backend, p) {
   sigma_p <- .ensure_spd(.compute_global_variance(p, backend$Sigma))
   chol_factor <- base::chol(sigma_p)
@@ -348,9 +334,7 @@ sigma_trace_precision_times <- function(backend, p, S) {
   )
 }
 
-#' Block Cholesky for an exactly block-diagonal covariance
-#' @keywords internal
-#' @noRd
+# Block Cholesky for an exactly block-diagonal covariance
 .sigma_prepare_block <- function(backend, p) {
   sigma_p <- .ensure_spd(.compute_global_variance(p, backend$Sigma))
   blocks <- backend$blocks
@@ -388,9 +372,7 @@ sigma_trace_precision_times <- function(backend, p, S) {
   )
 }
 
-#' Sparse / banded Cholesky with cached symbolic factorisation
-#' @keywords internal
-#' @noRd
+# Sparse / banded Cholesky with cached symbolic factorisation
 .sigma_prepare_sparse <- function(backend, p) {
   sigma_p <- .compute_global_variance(p, backend$Sigma)
   sparse_sigma <- Matrix::forceSymmetric(
@@ -430,9 +412,7 @@ sigma_trace_precision_times <- function(backend, p, S) {
   )
 }
 
-#' Diagonal-plus-low-rank (Woodbury / matrix-determinant lemma)
-#' @keywords internal
-#' @noRd
+# Diagonal-plus-low-rank (Woodbury / matrix-determinant lemma)
 .sigma_prepare_diag_lowrank <- function(backend, p) {
   p2 <- p^2
   d_vec <- as.numeric(backend$diagonal %*% p2)
@@ -467,9 +447,7 @@ sigma_trace_precision_times <- function(backend, p, S) {
 
 # Helpers -----------------------------------------------------------------
 
-#' Solve S X = B given the upper Cholesky factor R (S = R^T R)
-#' @keywords internal
-#' @noRd
+# Solve S X = B given the upper Cholesky factor R (S = R^T R)
 .solve_chol <- function(chol_factor, b) {
   backsolve(
     chol_factor,
@@ -477,9 +455,7 @@ sigma_trace_precision_times <- function(backend, p, S) {
   )
 }
 
-#' Weighted sum of the r x r cores: sum_j w_j C_j
-#' @keywords internal
-#' @noRd
+# Weighted sum of the r x r cores: sum_j w_j C_j
 .weighted_core_sum <- function(core, weights) {
   rank_r <- dim(core)[[1L]]
   out <- matrix(0, nrow = rank_r, ncol = rank_r)
@@ -489,9 +465,7 @@ sigma_trace_precision_times <- function(backend, p, S) {
   out
 }
 
-#' Rebuild Sigma_j = diag(D_j) + U C_j U^T into a G x G x J array
-#' @keywords internal
-#' @noRd
+# Rebuild Sigma_j = diag(D_j) + U C_j U^T into a G x G x J array
 .assemble_diag_lowrank_array <- function(diagonal, loadings, core) {
   if (is.null(diagonal) || is.null(loadings) || is.null(core)) {
     stop(
@@ -514,9 +488,7 @@ sigma_trace_precision_times <- function(backend, p, S) {
   Sigma
 }
 
-#' Validate a G x G x J covariance array
-#' @keywords internal
-#' @noRd
+# Validate a G x G x J covariance array
 .validate_sigma_array <- function(Sigma) {
   if (is.null(Sigma) || length(dim(Sigma)) != 3L) {
     stop("`Sigma` must be a G x G x J array.", call. = FALSE)
@@ -527,9 +499,7 @@ sigma_trace_precision_times <- function(backend, p, S) {
   invisible(Sigma)
 }
 
-#' Normalise and validate block membership
-#' @keywords internal
-#' @noRd
+# Normalise and validate block membership
 .validate_covariance_blocks <- function(Sigma, blocks, tol) {
   n_genes <- dim(Sigma)[[1L]]
   if (is.null(blocks)) {
@@ -581,9 +551,7 @@ sigma_trace_precision_times <- function(backend, p, S) {
   block_list
 }
 
-#' Validate the declared bandwidth against the covariance array
-#' @keywords internal
-#' @noRd
+# Validate the declared bandwidth against the covariance array
 .validate_covariance_bandwidth <- function(Sigma, bandwidth, tol) {
   if (is.null(bandwidth)) {
     stop(
@@ -614,9 +582,7 @@ sigma_trace_precision_times <- function(backend, p, S) {
   bandwidth
 }
 
-#' Validate diagonal-plus-low-rank factors reconstruct Sigma
-#' @keywords internal
-#' @noRd
+# Validate diagonal-plus-low-rank factors reconstruct Sigma
 .validate_diag_lowrank <- function(Sigma, diagonal, loadings, core, tol) {
   if (is.null(diagonal) || is.null(loadings) || is.null(core)) {
     stop(

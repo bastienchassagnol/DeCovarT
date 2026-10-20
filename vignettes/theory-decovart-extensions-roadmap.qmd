@@ -472,10 +472,9 @@ CIBERSORT's $\nu$-SVR replaces squared error by a robust hinge
 
 **Generalised least squares** uses a single residual covariance
 $W$ that does **not** depend on $\boldsymbol{p}$. With $\boldsymbol{\Sigma}_j$
-known, the gold-standard competitor is [`deconvolute_ratios_gls()`](../reference/deconvolute_ratios_gls.html)
-(`MASS::lm.gls`, `inverse = TRUE`): $W$ is a $G\times G$ covariance,
-typically
-[`fixed_gls_covariance()`](../reference/fixed_gls_covariance.html)
+known, the gold-standard competitor is mean-only GLS with a $G\times G$
+covariance $W$ held fixed (the local helper of
+`scripts/supp_S4_covariance_modeling.R`), typically
 $\operatorname{diag}\{\sum_j \bar p_j^2\boldsymbol{\Sigma}_j\}$ at
 $\bar p_j=1/J$ (or at a known design $p^{\star}$). Then
 

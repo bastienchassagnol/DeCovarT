@@ -78,7 +78,7 @@
   )
 }
 
-#' Mean / covariance split of the ambient Fisher information
+#' Directional Fisher information along a simplex contrast
 #'
 #' For the Gaussian convolution
 #' \eqn{\boldsymbol{y}\mid\boldsymbol{p}\sim
@@ -118,36 +118,7 @@
 #' }
 #' The covariance-information fraction is
 #' \eqn{f_{\mathrm{cov}}=\mathrm{tr}(I^{\mathrm{cov}})/\mathrm{tr}(I)}.
-#'
-#' @keywords internal
-#' @noRd
-.fisher_mean_cov_split <- function(p, mean_signature_matrix, Sigma) {
-  n_celltypes <- length(p)
-  theta <- .sigma_p_factorisation(p, Sigma)$inverse
-  info_mean <- matrix(0, n_celltypes, n_celltypes)
-  info_cov <- matrix(0, n_celltypes, n_celltypes)
-  for (j in seq_len(n_celltypes)) {
-    mu_j <- mean_signature_matrix[, j, drop = TRUE]
-    sigma_j <- Sigma[,, j]
-    for (k in seq_len(n_celltypes)) {
-      mu_k <- mean_signature_matrix[, k, drop = TRUE]
-      sigma_k <- Sigma[,, k]
-      info_mean[j, k] <- .inner_product(mu_j, theta, mu_k)
-      info_cov[j, k] <- 2 *
-        p[[j]] *
-        p[[k]] *
-        sum(diag(theta %*% sigma_j %*% theta %*% sigma_k))
-    }
-  }
-  list(
-    mean = info_mean,
-    cov = info_cov,
-    total = info_mean + info_cov,
-    precision = theta
-  )
-}
-
-#' Directional Fisher information along a simplex contrast
+#' The two matrix summands come from `.information_blocks()`.
 #'
 #' @keywords internal
 #' @noRd
@@ -330,7 +301,8 @@ describe_simulation_scenario <- function(
   }
   cos_summ <- .mean_cosine_summaries(mu)
 
-  split <- .fisher_mean_cov_split(p, mu, Sigma)
+  split <- .information_blocks(p, mu, Sigma)
+  split$total <- split$mean + split$cov
   v_basis <- helmert_basis(n_celltypes)
   info_t <- crossprod(v_basis, split$total %*% v_basis)
   evals_t <- eigen(info_t, symmetric = TRUE, only.values = TRUE)$values

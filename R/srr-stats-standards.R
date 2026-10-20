@@ -68,7 +68,7 @@ NULL
 #'
 #' @srrstats {G5.6b} Parameter recovery for Marquardt--Levenberg and
 #'   Newton--Raphson is repeated with three simulation seeds in
-#'   `tests/testthat/test-02_04_decovart_fit.R`.
+#'   `tests/testthat/test-02_03_decovart_fit.R`.
 #'
 #' G5.7 is tagged `@srrstatsNA` (companion scaling / biological
 #'   benchmark; see the NA block and rOpenSci software-review#798).
@@ -170,7 +170,7 @@ NULL
 #'
 #' @srrstats {RE2.4b} Perfect collinearity among predictors (duplicate
 #'   columns, or a parent equal to a combination of children) is tested
-#'   in `tests/testthat/test-02_04_decovart_fit.R` and the simulation
+#'   in `tests/testthat/test-02_03_decovart_fit.R` and the simulation
 #'   appendix vignette.
 #'
 #' RE3 - Regression: convergence
@@ -260,7 +260,7 @@ NULL
 #' RE7 - Regression: tests
 #'
 #' @srrstats {RE7.0} Tests with noiseless exact proportions in
-#'   `tests/testthat/test-02_03_*.R` and `test-02_04_decovart_fit.R`.
+#'   `tests/testthat/test-02_02_*.R` and `test-02_03_decovart_fit.R`.
 #'
 #' @srrstats {RE7.0a} Rank-deficient signatures warn
 #'   (`.warn_collinear_signature()`); \(J>G\) errors.
@@ -313,7 +313,7 @@ NULL
 #'
 #' @srrstats {PD4.1} Bivariate / two-gene fixtures under
 #'   `tests/testthat/fixtures/` and hand-checkable cases in
-#'   `test-02_04_decovart_fit.R` show how expected values are derived.
+#'   `test-02_03_decovart_fit.R` show how expected values are derived.
 #'
 #' @srrstats {PD4.3} Optimiser tests vary `epsilon`, `itmax` and starting
 #'   values; see also G5.9b multi-start checks.

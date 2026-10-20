@@ -1,3 +1,47 @@
+* **Bug fix: Hessian for four or more cell types.**
+  `hessian_loglik_unconstrained()` filled its lower triangle with
+  `H[lower.tri(H)] <- H[upper.tri(H)]`, which pairs the wrong entries as
+  soon as \(J\ge 4\): the returned matrix was neither symmetric nor the
+  Hessian. Newton--Raphson (the `fit_decovart()` default),
+  Marquardt--Levenberg, `hessian_loglik_constrained()` and the eigenvalues
+  of `boundary_diagnostics()` were affected for \(J\ge 4\); the score and
+  the Fisher (Wald) covariance were not. The score, Hessian and expected
+  Fisher information are now vectorised around one shared information
+  block (about six times faster), and a \(J=4\) test checks the Hessian
+  against `numDeriv`.
+
+* **Dense covariance only; structured backends move to
+  `scripts/experimental/`.** `new_decovart_covariance()`,
+  `sigma_logdet()`, `sigma_solve()`, `sigma_quadform()`,
+  `sigma_trace_precision_times()` and
+  `covariance_structure_from_graph_model()` leave the package, and
+  `.sigma_p_factorisation()` loses its `backend` argument. The
+  appendix S2 script sources `scripts/experimental/covariance_backends.R`.
+  `Matrix` is no longer imported.
+
+* **Fixed-covariance GLS competitor removed.** `fixed_gls_covariance()` and
+  `deconvolute_ratios_gls()` leave the package; the S4 script and the S1
+  vignette compute the mean-only GLS fit locally.
+
+* **Inference split by geometry.** `R/03_01_interior_intervals.R` (Wald
+  and profile-likelihood intervals), `R/03_02_boundary_tests.R`
+  (restricted MLE on faces, chi-bar-square, likelihood-ratio tests,
+  boundary diagnostics) and `R/03_03_resampling_inference.R` (parametric
+  and reference bootstraps, equivariance check). `multistart_decovart()`
+  moves next to `starting_simplex()`.
+
+* **Simpler inference interface.** `restricted_mle_decovart()` is now the
+  single fitting engine: `y` may be a vector or a \(G\times N\) matrix of
+  replicates, and `fixed = NULL` gives the unrestricted MLE on the closed
+  simplex. The `bulk_expression` argument of `lrt_decovart()`,
+  `confint_profile_decovart()`, `bootstrap_decovart()`,
+  `equivariance_check_decovart()` and `reference_bootstrap_decovart()` is
+  removed: pass replicates as the columns of `y`. Constrained ratios must be
+  named by cell types (integer indices are no longer accepted).
+  `reference_bootstrap_decovart()` takes a named list of purified matrices
+  only (`cell_type_labels` removed). `profile_loglik_decovart()` and the
+  internal `.inner_product()` are removed.
+
 * **File layout and dropped ALR helpers.** Source files now follow the
   article: `01_` simulations, `02_` optimisation and estimation, `03_`
   intervals, `04_` benchmarks. `additive_logistic()`,

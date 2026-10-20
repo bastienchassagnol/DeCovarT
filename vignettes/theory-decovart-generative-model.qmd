@@ -233,9 +233,9 @@ $$ {#eq-logdet-hess}
 Several terms are $\boldsymbol{\Omega}$-inner products of signature
 columns,
 $\boldsymbol{\mu}_{\cdot j}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}_{\cdot \ell}$.
-Package helper [`.inner_product()`](../reference/dot-inner_product.html)
-evaluates that bilinear form; see also the squared Mahalanobis distance
-helper in the same family.
+The package evaluates them in one matrix product,
+$\boldsymbol{\mu}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}$, shared by the
+Hessian and the expected Fisher information.
 :::
 
 # Unconstrained score and Hessian {#sec-unconstrained}
@@ -1555,7 +1555,7 @@ bootstrap: the maximised likelihood is equivariant under relabelling.
 The analytic maps above are only half of a usable optimiser. Practical
 bottlenecks that showed up on the hybrid scenario in
 [Covariance-driven hybrid scenario](fig03-covariance-driven.html#sec-hybrid-deconvolution)
-live in `R/02_03_decovart_estimate_ratios.R`.
+live in `R/02_02_decovart_estimate_ratios.R`.
 
 ---
 
@@ -1676,8 +1676,8 @@ forecast bulk expression.
 Analytic formulae can be differentiated correctly *and* still implement
 the wrong objective. The checks below separate those two questions.
 They are the same identities that
-`tests/testthat/test-02_03_decovart_estimate_ratios.R` and
-`tests/testthat/test-03_01_decovart_inference.R` enforce on every
+`tests/testthat/test-02_02_decovart_estimate_ratios.R` and
+`tests/testthat/test-03_0*_*.R` enforce on every
 package build; the chunks here are a readable, small-\(G\) illustration.
 
 ```{r}
@@ -1850,12 +1850,15 @@ diagonal-plus-low-rank structure in a Newton-type solver is standard
 practice [@boydConvexOptimization2004, §9.7]; the backends below make that
 structure explicit for DeCovarT.
 
-[`new_decovart_covariance()`](../reference/new_decovart_covariance.html)
-wraps the covariance array with a declared `structure`, and the operators
-[`sigma_logdet()`](../reference/sigma_logdet.html),
-[`sigma_solve()`](../reference/sigma_solve.html),
-[`sigma_quadform()`](../reference/sigma_quadform.html) and
-[`sigma_trace_precision_times()`](../reference/sigma_trace_precision_times.html)
+These backends are **experimental** and are not exported by the package:
+they live in `scripts/experimental/covariance_backends.R`, sourced by the
+[S2 appendix](supp-S2-covariance-inversion.html) after
+`devtools::load_all()`. The package fit keeps the dense Cholesky, because
+more cell types bring more gene--gene correlations and a declared sparsity
+pattern then rarely survives in $\boldsymbol{\Sigma}(\boldsymbol{p})$.
+In that script, `new_decovart_covariance()` wraps the covariance array with
+a declared `structure`, and the operators `sigma_logdet()`,
+`sigma_solve()`, `sigma_quadform()` and `sigma_trace_precision_times()`
 return exactly the quantities the objective, score and Hessian need. They
 expose *operations*, never a materialised dense precision: a sparse or
 Woodbury solve must not be silently undone by a dense `chol2inv`.
@@ -1865,8 +1868,7 @@ Woodbury solve must not be silently undone by a dense `chol2inv`.
 Structure is supplied explicitly, never inferred from floating-point
 near-zeros, so a numerical near-zero is never mistaken for an exact
 conditional independence.
-[`covariance_structure_from_graph_model()`](../reference/covariance_structure_from_graph_model.html)
-maps a network topology to the recommended backend. A sparse
+`covariance_structure_from_graph_model()` maps a network topology to the recommended backend. A sparse
 *precision* $\boldsymbol{\Omega}_j$ does not imply a sparse *covariance*
 $\boldsymbol{\Sigma}_j$; only structure that survives in
 $\boldsymbol{\Sigma}(\boldsymbol{p})$ itself accelerates the likelihood.
@@ -1917,6 +1919,8 @@ Each refinement is exact, not approximate:
 #| label: backend-usage
 #| eval: false
 #| echo: true
+# Experimental: source the backends after loading the package.
+source("scripts/experimental/covariance_backends.R")
 # Declare structure explicitly, then use the operator interface.
 cov <- new_decovart_covariance(Sigma, structure = "diag_lowrank",
   diagonal = D, loadings = U, core = C)

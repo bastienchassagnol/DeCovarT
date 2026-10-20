@@ -1235,7 +1235,7 @@ The pair contrast $\boldsymbol{d}=\mathbf{e}_j-\mathbf{e}_k$ is the
 squared Mahalanobis gap of the two mean signatures plus a whitened
 Frobenius gap of $p_j\boldsymbol{\Sigma}_j-p_k\boldsymbol{\Sigma}_k$.
 `expected_fisher_unconstrained()` returns $I^{\mathrm{mean}}+I^{\mathrm{cov}}$;
-`.fisher_mean_cov_split()` exposes the two summands. The tangent matrix
+the internal `.information_blocks()` exposes the two summands. The tangent matrix
 is $I_T=\mathbf{V}^{\mathsf{T}}I\mathbf{V}$ with Helmert basis
 $\mathbf{V}$ ([`helmert_basis()`](../reference/helmert_basis.html)).
 Elliptical (Student) bulk would only rescale these terms
