@@ -722,8 +722,7 @@ bootstrap_decovart <- function(
 #' \eqn{\hat{\boldsymbol{p}}_{\mathrm{perm}}}.
 #'
 #' Use [reference_bootstrap_decovart()] for percentile intervals that
-#' resample the experimental units of the reference (donors or cells)
-#' or redraw compositions from a Dirichlet law.
+#' resample the experimental units of the reference (donors or cells).
 #'
 #' @inheritParams bootstrap_decovart
 #' @param perm Integer permutation of `1:J`. Defaults to reversing the
@@ -806,8 +805,7 @@ equivariance_check_decovart <- function(
 #' In a labelled, reference-based model those moments come from purified
 #' profiles whose *cell-type names stay attached*. This bootstrap
 #' resamples the experimental units that generated the reference (donors,
-#' by default), or redraws compositions from a Dirichlet law, then
-#' re-estimates the plug-in moments and refits
+#' by default), re-estimates the plug-in moments and refits
 #' \insertCite{efronBootstrapMethodsAnother1979}{DeCovarT}.
 #'
 #' @details
@@ -816,8 +814,8 @@ equivariance_check_decovart <- function(
 #' gene-wise pairing of bulk and reference, and the second is algebraic
 #' equivariance rather than a source of uncertainty (see
 #' [equivariance_check_decovart()] and
-#' `vignette("theory-DeCovarT-MLE-properties")`). The three `method` options
-#' instead resample units that actually vary.
+#' `vignette("theory-DeCovarT-MLE-properties")`). The two `method` options
+#' instead resample, with replacement, units that actually vary.
 #'
 #' \describe{
 #'   \item{`donors`}{Cluster bootstrap: resample donor identifiers
@@ -829,14 +827,9 @@ equivariance_check_decovart <- function(
 #'   \item{`cells`}{Resample purified columns independently within each
 #'     cell type (with replacement) and rebuild the plug-in moments.
 #'     Use this when donor labels are unavailable.}
-#'   \item{`dirichlet`}{Hold the original plug-in moments fixed, draw
-#'     \eqn{\boldsymbol{p}^{(b)}\sim\mathrm{Dirichlet}(\boldsymbol{\alpha})},
-#'     simulate bulk profiles from the Gaussian convolution, and refit.
-#'     This is a composition-sweep diagnostic, not a confidence interval
-#'     for one observed bulk.}
 #' }
 #'
-#' For `donors` and `cells` the observed bulk is kept fixed unless
+#' The observed bulk is kept fixed unless
 #' `regenerate_bulk = TRUE`, in which case each replicate also draws
 #' \eqn{\boldsymbol{Y}^{(b)}} from the bootstrapped moments at `p`
 #' (the observed MLE by default). That is the pipeline
@@ -861,12 +854,8 @@ equivariance_check_decovart <- function(
 #'   `reference_profiles`, or a vector of length
 #'   `ncol(reference_profiles)` when the reference is a single matrix.
 #'   Required for `method = "donors"`.
-#' @param method One of `"donors"` (default), `"cells"`, or
-#'   `"dirichlet"`.
-#' @param dirichlet_alpha Positive Dirichlet concentration: a scalar
-#'   recycled to \eqn{J}, or a length-\eqn{J} vector. Ignored unless
-#'   `method = "dirichlet"`. The default `1` is uniform on the simplex.
-#' @param regenerate_bulk If `TRUE` (`donors` / `cells` only), simulate
+#' @param method One of `"donors"` (default) or `"cells"`.
+#' @param regenerate_bulk If `TRUE`, simulate
 #'   a new bulk from the bootstrapped moments instead of keeping the
 #'   observed \eqn{\boldsymbol{Y}} fixed.
 #' @param ridge Non-negative ridge multiple for the sample covariance of
@@ -875,8 +864,7 @@ equivariance_check_decovart <- function(
 #' @return A list with `method`, `estimates` (\eqn{J\times} `n_boot`),
 #'   `interval` (percentile bounds), `mean_signature_matrix` / `Sigma`
 #'   from the original reference, and `p_hat` from the original plug-in
-#'   fit when a bulk is supplied. For `method = "dirichlet"`,
-#'   `p_simulated` stores the drawn compositions.
+#'   fit.
 #'
 #' @seealso [bootstrap_decovart()], [equivariance_check_decovart()]
 #' @references
@@ -908,10 +896,9 @@ reference_bootstrap_decovart <- function(
   bulk_expression = NULL,
   cell_type_labels = NULL,
   donor_ids = NULL,
-  method = c("donors", "cells", "dirichlet"),
+  method = c("donors", "cells"),
   n_boot = 199L,
   level = 0.95,
-  dirichlet_alpha = 1,
   regenerate_bulk = FALSE,
   p = NULL,
   n_replicates = NULL,
@@ -944,8 +931,7 @@ reference_bootstrap_decovart <- function(
     .check_donors_per_type(donor_list)
   }
 
-  has_bulk <- !is.null(y) || !is.null(bulk_expression)
-  if (!identical(method, "dirichlet") && !has_bulk) {
+  if (is.null(y) && is.null(bulk_expression)) {
     stop(
       "Supply `y` or `bulk_expression` for method = \"",
       method,
@@ -954,44 +940,23 @@ reference_bootstrap_decovart <- function(
     )
   }
 
-  y_mat <- NULL
-  observed_coef <- NULL
-  if (has_bulk) {
-    y_mat <- .as_replicate_matrix(
-      y,
-      bulk_expression,
-      nrow(moments0$mean_signature_matrix)
-    )
-    observed <- .pooled_mle(
-      y_mat,
-      moments0$mean_signature_matrix,
-      moments0$Sigma,
-      epsilon = epsilon,
-      itmax = itmax
-    )
-    observed_coef <- observed$coefficients
-  }
+  y_mat <- .as_replicate_matrix(
+    y,
+    bulk_expression,
+    nrow(moments0$mean_signature_matrix)
+  )
+  observed <- .pooled_mle(
+    y_mat,
+    moments0$mean_signature_matrix,
+    moments0$Sigma,
+    epsilon = epsilon,
+    itmax = itmax
+  )
+  observed_coef <- observed$coefficients
   if (is.null(n_replicates)) {
-    n_replicates <- if (is.null(y_mat)) 1L else ncol(y_mat)
+    n_replicates <- ncol(y_mat)
   }
   p_sim_base <- if (is.null(p)) observed_coef else p
-  if (
-    identical(method, "dirichlet") ||
-      isTRUE(regenerate_bulk)
-  ) {
-    if (is.null(p_sim_base) && !identical(method, "dirichlet")) {
-      stop(
-        "`p` is required to regenerate the bulk when no observed ",
-        "fit is available.",
-        call. = FALSE
-      )
-    }
-  }
-
-  alpha_dir <- NULL
-  if (identical(method, "dirichlet")) {
-    alpha_dir <- .parse_dirichlet_alpha(dirichlet_alpha, nms)
-  }
 
   estimates <- matrix(
     NA_real_,
@@ -999,47 +964,25 @@ reference_bootstrap_decovart <- function(
     ncol = n_boot,
     dimnames = list(nms, NULL)
   )
-  p_simulated <- NULL
-  if (identical(method, "dirichlet")) {
-    p_simulated <- matrix(
-      NA_real_,
-      nrow = length(nms),
-      ncol = n_boot,
-      dimnames = list(nms, NULL)
-    )
-  }
 
   for (b in seq_len(n_boot)) {
-    if (identical(method, "dirichlet")) {
-      p_b <- .rdirichlet_one(alpha_dir)
-      p_simulated[, b] <- p_b
+    refs_b <- if (identical(method, "donors")) {
+      .resample_donors_within_type(refs, donor_list)
+    } else {
+      .resample_cells_within_type(refs)
+    }
+    moments_b <- .moments_from_profiles(refs_b, ridge = ridge)
+    mu_fit <- moments_b$mean_signature_matrix
+    sigma_fit <- moments_b$Sigma
+    if (isTRUE(regenerate_bulk)) {
       y_fit <- .simulate_bulk_replicates(
-        p_b,
-        moments0$mean_signature_matrix,
-        moments0$Sigma,
+        p_sim_base,
+        mu_fit,
+        sigma_fit,
         n_replicates
       )
-      mu_fit <- moments0$mean_signature_matrix
-      sigma_fit <- moments0$Sigma
     } else {
-      refs_b <- if (identical(method, "donors")) {
-        .resample_donors_within_type(refs, donor_list)
-      } else {
-        .resample_cells_within_type(refs)
-      }
-      moments_b <- .moments_from_profiles(refs_b, ridge = ridge)
-      mu_fit <- moments_b$mean_signature_matrix
-      sigma_fit <- moments_b$Sigma
-      if (isTRUE(regenerate_bulk)) {
-        y_fit <- .simulate_bulk_replicates(
-          p_sim_base,
-          mu_fit,
-          sigma_fit,
-          n_replicates
-        )
-      } else {
-        y_fit <- y_mat
-      }
+      y_fit <- y_mat
     }
     fit_b <- .pooled_mle(
       y_fit,
@@ -1058,7 +1001,7 @@ reference_bootstrap_decovart <- function(
     probs = c(alpha, 1 - alpha),
     na.rm = TRUE
   ))
-  out <- list(
+  list(
     method = method,
     estimates = estimates,
     interval = interval,
@@ -1066,10 +1009,6 @@ reference_bootstrap_decovart <- function(
     mean_signature_matrix = moments0$mean_signature_matrix,
     Sigma = moments0$Sigma
   )
-  if (!is.null(p_simulated)) {
-    out$p_simulated <- p_simulated
-  }
-  out
 }
 
 #' Coerce purified profiles and optional donor labels

@@ -1,3 +1,26 @@
+* **Confidence intervals: regularity, geometry and the three tests.**
+  The MLE vignette and the article appendix now state the regularity
+  conditions of the large-sample approximation (interior truth, fixed
+  dimension, replication over biological samples, not genes), add the
+  small-dispersion limit in the number of cells for one bulk sample,
+  compare Wald, likelihood-ratio and score tests and their inversion into
+  intervals, treat nuisance scales through the envelope theorem and
+  parameter orthogonality, and describe higher-order corrections
+  (modified likelihood root, Bartlett). The logit-scale Wald route and the
+  variational sandwich are removed. The article now splits each model into
+  optimisation and inference, moves the chart choice, the single-cell fit and
+  the robust variants to the appendix, derives Fisher scoring as iteratively
+  reweighted least squares, and groups the perspectives into modelling,
+  optimisation and estimating-equation inference (GEE, GMM, HC corrections).
+
+* **`reference_bootstrap_decovart()` loses `method = "dirichlet"`.**
+  The Dirichlet composition sweep measured performance across random
+  mixtures, not uncertainty for one observed bulk, so it is removed
+  together with its `dirichlet_alpha` argument and `p_simulated` output.
+  The function now always needs `y` or `bulk_expression` and resamples
+  donors (default) or cells within each cell type, with replacement.
+  Random Dirichlet starting points of the solvers are unchanged.
+
 * **Fig02 performance books.** Twelve meta-scenario pages (small then
   large CLD; homoscedastic then heteroscedastic; balanced /
   moderately / highly unbalanced), each a 2-by-2 of correlation

@@ -924,34 +924,7 @@ the default here unless the $\boldsymbol{\Sigma}_{W,j}$ share a block or
 low-rank structure.
 :::
 
-### Layer 2: counts are non-negative integers {#sec-cc-integer}
-
-$m_{ji}\in\{0,1,2,\ldots\}$, so the likelihood is a function on the
-lattice $\mathbb{N}^{J}$ and @eq-cc-score is the score of its
-continuous relaxation. Three facts make the relaxation usable.
-
-1. The Gaussian law @eq-cc-law is well defined on the whole lattice:
-   $\boldsymbol{S}_W(\boldsymbol{m})$ is positive definite as soon as one
-   $m_{ji}>0$ and every $\boldsymbol{\Sigma}_{W,j}$ is positive definite.
-   Zero counts cost nothing.
-2. For abundant types the lattice spacing is one cell out of
-   thousands; rounding the relaxed maximiser changes
-   $\log$-likelihood by $O(1/n_i)$ relative terms.
-3. For rare types ($m_{ji}\le 5$) the covariance changes in visible
-   steps, and the relaxed optimum can sit between integers. A local
-   lattice search over the $3^{J'}$ neighbours
-   $\{\lfloor\hat m\rfloor-1,\lfloor\hat m\rfloor,\lceil\hat m\rceil\}$ of
-   the $J'$ small coordinates is cheap because each candidate needs one
-   Cholesky. Branch-and-bound on the concave relaxation is the exact
-   alternative.
-
-A soft version keeps the Gaussian observation law and adds a count
-prior, $m_{ji}\sim\mathrm{Poisson}(n_i\pi_{ji})$ or a multinomial over
-types, and maximises the posterior over the lattice. The observation
-model stays in the Gaussian regime; only the parameter space becomes
-discrete.
-
-### Layer 3: a sample-wide capture scale {#sec-cc-scale}
+### Layer 2: a sample-wide capture scale {#sec-cc-scale}
 
 Bulk and reference are measured on different platforms. Let $a_i>0$
 be the sample-wide ratio of molecule capture between the bulk
@@ -1027,7 +1000,7 @@ relative standard error of $\hat a$ is $\sqrt{2/G}$. With $G$ in the
 hundreds that is a few percent, which is the "fairly weak dependence"
 `RNA-Sieve` reports for $n$.
 
-### Layer 4: diagonal bulk measurement noise {#sec-cc-noise}
+### Layer 3: diagonal bulk measurement noise {#sec-cc-noise}
 
 Add technical bulk noise that is independent across genes,
 
@@ -1068,7 +1041,7 @@ or $\tau_{gi}^{2}=\tau_i^{2}\,(\tilde{\boldsymbol{\mu}}\boldsymbol{w})_g^{\gamma
 mean–variance exponent, or estimate $\boldsymbol{D}$ from technical bulk
 replicates.
 
-### Layer 5: several single-cell replicates {#sec-cc-replicates}
+### Layer 4: a nested hierarchical model when several single-cell replicates are available {#sec-cc-replicates}
 
 With $R\ge 2$ biological replicates in the reference, write
 $\boldsymbol{X}_{jrc}=\tilde{\boldsymbol{\mu}}_{\cdot j}+\boldsymbol{B}_{jr}+\boldsymbol{\varepsilon}_{jrc}$

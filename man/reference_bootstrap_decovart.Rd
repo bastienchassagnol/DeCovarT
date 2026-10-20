@@ -10,10 +10,9 @@ reference_bootstrap_decovart(
   bulk_expression = NULL,
   cell_type_labels = NULL,
   donor_ids = NULL,
-  method = c("donors", "cells", "dirichlet"),
+  method = c("donors", "cells"),
   n_boot = 199L,
   level = 0.95,
-  dirichlet_alpha = 1,
   regenerate_bulk = FALSE,
   p = NULL,
   n_replicates = NULL,
@@ -45,18 +44,13 @@ purified columns. A named list of vectors matching
 \code{ncol(reference_profiles)} when the reference is a single matrix.
 Required for \code{method = "donors"}.}
 
-\item{method}{One of \code{"donors"} (default), \code{"cells"}, or
-\code{"dirichlet"}.}
+\item{method}{One of \code{"donors"} (default) or \code{"cells"}.}
 
 \item{n_boot}{Number of bootstrap replicates.}
 
 \item{level}{Confidence level for percentile intervals.}
 
-\item{dirichlet_alpha}{Positive Dirichlet concentration: a scalar
-recycled to \eqn{J}, or a length-\eqn{J} vector. Ignored unless
-\code{method = "dirichlet"}. The default \code{1} is uniform on the simplex.}
-
-\item{regenerate_bulk}{If \code{TRUE} (\code{donors} / \code{cells} only), simulate
+\item{regenerate_bulk}{If \code{TRUE}, simulate
 a new bulk from the bootstrapped moments instead of keeping the
 observed \eqn{\boldsymbol{Y}} fixed.}
 
@@ -76,8 +70,7 @@ budget passed to \code{\link[stats:optim]{stats::optim()}}.}
 A list with \code{method}, \code{estimates} (\eqn{J\times} \code{n_boot}),
 \code{interval} (percentile bounds), \code{mean_signature_matrix} / \code{Sigma}
 from the original reference, and \code{p_hat} from the original plug-in
-fit when a bulk is supplied. For \code{method = "dirichlet"},
-\code{p_simulated} stores the drawn compositions.
+fit.
 }
 \description{
 The frequentist DeCovarT likelihood treats
@@ -85,8 +78,7 @@ The frequentist DeCovarT likelihood treats
 In a labelled, reference-based model those moments come from purified
 profiles whose \emph{cell-type names stay attached}. This bootstrap
 resamples the experimental units that generated the reference (donors,
-by default), or redraws compositions from a Dirichlet law, then
-re-estimates the plug-in moments and refits
+by default), re-estimates the plug-in moments and refits
 \insertCite{efronBootstrapMethodsAnother1979}{DeCovarT}.
 }
 \details{
@@ -95,8 +87,8 @@ averaged signature, is \strong{not} a bootstrap: the first destroys the
 gene-wise pairing of bulk and reference, and the second is algebraic
 equivariance rather than a source of uncertainty (see
 \code{\link[=equivariance_check_decovart]{equivariance_check_decovart()}} and
-\code{vignette("theory-DeCovarT-MLE-properties")}). The three \code{method} options
-instead resample units that actually vary.
+\code{vignette("theory-DeCovarT-MLE-properties")}). The two \code{method} options
+instead resample, with replacement, units that actually vary.
 
 \describe{
 \item{\code{donors}}{Cluster bootstrap: resample donor identifiers
@@ -108,14 +100,9 @@ uncertainty rather than technical cell-level noise alone.}
 \item{\code{cells}}{Resample purified columns independently within each
 cell type (with replacement) and rebuild the plug-in moments.
 Use this when donor labels are unavailable.}
-\item{\code{dirichlet}}{Hold the original plug-in moments fixed, draw
-\eqn{\boldsymbol{p}^{(b)}\sim\mathrm{Dirichlet}(\boldsymbol{\alpha})},
-simulate bulk profiles from the Gaussian convolution, and refit.
-This is a composition-sweep diagnostic, not a confidence interval
-for one observed bulk.}
 }
 
-For \code{donors} and \code{cells} the observed bulk is kept fixed unless
+The observed bulk is kept fixed unless
 \code{regenerate_bulk = TRUE}, in which case each replicate also draws
 \eqn{\boldsymbol{Y}^{(b)}} from the bootstrapped moments at \code{p}
 (the observed MLE by default). That is the pipeline

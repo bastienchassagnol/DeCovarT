@@ -59,8 +59,7 @@ relabelled reference is then compared with
 \eqn{\hat{\boldsymbol{p}}_{\mathrm{perm}}}.
 
 Use \code{\link[=reference_bootstrap_decovart]{reference_bootstrap_decovart()}} for percentile intervals that
-resample the experimental units of the reference (donors or cells)
-or redraw compositions from a Dirichlet law.
+resample the experimental units of the reference (donors or cells).
 }
 \examples{
 mu <- matrix(c(20, 40, 15, 40, 20, 25), nrow = 3)

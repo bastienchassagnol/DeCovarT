@@ -458,13 +458,10 @@ Full derivations, worked examples and a figure in the
           \nu_{j}\hat p_{j}=0
           \label{eq-kkt}
         \end{equation}
-  \item \gls{slackness}, \(\nu_{j}\hat p_{j}=0\), says which constraints determine the optimum: either
+  \item \gls{slackness}, \(\nu_{j}\hat p_{j}=0\) \cite{boydConvexOptimization2004}, says which constraints determine the optimum: either
         \(\hat p_{j}>0\), the constraint is inactive and \(\nu_{j}=0\), or \(\hat p_{j}=0\), the constraint binds and
         \(\nu_{j}\) may be positive
 
-  \item[] \todo[inline]{The reading of complementary slackness follows teaching slides (\emph{Optimization in
-        Statistics}, StatHarbor Analytics, 2026; local extraction under \texttt{.firecrawl/extract/}), which are
-        not in Zotero; add them, or keep Boyd and Vandenberghe only.}
   \item interior point: \(\boldsymbol{\nu}=\boldsymbol{0}\) and \(\partial\ell/\partial p_{j}=\lambda\) for every \(j\), with
         \(\lambda=\hat{\boldsymbol{p}}^{\top}\nabla_{\boldsymbol{p}}\ell(\hat{\boldsymbol{p}})\); boundary point: \(\partial\ell/\partial p_{j}\le\lambda\)
         for every absent type
@@ -482,6 +479,25 @@ Full derivations, worked examples and a figure in the
   \item limit: for finite \(\boldsymbol{\rho}\) every \(p_{j}>0\), so the inequality multipliers never activate; an
         estimate on a face lies at infinity in \(\boldsymbol{\rho}\) and is handled by restricted fits and boundary
         tests (Appendix~\ref{app:mle})
+\end{itemize}
+
+\subsubsection{Why the isometric log-ratio chart}
+\label{sec:ilr-choice}
+
+\begin{itemize}
+  \item same statistics: the likelihood depends on \(\boldsymbol{p}\) only, so the maximiser, the maximised log-likelihood
+        and the delta-method covariance of \(\hat{\boldsymbol{p}}\) are the same in every chart; different numerics: gradient
+        norms, step safeguards and the \gls{condnum} of the Hessian change with the chart
+        (Appendix~\ref{app:chart-derivatives})
+  \item ILR is the only chart of Table~\ref{tab:charts} that is minimal (\(J-1\) free coordinates), symmetric in the
+        cell types and an \gls{isometry} for the Aitchison distance, so a rare type weighs as much as an abundant
+        one \cite{egozcueIsometricLogratioTransformations2003,CoordinateRepresentation2015}
+  \item its stationary points are the interior KKT points, and its score norm and Hessian eigenvalues do not
+        depend on the basis (Appendix~\ref{app:kkt}); a change of ALR reference rescales the curvature along that
+        type by up to \(J\), the free softmax has a zero Hessian eigenvalue, and CLR keeps \(J\) coordinates for
+        \(J-1\) degrees of freedom
+  \item cost: a zero proportion lies at infinity in ILR coordinates, so faces of the simplex need the restricted
+        fits of Appendix~\ref{app:mle-boundary}
 \end{itemize}
 
 \subsection{Alternative alignment strategies}
@@ -523,8 +539,106 @@ Derivations in the \vignette{theory-decovart-single-cell-tailored.html}{single-c
 
 
 
+\subsection{Fitting the single-cell model}
+\label{app:sc-fit}
+
+Model \eqref{eq:sc-model} of Section~\ref{sec:sc-tailored}; derivations in the
+\vignette{theory-decovart-single-cell-tailored.html\#sec-general}{single-cell alignment vignette}.
+
+\subsubsection{Estimand: transcript fraction versus cell fraction}
+\label{sec:estimand}
+
+\begin{itemize}
+  \item under \eqref{eq:convolution}, \(\boldsymbol{p}\) is the relative transcriptomic contribution of each type
+  \item it equals the cell fraction only if capture efficiency and RNA content per cell are shared across types
+        \cite{racleSimultaneousEnumerationCancer2017}; \eqref{eq:sc-model} estimates cell fractions directly because
+        \(\tilde{\boldsymbol{\mu}}\) keeps the cell sizes \(S_{j}\)
+  \item absolute cell counts are not targeted: capture efficiency is not observed
+  \item library-size closure (TPM, RPKM) is avoided: dividing by the total induces negative gene--gene correlation,
+        including for genes that were independent
+\end{itemize}
+
+\subsubsection{Optimisation}
+\label{sec:sc-newton}
+
+\begin{itemize}
+  \item parameters \(\boldsymbol{\vartheta}=(\boldsymbol{\rho},\log c,\log\phi)\) for one bulk sample, with
+        \(c=an\) and \(\phi=a^{2}n\); with \(\boldsymbol{W}=\boldsymbol{S}_{W}(\boldsymbol{p})^{-1}\) and
+        \(\boldsymbol{r}=\boldsymbol{y}-c\tilde{\boldsymbol{\mu}}\boldsymbol{p}\),
+        \begin{equation}
+          \ell(\boldsymbol{\vartheta})
+          =-\frac{G}{2}\log\phi-\frac12\log\det\boldsymbol{S}_{W}(\boldsymbol{p})
+          -\frac{1}{2\phi}\,\boldsymbol{r}^{\top}\boldsymbol{W}\boldsymbol{r}
+          \label{eq:sc-loglik}
+        \end{equation}
+  \item closed-form profiles for fixed \(\boldsymbol{p}\): the generalised least-squares scale
+        \(\hat c(\boldsymbol{p})=(\tilde{\boldsymbol{\mu}}\boldsymbol{p})^{\top}\boldsymbol{W}\boldsymbol{y}/(\tilde{\boldsymbol{\mu}}\boldsymbol{p})^{\top}\boldsymbol{W}\tilde{\boldsymbol{\mu}}\boldsymbol{p}\)
+        and \(\hat\phi(\boldsymbol{p})=Q(\boldsymbol{p})/G\), with \(Q\) the minimised Mahalanobis residual
+        \(\hat{\boldsymbol{r}}^{\top}\boldsymbol{W}\hat{\boldsymbol{r}}\); the profile log-likelihood is
+        \(\ell^{\ast}(\boldsymbol{\rho})=-\tfrac{G}{2}\log Q(\boldsymbol{\psi}(\boldsymbol{\rho}))-\tfrac12\log\det\boldsymbol{S}_{W}(\boldsymbol{\psi}(\boldsymbol{\rho}))\),
+        a function of \(J-1\) coordinates
+  \item profile score, by the \gls{envelope},
+        \(\partial\ell^{\ast}/\partial p_{j}=(G/Q)\{\hat c\,\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top}\boldsymbol{W}\hat{\boldsymbol{r}}
+        +\tfrac12\hat{\boldsymbol{r}}^{\top}\boldsymbol{W}\boldsymbol{\Sigma}_{W,j}\boldsymbol{W}\hat{\boldsymbol{r}}\}
+        -\tfrac12\operatorname{tr}(\boldsymbol{W}\boldsymbol{\Sigma}_{W,j})\), mapped to ILR coordinates by
+        \(\mathbf{J}_{\psi}^{\top}\)
+  \item Newton--Raphson on the full \(\boldsymbol{\vartheta}\): score and Hessian of a Gaussian with parametrised mean
+        and covariance
+        (\vignette{theory-decovart-single-cell-tailored.html\#sec-general}{general score and Hessian}); the mean
+        \(c\tilde{\boldsymbol{\mu}}\boldsymbol{p}\) and the covariance \(\phi\boldsymbol{S}_{W}(\boldsymbol{p})\) are linear in \(\boldsymbol{p}\), so the
+        only second derivatives in \(\boldsymbol{p}\) come from the curvature of the chart
+        \eqref{eq-chain-rule-second-order}
+  \item start from a non-negative least-squares fit \(\boldsymbol{y}\approx\tilde{\boldsymbol{\mu}}\boldsymbol{w}\), with
+        \(\boldsymbol{p}^{(0)}=\boldsymbol{w}/\mathbf{1}^{\top}\boldsymbol{w}\) floored away from zero and \(c^{(0)}=\mathbf{1}^{\top}\boldsymbol{w}\), plus
+        Dirichlet multistarts because \(\ell^{\ast}\) is not concave; stop on the norm of the ILR score, which
+        does not depend on the Helmert basis
+\end{itemize}
+
+\subsubsection{Inference}
+\label{app:sc-inference}
+
+\begin{itemize}
+  \item expected information: \(I_{c\phi}=0\), \(I_{\phi\phi}=G/(2\phi^{2})\),
+        \(I_{p_{j}\phi}=\operatorname{tr}(\boldsymbol{W}\boldsymbol{\Sigma}_{W,j})/(2\phi)\neq0\) and
+        \(I_{p_{j}c}=c\,\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top}\boldsymbol{W}\tilde{\boldsymbol{\mu}}\boldsymbol{p}/\phi\neq0\); the covariance
+        of \(\hat{\boldsymbol{\rho}}\) is the inverse of the Schur complement
+        \(I_{\rho\rho}-I_{\rho\eta}I_{\eta\eta}^{-1}I_{\eta\rho}\), \(\boldsymbol{\eta}=(c,\phi)\), so estimating the scales
+        widens the intervals automatically
+  \item joint versus plug-in nuisance scales
+        (\vignette{theory-decovart-single-cell-tailored.html\#sec-strategy-plugin}{plug-in strategy})
+  \begin{itemize}
+    \item with one bulk sample and no external data there is no genuine plug-in: a two-step moment
+          estimate of \(c\) and \(\phi\) from the same bulk is possible, but the variance of
+          \(\hat{\boldsymbol{p}}\) then needs the correction
+          \(I_{pp}^{-1}+I_{pp}^{-1}I_{p\eta}\boldsymbol{V}_{\eta}I_{\eta p}I_{pp}^{-1}\) for an estimate
+          \(\hat{\boldsymbol{\eta}}\) of covariance \(\boldsymbol{V}_{\eta}\); the joint fit accounts for it through the
+          Schur complement
+    \item external data would make one scale a true plug-in: cell counts per sample give \(n_{i}\), spike-ins
+          or paired bulk and single-cell profiles give \(a_{i}\) or \(\tilde{\boldsymbol{b}}\), and then
+          \(\boldsymbol{p}_{\cdot i}\) are cell fractions free of technical scale
+  \end{itemize}
+  \item limitations (our assessment)
+  \begin{itemize}
+    \item \(N=1\): the \(G\) genes are not independent replicates, so asymptotics in \(G\) need weak
+          dependence between genes, as assumed by \emph{MEAD} \cite{xieStatisticalInferenceCell2026}
+    \item one donor gives no between-donor layer: \(\phi\) inflates the covariance globally but cannot correct
+          its shape, so the intervals are expected to under-cover; the sandwich covariance or the reference
+          bootstrap of cells (\texttt{reference\_bootstrap\_decovart(method = "cells")}) is the safeguard
+    \item dropping the bulk Poisson diagonal assumes a deep bulk library; \(\boldsymbol{\Sigma}_{W,j}\) must be the
+          denoised biological covariance, otherwise the reference sampling noise is counted \(n_{i}\) times
+    \item the determinant term of \eqref{eq:sc-loglik} adds information only if the variance function is right;
+          otherwise the quasi-score of Section~\ref{sec:generalized-linear-model} is the safer estimator
+  \end{itemize}
+  \item[] \todo[inline]{Implement \eqref{eq:sc-model} in \texttt{fit\_decovart()} (covariance assembler linear in
+        \(\boldsymbol{p}\), profiled \(c\) and \(\phi\), Schur-complement Wald intervals) and validate it in an ADEMP
+        simulation study \cite{morrisUsingSimulationStudies2019} before any claim rests on it.}
+\end{itemize}
+
 \subsection{Numerical optimisation algorithms}
 \label{app:optim}
+
+\subsubsection{Implemented solvers}
+\label{app:optim-solvers}
 
 \begin{itemize}
   \item mean-only baselines: NNLS and quadratic programming (\texttt{lsei}) on \(\|\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}\|^{2}\)
@@ -545,6 +659,156 @@ Derivations in the \vignette{theory-decovart-single-cell-tailored.html}{single-c
   \item[] \todo[inline]{Report run time and memory per solver from the fig02 and fig03 books.}
 \end{itemize}
 
+\subsubsection{Generalised least squares, Fisher scoring and iteratively reweighted least squares}
+\label{app:irls}
+
+The argument follows maximum likelihood as iteratively reweighted least squares for generalised linear models
+\cite[Sects.~4.5.4--4.5.5]{agrestiFoundationsLinearGeneralized2015} \cite[Sects.~2.1--2.2]{nelderGeneralizedLinearModels1972}.
+
+\begin{theorem}[Generalised least squares]
+  \label{th:generalized-least-squares-estimate}
+  Consider \(\boldsymbol{y}=\boldsymbol{X}\boldsymbol{\beta}+\boldsymbol{\varepsilon}\) with a fixed design \(\boldsymbol{X}\) of full column rank,
+  \(\mathbb{E}(\boldsymbol{\varepsilon})=\boldsymbol{0}\) and \(\operatorname{Cov}(\boldsymbol{\varepsilon})=\boldsymbol{\Sigma}\), a known non-singular covariance.
+  The estimate that minimises the squared Mahalanobis norm of the residuals is
+  \(\hat{\boldsymbol{\beta}}^{\mathrm{GLS}}=(\boldsymbol{X}^{\top}\boldsymbol{\Omega}\boldsymbol{X})^{-1}\boldsymbol{X}^{\top}\boldsymbol{\Omega}\boldsymbol{y}\), with \(\boldsymbol{\Omega}=\boldsymbol{\Sigma}^{-1}\) and
+  covariance \((\boldsymbol{X}^{\top}\boldsymbol{\Omega}\boldsymbol{X})^{-1}\).
+  It is the best linear unbiased estimator of \(\boldsymbol{\beta}\), and it equals the maximum-likelihood estimate under a
+  Gaussian error.
+  A Cholesky factor \(\boldsymbol{\Sigma}=\boldsymbol{C}\boldsymbol{C}^{\top}\) reduces the problem to ordinary least squares on
+  \(\boldsymbol{C}^{-1}\boldsymbol{y}\), which removes heteroscedasticity and residual correlation.
+  Weighted least squares is the diagonal case \(\boldsymbol{\Sigma}=\operatorname{diag}(\sigma_{1}^{2},\ldots,\sigma_{G}^{2})\), a heteroscedastic
+  error without correlation.
+  For deconvolution, \(\boldsymbol{X}=\boldsymbol{\mu}\) and \(\boldsymbol{\beta}=\boldsymbol{p}_{\cdot i}\); the simplex constraint is imposed afterwards, or
+  through the chart \eqref{eq-mapping-function}.
+\end{theorem}
+
+\begin{itemize}
+  \item Newton--Raphson and \gls{fisherscoring} differ only in the curvature matrix:
+        \begin{equation}
+          \boldsymbol{\rho}^{(t+1)}=\boldsymbol{\rho}^{(t)}-\{\nabla^{2}_{\boldsymbol{\rho}}\ell(\boldsymbol{\rho}^{(t)})\}^{-1}\nabla_{\boldsymbol{\rho}}\ell(\boldsymbol{\rho}^{(t)}),
+          \qquad
+          \boldsymbol{\rho}^{(t+1)}=\boldsymbol{\rho}^{(t)}+I_{\boldsymbol{\rho}}(\boldsymbol{\rho}^{(t)})^{-1}\nabla_{\boldsymbol{\rho}}\ell(\boldsymbol{\rho}^{(t)}),
+          \label{eq-newton-fisher}
+        \end{equation}
+        the observed Hessian for the first, the expected information
+        \(I_{\boldsymbol{\rho}}=\mathbf{J}_{\psi}^{\top}I(\boldsymbol{p})\mathbf{J}_{\psi}\) of \eqref{eq-expected-fisher-p} for the second
+  \item working response: write \(\boldsymbol{m}(\boldsymbol{\rho})=\boldsymbol{\mu}\boldsymbol{\psi}(\boldsymbol{\rho})\), and, at the current iterate,
+        \(\boldsymbol{D}_{t}=\partial\boldsymbol{m}/\partial\boldsymbol{\rho}^{\top}=\boldsymbol{\mu}\mathbf{J}_{\psi}(\boldsymbol{\rho}^{(t)})\) and
+        \(\boldsymbol{V}_{t}=\boldsymbol{\Sigma}(\boldsymbol{\psi}(\boldsymbol{\rho}^{(t)}))\); the mean part of the score is
+        \(\boldsymbol{D}_{t}^{\top}\boldsymbol{V}_{t}^{-1}(\boldsymbol{y}-\boldsymbol{m}_{t})\) and that of the information is \(\boldsymbol{D}_{t}^{\top}\boldsymbol{V}_{t}^{-1}\boldsymbol{D}_{t}\), so the
+        Fisher-scoring step for the mean part is
+        \begin{equation}
+          \boldsymbol{\rho}^{(t+1)}=(\boldsymbol{D}_{t}^{\top}\boldsymbol{V}_{t}^{-1}\boldsymbol{D}_{t})^{-1}\boldsymbol{D}_{t}^{\top}\boldsymbol{V}_{t}^{-1}\boldsymbol{z}_{t},
+          \qquad
+          \boldsymbol{z}_{t}=\boldsymbol{D}_{t}\boldsymbol{\rho}^{(t)}+\{\boldsymbol{y}-\boldsymbol{m}(\boldsymbol{\rho}^{(t)})\},
+          \label{eq-irls}
+        \end{equation}
+        the generalised least-squares fit of Theorem~\ref{th:generalized-least-squares-estimate} with design \(\boldsymbol{D}_{t}\) and
+        covariance \(\boldsymbol{V}_{t}\); the working response \(\boldsymbol{z}_{t}\) is the observed bulk corrected by the first-order
+        expansion \(\boldsymbol{m}(\boldsymbol{\rho})\approx\boldsymbol{m}_{t}+\boldsymbol{D}_{t}(\boldsymbol{\rho}-\boldsymbol{\rho}^{(t)})\) of the mean, the counterpart of the adjusted
+        dependent variable \(\eta+(y-\mu)\,\mathrm{d}\eta/\mathrm{d}\mu\) of a generalised linear model
+  \item differences with a generalised linear model: the link acts on the parameter, so the design \(\boldsymbol{D}_{t}\)
+        changes at each iteration, while a generalised linear model keeps \(\boldsymbol{X}\) fixed and updates diagonal weights
+        \((\mathrm{d}\mu/\mathrm{d}\eta)^{2}/V(\mu)\); here the weight \(\boldsymbol{V}_{t}^{-1}\) is a full gene--gene precision
+  \item at convergence, \((\boldsymbol{D}^{\top}\boldsymbol{V}^{-1}\boldsymbol{D})^{-1}\) is the mean part of the Wald covariance of \(\hat{\boldsymbol{\rho}}\), and the
+        generalised hat matrix \(\boldsymbol{H}=\boldsymbol{D}(\boldsymbol{D}^{\top}\boldsymbol{V}^{-1}\boldsymbol{D})^{-1}\boldsymbol{D}^{\top}\boldsymbol{V}^{-1}\), an oblique projection, supplies the
+        leverages of the \gls{hccorr}
+  \item chart: an ALR chart, the multinomial logit with a reference type, has \(\boldsymbol{D}^{\mathrm{alr}}=\boldsymbol{D}\boldsymbol{A}_{r}^{-1}\) with
+        \(\boldsymbol{A}_{r}=\boldsymbol{D}_{r}\mathbf{V}\) (Table~\ref{tab:charts}); a Fisher-scoring step is invariant to this linear change of
+        basis, so ALR and ILR produce the same iterates in \(\boldsymbol{p}\), and the Helmert basis only fixes the
+        coordinates in which \(I_{\boldsymbol{\rho}}^{-1}\) is reported
+  \item full Gaussian scoring: the covariance also depends on \(\boldsymbol{\rho}\), with
+        \(\boldsymbol{V}_{k}=\partial\boldsymbol{V}/\partial\rho_{k}=\sum_{j}2p_{j}(\partial p_{j}/\partial\rho_{k})\boldsymbol{\Sigma}_{j}\); the score gains
+        \(\tfrac12\operatorname{tr}\{\boldsymbol{V}^{-1}\boldsymbol{V}_{k}\boldsymbol{V}^{-1}(\boldsymbol{r}\boldsymbol{r}^{\top}-\boldsymbol{V})\}\) and the information
+        \(\tfrac12\operatorname{tr}(\boldsymbol{V}^{-1}\boldsymbol{V}_{k}\boldsymbol{V}^{-1}\boldsymbol{V}_{l})\), so the full step is a reweighted fit of the first and second
+        moments together, \(\boldsymbol{y}\) and \(\boldsymbol{r}\boldsymbol{r}^{\top}\)
+  \item analogue of a canonical link: for a canonical link the second derivative of the canonical parameter
+        with respect to the linear predictor vanishes, the Hessian does not depend on \(\boldsymbol{y}\), and Newton--Raphson is
+        Fisher scoring \cite[Sect.~4.5.5]{agrestiFoundationsLinearGeneralized2015} \cite[Sect.~2.2]{nelderGeneralizedLinearModels1972};
+        in \eqref{eq-hessian-log-likelihood-unconstrained}, the terms that separate \(\mathbf{H}\) from \(-I(\boldsymbol{p})\) all come from the
+        dependence of \(\boldsymbol{\Sigma}\) on \(\boldsymbol{p}\), so they vanish when the covariance is fixed: the barycentre freeze
+        \eqref{eq-gls-barycentre}, or the single-cell model \eqref{eq:sc-model} with a common within-type covariance
+        \(\boldsymbol{\Sigma}_{W,j}=\boldsymbol{\Sigma}_{W}\) and fixed scales \(c\) and \(\phi\), for which \(\boldsymbol{S}_{W}(\boldsymbol{p})=\sum_{j}p_{j}\boldsymbol{\Sigma}_{W}=\boldsymbol{\Sigma}_{W}\) on the simplex; the
+        log-likelihood is then quadratic in \(\boldsymbol{p}\), \(\mathbf{H}=-\boldsymbol{\mu}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}=-I(\boldsymbol{p})\), and both methods reach the
+        unconstrained generalised least-squares estimate in one step; in the released model a common
+        covariance is not enough, since \(\boldsymbol{\Sigma}(\boldsymbol{p})=(\sum_{j}p_{j}^{2})\boldsymbol{\Sigma}\) still depends on \(\boldsymbol{p}\)
+  \item in the ILR chart, the chart curvature adds \(\sum_{j}(\partial\ell/\partial p_{j})\nabla^{2}_{\boldsymbol{\rho}}p_{j}\) to the Hessian
+        \eqref{eq-chain-rule-second-order}, which vanishes only at an interior maximum (Appendix~\ref{app:kkt}); even with a
+        fixed covariance, the two methods then share their limit and their curvature at the limit, not their path
+  \item choice (our assessment): Fisher scoring far from the maximum, because \(I_{\boldsymbol{\rho}}\) is \gls{posdef} under
+        (R5) of Proposition~\ref{pr:mle-regularity} while the observed Hessian can be indefinite
+        (Appendix~\ref{app:mle}), so each step is an ascent direction, and it needs no second derivative of the
+        chart; Newton--Raphson near the maximum, where it converges quadratically and Fisher scoring only
+        linearly, at a rate set by the residual terms; the observed Hessian is needed at the end in any case, to
+        certify a local maximum; under a misspecified variance function, the quasi-score of
+        Section~\ref{sec:generalized-linear-model} is solved by Fisher scoring alone
+\end{itemize}
+
+\subsubsection{Robust variants of the weighted fit}
+\label{sec:robust}
+
+\begin{itemize}
+  \item DeCovarT as generalised least squares (GLS)
+  \begin{itemize}
+    \item for a fixed weight matrix, the Mahalanobis term of
+          \eqref{eq-loglikelihood-multivariate-gaussian} is the GLS criterion
+          (Theorem~\ref{th:generalized-least-squares-estimate}); weighted least squares, as in \emph{DWLS}, is
+          its diagonal case \cite{tsoucasAccurateEstimationCelltype2019}
+    \item \emph{DECALS} solves a constrained GLS with a covariance estimated from the bulk cohort
+          \cite{caiStatisticalInferenceCelltype2024}; DeCovarT uses a known, plug-in covariance whose weight
+          \(\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\) moves with the composition, plus a log-determinant term
+    \item DeCovarT is therefore a GLS with a parameter-dependent variance function, fitted by the reweighted
+          iteration \eqref{eq-irls} once its mean part is isolated
+    \item a simpler competitor freezes the weight at the barycentre,
+          \(\boldsymbol{\Sigma}=J^{-2}\sum_{j}\boldsymbol{\Sigma}_{j}\); it ignores the cell-type-specific networks, and
+          \emph{cellGeometry} estimates such a gene-level covariance from cross-sample variances
+          \cite{lauCellGeometryUltrafastSinglecell2026}
+  \end{itemize}
+  \item DeCovarT is not robust in the statistical sense: the loss is quadratic in the whitened residual
+        \(\boldsymbol{e}=\boldsymbol{L}^{-1}(\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})\), so one gene with a platform shift, or a gene expressed
+        by a type missing from the reference, has unbounded influence on \(\hat{\boldsymbol{p}}\); fixed gene
+        weights rescale that influence without bounding it
+  \item robust rewrites, in increasing departure from the current solver
+  \begin{enumerate}
+    \item fixed gene weights folded into the convolution,
+          \(\boldsymbol{y}^{\star}=\boldsymbol{W}^{1/2}\boldsymbol{y}\), \(\boldsymbol{\mu}^{\star}=\boldsymbol{W}^{1/2}\boldsymbol{\mu}\),
+          \(\boldsymbol{\Sigma}_{j}^{\star}=\boldsymbol{W}^{1/2}\boldsymbol{\Sigma}_{j}\boldsymbol{W}^{1/2}\), as \emph{BayesPrism} does with \emph{DWLS}
+          weights \cite{zhangIntegratedInferenceCellularCompositions2026}; the solver is unchanged
+    \item M-estimation on gene-wise standardised residuals
+          \(e_{g}=r_{g}/\{\boldsymbol{\Sigma}(\boldsymbol{p})\}_{gg}^{1/2}\): replace \(\tfrac12\sum_{g}e_{g}^{2}\) by \(\sum_{g}\varrho_{c}(e_{g})\)
+          with a Huber or bisquare loss
+          \cite{hampelIntroductionHuber19641992,GeneralizedLinearModels2018}, solved by iteratively
+          reweighted least squares with weights
+          \(w_{g}=\varrho_{c}'(e_{g})/e_{g}\), and report the sandwich variance
+          \(\boldsymbol{H}^{-1}\boldsymbol{K}\boldsymbol{H}^{-1}\) (Appendix~\ref{app:mle-firth})
+    \item trimmed likelihood: drop the genes with the largest contributions to
+          \eqref{eq-loglikelihood-multivariate-gaussian} and refit, as least trimmed squares does for
+          observations \cite{rousseeuwComputingLTSRegression2006}
+    \item robust reference moments: estimate \(\boldsymbol{\Sigma}_{j}\) from cells with a high-breakdown estimator
+          such as the minimum covariance determinant \cite{rousseeuwMultivariateEstimationHigh1985}, so outlier
+          cells do not distort the plug-in
+  \end{enumerate}
+  \item caution: the Cholesky whitening mixes genes, so down-weighting one whitened coordinate does not
+        down-weight one gene; gene-level weights must act on gene-wise standardised residuals
+\end{itemize}
+
+\subsubsection{Other optimisation strategies}
+\label{app:optim-other}
+
+\begin{itemize}
+  \item first-order methods (gradient ascent, L-BFGS) avoid the Hessian, but for one bulk sample the
+        \((J-1)\times(J-1)\) Newton system is negligible next to the \(G\times G\) factorisation of \(\boldsymbol{\Sigma}(\boldsymbol{p})\) that
+        every method needs
+  \item stochastic and mini-batch gradients, with adaptive step sizes, scale with the number of
+        independent observations; they pay off for a joint fit over many bulk samples, as in the design model of
+        Section~\ref{sec:generalized-linear-model} or a joint estimate of the \(\boldsymbol{\Sigma}_{j}\) over a cohort; sub-sampling
+        genes within one sample is not equivalent, because genes are correlated observations of one draw
+  \item proximal gradient and ADMM handle non-smooth penalties, such as a lasso on the precisions or on the
+        design coefficients \(\boldsymbol{B}\)
+  \item the expectation--maximisation algorithm fits the latent-profile formulation of Section~\ref{sec:wiener}
+        \cite{dempsterMaximumLikelihoodIncomplete1977}
+\end{itemize}
+
 \subsection{Maximum-likelihood properties and confidence intervals}
 \label{app:mle}
 
@@ -562,7 +826,8 @@ Proofs and simulations in the \vignette{theory-DeCovarT-MLE-properties.html}{max
         \(-654.5\) and \(+53.9\); the log-likelihood is therefore not concave, in \(\boldsymbol{p}\) or in the ILR
         chart, and a converged solver certifies a local maximum only
   \item a single bulk profile provides no replication of its own composition, so every asymptotic
-        statement below is taken in the number of replicate samples sharing one composition
+        statement below is taken in the number of replicate samples sharing one composition or, for the
+        single-cell model \eqref{eq:sc-model}, in the number of cells (Appendix~\ref{app:mle-regularity})
   \item population uniqueness: the expected log-likelihood is maximised only at the true composition under
         identifiability, because the gap is a Kullback--Leibler divergence \cite{vaartAsymptoticStatistics2000}
   \item ILR versus \emph{MEAD}: \emph{MEAD} truncates or softplus-transforms its estimate, which is inconsistent for a
@@ -570,27 +835,253 @@ Proofs and simulations in the \vignette{theory-DeCovarT-MLE-properties.html}{max
         no tuning, and a true zero sits at infinity in ILR coordinates
 \end{itemize}
 
-\subsubsection{Wald intervals}
+\subsubsection{Regularity conditions and asymptotic regimes}
+\label{app:mle-regularity}
+
+Intervals in this appendix follow the generalised-linear-model treatment of likelihood inference
+\cite[Sects.~4.2--4.3]{agrestiFoundationsLinearGeneralized2015}; the asymptotic theory is that of
+\cite[Ch.~9]{coxTheoreticalStatistics1979}.
+
+\begin{proposition}[Large-sample normality and the three first-order tests]
+  \label{pr:mle-regularity}
+  Let \(\boldsymbol{y}_{\cdot1},\ldots,\boldsymbol{y}_{\cdot N}\) be independent bulk profiles of \(N\) biological samples that share
+  one composition \(\boldsymbol{p}_{0}\), and write \(\boldsymbol{\rho}_{0}=\mathbf{V}^{\top}\log\boldsymbol{p}_{0}\).
+  Assume that
+  \begin{enumerate}
+    \item[(R1)] the composition is identifiable: distinct compositions give distinct laws (Appendix~\ref{app:mle});
+    \item[(R2)] the truth is an interior point: \(\boldsymbol{p}_{0}\) lies in the open simplex, so \(\boldsymbol{\rho}_{0}\) is a finite
+          point of the open set \(\mathbb{R}^{J-1}\);
+    \item[(R3)] the number of free parameters \(J-1\), and the number of genes \(G\), stay fixed while
+          \(N\to\infty\);
+    \item[(R4)] the log-density is three times continuously differentiable in \(\boldsymbol{\rho}\) near \(\boldsymbol{\rho}_{0}\), with third
+          derivatives bounded by an integrable function;
+    \item[(R5)] the per-sample Fisher information \(I_{\boldsymbol{\rho}}(\boldsymbol{\rho}_{0})\) is finite and \gls{posdef};
+    \item[(R6)] the support of the law does not depend on \(\boldsymbol{\rho}\), and differentiation and integration
+          can be interchanged.
+  \end{enumerate}
+  Then, with probability tending to one, the likelihood equation has a consistent root, and
+  \(\sqrt{N}(\hat{\boldsymbol{\rho}}-\boldsymbol{\rho}_{0})\rightsquigarrow\mathcal{N}_{J-1}(\boldsymbol{0},I_{\boldsymbol{\rho}}(\boldsymbol{\rho}_{0})^{-1})\).
+  For a null hypothesis that fixes \(k\) smooth functions of \(\boldsymbol{\rho}\), the Wald, likelihood-ratio and
+  score statistics of Appendix~\ref{app:mle-tests} all converge to \(\chi^{2}_{k}\), and they differ by
+  \(o_{P}(1)\) \cite[Sects.~9.2--9.3]{coxTheoreticalStatistics1979}.
+\end{proposition}
+
+\begin{itemize}
+  \item the Gaussian convolution meets (R4) and (R6) on the open simplex, because
+        \(\boldsymbol{\Sigma}(\boldsymbol{p})\) is positive definite on the closed simplex; (R5) fails when signature
+        columns are collinear and the covariances do not separate the types
+  \item (R2) fails when a type is absent: the limit is then a chi-bar-square mixture
+        (Appendix~\ref{app:mle-boundary})
+  \item (R3) sets the direction of the limit: the replication unit is the biological sample \(i\), not the
+        gene; the \(G\) genes are correlated by construction, and a design that adds one composition for
+        each new sample adds parameters as fast as observations, so no single composition gains
+        information \cite[p.~81]{coxTheoreticalStatistics1979}
+  \item small-dispersion regime: a single bulk sample (\(N=1\)) still has an asymptotic direction under
+        \eqref{eq:sc-model}; with \(\tilde{\boldsymbol{y}}_{\cdot i}=\boldsymbol{y}_{\cdot i}/c_{i}\), the law is
+        \(\mathcal{N}_{G}(\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i},\,n_{i}^{-1}\boldsymbol{S}_{W}(\boldsymbol{p}_{\cdot i}))\), so the number of cells
+        \(n_{i}\) plays the role of the index parameter \(\lambda\) of a dispersion model
+  \begin{itemize}
+    \item for one observation of a dispersion model, J{\o}rgensen proves consistency,
+          \(\lambda^{1/2}(\hat{\boldsymbol{\beta}}-\boldsymbol{\beta}_{0})\rightsquigarrow\mathcal{N}(\boldsymbol{0},i(\boldsymbol{\beta}_{0})^{-1})\), and \(\chi^{2}\) limits
+          for deviance differences as \(\lambda\to\infty\) with the sample size fixed, under conditions that
+          mirror (R2), (R4) and (R5): an open parameter set, a full-rank local design matrix and a
+          positive-definite information \cite[Theorems~4.1--4.3]{jørgensenSmallDispersionAsymptotics1987};
+          large expected cell counts in contingency tables are the classical special case
+    \item our remark: \eqref{eq:sc-model} is not exactly a dispersion model, because the term
+          \(-\tfrac12\log\det\boldsymbol{S}_{W}(\boldsymbol{p})\) is not multiplied by \(n_{i}\); it is \(O(1)\) against the
+          \(O(n_{i})\) Mahalanobis term, so the information is dominated by its mean part
+          \(n_{i}\mathbf{J}_{\psi}^{\top}\tilde{\boldsymbol{\mu}}^{\top}\boldsymbol{S}_{W}^{-1}\tilde{\boldsymbol{\mu}}\mathbf{J}_{\psi}\) and the quasi-score of
+          Section~\ref{sec:generalized-linear-model} becomes efficient in this limit; the proof is to be written
+    \item the limit needs every type count \(m_{ji}=n_{i}p_{ji}\) to grow, not only \(n_{i}\): the Gaussian law of
+          the bulk is itself a central-limit approximation over the cells of each type, so a rare type
+          with few cells breaks it first
+    \item with the dispersion unknown, J{\o}rgensen estimates it by the deviance divided by its degrees of
+          freedom \cite[Sect.~4.5]{jørgensenSmallDispersionAsymptotics1987}; here this is the Pearson estimate
+          \(\hat\phi\) on \(G-J\) degrees of freedom, so \(G\) must exceed \(J\) by a margin and \(t\) or \(F\)
+          quantiles replace normal and \(\chi^{2}\) ones when \(G-J\) is small
+    \item the reference moments \((\tilde{\boldsymbol{\mu}},\boldsymbol{\Sigma}_{W,j})\) are estimated from \(C_{j}\) cells; their error does
+          not shrink with \(n_{i}\) and dominates once \(n_{i}\gg C_{j}\), which the reference bootstrap
+          (Appendix~\ref{app:mle-boundary}) propagates
+    \item the released covariance \(\sum_{j}p_{j}^{2}\boldsymbol{\Sigma}_{j}\) has no index parameter, so for it only the
+          replicate limit of Proposition~\ref{pr:mle-regularity} is available
+  \end{itemize}
+\end{itemize}
+
+\subsubsection{Local geometry of the log-likelihood}
+\label{app:mle-geometry}
+
+\begin{itemize}
+  \item every first-order interval reads the curvature at the estimate: near \(\hat{\boldsymbol{\rho}}\),
+        \(\ell(\boldsymbol{\rho})-\ell(\hat{\boldsymbol{\rho}})\approx-\tfrac12(\boldsymbol{\rho}-\hat{\boldsymbol{\rho}})^{\top}\boldsymbol{j}(\hat{\boldsymbol{\rho}})(\boldsymbol{\rho}-\hat{\boldsymbol{\rho}})\), with
+        \(\boldsymbol{j}=-\nabla^{2}_{\boldsymbol{\rho}}\ell\) the observed information; a scalar Wald half-width is
+        \(z_{1-\alpha/2}\,\boldsymbol{j}^{-1/2}\), so a sharp peak gives a narrow interval and a plateau a wide one;
+        a ridge, as along the contrast of two collinear signatures, gives an elongated ellipse
+  \item anisotropy is read from the \gls{condnum} \(\kappa=\lambda_{\max}/\lambda_{\min}\) of the Hessian at the returned
+        estimate: Wald half-widths along its eigenvectors scale as \(\lambda^{-1/2}\), so a large \(\kappa\) signals an
+        elongated peak, and a \(\lambda_{\min}\) close to zero a plateau or a ridge along the corresponding eigenvector,
+        where the interval is wide and the inversion of \(\boldsymbol{j}\) loses accuracy; \(\kappa\) alone misses a flat but
+        round peak: in the covariance-driven scenario, \(\kappa\) of the ILR information fell from \(6.8\) to \(1.7\) as the
+        overlap grew, because both eigenvalues shrank
+        (\vignette{fig03-covariance-driven.html\#sec-hybrid-findings}{covariance-driven vignette}), so
+        \(\lambda_{\min}\) is read together with \(\kappa\)
+  \item Gaussian response, identity link, known covariance: \(\ell\) is exactly quadratic in the coefficients,
+        the Wald, likelihood-ratio and score statistics are equal, their \(\chi^{2}\) law is exact, and the
+        symmetric interval is exact \cite[Sect.~4.3]{agrestiFoundationsLinearGeneralized2015}
+  \item DeCovarT departs from that case in three ways
+  \begin{itemize}
+    \item the covariance \(\boldsymbol{\Sigma}(\boldsymbol{p})\) depends on the parameter, so \(\ell\) is not quadratic even in
+          \(\boldsymbol{p}\), where the mean is linear
+    \item the chart is nonlinear: the mean \(\boldsymbol{\mu}\boldsymbol{\psi}(\boldsymbol{\rho})\) is not linear in \(\boldsymbol{\rho}\)
+    \item near a face, \(p_{j}\to0\) sends \(\rho\) to infinity and \(\ell\) flattens; with few replicates, an
+          unbalanced composition or overlapping types, the profile is skewed and the plateau is wide; the
+          ILR slices of the covariance-driven scenario show these ridges
+          (\vignette{fig03-covariance-driven.html\#sec-hybrid-findings}{covariance-driven vignette})
+  \end{itemize}
+  \item diagnostic: compare the Wald, score and likelihood-ratio intervals for the same estimate; plot
+        the signed root \(r(\psi)\) of Appendix~\ref{app:mle-inversion} against the Wald pivot
+        \((\hat\psi-\psi)/\mathrm{SE}\): the two coincide when \(\ell\) is quadratic, and a curved \(r(\psi)\) or a
+        large gap between the three intervals flags a non-Gaussian geometry; ratios of the three
+        statistics also detect the Hauck--Donner effect \cite{yeeHauckDonnerEffectWald2022}
+\end{itemize}
+
+\subsubsection{Wald, likelihood-ratio and score statistics}
+\label{app:mle-tests}
 \label{app:mle-intervals}
 
 \begin{itemize}
-  \item \(I_{\boldsymbol{\rho}}=\mathbf{J}_{\psi}^{\top}I(\boldsymbol{p})\mathbf{J}_{\psi}\) with
-        \(\mathbf{J}_{\psi}=(\operatorname{diag}(\boldsymbol{p})-\boldsymbol{p}\boldsymbol{p}^{\top})\mathbf{V}\), and
-        \(\hat{\boldsymbol{\rho}}\overset{a}{\sim}\mathcal{N}(\boldsymbol{\rho}_{0},I_{\boldsymbol{\rho}}^{-1})\)
-  \item delta method: \(\operatorname{Var}(\hat{\boldsymbol{p}})\approx\mathbf{J}_{\psi}I_{\boldsymbol{\rho}}^{-1}\mathbf{J}_{\psi}^{\top}\);
-        symmetric, not invariant to reparametrisation \cite{oehlertNoteDeltaMethod1992}, and outside \([0,1]\) for rare
-        types in unbalanced mixtures; truncation hides the problem
-  \item back-transformed routes: a logit interval with \(\mathrm{SE}(\operatorname{logit}\hat p_{j})=\mathrm{SE}(\hat p_{j})/\{\hat p_{j}(1-\hat p_{j})\}\),
-        or quantiles of \(\psi(\boldsymbol{\rho}^{(b)})\) with \(\boldsymbol{\rho}^{(b)}\sim\mathcal{N}(\hat{\boldsymbol{\rho}},I_{\boldsymbol{\rho}}^{-1})\);
-        both respect the bounds, neither guarantees coverage, and both are undefined on a face
-  \item near a face the Wald statistic can decrease as the estimate moves away from the null (Hauck--Donner effect),
-        detected by ratios of Wald, score and likelihood-ratio statistics \cite{yeeHauckDonnerEffectWald2022}
+  \item partition \(\boldsymbol{\theta}=(\boldsymbol{\psi},\boldsymbol{\lambda})\) into \(k\) parameters of interest and nuisance parameters, test
+        \(H_{0}:\boldsymbol{\psi}=\boldsymbol{\psi}_{0}\), and write \(\tilde{\boldsymbol{\theta}}_{0}=(\boldsymbol{\psi}_{0},\hat{\boldsymbol{\lambda}}_{\boldsymbol{\psi}_{0}})\) for the restricted
+        estimate and \(I^{\psi\psi}\) for the \(\boldsymbol{\psi}\) block of \(I^{-1}\)
+        \cite[Sect.~9.3]{coxTheoreticalStatistics1979} \cite[Sect.~4.3]{agrestiFoundationsLinearGeneralized2015}:
+        \begin{equation}
+          \begin{aligned}
+            W&=(\hat{\boldsymbol{\psi}}-\boldsymbol{\psi}_{0})^{\top}\{I^{\psi\psi}(\hat{\boldsymbol{\theta}})\}^{-1}(\hat{\boldsymbol{\psi}}-\boldsymbol{\psi}_{0}),
+            \qquad
+            D=2\{\ell(\hat{\boldsymbol{\theta}})-\ell(\tilde{\boldsymbol{\theta}}_{0})\},\\
+            S&=\boldsymbol{U}_{\psi}(\tilde{\boldsymbol{\theta}}_{0})^{\top}I^{\psi\psi}(\tilde{\boldsymbol{\theta}}_{0})\boldsymbol{U}_{\psi}(\tilde{\boldsymbol{\theta}}_{0})
+          \end{aligned}
+          \label{eq-three-tests}
+        \end{equation}
+  \item Wald: needs only the unrestricted fit; uses the curvature at \(\hat{\boldsymbol{\theta}}\); with the delta method
+        \eqref{eq-delta-method-p}, \(\hat p_{j}\pm z_{1-\alpha/2}\mathrm{SE}_{j}\) is symmetric and can leave \([0,1]\)
+        for a rare type \cite{oehlertNoteDeltaMethod1992}
+  \item likelihood ratio: needs both fits; invariant to any smooth reparametrisation of \(\boldsymbol{\psi}\); tests
+        any nested hypothesis, including \(k\) linear constraints \(\boldsymbol{C}\boldsymbol{p}=\boldsymbol{d}\) with \(D\rightsquigarrow\chi^{2}_{k}\); in a
+        lineage-aware fit (Section~\ref{sec:lineage}), the hypothesis that two child lines occur in the
+        ratio \(w_{0}\) measured in their parental line is
+        \(p_{c_{1}}-w_{0}(p_{c_{1}}+p_{c_{2}})=0\), one linear constraint; the restricted set is still a polytope,
+        but the constraint is not linear in \(\boldsymbol{\rho}\), so the restricted fit is done in \(\boldsymbol{p}\)
+  \item score: needs only the restricted fit and uses the slope of \(\ell\) at the null; Rao's score test
+        and the Lagrange-multiplier test are the same statistic, since the multiplier of \(\boldsymbol{\psi}=\boldsymbol{\psi}_{0}\) at
+        the restricted maximum equals \(\boldsymbol{U}_{\psi}(\tilde{\boldsymbol{\theta}}_{0})\); written in \(\boldsymbol{p}\) coordinates it is
+        defined on a face, where Wald is not
+  \item the three are asymptotically equivalent under Proposition~\ref{pr:mle-regularity}
+        \cite[Sect.~9.3]{coxTheoreticalStatistics1979}, and they disagree exactly when the geometry of
+        Appendix~\ref{app:mle-geometry} is not quadratic
+  \item link with the stopping rule of the Marquardt--Levenberg solver: the relative distance to the
+        maximum is \(m^{-1}\boldsymbol{U}(\boldsymbol{\theta}_{k})^{\top}\boldsymbol{G}(\boldsymbol{\theta}_{k})^{-1}\boldsymbol{U}(\boldsymbol{\theta}_{k})\), a score statistic for the null
+        ``the iterate \(\boldsymbol{\theta}_{k}\) is the maximiser'' divided by the number of parameters \(m\), with
+        \(\boldsymbol{G}\) an estimate of the score variance (outer products of individual scores in the robust-variance
+        scoring algorithm, the Hessian in \texttt{marqLevAlg}); Commenges et al.\ note that inverting
+        \(\boldsymbol{U}^{\top}\boldsymbol{G}^{-1}\boldsymbol{U}\le\chi^{2}_{m,1-\alpha}\) gives a confidence region
+        \cite[pp.~10 and 13]{commengesNewtonLikeAlgorithmLikelihood2006}; its null is a statement about the
+        iterate, so it certifies convergence and tests nothing about \(\boldsymbol{p}\)
 \end{itemize}
 
-\subsubsection{Finite-sample bias-corrected intervals}
+\subsubsection{Confidence intervals by test inversion}
+\label{app:mle-inversion}
+
+\begin{itemize}
+  \item a \((1-\alpha)\) confidence set is the set of null values that a level-\(\alpha\) test does not reject,
+        \(\{\psi_{0}:T(\psi_{0})\le\chi^{2}_{1,1-\alpha}\}\) for each statistic \eqref{eq-three-tests}
+        \cite[Sect.~4.3]{agrestiFoundationsLinearGeneralized2015}
+  \item Wald: the information is evaluated once, at \(\hat\psi\), so the set is the symmetric interval
+        \(\hat\psi\pm z_{1-\alpha/2}\mathrm{SE}(\hat\psi)\)
+  \item score: the information is re-evaluated at each candidate \(\psi_{0}\), so the interval is asymmetric;
+        for a binomial proportion it is the Wilson interval \cite{wilsonProbableInferenceLaw1927}
+  \item likelihood ratio: \(D(\psi_{0})\) is zero at \(\hat\psi\) and grows on both sides, so
+        \(\{\psi_{0}:D(\psi_{0})\le\chi^{2}_{1,1-\alpha}\}\) has a lower and an upper endpoint, where the profile deviance
+        crosses the cut-off on each side of \(\hat\psi\); the \(\chi^{2}_{1}\) test is two-sided because it squares the
+        signed likelihood root
+        \(r(\psi_{0})=\operatorname{sign}(\hat\psi-\psi_{0})\sqrt{D(\psi_{0})}\rightsquigarrow\mathcal{N}(0,1)\); the lower limit solves
+        \(r(\psi_{L})=z_{1-\alpha/2}\) and the upper limit \(r(\psi_{U})=-z_{1-\alpha/2}\), and \(z_{1-\alpha}\) gives one-sided
+        limits; if \(D\) stays below the cut-off up to the face \(p_{j}=0\), the lower limit is \(0\)
+  \item several parameters: the joint region \(\{\boldsymbol{\psi}_{0}:D(\boldsymbol{\psi}_{0})\le\chi^{2}_{k,1-\alpha}\}\), with the remaining
+        proportions and the scales profiled out as nuisance parameters, has simultaneous coverage
+  \item software: \texttt{confint\_profile\_decovart()} for DeCovarT; for generalised linear models,
+        \texttt{stats::confint()} inverts the signed root of the profile, and \texttt{ProfileLikelihood} plots
+        normalised profiles and likelihood support intervals; the higher-order \texttt{likelihoodAsy}
+        (\(r\) and \(r^{\ast}\) for any scalar function of the parameters, given a log-likelihood and a data
+        simulator) applies to DeCovarT, whereas \texttt{cond} is restricted to logistic and log-linear models
+  \item back-transformation: Agresti forms the interval on the scale of the linear predictor and maps the
+        endpoints by the inverse link, instead of applying the delta method to the fitted mean
+        \cite[Sect.~4.2.5]{agrestiFoundationsLinearGeneralized2015}; a smooth, monotone map preserves quantiles,
+        so for \(J=2\) the interval \(\psi(\hat\rho\pm z\,\mathrm{SE})\) keeps the coverage of the interval for \(\rho\) and stays
+        inside \((0,1)\); for \(J>2\) the bijection \(\boldsymbol{\psi}\) maps joint regions exactly,
+        \(\Pr(\boldsymbol{\rho}\in R)=\Pr\{\boldsymbol{p}\in\boldsymbol{\psi}(R)\}\), and marginal intervals for \(p_{j}\) are quantiles of
+        \(\boldsymbol{\psi}(\boldsymbol{\rho}^{(b)})\) with \(\boldsymbol{\rho}^{(b)}\sim\mathcal{N}(\hat{\boldsymbol{\rho}},I_{\boldsymbol{\rho}}^{-1})\)
+  \item choice of chart: the free softmax of \(J\) scores is not identifiable and its information is singular; the
+        multinomial logit with a reference type is the ALR chart, a linear transform of the ILR chart, so both
+        give the same estimate, the same likelihood ratio and the same delta-method covariance
+        (Appendix~\ref{app:chart-derivatives}); a component-wise logit interval adds a second delta method on
+        top of the first; the ILR back-transformation is therefore kept, for its numerical invariance
+  \item the Wald interval remains the weakest of the three: it depends on nonlinear changes of chart
+        (\(\boldsymbol{p}\), log-ratio or logit coordinates give different intervals), it is undefined on a face, and its
+        symmetry presumes a quadratic log-likelihood
+  \item[] \todo[inline]{Planned: intervals from the generalised-linear-model view of DeCovarT.
+        Compute the \(1-\alpha/2\) and \(\alpha/2\) quantiles in ILR coordinates, where the
+        quasi-score \(\boldsymbol{D}^{\top}\boldsymbol{V}^{-1}(\boldsymbol{y}-\boldsymbol{m})=\boldsymbol{0}\)
+        has information \(\boldsymbol{D}^{\top}\boldsymbol{V}^{-1}\boldsymbol{D}\) (Section~\ref{sec:generalized-linear-model}),
+        then map both bounds back to the simplex. Compare their coverage with the delta-method intervals,
+        which currently exceed the unit simplex for highly unbalanced mixtures (Appendix~\ref{app:mle-tests}).}
+\end{itemize}
+
+\subsubsection{Nuisance scales: profile likelihood and orthogonality}
+\label{app:mle-nuisance}
+
+\begin{itemize}
+  \item in \eqref{eq:sc-model} the scales \(\boldsymbol{\eta}=(\log c,\log\phi)\) are technical nuisance parameters; the profile
+        log-likelihood is \(\ell^{\ast}(\boldsymbol{\rho})=\ell(\boldsymbol{\rho},\hat{\boldsymbol{\eta}}(\boldsymbol{\rho}))\)
+  \item by the \gls{envelope}, \(\nabla\ell^{\ast}(\boldsymbol{\rho})=\nabla_{\boldsymbol{\rho}}\ell(\boldsymbol{\rho},\boldsymbol{\eta})\rvert_{\boldsymbol{\eta}=\hat{\boldsymbol{\eta}}(\boldsymbol{\rho})}\): the profile score
+        needs no derivative of \(\hat{\boldsymbol{\eta}}(\boldsymbol{\rho})\), which is how the profile score of
+        Appendix~\ref{sec:sc-newton} is obtained; differentiating once more gives the Schur complement
+        \(-\nabla^{2}\ell^{\ast}=\boldsymbol{j}_{\rho\rho}-\boldsymbol{j}_{\rho\eta}\boldsymbol{j}_{\eta\eta}^{-1}\boldsymbol{j}_{\eta\rho}\), so profile and joint Wald intervals agree
+  \item \gls{orthogonality}: when \(I_{\rho\eta}=\boldsymbol{0}\), the information is block diagonal, \(\hat{\boldsymbol{\rho}}\) and \(\hat{\boldsymbol{\eta}}\) are
+        asymptotically independent, the standard error of \(\hat{\boldsymbol{\rho}}\) is the same whether \(\boldsymbol{\eta}\) is known or estimated,
+        and \(\hat{\boldsymbol{\eta}}_{\psi}\) changes only by \(O_{P}(N^{-1})\) with \(\psi\) \cite[Sect.~2.2]{coxParameterOrthogonalityApproximate1987};
+        in a generalised linear model the dispersion is orthogonal to the mean parameters
+  \item in \eqref{eq:sc-model}, \(I_{c\phi}=0\) but \(I_{p_{j}c}\neq0\) and \(I_{p_{j}\phi}\neq0\) (Appendix~\ref{sec:sc-newton}): the
+        composition is not orthogonal to the scales, and estimating them widens the intervals through the
+        Schur complement; a scalar interest parameter can always be made orthogonal to the nuisance by
+        solving a system of partial differential equations, a vector one in general cannot
+        \cite[Sect.~2.3]{coxParameterOrthogonalityApproximate1987}
+  \item with orthogonal nuisance parameters, the Cox--Reid adjusted profile log-likelihood
+        \(\ell^{\ast}(\psi)-\tfrac12\log\det\boldsymbol{j}_{\eta\eta}(\psi,\hat{\boldsymbol{\eta}}_{\psi})\) corrects the profile for the estimation of
+        \(\boldsymbol{\eta}\), as restricted maximum likelihood does for a variance
+        \cite{coxParameterOrthogonalityApproximate1987}
+  \item the same block structure of the expected information is derived for every alignment strategy in the
+        \vignette{theory-decovart-single-cell-tailored.html\#sec-compound}{single-cell alignment vignette}
+\end{itemize}
+
+\subsubsection{Higher-order and finite-sample corrections}
 \label{app:mle-firth}
 
 \begin{itemize}
+  \item first-order errors: \(r\sim\mathcal{N}(0,1)+O(n^{-1/2})\) and \(D\sim\chi^{2}_{k}+O(n^{-1})\), where \(n\) is the sample
+        size or any parameter that controls the convergence to the asymptotic limit
+        \cite{canoneroHigherorderAsymptoticCorrections2023}, here the number of replicates \(N\) or the number of
+        cells \(n_{i}\)
+  \item modified likelihood root \(r^{\ast}=r+r^{-1}\log(q/r)\sim\mathcal{N}(0,1)+O(n^{-3/2})\), where \(q\) is built from
+        sample-space derivatives of \(\ell\), or from a tangent exponential model when \(\ell\) cannot be written in
+        terms of the estimates; it is defined for a scalar interest parameter and keeps the sign of \(r\), so it
+        gives lower and upper limits
+  \item Bartlett correction \(D^{\ast}=kD/\mathbb{E}(D)\), with \(\mathbb{E}(D)\) from Lawley's expansion or from a parametric
+        bootstrap at the restricted estimate; the \(\chi^{2}_{k}\) error falls to \(O(n^{-2})\); in the comparison of
+        Canonero et al.\ the Bartlett correction was the more reliable of the two, and \(r^{\ast}\) became unstable when the
+        log-likelihood was far from quadratic \cite{canoneroHigherorderAsymptoticCorrections2023}
+  \item for DeCovarT, the restricted simulations of \texttt{bootstrap\_decovart()} already estimate \(\mathbb{E}(D)\);
+        \texttt{likelihoodAsy} needs only the log-likelihood and \texttt{simulate\_bulk\_mixture()}; neither
+        correction applies at a face, where the problem is not regular
   \item Firth's penalty \(\ell+\tfrac12\log\det I\) removes the first-order bias of canonical exponential families
         \cite{firthBiasReductionMaximum1993}; in the ILR chart \(\det I\) vanishes at the faces, so the penalised
         estimate is finite and its Wald interval defined; for this curved Gaussian family the bias removal needs a
@@ -605,28 +1096,26 @@ Proofs and simulations in the \vignette{theory-DeCovarT-MLE-properties.html}{max
         \(\hat{\boldsymbol{K}}=\sum_{g}\nabla\ell_{g}\nabla\ell_{g}^{\top}\) and the robust Firth variance is
         \(\boldsymbol{H}_{\mathrm{F}}^{-1}\hat{\boldsymbol{K}}\boldsymbol{H}_{\mathrm{F}}^{-1}\)
         \todo{Implement the gene-factorised sandwich; check its dependence on gene order under misspecification.}
-  \item this sandwich differs from the variational one used for Poisson--log-normal models
-        \cite{batardiereEvaluatingParameterUncertainty2024}
 \end{itemize}
 
-\subsubsection{Profile likelihood, boundary tests and bootstraps}
+\subsubsection{Boundary tests and bootstraps}
+\label{app:mle-boundary}
 
 \begin{itemize}
-  \item profile likelihood: \(D_{j}(c)=2\{\ell(\hat{\boldsymbol{p}})-\max_{p_{j}=c}\ell(\boldsymbol{p})\}\rightsquigarrow\chi^{2}_{1}\)
-        \cite{wilksLargeSampleDistributionLikelihood1938}, invariant to the chart, asymmetric and inside the simplex
   \item boundary nulls: the limit is the projection of a Gaussian score on the tangent cone of the simplex
         \cite{selfAsymptoticPropertiesMaximum1987}; with \(q\) active and \(s\) interior constraints and orthogonal
         information blocks, \(D\rightsquigarrow\sum_{i=0}^{q}\binom{q}{i}2^{-q}\chi^{2}_{s+i}\), and
         \(\tfrac12\chi^{2}_{0}+\tfrac12\chi^{2}_{1}\) for one absent type \cite{hermanDistributionLikelihoodRatio1954}
   \item without orthogonality the weights are calibrated by a restricted parametric bootstrap; the null \(p_{j}=0\)
         cannot be written in ILR coordinates, so restricted fits substitute the constrained value directly
-  \item parametric bootstrap from \(\mathcal{N}_{G}(\boldsymbol{\mu}\hat{\boldsymbol{p}},\boldsymbol{\Sigma}(\hat{\boldsymbol{p}}))\); reference bootstrap
-        over donors or cells, which rebuilds \((\boldsymbol{\mu},\boldsymbol{\Sigma}_{j})\) and refits
-        \cite{efronBootstrapMethodsAnother1979}
+  \item parametric bootstrap from \(\mathcal{N}_{G}(\boldsymbol{\mu}\hat{\boldsymbol{p}},\boldsymbol{\Sigma}(\hat{\boldsymbol{p}}))\); reference bootstrap,
+        which resamples donors or cells within each type with replacement, rebuilds \((\boldsymbol{\mu},\boldsymbol{\Sigma}_{j})\) and refits
+        \cite{efronBootstrapMethodsAnother1979}; it is not a permutation test, which draws without replacement
+        to build a null distribution, and shuffling cell-type labels is vacuous by equivariance
   \item generalised-linear-model view: DeCovarT models the mean through an inverse link on the parameter instead of
         transforming the response \cite{agrestiFoundationsLinearGeneralized2015}, unlike transformation-based methods
         such as \emph{DeOPUS} \cite{nguyenDeOPUSCellularDeconvolution2026}; its quasi-score yields the planned intervals
-        of Section~\ref{sec:inference}
+        of Section~\ref{sec:generalized-linear-model}
 \end{itemize}
 
 \begin{table}[h]
@@ -638,11 +1127,13 @@ Proofs and simulations in the \vignette{theory-DeCovarT-MLE-properties.html}{max
     \toprule
     Procedure & Calibration & Simplex faces & Status \\
     \midrule
-    Wald, delta method & \(\mathbf{J}_{\psi}I_{\boldsymbol{\rho}}^{-1}\mathbf{J}_{\psi}^{\top}\); may leave \([0,1]\) & unusable & implemented \\
-    Logit or chart Wald & back-transformed bounds & undefined & partly \\
+    Wald, delta method & \(\mathbf{J}_{\psi}I_{\boldsymbol{\rho}}^{-1}\mathbf{J}_{\psi}^{\top}\); symmetric, may leave \([0,1]\) & unusable & implemented \\
+    ILR back-transformation & quantiles of \(\boldsymbol{\psi}(\boldsymbol{\rho}^{(b)})\) & undefined & planned \\
+    Score inversion & information at each null value & defined in \(\boldsymbol{p}\) & planned \\
+    Profile likelihood & \(\chi^{2}_{1}\) on the deviance, signed root & inside simplex & implemented \\
+    \(r^{\ast}\) or Bartlett & \(O(n^{-3/2})\) or \(O(n^{-2})\) error & not regular & planned \\
     Firth-penalised Wald & Jeffreys-penalised likelihood & defined & planned \\
     Sandwich & gene-factorised scores & interior only & planned \\
-    Profile likelihood & \(\chi^{2}_{1}\) on the deviance & inside simplex & implemented \\
     Boundary LRT & \(\tfrac12\chi^{2}_{0}+\tfrac12\chi^{2}_{1}\) & designed for it & implemented \\
     Parametric bootstrap & refit on simulated bulks & automatic & implemented \\
     Reference bootstrap & resample donors or cells & automatic & implemented \\
@@ -667,18 +1158,8 @@ supplies dampened gene weights \cite{tsoucasAccurateEstimationCelltype2019}.
 Interaction monomials \(p_{j}p_{\ell}\) in the mean (a Scheff\'e expansion) can be added on the same
 residual, at the cost of many extra parameters.
 
-\begin{theorem}[Generalised least squares]
-  \label{th:generalized-least-squares-estimate}
-  Consider \(\boldsymbol{y}_{\cdot i}=\boldsymbol{\mu}\boldsymbol{p}_{\cdot i}+\boldsymbol{\varepsilon}\) with \(\mathbb{E}(\boldsymbol{\varepsilon}\mid\boldsymbol{\mu})=\boldsymbol{0}\) and
-  \(\operatorname{Cov}(\boldsymbol{\varepsilon}\mid\boldsymbol{\mu})=\boldsymbol{\Sigma}\), a known non-singular covariance.
-  The estimate that minimises the squared Mahalanobis norm of the residuals is
-  \(\hat{\boldsymbol{p}}^{\mathrm{GLS}}=(\boldsymbol{\mu}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu})^{-1}\boldsymbol{\mu}^{\top}\boldsymbol{\Omega}\boldsymbol{y}_{\cdot i}\), with \(\boldsymbol{\Omega}=\boldsymbol{\Sigma}^{-1}\).
-  It is the best linear unbiased estimator of \(\boldsymbol{p}_{\cdot i}\), and it equals the unconstrained
-  maximum-likelihood estimate under a Gaussian error.
-  A Cholesky factor \(\boldsymbol{\Sigma}=\boldsymbol{C}\boldsymbol{C}^{\top}\) reduces the problem to ordinary least squares on
-  \(\boldsymbol{C}^{-1}\boldsymbol{y}_{\cdot i}\), which removes heteroscedasticity and residual correlation.
-  The simplex constraint is imposed afterwards, or through the chart \eqref{eq-mapping-function}.
-\end{theorem}
+Its estimate is the generalised least-squares estimate of Theorem~\ref{th:generalized-least-squares-estimate}
+(Appendix~\ref{app:irls}), and Newton--Raphson and Fisher scoring coincide for it.
 
 \section{Performance metrics}
 \label{app:metrics}

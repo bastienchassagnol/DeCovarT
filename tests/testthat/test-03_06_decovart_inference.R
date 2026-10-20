@@ -509,35 +509,3 @@ test_that("reference_bootstrap_decovart resamples donors within type", {
   expect_identical(dim(boot$estimates), c(3L, 8L))
   expect_equal(colSums(boot$estimates), rep(1, 8L), tolerance = 1e-6)
 })
-
-
-test_that("reference_bootstrap_decovart draws Dirichlet compositions", {
-  setup <- .inference_setup()
-  refs <- lapply(seq_len(3), function(j) {
-    draws <- MASS::mvrnorm(
-      n = 8L,
-      mu = setup$signature[, j],
-      Sigma = setup$Sigma[,, j]
-    )
-    out <- t(draws)
-    rownames(out) <- rownames(setup$signature)
-    out
-  })
-  names(refs) <- colnames(setup$signature)
-  y <- drop(setup$signature %*% c(0.5, 0.3, 0.2))
-
-  boot <- withr::with_seed(
-    15L,
-    reference_bootstrap_decovart(
-      y,
-      refs,
-      method = "dirichlet",
-      n_boot = 8L,
-      itmax = 80
-    )
-  )
-  expect_identical(boot$method, "dirichlet")
-  expect_identical(dim(boot$p_simulated), c(3L, 8L))
-  expect_equal(colSums(boot$p_simulated), rep(1, 8L), tolerance = 1e-10)
-  expect_equal(colSums(boot$estimates), rep(1, 8L), tolerance = 1e-6)
-})
