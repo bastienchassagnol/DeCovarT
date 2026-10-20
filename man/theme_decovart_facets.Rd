@@ -7,7 +7,7 @@
 theme_decovart_facets(base_size = 11, ...)
 }
 \arguments{
-\item{base_size}{Base font size for \code{\link[ggplot2:ggtheme]{ggplot2::theme_minimal()}}.}
+\item{base_size}{Base font size for \code{\link[ggplot2:theme_minimal]{ggplot2::theme_minimal()}}.}
 
 \item{...}{Passed to \code{\link[ggplot2:theme]{ggplot2::theme()}}.}
 }

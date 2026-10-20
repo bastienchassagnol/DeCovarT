@@ -61,6 +61,7 @@ Suggests:
     nnls,
     numDeriv,
     patchwork,
+    pkgload,
     pkgdown,
     plotly,
     png,
@@ -83,10 +84,9 @@ VignetteBuilder:
     quarto
 RdMacros:
     Rdpack
-Config/roxygen2/version: 8.1.0
+Config/roxygen2/version: 8.1.1
 Config/testthat/edition: 3
 Encoding: UTF-8
 Language: en-GB
 Roxygen: list(markdown = TRUE, roclets = c("namespace", "rd",
     "srr::srr_stats_roclet"))
-RoxygenNote: 8.1.0

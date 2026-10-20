@@ -1,86 +1,5 @@
 # Algebraic operations ------------------------------------------------------
 
-#' Additive logistic transform (unconstrained coordinates to the simplex)
-#'
-#' @description
-#' Inverse additive log-ratio map
-#' \eqn{\boldsymbol{\psi}:\boldsymbol{\rho}\mapsto\boldsymbol{p}} of Aitchison
-#' (\eqn{\mathrm{alr}^{-1}}): a softmax with the last category \eqn{J}
-#' pinned as reference (\eqn{\rho_J\equiv 0}). Solvers and
-#' [vcov.decovart_fit()] use the isometric log-ratio chart
-#' [isometric_logistic()] instead. This ALR helper is retained for the
-#' vignette appendix.
-#'
-#' @details
-#' With \eqn{A=\sum_{k=1}^{J-1}\mathrm{e}^{\rho_k}+1},
-#' \deqn{
-#'   p_j=\frac{\mathrm{e}^{\rho_j}}{A}\quad(j<J),\qquad
-#'   p_J=\frac{1}{A}.
-#' }
-#' Equivalently,
-#' \eqn{\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})} with
-#' \eqn{\boldsymbol{\psi}(\boldsymbol{\rho})\propto
-#' (\mathrm{e}^{\rho_1},\ldots,\mathrm{e}^{\rho_{J-1}},1)^{\mathsf{T}}}.
-#' Jacobians and Hessians of both maps are derived in the package vignette
-#' `vignette("theory-decovart-generative-model", package = "DeCovarT")`.
-#' See also [compositions::alrInv()].
-#'
-#' @param rho Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}} of
-#'   unconstrained additive log-ratio coordinates (reference cell type
-#'   \eqn{J}).
-#'
-#' @return Numeric vector \eqn{\boldsymbol{p}\in\mathbb{R}^{J}} on the unit
-#'   simplex (\eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1},
-#'   \eqn{\boldsymbol{p}\ge\mathbf{0}}).
-#'
-#' @section Numerical stability:
-#' Evaluated through the log-sum-exp shift
-#' \eqn{p_i\propto\exp(\tilde{\rho}_i-\max_k\tilde{\rho}_k)} with
-#' \eqn{\tilde{\boldsymbol{\rho}}=(\rho_1,\ldots,\rho_{J-1},0)}, which is
-#' algebraically identical to the ratio above but never forms
-#' \eqn{\mathrm{e}^{\rho_i}} directly. The naive quotient overflows to
-#' `NaN` for \eqn{\rho_i\gtrsim 710}, which unconstrained ascent can
-#' reach when the MLE approaches a simplex face; the shifted form
-#' returns an exact zero instead and keeps
-#' \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})} positive definite.
-#'
-#' @seealso The inverse map (additive log-ratio) is documented as
-#'   `additive_log_ratio()` on this help page.
-#'
-#' @examples
-#' rho <- c(0.2, -0.5)
-#' p <- additive_logistic(rho)
-#' sum(p)
-#' additive_log_ratio(p)
-#' # Stable far out in ALR space, where exp(rho) would overflow.
-#' additive_logistic(c(800, 1200))
-#' @export
-additive_logistic <- function(rho) {
-  scores <- c(rho, 0)
-  weights <- exp(scores - max(scores))
-  return(weights / sum(weights))
-}
-
-#' Additive log-ratio transform \eqn{\boldsymbol{p}\mapsto\boldsymbol{\rho}}
-#'
-#' Recovers the unconstrained additive log-ratio coordinates
-#' \eqn{\rho_j=\ln(p_j/p_J)} for \eqn{j=1,\ldots,J-1}, with the last part
-#' \eqn{p_J} as reference. This is Aitchison's additive log-ratio
-#' (\eqn{\mathrm{alr}}) transform, equivalently the multinomial-logit link
-#' with reference category \eqn{J} (see [compositions::alr()] and
-#' `vignette("theory-decovart-generative-model", package = "DeCovarT")`).
-#'
-#' @param p Numeric vector \eqn{\boldsymbol{p}} on the open simplex.
-#'
-#' @return Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
-#'
-#' @rdname additive_logistic
-#' @export
-additive_log_ratio <- function(p) {
-  num_cells <- length(p)
-  return(log(p[1:num_cells - 1] / p[num_cells]))
-}
-
 #' Helmert contrast matrix for isometric log-ratio coordinates
 #'
 #' @description
@@ -133,8 +52,8 @@ helmert_basis <- function(n_parts) {
 #'   =
 #'   \mathcal{C}\bigl(\exp(\mathbf{V}\boldsymbol{z})\bigr).
 #' }
-#' No cell type is pinned as a reference (unlike
-#' [additive_logistic()]). Evaluated with a log-sum-exp shift so large
+#' No cell type is pinned as a reference. Evaluated with a log-sum-exp
+#' shift so large
 #' \eqn{\|\boldsymbol{z}\|} cannot overflow.
 #'
 #' @param z Numeric vector \eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}}.
@@ -150,8 +69,7 @@ helmert_basis <- function(n_parts) {
 #' sum(p)
 #' isometric_log_ratio(p)
 #' isometric_logistic(c(800, 1200))
-#' @seealso [isometric_log_ratio()], [helmert_basis()],
-#'   [additive_logistic()]
+#' @seealso [isometric_log_ratio()], [helmert_basis()]
 #' @export
 isometric_logistic <- function(z, V = NULL) {
   z <- as.numeric(z)
@@ -575,30 +493,6 @@ loglik_multivariate_constrained <- function(
 
 # First-order derivatives -------------------------------------------------
 
-#' Jacobian \eqn{\mathbf{J}_{\boldsymbol{\psi}}} of the additive logistic map
-#'
-#' @description
-#' Returns the Jacobian of [additive_logistic()],
-#' \eqn{\mathbf{J}_{\boldsymbol{\psi}}\in\mathcal{M}_{J\times(J-1)}} with
-#' entries
-#' \eqn{(\mathbf{J}_{\boldsymbol{\psi}})_{i,j}=\partial p_i/\partial\rho_j}.
-#'
-#' @param rho Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
-#'
-#' @return Numeric matrix of size \eqn{J\times(J-1)}.
-#'
-#' @keywords internal
-#' @examples
-#' jacobian_additive_logistic(c(0.2, -0.5))
-#' @export
-jacobian_additive_logistic <- function(rho) {
-  p <- additive_logistic(rho)
-  num_celltypes <- length(p)
-  # softmax Jacobian diag(p) - p p^T, reference column dropped
-  jacobian_matrix <- diag(p) - tcrossprod(p)
-  return(jacobian_matrix[, -num_celltypes, drop = FALSE])
-}
-
 #' Gradient \eqn{\nabla_{\boldsymbol{p}}\ell} of the unconstrained log-likelihood
 #'
 #' @description
@@ -728,37 +622,6 @@ gradient_loglik_constrained <- function(
 
 
 # Second-order derivatives ------------------------------------------------
-
-#' Second derivatives (Hessian tensor) of the additive logistic map
-#'
-#' @description
-#' Tensor of mixed partials of [additive_logistic()],
-#' \eqn{\partial^{2}p_i/(\partial\rho_k\partial\rho_j)}, stored as an
-#' array of size \eqn{(J-1)\times(J-1)\times J}.
-#'
-#' @param rho Numeric vector \eqn{\boldsymbol{\rho}\in\mathbb{R}^{J-1}}.
-#'
-#' @return Numeric array used in the constrained Hessian chain rule.
-#'
-#' @keywords internal
-#' @examples
-#' hessian_additive_logistic(c(0.2, -0.5))
-#' @export
-hessian_additive_logistic <- function(rho) {
-  p <- additive_logistic(rho)
-  num_celltypes <- length(p)
-  size_var <- num_celltypes - 1
-  # softmax Jacobian, reused across output slices
-  softmax_jacobian <- diag(p) - tcrossprod(p)
-  hessian_array <- array(0, dim = c(size_var, size_var, num_celltypes))
-  for (i in seq_len(num_celltypes)) {
-    # H^{(i)} = p_i [ (e_i - p)(e_i - p)^T - (diag(p) - p p^T) ], restricted
-    basis_residual <- (seq_len(num_celltypes) == i) - p
-    slice <- p[i] * (tcrossprod(basis_residual) - softmax_jacobian)
-    hessian_array[,, i] <- slice[-num_celltypes, -num_celltypes]
-  }
-  return(hessian_array)
-}
 
 #' Hessian \eqn{\mathbf{H}} of the unconstrained log-likelihood
 #'
@@ -963,7 +826,33 @@ starting_simplex <- function(
   dirichlet_alpha = 1
 ) {
   n_celltypes <- as.integer(n_celltypes)
-  kind <- .start_kind(initial_p, n_celltypes)
+  kind <- if (is.null(initial_p)) {
+    "barycentre"
+  } else if (is.character(initial_p) && length(initial_p) == 1L) {
+    key <- tolower(initial_p)
+    if (key %in% c("barycentre", "balanced", "equi")) {
+      "barycentre"
+    } else if (identical(key, "dirichlet")) {
+      "dirichlet"
+    } else if (key %in% c("qp", "deconrnaseq", "lsei")) {
+      "qp"
+    } else {
+      stop(
+        "`initial_p` character start must be 'barycentre', ",
+        "'dirichlet', or 'qp'.",
+        call. = FALSE
+      )
+    }
+  } else if (is.numeric(initial_p) && length(initial_p) == n_celltypes) {
+    "numeric"
+  } else {
+    stop(
+      "`initial_p` must be NULL, a length-",
+      n_celltypes,
+      " numeric vector, or 'dirichlet' / 'qp'.",
+      call. = FALSE
+    )
+  }
   if (identical(kind, "barycentre")) {
     p <- rep(1 / n_celltypes, n_celltypes)
   } else if (identical(kind, "numeric")) {
@@ -985,57 +874,6 @@ starting_simplex <- function(
   }
   repair_simplex(p, open = TRUE, nms = nms)
 }
-
-#' @noRd
-.start_kind <- function(initial_p, n_celltypes) {
-  if (is.null(initial_p)) {
-    return("barycentre")
-  }
-  if (is.character(initial_p) && length(initial_p) == 1L) {
-    kind <- tolower(initial_p)
-    if (kind %in% c("barycentre", "balanced", "equi")) {
-      return("barycentre")
-    }
-    if (identical(kind, "dirichlet")) {
-      return("dirichlet")
-    }
-    if (kind %in% c("qp", "deconrnaseq", "lsei")) {
-      return("qp")
-    }
-    stop(
-      "`initial_p` character start must be 'barycentre', 'dirichlet', ",
-      "or 'qp'.",
-      call. = FALSE
-    )
-  }
-  if (is.numeric(initial_p) && length(initial_p) == n_celltypes) {
-    return("numeric")
-  }
-  stop(
-    "`initial_p` must be NULL, a length-",
-    n_celltypes,
-    " numeric vector, or 'dirichlet' / 'qp'.",
-    call. = FALSE
-  )
-}
-
-#' @noRd
-.solver_start <- function(
-  y,
-  mean_signature_matrix,
-  initial_p,
-  dirichlet_alpha
-) {
-  starting_simplex(
-    n_celltypes = ncol(mean_signature_matrix),
-    initial_p = initial_p,
-    nms = colnames(mean_signature_matrix),
-    y = y,
-    mean_signature_matrix = mean_signature_matrix,
-    dirichlet_alpha = dirichlet_alpha
-  )
-}
-
 
 #' DeCovarT MLE of cellular proportions for one bulk sample
 #'
@@ -1114,11 +952,13 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
   initial_p = NULL,
   dirichlet_alpha = 1
 ) {
-  initial_p <- .solver_start(
-    y,
-    mean_signature_matrix,
-    initial_p,
-    dirichlet_alpha
+  initial_p <- starting_simplex(
+    n_celltypes = ncol(mean_signature_matrix),
+    initial_p = initial_p,
+    nms = colnames(mean_signature_matrix),
+    y = y,
+    mean_signature_matrix = mean_signature_matrix,
+    dirichlet_alpha = dirichlet_alpha
   )
   initial_z <- isometric_log_ratio(initial_p)
   # marqLevAlg() only negates fn/gr internally when minimize = FALSE; hess()
@@ -1212,11 +1052,13 @@ deconvolute_ratios_simulated_annealing <- function(
   initial_p = NULL,
   dirichlet_alpha = 1
 ) {
-  initial_p <- .solver_start(
-    y,
-    mean_signature_matrix,
-    initial_p,
-    dirichlet_alpha
+  initial_p <- starting_simplex(
+    n_celltypes = ncol(mean_signature_matrix),
+    initial_p = initial_p,
+    nms = colnames(mean_signature_matrix),
+    y = y,
+    mean_signature_matrix = mean_signature_matrix,
+    dirichlet_alpha = dirichlet_alpha
   )
   initial_z <- isometric_log_ratio(initial_p)
   # gr is not used in the simulated annealing approach
@@ -1271,11 +1113,13 @@ deconvolute_ratios_L_BFGS_B <- function(
   initial_p = NULL,
   dirichlet_alpha = 1
 ) {
-  initial_p <- .solver_start(
-    y,
-    mean_signature_matrix,
-    initial_p,
-    dirichlet_alpha
+  initial_p <- starting_simplex(
+    n_celltypes = ncol(mean_signature_matrix),
+    initial_p = initial_p,
+    nms = colnames(mean_signature_matrix),
+    y = y,
+    mean_signature_matrix = mean_signature_matrix,
+    dirichlet_alpha = dirichlet_alpha
   )
   # Box constraints alone do not keep sum(p)=1, so Sigma(p) can become
   # singular during the line search. Guard the objective/gradient and fall
@@ -1356,11 +1200,13 @@ deconvolute_ratios_Newton_Raphson <- function(
   initial_p = NULL,
   dirichlet_alpha = 1
 ) {
-  initial_p <- .solver_start(
-    y,
-    mean_signature_matrix,
-    initial_p,
-    dirichlet_alpha
+  initial_p <- starting_simplex(
+    n_celltypes = ncol(mean_signature_matrix),
+    initial_p = initial_p,
+    nms = colnames(mean_signature_matrix),
+    y = y,
+    mean_signature_matrix = mean_signature_matrix,
+    dirichlet_alpha = dirichlet_alpha
   )
   initial_z <- isometric_log_ratio(initial_p)
 
@@ -1424,11 +1270,13 @@ deconvolute_ratios_gradient_descent <- function(
   initial_p = NULL,
   dirichlet_alpha = 1
 ) {
-  initial_p <- .solver_start(
-    y,
-    mean_signature_matrix,
-    initial_p,
-    dirichlet_alpha
+  initial_p <- starting_simplex(
+    n_celltypes = ncol(mean_signature_matrix),
+    initial_p = initial_p,
+    nms = colnames(mean_signature_matrix),
+    y = y,
+    mean_signature_matrix = mean_signature_matrix,
+    dirichlet_alpha = dirichlet_alpha
   )
   initial_z <- isometric_log_ratio(initial_p)
 

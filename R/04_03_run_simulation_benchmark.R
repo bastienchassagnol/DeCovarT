@@ -352,42 +352,6 @@ run_simulation_benchmark <- function(
   )
 }
 
-#' Encode a bivariate-toy scenario ID
-#'
-#' Pattern `B{index}_{Ho|He}_{Ba|Mo|Hi}_{Sm|Lg}`.
-#'
-#' @keywords internal
-#' @noRd
-.encode_bivariate_id <- function(
-  scenario_idx,
-  variance,
-  proportions,
-  centroids
-) {
-  var_code <- ifelse(variance == "homoscedastic", "Ho", "He")
-  p_code <- dplyr::case_when(
-    proportions == "balanced" ~ "Ba",
-    proportions == "moderately unbalanced" ~ "Mo",
-    proportions == "highly unbalanced" ~ "Hi",
-    TRUE ~ "Xx"
-  )
-  cld_code <- ifelse(
-    grepl("small", centroids, ignore.case = TRUE),
-    "Sm",
-    "Lg"
-  )
-  paste0(
-    "B",
-    as.integer(scenario_idx),
-    "_",
-    var_code,
-    "_",
-    p_code,
-    "_",
-    cld_code
-  )
-}
-
 #' Unwrap a list-column `true_theta` cell
 #'
 #' @keywords internal
@@ -403,36 +367,6 @@ run_simulation_benchmark <- function(
     return(.unwrap_true_theta(th[[1L]]))
   }
   th
-}
-
-#' Guarantee an `ID` column on a scenario table
-#'
-#' @keywords internal
-#' @noRd
-.ensure_scenario_id <- function(tbl, prefix = "S") {
-  if (!"ID" %in% names(tbl) || any(!nzchar(as.character(tbl$ID)))) {
-    tbl$ID <- paste0(prefix, seq_len(nrow(tbl)))
-  }
-  tbl$ID <- as.character(tbl$ID)
-  tbl
-}
-
-#' Rewrite bivariate `ID` from design columns
-#'
-#' @keywords internal
-#' @noRd
-.rewrite_bivariate_ids <- function(tbl) {
-  needed <- c("scenario_idx", "variance", "proportions", "centroids")
-  if (!all(needed %in% names(tbl))) {
-    return(tbl)
-  }
-  tbl$ID <- .encode_bivariate_id(
-    tbl$scenario_idx,
-    tbl$variance,
-    tbl$proportions,
-    tbl$centroids
-  )
-  tbl
 }
 
 #' Rebuild descriptor metrics from `\theta`, keeping MixSim if present
@@ -478,7 +412,7 @@ run_simulation_benchmark <- function(
 #' @param dir Output directory.
 #' @param stem File-name stem (`bivariate`, `hybrid`, …).
 #' @param config Optional scenario grid (defaults to `benchmark$config`).
-#' @param rewrite_bivariate_id If `TRUE`, rebuild fig02-style IDs.
+#'   Must contain an `ID` column.
 #'
 #' @return Invisibly, a named list of written paths.
 #' @seealso [read_simulation_artefacts()]
@@ -487,18 +421,17 @@ write_simulation_artefacts <- function(
   benchmark,
   dir,
   stem,
-  config = NULL,
-  rewrite_bivariate_id = FALSE
+  config = NULL
 ) {
   dir.create(dir, recursive = TRUE, showWarnings = FALSE)
   if (is.null(config)) {
     config <- benchmark$config
   }
   config <- tibble::as_tibble(config)
-  if (isTRUE(rewrite_bivariate_id)) {
-    config <- .rewrite_bivariate_ids(config)
+  if (!"ID" %in% names(config)) {
+    stop("`config` must contain an `ID` column.", call. = FALSE)
   }
-  config <- .ensure_scenario_id(config)
+  config$ID <- as.character(config$ID)
 
   theta_src <- if ("true_theta" %in% names(config)) {
     config$true_theta
@@ -512,9 +445,6 @@ write_simulation_artefacts <- function(
 
   old_desc <- benchmark$descriptors
   if (!is.null(old_desc) && nrow(old_desc) > 0L) {
-    if (isTRUE(rewrite_bivariate_id)) {
-      old_desc <- .rewrite_bivariate_ids(old_desc)
-    }
     old_desc$ID <- as.character(old_desc$ID)
   }
   descriptors <- .descriptors_from_theta(theta_tbl, old_desc)
@@ -533,9 +463,6 @@ write_simulation_artefacts <- function(
       return(tbl)
     }
     tbl <- tibble::as_tibble(tbl)
-    if (isTRUE(rewrite_bivariate_id)) {
-      tbl <- .rewrite_bivariate_ids(tbl)
-    }
     design_drop <- setdiff(
       names(config_slim),
       c("ID")

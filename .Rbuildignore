@@ -23,6 +23,8 @@
 ^docs$
 ^pkgdown$
 ^\.github$
+^\.firecrawl$
+^F-submit-statistical-software-for-review\.md$
 ^vignettes/\.quarto$
 ^vignettes/.*_files$
 ^vignettes/.*\.html$

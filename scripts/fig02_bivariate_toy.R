@@ -389,13 +389,38 @@ if (
     bivariate_out$config <- scenario_config
   }
 
-  rewrite_ids <- isTRUE(POSTPROCESS_ONLY)
+  if (isTRUE(POSTPROCESS_ONLY)) {
+    needed <- c("scenario_idx", "variance", "proportions", "centroids")
+    rewrite_ids <- function(tbl) {
+      if (!is.data.frame(tbl) || !all(needed %in% names(tbl))) {
+        return(tbl)
+      }
+      tbl$ID <- .encode_bivariate_id(
+        tbl$scenario_idx,
+        tbl$variance,
+        tbl$proportions,
+        tbl$centroids
+      )
+      tbl
+    }
+    bivariate_out$config <- rewrite_ids(bivariate_out$config)
+    if (is.list(bivariate_out$regression)) {
+      bivariate_out$regression$global <- rewrite_ids(
+        bivariate_out$regression$global
+      )
+      bivariate_out$regression$cell_type <- rewrite_ids(
+        bivariate_out$regression$cell_type
+      )
+    }
+    bivariate_out$monte_carlo <- rewrite_ids(bivariate_out$monte_carlo)
+    bivariate_out$optimisation <- rewrite_ids(bivariate_out$optimisation)
+    bivariate_out$descriptors <- rewrite_ids(bivariate_out$descriptors)
+  }
   write_simulation_artefacts(
     benchmark = bivariate_out,
     dir = OUT_DIR,
     stem = "bivariate",
-    config = bivariate_out$config,
-    rewrite_bivariate_id = rewrite_ids
+    config = bivariate_out$config
   )
   .ui_success("Wrote split config / descriptors / theta / metrics RDS.")
 

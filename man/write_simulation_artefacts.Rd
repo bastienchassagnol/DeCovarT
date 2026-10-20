@@ -4,13 +4,7 @@
 \alias{write_simulation_artefacts}
 \title{Write split simulation artefacts (config, descriptors, theta, metrics)}
 \usage{
-write_simulation_artefacts(
-  benchmark,
-  dir,
-  stem,
-  config = NULL,
-  rewrite_bivariate_id = FALSE
-)
+write_simulation_artefacts(benchmark, dir, stem, config = NULL)
 }
 \arguments{
 \item{benchmark}{List from \code{\link[=run_simulation_benchmark]{run_simulation_benchmark()}}.}
@@ -19,9 +13,8 @@ write_simulation_artefacts(
 
 \item{stem}{File-name stem (\code{bivariate}, \code{hybrid}, …).}
 
-\item{config}{Optional scenario grid (defaults to \code{benchmark$config}).}
-
-\item{rewrite_bivariate_id}{If \code{TRUE}, rebuild fig02-style IDs.}
+\item{config}{Optional scenario grid (defaults to \code{benchmark$config}).
+Must contain an \code{ID} column.}
 }
 \value{
 Invisibly, a named list of written paths.

@@ -21,7 +21,6 @@
       mean_signature_matrix = mean_signature_matrix,
       Sigma = Sigma,
       p = p,
-      rho = additive_log_ratio(p),
       z = isometric_log_ratio(p),
       y = y
     )
@@ -157,33 +156,6 @@ test_that("Constrained gradient and Hessian of the objective match numDeriv", {
     hessian_theoretical,
     tolerance = 1e-4
   )
-})
-
-
-test_that("Additive logistic Jacobian and Hessian match numDeriv", {
-  setup <- .decovart_deriv_setup()
-
-  jacobian_numerical <- numDeriv::jacobian(additive_logistic, setup$rho)
-  jacobian_theoretical <- jacobian_additive_logistic(setup$rho)
-  testthat::expect_equal(
-    jacobian_numerical,
-    jacobian_theoretical,
-    tolerance = 1e-4
-  )
-
-  # Hessian tensor is stored slice-wise as [ , , i] = d^2 p_i / (d rho d rho^T)
-  hessian_theoretical <- hessian_additive_logistic(setup$rho)
-  for (i in seq_along(setup$p)) {
-    hessian_numerical <- numDeriv::hessian(
-      function(rho) additive_logistic(rho)[i],
-      setup$rho
-    )
-    testthat::expect_equal(
-      hessian_numerical,
-      hessian_theoretical[,, i],
-      tolerance = 1e-4
-    )
-  }
 })
 
 

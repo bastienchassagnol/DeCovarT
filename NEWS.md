@@ -1,3 +1,11 @@
+* **File layout and dropped ALR helpers.** Source files now follow the
+  article: `01_` simulations, `02_` optimisation and estimation, `03_`
+  intervals, `04_` benchmarks. `additive_logistic()`,
+  `additive_log_ratio()` and their Jacobian and Hessian leave the
+  package; solvers use the isometric log-ratio chart. Figure scripts
+  that still draw an ALR surface keep those two maps under
+  `scripts/auxiliary/`.
+
 * **Confidence intervals: regularity, geometry and the three tests.**
   The MLE vignette and the article appendix now state the regularity
   conditions of the large-sample approximation (interior truth, fixed

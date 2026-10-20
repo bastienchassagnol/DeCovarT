@@ -1,3 +1,6 @@
+source(file.path("scripts", "auxiliary", "alr_coordinates.R"))
+source(file.path("scripts", "auxiliary", "display_metrics.R"))
+
 #' Convolution covariance \eqn{\Sigma(p)=\sum_j p_j^2 \Sigma_j}
 #'
 #' @keywords internal
@@ -1487,7 +1490,7 @@ plot_bulk_loglik_ilr_profile <- function(
   simplex = NULL
 ) {
   z_ref <- max(z[is.finite(z)], na.rm = TRUE)
-  z_plot <- .relative_log10_likelihood(z, z_ref)
+  z_plot <- relative_log10_likelihood(z, z_ref)
   z_plot[!is.finite(z_plot)] <- min(
     z_plot[is.finite(z_plot)],
     na.rm = TRUE
@@ -1518,7 +1521,7 @@ plot_bulk_loglik_ilr_profile <- function(
     line = 3
   )
   if (!is.null(simplex)) {
-    simplex$z <- .relative_log10_likelihood(simplex$z, z_ref)
+    simplex$z <- relative_log10_likelihood(simplex$z, z_ref)
     rgl::lines3d(
       simplex$x,
       simplex$y,

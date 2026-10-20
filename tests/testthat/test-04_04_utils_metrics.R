@@ -14,7 +14,6 @@ test_that("internal metrics match Metrics package on fixed vectors", {
   expect_equal(.mse(actual, predicted), Metrics::mse(actual, predicted))
   expect_equal(.rmse(actual, predicted), Metrics::rmse(actual, predicted))
   expect_equal(.mae(actual, predicted), Metrics::mae(actual, predicted))
-  expect_equal(.rse(actual, predicted), Metrics::rse(actual, predicted))
 })
 
 test_that("internal metrics match Metrics on benchmark-style proportions", {
@@ -25,7 +24,6 @@ test_that("internal metrics match Metrics on benchmark-style proportions", {
   expect_equal(.mse(true_p, estimated_p), Metrics::mse(true_p, estimated_p))
   expect_equal(.rmse(true_p, estimated_p), Metrics::rmse(true_p, estimated_p))
   expect_equal(.mae(true_p, estimated_p), Metrics::mae(true_p, estimated_p))
-  expect_equal(.rse(true_p, estimated_p), Metrics::rse(true_p, estimated_p))
 })
 
 test_that("compute_benchmark_metrics uses internal metrics consistently", {

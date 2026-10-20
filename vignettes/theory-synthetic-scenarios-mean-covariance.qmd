@@ -892,7 +892,7 @@ $(1-(J-1)q,q,\ldots,q)$ matching a target $H^{\star}$).
 #| label: tbl-scenario-descriptors-kept
 #| echo: false
 #| eval: true
-#| tbl-cap: "Kept scenario descriptors from `describe_simulation_scenario()` (`R/02_03_scenario_descriptors.R`). Jeffreys sits on the same `ID` key in `supplementary` / the descriptors RDS."
+#| tbl-cap: "Kept scenario descriptors from `describe_simulation_scenario()` (`R/01_03_scenario_descriptors.R`). Jeffreys sits on the same `ID` key in `supplementary` / the descriptors RDS."
 options(tinytable_html_mathjax = TRUE)
 desc_kept <- data.frame(
   family = c(
@@ -1314,7 +1314,7 @@ The descriptors above score the *generative* problem
 *estimators*. With known
 $\boldsymbol{p}^{\star}$,
 [`compute_benchmark_metrics()`](../reference/compute_benchmark_metrics.html)
-returns three blocks implemented in `R/utils-metrics.R` and assembled in
+returns three blocks implemented in `R/04_04_statistical_metrics.R` and assembled in
 `R/04_01_run_benchmark.R`:
 
 - `regression$global`: one row per bulk column (total variation, RMSE,
@@ -1402,7 +1402,7 @@ which is unstable for small $J$.
 #| label: tbl-metrics-regression-kept
 #| echo: false
 #| eval: true
-#| tbl-cap: "Kept composition and regression scores from `compute_benchmark_metrics()` (`R/utils-metrics.R`)."
+#| tbl-cap: "Kept composition and regression scores from `compute_benchmark_metrics()` (`R/04_04_statistical_metrics.R`)."
 options(tinytable_html_mathjax = TRUE)
 reg_kept <- data.frame(
   family = c(
@@ -1533,7 +1533,7 @@ reg_other <- data.frame(
   Why_not = c(
     "Report `tv` instead (already $[0,1]$).",
     "Zero replacement dominates; no canonical $[0,1]$ bound.",
-    "Not implemented in `R/utils-metrics.R`.",
+    "Not implemented in `R/04_04_statistical_metrics.R`.",
     "Monotone with $L_2$ on square-root compositions; not wired.",
     "Unstable for small $J$; high $r$ hides calibration error.",
     "Ignores absolute fractions.",
@@ -1748,7 +1748,7 @@ draws belong to the interval algorithm, not to the outer simulation. At
 true 95% coverage, $B=1000$ gives $\mathrm{MCSE}\approx 0.0069$. The
 package stores `mcse_coverage` on the `monte_carlo` table. For a generic
 mean $\widehat T=B^{-1}\sum_b T_b$, use
-$\widehat{\mathrm{MCSE}}(\widehat T)=s_T/\sqrt{B}$ (`.mcse_mean()`).
+$\widehat{\mathrm{MCSE}}(\widehat T)=s_T/\sqrt{B}$.
 :::
 
 ## Execution and optimisation {#sec-metrics-optimisation}

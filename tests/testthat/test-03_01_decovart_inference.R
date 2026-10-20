@@ -84,15 +84,6 @@ test_that("expected Fisher information equals the mean of -Hessian", {
 })
 
 
-test_that("additive_logistic stays finite for extreme ALR coordinates", {
-  p <- additive_logistic(c(800, 1200))
-
-  expect_false(anyNA(p))
-  expect_equal(sum(p), 1, tolerance = 1e-12)
-  expect_identical(which.max(p), 2L)
-})
-
-
 test_that("isometric_logistic stays finite for extreme ILR coordinates", {
   p <- isometric_logistic(c(800, 1200))
 

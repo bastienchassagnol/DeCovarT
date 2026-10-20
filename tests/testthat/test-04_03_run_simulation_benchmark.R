@@ -64,27 +64,6 @@ test_that("run_simulation_benchmark wraps simulate and deconvolute", {
   expect_type(out$call, "language")
 })
 
-test_that("encode_bivariate_id records variance, entropy, and CLD", {
-  expect_identical(
-    DeCovarT:::.encode_bivariate_id(
-      1L,
-      "homoscedastic",
-      "balanced",
-      "small_CLD"
-    ),
-    "B1_Ho_Ba_Sm"
-  )
-  expect_identical(
-    DeCovarT:::.encode_bivariate_id(
-      12L,
-      "heteroscedastic",
-      "highly unbalanced",
-      "large_CLD"
-    ),
-    "B12_He_Hi_Lg"
-  )
-})
-
 test_that("write_simulation_artefacts splits config, descriptors, and metrics", {
   skip_on_os("windows")
   skip_if_not_installed("nnls")

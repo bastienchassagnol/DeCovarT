@@ -1,7 +1,7 @@
 # Extended tests (G5.10). Run with DECOVART_EXTENDED_TESTS=true.
 #
 # Regular suite timings (desktop): all files < 1s; slowest is
-# test-02_02_generate_synthetic_networks.R (hierarchical GRN, 30 genes).
+# test-01_02_generate_synthetic_networks.R (hierarchical GRN, 30 genes).
 # This file repeats that generator at a larger G so it stays out of CI.
 
 skip_if_not_extended()

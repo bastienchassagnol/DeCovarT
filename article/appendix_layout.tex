@@ -220,6 +220,31 @@ Detailed review in the \vignette{theory-review-distribution-aware-deconvolution.
 \section{Methodological details on DeCovarT}
 \label{app:methods}
 
+Table~\ref{tab:notation-appendix} lists the symbols used only in this appendix; the others are in
+Table~\ref{tab:notation}.
+
+\begin{table}[ht]
+  \centering
+  \caption{Symbols used only in the appendix.}
+  \label{tab:notation-appendix}
+  \begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.62\textwidth}@{}}
+    \toprule
+    Symbol & Meaning \\
+    \midrule
+    \(\boldsymbol{\theta}_{\cdot j}=\tilde{\boldsymbol{\mu}}_{\cdot j}/S_{j}\), \(\boldsymbol{\Theta}=(\boldsymbol{\theta}_{\cdot 1},\ldots,\boldsymbol{\theta}_{\cdot J})\) &
+      Relative abundance profile of type \(j\), summing to one, and the matrix of these profiles. \\
+    \(\varrho\in[-1/(a-1),1]\) &
+      Correlation between the profiles of two cells of one type: \(0\) for independent cells, the convolution
+      of Section~\ref{sec:sc-tailored}; \(1\) for one population profile shared by all cells. \\
+    \(\boldsymbol{\vartheta}=(\boldsymbol{\rho},\log c,\log\phi)\) &
+      Parameters of one bulk sample in the single-cell fit. \\
+    \(L_{i}\), \(\kappa_{i}\), \(\omega\) &
+      Library scale, covariance scale and Poisson dispersion of the transcript-fraction model
+      \eqref{eq:sc-model-transcript}. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 \subsection{Derivation of the unconstrained likelihood}
 \label{app:derivation}
 
@@ -510,10 +535,10 @@ Derivations in the \vignette{theory-decovart-single-cell-tailored.html}{single-c
   \begin{itemize}
     \item sorted profiles: one random population vector per type scaled by \(p_{ji}\), so
           \(\operatorname{Cov}=\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{B,j}\), the released DeCovarT covariance
-    \item one single-cell replicate: \(n_{i}^{-1}\sum_{j}p_{ji}\boldsymbol{\Sigma}_{W,j}+\boldsymbol{\Sigma}_{\mathrm{obs},i}\) for the bulk per cell
+    \item one single-cell replicate: \(n_{i}^{-1}\sum_{j}p_{ji}\boldsymbol{\Sigma}_{W,j}+\boldsymbol{D}_{i}\) for the bulk per cell
     \item \(R\ge2\) replicates: method-of-moments \(\hat{\boldsymbol{\Sigma}}_{B,j}=\boldsymbol{S}_{B,j}-\hat{\boldsymbol{\Sigma}}_{W,j}/\bar C_{j}\),
           projected on the positive semidefinite cone, and the three-layer law
-          \(\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{B,j}+n_{i}^{-1}\sum_{j}p_{ji}\boldsymbol{\Sigma}_{W,j}+\boldsymbol{\Sigma}_{\mathrm{obs},i}\);
+          \(\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{B,j}+n_{i}^{-1}\sum_{j}p_{ji}\boldsymbol{\Sigma}_{W,j}+\boldsymbol{D}_{i}\);
           small cohorts support a scalar or sparse \(\boldsymbol{\Sigma}_{B,j}\), not a dense one
     \item one identity covers all three: \(\operatorname{Cov}(\sum_{r=1}^{a}\boldsymbol{X}_{r})=a[1+(a-1)\varrho]\boldsymbol{\Sigma}\)
   \end{itemize}
@@ -537,6 +562,25 @@ Derivations in the \vignette{theory-decovart-single-cell-tailored.html}{single-c
         kept in \(\tilde{\boldsymbol{\mu}}\)
 \end{itemize}
 
+\begin{remark}[Link with Poisson measurement models]
+  \label{rem:poisson-link}
+  \begin{itemize}
+    \item \emph{RCTD} writes \(y_{gi}\sim\mathrm{Poisson}(N_{i}\sum_{j}w_{ji}\mu_{jg}e^{\gamma_{g}})\) with
+          log-normal overdispersion, per-UMI reference profiles \(\mu_{jg}\), a platform ratio
+          \(\tilde b_{g}=e^{\gamma_{g}}\) and \(\boldsymbol{w}_{\cdot i}=\boldsymbol{p}_{\cdot i}e^{\alpha_{i}}\) left unconstrained
+          \cite{cableRobustDecompositionCell2022a}; Sarkar and Stephens write a UMI count as
+          \(\mathrm{Poisson}(x_{+}b_{g}\lambda_{g})\) given the total \(x_{+}\) and the capture \(b_{g}\)
+          \cite{sarkarSeparatingMeasurementExpression2021}
+    \item \eqref{eq:sc-model} has the same multiplicative mean, but the rate is carried by cell types: an
+          average type-\(j\) cell contributes \(S_{j}\boldsymbol{\theta}_{\cdot j}\), multiplied by the number of cells and by
+          the sample scale, instead of a free rate per gene
+    \item its variance comes from the cell-to-cell covariance, not from the Poisson law that equates
+          variance and mean, which is why it carries gene--gene dependence
+    \item the scale (\(n\) in \emph{RNA-Sieve}, \(N_{i}e^{\alpha_{i}}\) in \emph{RCTD}, \(c_{i}\) here) is not, in
+          general, the number of cells: that reading needs the same sequencing platform, or paired samples
+          with similar biological and technical size factors
+  \end{itemize}
+\end{remark}
 
 
 \subsection{Fitting the single-cell model}
@@ -556,6 +600,44 @@ Model \eqref{eq:sc-model} of Section~\ref{sec:sc-tailored}; derivations in the
   \item absolute cell counts are not targeted: capture efficiency is not observed
   \item library-size closure (TPM, RPKM) is avoided: dividing by the total induces negative gene--gene correlation,
         including for genes that were independent
+\end{itemize}
+
+\subsubsection{Earlier transcript-fraction model with a Poisson bulk term}
+\label{app:sc-transcript}
+
+\begin{itemize}
+  \item an earlier version of \eqref{eq:sc-model} took transcript fractions as the unknown, normalised reference
+        profiles \(\boldsymbol{\Theta}\), the bulk library size as a plug-in scale, and a Poisson measurement diagonal:
+        \begin{equation}
+          \begin{aligned}
+            \boldsymbol{y}_{\cdot i}\mid\boldsymbol{q}_{\cdot i}
+            &\sim\mathcal{N}_{G}\Bigl(
+              L_{i}\boldsymbol{\Theta}\boldsymbol{q}_{\cdot i},\;
+              L_{i}^{2}\kappa_{i}\sum_{j}q_{ji}\boldsymbol{\Sigma}_{W,j}
+              +\omega\operatorname{diag}(L_{i}\boldsymbol{\Theta}\boldsymbol{q}_{\cdot i})
+            \Bigr),\\
+            \boldsymbol{q}_{\cdot i}&=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho}_{i}),
+            \qquad
+            p_{ji}=\frac{q_{ji}/S_{j}}{\sum_{\ell}q_{\ell i}/S_{\ell}}
+          \end{aligned}
+          \label{eq:sc-model-transcript}
+        \end{equation}
+  \item \(\mathbf{1}^{\top}\boldsymbol{\Theta}\boldsymbol{q}_{\cdot i}=1\), so the library size \(\hat L_{i}=\mathbf{1}^{\top}\boldsymbol{y}_{\cdot i}\)
+        was plugged in before the fit; \(\omega=1\) during the fit, then re-estimated from whitened Pearson residuals;
+        cell fractions were obtained after the fit with \(S_{j}\)
+  \item same mean: \(\boldsymbol{\Theta}\boldsymbol{q}_{\cdot i}=\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i}/\sum_{\ell}p_{\ell i}S_{\ell}\), so
+        \(L_{i}=c_{i}\sum_{\ell}p_{\ell i}S_{\ell}\) and the two mean models coincide
+  \item different covariance: independent cells give
+        \(\phi_{i}\sum_{j}p_{ji}\boldsymbol{\Sigma}_{W,j}=\phi_{i}(\sum_{\ell}p_{\ell i}S_{\ell})\sum_{j}q_{ji}\boldsymbol{\Sigma}_{W,j}/S_{j}\);
+        weighting by \(q_{ji}\) is right only for the per-transcript covariances \(\boldsymbol{\Sigma}_{W,j}/S_{j}\), and with
+        \(\boldsymbol{\Sigma}_{W,j}\) itself the earlier model over-weights the variability of large cells by \(S_{j}\)
+  \item with the per-transcript covariances and no Poisson term, \eqref{eq:sc-model-transcript} and
+        \eqref{eq:sc-model} are one model in two parametrisations; the maximum-likelihood estimate is invariant,
+        so \(\hat{\boldsymbol{p}}_{\cdot i}\) is the conversion of \(\hat{\boldsymbol{q}}_{\cdot i}\)
+  \item why it was dropped: the covariance weights above; the Poisson term \(\omega\operatorname{diag}(\cdot)\) cannot be
+        separated from the scale \(\kappa_{i}\) and from the diagonal of \(\boldsymbol{\Sigma}_{W,j}\) with one bulk sample
+        and no technical replicate; and the plug-in \(\hat L_{i}\) ignores its own sampling error, which the joint fit
+        of \(c_{i}\) and \(\phi_{i}\) accounts for (Section~\ref{app:sc-inference})
 \end{itemize}
 
 \subsubsection{Optimisation}

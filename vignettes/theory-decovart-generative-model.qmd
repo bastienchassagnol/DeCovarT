@@ -589,16 +589,12 @@ $\boldsymbol{p}=\operatorname{softmax}(\rho^{\mathrm{alr}}_{1},\ldots,\rho^{\mat
 and $\boldsymbol{\rho}^{\mathrm{alr}}=\mathbf{D}_{J}\log\boldsymbol{p}$. The "1" in the
 denominator is the reference part; the word *additive* refers to the
 sum of exponentials in that denominator, not to the Aitchison
-perturbation [@CoordinateRepresentation2015, p. 47]. Package helpers
-[`additive_logistic()`](../reference/additive_logistic.html) and
-[`additive_log_ratio()`](../reference/additive_logistic.html) implement
-@eq-alr-maps and match `compositions::alrInv()` / `alr()` with the last
-part as reference [@R-compositions]. The Jacobian is the softmax
-Jacobian with the reference column dropped,
+perturbation [@CoordinateRepresentation2015, p. 47]. The package
+solvers use the isometric chart below, not this additive one. The
+Jacobian of @eq-alr-maps is the softmax Jacobian with the reference
+column dropped,
 $\partial p_{j}/\partial\rho^{\mathrm{alr}}_{a}=p_{j}(\delta_{ja}-p_{a})$ for
-$a=1,\ldots,J-1$
-([`jacobian_additive_logistic()`](../reference/jacobian_additive_logistic.html);
-[`hessian_additive_logistic()`](../reference/hessian_additive_logistic.html)).
+$a=1,\ldots,J-1$.
 
 ::: {#exm-alr-numeric}
 ## ALR in both directions for $\boldsymbol{p}=(0.5,0.3,0.2)$
@@ -1559,7 +1555,7 @@ bootstrap: the maximised likelihood is equivariant under relabelling.
 The analytic maps above are only half of a usable optimiser. Practical
 bottlenecks that showed up on the hybrid scenario in
 [Covariance-driven hybrid scenario](fig03-covariance-driven.html#sec-hybrid-deconvolution)
-live in `R/03_03_DeCovarT_estimate_ratios_frequentist.R`.
+live in `R/02_03_decovart_estimate_ratios.R`.
 
 ---
 
@@ -1680,8 +1676,8 @@ forecast bulk expression.
 Analytic formulae can be differentiated correctly *and* still implement
 the wrong objective. The checks below separate those two questions.
 They are the same identities that
-`tests/testthat/test-03_03_DeCovarT.R` and
-`tests/testthat/test-03_06_decovart_inference.R` enforce on every
+`tests/testthat/test-02_03_decovart_estimate_ratios.R` and
+`tests/testthat/test-03_01_decovart_inference.R` enforce on every
 package build; the chunks here are a readable, small-\(G\) illustration.
 
 ```{r}

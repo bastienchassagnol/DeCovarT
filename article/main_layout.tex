@@ -726,17 +726,14 @@ Table~\ref{tab:notation} is the alignment layer used in the
   \centering
   \caption{Cell counts, single-cell moments, scales, and the two covariance mixtures.
     A tilde marks a quantity rescaled to a reference unit: per cell (\(\tilde{\boldsymbol{y}}\),
-    \(\tilde{\boldsymbol{\mu}}\)) or relative to the reference protocol (\(\tilde{\boldsymbol{b}}\)).
-    \(\boldsymbol{\rho}\) elsewhere in the paper is the isometric log-ratio
-    coordinate of \(\boldsymbol{p}\), so the within-type correlation is \(\varrho\).}
+    \(\tilde{\boldsymbol{\mu}}\)) or relative to the reference protocol (\(\tilde{\boldsymbol{b}}\)).}
   \label{tab:notation}
   \begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.56\textwidth}@{}}
     \toprule
     Symbol & Meaning \\
     \midrule
     \(m_{ji}\in\mathbb{N}\) &
-      Number of cells of type \(j\) in bulk sample \(i\)
-      (\emph{MuSiC} writes \(m_{kj}\)). \\
+      Number of cells of type \(j\) in bulk sample \(i\). \\
     \(n_{i}=\sum_{j}m_{ji}\) &
       Total number of cells in bulk sample \(i\). \\
     \(\boldsymbol{p}_{\cdot i}=\boldsymbol{m}_{\cdot i}/n_{i}\) &
@@ -745,9 +742,9 @@ Table~\ref{tab:notation} is the alignment layer used in the
       Bulk expression per cell. \\
     \(\tilde{\boldsymbol{\mu}}_{\cdot j}=C_{j}^{-1}\sum_{c\in j}\boldsymbol{x}_{\cdot c}\) &
       Per-cell mean of the raw UMI counts \(\boldsymbol{x}_{\cdot c}\) of the \(C_{j}\) reference cells of
-      type \(j\), without library-size normalisation. \\
-    \(S_{j}=\mathbf{1}^{\top}\tilde{\boldsymbol{\mu}}_{\cdot j}\), \(\boldsymbol{\theta}_{\cdot j}=\tilde{\boldsymbol{\mu}}_{\cdot j}/S_{j}\) &
-      Mean transcriptome size of a type-\(j\) cell and its relative abundance profile. \\
+      type \(j\).\footnotemark[1] \\
+    \(S_{j}=\mathbf{1}^{\top}\tilde{\boldsymbol{\mu}}_{\cdot j}\) &
+      Mean transcriptome size of a type-\(j\) cell. \\
     \(q_{ji}=p_{ji}S_{j}/\sum_{\ell}p_{\ell i}S_{\ell}\) &
       Transcript fractions. \\
     \(a_{i}\) &
@@ -755,27 +752,24 @@ Table~\ref{tab:notation} is the alignment layer used in the
     \(b_{g}\), \(\tilde b_{g}=b_{g}^{\mathrm{bulk}}/b_{g}^{\mathrm{ref}}\) &
       Capture efficiency of gene \(g\) in one protocol, and the gene-wise platform ratio,
       \(\tilde{\boldsymbol{b}}=(\tilde b_{1},\ldots,\tilde b_{G})^{\top}\). \\
-    \(\boldsymbol{D}_{i}=\boldsymbol{\Sigma}_{\mathrm{obs},i}
-      =\operatorname{diag}(\tau_{1i}^{2},\ldots,\tau_{Gi}^{2})\) &
+    \(\boldsymbol{D}_{i}\) &
       Diagonal, heteroscedastic bulk measurement noise. \\
     \(\boldsymbol{T}_{ji}=\sum_{c=1}^{m_{ji}}\boldsymbol{X}_{jic}\) &
       Total expression contributed by type \(j\) to sample \(i\). \\
     \(\boldsymbol{\Sigma}_{W,j}\), \(\boldsymbol{\Sigma}_{B,j}\) &
-      Within-donor cell-to-cell covariance and between-donor covariance of type \(j\). \\
+      Within-donor cell-to-cell covariance of type \(j\), estimated from the cells of one single-cell
+      sample; between-donor covariance of type \(j\), which needs \(R\ge2\) single-cell replicates
+      (donors). \\
     \(\boldsymbol{S}_{W}(\boldsymbol{v})=\sum_{j}v_{j}\boldsymbol{\Sigma}_{W,j}\) &
       Linear covariance mixture with weights \(\boldsymbol{v}\). \\
     \(\boldsymbol{S}_{B}(\boldsymbol{v})=\sum_{j}v_{j}^{2}\boldsymbol{\Sigma}_{B,j}\) &
       Quadratic covariance mixture. \\
-    \(\varrho_{j}\in[-1/(m_{ji}-1),1]\) &
-      Cell-to-cell correlation inside type \(j\). \\
-    \(\boldsymbol{\vartheta}\) &
-      Generic parameter vector. \\
-    \(\boldsymbol{\mu}_{k},\boldsymbol{\Sigma}_{k},
-      \boldsymbol{\mu}_{kl},\boldsymbol{\Sigma}_{kl}\) &
-      First and second partial derivatives of the mean and covariance
-      in \(\vartheta_{k},\vartheta_{l}\). \\
     \bottomrule
   \end{tabular}
+  \footnotetext[1]{The reference mean averages the raw UMI counts of the cells of type \(j\), so \(S_{j}\) keeps
+    the average material per cell. A standard library-size normalisation (counts per million, or scaling each
+    cell to a common total before averaging) divides every cell by its own total; all \(S_{j}\) become equal, the
+    cell-size information is lost, and the fit returns transcript fractions instead of cell fractions.}
 \end{table}
 
 \subsection{Generative framework and core modelling assumptions}
@@ -1153,9 +1147,10 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
         directly; transcript fractions follow as \(q_{ji}=p_{ji}S_{j}/\sum_{\ell}p_{\ell i}S_{\ell}\), with no post-fit
         conversion \cite{wangBulkTissueCell2019,racleSimultaneousEnumerationCancer2017}; only the ratios
         \(S_{j}/S_{\ell}\) matter
-  \item covariance weights (our remark): an earlier version of this model weighted the cell-to-cell covariance
-        by transcript fractions \(q_{ji}\); independent cells add with their counts \(m_{ji}=n_{i}p_{ji}\), so the
-        linear layer is weighted by \(\boldsymbol{p}_{\cdot i}\)
+  \item covariance weights (our remark): an earlier version of this model was parametrised by transcript fractions
+        \(\boldsymbol{q}_{\cdot i}\), weighted the cell-to-cell covariance by \(q_{ji}\), and added a Poisson bulk
+        diagonal (Appendix~\ref{app:sc-transcript}); independent cells add with their counts \(m_{ji}=n_{i}p_{ji}\),
+        so the linear layer is weighted by \(\boldsymbol{p}_{\cdot i}\)
   \item scales: \(a_{i}\) and \(n_{i}\) enter only through \(c_{i}=a_{i}n_{i}\) in the mean and
         \(\phi_{i}=a_{i}c_{i}=a_{i}^{2}n_{i}\) in the covariance, two free positive scalars; \(n_{i}\) reads as a
         number of cells only when \(a_{i}\) is known (same platform, or paired samples)
@@ -1170,31 +1165,62 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
   \item one donor cannot identify the between-donor layer \(\boldsymbol{S}_{B}(\boldsymbol{p}_{\cdot i})\)
         \cite{zimmermanPracticalSolutionPseudoreplication2021}; with \(R\ge2\) donors it is added as
         \(a_{i}^{2}n_{i}^{2}\boldsymbol{S}_{B}(\boldsymbol{p}_{\cdot i})\) (Appendix~\ref{app:alignment})
-  \item link with Poisson measurement models
-  \begin{itemize}
-    \item \emph{RCTD} writes \(y_{gi}\sim\mathrm{Poisson}(N_{i}\sum_{j}w_{ji}\mu_{jg}e^{\gamma_{g}})\) with
-          log-normal overdispersion, per-UMI reference profiles \(\mu_{jg}\), a platform ratio
-          \(\tilde b_{g}=e^{\gamma_{g}}\) and \(\boldsymbol{w}_{\cdot i}=\boldsymbol{p}_{\cdot i}e^{\alpha_{i}}\) left unconstrained
-          \cite{cableRobustDecompositionCell2022a}; Sarkar and Stephens write a UMI count as
-          \(\mathrm{Poisson}(x_{+}b_{g}\lambda_{g})\) given the total \(x_{+}\) and the capture \(b_{g}\)
-          \cite{sarkarSeparatingMeasurementExpression2021}
-    \item \eqref{eq:sc-model} has the same multiplicative mean, but the rate is carried by cell types: an
-          average type-\(j\) cell contributes \(S_{j}\boldsymbol{\theta}_{\cdot j}\), multiplied by the number of cells and by
-          the sample scale, instead of a free rate per gene
-    \item its variance comes from the cell-to-cell covariance, not from the Poisson law that equates
-          variance and mean, which is why it carries gene--gene dependence
-    \item the scale (\(n\) in \emph{RNA-Sieve}, \(N_{i}e^{\alpha_{i}}\) in \emph{RCTD}, \(c_{i}\) here) is not, in
-          general, the number of cells: that reading needs the same sequencing platform, or paired samples
-          with similar biological and technical size factors
-  \end{itemize}
+  \item link with the Poisson measurement models of \emph{RCTD} \cite{cableRobustDecompositionCell2022a} and of
+        Sarkar and Stephens \cite{sarkarSeparatingMeasurementExpression2021}: Remark~\ref{rem:poisson-link}
   \item optimisation: for a fixed composition, the scales \(c_{i}\) and \(\phi_{i}\) have closed-form generalised least-squares
         and Mahalanobis profiles, and Newton--Raphson runs on the profile log-likelihood of the \(J-1\) ILR coordinates
-        (Appendix~\ref{sec:sc-newton})
+        (Appendix~\ref{sec:sc-newton}); Algorithm~\ref{alg:sc-two-stage} gives the two-stage version, with the
+        scales estimated first and plugged in
   \item inference: Wald intervals use the Schur complement of the information, so estimating \(c_{i}\) and \(\phi_{i}\)
         widens them, and profile intervals concentrate both scales out (Appendices~\ref{app:sc-inference}
         and~\ref{app:mle-nuisance}); the estimand is the cell fraction (Appendix~\ref{sec:estimand})
   \item other alignment strategies and why they were not chosen: Appendix~\ref{app:alignment}
 \end{itemize}
+
+\begin{algorithm}[ht]
+  \caption{Two-stage fit of \eqref{eq:sc-model} for one bulk sample: nuisance scales first, then the cell
+    fractions with the scales plugged in.}
+  \label{alg:sc-two-stage}
+  \begin{algorithmic}[1]
+    \Require bulk \(\boldsymbol{y}\in\mathbb{R}_{+}^{G}\); reference means \(\tilde{\boldsymbol{\mu}}\) and sizes \(S_{j}\); regularised
+      \(\boldsymbol{\Sigma}_{W,1},\ldots,\boldsymbol{\Sigma}_{W,J}\); Helmert basis \(\mathbf{V}\); tolerance \(\varepsilon\)
+    \Statex \textit{Stage i: nuisance factors}
+    \State \(\boldsymbol{w}\gets\arg\min_{\boldsymbol{w}\ge\boldsymbol{0}}\lVert\boldsymbol{y}-\tilde{\boldsymbol{\mu}}\boldsymbol{w}\rVert_{2}^{2}\);
+      \(\boldsymbol{p}^{(0)}\gets\boldsymbol{w}/\mathbf{1}^{\top}\boldsymbol{w}\), floored away from zero and renormalised
+    \State \(\hat c\gets\mathbf{1}^{\top}\boldsymbol{y}/\sum_{j}p_{j}^{(0)}S_{j}\)
+      \Comment{library-size moment estimator of \(c=an\)}
+    \State \(\boldsymbol{W}\gets\boldsymbol{S}_{W}(\boldsymbol{p}^{(0)})^{-1}\);
+      \(\boldsymbol{r}\gets\boldsymbol{y}-\hat c\,\tilde{\boldsymbol{\mu}}\boldsymbol{p}^{(0)}\);
+      \(\hat\phi\gets\boldsymbol{r}^{\top}\boldsymbol{W}\boldsymbol{r}/G\)
+      \Comment{Mahalanobis estimator of \(\phi=a^{2}n\)}
+    \State \(\hat a\gets\hat\phi/\hat c\), \(\hat n\gets\hat c^{2}/\hat\phi\)
+      \Comment{\(\hat n\) is a number of cells only when \(a\) is known}
+    \Statex \textit{Stage ii: cell fractions, with \(\hat c\) and \(\hat\phi\) plugged in}
+    \State \(\boldsymbol{\rho}\gets\mathbf{V}^{\top}\log\boldsymbol{p}^{(0)}\)
+    \Repeat
+      \State \(\boldsymbol{p}\gets\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho})\);
+        \(\boldsymbol{W}\gets\boldsymbol{S}_{W}(\boldsymbol{p})^{-1}\);
+        \(\boldsymbol{r}\gets\boldsymbol{y}-\hat c\,\tilde{\boldsymbol{\mu}}\boldsymbol{p}\)
+      \State \(U_{j}\gets\hat\phi^{-1}\bigl(\hat c\,\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top}\boldsymbol{W}\boldsymbol{r}
+        +\tfrac12\boldsymbol{r}^{\top}\boldsymbol{W}\boldsymbol{\Sigma}_{W,j}\boldsymbol{W}\boldsymbol{r}\bigr)
+        -\tfrac12\operatorname{tr}(\boldsymbol{W}\boldsymbol{\Sigma}_{W,j})\)
+        \Comment{score in \(\boldsymbol{p}\)}
+      \State \(I_{jk}\gets\hat c^{2}\hat\phi^{-1}\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top}\boldsymbol{W}\tilde{\boldsymbol{\mu}}_{\cdot k}
+        +\tfrac12\operatorname{tr}(\boldsymbol{W}\boldsymbol{\Sigma}_{W,j}\boldsymbol{W}\boldsymbol{\Sigma}_{W,k})\)
+        \Comment{expected information in \(\boldsymbol{p}\)}
+      \State \(\boldsymbol{U}_{\rho}\gets\mathbf{J}_{\psi}^{\top}\boldsymbol{U}\);
+        \(\boldsymbol{I}_{\rho}\gets\mathbf{J}_{\psi}^{\top}\boldsymbol{I}\mathbf{J}_{\psi}\)
+      \State \(\boldsymbol{\rho}\gets\boldsymbol{\rho}+t\,\boldsymbol{I}_{\rho}^{-1}\boldsymbol{U}_{\rho}\), with \(t\in\{1,\tfrac12,\tfrac14,\ldots\}\)
+        the first step that increases \eqref{eq:sc-loglik}
+    \Until{\(\lVert\boldsymbol{U}_{\rho}\rVert_{2}<\varepsilon\)}
+    \State optional: return to line 2 with \(\boldsymbol{p}^{(0)}\gets\boldsymbol{p}\) until \(\hat c\) and \(\hat\phi\) stabilise;
+      the fixed point is the profile maximum of Appendix~\ref{sec:sc-newton}
+    \State \(\widehat{\operatorname{Var}}(\hat{\boldsymbol{p}})\gets\mathbf{J}_{\psi}\boldsymbol{I}_{\rho}^{-1}\mathbf{J}_{\psi}^{\top}\),
+      plus the plug-in correction of Appendix~\ref{app:sc-inference}
+    \Ensure cell fractions \(\hat{\boldsymbol{p}}\), transcript fractions \(\hat q_{j}=\hat p_{j}S_{j}/\sum_{\ell}\hat p_{\ell}S_{\ell}\),
+      scales \(\hat c,\hat\phi,\hat a,\hat n\), and \(\widehat{\operatorname{Var}}(\hat{\boldsymbol{p}})\)
+  \end{algorithmic}
+\end{algorithm}
 
 \subsection{Performance metrics}
 \label{sec:metrics}

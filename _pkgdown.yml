@@ -170,8 +170,10 @@ home:
       href: https://github.com/bastienchassagnol/DeCovarT/issues
     - text: Method preprint (arXiv)
       href: https://arxiv.org/abs/2309.09557
-    - text: Function call network
-      href: package_network/decovart_function_network.html
+    - text: Estimation and interval network
+      href: package_network/decovart_function_network_core.html
+    - text: Simulation and benchmark network
+      href: package_network/decovart_function_network_simulation.html
 
 reference:
   - title: Main deconvolution function
@@ -189,7 +191,6 @@ reference:
       Analytic first- and second-order helpers for the unconstrained and
       ILR-constrained log-likelihood (Helmert basis; Jacobian / Hessian of
       the isometric logistic map; gradients and Hessians of \(\ell\)).
-      Additive log-ratio maps are kept for the vignette appendix.
       Documented for
       `?` / source inspection; see also
       `vignette("theory-decovart-generative-model")`.
@@ -200,10 +201,6 @@ reference:
       - jacobian_isometric_logistic
       - hessian_isometric_logistic
       - starting_simplex
-      - additive_logistic
-      - additive_log_ratio
-      - jacobian_additive_logistic
-      - hessian_additive_logistic
       - gradient_loglik_unconstrained
       - hessian_loglik_unconstrained
       - gradient_loglik_constrained
@@ -212,7 +209,7 @@ reference:
     desc: |
       Marquardt–Levenberg deconvolution (exported entry point). Related
       first- and second-order variants live in
-      `R/03_03_DeCovarT_estimate_ratios_frequentist.R`. The S3 model
+      `R/02_03_decovart_estimate_ratios.R`. The S3 model
       wrapper is `fit_decovart()`.
     contents:
       - deconvolute_ratios_Marquardt_Levenberg

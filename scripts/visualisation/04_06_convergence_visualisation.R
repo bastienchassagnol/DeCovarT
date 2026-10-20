@@ -1,3 +1,5 @@
+source(file.path("scripts", "auxiliary", "display_metrics.R"))
+
 #' Default files for the three Monte Carlo outcomes
 #'
 #' @keywords internal
@@ -268,7 +270,7 @@ plot_convergence_stacked <- function(
   if (length(missing) > 0L) {
     stop("`df` must contain ", toString(missing), ".", call. = FALSE)
   }
-  df$outcome <- .simulation_outcome(
+  df$outcome <- simulation_outcome(
     df$numerical_converged,
     df$theoretical_converged
   )

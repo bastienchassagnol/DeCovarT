@@ -39,5 +39,10 @@ Useful links:
 \author{
 \strong{Maintainer}: Bastien Chassagnol \email{bastien_chassagnol@laposte.net} (\href{https://orcid.org/0000-0002-8955-2391}{ORCID}) [copyright holder]
 
+Authors:
+\itemize{
+  \item Bastien Chassagnol \email{bastien_chassagnol@laposte.net} (\href{https://orcid.org/0000-0002-8955-2391}{ORCID}) [copyright holder]
+}
+
 }
 \keyword{internal}

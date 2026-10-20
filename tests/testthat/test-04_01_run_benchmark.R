@@ -443,22 +443,6 @@ test_that("Newton-Raphson attaches ILR Wald SEs; nnls does not", {
   expect_true(all(is.na(nnls$coverage)))
 })
 
-test_that("simulation outcomes partition numerical and theoretical flags", {
-  out <- .simulation_outcome(
-    c(TRUE, TRUE, FALSE, TRUE),
-    c(TRUE, FALSE, FALSE, NA)
-  )
-  expect_identical(
-    out,
-    c(
-      "theoretical_success",
-      "theoretical_failure",
-      "numerical_failure",
-      "theoretical_failure"
-    )
-  )
-})
-
 test_that("closed-form solvers store NA homogenised convergence", {
   conv <- .homogenise_convergence(c(0.5, 0.5), "nnls")
   expect_true(is.na(conv$iterations))
@@ -489,11 +473,4 @@ test_that("optimisation table stores Hessian extrema and converged lists", {
   expect_true("min_eigenvalue" %in% names(opt))
   expect_type(opt$converged, "list")
   expect_true(is.na(opt$converged[[1L]]$iterations))
-})
-
-test_that("relative log10 likelihood peaks at zero", {
-  z <- matrix(c(-10, -1, -4, -2), nrow = 2)
-  rel <- .relative_log10_likelihood(z)
-  expect_equal(max(rel), 0)
-  expect_true(all(rel <= 0))
 })
