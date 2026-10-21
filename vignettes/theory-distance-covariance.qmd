@@ -151,8 +151,8 @@ We **do not** use the Frobenius chord $\lVert A-B\rVert_F$. That
 Euclidean metric treats SPD matrices as a flat vector space, is not
 inversion-invariant, can interpolate off the cone (negative
 eigenvalues), and produces the swelling effect (determinants of
-midpoints larger than both endpoints). `spd_affine_invariant_distance()`
-and `compute_average_riemannian()` implement only AIRM. The descriptor
+midpoints larger than both endpoints). `compute_average_riemannian()`
+implements only AIRM. The descriptor
 column `riemannian_sigma` is the unweighted mean of
 $d_R(\Sigma_j,\Sigma_\ell)$ over $j<\ell$. The distance is
 *scale-invariant*: $d_R(sA,sB)=d_R(A,B)$. In fig03 it therefore

@@ -1,4 +1,4 @@
-source(file.path("scripts", "auxiliary", "display_metrics.R"))
+# Sourced by scripts/visualisation/load_visualisation.R; do not source on its own.
 
 #' Default files for the three Monte Carlo outcomes
 #'
@@ -183,7 +183,7 @@ source(file.path("scripts", "auxiliary", "display_metrics.R"))
 #' @return A `ggplot`.
 #' @export
 plot_kkt_raincloud <- function(df, title = NULL) {
-  .check_plot_dependencies(need_ggdist = TRUE)
+  .check_suggested_package("ggdist", "this figure")
   needed <- c("kkt_residual", "algorithm")
   missing <- setdiff(needed, names(df))
   if (length(missing) > 0L) {
@@ -261,9 +261,9 @@ plot_convergence_stacked <- function(
 ) {
   use_ggtext <- requireNamespace("ggtext", quietly = TRUE)
   if (isTRUE(use_ggtext)) {
-    .check_plot_dependencies(need_ggtext = TRUE)
+    .check_suggested_package("ggtext", "this figure")
   } else {
-    .check_plot_dependencies(need_cowplot = TRUE)
+    .check_suggested_package("cowplot", "this figure")
   }
   needed <- c("numerical_converged", "theoretical_converged", "algorithm")
   missing <- setdiff(needed, names(df))

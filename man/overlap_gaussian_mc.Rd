@@ -7,8 +7,8 @@
 overlap_gaussian_mc(true_theta, n_mc = 10000L, seed = NULL, J = NULL)
 }
 \arguments{
-\item{true_theta}{List with \code{p}, \code{mu}, \code{sigma} as in
-\code{\link[=check_true_theta]{check_true_theta()}}.}
+\item{true_theta}{List with \code{p} (length \eqn{J}), \code{mu} (\eqn{G\times J})
+and \code{sigma} (\eqn{G\times G\times J}).}
 
 \item{n_mc}{Draws \strong{per component} (default \code{10000}).}
 

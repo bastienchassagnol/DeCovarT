@@ -69,6 +69,8 @@ if (
   library(DeCovarT)
 }
 .ui_attach_script()
+# Figure books and artefact I/O live outside the package namespace.
+source(file.path("scripts", "visualisation", "load_visualisation.R"))
 
 if (!requireNamespace("igraph", quietly = TRUE)) {
   .ui_abort(

@@ -211,6 +211,7 @@ jobs:
           cp -a output/package_network/. docs/package_network/
           test -f docs/package_network/decovart_function_network_core.html
           test -f docs/package_network/decovart_function_network_simulation.html
+          test -f docs/package_network/decovart_function_network_visualisation.html
 
       # Optional: Nature Methods article PDF when the commit message asks for it
       - name: Install TeX Live (article generation)

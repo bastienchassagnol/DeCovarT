@@ -29,15 +29,15 @@ excluded_files <- c("zzz.R", "data.R", "utils-ui.R")
 # the statistical API; keep them out of the visNetwork report.
 excluded_functions <- c(
   ".match_arg_case_insensitive",
-  ".write_artefact",
-  ".ensure_file_suffix"
+  ".check_suggested_package"
 )
 
 out_dir <- file.path(project_path, "output", "package_network")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
-# Two graphs. Core is estimation and intervals for the Gaussian
+# Three graphs. Core is estimation and intervals for the Gaussian
 # convolution. Simulation is the generative scenarios and the benchmark.
+# Visualisation is the Monte Carlo plots of a benchmark.
 network_groups <- list(
   list(
     files = c(
@@ -60,12 +60,21 @@ network_groups <- list(
       "01_04_infer_gaussian_overlap.R",
       "01_05_target_gaussian_overlap.R",
       "04_01_run_benchmark.R",
-      "04_02_benchmark_visualisation.R",
-      "04_03_run_simulation_benchmark.R",
-      "04_04_statistical_metrics.R"
+      "04_02_run_simulation_benchmark.R",
+      "04_03_performance_metrics_global.R",
+      "04_04_performance_metrics_celltype.R"
     ),
     csv = "decovart_functions_simulation.csv",
     html = "decovart_function_network_simulation.html",
+    legacy_html = NULL
+  ),
+  list(
+    files = c(
+      "05_01_monte_carlo_plots.R",
+      "05_02_algorithm_similarity.R"
+    ),
+    csv = "decovart_functions_visualisation.csv",
+    html = "decovart_function_network_visualisation.html",
     legacy_html = NULL
   )
 )

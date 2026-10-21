@@ -3,6 +3,7 @@
 # Needs a working OpenGL display for rgl PDF snapshots (not RGL_USE_NULL).
 
 devtools::load_all(".", quiet = TRUE)
+source(file.path("scripts", "visualisation", "load_visualisation.R"))
 
 OUT_DIR <- "output/fig02"
 DENSITY_DIR <- file.path(OUT_DIR, "density_visualisations")

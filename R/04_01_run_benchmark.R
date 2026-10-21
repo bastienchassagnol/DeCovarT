@@ -1,235 +1,7 @@
-#' Validate generative-model parameters \eqn{\theta}
-#'
-#' Checks that `true_theta` stores the DeCovarT mixture parameters:
-#' * `p`: mixing proportions of length \eqn{J}, or a matrix
-#'   \eqn{J\times N} of sample-wise proportions (each column on the simplex);
-#' * `mu`: mean signature \eqn{\boldsymbol{\mu}\in\mathcal{M}_{G\times J}}
-#'   (also accepts \eqn{J\times G});
-#' * `sigma` and/or `Theta`: array
-#'   \eqn{G\times G\times J} of covariances and/or precision matrices.
-#'
-#' @param true_theta Named list with the fields above.
-#' @param require_p Logical; if `TRUE` (default), `p` must be present and
-#'   valid. If `FALSE`, a missing `p` is allowed (callers may default it).
-#' @param J Optional expected number of cell types. When `NULL`, inferred
-#'   from `mu` / the third dimension of `sigma` or `Theta`.
-#' @param second_moment Which second-moment field to require:
-#'   `"sigma"`, `"Theta"`, or `"either"` (default: at least one of
-#'   `sigma` / `Theta`). Matching is case-insensitive.
-#'
-#' @srrstats {G2.3} Restricted character input (`second_moment`).
-#' @srrstats {G2.3a} Validated via `.match_arg_case_insensitive()` (a
-#'   `match.arg()` equivalent).
-#' @srrstats {G2.3b} Matching is case-insensitive (`tolower()`).
-#'
-#' @return `TRUE` invisibly if the structure is valid; otherwise stops
-#'   with an informative error.
-#'
-#' @seealso [compute_average_overlap()], [compute_average_jeffreys()]
-#' @export
-#' @examples
-#' theta <- list(
-#'   p = c(0.5, 0.5),
-#'   mu = cbind(c(0, 0), c(3, 0)),
-#'   sigma = array(c(diag(2), diag(2)), dim = c(2, 2, 2))
-#' )
-#' check_true_theta(theta)
-check_true_theta <- function(
-  true_theta,
-  require_p = TRUE,
-  J = NULL,
-  second_moment = c("either", "sigma", "Theta")
-) {
-  .parse_true_theta(
-    true_theta = true_theta,
-    require_p = require_p,
-    J = J,
-    second_moment = second_moment
-  )
-  invisible(TRUE)
-}
-
-#' Parse and standardise \eqn{\theta} (internal)
-#'
-#' @return Named list with `p` (length-\eqn{J} vector or `NULL`),
-#'   `mu` (\eqn{G\times J}), `sigma` and/or `Theta` (\eqn{G\times G\times J}),
-#'   `G`, and `J`.
-#' @keywords internal
-#' @noRd
-.parse_true_theta <- function(
-  true_theta,
-  require_p = TRUE,
-  J = NULL,
-  second_moment = c("either", "sigma", "Theta")
-) {
-  second_moment <- .match_arg_case_insensitive(
-    second_moment,
-    c("either", "sigma", "Theta")
-  )
-  if (!is.list(true_theta)) {
-    stop("`true_theta` must be a list.", call. = FALSE)
-  }
-  if (is.null(true_theta$mu)) {
-    stop("`true_theta` must contain `mu`.", call. = FALSE)
-  }
-
-  # --- Second moments: require Sigma and/or precision Theta -------------------
-  # Each must be a G x G x J array (one PD matrix per cell type). When both are
-  # supplied they must share the same (G, J).
-  has_sigma <- !is.null(true_theta$sigma)
-  has_theta <- !is.null(true_theta$Theta)
-  if (identical(second_moment, "sigma") && !has_sigma) {
-    stop("`true_theta` must contain `sigma`.", call. = FALSE)
-  }
-  if (identical(second_moment, "Theta") && !has_theta) {
-    stop("`true_theta` must contain `Theta`.", call. = FALSE)
-  }
-  if (identical(second_moment, "either") && !has_sigma && !has_theta) {
-    stop(
-      "`true_theta` must contain `sigma` and/or `Theta`.",
-      call. = FALSE
-    )
-  }
-
-  # Helper: enforce cubic layout G x G x J and return (G, J).
-  # Shared implementation lives in utils.R as `.assert_ggj_array()`.
-  .check_ggj_array <- function(arr, nm) {
-    .assert_ggj_array(arr, paste0("true_theta$", nm))
-  }
-
-  dims_list <- list()
-  if (has_sigma) {
-    dims_list$sigma <- .check_ggj_array(true_theta$sigma, "sigma")
-  }
-  if (has_theta) {
-    dims_list$Theta <- .check_ggj_array(true_theta$Theta, "Theta")
-  }
-  if (length(dims_list) == 2L) {
-    if (
-      !identical(dims_list$sigma$G, dims_list$Theta$G) ||
-        !identical(dims_list$sigma$J, dims_list$Theta$J)
-    ) {
-      stop("`sigma` and `Theta` must share the same G x G x J dims.")
-    }
-  }
-  G <- dims_list[[1L]]$G
-  n_celltypes <- dims_list[[1L]]$J
-
-  # --- Mean signature mu: genes x cell types ---------------------------------
-  # Preferred storage is G x J; also accept MixSim-style J x G and transpose.
-  mu <- as.matrix(true_theta$mu)
-  if (!is.numeric(mu) || anyNA(mu)) {
-    stop("`true_theta$mu` must be numeric without missing values.")
-  }
-  if (nrow(mu) == G && ncol(mu) == n_celltypes) {
-    mu_gj <- mu
-  } else if (nrow(mu) == n_celltypes && ncol(mu) == G) {
-    mu_gj <- t(mu)
-  } else {
-    stop("`true_theta$mu` must be G x J (or J x G).")
-  }
-
-  # --- Mixing proportions p: unit simplex ------------------------------------
-  # Accept a single mixture weight vector (length J) or sample-wise matrices
-  # (J x N or N x J). Matrix forms are reduced to length-J by averaging so that
-  # MixSim / Jeffreys summaries still see one weight per cell type. Every
-  # supplied simplex (vector, or each column/row of a matrix) must be
-  # non-negative and sum to 1.
-  p_vec <- NULL
-  if (is.null(true_theta$p)) {
-    if (isTRUE(require_p)) {
-      stop("`true_theta` must contain `p`.", call. = FALSE)
-    }
-  } else {
-    p_raw <- true_theta$p
-    if (is.null(dim(p_raw))) {
-      # Length-J vector on the simplex (shared mixture weights).
-      p_vec <- as.numeric(p_raw)
-      if (length(p_vec) != n_celltypes) {
-        stop(
-          "`true_theta$p` must have length J (= third dim of sigma/Theta).",
-          call. = FALSE
-        )
-      }
-    } else {
-      p_mat <- as.matrix(p_raw)
-      if (nrow(p_mat) == n_celltypes) {
-        # J x N: each column is a sample-wise cellular ratio on the simplex;
-        # average across samples for mixture-level summaries.
-        if (
-          any(abs(colSums(p_mat) - 1) > 100 * .Machine$double.eps) ||
-            any(p_mat < 0) ||
-            anyNA(p_mat)
-        ) {
-          stop(
-            "`true_theta$p` as J x N must have non-negative columns ",
-            "summing to 1.",
-            call. = FALSE
-          )
-        }
-        p_vec <- rowMeans(p_mat)
-      } else if (ncol(p_mat) == n_celltypes) {
-        # N x J: each row is a sample-wise ratio; average across samples.
-        if (
-          any(abs(rowSums(p_mat) - 1) > 100 * .Machine$double.eps) ||
-            any(p_mat < 0) ||
-            anyNA(p_mat)
-        ) {
-          stop(
-            "`true_theta$p` as N x J must have non-negative rows ",
-            "summing to 1.",
-            call. = FALSE
-          )
-        }
-        p_vec <- colMeans(p_mat)
-      } else {
-        stop(
-          "`true_theta$p` must be length J, J x N, or N x J.",
-          call. = FALSE
-        )
-      }
-    }
-    # Final simplex check on the (possibly averaged) length-J weight vector.
-    if (
-      any(p_vec < 0) ||
-        anyNA(p_vec) ||
-        abs(sum(p_vec) - 1) > 100 * .Machine$double.eps
-    ) {
-      stop(
-        "`true_theta$p` must be non-negative and sum to 1 ",
-        "(after averaging over samples if matrix).",
-        call. = FALSE
-      )
-    }
-  }
-
-  # --- Cell-type count J -----------------------------------------------------
-  # Infer from the third dim of sigma/Theta, or verify a caller-supplied J.
-  if (is.null(J)) {
-    J <- n_celltypes
-  } else {
-    J <- as.integer(J)
-    if (length(J) != 1L || is.na(J) || J != n_celltypes) {
-      stop(
-        "`J` must match the third dimension of sigma/Theta.",
-        call. = FALSE
-      )
-    }
-  }
-  if (J < 2L) {
-    stop("`J` must be at least 2.", call. = FALSE)
-  }
-
-  # Standardised fields for downstream metrics (mu always G x J).
-  list(
-    p = p_vec,
-    mu = mu_gj,
-    sigma = if (has_sigma) true_theta$sigma else NULL,
-    Theta = if (has_theta) true_theta$Theta else NULL,
-    G = G,
-    J = J
-  )
-}
+# Benchmark driver: fits every algorithm to every bulk sample, records
+# runtime and optimisation diagnostics, and assembles the global
+# (04_03_performance_metrics_global.R) and cell-type
+# (04_04_performance_metrics_celltype.R) performance tables.
 
 #' Compute deconvolution benchmark metrics
 #'
@@ -334,8 +106,25 @@ compute_benchmark_metrics <- function(
   } else {
     .as_p_matrix(true_ratios, cell_names, n_samples)
   }
-  se_mat <- .as_optional_matrix(se, n_celltypes, n_samples, cell_names)
-  bounds <- .wald_bounds(p_hat, se_mat, lower, upper, level)
+  se_mat <- if (is.null(se)) {
+    matrix(
+      NA_real_,
+      n_celltypes,
+      n_samples,
+      dimnames = list(cell_names, NULL)
+    )
+  } else {
+    .as_p_matrix(se, cell_names, n_samples)
+  }
+  # Supplied bounds are used as they are; otherwise Wald intervals at `level`.
+  if (!is.null(lower) && !is.null(upper)) {
+    lower <- .as_p_matrix(lower, cell_names, n_samples)
+    upper <- .as_p_matrix(upper, cell_names, n_samples)
+  } else {
+    z <- stats::qnorm((1 + level) / 2)
+    lower <- p_hat - z * se_mat
+    upper <- p_hat + z * se_mat
+  }
   elapsed <- .recycle_numeric(elapsed, n_samples)
   memory_bytes <- .recycle_numeric(memory_bytes, n_samples)
   kkt_residual <- .recycle_numeric(kkt_residual, n_samples)
@@ -403,8 +192,8 @@ compute_benchmark_metrics <- function(
     p_true = p_true,
     p_hat = p_hat,
     se = se_mat,
-    lower = bounds$lower,
-    upper = bounds$upper,
+    lower = lower,
+    upper = upper,
     coverage_interval = coverage_interval,
     algorithm = algorithm
   )
@@ -461,17 +250,6 @@ compute_benchmark_metrics <- function(
 
 #' @keywords internal
 #' @noRd
-.as_optional_matrix <- function(x, n_celltypes, n_samples, cell_names) {
-  if (is.null(x)) {
-    out <- matrix(NA_real_, n_celltypes, n_samples)
-    rownames(out) <- cell_names
-    return(out)
-  }
-  .as_p_matrix(x, cell_names, n_samples)
-}
-
-#' @keywords internal
-#' @noRd
 .recycle_numeric <- function(x, n) {
   if (is.null(x)) {
     return(rep(NA_real_, n))
@@ -484,186 +262,6 @@ compute_benchmark_metrics <- function(
     stop("Optional per-sample vectors must have length N.", call. = FALSE)
   }
   x
-}
-
-#' @keywords internal
-#' @noRd
-.wald_bounds <- function(p_hat, se, lower, upper, level) {
-  n_samples <- ncol(p_hat)
-  cell_names <- rownames(p_hat)
-  if (!is.null(lower) && !is.null(upper)) {
-    return(list(
-      lower = .as_p_matrix(lower, cell_names, n_samples),
-      upper = .as_p_matrix(upper, cell_names, n_samples)
-    ))
-  }
-  z <- stats::qnorm((1 + level) / 2)
-  list(
-    lower = p_hat - z * se,
-    upper = p_hat + z * se
-  )
-}
-
-#' @keywords internal
-#' @noRd
-.regression_global_row <- function(
-  p_true,
-  p_hat,
-  y,
-  mean_signature_matrix,
-  sample_id,
-  algorithm
-) {
-  if (is.null(p_true)) {
-    y_hat <- as.vector(mean_signature_matrix %*% p_hat)
-    return(tibble::tibble(
-      sample_id = sample_id,
-      algorithm = algorithm,
-      tv = .irrelevant_metric(),
-      rmse = .rmse(y, y_hat),
-      angular = .irrelevant_metric(),
-      sdid = .irrelevant_metric(),
-      maxae = .irrelevant_metric(),
-      reconstitution_mae = .mae(y, y_hat),
-      reconstitution_cor = .pearson_safe(y, y_hat)
-    ))
-  }
-  tibble::tibble(
-    sample_id = sample_id,
-    algorithm = algorithm,
-    tv = .tv(p_true, p_hat),
-    rmse = .rmse(p_true, p_hat),
-    angular = .angular_distance(p_true, p_hat),
-    sdid = .sdid(p_true, p_hat),
-    maxae = .maxae(p_true, p_hat),
-    reconstitution_mae = .irrelevant_metric(),
-    reconstitution_cor = .irrelevant_metric()
-  )
-}
-
-#' @keywords internal
-#' @noRd
-.regression_cell_type_table <- function(
-  p_true,
-  p_hat,
-  presence_threshold,
-  algorithm
-) {
-  cell_names <- rownames(p_hat)
-  if (is.null(p_true)) {
-    return(tibble::tibble(
-      algorithm = character(),
-      cell_type = character(),
-      pearson = numeric(),
-      presence_f1 = numeric(),
-      false_positive_mass = numeric()
-    ))
-  }
-  n_celltypes <- nrow(p_hat)
-  n_samples <- ncol(p_hat)
-  purrr::map_dfr(seq_len(n_celltypes), function(j) {
-    counts <- list(tp = 0L, fp = 0L, fn = 0L, false_positive_mass = 0)
-    for (i in seq_len(n_samples)) {
-      one <- .presence_counts(
-        p_true[j, i],
-        p_hat[j, i],
-        threshold = presence_threshold
-      )
-      counts$tp <- counts$tp + as.integer(one$tp)
-      counts$fp <- counts$fp + as.integer(one$fp)
-      counts$fn <- counts$fn + as.integer(one$fn)
-      counts$false_positive_mass <- counts$false_positive_mass +
-        one$false_positive_mass
-    }
-    tibble::tibble(
-      algorithm = algorithm,
-      cell_type = cell_names[[j]],
-      pearson = .pearson_safe(p_true[j, ], p_hat[j, ]),
-      presence_f1 = .f1_from_counts(counts$tp, counts$fp, counts$fn),
-      false_positive_mass = counts$false_positive_mass / n_samples
-    )
-  })
-}
-
-#' @keywords internal
-#' @noRd
-.monte_carlo_table <- function(
-  p_true,
-  p_hat,
-  se,
-  lower,
-  upper,
-  coverage_interval,
-  algorithm
-) {
-  cell_names <- rownames(p_hat)
-  if (is.null(p_true)) {
-    return(tibble::tibble(
-      algorithm = character(),
-      cell_type = character(),
-      bias = numeric(),
-      empirical_sd = numeric(),
-      mean_model_sd = numeric(),
-      mean_model_se = numeric(),
-      se_sd_ratio = numeric(),
-      theoretical_se = numeric(),
-      rmse = numeric(),
-      coverage = numeric(),
-      coverage_lower = numeric(),
-      coverage_upper = numeric(),
-      coverage_interval = character(),
-      mean_interval_width = numeric(),
-      mcse_coverage = numeric()
-    ))
-  }
-  n_celltypes <- nrow(p_hat)
-  n_samples <- ncol(p_hat)
-  purrr::map_dfr(seq_len(n_celltypes), function(j) {
-    err <- p_hat[j, ] - p_true[j, ]
-    se_j <- se[j, ]
-    empirical_sd <- if (n_samples < 2L) {
-      NA_real_
-    } else {
-      stats::sd(p_hat[j, ], na.rm = TRUE)
-    }
-    covered <- lower[j, ] <= p_true[j, ] & p_true[j, ] <= upper[j, ]
-    interval <- coverage_mc_interval(
-      covered,
-      method = coverage_interval
-    )
-    se_finite <- se_j[is.finite(se_j)]
-    mean_model_se <- if (length(se_finite) == 0L) {
-      NA_real_
-    } else {
-      mean(se_finite)
-    }
-    mean_model_sd <- if (length(se_finite) == 0L) {
-      NA_real_
-    } else {
-      sqrt(mean(se_finite^2))
-    }
-    width <- mean(upper[j, ] - lower[j, ], na.rm = TRUE)
-    if (!is.finite(width)) {
-      width <- NA_real_
-    }
-    tibble::tibble(
-      algorithm = algorithm,
-      cell_type = cell_names[[j]],
-      bias = mean(err, na.rm = TRUE),
-      empirical_sd = empirical_sd,
-      mean_model_sd = mean_model_sd,
-      mean_model_se = mean_model_se,
-      se_sd_ratio = mean_model_se / empirical_sd,
-      theoretical_se = NA_real_,
-      rmse = sqrt(mean(err^2, na.rm = TRUE)),
-      coverage = interval$coverage,
-      coverage_lower = interval$lower,
-      coverage_upper = interval$upper,
-      coverage_interval = interval$method,
-      mean_interval_width = width,
-      mcse_coverage = interval$mcse
-    )
-  })
 }
 
 #' Parallel deconvolution of a bulk expression matrix
@@ -796,7 +394,6 @@ deconvolute_ratios <- function(
   true_ratios <- aligned$true_ratios
   Sigma <- aligned$Sigma
   cell_names <- colnames(mean_signature_matrix)
-  n_celltypes <- ncol(mean_signature_matrix)
 
   if (
     is.null(deconvolution_functions) || length(deconvolution_functions) == 0L
@@ -807,21 +404,16 @@ deconvolute_ratios <- function(
   per_algorithm <- purrr::imap(
     deconvolution_functions,
     function(deconvolution_function, algorithm) {
-      additional_parameters <- deconvolution_function$additional_parameters
-      sample_fits <- .map_samples(
+      fits <- .map_samples(
         ncol(Y),
         function(i) {
           .fit_one_bulk_sample(
-            i = i,
-            Y = Y,
-            true_ratios = true_ratios,
+            y_i = Y[, i, drop = TRUE],
+            p_i = if (is.null(true_ratios)) NULL else true_ratios[, i],
             mean_signature_matrix = mean_signature_matrix,
             Sigma = Sigma,
             deconvolution_function = deconvolution_function,
-            additional_parameters = additional_parameters,
-            cell_names = cell_names,
-            n_celltypes = n_celltypes,
-            algorithm = algorithm
+            cell_names = cell_names
           )
         },
         cores = cores,
@@ -829,273 +421,350 @@ deconvolute_ratios <- function(
         progress_every = progress_every,
         progress_label = algorithm
       )
-      .assemble_algorithm_metrics(
-        sample_fits = sample_fits,
-        Y = Y,
+      true_list <- purrr::map(fits, "true_p")
+      compute_benchmark_metrics(
+        y = Y,
         mean_signature_matrix = mean_signature_matrix,
-        algorithm = algorithm,
-        coverage_interval = coverage_interval
+        estimated_p = do.call(cbind, purrr::map(fits, "p")),
+        true_ratios = if (all(purrr::map_lgl(true_list, is.null))) {
+          NULL
+        } else {
+          do.call(cbind, true_list)
+        },
+        se = do.call(cbind, purrr::map(fits, "se")),
+        elapsed = purrr::map_dbl(fits, "elapsed"),
+        memory_bytes = purrr::map_dbl(fits, "memory_bytes"),
+        kkt_residual = purrr::map_dbl(fits, "kkt_residual"),
+        numerical_converged = purrr::map_lgl(fits, "numerical_converged"),
+        loglik_hat = purrr::map_dbl(fits, "loglik_hat"),
+        loglik_true = purrr::map_dbl(fits, "loglik_true"),
+        converged = purrr::map(fits, "converged"),
+        local_maximum = purrr::map_lgl(fits, "local_maximum"),
+        min_eigenvalue = purrr::map_dbl(fits, "min_eigenvalue"),
+        max_eigenvalue = purrr::map_dbl(fits, "max_eigenvalue"),
+        coverage_interval = coverage_interval,
+        algorithm = algorithm
       )
     }
   )
-
-  .bind_benchmark_lists(per_algorithm)
+  bind <- function(get) dplyr::bind_rows(purrr::map(per_algorithm, get))
+  list(
+    regression = list(
+      global = bind(\(x) x$regression$global),
+      cell_type = bind(\(x) x$regression$cell_type)
+    ),
+    monte_carlo = bind("monte_carlo"),
+    optimisation = bind("optimisation")
+  )
 }
 
+#' Fit one bulk sample with one algorithm and record its diagnostics
+#'
+#' Convolution-likelihood solvers get ILR Wald standard errors from the
+#' expected Fisher information; mean-only solvers leave them missing. When
+#' `Sigma` is supplied, the KKT residual, the log-likelihoods at
+#' \eqn{\hat{\boldsymbol{p}}} and \eqn{\boldsymbol{p}^{\star}}, and the ILR
+#' Hessian extrema are recorded as well.
+#'
 #' @keywords internal
 #' @noRd
 .fit_one_bulk_sample <- function(
-  i,
-  Y,
-  true_ratios,
+  y_i,
+  p_i,
   mean_signature_matrix,
   Sigma,
   deconvolution_function,
-  additional_parameters,
-  cell_names,
-  n_celltypes,
-  algorithm = NA_character_
+  cell_names
 ) {
-  y_i <- Y[, i, drop = TRUE]
-  p_i <- if (is.null(true_ratios)) {
-    NULL
-  } else {
-    true_ratios[, i, drop = TRUE]
-  }
+  n_celltypes <- length(cell_names)
+  fun <- deconvolution_function$FUN
   list_arguments <- c(
-    list(
-      "y" = y_i,
-      "mean_signature_matrix" = mean_signature_matrix,
-      "Sigma" = Sigma
-    ),
-    additional_parameters
+    list(y = y_i, mean_signature_matrix = mean_signature_matrix, Sigma = Sigma),
+    deconvolution_function$additional_parameters
   )
-  formal_args <- names(formals(deconvolution_function$FUN))
+  formal_args <- names(formals(fun))
   if ("return_model" %in% formal_args) {
     list_arguments$return_model <- TRUE
   }
+  convolution_solver <- any(vapply(
+    list(
+      deconvolute_ratios_Newton_Raphson,
+      deconvolute_ratios_Marquardt_Levenberg,
+      deconvolute_ratios_L_BFGS_B,
+      deconvolute_ratios_gradient_descent,
+      deconvolute_ratios_simulated_annealing
+    ),
+    identical,
+    logical(1),
+    fun
+  ))
+  na_vector <- stats::setNames(rep(NA_real_, n_celltypes), cell_names)
   mem0 <- .process_memory_bytes()
   t0 <- proc.time()[["elapsed"]]
-  success_estimation <- tryCatch(
+  fit <- tryCatch(
     {
       raw_out <- do.call(
-        deconvolution_function$FUN,
+        fun,
         list_arguments[names(list_arguments) %in% formal_args]
       )
-      estimated_p <- .coerce_estimated_p(raw_out, cell_names)
-      se <- .extract_estimated_se(raw_out, n_celltypes)
-      names(se) <- cell_names
-      if (
-        .uses_ilr_wald_fun(deconvolution_function$FUN) &&
-          !is.null(Sigma) &&
-          !any(is.finite(se)) &&
-          all(is.finite(estimated_p))
+      estimated <- if (is.list(raw_out) && !is.null(raw_out$coefficients)) {
+        raw_out$coefficients
+      } else {
+        raw_out
+      }
+      estimated_p <- stats::setNames(as.numeric(estimated), cell_names)
+      se <- if (
+        convolution_solver && !is.null(Sigma) && all(is.finite(estimated_p))
       ) {
-        se <- .ilr_wald_se(
-          estimated_p,
-          mean_signature_matrix,
-          Sigma,
-          warn = FALSE
-        )
+        .ilr_wald_se(estimated_p, mean_signature_matrix, Sigma, warn = FALSE)
+      } else {
+        na_vector
       }
       list(
         p = estimated_p,
         se = se,
-        error = NULL,
-        converged = .homogenise_convergence(raw_out, algorithm)
+        ok = TRUE,
+        converged = .homogenise_convergence(raw_out)
       )
     },
     error = function(e) {
       warning(conditionMessage(e), call. = FALSE)
       list(
-        p = stats::setNames(rep(NA_real_, n_celltypes), cell_names),
-        se = stats::setNames(rep(NA_real_, n_celltypes), cell_names),
-        error = e,
+        p = na_vector,
+        se = na_vector,
+        ok = FALSE,
         converged = .empty_convergence()
       )
     }
   )
   elapsed <- proc.time()[["elapsed"]] - t0
-  mem1 <- .process_memory_bytes()
-  memory_bytes <- max(c(mem0, mem1), na.rm = TRUE)
+  memory_bytes <- suppressWarnings(max(
+    c(mem0, .process_memory_bytes()),
+    na.rm = TRUE
+  ))
   if (!is.finite(memory_bytes)) {
     memory_bytes <- NA_real_
   }
 
-  kkt <- NA_real_
-  loglik_hat <- NA_real_
-  loglik_true <- NA_real_
-  loc_max <- NA
-  lam_min <- NA_real_
-  lam_max <- NA_real_
-  p_hat <- success_estimation$p
-  numerical_converged <- is.null(success_estimation$error) &&
-    all(is.finite(p_hat))
-  if (numerical_converged && !is.null(Sigma)) {
-    kkt <- tryCatch(
-      {
-        grad <- gradient_loglik_unconstrained(
-          p_hat,
-          y_i,
-          mean_signature_matrix,
-          Sigma
-        )
-        .kkt_residual(p_hat, grad)
-      },
-      error = function(e) NA_real_
-    )
-    loglik_hat <- tryCatch(
-      loglik_multivariate(p_hat, y_i, mean_signature_matrix, Sigma),
-      error = function(e) NA_real_
-    )
-    if (!is.null(p_i)) {
-      loglik_true <- tryCatch(
-        loglik_multivariate(p_i, y_i, mean_signature_matrix, Sigma),
-        error = function(e) NA_real_
-      )
-    }
-    bd <- tryCatch(
-      boundary_diagnostics(
-        p_hat,
-        y_i,
-        mean_signature_matrix,
-        Sigma
-      ),
-      error = function(e) NULL
-    )
-    if (!is.null(bd)) {
-      loc_max <- isTRUE(bd$local_maximum)
-      lam_min <- bd$min_eigenvalue
-      lam_max <- bd$max_eigenvalue
-    }
-  }
-
-  conv <- success_estimation$converged
-  if (is.null(conv)) {
-    conv <- .empty_convergence()
-  }
-
-  list(
-    p = p_hat,
-    se = success_estimation$se,
+  out <- list(
+    p = fit$p,
+    se = fit$se,
     true_p = p_i,
-    y = y_i,
     elapsed = elapsed,
     memory_bytes = memory_bytes,
-    kkt_residual = kkt,
-    numerical_converged = numerical_converged,
-    loglik_hat = loglik_hat,
-    loglik_true = loglik_true,
-    converged = conv,
-    local_maximum = loc_max,
-    min_eigenvalue = lam_min,
-    max_eigenvalue = lam_max
+    kkt_residual = NA_real_,
+    numerical_converged = fit$ok && all(is.finite(fit$p)),
+    loglik_hat = NA_real_,
+    loglik_true = NA_real_,
+    converged = fit$converged,
+    local_maximum = NA,
+    min_eigenvalue = NA_real_,
+    max_eigenvalue = NA_real_
   )
-}
-
-#' @keywords internal
-#' @noRd
-.assemble_algorithm_metrics <- function(
-  sample_fits,
-  Y,
-  mean_signature_matrix,
-  algorithm,
-  coverage_interval = "wilson"
-) {
-  p_hat <- do.call(cbind, purrr::map(sample_fits, "p"))
-  se <- do.call(cbind, purrr::map(sample_fits, "se"))
-  true_list <- purrr::map(sample_fits, "true_p")
-  true_ratios <- if (all(purrr::map_lgl(true_list, is.null))) {
-    NULL
-  } else {
-    do.call(cbind, true_list)
-  }
-  compute_benchmark_metrics(
-    y = Y,
-    mean_signature_matrix = mean_signature_matrix,
-    estimated_p = p_hat,
-    true_ratios = true_ratios,
-    se = se,
-    elapsed = purrr::map_dbl(sample_fits, "elapsed"),
-    memory_bytes = purrr::map_dbl(sample_fits, "memory_bytes"),
-    kkt_residual = purrr::map_dbl(sample_fits, "kkt_residual"),
-    numerical_converged = purrr::map_lgl(
-      sample_fits,
-      "numerical_converged"
-    ),
-    loglik_hat = purrr::map_dbl(sample_fits, "loglik_hat"),
-    loglik_true = purrr::map_dbl(sample_fits, "loglik_true"),
-    converged = purrr::map(sample_fits, "converged"),
-    local_maximum = purrr::map_lgl(sample_fits, "local_maximum"),
-    min_eigenvalue = purrr::map_dbl(sample_fits, "min_eigenvalue"),
-    max_eigenvalue = purrr::map_dbl(sample_fits, "max_eigenvalue"),
-    coverage_interval = coverage_interval,
-    algorithm = algorithm
-  )
-}
-
-#' @keywords internal
-#' @noRd
-.uses_ilr_wald_fun <- function(fun) {
-  if (!is.function(fun)) {
-    return(FALSE)
-  }
-  any(
-    vapply(
-      list(
-        deconvolute_ratios_Newton_Raphson,
-        deconvolute_ratios_Marquardt_Levenberg,
-        deconvolute_ratios_L_BFGS_B,
-        deconvolute_ratios_gradient_descent,
-        deconvolute_ratios_simulated_annealing
-      ),
-      function(f) identical(fun, f),
-      logical(1)
+  if (out$numerical_converged && !is.null(Sigma)) {
+    safely <- function(expr) tryCatch(expr, error = function(e) NA_real_)
+    p_hat <- fit$p
+    out$kkt_residual <- safely(.kkt_residual(
+      p_hat,
+      gradient_loglik_unconstrained(p_hat, y_i, mean_signature_matrix, Sigma)
+    ))
+    out$loglik_hat <- safely(
+      loglik_multivariate(p_hat, y_i, mean_signature_matrix, Sigma)
     )
-  )
-}
-
-#' @noRd
-.normalise_algorithm_key <- function(x) {
-  gsub("[^a-z0-9]+", "", tolower(as.character(x)))
-}
-
-#' @noRd
-.uses_ilr_wald_algorithm <- function(name) {
-  .normalise_algorithm_key(name) %in%
-    c(
-      "newtonraphson",
-      "newton",
-      "marquardtlevenberg",
-      "marquardt",
-      "lbfgs",
-      "lbfgsb",
-      "gradient",
-      "gradientdescent",
-      "bfgs",
-      "sa",
-      "sann",
-      "simulatedannealing"
-    )
-}
-
-#' @keywords internal
-#' @noRd
-.bind_benchmark_lists <- function(per_algorithm) {
-  list(
-    regression = list(
-      global = .bind_metrics_rows(
-        purrr::map(per_algorithm, \(x) x$regression$global)
-      ),
-      cell_type = .bind_metrics_rows(
-        purrr::map(per_algorithm, \(x) x$regression$cell_type)
+    if (!is.null(p_i)) {
+      out$loglik_true <- safely(
+        loglik_multivariate(p_i, y_i, mean_signature_matrix, Sigma)
       )
-    ),
-    monte_carlo = .bind_metrics_rows(
-      purrr::map(per_algorithm, "monte_carlo")
-    ),
-    optimisation = .bind_metrics_rows(
-      purrr::map(per_algorithm, "optimisation")
+    }
+    diagnostics <- tryCatch(
+      boundary_diagnostics(p_hat, y_i, mean_signature_matrix, Sigma),
+      error = function(e) NULL
     )
+    if (!is.null(diagnostics)) {
+      out$local_maximum <- isTRUE(diagnostics$local_maximum)
+      out$min_eigenvalue <- diagnostics$min_eigenvalue
+      out$max_eigenvalue <- diagnostics$max_eigenvalue
+    }
+  }
+  out
+}
+
+#' Map over bulk samples, optionally with `furrr`
+#'
+#' @keywords internal
+#' @noRd
+.map_samples <- function(
+  n,
+  fun,
+  cores,
+  verbose = FALSE,
+  progress_every = 10L,
+  progress_label = NULL
+) {
+  idx <- seq_len(n)
+  cores <- as.integer(cores)
+  if (length(cores) != 1L || is.na(cores) || cores < 1L) {
+    .ui_abort("{.arg cores} must be a positive integer.")
+  }
+  if (cores == 1L) {
+    if (!isTRUE(verbose) || n < 1L) {
+      return(lapply(idx, fun))
+    }
+    every <- as.integer(progress_every)
+    if (length(every) != 1L || is.na(every) || every < 1L) {
+      every <- 10L
+    }
+    prefix <- if (is.null(progress_label) || !nzchar(progress_label)) {
+      ""
+    } else {
+      paste0(progress_label, " \u00b7 ")
+    }
+    return(lapply(idx, function(i) {
+      out <- fun(i)
+      if (i == n || i == 1L || (i %% every == 0L)) {
+        .ui_info("{prefix}inferred sample {.val {i}}/{.val {n}}.")
+      }
+      out
+    }))
+  }
+  if (isTRUE(verbose)) {
+    .ui_info(
+      "Mapping {.val {n}} samples on {.val {cores}} workers (no per-sample ticks)."
+    )
+  }
+  .check_suggested_package("furrr", "deconvolute_ratios")
+  .check_suggested_package("future", "deconvolute_ratios")
+  old_plan <- future::plan(future::multisession, workers = cores)
+  on.exit(future::plan(old_plan), add = TRUE)
+  furrr::future_map(
+    idx,
+    fun,
+    .options = furrr::furrr_options(
+      # L'Ecuyer-CMRG streams per worker (R >= 4.1 / future.seed).
+      seed = TRUE,
+      packages = "DeCovarT"
+    )
+  )
+}
+
+#' Process memory in bytes (PSS on Linux when `ps` is available)
+#'
+#' Windows `ps` objects have no `pss` field; `x[["pss"]]` on a named
+#' numeric vector then errors with subscript-out-of-bounds.
+#'
+#' @keywords internal
+#' @noRd
+.process_memory_bytes <- function() {
+  if (!requireNamespace("ps", quietly = TRUE)) {
+    return(NA_real_)
+  }
+  info <- tryCatch(
+    ps::ps_memory_full_info(),
+    error = function(e) {
+      tryCatch(ps::ps_memory_info(), error = function(e2) NULL)
+    }
+  )
+  if (is.null(info)) {
+    return(NA_real_)
+  }
+  .one_named <- function(nm) {
+    if (!nm %in% names(info)) {
+      return(NULL)
+    }
+    val <- info[[nm]]
+    if (!is.null(val) && length(val) == 1L && is.finite(val)) {
+      return(as.numeric(val))
+    }
+    NULL
+  }
+  pss <- .one_named("pss")
+  if (!is.null(pss)) {
+    return(pss)
+  }
+  rss <- .one_named("rss")
+  if (!is.null(rss)) {
+    return(rss)
+  }
+  NA_real_
+}
+
+#' Empty homogenised optimiser record
+#'
+#' @keywords internal
+#' @noRd
+.empty_convergence <- function() {
+  list(
+    iterations = NA_integer_,
+    criterion = NA_character_,
+    code = NA_integer_,
+    rdm = NA_real_
+  )
+}
+
+#' First finite scalar of the requested type
+#'
+#' @keywords internal
+#' @noRd
+.first_scalar <- function(..., type = "integer") {
+  vals <- list(...)
+  for (v in vals) {
+    if (is.null(v) || length(v) < 1L) {
+      next
+    }
+    x <- v[[1L]]
+    if (identical(type, "character")) {
+      x <- as.character(x)
+      if (is.na(x) || !nzchar(x)) {
+        next
+      }
+      return(x)
+    }
+    if (identical(type, "double")) {
+      x <- suppressWarnings(as.numeric(x))
+      if (length(x) == 1L && is.finite(x)) {
+        return(x)
+      }
+      next
+    }
+    x <- suppressWarnings(as.integer(x))
+    if (length(x) == 1L && !is.na(x)) {
+      return(x)
+    }
+  }
+  if (identical(type, "character")) {
+    return(NA_character_)
+  }
+  if (identical(type, "double")) {
+    return(NA_real_)
+  }
+  NA_integer_
+}
+
+#' Homogenised optimiser diagnostics (iterative solvers only)
+#'
+#' Closed-form methods (NNLS, LSEI, CIBERSORT) return a plain vector without
+#' a `convergence` record, so their fields are `NA`.
+#'
+#' @keywords internal
+#' @noRd
+.homogenise_convergence <- function(raw_out) {
+  conv <- if (is.list(raw_out)) raw_out$convergence else NULL
+  if (!is.list(conv)) {
+    return(.empty_convergence())
+  }
+  list(
+    iterations = .first_scalar(conv$iterations, conv$ni, type = "integer"),
+    criterion = .first_scalar(
+      conv$criterion,
+      conv$message,
+      type = "character"
+    ),
+    code = .first_scalar(
+      conv$code,
+      conv$istop,
+      conv$convergence,
+      type = "integer"
+    ),
+    rdm = .first_scalar(conv$rdm, type = "double")
   )
 }

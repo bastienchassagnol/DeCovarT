@@ -1,3 +1,33 @@
+* **Benchmark code split into run, metrics and visualisation.**
+  `R/04_01_run_benchmark.R` fits every algorithm to every sample;
+  `R/04_02_run_simulation_benchmark.R` runs the scenario grid;
+  `R/04_03_performance_metrics_global.R` scores the whole composition
+  vector; `R/04_04_performance_metrics_celltype.R` scores each cellular
+  ratio across replicates (Pearson, presence F1, bias, coverage). Plots move
+  to `R/05_01_monte_carlo_plots.R` and `R/05_02_algorithm_similarity.R`, with
+  a third call graph. Entropy, MixSim overlap, Jeffreys divergence and the
+  \(\theta\) parser move to the scenario files (`01_03`, `01_04`);
+  `repair_simplex()` to the estimation file.
+
+* **Removed from the package.** `plot_correlation_Heatmap()` (its input
+  columns no longer exist in benchmark output), `check_true_theta()` (a
+  wrapper of the internal parser), `spd_affine_invariant_distance()` (folded
+  into `compute_average_riemannian()`), `compute_glmnet_gene_scores()`
+  (moved, with its cross-validated variant, to
+  `scripts/experimental/compute_glmnet_gene_scores.R`), and the unexported
+  file writers. Scores that do not apply in a benchmark table are now `NA`
+  instead of the string `"irrelevant"`. The package no longer writes files
+  (srr G4.0 is now not applicable).
+
+* **Script helpers out of `R/`.** `write_simulation_artefacts()`,
+  `read_simulation_artefacts()`, the fig02 / fig03 factor orders and display
+  labels, and the expected-Fisher Wald refresh move to
+  `scripts/auxiliary/benchmark_artefacts.R`. The figure-book scripts become
+  `scripts/visualisation/05_03` to `05_06`, loaded together by
+  `scripts/visualisation/load_visualisation.R`. The fig02, fig03 and regen
+  scripts now source that loader: before, they called the book functions
+  without sourcing the files that define them.
+
 * **Bug fix: Hessian for four or more cell types.**
   `hessian_loglik_unconstrained()` filled its lower triangle with
   `H[lower.tri(H)] <- H[upper.tri(H)]`, which pairs the wrong entries as

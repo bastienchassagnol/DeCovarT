@@ -7,7 +7,7 @@
 compute_average_riemannian(true_theta, J = NULL)
 }
 \arguments{
-\item{true_theta}{List validated by \code{\link[=check_true_theta]{check_true_theta()}}: \code{mu}
+\item{true_theta}{List with the generative parameters (see \code{.parse_true_theta()}): \code{mu}
 (\eqn{G\times J}), \code{sigma} (\eqn{G\times G\times J}), and optionally \code{p}
 (length \eqn{J} or \eqn{J\times N}). If \code{p} is missing it is set to
 \eqn{(1/J,\ldots,1/J)}.}
@@ -19,7 +19,14 @@ Scalar average of \eqn{d_R(\Sigma_j,\Sigma_\ell)} over
 \eqn{j<\ell}.
 }
 \description{
-Mean pairwise AIRM distance of component covariances
+Average over \eqn{j<\ell} of the \strong{affine-invariant Riemannian metric}
+on the cone of symmetric positive-definite matrices,
+\eqn{d_R(\Sigma_j,\Sigma_\ell)=\lVert\log(\Sigma_j^{-1/2}\Sigma_\ell
+\Sigma_j^{-1/2})\rVert_F}, computed from the eigenvalues of
+\eqn{R^{-\mathsf{T}}\Sigma_\ell R^{-1}} with \eqn{\Sigma_j=R^{\mathsf{T}}R}.
+The Frobenius chord \eqn{\lVert\Sigma_j-\Sigma_\ell\rVert_F} is not used:
+it leaves the cone, is not inversion-invariant, and suffers the swelling
+effect. With \eqn{J=2} the average is the pairwise distance.
 }
 \examples{
 a <- diag(2)
@@ -29,12 +36,4 @@ theta <- list(
   sigma = array(c(a, b), dim = c(2, 2, 2))
 )
 compute_average_riemannian(theta)
-# J = 2 has a single pair, so the average equals the pairwise AIRM.
-all.equal(
-  compute_average_riemannian(theta),
-  spd_affine_invariant_distance(a, b)
-)
-}
-\seealso{
-\code{\link[=spd_affine_invariant_distance]{spd_affine_invariant_distance()}}
 }

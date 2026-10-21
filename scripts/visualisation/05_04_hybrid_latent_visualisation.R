@@ -732,7 +732,7 @@ save_hybrid_latent_projection_book <- function(
   scale = 1,
   data_rds = NULL
 ) {
-  .check_plot_dependencies(need_ggdist = TRUE)
+  .check_suggested_package("ggdist", "this figure")
   opt <- artefacts$optimisation
   if (is.null(opt) || !column %in% names(opt)) {
     stop(
@@ -876,7 +876,7 @@ save_hybrid_memory_book <- function(artefacts, file, data_rds = NULL) {
   scale = 1,
   data_rds = NULL
 ) {
-  .check_plot_dependencies(need_ggdist = TRUE)
+  .check_suggested_package("ggdist", "this figure")
   cfg <- artefacts$config
   opt <- artefacts$optimisation
   if (is.null(opt) || !column %in% names(opt)) {

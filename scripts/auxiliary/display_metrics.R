@@ -34,3 +34,25 @@ relative_log10_likelihood <- function(z, z_ref = NULL) {
   }
   array(out, dim = d)
 }
+
+# Aitchison (clr Euclidean) distance on the simplex
+#
+.aitchison_distance <- function(p, p_hat) {
+  p <- as.numeric(p)
+  p_hat <- as.numeric(p_hat)
+  if (length(p) != length(p_hat) || length(p) < 2L) {
+    return(NA_real_)
+  }
+  if (any(!is.finite(p)) || any(!is.finite(p_hat))) {
+    return(NA_real_)
+  }
+  eps <- .Machine$double.eps
+  p <- pmax(p, eps)
+  p_hat <- pmax(p_hat, eps)
+  p <- p / sum(p)
+  p_hat <- p_hat / sum(p_hat)
+  clr <- function(x) {
+    log(x) - mean(log(x))
+  }
+  sqrt(sum((clr(p) - clr(p_hat))^2))
+}

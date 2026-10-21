@@ -195,8 +195,7 @@
 #' highest pairwise cosine and the mean Euclidean (CLD) gap.
 #'
 #' @param true_theta List with `p`, `mu`, and `sigma` (and optionally
-#'   `Theta` precision). Parsed by [check_true_theta()] /
-#'   `.parse_true_theta()`.
+#'   `Theta` precision). Parsed by `.parse_true_theta()`.
 #' @param adjacency Optional \eqn{G\times G\times J} adjacency array, or
 #'   a length-\eqn{J} list of adjacencies, used for network density when
 #'   supplied.
@@ -494,4 +493,125 @@ describe_simulation_scenario <- function(
     supplementary = supplementary,
     call = call
   )
+}
+
+#' Normalised Shannon entropy of a discrete distribution
+#'
+#' @description
+#' For a probability vector \eqn{\boldsymbol{p}\in\Delta^{J-1}} over
+#' \eqn{J} classes (here: cell types), the Shannon entropy is
+#' \deqn{
+#'   H(\boldsymbol{p})
+#'   =
+#'   -\sum_{j=1}^{J} p_j \log p_j,
+#' }
+#' with the convention \eqn{0\log 0 = 0}. Dividing by the maximum
+#' entropy \eqn{\log J} (uniform over all \eqn{J} classes) yields
+#' normalised Shannon entropy
+#' \deqn{
+#'   H^{\star}(\boldsymbol{p})
+#'   =
+#'   \frac{H(\boldsymbol{p})}{\log J}
+#'   \in[0,1],
+#' }
+#' so \eqn{H^{\star}=0} for a Dirac mass on one type and
+#' \eqn{H^{\star}=1} for the uniform distribution over the \eqn{J}
+#' cell types. Zero masses are dropped only inside the sum; the
+#' normaliser still uses the original class count \eqn{J}.
+#'
+#' This is preferable to changing the logarithm base to the number of
+#' *positive* masses \eqn{J'}, which would renormalise only on the
+#' support and hide sparsity relative to the full panel of cell types.
+#'
+#' @section Illustration:
+#' Panel B of the figure contrasts a peaked (type-specific, low entropy)
+#' share vector with a flat (multi-type, high entropy) one for \eqn{J=5}
+#' classes.
+#'
+#' \if{html}{\figure{gini_vs_entropy_specificity.png}{options: width=700
+#'   alt="Gini versus Shannon entropy"}}
+#' \if{latex}{\figure{gini_vs_entropy_specificity.png}{options: width=5.5in}}
+#'
+#' @param ratios Numeric vector of cellular proportions
+#'   \eqn{\boldsymbol{p}\in\Delta^{J-1}} (length \eqn{J}).
+#' @return Scalar normalised entropy \eqn{H^{\star}\in[0,1]}.
+#' @export
+#' @examples
+#' compute_shannon_entropy(c(1, 0, 0)) # Dirac -> 0
+#' compute_shannon_entropy(rep(1 / 3, 3)) # uniform -> 1
+#' @seealso [composition_from_entropy()]
+compute_shannon_entropy <- function(ratios) {
+  if (!is.numeric(ratios) || length(ratios) == 0L || anyNA(ratios)) {
+    stop("`ratios` must be a non-empty numeric vector without missing values.")
+  }
+  if (min(ratios) < 0 || max(ratios) > 1) {
+    stop("Probabilities must be strictly included between 0 and 1.")
+  }
+
+  # J = number of cell types in the full panel (before dropping zeros)
+  J <- length(ratios)
+  if (J == 1L) {
+    return(0)
+  }
+
+  ratios <- ratios[ratios > 0]
+  ratios <- ratios / sum(ratios)
+  # normalised Shannon entropy: H / log(J)
+  -sum(ratios * log(ratios)) / log(J)
+}
+
+#' One-dominant composition with a target normalised Shannon entropy
+#'
+#' Returns a length-\eqn{J} simplex vector of the form
+#' \eqn{(1-(J-1)q,\,q,\ldots,q)} whose normalised Shannon entropy
+#' [compute_shannon_entropy()] equals `h_star`. The uniform composition
+#' (`h_star = 1`) and a Dirac mass (`h_star = 0`) are returned exactly.
+#'
+#' @param h_star Target \eqn{H^{\star}\in[0,1]}.
+#' @param n_celltypes Integer \eqn{J\ge 2}.
+#' @param nms Optional names for the returned vector.
+#'
+#' @return Numeric simplex vector of length \eqn{J}.
+#'
+#' @examples
+#' p <- composition_from_entropy(0.5, n_celltypes = 3L)
+#' compute_shannon_entropy(p)
+#' @export
+#' @seealso [compute_shannon_entropy()]
+composition_from_entropy <- function(
+  h_star,
+  n_celltypes = 3L,
+  nms = NULL
+) {
+  j <- as.integer(n_celltypes)
+  h_star <- as.numeric(h_star)
+  if (length(j) != 1L || is.na(j) || j < 2L) {
+    stop("`n_celltypes` must be an integer of at least 2.", call. = FALSE)
+  }
+  if (length(h_star) != 1L || is.na(h_star) || h_star < 0 || h_star > 1) {
+    stop("`h_star` must lie in [0, 1].", call. = FALSE)
+  }
+
+  if (h_star >= 1 - 1e-12) {
+    p <- rep(1 / j, j)
+    return(repair_simplex(p, nms = nms))
+  }
+  if (h_star <= 1e-12) {
+    p <- c(1, rep(0, j - 1L))
+    return(repair_simplex(p, nms = nms))
+  }
+
+  h_of_q <- function(q) {
+    p1 <- 1 - (j - 1) * q
+    compute_shannon_entropy(c(p1, rep(q, j - 1L))) - h_star
+  }
+  q_max <- (1 / j) * (1 - 1e-8)
+  q <- stats::uniroot(
+    h_of_q,
+    interval = c(1e-12, q_max),
+    tol = 1e-12,
+    maxiter = 200L
+  )$root
+  p <- c(1 - (j - 1) * q, rep(q, j - 1L))
+  repair_simplex(p, nms = nms)
 }

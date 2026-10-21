@@ -20,9 +20,8 @@ NULL
 #' first multivariate Gaussian-convolution MLE).
 #' G1.3, G1.4, G1.4a: see `DeCovarT-package`.
 #' G2.3 / G2.3a / G2.3b: see `.match_arg_case_insensitive()`,
-#' [check_true_theta()],
-#' [generate_random_network_skeleton()], [plot_correlation_Heatmap()].
-#' G2.4-G2.16, G4.0, G5.8d: see `R/utils.R` and [deconvolute_ratios()].
+#' [generate_random_network_skeleton()], [plot_mc_raincloud()].
+#' G2.4-G2.16, G5.8d: see `R/utils.R` and [deconvolute_ratios()].
 #' G3.0: see [repair_simplex()] and tests (`100 * .Machine$double.eps`).
 #'
 #' @srrstats {G1.2} A lifecycle badge (Active/stable,
@@ -328,6 +327,9 @@ NULL
 #'
 #' Standards not applicable to DeCovarT, with justifications.
 #'
+#' @srrstatsNA {G4.0} The package writes no files: figure books and
+#'   benchmark artefacts are written by the analysis scripts
+#'   (`scripts/auxiliary/benchmark_artefacts.R`), not by exported functions.
 #' @srrstatsNA {G2.4} No type coercion is performed: callers must supply
 #'   numeric matrices / arrays. `as.integer` / `as.numeric` / `as.character`
 #'   / `as.factor` helpers are therefore not part of the API.

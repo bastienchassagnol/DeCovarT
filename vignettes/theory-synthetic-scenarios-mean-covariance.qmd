@@ -1921,8 +1921,8 @@ R_{\alpha}(\boldsymbol{p})
 -\boldsymbol{p}
 \bigr),
 $$
-with Euclidean projection $\Pi_{\Delta}$ onto the simplex
-(`.project_simplex()`) and default $\alpha=1$. Then
+with Euclidean projection $\Pi_{\Delta}$ onto the simplex (computed
+inside `.kkt_residual()`) and default $\alpha=1$. Then
 $\texttt{kkt\_residual}=\|R_{\alpha}(\hat{\boldsymbol{p}})\|_2$. This
 vanishes if and only if a first-order feasible step does not move the
 iterate, including when some $p_j=0$ (KKT:

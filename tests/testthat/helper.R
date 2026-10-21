@@ -82,3 +82,63 @@ new_bivariate_toy_scenario <- function(
   }
   list(signature = signature, Sigma = Sigma)
 }
+
+# Small simulation benchmarks shared by the visualisation tests (05_*).
+.tiny_mc_benchmark <- function() {
+  skip_on_os("windows")
+  genes <- paste0("g", 1:2)
+  cts <- paste0("ct", 1:2)
+  mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))
+  Sigma <- array(
+    c(1, 0, 0, 1, 1, 0, 0, 1),
+    dim = c(2, 2, 2),
+    dimnames = list(genes, genes, cts)
+  )
+  theta <- list(p = c(0.5, 0.5), mu = mu, sigma = Sigma)
+  scenario_config <- tibble::tibble(
+    n_genes = c(2L, 2L),
+    cosine = c(0, 0.5),
+    true_theta = list(theta, theta)
+  )
+  withr::with_seed(
+    11L,
+    run_simulation_benchmark(
+      scenario_config = scenario_config,
+      deconvolution_functions = list(
+        "nnls" = list(FUN = deconvolute_ratios_nnls)
+      ),
+      n = 6L,
+      cores = 1L
+    )
+  )
+}
+
+.tiny_mc_benchmark_two_algos <- function() {
+  skip_on_os("windows")
+  genes <- paste0("g", 1:2)
+  cts <- paste0("ct", 1:2)
+  mu <- matrix(c(20, 22, 22, 20), nrow = 2, dimnames = list(genes, cts))
+  Sigma <- array(
+    c(1, 0, 0, 1, 1, 0, 0, 1),
+    dim = c(2, 2, 2),
+    dimnames = list(genes, genes, cts)
+  )
+  theta <- list(p = c(0.5, 0.5), mu = mu, sigma = Sigma)
+  scenario_config <- tibble::tibble(
+    n_genes = 2L,
+    cosine = 0,
+    true_theta = list(theta)
+  )
+  withr::with_seed(
+    17L,
+    run_simulation_benchmark(
+      scenario_config = scenario_config,
+      deconvolution_functions = list(
+        "nnls" = list(FUN = deconvolute_ratios_nnls),
+        "rlm" = list(FUN = deconvolute_ratios_rlm)
+      ),
+      n = 6L,
+      cores = 1L
+    )
+  )
+}

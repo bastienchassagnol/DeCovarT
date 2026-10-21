@@ -1,5 +1,81 @@
 # Algebraic operations ------------------------------------------------------
 
+#' Repair a numeric vector onto the unit simplex
+#'
+#' @description
+#' Clips numerical under/overflow and renormalises so that
+#' \eqn{\mathbf{1}^{\mathsf{T}}\boldsymbol{p}=1} and
+#' \eqn{\boldsymbol{p}\ge\mathbf{0}}. This is a **repair /
+#' renormalisation** step for estimated proportions, not a Euclidean
+#' projection onto the simplex and not a statistical-identifiability
+#' constraint.
+#'
+#' When `open = TRUE`, entries on the closed-simplex boundary are nudged
+#' into the relative interior so that [isometric_log_ratio()] is defined
+#' (ILR / Marquardt / Newton starts). That open-simplex path is the
+#' former role of [starting_simplex()].
+#'
+#' @param p Numeric vector \eqn{\boldsymbol{p}\in\mathbb{R}^{J}}.
+#' @param tolerance Non-negative tolerance for treating entries as zero
+#'   (default `100 * .Machine$double.eps`).
+#' @param open Logical; if `TRUE`, push the repaired vector off the
+#'   boundary into the open simplex.
+#' @param nms Optional names attached to the returned vector (e.g.
+#'   cell-type colnames).
+#'
+#' @return Numeric vector on the simplex \eqn{\Delta^{J-1}} (open when
+#'   `open = TRUE`).
+#'
+#' @seealso [compositions::clo()] for compositional closure.
+#'
+#' @srrstats {G3.0} Default `tolerance` is `100 * .Machine$double.eps`;
+#'   callers must not test floating-point equality with `==`.
+#'
+#' @examples
+#' repair_simplex(c(0.2, 0.3, 0.5 + 1e-12))
+#' repair_simplex(c(1, 0, 0), open = TRUE)
+#' @export
+repair_simplex <- function(
+  p,
+  tolerance = 100 * .Machine$double.eps,
+  open = FALSE,
+  nms = NULL
+) {
+  if (!is.numeric(p) || length(p) == 0L || anyNA(p)) {
+    stop("`p` must be a non-empty numeric vector without missing values.")
+  }
+  if (!is.numeric(tolerance) || length(tolerance) != 1L || tolerance < 0) {
+    stop("`tolerance` must be a single non-negative number.")
+  }
+
+  p[abs(p) <= tolerance] <- 0
+
+  if (any(p < 0)) {
+    stop("`p` contains negative values beyond numerical tolerance.")
+  }
+
+  total <- sum(p)
+  if (!is.finite(total) || total <= 0) {
+    stop("`p` must have a positive, finite sum.")
+  }
+
+  p <- p / total
+  p[abs(p - 1) <= tolerance] <- 1
+
+  if (isTRUE(open)) {
+    floor <- tolerance
+    if (any(p < floor) || any(p > 1 - floor)) {
+      p <- pmax(p, floor)
+      p <- p / sum(p)
+    }
+  }
+
+  if (!is.null(nms)) {
+    names(p) <- nms
+  }
+  p
+}
+
 #' Helmert contrast matrix for isometric log-ratio coordinates
 #'
 #' @description

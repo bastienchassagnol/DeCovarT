@@ -481,3 +481,18 @@ test_that("multistart_decovart explores several starts", {
   expect_type(restarts$multimodal, "logical")
   expect_equal(sum(restarts$coefficients), 1, tolerance = 1e-6)
 })
+
+
+test_that("repair_simplex renormalises and rejects invalid inputs", {
+  p_near <- c(0.2, 0.3, 0.5 + 1e-12)
+  expect_equal(
+    repair_simplex(p_near),
+    p_near / sum(p_near),
+    tolerance = .tol_srr
+  )
+  expect_equal(sum(repair_simplex(c(2, 2, 0))), 1, tolerance = .tol_srr)
+  expect_error(repair_simplex(numeric()), "`p`")
+  expect_error(repair_simplex(c(0.5, NA)), "`p`")
+  expect_error(repair_simplex(c(-1, 2)), "negative")
+  expect_error(repair_simplex(c(0, 0)), "positive")
+})

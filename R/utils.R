@@ -131,77 +131,6 @@
   invisible(TRUE)
 }
 
-#' Append a file suffix when the caller omitted it (G4.0)
-#'
-#' @param path File path, with or without an extension.
-#' @param suffix Canonical suffix (`"pdf"`, `"csv"`, or `"rds"`), with or
-#'   without a leading dot.
-#'
-#' @return `path` with the required suffix.
-#'
-#' @srrstats {G4.0} Missing suffixes are added; a mismatched suffix errors.
-#'
-#' @keywords internal
-#' @noRd
-.ensure_file_suffix <- function(path, suffix) {
-  if (!is.character(path) || length(path) != 1L || !nzchar(path)) {
-    .ui_abort("{.arg path} must be a non-empty character string.")
-  }
-  suffix <- sub("^\\.", "", suffix)
-  suffix <- .match_arg_case_insensitive(suffix, c("pdf", "csv", "rds"))
-  ext <- tools::file_ext(path)
-  if (!nzchar(ext)) {
-    return(paste0(path, ".", suffix))
-  }
-  if (!identical(tolower(ext), suffix)) {
-    .ui_abort("File {.file {path}} must use suffix .{suffix}.")
-  }
-  path
-}
-
-#' Write an artefact with a canonical suffix
-#'
-#' Intended for tests and scripts. Wrap calls in
-#' [withr::with_tempfile()] so temporary files are cleaned up.
-#' Plots use PDF; R objects use RDS; rectangular tables use CSV.
-#'
-#' @param x Object to write.
-#' @param path Destination path.
-#' @param kind One of `"rds"`, `"csv"`, `"pdf"`.
-#'
-#' @return The path actually written (invisible).
-#'
-#' @srrstats {G4.0} Delegates suffix handling to `.ensure_file_suffix()`.
-#'
-#' @keywords internal
-#' @noRd
-.write_artefact <- function(x, path, kind = c("rds", "csv", "pdf")) {
-  kind <- .match_arg_case_insensitive(kind, c("rds", "csv", "pdf"))
-  path <- .ensure_file_suffix(path, kind)
-  switch(
-    kind,
-    rds = saveRDS(x, path),
-    csv = utils::write.csv(x, path, row.names = TRUE),
-    pdf = {
-      grDevices::pdf(path)
-      on.exit(grDevices::dev.off(), add = TRUE)
-      if (inherits(x, "Heatmap")) {
-        .check_heatmap_dependencies()
-        ComplexHeatmap::draw(x)
-      } else if (
-        is.list(x) &&
-          all(vapply(x, inherits, logical(1L), "Heatmap"))
-      ) {
-        .check_heatmap_dependencies()
-        lapply(x, ComplexHeatmap::draw)
-      } else {
-        print(x)
-      }
-    }
-  )
-  invisible(path)
-}
-
 #' Require a cubic \eqn{G\times G\times J} numeric array
 #'
 #' Shared by `.prepare_deconvolution_inputs()` (cell-type `Sigma`) and
@@ -291,8 +220,7 @@
 #' `drop = FALSE` (G2.10). When \eqn{J > G} the linear mixture is
 #' undetermined and an error is raised.
 #'
-#' Complements [check_true_theta()] / `.parse_true_theta()`: those
-#' validators check generative-model lists
+#' Complements `.parse_true_theta()`, which checks generative-model lists
 #' \eqn{\theta=(p,\boldsymbol{\mu},\boldsymbol{\Sigma})} for MixSim /
 #' Jeffreys metrics, while this gate checks the deconvolution call
 #' signature (\eqn{\boldsymbol{\mu}}, \eqn{\boldsymbol{Y}}, optional

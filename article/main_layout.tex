@@ -1154,10 +1154,13 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
   \item scales: \(a_{i}\) and \(n_{i}\) enter only through \(c_{i}=a_{i}n_{i}\) in the mean and
         \(\phi_{i}=a_{i}c_{i}=a_{i}^{2}n_{i}\) in the covariance, two free positive scalars; \(n_{i}\) reads as a
         number of cells only when \(a_{i}\) is known (same platform, or paired samples)
-  \item computing \(\tilde{\boldsymbol{y}}_{\cdot i}\): since \(\mathbf{1}^{\top}\mathbb{E}\boldsymbol{y}_{\cdot i}=c_{i}\sum_{j}p_{ji}S_{j}\), the
-        library size gives the moment estimator \(\hat c_{i}=\mathbf{1}^{\top}\boldsymbol{y}_{\cdot i}/\sum_{j}\hat p_{ji}S_{j}\), and
-        \(\hat{\tilde{\boldsymbol{y}}}_{\cdot i}=\boldsymbol{y}_{\cdot i}/\hat c_{i}\); the likelihood profile of
-        Appendix~\ref{sec:sc-newton} replaces it by a generalised least-squares estimate
+  \item estimating the scale \(c_{i}\): it is one parameter of the likelihood, estimated by generalised least squares
+        on the raw bulk (Appendix~\ref{sec:sc-newton}); the bulk itself is never divided by its total. The
+        library-size moment estimator \(\hat c_{i}=\mathbf{1}^{\top}\boldsymbol{y}_{\cdot i}/\sum_{j}\hat p_{ji}S_{j}\), suggested by
+        \(\mathbf{1}^{\top}\mathbb{E}\boldsymbol{y}_{\cdot i}=c_{i}\sum_{j}p_{ji}S_{j}\), is avoided: it gives
+        \(\boldsymbol{y}_{\cdot i}/\hat c_{i}=(\sum_{j}\hat p_{ji}S_{j})\,\boldsymbol{y}_{\cdot i}/\mathbf{1}^{\top}\boldsymbol{y}_{\cdot i}\), a rescaled
+        library-size (TPM-type) normalisation, with the closure problems of Section~\ref{sec:limitations}
+        (Remark~\ref{rem:scale-not-closure})
   \item no extra bulk noise: a Poisson or negative-binomial measurement term
         \(\phi\operatorname{diag}(\boldsymbol{m}_{i})\) is left out; with one bulk sample and no technical replicate it
         cannot be separated from the scale \(\phi_{i}\) and from the cell-type variability without further
@@ -1187,10 +1190,11 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
     \Statex \textit{Stage i: nuisance factors}
     \State \(\boldsymbol{w}\gets\arg\min_{\boldsymbol{w}\ge\boldsymbol{0}}\lVert\boldsymbol{y}-\tilde{\boldsymbol{\mu}}\boldsymbol{w}\rVert_{2}^{2}\);
       \(\boldsymbol{p}^{(0)}\gets\boldsymbol{w}/\mathbf{1}^{\top}\boldsymbol{w}\), floored away from zero and renormalised
-    \State \(\hat c\gets\mathbf{1}^{\top}\boldsymbol{y}/\sum_{j}p_{j}^{(0)}S_{j}\)
-      \Comment{library-size moment estimator of \(c=an\)}
     \State \(\boldsymbol{W}\gets\boldsymbol{S}_{W}(\boldsymbol{p}^{(0)})^{-1}\);
-      \(\boldsymbol{r}\gets\boldsymbol{y}-\hat c\,\tilde{\boldsymbol{\mu}}\boldsymbol{p}^{(0)}\);
+      \(\boldsymbol{m}\gets\tilde{\boldsymbol{\mu}}\boldsymbol{p}^{(0)}\);
+      \(\hat c\gets\boldsymbol{m}^{\top}\boldsymbol{W}\boldsymbol{y}/\boldsymbol{m}^{\top}\boldsymbol{W}\boldsymbol{m}\)
+      \Comment{GLS estimator of \(c=an\), not the library size (Remark~\ref{rem:scale-not-closure})}
+    \State \(\boldsymbol{r}\gets\boldsymbol{y}-\hat c\,\boldsymbol{m}\);
       \(\hat\phi\gets\boldsymbol{r}^{\top}\boldsymbol{W}\boldsymbol{r}/G\)
       \Comment{Mahalanobis estimator of \(\phi=a^{2}n\)}
     \State \(\hat a\gets\hat\phi/\hat c\), \(\hat n\gets\hat c^{2}/\hat\phi\)
@@ -1273,7 +1277,9 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
           \cite{xieStatisticalInferenceCell2026}
   \end{itemize}
   \item benchmarks that cross algorithms with normalisation choices use raw counts as the proxy of mRNA
-        abundance; library-size normalisations turn the problem into a composition on the gene simplex
+        abundance; library-size normalisations turn the problem into a composition on the gene simplex; the
+        sample scale of \eqref{eq:sc-model} is estimated inside the likelihood and is not such a normalisation
+        (Remark~\ref{rem:scale-not-closure})
   \item the scaling assumptions of Figure~\ref{fig:overview} are unlikely to hold; absolute mRNA content per
         type then needs an external reference or an orthogonal assay
   \item estimand: share of transcriptomic content per type, not the cell-count composition

@@ -676,6 +676,49 @@ Model \eqref{eq:sc-model} of Section~\ref{sec:sc-tailored}; derivations in the
         does not depend on the Helmert basis
 \end{itemize}
 
+\begin{remark}[Estimating the sample scale is not a library-size normalisation]
+  \label{rem:scale-not-closure}
+  \begin{itemize}
+    \item the scale \(c\) of \eqref{eq:sc-loglik} is one parameter: the bulk \(\boldsymbol{y}\) keeps its Gaussian law, its
+          covariance \(\phi\boldsymbol{S}_{W}(\boldsymbol{p})\) and its additive mixture, and the cell sizes \(S_{j}\) stay in
+          \(\tilde{\boldsymbol{\mu}}\), so the estimand remains the cell fraction
+    \item write \(\boldsymbol{m}=\tilde{\boldsymbol{\mu}}\boldsymbol{p}\) and \(\boldsymbol{e}=\boldsymbol{y}-c\boldsymbol{m}\sim\mathcal{N}_{G}(\boldsymbol{0},\phi\boldsymbol{S}_{W})\);
+          both scale estimates are linear in \(\boldsymbol{y}\), and the residual is \(\boldsymbol{r}=(\mathbf{I}-\boldsymbol{H})\boldsymbol{e}\) with
+          a rank-one projector \(\boldsymbol{H}\)
+          \begin{equation}
+            \hat c_{\mathrm{GLS}}=\frac{\boldsymbol{m}^{\top}\boldsymbol{W}\boldsymbol{y}}{\boldsymbol{m}^{\top}\boldsymbol{W}\boldsymbol{m}},\quad
+            \boldsymbol{H}_{W}=\frac{\boldsymbol{m}\boldsymbol{m}^{\top}\boldsymbol{W}}{\boldsymbol{m}^{\top}\boldsymbol{W}\boldsymbol{m}};
+            \qquad
+            \hat c_{\mathrm{lib}}=\frac{\mathbf{1}^{\top}\boldsymbol{y}}{\mathbf{1}^{\top}\boldsymbol{m}},\quad
+            \boldsymbol{H}_{1}=\frac{\boldsymbol{m}\mathbf{1}^{\top}}{\mathbf{1}^{\top}\boldsymbol{m}}
+            \label{eq:scale-projectors}
+          \end{equation}
+    \item library size: \(\mathbf{1}^{\top}\boldsymbol{r}=0\) and \(\boldsymbol{r}=(\mathbf{1}^{\top}\boldsymbol{y})\bigl(\boldsymbol{y}/\mathbf{1}^{\top}\boldsymbol{y}-
+          \boldsymbol{m}/\mathbf{1}^{\top}\boldsymbol{m}\bigr)\), the residual of the closed (TPM-type) bulk; its covariance
+          \(\phi(\mathbf{I}-\boldsymbol{H}_{1})\boldsymbol{S}_{W}(\mathbf{I}-\boldsymbol{H}_{1})^{\top}\) carries the closure-induced
+          gene--gene correlation, and
+          \begin{equation}
+            \mathbb{E}\bigl[\boldsymbol{r}^{\top}\boldsymbol{W}\boldsymbol{r}\bigr]
+            =\phi\Bigl\{G-2+\frac{(\mathbf{1}^{\top}\boldsymbol{S}_{W}\mathbf{1})(\boldsymbol{m}^{\top}\boldsymbol{W}\boldsymbol{m})}{(\mathbf{1}^{\top}\boldsymbol{m})^{2}}\Bigr\}
+            \ge\phi(G-1)
+            \label{eq:scale-library-excess}
+          \end{equation}
+          by the Cauchy--Schwarz inequality in the \(\boldsymbol{W}\) inner product
+    \item generalised least squares: \(\boldsymbol{m}^{\top}\boldsymbol{W}\boldsymbol{r}=0\) and
+          \(\mathbb{E}[\boldsymbol{r}^{\top}\boldsymbol{W}\boldsymbol{r}]=\phi(G-1)\), the calibration that \(\hat\phi\) and the
+          profile likelihood assume
+    \item the two estimators coincide only when \(\boldsymbol{S}_{W}(\boldsymbol{p})\mathbf{1}\propto\boldsymbol{m}\), a Poisson-like
+          relation between row sums of the covariance and the mean; otherwise the library-size plug-in inflates
+          \(\hat\phi\) and distorts the score in \(\boldsymbol{p}\) through a closure that the covariance model ignores
+    \item with one scale per sample the distortion is a rank-one term, much milder than a normalisation of the
+          reference profiles, which also erases \(S_{j}\) and changes the estimand to transcript fractions; it
+          is still a closure, so it is not used, and the starting value \(c^{(0)}\) comes from the non-negative least-squares fit
+    \item checked by simulation (\(G=30\), \(J=3\), \(2\times10^{4}\) replicates, generic \(\boldsymbol{S}_{W}\)):
+          \(\max\lvert\mathbf{1}^{\top}\boldsymbol{r}\rvert\approx10^{-9}\) for the library size; Monte Carlo means of
+          \(\boldsymbol{r}^{\top}\boldsymbol{W}\boldsymbol{r}\) within \(0.2\%\) of \eqref{eq:scale-library-excess} and of \(\phi(G-1)\)
+  \end{itemize}
+\end{remark}
+
 \subsubsection{Inference}
 \label{app:sc-inference}
 

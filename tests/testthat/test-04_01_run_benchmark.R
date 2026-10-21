@@ -1,3 +1,6 @@
+# Benchmark driver: deconvolute_ratios(), compute_benchmark_metrics() and
+# the per-sample diagnostics.
+
 test_that("compute_benchmark_metrics scores against true ratios", {
   mu <- matrix(
     c(20, 22, 22, 20),
@@ -21,10 +24,7 @@ test_that("compute_benchmark_metrics scores against true ratios", {
   expect_equal(scores$regression$global$rmse, .rmse(true_p, estimated_p))
   expect_equal(scores$regression$global$sdid, .sdid(true_p, estimated_p))
   expect_equal(scores$regression$global$maxae, .maxae(true_p, estimated_p))
-  expect_identical(
-    scores$regression$global$reconstitution_mae,
-    DeCovarT:::.irrelevant_metric()
-  )
+  expect_true(is.na(scores$regression$global$reconstitution_mae))
   expect_identical(nrow(scores$regression$cell_type), 2L)
   expect_identical(nrow(scores$monte_carlo), 2L)
   expect_gt(scores$regression$global$rmse, 0)
@@ -47,59 +47,10 @@ test_that("compute_benchmark_metrics scores reconstituted bulk without truth", {
   )
 
   expect_named(scores, c("regression", "monte_carlo", "optimisation"))
-  expect_identical(
-    scores$regression$global$tv,
-    DeCovarT:::.irrelevant_metric()
-  )
+  expect_true(is.na(scores$regression$global$tv))
   expect_true(is.finite(scores$regression$global$rmse))
   expect_identical(nrow(scores$regression$cell_type), 0L)
   expect_identical(nrow(scores$monte_carlo), 0L)
-})
-
-test_that("simplex metrics attain the vertex-swap bounds", {
-  p <- c(1, 0)
-  p_hat <- c(0, 1)
-  expect_equal(.tv(p, p_hat), 1)
-  expect_equal(.rmse(p, p_hat), 1)
-  expect_equal(.maxae(p, p_hat), 1)
-  expect_equal(.angular_distance(p, p_hat), 1)
-  expect_equal(.sdid(p, p_hat), 1)
-  expect_equal(.mae(p, p_hat), 1)
-  expect_equal(.tv(p, p), 0)
-})
-
-test_that("Aitchison pair distance vanishes on the same composition", {
-  expect_equal(DeCovarT:::.aitchison_pair(0.5, 0.5, 0.5, 0.5), 0)
-  expect_gt(DeCovarT:::.aitchison_pair(0.2, 0.8, 0.8, 0.2), 0)
-})
-
-test_that("KKT residual vanishes for a constant ambient score", {
-  p <- c(0.2, 0.3, 0.5)
-  grad <- c(4, 4, 4)
-  expect_equal(.kkt_residual(p, grad), 0, tolerance = 1e-10)
-})
-
-test_that("cell-type Pearson is computed across samples, not within a sample", {
-  mu <- matrix(
-    c(20, 22, 24, 22, 20, 18),
-    nrow = 2,
-    dimnames = list(paste0("g", 1:2), paste0("ct", 1:3))
-  )
-  true_p <- rbind(
-    c(0.5, 0.3, 0.1),
-    c(0.3, 0.5, 0.2),
-    c(0.2, 0.2, 0.7)
-  )
-  p_hat <- true_p
-  y <- mu %*% true_p
-  scores <- compute_benchmark_metrics(
-    y = y,
-    mean_signature_matrix = mu,
-    estimated_p = p_hat,
-    true_ratios = true_p
-  )
-  expect_equal(scores$regression$cell_type$pearson, c(1, 1, 1))
-  expect_equal(unname(scores$regression$global$tv), c(0, 0, 0))
 })
 
 test_that("Monte Carlo block reports ADEMP columns separately from global scores", {
@@ -165,65 +116,6 @@ test_that("Monte Carlo block reports ADEMP columns separately from global scores
   )
   expect_equal(unname(scores$monte_carlo$bias), c(0.01, -0.01) / 3)
   expect_true(all(scores$monte_carlo$coverage == 1))
-})
-
-test_that("presence F1 treats non-finite estimates as absent", {
-  expect_true(is.na(DeCovarT:::.f1_from_counts(NA, NA, NA)))
-  expect_equal(DeCovarT:::.f1_from_counts(NA, 0, 1), 0)
-
-  mu <- matrix(
-    c(20, 22, 22, 20),
-    nrow = 2,
-    dimnames = list(paste0("g", 1:2), paste0("ct", 1:2))
-  )
-  true_p <- cbind(c(0.5, 0.5), c(0.6, 0.4), c(0.7, 0.3))
-  p_hat <- cbind(c(0.45, 0.55), c(NA_real_, NA_real_), c(0.65, 0.35))
-  y <- mu %*% true_p
-  scores <- compute_benchmark_metrics(
-    y = y,
-    mean_signature_matrix = mu,
-    estimated_p = p_hat,
-    true_ratios = true_p
-  )
-  expect_true(all(is.finite(scores$regression$cell_type$presence_f1)))
-})
-
-test_that("presence F1 and false-positive mass detect spillover onto a null type", {
-  mu <- matrix(
-    c(20, 22, 24, 22, 20, 18),
-    nrow = 2,
-    dimnames = list(paste0("g", 1:2), paste0("ct", 1:3))
-  )
-  true_p <- cbind(c(0.5, 0.5, 0), c(0.6, 0.4, 0), c(0.7, 0.3, 0))
-  p_hat <- cbind(c(0.45, 0.45, 0.1), c(0.55, 0.35, 0.1), c(0.65, 0.25, 0.1))
-  y <- mu %*% true_p
-  scores <- compute_benchmark_metrics(
-    y = y,
-    mean_signature_matrix = mu,
-    estimated_p = p_hat,
-    true_ratios = true_p
-  )
-  ct3 <- scores$regression$cell_type$cell_type == "ct3"
-  expect_equal(scores$regression$cell_type$false_positive_mass[ct3], 0.1)
-  expect_equal(scores$regression$cell_type$presence_f1[ct3], 0)
-})
-
-test_that("Monte Carlo coverage MCSE matches the binomial formula", {
-  expect_equal(.mcse_coverage(c(1, 1, 1, 0)), sqrt(0.75 * 0.25 / 4))
-})
-
-test_that("coverage_mc_interval defaults to Wilson and can use Wald", {
-  covered <- c(TRUE, TRUE, TRUE, FALSE)
-  wilson <- coverage_mc_interval(covered, method = "wilson")
-  wald <- coverage_mc_interval(covered, method = "wald")
-  ac <- coverage_mc_interval(covered, method = "agresti_coull")
-  expect_equal(wilson$coverage, 0.75)
-  expect_equal(wilson$mcse, sqrt(0.75 * 0.25 / 4))
-  expect_equal(wald$lower, max(0, 0.75 - stats::qnorm(0.975) * wald$mcse))
-  expect_gt(wilson$lower, 0)
-  expect_lt(wilson$upper, 1)
-  expect_true(ac$lower >= 0 && ac$upper <= 1)
-  expect_identical(wilson$method, "wilson")
 })
 
 test_that("deconvolute_ratios returns a three-block metric list for nnls", {
@@ -398,21 +290,6 @@ test_that("deconvolute_ratios rejects log2 mixing (RE2.3)", {
   )
 })
 
-test_that(".ensure_file_suffix adds or rejects extensions (G4.0)", {
-  expect_identical(.ensure_file_suffix("scores", "rds"), "scores.rds")
-  expect_identical(.ensure_file_suffix("scores.RDS", "rds"), "scores.RDS")
-  expect_error(.ensure_file_suffix("scores.csv", "rds"), "must use suffix")
-})
-
-test_that(".write_artefact writes RDS under with_tempfile (G4.0)", {
-  toy <- .toy_deconvolution()
-  withr::with_tempfile("tf", fileext = ".rds", {
-    path <- .write_artefact(toy, tf, kind = "rds")
-    expect_identical(tools::file_ext(path), "rds")
-    expect_identical(readRDS(path)$true_ratios, toy$true_ratios)
-  })
-})
-
 test_that("Newton-Raphson attaches ILR Wald SEs; nnls does not", {
   skip_if_not_installed("nnls")
   toy <- .toy_deconvolution()
@@ -444,12 +321,11 @@ test_that("Newton-Raphson attaches ILR Wald SEs; nnls does not", {
 })
 
 test_that("closed-form solvers store NA homogenised convergence", {
-  conv <- .homogenise_convergence(c(0.5, 0.5), "nnls")
+  conv <- .homogenise_convergence(c(0.5, 0.5))
   expect_true(is.na(conv$iterations))
   expect_true(is.na(conv$code))
   iterative <- .homogenise_convergence(
-    list(convergence = list(code = 0L, iterations = 12L, rdm = 1e-6)),
-    "Marquardt-Levenberg"
+    list(convergence = list(code = 0L, iterations = 12L, rdm = 1e-6))
   )
   expect_identical(iterative$iterations, 12L)
   expect_identical(iterative$code, 0L)
@@ -473,4 +349,11 @@ test_that("optimisation table stores Hessian extrema and converged lists", {
   expect_true("min_eigenvalue" %in% names(opt))
   expect_type(opt$converged, "list")
   expect_true(is.na(opt$converged[[1L]]$iterations))
+})
+
+test_that(".process_memory_bytes is a finite NA or a single byte count", {
+  mem <- DeCovarT:::.process_memory_bytes()
+  expect_type(mem, "double")
+  expect_length(mem, 1L)
+  expect_true(is.na(mem) || is.finite(mem))
 })

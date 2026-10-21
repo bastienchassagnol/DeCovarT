@@ -152,8 +152,9 @@
 #'   network, tangent Fisher, MixSim BarOmega, pairwise Hellinger);
 #' * `supplementary`: Jeffreys overlap, recorded separately;
 #' * `call`: the matched call ([match.call()]).
-#' Scripts should persist those pieces with
-#' [write_simulation_artefacts()] rather than saving the whole list.
+#' Analysis scripts persist those pieces with `write_simulation_artefacts()`
+#' (`scripts/auxiliary/benchmark_artefacts.R`) rather than saving the whole
+#' list.
 #'
 #' @examplesIf .Platform$OS.type != "windows"
 #' set.seed(1)
@@ -186,8 +187,7 @@
 #' @export
 #' @seealso [simulate_bulk_mixture()], [deconvolute_ratios()],
 #'   [compute_benchmark_metrics()], [describe_simulation_scenario()],
-#'   [coverage_mc_interval()], [plot_mc_raincloud()], [plot_mc_forest()],
-#'   [write_simulation_artefacts()]
+#'   [coverage_mc_interval()], [plot_mc_raincloud()], [plot_mc_forest()]
 run_simulation_benchmark <- function(
   scenario_config,
   deconvolution_functions,
@@ -277,20 +277,20 @@ run_simulation_benchmark <- function(
 
   list(
     regression = list(
-      global = .bind_metrics_rows(
+      global = dplyr::bind_rows(
         purrr::map(scenario_results, \(x) x$regression$global)
       ),
-      cell_type = .bind_metrics_rows(
+      cell_type = dplyr::bind_rows(
         purrr::map(scenario_results, \(x) x$regression$cell_type)
       )
     ),
-    monte_carlo = .bind_metrics_rows(
+    monte_carlo = dplyr::bind_rows(
       purrr::map(scenario_results, "monte_carlo")
     ),
-    optimisation = .bind_metrics_rows(
+    optimisation = dplyr::bind_rows(
       purrr::map(scenario_results, "optimisation")
     ),
-    config = .bind_metrics_rows(purrr::map(scenario_results, "config")),
+    config = dplyr::bind_rows(purrr::map(scenario_results, "config")),
     theta_true = purrr::map(scenario_results, "theta_true"),
     descriptors = dplyr::bind_rows(
       purrr::map(scenario_results, "descriptors")
@@ -299,272 +299,5 @@ run_simulation_benchmark <- function(
       purrr::map(scenario_results, "supplementary")
     ),
     call = call
-  )
-}
-
-#' Redundant design columns dropped from slim scenario tables
-#'
-#' @keywords internal
-#' @noRd
-.redundant_scenario_columns <- function() {
-  c(
-    "scenario_idx",
-    "rho_ct1",
-    "rho_ct2",
-    "proportion_name",
-    "centroid"
-  )
-}
-
-#' Columns that belong on the descriptors artefact (not the design grid)
-#'
-#' @keywords internal
-#' @noRd
-.descriptor_metric_columns <- function() {
-  c(
-    "n_genes",
-    "n_celltypes",
-    "h_star",
-    "n_eff",
-    "n_active",
-    "min_active",
-    "concentration",
-    "mean_abs_cosine",
-    "min_cosine",
-    "max_cosine",
-    "mean_euclidean",
-    "kappa_mu",
-    "gram_volume",
-    "lambda_min_sigma_p",
-    "kappa_sigma_p",
-    "kappa_sigma_reciprocal",
-    "lambda_min_it",
-    "kappa_it",
-    "f_cov",
-    "f_cov_max",
-    "network_density",
-    "network_mean_degree",
-    "hoyer_abs_correlation",
-    "mixsim_baromega",
-    "hellinger",
-    "hellinger_weighted",
-    "jeffreys"
-  )
-}
-
-#' Unwrap a list-column `true_theta` cell
-#'
-#' @keywords internal
-#' @noRd
-.unwrap_true_theta <- function(th) {
-  if (!is.list(th)) {
-    return(th)
-  }
-  if (!is.null(th$p) && !is.null(th$mu)) {
-    return(th)
-  }
-  if (length(th) >= 1L && is.list(th[[1L]])) {
-    return(.unwrap_true_theta(th[[1L]]))
-  }
-  th
-}
-
-#' Rebuild descriptor metrics from `\theta`, keeping MixSim if present
-#'
-#' @keywords internal
-#' @noRd
-.descriptors_from_theta <- function(theta_tbl, old_descriptors = NULL) {
-  fresh <- purrr::pmap_dfr(
-    theta_tbl,
-    function(ID, true_theta, ...) {
-      th <- .unwrap_true_theta(true_theta)
-      described <- describe_simulation_scenario(
-        th,
-        include_mixsim = FALSE
-      )
-      dplyr::bind_cols(
-        tibble::tibble(ID = as.character(ID)),
-        described$descriptors,
-        described$supplementary
-      )
-    }
-  )
-  if (
-    !is.null(old_descriptors) &&
-      "mixsim_baromega" %in% names(old_descriptors) &&
-      "ID" %in% names(old_descriptors)
-  ) {
-    old <- old_descriptors[, c("ID", "mixsim_baromega"), drop = FALSE]
-    old$ID <- as.character(old$ID)
-    fresh$mixsim_baromega <- NULL
-    fresh <- dplyr::left_join(fresh, old, by = "ID")
-  }
-  fresh
-}
-
-#' Write split simulation artefacts (config, descriptors, theta, metrics)
-#'
-#' [run_simulation_benchmark()] still returns a single list for tests.
-#' Scripts persist four RDS files keyed by `ID` so the metrics object
-#' does not duplicate geometry, MixSim, or `\theta`.
-#'
-#' @param benchmark List from [run_simulation_benchmark()].
-#' @param dir Output directory.
-#' @param stem File-name stem (`bivariate`, `hybrid`, …).
-#' @param config Optional scenario grid (defaults to `benchmark$config`).
-#'   Must contain an `ID` column.
-#'
-#' @return Invisibly, a named list of written paths.
-#' @seealso [read_simulation_artefacts()]
-#' @keywords internal
-write_simulation_artefacts <- function(
-  benchmark,
-  dir,
-  stem,
-  config = NULL
-) {
-  dir.create(dir, recursive = TRUE, showWarnings = FALSE)
-  if (is.null(config)) {
-    config <- benchmark$config
-  }
-  config <- tibble::as_tibble(config)
-  if (!"ID" %in% names(config)) {
-    stop("`config` must contain an `ID` column.", call. = FALSE)
-  }
-  config$ID <- as.character(config$ID)
-
-  theta_src <- if ("true_theta" %in% names(config)) {
-    config$true_theta
-  } else {
-    benchmark$theta_true
-  }
-  theta_tbl <- tibble::tibble(
-    ID = as.character(config$ID),
-    true_theta = lapply(theta_src, .unwrap_true_theta)
-  )
-
-  old_desc <- benchmark$descriptors
-  if (!is.null(old_desc) && nrow(old_desc) > 0L) {
-    old_desc$ID <- as.character(old_desc$ID)
-  }
-  descriptors <- .descriptors_from_theta(theta_tbl, old_desc)
-  keep_desc <- intersect(
-    c("ID", .descriptor_metric_columns()),
-    names(descriptors)
-  )
-  descriptors <- descriptors[, keep_desc, drop = FALSE]
-
-  config_slim <- tibble::as_tibble(config)
-  config_slim$true_theta <- NULL
-  config_slim$scenario_idx <- NULL
-
-  slim_metrics <- function(tbl) {
-    if (is.null(tbl) || ncol(tbl) == 0L) {
-      return(tbl)
-    }
-    tbl <- tibble::as_tibble(tbl)
-    design_drop <- setdiff(
-      names(config_slim),
-      c("ID")
-    )
-    drop <- unique(
-      c(.redundant_scenario_columns(), intersect(design_drop, names(tbl)))
-    )
-    drop <- setdiff(drop, "ID")
-    if (length(drop) > 0L) {
-      tbl <- tbl[, setdiff(names(tbl), drop), drop = FALSE]
-    }
-    tbl
-  }
-
-  metrics <- list(
-    regression = list(
-      global = slim_metrics(benchmark$regression$global),
-      cell_type = slim_metrics(benchmark$regression$cell_type)
-    ),
-    monte_carlo = slim_metrics(benchmark$monte_carlo),
-    optimisation = slim_metrics(benchmark$optimisation),
-    call = benchmark$call
-  )
-
-  paths <- list(
-    config = file.path(dir, paste0(stem, "_config.rds")),
-    descriptors = file.path(dir, paste0(stem, "_descriptors.rds")),
-    theta = file.path(dir, paste0(stem, "_theta.rds")),
-    benchmark = file.path(dir, paste0(stem, "_benchmark.rds"))
-  )
-  saveRDS(config_slim, paths$config)
-  saveRDS(descriptors, paths$descriptors)
-  saveRDS(theta_tbl, paths$theta)
-  saveRDS(metrics, paths$benchmark)
-  invisible(paths)
-}
-
-#' Read split simulation artefacts and optionally reassemble a benchmark list
-#'
-#' @inheritParams write_simulation_artefacts
-#' @param assemble If `TRUE`, join config onto metric tables for plotting
-#'   helpers that still expect design columns.
-#'
-#' @return Named list of tibbles, or a benchmark-like list when
-#'   `assemble = TRUE`.
-#' @keywords internal
-read_simulation_artefacts <- function(dir, stem, assemble = FALSE) {
-  paths <- list(
-    config = file.path(dir, paste0(stem, "_config.rds")),
-    descriptors = file.path(dir, paste0(stem, "_descriptors.rds")),
-    theta = file.path(dir, paste0(stem, "_theta.rds")),
-    benchmark = file.path(dir, paste0(stem, "_benchmark.rds"))
-  )
-  out <- lapply(paths, function(p) {
-    if (file.exists(p)) {
-      readRDS(p)
-    } else {
-      NULL
-    }
-  })
-  names(out) <- names(paths)
-  if (!isTRUE(assemble)) {
-    out$config <- .relevel_scenario_table(out$config)
-    out$descriptors <- .relevel_scenario_table(out$descriptors)
-    return(out)
-  }
-  cfg <- .relevel_scenario_table(out$config)
-  metrics <- out$benchmark
-  join_cfg <- function(tbl) {
-    if (is.null(tbl) || is.null(cfg) || !"ID" %in% names(tbl)) {
-      return(tbl)
-    }
-    extra <- setdiff(names(cfg), names(tbl))
-    if (length(extra) == 0L) {
-      return(tbl)
-    }
-    dplyr::left_join(tbl, cfg[, c("ID", extra), drop = FALSE], by = "ID")
-  }
-  theta_list <- if (!is.null(out$theta)) {
-    lapply(out$theta$true_theta, .unwrap_true_theta)
-  } else {
-    NULL
-  }
-  list(
-    regression = list(
-      global = .relevel_scenario_table(join_cfg(metrics$regression$global)),
-      cell_type = .relevel_scenario_table(
-        join_cfg(metrics$regression$cell_type)
-      )
-    ),
-    monte_carlo = .relevel_scenario_table(join_cfg(metrics$monte_carlo)),
-    optimisation = .relevel_scenario_table(join_cfg(metrics$optimisation)),
-    config = cfg,
-    theta_true = theta_list,
-    descriptors = .relevel_scenario_table(out$descriptors),
-    supplementary = if (
-      !is.null(out$descriptors) && "jeffreys" %in% names(out$descriptors)
-    ) {
-      out$descriptors[, c("ID", "jeffreys"), drop = FALSE]
-    } else {
-      NULL
-    },
-    call = metrics$call
   )
 }

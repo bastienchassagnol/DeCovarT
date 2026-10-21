@@ -94,18 +94,97 @@ test_that("closer means raise Monte Carlo overlap when G >= 4", {
   expect_lt(ov_far, ov_near)
 })
 
-test_that("AIRM distance is zero on the diagonal and inversion-invariant", {
+test_that("AIRM average is zero on identical covariances and inversion-invariant", {
   a <- matrix(c(2, 0.3, 0.3, 1.2), nrow = 2L)
-  expect_equal(spd_affine_invariant_distance(a, a), 0, tolerance = 1e-10)
   b <- matrix(c(1.1, -0.2, -0.2, 2.4), nrow = 2L)
+  pair <- function(x, y) {
+    list(mu = cbind(c(0, 0), c(1, 0)), sigma = array(c(x, y), dim = c(2, 2, 2)))
+  }
+  expect_equal(compute_average_riemannian(pair(a, a)), 0, tolerance = 1e-10)
   expect_equal(
-    spd_affine_invariant_distance(a, b),
-    spd_affine_invariant_distance(solve(a), solve(b)),
+    compute_average_riemannian(pair(a, b)),
+    compute_average_riemannian(pair(solve(a), solve(b))),
     tolerance = 1e-8
   )
+  expect_gt(compute_average_riemannian(pair(a, b)), 0)
+})
+
+test_that(".parse_true_theta accepts valid and sample-wise theta", {
   theta <- list(
-    mu = cbind(c(0, 0), c(1, 0)),
-    sigma = array(c(a, b), dim = c(2, 2, 2))
+    p = c(0.5, 0.5),
+    mu = cbind(c(0, 0), c(3, 0)),
+    sigma = array(c(diag(2), diag(2)), dim = c(2, 2, 2))
   )
-  expect_gt(compute_average_riemannian(theta), 0)
+  parsed <- .parse_true_theta(theta, second_moment = "SIGMA")
+  expect_identical(parsed$J, 2L)
+  expect_identical(parsed$G, 2L)
+  theta$p <- cbind(c(0.6, 0.4), c(0.4, 0.6))
+  expect_equal(.parse_true_theta(theta)$p, c(0.5, 0.5))
+  expect_error(
+    .parse_true_theta(list(mu = matrix(1, 2, 2), p = c(0.5, 0.5))),
+    "sigma"
+  )
+})
+
+test_that("compute_average_overlap: closer means overlap more", {
+  skip_if_not_installed("MixSim")
+  set.seed(1)
+  far <- list(
+    p = c(0.5, 0.5),
+    mu = cbind(c(0, 0), c(8, 0)),
+    sigma = array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+  )
+  near <- list(
+    p = c(0.5, 0.5),
+    mu = cbind(c(0, 0), c(1, 0)),
+    sigma = array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+  )
+
+  ov_far <- compute_average_overlap(far)
+  ov_near <- compute_average_overlap(near)
+  expect_type(ov_far, "double")
+  expect_length(ov_far, 1L)
+  expect_gte(ov_far, 0)
+  expect_lte(ov_far, 1)
+  expect_lt(ov_far, ov_near)
+})
+
+test_that("compute_average_overlap: J mismatch errors", {
+  theta <- list(
+    p = c(0.5, 0.5),
+    mu = cbind(c(0, 0), c(1, 0)),
+    sigma = array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+  )
+  expect_error(compute_average_overlap(theta, J = 3L), "`J`")
+})
+
+test_that("compute_average_jeffreys: identical means give ~0", {
+  theta <- list(
+    mu = cbind(c(0, 0), c(0, 0)),
+    sigma = array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+  )
+  expect_equal(compute_average_jeffreys(theta), 0, tolerance = .tol_srr)
+})
+
+test_that("compute_average_jeffreys: mean shift increases divergence", {
+  close <- list(
+    mu = cbind(c(0, 0), c(0.5, 0)),
+    sigma = array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+  )
+  far <- list(
+    mu = cbind(c(0, 0), c(4, 0)),
+    sigma = array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+  )
+  expect_lt(compute_average_jeffreys(close), compute_average_jeffreys(far))
+})
+
+test_that("compute_average_jeffreys: equi-balanced default when p omitted", {
+  theta <- list(
+    mu = cbind(c(0, 0), c(2, 0), c(0, 2)),
+    sigma = array(c(diag(2), diag(2), diag(2)), dim = c(2, 2, 3))
+  )
+  j1 <- compute_average_jeffreys(theta)
+  theta$p <- rep(1 / 3, 3)
+  j2 <- compute_average_jeffreys(theta)
+  expect_equal(j1, j2, tolerance = .tol_srr)
 })

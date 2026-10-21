@@ -2,6 +2,7 @@
 # This helper redraws only performance books from saved artefacts.
 
 devtools::load_all(".", quiet = TRUE)
+source(file.path("scripts", "visualisation", "load_visualisation.R"))
 
 OUT_DIR <- "output/fig02"
 PERF_DIR <- file.path(OUT_DIR, "performance_visualisations")

@@ -13,8 +13,7 @@ describe_simulation_scenario(
 }
 \arguments{
 \item{true_theta}{List with \code{p}, \code{mu}, and \code{sigma} (and optionally
-\code{Theta} precision). Parsed by \code{\link[=check_true_theta]{check_true_theta()}} /
-\code{.parse_true_theta()}.}
+\code{Theta} precision). Parsed by \code{.parse_true_theta()}.}
 
 \item{adjacency}{Optional \eqn{G\times G\times J} adjacency array, or
 a length-\eqn{J} list of adjacencies, used for network density when

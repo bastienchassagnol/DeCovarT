@@ -10,7 +10,8 @@ save_bivariate_kkt_raincloud_book <- function(
   file,
   data_rds = NULL
 ) {
-  .check_plot_dependencies(need_ggdist = TRUE, need_cowplot = TRUE)
+  .check_suggested_package("ggdist", "this figure")
+  .check_suggested_package("cowplot", "this figure")
   cfg <- artefacts$config
   meta <- .bivariate_page_meta(cfg)
   collected <- list()
@@ -48,7 +49,7 @@ save_bivariate_convergence_book <- function(
   data_rds = NULL,
   icon_dir = NULL
 ) {
-  .check_plot_dependencies(need_cowplot = TRUE)
+  .check_suggested_package("cowplot", "this figure")
   cfg <- artefacts$config
   meta <- .bivariate_page_meta(cfg)
   collected <- list()

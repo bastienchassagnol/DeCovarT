@@ -97,12 +97,14 @@ The diagram above summarises the end-to-end workflow.
 
 ### Interactive package structure
 
-Two graphs, regenerated with
+Three graphs, regenerated with
 `Rscript scripts/auxiliary/generate_package_network_functions.R`.
 The [estimation and interval network](https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network_core.html)
 is the Gaussian-convolution fit. The
 [simulation and benchmark network](https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network_simulation.html)
-is the scenario generator and the ADEMP summaries.
+is the scenario generator and the ADEMP summaries. The
+[visualisation network](https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network_visualisation.html)
+covers the Monte Carlo plots.
 
 <div class="decovart-fullwidth">
 <iframe
@@ -119,6 +121,16 @@ is the scenario generator and the ADEMP summaries.
   class="package-network"
   src="package_network/decovart_function_network_simulation.html"
   title="DeCovarT simulation and benchmark call graph"
+  width="100%"
+  height="640"
+  allowfullscreen
+></iframe>
+</div>
+<div class="decovart-fullwidth">
+<iframe
+  class="package-network"
+  src="package_network/decovart_function_network_visualisation.html"
+  title="DeCovarT visualisation call graph"
   width="100%"
   height="640"
   allowfullscreen

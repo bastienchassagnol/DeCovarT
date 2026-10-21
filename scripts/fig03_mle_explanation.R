@@ -24,6 +24,7 @@ if (
   library(DeCovarT)
 }
 .ui_attach_script()
+source(file.path("scripts", "visualisation", "load_visualisation.R"))
 
 OUT_DIR <- file.path("output", "fig03", "mle_explanation")
 dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
@@ -214,8 +215,7 @@ for (i in seq_len(nrow(cfg))) {
   pr$overlap_label <- as.character(row$overlap_label)
   pr$is_true_rho <- abs(pr$rho1 - z_true[[1L]]) < 1e-10 &
     abs(pr$rho2 - z_true[[2L]]) < 1e-10
-  profile_chunks[[i]] <- pr[
-    ,
+  profile_chunks[[i]] <- pr[,
     c(
       "ID",
       "graph_ct1",

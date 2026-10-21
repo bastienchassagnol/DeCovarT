@@ -1,5 +1,5 @@
-source(file.path("scripts", "auxiliary", "alr_coordinates.R"))
-source(file.path("scripts", "auxiliary", "display_metrics.R"))
+# Sourced by scripts/visualisation/load_visualisation.R (with the auxiliary
+# helpers it depends on); do not source on its own.
 
 #' Convolution covariance \eqn{\Sigma(p)=\sum_j p_j^2 \Sigma_j}
 #'
@@ -2577,7 +2577,12 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
     plot_df$cell_type,
     levels = unique(as.character(plot_df$cell_type))
   )
-  pal <- .cell_type_colours(levels(plot_df$cell_type))
+  pal <- stats::setNames(
+    c("#E41A1C", "#4DAF4A", "#377EB8", "#984EA3")[seq_len(nlevels(
+      plot_df$cell_type
+    ))],
+    levels(plot_df$cell_type)
+  )
   alg_lvls <- levels(droplevels(plot_df$algorithm))
   n_ct <- nlevels(plot_df$cell_type)
   dodge_width <- 0.55
@@ -2721,11 +2726,11 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
       show.legend = FALSE
     )
   x_expand <- c(0.04, 0.42)
-  lab_df <- .true_ratio_label_df(plot_df, extra_keys = "panel")
   p <- .add_true_ratio_labels(
     p,
-    lab_df,
-    pal,
+    plot_df,
+    extra_keys = "panel",
+    pal = pal,
     size = if (n_ct > 2L) 2.4 else 2.7
   )
   out <- p +
@@ -2796,7 +2801,7 @@ save_bivariate_metric_heatmaps <- function(artefacts, dir, data_rds = NULL) {
         return(NULL)
       }
     }
-    long <- pivot_mc_estimates(sub)
+    long <- .relevel_scenario_table(pivot_mc_estimates(sub))
     truth <- dplyr::distinct(
       long,
       .data[["algorithm"]],
@@ -2954,7 +2959,8 @@ save_bivariate_similarity_book <- function(
   data_rds = NULL
 ) {
   .check_suggested_package("gridExtra", "save_bivariate_similarity_book")
-  .check_plot_dependencies(need_ggdendro = TRUE, need_cowplot = TRUE)
+  .check_suggested_package("ggdendro", "this figure")
+  .check_suggested_package("cowplot", "this figure")
   cfg <- artefacts$config
   meta <- .bivariate_page_meta(cfg)
   collected <- list()
@@ -3124,7 +3130,7 @@ save_bivariate_dotsinterval_book <- function(
   slab = "halfeye",
   rds_stem = "raincloud"
 ) {
-  .check_plot_dependencies(need_ggdist = TRUE)
+  .check_suggested_package("ggdist", "this figure")
   cfg <- artefacts$config
   meta <- .bivariate_page_meta(cfg)
   hybrid <- .is_hybrid_config(cfg)
@@ -3144,7 +3150,7 @@ save_bivariate_dotsinterval_book <- function(
         return(NULL)
       }
       sub <- .subset_benchmark_ids(artefacts, ids[[k]])
-      long <- pivot_mc_estimates(sub)
+      long <- .relevel_scenario_table(pivot_mc_estimates(sub))
       long$panel <- names(ids)[[k]]
       long
     })
@@ -3318,17 +3324,19 @@ save_bivariate_solver_dots_book <- function(
           Sigma[,, ell]
         ),
         overlap = ovl,
+        # Two-component averages are the pairwise distances.
         riemannian = tryCatch(
-          spd_affine_invariant_distance(Sigma[,, j], Sigma[,, ell]),
+          compute_average_riemannian(list(
+            mu = mu[, c(j, ell), drop = FALSE],
+            sigma = Sigma[,, c(j, ell), drop = FALSE]
+          )),
           error = function(e) NA_real_
         ),
         jeffreys = tryCatch(
-          .jeffreys_gaussian(
-            mu[, j],
-            mu[, ell],
-            Sigma[,, j],
-            Sigma[,, ell]
-          ),
+          compute_average_jeffreys(list(
+            mu = mu[, c(j, ell), drop = FALSE],
+            sigma = Sigma[,, c(j, ell), drop = FALSE]
+          )),
           error = function(e) NA_real_
         )
       )
