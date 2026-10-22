@@ -315,7 +315,7 @@ The companion scatter is analytic $\nabla\ell$ (and, where stored, the
 Hessian) against Richardson extrapolation in `numDeriv` [@R-numDeriv],
 as already used in
 [the generative-model vignette](theory-decovart-generative-model.html)
-and in `tests/testthat/test-02_02_decovart_estimate_ratios.R`. DICEPro reported relative
+and in `tests/testthat/test-02_02_population_decovart_estimate_ratios.R`. DICEPro reported relative
 errors below $6\times 10^{-6}$ with central differences
 $\varepsilon=10^{-5}$. DeCovarT prefers Richardson's tableau rather than
 a single-step central difference, because the score mixes traces of

@@ -9,7 +9,7 @@
 ## Prerequisite: run fig03 at least once so
 ## data/synthetic_networks/true_grn_moments.rds exists.
 ##
-## Five solvers from R/02_02_decovart_estimate_ratios.R:
+## Five solvers from R/02_02_population_decovart_estimate_ratios.R:
 ##   * deconvolute_ratios_simulated_annealing() -- stochastic search on rho
 ##     ([stats::optim()], `method = "SANN"`); no gradient used.
 ##   * deconvolute_ratios_L_BFGS_B()            -- box-constrained ascent
@@ -75,7 +75,7 @@ message(
 ## deconvolute_ratios_gradient_descent() relies on the analytic
 ## gradient_loglik_constrained(). Cross-check it against numDeriv::grad()
 ## on loglik_multivariate_constrained() at the TRUE rho for one bulk
-## sample, mirroring tests/testthat/test-02_02_decovart_estimate_ratios.R, before trusting
+## sample, mirroring tests/testthat/test-02_02_population_decovart_estimate_ratios.R, before trusting
 ## the BFGS run below.
 true_rho <- isometric_log_ratio(p_true)
 gradient_numerical <- numDeriv::grad(

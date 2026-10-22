@@ -1191,8 +1191,6 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
         descriptors of Table~\ref{tab:descriptors} are reported with the size ratio \(\max_{j}S_{j}/\min_{j}S_{j}\)
   \item a fit on a library-normalised reference is included as a control, since it targets the transcript fractions
         \(\boldsymbol{q}_{\cdot i}\), not \(\boldsymbol{p}_{\cdot i}\)
-  \item[] \todo[inline]{Implement this simulator next to \texttt{simulate\_bulk\_mixture()} and run it in the ADEMP study of
-        Appendix~\ref{app:sc-inference}.}
 \end{itemize}
 
 \subsubsection{Optimisation}
@@ -1201,24 +1199,36 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
 \begin{itemize}
   \item for a fixed composition, the scales have closed forms: the generalised least-squares estimate
         \(\hat c(\boldsymbol{p})=(\boldsymbol{m}^{\top}\boldsymbol{W}\boldsymbol{m})^{-1}\boldsymbol{m}^{\top}\boldsymbol{W}\boldsymbol{y}\) and the Mahalanobis
-        estimate \(\hat\phi(\boldsymbol{p})=\boldsymbol{r}^{\top}\boldsymbol{W}\boldsymbol{r}/G\); Newton--Raphson runs on the profile
-        log-likelihood of the \(J-1\) ILR coordinates (Appendix~\ref{sec:sc-newton})
-  \item the weight matrix \(\boldsymbol{W}=\boldsymbol{S}_{W}(\boldsymbol{p})^{-1}\) depends on the unknown composition, so the fit is a
-        feasible generalised least squares: estimate, rebuild the weights, estimate again
+        estimate \(\hat\phi(\boldsymbol{p})=\boldsymbol{r}^{\top}\boldsymbol{W}\boldsymbol{r}/G\); substituting them gives the profile log-likelihood
+        \(\ell^{\ast}(\boldsymbol{\rho})\) of the \(J-1\) ILR coordinates, and Newton--Raphson runs on \(\ell^{\ast}\) with its exact score and
+        Hessian (Appendix~\ref{sec:sc-newton})
+  \item one loop: the weight matrix \(\boldsymbol{W}=\boldsymbol{S}_{W}(\boldsymbol{p})^{-1}\) depends on the unknown composition, and the profile
+        rebuilds it, together with \(\hat c\) and \(\hat\phi\), at every trial composition; the fit is a feasible generalised least
+        squares without an outer loop, and its limit is the joint maximum-likelihood estimate of \((\boldsymbol{p},c,\phi)\)
         (Algorithm~\ref{alg:sc-two-stage}); \emph{MuSiC} \cite{wangBulkTissueCell2019} and \emph{deMixSC}
-        \cite{guoDeMixSCDeconvolutionFramework2023} iterate gene weights in the same way, from residual and cross-subject variances or from the
-        squared fitted value and squared residual, whereas DeCovarT takes them from the model covariance at the current
+        \cite{guoDeMixSCDeconvolutionFramework2023} iterate gene weights in the same spirit, from residual and cross-subject variances or
+        from the squared fitted value and squared residual, whereas DeCovarT takes them from the model covariance at the current
         composition; a robust variant down-weights genes with large residuals (Appendix~\ref{sec:robust})
+  \item curvature and step: the observed Hessian of \(\ell^{\ast}\), safeguarded by the trust region of \texttt{stats::nlminb}
+        \cite{R-base}, which shrinks or enlarges the step with the agreement between the predicted and the actual increase
+        (Remark~\ref{rem:step-size}); \gls{fisherscoring} with step-halving is not used, because the trust region already handles an
+        indefinite Hessian and, with \(c^{2}/\phi=n\) cells, the observed and expected information nearly coincide at the maximum
   \item the start solves the quadratic programme of \emph{DeconRNASeq} \cite{gongDeconRNASeqStatisticalFramework2013} with a free
         scale (Appendix~\ref{sec:sc-newton})
+  \item a two-stage variant keeps the scales at their start values; it is not the joint maximum, and is kept for comparison
+        only
 \end{itemize}
 
 \subsubsection{Inference}
 \label{sec:sc-inference}
 
 \begin{itemize}
-  \item Wald intervals use the Schur complement of the information, so estimating \(c_{i}\) and \(\phi_{i}\) widens them;
-        the two-stage fit of Algorithm~\ref{alg:sc-two-stage} adds the plug-in correction of the scales
+  \item Wald intervals use the Schur complement of the information, so estimating \(c_{i}\) and \(\phi_{i}\) widens them; the negative
+        Hessian of the profile \(\ell^{\ast}\) is the observed counterpart of that Schur complement, so the profile fit carries the
+        correction for the estimated scales, whereas the two-stage variant needs the plug-in correction of
+        Appendix~\ref{app:sc-inference}
+  \item[] \todo[inline]{Return \(\{-\nabla^{2}_{\boldsymbol{\rho}}\ell^{\ast}(\hat{\boldsymbol{\rho}})\}^{-1}\) from \texttt{deconvolute\_single\_cell()}
+        and check the coverage of the resulting Wald intervals.}
   \item profile intervals concentrate both scales out (Appendices~\ref{app:sc-inference} and~\ref{app:mle-nuisance});
         a single bulk sample has the small-dispersion limit in the number of cells
         \cite{jørgensenSmallDispersionAsymptotics1987}; boundary tests and bootstraps are those of
@@ -1227,46 +1237,48 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
 \end{itemize}
 
 \begin{algorithm}[ht]
-  \caption{Two-stage fit of \eqref{eq:sc-model} for one bulk sample: nuisance scales first, then the cell
-    fractions with the scales plugged in.}
+  \caption{Profile Newton fit of \eqref{eq:sc-model} for one bulk sample: the two nuisance scales are concentrated out in
+    closed form at every composition, and a trust-region Newton method maximises the profile log-likelihood of the cell
+    fractions.}
   \label{alg:sc-two-stage}
   \begin{algorithmic}[1]
     \Require bulk \(\boldsymbol{y}\in\mathbb{R}_{+}^{G}\); cell sizes \(S_{j}\), estimated from the reference or supplied
       externally (Appendix~\ref{sec:estimand}); reference means \(\tilde{\boldsymbol{\mu}}_{\cdot j}=S_{j}\boldsymbol{\theta}_{\cdot j}\);
-      regularised \(\boldsymbol{\Sigma}_{W,1},\ldots,\boldsymbol{\Sigma}_{W,J}\); Helmert basis \(\mathbf{V}\); tolerance \(\varepsilon\)
-    \Statex \textit{Stage i: nuisance factors}
+      regularised \(\boldsymbol{\Sigma}_{W,1},\ldots,\boldsymbol{\Sigma}_{W,J}\); Helmert basis \(\mathbf{V}\); tolerance \(\varepsilon\); \(G>J\)
+    \Statex \textit{Start}
     \State \((c^{(0)},\boldsymbol{p}^{(0)})\gets\arg\min_{c>0,\,\boldsymbol{p}\in\Delta^{J-1}}\lVert\boldsymbol{y}-c\,\tilde{\boldsymbol{\mu}}\boldsymbol{p}\rVert_{2}^{2}\);
       \(\boldsymbol{p}^{(0)}\) floored away from zero
       \Comment{quadratic programme of \emph{DeconRNASeq}}
-    \State \(\boldsymbol{W}\gets\boldsymbol{S}_{W}(\boldsymbol{p}^{(0)})^{-1}\);
-      \(\boldsymbol{m}\gets\tilde{\boldsymbol{\mu}}\boldsymbol{p}^{(0)}\);
-      \(\hat c\gets(\boldsymbol{m}^{\top}\boldsymbol{W}\boldsymbol{m})^{-1}\boldsymbol{m}^{\top}\boldsymbol{W}\boldsymbol{y}\)
-      \Comment{GLS estimator of \(c=an\), not the library size (Remark~\ref{rem:scale-not-closure})}
-    \State \(\boldsymbol{r}\gets\boldsymbol{y}-\hat c\,\boldsymbol{m}\);
-      \(\hat\phi\gets\boldsymbol{r}^{\top}\boldsymbol{W}\boldsymbol{r}/G\)
-      \Comment{Mahalanobis estimator of \(\phi=a^{2}n\)}
-    \State \(\hat a\gets\hat\phi/\hat c\), \(\hat n\gets\hat c^{2}/\hat\phi\)
-      \Comment{\(\hat n\) is a number of cells only when \(a\) is known}
-    \Statex \textit{Stage ii: cell fractions, with \(\hat c\) and \(\hat\phi\) plugged in}
-    \State \(\boldsymbol{\rho}\gets\mathbf{V}^{\top}\log\boldsymbol{p}^{(0)}\)
+    \State \(\boldsymbol{\rho}\gets\mathbf{V}^{\top}\log\boldsymbol{p}^{(0)}\); trust radius \(\Delta\gets1\)
+    \Statex \textit{Profile Newton iterations}
     \Repeat
       \State \(\boldsymbol{p}\gets\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho})\);
         \(\boldsymbol{W}\gets\boldsymbol{S}_{W}(\boldsymbol{p})^{-1}\);
-        \(\boldsymbol{r}\gets\boldsymbol{y}-\hat c\,\tilde{\boldsymbol{\mu}}\boldsymbol{p}\)
+        \(\boldsymbol{m}\gets\tilde{\boldsymbol{\mu}}\boldsymbol{p}\)
+      \State \(\hat c\gets(\boldsymbol{m}^{\top}\boldsymbol{W}\boldsymbol{m})^{-1}\boldsymbol{m}^{\top}\boldsymbol{W}\boldsymbol{y}\);
+        \(\boldsymbol{r}\gets\boldsymbol{y}-\hat c\,\boldsymbol{m}\);
+        \(\hat\phi\gets\boldsymbol{r}^{\top}\boldsymbol{W}\boldsymbol{r}/G\)
+        \Comment{scales rebuilt at every iterate (Remark~\ref{rem:scale-not-closure})}
       \State \(U_{j}\gets\hat\phi^{-1}\bigl(\hat c\,\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top}\boldsymbol{W}\boldsymbol{r}
         +\tfrac12\boldsymbol{r}^{\top}\boldsymbol{W}\boldsymbol{\Sigma}_{W,j}\boldsymbol{W}\boldsymbol{r}\bigr)
         -\tfrac12\operatorname{tr}(\boldsymbol{W}\boldsymbol{\Sigma}_{W,j})\)
-        \Comment{score in \(\boldsymbol{p}\)}
-      \State \(I_{jk}\gets\hat c^{2}\hat\phi^{-1}\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top}\boldsymbol{W}\tilde{\boldsymbol{\mu}}_{\cdot k}
-        +\tfrac12\operatorname{tr}(\boldsymbol{W}\boldsymbol{\Sigma}_{W,j}\boldsymbol{W}\boldsymbol{\Sigma}_{W,k})\)
-        \Comment{expected information in \(\boldsymbol{p}\)}
+        \Comment{profile score, by the \gls{envelope}}
+      \State \(\boldsymbol{H}^{\ast}\gets\boldsymbol{H}_{pp}-\boldsymbol{H}_{p\eta}\boldsymbol{H}_{\eta\eta}^{-1}\boldsymbol{H}_{\eta p}\), with \(\boldsymbol{\eta}=(c,\phi)\)
+        \Comment{profile Hessian \eqref{eq:sc-profile-hessian}}
       \State \(\boldsymbol{U}_{\rho}\gets\mathbf{J}_{\psi}^{\top}\boldsymbol{U}\);
-        \(\boldsymbol{I}_{\rho}\gets\mathbf{J}_{\psi}^{\top}\boldsymbol{I}\mathbf{J}_{\psi}\)
-      \State \(\boldsymbol{\rho}\gets\boldsymbol{\rho}+t\,\boldsymbol{I}_{\rho}^{-1}\boldsymbol{U}_{\rho}\), with \(t\in\{1,\tfrac12,\tfrac14,\ldots\}\)
-        the first step that increases \eqref{eq:sc-loglik}
-    \Until{\(\lVert\boldsymbol{U}_{\rho}\rVert_{2}<\varepsilon\)}
-    \State \(\widehat{\operatorname{Var}}(\hat{\boldsymbol{p}})\gets\mathbf{J}_{\psi}\boldsymbol{I}_{\rho}^{-1}\mathbf{J}_{\psi}^{\top}\),
-      plus the plug-in correction of Appendix~\ref{app:sc-inference}
+        \(\boldsymbol{H}_{\rho}\gets\mathbf{J}_{\psi}^{\top}\boldsymbol{H}^{\ast}\mathbf{J}_{\psi}+\sum_{j}U_{j}\nabla^{2}_{\boldsymbol{\rho}}p_{j}\)
+      \State \(\boldsymbol{\delta}\gets(\lambda\mathbf{I}-\boldsymbol{H}_{\rho})^{-1}\boldsymbol{U}_{\rho}\), with the smallest \(\lambda\ge0\) such that
+        \(\lambda\mathbf{I}-\boldsymbol{H}_{\rho}\) is \gls{posdef} and \(\lVert\boldsymbol{\delta}\rVert_{2}\le\Delta\)
+        \Comment{trust-region step (Remark~\ref{rem:step-size})}
+      \State compare the actual increase \(\ell^{\ast}(\boldsymbol{\rho}+\boldsymbol{\delta})-\ell^{\ast}(\boldsymbol{\rho})\) with the predicted
+        increase \(\boldsymbol{U}_{\rho}^{\top}\boldsymbol{\delta}+\tfrac12\boldsymbol{\delta}^{\top}\boldsymbol{H}_{\rho}\boldsymbol{\delta}\): accept
+        \(\boldsymbol{\rho}\gets\boldsymbol{\rho}+\boldsymbol{\delta}\) when it is a non-trivial fraction, then shrink \(\Delta\) after a poor
+        prediction and enlarge it after a good one; otherwise shrink \(\Delta\) and recompute \(\boldsymbol{\delta}\)
+    \Until{the relative change of \(\ell^{\ast}\) or of \(\boldsymbol{\rho}\) over a Newton step is below \(\varepsilon\)}
+    \State \(\hat c,\hat\phi\gets\) closed forms at \(\hat{\boldsymbol{p}}\); \(\hat a\gets\hat\phi/\hat c\), \(\hat n\gets\hat c^{2}/\hat\phi\)
+      \Comment{\(\hat n\) is a number of cells only when \(a\) is known}
+    \State \(\widehat{\operatorname{Var}}(\hat{\boldsymbol{p}})\gets\mathbf{J}_{\psi}(-\boldsymbol{H}_{\rho})^{-1}\mathbf{J}_{\psi}^{\top}\) at \(\hat{\boldsymbol{\rho}}\)
+      \Comment{planned; not yet returned by the package}
     \Ensure cell fractions \(\hat{\boldsymbol{p}}\), transcript fractions \(\hat q_{j}=\hat p_{j}S_{j}/\sum_{\ell}\hat p_{\ell}S_{\ell}\),
       scales \(\hat c,\hat\phi,\hat a,\hat n\), and \(\widehat{\operatorname{Var}}(\hat{\boldsymbol{p}})\)
   \end{algorithmic}
@@ -1486,11 +1498,11 @@ either side identifies variance terms that one sample cannot separate.
   \item the same iteration fits the quasi-likelihood model of Section~\ref{sec:generalized-linear-model} and
         robust M-estimates with bounded gene weights (Appendix~\ref{sec:robust})
   \item block-coordinate alternative for the single-cell model: an outer loop updates the technical scales
-        \(c_{i}\) and \(\phi_{i}\) by their closed forms, and an inner loop maximises over the composition with the
-        population-level solver, instead of a post-hoc renormalisation of the bulk; the fixed point is the joint maximum
-        (Appendix~\ref{sec:sc-newton}); the scales are orthogonal to each other (\(I_{c\phi}=0\)) but not to the
-        composition (\(I_{pc}\neq0\)), so the alternation converges linearly, at a rate set by that coupling, and may be
-        slower than the joint Newton step; \emph{deMixSC} \cite{guoDeMixSCDeconvolutionFramework2023} alternates in the same way between gene weights,
+        \(c_{i}\) and \(\phi_{i}\) by their closed forms, and an inner loop maximises over the composition; the fixed point is
+        the joint maximum (Appendix~\ref{sec:sc-newton}), but the scales are not orthogonal to the composition
+        (\(I_{pc}\neq0\)), so the alternation converges linearly, at a rate set by that coupling; on the four single-cell
+        scenarios it needed up to 95 outer updates, which is why the implemented fit concentrates the scales out in one loop
+        instead (Section~\ref{sec:sc-optimisation}); \emph{deMixSC} \cite{guoDeMixSCDeconvolutionFramework2023} alternates in the same way between gene weights,
         rebuilt from the previous fit, and a weighted non-negative least-squares fit of the proportions, stopped at
         convergence or after a fixed number of iterations
   \item first-order and stochastic methods (mini-batch gradients, adaptive steps) pay off only when many bulk

@@ -1555,7 +1555,7 @@ bootstrap: the maximised likelihood is equivariant under relabelling.
 The analytic maps above are only half of a usable optimiser. Practical
 bottlenecks that showed up on the hybrid scenario in
 [Covariance-driven hybrid scenario](fig03-covariance-driven.html#sec-hybrid-deconvolution)
-live in `R/02_02_decovart_estimate_ratios.R`.
+live in `R/02_02_population_decovart_estimate_ratios.R`.
 
 ---
 
@@ -1676,7 +1676,7 @@ forecast bulk expression.
 Analytic formulae can be differentiated correctly *and* still implement
 the wrong objective. The checks below separate those two questions.
 They are the same identities that
-`tests/testthat/test-02_02_decovart_estimate_ratios.R` and
+`tests/testthat/test-02_02_population_decovart_estimate_ratios.R` and
 `tests/testthat/test-03_0*_*.R` enforce on every
 package build; the chunks here are a readable, small-\(G\) illustration.
 

@@ -1,3 +1,28 @@
+* **Single-cell mixture, separate from the population convolution.**
+  Cell-level moments and the bulk sum of cells are
+  `rescale_single_cell_moments()` and `simulate_bulk_from_cells()`.
+  `deconvolute_single_cell()` starts from a free-scale non-negative
+  least-squares fit, then profiles the mean and variance scales out in
+  closed form and runs Newton-Raphson on the profile log-likelihood of
+  the ILR coordinates (`profile_loglik_single_cell_ilr()`, exact score,
+  Schur-complement Hessian). One loop reaches the joint maximum; the
+  former scale/composition alternation needed up to 95 outer updates.
+  `profile = FALSE` keeps the two-stage plug-in fit for comparison.
+  The fit requires `G > J`. Default reference: raw cell covariance and
+  cell fractions. The population log-likelihood is unchanged (`p^2`
+  covariance weights).
+
+* **Shared ILR chart and Newton driver.** The simplex chart
+  (`helmert_basis()`, `isometric_logistic()`, `repair_simplex()`, ...)
+  is in `R/02_00_ilr_chart.R`; the cached covariance factorisation and
+  the `nlminb` trust-region driver are in `R/02_00_likelihood_core.R`.
+  Files specific to the `p^2` convolution carry a `population_` tag
+  (`R/01_01_population_toy_simulation.R`,
+  `R/02_02_population_decovart_estimate_ratios.R`,
+  `R/02_03_population_decovart_fit.R`). The Newton driver now sets
+  `abs.tol = 0`: PORT's absolute-function test assumes a nonnegative
+  objective, and a negative log-likelihood can cross zero.
+
 * **Benchmark code split into run, metrics and visualisation.**
   `R/04_01_run_benchmark.R` fits every algorithm to every sample;
   `R/04_02_run_simulation_benchmark.R` runs the scenario grid;

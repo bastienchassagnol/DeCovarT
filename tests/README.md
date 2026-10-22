@@ -1,7 +1,7 @@
 # Tests and fixtures
 
 Unit tests live in `tests/testthat/` and mirror `R/` stems
-(`test-02_02_decovart_estimate_ratios.R` for `R/02_02_decovart_estimate_ratios.R`).
+(`test-02_02_population_decovart_estimate_ratios.R` for `R/02_02_population_decovart_estimate_ratios.R`).
 
 ## Bundled example data (G5.1)
 
@@ -9,7 +9,7 @@ Unit tests live in `tests/testthat/` and mirror `R/` stems
 |---|---|---|
 | `toy_deconvolution` | `inst/extdata/toy_deconvolution.rds` (copy under `tests/testthat/fixtures/`) | Input-check and `deconvolute_ratios()` smoke tests |
 
-The bivariate toy scenario used by `test-02_02_decovart_estimate_ratios.R` is built in
+The bivariate toy scenario used by `test-02_02_population_decovart_estimate_ratios.R` is built in
 memory by `new_bivariate_toy_scenario()` in `tests/testthat/helper.R`
 (r-pkgs “create useful_things with a helper”). Construction is cheap, so
 nothing is written to the package tree, `getwd()`, or the home filespace.

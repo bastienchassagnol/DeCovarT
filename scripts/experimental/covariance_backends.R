@@ -6,7 +6,7 @@
 # the package now assumes a dense Sigma(p): adding cell types adds gene-gene
 # correlations, and the current priority is the single-cell model, not
 # computational speed. The package fit uses the dense Cholesky in
-# .sigma_p_factorisation() (R/02_02_decovart_estimate_ratios.R).
+# .mixture_factorisation() (R/02_00_likelihood_core.R).
 #
 # Usage: load the package internals first, then source this file, e.g.
 #   devtools::load_all(".")

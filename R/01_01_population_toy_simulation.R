@@ -72,7 +72,8 @@
 #' dim(sim$Y)
 #' @export
 #' @seealso [deconvolute_ratios()],
-#'   [run_simulation_benchmark()]
+#'   [run_simulation_benchmark()],
+#'   [simulate_bulk_from_cells()]
 simulate_bulk_mixture <- function(
   signature_matrix,
   Sigma,

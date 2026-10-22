@@ -2,7 +2,7 @@
 # profile-likelihood intervals.
 #
 #' @srrstats {RE4.3} Profile intervals (`confint_profile_decovart()`) are
-#'   exercised below; Wald intervals in test-02_03_decovart_fit.R.
+#'   exercised below; Wald intervals in test-02_03_population_decovart_fit.R.
 
 test_that("expected Fisher information equals the mean of -Hessian", {
   setup <- .inference_setup()

@@ -669,22 +669,56 @@ Derivations in the \vignette{theory-decovart-single-cell-tailored.html}{single-c
         +\tfrac12\hat{\boldsymbol{r}}^{\top}\boldsymbol{W}\boldsymbol{\Sigma}_{W,j}\boldsymbol{W}\hat{\boldsymbol{r}}\}
         -\tfrac12\operatorname{tr}(\boldsymbol{W}\boldsymbol{\Sigma}_{W,j})\), mapped to ILR coordinates by
         \(\mathbf{J}_{\psi}^{\top}\)
-  \item Newton--Raphson on the full \(\boldsymbol{\vartheta}\): score and Hessian of a Gaussian with parametrised mean
-        and covariance
-        (\vignette{theory-decovart-single-cell-tailored.html\#sec-general}{general score and Hessian}); the mean
-        \(c\tilde{\boldsymbol{\mu}}\boldsymbol{p}\) and the covariance \(\phi\boldsymbol{S}_{W}(\boldsymbol{p})\) are linear in \(\boldsymbol{p}\), so the
-        only second derivatives in \(\boldsymbol{p}\) come from the curvature of the chart
-        \eqref{eq-chain-rule-second-order}
+  \item profile Hessian: with \(\boldsymbol{\eta}=(c,\phi)\), differentiating \(\ell(\boldsymbol{p},\hat{\boldsymbol{\eta}}(\boldsymbol{p}))\) twice and using
+        \(\partial\hat{\boldsymbol{\eta}}/\partial\boldsymbol{p}^{\top}=-\boldsymbol{H}_{\eta\eta}^{-1}\boldsymbol{H}_{\eta p}\) gives the Schur complement of the observed
+        Hessian of \eqref{eq:sc-loglik}, evaluated at the closed-form scales, with \(\boldsymbol{w}=\boldsymbol{W}\boldsymbol{r}\):
+        \begin{equation}
+          \begin{aligned}
+            \nabla^{2}_{\boldsymbol{p}}\ell^{\ast}
+            &=\boldsymbol{H}_{pp}-\boldsymbol{H}_{p\eta}\boldsymbol{H}_{\eta\eta}^{-1}\boldsymbol{H}_{\eta p},\\
+            (\boldsymbol{H}_{pc})_{j}
+            &=\phi^{-1}\bigl(\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top}\boldsymbol{w}-c\,\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top}\boldsymbol{W}\boldsymbol{m}
+              -\boldsymbol{m}^{\top}\boldsymbol{W}\boldsymbol{\Sigma}_{W,j}\boldsymbol{w}\bigr),\\
+            (\boldsymbol{H}_{p\phi})_{j}
+            &=-\phi^{-2}\bigl(c\,\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top}\boldsymbol{w}+\tfrac12\boldsymbol{w}^{\top}\boldsymbol{\Sigma}_{W,j}\boldsymbol{w}\bigr),\\
+            H_{cc}
+            &=-\boldsymbol{m}^{\top}\boldsymbol{W}\boldsymbol{m}/\phi,
+            \qquad
+            H_{c\phi}=-\boldsymbol{m}^{\top}\boldsymbol{w}/\phi^{2}=0,\\
+            H_{\phi\phi}&=\frac{G}{2\phi^{2}}-\frac{\boldsymbol{r}^{\top}\boldsymbol{w}}{\phi^{3}}=-\frac{G}{2\phi^{2}}
+          \end{aligned}
+          \label{eq:sc-profile-hessian}
+        \end{equation}
+        where the two zeros hold at \(\hat c\) and \(\hat\phi\); \(\boldsymbol{H}_{pp}\) is the Hessian in \(\boldsymbol{p}\) at fixed scales, whose
+        expectation is \(-I(\boldsymbol{p})\) of Algorithm~\ref{alg:sc-two-stage}; the chart then adds its curvature
+        \eqref{eq-chain-rule-second-order}; score and Hessian were checked against numerical derivatives with Richardson
+        extrapolation \cite{R-numDeriv}, for three and four cell types
+  \item solver: the trust-region Newton method of \texttt{stats::nlminb} \cite{R-base} on \(\ell^{\ast}\) (Remark~\ref{rem:step-size}),
+        the same driver as the population-level fit; it stops on PORT's relative-function or relative-step tests, which, in
+        the isometric chart, do not depend on the Helmert basis
   \item start: \((c^{(0)},\boldsymbol{p}^{(0)})=\arg\min_{c>0,\,\boldsymbol{p}\in\Delta^{J-1}}\lVert\boldsymbol{y}-c\tilde{\boldsymbol{\mu}}\boldsymbol{p}\rVert_{2}^{2}\), the
-        quadratic programme of \emph{DeconRNASeq} \cite{gongDeconRNASeqStatisticalFramework2013} (\texttt{limSolve::lsei})
-        solved in the products \(c\,p_{j}\): the programme imposes their non-negativity, and the sum-to-one constraint holds
-        after dividing by the fitted total \(c^{(0)}\), because the free scale absorbs it; the equality constraint can be
-        imposed directly only when \(c_{i}\) is known; \(\boldsymbol{p}^{(0)}\) is floored away from zero, plus Dirichlet multistarts
-        because \(\ell^{\ast}\) is not concave; stop on the norm of the ILR score, which does not depend on the Helmert
-        basis
-  \item feasible generalised least squares: \(\boldsymbol{W}=\boldsymbol{S}_{W}(\boldsymbol{p})^{-1}\) depends on the unknown composition, so the
-        weights are estimated, the scale and composition re-estimated, and the weights rebuilt, as in
-        Algorithm~\ref{alg:sc-two-stage}; at convergence this alternation reaches the joint maximum
+        quadratic programme of \emph{DeconRNASeq} \cite{gongDeconRNASeqStatisticalFramework2013} solved in the products
+        \(w_{j}=c\,p_{j}\): non-negative least squares, solved exactly by enumerating the \(2^{J}-1\) active sets (\(J\le12\)); the
+        sum-to-one constraint holds after dividing by the fitted total \(c^{(0)}=\mathbf{1}^{\top}\boldsymbol{w}\), because the free scale
+        absorbs it; the equality constraint can be imposed directly only when \(c_{i}\) is known; \(\boldsymbol{p}^{(0)}\) is floored
+        away from zero; \(\ell^{\ast}\) is not concave, so Dirichlet multistarts, as for the population model, remain advisable
+  \item identifiability: \(\hat\phi>0\) needs residual degrees of freedom, so the fit requires \(G>J\); \(\hat\phi=Q/G\) is the
+        maximum-likelihood divisor, biased downwards by about \((G-J)/G\), so \(\hat n=\hat c^{2}/\hat\phi\) is biased upwards; with
+        \(G=10\) and \(J=2\), \(\hat\phi\) has a relative standard deviation of about \(\sqrt{2/G}\approx0.45\), and across the four
+        scenarios \(\hat n/n\) had median \(1.24\) and reached \(4.5\); \(\hat n\) is a descriptor, not an input of the fit
+  \item feasible generalised least squares: \(\boldsymbol{W}=\boldsymbol{S}_{W}(\boldsymbol{p})^{-1}\) depends on the unknown composition; the profile
+        rebuilds the weights, the scale and the variance at every trial composition, so no outer loop is needed
+  \begin{itemize}
+    \item block-coordinate alternative: alternate the closed-form scales with a full Newton fit in \(\boldsymbol{p}\); each
+          update increases \(\ell\) and the fixed point is the joint maximum, but \(I_{pc}\neq0\) couples the blocks and the
+          convergence is linear; on the four scenarios of Section~\ref{sec:sc-synthetic} (\(G=10\), \(n=10^{4}\), \(a\in\{1,2\}\),
+          20 replicates each), it needed up to 95 outer updates, and stopping after five left the composition up to
+          \(2.5\times10^{-3}\) from the joint maximum, against \(4.8\times10^{-3}\) for the two-stage fit with the start scales and an
+          estimation error of \(0.01\)--\(0.05\) against the realised fractions \(\boldsymbol{m}/n\); the profile fit reached the joint maximum in at most four Newton iterations
+    \item a stopping rule on the change of \(\boldsymbol{p}\) between outer updates is misleading at a linear rate \(\kappa\): the
+          distance to the limit is the last change times \(\kappa/(1-\kappa)\)
+  \end{itemize}
+  \item other iteratively reweighted fits of the same form
   \begin{itemize}
     \item \emph{MuSiC} \cite{wangBulkTissueCell2019}: weighted non-negative least squares with gene weights
           \(w_{g}^{-1}=C^{2}\delta_{g}^{2}+C^{2}\sum_{k}p_{k}^{2}S_{k}^{2}\sigma_{gk}^{2}\), the residual and cross-subject variances,
@@ -998,6 +1032,67 @@ Full derivations, worked examples and a figure in the
   \item[] \todo[inline]{Report run time and memory per solver from the fig02 and fig03 books.}
 \end{itemize}
 
+\begin{remark}[How the step is chosen]
+  \label{rem:step-size}
+  \begin{itemize}
+    \item no learning rate is fixed beforehand, and no line search is run: \texttt{stats::nlminb} \cite{R-base}, given the analytic
+          Hessian, calls the PORT routine \texttt{DRMNH}, a model/trust-region Newton method \cite{gayAlgorithm611Subroutines1983}, here applied to
+          \(f=-\ell\) in the ILR chart; Figure~\ref{fig:trust-region-steps} traces one fit
+    \item step: at each iterate the quadratic model \(\boldsymbol{U}^{\top}\boldsymbol{\delta}+\tfrac12\boldsymbol{\delta}^{\top}\boldsymbol{H}\boldsymbol{\delta}\) is maximised over the
+          ball \(\lVert\boldsymbol{D}\boldsymbol{\delta}\rVert_{2}\le\Delta\); the solution is
+          \(\boldsymbol{\delta}=(\lambda\boldsymbol{D}^{2}-\boldsymbol{H})^{-1}\boldsymbol{U}\), with \(\lambda=0\) (the full Newton step) when that step is inside
+          the ball and the Hessian is negative definite, and otherwise the \(\lambda>0\) that puts the step on the boundary
+          (the Moré--Hebdon computation of an optimal locally constrained step, \texttt{DG7QTS}); Moré and Sorensen
+          show that this step is nearly optimal after finitely many inner iterations, and that the resulting trust-region
+          Newton method has a limit point satisfying the first- and second-order necessary conditions
+          \cite{moreComputingTrustRegion1983}; \(\lambda\) is a
+          Levenberg--Marquardt damping chosen by the radius, so an indefinite Hessian still gives an ascent step
+    \item radius update (\texttt{DA7SST}): the actual increase is compared with the increase predicted by the quadratic
+          model; below \(10^{-4}\) of the prediction the step is rejected and recomputed with a smaller radius; below \(0.1\) it
+          is accepted and the radius is cut, by half or by a quadratic-interpolation factor bounded below by \(0.1\); when
+          the increase reaches \(0.75\) of the first-order prediction \(\boldsymbol{U}^{\top}\boldsymbol{\delta}\) and the step was not a full Newton
+          step, the radius is multiplied by a factor between \(2\) and \(4\); a trial point where the objective is not finite (a non-positive closed-form scale in the
+          single-cell profile) counts as no increase and shrinks the radius
+    \item scale and start: the scaling \(\boldsymbol{D}\) is the identity by default, so the ball is Euclidean in the ILR coordinates,
+          that is, a ball of Aitchison distance on the simplex, the same for every Helmert basis; the first radius is \(1\)
+          (control \texttt{step.min}, PORT \texttt{LMAX0})
+    \item stopping: relative function convergence (predicted increase of a Newton step below \texttt{rel.tol} times
+          \(\lvert f\rvert\)), relative step convergence (\texttt{x.tol}), or false convergence when steps shrink without increase
+          (\texttt{xf.tol}); the absolute-function test \(\lvert f\rvert<\texttt{abs.tol}\) is switched off (\(\texttt{abs.tol}=0\)), because a
+          negative log-likelihood can cross zero and would stop the fit at an arbitrary point
+    \item contrast with step-halving: a line search keeps the Newton or Fisher-scoring direction and shortens it,
+          \(\boldsymbol{\rho}\gets\boldsymbol{\rho}+t\,\boldsymbol{\delta}\) with \(t\in\{1,\tfrac12,\tfrac14,\ldots\}\) the first value that increases \(\ell\) \cite{jennrichNewtonRaphsonRelatedAlgorithms1976}; the
+          direction is fixed and only its length adapts, so an indefinite Hessian must first be replaced, for example by the
+          expected information; the trust region instead changes both length and direction through \(\lambda\), and carries the
+          radius learnt at one iteration over to the next
+    \item contrast with \texttt{marqLevAlg} \cite{R-marqLevAlg,philippsRobustEfficientOptimization2021}: the same Levenberg--Marquardt family,
+          but the damping of the diagonal is increased until the damped Hessian is \gls{posdef} and the step increases \(\ell\),
+          then decreased after success, instead of being derived from an explicit radius; it stops on the relative distance to
+          the maximum \cite{commengesNewtonLikeAlgorithmLikelihood2006}
+    \item[] \todo[inline]{Add to Zotero and cite: Gay (1981), doi:10.1137/0902016, for the locally constrained step;
+          Nocedal and Wright (2006), ch.~4, doi:10.1007/978-0-387-40065-5.}
+  \end{itemize}
+\end{remark}
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{figs/fig_trust_region_steps.pdf}
+  \caption{Trust-region step control of \texttt{stats::nlminb} on the single-cell profile log-likelihood
+    \(\ell^{\ast}\) (\(J=3\), \(G=10\), \(n=10^{4}\) cells, cell sizes \((1,2,5)\), true fractions \((0.6,0.3,0.1)\)), started near
+    the corner \(\boldsymbol{p}=(0.02,0.02,0.96)\). Every trial is an objective evaluation of \texttt{nlminb}; an iterate (black dot)
+    is a point where it requested the gradient. Blue: accepted step; purple: superseded step, which increased
+    \(\ell^{\ast}\) but was replaced by a longer step from the same iterate after the radius was enlarged; orange: rejected
+    step, after which the radius is cut. \textbf{A}~ILR plane, grey contours of \(\ell^{\ast}\); each circle is centred on the
+    iterate a trial starts from, with the length of that trial step, which equals the radius when the step lies on the
+    boundary of the ball. \textbf{B}~Zoom on the last iterations. \textbf{C}~Length of every trial step (log scale): the
+    radius grows by a factor 4 twice from the first radius 1, overshoots, and is then halved or interpolated down until
+    a step is accepted; the last steps are full Newton steps. \textbf{D}~Ratio of the actual to the predicted
+    increase; below \(10^{-4}\) the trial is rejected, between \(10^{-4}\) and \(0.1\) it is accepted with a smaller radius,
+    and near 1 the quadratic model is exact. Script: \texttt{article/scripts/fig\_trust\_region\_steps.R}; the SVG source is
+    \texttt{article/figs/fig\_trust\_region\_steps.svg}.}
+  \label{fig:trust-region-steps}
+\end{figure}
+
 \subsubsection{Generalised least squares, Fisher scoring and iteratively reweighted least squares}
 \label{app:irls}
 
@@ -1081,6 +1176,22 @@ The argument follows maximum likelihood as iteratively reweighted least squares 
         linearly, at a rate set by the residual terms; the observed Hessian is needed at the end in any case, to
         certify a local maximum; under a misspecified variance function, the quasi-score of
         Section~\ref{sec:generalized-linear-model} is solved by Fisher scoring alone
+  \item precedent: Jennrich and Sampson \cite{jennrichNewtonRaphsonRelatedAlgorithms1976} fitted mean and variance components of
+        unbalanced mixed analysis-of-variance models by maximum likelihood, a Gaussian model whose covariance depends on the
+        parameters, as in DeCovarT; Newton--Raphson, Fisher scoring and the Hemmerle--Hartley algorithm share the form
+        \(\Delta\boldsymbol{\theta}=\boldsymbol{Q}^{-1}\partial\ell/\partial\boldsymbol{\theta}\) and differ only in \(\boldsymbol{Q}\); their safeguards were
+        step-halving (\(\Delta\boldsymbol{\theta},\Delta\boldsymbol{\theta}/2,\Delta\boldsymbol{\theta}/4,\ldots\) until \(\ell\) increases), a Fisher-scoring
+        step whenever \(\boldsymbol{Q}\) lost positive definiteness, one scoring step to start Newton--Raphson and another whenever
+        the increase in \(\ell\) exceeded 1, and partial steps up to the boundary of the variance components; on five
+        problems, Newton--Raphson converged in four iterations from good starts on the fifth one, while from poor starts most
+        early steps defaulted to scoring and its advantage largely vanished; the authors call the safeguards
+        ``admittedly ad hoc'', and no method dominated
+  \item implemented choice: Newton--Raphson with the observed Hessian inside a trust region (Remark~\ref{rem:step-size}), for
+        both models; the trust region removes the reason for Fisher scoring far from the maximum, since its shifted system
+        \(\lambda\mathbf{I}-\nabla^{2}\ell\) is positive definite even where \(\nabla^{2}\ell\) is not, and keeps the quadratic rate near the
+        maximum; the expected information is kept for the Wald variances; in the single-cell model the mean part of the
+        information scales with \(c^{2}/\phi=n\), the number of cells, while the covariance part stays of order one, so near the
+        maximum the observed and expected information nearly coincide and Fisher scoring would add little
 \end{itemize}
 
 \subsubsection{Robust variants of the weighted fit}

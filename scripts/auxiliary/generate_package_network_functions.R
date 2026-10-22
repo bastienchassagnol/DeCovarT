@@ -41,9 +41,12 @@ dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 network_groups <- list(
   list(
     files = c(
+      "02_00_ilr_chart.R",
+      "02_00_likelihood_core.R",
       "02_01_first_generation_deconvolution.R",
-      "02_02_decovart_estimate_ratios.R",
-      "02_03_decovart_fit.R",
+      "02_02_population_decovart_estimate_ratios.R",
+      "02_02_single_cell_decovart_estimate_ratios.R",
+      "02_03_population_decovart_fit.R",
       "03_01_interior_intervals.R",
       "03_02_boundary_tests.R",
       "03_03_resampling_inference.R"
@@ -54,8 +57,10 @@ network_groups <- list(
   ),
   list(
     files = c(
-      "01_01_toy_simulation.R",
+      "01_01_population_toy_simulation.R",
+      "01_01_single_cell_toy_simulation.R",
       "01_02_generate_synthetic_networks.R",
+      "01_02_single_cell_generate_synthetic_networks.R",
       "01_03_scenario_descriptors.R",
       "01_04_infer_gaussian_overlap.R",
       "01_05_target_gaussian_overlap.R",
