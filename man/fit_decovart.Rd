@@ -208,6 +208,6 @@ nobs(fit)
 \code{\link[=deconvolute_ratios_Marquardt_Levenberg]{deconvolute_ratios_Marquardt_Levenberg()}},
 \code{\link[=expected_fisher_unconstrained]{expected_fisher_unconstrained()}}, \code{\link[=vcov_ilr_delta]{vcov_ilr_delta()}},
 \code{\link[=coef.decovart_fit]{coef.decovart_fit()}}, \code{\link[=vcov.decovart_fit]{vcov.decovart_fit()}},
-\code{\link[=confint.decovart_fit]{confint.decovart_fit()}}
+\code{\link[=confint.decovart_fit]{confint.decovart_fit()}}, \code{\link[=confint_decovart]{confint_decovart()}}
 }
 \concept{decovart_fit}

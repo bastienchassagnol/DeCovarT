@@ -10,8 +10,6 @@ compute_benchmark_metrics(
   estimated_p,
   true_ratios = NULL,
   se = NULL,
-  lower = NULL,
-  upper = NULL,
   elapsed = NULL,
   memory_bytes = NULL,
   kkt_residual = NULL,
@@ -48,10 +46,6 @@ Convolution-likelihood solvers fill these from \code{\link[=vcov_ilr_delta]{vcov
 (expected Fisher information pulled back through the ILR chart).
 Mean-only solvers (NNLS, LSEI) leave them missing.}
 
-\item{lower, upper}{Optional interval bounds matching \code{estimated_p}
-(used for coverage and mean width). When omitted but \code{se} is
-supplied, Wald intervals at \code{level} are used.}
-
 \item{elapsed, memory_bytes, kkt_residual}{Optional per-sample runtime
 diagnostics (recycled to \eqn{N}).}
 
@@ -62,9 +56,9 @@ returned a finite simplex vector.}
 for theoretical convergence (regret
 \eqn{\ell(\boldsymbol{p}^{\star})-\ell(\hat{\boldsymbol{p}})}).}
 
-\item{converged}{Optional list of length \eqn{N} with homogenised
-optimiser fields (\code{iterations}, \code{criterion}, \code{code}, \code{rdm}).
-Closed-form solvers store \code{NA} entries.}
+\item{converged}{Optional list of length \eqn{N} of optimiser records
+with fields \code{iterations}, \code{criterion}, \code{code} and \code{rdm}, as stored by
+the DeCovarT solvers. Closed-form solvers store \code{NA} entries.}
 
 \item{local_maximum}{Optional logical per sample: ILR score small and
 Hessian negative definite (\eqn{\lambda_{\min}<0} and
@@ -75,8 +69,8 @@ Hessian negative definite (\eqn{\lambda_{\min}<0} and
 \item{presence_threshold}{Threshold \eqn{\varepsilon} for presence /
 F1 / false-positive mass (default \code{1e-4}).}
 
-\item{level}{Wald coverage level when \code{lower} / \code{upper} are omitted
-(default \code{0.95}).}
+\item{level}{Level of the Wald intervals built from \code{se}, used for
+coverage and mean width (default \code{0.95}).}
 
 \item{coverage_interval}{Interval for the Monte Carlo coverage \emph{rate}
 \eqn{\hat\pi}: \code{"wilson"} (default), \code{"wald"}, or \code{"agresti_coull"}.

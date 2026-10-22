@@ -2,6 +2,8 @@
 # - Excludes R/zzz.R and R/data.R
 # - Edges only between DeCovarT-defined functions (no base/stats/pkg:: calls)
 # - One colour per source file; node tooltips include formal parameters
+#   and a short description (roxygen title and first sentence of
+#   @description, markup stripped), also written to the CSV files
 # see also https://pkgmap.app to list dependencies assoicated with a package
 #
 # Run from the package root:
@@ -22,6 +24,7 @@ stop_if_missing <- function(pkg) {
 
 stop_if_missing("pkgapi")
 stop_if_missing("visNetwork")
+stop_if_missing("roxygen2")
 
 project_path <- getwd()
 excluded_files <- c("zzz.R", "data.R", "utils-ui.R")
@@ -35,8 +38,8 @@ excluded_functions <- c(
 out_dir <- file.path(project_path, "output", "package_network")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
-# Three graphs. Core is estimation and intervals for the Gaussian
-# convolution. Simulation is the generative scenarios and the benchmark.
+# Three graphs. Core is estimation and intervals for both generative
+# models. Simulation is the generative scenarios and the benchmark.
 # Visualisation is the Monte Carlo plots of a benchmark.
 network_groups <- list(
   list(
@@ -49,7 +52,8 @@ network_groups <- list(
       "02_03_population_decovart_fit.R",
       "03_01_interior_intervals.R",
       "03_02_boundary_tests.R",
-      "03_03_resampling_inference.R"
+      "03_03_resampling_inference.R",
+      "03_04_single_cell_inference.R"
     ),
     csv = "decovart_functions_core.csv",
     html = "decovart_function_network_core.html",
@@ -107,6 +111,103 @@ function_formal_names <- function(fun_expr) {
 }
 
 # -----------------------------------------------------------------------------
+# Short descriptions from roxygen blocks
+# -----------------------------------------------------------------------------
+
+# Replaces \\deqn{...} blocks (balanced braces) by "[formula]", then strips
+# Rd and LaTeX markup,
+# so that "\\eqn{\\boldsymbol{\\Sigma}(\\boldsymbol{p})}" reads "Sigma(p)".
+plain_text <- function(text) {
+  chars <- strsplit(text, "", fixed = TRUE)[[1]]
+  start <- regexpr("\\\\deqn\\{", text)
+  while (start > 0) {
+    depth <- 0L
+    end <- NA_integer_
+    for (k in seq(start + 5L, length(chars))) {
+      if (chars[[k]] == "{") {
+        depth <- depth + 1L
+      }
+      if (chars[[k]] == "}") {
+        depth <- depth - 1L
+      }
+      if (depth == 0L) {
+        end <- k
+        break
+      }
+    }
+    if (is.na(end)) {
+      break
+    }
+    text <- paste0(
+      substr(text, 1L, start - 1L),
+      " [formula]. ",
+      substr(text, end + 1L, nchar(text))
+    )
+    chars <- strsplit(text, "", fixed = TRUE)[[1]]
+    start <- regexpr("\\\\deqn\\{", text)
+  }
+  text <- gsub("\\[([^]]+)\\]", "\\1", text)
+  text <- gsub("\\\\(insertCite|insertRef)\\{[^}]*\\}(\\{[^}]*\\})?", "", text)
+  formatting <- paste0(
+    "\\\\(eqn|boldsymbol|mathbf|mathbb|mathrm|mathsf|mathcal|operatorname|",
+    "tfrac|frac|left|right|bigl|bigr|Bigl|Bigr|big|Big|code|emph|",
+    "textbf|textit|pkg|link)"
+  )
+  text <- gsub(formatting, "", text)
+  text <- gsub("\\\\([A-Za-z]+)", " \\1 ", text)
+  text <- gsub("\\\\[,;!|]", "", text)
+  text <- gsub("[{}*]", "", text)
+  trimws(gsub("[[:space:]]+", " ", text))
+}
+
+first_sentence <- function(text) {
+  if (is.null(text) || !nzchar(text)) {
+    return("")
+  }
+  sub("^(.*?[.:;])( [A-Z(]|$).*", "\\1", plain_text(text), perl = TRUE)
+}
+
+roxygen_descriptions <- function(file_path) {
+  # Package-specific tags such as @srrstats are unknown to roxygen2.
+  blocks <- suppressMessages(roxygen2::parse_file(file_path, env = NULL))
+  out <- character(0)
+  for (block in blocks) {
+    call <- block$call
+    if (!is.call(call) || !identical(call[[1]], as.name("<-"))) {
+      next
+    }
+    name <- as.character(call[[2]])
+    title <- roxygen2::block_get_tag_value(block, "title")
+    described_in <- roxygen2::block_get_tag_value(block, "describeIn")
+    if (is.null(title) && !is.null(described_in)) {
+      title <- described_in$description
+    }
+    if (is.null(title)) {
+      next
+    }
+    summary <- plain_text(title)
+    detail <- first_sentence(roxygen2::block_get_tag_value(
+      block,
+      "description"
+    ))
+    if (nzchar(detail) && !identical(detail, summary)) {
+      summary <- paste0(sub("[.]$", "", summary), ". ", detail)
+    }
+    if (nchar(summary) > 200L) {
+      summary <- paste0(substr(summary, 1L, 197L), "...")
+    }
+    out[[name]] <- summary
+  }
+  out
+}
+
+html_escape <- function(text) {
+  text <- gsub("&", "&amp;", text, fixed = TRUE)
+  text <- gsub("<", "&lt;", text, fixed = TRUE)
+  gsub(">", "&gt;", text, fixed = TRUE)
+}
+
+# -----------------------------------------------------------------------------
 # 1) List all internal functions and extract their parameters
 # -----------------------------------------------------------------------------
 
@@ -136,10 +237,12 @@ extract_function_metadata <- function(file_path) {
         function_name = character(0),
         file = character(0),
         parameters = character(0),
+        description = character(0),
         stringsAsFactors = FALSE
       )
     )
   }
+  descriptions <- roxygen_descriptions(file_path)
 
   do.call(
     rbind,
@@ -155,6 +258,11 @@ extract_function_metadata <- function(file_path) {
         function_name = fname,
         file = basename(file_path),
         parameters = params_label,
+        description = if (fname %in% names(descriptions)) {
+          descriptions[[fname]]
+        } else {
+          "Internal helper (no roxygen block)."
+        },
         stringsAsFactors = FALSE
       )
     })
@@ -265,6 +373,7 @@ for (group in network_groups) {
     type = "DeCovarT",
     file = fns$file,
     parameters = fns$parameters,
+    description = fns$description,
     stringsAsFactors = FALSE
   )
   nodes$shape <- "ellipse"
@@ -278,7 +387,10 @@ for (group in network_groups) {
     nodes$file,
     "<br/>",
     "Parameters: ",
-    nodes$parameters
+    html_escape(nodes$parameters),
+    "<br/><i>",
+    html_escape(nodes$description),
+    "</i>"
   )
   legend_nodes <- rbind(
     data.frame(

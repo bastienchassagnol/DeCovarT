@@ -173,7 +173,7 @@
 #'   [deconvolute_ratios_Marquardt_Levenberg()],
 #'   [expected_fisher_unconstrained()], [vcov_ilr_delta()],
 #'   [coef.decovart_fit()], [vcov.decovart_fit()],
-#'   [confint.decovart_fit()]
+#'   [confint.decovart_fit()], [confint_decovart()]
 fit_decovart <- function(
   signature_matrix,
   bulk_expression,

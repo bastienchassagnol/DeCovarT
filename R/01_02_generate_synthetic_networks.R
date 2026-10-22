@@ -82,103 +82,34 @@ compute_mean_profile_objectives <- function(mean_signature_matrix) {
 }
 
 
-#' Symmetric (spectral) square root of a Gram matrix
+#' Thin orthonormal gene frame \eqn{\mathbf{Q}} for the mean signature
 #'
-#' @param k Symmetric nonnegative-definite matrix.
-#' @return The unique symmetric square root.
-#' @keywords internal
-#' @noRd
-.symmetric_matrix_sqrt <- function(k) {
-  k <- (k + t(k)) / 2
-  eig <- eigen(k, symmetric = TRUE)
-  evals <- pmax(eig$values, 0)
-  n <- length(evals)
-  eig$vectors %*% diag(sqrt(evals), n) %*% t(eig$vectors)
-}
-
-#' Thin orthonormal frame in \eqn{\mathbb{R}^{G}}
+#' With `nonnegative = TRUE`, the columns are indicators of contiguous,
+#' near-equal gene blocks scaled to unit norm, so \eqn{\mathbf{Q}\ge 0} and
+#' the means have disjoint, marker-like supports. Otherwise the frame is
+#' the thin QR factor of a Gaussian draw (when `seed` is given; the
+#' previous random state is restored) or of a fixed identity-plus-constant
+#' matrix, which spreads the signal over all genes.
 #'
-#' @keywords internal
 #' @noRd
-.orthonormal_gene_frame <- function(n_genes, n_celltypes, seed = NULL) {
-  if (!is.null(seed)) {
-    set.seed(seed)
-    z <- matrix(
-      stats::rnorm(n_genes * n_celltypes),
-      n_genes,
-      n_celltypes
-    )
+.gene_frame <- function(n_genes, n_celltypes, nonnegative, seed) {
+  if (isTRUE(nonnegative)) {
+    sizes <- rep(n_genes %/% n_celltypes, n_celltypes)
+    extra <- n_genes %% n_celltypes
+    sizes[seq_len(extra)] <- sizes[seq_len(extra)] + 1L
+    q <- matrix(0, n_genes, n_celltypes)
+    q[cbind(seq_len(n_genes), rep(seq_len(n_celltypes), sizes))] <-
+      rep(1 / sqrt(sizes), sizes)
+    return(q)
+  }
+  z <- if (!is.null(seed)) {
+    .with_seed(seed, matrix(stats::rnorm(n_genes * n_celltypes), n_genes))
   } else {
-    z <- matrix(0, n_genes, n_celltypes)
-    n_diag <- min(n_genes, n_celltypes)
-    z[seq_len(n_diag), seq_len(n_diag)] <- diag(n_diag)
-    if (n_genes > n_celltypes) {
-      z[(n_celltypes + 1L):n_genes, ] <- 1 / sqrt(n_genes)
-    }
+    z <- matrix(1 / sqrt(n_genes), n_genes, n_celltypes)
+    z[seq_len(n_celltypes), ] <- diag(n_celltypes)
+    z
   }
   qr.Q(qr(z), complete = FALSE)[, seq_len(n_celltypes), drop = FALSE]
-}
-
-#' Nonnegative thin frame with disjoint gene blocks
-#'
-#' Columns are indicator vectors of a partition of the \eqn{G} genes,
-#' scaled to unit Euclidean norm, so \eqn{\mathbf{Q}^{\mathsf{T}}
-#' \mathbf{Q}=\mathbf{I}_{J}} and \eqn{\mathbf{Q}\ge 0}. Combined with
-#' a nonnegative square root of the Gram, \eqn{\boldsymbol{\mu}=s\mathbf{Q}
-#' R^{1/2}} stays nonnegative (required by [deconvolute_ratios()]).
-#'
-#' @keywords internal
-#' @noRd
-.block_orthonormal_gene_frame <- function(n_genes, n_celltypes) {
-  q <- matrix(0, n_genes, n_celltypes)
-  sizes <- rep(n_genes %/% n_celltypes, n_celltypes)
-  rem <- n_genes %% n_celltypes
-  if (rem > 0L) {
-    sizes[seq_len(rem)] <- sizes[seq_len(rem)] + 1L
-  }
-  start <- 1L
-  for (j in seq_len(n_celltypes)) {
-    idx <- start:(start + sizes[[j]] - 1L)
-    q[idx, j] <- 1 / sqrt(sizes[[j]])
-    start <- start + sizes[[j]]
-  }
-  q
-}
-
-#' Equicorrelation (constant-correlation) Gram matrix
-#'
-#' \eqn{R=(1-\rho)I+\rho\mathbf{1}\mathbf{1}^{\mathsf{T}}}. Positive
-#' semidefinite for \eqn{\rho\in[-1/(J-1),1]}.
-#'
-#' @param n_celltypes Integer \eqn{J\ge 2}.
-#' @param target_cosine Pairwise cosine \eqn{\rho}.
-#'
-#' @return Symmetric \eqn{J\times J} matrix with unit diagonal.
-#'
-#' @examples
-#' equicorrelation_gram(3L, 0.4)
-#' @export
-equicorrelation_gram <- function(n_celltypes, target_cosine = 0) {
-  j <- as.integer(n_celltypes)
-  if (length(j) != 1L || is.na(j) || j < 2L) {
-    stop("`n_celltypes` must be an integer of at least 2.", call. = FALSE)
-  }
-  rho <- as.numeric(target_cosine)
-  if (length(rho) != 1L || is.na(rho)) {
-    stop("`target_cosine` must be a single numeric value.", call. = FALSE)
-  }
-  rho_min <- -1 / (j - 1)
-  if (rho < rho_min - 1e-10 || rho > 1 + 1e-10) {
-    stop(
-      "`target_cosine` must lie in [",
-      format(rho_min, digits = 4),
-      ", 1] for J = ",
-      j,
-      ".",
-      call. = FALSE
-    )
-  }
-  (1 - rho) * diag(j) + rho
 }
 
 #' Generate mean profiles from a target Gram matrix
@@ -198,8 +129,9 @@ equicorrelation_gram <- function(n_celltypes, target_cosine = 0) {
 #' }
 #' Then \eqn{\boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu}=s^{2}R} whenever
 #' \eqn{R} has unit diagonal. The default \eqn{R} is the equicorrelation
-#' matrix \eqn{(1-\rho)I+\rho\mathbf{1}\mathbf{1}^{\mathsf{T}}}
-#' ([equicorrelation_gram()]). Supply `target_gram` to set unequal
+#' (equicorrelation) matrix
+#' \eqn{(1-\rho)I+\rho\mathbf{1}\mathbf{1}^{\mathsf{T}}}, positive
+#' semidefinite for \eqn{\rho\in[-1/(J-1),1]}. Supply `target_gram` to set unequal
 #' pairwise cosines (for example two close pairs and a distant background),
 #' provided \(R\) is symmetric nonnegative-definite.
 #'
@@ -207,7 +139,7 @@ equicorrelation_gram <- function(n_celltypes, target_cosine = 0) {
 #' space: replacing \eqn{\boldsymbol{Q}} by \eqn{\boldsymbol{Q}U} with
 #' \eqn{U^{\mathsf{T}}U=\boldsymbol{I}_{J}} leaves the Gram unchanged. By
 #' default \eqn{\boldsymbol{Q}} is a deterministic thin QR frame; pass `seed`
-#' for a Haar-like Gaussian frame. Cholesky \eqn{R=LL^{\mathsf{T}}} is an
+#' for a Haar-like Gaussian frame (the global random state is restored). Cholesky \eqn{R=LL^{\mathsf{T}}} is an
 #' alternative square root used in Monte Carlo simulation; see the
 #' how-to-build-synthetic-scenarios vignette appendix.
 #'
@@ -273,7 +205,24 @@ generate_mean_signature_matrix <- function(
   }
 
   if (is.null(target_gram)) {
-    gram <- equicorrelation_gram(n_celltypes, target_cosine)
+    rho <- as.numeric(target_cosine)
+    rho_min <- -1 / (n_celltypes - 1)
+    if (
+      length(rho) != 1L ||
+        is.na(rho) ||
+        rho < rho_min - 1e-10 ||
+        rho > 1 + 1e-10
+    ) {
+      stop(
+        "`target_cosine` must be one number in [",
+        format(rho_min, digits = 4),
+        ", 1] for J = ",
+        n_celltypes,
+        ".",
+        call. = FALSE
+      )
+    }
+    gram <- (1 - rho) * diag(n_celltypes) + rho
   } else {
     gram <- as.matrix(target_gram)
     if (
@@ -288,7 +237,7 @@ generate_mean_signature_matrix <- function(
     if (max(abs(gram - t(gram))) > 1e-8) {
       stop("`target_gram` must be symmetric.", call. = FALSE)
     }
-    gram <- (gram + t(gram)) / 2
+    gram <- .symmetrise(gram)
     evals <- eigen(gram, symmetric = TRUE, only.values = TRUE)$values
     if (min(evals) < -1e-8) {
       stop(
@@ -298,12 +247,12 @@ generate_mean_signature_matrix <- function(
     }
   }
 
-  q <- if (isTRUE(nonnegative)) {
-    .block_orthonormal_gene_frame(n_genes, n_celltypes)
-  } else {
-    .orthonormal_gene_frame(n_genes, n_celltypes, seed = seed)
-  }
-  root <- .symmetric_matrix_sqrt(gram)
+  q <- .gene_frame(n_genes, n_celltypes, nonnegative, seed)
+  # Symmetric square root of the Gram, so that crossprod(mu) = s^2 R.
+  eig <- eigen(gram, symmetric = TRUE)
+  root <- eig$vectors %*%
+    diag(sqrt(pmax(eig$values, 0)), n_celltypes) %*%
+    t(eig$vectors)
   mean_signature_matrix <- mean_scale * q %*% root
   if (isTRUE(nonnegative)) {
     if (any(mean_signature_matrix < -1e-10)) {
@@ -586,20 +535,6 @@ assign_iid_signed_weights <- function(
 }
 
 
-#' Test whether a symmetric matrix admits a Cholesky factor
-#'
-#' @keywords internal
-#' @noRd
-.chol_succeeds <- function(mat) {
-  tryCatch(
-    {
-      base::chol(mat)
-      TRUE
-    },
-    error = function(e) FALSE
-  )
-}
-
 #' Uniform spectral shift that preserves off-diagonal support
 #'
 #' Completes a symmetric matrix by
@@ -609,8 +544,7 @@ assign_iid_signed_weights <- function(
 #' @keywords internal
 #' @noRd
 .uniform_spectral_shift <- function(mat, cushion) {
-  mat <- as.matrix(mat)
-  mat <- (mat + t(mat)) / 2
+  mat <- .symmetrise(mat)
   cushion <- as.numeric(cushion)
   if (length(cushion) != 1L || !is.finite(cushion) || cushion <= 0) {
     stop("`cushion` must be a positive scalar.", call. = FALSE)
@@ -630,10 +564,9 @@ assign_iid_signed_weights <- function(
   cushion = sqrt(.Machine$double.eps),
   max_tries = 8L
 ) {
-  mat <- as.matrix(mat)
-  mat <- (mat + t(mat)) / 2
+  mat <- .symmetrise(mat)
   for (k in seq_len(as.integer(max_tries))) {
-    if (.chol_succeeds(mat)) {
+    if (!inherits(try(chol(mat), silent = TRUE), "try-error")) {
       return(mat)
     }
     mat <- .uniform_spectral_shift(
@@ -648,77 +581,37 @@ assign_iid_signed_weights <- function(
   )
 }
 
-#' Symmetric inverse via QR (LAPACK `chol2inv` can fail to invert)
+#' Invert an SPD precision to a Cholesky-able covariance
+#'
+#' \eqn{\boldsymbol{\Sigma}=\boldsymbol{\Omega}^{-1}} from the Cholesky
+#' factor of \eqn{\boldsymbol{\Omega}} ([chol2inv()]). For a symmetric
+#' positive-definite precision this is exactly symmetric, at least as
+#' accurate as a QR inverse and three to five times faster, and the
+#' factorisation itself certifies positive definiteness. If the factor of
+#' \eqn{\boldsymbol{\Sigma}} fails
+#' (an ill-conditioned hub graph), the support-preserving spectral shift
+#' of \eqn{\boldsymbol{\Omega}} is doubled until both factors exist.
+#'
+#' @return A list with the (possibly shifted) `precision` and its
+#'   `covariance`.
 #'
 #' @keywords internal
 #' @noRd
-.qr_sym_inverse <- function(mat) {
-  mat <- as.matrix(mat)
-  mat <- (mat + t(mat)) / 2
-  inv <- qr.solve(mat)
-  (inv + t(inv)) / 2
-}
-
-#' Precision and covariance pair from a weighted adjacency
-#'
-#' Builds \eqn{\boldsymbol{\Omega}} by [build_normalised_precision()].
-#' The inverse uses [qr.solve()] so
-#' \eqn{\boldsymbol{\Sigma}\boldsymbol{\Omega}=\mathbf{I}} to
-#' working precision. If `chol(Sigma)` still fails (ill-conditioned
-#' hub graphs), the same support-preserving spectral loading is
-#' increased on \eqn{\boldsymbol{\Omega}} until both factors exist.
-#'
-#' @keywords internal
-#' @noRd
-.spd_precision_and_covariance <- function(
-  weighted_adjacency,
-  precision_shift
-) {
-  omega <- build_normalised_precision(
-    weighted_adjacency,
-    precision_shift
-  )
-  extra <- precision_shift
+.invert_precision <- function(omega, cushion) {
+  omega <- .ensure_spd(omega, cushion = cushion)
+  extra <- cushion
   for (k in seq_len(8L)) {
-    sigma <- .qr_sym_inverse(omega)
-    if (.chol_succeeds(sigma)) {
+    sigma <- chol2inv(chol(omega))
+    if (!inherits(try(chol(sigma), silent = TRUE), "try-error")) {
+      dimnames(sigma) <- dimnames(omega)
       return(list(precision = omega, covariance = sigma))
     }
     extra <- extra * 2
     omega <- .uniform_spectral_shift(omega, cushion = extra)
   }
   stop(
-    "Could not obtain a strictly positive-definite covariance inverse ",
-    "by a uniform spectral shift of the precision.",
-    call. = FALSE
-  )
-}
-
-#' Invert an already completed precision to a Cholesky-able covariance
-#'
-#' Unlike `.spd_precision_and_covariance()`, this does not zero the
-#' diagonal: the input is already an SPD precision, not a weighted
-#' adjacency.
-#'
-#' @keywords internal
-#' @noRd
-.spd_covariance_from_precision <- function(
-  omega,
-  cushion = sqrt(.Machine$double.eps)
-) {
-  omega <- .ensure_spd(omega, cushion = cushion)
-  extra <- cushion
-  for (k in seq_len(8L)) {
-    sigma <- .qr_sym_inverse(omega)
-    if (.chol_succeeds(sigma)) {
-      return(sigma)
-    }
-    extra <- extra * 2
-    omega <- .uniform_spectral_shift(omega, cushion = extra)
-  }
-  stop(
-    "Could not invert a precision slice to a strictly ",
-    "positive-definite covariance.",
+    "Could not invert a precision to a strictly positive-definite ",
+    "covariance by a uniform spectral shift.",
     call. = FALSE
   )
 }
@@ -758,8 +651,7 @@ build_normalised_precision <- function(
   if (precision_shift <= 0) {
     stop("`precision_shift` must be positive.")
   }
-  omega <- as.matrix(weighted_adjacency)
-  omega <- (omega + t(omega)) / 2
+  omega <- .symmetrise(weighted_adjacency)
   diag(omega) <- 0
   omega <- .uniform_spectral_shift(omega, cushion = precision_shift)
   .ensure_spd(omega, cushion = precision_shift)
@@ -771,7 +663,7 @@ build_normalised_precision <- function(
 #' For each cell type \eqn{j}, inverts
 #' \eqn{\boldsymbol{\Omega}_j} to
 #' \eqn{\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1}} (via
-#' [qr.solve()]) and stacks the result as a \eqn{G\times G\times J}
+#' [chol2inv()]) and stacks the result as a \eqn{G\times G\times J}
 #' array. If a slice is not numerically SPD, or if the inverse fails
 #' Cholesky, a further uniform spectral shift is applied to that
 #' precision (off-diagonal support unchanged). Precisions need not be
@@ -811,9 +703,10 @@ build_covariance_array_from_precision <- function(precision_array) {
     dimnames = list(gene_names, gene_names, celltype_names)
   )
   for (j in seq_len(n_celltypes)) {
-    covariance_array[,, j] <- .spd_covariance_from_precision(
-      precision_array[,, j]
-    )
+    covariance_array[,, j] <- .invert_precision(
+      precision_array[,, j],
+      cushion = sqrt(.Machine$double.eps)
+    )$covariance
   }
   covariance_array
 }
@@ -1068,9 +961,9 @@ simulate_hierarchical_grn_moments <- function(
       prop_inhibitory = prop_inhibitory[[j]],
       weight_magnitude = precision_scale[[j]]
     )
-    pair <- .spd_precision_and_covariance(
-      weighted_adjacency = weighted_array[,, j],
-      precision_shift = precision_shift[[j]]
+    pair <- .invert_precision(
+      build_normalised_precision(weighted_array[,, j], precision_shift[[j]]),
+      cushion = precision_shift[[j]]
     )
     precision_array[,, j] <- pair$precision
     covariance_array[,, j] <- pair$covariance

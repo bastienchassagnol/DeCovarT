@@ -281,5 +281,5 @@ hessian_isometric_logistic <- function(z, V = NULL) {
     alongB = 3L
   ))
   out <- crossprod(jac, hessian_p %*% jac) + curvature
-  (out + t(out)) / 2
+  .symmetrise(out)
 }

@@ -332,7 +332,7 @@ hessian_loglik_single_cell <- function(
     quad / variance_scale -
     ratio * cross_mean -
     ratio * cross_sigma
-  unname((hessian + t(hessian)) / 2)
+  unname(.symmetrise(hessian))
 }
 
 #' Single-cell log-likelihood in ILR coordinates
@@ -492,21 +492,15 @@ single_cell_nuisance_scales <- function(
   )
 }
 
-#' Profile Hessian of the single-cell log-likelihood in \eqn{\boldsymbol{p}}
+#' Observed Hessian blocks in \eqn{(\boldsymbol{p},c,\phi)}
 #'
-#' Exact second derivative of
-#' \eqn{\ell^{\ast}(p)=\ell(p,\hat c(p),\hat\phi(p))}: the Schur complement
-#' \eqn{H_{pp}-H_{p\eta}H_{\eta\eta}^{-1}H_{\eta p}} of the observed
-#' Hessian in \eqn{(p,\eta)}, \eqn{\eta=(c,\phi)}, evaluated at the
-#' closed-form scales. With \eqn{w=Wr},
-#' \eqn{H_{p_jc}=\phi^{-1}(\tilde\mu_j^\top w-c\tilde\mu_j^\top Wm
-#' -m^\top W\Sigma_j w)},
-#' \eqn{H_{p_j\phi}=-\phi^{-2}(c\tilde\mu_j^\top w+\tfrac12 w^\top\Sigma_j w)},
-#' \eqn{H_{cc}=-m^\top Wm/\phi}, \eqn{H_{c\phi}=-m^\top w/\phi^2} and
-#' \eqn{H_{\phi\phi}=G/(2\phi^2)-r^\top w/\phi^3}.
+#' `hessian_pp` is the composition block with the scales held fixed.
+#' `h_peta` is the \eqn{J\times 2} cross block and `h_etaeta` the
+#' \eqn{2\times 2} block of \eqn{\eta=(c,\phi)}. The profile Hessian in
+#' \eqn{\boldsymbol{p}} is the Schur complement of `h_etaeta`.
 #'
 #' @noRd
-.profile_hessian_single_cell <- function(
+.single_cell_hessian_blocks <- function(
   p,
   y,
   mean_signature_matrix,
@@ -543,10 +537,46 @@ single_cell_nuisance_scales <- function(
   h_cc <- -sum(mean_vector * weighted_mean) / phi
   h_cphi <- -sum(mean_vector * whitened) / phi^2
   h_phiphi <- length(y) / (2 * phi^2) - sum(residual * whitened) / phi^3
-  h_peta <- cbind(h_pc, h_pphi)
-  h_etaeta <- matrix(c(h_cc, h_cphi, h_cphi, h_phiphi), 2L, 2L)
-  out <- hessian_pp - h_peta %*% solve(h_etaeta, t(h_peta))
-  unname((out + t(out)) / 2)
+  list(
+    hessian_pp = hessian_pp,
+    h_peta = cbind(h_pc, h_pphi),
+    h_etaeta = matrix(c(h_cc, h_cphi, h_cphi, h_phiphi), 2L, 2L)
+  )
+}
+
+#' Profile Hessian of the single-cell log-likelihood in \eqn{\boldsymbol{p}}
+#'
+#' Exact second derivative of
+#' \eqn{\ell^{\ast}(p)=\ell(p,\hat c(p),\hat\phi(p))}: the Schur complement
+#' \eqn{H_{pp}-H_{p\eta}H_{\eta\eta}^{-1}H_{\eta p}} of the observed
+#' Hessian in \eqn{(p,\eta)}, \eqn{\eta=(c,\phi)}, evaluated at the
+#' closed-form scales. With \eqn{w=Wr},
+#' \eqn{H_{p_jc}=\phi^{-1}(\tilde\mu_j^\top w-c\tilde\mu_j^\top Wm
+#' -m^\top W\Sigma_j w)},
+#' \eqn{H_{p_j\phi}=-\phi^{-2}(c\tilde\mu_j^\top w+\tfrac12 w^\top\Sigma_j w)},
+#' \eqn{H_{cc}=-m^\top Wm/\phi}, \eqn{H_{c\phi}=-m^\top w/\phi^2} and
+#' \eqn{H_{\phi\phi}=G/(2\phi^2)-r^\top w/\phi^3}.
+#'
+#' @noRd
+.profile_hessian_single_cell <- function(
+  p,
+  y,
+  mean_signature_matrix,
+  Sigma,
+  mean_scale,
+  variance_scale
+) {
+  blocks <- .single_cell_hessian_blocks(
+    p,
+    y,
+    mean_signature_matrix,
+    Sigma,
+    mean_scale,
+    variance_scale
+  )
+  out <- blocks$hessian_pp -
+    blocks$h_peta %*% solve(blocks$h_etaeta, t(blocks$h_peta))
+  unname(.symmetrise(out))
 }
 
 #' Profile log-likelihood of one single-cell bulk sample in ILR coordinates
@@ -651,6 +681,176 @@ hessian_profile_loglik_single_cell_ilr <- function(
   )
 }
 
+#' Observed information of one single-cell fit
+#'
+#' @description
+#' At a fitted composition, the covariance of the ILR coordinate
+#' \eqn{\hat{\boldsymbol{\rho}}} is the inverse of the negative profile
+#' Hessian [hessian_profile_loglik_single_cell_ilr()]. The delta method
+#' carries it to \eqn{\hat{\boldsymbol{p}}} with
+#' \eqn{\mathbf{J}_{\psi}}. The two technical scales use the other Schur
+#' complement of the joint observed Hessian in
+#' \eqn{(\boldsymbol{\rho},c,\phi)}: estimating the composition widens
+#' their variances, and \eqn{I_{c\phi}} is not assumed to make that
+#' complement diagonal.
+#'
+#' Both matrices are observed information, not expected Fisher
+#' information. They treat the reference moments as known.
+#'
+#' @inheritParams loglik_single_cell
+#' @param p Fitted composition. A boundary coordinate makes the ILR
+#'   chart undefined.
+#' @param mean_scale,variance_scale Scales at `p`. `NULL` recomputes the
+#'   closed forms.
+#' @param scales_known If `TRUE`, the scales are treated as known: the
+#'   composition covariance inverts the fixed-scale observed Hessian
+#'   [hessian_loglik_single_cell_ilr()] at `mean_scale` and
+#'   `variance_scale`, and `vcov_nuisance` is `NA`. This is the
+#'   covariance of a `"fixed_scales"` fit. For a `"two_stage"` fit it
+#'   ignores the uncertainty of the start scales, so its intervals are
+#'   too narrow.
+#' @param warn If `TRUE`, warn when either information matrix is not
+#'   positive definite.
+#'
+#' @return A list with `rho`, `vcov_rho`, `vcov` (delta method for
+#'   \eqn{\boldsymbol{p}}), `mean_scale`, `variance_scale` and
+#'   `vcov_nuisance` (order \eqn{c}, \eqn{\phi}). Singular blocks are
+#'   filled with `NA`.
+#'
+#' @seealso [deconvolute_single_cell()], [confint_single_cell()]
+#' @export
+#' @examples
+#' mu <- matrix(c(2, 0.2, 0.2, 2, 0.2, 3, 0.2, 3), nrow = 4)
+#' sigma <- array(rep(diag(0.05, 4), 2), c(4, 4, 2))
+#' y <- 20 * drop(mu %*% c(0.7, 0.3)) + c(0.3, -0.2, 0.1, -0.1)
+#' vcov_single_cell(c(0.7, 0.3), y, mu, sigma)
+vcov_single_cell <- function(
+  p,
+  y,
+  mean_signature_matrix,
+  Sigma,
+  mean_scale = NULL,
+  variance_scale = NULL,
+  scales_known = FALSE,
+  warn = TRUE
+) {
+  checked <- .check_single_cell_inputs(y, mean_signature_matrix, Sigma)
+  y <- checked$y
+  mean_signature_matrix <- checked$mean
+  nms <- colnames(mean_signature_matrix)
+  p <- repair_simplex(p, open = TRUE, nms = nms)
+  if (is.null(mean_scale) || is.null(variance_scale)) {
+    scales <- .single_cell_scales_at_p(y, mean_signature_matrix, Sigma, p)
+    mean_scale <- scales$mean_scale
+    variance_scale <- scales$variance_scale
+  } else {
+    mean_scale <- .positive_scalar(mean_scale, "mean_scale")
+    variance_scale <- .positive_scalar(variance_scale, "variance_scale")
+  }
+  rho <- isometric_log_ratio(p)
+  jac <- jacobian_isometric_logistic(rho)
+  na_rho <- matrix(NA_real_, length(rho), length(rho))
+  na_p <- matrix(NA_real_, length(p), length(p), dimnames = list(nms, nms))
+  na_eta <- matrix(
+    NA_real_,
+    2L,
+    2L,
+    dimnames = list(
+      c("mean_scale", "variance_scale"),
+      c("mean_scale", "variance_scale")
+    )
+  )
+  h_rho <- .symmetrise(hessian_loglik_single_cell_ilr(
+    rho,
+    y,
+    mean_signature_matrix,
+    Sigma,
+    mean_scale,
+    variance_scale
+  ))
+  info_rho <- if (isTRUE(scales_known)) {
+    -h_rho
+  } else {
+    .symmetrise(
+      -hessian_profile_loglik_single_cell_ilr(
+        rho,
+        y,
+        mean_signature_matrix,
+        Sigma
+      )
+    )
+  }
+  vcov_rho <- .invert_pd(
+    info_rho,
+    warn = warn,
+    what = if (isTRUE(scales_known)) "fixed-scale" else "profile"
+  )
+  if (is.null(vcov_rho)) {
+    vcov_rho <- na_rho
+    vcov_p <- na_p
+  } else {
+    vcov_p <- jac %*% vcov_rho %*% t(jac)
+    dimnames(vcov_p) <- list(nms, nms)
+  }
+  blocks <- .single_cell_hessian_blocks(
+    p,
+    y,
+    mean_signature_matrix,
+    Sigma,
+    mean_scale,
+    variance_scale
+  )
+  h_cross <- crossprod(jac, blocks$h_peta)
+  vcov_eta <- tryCatch(
+    {
+      schur <- .symmetrise(
+        blocks$h_etaeta - t(h_cross) %*% solve(h_rho, h_cross)
+      )
+      solved <- .invert_pd(-schur, warn = warn, what = "nuisance")
+      if (is.null(solved)) na_eta else solved
+    },
+    error = function(e) {
+      if (isTRUE(warn)) {
+        warning(
+          "Nuisance information could not be inverted.",
+          call. = FALSE
+        )
+      }
+      na_eta
+    }
+  )
+  if (isTRUE(scales_known)) {
+    vcov_eta <- na_eta
+  }
+  dimnames(vcov_eta) <- dimnames(na_eta)
+  list(
+    rho = rho,
+    vcov_rho = vcov_rho,
+    vcov = vcov_p,
+    mean_scale = mean_scale,
+    variance_scale = variance_scale,
+    vcov_nuisance = vcov_eta
+  )
+}
+
+
+#' @noRd
+.invert_pd <- function(info, warn, what) {
+  ev <- eigen(info, symmetric = TRUE, only.values = TRUE)$values
+  if (any(!is.finite(ev)) || min(ev) <= 1e-8) {
+    if (isTRUE(warn)) {
+      warning(
+        "The ",
+        what,
+        " information is not positive definite.",
+        call. = FALSE
+      )
+    }
+    return(NULL)
+  }
+  .symmetrise(solve(info))
+}
+
 #' Single-cell deconvolution of one bulk sample
 #'
 #' @description
@@ -678,7 +878,9 @@ hessian_profile_loglik_single_cell_ilr <- function(
 #' trust region of [stats::nlminb()]: the step maximises the quadratic
 #' model inside a ball whose radius grows or shrinks with the ratio of
 #' actual to predicted increase; there is no line search and no fixed
-#' step length. No covariance matrix and no interval is returned.
+#' step length. The returned `vcov` is the delta-method image of the
+#' inverse negative profile Hessian; intervals are
+#' [confint_single_cell()].
 #'
 #' @inheritParams loglik_single_cell
 #' @param epsilon Relative function and step tolerances passed to
@@ -704,7 +906,9 @@ hessian_profile_loglik_single_cell_ilr <- function(
 #'   or `"fixed_scales"`), `mean_scale`, `variance_scale`,
 #'   `platform_scale`, `n_cells`, `cell_size`, `ols_scale`, `loglik`,
 #'   `convergence` (0 from [stats::nlminb()] means success), `iterations`,
-#'   `p_start` and `message`.
+#'   `p_start`, `message`, `vcov_rho`, `vcov` and `vcov_nuisance`
+#'   (see [vcov_single_cell()]). A singular information matrix is
+#'   returned as `NA` without failing the fit.
 #'
 #' @examples
 #' genes <- paste0("g", 1:4)
@@ -864,6 +1068,19 @@ deconvolute_single_cell <- function(
   }
   names(p) <- nms
   names(q) <- nms
+  uncertainty <- tryCatch(
+    vcov_single_cell(
+      fitted_composition,
+      y,
+      mean_signature_matrix,
+      Sigma,
+      mean_scale,
+      variance_scale,
+      scales_known = !identical(fit_type, "profile"),
+      warn = FALSE
+    ),
+    error = function(e) NULL
+  )
 
   list(
     composition = fitted_composition,
@@ -889,6 +1106,13 @@ deconvolute_single_cell <- function(
     convergence = fit$convergence,
     iterations = fit$iterations,
     p_start = p_start,
-    message = fit$message
+    message = fit$message,
+    vcov_rho = if (is.null(uncertainty)) NULL else uncertainty$vcov_rho,
+    vcov = if (is.null(uncertainty)) NULL else uncertainty$vcov,
+    vcov_nuisance = if (is.null(uncertainty)) {
+      NULL
+    } else {
+      uncertainty$vcov_nuisance
+    }
   )
 }

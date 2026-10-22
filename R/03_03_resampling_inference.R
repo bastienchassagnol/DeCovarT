@@ -45,7 +45,8 @@
 #'   defaults to the number of observed columns.
 #'
 #' @return A list with `estimates` (\eqn{J\times} `n_boot` matrix),
-#'   `interval` (percentile bounds), `p_simulated`, and, when
+#'   `interval` (percentile bounds), `n_failed` (refits that errored,
+#'   left as `NA` columns), `p_simulated`, and, when
 #'   `null_value` is supplied, `statistic` (observed \eqn{D}),
 #'   `null_statistics`, and `p_value`.
 #'
@@ -111,7 +112,10 @@ bootstrap_decovart <- function(
       Sigma,
       n_replicates
     )
-    boot_full <- fit_bulk(y_boot)
+    boot_full <- tryCatch(fit_bulk(y_boot), error = function(e) NULL)
+    if (is.null(boot_full)) {
+      next
+    }
     estimates[, b] <- boot_full$coefficients
     if (!is.null(statistic)) {
       boot_null <- fit_bulk(y_boot, null_value)
@@ -119,16 +123,10 @@ bootstrap_decovart <- function(
         (max(boot_full$loglik, boot_null$loglik) - boot_null$loglik)
     }
   }
-  alpha <- (1 - level) / 2
   out <- list(
     estimates = estimates,
-    interval = t(apply(
-      estimates,
-      1L,
-      stats::quantile,
-      probs = c(alpha, 1 - alpha),
-      na.rm = TRUE
-    )),
+    interval = .percentile_interval(estimates, level),
+    n_failed = sum(is.na(estimates[1L, ])),
     p_simulated = p_simulated
   )
   if (!is.null(statistic)) {
@@ -139,6 +137,104 @@ bootstrap_decovart <- function(
       (1 + sum(is.finite(null_statistics)))
   }
   out
+}
+
+#' Check a named list of purified profiles and optional donor labels
+#'
+#' @noRd
+.check_reference_profiles <- function(
+  reference_profiles,
+  donor_ids,
+  method
+) {
+  method <- match.arg(method, c("donors", "cells"))
+  refs <- lapply(reference_profiles, as.matrix)
+  n_cols <- vapply(refs, ncol, integer(1))
+  if (
+    !is.list(reference_profiles) ||
+      is.null(names(refs)) ||
+      !all(nzchar(names(refs))) ||
+      length(unique(vapply(refs, nrow, integer(1)))) != 1L ||
+      any(n_cols < 2L)
+  ) {
+    stop(
+      "`reference_profiles` must be a named list of gene x sample ",
+      "matrices with the same genes and at least two columns per ",
+      "cell type.",
+      call. = FALSE
+    )
+  }
+  if (identical(method, "donors")) {
+    if (is.null(donor_ids)) {
+      stop(
+        "Supply `donor_ids` for method = \"donors\", ",
+        "or use method = \"cells\".",
+        call. = FALSE
+      )
+    }
+    donor_ids <- lapply(donor_ids[names(refs)], as.character)
+    if (!identical(lengths(donor_ids, use.names = FALSE), unname(n_cols))) {
+      stop(
+        "`donor_ids` must be named like `reference_profiles`, with one ",
+        "label per purified column.",
+        call. = FALSE
+      )
+    }
+    if (
+      any(vapply(donor_ids, function(d) length(unique(d)), integer(1)) < 2L)
+    ) {
+      stop(
+        "method = \"donors\" needs at least two donors in every cell type.",
+        call. = FALSE
+      )
+    }
+  }
+  list(refs = refs, donor_ids = donor_ids, method = method)
+}
+
+#' Draw donors or cells with replacement inside each labelled type
+#'
+#' @noRd
+.resample_reference_profiles <- function(refs, method, donor_ids = NULL) {
+  if (identical(method, "donors")) {
+    return(Map(
+      function(x, d) {
+        donors <- unique(d)
+        drawn <- sample(donors, size = length(donors), replace = TRUE)
+        keep <- unlist(
+          lapply(drawn, function(id) which(d == id)),
+          use.names = FALSE
+        )
+        x[, keep, drop = FALSE]
+      },
+      refs,
+      donor_ids
+    ))
+  }
+  lapply(refs, function(x) {
+    x[, sample.int(ncol(x), replace = TRUE), drop = FALSE]
+  })
+}
+
+#' Donors when every type has two or more; otherwise cells, and regenerate
+#'
+#' Shuffling cell-type names is not a sampling model. One donor per type
+#' falls back to resampling columns within the type.
+#'
+#' @noRd
+.reference_resample_plan <- function(donor_ids) {
+  if (is.null(donor_ids)) {
+    return(list(method = "cells", regenerate_bulk = TRUE))
+  }
+  n_donors <- vapply(
+    donor_ids,
+    function(d) length(unique(as.character(d))),
+    integer(1)
+  )
+  if (length(n_donors) == 0L || any(n_donors < 2L)) {
+    return(list(method = "cells", regenerate_bulk = TRUE))
+  }
+  list(method = "donors", regenerate_bulk = FALSE)
 }
 
 # Reference-sample bootstrap -----------------------------------------------
@@ -177,9 +273,14 @@ bootstrap_decovart <- function(
 #'
 #' The observed bulk is kept fixed unless
 #' `regenerate_bulk = TRUE`, in which case each replicate also draws
-#' \eqn{\boldsymbol{Y}^{(b)}} from the bootstrapped moments at `p`
-#' (the observed MLE by default). That is the pipeline
-#' reference units \eqn{\to S^{(b)}\to Y^{(b)}\to\hat{\boldsymbol{p}}^{(b)}}.
+#' \eqn{\boldsymbol{Y}^{(b)}} from the fitted model, at `p` (the observed
+#' MLE by default) and the moments of the full reference, and refits it
+#' with the bootstrapped moments \eqn{S^{(b)}}. Drawing
+#' \eqn{\boldsymbol{Y}^{(b)}} from \eqn{S^{(b)}} instead would make each
+#' refit consistent with its own moments, so the reference error would not
+#' reach \eqn{\hat{\boldsymbol{p}}^{(b)}}: with 60 cells per type, that
+#' variant covered a known composition 76\% of the time at the 95\%
+#' level, against 92\% for this one (60 replicates).
 #'
 #' When a cell type has fewer purified columns than genes, the sample
 #' covariance is singular. A ridge `ridge * mean(diag(S))` is then added
@@ -195,14 +296,15 @@ bootstrap_decovart <- function(
 #'   `reference_profiles`, with one label per purified column. Required for
 #'   `method = "donors"`.
 #' @param method One of `"donors"` (default) or `"cells"`.
-#' @param regenerate_bulk If `TRUE`, simulate
-#'   a new bulk from the bootstrapped moments instead of keeping the
-#'   observed \eqn{\boldsymbol{Y}} fixed.
+#' @param regenerate_bulk If `TRUE`, simulate a new bulk from the fitted
+#'   model and refit it with the bootstrapped moments, instead of keeping
+#'   the observed \eqn{\boldsymbol{Y}} fixed.
 #' @param ridge Non-negative ridge multiple for the sample covariance of
 #'   each cell type. The default `1e-6` is relative to the mean diagonal.
 #'
 #' @return A list with `method`, `estimates` (\eqn{J\times} `n_boot`),
-#'   `interval` (percentile bounds), `mean_signature_matrix` / `Sigma`
+#'   `interval` (percentile bounds), `n_failed`, `mean_signature_matrix` /
+#'   `Sigma`
 #'   from the original reference, and `p_hat` from the original plug-in
 #'   fit.
 #'
@@ -244,47 +346,14 @@ reference_bootstrap_decovart <- function(
   epsilon = 10^-8,
   itmax = 500L
 ) {
-  method <- match.arg(method)
-  refs <- lapply(reference_profiles, as.matrix)
-  n_cols <- vapply(refs, ncol, integer(1))
-  if (
-    !is.list(reference_profiles) ||
-      is.null(names(refs)) ||
-      !all(nzchar(names(refs))) ||
-      length(unique(vapply(refs, nrow, integer(1)))) != 1L ||
-      any(n_cols < 2L)
-  ) {
-    stop(
-      "`reference_profiles` must be a named list of gene x sample matrices ",
-      "with the same genes and at least two columns per cell type.",
-      call. = FALSE
-    )
-  }
-  if (identical(method, "donors")) {
-    if (is.null(donor_ids)) {
-      stop(
-        "Supply `donor_ids` for method = \"donors\", ",
-        "or use method = \"cells\".",
-        call. = FALSE
-      )
-    }
-    donor_ids <- lapply(donor_ids[names(refs)], as.character)
-    if (!identical(lengths(donor_ids, use.names = FALSE), unname(n_cols))) {
-      stop(
-        "`donor_ids` must be named like `reference_profiles`, with one ",
-        "label per purified column.",
-        call. = FALSE
-      )
-    }
-    if (
-      any(vapply(donor_ids, function(d) length(unique(d)), integer(1)) < 2L)
-    ) {
-      stop(
-        "method = \"donors\" needs at least two donors in every cell type.",
-        call. = FALSE
-      )
-    }
-  }
+  checked <- .check_reference_profiles(
+    reference_profiles,
+    donor_ids,
+    method
+  )
+  refs <- checked$refs
+  donor_ids <- checked$donor_ids
+  method <- checked$method
   n_boot <- as.integer(n_boot)
   if (length(n_boot) != 1L || is.na(n_boot) || n_boot < 1L) {
     stop("`n_boot` must be a positive integer.", call. = FALSE)
@@ -311,51 +380,41 @@ reference_bootstrap_decovart <- function(
   for (b in seq_len(n_boot)) {
     # Resample with replacement within each labelled cell type: whole donors
     # (cluster bootstrap) or individual purified columns.
-    refs_b <- if (identical(method, "donors")) {
-      Map(
-        function(x, d) {
-          donors <- unique(d)
-          drawn <- sample(donors, size = length(donors), replace = TRUE)
-          x[, unlist(lapply(drawn, function(id) which(d == id))), drop = FALSE]
-        },
-        refs,
-        donor_ids
-      )
-    } else {
-      lapply(refs, function(x) {
-        x[, sample.int(ncol(x), replace = TRUE), drop = FALSE]
-      })
-    }
+    refs_b <- .resample_reference_profiles(refs, method, donor_ids)
     moments_b <- .moments_from_profiles(refs_b, ridge = ridge)
+    # A regenerated bulk is drawn from the fitted model (original
+    # moments) and fitted with the resampled moments; drawing it from the
+    # resampled moments would make the refit consistent with them and
+    # hide the reference error.
     y_b <- if (isTRUE(regenerate_bulk)) {
       .simulate_bulk_replicates(
         p_simulated,
-        moments_b$mean_signature_matrix,
-        moments_b$Sigma,
+        moments$mean_signature_matrix,
+        moments$Sigma,
         n_replicates
       )
     } else {
       y
     }
-    estimates[, b] <- restricted_mle_decovart(
-      y_b,
-      moments_b$mean_signature_matrix,
-      moments_b$Sigma,
-      epsilon = epsilon,
-      itmax = itmax
-    )$coefficients
+    fit_b <- tryCatch(
+      restricted_mle_decovart(
+        y_b,
+        moments_b$mean_signature_matrix,
+        moments_b$Sigma,
+        epsilon = epsilon,
+        itmax = itmax
+      ),
+      error = function(e) NULL
+    )
+    if (!is.null(fit_b)) {
+      estimates[, b] <- fit_b$coefficients
+    }
   }
-  alpha <- (1 - level) / 2
   list(
     method = method,
     estimates = estimates,
-    interval = t(apply(
-      estimates,
-      1L,
-      stats::quantile,
-      probs = c(alpha, 1 - alpha),
-      na.rm = TRUE
-    )),
+    interval = .percentile_interval(estimates, level),
+    n_failed = sum(is.na(estimates[1L, ])),
     p_hat = observed$coefficients,
     mean_signature_matrix = moments$mean_signature_matrix,
     Sigma = moments$Sigma

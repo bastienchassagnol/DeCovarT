@@ -1166,8 +1166,17 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
     \item dense shrinkage of the correlations with the variances kept
           \cite{schäferShrinkageApproachLargescale2005}, judged by held-out Gaussian log-likelihood
   \end{itemize}
-  \item sparsity is secondary for DeCovarT: the likelihood needs \(\boldsymbol{\Sigma}_{j}\), and
-        \(\sum_{j}p_{j}^{2}\boldsymbol{\Sigma}_{j}\) has no sparse precision even when every \(\boldsymbol{\Omega}_{j}\) is sparse
+  \item sparsity is secondary for DeCovarT: the likelihood needs \(\boldsymbol{\Sigma}_{j}\), and the mixture covariance,
+        \(\sum_{j}p_{j}\boldsymbol{\Sigma}_{W,j}\) here or \(\sum_{j}p_{j}^{2}\boldsymbol{\Sigma}_{j}\) for population references, has no
+        sparse precision even when every \(\boldsymbol{\Omega}_{j}\) is sparse
+  \item from precision to covariance: an estimator that returns \(\hat{\boldsymbol{\Omega}}_{j}\) (partial correlations, the
+        de-sparsified graphical lasso) is inverted once per type, before any fit, through its Cholesky factor
+        \cite{golubMatrixComputations2013}: the factorisation certifies that \(\hat{\boldsymbol{\Omega}}_{j}\) is positive definite,
+        the inverse is exactly symmetric, at least as accurate as a QR inverse and three to five times faster for
+        \(G=200\) to \(800\); if the factorisation fails, the diagonal of \(\hat{\boldsymbol{\Omega}}_{j}\) is shifted uniformly, which
+        keeps the graph, until both factors exist; the graphical lasso
+        returns \(\hat{\boldsymbol{\Sigma}}_{j}\) directly; this \(O(G^{3})\) inversion is paid once, whereas the mixture covariance
+        is factorised at every likelihood evaluation (Appendix~\ref{app:optim-structured})
   \item empty graphs are a detection limit: above \(\max_{g\neq g'}|R_{gg'}|\) the graphical lasso returns a
         diagonal precision, and recovery needs \(n\asymp d^{2}\log G\) for maximum degree \(d\)
         \cite{chiquetContributionsSparseMethods2015,heinävaaraInconsistencyℓ1penalisedSparse2016};
@@ -1227,8 +1236,14 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
         Hessian of the profile \(\ell^{\ast}\) is the observed counterpart of that Schur complement, so the profile fit carries the
         correction for the estimated scales, whereas the two-stage variant needs the plug-in correction of
         Appendix~\ref{app:sc-inference}
-  \item[] \todo[inline]{Return \(\{-\nabla^{2}_{\boldsymbol{\rho}}\ell^{\ast}(\hat{\boldsymbol{\rho}})\}^{-1}\) from \texttt{deconvolute\_single\_cell()}
-        and check the coverage of the resulting Wald intervals.}
+  \item few genes: \(\hat\phi_{i}\) has \(\nu=G-J\) residual degrees of freedom, and its maximum-likelihood divisor \(G\) biases it
+        downwards by about \(\nu/G\); with \(G=10\) and \(J=2\), the 95\% Wald, ILR and profile intervals covered the realised
+        fractions 89--94\% of the time, and those for \(c_{i}\) and \(\phi_{i}\) 84--90\% (300 replicates per scenario of
+        Section~\ref{sec:sc-synthetic}); the REML calibration inflates the covariances by \(G/\nu\), takes quantiles from
+        \(t_{\nu}\), gives \(\phi_{i}\) the interval \([G\hat\phi_{i}/\chi^{2}_{\nu;1-\alpha/2},\,G\hat\phi_{i}/\chi^{2}_{\nu;\alpha/2}]\) and
+        the profile interval the cut-off \(G\log\{1+F_{1,\nu;1-\alpha}/\nu\}\), exact in a linear model with unknown variance;
+        it brought every coverage to 94--98\%
+
   \item profile intervals concentrate both scales out (Appendices~\ref{app:sc-inference} and~\ref{app:mle-nuisance});
         a single bulk sample has the small-dispersion limit in the number of cells
         \cite{jørgensenSmallDispersionAsymptotics1987}; boundary tests and bootstraps are those of
@@ -1278,7 +1293,7 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
     \State \(\hat c,\hat\phi\gets\) closed forms at \(\hat{\boldsymbol{p}}\); \(\hat a\gets\hat\phi/\hat c\), \(\hat n\gets\hat c^{2}/\hat\phi\)
       \Comment{\(\hat n\) is a number of cells only when \(a\) is known}
     \State \(\widehat{\operatorname{Var}}(\hat{\boldsymbol{p}})\gets\mathbf{J}_{\psi}(-\boldsymbol{H}_{\rho})^{-1}\mathbf{J}_{\psi}^{\top}\) at \(\hat{\boldsymbol{\rho}}\)
-      \Comment{planned; not yet returned by the package}
+      \Comment{returned as \texttt{vcov}}
     \Ensure cell fractions \(\hat{\boldsymbol{p}}\), transcript fractions \(\hat q_{j}=\hat p_{j}S_{j}/\sum_{\ell}\hat p_{\ell}S_{\ell}\),
       scales \(\hat c,\hat\phi,\hat a,\hat n\), and \(\widehat{\operatorname{Var}}(\hat{\boldsymbol{p}})\)
   \end{algorithmic}
@@ -1507,6 +1522,10 @@ either side identifies variance terms that one sample cannot separate.
         convergence or after a fixed number of iterations
   \item first-order and stochastic methods (mini-batch gradients, adaptive steps) pay off only when many bulk
         samples share parameters (Appendix~\ref{app:optim-other})
+  \item faster factorisations: every likelihood evaluation factorises the \(G\times G\) mixture covariance at a cost
+        \(O(G^{3})\); when the cell-type covariances share a block, band or diagonal-plus-low-rank structure, the mixture
+        inherits it and can be factorised faster, with the same likelihood, estimate and intervals
+        (Appendix~\ref{app:optim-structured}); a speed-up for large \(G\), with no statistical effect
   \item[] \todo[inline]{Implement Fisher scoring in \texttt{fit\_decovart()}, switching to Newton--Raphson near the
         maximum, and compare iterations, failures and run time with the current solvers.}
 \end{itemize}

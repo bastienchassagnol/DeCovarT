@@ -17,7 +17,7 @@ Numeric array of dimension \eqn{G\times G\times J}.
 For each cell type \eqn{j}, inverts
 \eqn{\boldsymbol{\Omega}_j} to
 \eqn{\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1}} (via
-\code{\link[=qr.solve]{qr.solve()}}) and stacks the result as a \eqn{G\times G\times J}
+\code{\link[=chol2inv]{chol2inv()}}) and stacks the result as a \eqn{G\times G\times J}
 array. If a slice is not numerically SPD, or if the inverse fails
 Cholesky, a further uniform spectral shift is applied to that
 precision (off-diagonal support unchanged). Precisions need not be

@@ -34,10 +34,13 @@
 #' Zero mass on \eqn{A} keeps
 #' \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}
 #' \boldsymbol{\Sigma}_j} positive definite as long as at least one
-#' coordinate remains strictly positive. Optimisation uses
-#' [stats::optim()] (`"BFGS"`) with the analytic score obtained by
-#' chaining [gradient_loglik_unconstrained()] through
-#' \eqn{(1-s)\mathbf{J}_{\boldsymbol{\psi}}} on the free-face ILR chart.
+#' coordinate remains strictly positive. The free face is fitted by
+#' Newton-Raphson with the PORT trust region of [stats::nlminb()], from
+#' its barycentre, with the pooled analytic score and Hessian chained
+#' through \eqn{(1-s)\mathbf{J}_{\boldsymbol{\psi}}}. The bounded first
+#' step matters: with several columns the pooled score is large, and an
+#' unbounded quasi-Newton step can land on a vertex, where the likelihood
+#' is flat, and stop there.
 #'
 #' Without `fixed`, the interior ILR optimum is compared with the restricted
 #' fit on the face where it stops (coordinates below `1e-3` set to zero),
@@ -52,7 +55,7 @@
 #'   e.g. `c(celltype_1 = 0)`; the names must be columns of
 #'   `mean_signature_matrix`. `NULL` (default) fits the unrestricted MLE.
 #' @param epsilon,itmax Relative convergence tolerance and iteration
-#'   budget passed to [stats::optim()].
+#'   budget passed to [stats::nlminb()].
 #'
 #' @return A list with `coefficients` (the fitted \eqn{J} vector),
 #'   `loglik` (summed over the columns of `y`), `fixed`, and `convergence`.
@@ -89,88 +92,22 @@ restricted_mle_decovart <- function(
   }
   .assert_no_missing(y, "bulk expression")
   nms <- colnames(mean_signature_matrix)
-  n_celltypes <- ncol(mean_signature_matrix)
-  idx <- match(names(fixed), nms)
-  if (length(fixed) > 0L && (is.null(names(fixed)) || anyNA(idx))) {
-    stop(
-      "`fixed` must be named by columns of `mean_signature_matrix`.",
-      call. = FALSE
-    )
-  }
-  fixed_value <- as.numeric(fixed)
-  if (anyNA(fixed_value) || any(fixed_value < 0) || sum(fixed_value) > 1) {
-    stop(
-      "`fixed` must hold non-negative ratios summing to at most 1.",
-      call. = FALSE
-    )
-  }
-  free <- setdiff(seq_len(n_celltypes), idx)
-  remaining <- 1 - sum(fixed_value)
-  # The free block is (1 - s) psi(z) on the ILR chart of the free face; the
-  # fixed block is substituted, so an exact zero is representable.
-  assemble <- function(z) {
-    p <- numeric(n_celltypes)
-    p[idx] <- fixed_value
-    if (length(free) == 1L) {
-      p[free] <- remaining
-    } else if (length(free) > 1L && remaining > 0) {
-      p[free] <- remaining * isometric_logistic(z)
-    }
-    stats::setNames(p, nms)
-  }
-  pooled_loglik <- function(p) {
-    sum(apply(
-      y,
-      2L,
-      loglik_multivariate,
-      p = p,
-      mean_signature_matrix = mean_signature_matrix,
-      Sigma = Sigma
-    ))
-  }
-  result <- function(p, loglik, convergence) {
-    list(
-      coefficients = p,
-      loglik = loglik,
-      fixed = stats::setNames(fixed_value, nms[idx]),
-      convergence = convergence
-    )
-  }
-  if (length(free) <= 1L || remaining <= 0) {
-    p_hat <- assemble(numeric(0))
-    return(result(
-      p_hat,
-      pooled_loglik(p_hat),
-      list(code = 0L, iterations = 0L, message = "closed form")
-    ))
-  }
-  score <- function(z) {
-    grad_p <- rowSums(as.matrix(apply(
-      y,
-      2L,
-      gradient_loglik_unconstrained,
-      p = assemble(z),
-      mean_signature_matrix = mean_signature_matrix,
-      Sigma = Sigma
-    )))
-    drop(grad_p[free] %*% (remaining * jacobian_isometric_logistic(z)))
-  }
-  fit <- stats::optim(
-    par = rep(0, length(free) - 1L),
-    fn = function(z) pooled_loglik(assemble(z)),
-    gr = score,
-    method = "BFGS",
-    control = list(fnscale = -1, reltol = epsilon, maxit = itmax)
+  interior <- .fit_on_face(
+    nms,
+    fixed,
+    loglik = function(p) {
+      .pooled_population_loglik(p, y, mean_signature_matrix, Sigma)
+    },
+    score = function(p) {
+      .pooled_population_score(p, y, mean_signature_matrix, Sigma)
+    },
+    hessian = function(p) {
+      .pooled_population_hessian(p, y, mean_signature_matrix, Sigma)
+    },
+    epsilon = epsilon,
+    itmax = itmax
   )
-  interior <- result(
-    assemble(fit$par),
-    fit$value,
-    list(
-      code = fit$convergence,
-      iterations = unname(fit$counts[["function"]]),
-      message = fit$message
-    )
-  )
+  n_celltypes <- length(nms)
   if (length(fixed) == 0L) {
     face <- which(interior$coefficients < 1e-3)
     if (length(face) > 0L && length(face) < n_celltypes) {
@@ -302,6 +239,34 @@ chi_bar_square_pvalue <- function(
 
 # Likelihood-ratio test ----------------------------------------------------
 
+#' Number of constraints a null imposes, and how many lie on a face
+#'
+#' Fixing \eqn{k} coordinates whose sum is below one imposes \eqn{k}
+#' constraints, one per fixed zero lying on a face. When the fixed values
+#' sum to one, every unfixed coordinate is forced to zero as well, so the
+#' null fixes the whole composition: \eqn{J-1} constraints, and every zero
+#' coordinate, fixed or implied, counts as a boundary constraint. A null
+#' \eqn{p_j=1} therefore has \eqn{J-1} boundary constraints.
+#'
+#' @noRd
+.null_constraint_counts <- function(null_value, n_celltypes, tol) {
+  null_value <- as.numeric(null_value)
+  if (sum(null_value) >= 1 - tol) {
+    n_constraints <- n_celltypes - 1L
+    implied_zero <- n_celltypes - length(null_value)
+    n_boundary <- sum(null_value <= tol) + implied_zero
+  } else {
+    n_constraints <- length(null_value)
+    n_boundary <- sum(null_value <= tol)
+  }
+  n_boundary <- as.integer(min(n_boundary, n_constraints))
+  list(
+    n_constraints = as.integer(n_constraints),
+    n_boundary = n_boundary,
+    df_interior = as.integer(n_constraints) - n_boundary
+  )
+}
+
 #' Likelihood-ratio test for cellular ratios
 #'
 #' @description
@@ -336,7 +301,13 @@ chi_bar_square_pvalue <- function(
 #' generalised to several active constraints by
 #' \insertCite{selfAsymptoticPropertiesMaximum1987;textual}{DeCovarT}.
 #' Boundary calibration is selected automatically when any tested value is
-#' within `boundary_tol` of 0 or 1; override with `n_boundary`.
+#' within `boundary_tol` of 0, or when the tested values sum to one, which
+#' forces every other ratio to zero (a null \eqn{p_j=1} fixes \eqn{J-1}
+#' coordinates on faces); override with `n_boundary`. The binomial weights
+#' of [chi_bar_square_pvalue()] are exact for orthogonal constraints; for
+#' several correlated faces they approximate the weights of the tangent
+#' cone, and [bootstrap_decovart()] with `null_value` gives a calibration
+#' that does not rely on them.
 #'
 #' **Replication.** Both calibrations are *population* statements: they
 #' need replicate bulk samples that genuinely share one composition
@@ -350,7 +321,8 @@ chi_bar_square_pvalue <- function(
 #' @param null_value Numeric vector of hypothesised ratios named by cell
 #'   types, e.g. `c(celltype_2 = 0)`.
 #' @param n_boundary Optional integer override for the number of active
-#'   boundary constraints; `NULL` infers it from `null_value`.
+#'   boundary constraints; `NULL` infers it from `null_value`, counting
+#'   the zeros implied when the fixed values sum to one.
 #' @param boundary_tol Distance from 0 or 1 below which a null value
 #'   counts as being on the boundary.
 #'
@@ -415,13 +387,17 @@ lrt_decovart <- function(
   }
   loglik_full <- max(full$loglik, null$loglik)
   statistic <- 2 * (loglik_full - null$loglik)
-  if (is.null(n_boundary)) {
-    n_boundary <- sum(
-      null_value <= boundary_tol | null_value >= 1 - boundary_tol
-    )
+  counts <- .null_constraint_counts(
+    null_value,
+    ncol(mean_signature_matrix),
+    boundary_tol
+  )
+  if (!is.null(n_boundary)) {
+    counts$df_interior <- counts$n_constraints - as.integer(n_boundary)
+    counts$n_boundary <- as.integer(n_boundary)
   }
-  n_boundary <- as.integer(n_boundary)
-  df_interior <- length(null_value) - n_boundary
+  n_boundary <- counts$n_boundary
+  df_interior <- counts$df_interior
   data.frame(
     statistic = statistic,
     n_boundary = n_boundary,

@@ -55,7 +55,9 @@ A list with \code{composition} (the fitted simplex coordinate),
 or \code{"fixed_scales"}), \code{mean_scale}, \code{variance_scale},
 \code{platform_scale}, \code{n_cells}, \code{cell_size}, \code{ols_scale}, \code{loglik},
 \code{convergence} (0 from \code{\link[stats:nlminb]{stats::nlminb()}} means success), \code{iterations},
-\code{p_start} and \code{message}.
+\code{p_start}, \code{message}, \code{vcov_rho}, \code{vcov} and \code{vcov_nuisance}
+(see \code{\link[=vcov_single_cell]{vcov_single_cell()}}). A singular information matrix is
+returned as \code{NA} without failing the fit.
 }
 \description{
 Fits one bulk sample from the linear single-cell mixture
@@ -82,7 +84,9 @@ Every fit uses the analytic score and observed Hessian with the PORT
 trust region of \code{\link[stats:nlminb]{stats::nlminb()}}: the step maximises the quadratic
 model inside a ball whose radius grows or shrinks with the ratio of
 actual to predicted increase; there is no line search and no fixed
-step length. No covariance matrix and no interval is returned.
+step length. The returned \code{vcov} is the delta-method image of the
+inverse negative profile Hessian; intervals are
+\code{\link[=confint_single_cell]{confint_single_cell()}}.
 }
 \examples{
 genes <- paste0("g", 1:4)

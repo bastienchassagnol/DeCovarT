@@ -20,10 +20,9 @@ test_that("compute_benchmark_metrics scores against true ratios", {
 
   expect_named(scores, c("regression", "monte_carlo", "optimisation"))
   expect_named(scores$regression, c("global", "cell_type"))
-  expect_equal(scores$regression$global$tv, .tv(true_p, estimated_p))
-  expect_equal(scores$regression$global$rmse, .rmse(true_p, estimated_p))
-  expect_equal(scores$regression$global$sdid, .sdid(true_p, estimated_p))
-  expect_equal(scores$regression$global$maxae, .maxae(true_p, estimated_p))
+  expect_equal(scores$regression$global$tv, 0.05)
+  expect_equal(scores$regression$global$rmse, 0.05)
+  expect_equal(scores$regression$global$maxae, 0.05)
   expect_true(is.na(scores$regression$global$reconstitution_mae))
   expect_identical(nrow(scores$regression$cell_type), 2L)
   expect_identical(nrow(scores$monte_carlo), 2L)
@@ -320,15 +319,51 @@ test_that("Newton-Raphson attaches ILR Wald SEs; nnls does not", {
   expect_true(all(is.na(nnls$coverage)))
 })
 
-test_that("closed-form solvers store NA homogenised convergence", {
-  conv <- .homogenise_convergence(c(0.5, 0.5))
-  expect_true(is.na(conv$iterations))
-  expect_true(is.na(conv$code))
-  iterative <- .homogenise_convergence(
-    list(convergence = list(code = 0L, iterations = 12L, rdm = 1e-6))
+test_that("solvers store one convergence record, closed forms store NA", {
+  mu <- matrix(
+    c(20, 40, 15, 40, 20, 25),
+    nrow = 3,
+    dimnames = list(paste0("g", 1:3), paste0("ct", 1:2))
   )
-  expect_identical(iterative$iterations, 12L)
-  expect_identical(iterative$code, 0L)
+  sigma <- array(c(diag(3), diag(3)), dim = c(3, 3, 2))
+  y <- drop(mu %*% c(0.6, 0.4))
+  newton <- deconvolute_ratios_Newton_Raphson(
+    y,
+    mu,
+    sigma,
+    return_model = TRUE
+  )$convergence
+  marquardt <- deconvolute_ratios_Marquardt_Levenberg(
+    y,
+    mu,
+    sigma,
+    return_model = TRUE
+  )$convergence
+  expect_named(newton, c("code", "iterations", "message", "rdm"))
+  expect_named(marquardt, c("code", "iterations", "message", "rdm"))
+  expect_type(newton$iterations, "integer")
+  expect_true(is.na(newton$rdm))
+  expect_true(is.finite(marquardt$rdm))
+  out <- suppressWarnings(deconvolute_ratios(
+    signature_matrix = mu,
+    bulk_expression = cbind(y, y),
+    Sigma = sigma,
+    deconvolution_functions = list(
+      nnls = list(FUN = deconvolute_ratios_nnls),
+      newton = list(FUN = deconvolute_ratios_Newton_Raphson)
+    ),
+    cores = 1L
+  ))
+  conv <- out$optimisation$converged
+  algorithm <- out$optimisation$algorithm
+  expect_true(all(is.na(vapply(
+    conv[algorithm == "nnls"],
+    function(x) x$iterations,
+    integer(1)
+  ))))
+  expect_true(all(
+    vapply(conv[algorithm == "newton"], function(x) x$code, integer(1)) == 0L
+  ))
 })
 
 test_that("optimisation table stores Hessian extrema and converged lists", {

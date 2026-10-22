@@ -7,9 +7,14 @@
 #' One row of composition-level scores for one bulk sample
 #'
 #' With a ground truth, compares \eqn{\hat{\boldsymbol{p}}} with
-#' \eqn{\boldsymbol{p}^{\star}}; without it, compares the reconstituted bulk
-#' \eqn{\boldsymbol{\mu}\hat{\boldsymbol{p}}} with \eqn{\boldsymbol{y}}.
-#' Scores that do not apply are `NA`.
+#' \eqn{\boldsymbol{p}^{\star}}: total variation
+#' \eqn{\tfrac12\lVert\hat p-p^{\star}\rVert_1}, RMSE, the largest absolute
+#' error, the normalised angle \eqn{(2/\pi)\theta} and the HADACA score
+#' SDID \eqn{\sqrt{\sin\theta}}, with \eqn{\theta} the angle between the
+#' two compositions. Without a ground truth, compares the reconstituted
+#' bulk \eqn{\boldsymbol{\mu}\hat{\boldsymbol{p}}} with \eqn{\boldsymbol{y}}
+#' (RMSE, mean absolute error, Pearson correlation). Scores that do not
+#' apply are `NA`.
 #'
 #' @keywords internal
 #' @noRd
@@ -23,99 +28,39 @@
 ) {
   if (is.null(p_true)) {
     y_hat <- as.vector(mean_signature_matrix %*% p_hat)
+    error <- y - y_hat
     return(tibble::tibble(
       sample_id = sample_id,
       algorithm = algorithm,
       tv = NA_real_,
-      rmse = .rmse(y, y_hat),
+      rmse = sqrt(mean(error^2)),
       angular = NA_real_,
       sdid = NA_real_,
       maxae = NA_real_,
-      reconstitution_mae = .mae(y, y_hat),
+      reconstitution_mae = mean(abs(error)),
       reconstitution_cor = .pearson_safe(y, y_hat)
     ))
+  }
+  p_true <- as.numeric(p_true)
+  p_hat <- as.numeric(p_hat)
+  error <- p_true - p_hat
+  norms <- sqrt(sum(p_true^2) * sum(p_hat^2))
+  cos_angle <- if (is.finite(norms) && norms > 0) {
+    min(1, max(-1, sum(p_true * p_hat) / norms))
+  } else {
+    NA_real_
   }
   tibble::tibble(
     sample_id = sample_id,
     algorithm = algorithm,
-    tv = .tv(p_true, p_hat),
-    rmse = .rmse(p_true, p_hat),
-    angular = .angular_distance(p_true, p_hat),
-    sdid = .sdid(p_true, p_hat),
-    maxae = .maxae(p_true, p_hat),
+    tv = 0.5 * sum(abs(error)),
+    rmse = sqrt(mean(error^2)),
+    angular = (2 / pi) * acos(cos_angle),
+    sdid = sqrt(sqrt(1 - cos_angle^2)),
+    maxae = max(abs(error)),
     reconstitution_mae = NA_real_,
     reconstitution_cor = NA_real_
   )
-}
-
-#' Root mean squared error
-#'
-#' @param actual Numeric vector of observed values.
-#' @param predicted Numeric vector of predicted values.
-#' @return Scalar RMSE.
-#' @keywords internal
-#' @noRd
-.rmse <- function(actual, predicted) {
-  sqrt(mean((actual - predicted)^2))
-}
-
-#' Mean absolute error
-#'
-#' @param actual Numeric vector of observed values.
-#' @param predicted Numeric vector of predicted values.
-#' @return Scalar MAE.
-#' @keywords internal
-#' @noRd
-.mae <- function(actual, predicted) {
-  mean(abs(actual - predicted))
-}
-
-#' Total variation / normalised MAE on the simplex
-#'
-#' @keywords internal
-#' @noRd
-.tv <- function(p, p_hat) {
-  0.5 * sum(abs(as.numeric(p) - as.numeric(p_hat)))
-}
-
-#' \eqn{L_\infty} absolute error
-#'
-#' @keywords internal
-#' @noRd
-.maxae <- function(p, p_hat) {
-  max(abs(as.numeric(p) - as.numeric(p_hat)))
-}
-
-#' Normalised angular distance on \eqn{[0, 1]}
-#'
-#' @keywords internal
-#' @noRd
-.angular_distance <- function(p, p_hat) {
-  p <- as.numeric(p)
-  p_hat <- as.numeric(p_hat)
-  denom <- sqrt(sum(p^2)) * sqrt(sum(p_hat^2))
-  if (!is.finite(denom) || denom <= 0) {
-    return(NA_real_)
-  }
-  cos_angle <- sum(p * p_hat) / denom
-  cos_angle <- min(1, max(-1, cos_angle))
-  (2 / pi) * acos(cos_angle)
-}
-
-#' HADACA-style SDID (\eqn{\sqrt{\sin\theta}})
-#'
-#' @keywords internal
-#' @noRd
-.sdid <- function(p, p_hat) {
-  p <- as.numeric(p)
-  p_hat <- as.numeric(p_hat)
-  denom <- sqrt(sum(p^2)) * sqrt(sum(p_hat^2))
-  if (!is.finite(denom) || denom <= 0) {
-    return(NA_real_)
-  }
-  cos_angle <- sum(p * p_hat) / denom
-  sin_angle <- sqrt(1 - min(1, cos_angle^2))
-  sqrt(sin_angle)
 }
 
 #' Safe Pearson correlation (NA if either vector is constant)

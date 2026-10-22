@@ -56,7 +56,6 @@ if (
 } else {
   library(DeCovarT)
 }
-.ui_attach_script()
 source(file.path("scripts", "auxiliary", "benchmark_artefacts.R"))
 
 OUT_DIR <- file.path("output", "supp_S4")

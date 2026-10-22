@@ -28,7 +28,7 @@ log-likelihoods are summed (the pooled, population-level fit).}
 column order so the check is deterministic.}
 
 \item{epsilon, itmax}{Relative convergence tolerance and iteration
-budget passed to \code{\link[stats:optim]{stats::optim()}}.}
+budget passed to \code{\link[stats:nlminb]{stats::nlminb()}}.}
 }
 \value{
 A list with \code{perm}, \code{p_hat}, \code{p_star} (fit on the relabelled
@@ -69,13 +69,23 @@ equivariance_check_decovart(y, mu, Sigma)$max_abs_diff
 
 Other decovart_inference:
 \code{\link[=bootstrap_decovart]{bootstrap_decovart()}},
+\code{\link[=bootstrap_single_cell]{bootstrap_single_cell()}},
 \code{\link[=boundary_diagnostics]{boundary_diagnostics()}},
 \code{\link[=chi_bar_square_pvalue]{chi_bar_square_pvalue()}},
+\code{\link[=confint_decovart]{confint_decovart()}},
+\code{\link[=confint_ilr_backtransform]{confint_ilr_backtransform()}},
 \code{\link[=confint_profile_decovart]{confint_profile_decovart()}},
+\code{\link[=confint_profile_single_cell]{confint_profile_single_cell()}},
+\code{\link[=confint_single_cell]{confint_single_cell()}},
+\code{\link[=fit_firth_decovart]{fit_firth_decovart()}},
+\code{\link[=fit_firth_single_cell]{fit_firth_single_cell()}},
 \code{\link[=lrt_decovart]{lrt_decovart()}},
+\code{\link[=lrt_single_cell]{lrt_single_cell()}},
 \code{\link[=multistart_decovart]{multistart_decovart()}},
 \code{\link[=reference_bootstrap_decovart]{reference_bootstrap_decovart()}},
-\code{\link[=restricted_mle_decovart]{restricted_mle_decovart()}}
+\code{\link[=reference_bootstrap_single_cell]{reference_bootstrap_single_cell()}},
+\code{\link[=restricted_mle_decovart]{restricted_mle_decovart()}},
+\code{\link[=restricted_mle_single_cell]{restricted_mle_single_cell()}}
 }
 \concept{decovart_inference}
 \keyword{internal}

@@ -63,8 +63,9 @@ symmetric square root,
 }
 Then \eqn{\boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu}=s^{2}R} whenever
 \eqn{R} has unit diagonal. The default \eqn{R} is the equicorrelation
-matrix \eqn{(1-\rho)I+\rho\mathbf{1}\mathbf{1}^{\mathsf{T}}}
-(\code{\link[=equicorrelation_gram]{equicorrelation_gram()}}). Supply \code{target_gram} to set unequal
+(equicorrelation) matrix
+\eqn{(1-\rho)I+\rho\mathbf{1}\mathbf{1}^{\mathsf{T}}}, positive
+semidefinite for \eqn{\rho\in[-1/(J-1),1]}. Supply \code{target_gram} to set unequal
 pairwise cosines (for example two close pairs and a distant background),
 provided \(R\) is symmetric nonnegative-definite.
 }
@@ -73,7 +74,7 @@ Realisations are unique up to an orthogonal transformation of the gene
 space: replacing \eqn{\boldsymbol{Q}} by \eqn{\boldsymbol{Q}U} with
 \eqn{U^{\mathsf{T}}U=\boldsymbol{I}_{J}} leaves the Gram unchanged. By
 default \eqn{\boldsymbol{Q}} is a deterministic thin QR frame; pass \code{seed}
-for a Haar-like Gaussian frame. Cholesky \eqn{R=LL^{\mathsf{T}}} is an
+for a Haar-like Gaussian frame (the global random state is restored). Cholesky \eqn{R=LL^{\mathsf{T}}} is an
 alternative square root used in Monte Carlo simulation; see the
 how-to-build-synthetic-scenarios vignette appendix.
 }

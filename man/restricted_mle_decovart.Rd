@@ -29,7 +29,7 @@ e.g. \code{c(celltype_1 = 0)}; the names must be columns of
 \code{mean_signature_matrix}. \code{NULL} (default) fits the unrestricted MLE.}
 
 \item{epsilon, itmax}{Relative convergence tolerance and iteration
-budget passed to \code{\link[stats:optim]{stats::optim()}}.}
+budget passed to \code{\link[stats:nlminb]{stats::nlminb()}}.}
 }
 \value{
 A list with \code{coefficients} (the fitted \eqn{J} vector),
@@ -61,10 +61,13 @@ likelihood-ratio tests computable (see \code{\link[=lrt_decovart]{lrt_decovart()
 Zero mass on \eqn{A} keeps
 \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}
 \boldsymbol{\Sigma}_j} positive definite as long as at least one
-coordinate remains strictly positive. Optimisation uses
-\code{\link[stats:optim]{stats::optim()}} (\code{"BFGS"}) with the analytic score obtained by
-chaining \code{\link[=gradient_loglik_unconstrained]{gradient_loglik_unconstrained()}} through
-\eqn{(1-s)\mathbf{J}_{\boldsymbol{\psi}}} on the free-face ILR chart.
+coordinate remains strictly positive. The free face is fitted by
+Newton-Raphson with the PORT trust region of \code{\link[stats:nlminb]{stats::nlminb()}}, from
+its barycentre, with the pooled analytic score and Hessian chained
+through \eqn{(1-s)\mathbf{J}_{\boldsymbol{\psi}}}. The bounded first
+step matters: with several columns the pooled score is large, and an
+unbounded quasi-Newton step can land on a vertex, where the likelihood
+is flat, and stop there.
 
 Without \code{fixed}, the interior ILR optimum is compared with the restricted
 fit on the face where it stops (coordinates below \code{1e-3} set to zero),
@@ -84,13 +87,23 @@ restricted_mle_decovart(y, mu, Sigma, fixed = c(ct3 = 0))$coefficients
 
 Other decovart_inference:
 \code{\link[=bootstrap_decovart]{bootstrap_decovart()}},
+\code{\link[=bootstrap_single_cell]{bootstrap_single_cell()}},
 \code{\link[=boundary_diagnostics]{boundary_diagnostics()}},
 \code{\link[=chi_bar_square_pvalue]{chi_bar_square_pvalue()}},
+\code{\link[=confint_decovart]{confint_decovart()}},
+\code{\link[=confint_ilr_backtransform]{confint_ilr_backtransform()}},
 \code{\link[=confint_profile_decovart]{confint_profile_decovart()}},
+\code{\link[=confint_profile_single_cell]{confint_profile_single_cell()}},
+\code{\link[=confint_single_cell]{confint_single_cell()}},
 \code{\link[=equivariance_check_decovart]{equivariance_check_decovart()}},
+\code{\link[=fit_firth_decovart]{fit_firth_decovart()}},
+\code{\link[=fit_firth_single_cell]{fit_firth_single_cell()}},
 \code{\link[=lrt_decovart]{lrt_decovart()}},
+\code{\link[=lrt_single_cell]{lrt_single_cell()}},
 \code{\link[=multistart_decovart]{multistart_decovart()}},
-\code{\link[=reference_bootstrap_decovart]{reference_bootstrap_decovart()}}
+\code{\link[=reference_bootstrap_decovart]{reference_bootstrap_decovart()}},
+\code{\link[=reference_bootstrap_single_cell]{reference_bootstrap_single_cell()}},
+\code{\link[=restricted_mle_single_cell]{restricted_mle_single_cell()}}
 }
 \concept{decovart_inference}
 \keyword{internal}

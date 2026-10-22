@@ -120,9 +120,12 @@ dir.create("output/supp_S4", recursive = TRUE, showWarnings = FALSE)
 s4_results <- purrr::pmap(
   list(cov_models_grid$cosine_mu, cov_models_grid$cov_model),
   \(rho, model) {
-    mu <- generate_mean_signature_matrix(J, G,
-      cosine_similarity = rho,
-      mean_scale = 100, seed = SEED
+    mu <- generate_mean_signature_matrix(
+      n_genes = G,
+      n_celltypes = J,
+      mean_scale = 100,
+      target_cosine = rho,
+      seed = SEED
     )
     run_simulation_benchmark(
       n_replicates          = N_REPLICATES,

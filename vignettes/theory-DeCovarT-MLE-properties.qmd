@@ -1969,11 +1969,10 @@ that the geometry of the estimate actually supports.
 | Procedure | What it returns | Calibration | Simplex faces | Replication | Function |
 |:--|:--|:--|:--|:--|:--|
 | Wald (delta method on $\boldsymbol{p}$) | per-sample CI, may leave $[0,1]$ | $\mathrm{N}(\boldsymbol{0},I(\hat{\boldsymbol{z}})^{-1})$ mapped by $\mathbf{J}_{\boldsymbol{\psi}}$ | unusable (`NA`) | one bulk column is a plug-in approximation (@nte-replication) | `confint()` / `vcov_ilr_delta()` |
-| ILR back-transformation | per-sample CI inside $(0,1)$, jointly a composition | quantiles of $\boldsymbol{\psi}(\boldsymbol{\rho}^{(b)})$, $\boldsymbol{\rho}^{(b)}\sim\mathcal{N}(\hat{\boldsymbol{\rho}},I_{\boldsymbol{\rho}}^{-1})$ (@sec-wald-routes) | undefined on a face | as Wald | not implemented |
+| ILR back-transformation | per-sample CI inside $(0,1)$, jointly a composition | quantiles of $\boldsymbol{\psi}(\boldsymbol{\rho}^{(b)})$, $\boldsymbol{\rho}^{(b)}\sim\mathcal{N}(\hat{\boldsymbol{\rho}},I_{\boldsymbol{\rho}}^{-1})$ (@sec-wald-routes) | undefined on a face | as Wald | `confint_decovart()` (default), `confint_single_cell()` |
 | Score-test inversion | asymmetric CI, information at each null value | $\chi^2_1$ on @eq-three-tests (@sec-test-inversion) | defined in $\boldsymbol{p}$ coordinates | as profile | not implemented |
-| Firth-penalised Wald | per-sample CI, estimate always interior | Jeffreys-penalised likelihood (@sec-firth) | defined | exact bias removal only for canonical exponential families; simulation check needed here | not implemented |
+| Firth-penalised Wald | per-sample CI, estimate always interior | Jeffreys-penalised likelihood (@sec-firth) | defined | exact bias removal only for canonical exponential families; simulation check needed here | `fit_firth_decovart()`, `fit_firth_single_cell()` |
 | Sandwich (Godambe) | per-sample CI robust to a wrong variance | sequential score contributions (@sec-sandwich) | interior only | few genes make it noisy | not implemented |
-| Conformal region | region for $\boldsymbol{p}$ with marginal coverage | labelled pseudo-bulk calibration (@sec-conformal) | inside the simplex | needs a generator that mimics the bulk | not implemented |
 | Profile likelihood | CI in $[0,1]$, lower and upper limits from the signed root | Wilks $\chi^2_1$ on the deviance (@wilksLargeSampleDistributionLikelihood1938), nuisance scales profiled out (@sec-nuisance) | stays inside the simplex; endpoints on a face need the boundary LRT | pooled replicates, or many cells per type (@sec-regularity) | `confint_profile_decovart()` |
 | $r^{\ast}$ or Bartlett-corrected LRT | CI with $O(n^{-3/2})$ or $O(n^{-2})$ error | modified likelihood root, or $D$ rescaled by its bootstrap mean (@sec-higher-order) | not regular on a face | small $N$ or few cells | not implemented (`likelihoodAsy` for $r^{\ast}$) |
 | Interior LRT | test of $p_j=c\in(0,1)$ | $\chi^2_1$ | not for $c=0$ or $c=1$ | same as profile | `lrt_decovart()` |
@@ -1981,7 +1980,7 @@ that the geometry of the estimate actually supports.
 | Parametric bootstrap | percentile CI and Monte Carlo $p$-value | $\boldsymbol{Y}^{(b)}\sim\mathcal{N}_G(\boldsymbol{\mu}\boldsymbol{p},\boldsymbol{\Sigma}(\boldsymbol{p}))$ at the MLE or restricted MLE | automatic (the $\tfrac12\chi^2_0$ atom is visible) | known plug-in $(\boldsymbol{\mu},\boldsymbol{\Sigma}_j,\boldsymbol{p})$ | `bootstrap_decovart()` |
 | Reference-sample bootstrap | percentile CI | resample **donors** (default) or **cells** within each labelled type, with replacement, rebuild $(\boldsymbol{\mu},\boldsymbol{\Sigma}_j)$, refit [@efronBootstrapMethodsAnother1979] | automatic | uncertainty in the reference, not in $\boldsymbol{Y}$ unless `regenerate_bulk` | `reference_bootstrap_decovart()` |
 
-: Inferential procedures for DeCovarT proportions. Wald is the default of `confint.decovart_fit`; rows marked "not implemented" are specified in this vignette. {#tbl-inference-recap}
+: Inferential procedures for DeCovarT proportions. `confint.decovart_fit()` remains the delta method. `confint_decovart()` and `confint_single_cell()` default to the ILR back-transformation. Rows marked "not implemented" are specified in this vignette. {#tbl-inference-recap}
 
 A short decision rule, in the order the table suggests abandoning the
 previous row:
@@ -2002,6 +2001,12 @@ previous row:
    log-likelihood is not quadratic (@sec-geometry): report the profile
    interval, with a Bartlett or $r^{\ast}$ correction when replicates or
    cells are few.
+
+The single-cell mixture uses the same menu through
+`confint_single_cell()`. The composition interval is built from the
+profile information, the Schur complement that removes the scales
+$(c,\phi)$. Intervals for those two scales use the complementary Schur
+complement. Neither interval corrects the plug-in reference covariance.
 
 # Outlook: beyond first-order asymptotics {#sec-beyond-asymptotics}
 

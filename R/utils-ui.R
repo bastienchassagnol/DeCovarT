@@ -208,19 +208,6 @@
   stop(.ui_plain(message, .envir), call. = FALSE)
 }
 
-#' Bind UI helpers into a script's calling environment
-#'
-#' @keywords internal
-#' @noRd
-.ui_attach_script <- function(env = parent.frame()) {
-  assign(".ui_h1", .ui_h1, envir = env)
-  assign(".ui_info", .ui_info, envir = env)
-  assign(".ui_success", .ui_success, envir = env)
-  assign(".ui_warn", .ui_warn, envir = env)
-  assign(".ui_abort", .ui_abort, envir = env)
-  invisible(NULL)
-}
-
 .ui_scenario_label <- function(row) {
   if (is.null(row) || !ncol(row)) {
     return("unnamed scenario")

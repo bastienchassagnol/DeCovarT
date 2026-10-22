@@ -1259,6 +1259,40 @@ The argument follows maximum likelihood as iteratively reweighted least squares 
         \cite{dempsterMaximumLikelihoodIncomplete1977}
 \end{itemize}
 
+\subsubsection{Structured factorisations of the mixture covariance}
+\label{app:optim-structured}
+
+\begin{itemize}
+  \item cost: every evaluation of the log-likelihood, score or Hessian assembles the mixture covariance,
+        \(\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_{j}p_{j}^{2}\boldsymbol{\Sigma}_{j}\) or \(\boldsymbol{S}_{W}(\boldsymbol{p})=\sum_{j}p_{j}\boldsymbol{\Sigma}_{W,j}\), in
+        \(O(JG^{2})\), factorises it by a dense Cholesky decomposition in \(O(G^{3})\) \cite{golubMatrixComputations2013}, and
+        solves against the \(J\) matrices \(\boldsymbol{\Sigma}_{j}\) for the traces of the score and Hessian, in \(O(JG^{3})\); the
+        package factorises once per trial composition and shares the factor between the three evaluations
+  \item sparse precisions do not help directly: \(\boldsymbol{\Sigma}_{j}=\boldsymbol{\Omega}_{j}^{-1}\) is in general dense even when
+        \(\boldsymbol{\Omega}_{j}\) is sparse, and a weighted sum of covariances has no sparse precision
+  \item three structures survive the mixture, provided every cell type shares them
+  \begin{itemize}
+    \item block-diagonal: gene modules disconnected in every type give block-diagonal \(\boldsymbol{\Sigma}_{j}\) with the same
+          blocks, hence a block-diagonal mixture, factorised block by block in \(\sum_{b}O(G_{b}^{3})\), about \(B^{2}\) times
+          cheaper for \(B\) equal blocks
+    \item banded or sparse: a common bandwidth \(b\) gives a banded mixture, factorised in \(O(Gb^{2})\); a common sparsity
+          pattern is factorised with a fill-reducing ordering computed once and reused at every composition
+          \cite{chenAlgorithm887CHOLMOD2008}
+    \item diagonal plus low rank with shared loadings: \(\boldsymbol{\Sigma}_{j}=\boldsymbol{D}_{j}+\boldsymbol{U}\boldsymbol{C}_{j}\boldsymbol{U}^{\top}\) gives
+          \(\boldsymbol{D}(\boldsymbol{p})+\boldsymbol{U}\boldsymbol{C}(\boldsymbol{p})\boldsymbol{U}^{\top}\), solved by the Woodbury identity and its determinant by the
+          matrix-determinant lemma, in \(O(Gr^{2})\) for rank \(r\) \cite{hagerUpdatingInverseMatrix1989}
+  \end{itemize}
+  \item no statistical effect: each route computes the same log-likelihood, score and Hessian up to round-off, so the
+        estimate, its intervals and the benchmark scores do not change; only run time and memory do
+  \item caveats: the structure must hold exactly and be declared, never inferred from near-zero entries, because a small
+        cross-block covariance makes the block route wrong rather than approximate; adding cell types adds gene--gene
+        correlations, so a pattern shared by every type is the exception, and the package keeps the dense Cholesky
+  \item status: block, band, sparse and diagonal-plus-low-rank backends are in
+        \texttt{scripts/experimental/covariance\_backends.R}, outside the package; the supplementary S2 script checks each
+        against the dense Cholesky and times it against \(G\) and sparsity
+        \todo{Run the S2 script and report time and memory against \(G\) and sparsity.}
+\end{itemize}
+
 \subsection{Maximum-likelihood properties and confidence intervals}
 \label{app:mle}
 

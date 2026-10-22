@@ -198,7 +198,7 @@ simulate_bulk_from_cells <- function(
         next
       }
       slice <- Sigma[,, j]
-      slice <- (slice + t(slice)) / 2
+      slice <- .symmetrise(slice)
       draw <- MASS::mvrnorm(
         n = 1L,
         mu = count_j * mean_signature_matrix[, j],

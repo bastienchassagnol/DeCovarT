@@ -1495,7 +1495,7 @@ reg_other <- data.frame(
     "Hierarchical"
   ),
   Metric = c(
-    "MAE (helper `.mae()` only)",
+    "MAE (reconstitution only)",
     "Aitchison distance",
     "Jensen–Shannon divergence / distance",
     "Hellinger distance of compositions",
@@ -1559,7 +1559,7 @@ Both scores are strictly increasing functions of the same angle
 $\theta=\arccos(p^{\mathsf{T}}\hat p/(\|p\|_2\|\hat p\|_2))$. The
 normalised angular distance $d_\theta=2\theta/\pi$ is a metric on
 $[0,1]$. SDID is $\sqrt{\sin\theta}$ (the HADACA convention implemented
-in `.sdid()`). They rank methods identically; report one in the headline
+in `compute_benchmark_metrics()`). They rank methods identically; report one in the headline
 panel and keep the other for continuity with HADACA3
 [@barbotPromisesLimitsMultimodal2026].
 :::

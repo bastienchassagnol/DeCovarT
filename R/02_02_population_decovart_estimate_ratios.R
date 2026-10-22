@@ -666,8 +666,11 @@ multistart_decovart <- function(
 #' Shared return value of the DeCovarT solvers
 #'
 #' Names the estimate by cell type and, when `return_model = TRUE`, adds
-#' the ILR coordinates, the attained log-likelihood and the optimiser
-#' diagnostics.
+#' the ILR coordinates, the attained log-likelihood and one convergence
+#' record with the same fields for every solver: `code` (the solver's
+#' own code, `istop` for Marquardt--Levenberg), `iterations`, `message`
+#' and `rdm` (relative distance to the maximum, Marquardt--Levenberg
+#' only).
 #'
 #' @noRd
 .solver_result <- function(
@@ -676,13 +679,17 @@ multistart_decovart <- function(
   y,
   mean_signature_matrix,
   Sigma,
-  convergence,
-  return_model
+  return_model,
+  code,
+  iterations,
+  message = NULL,
+  rdm = NA_real_
 ) {
   names(estimated_p) <- colnames(mean_signature_matrix)
   if (!isTRUE(return_model)) {
     return(estimated_p)
   }
+  message <- as.character(message)
   list(
     coefficients = estimated_p,
     z = estimated_z,
@@ -692,7 +699,16 @@ multistart_decovart <- function(
       mean_signature_matrix,
       Sigma
     ),
-    convergence = convergence
+    convergence = list(
+      code = as.integer(code),
+      iterations = as.integer(iterations),
+      message = if (length(message) == 1L && nzchar(message)) {
+        message
+      } else {
+        NA_character_
+      },
+      rdm = as.numeric(rdm)
+    )
   )
 }
 
@@ -842,8 +858,10 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
     y,
     mean_signature_matrix,
     Sigma,
-    list(istop = fit$istop, rdm = fit$rdm, iterations = fit$ni),
-    return_model
+    return_model,
+    code = fit$istop,
+    iterations = fit$ni,
+    rdm = fit$rdm
   )
 }
 
@@ -888,12 +906,10 @@ deconvolute_ratios_simulated_annealing <- function(
     y,
     mean_signature_matrix,
     Sigma,
-    list(
-      code = fit$convergence,
-      iterations = unname(fit$counts[["function"]]),
-      message = fit$message
-    ),
-    return_model
+    return_model,
+    code = fit$convergence,
+    iterations = fit$counts[["function"]],
+    message = fit$message
   )
 }
 
@@ -972,12 +988,10 @@ deconvolute_ratios_L_BFGS_B <- function(
     y,
     mean_signature_matrix,
     Sigma,
-    list(
-      code = fit$convergence,
-      iterations = unname(fit$counts[["function"]]),
-      message = fit$message
-    ),
-    return_model
+    return_model,
+    code = fit$convergence,
+    iterations = fit$counts[["function"]],
+    message = fit$message
   )
 }
 
@@ -1025,12 +1039,10 @@ deconvolute_ratios_Newton_Raphson <- function(
     y,
     mean_signature_matrix,
     Sigma,
-    list(
-      code = fit$convergence,
-      iterations = fit$iterations,
-      message = fit$message
-    ),
-    return_model
+    return_model,
+    code = fit$convergence,
+    iterations = fit$iterations,
+    message = fit$message
   )
 }
 
@@ -1079,12 +1091,9 @@ deconvolute_ratios_gradient_descent <- function(
     y,
     mean_signature_matrix,
     Sigma,
-    list(
-      code = fit$convergence,
-      iterations = unname(fit$counts[["function"]]),
-      message = fit$message,
-      criterion = "reltol/abstol"
-    ),
-    return_model
+    return_model,
+    code = fit$convergence,
+    iterations = fit$counts[["function"]],
+    message = fit$message
   )
 }

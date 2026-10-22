@@ -23,7 +23,6 @@ if (
 } else {
   library(DeCovarT)
 }
-.ui_attach_script()
 source(file.path("scripts", "visualisation", "load_visualisation.R"))
 
 OUT_DIR <- file.path("output", "fig03", "mle_explanation")

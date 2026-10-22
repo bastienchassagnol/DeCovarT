@@ -85,11 +85,11 @@ scaling_grid <- tidyr::expand_grid(
     scenario_id = dplyr::row_number(),
     mu = purrr::pmap(list(J, G, cosine_mu), \(j, g, rho) {
       generate_mean_signature_matrix(
-        n_cell_types      = j,
-        n_genes           = g,
-        cosine_similarity = rho,
-        mean_scale        = 100,
-        seed              = SEED + j * g
+        n_genes       = g,
+        n_celltypes   = j,
+        mean_scale    = 100,
+        target_cosine = rho,
+        seed          = SEED + j * g
       )
     }),
     proportions = purrr::map2(J, entropy_norm, \(j, h) {

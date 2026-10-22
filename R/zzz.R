@@ -3,13 +3,6 @@
 
 #' @keywords internal
 #' @noRd
-.onLoad <- function(libname, pkgname) {
-  # Reserved for package-level options (none required yet).
-  invisible()
-}
-
-#' @keywords internal
-#' @noRd
 .onAttach <- function(libname, pkgname) {
   ver <- utils::packageVersion(pkgname)
   attached <- paste0("package:", search())

@@ -38,9 +38,9 @@ The list order fixes the column order of the signature.}
 
 \item{level}{Confidence level for percentile intervals.}
 
-\item{regenerate_bulk}{If \code{TRUE}, simulate
-a new bulk from the bootstrapped moments instead of keeping the
-observed \eqn{\boldsymbol{Y}} fixed.}
+\item{regenerate_bulk}{If \code{TRUE}, simulate a new bulk from the fitted
+model and refit it with the bootstrapped moments, instead of keeping
+the observed \eqn{\boldsymbol{Y}} fixed.}
 
 \item{p}{Composition to simulate from. Defaults to the MLE computed
 from \code{y} (or the restricted MLE under \code{null_value}).}
@@ -52,11 +52,12 @@ defaults to the number of observed columns.}
 each cell type. The default \code{1e-6} is relative to the mean diagonal.}
 
 \item{epsilon, itmax}{Relative convergence tolerance and iteration
-budget passed to \code{\link[stats:optim]{stats::optim()}}.}
+budget passed to \code{\link[stats:nlminb]{stats::nlminb()}}.}
 }
 \value{
 A list with \code{method}, \code{estimates} (\eqn{J\times} \code{n_boot}),
-\code{interval} (percentile bounds), \code{mean_signature_matrix} / \code{Sigma}
+\code{interval} (percentile bounds), \code{n_failed}, \code{mean_signature_matrix} /
+\code{Sigma}
 from the original reference, and \code{p_hat} from the original plug-in
 fit.
 }
@@ -92,9 +93,14 @@ Use this when donor labels are unavailable.}
 
 The observed bulk is kept fixed unless
 \code{regenerate_bulk = TRUE}, in which case each replicate also draws
-\eqn{\boldsymbol{Y}^{(b)}} from the bootstrapped moments at \code{p}
-(the observed MLE by default). That is the pipeline
-reference units \eqn{\to S^{(b)}\to Y^{(b)}\to\hat{\boldsymbol{p}}^{(b)}}.
+\eqn{\boldsymbol{Y}^{(b)}} from the fitted model, at \code{p} (the observed
+MLE by default) and the moments of the full reference, and refits it
+with the bootstrapped moments \eqn{S^{(b)}}. Drawing
+\eqn{\boldsymbol{Y}^{(b)}} from \eqn{S^{(b)}} instead would make each
+refit consistent with its own moments, so the reference error would not
+reach \eqn{\hat{\boldsymbol{p}}^{(b)}}: with 60 cells per type, that
+variant covered a known composition 76\\% of the time at the 95\\%
+level, against 92\\% for this one (60 replicates).
 
 When a cell type has fewer purified columns than genes, the sample
 covariance is singular. A ridge \code{ridge * mean(diag(S))} is then added
@@ -130,12 +136,22 @@ reference_bootstrap_decovart(
 
 Other decovart_inference:
 \code{\link[=bootstrap_decovart]{bootstrap_decovart()}},
+\code{\link[=bootstrap_single_cell]{bootstrap_single_cell()}},
 \code{\link[=boundary_diagnostics]{boundary_diagnostics()}},
 \code{\link[=chi_bar_square_pvalue]{chi_bar_square_pvalue()}},
+\code{\link[=confint_decovart]{confint_decovart()}},
+\code{\link[=confint_ilr_backtransform]{confint_ilr_backtransform()}},
 \code{\link[=confint_profile_decovart]{confint_profile_decovart()}},
+\code{\link[=confint_profile_single_cell]{confint_profile_single_cell()}},
+\code{\link[=confint_single_cell]{confint_single_cell()}},
 \code{\link[=equivariance_check_decovart]{equivariance_check_decovart()}},
+\code{\link[=fit_firth_decovart]{fit_firth_decovart()}},
+\code{\link[=fit_firth_single_cell]{fit_firth_single_cell()}},
 \code{\link[=lrt_decovart]{lrt_decovart()}},
+\code{\link[=lrt_single_cell]{lrt_single_cell()}},
 \code{\link[=multistart_decovart]{multistart_decovart()}},
-\code{\link[=restricted_mle_decovart]{restricted_mle_decovart()}}
+\code{\link[=reference_bootstrap_single_cell]{reference_bootstrap_single_cell()}},
+\code{\link[=restricted_mle_decovart]{restricted_mle_decovart()}},
+\code{\link[=restricted_mle_single_cell]{restricted_mle_single_cell()}}
 }
 \concept{decovart_inference}

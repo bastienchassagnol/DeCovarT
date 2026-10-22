@@ -30,13 +30,14 @@ log-likelihoods are summed (the pooled, population-level fit).}
 types, e.g. \code{c(celltype_2 = 0)}.}
 
 \item{n_boundary}{Optional integer override for the number of active
-boundary constraints; \code{NULL} infers it from \code{null_value}.}
+boundary constraints; \code{NULL} infers it from \code{null_value}, counting
+the zeros implied when the fixed values sum to one.}
 
 \item{boundary_tol}{Distance from 0 or 1 below which a null value
 counts as being on the boundary.}
 
 \item{epsilon, itmax}{Relative convergence tolerance and iteration
-budget passed to \code{\link[stats:optim]{stats::optim()}}.}
+budget passed to \code{\link[stats:nlminb]{stats::nlminb()}}.}
 }
 \value{
 A one-row data frame with columns \code{statistic},
@@ -75,7 +76,13 @@ active constraint,
 generalised to several active constraints by
 \insertCite{selfAsymptoticPropertiesMaximum1987;textual}{DeCovarT}.
 Boundary calibration is selected automatically when any tested value is
-within \code{boundary_tol} of 0 or 1; override with \code{n_boundary}.
+within \code{boundary_tol} of 0, or when the tested values sum to one, which
+forces every other ratio to zero (a null \eqn{p_j=1} fixes \eqn{J-1}
+coordinates on faces); override with \code{n_boundary}. The binomial weights
+of \code{\link[=chi_bar_square_pvalue]{chi_bar_square_pvalue()}} are exact for orthogonal constraints; for
+several correlated faces they approximate the weights of the tangent
+cone, and \code{\link[=bootstrap_decovart]{bootstrap_decovart()}} with \code{null_value} gives a calibration
+that does not rely on them.
 
 \strong{Replication.} Both calibrations are \emph{population} statements: they
 need replicate bulk samples that genuinely share one composition
@@ -103,12 +110,22 @@ lrt_decovart(y, mu, Sigma, null_value = c(ct3 = 0))
 
 Other decovart_inference:
 \code{\link[=bootstrap_decovart]{bootstrap_decovart()}},
+\code{\link[=bootstrap_single_cell]{bootstrap_single_cell()}},
 \code{\link[=boundary_diagnostics]{boundary_diagnostics()}},
 \code{\link[=chi_bar_square_pvalue]{chi_bar_square_pvalue()}},
+\code{\link[=confint_decovart]{confint_decovart()}},
+\code{\link[=confint_ilr_backtransform]{confint_ilr_backtransform()}},
 \code{\link[=confint_profile_decovart]{confint_profile_decovart()}},
+\code{\link[=confint_profile_single_cell]{confint_profile_single_cell()}},
+\code{\link[=confint_single_cell]{confint_single_cell()}},
 \code{\link[=equivariance_check_decovart]{equivariance_check_decovart()}},
+\code{\link[=fit_firth_decovart]{fit_firth_decovart()}},
+\code{\link[=fit_firth_single_cell]{fit_firth_single_cell()}},
+\code{\link[=lrt_single_cell]{lrt_single_cell()}},
 \code{\link[=multistart_decovart]{multistart_decovart()}},
 \code{\link[=reference_bootstrap_decovart]{reference_bootstrap_decovart()}},
-\code{\link[=restricted_mle_decovart]{restricted_mle_decovart()}}
+\code{\link[=reference_bootstrap_single_cell]{reference_bootstrap_single_cell()}},
+\code{\link[=restricted_mle_decovart]{restricted_mle_decovart()}},
+\code{\link[=restricted_mle_single_cell]{restricted_mle_single_cell()}}
 }
 \concept{decovart_inference}

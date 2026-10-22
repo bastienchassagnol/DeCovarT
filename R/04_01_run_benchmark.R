@@ -24,9 +24,6 @@
 #'   Convolution-likelihood solvers fill these from [vcov_ilr_delta()]
 #'   (expected Fisher information pulled back through the ILR chart).
 #'   Mean-only solvers (NNLS, LSEI) leave them missing.
-#' @param lower,upper Optional interval bounds matching `estimated_p`
-#'   (used for coverage and mean width). When omitted but `se` is
-#'   supplied, Wald intervals at `level` are used.
 #' @param elapsed,memory_bytes,kkt_residual Optional per-sample runtime
 #'   diagnostics (recycled to \eqn{N}).
 #' @param numerical_converged Optional logical per sample: the solver
@@ -34,17 +31,17 @@
 #' @param loglik_hat,loglik_true Optional per-sample log-likelihoods used
 #'   for theoretical convergence (regret
 #'   \eqn{\ell(\boldsymbol{p}^{\star})-\ell(\hat{\boldsymbol{p}})}).
-#' @param converged Optional list of length \eqn{N} with homogenised
-#'   optimiser fields (`iterations`, `criterion`, `code`, `rdm`).
-#'   Closed-form solvers store `NA` entries.
+#' @param converged Optional list of length \eqn{N} of optimiser records
+#'   with fields `iterations`, `criterion`, `code` and `rdm`, as stored by
+#'   the DeCovarT solvers. Closed-form solvers store `NA` entries.
 #' @param local_maximum Optional logical per sample: ILR score small and
 #'   Hessian negative definite (\eqn{\lambda_{\min}<0} and
 #'   \eqn{\lambda_{\max}<0}).
 #' @param min_eigenvalue,max_eigenvalue Optional ILR Hessian extrema.
 #' @param presence_threshold Threshold \eqn{\varepsilon} for presence /
 #'   F1 / false-positive mass (default `1e-4`).
-#' @param level Wald coverage level when `lower` / `upper` are omitted
-#'   (default `0.95`).
+#' @param level Level of the Wald intervals built from `se`, used for
+#'   coverage and mean width (default `0.95`).
 #' @param coverage_interval Interval for the Monte Carlo coverage *rate*
 #'   \eqn{\hat\pi}: `"wilson"` (default), `"wald"`, or `"agresti_coull"`.
 #'   This is not the interval for \eqn{p_j} itself.
@@ -72,8 +69,6 @@ compute_benchmark_metrics <- function(
   estimated_p,
   true_ratios = NULL,
   se = NULL,
-  lower = NULL,
-  upper = NULL,
   elapsed = NULL,
   memory_bytes = NULL,
   kkt_residual = NULL,
@@ -116,46 +111,39 @@ compute_benchmark_metrics <- function(
   } else {
     .as_p_matrix(se, cell_names, n_samples)
   }
-  # Supplied bounds are used as they are; otherwise Wald intervals at `level`.
-  if (!is.null(lower) && !is.null(upper)) {
-    lower <- .as_p_matrix(lower, cell_names, n_samples)
-    upper <- .as_p_matrix(upper, cell_names, n_samples)
-  } else {
-    z <- stats::qnorm((1 + level) / 2)
-    lower <- p_hat - z * se_mat
-    upper <- p_hat + z * se_mat
+  z <- stats::qnorm((1 + level) / 2)
+  lower <- p_hat - z * se_mat
+  upper <- p_hat + z * se_mat
+  # Optional per-sample diagnostics: NULL gives NA, a scalar is recycled.
+  per_sample <- function(x) {
+    if (is.null(x)) {
+      return(rep(NA_real_, n_samples))
+    }
+    if (!length(x) %in% c(1L, n_samples)) {
+      stop("Optional per-sample vectors must have length N.", call. = FALSE)
+    }
+    rep_len(as.numeric(x), n_samples)
   }
-  elapsed <- .recycle_numeric(elapsed, n_samples)
-  memory_bytes <- .recycle_numeric(memory_bytes, n_samples)
-  kkt_residual <- .recycle_numeric(kkt_residual, n_samples)
-  loglik_hat <- .recycle_numeric(loglik_hat, n_samples)
-  loglik_true <- .recycle_numeric(loglik_true, n_samples)
+  elapsed <- per_sample(elapsed)
+  memory_bytes <- per_sample(memory_bytes)
+  kkt_residual <- per_sample(kkt_residual)
+  loglik_hat <- per_sample(loglik_hat)
+  loglik_true <- per_sample(loglik_true)
   if (is.null(numerical_converged)) {
     numerical_converged <- apply(p_hat, 2L, function(col) {
       all(is.finite(col))
     })
   }
-  numerical_converged <- as.logical(.recycle_numeric(
-    as.numeric(numerical_converged),
-    n_samples
-  ))
+  numerical_converged <- as.logical(per_sample(numerical_converged))
   regret <- loglik_true - loglik_hat
   theoretical_converged <- rep(NA, n_samples)
   finite_regret <- is.finite(regret)
   theoretical_converged[finite_regret] <- regret[finite_regret] <= 1e-3
-  local_maximum <- if (is.null(local_maximum)) {
-    rep(NA, n_samples)
-  } else {
-    as.logical(.recycle_numeric(as.numeric(local_maximum), n_samples))
-  }
-  min_eigenvalue <- .recycle_numeric(min_eigenvalue, n_samples)
-  max_eigenvalue <- .recycle_numeric(max_eigenvalue, n_samples)
+  local_maximum <- as.logical(per_sample(local_maximum))
+  min_eigenvalue <- per_sample(min_eigenvalue)
+  max_eigenvalue <- per_sample(max_eigenvalue)
   if (is.null(converged)) {
-    converged <- replicate(
-      n_samples,
-      .empty_convergence(),
-      simplify = FALSE
-    )
+    converged <- rep(list(.na_convergence), n_samples)
   }
   if (!is.list(converged) || length(converged) != n_samples) {
     stop("`converged` must be a list of length N.", call. = FALSE)
@@ -246,22 +234,6 @@ compute_benchmark_metrics <- function(
   }
   rownames(p) <- cell_names
   p
-}
-
-#' @keywords internal
-#' @noRd
-.recycle_numeric <- function(x, n) {
-  if (is.null(x)) {
-    return(rep(NA_real_, n))
-  }
-  x <- as.numeric(x)
-  if (length(x) == 1L) {
-    return(rep(x, n))
-  }
-  if (length(x) != n) {
-    stop("Optional per-sample vectors must have length N.", call. = FALSE)
-  }
-  x
 }
 
 #' Parallel deconvolution of a bulk expression matrix
@@ -524,7 +496,19 @@ deconvolute_ratios <- function(
         p = estimated_p,
         se = se,
         ok = TRUE,
-        converged = .homogenise_convergence(raw_out)
+        converged = if (is.list(raw_out) && is.list(raw_out$convergence)) {
+          with(
+            raw_out$convergence,
+            list(
+              iterations = iterations,
+              criterion = message,
+              code = code,
+              rdm = rdm
+            )
+          )
+        } else {
+          .na_convergence
+        }
       )
     },
     error = function(e) {
@@ -533,7 +517,7 @@ deconvolute_ratios <- function(
         p = na_vector,
         se = na_vector,
         ok = FALSE,
-        converged = .empty_convergence()
+        converged = .na_convergence
       )
     }
   )
@@ -688,83 +672,13 @@ deconvolute_ratios <- function(
   NA_real_
 }
 
-#' Empty homogenised optimiser record
+#' Optimiser record of a closed-form solver (NNLS, LSEI, CIBERSORT) or of
+#' a failed fit
 #'
-#' @keywords internal
 #' @noRd
-.empty_convergence <- function() {
-  list(
-    iterations = NA_integer_,
-    criterion = NA_character_,
-    code = NA_integer_,
-    rdm = NA_real_
-  )
-}
-
-#' First finite scalar of the requested type
-#'
-#' @keywords internal
-#' @noRd
-.first_scalar <- function(..., type = "integer") {
-  vals <- list(...)
-  for (v in vals) {
-    if (is.null(v) || length(v) < 1L) {
-      next
-    }
-    x <- v[[1L]]
-    if (identical(type, "character")) {
-      x <- as.character(x)
-      if (is.na(x) || !nzchar(x)) {
-        next
-      }
-      return(x)
-    }
-    if (identical(type, "double")) {
-      x <- suppressWarnings(as.numeric(x))
-      if (length(x) == 1L && is.finite(x)) {
-        return(x)
-      }
-      next
-    }
-    x <- suppressWarnings(as.integer(x))
-    if (length(x) == 1L && !is.na(x)) {
-      return(x)
-    }
-  }
-  if (identical(type, "character")) {
-    return(NA_character_)
-  }
-  if (identical(type, "double")) {
-    return(NA_real_)
-  }
-  NA_integer_
-}
-
-#' Homogenised optimiser diagnostics (iterative solvers only)
-#'
-#' Closed-form methods (NNLS, LSEI, CIBERSORT) return a plain vector without
-#' a `convergence` record, so their fields are `NA`.
-#'
-#' @keywords internal
-#' @noRd
-.homogenise_convergence <- function(raw_out) {
-  conv <- if (is.list(raw_out)) raw_out$convergence else NULL
-  if (!is.list(conv)) {
-    return(.empty_convergence())
-  }
-  list(
-    iterations = .first_scalar(conv$iterations, conv$ni, type = "integer"),
-    criterion = .first_scalar(
-      conv$criterion,
-      conv$message,
-      type = "character"
-    ),
-    code = .first_scalar(
-      conv$code,
-      conv$istop,
-      conv$convergence,
-      type = "integer"
-    ),
-    rdm = .first_scalar(conv$rdm, type = "double")
-  )
-}
+.na_convergence <- list(
+  iterations = NA_integer_,
+  criterion = NA_character_,
+  code = NA_integer_,
+  rdm = NA_real_
+)

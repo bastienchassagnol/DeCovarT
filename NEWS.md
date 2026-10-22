@@ -1,3 +1,66 @@
+* **Fixes to the interval and test machinery, found by simulation.**
+  `scripts/auxiliary/check_confidence_interval_coverage.R` checks the
+  information matrices against independent computations and the coverage
+  of every interval method (300 replicates).
+  - `restricted_mle_decovart()` and `restricted_mle_single_cell()` used
+    BFGS from the barycentre; with pooled columns the first step could
+    jump to a vertex, where the likelihood is flat, and stop there (an
+    estimate of (1, 0) for a true (0.7, 0.3)). Both now run the
+    trust-region Newton driver on the face with the pooled analytic
+    Hessian (`.fit_on_face()`). This affects `lrt_decovart()`,
+    `confint_profile_decovart()`, `bootstrap_decovart()` and the pooled
+    `confint_decovart()` menu.
+  - A profile interval whose upper end reaches the face returned the
+    estimate instead of 1; a failed refit now gives `NA` with a warning.
+  - A null `p_j = 1` fixes J - 1 coordinates on faces; the
+    chi-bar-square tests now count them.
+  - `vcov_single_cell(scales_known = TRUE)` gives the covariance of a
+    fixed-scale or two-stage fit instead of the profile covariance.
+  - The reference bootstraps regenerate the bulk from the fitted model
+    and refit it with the resampled moments; drawing it from the
+    resampled moments hid the reference error (coverage 0.76 instead of
+    0.92).
+  - Bootstraps report `n_failed`.
+  - `confint_single_cell(variance = "reml")` and
+    `confint_profile_single_cell(variance = "reml")` correct for the
+    G - J residual degrees of freedom of the variance scale (covariance
+    inflated by G / (G - J), Student-t quantiles, chi-square interval for
+    phi, exact linear-model profile cut-off). With G = 10 the default
+    `"ml"` intervals cover 0.85 to 0.92 at the 0.95 level.
+
+* **Smaller, flatter internals.** `equicorrelation_gram()` is no longer
+  exported: `generate_mean_signature_matrix(target_cosine = )` builds the
+  same Gram matrix, and its generated means are unchanged bit for bit.
+  The gene frames, the Cholesky test, the two precision-inversion loops,
+  the one-line metrics and the convergence helpers of the benchmark are
+  merged or inlined. Every solver returns one convergence record
+  (`code`, `iterations`, `message`, `rdm`); `compute_benchmark_metrics()`
+  loses the unused `lower` and `upper` arguments. A seeded gene frame
+  restores the global random state. Simulated covariances are now
+  inverted through the Cholesky factor of the precision (exactly
+  symmetric, three to five times faster than QR, no less accurate);
+  simulated datasets change in their last bits, and through
+  `MASS::mvrnorm()` in their draws, so benchmarks must be rerun.
+
+* **Confidence intervals for both mixture models.**
+  `confint_decovart()` chooses an interval for the population
+  convolution. The default maps a Wald interval for the ILR coordinate
+  through the inverse chart (`confint_ilr_backtransform()`). `wald` is
+  the delta method, `firth` is a Jeffreys-penalised Wald interval,
+  `profile` inverts the likelihood ratio, and `bootstrap` /
+  `reference` are the existing resamples. `confint.decovart_fit()` is
+  unchanged and remains the per-column delta method.
+  `confint_single_cell()` uses the same names for the profile
+  likelihood. Intervals for the composition come from the Schur
+  complement that removes the two scales; intervals for the scales
+  come from the complementary Schur complement, on the log scale by
+  default. `deconvolute_single_cell()` now returns `vcov`, `vcov_rho`
+  and `vcov_nuisance`. Higher-order and sandwich corrections for a
+  plug-in covariance are not included. With several donors in every
+  cell type the reference bootstrap resamples donors and keeps the
+  bulk fixed; otherwise it resamples columns within each type and
+  regenerates the bulk. Cell-type labels are not shuffled.
+
 * **Single-cell mixture, separate from the population convolution.**
   Cell-level moments and the bulk sum of cells are
   `rescale_single_cell_moments()` and `simulate_bulk_from_cells()`.

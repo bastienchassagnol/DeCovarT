@@ -83,6 +83,24 @@ new_bivariate_toy_scenario <- function(
   list(signature = signature, Sigma = Sigma)
 }
 
+# Small single-cell bulk used by the interval tests (03_04).
+.single_cell_interval_setup <- function() {
+  mu <- matrix(
+    c(2, 2, 0.2, 0.2, 0.2, 0.2, 3, 3),
+    nrow = 4,
+    dimnames = list(paste0("g", 1:4), paste0("ct", 1:2))
+  )
+  sigma <- array(
+    0,
+    dim = c(4, 4, 2),
+    dimnames = list(rownames(mu), rownames(mu), colnames(mu))
+  )
+  sigma[,, 1] <- diag(0.05, 4)
+  sigma[,, 2] <- diag(0.05, 4)
+  y <- 20 * drop(mu %*% c(0.7, 0.3)) + c(0.3, -0.2, 0.1, -0.1)
+  list(mu = mu, sigma = sigma, y = y)
+}
+
 # Small simulation benchmarks shared by the visualisation tests (05_*).
 .tiny_mc_benchmark <- function() {
   skip_on_os("windows")
