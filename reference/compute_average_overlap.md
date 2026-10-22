@@ -32,9 +32,8 @@ compute_average_overlap(
 
 - true_theta:
 
-  List validated by
-  [`check_true_theta()`](https://bastienchassagnol.github.io/DeCovarT/reference/check_true_theta.md):
-  `p` (length \\J\\ or \\J\times N\\), `mu` (\\G\times J\\), `sigma`
+  List with the generative parameters (see `.parse_true_theta()`): `p`
+  (length \\J\\ or \\J\times N\\), `mu` (\\G\times J\\), `sigma`
   (\\G\times G\times J\\).
 
 - J:
@@ -62,8 +61,8 @@ Scalar average pairwise overlap (MixSim `BarOmega`).
 
 ## See also
 
-[`check_true_theta()`](https://bastienchassagnol.github.io/DeCovarT/reference/check_true_theta.md),
-[`overlap_gaussian_mc()`](https://bastienchassagnol.github.io/DeCovarT/reference/overlap_gaussian_mc.md)
+[`overlap_gaussian_mc()`](https://bastienchassagnol.github.io/DeCovarT/reference/overlap_gaussian_mc.md),
+[`compute_average_jeffreys()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_jeffreys.md)
 
 ## Examples
 

@@ -6,9 +6,7 @@ display of
 with rows and columns ordered by Ward D2 clustering of \\1-r\\. Optional
 dendrogram via `ggdendro` (Suggests), drawn to the **right** of the
 tiles with leaves flush against the heatmap and Ward merge heights on
-the axis. This is the default for a small correlation matrix;
-[`plot_correlation_Heatmap()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_correlation_Heatmap.md)
-is reserved for linked multi-omics grids.
+the axis.
 
 ## Usage
 

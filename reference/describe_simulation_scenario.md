@@ -28,9 +28,7 @@ describe_simulation_scenario(
 - true_theta:
 
   List with `p`, `mu`, and `sigma` (and optionally `Theta` precision).
-  Parsed by
-  [`check_true_theta()`](https://bastienchassagnol.github.io/DeCovarT/reference/check_true_theta.md)
-  / `.parse_true_theta()`.
+  Parsed by `.parse_true_theta()`.
 
 - adjacency:
 

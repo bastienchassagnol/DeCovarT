@@ -107,11 +107,10 @@ p\_{\ell}} = - \mathrm{tr}\\\left\[ \boldsymbol{A}^{-1}
 >
 > Several terms are \boldsymbol{\Omega}-inner products of signature
 > columns, \boldsymbol{\mu}\_{\cdot
-> j}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}\_{\cdot \ell}. Package
-> helper
-> [`.inner_product()`](https://bastienchassagnol.github.io/DeCovarT/reference/dot-inner_product.md)
-> evaluates that bilinear form; see also the squared Mahalanobis
-> distance helper in the same family.
+> j}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}\_{\cdot \ell}. The
+> package evaluates them in one matrix product,
+> \boldsymbol{\mu}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}, shared by
+> the Hessian and the expected Fisher information.
 
 ## Unconstrained score and Hessian
 
@@ -362,19 +361,12 @@ and \boldsymbol{\rho}^{\mathrm{alr}}=\mathbf{D}\_{J}\log\boldsymbol{p}.
 The “1” in the denominator is the reference part; the word *additive*
 refers to the sum of exponentials in that denominator, not to the
 Aitchison perturbation ([Pawlowsky-Glahn et al. 2015,
-47](#ref-CoordinateRepresentation2015)). Package helpers
-[`additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
-and
-[`additive_log_ratio()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
-implement [Eq. 12](#eq-alr-maps) and match
-[`compositions::alrInv()`](https://rdrr.io/pkg/compositions/man/alr.html)
-/ `alr()` with the last part as reference ([van den Boogaart et al.
-2025](#ref-R-compositions)). The Jacobian is the softmax Jacobian with
-the reference column dropped, \partial
+47](#ref-CoordinateRepresentation2015)). The package solvers use the
+isometric chart below, not this additive one. The Jacobian of
+[Eq. 12](#eq-alr-maps) is the softmax Jacobian with the reference column
+dropped, \partial
 p\_{j}/\partial\rho^{\mathrm{alr}}\_{a}=p\_{j}(\delta\_{ja}-p\_{a}) for
-a=1,\ldots,J-1
-([`jacobian_additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/jacobian_additive_logistic.md);
-[`hessian_additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/hessian_additive_logistic.md)).
+a=1,\ldots,J-1.
 
 > **Example 1 (ALR in both directions for
 > \boldsymbol{p}=(0.5,0.3,0.2))**
@@ -1211,7 +1203,7 @@ blows up); the helper then returns `NA` with a warning.
 > bottlenecks that showed up on the hybrid scenario in
 > [Covariance-driven hybrid
 > scenario](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-covariance-driven.html#sec-hybrid-deconvolution)
-> live in `R/03_03_DeCovarT_estimate_ratios_frequentist.R`.
+> live in `R/02_02_population_decovart_estimate_ratios.R`.
 >
 > ------------------------------------------------------------------------
 >
@@ -1334,9 +1326,10 @@ DeCovarT does not forecast bulk expression.
 
 Analytic formulae can be differentiated correctly *and* still implement
 the wrong objective. The checks below separate those two questions. They
-are the same identities that `tests/testthat/test-03_03_DeCovarT.R` and
-`tests/testthat/test-03_06_decovart_inference.R` enforce on every
-package build; the chunks here are a readable, small-(G) illustration.
+are the same identities that
+`tests/testthat/test-02_02_population_decovart_estimate_ratios.R` and
+`tests/testthat/test-03_0*_*.R` enforce on every package build; the
+chunks here are a readable, small-(G) illustration.
 
 ### Density against `mvtnorm`
 
@@ -1486,25 +1479,27 @@ Newton-type solver is standard practice ([Boyd et al. 2004, sect.
 9.7](#ref-boydConvexOptimization2004)); the backends below make that
 structure explicit for DeCovarT.
 
-[`new_decovart_covariance()`](https://bastienchassagnol.github.io/DeCovarT/reference/new_decovart_covariance.md)
-wraps the covariance array with a declared `structure`, and the
-operators
-[`sigma_logdet()`](https://bastienchassagnol.github.io/DeCovarT/reference/sigma_logdet.md),
-[`sigma_solve()`](https://bastienchassagnol.github.io/DeCovarT/reference/sigma_solve.md),
-[`sigma_quadform()`](https://bastienchassagnol.github.io/DeCovarT/reference/sigma_quadform.md)
-and
-[`sigma_trace_precision_times()`](https://bastienchassagnol.github.io/DeCovarT/reference/sigma_trace_precision_times.md)
-return exactly the quantities the objective, score and Hessian need.
-They expose *operations*, never a materialised dense precision: a sparse
-or Woodbury solve must not be silently undone by a dense `chol2inv`.
+These backends are **experimental** and are not exported by the package:
+they live in `scripts/experimental/covariance_backends.R`, sourced by
+the [S2
+appendix](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S2-covariance-inversion.md)
+after `devtools::load_all()`. The package fit keeps the dense Cholesky,
+because more cell types bring more gene–gene correlations and a declared
+sparsity pattern then rarely survives in
+\boldsymbol{\Sigma}(\boldsymbol{p}). In that script,
+`new_decovart_covariance()` wraps the covariance array with a declared
+`structure`, and the operators `sigma_logdet()`, `sigma_solve()`,
+`sigma_quadform()` and `sigma_trace_precision_times()` return exactly
+the quantities the objective, score and Hessian need. They expose
+*operations*, never a materialised dense precision: a sparse or Woodbury
+solve must not be silently undone by a dense `chol2inv`.
 
 ### Decision tree
 
 Structure is supplied explicitly, never inferred from floating-point
 near-zeros, so a numerical near-zero is never mistaken for an exact
-conditional independence.
-[`covariance_structure_from_graph_model()`](https://bastienchassagnol.github.io/DeCovarT/reference/covariance_structure_from_graph_model.md)
-maps a network topology to the recommended backend. A sparse *precision*
+conditional independence. `covariance_structure_from_graph_model()` maps
+a network topology to the recommended backend. A sparse *precision*
 \boldsymbol{\Omega}\_j does not imply a sparse *covariance*
 \boldsymbol{\Sigma}\_j; only structure that survives in
 \boldsymbol{\Sigma}(\boldsymbol{p}) itself accelerates the likelihood.
@@ -1545,6 +1540,8 @@ Each refinement is exact, not approximate:
 
 ``` r
 
+# Experimental: source the backends after loading the package.
+source("scripts/experimental/covariance_backends.R")
 # Declare structure explicitly, then use the operator interface.
 cov <- new_decovart_covariance(Sigma, structure = "diag_lowrank",
   diagonal = D, loadings = U, core = C)

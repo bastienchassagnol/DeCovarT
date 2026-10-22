@@ -158,8 +158,9 @@ in `bivariate_descriptors.rds`. Convolution parameters are
 `bivariate_theta.rds`. ADEMP metrics (`regression`, `monte_carlo`,
 `optimisation`, `call`) are `bivariate_benchmark.rds`. All four files
 share the `ID` key.
-`read_simulation_artefacts(dir, "bivariate", assemble = TRUE)` rejoins
-them for plotting.
+`read_simulation_artefacts(dir, "bivariate", assemble = TRUE)`, a script
+helper in `scripts/auxiliary/benchmark_artefacts.R`, rejoins them for
+plotting.
 
 The Monte Carlo \hat{\boldsymbol{p}} draws themselves are the cell-type
 columns of `optimisation` (one row per replicate \times algorithm \times

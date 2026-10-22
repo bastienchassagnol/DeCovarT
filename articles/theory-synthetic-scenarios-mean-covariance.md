@@ -745,7 +745,7 @@ Compositions on a Shannon grid can be built with
 
 Table 7: Kept scenario descriptors from
 [`describe_simulation_scenario()`](https://bastienchassagnol.github.io/DeCovarT/reference/describe_simulation_scenario.md)
-(`R/02_03_scenario_descriptors.R`). Jeffreys sits on the same `ID` key
+(`R/01_03_scenario_descriptors.R`). Jeffreys sits on the same `ID` key
 in `supplementary` / the descriptors RDS.
 
 > **Note 6: Composition**
@@ -898,9 +898,10 @@ in `supplementary` / the descriptors RDS.
 > gap of the two mean signatures plus a whitened Frobenius gap of
 > p_j\boldsymbol{\Sigma}\_j-p_k\boldsymbol{\Sigma}\_k.
 > [`expected_fisher_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.md)
-> returns I^{\mathrm{mean}}+I^{\mathrm{cov}}; `.fisher_mean_cov_split()`
-> exposes the two summands. The tangent matrix is
-> I_T=\mathbf{V}^{\mathsf{T}}I\mathbf{V} with Helmert basis \mathbf{V}
+> returns I^{\mathrm{mean}}+I^{\mathrm{cov}}; the internal
+> `.information_blocks()` exposes the two summands. The tangent matrix
+> is I_T=\mathbf{V}^{\mathsf{T}}I\mathbf{V} with Helmert basis
+> \mathbf{V}
 > ([`helmert_basis()`](https://bastienchassagnol.github.io/DeCovarT/reference/helmert_basis.md)).
 > Elliptical (Student) bulk would only rescale these terms ([Besson and
 > Abramovich 2013](#ref-bessonFisherInformationMatrix2013)); the
@@ -975,8 +976,8 @@ Shannon evenness in
 MixSim overlap). This section scores *estimators*. With known
 \boldsymbol{p}^{\star},
 [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)
-returns three blocks implemented in `R/utils-metrics.R` and assembled in
-`R/04_01_run_benchmark.R`:
+returns three blocks implemented in `R/04_04_statistical_metrics.R` and
+assembled in `R/04_01_run_benchmark.R`:
 
 - `regression$global`: one row per bulk column (total variation, RMSE,
   MaxAE, angular distance, SDID).
@@ -1081,16 +1082,16 @@ which is unstable for small J.
 
 Table 8: Kept composition and regression scores from
 [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)
-(`R/utils-metrics.R`).
+(`R/04_04_statistical_metrics.R`).
 
 | Metric | Formula | Bounds | Captures | Why_not |
 |----|----|----|----|----|
 | Absolute error | Absolute error | Absolute error | Absolute error | Absolute error |
-| MAE (helper `.mae()` only) | \\J^{-1}\\e\\\_1=2\\d\_{\mathrm{TV}}/J\\ | \\\[0,2/J\]\\; \\J\\-free form is \\d\_{\mathrm{TV}}\\ | Same \\L_1\\ information as TV at fixed \\J\\ | Report `tv` instead (already \\\[0,1\]\\). |
+| MAE (reconstitution only) | \\J^{-1}\\e\\\_1=2\\d\_{\mathrm{TV}}/J\\ | \\\[0,2/J\]\\; \\J\\-free form is \\d\_{\mathrm{TV}}\\ | Same \\L_1\\ information as TV at fixed \\J\\ | Report `tv` instead (already \\\[0,1\]\\). |
 | Log-ratio | Log-ratio | Log-ratio | Log-ratio | Log-ratio |
 | Aitchison distance | \\\\\mathrm{clr}(p)-\mathrm{clr}(\hat p)\\\_2\\ | \\\[0,\infty)\\; undefined at structural zeros | Relative (fold-change) error, rare types included | Zero replacement dominates; no canonical \\\[0,1\]\\ bound. |
 | Information | Information | Information | Information | Information |
-| Jensen–Shannon divergence / distance | \\\tfrac12\mathrm{KL}(p\\m)+\tfrac12\mathrm{KL}(\hat p\\m)\\, \\m=(p+\hat p)/2\\ | \\\[0,\log 2\]\\ (nats); distance \\\sqrt{\mathrm{JSD}/\log 2}\in\[0,1\]\\ | Symmetric distributional disagreement | Not implemented in `R/utils-metrics.R`. |
+| Jensen–Shannon divergence / distance | \\\tfrac12\mathrm{KL}(p\\m)+\tfrac12\mathrm{KL}(\hat p\\m)\\, \\m=(p+\hat p)/2\\ | \\\[0,\log 2\]\\ (nats); distance \\\sqrt{\mathrm{JSD}/\log 2}\in\[0,1\]\\ | Symmetric distributional disagreement | Not implemented in `R/04_04_statistical_metrics.R`. |
 | Probability geometry | Probability geometry | Probability geometry | Probability geometry | Probability geometry |
 | Hellinger distance of compositions | \\2^{-1/2}\\\sqrt{p}-\sqrt{\hat p}\\\_2\\ | \\\[0,1\]\\ | Hellinger geometry of \\\sqrt{p}\\; zeros allowed | Monotone with \\L_2\\ on square-root compositions; not wired. |
 | Association | Association | Association | Association | Association |
@@ -1116,9 +1117,11 @@ al. 2026](#ref-baWhenLessNot2026)).
 > \theta=\arccos(p^{\mathsf{T}}\hat p/(\\p\\\_2\\\hat p\\\_2)). The
 > normalised angular distance d\_\theta=2\theta/\pi is a metric on
 > \[0,1\]. SDID is \sqrt{\sin\theta} (the HADACA convention implemented
-> in `.sdid()`). They rank methods identically; report one in the
-> headline panel and keep the other for continuity with HADACA3 ([Barbot
-> and Richard 2026](#ref-barbotPromisesLimitsMultimodal2026)).
+> in
+> [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)).
+> They rank methods identically; report one in the headline panel and
+> keep the other for continuity with HADACA3 ([Barbot and Richard
+> 2026](#ref-barbotPromisesLimitsMultimodal2026)).
 
 > **Note 15: Simplex bounds for L_p errors**
 >
@@ -1192,7 +1195,7 @@ Table 11: ADEMP-adjacent diagnostics that are not default columns.
 > At true 95% coverage, B=1000 gives \mathrm{MCSE}\approx 0.0069. The
 > package stores `mcse_coverage` on the `monte_carlo` table. For a
 > generic mean \widehat T=B^{-1}\sum_b T_b, use
-> \widehat{\mathrm{MCSE}}(\widehat T)=s_T/\sqrt{B} (`.mcse_mean()`).
+> \widehat{\mathrm{MCSE}}(\widehat T)=s_T/\sqrt{B}.
 
 ### Execution and optimisation
 
@@ -1279,7 +1282,7 @@ Table 13: ILR score and Hessian extrema are now stored on
 > R\_{\alpha}(\boldsymbol{p}) = \alpha^{-1}\bigl(
 > \Pi\_{\Delta}(\boldsymbol{p}+\alpha\nabla_p\ell) -\boldsymbol{p}
 > \bigr), with Euclidean projection \Pi\_{\Delta} onto the simplex
-> (`.project_simplex()`) and default \alpha=1. Then
+> (computed inside `.kkt_residual()`) and default \alpha=1. Then
 > \texttt{kkt\\residual}=\\R\_{\alpha}(\hat{\boldsymbol{p}})\\\_2. This
 > vanishes if and only if a first-order feasible step does not move the
 > iterate, including when some p_j=0 (KKT: g_j=\lambda on the support,

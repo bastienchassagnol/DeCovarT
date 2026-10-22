@@ -102,7 +102,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Derivatives of the DeCovarT generative model under simplex transforms</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-19</p>
+      <p class="date">2026-10-22</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-decovart-generative-model.qmd" class="external-link"><code>vignettes/theory-decovart-generative-model.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -239,7 +239,7 @@
 <div class="decovart-callout callout-tip">
 <blockquote>
 <p><strong>Tip 2: Inner products in the score</strong></p>
-<p>Several terms are <span class="math inline">\boldsymbol{\Omega}</span>-inner products of signature columns, <span class="math inline">\boldsymbol{\mu}_{\cdot j}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}_{\cdot \ell}</span>. Package helper <a href="../reference/dot-inner_product.html"><code>.inner_product()</code></a> evaluates that bilinear form; see also the squared Mahalanobis distance helper in the same family.</p>
+<p>Several terms are <span class="math inline">\boldsymbol{\Omega}</span>-inner products of signature columns, <span class="math inline">\boldsymbol{\mu}_{\cdot j}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}_{\cdot \ell}</span>. The package evaluates them in one matrix product, <span class="math inline">\boldsymbol{\mu}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}</span>, shared by the Hessian and the expected Fisher information.</p>
 </blockquote>
 </div>
 </div>
@@ -557,7 +557,7 @@ p_{J}
 =
 \frac{1}{1+\sum_{\ell&lt;J}e^{\rho^{\mathrm{alr}}_{\ell}}}.
 \tag{12}</span></span></p>
-<p>Equivalently <span class="math inline">\boldsymbol{p}=\operatorname{softmax}(\rho^{\mathrm{alr}}_{1},\ldots,\rho^{\mathrm{alr}}_{J-1},0)</span> and <span class="math inline">\boldsymbol{\rho}^{\mathrm{alr}}=\mathbf{D}_{J}\log\boldsymbol{p}</span>. The “1” in the denominator is the reference part; the word <em>additive</em> refers to the sum of exponentials in that denominator, not to the Aitchison perturbation <span class="citation" data-cites="CoordinateRepresentation2015">(<a href="#ref-CoordinateRepresentation2015" role="doc-biblioref">Pawlowsky-Glahn et al. 2015, 47</a>)</span>. Package helpers <a href="../reference/additive_logistic.html"><code>additive_logistic()</code></a> and <a href="../reference/additive_logistic.html"><code>additive_log_ratio()</code></a> implement <a href="#eq-alr-maps" class="quarto-xref">Eq. 12</a> and match <code><a href="https://rdrr.io/pkg/compositions/man/alr.html" class="external-link">compositions::alrInv()</a></code> / <code>alr()</code> with the last part as reference <span class="citation" data-cites="R-compositions">(<a href="#ref-R-compositions" role="doc-biblioref"><span class="nocase">van den Boogaart et al.</span> 2025</a>)</span>. The Jacobian is the softmax Jacobian with the reference column dropped, <span class="math inline">\partial p_{j}/\partial\rho^{\mathrm{alr}}_{a}=p_{j}(\delta_{ja}-p_{a})</span> for <span class="math inline">a=1,\ldots,J-1</span> (<a href="../reference/jacobian_additive_logistic.html"><code>jacobian_additive_logistic()</code></a>; <a href="../reference/hessian_additive_logistic.html"><code>hessian_additive_logistic()</code></a>).</p>
+<p>Equivalently <span class="math inline">\boldsymbol{p}=\operatorname{softmax}(\rho^{\mathrm{alr}}_{1},\ldots,\rho^{\mathrm{alr}}_{J-1},0)</span> and <span class="math inline">\boldsymbol{\rho}^{\mathrm{alr}}=\mathbf{D}_{J}\log\boldsymbol{p}</span>. The “1” in the denominator is the reference part; the word <em>additive</em> refers to the sum of exponentials in that denominator, not to the Aitchison perturbation <span class="citation" data-cites="CoordinateRepresentation2015">(<a href="#ref-CoordinateRepresentation2015" role="doc-biblioref">Pawlowsky-Glahn et al. 2015, 47</a>)</span>. The package solvers use the isometric chart below, not this additive one. The Jacobian of <a href="#eq-alr-maps" class="quarto-xref">Eq. 12</a> is the softmax Jacobian with the reference column dropped, <span class="math inline">\partial p_{j}/\partial\rho^{\mathrm{alr}}_{a}=p_{j}(\delta_{ja}-p_{a})</span> for <span class="math inline">a=1,\ldots,J-1</span>.</p>
 <div>
 <div class="decovart-callout callout-tip">
 <blockquote>
@@ -1312,7 +1312,7 @@ I_{\boldsymbol{\rho}}^{-1}
 <div class="decovart-callout callout-warning">
 <blockquote>
 <p><strong>Numerical speed-ups and solver safeguards</strong></p>
-<p>The analytic maps above are only half of a usable optimiser. Practical bottlenecks that showed up on the hybrid scenario in <a href="fig03-covariance-driven.html#sec-hybrid-deconvolution">Covariance-driven hybrid scenario</a> live in <code>R/03_03_DeCovarT_estimate_ratios_frequentist.R</code>.</p>
+<p>The analytic maps above are only half of a usable optimiser. Practical bottlenecks that showed up on the hybrid scenario in <a href="fig03-covariance-driven.html#sec-hybrid-deconvolution">Covariance-driven hybrid scenario</a> live in <code>R/02_02_population_decovart_estimate_ratios.R</code>.</p>
 <hr>
 <h4 id="cache-a-cholesky-factorisation-of-boldsymbolsigmaboldsymbolp">Cache a Cholesky factorisation of <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span>
 </h4>
@@ -1373,7 +1373,7 @@ I_{\boldsymbol{\rho}}^{-1}
 <p><code><a href="https://rdrr.io/r/stats/formula.html" class="external-link">formula()</a></code> and <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> are not implemented: DeCovarT does not forecast bulk expression.</p>
 </section><section class="section level2"><h2 id="sec-numerical-consistency">Numerical consistency of the likelihood and its derivatives<a class="anchor" aria-label="anchor" href="#sec-numerical-consistency"></a>
 </h2>
-<p>Analytic formulae can be differentiated correctly <em>and</em> still implement the wrong objective. The checks below separate those two questions. They are the same identities that <code>tests/testthat/test-03_03_DeCovarT.R</code> and <code>tests/testthat/test-03_06_decovart_inference.R</code> enforce on every package build; the chunks here are a readable, small-(G) illustration.</p>
+<p>Analytic formulae can be differentiated correctly <em>and</em> still implement the wrong objective. The checks below separate those two questions. They are the same identities that <code>tests/testthat/test-02_02_population_decovart_estimate_ratios.R</code> and <code>tests/testthat/test-03_0*_*.R</code> enforce on every package build; the chunks here are a readable, small-(G) illustration.</p>
 <section class="level2"><h3 id="density-against-mvtnorm">Density against <code>mvtnorm</code>
 <a class="anchor" aria-label="anchor" href="#density-against-mvtnorm"></a>
 </h3>
@@ -1473,10 +1473,10 @@ I_{\boldsymbol{\rho}}^{-1}
 </section></section><section class="section level2"><h2 id="sec-structure-backends">Structure-aware covariance backends<a class="anchor" aria-label="anchor" href="#sec-structure-backends"></a>
 </h2>
 <p>Every solver call factorises <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}\boldsymbol{\Sigma}_j</span>. The dense Cholesky in <code><a href="../reference/dot-sigma_p_factorisation.html">.sigma_p_factorisation()</a></code> is the universal default and the only method that needs no assumptions. When the covariance inherits structure from the underlying gene network, the same log-determinant and solves can be obtained far more cheaply. Exploiting band, sparse and diagonal-plus-low-rank structure in a Newton-type solver is standard practice <span class="citation" data-cites="boydConvexOptimization2004">(<a href="#ref-boydConvexOptimization2004" role="doc-biblioref">Boyd et al. 2004, sect. 9.7</a>)</span>; the backends below make that structure explicit for DeCovarT.</p>
-<p><a href="../reference/new_decovart_covariance.html"><code>new_decovart_covariance()</code></a> wraps the covariance array with a declared <code>structure</code>, and the operators <a href="../reference/sigma_logdet.html"><code>sigma_logdet()</code></a>, <a href="../reference/sigma_solve.html"><code>sigma_solve()</code></a>, <a href="../reference/sigma_quadform.html"><code>sigma_quadform()</code></a> and <a href="../reference/sigma_trace_precision_times.html"><code>sigma_trace_precision_times()</code></a> return exactly the quantities the objective, score and Hessian need. They expose <em>operations</em>, never a materialised dense precision: a sparse or Woodbury solve must not be silently undone by a dense <code>chol2inv</code>.</p>
+<p>These backends are <strong>experimental</strong> and are not exported by the package: they live in <code>scripts/experimental/covariance_backends.R</code>, sourced by the <a href="supp-S2-covariance-inversion.html">S2 appendix</a> after <code>devtools::load_all()</code>. The package fit keeps the dense Cholesky, because more cell types bring more gene–gene correlations and a declared sparsity pattern then rarely survives in <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span>. In that script, <code>new_decovart_covariance()</code> wraps the covariance array with a declared <code>structure</code>, and the operators <code>sigma_logdet()</code>, <code>sigma_solve()</code>, <code>sigma_quadform()</code> and <code>sigma_trace_precision_times()</code> return exactly the quantities the objective, score and Hessian need. They expose <em>operations</em>, never a materialised dense precision: a sparse or Woodbury solve must not be silently undone by a dense <code>chol2inv</code>.</p>
 <section class="level2"><h3 id="sec-backend-decision">Decision tree<a class="anchor" aria-label="anchor" href="#sec-backend-decision"></a>
 </h3>
-<p>Structure is supplied explicitly, never inferred from floating-point near-zeros, so a numerical near-zero is never mistaken for an exact conditional independence. <a href="../reference/covariance_structure_from_graph_model.html"><code>covariance_structure_from_graph_model()</code></a> maps a network topology to the recommended backend. A sparse <em>precision</em> <span class="math inline">\boldsymbol{\Omega}_j</span> does not imply a sparse <em>covariance</em> <span class="math inline">\boldsymbol{\Sigma}_j</span>; only structure that survives in <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span> itself accelerates the likelihood.</p>
+<p>Structure is supplied explicitly, never inferred from floating-point near-zeros, so a numerical near-zero is never mistaken for an exact conditional independence. <code>covariance_structure_from_graph_model()</code> maps a network topology to the recommended backend. A sparse <em>precision</em> <span class="math inline">\boldsymbol{\Omega}_j</span> does not imply a sparse <em>covariance</em> <span class="math inline">\boldsymbol{\Sigma}_j</span>; only structure that survives in <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span> itself accelerates the likelihood.</p>
 <div id="fig-backend-decision" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-backend-decision-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="theory-decovart-generative-model_files/mediabag/fig-backend-decision.svg">
@@ -1498,12 +1498,14 @@ I_{\boldsymbol{\rho}}^{-1}
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Declare structure explicitly, then use the operator interface.</span></span>
-<span><span class="va">cov</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/new_decovart_covariance.html">new_decovart_covariance</a></span><span class="op">(</span><span class="va">Sigma</span>, structure <span class="op">=</span> <span class="st">"diag_lowrank"</span>,</span>
+<code class="sourceCode R"><span><span class="co"># Experimental: source the backends after loading the package.</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"scripts/experimental/covariance_backends.R"</span><span class="op">)</span></span>
+<span><span class="co"># Declare structure explicitly, then use the operator interface.</span></span>
+<span><span class="va">cov</span> <span class="op">&lt;-</span> <span class="fu">new_decovart_covariance</span><span class="op">(</span><span class="va">Sigma</span>, structure <span class="op">=</span> <span class="st">"diag_lowrank"</span>,</span>
 <span>  diagonal <span class="op">=</span> <span class="va">D</span>, loadings <span class="op">=</span> <span class="va">U</span>, core <span class="op">=</span> <span class="va">C</span><span class="op">)</span></span>
-<span><span class="va">ld</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sigma_logdet.html">sigma_logdet</a></span><span class="op">(</span><span class="va">cov</span>, <span class="va">p</span><span class="op">)</span>            <span class="co"># log det Sigma(p)</span></span>
-<span><span class="va">z</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sigma_solve.html">sigma_solve</a></span><span class="op">(</span><span class="va">cov</span>, <span class="va">p</span>, <span class="va">residual</span><span class="op">)</span>   <span class="co"># Sigma(p)^{-1} r, no dense inverse</span></span>
-<span><span class="va">q</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sigma_quadform.html">sigma_quadform</a></span><span class="op">(</span><span class="va">cov</span>, <span class="va">p</span>, <span class="va">residual</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">ld</span> <span class="op">&lt;-</span> <span class="fu">sigma_logdet</span><span class="op">(</span><span class="va">cov</span>, <span class="va">p</span><span class="op">)</span>            <span class="co"># log det Sigma(p)</span></span>
+<span><span class="va">z</span>  <span class="op">&lt;-</span> <span class="fu">sigma_solve</span><span class="op">(</span><span class="va">cov</span>, <span class="va">p</span>, <span class="va">residual</span><span class="op">)</span>   <span class="co"># Sigma(p)^{-1} r, no dense inverse</span></span>
+<span><span class="va">q</span>  <span class="op">&lt;-</span> <span class="fu">sigma_quadform</span><span class="op">(</span><span class="va">cov</span>, <span class="va">p</span>, <span class="va">residual</span><span class="op">)</span></span></code></pre></div>
 </div>
 </section><section class="level2"><h3 id="sec-backend-complexity">Computational complexity<a class="anchor" aria-label="anchor" href="#sec-backend-complexity"></a>
 </h3>

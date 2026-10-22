@@ -220,7 +220,8 @@ Expression Profiles.” *Nature methods*, **12**.
 [`deconvolute_ratios_Marquardt_Levenberg()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md),
 [`expected_fisher_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/expected_fisher_unconstrained.md),
 [`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md),
-`coef.decovart_fit()`, `vcov.decovart_fit()`, `confint.decovart_fit()`
+`coef.decovart_fit()`, `vcov.decovart_fit()`, `confint.decovart_fit()`,
+[`confint_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_decovart.md)
 
 ## Examples
 

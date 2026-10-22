@@ -5,10 +5,8 @@ Inverse isometric log-ratio map
 basis \\\mathbf{V}\\, \$\$ \boldsymbol{p} =
 \operatorname{softmax}(\mathbf{V}\boldsymbol{z}) =
 \mathcal{C}\bigl(\exp(\mathbf{V}\boldsymbol{z})\bigr). \$\$ No cell type
-is pinned as a reference (unlike
-[`additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)).
-Evaluated with a log-sum-exp shift so large \\\\\boldsymbol{z}\\\\
-cannot overflow.
+is pinned as a reference. Evaluated with a log-sum-exp shift so large
+\\\\\boldsymbol{z}\\\\ cannot overflow.
 
 \$\$ \boldsymbol{z} = \mathbf{V}^{\mathsf{T}}\log\boldsymbol{p} =
 \mathbf{V}^{\mathsf{T}}\operatorname{clr}(\boldsymbol{p}), \$\$ which is
@@ -46,8 +44,7 @@ Numeric vector \\\boldsymbol{z}\in\mathbb{R}^{J-1}\\.
 ## See also
 
 `isometric_log_ratio()`,
-[`helmert_basis()`](https://bastienchassagnol.github.io/DeCovarT/reference/helmert_basis.md),
-[`additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)
+[`helmert_basis()`](https://bastienchassagnol.github.io/DeCovarT/reference/helmert_basis.md)
 
 ## Examples
 

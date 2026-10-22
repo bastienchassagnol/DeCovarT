@@ -105,7 +105,7 @@ draws per component; default 10,000)."><meta property="og:image" content="https:
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Average pairwise overlap of a Gaussian mixture</h1>
-      <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/statistical_metrics.R" class="external-link"><code>R/statistical_metrics.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/01_04_infer_gaussian_overlap.R" class="external-link"><code>R/01_04_infer_gaussian_overlap.R</code></a></small>
       <div class="d-none name"><code>compute_average_overlap.Rd</code></div>
     </div>
 
@@ -148,7 +148,7 @@ draws per component; default 10,000).</p>
 
 
 <dl><dt id="arg-true-theta">true_theta<a class="anchor" aria-label="anchor" href="#arg-true-theta"></a></dt>
-<dd><p>List validated by <code><a href="check_true_theta.html">check_true_theta()</a></code>: <code>p</code> (length
+<dd><p>List with the generative parameters (see <code>.parse_true_theta()</code>): <code>p</code> (length
 \(J\) or \(J\times N\)), <code>mu</code> (\(G\times J\)), <code>sigma</code>
 (\(G\times G\times J\)).</p></dd>
 
@@ -177,7 +177,7 @@ with <code>cli</code> when it is installed.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="check_true_theta.html">check_true_theta()</a></code>, <code><a href="overlap_gaussian_mc.html">overlap_gaussian_mc()</a></code></p></div>
+    <div class="dont-index"><p><code><a href="overlap_gaussian_mc.html">overlap_gaussian_mc()</a></code>, <code><a href="compute_average_jeffreys.html">compute_average_jeffreys()</a></code></p></div>
     </div>
 
     <div class="section level2">

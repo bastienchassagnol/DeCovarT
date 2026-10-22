@@ -1,6 +1,14 @@
 # Mean pairwise AIRM distance of component covariances
 
-Mean pairwise AIRM distance of component covariances
+Average over \\j\<\ell\\ of the **affine-invariant Riemannian metric**
+on the cone of symmetric positive-definite matrices,
+\\d_R(\Sigma_j,\Sigma\_\ell)=\lVert\log(\Sigma_j^{-1/2}\Sigma\_\ell
+\Sigma_j^{-1/2})\rVert_F\\, computed from the eigenvalues of
+\\R^{-\mathsf{T}}\Sigma\_\ell R^{-1}\\ with
+\\\Sigma_j=R^{\mathsf{T}}R\\. The Frobenius chord
+\\\lVert\Sigma_j-\Sigma\_\ell\rVert_F\\ is not used: it leaves the cone,
+is not inversion-invariant, and suffers the swelling effect. With
+\\J=2\\ the average is the pairwise distance.
 
 ## Usage
 
@@ -12,10 +20,9 @@ compute_average_riemannian(true_theta, J = NULL)
 
 - true_theta:
 
-  List validated by
-  [`check_true_theta()`](https://bastienchassagnol.github.io/DeCovarT/reference/check_true_theta.md):
-  `mu` (\\G\times J\\), `sigma` (\\G\times G\times J\\), and optionally
-  `p` (length \\J\\ or \\J\times N\\). If `p` is missing it is set to
+  List with the generative parameters (see `.parse_true_theta()`): `mu`
+  (\\G\times J\\), `sigma` (\\G\times G\times J\\), and optionally `p`
+  (length \\J\\ or \\J\times N\\). If `p` is missing it is set to
   \\(1/J,\ldots,1/J)\\.
 
 - J:
@@ -25,10 +32,6 @@ compute_average_riemannian(true_theta, J = NULL)
 ## Value
 
 Scalar average of \\d_R(\Sigma_j,\Sigma\_\ell)\\ over \\j\<\ell\\.
-
-## See also
-
-[`spd_affine_invariant_distance()`](https://bastienchassagnol.github.io/DeCovarT/reference/spd_affine_invariant_distance.md)
 
 ## Examples
 
@@ -41,10 +44,4 @@ theta <- list(
 )
 compute_average_riemannian(theta)
 #> [1] 0.8249946
-# J = 2 has a single pair, so the average equals the pairwise AIRM.
-all.equal(
-  compute_average_riemannian(theta),
-  spd_affine_invariant_distance(a, b)
-)
-#> [1] TRUE
 ```

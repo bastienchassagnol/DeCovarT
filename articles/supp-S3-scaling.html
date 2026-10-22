@@ -224,11 +224,11 @@
 <span>    scenario_id <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/row_number.html" class="external-link">row_number</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>    mu <span class="op">=</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/pmap.html" class="external-link">pmap</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">J</span>, <span class="va">G</span>, <span class="va">cosine_mu</span><span class="op">)</span>, \<span class="op">(</span><span class="va">j</span>, <span class="va">g</span>, <span class="va">rho</span><span class="op">)</span> <span class="op">{</span></span>
 <span>      <span class="fu"><a href="../reference/generate_mean_signature_matrix.html">generate_mean_signature_matrix</a></span><span class="op">(</span></span>
-<span>        n_cell_types      <span class="op">=</span> <span class="va">j</span>,</span>
-<span>        n_genes           <span class="op">=</span> <span class="va">g</span>,</span>
-<span>        cosine_similarity <span class="op">=</span> <span class="va">rho</span>,</span>
-<span>        mean_scale        <span class="op">=</span> <span class="fl">100</span>,</span>
-<span>        seed              <span class="op">=</span> <span class="va">SEED</span> <span class="op">+</span> <span class="va">j</span> <span class="op">*</span> <span class="va">g</span></span>
+<span>        n_genes       <span class="op">=</span> <span class="va">g</span>,</span>
+<span>        n_celltypes   <span class="op">=</span> <span class="va">j</span>,</span>
+<span>        mean_scale    <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>        target_cosine <span class="op">=</span> <span class="va">rho</span>,</span>
+<span>        seed          <span class="op">=</span> <span class="va">SEED</span> <span class="op">+</span> <span class="va">j</span> <span class="op">*</span> <span class="va">g</span></span>
 <span>      <span class="op">)</span></span>
 <span>    <span class="op">}</span><span class="op">)</span>,</span>
 <span>    proportions <span class="op">=</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map2.html" class="external-link">map2</a></span><span class="op">(</span><span class="va">J</span>, <span class="va">entropy_norm</span>, \<span class="op">(</span><span class="va">j</span>, <span class="va">h</span><span class="op">)</span> <span class="op">{</span></span>

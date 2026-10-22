@@ -95,7 +95,7 @@ likelihood ratios unchanged."><meta property="og:image" content="https://bastien
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Likelihood-ratio test for cellular ratios</h1>
-      <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/03_06_decovart_inference.R" class="external-link"><code>R/03_06_decovart_inference.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/03_02_boundary_tests.R" class="external-link"><code>R/03_02_boundary_tests.R</code></a></small>
       <div class="d-none name"><code>lrt_decovart.Rd</code></div>
     </div>
 
@@ -120,11 +120,10 @@ likelihood ratios unchanged.</p>
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">lrt_decovart</span><span class="op">(</span></span>
-<span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">y</span>,</span>
 <span>  <span class="va">mean_signature_matrix</span>,</span>
 <span>  <span class="va">Sigma</span>,</span>
 <span>  <span class="va">null_value</span>,</span>
-<span>  bulk_expression <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n_boundary <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  boundary_tol <span class="op">=</span> <span class="fl">1e-06</span>,</span>
 <span>  epsilon <span class="op">=</span> <span class="fl">10</span><span class="op">^</span><span class="op">-</span><span class="fl">8</span>,</span>
@@ -137,8 +136,9 @@ likelihood ratios unchanged.</p>
 
 
 <dl><dt id="arg-y">y<a class="anchor" aria-label="anchor" href="#arg-y"></a></dt>
-<dd><p>Numeric vector (or one-column matrix)
-\(\boldsymbol{y}\in\mathbb{R}^{G}\).</p></dd>
+<dd><p>Numeric vector of length \(G\), or \(G\times N\) matrix of
+replicate bulk profiles that share one composition; their
+log-likelihoods are summed (the pooled, population-level fit).</p></dd>
 
 
 <dt id="arg-mean-signature-matrix">mean_signature_matrix<a class="anchor" aria-label="anchor" href="#arg-mean-signature-matrix"></a></dt>
@@ -152,19 +152,14 @@ likelihood ratios unchanged.</p>
 
 
 <dt id="arg-null-value">null_value<a class="anchor" aria-label="anchor" href="#arg-null-value"></a></dt>
-<dd><p>Named numeric vector of hypothesised ratios, e.g.
-<code>c(celltype_2 = 0)</code>.</p></dd>
-
-
-<dt id="arg-bulk-expression">bulk_expression<a class="anchor" aria-label="anchor" href="#arg-bulk-expression"></a></dt>
-<dd><p>Numeric matrix \(\boldsymbol{Y}\in
-  \mathcal{M}_{G\times N}\) of replicate bulk profiles sharing one
-composition, used instead of <code>y</code> for the pooled (population) test.</p></dd>
+<dd><p>Numeric vector of hypothesised ratios named by cell
+types, e.g. <code>c(celltype_2 = 0)</code>.</p></dd>
 
 
 <dt id="arg-n-boundary">n_boundary<a class="anchor" aria-label="anchor" href="#arg-n-boundary"></a></dt>
 <dd><p>Optional integer override for the number of active
-boundary constraints; <code>NULL</code> infers it from <code>null_value</code>.</p></dd>
+boundary constraints; <code>NULL</code> infers it from <code>null_value</code>, counting
+the zeros implied when the fixed values sum to one.</p></dd>
 
 
 <dt id="arg-boundary-tol">boundary_tol<a class="anchor" aria-label="anchor" href="#arg-boundary-tol"></a></dt>
@@ -174,7 +169,7 @@ counts as being on the boundary.</p></dd>
 
 <dt id="arg-epsilon-itmax">epsilon, itmax<a class="anchor" aria-label="anchor" href="#arg-epsilon-itmax"></a></dt>
 <dd><p>Relative convergence tolerance and iteration
-budget passed to <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code>.</p></dd>
+budget passed to <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">stats::nlminb()</a></code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -201,14 +196,20 @@ generalised to several active constraints by
 Self and Liang (1987)
 .
 Boundary calibration is selected automatically when any tested value is
-within <code>boundary_tol</code> of 0 or 1; override with <code>n_boundary</code>.</p>
+within <code>boundary_tol</code> of 0, or when the tested values sum to one, which
+forces every other ratio to zero (a null \(p_j=1\) fixes \(J-1\)
+coordinates on faces); override with <code>n_boundary</code>. The binomial weights
+of <code><a href="chi_bar_square_pvalue.html">chi_bar_square_pvalue()</a></code> are exact for orthogonal constraints; for
+several correlated faces they approximate the weights of the tangent
+cone, and <code><a href="bootstrap_decovart.html">bootstrap_decovart()</a></code> with <code>null_value</code> gives a calibration
+that does not rely on them.</p>
 <p><strong>Replication.</strong> Both calibrations are <em>population</em> statements: they
 need replicate bulk samples that genuinely share one composition
 \(\boldsymbol{p}\). A single \(G\)-vector supplies no replication
 (genes are dependent through \(\boldsymbol{\Sigma}(\boldsymbol{p})\),
 and adding bulk samples with distinct compositions adds parameters as
-fast as observations). Use <code>bulk_expression</code> with several replicate
-columns, or calibrate by <code><a href="bootstrap_decovart.html">bootstrap_decovart()</a></code>.</p>
+fast as observations). Pass several replicate columns in <code>y</code>, or
+calibrate by <code><a href="bootstrap_decovart.html">bootstrap_decovart()</a></code>.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -231,14 +232,23 @@ ISSN 0162-1459.
 <code><a href="bootstrap_decovart.html">bootstrap_decovart()</a></code></p>
 <p>Other decovart_inference:
 <code><a href="bootstrap_decovart.html">bootstrap_decovart()</a></code>,
+<code><a href="bootstrap_single_cell.html">bootstrap_single_cell()</a></code>,
 <code><a href="boundary_diagnostics.html">boundary_diagnostics()</a></code>,
 <code><a href="chi_bar_square_pvalue.html">chi_bar_square_pvalue()</a></code>,
+<code><a href="confint_decovart.html">confint_decovart()</a></code>,
+<code><a href="confint_ilr_backtransform.html">confint_ilr_backtransform()</a></code>,
 <code><a href="confint_profile_decovart.html">confint_profile_decovart()</a></code>,
+<code><a href="confint_profile_single_cell.html">confint_profile_single_cell()</a></code>,
+<code><a href="confint_single_cell.html">confint_single_cell()</a></code>,
 <code><a href="equivariance_check_decovart.html">equivariance_check_decovart()</a></code>,
+<code><a href="fit_firth_decovart.html">fit_firth_decovart()</a></code>,
+<code><a href="fit_firth_single_cell.html">fit_firth_single_cell()</a></code>,
+<code><a href="lrt_single_cell.html">lrt_single_cell()</a></code>,
 <code><a href="multistart_decovart.html">multistart_decovart()</a></code>,
-<code><a href="profile_loglik_decovart.html">profile_loglik_decovart()</a></code>,
 <code><a href="reference_bootstrap_decovart.html">reference_bootstrap_decovart()</a></code>,
-<code><a href="restricted_mle_decovart.html">restricted_mle_decovart()</a></code></p></div>
+<code><a href="reference_bootstrap_single_cell.html">reference_bootstrap_single_cell()</a></code>,
+<code><a href="restricted_mle_decovart.html">restricted_mle_decovart()</a></code>,
+<code><a href="restricted_mle_single_cell.html">restricted_mle_single_cell()</a></code></p></div>
     </div>
 
     <div class="section level2">

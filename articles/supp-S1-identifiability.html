@@ -102,7 +102,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Appendix S1 — Regular-case MLE properties and identifiability</h1>
       <p class="subtitle">Full script: <code>scripts/supp_S1_identifiability.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-19</p>
+      <p class="date">2026-10-22</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/supp-S1-identifiability.qmd" class="external-link"><code>vignettes/supp-S1-identifiability.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -213,7 +213,8 @@
 <ol type="1">
 <li>Full cell-type tensor <span class="math inline">\boldsymbol{\Sigma}_j</span> (DeCovarT convolution).</li>
 <li>Cell-type diagonal: off-diagonals of each <span class="math inline">\boldsymbol{\Sigma}_j</span> set to zero (gene-wise weighted convolution).</li>
-<li>Fixed global diagonal GLS: <span class="math inline">W=\operatorname{diag}\{\Sigma(p^{\star})\}</span> held <strong>constant</strong>, fitted by <a href="../reference/deconvolute_ratios_gls.html"><code>deconvolute_ratios_gls()</code></a> (<code><a href="https://rdrr.io/pkg/MASS/man/lm.gls.html" class="external-link">MASS::lm.gls</a></code>). Do <strong>not</strong> copy that <span class="math inline">W</span> into every tensor slice: <span class="math inline">\sum_j p_j^2 W=\|p\|_2^2 W</span> still depends on <span class="math inline">p</span>.</li>
+<li>Fixed global diagonal GLS: <span class="math inline">W=\operatorname{diag}\{\Sigma(p^{\star})\}</span> held <strong>constant</strong>, fitted by mean-only generalised least squares <span class="math inline">\hat{\boldsymbol{p}}=(\boldsymbol{\mu}^{\top}W^{-1}\boldsymbol{\mu})^{-1}
+\boldsymbol{\mu}^{\top}W^{-1}\boldsymbol{y}</span> and projected on the simplex. Do <strong>not</strong> copy that <span class="math inline">W</span> into every tensor slice: <span class="math inline">\sum_j p_j^2 W=\|p\|_2^2 W</span> still depends on <span class="math inline">p</span>.</li>
 </ol>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
@@ -226,7 +227,14 @@
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">j</span> <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">Sigma_diag</span><span class="op">[</span>, , <span class="va">j</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="va">Sigma</span><span class="op">[</span>, , <span class="va">j</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="va">w_gls</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fixed_gls_covariance.html">fixed_gls_covariance</a></span><span class="op">(</span><span class="va">Sigma</span>, p <span class="op">=</span> <span class="va">p_true</span>, diagonal <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="co"># GLS competitor: mean-only fit with the fixed diagonal residual covariance</span></span>
+<span><span class="co"># diag{Sigma(p_true)}, which does not move with the estimate.</span></span>
+<span><span class="va">w_gls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fu"><a href="../reference/dot-compute_global_variance.html">.compute_global_variance</a></span><span class="op">(</span><span class="va">p_true</span>, <span class="va">Sigma</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">gls_fixed</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">y</span>, <span class="va">mu</span>, <span class="va">W</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">w_inv_mu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/solve.html" class="external-link">solve</a></span><span class="op">(</span><span class="va">W</span>, <span class="va">mu</span><span class="op">)</span></span>
+<span>  <span class="va">p_hat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/solve.html" class="external-link">solve</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">mu</span>, <span class="va">w_inv_mu</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/crossprod.html" class="external-link">crossprod</a></span><span class="op">(</span><span class="va">w_inv_mu</span>, <span class="va">y</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="../reference/repair_simplex.html">repair_simplex</a></span><span class="op">(</span><span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="va">p_hat</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">mu</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
 <span></span>
 <span><span class="va">fit_spec</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">y</span>, <span class="va">S</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef</a></span><span class="op">(</span><span class="fu"><a href="../reference/fit_decovart.html">fit_decovart</a></span><span class="op">(</span></span>
@@ -241,11 +249,7 @@
 <span><span class="va">est</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span></span>
 <span>  full <span class="op">=</span> <span class="fu">fit_spec</span><span class="op">(</span><span class="va">y_pert</span>, <span class="va">Sigma</span><span class="op">)</span>,</span>
 <span>  celltype_diagonal <span class="op">=</span> <span class="fu">fit_spec</span><span class="op">(</span><span class="va">y_pert</span>, <span class="va">Sigma_diag</span><span class="op">)</span>,</span>
-<span>  gls_fixed <span class="op">=</span> <span class="fu"><a href="../reference/deconvolute_ratios_gls.html">deconvolute_ratios_gls</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="va">y_pert</span><span class="op">)</span>,</span>
-<span>    <span class="va">mu</span>,</span>
-<span>    <span class="va">w_gls</span></span>
-<span>  <span class="op">)</span></span>
+<span>  gls_fixed <span class="op">=</span> <span class="fu">gls_fixed</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="va">y_pert</span><span class="op">)</span>, <span class="va">mu</span>, <span class="va">w_gls</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">rmse</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">est</span>, <span class="fl">2</span>, <span class="kw">function</span><span class="op">(</span><span class="va">p_hat</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="op">(</span><span class="va">p_hat</span> <span class="op">-</span> <span class="va">p_true</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>estimates <span class="op">=</span> <span class="va">est</span>, rmse_to_truth <span class="op">=</span> <span class="va">rmse</span><span class="op">)</span></span>

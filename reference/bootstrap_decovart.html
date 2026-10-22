@@ -83,7 +83,7 @@ with percentile intervals."><meta property="og:image" content="https://bastiench
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Parametric bootstrap for DeCovarT proportions and boundary tests</h1>
-      <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/03_06_decovart_inference.R" class="external-link"><code>R/03_06_decovart_inference.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/03_03_resampling_inference.R" class="external-link"><code>R/03_03_resampling_inference.R</code></a></small>
       <div class="d-none name"><code>bootstrap_decovart.Rd</code></div>
     </div>
 
@@ -102,10 +102,9 @@ with percentile intervals.</p>
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">bootstrap_decovart</span><span class="op">(</span></span>
-<span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">y</span>,</span>
 <span>  <span class="va">mean_signature_matrix</span>,</span>
 <span>  <span class="va">Sigma</span>,</span>
-<span>  bulk_expression <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  p <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  null_value <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  n_boot <span class="op">=</span> <span class="fl">500L</span>,</span>
@@ -121,8 +120,9 @@ with percentile intervals.</p>
 
 
 <dl><dt id="arg-y">y<a class="anchor" aria-label="anchor" href="#arg-y"></a></dt>
-<dd><p>Numeric vector (or one-column matrix)
-\(\boldsymbol{y}\in\mathbb{R}^{G}\).</p></dd>
+<dd><p>Numeric vector of length \(G\), or \(G\times N\) matrix of
+replicate bulk profiles that share one composition; their
+log-likelihoods are summed (the pooled, population-level fit).</p></dd>
 
 
 <dt id="arg-mean-signature-matrix">mean_signature_matrix<a class="anchor" aria-label="anchor" href="#arg-mean-signature-matrix"></a></dt>
@@ -135,20 +135,14 @@ with percentile intervals.</p>
 \(\mathcal{M}_{G\times G\times J}\).</p></dd>
 
 
-<dt id="arg-bulk-expression">bulk_expression<a class="anchor" aria-label="anchor" href="#arg-bulk-expression"></a></dt>
-<dd><p>Numeric matrix \(\boldsymbol{Y}\in
-  \mathcal{M}_{G\times N}\) of replicate bulk profiles sharing one
-composition, used instead of <code>y</code> for the pooled (population) test.</p></dd>
-
-
 <dt id="arg-p">p<a class="anchor" aria-label="anchor" href="#arg-p"></a></dt>
 <dd><p>Composition to simulate from. Defaults to the MLE computed
-from <code>y</code> / <code>bulk_expression</code>.</p></dd>
+from <code>y</code> (or the restricted MLE under <code>null_value</code>).</p></dd>
 
 
 <dt id="arg-null-value">null_value<a class="anchor" aria-label="anchor" href="#arg-null-value"></a></dt>
-<dd><p>Named numeric vector of hypothesised ratios, e.g.
-<code>c(celltype_2 = 0)</code>.</p></dd>
+<dd><p>Optional numeric vector of hypothesised ratios named
+by cell types; switches to the restricted bootstrap (see Details).</p></dd>
 
 
 <dt id="arg-n-boot">n_boot<a class="anchor" aria-label="anchor" href="#arg-n-boot"></a></dt>
@@ -166,13 +160,14 @@ defaults to the number of observed columns.</p></dd>
 
 <dt id="arg-epsilon-itmax">epsilon, itmax<a class="anchor" aria-label="anchor" href="#arg-epsilon-itmax"></a></dt>
 <dd><p>Relative convergence tolerance and iteration
-budget passed to <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code>.</p></dd>
+budget passed to <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">stats::nlminb()</a></code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list with <code>estimates</code> (\(J\times\) <code>n_boot</code> matrix),
-<code>interval</code> (percentile bounds), <code>p_simulated</code>, and, when
+<code>interval</code> (percentile bounds), <code>n_failed</code> (refits that errored,
+left as <code>NA</code> columns), <code>p_simulated</code>, and, when
 <code>null_value</code> is supplied, <code>statistic</code> (observed \(D\)),
 <code>null_statistics</code>, and <code>p_value</code>.</p>
     </div>
@@ -196,15 +191,24 @@ produced those plug-in moments, use
     <div class="dont-index"><p><code><a href="lrt_decovart.html">lrt_decovart()</a></code>, <code><a href="chi_bar_square_pvalue.html">chi_bar_square_pvalue()</a></code>,
 <code><a href="reference_bootstrap_decovart.html">reference_bootstrap_decovart()</a></code></p>
 <p>Other decovart_inference:
+<code><a href="bootstrap_single_cell.html">bootstrap_single_cell()</a></code>,
 <code><a href="boundary_diagnostics.html">boundary_diagnostics()</a></code>,
 <code><a href="chi_bar_square_pvalue.html">chi_bar_square_pvalue()</a></code>,
+<code><a href="confint_decovart.html">confint_decovart()</a></code>,
+<code><a href="confint_ilr_backtransform.html">confint_ilr_backtransform()</a></code>,
 <code><a href="confint_profile_decovart.html">confint_profile_decovart()</a></code>,
+<code><a href="confint_profile_single_cell.html">confint_profile_single_cell()</a></code>,
+<code><a href="confint_single_cell.html">confint_single_cell()</a></code>,
 <code><a href="equivariance_check_decovart.html">equivariance_check_decovart()</a></code>,
+<code><a href="fit_firth_decovart.html">fit_firth_decovart()</a></code>,
+<code><a href="fit_firth_single_cell.html">fit_firth_single_cell()</a></code>,
 <code><a href="lrt_decovart.html">lrt_decovart()</a></code>,
+<code><a href="lrt_single_cell.html">lrt_single_cell()</a></code>,
 <code><a href="multistart_decovart.html">multistart_decovart()</a></code>,
-<code><a href="profile_loglik_decovart.html">profile_loglik_decovart()</a></code>,
 <code><a href="reference_bootstrap_decovart.html">reference_bootstrap_decovart()</a></code>,
-<code><a href="restricted_mle_decovart.html">restricted_mle_decovart()</a></code></p></div>
+<code><a href="reference_bootstrap_single_cell.html">reference_bootstrap_single_cell()</a></code>,
+<code><a href="restricted_mle_decovart.html">restricted_mle_decovart()</a></code>,
+<code><a href="restricted_mle_single_cell.html">restricted_mle_single_cell()</a></code></p></div>
     </div>
 
     <div class="section level2">
@@ -216,8 +220,8 @@ produced those plug-in moments, use
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">bootstrap_decovart</span><span class="op">(</span><span class="va">y</span>, <span class="va">mu</span>, <span class="va">Sigma</span>, n_boot <span class="op">=</span> <span class="fl">20</span><span class="op">)</span><span class="op">$</span><span class="va">interval</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          2.5%     97.5%</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ct1 0.5647988 0.6266519</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ct2 0.3733481 0.4352012</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ct1 0.5647987 0.6266518</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ct2 0.3733482 0.4352013</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

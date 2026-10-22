@@ -14,11 +14,10 @@ the reconstructed bulk should be unchanged.
 
 ``` r
 equivariance_check_decovart(
-  y = NULL,
+  y,
   mean_signature_matrix,
   Sigma,
-  bulk_expression = NULL,
-  perm = NULL,
+  perm = rev(seq_len(ncol(mean_signature_matrix))),
   epsilon = 10^-8,
   itmax = 500L
 )
@@ -28,8 +27,9 @@ equivariance_check_decovart(
 
 - y:
 
-  Numeric vector (or one-column matrix)
-  \\\boldsymbol{y}\in\mathbb{R}^{G}\\.
+  Numeric vector of length \\G\\, or \\G\times N\\ matrix of replicate
+  bulk profiles that share one composition; their log-likelihoods are
+  summed (the pooled, population-level fit).
 
 - mean_signature_matrix:
 
@@ -41,12 +41,6 @@ equivariance_check_decovart(
   Array of cell-type covariances in \\\mathcal{M}\_{G\times G\times
   J}\\.
 
-- bulk_expression:
-
-  Numeric matrix \\\boldsymbol{Y}\in \mathcal{M}\_{G\times N}\\ of
-  replicate bulk profiles sharing one composition, used instead of `y`
-  for the pooled (population) test.
-
 - perm:
 
   Integer permutation of `1:J`. Defaults to reversing the column order
@@ -55,7 +49,7 @@ equivariance_check_decovart(
 - epsilon, itmax:
 
   Relative convergence tolerance and iteration budget passed to
-  [`stats::optim()`](https://rdrr.io/r/stats/optim.html).
+  [`stats::nlminb()`](https://rdrr.io/r/stats/nlminb.html).
 
 ## Value
 
@@ -75,7 +69,7 @@ The labelled MLE on the relabelled reference is then compared with
 Use
 [`reference_bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_decovart.md)
 for percentile intervals that resample the experimental units of the
-reference (donors or cells) or redraw compositions from a Dirichlet law.
+reference (donors or cells).
 
 ## See also
 
@@ -84,14 +78,23 @@ reference (donors or cells) or redraw compositions from a Dirichlet law.
 
 Other decovart_inference:
 [`bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_decovart.md),
+[`bootstrap_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_single_cell.md),
 [`boundary_diagnostics()`](https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.md),
 [`chi_bar_square_pvalue()`](https://bastienchassagnol.github.io/DeCovarT/reference/chi_bar_square_pvalue.md),
+[`confint_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_decovart.md),
+[`confint_ilr_backtransform()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_ilr_backtransform.md),
 [`confint_profile_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_decovart.md),
+[`confint_profile_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_single_cell.md),
+[`confint_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_single_cell.md),
+[`fit_firth_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_firth_decovart.md),
+[`fit_firth_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_firth_single_cell.md),
 [`lrt_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_decovart.md),
+[`lrt_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_single_cell.md),
 [`multistart_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/multistart_decovart.md),
-[`profile_loglik_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/profile_loglik_decovart.md),
 [`reference_bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_decovart.md),
-[`restricted_mle_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_decovart.md)
+[`reference_bootstrap_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_single_cell.md),
+[`restricted_mle_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_decovart.md),
+[`restricted_mle_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_single_cell.md)
 
 ## Examples
 
@@ -101,5 +104,5 @@ colnames(mu) <- paste0("ct", 1:2)
 Sigma <- array(c(diag(3), diag(3)), dim = c(3, 3, 2))
 y <- drop(mu %*% c(0.7, 0.3))
 equivariance_check_decovart(y, mu, Sigma)$max_abs_diff
-#> [1] 0
+#> [1] 5.551115e-17
 ```

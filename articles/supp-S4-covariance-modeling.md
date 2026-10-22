@@ -104,9 +104,12 @@ dir.create("output/supp_S4", recursive = TRUE, showWarnings = FALSE)
 s4_results <- purrr::pmap(
   list(cov_models_grid$cosine_mu, cov_models_grid$cov_model),
   \(rho, model) {
-    mu <- generate_mean_signature_matrix(J, G,
-      cosine_similarity = rho,
-      mean_scale = 100, seed = SEED
+    mu <- generate_mean_signature_matrix(
+      n_genes = G,
+      n_celltypes = J,
+      mean_scale = 100,
+      target_cosine = rho,
+      seed = SEED
     )
     run_simulation_benchmark(
       n_replicates          = N_REPLICATES,
@@ -130,17 +133,15 @@ See details of the gls competitor in [Note 1](#nte-gls-solver).
 >
 > When a scenario varies the *covariance structure*, keep a mean-only
 > baseline whose residual covariance does **not** depend on
-> \boldsymbol{p}. Build W with
-> [`fixed_gls_covariance()`](https://bastienchassagnol.github.io/DeCovarT/reference/fixed_gls_covariance.md)
-> (default: diagonal of \Sigma(\bar p) at \bar p_j=1/J) and fit
-> [`deconvolute_ratios_gls()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_gls.md)
-> ([`MASS::lm.gls`](https://rdrr.io/pkg/MASS/man/lm.gls.html)). Copying
-> W into every tensor slice is not GLS: \sum_j p_j^2 W=\\p\\\_2^2 W
-> still depends on p. The hierarchy is full \Sigma(p),
-> cell-type-diagonal convolution, then this fixed W. Starts for the
-> convolution MLE: barycentre, Dirichlet (`initial_p = "dirichlet"`,
-> \alpha=1 uniform, \alpha\>1 centre, \alpha\<1 faces; several
-> independent draws), or QP (`initial_p = "qp"`).
+> \boldsymbol{p}. Build W=\Sigma(\bar p) at \bar p_j=1/J and fit
+> mean-only GLS with it held fixed (local helper `.deconv_global_gls()`
+> in `scripts/supp_S4_covariance_modeling.R`). Copying W into every
+> tensor slice is not GLS: \sum_j p_j^2 W=\\p\\\_2^2 W still depends on
+> p. The hierarchy is full \Sigma(p), cell-type-diagonal convolution,
+> then this fixed W. Starts for the convolution MLE: barycentre,
+> Dirichlet (`initial_p = "dirichlet"`, \alpha=1 uniform, \alpha\>1
+> centre, \alpha\<1 faces; several independent draws), or QP
+> (`initial_p = "qp"`).
 
 ------------------------------------------------------------------------
 

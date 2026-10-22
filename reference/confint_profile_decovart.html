@@ -79,7 +79,7 @@ Wald intervals unreliable near a simplex face."><meta property="og:image" conten
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Profile-likelihood confidence intervals for cellular ratios</h1>
-      <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/03_06_decovart_inference.R" class="external-link"><code>R/03_06_decovart_inference.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/03_01_interior_intervals.R" class="external-link"><code>R/03_01_interior_intervals.R</code></a></small>
       <div class="d-none name"><code>confint_profile_decovart.Rd</code></div>
     </div>
 
@@ -96,12 +96,11 @@ Wald intervals unreliable near a simplex face.</p>
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">confint_profile_decovart</span><span class="op">(</span></span>
-<span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  <span class="va">y</span>,</span>
 <span>  <span class="va">mean_signature_matrix</span>,</span>
 <span>  <span class="va">Sigma</span>,</span>
-<span>  bulk_expression <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
-<span>  celltypes <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  celltypes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">mean_signature_matrix</span><span class="op">)</span>,</span>
 <span>  epsilon <span class="op">=</span> <span class="fl">10</span><span class="op">^</span><span class="op">-</span><span class="fl">8</span>,</span>
 <span>  itmax <span class="op">=</span> <span class="fl">500L</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -112,8 +111,9 @@ Wald intervals unreliable near a simplex face.</p>
 
 
 <dl><dt id="arg-y">y<a class="anchor" aria-label="anchor" href="#arg-y"></a></dt>
-<dd><p>Numeric vector (or one-column matrix)
-\(\boldsymbol{y}\in\mathbb{R}^{G}\).</p></dd>
+<dd><p>Numeric vector of length \(G\), or \(G\times N\) matrix of
+replicate bulk profiles that share one composition; their
+log-likelihoods are summed (the pooled, population-level fit).</p></dd>
 
 
 <dt id="arg-mean-signature-matrix">mean_signature_matrix<a class="anchor" aria-label="anchor" href="#arg-mean-signature-matrix"></a></dt>
@@ -126,23 +126,18 @@ Wald intervals unreliable near a simplex face.</p>
 \(\mathcal{M}_{G\times G\times J}\).</p></dd>
 
 
-<dt id="arg-bulk-expression">bulk_expression<a class="anchor" aria-label="anchor" href="#arg-bulk-expression"></a></dt>
-<dd><p>Numeric matrix \(\boldsymbol{Y}\in
-  \mathcal{M}_{G\times N}\) of replicate bulk profiles sharing one
-composition, used instead of <code>y</code> for the pooled (population) test.</p></dd>
-
-
 <dt id="arg-level">level<a class="anchor" aria-label="anchor" href="#arg-level"></a></dt>
 <dd><p>Confidence level \(1-\alpha\).</p></dd>
 
 
 <dt id="arg-celltypes">celltypes<a class="anchor" aria-label="anchor" href="#arg-celltypes"></a></dt>
-<dd><p>Cell types to profile; defaults to all.</p></dd>
+<dd><p>Names of the cell types to profile (columns of
+<code>mean_signature_matrix</code>); defaults to all.</p></dd>
 
 
 <dt id="arg-epsilon-itmax">epsilon, itmax<a class="anchor" aria-label="anchor" href="#arg-epsilon-itmax"></a></dt>
 <dd><p>Relative convergence tolerance and iteration
-budget passed to <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code>.</p></dd>
+budget passed to <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">stats::nlminb()</a></code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -156,14 +151,23 @@ budget passed to <code><a href="https://rdrr.io/r/stats/optim.html" class="exter
 <code><a href="lrt_decovart.html">lrt_decovart()</a></code></p>
 <p>Other decovart_inference:
 <code><a href="bootstrap_decovart.html">bootstrap_decovart()</a></code>,
+<code><a href="bootstrap_single_cell.html">bootstrap_single_cell()</a></code>,
 <code><a href="boundary_diagnostics.html">boundary_diagnostics()</a></code>,
 <code><a href="chi_bar_square_pvalue.html">chi_bar_square_pvalue()</a></code>,
+<code><a href="confint_decovart.html">confint_decovart()</a></code>,
+<code><a href="confint_ilr_backtransform.html">confint_ilr_backtransform()</a></code>,
+<code><a href="confint_profile_single_cell.html">confint_profile_single_cell()</a></code>,
+<code><a href="confint_single_cell.html">confint_single_cell()</a></code>,
 <code><a href="equivariance_check_decovart.html">equivariance_check_decovart()</a></code>,
+<code><a href="fit_firth_decovart.html">fit_firth_decovart()</a></code>,
+<code><a href="fit_firth_single_cell.html">fit_firth_single_cell()</a></code>,
 <code><a href="lrt_decovart.html">lrt_decovart()</a></code>,
+<code><a href="lrt_single_cell.html">lrt_single_cell()</a></code>,
 <code><a href="multistart_decovart.html">multistart_decovart()</a></code>,
-<code><a href="profile_loglik_decovart.html">profile_loglik_decovart()</a></code>,
 <code><a href="reference_bootstrap_decovart.html">reference_bootstrap_decovart()</a></code>,
-<code><a href="restricted_mle_decovart.html">restricted_mle_decovart()</a></code></p></div>
+<code><a href="reference_bootstrap_single_cell.html">reference_bootstrap_single_cell()</a></code>,
+<code><a href="restricted_mle_decovart.html">restricted_mle_decovart()</a></code>,
+<code><a href="restricted_mle_single_cell.html">restricted_mle_single_cell()</a></code></p></div>
     </div>
 
     <div class="section level2">
@@ -173,9 +177,9 @@ budget passed to <code><a href="https://rdrr.io/r/stats/optim.html" class="exter
 <span class="r-in"><span><span class="va">Sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">3</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="va">mu</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="fl">0.4</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">confint_profile_decovart</span><span class="op">(</span><span class="va">y</span>, <span class="va">mu</span>, <span class="va">Sigma</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     estimate     lower     upper</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ct1 0.599338 0.5530429 0.6473202</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> ct2 0.400662 0.3526798 0.4469571</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      estimate     lower     upper</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ct1 0.5993379 0.5530429 0.6473202</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ct2 0.4006621 0.3526798 0.4469571</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

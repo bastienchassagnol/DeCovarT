@@ -105,10 +105,10 @@ A list with:
 - `supplementary`: Jeffreys overlap, recorded separately;
 
 - `call`: the matched call
-  ([`match.call()`](https://rdrr.io/r/base/match.call.html)). Scripts
-  should persist those pieces with
-  [`write_simulation_artefacts()`](https://bastienchassagnol.github.io/DeCovarT/reference/write_simulation_artefacts.md)
-  rather than saving the whole list.
+  ([`match.call()`](https://rdrr.io/r/base/match.call.html)). Analysis
+  scripts persist those pieces with `write_simulation_artefacts()`
+  (`scripts/auxiliary/benchmark_artefacts.R`) rather than saving the
+  whole list.
 
 ## See also
 
@@ -118,8 +118,7 @@ A list with:
 [`describe_simulation_scenario()`](https://bastienchassagnol.github.io/DeCovarT/reference/describe_simulation_scenario.md),
 [`coverage_mc_interval()`](https://bastienchassagnol.github.io/DeCovarT/reference/coverage_mc_interval.md),
 [`plot_mc_raincloud()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_raincloud.md),
-[`plot_mc_forest()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_forest.md),
-[`write_simulation_artefacts()`](https://bastienchassagnol.github.io/DeCovarT/reference/write_simulation_artefacts.md)
+[`plot_mc_forest()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_forest.md)
 
 ## Examples
 

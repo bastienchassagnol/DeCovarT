@@ -414,11 +414,9 @@ replaces squared error by a robust hinge ([Newman et al.
 
 **Generalised least squares** uses a single residual covariance W that
 does **not** depend on \boldsymbol{p}. With \boldsymbol{\Sigma}\_j
-known, the gold-standard competitor is
-[`deconvolute_ratios_gls()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_gls.md)
-([`MASS::lm.gls`](https://rdrr.io/pkg/MASS/man/lm.gls.html),
-`inverse = TRUE`): W is a G\times G covariance, typically
-[`fixed_gls_covariance()`](https://bastienchassagnol.github.io/DeCovarT/reference/fixed_gls_covariance.md)
+known, the gold-standard competitor is mean-only GLS with a G\times G
+covariance W held fixed (the local helper of
+`scripts/supp_S4_covariance_modeling.R`), typically
 \operatorname{diag}\\\sum_j \bar p_j^2\boldsymbol{\Sigma}\_j\\ at \bar
 p_j=1/J (or at a known design p^{\star}). Then
 
@@ -479,12 +477,10 @@ G as the reference,
 \boldsymbol{w}\_i\sim\mathcal{N}\_{G-1}(\boldsymbol{\mu}\_w,\boldsymbol{\Sigma}\_w),
 \qquad \boldsymbol{\pi}\_i=\psi(\boldsymbol{w}\_i), \tag{12}
 
-where \psi is the additive logistic map already used for cell-type
-ratios
-([`additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md)).
-When G is large relative to the number of bulk samples, McGregor et
-al. penalise the Gaussian log-likelihood of the \boldsymbol{w}\_i with a
-graphical lasso on the ALR precision
+where \psi is the additive logistic map of the ALR chart. When G is
+large relative to the number of bulk samples, McGregor et al. penalise
+the Gaussian log-likelihood of the \boldsymbol{w}\_i with a graphical
+lasso on the ALR precision
 \boldsymbol{\Omega}\_w=\boldsymbol{\Sigma}\_w^{-1} ([Friedman et al.
 2008](#ref-friedmanSparseInverseCovariance2008)), or the same \ell_1
 penalty on the CLR precision

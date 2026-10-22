@@ -103,7 +103,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>2.1 Bivariate toy model (G = 2 genes, J = 2 cell types)</h1>
       <p class="subtitle">Full script: <code>scripts/fig02_bivariate_toy.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-19</p>
+      <p class="date">2026-10-22</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/fig02-bivariate-toy.qmd" class="external-link"><code>vignettes/fig02-bivariate-toy.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -309,7 +309,7 @@ Figure 3: Factorial design (left) and correlation-only 2D densities (right) for
 </tr>
 </tbody>
 </table>
-<p>The slim design grid is <code>output/fig02/bivariate_config.rds</code> (no <code>true_theta</code>). Geometry, MixSim <code>BarOmega</code>, Hellinger, and Jeffreys live in <code>bivariate_descriptors.rds</code>. Convolution parameters are <code>bivariate_theta.rds</code>. ADEMP metrics (<code>regression</code>, <code>monte_carlo</code>, <code>optimisation</code>, <code>call</code>) are <code>bivariate_benchmark.rds</code>. All four files share the <code>ID</code> key. <code>read_simulation_artefacts(dir, "bivariate", assemble = TRUE)</code> rejoins them for plotting.</p>
+<p>The slim design grid is <code>output/fig02/bivariate_config.rds</code> (no <code>true_theta</code>). Geometry, MixSim <code>BarOmega</code>, Hellinger, and Jeffreys live in <code>bivariate_descriptors.rds</code>. Convolution parameters are <code>bivariate_theta.rds</code>. ADEMP metrics (<code>regression</code>, <code>monte_carlo</code>, <code>optimisation</code>, <code>call</code>) are <code>bivariate_benchmark.rds</code>. All four files share the <code>ID</code> key. <code>read_simulation_artefacts(dir, "bivariate", assemble = TRUE)</code>, a script helper in <code>scripts/auxiliary/benchmark_artefacts.R</code>, rejoins them for plotting.</p>
 <p>The Monte Carlo <span class="math inline">\hat{\boldsymbol{p}}</span> draws themselves are the cell-type columns of <code>optimisation</code> (one row per replicate <span class="math inline">\times</span> algorithm <span class="math inline">\times</span> scenario). <code><a href="../reference/pivot_mc_estimates.html">pivot_mc_estimates()</a></code> stacks those columns into long form. Interior Wald intervals for convolution-likelihood solvers use <a href="../reference/vcov_ilr_delta.html"><code>vcov_ilr_delta()</code></a> (expected Fisher information through the ILR chart), matching <a href="../reference/fit_decovart.html"><code>confint.decovart_fit()</code></a>. Coverage, <code>mean_model_se</code>, and <code>se_sd_ratio</code> (mean model SE / empirical SD) are then finite. Mean-only solvers (NNLS, LSEI) leave those Wald columns missing: they do not maximise the convolution likelihood, so an ILR interval would not apply.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">

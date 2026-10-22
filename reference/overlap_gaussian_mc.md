@@ -20,8 +20,8 @@ overlap_gaussian_mc(true_theta, n_mc = 10000L, seed = NULL, J = NULL)
 
 - true_theta:
 
-  List with `p`, `mu`, `sigma` as in
-  [`check_true_theta()`](https://bastienchassagnol.github.io/DeCovarT/reference/check_true_theta.md).
+  List with `p` (length \\J\\), `mu` (\\G\times J\\) and `sigma`
+  (\\G\times G\times J\\).
 
 - n_mc:
 

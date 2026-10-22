@@ -254,9 +254,12 @@
 <span><span class="va">s4_results</span> <span class="op">&lt;-</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/pmap.html" class="external-link">pmap</a></span><span class="op">(</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">cov_models_grid</span><span class="op">$</span><span class="va">cosine_mu</span>, <span class="va">cov_models_grid</span><span class="op">$</span><span class="va">cov_model</span><span class="op">)</span>,</span>
 <span>  \<span class="op">(</span><span class="va">rho</span>, <span class="va">model</span><span class="op">)</span> <span class="op">{</span></span>
-<span>    <span class="va">mu</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_mean_signature_matrix.html">generate_mean_signature_matrix</a></span><span class="op">(</span><span class="va">J</span>, <span class="va">G</span>,</span>
-<span>      cosine_similarity <span class="op">=</span> <span class="va">rho</span>,</span>
-<span>      mean_scale <span class="op">=</span> <span class="fl">100</span>, seed <span class="op">=</span> <span class="va">SEED</span></span>
+<span>    <span class="va">mu</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generate_mean_signature_matrix.html">generate_mean_signature_matrix</a></span><span class="op">(</span></span>
+<span>      n_genes <span class="op">=</span> <span class="va">G</span>,</span>
+<span>      n_celltypes <span class="op">=</span> <span class="va">J</span>,</span>
+<span>      mean_scale <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>      target_cosine <span class="op">=</span> <span class="va">rho</span>,</span>
+<span>      seed <span class="op">=</span> <span class="va">SEED</span></span>
 <span>    <span class="op">)</span></span>
 <span>    <span class="fu"><a href="../reference/run_simulation_benchmark.html">run_simulation_benchmark</a></span><span class="op">(</span></span>
 <span>      n_replicates          <span class="op">=</span> <span class="va">N_REPLICATES</span>,</span>
@@ -277,7 +280,7 @@
 <div class="decovart-callout callout-important">
 <blockquote>
 <p><strong>Important 1: The fixed-covariance GLS (generalized least squares) solver</strong></p>
-<p>When a scenario varies the <em>covariance structure</em>, keep a mean-only baseline whose residual covariance does <strong>not</strong> depend on <span class="math inline">\boldsymbol{p}</span>. Build <span class="math inline">W</span> with <a href="../reference/fixed_gls_covariance.html"><code>fixed_gls_covariance()</code></a> (default: diagonal of <span class="math inline">\Sigma(\bar p)</span> at <span class="math inline">\bar p_j=1/J</span>) and fit <a href="../reference/deconvolute_ratios_gls.html"><code>deconvolute_ratios_gls()</code></a> (<code><a href="https://rdrr.io/pkg/MASS/man/lm.gls.html" class="external-link">MASS::lm.gls</a></code>). Copying <span class="math inline">W</span> into every tensor slice is not GLS: <span class="math inline">\sum_j p_j^2 W=\|p\|_2^2 W</span> still depends on <span class="math inline">p</span>. The hierarchy is full <span class="math inline">\Sigma(p)</span>, cell-type-diagonal convolution, then this fixed <span class="math inline">W</span>. Starts for the convolution MLE: barycentre, Dirichlet (<code>initial_p = "dirichlet"</code>, <span class="math inline">\alpha=1</span> uniform, <span class="math inline">\alpha&gt;1</span> centre, <span class="math inline">\alpha&lt;1</span> faces; several independent draws), or QP (<code>initial_p = "qp"</code>).</p>
+<p>When a scenario varies the <em>covariance structure</em>, keep a mean-only baseline whose residual covariance does <strong>not</strong> depend on <span class="math inline">\boldsymbol{p}</span>. Build <span class="math inline">W=\Sigma(\bar p)</span> at <span class="math inline">\bar p_j=1/J</span> and fit mean-only GLS with it held fixed (local helper <code>.deconv_global_gls()</code> in <code>scripts/supp_S4_covariance_modeling.R</code>). Copying <span class="math inline">W</span> into every tensor slice is not GLS: <span class="math inline">\sum_j p_j^2 W=\|p\|_2^2 W</span> still depends on <span class="math inline">p</span>. The hierarchy is full <span class="math inline">\Sigma(p)</span>, cell-type-diagonal convolution, then this fixed <span class="math inline">W</span>. Starts for the convolution MLE: barycentre, Dirichlet (<code>initial_p = "dirichlet"</code>, <span class="math inline">\alpha=1</span> uniform, <span class="math inline">\alpha&gt;1</span> centre, <span class="math inline">\alpha&lt;1</span> faces; several independent draws), or QP (<code>initial_p = "qp"</code>).</p>
 </blockquote>
 </div>
 </div>

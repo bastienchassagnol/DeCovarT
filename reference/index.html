@@ -70,9 +70,9 @@
     </div>
 
     <div class="section level2">
-      <h2 id="main-deconvolution-function">Main deconvolution function<a class="anchor" aria-label="anchor" href="#main-deconvolution-function"></a></h2>
+      <h2 id="simplex-chart">Simplex chart<a class="anchor" aria-label="anchor" href="#simplex-chart"></a></h2>
 
-      <div class="section-desc"><p>Top-level function to deconvolve a matrix of bulk expression samples using any combination of deconvolution algorithms in parallel.</p></div>
+      <div class="section-desc"><p>Shared by both generative models (<code>R/02_00_ilr_chart.R</code>): simplex repair, the Helmert basis and the isometric log-ratio (ILR) chart with its first and second derivatives.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -81,26 +81,12 @@
 
       <dl><dt>
 
-          <code><a href="deconvolute_ratios.html">deconvolute_ratios()</a></code>
+          <code><a href="repair_simplex.html">repair_simplex()</a></code>
 
         </dt>
-        <dd>Parallel deconvolution of a bulk expression matrix</dd>
-      </dl></div><div class="section level2">
-      <h2 id="decovart-algorithm">DeCovarT algorithm<a class="anchor" aria-label="anchor" href="#decovart-algorithm"></a></h2>
+        <dd>Repair a numeric vector onto the unit simplex</dd>
 
-      <div class="section-desc"><p>Covariance-aware optimisation of cellular ratios under a multivariate Gaussian convolution model.</p></div>
-
-      <dl></dl></div><div class="section level2">
-
-      <h3 id="score-equations-and-simplex-maps">Score equations and simplex maps<a class="anchor" aria-label="anchor" href="#score-equations-and-simplex-maps"></a></h3>
-      <div class="section-desc"><p>Analytic first- and second-order helpers for the unconstrained and ILR-constrained log-likelihood (Helmert basis; Jacobian / Hessian of the isometric logistic map; gradients and Hessians of ()). Additive log-ratio maps are kept for the vignette appendix. Documented for <code>?</code> / source inspection; see also <code><a href="../articles/theory-decovart-generative-model.html">vignette("theory-decovart-generative-model")</a></code>.</p></div>
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
+        <dt>
 
           <code><a href="helmert_basis.html">helmert_basis()</a></code>
 
@@ -127,6 +113,34 @@
 
         </dt>
         <dd>Hessian tensor of the isometric logistic map</dd>
+      </dl></div><div class="section level2">
+      <h2 id="population-references-gaussian-convolution">Population references: Gaussian convolution<a class="anchor" aria-label="anchor" href="#population-references-gaussian-convolution"></a></h2>
+
+      <div class="section-desc"><p>Bulk covariance (_j p_j^2_j) (article Section “Population-level references”).</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+      <h3 id="optimisation">Optimisation<a class="anchor" aria-label="anchor" href="#optimisation"></a></h3>
+      <div class="section-desc"><p>Log-likelihood, score and Hessian, the solver family (Newton–Raphson by default, with the PORT trust region of <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">stats::nlminb</a></code>), starting values and multistarts (<code>R/02_02_population_decovart_estimate_ratios.R</code>, <code>R/02_03_population_decovart_fit.R</code>).</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="fit_decovart.html">fit_decovart()</a></code> <code><a href="fit_decovart.html">print(<i>&lt;decovart_fit&gt;</i>)</a></code> <code><a href="fit_decovart.html">summary(<i>&lt;decovart_fit&gt;</i>)</a></code> <code><a href="fit_decovart.html">print(<i>&lt;summary.decovart_fit&gt;</i>)</a></code> <code><a href="fit_decovart.html">coef(<i>&lt;decovart_fit&gt;</i>)</a></code> <code><a href="fit_decovart.html">fitted(<i>&lt;decovart_fit&gt;</i>)</a></code> <code><a href="fit_decovart.html">residuals(<i>&lt;decovart_fit&gt;</i>)</a></code> <code><a href="fit_decovart.html">vcov(<i>&lt;decovart_fit&gt;</i>)</a></code> <code><a href="fit_decovart.html">nobs(<i>&lt;decovart_fit&gt;</i>)</a></code> <code><a href="fit_decovart.html">confint(<i>&lt;decovart_fit&gt;</i>)</a></code> <code><a href="fit_decovart.html">plot(<i>&lt;decovart_fit&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Fit the DeCovarT Gaussian-convolution model</dd>
+
+        <dt>
+
+          <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_cibersort()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_rlm()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_nnls()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_deconrnaseq()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_Marquardt_Levenberg()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_simulated_annealing()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_L_BFGS_B()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_Newton_Raphson()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_gradient_descent()</a></code>
+
+        </dt>
+        <dd>DeCovarT MLE of cellular proportions for one bulk sample</dd>
 
         <dt>
 
@@ -137,24 +151,17 @@
 
         <dt>
 
-          <code><a href="additive_logistic.html">additive_logistic()</a></code> <code><a href="additive_logistic.html">additive_log_ratio()</a></code>
+          <code><a href="multistart_decovart.html">multistart_decovart()</a></code>
 
         </dt>
-        <dd>Additive logistic transform (unconstrained coordinates to the simplex)</dd>
+        <dd>Refit DeCovarT from several random starts to probe multimodality</dd>
 
         <dt>
 
-          <code><a href="jacobian_additive_logistic.html">jacobian_additive_logistic()</a></code>
+          <code><a href="loglik_multivariate.html">loglik_multivariate()</a></code>
 
         </dt>
-        <dd>Jacobian \(\mathbf{J}_{\boldsymbol{\psi}}\) of the additive logistic map</dd>
-
-        <dt>
-
-          <code><a href="hessian_additive_logistic.html">hessian_additive_logistic()</a></code>
-
-        </dt>
-        <dd>Second derivatives (Hessian tensor) of the additive logistic map</dd>
+        <dd>Unconstrained DeCovarT log-likelihood</dd>
 
         <dt>
 
@@ -185,8 +192,8 @@
         <dd>Constrained Hessian of \(\ell\circ\boldsymbol{\psi}\)</dd>
       </dl></div><div class="section level2">
 
-      <h3 id="core-optimiser">Core optimiser<a class="anchor" aria-label="anchor" href="#core-optimiser"></a></h3>
-      <div class="section-desc"><p>Marquardt–Levenberg deconvolution (exported entry point). Related first- and second-order variants live in <code>R/03_03_DeCovarT_estimate_ratios_frequentist.R</code>. The S3 model wrapper is <code><a href="../reference/fit_decovart.html">fit_decovart()</a></code>.</p></div>
+      <h3 id="inference">Inference<a class="anchor" aria-label="anchor" href="#inference"></a></h3>
+      <div class="section-desc"><p>Confidence intervals and tests (<code>R/03_01</code> to <code>R/03_03</code>): the <code><a href="../reference/confint_decovart.html">confint_decovart()</a></code> menu (ILR back-transformation by default, Wald, Firth, profile likelihood, parametric and reference bootstraps), restricted fits on simplex faces and chi-bar-square tests.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -195,102 +202,19 @@
 
       <dl><dt>
 
-          <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_cibersort()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_rlm()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_nnls()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_deconrnaseq()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_Marquardt_Levenberg()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_simulated_annealing()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_L_BFGS_B()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_Newton_Raphson()</a></code> <code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_gradient_descent()</a></code>
+          <code><a href="confint_decovart.html">confint_decovart()</a></code>
 
         </dt>
-        <dd>DeCovarT MLE of cellular proportions for one bulk sample</dd>
+        <dd>Choose a confidence interval for a pooled DeCovarT composition</dd>
 
         <dt>
 
-          <code><a href="fit_decovart.html">fit_decovart()</a></code> <code><a href="fit_decovart.html">print(<i>&lt;decovart_fit&gt;</i>)</a></code> <code><a href="fit_decovart.html">summary(<i>&lt;decovart_fit&gt;</i>)</a></code> <code><a href="fit_decovart.html">print(<i>&lt;summary.decovart_fit&gt;</i>)</a></code> <code><a href="fit_decovart.html">coef(<i>&lt;decovart_fit&gt;</i>)</a></code> <code><a href="fit_decovart.html">fitted(<i>&lt;decovart_fit&gt;</i>)</a></code> <code><a href="fit_decovart.html">residuals(<i>&lt;decovart_fit&gt;</i>)</a></code> <code><a href="fit_decovart.html">vcov(<i>&lt;decovart_fit&gt;</i>)</a></code> <code><a href="fit_decovart.html">nobs(<i>&lt;decovart_fit&gt;</i>)</a></code> <code><a href="fit_decovart.html">confint(<i>&lt;decovart_fit&gt;</i>)</a></code> <code><a href="fit_decovart.html">plot(<i>&lt;decovart_fit&gt;</i>)</a></code>
+          <code><a href="confint_ilr_backtransform.html">confint_ilr_backtransform()</a></code>
 
         </dt>
-        <dd>Fit the DeCovarT Gaussian-convolution model</dd>
-      </dl></div><div class="section level2">
-
-      <h3 id="fixed-covariance-gls-competitor">Fixed-covariance GLS competitor<a class="anchor" aria-label="anchor" href="#fixed-covariance-gls-competitor"></a></h3>
-      <div class="section-desc"><p><code><a href="https://rdrr.io/pkg/MASS/man/lm.gls.html" class="external-link">MASS::lm.gls()</a></code> wrapper with a known residual covariance (<code><a href="../reference/fixed_gls_covariance.html">fixed_gls_covariance()</a></code> at a declared composition).</p></div>
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="deconvolute_ratios_gls.html">deconvolute_ratios_gls()</a></code>
-
-        </dt>
-        <dd>Generalised least squares with a fixed residual covariance</dd>
+        <dd>Confidence intervals by mapping a Wald region through the ILR chart</dd>
 
         <dt>
-
-          <code><a href="fixed_gls_covariance.html">fixed_gls_covariance()</a></code>
-
-        </dt>
-        <dd>Fixed residual covariance for a GLS competitor</dd>
-      </dl></div><div class="section level2">
-
-      <h3 id="structure-aware-covariance-backends">Structure-aware covariance backends<a class="anchor" aria-label="anchor" href="#structure-aware-covariance-backends"></a></h3>
-      <div class="section-desc"><p>Factorise (()=_j p_j^2 _j) by exploiting declared covariance structure (block, band, sparse, diagonal-plus-low-rank) instead of a dense Cholesky. Operators return the log-determinant and solves without a materialised precision. See <code><a href="../articles/theory-decovart-generative-model.html">vignette("theory-decovart-generative-model")</a></code>.</p></div>
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="new_decovart_covariance.html">new_decovart_covariance()</a></code> <code><a href="new_decovart_covariance.html">print(<i>&lt;decovart_covariance&gt;</i>)</a></code>
-
-        </dt>
-        <dd>Structure-aware covariance backend for \(\boldsymbol{\Sigma}(\boldsymbol{p})\)</dd>
-
-        <dt>
-
-          <code><a href="covariance_structure_from_graph_model.html">covariance_structure_from_graph_model()</a></code>
-
-        </dt>
-        <dd>Recommend a covariance backend from a network topology</dd>
-
-        <dt>
-
-          <code><a href="sigma_logdet.html">sigma_logdet()</a></code>
-
-        </dt>
-        <dd>Log-determinant of \(\boldsymbol{\Sigma}(\boldsymbol{p})\)</dd>
-
-        <dt>
-
-          <code><a href="sigma_solve.html">sigma_solve()</a></code>
-
-        </dt>
-        <dd>Precision solve \(\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\mathbf{B}\)</dd>
-
-        <dt>
-
-          <code><a href="sigma_quadform.html">sigma_quadform()</a></code>
-
-        </dt>
-        <dd>Mahalanobis quadratic form \(\mathbf{r}^{\mathsf{T}}\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\mathbf{r}\)</dd>
-
-        <dt>
-
-          <code><a href="sigma_trace_precision_times.html">sigma_trace_precision_times()</a></code>
-
-        </dt>
-        <dd>Trace of the precision times a matrix, \(\operatorname{tr}(\boldsymbol{\Omega}(\boldsymbol{p})\mathbf{S})\)</dd>
-      </dl></div><div class="section level2">
-
-      <h3 id="fisher-information-and-wald-intervals">Fisher information and Wald intervals<a class="anchor" aria-label="anchor" href="#fisher-information-and-wald-intervals"></a></h3>
-      <div class="section-desc"><p>Expected Fisher information of unconstrained proportions and ILR delta-method covariance used by <code><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov()</a></code> / <code><a href="https://rdrr.io/r/stats/confint.html" class="external-link">confint()</a></code> on <code>decovart_fit</code> objects (see <code>fit_decovart</code>).</p></div>
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
 
           <code><a href="expected_fisher_unconstrained.html">expected_fisher_unconstrained()</a></code>
 
@@ -303,36 +227,13 @@
 
         </dt>
         <dd>Cramer–Rao / ILR delta-method covariance of \(\hat{\boldsymbol{p}}\)</dd>
-      </dl></div><div class="section level2">
-
-      <h3 id="likelihood-ratio-and-boundary-inference">Likelihood-ratio and boundary inference<a class="anchor" aria-label="anchor" href="#likelihood-ratio-and-boundary-inference"></a></h3>
-      <div class="section-desc"><p>Profile likelihood, likelihood-ratio tests with chi-bar-square (Chernoff / Self–Liang) calibration on simplex faces, parametric bootstrap, reference-sample bootstrap (donors, cells, or Dirichlet compositions), and the boundary / multimodality diagnostics that a bare convergence code cannot provide. See <code><a href="../articles/theory-DeCovarT-MLE-properties.html">vignette("theory-DeCovarT-MLE-properties")</a></code>.</p></div>
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="restricted_mle_decovart.html">restricted_mle_decovart()</a></code>
-
-        </dt>
-        <dd>Restricted maximum likelihood with fixed cellular ratios</dd>
 
         <dt>
 
-          <code><a href="profile_loglik_decovart.html">profile_loglik_decovart()</a></code>
+          <code><a href="fit_firth_decovart.html">fit_firth_decovart()</a></code>
 
         </dt>
-        <dd>Profile log-likelihood of one cellular ratio</dd>
-
-        <dt>
-
-          <code><a href="lrt_decovart.html">lrt_decovart()</a></code>
-
-        </dt>
-        <dd>Likelihood-ratio test for cellular ratios</dd>
+        <dd>Firth-penalised DeCovarT fit</dd>
 
         <dt>
 
@@ -343,10 +244,31 @@
 
         <dt>
 
+          <code><a href="restricted_mle_decovart.html">restricted_mle_decovart()</a></code>
+
+        </dt>
+        <dd>Maximum likelihood on the closed simplex, optionally on a face</dd>
+
+        <dt>
+
+          <code><a href="lrt_decovart.html">lrt_decovart()</a></code>
+
+        </dt>
+        <dd>Likelihood-ratio test for cellular ratios</dd>
+
+        <dt>
+
           <code><a href="chi_bar_square_pvalue.html">chi_bar_square_pvalue()</a></code>
 
         </dt>
         <dd>Chi-bar-square tail probability for boundary likelihood-ratio tests</dd>
+
+        <dt>
+
+          <code><a href="boundary_diagnostics.html">boundary_diagnostics()</a></code>
+
+        </dt>
+        <dd>Boundary and stationarity diagnostics for one DeCovarT fit</dd>
 
         <dt>
 
@@ -368,24 +290,217 @@
 
         </dt>
         <dd>Permutation-equivariance check for a labelled reference</dd>
-
-        <dt>
-
-          <code><a href="boundary_diagnostics.html">boundary_diagnostics()</a></code>
-
-        </dt>
-        <dd>Boundary and stationarity diagnostics for one DeCovarT fit</dd>
-
-        <dt>
-
-          <code><a href="multistart_decovart.html">multistart_decovart()</a></code>
-
-        </dt>
-        <dd>Refit DeCovarT from several random starts to probe multimodality</dd>
       </dl></div><div class="section level2">
-      <h2 id="benchmark-and-evaluation">Benchmark and evaluation<a class="anchor" aria-label="anchor" href="#benchmark-and-evaluation"></a></h2>
+      <h2 id="single-cell-references-mixture-of-independent-cells">Single-cell references: mixture of independent cells<a class="anchor" aria-label="anchor" href="#single-cell-references-mixture-of-independent-cells"></a></h2>
 
-      <div class="section-desc"><p>Quality metrics for estimated proportions, and the simulation benchmark wrapper.</p></div>
+      <div class="section-desc"><p>Bulk covariance (<em>j p_j</em>{W,j}) with a mean scale (c) and a variance scale () (article Section “Single-cell references”).</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+      <h3 id="optimisation-1">Optimisation<a class="anchor" aria-label="anchor" href="#optimisation-1"></a></h3>
+      <div class="section-desc"><p>Free-scale least-squares start, closed-form scales, and Newton–Raphson on the profile log-likelihood (<code>R/02_02_single_cell_decovart_estimate_ratios.R</code>).</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="deconvolute_single_cell.html">deconvolute_single_cell()</a></code>
+
+        </dt>
+        <dd>Single-cell deconvolution of one bulk sample</dd>
+
+        <dt>
+
+          <code><a href="single_cell_nuisance_scales.html">single_cell_nuisance_scales()</a></code>
+
+        </dt>
+        <dd>Stage-i scales for one single-cell bulk sample</dd>
+
+        <dt>
+
+          <code><a href="loglik_single_cell.html">loglik_single_cell()</a></code>
+
+        </dt>
+        <dd>Log-likelihood of one single-cell bulk sample</dd>
+
+        <dt>
+
+          <code><a href="profile_loglik_single_cell_ilr.html">profile_loglik_single_cell_ilr()</a></code> <code><a href="profile_loglik_single_cell_ilr.html">gradient_profile_loglik_single_cell_ilr()</a></code> <code><a href="profile_loglik_single_cell_ilr.html">hessian_profile_loglik_single_cell_ilr()</a></code>
+
+        </dt>
+        <dd>Profile log-likelihood of one single-cell bulk sample in ILR coordinates</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="inference-1">Inference<a class="anchor" aria-label="anchor" href="#inference-1"></a></h3>
+      <div class="section-desc"><p>The <code><a href="../reference/confint_single_cell.html">confint_single_cell()</a></code> menu, with intervals for the composition and for the two scales (<code>R/03_04_single_cell_inference.R</code>).</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="confint_single_cell.html">confint_single_cell()</a></code>
+
+        </dt>
+        <dd>Confidence intervals for one single-cell bulk sample</dd>
+
+        <dt>
+
+          <code><a href="vcov_single_cell.html">vcov_single_cell()</a></code>
+
+        </dt>
+        <dd>Observed information of one single-cell fit</dd>
+
+        <dt>
+
+          <code><a href="fit_firth_single_cell.html">fit_firth_single_cell()</a></code>
+
+        </dt>
+        <dd>Firth fit of one single-cell bulk sample</dd>
+
+        <dt>
+
+          <code><a href="confint_profile_single_cell.html">confint_profile_single_cell()</a></code>
+
+        </dt>
+        <dd>Profile-likelihood intervals for one single-cell bulk sample</dd>
+
+        <dt>
+
+          <code><a href="restricted_mle_single_cell.html">restricted_mle_single_cell()</a></code>
+
+        </dt>
+        <dd>Maximum likelihood on a face of the single-cell model</dd>
+
+        <dt>
+
+          <code><a href="lrt_single_cell.html">lrt_single_cell()</a></code>
+
+        </dt>
+        <dd>Likelihood-ratio test for one single-cell composition</dd>
+
+        <dt>
+
+          <code><a href="bootstrap_single_cell.html">bootstrap_single_cell()</a></code>
+
+        </dt>
+        <dd>Parametric bootstrap for one single-cell bulk sample</dd>
+
+        <dt>
+
+          <code><a href="reference_bootstrap_single_cell.html">reference_bootstrap_single_cell()</a></code>
+
+        </dt>
+        <dd>Reference bootstrap for the single-cell mixture</dd>
+      </dl></div><div class="section level2">
+      <h2 id="generative-models">Generative models<a class="anchor" aria-label="anchor" href="#generative-models"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+      <h3 id="population-references">Population references<a class="anchor" aria-label="anchor" href="#population-references"></a></h3>
+      <div class="section-desc"><p>Mean signatures with prescribed pairwise cosines, graph-constrained cell-type covariances, and bulk samples drawn from the Gaussian convolution (<code>R/01_01_population_toy_simulation.R</code>, <code>R/01_02_generate_synthetic_networks.R</code>).</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="generate_mean_signature_matrix.html">generate_mean_signature_matrix()</a></code>
+
+        </dt>
+        <dd>Generate mean profiles from a target Gram matrix</dd>
+
+        <dt>
+
+          <code><a href="simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments()</a></code>
+
+        </dt>
+        <dd>Simulate GRN first- and second-order moments</dd>
+
+        <dt>
+
+          <code><a href="simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code>
+
+        </dt>
+        <dd>Simulate bulk mixtures from a multivariate Gaussian convolution</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="single-cell-references">Single-cell references<a class="anchor" aria-label="anchor" href="#single-cell-references"></a></h3>
+      <div class="section-desc"><p>Cell-size conventions, the four-scenario design, and bulk samples drawn as sums of multinomial counts of cells (<code>R/01_01_single_cell_toy_simulation.R</code>, <code>R/01_02_single_cell_generate_synthetic_networks.R</code>).</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="simulate_bulk_from_cells.html">simulate_bulk_from_cells()</a></code>
+
+        </dt>
+        <dd>Simulate a bulk sample as a sum of single cells</dd>
+
+        <dt>
+
+          <code><a href="rescale_single_cell_moments.html">rescale_single_cell_moments()</a></code>
+
+        </dt>
+        <dd>Cell-size conventions for a single-cell reference</dd>
+
+        <dt>
+
+          <code><a href="single_cell_scenario_design.html">single_cell_scenario_design()</a></code>
+
+        </dt>
+        <dd>Four single-cell simulation scenarios</dd>
+      </dl></div><div class="section level2">
+      <h2 id="benchmark">Benchmark<a class="anchor" aria-label="anchor" href="#benchmark"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+      <h3 id="run">Run<a class="anchor" aria-label="anchor" href="#run"></a></h3>
+      <div class="section-desc"><p>Fit every algorithm to every bulk sample, over a scenario grid (<code>R/04_01_run_benchmark.R</code>, <code>R/04_02_run_simulation_benchmark.R</code>).</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="deconvolute_ratios.html">deconvolute_ratios()</a></code>
+
+        </dt>
+        <dd>Parallel deconvolution of a bulk expression matrix</dd>
+
+        <dt>
+
+          <code><a href="run_simulation_benchmark.html">run_simulation_benchmark()</a></code>
+
+        </dt>
+        <dd>Simulate bulk mixtures and benchmark deconvolution algorithms</dd>
+
+        <dt>
+
+          <code><a href="describe_simulation_scenario.html">describe_simulation_scenario()</a></code>
+
+        </dt>
+        <dd>Describe a Gaussian-convolution simulation scenario</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="metrics">Metrics<a class="anchor" aria-label="anchor" href="#metrics"></a></h3>
+      <div class="section-desc"><p>Global and per-cell-type performance scores, Monte Carlo coverage (<code>R/04_03</code>, <code>R/04_04</code>), and scenario descriptors: entropy of the composition, overlap and divergences between cell-type distributions (<code>R/01_03</code> to <code>R/01_05</code>).</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -408,19 +523,63 @@
 
         <dt>
 
-          <code><a href="run_simulation_benchmark.html">run_simulation_benchmark()</a></code>
+          <code><a href="compute_shannon_entropy.html">compute_shannon_entropy()</a></code>
 
         </dt>
-        <dd>Simulate bulk mixtures and benchmark deconvolution algorithms</dd>
+        <dd>Normalised Shannon entropy of a discrete distribution</dd>
 
         <dt>
 
-          <code><a href="deconvolute_ratios.html">deconvolute_ratios()</a></code>
+          <code><a href="composition_from_entropy.html">composition_from_entropy()</a></code>
 
         </dt>
-        <dd>Parallel deconvolution of a bulk expression matrix</dd>
+        <dd>One-dominant composition with a target normalised Shannon entropy</dd>
 
         <dt>
+
+          <code><a href="compute_average_overlap.html">compute_average_overlap()</a></code>
+
+        </dt>
+        <dd>Average pairwise overlap of a Gaussian mixture</dd>
+
+        <dt>
+
+          <code><a href="overlap_gaussian_mc.html">overlap_gaussian_mc()</a></code>
+
+        </dt>
+        <dd>MixSim-style pairwise overlap via stratified Sobol Monte Carlo</dd>
+
+        <dt>
+
+          <code><a href="compute_average_riemannian.html">compute_average_riemannian()</a></code>
+
+        </dt>
+        <dd>Mean pairwise AIRM distance of component covariances</dd>
+
+        <dt>
+
+          <code><a href="compute_average_jeffreys.html">compute_average_jeffreys()</a></code>
+
+        </dt>
+        <dd>Average pairwise Jeffreys divergence of a Gaussian mixture</dd>
+
+        <dt>
+
+          <code><a href="scale_covariance_array.html">scale_covariance_array()</a></code>
+
+        </dt>
+        <dd>Scale component covariances, keeping precision zeros</dd>
+      </dl></div><div class="section level2">
+
+      <h3 id="visualisation">Visualisation<a class="anchor" aria-label="anchor" href="#visualisation"></a></h3>
+      <div class="section-desc"><p>Monte Carlo plots and algorithm-similarity heatmaps of a benchmark (<code>R/05_01_monte_carlo_plots.R</code>, <code>R/05_02_algorithm_similarity.R</code>).</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
 
           <code><a href="pivot_mc_estimates.html">pivot_mc_estimates()</a></code>
 
@@ -443,10 +602,10 @@
 
         <dt>
 
-          <code><a href="theme_decovart_facets.html">theme_decovart_facets()</a></code>
+          <code><a href="plot_mc_metric_dots.html">plot_mc_metric_dots()</a></code>
 
         </dt>
-        <dd>Faceted ggplot2 theme (black strips, panel border)</dd>
+        <dd>Faceted dot plot of several ADEMP metrics</dd>
 
         <dt>
 
@@ -464,152 +623,10 @@
 
         <dt>
 
-          <code><a href="plot_mc_metric_dots.html">plot_mc_metric_dots()</a></code>
+          <code><a href="theme_decovart_facets.html">theme_decovart_facets()</a></code>
 
         </dt>
-        <dd>Faceted dot plot of several ADEMP metrics</dd>
-
-        <dt>
-
-          <code><a href="plot_correlation_Heatmap.html">plot_correlation_Heatmap()</a></code>
-
-        </dt>
-        <dd>Plot deconvolution metric heatmaps</dd>
-      </dl></div><div class="section level2">
-      <h2 id="simulation">Simulation<a class="anchor" aria-label="anchor" href="#simulation"></a></h2>
-
-
-
-      <dl></dl></div><div class="section level2">
-
-      <h3 id="toy-bulk-mixtures">Toy bulk mixtures<a class="anchor" aria-label="anchor" href="#toy-bulk-mixtures"></a></h3>
-      <div class="section-desc"><p>Simulate bulk mixtures as convolutions of multivariate Gaussians, and hierarchical GRN moments with graph-constrained covariances.</p></div>
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="generate_mean_signature_matrix.html">generate_mean_signature_matrix()</a></code>
-
-        </dt>
-        <dd>Generate mean profiles from a target Gram matrix</dd>
-
-        <dt>
-
-          <code><a href="equicorrelation_gram.html">equicorrelation_gram()</a></code>
-
-        </dt>
-        <dd>Equicorrelation (constant-correlation) Gram matrix</dd>
-
-        <dt>
-
-          <code><a href="simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code>
-
-        </dt>
-        <dd>Simulate bulk mixtures from a multivariate Gaussian convolution</dd>
-
-        <dt>
-
-          <code><a href="simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments()</a></code>
-
-        </dt>
-        <dd>Simulate GRN first- and second-order moments</dd>
-
-        <dt>
-
-          <code><a href="describe_simulation_scenario.html">describe_simulation_scenario()</a></code>
-
-        </dt>
-        <dd>Describe a Gaussian-convolution simulation scenario</dd>
-      </dl></div><div class="section level2">
-      <h2 id="statistical-metrics">Statistical metrics<a class="anchor" aria-label="anchor" href="#statistical-metrics"></a></h2>
-
-      <div class="section-desc"><p>Simplex repair, Shannon entropy, MixSim overlap, Jeffreys divergence, and glmnet gene scores for signature design.</p></div>
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="repair_simplex.html">repair_simplex()</a></code>
-
-        </dt>
-        <dd>Repair a numeric vector onto the unit simplex</dd>
-
-        <dt>
-
-          <code><a href="compute_shannon_entropy.html">compute_shannon_entropy()</a></code>
-
-        </dt>
-        <dd>Normalised Shannon entropy of a discrete distribution</dd>
-
-        <dt>
-
-          <code><a href="composition_from_entropy.html">composition_from_entropy()</a></code>
-
-        </dt>
-        <dd>One-dominant composition with a target normalised Shannon entropy</dd>
-
-        <dt>
-
-          <code><a href="check_true_theta.html">check_true_theta()</a></code>
-
-        </dt>
-        <dd>Validate generative-model parameters \(\theta\)</dd>
-
-        <dt>
-
-          <code><a href="compute_average_overlap.html">compute_average_overlap()</a></code>
-
-        </dt>
-        <dd>Average pairwise overlap of a Gaussian mixture</dd>
-
-        <dt>
-
-          <code><a href="overlap_gaussian_mc.html">overlap_gaussian_mc()</a></code>
-
-        </dt>
-        <dd>MixSim-style pairwise overlap via stratified Sobol Monte Carlo</dd>
-
-        <dt>
-
-          <code><a href="spd_affine_invariant_distance.html">spd_affine_invariant_distance()</a></code>
-
-        </dt>
-        <dd>Affine-invariant Riemannian (AIRM) distance between two SPD matrices</dd>
-
-        <dt>
-
-          <code><a href="compute_average_riemannian.html">compute_average_riemannian()</a></code>
-
-        </dt>
-        <dd>Mean pairwise AIRM distance of component covariances</dd>
-
-        <dt>
-
-          <code><a href="scale_covariance_array.html">scale_covariance_array()</a></code>
-
-        </dt>
-        <dd>Scale component covariances, keeping precision zeros</dd>
-
-        <dt>
-
-          <code><a href="compute_average_jeffreys.html">compute_average_jeffreys()</a></code>
-
-        </dt>
-        <dd>Average pairwise Jeffreys divergence of a Gaussian mixture</dd>
-
-        <dt>
-
-          <code><a href="compute_glmnet_gene_scores.html">compute_glmnet_gene_scores()</a></code>
-
-        </dt>
-        <dd>Gene scores from multinomial elastic-net cell-type classification</dd>
+        <dd>Faceted ggplot2 theme (black strips, panel border)</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

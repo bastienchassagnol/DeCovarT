@@ -8,6 +8,20 @@ library(DeCovarT)
 > **Script:** `scripts/supp_S2_covariance_inversion.R` — benchmarks
 > matrix inversion strategies. Outputs in `output/supp_S2/`.
 
+> **Structured backends are experimental**
+>
+> The block, band, sparse and diagonal-plus-low-rank backends
+> (`new_decovart_covariance()`, `sigma_logdet()`, `sigma_solve()`,
+> `sigma_quadform()`, `sigma_trace_precision_times()`,
+> `covariance_structure_from_graph_model()`) are no longer part of the
+> package. They live in `scripts/experimental/covariance_backends.R`,
+> which the S2 script sources after `devtools::load_all()`. The package
+> fit assumes a dense \boldsymbol{\Sigma}(\boldsymbol{p}) and factorises
+> it with one dense Cholesky: with more cell types, gene–gene
+> correlations make any declared sparsity pattern unreliable, and the
+> current priority is the single-cell model rather than computational
+> speed.
+
 ------------------------------------------------------------------------
 
 ## 1️⃣ Generative Model
@@ -165,13 +179,12 @@ size, or the low-rank residual r, which is why
 together, not G alone.
 
 **Panel A (running time).** Plot median wall-clock time per
-[`sigma_solve()`](https://bastienchassagnol.github.io/DeCovarT/reference/sigma_solve.md)
-against G on **log–log** axes, with one colour per backend and one
-linetype per network structure. The log scale is the same device as
-DICEPro Figure S1A: early-G cache effects stay visible while the
-G=500–1000 regime does not collapse the faster solvers onto the axis. A
-dense Cholesky should approach slope 3 on this plot. Banded and
-block-diagonal backends should peel away below that line as soon as
+`sigma_solve()` against G on **log–log** axes, with one colour per
+backend and one linetype per network structure. The log scale is the
+same device as DICEPro Figure S1A: early-G cache effects stay visible
+while the G=500–1000 regime does not collapse the faster solvers onto
+the axis. A dense Cholesky should approach slope 3 on this plot. Banded
+and block-diagonal backends should peel away below that line as soon as
 fill-in stays cheaper than a full G^{3} factorisation. Ribbons are Monte
 Carlo SD across the N\_{\text{timing}} repeated solves in Section 2, not
 confidence intervals for a statistical estimand.
@@ -303,14 +316,15 @@ Hessian) against Richardson extrapolation in `numDeriv` ([Gilbert and
 Varadhan 2019](#ref-R-numDeriv)), as already used in [the
 generative-model
 vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.md)
-and in `tests/testthat/test-03_03_DeCovarT.R`. DICEPro reported relative
-errors below 6\times 10^{-6} with central differences
-\varepsilon=10^{-5}. DeCovarT prefers Richardson’s tableau rather than a
-single-step central difference, because the score mixes traces of
-\boldsymbol{\Omega}(\boldsymbol{p}) with quadratic forms that have a
-wide dynamic range. Points should fall on the identity; stratify by
-parameter block (ILR coordinates versus unconstrained \boldsymbol{p} on
-the L-BFGS-B path).
+and in
+`tests/testthat/test-02_02_population_decovart_estimate_ratios.R`.
+DICEPro reported relative errors below 6\times 10^{-6} with central
+differences \varepsilon=10^{-5}. DeCovarT prefers Richardson’s tableau
+rather than a single-step central difference, because the score mixes
+traces of \boldsymbol{\Omega}(\boldsymbol{p}) with quadratic forms that
+have a wide dynamic range. Points should fall on the identity; stratify
+by parameter block (ILR coordinates versus unconstrained \boldsymbol{p}
+on the L-BFGS-B path).
 
 ``` r
 

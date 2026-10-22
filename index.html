@@ -180,9 +180,17 @@ flowchart TD
 <div class="section level3">
 <h3 id="interactive-package-structure">Interactive package structure<a class="anchor" aria-label="anchor" href="#interactive-package-structure"></a>
 </h3>
-<p>Prefer the <a href="https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network.html">full-screen network</a> when exploring call relationships. Regenerate locally with <code>source("scripts/auxiliary/generate_package_network_functions.R")</code>.</p>
+<p>Three graphs, regenerated with <code>Rscript scripts/auxiliary/generate_package_network_functions.R</code>. The <a href="https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network_core.html">estimation and interval network</a> is the Gaussian-convolution fit. The <a href="https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network_simulation.html">simulation and benchmark network</a> is the scenario generator and the ADEMP summaries. The <a href="https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network_visualisation.html">visualisation network</a> covers the Monte Carlo plots.</p>
 <div class="decovart-fullwidth">
-<iframe class="package-network" src="package_network/decovart_function_network.html" title="DeCovarT function call graph" width="100%" height="640" allowfullscreen>
+<iframe class="package-network" src="package_network/decovart_function_network_core.html" title="DeCovarT estimation and interval call graph" width="100%" height="640" allowfullscreen>
+</iframe>
+</div>
+<div class="decovart-fullwidth">
+<iframe class="package-network" src="package_network/decovart_function_network_simulation.html" title="DeCovarT simulation and benchmark call graph" width="100%" height="640" allowfullscreen>
+</iframe>
+</div>
+<div class="decovart-fullwidth">
+<iframe class="package-network" src="package_network/decovart_function_network_visualisation.html" title="DeCovarT visualisation call graph" width="100%" height="640" allowfullscreen>
 </iframe>
 </div>
 </div>
@@ -218,13 +226,6 @@ flowchart TD
 <td align="left">DeconRNASeq-style QP</td>
 <td align="left"><code>deconvolute_ratios_deconrnaseq</code></td>
 <td align="left">Simplex QP via {limSolve} <a href="https://github.com/cran/limSolve" class="external-link"><img src="https://img.shields.io/badge/GitHub-181717.svg?logo=github&amp;logoColor=white"></a>
-</td>
-</tr>
-<tr>
-<td align="left">GLS (fixed covariance)</td>
-<td align="left"><code>deconvolute_ratios_gls</code></td>
-<td align="left">
-<code><a href="https://rdrr.io/pkg/MASS/man/lm.gls.html" class="external-link">MASS::lm.gls</a></code> with <code><a href="reference/fixed_gls_covariance.html">fixed_gls_covariance()</a></code>
 </td>
 </tr>
 <tr>
@@ -429,7 +430,9 @@ autozyme::inspect("seurat")
 <li><a href="https://github.com/bastienchassagnol/DeCovarT/issues" class="external-link">Report a bug</a></li>
 <li><a href="https://github.com/bastienchassagnol/DeCovarT/issues" class="external-link">Report a bug</a></li>
 <li><a href="https://arxiv.org/abs/2309.09557" class="external-link">Method preprint (arXiv)</a></li>
-<li><a href="package_network/decovart_function_network.html">Function call network</a></li>
+<li><a href="package_network/decovart_function_network_core.html">Estimation and interval network</a></li>
+<li><a href="package_network/decovart_function_network_simulation.html">Simulation and benchmark network</a></li>
+<li><a href="package_network/decovart_function_network_visualisation.html">Visualisation network</a></li>
 </ul>
 </div>
 

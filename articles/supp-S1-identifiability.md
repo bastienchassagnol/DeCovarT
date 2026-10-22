@@ -145,11 +145,11 @@ slightly. Three covariance *models* are compared:
     to zero (gene-wise weighted convolution).
 3.  Fixed global diagonal GLS:
     W=\operatorname{diag}\\\Sigma(p^{\star})\\ held **constant**, fitted
-    by
-    [`deconvolute_ratios_gls()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_gls.md)
-    ([`MASS::lm.gls`](https://rdrr.io/pkg/MASS/man/lm.gls.html)). Do
-    **not** copy that W into every tensor slice: \sum_j p_j^2
-    W=\\p\\\_2^2 W still depends on p.
+    by mean-only generalised least squares
+    \hat{\boldsymbol{p}}=(\boldsymbol{\mu}^{\top}W^{-1}\boldsymbol{\mu})^{-1}
+    \boldsymbol{\mu}^{\top}W^{-1}\boldsymbol{y} and projected on the
+    simplex. Do **not** copy that W into every tensor slice: \sum_j
+    p_j^2 W=\\p\\\_2^2 W still depends on p.
 
 ``` r
 
@@ -162,7 +162,14 @@ Sigma_diag <- Sigma
 for (j in 1:2) {
   Sigma_diag[, , j] <- diag(diag(Sigma[, , j]))
 }
-w_gls <- fixed_gls_covariance(Sigma, p = p_true, diagonal = TRUE)
+# GLS competitor: mean-only fit with the fixed diagonal residual covariance
+# diag{Sigma(p_true)}, which does not move with the estimate.
+w_gls <- diag(diag(.compute_global_variance(p_true, Sigma)))
+gls_fixed <- function(y, mu, W) {
+  w_inv_mu <- solve(W, mu)
+  p_hat <- drop(solve(crossprod(mu, w_inv_mu), crossprod(w_inv_mu, y)))
+  repair_simplex(stats::setNames(p_hat, colnames(mu)))
+}
 
 fit_spec <- function(y, S) {
   drop(coef(fit_decovart(
@@ -177,11 +184,7 @@ fit_spec <- function(y, S) {
 est <- cbind(
   full = fit_spec(y_pert, Sigma),
   celltype_diagonal = fit_spec(y_pert, Sigma_diag),
-  gls_fixed = deconvolute_ratios_gls(
-    drop(y_pert),
-    mu,
-    w_gls
-  )
+  gls_fixed = gls_fixed(drop(y_pert), mu, w_gls)
 )
 rmse <- apply(est, 2, function(p_hat) sqrt(mean((p_hat - p_true)^2)))
 list(estimates = est, rmse_to_truth = rmse)

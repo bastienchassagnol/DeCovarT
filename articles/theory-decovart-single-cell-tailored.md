@@ -911,33 +911,7 @@ is not needed here.
 > is the default here unless the \boldsymbol{\Sigma}\_{W,j} share a
 > block or low-rank structure.
 
-#### Layer 2: counts are non-negative integers
-
-m\_{ji}\in\\0,1,2,\ldots\\, so the likelihood is a function on the
-lattice \mathbb{N}^{J} and [Eq. 29](#eq-cc-score) is the score of its
-continuous relaxation. Three facts make the relaxation usable.
-
-1.  The Gaussian law [Eq. 27](#eq-cc-law) is well defined on the whole
-    lattice: \boldsymbol{S}\_W(\boldsymbol{m}) is positive definite as
-    soon as one m\_{ji}\>0 and every \boldsymbol{\Sigma}\_{W,j} is
-    positive definite. Zero counts cost nothing.
-2.  For abundant types the lattice spacing is one cell out of thousands;
-    rounding the relaxed maximiser changes \log-likelihood by O(1/n_i)
-    relative terms.
-3.  For rare types (m\_{ji}\le 5) the covariance changes in visible
-    steps, and the relaxed optimum can sit between integers. A local
-    lattice search over the 3^{J'} neighbours \\\lfloor\hat
-    m\rfloor-1,\lfloor\hat m\rfloor,\lceil\hat m\rceil\\ of the J' small
-    coordinates is cheap because each candidate needs one Cholesky.
-    Branch-and-bound on the concave relaxation is the exact alternative.
-
-A soft version keeps the Gaussian observation law and adds a count
-prior, m\_{ji}\sim\mathrm{Poisson}(n_i\pi\_{ji}) or a multinomial over
-types, and maximises the posterior over the lattice. The observation
-model stays in the Gaussian regime; only the parameter space becomes
-discrete.
-
-#### Layer 3: a sample-wide capture scale
+#### Layer 2: a sample-wide capture scale
 
 Bulk and reference are measured on different platforms. Let a_i\>0 be
 the sample-wide ratio of molecule capture between the bulk library and
@@ -1006,7 +980,7 @@ relative standard error of \hat a is \sqrt{2/G}. With G in the hundreds
 that is a few percent, which is the “fairly weak dependence” `RNA-Sieve`
 reports for n.
 
-#### Layer 4: diagonal bulk measurement noise
+#### Layer 3: diagonal bulk measurement noise
 
 Add technical bulk noise that is independent across genes,
 
@@ -1043,7 +1017,7 @@ or
 with a mean–variance exponent, or estimate \boldsymbol{D} from technical
 bulk replicates.
 
-#### Layer 5: several single-cell replicates
+#### Layer 4: a nested hierarchical model when several single-cell replicates are available
 
 With R\ge 2 biological replicates in the reference, write
 \boldsymbol{X}\_{jrc}=\tilde{\boldsymbol{\mu}}\_{\cdot
@@ -1272,7 +1246,7 @@ the network entries of \boldsymbol{S}\_W(\boldsymbol{p}) identify
 \phi_i, the diagonal excess identifies \boldsymbol{D}\_i. If the
 reference network is weak, a free \boldsymbol{D}\_i absorbs \phi_i, and
 n_i becomes unidentifiable; constrain \boldsymbol{D}\_i as in
-[Sec. 4.1.4](#sec-cc-noise), fix n_i externally, or drop
+[Sec. 4.1.3](#sec-cc-noise), fix n_i externally, or drop
 \boldsymbol{D}\_i, as the [final
 model](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-final-choice)
 does.
@@ -1310,7 +1284,7 @@ DeCovarT is therefore the large-n_i, noise-free limit of this
 formulation, which is why its \boldsymbol{\Sigma}\_j must be a
 between-replicate covariance to carry a sampling interpretation. The
 diagonal-\boldsymbol{\Sigma}\_{B,j} remark of
-[Sec. 4.1.5](#sec-cc-replicates) applies: a diagonal quadratic layer
+[Sec. 4.1.4](#sec-cc-replicates) applies: a diagonal quadratic layer
 plus a sparse-precision linear layer has a dense precision, so the
 backends of the derivatives vignette see only the structure of
 \boldsymbol{\Sigma}.
@@ -1381,7 +1355,7 @@ errors-in-variables term of [Sec. 6](#sec-summary); neither
 > Strategy 2 has (J-1)+2 free parameters (\boldsymbol{p},c,\phi); the
 > simplex removes one coordinate and lets the mean identify c outright,
 > leaving \phi to the covariance. The integer constraint of
-> [Sec. 4.1.2](#sec-cc-integer) exists only in Strategy 1, because
+> **?@sec-cc-integer** exists only in Strategy 1, because
 > n_i\boldsymbol{p}\_{\cdot i} is not constrained to the lattice once
 > n_i is a continuous nuisance. Choose by the question: counts and a
 > scale calibrated to the reference platform (Strategy 1), or a

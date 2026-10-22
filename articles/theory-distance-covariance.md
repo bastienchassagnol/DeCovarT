@@ -99,10 +99,8 @@ metric treats SPD matrices as a flat vector space, is not
 inversion-invariant, can interpolate off the cone (negative
 eigenvalues), and produces the swelling effect (determinants of
 midpoints larger than both endpoints).
-[`spd_affine_invariant_distance()`](https://bastienchassagnol.github.io/DeCovarT/reference/spd_affine_invariant_distance.md)
-and
 [`compute_average_riemannian()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_riemannian.md)
-implement only AIRM. The descriptor column `riemannian_sigma` is the
+implements only AIRM. The descriptor column `riemannian_sigma` is the
 unweighted mean of d_R(\Sigma_j,\Sigma\_\ell) over j\<\ell. The distance
 is *scale-invariant*: d_R(sA,sB)=d_R(A,B). In fig03 it therefore tracks
 the **shape** of the completed graphs, not the overlap knob s.

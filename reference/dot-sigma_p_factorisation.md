@@ -3,17 +3,18 @@
 Assembles
 [`.compute_global_variance()`](https://bastienchassagnol.github.io/DeCovarT/reference/dot-compute_global_variance.md)
 and factorises it once via
-[`base::chol()`](https://rdrr.io/r/base/chol.html), returning the matrix
-itself together with its Cholesky factor, log-determinant (via the
-factor's diagonal, not
-[`base::det()`](https://rdrr.io/r/base/det.html)), and inverse (via
-[`qr.solve()`](https://rdrr.io/r/base/qr.html) after a uniform spectral
-shift if the mixture is not numerically SPD).
+[`base::chol()`](https://rdrr.io/r/base/chol.html), returning the
+matrix, its upper Cholesky factor, the log-determinant (from the
+factor's diagonal) and the precision
+\\\boldsymbol{\Omega}(\boldsymbol{p})\\ (from the same factor, via
+[`base::chol2inv()`](https://rdrr.io/r/base/chol2inv.html)). The
+covariance is treated as dense: no sparsity or low-rank structure is
+assumed.
 
 ## Usage
 
 ``` r
-.sigma_p_factorisation(p, Sigma, backend = NULL)
+.sigma_p_factorisation(p, Sigma)
 ```
 
 ## Arguments
@@ -27,51 +28,20 @@ shift if the mixture is not numerically SPD).
   Array of cell-type covariances in \\\mathcal{M}\_{G\times G\times
   J}\\.
 
-- backend:
-
-  Optional
-  [`new_decovart_covariance()`](https://bastienchassagnol.github.io/DeCovarT/reference/new_decovart_covariance.md)
-  object declaring an exploitable covariance structure (block, band,
-  sparse or diagonal-plus-low-rank). When `NULL` (default) the universal
-  dense Cholesky is used and cached, exactly as before. When supplied,
-  the structured operators of that backend supply `log_det` and the
-  `solve` / `quadform` closures; `inverse` is then materialised only for
-  drop-in compatibility with callers that still expect an explicit
-  precision, and the operator path (`solve`) should be preferred to keep
-  the structural speed-up (a dense `chol2inv` would undo it).
-
 ## Value
 
-A list with elements: `matrix` (\\\boldsymbol{\Sigma}(\boldsymbol{p})\\
-itself, or `NULL` for factored backends), `chol` (upper-triangular
-Cholesky factor, or `NULL`), `log_det`
+A list with `matrix` (\\\boldsymbol{\Sigma}(\boldsymbol{p})\\), `chol`
+(upper-triangular Cholesky factor), `log_det`
 (\\\log\det\boldsymbol{\Sigma}(\boldsymbol{p})\\) and `inverse`
-(\\\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\\). When `backend` is
-supplied the list additionally carries `solve` and `quadform` closures.
+(\\\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\\).
 
 ## Details
 
-[`stats::optim()`](https://rdrr.io/r/stats/optim.html),
-[`stats::nlminb()`](https://rdrr.io/r/stats/nlminb.html) and
-[`marqLevAlg::marqLevAlg()`](https://rdrr.io/pkg/marqLevAlg/man/marqLevAlg.html)
-each treat the log-likelihood, gradient and Hessian as three independent
-callback functions, but all Newton-type solvers evaluate them at the
-SAME trial point \\\boldsymbol{p}\\ within one iteration (the Hessian
-chain rule in
-[`hessian_loglik_constrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/hessian_loglik_constrained.md)
-even re-evaluates the unconstrained gradient a second time internally).
-Without sharing work, one (log-lik, gradient, Hessian) triple pays for
-the \\O(G^{3})\\ assembly-and-factorisation of
-\\\boldsymbol{\Sigma}(\boldsymbol{p})\\ up to four times over; this
-single-slot cache, keyed on exact equality of `p` and `Sigma`, means
-only the first of those calls actually factorises, and the rest simply
-return the cached result in \\O(G^{2})\\ (the cost of the equality
-check). Profiling on a 38-gene / 3-cell-type scenario showed the
-redundancy
-
-## See also
-
-[`new_decovart_covariance()`](https://bastienchassagnol.github.io/DeCovarT/reference/new_decovart_covariance.md)
+Newton-type solvers evaluate the log-likelihood, score and Hessian at
+the same trial \\\boldsymbol{p}\\ within one iteration. The shared
+single-slot cache (keyed on \\p_j^2\\ and `Sigma`) factorises
+\\\boldsymbol{\Sigma}(\boldsymbol{p})\\ once (\\O(G^{3})\\) and returns
+the cached result to the later calls.
 
 ## Examples
 

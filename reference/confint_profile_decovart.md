@@ -13,12 +13,11 @@ a simplex face.
 
 ``` r
 confint_profile_decovart(
-  y = NULL,
+  y,
   mean_signature_matrix,
   Sigma,
-  bulk_expression = NULL,
   level = 0.95,
-  celltypes = NULL,
+  celltypes = colnames(mean_signature_matrix),
   epsilon = 10^-8,
   itmax = 500L
 )
@@ -28,8 +27,9 @@ confint_profile_decovart(
 
 - y:
 
-  Numeric vector (or one-column matrix)
-  \\\boldsymbol{y}\in\mathbb{R}^{G}\\.
+  Numeric vector of length \\G\\, or \\G\times N\\ matrix of replicate
+  bulk profiles that share one composition; their log-likelihoods are
+  summed (the pooled, population-level fit).
 
 - mean_signature_matrix:
 
@@ -41,24 +41,19 @@ confint_profile_decovart(
   Array of cell-type covariances in \\\mathcal{M}\_{G\times G\times
   J}\\.
 
-- bulk_expression:
-
-  Numeric matrix \\\boldsymbol{Y}\in \mathcal{M}\_{G\times N}\\ of
-  replicate bulk profiles sharing one composition, used instead of `y`
-  for the pooled (population) test.
-
 - level:
 
   Confidence level \\1-\alpha\\.
 
 - celltypes:
 
-  Cell types to profile; defaults to all.
+  Names of the cell types to profile (columns of
+  `mean_signature_matrix`); defaults to all.
 
 - epsilon, itmax:
 
   Relative convergence tolerance and iteration budget passed to
-  [`stats::optim()`](https://rdrr.io/r/stats/optim.html).
+  [`stats::nlminb()`](https://rdrr.io/r/stats/nlminb.html).
 
 ## Value
 
@@ -73,14 +68,23 @@ for the Wald analogue,
 
 Other decovart_inference:
 [`bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_decovart.md),
+[`bootstrap_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_single_cell.md),
 [`boundary_diagnostics()`](https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.md),
 [`chi_bar_square_pvalue()`](https://bastienchassagnol.github.io/DeCovarT/reference/chi_bar_square_pvalue.md),
+[`confint_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_decovart.md),
+[`confint_ilr_backtransform()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_ilr_backtransform.md),
+[`confint_profile_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_single_cell.md),
+[`confint_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_single_cell.md),
 [`equivariance_check_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/equivariance_check_decovart.md),
+[`fit_firth_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_firth_decovart.md),
+[`fit_firth_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_firth_single_cell.md),
 [`lrt_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_decovart.md),
+[`lrt_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_single_cell.md),
 [`multistart_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/multistart_decovart.md),
-[`profile_loglik_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/profile_loglik_decovart.md),
 [`reference_bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_decovart.md),
-[`restricted_mle_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_decovart.md)
+[`reference_bootstrap_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_single_cell.md),
+[`restricted_mle_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_decovart.md),
+[`restricted_mle_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_single_cell.md)
 
 ## Examples
 
@@ -90,7 +94,7 @@ colnames(mu) <- paste0("ct", 1:2)
 Sigma <- array(c(diag(3), diag(3)), dim = c(3, 3, 2))
 y <- drop(mu %*% c(0.6, 0.4))
 confint_profile_decovart(y, mu, Sigma)
-#>     estimate     lower     upper
-#> ct1 0.599338 0.5530429 0.6473202
-#> ct2 0.400662 0.3526798 0.4469571
+#>      estimate     lower     upper
+#> ct1 0.5993379 0.5530429 0.6473202
+#> ct2 0.4006621 0.3526798 0.4469571
 ```

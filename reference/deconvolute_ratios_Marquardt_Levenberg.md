@@ -180,9 +180,10 @@ recovering sample-specific latents is a Bayesian / MAP problem
   [`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md),
   not a \\\boldsymbol{p}\\-space Hessian.
 
-- `deconvolute_ratios_Newton_Raphson()`: Newton–Raphson / `nlminb` on
-  ILR coordinates \\\boldsymbol{z}\\ using analytic gradient and Hessian
-  ([`stats::nlminb()`](https://rdrr.io/r/stats/nlminb.html)).
+- `deconvolute_ratios_Newton_Raphson()`: Newton–Raphson on ILR
+  coordinates \\\boldsymbol{z}\\ with the analytic score and observed
+  Hessian, safeguarded by the PORT trust region of
+  [`stats::nlminb()`](https://rdrr.io/r/stats/nlminb.html).
 
 - `deconvolute_ratios_gradient_descent()`: BFGS quasi-Newton ascent on
   ILR coordinates \\\boldsymbol{z}\\

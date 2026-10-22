@@ -20,10 +20,13 @@ This vignette asks three questions.
     [Sec. 2](#sec-mle-properties) gives identifiability, existence, the
     failure of concavity and the finite-sample bias.
 2.  **How should uncertainty on the proportions be reported?**
-    [Sec. 3](#sec-intervals) compares the routes from the unconstrained
-    coordinate \boldsymbol{\rho} to intervals for \boldsymbol{p} (delta
-    method, back-transformed intervals, simulation), the finite-sample
-    devices (Firth penalisation, the sandwich), and what conformal
+    [Sec. 3](#sec-intervals) states the regularity conditions of the
+    large-sample approximation, reads the local geometry of the
+    log-likelihood, compares the Wald, likelihood-ratio and score tests
+    and inverts them into intervals, maps intervals from the
+    unconstrained coordinate \boldsymbol{\rho} to \boldsymbol{p}, and
+    treats nuisance scales, higher-order corrections, the finite-sample
+    devices (Firth penalisation, the sandwich) and what conformal
     calibration can and cannot certify. [Sec. 4](#sec-inference) covers
     likelihood ratios on the boundary and the bootstraps.
 3.  **Which model should be fitted to real data?** [Sec. 6](#sec-glm)
@@ -405,8 +408,8 @@ data.frame(
   mean_ilr_score_at_truth = c(NA_real_, mean_score_random)
 )
 #>      composition ilr_score_at_conditional_mean mean_ilr_score_at_truth
-#> 1 balanced 50-50                    0.00000000                      NA
-#> 2 rare type 0.01                   -0.02799572            0.0004500902
+#> 1 balanced 50-50                  4.598694e-17                      NA
+#> 2 rare type 0.01                 -2.799572e-02            0.0004500902
 ```
 
 The ILR score at the conditional mean is zero in the balanced isotropic
@@ -466,12 +469,294 @@ with
 \mathbf{J}\_{\boldsymbol{\psi}}=\mathbf{S}(\boldsymbol{p})\mathbf{V}
 ([derivatives
 vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html#sec-fisher-rho)).
-Under regularity,
-\hat{\boldsymbol{\rho}}\overset{a}{\sim}\mathcal{N}(\boldsymbol{\rho}\_0,I\_{\boldsymbol{\rho}}^{-1}).
-There are several ways to turn that statement into an interval for each
-p_j, and they do not behave alike.
+This section follows the generalised-linear-model treatment of
+likelihood inference ([Agresti
+2015](#ref-agrestiFoundationsLinearGeneralized2015), Sects. 4.2–4.3):
+state when the large-sample approximation holds
+([Sec. 3.1](#sec-regularity)), read the local geometry of the
+log-likelihood ([Sec. 3.2](#sec-geometry)), define the three first-order
+tests ([Sec. 3.3](#sec-three-tests)), and invert them into intervals
+([Sec. 3.4](#sec-test-inversion)). The remaining subsections treat the
+routes from \boldsymbol{\rho} to \boldsymbol{p}, nuisance scales, and
+corrections beyond first order.
 
-### From \boldsymbol{\rho} to \boldsymbol{p}: four Wald-type routes
+### Regularity conditions and two asymptotic regimes
+
+**Proposition 4 (Large-sample normality and the three first-order
+tests)** Let \boldsymbol{y}\_{\cdot 1},\ldots,\boldsymbol{y}\_{\cdot N}
+be independent bulk profiles of N biological samples that share one
+composition \boldsymbol{p}\_0, and write
+\boldsymbol{\rho}\_0=\mathbf{V}^{\top}\log\boldsymbol{p}\_0. Assume that
+
+- **(R1) identifiability:** distinct compositions give distinct laws
+  ([Proposition 1](#prp-identifiability));
+- **(R2) interior truth:** \boldsymbol{p}\_0 lies in the open simplex,
+  so \boldsymbol{\rho}\_0 is a finite point of the open set
+  \mathbb{R}^{J-1};
+- **(R3) fixed dimension:** the number of free parameters J-1, and the
+  number of genes G, stay fixed while N\to\infty;
+- **(R4) smoothness:** the log-density is three times continuously
+  differentiable in \boldsymbol{\rho} near \boldsymbol{\rho}\_0, with
+  third derivatives bounded by an integrable function;
+- **(R5) information:** the per-sample Fisher information
+  I\_{\boldsymbol{\rho}}(\boldsymbol{\rho}\_0) is finite and positive
+  definite;
+- **(R6) fixed support:** the support of the law does not depend on
+  \boldsymbol{\rho}, and differentiation and integration can be
+  interchanged.
+
+Then, with probability tending to one, the likelihood equation has a
+consistent root \hat{\boldsymbol{\rho}}, and
+
+\sqrt{N}\\(\hat{\boldsymbol{\rho}}-\boldsymbol{\rho}\_0) \\
+\rightsquigarrow\\
+\mathcal{N}\_{J-1}\bigl(\boldsymbol{0},I\_{\boldsymbol{\rho}}(\boldsymbol{\rho}\_0)^{-1}\bigr).
+\tag{7}
+
+For a null hypothesis that fixes k smooth functions of
+\boldsymbol{\rho}, the Wald, likelihood-ratio and score statistics of
+[Sec. 3.3](#sec-three-tests) all converge to \chi^{2}\_{k} and differ by
+o_P(1) ([Cox and Hinkley 1979](#ref-coxTheoreticalStatistics1979),
+Sects. 9.2–9.3).
+
+The Gaussian convolution meets (R4) and (R6) on the open simplex,
+because \boldsymbol{\Sigma}(\boldsymbol{p}) is positive definite on the
+closed simplex ([Sec. 2.2](#sec-existence)). The other conditions are
+where DeCovarT can fail.
+
+- **(R5)** fails when two signature columns are collinear and the
+  covariances do not separate the types: the information is singular
+  along their contrast.
+- **(R2)** fails when a type is absent. The limit is then the
+  chi-bar-square mixture of [Sec. 4.3](#sec-boundary), not a Gaussian.
+- **(R3)** fixes the direction of the limit. The replication unit is the
+  biological sample i, not the gene: the G genes are correlated by
+  construction, and their dependence through
+  \boldsymbol{\Sigma}(\boldsymbol{p}) is the point of the model. A
+  design that gives every new sample its own composition adds parameters
+  as fast as observations, so no single composition gains information
+  ([Cox and Hinkley 1979, 81](#ref-coxTheoreticalStatistics1979)).
+  [Sec. 4.4](#sec-replication) draws the practical consequences.
+
+**Small-dispersion asymptotics.** [Proposition 4](#prp-regularity) needs
+replicates. A single bulk sample still has an asymptotic direction under
+the single-cell model of [Eq. 21](#eq-final-model): with
+\tilde{\boldsymbol{y}}\_{\cdot i}=\boldsymbol{y}\_{\cdot i}/c_i,
+
+\tilde{\boldsymbol{y}}\_{\cdot i}\sim
+\mathcal{N}\_G\bigl(\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot i},\\
+n_i^{-1}\boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot i})\bigr), \tag{8}
+
+so the number of cells n_i plays the role of the index parameter \lambda
+of a dispersion model, and 1/n_i that of the dispersion. For a
+**single** observation from a dispersion model, Jørgensen
+([1987](#ref-j%C3%B8rgensenSmallDispersionAsymptotics1987)) proves
+consistency, the limit
+\lambda^{1/2}(\hat{\boldsymbol{\beta}}-\boldsymbol{\beta}\_0)\rightsquigarrow
+\mathcal{N}(\boldsymbol{0},i(\boldsymbol{\beta}\_0)^{-1}), and \chi^{2}
+limits for differences of deviances, as \lambda\to\infty with the sample
+size fixed (his Theorems 4.1–4.3). His conditions mirror (R2), (R4) and
+(R5): an open parameter set, a full-rank local design matrix and a
+positive-definite information. Large expected counts in contingency
+tables are the classical special case. Five points carry this result to
+DeCovarT.
+
+1.  **Not exactly a dispersion model (our remark).** In
+    [Eq. 8](#eq-small-dispersion) the term
+    -\tfrac12\log\det\boldsymbol{S}\_W(\boldsymbol{p}) is not multiplied
+    by n_i. It is O(1) against the O(n_i) Mahalanobis term, so the
+    information is dominated by its mean part,
+    n_i\mathbf{J}\_{\boldsymbol{\psi}}^{\top}\tilde{\boldsymbol{\mu}}^{\top}\boldsymbol{S}\_W^{-1}\tilde{\boldsymbol{\mu}}\mathbf{J}\_{\boldsymbol{\psi}},
+    and the quasi-score of [Sec. 6.3](#sec-decovart-glm) becomes
+    efficient in this limit. The proof still has to be written.
+2.  **Every type must grow.** The Gaussian law of the bulk is itself a
+    central-limit approximation over the cells of each type, so the
+    limit needs every count m\_{ji}=n_ip\_{ji} to grow, not only n_i. A
+    rare type with few cells breaks the approximation first.
+3.  **Unknown dispersion.** Jørgensen estimates the dispersion by the
+    deviance divided by its degrees of freedom (his Sect. 4.5). Here
+    that is the Pearson estimate \hat\phi on G-J degrees of freedom: G
+    must exceed J by a margin, and t or F quantiles replace normal and
+    \chi^{2} ones when G-J is small.
+4.  **Reference error does not shrink.** The moments
+    (\tilde{\boldsymbol{\mu}},\boldsymbol{\Sigma}\_{W,j}) come from C_j
+    cells. Their error does not decrease with n_i and dominates once
+    n_i\gg C_j, which
+    [`reference_bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_decovart.md)
+    propagates ([Sec. 4.6](#sec-reference-bootstrap)).
+5.  **The released model has no index.** The covariance
+    \sum_jp_j^{2}\boldsymbol{\Sigma}\_j of [Eq. 1](#eq-loglik) does not
+    scale with a number of cells, so only the replicate limit of
+    [Proposition 4](#prp-regularity) is available for it.
+
+### Local geometry of the log-likelihood
+
+Every first-order interval reads the curvature at the estimate. Near
+\hat{\boldsymbol{\rho}},
+
+\ell(\boldsymbol{\rho})-\ell(\hat{\boldsymbol{\rho}}) \approx
+-\tfrac12(\boldsymbol{\rho}-\hat{\boldsymbol{\rho}})^{\top}
+\boldsymbol{j}(\hat{\boldsymbol{\rho}})
+(\boldsymbol{\rho}-\hat{\boldsymbol{\rho}}), \qquad
+\boldsymbol{j}=-\nabla^{2}\_{\boldsymbol{\rho}}\ell , \tag{9}
+
+and a scalar Wald half-width is z\_{1-\alpha/2}\\\boldsymbol{j}^{-1/2}.
+A sharp peak gives a narrow interval, a plateau a wide one, and a ridge,
+as along the contrast of two collinear signatures, an elongated ellipse.
+The approximation is exact in one case: a Gaussian response with
+identity link and known covariance has a log-likelihood that is a
+second-degree polynomial in the coefficients. There the Wald,
+likelihood-ratio and score statistics are equal, their \chi^{2} law is
+exact, and the symmetric interval is exact ([Agresti 2015, sect.
+4.3](#ref-agrestiFoundationsLinearGeneralized2015)). DeCovarT departs
+from that case in three ways.
+
+- **The covariance depends on the parameter.**
+  \boldsymbol{\Sigma}(\boldsymbol{p}) enters the log-determinant and the
+  Mahalanobis weights, so \ell is not quadratic even in \boldsymbol{p},
+  where the mean is linear.
+- **The chart is nonlinear.** The mean
+  \boldsymbol{\mu}\boldsymbol{\psi}(\boldsymbol{\rho}) is not linear in
+  \boldsymbol{\rho}.
+- **Faces flatten the likelihood.** p_j\to0 sends \rho to infinity, and
+  \ell levels off along that direction. With few replicates, an
+  unbalanced composition or overlapping types, the profile is skewed and
+  its plateau wide. The ILR slices of the [covariance-driven
+  scenario](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-covariance-driven.html#sec-hybrid-findings)
+  show these ridges along the contrast of the two mean-collinear types.
+
+The geometry is also a diagnostic of non-normality. Compare the Wald,
+score and likelihood-ratio intervals for the same estimate, and plot the
+signed root r(\psi) of [Eq. 11](#eq-signed-root) against the Wald pivot
+(\hat\psi-\psi)/\mathrm{SE}: the two curves coincide when \ell is
+quadratic, and a curved r(\psi) or a large gap between the three
+intervals flags a non-Gaussian geometry. Ratios of the three statistics
+also detect the Hauck–Donner effect ([Yee
+2022](#ref-yeeHauckDonnerEffectWald2022)).
+
+### Wald, likelihood-ratio and score tests
+
+Partition \boldsymbol{\theta}=(\boldsymbol{\psi},\boldsymbol{\lambda})
+into k parameters of interest and nuisance parameters (other
+proportions, scales), test H_0:\boldsymbol{\psi}=\boldsymbol{\psi}\_0,
+write
+\tilde{\boldsymbol{\theta}}\_0=(\boldsymbol{\psi}\_0,\hat{\boldsymbol{\lambda}}\_{\boldsymbol{\psi}\_0})
+for the restricted estimate, and I^{\psi\psi} for the \boldsymbol{\psi}
+block of I^{-1} ([Cox and Hinkley 1979, sect.
+9.3](#ref-coxTheoreticalStatistics1979); [Agresti 2015, sect.
+4.3](#ref-agrestiFoundationsLinearGeneralized2015)):
+
+W=(\hat{\boldsymbol{\psi}}-\boldsymbol{\psi}\_0)^{\top}
+\\I^{\psi\psi}(\hat{\boldsymbol{\theta}})\\^{-1}
+(\hat{\boldsymbol{\psi}}-\boldsymbol{\psi}\_0), \quad
+D=2\\\ell(\hat{\boldsymbol{\theta}})-\ell(\tilde{\boldsymbol{\theta}}\_0)\\,
+\quad S=\boldsymbol{U}\_{\psi}(\tilde{\boldsymbol{\theta}}\_0)^{\top}
+I^{\psi\psi}(\tilde{\boldsymbol{\theta}}\_0)
+\boldsymbol{U}\_{\psi}(\tilde{\boldsymbol{\theta}}\_0). \tag{10}
+
+|  | Wald W | Likelihood ratio D | Score S |
+|:---|:---|:---|:---|
+| Fits needed | unrestricted | both | restricted |
+| Evaluated at | \hat{\boldsymbol{\theta}} (curvature) | both (height) | \tilde{\boldsymbol{\theta}}\_0 (slope) |
+| Smooth reparametrisation | changes it | invariant | invariant (expected information) |
+| Simplex face | undefined | chi-bar-square ([Sec. 4.3](#sec-boundary)) | defined in \boldsymbol{p} coordinates |
+| Interval shape | symmetric | asymmetric | asymmetric |
+
+Table 1: The three first-order tests.
+
+- **Rao’s score test is the Lagrange-multiplier test.** At the
+  restricted maximum, the multiplier of the constraint
+  \boldsymbol{\psi}=\boldsymbol{\psi}\_0 equals the score
+  \boldsymbol{U}\_{\psi}(\tilde{\boldsymbol{\theta}}\_0), so the two
+  names describe one statistic.
+- **Linear constraints.** The likelihood ratio tests any nested
+  hypothesis, including k linear constraints
+  \boldsymbol{C}\boldsymbol{p}=\boldsymbol{d}, with
+  D\rightsquigarrow\chi^{2}\_k. In a lineage-aware fit, the hypothesis
+  that two child lines occur in the ratio w_0 measured in their parental
+  line is p\_{c_1}-w_0(p\_{c_1}+p\_{c_2})=0, one linear constraint. The
+  restricted set is still a polytope, but the constraint is not linear
+  in \boldsymbol{\rho}, so the restricted fit is done in \boldsymbol{p}.
+- **Asymptotic equivalence.** Under [Proposition 4](#prp-regularity) the
+  three statistics differ by o_P(1) ([Cox and Hinkley 1979, sect.
+  9.3](#ref-coxTheoreticalStatistics1979)). They disagree in finite
+  samples exactly when the geometry of [Sec. 3.2](#sec-geometry) is not
+  quadratic.
+- **The relative distance to the maximum is a score statistic.** The
+  stopping rule of the Marquardt–Levenberg solver is
+  \mathrm{RDM}=m^{-1}\boldsymbol{U}(\boldsymbol{\theta}\_k)^{\top}\boldsymbol{G}(\boldsymbol{\theta}\_k)^{-1}\boldsymbol{U}(\boldsymbol{\theta}\_k),
+  with \boldsymbol{G} an estimate of the variance of the score (outer
+  products of individual scores in the robust-variance scoring
+  algorithm, the Hessian in `marqLevAlg`). It is a score statistic for
+  the null “the iterate \boldsymbol{\theta}\_k is the maximiser”,
+  divided by the number m of parameters, and Commenges et al. note that
+  inverting
+  \boldsymbol{U}^{\top}\boldsymbol{G}^{-1}\boldsymbol{U}\le\chi^{2}\_{m,1-\alpha}
+  gives a confidence region ([Commenges et al. 2006,
+  10](#ref-commengesNewtonLikeAlgorithmLikelihood2006) and 13). The
+  difference with Rao’s test is the null: a numerical statement about
+  the iterate, not a scientific hypothesis on \boldsymbol{p}.
+
+### Confidence intervals by test inversion
+
+A (1-\alpha) confidence set is the set of null values that a
+level-\alpha test does not reject,
+\\\psi_0:T(\psi_0)\le\chi^{2}\_{1,1-\alpha}\\ for each statistic of
+[Eq. 10](#eq-three-tests).
+
+- **Wald.** The information is evaluated once, at \hat\psi, so the set
+  is the symmetric interval \hat\psi\pm
+  z\_{1-\alpha/2}\mathrm{SE}(\hat\psi).
+
+- **Score.** The information is re-evaluated at each candidate \psi_0,
+  so the interval is asymmetric. For a binomial proportion it is the
+  Wilson interval ([Wilson 1927](#ref-wilsonProbableInferenceLaw1927)).
+  The score is computed at the restricted fit only, which on the simplex
+  can sit on a face.
+
+- **Likelihood ratio.** D(\psi_0) is zero at \hat\psi and grows on both
+  sides, so \\\psi_0:D(\psi_0)\le\chi^{2}\_{1,1-\alpha}\\ has a lower
+  and an upper endpoint, where the profile deviance crosses the cut-off
+  on each side of \hat\psi. The \chi^{2}\_1 test is two-sided because it
+  squares the signed likelihood root
+
+  r(\psi_0)=\operatorname{sign}(\hat\psi-\psi_0)\sqrt{D(\psi_0)} \\
+  \rightsquigarrow\\ \mathcal{N}(0,1). \tag{11}
+
+  The lower limit solves r(\psi_L)=z\_{1-\alpha/2}, the upper limit
+  r(\psi_U)=-z\_{1-\alpha/2}, and z\_{1-\alpha} gives one-sided limits.
+  If D stays below the cut-off all the way to the face p_j=0, the lower
+  limit is 0.
+
+- **Several parameters.** The joint region
+  \\\boldsymbol{\psi}\_0:D(\boldsymbol{\psi}\_0)\le\chi^{2}\_{k,1-\alpha}\\,
+  with the remaining proportions and the scales profiled out as nuisance
+  parameters ([Sec. 3.6](#sec-nuisance)), has simultaneous coverage.
+
+Software.
+[`confint_profile_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_decovart.md)
+inverts [Eq. 18](#eq-lrt) for DeCovarT. For generalised linear models,
+[`stats::confint()`](https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/confint)
+inverts the signed root of the profile, and
+[`ProfileLikelihood`](https://cran.r-project.org/package=ProfileLikelihood)
+plots normalised profiles and likelihood support intervals for linear,
+generalised linear and mixed models. Of the higher-order packages,
+[`likelihoodAsy`](https://cran.r-project.org/package=likelihoodAsy)
+computes r and r^{\ast} ([Sec. 3.7](#sec-higher-order)) for any scalar
+function of the parameters from a user-supplied log-likelihood and data
+simulator, so it applies to DeCovarT with
+[`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md),
+whereas [`cond`](https://cran.r-project.org/package=cond) is restricted
+to logistic and log-linear models.
+
+### From \boldsymbol{\rho} to \boldsymbol{p}: delta method or back-transformation
+
+A Wald statement in \boldsymbol{\rho} still has to be carried to the
+proportions. Agresti’s advice for fitted values applies: the delta
+method gives their covariance, but an interval formed on the scale of
+the linear predictor and mapped by the inverse link avoids the further
+approximation ([Agresti 2015, sect.
+4.2.5](#ref-agrestiFoundationsLinearGeneralized2015)).
 
 1.  **Delta method on \boldsymbol{p}.**
     \operatorname{Var}(\hat{\boldsymbol{p}})\approx\mathbf{J}\_{\boldsymbol{\psi}}I\_{\boldsymbol{\rho}}^{-1}\mathbf{J}\_{\boldsymbol{\psi}}^{\top}
@@ -479,32 +764,49 @@ p_j, and they do not behave alike.
     of
     [`confint.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md).
     It is symmetric, and nothing keeps its endpoints inside \[0,1\].
-2.  **Back-transformed endpoints, J=2.** With two types,
-    p_1=\operatorname{logistic}(\sqrt{2}\\\rho) is monotone in the
-    single coordinate. The interval \[\hat\rho\pm
-    z\\\mathrm{SE}(\hat\rho)\] maps to
-    \[\psi(\hat\rho-z\\\mathrm{SE}),\psi(\hat\rho+z\\\mathrm{SE})\],
-    which lies strictly inside (0,1) and is asymmetric around \hat p_1.
-3.  **Component-wise logit, any J.** For J\>2, each p_j depends on all
-    J-1 coordinates, so transforming the endpoints of each \rho_k
-    interval does not give an interval for p_j. Apply the delta method
-    to \eta_j=\operatorname{logit}(p_j) instead,
-    \mathrm{SE}(\hat\eta_j)=\mathrm{SE}(\hat p_j)/\\\hat p_j(1-\hat
-    p_j)\\, and back-transform \hat\eta_j\pm z\\\mathrm{SE}(\hat\eta_j).
-    For J=2 this is route 2.
-4.  **Simulation through the chart.** Draw
-    \boldsymbol{\rho}^{(b)}\sim\mathcal{N}(\hat{\boldsymbol{\rho}},I\_{\boldsymbol{\rho}}^{-1}),
-    map every draw to
-    \boldsymbol{p}^{(b)}=\boldsymbol{\psi}(\boldsymbol{\rho}^{(b)}), and
-    take marginal quantiles. Every draw is a composition, so the
-    intervals lie inside (0,1) and respect the sum-to-one constraint
-    jointly.
+2.  **Back-transformation through the ILR chart.** A smooth, monotone
+    map preserves quantiles. For J=2,
+    p_1=\operatorname{logistic}(\sqrt{2}\\\rho) is monotone, so
+    \[\psi(\hat\rho-z\\\mathrm{SE}),\psi(\hat\rho+z\\\mathrm{SE})\] has
+    exactly the coverage of the interval for \rho, lies inside (0,1) and
+    is asymmetric around \hat p_1. For J\>2 each p_j depends on all J-1
+    coordinates, but the bijection \boldsymbol{\psi} maps joint regions
+    exactly, \Pr(\boldsymbol{\rho}\in
+    R)=\Pr\\\boldsymbol{p}\in\boldsymbol{\psi}(R)\\. Marginal intervals
+    are the quantiles of
+    \boldsymbol{p}^{(b)}=\boldsymbol{\psi}(\boldsymbol{\rho}^{(b)}) with
+    \boldsymbol{\rho}^{(b)}\sim\mathcal{N}(\hat{\boldsymbol{\rho}},I\_{\boldsymbol{\rho}}^{-1}).
+    Every draw is a composition, so the intervals lie inside (0,1) and
+    respect the sum-to-one constraint jointly; for J=2 they reduce to
+    the endpoint map.
 
-The transformation guarantees the **bounds**, not the **coverage**: all
-four routes rest on the same normal approximation of
-\hat{\boldsymbol{\rho}}. The simulation below checks both on an
-unbalanced three-type mixture with a rare type (p_3=0.03), refitting
-DeCovarT on independent bulk draws of one composition.
+**Why not a multinomial logit renormalisation.** Three alternatives were
+considered and are not kept.
+
+- *The free softmax* of J scores, the machine-learning form of the
+  multinomial logit in Burakov’s chapter
+  ([PDF](https://bastienchassagnol.github.io/DeCovarT/articles/burakov-logistic-regression.pdf)),
+  is not identifiable:
+  \operatorname{softmax}(\boldsymbol{z}+t\mathbf{1})=\operatorname{softmax}(\boldsymbol{z}),
+  and its information is singular along \mathbf{1}.
+- *The multinomial logit with a reference type* is the ALR chart. It is
+  a linear transform of the ILR chart, so it gives the same estimate,
+  the same likelihood ratio, the same delta-method covariance of
+  \hat{\boldsymbol{p}} and the same back-transformed regions ([chart
+  invariance](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html#sec-chart-choice)).
+  The ILR chart is kept for its numerical invariance: gradient norms,
+  damping and conditioning do not depend on a reference type.
+- *A component-wise logit interval*, the delta method applied to
+  \operatorname{logit}\hat p_j with \mathrm{SE}(\operatorname{logit}\hat
+  p_j)=\mathrm{SE}(\hat p_j)/\\\hat p_j(1-\hat p_j)\\, stacks a second
+  delta method on the first and does not use the chart the model was
+  fitted in.
+
+The transformation guarantees the **bounds**, not the **coverage**: both
+routes rest on the same normal approximation of \hat{\boldsymbol{\rho}}.
+The simulation below checks both on an unbalanced three-type mixture
+with a rare type (p_3=0.03), refitting DeCovarT on independent bulk
+draws of one composition.
 
 ``` r
 
@@ -541,20 +843,17 @@ interval_routes <- function(p, n_draws = 2000L) {
     jac
   vcov_rho <- solve(info_rho)
   se_p <- sqrt(diag(jac %*% vcov_rho %*% t(jac)))
-  se_logit <- se_p / (p * (1 - p))
   draws <- MASS::mvrnorm(n_draws, rho, vcov_rho)
   p_draws <- t(apply(draws, 1L, isometric_logistic))
   list(
     delta = cbind(p - z_crit * se_p, p + z_crit * se_p),
-    logit = cbind(
-      plogis(qlogis(p) - z_crit * se_logit),
-      plogis(qlogis(p) + z_crit * se_logit)
-    ),
-    simulation = t(apply(p_draws, 2L, quantile, probs = c(0.025, 0.975)))
+    back_transformed = t(
+      apply(p_draws, 2L, quantile, probs = c(0.025, 0.975))
+    )
   )
 }
 
-# Wald-type routes need an interior estimate: on a face the ILR chart
+# Both routes need an interior estimate: on a face the ILR chart
 # diverges and the information in rho is singular.
 interior <- apply(p_hat, 2L, min) > 1e-6
 routes <- lapply(which(interior), function(i) interval_routes(p_hat[, i]))
@@ -572,43 +871,155 @@ summarise_route <- function(name) {
 }
 route_summary <- do.call(
   rbind,
-  lapply(c("delta", "logit", "simulation"), summarise_route)
+  lapply(c("delta", "back_transformed"), summarise_route)
 )
 rownames(route_summary) <- NULL
 knitr::kable(route_summary, digits = 3)
 ```
 
-| route      | cell_type | coverage | outside_unit_interval | median_width |
-|:-----------|:----------|---------:|----------------------:|-------------:|
-| delta      | ct1       |    0.950 |                 0.097 |        0.174 |
-| delta      | ct2       |    0.970 |                 0.363 |        0.209 |
-| delta      | ct3       |    0.980 |                 0.770 |        0.090 |
-| logit      | ct1       |    0.950 |                 0.000 |        0.177 |
-| logit      | ct2       |    0.943 |                 0.000 |        0.220 |
-| logit      | ct3       |    0.927 |                 0.000 |        0.127 |
-| simulation | ct1       |    0.897 |                 0.000 |        0.226 |
-| simulation | ct2       |    0.973 |                 0.000 |        0.230 |
-| simulation | ct3       |    0.963 |                 0.000 |        0.126 |
+| route            | cell_type | coverage | outside_unit_interval | median_width |
+|:-----------------|:----------|---------:|----------------------:|-------------:|
+| delta            | ct1       |    0.950 |                 0.093 |        0.174 |
+| delta            | ct2       |    0.973 |                 0.347 |        0.209 |
+| delta            | ct3       |    0.980 |                 0.763 |        0.090 |
+| back_transformed | ct1       |    0.897 |                 0.000 |        0.228 |
+| back_transformed | ct2       |    0.977 |                 0.000 |        0.230 |
+| back_transformed | ct3       |    0.970 |                 0.000 |        0.125 |
 
-Out of 300 fits, 0 returned an estimate on a simplex face, where no
-Wald-type route is defined; the table is computed on the 300 interior
-fits. Three readings follow.
+Out of 300 fits, 0 returned an estimate on a simplex face, where neither
+route is defined; the table is computed on the 300 interior fits. Three
+readings follow.
 
-- The delta method places 77% of the intervals for the rare type partly
+- The delta method places 76% of the intervals for the rare type partly
   below zero. Truncating them at zero would hide, not fix, the problem.
-- The logit and simulation routes never leave (0,1) and are wider for
-  the rare type, as an asymmetric interval should be.
-- No route reaches 95% everywhere. One bulk column is a single
-  observation of one composition ([Sec. 4.4](#sec-replication)): the
-  normal approximation of \hat{\boldsymbol{\rho}} is itself the weak
-  link, and the routes only change how its error is mapped to the
-  simplex.
+- The back-transformed intervals never leave (0,1) and are wider for the
+  rare type, as an asymmetric interval should be.
+- Neither route is calibrated for every type, and they miss in opposite
+  directions. The delta method reaches its nominal coverage only by
+  spending most of the rare-type interval on negative proportions; the
+  back-transformed route covers the abundant type in 90% of the fits.
+  The normal approximation of \hat{\boldsymbol{\rho}} is the weak link,
+  and the routes only change how its error is mapped to the simplex.
 
 The delta method on \boldsymbol{p} is therefore defensible only for
 balanced mixtures with few types, where every \hat p_j is far from zero.
-Otherwise report the logit or simulation route, or the profile interval
+Otherwise report the back-transformed interval, or the profile interval
 of [Sec. 4.2](#sec-interior), which needs no normal approximation of
 \hat{\boldsymbol{\rho}} at all.
+
+### Nuisance scales: profile likelihood and orthogonality
+
+In [Eq. 21](#eq-final-model) the scales \boldsymbol{\eta}=(\log
+c_i,\log\phi_i) are technical nuisance parameters and
+\boldsymbol{\rho}\_i is the parameter of interest. Concentrating them
+out gives the profile log-likelihood
+\ell^{\ast}(\boldsymbol{\rho})=\ell(\boldsymbol{\rho},\hat{\boldsymbol{\eta}}(\boldsymbol{\rho})).
+
+**Definition 1 (Envelope theorem)** Let
+\ell^{\ast}(\boldsymbol{\rho})=\max\_{\boldsymbol{\eta}}\ell(\boldsymbol{\rho},\boldsymbol{\eta})
+with a differentiable maximiser
+\hat{\boldsymbol{\eta}}(\boldsymbol{\rho}). Then
+
+\nabla\ell^{\ast}(\boldsymbol{\rho})
+=\nabla\_{\boldsymbol{\rho}}\ell(\boldsymbol{\rho},\boldsymbol{\eta})
+\big\rvert\_{\boldsymbol{\eta}=\hat{\boldsymbol{\eta}}(\boldsymbol{\rho})},
+\tag{12}
+
+because the chain-rule term
+\\\partial\hat{\boldsymbol{\eta}}/\partial\boldsymbol{\rho}^{\top}\\^{\top}\nabla\_{\boldsymbol{\eta}}\ell
+vanishes where \nabla\_{\boldsymbol{\eta}}\ell=\boldsymbol{0}.
+
+[Eq. 12](#eq-envelope) is how the profile score of the single-cell model
+is obtained without differentiating the closed-form \hat
+c(\boldsymbol{p}) and \hat\phi(\boldsymbol{p}). Differentiating once
+more, and using
+\partial\hat{\boldsymbol{\eta}}/\partial\boldsymbol{\rho}^{\top}=-\boldsymbol{j}\_{\eta\eta}^{-1}\boldsymbol{j}\_{\eta\rho}
+from the implicit function theorem, gives the Schur complement
+
+-\nabla^{2}\ell^{\ast}(\boldsymbol{\rho})
+=\boldsymbol{j}\_{\rho\rho}-\boldsymbol{j}\_{\rho\eta}\boldsymbol{j}\_{\eta\eta}^{-1}\boldsymbol{j}\_{\eta\rho},
+\tag{13}
+
+so profile and joint Wald intervals for \boldsymbol{\rho} agree, and
+estimating the scales widens them by the loss of [the Schur-complement
+information](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#eq-schur-information).
+
+**Orthogonality.** Cox and Reid
+([1987](#ref-coxParameterOrthogonalityApproximate1987)) call
+\boldsymbol{\rho} and \boldsymbol{\eta} orthogonal when the cross block
+of the expected information vanishes, I\_{\rho\eta}=\boldsymbol{0}, so
+that the information is block diagonal. Orthogonality implies that
+\hat{\boldsymbol{\rho}} and \hat{\boldsymbol{\eta}} are asymptotically
+independent, that the standard error of \hat{\boldsymbol{\rho}} is the
+same whether \boldsymbol{\eta} is known or estimated, and that
+\hat{\boldsymbol{\eta}}\_{\psi} varies only by O_P(N^{-1}) with \psi
+(their Sect. 2.2). In a generalised linear model the dispersion is
+orthogonal to the mean parameters (their Sect. 3.2), which is why a GLM
+interval for the coefficients does not depend on how the dispersion is
+estimated.
+
+The single-cell model is only partly orthogonal: I\_{c\phi}=0, but
+I\_{p_jc}=c\\\tilde{\boldsymbol{\mu}}\_{\cdot
+j}^{\top}\boldsymbol{W}\tilde{\boldsymbol{\mu}}\boldsymbol{p}/\phi\neq0
+and
+I\_{p_j\phi}=\operatorname{tr}(\boldsymbol{W}\boldsymbol{\Sigma}\_{W,j})/(2\phi)\neq0,
+with \boldsymbol{W}=\boldsymbol{S}\_W(\boldsymbol{p})^{-1}. The block
+structure is derived for every alignment strategy in the [single-cell
+vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-compound).
+A scalar interest parameter can always be made orthogonal to the
+nuisance by solving a system of partial differential equations, whereas
+a vector one in general cannot (their Sect. 2.3), so orthogonalising the
+whole of \boldsymbol{\rho} is not available in general. With orthogonal
+nuisance parameters, the Cox–Reid adjusted profile log-likelihood
+
+\ell\_{\mathrm{CR}}(\psi)=\ell^{\ast}(\psi)
+-\tfrac12\log\det\boldsymbol{j}\_{\eta\eta}(\psi,\hat{\boldsymbol{\eta}}\_{\psi})
+\tag{14}
+
+corrects the profile for the estimation of \boldsymbol{\eta}, as
+restricted maximum likelihood does for a variance. The [plug-in
+strategy](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-strategy-plugin)
+is the opposite choice: fix the scales from external data and accept the
+variance correction that propagating their uncertainty requires.
+
+### Higher-order likelihood asymptotics
+
+The first-order statistics have errors r\sim\mathcal{N}(0,1)+O(n^{-1/2})
+and D\sim\chi^{2}\_k+O(n^{-1}). Here n is not necessarily a sample size:
+“it can also be another parameter of the likelihood that controls the
+convergence of the likelihood to the asymptotic limit” ([Canonero et al.
+2023, 3](#ref-canoneroHigherorderAsymptoticCorrections2023)), which for
+DeCovarT is the number of replicates N or the number of cells n_i
+([Sec. 3.1](#sec-regularity)). Two corrections reduce the error when n
+is small or the log-likelihood is far from quadratic.
+
+- **Modified likelihood root.**
+  r^{\ast}=r+r^{-1}\log(q/r)\sim\mathcal{N}(0,1)+O(n^{-3/2}), where q is
+  built from sample-space derivatives of \ell at the unrestricted and
+  restricted estimates, with a nuisance adjustment
+  \\\det\boldsymbol{j}\_{\psi\psi}(\hat{\boldsymbol{\theta}})/\det\boldsymbol{j}\_{\lambda\lambda}(\tilde{\boldsymbol{\theta}}\_0)\\^{1/2},
+  or from a tangent exponential model when \ell cannot be written as a
+  function of the estimates. It needs a scalar interest parameter and,
+  like r, keeps a sign, so it gives lower and upper limits.
+- **Bartlett correction.** D^{\ast}=kD/\mathbb{E}(D) matches the mean of
+  \chi^{2}\_k, and the error of the \chi^{2}\_k approximation falls to
+  O(n^{-2}). \mathbb{E}(D) comes from Lawley’s expansion or from a
+  parametric bootstrap at the restricted estimate.
+
+Both corrections give intervals by the inversion of
+[Sec. 3.4](#sec-test-inversion). In the comparison of Canonero et al.
+([2023](#ref-canoneroHigherorderAsymptoticCorrections2023)), the
+Bartlett correction was the more reliable: r^{\ast} became numerically
+unstable when the log-likelihood was strongly non-Gaussian (their pp. 11
+and 17). For DeCovarT, the restricted simulations of
+[`bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_decovart.md)
+already estimate \mathbb{E}(D), so the Bartlett factor costs no extra
+fit, and `likelihoodAsy::rstar()` needs only the log-likelihood and
+[`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md).
+Neither correction applies at a face, where the problem is not regular
+([Sec. 4.3](#sec-boundary)). The Cox–Reid adjustment of
+[Eq. 14](#eq-cox-reid) is the third higher-order device, aimed at the
+nuisance parameters rather than at the tail of the statistic.
 
 ### Firth penalisation and finite-sample corrections
 
@@ -626,7 +1037,7 @@ the adjusted score is
 \frac{\partial\ell\_{\mathrm{F}}}{\partial\vartheta_q}
 =\frac{\partial\ell}{\partial\vartheta_q}
 +\tfrac12\\\mathrm{tr}\Bigl(I(\boldsymbol{\vartheta})^{-1}\frac{\partial
-I(\boldsymbol{\vartheta})}{\partial\vartheta_q}\Bigr). \tag{7}
+I(\boldsymbol{\vartheta})}{\partial\vartheta_q}\Bigr). \tag{15}
 
 For the cell-count model of [independent cells, linear
 covariance](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-cc-linear)
@@ -640,7 +1051,7 @@ so
 k}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,q}\boldsymbol{\Omega}\boldsymbol{\mu}\_{\cdot
 l}
 -\mathrm{tr}\bigl(\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,k}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,q}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,l}\bigr),
-\tag{8}
+\tag{16}
 
 where the two trace terms of the product rule coincide by transposition
 and cyclicity. Both summands are negative semidefinite contributions:
@@ -721,7 +1132,7 @@ likelihood. With the Cholesky factor \boldsymbol{L}(\boldsymbol{p}) of
 \boldsymbol{e}=\boldsymbol{L}^{-1}(\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}),
 
 \ell(\boldsymbol{\rho})=\sum\_{g=1}^{G}\ell_g(\boldsymbol{\rho}), \qquad
-\ell_g=-\log L\_{gg}-\tfrac12e_g^{2}, \tag{9}
+\ell_g=-\log L\_{gg}-\tfrac12e_g^{2}, \tag{17}
 
 where \ell_g is the log-density of y_g given y_1,\ldots,y\_{g-1}. Under
 the model the scores \nabla\ell_g are martingale differences, so
@@ -842,10 +1253,10 @@ The **profile likelihood-ratio** statistic
 
 D_j(c) = 2\bigl\\ \ell(\hat{\boldsymbol{p}}) -
 \max\_{\boldsymbol{p}\in\Delta^{J-1},\\p_j=c}\ell(\boldsymbol{p})
-\bigr\\ \\ \rightsquigarrow\\ \chi^{2}\_{1} \tag{10}
+\bigr\\ \\ \rightsquigarrow\\ \chi^{2}\_{1} \tag{18}
 
 concentrates out the other J-2 proportions instead. Because a smooth
-bijection leaves likelihood ratios unchanged, [Eq. 10](#eq-lrt) needs
+bijection leaves likelihood ratios unchanged, [Eq. 18](#eq-lrt) needs
 **no** delta method and respects the simplex automatically. Inverting it
 gives the asymmetric intervals of
 [`confint_profile_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_decovart.md).
@@ -882,7 +1293,7 @@ replicates <- simulate_bulk_mixture(
 
 round(
   confint_profile_decovart(
-    bulk_expression = replicates,
+    y = replicates,
     mean_signature_matrix = signature,
     Sigma = Sigma
   ),
@@ -890,14 +1301,14 @@ round(
 )
 #>     estimate  lower  upper
 #> ct1   0.4546 0.4347 0.4749
-#> ct2   0.3559 0.3339 0.3777
+#> ct2   0.3559 0.3339 0.3785
 #> ct3   0.1895 0.1598 0.2182
 ```
 
 ``` r
 
 lrt_decovart(
-  bulk_expression = replicates,
+  y = replicates,
   mean_signature_matrix = signature,
   Sigma = Sigma,
   null_value = c(ct1 = 0.30)
@@ -920,7 +1331,7 @@ boundary and s interior constraints tested simultaneously, and the
 corresponding information block orthogonal to the nuisance block,
 
 D \\ \rightsquigarrow\\ \bar{\chi}^{2} = \sum\_{i=0}^{q}
-\binom{q}{i}2^{-q}\\ \chi^{2}\_{s+i}, \tag{11}
+\binom{q}{i}2^{-q}\\ \chi^{2}\_{s+i}, \tag{19}
 
 where \chi^{2}\_{0} denotes a point mass at zero ([Self and Liang
 1987](#ref-selfAsymptoticPropertiesMaximum1987), Case 9). For a single
@@ -931,7 +1342,7 @@ one-sided p-value is \tfrac{1}{2}\Pr(\chi^{2}\_{1}\>D) — **half** the
 naive value.
 
 [`chi_bar_square_pvalue()`](https://bastienchassagnol.github.io/DeCovarT/reference/chi_bar_square_pvalue.md)
-evaluates [Eq. 11](#eq-chibar), and
+evaluates [Eq. 19](#eq-chibar), and
 [`lrt_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_decovart.md)
 selects it automatically when a tested value reaches 0 or 1.
 
@@ -946,7 +1357,7 @@ replicates_absent <- simulate_bulk_mixture(
 )$Y
 
 lrt_decovart(
-  bulk_expression = replicates_absent,
+  y = replicates_absent,
   mean_signature_matrix = signature,
   Sigma = Sigma,
   null_value = c(ct3 = 0)
@@ -957,7 +1368,7 @@ lrt_decovart(
 #> ct3 chi-bar-square (Self-Liang)
 ```
 
-> **Warning 2: Three caveats on [Eq. 11](#eq-chibar)**
+> **Warning 2: Three caveats on [Eq. 19](#eq-chibar)**
 >
 > 1.  **Binomial weights are conditional.** They require the active
 >     block of the information matrix to be orthogonal to the nuisance
@@ -982,7 +1393,7 @@ lrt_decovart(
 
 ### Replication is what makes the asymptotics meaningful
 
-[Eq. 10](#eq-lrt) and [Eq. 11](#eq-chibar) are limits as the amount of
+[Eq. 18](#eq-lrt) and [Eq. 19](#eq-chibar) are limits as the amount of
 information about **one** composition grows. That is a strong
 requirement in deconvolution, and it is the same N\to\infty that turns
 the O(N^{-1}) bias of [Sec. 2.5](#sec-finite-sample) into consistency.
@@ -1007,7 +1418,7 @@ observations either: their dependence through
 >
 > - **Pool genuine replicates.** Supply several bulk columns that really
 >   do share one composition (technical replicates, or aliquots of one
->   tissue) through the `bulk_expression` argument of
+>   tissue) as the columns of the `y` matrix of
 >   [`lrt_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_decovart.md)
 >   /
 >   [`confint_profile_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_decovart.md).
@@ -1047,7 +1458,7 @@ MLE itself falls on the face.
 
 set.seed(5)
 calibration <- bootstrap_decovart(
-  bulk_expression = replicates_absent,
+  y = replicates_absent,
   mean_signature_matrix = signature,
   Sigma = Sigma,
   null_value = c(ct3 = 0),
@@ -1063,13 +1474,13 @@ c(
   )
 )
 #>       observed_statistic            monte_carlo_p share_of_zero_statistics 
-#>                     0.00                     1.00                     0.56 
+#>                0.0000000                1.0000000                0.4666667 
 #>             asymptotic_p 
-#>                     0.50
+#>                0.5000000
 ```
 
 The observed share of zero statistics is the empirical counterpart of
-the \tfrac{1}{2}\chi^{2}\_{0} atom in [Eq. 11](#eq-chibar). A restricted
+the \tfrac{1}{2}\chi^{2}\_{0} atom in [Eq. 19](#eq-chibar). A restricted
 bootstrap is still only *approximate* for a composite null, because the
 nuisance proportions are held at their restricted estimates rather than
 profiled over; it is exact only when \boldsymbol{p}\_0 is fully
@@ -1085,7 +1496,7 @@ resamples the **experimental units of that labelled reference**,
 rebuilds the plug-in moments, and refits, so reference uncertainty
 appears in the percentile intervals ([Efron
 1979](#ref-efronBootstrapMethodsAnother1979)). Cell-type names stay
-attached throughout. The three `method` options are:
+attached throughout. The two `method` options are:
 
 - **`donors`** (default). Cluster bootstrap of donors *within each cell
   type*. A donor drawn twice contributes its purified columns twice.
@@ -1093,17 +1504,21 @@ attached throughout. The three `method` options are:
   biological variation in the reference population rather than treating
   cells from one individual as independent.
 - **`cells`**. Column resampling within each cell type, for when donor
-  labels are unavailable.
-- **`dirichlet`**. Draw
-  \boldsymbol{p}^{(b)}\sim\mathrm{Dirichlet}(\boldsymbol{\alpha}),
-  simulate \boldsymbol{Y}^{(b)} from the Gaussian convolution at the
-  original plug-in moments, and refit. This is a composition sweep, not
-  a confidence interval for one observed bulk.
+  labels are unavailable.[^1]
 
-By default the observed bulk is held fixed for `donors` and `cells`
-(reference uncertainty for a given mixture). Setting
-`regenerate_bulk = TRUE` follows the fuller pipeline \text{reference
-units}\to S^{(b)}\to Y^{(b)}\to\hat{\boldsymbol{p}}^{(b)}.
+Both options draw **with** replacement, which makes them bootstraps. A
+permutation (Monte Carlo randomisation) test draws **without**
+replacement: it shuffles labels to build the distribution of a statistic
+under a null of exchangeability, and serves hypothesis testing rather
+than interval estimation. Shuffling cell-type labels is vacuous here,
+because the likelihood is equivariant under relabelling
+([`equivariance_check_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/equivariance_check_decovart.md)
+below).
+
+By default the observed bulk is held fixed (reference uncertainty for a
+given mixture). Setting `regenerate_bulk = TRUE` follows the fuller
+pipeline \text{reference units}\to S^{(b)}\to
+Y^{(b)}\to\hat{\boldsymbol{p}}^{(b)}.
 
 A related design point for **simulation studies**, not implemented as an
 argument here, is to split reference-building cells from
@@ -1144,7 +1559,7 @@ donor_ids <- lapply(refs, function(x) {
   rep(paste0("d", 1:3), length.out = ncol(x))
 })
 ref_boot <- reference_bootstrap_decovart(
-  bulk_expression = replicates,
+  y = replicates,
   reference_profiles = refs,
   donor_ids = donor_ids,
   method = "donors",
@@ -1154,7 +1569,7 @@ ref_boot <- reference_bootstrap_decovart(
 ref_boot$interval
 #>          2.5%     97.5%
 #> ct1 0.4384732 0.4621236
-#> ct2 0.3369241 0.3646381
+#> ct2 0.3369248 0.3646381
 #> ct3 0.1827913 0.2184093
 ```
 
@@ -1177,7 +1592,7 @@ c(
   loglik_diff = eq_check$loglik_diff
 )
 #>  max_abs_diff   loglik_diff 
-#>  9.336033e-10 -3.108624e-15
+#>  2.498002e-16 -2.886580e-15
 ```
 
 ### RNA-Sieve: CLT likelihood, Fisher and Godambe
@@ -1221,11 +1636,8 @@ the convolution mapped through the ILR ([Sec. 4.2](#sec-interior); the
 derivatives vignette). That Wald interval is the cheap interior tool,
 and it is **undefined** on a simplex face ([Sec. 4.3](#sec-boundary)).
 The Godambe sandwich would be relevant *if* the multivariate Gaussian
-convolution is misspecified (counts, protocol shift, omitted types). The
-variational sandwich of Westling and McCormick ([Westling and McCormick
-2019](#ref-westlingPredictionFrameworkInference2019)) is a different
-object: it corrects an ELBO estimator, not this convolution MLE. It does
-not replace the chi-bar-square LRT or the restricted parametric
+convolution is misspecified (counts, protocol shift, omitted types). It
+does not replace the chi-bar-square LRT or the restricted parametric
 bootstrap on the boundary, and it does not replace
 [`reference_bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_decovart.md),
 which is the resampling counterpart of RNA-Sieve’s noisy-M term.
@@ -1247,7 +1659,7 @@ conflate them:
 | `near_boundary` (\min_j\hat{p}\_j small) | proximity to a simplex face | optimiser failure |
 | `multimodal` (spread of log-likelihoods over random starts) | evidence *for* several modes | absence of further modes |
 
-Table 1: What each DeCovarT convergence field does and does not certify.
+Table 2: What each DeCovarT convergence field does and does not certify.
 
 [`boundary_diagnostics()`](https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.md)
 computes the first three per sample; they are stored in
@@ -1263,7 +1675,7 @@ fit <- fit_decovart(
 )
 do.call(rbind, fit$diagnostics)
 #>          boundary_distance near_boundary   score_norm min_eigenvalue
-#> sample_1         0.2159583         FALSE 1.026578e-09      -160.1989
+#> sample_1         0.2159583         FALSE 1.026533e-09      -160.1989
 #> sample_2         0.1832317         FALSE 3.836661e-05      -167.0961
 #> sample_3         0.1682215         FALSE 4.077970e-08      -171.3536
 #>          max_eigenvalue local_maximum
@@ -1275,7 +1687,7 @@ do.call(rbind, fit$diagnostics)
 Every sample above converged and every curvature is negative, yet
 `local_maximum` is not uniformly `TRUE`: one iterate stopped with an ILR
 score norm just above the default `score_tol = 1e-4`. That is the
-distinction of [Table 1](#tbl-diagnostics) doing its job rather than a
+distinction of [Table 2](#tbl-diagnostics) doing its job rather than a
 failure — `score_tol` bounds the *score*, whereas the solver’s `epsilon`
 bounds the *objective*, so the two should be tightened together.
 
@@ -1317,7 +1729,7 @@ c(
   multimodal = restarts$multimodal
 )
 #> loglik_range   multimodal 
-#> 1.038282e-09 0.000000e+00
+#> 1.038284e-09 0.000000e+00
 ```
 
 A small range is reassuring but not a proof: a converged code, a tiny
@@ -1419,7 +1831,7 @@ scale \phi=a^{2}n and raw per-cell means \tilde{\boldsymbol{\mu}}:
 \qquad
 \operatorname{Cov}(\boldsymbol{y}\mid\boldsymbol{\rho})=\boldsymbol{V}(\boldsymbol{\rho})
 =\phi\\\boldsymbol{S}\_W(\boldsymbol{p})+c^{2}\boldsymbol{S}\_B(\boldsymbol{p})+\omega\operatorname{diag}\\\boldsymbol{m}(\boldsymbol{\rho})\\.
-\tag{12}
+\tag{20}
 
 The mean is the systematic component: identity on the mixing scale,
 inverse link \boldsymbol{\psi} on the composition. The covariance is the
@@ -1427,13 +1839,15 @@ variance function, and each term comes from a model rather than from a
 transformation: independent cells (linear weight), shared population
 fluctuations (quadratic weight, needs replicates), and the Poisson
 measurement of the bulk with a dispersion \omega (variance equal to the
-mean when \omega=1). The final model of [Sec. 6.4](#sec-final-choice)
-keeps only the first term,
+mean when \omega=1). Separating \omega from \phi and from the
+cell-to-cell covariance needs technical replicates or several bulk
+samples; it is left to the perspectives of the article. The final model
+of [Sec. 6.4](#sec-final-choice) keeps only the first term,
 \boldsymbol{V}(\boldsymbol{\rho})=\phi\boldsymbol{S}\_W(\boldsymbol{\psi}(\boldsymbol{\rho})):
 a known variance function times a dispersion, as in a quasi-likelihood
 GLM.
 
-Two estimators share [Eq. 12](#eq-decovart-glm).
+Two estimators share [Eq. 20](#eq-decovart-glm).
 
 - **Gaussian likelihood** with this mean and covariance, as released
   DeCovarT does for its own covariance. It uses the dependence of
@@ -1447,7 +1861,7 @@ Two estimators share [Eq. 12](#eq-decovart-glm).
   It needs only the first two moments, its information is
   \boldsymbol{D}^{\top}\boldsymbol{V}^{-1}\boldsymbol{D} (the mean part
   of the Fisher information), and the sandwich of
-  [Sec. 3.3](#sec-sandwich) keeps it valid when \boldsymbol{V} is
+  [Sec. 3.9](#sec-sandwich) keeps it valid when \boldsymbol{V} is
   misspecified. With \boldsymbol{V}=\phi\boldsymbol{S}\_W, the
   dispersion cancels from the quasi-score and is estimated after the fit
   from the Pearson statistic,
@@ -1479,7 +1893,7 @@ The constraints of the intended application are: one single-cell
 reference from one donor (R=1) counted with UMIs; one bulk sample at a
 time, with no covariates and no paired cohort; and no gene-wise platform
 ratio within the UMI platform. Under them, the recommended model is
-[Eq. 12](#eq-decovart-glm) reduced to what one donor and one bulk sample
+[Eq. 20](#eq-decovart-glm) reduced to what one donor and one bulk sample
 identify:
 
 \boldsymbol{y}\_{\cdot i}\mid\boldsymbol{p}\_{\cdot i}
@@ -1487,7 +1901,7 @@ identify:
 a_in_i\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot i},\\
 a_i^{2}n_i\sum_jp\_{ji}\boldsymbol{\Sigma}\_{W,j} \Bigr), \qquad
 \boldsymbol{p}\_{\cdot i}=\boldsymbol{\psi}(\boldsymbol{\rho}\_i).
-\tag{13}
+\tag{21}
 
 Equivalently \boldsymbol{y}\_{\cdot
 i}=a_in_i\tilde{\boldsymbol{y}}\_{\cdot i} with
@@ -1531,7 +1945,7 @@ is a choice with a reason.
     diagonal for the bulk measurement is not added: without further
     assumptions it cannot be separated from the scale \phi_i and the
     cell-to-cell covariance on one sample. Misspecification of the
-    variance is handled by the sandwich of [Sec. 3.3](#sec-sandwich)
+    variance is handled by the sandwich of [Sec. 3.9](#sec-sandwich)
     instead.
 5.  **No gene-wise platform ratio.** With UMIs it cancels within the
     reference platform; between platforms it is not identified from one
@@ -1539,10 +1953,13 @@ is a choice with a reason.
     ([`MEAD`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-review-distribution-aware-deconvolution.html#sec-mead)),
     so it is handled by gene selection, keeping genes detected
     consistently in both assays, not by estimation.
-6.  **Inference.** Report the logit or simulation route of
-    [Sec. 3.1](#sec-wald-routes), or the profile interval; switch to
-    Firth’s penalty when a proportion approaches zero, and to the
-    boundary likelihood-ratio test when absence is the question
+6.  **Inference.** Report the ILR back-transformation of
+    [Sec. 3.5](#sec-wald-routes), or the profile interval, with c_i and
+    \phi_i profiled out ([Sec. 3.6](#sec-nuisance)); the limit that
+    justifies them for one bulk sample is the small-dispersion limit in
+    the number of cells ([Sec. 3.1](#sec-regularity)). Switch to Firth’s
+    penalty when a proportion approaches zero, and to the boundary
+    likelihood-ratio test when absence is the question
     ([Sec. 4.3](#sec-boundary)). With one donor, the reference
     uncertainty comes from
     `reference_bootstrap_decovart(method = "cells")`.
@@ -1551,7 +1968,7 @@ is a choice with a reason.
 chart, the analytic score and the default Newton–Raphson optimiser are
 kept, with c_i and \phi_i profiled out at each iteration. Only the
 covariance assembler changes, from \sum_jp_j^{2}\boldsymbol{\Sigma}\_j
-to the linear form of [Eq. 13](#eq-final-model), whose derivative in p_j
+to the linear form of [Eq. 21](#eq-final-model), whose derivative in p_j
 is the constant matrix \phi_i\boldsymbol{\Sigma}\_{W,j}; second
 derivatives of the covariance vanish, so the Hessian is simpler than the
 released one ([general score and
@@ -1565,28 +1982,32 @@ scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/theory-syntheti
 
 The procedures below all target the same composition
 \boldsymbol{p}\in\Delta^{J-1}, but they rest on different
-approximations. [Table 2](#tbl-inference-recap) is the practical
+approximations. [Table 3](#tbl-inference-recap) is the practical
 counterpart of the Wald warning in the derivatives vignette: use the
 cheapest method that the geometry of the estimate actually supports.
 
 | Procedure | What it returns | Calibration | Simplex faces | Replication | Function |
 |:---|:---|:---|:---|:---|:---|
 | Wald (delta method on \boldsymbol{p}) | per-sample CI, may leave \[0,1\] | \mathrm{N}(\boldsymbol{0},I(\hat{\boldsymbol{z}})^{-1}) mapped by \mathbf{J}\_{\boldsymbol{\psi}} | unusable (`NA`) | one bulk column is a plug-in approximation ([Note 3](#nte-replication)) | [`confint()`](https://rdrr.io/r/stats/confint.html) / [`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md) |
-| Logit-scale Wald | per-sample CI inside (0,1) | delta method on \operatorname{logit}p_j, back-transformed ([Sec. 3.1](#sec-wald-routes)) | undefined on a face | as Wald | a few lines on [`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md) |
-| Simulation through the chart | per-sample CI inside (0,1), jointly a composition | quantiles of \boldsymbol{\psi}(\boldsymbol{\rho}^{(b)}), \boldsymbol{\rho}^{(b)}\sim\mathcal{N}(\hat{\boldsymbol{\rho}},I\_{\boldsymbol{\rho}}^{-1}) | undefined on a face | as Wald | not implemented |
-| Firth-penalised Wald | per-sample CI, estimate always interior | Jeffreys-penalised likelihood ([Sec. 3.2](#sec-firth)) | defined | reduces the O(N^{-1}) bias | not implemented |
-| Sandwich (Godambe) | per-sample CI robust to a wrong variance | sequential score contributions ([Sec. 3.3](#sec-sandwich)) | interior only | few genes make it noisy | not implemented |
-| Conformal region | region for \boldsymbol{p} with marginal coverage | labelled pseudo-bulk calibration ([Sec. 3.4](#sec-conformal)) | inside the simplex | needs a generator that mimics the bulk | not implemented |
-| Profile likelihood | CI in \[0,1\] | Wilks \chi^2_1 on the deviance (Wilks ([1938](#ref-wilksLargeSampleDistributionLikelihood1938))) | stays inside the simplex; endpoints on a face need the next row | pooled replicates, or treat as approximate | [`confint_profile_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_decovart.md) |
+| ILR back-transformation | per-sample CI inside (0,1), jointly a composition | quantiles of \boldsymbol{\psi}(\boldsymbol{\rho}^{(b)}), \boldsymbol{\rho}^{(b)}\sim\mathcal{N}(\hat{\boldsymbol{\rho}},I\_{\boldsymbol{\rho}}^{-1}) ([Sec. 3.5](#sec-wald-routes)) | undefined on a face | as Wald | [`confint_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_decovart.md) (default), [`confint_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_single_cell.md) |
+| Score-test inversion | asymmetric CI, information at each null value | \chi^2_1 on [Eq. 10](#eq-three-tests) ([Sec. 3.4](#sec-test-inversion)) | defined in \boldsymbol{p} coordinates | as profile | not implemented |
+| Firth-penalised Wald | per-sample CI, estimate always interior | Jeffreys-penalised likelihood ([Sec. 3.8](#sec-firth)) | defined | exact bias removal only for canonical exponential families; simulation check needed here | [`fit_firth_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_firth_decovart.md), [`fit_firth_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_firth_single_cell.md) |
+| Sandwich (Godambe) | per-sample CI robust to a wrong variance | sequential score contributions ([Sec. 3.9](#sec-sandwich)) | interior only | few genes make it noisy | not implemented |
+| Profile likelihood | CI in \[0,1\], lower and upper limits from the signed root | Wilks \chi^2_1 on the deviance (Wilks ([1938](#ref-wilksLargeSampleDistributionLikelihood1938))), nuisance scales profiled out ([Sec. 3.6](#sec-nuisance)) | stays inside the simplex; endpoints on a face need the boundary LRT | pooled replicates, or many cells per type ([Sec. 3.1](#sec-regularity)) | [`confint_profile_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_decovart.md) |
+| r^{\ast} or Bartlett-corrected LRT | CI with O(n^{-3/2}) or O(n^{-2}) error | modified likelihood root, or D rescaled by its bootstrap mean ([Sec. 3.7](#sec-higher-order)) | not regular on a face | small N or few cells | not implemented (`likelihoodAsy` for r^{\ast}) |
 | Interior LRT | test of p_j=c\in(0,1) | \chi^2_1 | not for c=0 or c=1 | same as profile | [`lrt_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_decovart.md) |
 | Boundary LRT | test of p_j=0 | chi-bar-square \tfrac12\chi^2_0+\tfrac12\chi^2_1 ([Chernoff 1954](#ref-hermanDistributionLikelihoodRatio1954); [Self and Liang 1987](#ref-selfAsymptoticPropertiesMaximum1987)) | designed for this | same as profile | [`lrt_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_decovart.md) (automatic) |
 | Parametric bootstrap | percentile CI and Monte Carlo p-value | \boldsymbol{Y}^{(b)}\sim\mathcal{N}\_G(\boldsymbol{\mu}\boldsymbol{p},\boldsymbol{\Sigma}(\boldsymbol{p})) at the MLE or restricted MLE | automatic (the \tfrac12\chi^2_0 atom is visible) | known plug-in (\boldsymbol{\mu},\boldsymbol{\Sigma}\_j,\boldsymbol{p}) | [`bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_decovart.md) |
-| Reference-sample bootstrap | percentile CI | resample **donors** (default) or **cells** within each labelled type, rebuild (\boldsymbol{\mu},\boldsymbol{\Sigma}\_j), refit ([Efron 1979](#ref-efronBootstrapMethodsAnother1979)) | automatic | uncertainty in the reference, not in \boldsymbol{Y} unless `regenerate_bulk` | [`reference_bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_decovart.md) |
-| Dirichlet composition sweep | percentile of \hat{\boldsymbol{p}} over random mixtures | \boldsymbol{p}^{(b)}\sim\mathrm{Dirichlet}(\boldsymbol{\alpha}), then simulate \boldsymbol{Y} | automatic | performance over compositions, not a CI for one bulk | `reference_bootstrap_decovart(method = "dirichlet")` |
+| Reference-sample bootstrap | percentile CI | resample **donors** (default) or **cells** within each labelled type, with replacement, rebuild (\boldsymbol{\mu},\boldsymbol{\Sigma}\_j), refit ([Efron 1979](#ref-efronBootstrapMethodsAnother1979)) | automatic | uncertainty in the reference, not in \boldsymbol{Y} unless `regenerate_bulk` | [`reference_bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_decovart.md) |
 
-Table 2: Inferential procedures for DeCovarT proportions. Wald is the
-default of `confint.decovart_fit`; rows marked “not implemented” are
-specified in this vignette.
+Table 3: Inferential procedures for DeCovarT proportions.
+[`confint.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md)
+remains the delta method.
+[`confint_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_decovart.md)
+and
+[`confint_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_single_cell.md)
+default to the ILR back-transformation. Rows marked “not implemented”
+are specified in this vignette.
 
 A short decision rule, in the order the table suggests abandoning the
 previous row:
@@ -1604,9 +2025,17 @@ previous row:
     vacuous, and a gene shuffle is not a sampling model. Use
     [`equivariance_check_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/equivariance_check_decovart.md)
     only as a software check.
-4.  If the question is performance across mixture weights rather than a
-    CI for one bulk, use
-    `reference_bootstrap_decovart(method = "dirichlet")`.
+4.  If the Wald, score and likelihood-ratio intervals disagree, the
+    log-likelihood is not quadratic ([Sec. 3.2](#sec-geometry)): report
+    the profile interval, with a Bartlett or r^{\ast} correction when
+    replicates or cells are few.
+
+The single-cell mixture uses the same menu through
+[`confint_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_single_cell.md).
+The composition interval is built from the profile information, the
+Schur complement that removes the scales (c,\phi). Intervals for those
+two scales use the complementary Schur complement. Neither interval
+corrects the plug-in reference covariance.
 
 ## Outlook: beyond first-order asymptotics
 
@@ -1620,21 +2049,21 @@ previous row:
 >   wrong ([Erdmann-Pham et al.
 >   2021](#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021))
 >   ([Sec. 4.7](#sec-rna-sieve); the one-column construction is
->   [Sec. 3.3](#sec-sandwich)). The same sandwich on DeCovarT’s score
+>   [Sec. 3.9](#sec-sandwich)). The same sandwich on DeCovarT’s score
 >   would widen Wald intervals under protocol shift without discarding
 >   the multivariate covariance. It remains a first-order *interior*
 >   device: faces still need the chi-bar-square LRT or a restricted
 >   bootstrap.
-> - **Score-test inversion.** Inverting a one-sided score test avoids
->   refitting under every candidate value, so it is cheaper than the
->   profile scan of
->   [`confint_profile_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_decovart.md)
->   while keeping the one-sided boundary geometry.
-> - **Higher-order likelihood corrections.** Bartlett-type adjustments
->   of the likelihood-ratio statistic, or modified profile likelihoods,
->   improve the \chi^{2} approximation in the small-replication regime
->   described in the [Note 3](#nte-replication) — precisely DeCovarT’s
->   regime.
+> - **Score-test inversion** ([Sec. 3.4](#sec-test-inversion)). Each
+>   candidate value needs only the restricted fit, so the scan costs the
+>   same number of fits as the profile, and the score in \boldsymbol{p}
+>   coordinates stays defined on a face.
+> - **Higher-order likelihood corrections**
+>   ([Sec. 3.7](#sec-higher-order)). The Bartlett factor from the
+>   restricted bootstrap, r^{\ast} through `likelihoodAsy`, and the
+>   Cox–Reid adjusted profile of [Eq. 14](#eq-cox-reid) target the
+>   small-replication regime of [Note 3](#nte-replication), which is
+>   DeCovarT’s regime.
 > - **Bayesian compositional models.** A logistic-normal or Dirichlet
 >   prior on \boldsymbol{p} regularises the boundary: the posterior
 >   stays proper where the ILR Wald interval degenerates, and credible
@@ -1662,6 +2091,11 @@ Cai, Biao, Emma Jingfei Zhang, Hongyu Li, Chang Su, and Hongyu Zhao.
 Bulk Expression Data’. *Journal of the American Statistical Association*
 119 (548): 2521–32. <https://doi.org/10.1080/01621459.2024.2382435>.
 
+Canonero, Enzo, Alessandra Rosalba Brazzale, and Glen Cowan. 2023.
+‘Higher-Order Asymptotic Corrections and Their Application to the Gamma
+Variance Model’. *The European Physical Journal C* 83 (12): 1100.
+<https://doi.org/10.1140/epjc/s10052-023-12263-7>.
+
 Chernoff, Herman. 1954. ‘On the Distribution of the Likelihood Ratio’.
 *The Annals of Mathematical Statistics* 25 (3): 573–78.
 <https://doi.org/10.1214/aoms/1177728725>.
@@ -1670,6 +2104,14 @@ Commenges, Daniel, Helene Jacqmin-Gadda, Cecile Proust, and Jeremie
 Guedj. 2006. *A Newton-Like Algorithm for Likelihood Maximization: The
 Robust-Variance Scoring Algorithm*. arXiv.
 <https://doi.org/10.48550/arxiv.math/0610402>.
+
+Cox, D. R., and D. V. Hinkley. 1979. *Theoretical Statistics*. Chapman
+and Hall/CRC. <https://doi.org/10.1201/b14832>.
+
+Cox, D. R., and N. Reid. 1987. ‘Parameter Orthogonality and Approximate
+Conditional Inference’. *Journal of the Royal Statistical Society:
+Series B (Methodological)* 49 (1): 1–18.
+<https://doi.org/10.1111/j.2517-6161.1987.tb01422.x>.
 
 Efron, B. 1979. ‘Bootstrap Methods: Another Look at the Jackknife’. *The
 Annals of Statistics* 7 (1): 1–26.
@@ -1682,6 +2124,9 @@ Single-Cell References’. *Genome Research* 31 (10): 1794–806.
 
 Firth, David. 1993. ‘Bias Reduction of Maximum Likelihood Estimates’.
 *Biometrika* 80 (1): 27–38. <https://doi.org/10.1093/biomet/80.1.27>.
+
+Jørgensen, Bent. 1987. ‘Small Dispersion Asymptotics’. *Brazilian
+Journal of Probability and Statistics* 1 (1): 59–90.
 
 Malago, Luigi, and Giovanni Pistone. 2015. ‘Information Geometry of the
 Gaussian Distribution in View of Stochastic Optimization’. In
@@ -1744,13 +2189,13 @@ Vellame, Dorothea Seiler, Gemma Shireby, Ailsa MacCalman, et al. 2023.
 Algorithms’. *Epigenetics* 18.
 <https://doi.org/10.1080/15592294.2022.2137659>.
 
-Westling, Ted, and Tyler H. McCormick. 2019. *Beyond Prediction: A
-Framework for Inference with Variational Approximations in Mixture
-Models*. arXiv. <https://doi.org/10.48550/arxiv.1510.08151>.
-
 Wilks, S. S. 1938. ‘The Large-Sample Distribution of the Likelihood
 Ratio for Testing Composite Hypotheses’. *The Annals of Mathematical
 Statistics* 9 (1): 60–62. <https://doi.org/10.1214/aoms/1177732360>.
+
+Wilson, Edwin B. 1927. ‘Probable Inference, the Law of Succession, and
+Statistical Inference’. *Journal of the American Statistical
+Association* 22 (158): 209–12. <https://doi.org/10.2307/2276774>.
 
 Xie, Dongyue, Lin Gui, and Jingshu Wang. 2026. ‘Statistical Inference
 for Cell Type Deconvolution’. *Journal of the Royal Statistical Society
@@ -1766,3 +2211,10 @@ Zhao, Yifan, Brian E Vestal, and Camille M Moore. 2026. ‘Evaluating
 Reference-Mixture Matching in Cell-Type Deconvolution with Single-Cell
 RNA-seq References’. *Briefings in Bioinformatics* 27 (2): bbag184.
 <https://doi.org/10.1093/bib/bbag184>.
+
+[^1]: An earlier version also offered `method = "dirichlet"`, which drew
+    compositions from a Dirichlet law, simulated bulks at the plug-in
+    moments and refitted. It measured performance across random
+    mixtures, not uncertainty for one observed bulk, and was removed;
+    the effect of compositional imbalance on the width of the intervals
+    is studied in the simulation scenarios instead.

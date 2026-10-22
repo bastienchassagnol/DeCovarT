@@ -1,9 +1,16 @@
-# Restricted maximum likelihood with fixed cellular ratios
+# Maximum likelihood on the closed simplex, optionally on a face
 
-Maximises the DeCovarT log-likelihood over the simplex while holding a
-subset of coordinates at prescribed values. Writing \\A\\ for the
-constrained index set and \\s=\sum\_{j\in A}c_j\\, the free block is
-reparametrised as \$\$ \boldsymbol{p}\_{A^{c}} =
+Maximises the DeCovarT log-likelihood, summed over the replicate bulk
+columns of `y`, over the closed simplex, while holding a (possibly
+empty) subset of coordinates at prescribed values. It is the fitting
+engine of
+[`lrt_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_decovart.md),
+[`confint_profile_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_decovart.md),
+[`bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_decovart.md)
+and
+[`reference_bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_decovart.md).
+Writing \\A\\ for the constrained index set and \\s=\sum\_{j\in A}c_j\\,
+the free block is reparametrised as \$\$ \boldsymbol{p}\_{A^{c}} =
 (1-s)\\\boldsymbol{\psi}(\boldsymbol{z}), \qquad
 \boldsymbol{z}\in\mathbb{R}^{\|A^{c}\|-1}, \$\$ with
 \\\boldsymbol{\psi}\\ the isometric logistic map
@@ -21,7 +28,7 @@ restricted_mle_decovart(
   y,
   mean_signature_matrix,
   Sigma,
-  fixed,
+  fixed = NULL,
   epsilon = 10^-8,
   itmax = 500L
 )
@@ -31,8 +38,9 @@ restricted_mle_decovart(
 
 - y:
 
-  Numeric vector (or one-column matrix)
-  \\\boldsymbol{y}\in\mathbb{R}^{G}\\.
+  Numeric vector of length \\G\\, or \\G\times N\\ matrix of replicate
+  bulk profiles that share one composition; their log-likelihoods are
+  summed (the pooled, population-level fit).
 
 - mean_signature_matrix:
 
@@ -46,47 +54,63 @@ restricted_mle_decovart(
 
 - fixed:
 
-  Named or integer-indexed numeric vector of constrained ratios, e.g.
-  `c(celltype_1 = 0)`. Names are matched against
-  `colnames(mean_signature_matrix)`.
+  Numeric vector of constrained ratios named by cell types, e.g.
+  `c(celltype_1 = 0)`; the names must be columns of
+  `mean_signature_matrix`. `NULL` (default) fits the unrestricted MLE.
 
 - epsilon, itmax:
 
   Relative convergence tolerance and iteration budget passed to
-  [`stats::optim()`](https://rdrr.io/r/stats/optim.html).
+  [`stats::nlminb()`](https://rdrr.io/r/stats/nlminb.html).
 
 ## Value
 
-A list with `coefficients` (the restricted \\J\\ vector), `loglik`,
-`fixed`, and `convergence`.
+A list with `coefficients` (the fitted \\J\\ vector), `loglik` (summed
+over the columns of `y`), `fixed`, and `convergence`.
 
 ## Details
 
 Zero mass on \\A\\ keeps \\\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j
 p_j^{2} \boldsymbol{\Sigma}\_j\\ positive definite as long as at least
-one coordinate remains strictly positive. Optimisation uses
-[`stats::optim()`](https://rdrr.io/r/stats/optim.html) (`"BFGS"`) with
-the analytic score obtained by chaining
-[`gradient_loglik_unconstrained()`](https://bastienchassagnol.github.io/DeCovarT/reference/gradient_loglik_unconstrained.md)
-through \\(1-s)\mathbf{J}\_{\boldsymbol{\psi}}\\ on the free-face ILR
-chart.
+one coordinate remains strictly positive. The free face is fitted by
+Newton-Raphson with the PORT trust region of
+[`stats::nlminb()`](https://rdrr.io/r/stats/nlminb.html), from its
+barycentre, with the pooled analytic score and Hessian chained through
+\\(1-s)\mathbf{J}\_{\boldsymbol{\psi}}\\. The bounded first step
+matters: with several columns the pooled score is large, and an
+unbounded quasi-Newton step can land on a vertex, where the likelihood
+is flat, and stop there.
+
+Without `fixed`, the interior ILR optimum is compared with the
+restricted fit on the face where it stops (coordinates below `1e-3` set
+to zero), and the larger likelihood is kept: the ILR chart cannot
+represent an exact zero, so this is how a boundary MLE is reached.
 
 ## See also
 
 [`lrt_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_decovart.md),
-[`profile_loglik_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/profile_loglik_decovart.md),
+[`confint_profile_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_decovart.md),
 [`loglik_multivariate()`](https://bastienchassagnol.github.io/DeCovarT/reference/loglik_multivariate.md)
 
 Other decovart_inference:
 [`bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_decovart.md),
+[`bootstrap_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_single_cell.md),
 [`boundary_diagnostics()`](https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.md),
 [`chi_bar_square_pvalue()`](https://bastienchassagnol.github.io/DeCovarT/reference/chi_bar_square_pvalue.md),
+[`confint_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_decovart.md),
+[`confint_ilr_backtransform()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_ilr_backtransform.md),
 [`confint_profile_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_decovart.md),
+[`confint_profile_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_single_cell.md),
+[`confint_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_single_cell.md),
 [`equivariance_check_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/equivariance_check_decovart.md),
+[`fit_firth_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_firth_decovart.md),
+[`fit_firth_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_firth_single_cell.md),
 [`lrt_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_decovart.md),
+[`lrt_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_single_cell.md),
 [`multistart_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/multistart_decovart.md),
-[`profile_loglik_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/profile_loglik_decovart.md),
-[`reference_bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_decovart.md)
+[`reference_bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_decovart.md),
+[`reference_bootstrap_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_single_cell.md),
+[`restricted_mle_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_single_cell.md)
 
 ## Examples
 

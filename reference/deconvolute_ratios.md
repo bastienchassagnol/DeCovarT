@@ -180,10 +180,10 @@ deconvolute_ratios(
 #> $regression$global
 #> # A tibble: 2 × 9
 #>   sample_id algorithm     tv   rmse angular  sdid  maxae reconstitution_mae
-#>   <chr>     <chr>      <dbl>  <dbl>   <dbl> <dbl>  <dbl> <chr>             
-#> 1 sample_1  nnls      0.0806 0.0806   0.102 0.399 0.0806 irrelevant        
-#> 2 sample_2  nnls      0.220  0.220    0.264 0.634 0.220  irrelevant        
-#> # ℹ 1 more variable: reconstitution_cor <chr>
+#>   <chr>     <chr>      <dbl>  <dbl>   <dbl> <dbl>  <dbl>              <dbl>
+#> 1 sample_1  nnls      0.0806 0.0806   0.102 0.399 0.0806                 NA
+#> 2 sample_2  nnls      0.220  0.220    0.264 0.634 0.220                  NA
+#> # ℹ 1 more variable: reconstitution_cor <dbl>
 #> 
 #> $regression$cell_type
 #> # A tibble: 2 × 5
@@ -207,8 +207,8 @@ deconvolute_ratios(
 #> # A tibble: 2 × 14
 #>   sample_id algorithm elapsed_sec memory_bytes kkt_residual numerical_converged
 #>   <chr>     <chr>           <dbl>        <dbl>        <dbl> <lgl>              
-#> 1 sample_1  nnls                0    479917056        0.444 TRUE               
-#> 2 sample_2  nnls                0    479917056        0.152 TRUE               
+#> 1 sample_1  nnls          0.00100    585673728        0.444 TRUE               
+#> 2 sample_2  nnls          0          590683136        0.152 TRUE               
 #> # ℹ 8 more variables: theoretical_converged <lgl>, loglik_regret <dbl>,
 #> #   local_maximum <lgl>, min_eigenvalue <dbl>, max_eigenvalue <dbl>,
 #> #   converged <list>, ct1 <dbl>, ct2 <dbl>

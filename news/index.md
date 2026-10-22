@@ -40,7 +40,7 @@
 - **Likelihood-ratio and boundary inference.** New
   [`lrt_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_decovart.md),
   [`confint_profile_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_decovart.md),
-  [`profile_loglik_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/profile_loglik_decovart.md),
+  `profile_loglik_decovart()`,
   [`restricted_mle_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_decovart.md),
   [`chi_bar_square_pvalue()`](https://bastienchassagnol.github.io/DeCovarT/reference/chi_bar_square_pvalue.md)
   and
@@ -70,11 +70,10 @@
   reported as separate claims. A near-boundary estimate is flagged as a
   caution about Wald linearisation, not as optimiser failure.
 
-- **Numerical stability of
-  [`additive_logistic()`](https://bastienchassagnol.github.io/DeCovarT/reference/additive_logistic.md).**
-  Now evaluated through the log-sum-exp shift instead of
-  `exp(rho) / sum(exp(rho))`, which overflowed to `NaN` for and could
-  make non-factorisable when the MLE approached a simplex face.
+- **Numerical stability of `additive_logistic()`.** Now evaluated
+  through the log-sum-exp shift instead of `exp(rho) / sum(exp(rho))`,
+  which overflowed to `NaN` for and could make non-factorisable when the
+  MLE approached a simplex face.
 
 - **New vignette** `vignette("DeCovarT-MLE-properties")`:
   identifiability, existence, failure of uniqueness for one observed
@@ -86,8 +85,7 @@
 ## DeCovarT 2.2.3
 
 - **Optional heatmap stack.** Moved `ComplexHeatmap`, `circlize`, and
-  `viridis` from Imports to Suggests.
-  [`plot_correlation_Heatmap()`](https://bastienchassagnol.github.io/DeCovarT/reference/plot_correlation_Heatmap.md)
+  `viridis` from Imports to Suggests. `plot_correlation_Heatmap()`
   guards with
   [`requireNamespace()`](https://rdrr.io/r/base/ns-load.html) and a
   clear install message. Removed `Additional_repositories` (Bioconductor
@@ -207,9 +205,7 @@
 - Feature-selection metrics
   ([`compute_average_overlap()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_overlap.md),
   [`compute_average_jeffreys()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_jeffreys.md),
-  [`compute_glmnet_gene_scores()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_glmnet_gene_scores.md))
-  and a shared
-  [`check_true_theta()`](https://bastienchassagnol.github.io/DeCovarT/reference/check_true_theta.md)
+  `compute_glmnet_gene_scores()`) and a shared `check_true_theta()`
   validator complete the end-to-end simulation → pre-screen → NSGA-II
   refinement loop documented in `vignette("feature-selection")`.
 

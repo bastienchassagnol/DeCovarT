@@ -85,7 +85,7 @@ scripts/fig02_bivariate_toy.R and the paper-scenario vignettes."><meta property=
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Simulate bulk mixtures and benchmark deconvolution algorithms</h1>
-      <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/04_03_run_simulation_benchmark.R" class="external-link"><code>R/04_03_run_simulation_benchmark.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/04_02_run_simulation_benchmark.R" class="external-link"><code>R/04_02_run_simulation_benchmark.R</code></a></small>
       <div class="d-none name"><code>run_simulation_benchmark.Rd</code></div>
     </div>
 
@@ -179,15 +179,15 @@ actually used to draw the bulk;</p></li>
 network, tangent Fisher, MixSim BarOmega, pairwise Hellinger);</p></li>
 <li><p><code>supplementary</code>: Jeffreys overlap, recorded separately;</p></li>
 <li><p><code>call</code>: the matched call (<code><a href="https://rdrr.io/r/base/match.call.html" class="external-link">match.call()</a></code>).
-Scripts should persist those pieces with
-<code><a href="write_simulation_artefacts.html">write_simulation_artefacts()</a></code> rather than saving the whole list.</p></li>
+Analysis scripts persist those pieces with <code>write_simulation_artefacts()</code>
+(<code>scripts/auxiliary/benchmark_artefacts.R</code>) rather than saving the whole
+list.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
     <div class="dont-index"><p><code><a href="simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code>, <code><a href="deconvolute_ratios.html">deconvolute_ratios()</a></code>,
 <code><a href="compute_benchmark_metrics.html">compute_benchmark_metrics()</a></code>, <code><a href="describe_simulation_scenario.html">describe_simulation_scenario()</a></code>,
-<code><a href="coverage_mc_interval.html">coverage_mc_interval()</a></code>, <code><a href="plot_mc_raincloud.html">plot_mc_raincloud()</a></code>, <code><a href="plot_mc_forest.html">plot_mc_forest()</a></code>,
-<code><a href="write_simulation_artefacts.html">write_simulation_artefacts()</a></code></p></div>
+<code><a href="coverage_mc_interval.html">coverage_mc_interval()</a></code>, <code><a href="plot_mc_raincloud.html">plot_mc_raincloud()</a></code>, <code><a href="plot_mc_forest.html">plot_mc_forest()</a></code></p></div>
     </div>
 
     <div class="section level2">

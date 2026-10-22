@@ -98,8 +98,6 @@ composition.</p>
 <span>  <span class="va">estimated_p</span>,</span>
 <span>  true_ratios <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  se <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  lower <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  upper <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  elapsed <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  memory_bytes <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  kkt_residual <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -150,12 +148,6 @@ Convolution-likelihood solvers fill these from <code><a href="vcov_ilr_delta.htm
 Mean-only solvers (NNLS, LSEI) leave them missing.</p></dd>
 
 
-<dt id="arg-lower-upper">lower, upper<a class="anchor" aria-label="anchor" href="#arg-lower-upper"></a></dt>
-<dd><p>Optional interval bounds matching <code>estimated_p</code>
-(used for coverage and mean width). When omitted but <code>se</code> is
-supplied, Wald intervals at <code>level</code> are used.</p></dd>
-
-
 <dt id="arg-elapsed-memory-bytes-kkt-residual">elapsed, memory_bytes, kkt_residual<a class="anchor" aria-label="anchor" href="#arg-elapsed-memory-bytes-kkt-residual"></a></dt>
 <dd><p>Optional per-sample runtime
 diagnostics (recycled to \(N\)).</p></dd>
@@ -173,9 +165,9 @@ for theoretical convergence (regret
 
 
 <dt id="arg-converged">converged<a class="anchor" aria-label="anchor" href="#arg-converged"></a></dt>
-<dd><p>Optional list of length \(N\) with homogenised
-optimiser fields (<code>iterations</code>, <code>criterion</code>, <code>code</code>, <code>rdm</code>).
-Closed-form solvers store <code>NA</code> entries.</p></dd>
+<dd><p>Optional list of length \(N\) of optimiser records
+with fields <code>iterations</code>, <code>criterion</code>, <code>code</code> and <code>rdm</code>, as stored by
+the DeCovarT solvers. Closed-form solvers store <code>NA</code> entries.</p></dd>
 
 
 <dt id="arg-local-maximum">local_maximum<a class="anchor" aria-label="anchor" href="#arg-local-maximum"></a></dt>
@@ -194,8 +186,8 @@ F1 / false-positive mass (default <code>1e-4</code>).</p></dd>
 
 
 <dt id="arg-level">level<a class="anchor" aria-label="anchor" href="#arg-level"></a></dt>
-<dd><p>Wald coverage level when <code>lower</code> / <code>upper</code> are omitted
-(default <code>0.95</code>).</p></dd>
+<dd><p>Level of the Wald intervals built from <code>se</code>, used for
+coverage and mean width (default <code>0.95</code>).</p></dd>
 
 
 <dt id="arg-coverage-interval">coverage_interval<a class="anchor" aria-label="anchor" href="#arg-coverage-interval"></a></dt>
@@ -229,9 +221,9 @@ row per cell type);</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $regression$global</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1 × 9</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   sample_id algorithm     tv   rmse angular  sdid maxae reconstitution_mae</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>             </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> sample_1  <span style="color: #BB0000;">NA</span>        0.050<span style="text-decoration: underline;">0</span> 0.050<span style="text-decoration: underline;">0</span>  0.062<span style="text-decoration: underline;">2</span> 0.312  0.05 irrelevant        </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 1 more variable: reconstitution_cor &lt;chr&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> sample_1  <span style="color: #BB0000;">NA</span>        0.050<span style="text-decoration: underline;">0</span> 0.050<span style="text-decoration: underline;">0</span>  0.062<span style="text-decoration: underline;">2</span> 0.312  0.05                 <span style="color: #BB0000;">NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 1 more variable: reconstitution_cor &lt;dbl&gt;</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $regression$cell_type</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 5</span></span>

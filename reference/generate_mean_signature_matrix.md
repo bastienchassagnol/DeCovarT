@@ -6,12 +6,12 @@ the symmetric square root, \$\$ \boldsymbol{\mu} = s\\ \boldsymbol{Q}
 R^{1/2}, \qquad
 \boldsymbol{Q}^{\mathsf{T}}\boldsymbol{Q}=\boldsymbol{I}\_{J}. \$\$ Then
 \\\boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu}=s^{2}R\\ whenever \\R\\
-has unit diagonal. The default \\R\\ is the equicorrelation matrix
-\\(1-\rho)I+\rho\mathbf{1}\mathbf{1}^{\mathsf{T}}\\
-([`equicorrelation_gram()`](https://bastienchassagnol.github.io/DeCovarT/reference/equicorrelation_gram.md)).
-Supply `target_gram` to set unequal pairwise cosines (for example two
-close pairs and a distant background), provided \\R\\ is symmetric
-nonnegative-definite.
+has unit diagonal. The default \\R\\ is the equicorrelation
+(equicorrelation) matrix
+\\(1-\rho)I+\rho\mathbf{1}\mathbf{1}^{\mathsf{T}}\\, positive
+semidefinite for \\\rho\in\[-1/(J-1),1\]\\. Supply `target_gram` to set
+unequal pairwise cosines (for example two close pairs and a distant
+background), provided \\R\\ is symmetric nonnegative-definite.
 
 ## Usage
 
@@ -85,9 +85,10 @@ Realisations are unique up to an orthogonal transformation of the gene
 space: replacing \\\boldsymbol{Q}\\ by \\\boldsymbol{Q}U\\ with
 \\U^{\mathsf{T}}U=\boldsymbol{I}\_{J}\\ leaves the Gram unchanged. By
 default \\\boldsymbol{Q}\\ is a deterministic thin QR frame; pass `seed`
-for a Haar-like Gaussian frame. Cholesky \\R=LL^{\mathsf{T}}\\ is an
-alternative square root used in Monte Carlo simulation; see the
-how-to-build-synthetic-scenarios vignette appendix.
+for a Haar-like Gaussian frame (the global random state is restored).
+Cholesky \\R=LL^{\mathsf{T}}\\ is an alternative square root used in
+Monte Carlo simulation; see the how-to-build-synthetic-scenarios
+vignette appendix.
 
 ## Examples
 

@@ -16,8 +16,6 @@ compute_benchmark_metrics(
   estimated_p,
   true_ratios = NULL,
   se = NULL,
-  lower = NULL,
-  upper = NULL,
   elapsed = NULL,
   memory_bytes = NULL,
   kkt_residual = NULL,
@@ -67,12 +65,6 @@ compute_benchmark_metrics(
   (expected Fisher information pulled back through the ILR chart).
   Mean-only solvers (NNLS, LSEI) leave them missing.
 
-- lower, upper:
-
-  Optional interval bounds matching `estimated_p` (used for coverage and
-  mean width). When omitted but `se` is supplied, Wald intervals at
-  `level` are used.
-
 - elapsed, memory_bytes, kkt_residual:
 
   Optional per-sample runtime diagnostics (recycled to \\N\\).
@@ -89,9 +81,9 @@ compute_benchmark_metrics(
 
 - converged:
 
-  Optional list of length \\N\\ with homogenised optimiser fields
-  (`iterations`, `criterion`, `code`, `rdm`). Closed-form solvers store
-  `NA` entries.
+  Optional list of length \\N\\ of optimiser records with fields
+  `iterations`, `criterion`, `code` and `rdm`, as stored by the DeCovarT
+  solvers. Closed-form solvers store `NA` entries.
 
 - local_maximum:
 
@@ -109,8 +101,8 @@ compute_benchmark_metrics(
 
 - level:
 
-  Wald coverage level when `lower` / `upper` are omitted (default
-  `0.95`).
+  Level of the Wald intervals built from `se`, used for coverage and
+  mean width (default `0.95`).
 
 - coverage_interval:
 
@@ -147,9 +139,9 @@ compute_benchmark_metrics(y, mu, estimated_p = c(0.45, 0.55),
 #> $regression$global
 #> # A tibble: 1 × 9
 #>   sample_id algorithm     tv   rmse angular  sdid maxae reconstitution_mae
-#>   <chr>     <chr>      <dbl>  <dbl>   <dbl> <dbl> <dbl> <chr>             
-#> 1 sample_1  NA        0.0500 0.0500  0.0622 0.312  0.05 irrelevant        
-#> # ℹ 1 more variable: reconstitution_cor <chr>
+#>   <chr>     <chr>      <dbl>  <dbl>   <dbl> <dbl> <dbl>              <dbl>
+#> 1 sample_1  NA        0.0500 0.0500  0.0622 0.312  0.05                 NA
+#> # ℹ 1 more variable: reconstitution_cor <dbl>
 #> 
 #> $regression$cell_type
 #> # A tibble: 2 × 5

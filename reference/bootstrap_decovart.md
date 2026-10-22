@@ -14,10 +14,9 @@ percentile intervals.
 
 ``` r
 bootstrap_decovart(
-  y = NULL,
+  y,
   mean_signature_matrix,
   Sigma,
-  bulk_expression = NULL,
   p = NULL,
   null_value = NULL,
   n_boot = 500L,
@@ -32,8 +31,9 @@ bootstrap_decovart(
 
 - y:
 
-  Numeric vector (or one-column matrix)
-  \\\boldsymbol{y}\in\mathbb{R}^{G}\\.
+  Numeric vector of length \\G\\, or \\G\times N\\ matrix of replicate
+  bulk profiles that share one composition; their log-likelihoods are
+  summed (the pooled, population-level fit).
 
 - mean_signature_matrix:
 
@@ -45,20 +45,15 @@ bootstrap_decovart(
   Array of cell-type covariances in \\\mathcal{M}\_{G\times G\times
   J}\\.
 
-- bulk_expression:
-
-  Numeric matrix \\\boldsymbol{Y}\in \mathcal{M}\_{G\times N}\\ of
-  replicate bulk profiles sharing one composition, used instead of `y`
-  for the pooled (population) test.
-
 - p:
 
-  Composition to simulate from. Defaults to the MLE computed from `y` /
-  `bulk_expression`.
+  Composition to simulate from. Defaults to the MLE computed from `y`
+  (or the restricted MLE under `null_value`).
 
 - null_value:
 
-  Named numeric vector of hypothesised ratios, e.g. `c(celltype_2 = 0)`.
+  Optional numeric vector of hypothesised ratios named by cell types;
+  switches to the restricted bootstrap (see Details).
 
 - n_boot:
 
@@ -76,13 +71,14 @@ bootstrap_decovart(
 - epsilon, itmax:
 
   Relative convergence tolerance and iteration budget passed to
-  [`stats::optim()`](https://rdrr.io/r/stats/optim.html).
+  [`stats::nlminb()`](https://rdrr.io/r/stats/nlminb.html).
 
 ## Value
 
 A list with `estimates` (\\J\times\\ `n_boot` matrix), `interval`
-(percentile bounds), `p_simulated`, and, when `null_value` is supplied,
-`statistic` (observed \\D\\), `null_statistics`, and `p_value`.
+(percentile bounds), `n_failed` (refits that errored, left as `NA`
+columns), `p_simulated`, and, when `null_value` is supplied, `statistic`
+(observed \\D\\), `null_statistics`, and `p_value`.
 
 ## Details
 
@@ -107,15 +103,24 @@ produced those plug-in moments, use
 [`reference_bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_decovart.md)
 
 Other decovart_inference:
+[`bootstrap_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_single_cell.md),
 [`boundary_diagnostics()`](https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.md),
 [`chi_bar_square_pvalue()`](https://bastienchassagnol.github.io/DeCovarT/reference/chi_bar_square_pvalue.md),
+[`confint_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_decovart.md),
+[`confint_ilr_backtransform()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_ilr_backtransform.md),
 [`confint_profile_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_decovart.md),
+[`confint_profile_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_single_cell.md),
+[`confint_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_single_cell.md),
 [`equivariance_check_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/equivariance_check_decovart.md),
+[`fit_firth_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_firth_decovart.md),
+[`fit_firth_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_firth_single_cell.md),
 [`lrt_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_decovart.md),
+[`lrt_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_single_cell.md),
 [`multistart_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/multistart_decovart.md),
-[`profile_loglik_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/profile_loglik_decovart.md),
 [`reference_bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_decovart.md),
-[`restricted_mle_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_decovart.md)
+[`reference_bootstrap_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_single_cell.md),
+[`restricted_mle_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_decovart.md),
+[`restricted_mle_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_single_cell.md)
 
 ## Examples
 
@@ -127,6 +132,6 @@ y <- drop(mu %*% c(0.6, 0.4))
 set.seed(1)
 bootstrap_decovart(y, mu, Sigma, n_boot = 20)$interval
 #>          2.5%     97.5%
-#> ct1 0.5647988 0.6266519
-#> ct2 0.3733481 0.4352012
+#> ct1 0.5647987 0.6266518
+#> ct2 0.3733482 0.4352013
 ```

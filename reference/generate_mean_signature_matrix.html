@@ -14,8 +14,9 @@ $$
 $$
 Then \(\boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu}=s^{2}R\) whenever
 \(R\) has unit diagonal. The default \(R\) is the equicorrelation
-matrix \((1-\rho)I+\rho\mathbf{1}\mathbf{1}^{\mathsf{T}}\)
-(equicorrelation_gram()). Supply target_gram to set unequal
+(equicorrelation) matrix
+\((1-\rho)I+\rho\mathbf{1}\mathbf{1}^{\mathsf{T}}\), positive
+semidefinite for \(\rho\in[-1/(J-1),1]\). Supply target_gram to set unequal
 pairwise cosines (for example two close pairs and a distant background),
 provided \(R\) is symmetric nonnegative-definite."><meta property="og:description" content="Builds
 \(\boldsymbol{\mu}\in\mathcal{M}_{G\times J}\) whose unit columns
@@ -32,8 +33,9 @@ $$
 $$
 Then \(\boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu}=s^{2}R\) whenever
 \(R\) has unit diagonal. The default \(R\) is the equicorrelation
-matrix \((1-\rho)I+\rho\mathbf{1}\mathbf{1}^{\mathsf{T}}\)
-(equicorrelation_gram()). Supply target_gram to set unequal
+(equicorrelation) matrix
+\((1-\rho)I+\rho\mathbf{1}\mathbf{1}^{\mathsf{T}}\), positive
+semidefinite for \(\rho\in[-1/(J-1),1]\). Supply target_gram to set unequal
 pairwise cosines (for example two close pairs and a distant background),
 provided \(R\) is symmetric nonnegative-definite."><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -103,7 +105,7 @@ provided \(R\) is symmetric nonnegative-definite."><meta property="og:image" con
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>Generate mean profiles from a target Gram matrix</h1>
-      <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/02_02_generate_synthetic_networks.R" class="external-link"><code>R/02_02_generate_synthetic_networks.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/01_02_generate_synthetic_networks.R" class="external-link"><code>R/01_02_generate_synthetic_networks.R</code></a></small>
       <div class="d-none name"><code>generate_mean_signature_matrix.Rd</code></div>
     </div>
 
@@ -123,8 +125,9 @@ $$
 $$
 Then \(\boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu}=s^{2}R\) whenever
 \(R\) has unit diagonal. The default \(R\) is the equicorrelation
-matrix \((1-\rho)I+\rho\mathbf{1}\mathbf{1}^{\mathsf{T}}\)
-(<code><a href="equicorrelation_gram.html">equicorrelation_gram()</a></code>). Supply <code>target_gram</code> to set unequal
+(equicorrelation) matrix
+\((1-\rho)I+\rho\mathbf{1}\mathbf{1}^{\mathsf{T}}\), positive
+semidefinite for \(\rho\in[-1/(J-1),1]\). Supply <code>target_gram</code> to set unequal
 pairwise cosines (for example two close pairs and a distant background),
 provided \(R\) is symmetric nonnegative-definite.</p>
     </div>
@@ -203,7 +206,7 @@ frame so that \(\boldsymbol{\mu}\ge 0\) whenever \(R^{1/2}\ge 0\)
 space: replacing \(\boldsymbol{Q}\) by \(\boldsymbol{Q}U\) with
 \(U^{\mathsf{T}}U=\boldsymbol{I}_{J}\) leaves the Gram unchanged. By
 default \(\boldsymbol{Q}\) is a deterministic thin QR frame; pass <code>seed</code>
-for a Haar-like Gaussian frame. Cholesky \(R=LL^{\mathsf{T}}\) is an
+for a Haar-like Gaussian frame (the global random state is restored). Cholesky \(R=LL^{\mathsf{T}}\) is an
 alternative square root used in Monte Carlo simulation; see the
 how-to-build-synthetic-scenarios vignette appendix.</p>
     </div>

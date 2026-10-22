@@ -101,7 +101,7 @@ vignette("theory-decovart-generative-model", package = "DeCovarT")).'><meta prop
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>DeCovarT MLE of cellular proportions for one bulk sample</h1>
-      <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/03_01_first_generation_deconvolution.R" class="external-link"><code>R/03_01_first_generation_deconvolution.R</code></a>, <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/03_03_DeCovarT_estimate_ratios_frequentist.R" class="external-link"><code>R/03_03_DeCovarT_estimate_ratios_frequentist.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/02_01_first_generation_deconvolution.R" class="external-link"><code>R/02_01_first_generation_deconvolution.R</code></a>, <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/R/02_02_population_decovart_estimate_ratios.R" class="external-link"><code>R/02_02_population_decovart_estimate_ratios.R</code></a></small>
       <div class="d-none name"><code>deconvolute_ratios_Marquardt_Levenberg.Rd</code></div>
     </div>
 
@@ -280,9 +280,9 @@ The box keeps each coordinate in \([0,1]\); the returned vector is
 closed by \(p/\sum p\) (no <code><a href="repair_simplex.html">repair_simplex()</a></code> clipping). Wald
 standard errors still use the ILR expected-Fisher map
 <code><a href="vcov_ilr_delta.html">vcov_ilr_delta()</a></code>, not a \(\boldsymbol{p}\)-space Hessian.</p></li>
-<li><p><code>deconvolute_ratios_Newton_Raphson()</code>: Newton–Raphson /
-<code>nlminb</code> on ILR coordinates \(\boldsymbol{z}\) using analytic
-gradient and Hessian (<code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">stats::nlminb()</a></code>).</p></li>
+<li><p><code>deconvolute_ratios_Newton_Raphson()</code>: Newton–Raphson on ILR
+coordinates \(\boldsymbol{z}\) with the analytic score and observed
+Hessian, safeguarded by the PORT trust region of <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">stats::nlminb()</a></code>.</p></li>
 <li><p><code>deconvolute_ratios_gradient_descent()</code>: BFGS quasi-Newton ascent
 on ILR coordinates \(\boldsymbol{z}\) (<code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code>
 <code>method = "BFGS"</code>).</p></li>

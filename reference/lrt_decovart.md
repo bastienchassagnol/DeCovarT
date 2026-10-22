@@ -14,11 +14,10 @@ because a smooth bijection leaves likelihood ratios unchanged.
 
 ``` r
 lrt_decovart(
-  y = NULL,
+  y,
   mean_signature_matrix,
   Sigma,
   null_value,
-  bulk_expression = NULL,
   n_boundary = NULL,
   boundary_tol = 1e-06,
   epsilon = 10^-8,
@@ -30,8 +29,9 @@ lrt_decovart(
 
 - y:
 
-  Numeric vector (or one-column matrix)
-  \\\boldsymbol{y}\in\mathbb{R}^{G}\\.
+  Numeric vector of length \\G\\, or \\G\times N\\ matrix of replicate
+  bulk profiles that share one composition; their log-likelihoods are
+  summed (the pooled, population-level fit).
 
 - mean_signature_matrix:
 
@@ -45,18 +45,14 @@ lrt_decovart(
 
 - null_value:
 
-  Named numeric vector of hypothesised ratios, e.g. `c(celltype_2 = 0)`.
-
-- bulk_expression:
-
-  Numeric matrix \\\boldsymbol{Y}\in \mathcal{M}\_{G\times N}\\ of
-  replicate bulk profiles sharing one composition, used instead of `y`
-  for the pooled (population) test.
+  Numeric vector of hypothesised ratios named by cell types, e.g.
+  `c(celltype_2 = 0)`.
 
 - n_boundary:
 
   Optional integer override for the number of active boundary
-  constraints; `NULL` infers it from `null_value`.
+  constraints; `NULL` infers it from `null_value`, counting the zeros
+  implied when the fixed values sum to one.
 
 - boundary_tol:
 
@@ -66,7 +62,7 @@ lrt_decovart(
 - epsilon, itmax:
 
   Relative convergence tolerance and iteration budget passed to
-  [`stats::optim()`](https://rdrr.io/r/stats/optim.html).
+  [`stats::nlminb()`](https://rdrr.io/r/stats/nlminb.html).
 
 ## Value
 
@@ -88,16 +84,22 @@ for a single active constraint,
 \\D\rightsquigarrow\tfrac{1}{2}\chi^{2}\_{0}+\tfrac{1}{2}\chi^{2}\_{1}\\
 Chernoff (1954) , generalised to several active constraints by Self and
 Liang (1987) . Boundary calibration is selected automatically when any
-tested value is within `boundary_tol` of 0 or 1; override with
-`n_boundary`.
+tested value is within `boundary_tol` of 0, or when the tested values
+sum to one, which forces every other ratio to zero (a null \\p_j=1\\
+fixes \\J-1\\ coordinates on faces); override with `n_boundary`. The
+binomial weights of
+[`chi_bar_square_pvalue()`](https://bastienchassagnol.github.io/DeCovarT/reference/chi_bar_square_pvalue.md)
+are exact for orthogonal constraints; for several correlated faces they
+approximate the weights of the tangent cone, and
+[`bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_decovart.md)
+with `null_value` gives a calibration that does not rely on them.
 
 **Replication.** Both calibrations are *population* statements: they
 need replicate bulk samples that genuinely share one composition
 \\\boldsymbol{p}\\. A single \\G\\-vector supplies no replication (genes
 are dependent through \\\boldsymbol{\Sigma}(\boldsymbol{p})\\, and
 adding bulk samples with distinct compositions adds parameters as fast
-as observations). Use `bulk_expression` with several replicate columns,
-or calibrate by
+as observations). Pass several replicate columns in `y`, or calibrate by
 [`bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_decovart.md).
 
 ## References
@@ -122,14 +124,23 @@ ISSN 0162-1459.
 
 Other decovart_inference:
 [`bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_decovart.md),
+[`bootstrap_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_single_cell.md),
 [`boundary_diagnostics()`](https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.md),
 [`chi_bar_square_pvalue()`](https://bastienchassagnol.github.io/DeCovarT/reference/chi_bar_square_pvalue.md),
+[`confint_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_decovart.md),
+[`confint_ilr_backtransform()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_ilr_backtransform.md),
 [`confint_profile_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_decovart.md),
+[`confint_profile_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_single_cell.md),
+[`confint_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_single_cell.md),
 [`equivariance_check_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/equivariance_check_decovart.md),
+[`fit_firth_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_firth_decovart.md),
+[`fit_firth_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_firth_single_cell.md),
+[`lrt_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_single_cell.md),
 [`multistart_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/multistart_decovart.md),
-[`profile_loglik_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/profile_loglik_decovart.md),
 [`reference_bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_decovart.md),
-[`restricted_mle_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_decovart.md)
+[`reference_bootstrap_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_single_cell.md),
+[`restricted_mle_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_decovart.md),
+[`restricted_mle_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/restricted_mle_single_cell.md)
 
 ## Examples
 
