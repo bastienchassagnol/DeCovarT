@@ -1,0 +1,88 @@
+# Python
+
+Use Python when appropriate. Do not duplicate an established R API without need.
+
+## Toolchain (default for new work)
+
+Follow the repo if it already chose tools. Otherwise:
+
+- **`uv`**: venvs, lockfiles, `uv run` — not ad-hoc `pip install` in reproducible
+  pipelines.
+- **Ruff**: format and lint (`ruff check --fix`, `ruff format`).
+- **`ty`**: static checking when the repo uses it.
+- Configure in **`pyproject.toml`**, not editor-only rules.
+
+Do not mix Conda/Poetry/pip/uv without a documented reason.
+
+## Libraries (smallest fit)
+
+- **NumPy** — arrays and numerical kernels.
+- **pandas** — ordinary tabular work.
+- **Polars** — large data or lazy pipelines only; do not rewrite working pandas
+  for fashion.
+- **Pydantic v2** — validated configs and payloads.
+- **Typer** + **Rich** — CLIs and structured terminal output.
+- **Textual** — full-screen TUI only when needed.
+- **`httpx`** — HTTP with explicit timeouts (not new `requests` code).
+
+## Performance: measure first, then fix
+
+Follow the order in Real Python’s
+[Python performance optimization guide](https://realpython.com/python-performance-optimization-guide/):
+confirm the bottleneck, apply the cheapest fix that matches the access pattern,
+then escalate only if the numbers do not move. Do not optimise before measuring.
+
+### Measure with `timeit`
+
+Use **`timeit`** when you already suspect a specific function or hot loop. Use
+**`cProfile`** (stdlib) or **`line_profiler`** to find unknown bottlenecks in
+larger code; `timeit` does not hunt—it quantifies one candidate.
+
+```python
+import timeit
+
+runs = 100_000
+total = timeit.timeit(lambda: hot_path(data), number=runs)
+print(f"total for {runs:,} runs: {total:.4f} s")
+print(f"per call: {total / runs * 1_000_000:.1f} µs")
+```
+
+- Compare **ratios** between before/after runs, not single absolute timings (machine
+  noise dominates).
+- Change **one** thing at a time, then rerun `timeit`.
+- Distinguish **total time** across `number` runs from **per-call** cost.
+
+Details: [Measure first with `timeit`](https://realpython.com/python-performance-optimization-guide/#measure-first-with-timeit).
+
+### Hash tables and access patterns
+
+Python’s **`set`** and **`dict`** are hash tables. Match the container to how
+often you read versus build it:
+
+| Pattern | Prefer | Avoid |
+| --- | --- | --- |
+| Repeated membership (`x in …`) | **`set`** — average **O(1)** lookup | **`list`** — **O(n)** scan |
+| Key → value, or value → index | **`dict`** | Scanning a list each time |
+| Counting occurrences | **`collections.Counter`** | Manual `dict` loop in pure Python |
+| Same pure function, same args many times | **`@functools.cache`** or **`@lru_cache`** | Recomputing identical work |
+
+**Sets:** `set(my_list)` costs one full pass plus hashing; pay that once when
+you will test membership **many** times. Converting a list you search **once**
+is usually slower than a single scan.
+
+**Dicts:** For “where is this value?”, a **`dict[value] → index`** built once
+beats repeated `list.index()` or hand-rolled scans.
+
+**Caching:** `@cache` / `@lru_cache` is safe only when the result depends
+**solely on the arguments** (no hidden globals or mutable closure state). Prefer
+`@lru_cache(maxsize=…)` when argument diversity can grow without bound.
+
+**Built-ins:** Stdlib tools such as `Counter` win when per-item work runs in C;
+wrapping the same logic in `any()` can still be slower than a plain `in`—measure.
+
+Work through fixes in this order: **data structures → stdlib/builtins → cache →**
+generators / concurrency / C extensions only when simpler changes fail.
+[Choose your fix](https://realpython.com/python-performance-optimization-guide/#choose-your-fix).
+
+British English in comments when you write prose. Match existing typing and test
+conventions in the repository.

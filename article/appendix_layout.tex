@@ -203,6 +203,101 @@ Detailed review in the \vignette{theory-review-distribution-aware-deconvolution.
         loss and ignore the mean--variance relationship of counts
 \end{itemize}
 
+\subsection{Optimisation when the likelihood is not explicit}
+\label{app:review-optim}
+
+\begin{itemize}
+  \item the bulk density is explicit when the cell-type profiles are Gaussian on the linear scale, as in DeCovarT; it is not
+        when the components are log-normal or negative binomial, nor when one component is unknown, as in semi-reference
+        methods; three strategies follow, summarised in Table~\ref{tab:review-optim}
+  \item first and second moments only: \emph{MEAD} solves a bias-corrected estimating equation in closed form,
+        \(\hat{\boldsymbol{\beta}}=(\hat{\boldsymbol{U}}^{\top}\boldsymbol{W}\hat{\boldsymbol{U}}-\hat{\boldsymbol{V}})^{-1}\hat{\boldsymbol{U}}^{\top}\boldsymbol{W}\boldsymbol{y}\), then truncates or constrains the
+        negative coefficients and renormalises \cite[pp.~8--10]{xieStatisticalInferenceCell2026}; \emph{DECALS} fits
+        constrained ordinary least squares, a quadratic programme solved by the dual active-set method of Goldfarb and
+        Idnani, and iterates cell-type covariances estimated across the bulk cohort, whose asymptotic normality in the
+        number of genes serves the intervals \cite[pp.~6--9]{caiStatisticalInferenceCelltype2024}; neither needs a
+        distribution, and neither provides a likelihood for tests
+  \item a likelihood from the central limit theorem: \emph{RNA-Sieve} writes the bulk as a sum of \(n\) cells, Gaussian by the
+        central limit theorem, with Gaussian errors on the reference means, and maximises this composite likelihood over the
+        proportions, the cell-type means and \(n\) by alternating quadratic programmes and gradient steps, then projects the
+        proportions onto the simplex by weighted least squares; the first phase has no convergence guarantee
+        \cite[p.~1804 and Supplemental Sect.~S1.6]{erdmann-phamLikelihoodbasedDeconvolutionBulk2021}; the single-cell model
+        of Section~\ref{sec:sc-tailored} rests on the same argument, with a fully parametrised Gaussian likelihood maximised
+        jointly by profile Newton (Section~\ref{sec:sc-optimisation})
+  \item a numerically approximated likelihood
+  \begin{itemize}
+    \item \emph{DeMix} evaluates the density of a sum of two log-normal components by numerical integration and maximises
+          it over all sample proportions jointly with the Nelder--Mead simplex method; at each candidate the tumour
+          log-mean and log-variance are sample moments, and the search stops when the proportions change by less than
+          1\%; a per-gene search then splits each bulk into its two components, and the two steps alternate
+          \cite[p.~1866 and Supplementary Sect.~1.1]{ahnDeMixDeconvolutionMixed2013}
+    \item \emph{DeMixT} keeps the numerical integration, a single or a double integral for two or three components, and
+          replaces the joint search by iterated conditional modes: sample-wise proportions and gene-wise parameters are
+          maximised in turn, each block in parallel, by golden-section search with successive parabolic interpolation
+          under box bounds \cite[p.~453 and Transparent Methods]{wangTranscriptomeDeconvolutionHeterogeneous2018}
+    \item \emph{DeMixNB} writes the convolution of two negative-binomial components exactly as a finite sum, and
+          alternates the same blocks with L-BFGS-B, the proportions bounded to \([0.05,0.95]\), from three random starts
+          \cite{montierthDeconvolutionSparsecountRNA2025}
+    \item \emph{ISOpureR} maximises a multinomial--Dirichlet posterior by block coordinate descent; each block is fitted by
+          Rasmussen's nonlinear conjugate gradient, with the Polak--Ribi\`ere direction and a Wolfe--Powell line search
+          (\texttt{cg\_code} in the package source) \cite[pp.~6--7]{anghelISOpureRImplementationComputational2015}
+  \end{itemize}
+  \item strengths and pitfalls of those algorithms
+  \begin{itemize}
+    \item Nelder--Mead needs no derivative; it stops when the spread of the objective over the simplex is small, a test
+          that is large on a curved region and small on a flat one \cite[Sect.~7.5, pp.~119--124]{kochenderferAlgorithmsOptimization2026}, so a flat
+          likelihood ridge can stop it early; with all sample proportions in one simplex, its dimension grows with the
+          number of samples (our assessment)
+    \item golden-section search and parabolic interpolation are one-dimensional bracketing methods, reliable on a
+          unimodal block \cite[Sects.~3.4--3.5, pp.~47--53]{kochenderferAlgorithmsOptimization2026}
+    \item iterated conditional modes and block coordinate descent increase the likelihood at every update, but a search
+          along coordinates ``can fail to find even a local minimum'' along a diagonal valley
+          \cite[Sect.~7.1, p.~114]{kochenderferAlgorithmsOptimization2026}, and the rate is linear when the blocks are coupled; the single-cell
+          alternation of Section~\ref{sec:optim-perspective} needed up to 95 updates
+    \item nonlinear conjugate gradient: the Polak--Ribi\`ere coefficient
+          \(\beta_{k}=\boldsymbol{g}_{k}^{\top}(\boldsymbol{g}_{k}-\boldsymbol{g}_{k-1})/\boldsymbol{g}_{k-1}^{\top}\boldsymbol{g}_{k-1}\) sets the search direction, the step length comes
+          from a line search under the strong Wolfe conditions, and \(\beta=\max(\beta_{k},0)\) restarts it along the
+          gradient \cite[Sects.~4.4 and 5.2, pp.~65--70 and 79--81]{kochenderferAlgorithmsOptimization2026}
+          (\href{https://en.wikipedia.org/wiki/Nonlinear_conjugate_gradient_method}{nonlinear conjugate gradient}); it uses no
+          curvature beyond the line search, whereas Newton's method converges quadratically near the optimum
+          \cite[Sect.~6.1, pp.~95--97]{kochenderferAlgorithmsOptimization2026}
+    \item L-BFGS-B handles box constraints only \cite[Sects.~6.5 and 10.5, pp.~103--106 and 188]{kochenderferAlgorithmsOptimization2026}: the
+          sum-to-one constraint is imposed afterwards, and bounds at 0.05 and 0.95 exclude the faces where a type is absent
+    \item a line search fixes the direction and then the step length, a trust region the step length and then the
+          direction \cite[Sects.~4.4--4.5, pp.~65--73]{kochenderferAlgorithmsOptimization2026}; DeCovarT uses the second (Remark~\ref{rem:step-size})
+  \end{itemize}
+  \item constraint handling not used by those methods: a transformation to unconstrained coordinates, the ILR chart of
+        DeCovarT \cite[Sect.~10.3, pp.~185--187]{kochenderferAlgorithmsOptimization2026}; a projection onto the feasible set after each step
+        \cite[Sect.~10.5, pp.~188--189]{kochenderferAlgorithmsOptimization2026}, which is proximal gradient when the non-smooth term is the indicator
+        of the simplex, since the proximal step of an indicator returns the closest feasible point
+        \cite[Example~11.6, p.~228]{kochenderferAlgorithmsOptimization2026}; penalty and augmented-Lagrangian methods, the latter converging without
+        driving the penalty to infinity \cite[Sects.~10.9--10.10, pp.~195--199]{kochenderferAlgorithmsOptimization2026}; interior-point methods with a
+        logarithmic barrier \cite[Chap.~11, pp.~561--615]{boydConvexOptimization2004}; the KKT conditions at a face
+        \cite[Sect.~5.5.3, pp.~243--244]{boydConvexOptimization2004} (Appendix~\ref{app:kkt}); active-set solvers for the mean-only
+        quadratic programme and non-negative least squares \cite[Sect.~13.5, pp.~285--287]{kochenderferAlgorithmsOptimization2026}
+\end{itemize}
+
+\begin{table}[ht]
+  \centering
+  \small
+  \caption{Optimisation in likelihood- and moment-based deconvolution methods.}
+  \label{tab:review-optim}
+  \begin{tabularx}{\textwidth}{@{}lYYY@{}}
+    \toprule
+    Method & Bulk likelihood & Algorithm & Constraints \\
+    \midrule
+    MEAD & none: first and second moments & closed-form estimating equation & truncation or constrained fit, renormalisation \\
+    DECALS & none for the estimate; normal limit in the number of genes for intervals & dual active-set quadratic programme, iterated covariances & inside the quadratic programme \\
+    RNA-Sieve & Gaussian composite likelihood from the central limit theorem & alternating quadratic programmes and gradient steps & weighted projection onto the simplex \\
+    DeMix & log-normal convolution, numerical integration & Nelder--Mead over all proportions, per-gene search & implicit in the log-normal moments \\
+    DeMixT & log-normal convolution, single or double numerical integral & iterated conditional modes, golden section and parabolic interpolation & box bounds \\
+    DeMixNB & exact negative-binomial convolution sum & iterated conditional modes, L-BFGS-B & box \([0.05,0.95]\) \\
+    ISOpureR & multinomial with Dirichlet priors & block coordinate descent, Polak--Ribi\`ere conjugate gradient & log domain \\
+    DeCovarT & explicit Gaussian & trust-region Newton on the ILR chart & ILR chart, restricted fits on faces \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
 \subsection{Caveats shared across methods}
 
 \begin{itemize}
@@ -227,7 +322,7 @@ Table~\ref{tab:notation}.
   \centering
   \caption{Symbols used only in the appendix.}
   \label{tab:notation-appendix}
-  \begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.62\textwidth}@{}}
+  \begin{tabularx}{\textwidth}{@{}lY@{}}
     \toprule
     Symbol & Meaning \\
     \midrule
@@ -244,7 +339,7 @@ Table~\ref{tab:notation}.
     \(\boldsymbol{\Sigma}^{\mathrm{bio}}_{j}\), \(\boldsymbol{\Sigma}^{\theta}_{j}\) &
       Biological within-type covariance on the count scale; covariance of library-normalised cells. \\
     \bottomrule
-  \end{tabular}
+  \end{tabularx}
 \end{table}
 
 \subsection{Population-level references: the Gaussian convolution}

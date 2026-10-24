@@ -12,6 +12,8 @@
 \usepackage{textcomp}%
 \usepackage{manyfoot}%
 \usepackage{booktabs}%
+\usepackage{tabularx}%
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}%
 \usepackage{algorithm}%
 \usepackage{algorithmicx}%
 \usepackage{algpseudocode}%
@@ -727,7 +729,7 @@ Table~\ref{tab:notation} is the alignment layer used in the
     A tilde marks a quantity rescaled to a reference unit: per cell (\(\tilde{\boldsymbol{y}}\),
     \(\tilde{\boldsymbol{\mu}}\)) or relative to the reference protocol (\(\tilde{\boldsymbol{b}}\)).}
   \label{tab:notation}
-  \begin{tabular}{@{}l>{\raggedright\arraybackslash}p{0.56\textwidth}@{}}
+  \begin{tabularx}{\textwidth}{@{}lY@{}}
     \toprule
     Symbol & Meaning \\
     \midrule
@@ -764,7 +766,7 @@ Table~\ref{tab:notation} is the alignment layer used in the
     \(\boldsymbol{S}_{B}(\boldsymbol{v})=\sum_{j}v_{j}^{2}\boldsymbol{\Sigma}_{B,j}\) &
       Quadratic covariance mixture. \\
     \bottomrule
-  \end{tabular}
+  \end{tabularx}
   \footnotetext[1]{The reference mean averages the raw UMI counts of the cells of type \(j\), so \(S_{j}\) keeps
     the average material per cell. A standard library-size normalisation (counts per million, or scaling each
     cell to a common total before averaging) divides every cell by its own total; all \(S_{j}\) become equal, the
@@ -1660,8 +1662,10 @@ and solves the mixture there.
 \begin{itemize}
   \item keeping the profiles as latent variables, with a diagonal residual \(\boldsymbol{D}\),
         \(\boldsymbol{y}_{\cdot i}\mid\boldsymbol{p}_{\cdot i},\{\boldsymbol{x}_{\cdot j,i}\}\sim\mathcal{N}_{G}(\sum_{j}p_{ji}\boldsymbol{x}_{\cdot j,i},\boldsymbol{D})\),
-        returns the DeCovarT likelihood after integration; \(\boldsymbol{D}\neq\boldsymbol{0}\) is needed for a
-        non-degenerate posterior
+        returns the DeCovarT likelihood after integration; \(\boldsymbol{D}\) is a nugget variance, the geostatistical term for
+        variation left at zero distance: here measurement error of the bulk, independent across genes and not explained
+        by the cell-type profiles; \(\boldsymbol{D}\neq\boldsymbol{0}\) is needed for a non-degenerate posterior, because without
+        it the bulk is an exact linear function of the latent profiles
   \item given \(\boldsymbol{p}_{\cdot i}\) the maximum a posteriori estimate, the best linear unbiased predictor
         and the Wiener filter coincide:
         \(\hat{\boldsymbol{x}}_{\cdot j,i}=\boldsymbol{\mu}_{\cdot j}+p_{ji}\boldsymbol{\Sigma}_{j}\{\boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i})+\boldsymbol{D}\}^{-1}(\boldsymbol{y}_{\cdot i}-\boldsymbol{\mu}\boldsymbol{p}_{\cdot i})\);
@@ -1670,11 +1674,29 @@ and solves the mixture there.
         \emph{bMIND} obtains with a gene-wise single-cell prior \cite{wangBayesianEstimationCelltypespecific2020}
   \item the latent form yields an EM algorithm \cite{dempsterMaximumLikelihoodIncomplete1977} whose iterations
         increase the marginal likelihood, and a mean-field variant that keeps the sparse precisions
+  \item single-cell references (Section~\ref{sec:sc-tailored}): the latent variable belongs to the cells, not to the genes;
+        with the cell counts \(\boldsymbol{m}_{\cdot i}\sim\operatorname{Multinomial}(n_{i},\boldsymbol{p}_{\cdot i})\) as missing data, the
+        complete-data maximiser is \(\hat{\boldsymbol{p}}_{\cdot i}=\boldsymbol{m}_{\cdot i}/n_{i}\), on the simplex by construction, and
+        \(c_{i}\) and \(\phi_{i}\) keep their closed forms; the E-step needs \(\mathbb{E}(\boldsymbol{m}_{\cdot i}\mid\boldsymbol{y}_{\cdot i})\),
+        a Gaussian update of the multinomial moments under the central limit theorem of (B3), approximate because the
+        covariance of \(\boldsymbol{y}_{\cdot i}\mid\boldsymbol{m}_{\cdot i}\) is linear in \(\boldsymbol{m}_{\cdot i}\); a variational EM with a
+        Gaussian \(q(\boldsymbol{m}_{\cdot i})\) keeps a lower bound that increases at every step; both converge at a rate set
+        by the fraction of missing information, close to one when single cells are noisy, as when
+        \(\boldsymbol{D}\to\boldsymbol{0}\) above
+  \item majorise--minimise for the same model: with the scales fixed, \(\boldsymbol{S}_{W}(\boldsymbol{p})\) is affine in \(\boldsymbol{p}\), so
+        \(\log\det\boldsymbol{S}_{W}(\boldsymbol{p})\) is concave \cite[p.~74]{boydConvexOptimization2004} and
+        \(\boldsymbol{r}^{\top}\boldsymbol{S}_{W}(\boldsymbol{p})^{-1}\boldsymbol{r}\), a matrix-fractional function of the affine pair
+        \((\boldsymbol{r},\boldsymbol{S}_{W})\), is convex \cite[Example~3.4, p.~76]{boydConvexOptimization2004}; the log-likelihood
+        \eqref{eq:sc-loglik} is thus the convex function \(-\tfrac12\log\det\boldsymbol{S}_{W}(\boldsymbol{p})\) plus a concave one;
+        replacing the convex part by its tangent minorises the log-likelihood, so each step maximises a concave function
+        on the closed simplex, the likelihood increases at every step, and an exact zero is reachable; both curvatures
+        held on 200 random instances; the decomposition fails for population references, whose covariance is quadratic in
+        \(\boldsymbol{p}\)
   \item priors on the composition: Dirichlet, concave in ILR coordinates for every \(\alpha_{j}>0\), or
         logistic-normal; either keeps the posterior proper where Wald intervals degenerate
   \item routes to the full posterior: Laplace approximation with the analytic Hessian, Hamiltonian Monte Carlo
         on the closed-form marginal likelihood, or stochastic variational inference
-  \item open problems: nothing is implemented in \texttt{fit\_decovart()}; EM stalls as \(\boldsymbol{D}\to\boldsymbol{0}\);
+  \item open problems: none of these algorithms is implemented; EM stalls as \(\boldsymbol{D}\to\boldsymbol{0}\);
         plugging in \(\hat{\boldsymbol{p}}\) ignores its uncertainty
         (\vignette{theory-decovart-bayesian-wiener.html}{Wiener-filter vignette})
 \end{itemize}
