@@ -403,6 +403,7 @@ mathring
 mathrm
 mathsf
 MaxAE
+MaxOmega
 McCormick
 McCulloch
 MCFA
@@ -598,6 +599,7 @@ semidefiniteness
 semver
 seq
 SEs
+setminus
 Sieve
 SignalingProfiler
 SILGGM

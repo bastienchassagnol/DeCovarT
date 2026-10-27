@@ -87,6 +87,7 @@ IV) build signature matrix.bib
 output/zotero/
 output/archives/
 __pycache__/
+.ruff_cache/
 
 # Graphify knowledge graph (local only; rebuilt by hook or graphify update)
 graphify-out/

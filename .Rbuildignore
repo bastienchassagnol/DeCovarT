@@ -102,6 +102,7 @@
 ^\.claude$
 ^\.nojekyll$
 ^\.lintr$
+^\.ruff_cache$
 ^\.zotc$
 ^\.venv-zotcurate$
 ^output$
