@@ -29,7 +29,10 @@ run_simulation_benchmark(
   cores = 1L,
   coverage_interval = "wilson",
   verbose = FALSE,
-  progress_every = 10L
+  progress_every = 10L,
+  model = c("population", "single_cell"),
+  return_data = FALSE,
+  reference = NULL
 )
 ```
 
@@ -81,6 +84,32 @@ run_simulation_benchmark(
   [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)
   when `verbose` is `TRUE`. Defaults to `10L`.
 
+- model:
+
+  `"population"` (default) draws every bulk from the convolution
+  [`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md);
+  `"single_cell"` draws it as a sum of cells with
+  [`simulate_bulk_from_cells()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_from_cells.md),
+  using `n_cells` and `platform_scale` from `true_theta` (and
+  `generative_mean` / `generative_sigma` when the fitted reference
+  differs from the generator), and scores every estimate against its
+  realised composition.
+
+- return_data:
+
+  If `TRUE`, keep each scenario's bulk matrix, targets and true scales
+  in `data`, so methods run outside this function can be scored on the
+  same samples.
+
+- reference:
+
+  Optional list with `n_individuals`, `n_cells` (default `1`) and
+  `seed`: with `return_data = TRUE`, an independent reference panel is
+  drawn per scenario by
+  [`simulate_reference_replicates()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_reference_replicates.md),
+  with seed `reference$seed` plus the scenario index, for methods that
+  estimate the reference moments themselves.
+
 ## Value
 
 A list with:
@@ -104,11 +133,17 @@ A list with:
 
 - `supplementary`: Jeffreys overlap, recorded separately;
 
+- `intervals`: coverage and width of the interval methods requested in
+  `deconvolution_functions`;
+
+- `data`: per-scenario simulated data when `return_data = TRUE`, else
+  `NULL`;
+
 - `call`: the matched call
   ([`match.call()`](https://rdrr.io/r/base/match.call.html)). Analysis
   scripts persist those pieces with `write_simulation_artefacts()`
-  (`scripts/auxiliary/benchmark_artefacts.R`) rather than saving the
-  whole list.
+  (`scripts/benchmark_metrics/benchmark_artefacts.R`) rather than saving
+  the whole list.
 
 ## See also
 

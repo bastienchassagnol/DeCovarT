@@ -13,15 +13,15 @@ and J = 3 cell types in which types 1 and 2 are **mean-collinear**
 network topology encoded in \boldsymbol{\Sigma}\_j is the remaining
 discriminative signal. Construction, ADEMP benchmark, and the static
 network figure live in a **single** script,
-`scripts/fig03_variance_driven.R` (seed `20260807`).
+`scripts/fig03_variance_covariance_driven.R` (seed `20260807`).
 
 ![](fig03-covariance-driven_files/mediabag/fig-covariance-design.svg)
 
 Figure 1: Covariance-driven factorial: one fixed Gram (cosines 0.9 /
 0.1), a 2-by-2 graph assignment on the mean-collinear types (scale-free
 versus cluster SBM; type 3 held at scale-free), three target MixSim
-average overlaps, three Shannon compositions, and five solvers (4 x 3 x
-3 = 36 scenarios).
+average overlaps, three Shannon compositions (4 x 3 x 3 = 36 scenarios),
+analysed by eight methods.
 
 ``` default
 ---
@@ -131,9 +131,10 @@ table](https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-sc
 Erdős–Rényi is not used. Type 3, already separated by the Gram
 (R\_{13}=R\_{23}=0.1), is held at scale-free, so the topology factorial
 is 2^{2}=4 assignments on CT1 and CT2. Those generator names and
-parameter lists are stored on every row of `hybrid_config.rds` as
-`graph_ct1` / `graph_ct2` / `graph_ct3` and the list-column
-`graph_generators`, and again inside each `true_theta`.
+parameter lists are stored on every row of the `config` element of
+`output/fig03/fig03_benchmark.rds` as `graph_ct1` / `graph_ct2` /
+`graph_ct3` and the list-column `graph_generators`; the true moments of
+each scenario are in its `theta_true` element.
 
 The spectral cushion u used at completion is now a **fixed** engineering
 constant (`PRECISION_SHIFT_BASE = 0.2`) so that each graph has one SPD
@@ -202,89 +203,178 @@ targeting normalised Shannon entropy H^{\star}\in\\1,0.5,0.1\\
 solvers start at the barycentre (`initial_p = "barycentre"`). Other
 initialisation strategies are reserved for separate scenarios.
 
-| Factor | Levels |
-|----|----|
+| Factor                     | Levels                                    |
+|----------------------------|-------------------------------------------|
 | Composition \boldsymbol{p} | H^{\star}=1; H^{\star}=0.5; H^{\star}=0.1 |
-| Algorithms | DeconRNASeq (`lsei`), CIBERSORT, L-BFGS-B, Newton–Raphson, Marquardt–Levenberg |
-| **Total scenarios** | 4\times 3\times 3=\mathbf{36} |
+| **Total scenarios**        | 4\times 3\times 3=\mathbf{36}             |
 
-N = 50 Monte Carlo replicates per scenario.
+Table 3: Composition factor.
 
-| Algorithm | Function | Constraint |
-|:---|:---|:---|
-| QP (`DeconRNASeq`-style) | `deconvolute_ratios_deconrnaseq` | simplex equality / inequality |
-| CIBERSORT-style \nu-SVR | `deconvolute_ratios_cibersort` | non-negative then [`repair_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/repair_simplex.md) |
-| L-BFGS-B | `deconvolute_ratios_L_BFGS_B` | ILR \to open simplex |
-| Newton–Raphson | `deconvolute_ratios_Newton_Raphson` | ILR / `nlminb` |
-| Marquardt–Levenberg | `deconvolute_ratios_Marquardt_Levenberg` | ILR \to open simplex |
+The run size is read from environment variables, so the dry run and the
+production run share one script:
 
-Table 3: Solvers used in the covariance-driven comparison.
+| Variable | Meaning | Default |
+|----|----|----|
+| `DECOVART_N_REPLICATES` | Monte Carlo bulks per scenario, N | 100 |
+| `DECOVART_N_BOOT` | parametric-bootstrap refits per bulk, B | 200 |
+| `DECOVART_N_REFERENCE` | individuals of the reference panel, R | N |
+| `DECOVART_CORES` | workers of the per-sample loop | 1 |
+| `DECOVART_POSTPROCESS_ONLY` | `1` redraws the figures from the saved benchmark | 0 |
 
-Mean-only baselines (LSEI, CIBERSORT) ignore \boldsymbol{\Sigma}\_j. The
-three DeCovarT maps use the same convolution likelihood. The shipped
-catalogue (robust linear model, GLS, BFGS, simulated annealing) is
-listed in
-[`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md).
+Table 4: Run-size variables of
+`scripts/fig03_variance_covariance_driven.R`.
+
+Parallel workers load the **installed** DeCovarT, so run
+`devtools::install()` before setting `DECOVART_CORES` above 1.
+
+### Methods
+
+Every method is scored on the same simulated bulks. Feature selection is
+switched off everywhere: all G=20 genes enter every fit.
+
+| Method | Function or code | Input | Intervals |
+|:---|:---|:---|:---|
+| `lsei` (DeconRNASeq) | [`deconvolute_ratios_deconrnaseq()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md) | true means | none |
+| NNLS | [`deconvolute_ratios_nnls()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md) | true means | none |
+| RLM (robust linear model) | [`deconvolute_ratios_rlm()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md) | true means | none |
+| CIBERSORT (\nu-SVR) | [`deconvolute_ratios_cibersort()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md) | true means | none |
+| Newton–Raphson | [`deconvolute_ratios_Newton_Raphson()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md) | true moments | Wald, ILR, profile, bootstrap, oracle |
+| L-BFGS-B | [`deconvolute_ratios_L_BFGS_B()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md) | true moments | Wald, ILR, profile, bootstrap |
+| Firth | [`fit_firth_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_firth_decovart.md) | true moments | Wald, ILR |
+| MEAD | `MEAD::MEAD()` (GitHub, commit `d66fa10`) | reference panel, cohort of N bulks | native sandwich interval |
+| RNA-Sieve | `rnasieve` 0.1.4 (Python) | reference panel, cohort of N bulks | released, Fisher and Godambe (see below) |
+| ReDeconv | `redeconv` 1.2.1 (Python) | true means and standard deviations | none |
+
+Table 5: Methods of the covariance-driven benchmark.
+
+- **`lsei` and NNLS.** NNLS followed by renormalisation is least squares
+  on the simplex with a **free** scale (\boldsymbol\beta=c\boldsymbol p,
+  c=\mathbf 1^{\top}\boldsymbol\beta); `lsei` fixes c=1. They agree only
+  when \hat c=1. In population scenarios the true scale is 1, so `lsei`
+  uses information NNLS discards; both are run, to show the difference.
+  On 500 bulks of a design like this one with \boldsymbol
+  p=(0.84,0.08,0.08), the largest coordinate difference between the two
+  has median 0.03, 95th percentile 0.11 and maximum 0.19.
+- **L-BFGS-B** runs on the closure chart \boldsymbol p=\boldsymbol
+  w/\mathbf 1^{\top}\boldsymbol w with the box \boldsymbol w\ge 0
+  ([closure
+  chart](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.html#sec-closure-box)):
+  it maximises the convolution likelihood itself, reaches exact zeros,
+  and its box KKT points are the simplex KKT points.
+- **Firth** maximises the Jeffreys-penalised likelihood ([Firth
+  1993](#ref-firthBiasReductionMaximum1993)); its estimate is the same
+  for both optimisers, so it appears once.
+- **Second-generation methods** run from their authors’ code, with gene
+  selection and preprocessing filters off and the other defaults kept
+  (`scripts/benchmark_metrics/second_generation_methods.R`; the Python
+  ones through a `uv` project in `scripts/benchmark_metrics/python/`,
+  exchanging CSV files with R). MEAD and RNA-Sieve read a reference
+  panel of R purified profiles per type drawn **independently** of the
+  bulks
+  ([`simulate_reference_replicates()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_reference_replicates.md),
+  its own seed), and are fitted on the cohort of the N bulks of a
+  scenario, whereas DeCovarT fits one bulk at a time.
+  - MEAD rescales every reference profile to a unit total, so its
+    proportions are transcript fractions; its intervals are scored
+    against both the cell and the transcript fractions.
+  - The released interval code of RNA-Sieve returns \[0,1\] whenever its
+    averaged Hessian has a condition number above 10^{6} (`stats.py`,
+    lines 224 and 234 of version 0.1.4): it then computes \boldsymbol
+    H\boldsymbol B\boldsymbol H^{\top} instead of \boldsymbol
+    H^{-1}\boldsymbol B\boldsymbol H^{-\top} on a gene subsample. The
+    runner also returns the two intervals of the paper, recomputed on
+    all genes with the package’s own per-gene scores and averaged
+    Hessian: Fisher (\boldsymbol B^{-1}/G, the empirical Fisher
+    information) and Godambe (\boldsymbol H^{-1}\boldsymbol B\boldsymbol
+    H^{-\top}/G), with \alpha_K=1-\sum\_{k\<K}\alpha_k. In the latest
+    dry run the faulty branch never fired, so the released and Godambe
+    intervals coincide; RNA-Sieve’s solver converged in all 36 scenarios
+    of that run, but failed in one to three of them in earlier draws
+    (recorded as a numerical failure, a grey tile in the heatmaps).
+  - DECALS has no public implementation and is not run; its point
+    estimate, constrained least squares solved as a quadratic programme,
+    is the `lsei` baseline.
+
+### Interval constructions
+
+| Interval | Construction |
+|:---|:---|
+| `wald` | delta method on \boldsymbol p, symmetric |
+| `ilr` | Wald interval in ILR coordinates mapped back to the simplex |
+| `profile` | likelihood-ratio inversion; chart-invariant, inside \[0,1\] |
+| `bootstrap` | percentile interval of a parametric bootstrap refitted by the same optimiser |
+| `oracle` | \hat p_j\pm the Wald half-width at \boldsymbol p^{\star} (Fisher at the truth) |
+
+Table 6: Interval menu ([population
+inference](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.md)).
+
+Coverage is reported with a Wilson Monte Carlo interval ([Morris et al.
+2019](#ref-morrisUsingSimulationStudies2019)); the interval table also
+gives the mean and median width and the share of intervals leaving
+\[0,1\].
 
 ``` r
 
-N_REPLICATES <- as.integer(Sys.getenv("N_REPLICATES", unset = "50"))
-ALGORITHMS <- c(
-  "lsei",
-  "cibersort",
-  "LBFGS",
-  "Newton-Raphson",
-  "Marquardt-Levenberg"
-)
-# Full pipeline: Rscript scripts/fig03_variance_driven.R
+# Dry run (about two minutes):
+#   DECOVART_N_REPLICATES=5 DECOVART_N_BOOT=5 \
+#     Rscript scripts/fig03_variance_covariance_driven.R
+benchmark <- readRDS("output/fig03/fig03_benchmark.rds")
+names(benchmark)
+#> meta config theta_true descriptors supplementary regression
+#> monte_carlo optimisation intervals data
+dplyr::filter(benchmark$intervals, is_composition) |>
+  dplyr::select(ID, algorithm, ci_method, parameter, coverage, mean_width)
 ```
 
 ## Visualisations
 
+Every figure is redrawn from two files in `output/fig03/`:
+`fig03_benchmark.rds` (run settings, design, true parameters and every
+metric table) and `fig03_plot_data.rds`, a list keyed by figure file
+stem that holds the data handed to each plot function.
+
+``` r
+
+source("scripts/visualisation/load_visualisation.R")
+plot_data <- readRDS("output/fig03/fig03_plot_data.rds")
+names(plot_data)
+render_figure_from_data("ci_width_forest", plot_data, "output/fig03")
+```
+
 | Output | Description |
 |----|----|
-| `output/fig03/density_visualisations/mean_signature.pdf` | Unscaled () heatmap |
-| `output/fig03/density_visualisations/latent_projections.pdf` | 16-page 2D latent-space book (Thomson / MCFA / `MclustDR`) |
-| `output/fig03/density_visualisations/loglik_rgl.pdf` | 3D ALR relative likelihood (`rgl`, log10 L/\max L; white diamond p^{\star}, red MLE, 3D legend) |
-| `output/fig03/density_visualisations/loglik_expected_surface_p.pdf` | Expected log-likelihood on the ALR plane |
-| `output/fig03/density_visualisations/network_topologies.pdf` | Graph skeletons, one page per MixSim overlap |
-| `output/fig03/performance_visualisations/heatmap_rmse.pdf` | RMSE tiles |
-| `output/fig03/performance_visualisations/heatmap_aitchison.pdf` | Aitchison tiles |
-| `output/fig03/performance_visualisations/raincloud.pdf` | Monte Carlo \hat{\boldsymbol{p}} rainclouds (legend at the bottom) |
-| `output/fig03/performance_visualisations/dotsinterval.pdf` | Quantile-dot companion (no bounded KDE slab) |
-| `output/fig03/performance_visualisations/forest.pdf` | ADEMP Wald forest |
-| `output/fig03/performance_visualisations/kkt_raincloud.pdf` | Projected-score KKT residual rainclouds |
-| `output/fig03/performance_visualisations/convergence_stacked.pdf` | Theoretical success / numerical / theoretical failure |
-| `output/fig03/performance_visualisations/qq_normal.pdf` | Whitened ILR versus N(0,1) (TS band) |
-| `output/fig03/performance_visualisations/qq_chi2.pdf` | Joint D^{2} versus \chi^{2}\_{J-1} |
-| `output/fig03/performance_visualisations/ks_normal.pdf` | KS lollipops versus N(0,1) (reject below 0.05) |
-| `output/fig03/performance_visualisations/runtime.pdf` | Solver wall-clock (log10 seconds) |
-| `output/fig03/performance_visualisations/memory.pdf` | Peak memory (log10 MiB) |
+| `density_visualisations/mean_signature.pdf` | Unscaled \boldsymbol{\mu} heatmap |
+| `density_visualisations/network_topologies.pdf` | Graph skeletons, one page per overlap target; edges coloured by \Sigma\_{ij}, nodes by SBM block with a thin black outline, scale-free hubs ringed |
+| `density_visualisations/scenario_metrics.pdf` | Scenario descriptors as shapes, one geometry and palette per column group, each column min–max scaled; the conditioning of the mean signature, shared by the scenarios, is in the caption |
+| `density_visualisations/scenario_metrics_table.html`, `.pdf` | The same descriptors as numbers (reactable, tinytable); the PDF marks the easiest value of each column in green and the hardest in red, and shades three columns (entropy, mean overlap, condition number) |
+| `density_visualisations/latent_projections.pdf` | PCA of the pooled purified profiles, with a scree inset (share of the variance of the first ten components), and supervised `MclustDR` plane |
+| `density_visualisations/pairwise_network_aware_distances.pdf` | Pairwise discrepancy of the purified laws |
+| `density_visualisations/loglik_surface_p.pdf` | Log-likelihood of one bulk on the balance plane 1\mid2, \\1,2\\\mid3 |
+| `density_visualisations/loglik_expected_surface_p.pdf` | Expected log-likelihood; red point = Monte Carlo mean of \hat{\boldsymbol p} |
+| `density_visualisations/loglik_rgl.pdf` | 3D relative likelihood (`rgl`) |
+| `performance_visualisations/heatmap_rmse.pdf`, `heatmap_aitchison.pdf` | RMSE and Aitchison tiles; grey = no finite estimate (solver failure) |
+| `performance_visualisations/ci_width_forest.pdf` | Mean interval, coverage \[Wilson interval\] and width, one page per scenario and cell type; RNA-Sieve released, Fisher and Godambe rows |
+| `performance_visualisations/p_hat_monte_carlo_raincloud.pdf` | Monte Carlo law of \hat{\boldsymbol{p}} |
+| `performance_visualisations/p_hat_monte_carlo_quantile_dots.pdf` | The same law as quantile dots |
+| `performance_visualisations/kkt_residual_raincloud.pdf` | Projected-score KKT residual |
+| `performance_visualisations/convergence_theoretical_vs_numerical_failures.pdf` | Theoretical success, numerical failure, theoretical failure |
+| `performance_visualisations/wald_normality_qq.pdf` | Whitened ILR estimate against N(0,1) |
+| `performance_visualisations/wald_mahalanobis_chi2_qq.pdf` | D^{2} against \chi^{2}\_{J-1}, \log\_{10} axes, coloured by convergence |
+| `performance_visualisations/estimate_agreement_hellinger_ward.pdf` | Mean Hellinger distance between paired estimates, Ward clustering; dashed line at the mean over method pairs |
+| `performance_visualisations/rmse_colour_aitchison_size_dots.pdf` | Colour = RMSE, size = Aitchison distance |
+| `performance_visualisations/runtime.pdf`, `memory.pdf` | \log\_{10} seconds and \log\_{10} MiB |
 
-Redraw with
-`FIG03_POSTPROCESS_ONLY=1 Rscript scripts/fig03_variance_driven.R` (no
-ADEMP refit). ggplot `data` tables go under `output/fig03/ggplot_rds/`.
+Table 7: Plot books of the covariance-driven scenario.
+
+Redraw every book without refitting with
+`DECOVART_POSTPROCESS_ONLY=1 Rscript scripts/fig03_variance_covariance_driven.R`.
 
 ### Two-dimensional projections of a Gaussian convolution
 
-With (G=20) the purified Gaussians and the bulk convolution are no
-longer drawable in the gene plane. The 16-page book
-`latent_projections.pdf` therefore maps each selected scenario to a 2D
-latent display. Pages keep the **lowest and highest** MixSim overlap
-(low / high; the moderate arm is omitted) and the **highest and lowest**
-Shannon entropy of () (balanced versus highly unbalanced), crossed with
-the four CT1/CT2 graph assignments ((2=16)). Each page is a (3) of
-scatterplots with 95% Gaussian ellipses, cell-type colour, axis labels
-that report the share of variability on the first two coordinates, a
-transparent cowplot scree inset of the first ten scaled eigenvalues, and
-a six-line footnote for panels A–F. Square panels use a unit aspect
-ratio (not `coord_equal`), so unequal factor-score ranges no longer
-squash the shared-plane row.
-
-The three routes below all return an ordered set of eigenvalues that
-summarise how much variability sits in the plotted plane. They are
-**not** interchangeable with the DeCovarT likelihood: the bulk profile
-is a **convolution** of Gaussians, not a Gaussian mixture.
+With G=20 the purified Gaussians and the bulk convolution are no longer
+drawable in the gene plane. `latent_projections.pdf` maps each selected
+scenario (lowest and highest overlap, balanced and highly unbalanced
+composition, four graph assignments) to two planes.
 
 > **Warning 1**
 >
@@ -298,83 +388,34 @@ is a **convolution** of Gaussians, not a Gaussian mixture.
 > ([`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md)).
 > A finite mixture instead draws a latent label and then one component,
 > f(\boldsymbol{y})=\sum_k\pi_k\\\phi(\boldsymbol{y};\boldsymbol{\mu}\_k,\boldsymbol{\Sigma}\_k),
-> with mixing weights () (not (^2)). `MclustDR` and mixtures of factor
-> analysers target that mixture. Their (\_k) are not cell-type
-> proportions, and their component densities are not the convolution law
-> used for deconvolution.
+> with mixing weights \boldsymbol{p} (not \boldsymbol{p}^2). `MclustDR`
+> targets that mixture. Its \pi_k are not cell-type proportions, and its
+> component densities are not the convolution law used for
+> deconvolution.
 
-#### Independent factor analyses per cell type
+#### Principal components of the purified profiles
 
-The top row fits a two-factor Gaussian factor model **separately** to
-purified draws from each type
-([`stats::factanal()`](https://rdrr.io/r/stats/factanal.html), Thomson /
-regression scores ([Thomson
-1938](#ref-thomsonMethodsEstimatingMental1938))). The orthogonal-factor
-model is
-\boldsymbol{x}=\boldsymbol{\mu}+\Lambda\boldsymbol{f}+\boldsymbol{\varepsilon}
-with \boldsymbol{f}\sim N(\boldsymbol{0},I) and diagonal uniquenesses
-\Psi, so \boldsymbol{\Sigma}=\Lambda\Lambda^\top+\Psi. Thomson scores
-are the posterior mean
-\hat{\boldsymbol{f}}\_R=E\[\boldsymbol{f}\mid\boldsymbol{x}\]=\Lambda^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{\mu}).
-That is the natural probabilistic answer to “where does this 20-gene
-profile sit in the plane?”. Bartlett scores (uniqueness- weighted GLS)
-remain a `factanal(..., scores = "Bartlett")` sensitivity check and are
-not plotted. Gene-wise marginal variances are comparable after the
-global MixSim scale, so uniquenesses are less heterogeneous than in a
-typical psychometric battery. Independent per-type fits do **not** share
-a loading matrix: the three planes are not superimposed.
-
-``` r
-
-fit <- stats::factanal(
-  X,
-  factors = 2,
-  rotation = "none",
-  scores = "regression"
-)
-scores <- as.data.frame(fit$scores)
-ggplot2::ggplot(scores, ggplot2::aes(Factor1, Factor2)) +
-  ggplot2::geom_point() +
-  ggplot2::coord_equal() +
-  ggplot2::theme_classic()
-```
-
-#### Shared MCFA plane (`EMMIXmfa`)
-
-The bottom-left and bottom-centre panels use mixtures of common factor
-analysers ([McLachlan and Peel 2000](#ref-MixturesFactorAnalyzers2000);
-[Rathnayake et al. 2024](#ref-R-EMMIXmfa)): a shared loading matrix A
-with \boldsymbol{\mu}\_i=A\boldsymbol{\xi}\_i and
-\boldsymbol{\Sigma}\_i=A\Omega_i A^\top+D, so that posterior factor
-means live in **one** q=2 plane. The eigenvalues of
-A\bar{\Omega}A^\top+D are the scree inset.
-
-- **Convolution (panel D).** Bulk columns come from
-  [`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md)
-  (covariance weights p_j^2). MCFA is fitted to those unlabelled bulk
-  draws, then the *latent* purified slices () from the same simulation
-  are scored into that shared plane and coloured by true type.
-- **Unsupervised mixture (panel E).** Each draw is from **one**
-  component with probability p_j (not p_j^2). MCFA does not use the
-  labels; colour is the generating type, so the plot shows how well the
-  shared factors recover overlap.
+Principal components of the pooled purified draws, coloured by type,
+show what the **means** alone separate: types 1 and 2, whose means have
+cosine 0.9, overlap on the first two components, while type 3 stands
+apart.
 
 #### Supervised `MclustDR` plane
 
-The bottom-right panel takes the same labelled mixture draws and fits
-`mclust::MclustDA(..., modelType = "EDDA")` then
+The second panel fits `mclust::MclustDA(..., modelType = "EDDA")` to the
+labelled purified draws, then
 [`mclust::MclustDR()`](https://mclust-org.github.io/mclust/reference/MclustDR.html)
 ([Fraley et al. 2026](#ref-R-mclust); [Scrucca
 2010](#ref-scruccaDimensionReductionModelbased2010a),
-[2015](#ref-scruccaGraphicalToolsModelbased2015)). See the [`MclustDR`
-reference](https://mclust-org.github.io/mclust/reference/MclustDR.html).
-The kernel blends between-class mean separation with covariance
-differences (`lambda = 1` emphasises separation). The generalised
-eigenvalues (`evalues`) are the scree inset: they are cluster-relevant
-variability, not ordinary PCA variance. This is the right 2D plot **if**
-class labels are known. On bulk convolution draws a one-component
-Gaussian is the truth, so `Mclust` would split a single ellipsoid; that
-misspecified fit is not shown.
+[2015](#ref-scruccaGraphicalToolsModelbased2015)) ([`MclustDR`
+reference](https://mclust-org.github.io/mclust/reference/MclustDR.html)).
+Its kernel combines the separation of the class means with the
+differences of the class covariances, which is the signal DeCovarT
+exploits. Its generalised eigenvalues measure class-relevant
+variability, not ordinary PCA variance. The panels with independent
+factor analyses (Thomson scores) and mixtures of common factor analysers
+were dropped: they described each type, or an unlabelled mixture, but
+not the contrast between types.
 
 ### Solver runtime and memory
 
@@ -389,6 +430,15 @@ MiB), with a left-side `geom_rug()` of the raw Monte Carlo draws and a
 log10 y-axis.
 
 ### Likelihood geometry and solver behaviour
+
+> **Note**
+>
+> The numbers in this section come from the archived run of
+> `output/archives/fig03/` (N=50, Wald intervals only), which still
+> included Marquardt–Levenberg and the earlier L-BFGS-B that
+> renormalised a box-constrained fit. They will be replaced by those of
+> the production run; the mechanisms they illustrate do not depend on
+> the solver list.
 
 Cell types 1 and 2 share cosine 0.9, so the mean map
 \boldsymbol{\mu}\boldsymbol{p} is close to singular in the (p_1,p_2)
@@ -430,16 +480,19 @@ damping plus RDM ([Marquardt
 al. 2006](#ref-commengesNewtonLikeAlgorithmLikelihood2006); [Philipps et
 al. 2021](#ref-philippsRobustEfficientOptimization2021),
 [2023](#ref-R-marqLevAlg)). `L-BFGS-B` uses a limited-memory inverse
-Hessian with box constraints on p, then p/\sum p ([Byrd et al.
+Hessian on the closure chart \boldsymbol p=\boldsymbol w/\mathbf
+1^{\top}\boldsymbol w, \boldsymbol w\ge0 ([Byrd et al.
 1995](#ref-byrdLimitedMemoryAlgorithm1995); [Zhu et al.
 1997](#ref-zhuAlgorithm778LBFGSB1997)). The same caveats as in [the
 bivariate
 interpretation](https://bastienchassagnol.github.io/DeCovarT/articles/fig02-bivariate-toy.html#sec-bivariate-findings)
 apply: Boyd’s local-quadratic Newton rate needs a locally strongly
 concave \ell; RDM stops when further ILR steps are smaller than
-statistical error; box-constrained BFGS may sit on a face after
-renormalisation. All of this is still N=1 per bulk ([finite-sample
-MLE](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-finite-sample)).
+statistical error; the archived box-constrained BFGS, which renormalised
+a free-scale fit, could sit on a face that is not a stationary point of
+\ell (the closure chart now used cannot). All of this is still N=1 per
+bulk ([finite-sample
+MLE](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html#sec-finite-sample)).
 
 #### Balanced compositions (forest + Fisher)
 
@@ -492,7 +545,7 @@ follows the convolution ridge to the rare-type coordinate. A mean-only
 vertex can beat a damped interior MLE on raw p_1 error when the truth is
 already a vertex; it will still report \hat p_3=0 and cannot support a
 chi-bar-square test that the type is absent ([boundary
-inference](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-boundary)).
+inference](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html#sec-boundary)).
 
 #### Ridges in the ILR slices
 
@@ -506,8 +559,9 @@ stops earlier when RDM sees no inferential gain. `L-BFGS-B`, stepping in
 p with only box bounds, can leave the simplex during the line search and
 land near a face after p/\sum p, which is the raincloud’s 26\\ bound
 rate. None of these paths is the Godambe sandwich or a Firth penalty
-([Firth 1993](#ref-firthBiasReductionMaximum1993)); both remain outlook
-([perspectives](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-firth)).
+([Firth 1993](#ref-firthBiasReductionMaximum1993)); the Firth fit is now
+benchmarked as its own method
+([Firth](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html#sec-firth)).
 With N=1, the honest frequentist statement for a rare type is still the
 restricted LRT / parametric bootstrap of the MLE article, not a Wald
 ellipse from
@@ -567,14 +621,14 @@ Marquardt, Donald W. 1963. ‘An Algorithm for Least-Squares Estimation of
 Nonlinear Parameters’. *Journal of the Society for Industrial and
 Applied Mathematics* 11. <https://doi.org/10.1137/0111030>.
 
-McLachlan, Geoffrey J., and David Peel. 2000. ‘Mixtures of Factor
-Analyzers’. In *Finite Mixture Models*. John Wiley & Sons, Ltd.
-<https://doi.org/10.1002/0471721182.ch8>.
-
 Melnykov, Volodymyr, Wei-Chen Chen, and Ranjan Maitra. 2012. ‘MixSim: An
 R Package for Simulating Data to Study Performance of Clustering
 Algorithms’. *Journal of Statistical Software* 51.
 <https://doi.org/10.18637/jss.v051.i12>.
+
+Morris, Tim P., Ian R. White, and Michael J. Crowther. 2019. ‘Using
+Simulation Studies to Evaluate Statistical Methods’. *Statistics in
+Medicine* 38 (11): 2074–102. <https://doi.org/10.1002/sim.8086>.
 
 Newman, Aaron, Chih Liu, Michael Green, et al. 2015. ‘Robust Enumeration
 of Cell Subsets from Tissue Expression Profiles’. *Nature Methods* 12.
@@ -588,10 +642,6 @@ Journal* 13. <https://doi.org/10.32614/rj-2021-089>.
 Philipps, Viviane, Cecile Proust-Lima, Melanie Prague, Boris Hejblum,
 Daniel Commenges, and Amadou Diakite. 2023. *marqLevAlg: A Parallelized
 General-Purpose Optimization Based on Marquardt-Levenberg Algorithm*.
-
-Rathnayake, Suren, Geoff McLachlan, David Peel, and Jangsun Baek. 2024.
-*EMMIXmfa: Mixture Models with Component-Wise Factor Analyzers*.
-<https://github.com/suren-rathnayake/EMMIXmfa>.
 
 Riani, Marco, Andrea Cerioli, Domenico Perrotta, and Francesca Torti.
 2015. ‘Simulating Mixtures of Multivariate Data with Fixed Cluster
@@ -608,9 +658,6 @@ Discriminant Analysis*. Https://arxiv.org/abs/1508.01695v1.
 
 Soetaert, Karline, Karel Van den Meersche, and Dick van Oevelen. 2026.
 *limSolve: Solving Linear Inverse Models*.
-
-Thomson, Godfrey H. 1938. ‘Methods of Estimating Mental Factors’.
-*Nature* 141 (3562): 246–46. <https://doi.org/10.1038/141246a0>.
 
 Zhu, Ciyou, Richard H. Byrd, Peihuang Lu, and Jorge Nocedal. 1997.
 ‘Algorithm 778: L-BFGS-B: Fortran Subroutines for Large-Scale

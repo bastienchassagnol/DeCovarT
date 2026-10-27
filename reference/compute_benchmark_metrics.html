@@ -36,18 +36,25 @@ composition."><meta property="og:image" content="https://bastienchassagnol.githu
     <li><a class="dropdown-item" href="../articles/theory-network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
     <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: population-level references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-generative-optimisation.html"><span class="fa fa-square-root-variable"></span> Generative model, derivatives and optimisation</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-inference.html"><span class="fa fa-chart-area"></span> MLE properties and confidence intervals</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: single-cell references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-generative-optimisation.html"><span class="fa fa-align-left"></span> Reference moments, alignment strategies and the profile fit</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-inference.html"><span class="fa fa-chart-line"></span> Profile information, intervals and the REML calibration</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Synthetic scenarios</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><a class="dropdown-item" href="../articles/theory-distance-covariance.html"><span class="fa fa-ruler"></span> Distances, overlap, and covariance information</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/fig03-covariance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig05-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> § 2.4 · Single-cell, two lineages (J = 4, G = 20 or 200)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> Inference: MLE properties, intervals and a GLM formulation</a></li>
     <li><a class="dropdown-item" href="../articles/theory-review-distribution-aware-deconvolution.html"><span class="fa fa-book"></span> Review: deconvolution with reference distributions</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-tailored.html"><span class="fa fa-align-left"></span> DeCovarT tailored to single-cell references</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-bayesian-wiener.html"><span class="fa fa-wave-square"></span> Bayesian DeCovarT: latent profiles and the Wiener filter</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-extensions-roadmap.html"><span class="fa fa-compass"></span> Extensions roadmap: lineages, covariates, modalities</a></li>
     <li><a class="dropdown-item" href="../articles/theory-mixture-regression-applications.html"><span class="fa fa-flask-vial"></span> DeCovarT as a mixture model: designed mixture experiments</a></li>
@@ -111,7 +118,10 @@ composition.</p>
 <span>  presence_threshold <span class="op">=</span> <span class="fl">1e-04</span>,</span>
 <span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  coverage_interval <span class="op">=</span> <span class="st">"wilson"</span>,</span>
-<span>  algorithm <span class="op">=</span> <span class="cn">NA_character_</span></span>
+<span>  algorithm <span class="op">=</span> <span class="cn">NA_character_</span>,</span>
+<span>  intervals <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  nuisance_hat <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  nuisance_true <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -200,6 +210,18 @@ This is not the interval for \(p_j\) itself.</p></dd>
 <dd><p>Character label stored on each metrics row (typically
 the solver name). Recycled to length one.</p></dd>
 
+
+<dt id="arg-intervals">intervals<a class="anchor" aria-label="anchor" href="#arg-intervals"></a></dt>
+<dd><p>Optional list of length \(N\): for every sample, a
+named list of two-column matrices (lower, upper) per interval method,
+with one row per parameter.</p></dd>
+
+
+<dt id="arg-nuisance-hat-nuisance-true">nuisance_hat, nuisance_true<a class="anchor" aria-label="anchor" href="#arg-nuisance-hat-nuisance-true"></a></dt>
+<dd><p>Optional \(2\times N\) matrices of
+estimated and true scales (rows <code>mean_scale</code>, <code>variance_scale</code>) of the
+single-cell model.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -207,7 +229,11 @@ the solver name). Recycled to length one.</p></dd>
 row per cell type);</p></li>
 <li><p><code>monte_carlo</code>: one row per cell type, including <code>theoretical_se</code>
 (filled later from expected Fisher at \(p^{\star}\));</p></li>
-<li><p><code>optimisation</code>: one row per sample.</p></li>
+<li><p><code>optimisation</code>: one row per sample, with the estimated scales when
+<code>nuisance_hat</code> is given;</p></li>
+<li><p><code>intervals</code>: one row per interval method and parameter, with the
+coverage, its Monte Carlo interval and the interval widths (empty
+without <code>intervals</code>).</p></li>
 </ul></div>
 
     <div class="section level2">
@@ -251,6 +277,9 @@ row per cell type);</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 8 more variables: theoretical_converged &lt;lgl&gt;, loglik_regret &lt;dbl&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   local_maximum &lt;lgl&gt;, min_eigenvalue &lt;dbl&gt;, max_eigenvalue &lt;dbl&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   converged &lt;list&gt;, ct1 &lt;dbl&gt;, ct2 &lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $intervals</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 0 × 0</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>

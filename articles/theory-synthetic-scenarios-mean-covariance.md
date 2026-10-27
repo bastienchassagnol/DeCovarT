@@ -1300,7 +1300,7 @@ Table 13: ILR score and Hessian extrema are now stored on
 > \lambda\_{\min}\<0\<\lambda\_{\max} is a saddle. None of these
 > diagnostics implies a unique global mode; the DeCovarT likelihood for
 > one bulk sample is not concave in general ([MLE
-> properties](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.md)).
+> properties](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.md)).
 
 > **Note 18: Which metric to report**
 >
@@ -1687,7 +1687,7 @@ companion repository). ADEMP columns themselves are this section.
   not a null hypothesis). Boundary tests live in [Appendix
   S1](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S1-identifiability.md)
   and [MLE
-  properties](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-boundary).
+  properties](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html#sec-boundary).
 
 ## References
 

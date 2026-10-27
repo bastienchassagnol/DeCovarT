@@ -1,22 +1,35 @@
 # Cell-size conventions for a single-cell reference
 
 Turns nonnegative gene-by-cell-type moments into the reference used by
-the single-cell mixture. Column \\j\\ of the supplied mean is normalised
-to a composition \\\boldsymbol{\theta}\_{\cdot j}\\. Two conventions are
-available; the default is the raw-covariance, cell-fraction model of the
-article.
+the single-cell mixture. Column \\j\\ of the supplied mean, of total
+\\s\_{0j}=\mathbf{1}^{\top}\boldsymbol{\mu}\_{\cdot j}\\, is normalised
+to a composition \\\boldsymbol{\theta}\_{\cdot
+j}=\boldsymbol{\mu}\_{\cdot j}/s\_{0j}\\, and its covariance to the
+per-transcript covariance
+\\\boldsymbol{\Sigma}^{\theta}\_{j}=\boldsymbol{\Sigma}\_j/s\_{0j}^{2}\\.
+A cell of size \\S_j\\ is \\S_j\\ times a unit cell in every gene, so
+the generator draws cells from
+\\\mathcal{N}(S_j\boldsymbol{\theta}\_{\cdot j},
+S_j^{2}\boldsymbol{\Sigma}^{\theta}\_{j})\\: the size enters the mean
+linearly and the covariance quadratically, and the overlap between two
+types of equal size does not depend on that size. Two conventions are
+available for the fit; the default is the raw-covariance, cell-fraction
+model of the article.
 
 - `cellular_raw` (default). Mean \\\tilde{\boldsymbol{\mu}}\_{\cdot
-  j}=S_j\boldsymbol{\theta}\_{\cdot j}\\ with the covariance left as
-  supplied. Keeping \\S_j\\ in the mean makes the fitted composition a
-  cell fraction, not a transcript fraction.
+  j}=S_j\boldsymbol{\theta}\_{\cdot j}\\ and covariance
+  \\S_j^{2}\boldsymbol{\Sigma}^{\theta}\_{j}\\, the generator itself.
+  Keeping \\S_j\\ in the mean makes the fitted composition a cell
+  fraction, not a transcript fraction.
 
 - `transcript_raw`. Library-normalised mean
-  \\\boldsymbol{\theta}\_{\cdot j}\\ and per-transcript covariance
-  \\\boldsymbol{\Sigma}\_j/S_j\\. The fitted composition is the
-  transcript fraction \\\boldsymbol{q}\\. The physical generator is
-  still the cellular model: `generative_mean` and `generative_sigma` are
-  the moments
+  \\\boldsymbol{\theta}\_{\cdot j}\\ and covariance
+  \\S_j\boldsymbol{\Sigma}^{\theta}\_{j}\\: dividing the bulk by its
+  scale leaves the covariance \\\propto\sum_j q_j
+  S_j\boldsymbol{\Sigma}^{\theta}\_{j}\\ in the transcript fractions
+  \\\boldsymbol{q}\\, which is the fitted composition. The physical
+  generator is still the cellular model: `generative_mean` and
+  `generative_sigma` are the moments
   [`simulate_bulk_from_cells()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_from_cells.md)
   should draw from.
 

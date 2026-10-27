@@ -23,7 +23,8 @@ bootstrap_decovart(
   level = 0.95,
   n_replicates = NULL,
   epsilon = 10^-8,
-  itmax = 500L
+  itmax = 500L,
+  optimiser = c("newton", "lbfgsb")
 )
 ```
 
@@ -72,6 +73,15 @@ bootstrap_decovart(
 
   Relative convergence tolerance and iteration budget passed to
   [`stats::nlminb()`](https://rdrr.io/r/stats/nlminb.html).
+
+- optimiser:
+
+  Solver for the unrestricted fits: `"newton"` (trust-region Newton in
+  ILR coordinates) or `"lbfgsb"` (L-BFGS-B on the closed simplex, as in
+  [`deconvolute_ratios_L_BFGS_B()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md)),
+  so that the bootstrap distribution matches the estimator being
+  assessed. Restricted fits under `null_value` always use the Newton
+  driver.
 
 ## Value
 

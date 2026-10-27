@@ -42,18 +42,25 @@ and the reconstructed bulk should be unchanged."><meta property="og:image" conte
     <li><a class="dropdown-item" href="../articles/theory-network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
     <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: population-level references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-generative-optimisation.html"><span class="fa fa-square-root-variable"></span> Generative model, derivatives and optimisation</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-inference.html"><span class="fa fa-chart-area"></span> MLE properties and confidence intervals</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: single-cell references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-generative-optimisation.html"><span class="fa fa-align-left"></span> Reference moments, alignment strategies and the profile fit</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-inference.html"><span class="fa fa-chart-line"></span> Profile information, intervals and the REML calibration</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Synthetic scenarios</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><a class="dropdown-item" href="../articles/theory-distance-covariance.html"><span class="fa fa-ruler"></span> Distances, overlap, and covariance information</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/fig03-covariance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig05-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> § 2.4 · Single-cell, two lineages (J = 4, G = 20 or 200)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> Inference: MLE properties, intervals and a GLM formulation</a></li>
     <li><a class="dropdown-item" href="../articles/theory-review-distribution-aware-deconvolution.html"><span class="fa fa-book"></span> Review: deconvolution with reference distributions</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-tailored.html"><span class="fa fa-align-left"></span> DeCovarT tailored to single-cell references</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-bayesian-wiener.html"><span class="fa fa-wave-square"></span> Bayesian DeCovarT: latent profiles and the Wiener filter</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-extensions-roadmap.html"><span class="fa fa-compass"></span> Extensions roadmap: lineages, covariates, modalities</a></li>
     <li><a class="dropdown-item" href="../articles/theory-mixture-regression-applications.html"><span class="fa fa-flask-vial"></span> DeCovarT as a mixture model: designed mixture experiments</a></li>
@@ -152,7 +159,7 @@ reference), <code>p_expected</code> (\(\hat{\boldsymbol{p}}\) reordered by
     <p>Columns of \(\boldsymbol{\mu}\) and matching slices of
 \(\boldsymbol{\Sigma}_j\) are reordered by <code>perm</code> while the <em>names</em>
 stay in the original order, matching the convention of
-<code><a href="../articles/theory-DeCovarT-MLE-properties.html">vignette("theory-DeCovarT-MLE-properties")</a></code>. The labelled MLE on the
+<code><a href="../articles/theory-population-inference.html">vignette("theory-population-inference")</a></code>. The labelled MLE on the
 relabelled reference is then compared with
 \(\hat{\boldsymbol{p}}_{\mathrm{perm}}\).</p>
 <p>Use <code><a href="reference_bootstrap_decovart.html">reference_bootstrap_decovart()</a></code> for percentile intervals that
@@ -189,7 +196,7 @@ resample the experimental units of the reference (donors or cells).</p>
 <span class="r-in"><span><span class="va">Sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/diag.html" class="external-link">diag</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span>, dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">3</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="va">mu</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.7</span>, <span class="fl">0.3</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">equivariance_check_decovart</span><span class="op">(</span><span class="va">y</span>, <span class="va">mu</span>, <span class="va">Sigma</span><span class="op">)</span><span class="op">$</span><span class="va">max_abs_diff</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 5.551115e-17</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1.110223e-16</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

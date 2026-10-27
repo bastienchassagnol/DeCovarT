@@ -169,7 +169,7 @@ Each likelihood, score, and Hessian evaluation factorises the mixture
 covariance
 \boldsymbol{\Sigma}(\boldsymbol{p})=\sum\_{j}p\_{j}^{2}\boldsymbol{\Sigma}\_{j}
 once and then solves against one or more right-hand sides ([generative
-model](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html#sec-numerical-speedups)).
+model](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.html#sec-numerical-speedups)).
 Assembling \boldsymbol{\Sigma}(\boldsymbol{p}) costs O(J G^{2}). A dense
 Cholesky factorisation of the G\times G result costs O(G^{3}) and
 dominates when G is large. Structured backends (banded, block-diagonal,
@@ -294,13 +294,13 @@ gradients).
 
 The ILR / softmax chart is a C^{2} diffeomorphism onto the open simplex
 ([constrained
-optimisation](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html#sec-constrained)),
+optimisation](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.html#sec-constrained)),
 so Marquardt, Newton, and the projected gradient keep \sum\_{j}\hat
 p\_{j}=1 by construction. L-BFGS-B only boxes \[0,1\]^{J} and
 renormalises after [`optim()`](https://rdrr.io/r/stats/optim.html);
 during the line search \lvert 1-\sum\_{j}p\_{j}\rvert can leave zero,
 which is why that path needs the guarded objective in [solver
-safeguards](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html#sec-numerical-speedups).
+safeguards](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.html#sec-numerical-speedups).
 The ADEMP field `optimisation$kkt_residual` ([synthetic
 scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-scenarios-mean-covariance.html#sec-ademp))
 is the projected-score residual
@@ -315,7 +315,7 @@ The companion scatter is analytic \nabla\ell (and, where stored, the
 Hessian) against Richardson extrapolation in `numDeriv` ([Gilbert and
 Varadhan 2019](#ref-R-numDeriv)), as already used in [the
 generative-model
-vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.md)
+vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.md)
 and in
 `tests/testthat/test-02_02_population_decovart_estimate_ratios.R`.
 DICEPro reported relative errors below 6\times 10^{-6} with central
@@ -408,7 +408,7 @@ factorial) are noted here but not yet implemented:
 - [How to build synthetic
   scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-scenarios-mean-covariance.html#sec-ademp)
 - Structure-aware operators and solver safeguards: [generative
-  model](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html#sec-numerical-speedups)
+  model](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.html#sec-numerical-speedups)
 
 ## References
 

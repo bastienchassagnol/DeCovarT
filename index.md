@@ -53,7 +53,7 @@ Etienne Becht
 
 Anaïs Baudot
 
-2026-10-19
+2026-10-22
 
 ## 
 
@@ -435,8 +435,8 @@ The diagram above summarises the end-to-end workflow.
 ### Interactive package structure
 
 Three graphs, regenerated with
-`Rscript scripts/auxiliary/generate_package_network_functions.R`. The
-[estimation and interval
+`Rscript scripts/visualisation/generate_package_network_functions.R`.
+The [estimation and interval
 network](https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network_core.html)
 is the Gaussian-convolution fit. The [simulation and benchmark
 network](https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network_simulation.html)
@@ -448,11 +448,11 @@ covers the Monte Carlo plots.
 
 | Algorithm | Interface | Notes / upstream |
 |:---|:---|:---|
-| **DeCovarT** (Marquardt–Levenberg) | `deconvolute_ratios_Marquardt_Levenberg` | Covariance-aware MLE [![](https://img.shields.io/badge/GitHub-181717.svg?logo=github&logoColor=white)](https://github.com/bastienchassagnol/DeCovarT) |
-| Non-negative least squares | `deconvolute_ratios_nnls` | Lawson–Hanson NNLS [![](https://img.shields.io/badge/GitHub-181717.svg?logo=github&logoColor=white)](https://github.com/cran/nnls) |
-| DeconRNASeq-style QP | `deconvolute_ratios_deconrnaseq` | Simplex QP via {limSolve} [![](https://img.shields.io/badge/GitHub-181717.svg?logo=github&logoColor=white)](https://github.com/cran/limSolve) |
-| Robust linear model (`rlm`) | `deconvolute_ratios_rlm` | ABIS / Monaco-style RLR [![](https://img.shields.io/badge/GitHub-181717.svg?logo=github&logoColor=white)](https://github.com/cran/MASS) |
-| CIBERSORT-style \nu-SVR | `deconvolute_ratios_cibersort` | Linear-kernel SVR via {e1071} [![](https://img.shields.io/badge/GitHub-181717.svg?logo=github&logoColor=white)](https://github.com/cran/e1071) |
+| **DeCovarT** (Marquardt–Levenberg) | `deconvolute_ratios_Marquardt_Levenberg` | Covariance-aware MLE [![DeCovarT on GitHub](https://img.shields.io/badge/GitHub-181717.svg?logo=github&logoColor=white)](https://github.com/bastienchassagnol/DeCovarT) |
+| Non-negative least squares | `deconvolute_ratios_nnls` | Lawson–Hanson NNLS [![nnls on GitHub](https://img.shields.io/badge/GitHub-181717.svg?logo=github&logoColor=white)](https://github.com/cran/nnls) |
+| DeconRNASeq-style QP | `deconvolute_ratios_deconrnaseq` | Simplex QP via {limSolve} [![limSolve on GitHub](https://img.shields.io/badge/GitHub-181717.svg?logo=github&logoColor=white)](https://github.com/cran/limSolve) |
+| Robust linear model (`rlm`) | `deconvolute_ratios_rlm` | ABIS / Monaco-style RLR [![MASS on GitHub](https://img.shields.io/badge/GitHub-181717.svg?logo=github&logoColor=white)](https://github.com/cran/MASS) |
+| CIBERSORT-style \nu-SVR | `deconvolute_ratios_cibersort` | Linear-kernel SVR via {e1071} [![e1071 on GitHub](https://img.shields.io/badge/GitHub-181717.svg?logo=github&logoColor=white)](https://github.com/cran/e1071) |
 
 All of the above ship with the package (no extra method packages
 required).
@@ -564,10 +564,14 @@ Package website: <https://bastienchassagnol.github.io/DeCovarT/>
   toy](https://bastienchassagnol.github.io/DeCovarT/articles/fig02-bivariate-toy.html)
 - [§2.2 Covariance-driven
   hybrid](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-covariance-driven.html)
-- [Generative model and
-  derivatives](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html)
-- [MLE properties and asymptotic
-  inference](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html)
+- [Population references: generative model and
+  optimisation](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.html)
+- [Population references: MLE properties and confidence
+  intervals](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html)
+- [Single-cell references: reference moments and the profile
+  fit](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html)
+- [Single-cell references: intervals and the REML
+  calibration](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-inference.html)
 
 In an R session, use
 [`?DeCovarT::deconvolute_ratios`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)

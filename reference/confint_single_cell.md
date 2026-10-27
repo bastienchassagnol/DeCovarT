@@ -8,8 +8,12 @@ interval for \\\boldsymbol{\rho}\\, using the profile information
 
 Intervals for \\(c,\phi)\\ in `nuisance$interval` are Wald intervals on
 the log scale, mapped back by the exponential, from the Schur complement
-that removes \\\boldsymbol{\rho}\\. `nuisance$interval_wald` is the
-symmetric normal interval on the original scale. Bootstrap methods
+that removes \\\boldsymbol{\rho}\\. The rows `platform_scale_a`
+(\\a=\phi/c\\) and `cell_count_n` (\\n=c^{2}/\phi\\, a number of cells
+only when \\a\\ is known) follow by the delta method on \\\log
+a=\log\phi-\log c\\ and \\\log n=2\log c-\log\phi\\, so all four
+intervals are positive. `nuisance$interval_wald` is the symmetric normal
+interval of \\(c,\phi)\\ on the original scale. Bootstrap methods
 replace both with percentile intervals.
 
 - `ilr`:
@@ -52,8 +56,8 @@ G\hat\phi/\chi^2\_{\nu;\alpha/2}\]\\, and the profile interval uses the
 cut-off of
 [`confint_profile_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_single_cell.md).
 The maximum-likelihood \\\hat\phi\\ is biased by about \\\nu/G\\, so
-with few genes (\\G=10\\, \\J=2\\) the `"ml"` intervals cover about 0.85
-to 0.92 at the 0.95 level; the bootstrap methods are unaffected by
+with few genes (\\G=10\\, \\J=2\\) the `"ml"` intervals cover about 0.84
+to 0.93 at the 0.95 level; the bootstrap methods are unaffected by
 `variance`.
 
 ## Usage
@@ -170,7 +174,9 @@ fit$interval
 #> ct1 0.7032075 0.7074397
 #> ct2 0.2925603 0.2967925
 fit$nuisance$interval
-#>                       2.5%      97.5%
-#> mean_scale     19.98419689 20.0851851
-#> variance_scale  0.02652748  0.4241083
+#>                          2.5%        97.5%
+#> mean_scale       1.998420e+01 2.008519e+01
+#> variance_scale   2.652748e-02 4.241083e-01
+#> platform_scale_a 1.324079e-03 2.116881e-02
+#> cell_count_n     9.464154e+02 1.513110e+04
 ```

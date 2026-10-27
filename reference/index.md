@@ -181,6 +181,15 @@ as sums of multinomial counts of cells
 - [`single_cell_scenario_design()`](https://bastienchassagnol.github.io/DeCovarT/reference/single_cell_scenario_design.md)
   : Four single-cell simulation scenarios
 
+### Reference panels
+
+Independent purified profiles or cells per individual, for benchmark
+methods that estimate the reference moments themselves
+(`R/01_06_reference_replicates.R`).
+
+- [`simulate_reference_replicates()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_reference_replicates.md)
+  : Simulate an independent reference panel
+
 ## Benchmark
 
 ### Run

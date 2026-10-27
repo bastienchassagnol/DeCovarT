@@ -8,6 +8,7 @@
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/decovart-paper-slides.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/fig02-bivariate-toy.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/fig03-covariance-driven.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/fig05-single-cell-hierarchical.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/index.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/supp-S1-identifiability.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/supp-S2-covariance-inversion.html</loc></url>
@@ -15,15 +16,16 @@
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/supp-S4-covariance-modeling.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/supp-S5-misspecification.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/supp-S6-feature-selection.html</loc></url>
-<url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-bayesian-wiener.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-extensions-roadmap.html</loc></url>
-<url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html</loc></url>
-<url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/theory-distance-covariance.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/theory-mixture-regression-applications.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/theory-network-inference.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/theory-review-distribution-aware-deconvolution.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-inference.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-scenarios-mean-covariance.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/authors.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/index.html</loc></url>
@@ -103,6 +105,7 @@
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_from_cells.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/simulate_hierarchical_grn_moments.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/simulate_reference_replicates.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/single_cell_nuisance_scales.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/single_cell_scenario_design.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/starting_simplex.html</loc></url>

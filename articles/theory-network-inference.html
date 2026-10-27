@@ -52,18 +52,25 @@
     <li><a class="dropdown-item" href="../articles/theory-network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
     <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: population-level references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-generative-optimisation.html"><span class="fa fa-square-root-variable"></span> Generative model, derivatives and optimisation</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-inference.html"><span class="fa fa-chart-area"></span> MLE properties and confidence intervals</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: single-cell references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-generative-optimisation.html"><span class="fa fa-align-left"></span> Reference moments, alignment strategies and the profile fit</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-inference.html"><span class="fa fa-chart-line"></span> Profile information, intervals and the REML calibration</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Synthetic scenarios</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><a class="dropdown-item" href="../articles/theory-distance-covariance.html"><span class="fa fa-ruler"></span> Distances, overlap, and covariance information</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/fig03-covariance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig05-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> § 2.4 · Single-cell, two lineages (J = 4, G = 20 or 200)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> Inference: MLE properties, intervals and a GLM formulation</a></li>
     <li><a class="dropdown-item" href="../articles/theory-review-distribution-aware-deconvolution.html"><span class="fa fa-book"></span> Review: deconvolution with reference distributions</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-tailored.html"><span class="fa fa-align-left"></span> DeCovarT tailored to single-cell references</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-bayesian-wiener.html"><span class="fa fa-wave-square"></span> Bayesian DeCovarT: latent profiles and the Wiener filter</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-extensions-roadmap.html"><span class="fa fa-compass"></span> Extensions roadmap: lineages, covariates, modalities</a></li>
     <li><a class="dropdown-item" href="../articles/theory-mixture-regression-applications.html"><span class="fa fa-flask-vial"></span> DeCovarT as a mixture model: designed mixture experiments</a></li>
@@ -102,7 +109,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>In silico inference of gene regulatory networks</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-22</p>
+      <p class="date">2026-10-27</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-network-inference.qmd" class="external-link"><code>vignettes/theory-network-inference.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -210,7 +217,7 @@
 <p>Priors from TF–target, chromatin, and PPI databases can enter as <span class="math inline">\lambda_{ij}</span> masks or as Bayesian edge probabilities (<a href="https://doi.org/10.1038/s41576-023-00618-5" class="external-link">Badia-i-Mompel <em>et al.</em> (2023)</a>; <span class="citation" data-cites="svininCausalNetworkAnalysis2025">Svinin and Glaab (<a href="#ref-svininCausalNetworkAnalysis2025" role="doc-biblioref">2025</a>)</span>; <a href="https://doi.org/10.1371/journal.pcbi.1013300" class="external-link">NeKo</a>). This is the undirected analogue of pathway contextualisation in <a href="#sec-grn-directed" class="quarto-xref">Sec. 6</a>: association graphs become biologically constrained without claiming full causality.</p>
 </section></section><section class="section level2"><h2 id="sec-grn-estimators">Per-type precisions from single-cell profiles<a class="anchor" aria-label="anchor" href="#sec-grn-estimators"></a>
 </h2>
-<p>The reproducibility book estimates one sparse precision <span class="math inline">\boldsymbol{\Omega}_{j,t}</span> per labelled type <span class="math inline">j</span> and time <span class="math inline">t</span>. It uses the Suppinger gastruloid resource <span class="citation" data-cites="suppingerMultimodalCharacterizationMurine2023">(<a href="#ref-suppingerMultimodalCharacterizationMurine2023" role="doc-biblioref">Suppinger et al. 2023</a>)</span> and a 500-gene panel selected for between-type separation. The resource is a single technical scRNA-seq experiment. Cells are therefore draws from one specimen, and the estimate targets the within-type cell-to-cell covariance: the linear layer of the <a href="theory-decovart-single-cell-tailored.html#sec-one-replicate">one-replicate regime</a>, not a between-specimen covariance.</p>
+<p>The reproducibility book estimates one sparse precision <span class="math inline">\boldsymbol{\Omega}_{j,t}</span> per labelled type <span class="math inline">j</span> and time <span class="math inline">t</span>. It uses the Suppinger gastruloid resource <span class="citation" data-cites="suppingerMultimodalCharacterizationMurine2023">(<a href="#ref-suppingerMultimodalCharacterizationMurine2023" role="doc-biblioref">Suppinger et al. 2023</a>)</span> and a 500-gene panel selected for between-type separation. The resource is a single technical scRNA-seq experiment. Cells are therefore draws from one specimen, and the estimate targets the within-type cell-to-cell covariance: the linear layer of the <a href="theory-single-cell-generative-optimisation.html#sec-one-replicate">one-replicate regime</a>, not a between-specimen covariance.</p>
 <div id="tbl-grn-estimators" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-grn-estimators-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table 1: Estimators of the reproducibility pipeline.

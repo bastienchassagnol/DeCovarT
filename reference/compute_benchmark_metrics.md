@@ -29,7 +29,10 @@ compute_benchmark_metrics(
   presence_threshold = 1e-04,
   level = 0.95,
   coverage_interval = "wilson",
-  algorithm = NA_character_
+  algorithm = NA_character_,
+  intervals = NULL,
+  nuisance_hat = NULL,
+  nuisance_true = NULL
 )
 ```
 
@@ -115,6 +118,17 @@ compute_benchmark_metrics(
   Character label stored on each metrics row (typically the solver
   name). Recycled to length one.
 
+- intervals:
+
+  Optional list of length \\N\\: for every sample, a named list of
+  two-column matrices (lower, upper) per interval method, with one row
+  per parameter.
+
+- nuisance_hat, nuisance_true:
+
+  Optional \\2\times N\\ matrices of estimated and true scales (rows
+  `mean_scale`, `variance_scale`) of the single-cell model.
+
 ## Value
 
 A named list with:
@@ -125,7 +139,12 @@ A named list with:
 - `monte_carlo`: one row per cell type, including `theoretical_se`
   (filled later from expected Fisher at \\p^{\star}\\);
 
-- `optimisation`: one row per sample.
+- `optimisation`: one row per sample, with the estimated scales when
+  `nuisance_hat` is given;
+
+- `intervals`: one row per interval method and parameter, with the
+  coverage, its Monte Carlo interval and the interval widths (empty
+  without `intervals`).
 
 ## Examples
 
@@ -169,5 +188,8 @@ compute_benchmark_metrics(y, mu, estimated_p = c(0.45, 0.55),
 #> # ℹ 8 more variables: theoretical_converged <lgl>, loglik_regret <dbl>,
 #> #   local_maximum <lgl>, min_eigenvalue <dbl>, max_eigenvalue <dbl>,
 #> #   converged <list>, ct1 <dbl>, ct2 <dbl>
+#> 
+#> $intervals
+#> # A tibble: 0 × 0
 #> 
 ```

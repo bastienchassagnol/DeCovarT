@@ -77,12 +77,14 @@ reference_bootstrap_single_cell(
 
 - itmax:
 
-  Maximum number of Newton iterations.
+  Maximum number of iterations.
 
 ## Value
 
 A list with `resample`, `regenerate_bulk`, `estimates`, `interval`,
-`n_failed`, `scales`, `scale_interval` and `fit`.
+`n_failed`, `scales`, `scale_interval` and `fit`; `scales` and
+`scale_interval` also carry the derived rows `platform_scale_a` and
+`cell_count_n`.
 
 ## See also
 

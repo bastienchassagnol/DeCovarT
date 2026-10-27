@@ -15,12 +15,17 @@ limit is the joint maximum-likelihood estimate of
 With profile = FALSE the scales stay at their start values (a
 two-stage plug-in fit), which is not the joint maximum. Supplying both
 mean_scale and variance_scale fixes them at those values.
-Every fit uses the analytic score and observed Hessian with the PORT
-trust region of stats::nlminb(): the step maximises the quadratic
-model inside a ball whose radius grows or shrinks with the ratio of
-actual to predicted increase; there is no line search and no fixed
-step length. The returned vcov is the delta-method image of the
-inverse negative profile Hessian; intervals are
+With optimiser = &quot;newton&quot; (default) every fit uses the analytic
+score and observed Hessian with the PORT trust region of
+stats::nlminb(): the step maximises the quadratic model inside a ball
+whose radius grows or shrinks with the ratio of actual to predicted
+increase; there is no line search and no fixed step length. With
+optimiser = &quot;lbfgsb&quot; the same objective is maximised by L-BFGS-B on
+the closure \(\boldsymbol{p}=\boldsymbol{w}/\mathbf{1}^{\top}
+\boldsymbol{w}\), \(\boldsymbol{w}\ge0\), as in
+deconvolute_ratios_L_BFGS_B(); it can return exact zeros, where rho
+and the covariances are NA. The returned vcov is the delta-method
+image of the inverse negative profile Hessian; intervals are
 confint_single_cell()."><meta property="og:description" content="Fits one bulk sample from the linear single-cell mixture
 \(\boldsymbol{y}\sim\mathcal{N}(c\tilde{\boldsymbol{\mu}}\boldsymbol{p},
 \phi\boldsymbol{S}_W(\boldsymbol{p}))\).
@@ -37,12 +42,17 @@ limit is the joint maximum-likelihood estimate of
 With profile = FALSE the scales stay at their start values (a
 two-stage plug-in fit), which is not the joint maximum. Supplying both
 mean_scale and variance_scale fixes them at those values.
-Every fit uses the analytic score and observed Hessian with the PORT
-trust region of stats::nlminb(): the step maximises the quadratic
-model inside a ball whose radius grows or shrinks with the ratio of
-actual to predicted increase; there is no line search and no fixed
-step length. The returned vcov is the delta-method image of the
-inverse negative profile Hessian; intervals are
+With optimiser = &quot;newton&quot; (default) every fit uses the analytic
+score and observed Hessian with the PORT trust region of
+stats::nlminb(): the step maximises the quadratic model inside a ball
+whose radius grows or shrinks with the ratio of actual to predicted
+increase; there is no line search and no fixed step length. With
+optimiser = &quot;lbfgsb&quot; the same objective is maximised by L-BFGS-B on
+the closure \(\boldsymbol{p}=\boldsymbol{w}/\mathbf{1}^{\top}
+\boldsymbol{w}\), \(\boldsymbol{w}\ge0\), as in
+deconvolute_ratios_L_BFGS_B(); it can return exact zeros, where rho
+and the covariances are NA. The returned vcov is the delta-method
+image of the inverse negative profile Hessian; intervals are
 confint_single_cell()."><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
@@ -70,18 +80,25 @@ confint_single_cell()."><meta property="og:image" content="https://bastienchassa
     <li><a class="dropdown-item" href="../articles/theory-network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
     <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: population-level references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-generative-optimisation.html"><span class="fa fa-square-root-variable"></span> Generative model, derivatives and optimisation</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-inference.html"><span class="fa fa-chart-area"></span> MLE properties and confidence intervals</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: single-cell references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-generative-optimisation.html"><span class="fa fa-align-left"></span> Reference moments, alignment strategies and the profile fit</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-inference.html"><span class="fa fa-chart-line"></span> Profile information, intervals and the REML calibration</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Synthetic scenarios</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><a class="dropdown-item" href="../articles/theory-distance-covariance.html"><span class="fa fa-ruler"></span> Distances, overlap, and covariance information</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/fig03-covariance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig05-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> § 2.4 · Single-cell, two lineages (J = 4, G = 20 or 200)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> Inference: MLE properties, intervals and a GLM formulation</a></li>
     <li><a class="dropdown-item" href="../articles/theory-review-distribution-aware-deconvolution.html"><span class="fa fa-book"></span> Review: deconvolution with reference distributions</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-tailored.html"><span class="fa fa-align-left"></span> DeCovarT tailored to single-cell references</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-bayesian-wiener.html"><span class="fa fa-wave-square"></span> Bayesian DeCovarT: latent profiles and the Wiener filter</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-extensions-roadmap.html"><span class="fa fa-compass"></span> Extensions roadmap: lineages, covariates, modalities</a></li>
     <li><a class="dropdown-item" href="../articles/theory-mixture-regression-applications.html"><span class="fa fa-flask-vial"></span> DeCovarT as a mixture model: designed mixture experiments</a></li>
@@ -132,12 +149,17 @@ limit is the joint maximum-likelihood estimate of
 <p>With <code>profile = FALSE</code> the scales stay at their start values (a
 two-stage plug-in fit), which is not the joint maximum. Supplying both
 <code>mean_scale</code> and <code>variance_scale</code> fixes them at those values.</p>
-<p>Every fit uses the analytic score and observed Hessian with the PORT
-trust region of <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">stats::nlminb()</a></code>: the step maximises the quadratic
-model inside a ball whose radius grows or shrinks with the ratio of
-actual to predicted increase; there is no line search and no fixed
-step length. The returned <code>vcov</code> is the delta-method image of the
-inverse negative profile Hessian; intervals are
+<p>With <code>optimiser = "newton"</code> (default) every fit uses the analytic
+score and observed Hessian with the PORT trust region of
+<code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">stats::nlminb()</a></code>: the step maximises the quadratic model inside a ball
+whose radius grows or shrinks with the ratio of actual to predicted
+increase; there is no line search and no fixed step length. With
+<code>optimiser = "lbfgsb"</code> the same objective is maximised by L-BFGS-B on
+the closure \(\boldsymbol{p}=\boldsymbol{w}/\mathbf{1}^{\top}
+\boldsymbol{w}\), \(\boldsymbol{w}\ge0\), as in
+<code><a href="deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_L_BFGS_B()</a></code>; it can return exact zeros, where <code>rho</code>
+and the covariances are <code>NA</code>. The returned <code>vcov</code> is the delta-method
+image of the inverse negative profile Hessian; intervals are
 <code><a href="confint_single_cell.html">confint_single_cell()</a></code>.</p>
     </div>
 
@@ -154,7 +176,8 @@ inverse negative profile Hessian; intervals are
 <span>  mean_scale <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  variance_scale <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  estimand <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cellular"</span>, <span class="st">"transcript"</span><span class="op">)</span>,</span>
-<span>  cell_size <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  cell_size <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  optimiser <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"newton"</span>, <span class="st">"lbfgsb"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -180,7 +203,7 @@ inverse negative profile Hessian; intervals are
 
 
 <dt id="arg-itmax">itmax<a class="anchor" aria-label="anchor" href="#arg-itmax"></a></dt>
-<dd><p>Maximum number of Newton iterations.</p></dd>
+<dd><p>Maximum number of iterations.</p></dd>
 
 
 <dt id="arg-profile">profile<a class="anchor" aria-label="anchor" href="#arg-profile"></a></dt>
@@ -210,6 +233,11 @@ cell fraction.</p></dd>
 <dd><p>Optional \(S_j\). Defaults to the column sums of
 the mean, which equal the cell sizes for a <code>cellular_raw</code>
 reference.</p></dd>
+
+
+<dt id="arg-optimiser">optimiser<a class="anchor" aria-label="anchor" href="#arg-optimiser"></a></dt>
+<dd><p><code>"newton"</code> (trust-region Newton in ILR coordinates) or
+<code>"lbfgsb"</code> (L-BFGS-B on the closed simplex).</p></dd>
 
 </dl></div>
     <div class="section level2">

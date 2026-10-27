@@ -47,7 +47,7 @@ restricted_mle_single_cell(
 
 - itmax:
 
-  Maximum number of Newton iterations.
+  Maximum number of iterations.
 
 ## Value
 

@@ -5,9 +5,10 @@ Summarises the generating law
 \mathcal{N}\_{G}(\boldsymbol{\mu}\boldsymbol{p}, \sum_j
 p_j^2\boldsymbol{\Sigma}\_j)\\ at five layers: composition, mean
 geometry, covariance / SPD diagnostics, network sparsity, and tangent
-Fisher information (mean versus covariance split). MixSim BarOmega and
-average pairwise Hellinger of the component Gaussians are kept in
-`descriptors` (Hellinger is the unweighted pairwise mean;
+Fisher information (mean versus covariance split). MixSim BarOmega
+(`mixsim_baromega`), MaxOmega (`mixsim_maxomega`, the largest pairwise
+overlap) and average pairwise Hellinger of the component Gaussians are
+kept in `descriptors` (Hellinger is the unweighted pairwise mean;
 `hellinger_weighted` is optional). Jeffreys / symmetrised KL is returned
 in `supplementary`. Mean-geometry columns include the highest pairwise
 cosine and the mean Euclidean (CLD) gap.
@@ -41,9 +42,8 @@ describe_simulation_scenario(
 
 - include_mixsim:
 
-  Logical. If `TRUE` (default), compute MixSim BarOmega via
-  [`compute_average_overlap()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_overlap.md).
-  Set `FALSE` to skip.
+  Logical. If `TRUE` (default), compute MixSim BarOmega and MaxOmega in
+  one overlap pass. Set `FALSE` to skip.
 
 ## Value
 

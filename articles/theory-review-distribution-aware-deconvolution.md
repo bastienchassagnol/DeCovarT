@@ -8,8 +8,8 @@
 > their variance, and in some cases a covariance between genes or
 > between cell types. DeCovarT belongs to that family: it plugs in a
 > gene–gene covariance per cell type and maximises a
-> Gaussian-convolution likelihood ([derivatives
-> vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html#sec-unconstrained)).
+> Gaussian-convolution likelihood ([population generative
+> vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.html#sec-unconstrained)).
 >
 > Every method is read through the same lens: what its observation law
 > implies about the measurement process, most often UMI counts from
@@ -30,8 +30,9 @@
 >     ([Sec. 6](#sec-reference-free)).
 >
 > [Sec. 7](#sec-synthesis) compares them and lists their caveats. The
-> DeCovarT model rebuilt for single-cell references is in the [tailored
-> vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.md).
+> DeCovarT model rebuilt for single-cell references is in the
+> [single-cell generative
+> vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.md).
 
 ``` mermaid
 %%{init: {"theme": "sandstone", "flowchart": {"curve": "basis"}}}%%
@@ -155,7 +156,7 @@ Three remarks connect the protocol to deconvolution.
   single-cell reference and a bulk library: the ratio \tilde
   b_g=b_g^{\mathrm{bulk}}/b_g^{\mathrm{ref}} is the gene-wise platform
   factor of [plug-in scales (Strategy
-  4)](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-strategy-plugin).
+  4)](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html#sec-strategy-plugin).
   Read-count protocols without UMIs and hybridisation microarrays carry
   larger gene- and probe-specific factors (amplification, length,
   affinity), which is why earlier deconvolution methods had to model
@@ -303,7 +304,7 @@ s^{\mathrm{tech}}-free covariance of
 be checked by simulation before use). Estimating \nu^{\mathrm{tech}}
 before the deconvolution is the first plug-in of Strategy 4 ([plug-in
 scales (Strategy
-4)](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-strategy-plugin)).
+4)](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html#sec-strategy-plugin)).
 
 ### Before single cells: measurement models for sorted population profiles
 
@@ -336,8 +337,8 @@ the one of the platform, applied to a pool of many cells.
   replicates per population, the only second-order quantity available
   was a between-replicate variance of the population mean. That is the
   quadratic layer \sum_jp_j^{2}\boldsymbol{\Sigma}\_{B,j} of the
-  [tailored
-  vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-facs),
+  [single-cell generative
+  vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html#sec-facs),
   and the object released DeCovarT was designed for. A within-type,
   cell-to-cell covariance did not exist in that design.
 
@@ -487,7 +488,7 @@ Three reparametrisations recur.
   p\_{ji}e^{\alpha_i}; both normalise at the end. The total of the
   unnormalised weights identifies the sample scale ([the sample-wide
   capture
-  scale](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-cc-scale)).
+  scale](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html#sec-cc-scale)).
 
 ### The common problem: errors in variables
 
@@ -612,7 +613,7 @@ squares, with the weights updated from an initial fit because
 size of type j in the reference. That substitution returns cell
 fractions only under assumption A3', a capture efficiency (observed
 library size over molecule content) common to all types ([the `MuSiC`
-assumptions](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#fig-music-assumptions));
+assumptions](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html#fig-music-assumptions));
 otherwise `MuSiC` estimates the RNA-weighted product p\_{ji}S_j. Under
 A1–A3 alone the paper claims only the trend of proportions across
 subjects. Absolute S_j is not needed: it cancels into C_i. A gene- and
@@ -641,7 +642,7 @@ Godambe sandwich intervals.
 
 `RNA-Sieve` writes the bulk as a sum of n cells, each a draw from the
 cell mixture [the mixture-of-cells
-covariance](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#eq-mixture-cell)
+covariance](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html#eq-mixture-cell)
 restricted to one gene. By the central limit theorem,
 
 y\_{gi}\sim\mathcal{N}\bigl(n_i(\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot
@@ -653,7 +654,7 @@ with genes independent (equations 5–8). The variance is **linear** in
 n_i and in \boldsymbol{p}, minus the square of the mixture mean: the
 within-type variance \sum_jp\_{ji}V\_{gj} plus the spread of the type
 means, the diagonal of [the mixture-of-cells
-covariance](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#eq-mixture-cell).
+covariance](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html#eq-mixture-cell).
 The reference means are noisy,
 \hat{\tilde\mu}\_{gj}\sim\mathcal{N}(\tilde\mu\_{gj},V\_{gj}/C_j)
 (equation 9), and the true means are estimated jointly with
@@ -862,11 +863,11 @@ w\_{ji}=p\_{ji}e^{\alpha_i}.
 
 The fit is two-stage because \tilde{\boldsymbol{b}} cannot be free
 inside one sample ([alignment
-scales](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-alignment)):
+scales](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html#sec-alignment)):
 stage 1 estimates \gamma_g from one pseudobulk of all spots
 (supplementary equations 14–19), stage 2 holds it fixed. That is
 Strategy 4 in its purest form ([plug-in
-scales](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-strategy-plugin)).
+scales](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html#sec-strategy-plugin)).
 Stage 2 maximises a non-convex Poisson–log-normal likelihood in
 w\_{ji}=p\_{ji}e^{\alpha_i}\ge0 by sequential quadratic programming: the
 Hessian is replaced by its positive-semidefinite part and each step is a
@@ -900,7 +901,7 @@ with genes independent, and the composition is estimated by maximising
 the product of these densities over genes. The variance is **linear** in
 the weights, the diagonal of the within-type layer
 n_i^{-1}\sum_jp\_{ji}\boldsymbol{\Sigma}\_{W,j} ([one
-replicate](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-one-replicate)),
+replicate](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html#sec-one-replicate)),
 as in `RNA-Sieve` without the spread of type means. The optimiser, the
 estimation of c and the final simplex step are not stated.
 
@@ -1077,7 +1078,7 @@ to a_i\sum\_\ell\delta\_\ell p\_{\ell i} leaves the bulk mean unchanged,
 for any \boldsymbol{\delta}. A gene-wise platform ratio can then mimic a
 type-specific size factor (Supplementary Remark S1), the \boldsymbol{q}
 versus \boldsymbol{p} ambiguity of [alignment
-scales](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-alignment);
+scales](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html#sec-alignment);
 assumption 3 restores identification because a ratio that depends on the
 type of its marker is no longer independent of \boldsymbol{\mu} (our
 reading).
@@ -1123,10 +1124,11 @@ the methods above:
 For a single-cell reference the bulk is a physical sum of cells, and the
 variance becomes linear in p\_{ji}, as in `RNA-Sieve`. The strategies
 that rebuild DeCovarT for that reference, and the three-layer law that
-combines within- and between-donor covariances, are in the [tailored
-vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-strategies);
+combines within- and between-donor covariances, are in the [single-cell
+generative
+vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html#sec-strategies);
 the model retained for real data is in the [MLE
-vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-final-choice).
+vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html#sec-final-choice).
 
 ## Cell-type-specific moments when the composition is known
 
@@ -1669,19 +1671,19 @@ independent cells).
     `gnSPADE`, `DeMixNB`, `BayesPrism`) and any fit on
     library-normalised bulk return transcript fractions; cell fractions
     need the cell sizes S_j ([RNA-to-cell
-    conversion](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-uncoupling)).
+    conversion](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html#sec-uncoupling)).
 3.  **Mean–variance relationship.** A constant residual variance
     (`DSection`, `BEDwARS`, NMF with a Frobenius loss) contradicts the
     Poisson measurement of UMI counts, whose variance grows with the
     mean. Count likelihoods or explicit variance functions respect it
     ([GLM
-    view](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-glm)).
+    view](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html#sec-glm)).
 4.  **Linear or quadratic weights.** Independent cells give a variance
     linear in the proportions (`RNA-Sieve`, `ReDeconv`); a random
     population profile gives a quadratic weight (`MuSiC`, `DECALS`,
     `CSNet`, DeCovarT). Single-cell references with one donor identify
-    only the first ([tailored
-    vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-three-regimes)).
+    only the first ([single-cell generative
+    vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html#sec-three-regimes)).
 5.  **Which covariance.** G\times G within a type (DeCovarT, `DECALS`,
     `CSNet`) and J\times J within a gene (`bMIND`, `EPIC-unmix`,
     `Unico`) answer different questions; neither family fits both.

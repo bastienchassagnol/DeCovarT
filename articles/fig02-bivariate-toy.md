@@ -93,7 +93,7 @@ correlation grid.
 
 With p_1+p_2=1, only one free ILR coordinate is estimated (see
 [derivatives under simplex
-transforms](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.md)).
+transforms](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.md)).
 Even when mean profiles are similar, gene–gene correlation can degrade
 mean-only solvers, and is partly recovered once
 \boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}\_j
@@ -152,29 +152,20 @@ first row, homoscedastic, balanced proportions, small CLD.
 | `Ba` / `Mo` / `Hi` | Balanced / moderately unbalanced / highly unbalanced \boldsymbol{p} |
 | `Sm` / `Lg` | Small / large CLD (Euclidean centroid gap) |
 
-The slim design grid is `output/fig02/bivariate_config.rds` (no
-`true_theta`). Geometry, MixSim `BarOmega`, Hellinger, and Jeffreys live
-in `bivariate_descriptors.rds`. Convolution parameters are
-`bivariate_theta.rds`. ADEMP metrics (`regression`, `monte_carlo`,
-`optimisation`, `call`) are `bivariate_benchmark.rds`. All four files
-share the `ID` key.
-`read_simulation_artefacts(dir, "bivariate", assemble = TRUE)`, a script
-helper in `scripts/auxiliary/benchmark_artefacts.R`, rejoins them for
-plotting.
+Every result of the run is in `output/fig02/fig02_benchmark.rds`, a list
+keyed by the scenario `ID`: `meta` (seed, N, B, date, git commit,
+session), `config` (the design grid without the true moments),
+`theta_true` (convolution parameters per `ID`), `descriptors` (geometry,
+MixSim `BarOmega`, Hellinger, Jeffreys), `regression` and `monte_carlo`
+(composition and ADEMP blocks of
+[`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)),
+`optimisation` (one row per replicate \times algorithm \times scenario,
+with the estimates, convergence, KKT residual, elapsed time and memory),
+`intervals` (coverage and width of every interval construction) and
+`data` (the simulated bulks and their targets).
 
-The Monte Carlo \hat{\boldsymbol{p}} draws themselves are the cell-type
-columns of `optimisation` (one row per replicate \times algorithm \times
-scenario).
-[`pivot_mc_estimates()`](https://bastienchassagnol.github.io/DeCovarT/reference/pivot_mc_estimates.md)
-stacks those columns into long form. Interior Wald intervals for
-convolution-likelihood solvers use
-[`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md)
-(expected Fisher information through the ILR chart), matching
-[`confint.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md).
-Coverage, `mean_model_se`, and `se_sd_ratio` (mean model SE / empirical
-SD) are then finite. Mean-only solvers (NNLS, LSEI) leave those Wald
-columns missing: they do not maximise the convolution likelihood, so an
-ILR interval would not apply.
+Mean-only `lsei` and NNLS do not maximise the convolution likelihood, so
+no interval is computed for them.
 
 ``` r
 
@@ -236,88 +227,135 @@ ggplot2::ggplot(ll_df, ggplot2::aes(x = p1, y = loglik)) +
 
 ## Inference
 
-Seven solvers are evaluated on each scenario:
+Five methods are evaluated on each scenario:
 
-| Solver | Description |
-|----|----|
-| `NNLS` | Lawson–Hanson non-negative least squares ([Dessole et al. 2023](#ref-dessoleLawsonHansonAlgorithmDeviation2023)) |
-| `DeconRNASeq` | NNLS via `lsei` ([Gong and Szustakowski 2013](#ref-gongDeconRNASeqStatisticalFramework2013)) |
-| `L-BFGS-B` | Quasi-Newton on box-constrained simplex |
-| `gradient` | Projected gradient descent in ILR |
-| `Newton-Raphson` | Second-order in ILR |
-| `Marquardt-Levenberg` | Damped Newton via `marqLevAlg` |
-| `SA` | Simulated annealing |
+| Method | Description | Intervals |
+|----|----|----|
+| `lsei` | DeconRNASeq: least squares on the simplex by [`limSolve::lsei`](https://rdrr.io/pkg/limSolve/man/lsei.html) ([Gong and Szustakowski 2013](#ref-gongDeconRNASeqStatisticalFramework2013)) | none |
+| `NNLS` | Lawson–Hanson non-negative least squares, renormalised ([Dessole et al. 2023](#ref-dessoleLawsonHansonAlgorithmDeviation2023)) | none |
+| `Newton-Raphson` | Second-order ascent in ILR coordinates | Wald, ILR, profile, bootstrap, oracle |
+| `L-BFGS-B` | Limited-memory quasi-Newton on the closure chart \boldsymbol p=\boldsymbol w/\mathbf 1^{\top}\boldsymbol w, \boldsymbol w\ge0 | Wald, ILR, profile, bootstrap |
+| `Firth` | Jeffreys-penalised likelihood ([Firth 1993](#ref-firthBiasReductionMaximum1993)) | Wald, ILR |
 
-Performance is summarised using the ADEMP framework ([Morris et al.
-2019](#ref-morrisUsingSimulationStudies2019)): **bias**, **RMSE**,
-**coverage** of ILR Wald intervals (Wilson intervals on the coverage
-*rate*), **SE/SD**, and optimiser **failure rate**. Mean-only baselines
-have no convolution Wald SE.
+Table 1: Methods of the bivariate benchmark.
+
+- **Dropped from the figure.** Marquardt–Levenberg, projected gradient
+  and simulated annealing remain in the package but leave the benchmark.
+  CIBERSORT is not run at G=2: its \nu-SVR regresses the G bulk values
+  on the J signatures, so two genes give two observations for two
+  coefficients and an intercept. The second-generation methods (MEAD,
+  RNA-Sieve, ReDeconv, DECALS) are left to the covariance-driven
+  scenario, since a two-gene reference cannot carry their reference
+  estimation.
+- **NNLS** followed by renormalisation is least squares on the simplex
+  with a **free** scale (\boldsymbol\beta=c\boldsymbol p, c=\mathbf
+  1^{\top}\boldsymbol\beta); `lsei` fixes c=1. The two agree only when
+  \hat c=1. On 500 bulks of this design the largest coordinate
+  difference has median 0.002 and 95th percentile 0.015, and the fitted
+  scale has standard deviation 0.03 around 1: close, but not identical.
+  Both are run: `lsei` keeps the sum-to-one equality and the bounds at
+  every iteration, NNLS renormalises a free-scale fit. A robust linear
+  model is not run on two genes.
+
+The interval constructions are those of [population
+inference](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.md):
+`wald` (delta method on \boldsymbol p), `ilr` (Wald in ILR coordinates
+mapped back), `profile` (likelihood-ratio inversion), `bootstrap`
+(percentile interval of a parametric bootstrap refitted by the same
+optimiser) and `oracle` (\hat p_j plus or minus the Wald half-width at
+\boldsymbol p^{\star}). Performance is summarised with the ADEMP
+framework ([Morris et al. 2019](#ref-morrisUsingSimulationStudies2019)):
+**bias**, **RMSE**, **coverage** of each interval construction (Wilson
+intervals on the coverage *rate*), **width**, **SE/SD**, and optimiser
+**failure rate**.
+
+The run size comes from environment variables: `DECOVART_N_REPLICATES`
+(N, default 200), `DECOVART_N_BOOT` (B, default 100), `DECOVART_CORES`
+(default 1; parallel workers load the installed package) and
+`DECOVART_POSTPROCESS_ONLY=1` (redraw only). A dry run with N=B=5 takes
+about ten minutes on one core.
 
 ``` r
 
-N_REPLICATES <- as.integer(Sys.getenv("N_REPLICATES", unset = "500"))
 deconvolution_functions <- bivariate_toy_deconvolution_functions(
   itmax = 200L,
-  epsilon = 1e-4
+  epsilon = 1e-4,
+  n_boot = 100L
 )
 bivariate <- run_simulation_benchmark(
   scenario_config = bivariate_config,
   deconvolution_functions = deconvolution_functions,
-  n = N_REPLICATES,
-  cores = 1L
+  n = 200L,
+  cores = 1L,
+  return_data = TRUE
 )
 ```
 
 `config` on the in-memory benchmark still carries Shannon entropy of
-\boldsymbol{p} and MixSim overlap for tests. Saved artefacts split that
-information: `optimisation` stores per-sample \hat{\boldsymbol{p}},
-elapsed time, and memory; `regression` and `monte_carlo` are the
-composition and ADEMP blocks from
-[`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md).
+\boldsymbol{p} and MixSim overlap for tests.
 
 ## Visualisations
 
-Figures are written from the split RDS (no ADEMP refit). Density books
-go to `output/fig02/density_visualisations/`; RMSE / MAE / Aitchison
-tiles, raincloud, quantile-dot raincloud, forest, KKT raincloud, stacked
-convergence, whitened-ILR Q-Q / \chi^{2} Q-Q / KS lollipops, similarity,
-solver-dot, runtime, and memory books go to
-`output/fig02/performance_visualisations/`. Tile heatmaps
-([`ggplot2::geom_tile()`](https://ggplot2.tidyverse.org/reference/geom_tile.html))
-show RMSE, MAE, and Aitchison distance on the (\rho_1,\rho_2) plane: one
-PDF per metric, one page per meta-scenario (CLD () variance ()
-composition), seven solver panels. Scenario factors are relevelled
-(small then large CLD; homoscedastic then heteroscedastic; balanced,
-moderately unbalanced, highly unbalanced) when artefacts are read, and
-solvers follow `nnls`, `lsei`, `SA`, `gradient`, `LBFGS`,
-`Newton-Raphson`, `Marquardt-Levenberg`. Density and performance books
-share the four correlation corners
-(\rho_1,\rho_2)\in\\(0,0),(-0.8,-0.8),(0.8,0.8),(-0.8,0.8)\\ (2\times
-2\times 3=12 pages). Similarity heatmaps compute Pearson (r) of paired
-() **within each corner**, with Ward D2 clustering of (1-r) and Ward
-merge heights on the right dendrogram. Wald forests drop NNLS, LSEI, and
-SA; solid whiskers are (1.96) times the expected-Fisher Wald SE at the
-true composition, dashed whiskers use the empirical Monte Carlo SD, and
-coloured `geom_label` boxes (one per cell type, matching fig03) report
-RMSE and coverage. The native-space log-likelihood surface uses a log10
-colour scale of the relative likelihood (L/L) so boundary peaks are
-visible. The matching `rgl` book uses the same log10 relative-likelihood
-z-axis. Rainclouds plot (p) with solver fill **and** stroke and a bottom
-legend. A companion `dotsinterval.pdf` book replaces the bounded \[0,1\]
-KDE slab with quantile dots. Runtime and memory rainclouds use one page
-per meta-scenario, the four correlation corners on the x-axis, and a
-log10 y-axis. Solver-dot pages use the same 9-by-9 ((\_1,\_2)) grid as
-the RMSE heatmaps: colour is mean RMSE and size is mean Aitchison
-distance, with horizontal y-axis labels. ggplot `data` tables are saved
-under `output/fig02/ggplot_rds/`.
+Figures are drawn from `output/fig02/fig02_plot_data.rds`, a list keyed
+by figure file stem that holds the data handed to each plot function, so
+any figure can be redrawn without the benchmark:
+
+``` r
+
+source("scripts/visualisation/load_visualisation.R")
+plot_data <- readRDS("output/fig02/fig02_plot_data.rds")
+render_figure_from_data("heatmap_rmse", plot_data, "output/fig02")
+```
+
+Density and performance books share the four correlation corners
+(\rho_1,\rho_2)\in\\(0,0),(-0.8,-0.8),(0.8,0.8),(-0.8,0.8)\\ and the
+twelve meta-scenarios (CLD \times variance \times composition). Every
+log-likelihood panel uses the same axes and the same fill,
+\log\_{10}(L/\max L) on \[-10,0\], with one legend per page: white
+diamond at \boldsymbol p^{\star}, red point at the MLE (observed
+surface) or at the Monte Carlo mean of \hat{\boldsymbol p} (expected
+surface, whose maximiser is \boldsymbol p^{\star} exactly by the
+information inequality).
+
+| Output | Description |
+|----|----|
+| `density_visualisations/purified_density.pdf` | The two cell-type Gaussians |
+| `density_visualisations/bulk_density.pdf` | The convolution that DeCovarT fits |
+| `density_visualisations/loglik_surface_p.pdf`, `loglik_ilr_profile.pdf` | Log-likelihood of one bulk on p_1 and on the ILR coordinate |
+| `density_visualisations/loglik_expected_surface_p.pdf`, `loglik_expected_ilr_profile.pdf` | Expected log-likelihood and Monte Carlo mean of \hat{\boldsymbol p} |
+| `density_visualisations/loglik_rgl.pdf` | 3D relative likelihood (`rgl`) |
+| `performance_visualisations/heatmap_rmse.pdf`, `heatmap_aitchison.pdf` | Tiles on (\rho_1,\rho_2), one page per meta-scenario; grey = no finite estimate |
+| `performance_visualisations/ci_width_forest.pdf` | Mean interval, coverage \[Wilson interval\] and width per method and construction |
+| `performance_visualisations/p_hat_monte_carlo_raincloud.pdf` | Monte Carlo law of \hat p, including pile-up at 0 and 1 |
+| `performance_visualisations/p_hat_monte_carlo_quantile_dots.pdf` | The same law as quantile dots |
+| `performance_visualisations/kkt_residual_raincloud.pdf` | Projected-score KKT residual |
+| `performance_visualisations/convergence_theoretical_vs_numerical_failures.pdf` | Theoretical success, numerical failure, theoretical failure |
+| `performance_visualisations/wald_normality_qq.pdf` | Whitened ILR estimate against N(0,1) |
+| `performance_visualisations/wald_mahalanobis_chi2_qq.pdf` | D^2 against \chi^2_1 on \log\_{10} axes, coloured by convergence |
+| `performance_visualisations/estimate_agreement_hellinger_ward.pdf` | Mean Hellinger distance between paired estimates, Ward clustering; dashed line at the mean over method pairs |
+| `performance_visualisations/rmse_colour_aitchison_size_dots.pdf` | Colour = mean RMSE, size = mean Aitchison distance |
+| `performance_visualisations/runtime.pdf`, `memory.pdf` | \log\_{10} seconds and \log\_{10} MiB |
+
+Table 2: Plot books of the bivariate scenario.
+
+- The Q-Q books assess the Wald approximation only; the profile and
+  bootstrap intervals do not rely on it. Squaring a whitened value of
+  -30 gives D^2=900, so the \chi^2 book uses \log\_{10} axes.
+- The Hellinger distance \lVert\sqrt{\hat{\boldsymbol
+  p}\_A}-\sqrt{\hat{\boldsymbol p}\_B}\rVert_2/\sqrt2 replaces 1-r for
+  the Pearson correlation: it measures agreement rather than
+  co-movement, it is Euclidean in \sqrt{\boldsymbol p} as Ward’s
+  criterion requires, and it is defined at exact zeros, where the
+  Aitchison distance is not.
+- The KS normality lollipops and the MAE heatmaps were dropped: the Q-Q
+  books and the RMSE heatmaps carry the same information.
 
 > **Tip 1: Other one-sample log-likelihood slices (not drawn)**
 >
 > The current `loglik_rgl.pdf` holds the two mean profiles fixed and
-> varies only \boldsymbol{p} (or the ALR coordinates of \boldsymbol{p}).
-> White diamonds mark p^{\star} and red circles the numerical MLE; a 3D
-> legend repeats those two markers. Expected log-likelihood surfaces
+> varies only \boldsymbol{p} (or its ILR coordinate). White diamonds
+> mark p^{\star} and red circles the numerical MLE. Expected
+> log-likelihood surfaces
 > \mathbb{E}\_{\boldsymbol{y}\mid\boldsymbol{p}^{\star}}\[\ell(\boldsymbol{p};\boldsymbol{y})\]
 > are drawn separately as `loglik_expected_surface_p.pdf` and
 > `loglik_expected_ilr_profile.pdf` (not overlaid on the one-draw
@@ -333,6 +371,15 @@ under `output/fig02/ggplot_rds/`.
 >   display sampling variability of \ell(\boldsymbol{p};\boldsymbol{y}).
 
 ### Likelihood geometry and solver behaviour
+
+> **Note**
+>
+> The numbers in this section come from the archived run of
+> `output/archives/fig02/` (Wald intervals only), which still included
+> NNLS, gradient, simulated annealing, Marquardt–Levenberg and the
+> earlier L-BFGS-B that renormalised a box-constrained fit. They will be
+> replaced by those of the production run; the mechanisms do not depend
+> on the solver list.
 
 The factorial heatmaps remain the right *design* summary: large CLD and
 \rho_j=0 make the mean map injective, so every solver is accurate; small
@@ -370,22 +417,23 @@ it is a robustness check, not an MLE.
 
 The convolution solvers maximise the Gaussian-convolution log-likelihood
 of the [MLE properties
-article](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html)
+article](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html)
 (that article is pkgdown-only; this vignette is the CRAN-shipped
 companion). None of them inherits Boyd’s global certificate, because
 that likelihood is not concave. They differ in **coordinates and
 damping**:
 
 - `L-BFGS-B` ([`stats::optim`](https://rdrr.io/r/stats/optim.html)) runs
-  limited-memory BFGS with box constraints 0\le p_j\le 1 ([Byrd et al.
-  1995](#ref-byrdLimitedMemoryAlgorithm1995); [Zhu et al.
-  1997](#ref-zhuAlgorithm778LBFGSB1997)), then closes the simplex by
-  p/\sum p. The equality \mathbf{1}^{\top}\boldsymbol{p}=1 is **not** a
-  constraint of the line search, so \boldsymbol{\Sigma}(\boldsymbol{p})
-  can approach singularity mid-iteration; the implementation guards that
-  with a finite penalty. Faces of the cube remain admissible, which is
-  how a limited-memory quasi-Newton method sits on a simplex face after
-  renormalisation.
+  limited-memory BFGS on the closure chart \boldsymbol p=\boldsymbol
+  w/\mathbf 1^{\top}\boldsymbol w with the box \boldsymbol w\ge0 ([Byrd
+  et al. 1995](#ref-byrdLimitedMemoryAlgorithm1995); [Zhu et al.
+  1997](#ref-zhuAlgorithm778LBFGSB1997)) ([closure
+  chart](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.html#sec-closure-box)).
+  The objective is the convolution log-likelihood itself, the box KKT
+  points are exactly the simplex KKT points, and exact zeros are
+  reachable. The archived version instead fitted a box-constrained
+  surrogate and renormalised it, so its faces were not stationary points
+  of \ell (KKT residual about 0.1).
 - `Newton-Raphson`
   ([`stats::nlminb`](https://rdrr.io/r/stats/nlminb.html)) and
   `Marquardt-Levenberg` (`marqLevAlg`; ([Philipps et al.
@@ -415,7 +463,7 @@ profiles are not.
 
 Every Monte Carlo replicate here is a **single** G=2 bulk. The MLE is
 therefore the N=1 estimator of [the finite-sample
-section](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-finite-sample):
+section](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html#sec-finite-sample):
 biased at O(1), with Wald SEs that describe the Monte Carlo spread of
 that one-observation maximiser, not a sampling experiment with growing
 N. Pooling N i.i.d. columns with a shared \boldsymbol{p}^{\star} is what
@@ -463,7 +511,7 @@ shrink toward the barycentre, Marquardt more so, exactly as RDM predicts
 on a flat tail. Coverage stays near 0.92–0.94 because the Wald interval
 is already huge. This is the geometry behind chi-bar-square calibration
 on a face ([boundary
-LRTs](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-boundary)):
+LRTs](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html#sec-boundary)):
 the tangent cone is a half-line, Wilks does not apply, and a Wald SE in
 ILR is not a calibrated rare-type interval.
 
@@ -525,6 +573,9 @@ Dessole, Monica, Marco Dell’Orto, and Fabio Marcuzzi. 2023. ‘The
 Lawson-Hanson Algorithm with Deviation Maximization: Finite Convergence
 and Sparse Recovery’. *Numerical Linear Algebra with Applications* 30
 (5): e2490. <https://doi.org/10.1002/nla.2490>.
+
+Firth, David. 1993. ‘Bias Reduction of Maximum Likelihood Estimates’.
+*Biometrika* 80 (1): 27–38. <https://doi.org/10.1093/biomet/80.1.27>.
 
 Gong, Ting, and Joseph D. Szustakowski. 2013. ‘DeconRNASeq: A
 Statistical Framework for Deconvolution of Heterogeneous Tissue Samples

@@ -44,18 +44,25 @@ scripts/fig02_bivariate_toy.R and the paper-scenario vignettes."><meta property=
     <li><a class="dropdown-item" href="../articles/theory-network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
     <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: population-level references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-generative-optimisation.html"><span class="fa fa-square-root-variable"></span> Generative model, derivatives and optimisation</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-inference.html"><span class="fa fa-chart-area"></span> MLE properties and confidence intervals</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: single-cell references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-generative-optimisation.html"><span class="fa fa-align-left"></span> Reference moments, alignment strategies and the profile fit</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-inference.html"><span class="fa fa-chart-line"></span> Profile information, intervals and the REML calibration</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Synthetic scenarios</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><a class="dropdown-item" href="../articles/theory-distance-covariance.html"><span class="fa fa-ruler"></span> Distances, overlap, and covariance information</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/fig03-covariance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig05-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> § 2.4 · Single-cell, two lineages (J = 4, G = 20 or 200)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> Inference: MLE properties, intervals and a GLM formulation</a></li>
     <li><a class="dropdown-item" href="../articles/theory-review-distribution-aware-deconvolution.html"><span class="fa fa-book"></span> Review: deconvolution with reference distributions</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-tailored.html"><span class="fa fa-align-left"></span> DeCovarT tailored to single-cell references</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-bayesian-wiener.html"><span class="fa fa-wave-square"></span> Bayesian DeCovarT: latent profiles and the Wiener filter</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-extensions-roadmap.html"><span class="fa fa-compass"></span> Extensions roadmap: lineages, covariates, modalities</a></li>
     <li><a class="dropdown-item" href="../articles/theory-mixture-regression-applications.html"><span class="fa fa-flask-vial"></span> DeCovarT as a mixture model: designed mixture experiments</a></li>
@@ -113,7 +120,10 @@ summaries, etc.) should live in analysis scripts; see
 <span>  cores <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  coverage_interval <span class="op">=</span> <span class="st">"wilson"</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  progress_every <span class="op">=</span> <span class="fl">10L</span></span>
+<span>  progress_every <span class="op">=</span> <span class="fl">10L</span>,</span>
+<span>  model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"population"</span>, <span class="st">"single_cell"</span><span class="op">)</span>,</span>
+<span>  return_data <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  reference <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -163,6 +173,30 @@ readable.</p></dd>
 <dd><p>Sample-progress interval passed to
 <code><a href="deconvolute_ratios.html">deconvolute_ratios()</a></code> when <code>verbose</code> is <code>TRUE</code>. Defaults to <code>10L</code>.</p></dd>
 
+
+<dt id="arg-model">model<a class="anchor" aria-label="anchor" href="#arg-model"></a></dt>
+<dd><p><code>"population"</code> (default) draws every bulk from the
+convolution <code><a href="simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code>; <code>"single_cell"</code> draws it as a
+sum of cells with <code><a href="simulate_bulk_from_cells.html">simulate_bulk_from_cells()</a></code>, using <code>n_cells</code> and
+<code>platform_scale</code> from <code>true_theta</code> (and <code>generative_mean</code> /
+<code>generative_sigma</code> when the fitted reference differs from the
+generator), and scores every estimate against its realised
+composition.</p></dd>
+
+
+<dt id="arg-return-data">return_data<a class="anchor" aria-label="anchor" href="#arg-return-data"></a></dt>
+<dd><p>If <code>TRUE</code>, keep each scenario's bulk matrix,
+targets and true scales in <code>data</code>, so methods run outside this
+function can be scored on the same samples.</p></dd>
+
+
+<dt id="arg-reference">reference<a class="anchor" aria-label="anchor" href="#arg-reference"></a></dt>
+<dd><p>Optional list with <code>n_individuals</code>, <code>n_cells</code> (default
+<code>1</code>) and <code>seed</code>: with <code>return_data = TRUE</code>, an independent reference
+panel is drawn per scenario by <code><a href="simulate_reference_replicates.html">simulate_reference_replicates()</a></code>, with
+seed <code>reference$seed</code> plus the scenario index, for methods that
+estimate the reference moments themselves.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -178,9 +212,13 @@ actually used to draw the bulk;</p></li>
 <li><p><code>descriptors</code>: kept scenario statistics (composition, mean, SPD,
 network, tangent Fisher, MixSim BarOmega, pairwise Hellinger);</p></li>
 <li><p><code>supplementary</code>: Jeffreys overlap, recorded separately;</p></li>
+<li><p><code>intervals</code>: coverage and width of the interval methods requested in
+<code>deconvolution_functions</code>;</p></li>
+<li><p><code>data</code>: per-scenario simulated data when <code>return_data = TRUE</code>, else
+<code>NULL</code>;</p></li>
 <li><p><code>call</code>: the matched call (<code><a href="https://rdrr.io/r/base/match.call.html" class="external-link">match.call()</a></code>).
 Analysis scripts persist those pieces with <code>write_simulation_artefacts()</code>
-(<code>scripts/auxiliary/benchmark_artefacts.R</code>) rather than saving the whole
+(<code>scripts/benchmark_metrics/benchmark_artefacts.R</code>) rather than saving the whole
 list.</p></li>
 </ul></div>
     <div class="section level2">

@@ -134,7 +134,7 @@ Suppinger gastruloid resource ([Suppinger et al.
 single technical scRNA-seq experiment. Cells are therefore draws from
 one specimen, and the estimate targets the within-type cell-to-cell
 covariance: the linear layer of the [one-replicate
-regime](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-one-replicate),
+regime](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html#sec-one-replicate),
 not a between-specimen covariance.
 
 | Estimator | Input | Sparsity device | Exported object | Main caveat |

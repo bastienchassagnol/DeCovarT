@@ -52,18 +52,25 @@
     <li><a class="dropdown-item" href="../articles/theory-network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
     <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: population-level references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-generative-optimisation.html"><span class="fa fa-square-root-variable"></span> Generative model, derivatives and optimisation</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-inference.html"><span class="fa fa-chart-area"></span> MLE properties and confidence intervals</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: single-cell references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-generative-optimisation.html"><span class="fa fa-align-left"></span> Reference moments, alignment strategies and the profile fit</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-inference.html"><span class="fa fa-chart-line"></span> Profile information, intervals and the REML calibration</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Synthetic scenarios</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><a class="dropdown-item" href="../articles/theory-distance-covariance.html"><span class="fa fa-ruler"></span> Distances, overlap, and covariance information</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/fig03-covariance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig05-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> § 2.4 · Single-cell, two lineages (J = 4, G = 20 or 200)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> Inference: MLE properties, intervals and a GLM formulation</a></li>
     <li><a class="dropdown-item" href="../articles/theory-review-distribution-aware-deconvolution.html"><span class="fa fa-book"></span> Review: deconvolution with reference distributions</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-tailored.html"><span class="fa fa-align-left"></span> DeCovarT tailored to single-cell references</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-bayesian-wiener.html"><span class="fa fa-wave-square"></span> Bayesian DeCovarT: latent profiles and the Wiener filter</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-extensions-roadmap.html"><span class="fa fa-compass"></span> Extensions roadmap: lineages, covariates, modalities</a></li>
     <li><a class="dropdown-item" href="../articles/theory-mixture-regression-applications.html"><span class="fa fa-flask-vial"></span> DeCovarT as a mixture model: designed mixture experiments</a></li>
@@ -102,7 +109,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>A Bayesian DeCovarT: latent purified profiles, the Wiener filter and variational EM</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-22</p>
+      <p class="date">2026-10-27</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-decovart-bayesian-wiener.qmd" class="external-link"><code>vignettes/theory-decovart-bayesian-wiener.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -117,7 +124,7 @@
 <div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Scope</strong></p>
-<p>Released DeCovarT integrates the purified profiles out and maximises the marginal likelihood of the bulk in the proportions (<a href="theory-decovart-generative-model.html#sec-unconstrained">derivatives vignette</a>). This vignette keeps the profiles as latent variables. That gives three things the marginal likelihood hides: a closed-form estimate of each sample’s purified profiles once the proportions are known (the Wiener filter), an EM algorithm for the same maximum-likelihood estimate, and a Bayesian version with a prior on the proportions. The Bayesian methods already published for this task are reviewed in the <a href="theory-review-distribution-aware-deconvolution.html#sec-bayesian">distribution-aware deconvolution review</a>. Nothing here is implemented in <code><a href="../reference/fit_decovart.html">fit_decovart()</a></code>.</p>
+<p>Released DeCovarT integrates the purified profiles out and maximises the marginal likelihood of the bulk in the proportions (<a href="theory-population-generative-optimisation.html#sec-unconstrained">population generative vignette</a>). This vignette keeps the profiles as latent variables. That gives three things the marginal likelihood hides: a closed-form estimate of each sample’s purified profiles once the proportions are known (the Wiener filter), an EM algorithm for the same maximum-likelihood estimate, and a Bayesian version with a prior on the proportions. The Bayesian methods already published for this task are reviewed in the <a href="theory-review-distribution-aware-deconvolution.html#sec-bayesian">distribution-aware deconvolution review</a>. Nothing here is implemented in <code><a href="../reference/fit_decovart.html">fit_decovart()</a></code>.</p>
 </blockquote>
 </div>
 </div>
@@ -201,7 +208,7 @@ T_{jk}=\operatorname{tr}\bigl(\boldsymbol{D}^{-1}\boldsymbol{C}_{jk}\bigr),
 <p>with <span class="math inline">\boldsymbol{M}=[\boldsymbol{m}_1,\ldots,\boldsymbol{m}_J]</span>. The quadratic part is concave (<span class="math inline">\boldsymbol{T}</span> is positive semidefinite, being the expected value of a quadratic form), so the M-step is a concave program on the simplex when every <span class="math inline">\alpha_j\ge 1</span>; <span class="math inline">\alpha_j=1</span> gives plain maximum likelihood. A scalar <span class="math inline">\boldsymbol{D}=\sigma^{2}\mathbf{I}_G</span> can be updated in the same step, <span class="math inline">\sigma^{2}=\{\lVert\boldsymbol{y}-\boldsymbol{M}\boldsymbol{p}\rVert^{2}+\boldsymbol{p}^{\top}\operatorname{tr}(\boldsymbol{C})\boldsymbol{p}\}/G</span>, where <span class="math inline">\operatorname{tr}(\boldsymbol{C})</span> is the <span class="math inline">J\times J</span> matrix of block traces.</p>
 <p>Each EM iteration increases the marginal log-likelihood (or the log-posterior), which the Newton-type solvers do not guarantee. Two limits apply.</p>
 <ul>
-<li>EM converges to a stationary point, not to the global maximum: the non-concavity of the DeCovarT likelihood (<a href="theory-DeCovarT-MLE-properties.html#sec-uniqueness">MLE properties</a>) is unchanged by the algorithm.</li>
+<li>EM converges to a stationary point, not to the global maximum: the non-concavity of the DeCovarT likelihood (<a href="theory-population-inference.html#sec-uniqueness">MLE properties</a>) is unchanged by the algorithm.</li>
 <li>EM converges slowly when the latent profiles carry most of the uncertainty, that is when <span class="math inline">\boldsymbol{D}</span> is small relative to <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span>. As <span class="math inline">\boldsymbol{D}\to\boldsymbol{0}</span> the fraction of missing information tends to one and EM stalls. The analytic score and Hessian of the derivatives vignette are then the faster route.</li>
 </ul></section><section class="section level2"><h2 id="sec-bw-vb">Mean-field variational EM with sparse precisions<a class="anchor" aria-label="anchor" href="#sec-bw-vb"></a>
 </h2>
@@ -223,14 +230,14 @@ T_{jk}=\operatorname{tr}\bigl(\boldsymbol{D}^{-1}\boldsymbol{C}_{jk}\bigr),
 <p>a quadratic program with a logarithmic barrier and no closed form. Compared with <a href="#eq-bw-mstep" class="quarto-xref">Eq. 6</a>, the cross-type terms <span class="math inline">T_{jk}</span>, <span class="math inline">j\neq k</span>, are gone, because the mean-field factors are independent. The variational fixed point is therefore <strong>not</strong> the maximum-likelihood estimate: it inherits the overconfidence of a factorisation that ignores the negative posterior correlation between types (<a href="#eq-bw-postcov" class="quarto-xref">Eq. 5</a>). It is a fast approximation for large sparse networks, to be checked against the exact EM on a subset of genes.</p>
 </section><section class="section level2"><h2 id="sec-bw-priors">Priors on the composition<a class="anchor" aria-label="anchor" href="#sec-bw-priors"></a>
 </h2>
-<p>The prior can be written on the simplex or on the ILR chart used by the solvers (<a href="theory-decovart-generative-model.html#sec-ilr">derivatives vignette</a>), and the two give different maximum a posteriori estimates.</p>
+<p>The prior can be written on the simplex or on the ILR chart used by the solvers (<a href="theory-population-generative-optimisation.html#sec-ilr">population generative vignette</a>), and the two give different maximum a posteriori estimates.</p>
 <ul>
 <li>
 <strong>Dirichlet on <span class="math inline">\boldsymbol{p}</span>.</strong> In <span class="math inline">\boldsymbol{p}</span>, the log-prior <span class="math inline">\sum_j(\alpha_j-1)\log p_j</span> is concave only when every <span class="math inline">\alpha_j\ge 1</span>. Values below one encourage sparse compositions but make the MAP problem non-concave. After the change of variables to <span class="math inline">\boldsymbol{\rho}</span>, the density picks up the Jacobian <span class="math inline">\prod_jp_j</span> (up to a constant), and the log-prior becomes <span class="math inline">\sum_j\alpha_j\log p_j(\boldsymbol{\rho})</span>. Each <span class="math inline">\log p_j(\boldsymbol{\rho})=(\mathbf{V}\boldsymbol{\rho})_j-\operatorname{LSE}(\mathbf{V}\boldsymbol{\rho})</span> is concave, so the log-prior is concave in <span class="math inline">\boldsymbol{\rho}</span> for every <span class="math inline">\alpha_j&gt;0</span> and its MAP stays in the interior.</li>
 <li>
 <strong>Logistic-normal on <span class="math inline">\boldsymbol{\rho}</span>.</strong> A Gaussian prior <span class="math inline">\boldsymbol{\rho}\sim\mathcal{N}(\boldsymbol{m},\boldsymbol{V}_{\rho})</span> adds <span class="math inline">-\boldsymbol{V}_{\rho}^{-1}</span> to the Hessian of the released solver and leaves its Newton–Raphson machinery unchanged. It is the natural prior when compositions of related samples are expected to be correlated, which a Dirichlet cannot express.</li>
 </ul>
-<p>Either prior regularises the boundary: where the Wald interval of a proportion near zero degenerates, the posterior stays proper. A credible interval is not a frequentist confidence interval, and the prior has to be defended on biological grounds (<a href="theory-DeCovarT-MLE-properties.html#sec-intervals">MLE and inference vignette</a>).</p>
+<p>Either prior regularises the boundary: where the Wald interval of a proportion near zero degenerates, the posterior stays proper. A credible interval is not a frequentist confidence interval, and the prior has to be defended on biological grounds (<a href="theory-population-inference.html#sec-intervals">population inference vignette</a>).</p>
 </section><section class="section level2"><h2 id="sec-bw-posterior">Full posterior<a class="anchor" aria-label="anchor" href="#sec-bw-posterior"></a>
 </h2>
 <p>Three routes go beyond the MAP, in increasing cost.</p>

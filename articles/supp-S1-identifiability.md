@@ -1,8 +1,7 @@
 # Appendix S1 — Regular-case MLE properties and identifiability
 
-This appendix is the numerical counterpart of [MLE properties and
-asymptotic
-inference](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.md).
+This appendix is the numerical counterpart of [population
+inference](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.md).
 That article states what the Gaussian-convolution MLE is entitled to
 claim. The chunks here check those claims on small, fully specified
 scenarios.
@@ -13,13 +12,13 @@ Two regimes are kept distinct:
     simplex. Affine equivariance, small bulk perturbations, and random
     ILR starts probe estimator invariance and solver stability when the
     Wilks \chi^2 calibration of [interior
-    inference](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-interior)
+    inference](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html#sec-interior)
     applies.
 2.  **Identifiability edge cases.** Collinear or identical means,
     boundary zeros, and near-flat likelihood ridges, matching
-    [identifiability](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-identifiability)
+    [identifiability](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html#sec-identifiability)
     and [boundary
-    calibration](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-boundary).
+    calibration](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html#sec-boundary).
 
 Heavy Monte Carlo factorial runs live in
 `scripts/supp_S1_identifiability.R` (`N_REPLICATES=2` for a smoke test;
@@ -55,7 +54,7 @@ The generating composition below is strictly positive. That is the
 setting in which
 [`fit_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md)
 Wald intervals are defined and the score equations of [the convolution
-log-likelihood](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#eq-loglik)
+log-likelihood](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html#eq-loglik)
 are regular.
 
 ### Gene-wise affine equivariance
@@ -75,7 +74,7 @@ residual is invariant, so
 \boldsymbol{\Sigma}^\star) in exact arithmetic. A z-score computed
 **once per gene from \boldsymbol{\mu}** (not per cell type, not per bulk
 sample) is that map; see [equivariance in the MLE
-article](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-mle-properties).
+article](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html#sec-mle-properties).
 
 A logarithm is not affine. It is concave, so Jensen’s inequality changes
 first and second moments, and
@@ -278,7 +277,7 @@ Standard deconvolution theory assumes that the mean signature
 identifiability of \boldsymbol{p} but **not necessary**: the convolution
 law also depends on
 \boldsymbol{\Sigma}(\boldsymbol{p})=\sum\_{j}p\_{j}^{2}\boldsymbol{\Sigma}\_{j}
-([proposition](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#prp-identifiability)).
+([proposition](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html#prp-identifiability)).
 Identical means with distinct covariances remain identifiable; the
 negative control is identical means *and* proportional covariances.
 
@@ -375,7 +374,7 @@ N_REPLICATES <- as.integer(Sys.getenv("N_REPLICATES", unset = "1000"))
   /
   [`confint_profile_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_decovart.md)
   with chi-bar-square calibration ([boundary
-  nulls](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-boundary)).
+  nulls](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html#sec-boundary)).
 - **S1b (same means):** RMSE decreases as covariance separation grows.
   Below \rho\_{12}=0 (identical diagonal \boldsymbol{\Sigma}\_j) the
   pair is a negative control. DeCovarT’s advantage is largest when means
@@ -388,7 +387,7 @@ N_REPLICATES <- as.integer(Sys.getenv("N_REPLICATES", unset = "1000"))
 ### See also
 
 - [MLE
-  properties](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.md)
+  properties](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.md)
 - [Appendix S2 — Covariance
   inversion](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S2-covariance-inversion.md)
 - [Appendix S3 — Solver

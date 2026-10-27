@@ -98,7 +98,7 @@ gene-wise pairing of bulk and reference, and the second is algebraic
 equivariance rather than a source of uncertainty (see
 [`equivariance_check_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/equivariance_check_decovart.md)
 and
-[`vignette("theory-DeCovarT-MLE-properties")`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.md)).
+[`vignette("theory-population-inference")`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.md)).
 The two `method` options instead resample, with replacement, units that
 actually vary.
 

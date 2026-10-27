@@ -23,13 +23,19 @@ With `profile = FALSE` the scales stay at their start values (a
 two-stage plug-in fit), which is not the joint maximum. Supplying both
 `mean_scale` and `variance_scale` fixes them at those values.
 
-Every fit uses the analytic score and observed Hessian with the PORT
-trust region of
+With `optimiser = "newton"` (default) every fit uses the analytic score
+and observed Hessian with the PORT trust region of
 [`stats::nlminb()`](https://rdrr.io/r/stats/nlminb.html): the step
 maximises the quadratic model inside a ball whose radius grows or
 shrinks with the ratio of actual to predicted increase; there is no line
-search and no fixed step length. The returned `vcov` is the delta-method
-image of the inverse negative profile Hessian; intervals are
+search and no fixed step length. With `optimiser = "lbfgsb"` the same
+objective is maximised by L-BFGS-B on the closure
+\\\boldsymbol{p}=\boldsymbol{w}/\mathbf{1}^{\top} \boldsymbol{w}\\,
+\\\boldsymbol{w}\ge0\\, as in
+[`deconvolute_ratios_L_BFGS_B()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md);
+it can return exact zeros, where `rho` and the covariances are `NA`. The
+returned `vcov` is the delta-method image of the inverse negative
+profile Hessian; intervals are
 [`confint_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_single_cell.md).
 
 ## Usage
@@ -46,7 +52,8 @@ deconvolute_single_cell(
   mean_scale = NULL,
   variance_scale = NULL,
   estimand = c("cellular", "transcript"),
-  cell_size = NULL
+  cell_size = NULL,
+  optimiser = c("newton", "lbfgsb")
 )
 ```
 
@@ -71,7 +78,7 @@ deconvolute_single_cell(
 
 - itmax:
 
-  Maximum number of Newton iterations.
+  Maximum number of iterations.
 
 - profile:
 
@@ -98,6 +105,11 @@ deconvolute_single_cell(
 
   Optional \\S_j\\. Defaults to the column sums of the mean, which equal
   the cell sizes for a `cellular_raw` reference.
+
+- optimiser:
+
+  `"newton"` (trust-region Newton in ILR coordinates) or `"lbfgsb"`
+  (L-BFGS-B on the closed simplex).
 
 ## Value
 

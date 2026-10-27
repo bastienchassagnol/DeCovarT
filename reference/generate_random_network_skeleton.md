@@ -46,7 +46,9 @@ generate_random_network_skeleton(n_genes, graph_model, graph_params = list())
 
   `stochastic_block_model`
 
-  :   `block_prob`, `p_within`, `p_between`
+  :   `block_prob`, `p_within`, `p_between`; or `block_sizes`, an
+      integer vector summing to `n_genes` that fixes the blocks
+      (contiguous genes) instead of drawing them from `block_prob`
 
   `small_world`
 
@@ -55,7 +57,9 @@ generate_random_network_skeleton(n_genes, graph_model, graph_params = list())
 
 ## Value
 
-Symmetric integer matrix \\G\times G\\ with zero diagonal.
+Symmetric integer matrix \\G\times G\\ with zero diagonal. For a
+stochastic block model, attribute `"block"` gives the block of every
+gene.
 
 ## Examples
 

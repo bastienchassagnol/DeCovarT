@@ -48,18 +48,25 @@ is provided, DeCovarT methods maximise
     <li><a class="dropdown-item" href="../articles/theory-network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
     <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: population-level references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-generative-optimisation.html"><span class="fa fa-square-root-variable"></span> Generative model, derivatives and optimisation</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-inference.html"><span class="fa fa-chart-area"></span> MLE properties and confidence intervals</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: single-cell references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-generative-optimisation.html"><span class="fa fa-align-left"></span> Reference moments, alignment strategies and the profile fit</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-inference.html"><span class="fa fa-chart-line"></span> Profile information, intervals and the REML calibration</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Synthetic scenarios</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><a class="dropdown-item" href="../articles/theory-distance-covariance.html"><span class="fa fa-ruler"></span> Distances, overlap, and covariance information</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/fig03-covariance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig05-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> § 2.4 · Single-cell, two lineages (J = 4, G = 20 or 200)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> Inference: MLE properties, intervals and a GLM formulation</a></li>
     <li><a class="dropdown-item" href="../articles/theory-review-distribution-aware-deconvolution.html"><span class="fa fa-book"></span> Review: deconvolution with reference distributions</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-tailored.html"><span class="fa fa-align-left"></span> DeCovarT tailored to single-cell references</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-bayesian-wiener.html"><span class="fa fa-wave-square"></span> Bayesian DeCovarT: latent profiles and the Wiener filter</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-extensions-roadmap.html"><span class="fa fa-compass"></span> Extensions roadmap: lineages, covariates, modalities</a></li>
     <li><a class="dropdown-item" href="../articles/theory-mixture-regression-applications.html"><span class="fa fa-flask-vial"></span> DeCovarT as a mixture model: designed mixture experiments</a></li>
@@ -121,7 +128,9 @@ is provided, DeCovarT methods maximise
 <span>  cores <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"mc.cores"</span>, <span class="fl">1L</span><span class="op">)</span>,</span>
 <span>  coverage_interval <span class="op">=</span> <span class="st">"wilson"</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  progress_every <span class="op">=</span> <span class="fl">10L</span></span>
+<span>  progress_every <span class="op">=</span> <span class="fl">10L</span>,</span>
+<span>  model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"population"</span>, <span class="st">"single_cell"</span><span class="op">)</span>,</span>
+<span>  nuisance_true <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -154,8 +163,15 @@ of cell-type covariances (numeric; off-diagonals may be negative).</p></dd>
 
 
 <dt id="arg-deconvolution-functions">deconvolution_functions<a class="anchor" aria-label="anchor" href="#arg-deconvolution-functions"></a></dt>
-<dd><p>Named list; each element has <code>FUN</code> and
-optional <code>additional_parameters</code>.</p></dd>
+<dd><p>Named list; each element has <code>FUN</code>,
+optional <code>additional_parameters</code>, and an optional <code>ci</code> list
+(<code>methods</code>, <code>level</code>, <code>n_boot</code>, <code>n_draws</code>, <code>optimiser</code>) naming the
+interval methods to evaluate at that solver's estimate: <code>wald</code>,
+<code>ilr</code>, <code>profile</code>, <code>bootstrap</code> and <code>oracle</code> (Wald half-width at the
+true composition); for the single-cell model, <code>wald_reml</code>, <code>ilr_reml</code>
+and <code>profile_reml</code> add the REML calibration. Solvers that return a
+list read the estimate from <code>coefficients</code>, or from <code>composition</code> for
+<code><a href="deconvolute_single_cell.html">deconvolute_single_cell()</a></code>.</p></dd>
 
 
 <dt id="arg-standardise">standardise<a class="anchor" aria-label="anchor" href="#arg-standardise"></a></dt>
@@ -193,18 +209,34 @@ one-line notice instead of per-sample ticks.</p></dd>
 <dd><p>Sample-progress interval when <code>verbose</code> is
 <code>TRUE</code> and <code>cores = 1</code>. Defaults to <code>10L</code>.</p></dd>
 
+
+<dt id="arg-model">model<a class="anchor" aria-label="anchor" href="#arg-model"></a></dt>
+<dd><p><code>"population"</code> (default), the Gaussian convolution, or
+<code>"single_cell"</code>, the mixture of cells with its scales profiled out:
+it sets the log-likelihood, score and curvature used for the
+per-sample diagnostics and the Wald standard errors.</p></dd>
+
+
+<dt id="arg-nuisance-true">nuisance_true<a class="anchor" aria-label="anchor" href="#arg-nuisance-true"></a></dt>
+<dd><p>Optional \(2\times N\) matrix of the true scales
+\((c,\phi)\) of the single-cell model, for the coverage of their
+intervals.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A named list from <code><a href="compute_benchmark_metrics.html">compute_benchmark_metrics()</a></code> with
-<code>regression</code> (global and cell-type subtables), <code>monte_carlo</code>, and
+<code>regression</code> (global and cell-type subtables), <code>monte_carlo</code>,
 <code>optimisation</code> (per-sample elapsed time, memory, KKT residual, and
-\(\hat{\boldsymbol{p}}\)). First-generation solvers still call
+\(\hat{\boldsymbol{p}}\)) and <code>intervals</code> (coverage and width per
+interval method). First-generation solvers still call
 <code><a href="repair_simplex.html">repair_simplex()</a></code>; the three native DeCovarT maps (ILR or
 \(p/\sum p\)) already lie on the simplex. When <code>Sigma</code> is
 supplied, Newton-Raphson, Marquardt-Levenberg, L-BFGS-B, BFGS
-(gradient), and simulated annealing attach ILR Wald standard
-errors from <code><a href="vcov_ilr_delta.html">vcov_ilr_delta()</a></code> so <code>monte_carlo</code> can report
+(gradient), simulated annealing, the Firth fits and
+<code><a href="deconvolute_single_cell.html">deconvolute_single_cell()</a></code> attach Wald standard errors (ILR
+expected Fisher for the population model, the profile Hessian for the
+single-cell model) so <code>monte_carlo</code> can report
 coverage, mean model SE, and the SE/SD ratio. Those SEs are the
 expected-Fisher delta-method bounds used by
 <code><a href="fit_decovart.html">confint.decovart_fit()</a></code>, not diagonal entries of the observed
@@ -319,11 +351,14 @@ Newman A, Liu C, Green M, Gentles A, Feng W, Xu Y, Hoang C, Diehn M, Alizadeh A 
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 14</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   sample_id algorithm elapsed_sec memory_bytes kkt_residual numerical_converged</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>              </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> sample_1  nnls          0.001<span style="text-decoration: underline;">00</span>    585<span style="text-decoration: underline;">673</span>728        0.444 TRUE               </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> sample_2  nnls          0          590<span style="text-decoration: underline;">683</span>136        0.152 TRUE               </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> sample_1  nnls                0    534<span style="text-decoration: underline;">501</span>376        0.444 TRUE               </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> sample_2  nnls                0    534<span style="text-decoration: underline;">501</span>376        0.152 TRUE               </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 8 more variables: theoretical_converged &lt;lgl&gt;, loglik_regret &lt;dbl&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   local_maximum &lt;lgl&gt;, min_eigenvalue &lt;dbl&gt;, max_eigenvalue &lt;dbl&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   converged &lt;list&gt;, ct1 &lt;dbl&gt;, ct2 &lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $intervals</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 0 × 0</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 </code></pre></div>
     </div>

@@ -52,18 +52,25 @@
     <li><a class="dropdown-item" href="articles/theory-network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
     <li><a class="dropdown-item" href="articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: population-level references</h6></li>
+    <li><a class="dropdown-item" href="articles/theory-population-generative-optimisation.html"><span class="fa fa-square-root-variable"></span> Generative model, derivatives and optimisation</a></li>
+    <li><a class="dropdown-item" href="articles/theory-population-inference.html"><span class="fa fa-chart-area"></span> MLE properties and confidence intervals</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: single-cell references</h6></li>
+    <li><a class="dropdown-item" href="articles/theory-single-cell-generative-optimisation.html"><span class="fa fa-align-left"></span> Reference moments, alignment strategies and the profile fit</a></li>
+    <li><a class="dropdown-item" href="articles/theory-single-cell-inference.html"><span class="fa fa-chart-line"></span> Profile information, intervals and the REML calibration</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Synthetic scenarios</h6></li>
     <li><a class="dropdown-item" href="articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><a class="dropdown-item" href="articles/theory-distance-covariance.html"><span class="fa fa-ruler"></span> Distances, overlap, and covariance information</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="articles/fig03-covariance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
+    <li><a class="dropdown-item" href="articles/fig05-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> § 2.4 · Single-cell, two lineages (J = 4, G = 20 or 200)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
-    <li><a class="dropdown-item" href="articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> Inference: MLE properties, intervals and a GLM formulation</a></li>
     <li><a class="dropdown-item" href="articles/theory-review-distribution-aware-deconvolution.html"><span class="fa fa-book"></span> Review: deconvolution with reference distributions</a></li>
-    <li><a class="dropdown-item" href="articles/theory-decovart-single-cell-tailored.html"><span class="fa fa-align-left"></span> DeCovarT tailored to single-cell references</a></li>
     <li><a class="dropdown-item" href="articles/theory-decovart-bayesian-wiener.html"><span class="fa fa-wave-square"></span> Bayesian DeCovarT: latent profiles and the Wiener filter</a></li>
     <li><a class="dropdown-item" href="articles/theory-decovart-extensions-roadmap.html"><span class="fa fa-compass"></span> Extensions roadmap: lineages, covariates, modalities</a></li>
     <li><a class="dropdown-item" href="articles/theory-mixture-regression-applications.html"><span class="fa fa-flask-vial"></span> DeCovarT as a mixture model: designed mixture experiments</a></li>
@@ -180,7 +187,7 @@ flowchart TD
 <div class="section level3">
 <h3 id="interactive-package-structure">Interactive package structure<a class="anchor" aria-label="anchor" href="#interactive-package-structure"></a>
 </h3>
-<p>Three graphs, regenerated with <code>Rscript scripts/auxiliary/generate_package_network_functions.R</code>. The <a href="https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network_core.html">estimation and interval network</a> is the Gaussian-convolution fit. The <a href="https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network_simulation.html">simulation and benchmark network</a> is the scenario generator and the ADEMP summaries. The <a href="https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network_visualisation.html">visualisation network</a> covers the Monte Carlo plots.</p>
+<p>Three graphs, regenerated with <code>Rscript scripts/visualisation/generate_package_network_functions.R</code>. The <a href="https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network_core.html">estimation and interval network</a> is the Gaussian-convolution fit. The <a href="https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network_simulation.html">simulation and benchmark network</a> is the scenario generator and the ADEMP summaries. The <a href="https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network_visualisation.html">visualisation network</a> covers the Monte Carlo plots.</p>
 <div class="decovart-fullwidth">
 <iframe class="package-network" src="package_network/decovart_function_network_core.html" title="DeCovarT estimation and interval call graph" width="100%" height="640" allowfullscreen>
 </iframe>
@@ -213,31 +220,31 @@ flowchart TD
 <td align="left">
 <strong>DeCovarT</strong> (Marquardt–Levenberg)</td>
 <td align="left"><code>deconvolute_ratios_Marquardt_Levenberg</code></td>
-<td align="left">Covariance-aware MLE <a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link"><img src="https://img.shields.io/badge/GitHub-181717.svg?logo=github&amp;logoColor=white"></a>
+<td align="left">Covariance-aware MLE <a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link"><img src="https://img.shields.io/badge/GitHub-181717.svg?logo=github&amp;logoColor=white" alt="DeCovarT on GitHub"></a>
 </td>
 </tr>
 <tr>
 <td align="left">Non-negative least squares</td>
 <td align="left"><code>deconvolute_ratios_nnls</code></td>
-<td align="left">Lawson–Hanson NNLS <a href="https://github.com/cran/nnls" class="external-link"><img src="https://img.shields.io/badge/GitHub-181717.svg?logo=github&amp;logoColor=white"></a>
+<td align="left">Lawson–Hanson NNLS <a href="https://github.com/cran/nnls" class="external-link"><img src="https://img.shields.io/badge/GitHub-181717.svg?logo=github&amp;logoColor=white" alt="nnls on GitHub"></a>
 </td>
 </tr>
 <tr>
 <td align="left">DeconRNASeq-style QP</td>
 <td align="left"><code>deconvolute_ratios_deconrnaseq</code></td>
-<td align="left">Simplex QP via {limSolve} <a href="https://github.com/cran/limSolve" class="external-link"><img src="https://img.shields.io/badge/GitHub-181717.svg?logo=github&amp;logoColor=white"></a>
+<td align="left">Simplex QP via {limSolve} <a href="https://github.com/cran/limSolve" class="external-link"><img src="https://img.shields.io/badge/GitHub-181717.svg?logo=github&amp;logoColor=white" alt="limSolve on GitHub"></a>
 </td>
 </tr>
 <tr>
 <td align="left">Robust linear model (<code>rlm</code>)</td>
 <td align="left"><code>deconvolute_ratios_rlm</code></td>
-<td align="left">ABIS / Monaco-style RLR <a href="https://github.com/cran/MASS" class="external-link"><img src="https://img.shields.io/badge/GitHub-181717.svg?logo=github&amp;logoColor=white"></a>
+<td align="left">ABIS / Monaco-style RLR <a href="https://github.com/cran/MASS" class="external-link"><img src="https://img.shields.io/badge/GitHub-181717.svg?logo=github&amp;logoColor=white" alt="MASS on GitHub"></a>
 </td>
 </tr>
 <tr>
 <td align="left">CIBERSORT-style <span class="math inline">\nu</span>-SVR</td>
 <td align="left"><code>deconvolute_ratios_cibersort</code></td>
-<td align="left">Linear-kernel SVR via {e1071} <a href="https://github.com/cran/e1071" class="external-link"><img src="https://img.shields.io/badge/GitHub-181717.svg?logo=github&amp;logoColor=white"></a>
+<td align="left">Linear-kernel SVR via {e1071} <a href="https://github.com/cran/e1071" class="external-link"><img src="https://img.shields.io/badge/GitHub-181717.svg?logo=github&amp;logoColor=white" alt="e1071 on GitHub"></a>
 </td>
 </tr>
 </tbody>
@@ -330,8 +337,10 @@ flowchart TD
 <li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-scenarios-mean-covariance.html">How to build synthetic scenarios</a></li>
 <li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/fig02-bivariate-toy.html">§2.1 Bivariate toy</a></li>
 <li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/fig03-covariance-driven.html">§2.2 Covariance-driven hybrid</a></li>
-<li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html">Generative model and derivatives</a></li>
-<li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html">MLE properties and asymptotic inference</a></li>
+<li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.html">Population references: generative model and optimisation</a></li>
+<li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html">Population references: MLE properties and confidence intervals</a></li>
+<li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html">Single-cell references: reference moments and the profile fit</a></li>
+<li><a href="https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-inference.html">Single-cell references: intervals and the REML calibration</a></li>
 </ul>
 <p>In an R session, use <code><a href="reference/deconvolute_ratios.html">?DeCovarT::deconvolute_ratios</a></code> (or any other exported function) for help pages.</p>
 <p><strong>Troubleshooting and issues</strong></p>

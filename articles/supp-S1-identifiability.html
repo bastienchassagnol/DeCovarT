@@ -52,18 +52,25 @@
     <li><a class="dropdown-item" href="../articles/theory-network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
     <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: population-level references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-generative-optimisation.html"><span class="fa fa-square-root-variable"></span> Generative model, derivatives and optimisation</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-inference.html"><span class="fa fa-chart-area"></span> MLE properties and confidence intervals</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: single-cell references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-generative-optimisation.html"><span class="fa fa-align-left"></span> Reference moments, alignment strategies and the profile fit</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-inference.html"><span class="fa fa-chart-line"></span> Profile information, intervals and the REML calibration</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Synthetic scenarios</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><a class="dropdown-item" href="../articles/theory-distance-covariance.html"><span class="fa fa-ruler"></span> Distances, overlap, and covariance information</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/fig03-covariance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig05-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> § 2.4 · Single-cell, two lineages (J = 4, G = 20 or 200)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> Inference: MLE properties, intervals and a GLM formulation</a></li>
     <li><a class="dropdown-item" href="../articles/theory-review-distribution-aware-deconvolution.html"><span class="fa fa-book"></span> Review: deconvolution with reference distributions</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-tailored.html"><span class="fa fa-align-left"></span> DeCovarT tailored to single-cell references</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-bayesian-wiener.html"><span class="fa fa-wave-square"></span> Bayesian DeCovarT: latent profiles and the Wiener filter</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-extensions-roadmap.html"><span class="fa fa-compass"></span> Extensions roadmap: lineages, covariates, modalities</a></li>
     <li><a class="dropdown-item" href="../articles/theory-mixture-regression-applications.html"><span class="fa fa-flask-vial"></span> DeCovarT as a mixture model: designed mixture experiments</a></li>
@@ -102,7 +109,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Appendix S1 — Regular-case MLE properties and identifiability</h1>
       <p class="subtitle">Full script: <code>scripts/supp_S1_identifiability.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-22</p>
+      <p class="date">2026-10-27</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/supp-S1-identifiability.qmd" class="external-link"><code>vignettes/supp-S1-identifiability.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -113,13 +120,13 @@
 
 
 
-    <p>This appendix is the numerical counterpart of <a href="theory-DeCovarT-MLE-properties.html">MLE properties and asymptotic inference</a>. That article states what the Gaussian-convolution MLE is entitled to claim. The chunks here check those claims on small, fully specified scenarios.</p>
+    <p>This appendix is the numerical counterpart of <a href="theory-population-inference.html">population inference</a>. That article states what the Gaussian-convolution MLE is entitled to claim. The chunks here check those claims on small, fully specified scenarios.</p>
 <p>Two regimes are kept distinct:</p>
 <ol type="1">
 <li>
-<strong>Regular (interior) case.</strong> True <span class="math inline">\boldsymbol{p}</span> sits in the open simplex. Affine equivariance, small bulk perturbations, and random ILR starts probe estimator invariance and solver stability when the Wilks <span class="math inline">\chi^2</span> calibration of <a href="theory-DeCovarT-MLE-properties.html#sec-interior">interior inference</a> applies.</li>
+<strong>Regular (interior) case.</strong> True <span class="math inline">\boldsymbol{p}</span> sits in the open simplex. Affine equivariance, small bulk perturbations, and random ILR starts probe estimator invariance and solver stability when the Wilks <span class="math inline">\chi^2</span> calibration of <a href="theory-population-inference.html#sec-interior">interior inference</a> applies.</li>
 <li>
-<strong>Identifiability edge cases.</strong> Collinear or identical means, boundary zeros, and near-flat likelihood ridges, matching <a href="theory-DeCovarT-MLE-properties.html#sec-identifiability">identifiability</a> and <a href="theory-DeCovarT-MLE-properties.html#sec-boundary">boundary calibration</a>.</li>
+<strong>Identifiability edge cases.</strong> Collinear or identical means, boundary zeros, and near-flat likelihood ridges, matching <a href="theory-population-inference.html#sec-identifiability">identifiability</a> and <a href="theory-population-inference.html#sec-boundary">boundary calibration</a>.</li>
 </ol>
 <p>Heavy Monte Carlo factorial runs live in <code>scripts/supp_S1_identifiability.R</code> (<code>N_REPLICATES=2</code> for a smoke test; outputs in <code>output/supp_S1/</code>). The live chunks below use <span class="math inline">G\le 3</span> and are meant to be rebuilt with the vignette.</p>
 <div class="cell">
@@ -146,7 +153,7 @@
 </div>
 <section class="section level2"><h2 id="sec-interior-regular">Regular case: interior of the simplex<a class="anchor" aria-label="anchor" href="#sec-interior-regular"></a>
 </h2>
-<p>The generating composition below is strictly positive. That is the setting in which <code><a href="../reference/fit_decovart.html">fit_decovart()</a></code> Wald intervals are defined and the score equations of <a href="theory-DeCovarT-MLE-properties.html#eq-loglik">the convolution log-likelihood</a> are regular.</p>
+<p>The generating composition below is strictly positive. That is the setting in which <code><a href="../reference/fit_decovart.html">fit_decovart()</a></code> Wald intervals are defined and the score equations of <a href="theory-population-inference.html#eq-loglik">the convolution log-likelihood</a> are regular.</p>
 <section class="level2"><h3 id="sec-affine">Gene-wise affine equivariance<a class="anchor" aria-label="anchor" href="#sec-affine"></a>
 </h3>
 <p>Let <span class="math inline">D=\mathrm{diag}(s_1,\ldots,s_G)</span> with <span class="math inline">s_g\neq 0</span> and <span class="math inline">\boldsymbol{m}\in\mathbb{R}^{G}</span>. The same gene-wise map applied to bulk, means and covariances, <span class="math display">
@@ -160,7 +167,7 @@
 = D^{-1}\boldsymbol{\Sigma}_j D^{-1},
 </span> preserves the linear convolution because <span class="math inline">\boldsymbol{1}_J^\top\boldsymbol{p}_{\cdot i}=1</span>. The Mahalanobis residual is invariant, so <span class="math inline">\hat{\boldsymbol{p}}(\boldsymbol{Y},\boldsymbol{\mu},\boldsymbol{\Sigma})
 =\hat{\boldsymbol{p}}(\boldsymbol{Y}^\star,\boldsymbol{\mu}^\star,
-\boldsymbol{\Sigma}^\star)</span> in exact arithmetic. A z-score computed <strong>once per gene from <span class="math inline">\boldsymbol{\mu}</span></strong> (not per cell type, not per bulk sample) is that map; see <a href="theory-DeCovarT-MLE-properties.html#sec-mle-properties">equivariance in the MLE article</a>.</p>
+\boldsymbol{\Sigma}^\star)</span> in exact arithmetic. A z-score computed <strong>once per gene from <span class="math inline">\boldsymbol{\mu}</span></strong> (not per cell type, not per bulk sample) is that map; see <a href="theory-population-inference.html#sec-mle-properties">equivariance in the MLE article</a>.</p>
 <p>A logarithm is not affine. It is concave, so Jensen’s inequality changes first and second moments, and <span class="math inline">\log(\boldsymbol{\mu}\boldsymbol{p})\neq(\log\boldsymbol{\mu})\boldsymbol{p}</span>. <code>CIBERSORT</code> therefore requires non-negative expression, no missing values, and a non-log linear scale <span class="citation" data-cites="newmanRobustEnumerationCell2015">(<a href="#ref-newmanRobustEnumerationCell2015" role="doc-biblioref">Newman et al. 2015</a>)</span>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
@@ -320,7 +327,7 @@
 <p>A fuller comparison of normalisation (CPM, log2), tolerance, and dimension <span class="math inline">(G,J)</span> belongs in <a href="supp-S3-scaling.html">Appendix S3</a>.</p>
 </section></section><section class="section level2"><h2 id="sec-identifiability-edges">Identifiability edge cases<a class="anchor" aria-label="anchor" href="#sec-identifiability-edges"></a>
 </h2>
-<p>Standard deconvolution theory assumes that the mean signature <span class="math inline">\boldsymbol{\mu}</span> has full column rank. That is <strong>sufficient</strong> for identifiability of <span class="math inline">\boldsymbol{p}</span> but <strong>not necessary</strong>: the convolution law also depends on <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_{j}p_{j}^{2}\boldsymbol{\Sigma}_{j}</span> (<a href="theory-DeCovarT-MLE-properties.html#prp-identifiability">proposition</a>). Identical means with distinct covariances remain identifiable; the negative control is identical means <em>and</em> proportional covariances.</p>
+<p>Standard deconvolution theory assumes that the mean signature <span class="math inline">\boldsymbol{\mu}</span> has full column rank. That is <strong>sufficient</strong> for identifiability of <span class="math inline">\boldsymbol{p}</span> but <strong>not necessary</strong>: the convolution law also depends on <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_{j}p_{j}^{2}\boldsymbol{\Sigma}_{j}</span> (<a href="theory-population-inference.html#prp-identifiability">proposition</a>). Identical means with distinct covariances remain identifiable; the negative control is identical means <em>and</em> proportional covariances.</p>
 <section class="level2"><h3 id="sec-collinearity">Collinear mean columns<a class="anchor" aria-label="anchor" href="#sec-collinearity"></a>
 </h3>
 <p><code><a href="../reference/fit_decovart.html">fit_decovart()</a></code> flags collinear mean columns as a numerical hazard even when the covariance tensor separates the types.</p>
@@ -424,7 +431,7 @@
 </h4>
 <ul>
 <li>
-<strong>S1a (boundary):</strong> NNLS clips to zero by construction. Wald intervals from <code><a href="../reference/fit_decovart.html">confint.decovart_fit()</a></code> are undefined on a face; use <a href="../reference/lrt_decovart.html"><code>lrt_decovart()</code></a> / <a href="../reference/confint_profile_decovart.html"><code>confint_profile_decovart()</code></a> with chi-bar-square calibration (<a href="theory-DeCovarT-MLE-properties.html#sec-boundary">boundary nulls</a>).</li>
+<strong>S1a (boundary):</strong> NNLS clips to zero by construction. Wald intervals from <code><a href="../reference/fit_decovart.html">confint.decovart_fit()</a></code> are undefined on a face; use <a href="../reference/lrt_decovart.html"><code>lrt_decovart()</code></a> / <a href="../reference/confint_profile_decovart.html"><code>confint_profile_decovart()</code></a> with chi-bar-square calibration (<a href="theory-population-inference.html#sec-boundary">boundary nulls</a>).</li>
 <li>
 <strong>S1b (same means):</strong> RMSE decreases as covariance separation grows. Below <span class="math inline">\rho_{12}=0</span> (identical diagonal <span class="math inline">\boldsymbol{\Sigma}_j</span>) the pair is a negative control. DeCovarT’s advantage is largest when means are uninformative.</li>
 <li>
@@ -432,7 +439,7 @@
 </ul></section></section><section class="level2"><h3 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a>
 </h3>
 <ul>
-<li><a href="theory-DeCovarT-MLE-properties.html">MLE properties</a></li>
+<li><a href="theory-population-inference.html">MLE properties</a></li>
 <li><a href="supp-S2-covariance-inversion.html">Appendix S2 — Covariance inversion</a></li>
 <li><a href="supp-S3-scaling.html">Appendix S3 — Solver scalability</a></li>
 <li><a href="theory-synthetic-scenarios-mean-covariance.html">How to build synthetic scenarios</a></li>

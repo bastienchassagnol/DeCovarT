@@ -53,18 +53,25 @@
     <li><a class="dropdown-item" href="../articles/theory-network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
     <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: population-level references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-generative-optimisation.html"><span class="fa fa-square-root-variable"></span> Generative model, derivatives and optimisation</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-inference.html"><span class="fa fa-chart-area"></span> MLE properties and confidence intervals</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: single-cell references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-generative-optimisation.html"><span class="fa fa-align-left"></span> Reference moments, alignment strategies and the profile fit</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-inference.html"><span class="fa fa-chart-line"></span> Profile information, intervals and the REML calibration</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Synthetic scenarios</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><a class="dropdown-item" href="../articles/theory-distance-covariance.html"><span class="fa fa-ruler"></span> Distances, overlap, and covariance information</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/fig03-covariance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig05-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> § 2.4 · Single-cell, two lineages (J = 4, G = 20 or 200)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> Inference: MLE properties, intervals and a GLM formulation</a></li>
     <li><a class="dropdown-item" href="../articles/theory-review-distribution-aware-deconvolution.html"><span class="fa fa-book"></span> Review: deconvolution with reference distributions</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-tailored.html"><span class="fa fa-align-left"></span> DeCovarT tailored to single-cell references</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-bayesian-wiener.html"><span class="fa fa-wave-square"></span> Bayesian DeCovarT: latent profiles and the Wiener filter</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-extensions-roadmap.html"><span class="fa fa-compass"></span> Extensions roadmap: lineages, covariates, modalities</a></li>
     <li><a class="dropdown-item" href="../articles/theory-mixture-regression-applications.html"><span class="fa fa-flask-vial"></span> DeCovarT as a mixture model: designed mixture experiments</a></li>
@@ -101,9 +108,9 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.svg" class="logo" alt=""><h1>2.2 Covariance-driven scenario (G = 20, J = 3)</h1>
-      <p class="subtitle">Full script: <code>scripts/fig03_variance_driven.R</code></p>
+      <p class="subtitle">Full script: <code>scripts/fig03_variance_covariance_driven.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-22</p>
+      <p class="date">2026-10-27</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/fig03-covariance-driven.qmd" class="external-link"><code>vignettes/fig03-covariance-driven.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -118,12 +125,12 @@
 <div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">DeCovarT</a></span><span class="op">)</span></span></code></pre></div>
 </div>
-<p>The bivariate toy confirms the theoretical benefit of covariance modelling in a transparent setting but cannot demonstrate realistic gene-regulatory network (GRN) topology. This scenario uses <span class="math inline">G = 20</span> genes and <span class="math inline">J = 3</span> cell types in which types 1 and 2 are <strong>mean-collinear</strong> (<span class="math inline">\cos(\boldsymbol{\mu}_{\cdot 1},\boldsymbol{\mu}_{\cdot 2})=0.9</span>): the network topology encoded in <span class="math inline">\boldsymbol{\Sigma}_j</span> is the remaining discriminative signal. Construction, ADEMP benchmark, and the static network figure live in a <strong>single</strong> script, <code>scripts/fig03_variance_driven.R</code> (seed <code>20260807</code>).</p>
+<p>The bivariate toy confirms the theoretical benefit of covariance modelling in a transparent setting but cannot demonstrate realistic gene-regulatory network (GRN) topology. This scenario uses <span class="math inline">G = 20</span> genes and <span class="math inline">J = 3</span> cell types in which types 1 and 2 are <strong>mean-collinear</strong> (<span class="math inline">\cos(\boldsymbol{\mu}_{\cdot 1},\boldsymbol{\mu}_{\cdot 2})=0.9</span>): the network topology encoded in <span class="math inline">\boldsymbol{\Sigma}_j</span> is the remaining discriminative signal. Construction, ADEMP benchmark, and the static network figure live in a <strong>single</strong> script, <code>scripts/fig03_variance_covariance_driven.R</code> (seed <code>20260807</code>).</p>
 <div id="fig-covariance-design" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-covariance-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="fig03-covariance-driven_files/mediabag/fig-covariance-design.svg">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-covariance-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca"><p>Figure 1: Covariance-driven factorial: one fixed Gram (cosines 0.9 / 0.1), a 2-by-2 graph assignment on the mean-collinear types (scale-free versus cluster SBM; type 3 held at scale-free), three target MixSim average overlaps, three Shannon compositions, and five solvers (4 x 3 x 3 = 36 scenarios).</p>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-covariance-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca"><p>Figure 1: Covariance-driven factorial: one fixed Gram (cosines 0.9 / 0.1), a 2-by-2 graph assignment on the mean-collinear types (scale-free versus cluster SBM; type 3 held at scale-free), three target MixSim average overlaps, three Shannon compositions (4 x 3 x 3 = 36 scenarios), analysed by eight methods.</p>
 </figcaption></figure>
 </div>
 <div class="cell" data-eval="true" data-layout-align="default">
@@ -243,7 +250,7 @@ Table 1: Exact pairwise geometry of the <span class="math inline">20\times 3</s
 <li>
 <strong>Cluster / stochastic block model</strong> (<code>graph_model = "stochastic_block_model"</code>): three blocks with probabilities <span class="math inline">(0.5,0.25,0.25)</span>, <span class="math inline">p_{\mathrm{within}}=0.25</span>, <span class="math inline">p_{\mathrm{between}}=0.01</span>.</li>
 </ul>
-<p>Erdős–Rényi is not used. Type 3, already separated by the Gram (<span class="math inline">R_{13}=R_{23}=0.1</span>), is held at scale-free, so the topology factorial is <span class="math inline">2^{2}=4</span> assignments on CT1 and CT2. Those generator names and parameter lists are stored on every row of <code>hybrid_config.rds</code> as <code>graph_ct1</code> / <code>graph_ct2</code> / <code>graph_ct3</code> and the list-column <code>graph_generators</code>, and again inside each <code>true_theta</code>.</p>
+<p>Erdős–Rényi is not used. Type 3, already separated by the Gram (<span class="math inline">R_{13}=R_{23}=0.1</span>), is held at scale-free, so the topology factorial is <span class="math inline">2^{2}=4</span> assignments on CT1 and CT2. Those generator names and parameter lists are stored on every row of the <code>config</code> element of <code>output/fig03/fig03_benchmark.rds</code> as <code>graph_ct1</code> / <code>graph_ct2</code> / <code>graph_ct3</code> and the list-column <code>graph_generators</code>; the true moments of each scenario are in its <code>theta_true</code> element.</p>
 <p>The spectral cushion <span class="math inline">u</span> used at completion is now a <strong>fixed</strong> engineering constant (<code>PRECISION_SHIFT_BASE = 0.2</code>) so that each graph has one SPD precision. The experimental knob is a global covariance scale <span class="math inline">s</span>: <span class="math inline">\boldsymbol{\Sigma}_j\mapsto s\boldsymbol{\Sigma}_j</span> keeps every structural zero of <span class="math inline">\boldsymbol{\Omega}_j</span> because <span class="math inline">\boldsymbol{\Omega}_j(s)=\boldsymbol{\Omega}_j/s</span>. <code><a href="../reference/scale_covariances_to_overlap.html">scale_covariances_to_overlap()</a></code> searches <span class="math inline">s</span> so that MixSim <code>BarOmega</code> matches a target in <span class="math inline">\{0.02,0.08,0.20\}</span> (low / moderate / high), using Sobol Monte Carlo for <span class="math inline">G=20</span> (<a href="theory-distance-covariance.html#sec-fig03-scale">overlap note</a>). This is the graph-constrained analogue of MixSim / FSDA average-overlap simulation (<a href="https://cran.r-project.org/web/packages/MixSim/refman/MixSim.html#MixSim" class="external-link">CRAN MixSim</a>; <span class="citation" data-cites="melnykovMixSimPackageSimulating2012 rianiSimulatingMixturesMultivariate2015">(<a href="#ref-melnykovMixSimPackageSimulating2012" role="doc-biblioref">Melnykov et al. 2012</a>; <a href="#ref-rianiSimulatingMixturesMultivariate2015" role="doc-biblioref">Riani et al. 2015</a>)</span>): we do <strong>not</strong> call <code>MixSim()</code> as a generator, because it cannot take a precision support as input.</p>
 <p>Larger <span class="math inline">s</span> also raises the covariance-information fraction <span class="math inline">f_{\mathrm{cov}}</span> (mean Fisher scales as <span class="math inline">1/s</span>; the covariance block is scale-invariant). See the <a href="theory-synthetic-scenarios-mean-covariance.html#nte-desc-fisher">tangent-Fisher callout</a>.</p>
 <div id="tbl-cov-factorial" class="quarto-float quarto-figure quarto-figure-center">
@@ -300,6 +307,10 @@ Figure 3: Two generator examples on <span class="math inline">G=20</span> nodes
 </ul></section><section class="section level2"><h2 id="sec-hybrid-deconvolution">Inference<a class="anchor" aria-label="anchor" href="#sec-hybrid-deconvolution"></a>
 </h2>
 <p>Compositions are one-dominant vectors from <code><a href="../reference/composition_from_entropy.html">composition_from_entropy()</a></code> targeting normalised Shannon entropy <span class="math inline">H^{\star}\in\{1,0.5,0.1\}</span> (balanced; moderately unbalanced; highly unbalanced). All DeCovarT solvers start at the barycentre (<code>initial_p = "barycentre"</code>). Other initialisation strategies are reserved for separate scenarios.</p>
+<div id="tbl-composition-factor" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-composition-factor-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 3: Composition factor.
+</figcaption><div aria-describedby="tbl-composition-factor-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table caption-top">
 <colgroup>
 <col style="width: 50%">
@@ -318,79 +329,242 @@ Figure 3: Two generator examples on <span class="math inline">G=20</span> nodes
 </td>
 </tr>
 <tr class="even">
-<td>Algorithms</td>
-<td>DeconRNASeq (<code>lsei</code>), CIBERSORT, L-BFGS-B, Newton–Raphson, Marquardt–Levenberg</td>
-</tr>
-<tr class="odd">
 <td><strong>Total scenarios</strong></td>
 <td><span class="math inline">4\times 3\times 3=\mathbf{36}</span></td>
-</tr>
-</tbody>
-</table>
-<p><span class="math inline">N = 50</span> Monte Carlo replicates per scenario.</p>
-<div id="tbl-solver-hybrid" class="quarto-float quarto-figure quarto-figure-center">
-<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-solver-hybrid-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 3: Solvers used in the covariance-driven comparison.
-</figcaption><div aria-describedby="tbl-solver-hybrid-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="table caption-top">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 30%">
-<col style="width: 36%">
-</colgroup>
-<thead><tr class="header">
-<th style="text-align: left;">Algorithm</th>
-<th style="text-align: left;">Function</th>
-<th style="text-align: left;">Constraint</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">QP (<code>DeconRNASeq</code>-style)</td>
-<td style="text-align: left;"><code>deconvolute_ratios_deconrnaseq</code></td>
-<td style="text-align: left;">simplex equality / inequality</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">CIBERSORT-style <span class="math inline">\nu</span>-SVR</td>
-<td style="text-align: left;"><code>deconvolute_ratios_cibersort</code></td>
-<td style="text-align: left;">non-negative then <code><a href="../reference/repair_simplex.html">repair_simplex()</a></code>
-</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">L-BFGS-B</td>
-<td style="text-align: left;"><code>deconvolute_ratios_L_BFGS_B</code></td>
-<td style="text-align: left;">ILR <span class="math inline">\to</span> open simplex</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Newton–Raphson</td>
-<td style="text-align: left;"><code>deconvolute_ratios_Newton_Raphson</code></td>
-<td style="text-align: left;">ILR / <code>nlminb</code>
-</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Marquardt–Levenberg</td>
-<td style="text-align: left;"><code>deconvolute_ratios_Marquardt_Levenberg</code></td>
-<td style="text-align: left;">ILR <span class="math inline">\to</span> open simplex</td>
 </tr>
 </tbody>
 </table>
 </div>
 </figure>
 </div>
-<p>Mean-only baselines (LSEI, CIBERSORT) ignore <span class="math inline">\boldsymbol{\Sigma}_j</span>. The three DeCovarT maps use the same convolution likelihood. The shipped catalogue (robust linear model, GLS, BFGS, simulated annealing) is listed in <a href="../reference/deconvolute_ratios.html"><code>deconvolute_ratios()</code></a>.</p>
+<p>The run size is read from environment variables, so the dry run and the production run share one script:</p>
+<div id="tbl-run-size" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-run-size-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 4: Run-size variables of <code>scripts/fig03_variance_covariance_driven.R</code>.
+</figcaption><div aria-describedby="tbl-run-size-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table caption-top">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead><tr class="header">
+<th>Variable</th>
+<th>Meaning</th>
+<th>Default</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code>DECOVART_N_REPLICATES</code></td>
+<td>Monte Carlo bulks per scenario, <span class="math inline">N</span>
+</td>
+<td>100</td>
+</tr>
+<tr class="even">
+<td><code>DECOVART_N_BOOT</code></td>
+<td>parametric-bootstrap refits per bulk, <span class="math inline">B</span>
+</td>
+<td>200</td>
+</tr>
+<tr class="odd">
+<td><code>DECOVART_N_REFERENCE</code></td>
+<td>individuals of the reference panel, <span class="math inline">R</span>
+</td>
+<td><span class="math inline">N</span></td>
+</tr>
+<tr class="even">
+<td><code>DECOVART_CORES</code></td>
+<td>workers of the per-sample loop</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td><code>DECOVART_POSTPROCESS_ONLY</code></td>
+<td>
+<code>1</code> redraws the figures from the saved benchmark</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Parallel workers load the <strong>installed</strong> DeCovarT, so run <code>devtools::install()</code> before setting <code>DECOVART_CORES</code> above 1.</p>
+<section class="level2"><h3 id="sec-hybrid-methods">Methods<a class="anchor" aria-label="anchor" href="#sec-hybrid-methods"></a>
+</h3>
+<p>Every method is scored on the same simulated bulks. Feature selection is switched off everywhere: all <span class="math inline">G=20</span> genes enter every fit.</p>
+<div id="tbl-solver-hybrid" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-solver-hybrid-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 5: Methods of the covariance-driven benchmark.
+</figcaption><div aria-describedby="tbl-solver-hybrid-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table caption-top">
+<colgroup>
+<col style="width: 18%">
+<col style="width: 40%">
+<col style="width: 15%">
+<col style="width: 25%">
+</colgroup>
+<thead><tr class="header">
+<th style="text-align: left;">Method</th>
+<th style="text-align: left;">Function or code</th>
+<th style="text-align: left;">Input</th>
+<th style="text-align: left;">Intervals</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">
+<code>lsei</code> (DeconRNASeq)</td>
+<td style="text-align: left;"><code><a href="../reference/deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_deconrnaseq()</a></code></td>
+<td style="text-align: left;">true means</td>
+<td style="text-align: left;">none</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">NNLS</td>
+<td style="text-align: left;"><code><a href="../reference/deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_nnls()</a></code></td>
+<td style="text-align: left;">true means</td>
+<td style="text-align: left;">none</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">RLM (robust linear model)</td>
+<td style="text-align: left;"><code><a href="../reference/deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_rlm()</a></code></td>
+<td style="text-align: left;">true means</td>
+<td style="text-align: left;">none</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">CIBERSORT (<span class="math inline">\nu</span>-SVR)</td>
+<td style="text-align: left;"><code><a href="../reference/deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_cibersort()</a></code></td>
+<td style="text-align: left;">true means</td>
+<td style="text-align: left;">none</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Newton–Raphson</td>
+<td style="text-align: left;"><code><a href="../reference/deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_Newton_Raphson()</a></code></td>
+<td style="text-align: left;">true moments</td>
+<td style="text-align: left;">Wald, ILR, profile, bootstrap, oracle</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">L-BFGS-B</td>
+<td style="text-align: left;"><code><a href="../reference/deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_L_BFGS_B()</a></code></td>
+<td style="text-align: left;">true moments</td>
+<td style="text-align: left;">Wald, ILR, profile, bootstrap</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Firth</td>
+<td style="text-align: left;"><code><a href="../reference/fit_firth_decovart.html">fit_firth_decovart()</a></code></td>
+<td style="text-align: left;">true moments</td>
+<td style="text-align: left;">Wald, ILR</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">MEAD</td>
+<td style="text-align: left;">
+<code>MEAD::MEAD()</code> (GitHub, commit <code>d66fa10</code>)</td>
+<td style="text-align: left;">reference panel, cohort of <span class="math inline">N</span> bulks</td>
+<td style="text-align: left;">native sandwich interval</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">RNA-Sieve</td>
+<td style="text-align: left;">
+<code>rnasieve</code> 0.1.4 (Python)</td>
+<td style="text-align: left;">reference panel, cohort of <span class="math inline">N</span> bulks</td>
+<td style="text-align: left;">released, Fisher and Godambe (see below)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ReDeconv</td>
+<td style="text-align: left;">
+<code>redeconv</code> 1.2.1 (Python)</td>
+<td style="text-align: left;">true means and standard deviations</td>
+<td style="text-align: left;">none</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<ul>
+<li>
+<strong><code>lsei</code> and NNLS.</strong> NNLS followed by renormalisation is least squares on the simplex with a <strong>free</strong> scale (<span class="math inline">\boldsymbol\beta=c\boldsymbol p</span>, <span class="math inline">c=\mathbf 1^{\top}\boldsymbol\beta</span>); <code>lsei</code> fixes <span class="math inline">c=1</span>. They agree only when <span class="math inline">\hat c=1</span>. In population scenarios the true scale is 1, so <code>lsei</code> uses information NNLS discards; both are run, to show the difference. On 500 bulks of a design like this one with <span class="math inline">\boldsymbol p=(0.84,0.08,0.08)</span>, the largest coordinate difference between the two has median <span class="math inline">0.03</span>, 95th percentile <span class="math inline">0.11</span> and maximum <span class="math inline">0.19</span>.</li>
+<li>
+<strong>L-BFGS-B</strong> runs on the closure chart <span class="math inline">\boldsymbol p=\boldsymbol w/\mathbf
+1^{\top}\boldsymbol w</span> with the box <span class="math inline">\boldsymbol w\ge 0</span> (<a href="theory-population-generative-optimisation.html#sec-closure-box">closure chart</a>): it maximises the convolution likelihood itself, reaches exact zeros, and its box KKT points are the simplex KKT points.</li>
+<li>
+<strong>Firth</strong> maximises the Jeffreys-penalised likelihood <span class="citation" data-cites="firthBiasReductionMaximum1993">(<a href="#ref-firthBiasReductionMaximum1993" role="doc-biblioref">Firth 1993</a>)</span>; its estimate is the same for both optimisers, so it appears once.</li>
+<li>
+<strong>Second-generation methods</strong> run from their authors’ code, with gene selection and preprocessing filters off and the other defaults kept (<code>scripts/benchmark_metrics/second_generation_methods.R</code>; the Python ones through a <code>uv</code> project in <code>scripts/benchmark_metrics/python/</code>, exchanging CSV files with R). MEAD and RNA-Sieve read a reference panel of <span class="math inline">R</span> purified profiles per type drawn <strong>independently</strong> of the bulks (<code><a href="../reference/simulate_reference_replicates.html">simulate_reference_replicates()</a></code>, its own seed), and are fitted on the cohort of the <span class="math inline">N</span> bulks of a scenario, whereas DeCovarT fits one bulk at a time.
+<ul>
+<li>MEAD rescales every reference profile to a unit total, so its proportions are transcript fractions; its intervals are scored against both the cell and the transcript fractions.</li>
+<li>The released interval code of RNA-Sieve returns <span class="math inline">[0,1]</span> whenever its averaged Hessian has a condition number above <span class="math inline">10^{6}</span> (<code>stats.py</code>, lines 224 and 234 of version 0.1.4): it then computes <span class="math inline">\boldsymbol H\boldsymbol B\boldsymbol H^{\top}</span> instead of <span class="math inline">\boldsymbol H^{-1}\boldsymbol B\boldsymbol H^{-\top}</span> on a gene subsample. The runner also returns the two intervals of the paper, recomputed on all genes with the package’s own per-gene scores and averaged Hessian: Fisher (<span class="math inline">\boldsymbol B^{-1}/G</span>, the empirical Fisher information) and Godambe (<span class="math inline">\boldsymbol H^{-1}\boldsymbol B\boldsymbol H^{-\top}/G</span>), with <span class="math inline">\alpha_K=1-\sum_{k&lt;K}\alpha_k</span>. In the latest dry run the faulty branch never fired, so the released and Godambe intervals coincide; RNA-Sieve’s solver converged in all 36 scenarios of that run, but failed in one to three of them in earlier draws (recorded as a numerical failure, a grey tile in the heatmaps).</li>
+<li>DECALS has no public implementation and is not run; its point estimate, constrained least squares solved as a quadratic programme, is the <code>lsei</code> baseline.</li>
+</ul>
+</li>
+</ul></section><section class="level2"><h3 id="sec-hybrid-intervals">Interval constructions<a class="anchor" aria-label="anchor" href="#sec-hybrid-intervals"></a>
+</h3>
+<div id="tbl-interval-menu" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-interval-menu-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 6: Interval menu (<a href="theory-population-inference.html">population inference</a>).
+</figcaption><div aria-describedby="tbl-interval-menu-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table caption-top">
+<colgroup>
+<col style="width: 41%">
+<col style="width: 58%">
+</colgroup>
+<thead><tr class="header">
+<th style="text-align: left;">Interval</th>
+<th style="text-align: left;">Construction</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>wald</code></td>
+<td style="text-align: left;">delta method on <span class="math inline">\boldsymbol p</span>, symmetric</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>ilr</code></td>
+<td style="text-align: left;">Wald interval in ILR coordinates mapped back to the simplex</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>profile</code></td>
+<td style="text-align: left;">likelihood-ratio inversion; chart-invariant, inside <span class="math inline">[0,1]</span>
+</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>bootstrap</code></td>
+<td style="text-align: left;">percentile interval of a parametric bootstrap refitted by the same optimiser</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>oracle</code></td>
+<td style="text-align: left;">
+<span class="math inline">\hat p_j\pm</span> the Wald half-width at <span class="math inline">\boldsymbol p^{\star}</span> (Fisher at the truth)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Coverage is reported with a Wilson Monte Carlo interval <span class="citation" data-cites="morrisUsingSimulationStudies2019">(<a href="#ref-morrisUsingSimulationStudies2019" role="doc-biblioref">Morris et al. 2019</a>)</span>; the interval table also gives the mean and median width and the share of intervals leaving <span class="math inline">[0,1]</span>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">N_REPLICATES</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"N_REPLICATES"</span>, unset <span class="op">=</span> <span class="st">"50"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">ALGORITHMS</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>  <span class="st">"lsei"</span>,</span>
-<span>  <span class="st">"cibersort"</span>,</span>
-<span>  <span class="st">"LBFGS"</span>,</span>
-<span>  <span class="st">"Newton-Raphson"</span>,</span>
-<span>  <span class="st">"Marquardt-Levenberg"</span></span>
-<span><span class="op">)</span></span>
-<span><span class="co"># Full pipeline: Rscript scripts/fig03_variance_driven.R</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># Dry run (about two minutes):</span></span>
+<span><span class="co">#   DECOVART_N_REPLICATES=5 DECOVART_N_BOOT=5 \</span></span>
+<span><span class="co">#     Rscript scripts/fig03_variance_covariance_driven.R</span></span>
+<span><span class="va">benchmark</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/fig03/fig03_benchmark.rds"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">benchmark</span><span class="op">)</span></span>
+<span><span class="co">#&gt; meta config theta_true descriptors supplementary regression</span></span>
+<span><span class="co">#&gt; monte_carlo optimisation intervals data</span></span>
+<span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">benchmark</span><span class="op">$</span><span class="va">intervals</span>, <span class="va">is_composition</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">ID</span>, <span class="va">algorithm</span>, <span class="va">ci_method</span>, <span class="va">parameter</span>, <span class="va">coverage</span>, <span class="va">mean_width</span><span class="op">)</span></span></code></pre></div>
 </div>
-</section><section class="section level2"><h2 id="sec-hybrid-viz">Visualisations<a class="anchor" aria-label="anchor" href="#sec-hybrid-viz"></a>
+</section></section><section class="section level2"><h2 id="sec-hybrid-viz">Visualisations<a class="anchor" aria-label="anchor" href="#sec-hybrid-viz"></a>
 </h2>
+<p>Every figure is redrawn from two files in <code>output/fig03/</code>: <code>fig03_benchmark.rds</code> (run settings, design, true parameters and every metric table) and <code>fig03_plot_data.rds</code>, a list keyed by figure file stem that holds the data handed to each plot function.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"scripts/visualisation/load_visualisation.R"</span><span class="op">)</span></span>
+<span><span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/fig03/fig03_plot_data.rds"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">plot_data</span><span class="op">)</span></span>
+<span><span class="fu">render_figure_from_data</span><span class="op">(</span><span class="st">"ci_width_forest"</span>, <span class="va">plot_data</span>, <span class="st">"output/fig03"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="tbl-fig03-books" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-fig03-books-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table 7: Plot books of the covariance-driven scenario.
+</figcaption><div aria-describedby="tbl-fig03-books-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table caption-top">
 <colgroup>
 <col style="width: 50%">
@@ -402,137 +576,148 @@ Table 3: Solvers used in the covariance-driven comparison.
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><code>output/fig03/density_visualisations/mean_signature.pdf</code></td>
-<td>Unscaled () heatmap</td>
+<td><code>density_visualisations/mean_signature.pdf</code></td>
+<td>Unscaled <span class="math inline">\boldsymbol{\mu}</span> heatmap</td>
 </tr>
 <tr class="even">
-<td><code>output/fig03/density_visualisations/latent_projections.pdf</code></td>
-<td>16-page 2D latent-space book (Thomson / MCFA / <code>MclustDR</code>)</td>
+<td><code>density_visualisations/network_topologies.pdf</code></td>
+<td>Graph skeletons, one page per overlap target; edges coloured by <span class="math inline">\Sigma_{ij}</span>, nodes by SBM block with a thin black outline, scale-free hubs ringed</td>
 </tr>
 <tr class="odd">
-<td><code>output/fig03/density_visualisations/loglik_rgl.pdf</code></td>
-<td>3D ALR relative likelihood (<code>rgl</code>, log10 <span class="math inline">L/\max L</span>; white diamond <span class="math inline">p^{\star}</span>, red MLE, 3D legend)</td>
+<td><code>density_visualisations/scenario_metrics.pdf</code></td>
+<td>Scenario descriptors as shapes, one geometry and palette per column group, each column min–max scaled; the conditioning of the mean signature, shared by the scenarios, is in the caption</td>
 </tr>
 <tr class="even">
-<td><code>output/fig03/density_visualisations/loglik_expected_surface_p.pdf</code></td>
-<td>Expected log-likelihood on the ALR plane</td>
+<td>
+<code>density_visualisations/scenario_metrics_table.html</code>, <code>.pdf</code>
+</td>
+<td>The same descriptors as numbers (reactable, tinytable); the PDF marks the easiest value of each column in green and the hardest in red, and shades three columns (entropy, mean overlap, condition number)</td>
 </tr>
 <tr class="odd">
-<td><code>output/fig03/density_visualisations/network_topologies.pdf</code></td>
-<td>Graph skeletons, one page per MixSim overlap</td>
+<td><code>density_visualisations/latent_projections.pdf</code></td>
+<td>PCA of the pooled purified profiles, with a scree inset (share of the variance of the first ten components), and supervised <code>MclustDR</code> plane</td>
 </tr>
 <tr class="even">
-<td><code>output/fig03/performance_visualisations/heatmap_rmse.pdf</code></td>
-<td>RMSE tiles</td>
+<td><code>density_visualisations/pairwise_network_aware_distances.pdf</code></td>
+<td>Pairwise discrepancy of the purified laws</td>
 </tr>
 <tr class="odd">
-<td><code>output/fig03/performance_visualisations/heatmap_aitchison.pdf</code></td>
-<td>Aitchison tiles</td>
+<td><code>density_visualisations/loglik_surface_p.pdf</code></td>
+<td>Log-likelihood of one bulk on the balance plane <span class="math inline">1\mid2</span>, <span class="math inline">\{1,2\}\mid3</span>
+</td>
 </tr>
 <tr class="even">
-<td><code>output/fig03/performance_visualisations/raincloud.pdf</code></td>
-<td>Monte Carlo <span class="math inline">\hat{\boldsymbol{p}}</span> rainclouds (legend at the bottom)</td>
-</tr>
-<tr class="odd">
-<td><code>output/fig03/performance_visualisations/dotsinterval.pdf</code></td>
-<td>Quantile-dot companion (no bounded KDE slab)</td>
-</tr>
-<tr class="even">
-<td><code>output/fig03/performance_visualisations/forest.pdf</code></td>
-<td>ADEMP Wald forest</td>
-</tr>
-<tr class="odd">
-<td><code>output/fig03/performance_visualisations/kkt_raincloud.pdf</code></td>
-<td>Projected-score KKT residual rainclouds</td>
-</tr>
-<tr class="even">
-<td><code>output/fig03/performance_visualisations/convergence_stacked.pdf</code></td>
-<td>Theoretical success / numerical / theoretical failure</td>
-</tr>
-<tr class="odd">
-<td><code>output/fig03/performance_visualisations/qq_normal.pdf</code></td>
-<td>Whitened ILR versus <span class="math inline">N(0,1)</span> (TS band)</td>
-</tr>
-<tr class="even">
-<td><code>output/fig03/performance_visualisations/qq_chi2.pdf</code></td>
-<td>Joint <span class="math inline">D^{2}</span> versus <span class="math inline">\chi^{2}_{J-1}</span>
+<td><code>density_visualisations/loglik_expected_surface_p.pdf</code></td>
+<td>Expected log-likelihood; red point = Monte Carlo mean of <span class="math inline">\hat{\boldsymbol p}</span>
 </td>
 </tr>
 <tr class="odd">
-<td><code>output/fig03/performance_visualisations/ks_normal.pdf</code></td>
-<td>KS lollipops versus <span class="math inline">N(0,1)</span> (reject below <span class="math inline">0.05</span>)</td>
+<td><code>density_visualisations/loglik_rgl.pdf</code></td>
+<td>3D relative likelihood (<code>rgl</code>)</td>
 </tr>
 <tr class="even">
-<td><code>output/fig03/performance_visualisations/runtime.pdf</code></td>
-<td>Solver wall-clock (log10 seconds)</td>
+<td>
+<code>performance_visualisations/heatmap_rmse.pdf</code>, <code>heatmap_aitchison.pdf</code>
+</td>
+<td>RMSE and Aitchison tiles; grey = no finite estimate (solver failure)</td>
 </tr>
 <tr class="odd">
-<td><code>output/fig03/performance_visualisations/memory.pdf</code></td>
-<td>Peak memory (log10 MiB)</td>
+<td><code>performance_visualisations/ci_width_forest.pdf</code></td>
+<td>Mean interval, coverage [Wilson interval] and width, one page per scenario and cell type; RNA-Sieve released, Fisher and Godambe rows</td>
+</tr>
+<tr class="even">
+<td><code>performance_visualisations/p_hat_monte_carlo_raincloud.pdf</code></td>
+<td>Monte Carlo law of <span class="math inline">\hat{\boldsymbol{p}}</span>
+</td>
+</tr>
+<tr class="odd">
+<td><code>performance_visualisations/p_hat_monte_carlo_quantile_dots.pdf</code></td>
+<td>The same law as quantile dots</td>
+</tr>
+<tr class="even">
+<td><code>performance_visualisations/kkt_residual_raincloud.pdf</code></td>
+<td>Projected-score KKT residual</td>
+</tr>
+<tr class="odd">
+<td><code>performance_visualisations/convergence_theoretical_vs_numerical_failures.pdf</code></td>
+<td>Theoretical success, numerical failure, theoretical failure</td>
+</tr>
+<tr class="even">
+<td><code>performance_visualisations/wald_normality_qq.pdf</code></td>
+<td>Whitened ILR estimate against <span class="math inline">N(0,1)</span>
+</td>
+</tr>
+<tr class="odd">
+<td><code>performance_visualisations/wald_mahalanobis_chi2_qq.pdf</code></td>
+<td>
+<span class="math inline">D^{2}</span> against <span class="math inline">\chi^{2}_{J-1}</span>, <span class="math inline">\log_{10}</span> axes, coloured by convergence</td>
+</tr>
+<tr class="even">
+<td><code>performance_visualisations/estimate_agreement_hellinger_ward.pdf</code></td>
+<td>Mean Hellinger distance between paired estimates, Ward clustering; dashed line at the mean over method pairs</td>
+</tr>
+<tr class="odd">
+<td><code>performance_visualisations/rmse_colour_aitchison_size_dots.pdf</code></td>
+<td>Colour = RMSE, size = Aitchison distance</td>
+</tr>
+<tr class="even">
+<td>
+<code>performance_visualisations/runtime.pdf</code>, <code>memory.pdf</code>
+</td>
+<td>
+<span class="math inline">\log_{10}</span> seconds and <span class="math inline">\log_{10}</span> MiB</td>
 </tr>
 </tbody>
 </table>
-<p>Redraw with <code>FIG03_POSTPROCESS_ONLY=1 Rscript scripts/fig03_variance_driven.R</code> (no ADEMP refit). ggplot <code>data</code> tables go under <code>output/fig03/ggplot_rds/</code>.</p>
+</div>
+</figure>
+</div>
+<p>Redraw every book without refitting with <code>DECOVART_POSTPROCESS_ONLY=1 Rscript scripts/fig03_variance_covariance_driven.R</code>.</p>
 <section class="level2"><h3 id="sec-hybrid-2d-proj">Two-dimensional projections of a Gaussian convolution<a class="anchor" aria-label="anchor" href="#sec-hybrid-2d-proj"></a>
 </h3>
-<p>With (G=20) the purified Gaussians and the bulk convolution are no longer drawable in the gene plane. The 16-page book <code>latent_projections.pdf</code> therefore maps each selected scenario to a 2D latent display. Pages keep the <strong>lowest and highest</strong> MixSim overlap (low / high; the moderate arm is omitted) and the <strong>highest and lowest</strong> Shannon entropy of () (balanced versus highly unbalanced), crossed with the four CT1/CT2 graph assignments ((2=16)). Each page is a (3) of scatterplots with 95% Gaussian ellipses, cell-type colour, axis labels that report the share of variability on the first two coordinates, a transparent cowplot scree inset of the first ten scaled eigenvalues, and a six-line footnote for panels A–F. Square panels use a unit aspect ratio (not <code>coord_equal</code>), so unequal factor-score ranges no longer squash the shared-plane row.</p>
-<p>The three routes below all return an ordered set of eigenvalues that summarise how much variability sits in the plotted plane. They are <strong>not</strong> interchangeable with the DeCovarT likelihood: the bulk profile is a <strong>convolution</strong> of Gaussians, not a Gaussian mixture.</p>
+<p>With <span class="math inline">G=20</span> the purified Gaussians and the bulk convolution are no longer drawable in the gene plane. <code>latent_projections.pdf</code> maps each selected scenario (lowest and highest overlap, balanced and highly unbalanced composition, four graph assignments) to two planes.</p>
 <div id="nte-conv-not-gmm">
 <div class="decovart-callout callout-warning">
 <blockquote>
 <p><strong>Warning 1</strong></p>
-<p>A <span class="math inline">J</span>-type bulk draw is <span class="math inline">Y\mid\boldsymbol{p}\sim\mathcal{N}\bigl(\boldsymbol{\mu}(\boldsymbol{p}),\boldsymbol{\Sigma}(\boldsymbol{p})\bigr)</span> with <span class="math inline">\boldsymbol{\mu}(\boldsymbol{p})=\sum_j p_j\boldsymbol{\mu}_{\cdot j}</span> and <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j</span>. Every observation is a weighted sum of <strong>all</strong> types (<a href="../reference/simulate_bulk_mixture.html"><code>simulate_bulk_mixture()</code></a>). A finite mixture instead draws a latent label and then one component, <span class="math inline">f(\boldsymbol{y})=\sum_k\pi_k\,\phi(\boldsymbol{y};\boldsymbol{\mu}_k,\boldsymbol{\Sigma}_k)</span>, with mixing weights () (not (^2)). <code>MclustDR</code> and mixtures of factor analysers target that mixture. Their (_k) are not cell-type proportions, and their component densities are not the convolution law used for deconvolution.</p>
+<p>A <span class="math inline">J</span>-type bulk draw is <span class="math inline">Y\mid\boldsymbol{p}\sim\mathcal{N}\bigl(\boldsymbol{\mu}(\boldsymbol{p}),\boldsymbol{\Sigma}(\boldsymbol{p})\bigr)</span> with <span class="math inline">\boldsymbol{\mu}(\boldsymbol{p})=\sum_j p_j\boldsymbol{\mu}_{\cdot j}</span> and <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j</span>. Every observation is a weighted sum of <strong>all</strong> types (<a href="../reference/simulate_bulk_mixture.html"><code>simulate_bulk_mixture()</code></a>). A finite mixture instead draws a latent label and then one component, <span class="math inline">f(\boldsymbol{y})=\sum_k\pi_k\,\phi(\boldsymbol{y};\boldsymbol{\mu}_k,\boldsymbol{\Sigma}_k)</span>, with mixing weights <span class="math inline">\boldsymbol{p}</span> (not <span class="math inline">\boldsymbol{p}^2</span>). <code>MclustDR</code> targets that mixture. Its <span class="math inline">\pi_k</span> are not cell-type proportions, and its component densities are not the convolution law used for deconvolution.</p>
 </blockquote>
 </div>
 </div>
-<section class="level3"><h4 id="independent-factor-analyses-per-cell-type">Independent factor analyses per cell type<a class="anchor" aria-label="anchor" href="#independent-factor-analyses-per-cell-type"></a>
+<section class="level3"><h4 id="principal-components-of-the-purified-profiles">Principal components of the purified profiles<a class="anchor" aria-label="anchor" href="#principal-components-of-the-purified-profiles"></a>
 </h4>
-<p>The top row fits a two-factor Gaussian factor model <strong>separately</strong> to purified draws from each type (<code><a href="https://rdrr.io/r/stats/factanal.html" class="external-link">stats::factanal()</a></code>, Thomson / regression scores <span class="citation" data-cites="thomsonMethodsEstimatingMental1938">(<a href="#ref-thomsonMethodsEstimatingMental1938" role="doc-biblioref">Thomson 1938</a>)</span>). The orthogonal-factor model is <span class="math inline">\boldsymbol{x}=\boldsymbol{\mu}+\Lambda\boldsymbol{f}+\boldsymbol{\varepsilon}</span> with <span class="math inline">\boldsymbol{f}\sim N(\boldsymbol{0},I)</span> and diagonal uniquenesses <span class="math inline">\Psi</span>, so <span class="math inline">\boldsymbol{\Sigma}=\Lambda\Lambda^\top+\Psi</span>. Thomson scores are the posterior mean <span class="math inline">\hat{\boldsymbol{f}}_R=E[\boldsymbol{f}\mid\boldsymbol{x}]=\Lambda^\top\boldsymbol{\Sigma}^{-1}(\boldsymbol{x}-\boldsymbol{\mu})</span>. That is the natural probabilistic answer to “where does this 20-gene profile sit in the plane?”. Bartlett scores (uniqueness- weighted GLS) remain a <code>factanal(..., scores = "Bartlett")</code> sensitivity check and are not plotted. Gene-wise marginal variances are comparable after the global MixSim scale, so uniquenesses are less heterogeneous than in a typical psychometric battery. Independent per-type fits do <strong>not</strong> share a loading matrix: the three planes are not superimposed.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/factanal.html" class="external-link">factanal</a></span><span class="op">(</span></span>
-<span>  <span class="va">X</span>,</span>
-<span>  factors <span class="op">=</span> <span class="fl">2</span>,</span>
-<span>  rotation <span class="op">=</span> <span class="st">"none"</span>,</span>
-<span>  scores <span class="op">=</span> <span class="st">"regression"</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">scores</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html" class="external-link">as.data.frame</a></span><span class="op">(</span><span class="va">fit</span><span class="op">$</span><span class="va">scores</span><span class="op">)</span></span>
-<span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">scores</span>, <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">Factor1</span>, <span class="va">Factor2</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_fixed.html" class="external-link">coord_equal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_classic</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-</div>
-</section><section class="level3"><h4 id="shared-mcfa-plane-emmixmfa">Shared MCFA plane (<code>EMMIXmfa</code>)<a class="anchor" aria-label="anchor" href="#shared-mcfa-plane-emmixmfa"></a>
+<p>Principal components of the pooled purified draws, coloured by type, show what the <strong>means</strong> alone separate: types 1 and 2, whose means have cosine <span class="math inline">0.9</span>, overlap on the first two components, while type 3 stands apart.</p>
+</section><section class="level3"><h4 id="supervised-mclustdr-plane">Supervised <code>MclustDR</code> plane<a class="anchor" aria-label="anchor" href="#supervised-mclustdr-plane"></a>
 </h4>
-<p>The bottom-left and bottom-centre panels use mixtures of common factor analysers <span class="citation" data-cites="MixturesFactorAnalyzers2000 R-EMMIXmfa">(<a href="#ref-MixturesFactorAnalyzers2000" role="doc-biblioref">McLachlan and Peel 2000</a>; <a href="#ref-R-EMMIXmfa" role="doc-biblioref">Rathnayake et al. 2024</a>)</span>: a shared loading matrix <span class="math inline">A</span> with <span class="math inline">\boldsymbol{\mu}_i=A\boldsymbol{\xi}_i</span> and <span class="math inline">\boldsymbol{\Sigma}_i=A\Omega_i A^\top+D</span>, so that posterior factor means live in <strong>one</strong> <span class="math inline">q=2</span> plane. The eigenvalues of <span class="math inline">A\bar{\Omega}A^\top+D</span> are the scree inset.</p>
-<ul>
-<li>
-<strong>Convolution (panel D).</strong> Bulk columns come from <code><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code> (covariance weights <span class="math inline">p_j^2</span>). MCFA is fitted to those unlabelled bulk draws, then the <em>latent</em> purified slices () from the same simulation are scored into that shared plane and coloured by true type.</li>
-<li>
-<strong>Unsupervised mixture (panel E).</strong> Each draw is from <strong>one</strong> component with probability <span class="math inline">p_j</span> (not <span class="math inline">p_j^2</span>). MCFA does not use the labels; colour is the generating type, so the plot shows how well the shared factors recover overlap.</li>
-</ul></section><section class="level3"><h4 id="supervised-mclustdr-plane">Supervised <code>MclustDR</code> plane<a class="anchor" aria-label="anchor" href="#supervised-mclustdr-plane"></a>
-</h4>
-<p>The bottom-right panel takes the same labelled mixture draws and fits <code>mclust::MclustDA(..., modelType = "EDDA")</code> then <code><a href="https://mclust-org.github.io/mclust/reference/MclustDR.html" class="external-link">mclust::MclustDR()</a></code> <span class="citation" data-cites="R-mclust scruccaDimensionReductionModelbased2010a scruccaGraphicalToolsModelbased2015">(<a href="#ref-R-mclust" role="doc-biblioref">Fraley et al. 2026</a>; <a href="#ref-scruccaDimensionReductionModelbased2010a" role="doc-biblioref">Scrucca 2010</a>, <a href="#ref-scruccaGraphicalToolsModelbased2015" role="doc-biblioref">2015</a>)</span>. See the <a href="https://mclust-org.github.io/mclust/reference/MclustDR.html" class="external-link"><code>MclustDR</code> reference</a>. The kernel blends between-class mean separation with covariance differences (<code>lambda = 1</code> emphasises separation). The generalised eigenvalues (<code>evalues</code>) are the scree inset: they are cluster-relevant variability, not ordinary PCA variance. This is the right 2D plot <strong>if</strong> class labels are known. On bulk convolution draws a one-component Gaussian is the truth, so <code>Mclust</code> would split a single ellipsoid; that misspecified fit is not shown.</p>
+<p>The second panel fits <code>mclust::MclustDA(..., modelType = "EDDA")</code> to the labelled purified draws, then <code><a href="https://mclust-org.github.io/mclust/reference/MclustDR.html" class="external-link">mclust::MclustDR()</a></code> <span class="citation" data-cites="R-mclust scruccaDimensionReductionModelbased2010a scruccaGraphicalToolsModelbased2015">(<a href="#ref-R-mclust" role="doc-biblioref">Fraley et al. 2026</a>; <a href="#ref-scruccaDimensionReductionModelbased2010a" role="doc-biblioref">Scrucca 2010</a>, <a href="#ref-scruccaGraphicalToolsModelbased2015" role="doc-biblioref">2015</a>)</span> (<a href="https://mclust-org.github.io/mclust/reference/MclustDR.html" class="external-link"><code>MclustDR</code> reference</a>). Its kernel combines the separation of the class means with the differences of the class covariances, which is the signal DeCovarT exploits. Its generalised eigenvalues measure class-relevant variability, not ordinary PCA variance. The panels with independent factor analyses (Thomson scores) and mixtures of common factor analysers were dropped: they described each type, or an unlabelled mixture, but not the contrast between types.</p>
 </section></section><section class="level2"><h3 id="sec-hybrid-resources">Solver runtime and memory<a class="anchor" aria-label="anchor" href="#sec-hybrid-resources"></a>
 </h3>
 <p><code>runtime.pdf</code> and <code>memory.pdf</code> use the same composition order as the other performance books (balanced, then moderately unbalanced, then highly unbalanced): <strong>one page per</strong> (). Each page facets the three MixSim overlap levels, puts CT1/CT2 topology on the x-axis (<code>SF/SF</code>, <code>SF/SBM</code>, <code>SBM/SF</code>, <code>SBM/SBM</code>), and maps solver to colour, fill, and grouping. The geometry is a vertical ggdist half-eye (raincloud) of the per-sample <code>optimisation$elapsed_sec</code> or <code>memory_bytes</code> (converted to MiB), with a left-side <code>geom_rug()</code> of the raw Monte Carlo draws and a log10 y-axis.</p>
 </section><section class="level2"><h3 id="sec-hybrid-findings">Likelihood geometry and solver behaviour<a class="anchor" aria-label="anchor" href="#sec-hybrid-findings"></a>
 </h3>
+<div>
+<div class="decovart-callout callout-note">
+<blockquote>
+<p><strong>Note</strong></p>
+<p>The numbers in this section come from the archived run of <code>output/archives/fig03/</code> (<span class="math inline">N=50</span>, Wald intervals only), which still included Marquardt–Levenberg and the earlier L-BFGS-B that renormalised a box-constrained fit. They will be replaced by those of the production run; the mechanisms they illustrate do not depend on the solver list.</p>
+</blockquote>
+</div>
+</div>
 <p>Cell types 1 and 2 share cosine <span class="math inline">0.9</span>, so the mean map <span class="math inline">\boldsymbol{\mu}\boldsymbol{p}</span> is close to singular in the <span class="math inline">(p_1,p_2)</span> plane: type 3 is the only well-separated mean. MixSim <span class="math inline">\bar\omega</span> then sets how much of the remaining signal lives in <span class="math inline">\{\boldsymbol{\Sigma}_j\}</span>. The pack in <code>output/fig03/mle_explanation/</code> (descriptors, ILR slices of <span class="math inline">\ell</span> at <span class="math inline">\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}^{\star}</span>, expected-Fisher SEs, Newton/Marquardt forests on <strong>balanced</strong> compositions, and a quantile-sampled raincloud across all <span class="math inline">H^{\star}</span>) is the numerical reading of that geometry. As in the bivariate toy, three layers must be kept apart: the convolution <span class="math inline">\ell</span>, the surrogate each solver optimises, and the chart / KKT / stopping rule.</p>
 <section class="level3"><h4 id="surrogates-versus-the-convolution">Surrogates versus the convolution<a class="anchor" aria-label="anchor" href="#surrogates-versus-the-convolution"></a>
 </h4>
 <p><code>lsei</code> (<code>limSolve</code>) is again a convex QP for <span class="math inline">\|\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}\|_2^2</span> on the simplex <span class="citation" data-cites="R-limSolve gongDeconRNASeqStatisticalFramework2013 dessoleLawsonHansonAlgorithmDeviation2023 boydConvexOptimization2004">(<a href="#ref-R-limSolve" role="doc-biblioref"><span class="nocase">Soetaert et al.</span> 2026</a>; <a href="#ref-gongDeconRNASeqStatisticalFramework2013" role="doc-biblioref">Gong and Szustakowski 2013</a>; <a href="#ref-dessoleLawsonHansonAlgorithmDeviation2023" role="doc-biblioref">Dessole et al. 2023</a>; <a href="#ref-boydConvexOptimization2004" role="doc-biblioref">Boyd et al. 2004</a>)</span>. With two nearly collinear signature columns the QP is under-determined in the <span class="math inline">(p_1,p_2)</span> direction; the equality <span class="math inline">\sum p_j=1</span> plus bounds then put mass on a face. <code>CIBERSORT</code> replaces squares by a <span class="math inline">\nu</span>-SVR hinge <span class="citation" data-cites="newmanRobustEnumerationCell2015">(<a href="#ref-newmanRobustEnumerationCell2015" role="doc-biblioref">Newman et al. 2015</a>)</span>. The dual is a convex quadratic programme solved by sequential working-set methods <span class="citation" data-cites="fanWorkingSetSelection2005">(<a href="#ref-fanWorkingSetSelection2005" role="doc-biblioref">Fan et al. 2005</a>)</span>. The wrapper does <strong>not</strong> constrain coefficients to the simplex during the fit: negatives are clipped to zero and the remainder is renormalised. Clipping is a Euclidean projection onto the positive orthant, not a constrained MLE, so a support vector that overshoots becomes a vertex of <span class="math inline">\Delta^{2}</span>. Neither method sees <span class="math inline">p_j^2\boldsymbol{\Sigma}_j</span>.</p>
-<p>DeCovarT solvers maximise the Gaussian convolution. <code>Newton-Raphson</code> and <code>Marquardt-Levenberg</code> do so in ILR, with a full Hessian versus Marquardt damping plus RDM <span class="citation" data-cites="marquardtAlgorithmLeastSquaresEstimation1963 commengesNewtonLikeAlgorithmLikelihood2006 philippsRobustEfficientOptimization2021 R-marqLevAlg">(<a href="#ref-marquardtAlgorithmLeastSquaresEstimation1963" role="doc-biblioref">Marquardt 1963</a>; <a href="#ref-commengesNewtonLikeAlgorithmLikelihood2006" role="doc-biblioref">Commenges et al. 2006</a>; <a href="#ref-philippsRobustEfficientOptimization2021" role="doc-biblioref">Philipps et al. 2021</a>, <a href="#ref-R-marqLevAlg" role="doc-biblioref">2023</a>)</span>. <code>L-BFGS-B</code> uses a limited-memory inverse Hessian with box constraints on <span class="math inline">p</span>, then <span class="math inline">p/\sum p</span> <span class="citation" data-cites="byrdLimitedMemoryAlgorithm1995 zhuAlgorithm778LBFGSB1997">(<a href="#ref-byrdLimitedMemoryAlgorithm1995" role="doc-biblioref">Byrd et al. 1995</a>; <a href="#ref-zhuAlgorithm778LBFGSB1997" role="doc-biblioref">Zhu et al. 1997</a>)</span>. The same caveats as in <a href="fig02-bivariate-toy.html#sec-bivariate-findings">the bivariate interpretation</a> apply: Boyd’s local-quadratic Newton rate needs a locally strongly concave <span class="math inline">\ell</span>; RDM stops when further ILR steps are smaller than statistical error; box-constrained BFGS may sit on a face after renormalisation. All of this is still <span class="math inline">N=1</span> per bulk (<a href="theory-DeCovarT-MLE-properties.html#sec-finite-sample">finite-sample MLE</a>).</p>
+<p>DeCovarT solvers maximise the Gaussian convolution. <code>Newton-Raphson</code> and <code>Marquardt-Levenberg</code> do so in ILR, with a full Hessian versus Marquardt damping plus RDM <span class="citation" data-cites="marquardtAlgorithmLeastSquaresEstimation1963 commengesNewtonLikeAlgorithmLikelihood2006 philippsRobustEfficientOptimization2021 R-marqLevAlg">(<a href="#ref-marquardtAlgorithmLeastSquaresEstimation1963" role="doc-biblioref">Marquardt 1963</a>; <a href="#ref-commengesNewtonLikeAlgorithmLikelihood2006" role="doc-biblioref">Commenges et al. 2006</a>; <a href="#ref-philippsRobustEfficientOptimization2021" role="doc-biblioref">Philipps et al. 2021</a>, <a href="#ref-R-marqLevAlg" role="doc-biblioref">2023</a>)</span>. <code>L-BFGS-B</code> uses a limited-memory inverse Hessian on the closure chart <span class="math inline">\boldsymbol p=\boldsymbol w/\mathbf 1^{\top}\boldsymbol w</span>, <span class="math inline">\boldsymbol w\ge0</span> <span class="citation" data-cites="byrdLimitedMemoryAlgorithm1995 zhuAlgorithm778LBFGSB1997">(<a href="#ref-byrdLimitedMemoryAlgorithm1995" role="doc-biblioref">Byrd et al. 1995</a>; <a href="#ref-zhuAlgorithm778LBFGSB1997" role="doc-biblioref">Zhu et al. 1997</a>)</span>. The same caveats as in <a href="fig02-bivariate-toy.html#sec-bivariate-findings">the bivariate interpretation</a> apply: Boyd’s local-quadratic Newton rate needs a locally strongly concave <span class="math inline">\ell</span>; RDM stops when further ILR steps are smaller than statistical error; the archived box-constrained BFGS, which renormalised a free-scale fit, could sit on a face that is not a stationary point of <span class="math inline">\ell</span> (the closure chart now used cannot). All of this is still <span class="math inline">N=1</span> per bulk (<a href="theory-population-inference.html#sec-finite-sample">finite-sample MLE</a>).</p>
 </section><section class="level3"><h4 id="balanced-compositions-forest-fisher">Balanced compositions (forest + Fisher)<a class="anchor" aria-label="anchor" href="#balanced-compositions-forest-fisher"></a>
 </h4>
 <p>The Newton/Marquardt forest in the pack is restricted to <span class="math inline">H^{\star}=1</span> (<span class="math inline">p^{\star}=(1/3,1/3,1/3)</span>). On that slice the two second-order solvers are interchangeable. At low overlap (<code>V1</code>, both graphs scale-free) RMSE for <span class="math inline">p_1</span> is <span class="math inline">0.113</span>, bias <span class="math inline">0.012</span>, empirical SD <span class="math inline">0.113</span>, coverage <span class="math inline">0.99</span>. At high overlap (<code>V7</code>) RMSE rises only to <span class="math inline">0.124</span> and coverage stays <span class="math inline">0.99</span>. Median RMSE for <span class="math inline">p_1</span> across the four graph assignments is <span class="math inline">0.122</span> (low <span class="math inline">\bar\omega</span>), <span class="math inline">0.134</span> (moderate), <span class="math inline">0.147</span> (high); type 3, whose mean is not collinear, stays easier at low overlap (median RMSE <span class="math inline">0.064</span>) and catches up as overlap grows (<span class="math inline">0.130</span>). Expected-Fisher ILR standard errors in <code>theoretical_wald_se.csv</code> tell the same story: <span class="math inline">\mathrm{SE}_{\rho_1}</span> goes from <span class="math inline">0.63</span> (<code>V1</code>) to <span class="math inline">0.97</span> (<code>V7</code>), and the condition number of the ILR information drops from <span class="math inline">6.8</span> to <span class="math inline">1.7</span> — not because the problem becomes better posed, but because <em>both</em> eigenvalues shrink and the ellipsoid becomes a large, round disk. Graph assignment (scale-free versus cluster SBM) moves those SEs by a smaller amount than <span class="math inline">\bar\omega</span> does. Topology is visible; <strong>average overlap is the dominant knob</strong>, matching the design claim, for <em>balanced</em> <span class="math inline">p^{\star}</span> and for <em>second-order convolution MLEs</em>.</p>
 </section><section class="level3"><h4 id="boundary-pile-up-raincloud-all-hstar">Boundary pile-up (raincloud, all <span class="math inline">H^{\star}</span>)<a class="anchor" aria-label="anchor" href="#boundary-pile-up-raincloud-all-hstar"></a>
 </h4>
 <p>The sampled raincloud (<code>raincloud_sampled.csv</code>) includes moderately and highly unbalanced Shannon targets. Among non-missing point estimates, <span class="math inline">76\%</span> of <code>CIBERSORT</code> values lie at <span class="math inline">0</span> or <span class="math inline">1</span>. At the scenario-wise median (<code>sample_role = q50</code>), type 3 is exactly zero in <span class="math inline">35</span> of <span class="math inline">36</span> scenarios (mean <span class="math inline">\hat p_3=0.0008</span>). That is the clip-and-renormalise step, not a convolution mode on a face. <code>lsei</code> sits on a bound in <span class="math inline">42\%</span> of sampled cells overall and in <span class="math inline">58\%</span> of highly unbalanced cells; <code>LBFGS</code> in <span class="math inline">26\%</span> and <span class="math inline">36\%</span>; Marquardt in <span class="math inline">10\%</span> and <span class="math inline">17\%</span>; Newton in <span class="math inline">4\%</span> and <span class="math inline">12\%</span>. On balanced raincloud rows Newton and Marquardt never hit <span class="math inline">\{0,1\}</span>; LSEI still does (<span class="math inline">21\%</span>). Mean-only and SVR methods convert a collinear mean map into a <strong>hard</strong> boundary estimate; ILR convolution methods convert it into a <strong>soft</strong> interior mode, until <span class="math inline">p^{\star}</span> itself is a rare-type vertex.</p>
-<p>Median absolute error of the <span class="math inline">q_{50}</span> <span class="math inline">p_1</span> fit across scenarios is <span class="math inline">0.048</span> (Newton), <span class="math inline">0.100</span> (<code>lsei</code>), <span class="math inline">0.114</span> (<code>LBFGS</code>), <span class="math inline">0.142</span> (Marquardt), <span class="math inline">0.159</span> (<code>CIBERSORT</code>). The Marquardt figure is not a contradiction of the balanced forest: on the highly unbalanced scenario <code>V3</code> (<span class="math inline">p^{\star}\approx(0.980,0.010,0.010)</span>) the <span class="math inline">q_{50}</span> estimates are <span class="math inline">0.92</span> (Newton), <span class="math inline">0.93</span> (<code>lsei</code>), <span class="math inline">1.00</span> (<code>CIBERSORT</code>), <span class="math inline">0.82</span> (<code>LBFGS</code>), and <span class="math inline">0.78</span> (Marquardt). LSEI is closer to the vertex because the QP <em>wants</em> a vertex; Marquardt is pulled toward the barycentre because RDM refuses a long ILR walk, the same mechanism as <code>B811</code> in the bivariate pack. Covariance information therefore helps only if the solver actually follows the convolution ridge to the rare-type coordinate. A mean-only vertex can beat a damped interior MLE on raw <span class="math inline">p_1</span> error when the truth is already a vertex; it will still report <span class="math inline">\hat p_3=0</span> and cannot support a chi-bar-square test that the type is absent (<a href="theory-DeCovarT-MLE-properties.html#sec-boundary">boundary inference</a>).</p>
+<p>Median absolute error of the <span class="math inline">q_{50}</span> <span class="math inline">p_1</span> fit across scenarios is <span class="math inline">0.048</span> (Newton), <span class="math inline">0.100</span> (<code>lsei</code>), <span class="math inline">0.114</span> (<code>LBFGS</code>), <span class="math inline">0.142</span> (Marquardt), <span class="math inline">0.159</span> (<code>CIBERSORT</code>). The Marquardt figure is not a contradiction of the balanced forest: on the highly unbalanced scenario <code>V3</code> (<span class="math inline">p^{\star}\approx(0.980,0.010,0.010)</span>) the <span class="math inline">q_{50}</span> estimates are <span class="math inline">0.92</span> (Newton), <span class="math inline">0.93</span> (<code>lsei</code>), <span class="math inline">1.00</span> (<code>CIBERSORT</code>), <span class="math inline">0.82</span> (<code>LBFGS</code>), and <span class="math inline">0.78</span> (Marquardt). LSEI is closer to the vertex because the QP <em>wants</em> a vertex; Marquardt is pulled toward the barycentre because RDM refuses a long ILR walk, the same mechanism as <code>B811</code> in the bivariate pack. Covariance information therefore helps only if the solver actually follows the convolution ridge to the rare-type coordinate. A mean-only vertex can beat a damped interior MLE on raw <span class="math inline">p_1</span> error when the truth is already a vertex; it will still report <span class="math inline">\hat p_3=0</span> and cannot support a chi-bar-square test that the type is absent (<a href="theory-population-inference.html#sec-boundary">boundary inference</a>).</p>
 </section><section class="level3"><h4 id="ridges-in-the-ilr-slices">Ridges in the ILR slices<a class="anchor" aria-label="anchor" href="#ridges-in-the-ilr-slices"></a>
 </h4>
-<p><code>ilr_loglik_profiles.csv</code> slices <span class="math inline">\ell(\rho_1,\rho_2)</span> at <span class="math inline">\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}^{\star}</span>. High <span class="math inline">\bar\omega</span> produces ridges along the type-1/type-2 contrast (the collinear mean direction): many <span class="math inline">(\rho_1,\rho_2)</span> give almost the same convolution Gaussian. Newton follows the ridge until the Hessian in the remaining well-identified direction (type 3 versus <span class="math inline">\{1,2\}</span>) stops it. Marquardt stops earlier when RDM sees no inferential gain. <code>L-BFGS-B</code>, stepping in <span class="math inline">p</span> with only box bounds, can leave the simplex during the line search and land near a face after <span class="math inline">p/\sum p</span>, which is the raincloud’s <span class="math inline">26\%</span> bound rate. None of these paths is the Godambe sandwich or a Firth penalty <span class="citation" data-cites="firthBiasReductionMaximum1993">(<a href="#ref-firthBiasReductionMaximum1993" role="doc-biblioref">Firth 1993</a>)</span>; both remain outlook (<a href="theory-DeCovarT-MLE-properties.html#sec-firth">perspectives</a>). With <span class="math inline">N=1</span>, the honest frequentist statement for a rare type is still the restricted LRT / parametric bootstrap of the MLE article, not a Wald ellipse from <code><a href="../reference/vcov_ilr_delta.html">vcov_ilr_delta()</a></code>.</p>
+<p><code>ilr_loglik_profiles.csv</code> slices <span class="math inline">\ell(\rho_1,\rho_2)</span> at <span class="math inline">\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}^{\star}</span>. High <span class="math inline">\bar\omega</span> produces ridges along the type-1/type-2 contrast (the collinear mean direction): many <span class="math inline">(\rho_1,\rho_2)</span> give almost the same convolution Gaussian. Newton follows the ridge until the Hessian in the remaining well-identified direction (type 3 versus <span class="math inline">\{1,2\}</span>) stops it. Marquardt stops earlier when RDM sees no inferential gain. <code>L-BFGS-B</code>, stepping in <span class="math inline">p</span> with only box bounds, can leave the simplex during the line search and land near a face after <span class="math inline">p/\sum p</span>, which is the raincloud’s <span class="math inline">26\%</span> bound rate. None of these paths is the Godambe sandwich or a Firth penalty <span class="citation" data-cites="firthBiasReductionMaximum1993">(<a href="#ref-firthBiasReductionMaximum1993" role="doc-biblioref">Firth 1993</a>)</span>; the Firth fit is now benchmarked as its own method (<a href="theory-population-inference.html#sec-firth">Firth</a>). With <span class="math inline">N=1</span>, the honest frequentist statement for a rare type is still the restricted LRT / parametric bootstrap of the MLE article, not a Wald ellipse from <code><a href="../reference/vcov_ilr_delta.html">vcov_ilr_delta()</a></code>.</p>
 </section></section><section class="level2"><h3 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a>
 </h3>
 <ul>
@@ -576,11 +761,11 @@ Gong, Ting, and Joseph D. Szustakowski. 2013. <span>‘<span>DeconRNASeq</span>:
 <div id="ref-marquardtAlgorithmLeastSquaresEstimation1963" class="csl-entry" role="listitem">
 Marquardt, Donald W. 1963. <span>‘An <span>Algorithm</span> for <span>Least-Squares Estimation</span> of <span>Nonlinear Parameters</span>’</span>. <em>Journal of the Society for Industrial and Applied Mathematics</em> 11. <a href="https://doi.org/10.1137/0111030" class="external-link">https://doi.org/10.1137/0111030</a>.
 </div>
-<div id="ref-MixturesFactorAnalyzers2000" class="csl-entry" role="listitem">
-McLachlan, Geoffrey J., and David Peel. 2000. <span>‘Mixtures of Factor Analyzers’</span>. In <em>Finite Mixture Models</em>. John Wiley &amp; Sons, Ltd. <a href="https://doi.org/10.1002/0471721182.ch8" class="external-link">https://doi.org/10.1002/0471721182.ch8</a>.
-</div>
 <div id="ref-melnykovMixSimPackageSimulating2012" class="csl-entry" role="listitem">
 Melnykov, Volodymyr, Wei-Chen Chen, and Ranjan Maitra. 2012. <span>‘<span>MixSim</span>: <span>An R Package</span> for <span>Simulating Data</span> to <span>Study Performance</span> of <span>Clustering Algorithms</span>’</span>. <em>Journal of Statistical Software</em> 51. <a href="https://doi.org/10.18637/jss.v051.i12" class="external-link">https://doi.org/10.18637/jss.v051.i12</a>.
+</div>
+<div id="ref-morrisUsingSimulationStudies2019" class="csl-entry" role="listitem">
+Morris, Tim P., Ian R. White, and Michael J. Crowther. 2019. <span>‘Using Simulation Studies to Evaluate Statistical Methods’</span>. <em>Statistics in Medicine</em> 38 (11): 2074–102. <a href="https://doi.org/10.1002/sim.8086" class="external-link">https://doi.org/10.1002/sim.8086</a>.
 </div>
 <div id="ref-newmanRobustEnumerationCell2015" class="csl-entry" role="listitem">
 Newman, Aaron, Chih Liu, Michael Green, et al. 2015. <span>‘Robust Enumeration of Cell Subsets from Tissue Expression Profiles’</span>. <em>Nature Methods</em> 12. <a href="https://doi.org/10.1038/nmeth.3337" class="external-link">https://doi.org/10.1038/nmeth.3337</a>.
@@ -590,9 +775,6 @@ Philipps, Viviane, Boris P. Hejblum, Mélanie Prague, Daniel Commenges, and Céc
 </div>
 <div id="ref-R-marqLevAlg" class="csl-entry" role="listitem">
 Philipps, Viviane, Cecile Proust-Lima, Melanie Prague, Boris Hejblum, Daniel Commenges, and Amadou Diakite. 2023. <em>marqLevAlg: A Parallelized General-Purpose Optimization Based on Marquardt-Levenberg Algorithm</em>.
-</div>
-<div id="ref-R-EMMIXmfa" class="csl-entry" role="listitem">
-Rathnayake, Suren, Geoff McLachlan, David Peel, and Jangsun Baek. 2024. <em>EMMIXmfa: Mixture Models with Component-Wise Factor Analyzers</em>. <a href="https://github.com/suren-rathnayake/EMMIXmfa" class="external-link">https://github.com/suren-rathnayake/EMMIXmfa</a>.
 </div>
 <div id="ref-rianiSimulatingMixturesMultivariate2015" class="csl-entry" role="listitem">
 Riani, Marco, Andrea Cerioli, Domenico Perrotta, and Francesca Torti. 2015. <span>‘Simulating Mixtures of Multivariate Data with Fixed Cluster Overlap in <span>FSDA</span> Library’</span>. <em>Advances in Data Analysis and Classification</em> 9 (4): 461–81. <a href="https://doi.org/10.1007/s11634-015-0223-9" class="external-link">https://doi.org/10.1007/s11634-015-0223-9</a>.
@@ -605,9 +787,6 @@ Scrucca, Luca. 2015. <em>Graphical Tools for Model-Based Mixture Discriminant An
 </div>
 <div id="ref-R-limSolve" class="csl-entry" role="listitem">
 <span class="nocase">Soetaert, Karline, Karel Van den Meersche, and Dick van Oevelen</span>. 2026. <em>limSolve: Solving Linear Inverse Models</em>.
-</div>
-<div id="ref-thomsonMethodsEstimatingMental1938" class="csl-entry" role="listitem">
-Thomson, Godfrey H. 1938. <span>‘Methods of Estimating Mental Factors’</span>. <em>Nature</em> 141 (3562): 246–46. <a href="https://doi.org/10.1038/141246a0" class="external-link">https://doi.org/10.1038/141246a0</a>.
 </div>
 <div id="ref-zhuAlgorithm778LBFGSB1997" class="csl-entry" role="listitem">
 Zhu, Ciyou, Richard H. Byrd, Peihuang Lu, and Jorge Nocedal. 1997. <span>‘Algorithm 778: <span>L-BFGS-B</span>: <span>Fortran</span> Subroutines for Large-Scale Bound-Constrained Optimization’</span>. <em>ACM Transactions on Mathematical Software</em> 23 (4): 550–60. <a href="https://doi.org/10.1145/279232.279236" class="external-link">https://doi.org/10.1145/279232.279236</a>.

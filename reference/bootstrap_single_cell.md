@@ -16,7 +16,8 @@ bootstrap_single_cell(
   n_boot = 200L,
   level = 0.95,
   epsilon = 1e-06,
-  itmax = 40L
+  itmax = 40L,
+  optimiser = c("newton", "lbfgsb")
 )
 ```
 
@@ -49,12 +50,22 @@ bootstrap_single_cell(
 
 - itmax:
 
-  Maximum number of Newton iterations.
+  Maximum number of iterations.
+
+- optimiser:
+
+  Passed to
+  [`deconvolute_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_single_cell.md)
+  for the fit and every refit, so the bootstrap matches the estimator
+  being assessed.
 
 ## Value
 
 A list with `estimates`, `interval`, `n_failed` (refits that errored,
-left as `NA` columns), `scales`, `scale_interval` and `fit`.
+left as `NA` columns), `scales`, `scale_interval` and `fit`. `scales`
+and `scale_interval` have rows `mean_scale` (\\c\\), `variance_scale`
+(\\\phi\\), `platform_scale_a` (\\a=\phi/c\\) and `cell_count_n`
+(\\n=c^{2}/\phi\\).
 
 ## See also
 

@@ -8,18 +8,18 @@
 > \mathcal{N}\_G(\boldsymbol{\mu}\boldsymbol{p}\_{\cdot i},
 > \boldsymbol{\Sigma}(\boldsymbol{p}\_{\cdot i})) with
 > \boldsymbol{\Sigma}(\boldsymbol{p})=\sum_jp_j^{2}\boldsymbol{\Sigma}\_j
-> ([derivatives
-> vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html#sec-unconstrained)).
+> ([population generative
+> vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.html#sec-unconstrained)).
 > The same catalogue is tracked in [GitHub issue
 > 5](https://github.com/bastienchassagnol/DeCovarT/issues/5). The
 > single-cell-specific model (scales, within- and between-replicate
-> covariance) is in the [tailored
-> vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.md);
+> covariance) is in the [single-cell generative
+> vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.md);
 > the Bayesian purification of sample-level profiles is in the [Bayesian
 > Wiener-filter
 > vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-bayesian-wiener.md);
-> inference is in the [MLE and inference
-> vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.md).
+> inference is in the [population inference
+> vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.md).
 
 | Extension | What changes in DeCovarT | Section |
 |----|----|----|
@@ -179,7 +179,7 @@ A natural DeCovarT extension would combine [the Gaussian
 convolution](https://bastienchassagnol.github.io/DeCovarT/articles/theory-mixture-regression-applications.html#eq-gaussian-convolution)
 with either [Eq. 4](#eq-hard-child-split) or [Eq. 6](#eq-soft-penalty),
 node-local marker panels, and [ALR
-optimisation](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html#sec-alr)
+optimisation](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.html#sec-alr)
 when a curated lineage tree is supplied—benchmarked at broad,
 intermediate, and terminal resolutions against `HiDecon`, `HIDE`,
 tree-guided `MuSiC`, and `Rectangle`. Spatial `HIDF` applies the same
@@ -221,7 +221,7 @@ through the existing ALR coordinates \boldsymbol{\rho}\_{i},
 \boldsymbol{p}\_{\cdot i}=\psi(\boldsymbol{\rho}\_{i}), \tag{8}
 
 with \psi the [additive logistic
-map](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html#eq-alr-maps).
+map](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.html#eq-alr-maps).
 This is the setting in which a future
 [`predict()`](https://rdrr.io/r/stats/predict.html) method on new
 \boldsymbol{z} would be meaningful.
@@ -232,7 +232,7 @@ i}\sim\mathcal{N}\_G(s\_{i}\boldsymbol{\mu}\boldsymbol{p}\_{\cdot
 i},s\_{i}^{2}\Sigma(\boldsymbol{p}\_{\cdot i})), not an additive `lm`
 offset. Cell-type transcriptome size r\_{j} is a different parameter
 ([RNA versus cell
-fractions](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-single-cell-tailored.html#sec-uncoupling)).
+fractions](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html#sec-uncoupling)).
 A gene-wise affine standardisation applied identically to
 \boldsymbol{y}, \boldsymbol{\mu} and every \boldsymbol{\Sigma}\_{j}
 leaves \hat{\boldsymbol{p}} unchanged in exact arithmetic; column-wise

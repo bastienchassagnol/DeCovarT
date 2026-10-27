@@ -25,7 +25,9 @@ deconvolute_ratios(
   cores = getOption("mc.cores", 1L),
   coverage_interval = "wilson",
   verbose = FALSE,
-  progress_every = 10L
+  progress_every = 10L,
+  model = c("population", "single_cell"),
+  nuisance_true = NULL
 )
 ```
 
@@ -55,8 +57,15 @@ deconvolute_ratios(
 
 - deconvolution_functions:
 
-  Named list; each element has `FUN` and optional
-  `additional_parameters`.
+  Named list; each element has `FUN`, optional `additional_parameters`,
+  and an optional `ci` list (`methods`, `level`, `n_boot`, `n_draws`,
+  `optimiser`) naming the interval methods to evaluate at that solver's
+  estimate: `wald`, `ilr`, `profile`, `bootstrap` and `oracle` (Wald
+  half-width at the true composition); for the single-cell model,
+  `wald_reml`, `ilr_reml` and `profile_reml` add the REML calibration.
+  Solvers that return a list read the estimate from `coefficients`, or
+  from `composition` for
+  [`deconvolute_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_single_cell.md).
 
 - standardise:
 
@@ -94,21 +103,35 @@ deconvolute_ratios(
   Sample-progress interval when `verbose` is `TRUE` and `cores = 1`.
   Defaults to `10L`.
 
+- model:
+
+  `"population"` (default), the Gaussian convolution, or
+  `"single_cell"`, the mixture of cells with its scales profiled out: it
+  sets the log-likelihood, score and curvature used for the per-sample
+  diagnostics and the Wald standard errors.
+
+- nuisance_true:
+
+  Optional \\2\times N\\ matrix of the true scales \\(c,\phi)\\ of the
+  single-cell model, for the coverage of their intervals.
+
 ## Value
 
 A named list from
 [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)
-with `regression` (global and cell-type subtables), `monte_carlo`, and
+with `regression` (global and cell-type subtables), `monte_carlo`,
 `optimisation` (per-sample elapsed time, memory, KKT residual, and
-\\\hat{\boldsymbol{p}}\\). First-generation solvers still call
+\\\hat{\boldsymbol{p}}\\) and `intervals` (coverage and width per
+interval method). First-generation solvers still call
 [`repair_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/repair_simplex.md);
 the three native DeCovarT maps (ILR or \\p/\sum p\\) already lie on the
 simplex. When `Sigma` is supplied, Newton-Raphson, Marquardt-Levenberg,
-L-BFGS-B, BFGS (gradient), and simulated annealing attach ILR Wald
-standard errors from
-[`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md)
-so `monte_carlo` can report coverage, mean model SE, and the SE/SD
-ratio. Those SEs are the expected-Fisher delta-method bounds used by
+L-BFGS-B, BFGS (gradient), simulated annealing, the Firth fits and
+[`deconvolute_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_single_cell.md)
+attach Wald standard errors (ILR expected Fisher for the population
+model, the profile Hessian for the single-cell model) so `monte_carlo`
+can report coverage, mean model SE, and the SE/SD ratio. Those SEs are
+the expected-Fisher delta-method bounds used by
 [`confint.decovart_fit()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_decovart.md),
 not diagonal entries of the observed Hessian. Mean-only solvers (NNLS,
 LSEI) leave Wald columns missing: those estimators do not use the
@@ -207,10 +230,13 @@ deconvolute_ratios(
 #> # A tibble: 2 × 14
 #>   sample_id algorithm elapsed_sec memory_bytes kkt_residual numerical_converged
 #>   <chr>     <chr>           <dbl>        <dbl>        <dbl> <lgl>              
-#> 1 sample_1  nnls          0.00100    585673728        0.444 TRUE               
-#> 2 sample_2  nnls          0          590683136        0.152 TRUE               
+#> 1 sample_1  nnls                0    534501376        0.444 TRUE               
+#> 2 sample_2  nnls                0    534501376        0.152 TRUE               
 #> # ℹ 8 more variables: theoretical_converged <lgl>, loglik_regret <dbl>,
 #> #   local_maximum <lgl>, min_eigenvalue <dbl>, max_eigenvalue <dbl>,
 #> #   converged <list>, ct1 <dbl>, ct2 <dbl>
+#> 
+#> $intervals
+#> # A tibble: 0 × 0
 #> 
 ```

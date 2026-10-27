@@ -3,8 +3,9 @@
 > **Scope**
 >
 > Released DeCovarT integrates the purified profiles out and maximises
-> the marginal likelihood of the bulk in the proportions ([derivatives
-> vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html#sec-unconstrained)).
+> the marginal likelihood of the bulk in the proportions ([population
+> generative
+> vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.html#sec-unconstrained)).
 > This vignette keeps the profiles as latent variables. That gives three
 > things the marginal likelihood hides: a closed-form estimate of each
 > sample’s purified profiles once the proportions are known (the Wiener
@@ -169,7 +170,7 @@ limits apply.
 
 - EM converges to a stationary point, not to the global maximum: the
   non-concavity of the DeCovarT likelihood ([MLE
-  properties](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-uniqueness))
+  properties](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html#sec-uniqueness))
   is unchanged by the algorithm.
 - EM converges slowly when the latent profiles carry most of the
   uncertainty, that is when \boldsymbol{D} is small relative to
@@ -220,8 +221,8 @@ networks, to be checked against the exact EM on a subset of genes.
 ## Priors on the composition
 
 The prior can be written on the simplex or on the ILR chart used by the
-solvers ([derivatives
-vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html#sec-ilr)),
+solvers ([population generative
+vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.html#sec-ilr)),
 and the two give different maximum a posteriori estimates.
 
 - **Dirichlet on \boldsymbol{p}.** In \boldsymbol{p}, the log-prior
@@ -244,8 +245,8 @@ and the two give different maximum a posteriori estimates.
 Either prior regularises the boundary: where the Wald interval of a
 proportion near zero degenerates, the posterior stays proper. A credible
 interval is not a frequentist confidence interval, and the prior has to
-be defended on biological grounds ([MLE and inference
-vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html#sec-intervals)).
+be defended on biological grounds ([population inference
+vignette](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html#sec-intervals)).
 
 ## Full posterior
 

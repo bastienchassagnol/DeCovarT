@@ -16,7 +16,7 @@ Optimisation is performed in unconstrained ILR coordinates
 \(\boldsymbol{z}\in\mathbb{R}^{J-1}\) via
 \(\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{z})\)
 (Marquardt–Levenberg default; see other methods below and
-vignette("theory-decovart-generative-model", package = "DeCovarT")).'><meta property="og:description" content='Estimates
+vignette("theory-population-generative-optimisation", package = "DeCovarT")).'><meta property="og:description" content='Estimates
 \(\hat{\boldsymbol{p}}=\arg\max_{\boldsymbol{p}}
 \ell_{\boldsymbol{y}\,|\,\boldsymbol{\zeta}}(\boldsymbol{p})\) under the
 Gaussian convolution model
@@ -33,7 +33,7 @@ Optimisation is performed in unconstrained ILR coordinates
 \(\boldsymbol{z}\in\mathbb{R}^{J-1}\) via
 \(\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{z})\)
 (Marquardt–Levenberg default; see other methods below and
-vignette("theory-decovart-generative-model", package = "DeCovarT")).'><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
+vignette("theory-population-generative-optimisation", package = "DeCovarT")).'><meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -60,18 +60,25 @@ vignette("theory-decovart-generative-model", package = "DeCovarT")).'><meta prop
     <li><a class="dropdown-item" href="../articles/theory-network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
     <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: population-level references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-generative-optimisation.html"><span class="fa fa-square-root-variable"></span> Generative model, derivatives and optimisation</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-inference.html"><span class="fa fa-chart-area"></span> MLE properties and confidence intervals</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: single-cell references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-generative-optimisation.html"><span class="fa fa-align-left"></span> Reference moments, alignment strategies and the profile fit</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-inference.html"><span class="fa fa-chart-line"></span> Profile information, intervals and the REML calibration</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Synthetic scenarios</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><a class="dropdown-item" href="../articles/theory-distance-covariance.html"><span class="fa fa-ruler"></span> Distances, overlap, and covariance information</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/fig03-covariance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig05-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> § 2.4 · Single-cell, two lineages (J = 4, G = 20 or 200)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> Inference: MLE properties, intervals and a GLM formulation</a></li>
     <li><a class="dropdown-item" href="../articles/theory-review-distribution-aware-deconvolution.html"><span class="fa fa-book"></span> Review: deconvolution with reference distributions</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-tailored.html"><span class="fa fa-align-left"></span> DeCovarT tailored to single-cell references</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-bayesian-wiener.html"><span class="fa fa-wave-square"></span> Bayesian DeCovarT: latent profiles and the Wiener filter</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-extensions-roadmap.html"><span class="fa fa-compass"></span> Extensions roadmap: lineages, covariates, modalities</a></li>
     <li><a class="dropdown-item" href="../articles/theory-mixture-regression-applications.html"><span class="fa fa-flask-vial"></span> DeCovarT as a mixture model: designed mixture experiments</a></li>
@@ -123,7 +130,7 @@ Optimisation is performed in unconstrained ILR coordinates
 \(\boldsymbol{z}\in\mathbb{R}^{J-1}\) via
 \(\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{z})\)
 (Marquardt–Levenberg default; see other methods below and
-<code><a href="../articles/theory-decovart-generative-model.html">vignette("theory-decovart-generative-model", package = "DeCovarT")</a></code>).</p>
+<code><a href="../articles/theory-population-generative-optimisation.html">vignette("theory-population-generative-optimisation", package = "DeCovarT")</a></code>).</p>
     </div>
 
     <div class="section level2">
@@ -275,11 +282,15 @@ inequality-constrained least squares on the simplex
 ILR coordinates \(\boldsymbol{z}\) (<code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code> with
 <code>method = "SANN"</code>).</p></li>
 <li><p><code>deconvolute_ratios_L_BFGS_B()</code>: Box-constrained L-BFGS-B
-directly in \(\boldsymbol{p}\) (<code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code> <code>method = "L-BFGS-B"</code>).
-The box keeps each coordinate in \([0,1]\); the returned vector is
-closed by \(p/\sum p\) (no <code><a href="repair_simplex.html">repair_simplex()</a></code> clipping). Wald
-standard errors still use the ILR expected-Fisher map
-<code><a href="vcov_ilr_delta.html">vcov_ilr_delta()</a></code>, not a \(\boldsymbol{p}\)-space Hessian.</p></li>
+(<code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">stats::optim()</a></code> <code>method = "L-BFGS-B"</code>) on the closure
+\(\boldsymbol{p}=\boldsymbol{w}/\mathbf{1}^{\mathsf{T}}\boldsymbol{w}\)
+of the box \(\boldsymbol{w}\ge\mathbf{0}\). The box covers the closed
+simplex, so the solver maximises the same likelihood as Newton–Raphson
+and can return exact zeros, and a stationary point of the box is one of
+the simplex. <code>epsilon</code> is the relative reduction of the log-likelihood
+at which the solver stops (<code>factr = epsilon / .Machine$double.eps</code>).
+Wald standard errors use the ILR expected-Fisher map
+<code><a href="vcov_ilr_delta.html">vcov_ilr_delta()</a></code> and are undefined on a face.</p></li>
 <li><p><code>deconvolute_ratios_Newton_Raphson()</code>: Newton–Raphson on ILR
 coordinates \(\boldsymbol{z}\) with the analytic score and observed
 Hessian, safeguarded by the PORT trust region of <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">stats::nlminb()</a></code>.</p></li>

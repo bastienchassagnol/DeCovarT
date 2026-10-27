@@ -13,7 +13,7 @@ the Gaussian convolution model \$\$
 unconstrained ILR coordinates \\\boldsymbol{z}\in\mathbb{R}^{J-1}\\ via
 \\\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{z})\\
 (Marquardt–Levenberg default; see other methods below and
-[`vignette("theory-decovart-generative-model", package = "DeCovarT")`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.md)).
+[`vignette("theory-population-generative-optimisation", package = "DeCovarT")`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.md)).
 
 ## Usage
 
@@ -170,15 +170,19 @@ recovering sample-specific latents is a Bayesian / MAP problem
   ([`stats::optim()`](https://rdrr.io/r/stats/optim.html) with
   `method = "SANN"`).
 
-- `deconvolute_ratios_L_BFGS_B()`: Box-constrained L-BFGS-B directly in
-  \\\boldsymbol{p}\\
+- `deconvolute_ratios_L_BFGS_B()`: Box-constrained L-BFGS-B
   ([`stats::optim()`](https://rdrr.io/r/stats/optim.html)
-  `method = "L-BFGS-B"`). The box keeps each coordinate in \\\[0,1\]\\;
-  the returned vector is closed by \\p/\sum p\\ (no
-  [`repair_simplex()`](https://bastienchassagnol.github.io/DeCovarT/reference/repair_simplex.md)
-  clipping). Wald standard errors still use the ILR expected-Fisher map
-  [`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md),
-  not a \\\boldsymbol{p}\\-space Hessian.
+  `method = "L-BFGS-B"`) on the closure
+  \\\boldsymbol{p}=\boldsymbol{w}/\mathbf{1}^{\mathsf{T}}\boldsymbol{w}\\
+  of the box \\\boldsymbol{w}\ge\mathbf{0}\\. The box covers the closed
+  simplex, so the solver maximises the same likelihood as Newton–Raphson
+  and can return exact zeros, and a stationary point of the box is one
+  of the simplex. `epsilon` is the relative reduction of the
+  log-likelihood at which the solver stops
+  (`factr = epsilon / .Machine$double.eps`). Wald standard errors use
+  the ILR expected-Fisher map
+  [`vcov_ilr_delta()`](https://bastienchassagnol.github.io/DeCovarT/reference/vcov_ilr_delta.md)
+  and are undefined on a face.
 
 - `deconvolute_ratios_Newton_Raphson()`: Newton–Raphson on ILR
   coordinates \\\boldsymbol{z}\\ with the analytic score and observed

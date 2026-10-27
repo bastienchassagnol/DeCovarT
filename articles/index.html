@@ -26,18 +26,25 @@
     <li><a class="dropdown-item" href="../articles/theory-network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
     <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-generative-model.html"><span class="fa fa-square-root-variable"></span> Mathematical and programmatic introduction to DeCovarT</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: population-level references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-generative-optimisation.html"><span class="fa fa-square-root-variable"></span> Generative model, derivatives and optimisation</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-population-inference.html"><span class="fa fa-chart-area"></span> MLE properties and confidence intervals</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory: single-cell references</h6></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-generative-optimisation.html"><span class="fa fa-align-left"></span> Reference moments, alignment strategies and the profile fit</a></li>
+    <li><a class="dropdown-item" href="../articles/theory-single-cell-inference.html"><span class="fa fa-chart-line"></span> Profile information, intervals and the REML calibration</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Synthetic scenarios</h6></li>
     <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><a class="dropdown-item" href="../articles/theory-distance-covariance.html"><span class="fa fa-ruler"></span> Distances, overlap, and covariance information</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
     <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
     <li><a class="dropdown-item" href="../articles/fig03-covariance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
+    <li><a class="dropdown-item" href="../articles/fig05-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> § 2.4 · Single-cell, two lineages (J = 4, G = 20 or 200)</a></li>
     <li><hr class="dropdown-divider"></li>
     <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/theory-DeCovarT-MLE-properties.html"><span class="fa fa-chart-area"></span> Inference: MLE properties, intervals and a GLM formulation</a></li>
     <li><a class="dropdown-item" href="../articles/theory-review-distribution-aware-deconvolution.html"><span class="fa fa-book"></span> Review: deconvolution with reference distributions</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-single-cell-tailored.html"><span class="fa fa-align-left"></span> DeCovarT tailored to single-cell references</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-bayesian-wiener.html"><span class="fa fa-wave-square"></span> Bayesian DeCovarT: latent profiles and the Wiener filter</a></li>
     <li><a class="dropdown-item" href="../articles/theory-decovart-extensions-roadmap.html"><span class="fa fa-compass"></span> Extensions roadmap: lineages, covariates, modalities</a></li>
     <li><a class="dropdown-item" href="../articles/theory-mixture-regression-applications.html"><span class="fa fa-flask-vial"></span> DeCovarT as a mixture model: designed mixture experiments</a></li>
@@ -91,24 +98,38 @@
       </dd></dl></div>
     <div class="section ">
       <h3>Paper: numerical simulation study</h3>
-      <div class="section-desc"><p>The two simulation scenarios of the DeCovarT article. <strong>§ 2.1</strong> Bivariate toy (J = 2, G = 2): factorial sweep of gene–gene correlation, mean distance, and composition. <strong>§ 2.2</strong> Covariance-driven hybrid (J = 3, G = 20): fixed Gram (cosines 0.9 / 0.1), <span class="math inline">2^2</span> scale-free / cluster-SBM assignments on the mean-collinear types <span class="math inline">\times</span> three target MixSim average overlaps (precision zeros kept), Shannon <span class="math inline">H^{\star}</span> compositions.</p></div>
+      <div class="section-desc"><p>The two simulation scenarios of the DeCovarT article. <strong>§ 2.1</strong> Bivariate toy (J = 2, G = 2): factorial sweep of gene–gene correlation, mean distance, and composition. <strong>§ 2.2</strong> Covariance-driven hybrid (J = 3, G = 20): fixed Gram (cosines 0.9 / 0.1), <span class="math inline">2^2</span> scale-free / cluster-SBM assignments on the mean-collinear types <span class="math inline">\times</span> three target MixSim average overlaps (precision zeros kept), Shannon <span class="math inline">H^{\star}</span> compositions. <strong>§ 2.4</strong> Single-cell reference, two lineages (J = 4): sibling cosine 0.8, lineage stochastic block models with scale-free or hub children, <span class="math inline">2^5</span> crossed factors (composition, sibling overlap, cells per bulk, cell sizes, genes) at platform scale 5, plus one scenario at scale 1.</p></div>
 
       <dl><dt><a href="fig02-bivariate-toy.html">2.1 Bivariate toy model (G = 2 genes, J = 2 cell types)</a></dt>
         <dd>
         </dd><dt><a href="fig03-covariance-driven.html">2.2 Covariance-driven scenario (G = 20, J = 3)</a></dt>
         <dd>
+        </dd><dt><a href="fig05-single-cell-hierarchical.html">2.4 Single-cell scenario: four cell types in two lineages (G = 20 or 200, J = 4)</a></dt>
+        <dd>
       </dd></dl></div>
     <div class="section ">
-      <h3>Mathematics</h3>
+      <h3>Theory: population-level references</h3>
+      <div class="section-desc"><p>Gaussian convolution of population profiles: the generative model, its derivatives and the two solvers, then the MLE properties and the confidence intervals.</p></div>
+
+      <dl><dt><a href="theory-population-generative-optimisation.html">Population-level DeCovarT: generative model, derivatives and optimisation on the simplex</a></dt>
+        <dd>
+        </dd><dt><a href="theory-population-inference.html">Population-level DeCovarT inference: MLE properties, confidence intervals and a GLM formulation</a></dt>
+        <dd>
+      </dd></dl></div>
+    <div class="section ">
+      <h3>Theory: single-cell references</h3>
+      <div class="section-desc"><p>Mixture of independent cells with two technical scales: reference moments, alignment strategies and the profile fit, then the profile information, the intervals and the REML calibration.</p></div>
+
+      <dl><dt><a href="theory-single-cell-generative-optimisation.html">Single-cell DeCovarT: reference moments, alignment strategies and the profile fit</a></dt>
+        <dd>
+        </dd><dt><a href="theory-single-cell-inference.html">Single-cell DeCovarT inference: profile information, intervals and the REML calibration</a></dt>
+        <dd>
+      </dd></dl></div>
+    <div class="section ">
+      <h3>Mathematics: review and perspectives</h3>
       <div class="section-desc"></div>
 
-      <dl><dt><a href="theory-decovart-generative-model.html">Derivatives of the DeCovarT generative model under simplex transforms</a></dt>
-        <dd>
-        </dd><dt><a href="theory-DeCovarT-MLE-properties.html">DeCovarT inference: MLE properties, intervals for proportions and a GLM formulation</a></dt>
-        <dd>
-        </dd><dt><a href="theory-review-distribution-aware-deconvolution.html">Deconvolution with reference distributions: a review of methods that use more than the mean</a></dt>
-        <dd>
-        </dd><dt><a href="theory-decovart-single-cell-tailored.html">DeCovarT tailored to single-cell references: reference moments, scales and four alignment strategies</a></dt>
+      <dl><dt><a href="theory-review-distribution-aware-deconvolution.html">Deconvolution with reference distributions: a review of methods that use more than the mean</a></dt>
         <dd>
         </dd><dt><a href="theory-decovart-bayesian-wiener.html">A Bayesian DeCovarT: latent purified profiles, the Wiener filter and variational EM</a></dt>
         <dd>
