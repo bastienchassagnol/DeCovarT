@@ -949,18 +949,18 @@ knitr::kable(route_summary, digits = 3)
 
 | route            | cell_type | coverage | outside_unit_interval | median_width |
 |:-----------------|:----------|---------:|----------------------:|-------------:|
-| delta            | ct1       |    0.950 |                 0.097 |        0.174 |
-| delta            | ct2       |    0.970 |                 0.363 |        0.209 |
-| delta            | ct3       |    0.980 |                 0.770 |        0.090 |
-| back_transformed | ct1       |    0.897 |                 0.000 |        0.226 |
-| back_transformed | ct2       |    0.973 |                 0.000 |        0.230 |
-| back_transformed | ct3       |    0.963 |                 0.000 |        0.126 |
+| delta            | ct1       |    0.950 |                 0.093 |        0.174 |
+| delta            | ct2       |    0.973 |                 0.347 |        0.209 |
+| delta            | ct3       |    0.980 |                 0.763 |        0.090 |
+| back_transformed | ct1       |    0.897 |                 0.000 |        0.228 |
+| back_transformed | ct2       |    0.977 |                 0.000 |        0.230 |
+| back_transformed | ct3       |    0.970 |                 0.000 |        0.125 |
 
 Out of 300 fits, 0 returned an estimate on a simplex face, where neither
 route is defined; the table is computed on the 300 interior fits. Three
 readings follow.
 
-- The delta method places 77% of the intervals for the rare type partly
+- The delta method places 76% of the intervals for the rare type partly
   below zero. Truncating them at zero would hide, not fix, the problem.
 - The back-transformed intervals never leave (0,1) and are wider for the
   rare type, as an asymmetric interval should be.
@@ -1672,7 +1672,7 @@ c(
   loglik_diff = eq_check$loglik_diff
 )
 #>  max_abs_diff   loglik_diff 
-#>  2.775558e-16 -2.886580e-15
+#>  2.498002e-16 -2.886580e-15
 ```
 
 ### RNA-Sieve: CLT likelihood, Fisher and Godambe
@@ -1755,9 +1755,9 @@ fit <- fit_decovart(
 )
 do.call(rbind, fit$diagnostics)
 #>          boundary_distance near_boundary   score_norm min_eigenvalue
-#> sample_1         0.2159583         FALSE 1.026516e-09      -160.1989
+#> sample_1         0.2159583         FALSE 1.026533e-09      -160.1989
 #> sample_2         0.1832317         FALSE 3.836661e-05      -167.0961
-#> sample_3         0.1682215         FALSE 4.077976e-08      -171.3536
+#> sample_3         0.1682215         FALSE 4.077970e-08      -171.3536
 #>          max_eigenvalue local_maximum
 #> sample_1      -24.48051          TRUE
 #> sample_2      -18.72240          TRUE
@@ -1809,7 +1809,7 @@ c(
   multimodal = restarts$multimodal
 )
 #> loglik_range   multimodal 
-#> 1.038287e-09 0.000000e+00
+#> 1.038284e-09 0.000000e+00
 ```
 
 A small range is reassuring but not a proof: a converged code, a tiny
