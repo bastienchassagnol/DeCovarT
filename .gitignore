@@ -71,10 +71,10 @@ docs
 **/.quarto/
 
 # Bib enrichment tooling / backups
-scripts/bib_enrich/.venv/
-scripts/curate_bibliography/bib_enrich/.venv/
+scripts/curate_bibliography/.venv/
+scripts/benchmark_metrics/python/.venv/
 *.bib.bak
-.cursor/bib-enrichment.json
+scripts/curate_bibliography/bib-enrichment.json
 # Ad-hoc Zotero collection exports (merge into inst/REFERENCES.bib)
 IV) build signature matrix.bib
 
@@ -85,6 +85,7 @@ IV) build signature matrix.bib
 .zotc/
 .venv-zotcurate/
 output/zotero/
+output/archives/
 __pycache__/
 
 # Graphify knowledge graph (local only; rebuilt by hook or graphify update)

@@ -3,13 +3,18 @@
 
 Non-interactive CLI intended for Cursor agents and pre-commit workflows.
 
+Dependencies come from the uv project in scripts/curate_bibliography/
+(pyproject.toml, uv.lock; the .venv is git-ignored).
+
 Examples:
-  scripts/curate_bibliography/bib_enrich/.venv/bin/python scripts/curate_bibliography/bib_enrich.py inst/REFERENCES.bib \\
-    --write --backup --min-score 92 --report .cursor/bib-enrichment.json
+  uv run --project scripts/curate_bibliography \\
+    python scripts/curate_bibliography/bib_enrich.py inst/REFERENCES.bib \\
+    --write --backup --min-score 92 --report scripts/curate_bibliography/bib-enrichment.json
 
   # dry-run (report only):
-  scripts/curate_bibliography/bib_enrich/.venv/bin/python scripts/curate_bibliography/bib_enrich.py inst/REFERENCES.bib \\
-    --report .cursor/bib-enrichment.json
+  uv run --project scripts/curate_bibliography \\
+    python scripts/curate_bibliography/bib_enrich.py inst/REFERENCES.bib \\
+    --report scripts/curate_bibliography/bib-enrichment.json
 """
 
 from __future__ import annotations

@@ -261,8 +261,10 @@ Detailed review in the \vignette{theory-review-distribution-aware-deconvolution.
           (\href{https://en.wikipedia.org/wiki/Nonlinear_conjugate_gradient_method}{nonlinear conjugate gradient}); it uses no
           curvature beyond the line search, whereas Newton's method converges quadratically near the optimum
           \cite[Sect.~6.1, pp.~95--97]{kochenderferAlgorithmsOptimization2026}
-    \item L-BFGS-B handles box constraints only \cite[Sects.~6.5 and 10.5, pp.~103--106 and 188]{kochenderferAlgorithmsOptimization2026}: the
-          sum-to-one constraint is imposed afterwards, and bounds at 0.05 and 0.95 exclude the faces where a type is absent
+    \item L-BFGS-B handles box constraints only \cite[Sects.~6.5 and 10.5, pp.~103--106 and 188]{kochenderferAlgorithmsOptimization2026}: in
+          \emph{DeMixNB} the sum-to-one constraint is imposed afterwards, and bounds at 0.05 and 0.95 exclude the faces where a
+          type is absent; optimising the likelihood of the closure \(\boldsymbol{p}=\boldsymbol{w}/\mathbf{1}^{\top}\boldsymbol{w}\) over the box
+          \(\boldsymbol{w}\ge\mathbf{0}\) instead keeps a box solver exact on the closed simplex (Appendix~\ref{app:optim-solvers})
     \item a line search fixes the direction and then the step length, a trust region the step length and then the
           direction \cite[Sects.~4.4--4.5, pp.~65--73]{kochenderferAlgorithmsOptimization2026}; DeCovarT uses the second (Remark~\ref{rem:step-size})
   \end{itemize}
@@ -293,7 +295,8 @@ Detailed review in the \vignette{theory-review-distribution-aware-deconvolution.
     DeMixT & log-normal convolution, single or double numerical integral & iterated conditional modes, golden section and parabolic interpolation & box bounds \\
     DeMixNB & exact negative-binomial convolution sum & iterated conditional modes, L-BFGS-B & box \([0.05,0.95]\) \\
     ISOpureR & multinomial with Dirichlet priors & block coordinate descent, Polak--Ribi\`ere conjugate gradient & log domain \\
-    DeCovarT & explicit Gaussian & trust-region Newton on the ILR chart & ILR chart, restricted fits on faces \\
+    DeCovarT & explicit Gaussian & trust-region Newton on the ILR chart, or L-BFGS-B on the closure chart & ILR chart and
+      restricted fits on faces, or the box \(\boldsymbol{w}\ge\mathbf{0}\) \\
     \bottomrule
   \end{tabularx}
 \end{table}
@@ -506,7 +509,7 @@ Model \eqref{eq:sc-model} of Section~\ref{sec:sc-tailored}.
 \label{app:sc-derivation}
 
 Model \eqref{eq:sc-model} of Section~\ref{sec:sc-tailored}, derived under (B1)--(B3); derivations in the
-\vignette{theory-decovart-single-cell-tailored.html\#sec-general}{single-cell alignment vignette}. In
+\vignette{theory-single-cell-generative-optimisation.html\#sec-general}{single-cell generative and optimisation vignette}. In
 \eqref{eq:sc-derivation}, \textcolor{scalecol}{technical scales} and the \textcolor{compcol}{composition} are coloured.
 
 \begin{subequations}
@@ -582,7 +585,7 @@ Model \eqref{eq:sc-model} of Section~\ref{sec:sc-tailored}, derived under (B1)--
         reference profiles; it equals the cell fraction only if capture efficiency and RNA content per cell are shared
         across types \cite{racleSimultaneousEnumerationCancer2017}
   \item single-cell model \eqref{eq:sc-model}: the averaged contribution of a type can be built in three ways, the first
-        factor of the planned implementation (Table~\ref{tab:sc-factorial})
+        factor of Table~\ref{tab:sc-factorial}
   \begin{enumerate}[label=(\alph*)]
     \item transcript fractions: library-normalised profiles \(\boldsymbol{\theta}_{\cdot j}=\tilde{\boldsymbol{\mu}}_{\cdot j}/S_{j}\) and the
           unknown \(\boldsymbol{q}_{\cdot i}\); the user converts \(\hat{\boldsymbol{q}}_{\cdot i}\) into cell fractions with their own
@@ -613,15 +616,15 @@ Model \eqref{eq:sc-model} of Section~\ref{sec:sc-tailored}, derived under (B1)--
         and (a) needs no size, at the price of returning transcript fractions
         \label{app:sc-transcript}
   \item absolute cell counts are not targeted: capture efficiency is not observed
-  \item library-size closure (TPM, RPKM) is avoided: dividing by the total induces negative gene--gene correlation,
-        including for genes that were independent
 \end{itemize}
 
 \begin{table}[ht]
   \centering
   \small
-  \caption{Planned variants of the single-cell model: three ways to build the averaged type contribution (rows) crossed
-    with two within-type covariances (columns). Inputs are listed in each cell; the estimand is given per row.}
+  \caption{Variants of the single-cell model: three ways to build the averaged type contribution (rows) crossed
+    with two within-type covariances (columns). Inputs are listed in each cell; the estimand is given per row. The raw
+    column is implemented (\texttt{rescale\_single\_cell\_moments()}, references \texttt{transcript\_raw} for (a) and
+    \texttt{cellular\_raw} for (b) and (c)); the denoised column is planned.}
   \label{tab:sc-factorial}
   \begin{tabular}{@{}>{\raggedright\arraybackslash}p{0.27\textwidth}>{\raggedright\arraybackslash}p{0.31\textwidth}>{\raggedright\arraybackslash}p{0.31\textwidth}@{}}
     \toprule
@@ -637,8 +640,8 @@ Model \eqref{eq:sc-model} of Section~\ref{sec:sc-tailored}, derived under (B1)--
   \end{tabular}
 \end{table}
 
-\todo[inline]{Implement the six variants of Table~\ref{tab:sc-factorial} and compare them in the ADEMP study of
-Appendix~\ref{app:sc-inference}, with the bulk Poisson term of Appendix~\ref{app:which-covariance} switched on and off.}
+\todo[inline]{Implement the denoised variants of Table~\ref{tab:sc-factorial} and compare all six in an ADEMP study,
+with the bulk Poisson term of Appendix~\ref{app:which-covariance} switched on and off.}
 
 \subsubsection{Which within-type covariance enters the bulk}
 \label{app:which-covariance}
@@ -680,7 +683,7 @@ Our derivation, for UMI-like counts; it is not implemented yet.
 \subsubsection{Alternative alignment strategies}
 \label{app:alignment}
 
-Derivations in the \vignette{theory-decovart-single-cell-tailored.html}{single-cell alignment vignette}.
+Derivations in the \vignette{theory-single-cell-generative-optimisation.html}{single-cell generative and optimisation vignette}.
 
 \begin{itemize}
   \item reference regimes
@@ -895,7 +898,7 @@ Derivations in the \vignette{theory-decovart-single-cell-tailored.html}{single-c
         \(I_{\rho\rho}-I_{\rho\eta}I_{\eta\eta}^{-1}I_{\eta\rho}\), \(\boldsymbol{\eta}=(c,\phi)\), so estimating the scales
         widens the intervals automatically
   \item joint versus plug-in nuisance scales
-        (\vignette{theory-decovart-single-cell-tailored.html\#sec-strategy-plugin}{plug-in strategy})
+        (\vignette{theory-single-cell-generative-optimisation.html\#sec-strategy-plugin}{plug-in strategy})
   \begin{itemize}
     \item with one bulk sample and no external data there is no genuine plug-in: a two-step moment
           estimate of \(c\) and \(\phi\) from the same bulk is possible, but the variance of
@@ -919,9 +922,12 @@ Derivations in the \vignette{theory-decovart-single-cell-tailored.html}{single-c
     \item the determinant term of \eqref{eq:sc-loglik} adds information only if the variance function is right;
           otherwise the quasi-score of Section~\ref{sec:generalized-linear-model} is the safer estimator
   \end{itemize}
-  \item[] \todo[inline]{Implement \eqref{eq:sc-model} in \texttt{fit\_decovart()} (covariance assembler linear in
-        \(\boldsymbol{p}\), profiled \(c\) and \(\phi\), Schur-complement Wald intervals) and validate it in an ADEMP
-        simulation study \cite{morrisUsingSimulationStudies2019} before any claim rests on it.}
+  \item implementation: \texttt{deconvolute\_single\_cell()} fits \eqref{eq:sc-model} with profiled \(c\) and \(\phi\), and
+        \texttt{confint\_single\_cell()} returns the Schur-complement Wald, ILR, profile and REML intervals, with intervals
+        for the two scales; their coverage is checked on the calibration design of Section~\ref{sec:sc-synthetic} and
+        benchmarked in Section~\ref{sec:sc-hierarchical}
+  \item[] \todo[inline]{Report the production run of the single-cell benchmark (Section~\ref{sec:sc-hierarchical})
+        before any claim rests on it \cite{morrisUsingSimulationStudies2019}.}
 \end{itemize}
 
 \subsection{Derivation of the constrained likelihood on log-ratio charts}
@@ -930,7 +936,7 @@ Derivations in the \vignette{theory-decovart-single-cell-tailored.html}{single-c
 This section and the next two apply to both models.
 
 Full derivations, worked examples and a figure in the
-\vignette{theory-decovart-generative-model.html\#sec-constrained}{generative-model vignette}.
+\vignette{theory-population-generative-optimisation.html\#sec-constrained}{population generative and optimisation vignette}.
 
 \subsubsection{Four charts of the simplex}
 \label{app:charts}
@@ -1109,9 +1115,19 @@ Full derivations, worked examples and a figure in the
 \label{app:optim-solvers}
 
 \begin{itemize}
-  \item mean-only baselines: NNLS and quadratic programming (\texttt{lsei}) on \(\|\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}\|^{2}\)
-        \cite{gongDeconRNASeqStatisticalFramework2013,dessoleLawsonHansonAlgorithmDeviation2023}
-  \item likelihood solvers: L-BFGS-B with box constraints and renormalisation \cite{byrdLimitedMemoryAlgorithm1995};
+  \item mean-only baselines: quadratic programming (\texttt{lsei}) on \(\|\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}\|^{2}\) over the
+        closed simplex \cite{gongDeconRNASeqStatisticalFramework2013}; NNLS followed by a renormalisation
+        \cite{dessoleLawsonHansonAlgorithmDeviation2023} solves the same problem with a free scale
+        \(\boldsymbol{\beta}=c\,\boldsymbol{p}\), and serves only when the bulk scale is unknown (single-cell references)
+  \item likelihood solvers: L-BFGS-B \cite{byrdLimitedMemoryAlgorithm1995} on the closure
+        \(\boldsymbol{p}=\boldsymbol{w}/\mathbf{1}^{\top}\boldsymbol{w}\), \(\boldsymbol{w}\ge\mathbf{0}\); its gradient
+        \((\nabla_{\boldsymbol{p}}\ell-(\boldsymbol{p}^{\top}\nabla_{\boldsymbol{p}}\ell)\mathbf{1})/\mathbf{1}^{\top}\boldsymbol{w}\) makes a
+        Karush--Kuhn--Tucker point of the box a Karush--Kuhn--Tucker point of the simplex, exact zeros sit on the lower
+        bound, and the scale of \(\boldsymbol{w}\) is a flat direction that the gradient never follows; a stick-breaking
+        box was rejected because once a stick is used up the later coordinates no longer move \(\boldsymbol{p}\), and
+        the solver stopped at vertices that are not maxima (shortfalls in log-likelihood up to \(2.2\), against at
+        most \(8\times10^{-4}\) for the closure, on \(180\) bulks with \(G=20\), \(J=3\)); the former implementation
+        evaluated \(\ell\) at an unnormalised \(\boldsymbol{p}\), a free-scale fit renormalised afterwards;
         projected gradient; Newton--Raphson (default, \texttt{stats::nlminb}) and Marquardt--Levenberg on the ILR
         chart with the analytic Hessian
         \cite{marquardtAlgorithmLeastSquaresEstimation1963,commengesNewtonLikeAlgorithmLikelihood2006,philippsRobustEfficientOptimization2021};
@@ -1304,10 +1320,18 @@ The argument follows maximum likelihood as iteratively reweighted least squares 
           \(\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}\) moves with the composition, plus a log-determinant term
     \item DeCovarT is therefore a GLS with a parameter-dependent variance function, fitted by the reweighted
           iteration \eqref{eq-irls} once its mean part is isolated
-    \item a simpler competitor freezes the weight at the barycentre,
-          \(\boldsymbol{\Sigma}=J^{-2}\sum_{j}\boldsymbol{\Sigma}_{j}\); it ignores the cell-type-specific networks, and
-          \emph{cellGeometry} estimates such a gene-level covariance from cross-sample variances
-          \cite{lauCellGeometryUltrafastSinglecell2026}
+    \item a simpler competitor freezes the residual covariance at the barycentre \(p_{j}=1/J\),\label{app:special}
+          \begin{equation}
+            \operatorname{Cov}(\boldsymbol{y}_{\cdot i}\mid\boldsymbol{\mu})=\frac{1}{J^{2}}\sum_{j=1}^{J}\boldsymbol{\Sigma}_{j},
+            \label{eq-gls-barycentre}
+          \end{equation}
+          so the fit is generalised least squares on the linear mean \eqref{eq-linear-deconvolution}, for which
+          Newton--Raphson and Fisher scoring coincide (Appendix~\ref{app:irls}); weighted least squares is its diagonal
+          case, with the dampened gene weights of \emph{DWLS} \cite{tsoucasAccurateEstimationCelltype2019}; interaction
+          monomials \(p_{j}p_{\ell}\) (a Scheff\'e expansion) can be added to the mean on the same residual, at the cost of
+          many extra parameters; the frozen weight ignores the
+          cell-type-specific networks, and \emph{cellGeometry} estimates such a gene-level covariance from cross-sample
+          variances \cite{lauCellGeometryUltrafastSinglecell2026}
   \end{itemize}
   \item DeCovarT is not robust in the statistical sense: the loss is quadratic in the whitened residual
         \(\boldsymbol{e}=\boldsymbol{L}^{-1}(\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p})\), so one gene with a platform shift, or a gene expressed
@@ -1391,7 +1415,7 @@ The argument follows maximum likelihood as iteratively reweighted least squares 
 \subsection{Maximum-likelihood properties and confidence intervals}
 \label{app:mle}
 
-Proofs and simulations in the \vignette{theory-DeCovarT-MLE-properties.html}{maximum-likelihood vignette}.
+Proofs and simulations in the \vignette{theory-population-inference.html}{population inference vignette}.
 
 \subsubsection{Existence, uniqueness and identifiability}
 
@@ -1444,6 +1468,32 @@ Intervals in this appendix follow the generalised-linear-model treatment of like
   score statistics of Appendix~\ref{app:mle-tests} all converge to \(\chi^{2}_{k}\), and they differ by
   \(o_{P}(1)\) \cite[Sects.~9.2--9.3]{coxTheoreticalStatistics1979}.
 \end{proposition}
+
+\begin{remark}[The same theorem in Keener, and the Godambe generalisation]
+  \label{rem:keener-godambe}
+  \begin{itemize}
+    \item Theorem~9.14 of Keener's \emph{Theoretical Statistics} \cite{keenerEstimatingEquationsMaximum2010} states the result of
+          Proposition~\ref{pr:mle-regularity} for independent and identically distributed observations: under regularity
+          conditions of the same kind, \(\sqrt{N}(\hat{\boldsymbol{\theta}}_{N}-\boldsymbol{\theta}^{\ast})\rightsquigarrow\mathcal{N}(\boldsymbol{0},I(\boldsymbol{\theta}^{\ast})^{-1})\),
+          with \(I\) the Fisher information of one observation, so the estimate is asymptotically efficient and Wald intervals
+          follow from the diagonal of \(I(\hat{\boldsymbol{\theta}})^{-1}/N\); \emph{RNA-Sieve} invokes it for its proportions and its
+          scale \(n\), treating the genes of one bulk as the replicates
+          \cite{erdmann-phamLikelihoodbasedDeconvolutionBulk2021}
+    \item under misspecification, when the data law \(Q\) lies outside the model family, the maximiser converges to the
+          Kullback--Leibler projection \(\boldsymbol{\theta}_{p}\) of \(Q\) on the family, and its covariance is the inverse Godambe
+          information \(\boldsymbol{H}^{-1}\boldsymbol{B}\boldsymbol{H}^{-\top}/N\), with \(\boldsymbol{H}\) the expected Hessian and \(\boldsymbol{B}\) the variance of the
+          score of one observation \cite{godambeOptimumPropertyRegular1960}; it reduces to \(I^{-1}/N\) when the model is right, since then \(\boldsymbol{B}=-\boldsymbol{H}=I\)
+    \item the Godambe interval covers \(\boldsymbol{\theta}_{p}\), not the truth: \emph{RNA-Sieve} argues that \(\boldsymbol{\theta}_{p}\approx\boldsymbol{\theta}^{\ast}\)
+          when a protocol shift rescales the reference means globally rather than changing their distribution
+    \item for one bulk, the genes are the observations of this argument only if they are independent, which is
+          \emph{RNA-Sieve}'s assumption; DeCovarT models their dependence, so its replicate unit is the bulk sample, or the
+          cell in the small-dispersion regime below
+    \item in the benchmarks, the per-gene scores and averaged Hessian of \emph{RNA-Sieve} give
+          \(\boldsymbol{B}^{-1}/G\) (empirical Fisher) and \(\boldsymbol{H}^{-1}\boldsymbol{B}\boldsymbol{H}^{-\top}/G\) (Godambe) in the coordinates
+          \((\alpha_{1},\ldots,\alpha_{K-1},n)\), with \(\alpha_{K}=1-\sum_{k<K}\alpha_{k}\), so the variance of \(\alpha_{K}\) is
+          \(\mathbf{1}^{\top}\boldsymbol{V}\mathbf{1}\) over the first \(K-1\) coordinates (Section~\ref{sec:hd})
+  \end{itemize}
+\end{remark}
 
 \begin{itemize}
   \item the Gaussian convolution meets (R4) and (R6) on the open simplex, because
@@ -1499,8 +1549,8 @@ Intervals in this appendix follow the generalised-linear-model treatment of like
         estimate: Wald half-widths along its eigenvectors scale as \(\lambda^{-1/2}\), so a large \(\kappa\) signals an
         elongated peak, and a \(\lambda_{\min}\) close to zero a plateau or a ridge along the corresponding eigenvector,
         where the interval is wide and the inversion of \(\boldsymbol{j}\) loses accuracy; \(\kappa\) alone misses a flat but
-        round peak: in the covariance-driven scenario, \(\kappa\) of the ILR information fell from \(6.8\) to \(1.7\) as the
-        overlap grew, because both eigenvalues shrank
+        round peak: in the archived run of the covariance-driven scenario (\(N=50\)), \(\kappa\) of the ILR information
+        fell from \(6.8\) to \(1.7\) as the overlap grew, because both eigenvalues shrank
         (\vignette{fig03-covariance-driven.html\#sec-hybrid-findings}{covariance-driven vignette}), so
         \(\lambda_{\min}\) is read together with \(\kappa\)
   \item Gaussian response, identity link, known covariance: \(\ell\) is exactly quadratic in the coefficients,
@@ -1611,8 +1661,9 @@ Intervals in this appendix follow the generalised-linear-model treatment of like
         Compute the \(1-\alpha/2\) and \(\alpha/2\) quantiles in ILR coordinates, where the
         quasi-score \(\boldsymbol{D}^{\top}\boldsymbol{V}^{-1}(\boldsymbol{y}-\boldsymbol{m})=\boldsymbol{0}\)
         has information \(\boldsymbol{D}^{\top}\boldsymbol{V}^{-1}\boldsymbol{D}\) (Section~\ref{sec:generalized-linear-model}),
-        then map both bounds back to the simplex. Compare their coverage with the delta-method intervals,
-        which currently exceed the unit simplex for highly unbalanced mixtures (Appendix~\ref{app:mle-tests}).}
+        then map both bounds back to the simplex. Compare their coverage with the Wald interval on \(\boldsymbol{p}\), which
+        can exceed the unit simplex for highly unbalanced mixtures, and with the ILR interval, which cannot
+        (Appendix~\ref{app:mle-tests}).}
 \end{itemize}
 
 \subsubsection{Nuisance scales: profile likelihood and orthogonality}
@@ -1639,7 +1690,7 @@ Intervals in this appendix follow the generalised-linear-model treatment of like
         \(\boldsymbol{\eta}\), as restricted maximum likelihood does for a variance
         \cite{coxParameterOrthogonalityApproximate1987}
   \item the same block structure of the expected information is derived for every alignment strategy in the
-        \vignette{theory-decovart-single-cell-tailored.html\#sec-compound}{single-cell alignment vignette}
+        \vignette{theory-single-cell-generative-optimisation.html\#sec-compound}{single-cell generative and optimisation vignette}
 \end{itemize}
 
 \subsubsection{Higher-order and finite-sample corrections}
@@ -1691,10 +1742,6 @@ Intervals in this appendix follow the generalised-linear-model treatment of like
         which resamples donors or cells within each type with replacement, rebuilds \((\boldsymbol{\mu},\boldsymbol{\Sigma}_{j})\) and refits
         \cite{efronBootstrapMethodsAnother1979}; it is not a permutation test, which draws without replacement
         to build a null distribution, and shuffling cell-type labels is vacuous by equivariance
-  \item generalised-linear-model view: DeCovarT models the mean through an inverse link on the parameter instead of
-        transforming the response \cite{agrestiFoundationsLinearGeneralized2015}, unlike transformation-based methods
-        such as \emph{DeOPUS} \cite{nguyenDeOPUSCellularDeconvolution2026}; its quasi-score yields the planned intervals
-        of Section~\ref{sec:generalized-linear-model}
 \end{itemize}
 
 \begin{table}[h]
@@ -1707,11 +1754,11 @@ Intervals in this appendix follow the generalised-linear-model treatment of like
     Procedure & Calibration & Simplex faces & Status \\
     \midrule
     Wald, delta method & \(\mathbf{J}_{\psi}I_{\boldsymbol{\rho}}^{-1}\mathbf{J}_{\psi}^{\top}\); symmetric, may leave \([0,1]\) & unusable & implemented \\
-    ILR back-transformation & quantiles of \(\boldsymbol{\psi}(\boldsymbol{\rho}^{(b)})\) & undefined & planned \\
+    ILR back-transformation & quantiles of \(\boldsymbol{\psi}(\boldsymbol{\rho}^{(b)})\) & undefined & implemented \\
     Score inversion & information at each null value & defined in \(\boldsymbol{p}\) & planned \\
     Profile likelihood & \(\chi^{2}_{1}\) on the deviance, signed root & inside simplex & implemented \\
     \(r^{\ast}\) or Bartlett & \(O(n^{-3/2})\) or \(O(n^{-2})\) error & not regular & planned \\
-    Firth-penalised Wald & Jeffreys-penalised likelihood & defined & planned \\
+    Firth-penalised Wald & Jeffreys-penalised likelihood & defined & implemented \\
     Sandwich & gene-factorised scores & interior only & planned \\
     Boundary LRT & \(\tfrac12\chi^{2}_{0}+\tfrac12\chi^{2}_{1}\) & designed for it & implemented \\
     Parametric bootstrap & refit on simulated bulks & automatic & implemented \\
@@ -1719,26 +1766,6 @@ Intervals in this appendix follow the generalised-linear-model treatment of like
     \bottomrule
   \end{tabular}
 \end{table}
-
-\section{Special cases of the generative model}
-\label{app:special}
-
-DeCovarT's residual covariance \(\boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i})=\sum_{j}p_{ji}^{2}\boldsymbol{\Sigma}_{j}\) depends on the unknown
-composition.
-Freezing it at the barycentre \(p_{j}=1/J\) gives a single residual covariance,
-\begin{equation}
-  \operatorname{Cov}(\boldsymbol{y}_{\cdot i}\mid\boldsymbol{\mu})=\frac{1}{J^{2}}\sum_{j=1}^{J}\boldsymbol{\Sigma}_{j},
-  \label{eq-gls-barycentre}
-\end{equation}
-so the variance of the purified profiles no longer depends on their mixing weights.
-The fit is then generalised least squares on the linear mean \eqref{eq-linear-deconvolution}.
-Weighted least squares is the diagonal case \(\boldsymbol{\Omega}=\operatorname{diag}(w_{1},\ldots,w_{G})\), for which \emph{DWLS}
-supplies dampened gene weights \cite{tsoucasAccurateEstimationCelltype2019}.
-Interaction monomials \(p_{j}p_{\ell}\) in the mean (a Scheff\'e expansion) can be added on the same
-residual, at the cost of many extra parameters.
-
-Its estimate is the generalised least-squares estimate of Theorem~\ref{th:generalized-least-squares-estimate}
-(Appendix~\ref{app:irls}), and Newton--Raphson and Fisher scoring coincide for it.
 
 \section{Performance metrics}
 \label{app:metrics}
@@ -1808,7 +1835,13 @@ Notation: \(\boldsymbol{e}=\hat{\boldsymbol{p}}-\boldsymbol{p}^{\star}\).
 \subsection{Bivariate plot books}
 \label{app:fig02}
 
-Plot books of the \(G=2\), \(J=2\) design (\(N=500\) bulks, \(972\) scenarios) are in the
+Every figure script writes two files next to its plot books: \texttt{figXX\_benchmark.rds}, with the run settings
+(seed, \(N\), \(B\), \(R\), commit, session), the design, the true parameters and every metric table (per-sample fits,
+Monte Carlo summaries, interval coverage and width), and \texttt{figXX\_plot\_data.rds}, which holds, for each figure
+file, the data handed to its plot function; \texttt{render\_figure\_from\_data()} redraws any figure from the second file
+alone.
+
+Plot books of the \(G=2\), \(J=2\) design (\(972\) scenarios) are in the
 \repo{tree/main/output/fig02}{fig02 output directory}.
 Density pages, under \texttt{density\_visualisations/}, use the correlation corners
 \((\rho_{1},\rho_{2})\in\{(0,0),(-0.8,-0.8),(0.8,0.8),(-0.8,0.8)\}\) and twelve meta-scenarios
@@ -1817,52 +1850,55 @@ Density pages, under \texttt{density\_visualisations/}, use the correlation corn
 \begin{itemize}
   \item \texttt{purified\_density.pdf}: the two cell-type Gaussians before mixing
   \item \texttt{bulk\_density.pdf}: the convolution that DeCovarT fits
-  \item \texttt{loglik\_surface\_p.pdf}: log-likelihood of one bulk on the simplex;
-        colour is \(\log_{10}(L/\max L)\)
+  \item \texttt{loglik\_surface\_p.pdf}: log-likelihood of the first simulated bulk, colour \(\log_{10}(L/\max L)\) on a
+        fixed range shared by every panel and figure; white diamond at \(\boldsymbol{p}^{\star}\), red point at the
+        maximum-likelihood estimate; one legend per page
   \item \texttt{loglik\_ilr\_profile.pdf}: the same surface as a curve in the single ILR coordinate
-  \item \texttt{loglik\_expected\_surface\_p.pdf}, \texttt{loglik\_expected\_ilr\_profile.pdf}:
-        expected log-likelihood at the true \(\boldsymbol{p}\), not one draw
-  \item \texttt{loglik\_rgl.pdf}: the same relative likelihood as a 3D surface;
-        white marker at \(\boldsymbol{p}^{\star}\), red marker at the numerical maximum
+  \item \texttt{loglik\_expected\_surface\_p.pdf}, \texttt{loglik\_expected\_ilr\_profile.pdf}: expected
+        log-likelihood at the true \(\boldsymbol{p}\); it is maximised at \(\boldsymbol{p}^{\star}\) exactly (information
+        inequality), so the red point is the Monte Carlo mean of \(\hat{\boldsymbol{p}}\), whose distance to the white
+        diamond is the finite-sample bias
+  \item \texttt{loglik\_rgl.pdf}: the same relative likelihood as a 3D surface, same scales and markers
 \end{itemize}
 
 Performance pages, under \texttt{performance\_visualisations/}:
 
 \begin{itemize}
-  \item \texttt{heatmap\_rmse.pdf}, \texttt{heatmap\_mae.pdf}, \texttt{heatmap\_aitchison.pdf}:
-        tiles on \((\rho_{1},\rho_{2})\); one page per meta-scenario; seven solver panels
-  \item \texttt{forest.pdf}: ADEMP dot-whisker for the convolution solvers
-        \cite{morrisUsingSimulationStudies2019,allenRaincloudPlotsMultiplatform2019}
-  \begin{itemize}
-    \item solid whisker: \(1.96\) times the expected-Fisher Wald standard error at the true composition
-    \item dashed whisker: empirical Monte Carlo standard deviation
-    \item labels: RMSE and coverage of that cell type
-  \end{itemize}
-  \item \texttt{raincloud.pdf}: full Monte Carlo law of \(\hat{p}\), including pile-up at \(0\) and \(1\)
-  \item \texttt{dotsinterval.pdf}: the same quantiles without a kernel density on \([0,1]\)
-  \item \texttt{qq\_normal.pdf}: whitened ILR coordinate against \(N(0,1)\)
-  \item \texttt{qq\_chi2.pdf}: squared Mahalanobis distance against \(\chi^{2}_{1}\)
-  \item \texttt{ks\_normal.pdf}: Kolmogorov--Smirnov statistic versus \(N(0,1)\)
-  \item \texttt{similarity.pdf}: Pearson correlation of paired \(\hat{\boldsymbol{p}}\) inside one correlation corner;
-        Ward clustering of \(1-r\)
-  \item \texttt{solver\_dots.pdf}: the same \(9\times 9\) grid; colour is mean RMSE, size is mean Aitchison distance
-        \todo{Map one metric per plot: the Aitchison size channel is dominated by exact zeros.}
-  \item \texttt{kkt\_raincloud.pdf}: projected-score residual
-  \item \texttt{convergence\_stacked.pdf}: theoretical success, numerical trouble, theoretical failure
+  \item \texttt{heatmap\_rmse.pdf}, \texttt{heatmap\_aitchison.pdf}: tiles on \((\rho_{1},\rho_{2})\); one page per
+        meta-scenario; one panel per method; a grey tile, keyed in the legend, marks a scenario where the solver
+        returned no finite estimate for any bulk
+  \item \texttt{ci\_width\_forest.pdf}: one page per scenario and cell type; for each method and interval construction,
+        the mean interval, the mean estimate, the true fraction (dashed) and a label with the coverage, its Wilson
+        Monte Carlo interval and the mean width \cite{morrisUsingSimulationStudies2019}
+  \item \texttt{p\_hat\_monte\_carlo\_raincloud.pdf}: Monte Carlo law of \(\hat{p}\) over the simulated bulks, including
+        pile-up at \(0\) and \(1\) \cite{allenRaincloudPlotsMultiplatform2019}
+  \item \texttt{p\_hat\_monte\_carlo\_quantile\_dots.pdf}: the same law as quantile dots, without a kernel density on
+        \([0,1]\)
+  \item \texttt{wald\_normality\_qq.pdf}: ILR estimate whitened by the information at \(\boldsymbol{p}^{\star}\) against
+        \(N(0,1)\)
+  \item \texttt{wald\_mahalanobis\_chi2\_qq.pdf}: its squared norm against \(\chi^{2}_{J-1}\) on \(\log_{10}\) axes with a
+        Monte Carlo envelope, points coloured by convergence; squaring turns one whitened value of \(-30\) into
+        \(900\), so a linear axis hid the bulk of the points; both Q--Q books assess the Wald approximation only
+  \item \texttt{estimate\_agreement\_hellinger\_ward.pdf}: mean Hellinger distance between the paired estimates of two
+        methods, \(\lVert\sqrt{\hat{\boldsymbol{p}}_{A}}-\sqrt{\hat{\boldsymbol{p}}_{B}}\rVert_{2}/\sqrt2\), with Ward clustering;
+        unlike \(1-r\) for the Pearson correlation it measures agreement rather than co-movement, it is Euclidean in
+        \(\sqrt{\boldsymbol{p}}\), which Ward's criterion requires, and it is defined at exact zeros, where the Aitchison
+        distance is not; a dashed line marks the mean pairwise distance of the page
+  \item \texttt{rmse\_colour\_aitchison\_size\_dots.pdf}: colour is mean RMSE, size is mean Aitchison distance
+  \item \texttt{kkt\_residual\_raincloud.pdf}: projected-score (first-order optimality) residual of every fit
+  \item \texttt{convergence\_theoretical\_vs\_numerical\_failures.pdf}: theoretical success, numerical failure of the
+        solver, and theoretical failure of the likelihood
   \item \texttt{runtime.pdf}, \texttt{memory.pdf}: \(\log_{10}\) seconds and \(\log_{10}\) MiB
 \end{itemize}
 
-
-
 \begin{itemize}
   \item heatmaps: where on \((\rho_{1},\rho_{2})\) a mean-only fit breaks, at fixed centroid gap
-  \item large gap and \(\rho_{j}=0\): the mean map is injective, and every solver is accurate
-  \item small gap: the least-squares residual is a ridge; NNLS and \texttt{lsei} snap to vertices
+  \item large gap and \(\rho_{j}=0\): the mean map is injective, and every method is accurate
+  \item small gap: the least-squares residual is a ridge, and \texttt{lsei} snaps to vertices
   \item rainclouds: bias, skew and boundary mass that a mean-plus-interval hides
-  \item forests: whether the Wald standard error matches the Monte Carlo spread
+  \item forests: which interval construction keeps its coverage, and at what width
   \item likelihood curves: a flat ILR profile means a rare type or colliding means
-  \item Q--Q and Kolmogorov--Smirnov: the \(N=1\) normal approximation in ILR coordinates;
-        Wilks does not apply on a face
+  \item Q--Q: the \(N=1\) normal approximation in ILR coordinates; Wilks does not apply on a face
         \cite{wilksLargeSampleDistributionLikelihood1938,selfAsymptoticPropertiesMaximum1987}
 \end{itemize}
 
@@ -1875,27 +1911,60 @@ Density pages, under \texttt{density\_visualisations/}:
 
 \begin{itemize}
   \item \texttt{mean\_signature.pdf}: heatmap of \(\boldsymbol{\mu}\) before scaling
-  \item \texttt{network\_topologies.pdf}: graph skeletons, one page per overlap target
-  \item \texttt{scenario\_metrics.pdf}: realised overlap, entropy, conditioning and related descriptors
-  \item \texttt{latent\_projections.pdf}: two-dimensional views of the convolution (Thomson, MCFA, \texttt{MclustDR})
-  \item \texttt{pairwise\_hellinger.pdf}: pairwise discrepancy of the purified laws
-  \item \texttt{loglik\_surface\_p.pdf}, \texttt{loglik\_expected\_surface\_p.pdf}:
-        one-draw and expected log-likelihood on the additive log-ratio plane
+  \item \texttt{network\_topologies.pdf}: graph skeletons, one page per overlap target; edge width and colour give
+        \(\Sigma_{ij}\), nodes of a stochastic block model are coloured by block (thin black outline), and the hubs of a scale-free graph are
+        highlighted with an ellipse around their neighbourhood
+  \item \texttt{scenario\_metrics.pdf}: descriptors per scenario as shapes, one geometry and one palette per column
+        group, each column scaled from its minimum to its maximum; \texttt{scenario\_metrics\_table.pdf} (and its
+        \texttt{.html} version) gives the same values as numbers; the PDF marks the easiest value of each column in green and
+        the hardest in red, shades and enlarges the entries of the Shannon entropy, the mean overlap and the condition
+        number of \(\boldsymbol{\Sigma}(\boldsymbol{p})\) with their value, and reports the conditioning of the mean
+        signature in a note; the maximal pairwise overlap joins the statistical-information columns
+  \item \texttt{latent\_projections.pdf}: principal components of the pooled purified profiles, which only the means
+        drive, and the supervised \texttt{MclustDR} projection \cite{scruccaDimensionReductionModelbased2010a}, which
+        also uses the covariance differences that DeCovarT exploits; an inset scree plot gives the share of the total variance
+        of each of the first ten principal components
+  \item \texttt{pairwise\_network\_aware\_distances.pdf}: pairwise discrepancy of the purified laws
+  \item \texttt{loglik\_surface\_p.pdf}, \texttt{loglik\_expected\_surface\_p.pdf}: log-likelihood on the plane of the
+        balances \(1\mid2\) and \(\{1,2\}\mid3\), with the scales and markers of Appendix~\ref{app:fig02}
   \item \texttt{loglik\_rgl.pdf}: 3D relative likelihood; same markers as in the bivariate book
 \end{itemize}
 
-Performance pages, under \texttt{performance\_visualisations/}, follow Appendix~\ref{app:fig02}, with five
-solvers and no MAE tile book.
+Performance pages, under \texttt{performance\_visualisations/}, follow Appendix~\ref{app:fig02} with the methods of
+Section~\ref{sec:hd}; the forests add three \emph{RNA-Sieve} rows, the interval of the released code and the
+recomputed Fisher and Godambe intervals.
 
 \begin{itemize}
   \item signature heatmap: types 1 and 2 are the collinear pair; type 3 is the separated column
   \item networks: scale-free versus stochastic block model on types 1 and 2
   \item descriptor strip: overlap target and \(H^{\star}\) against the design
-  \item forests at high overlap: whether an ILR solver splits types 1 and 2 when \texttt{lsei} and
-        \emph{CIBERSORT} have only the mean
+  \item forests at high overlap: whether the interval constructions keep their coverage when types 1 and 2 share
+        their means, and how \emph{MEAD} compares
   \item rainclouds at \(H^{\star}=0.1\): boundary pile-up of the rare weight
   \item latent projections: whether a linear plane still shows three clouds
   \item likelihood surfaces: ridges in the two-dimensional ILR chart
+\end{itemize}
+
+\subsection{Single-cell plot books}
+\label{app:fig05}
+
+Plot books of the single-cell design (\(64\) scenarios, Section~\ref{sec:sc-hierarchical-design}) are in the
+\repo{tree/main/output/fig05}{fig05 output directory}. They follow Appendix~\ref{app:fig03}, with these changes:
+\begin{itemize}
+  \item pages run over \(G\), then \(n_{i}\), the composition and the sibling overlap; each page is a \(2\times2\)
+        panel with the platform scale \(a\) in rows and the cell sizes in columns, every cell being simulated
+  \item the log-likelihood is the profile log-likelihood of the single-cell model, shown on the plane of the
+        within-lineage balances \(1\mid2\) and \(3\mid4\) with the between-lineage balance at its true value; each
+        panel zooms on the region where \(\log_{10}(L/\max L)>-10\), since the peak at \(n_{i}=10^{5}\) cells is too
+        narrow for a shared range
+  \item CIBERSORT is left out of \texttt{heatmap\_rmse.pdf}, \texttt{heatmap\_aitchison.pdf} and
+        \texttt{rmse\_colour\_aitchison\_size\_dots.pdf}, where its large error compressed the colour scale shared
+        by the other methods
+  \item \texttt{ci\_width\_forest\_nuisance.pdf}: intervals for \(c\), \(\phi\), the platform scale \(a=\phi/c\)
+        and the cell count \(n=c^{2}/\phi\) on \(\log_{10}\) axes, true value dashed
+  \item the forests add the REML-calibrated ILR and profile intervals
+  \item \texttt{nuisance\_scale\_ratio.pdf}: \(\hat c/c\) and \(\hat\phi/\phi\) against the number of genes and of cells,
+        with the REML-rescaled \(\hat\phi\,G/(G-J)\)
 \end{itemize}
 
 \section{Supplementary simulations}

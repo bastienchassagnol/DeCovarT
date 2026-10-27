@@ -4,7 +4,7 @@
 # through the inverse chart. Profile intervals invert the Wilks
 # chi-square_1 calibration. Boundary nulls are in 03_02_boundary_tests.R
 # and resampling in 03_03_resampling_inference.R.
-# See vignette("theory-DeCovarT-MLE-properties").
+# See vignette("theory-population-inference").
 
 # Wald intervals -----------------------------------------------------------
 

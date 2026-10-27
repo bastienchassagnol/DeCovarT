@@ -98,7 +98,7 @@ The diagram above summarises the end-to-end workflow.
 ### Interactive package structure
 
 Three graphs, regenerated with
-`Rscript scripts/auxiliary/generate_package_network_functions.R`.
+`Rscript scripts/visualisation/generate_package_network_functions.R`.
 The [estimation and interval network](https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network_core.html)
 is the Gaussian-convolution fit. The
 [simulation and benchmark network](https://bastienchassagnol.github.io/DeCovarT/package_network/decovart_function_network_simulation.html)
@@ -246,8 +246,10 @@ Package website: <https://bastienchassagnol.github.io/DeCovarT/>
 - [How to build synthetic scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-scenarios-mean-covariance.html)
 - [§2.1 Bivariate toy](https://bastienchassagnol.github.io/DeCovarT/articles/fig02-bivariate-toy.html)
 - [§2.2 Covariance-driven hybrid](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-covariance-driven.html)
-- [Generative model and derivatives](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-generative-model.html)
-- [MLE properties and asymptotic inference](https://bastienchassagnol.github.io/DeCovarT/articles/theory-DeCovarT-MLE-properties.html)
+- [Population references: generative model and optimisation](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.html)
+- [Population references: MLE properties and confidence intervals](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html)
+- [Single-cell references: reference moments and the profile fit](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html)
+- [Single-cell references: intervals and the REML calibration](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-inference.html)
 
 In an R session, use `?DeCovarT::deconvolute_ratios` (or any other exported
 function) for help pages.

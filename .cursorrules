@@ -363,7 +363,7 @@ Those steps must run *before* `setup-r-dependencies`.
   purpose of the package, main entry point, and notes on likely
   attach-order conflicts (e.g. `MASS::select` vs `dplyr::select`).
 - Keep `_PACKAGE` docs in `R/DeCovarT-package.R`; regenerate PDF/HTML
-  manuals with `scripts/auxiliary/generate_package_manual.R` when needed.
+  manuals with `scripts/generate_package_manual.R` when needed.
 
 ### Roxygen: `@export`, `@keywords internal`, `@noRd`, `@inheritParams`
 
@@ -1129,12 +1129,13 @@ When BibTeX / Rdpack validation fails because metadata is incomplete:
    never overwrite existing values; never invent DOIs):
 
 ```bash
-python3 scripts/curate_bibliography/bib_enrich.py \
+uv run --project scripts/curate_bibliography \
+  python scripts/curate_bibliography/bib_enrich.py \
   inst/REFERENCES.bib --write --backup \
-  --min-score 92 --report .cursor/bib-enrichment.json
+  --min-score 92 --report scripts/curate_bibliography/bib-enrichment.json
 ```
 
-2. Review `.cursor/bib-enrichment.json` and the git diff. Reject records
+2. Review `scripts/curate_bibliography/bib-enrichment.json` and the git diff. Reject records
    marked `ambiguous`. Manually verify any `unresolved` / `partial`
    entries (prefer Zotero correction, then re-export).
 3. Normalise formatting with `bibtex-tidy`:
@@ -1155,17 +1156,12 @@ python3 scripts/curate_bibliography/check_bibliography.py --clean
 python3 scripts/curate_bibliography/check_bibliography.py
 ```
 
-Install once (user-level with `uv`, no sudo; keeps tooling in home
-directory instead of this repository):
+Dependencies live in the uv project `scripts/curate_bibliography/`
+(`pyproject.toml`, `uv.lock`; its `.venv` is git-ignored). Create or
+refresh the environment once:
 
 ```bash
-uv venv ~/.venvs/bib-enrich
-uv pip install --python ~/.venvs/bib-enrich/bin/python \
-  bibtexparser httpx rapidfuzz typer rich
-~/.venvs/bib-enrich/bin/python -c \
-  "import bibtexparser, httpx, rapidfuzz, typer, rich; print('OK')"
-# then run:
-# python3 scripts/curate_bibliography/bib_enrich.py ...
+uv sync --project scripts/curate_bibliography
 # bibtex-tidy via npx; prefer latest Node.js LTS
 ```
 

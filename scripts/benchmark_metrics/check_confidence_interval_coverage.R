@@ -15,7 +15,7 @@
 #   4. Size of the boundary likelihood-ratio tests at a face or a vertex.
 #
 # Usage (from the repository root):
-#   Rscript scripts/auxiliary/check_confidence_interval_coverage.R [n_rep]
+#   Rscript scripts/benchmark_metrics/check_confidence_interval_coverage.R [n_rep]
 #
 # Output: output/ci_checks/ci_checks.rds and a printed summary.
 

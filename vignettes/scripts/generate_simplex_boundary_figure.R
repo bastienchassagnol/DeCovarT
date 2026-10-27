@@ -4,7 +4,7 @@
 # likelihood-ratio statistic on each of them.
 #
 # Usage (from the repository root):
-#   Rscript scripts/auxiliary/generate_simplex_boundary_figure.R
+#   Rscript vignettes/scripts/generate_simplex_boundary_figure.R
 #
 # Output: vignettes/figures/simplex_boundary_tangent_cones.png
 

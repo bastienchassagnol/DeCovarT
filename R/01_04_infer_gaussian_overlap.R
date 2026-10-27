@@ -503,6 +503,24 @@ compute_average_overlap <- function(
   seed = NULL,
   verbose = TRUE
 ) {
+  .overlap_summary(
+    true_theta,
+    J = J,
+    n_mc = n_mc,
+    seed = seed,
+    verbose = verbose
+  )$BarOmega
+}
+
+# Mean (`BarOmega`) and maximal (`MaxOmega`) pairwise overlap of a Gaussian
+# mixture, from one MixSim call (G < 4) or one Monte Carlo pass (G >= 4).
+.overlap_summary <- function(
+  true_theta,
+  J = NULL,
+  n_mc = 10000L,
+  seed = NULL,
+  verbose = TRUE
+) {
   theta <- .parse_true_theta(
     true_theta,
     require_p = TRUE,
@@ -523,7 +541,7 @@ compute_average_overlap <- function(
         n_mc = n_mc,
         seed = seed,
         J = theta$J
-      )$BarOmega
+      )
     )
   }
   .check_suggested_package("MixSim", "compute_average_overlap")
@@ -531,7 +549,7 @@ compute_average_overlap <- function(
     Pi = theta$p,
     Mu = t(theta$mu),
     S = theta$sigma
-  )$BarOmega
+  )
 }
 
 #' Average pairwise Jeffreys divergence of a Gaussian mixture

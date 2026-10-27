@@ -188,8 +188,9 @@
 #' \sum_j p_j^2\boldsymbol{\Sigma}_j)} at five layers: composition,
 #' mean geometry, covariance / SPD diagnostics, network sparsity, and
 #' tangent Fisher information (mean versus covariance split). MixSim
-#' BarOmega and average pairwise Hellinger of the component Gaussians
-#' are kept in `descriptors` (Hellinger is the unweighted pairwise mean;
+#' BarOmega (`mixsim_baromega`), MaxOmega (`mixsim_maxomega`, the largest
+#' pairwise overlap) and average pairwise Hellinger of the component
+#' Gaussians are kept in `descriptors` (Hellinger is the unweighted pairwise mean;
 #' `hellinger_weighted` is optional). Jeffreys / symmetrised KL is
 #' returned in `supplementary`. Mean-geometry columns include the
 #' highest pairwise cosine and the mean Euclidean (CLD) gap.
@@ -201,7 +202,7 @@
 #'   supplied.
 #' @param active_tol Threshold for counting an active simplex component.
 #' @param include_mixsim Logical. If `TRUE` (default), compute MixSim
-#'   BarOmega via [compute_average_overlap()]. Set `FALSE` to skip.
+#'   BarOmega and MaxOmega in one overlap pass. Set `FALSE` to skip.
 #'
 #' @return A list with:
 #' * `theta_true`: the convolution parameters `p`, `mu`, `sigma`;
@@ -432,15 +433,18 @@ describe_simulation_scenario <- function(
   }
 
   mixsim_overlap <- NA_real_
+  mixsim_max_overlap <- NA_real_
   if (isTRUE(include_mixsim)) {
-    mixsim_overlap <- tryCatch(
-      compute_average_overlap(
+    overlap <- tryCatch(
+      .overlap_summary(
         true_theta,
         n_mc = 4000L,
         verbose = FALSE
       ),
-      error = function(e) NA_real_
+      error = function(e) list(BarOmega = NA_real_, MaxOmega = NA_real_)
     )
+    mixsim_overlap <- overlap$BarOmega
+    mixsim_max_overlap <- overlap$MaxOmega
   }
   riemannian <- tryCatch(
     compute_average_riemannian(true_theta),
@@ -478,6 +482,7 @@ describe_simulation_scenario <- function(
     network_mean_degree = network_mean_degree,
     hoyer_abs_correlation = hoyer_r,
     mixsim_baromega = mixsim_overlap,
+    mixsim_maxomega = mixsim_max_overlap,
     hellinger = hellinger,
     hellinger_weighted = hellinger_weighted,
     riemannian_sigma = riemannian

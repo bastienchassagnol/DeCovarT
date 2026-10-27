@@ -11,7 +11,7 @@
 #      plane 1^perp, returns the Helmert columns v_1, v_2.
 #
 # Usage (from the repository root):
-#   Rscript scripts/auxiliary/generate_ilr_isometry_figure.R
+#   Rscript vignettes/scripts/generate_ilr_isometry_figure.R
 #
 # Output: vignettes/figures/ilr_isometry_gram_schmidt.png
 

@@ -22,7 +22,7 @@ supplied.}
 \item{active_tol}{Threshold for counting an active simplex component.}
 
 \item{include_mixsim}{Logical. If \code{TRUE} (default), compute MixSim
-BarOmega via \code{\link[=compute_average_overlap]{compute_average_overlap()}}. Set \code{FALSE} to skip.}
+BarOmega and MaxOmega in one overlap pass. Set \code{FALSE} to skip.}
 }
 \value{
 A list with:
@@ -51,8 +51,9 @@ Summarises the generating law
 \sum_j p_j^2\boldsymbol{\Sigma}_j)} at five layers: composition,
 mean geometry, covariance / SPD diagnostics, network sparsity, and
 tangent Fisher information (mean versus covariance split). MixSim
-BarOmega and average pairwise Hellinger of the component Gaussians
-are kept in \code{descriptors} (Hellinger is the unweighted pairwise mean;
+BarOmega (\code{mixsim_baromega}), MaxOmega (\code{mixsim_maxomega}, the largest
+pairwise overlap) and average pairwise Hellinger of the component
+Gaussians are kept in \code{descriptors} (Hellinger is the unweighted pairwise mean;
 \code{hellinger_weighted} is optional). Jeffreys / symmetrised KL is
 returned in \code{supplementary}. Mean-geometry columns include the
 highest pairwise cosine and the mean Euclidean (CLD) gap.

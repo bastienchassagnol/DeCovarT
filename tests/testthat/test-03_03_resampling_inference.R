@@ -124,3 +124,38 @@ test_that("reference_bootstrap_decovart resamples donors within type", {
   expect_identical(dim(boot$estimates), c(3L, 8L))
   expect_equal(colSums(boot$estimates), rep(1, 8L), tolerance = 1e-6)
 })
+
+test_that("bootstrap_decovart refits with the closure L-BFGS-B", {
+  setup <- .inference_setup()
+  y <- withr::with_seed(
+    3L,
+    simulate_bulk_mixture(
+      signature_matrix = setup$signature,
+      Sigma = setup$Sigma,
+      p = c(0.5, 0.3, 0.2),
+      n = 4L
+    )$Y
+  )
+  boot <- withr::with_seed(
+    4L,
+    bootstrap_decovart(
+      y = y,
+      mean_signature_matrix = setup$signature,
+      Sigma = setup$Sigma,
+      n_boot = 5L,
+      optimiser = "lbfgsb"
+    )
+  )
+  expect_identical(dim(boot$interval), c(3L, 2L))
+  expect_true(all(boot$interval >= 0 & boot$interval <= 1))
+  expect_error(
+    bootstrap_decovart(
+      y,
+      setup$signature,
+      setup$Sigma,
+      n_boot = 2L,
+      optimiser = "simplex"
+    ),
+    "should be one of"
+  )
+})

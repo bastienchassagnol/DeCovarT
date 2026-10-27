@@ -732,7 +732,7 @@ multistart_decovart <- function(
 #' \eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}} via
 #' \eqn{\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{z})}
 #' (Marquardt–Levenberg default; see other methods below and
-#' `vignette("theory-decovart-generative-model", package = "DeCovarT")`).
+#' `vignette("theory-population-generative-optimisation", package = "DeCovarT")`).
 #'
 #' @details
 #' **Plug-in signature.** Argument `mean_signature_matrix` is the mean
@@ -914,11 +914,15 @@ deconvolute_ratios_simulated_annealing <- function(
 }
 
 #' @describeIn deconvolute_ratios_Marquardt_Levenberg Box-constrained L-BFGS-B
-#'   directly in \eqn{\boldsymbol{p}} ([stats::optim()] `method = "L-BFGS-B"`).
-#'   The box keeps each coordinate in \eqn{[0,1]}; the returned vector is
-#'   closed by \eqn{p/\sum p} (no [repair_simplex()] clipping). Wald
-#'   standard errors still use the ILR expected-Fisher map
-#'   [vcov_ilr_delta()], not a \eqn{\boldsymbol{p}}-space Hessian.
+#'   ([stats::optim()] `method = "L-BFGS-B"`) on the closure
+#'   \eqn{\boldsymbol{p}=\boldsymbol{w}/\mathbf{1}^{\mathsf{T}}\boldsymbol{w}}
+#'   of the box \eqn{\boldsymbol{w}\ge\mathbf{0}}. The box covers the closed
+#'   simplex, so the solver maximises the same likelihood as Newton--Raphson
+#'   and can return exact zeros, and a stationary point of the box is one of
+#'   the simplex. `epsilon` is the relative reduction of the log-likelihood
+#'   at which the solver stops (`factr = epsilon / .Machine$double.eps`).
+#'   Wald standard errors use the ILR expected-Fisher map
+#'   [vcov_ilr_delta()] and are undefined on a face.
 #' @export
 deconvolute_ratios_L_BFGS_B <- function(
   y,
@@ -938,59 +942,26 @@ deconvolute_ratios_L_BFGS_B <- function(
     mean_signature_matrix,
     dirichlet_alpha
   )
-  # Box constraints alone do not keep sum(p)=1, so Sigma(p) can become
-  # singular during the line search. Guard the objective/gradient and fall
-  # back to a finite penalty (a zero gradient carries no misleading
-  # direction) rather than letting solve() abort the whole optim() call.
-  safe_loglik <- function(p, y, mean_signature_matrix, Sigma) {
-    if (sum(p) < 1e-8) {
-      return(-1e12)
-    }
-    tryCatch(
-      loglik_multivariate(p, y, mean_signature_matrix, Sigma),
-      error = function(e) -1e12
-    )
-  }
-  safe_gradient <- function(p, y, mean_signature_matrix, Sigma) {
-    if (sum(p) < 1e-8) {
-      return(rep(0, length(p)))
-    }
-    tryCatch(
-      gradient_loglik_unconstrained(p, y, mean_signature_matrix, Sigma),
-      error = function(e) rep(0, length(p))
-    )
-  }
-  fit <- stats::optim(
-    par = initial_p,
-    fn = safe_loglik,
-    gr = safe_gradient,
-    y = y,
-    mean_signature_matrix = mean_signature_matrix,
-    Sigma = Sigma,
-    control = list(
-      fnscale = -1,
-      maxit = itmax,
-      lmm = 1,
-      factr = epsilon * 10
-    ),
-    method = "L-BFGS-B",
-    lower = rep(0, length(initial_p)),
-    upper = rep(1, length(initial_p))
+  fit <- .lbfgsb_closure(
+    as.numeric(initial_p),
+    loglik = function(p) {
+      loglik_multivariate(p, y, mean_signature_matrix, Sigma)
+    },
+    score = function(p) {
+      gradient_loglik_unconstrained(p, y, mean_signature_matrix, Sigma)
+    },
+    epsilon = epsilon,
+    itmax = itmax
   )
-  estimated_p <- fit$par
-  total <- sum(estimated_p)
-  if (is.finite(total) && total > 0) {
-    estimated_p <- estimated_p / total
-  }
   .solver_result(
-    estimated_p,
-    isometric_log_ratio(estimated_p),
+    fit$par,
+    if (all(fit$par > 0)) isometric_log_ratio(fit$par) else NULL,
     y,
     mean_signature_matrix,
     Sigma,
     return_model,
     code = fit$convergence,
-    iterations = fit$counts[["function"]],
+    iterations = fit$iterations,
     message = fit$message
   )
 }

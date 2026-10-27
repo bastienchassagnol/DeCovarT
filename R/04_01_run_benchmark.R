@@ -47,13 +47,23 @@
 #'   This is not the interval for \eqn{p_j} itself.
 #' @param algorithm Character label stored on each metrics row (typically
 #'   the solver name). Recycled to length one.
+#' @param intervals Optional list of length \eqn{N}: for every sample, a
+#'   named list of two-column matrices (lower, upper) per interval method,
+#'   with one row per parameter.
+#' @param nuisance_hat,nuisance_true Optional \eqn{2\times N} matrices of
+#'   estimated and true scales (rows `mean_scale`, `variance_scale`) of the
+#'   single-cell model.
 #'
 #' @return A named list with:
 #' * `regression`: `global` (one row per sample) and `cell_type` (one
 #'   row per cell type);
 #' * `monte_carlo`: one row per cell type, including `theoretical_se`
 #'   (filled later from expected Fisher at \eqn{p^{\star}});
-#' * `optimisation`: one row per sample.
+#' * `optimisation`: one row per sample, with the estimated scales when
+#'   `nuisance_hat` is given;
+#' * `intervals`: one row per interval method and parameter, with the
+#'   coverage, its Monte Carlo interval and the interval widths (empty
+#'   without `intervals`).
 #'
 #' @examples
 #' mu <- matrix(c(20, 22, 22, 20), nrow = 2,
@@ -82,7 +92,10 @@ compute_benchmark_metrics <- function(
   presence_threshold = 1e-4,
   level = 0.95,
   coverage_interval = "wilson",
-  algorithm = NA_character_
+  algorithm = NA_character_,
+  intervals = NULL,
+  nuisance_hat = NULL,
+  nuisance_true = NULL
 ) {
   cell_names <- colnames(mean_signature_matrix)
   if (is.null(cell_names)) {
@@ -202,11 +215,30 @@ compute_benchmark_metrics <- function(
   )
   p_hat_tbl <- tibble::as_tibble(t(p_hat))
   optimisation <- dplyr::bind_cols(opt, p_hat_tbl)
+  if (!is.null(nuisance_hat)) {
+    optimisation <- dplyr::bind_cols(
+      optimisation,
+      tibble::as_tibble(t(nuisance_hat), .name_repair = "minimal")
+    )
+  }
 
   list(
     regression = list(global = regression_global, cell_type = cell_type),
     monte_carlo = monte_carlo,
-    optimisation = optimisation
+    optimisation = optimisation,
+    intervals = if (is.null(intervals) || is.null(p_true)) {
+      tibble::tibble()
+    } else {
+      .interval_table(
+        intervals,
+        p_hat = p_hat,
+        p_true = p_true,
+        nuisance_hat = nuisance_hat,
+        nuisance_true = nuisance_true,
+        coverage_interval = coverage_interval,
+        algorithm = algorithm
+      )
+    }
   )
 }
 
@@ -259,8 +291,22 @@ compute_benchmark_metrics <- function(
 #' @param Sigma Optional array
 #'   \eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}}
 #'   of cell-type covariances (numeric; off-diagonals may be negative).
-#' @param deconvolution_functions Named list; each element has `FUN` and
-#'   optional `additional_parameters`.
+#' @param deconvolution_functions Named list; each element has `FUN`,
+#'   optional `additional_parameters`, and an optional `ci` list
+#'   (`methods`, `level`, `n_boot`, `n_draws`, `optimiser`) naming the
+#'   interval methods to evaluate at that solver's estimate: `wald`,
+#'   `ilr`, `profile`, `bootstrap` and `oracle` (Wald half-width at the
+#'   true composition); for the single-cell model, `wald_reml`, `ilr_reml`
+#'   and `profile_reml` add the REML calibration. Solvers that return a
+#'   list read the estimate from `coefficients`, or from `composition` for
+#'   [deconvolute_single_cell()].
+#' @param model `"population"` (default), the Gaussian convolution, or
+#'   `"single_cell"`, the mixture of cells with its scales profiled out:
+#'   it sets the log-likelihood, score and curvature used for the
+#'   per-sample diagnostics and the Wald standard errors.
+#' @param nuisance_true Optional \eqn{2\times N} matrix of the true scales
+#'   \eqn{(c,\phi)} of the single-cell model, for the coverage of their
+#'   intervals.
 #' @param cores Number of `furrr` workers for the **sample** loop.
 #'   Defaults to `getOption("mc.cores", 1L)`. Use `cores = 1` to stay
 #'   sequential (CRAN examples and nested callers). With `cores > 1`,
@@ -276,14 +322,17 @@ compute_benchmark_metrics <- function(
 #'   `TRUE` and `cores = 1`. Defaults to `10L`.
 #'
 #' @return A named list from [compute_benchmark_metrics()] with
-#'   `regression` (global and cell-type subtables), `monte_carlo`, and
+#'   `regression` (global and cell-type subtables), `monte_carlo`,
 #'   `optimisation` (per-sample elapsed time, memory, KKT residual, and
-#'   \eqn{\hat{\boldsymbol{p}}}). First-generation solvers still call
+#'   \eqn{\hat{\boldsymbol{p}}}) and `intervals` (coverage and width per
+#'   interval method). First-generation solvers still call
 #'   [repair_simplex()]; the three native DeCovarT maps (ILR or
 #'   \eqn{p/\sum p}) already lie on the simplex. When `Sigma` is
 #'   supplied, Newton-Raphson, Marquardt-Levenberg, L-BFGS-B, BFGS
-#'   (gradient), and simulated annealing attach ILR Wald standard
-#'   errors from [vcov_ilr_delta()] so `monte_carlo` can report
+#'   (gradient), simulated annealing, the Firth fits and
+#'   [deconvolute_single_cell()] attach Wald standard errors (ILR
+#'   expected Fisher for the population model, the profile Hessian for the
+#'   single-cell model) so `monte_carlo` can report
 #'   coverage, mean model SE, and the SE/SD ratio. Those SEs are the
 #'   expected-Fisher delta-method bounds used by
 #'   [confint.decovart_fit()], not diagonal entries of the observed
@@ -351,8 +400,11 @@ deconvolute_ratios <- function(
   cores = getOption("mc.cores", 1L),
   coverage_interval = "wilson",
   verbose = FALSE,
-  progress_every = 10L
+  progress_every = 10L,
+  model = c("population", "single_cell"),
+  nuisance_true = NULL
 ) {
+  model <- match.arg(model)
   aligned <- .prepare_deconvolution_inputs(
     signature_matrix = signature_matrix,
     bulk_expression = bulk_expression,
@@ -366,6 +418,11 @@ deconvolute_ratios <- function(
   true_ratios <- aligned$true_ratios
   Sigma <- aligned$Sigma
   cell_names <- colnames(mean_signature_matrix)
+  model_functions <- if (is.null(Sigma)) {
+    NULL
+  } else {
+    .benchmark_model(model, mean_signature_matrix, Sigma)
+  }
 
   if (
     is.null(deconvolution_functions) || length(deconvolution_functions) == 0L
@@ -385,7 +442,9 @@ deconvolute_ratios <- function(
             mean_signature_matrix = mean_signature_matrix,
             Sigma = Sigma,
             deconvolution_function = deconvolution_function,
-            cell_names = cell_names
+            cell_names = cell_names,
+            model = model,
+            model_functions = model_functions
           )
         },
         cores = cores,
@@ -415,7 +474,16 @@ deconvolute_ratios <- function(
         min_eigenvalue = purrr::map_dbl(fits, "min_eigenvalue"),
         max_eigenvalue = purrr::map_dbl(fits, "max_eigenvalue"),
         coverage_interval = coverage_interval,
-        algorithm = algorithm
+        algorithm = algorithm,
+        intervals = if (is.null(deconvolution_function$ci)) {
+          NULL
+        } else {
+          purrr::map(fits, "intervals")
+        },
+        nuisance_hat = if (identical(model, "single_cell")) {
+          do.call(cbind, purrr::map(fits, "nuisance"))
+        },
+        nuisance_true = nuisance_true
       )
     }
   )
@@ -426,7 +494,8 @@ deconvolute_ratios <- function(
       cell_type = bind(\(x) x$regression$cell_type)
     ),
     monte_carlo = bind("monte_carlo"),
-    optimisation = bind("optimisation")
+    optimisation = bind("optimisation"),
+    intervals = bind("intervals")
   )
 }
 
@@ -446,7 +515,9 @@ deconvolute_ratios <- function(
   mean_signature_matrix,
   Sigma,
   deconvolution_function,
-  cell_names
+  cell_names,
+  model = "population",
+  model_functions = NULL
 ) {
   n_celltypes <- length(cell_names)
   fun <- deconvolution_function$FUN
@@ -458,19 +529,24 @@ deconvolute_ratios <- function(
   if ("return_model" %in% formal_args) {
     list_arguments$return_model <- TRUE
   }
-  convolution_solver <- any(vapply(
-    list(
-      deconvolute_ratios_Newton_Raphson,
-      deconvolute_ratios_Marquardt_Levenberg,
-      deconvolute_ratios_L_BFGS_B,
-      deconvolute_ratios_gradient_descent,
-      deconvolute_ratios_simulated_annealing
-    ),
-    identical,
-    logical(1),
-    fun
-  ))
+  likelihood_solver <- !is.null(deconvolution_function$ci) ||
+    any(vapply(
+      list(
+        deconvolute_ratios_Newton_Raphson,
+        deconvolute_ratios_Marquardt_Levenberg,
+        deconvolute_ratios_L_BFGS_B,
+        deconvolute_ratios_gradient_descent,
+        deconvolute_ratios_simulated_annealing,
+        fit_firth_decovart,
+        deconvolute_single_cell,
+        fit_firth_single_cell
+      ),
+      identical,
+      logical(1),
+      fun
+    ))
   na_vector <- stats::setNames(rep(NA_real_, n_celltypes), cell_names)
+  na_nuisance <- c(mean_scale = NA_real_, variance_scale = NA_real_)
   mem0 <- .process_memory_bytes()
   t0 <- proc.time()[["elapsed"]]
   fit <- tryCatch(
@@ -479,26 +555,20 @@ deconvolute_ratios <- function(
         fun,
         list_arguments[names(list_arguments) %in% formal_args]
       )
-      estimated <- if (is.list(raw_out) && !is.null(raw_out$coefficients)) {
+      estimated <- if (!is.list(raw_out)) {
+        raw_out
+      } else if (!is.null(raw_out$coefficients)) {
         raw_out$coefficients
       } else {
-        raw_out
+        raw_out$composition
       }
-      estimated_p <- stats::setNames(as.numeric(estimated), cell_names)
-      se <- if (
-        convolution_solver && !is.null(Sigma) && all(is.finite(estimated_p))
-      ) {
-        .ilr_wald_se(estimated_p, mean_signature_matrix, Sigma, warn = FALSE)
-      } else {
-        na_vector
-      }
+      convergence <- if (is.list(raw_out)) raw_out$convergence
       list(
-        p = estimated_p,
-        se = se,
+        p = stats::setNames(as.numeric(estimated), cell_names),
         ok = TRUE,
-        converged = if (is.list(raw_out) && is.list(raw_out$convergence)) {
+        converged = if (is.list(convergence)) {
           with(
-            raw_out$convergence,
+            convergence,
             list(
               iterations = iterations,
               criterion = message,
@@ -506,8 +576,31 @@ deconvolute_ratios <- function(
               rdm = rdm
             )
           )
+        } else if (is.numeric(convergence)) {
+          list(
+            iterations = if (is.null(raw_out$iterations)) {
+              NA_integer_
+            } else {
+              as.integer(raw_out$iterations)
+            },
+            criterion = if (is.null(raw_out$message)) {
+              NA_character_
+            } else {
+              as.character(raw_out$message)
+            },
+            code = as.integer(convergence),
+            rdm = NA_real_
+          )
         } else {
           .na_convergence
+        },
+        nuisance = if (is.list(raw_out) && !is.null(raw_out$variance_scale)) {
+          c(
+            mean_scale = raw_out$mean_scale,
+            variance_scale = raw_out$variance_scale
+          )
+        } else {
+          na_nuisance
         }
       )
     },
@@ -515,9 +608,9 @@ deconvolute_ratios <- function(
       warning(conditionMessage(e), call. = FALSE)
       list(
         p = na_vector,
-        se = na_vector,
         ok = FALSE,
-        converged = .na_convergence
+        converged = .na_convergence,
+        nuisance = na_nuisance
       )
     }
   )
@@ -532,7 +625,7 @@ deconvolute_ratios <- function(
 
   out <- list(
     p = fit$p,
-    se = fit$se,
+    se = na_vector,
     true_p = p_i,
     elapsed = elapsed,
     memory_bytes = memory_bytes,
@@ -543,40 +636,52 @@ deconvolute_ratios <- function(
     converged = fit$converged,
     local_maximum = NA,
     min_eigenvalue = NA_real_,
-    max_eigenvalue = NA_real_
+    max_eigenvalue = NA_real_,
+    nuisance = fit$nuisance,
+    intervals = NULL
   )
-  if (out$numerical_converged && !is.null(Sigma)) {
-    safely <- function(expr) tryCatch(expr, error = function(e) NA_real_)
-    p_hat <- fit$p
-    out$kkt_residual <- safely(.kkt_residual(
+  if (!out$numerical_converged || is.null(model_functions)) {
+    return(out)
+  }
+  safely <- function(expr) tryCatch(expr, error = function(e) NA_real_)
+  p_hat <- fit$p
+  if (likelihood_solver && all(p_hat > 0)) {
+    se <- tryCatch(model_functions$se(p_hat, y_i), error = function(e) NULL)
+    if (length(se) == n_celltypes) {
+      out$se <- stats::setNames(as.numeric(se), cell_names)
+    }
+  }
+  out$kkt_residual <- safely(.kkt_residual(
+    p_hat,
+    model_functions$score(p_hat, y_i)
+  ))
+  out$loglik_hat <- safely(model_functions$loglik(p_hat, y_i))
+  if (!is.null(p_i)) {
+    out$loglik_true <- safely(model_functions$loglik(p_i, y_i))
+  }
+  curvature <- tryCatch(
+    model_functions$curvature(p_hat, y_i),
+    error = function(e) NULL
+  )
+  if (!is.null(curvature)) {
+    out$local_maximum <- curvature$local_maximum
+    out$min_eigenvalue <- curvature$min_eigenvalue
+    out$max_eigenvalue <- curvature$max_eigenvalue
+  }
+  if (!is.null(deconvolution_function$ci) && !is.null(p_i)) {
+    out$intervals <- .benchmark_intervals(
+      y_i,
       p_hat,
-      gradient_loglik_unconstrained(p_hat, y_i, mean_signature_matrix, Sigma)
-    ))
-    out$loglik_hat <- safely(
-      loglik_multivariate(p_hat, y_i, mean_signature_matrix, Sigma)
+      stats::setNames(as.numeric(p_i), cell_names),
+      mean_signature_matrix,
+      Sigma,
+      ci = deconvolution_function$ci,
+      model = model
     )
-    if (!is.null(p_i)) {
-      out$loglik_true <- safely(
-        loglik_multivariate(p_i, y_i, mean_signature_matrix, Sigma)
-      )
-    }
-    diagnostics <- tryCatch(
-      boundary_diagnostics(p_hat, y_i, mean_signature_matrix, Sigma),
-      error = function(e) NULL
-    )
-    if (!is.null(diagnostics)) {
-      out$local_maximum <- isTRUE(diagnostics$local_maximum)
-      out$min_eigenvalue <- diagnostics$min_eigenvalue
-      out$max_eigenvalue <- diagnostics$max_eigenvalue
-    }
   }
   out
 }
 
-#' Map over bulk samples, optionally with `furrr`
-#'
-#' @keywords internal
-#' @noRd
 .map_samples <- function(
   n,
   fun,

@@ -102,11 +102,45 @@ UTF-8 in comments.
 
 ## Graphics
 
-- **TikZ** (+ `arrows.meta`, `positioning`, `shapes.geometric`, `calc`, `fit`) for
-  DAGs, pipelines, and Mermaid-like box diagrams in print.
-- **`pgfplots`** (`\pgfplotsset{compat=1.18}`) for true vector function/data plots.
-- Analytic plots from R: **`ggplot2::ggsave(..., device = cairo_pdf)`** (or PDF)
-  via `\includegraphics`; use pgfplots when the curve must live entirely in TeX.
+Use only packages that compile in one LuaLaTeX run on Ubuntu TeX Live:
+TikZ, pgfplots, and `curve2e`. Do not use PSTricks. Its pictures need
+`latex` and `dvips`, and TikZ or `curve2e` already draw those pictures.
+
+- **TikZ** (`arrows.meta`, `positioning`, `shapes.geometric`, `calc`, `fit`)
+  for DAGs, pipelines, and box diagrams.
+- **`pgfplots`** (`\pgfplotsset{compat=1.18}`) for function and data plots
+  that must live in TeX.
+- Analytic plots from R: **`ggplot2::ggsave(..., device = cairo_pdf)`**
+  (or PDF) via `\includegraphics`.
+- **`curve2e`** (Beccari; extends `pict2e`; `texdoc curve2e-manual`) for
+  stroked or filled outlines and Bézier curves in the same LuaLaTeX run.
+  Load **`xcolor` before `curve2e`**.
+  - Author from nodes and outgoing directions:
+    `\Curve(x,y)<dx,dy>...(x,y)<dx,dy>`. `\Curve*` fills. A second
+    direction at a node is a cusp. Quadratic authoring is `\Qurve`
+    (same syntax). `\CurveBetween` / `\CbezierBetween` draw one cubic
+    and can set the distances to the control points.
+  - Trace a path whose control points you already have (SVG `C`, or an
+    SVG `Q` lifted to a cubic) with pict2e `\moveto`, `\lineto`,
+    `\curveto`, `\closepath`, then `\fillpath` or `\strokepath`.
+    `\Curve` and `\Qurve` recompute controls from tangents; they are the
+    wrong tool for a trace. PDF has no quadratic operator, so lift `Q`
+    to a cubic: each control sits two-thirds of the way from an endpoint
+    to the quadratic control.
+  - The `picture` origin is the bottom left. Flip SVG *y* before you
+    emit coordinates. `\fillpath` is non-zero winding (PDF `f`). An SVG
+    `evenodd` path needs `f*` (redefine `\pIIe@fill@op` locally), or
+    holes fill in.
+  - Efficiency: pict2e appends each segment of one path with `\xdef`,
+    so one path gets slower as the square of its own length. Splitting
+    the drawing into the original paths avoids that. A trace of this
+    kind (about 6,000 segments over about 60 paths) compiled with
+    LuaLaTeX in under two seconds. Do not build one giant path of tens
+    of thousands of segments; include the SVG or PDF instead. Hobby
+    splines are TikZ-only; `curve2e` has no Hobby interface.
+- Transparent page: class `standalone`, and no `\pagecolor`. Delete a
+  full-canvas white rectangle. After `pdftocairo -svg` or `dvisvgm`,
+  delete a converter-added white page rectangle.
 
 ## Bibliography
 

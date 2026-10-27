@@ -79,24 +79,43 @@ moves with the columns, which is equivariance rather than sampling
 variability. For the population model that check is
 `equivariance_check_decovart()`.
 
-## Checks (scripts/auxiliary/check_confidence_interval_coverage.R)
+## Checks (scripts/benchmark_metrics/check_confidence_interval_coverage.R)
 
 Restricted fits on a face now use the trust-region Newton driver with the
 pooled analytic Hessian (`.fit_on_face()`); the former BFGS start could
-jump to a vertex with pooled columns. Population intervals cover at
-0.93 to 0.96 (J = 2, 3; N = 5; 300 replicates). Single-cell intervals
-undercover at G = 10 (0.85 to 0.92), because the variance scale has
-G - J degrees of freedom; at G = 40 the Wald interval covers at 0.94.
-`variance = "reml"` in `confint_single_cell()` and
-`confint_profile_single_cell()` inflates the covariances by G / (G - J),
-uses t quantiles on G - J degrees of freedom (a multivariate t for the
-ILR map when J > 2), the chi-square interval for phi, and the profile
-cut-off G log(1 + F(1, G - J) / (G - J)).
+jump to a vertex with pooled columns. Run of 2026-10-24 (300 replicates,
+level 0.95, seed 20261022), after the cell size entered the covariance
+as S_j^2:
+
+- Information matrices: the single-cell profile and nuisance
+  covariances match the inverse numDeriv Hessian of l(rho, log c, log phi)
+  to a relative error below 5e-7 (J = 2, 3, 4); the population expected
+  information matches the Monte Carlo mean of -H to 1.5e-2 (J = 2) and
+  5.7e-3 (J = 3), the Monte Carlo error of 4000 draws.
+- Population intervals (J = 2, 3; N = 5): ILR 0.95 to 0.99, Wald 0.95
+  to 0.97, profile 0.95 to 0.97, Firth 0.95 to 0.97. Parametric
+  bootstrap 0.96, reference bootstrap 0.92 (J = 2, 50 replicates).
+- Single-cell intervals (G = 10, J = 2, four scenarios of balanced or
+  unbalanced composition and equal or unequal cell sizes): with
+  `variance = "ml"` the composition intervals cover 0.84 to 0.93 and
+  those of c and phi 0.82 to 0.90, because the variance scale has G - J
+  degrees of freedom. `variance = "reml"` in `confint_single_cell()` and
+  `confint_profile_single_cell()` inflates the covariances by
+  G / (G - J), uses t quantiles on G - J degrees of freedom (a
+  multivariate t for the ILR map when J > 2), the chi-square interval for
+  phi, and the profile cut-off G log(1 + F(1, G - J) / (G - J)); it
+  covers 0.93 to 0.97 for the composition and 0.94 to 0.96 for the
+  scales.
+- Boundary likelihood-ratio tests at the 0.05 level: rejection rates
+  0.067, 0.060 and 0.043 for the population nulls (Monte Carlo SE about
+  0.014), 0.093 for the single-cell null celltype_2 = 0 (SE 0.017),
+  which is anti-conservative.
 
 ## Not in this pass
 
 Score-test inversion, Bartlett correction, \(r^{\ast}\), the Godambe
 sandwich, and any extra term for using \(\hat\Sigma_j\) in place of
 \(\Sigma_j\). The reference bootstrap is the implemented route for
-reference uncertainty. Coverage of the new intervals has not been
-checked by a Monte Carlo experiment.
+reference uncertainty. Coverage under the simulation benchmarks of
+figures 2, 3 and 5 is in their `intervals` tables
+(`output/figXX/figXX_benchmark.rds`).

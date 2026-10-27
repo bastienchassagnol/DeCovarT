@@ -874,18 +874,25 @@ vcov_single_cell <- function(
 #' two-stage plug-in fit), which is not the joint maximum. Supplying both
 #' `mean_scale` and `variance_scale` fixes them at those values.
 #'
-#' Every fit uses the analytic score and observed Hessian with the PORT
-#' trust region of [stats::nlminb()]: the step maximises the quadratic
-#' model inside a ball whose radius grows or shrinks with the ratio of
-#' actual to predicted increase; there is no line search and no fixed
-#' step length. The returned `vcov` is the delta-method image of the
-#' inverse negative profile Hessian; intervals are
+#' With `optimiser = "newton"` (default) every fit uses the analytic
+#' score and observed Hessian with the PORT trust region of
+#' [stats::nlminb()]: the step maximises the quadratic model inside a ball
+#' whose radius grows or shrinks with the ratio of actual to predicted
+#' increase; there is no line search and no fixed step length. With
+#' `optimiser = "lbfgsb"` the same objective is maximised by L-BFGS-B on
+#' the closure \eqn{\boldsymbol{p}=\boldsymbol{w}/\mathbf{1}^{\top}
+#' \boldsymbol{w}}, \eqn{\boldsymbol{w}\ge0}, as in
+#' [deconvolute_ratios_L_BFGS_B()]; it can return exact zeros, where `rho`
+#' and the covariances are `NA`. The returned `vcov` is the delta-method
+#' image of the inverse negative profile Hessian; intervals are
 #' [confint_single_cell()].
 #'
 #' @inheritParams loglik_single_cell
 #' @param epsilon Relative function and step tolerances passed to
 #'   [stats::nlminb()].
-#' @param itmax Maximum number of Newton iterations.
+#' @param itmax Maximum number of iterations.
+#' @param optimiser `"newton"` (trust-region Newton in ILR coordinates) or
+#'   `"lbfgsb"` (L-BFGS-B on the closed simplex).
 #' @param profile If `TRUE`, profile the two scales out; if `FALSE`, keep
 #'   them at their start values.
 #' @param initial_p Optional open-simplex start. `NULL` uses the free-scale
@@ -947,9 +954,11 @@ deconvolute_single_cell <- function(
   mean_scale = NULL,
   variance_scale = NULL,
   estimand = c("cellular", "transcript"),
-  cell_size = NULL
+  cell_size = NULL,
+  optimiser = c("newton", "lbfgsb")
 ) {
   estimand <- match.arg(estimand)
+  optimiser <- match.arg(optimiser)
   checked <- .check_single_cell_inputs(y, mean_signature_matrix, Sigma)
   y <- checked$y
   mean_signature_matrix <- checked$mean
@@ -991,7 +1000,51 @@ deconvolute_single_cell <- function(
   }
 
   z_start <- isometric_log_ratio(p_start)
-  if (identical(fit_type, "profile")) {
+  if (identical(optimiser, "lbfgsb")) {
+    scales_at <- function(p) {
+      if (identical(fit_type, "profile")) {
+        .single_cell_scales_at_p(
+          y,
+          mean_signature_matrix,
+          Sigma,
+          p,
+          strict = FALSE
+        )
+      } else {
+        list(mean_scale = mean_scale, variance_scale = variance_scale)
+      }
+    }
+    fit <- .lbfgsb_closure(
+      as.numeric(p_start),
+      loglik = function(p) {
+        scales <- scales_at(p)
+        if (is.null(scales)) {
+          return(-Inf)
+        }
+        loglik_single_cell(
+          p,
+          y,
+          mean_signature_matrix,
+          Sigma,
+          scales$mean_scale,
+          scales$variance_scale
+        )
+      },
+      score = function(p) {
+        scales <- scales_at(p)
+        gradient_loglik_single_cell(
+          p,
+          y,
+          mean_signature_matrix,
+          Sigma,
+          scales$mean_scale,
+          scales$variance_scale
+        )
+      },
+      epsilon = epsilon,
+      itmax = as.integer(itmax)
+    )
+  } else if (identical(fit_type, "profile")) {
     fit <- .newton_ilr(
       z_start,
       objective = function(z) {
@@ -1037,7 +1090,12 @@ deconvolute_single_cell <- function(
       itmax = as.integer(itmax)
     )
   }
-  p <- repair_simplex(isometric_logistic(fit$par), open = TRUE, nms = nms)
+  p <- if (identical(optimiser, "lbfgsb")) {
+    stats::setNames(fit$par, nms)
+  } else {
+    repair_simplex(isometric_logistic(fit$par), open = TRUE, nms = nms)
+  }
+  interior <- all(p > 0)
   if (identical(fit_type, "profile")) {
     scales <- .single_cell_scales_at_p(y, mean_signature_matrix, Sigma, p)
     mean_scale <- scales$mean_scale
@@ -1068,25 +1126,32 @@ deconvolute_single_cell <- function(
   }
   names(p) <- nms
   names(q) <- nms
-  uncertainty <- tryCatch(
-    vcov_single_cell(
-      fitted_composition,
-      y,
-      mean_signature_matrix,
-      Sigma,
-      mean_scale,
-      variance_scale,
-      scales_known = !identical(fit_type, "profile"),
-      warn = FALSE
-    ),
-    error = function(e) NULL
-  )
+  # On a face the ILR chart diverges, so the covariances are undefined.
+  uncertainty <- if (interior) {
+    tryCatch(
+      vcov_single_cell(
+        fitted_composition,
+        y,
+        mean_signature_matrix,
+        Sigma,
+        mean_scale,
+        variance_scale,
+        scales_known = !identical(fit_type, "profile"),
+        warn = FALSE
+      ),
+      error = function(e) NULL
+    )
+  }
 
   list(
     composition = fitted_composition,
     p = p,
     q = q,
-    rho = isometric_log_ratio(fitted_composition),
+    rho = if (interior) {
+      isometric_log_ratio(fitted_composition)
+    } else {
+      rep(NA_real_, length(nms) - 1L)
+    },
     estimand = estimand,
     fit_type = fit_type,
     mean_scale = mean_scale,

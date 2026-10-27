@@ -1,9 +1,9 @@
 ---
-title: "Derivatives of the DeCovarT generative model under simplex transforms"
+title: "Population-level DeCovarT: generative model, derivatives and optimisation on the simplex"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
 vignette: >
-  %\VignetteIndexEntry{Derivatives of the DeCovarT generative model under simplex transforms}
+  %\VignetteIndexEntry{Population-level DeCovarT: generative model and optimisation}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 knitr:
@@ -61,24 +61,34 @@ NULL
 ```
 
 DeCovarT maximises a Gaussian-convolution log-likelihood for cellular
-ratios $\boldsymbol{p}\in\Delta^{J-1}$. This vignette derives the
-analytic first- and second-order derivatives used by the frequentist
-solvers, first with respect to unconstrained ambient proportions
-$\boldsymbol{p}$, then after the isometric log-ratio (ILR) map that
-enforces the simplex. It closes with the expected Fisher information and
-the ILR delta-method covariance that feed
-[`vcov.decovart_fit()`](../reference/fit_decovart.html) and
-[`confint.decovart_fit()`](../reference/fit_decovart.html).
+ratios $\boldsymbol{p}\in\Delta^{J-1}$ when each reference column is a
+random population profile, such as a sorted population or the
+pseudobulk of one donor. This vignette covers the generative model and
+its optimisation. @sec-naive-model states the model and its
+parametrisation. @sec-unconstrained derives the analytic first- and
+second-order derivatives with respect to the ambient proportions
+$\boldsymbol{p}$, and @sec-constrained maps them to the isometric
+log-ratio (ILR) chart that the Newton–Raphson solver uses. That section
+also compares the softmax, additive, centred and isometric log-ratio
+charts and explains why the solver uses ILR. @sec-closure-box describes
+the second solver, L-BFGS-B on the closure of the non-negative orthant,
+which reaches the faces of the simplex exactly.
 Package entry points are
 [`gradient_loglik_unconstrained()`](../reference/gradient_loglik_unconstrained.html),
 [`hessian_loglik_unconstrained()`](../reference/hessian_loglik_unconstrained.html),
 [`gradient_loglik_constrained()`](../reference/gradient_loglik_constrained.html),
-[`hessian_loglik_constrained()`](../reference/hessian_loglik_constrained.html),
-[`expected_fisher_unconstrained()`](../reference/expected_fisher_unconstrained.html)
+[`hessian_loglik_constrained()`](../reference/hessian_loglik_constrained.html)
 and
-[`vcov_ilr_delta()`](../reference/vcov_ilr_delta.html).
-@sec-constrained compares the softmax, additive, centred and isometric
-log-ratio charts and explains why the solvers use ILR.
+[`fit_decovart()`](../reference/fit_decovart.html).
+
+Inference has its own vignette. The expected Fisher information, the
+ILR delta-method covariance behind
+[`vcov.decovart_fit()`](../reference/fit_decovart.html), and the Wald,
+profile, Firth and bootstrap intervals are in the
+[population inference vignette](theory-population-inference.html).
+Single-cell references follow the same split:
+[generative model and optimisation](theory-single-cell-generative-optimisation.html)
+and [inference](theory-single-cell-inference.html).
 
 ::: {#nte-notation .callout-note}
 ## Notation
@@ -100,6 +110,45 @@ log-ratio charts and explains why the solvers use ILR.
   $\boldsymbol{\rho}$ denotes the ILR coordinates used by the solvers,
   and $\boldsymbol{\rho}^{\mathrm{alr}}$ the ALR coordinates (@sec-simplex-notation).
 :::
+
+# The naive model and its parametrisation {#sec-naive-model}
+
+The released model treats the reference moments
+$\boldsymbol{\zeta}=(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_j\})$ as known and
+ignores every technical scale of single-cell data (the
+[single-cell generative and optimisation vignette](theory-single-cell-generative-optimisation.html)
+adds them).
+The simplex is handled by a chart, not by constraints:
+
+$$
+\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho}),
+\qquad
+\boldsymbol{\rho}=\mathbf{V}^{\top}\log\boldsymbol{p}\in\mathbb{R}^{J-1},
+$$ {#eq-ilr-chart}
+
+with $\mathbf{V}$ a Helmert basis (@sec-ilr).
+Two readings of @eq-ilr-chart are useful later.
+
+- **An inverse link on the composition.** $\boldsymbol{\psi}$ maps a free
+  linear predictor to the simplex, as the inverse multinomial-logit link
+  does in a GLM for categorical responses. Here it acts on a parameter,
+  not on the response: the bulk mean $\boldsymbol{\mu}\boldsymbol{p}$ stays
+  linear in $\boldsymbol{p}$.
+- **The exponential version of `MEAD`'s device.** `MEAD` estimates
+  unconstrained weights $\boldsymbol{\beta}_i=\gamma_i\boldsymbol{p}_i$, then
+  sets $\hat{\boldsymbol{p}}_i=\hat{\boldsymbol{\beta}}_i^{\star}/\lVert\hat{\boldsymbol{\beta}}_i^{\star}\rVert_1$,
+  with either truncation $\hat{\boldsymbol{\beta}}_i\vee 0$ or, near zero, the
+  softplus $h_a(\beta)=a^{-1}\log(1+e^{a\beta})$
+  [@xieStatisticalInferenceCell2026]. The softplus makes the delta
+  method usable at the boundary, but for any finite $a$ the estimator is
+  not consistent; the authors take $a=10$ and report slightly lower
+  coverage. Writing the weights as $\beta_j=e^{z_j}$ instead and
+  normalising gives the softmax: positivity is exact, no tuning constant
+  is needed, and @eq-ilr-chart is a reparametrisation, so the MLE in
+  $\boldsymbol{\rho}$ is the MLE in $\boldsymbol{p}$. The price is the same as
+  for the softplus near zero: a proportion that is truly zero sits at
+  $\lVert\boldsymbol{\rho}\rVert=\infty$ ([boundary inference](theory-population-inference.html#sec-boundary)).
+
 
 # Matrix calculus reminders {#sec-matrix-calculus}
 
@@ -269,13 +318,14 @@ $-\tfrac{1}{2}\log\det\boldsymbol{\Sigma}(\boldsymbol{p})$. DeCovarT
 releases before 2.3.0 implemented
 $-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})$, which doubled the
 determinant contribution. The objective was then *not* the stated
-Gaussian model, and it disagreed with the expected Fisher information of
-@sec-fisher-wald, which had always been the one implied by the correct
+Gaussian model, and it disagreed with the
+[expected Fisher information](theory-population-inference.html#sec-fisher-wald), which had always been the one implied by the correct
 density. With the factor restored,
 `loglik_multivariate()` matches `mvtnorm::dmvnorm(..., log = TRUE)` up to
 the constant $\tfrac{G}{2}\log(2\pi)$, and
 $\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})$ holds exactly
-(see @nte-obs-vs-exp). Point estimates move only slightly, because the
+(see
+[observed versus expected information](theory-population-inference.html#nte-obs-vs-exp)). Point estimates move only slightly, because the
 two terms trade off differently, but likelihood **values**, AIC,
 likelihood-ratio statistics, and any curvature-based standard error do
 change.
@@ -831,7 +881,7 @@ proceeds as follows.
    $\mathbf{V}\boldsymbol{\rho}$.
 4. Push the covariance of $\hat{\boldsymbol{\rho}}$ to
    $\hat{\boldsymbol{p}}$ with the Jacobian $\mathbf{S}(\boldsymbol{p})\mathbf{V}$
-   (@sec-fisher-rho).
+   ([ILR delta method](theory-population-inference.html#sec-fisher-rho)).
 
 The order of the cell types fixes which balances are reported, not the
 estimate. Both helpers accept another basis through their `V` argument:
@@ -854,7 +904,7 @@ $\boldsymbol{a}_{1}$ into $\boldsymbol{v}_{1}$, removes from
 $\boldsymbol{a}_{2}$ its projection on $\boldsymbol{v}_{1}$ (orange), and
 normalises the residual into $\boldsymbol{v}_{2}$: the two Helmert columns
 of @eq-helmert-columns. Dashed lines are the CLR images of the canonical
-vectors. Script: `scripts/auxiliary/generate_ilr_isometry_figure.R`.](figures/ilr_isometry_gram_schmidt.png){#fig-ilr-isometry width=100%}
+vectors. Script: `vignettes/scripts/generate_ilr_isometry_figure.R`.](figures/ilr_isometry_gram_schmidt.png){#fig-ilr-isometry width=100%}
 
 @fig-ilr-isometry summarises the construction. Gram--Schmidt applied to
 the successive differences $\boldsymbol{e}_{k}-\boldsymbol{e}_{k+1}$,
@@ -1424,130 +1474,109 @@ or KKT problem, not by substituting a small positive constant into
 @eq-ilr-maps.
 :::
 
-# Expected Fisher information and Wald inference {#sec-fisher-wald}
+# L-BFGS-B on the closure of the non-negative orthant {#sec-closure-box}
 
-Point estimation alone does not report uncertainty. Under a regular
-large-sample regime the MLE is asymptotically normal with covariance
-given by the inverse Fisher information. DeCovarT builds Wald standard
-errors from the *expected* Fisher information of the multivariate-normal
-convolution, then maps that information through the ILR chart.
+The ILR chart maps the open simplex onto $\mathbb{R}^{J-1}$, so a
+proportion that is exactly zero sits at infinity: a Newton step in
+$\boldsymbol{\rho}$ can approach a face but never reach it
+(@sec-structural-zeros). The second solver,
+[`deconvolute_ratios_L_BFGS_B()`](../reference/deconvolute_ratios_Marquardt_Levenberg.html),
+uses a chart in which the faces are ordinary points of a box, so the
+bound handling of L-BFGS-B [@byrdLimitedMemoryAlgorithm1995;
+@zhuAlgorithm778LBFGSB1997] can place a proportion exactly at zero.
 
-## Unconstrained expected Fisher information {#sec-fisher-p}
+## The closure chart
 
-For
-$\boldsymbol{y}\sim\mathcal{N}_{G}\bigl(\boldsymbol{\mu}\boldsymbol{p},
-\boldsymbol{\Sigma}(\boldsymbol{p})\bigr)$ the expected Fisher information
-has entries
-
-$$
-I(\boldsymbol{p})_{j\ell}
-=
-\boldsymbol{\mu}_{\cdot j}^{\top}
-\boldsymbol{\Omega}(\boldsymbol{p})
-\boldsymbol{\mu}_{\cdot \ell}
-+
-2p_{j}p_{\ell}\,
-\mathrm{tr}\bigl(
-  \boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_{j}
-  \boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_{\ell}
-\bigr).
-$$ {#eq-fisher-p}
-
-The first summand is the mean contribution (a $\boldsymbol{\Omega}$-inner
-product of signature columns); the second is the covariance contribution
-of the quadratic map
-$\boldsymbol{p}\mapsto\boldsymbol{\Sigma}(\boldsymbol{p})$. See the
-multivariate-normal formula on
-[Wikipedia: Fisher information](https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution).
-[`expected_fisher_unconstrained()`](../reference/expected_fisher_unconstrained.html)
-implements @eq-fisher-p.
-
-::: {#nte-obs-vs-exp .callout-note}
-## Observed versus expected information
-
-The analytic Hessian of @sec-unconstrained is the *observed* information
-(up to sign). Wald intervals in `decovart_fit` use the *expected*
-information @eq-fisher-p, which does not depend on the residual
-$\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}$ and is positive definite under
-the usual full-rank assumptions on $(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})$.
-
-The two are consistent by construction. Substituting
-$\mathbb{E}[\boldsymbol{r}]=\boldsymbol{0}$ and
-$\mathbb{E}[\boldsymbol{r}\boldsymbol{r}^{\top}]
-=\boldsymbol{\Sigma}(\boldsymbol{p})$ into @eq-hess-diag and
-@eq-hess-off cancels the determinant traces against the residual traces
-and returns @eq-fisher-p exactly, i.e.
-$\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})$. That identity only holds with
-the factor $\tfrac{1}{2}$ of @nte-halfdet in place.
-:::
-
-## Constrained case: ILR delta method {#sec-fisher-rho}
-
-Fisher information transforms as a covariant quadratic form under the
-ILR chart. With
-$\mathbf{J}_{\boldsymbol{\psi}}
-=\mathbf{S}(\boldsymbol{p})\mathbf{V}$,
+Aitchison's closure sends a non-negative weight vector to the simplex,
 
 $$
-I_{\boldsymbol{\rho}}
-=
-\mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}
-I(\boldsymbol{p})
-\mathbf{J}_{\boldsymbol{\psi}}
-=
-\mathbf{V}^{\mathsf{T}}
-\mathbf{S}(\boldsymbol{p})
-I(\boldsymbol{p})
-\mathbf{S}(\boldsymbol{p})
-\mathbf{V}.
-$$ {#eq-fisher-rho}
+\boldsymbol{p}=\mathcal{C}(\boldsymbol{w})=\frac{\boldsymbol{w}}{\mathbf{1}^{\top}\boldsymbol{w}},
+\qquad
+\boldsymbol{w}\in[0,\infty)^{J}\setminus\{\boldsymbol{0}\},
+$$ {#eq-closure-chart}
 
-The mean/covariance split of @eq-fisher-p pulls back separately,
-$I_{\boldsymbol{\rho}}=I_{\boldsymbol{\rho},\mathrm{mean}}
-+I_{\boldsymbol{\rho},\mathrm{cov}}$. Under regularity,
-$\hat{\boldsymbol{\rho}}
-\overset{a}{\sim}
-\mathcal{N}(\boldsymbol{\rho}_{0},I_{\boldsymbol{\rho}}^{-1})$
-[@vaartAsymptoticStatistics2000].
-The first-order delta method [@oehlertNoteDeltaMethod1992] then returns
-the simplex covariance used by
-[`vcov.decovart_fit()`](../reference/fit_decovart.html),
+[@aitchisonStatisticalAnalysisCompositional1982]. L-BFGS-B works on
+$\boldsymbol{w}$ with lower bound $0$ and no upper bound, starting from
+$\boldsymbol{w}^{(0)}=\boldsymbol{p}^{(0)}$. Every feasible $\boldsymbol{w}$ is
+mapped onto the closed simplex, and $w_j=0$ gives $p_j=0$ exactly, with
+no floor and no penalty.
+
+The objective $\ell(\mathcal{C}(\boldsymbol{w}))$ does not change when
+$\boldsymbol{w}$ is multiplied by a positive constant. The chart therefore
+has one flat direction, the ray through $\boldsymbol{w}$. That direction is
+harmless for a quasi-Newton method: the gradient is orthogonal to it
+(below), so no step moves along it and the curvature pairs of
+L-BFGS-B never see it.
+
+## Gradient
+
+Write $\boldsymbol{g}=\nabla_{\boldsymbol{p}}\ell$ for the ambient score of
+@sec-unconstrained and $s=\mathbf{1}^{\top}\boldsymbol{w}>0$. The Jacobian of
+@eq-closure-chart is
+$\partial\boldsymbol{p}/\partial\boldsymbol{w}^{\top}=s^{-1}(\mathbf{I}_{J}-\boldsymbol{p}\mathbf{1}^{\top})$,
+so
 
 $$
-\mathrm{Var}(\hat{\boldsymbol{p}})
-\approx
-\mathbf{J}_{\boldsymbol{\psi}}
-I_{\boldsymbol{\rho}}^{-1}
-\mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}.
-$$ {#eq-delta-p}
+\nabla_{\boldsymbol{w}}\ell
+=\frac{1}{s}\bigl(\boldsymbol{g}-(\boldsymbol{p}^{\top}\boldsymbol{g})\mathbf{1}\bigr)
+=\frac{\boldsymbol{r}}{s},
+\qquad
+\boldsymbol{r}=\boldsymbol{g}-(\boldsymbol{p}^{\top}\boldsymbol{g})\mathbf{1}.
+$$ {#eq-closure-gradient}
 
-Diagonal square roots are asymptotic standard errors; Wald intervals at
-level $1-\alpha$ are
-$\hat{p}_{j}\pm z_{1-\alpha/2}\,\mathrm{SE}_{j}$ with
-$z_{q}=\Phi^{-1}(q)$, as in
-[`confint.decovart_fit()`](../reference/fit_decovart.html).
-[`vcov_ilr_delta()`](../reference/vcov_ilr_delta.html) implements
-@eq-fisher-rho--@eq-delta-p. Orthogonal rotations of $\mathbf{V}$ leave
-@eq-delta-p unchanged. The construction is undefined on the simplex
-boundary (the log-ratio chart blows up); the helper then returns `NA`
-with a warning.
+Two properties follow. First,
+$\boldsymbol{w}^{\top}\nabla_{\boldsymbol{w}}\ell=\boldsymbol{p}^{\top}\boldsymbol{g}-\boldsymbol{p}^{\top}\boldsymbol{g}=0$: the
+gradient is orthogonal to the flat ray. Second, $\boldsymbol{r}$ is the score
+centred at its $\boldsymbol{p}$-weighted mean, the quantity whose components
+the KKT conditions of the simplex constrain.
 
-::: {#nte-wald-limits .callout-warning}
-## Wald is the cheapest, not the safest, interval
+## No spurious stationary points
 
-@eq-delta-p linearises the ILR chart at $\hat{\boldsymbol{p}}$, so it is
-neither invariant to a non-orthogonal reparametrisation nor confined to
-$[0,1]$, and it degenerates entirely when a proportion reaches a simplex
-face. The companion vignette
-[MLE properties and asymptotic inference](theory-DeCovarT-MLE-properties.html)
-derives the alternatives: profile likelihood-ratio intervals, the
-chi-bar-square calibration of Chernoff and of Self and Liang for nulls on
-the boundary, a parametric bootstrap, and a reference-sample bootstrap
-of donors or cells (or a Dirichlet composition sweep). It also shows why
-these limits need replicate samples that share one composition.
-Shuffling genes or cell-type names of an averaged signature is not a
-bootstrap: the maximised likelihood is equivariant under relabelling.
-:::
+A maximiser of $\ell$ over the closed simplex satisfies the KKT
+conditions of @sec-kkt: with a multiplier $\lambda$, $g_j=\lambda$ when
+$p_j>0$ and $g_j\le\lambda$ when $p_j=0$. Summing $p_jg_j$ gives
+$\lambda=\boldsymbol{p}^{\top}\boldsymbol{g}$, so the conditions read
+$r_j=0$ for $p_j>0$ and $r_j\le0$ for $p_j=0$.
+
+L-BFGS-B stops at a KKT point of the box problem in $\boldsymbol{w}$:
+$\partial\ell/\partial w_j=0$ when $w_j>0$ and
+$\partial\ell/\partial w_j\le0$ when $w_j=0$. Since
+$\partial\ell/\partial w_j=r_j/s$ with $s>0$, and $w_j>0$ exactly when
+$p_j>0$, the two sets of conditions coincide. Every stationary point of
+the solver is a stationary point of the simplex problem, interior or on
+a face. No weaker certificate is involved: the reported first-order
+residual (@sec-kkt) is computed on $\boldsymbol{r}$ directly.
+
+## Why not a stick-breaking box
+
+A stick-breaking chart, $p_1=v_1$,
+$p_k=v_k\prod_{l<k}(1-v_l)$ and $p_J=\prod_{l<J}(1-v_l)$ with
+$\boldsymbol{v}\in[0,1]^{J-1}$, also maps a box onto the closed simplex.
+It was tried and rejected. Once a stick is exhausted, the later
+coordinates no longer move $\boldsymbol{p}$: $v_1=1$ gives
+$\partial\boldsymbol{p}/\partial v_k=\boldsymbol{0}$ for every $k>1$. These dead
+directions create box-KKT points in $\boldsymbol{v}$ that are not KKT points
+in $\boldsymbol{p}$, and L-BFGS-B stopped at such spurious vertices. On a
+covariance-driven design ($G=20$, $J=3$, 60 bulk samples per
+composition), stick-breaking fell short of the best attainable
+log-likelihood by up to $2.19$, with at least one unbalanced run in ten
+stuck at a vertex. Newton–Raphson on the ILR chart fell short by up to
+$7.4$ when the maximum lay on a face, because it can only approach that
+face. The closure chart fell short by at most $8\times10^{-4}$.
+
+## What it replaces
+
+The earlier implementation placed the box $[0,1]^{J}$ on $\boldsymbol{p}$
+itself and evaluated $\ell$ at unnormalised $\boldsymbol{p}$, then divided the
+result by its total. With $\boldsymbol{p}=c\,\boldsymbol{p}^{\star}$ off the simplex,
+the mean $\boldsymbol{\mu}\boldsymbol{p}$ and the covariance
+$\boldsymbol{\Sigma}(\boldsymbol{p})$ both carry a free scale $c$, so that solver
+fitted a different model, a free-scale fit renormalised afterwards, much
+as non-negative least squares followed by renormalisation is a
+free-scale least-squares fit. Its estimate was not a stationary point
+of the simplex problem. The closure chart evaluates $\ell$ at
+$\mathcal{C}(\boldsymbol{w})$ only, so the likelihood is the stated one at
+every iterate.
 
 ::: {.callout-warning}
 ## Numerical speed-ups and solver safeguards {#sec-numerical-speedups}
@@ -1596,13 +1625,14 @@ the Hessian. Tests check that subtracting that constant recovers
 
 ---
 
-### Guard the box-constrained L-BFGS-B path
+### Keep L-BFGS-B on the simplex
 
-`deconvolute_ratios_L_BFGS_B()` optimises in $\boldsymbol{p}$ with boxes
-$[0,1]^{J}$ that do not enforce $\mathbf{1}^{\top}\boldsymbol{p}=1$. Near
-$\sum_{j}p_{j}\approx 0$ (or on a failed `chol()`), safeguarded wrappers
-return a finite penalty and a zero gradient rather than aborting
-`optim()`.
+`deconvolute_ratios_L_BFGS_B()` optimises the weights $\boldsymbol{w}$ of
+the closure chart, not $\boldsymbol{p}$ itself (@sec-closure-box). The
+likelihood is only ever evaluated at
+$\mathcal{C}(\boldsymbol{w})\in\Delta^{J-1}$, so the mixture covariance
+$\boldsymbol{\Sigma}(\boldsymbol{p})$ is that of a composition at every
+iterate, and an exact zero is a lower bound of the box.
 
 ---
 
@@ -1792,7 +1822,7 @@ three-gene toy; that is the same tolerance used in the test suite.
 
 Matching `numDeriv` shows that the derivatives belong to the implemented
 objective. Matching the *expected* Fisher information
-[@eq-fisher-p] to a Monte Carlo average of \(-\mathbf{H}(\boldsymbol{p};
+[the expected information](theory-population-inference.html#eq-fisher-p) to a Monte Carlo average of \(-\mathbf{H}(\boldsymbol{p};
 \boldsymbol{Y})\) shows that the objective is the Gaussian whose
 information matrix we use for Wald intervals. Draw
 \(\boldsymbol{Y}^{(b)}\sim\mathcal{N}_G(\boldsymbol{\mu}\boldsymbol{p},
@@ -1833,7 +1863,7 @@ A related, weaker check compares the empirical covariance of
 parametric-bootstrap MLEs to the Cramér–Rao map
 [`vcov_ilr_delta()`](../reference/vcov_ilr_delta.html). That comparison
 is noisy at small replication (see
-[MLE properties](theory-DeCovarT-MLE-properties.html#sec-replication)
+[MLE properties](theory-population-inference.html#sec-replication)
 for why one bulk column is not an asymptotic sample) and is therefore
 left to the inference vignette and to
 [`bootstrap_decovart()`](../reference/bootstrap_decovart.html).

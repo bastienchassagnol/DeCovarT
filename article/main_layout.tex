@@ -245,8 +245,10 @@
         We estimate the proportions by maximum likelihood with a Newton--Raphson
         algorithm, after a reparametrisation of the log-likelihood on the isometric
         log-ratio chart that enforces the simplex constraint exactly.
-        The likelihood also supplies Wald and profile-likelihood intervals, and
-        boundary likelihood-ratio tests for the absence of a cell type.
+        For a single-cell reference, a second model writes the bulk as a sum of
+        independent cells, with two technical scales profiled out of the likelihood.
+        The likelihood also supplies Wald, profile-likelihood and parametric-bootstrap
+        intervals, and boundary likelihood-ratio tests for the absence of a cell type.
 
         \textbf{Results.}
         In synthetic scenarios, we changed the overlap between cell-type profiles by
@@ -398,7 +400,7 @@ semi-reference and reference-free methods, are reviewed in Appendix~\ref{app:rev
           the first two moments of DeCovarT without a density;
           it estimates \(\boldsymbol{\Sigma}_{j}\) by regressing residual outer products
           on \(\hat p_{ji}^{2}\) across bulks, then returns constrained least squares with a
-          sandwich covariance
+          sandwich-form covariance whose meat is the model-based \(\sum_{j}\hat p_{ji}^{2}\hat{\boldsymbol{\Sigma}}_{j}\)
     \item \emph{MEAD} is an errors-in-variables model with a sample scale and a random
           gene-wise platform ratio; it returns delta-method intervals as \(G\to\infty\) under
           an almost-sparse dependence graph estimated from the bulk
@@ -473,18 +475,16 @@ estimate some of these terms from the bulk cohort, DeCovarT plugs in
           on the error of any composition estimate built from those profiles
     \item normalised Shannon entropy of \(\boldsymbol{p}\) to control imbalance
   \end{itemize}
-\end{itemize}
-
-\subsection{Outline}
-\label{sec:outline}
-
-\begin{itemize}
-  \item Section~\ref{sec:results}: two synthetic settings, then the gastruloid application
-  \item Section~\ref{sec:methods}: the generative model, inference, the simulator, and how a
-        single-cell reference is turned into DeCovarT inputs
-  \item Section~\ref{sec:perspectives}: extensions, including a Bayesian formulation
-  \item appendices: reviews of network inference and of deconvolution, maximum-likelihood
-        theory, performance metrics and supplementary simulations
+  \item outline\label{sec:outline}
+  \begin{itemize}
+    \item Section~\ref{sec:results}: three synthetic settings (two genes, twenty genes with network-driven
+          covariances, and a single-cell reference with two lineages), then the gastruloid application
+    \item Section~\ref{sec:methods}: the two generative models, their optimisation and inference, the simulator,
+          and how a single-cell reference is turned into DeCovarT inputs
+    \item Section~\ref{sec:perspectives}: extensions, including a Bayesian formulation
+    \item appendices: reviews of network inference and of deconvolution, maximum-likelihood
+          theory, performance metrics and supplementary simulations
+  \end{itemize}
 \end{itemize}
 
 \section{Results}
@@ -548,7 +548,9 @@ estimate some of these terms from the bulk cohort, DeCovarT plugs in
   \item each purified profile is Gaussian;
         the bulk is their abundance-weighted sum, with no extra noise
         \eqref{eq:convolution}
-  \item \(G=2\), \(J=2\), \(N=500\) Monte Carlo bulks per scenario, \(972\) scenarios
+  \item \(G=2\), \(J=2\), \(972\) scenarios; \(N=200\) Monte Carlo bulks per scenario and
+        \(B=100\) bootstrap refits per bulk by default, both set by environment variables
+        (the figures of the repository come from a dry run with \(N=B=5\))
   \item composition \(\boldsymbol{p}\): balanced \((1/2,1/2)\),
         moderately unbalanced \((17/20,3/20)\),
         highly unbalanced \((99/100,1/100)\)
@@ -557,16 +559,49 @@ estimate some of these terms from the bulk cohort, DeCovarT plugs in
         large, \((20,40)\) versus \((40,20)\)
   \item within-type correlation \(\rho_{j}\in\{-0.8,-0.6,\ldots,0.8\}\),
         set separately for each type
-  \item marginal variances:   homoscedastic ($\sigma^{2}=1$ for both genes) or heteroscedastic
-  ($\sigma_{1}^{2}=1$, $\sigma_{2}^{2}=2$).
-  \item solvers: NNLS; \emph{DeconRNASeq} (\texttt{lsei}); L-BFGS-B; projected gradient;
-        Newton--Raphson; Marquardt--Levenberg; simulated annealing
-         \todo[inline]{keep only newton raphson, relocate others in appendix but add mead, decals and rna-sieve}
-  \item mean-only solvers minimise \(\|\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}\|^{2}\)
-        and carry no convolution Wald standard error
+  \item marginal variances: homoscedastic ($\sigma^{2}=1$ for both genes) or heteroscedastic
+        ($\sigma_{1}^{2}=1$, $\sigma_{2}^{2}=2$)
+  \item methods
+  \begin{itemize}
+    \item \emph{DeconRNASeq} (\texttt{lsei}) \cite{gongDeconRNASeqStatisticalFramework2013}: least squares on the
+          closed simplex
+    \item non-negative least squares (NNLS) \cite{dessoleLawsonHansonAlgorithmDeviation2023}, renormalised afterwards
+    \item DeCovarT with two optimisers of the same likelihood: Newton--Raphson in ILR coordinates with a trust
+          region, and L-BFGS-B on the closure of the non-negative orthant, which can return exact zeros
+          (Section~\ref{sec:optimisation})
+    \item DeCovarT with the Jeffreys (Firth) penalty \cite{firthBiasReductionMaximum1993}
+    \item Marquardt--Levenberg, the ILR gradient method and simulated annealing stay in the package but leave
+          the benchmark: they maximise the same likelihood as Newton--Raphson, more slowly
+  \end{itemize}
+  \item NNLS and \texttt{lsei} differ: \texttt{lsei} keeps the sum-to-one equality and the bounds at every iteration,
+        whereas NNLS followed by a renormalisation is least squares on the simplex with a free bulk scale, \(\boldsymbol{\beta}=c\,\boldsymbol{p}\) with \(c=\mathbf{1}^{\top}\boldsymbol{\beta}\), whereas
+        \texttt{lsei} fixes \(c=1\); the two coincide only when \(\hat c=1\); over 500 bulks they differed by a median of
+        \(0.002\) (95th percentile \(0.015\)) in the largest coordinate here, where \(\hat c\) stays within about \(0.03\)
+        of one, but by a median of \(0.03\) (95th percentile \(0.11\), maximum \(0.19\)) for twenty genes, three types
+        and \(\boldsymbol{p}=(0.84,0.08,0.08)\), where \(\hat c\) varies by \(0.13\); the true scale of a population bulk is
+        one, so \texttt{lsei} uses information that the free-scale fit discards, whereas the scale of a single-cell bulk
+        is unknown and the fixed scale of \texttt{lsei} is then misspecified (Section~\ref{sec:sc-hierarchical}); a robust
+        linear model is not run on two genes
+  \item the second-generation methods (\emph{MEAD}, \emph{DECALS}, \emph{RNA-Sieve}, \emph{ReDeconv}) are not run
+        on two genes: their variance estimates and their asymptotics need many more genes than cell types; nor is
+        \emph{CIBERSORT}, whose \(\nu\)-SVR would regress two bulk values on two signatures and an intercept
+  \item confidence intervals at every DeCovarT estimate
+  \begin{itemize}
+    \item Wald on \(\boldsymbol{p}\) by the delta method, which can leave \([0,1]\)
+    \item Wald in ILR coordinates mapped back to the simplex
+    \item profile likelihood, invariant to the chart and inside the simplex
+    \item parametric bootstrap percentile interval, refitted with the optimiser that produced the estimate
+    \item for Newton--Raphson, the oracle half-width computed from the information at the true composition,
+          the width an analyst would report with the true information
+    \item Firth: Wald and ILR intervals at the penalised estimate
+    \item reported per interval: coverage of the true fraction with a Wilson Monte Carlo interval, mean and median
+          width, and the share of Wald intervals that leave \([0,1]\)
+  \end{itemize}
   \item code and outputs: \repo{blob/main/scripts/fig02_bivariate_toy.R}{script},
         \vignette{fig02-bivariate-toy.html}{vignette},
         \repo{tree/main/output/fig02}{plot books};
+        \texttt{fig02\_benchmark.rds} holds the settings, the design, the truth and every metric table, and
+        \texttt{fig02\_plot\_data.rds} the data behind each figure, keyed by its file name;
         file-by-file reading in Appendix~\ref{app:fig02}
 \end{itemize}
 
@@ -574,46 +609,31 @@ estimate some of these terms from the bulk cohort, DeCovarT plugs in
   \centering
   \includegraphics[width=\textwidth]{"figs/Figure 3, panel A.png"}
   \caption{Bivariate toy, panel~A.
-    Centre: root-mean-square error on the \((\rho_{1},\rho_{2})\) grid
-    (colour scale about \(0.10\) to \(0.20\)).
-    Four insets: two-gene mixture densities at correlation corners,
-    with \(95\%\) ellipses of the purified types.
-    Outer panels: Monte Carlo \(\hat{\boldsymbol{p}}\) as dot-whisker forests
-    and as rainclouds, for Newton--Raphson, Marquardt--Levenberg, L-BFGS, and projected gradient.
+    Centre: root-mean-square error of the estimated fractions on the \((\rho_{1},\rho_{2})\) grid
+    (colour scale about \(0.10\) to \(0.20\)); the lower the error, the less noisy and biased the estimate.
+    Four insets: two-gene densities at the correlation corners, with the \(95\%\) ellipses of the purified types
+    and their centroids.
+    Outer panels: Monte Carlo distributions of \(\hat{\boldsymbol{p}}\) as rainclouds, for \texttt{lsei},
+    Newton--Raphson, L-BFGS-B and the Firth fit.
     Black squares and arrows mark which grid cell each density belongs to.}
   \label{fig:bivariate}
-  \todo[inline]{Incorproate the following: used the package \CRANpkg{ComplexHeatmap} to display the mean
-  square error (MSE) of the estimated cell ratios, comparing the NNLS
-  output, as implemented in the DeconRNASeq algorithm (\cite{gongDeconRNASeqStatisticalFramework2013}),
-  in Panel \textbf{A}, with our newly implemented DeCovarT algorithm, in Panel
-  \textbf{B}. The lower the MSE, the least noisy and biased the estimates.
-  In addition, we added the two-dimensional density plot for the
-  intermediate scenario, for which each population is parameterised by a diagonal
-  covariance matrix, and the most extreme scenarios (those with the highest
-  correlation between genes). The ellipsoids represent for each cell population
-  the $95\%$ confidence region and the red spherical icon and the green triangular
-  icon represent respectively the centroids (average expression of gene 1
-  and gene 2) of cell population 1 and cell population 2}
 \end{figure}
 
 From this simplest synthetic setting, we observe that the overlap was a good proxy of the quality
     of the estimation: the less the overlap between the two cell distributions, the
-    better the quality of the estimation. 
+    better the quality of the estimation.
 
 \subsection{Covariance-driven scenario: twenty genes, three cell types}
 \label{sec:hd}
 
 The bivariate toy isolates the effect of gene--gene covariance in a
 fully transparent setting but cannot demonstrate scalability or the
-realistic topology of gene-regulatory networks (GRNs).  We therefore
-designed a second scenario with $G=50$ genes and $J=3$ cell types
+realistic topology of gene-regulatory networks (GRNs). We therefore
+designed a second scenario with $G=20$ genes and $J=3$ cell types
 (Figure~\ref{fig:hd}).
-Specifically, since cell types~1 and~2 are near
-mean-collinear (cosine value of $\rho_{12}\approx 0.97$), mean-only methods
-cannot separate them; the network topology encoded in
-$\boldsymbol{\Sigma}_{j}$ is the only discriminative signal available
-to DeCovarT. 
-
+Cell types~1 and~2 are near mean-collinear (cosine \(0.9\)), so mean-only methods
+hardly separate them; the network topology encoded in
+$\boldsymbol{\Sigma}_{j}$ carries the remaining discriminative signal.
 
 \begin{itemize}
   \item role: two types with nearly collinear means, so the discriminative signal sits in
@@ -624,25 +644,45 @@ to DeCovarT.
   \item types 1 and 2: scale-free or stochastic block model graphs, \(2\times 2\) assignments
         \cite{barabasiEmergenceScalingRandom1999,hollandStochasticBlockmodelsFirst1983};
         type 3: scale-free, held fixed
- \item   Strict positive definiteness is ensured by shifting the precision matrices applying the affine spectrum transformation (\ref{eq-affine-spectrum-transformation})
- \cite{chiquetVariationalInferenceSparse2018}.
-  \item We impleemented a custom method to choose the covariance scale such that the averaged overlap hits \(0.02\), \(0.08\) or \(0.20\),
-        matched at the balanced composition; unbalanced \(\boldsymbol{p}\) raises the realised overlap while constraining the topological sutrcture (the zeros of the precision matrix)
+  \item strict positive definiteness by a spectral shift of the precision matrices
+        (\ref{eq-affine-spectrum-transformation}) \cite{chiquetVariationalInferenceSparse2018}
+  \item one global covariance scale per graph assignment, chosen so that the average overlap is \(0.02\), \(0.08\) or
+        \(0.20\) at the balanced composition; an unbalanced \(\boldsymbol{p}\) raises the realised overlap, while the zeros
+        of every precision matrix are kept
   \item compositions from normalised Shannon entropy \(H^{\star}\in\{1,0.5,0.1\}\):
         \((1/3,1/3,1/3)\), \((0.84,0.08,0.08)\) and \((0.98,0.01,0.01)\);
         \(4\times3\times3=36\) scenarios
-  \item solvers: \emph{DeconRNASeq} (\texttt{lsei}); \emph{CIBERSORT}; L-BFGS-B;
-        Newton--Raphson; Marquardt--Levenberg
-        \todo[inline]{Replicates: the vignette states \(N=50\) bulks per scenario,
-        \texttt{scripts/fig03\_variance\_driven.R} uses \(N=100\). Align both before reporting.}
-  \item[] \todo[inline]{Planned benchmark: add \emph{RNA-Sieve}
-        \cite{erdmann-phamLikelihoodbasedDeconvolutionBulk2021}, \emph{DECALS}
-        \cite{caiStatisticalInferenceCelltype2024}, \emph{MEAD}
-        \cite{xieStatisticalInferenceCell2026} and \emph{ReDeconv}
-        \cite{luTranscriptomeSizeMatters2025} to the bivariate and covariance-driven grids,
-        with the same descriptors and the metrics of Appendix~\ref{app:metrics}.
-        \emph{DECALS} and \emph{MEAD} need several bulks per fit: give them the \(N\) replicates
-        of one scenario as a cohort, and report that their design differs from a one-sample fit.}
+  \item \(N=100\) bulks per scenario, \(B=200\) bootstrap refits and a reference panel of \(R=N\) individuals by
+        default (environment variables; dry run \(N=B=R=5\))
+  \item methods: \emph{DeconRNASeq} (\texttt{lsei}), NNLS, the robust linear model of \cite{monacoRNASeqSignaturesNormalized2019}
+        (\texttt{MASS::rlm}) and \emph{CIBERSORT} \cite{newmanRobustEnumerationCell2015} on the true means; DeCovarT (Newton--Raphson, L-BFGS-B, Firth) on the true moments, with the intervals of
+        Section~\ref{sec:bivariate}
+  \item second-generation methods, each run from its authors' code with gene selection and preprocessing filters
+        switched off and the other defaults kept
+  \begin{itemize}
+    \item \emph{MEAD} \cite{xieStatisticalInferenceCell2026} (R package, commit \texttt{d66fa10}): estimates the reference
+          means and their between-individual covariance from per-individual profiles, with its sandwich interval;
+          it rescales every reference profile to a unit total, so its proportions are transcript fractions, and its
+          intervals are scored against both the cell and the transcript fractions
+    \item \emph{RNA-Sieve} \cite{erdmann-phamLikelihoodbasedDeconvolutionBulk2021} (Python \texttt{rnasieve} 0.1.4): joint
+          fit over the bulks of a scenario; its released interval code returns \([0,1]\) whenever the averaged Hessian has a
+          condition number above \(10^{6}\), because it then computes \(\boldsymbol{H}\boldsymbol{B}\boldsymbol{H}^{\top}\) instead of
+          \(\boldsymbol{H}^{-1}\boldsymbol{B}\boldsymbol{H}^{-\top}\) on a subsample of genes (in the dry run of this scenario that branch never fired,
+          and the released and recomputed Godambe intervals coincide); we therefore also score the two
+          intervals of the paper, recomputed on all genes with the package's own per-gene scores and averaged Hessian: the
+          Wald interval from the inverse empirical Fisher information \(\boldsymbol{B}^{-1}/G\) and the Godambe interval
+          \(\boldsymbol{H}^{-1}\boldsymbol{B}\boldsymbol{H}^{-\top}/G\), with \(\alpha_{K}=1-\sum_{k<K}\alpha_{k}\) and the variance of \(\alpha_{K}\)
+          equal to \(\mathbf{1}^{\top}\boldsymbol{V}\mathbf{1}\) (Appendix~\ref{app:mle-regularity})
+    \item \emph{ReDeconv} \cite{luTranscriptomeSizeMatters2025} (Python \texttt{redeconv} 1.2.1): six reweighted least-squares
+          steps on the true means and standard deviations; no interval
+    \item \emph{DECALS} \cite{caiStatisticalInferenceCelltype2024} has no public implementation and is not run; its point
+          estimate, constrained least squares solved as a quadratic programme, is the \texttt{lsei} baseline
+  \end{itemize}
+  \item protocol of the competitors: \emph{MEAD} and \emph{RNA-Sieve} read a reference panel of \(R\) purified profiles per
+        type drawn independently of the bulks (reusing the profiles that built a bulk would leak its composition) and
+        are fitted on the cohort of the \(N\) bulks of a scenario, whereas DeCovarT fits one bulk at a time
+  \item code and outputs: \repo{blob/main/scripts/fig03_variance_covariance_driven.R}{script},
+        \vignette{fig03-covariance-driven.html}{vignette}, \repo{tree/main/output/fig03}{plot books}
 \end{itemize}
 
 \begin{figure}[h]
@@ -655,12 +695,39 @@ to DeCovarT.
     Two descriptor strips, both at high overlap:
     balanced composition, then highly unbalanced composition
     (Shannon entropy, overlap, conditioning, divergences; SF/SF and SBM/SBM rows).
-    Forests: ADEMP summaries for those two regimes.
-    Solver colours: \texttt{lsei}, \emph{CIBERSORT}, L-BFGS-B,
-    Marquardt--Levenberg, Newton--Raphson.
-    Solid whiskers use the expected-Fisher Wald standard error;
-    dashed whiskers use the Monte Carlo standard deviation.}
+    Forests: mean confidence interval of each method and interval construction, with its coverage and width,
+    for those two regimes.}
   \label{fig:hd}
+\end{figure}
+
+\subsection{Single-cell scenario: four cell types in two lineages}
+\label{sec:sc-hierarchical}
+
+\begin{itemize}
+  \item role: test the single-cell model \eqref{eq:sc-model}, its two scales and its intervals on a lineage structure
+        in which each type has a close sibling; design in Section~\ref{sec:sc-hierarchical-design}
+  \item \(64\) crossed scenarios, composition, sibling overlap, number of cells per bulk, cell sizes, number of genes
+        and platform scale \(a=1\) or \(5\), two levels each
+  \item methods: \texttt{lsei} (its scale fixed at one is misspecified for a single-cell bulk, whose scale is
+        \(c=a\,n_{i}\)), NNLS (the same least squares with a free scale), the robust linear model, \emph{CIBERSORT}, the
+        DeCovarT single-cell fit with Newton--Raphson and L-BFGS-B, its Firth fit, \emph{MEAD}, \emph{RNA-Sieve} and
+        \emph{ReDeconv}, under the protocol of Section~\ref{sec:hd} with a reference panel of \(R\) individuals and
+        \(20\) cells per type and individual
+  \item intervals: those of Section~\ref{sec:bivariate}, with the REML calibration of the ILR and profile intervals
+        (Section~\ref{sec:sc-inference}); Wald and bootstrap intervals for \(c\) and \(\phi\), and for the platform scale
+        \(a=\phi/c\) and the cell count \(n=c^{2}/\phi\), formed on the log scale so that both stay positive; \(\hat n\) is a
+        number of cells here only because \(a\) is known to the generator
+  \item code and outputs: \repo{blob/main/scripts/fig05_single_cell_hierarchical.R}{script},
+        \vignette{fig05-single-cell-hierarchical.html}{vignette}, \repo{tree/main/output/fig05}{plot books}
+\end{itemize}
+
+\begin{figure}[h]
+  \centering
+  \fbox{\parbox{0.9\textwidth}{\centering Figure~5 to be assembled from \texttt{output/fig05/}.}}
+  \caption{Single-cell scenario with two lineages.
+    \todo[inline]{Assemble from \texttt{output/fig05}: mean signature and lineage networks, scenario descriptors,
+    confidence-interval forest and the ratio of estimated to true scales against the number of genes.}}
+  \label{fig:sc-hierarchical}
 \end{figure}
 
 \subsection{Biological application: gastruloid development}
@@ -721,7 +788,7 @@ The index \(i\) is restored in the model statements.
 Base indices used throughout: gene \(g=1,\ldots,G\), cell type \(j,\ell=1,\ldots,J\),
 sample \(i=1,\ldots,N\), reference donor \(r\), cell \(c\).
 Table~\ref{tab:notation} is the alignment layer used in the
-\vignette{theory-decovart-single-cell-tailored.html}{single-cell alignment vignette}.
+\vignette{theory-single-cell-generative-optimisation.html}{single-cell generative and optimisation vignette}.
 
 \begin{table}[h]
   \centering
@@ -808,7 +875,7 @@ Each is tailored to its own scope; neither is better in every deconvolution task
         \cite{erkkilaProbabilisticAnalysisGene2010,ahnDeMixDeconvolutionMixed2013,wangTranscriptomeDeconvolutionHeterogeneous2018}
   \item a pooled profile averages its cells, so only its fluctuation across specimens is observed: within-type
         cell-to-cell variability and between-specimen variability are confounded in \(\boldsymbol{\Sigma}_{j}\)
-        (\vignette{theory-decovart-single-cell-tailored.html\#sec-facs}{single-cell alignment vignette})
+        (\vignette{theory-single-cell-generative-optimisation.html\#sec-facs}{single-cell generative and optimisation vignette})
 \end{itemize}
 
 \subsubsection{Generative model and core assumptions}
@@ -853,7 +920,7 @@ Each is tailored to its own scope; neither is better in every deconvolution task
 \end{enumerate}
 Under (A1)--(A4), the implied law is the estimating equation of DeCovarT; derivatives, the ILR
 chain rule and the Fisher information are in Appendix~\ref{app:derivation} and the
-\vignette{theory-decovart-generative-model.html}{generative-model vignette}.
+\vignette{theory-population-generative-optimisation.html}{population generative and optimisation vignette}.
 
 \begin{equation}
   \boldsymbol{y}_{\cdot i}
@@ -910,7 +977,8 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
       plug-in & one bulk; point estimate \\
     \emph{DECALS} \cite{caiStatisticalInferenceCelltype2024} &
       first two moments, full \(G\times G\) covariance per type & \(p_{j}^{2}\) &
-      covariances estimated from the bulks & many bulks of varying composition; sandwich intervals \\
+      covariances estimated from the bulks & many bulks of varying composition; sandwich-form intervals with a
+      model-based meat \\
     \emph{MEAD} \cite{xieStatisticalInferenceCell2026} &
       errors-in-variables Gaussian; almost-sparse global dependence & global &
       noisy means; random gene-wise platform ratio & many bulks; delta-method intervals as \(G\to\infty\) \\
@@ -1021,7 +1089,10 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
         same intervals, and ILR is the one whose numerics do not depend on a reference type
         (Appendix~\ref{sec:ilr-choice}); the additive log-ratio is kept as an alternative chart
   \item solvers: Newton--Raphson (default), with the analytic score and Hessian in ILR coordinates and the
-        trust-region safeguards of \texttt{stats::nlminb}; Marquardt--Levenberg (alternative), a damped Newton
+        trust-region safeguards of \texttt{stats::nlminb}; L-BFGS-B on the closure
+        \(\boldsymbol{p}=\boldsymbol{w}/\mathbf{1}^{\top}\boldsymbol{w}\) of the box \(\boldsymbol{w}\ge\mathbf{0}\), which maximises the same
+        likelihood, can return exact zeros, and whose stationary points are those of the simplex
+        (Appendix~\ref{app:optim-solvers}); Marquardt--Levenberg (alternative), a damped Newton
         method (\texttt{marqLevAlg}) stopped on the relative distance to the maximum
         \cite{marquardtAlgorithmLeastSquaresEstimation1963,philippsRobustEfficientOptimization2021,commengesNewtonLikeAlgorithmLikelihood2006};
         \gls{fisherscoring} is not implemented (Section~\ref{sec:optim-perspective})
@@ -1056,7 +1127,7 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
   \item one bulk column is an \(N=1\) fit: the interval describes that maximiser, and the
         maximum-likelihood bias is of order \(N^{-1}\)
   \item full argument: Appendix~\ref{app:mle} and the
-        \vignette{theory-DeCovarT-MLE-properties.html}{maximum-likelihood vignette}
+        \vignette{theory-population-inference.html}{population inference vignette}
 \end{itemize}
 
 \subsection{Single-cell references: DeCovarT as a mixture of independent cells}
@@ -1197,11 +1268,18 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
         \(\boldsymbol{T}_{ji}\sim\mathcal{N}_{G}(m_{ji}\tilde{\boldsymbol{\mu}}_{\cdot j},m_{ji}\boldsymbol{\Sigma}_{W,j})\), exact for a sum of
         \(m_{ji}\) independent Gaussian cells; bulk \(\boldsymbol{y}_{\cdot i}=a_{i}\sum_{j}\boldsymbol{T}_{ji}\); the target is the
         realised fraction \(\boldsymbol{m}_{\cdot i}/n_{i}\)
-  \item reference moments reuse the generators of Section~\ref{sec:synthetic}, with \(\tilde{\boldsymbol{\mu}}_{\cdot j}=S_{j}\boldsymbol{\theta}_{\cdot j}\)
-        and unequal sizes \(S_{j}\); factors are \(n_{i}\), \(a_{i}\), the size ratios and the composition, and the
-        descriptors of Table~\ref{tab:descriptors} are reported with the size ratio \(\max_{j}S_{j}/\min_{j}S_{j}\)
-  \item a fit on a library-normalised reference is included as a control, since it targets the transcript fractions
-        \(\boldsymbol{q}_{\cdot i}\), not \(\boldsymbol{p}_{\cdot i}\)
+  \item reference moments reuse the generators of Section~\ref{sec:synthetic}: a cell of size \(S_{j}\) has mean
+        \(\tilde{\boldsymbol{\mu}}_{\cdot j}=S_{j}\boldsymbol{\theta}_{\cdot j}\) and covariance \(\boldsymbol{\Sigma}_{W,j}=S_{j}^{2}\boldsymbol{\Sigma}^{\theta}_{j}\), since a cell
+        \(S_{j}\) times larger is \(S_{j}\) times larger in every gene; the descriptors of Table~\ref{tab:descriptors} are
+        reported with the size ratio \(\max_{j}S_{j}/\min_{j}S_{j}\)
+  \item two designs use this generator
+  \begin{itemize}
+    \item calibration of the intervals: \(G=10\), \(J=2\), composition \((0.5,0.5)\) or \((0.8,0.2)\), sizes \((1,1)\) or
+          \((1,5)\), \(n_{i}=10^{4}\) cells, \(a_{i}=1\), 300 replicates per scenario
+          (\repo{blob/main/scripts/benchmark_metrics/check_confidence_interval_coverage.R}{coverage script}); the
+          solver comparison of Appendix~\ref{sec:sc-newton} adds \(a_{i}=2\)
+    \item the benchmark with two lineages and the competing methods (Section~\ref{sec:sc-hierarchical-design})
+  \end{itemize}
 \end{itemize}
 
 \subsubsection{Optimisation}
@@ -1226,6 +1304,9 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
         indefinite Hessian and, with \(c^{2}/\phi=n\) cells, the observed and expected information nearly coincide at the maximum
   \item the start solves the quadratic programme of \emph{DeconRNASeq} \cite{gongDeconRNASeqStatisticalFramework2013} with a free
         scale (Appendix~\ref{sec:sc-newton})
+  \item alternative optimiser: L-BFGS-B on the closure chart of Section~\ref{sec:optimisation}, applied to the same profile
+        log-likelihood; it can return exact zeros, and the parametric bootstrap refits with the optimiser that produced the
+        estimate
   \item a two-stage variant keeps the scales at their start values; it is not the joint maximum, and is kept for comparison
         only
 \end{itemize}
@@ -1240,11 +1321,11 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
         Appendix~\ref{app:sc-inference}
   \item few genes: \(\hat\phi_{i}\) has \(\nu=G-J\) residual degrees of freedom, and its maximum-likelihood divisor \(G\) biases it
         downwards by about \(\nu/G\); with \(G=10\) and \(J=2\), the 95\% Wald, ILR and profile intervals covered the realised
-        fractions 89--94\% of the time, and those for \(c_{i}\) and \(\phi_{i}\) 84--90\% (300 replicates per scenario of
+        fractions 84--93\% of the time, and those for \(c_{i}\) and \(\phi_{i}\) 82--90\% (calibration design of
         Section~\ref{sec:sc-synthetic}); the REML calibration inflates the covariances by \(G/\nu\), takes quantiles from
         \(t_{\nu}\), gives \(\phi_{i}\) the interval \([G\hat\phi_{i}/\chi^{2}_{\nu;1-\alpha/2},\,G\hat\phi_{i}/\chi^{2}_{\nu;\alpha/2}]\) and
         the profile interval the cut-off \(G\log\{1+F_{1,\nu;1-\alpha}/\nu\}\), exact in a linear model with unknown variance;
-        it brought every coverage to 94--98\%
+        it brought the coverage to 93--97\% for the fractions and 94--96\% for the scales
 
   \item profile intervals concentrate both scales out (Appendices~\ref{app:sc-inference} and~\ref{app:mle-nuisance});
         a single bulk sample has the small-dispersion limit in the number of cells
@@ -1300,6 +1381,50 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
       scales \(\hat c,\hat\phi,\hat a,\hat n\), and \(\widehat{\operatorname{Var}}(\hat{\boldsymbol{p}})\)
   \end{algorithmic}
 \end{algorithm}
+
+\subsubsection{Synthetic hierarchical scenario}
+\label{sec:sc-hierarchical-design}
+
+\begin{itemize}
+  \item four cell types in two lineages, types 1--2 and types 3--4, simulated by the generator of
+        Section~\ref{sec:sc-synthetic}; the target is the realised fraction \(\boldsymbol{m}_{\cdot i}/n_{i}\); since the size
+        multiplies the covariance by \(S_{j}^{2}\), the overlap between two types of equal size does not depend on that size
+  \item mean signature: target cosines \(0.8\) within a lineage and \(0.3\) between lineages, built with non-negative
+        means (Section~\ref{sec:synthetic}); every gene is expressed in all four types, and the expression of a gene in
+        the other lineage is about \(13\%\) of its main level (\(4\%\) for a cosine of \(0.1\), close to disjoint marker
+        blocks)
+  \item precision graphs: one skeleton per lineage, shared exactly by its two siblings, a stochastic block model with
+        three blocks of equal size for types 1--2 \cite{hollandStochasticBlockmodelsFirst1983} and a scale-free graph for
+        types 3--4 \cite{barabasiEmergenceScalingRandom1999}; the siblings share the signed weights of their lineage except
+        for \(5\%\) of the edges, whose sign each flips independently; with independent signs the sibling covariances
+        differ so much at \(G=200\) that a sibling overlap of \(0.08\) cannot be reached (at most \(0.013\)); spectral
+        shift as in Section~\ref{sec:synthetic}
+  \item one covariance scale per number of genes and overlap level, chosen so that the mean overlap of the two sibling
+        pairs is \(0.01\) or \(0.08\) at the balanced composition (realised means \(0.009\) to \(0.081\)); the two pairs
+        differ, from \(0.0005\) to \(0.149\), because the block model and the scale-free graph give the two lineages
+        different covariances; between-lineage overlaps stay at or below \(0.001\), and the sibling overlaps are
+        identical for equal and unequal cell sizes
+  \item crossed factors, two levels each, \(2^{6}=64\) scenarios, the five factors below and the platform scale \(a=1\) or \(5\)
+  \begin{itemize}
+    \item composition: balanced \((1/4,1/4,1/4,1/4)\), or unbalanced within each lineage \((0.4,0.1,0.4,0.1)\)
+    \item sibling overlap: \(0.01\) or \(0.08\)
+    \item cells per bulk: \(n_{i}=10^{3}\) or \(10^{5}\), so that the rarest type counts at least about \(100\) cells
+    \item cell sizes: equal, or lineage 3--4 five times larger, \(\boldsymbol{S}=(1,1,5,5)\)
+    \item genes: \(G=20\) or \(200\); the maximum-likelihood \(\hat\phi\) is biased down by about \((G-J)/G\), \(0.8\)
+          and \(0.98\) here
+  \end{itemize}
+  \item platform scale: rescaling the bulk by \(a\) rescales \(\hat c\) by \(a\) and \(\hat\phi\) by \(a^{2}\) and leaves
+        \(\hat{\boldsymbol{p}}\) unchanged (the profile log-likelihood only shifts by \(-G\log a\)), so the \(a=1\) half
+        is redundant for DeCovarT and checks that invariance numerically; it also tests the assumption of
+        \emph{RNA-Sieve}, whose mean and variance share one scale
+  \item estimand and reference: cell fractions, with the cell sizes of the generator and the raw covariances
+        (\texttt{cellular\_raw}, Appendix~\ref{sec:estimand})
+  \item caveats: the cells are Gaussian, so a sum of cells is exactly Gaussian at any \(n_{i}\) and the central-limit
+        argument of (B3) is not itself tested, and \(20\) to \(30\%\) of the simulated single-cell values are negative,
+        which the reference panels of \emph{MEAD} and \emph{RNA-Sieve} receive as such; the per-cell overlap describes
+        the reference, whereas the precision of a bulk also grows with \(n_{i}\), which the Wald standard error reported
+        with each scenario captures
+\end{itemize}
 
 \subsection{Gastruloid reference and feature selection}
 \label{sec:alignment}
@@ -1375,28 +1500,21 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
 \label{sec:limitations}
 
 \begin{itemize}
-  \item cell-type composition is a candidate prognostic marker of gastruloid fate
-  \item single-cell RNA-seq resolves abnormal cell states, at higher resolution than bulk, but cost and
-        dissociation limit it to few structures and one time point per structure
   \item DeCovarT collects, in one likelihood, ideas from algorithms that model within-type variability
   \begin{itemize}
     \item \emph{MuSiC}: one scale aligns the bulk average with the single-cell average, for library size and
           capture efficiency across platforms \cite{wangBulkTissueCell2019}
     \item \emph{RNA-Sieve}: Gaussian cell-type profiles justified by a central-limit argument on the moments,
-          with independent genes; DeCovarT drops gene independence. RNA-Sieve reports Wald regions from the inverse Fisher information of
-          its gene-wise CLT likelihood, and a Godambe sandwich when protocol
-          shift takes the truth outside the model family
-          \cite{erdmann-phamLikelihoodbasedDeconvolutionBulk2021}. DeCovarT's
-          analogue of the first is
-          (\ref{pr:decovart-expected-fisher}); it is not calibrated on a simplex
-          face, where the chi-bar-square likelihood-ratio test and a restricted
-          parametric bootstrap are required. 
-          
-          RNA-Sieve's noisy-$M$ term is the likelihood analogue of
-          resampling the reference; DeCovarT currently keeps
-          $\boldsymbol{\mu}$ and $\boldsymbol{\Sigma}_{j}$ plug-in and
-          propagates that uncertainty by a donor- or cell-level bootstrap.
-          \cite{erdmann-phamLikelihoodbasedDeconvolutionBulk2021}
+          with independent genes; DeCovarT drops gene independence; \emph{RNA-Sieve} reports Wald regions from the
+          inverse Fisher information of its gene-wise likelihood, and a Godambe sandwich when a protocol shift takes
+          the truth outside the model family \cite{erdmann-phamLikelihoodbasedDeconvolutionBulk2021}; its released code
+          returns \([0,1]\) when the averaged Hessian is ill-conditioned, so the benchmarks recompute both intervals
+          (Section~\ref{sec:hd});
+          DeCovarT's analogue of the first is Remark~\ref{pr:decovart-expected-fisher}, which is not calibrated on a
+          simplex face, where the chi-bar-square likelihood-ratio test and a restricted parametric bootstrap are
+          required; the noisy-mean term of \emph{RNA-Sieve} is the likelihood analogue of resampling the reference,
+          whereas DeCovarT keeps \(\boldsymbol{\mu}\) and \(\boldsymbol{\Sigma}_{j}\) plug-in and propagates their uncertainty by a donor- or
+          cell-level bootstrap
     \item \emph{DECALS}: composition and cell-type covariances estimated together, so within-type and
           cross-sample variability both enter the fit \cite{caiStatisticalInferenceCelltype2024}
     \item \emph{MEAD}: an errors-in-variables Gaussian model with confidence intervals for the proportions
@@ -1408,7 +1526,9 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
         (Remark~\ref{rem:scale-not-closure})
   \item the scaling assumptions of Figure~\ref{fig:overview} are unlikely to hold; absolute mRNA content per
         type then needs an external reference or an orthogonal assay
-  \item estimand: share of transcriptomic content per type, not the cell-count composition
+  \item estimand: with population-level references, the share of each type on the scale of the reference profiles;
+        with a single-cell reference, cell fractions when the cell sizes \(S_{j}\) are kept in the reference means, and
+        transcript fractions otherwise (Appendix~\ref{sec:estimand}); never absolute cell counts
 \end{itemize}
 
 
@@ -1416,22 +1536,20 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
 \subsection{Improve DeCovarT}
 \label{sec:improve}
 
-\subsubsection{Extended benchmark on true aliquots}
+\subsubsection{Benchmarks on real aliquots and normalisation}
 
-Real-data evaluation should start from matched flow-cytometry / bulk
-RNA-seq panels such as the Kassandra benchmark
-\cite{zaitsevPreciseReconstructionTME2022}, which already compares EPIC
-\cite{racleSimultaneousEnumerationCancer2017}, CIBERSORT
-\cite{newmanRobustEnumerationCell2015}, CIBERSORTx
-\cite{newmanDeterminingCellType2019}, quanTIseq \cite{finotello_etal19}
-and ABIS \cite{monacoRNASeqSignaturesNormalized2019}.
-
-\subsubsection{Evaluate the impact of normalisation techniques}
-
-A systematic study of the impact of transformation and normalisation techniques, such as CPM or a
-\(\log_{2}\) transform, on the covariance estimates and on the performance of DeCovarT is left to a later
-benchmark; the closure induced by library-size normalisation is discussed in Section~\ref{sec:gap}.
-\todo[inline]{Briefly report the content of \cite{faComprehensiveBenchmarkingComputational2020} on the impact of normalisation techniques}.
+\begin{itemize}
+  \item real-data evaluation should start from matched flow-cytometry and bulk RNA-seq panels such as the Kassandra
+        benchmark \cite{zaitsevPreciseReconstructionTME2022}, which already compares EPIC
+        \cite{racleSimultaneousEnumerationCancer2017}, CIBERSORT \cite{newmanRobustEnumerationCell2015}, CIBERSORTx
+        \cite{newmanDeterminingCellType2019}, quanTIseq \cite{finotello_etal19} and ABIS
+        \cite{monacoRNASeqSignaturesNormalized2019}
+  \item the same panels can measure how transformation and normalisation (CPM, a \(\log_{2}\) transform) change the
+        covariance estimates and the accuracy of DeCovarT; the closure induced by library-size normalisation is
+        discussed in Section~\ref{sec:gap}
+  \item[] \todo[inline]{Briefly report the content of \cite{faComprehensiveBenchmarkingComputational2020} on the impact
+        of normalisation techniques.}
+\end{itemize}
 
 
 \subsubsection{A lineage-aware framework for closely related cell types}
@@ -1455,7 +1573,7 @@ either side identifies variance terms that one sample cannot separate.
 
 \begin{itemize}
   \item \(R\ge2\) single-cell replicates separate three layers
-        (\vignette{theory-decovart-single-cell-tailored.html\#sec-reference}{single-cell alignment vignette}):
+        (\vignette{theory-single-cell-generative-optimisation.html\#sec-reference}{single-cell generative and optimisation vignette}):
         the within-donor cell-to-cell covariance, linear in the composition because independent cells add;
         the between-donor biological covariance, quadratic because one population profile per type is shared
         by all its cells; and the diagonal measurement noise \(\boldsymbol{D}_{i}\)
@@ -1486,7 +1604,7 @@ either side identifies variance terms that one sample cannot separate.
         \(\boldsymbol{D}=c\,\tilde{\boldsymbol{\mu}}\mathbf{J}_{\psi}\); it is unbiased whenever the mean is right, its information
         \(\phi^{-1}\boldsymbol{D}^{\top}\boldsymbol{V}_{0}^{-1}\boldsymbol{D}\) is the mean part of the Fisher information, and the dispersion follows
         from the Pearson statistic on \(G-J\) degrees of freedom
-        (\vignette{theory-DeCovarT-MLE-properties.html\#sec-decovart-glm}{GLM view})
+        (\vignette{theory-population-inference.html\#sec-decovart-glm}{GLM view})
   \item composition model across samples: \(\boldsymbol{\rho}_{i}=\boldsymbol{B}\boldsymbol{z}_{i}+\boldsymbol{u}_{i}\), with \(\boldsymbol{z}_{i}\) a design row (time
         point, condition, batch), \(\boldsymbol{B}\) a \((J-1)\times K\) coefficient matrix and \(\boldsymbol{u}_{i}\) a sample effect;
         shared technical scales are then estimated jointly over samples, and contrasts on \(\boldsymbol{B}\) test
@@ -1514,14 +1632,10 @@ either side identifies variance terms that one sample cannot separate.
         composition, the analogue of a canonical link (Appendix~\ref{app:irls})
   \item the same iteration fits the quasi-likelihood model of Section~\ref{sec:generalized-linear-model} and
         robust M-estimates with bounded gene weights (Appendix~\ref{sec:robust})
-  \item block-coordinate alternative for the single-cell model: an outer loop updates the technical scales
-        \(c_{i}\) and \(\phi_{i}\) by their closed forms, and an inner loop maximises over the composition; the fixed point is
-        the joint maximum (Appendix~\ref{sec:sc-newton}), but the scales are not orthogonal to the composition
-        (\(I_{pc}\neq0\)), so the alternation converges linearly, at a rate set by that coupling; on the four single-cell
-        scenarios it needed up to 95 outer updates, which is why the implemented fit concentrates the scales out in one loop
-        instead (Section~\ref{sec:sc-optimisation}); \emph{deMixSC} \cite{guoDeMixSCDeconvolutionFramework2023} alternates in the same way between gene weights,
-        rebuilt from the previous fit, and a weighted non-negative least-squares fit of the proportions, stopped at
-        convergence or after a fixed number of iterations
+  \item block-coordinate alternative for the single-cell model, alternating the closed-form scales and the composition
+        as \emph{deMixSC} alternates gene weights and proportions \cite{guoDeMixSCDeconvolutionFramework2023}: it reaches
+        the joint maximum, but only at a linear rate because the scales are not orthogonal to the composition, which is why
+        the implemented fit profiles the scales out (Section~\ref{sec:sc-optimisation} and Appendix~\ref{sec:sc-newton})
   \item first-order and stochastic methods (mini-batch gradients, adaptive steps) pay off only when many bulk
         samples share parameters (Appendix~\ref{app:optim-other})
   \item faster factorisations: every likelihood evaluation factorises the \(G\times G\) mixture covariance at a cost
@@ -1556,9 +1670,11 @@ These corrections change the standard errors, not the estimate, so they belong t
         residuals by their leverage, HC3 being the jackknife version
         \cite{mackinnonJackKniefeEstimator1985} that works best for \(N\le250\) \cite{longUsingHeteroscedasticityConsistent2000}; \emph{MEAD} applies HC3 as a leave-one-gene-out jackknife, notes that it fails for
         correlated genes, and replaces it by a jackknife that leaves out clusters of correlated genes
-        \cite[Sect.~6.3]{xieStatisticalInferenceCell2026}; \emph{DECALS} uses no sandwich: its covariance is model based,
-        with a finite-sample correction of the plugged-in squared proportions, and its authors attribute the
-        under-coverage of \emph{MEAD} to an inconsistent sandwich \cite{caiStatisticalInferenceCelltype2024}
+        \cite[Sect.~6.3]{xieStatisticalInferenceCell2026}; \emph{DECALS} keeps the sandwich form of a least-squares
+        variance but fills its meat with the model covariance \(\sum_{j}\hat p_{ji}^{2}\hat{\boldsymbol{\Sigma}}_{j}\) rather than with
+        empirical outer products, with a finite-sample correction of the plugged-in squared proportions, and its
+        authors attribute the under-coverage of \emph{MEAD} to an inconsistent empirical sandwich
+        \cite{caiStatisticalInferenceCelltype2024}
   \item even with a corrected covariance, normal quantiles are too narrow when the variance estimate is itself
         noisy; Satterthwaite or Kenward--Roger degrees of freedom replace them by \(t\) or \(F\) quantiles
   \item for DeCovarT: the gene-factorised sandwich of Appendix~\ref{app:mle-firth}, with leverages from the
@@ -1701,17 +1817,6 @@ and solves the mixture there.
         (\vignette{theory-decovart-bayesian-wiener.html}{Wiener-filter vignette})
 \end{itemize}
 
-\subsubsection{A dynamic and time-resolved perspective}
-\label{sec:dynamic-inference}
-
-\begin{itemize}
-  \item a few time points (at least three) are needed to recover dynamic interactions between genes
-  \item without prior knowledge or perturbation data, temporal ordering is the main route to directed,
-        mechanistic interactions, and hence to sparser and more contextualised networks
-  \item time-resolved compositions can carry a random-walk prior on log-ratio coordinates
-        \cite{kimLongitudinalProfilingLowAbundance2025}
-\end{itemize}
-
 \subsubsection{Alternative strategies for cell-type-specific covariances}
 \label{sec:grn}
 
@@ -1731,9 +1836,8 @@ information \cite{badia-i-mompelGeneRegulatoryNetwork2023,maizelsGeneRegulatoryN
   \item benchmarks show that inference can fail in common regimes even with multi-omic inputs
         \cite{nourisaGeneRNIBLivingBenchmark2025}
   \item open question: whether a causal graph improves \(\hat{\boldsymbol{p}}\), or a consistent covariance is enough
-  \item current fits use the variability inside one single-cell biological replicate; several independent
-        replicates would separate that within-type term from cross-sample variability, for example with a
-        two-level random effect, as \emph{DECALS} already does \cite{caiStatisticalInferenceCelltype2024}
+  \item current fits use the variability inside one single-cell biological replicate; separating it from the
+        between-donor layer needs \(R\ge2\) replicates (Section~\ref{sec:generalized-linear-model})
   \item reference uncertainty without a prior: \((\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})\) are estimates, and four frequentist routes
         propagate their error into \(\hat{\boldsymbol{p}}\)
   \begin{itemize}
@@ -1803,6 +1907,10 @@ Each extension keeps one of the two generative models and changes one part of it
   \item observation space: isoforms \cite{heilingEstimatingCellTypeComposition2023}, stacked multi-omics with a
         block covariance \cite{chenUnicoUnifiedModelCell2025,barbotPromisesLimitsMultimodal2026}, and spatial spots
         whose compositions depend on their neighbours \cite{cableRobustDecompositionCell2022a}
+  \item time\label{sec:dynamic-inference}: at least three time points are needed to recover dynamic interactions
+        between genes; without prior knowledge or perturbation data, temporal ordering is the main route to directed
+        interactions and sparser, contextualised networks; time-resolved compositions can carry a random-walk prior on
+        log-ratio coordinates \cite{kimLongitudinalProfilingLowAbundance2025}
 \end{itemize}
 
 \backmatter
@@ -1816,7 +1924,7 @@ that generate every figure.
   \item numerical optimisation: Newton--Raphson on the ILR chart with \texttt{stats::nlminb} (default);
         Marquardt--Levenberg with the relative-distance-to-maximum criterion from \texttt{marqLevAlg}
         \cite{R-marqLevAlg,philippsRobustEfficientOptimization2021}; L-BFGS-B from
-        \texttt{stats::optim} \cite{byrdLimitedMemoryAlgorithm1995}; matrix algebra and Cholesky factors with
+        \texttt{stats::optim} on the closure chart \cite{byrdLimitedMemoryAlgorithm1995}; matrix algebra and Cholesky factors with
         \texttt{Matrix} and \texttt{MASS} \cite{R-Matrix,R-MASS}; analytic derivatives checked with
         \texttt{numDeriv} \cite{R-numDeriv}; mean-only baselines with \texttt{limSolve}
         \cite{R-limSolve}
@@ -1825,8 +1933,13 @@ that generate every figure.
         for the Monte Carlo overlap with \texttt{qrng} \cite{R-qrng}; graphical lasso with \texttt{huge}
         \cite{R-huge}; parallel replicates with \texttt{furrr} and independent L'Ecuyer streams
         \cite{R-furrr}
-  \item visualisation: \texttt{ggplot2} \cite{R-ggplot2}, \texttt{ggdist} \cite{R-ggdist},
-        \texttt{ComplexHeatmap} \cite{R-ComplexHeatmap} and \texttt{cowplot} \cite{R-cowplot}
+  \item competing methods, run from their authors' code with gene filters switched off: \emph{MEAD} (R package from
+        GitHub, commit \texttt{d66fa10}), \emph{RNA-Sieve} (\texttt{rnasieve} 0.1.4) and \emph{ReDeconv}
+        (\texttt{redeconv} 1.2.1), the two Python packages through a locked \texttt{uv} project called from R with
+        CSV exchange
+  \item visualisation: \texttt{ggplot2} \cite{R-ggplot2}, \texttt{ggdist} \cite{R-ggdist} and \texttt{cowplot}
+        \cite{R-cowplot}, with \texttt{patchwork}, \texttt{funkyheatmap}, \texttt{ggraph}, \texttt{rgl} and
+        \texttt{mclust} \cite{R-mclust} for the plot books
   \item random seeds are fixed in every script, and session information is saved with each output
   \item[] \todo[inline]{State the R version, the computing infrastructure and the package versions used for
         the final figures.}

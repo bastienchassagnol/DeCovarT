@@ -203,8 +203,23 @@ test_that("single-cell Firth and bootstrap intervals have the right shape", {
     itmax = 25L
   )
   expect_identical(dim(boot$interval), c(2L, 2L))
-  expect_identical(dim(boot$scale_interval), c(2L, 2L))
+  expect_identical(dim(boot$scale_interval), c(4L, 2L))
   expect_true(all(boot$scale_interval > 0, na.rm = TRUE))
+  expect_equal(
+    boot$scales["platform_scale_a", ] * boot$scales["cell_count_n", ],
+    boot$scales["mean_scale", ]
+  )
+
+  boot_lbfgsb <- bootstrap_single_cell(
+    setup$y,
+    setup$mu,
+    setup$sigma,
+    n_boot = 3L,
+    itmax = 25L,
+    optimiser = "lbfgsb"
+  )
+  expect_identical(dim(boot_lbfgsb$interval), c(2L, 2L))
+  expect_true(all(boot_lbfgsb$interval >= 0 & boot_lbfgsb$interval <= 1))
 })
 
 test_that("single-cell reference bootstrap regenerates without donors", {
@@ -459,4 +474,22 @@ test_that("the REML profile cut-off is the exact linear-model one", {
   )
   expect_true(all(reml[, "lower"] <= ml[, "lower"] + 1e-8))
   expect_true(all(reml[, "upper"] >= ml[, "upper"] - 1e-8))
+})
+
+test_that("platform scale and cell count intervals are positive and consistent", {
+  setup <- .single_cell_interval_setup()
+  fit <- confint_single_cell(setup$y, setup$mu, setup$sigma, method = "wald")
+  nuisance <- fit$nuisance
+  expect_identical(
+    rownames(nuisance$interval),
+    c("mean_scale", "variance_scale", "platform_scale_a", "cell_count_n")
+  )
+  expect_true(all(nuisance$interval > 0))
+  expect_true(all(nuisance$interval[, 1] < nuisance$estimate))
+  expect_true(all(nuisance$interval[, 2] > nuisance$estimate))
+  expect_equal(
+    nuisance$estimate[["platform_scale_a"]] *
+      nuisance$estimate[["cell_count_n"]],
+    nuisance$estimate[["mean_scale"]]
+  )
 })

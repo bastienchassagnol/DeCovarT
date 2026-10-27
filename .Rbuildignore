@@ -29,6 +29,7 @@
 ^vignettes/.*_files$
 ^vignettes/.*\.html$
 ^vignettes/.*\.R$
+^vignettes/scripts$
 # CRAN tarball ships two Quarto vignettes: methods core plus bivariate toy.
 # Other articles stay on the pkgdown site, linked with absolute URLs,
 # to keep rebuild time and Suggests surface small.
@@ -37,27 +38,29 @@
 ^vignettes/decovart-paper-slides\.pdf$
 ^vignettes/decovart-manuscript\.qmd$
 ^vignettes/decovart-manuscript\.pdf$
-^vignettes/theory-DeCovarT-MLE-properties\.qmd$
+^vignettes/theory-population-inference\.qmd$
 ^vignettes/supp-S6-feature-selection\.qmd$
 ^vignettes/theory-network-inference\.qmd$
 ^vignettes/theory-synthetic-scenarios-mean-covariance\.qmd$
 ^vignettes/theory-distance-covariance\.qmd$
 ^vignettes/fig03-covariance-driven\.qmd$
+^vignettes/fig05-single-cell-hierarchical\.qmd$
 ^vignettes/supp-S1-identifiability\.qmd$
 ^vignettes/supp-S2-covariance-inversion\.qmd$
 ^vignettes/supp-S3-scaling\.qmd$
 ^vignettes/supp-S4-covariance-modeling\.qmd$
 ^vignettes/supp-S5-misspecification\.qmd$
 ^vignettes/theory-review-distribution-aware-deconvolution\.qmd$
-^vignettes/theory-decovart-single-cell-tailored\.qmd$
+^vignettes/theory-single-cell-generative-optimisation\.qmd$
+^vignettes/theory-single-cell-inference\.qmd$
 ^vignettes/theory-decovart-extensions-roadmap\.qmd$
 ^vignettes/theory-decovart-bayesian-wiener\.qmd$
 ^vignettes/theory-mixture-regression-applications\.qmd$
 # Quarto extensions used only by pkgdown-only articles. pandoc-ext/diagram
 # is kept: vignettes/_quarto.yml loads it for every article, and the
 # committed vignettes/_diagram-cache/ lets it render without TeX.
-# sun123zxy/callouty-theorem is kept: the shipped generative-model
-# vignette loads that filter.
+# sun123zxy/callouty-theorem is kept: the shipped population
+# generative-optimisation vignette loads that filter.
 ^vignettes/_extensions/jmgirard/
 ^vignettes/_environment\.local$
 # Temporary solver smoke test (not testthat; requires fig03 GRN cache).

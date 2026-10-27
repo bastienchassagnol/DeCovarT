@@ -25,13 +25,18 @@ modules)}
 \item{\code{scale_free}}{\code{power}, \code{edges_per_node}
 (\code{m} in \code{igraph::sample_pa()})}
 \item{\code{stochastic_block_model}}{\code{block_prob},
-\code{p_within}, \code{p_between}}
+\code{p_within}, \code{p_between}; or \code{block_sizes}, an
+integer vector summing to \code{n_genes} that fixes the blocks
+(contiguous genes) instead of drawing them from
+\code{block_prob}}
 \item{\code{small_world}}{\code{nei}, \code{p} (rewiring
 probability) for \code{igraph::sample_smallworld()}}
 }}
 }
 \value{
 Symmetric integer matrix \eqn{G\times G} with zero diagonal.
+For a stochastic block model, attribute \code{"block"} gives the
+block of every gene.
 }
 \description{
 Draws undirected skeletons with \pkg{igraph}: Erdős–Rényi

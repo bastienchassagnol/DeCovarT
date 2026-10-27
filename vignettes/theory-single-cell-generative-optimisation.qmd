@@ -1,9 +1,9 @@
 ---
-title: "DeCovarT tailored to single-cell references: reference moments, scales and four alignment strategies"
+title: "Single-cell DeCovarT: reference moments, alignment strategies and the profile fit"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
 vignette: >
-  %\VignetteIndexEntry{DeCovarT tailored to single-cell references}
+  %\VignetteIndexEntry{Single-cell DeCovarT: generative model and optimisation}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 knitr:
@@ -28,11 +28,11 @@ format:
 ::: callout-note
 ## Scope
 
-Released DeCovarT fits the convolution
+Population-level DeCovarT fits the convolution
 $\boldsymbol{y}_{\cdot i}\mid\boldsymbol{p}_{\cdot i}
 \sim\mathcal{N}_G(\boldsymbol{\mu}\boldsymbol{p}_{\cdot i},
 \sum_j p_{ji}^{2}\boldsymbol{\Sigma}_j)$
-of the [derivatives vignette](theory-decovart-generative-model.html#sec-unconstrained).
+of the [population generative and optimisation vignette](theory-population-generative-optimisation.html#sec-unconstrained).
 That law is exact when each reference column is one random
 **population profile**, as for the FACS-sorted references it was
 designed for. A single-cell reference supplies a different object:
@@ -40,9 +40,10 @@ many cells per type, counted by a UMI protocol, with a within-type
 cell-to-cell covariance, and a bulk sample that is a physical sum of
 cells measured on another platform.
 
-This vignette rebuilds DeCovarT for that reference. The measurement
-and expression models of UMI counts, and the published methods that
-use second-order moments, are reviewed in the
+This vignette rebuilds DeCovarT for that reference: the generative
+model and its optimisation. The measurement and expression models of
+UMI counts, and the published methods that use second-order moments,
+are reviewed in the
 [distribution-aware deconvolution review](theory-review-distribution-aware-deconvolution.html);
 this vignette uses their conclusions.
 
@@ -56,15 +57,24 @@ this vignette uses their conclusions.
    averaged mixture, compositional bulk, and plug-in scales estimated
    before the deconvolution.
 5. @sec-uncoupling converts RNA fractions into cell fractions after the
-   fit.
+   fit, and @sec-cell-size-covariance shows how the cell size enters the
+   mean and the covariance.
+6. @sec-summary compares the strategies, and @sec-profile-newton
+   describes the fit that is implemented: the linear layer of Strategy 2,
+   with both scales profiled out, maximised by trust-region Newton or by
+   L-BFGS-B.
 
+The intervals for that fit, with the technical scales concentrated out,
+are derived in the
+[single-cell inference vignette](theory-single-cell-inference.html).
 The final model for real data, written as a generalised linear model,
 is in the
-[MLE and inference vignette](theory-DeCovarT-MLE-properties.html#sec-final-choice).
-The simplex charts of the derivatives vignette apply unchanged to the
-proportion block of every formulation. Nothing here is implemented in
-`fit_decovart()`; the equations are the specification for a later
-release.
+[population inference vignette](theory-population-inference.html#sec-final-choice).
+The simplex charts of the population vignette apply unchanged to the
+proportion block of every formulation.
+[`deconvolute_single_cell()`](../reference/deconvolute_single_cell.html)
+implements the linear layer of Strategy 2; the other strategies and
+layers are specifications.
 :::
 
 ::: {#nte-notation .callout-note collapse="true"}
@@ -619,8 +629,8 @@ $$
 -\tfrac12\boldsymbol{r}^{\top}\boldsymbol{\Omega}(\boldsymbol{\vartheta})\boldsymbol{r}.
 $$ {#eq-loglik-general}
 
-The identities of the derivatives vignette
-([matrix calculus](theory-decovart-generative-model.html#sec-matrix-calculus))
+The identities of the population generative vignette
+([matrix calculus](theory-population-generative-optimisation.html#sec-matrix-calculus))
 give the following.
 
 ::: {#thm-score-general}
@@ -696,18 +706,18 @@ type covariance, $\boldsymbol{\Sigma}_{p_jp_j}=2\boldsymbol{\Sigma}_j$ and
 $\boldsymbol{\Sigma}_{p_jp_\ell}=\boldsymbol{0}$ for $j\neq\ell$. Substituting into
 @eq-score-general to
 @eq-fisher-general recovers the
-[unconstrained gradient](theory-decovart-generative-model.html#thm-score-unconstrained),
-[Hessian](theory-decovart-generative-model.html#thm-hess-unconstrained)
+[unconstrained gradient](theory-population-generative-optimisation.html#thm-score-unconstrained),
+[Hessian](theory-population-generative-optimisation.html#thm-hess-unconstrained)
 and
-[expected Fisher information](theory-decovart-generative-model.html#sec-fisher-p)
-of the derivatives vignette term by term, including the factor
+[expected Fisher information](theory-population-inference.html#sec-fisher-p)
+of the population generative vignette term by term, including the factor
 $2p_jp_\ell$ in front of the covariance trace.
 :::
 
 Every model below is therefore specified by its tuple
 $(\boldsymbol{\mu}_k,\boldsymbol{\Sigma}_k,\boldsymbol{\mu}_{kl},\boldsymbol{\Sigma}_{kl})$.
 When a parameter block lives on the simplex, the ILR chain rule
-([constrained score and Hessian](theory-decovart-generative-model.html#thm-chain-rule))
+([constrained score and Hessian](theory-population-generative-optimisation.html#thm-chain-rule))
 is applied to that block only; the Jacobian of the full map is block
 diagonal with identity blocks for the scalar parameters ($c_i$,
 $\phi_i$, $\tau_{gi}^{2}$). Positivity of a scalar $s>0$ is handled by
@@ -878,7 +888,7 @@ there is no $\mathrm{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}_{kl})$ and no
 second residual quadratic. The covariance derivative is a constant
 matrix, so one Cholesky factorisation of $\boldsymbol{S}_W(\boldsymbol{m})$
 per iteration serves objective, score and Hessian, as in
-[`.sigma_p_factorisation()`](theory-decovart-generative-model.html#sec-numerical-speedups).
+[`.sigma_p_factorisation()`](theory-population-generative-optimisation.html#sec-numerical-speedups).
 
 Proportions and their uncertainty follow by the delta method. With
 $\hat n=\mathbf{1}^{\top}\hat{\boldsymbol{m}}$ and
@@ -899,7 +909,7 @@ That covariance is singular along $\mathbf{1}$, as it must be for a
 composition, without any log-ratio chart. A type with $\hat m_{ji}=0$
 is an ordinary point of the parameter space, not a boundary of a
 logarithm; the structural-zero machinery of the
-[derivatives vignette](theory-decovart-generative-model.html#sec-structural-zeros)
+[population generative vignette](theory-population-generative-optimisation.html#sec-structural-zeros)
 is not needed here.
 
 ::: {#nte-sparse-precision-slot .callout-important}
@@ -918,7 +928,7 @@ of $C_j$ such cells has covariance $\boldsymbol{\Sigma}_{W,j}/C_j$ and
 precision $C_j\boldsymbol{\Omega}_{W,j}$: the zero pattern survives
 averaging. The precision of the **sum** $\boldsymbol{S}_W(\boldsymbol{m})$ is
 dense in general even when every $\boldsymbol{\Omega}_{W,j}$ is sparse.
-The structure-aware backends of the derivatives vignette act on
+The structure-aware backends of the population generative vignette act on
 $\boldsymbol{\Sigma}$, not on $\boldsymbol{\Omega}$, so a dense Cholesky is
 the default here unless the $\boldsymbol{\Sigma}_{W,j}$ share a block or
 low-rank structure.
@@ -1189,7 +1199,7 @@ $\boldsymbol{p}$ block by the ILR chart,
 $\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho})$, with
 Jacobian $\mathbf{J}_\psi=\mathbf{S}(\boldsymbol{p})\mathbf{V}$ and the
 score contraction of the map Hessian exactly as in the
-[chain rule](theory-decovart-generative-model.html#sec-chain-rule); the
+[chain rule](theory-population-generative-optimisation.html#sec-chain-rule); the
 $\log n$ row is untouched. In particular the stationarity condition
 $\mathbf{V}^{\top}\mathbf{S}(\boldsymbol{p})\nabla_{\boldsymbol{p}}\ell=\boldsymbol{0}$
 is the same equation with $\nabla_{\boldsymbol{p}}\ell$ taken from
@@ -1282,7 +1292,7 @@ diagonal excess identifies $\boldsymbol{D}_i$. If the reference network
 is weak, a free $\boldsymbol{D}_i$ absorbs $\phi_i$, and $n_i$ becomes
 unidentifiable; constrain $\boldsymbol{D}_i$ as in @sec-cc-noise, fix
 $n_i$ externally, or drop $\boldsymbol{D}_i$, as the
-[final model](theory-DeCovarT-MLE-properties.html#sec-final-choice) does.
+[final model](theory-population-inference.html#sec-final-choice) does.
 
 ### Layer 4: within and between covariance from $R$ replicates {#sec-av-replicates}
 
@@ -1322,7 +1332,7 @@ formulation, which is why its $\boldsymbol{\Sigma}_j$ must be a
 between-replicate covariance to carry a sampling interpretation. The
 diagonal-$\boldsymbol{\Sigma}_{B,j}$ remark of @sec-cc-replicates applies: a
 diagonal quadratic layer plus a sparse-precision linear layer has a
-dense precision, so the backends of the derivatives vignette see
+dense precision, so the backends of the population generative vignette see
 only the structure of $\boldsymbol{\Sigma}$.
 
 ### Strategy 2, DECALS and MEAD {#sec-av-decals}
@@ -1348,7 +1358,7 @@ with @eq-av-four-layer remain.
   has ([GLS competitor](theory-decovart-extensions-roadmap.html#sec-robust-gls)).
 - **Finite-sample correction.** The `DECALS` correction targets its
   covariance estimator, not $\hat{\boldsymbol{p}}$
-  ([Firth penalisation](theory-DeCovarT-MLE-properties.html#sec-firth)).
+  ([Firth penalisation](theory-population-inference.html#sec-firth)).
 
 `MEAD` estimates $\boldsymbol{\beta}_i=\gamma_i\boldsymbol{p}_{\cdot i}$, the
 $(c_i,\boldsymbol{p}_{\cdot i})$ pair of @eq-av-scale-law, and normalises at
@@ -1390,7 +1400,7 @@ identifies only $a\boldsymbol{m}$; the count scale comes from the
 covariance. Strategy 2 has $(J-1)+2$ free parameters $(\boldsymbol{p},c,\phi)$;
 the simplex removes one coordinate and lets the mean identify $c$
 outright, leaving $\phi$ to the covariance. The integer constraint
-of @sec-cc-integer exists only in Strategy 1, because $n_i\boldsymbol{p}_{\cdot i}$
+of the cell counts (@sec-cell-counts) exists only in Strategy 1, because $n_i\boldsymbol{p}_{\cdot i}$
 is not constrained to the lattice once $n_i$ is a continuous nuisance.
 Choose by the question: counts and a scale calibrated to the reference
 platform (Strategy 1), or a composition with $n_i$ as a nuisance
@@ -1676,8 +1686,70 @@ model and a prior on the expression state, with the posterior reported as a
 denoised activity and an error bar, not as a molecule count
 [@bredaBayesianInferenceGene2021]. Use the `bayNorm` total as $S_j$.
 Use `Sanity` when $\boldsymbol{\theta}_{\cdot j}$ itself must be corrected
-for sampling noise before it enters [the `MuSiC` mean](theory-decovart-single-cell-tailored.html#eq-music-mean). The observed
+for sampling noise before it enters the `MuSiC` mean, @eq-music-mean. The observed
 library size is a capture total, not this $S_j$.
+
+# Cell size in the mean and in the covariance {#sec-cell-size-covariance}
+
+Write a type-$j$ cell as $\boldsymbol{x}=S_j\boldsymbol{u}$, with $S_j$ its
+transcriptome size and $\boldsymbol{u}$ its relative expression:
+$\mathbb{E}[\boldsymbol{u}]=\boldsymbol{\theta}_{\cdot j}$,
+$\mathbf{1}^{\top}\boldsymbol{\theta}_{\cdot j}=1$ and
+$\operatorname{Var}(\boldsymbol{u})=\boldsymbol{\Sigma}^{\theta}_j$. A cell $S_j$
+times larger is $S_j$ times larger in every gene, so its size enters the
+mean linearly and the covariance quadratically:
+
+$$
+\tilde{\boldsymbol{\mu}}_{\cdot j}=S_j\boldsymbol{\theta}_{\cdot j},
+\qquad
+\boldsymbol{\Sigma}_{W,j}=S_j^{2}\boldsymbol{\Sigma}^{\theta}_j .
+$$ {#eq-cell-size-moments}
+
+These are the moments of the cellular fit
+(`reference = "cellular_raw"` in
+[`rescale_single_cell_moments()`](../reference/rescale_single_cell_moments.html)).
+Plugged into @eq-av-scale-law they make $\boldsymbol{p}_{\cdot i}$ the cell
+fractions.
+
+The transcript-fraction fit follows from the same cells. The type-$j$
+total of sample $i$ has mean $m_{ji}S_j\boldsymbol{\theta}_{\cdot j}$ and
+covariance $m_{ji}S_j^{2}\boldsymbol{\Sigma}^{\theta}_j$. With
+$T_i=\sum_\ell m_{\ell i}S_\ell$ transcripts in the sample and
+$q_{ji}=m_{ji}S_j/T_i$,
+
+$$
+\mathbb{E}[\boldsymbol{y}_{\cdot i}]
+=a_iT_i\sum_j q_{ji}\boldsymbol{\theta}_{\cdot j},
+\qquad
+\operatorname{Var}(\boldsymbol{y}_{\cdot i})
+=a_i^{2}T_i\sum_j q_{ji}S_j\boldsymbol{\Sigma}^{\theta}_j .
+$$ {#eq-transcript-moments}
+
+This is the linear mixture of @eq-av-scale-law again, with composition
+$\boldsymbol{q}_{\cdot i}$, scales $c_i=a_iT_i$ and $\phi_i=a_i^{2}T_i$, and
+reference $(\boldsymbol{\theta}_{\cdot j},S_j\boldsymbol{\Sigma}^{\theta}_j)$
+(`reference = "transcript_raw"`). The cell size leaves the mean but
+stays in the covariance with one power fewer; the fitted transcript
+fractions become cell fractions through @eq-rna-to-cell.
+
+Two consequences follow.
+
+- **Types of equal size overlap as their relative profiles do.** The map
+  $\boldsymbol{x}\mapsto\boldsymbol{x}/S$ is affine, and the overlap of two
+  Gaussians does not change under a common affine map
+  ([overlap and total variation](theory-distance-covariance.html#sec-overlap-tv)).
+  Two types with the same size $S$ therefore overlap exactly as
+  $\mathcal{N}(\boldsymbol{\theta}_{\cdot j},\boldsymbol{\Sigma}^{\theta}_j)$ and
+  $\mathcal{N}(\boldsymbol{\theta}_{\cdot\ell},\boldsymbol{\Sigma}^{\theta}_\ell)$ do. When
+  the children of a lineage share a cell size, the within-lineage overlap
+  does not depend on that size; unequal sizes between lineages move the
+  lineages apart and reweight the bulk.
+- **Rescaling the mean alone changes the model.** Multiplying the mean by
+  $S_j$ while holding $\boldsymbol{\Sigma}_{W,j}$ fixed makes a larger cell
+  relatively less noisy, with a coefficient of variation that falls as
+  $1/S_j$. `rescale_single_cell_moments()` scales both moments as in
+  @eq-cell-size-moments, so a simulated cell keeps its relative noise when
+  its size changes.
 
 # Summary and critical comparison {#sec-summary}
 
@@ -1701,7 +1773,7 @@ profiled and no $\boldsymbol{S}_B$ or $\boldsymbol{D}_i$ layer: $\boldsymbol{S}_
 $R\ge 2$ donors, and a bulk residual cannot be separated from the
 scales without further assumptions. Its quasi-likelihood form and
 inference are the
-[final choice](theory-DeCovarT-MLE-properties.html#sec-final-choice) of
+[final choice](theory-population-inference.html#sec-final-choice) of
 the inference vignette. With $R\ge 2$ donors the four layers of
 @sec-av-replicates apply, with $S_j$ and $\tilde{\boldsymbol{b}}$ plugged in as
 in Strategy 4 and the within-type covariance cleaned as in
@@ -1746,5 +1818,161 @@ fitted with plug-in scales. The rule that follows from
 ($S_j$, $\tilde{\boldsymbol{b}}$, $s^{\mathrm{tech}}_c$), to estimate jointly what
 it identifies well ($c_i$ and $\phi_i$ on the simplex chart), and in both cases to
 report @eq-plugin-variance rather than the naive $I_{pp}^{-1}$.
+
+# The implemented fit: profile Newton {#sec-profile-newton}
+
+[`deconvolute_single_cell()`](../reference/deconvolute_single_cell.html)
+fits the linear layer of Strategy 2, @eq-av-scale-law, to one bulk
+sample and estimates both scales. Intervals for the composition and for
+the scales are derived in the
+[single-cell inference vignette](theory-single-cell-inference.html).
+
+## Closed-form scales and the profile log-likelihood {#sec-profile-scales}
+
+For one bulk sample, with $\boldsymbol{W}=\boldsymbol{S}_W(\boldsymbol{p})^{-1}$,
+$\boldsymbol{m}=\tilde{\boldsymbol{\mu}}\boldsymbol{p}$ and
+$\boldsymbol{r}=\boldsymbol{y}-c\boldsymbol{m}$, the log-likelihood of
+@eq-av-scale-law is, up to a constant,
+
+$$
+\ell(\boldsymbol{p},c,\phi)
+=-\frac{G}{2}\log\phi
+-\frac12\log\det\boldsymbol{S}_W(\boldsymbol{p})
+-\frac{1}{2\phi}\,\boldsymbol{r}^{\top}\boldsymbol{W}\boldsymbol{r}.
+$$ {#eq-sc-loglik}
+
+For a fixed composition both scales have closed forms, the generalised
+least-squares coefficient of $\boldsymbol{y}$ on $\boldsymbol{m}$ and the mean
+Mahalanobis residual:
+
+$$
+\hat c(\boldsymbol{p})
+=\frac{\boldsymbol{m}^{\top}\boldsymbol{W}\boldsymbol{y}}{\boldsymbol{m}^{\top}\boldsymbol{W}\boldsymbol{m}},
+\qquad
+\hat\phi(\boldsymbol{p})=\frac{Q(\boldsymbol{p})}{G},
+\qquad
+Q(\boldsymbol{p})=\hat{\boldsymbol{r}}^{\top}\boldsymbol{W}\hat{\boldsymbol{r}} .
+$$ {#eq-sc-closed-scales}
+
+Substituting them leaves a function of the $J-1$ ILR coordinates,
+
+$$
+\ell^{\ast}(\boldsymbol{\rho})
+=-\frac{G}{2}\log Q\bigl(\boldsymbol{\psi}(\boldsymbol{\rho})\bigr)
+-\frac12\log\det\boldsymbol{S}_W\bigl(\boldsymbol{\psi}(\boldsymbol{\rho})\bigr)
++\text{const},
+$$ {#eq-sc-profile}
+
+[`profile_loglik_single_cell_ilr()`](../reference/profile_loglik_single_cell_ilr.html).
+The weight matrix $\boldsymbol{W}$ depends on the unknown composition. The
+profile rebuilds it, with $\hat c$ and $\hat\phi$, at every trial
+composition, so the fit is a feasible generalised least squares without
+an outer loop, and its maximiser is the joint maximum-likelihood
+estimate of $(\boldsymbol{p},c,\phi)$. Alternating the closed-form scales
+with a Newton fit in $\boldsymbol{p}$ reaches the same fixed point, but the
+composition and the mean scale are coupled ($I_{pc}\neq\boldsymbol{0}$), so
+that scheme converges only linearly.
+
+## Profile score and Hessian {#sec-profile-derivatives}
+
+By the envelope theorem the profile score needs no derivative of the
+closed-form scales:
+
+$$
+\frac{\partial\ell^{\ast}}{\partial p_j}
+=\frac{G}{Q}\Bigl(\hat c\,\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top}\boldsymbol{W}\hat{\boldsymbol{r}}
++\tfrac12\hat{\boldsymbol{r}}^{\top}\boldsymbol{W}\boldsymbol{\Sigma}_{W,j}\boldsymbol{W}\hat{\boldsymbol{r}}\Bigr)
+-\tfrac12\operatorname{tr}(\boldsymbol{W}\boldsymbol{\Sigma}_{W,j}).
+$$ {#eq-sc-profile-score}
+
+Differentiating once more, with $\boldsymbol{\eta}=(c,\phi)$ and
+$\partial\hat{\boldsymbol{\eta}}/\partial\boldsymbol{p}^{\top}
+=-\boldsymbol{H}_{\eta\eta}^{-1}\boldsymbol{H}_{\eta p}$, gives the Schur
+complement of the observed Hessian of @eq-sc-loglik at the closed-form
+scales. With $\boldsymbol{w}=\boldsymbol{W}\hat{\boldsymbol{r}}$,
+
+$$
+\begin{aligned}
+\nabla^{2}_{\boldsymbol{p}}\ell^{\ast}
+&=\boldsymbol{H}_{pp}-\boldsymbol{H}_{p\eta}\boldsymbol{H}_{\eta\eta}^{-1}\boldsymbol{H}_{\eta p},\\
+(\boldsymbol{H}_{pc})_{j}
+&=\phi^{-1}\bigl(\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top}\boldsymbol{w}
+-c\,\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top}\boldsymbol{W}\boldsymbol{m}
+-\boldsymbol{m}^{\top}\boldsymbol{W}\boldsymbol{\Sigma}_{W,j}\boldsymbol{w}\bigr),\\
+(\boldsymbol{H}_{p\phi})_{j}
+&=-\phi^{-2}\bigl(c\,\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top}\boldsymbol{w}
++\tfrac12\boldsymbol{w}^{\top}\boldsymbol{\Sigma}_{W,j}\boldsymbol{w}\bigr),\\
+H_{cc}&=-\boldsymbol{m}^{\top}\boldsymbol{W}\boldsymbol{m}/\phi,
+\qquad H_{c\phi}=0,
+\qquad H_{\phi\phi}=-\frac{G}{2\phi^{2}} .
+\end{aligned}
+$$ {#eq-sc-profile-hessian}
+
+$H_{c\phi}=-\boldsymbol{m}^{\top}\boldsymbol{w}/\phi^{2}$ and
+$H_{\phi\phi}=G/(2\phi^{2})-\hat{\boldsymbol{r}}^{\top}\boldsymbol{w}/\phi^{3}$
+take these values only at $\hat c$ and $\hat\phi$. $\boldsymbol{H}_{pp}$ is
+the Hessian in $\boldsymbol{p}$ at fixed scales. The ILR
+[chain rule](theory-population-generative-optimisation.html#sec-chain-rule)
+then adds the curvature of the chart. Score and Hessian
+(`gradient_profile_loglik_single_cell_ilr()`,
+`hessian_profile_loglik_single_cell_ilr()`) were checked against
+Richardson-extrapolated numerical derivatives [@R-numDeriv] for three
+and four cell types.
+
+## Trust-region Newton {#sec-profile-trust-region}
+
+Newton–Raphson maximises @eq-sc-profile with that score and Hessian,
+safeguarded by the PORT trust region of `stats::nlminb()` [@R-base;
+@gayAlgorithm611Subroutines1983], the driver of the population-level
+fit. Each step maximises the quadratic model of $\ell^{\ast}$ inside a
+ball of radius $\Delta$, $\boldsymbol{\delta}=(\lambda\mathbf{I}-\boldsymbol{H}_{\rho})^{-1}\boldsymbol{U}_{\rho}$
+with the smallest $\lambda\ge0$ that makes the system positive definite
+and keeps $\lVert\boldsymbol{\delta}\rVert\le\Delta$. The radius shrinks after a
+poor prediction of the increase and grows after a good one. Fisher
+scoring with step-halving is not used: the trust region already handles
+an indefinite Hessian, and with $c^{2}/\phi=n$ cells the observed and
+expected information nearly coincide at the maximum.
+
+## Start and identifiability {#sec-profile-start}
+
+The start solves
+$\min_{c>0,\,\boldsymbol{p}\in\Delta^{J-1}}\lVert\boldsymbol{y}-c\tilde{\boldsymbol{\mu}}\boldsymbol{p}\rVert_2^{2}$,
+the quadratic programme of `DeconRNASeq`
+[@gongDeconRNASeqStatisticalFramework2013] with a free scale
+([`single_cell_nuisance_scales()`](../reference/single_cell_nuisance_scales.html)).
+In the products $w_j=cp_j$ it is non-negative least squares, solved
+exactly by enumerating the active sets ($J\le12$). Dividing by
+$c^{(0)}=\mathbf{1}^{\top}\boldsymbol{w}$ restores the sum-to-one constraint,
+and $\boldsymbol{p}^{(0)}$ is floored away from zero. The equality
+$\mathbf{1}^{\top}\boldsymbol{p}=1$ can be imposed with $c$ fixed only when $c$
+is known: with an unknown bulk scale, simplex least squares at $c=1$ is
+misspecified, and the free-scale form is the matching baseline.
+
+$\hat\phi>0$ needs residual degrees of freedom, so the fit requires
+$G>J$. The maximum-likelihood divisor $G$ biases $\hat\phi$ downwards by
+about $(G-J)/G$, so $\hat n=\hat c^{2}/\hat\phi$ is biased upwards; $\hat n$
+and $\hat a=\hat\phi/\hat c$ are descriptors, not inputs of the fit. The
+REML calibration of the intervals is in the
+[single-cell inference vignette](theory-single-cell-inference.html#sec-sc-reml).
+`profile = FALSE` keeps the scales at their start values. That
+two-stage fit is not the joint maximum; it is kept for comparison, and
+its variance needs the plug-in correction of @sec-plugin-uncertainty.
+
+## L-BFGS-B on the closure chart {#sec-profile-lbfgsb}
+
+`deconvolute_single_cell(optimiser = "lbfgsb")` maximises the same
+profile log-likelihood on the closure chart
+$\boldsymbol{p}=\boldsymbol{w}/\mathbf{1}^{\top}\boldsymbol{w}$, $\boldsymbol{w}\ge\boldsymbol{0}$,
+of the
+[population vignette](theory-population-generative-optimisation.html#sec-closure-box).
+The profile score @eq-sc-profile-score is mapped to $\boldsymbol{w}$ by the
+closure gradient, and the scales stay concentrated out at every
+iterate. Every KKT point of the box in $\boldsymbol{w}$ is a KKT point of
+the simplex problem, so a type absent from the bulk is estimated at an
+exact zero instead of being approached. At such an estimate the ILR
+coordinates and the Wald covariances are undefined and returned as
+`NA`; the profile interval and the boundary likelihood-ratio test remain
+available. Newton–Raphson on ILR stays the default; both solvers return
+the same estimate when the maximum is interior.
 
 # References

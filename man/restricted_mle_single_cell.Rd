@@ -25,7 +25,7 @@ restricted_mle_single_cell(
 \item{epsilon}{Relative function and step tolerances passed to
 \code{\link[stats:nlminb]{stats::nlminb()}}.}
 
-\item{itmax}{Maximum number of Newton iterations.}
+\item{itmax}{Maximum number of iterations.}
 }
 \value{
 A list with \code{coefficients} (the fitted composition), \code{loglik},

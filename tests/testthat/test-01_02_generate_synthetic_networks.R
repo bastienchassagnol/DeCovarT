@@ -342,3 +342,24 @@ test_that("spectral shift yields a Cholesky-able mixture covariance", {
   ))
   expect_true(is.finite(described$descriptors$f_cov))
 })
+
+test_that("fixed SBM block sizes are kept and returned as a block attribute", {
+  adjacency <- withr::with_seed(
+    1L,
+    generate_random_network_skeleton(
+      30L,
+      "stochastic_block_model",
+      graph_params = list(block_sizes = c(10L, 10L, 10L))
+    )
+  )
+  expect_identical(attr(adjacency, "block"), rep(1:3, each = 10L))
+  expect_true(isSymmetric(unclass(adjacency) + 0))
+  expect_error(
+    generate_random_network_skeleton(
+      30L,
+      "stochastic_block_model",
+      graph_params = list(block_sizes = c(10L, 10L))
+    ),
+    "sum to `n_genes`"
+  )
+})

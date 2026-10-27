@@ -51,3 +51,57 @@ test_that("scaling covariances preserves precision zeros and orders overlap", {
   omega_s <- solve(calibrated[[3L]]$sigma[,, 1L])
   expect_true(all(abs(omega_s[zero_mask]) < 1e-8))
 })
+
+test_that("pair-restricted calibration targets the sibling overlap only", {
+  gram <- matrix(0.3, 4, 4)
+  gram[1:2, 1:2] <- 0.8
+  gram[3:4, 3:4] <- 0.8
+  diag(gram) <- 1
+  moments <- simulate_hierarchical_grn_moments(
+    n_genes = 8L,
+    n_celltypes = 4L,
+    mean_scale = 10,
+    target_gram = gram,
+    nonnegative = TRUE,
+    precision_shift = 0.2,
+    precision_scale = 0.3,
+    graph_model = "scale_free",
+    seed = 5L
+  )
+  siblings <- rbind(c(1L, 2L), c(3L, 4L))
+  calibrated <- scale_covariances_to_overlap(
+    moments$mean_profiles,
+    moments$covariance_matrices,
+    p = rep(0.25, 4),
+    target = 0.08,
+    n_mc = 1000L,
+    seed = 1L,
+    pairs = siblings
+  )
+  omega <- overlap_gaussian_mc(
+    list(
+      p = rep(0.25, 4),
+      mu = moments$mean_profiles,
+      sigma = calibrated$sigma
+    ),
+    n_mc = 1000L,
+    seed = 1L
+  )$OmegaMap
+  pair_overlap <- omega + t(omega)
+  expect_equal(
+    mean(pair_overlap[siblings]),
+    0.08,
+    tolerance = 0.01
+  )
+  expect_lt(max(pair_overlap[1:2, 3:4]), mean(pair_overlap[siblings]))
+  expect_error(
+    scale_covariances_to_overlap(
+      moments$mean_profiles,
+      moments$covariance_matrices,
+      p = rep(0.25, 4),
+      target = 0.08,
+      pairs = cbind(1L, 5L)
+    ),
+    "`pairs`"
+  )
+})

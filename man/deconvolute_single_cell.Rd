@@ -15,7 +15,8 @@ deconvolute_single_cell(
   mean_scale = NULL,
   variance_scale = NULL,
   estimand = c("cellular", "transcript"),
-  cell_size = NULL
+  cell_size = NULL,
+  optimiser = c("newton", "lbfgsb")
 )
 }
 \arguments{
@@ -28,7 +29,7 @@ deconvolute_single_cell(
 \item{epsilon}{Relative function and step tolerances passed to
 \code{\link[stats:nlminb]{stats::nlminb()}}.}
 
-\item{itmax}{Maximum number of Newton iterations.}
+\item{itmax}{Maximum number of iterations.}
 
 \item{profile}{If \code{TRUE}, profile the two scales out; if \code{FALSE}, keep
 them at their start values.}
@@ -48,6 +49,9 @@ cell fraction.}
 \item{cell_size}{Optional \eqn{S_j}. Defaults to the column sums of
 the mean, which equal the cell sizes for a \code{cellular_raw}
 reference.}
+
+\item{optimiser}{\code{"newton"} (trust-region Newton in ILR coordinates) or
+\code{"lbfgsb"} (L-BFGS-B on the closed simplex).}
 }
 \value{
 A list with \code{composition} (the fitted simplex coordinate),
@@ -80,12 +84,17 @@ With \code{profile = FALSE} the scales stay at their start values (a
 two-stage plug-in fit), which is not the joint maximum. Supplying both
 \code{mean_scale} and \code{variance_scale} fixes them at those values.
 
-Every fit uses the analytic score and observed Hessian with the PORT
-trust region of \code{\link[stats:nlminb]{stats::nlminb()}}: the step maximises the quadratic
-model inside a ball whose radius grows or shrinks with the ratio of
-actual to predicted increase; there is no line search and no fixed
-step length. The returned \code{vcov} is the delta-method image of the
-inverse negative profile Hessian; intervals are
+With \code{optimiser = "newton"} (default) every fit uses the analytic
+score and observed Hessian with the PORT trust region of
+\code{\link[stats:nlminb]{stats::nlminb()}}: the step maximises the quadratic model inside a ball
+whose radius grows or shrinks with the ratio of actual to predicted
+increase; there is no line search and no fixed step length. With
+\code{optimiser = "lbfgsb"} the same objective is maximised by L-BFGS-B on
+the closure \eqn{\boldsymbol{p}=\boldsymbol{w}/\mathbf{1}^{\top}
+\boldsymbol{w}}, \eqn{\boldsymbol{w}\ge0}, as in
+\code{\link[=deconvolute_ratios_L_BFGS_B]{deconvolute_ratios_L_BFGS_B()}}; it can return exact zeros, where \code{rho}
+and the covariances are \code{NA}. The returned \code{vcov} is the delta-method
+image of the inverse negative profile Hessian; intervals are
 \code{\link[=confint_single_cell]{confint_single_cell()}}.
 }
 \examples{

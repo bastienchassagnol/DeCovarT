@@ -1,6 +1,6 @@
 # Two-panel schematic of shared-plus-private mean signatures (no toy
 # PCA panel). Run from the package root:
-#   Rscript scripts/auxiliary/generate_mean_signature_schematic.R
+#   Rscript vignettes/scripts/generate_mean_signature_schematic.R
 
 if (!requireNamespace("ggplot2", quietly = TRUE)) {
   stop("Install ggplot2 to regenerate the mean-signature schematic.")

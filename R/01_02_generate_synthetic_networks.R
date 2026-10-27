@@ -306,12 +306,17 @@ generate_mean_signature_matrix <- function(
 #'     \item{\code{scale_free}}{\code{power}, \code{edges_per_node}
 #'       (\code{m} in \code{igraph::sample_pa()})}
 #'     \item{\code{stochastic_block_model}}{\code{block_prob},
-#'       \code{p_within}, \code{p_between}}
+#'       \code{p_within}, \code{p_between}; or \code{block_sizes}, an
+#'       integer vector summing to \code{n_genes} that fixes the blocks
+#'       (contiguous genes) instead of drawing them from
+#'       \code{block_prob}}
 #'     \item{\code{small_world}}{\code{nei}, \code{p} (rewiring
 #'       probability) for \code{igraph::sample_smallworld()}}
 #'   }
 #'
 #' @return Symmetric integer matrix \eqn{G\times G} with zero diagonal.
+#'   For a stochastic block model, attribute \code{"block"} gives the
+#'   block of every gene.
 #'
 #' @keywords internal
 #' @examples
@@ -423,15 +428,29 @@ generate_random_network_skeleton <- function(
       pref_matrix <- matrix(p_between, n_blocks, n_blocks)
       diag(pref_matrix) <- p_within
 
-      block_sizes <- as.integer(
-        c(stats::rmultinom(1L, n_genes, block_prob))
-      )
-      block_sizes <- pmax(block_sizes, 1L)
-      size_diff <- n_genes - sum(block_sizes)
-      if (size_diff != 0L) {
-        idx <- which.max(block_sizes)
-        block_sizes[idx] <- block_sizes[idx] + size_diff
+      if (is.null(graph_params$block_sizes)) {
+        block_sizes <- as.integer(
+          c(stats::rmultinom(1L, n_genes, block_prob))
+        )
+        block_sizes <- pmax(block_sizes, 1L)
+        size_diff <- n_genes - sum(block_sizes)
+        if (size_diff != 0L) {
+          idx <- which.max(block_sizes)
+          block_sizes[idx] <- block_sizes[idx] + size_diff
+        }
+      } else {
+        block_sizes <- as.integer(graph_params$block_sizes)
+        if (sum(block_sizes) != n_genes || any(block_sizes < 1L)) {
+          stop(
+            "`block_sizes` must be positive and sum to `n_genes`.",
+            call. = FALSE
+          )
+        }
+        n_blocks <- length(block_sizes)
+        pref_matrix <- matrix(p_between, n_blocks, n_blocks)
+        diag(pref_matrix) <- p_within
       }
+      block <- rep(seq_along(block_sizes), block_sizes)
 
       igraph::sample_sbm(
         n_genes,
@@ -465,6 +484,9 @@ generate_random_network_skeleton <- function(
   )
   storage.mode(adjacency) <- "integer"
   diag(adjacency) <- 0L
+  if (identical(graph_model, "stochastic_block_model")) {
+    attr(adjacency, "block") <- block
+  }
   adjacency
 }
 

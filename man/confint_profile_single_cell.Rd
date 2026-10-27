@@ -34,7 +34,7 @@ when a variance scale is profiled out of a linear model.}
 \item{epsilon}{Relative function and step tolerances passed to
 \code{\link[stats:nlminb]{stats::nlminb()}}.}
 
-\item{itmax}{Maximum number of Newton iterations.}
+\item{itmax}{Maximum number of iterations.}
 }
 \value{
 A matrix with columns \code{estimate}, \code{lower} and \code{upper}.

@@ -119,6 +119,64 @@
   )
 }
 
+#' L-BFGS-B on the closure of the non-negative orthant
+#'
+#' Maximises \eqn{\ell(\boldsymbol{p})} over the closed simplex through
+#' \eqn{\boldsymbol{p}=\mathcal{C}(\boldsymbol{w})=\boldsymbol{w}/
+#' \mathbf{1}^{\top}\boldsymbol{w}}, with the box \eqn{\boldsymbol{w}\ge0}.
+#' Exact zeros sit on the lower bound. The gradient is
+#' \eqn{(\boldsymbol{U}-(\boldsymbol{p}^{\top}\boldsymbol{U})\mathbf{1})/
+#' \mathbf{1}^{\top}\boldsymbol{w}}, so a Karush--Kuhn--Tucker point of the
+#' box is one of the simplex: unlike stick-breaking, no direction dies on a
+#' face. The objective is flat along \eqn{\boldsymbol{w}}, which the
+#' gradient never follows.
+#'
+#' @param p0 Start on the simplex.
+#' @param loglik,score Functions of the composition \eqn{\boldsymbol{p}}.
+#' @param epsilon Relative reduction of the log-likelihood at which the
+#'   solver stops (`factr = epsilon / .Machine$double.eps`).
+#' @param itmax Maximum number of iterations.
+#'
+#' @return A list with `par` (the composition), `loglik`, `convergence`,
+#'   `iterations` and `message`.
+#'
+#' @noRd
+.lbfgsb_closure <- function(p0, loglik, score, epsilon, itmax) {
+  # A trial point can make the covariance factorisation fail or a profile
+  # scale non-positive; a finite penalty rejects it instead of aborting
+  # optim(), which needs finite values.
+  objective <- function(w) {
+    value <- tryCatch(loglik(w / sum(w)), error = function(e) -Inf)
+    if (is.finite(value)) value else -1e12
+  }
+  gradient <- function(w) {
+    total <- sum(w)
+    p <- w / total
+    u <- tryCatch(score(p), error = function(e) rep(0, length(p)))
+    (u - sum(u * p)) / total
+  }
+  fit <- stats::optim(
+    par = p0,
+    fn = objective,
+    gr = gradient,
+    method = "L-BFGS-B",
+    lower = 0,
+    upper = Inf,
+    control = list(
+      fnscale = -1,
+      maxit = itmax,
+      factr = epsilon / .Machine$double.eps
+    )
+  )
+  list(
+    par = fit$par / sum(fit$par),
+    loglik = fit$value,
+    convergence = as.integer(fit$convergence),
+    iterations = as.integer(fit$counts[["function"]]),
+    message = if (is.null(fit$message)) "" else as.character(fit$message)
+  )
+}
+
 #' Maximum likelihood on a face of the simplex
 #'
 #' Coordinates in `fixed` are substituted, so an exact zero is

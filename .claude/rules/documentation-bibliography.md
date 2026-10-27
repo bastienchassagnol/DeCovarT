@@ -56,9 +56,14 @@ do not duplicate parent+child.
 without review):
 
 ```bash
-python3 scripts/curate_bibliography/bib_enrich.py PATH.bib --write --backup \
-  --min-score 92 --report .cursor/bib-enrichment.json
+uv run --project scripts/curate_bibliography \
+  python scripts/curate_bibliography/bib_enrich.py PATH.bib --write --backup \
+  --min-score 92 --report scripts/curate_bibliography/bib-enrichment.json
 ```
+
+One-off Zotero Web API inserts (one leaf collection per item) are
+`scripts/curate_bibliography/add_zotero_perspectives.py` (stdlib only;
+credentials in `~/.zotc/`). The enrichment report above is gitignored.
 
 User-level tooling (when no repo script):
 

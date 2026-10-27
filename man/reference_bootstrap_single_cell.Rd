@@ -42,11 +42,13 @@ mean diagonal.}
 \item{epsilon}{Relative function and step tolerances passed to
 \code{\link[stats:nlminb]{stats::nlminb()}}.}
 
-\item{itmax}{Maximum number of Newton iterations.}
+\item{itmax}{Maximum number of iterations.}
 }
 \value{
 A list with \code{resample}, \code{regenerate_bulk}, \code{estimates},
-\code{interval}, \code{n_failed}, \code{scales}, \code{scale_interval} and \code{fit}.
+\code{interval}, \code{n_failed}, \code{scales}, \code{scale_interval} and \code{fit};
+\code{scales} and \code{scale_interval} also carry the derived rows
+\code{platform_scale_a} and \code{cell_count_n}.
 }
 \description{
 Resamples the reference that produced

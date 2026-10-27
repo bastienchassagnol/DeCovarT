@@ -13,7 +13,10 @@ run_simulation_benchmark(
   cores = 1L,
   coverage_interval = "wilson",
   verbose = FALSE,
-  progress_every = 10L
+  progress_every = 10L,
+  model = c("population", "single_cell"),
+  return_data = FALSE,
+  reference = NULL
 )
 }
 \arguments{
@@ -43,6 +46,24 @@ readable.}
 
 \item{progress_every}{Sample-progress interval passed to
 \code{\link[=deconvolute_ratios]{deconvolute_ratios()}} when \code{verbose} is \code{TRUE}. Defaults to \code{10L}.}
+
+\item{model}{\code{"population"} (default) draws every bulk from the
+convolution \code{\link[=simulate_bulk_mixture]{simulate_bulk_mixture()}}; \code{"single_cell"} draws it as a
+sum of cells with \code{\link[=simulate_bulk_from_cells]{simulate_bulk_from_cells()}}, using \code{n_cells} and
+\code{platform_scale} from \code{true_theta} (and \code{generative_mean} /
+\code{generative_sigma} when the fitted reference differs from the
+generator), and scores every estimate against its realised
+composition.}
+
+\item{return_data}{If \code{TRUE}, keep each scenario's bulk matrix,
+targets and true scales in \code{data}, so methods run outside this
+function can be scored on the same samples.}
+
+\item{reference}{Optional list with \code{n_individuals}, \code{n_cells} (default
+\code{1}) and \code{seed}: with \code{return_data = TRUE}, an independent reference
+panel is drawn per scenario by \code{\link[=simulate_reference_replicates]{simulate_reference_replicates()}}, with
+seed \code{reference$seed} plus the scenario index, for methods that
+estimate the reference moments themselves.}
 }
 \value{
 A list with:
@@ -59,9 +80,13 @@ actually used to draw the bulk;
 \item \code{descriptors}: kept scenario statistics (composition, mean, SPD,
 network, tangent Fisher, MixSim BarOmega, pairwise Hellinger);
 \item \code{supplementary}: Jeffreys overlap, recorded separately;
+\item \code{intervals}: coverage and width of the interval methods requested in
+\code{deconvolution_functions};
+\item \code{data}: per-scenario simulated data when \code{return_data = TRUE}, else
+\code{NULL};
 \item \code{call}: the matched call (\code{\link[=match.call]{match.call()}}).
 Analysis scripts persist those pieces with \code{write_simulation_artefacts()}
-(\code{scripts/auxiliary/benchmark_artefacts.R}) rather than saving the whole
+(\code{scripts/benchmark_metrics/benchmark_artefacts.R}) rather than saving the whole
 list.
 }
 }

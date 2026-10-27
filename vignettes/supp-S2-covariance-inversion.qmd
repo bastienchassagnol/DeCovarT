@@ -185,7 +185,7 @@ Each likelihood, score, and Hessian evaluation factorises the mixture
 covariance
 $\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_{j}p_{j}^{2}\boldsymbol{\Sigma}_{j}$
 once and then solves against one or more right-hand sides
-([generative model](theory-decovart-generative-model.html#sec-numerical-speedups)).
+([generative model](theory-population-generative-optimisation.html#sec-numerical-speedups)).
 Assembling $\boldsymbol{\Sigma}(\boldsymbol{p})$ costs $O(J G^{2})$. A dense
 Cholesky factorisation of the $G\times G$ result costs $O(G^{3})$ and
 dominates when $G$ is large. Structured backends (banded, block-diagonal,
@@ -294,13 +294,13 @@ checks, combining DICEPro Figure S5 (unit-sum / reconstruction trade-off)
 with their Figure S2A (analytical versus finite-difference gradients).
 
 The ILR / softmax chart is a $C^{2}$ diffeomorphism onto the open simplex
-([constrained optimisation](theory-decovart-generative-model.html#sec-constrained)),
+([constrained optimisation](theory-population-generative-optimisation.html#sec-constrained)),
 so Marquardt, Newton, and the projected gradient keep
 $\sum_{j}\hat p_{j}=1$ by construction. L-BFGS-B only boxes
 $[0,1]^{J}$ and renormalises after `optim()`; during the line search
 $\lvert 1-\sum_{j}p_{j}\rvert$ can leave zero, which is why that path
 needs the guarded objective in
-[solver safeguards](theory-decovart-generative-model.html#sec-numerical-speedups).
+[solver safeguards](theory-population-generative-optimisation.html#sec-numerical-speedups).
 The ADEMP field `optimisation$kkt_residual`
 ([synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html#sec-ademp))
 is the projected-score residual
@@ -314,7 +314,7 @@ outline only if a penalty-weight grid is actually run.
 The companion scatter is analytic $\nabla\ell$ (and, where stored, the
 Hessian) against Richardson extrapolation in `numDeriv` [@R-numDeriv],
 as already used in
-[the generative-model vignette](theory-decovart-generative-model.html)
+[the generative-model vignette](theory-population-generative-optimisation.html)
 and in `tests/testthat/test-02_02_population_decovart_estimate_ratios.R`. DICEPro reported relative
 errors below $6\times 10^{-6}$ with central differences
 $\varepsilon=10^{-5}$. DeCovarT prefers Richardson's tableau rather than
@@ -398,6 +398,6 @@ are noted here but not yet implemented:
   (RMSE and difficulty axes; this appendix is inversion and solver cost)
 - [How to build synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html#sec-ademp)
 - Structure-aware operators and solver safeguards:
-  [generative model](theory-decovart-generative-model.html#sec-numerical-speedups)
+  [generative model](theory-population-generative-optimisation.html#sec-numerical-speedups)
 
 ## References

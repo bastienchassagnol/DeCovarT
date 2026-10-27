@@ -2,7 +2,7 @@
 # intervals, and Monte Carlo calibration of boundary likelihood-ratio tests),
 # the reference-sample bootstrap that propagates uncertainty in the plug-in
 # moments, and the label-equivariance check of the estimator.
-# See vignette("theory-DeCovarT-MLE-properties").
+# See vignette("theory-population-inference").
 
 # Parametric bootstrap -----------------------------------------------------
 
@@ -43,6 +43,11 @@
 #' @param level Confidence level for percentile intervals.
 #' @param n_replicates Number of bulk columns simulated per replicate;
 #'   defaults to the number of observed columns.
+#' @param optimiser Solver for the unrestricted fits: `"newton"`
+#'   (trust-region Newton in ILR coordinates) or `"lbfgsb"` (L-BFGS-B on
+#'   the closed simplex, as in [deconvolute_ratios_L_BFGS_B()]), so that
+#'   the bootstrap distribution matches the estimator being assessed.
+#'   Restricted fits under `null_value` always use the Newton driver.
 #'
 #' @return A list with `estimates` (\eqn{J\times} `n_boot` matrix),
 #'   `interval` (percentile bounds), `n_failed` (refits that errored,
@@ -71,13 +76,36 @@ bootstrap_decovart <- function(
   level = 0.95,
   n_replicates = NULL,
   epsilon = 10^-8,
-  itmax = 500L
+  itmax = 500L,
+  optimiser = c("newton", "lbfgsb")
 ) {
+  optimiser <- match.arg(optimiser)
   y <- as.matrix(y)
   if (is.null(n_replicates)) {
     n_replicates <- ncol(y)
   }
+  n_celltypes <- ncol(mean_signature_matrix)
   fit_bulk <- function(bulk, fixed = NULL) {
+    if (is.null(fixed) && identical(optimiser, "lbfgsb")) {
+      fit <- .lbfgsb_closure(
+        rep(1 / n_celltypes, n_celltypes),
+        loglik = function(p) {
+          .pooled_population_loglik(p, bulk, mean_signature_matrix, Sigma)
+        },
+        score = function(p) {
+          .pooled_population_score(p, bulk, mean_signature_matrix, Sigma)
+        },
+        epsilon = epsilon,
+        itmax = itmax
+      )
+      return(list(
+        coefficients = stats::setNames(
+          fit$par,
+          colnames(mean_signature_matrix)
+        ),
+        loglik = fit$loglik
+      ))
+    }
     restricted_mle_decovart(
       bulk,
       mean_signature_matrix,
@@ -256,7 +284,7 @@ bootstrap_decovart <- function(
 #' gene-wise pairing of bulk and reference, and the second is algebraic
 #' equivariance rather than a source of uncertainty (see
 #' [equivariance_check_decovart()] and
-#' `vignette("theory-DeCovarT-MLE-properties")`). The two `method` options
+#' `vignette("theory-population-inference")`). The two `method` options
 #' instead resample, with replacement, units that actually vary.
 #'
 #' \describe{
@@ -496,7 +524,7 @@ reference_bootstrap_decovart <- function(
 #' Columns of \eqn{\boldsymbol{\mu}} and matching slices of
 #' \eqn{\boldsymbol{\Sigma}_j} are reordered by `perm` while the *names*
 #' stay in the original order, matching the convention of
-#' `vignette("theory-DeCovarT-MLE-properties")`. The labelled MLE on the
+#' `vignette("theory-population-inference")`. The labelled MLE on the
 #' relabelled reference is then compared with
 #' \eqn{\hat{\boldsymbol{p}}_{\mathrm{perm}}}.
 #'

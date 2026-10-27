@@ -23,7 +23,10 @@ compute_benchmark_metrics(
   presence_threshold = 1e-04,
   level = 0.95,
   coverage_interval = "wilson",
-  algorithm = NA_character_
+  algorithm = NA_character_,
+  intervals = NULL,
+  nuisance_hat = NULL,
+  nuisance_true = NULL
 )
 }
 \arguments{
@@ -78,6 +81,14 @@ This is not the interval for \eqn{p_j} itself.}
 
 \item{algorithm}{Character label stored on each metrics row (typically
 the solver name). Recycled to length one.}
+
+\item{intervals}{Optional list of length \eqn{N}: for every sample, a
+named list of two-column matrices (lower, upper) per interval method,
+with one row per parameter.}
+
+\item{nuisance_hat, nuisance_true}{Optional \eqn{2\times N} matrices of
+estimated and true scales (rows \code{mean_scale}, \code{variance_scale}) of the
+single-cell model.}
 }
 \value{
 A named list with:
@@ -86,7 +97,11 @@ A named list with:
 row per cell type);
 \item \code{monte_carlo}: one row per cell type, including \code{theoretical_se}
 (filled later from expected Fisher at \eqn{p^{\star}});
-\item \code{optimisation}: one row per sample.
+\item \code{optimisation}: one row per sample, with the estimated scales when
+\code{nuisance_hat} is given;
+\item \code{intervals}: one row per interval method and parameter, with the
+coverage, its Monte Carlo interval and the interval widths (empty
+without \code{intervals}).
 }
 }
 \description{

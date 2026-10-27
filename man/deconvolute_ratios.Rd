@@ -15,7 +15,9 @@ deconvolute_ratios(
   cores = getOption("mc.cores", 1L),
   coverage_interval = "wilson",
   verbose = FALSE,
-  progress_every = 10L
+  progress_every = 10L,
+  model = c("population", "single_cell"),
+  nuisance_true = NULL
 )
 }
 \arguments{
@@ -35,8 +37,15 @@ numeric vector (recycled over samples) or a numeric matrix
 \eqn{(\boldsymbol{\Sigma}_j)_{j}\in\mathcal{M}_{G\times G\times J}}
 of cell-type covariances (numeric; off-diagonals may be negative).}
 
-\item{deconvolution_functions}{Named list; each element has \code{FUN} and
-optional \code{additional_parameters}.}
+\item{deconvolution_functions}{Named list; each element has \code{FUN},
+optional \code{additional_parameters}, and an optional \code{ci} list
+(\code{methods}, \code{level}, \code{n_boot}, \code{n_draws}, \code{optimiser}) naming the
+interval methods to evaluate at that solver's estimate: \code{wald},
+\code{ilr}, \code{profile}, \code{bootstrap} and \code{oracle} (Wald half-width at the
+true composition); for the single-cell model, \code{wald_reml}, \code{ilr_reml}
+and \code{profile_reml} add the REML calibration. Solvers that return a
+list read the estimate from \code{coefficients}, or from \code{composition} for
+\code{\link[=deconvolute_single_cell]{deconvolute_single_cell()}}.}
 
 \item{standardise}{If \code{TRUE}, apply a \strong{gene-wise} affine z-score
 computed once from \eqn{\boldsymbol{\mu}} to bulk, means and covariances
@@ -61,17 +70,29 @@ one-line notice instead of per-sample ticks.}
 
 \item{progress_every}{Sample-progress interval when \code{verbose} is
 \code{TRUE} and \code{cores = 1}. Defaults to \code{10L}.}
+
+\item{model}{\code{"population"} (default), the Gaussian convolution, or
+\code{"single_cell"}, the mixture of cells with its scales profiled out:
+it sets the log-likelihood, score and curvature used for the
+per-sample diagnostics and the Wald standard errors.}
+
+\item{nuisance_true}{Optional \eqn{2\times N} matrix of the true scales
+\eqn{(c,\phi)} of the single-cell model, for the coverage of their
+intervals.}
 }
 \value{
 A named list from \code{\link[=compute_benchmark_metrics]{compute_benchmark_metrics()}} with
-\code{regression} (global and cell-type subtables), \code{monte_carlo}, and
+\code{regression} (global and cell-type subtables), \code{monte_carlo},
 \code{optimisation} (per-sample elapsed time, memory, KKT residual, and
-\eqn{\hat{\boldsymbol{p}}}). First-generation solvers still call
+\eqn{\hat{\boldsymbol{p}}}) and \code{intervals} (coverage and width per
+interval method). First-generation solvers still call
 \code{\link[=repair_simplex]{repair_simplex()}}; the three native DeCovarT maps (ILR or
 \eqn{p/\sum p}) already lie on the simplex. When \code{Sigma} is
 supplied, Newton-Raphson, Marquardt-Levenberg, L-BFGS-B, BFGS
-(gradient), and simulated annealing attach ILR Wald standard
-errors from \code{\link[=vcov_ilr_delta]{vcov_ilr_delta()}} so \code{monte_carlo} can report
+(gradient), simulated annealing, the Firth fits and
+\code{\link[=deconvolute_single_cell]{deconvolute_single_cell()}} attach Wald standard errors (ILR
+expected Fisher for the population model, the profile Hessian for the
+single-cell model) so \code{monte_carlo} can report
 coverage, mean model SE, and the SE/SD ratio. Those SEs are the
 expected-Fisher delta-method bounds used by
 \code{\link[=confint.decovart_fit]{confint.decovart_fit()}}, not diagonal entries of the observed

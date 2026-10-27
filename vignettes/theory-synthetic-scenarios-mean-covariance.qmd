@@ -1938,7 +1938,7 @@ score is below `score_tol` **and** the Hessian is negative definite
 $\lambda_{\min}<0<\lambda_{\max}$ is a saddle. None of these
 diagnostics implies a unique global mode; the DeCovarT likelihood for
 one bulk sample is not concave in general
-([MLE properties](theory-DeCovarT-MLE-properties.html)).
+([MLE properties](theory-population-inference.html)).
 :::
 
 ::: {#nte-metric-choice .callout-note}
@@ -2313,6 +2313,6 @@ this section.
 - Type I error and power as default columns (the target is an estimand,
   not a null hypothesis). Boundary tests live in
   [Appendix S1](supp-S1-identifiability.html) and
-  [MLE properties](theory-DeCovarT-MLE-properties.html#sec-boundary).
+  [MLE properties](theory-population-inference.html#sec-boundary).
 
 # References

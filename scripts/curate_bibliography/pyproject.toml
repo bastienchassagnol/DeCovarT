@@ -1,0 +1,14 @@
+[project]
+name = "decovart-curate-bibliography"
+version = "0.1.0"
+description = "Bibliography hygiene and Crossref enrichment for the DeCovarT article and package."
+requires-python = ">=3.10"
+dependencies = [
+    "bibtexparser>=1.4,<2",
+    "httpx>=0.28",
+    "rapidfuzz>=3.14",
+    "rich>=15",
+]
+
+[tool.uv]
+package = false

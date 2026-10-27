@@ -14,7 +14,8 @@ bootstrap_decovart(
   level = 0.95,
   n_replicates = NULL,
   epsilon = 10^-8,
-  itmax = 500L
+  itmax = 500L,
+  optimiser = c("newton", "lbfgsb")
 )
 }
 \arguments{
@@ -43,6 +44,12 @@ defaults to the number of observed columns.}
 
 \item{epsilon, itmax}{Relative convergence tolerance and iteration
 budget passed to \code{\link[stats:nlminb]{stats::nlminb()}}.}
+
+\item{optimiser}{Solver for the unrestricted fits: \code{"newton"}
+(trust-region Newton in ILR coordinates) or \code{"lbfgsb"} (L-BFGS-B on
+the closed simplex, as in \code{\link[=deconvolute_ratios_L_BFGS_B]{deconvolute_ratios_L_BFGS_B()}}), so that
+the bootstrap distribution matches the estimator being assessed.
+Restricted fits under \code{null_value} always use the Newton driver.}
 }
 \value{
 A list with \code{estimates} (\eqn{J\times} \code{n_boot} matrix),

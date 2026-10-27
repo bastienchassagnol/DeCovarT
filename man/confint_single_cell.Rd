@@ -62,9 +62,14 @@ profile information
 
 Intervals for \eqn{(c,\phi)} in \code{nuisance$interval} are Wald intervals
 on the log scale, mapped back by the exponential, from the Schur
-complement that removes \eqn{\boldsymbol{\rho}}. \code{nuisance$interval_wald}
-is the symmetric normal interval on the original scale. Bootstrap
-methods replace both with percentile intervals.
+complement that removes \eqn{\boldsymbol{\rho}}. The rows
+\code{platform_scale_a} (\eqn{a=\phi/c}) and \code{cell_count_n}
+(\eqn{n=c^{2}/\phi}, a number of cells only when \eqn{a} is known)
+follow by the delta method on \eqn{\log a=\log\phi-\log c} and
+\eqn{\log n=2\log c-\log\phi}, so all four intervals are positive.
+\code{nuisance$interval_wald} is the symmetric normal interval of
+\eqn{(c,\phi)} on the original scale. Bootstrap methods replace both
+with percentile intervals.
 
 \describe{
 \item{\code{ilr}}{Default. Inverse ILR chart.}
@@ -91,7 +96,7 @@ the chi-square interval \eqn{[G\hat\phi/\chi^2_{\nu;1-\alpha/2},
 G\hat\phi/\chi^2_{\nu;\alpha/2}]}, and the profile interval uses the
 cut-off of \code{\link[=confint_profile_single_cell]{confint_profile_single_cell()}}. The maximum-likelihood
 \eqn{\hat\phi} is biased by about \eqn{\nu/G}, so with few genes
-(\eqn{G=10}, \eqn{J=2}) the \code{"ml"} intervals cover about 0.85 to 0.92
+(\eqn{G=10}, \eqn{J=2}) the \code{"ml"} intervals cover about 0.84 to 0.93
 at the 0.95 level; the bootstrap methods are unaffected by \code{variance}.
 }
 \examples{

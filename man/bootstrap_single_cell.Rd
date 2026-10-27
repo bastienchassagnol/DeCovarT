@@ -11,7 +11,8 @@ bootstrap_single_cell(
   n_boot = 200L,
   level = 0.95,
   epsilon = 1e-06,
-  itmax = 40L
+  itmax = 40L,
+  optimiser = c("newton", "lbfgsb")
 )
 }
 \arguments{
@@ -28,11 +29,17 @@ bootstrap_single_cell(
 \item{epsilon}{Relative function and step tolerances passed to
 \code{\link[stats:nlminb]{stats::nlminb()}}.}
 
-\item{itmax}{Maximum number of Newton iterations.}
+\item{itmax}{Maximum number of iterations.}
+
+\item{optimiser}{Passed to \code{\link[=deconvolute_single_cell]{deconvolute_single_cell()}} for the fit and
+every refit, so the bootstrap matches the estimator being assessed.}
 }
 \value{
 A list with \code{estimates}, \code{interval}, \code{n_failed} (refits that
 errored, left as \code{NA} columns), \code{scales}, \code{scale_interval} and \code{fit}.
+\code{scales} and \code{scale_interval} have rows \code{mean_scale} (\eqn{c}),
+\code{variance_scale} (\eqn{\phi}), \code{platform_scale_a}
+(\eqn{a=\phi/c}) and \code{cell_count_n} (\eqn{n=c^{2}/\phi}).
 }
 \description{
 Draws

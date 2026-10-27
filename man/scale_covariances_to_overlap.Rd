@@ -13,7 +13,8 @@ scale_covariances_to_overlap(
   s_range = c(0.001, 1000),
   tol = 0.005,
   seed = NULL,
-  verbose = FALSE
+  verbose = FALSE,
+  pairs = NULL
 )
 }
 \arguments{
@@ -35,10 +36,16 @@ scale_covariances_to_overlap(
 \item{seed}{Optional seed for overlap evaluations.}
 
 \item{verbose}{If \code{TRUE}, print the MixSim-to-MC switch.}
+
+\item{pairs}{Optional two-column matrix of cell-type indices. When
+given, the calibrated quantity is the mean overlap
+\eqn{\omega_{j\ell}+\omega_{\ell j}} over these pairs only (for
+example the sibling types of each lineage), instead of the average
+over all pairs.}
 }
 \value{
-A list with \code{sigma}, \code{Theta}, \code{scale}, \code{baromega}, and
-\code{target}.
+A list with \code{sigma}, \code{Theta}, \code{scale}, \code{baromega} (the
+calibrated overlap at the returned scale), and \code{target}.
 }
 \description{
 Binary-searches \eqn{s>0} so that

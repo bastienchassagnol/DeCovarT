@@ -54,9 +54,14 @@ scale_covariance_array <- function(sigma, scale) {
 #' @param tol Absolute overlap tolerance.
 #' @param seed Optional seed for overlap evaluations.
 #' @param verbose If `TRUE`, print the MixSim-to-MC switch.
+#' @param pairs Optional two-column matrix of cell-type indices. When
+#'   given, the calibrated quantity is the mean overlap
+#'   \eqn{\omega_{j\ell}+\omega_{\ell j}} over these pairs only (for
+#'   example the sibling types of each lineage), instead of the average
+#'   over all pairs.
 #'
-#' @return A list with `sigma`, `Theta`, `scale`, `baromega`, and
-#'   `target`.
+#' @return A list with `sigma`, `Theta`, `scale`, `baromega` (the
+#'   calibrated overlap at the returned scale), and `target`.
 #' @keywords internal
 scale_covariances_to_overlap <- function(
   mu,
@@ -67,7 +72,8 @@ scale_covariances_to_overlap <- function(
   s_range = c(1e-3, 1e3),
   tol = 0.005,
   seed = NULL,
-  verbose = FALSE
+  verbose = FALSE,
+  pairs = NULL
 ) {
   target <- as.numeric(target)
   if (
@@ -86,18 +92,33 @@ scale_covariances_to_overlap <- function(
       call. = FALSE
     )
   }
+  if (!is.null(pairs)) {
+    pairs <- matrix(as.integer(pairs), ncol = 2L)
+    if (anyNA(pairs) || any(pairs < 1L | pairs > ncol(mu))) {
+      stop("`pairs` must index columns of `mu`.", call. = FALSE)
+    }
+  }
   overlap_at <- function(s) {
     th <- list(
       p = p,
       mu = mu,
       sigma = scale_covariance_array(sigma, s)
     )
-    compute_average_overlap(
-      th,
-      n_mc = n_mc,
-      seed = seed,
-      verbose = verbose
-    )
+    if (is.null(pairs)) {
+      return(compute_average_overlap(
+        th,
+        n_mc = n_mc,
+        seed = seed,
+        verbose = verbose
+      ))
+    }
+    omega <- if (nrow(mu) >= 4L) {
+      overlap_gaussian_mc(th, n_mc = n_mc, seed = seed)$OmegaMap
+    } else {
+      .check_suggested_package("MixSim", "scale_covariances_to_overlap")
+      MixSim::overlap(Pi = p, Mu = t(mu), S = th$sigma)$OmegaMap
+    }
+    mean(omega[pairs] + omega[pairs[, 2:1, drop = FALSE]])
   }
   ov_lo <- overlap_at(s_range[[1L]])
   ov_hi <- overlap_at(s_range[[2L]])

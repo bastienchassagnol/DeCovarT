@@ -7,23 +7,35 @@
 #'
 #' @description
 #' Turns nonnegative gene-by-cell-type moments into the reference used
-#' by the single-cell mixture. Column \eqn{j} of the supplied mean is
-#' normalised to a composition \eqn{\boldsymbol{\theta}_{\cdot j}}. Two
-#' conventions are available; the default is the raw-covariance,
-#' cell-fraction model of the article.
+#' by the single-cell mixture. Column \eqn{j} of the supplied mean, of
+#' total \eqn{s_{0j}=\mathbf{1}^{\top}\boldsymbol{\mu}_{\cdot j}}, is
+#' normalised to a composition
+#' \eqn{\boldsymbol{\theta}_{\cdot j}=\boldsymbol{\mu}_{\cdot j}/s_{0j}},
+#' and its covariance to the per-transcript covariance
+#' \eqn{\boldsymbol{\Sigma}^{\theta}_{j}=\boldsymbol{\Sigma}_j/s_{0j}^{2}}.
+#' A cell of size \eqn{S_j} is \eqn{S_j} times a unit cell in every gene,
+#' so the generator draws cells from
+#' \eqn{\mathcal{N}(S_j\boldsymbol{\theta}_{\cdot j},
+#' S_j^{2}\boldsymbol{\Sigma}^{\theta}_{j})}: the size enters the mean
+#' linearly and the covariance quadratically, and the overlap between two
+#' types of equal size does not depend on that size. Two conventions are
+#' available for the fit; the default is the raw-covariance, cell-fraction
+#' model of the article.
 #'
 #' * `cellular_raw` (default). Mean
 #'   \eqn{\tilde{\boldsymbol{\mu}}_{\cdot j}=S_j\boldsymbol{\theta}_{\cdot j}}
-#'   with the covariance left as supplied. Keeping \eqn{S_j} in the
-#'   mean makes the fitted composition a cell fraction, not a
-#'   transcript fraction.
+#'   and covariance \eqn{S_j^{2}\boldsymbol{\Sigma}^{\theta}_{j}}, the
+#'   generator itself. Keeping \eqn{S_j} in the mean makes the fitted
+#'   composition a cell fraction, not a transcript fraction.
 #' * `transcript_raw`. Library-normalised mean
-#'   \eqn{\boldsymbol{\theta}_{\cdot j}} and per-transcript covariance
-#'   \eqn{\boldsymbol{\Sigma}_j/S_j}. The fitted composition is the
-#'   transcript fraction \eqn{\boldsymbol{q}}. The physical generator
-#'   is still the cellular model: `generative_mean` and
-#'   `generative_sigma` are the moments [simulate_bulk_from_cells()]
-#'   should draw from.
+#'   \eqn{\boldsymbol{\theta}_{\cdot j}} and covariance
+#'   \eqn{S_j\boldsymbol{\Sigma}^{\theta}_{j}}: dividing the bulk by its
+#'   scale leaves the covariance
+#'   \eqn{\propto\sum_j q_j S_j\boldsymbol{\Sigma}^{\theta}_{j}} in the
+#'   transcript fractions \eqn{\boldsymbol{q}}, which is the fitted
+#'   composition. The physical generator is still the cellular model:
+#'   `generative_mean` and `generative_sigma` are the moments
+#'   [simulate_bulk_from_cells()] should draw from.
 #'
 #' @param moments List with `mean_profiles` (\eqn{G\times J}) and
 #'   `covariance_matrices` (\eqn{G\times G\times J}), as returned by
@@ -119,6 +131,9 @@ rescale_single_cell_moments <- function(
   cellular_mu <- sweep(theta, 2L, cell_size, "*")
   dimnames(cellular_mu) <- dimnames(mu)
   cellular_sigma <- sigma
+  for (j in seq_len(n_types)) {
+    cellular_sigma[,, j] <- sigma[,, j] * (cell_size[[j]] / column_size[[j]])^2
+  }
   dimnames(cellular_sigma) <- list(
     rownames(mu),
     rownames(mu),

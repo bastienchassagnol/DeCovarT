@@ -20,6 +20,10 @@ test_that("describe_simulation_scenario splits mean and covariance information",
   expect_equal(out$theta_true$p, c(0.5, 0.5))
   expect_type(out$call, "language")
   expect_true("mixsim_baromega" %in% names(out$descriptors))
+  expect_gte(
+    out$descriptors$mixsim_maxomega,
+    out$descriptors$mixsim_baromega
+  )
   expect_true("hellinger" %in% names(out$descriptors))
   expect_true("jeffreys" %in% names(out$supplementary))
   expect_true("max_cosine" %in% names(out$descriptors))
@@ -77,6 +81,7 @@ test_that("describe_simulation_scenario can skip MixSim overlap", {
   )
   out <- describe_simulation_scenario(theta, include_mixsim = FALSE)
   expect_true(is.na(out$descriptors$mixsim_baromega))
+  expect_true(is.na(out$descriptors$mixsim_maxomega))
 })
 
 test_that("CLD Euclidean gap matches the bivariate small-centroid pair", {

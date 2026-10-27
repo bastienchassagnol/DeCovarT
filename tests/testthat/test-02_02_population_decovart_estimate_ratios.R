@@ -360,6 +360,8 @@ test_that("Benchmark standard deconvolution algorithms against DeCovarT", {
       "theta_true",
       "descriptors",
       "supplementary",
+      "intervals",
+      "data",
       "call"
     )
   )
@@ -495,4 +497,54 @@ test_that("repair_simplex renormalises and rejects invalid inputs", {
   expect_error(repair_simplex(c(0.5, NA)), "`p`")
   expect_error(repair_simplex(c(-1, 2)), "negative")
   expect_error(repair_simplex(c(0, 0)), "positive")
+})
+
+test_that("L-BFGS-B on the closure reaches a face and is stationary there", {
+  genes <- paste0("g", 1:4)
+  cts <- paste0("ct", 1:3)
+  mu <- matrix(
+    c(10, 2, 2, 2, 2, 10, 2, 2, 2, 2, 10, 2),
+    nrow = 4,
+    dimnames = list(genes, cts)
+  )
+  sigma <- array(
+    rep(diag(4), 3),
+    dim = c(4, 4, 3),
+    dimnames = list(genes, genes, cts)
+  )
+  # A bulk outside the cone of the means pulls the third ratio to zero.
+  y <- drop(mu %*% c(0.6, 0.4, 0)) - c(0, 0, 3, 0)
+  fit <- deconvolute_ratios_L_BFGS_B(
+    y,
+    mu,
+    sigma,
+    epsilon = 1e-10,
+    return_model = TRUE
+  )
+  expect_equal(sum(fit$coefficients), 1)
+  expect_identical(unname(fit$coefficients[["ct3"]]), 0)
+  expect_null(fit$z)
+  score <- gradient_loglik_unconstrained(fit$coefficients, y, mu, sigma)
+  expect_lt(DeCovarT:::.kkt_residual(fit$coefficients, score), 1e-3)
+  face <- restricted_mle_decovart(y, mu, sigma, fixed = c(ct3 = 0))
+  expect_equal(fit$loglik, face$loglik, tolerance = 1e-6)
+})
+
+test_that("L-BFGS-B and Newton-Raphson agree at an interior maximum", {
+  genes <- paste0("g", 1:4)
+  cts <- paste0("ct", 1:2)
+  mu <- matrix(
+    c(20, 22, 15, 30, 22, 20, 25, 10),
+    nrow = 4,
+    dimnames = list(genes, cts)
+  )
+  sigma <- array(
+    c(diag(4), 2 * diag(4)),
+    dim = c(4, 4, 2),
+    dimnames = list(genes, genes, cts)
+  )
+  y <- drop(mu %*% c(0.3, 0.7)) + c(0.5, -0.5, 0.2, 0.1)
+  lbfgsb <- deconvolute_ratios_L_BFGS_B(y, mu, sigma, epsilon = 1e-12)
+  newton <- deconvolute_ratios_Newton_Raphson(y, mu, sigma)
+  expect_equal(lbfgsb, newton, tolerance = 1e-5)
 })

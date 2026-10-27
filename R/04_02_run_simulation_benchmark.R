@@ -7,9 +7,12 @@
 #' @param cores Workers for the per-sample loop inside [deconvolute_ratios()].
 #' @param scenario_meta Tibble row of scenario metadata (excluding `true_theta`
 #'   and per-row `n`).
+#' @param model,reference,reference_seed,return_data See
+#'   [run_simulation_benchmark()].
 #'
-#' @return List with `regression`, `monte_carlo`, `optimisation`, and
-#'   `config` tibbles.
+#' @return List with `regression`, `monte_carlo`, `optimisation`,
+#'   `intervals` and `config` tibbles, and `data` when `return_data` is
+#'   `TRUE`.
 #' @keywords internal
 #' @noRd
 .run_one_simulation_scenario <- function(
@@ -22,7 +25,11 @@
   scenario_meta = NULL,
   coverage_interval = "wilson",
   verbose = FALSE,
-  progress_every = 10L
+  progress_every = 10L,
+  model = "population",
+  reference = NULL,
+  reference_seed = NULL,
+  return_data = FALSE
 ) {
   mu <- true_theta$mu
   Sigma <- true_theta$sigma
@@ -30,24 +37,57 @@
     .ui_abort("{.arg true_theta} must contain {.field sigma} for simulation.")
   }
   p <- true_theta$p
+  generative_mean <- if (is.null(true_theta$generative_mean)) {
+    mu
+  } else {
+    true_theta$generative_mean
+  }
+  generative_sigma <- if (is.null(true_theta$generative_sigma)) {
+    Sigma
+  } else {
+    true_theta$generative_sigma
+  }
 
   described <- describe_simulation_scenario(
     true_theta = true_theta,
     adjacency = true_theta$adjacency
   )
 
-  simulated_data <- simulate_bulk_mixture(
-    signature_matrix = mu,
-    Sigma = Sigma,
-    p = p,
-    n = n_samples,
-    truncate_negative = FALSE
-  )
+  nuisance_true <- NULL
+  if (identical(model, "single_cell")) {
+    simulated_data <- simulate_bulk_from_cells(
+      generative_mean,
+      generative_sigma,
+      p = p,
+      n_cells = true_theta$n_cells,
+      platform_scale = if (is.null(true_theta$platform_scale)) {
+        1
+      } else {
+        true_theta$platform_scale
+      },
+      n_samples = n_samples
+    )
+    # The target of a single-cell bulk is its realised composition.
+    true_ratios <- simulated_data$p_realised
+    nuisance_true <- rbind(
+      mean_scale = simulated_data$mean_scale,
+      variance_scale = simulated_data$variance_scale
+    )
+  } else {
+    simulated_data <- simulate_bulk_mixture(
+      signature_matrix = mu,
+      Sigma = Sigma,
+      p = p,
+      n = n_samples,
+      truncate_negative = FALSE
+    )
+    true_ratios <- p
+  }
 
   estimated_ratios <- suppressWarnings(deconvolute_ratios(
     signature_matrix = mu,
     bulk_expression = simulated_data$Y,
-    true_ratios = p,
+    true_ratios = true_ratios,
     Sigma = Sigma,
     deconvolution_functions = deconvolution_functions,
     standardise = standardise,
@@ -55,7 +95,9 @@
     cores = cores,
     verbose = verbose,
     progress_every = progress_every,
-    coverage_interval = coverage_interval
+    coverage_interval = coverage_interval,
+    model = model,
+    nuisance_true = nuisance_true
   ))
 
   .attach_scenario_meta <- function(tbl) {
@@ -97,10 +139,27 @@
     ),
     monte_carlo = .attach_scenario_meta(estimated_ratios$monte_carlo),
     optimisation = .attach_scenario_meta(estimated_ratios$optimisation),
+    intervals = .attach_scenario_meta(estimated_ratios$intervals),
     config = config,
     theta_true = described$theta_true,
     descriptors = .attach_scenario_meta(described$descriptors),
-    supplementary = .attach_scenario_meta(described$supplementary)
+    supplementary = .attach_scenario_meta(described$supplementary),
+    data = if (isTRUE(return_data)) {
+      list(
+        bulk = simulated_data$Y,
+        truth = .as_p_matrix(true_ratios, colnames(mu), n_samples),
+        nuisance = nuisance_true,
+        reference = if (!is.null(reference)) {
+          simulate_reference_replicates(
+            generative_mean,
+            generative_sigma,
+            n_individuals = reference$n_individuals,
+            n_cells = if (is.null(reference$n_cells)) 1L else reference$n_cells,
+            seed = reference_seed
+          )
+        }
+      )
+    }
   )
 }
 
@@ -137,6 +196,21 @@
 #'   readable.
 #' @param progress_every Sample-progress interval passed to
 #'   [deconvolute_ratios()] when `verbose` is `TRUE`. Defaults to `10L`.
+#' @param model `"population"` (default) draws every bulk from the
+#'   convolution [simulate_bulk_mixture()]; `"single_cell"` draws it as a
+#'   sum of cells with [simulate_bulk_from_cells()], using `n_cells` and
+#'   `platform_scale` from `true_theta` (and `generative_mean` /
+#'   `generative_sigma` when the fitted reference differs from the
+#'   generator), and scores every estimate against its realised
+#'   composition.
+#' @param return_data If `TRUE`, keep each scenario's bulk matrix,
+#'   targets and true scales in `data`, so methods run outside this
+#'   function can be scored on the same samples.
+#' @param reference Optional list with `n_individuals`, `n_cells` (default
+#'   `1`) and `seed`: with `return_data = TRUE`, an independent reference
+#'   panel is drawn per scenario by [simulate_reference_replicates()], with
+#'   seed `reference$seed` plus the scenario index, for methods that
+#'   estimate the reference moments themselves.
 #'
 #' @return A list with:
 #' * `regression`: `global` (per-sample composition scores) and
@@ -151,9 +225,13 @@
 #' * `descriptors`: kept scenario statistics (composition, mean, SPD,
 #'   network, tangent Fisher, MixSim BarOmega, pairwise Hellinger);
 #' * `supplementary`: Jeffreys overlap, recorded separately;
+#' * `intervals`: coverage and width of the interval methods requested in
+#'   `deconvolution_functions`;
+#' * `data`: per-scenario simulated data when `return_data = TRUE`, else
+#'   `NULL`;
 #' * `call`: the matched call ([match.call()]).
 #' Analysis scripts persist those pieces with `write_simulation_artefacts()`
-#' (`scripts/auxiliary/benchmark_artefacts.R`) rather than saving the whole
+#' (`scripts/benchmark_metrics/benchmark_artefacts.R`) rather than saving the whole
 #' list.
 #'
 #' @examplesIf .Platform$OS.type != "windows"
@@ -197,8 +275,12 @@ run_simulation_benchmark <- function(
   cores = 1L,
   coverage_interval = "wilson",
   verbose = FALSE,
-  progress_every = 10L
+  progress_every = 10L,
+  model = c("population", "single_cell"),
+  return_data = FALSE,
+  reference = NULL
 ) {
+  model <- match.arg(model)
   call <- match.call()
   if (!is.data.frame(scenario_config)) {
     if (!is.list(scenario_config)) {
@@ -266,7 +348,15 @@ run_simulation_benchmark <- function(
       scenario_meta = scenario_meta,
       coverage_interval = coverage_interval,
       verbose = sample_verbose,
-      progress_every = progress_every
+      progress_every = progress_every,
+      model = model,
+      reference = reference,
+      reference_seed = if (is.null(reference$seed)) {
+        NULL
+      } else {
+        reference$seed + i
+      },
+      return_data = return_data
     )
   }
 
@@ -298,6 +388,8 @@ run_simulation_benchmark <- function(
     supplementary = dplyr::bind_rows(
       purrr::map(scenario_results, "supplementary")
     ),
+    intervals = dplyr::bind_rows(purrr::map(scenario_results, "intervals")),
+    data = if (isTRUE(return_data)) purrr::map(scenario_results, "data"),
     call = call
   )
 }

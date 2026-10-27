@@ -101,9 +101,23 @@ navbar:
           icon: fa-filter
           href: articles/supp-S6-feature-selection.html
         - text: -------
-        - text: Mathematical and programmatic introduction to DeCovarT
+        - text: "Theory: population-level references"
+        - text: "Generative model, derivatives and optimisation"
           icon: fa-square-root-variable
-          href: articles/theory-decovart-generative-model.html
+          href: articles/theory-population-generative-optimisation.html
+        - text: "MLE properties and confidence intervals"
+          icon: fa-chart-area
+          href: articles/theory-population-inference.html
+        - text: -------
+        - text: "Theory: single-cell references"
+        - text: "Reference moments, alignment strategies and the profile fit"
+          icon: fa-align-left
+          href: articles/theory-single-cell-generative-optimisation.html
+        - text: "Profile information, intervals and the REML calibration"
+          icon: fa-chart-line
+          href: articles/theory-single-cell-inference.html
+        - text: -------
+        - text: Synthetic scenarios
         - text: How to build synthetic scenarios (means, covariance, ADEMP)
           icon: fa-flask
           href: articles/theory-synthetic-scenarios-mean-covariance.html
@@ -118,17 +132,14 @@ navbar:
         - text: "§ 2.2 · Covariance-driven hybrid (J = 3, G = 20)"
           icon: fa-network-wired
           href: articles/fig03-covariance-driven.html
+        - text: "§ 2.4 · Single-cell, two lineages (J = 4, G = 20 or 200)"
+          icon: fa-sitemap
+          href: articles/fig05-single-cell-hierarchical.html
         - text: -------
         - text: DeCovarT mathematical appendix
-        - text: "Inference: MLE properties, intervals and a GLM formulation"
-          icon: fa-chart-area
-          href: articles/theory-DeCovarT-MLE-properties.html
         - text: "Review: deconvolution with reference distributions"
           icon: fa-book
           href: articles/theory-review-distribution-aware-deconvolution.html
-        - text: "DeCovarT tailored to single-cell references"
-          icon: fa-align-left
-          href: articles/theory-decovart-single-cell-tailored.html
         - text: "Bayesian DeCovarT: latent profiles and the Wiener filter"
           icon: fa-wave-square
           href: articles/theory-decovart-bayesian-wiener.html
@@ -278,6 +289,13 @@ reference:
       - simulate_bulk_from_cells
       - rescale_single_cell_moments
       - single_cell_scenario_design
+  - subtitle: Reference panels
+    desc: |
+      Independent purified profiles or cells per individual, for benchmark
+      methods that estimate the reference moments themselves
+      (`R/01_06_reference_replicates.R`).
+    contents:
+      - simulate_reference_replicates
   - title: Benchmark
   - subtitle: Run
     desc: |
@@ -337,16 +355,35 @@ articles:
       on the mean-collinear types $\times$ three target MixSim
       average overlaps (precision zeros kept), Shannon $H^{\star}$
       compositions.
+      **§ 2.4** Single-cell reference, two lineages (J = 4): sibling
+      cosine 0.8, lineage stochastic block models with scale-free or hub
+      children, $2^5$ crossed factors (composition, sibling overlap,
+      cells per bulk, cell sizes, genes) at platform scale 5, plus one
+      scenario at scale 1.
     navbar: ~
     contents:
       - fig02-bivariate-toy
       - fig03-covariance-driven
-  - title: Mathematics
+      - fig05-single-cell-hierarchical
+  - title: "Theory: population-level references"
+    desc: |
+      Gaussian convolution of population profiles: the generative model,
+      its derivatives and the two solvers, then the MLE properties and
+      the confidence intervals.
     contents:
-      - theory-decovart-generative-model
-      - theory-DeCovarT-MLE-properties
+      - theory-population-generative-optimisation
+      - theory-population-inference
+  - title: "Theory: single-cell references"
+    desc: |
+      Mixture of independent cells with two technical scales: reference
+      moments, alignment strategies and the profile fit, then the profile
+      information, the intervals and the REML calibration.
+    contents:
+      - theory-single-cell-generative-optimisation
+      - theory-single-cell-inference
+  - title: "Mathematics: review and perspectives"
+    contents:
       - theory-review-distribution-aware-deconvolution
-      - theory-decovart-single-cell-tailored
       - theory-decovart-bayesian-wiener
       - theory-decovart-extensions-roadmap
       - theory-mixture-regression-applications
@@ -376,4 +413,7 @@ redirects:
   - ["articles/how-to-build-synthetic-scenarios-mean-covariance.html", "articles/theory-synthetic-scenarios-mean-covariance.html"]
   - ["articles/theory-related-models-beyond-OLS.html", "articles/theory-decovart-extensions-roadmap.html"]
   - ["articles/theory-decovart-statistical-perspectives.html", "articles/theory-decovart-extensions-roadmap.html"]
-  - ["articles/theory-decovart-single-cell-bulk-alignment.html", "articles/theory-decovart-single-cell-tailored.html"]
+  - ["articles/theory-decovart-single-cell-bulk-alignment.html", "articles/theory-single-cell-generative-optimisation.html"]
+  - ["articles/theory-decovart-single-cell-tailored.html", "articles/theory-single-cell-generative-optimisation.html"]
+  - ["articles/theory-decovart-generative-model.html", "articles/theory-population-generative-optimisation.html"]
+  - ["articles/theory-DeCovarT-MLE-properties.html", "articles/theory-population-inference.html"]

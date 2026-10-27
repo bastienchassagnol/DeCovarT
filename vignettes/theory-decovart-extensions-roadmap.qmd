@@ -32,16 +32,16 @@ $\boldsymbol{y}_{\cdot i}\mid\boldsymbol{p}_{\cdot i}\sim
 \mathcal{N}_G(\boldsymbol{\mu}\boldsymbol{p}_{\cdot i},
 \boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i}))$ with
 $\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_jp_j^{2}\boldsymbol{\Sigma}_j$
-([derivatives vignette](theory-decovart-generative-model.html#sec-unconstrained)).
+([population generative vignette](theory-population-generative-optimisation.html#sec-unconstrained)).
 The same catalogue is tracked in
 [GitHub issue 5](https://github.com/bastienchassagnol/DeCovarT/issues/5).
 The single-cell-specific model (scales, within- and between-replicate
 covariance) is in the
-[tailored vignette](theory-decovart-single-cell-tailored.html); the
+[single-cell generative vignette](theory-single-cell-generative-optimisation.html); the
 Bayesian purification of sample-level profiles is in the
 [Bayesian Wiener-filter vignette](theory-decovart-bayesian-wiener.html);
 inference is in the
-[MLE and inference vignette](theory-DeCovarT-MLE-properties.html).
+[population inference vignette](theory-population-inference.html).
 :::
 
 | Extension | What changes in DeCovarT | Section |
@@ -259,7 +259,7 @@ construction.
 
 A natural DeCovarT extension would combine [the Gaussian convolution](theory-mixture-regression-applications.html#eq-gaussian-convolution) with
 either @eq-hard-child-split or @eq-soft-penalty, node-local marker panels,
-and [ALR optimisation](theory-decovart-generative-model.html#sec-alr)
+and [ALR optimisation](theory-population-generative-optimisation.html#sec-alr)
 when a curated lineage tree is
 supplied—benchmarked at broad, intermediate, and terminal resolutions against
 `HiDecon`, `HIDE`, tree-guided `MuSiC`, and `Rectangle`. Spatial
@@ -303,7 +303,7 @@ $$
 $$ {#eq-covariate-composition}
 
 with $\psi$ the
-[additive logistic map](theory-decovart-generative-model.html#eq-alr-maps).
+[additive logistic map](theory-population-generative-optimisation.html#eq-alr-maps).
 This is the
 setting in which a future `predict()` method on new $\boldsymbol{z}$ would be
 meaningful.
@@ -311,7 +311,7 @@ meaningful.
 A known sequencing exposure $s_{i}$ is a **multiplicative** scale,
 $\boldsymbol{y}_{\cdot i}\sim\mathcal{N}_G(s_{i}\boldsymbol{\mu}\boldsymbol{p}_{\cdot i},s_{i}^{2}\Sigma(\boldsymbol{p}_{\cdot i}))$,
 not an additive `lm` offset. Cell-type transcriptome size $r_{j}$ is a
-different parameter ([RNA versus cell fractions](theory-decovart-single-cell-tailored.html#sec-uncoupling)). A gene-wise affine
+different parameter ([RNA versus cell fractions](theory-single-cell-generative-optimisation.html#sec-uncoupling)). A gene-wise affine
 standardisation applied identically to $\boldsymbol{y}$, $\boldsymbol{\mu}$ and every
 $\boldsymbol{\Sigma}_{j}$ leaves $\hat{\boldsymbol{p}}$ unchanged in exact
 arithmetic; column-wise `scale()` on $\boldsymbol{\mu}$ does not.

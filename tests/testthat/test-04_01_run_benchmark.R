@@ -18,7 +18,10 @@ test_that("compute_benchmark_metrics scores against true ratios", {
     true_ratios = true_p
   )
 
-  expect_named(scores, c("regression", "monte_carlo", "optimisation"))
+  expect_named(
+    scores,
+    c("regression", "monte_carlo", "optimisation", "intervals")
+  )
   expect_named(scores$regression, c("global", "cell_type"))
   expect_equal(scores$regression$global$tv, 0.05)
   expect_equal(scores$regression$global$rmse, 0.05)
@@ -45,7 +48,10 @@ test_that("compute_benchmark_metrics scores reconstituted bulk without truth", {
     true_ratios = NULL
   )
 
-  expect_named(scores, c("regression", "monte_carlo", "optimisation"))
+  expect_named(
+    scores,
+    c("regression", "monte_carlo", "optimisation", "intervals")
+  )
   expect_true(is.na(scores$regression$global$tv))
   expect_true(is.finite(scores$regression$global$rmse))
   expect_identical(nrow(scores$regression$cell_type), 0L)
@@ -142,7 +148,10 @@ test_that("deconvolute_ratios returns a three-block metric list for nnls", {
     cores = 1
   )
 
-  expect_named(out, c("regression", "monte_carlo", "optimisation"))
+  expect_named(
+    out,
+    c("regression", "monte_carlo", "optimisation", "intervals")
+  )
   expect_identical(nrow(out$optimisation), 2L)
   expect_true(all(c("ct1", "ct2") %in% names(out$optimisation)))
   expect_true("elapsed_sec" %in% names(out$optimisation))
@@ -217,7 +226,10 @@ test_that("deconvolute_ratios uses the bundled toy fixture (G5.1)", {
     ),
     cores = 1
   )
-  expect_named(out, c("regression", "monte_carlo", "optimisation"))
+  expect_named(
+    out,
+    c("regression", "monte_carlo", "optimisation", "intervals")
+  )
   expect_identical(nrow(out$optimisation), ncol(toy$bulk_expression))
 })
 

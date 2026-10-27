@@ -1,9 +1,9 @@
 ---
-title: "DeCovarT inference: MLE properties, intervals for proportions and a GLM formulation"
+title: "Population-level DeCovarT inference: MLE properties, confidence intervals and a GLM formulation"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
 vignette: >
-  %\VignetteIndexEntry{DeCovarT inference: MLE properties, intervals and a GLM formulation}
+  %\VignetteIndexEntry{Population-level DeCovarT inference: MLE properties and confidence intervals}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 knitr:
@@ -54,13 +54,20 @@ $$
 \boldsymbol{\Sigma}(\boldsymbol{p})=\sum_{j=1}^{J}p_j^{2}\boldsymbol{\Sigma}_j .
 $$ {#eq-loglik}
 
-The derivatives of @eq-loglik are collected in the
-[derivatives vignette](theory-decovart-generative-model.html). This
-vignette asks three questions.
+The model, its ILR parametrisation and the derivatives of @eq-loglik
+are in the
+[population generative and optimisation vignette](theory-population-generative-optimisation.html).
+The single-cell counterpart of this vignette, with the two technical
+scales profiled out, is the
+[single-cell inference vignette](theory-single-cell-inference.html).
+This vignette asks three questions.
 
-1. **What is the estimator entitled to claim?** @sec-naive-model fixes
-   the parametrisation; @sec-mle-properties gives identifiability,
-   existence, the failure of concavity and the finite-sample bias.
+1. **What is the estimator entitled to claim?** The
+   [generative vignette](theory-population-generative-optimisation.html#sec-naive-model)
+   fixes the parametrisation; @sec-mle-properties gives identifiability,
+   existence, the failure of concavity and the finite-sample bias, and
+   @sec-fisher-wald the expected Fisher information that every Wald
+   interval uses.
 2. **How should uncertainty on the proportions be reported?**
    @sec-intervals states the regularity conditions of the large-sample
    approximation, reads the local geometry of the log-likelihood,
@@ -84,44 +91,6 @@ implemented in [`lrt_decovart()`](../reference/lrt_decovart.html),
 [`confint_profile_decovart()`](../reference/confint_profile_decovart.html),
 [`bootstrap_decovart()`](../reference/bootstrap_decovart.html) and
 [`reference_bootstrap_decovart()`](../reference/reference_bootstrap_decovart.html).
-
-# The naive model and its parametrisation {#sec-naive-model}
-
-The released model treats the reference moments
-$\boldsymbol{\zeta}=(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_j\})$ as known and
-ignores every technical scale of single-cell data (the
-[tailored vignette](theory-decovart-single-cell-tailored.html) adds them).
-The simplex is handled by a chart, not by constraints:
-
-$$
-\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho}),
-\qquad
-\boldsymbol{\rho}=\mathbf{V}^{\top}\log\boldsymbol{p}\in\mathbb{R}^{J-1},
-$$ {#eq-ilr-chart}
-
-with $\mathbf{V}$ a Helmert basis
-([derivatives vignette](theory-decovart-generative-model.html#sec-ilr)).
-Two readings of @eq-ilr-chart are useful later.
-
-- **An inverse link on the composition.** $\boldsymbol{\psi}$ maps a free
-  linear predictor to the simplex, as the inverse multinomial-logit link
-  does in a GLM for categorical responses. Here it acts on a parameter,
-  not on the response: the bulk mean $\boldsymbol{\mu}\boldsymbol{p}$ stays
-  linear in $\boldsymbol{p}$.
-- **The exponential version of `MEAD`'s device.** `MEAD` estimates
-  unconstrained weights $\boldsymbol{\beta}_i=\gamma_i\boldsymbol{p}_i$, then
-  sets $\hat{\boldsymbol{p}}_i=\hat{\boldsymbol{\beta}}_i^{\star}/\lVert\hat{\boldsymbol{\beta}}_i^{\star}\rVert_1$,
-  with either truncation $\hat{\boldsymbol{\beta}}_i\vee 0$ or, near zero, the
-  softplus $h_a(\beta)=a^{-1}\log(1+e^{a\beta})$
-  [@xieStatisticalInferenceCell2026]. The softplus makes the delta
-  method usable at the boundary, but for any finite $a$ the estimator is
-  not consistent; the authors take $a=10$ and report slightly lower
-  coverage. Writing the weights as $\beta_j=e^{z_j}$ instead and
-  normalising gives the softmax: positivity is exact, no tuning constant
-  is needed, and @eq-ilr-chart is a reparametrisation, so the MLE in
-  $\boldsymbol{\rho}$ is the MLE in $\boldsymbol{p}$. The price is the same as
-  for the softplus near zero: a proportion that is truly zero sits at
-  $\lVert\boldsymbol{\rho}\rVert=\infty$ (@sec-boundary).
 
 # Theoretical properties of the DeCovarT MLE {#sec-mle-properties}
 
@@ -479,9 +448,8 @@ quantify that geometry for $N=1$ (see
 [the bivariate toy](fig02-bivariate-toy.html#sec-bivariate-findings) and
 [the covariance-driven scenario](fig03-covariance-driven.html#sec-hybrid-findings)).
 A Jeffreys / Firth adjustment of $\ell$
-[@firthBiasReductionMaximum1993] is an outlook for shrinking the
-$O(N^{-1})$ term when replicates are scarce
-([perspectives](theory-DeCovarT-MLE-properties.html#sec-firth)).
+[@firthBiasReductionMaximum1993] shrinks the $O(N^{-1})$ term when
+replicates are scarce (@sec-firth).
 
 ## Equivariance: affine yes, logarithmic no {#sec-equivariance}
 
@@ -518,13 +486,140 @@ of $\log$ preserves gene-wise rankings, but not the convolution MLE. The
 numerical demonstration lives in the
 [appendix simulations](supp-S1-identifiability.html#sec-affine).
 
+# Expected Fisher information and Wald inference {#sec-fisher-wald}
+
+Point estimation alone does not report uncertainty. Under a regular
+large-sample regime the MLE is asymptotically normal with covariance
+given by the inverse Fisher information. DeCovarT builds Wald standard
+errors from the *expected* Fisher information of the multivariate-normal
+convolution, then maps that information through the ILR chart.
+
+## Unconstrained expected Fisher information {#sec-fisher-p}
+
+For
+$\boldsymbol{y}\sim\mathcal{N}_{G}\bigl(\boldsymbol{\mu}\boldsymbol{p},
+\boldsymbol{\Sigma}(\boldsymbol{p})\bigr)$ the expected Fisher information
+has entries
+
+$$
+I(\boldsymbol{p})_{j\ell}
+=
+\boldsymbol{\mu}_{\cdot j}^{\top}
+\boldsymbol{\Omega}(\boldsymbol{p})
+\boldsymbol{\mu}_{\cdot \ell}
++
+2p_{j}p_{\ell}\,
+\mathrm{tr}\bigl(
+  \boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_{j}
+  \boldsymbol{\Omega}(\boldsymbol{p})\boldsymbol{\Sigma}_{\ell}
+\bigr).
+$$ {#eq-fisher-p}
+
+The first summand is the mean contribution (a $\boldsymbol{\Omega}$-inner
+product of signature columns); the second is the covariance contribution
+of the quadratic map
+$\boldsymbol{p}\mapsto\boldsymbol{\Sigma}(\boldsymbol{p})$. See the
+multivariate-normal formula on
+[Wikipedia: Fisher information](https://en.wikipedia.org/wiki/Fisher_information#Multivariate_normal_distribution).
+[`expected_fisher_unconstrained()`](../reference/expected_fisher_unconstrained.html)
+implements @eq-fisher-p.
+
+::: {#nte-obs-vs-exp .callout-note}
+## Observed versus expected information
+
+The analytic Hessian of the
+[unconstrained score and Hessian](theory-population-generative-optimisation.html#sec-unconstrained) is the *observed* information
+(up to sign). Wald intervals in `decovart_fit` use the *expected*
+information @eq-fisher-p, which does not depend on the residual
+$\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}$ and is positive definite under
+the usual full-rank assumptions on $(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})$.
+
+The two are consistent by construction. Substituting
+$\mathbb{E}[\boldsymbol{r}]=\boldsymbol{0}$ and
+$\mathbb{E}[\boldsymbol{r}\boldsymbol{r}^{\top}]
+=\boldsymbol{\Sigma}(\boldsymbol{p})$ into the
+[diagonal](theory-population-generative-optimisation.html#eq-hess-diag) and
+[off-diagonal](theory-population-generative-optimisation.html#eq-hess-off)
+Hessian entries cancels the determinant traces against the residual
+traces and returns @eq-fisher-p exactly, i.e.
+$\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})$. That identity only holds with
+the factor $\tfrac{1}{2}$ on the
+[determinant term](theory-population-generative-optimisation.html#nte-halfdet) in place.
+:::
+
+## Constrained case: ILR delta method {#sec-fisher-rho}
+
+Fisher information transforms as a covariant quadratic form under the
+ILR chart. With the
+[ILR Jacobian](theory-population-generative-optimisation.html#sec-ilr-deriv)
+$\mathbf{J}_{\boldsymbol{\psi}}=\mathbf{S}(\boldsymbol{p})\mathbf{V}$,
+
+$$
+I_{\boldsymbol{\rho}}
+=
+\mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}
+I(\boldsymbol{p})
+\mathbf{J}_{\boldsymbol{\psi}}
+=
+\mathbf{V}^{\mathsf{T}}
+\mathbf{S}(\boldsymbol{p})
+I(\boldsymbol{p})
+\mathbf{S}(\boldsymbol{p})
+\mathbf{V}.
+$$ {#eq-fisher-rho}
+
+The mean/covariance split of @eq-fisher-p pulls back separately,
+$I_{\boldsymbol{\rho}}=I_{\boldsymbol{\rho},\mathrm{mean}}
++I_{\boldsymbol{\rho},\mathrm{cov}}$. Under regularity,
+$\hat{\boldsymbol{\rho}}
+\overset{a}{\sim}
+\mathcal{N}(\boldsymbol{\rho}_{0},I_{\boldsymbol{\rho}}^{-1})$
+[@vaartAsymptoticStatistics2000].
+The first-order delta method [@oehlertNoteDeltaMethod1992] then returns
+the simplex covariance used by
+[`vcov.decovart_fit()`](../reference/fit_decovart.html),
+
+$$
+\mathrm{Var}(\hat{\boldsymbol{p}})
+\approx
+\mathbf{J}_{\boldsymbol{\psi}}
+I_{\boldsymbol{\rho}}^{-1}
+\mathbf{J}_{\boldsymbol{\psi}}^{\mathsf{T}}.
+$$ {#eq-delta-p}
+
+Diagonal square roots are asymptotic standard errors; Wald intervals at
+level $1-\alpha$ are
+$\hat{p}_{j}\pm z_{1-\alpha/2}\,\mathrm{SE}_{j}$ with
+$z_{q}=\Phi^{-1}(q)$, as in
+[`confint.decovart_fit()`](../reference/fit_decovart.html).
+[`vcov_ilr_delta()`](../reference/vcov_ilr_delta.html) implements
+@eq-fisher-rho--@eq-delta-p. Orthogonal rotations of $\mathbf{V}$ leave
+@eq-delta-p unchanged. The construction is undefined on the simplex
+boundary (the log-ratio chart blows up); the helper then returns `NA`
+with a warning.
+
+::: {#nte-wald-limits .callout-warning}
+## Wald is the cheapest, not the safest, interval
+
+@eq-delta-p linearises the ILR chart at $\hat{\boldsymbol{p}}$, so it is
+neither invariant to a non-orthogonal reparametrisation nor confined to
+$[0,1]$, and it degenerates entirely when a proportion reaches a simplex
+face. @sec-intervals and @sec-inference derive the alternatives: profile likelihood-ratio intervals, the
+chi-bar-square calibration of Chernoff and of Self and Liang for nulls on
+the boundary, a parametric bootstrap, and a reference-sample bootstrap
+of donors or cells (or a Dirichlet composition sweep). It also shows why
+these limits need replicate samples that share one composition.
+Shuffling genes or cell-type names of an averaged signature is not a
+bootstrap: the maximised likelihood is equivariant under relabelling.
+:::
+
 # Confidence intervals for the proportions {#sec-intervals}
 
 The solver returns $\hat{\boldsymbol{\rho}}$ and an information matrix in
 $\boldsymbol{\rho}$-coordinates,
 $I_{\boldsymbol{\rho}}=\mathbf{J}_{\boldsymbol{\psi}}^{\top}I(\boldsymbol{p})\mathbf{J}_{\boldsymbol{\psi}}$
 with $\mathbf{J}_{\boldsymbol{\psi}}=\mathbf{S}(\boldsymbol{p})\mathbf{V}$
-([derivatives vignette](theory-decovart-generative-model.html#sec-fisher-rho)).
+(@sec-fisher-rho).
 This section follows the generalised-linear-model treatment of
 likelihood inference [@agrestiFoundationsLinearGeneralized2015,
 Sects. 4.2--4.3]: state when the large-sample approximation holds
@@ -840,7 +935,7 @@ considered and are not kept.
   a linear transform of the ILR chart, so it gives the same estimate, the
   same likelihood ratio, the same delta-method covariance of
   $\hat{\boldsymbol{p}}$ and the same back-transformed regions
-  ([chart invariance](theory-decovart-generative-model.html#sec-chart-choice)).
+  ([chart invariance](theory-population-generative-optimisation.html#sec-chart-choice)).
   The ILR chart is kept for its numerical invariance: gradient norms,
   damping and conditioning do not depend on a reference type.
 - *A component-wise logit interval*, the delta method applied to
@@ -987,7 +1082,7 @@ $$ {#eq-profile-schur}
 
 so profile and joint Wald intervals for $\boldsymbol{\rho}$ agree, and
 estimating the scales widens them by the loss of
-[the Schur-complement information](theory-decovart-single-cell-tailored.html#eq-schur-information).
+[the Schur-complement information](theory-single-cell-generative-optimisation.html#eq-schur-information).
 
 **Orthogonality.** @coxParameterOrthogonalityApproximate1987 call
 $\boldsymbol{\rho}$ and $\boldsymbol{\eta}$ orthogonal when the cross block of the
@@ -1006,7 +1101,7 @@ $I_{p_jc}=c\,\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top}\boldsymbol{W}\tilde{\bold
 and $I_{p_j\phi}=\operatorname{tr}(\boldsymbol{W}\boldsymbol{\Sigma}_{W,j})/(2\phi)\neq0$,
 with $\boldsymbol{W}=\boldsymbol{S}_W(\boldsymbol{p})^{-1}$. The block structure is
 derived for every alignment strategy in the
-[single-cell vignette](theory-decovart-single-cell-tailored.html#sec-compound).
+[single-cell vignette](theory-single-cell-generative-optimisation.html#sec-compound).
 A scalar interest parameter can always be made orthogonal to the
 nuisance by solving a system of partial differential equations, whereas
 a vector one in general cannot (their Sect. 2.3), so orthogonalising
@@ -1021,7 +1116,7 @@ $$ {#eq-cox-reid}
 
 corrects the profile for the estimation of $\boldsymbol{\eta}$, as restricted
 maximum likelihood does for a variance. The
-[plug-in strategy](theory-decovart-single-cell-tailored.html#sec-strategy-plugin)
+[plug-in strategy](theory-single-cell-generative-optimisation.html#sec-strategy-plugin)
 is the opposite choice: fix the scales from external data and accept the
 variance correction that propagating their uncertainty requires.
 
@@ -1069,7 +1164,7 @@ likelihood is flat there. Firth's adjustment addresses both. It
 maximises
 
 $\ell_{\mathrm{F}}(\boldsymbol{\vartheta})=\ell(\boldsymbol{\vartheta})+\tfrac12\log\det I(\boldsymbol{\vartheta})$
-[@firthBiasReductionMaximum1993]. With [the general Fisher information](theory-decovart-single-cell-tailored.html#eq-fisher-general) the
+[@firthBiasReductionMaximum1993]. With [the general Fisher information](theory-single-cell-generative-optimisation.html#eq-fisher-general) the
 adjusted score is
 
 $$
@@ -1078,7 +1173,7 @@ $$
 +\tfrac12\,\mathrm{tr}\Bigl(I(\boldsymbol{\vartheta})^{-1}\frac{\partial I(\boldsymbol{\vartheta})}{\partial\vartheta_q}\Bigr).
 $$ {#eq-persp-firth-score}
 
-For the cell-count model of [independent cells, linear covariance](theory-decovart-single-cell-tailored.html#sec-cc-linear) the information depends on
+For the cell-count model of [independent cells, linear covariance](theory-single-cell-generative-optimisation.html#sec-cc-linear) the information depends on
 $\boldsymbol{m}$ only through $\boldsymbol{\Omega}$, and
 $\partial\boldsymbol{\Omega}/\partial m_q=-\boldsymbol{\Omega}\boldsymbol{\Sigma}_{W,q}\boldsymbol{\Omega}$,
 so
@@ -1146,6 +1241,15 @@ $\boldsymbol{\rho}$, and Wald-type intervals around it are always defined
 The penalty is the log of the Jeffreys prior, so the penalised estimate
 is also a posterior mode
 ([Bayesian vignette](theory-decovart-bayesian-wiener.html#sec-bw-priors)).
+
+Both models implement the penalty.
+[`fit_firth_decovart()`](../reference/fit_firth_decovart.html) adds
+$\tfrac12\log\det I_{\boldsymbol{\rho}}$ with the expected information, and
+[`fit_firth_single_cell()`](../reference/fit_firth_single_cell.html)
+uses the observed information of the profile log-likelihood, with the
+two scales concentrated out. `confint_decovart(method = "firth")` and
+`confint_single_cell(method = "firth")` report a Wald interval at the
+penalised estimate, and map it through the inverse chart as well.
 
 ## The sandwich for a misspecified convolution {#sec-sandwich}
 
@@ -1774,7 +1878,7 @@ Sec. 1.1.6]. Read for deconvolution, the contrast has five parts.
 DeCovarT already follows the GLM pattern in one respect: the link on
 the mixing scale is the identity, because the physics is additive, and
 the constraint is handled by an inverse link on the **parameter**,
-$\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})$ (@sec-naive-model). What the
+$\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})$ ([parametrisation](theory-population-generative-optimisation.html#sec-naive-model)). What the
 released model lacks is the variance function of the measurement
 (@sec-decovart-glm).
 
@@ -1816,7 +1920,7 @@ comes with inference.
 ## DeCovarT as a multivariate quasi-likelihood model {#sec-decovart-glm}
 
 Write the single-cell-tailored DeCovarT
-([tailored vignette](theory-decovart-single-cell-tailored.html#sec-strategies))
+([single-cell generative vignette](theory-single-cell-generative-optimisation.html#sec-strategies))
 in GLM terms, for one bulk sample with mean scale $c=a n$, covariance
 scale $\phi=a^{2}n$ and raw per-cell means $\tilde{\boldsymbol{\mu}}$:
 
@@ -1902,14 +2006,14 @@ Each term is a choice with a reason.
    size $S_j$ stays in the mean and the fit returns cell fractions
    $\boldsymbol{p}_{\cdot i}$. Transcript fractions follow as
    $q_{ji}=p_{ji}S_j/\sum_\ell p_{\ell i}S_\ell$
-   ([RNA versus cell fractions](theory-decovart-single-cell-tailored.html#sec-uncoupling)).
+   ([RNA versus cell fractions](theory-single-cell-generative-optimisation.html#sec-uncoupling)).
    A library-normalised signature $\boldsymbol{\theta}_{\cdot j}$ would return
    $\boldsymbol{q}_{\cdot i}$ and need the conversion; use one route, never
    both.
 2. **Two scales, not three.** The capture ratio $a_i$ and the number of
    cells $n_i$ enter only through the mean scale $c_i=a_in_i$ and the
    covariance scale $\phi_i=a_i^{2}n_i$
-   ([global scale](theory-decovart-single-cell-tailored.html#sec-av-scale)).
+   ([global scale](theory-single-cell-generative-optimisation.html#sec-av-scale)).
    At fixed $\boldsymbol{\rho}_i$, $\hat c_i$ is the generalised least-squares
    coefficient of $\boldsymbol{y}_{\cdot i}$ on $\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i}$
    and $\hat\phi_i$ the mean squared Mahalanobis residual, so both are
@@ -1918,7 +2022,7 @@ Each term is a choice with a reason.
    share the platform.
 3. **Only the within-type covariance.** One donor identifies the
    cell-to-cell covariance, not the between-donor one
-   ([three reference regimes](theory-decovart-single-cell-tailored.html#sec-three-regimes)).
+   ([three reference regimes](theory-single-cell-generative-optimisation.html#sec-three-regimes)).
    Estimate it from cells after removing the Poisson diagonal and the
    technical size-factor term
    ([denoised covariance](theory-review-distribution-aware-deconvolution.html#eq-denoised-within)),
@@ -1952,7 +2056,7 @@ covariance assembler changes, from $\sum_jp_j^{2}\boldsymbol{\Sigma}_j$ to the
 linear form of @eq-final-model, whose derivative in $p_j$ is the
 constant matrix $\phi_i\boldsymbol{\Sigma}_{W,j}$; second derivatives of the
 covariance vanish, so the Hessian is simpler than the released one
-([general score and Hessian](theory-decovart-single-cell-tailored.html#sec-general)).
+([general score and Hessian](theory-single-cell-generative-optimisation.html#sec-general)).
 No replicate, no paired cohort and no second bulk sample is needed. The
 model still has to pass a simulation study under the ADEMP template
 before it is used for claims
@@ -1963,7 +2067,7 @@ before it is used for claims
 The procedures below all target the same composition
 $\boldsymbol{p}\in\Delta^{J-1}$, but they rest on different
 approximations. @tbl-inference-recap is the practical counterpart of
-the Wald warning in the derivatives vignette: use the cheapest method
+the Wald warning in the population generative vignette: use the cheapest method
 that the geometry of the estimate actually supports.
 
 | Procedure | What it returns | Calibration | Simplex faces | Replication | Function |
@@ -2007,6 +2111,8 @@ The single-cell mixture uses the same menu through
 profile information, the Schur complement that removes the scales
 $(c,\phi)$. Intervals for those two scales use the complementary Schur
 complement. Neither interval corrects the plug-in reference covariance.
+The [single-cell inference vignette](theory-single-cell-inference.html)
+derives that menu, with its REML calibration for few genes.
 
 # Outlook: beyond first-order asymptotics {#sec-beyond-asymptotics}
 

@@ -1,75 +1,65 @@
 ###############################################################################
-###############################################################################
 ###                                                                         ###
-###           FIGURE 02 – BIVARIATE TOY MODEL (article 2.1)               ###
-###       J = 2 cell types · G = 2 genes · full factorial design            ###
+###           FIGURE 02 - BIVARIATE TOY MODEL (article Section 2.2)         ###
+###       J = 2 cell types, G = 2 genes, full factorial design              ###
 ###                                                                         ###
-###############################################################################
 ###############################################################################
 #
-# Background launch from the repository root (vanilla Rscript; no CLI
-# parser — hyperparameters are hard-coded below). stdout and stderr go
-# to logs/:
+# Run from the repository root; stdout and stderr go to logs/:
 #
 #   mkdir -p logs
 #   nohup Rscript --no-save --no-restore scripts/fig02_bivariate_toy.R \
 #     > "logs/fig02_$(date +%F)_bivariate_toy.log" 2>&1 &
 #
-# Redraw figures from a finished ADEMP RDS (does not refit the 972
-# scenarios). Expected-Fisher Wald SEs at the true composition are
-# attached to `monte_carlo` without refitting. PDFs:
-#   output/fig02/density_visualisations/ and
-#   output/fig02/performance_visualisations/.
+# Run size (environment variables; see
+# scripts/benchmark_metrics/benchmark_artefacts.R):
+#   DECOVART_N_REPLICATES  Monte Carlo bulks per scenario   (default 200)
+#   DECOVART_N_BOOT        bootstrap refits per bulk          (default 100)
+#   DECOVART_CORES         workers for the per-sample loop    (default 1)
+#                          (workers load the installed DeCovarT, so run
+#                          devtools::install() before a parallel run)
+#   DECOVART_POSTPROCESS_ONLY=1 redraws the figures from the saved benchmark.
+# A dry run: DECOVART_N_REPLICATES=5 DECOVART_N_BOOT=5 Rscript ...
 #
-#   FIG02_POSTPROCESS_ONLY=1 Rscript --no-save --no-restore \
-#     scripts/fig02_bivariate_toy.R
+# Factorial design
+#  Proportions             balanced (1/2, 1/2); moderately unbalanced
+#                          (17/20, 3/20); highly unbalanced (99/100, 1/100)
+#  Centroid gap            small: mu = (20, 22) / (22, 20);
+#                          large: mu = (20, 40) / (40, 20)
+#  Correlation, type 1     -0.8 to 0.8 by 0.2 (9 levels)
+#  Correlation, type 2     -0.8 to 0.8 by 0.2 (9 levels)
+#  Variances               homoscedastic (1, 1); heteroscedastic (1, 2)
+#  Scenarios               3 x 2 x 9 x 9 x 2 = 972
+#  Scenario ID             B{index}_{Ho|He}_{Ba|Mo|Hi}_{Sm|Lg}
 #
-# Article:  DeCovarT – Section 2.1 "Toy Model with two genes and two cell
-#           populations" (Numerical Simulation Study).
-# Vignette: vignettes/fig02-bivariate-toy.qmd
+# Methods
+#  lsei            DeconRNASeq's simplex-constrained least squares, also the
+#                  point estimate of DECALS (no public code)
+#  NNLS            non-negative least squares with a free scale, renormalised
+#                  afterwards; it differs from lsei, which keeps the sum-to-one
+#                  equality and the bounds at every iteration
+#  Newton-Raphson  DeCovarT, trust-region Newton in ILR coordinates
+#  L-BFGS-B        DeCovarT, L-BFGS-B on the closure of the orthant
+#  Firth           DeCovarT with the Jeffreys penalty
+#  CIBERSORT (whose nu-SVR would regress two bulk values on two signatures
+#  and an intercept) and the second-generation methods (MEAD, RNA-Sieve,
+#  ReDeconv, whose variance estimates need many more genes than cell types)
+#  are run in fig03 and fig05 only.
 #
-# Scenario builders live at the top of this file. Sourcing it from tests
-# or a vignette defines those functions without running the grid:
-# non-interactive `source()` does not see `--file=...fig02_bivariate_toy.R`.
+# Confidence intervals at every DeCovarT estimate: Wald (delta method), ILR
+# (Wald in ILR coordinates mapped back), profile likelihood, parametric
+# bootstrap refitted by the same optimiser, and the oracle half-width at the
+# true composition (Newton-Raphson only). Firth: Wald and ILR at the
+# penalised estimate.
 #
-# ── Factorial design ────────────────────────────────────────────────────────
-#  Factor                  Levels
-#  ─────────────────────── ───────────────────────────────────────────────────
-#  Proportions             balanced (1/2, 1/2);
-#                          moderately unbalanced (17/20, 3/20);
-#                          highly unbalanced (99/100, 1/100)
-#  Mean distance (CLD)     small: μ=(20,22)/(22,20); large: μ=(20,40)/(40,20)
-#  Gene–gene corr CT1 (ρ)  −0.8 to +0.8, step 0.2  (9 levels)
-#  Gene–gene corr CT2 (ρ)  −0.8 to +0.8, step 0.2  (9 levels)
-#  Variance structure      homoscedastic (σ²=1,1); heteroscedastic (σ²=1,2)
-#  Algorithms              NNLS, DeconRNASeq (LSEI), L-BFGS-B, gradient,
-#                          Newton–Raphson, Marquardt–Levenberg, SA
-#  ─────────────────────── ───────────────────────────────────────────────────
-#  Total scenarios:  3 × 2 × 9 × 9 × 2 = 972
-#  Replicates (n):   500
-#  Scenario ID:      B{idx}_{Ho|He}_{Ba|Mo|Hi}_{Sm|Lg}
+# Outputs (output/fig02/)
+#  fig02_benchmark.rds   settings, design, truth, every metric table
+#  fig02_plot_data.rds   the data behind every figure, keyed by file stem
+#  density_visualisations/*.pdf, performance_visualisations/*.pdf
 #
-# ── Solver hyperparameters (pipeline; bivariate_toy_deconvolution_functions)
-#  itmax      200     max. iterations (L-BFGS-B, gradient, Newton,
-#                     Marquardt–Levenberg, SA)
-#  epsilon    1e-4    convergence tolerance for those solvers
-#  cores      1       scenario loop is sequential; do not nest workers
-#  Tests use the factory defaults itmax = 10, epsilon = 1e-3.
-#
-# ── Usage ───────────────────────────────────────────────────────────────────
-#  Rscript scripts/fig02_bivariate_toy.R
-#
-# ── Outputs ─────────────────────────────────────────────────────────────────
-#  output/fig02/bivariate_config.rds       – slim design grid (keyed by ID)
-#  output/fig02/bivariate_descriptors.rds  – scenario geometry / MixSim /
-#                                            Hellinger / Jeffreys
-#  output/fig02/bivariate_theta.rds        – true_theta list column
-#  output/fig02/bivariate_benchmark.rds    – metrics only (regression,
-#                                            monte_carlo, optimisation, call)
-#  output/fig02/density_visualisations/{purified,bulk,loglik_*}.pdf
-#  output/fig02/performance_visualisations/{heatmap_*,raincloud,forest,similarity,solver_dots,runtime,memory}.pdf
-#  output/fig02/ggplot_rds/*.rds            – ggplot `data` for each book
-#                                            (not rgl snapshots)
+# Sourcing this file from a test or a vignette defines the builders only:
+# the pipeline runs for Rscript scripts/fig02_bivariate_toy.R or an
+# interactive session.
 ###############################################################################
 
 #' Encode a bivariate-toy scenario ID
@@ -236,47 +226,46 @@ build_bivariate_scenario_config <- function(
     dplyr::bind_rows()
 }
 
-#' Default deconvolution solvers for the bivariate toy benchmark
+#' Methods and confidence intervals of the bivariate benchmark
 #'
-#' Omits CIBERSORT (too few genes for nu-SVR tuning).
+#' @param itmax,epsilon Iteration cap and convergence tolerance of the
+#'   DeCovarT solvers.
+#' @param n_boot Parametric-bootstrap refits per bulk; `NULL` drops the
+#'   intervals (tests).
 #'
-#' @param itmax Maximum iterations for gradient-based DeCovarT solvers.
-#' @param epsilon Convergence tolerance for DeCovarT solvers.
-#'
-#' @return Named list suitable for [run_simulation_benchmark()].
+#' @return Named list for [run_simulation_benchmark()].
 bivariate_toy_deconvolution_functions <- function(
   itmax = 10L,
-  epsilon = 1e-3
+  epsilon = 1e-3,
+  n_boot = NULL
 ) {
+  solver <- list(epsilon = epsilon, itmax = itmax, initial_p = "barycentre")
+  interval_menu <- function(methods, optimiser = "newton") {
+    if (is.null(n_boot)) {
+      return(NULL)
+    }
+    list(methods = methods, n_boot = n_boot, optimiser = optimiser)
+  }
   list(
-    "nnls" = list(FUN = deconvolute_ratios_nnls),
     "lsei" = list(FUN = deconvolute_ratios_deconrnaseq),
-    "LBFGS" = list(
-      FUN = deconvolute_ratios_L_BFGS_B,
-      additional_parameters = list(epsilon = epsilon, itmax = itmax)
-    ),
-    "gradient" = list(
-      FUN = deconvolute_ratios_gradient_descent,
-      additional_parameters = list(epsilon = epsilon, itmax = itmax)
-    ),
+    "NNLS" = list(FUN = deconvolute_ratios_nnls),
     "Newton-Raphson" = list(
       FUN = deconvolute_ratios_Newton_Raphson,
-      additional_parameters = list(epsilon = epsilon, itmax = itmax)
+      additional_parameters = solver,
+      ci = interval_menu(c("wald", "ilr", "profile", "bootstrap", "oracle"))
     ),
-    "Marquardt-Levenberg" = list(
-      FUN = deconvolute_ratios_Marquardt_Levenberg,
-      additional_parameters = list(epsilon = epsilon, itmax = itmax)
+    "L-BFGS-B" = list(
+      FUN = deconvolute_ratios_L_BFGS_B,
+      additional_parameters = solver,
+      ci = interval_menu(c("wald", "ilr", "profile", "bootstrap"), "lbfgsb")
     ),
-    "SA" = list(
-      FUN = deconvolute_ratios_simulated_annealing,
-      additional_parameters = list(epsilon = epsilon, itmax = itmax)
+    "Firth" = list(
+      FUN = fit_firth_decovart,
+      ci = interval_menu(c("wald", "ilr"))
     )
   )
 }
 
-# Run the ADEMP pipeline only for an interactive Source or
-# `Rscript scripts/fig02_bivariate_toy.R`. Tests copy this file into a
-# withr temp directory and source it there (builders only).
 if (
   interactive() ||
     any(grepl(
@@ -288,341 +277,54 @@ if (
       )
     ))
 ) {
-  # ==========================================================================
-  # SECTION 0 · Dependencies and paths ----
-  # ==========================================================================
-
-  # Prefer the working tree over a stale user-library install.
-  if (
-    requireNamespace("devtools", quietly = TRUE) &&
-      file.exists("DESCRIPTION")
-  ) {
-    devtools::load_all(".", quiet = TRUE)
-  } else {
-    library(DeCovarT)
-  }
-  # Figure books and artefact I/O live outside the package namespace.
+  devtools::load_all(".", quiet = TRUE)
+  source(file.path("scripts", "benchmark_metrics", "benchmark_artefacts.R"))
   source(file.path("scripts", "visualisation", "load_visualisation.R"))
-
-  stopifnot(
-    requireNamespace("MixSim", quietly = TRUE),
-    requireNamespace("ggplot2", quietly = TRUE)
-  )
+  stopifnot(requireNamespace("MixSim", quietly = TRUE))
 
   OUT_DIR <- file.path("output", "fig02")
-  dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
-
-  .ui_h1("Figure 02 · Bivariate toy model")
-
-  N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "500"))
-  POSTPROCESS_ONLY <- identical(
-    Sys.getenv("FIG02_POSTPROCESS_ONLY", "0"),
-    "1"
-  )
-
+  BENCHMARK_FILE <- file.path(OUT_DIR, "fig02_benchmark.rds")
   SEED <- 20260903L
-  set.seed(SEED)
+  ITMAX <- 200L
+  EPSILON <- 1e-4
+  CORES <- as.integer(Sys.getenv("DECOVART_CORES", "1"))
+  settings <- benchmark_settings(default_replicates = 200L, default_boot = 100L)
 
-  # ==========================================================================
-  # SECTION 1 · GENERATIVE MODEL ----
-  # ==========================================================================
+  .ui_h1("Figure 02: bivariate toy model")
 
-  combined_path <- file.path(OUT_DIR, "bivariate_benchmark_combined.rds")
-  bench_path <- file.path(OUT_DIR, "bivariate_benchmark.rds")
-  config_path <- file.path(OUT_DIR, "bivariate_config.rds")
-
-  if (isTRUE(POSTPROCESS_ONLY)) {
-    .ui_info("Post-process only: skipping ADEMP refit.")
-    src <- if (file.exists(combined_path)) {
-      combined_path
-    } else {
-      bench_path
-    }
-    if (!file.exists(src)) {
-      .ui_abort(
-        "No benchmark RDS at {.file {src}}. Run the full script first."
-      )
-    }
-    bivariate_out <- readRDS(src)
-    if (file.exists(config_path)) {
-      cfg_file <- readRDS(config_path)
-      if ("true_theta" %in% names(cfg_file)) {
-        bivariate_out$config <- cfg_file
-      }
-    }
-    if (
-      !file.exists(combined_path) &&
-        !is.null(bivariate_out$optimisation)
-    ) {
-      .ui_info(
-        "Backing up combined benchmark to {.file {combined_path}}."
-      )
-      file.copy(src, combined_path, overwrite = FALSE)
-    }
-  } else {
-    .ui_info("Building scenario config (972 factorial rows).")
+  if (!settings$postprocess_only) {
+    set.seed(SEED)
     scenario_config <- build_bivariate_scenario_config()
-    .ui_success(
-      "Config built: {.val {nrow(scenario_config)}} scenarios."
-    )
-
-    # ========================================================================
-    # SECTION 2 · INFERENCE ----
-    # ========================================================================
-
-    ITMAX <- 200L
-    EPSILON <- 1e-4
-    deconvolution_functions <- bivariate_toy_deconvolution_functions(
-      itmax = ITMAX,
-      epsilon = EPSILON
-    )
-
     .ui_info(
-      "Running ADEMP benchmark with {.val {N_REPL}} replicates."
+      "{.val {nrow(scenario_config)}} scenarios, N = {.val {settings$n_replicates}}, B = {.val {settings$n_boot}}."
     )
+    started <- proc.time()[["elapsed"]]
     bivariate_out <- run_simulation_benchmark(
       scenario_config = scenario_config,
-      deconvolution_functions = deconvolution_functions,
-      n = N_REPL,
-      cores = 1L,
-      verbose = TRUE
+      deconvolution_functions = bivariate_toy_deconvolution_functions(
+        itmax = ITMAX,
+        epsilon = EPSILON,
+        n_boot = settings$n_boot
+      ),
+      n = settings$n_replicates,
+      cores = CORES,
+      verbose = TRUE,
+      return_data = TRUE
     )
-    bivariate_out$config <- scenario_config
+    .ui_success(
+      "Benchmark finished in {.val {round(proc.time()[['elapsed']] - started)}} s."
+    )
+    save_benchmark(
+      bivariate_out,
+      scenario_config,
+      benchmark_meta(SEED, settings),
+      BENCHMARK_FILE
+    )
   }
 
-  if (isTRUE(POSTPROCESS_ONLY)) {
-    needed <- c("scenario_idx", "variance", "proportions", "centroids")
-    rewrite_ids <- function(tbl) {
-      if (!is.data.frame(tbl) || !all(needed %in% names(tbl))) {
-        return(tbl)
-      }
-      tbl$ID <- .encode_bivariate_id(
-        tbl$scenario_idx,
-        tbl$variance,
-        tbl$proportions,
-        tbl$centroids
-      )
-      tbl
-    }
-    bivariate_out$config <- rewrite_ids(bivariate_out$config)
-    if (is.list(bivariate_out$regression)) {
-      bivariate_out$regression$global <- rewrite_ids(
-        bivariate_out$regression$global
-      )
-      bivariate_out$regression$cell_type <- rewrite_ids(
-        bivariate_out$regression$cell_type
-      )
-    }
-    bivariate_out$monte_carlo <- rewrite_ids(bivariate_out$monte_carlo)
-    bivariate_out$optimisation <- rewrite_ids(bivariate_out$optimisation)
-    bivariate_out$descriptors <- rewrite_ids(bivariate_out$descriptors)
-  }
-  write_simulation_artefacts(
-    benchmark = bivariate_out,
-    dir = OUT_DIR,
-    stem = "bivariate",
-    config = bivariate_out$config
-  )
-  .ui_success("Wrote split config / descriptors / theta / metrics RDS.")
-
-  artefacts <- read_simulation_artefacts(
-    OUT_DIR,
-    "bivariate",
-    assemble = TRUE
-  )
-  artefacts$theta <- readRDS(file.path(OUT_DIR, "bivariate_theta.rds"))
-  artefacts <- .attach_expected_fisher_wald(artefacts)
-  write_simulation_artefacts(
-    benchmark = artefacts,
-    dir = OUT_DIR,
-    stem = "bivariate",
-    config = artefacts$config
-  )
-  .ui_success(
-    "Refreshed Wald coverage from expected Fisher at the true composition."
-  )
-
-  DENSITY_DIR <- file.path(OUT_DIR, "density_visualisations")
-  PERF_DIR <- file.path(OUT_DIR, "performance_visualisations")
-  GGPLOT_RDS_DIR <- file.path(OUT_DIR, "ggplot_rds")
-  dir.create(DENSITY_DIR, recursive = TRUE, showWarnings = FALSE)
-  dir.create(PERF_DIR, recursive = TRUE, showWarnings = FALSE)
-  dir.create(GGPLOT_RDS_DIR, recursive = TRUE, showWarnings = FALSE)
-
-  # ==========================================================================
-  # SECTION 3 · VISUALISATIONS ----
-  # ==========================================================================
-
-  .ui_info("Drawing RMSE / MAE / Aitchison tile heatmaps.")
-  save_bivariate_metric_heatmaps(artefacts, PERF_DIR, data_rds = GGPLOT_RDS_DIR)
-  .ui_success("Saved RMSE, MAE, and Aitchison heatmap PDFs.")
-
-  cfg <- artefacts$config
-  theta_tbl <- artefacts$theta
-  if (requireNamespace("gridExtra", quietly = TRUE)) {
-    .ui_info("Drawing 12-page density books (four correlation corners).")
-    save_bivariate_purified_density_book(
-      cfg,
-      theta_tbl,
-      file.path(DENSITY_DIR, "purified_density.pdf"),
-      data_rds = GGPLOT_RDS_DIR
-    )
-    save_bivariate_bulk_density_book(
-      cfg,
-      theta_tbl,
-      file.path(DENSITY_DIR, "bulk_density.pdf"),
-      data_rds = GGPLOT_RDS_DIR
-    )
-    save_bivariate_loglik_surface_p_book(
-      cfg,
-      theta_tbl,
-      file.path(DENSITY_DIR, "loglik_surface_p.pdf"),
-      data_rds = GGPLOT_RDS_DIR
-    )
-    save_bivariate_loglik_ilr_profile_book(
-      cfg,
-      theta_tbl,
-      file.path(DENSITY_DIR, "loglik_ilr_profile.pdf"),
-      data_rds = GGPLOT_RDS_DIR
-    )
-    save_bivariate_expected_loglik_surface_p_book(
-      cfg,
-      theta_tbl,
-      file.path(DENSITY_DIR, "loglik_expected_surface_p.pdf"),
-      data_rds = GGPLOT_RDS_DIR
-    )
-    save_bivariate_expected_loglik_ilr_profile_book(
-      cfg,
-      theta_tbl,
-      file.path(DENSITY_DIR, "loglik_expected_ilr_profile.pdf"),
-      data_rds = GGPLOT_RDS_DIR
-    )
-    save_bivariate_loglik_rgl_book(
-      cfg,
-      theta_tbl,
-      file.path(DENSITY_DIR, "loglik_rgl.pdf"),
-      html_file = file.path(DENSITY_DIR, "loglik_rgl.html")
-    )
-    .ui_success("Saved density and log-likelihood PDF books.")
-  } else {
-    .ui_warn("{.pkg gridExtra} not available; skipping density books.")
-  }
-
-  if (requireNamespace("ggdist", quietly = TRUE)) {
-    .ui_info("Drawing 12-page raincloud book (four correlation corners).")
-    save_bivariate_raincloud_book(
-      artefacts,
-      file.path(PERF_DIR, "raincloud.pdf"),
-      data_rds = GGPLOT_RDS_DIR
-    )
-    .ui_success("Saved {.file raincloud.pdf}.")
-    .ui_info("Drawing 12-page quantile-dot raincloud book.")
-    save_bivariate_dotsinterval_book(
-      artefacts,
-      file.path(PERF_DIR, "dotsinterval.pdf"),
-      data_rds = GGPLOT_RDS_DIR
-    )
-    .ui_success("Saved {.file dotsinterval.pdf}.")
-  } else {
-    .ui_warn("{.pkg ggdist} not available; skipping raincloud book.")
-  }
-
-  .ui_info("Drawing 12-page Wald forest book (four correlation corners).")
-  save_bivariate_forest_book(
-    artefacts,
-    file.path(PERF_DIR, "forest.pdf"),
-    data_rds = GGPLOT_RDS_DIR
-  )
-  .ui_success("Saved {.file forest.pdf} (Wald solvers only).")
-
-  if (requireNamespace("ggdist", quietly = TRUE)) {
-    .ui_info("Drawing 12-page KKT raincloud book.")
-    save_bivariate_kkt_raincloud_book(
-      artefacts,
-      file.path(PERF_DIR, "kkt_raincloud.pdf"),
-      data_rds = GGPLOT_RDS_DIR
-    )
-    .ui_success("Saved {.file kkt_raincloud.pdf}.")
-  }
-
-  if (requireNamespace("cowplot", quietly = TRUE)) {
-    .ui_info("Drawing 12-page stacked convergence book.")
-    save_bivariate_convergence_book(
-      artefacts,
-      file.path(PERF_DIR, "convergence_stacked.pdf"),
-      data_rds = GGPLOT_RDS_DIR,
-      icon_dir = "temp_logos"
-    )
-    .ui_success("Saved {.file convergence_stacked.pdf}.")
-  }
-
-  .ui_info("Drawing Q-Q and KS normality books.")
-  save_bivariate_qq_book(
-    artefacts,
-    file.path(PERF_DIR, "qq_normal.pdf"),
-    data_rds = GGPLOT_RDS_DIR
-  )
-  save_bivariate_ks_book(
-    artefacts,
-    file.path(PERF_DIR, "ks_normal.pdf"),
-    data_rds = GGPLOT_RDS_DIR
-  )
-  save_bivariate_chi2_book(
-    artefacts,
-    file.path(PERF_DIR, "qq_chi2.pdf"),
-    data_rds = GGPLOT_RDS_DIR
-  )
-  .ui_success(
-    "Saved {.file qq_normal.pdf}, {.file ks_normal.pdf} and {.file qq_chi2.pdf}."
-  )
-
-  if (length(unique(artefacts$monte_carlo$algorithm)) >= 2L) {
-    if (
-      requireNamespace("ggdendro", quietly = TRUE) &&
-        requireNamespace("cowplot", quietly = TRUE) &&
-        requireNamespace("gridExtra", quietly = TRUE)
-    ) {
-      .ui_info("Drawing 12-page similarity book with dendrograms.")
-      save_bivariate_similarity_book(
-        artefacts,
-        file.path(PERF_DIR, "similarity.pdf"),
-        data_rds = GGPLOT_RDS_DIR
-      )
-      .ui_success("Saved {.file similarity.pdf}.")
-    } else {
-      .ui_warn(
-        "Similarity book skipped (need ggdendro, cowplot, gridExtra)."
-      )
-    }
-  }
-
-  .ui_info("Drawing 12-page RMSE / Aitchison solver-dot book.")
-  save_bivariate_solver_dots_book(
-    artefacts,
-    file.path(PERF_DIR, "solver_dots.pdf"),
-    data_rds = GGPLOT_RDS_DIR
-  )
-  .ui_success("Saved {.file solver_dots.pdf}.")
-
-  if (requireNamespace("ggdist", quietly = TRUE)) {
-    .ui_info("Drawing 12-page solver runtime rainclouds.")
-    save_bivariate_runtime_book(
-      artefacts,
-      file.path(PERF_DIR, "runtime.pdf"),
-      data_rds = GGPLOT_RDS_DIR
-    )
-    .ui_info("Drawing 12-page solver memory rainclouds.")
-    save_bivariate_memory_book(
-      artefacts,
-      file.path(PERF_DIR, "memory.pdf"),
-      data_rds = GGPLOT_RDS_DIR
-    )
-    .ui_success("Saved {.file runtime.pdf} and {.file memory.pdf}.")
-  } else {
-    .ui_warn("{.pkg ggdist} not available; skipping runtime / memory books.")
-  }
-
-  .ui_success(
-    "Done. Outputs in {.path {normalizePath(OUT_DIR, mustWork = FALSE)}}."
-  )
+  benchmark <- read_benchmark(BENCHMARK_FILE)
+  plot_data <- figure_plot_data(benchmark, figure = "fig02")
+  saveRDS(plot_data, file.path(OUT_DIR, "fig02_plot_data.rds"))
+  render_figure_books(plot_data, OUT_DIR)
+  .ui_success("Figure 02 written to {.file {OUT_DIR}}.")
 }

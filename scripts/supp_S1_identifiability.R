@@ -17,7 +17,7 @@
 #
 # Article:  DeCovarT – Appendix S1 (regular-case MLE + identifiability)
 # Vignette: vignettes/supp-S1-identifiability.qmd
-# Theory:   vignettes/theory-DeCovarT-MLE-properties.qmd
+# Theory:   vignettes/theory-population-inference.qmd
 #
 # ── Design ──────────────────────────────────────────────────────────────────
 #  Regular interior (vignette-parity check)

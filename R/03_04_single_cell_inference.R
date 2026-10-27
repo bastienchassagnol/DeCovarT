@@ -4,8 +4,9 @@
 # the ILR coordinate to the simplex is the same inverse chart as
 # confint_decovart(). Higher-order and sandwich corrections for a
 # plug-in covariance are not implemented.
-# See vignette("theory-DeCovarT-MLE-properties") and
-# vignette("theory-decovart-single-cell-tailored").
+# See vignette("theory-population-inference") and
+# vignette("theory-single-cell-generative-optimisation") and
+# vignette("theory-single-cell-inference").
 
 #' @noRd
 .single_cell_profile_value <- function(p, y, mean_signature_matrix, Sigma) {
@@ -133,6 +134,28 @@ restricted_mle_single_cell <- function(
   }
 }
 
+#' Platform scale and number of cells from the two fitted scales
+#'
+#' \eqn{c=a\,n} and \eqn{\phi=a^{2}n} give \eqn{a=\phi/c} and
+#' \eqn{n=c^{2}/\phi}; \eqn{n} is a number of cells only when \eqn{a} is
+#' known. Rows `platform_scale_a` and `cell_count_n` are appended to a
+#' vector or to a matrix with rows `mean_scale` and `variance_scale`.
+#' @noRd
+.derived_scales <- function(scales) {
+  if (is.null(dim(scales))) {
+    return(c(
+      scales,
+      platform_scale_a = scales[["variance_scale"]] / scales[["mean_scale"]],
+      cell_count_n = scales[["mean_scale"]]^2 / scales[["variance_scale"]]
+    ))
+  }
+  rbind(
+    scales,
+    platform_scale_a = scales["variance_scale", ] / scales["mean_scale", ],
+    cell_count_n = scales["mean_scale", ]^2 / scales["variance_scale", ]
+  )
+}
+
 #' @noRd
 .nuisance_intervals <- function(uncertainty, level, calibration, n_genes) {
   estimate <- c(
@@ -155,6 +178,23 @@ restricted_mle_single_cell <- function(
       stats::qchisq(c(1 - alpha, alpha), df = df)
   }
   rownames(interval) <- names(estimate)
+  # log a = log phi - log c and log n = 2 log c - log phi: delta method on
+  # the log scale, so both bounds stay positive.
+  log_vcov <- vcov / tcrossprod(estimate)
+  contrasts <- rbind(
+    platform_scale_a = c(-1, 1),
+    cell_count_n = c(2, -1)
+  )
+  derived <- .derived_scales(estimate)[rownames(contrasts)]
+  derived_se <- sqrt(pmax(
+    rowSums((contrasts %*% log_vcov) * contrasts),
+    0
+  ))
+  interval <- rbind(
+    interval,
+    exp(.wald_bounds(log(derived), derived_se, level, df = df))
+  )
+  estimate <- c(estimate, derived)
   list(
     estimate = estimate,
     vcov = vcov,
@@ -560,9 +600,14 @@ fit_firth_single_cell <- function(
 #' @inheritParams deconvolute_single_cell
 #' @param n_boot Number of replicates.
 #' @param level Confidence level.
+#' @param optimiser Passed to [deconvolute_single_cell()] for the fit and
+#'   every refit, so the bootstrap matches the estimator being assessed.
 #'
 #' @return A list with `estimates`, `interval`, `n_failed` (refits that
 #'   errored, left as `NA` columns), `scales`, `scale_interval` and `fit`.
+#'   `scales` and `scale_interval` have rows `mean_scale` (\eqn{c}),
+#'   `variance_scale` (\eqn{\phi}), `platform_scale_a`
+#'   (\eqn{a=\phi/c}) and `cell_count_n` (\eqn{n=c^{2}/\phi}).
 #'
 #' @seealso [confint_single_cell()], [bootstrap_decovart()]
 #' @family decovart_inference
@@ -581,8 +626,10 @@ bootstrap_single_cell <- function(
   n_boot = 200L,
   level = 0.95,
   epsilon = 1e-6,
-  itmax = 40L
+  itmax = 40L,
+  optimiser = c("newton", "lbfgsb")
 ) {
+  optimiser <- match.arg(optimiser)
   level <- .check_level(level)
   n_boot <- as.integer(n_boot)
   if (length(n_boot) != 1L || is.na(n_boot) || n_boot < 1L) {
@@ -594,7 +641,8 @@ bootstrap_single_cell <- function(
     Sigma,
     epsilon = epsilon,
     itmax = itmax,
-    profile = TRUE
+    profile = TRUE,
+    optimiser = optimiser
   )
   nms <- names(fit$composition)
   estimates <- matrix(
@@ -624,7 +672,8 @@ bootstrap_single_cell <- function(
         Sigma,
         epsilon = epsilon,
         itmax = itmax,
-        profile = TRUE
+        profile = TRUE,
+        optimiser = optimiser
       ),
       error = function(e) NULL
     )
@@ -639,8 +688,8 @@ bootstrap_single_cell <- function(
     estimates = estimates,
     interval = .percentile_interval(estimates, level),
     n_failed = sum(is.na(estimates[1L, ])),
-    scales = scales,
-    scale_interval = .percentile_interval(scales, level),
+    scales = .derived_scales(scales),
+    scale_interval = .percentile_interval(.derived_scales(scales), level),
     fit = fit
   )
 }
@@ -676,7 +725,9 @@ bootstrap_single_cell <- function(
 #'   mean diagonal.
 #'
 #' @return A list with `resample`, `regenerate_bulk`, `estimates`,
-#'   `interval`, `n_failed`, `scales`, `scale_interval` and `fit`.
+#'   `interval`, `n_failed`, `scales`, `scale_interval` and `fit`;
+#'   `scales` and `scale_interval` also carry the derived rows
+#'   `platform_scale_a` and `cell_count_n`.
 #'
 #' @seealso [reference_bootstrap_decovart()], [confint_single_cell()]
 #' @family decovart_inference
@@ -791,8 +842,8 @@ reference_bootstrap_single_cell <- function(
     estimates = estimates,
     interval = .percentile_interval(estimates, level),
     n_failed = sum(is.na(estimates[1L, ])),
-    scales = scales,
-    scale_interval = .percentile_interval(scales, level),
+    scales = .derived_scales(scales),
+    scale_interval = .percentile_interval(.derived_scales(scales), level),
     fit = fit
   )
 }
@@ -811,9 +862,14 @@ reference_bootstrap_single_cell <- function(
 #'
 #' Intervals for \eqn{(c,\phi)} in `nuisance$interval` are Wald intervals
 #' on the log scale, mapped back by the exponential, from the Schur
-#' complement that removes \eqn{\boldsymbol{\rho}}. `nuisance$interval_wald`
-#' is the symmetric normal interval on the original scale. Bootstrap
-#' methods replace both with percentile intervals.
+#' complement that removes \eqn{\boldsymbol{\rho}}. The rows
+#' `platform_scale_a` (\eqn{a=\phi/c}) and `cell_count_n`
+#' (\eqn{n=c^{2}/\phi}, a number of cells only when \eqn{a} is known)
+#' follow by the delta method on \eqn{\log a=\log\phi-\log c} and
+#' \eqn{\log n=2\log c-\log\phi}, so all four intervals are positive.
+#' `nuisance$interval_wald` is the symmetric normal interval of
+#' \eqn{(c,\phi)} on the original scale. Bootstrap methods replace both
+#' with percentile intervals.
 #'
 #' \describe{
 #'   \item{`ilr`}{Default. Inverse ILR chart.}
@@ -840,7 +896,7 @@ reference_bootstrap_single_cell <- function(
 #' G\hat\phi/\chi^2_{\nu;\alpha/2}]}, and the profile interval uses the
 #' cut-off of [confint_profile_single_cell()]. The maximum-likelihood
 #' \eqn{\hat\phi} is biased by about \eqn{\nu/G}, so with few genes
-#' (\eqn{G=10}, \eqn{J=2}) the `"ml"` intervals cover about 0.85 to 0.92
+#' (\eqn{G=10}, \eqn{J=2}) the `"ml"` intervals cover about 0.84 to 0.93
 #' at the 0.95 level; the bootstrap methods are unaffected by `variance`.
 #'
 #' @inheritParams deconvolute_single_cell

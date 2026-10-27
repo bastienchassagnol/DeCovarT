@@ -166,7 +166,7 @@ selected for between-type separation. The resource is a single
 technical scRNA-seq experiment. Cells are therefore draws from one
 specimen, and the estimate targets the within-type cell-to-cell
 covariance: the linear layer of the
-[one-replicate regime](theory-decovart-single-cell-tailored.html#sec-one-replicate),
+[one-replicate regime](theory-single-cell-generative-optimisation.html#sec-one-replicate),
 not a between-specimen covariance.
 
 | Estimator | Input | Sparsity device | Exported object | Main caveat |

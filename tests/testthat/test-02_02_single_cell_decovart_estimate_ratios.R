@@ -525,3 +525,61 @@ test_that("the fit needs more genes than cell types", {
     "G > J"
   )
 })
+
+test_that("both single-cell optimisers are equivariant to the bulk scale", {
+  moments <- withr::with_seed(
+    20261022L,
+    simulate_hierarchical_grn_moments(
+      n_genes = 12L,
+      n_celltypes = 3L,
+      mean_scale = 10,
+      target_cosine = 0.3,
+      nonnegative = TRUE,
+      precision_shift = 0.5,
+      precision_scale = 0.3,
+      graph_model = "erdos_renyi"
+    )
+  )
+  ref <- rescale_single_cell_moments(moments, cell_size = c(1, 1, 5))
+  sim <- simulate_bulk_from_cells(
+    ref$generative_mean,
+    ref$generative_sigma,
+    p = c(0.5, 0.3, 0.2),
+    n_cells = 1000,
+    platform_scale = 5,
+    seed = 3L
+  )
+  y <- sim$Y[, 1]
+  for (optimiser in c("newton", "lbfgsb")) {
+    fit <- deconvolute_single_cell(
+      y,
+      ref$mean_signature_matrix,
+      ref$Sigma,
+      optimiser = optimiser,
+      epsilon = 1e-10
+    )
+    scaled <- deconvolute_single_cell(
+      7 * y,
+      ref$mean_signature_matrix,
+      ref$Sigma,
+      optimiser = optimiser,
+      epsilon = 1e-10
+    )
+    expect_equal(scaled$p, fit$p, tolerance = 1e-5)
+    expect_equal(scaled$mean_scale, 7 * fit$mean_scale, tolerance = 1e-5)
+    expect_equal(
+      scaled$variance_scale,
+      49 * fit$variance_scale,
+      tolerance = 1e-5
+    )
+  }
+  newton <- deconvolute_single_cell(y, ref$mean_signature_matrix, ref$Sigma)
+  lbfgsb <- deconvolute_single_cell(
+    y,
+    ref$mean_signature_matrix,
+    ref$Sigma,
+    optimiser = "lbfgsb",
+    epsilon = 1e-12
+  )
+  expect_equal(lbfgsb$p, newton$p, tolerance = 1e-4)
+})

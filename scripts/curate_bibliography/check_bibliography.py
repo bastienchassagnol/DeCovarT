@@ -22,10 +22,11 @@ Usage:
   python3 scripts/curate_bibliography/check_bibliography.py --clean
   python3 scripts/curate_bibliography/check_bibliography.py --check-qmd
 
-Enrichment companion (home user environment, no repo-local .venv):
-  python3 scripts/curate_bibliography/bib_enrich.py inst/REFERENCES.bib \\
-    --write --backup --min-score 92 --report .cursor/bib-enrichment.json
-  # dependencies installed once with uv under ~/.venvs/bib-enrich
+Enrichment companion (uv project in scripts/curate_bibliography/, its
+.venv is git-ignored; this checker itself needs the standard library only):
+  uv run --project scripts/curate_bibliography \\
+    python scripts/curate_bibliography/bib_enrich.py inst/REFERENCES.bib \\
+    --write --backup --min-score 92 --report scripts/curate_bibliography/bib-enrichment.json
 """
 
 from __future__ import annotations

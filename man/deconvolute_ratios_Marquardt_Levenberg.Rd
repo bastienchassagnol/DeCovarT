@@ -130,7 +130,7 @@ Optimisation is performed in unconstrained ILR coordinates
 \eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}} via
 \eqn{\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{z})}
 (Marquardt–Levenberg default; see other methods below and
-\code{vignette("theory-decovart-generative-model", package = "DeCovarT")}).
+\code{vignette("theory-population-generative-optimisation", package = "DeCovarT")}).
 }
 \details{
 \strong{Plug-in signature.} Argument \code{mean_signature_matrix} is the mean
@@ -163,11 +163,15 @@ ILR coordinates \eqn{\boldsymbol{z}} (\code{\link[stats:optim]{stats::optim()}} 
 \code{method = "SANN"}).
 
 \item \code{deconvolute_ratios_L_BFGS_B()}: Box-constrained L-BFGS-B
-directly in \eqn{\boldsymbol{p}} (\code{\link[stats:optim]{stats::optim()}} \code{method = "L-BFGS-B"}).
-The box keeps each coordinate in \eqn{[0,1]}; the returned vector is
-closed by \eqn{p/\sum p} (no \code{\link[=repair_simplex]{repair_simplex()}} clipping). Wald
-standard errors still use the ILR expected-Fisher map
-\code{\link[=vcov_ilr_delta]{vcov_ilr_delta()}}, not a \eqn{\boldsymbol{p}}-space Hessian.
+(\code{\link[stats:optim]{stats::optim()}} \code{method = "L-BFGS-B"}) on the closure
+\eqn{\boldsymbol{p}=\boldsymbol{w}/\mathbf{1}^{\mathsf{T}}\boldsymbol{w}}
+of the box \eqn{\boldsymbol{w}\ge\mathbf{0}}. The box covers the closed
+simplex, so the solver maximises the same likelihood as Newton--Raphson
+and can return exact zeros, and a stationary point of the box is one of
+the simplex. \code{epsilon} is the relative reduction of the log-likelihood
+at which the solver stops (\code{factr = epsilon / .Machine$double.eps}).
+Wald standard errors use the ILR expected-Fisher map
+\code{\link[=vcov_ilr_delta]{vcov_ilr_delta()}} and are undefined on a face.
 
 \item \code{deconvolute_ratios_Newton_Raphson()}: Newton–Raphson on ILR
 coordinates \eqn{\boldsymbol{z}} with the analytic score and observed

@@ -29,7 +29,7 @@ lrt_single_cell(
 \item{epsilon}{Relative function and step tolerances passed to
 \code{\link[stats:nlminb]{stats::nlminb()}}.}
 
-\item{itmax}{Maximum number of Newton iterations.}
+\item{itmax}{Maximum number of iterations.}
 }
 \value{
 A one-row data frame, as for \code{\link[=lrt_decovart]{lrt_decovart()}}.

@@ -1,5 +1,74 @@
+* **Simulation benchmarks rebuilt (figures 2, 3 and the new figure 5).**
+  - `deconvolute_ratios_L_BFGS_B()` now runs L-BFGS-B on the closure chart
+    p = w / sum(w), w >= 0, and maximises the convolution likelihood
+    itself: box KKT points are simplex KKT points and exact zeros are
+    reachable. The former fit renormalised a box-constrained surrogate,
+    whose faces were not stationary (KKT residual about 0.1). A
+    stick-breaking box was tried first and rejected: once a stick is
+    exhausted the later coordinates have no gradient, and the solver
+    stopped at vertices up to 2.19 log-likelihood units below the
+    maximum (0.0008 at most for the closure chart).
+  - `deconvolute_single_cell(optimiser = "lbfgsb")` maximises the profile
+    log-likelihood on the same chart; `bootstrap_decovart()` and
+    `bootstrap_single_cell()` gain `optimiser`, so bootstrap refits use
+    the optimiser of the estimate.
+  - `rescale_single_cell_moments()`: the cell size now scales the
+    covariance quadratically, S_j^2 Sigma_j^theta, as it scales every
+    gene of a cell; the overlap of two types of equal size no longer
+    depends on that size.
+  - `scale_covariances_to_overlap(pairs = )` calibrates the mean overlap
+    of selected pairs of types (siblings of a lineage).
+  - New `simulate_reference_replicates()`: an independent reference panel
+    of individuals (and cells) per type, for benchmark methods that
+    estimate the reference moments themselves.
+  - `run_simulation_benchmark(model = "single_cell", return_data = TRUE,
+    reference = )` simulates bulks from cells, scores the realised
+    fractions and the two scales, and returns the bulks and a reference
+    panel. Each deconvolution entry accepts a `ci` list; the new
+    `intervals` table reports, per method and interval construction
+    (Wald, ILR, profile, bootstrap, oracle, and the single-cell REML
+    variants), the
+    coverage with its Wilson Monte Carlo interval, the mean and median
+    width and the share of intervals leaving [0, 1].
+  - Figure scripts: `scripts/fig02_bivariate_toy.R`,
+    `scripts/fig03_variance_covariance_driven.R` and the new
+    `scripts/fig05_single_cell_hierarchical.R` (four cell types in two
+    lineages, 32 + 1 scenarios) share one layout: run size from
+    `DECOVART_N_REPLICATES`, `DECOVART_N_BOOT`, `DECOVART_N_REFERENCE`,
+    `DECOVART_CORES` and `DECOVART_POSTPROCESS_ONLY`;
+    `figXX_benchmark.rds` with every result and `figXX_plot_data.rds`
+    keyed by figure file stem. Figures 3 and 5 add MEAD (R package),
+    RNA-Sieve and ReDeconv (Python, through a `uv` project in
+    `scripts/benchmark_metrics/python/`) with gene filters off; DECALS
+    has no public code and is not run.
+  - Single-cell intervals and bootstraps also cover the platform scale
+    a = phi / c and the cell count n = c^2 / phi (rows `platform_scale_a`
+    and `cell_count_n`), formed on the log scale so both stay positive;
+    the benchmark scores them against the true a and n.
+  - `generate_random_network_skeleton()` accepts `block_sizes` for a
+    stochastic block model with fixed, contiguous blocks, and returns the
+    block of every gene as attribute `"block"`. Figures 3 and 5 use three
+    blocks of equal size; in figure 5 the two siblings of a lineage share
+    one skeleton (block model for types 1-2, scale-free for types 3-4) and
+    differ only by 5% of sign flips on the lineage's edge weights.
+  - Figures 2, 3 and 5 run NNLS next to `lsei`; figures 3 and 5 add the
+    robust linear model (`deconvolute_ratios_rlm()`). RNA-Sieve is scored
+    with its released interval and with the paper's Fisher and Godambe
+    intervals recomputed on all genes.
+  - `scripts/auxiliary/` is split into `scripts/benchmark_metrics/` and
+    `scripts/visualisation/`; the vignette figure scripts move to
+    `vignettes/scripts/`; the bibliography tools in
+    `scripts/curate_bibliography/` are a `uv` project.
+  - Theory vignettes are reorganised into population and single-cell
+    references, each split into generative model and optimisation, then
+    inference: `theory-population-generative-optimisation`,
+    `theory-population-inference`,
+    `theory-single-cell-generative-optimisation` and the new
+    `theory-single-cell-inference`. New vignette
+    `fig05-single-cell-hierarchical`.
+
 * **Fixes to the interval and test machinery, found by simulation.**
-  `scripts/auxiliary/check_confidence_interval_coverage.R` checks the
+  `scripts/benchmark_metrics/check_confidence_interval_coverage.R` checks the
   information matrices against independent computations and the coverage
   of every interval method (300 replicates).
   - `restricted_mle_decovart()` and `restricted_mle_single_cell()` used
@@ -26,7 +95,7 @@
     G - J residual degrees of freedom of the variance scale (covariance
     inflated by G / (G - J), Student-t quantiles, chi-square interval for
     phi, exact linear-model profile cut-off). With G = 10 the default
-    `"ml"` intervals cover 0.85 to 0.92 at the 0.95 level.
+    `"ml"` intervals cover 0.84 to 0.93 at the 0.95 level.
 
 * **Smaller, flatter internals.** `equicorrelation_gram()` is no longer
   exported: `generate_mean_signature_matrix(target_cosine = )` builds the

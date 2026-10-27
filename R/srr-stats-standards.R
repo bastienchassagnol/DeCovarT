@@ -152,7 +152,7 @@ NULL
 #' RE2 - Regression: pre-processing
 #'
 #' @srrstats {RE2.0} ILR reparametrisation documented in `?fit_decovart`,
-#'   `?isometric_logistic`, and `vignette("theory-decovart-generative-model")`.
+#'   `?isometric_logistic`, and `vignette("theory-population-generative-optimisation")`.
 #'
 #' @srrstats {RE2.1} Missing values in `y` or the signature raise an error
 #'   in `.prepare_deconvolution_inputs()`; no silent imputation.
@@ -329,7 +329,7 @@ NULL
 #'
 #' @srrstatsNA {G4.0} The package writes no files: figure books and
 #'   benchmark artefacts are written by the analysis scripts
-#'   (`scripts/auxiliary/benchmark_artefacts.R`), not by exported functions.
+#'   (`scripts/benchmark_metrics/benchmark_artefacts.R`), not by exported functions.
 #' @srrstatsNA {G2.4} No type coercion is performed: callers must supply
 #'   numeric matrices / arrays. `as.integer` / `as.numeric` / `as.character`
 #'   / `as.factor` helpers are therefore not part of the API.
