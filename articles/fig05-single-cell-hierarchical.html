@@ -109,7 +109,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>2.4 Single-cell scenario: four cell types in two lineages (G = 20 or 200, J = 4)</h1>
       <p class="subtitle">Full script: <code>scripts/fig05_single_cell_hierarchical.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-27</p>
+      <p class="date">2026-10-28</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/fig05-single-cell-hierarchical.qmd" class="external-link"><code>vignettes/fig05-single-cell-hierarchical.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -125,49 +125,20 @@
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">DeCovarT</a></span><span class="op">)</span></span></code></pre></div>
 </div>
 <p>The bivariate toy and the covariance-driven scenario use a population reference: every cell type is one purified Gaussian profile, and the bulk is their convolution. This scenario uses a <strong>single-cell</strong> reference: the bulk is the sum of <span class="math inline">n_i</span> cells, each drawn from the law of its type, and DeCovarT fits the single-cell model with its two scales profiled out (<a href="theory-single-cell-generative-optimisation.html#sec-profile-newton">single-cell model</a>). The <span class="math inline">J=4</span> cell types form two lineages, types 1–2 and types 3–4, so every type has a close sibling and a distant cousin. Construction, benchmark and plot books live in one script, <code>scripts/fig05_single_cell_hierarchical.R</code> (seed <code>20261024</code>).</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode tikz"><code class="sourceCode latex"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">%%| label: fig-single-cell-design</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">%%| fig-cap: Single-cell factorial. Six crossed factors with two levels each give 64 scenarios: five design factors, crossed with the platform scale a = 1 or 5, which tests the scale assumption of RNA-Sieve. Every scenario is analysed by eight methods.</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">%%| filename: fig-single-cell-design</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">%%| alt: Five design factors, composition, sibling overlap, cells per bulk, cell sizes and number of genes, each with two levels, combine with the platform scale 1 or 5 into 64 scenarios, each analysed by eight methods.</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">\begin</span>{<span class="ex">tikzpicture</span>}</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box, text width=2.5cm] (P) at (0,0) {composition<span class="fu">\\</span> balanced or <span class="ss">$(0.4,0.1,0.4,0.1)$</span>};</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box, text width=2.5cm] (O) at (3.2,0) {sibling overlap<span class="fu">\\</span> <span class="ss">$0.01$</span> or <span class="ss">$0.08$</span>};</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box, text width=2.5cm] (N) at (6.4,0) {cells per bulk<span class="fu">\\</span> <span class="ss">$n_i=10^{3}$</span> or <span class="ss">$10^{5}$</span>};</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box, text width=2.5cm] (S) at (9.6,0) {cell sizes<span class="fu">\\</span> <span class="ss">$(1,1,1,1)$</span> or <span class="ss">$(1,1,5,5)$</span>};</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box, text width=2.5cm] (G) at (12.8,0) {genes<span class="fu">\\</span> <span class="ss">$G=20$</span> or <span class="ss">$200$</span>};</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[keybox] (C) at (6.4,-2.2) {64 scenarios: <span class="ss">$2^{5}$</span> at each of <span class="ss">$a=1$</span> and <span class="ss">$a=5$</span>};</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[keybox] (A) at (6.4,-3.9) {8 methods, intervals for <span class="ss">$</span><span class="sc">\boldsymbol</span><span class="ss"> p$</span>, <span class="ss">$c$</span> and <span class="ss">$</span><span class="sc">\phi</span><span class="ss">$</span>};</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="fu">\foreach</span> <span class="fu">\n</span> in {P,O,N,S,G} <span class="fu">\draw</span>[edge] (<span class="fu">\n</span>.south) -- (C.north);</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="fu">\draw</span>[edge] (C) -- (A);</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="kw">\end</span>{<span class="ex">tikzpicture</span>}</span></code></pre></div>
-<div class="sourceCode" id="cb3"><pre class="sourceCode tikz"><code class="sourceCode latex"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">%%| label: fig-single-cell-hierarchy</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">%%| fig-cap: Order of the plot books. Pages nest the number of genes, the number of cells per bulk, the composition and the sibling overlap; inside each page, a 2-by-2 panel crosses the platform scale (rows) with the cell sizes (columns). Every cell of the grid is simulated.</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">%%| filename: fig-single-cell-hierarchy</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">%%| alt: A tree from the number of genes G (20, 200) to the cells per bulk (1e3, 1e5), the composition (balanced, unbalanced) and the sibling overlap (low, high), ending in a 2 by 2 panel with platform scale a = 1 or 5 in rows and equal or 1:1:5:5 cell sizes in columns.</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">\begin</span>{<span class="ex">tikzpicture</span>}[level distance=1.45cm,</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  level 1/.style={sibling distance=9.6cm},</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  level 2/.style={sibling distance=4.8cm},</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  level 3/.style={sibling distance=2.4cm},</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  every node/.style={font=<span class="fu">\footnotesize</span>}]</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[keybox] {genes <span class="ss">$G$</span>}</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  child {node[box] {<span class="ss">$G=20$</span>}</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    child {node[box] {<span class="ss">$n_i=10^{3}$</span>}</span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>      child {node[box] {balanced}}</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>      child {node[box] {unbalanced}}}</span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    child {node[box] {<span class="ss">$n_i=10^{5}$</span>}</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>      child {node[box] {balanced}}</span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>      child {node[box] {unbalanced}}}}</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  child {node[box] {<span class="ss">$G=200$</span>}</span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>    child {node[box] {<span class="ss">$n_i=10^{3}$</span>}</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>      child {node[box] {balanced}}</span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>      child {node[box] {unbalanced}}}</span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>    child {node[box] {<span class="ss">$n_i=10^{5}$</span>}</span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>      child {node[box] {balanced}}</span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>      child {node[box] {unbalanced}}}};</span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a><span class="fu">\node</span>[box, text width=12cm, align=flush center] at (0,-6.3)</span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>  {each composition leaf: sibling overlap low or high (one page each)<span class="fu">\\</span></span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  page = <span class="ss">$2</span><span class="sc">\times</span><span class="ss">2$</span> panel: rows <span class="ss">$a=1$</span>, <span class="ss">$a=5$</span>; columns sizes <span class="ss">$(1,1,1,1)$</span>, <span class="ss">$(1,1,5,5)$</span>};</span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a><span class="kw">\end</span>{<span class="ex">tikzpicture</span>}</span></code></pre></div>
+<div id="fig-single-cell-design" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-single-cell-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="fig05-single-cell-hierarchical_files/mediabag/fig-single-cell-design.svg">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-single-cell-design-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca"><p>Figure 1: Single-cell factorial. Six crossed factors with two levels each give 64 scenarios: five design factors, crossed with the platform scale a = 1 or 5, which tests the scale assumption of RNA-Sieve. Every scenario is analysed by eight methods.</p>
+</figcaption></figure>
+</div>
+<div id="fig-single-cell-hierarchy" class="quarto-float quarto-figure quarto-figure-center">
+<figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-single-cell-hierarchy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="fig05-single-cell-hierarchical_files/mediabag/fig-single-cell-hierarchy.svg">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-single-cell-hierarchy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca"><p>Figure 2: Order of the plot books. Pages nest the number of genes, the number of cells per bulk, the composition and the sibling overlap; inside each page, a 2-by-2 panel crosses the platform scale (rows) with the cell sizes (columns). Every cell of the grid is simulated.</p>
+</figcaption></figure>
+</div>
 <section class="section level2"><h2 id="sec-sc-generative">Generative model<a class="anchor" aria-label="anchor" href="#sec-sc-generative"></a>
 </h2>
 <p>The generator is the single-cell model itself (<a href="theory-single-cell-generative-optimisation.html#sec-cell-size-covariance">cell size in the covariance</a>). For bulk <span class="math inline">i</span>,</p>
@@ -317,7 +288,7 @@ Table 2: Single-cell factorial (64 scenarios).
 </ul>
 <p>Scenario identifiers read <code>S{row}_{Ba|Un}_{O1|O8}_n{1e3|1e5}_{Se|Sl}_G{20|200}_a{1|5}</code>, for example <code>S1_Ba_O1_n1e3_Se_G20_a1</code>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># The design takes about a minute (overlap calibration by Sobol Monte</span></span>
 <span><span class="co"># Carlo for each gene count and target).</span></span>
 <span><span class="va">benchmark</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/fig05/fig05_benchmark.rds"</span><span class="op">)</span></span>
@@ -533,7 +504,7 @@ Table 5: Run-size variables of <code>scripts/fig05_single_cell_hierarchical.R</
 </div>
 <p>Parallel workers load the <strong>installed</strong> DeCovarT, so run <code>devtools::install()</code> before setting <code>DECOVART_CORES</code> above 1.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Dry run:</span></span>
 <span><span class="co">#   DECOVART_N_REPLICATES=5 DECOVART_N_BOOT=5 \</span></span>
 <span><span class="co">#     Rscript scripts/fig05_single_cell_hierarchical.R</span></span>
@@ -549,7 +520,7 @@ Table 5: Run-size variables of <code>scripts/fig05_single_cell_hierarchical.R</
 </h2>
 <p><code>output/fig05/fig05_benchmark.rds</code> holds the run settings, the design, the true moments (<code>theta_true</code>) and every metric table; <code>output/fig05/fig05_plot_data.rds</code> holds, for each figure file stem, the data handed to its plot function.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"scripts/visualisation/load_visualisation.R"</span><span class="op">)</span></span>
 <span><span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/fig05/fig05_plot_data.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">plot_data</span><span class="op">)</span></span>
@@ -557,7 +528,7 @@ Table 5: Run-size variables of <code>scripts/fig05_single_cell_hierarchical.R</
 </div>
 <p>The books follow those of the <a href="fig03-covariance-driven.html#sec-hybrid-viz">covariance-driven scenario</a>, with these changes:</p>
 <ul>
-<li>pages follow <strong>?@fig-single-cell-hierarchy</strong>: <span class="math inline">G</span>, then <span class="math inline">n_i</span>, the composition and the sibling overlap; each page is a <span class="math inline">2\times2</span> panel with the platform scale in rows and the cell sizes in columns;</li>
+<li>pages follow <a href="#fig-single-cell-hierarchy" class="quarto-xref">Fig. 2</a>: <span class="math inline">G</span>, then <span class="math inline">n_i</span>, the composition and the sibling overlap; each page is a <span class="math inline">2\times2</span> panel with the platform scale in rows and the cell sizes in columns;</li>
 <li>log-likelihood surfaces are drawn on the two <strong>within-lineage</strong> balances, <span class="math inline">1\mid2</span> and <span class="math inline">3\mid4</span>, with the between-lineage balance held at its true value, each panel zoomed on its own peak;</li>
 <li>CIBERSORT is left out of the RMSE and Aitchison heatmaps and of the RMSE dot book, where its large error squeezed the shared colour scale;</li>
 <li>the scenario descriptors add <span class="math inline">n_i</span>, <span class="math inline">G</span> and the cell-size ratio;</li>

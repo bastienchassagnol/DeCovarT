@@ -17,54 +17,19 @@ type has a close sibling and a distant cousin. Construction, benchmark
 and plot books live in one script,
 `scripts/fig05_single_cell_hierarchical.R` (seed `20261024`).
 
-``` tikz
-%%| label: fig-single-cell-design
-%%| fig-cap: Single-cell factorial. Six crossed factors with two levels each give 64 scenarios: five design factors, crossed with the platform scale a = 1 or 5, which tests the scale assumption of RNA-Sieve. Every scenario is analysed by eight methods.
-%%| filename: fig-single-cell-design
-%%| alt: Five design factors, composition, sibling overlap, cells per bulk, cell sizes and number of genes, each with two levels, combine with the platform scale 1 or 5 into 64 scenarios, each analysed by eight methods.
-\begin{tikzpicture}
-\node[box, text width=2.5cm] (P) at (0,0) {composition\\ balanced or $(0.4,0.1,0.4,0.1)$};
-\node[box, text width=2.5cm] (O) at (3.2,0) {sibling overlap\\ $0.01$ or $0.08$};
-\node[box, text width=2.5cm] (N) at (6.4,0) {cells per bulk\\ $n_i=10^{3}$ or $10^{5}$};
-\node[box, text width=2.5cm] (S) at (9.6,0) {cell sizes\\ $(1,1,1,1)$ or $(1,1,5,5)$};
-\node[box, text width=2.5cm] (G) at (12.8,0) {genes\\ $G=20$ or $200$};
-\node[keybox] (C) at (6.4,-2.2) {64 scenarios: $2^{5}$ at each of $a=1$ and $a=5$};
-\node[keybox] (A) at (6.4,-3.9) {8 methods, intervals for $\boldsymbol p$, $c$ and $\phi$};
-\foreach \n in {P,O,N,S,G} \draw[edge] (\n.south) -- (C.north);
-\draw[edge] (C) -- (A);
-\end{tikzpicture}
-```
+![](fig05-single-cell-hierarchical_files/mediabag/fig-single-cell-design.svg)
 
-``` tikz
-%%| label: fig-single-cell-hierarchy
-%%| fig-cap: Order of the plot books. Pages nest the number of genes, the number of cells per bulk, the composition and the sibling overlap; inside each page, a 2-by-2 panel crosses the platform scale (rows) with the cell sizes (columns). Every cell of the grid is simulated.
-%%| filename: fig-single-cell-hierarchy
-%%| alt: A tree from the number of genes G (20, 200) to the cells per bulk (1e3, 1e5), the composition (balanced, unbalanced) and the sibling overlap (low, high), ending in a 2 by 2 panel with platform scale a = 1 or 5 in rows and equal or 1:1:5:5 cell sizes in columns.
-\begin{tikzpicture}[level distance=1.45cm,
-  level 1/.style={sibling distance=9.6cm},
-  level 2/.style={sibling distance=4.8cm},
-  level 3/.style={sibling distance=2.4cm},
-  every node/.style={font=\footnotesize}]
-\node[keybox] {genes $G$}
-  child {node[box] {$G=20$}
-    child {node[box] {$n_i=10^{3}$}
-      child {node[box] {balanced}}
-      child {node[box] {unbalanced}}}
-    child {node[box] {$n_i=10^{5}$}
-      child {node[box] {balanced}}
-      child {node[box] {unbalanced}}}}
-  child {node[box] {$G=200$}
-    child {node[box] {$n_i=10^{3}$}
-      child {node[box] {balanced}}
-      child {node[box] {unbalanced}}}
-    child {node[box] {$n_i=10^{5}$}
-      child {node[box] {balanced}}
-      child {node[box] {unbalanced}}}};
-\node[box, text width=12cm, align=flush center] at (0,-6.3)
-  {each composition leaf: sibling overlap low or high (one page each)\\
-  page = $2\times2$ panel: rows $a=1$, $a=5$; columns sizes $(1,1,1,1)$, $(1,1,5,5)$};
-\end{tikzpicture}
-```
+Figure 1: Single-cell factorial. Six crossed factors with two levels
+each give 64 scenarios: five design factors, crossed with the platform
+scale a = 1 or 5, which tests the scale assumption of RNA-Sieve. Every
+scenario is analysed by eight methods.
+
+![](fig05-single-cell-hierarchical_files/mediabag/fig-single-cell-hierarchy.svg)
+
+Figure 2: Order of the plot books. Pages nest the number of genes, the
+number of cells per bulk, the composition and the sibling overlap;
+inside each page, a 2-by-2 panel crosses the platform scale (rows) with
+the cell sizes (columns). Every cell of the grid is simulated.
 
 ## Generative model
 
@@ -334,7 +299,7 @@ The books follow those of the [covariance-driven
 scenario](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-covariance-driven.html#sec-hybrid-viz),
 with these changes:
 
-- pages follow **?@fig-single-cell-hierarchy**: G, then n_i, the
+- pages follow [Fig. 2](#fig-single-cell-hierarchy): G, then n_i, the
   composition and the sibling overlap; each page is a 2\times2 panel
   with the platform scale in rows and the cell sizes in columns;
 - log-likelihood surfaces are drawn on the two **within-lineage**

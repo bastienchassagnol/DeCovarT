@@ -109,7 +109,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Population-level DeCovarT inference: MLE properties, confidence intervals and a GLM formulation</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-27</p>
+      <p class="date">2026-10-28</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-population-inference.qmd" class="external-link"><code>vignettes/theory-population-inference.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -722,21 +722,21 @@ r(\psi_0)=\operatorname{sign}(\hat\psi-\psi_0)\sqrt{D(\psi_0)}
 <td style="text-align: left;">delta</td>
 <td style="text-align: left;">ct1</td>
 <td style="text-align: right;">0.950</td>
-<td style="text-align: right;">0.093</td>
+<td style="text-align: right;">0.097</td>
 <td style="text-align: right;">0.174</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">delta</td>
 <td style="text-align: left;">ct2</td>
-<td style="text-align: right;">0.973</td>
-<td style="text-align: right;">0.347</td>
+<td style="text-align: right;">0.970</td>
+<td style="text-align: right;">0.363</td>
 <td style="text-align: right;">0.209</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">delta</td>
 <td style="text-align: left;">ct3</td>
 <td style="text-align: right;">0.980</td>
-<td style="text-align: right;">0.763</td>
+<td style="text-align: right;">0.770</td>
 <td style="text-align: right;">0.090</td>
 </tr>
 <tr class="even">
@@ -744,21 +744,21 @@ r(\psi_0)=\operatorname{sign}(\hat\psi-\psi_0)\sqrt{D(\psi_0)}
 <td style="text-align: left;">ct1</td>
 <td style="text-align: right;">0.897</td>
 <td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.228</td>
+<td style="text-align: right;">0.226</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">back_transformed</td>
 <td style="text-align: left;">ct2</td>
-<td style="text-align: right;">0.977</td>
+<td style="text-align: right;">0.973</td>
 <td style="text-align: right;">0.000</td>
 <td style="text-align: right;">0.230</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">back_transformed</td>
 <td style="text-align: left;">ct3</td>
-<td style="text-align: right;">0.970</td>
+<td style="text-align: right;">0.963</td>
 <td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.125</td>
+<td style="text-align: right;">0.126</td>
 </tr>
 </tbody>
 </table>
@@ -766,7 +766,7 @@ r(\psi_0)=\operatorname{sign}(\hat\psi-\psi_0)\sqrt{D(\psi_0)}
 </div>
 <p>Out of 300 fits, 0 returned an estimate on a simplex face, where neither route is defined; the table is computed on the 300 interior fits. Three readings follow.</p>
 <ul>
-<li>The delta method places 76% of the intervals for the rare type partly below zero. Truncating them at zero would hide, not fix, the problem.</li>
+<li>The delta method places 77% of the intervals for the rare type partly below zero. Truncating them at zero would hide, not fix, the problem.</li>
 <li>The back-transformed intervals never leave <span class="math inline">(0,1)</span> and are wider for the rare type, as an asymmetric interval should be.</li>
 <li>Neither route is calibrated for every type, and they miss in opposite directions. The delta method reaches its nominal coverage only by spending most of the rare-type interval on negative proportions; the back-transformed route covers the abundant type in 90% of the fits. The normal approximation of <span class="math inline">\hat{\boldsymbol{\rho}}</span> is the weak link, and the routes only change how its error is mapped to the simplex.</li>
 </ul>
@@ -1094,7 +1094,7 @@ D
 <span>  loglik_diff <span class="op">=</span> <span class="va">eq_check</span><span class="op">$</span><span class="va">loglik_diff</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;  max_abs_diff   loglik_diff </span></span>
-<span><span class="co">#&gt;  2.498002e-16 -2.886580e-15</span></span></code></pre></div>
+<span><span class="co">#&gt;  2.775558e-16 -2.886580e-15</span></span></code></pre></div>
 </div>
 </section><section class="level2"><h3 id="sec-rna-sieve">RNA-Sieve: CLT likelihood, Fisher and Godambe<a class="anchor" aria-label="anchor" href="#sec-rna-sieve"></a>
 </h3>
@@ -1163,9 +1163,9 @@ Table 2: What each DeCovarT convergence field does and does not certify.
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="va">fit</span><span class="op">$</span><span class="va">diagnostics</span><span class="op">)</span></span>
 <span><span class="co">#&gt;          boundary_distance near_boundary   score_norm min_eigenvalue</span></span>
-<span><span class="co">#&gt; sample_1         0.2159583         FALSE 1.026533e-09      -160.1989</span></span>
+<span><span class="co">#&gt; sample_1         0.2159583         FALSE 1.026516e-09      -160.1989</span></span>
 <span><span class="co">#&gt; sample_2         0.1832317         FALSE 3.836661e-05      -167.0961</span></span>
-<span><span class="co">#&gt; sample_3         0.1682215         FALSE 4.077970e-08      -171.3536</span></span>
+<span><span class="co">#&gt; sample_3         0.1682215         FALSE 4.077976e-08      -171.3536</span></span>
 <span><span class="co">#&gt;          max_eigenvalue local_maximum</span></span>
 <span><span class="co">#&gt; sample_1      -24.48051          TRUE</span></span>
 <span><span class="co">#&gt; sample_2      -18.72240          TRUE</span></span>
@@ -1200,7 +1200,7 @@ Table 2: What each DeCovarT convergence field does and does not certify.
 <span>  multimodal <span class="op">=</span> <span class="va">restarts</span><span class="op">$</span><span class="va">multimodal</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; loglik_range   multimodal </span></span>
-<span><span class="co">#&gt; 1.038284e-09 0.000000e+00</span></span></code></pre></div>
+<span><span class="co">#&gt; 1.038287e-09 0.000000e+00</span></span></code></pre></div>
 </div>
 <p>A small range is reassuring but not a proof: a converged code, a tiny relative-distance-to-minimum and a negative-definite local Hessian together support a <strong>local</strong> maximum, and none of them rules out a second, equally good or better mode elsewhere on the simplex.</p>
 </section><section class="section level2"><h2 id="sec-glm">A generalised linear model view of DeCovarT<a class="anchor" aria-label="anchor" href="#sec-glm"></a>
