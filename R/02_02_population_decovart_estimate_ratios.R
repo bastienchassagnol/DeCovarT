@@ -808,10 +808,9 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
   # criterion of Commenges et al. (2006) then never leaves its "unevaluated"
   # sentinel (rdm = epsd + 1), so the algorithm always exhausts `maxiter`
   # (istop = 2) rather than stopping once genuinely close to the maximum.
-  # Sink console chatter from marqLevAlg without assigning inside capture.output()
-  fit <- local({
-    sink(nullfile())
-    on.exit(sink(), add = TRUE)
+  # Send the console output of marqLevAlg to the null device.
+  fit <- withr::with_output_sink(
+    nullfile(),
     marqLevAlg::marqLevAlg(
       b = initial_z,
       fn = loglik_multivariate_constrained,
@@ -829,7 +828,7 @@ deconvolute_ratios_Marquardt_Levenberg <- function(
       Sigma = Sigma,
       maxiter = itmax
     )
-  })
+  )
   if (anyNA(fit$b)) {
     warning(
       "marqLevAlg::marqLevAlg() returned no usable estimate (istop = ",

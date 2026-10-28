@@ -189,39 +189,30 @@
 #'
 #' @keywords internal
 #' @noRd
-.sobol_unit_cube <- local({
-  cache <- new.env(parent = emptyenv())
-  cache$warned <- FALSE
-  function(n, d, seed = NULL) {
-    n <- as.integer(n)
-    d <- as.integer(d)
-    if (n < 1L || d < 1L) {
-      stop("`n` and `d` must be positive integers.", call. = FALSE)
-    }
-    if (requireNamespace("qrng", quietly = TRUE)) {
-      args <- list(n = n, d = d, randomize = "digital.shift")
-      if (!is.null(seed)) {
-        args$seed <- as.integer(seed)
-      }
-      u <- do.call(qrng::sobol, args)
-      if (is.null(dim(u))) {
-        u <- matrix(u, ncol = 1L)
-      }
-      return(u)
-    }
-    if (!isTRUE(cache$warned)) {
-      .ui_warn(
-        "{.pkg qrng} is not installed; Sobol points fall back to",
-        " {.fn stats::runif}."
-      )
-      cache$warned <- TRUE
-    }
-    if (!is.null(seed)) {
-      set.seed(seed)
-    }
-    matrix(stats::runif(n * d), nrow = n, ncol = d)
+.sobol_unit_cube <- function(n, d, seed = NULL) {
+  n <- as.integer(n)
+  d <- as.integer(d)
+  if (n < 1L || d < 1L) {
+    stop("`n` and `d` must be positive integers.", call. = FALSE)
   }
-})
+  if (requireNamespace("qrng", quietly = TRUE)) {
+    args <- list(n = n, d = d, randomize = "digital.shift")
+    if (!is.null(seed)) {
+      args$seed <- as.integer(seed)
+    }
+    u <- do.call(qrng::sobol, args)
+    if (is.null(dim(u))) {
+      u <- matrix(u, ncol = 1L)
+    }
+    return(u)
+  }
+  cli::cli_inform(
+    "{.pkg qrng} is not installed; Sobol points use {.fn stats::runif}.",
+    .frequency = "once",
+    .frequency_id = "DeCovarT_sobol_qrng"
+  )
+  .with_seed(seed, matrix(stats::runif(n * d), nrow = n, ncol = d))
+}
 
 #' Inverse-transform Gaussian draws from unit-cube points
 #'
@@ -529,7 +520,7 @@ compute_average_overlap <- function(
   )
   if (theta$G >= 4L) {
     if (isTRUE(verbose)) {
-      .ui_info(c(
+      cli::cli_alert_info(paste(
         "G = {.val {theta$G}} >= 4: MixSim Davies overlap is replaced",
         "by stratified Sobol Monte Carlo ({.fn overlap_gaussian_mc},",
         "n_mc = {.val {n_mc}} draws per component)."

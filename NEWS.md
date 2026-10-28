@@ -1,3 +1,30 @@
+# DeCovarT 2.4.0
+
+* **Benchmark interval tables tolerate a missing parameter row.** When one
+  bulk's interval omitted a parameter (seen with L-BFGS-B at G = 200 in
+  figure 5), `compute_benchmark_metrics()` stopped with a subscript error.
+  That bulk now counts as having no interval for the parameter.
+
+* **Exported for scripts, so none needs `:::` or `get()`.**
+  `scale_covariances_to_overlap()`, `hellinger_gaussian()` (formerly
+  `.hellinger_gaussian()`), `kkt_residual()` (formerly `.kkt_residual()`)
+  and `benchmark_likelihood()` (formerly `.benchmark_model()`).
+* **No package-level mutable state.** `cli` and `withr` move to Imports.
+  The plain-text fallback of the `.ui_*` wrappers is removed and the
+  package calls `cli` directly. The single-slot Cholesky cache of the
+  covariance mixture is removed. Estimates are unchanged. Newton fits take
+  1.1 to 1.4 times as long at G = 20 (about 0.1 s per 200 fits); at
+  G = 200 repeated timings ranged from 0.6 to 1.5 times, because the
+  identity check on the covariance array costs about as much as the
+  factorisation it saves. The
+  qrng-missing note is shown once through `cli`'s own frequency control;
+  its `runif()` fallback no longer changes the caller's random state.
+  `.with_seed()` delegates to `withr::with_seed()`.
+* New test `test-linear-algebra.R` fails when BLAS / LAPACK return wrong
+  Cholesky factors or inverses. This happens with OpenBLAS 0.3.20 on
+  Intel Xeon w9-3575X (set `OPENBLAS_CORETYPE=SkylakeX` before R
+  starts); it was the cause of the fig05 failure at G = 200.
+
 * **Simulation benchmarks rebuilt (figures 2, 3 and the new figure 5).**
   - `deconvolute_ratios_L_BFGS_B()` now runs L-BFGS-B on the closure chart
     p = w / sum(w), w >= 0, and maximises the convolution likelihood

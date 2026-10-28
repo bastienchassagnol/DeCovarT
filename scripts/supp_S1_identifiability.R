@@ -51,12 +51,11 @@ if (
 } else {
   library(DeCovarT)
 }
-source(file.path("scripts", "auxiliary", "benchmark_artefacts.R"))
 
 OUT_DIR <- file.path("output", "supp_S1")
 dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
 
-.ui_h1("Supplementary S1 · Identifiability")
+cli::cli_h1("Supplementary S1 · Identifiability")
 
 N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "1000"))
 
@@ -99,7 +98,7 @@ config_1a <- tibble::tibble(
   p3_true = p_1a[3L],
   true_theta = list(list(p = p_1a, mu = mu_1a, sigma = Sigma_1a))
 )
-.ui_success("S1a generative model built (J=3, G=10, p3=0).")
+cli::cli_alert_success("S1a generative model built (J=3, G=10, p3=0).")
 
 
 # ── S1b: Same means, different Σ – identifiability from covariance only ──────
@@ -131,7 +130,7 @@ config_1b <- purrr::map_dfr(rho_grid_1b, function(rho) {
     true_theta = list(list(p = p_1b, mu = mu_1b, sigma = Sigma_b))
   )
 })
-.ui_success(
+cli::cli_alert_success(
   "S1b generative model built ({.val {nrow(config_1b)}} rho levels)."
 )
 config_1b$ID <- paste0("S1b_", seq_len(nrow(config_1b)))
@@ -162,7 +161,7 @@ config_1c <- purrr::map_dfr(rho_grid_1c, function(rho) {
     true_theta = list(list(p = p_1c, mu = mu_1c, sigma = Sigma_c))
   )
 })
-.ui_success(
+cli::cli_alert_success(
   "S1c generative model built ({.val {nrow(config_1c)}} rho levels)."
 )
 config_1c$ID <- paste0("S1c_", seq_len(nrow(config_1c)))
@@ -207,11 +206,11 @@ p_ml_starts <- vapply(
 start_spread <- max(apply(p_ml_starts, 1L, stats::sd))
 spread_txt <- format(signif(start_spread, 3))
 if (start_spread < 0.02) {
-  .ui_success(
+  cli::cli_alert_success(
     "Interior ILR-start spread (max SD) = {.val {spread_txt}} (solvers agree)."
   )
 } else {
-  .ui_warn(
+  cli::cli_alert_warning(
     "Interior ILR-start spread (max SD) = {.val {spread_txt}}."
   )
 }
@@ -234,7 +233,7 @@ deconv_fns_simple <- list(
   )
 )
 
-.ui_info("Running S1a with {.val {N_REPL}} replicates.")
+cli::cli_alert_info("Running S1a with {.val {N_REPL}} replicates.")
 out_1a <- run_simulation_benchmark(
   scenario_config = config_1a,
   deconvolution_functions = deconv_fns_simple,
@@ -250,7 +249,7 @@ write_simulation_artefacts(
   config = config_1a
 )
 
-.ui_info("Running S1b with {.val {N_REPL}} replicates.")
+cli::cli_alert_info("Running S1b with {.val {N_REPL}} replicates.")
 out_1b <- run_simulation_benchmark(
   scenario_config = config_1b,
   deconvolution_functions = deconv_fns_simple,
@@ -266,7 +265,7 @@ write_simulation_artefacts(
   config = config_1b
 )
 
-.ui_info("Running S1c with {.val {N_REPL}} replicates.")
+cli::cli_alert_info("Running S1c with {.val {N_REPL}} replicates.")
 out_1c <- run_simulation_benchmark(
   scenario_config = config_1c,
   deconvolution_functions = deconv_fns_simple,
@@ -281,7 +280,7 @@ write_simulation_artefacts(
   stem = "S1c",
   config = config_1c
 )
-.ui_success("Inference complete.")
+cli::cli_alert_success("Inference complete.")
 
 
 # ==============================================================================
@@ -318,8 +317,8 @@ if (requireNamespace("ggdist", quietly = TRUE)) {
     height = 5
   )
 }
-.ui_success("Figures saved.")
+cli::cli_alert_success("Figures saved.")
 
-.ui_success(
+cli::cli_alert_success(
   "Done. Outputs in {.path {normalizePath(OUT_DIR, mustWork = FALSE)}}."
 )

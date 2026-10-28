@@ -313,6 +313,8 @@ reference:
       (`R/01_03` to `R/01_05`).
     contents:
       - compute_benchmark_metrics
+      - benchmark_likelihood
+      - kkt_residual
       - coverage_mc_interval
       - compute_shannon_entropy
       - composition_from_entropy
@@ -320,7 +322,9 @@ reference:
       - overlap_gaussian_mc
       - compute_average_riemannian
       - compute_average_jeffreys
+      - hellinger_gaussian
       - scale_covariance_array
+      - scale_covariances_to_overlap
   - subtitle: Visualisation
     desc: |
       Monte Carlo plots and algorithm-similarity heatmaps of a benchmark

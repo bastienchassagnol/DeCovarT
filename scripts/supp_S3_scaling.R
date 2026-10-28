@@ -53,12 +53,11 @@ if (
 } else {
   library(DeCovarT)
 }
-source(file.path("scripts", "auxiliary", "benchmark_artefacts.R"))
 
 OUT_DIR <- file.path("output", "supp_S3")
 dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
 
-.ui_h1("Supplementary S3 · High-dimensional scaling")
+cli::cli_h1("Supplementary S3 · High-dimensional scaling")
 
 N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "100"))
 
@@ -92,7 +91,7 @@ full_grid <- tidyr::expand_grid(
   prop_lbl = names(PROP_CASES)
 )
 
-.ui_info("Building {.val {nrow(full_grid)}} scenario configs.")
+cli::cli_alert_info("Building {.val {nrow(full_grid)}} scenario configs.")
 
 scenario_config_S3 <- purrr::pmap_dfr(
   full_grid,
@@ -142,7 +141,7 @@ scenario_config_S3 <- purrr::pmap_dfr(
   }
 )
 
-.ui_success(
+cli::cli_alert_success(
   "Config: {.val {nrow(scenario_config_S3)}} valid scenarios."
 )
 scenario_config_S3$ID <- paste0(
@@ -168,7 +167,7 @@ deconvolution_functions_S3 <- list(
   )
 )
 
-.ui_info("Running benchmark with {.val {N_REPL}} replicates.")
+cli::cli_alert_info("Running benchmark with {.val {N_REPL}} replicates.")
 scaling_out <- run_simulation_benchmark(
   scenario_config = scenario_config_S3,
   deconvolution_functions = deconvolution_functions_S3,
@@ -201,8 +200,8 @@ ggplot2::ggsave(
   width = 14,
   height = 8
 )
-.ui_success("Saved {.file S3_metric_dots.pdf}.")
+cli::cli_alert_success("Saved {.file S3_metric_dots.pdf}.")
 
-.ui_success(
+cli::cli_alert_success(
   "Done. Outputs in {.path {normalizePath(OUT_DIR, mustWork = FALSE)}}."
 )

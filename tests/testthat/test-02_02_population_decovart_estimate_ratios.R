@@ -525,7 +525,7 @@ test_that("L-BFGS-B on the closure reaches a face and is stationary there", {
   expect_identical(unname(fit$coefficients[["ct3"]]), 0)
   expect_null(fit$z)
   score <- gradient_loglik_unconstrained(fit$coefficients, y, mu, sigma)
-  expect_lt(DeCovarT:::.kkt_residual(fit$coefficients, score), 1e-3)
+  expect_lt(kkt_residual(fit$coefficients, score), 1e-3)
   face <- restricted_mle_decovart(y, mu, sigma, fixed = c(ct3 = 0))
   expect_equal(fit$loglik, face$loglik, tolerance = 1e-6)
 })

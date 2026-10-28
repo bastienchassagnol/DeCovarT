@@ -10,38 +10,10 @@
 # * figXX_plot_data.rds: one entry per figure file stem, holding the data
 #   handed to its plot builder (see scripts/visualisation/).
 #
-# The run size comes from environment variables, so a dry run and the
-# production run share one script:
-#   DECOVART_N_REPLICATES  Monte Carlo bulks per scenario (N)
-#   DECOVART_N_BOOT        parametric-bootstrap refits per bulk (B)
-#   DECOVART_N_REFERENCE   individuals in the reference panel (R; default N)
-#   DECOVART_POSTPROCESS_ONLY=1 redraws the figures from figXX_benchmark.rds.
+# The run size (N bulks, R reference individuals, workers) is hard-coded at
+# the top of each figure script.
 
-benchmark_settings <- function(default_replicates, default_boot) {
-  read_count <- function(name, default) {
-    value <- Sys.getenv(name, "")
-    if (!nzchar(value)) {
-      return(as.integer(default))
-    }
-    value <- suppressWarnings(as.integer(value))
-    if (is.na(value) || value < 1L) {
-      stop("`", name, "` must be a positive integer.", call. = FALSE)
-    }
-    value
-  }
-  n_replicates <- read_count("DECOVART_N_REPLICATES", default_replicates)
-  list(
-    n_replicates = n_replicates,
-    n_boot = read_count("DECOVART_N_BOOT", default_boot),
-    n_reference = read_count("DECOVART_N_REFERENCE", n_replicates),
-    postprocess_only = identical(
-      Sys.getenv("DECOVART_POSTPROCESS_ONLY", "0"),
-      "1"
-    )
-  )
-}
-
-benchmark_meta <- function(seed, settings) {
+benchmark_meta <- function(seed, n_replicates, n_reference = NA_integer_) {
   commit <- tryCatch(
     system2("git", c("rev-parse", "--short", "HEAD"), stdout = TRUE),
     error = function(e) NA_character_,
@@ -49,9 +21,8 @@ benchmark_meta <- function(seed, settings) {
   )
   list(
     seed = seed,
-    n_replicates = settings$n_replicates,
-    n_boot = settings$n_boot,
-    n_reference = settings$n_reference,
+    n_replicates = n_replicates,
+    n_reference = n_reference,
     date = format(Sys.time(), "%Y-%m-%d %H:%M:%S %Z"),
     git_commit = commit,
     session_info = utils::sessionInfo()
@@ -109,7 +80,7 @@ score_competitors <- function(
     theta <- config$true_theta[[i]]
     mu <- theta$mu
     data <- benchmark$data[[i]]
-    functions <- DeCovarT:::.benchmark_model(model, mu, theta$sigma)
+    functions <- benchmark_likelihood(model, mu, theta$sigma)
     rows_i <- competitors[competitors$scenario_id == config$ID[[i]], ]
     for (algorithm in unique(rows_i$algorithm)) {
       rows <- rows_i[rows_i$algorithm == algorithm, ]
@@ -169,7 +140,7 @@ score_competitors <- function(
         ],
         numerical_converged = finite,
         kkt_residual = per_sample(function(s) {
-          DeCovarT:::.kkt_residual(
+          kkt_residual(
             p_hat[, s],
             functions$score(p_hat[, s], data$bulk[, s])
           )
@@ -188,13 +159,15 @@ score_competitors <- function(
         size <- colSums(mu)
         transcript <- data$truth * size
         transcript <- sweep(transcript, 2L, colSums(transcript), "/")
-        native_q <- DeCovarT:::.interval_table(
-          intervals,
-          p_hat = p_hat,
-          p_true = transcript,
+        native_q <- compute_benchmark_metrics(
+          y = data$bulk,
+          mean_signature_matrix = mu,
+          estimated_p = p_hat,
+          true_ratios = transcript,
           coverage_interval = coverage_interval,
-          algorithm = algorithm
-        )
+          algorithm = algorithm,
+          intervals = intervals
+        )$intervals
         native_q$ci_method <- "native (transcript fractions)"
         metrics$intervals <- dplyr::bind_rows(metrics$intervals, native_q)
       }
@@ -262,16 +235,4 @@ save_benchmark <- function(benchmark, config, meta, file) {
   dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
   saveRDS(artefact, file)
   invisible(file)
-}
-
-read_benchmark <- function(file) {
-  if (!file.exists(file)) {
-    stop(
-      "No benchmark at `",
-      file,
-      "`; run the figure script without DECOVART_POSTPROCESS_ONLY first.",
-      call. = FALSE
-    )
-  }
-  readRDS(file)
 }

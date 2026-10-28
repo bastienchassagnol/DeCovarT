@@ -1759,7 +1759,7 @@ $\ell(\hat{\boldsymbol{p}})$ is within $10^{-3}$ of
 $\ell(\boldsymbol{p}^{\star})$ (the generating value, a proxy for the
 expected global maximum in a well-specified Monte Carlo). The default
 stationarity diagnostic stored on `optimisation$kkt_residual` is the
-**simplex projected-score residual** `.kkt_residual()`
+**simplex projected-score residual** `kkt_residual()`
 (@nte-kkt-ilr-hessian), not the raw ambient gradient and not the ILR
 score from `boundary_diagnostics()`.
 
@@ -1922,7 +1922,7 @@ R_{\alpha}(\boldsymbol{p})
 \bigr),
 $$
 with Euclidean projection $\Pi_{\Delta}$ onto the simplex (computed
-inside `.kkt_residual()`) and default $\alpha=1$. Then
+inside `kkt_residual()`) and default $\alpha=1$. Then
 $\texttt{kkt\_residual}=\|R_{\alpha}(\hat{\boldsymbol{p}})\|_2$. This
 vanishes if and only if a first-order feasible step does not move the
 iterate, including when some $p_j=0$ (KKT:

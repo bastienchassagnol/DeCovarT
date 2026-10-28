@@ -88,11 +88,26 @@
 #'
 #' \eqn{\|\Pi_\Delta(p + \alpha g) - p\|_2 / \alpha} for maximisation,
 #' with \eqn{\Pi_\Delta} the Euclidean projection onto the probability
-#' simplex (sort-and-threshold algorithm).
+#' simplex (sort-and-threshold algorithm). It is zero exactly at a
+#' Karush-Kuhn-Tucker point of the log-likelihood on the closed simplex,
+#' interior or on a face, which makes it a solver-independent check of an
+#' estimate.
 #'
-#' @keywords internal
-#' @noRd
-.kkt_residual <- function(p, grad, alpha = 1) {
+#' @param p Composition on the simplex.
+#' @param grad Score (gradient of the log-likelihood) at `p`, same length.
+#' @param alpha Positive step; a non-finite or non-positive value is
+#'   replaced by 1.
+#'
+#' @return A non-negative number, or `NA` when the lengths differ.
+#'
+#' @examples
+#' # Interior stationary point: the score is parallel to the ones vector.
+#' kkt_residual(c(0.3, 0.7), c(2, 2))
+#' # Vertex with an outward score: still a KKT point.
+#' kkt_residual(c(1, 0), c(1, -5))
+#' kkt_residual(c(0.5, 0.5), c(1, -1))
+#' @export
+kkt_residual <- function(p, grad, alpha = 1) {
   p <- as.numeric(p)
   grad <- as.numeric(grad)
   if (length(p) != length(grad) || length(p) == 0L) {

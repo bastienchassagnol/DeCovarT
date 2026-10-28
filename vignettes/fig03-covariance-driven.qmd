@@ -225,21 +225,19 @@ reserved for separate scenarios.
 
 : Composition factor. {#tbl-composition-factor}
 
-The run size is read from environment variables, so the dry run and the
-production run share one script:
+The run size is hard-coded at the top of the script:
 
-| Variable | Meaning | Default |
+| Constant | Meaning | Value |
 |---|---|---|
-| `DECOVART_N_REPLICATES` | Monte Carlo bulks per scenario, $N$ | 100 |
-| `DECOVART_N_BOOT` | parametric-bootstrap refits per bulk, $B$ | 200 |
-| `DECOVART_N_REFERENCE` | individuals of the reference panel, $R$ | $N$ |
-| `DECOVART_CORES` | workers of the per-sample loop | 1 |
-| `DECOVART_POSTPROCESS_ONLY` | `1` redraws the figures from the saved benchmark | 0 |
+| `N_REPLICATES` | Monte Carlo bulks per scenario, $N$ | 200 |
+| `N_REFERENCE` | individuals of the reference panel, $R$ (MEAD and RNA-Sieve) | 200 |
+| `CORES` | workers for the $N$ bulks of a scenario; the three figure scripts run at the same time | a third of half the cores (14 of 88) |
+| `POSTPROCESS_ONLY` | `TRUE` redraws the figures from the saved benchmark | `FALSE` |
 
-: Run-size variables of `scripts/fig03_variance_covariance_driven.R`. {#tbl-run-size}
+: Run-size constants of `scripts/fig03_variance_covariance_driven.R`. {#tbl-run-size}
 
 Parallel workers load the **installed** DeCovarT, so run
-`devtools::install()` before setting `DECOVART_CORES` above 1.
+`devtools::install()` before a parallel run.
 
 ## Methods {#sec-hybrid-methods}
 
@@ -252,8 +250,8 @@ is switched off everywhere: all $G=20$ genes enter every fit.
 | NNLS | `deconvolute_ratios_nnls()` | true means | none |
 | RLM (robust linear model) | `deconvolute_ratios_rlm()` | true means | none |
 | CIBERSORT ($\nu$-SVR) | `deconvolute_ratios_cibersort()` | true means | none |
-| Newton–Raphson | `deconvolute_ratios_Newton_Raphson()` | true moments | Wald, ILR, profile, bootstrap, oracle |
-| L-BFGS-B | `deconvolute_ratios_L_BFGS_B()` | true moments | Wald, ILR, profile, bootstrap |
+| Newton–Raphson | `deconvolute_ratios_Newton_Raphson()` | true moments | Wald, ILR, profile, oracle |
+| L-BFGS-B | `deconvolute_ratios_L_BFGS_B()` | true moments | Wald, ILR, profile |
 | Firth | `fit_firth_decovart()` | true moments | Wald, ILR |
 | MEAD | `MEAD::MEAD()` (GitHub, commit `d66fa10`) | reference panel, cohort of $N$ bulks | native sandwich interval |
 | RNA-Sieve | `rnasieve` 0.1.4 (Python) | reference panel, cohort of $N$ bulks | released, Fisher and Godambe (see below) |
@@ -316,7 +314,6 @@ is switched off everywhere: all $G=20$ genes enter every fit.
 | `wald` | delta method on $\boldsymbol p$, symmetric |
 | `ilr` | Wald interval in ILR coordinates mapped back to the simplex |
 | `profile` | likelihood-ratio inversion; chart-invariant, inside $[0,1]$ |
-| `bootstrap` | percentile interval of a parametric bootstrap refitted by the same optimiser |
 | `oracle` | $\hat p_j\pm$ the Wald half-width at $\boldsymbol p^{\star}$ (Fisher at the truth) |
 
 : Interval menu ([population inference](theory-population-inference.html)). {#tbl-interval-menu}
@@ -327,9 +324,6 @@ mean and median width and the share of intervals leaving $[0,1]$.
 
 ```{r}
 #| label: inference
-# Dry run (about two minutes):
-#   DECOVART_N_REPLICATES=5 DECOVART_N_BOOT=5 \
-#     Rscript scripts/fig03_variance_covariance_driven.R
 benchmark <- readRDS("output/fig03/fig03_benchmark.rds")
 names(benchmark)
 #> meta config theta_true descriptors supplementary regression
@@ -379,7 +373,8 @@ render_figure_from_data("ci_width_forest", plot_data, "output/fig03")
 : Plot books of the covariance-driven scenario. {#tbl-fig03-books}
 
 Redraw every book without refitting with
-`DECOVART_POSTPROCESS_ONLY=1 Rscript scripts/fig03_variance_covariance_driven.R`.
+`POSTPROCESS_ONLY <- TRUE` at the top of
+`scripts/fig03_variance_covariance_driven.R`.
 
 ## Two-dimensional projections of a Gaussian convolution {#sec-hybrid-2d-proj}
 

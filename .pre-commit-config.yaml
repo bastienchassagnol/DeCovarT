@@ -41,6 +41,17 @@ repos:
         pass_filenames: true
         verbose: true
 
+  # Scripts and vignettes use the exported API only: a function they need
+  # is exported (@export) and documented, never reached with ::: or
+  # asNamespace(). pkgcheck does not see scripts/ (.Rbuildignore).
+  - repo: local
+    hooks:
+      - id: no-decovart-internals
+        name: no DeCovarT internals in scripts/ and vignettes/
+        entry: 'DeCovarT:::|asNamespace\(.DeCovarT.\)'
+        language: pygrep
+        files: '^(scripts|vignettes)/.*\.(R|r|qmd|Rmd)$'
+
   # Generic hygiene hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0

@@ -5,21 +5,18 @@
 ###                                                                         ###
 ###############################################################################
 #
-# Run from the repository root; stdout and stderr go to logs/:
+# Run from the repository root; stdout and stderr go to logs/. OpenBLAS
+# 0.3.20 needs OPENBLAS_CORETYPE on this machine (see the check below):
 #
 #   mkdir -p logs
+#   export OPENBLAS_CORETYPE=SkylakeX OPENBLAS_NUM_THREADS=1
 #   nohup Rscript --no-save --no-restore scripts/fig02_bivariate_toy.R \
 #     > "logs/fig02_$(date +%F)_bivariate_toy.log" 2>&1 &
 #
-# Run size (environment variables; see
-# scripts/benchmark_metrics/benchmark_artefacts.R):
-#   DECOVART_N_REPLICATES  Monte Carlo bulks per scenario   (default 200)
-#   DECOVART_N_BOOT        bootstrap refits per bulk          (default 100)
-#   DECOVART_CORES         workers for the per-sample loop    (default 1)
-#                          (workers load the installed DeCovarT, so run
-#                          devtools::install() before a parallel run)
-#   DECOVART_POSTPROCESS_ONLY=1 redraws the figures from the saved benchmark.
-# A dry run: DECOVART_N_REPLICATES=5 DECOVART_N_BOOT=5 Rscript ...
+# Run size, hard-coded below: N_REPLICATES Monte Carlo bulks per scenario,
+# CORES workers for the N bulks of each scenario (they load the installed
+# DeCovarT, so run devtools::install() first). POSTPROCESS_ONLY <- TRUE redraws the
+# figures from the saved benchmark.
 #
 # Factorial design
 #  Proportions             balanced (1/2, 1/2); moderately unbalanced
@@ -47,10 +44,10 @@
 #  are run in fig03 and fig05 only.
 #
 # Confidence intervals at every DeCovarT estimate: Wald (delta method), ILR
-# (Wald in ILR coordinates mapped back), profile likelihood, parametric
-# bootstrap refitted by the same optimiser, and the oracle half-width at the
-# true composition (Newton-Raphson only). Firth: Wald and ILR at the
-# penalised estimate.
+# (Wald in ILR coordinates mapped back), profile likelihood, and the oracle
+# half-width at the true composition (Newton-Raphson only). Firth: Wald and
+# ILR at the penalised estimate. No bootstrap: the moments are fixed, and
+# coverage is measured over the N bulks of a scenario.
 #
 # Outputs (output/fig02/)
 #  fig02_benchmark.rds   settings, design, truth, every metric table
@@ -230,21 +227,20 @@ build_bivariate_scenario_config <- function(
 #'
 #' @param itmax,epsilon Iteration cap and convergence tolerance of the
 #'   DeCovarT solvers.
-#' @param n_boot Parametric-bootstrap refits per bulk; `NULL` drops the
-#'   intervals (tests).
+#' @param intervals If `FALSE` (tests), no confidence intervals.
 #'
 #' @return Named list for [run_simulation_benchmark()].
 bivariate_toy_deconvolution_functions <- function(
   itmax = 10L,
   epsilon = 1e-3,
-  n_boot = NULL
+  intervals = FALSE
 ) {
   solver <- list(epsilon = epsilon, itmax = itmax, initial_p = "barycentre")
   interval_menu <- function(methods, optimiser = "newton") {
-    if (is.null(n_boot)) {
+    if (!isTRUE(intervals)) {
       return(NULL)
     }
-    list(methods = methods, n_boot = n_boot, optimiser = optimiser)
+    list(methods = methods, optimiser = optimiser)
   }
   list(
     "lsei" = list(FUN = deconvolute_ratios_deconrnaseq),
@@ -252,12 +248,12 @@ bivariate_toy_deconvolution_functions <- function(
     "Newton-Raphson" = list(
       FUN = deconvolute_ratios_Newton_Raphson,
       additional_parameters = solver,
-      ci = interval_menu(c("wald", "ilr", "profile", "bootstrap", "oracle"))
+      ci = interval_menu(c("wald", "ilr", "profile", "oracle"))
     ),
     "L-BFGS-B" = list(
       FUN = deconvolute_ratios_L_BFGS_B,
       additional_parameters = solver,
-      ci = interval_menu(c("wald", "ilr", "profile", "bootstrap"), "lbfgsb")
+      ci = interval_menu(c("wald", "ilr", "profile"), "lbfgsb")
     ),
     "Firth" = list(
       FUN = fit_firth_decovart,
@@ -277,54 +273,80 @@ if (
       )
     ))
 ) {
-  devtools::load_all(".", quiet = TRUE)
-  source(file.path("scripts", "benchmark_metrics", "benchmark_artefacts.R"))
-  source(file.path("scripts", "visualisation", "load_visualisation.R"))
-  stopifnot(requireNamespace("MixSim", quietly = TRUE))
-
+  # Run size and output.
+  N_REPLICATES <- 200L
+  # The three figure scripts run at the same time on half the machine:
+  # a third of half the cores each (14 on 88 logical cores).
+  CORES <- (parallel::detectCores() %/% 2L) %/% 3L
+  POSTPROCESS_ONLY <- FALSE
   OUT_DIR <- file.path("output", "fig02")
   BENCHMARK_FILE <- file.path(OUT_DIR, "fig02_benchmark.rds")
   SEED <- 20260903L
   ITMAX <- 200L
   EPSILON <- 1e-4
-  CORES <- as.integer(Sys.getenv("DECOVART_CORES", "1"))
-  settings <- benchmark_settings(default_replicates = 200L, default_boot = 100L)
 
-  .ui_h1("Figure 02: bivariate toy model")
+  # Locally installed build, not devtools::load_all() of this tree.
+  library(DeCovarT)
+  # A faulty BLAS kernel returns wrong Cholesky factors and inverses
+  # (OpenBLAS 0.3.20 on AVX-512 / AMX CPUs).
+  local({
+    a <- 0.5^abs(outer(seq_len(64L), seq_len(64L), "-"))
+    if (
+      max(abs(crossprod(chol(a)) - a)) > 1e-10 ||
+        max(abs(solve(a) %*% a - diag(64L))) > 1e-8
+    ) {
+      stop(
+        "BLAS returns wrong chol()/solve(); set OPENBLAS_CORETYPE=SkylakeX ",
+        "before starting R.",
+        call. = FALSE
+      )
+    }
+  })
+  source(file.path("scripts", "benchmark_metrics", "benchmark_artefacts.R"))
+  source(file.path("scripts", "visualisation", "load_visualisation.R"))
+  stopifnot(requireNamespace("MixSim", quietly = TRUE))
 
-  if (!settings$postprocess_only) {
+  cli::cli_h1("Figure 02: bivariate toy model")
+
+  if (!POSTPROCESS_ONLY) {
     set.seed(SEED)
     scenario_config <- build_bivariate_scenario_config()
-    .ui_info(
-      "{.val {nrow(scenario_config)}} scenarios, N = {.val {settings$n_replicates}}, B = {.val {settings$n_boot}}."
+    cli::cli_alert_info(
+      "{.val {nrow(scenario_config)}} scenarios, N = {.val {N_REPLICATES}}, {.val {CORES}} workers."
     )
+    # One pool of workers for the whole run: deconvolute_ratios() reuses a
+    # plan that is already set, instead of starting CORES new R sessions
+    # for every scenario (7 s each time for a pool of 44 workers).
+    if (CORES > 1L) {
+      future::plan(future::multisession, workers = CORES)
+    }
     started <- proc.time()[["elapsed"]]
     bivariate_out <- run_simulation_benchmark(
       scenario_config = scenario_config,
       deconvolution_functions = bivariate_toy_deconvolution_functions(
         itmax = ITMAX,
         epsilon = EPSILON,
-        n_boot = settings$n_boot
+        intervals = TRUE
       ),
-      n = settings$n_replicates,
+      n = N_REPLICATES,
       cores = CORES,
       verbose = TRUE,
       return_data = TRUE
     )
-    .ui_success(
+    cli::cli_alert_success(
       "Benchmark finished in {.val {round(proc.time()[['elapsed']] - started)}} s."
     )
     save_benchmark(
       bivariate_out,
       scenario_config,
-      benchmark_meta(SEED, settings),
+      benchmark_meta(SEED, N_REPLICATES),
       BENCHMARK_FILE
     )
   }
 
-  benchmark <- read_benchmark(BENCHMARK_FILE)
+  benchmark <- readRDS(BENCHMARK_FILE)
   plot_data <- figure_plot_data(benchmark, figure = "fig02")
   saveRDS(plot_data, file.path(OUT_DIR, "fig02_plot_data.rds"))
   render_figure_books(plot_data, OUT_DIR)
-  .ui_success("Figure 02 written to {.file {OUT_DIR}}.")
+  cli::cli_alert_success("Figure 02 written to {.file {OUT_DIR}}.")
 }

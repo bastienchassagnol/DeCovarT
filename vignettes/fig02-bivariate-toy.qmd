@@ -317,8 +317,8 @@ Five methods are evaluated on each scenario:
 |---|---|---|
 | `lsei` | DeconRNASeq: least squares on the simplex by `limSolve::lsei` [@gongDeconRNASeqStatisticalFramework2013] | none |
 | `NNLS` | Lawson–Hanson non-negative least squares, renormalised [@dessoleLawsonHansonAlgorithmDeviation2023] | none |
-| `Newton-Raphson` | Second-order ascent in ILR coordinates | Wald, ILR, profile, bootstrap, oracle |
-| `L-BFGS-B` | Limited-memory quasi-Newton on the closure chart $\boldsymbol p=\boldsymbol w/\mathbf 1^{\top}\boldsymbol w$, $\boldsymbol w\ge0$ | Wald, ILR, profile, bootstrap |
+| `Newton-Raphson` | Second-order ascent in ILR coordinates | Wald, ILR, profile, oracle |
+| `L-BFGS-B` | Limited-memory quasi-Newton on the closure chart $\boldsymbol p=\boldsymbol w/\mathbf 1^{\top}\boldsymbol w$, $\boldsymbol w\ge0$ | Wald, ILR, profile |
 | `Firth` | Jeffreys-penalised likelihood [@firthBiasReductionMaximum1993] | Wald, ILR |
 
 : Methods of the bivariate benchmark. {#tbl-bivariate-methods}
@@ -344,26 +344,28 @@ Five methods are evaluated on each scenario:
 The interval constructions are those of
 [population inference](theory-population-inference.html): `wald` (delta
 method on $\boldsymbol p$), `ilr` (Wald in ILR coordinates mapped back),
-`profile` (likelihood-ratio inversion), `bootstrap` (percentile interval
-of a parametric bootstrap refitted by the same optimiser) and `oracle`
-($\hat p_j$ plus or minus the Wald half-width at $\boldsymbol p^{\star}$).
+`profile` (likelihood-ratio inversion) and `oracle` ($\hat p_j$ plus or
+minus the Wald half-width at $\boldsymbol p^{\star}$). The parametric
+bootstrap (`bootstrap_decovart()`) is not run here: the moments of a
+scenario are fixed, so coverage is measured over its $N$ bulks, and
+$N\times B$ refits per solver dominated the run time.
 Performance is summarised with the ADEMP framework
 [@morrisUsingSimulationStudies2019]: **bias**, **RMSE**, **coverage**
 of each interval construction (Wilson intervals on the coverage
 *rate*), **width**, **SE/SD**, and optimiser **failure rate**.
 
-The run size comes from environment variables:
-`DECOVART_N_REPLICATES` ($N$, default 200), `DECOVART_N_BOOT` ($B$,
-default 100), `DECOVART_CORES` (default 1; parallel workers load the
-installed package) and `DECOVART_POSTPROCESS_ONLY=1` (redraw only). A
-dry run with $N=B=5$ takes about ten minutes on one core.
+The run size is hard-coded at the top of the script: `N_REPLICATES`
+($N=200$), `CORES` (workers for the $N$ bulks of a scenario: a third of
+half the cores, 14 of 88, since the three figure scripts run at the same
+time; parallel workers load the installed package) and
+`POSTPROCESS_ONLY` (`TRUE` redraws only).
 
 ```{r}
 #| label: inference
 deconvolution_functions <- bivariate_toy_deconvolution_functions(
   itmax = 200L,
   epsilon = 1e-4,
-  n_boot = 100L
+  intervals = TRUE
 )
 bivariate <- run_simulation_benchmark(
   scenario_config = bivariate_config,
@@ -421,8 +423,8 @@ information inequality).
 
 : Plot books of the bivariate scenario. {#tbl-fig02-books}
 
-- The Q-Q books assess the Wald approximation only; the profile and
-  bootstrap intervals do not rely on it. Squaring a whitened value of
+- The Q-Q books assess the Wald approximation only; the profile
+  intervals do not rely on it. Squaring a whitened value of
   $-30$ gives $D^2=900$, so the $\chi^2$ book uses $\log_{10}$ axes.
 - The Hellinger distance
   $\lVert\sqrt{\hat{\boldsymbol p}_A}-\sqrt{\hat{\boldsymbol p}_B}\rVert_2/\sqrt2$

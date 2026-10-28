@@ -25,40 +25,30 @@
   (x + t(x)) / 2
 }
 
-#' Cached Cholesky factorisation of a weighted covariance mixture
+#' Cholesky factorisation of a weighted covariance mixture
 #'
-#' Newton-type solvers evaluate the log-likelihood, score and Hessian at
-#' the same trial point within one iteration. This single-slot cache,
-#' keyed on exact equality of `weights` and `Sigma`, factorises the
-#' \eqn{G\times G} mixture once and returns the matrix, its upper
-#' Cholesky factor, the log-determinant and the precision.
+#' Factorises the \eqn{G\times G} mixture and returns the matrix, its
+#' upper Cholesky factor, the log-determinant and the precision. A
+#' mixture that is not numerically positive definite is first completed
+#' by the uniform spectral shift of [.ensure_spd()]. No result is cached:
+#' an identity check on the \eqn{G\times G\times J} array costs about as
+#' much as the factorisation itself.
 #'
 #' @noRd
-.mixture_factorisation <- local({
-  cache <- new.env(parent = emptyenv())
-  cache$value <- NULL
-
-  function(weights, Sigma) {
-    cached <- cache$value
-    if (
-      !is.null(cached) &&
-        identical(cached$weights, weights) &&
-        identical(cached$Sigma, Sigma)
-    ) {
-      return(cached$value)
-    }
-    mixture <- .ensure_spd(.mixture_covariance(weights, Sigma))
+.mixture_factorisation <- function(weights, Sigma) {
+  mixture <- .mixture_covariance(weights, Sigma)
+  chol_factor <- tryCatch(base::chol(mixture), error = function(e) NULL)
+  if (is.null(chol_factor)) {
+    mixture <- .ensure_spd(mixture)
     chol_factor <- base::chol(mixture)
-    value <- list(
-      matrix = mixture,
-      chol = chol_factor,
-      log_det = 2 * sum(log(diag(chol_factor))),
-      inverse = chol2inv(chol_factor)
-    )
-    cache$value <- list(weights = weights, Sigma = Sigma, value = value)
-    value
   }
-})
+  list(
+    matrix = mixture,
+    chol = chol_factor,
+    log_det = 2 * sum(log(diag(chol_factor))),
+    inverse = chol2inv(chol_factor)
+  )
+}
 
 #' Trust-region Newton ascent in ILR coordinates
 #'

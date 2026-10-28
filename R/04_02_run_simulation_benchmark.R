@@ -34,7 +34,7 @@
   mu <- true_theta$mu
   Sigma <- true_theta$sigma
   if (is.null(Sigma)) {
-    .ui_abort("{.arg true_theta} must contain {.field sigma} for simulation.")
+    cli::cli_abort("{.arg true_theta} must contain {.field sigma} for simulation.")
   }
   p <- true_theta$p
   generative_mean <- if (is.null(true_theta$generative_mean)) {
@@ -284,26 +284,26 @@ run_simulation_benchmark <- function(
   call <- match.call()
   if (!is.data.frame(scenario_config)) {
     if (!is.list(scenario_config)) {
-      .ui_abort(
+      cli::cli_abort(
         "{.arg scenario_config} must be a tibble or list of scenario rows."
       )
     }
     scenario_config <- dplyr::bind_rows(scenario_config)
   }
   if (!"true_theta" %in% names(scenario_config)) {
-    .ui_abort(
+    cli::cli_abort(
       "{.arg scenario_config} must contain a {.field true_theta} column."
     )
   }
   if (nrow(scenario_config) == 0L) {
-    .ui_abort("{.arg scenario_config} must have at least one row.")
+    cli::cli_abort("{.arg scenario_config} must have at least one row.")
   }
 
   n_scen <- nrow(scenario_config)
   n_algo <- length(deconvolution_functions)
   sample_verbose <- isTRUE(verbose) && n_scen <= 10L
   if (isTRUE(verbose)) {
-    .ui_info(
+    cli::cli_alert_info(
       "Benchmark: {.val {n_scen}} scenarios \u00b7 {.val {n_algo}} algorithms \u00b7 n = {.val {n}}."
     )
   }
@@ -318,7 +318,7 @@ run_simulation_benchmark <- function(
     row <- scenario_config[i, , drop = FALSE]
     true_theta <- row$true_theta[[1L]]
     if (!is.list(true_theta)) {
-      .ui_abort(
+      cli::cli_abort(
         "{.arg true_theta} entries must be lists with {.field mu} and {.field sigma}."
       )
     }
@@ -333,8 +333,8 @@ run_simulation_benchmark <- function(
       NULL
     }
     if (isTRUE(verbose)) {
-      label <- .ui_scenario_label(row)
-      .ui_info(
+      label <- .scenario_label(row)
+      cli::cli_alert_info(
         "Scenario {.val {i}}/{.val {n_scen}} \u00b7 {label} \u00b7 n = {.val {n_samples}}."
       )
     }
@@ -362,7 +362,7 @@ run_simulation_benchmark <- function(
 
   scenario_results <- lapply(seq_len(nrow(scenario_config)), .run_row)
   if (isTRUE(verbose)) {
-    .ui_success("Benchmark complete ({.val {n_scen}} scenarios).")
+    cli::cli_alert_success("Benchmark complete ({.val {n_scen}} scenarios).")
   }
 
   list(
@@ -392,4 +392,41 @@ run_simulation_benchmark <- function(
     data = if (isTRUE(return_data)) purrr::map(scenario_results, "data"),
     call = call
   )
+}
+
+#' Short label of one scenario row for the progress log
+#'
+#' @noRd
+.scenario_label <- function(row) {
+  if (is.null(row) || !ncol(row)) {
+    return("unnamed scenario")
+  }
+  if ("ID" %in% names(row)) {
+    id <- row[["ID"]][[1L]]
+    if (length(id) == 1L && !is.na(id) && nzchar(as.character(id))) {
+      return(as.character(id))
+    }
+  }
+  skip <- c("true_theta", "n", "true_parameters")
+  cols <- setdiff(names(row), skip)
+  if (!length(cols)) {
+    return("unnamed scenario")
+  }
+  bits <- character(0L)
+  for (nm in cols) {
+    x <- row[[nm]]
+    if (is.list(x)) {
+      x <- x[[1L]]
+    } else {
+      x <- x[[1L]]
+    }
+    if (length(x) != 1L || is.na(x)) {
+      next
+    }
+    bits <- c(bits, paste0(nm, "=", as.character(x)))
+  }
+  if (!length(bits)) {
+    return("unnamed scenario")
+  }
+  paste(bits, collapse = " \u00b7 ")
 }

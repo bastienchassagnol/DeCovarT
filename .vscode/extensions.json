@@ -1,6 +1,7 @@
 {
   "recommendations": [
     "Posit.air-vscode",
-    "reditorsupport.r"
+    "reditorsupport.r",
+    "anthropic.claude-code"
   ]
 }

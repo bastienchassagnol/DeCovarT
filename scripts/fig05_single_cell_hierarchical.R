@@ -5,22 +5,20 @@
 ###                                                                         ###
 ###############################################################################
 #
-# Run from the repository root; stdout and stderr go to logs/:
+# Run from the repository root; stdout and stderr go to logs/. OpenBLAS
+# 0.3.20 needs OPENBLAS_CORETYPE on this machine (see the check below):
 #
 #   mkdir -p logs
+#   export OPENBLAS_CORETYPE=SkylakeX OPENBLAS_NUM_THREADS=1
 #   nohup Rscript --no-save --no-restore \
 #     scripts/fig05_single_cell_hierarchical.R \
 #     > "logs/fig05_$(date +%F)_single_cell.log" 2>&1 &
 #
-# Run size (environment variables; see
-# scripts/benchmark_metrics/benchmark_artefacts.R):
-#   DECOVART_N_REPLICATES  Monte Carlo bulks per scenario   (default 100)
-#   DECOVART_N_BOOT        bootstrap refits per bulk          (default 200)
-#   DECOVART_N_REFERENCE   individuals of the reference panel (default N)
-#   DECOVART_CORES         workers for the per-sample loop    (default 1)
-#                          (workers load the installed DeCovarT, so run
-#                          devtools::install() before a parallel run)
-#   DECOVART_POSTPROCESS_ONLY=1 redraws the figures from the saved benchmark.
+# Run size, hard-coded below: N_REPLICATES Monte Carlo bulks per scenario,
+# N_REFERENCE individuals of the reference panel (MEAD and RNA-Sieve only),
+# CORES workers for the N bulks of each scenario (they load the installed
+# DeCovarT, so run devtools::install() first). POSTPROCESS_ONLY <- TRUE redraws the
+# figures from the saved benchmark.
 #
 # Generative model: the single-cell mixture of the article,
 #   y = a sum_j T_j,  T_j ~ N(m_j S_j theta_j, m_j S_j^2 Sigma^theta_j),
@@ -56,7 +54,7 @@
 #  CIBERSORT              nu-SVR on the true means
 #  Newton-Raphson,        DeCovarT single-cell fit (cell fractions, known
 #  L-BFGS-B, Firth        cell sizes, raw covariances); intervals: Wald, ILR,
-#                         profile (ML and REML), bootstrap, oracle
+#                         profile (ML and REML), oracle
 #  MEAD, RNA-Sieve,       authors' code; MEAD and RNA-Sieve read a reference
 #  ReDeconv               panel of R individuals x 20 cells per type drawn
 #                         independently of the bulks; ReDeconv takes the true
@@ -67,7 +65,31 @@
 #  density_visualisations/*.pdf, performance_visualisations/*.pdf
 ###############################################################################
 
-devtools::load_all(".", quiet = TRUE)
+# Run size and output.
+N_REPLICATES <- 200L
+N_REFERENCE <- 200L
+# The three figure scripts run at the same time on half the machine:
+# a third of half the cores each (14 on 88 logical cores).
+CORES <- (parallel::detectCores() %/% 2L) %/% 3L
+POSTPROCESS_ONLY <- FALSE
+
+# Locally installed build, not devtools::load_all() of this tree.
+library(DeCovarT)
+# A faulty BLAS kernel returns wrong Cholesky factors and inverses
+# (OpenBLAS 0.3.20 on AVX-512 / AMX CPUs).
+local({
+  a <- 0.5^abs(outer(seq_len(64L), seq_len(64L), "-"))
+  if (
+    max(abs(crossprod(chol(a)) - a)) > 1e-10 ||
+      max(abs(solve(a) %*% a - diag(64L))) > 1e-8
+  ) {
+    stop(
+      "BLAS returns wrong chol()/solve(); set OPENBLAS_CORETYPE=SkylakeX ",
+      "before starting R.",
+      call. = FALSE
+    )
+  }
+})
 source(file.path("scripts", "benchmark_metrics", "benchmark_artefacts.R"))
 source(file.path("scripts", "benchmark_metrics", "second_generation_methods.R"))
 source(file.path("scripts", "visualisation", "load_visualisation.R"))
@@ -79,8 +101,6 @@ stopifnot(
 OUT_DIR <- file.path("output", "fig05")
 BENCHMARK_FILE <- file.path(OUT_DIR, "fig05_benchmark.rds")
 SEED <- 20261024L
-CORES <- as.integer(Sys.getenv("DECOVART_CORES", "1"))
-settings <- benchmark_settings(default_replicates = 100L, default_boot = 200L)
 
 N_CELLTYPES <- 4L
 ct_nms <- paste0("celltype_", seq_len(N_CELLTYPES))
@@ -268,21 +288,20 @@ build_single_cell_config <- function() {
     )
 }
 
-.ui_h1("Figure 05: single-cell reference, two lineages")
+cli::cli_h1("Figure 05: single-cell reference, two lineages")
 
-if (!settings$postprocess_only) {
+if (!POSTPROCESS_ONLY) {
   set.seed(SEED)
   scenario_config_5 <- build_single_cell_config()
   interval_menu <- function(methods, optimiser = "newton") {
-    list(methods = methods, n_boot = settings$n_boot, optimiser = optimiser)
+    list(methods = methods, optimiser = optimiser)
   }
   menu <- c(
     "wald",
     "ilr",
     "ilr_reml",
     "profile",
-    "profile_reml",
-    "bootstrap"
+    "profile_reml"
   )
   solver <- list(epsilon = EPSILON, itmax = ITMAX)
   deconvolution_functions_5 <- list(
@@ -305,25 +324,31 @@ if (!settings$postprocess_only) {
       ci = interval_menu(c("wald", "ilr", "wald_reml", "ilr_reml"))
     )
   )
-  .ui_info(
-    "{.val {nrow(scenario_config_5)}} scenarios, N = {.val {settings$n_replicates}}, B = {.val {settings$n_boot}}, R = {.val {settings$n_reference}}."
+  cli::cli_alert_info(
+    "{.val {nrow(scenario_config_5)}} scenarios, N = {.val {N_REPLICATES}}, R = {.val {N_REFERENCE}}, {.val {CORES}} workers."
   )
+  # One pool of workers for the whole run: deconvolute_ratios() reuses a
+  # plan that is already set, instead of starting CORES new R sessions
+  # for every scenario (7 s each time for a pool of 44 workers).
+  if (CORES > 1L) {
+    future::plan(future::multisession, workers = CORES)
+  }
   started <- proc.time()[["elapsed"]]
   single_cell_out <- run_simulation_benchmark(
     scenario_config = scenario_config_5,
     deconvolution_functions = deconvolution_functions_5,
-    n = settings$n_replicates,
+    n = N_REPLICATES,
     cores = CORES,
     verbose = TRUE,
     model = "single_cell",
     return_data = TRUE,
     reference = list(
-      n_individuals = settings$n_reference,
+      n_individuals = N_REFERENCE,
       n_cells = N_CELLS_REFERENCE,
       seed = SEED + 5000L
     )
   )
-  .ui_info("Second-generation methods on the same bulks.")
+  cli::cli_alert_info("Second-generation methods on the same bulks.")
   competitors <- run_second_generation_batch(
     competitor_scenarios(single_cell_out, scenario_config_5)
   )
@@ -333,19 +358,19 @@ if (!settings$postprocess_only) {
     scenario_config_5,
     model = "single_cell"
   )
-  .ui_success(
+  cli::cli_alert_success(
     "Benchmark finished in {.val {round(proc.time()[['elapsed']] - started)}} s."
   )
   save_benchmark(
     single_cell_out,
     scenario_config_5,
-    benchmark_meta(SEED, settings),
+    benchmark_meta(SEED, N_REPLICATES, N_REFERENCE),
     BENCHMARK_FILE
   )
 }
 
-benchmark <- read_benchmark(BENCHMARK_FILE)
+benchmark <- readRDS(BENCHMARK_FILE)
 plot_data <- figure_plot_data(benchmark, figure = "fig05")
 saveRDS(plot_data, file.path(OUT_DIR, "fig05_plot_data.rds"))
 render_figure_books(plot_data, OUT_DIR)
-.ui_success("Figure 05 written to {.file {OUT_DIR}}.")
+cli::cli_alert_success("Figure 05 written to {.file {OUT_DIR}}.")

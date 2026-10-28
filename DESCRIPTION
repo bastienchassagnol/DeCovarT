@@ -1,6 +1,6 @@
 Package: DeCovarT
 Title: Covariance-Aware Deconvolution of Bulk Transcriptomic Samples
-Version: 2.3.1
+Version: 2.4.0
 Authors@R:
     person("Bastien", "Chassagnol", , "bastien_chassagnol@laposte.net", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0002-8955-2391"))
@@ -20,6 +20,7 @@ BugReports: https://github.com/bastienchassagnol/DeCovarT/issues
 Depends:
     R (>= 4.1.0)
 Imports:
+    cli,
     dplyr,
     ggplot2 (>= 3.5.0),
     marqLevAlg,
@@ -29,10 +30,10 @@ Imports:
     rlang,
     tensor,
     tibble,
-    tidyr
+    tidyr,
+    withr
 Suggests:
     circlize,
-    cli,
     ComplexHeatmap,
     compositions,
     cowplot,
@@ -76,8 +77,7 @@ Suggests:
     stringr,
     testthat (>= 3.0.0),
     tinytable (>= 0.15.0),
-    viridis,
-    withr
+    viridis
 VignetteBuilder:
     knitr,
     quarto

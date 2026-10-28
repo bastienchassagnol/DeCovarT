@@ -21,14 +21,29 @@ devtools::test()
 devtools::check()
 ```
 
-Use `pkgcheck::pkgcheck()` and `--as-cran` checks when the package targets CRAN.
+Run `pkgcheck::pkgcheck()` locally and enforce it in CI with
+[pkgcheck-action](https://github.com/ropensci-review-tools/pkgcheck-action)
+(`.github/workflows/pkgcheck.yaml`, from `pkgcheck::use_github_action_pkgcheck()`).
+Add `--as-cran` checks when the package targets CRAN. pkgcheck does not see
+directories in `.Rbuildignore` (such as `scripts/`); guard those with a
+pre-commit `pygrep` hook on `pkg:::` and `asNamespace("pkg")`.
 
 ### CRAN-quality hygiene (summary)
 
 - `Suggests` + `requireNamespace()` for optional deps; no `install.packages()` in
   examples/tests/vignettes.
 - No writes to home, package dir, or `getwd()` by default; `withr` temp files.
-- Restore `options()`, `par()`, wd; no `<<-` / `.GlobalEnv` mutation.
+- Restore `options()`, `par()`, wd; no `<<-`, no `.GlobalEnv` mutation, no
+  package-level mutable environments (caches, flags): compute statelessly or
+  pass values explicitly (`withr::with_seed()`, `withr::with_output_sink()`,
+  `cli`/`rlang` `.frequency = "once"`).
+- Never reach a package's internals with `:::`, `get()` or `asNamespace()`,
+  from scripts, vignettes or another package. A function needed outside the
+  package is documented and exported (`@export`, with `@examples`). Scripts
+  run against the installed package (`library()`), where internals are not
+  visible, unlike `devtools::load_all()`
+  ([load_all](https://r-pkgs.org/workflow101.html#benefits-of-load_all),
+  [R CMD check: R code](https://r-pkgs.org/R-CMD-check.html#r-code)).
 - `TRUE`/`FALSE`; seeds only when caller supplies; ≤2 cores in check-time code.
 - ASCII-only `R/` strings when required for portability.
 

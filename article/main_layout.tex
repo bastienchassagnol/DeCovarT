@@ -1941,6 +1941,13 @@ that generate every figure.
         \cite{R-cowplot}, with \texttt{patchwork}, \texttt{funkyheatmap}, \texttt{ggraph}, \texttt{rgl} and
         \texttt{mclust} \cite{R-mclust} for the plot books
   \item random seeds are fixed in every script, and session information is saved with each output
+  \item linear algebra, a critical configuration: R was linked to OpenBLAS 0.3.20 (Ubuntu 22.04) on an
+        Intel Xeon w9-3575X. That release identifies this processor as Cooperlake, and its kernels then
+        return wrong inverses, Cholesky factors and eigendecompositions without any warning
+        (\texttt{solve()} from order 12, \texttt{chol()} from order 40;
+        \href{https://bugs.launchpad.net/ubuntu/+source/openblas/+bug/2040027}{Launchpad bug 2040027}).
+        Every figure was computed with \texttt{OPENBLAS\_CORETYPE=SkylakeX}; the test suite
+        (\texttt{test-linear-algebra.R}) and each figure script stop when the linear algebra is wrong
   \item[] \todo[inline]{State the R version, the computing infrastructure and the package versions used for
         the final figures.}
 \end{itemize}

@@ -2,7 +2,7 @@
 # scripts/fig03_variance_covariance_driven.R and
 # scripts/fig05_single_cell_hierarchical.R.
 #
-#   plot_data <- figure_plot_data(read_benchmark(file), "fig03")
+#   plot_data <- figure_plot_data(readRDS(file), "fig03")
 #   render_figure_books(plot_data, "output/fig03")
 #   render_figure_from_data("ci_width_forest", plot_data, "output/fig03")
 #

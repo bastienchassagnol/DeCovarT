@@ -5,22 +5,20 @@
 ###                                                                         ###
 ###############################################################################
 #
-# Run from the repository root; stdout and stderr go to logs/:
+# Run from the repository root; stdout and stderr go to logs/. OpenBLAS
+# 0.3.20 needs OPENBLAS_CORETYPE on this machine (see the check below):
 #
 #   mkdir -p logs
+#   export OPENBLAS_CORETYPE=SkylakeX OPENBLAS_NUM_THREADS=1
 #   nohup Rscript --no-save --no-restore \
 #     scripts/fig03_variance_covariance_driven.R \
 #     > "logs/fig03_$(date +%F)_covariance_driven.log" 2>&1 &
 #
-# Run size (environment variables; see
-# scripts/benchmark_metrics/benchmark_artefacts.R):
-#   DECOVART_N_REPLICATES  Monte Carlo bulks per scenario   (default 100)
-#   DECOVART_N_BOOT        bootstrap refits per bulk          (default 200)
-#   DECOVART_N_REFERENCE   individuals of the reference panel (default N)
-#   DECOVART_CORES         workers for the per-sample loop    (default 1)
-#                          (workers load the installed DeCovarT, so run
-#                          devtools::install() before a parallel run)
-#   DECOVART_POSTPROCESS_ONLY=1 redraws the figures from the saved benchmark.
+# Run size, hard-coded below: N_REPLICATES Monte Carlo bulks per scenario,
+# N_REFERENCE individuals of the reference panel (MEAD and RNA-Sieve only),
+# CORES workers for the N bulks of each scenario (they load the installed
+# DeCovarT, so run devtools::install() first). POSTPROCESS_ONLY <- TRUE redraws the
+# figures from the saved benchmark.
 #
 # Design (36 scenarios, IDs V1 to V36)
 #  Mean signature  one Gram: cosines 0.9 (types 1-2) and 0.1 (type 3),
@@ -37,7 +35,7 @@
 #                         free scale then renormalises, RLM is the robust
 #                         linear model of Monaco et al.
 #  Newton-Raphson,        DeCovarT on the true moments; intervals: Wald, ILR,
-#  L-BFGS-B, Firth        profile, bootstrap (+ oracle for Newton-Raphson)
+#  L-BFGS-B, Firth        profile (+ oracle for Newton-Raphson)
 #  MEAD, RNA-Sieve,       authors' code (scripts/benchmark_metrics/
 #  ReDeconv               second_generation_methods.R); MEAD and RNA-Sieve
 #                         estimate the reference from an independent panel of
@@ -51,7 +49,31 @@
 #  density_visualisations/*.pdf, performance_visualisations/*.pdf
 ###############################################################################
 
-devtools::load_all(".", quiet = TRUE)
+# Run size and output.
+N_REPLICATES <- 200L
+N_REFERENCE <- 200L
+# The three figure scripts run at the same time on half the machine:
+# a third of half the cores each (14 on 88 logical cores).
+CORES <- (parallel::detectCores() %/% 2L) %/% 3L
+POSTPROCESS_ONLY <- FALSE
+
+# Locally installed build, not devtools::load_all() of this tree.
+library(DeCovarT)
+# A faulty BLAS kernel returns wrong Cholesky factors and inverses
+# (OpenBLAS 0.3.20 on AVX-512 / AMX CPUs).
+local({
+  a <- 0.5^abs(outer(seq_len(64L), seq_len(64L), "-"))
+  if (
+    max(abs(crossprod(chol(a)) - a)) > 1e-10 ||
+      max(abs(solve(a) %*% a - diag(64L))) > 1e-8
+  ) {
+    stop(
+      "BLAS returns wrong chol()/solve(); set OPENBLAS_CORETYPE=SkylakeX ",
+      "before starting R.",
+      call. = FALSE
+    )
+  }
+})
 source(file.path("scripts", "benchmark_metrics", "benchmark_artefacts.R"))
 source(file.path("scripts", "benchmark_metrics", "second_generation_methods.R"))
 source(file.path("scripts", "visualisation", "load_visualisation.R"))
@@ -63,8 +85,6 @@ stopifnot(
 OUT_DIR <- file.path("output", "fig03")
 BENCHMARK_FILE <- file.path(OUT_DIR, "fig03_benchmark.rds")
 SEED <- 20260807L
-CORES <- as.integer(Sys.getenv("DECOVART_CORES", "1"))
-settings <- benchmark_settings(default_replicates = 100L, default_boot = 200L)
 
 N_MC_OVERLAP <- 4000L
 N_GENES <- 20L
@@ -99,9 +119,9 @@ TARGET_GRAM <- matrix(
   dimnames = list(ct_nms, ct_nms)
 )
 
-.ui_h1("Figure 03: covariance-driven scenario")
+cli::cli_h1("Figure 03: covariance-driven scenario")
 
-if (!settings$postprocess_only) {
+if (!POSTPROCESS_ONLY) {
   set.seed(SEED)
   mu <- generate_mean_signature_matrix(
     n_genes = N_GENES,
@@ -115,7 +135,7 @@ if (!settings$postprocess_only) {
   cos_mu <- crossprod(mu)
   norms <- sqrt(diag(cos_mu))
   cos_mu <- cos_mu / tcrossprod(norms)
-  .ui_info(
+  cli::cli_alert_info(
     "Realised cosines: CT1–CT2 {.val {format(round(cos_mu[1, 2], 3), nsmall = 3)}}, CT1–CT3 {.val {format(round(cos_mu[1, 3], 3), nsmall = 3)}}, CT2–CT3 {.val {format(round(cos_mu[2, 3], 3), nsmall = 3)}}."
   )
 
@@ -130,7 +150,7 @@ if (!settings$postprocess_only) {
   )
 
   cov_grid <- tidyr::expand_grid(topology_grid, overlap_grid)
-  .ui_info(
+  cli::cli_alert_info(
     "Covariance grid: {.val {nrow(topology_grid)}} topologies x {.val {nrow(overlap_grid)}} overlap targets = {.val {nrow(cov_grid)}}."
   )
 
@@ -142,7 +162,7 @@ if (!settings$postprocess_only) {
     "moderately unbalanced" = p_mod,
     "highly unbalanced" = p_rare
   )
-  .ui_info(
+  cli::cli_alert_info(
     "Entropies: balanced {.val {round(compute_shannon_entropy(p_balanced), 3)}}, moderate {.val {round(compute_shannon_entropy(p_mod), 3)}}, high {.val {round(compute_shannon_entropy(p_rare), 3)}}."
   )
 
@@ -151,7 +171,7 @@ if (!settings$postprocess_only) {
   #   One undirected graph per cell type on each 2-by-2 topology row.
   # ==============================================================================
 
-  .ui_info(
+  cli::cli_alert_info(
     "Drawing one adjacency triple per topology ({.val {nrow(topology_grid)}} graphs)."
   )
   adj_by_topo <- purrr::pmap(
@@ -180,11 +200,11 @@ if (!settings$postprocess_only) {
   # ==============================================================================
 
   n_topo <- nrow(topology_grid)
-  .ui_info(
+  cli::cli_alert_info(
     "Completing signed precisions for each topology ({.val {n_topo}})."
   )
   base_draws <- lapply(seq_len(n_topo), function(topo_idx) {
-    .ui_info("Base precision {.val {topo_idx}}/{.val {n_topo}}.")
+    cli::cli_alert_info("Base precision {.val {topo_idx}}/{.val {n_topo}}.")
     row <- topology_grid[topo_idx, , drop = FALSE]
     moments <- withr::with_seed(
       SEED + 100L * topo_idx,
@@ -219,12 +239,12 @@ if (!settings$postprocess_only) {
   # ==============================================================================
 
   n_cov <- nrow(cov_grid)
-  .ui_info(
+  cli::cli_alert_info(
     "Scaling each topology to low / moderate / high MixSim BarOmega."
   )
   cov_draws <- lapply(seq_len(n_cov), function(i) {
     if (i == 1L || i %% 4L == 0L || i == n_cov) {
-      .ui_info("Overlap scale {.val {i}}/{.val {n_cov}}.")
+      cli::cli_alert_info("Overlap scale {.val {i}}/{.val {n_cov}}.")
     }
     row <- cov_grid[i, , drop = FALSE]
     topo_idx <- which(
@@ -257,12 +277,12 @@ if (!settings$postprocess_only) {
   #   Cross 12 covariance draws with three Shannon compositions (36 rows).
   # ==============================================================================
 
-  .ui_info("Building scenario descriptors (MixSim, f_cov, AIRM).")
+  cli::cli_alert_info("Building scenario descriptors (MixSim, f_cov, AIRM).")
   scenario_config_3 <- purrr::map_dfr(
     seq_len(n_cov),
     function(i) {
       if (i == 1L || i %% 8L == 0L || i == n_cov) {
-        .ui_info("Scenario descriptors {.val {i}}/{.val {n_cov}}.")
+        cli::cli_alert_info("Scenario descriptors {.val {i}}/{.val {n_cov}}.")
       }
       row <- cov_grid[i, , drop = FALSE]
       draw <- cov_draws[[i]]
@@ -331,14 +351,14 @@ if (!settings$postprocess_only) {
       })
     }
   )
-  .ui_success(
+  cli::cli_alert_success(
     "Config built: {.val {nrow(scenario_config_3)}} scenarios."
   )
 
   scenario_config_3$ID <- paste0("V", seq_len(nrow(scenario_config_3)))
 
   interval_menu <- function(methods, optimiser = "newton") {
-    list(methods = methods, n_boot = settings$n_boot, optimiser = optimiser)
+    list(methods = methods, optimiser = optimiser)
   }
   solver <- list(epsilon = EPSILON, itmax = ITMAX, initial_p = "barycentre")
   deconvolution_functions_3 <- list(
@@ -349,12 +369,12 @@ if (!settings$postprocess_only) {
     "Newton-Raphson" = list(
       FUN = deconvolute_ratios_Newton_Raphson,
       additional_parameters = solver,
-      ci = interval_menu(c("wald", "ilr", "profile", "bootstrap", "oracle"))
+      ci = interval_menu(c("wald", "ilr", "profile", "oracle"))
     ),
     "L-BFGS-B" = list(
       FUN = deconvolute_ratios_L_BFGS_B,
       additional_parameters = solver,
-      ci = interval_menu(c("wald", "ilr", "profile", "bootstrap"), "lbfgsb")
+      ci = interval_menu(c("wald", "ilr", "profile"), "lbfgsb")
     ),
     "Firth" = list(
       FUN = fit_firth_decovart,
@@ -362,24 +382,30 @@ if (!settings$postprocess_only) {
     )
   )
 
-  .ui_info(
-    "{.val {nrow(scenario_config_3)}} scenarios, N = {.val {settings$n_replicates}}, B = {.val {settings$n_boot}}, R = {.val {settings$n_reference}}."
+  cli::cli_alert_info(
+    "{.val {nrow(scenario_config_3)}} scenarios, N = {.val {N_REPLICATES}}, R = {.val {N_REFERENCE}}, {.val {CORES}} workers."
   )
+  # One pool of workers for the whole run: deconvolute_ratios() reuses a
+  # plan that is already set, instead of starting CORES new R sessions
+  # for every scenario (7 s each time for a pool of 44 workers).
+  if (CORES > 1L) {
+    future::plan(future::multisession, workers = CORES)
+  }
   started <- proc.time()[["elapsed"]]
   hybrid_out <- run_simulation_benchmark(
     scenario_config = scenario_config_3,
     deconvolution_functions = deconvolution_functions_3,
-    n = settings$n_replicates,
+    n = N_REPLICATES,
     cores = CORES,
     verbose = TRUE,
     return_data = TRUE,
     reference = list(
-      n_individuals = settings$n_reference,
+      n_individuals = N_REFERENCE,
       n_cells = 1L,
       seed = SEED + 5000L
     )
   )
-  .ui_info("Second-generation methods on the same bulks.")
+  cli::cli_alert_info("Second-generation methods on the same bulks.")
   competitors <- run_second_generation_batch(
     competitor_scenarios(hybrid_out, scenario_config_3)
   )
@@ -389,19 +415,19 @@ if (!settings$postprocess_only) {
     scenario_config_3,
     model = "population"
   )
-  .ui_success(
+  cli::cli_alert_success(
     "Benchmark finished in {.val {round(proc.time()[['elapsed']] - started)}} s."
   )
   save_benchmark(
     hybrid_out,
     scenario_config_3,
-    benchmark_meta(SEED, settings),
+    benchmark_meta(SEED, N_REPLICATES, N_REFERENCE),
     BENCHMARK_FILE
   )
 }
 
-benchmark <- read_benchmark(BENCHMARK_FILE)
+benchmark <- readRDS(BENCHMARK_FILE)
 plot_data <- figure_plot_data(benchmark, figure = "fig03")
 saveRDS(plot_data, file.path(OUT_DIR, "fig03_plot_data.rds"))
 render_figure_books(plot_data, OUT_DIR)
-.ui_success("Figure 03 written to {.file {OUT_DIR}}.")
+cli::cli_alert_success("Figure 03 written to {.file {OUT_DIR}}.")

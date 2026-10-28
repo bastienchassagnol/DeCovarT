@@ -119,3 +119,10 @@ sandwich, and any extra term for using \(\hat\Sigma_j\) in place of
 reference uncertainty. Coverage under the simulation benchmarks of
 figures 2, 3 and 5 is in their `intervals` tables
 (`output/figXX/figXX_benchmark.rds`).
+
+The figure benchmarks run neither bootstrap: their menus are Wald, ILR,
+profile, Firth and oracle (plus the REML variants in figure 5). The
+parametric bootstrap cost \(N\times B\) refits per solver and scenario
+(40,000 at \(N=B=200\)). The bootstrap functions remain in the package and
+are covered by the checks above. See `sampling_design.md` for how the
+bulks and reference panels are drawn.

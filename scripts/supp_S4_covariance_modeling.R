@@ -56,12 +56,11 @@ if (
 } else {
   library(DeCovarT)
 }
-source(file.path("scripts", "auxiliary", "benchmark_artefacts.R"))
 
 OUT_DIR <- file.path("output", "supp_S4")
 dir.create(OUT_DIR, recursive = TRUE, showWarnings = FALSE)
 
-.ui_h1("Supplementary S4 · Covariance modelling")
+cli::cli_h1("Supplementary S4 · Covariance modelling")
 
 N_REPL <- as.integer(Sys.getenv("N_REPLICATES", "200"))
 
@@ -111,7 +110,7 @@ p_eq <- rep(1 / J_FIXED, J_FIXED)
   list(mu = mu, Sigma = build_covariance_array_from_precision(Omega_arr))
 }
 
-.ui_info("Building generative models.")
+cli::cli_alert_info("Building generative models.")
 scenario_config_S4 <- purrr::map_dfr(COSINE_LEVELS, function(rho) {
   moments_iso <- {
     mu_r <- generate_mean_signature_matrix(
@@ -160,7 +159,7 @@ scenario_config_S4 <- scenario_config_S4 |>
   dplyr::select(-dplyr::any_of("true_sigma_structure...3")) |>
   dplyr::distinct()
 
-.ui_success(
+cli::cli_alert_success(
   "Config: {.val {nrow(scenario_config_S4)}} scenarios."
 )
 scenario_config_S4$ID <- paste0(
@@ -210,7 +209,7 @@ deconvolution_functions_S4 <- list(
   )
 )
 
-.ui_info("Running benchmark with {.val {N_REPL}} replicates.")
+cli::cli_alert_info("Running benchmark with {.val {N_REPL}} replicates.")
 cov_modeling_out <- run_simulation_benchmark(
   scenario_config = scenario_config_S4,
   deconvolution_functions = deconvolution_functions_S4,
@@ -258,8 +257,8 @@ ggplot2::ggsave(
   width = 14,
   height = 7
 )
-.ui_success("Figures saved.")
+cli::cli_alert_success("Figures saved.")
 
-.ui_success(
+cli::cli_alert_success(
   "Done. Outputs in {.path {normalizePath(OUT_DIR, mustWork = FALSE)}}."
 )

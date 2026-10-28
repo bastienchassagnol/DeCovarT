@@ -33,9 +33,32 @@
 
 #' Hellinger distance between two multivariate Gaussians
 #'
-#' @keywords internal
-#' @noRd
-.hellinger_gaussian <- function(mu_j, mu_l, sigma_j, sigma_l) {
+#' Closed form through the Bhattacharyya coefficient
+#' \deqn{
+#'   \log\mathrm{BC}
+#'   =
+#'   \tfrac14\log\lvert\boldsymbol{\Sigma}_j\rvert
+#'   +\tfrac14\log\lvert\boldsymbol{\Sigma}_\ell\rvert
+#'   -\tfrac12\log\lvert\bar{\boldsymbol{\Sigma}}\rvert
+#'   -\tfrac18\boldsymbol{\delta}^{\top}\bar{\boldsymbol{\Sigma}}^{-1}
+#'   \boldsymbol{\delta},
+#' }
+#' with \eqn{\bar{\boldsymbol{\Sigma}}=(\boldsymbol{\Sigma}_j+
+#' \boldsymbol{\Sigma}_\ell)/2} and \eqn{\boldsymbol{\delta}=
+#' \boldsymbol{\mu}_j-\boldsymbol{\mu}_\ell}; then
+#' \eqn{H=\sqrt{1-\mathrm{BC}}\in[0,1]}. It is symmetric, unlike the
+#' MixSim misclassification overlap ([compute_average_overlap()]), and
+#' bounded, unlike the Jeffreys divergence ([compute_average_jeffreys()]).
+#'
+#' @param mu_j,mu_l Mean vectors of length \eqn{G}.
+#' @param sigma_j,sigma_l \eqn{G\times G} covariance matrices.
+#'
+#' @return The Hellinger distance, a number in \eqn{[0,1]}.
+#'
+#' @examples
+#' hellinger_gaussian(c(0, 0), c(1, 1), diag(2), diag(2))
+#' @export
+hellinger_gaussian <- function(mu_j, mu_l, sigma_j, sigma_l) {
   mu_j <- as.numeric(mu_j)
   mu_l <- as.numeric(mu_l)
   sigma_j <- as.matrix(sigma_j)
@@ -406,7 +429,7 @@ describe_simulation_scenario <- function(
   n_pairs_h <- 0L
   for (j in seq_len(n_celltypes - 1L)) {
     for (ell in seq.int(j + 1L, n_celltypes)) {
-      h_jl <- .hellinger_gaussian(
+      h_jl <- hellinger_gaussian(
         mu[, j],
         mu[, ell],
         Sigma[,, j],

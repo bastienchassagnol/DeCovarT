@@ -10,12 +10,34 @@
 #' mixture of cells with its two scales profiled out, so every function is
 #' evaluated at the closed-form scales of the composition.
 #'
+#' These are the functions [run_simulation_benchmark()] uses to score an
+#' estimate (log-likelihood at the estimate and at the truth, KKT residual
+#' through [kkt_residual()]); they let estimates computed outside the
+#' package be scored on the same terms.
+#'
+#' @param model `"population"` or `"single_cell"`.
+#' @param mean_signature_matrix \eqn{G\times J} mean matrix.
+#' @param Sigma \eqn{G\times G\times J} covariance array.
+#'
 #' @return A list of functions of `(p, y)`: `loglik`, `score`, `se` (Wald
 #'   standard errors of the composition) and `curvature` (local-maximum
 #'   flag and eigenvalue range of the Hessian in ILR coordinates, `NA` on
 #'   a face).
-#' @noRd
-.benchmark_model <- function(model, mean_signature_matrix, Sigma) {
+#'
+#' @examples
+#' mu <- matrix(c(20, 22, 22, 20), 2)
+#' Sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+#' model <- benchmark_likelihood("population", mu, Sigma)
+#' y <- drop(mu %*% c(0.4, 0.6))
+#' model$loglik(c(0.4, 0.6), y)
+#' kkt_residual(c(0.4, 0.6), model$score(c(0.4, 0.6), y))
+#' @export
+benchmark_likelihood <- function(
+  model = c("population", "single_cell"),
+  mean_signature_matrix,
+  Sigma
+) {
+  model <- match.arg(model)
   no_curvature <- list(
     local_maximum = NA,
     min_eigenvalue = NA_real_,
@@ -321,8 +343,17 @@
         vapply(
           intervals,
           function(x) {
-            value <- x[[method]][parameter, side]
-            if (is.null(value) || length(value) != 1L) NA_real_ else value
+            # A bulk whose interval failed may lack this parameter's row.
+            m <- x[[method]]
+            if (
+              is.null(m) ||
+                !parameter %in% rownames(m) ||
+                !side %in% colnames(m)
+            ) {
+              return(NA_real_)
+            }
+            value <- m[parameter, side]
+            if (length(value) != 1L) NA_real_ else value
           },
           numeric(1)
         )

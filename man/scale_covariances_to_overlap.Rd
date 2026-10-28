@@ -31,7 +31,8 @@ scale_covariances_to_overlap(
 
 \item{s_range}{Length-2 search interval for \eqn{s}.}
 
-\item{tol}{Absolute overlap tolerance.}
+\item{tol}{Tolerance of the root search, on the scale \eqn{s}
+(\code{\link[stats:uniroot]{stats::uniroot()}} uses \code{max(tol / 4, 1e-4)}).}
 
 \item{seed}{Optional seed for overlap evaluations.}
 
@@ -55,4 +56,17 @@ average overlap while leaving graph zeros intact. This is the
 graph-constrained analogue of MixSim / FSDA's average-overlap
 generator, which cannot take a precision support as input.
 }
-\keyword{internal}
+\examples{
+mu <- matrix(c(0, 0, 3, 3), 2, 2)
+sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+calibrated <- scale_covariances_to_overlap(
+  mu,
+  sigma,
+  p = c(0.5, 0.5),
+  target = 0.05
+)
+calibrated[c("scale", "baromega")]
+}
+\seealso{
+\code{\link[=scale_covariance_array]{scale_covariance_array()}}, \code{\link[=compute_average_overlap]{compute_average_overlap()}}
+}

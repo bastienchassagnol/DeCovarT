@@ -421,13 +421,13 @@ deconvolute_ratios <- function(
   model_functions <- if (is.null(Sigma)) {
     NULL
   } else {
-    .benchmark_model(model, mean_signature_matrix, Sigma)
+    benchmark_likelihood(model, mean_signature_matrix, Sigma)
   }
 
   if (
     is.null(deconvolution_functions) || length(deconvolution_functions) == 0L
   ) {
-    .ui_abort("{.arg deconvolution_functions} must be a named list.")
+    cli::cli_abort("{.arg deconvolution_functions} must be a named list.")
   }
 
   per_algorithm <- purrr::imap(
@@ -651,7 +651,7 @@ deconvolute_ratios <- function(
       out$se <- stats::setNames(as.numeric(se), cell_names)
     }
   }
-  out$kkt_residual <- safely(.kkt_residual(
+  out$kkt_residual <- safely(kkt_residual(
     p_hat,
     model_functions$score(p_hat, y_i)
   ))
@@ -693,7 +693,7 @@ deconvolute_ratios <- function(
   idx <- seq_len(n)
   cores <- as.integer(cores)
   if (length(cores) != 1L || is.na(cores) || cores < 1L) {
-    .ui_abort("{.arg cores} must be a positive integer.")
+    cli::cli_abort("{.arg cores} must be a positive integer.")
   }
   if (cores == 1L) {
     if (!isTRUE(verbose) || n < 1L) {
@@ -711,13 +711,13 @@ deconvolute_ratios <- function(
     return(lapply(idx, function(i) {
       out <- fun(i)
       if (i == n || i == 1L || (i %% every == 0L)) {
-        .ui_info("{prefix}inferred sample {.val {i}}/{.val {n}}.")
+        cli::cli_alert_info("{prefix}inferred sample {.val {i}}/{.val {n}}.")
       }
       out
     }))
   }
   if (isTRUE(verbose)) {
-    .ui_info(
+    cli::cli_alert_info(
       "Mapping {.val {n}} samples on {.val {cores}} workers (no per-sample ticks)."
     )
   }

@@ -160,6 +160,18 @@ plot_gene_densities <- function(data, which) {
   -0.5 * (model$log_det + sum(gap^2) + sum(model$inverse * truth$matrix))
 }
 
+# Single-cell covariance mixture sum_j p_j Sigma_j with its Cholesky factor,
+# log-determinant and inverse.
+.single_cell_mixture <- function(p, Sigma) {
+  mixture <- apply(sweep(Sigma, 3L, p, "*"), c(1L, 2L), sum)
+  chol_factor <- chol(mixture)
+  list(
+    matrix = mixture,
+    log_det = 2 * sum(log(diag(chol_factor))),
+    inverse = chol2inv(chol_factor)
+  )
+}
+
 # Expected profile log-likelihood of the single-cell model: E l(p, c, phi)
 # is maximised in (c, phi) in closed form, as the observed profile is.
 .expected_loglik_single_cell <- function(
@@ -170,8 +182,8 @@ plot_gene_densities <- function(data, which) {
   c_true,
   phi_true
 ) {
-  model <- .mixture_factorisation(p, Sigma)
-  truth <- .mixture_factorisation(p_true, Sigma)
+  model <- .single_cell_mixture(p, Sigma)
+  truth <- .single_cell_mixture(p_true, Sigma)
   m <- drop(mu %*% p)
   m_true <- c_true * drop(mu %*% p_true)
   w_m <- drop(model$inverse %*% m)
@@ -969,7 +981,7 @@ plot_network_topologies <- function(data) {
       tibble::tibble(
         ID = refs$ID[[i]],
         pair = sprintf("CT%d-CT%d", a, b),
-        hellinger = .hellinger_gaussian(
+        hellinger = hellinger_gaussian(
           th$mu[, a],
           th$mu[, b],
           th$sigma[,, a],

@@ -96,8 +96,8 @@ test_that("Hellinger of two Gaussians is symmetric", {
   mu2 <- c(1, 1)
   s1 <- diag(2)
   s2 <- diag(c(1, 2))
-  h12 <- DeCovarT:::.hellinger_gaussian(mu1, mu2, s1, s2)
-  h21 <- DeCovarT:::.hellinger_gaussian(mu2, mu1, s2, s1)
+  h12 <- hellinger_gaussian(mu1, mu2, s1, s2)
+  h21 <- hellinger_gaussian(mu2, mu1, s2, s1)
   expect_equal(h12, h21)
 })
 

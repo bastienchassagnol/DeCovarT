@@ -469,22 +469,8 @@ confint_profile_decovart <- function(
   if (length(seed) != 1L || !is.finite(seed)) {
     stop("`seed` must be a single finite number, or NULL.", call. = FALSE)
   }
-  has_seed <- exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
-  if (has_seed) {
-    old_seed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
-  }
-  on.exit(
-    {
-      if (has_seed) {
-        assign(".Random.seed", old_seed, envir = .GlobalEnv)
-      } else if (exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) {
-        rm(".Random.seed", envir = .GlobalEnv)
-      }
-    },
-    add = TRUE
-  )
-  set.seed(seed)
-  expr
+  # The RNG kinds are left as they are; the previous state is restored.
+  withr::with_seed(seed, expr)
 }
 
 #' @noRd

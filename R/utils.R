@@ -21,10 +21,10 @@
 #' @noRd
 .match_arg_case_insensitive <- function(arg, choices) {
   if (!is.character(arg) || length(arg) < 1L) {
-    .ui_abort("{.arg arg} must be a non-empty character vector.")
+    cli::cli_abort("{.arg arg} must be a non-empty character vector.")
   }
   if (anyNA(arg)) {
-    .ui_abort("{.arg arg} must not contain missing values.")
+    cli::cli_abort("{.arg arg} must not contain missing values.")
   }
   # match.arg() default: omitted arg is the full choices vector.
   if (
@@ -38,7 +38,7 @@
     function(a) {
       hit <- choices[tolower(choices) == tolower(a)]
       if (length(hit) != 1L) {
-        .ui_abort(c(
+        cli::cli_abort(c(
           "Invalid value for {.arg arg}: {.val {a}}.",
           "i" = "Allowed values are {.val {choices}}.",
           "x" = "Argument must be one of {toString(choices)}."
@@ -74,14 +74,14 @@
 #' @noRd
 .assert_no_missing <- function(x, name) {
   if (anyNA(x)) {
-    .ui_abort(c(
+    cli::cli_abort(c(
       "{.arg {name}} contains missing values.",
       "x" = "NA and NaN values are not supported.",
       "i" = "Zeros are valid observations and do not need to be removed."
     ))
   }
   if (any(!is.finite(x))) {
-    .ui_abort(c(
+    cli::cli_abort(c(
       "{.arg {name}} contains non-finite values.",
       "x" = "Inf and -Inf are not supported."
     ))
@@ -108,25 +108,25 @@
 .assert_numeric_array <- function(x, name, n_dim, non_negative = FALSE) {
   kind <- if (n_dim == 2L) "matrix" else "array"
   if (is.factor(x)) {
-    .ui_abort("{.arg {name}} must not be a factor.")
+    cli::cli_abort("{.arg {name}} must not be a factor.")
   }
   if (is.data.frame(x)) {
-    .ui_abort(
+    cli::cli_abort(
       "{.arg {name}} must be a numeric matrix or array, not a data.frame."
     )
   }
   dims <- dim(x)
   if (is.null(dims) || length(dims) != n_dim) {
-    .ui_abort(
+    cli::cli_abort(
       "{.arg {name}} must be a numeric {kind} with {n_dim} dimensions."
     )
   }
   if (!is.numeric(x)) {
-    .ui_abort("{.arg {name}} must have numeric storage mode.")
+    cli::cli_abort("{.arg {name}} must have numeric storage mode.")
   }
   .assert_no_missing(x, name)
   if (non_negative && any(x < 0)) {
-    .ui_abort("{.arg {name}} must be non-negative.")
+    cli::cli_abort("{.arg {name}} must be non-negative.")
   }
   invisible(TRUE)
 }
@@ -149,13 +149,13 @@
 #' @noRd
 .assert_ggj_array <- function(arr, name) {
   if (is.null(dim(arr)) || length(dim(arr)) != 3L) {
-    .ui_abort("{.arg {name}} must be a G x G x J array.")
+    cli::cli_abort("{.arg {name}} must be a G x G x J array.")
   }
   g1 <- dim(arr)[[1L]]
   g2 <- dim(arr)[[2L]]
   jj <- dim(arr)[[3L]]
   if (g1 != g2) {
-    .ui_abort("{.arg {name}} dims must be G x G x J.")
+    cli::cli_abort("{.arg {name}} dims must be G x G x J.")
   }
   list(G = g1, J = jj)
 }
@@ -183,28 +183,28 @@
     return(NULL)
   }
   if (is.factor(true_ratios) || is.data.frame(true_ratios)) {
-    .ui_abort("{.arg true_ratios} must be a numeric vector or matrix.")
+    cli::cli_abort("{.arg true_ratios} must be a numeric vector or matrix.")
   }
   if (is.matrix(true_ratios)) {
     .assert_numeric_array(true_ratios, "true_ratios", 2L, non_negative = TRUE)
     if (nrow(true_ratios) == n_celltypes && ncol(true_ratios) == n_samples) {
       return(true_ratios)
     }
-    .ui_abort(
+    cli::cli_abort(
       "{.arg true_ratios} as a matrix must be J x N (n_celltypes x n_samples)."
     )
   }
   if (!is.numeric(true_ratios) || length(dim(true_ratios))) {
-    .ui_abort(
+    cli::cli_abort(
       "{.arg true_ratios} must be a numeric vector of length J or a J x N matrix."
     )
   }
   .assert_no_missing(true_ratios, "true_ratios")
   if (any(true_ratios < 0)) {
-    .ui_abort("{.arg true_ratios} must be non-negative.")
+    cli::cli_abort("{.arg true_ratios} must be non-negative.")
   }
   if (length(true_ratios) != n_celltypes) {
-    .ui_abort("{.arg true_ratios} must have length J.")
+    cli::cli_abort("{.arg true_ratios} must have length J.")
   }
   matrix(
     true_ratios,
@@ -272,12 +272,12 @@
     is.null(rownames(signature_matrix)) ||
       is.null(rownames(bulk_expression))
   ) {
-    .ui_abort(
+    cli::cli_abort(
       "{.arg signature_matrix} and {.arg bulk_expression} must have gene rownames."
     )
   }
   if (is.null(colnames(signature_matrix))) {
-    .ui_abort("{.arg signature_matrix} must have cell-type colnames.")
+    cli::cli_abort("{.arg signature_matrix} must have cell-type colnames.")
   }
 
   common_genes <- intersect(
@@ -286,7 +286,7 @@
   )
   gene_frac <- length(common_genes) / nrow(signature_matrix)
   if (gene_frac < 0.5) {
-    .ui_abort(c(
+    cli::cli_abort(c(
       "Only {gene_frac} fraction of genes are used in the signature matrix.",
       "i" = "Half of common genes are required at least."
     ))
@@ -300,7 +300,7 @@
   n_samples <- ncol(bulk_expression)
   # J > G: undetermined linear mixture (arxiv:2310.14722, sec. 2.1.5).
   if (n_celltypes > n_genes) {
-    .ui_abort(c(
+    cli::cli_abort(c(
       "Undetermined deconvolution: J exceeds G.",
       "x" = "Number of cell types J = {.val {n_celltypes}} exceeds genes G = {.val {n_genes}}."
     ))
@@ -316,20 +316,20 @@
           c(n_genes, n_genes, n_celltypes)
         )
       ) {
-        .ui_abort(
+        cli::cli_abort(
           "{.arg Sigma} must be a G x G x J array matching the aligned signature matrix."
         )
       }
     } else {
       missing_genes <- setdiff(common_genes, dimnames(Sigma)[[1L]])
       if (length(missing_genes)) {
-        .ui_abort(
+        cli::cli_abort(
           "{.arg Sigma} is missing genes present in the signature."
         )
       }
       Sigma <- Sigma[common_genes, common_genes, , drop = FALSE]
       if (dim(Sigma)[[3L]] != n_celltypes) {
-        .ui_abort(
+        cli::cli_abort(
           "{.arg Sigma} must have J slices (one covariance per cell type)."
         )
       }
@@ -345,7 +345,7 @@
   .warn_collinear_signature(signature_matrix)
 
   if (isTRUE(scaled)) {
-    .ui_abort(c(
+    cli::cli_abort(c(
       "{.arg scaled} = TRUE (log2 mixing) is not supported.",
       "x" = "The logarithm is a nonlinear map and, by Jensen's inequality, changes first and second moments, breaking the linear convolution y = mu p.",
       "i" = "CIBERSORT likewise requires non-negative expression, no missing values, and a non-log linear scale (Newman et al., 2015).",
@@ -386,7 +386,7 @@
   n_celltypes <- ncol(signature_matrix)
   rank_mu <- qr(signature_matrix)$rank
   if (rank_mu < n_celltypes) {
-    .ui_warning(c(
+    cli::cli_warn(c(
       "Signature columns are collinear.",
       "x" = "rank {.val {rank_mu}} < J = {.val {n_celltypes}}; mixture proportions are not identifiable."
     ))
@@ -394,14 +394,14 @@
   }
   col_norm <- sqrt(colSums(signature_matrix^2))
   if (any(col_norm < .Machine$double.eps)) {
-    .ui_warning("A signature column is numerically zero.")
+    cli::cli_warn("A signature column is numerically zero.")
     return(invisible(FALSE))
   }
   unit_cols <- sweep(signature_matrix, 2L, col_norm, "/")
   cosine <- abs(crossprod(unit_cols))
   diag(cosine) <- 0
   if (any(cosine > 1 - 1e-8)) {
-    .ui_warning(
+    cli::cli_warn(
       "At least two signature columns are identical up to scaling."
     )
   }
@@ -426,7 +426,7 @@
   centre <- rowMeans(signature_matrix)
   scale <- apply(signature_matrix, 1L, stats::sd)
   if (any(!is.finite(scale) | scale < .Machine$double.eps)) {
-    .ui_abort(
+    cli::cli_abort(
       "Gene-wise standardisation requires a positive finite standard deviation for every gene in the signature."
     )
   }
@@ -459,7 +459,7 @@
 #' @noRd
 .check_suggested_package <- function(pkg, fn) {
   if (!requireNamespace(pkg, quietly = TRUE)) {
-    .ui_abort(c(
+    cli::cli_abort(c(
       "{.fn {fn}} requires the optional package {.pkg {pkg}}.",
       "i" = "Install it with install.packages(\"{pkg}\")."
     ))

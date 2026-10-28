@@ -1,0 +1,28 @@
+# rOpenSci pkgcheck on the package (R CMD check, goodpractice, exports,
+# documentation, tests). From https://github.com/ropensci-review-tools/pkgcheck-action.
+# scripts/ is in .Rbuildignore, so pkgcheck never sees it; the pre-commit
+# hook `no-decovart-internals` guards scripts/ and vignettes/ instead.
+name: pkgcheck
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+on:
+  # Manually trigger the Action under Actions/pkgcheck
+  workflow_dispatch:
+  # Run on every push to main
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  pkgcheck:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: ropensci-review-tools/pkgcheck-action@main

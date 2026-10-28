@@ -69,5 +69,5 @@ test_that("internal RMSE and MAE match the Metrics package", {
 test_that("KKT residual vanishes for a constant ambient score", {
   p <- c(0.2, 0.3, 0.5)
   grad <- c(4, 4, 4)
-  expect_equal(.kkt_residual(p, grad), 0, tolerance = 1e-10)
+  expect_equal(kkt_residual(p, grad), 0, tolerance = 1e-10)
 })

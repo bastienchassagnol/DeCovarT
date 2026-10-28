@@ -51,7 +51,8 @@ scale_covariance_array <- function(sigma, scale) {
 #' @param n_mc Monte Carlo size forwarded to
 #'   [overlap_gaussian_mc()] when \eqn{G\ge 4}.
 #' @param s_range Length-2 search interval for \eqn{s}.
-#' @param tol Absolute overlap tolerance.
+#' @param tol Tolerance of the root search, on the scale \eqn{s}
+#'   ([stats::uniroot()] uses `max(tol / 4, 1e-4)`).
 #' @param seed Optional seed for overlap evaluations.
 #' @param verbose If `TRUE`, print the MixSim-to-MC switch.
 #' @param pairs Optional two-column matrix of cell-type indices. When
@@ -62,7 +63,18 @@ scale_covariance_array <- function(sigma, scale) {
 #'
 #' @return A list with `sigma`, `Theta`, `scale`, `baromega` (the
 #'   calibrated overlap at the returned scale), and `target`.
-#' @keywords internal
+#' @seealso [scale_covariance_array()], [compute_average_overlap()]
+#' @examples
+#' mu <- matrix(c(0, 0, 3, 3), 2, 2)
+#' sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+#' calibrated <- scale_covariances_to_overlap(
+#'   mu,
+#'   sigma,
+#'   p = c(0.5, 0.5),
+#'   target = 0.05
+#' )
+#' calibrated[c("scale", "baromega")]
+#' @export
 scale_covariances_to_overlap <- function(
   mu,
   sigma,
@@ -131,10 +143,10 @@ scale_covariances_to_overlap <- function(
     } else {
       s_range[[2L]]
     }
-    .ui_warn(c(
+    cli::cli_alert_warning(paste(
       "Target overlap {.val {target}} is outside the range",
       "[{.val {round(ov_lo, 4)}}, {.val {round(ov_hi, 4)}}]",
-      "on `s_range`; using the nearer endpoint."
+      "on {.arg s_range}; using the nearer endpoint."
     ))
   } else {
     s_star <- stats::uniroot(
