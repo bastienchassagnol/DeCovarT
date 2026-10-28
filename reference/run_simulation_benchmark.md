@@ -30,7 +30,7 @@ run_simulation_benchmark(
   coverage_interval = "wilson",
   verbose = FALSE,
   progress_every = 10L,
-  model = c("population", "single_cell"),
+  likelihood = population_likelihood(),
   return_data = FALSE,
   reference = NULL
 )
@@ -84,11 +84,15 @@ run_simulation_benchmark(
   [`deconvolute_ratios()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)
   when `verbose` is `TRUE`. Defaults to `10L`.
 
-- model:
+- likelihood:
 
-  `"population"` (default) draws every bulk from the convolution
+  A likelihood object or its constructor, which both draws the bulks and
+  scores the fits.
+  [`population_likelihood()`](https://bastienchassagnol.github.io/DeCovarT/reference/population_likelihood.md)
+  (default) draws every bulk from the convolution
   [`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md);
-  `"single_cell"` draws it as a sum of cells with
+  [`single_cell_likelihood()`](https://bastienchassagnol.github.io/DeCovarT/reference/population_likelihood.md)
+  draws it as a sum of cells with
   [`simulate_bulk_from_cells()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_from_cells.md),
   using `n_cells` and `platform_scale` from `true_theta` (and
   `generative_mean` / `generative_sigma` when the fitted reference

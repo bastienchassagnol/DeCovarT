@@ -210,22 +210,20 @@ initialisation strategies are reserved for separate scenarios.
 
 Table 3: Composition factor.
 
-The run size is read from environment variables, so the dry run and the
-production run share one script:
+The run size is hard-coded at the top of the script:
 
-| Variable | Meaning | Default |
+| Constant | Meaning | Value |
 |----|----|----|
-| `DECOVART_N_REPLICATES` | Monte Carlo bulks per scenario, N | 100 |
-| `DECOVART_N_BOOT` | parametric-bootstrap refits per bulk, B | 200 |
-| `DECOVART_N_REFERENCE` | individuals of the reference panel, R | N |
-| `DECOVART_CORES` | workers of the per-sample loop | 1 |
-| `DECOVART_POSTPROCESS_ONLY` | `1` redraws the figures from the saved benchmark | 0 |
+| `N_REPLICATES` | Monte Carlo bulks per scenario, N | 200 |
+| `N_REFERENCE` | individuals of the reference panel, R (MEAD and RNA-Sieve) | 200 |
+| `CORES` | workers for the N bulks of a scenario; the three figure scripts run at the same time | a third of half the cores (14 of 88) |
+| `POSTPROCESS_ONLY` | `TRUE` redraws the figures from the saved benchmark | `FALSE` |
 
-Table 4: Run-size variables of
+Table 4: Run-size constants of
 `scripts/fig03_variance_covariance_driven.R`.
 
 Parallel workers load the **installed** DeCovarT, so run
-`devtools::install()` before setting `DECOVART_CORES` above 1.
+`devtools::install()` before a parallel run.
 
 ### Methods
 
@@ -238,8 +236,8 @@ switched off everywhere: all G=20 genes enter every fit.
 | NNLS | [`deconvolute_ratios_nnls()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md) | true means | none |
 | RLM (robust linear model) | [`deconvolute_ratios_rlm()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md) | true means | none |
 | CIBERSORT (\nu-SVR) | [`deconvolute_ratios_cibersort()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md) | true means | none |
-| Newton–Raphson | [`deconvolute_ratios_Newton_Raphson()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md) | true moments | Wald, ILR, profile, bootstrap, oracle |
-| L-BFGS-B | [`deconvolute_ratios_L_BFGS_B()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md) | true moments | Wald, ILR, profile, bootstrap |
+| Newton–Raphson | [`deconvolute_ratios_Newton_Raphson()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md) | true moments | Wald, ILR, profile, oracle |
+| L-BFGS-B | [`deconvolute_ratios_L_BFGS_B()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md) | true moments | Wald, ILR |
 | Firth | [`fit_firth_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_firth_decovart.md) | true moments | Wald, ILR |
 | MEAD | `MEAD::MEAD()` (GitHub, commit `d66fa10`) | reference panel, cohort of N bulks | native sandwich interval |
 | RNA-Sieve | `rnasieve` 0.1.4 (Python) | reference panel, cohort of N bulks | released, Fisher and Godambe (see below) |
@@ -260,7 +258,11 @@ Table 5: Methods of the covariance-driven benchmark.
   ([closure
   chart](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.html#sec-closure-box)):
   it maximises the convolution likelihood itself, reaches exact zeros,
-  and its box KKT points are the simplex KKT points.
+  and its box KKT points are the simplex KKT points. A boundary estimate
+  (one, two or up to J-1 zero proportions: a face, an edge or a vertex)
+  has no Wald or ILR interval, so their coverage for L-BFGS-B is over
+  interior estimates; `n_boundary` gives the count. Profile intervals
+  refit from the bulk and are reported under Newton–Raphson only.
 - **Firth** maximises the Jeffreys-penalised likelihood ([Firth
   1993](#ref-firthBiasReductionMaximum1993)); its estimate is the same
   for both optimisers, so it appears once.
@@ -302,7 +304,6 @@ Table 5: Methods of the covariance-driven benchmark.
 | `wald` | delta method on \boldsymbol p, symmetric |
 | `ilr` | Wald interval in ILR coordinates mapped back to the simplex |
 | `profile` | likelihood-ratio inversion; chart-invariant, inside \[0,1\] |
-| `bootstrap` | percentile interval of a parametric bootstrap refitted by the same optimiser |
 | `oracle` | \hat p_j\pm the Wald half-width at \boldsymbol p^{\star} (Fisher at the truth) |
 
 Table 6: Interval menu ([population
@@ -315,9 +316,6 @@ gives the mean and median width and the share of intervals leaving
 
 ``` r
 
-# Dry run (about two minutes):
-#   DECOVART_N_REPLICATES=5 DECOVART_N_BOOT=5 \
-#     Rscript scripts/fig03_variance_covariance_driven.R
 benchmark <- readRDS("output/fig03/fig03_benchmark.rds")
 names(benchmark)
 #> meta config theta_true descriptors supplementary regression
@@ -366,8 +364,8 @@ render_figure_from_data("ci_width_forest", plot_data, "output/fig03")
 
 Table 7: Plot books of the covariance-driven scenario.
 
-Redraw every book without refitting with
-`DECOVART_POSTPROCESS_ONLY=1 Rscript scripts/fig03_variance_covariance_driven.R`.
+Redraw every book without refitting with `POSTPROCESS_ONLY <- TRUE` at
+the top of `scripts/fig03_variance_covariance_driven.R`.
 
 ### Two-dimensional projections of a Gaussian convolution
 

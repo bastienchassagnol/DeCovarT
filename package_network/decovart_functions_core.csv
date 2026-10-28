@@ -9,6 +9,7 @@
 ".ilr_hessian","02_00_ilr_chart.R","z, score_p, hessian_p, V","Hessian in ILR coordinates from the score and Hessian in the composition. Second-order chain rule J_ psi ^ top HJ_ psi + sum _iU_iH_ psi _i."
 ".mixture_covariance","02_00_likelihood_core.R","weights, Sigma","Weighted sum of cell-type covariances. sum _j w_j Sigma _j, symmetrised."
 ".symmetrise","02_00_likelihood_core.R","x","Symmetric part of a square matrix"
+".mixture_factorisation","02_00_likelihood_core.R","weights, Sigma","Cholesky factorisation of a weighted covariance mixture. Factorises the G times G mixture and returns the matrix, its upper Cholesky factor, the log-determinant and the precision."
 ".newton_ilr","02_00_likelihood_core.R","z0, objective, gradient, hessian, epsilon, itmax","Trust-region Newton ascent in ILR coordinates. Maximises `objective` with stats::nlminb(), which, given an analytic Hessian, runs the PORT model/trust-region Newton routine: each step maximises the..."
 ".lbfgsb_closure","02_00_likelihood_core.R","p0, loglik, score, epsilon, itmax","L-BFGS-B on the closure of the non-negative orthant. Maximises ell (p) over the closed simplex through p=C(w)=w/ 1^ top w, with the box w ge 0."
 ".fit_on_face","02_00_likelihood_core.R","nms, fixed, loglik, score, hessian, epsilon, itmax","Maximum likelihood on a face of the simplex. Coordinates in `fixed` are substituted, so an exact zero is representable; the free block is (1- sum fixed) psi (z) on the ILR chart of the free face."

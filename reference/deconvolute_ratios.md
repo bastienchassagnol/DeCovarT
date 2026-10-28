@@ -26,7 +26,7 @@ deconvolute_ratios(
   coverage_interval = "wilson",
   verbose = FALSE,
   progress_every = 10L,
-  model = c("population", "single_cell"),
+  likelihood = population_likelihood(),
   nuisance_true = NULL
 )
 ```
@@ -103,12 +103,16 @@ deconvolute_ratios(
   Sample-progress interval when `verbose` is `TRUE` and `cores = 1`.
   Defaults to `10L`.
 
-- model:
+- likelihood:
 
-  `"population"` (default), the Gaussian convolution, or
-  `"single_cell"`, the mixture of cells with its scales profiled out: it
-  sets the log-likelihood, score and curvature used for the per-sample
-  diagnostics and the Wald standard errors.
+  A likelihood object,
+  [`population_likelihood()`](https://bastienchassagnol.github.io/DeCovarT/reference/population_likelihood.md)
+  (default, the Gaussian convolution) or
+  [`single_cell_likelihood()`](https://bastienchassagnol.github.io/DeCovarT/reference/population_likelihood.md)
+  (the mixture of cells with its scales profiled out), or its
+  constructor. It sets the log-likelihood, score and curvature used for
+  the per-sample diagnostics, the Wald standard errors and the interval
+  menu.
 
 - nuisance_true:
 
@@ -227,14 +231,14 @@ deconvolute_ratios(
 #> #   coverage_interval <chr>, mean_interval_width <dbl>, mcse_coverage <dbl>
 #> 
 #> $optimisation
-#> # A tibble: 2 × 14
+#> # A tibble: 2 × 15
 #>   sample_id algorithm elapsed_sec memory_bytes kkt_residual numerical_converged
 #>   <chr>     <chr>           <dbl>        <dbl>        <dbl> <lgl>              
-#> 1 sample_1  nnls                0    534669312        0.444 TRUE               
-#> 2 sample_2  nnls                0    534669312        0.152 TRUE               
-#> # ℹ 8 more variables: theoretical_converged <lgl>, loglik_regret <dbl>,
-#> #   local_maximum <lgl>, min_eigenvalue <dbl>, max_eigenvalue <dbl>,
-#> #   converged <list>, ct1 <dbl>, ct2 <dbl>
+#> 1 sample_1  nnls                0    520993792        0.444 TRUE               
+#> 2 sample_2  nnls                0    522034176        0.152 TRUE               
+#> # ℹ 9 more variables: theoretical_converged <lgl>, n_zero <int>,
+#> #   loglik_regret <dbl>, local_maximum <lgl>, min_eigenvalue <dbl>,
+#> #   max_eigenvalue <dbl>, converged <list>, ct1 <dbl>, ct2 <dbl>
 #> 
 #> $intervals
 #> # A tibble: 0 × 0

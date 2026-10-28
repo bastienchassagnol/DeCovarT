@@ -29,7 +29,7 @@ is provided, DeCovarT methods maximise
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -129,7 +129,7 @@ is provided, DeCovarT methods maximise
 <span>  coverage_interval <span class="op">=</span> <span class="st">"wilson"</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  progress_every <span class="op">=</span> <span class="fl">10L</span>,</span>
-<span>  model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"population"</span>, <span class="st">"single_cell"</span><span class="op">)</span>,</span>
+<span>  likelihood <span class="op">=</span> <span class="fu"><a href="population_likelihood.html">population_likelihood</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  nuisance_true <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -210,11 +210,12 @@ one-line notice instead of per-sample ticks.</p></dd>
 <code>TRUE</code> and <code>cores = 1</code>. Defaults to <code>10L</code>.</p></dd>
 
 
-<dt id="arg-model">model<a class="anchor" aria-label="anchor" href="#arg-model"></a></dt>
-<dd><p><code>"population"</code> (default), the Gaussian convolution, or
-<code>"single_cell"</code>, the mixture of cells with its scales profiled out:
-it sets the log-likelihood, score and curvature used for the
-per-sample diagnostics and the Wald standard errors.</p></dd>
+<dt id="arg-likelihood">likelihood<a class="anchor" aria-label="anchor" href="#arg-likelihood"></a></dt>
+<dd><p>A likelihood object, <code><a href="population_likelihood.html">population_likelihood()</a></code>
+(default, the Gaussian convolution) or <code><a href="population_likelihood.html">single_cell_likelihood()</a></code> (the
+mixture of cells with its scales profiled out), or its constructor. It
+sets the log-likelihood, score and curvature used for the per-sample
+diagnostics, the Wald standard errors and the interval menu.</p></dd>
 
 
 <dt id="arg-nuisance-true">nuisance_true<a class="anchor" aria-label="anchor" href="#arg-nuisance-true"></a></dt>
@@ -348,14 +349,14 @@ Newman A, Liu C, Green M, Gentles A, Feng W, Xu Y, Hoang C, Diehn M, Alizadeh A 
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   coverage_interval &lt;chr&gt;, mean_interval_width &lt;dbl&gt;, mcse_coverage &lt;dbl&gt;</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $optimisation</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 14</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 15</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   sample_id algorithm elapsed_sec memory_bytes kkt_residual numerical_converged</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>              </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> sample_1  nnls                0    534<span style="text-decoration: underline;">669</span>312        0.444 TRUE               </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> sample_2  nnls                0    534<span style="text-decoration: underline;">669</span>312        0.152 TRUE               </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 8 more variables: theoretical_converged &lt;lgl&gt;, loglik_regret &lt;dbl&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   local_maximum &lt;lgl&gt;, min_eigenvalue &lt;dbl&gt;, max_eigenvalue &lt;dbl&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   converged &lt;list&gt;, ct1 &lt;dbl&gt;, ct2 &lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> sample_1  nnls                0    520<span style="text-decoration: underline;">993</span>792        0.444 TRUE               </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> sample_2  nnls                0    522<span style="text-decoration: underline;">034</span>176        0.152 TRUE               </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 9 more variables: theoretical_converged &lt;lgl&gt;, n_zero &lt;int&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   loglik_regret &lt;dbl&gt;, local_maximum &lt;lgl&gt;, min_eigenvalue &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   max_eigenvalue &lt;dbl&gt;, converged &lt;list&gt;, ct1 &lt;dbl&gt;, ct2 &lt;dbl&gt;</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $intervals</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 0 × 0</span></span>

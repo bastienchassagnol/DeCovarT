@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -347,13 +347,13 @@ Table 3: Methods of the single-cell benchmark.
 <td style="text-align: left;">Newton–Raphson</td>
 <td style="text-align: left;"><code>deconvolute_single_cell(optimiser = "newton")</code></td>
 <td style="text-align: left;">true moments, known sizes</td>
-<td style="text-align: left;">Wald, ILR, ILR-REML, profile, profile-REML, bootstrap, oracle</td>
+<td style="text-align: left;">Wald, ILR, ILR-REML, profile, profile-REML, oracle</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">L-BFGS-B</td>
 <td style="text-align: left;"><code>deconvolute_single_cell(optimiser = "lbfgsb")</code></td>
 <td style="text-align: left;">true moments, known sizes</td>
-<td style="text-align: left;">Wald, ILR, ILR-REML, profile, profile-REML, bootstrap</td>
+<td style="text-align: left;">Wald, ILR, ILR-REML</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Firth</td>
@@ -391,7 +391,7 @@ Table 3: Methods of the single-cell benchmark.
 <li>
 <strong><code>lsei</code> and NNLS.</strong> The scale <span class="math inline">c=a\,n_i</span> of a single-cell bulk is unknown, so <code>lsei</code>, which fixes it at one, is misspecified here. NNLS followed by renormalisation is the same least squares with a free scale (<span class="math inline">\boldsymbol\beta=c\boldsymbol p</span>); it is also the starting point of DeCovarT and RNA-Sieve. RLM is the robust linear model of Monaco et al., renormalised.</li>
 <li>
-<strong>DeCovarT.</strong> Newton–Raphson and L-BFGS-B maximise the same profile log-likelihood; L-BFGS-B works on the closure chart <span class="math inline">\boldsymbol p=\boldsymbol w/\mathbf1^{\top}\boldsymbol w</span>, <span class="math inline">\boldsymbol w\ge0</span> (<a href="theory-single-cell-generative-optimisation.html#sec-profile-lbfgsb">L-BFGS-B</a>). Bootstraps refit with the optimiser of the estimate.</li>
+<strong>DeCovarT.</strong> Newton–Raphson and L-BFGS-B maximise the same profile log-likelihood; L-BFGS-B works on the closure chart <span class="math inline">\boldsymbol p=\boldsymbol w/\mathbf1^{\top}\boldsymbol w</span>, <span class="math inline">\boldsymbol w\ge0</span> (<a href="theory-single-cell-generative-optimisation.html#sec-profile-lbfgsb">L-BFGS-B</a>). Bootstraps refit with the optimiser of the estimate. A boundary estimate (one, two or up to <span class="math inline">J-1</span> zero proportions: a face, an edge or a vertex) has no Wald or ILR interval, for the fractions or the scales, so their coverage for L-BFGS-B is over interior estimates; <code>n_boundary</code> gives the count. Profile intervals refit from the bulk and are reported under Newton–Raphson only.</li>
 <li>
 <strong>Second-generation methods</strong> follow the protocol of the <a href="fig03-covariance-driven.html#sec-hybrid-methods">covariance-driven scenario</a>. MEAD and RNA-Sieve read a reference panel of <span class="math inline">R</span> individuals and <span class="math inline">20</span> cells per type and individual, drawn by <code><a href="../reference/simulate_reference_replicates.html">simulate_reference_replicates()</a></code> with its own seed, independent of the bulks.
 <ul>
@@ -436,10 +436,6 @@ Table 4: Single-cell interval menu.
 </td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><code>bootstrap</code></td>
-<td style="text-align: left;">percentile interval of a parametric bootstrap refitted by the same optimiser</td>
-</tr>
-<tr class="even">
 <td style="text-align: left;"><code>oracle</code></td>
 <td style="text-align: left;">
 <span class="math inline">\hat p_j</span> plus or minus the Wald half-width at the true composition</td>
@@ -449,12 +445,12 @@ Table 4: Single-cell interval menu.
 </div>
 </figure>
 </div>
-<p>Wald, ILR and bootstrap intervals also cover the two scales, <span class="math inline">c=a\,n_i</span> and <span class="math inline">\phi=a^{2}n_i</span> (rows <code>mean_scale</code> and <code>variance_scale</code> of the interval table), and the platform scale <span class="math inline">a=\phi/c</span> and the cell count <span class="math inline">n=c^{2}/\phi</span> (rows <code>platform_scale_a</code> and <code>cell_count_n</code>), against their true values. The intervals of <span class="math inline">a</span> and <span class="math inline">n</span> are formed on the log scale, so both bounds are positive; <span class="math inline">\hat n</span> is a number of cells here only because <span class="math inline">a</span> is known to the generator. Coverage is reported with a Wilson Monte Carlo interval <span class="citation" data-cites="morrisUsingSimulationStudies2019">(<a href="#ref-morrisUsingSimulationStudies2019" role="doc-biblioref">Morris et al. 2019</a>)</span>.</p>
+<p>Wald and ILR intervals also cover the two scales, <span class="math inline">c=a\,n_i</span> and <span class="math inline">\phi=a^{2}n_i</span> (rows <code>mean_scale</code> and <code>variance_scale</code> of the interval table), and the platform scale <span class="math inline">a=\phi/c</span> and the cell count <span class="math inline">n=c^{2}/\phi</span> (rows <code>platform_scale_a</code> and <code>cell_count_n</code>), against their true values. The intervals of <span class="math inline">a</span> and <span class="math inline">n</span> are formed on the log scale, so both bounds are positive; <span class="math inline">\hat n</span> is a number of cells here only because <span class="math inline">a</span> is known to the generator. Coverage is reported with a Wilson Monte Carlo interval <span class="citation" data-cites="morrisUsingSimulationStudies2019">(<a href="#ref-morrisUsingSimulationStudies2019" role="doc-biblioref">Morris et al. 2019</a>)</span>.</p>
 </section><section class="level2"><h3 id="run-size">Run size<a class="anchor" aria-label="anchor" href="#run-size"></a>
 </h3>
 <div id="tbl-fig05-run-size" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-fig05-run-size-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 5: Run-size variables of <code>scripts/fig05_single_cell_hierarchical.R</code>.
+Table 5: Run-size constants at the top of <code>scripts/fig05_single_cell_hierarchical.R</code>.
 </figcaption><div aria-describedby="tbl-fig05-run-size-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table caption-top">
 <colgroup>
@@ -463,52 +459,42 @@ Table 5: Run-size variables of <code>scripts/fig05_single_cell_hierarchical.R</
 <col style="width: 33%">
 </colgroup>
 <thead><tr class="header">
-<th>Variable</th>
+<th>Constant</th>
 <th>Meaning</th>
-<th>Default</th>
+<th>Value</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><code>DECOVART_N_REPLICATES</code></td>
+<td><code>N_REPLICATES</code></td>
 <td>Monte Carlo bulks per scenario, <span class="math inline">N</span>
-</td>
-<td>100</td>
-</tr>
-<tr class="even">
-<td><code>DECOVART_N_BOOT</code></td>
-<td>parametric-bootstrap refits per bulk, <span class="math inline">B</span>
 </td>
 <td>200</td>
 </tr>
+<tr class="even">
+<td><code>N_REFERENCE</code></td>
+<td>individuals of the reference panel, <span class="math inline">R</span> (MEAD and RNA-Sieve)</td>
+<td>200</td>
+</tr>
 <tr class="odd">
-<td><code>DECOVART_N_REFERENCE</code></td>
-<td>individuals of the reference panel, <span class="math inline">R</span>
-</td>
-<td><span class="math inline">N</span></td>
+<td><code>CORES</code></td>
+<td>workers for the <span class="math inline">N</span> bulks of a scenario; the three figure scripts run at the same time</td>
+<td>a third of half the cores (14 of 88)</td>
 </tr>
 <tr class="even">
-<td><code>DECOVART_CORES</code></td>
-<td>workers of the per-sample loop</td>
-<td>1</td>
-</tr>
-<tr class="odd">
-<td><code>DECOVART_POSTPROCESS_ONLY</code></td>
+<td><code>POSTPROCESS_ONLY</code></td>
 <td>
-<code>1</code> redraws the figures from the saved benchmark</td>
-<td>0</td>
+<code>TRUE</code> redraws the figures from the saved benchmark</td>
+<td><code>FALSE</code></td>
 </tr>
 </tbody>
 </table>
 </div>
 </figure>
 </div>
-<p>Parallel workers load the <strong>installed</strong> DeCovarT, so run <code>devtools::install()</code> before setting <code>DECOVART_CORES</code> above 1.</p>
+<p>The parametric bootstrap is not run: the moments of a scenario are fixed, so coverage is measured over its <span class="math inline">N</span> bulks. Parallel workers load the <strong>installed</strong> DeCovarT, so run <code>devtools::install()</code> before a parallel run.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Dry run:</span></span>
-<span><span class="co">#   DECOVART_N_REPLICATES=5 DECOVART_N_BOOT=5 \</span></span>
-<span><span class="co">#     Rscript scripts/fig05_single_cell_hierarchical.R</span></span>
-<span><span class="va">benchmark</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/fig05/fig05_benchmark.rds"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">benchmark</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/fig05/fig05_benchmark.rds"</span><span class="op">)</span></span>
 <span><span class="co"># Coverage of the composition and of the two scales.</span></span>
 <span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span></span>
 <span>  <span class="va">benchmark</span><span class="op">$</span><span class="va">intervals</span>,</span>

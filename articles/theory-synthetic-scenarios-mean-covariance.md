@@ -1205,8 +1205,9 @@ is within 10^{-3} of \ell(\boldsymbol{p}^{\star}) (the generating value,
 a proxy for the expected global maximum in a well-specified Monte
 Carlo). The default stationarity diagnostic stored on
 `optimisation$kkt_residual` is the **simplex projected-score residual**
-`.kkt_residual()` ([Note 17](#nte-kkt-ilr-hessian)), not the raw ambient
-gradient and not the ILR score from
+[`kkt_residual()`](https://bastienchassagnol.github.io/DeCovarT/reference/kkt_residual.md)
+([Note 17](#nte-kkt-ilr-hessian)), not the raw ambient gradient and not
+the ILR score from
 [`boundary_diagnostics()`](https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.md).
 
 Elapsed time is the per-sample
@@ -1282,7 +1283,9 @@ Table 13: ILR score and Hessian extrema are now stored on
 > R\_{\alpha}(\boldsymbol{p}) = \alpha^{-1}\bigl(
 > \Pi\_{\Delta}(\boldsymbol{p}+\alpha\nabla_p\ell) -\boldsymbol{p}
 > \bigr), with Euclidean projection \Pi\_{\Delta} onto the simplex
-> (computed inside `.kkt_residual()`) and default \alpha=1. Then
+> (computed inside
+> [`kkt_residual()`](https://bastienchassagnol.github.io/DeCovarT/reference/kkt_residual.md))
+> and default \alpha=1. Then
 > \texttt{kkt\\residual}=\\R\_{\alpha}(\hat{\boldsymbol{p}})\\\_2. This
 > vanishes if and only if a first-order feasible step does not move the
 > iterate, including when some p_j=0 (KKT: g_j=\lambda on the support,

@@ -53,7 +53,7 @@ Etienne Becht
 
 Anaïs Baudot
 
-2026-10-27
+2026-10-28
 
 ## 
 
@@ -882,6 +882,11 @@ composition, overlap and divergences between cell-type distributions
 
 - [`compute_benchmark_metrics()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_benchmark_metrics.md)
   : Compute deconvolution benchmark metrics
+- [`population_likelihood()`](https://bastienchassagnol.github.io/DeCovarT/reference/population_likelihood.md)
+  [`single_cell_likelihood()`](https://bastienchassagnol.github.io/DeCovarT/reference/population_likelihood.md)
+  : Likelihood objects for the benchmark
+- [`kkt_residual()`](https://bastienchassagnol.github.io/DeCovarT/reference/kkt_residual.md)
+  : Simplex KKT / projected-score residual
 - [`coverage_mc_interval()`](https://bastienchassagnol.github.io/DeCovarT/reference/coverage_mc_interval.md)
   : Monte Carlo interval for an empirical coverage probability
 - [`compute_shannon_entropy()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_shannon_entropy.md)
@@ -896,8 +901,12 @@ composition, overlap and divergences between cell-type distributions
   : Mean pairwise AIRM distance of component covariances
 - [`compute_average_jeffreys()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_jeffreys.md)
   : Average pairwise Jeffreys divergence of a Gaussian mixture
+- [`hellinger_gaussian()`](https://bastienchassagnol.github.io/DeCovarT/reference/hellinger_gaussian.md)
+  : Hellinger distance between two multivariate Gaussians
 - [`scale_covariance_array()`](https://bastienchassagnol.github.io/DeCovarT/reference/scale_covariance_array.md)
   : Scale component covariances, keeping precision zeros
+- [`scale_covariances_to_overlap()`](https://bastienchassagnol.github.io/DeCovarT/reference/scale_covariances_to_overlap.md)
+  : Calibrate a global covariance scale to a target MixSim BarOmega
 
 ### Visualisation
 

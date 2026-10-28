@@ -180,8 +180,8 @@ feature selection).
 | NNLS | [`deconvolute_ratios_nnls()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md) | true means | none |
 | RLM | [`deconvolute_ratios_rlm()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md) | true means | none |
 | CIBERSORT | [`deconvolute_ratios_cibersort()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios_Marquardt_Levenberg.md) | true means | none |
-| Newton–Raphson | `deconvolute_single_cell(optimiser = "newton")` | true moments, known sizes | Wald, ILR, ILR-REML, profile, profile-REML, bootstrap, oracle |
-| L-BFGS-B | `deconvolute_single_cell(optimiser = "lbfgsb")` | true moments, known sizes | Wald, ILR, ILR-REML, profile, profile-REML, bootstrap |
+| Newton–Raphson | `deconvolute_single_cell(optimiser = "newton")` | true moments, known sizes | Wald, ILR, ILR-REML, profile, profile-REML, oracle |
+| L-BFGS-B | `deconvolute_single_cell(optimiser = "lbfgsb")` | true moments, known sizes | Wald, ILR, ILR-REML |
 | Firth | [`fit_firth_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/fit_firth_single_cell.md) | true moments, known sizes | Wald, Wald-REML, ILR, ILR-REML |
 | MEAD | `MEAD::MEAD()` (GitHub, commit `d66fa10`) | reference panel, cohort of N bulks | native sandwich interval |
 | RNA-Sieve | `rnasieve` 0.1.4 (Python) | reference panel, cohort of N bulks | released, Fisher and Godambe |
@@ -199,7 +199,12 @@ Table 3: Methods of the single-cell benchmark.
   log-likelihood; L-BFGS-B works on the closure chart \boldsymbol
   p=\boldsymbol w/\mathbf1^{\top}\boldsymbol w, \boldsymbol w\ge0
   ([L-BFGS-B](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html#sec-profile-lbfgsb)).
-  Bootstraps refit with the optimiser of the estimate.
+  Bootstraps refit with the optimiser of the estimate. A boundary
+  estimate (one, two or up to J-1 zero proportions: a face, an edge or a
+  vertex) has no Wald or ILR interval, for the fractions or the scales,
+  so their coverage for L-BFGS-B is over interior estimates;
+  `n_boundary` gives the count. Profile intervals refit from the bulk
+  and are reported under Newton–Raphson only.
 - **Second-generation methods** follow the protocol of the
   [covariance-driven
   scenario](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-covariance-driven.html#sec-hybrid-methods).
@@ -235,42 +240,38 @@ article](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cel
 | `ilr` | Wald in ILR coordinates mapped back to the simplex |
 | `profile` | likelihood-ratio inversion with c and \phi profiled out |
 | `*_reml` | REML calibration with \nu=G-J: Student quantiles and \hat\phi rescaled by G/\nu |
-| `bootstrap` | percentile interval of a parametric bootstrap refitted by the same optimiser |
 | `oracle` | \hat p_j plus or minus the Wald half-width at the true composition |
 
 Table 4: Single-cell interval menu.
 
-Wald, ILR and bootstrap intervals also cover the two scales, c=a\\n_i
-and \phi=a^{2}n_i (rows `mean_scale` and `variance_scale` of the
-interval table), and the platform scale a=\phi/c and the cell count
-n=c^{2}/\phi (rows `platform_scale_a` and `cell_count_n`), against their
-true values. The intervals of a and n are formed on the log scale, so
-both bounds are positive; \hat n is a number of cells here only because
-a is known to the generator. Coverage is reported with a Wilson Monte
-Carlo interval ([Morris et al.
-2019](#ref-morrisUsingSimulationStudies2019)).
+Wald and ILR intervals also cover the two scales, c=a\\n_i and
+\phi=a^{2}n_i (rows `mean_scale` and `variance_scale` of the interval
+table), and the platform scale a=\phi/c and the cell count n=c^{2}/\phi
+(rows `platform_scale_a` and `cell_count_n`), against their true values.
+The intervals of a and n are formed on the log scale, so both bounds are
+positive; \hat n is a number of cells here only because a is known to
+the generator. Coverage is reported with a Wilson Monte Carlo interval
+([Morris et al. 2019](#ref-morrisUsingSimulationStudies2019)).
 
 ### Run size
 
-| Variable | Meaning | Default |
+| Constant | Meaning | Value |
 |----|----|----|
-| `DECOVART_N_REPLICATES` | Monte Carlo bulks per scenario, N | 100 |
-| `DECOVART_N_BOOT` | parametric-bootstrap refits per bulk, B | 200 |
-| `DECOVART_N_REFERENCE` | individuals of the reference panel, R | N |
-| `DECOVART_CORES` | workers of the per-sample loop | 1 |
-| `DECOVART_POSTPROCESS_ONLY` | `1` redraws the figures from the saved benchmark | 0 |
+| `N_REPLICATES` | Monte Carlo bulks per scenario, N | 200 |
+| `N_REFERENCE` | individuals of the reference panel, R (MEAD and RNA-Sieve) | 200 |
+| `CORES` | workers for the N bulks of a scenario; the three figure scripts run at the same time | a third of half the cores (14 of 88) |
+| `POSTPROCESS_ONLY` | `TRUE` redraws the figures from the saved benchmark | `FALSE` |
 
-Table 5: Run-size variables of
+Table 5: Run-size constants at the top of
 `scripts/fig05_single_cell_hierarchical.R`.
 
-Parallel workers load the **installed** DeCovarT, so run
-`devtools::install()` before setting `DECOVART_CORES` above 1.
+The parametric bootstrap is not run: the moments of a scenario are
+fixed, so coverage is measured over its N bulks. Parallel workers load
+the **installed** DeCovarT, so run `devtools::install()` before a
+parallel run.
 
 ``` r
 
-# Dry run:
-#   DECOVART_N_REPLICATES=5 DECOVART_N_BOOT=5 \
-#     Rscript scripts/fig05_single_cell_hierarchical.R
 benchmark <- readRDS("output/fig05/fig05_benchmark.rds")
 # Coverage of the composition and of the two scales.
 dplyr::select(

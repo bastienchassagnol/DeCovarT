@@ -25,7 +25,7 @@ scripts/fig02_bivariate_toy.R and the paper-scenario vignettes."><meta property=
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -121,7 +121,7 @@ summaries, etc.) should live in analysis scripts; see
 <span>  coverage_interval <span class="op">=</span> <span class="st">"wilson"</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  progress_every <span class="op">=</span> <span class="fl">10L</span>,</span>
-<span>  model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"population"</span>, <span class="st">"single_cell"</span><span class="op">)</span>,</span>
+<span>  likelihood <span class="op">=</span> <span class="fu"><a href="population_likelihood.html">population_likelihood</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  return_data <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  reference <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -174,9 +174,11 @@ readable.</p></dd>
 <code><a href="deconvolute_ratios.html">deconvolute_ratios()</a></code> when <code>verbose</code> is <code>TRUE</code>. Defaults to <code>10L</code>.</p></dd>
 
 
-<dt id="arg-model">model<a class="anchor" aria-label="anchor" href="#arg-model"></a></dt>
-<dd><p><code>"population"</code> (default) draws every bulk from the
-convolution <code><a href="simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code>; <code>"single_cell"</code> draws it as a
+<dt id="arg-likelihood">likelihood<a class="anchor" aria-label="anchor" href="#arg-likelihood"></a></dt>
+<dd><p>A likelihood object or its constructor, which both
+draws the bulks and scores the fits. <code><a href="population_likelihood.html">population_likelihood()</a></code>
+(default) draws every bulk from the convolution
+<code><a href="simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code>; <code><a href="population_likelihood.html">single_cell_likelihood()</a></code> draws it as a
 sum of cells with <code><a href="simulate_bulk_from_cells.html">simulate_bulk_from_cells()</a></code>, using <code>n_cells</code> and
 <code>platform_scale</code> from <code>true_theta</code> (and <code>generative_mean</code> /
 <code>generative_sigma</code> when the fitted reference differs from the

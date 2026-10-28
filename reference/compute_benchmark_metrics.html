@@ -17,7 +17,7 @@ composition."><meta property="og:image" content="https://bastienchassagnol.githu
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -229,11 +229,16 @@ single-cell model.</p></dd>
 row per cell type);</p></li>
 <li><p><code>monte_carlo</code>: one row per cell type, including <code>theoretical_se</code>
 (filled later from expected Fisher at \(p^{\star}\));</p></li>
-<li><p><code>optimisation</code>: one row per sample, with the estimated scales when
-<code>nuisance_hat</code> is given;</p></li>
+<li><p><code>optimisation</code>: one row per sample, with <code>n_zero</code>, the number of
+proportions estimated at exactly zero (1 on a face, 2 on an edge,
+\(J-1\) at a vertex), and the estimated scales when <code>nuisance_hat</code>
+is given;</p></li>
 <li><p><code>intervals</code>: one row per interval method and parameter, with the
 coverage, its Monte Carlo interval and the interval widths (empty
-without <code>intervals</code>).</p></li>
+without <code>intervals</code>). <code>n_numerical_failures</code> counts samples with no
+finite estimate for that parameter; <code>n_boundary</code> counts samples whose
+estimate has a zero proportion, where Wald, ILR and oracle intervals
+are undefined, so their coverage is over interior estimates.</p></li>
 </ul></div>
 
     <div class="section level2">
@@ -270,13 +275,13 @@ without <code>intervals</code>).</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   coverage_interval &lt;chr&gt;, mean_interval_width &lt;dbl&gt;, mcse_coverage &lt;dbl&gt;</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $optimisation</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1 × 14</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1 × 15</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   sample_id algorithm elapsed_sec memory_bytes kkt_residual numerical_converged</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>              </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> sample_1  <span style="color: #BB0000;">NA</span>                 <span style="color: #BB0000;">NA</span>           <span style="color: #BB0000;">NA</span>           <span style="color: #BB0000;">NA</span> TRUE               </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 8 more variables: theoretical_converged &lt;lgl&gt;, loglik_regret &lt;dbl&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   local_maximum &lt;lgl&gt;, min_eigenvalue &lt;dbl&gt;, max_eigenvalue &lt;dbl&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   converged &lt;list&gt;, ct1 &lt;dbl&gt;, ct2 &lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 9 more variables: theoretical_converged &lt;lgl&gt;, n_zero &lt;int&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   loglik_regret &lt;dbl&gt;, local_maximum &lt;lgl&gt;, min_eigenvalue &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   max_eigenvalue &lt;dbl&gt;, converged &lt;list&gt;, ct1 &lt;dbl&gt;, ct2 &lt;dbl&gt;</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $intervals</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 0 × 0</span></span>

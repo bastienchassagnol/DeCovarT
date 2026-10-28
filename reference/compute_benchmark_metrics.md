@@ -139,12 +139,17 @@ A named list with:
 - `monte_carlo`: one row per cell type, including `theoretical_se`
   (filled later from expected Fisher at \\p^{\star}\\);
 
-- `optimisation`: one row per sample, with the estimated scales when
-  `nuisance_hat` is given;
+- `optimisation`: one row per sample, with `n_zero`, the number of
+  proportions estimated at exactly zero (1 on a face, 2 on an edge,
+  \\J-1\\ at a vertex), and the estimated scales when `nuisance_hat` is
+  given;
 
 - `intervals`: one row per interval method and parameter, with the
   coverage, its Monte Carlo interval and the interval widths (empty
-  without `intervals`).
+  without `intervals`). `n_numerical_failures` counts samples with no
+  finite estimate for that parameter; `n_boundary` counts samples whose
+  estimate has a zero proportion, where Wald, ILR and oracle intervals
+  are undefined, so their coverage is over interior estimates.
 
 ## Examples
 
@@ -181,13 +186,13 @@ compute_benchmark_metrics(y, mu, estimated_p = c(0.45, 0.55),
 #> #   coverage_interval <chr>, mean_interval_width <dbl>, mcse_coverage <dbl>
 #> 
 #> $optimisation
-#> # A tibble: 1 × 14
+#> # A tibble: 1 × 15
 #>   sample_id algorithm elapsed_sec memory_bytes kkt_residual numerical_converged
 #>   <chr>     <chr>           <dbl>        <dbl>        <dbl> <lgl>              
 #> 1 sample_1  NA                 NA           NA           NA TRUE               
-#> # ℹ 8 more variables: theoretical_converged <lgl>, loglik_regret <dbl>,
-#> #   local_maximum <lgl>, min_eigenvalue <dbl>, max_eigenvalue <dbl>,
-#> #   converged <list>, ct1 <dbl>, ct2 <dbl>
+#> # ℹ 9 more variables: theoretical_converged <lgl>, n_zero <int>,
+#> #   loglik_regret <dbl>, local_maximum <lgl>, min_eigenvalue <dbl>,
+#> #   max_eigenvalue <dbl>, converged <list>, ct1 <dbl>, ct2 <dbl>
 #> 
 #> $intervals
 #> # A tibble: 0 × 0

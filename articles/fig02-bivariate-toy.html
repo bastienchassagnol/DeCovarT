@@ -32,7 +32,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -402,13 +402,13 @@ Table 1: Methods of the bivariate benchmark.
 <tr class="odd">
 <td><code>Newton-Raphson</code></td>
 <td>Second-order ascent in ILR coordinates</td>
-<td>Wald, ILR, profile, bootstrap, oracle</td>
+<td>Wald, ILR, profile, oracle</td>
 </tr>
 <tr class="even">
 <td><code>L-BFGS-B</code></td>
 <td>Limited-memory quasi-Newton on the closure chart <span class="math inline">\boldsymbol p=\boldsymbol w/\mathbf 1^{\top}\boldsymbol w</span>, <span class="math inline">\boldsymbol w\ge0</span>
 </td>
-<td>Wald, ILR, profile, bootstrap</td>
+<td>Wald, ILR</td>
 </tr>
 <tr class="odd">
 <td><code>Firth</code></td>
@@ -427,14 +427,14 @@ Table 1: Methods of the bivariate benchmark.
 <li>
 <strong>NNLS</strong> followed by renormalisation is least squares on the simplex with a <strong>free</strong> scale (<span class="math inline">\boldsymbol\beta=c\boldsymbol p</span>, <span class="math inline">c=\mathbf 1^{\top}\boldsymbol\beta</span>); <code>lsei</code> fixes <span class="math inline">c=1</span>. The two agree only when <span class="math inline">\hat c=1</span>. On 500 bulks of this design the largest coordinate difference has median <span class="math inline">0.002</span> and 95th percentile <span class="math inline">0.015</span>, and the fitted scale has standard deviation <span class="math inline">0.03</span> around 1: close, but not identical. Both are run: <code>lsei</code> keeps the sum-to-one equality and the bounds at every iteration, NNLS renormalises a free-scale fit. A robust linear model is not run on two genes.</li>
 </ul>
-<p>The interval constructions are those of <a href="theory-population-inference.html">population inference</a>: <code>wald</code> (delta method on <span class="math inline">\boldsymbol p</span>), <code>ilr</code> (Wald in ILR coordinates mapped back), <code>profile</code> (likelihood-ratio inversion), <code>bootstrap</code> (percentile interval of a parametric bootstrap refitted by the same optimiser) and <code>oracle</code> (<span class="math inline">\hat p_j</span> plus or minus the Wald half-width at <span class="math inline">\boldsymbol p^{\star}</span>). Performance is summarised with the ADEMP framework <span class="citation" data-cites="morrisUsingSimulationStudies2019">(<a href="#ref-morrisUsingSimulationStudies2019" role="doc-biblioref">Morris et al. 2019</a>)</span>: <strong>bias</strong>, <strong>RMSE</strong>, <strong>coverage</strong> of each interval construction (Wilson intervals on the coverage <em>rate</em>), <strong>width</strong>, <strong>SE/SD</strong>, and optimiser <strong>failure rate</strong>.</p>
-<p>The run size comes from environment variables: <code>DECOVART_N_REPLICATES</code> (<span class="math inline">N</span>, default 200), <code>DECOVART_N_BOOT</code> (<span class="math inline">B</span>, default 100), <code>DECOVART_CORES</code> (default 1; parallel workers load the installed package) and <code>DECOVART_POSTPROCESS_ONLY=1</code> (redraw only). A dry run with <span class="math inline">N=B=5</span> takes about ten minutes on one core.</p>
+<p>The interval constructions are those of <a href="theory-population-inference.html">population inference</a>: <code>wald</code> (delta method on <span class="math inline">\boldsymbol p</span>), <code>ilr</code> (Wald in ILR coordinates mapped back), <code>profile</code> (likelihood-ratio inversion) and <code>oracle</code> (<span class="math inline">\hat p_j</span> plus or minus the Wald half-width at <span class="math inline">\boldsymbol p^{\star}</span>). The parametric bootstrap (<code><a href="../reference/bootstrap_decovart.html">bootstrap_decovart()</a></code>) is not run here: the moments of a scenario are fixed, so coverage is measured over its <span class="math inline">N</span> bulks, and <span class="math inline">N\times B</span> refits per solver dominated the run time. Performance is summarised with the ADEMP framework <span class="citation" data-cites="morrisUsingSimulationStudies2019">(<a href="#ref-morrisUsingSimulationStudies2019" role="doc-biblioref">Morris et al. 2019</a>)</span>: <strong>bias</strong>, <strong>RMSE</strong>, <strong>coverage</strong> of each interval construction (Wilson intervals on the coverage <em>rate</em>), <strong>width</strong>, <strong>SE/SD</strong>, and optimiser <strong>failure rate</strong>.</p>
+<p>The run size is hard-coded at the top of the script: <code>N_REPLICATES</code> (<span class="math inline">N=200</span>), <code>CORES</code> (workers for the <span class="math inline">N</span> bulks of a scenario: a third of half the cores, 14 of 88, since the three figure scripts run at the same time; parallel workers load the installed package) and <code>POSTPROCESS_ONLY</code> (<code>TRUE</code> redraws only).</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">deconvolution_functions</span> <span class="op">&lt;-</span> <span class="fu">bivariate_toy_deconvolution_functions</span><span class="op">(</span></span>
 <span>  itmax <span class="op">=</span> <span class="fl">200L</span>,</span>
 <span>  epsilon <span class="op">=</span> <span class="fl">1e-4</span>,</span>
-<span>  n_boot <span class="op">=</span> <span class="fl">100L</span></span>
+<span>  intervals <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">bivariate</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/run_simulation_benchmark.html">run_simulation_benchmark</a></span><span class="op">(</span></span>
 <span>  scenario_config <span class="op">=</span> <span class="va">bivariate_config</span>,</span>
@@ -551,7 +551,7 @@ Table 2: Plot books of the bivariate scenario.
 </figure>
 </div>
 <ul>
-<li>The Q-Q books assess the Wald approximation only; the profile and bootstrap intervals do not rely on it. Squaring a whitened value of <span class="math inline">-30</span> gives <span class="math inline">D^2=900</span>, so the <span class="math inline">\chi^2</span> book uses <span class="math inline">\log_{10}</span> axes.</li>
+<li>The Q-Q books assess the Wald approximation only; the profile intervals do not rely on it. Squaring a whitened value of <span class="math inline">-30</span> gives <span class="math inline">D^2=900</span>, so the <span class="math inline">\chi^2</span> book uses <span class="math inline">\log_{10}</span> axes.</li>
 <li>The Hellinger distance <span class="math inline">\lVert\sqrt{\hat{\boldsymbol p}_A}-\sqrt{\hat{\boldsymbol p}_B}\rVert_2/\sqrt2</span> replaces <span class="math inline">1-r</span> for the Pearson correlation: it measures agreement rather than co-movement, it is Euclidean in <span class="math inline">\sqrt{\boldsymbol p}</span> as Ward’s criterion requires, and it is defined at exact zeros, where the Aitchison distance is not.</li>
 <li>The KS normality lollipops and the MAE heatmaps were dropped: the Q-Q books and the RMSE heatmaps carry the same information.</li>
 </ul>

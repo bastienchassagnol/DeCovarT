@@ -55,7 +55,9 @@ scale_covariances_to_overlap(
 
 - tol:
 
-  Absolute overlap tolerance.
+  Tolerance of the root search, on the scale \\s\\
+  ([`stats::uniroot()`](https://rdrr.io/r/stats/uniroot.html) uses
+  `max(tol / 4, 1e-4)`).
 
 - seed:
 
@@ -77,3 +79,28 @@ scale_covariances_to_overlap(
 
 A list with `sigma`, `Theta`, `scale`, `baromega` (the calibrated
 overlap at the returned scale), and `target`.
+
+## See also
+
+[`scale_covariance_array()`](https://bastienchassagnol.github.io/DeCovarT/reference/scale_covariance_array.md),
+[`compute_average_overlap()`](https://bastienchassagnol.github.io/DeCovarT/reference/compute_average_overlap.md)
+
+## Examples
+
+``` r
+mu <- matrix(c(0, 0, 3, 3), 2, 2)
+sigma <- array(c(diag(2), diag(2)), dim = c(2, 2, 2))
+calibrated <- scale_covariances_to_overlap(
+  mu,
+  sigma,
+  p = c(0.5, 0.5),
+  target = 0.05
+)
+calibrated[c("scale", "baromega")]
+#> $scale
+#> [1] 1.171311
+#> 
+#> $baromega
+#> [1] 0.04998834
+#> 
+```

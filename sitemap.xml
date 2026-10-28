@@ -70,6 +70,7 @@
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/gradient_loglik_single_cell.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/gradient_loglik_single_cell_ilr.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/gradient_loglik_unconstrained.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/hellinger_gaussian.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/helmert_basis.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/hessian_isometric_logistic.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/hessian_loglik_constrained.html</loc></url>
@@ -79,6 +80,7 @@
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/index.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/isometric_logistic.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/jacobian_isometric_logistic.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/kkt_residual.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/loglik_multivariate.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/loglik_multivariate_constrained.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/loglik_single_cell.html</loc></url>
@@ -92,6 +94,7 @@
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_forest.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_metric_dots.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/plot_mc_raincloud.html</loc></url>
+<url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/population_likelihood.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/profile_loglik_single_cell_ilr.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_decovart.html</loc></url>
 <url><loc>https://bastienchassagnol.github.io/DeCovarT/reference/reference_bootstrap_single_cell.html</loc></url>

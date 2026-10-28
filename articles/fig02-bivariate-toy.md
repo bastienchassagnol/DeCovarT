@@ -233,8 +233,8 @@ Five methods are evaluated on each scenario:
 |----|----|----|
 | `lsei` | DeconRNASeq: least squares on the simplex by [`limSolve::lsei`](https://rdrr.io/pkg/limSolve/man/lsei.html) ([Gong and Szustakowski 2013](#ref-gongDeconRNASeqStatisticalFramework2013)) | none |
 | `NNLS` | Lawson–Hanson non-negative least squares, renormalised ([Dessole et al. 2023](#ref-dessoleLawsonHansonAlgorithmDeviation2023)) | none |
-| `Newton-Raphson` | Second-order ascent in ILR coordinates | Wald, ILR, profile, bootstrap, oracle |
-| `L-BFGS-B` | Limited-memory quasi-Newton on the closure chart \boldsymbol p=\boldsymbol w/\mathbf 1^{\top}\boldsymbol w, \boldsymbol w\ge0 | Wald, ILR, profile, bootstrap |
+| `Newton-Raphson` | Second-order ascent in ILR coordinates | Wald, ILR, profile, oracle |
+| `L-BFGS-B` | Limited-memory quasi-Newton on the closure chart \boldsymbol p=\boldsymbol w/\mathbf 1^{\top}\boldsymbol w, \boldsymbol w\ge0 | Wald, ILR |
 | `Firth` | Jeffreys-penalised likelihood ([Firth 1993](#ref-firthBiasReductionMaximum1993)) | Wald, ILR |
 
 Table 1: Methods of the bivariate benchmark.
@@ -260,27 +260,29 @@ Table 1: Methods of the bivariate benchmark.
 The interval constructions are those of [population
 inference](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.md):
 `wald` (delta method on \boldsymbol p), `ilr` (Wald in ILR coordinates
-mapped back), `profile` (likelihood-ratio inversion), `bootstrap`
-(percentile interval of a parametric bootstrap refitted by the same
-optimiser) and `oracle` (\hat p_j plus or minus the Wald half-width at
-\boldsymbol p^{\star}). Performance is summarised with the ADEMP
-framework ([Morris et al. 2019](#ref-morrisUsingSimulationStudies2019)):
-**bias**, **RMSE**, **coverage** of each interval construction (Wilson
-intervals on the coverage *rate*), **width**, **SE/SD**, and optimiser
-**failure rate**.
+mapped back), `profile` (likelihood-ratio inversion) and `oracle` (\hat
+p_j plus or minus the Wald half-width at \boldsymbol p^{\star}). The
+parametric bootstrap
+([`bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_decovart.md))
+is not run here: the moments of a scenario are fixed, so coverage is
+measured over its N bulks, and N\times B refits per solver dominated the
+run time. Performance is summarised with the ADEMP framework ([Morris et
+al. 2019](#ref-morrisUsingSimulationStudies2019)): **bias**, **RMSE**,
+**coverage** of each interval construction (Wilson intervals on the
+coverage *rate*), **width**, **SE/SD**, and optimiser **failure rate**.
 
-The run size comes from environment variables: `DECOVART_N_REPLICATES`
-(N, default 200), `DECOVART_N_BOOT` (B, default 100), `DECOVART_CORES`
-(default 1; parallel workers load the installed package) and
-`DECOVART_POSTPROCESS_ONLY=1` (redraw only). A dry run with N=B=5 takes
-about ten minutes on one core.
+The run size is hard-coded at the top of the script: `N_REPLICATES`
+(N=200), `CORES` (workers for the N bulks of a scenario: a third of half
+the cores, 14 of 88, since the three figure scripts run at the same
+time; parallel workers load the installed package) and
+`POSTPROCESS_ONLY` (`TRUE` redraws only).
 
 ``` r
 
 deconvolution_functions <- bivariate_toy_deconvolution_functions(
   itmax = 200L,
   epsilon = 1e-4,
-  n_boot = 100L
+  intervals = TRUE
 )
 bivariate <- run_simulation_benchmark(
   scenario_config = bivariate_config,
@@ -338,9 +340,9 @@ information inequality).
 
 Table 2: Plot books of the bivariate scenario.
 
-- The Q-Q books assess the Wald approximation only; the profile and
-  bootstrap intervals do not rely on it. Squaring a whitened value of
-  -30 gives D^2=900, so the \chi^2 book uses \log\_{10} axes.
+- The Q-Q books assess the Wald approximation only; the profile
+  intervals do not rely on it. Squaring a whitened value of -30 gives
+  D^2=900, so the \chi^2 book uses \log\_{10} axes.
 - The Hellinger distance \lVert\sqrt{\hat{\boldsymbol
   p}\_A}-\sqrt{\hat{\boldsymbol p}\_B}\rVert_2/\sqrt2 replaces 1-r for
   the Pearson correlation: it measures agreement rather than

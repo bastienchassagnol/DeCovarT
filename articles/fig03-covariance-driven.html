@@ -32,7 +32,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.3.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -337,10 +337,10 @@ Table 3: Composition factor.
 </div>
 </figure>
 </div>
-<p>The run size is read from environment variables, so the dry run and the production run share one script:</p>
+<p>The run size is hard-coded at the top of the script:</p>
 <div id="tbl-run-size" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-run-size-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table 4: Run-size variables of <code>scripts/fig03_variance_covariance_driven.R</code>.
+Table 4: Run-size constants of <code>scripts/fig03_variance_covariance_driven.R</code>.
 </figcaption><div aria-describedby="tbl-run-size-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="table caption-top">
 <colgroup>
@@ -349,46 +349,39 @@ Table 4: Run-size variables of <code>scripts/fig03_variance_covariance_driven.R
 <col style="width: 33%">
 </colgroup>
 <thead><tr class="header">
-<th>Variable</th>
+<th>Constant</th>
 <th>Meaning</th>
-<th>Default</th>
+<th>Value</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td><code>DECOVART_N_REPLICATES</code></td>
+<td><code>N_REPLICATES</code></td>
 <td>Monte Carlo bulks per scenario, <span class="math inline">N</span>
-</td>
-<td>100</td>
-</tr>
-<tr class="even">
-<td><code>DECOVART_N_BOOT</code></td>
-<td>parametric-bootstrap refits per bulk, <span class="math inline">B</span>
 </td>
 <td>200</td>
 </tr>
+<tr class="even">
+<td><code>N_REFERENCE</code></td>
+<td>individuals of the reference panel, <span class="math inline">R</span> (MEAD and RNA-Sieve)</td>
+<td>200</td>
+</tr>
 <tr class="odd">
-<td><code>DECOVART_N_REFERENCE</code></td>
-<td>individuals of the reference panel, <span class="math inline">R</span>
-</td>
-<td><span class="math inline">N</span></td>
+<td><code>CORES</code></td>
+<td>workers for the <span class="math inline">N</span> bulks of a scenario; the three figure scripts run at the same time</td>
+<td>a third of half the cores (14 of 88)</td>
 </tr>
 <tr class="even">
-<td><code>DECOVART_CORES</code></td>
-<td>workers of the per-sample loop</td>
-<td>1</td>
-</tr>
-<tr class="odd">
-<td><code>DECOVART_POSTPROCESS_ONLY</code></td>
+<td><code>POSTPROCESS_ONLY</code></td>
 <td>
-<code>1</code> redraws the figures from the saved benchmark</td>
-<td>0</td>
+<code>TRUE</code> redraws the figures from the saved benchmark</td>
+<td><code>FALSE</code></td>
 </tr>
 </tbody>
 </table>
 </div>
 </figure>
 </div>
-<p>Parallel workers load the <strong>installed</strong> DeCovarT, so run <code>devtools::install()</code> before setting <code>DECOVART_CORES</code> above 1.</p>
+<p>Parallel workers load the <strong>installed</strong> DeCovarT, so run <code>devtools::install()</code> before a parallel run.</p>
 <section class="level2"><h3 id="sec-hybrid-methods">Methods<a class="anchor" aria-label="anchor" href="#sec-hybrid-methods"></a>
 </h3>
 <p>Every method is scored on the same simulated bulks. Feature selection is switched off everywhere: all <span class="math inline">G=20</span> genes enter every fit.</p>
@@ -439,13 +432,13 @@ Table 5: Methods of the covariance-driven benchmark.
 <td style="text-align: left;">Newton–Raphson</td>
 <td style="text-align: left;"><code><a href="../reference/deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_Newton_Raphson()</a></code></td>
 <td style="text-align: left;">true moments</td>
-<td style="text-align: left;">Wald, ILR, profile, bootstrap, oracle</td>
+<td style="text-align: left;">Wald, ILR, profile, oracle</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">L-BFGS-B</td>
 <td style="text-align: left;"><code><a href="../reference/deconvolute_ratios_Marquardt_Levenberg.html">deconvolute_ratios_L_BFGS_B()</a></code></td>
 <td style="text-align: left;">true moments</td>
-<td style="text-align: left;">Wald, ILR, profile, bootstrap</td>
+<td style="text-align: left;">Wald, ILR</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Firth</td>
@@ -484,7 +477,7 @@ Table 5: Methods of the covariance-driven benchmark.
 <strong><code>lsei</code> and NNLS.</strong> NNLS followed by renormalisation is least squares on the simplex with a <strong>free</strong> scale (<span class="math inline">\boldsymbol\beta=c\boldsymbol p</span>, <span class="math inline">c=\mathbf 1^{\top}\boldsymbol\beta</span>); <code>lsei</code> fixes <span class="math inline">c=1</span>. They agree only when <span class="math inline">\hat c=1</span>. In population scenarios the true scale is 1, so <code>lsei</code> uses information NNLS discards; both are run, to show the difference. On 500 bulks of a design like this one with <span class="math inline">\boldsymbol p=(0.84,0.08,0.08)</span>, the largest coordinate difference between the two has median <span class="math inline">0.03</span>, 95th percentile <span class="math inline">0.11</span> and maximum <span class="math inline">0.19</span>.</li>
 <li>
 <strong>L-BFGS-B</strong> runs on the closure chart <span class="math inline">\boldsymbol p=\boldsymbol w/\mathbf
-1^{\top}\boldsymbol w</span> with the box <span class="math inline">\boldsymbol w\ge 0</span> (<a href="theory-population-generative-optimisation.html#sec-closure-box">closure chart</a>): it maximises the convolution likelihood itself, reaches exact zeros, and its box KKT points are the simplex KKT points.</li>
+1^{\top}\boldsymbol w</span> with the box <span class="math inline">\boldsymbol w\ge 0</span> (<a href="theory-population-generative-optimisation.html#sec-closure-box">closure chart</a>): it maximises the convolution likelihood itself, reaches exact zeros, and its box KKT points are the simplex KKT points. A boundary estimate (one, two or up to <span class="math inline">J-1</span> zero proportions: a face, an edge or a vertex) has no Wald or ILR interval, so their coverage for L-BFGS-B is over interior estimates; <code>n_boundary</code> gives the count. Profile intervals refit from the bulk and are reported under Newton–Raphson only.</li>
 <li>
 <strong>Firth</strong> maximises the Jeffreys-penalised likelihood <span class="citation" data-cites="firthBiasReductionMaximum1993">(<a href="#ref-firthBiasReductionMaximum1993" role="doc-biblioref">Firth 1993</a>)</span>; its estimate is the same for both optimisers, so it appears once.</li>
 <li>
@@ -525,10 +518,6 @@ Table 6: Interval menu (<a href="theory-population-inference.html">population i
 </td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><code>bootstrap</code></td>
-<td style="text-align: left;">percentile interval of a parametric bootstrap refitted by the same optimiser</td>
-</tr>
-<tr class="odd">
 <td style="text-align: left;"><code>oracle</code></td>
 <td style="text-align: left;">
 <span class="math inline">\hat p_j\pm</span> the Wald half-width at <span class="math inline">\boldsymbol p^{\star}</span> (Fisher at the truth)</td>
@@ -541,10 +530,7 @@ Table 6: Interval menu (<a href="theory-population-inference.html">population i
 <p>Coverage is reported with a Wilson Monte Carlo interval <span class="citation" data-cites="morrisUsingSimulationStudies2019">(<a href="#ref-morrisUsingSimulationStudies2019" role="doc-biblioref">Morris et al. 2019</a>)</span>; the interval table also gives the mean and median width and the share of intervals leaving <span class="math inline">[0,1]</span>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Dry run (about two minutes):</span></span>
-<span><span class="co">#   DECOVART_N_REPLICATES=5 DECOVART_N_BOOT=5 \</span></span>
-<span><span class="co">#     Rscript scripts/fig03_variance_covariance_driven.R</span></span>
-<span><span class="va">benchmark</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/fig03/fig03_benchmark.rds"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">benchmark</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/fig03/fig03_benchmark.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">benchmark</span><span class="op">)</span></span>
 <span><span class="co">#&gt; meta config theta_true descriptors supplementary regression</span></span>
 <span><span class="co">#&gt; monte_carlo optimisation intervals data</span></span>
@@ -672,7 +658,7 @@ Table 7: Plot books of the covariance-driven scenario.
 </div>
 </figure>
 </div>
-<p>Redraw every book without refitting with <code>DECOVART_POSTPROCESS_ONLY=1 Rscript scripts/fig03_variance_covariance_driven.R</code>.</p>
+<p>Redraw every book without refitting with <code>POSTPROCESS_ONLY &lt;- TRUE</code> at the top of <code>scripts/fig03_variance_covariance_driven.R</code>.</p>
 <section class="level2"><h3 id="sec-hybrid-2d-proj">Two-dimensional projections of a Gaussian convolution<a class="anchor" aria-label="anchor" href="#sec-hybrid-2d-proj"></a>
 </h3>
 <p>With <span class="math inline">G=20</span> the purified Gaussians and the bulk convolution are no longer drawable in the gene plane. <code>latent_projections.pdf</code> maps each selected scenario (lowest and highest overlap, balanced and highly unbalanced composition, four graph assignments) to two planes.</p>
