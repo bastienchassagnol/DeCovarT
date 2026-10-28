@@ -1,9 +1,50 @@
+# DeCovarT 2.5.0
+
+## Breaking changes
+
+* **Likelihood objects replace the `model` string**, in the manner of
+  `glm(family = binomial)`. `population_likelihood()` and
+  `single_cell_likelihood()` return an object of class
+  `decovart_likelihood` holding the simulator, log-likelihood, score,
+  Wald standard errors, curvature check, parameter rows and interval menu
+  of each model. `deconvolute_ratios()` and `run_simulation_benchmark()`
+  take `likelihood =` (the object or its constructor) in place of
+  `model = "population" | "single_cell"`.
+* `benchmark_likelihood()`, exported in 2.4.0, is removed; its functions
+  are fields of the likelihood objects and take `(p, y, mu, Sigma)`.
+
+## Boundary estimates
+
+* L-BFGS-B works on the closed orthant and returns exact zeros: one zero
+  proportion (a face), two (an edge), up to J - 1 (a vertex, one cell type
+  making up the whole sample). Newton-Raphson in ILR coordinates never
+  does. At any such estimate the Wald, ILR and oracle intervals are
+  undefined and are `NA`, the scale rows of the single-cell model
+  included.
+* The figure 5 crash at G = 200 was a shape error, not a failure of an
+  interval derivation: on a boundary estimate the empty single-cell
+  interval had the J composition rows only, while interior ones also had
+  the four scale rows. Every bulk now has the rows of
+  `likelihood$parameters()`.
+* The optimisation table gains `n_zero` (zero proportions per bulk) and
+  the interval table `n_boundary` (bulks with a zero proportion): Wald and
+  ILR coverage is over interior estimates only.
+* The population simulator now draws from `generative_mean` and
+  `generative_sigma` when a scenario sets them, as the single-cell one
+  already did; population scenarios do not set them, so their bulks are
+  unchanged.
+* Profile intervals refit from the bulk and do not depend on the solver;
+  the figure scripts now request them under Newton-Raphson only.
+
 # DeCovarT 2.4.0
 
 * **Benchmark interval tables tolerate a missing parameter row.** When one
   bulk's interval omitted a parameter (seen with L-BFGS-B at G = 200 in
   figure 5), `compute_benchmark_metrics()` stopped with a subscript error.
-  That bulk now counts as having no interval for the parameter.
+  That bulk now counts as having no interval for the parameter. A sample
+  whose optimiser returns no finite estimate is counted separately in
+  `n_numerical_failures`, and its convergence record is
+  `"numerical failure"`.
 
 * **Exported for scripts, so none needs `:::` or `get()`.**
   `scale_covariances_to_overlap()`, `hellinger_gaussian()` (formerly

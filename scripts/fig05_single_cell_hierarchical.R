@@ -317,7 +317,9 @@ if (!POSTPROCESS_ONLY) {
     "L-BFGS-B" = list(
       FUN = deconvolute_single_cell,
       additional_parameters = c(solver, optimiser = "lbfgsb"),
-      ci = interval_menu(menu, "lbfgsb")
+      # Profile intervals refit from the bulk and do not depend on the
+      # solver: they are reported once, under Newton-Raphson.
+      ci = interval_menu(c("wald", "ilr", "ilr_reml"), "lbfgsb")
     ),
     "Firth" = list(
       FUN = fit_firth_single_cell,
@@ -340,7 +342,7 @@ if (!POSTPROCESS_ONLY) {
     n = N_REPLICATES,
     cores = CORES,
     verbose = TRUE,
-    model = "single_cell",
+    likelihood = single_cell_likelihood(),
     return_data = TRUE,
     reference = list(
       n_individuals = N_REFERENCE,
@@ -356,7 +358,7 @@ if (!POSTPROCESS_ONLY) {
     single_cell_out,
     competitors,
     scenario_config_5,
-    model = "single_cell"
+    likelihood = single_cell_likelihood()
   )
   cli::cli_alert_success(
     "Benchmark finished in {.val {round(proc.time()[['elapsed']] - started)}} s."

@@ -97,11 +97,16 @@ A named list with:
 row per cell type);
 \item \code{monte_carlo}: one row per cell type, including \code{theoretical_se}
 (filled later from expected Fisher at \eqn{p^{\star}});
-\item \code{optimisation}: one row per sample, with the estimated scales when
-\code{nuisance_hat} is given;
+\item \code{optimisation}: one row per sample, with \code{n_zero}, the number of
+proportions estimated at exactly zero (1 on a face, 2 on an edge,
+\eqn{J-1} at a vertex), and the estimated scales when \code{nuisance_hat}
+is given;
 \item \code{intervals}: one row per interval method and parameter, with the
 coverage, its Monte Carlo interval and the interval widths (empty
-without \code{intervals}).
+without \code{intervals}). \code{n_numerical_failures} counts samples with no
+finite estimate for that parameter; \code{n_boundary} counts samples whose
+estimate has a zero proportion, where Wald, ILR and oracle intervals
+are undefined, so their coverage is over interior estimates.
 }
 }
 \description{

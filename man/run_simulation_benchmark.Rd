@@ -14,7 +14,7 @@ run_simulation_benchmark(
   coverage_interval = "wilson",
   verbose = FALSE,
   progress_every = 10L,
-  model = c("population", "single_cell"),
+  likelihood = population_likelihood(),
   return_data = FALSE,
   reference = NULL
 )
@@ -47,8 +47,10 @@ readable.}
 \item{progress_every}{Sample-progress interval passed to
 \code{\link[=deconvolute_ratios]{deconvolute_ratios()}} when \code{verbose} is \code{TRUE}. Defaults to \code{10L}.}
 
-\item{model}{\code{"population"} (default) draws every bulk from the
-convolution \code{\link[=simulate_bulk_mixture]{simulate_bulk_mixture()}}; \code{"single_cell"} draws it as a
+\item{likelihood}{A likelihood object or its constructor, which both
+draws the bulks and scores the fits. \code{\link[=population_likelihood]{population_likelihood()}}
+(default) draws every bulk from the convolution
+\code{\link[=simulate_bulk_mixture]{simulate_bulk_mixture()}}; \code{\link[=single_cell_likelihood]{single_cell_likelihood()}} draws it as a
 sum of cells with \code{\link[=simulate_bulk_from_cells]{simulate_bulk_from_cells()}}, using \code{n_cells} and
 \code{platform_scale} from \code{true_theta} (and \code{generative_mean} /
 \code{generative_sigma} when the fitted reference differs from the

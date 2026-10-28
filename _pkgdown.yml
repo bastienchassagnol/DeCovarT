@@ -313,7 +313,8 @@ reference:
       (`R/01_03` to `R/01_05`).
     contents:
       - compute_benchmark_metrics
-      - benchmark_likelihood
+      - population_likelihood
+      - single_cell_likelihood
       - kkt_residual
       - coverage_mc_interval
       - compute_shannon_entropy

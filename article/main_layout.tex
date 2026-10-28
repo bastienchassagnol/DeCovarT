@@ -589,13 +589,21 @@ estimate some of these terms from the bulk cohort, DeCovarT plugs in
   \begin{itemize}
     \item Wald on \(\boldsymbol{p}\) by the delta method, which can leave \([0,1]\)
     \item Wald in ILR coordinates mapped back to the simplex
-    \item profile likelihood, invariant to the chart and inside the simplex
-    \item parametric bootstrap percentile interval, refitted with the optimiser that produced the estimate
+    \item profile likelihood, invariant to the chart and inside the simplex; it refits from the bulk, so it does not
+          depend on the solver and is reported once, under Newton--Raphson
+    \item no bootstrap interval: \(N\times B\) refits per solver and scenario (\(40{,}000\) at \(N=B=200\)); the
+          bootstrap functions stay in the package
     \item for Newton--Raphson, the oracle half-width computed from the information at the true composition,
           the width an analyst would report with the true information
     \item Firth: Wald and ILR intervals at the penalised estimate
     \item reported per interval: coverage of the true fraction with a Wilson Monte Carlo interval, mean and median
           width, and the share of Wald intervals that leave \([0,1]\)
+    \item \textbf{boundary estimates, a critical point}: L-BFGS-B moves on its own from an interior estimate to the
+          boundary of the simplex, with one proportion at exactly zero (a face), two (an edge), up to \(J-1\) (a vertex,
+          where one type makes up the whole sample); there the Wald, ILR and oracle intervals are undefined and are not
+          reported, so their coverage is conditional on an interior estimate and is reported with the number of
+          boundary fits; Newton--Raphson in ILR coordinates never reaches the boundary, but it can stop at about
+          \(10^{-14}\), where the same intervals are defined numerically and unreliable statistically
   \end{itemize}
   \item code and outputs: \repo{blob/main/scripts/fig02_bivariate_toy.R}{script},
         \vignette{fig02-bivariate-toy.html}{vignette},
@@ -652,8 +660,8 @@ $\boldsymbol{\Sigma}_{j}$ carries the remaining discriminative signal.
   \item compositions from normalised Shannon entropy \(H^{\star}\in\{1,0.5,0.1\}\):
         \((1/3,1/3,1/3)\), \((0.84,0.08,0.08)\) and \((0.98,0.01,0.01)\);
         \(4\times3\times3=36\) scenarios
-  \item \(N=100\) bulks per scenario, \(B=200\) bootstrap refits and a reference panel of \(R=N\) individuals by
-        default (environment variables; dry run \(N=B=R=5\))
+  \item \(N=200\) bulks per scenario and a reference panel of \(R=200\) individuals; no bootstrap
+        (Section~\ref{sec:bivariate})
   \item methods: \emph{DeconRNASeq} (\texttt{lsei}), NNLS, the robust linear model of \cite{monacoRNASeqSignaturesNormalized2019}
         (\texttt{MASS::rlm}) and \emph{CIBERSORT} \cite{newmanRobustEnumerationCell2015} on the true means; DeCovarT (Newton--Raphson, L-BFGS-B, Firth) on the true moments, with the intervals of
         Section~\ref{sec:bivariate}
@@ -714,9 +722,10 @@ $\boldsymbol{\Sigma}_{j}$ carries the remaining discriminative signal.
         \emph{ReDeconv}, under the protocol of Section~\ref{sec:hd} with a reference panel of \(R\) individuals and
         \(20\) cells per type and individual
   \item intervals: those of Section~\ref{sec:bivariate}, with the REML calibration of the ILR and profile intervals
-        (Section~\ref{sec:sc-inference}); Wald and bootstrap intervals for \(c\) and \(\phi\), and for the platform scale
+        (Section~\ref{sec:sc-inference}); Wald intervals for \(c\) and \(\phi\), and for the platform scale
         \(a=\phi/c\) and the cell count \(n=c^{2}/\phi\), formed on the log scale so that both stay positive; \(\hat n\) is a
-        number of cells here only because \(a\) is known to the generator
+        number of cells here only because \(a\) is known to the generator; at a boundary estimate of L-BFGS-B, the
+        intervals of the scales are not reported either (Section~\ref{sec:bivariate})
   \item code and outputs: \repo{blob/main/scripts/fig05_single_cell_hierarchical.R}{script},
         \vignette{fig05-single-cell-hierarchical.html}{vignette}, \repo{tree/main/output/fig05}{plot books}
 \end{itemize}
@@ -1123,7 +1132,9 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
         type, called small-dispersion asymptotics \cite{jørgensenSmallDispersionAsymptotics1987}
   \item boundary: an absent type puts the null on a face, where Wald fails and the likelihood ratio follows a
         chi-bar-square mixture, calibrated by a restricted parametric bootstrap; a reference bootstrap propagates
-        the uncertainty of \((\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})\) (Appendix~\ref{app:mle-boundary})
+        the uncertainty of \((\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})\) (Appendix~\ref{app:mle-boundary}); an
+        estimate on a face, an edge or a vertex, which L-BFGS-B returns and Newton--Raphson does not, has no Wald or
+        ILR interval, so the benchmark coverage of these intervals is conditional on an interior estimate
   \item one bulk column is an \(N=1\) fit: the interval describes that maximiser, and the
         maximum-likelihood bias is of order \(N^{-1}\)
   \item full argument: Appendix~\ref{app:mle} and the
@@ -1306,7 +1317,8 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
         scale (Appendix~\ref{sec:sc-newton})
   \item alternative optimiser: L-BFGS-B on the closure chart of Section~\ref{sec:optimisation}, applied to the same profile
         log-likelihood; it can return exact zeros, and the parametric bootstrap refits with the optimiser that produced the
-        estimate
+        estimate; \textbf{it thus leaves the interior on its own}, for a face, an edge or a vertex, where the Wald and ILR
+        intervals of the fractions and of \(c_{i}\) and \(\phi_{i}\) are not defined (Section~\ref{sec:bivariate})
   \item a two-stage variant keeps the scales at their start values; it is not the joint maximum, and is kept for comparison
         only
 \end{itemize}

@@ -1,6 +1,6 @@
 Package: DeCovarT
 Title: Covariance-Aware Deconvolution of Bulk Transcriptomic Samples
-Version: 2.4.0
+Version: 2.5.0
 Authors@R:
     person("Bastien", "Chassagnol", , "bastien_chassagnol@laposte.net", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0002-8955-2391"))

@@ -16,7 +16,7 @@ deconvolute_ratios(
   coverage_interval = "wilson",
   verbose = FALSE,
   progress_every = 10L,
-  model = c("population", "single_cell"),
+  likelihood = population_likelihood(),
   nuisance_true = NULL
 )
 }
@@ -71,10 +71,11 @@ one-line notice instead of per-sample ticks.}
 \item{progress_every}{Sample-progress interval when \code{verbose} is
 \code{TRUE} and \code{cores = 1}. Defaults to \code{10L}.}
 
-\item{model}{\code{"population"} (default), the Gaussian convolution, or
-\code{"single_cell"}, the mixture of cells with its scales profiled out:
-it sets the log-likelihood, score and curvature used for the
-per-sample diagnostics and the Wald standard errors.}
+\item{likelihood}{A likelihood object, \code{\link[=population_likelihood]{population_likelihood()}}
+(default, the Gaussian convolution) or \code{\link[=single_cell_likelihood]{single_cell_likelihood()}} (the
+mixture of cells with its scales profiled out), or its constructor. It
+sets the log-likelihood, score and curvature used for the per-sample
+diagnostics, the Wald standard errors and the interval menu.}
 
 \item{nuisance_true}{Optional \eqn{2\times N} matrix of the true scales
 \eqn{(c,\phi)} of the single-cell model, for the coverage of their

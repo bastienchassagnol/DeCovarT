@@ -7,7 +7,7 @@
 #' @param cores Workers for the per-sample loop inside [deconvolute_ratios()].
 #' @param scenario_meta Tibble row of scenario metadata (excluding `true_theta`
 #'   and per-row `n`).
-#' @param model,reference,reference_seed,return_data See
+#' @param likelihood,reference,reference_seed,return_data See
 #'   [run_simulation_benchmark()].
 #'
 #' @return List with `regression`, `monte_carlo`, `optimisation`,
@@ -26,7 +26,7 @@
   coverage_interval = "wilson",
   verbose = FALSE,
   progress_every = 10L,
-  model = "population",
+  likelihood = population_likelihood(),
   reference = NULL,
   reference_seed = NULL,
   return_data = FALSE
@@ -53,36 +53,14 @@
     adjacency = true_theta$adjacency
   )
 
-  nuisance_true <- NULL
-  if (identical(model, "single_cell")) {
-    simulated_data <- simulate_bulk_from_cells(
-      generative_mean,
-      generative_sigma,
-      p = p,
-      n_cells = true_theta$n_cells,
-      platform_scale = if (is.null(true_theta$platform_scale)) {
-        1
-      } else {
-        true_theta$platform_scale
-      },
-      n_samples = n_samples
-    )
-    # The target of a single-cell bulk is its realised composition.
-    true_ratios <- simulated_data$p_realised
-    nuisance_true <- rbind(
-      mean_scale = simulated_data$mean_scale,
-      variance_scale = simulated_data$variance_scale
-    )
-  } else {
-    simulated_data <- simulate_bulk_mixture(
-      signature_matrix = mu,
-      Sigma = Sigma,
-      p = p,
-      n = n_samples,
-      truncate_negative = FALSE
-    )
-    true_ratios <- p
-  }
+  simulated_data <- likelihood$simulate(
+    generative_mean,
+    generative_sigma,
+    true_theta,
+    n_samples
+  )
+  true_ratios <- simulated_data$truth
+  nuisance_true <- simulated_data$nuisance
 
   estimated_ratios <- suppressWarnings(deconvolute_ratios(
     signature_matrix = mu,
@@ -96,7 +74,7 @@
     verbose = verbose,
     progress_every = progress_every,
     coverage_interval = coverage_interval,
-    model = model,
+    likelihood = likelihood,
     nuisance_true = nuisance_true
   ))
 
@@ -196,8 +174,10 @@
 #'   readable.
 #' @param progress_every Sample-progress interval passed to
 #'   [deconvolute_ratios()] when `verbose` is `TRUE`. Defaults to `10L`.
-#' @param model `"population"` (default) draws every bulk from the
-#'   convolution [simulate_bulk_mixture()]; `"single_cell"` draws it as a
+#' @param likelihood A likelihood object or its constructor, which both
+#'   draws the bulks and scores the fits. [population_likelihood()]
+#'   (default) draws every bulk from the convolution
+#'   [simulate_bulk_mixture()]; [single_cell_likelihood()] draws it as a
 #'   sum of cells with [simulate_bulk_from_cells()], using `n_cells` and
 #'   `platform_scale` from `true_theta` (and `generative_mean` /
 #'   `generative_sigma` when the fitted reference differs from the
@@ -276,11 +256,11 @@ run_simulation_benchmark <- function(
   coverage_interval = "wilson",
   verbose = FALSE,
   progress_every = 10L,
-  model = c("population", "single_cell"),
+  likelihood = population_likelihood(),
   return_data = FALSE,
   reference = NULL
 ) {
-  model <- match.arg(model)
+  likelihood <- .as_likelihood(likelihood)
   call <- match.call()
   if (!is.data.frame(scenario_config)) {
     if (!is.list(scenario_config)) {
@@ -349,7 +329,7 @@ run_simulation_benchmark <- function(
       coverage_interval = coverage_interval,
       verbose = sample_verbose,
       progress_every = progress_every,
-      model = model,
+      likelihood = likelihood,
       reference = reference,
       reference_seed = if (is.null(reference$seed)) {
         NULL

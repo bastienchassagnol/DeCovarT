@@ -233,6 +233,12 @@ plot_rmse_aitchison_dots <- function(data, exclude = character()) {
   if (identical(figure, "fig02")) {
     intervals <- intervals[intervals$parameter == "celltype_1", ]
   }
+  # Profile intervals refit from the bulk whatever the solver: keep them
+  # once, under Newton-Raphson (benchmarks run before 2.5.0 repeat them).
+  intervals <- intervals[
+    !grepl("^profile", intervals$ci_method) |
+      intervals$algorithm == "Newton-Raphson",
+  ]
   intervals$algorithm <- .method_factor(intervals$algorithm)
   intervals$ci_label <- factor(
     .ci_labels[intervals$ci_method],

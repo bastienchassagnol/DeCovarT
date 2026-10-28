@@ -148,7 +148,7 @@ test_that("the single-cell model scores the realised composition and scales", {
         )
       ),
       n = 3,
-      model = "single_cell",
+      likelihood = single_cell_likelihood(),
       return_data = TRUE
     )
   )

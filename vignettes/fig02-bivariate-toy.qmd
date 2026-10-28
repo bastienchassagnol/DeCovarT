@@ -318,7 +318,7 @@ Five methods are evaluated on each scenario:
 | `lsei` | DeconRNASeq: least squares on the simplex by `limSolve::lsei` [@gongDeconRNASeqStatisticalFramework2013] | none |
 | `NNLS` | Lawson–Hanson non-negative least squares, renormalised [@dessoleLawsonHansonAlgorithmDeviation2023] | none |
 | `Newton-Raphson` | Second-order ascent in ILR coordinates | Wald, ILR, profile, oracle |
-| `L-BFGS-B` | Limited-memory quasi-Newton on the closure chart $\boldsymbol p=\boldsymbol w/\mathbf 1^{\top}\boldsymbol w$, $\boldsymbol w\ge0$ | Wald, ILR, profile |
+| `L-BFGS-B` | Limited-memory quasi-Newton on the closure chart $\boldsymbol p=\boldsymbol w/\mathbf 1^{\top}\boldsymbol w$, $\boldsymbol w\ge0$ | Wald, ILR |
 | `Firth` | Jeffreys-penalised likelihood [@firthBiasReductionMaximum1993] | Wald, ILR |
 
 : Methods of the bivariate benchmark. {#tbl-bivariate-methods}

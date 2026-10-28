@@ -63,10 +63,12 @@ score_competitors <- function(
   benchmark,
   competitors,
   config,
-  model = c("population", "single_cell"),
+  likelihood = population_likelihood(),
   coverage_interval = "wilson"
 ) {
-  model <- match.arg(model)
+  if (is.function(likelihood)) {
+    likelihood <- likelihood()
+  }
   meta_cols <- setdiff(names(config), c("true_theta", "n"))
   attach_meta <- function(tbl, i) {
     if (nrow(tbl) == 0L) {
@@ -80,7 +82,7 @@ score_competitors <- function(
     theta <- config$true_theta[[i]]
     mu <- theta$mu
     data <- benchmark$data[[i]]
-    functions <- benchmark_likelihood(model, mu, theta$sigma)
+    sigma <- theta$sigma
     rows_i <- competitors[competitors$scenario_id == config$ID[[i]], ]
     for (algorithm in unique(rows_i$algorithm)) {
       rows <- rows_i[rows_i$algorithm == algorithm, ]
@@ -142,14 +144,14 @@ score_competitors <- function(
         kkt_residual = per_sample(function(s) {
           kkt_residual(
             p_hat[, s],
-            functions$score(p_hat[, s], data$bulk[, s])
+            likelihood$score(p_hat[, s], data$bulk[, s], mu, sigma)
           )
         }),
         loglik_hat = per_sample(function(s) {
-          functions$loglik(p_hat[, s], data$bulk[, s])
+          likelihood$loglik(p_hat[, s], data$bulk[, s], mu, sigma)
         }),
         loglik_true = per_sample(function(s) {
-          functions$loglik(data$truth[, s], data$bulk[, s])
+          likelihood$loglik(data$truth[, s], data$bulk[, s], mu, sigma)
         }),
         coverage_interval = coverage_interval,
         algorithm = algorithm,

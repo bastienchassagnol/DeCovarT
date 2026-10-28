@@ -251,7 +251,7 @@ feature selection).
 | RLM | `deconvolute_ratios_rlm()` | true means | none |
 | CIBERSORT | `deconvolute_ratios_cibersort()` | true means | none |
 | Newton–Raphson | `deconvolute_single_cell(optimiser = "newton")` | true moments, known sizes | Wald, ILR, ILR-REML, profile, profile-REML, oracle |
-| L-BFGS-B | `deconvolute_single_cell(optimiser = "lbfgsb")` | true moments, known sizes | Wald, ILR, ILR-REML, profile, profile-REML |
+| L-BFGS-B | `deconvolute_single_cell(optimiser = "lbfgsb")` | true moments, known sizes | Wald, ILR, ILR-REML |
 | Firth | `fit_firth_single_cell()` | true moments, known sizes | Wald, Wald-REML, ILR, ILR-REML |
 | MEAD | `MEAD::MEAD()` (GitHub, commit `d66fa10`) | reference panel, cohort of $N$ bulks | native sandwich interval |
 | RNA-Sieve | `rnasieve` 0.1.4 (Python) | reference panel, cohort of $N$ bulks | released, Fisher and Godambe |
@@ -270,6 +270,12 @@ feature selection).
   $\boldsymbol p=\boldsymbol w/\mathbf1^{\top}\boldsymbol w$, $\boldsymbol w\ge0$
   ([L-BFGS-B](theory-single-cell-generative-optimisation.html#sec-profile-lbfgsb)).
   Bootstraps refit with the optimiser of the estimate.
+  A boundary estimate (one, two or up to $J-1$ zero proportions: a face,
+  an edge or a vertex) has no Wald or ILR interval, for
+  the fractions or the scales, so their coverage for
+  L-BFGS-B is over interior estimates; `n_boundary` gives the count.
+  Profile intervals refit from the bulk and are reported under
+  Newton–Raphson only.
 - **Second-generation methods** follow the protocol of the
   [covariance-driven scenario](fig03-covariance-driven.html#sec-hybrid-methods).
   MEAD and RNA-Sieve read a reference panel of $R$ individuals and $20$

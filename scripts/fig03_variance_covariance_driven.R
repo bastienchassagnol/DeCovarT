@@ -374,7 +374,9 @@ if (!POSTPROCESS_ONLY) {
     "L-BFGS-B" = list(
       FUN = deconvolute_ratios_L_BFGS_B,
       additional_parameters = solver,
-      ci = interval_menu(c("wald", "ilr", "profile"), "lbfgsb")
+      # Profile intervals refit from the bulk and do not depend on the
+      # solver: they are reported once, under Newton-Raphson.
+      ci = interval_menu(c("wald", "ilr"), "lbfgsb")
     ),
     "Firth" = list(
       FUN = fit_firth_decovart,
@@ -413,7 +415,7 @@ if (!POSTPROCESS_ONLY) {
     hybrid_out,
     competitors,
     scenario_config_3,
-    model = "population"
+    likelihood = population_likelihood()
   )
   cli::cli_alert_success(
     "Benchmark finished in {.val {round(proc.time()[['elapsed']] - started)}} s."

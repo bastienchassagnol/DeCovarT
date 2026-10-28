@@ -59,11 +59,16 @@
 #'   row per cell type);
 #' * `monte_carlo`: one row per cell type, including `theoretical_se`
 #'   (filled later from expected Fisher at \eqn{p^{\star}});
-#' * `optimisation`: one row per sample, with the estimated scales when
-#'   `nuisance_hat` is given;
+#' * `optimisation`: one row per sample, with `n_zero`, the number of
+#'   proportions estimated at exactly zero (1 on a face, 2 on an edge,
+#'   \eqn{J-1} at a vertex), and the estimated scales when `nuisance_hat`
+#'   is given;
 #' * `intervals`: one row per interval method and parameter, with the
 #'   coverage, its Monte Carlo interval and the interval widths (empty
-#'   without `intervals`).
+#'   without `intervals`). `n_numerical_failures` counts samples with no
+#'   finite estimate for that parameter; `n_boundary` counts samples whose
+#'   estimate has a zero proportion, where Wald, ILR and oracle intervals
+#'   are undefined, so their coverage is over interior estimates.
 #'
 #' @examples
 #' mu <- matrix(c(20, 22, 22, 20), nrow = 2,
@@ -207,6 +212,7 @@ compute_benchmark_metrics <- function(
     kkt_residual = kkt_residual,
     numerical_converged = numerical_converged,
     theoretical_converged = theoretical_converged,
+    n_zero = as.integer(colSums(p_hat <= 0)),
     loglik_regret = regret,
     local_maximum = local_maximum,
     min_eigenvalue = min_eigenvalue,
@@ -300,10 +306,11 @@ compute_benchmark_metrics <- function(
 #'   and `profile_reml` add the REML calibration. Solvers that return a
 #'   list read the estimate from `coefficients`, or from `composition` for
 #'   [deconvolute_single_cell()].
-#' @param model `"population"` (default), the Gaussian convolution, or
-#'   `"single_cell"`, the mixture of cells with its scales profiled out:
-#'   it sets the log-likelihood, score and curvature used for the
-#'   per-sample diagnostics and the Wald standard errors.
+#' @param likelihood A likelihood object, [population_likelihood()]
+#'   (default, the Gaussian convolution) or [single_cell_likelihood()] (the
+#'   mixture of cells with its scales profiled out), or its constructor. It
+#'   sets the log-likelihood, score and curvature used for the per-sample
+#'   diagnostics, the Wald standard errors and the interval menu.
 #' @param nuisance_true Optional \eqn{2\times N} matrix of the true scales
 #'   \eqn{(c,\phi)} of the single-cell model, for the coverage of their
 #'   intervals.
@@ -401,10 +408,10 @@ deconvolute_ratios <- function(
   coverage_interval = "wilson",
   verbose = FALSE,
   progress_every = 10L,
-  model = c("population", "single_cell"),
+  likelihood = population_likelihood(),
   nuisance_true = NULL
 ) {
-  model <- match.arg(model)
+  likelihood <- .as_likelihood(likelihood)
   aligned <- .prepare_deconvolution_inputs(
     signature_matrix = signature_matrix,
     bulk_expression = bulk_expression,
@@ -418,10 +425,8 @@ deconvolute_ratios <- function(
   true_ratios <- aligned$true_ratios
   Sigma <- aligned$Sigma
   cell_names <- colnames(mean_signature_matrix)
-  model_functions <- if (is.null(Sigma)) {
-    NULL
-  } else {
-    benchmark_likelihood(model, mean_signature_matrix, Sigma)
+  if (is.null(Sigma)) {
+    likelihood <- NULL
   }
 
   if (
@@ -443,8 +448,7 @@ deconvolute_ratios <- function(
             Sigma = Sigma,
             deconvolution_function = deconvolution_function,
             cell_names = cell_names,
-            model = model,
-            model_functions = model_functions
+            likelihood = likelihood
           )
         },
         cores = cores,
@@ -480,7 +484,7 @@ deconvolute_ratios <- function(
         } else {
           purrr::map(fits, "intervals")
         },
-        nuisance_hat = if (identical(model, "single_cell")) {
+        nuisance_hat = if (isTRUE(likelihood$nuisance)) {
           do.call(cbind, purrr::map(fits, "nuisance"))
         },
         nuisance_true = nuisance_true
@@ -516,8 +520,7 @@ deconvolute_ratios <- function(
   Sigma,
   deconvolution_function,
   cell_names,
-  model = "population",
-  model_functions = NULL
+  likelihood = NULL
 ) {
   n_celltypes <- length(cell_names)
   fun <- deconvolution_function$FUN
@@ -562,54 +565,64 @@ deconvolute_ratios <- function(
       } else {
         raw_out$composition
       }
-      convergence <- if (is.list(raw_out)) raw_out$convergence
-      list(
-        p = stats::setNames(as.numeric(estimated), cell_names),
-        ok = TRUE,
-        converged = if (is.list(convergence)) {
-          with(
-            convergence,
-            list(
-              iterations = iterations,
-              criterion = message,
-              code = code,
-              rdm = rdm
+      p_try <- stats::setNames(as.numeric(estimated), cell_names)
+      if (length(p_try) != n_celltypes || any(!is.finite(p_try))) {
+        list(
+          p = na_vector,
+          ok = FALSE,
+          converged = .numerical_failure,
+          nuisance = na_nuisance
+        )
+      } else {
+        convergence <- if (is.list(raw_out)) raw_out$convergence
+        list(
+          p = p_try,
+          ok = TRUE,
+          converged = if (is.list(convergence)) {
+            with(
+              convergence,
+              list(
+                iterations = iterations,
+                criterion = message,
+                code = code,
+                rdm = rdm
+              )
             )
-          )
-        } else if (is.numeric(convergence)) {
-          list(
-            iterations = if (is.null(raw_out$iterations)) {
-              NA_integer_
-            } else {
-              as.integer(raw_out$iterations)
-            },
-            criterion = if (is.null(raw_out$message)) {
-              NA_character_
-            } else {
-              as.character(raw_out$message)
-            },
-            code = as.integer(convergence),
-            rdm = NA_real_
-          )
-        } else {
-          .na_convergence
-        },
-        nuisance = if (is.list(raw_out) && !is.null(raw_out$variance_scale)) {
-          c(
-            mean_scale = raw_out$mean_scale,
-            variance_scale = raw_out$variance_scale
-          )
-        } else {
-          na_nuisance
-        }
-      )
+          } else if (is.numeric(convergence)) {
+            list(
+              iterations = if (is.null(raw_out$iterations)) {
+                NA_integer_
+              } else {
+                as.integer(raw_out$iterations)
+              },
+              criterion = if (is.null(raw_out$message)) {
+                NA_character_
+              } else {
+                as.character(raw_out$message)
+              },
+              code = as.integer(convergence),
+              rdm = NA_real_
+            )
+          } else {
+            .na_convergence
+          },
+          nuisance = if (is.list(raw_out) && !is.null(raw_out$variance_scale)) {
+            c(
+              mean_scale = raw_out$mean_scale,
+              variance_scale = raw_out$variance_scale
+            )
+          } else {
+            na_nuisance
+          }
+        )
+      }
     },
     error = function(e) {
       warning(conditionMessage(e), call. = FALSE)
       list(
         p = na_vector,
         ok = FALSE,
-        converged = .na_convergence,
+        converged = .numerical_failure,
         nuisance = na_nuisance
       )
     }
@@ -640,27 +653,34 @@ deconvolute_ratios <- function(
     nuisance = fit$nuisance,
     intervals = NULL
   )
-  if (!out$numerical_converged || is.null(model_functions)) {
+  if (!out$numerical_converged || is.null(likelihood)) {
     return(out)
   }
   safely <- function(expr) tryCatch(expr, error = function(e) NA_real_)
   p_hat <- fit$p
   if (likelihood_solver && all(p_hat > 0)) {
-    se <- tryCatch(model_functions$se(p_hat, y_i), error = function(e) NULL)
+    se <- tryCatch(
+      likelihood$se(p_hat, y_i, mean_signature_matrix, Sigma),
+      error = function(e) NULL
+    )
     if (length(se) == n_celltypes) {
       out$se <- stats::setNames(as.numeric(se), cell_names)
     }
   }
   out$kkt_residual <- safely(kkt_residual(
     p_hat,
-    model_functions$score(p_hat, y_i)
+    likelihood$score(p_hat, y_i, mean_signature_matrix, Sigma)
   ))
-  out$loglik_hat <- safely(model_functions$loglik(p_hat, y_i))
+  out$loglik_hat <- safely(
+    likelihood$loglik(p_hat, y_i, mean_signature_matrix, Sigma)
+  )
   if (!is.null(p_i)) {
-    out$loglik_true <- safely(model_functions$loglik(p_i, y_i))
+    out$loglik_true <- safely(
+      likelihood$loglik(p_i, y_i, mean_signature_matrix, Sigma)
+    )
   }
   curvature <- tryCatch(
-    model_functions$curvature(p_hat, y_i),
+    likelihood$curvature(p_hat, y_i, mean_signature_matrix, Sigma),
     error = function(e) NULL
   )
   if (!is.null(curvature)) {
@@ -669,14 +689,14 @@ deconvolute_ratios <- function(
     out$max_eigenvalue <- curvature$max_eigenvalue
   }
   if (!is.null(deconvolution_function$ci) && !is.null(p_i)) {
-    out$intervals <- .benchmark_intervals(
+    out$intervals <- .likelihood_intervals(
+      likelihood,
       y_i,
       p_hat,
       stats::setNames(as.numeric(p_i), cell_names),
       mean_signature_matrix,
       Sigma,
-      ci = deconvolution_function$ci,
-      model = model
+      ci = deconvolution_function$ci
     )
   }
   out
@@ -784,6 +804,16 @@ deconvolute_ratios <- function(
 .na_convergence <- list(
   iterations = NA_integer_,
   criterion = NA_character_,
+  code = NA_integer_,
+  rdm = NA_real_
+)
+
+#' Optimiser record when the fit returns no finite composition
+#'
+#' @noRd
+.numerical_failure <- list(
+  iterations = NA_integer_,
+  criterion = "numerical failure",
   code = NA_integer_,
   rdm = NA_real_
 )

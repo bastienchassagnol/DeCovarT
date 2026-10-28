@@ -251,7 +251,7 @@ is switched off everywhere: all $G=20$ genes enter every fit.
 | RLM (robust linear model) | `deconvolute_ratios_rlm()` | true means | none |
 | CIBERSORT ($\nu$-SVR) | `deconvolute_ratios_cibersort()` | true means | none |
 | Newton–Raphson | `deconvolute_ratios_Newton_Raphson()` | true moments | Wald, ILR, profile, oracle |
-| L-BFGS-B | `deconvolute_ratios_L_BFGS_B()` | true moments | Wald, ILR, profile |
+| L-BFGS-B | `deconvolute_ratios_L_BFGS_B()` | true moments | Wald, ILR |
 | Firth | `fit_firth_decovart()` | true moments | Wald, ILR |
 | MEAD | `MEAD::MEAD()` (GitHub, commit `d66fa10`) | reference panel, cohort of $N$ bulks | native sandwich interval |
 | RNA-Sieve | `rnasieve` 0.1.4 (Python) | reference panel, cohort of $N$ bulks | released, Fisher and Godambe (see below) |
@@ -273,6 +273,11 @@ is switched off everywhere: all $G=20$ genes enter every fit.
   ([closure chart](theory-population-generative-optimisation.html#sec-closure-box)):
   it maximises the convolution likelihood itself, reaches exact zeros,
   and its box KKT points are the simplex KKT points.
+  A boundary estimate (one, two or up to $J-1$ zero proportions: a face,
+  an edge or a vertex) has no Wald or ILR interval, so their coverage for
+  L-BFGS-B is over interior estimates; `n_boundary` gives the count.
+  Profile intervals refit from the bulk and are reported under
+  Newton–Raphson only.
 - **Firth** maximises the Jeffreys-penalised likelihood
   [@firthBiasReductionMaximum1993]; its estimate is the same for both
   optimisers, so it appears once.
