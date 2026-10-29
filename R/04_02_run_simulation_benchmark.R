@@ -9,6 +9,7 @@
 #'   and per-row `n`).
 #' @param likelihood,reference,reference_seed,return_data See
 #'   [run_simulation_benchmark()].
+#' @param label Scenario label for the per-solver log lines, or `NULL`.
 #'
 #' @return List with `regression`, `monte_carlo`, `optimisation`,
 #'   `intervals` and `config` tibbles, and `data` when `return_data` is
@@ -29,7 +30,8 @@
   likelihood = population_likelihood(),
   reference = NULL,
   reference_seed = NULL,
-  return_data = FALSE
+  return_data = FALSE,
+  label = NULL
 ) {
   mu <- true_theta$mu
   Sigma <- true_theta$sigma
@@ -75,7 +77,8 @@
     progress_every = progress_every,
     coverage_interval = coverage_interval,
     likelihood = likelihood,
-    nuisance_true = nuisance_true
+    nuisance_true = nuisance_true,
+    label = label
   ))
 
   .attach_scenario_meta <- function(tbl) {
@@ -191,6 +194,14 @@
 #'   panel is drawn per scenario by [simulate_reference_replicates()], with
 #'   seed `reference$seed` plus the scenario index, for methods that
 #'   estimate the reference moments themselves.
+#' @param seed Optional integer. Scenario `i` then runs under
+#'   `withr::with_seed(seed + i)`, so its draws depend only on its index:
+#'   a scenario run alone (`scenarios = i`) reproduces the uninterrupted
+#'   run. `NULL` (default) keeps the current random stream across
+#'   scenarios.
+#' @param scenarios Optional indices of the rows of `scenario_config` to
+#'   run; the others are skipped. With `seed`, `scenarios = i` reproduces
+#'   scenario `i` of the full run.
 #'
 #' @return A list with:
 #' * `regression`: `global` (per-sample composition scores) and
@@ -258,7 +269,9 @@ run_simulation_benchmark <- function(
   progress_every = 10L,
   likelihood = population_likelihood(),
   return_data = FALSE,
-  reference = NULL
+  reference = NULL,
+  seed = NULL,
+  scenarios = NULL
 ) {
   likelihood <- .as_likelihood(likelihood)
   call <- match.call()
@@ -312,8 +325,8 @@ run_simulation_benchmark <- function(
     } else {
       NULL
     }
+    label <- if (isTRUE(verbose)) .scenario_label(row)
     if (isTRUE(verbose)) {
-      label <- .scenario_label(row)
       cli::cli_alert_info(
         "Scenario {.val {i}}/{.val {n_scen}} \u00b7 {label} \u00b7 n = {.val {n_samples}}."
       )
@@ -336,11 +349,28 @@ run_simulation_benchmark <- function(
       } else {
         reference$seed + i
       },
-      return_data = return_data
+      return_data = return_data,
+      label = label
     )
   }
 
-  scenario_results <- lapply(seq_len(nrow(scenario_config)), .run_row)
+  run_ids <- if (is.null(scenarios)) seq_len(n_scen) else as.integer(scenarios)
+  if (anyNA(run_ids) || any(run_ids < 1L | run_ids > n_scen)) {
+    cli::cli_abort("{.arg scenarios} must be row indices of {.arg scenario_config}.")
+  }
+  .run_seeded <- function(i) {
+    withCallingHandlers(
+      if (is.null(seed)) .run_row(i) else withr::with_seed(seed + i, .run_row(i)),
+      error = function(e) {
+        message(
+          "Scenario ", i, " failed",
+          if (!is.null(seed)) paste0(" (seed ", seed + i, ")"),
+          "; rerun it alone with `scenarios = ", i, "`."
+        )
+      }
+    )
+  }
+  scenario_results <- lapply(run_ids, .run_seeded)
   if (isTRUE(verbose)) {
     cli::cli_alert_success("Benchmark complete ({.val {n_scen}} scenarios).")
   }

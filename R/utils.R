@@ -467,3 +467,46 @@
   invisible(TRUE)
 }
 # nocov end
+
+#' Upper Cholesky factor of a covariance matrix, without an eigendecomposition
+#'
+#' Returns an upper triangular `R` with `crossprod(R) = Sigma`. A
+#' positive-semi-definite `Sigma` goes through the pivoted Cholesky
+#' factorisation, its columns put back in the original order. Gaussian draws
+#' use this factor rather than `MASS::mvrnorm()`, whose full eigendecomposition
+#' (LAPACK `dsyevr`) fails intermittently under OpenBLAS 0.3.20 on G = 200
+#' covariances (`scripts/reports/`).
+#' @noRd
+.covariance_root <- function(Sigma) {
+  Sigma <- .symmetrise(Sigma)
+  root <- tryCatch(chol(Sigma), error = function(e) NULL)
+  if (!is.null(root)) {
+    return(root)
+  }
+  pivoted <- suppressWarnings(chol(Sigma, pivot = TRUE))
+  pivot <- attr(pivoted, "pivot")
+  rank <- attr(pivoted, "rank")
+  # Rows past the numerical rank are not part of the factor.
+  if (rank < nrow(pivoted)) {
+    pivoted[seq.int(rank + 1L, nrow(pivoted)), ] <- 0
+  }
+  root <- pivoted[, order(pivot), drop = FALSE]
+  attributes(root) <- list(dim = dim(root), dimnames = dimnames(Sigma))
+  root
+}
+
+#' `n` draws from N(mu, Sigma) as the rows of an `n x G` matrix
+#'
+#' `mu + Z R` with `Z` standard normal and `R` the upper Cholesky factor of
+#' `Sigma` (`root`, when already computed).
+#' @noRd
+.rmvnorm_chol <- function(n, mu, Sigma = NULL, root = NULL) {
+  if (is.null(root)) {
+    root <- .covariance_root(Sigma)
+  }
+  n_genes <- ncol(root)
+  z <- matrix(stats::rnorm(n * n_genes), n, n_genes)
+  out <- sweep(z %*% root, 2L, as.numeric(mu), "+")
+  colnames(out) <- names(mu)
+  out
+}

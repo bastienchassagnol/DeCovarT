@@ -17,7 +17,8 @@ deconvolute_ratios(
   verbose = FALSE,
   progress_every = 10L,
   likelihood = population_likelihood(),
-  nuisance_true = NULL
+  nuisance_true = NULL,
+  label = NULL
 )
 }
 \arguments{
@@ -80,6 +81,10 @@ diagnostics, the Wald standard errors and the interval menu.}
 \item{nuisance_true}{Optional \eqn{2\times N} matrix of the true scales
 \eqn{(c,\phi)} of the single-cell model, for the coverage of their
 intervals.}
+
+\item{label}{Optional scenario label. When given, one line per solver
+reports the label, the solver, the number of bulks, the elapsed time
+and the number of fits with no finite estimate.}
 }
 \value{
 A named list from \code{\link[=compute_benchmark_metrics]{compute_benchmark_metrics()}} with

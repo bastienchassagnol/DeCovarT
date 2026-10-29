@@ -491,11 +491,7 @@ reference_bootstrap_decovart <- function(
 ) {
   mean_bulk <- drop(mean_signature_matrix %*% p)
   covariance <- .compute_global_variance(p, Sigma)
-  draws <- MASS::mvrnorm(
-    n = n_replicates,
-    mu = mean_bulk,
-    Sigma = covariance
-  )
+  draws <- .rmvnorm_chol(n_replicates, mean_bulk, covariance)
   out <- matrix(
     as.numeric(t(draws)),
     nrow = length(mean_bulk),

@@ -95,6 +95,9 @@ graphify-out/
 # Background logs from scripts/fig0*.R (nohup). Ignore the whole directory.
 /logs/
 
+# Local notes and failing-matrix dumps. Ignore the whole directory.
+/scripts/reports/
+
 # Generated manuals and article PDF (CI / local latexmk)
 article/*.pdf
 output/manual/

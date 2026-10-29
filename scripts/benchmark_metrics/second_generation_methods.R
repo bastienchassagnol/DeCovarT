@@ -61,6 +61,9 @@
 #' @param methods Subset of `c("MEAD", "RNA-Sieve", "ReDeconv")`.
 #' @param level Confidence level of the intervals.
 #' @param python_dir Directory of the uv project holding the runners.
+#' @param workers Processes for RNA-Sieve and ReDeconv (one scenario per
+#'   process at a time) and `future` workers for MEAD; the scenarios are
+#'   independent fits.
 #' @return A tibble with `scenario_id`, `algorithm`, `replicate`,
 #'   `celltype`, `estimate`, `lower`, `upper`, `elapsed_sec` (scenario time
 #'   divided by its number of bulk samples) and `status`; RNA-Sieve rows add
@@ -70,7 +73,8 @@ run_second_generation_batch <- function(
   scenarios,
   methods = .second_generation_methods,
   level = 0.95,
-  python_dir = file.path("scripts", "benchmark_metrics", "python")
+  python_dir = file.path("scripts", "benchmark_metrics", "python"),
+  workers = 1L
 ) {
   methods <- match.arg(methods, .second_generation_methods, several.ok = TRUE)
   stopifnot(is.numeric(level), length(level) == 1L, level > 0, level < 1)
@@ -87,20 +91,31 @@ run_second_generation_batch <- function(
     in_dir <- file.path(work_dir, "input")
     .write_competitor_inputs(scenarios, in_dir)
     for (method in python_methods) {
+      started <- proc.time()[["elapsed"]]
       results[[method]] <- .run_python_competitor(
         method,
         scenarios,
         in_dir,
         file.path(work_dir, method),
         level,
-        python_dir
+        python_dir,
+        workers
       )
+      .log_competitor(method, results[[method]], started)
     }
   }
   if ("MEAD" %in% methods) {
-    results[["MEAD"]] <- dplyr::bind_rows(
-      lapply(scenarios, .run_mead_scenario, level = level)
+    started <- proc.time()[["elapsed"]]
+    cli::cli_alert_info(
+      "MEAD: {length(scenarios)} scenarios on {workers} worker(s)."
     )
+    results[["MEAD"]] <- dplyr::bind_rows(furrr::future_map(
+      scenarios,
+      .run_mead_scenario,
+      level = level,
+      .options = furrr::furrr_options(seed = TRUE)
+    ))
+    .log_competitor("MEAD", results[["MEAD"]], started)
   }
   dplyr::bind_rows(results[intersect(.second_generation_methods, methods)])
 }
@@ -209,7 +224,8 @@ run_second_generation_batch <- function(
   in_dir,
   out_dir,
   level,
-  python_dir
+  python_dir,
+  workers = 1L
 ) {
   uv <- Sys.which("uv")
   if (!nzchar(uv)) {
@@ -242,12 +258,20 @@ run_second_generation_batch <- function(
   if (identical(method, "RNA-Sieve")) {
     args <- c(args, "--level", format(level, digits = 15))
   }
+  args <- c(args, "--workers", as.integer(workers))
+  # One line per finished scenario goes to this script's log (stdout);
+  # tracebacks go to the runner log. One BLAS thread per process.
   exit <- system2(
     uv,
     args,
-    stdout = log_file,
+    stdout = "",
     stderr = log_file,
-    env = "MPLBACKEND=Agg"
+    env = c(
+      "MPLBACKEND=Agg",
+      "OPENBLAS_NUM_THREADS=1",
+      "OMP_NUM_THREADS=1",
+      "MKL_NUM_THREADS=1"
+    )
   )
   status_file <- file.path(out_dir, "status.csv")
   if (!identical(exit, 0L) || !file.exists(status_file)) {
@@ -312,6 +336,21 @@ run_second_generation_batch <- function(
       status = "ok"
     )
   }))
+}
+
+# One log line per competitor: scenarios fitted, failures and wall time.
+.log_competitor <- function(method, rows, started) {
+  status <- unique(rows[c("scenario_id", "status")])
+  # MEAD's status also records its route ("ok; get_R01(...)"); failures
+  # start with "error".
+  failed <- status$scenario_id[startsWith(status$status, "error")]
+  elapsed <- round(proc.time()[["elapsed"]] - started)
+  cli::cli_alert_success(
+    "{method}: {nrow(status)} scenarios in {elapsed} s, {length(failed)} failed."
+  )
+  if (length(failed) > 0L) {
+    cli::cli_alert_warning("{method} failed on {.val {failed}}.")
+  }
 }
 
 .run_mead_scenario <- function(scenario, level) {

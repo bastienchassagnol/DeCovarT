@@ -172,3 +172,52 @@ test_that("the single-cell model scores the realised composition and scales", {
   )))
   expect_equal(unname(out$data[[1]]$nuisance["mean_scale", ]), rep(5000, 3))
 })
+
+test_that("a scenario run alone with its seed reproduces the full run", {
+  genes <- paste0("g", 1:3)
+  cts <- c("ct1", "ct2")
+  mu <- matrix(c(20, 22, 18, 21, 19, 23), 3, 2, dimnames = list(genes, cts))
+  sigma <- array(
+    c(diag(3), diag(3) * 2),
+    dim = c(3, 3, 2),
+    dimnames = list(genes, genes, cts)
+  )
+  config <- tibble::tibble(
+    ID = c("A", "B"),
+    true_theta = list(
+      list(mu = mu, sigma = sigma, p = c(ct1 = 0.6, ct2 = 0.4)),
+      list(mu = mu, sigma = sigma, p = c(ct1 = 0.3, ct2 = 0.7))
+    )
+  )
+  fns <- list("NNLS" = list(FUN = deconvolute_ratios_nnls))
+  # A simulator that fails on scenario B while the option is set.
+  lik <- population_likelihood()
+  simulate <- lik$simulate
+  lik$simulate <- function(mean, Sigma, theta, n) {
+    if (isTRUE(getOption("decovart.test_fail")) && theta$p[[1]] == 0.3) {
+      stop("forced failure")
+    }
+    simulate(mean, Sigma, theta, n)
+  }
+  run <- function(...) {
+    run_simulation_benchmark(config, fns, n = 4, likelihood = lik, seed = 7L, ...)
+  }
+  full <- run()
+
+  withr::with_options(list(decovart.test_fail = TRUE), {
+    expect_message(
+      expect_error(run(), "forced failure"),
+      "Scenario 2 failed \\(seed 9\\)"
+    )
+  })
+
+  # Elapsed time and memory are measurements of the process, not results.
+  results_only <- function(x) x[setdiff(names(x), c("elapsed_sec", "memory_bytes"))]
+  alone <- run(scenarios = 2L)
+  expect_equal(
+    results_only(alone$optimisation),
+    results_only(full$optimisation[full$optimisation$ID == "B", ]),
+    ignore_attr = TRUE
+  )
+  expect_error(run(scenarios = 3L), "row indices")
+})

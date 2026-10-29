@@ -1,6 +1,6 @@
 """Run the official ReDeconv implementation on a batch of scenarios.
 
-Usage: python run_redeconv.py <in_dir> <out_dir>
+Usage: python run_redeconv.py <in_dir> <out_dir> [--workers 1]
 
 <in_dir>/manifest.csv lists `scenario_id`. Each <in_dir>/<scenario_id>/ holds
 `bulk.csv` (genes x bulk samples, first column gene ids), `celltypes.csv`
@@ -25,11 +25,11 @@ import contextlib
 import importlib
 import io
 import os
-import time
-import traceback
 from pathlib import Path
 
 import pandas as pd
+
+from batch import run_batch
 
 os.environ.setdefault("MPLBACKEND", "Agg")
 redeconv_p = importlib.import_module("redeconv.__ReDeconv_P")
@@ -72,30 +72,23 @@ def fit_scenario(scenario_dir, work_dir):
     return estimates
 
 
+def fit_and_write(scenario_dir, out_dir):
+    fit_scenario(scenario_dir, out_dir).to_csv(out_dir / "estimates.csv")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("in_dir", type=Path)
     parser.add_argument("out_dir", type=Path)
+    parser.add_argument("--workers", type=int, default=1)
     args = parser.parse_args()
-
-    manifest = pd.read_csv(args.in_dir / "manifest.csv")
-    status = []
-    for scenario_id in manifest["scenario_id"].astype(str):
-        out_dir = args.out_dir / scenario_id
-        out_dir.mkdir(parents=True, exist_ok=True)
-        start = time.perf_counter()
-        try:
-            estimates = fit_scenario(args.in_dir / scenario_id, out_dir)
-            estimates.to_csv(out_dir / "estimates.csv")
-            status.append((scenario_id, "ok", "", time.perf_counter() - start))
-        except Exception as error:  # record the failure, no fallback fit
-            message = f"{type(error).__name__}: {error}"
-            traceback.print_exc()
-            status.append((scenario_id, "error", message, time.perf_counter() - start))
-
-    pd.DataFrame(
-        status, columns=["scenario_id", "status", "message", "elapsed_sec"]
-    ).to_csv(args.out_dir / "status.csv", index=False)
+    run_batch(
+        "ReDeconv",
+        fit_and_write,
+        args.in_dir,
+        args.out_dir,
+        workers=args.workers,
+    )
 
 
 if __name__ == "__main__":

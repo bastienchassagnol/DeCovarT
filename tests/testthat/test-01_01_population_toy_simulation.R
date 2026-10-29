@@ -3,35 +3,29 @@
 ##################################################################
 
 test_that("small simulation testing", {
+  mu <- matrix(
+    c(20, 40, 40, 20),
+    nrow = 2,
+    dimnames = list(paste0("genes_", 1:2), paste0("cell_type_", 1:2))
+  )
+  Sigma <- array(
+    c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2),
+    dim = c(2, 2, 2),
+    dimnames = list(rownames(mu), rownames(mu), colnames(mu))
+  )
   simulation_two_genes <- withr::with_seed(
     seed = 3L,
-    simulate_bulk_mixture(
-      signature_matrix = matrix(
-        c(20, 40, 40, 20),
-        nrow = 2,
-        dimnames = list(paste0("genes_", 1:2), paste0("cell_type_", 1:2))
-      ),
-      Sigma = array(
-        c(1, 0.8, 0.8, 1, 2, -0.2, -0.2, 2),
-        dim = c(2, 2, 2),
-        dimnames = list(
-          paste0("genes_", 1:2),
-          paste0("genes_", 1:2),
-          paste0("cell_type_", 1:2)
-        )
-      ),
-      n = 10
-    )
+    simulate_bulk_mixture(signature_matrix = mu, Sigma = Sigma, n = 10)
   )
-  expect_equal(
-    simulation_two_genes$Y[, 1:2],
-    matrix(
-      c(29.53763, 28.69539, 30.13022, 28.78420),
-      nrow = 2,
-      dimnames = list(paste0("genes_", 1:2), paste0("sample_", 1:2))
-    ),
-    tolerance = 10^-3
-  )
+  # Same seed, built by hand: x_j = mu_j + Z chol(Sigma_j), y = (x_1 + x_2) / 2.
+  expected <- withr::with_seed(3L, {
+    x <- lapply(1:2, function(j) {
+      z <- matrix(stats::rnorm(20), 10, 2)
+      sweep(z %*% chol(Sigma[, , j]), 2, mu[, j], "+")
+    })
+    t(0.5 * x[[1]] + 0.5 * x[[2]])
+  })
+  expect_equal(unname(simulation_two_genes$Y), unname(expected))
 })
 
 test_that("simulate_bulk_mixture can truncate negative bulk entries", {

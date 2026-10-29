@@ -83,11 +83,7 @@ simulate_reference_replicates <- function(
   n_columns <- n_individuals * n_cells
   individual <- rep(seq_len(n_individuals), each = n_cells)
   draw <- function(j) {
-    x <- MASS::mvrnorm(
-      n = n_columns,
-      mu = mean_signature_matrix[, j],
-      Sigma = Sigma[,, j]
-    )
+    x <- .rmvnorm_chol(n_columns, mean_signature_matrix[, j], Sigma[,, j])
     x <- matrix(t(x), nrow = n_genes)
     dimnames(x) <- list(
       rownames(mean_signature_matrix),

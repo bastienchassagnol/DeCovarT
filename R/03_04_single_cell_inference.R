@@ -582,7 +582,7 @@ fit_firth_single_cell <- function(
   covariance <- variance_scale *
     .mixture_factorisation(as.numeric(p), Sigma)$matrix
   stats::setNames(
-    as.numeric(MASS::mvrnorm(1L, mu = mean_bulk, Sigma = covariance)),
+    as.numeric(.rmvnorm_chol(1L, mean_bulk, covariance)),
     rownames(mean_signature_matrix)
   )
 }
