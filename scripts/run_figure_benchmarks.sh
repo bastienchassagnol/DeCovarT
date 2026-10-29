@@ -11,7 +11,7 @@
 # w9-3575X; the variables below must be set before R starts.
 set -u
 cd "$(dirname "$0")/.."
-export OPENBLAS_CORETYPE=SkylakeX
+export OPENBLAS_CORETYPE=Haswell
 export OPENBLAS_NUM_THREADS=1
 mkdir -p logs
 day=$(date +%F)

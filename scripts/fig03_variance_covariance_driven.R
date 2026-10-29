@@ -9,7 +9,7 @@
 # 0.3.20 needs OPENBLAS_CORETYPE on this machine (see the check below):
 #
 #   mkdir -p logs
-#   export OPENBLAS_CORETYPE=SkylakeX OPENBLAS_NUM_THREADS=1
+#   export OPENBLAS_CORETYPE=Haswell OPENBLAS_NUM_THREADS=1
 #   nohup Rscript --no-save --no-restore \
 #     scripts/fig03_variance_covariance_driven.R \
 #     > "logs/fig03_$(date +%F)_covariance_driven.log" 2>&1 &
@@ -68,7 +68,7 @@ local({
       max(abs(solve(a) %*% a - diag(64L))) > 1e-8
   ) {
     stop(
-      "BLAS returns wrong chol()/solve(); set OPENBLAS_CORETYPE=SkylakeX ",
+      "BLAS returns wrong chol()/solve(); set OPENBLAS_CORETYPE=Haswell ",
       "before starting R.",
       call. = FALSE
     )

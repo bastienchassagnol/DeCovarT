@@ -93,8 +93,9 @@
   `.with_seed()` delegates to `withr::with_seed()`.
 * New test `test-linear-algebra.R` fails when BLAS / LAPACK return wrong
   Cholesky factors or inverses. This happens with OpenBLAS 0.3.20 on
-  Intel Xeon w9-3575X (set `OPENBLAS_CORETYPE=SkylakeX` before R
-  starts); it was the cause of the fig05 failure at G = 200.
+  Intel Xeon w9-3575X (set `OPENBLAS_CORETYPE=Haswell` before R
+  starts). SkylakeX repairs `chol()` and `solve()` but not every
+  `dsyevr` call; Haswell is the kernel for which both were correct.
 
 * **Simulation benchmarks rebuilt (figures 2, 3 and the new figure 5).**
   - `deconvolute_ratios_L_BFGS_B()` now runs L-BFGS-B on the closure chart

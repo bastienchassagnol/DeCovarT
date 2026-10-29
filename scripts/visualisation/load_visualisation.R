@@ -148,9 +148,14 @@ figure_plot_data <- function(benchmark, figure = c("fig02", "fig03", "fig05")) {
   whitened <- .data_whitened(benchmark, layout, figure)
   estimates <- .data_estimates(benchmark, layout, figure)
   optimisation <- .data_optimisation(benchmark, layout)
-  # CIBERSORT's error in the single-cell scenario is an order of magnitude
-  # above the others and would squeeze the shared accuracy scales.
-  exclude <- if (identical(figure, "fig05")) "CIBERSORT" else character()
+  # These methods' errors in the single-cell scenario are far above the
+  # others and would squeeze the shared accuracy scales. They are removed
+  # from the data, including their factor levels, so no panel remains.
+  exclude <- if (identical(figure, "fig05")) {
+    c("CIBERSORT", "lsei", "MEAD")
+  } else {
+    character()
+  }
   books$heatmap_rmse <- .book(
     "plot_metric_tiles",
     errors,

@@ -579,8 +579,14 @@ estimate some of these terms from the bulk cohort, DeCovarT plugs in
         \(0.002\) (95th percentile \(0.015\)) in the largest coordinate here, where \(\hat c\) stays within about \(0.03\)
         of one, but by a median of \(0.03\) (95th percentile \(0.11\), maximum \(0.19\)) for twenty genes, three types
         and \(\boldsymbol{p}=(0.84,0.08,0.08)\), where \(\hat c\) varies by \(0.13\); the true scale of a population bulk is
-        one, so \texttt{lsei} uses information that the free-scale fit discards, whereas the scale of a single-cell bulk
-        is unknown and the fixed scale of \texttt{lsei} is then misspecified (Section~\ref{sec:sc-hierarchical}); a robust
+        one, so \texttt{lsei} uses information that the free-scale fit discards and stays close to NNLS on this
+        population model, whereas the scale of a single-cell bulk
+        is \(c=a\,n_{i}\) and the fixed scale of \texttt{lsei} is then misspecified
+        (Section~\ref{sec:sc-hierarchical}): no composition on the simplex can match a bulk of \(10^{3}\) or
+        \(10^{5}\) cells, so \texttt{lsei} is driven to a poor vertex and its RMSE sets the colour scale of
+        the single-cell heatmaps, while NNLS absorbs that scale before renormalisation;
+        \texttt{repair\_simplex()} only closes an already non-negative vector and is not the source of the gap;
+        a robust
         linear model is not run on two genes
   \item the second-generation methods (\emph{MEAD}, \emph{DECALS}, \emph{RNA-Sieve}, \emph{ReDeconv}) are not run
         on two genes: their variance estimates and their asymptotics need many more genes than cell types; nor is
@@ -717,7 +723,8 @@ $\boldsymbol{\Sigma}_{j}$ carries the remaining discriminative signal.
   \item \(64\) crossed scenarios, composition, sibling overlap, number of cells per bulk, cell sizes, number of genes
         and platform scale \(a=1\) or \(5\), two levels each
   \item methods: \texttt{lsei} (its scale fixed at one is misspecified for a single-cell bulk, whose scale is
-        \(c=a\,n_{i}\)), NNLS (the same least squares with a free scale), the robust linear model, \emph{CIBERSORT}, the
+        \(c=a\,n_{i}\), with \(n_{i}\in\{10^{3},10^{5}\}\)), NNLS (the same least squares with a free scale),
+        the robust linear model, \emph{CIBERSORT}, the
         DeCovarT single-cell fit with Newton--Raphson and L-BFGS-B, its Firth fit, \emph{MEAD}, \emph{RNA-Sieve} and
         \emph{ReDeconv}, under the protocol of Section~\ref{sec:hd} with a reference panel of \(R\) individuals and
         \(20\) cells per type and individual
@@ -727,7 +734,9 @@ $\boldsymbol{\Sigma}_{j}$ carries the remaining discriminative signal.
         number of cells here only because \(a\) is known to the generator; at a boundary estimate of L-BFGS-B, the
         intervals of the scales are not reported either (Section~\ref{sec:bivariate})
   \item code and outputs: \repo{blob/main/scripts/fig05_single_cell_hierarchical.R}{script},
-        \vignette{fig05-single-cell-hierarchical.html}{vignette}, \repo{tree/main/output/fig05}{plot books}
+        \vignette{fig05-single-cell-hierarchical.html}{vignette}; the plot books of the completed run are kept
+        locally under \texttt{output/archives/fig05\_2026-10-29}, because the \texttt{lsei} RMSE sets the
+        shared colour scale and hides the other methods
 \end{itemize}
 
 \begin{figure}[ht]
@@ -1940,7 +1949,9 @@ that generate every figure.
         \texttt{Matrix} and \texttt{MASS} \cite{R-Matrix,R-MASS}; analytic derivatives checked with
         \texttt{numDeriv} \cite{R-numDeriv}; mean-only baselines with \texttt{limSolve}
         \cite{R-limSolve}
-  \item simulation: multivariate Gaussian draws with \texttt{mvtnorm} \cite{R-mvtnorm}; random graphs with
+  \item simulation: multivariate Gaussian draws from the upper Cholesky factor of each
+        cell-type covariance, reused across the bulks of a scenario, not from
+        \texttt{MASS::mvrnorm()} or \texttt{mvtnorm::rmvnorm()}; random graphs with
         \texttt{igraph} \cite{R-igraph}; exact overlap with \texttt{MixSim} \cite{R-MixSim} and Sobol sequences
         for the Monte Carlo overlap with \texttt{qrng} \cite{R-qrng}; graphical lasso with \texttt{huge}
         \cite{R-huge}; parallel replicates with \texttt{furrr} and independent L'Ecuyer streams
@@ -1953,19 +1964,20 @@ that generate every figure.
         \cite{R-cowplot}, with \texttt{patchwork}, \texttt{funkyheatmap}, \texttt{ggraph}, \texttt{rgl} and
         \texttt{mclust} \cite{R-mclust} for the plot books
   \item random seeds are fixed in every script, and session information is saved with each output
-  \item linear algebra, a critical configuration: R was linked to OpenBLAS 0.3.20 (Ubuntu 22.04) on an
-        Intel Xeon w9-3575X. That release identifies this processor as Cooperlake, and its kernels then
-        return wrong inverses, Cholesky factors and eigendecompositions without any warning
+  \item linear algebra: R 4.6.1 (2026-06-24) on Ubuntu 22.04.5 LTS, DeCovarT 2.6.0, linked to
+        OpenBLAS 0.3.20 (\texttt{libopenblasp-r0.3.20.so}, LAPACK 3.10.0) on an Intel Xeon w9-3575X.
+        That release identifies this processor as Cooperlake, and those kernels return wrong inverses,
+        Cholesky factors and eigendecompositions without any warning
         (\texttt{solve()} from order 12, \texttt{chol()} from order 40;
         \href{https://bugs.launchpad.net/ubuntu/+source/openblas/+bug/2040027}{Launchpad bug 2040027}).
-        Every figure was computed with \texttt{OPENBLAS\_CORETYPE=SkylakeX}; the test suite
-        (\texttt{test-linear-algebra.R}) and each figure script stop when the linear algebra is wrong.
-        With that setting, the full symmetric eigendecomposition (LAPACK \texttt{dsyevr}, behind
-        \texttt{eigen()} and \texttt{MASS::mvrnorm()}) still stopped intermittently on well-conditioned
-        covariances of \(G=200\) genes (6 of 1{,}004 calls), and never with the reference BLAS; the
-        simulators therefore draw Gaussian vectors from Cholesky factors
-  \item[] \todo[inline]{State the R version, the computing infrastructure and the package versions used for
-        the final figures.}
+        Matrix factorisations used the Haswell kernel
+        (\texttt{OPENBLAS\_CORETYPE=Haswell}, \texttt{OPENBLAS\_NUM\_THREADS=1}), the only kernel of this
+        OpenBLAS for which both the Cholesky factor and the symmetric eigendecomposition were correct.
+        That setting is permanent in the user environment. The test suite
+        (\texttt{test-linear-algebra.R}) and each figure script stop when \texttt{chol()} or
+        \texttt{solve()} is wrong. Why \texttt{lsei} stays close to NNLS on the population model and is
+        far worse on the single-cell model is in Sections~\ref{sec:bivariate} and
+        \ref{sec:sc-hierarchical}
 \end{itemize}
 
 \section{Author contributions}

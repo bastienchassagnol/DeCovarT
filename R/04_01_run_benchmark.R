@@ -465,7 +465,7 @@ deconvolute_ratios <- function(
         n_failed <- sum(!purrr::map_lgl(fits, "numerical_converged"))
         elapsed <- round(proc.time()[["elapsed"]] - started, 1)
         cli::cli_text(
-          "  {label} · {algorithm}: {length(fits)} bulks in {elapsed} s, ",
+          "  {label} \u00b7 {algorithm}: {length(fits)} bulks in {elapsed} s, ",
           "{n_failed} without estimate."
         )
       }
