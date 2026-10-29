@@ -1959,7 +1959,11 @@ that generate every figure.
         (\texttt{solve()} from order 12, \texttt{chol()} from order 40;
         \href{https://bugs.launchpad.net/ubuntu/+source/openblas/+bug/2040027}{Launchpad bug 2040027}).
         Every figure was computed with \texttt{OPENBLAS\_CORETYPE=SkylakeX}; the test suite
-        (\texttt{test-linear-algebra.R}) and each figure script stop when the linear algebra is wrong
+        (\texttt{test-linear-algebra.R}) and each figure script stop when the linear algebra is wrong.
+        With that setting, the full symmetric eigendecomposition (LAPACK \texttt{dsyevr}, behind
+        \texttt{eigen()} and \texttt{MASS::mvrnorm()}) still stopped intermittently on well-conditioned
+        covariances of \(G=200\) genes (6 of 1{,}004 calls), and never with the reference BLAS; the
+        simulators therefore draw Gaussian vectors from Cholesky factors
   \item[] \todo[inline]{State the R version, the computing infrastructure and the package versions used for
         the final figures.}
 \end{itemize}

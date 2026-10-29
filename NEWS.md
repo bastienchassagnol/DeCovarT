@@ -1,3 +1,33 @@
+# DeCovarT 2.6.0
+
+## Gaussian draws from Cholesky factors
+
+* `simulate_bulk_from_cells()`, `simulate_bulk_mixture()`,
+  `simulate_reference_replicates()` and the population and single-cell
+  parametric bootstraps draw from the upper Cholesky factor of the
+  covariance (`mu + Z R`), computed once per cell type, in place of
+  `MASS::mvrnorm()`. The law is the same; the numbers for a given seed
+  differ from 2.5.0.
+* Cause: `MASS::mvrnorm()` takes a full eigendecomposition (LAPACK `dsyevr`).
+  Under OpenBLAS 0.3.20 (Ubuntu 22.04) on an Intel Xeon w9-3575X,
+  `dsyevr` stopped with "error code 1" on well-conditioned G = 200
+  covariances of figure 5: 6 failures in 1,004 calls with the SkylakeX
+  kernel, 13 in 502 with Nehalem, 2 with Sandybridge or Prescott, none
+  with Haswell. With the reference LAPACK on the OpenBLAS kernels the same
+  six calls failed; with the reference BLAS none did. The fault is in the
+  OpenBLAS BLAS kernels, not in R, MASS or LAPACK. Draft reports are in
+  `scripts/reports/`.
+
+## Reproducible scenarios
+
+* `run_simulation_benchmark()` gains `seed` (scenario `i` runs under
+  `withr::with_seed(seed + i)`) and `scenarios` (run a subset of rows,
+  keeping their index for the seed). A failed scenario is reproduced
+  exactly with `scenarios = i`.
+* `deconvolute_ratios(label =)` logs one line per solver: the scenario
+  label, the solver, the number of bulks, the elapsed time and the fits
+  with no estimate. `run_simulation_benchmark(verbose = TRUE)` sets it.
+
 # DeCovarT 2.5.0
 
 ## Breaking changes

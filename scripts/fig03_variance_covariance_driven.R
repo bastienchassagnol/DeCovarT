@@ -409,7 +409,8 @@ if (!POSTPROCESS_ONLY) {
   )
   cli::cli_alert_info("Second-generation methods on the same bulks.")
   competitors <- run_second_generation_batch(
-    competitor_scenarios(hybrid_out, scenario_config_3)
+    competitor_scenarios(hybrid_out, scenario_config_3),
+    workers = CORES
   )
   hybrid_out <- score_competitors(
     hybrid_out,

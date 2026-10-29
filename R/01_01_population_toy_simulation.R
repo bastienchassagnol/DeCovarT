@@ -122,12 +122,10 @@ simulate_bulk_mixture <- function(
     # Draw x_{·j}^{(i)} ~ N(mu_{·j}, Sigma_j) for i = 1, ..., N
     mean_parameter <- signature_matrix[, cell_name]
     covariance_parameter <- Sigma[,, cell_name]
-    expression_per_celltype <- MASS::mvrnorm(
-      n = n,
-      mu = mean_parameter,
-      Sigma = covariance_parameter,
-      tol = 1e-12,
-      empirical = FALSE
+    expression_per_celltype <- .rmvnorm_chol(
+      n,
+      mean_parameter,
+      covariance_parameter
     )
     latent_profiles[, cell_name, ] <- t(expression_per_celltype)
   }

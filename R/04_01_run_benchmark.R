@@ -327,6 +327,9 @@ compute_benchmark_metrics <- function(
 #'   one-line notice instead of per-sample ticks.
 #' @param progress_every Sample-progress interval when `verbose` is
 #'   `TRUE` and `cores = 1`. Defaults to `10L`.
+#' @param label Optional scenario label. When given, one line per solver
+#'   reports the label, the solver, the number of bulks, the elapsed time
+#'   and the number of fits with no finite estimate.
 #'
 #' @return A named list from [compute_benchmark_metrics()] with
 #'   `regression` (global and cell-type subtables), `monte_carlo`,
@@ -409,7 +412,8 @@ deconvolute_ratios <- function(
   verbose = FALSE,
   progress_every = 10L,
   likelihood = population_likelihood(),
-  nuisance_true = NULL
+  nuisance_true = NULL,
+  label = NULL
 ) {
   likelihood <- .as_likelihood(likelihood)
   aligned <- .prepare_deconvolution_inputs(
@@ -438,6 +442,7 @@ deconvolute_ratios <- function(
   per_algorithm <- purrr::imap(
     deconvolution_functions,
     function(deconvolution_function, algorithm) {
+      started <- proc.time()[["elapsed"]]
       fits <- .map_samples(
         ncol(Y),
         function(i) {
@@ -456,6 +461,14 @@ deconvolute_ratios <- function(
         progress_every = progress_every,
         progress_label = algorithm
       )
+      if (!is.null(label)) {
+        n_failed <- sum(!purrr::map_lgl(fits, "numerical_converged"))
+        elapsed <- round(proc.time()[["elapsed"]] - started, 1)
+        cli::cli_text(
+          "  {label} · {algorithm}: {length(fits)} bulks in {elapsed} s, ",
+          "{n_failed} without estimate."
+        )
+      }
       true_list <- purrr::map(fits, "true_p")
       compute_benchmark_metrics(
         y = Y,

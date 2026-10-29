@@ -185,6 +185,9 @@ simulate_bulk_from_cells <- function(
     ncol = n_samples,
     dimnames = list(gene_names, sample_names)
   )
+  # One Cholesky factor per type: count_j cells contribute
+  # N(count_j mu_j, count_j Sigma_j), drawn as count_j mu_j + sqrt(count_j) z R.
+  roots <- lapply(seq_len(n_types), function(j) .covariance_root(Sigma[,, j]))
   for (i in seq_len(n_samples)) {
     counts[, i] <- as.integer(stats::rmultinom(
       1L,
@@ -197,14 +200,8 @@ simulate_bulk_from_cells <- function(
       if (count_j <= 0L) {
         next
       }
-      slice <- Sigma[,, j]
-      slice <- .symmetrise(slice)
-      draw <- MASS::mvrnorm(
-        n = 1L,
-        mu = count_j * mean_signature_matrix[, j],
-        Sigma = count_j * slice,
-        tol = 1e-12
-      )
+      draw <- count_j * mean_signature_matrix[, j] +
+        sqrt(count_j) * drop(crossprod(roots[[j]], stats::rnorm(n_genes)))
       total <- total + as.numeric(draw)
     }
     y[, i] <- platform_scale[[i]] * total

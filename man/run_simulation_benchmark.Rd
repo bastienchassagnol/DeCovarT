@@ -16,7 +16,9 @@ run_simulation_benchmark(
   progress_every = 10L,
   likelihood = population_likelihood(),
   return_data = FALSE,
-  reference = NULL
+  reference = NULL,
+  seed = NULL,
+  scenarios = NULL
 )
 }
 \arguments{
@@ -66,6 +68,16 @@ function can be scored on the same samples.}
 panel is drawn per scenario by \code{\link[=simulate_reference_replicates]{simulate_reference_replicates()}}, with
 seed \code{reference$seed} plus the scenario index, for methods that
 estimate the reference moments themselves.}
+
+\item{seed}{Optional integer. Scenario \code{i} then runs under
+\code{withr::with_seed(seed + i)}, so its draws depend only on its index:
+a scenario run alone (\code{scenarios = i}) reproduces the uninterrupted
+run. \code{NULL} (default) keeps the current random stream across
+scenarios.}
+
+\item{scenarios}{Optional indices of the rows of \code{scenario_config} to
+run; the others are skipped. With \code{seed}, \code{scenarios = i} reproduces
+scenario \code{i} of the full run.}
 }
 \value{
 A list with:

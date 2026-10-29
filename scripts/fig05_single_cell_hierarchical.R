@@ -344,6 +344,9 @@ if (!POSTPROCESS_ONLY) {
     verbose = TRUE,
     likelihood = single_cell_likelihood(),
     return_data = TRUE,
+    # Scenario i runs under seed SEED + i, so a failed scenario is rerun
+    # alone with `scenarios = i`.
+    seed = SEED,
     reference = list(
       n_individuals = N_REFERENCE,
       n_cells = N_CELLS_REFERENCE,
@@ -352,7 +355,8 @@ if (!POSTPROCESS_ONLY) {
   )
   cli::cli_alert_info("Second-generation methods on the same bulks.")
   competitors <- run_second_generation_batch(
-    competitor_scenarios(single_cell_out, scenario_config_5)
+    competitor_scenarios(single_cell_out, scenario_config_5),
+    workers = CORES
   )
   single_cell_out <- score_competitors(
     single_cell_out,
