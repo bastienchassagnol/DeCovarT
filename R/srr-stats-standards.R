@@ -152,7 +152,8 @@ NULL
 #' RE2 - Regression: pre-processing
 #'
 #' @srrstats {RE2.0} ILR reparametrisation documented in `?fit_decovart`,
-#'   `?isometric_logistic`, and `vignette("01-1-population-generative-optimisation")`.
+#'   `?isometric_logistic`, and the population generative article on the
+#'   package site.
 #'
 #' @srrstats {RE2.1} Missing values in `y` or the signature raise an error
 #'   in `.prepare_deconvolution_inputs()`; no silent imputation.

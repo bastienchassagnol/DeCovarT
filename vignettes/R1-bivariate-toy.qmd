@@ -111,7 +111,7 @@ flowchart TB
 # Generative model {#sec-bivariate-toy}
 
 With $p_1+p_2=1$, only one free ILR coordinate is estimated (see
-[derivatives under simplex transforms](01-1-population-generative-optimisation.html)).
+[derivatives under simplex transforms](https://bastienchassagnol.github.io/DeCovarT/articles/01-1-population-generative-optimisation.html)).
 Even when mean profiles are similar, gene–gene correlation can degrade
 mean-only solvers, and is partly recovered once
 $\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j$
@@ -512,7 +512,7 @@ damping**:
   chart $\boldsymbol p=\boldsymbol w/\mathbf 1^{\top}\boldsymbol w$ with the
   box $\boldsymbol w\ge0$
   [@byrdLimitedMemoryAlgorithm1995; @zhuAlgorithm778LBFGSB1997]
-  ([closure chart](01-1-population-generative-optimisation.html#sec-closure-box)).
+  ([closure chart](https://bastienchassagnol.github.io/DeCovarT/articles/01-1-population-generative-optimisation.html#sec-closure-box)).
   The objective is the convolution log-likelihood itself, the box KKT
   points are exactly the simplex KKT points, and exact zeros are
   reachable. The archived version instead fitted a box-constrained

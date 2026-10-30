@@ -669,7 +669,37 @@ blocked when it meets the conditioning set. @fig-separation draws both.
 %%| label: fig-separation
 %%| fig-cap: Directed $d$-separation (chain blocked, collider opened), undirected $u$-separation on a minimal I-map, and the nesting of a Markov boundary inside a Markov blanket.
 %%| filename: fig-cov-separation
-%%| alt: Directed acyclic graph. Fixed parameters mu z and Sigma z point to the latent log-expression z c, which points to the observed counts x c. A fixed size factor s c also points to x c. Notes give z c as Gaussian with mean mu z and covariance Sigma z, and x g c as Poisson with mean s c times exp z g c. Cells c sit in an inner plate inside an outer plate over cell types j.
+%%| alt: Three panels. A is a chain A to B to C with B conditioned, so the path is blocked. B is a collider A and C both pointing at conditioned B, so the path is opened. C is an undirected graph on X: neighbours N1 and N2 form the Markov boundary, and a larger plate adds a non-neighbour E as a Markov blanket. O lies outside the blanket.
+\begin{tikzpicture}[node distance=8mm and 11mm]
+  \node[var] (a) {$A$};
+  \node[obs, right=of a] (b) {$B$};
+  \node[var, right=of b] (c) {$C$};
+  \draw[edge] (a) -- (b);
+  \draw[edge] (b) -- (c);
+  \node[elabel, above=5mm of b] {A. Chain};
+  \node[note, below=5mm of b] {blocked};
+
+  \node[var] (a2) at (5.6,0.55) {$A$};
+  \node[var] (c2) at (5.6,-0.55) {$C$};
+  \node[obs] (b2) at (7.5,0) {$B$};
+  \draw[edge] (a2) -- (b2);
+  \draw[edge] (c2) -- (b2);
+  \node[elabel, above=5mm of b2] {B. Collider};
+  \node[note, below=6mm of c2] {opened};
+
+  \node[var] (x) at (11.6,0) {$X$};
+  \node[var] (n1) at (10.0,0.95) {$N_1$};
+  \node[var] (n2) at (10.0,-0.95) {$N_2$};
+  \node[var] (e) at (12.5,1.15) {$E$};
+  \node[var] (o) at (13.3,-1.35) {$O$};
+  \draw (n1) -- (x);
+  \draw (n2) -- (x);
+  \draw (e) -- (n1);
+  \draw (o) -- (n2);
+  \plate{boundary}{(n1)(n2)}{boundary}
+  \plate{blanket}{(n1)(n2)(e)(boundary)(boundary-lab)}{blanket}
+  \node[elabel, above=2mm of e] {C. Undirected};
+\end{tikzpicture}
 ```
 
 ## Blanket versus boundary

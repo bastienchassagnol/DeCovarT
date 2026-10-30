@@ -11,8 +11,7 @@ writing under the package directory from
   package tree, or `getwd()`. Where tests still need a file they use
   `withr::local_tempfile()` / `with_tempfile()`, which delete the
   artefact when the test ends.
-* CRAN vignettes (`R1-bivariate-toy`,
-  `01-1-population-generative-optimisation`) no longer execute chunks that call
+* The CRAN vignette (`R1-bivariate-toy`) no longer executes chunks that call
   `library(DeCovarT)` / `DeCovarT::` during `R CMD build`. Quarto's
   Windows CLI starts a new R process that cannot see the temporary
   library used to build vignettes (quarto-dev/quarto-r#217). Live
@@ -47,10 +46,11 @@ terms).
     ribed) are false positives on unbroken words.
 * Method reference: Chassagnol, Nuel and Becht (2023)
   <doi:10.48550/arXiv.2309.09557>.
-* The CRAN tarball ships two Quarto vignettes
-  (`R1-bivariate-toy`, `01-1-population-generative-optimisation`). Longer articles
-  (including `04-2-distances-overlap-metrics`) remain on the pkgdown site
-  and are linked with absolute URLs from CRAN-shipped vignettes.
+* The CRAN tarball ships one Quarto vignette (`R1-bivariate-toy`).
+  Numbered articles, including `01-1-population-generative-optimisation`,
+  stay on the pkgdown site: R rejects vignette basenames that start with
+  a digit (`inst/doc` during `R CMD check`). They are linked with absolute
+  URLs from the shipped vignette.
 * Heatmap packages `ComplexHeatmap`, `circlize`, and `viridis` are in
   Suggests only (optional `plot_correlation_Heatmap()`).
 

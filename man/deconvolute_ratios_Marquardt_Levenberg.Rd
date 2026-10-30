@@ -130,7 +130,8 @@ Optimisation is performed in unconstrained ILR coordinates
 \eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}} via
 \eqn{\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{z})}
 (Marquardt–Levenberg default; see other methods below and
-\code{vignette("01-1-population-generative-optimisation", package = "DeCovarT")}).
+the
+\href{https://bastienchassagnol.github.io/DeCovarT/articles/01-1-population-generative-optimisation.html}{population generative model}).
 }
 \details{
 \strong{Plug-in signature.} Argument \code{mean_signature_matrix} is the mean
