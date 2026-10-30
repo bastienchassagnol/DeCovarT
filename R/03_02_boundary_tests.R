@@ -2,7 +2,7 @@
 # faces, likelihood-ratio tests calibrated by chi-bar-square mixtures when a
 # null sits on a face, edge or vertex of the simplex, and the diagnostics
 # that tell an interior optimum from a boundary one.
-# See vignette("theory-population-inference").
+# See vignette("01-2-population-inference").
 
 # Maximum likelihood on a face ---------------------------------------------
 
@@ -429,7 +429,7 @@ lrt_decovart <- function(
 #' local curvature, and the estimate sits close to a simplex face. None of
 #' them implies global uniqueness, which the DeCovarT log-likelihood does
 #' not have for a single observed sample (see
-#' `vignette("theory-population-inference")`).
+#' `vignette("01-2-population-inference")`).
 #'
 #' @details
 #' Reported fields are the ILR score norm

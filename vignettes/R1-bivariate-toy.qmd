@@ -1,10 +1,10 @@
 ---
-title: "2.1 Bivariate toy model (G = 2 genes, J = 2 cell types)"
+title: "§2.2 Bivariate toy model (G = 2 genes, J = 2 cell types)"
 subtitle: "Full script: `scripts/fig02_bivariate_toy.R`"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
 vignette: >
-  %\VignetteIndexEntry{§2.1 Bivariate toy model}
+  %\VignetteIndexEntry{§2.2 Bivariate toy model}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 knitr:
@@ -58,7 +58,7 @@ wraps `simulate_bulk_mixture()`, `deconvolute_ratios()`, and
 `compute_benchmark_metrics()`. Scenario rows are sequential; sample-level
 workers live only in `deconvolute_ratios()`. Reporting conventions
 (ADEMP, Nature Methods, raincloud / forest plots) are in
-[how to build synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html#sec-ademp).
+[how to build synthetic scenarios](04-1-synthetic-scenarios.html#sec-ademp).
 
 ```{.tikz}
 %%| label: fig-bivariate-design
@@ -69,7 +69,7 @@ workers live only in `deconvolute_ratios()`. Reporting conventions
 \node[box, text width=3.1cm] (P) at (0,0) {3 compositions\\ Ba / Mo / Hi};
 \node[box, text width=3.1cm] (V) at (3.6,0) {2 variance structures\\ Ho homoscedastic,\\ He heteroscedastic};
 \node[box, text width=3.1cm] (C) at (7.2,0) {2 CLD mean separations\\ Sm small, Lg large};
-\node[box, text width=3.1cm] (R) at (10.8,0) {$9\times 9$ gene--gene correlations\\ $\rho\in[-0.8,0.8]$, step $0.2$};
+\node[box, text width=3.1cm] (R) at (10.8,0) {$9\times 9$ gene--gene correlations\\ $\varrho\in[-0.8,0.8]$, step $0.2$};
 \node[keybox] (S) at (5.4,-2.2) {972 scenarios\\ $3\times2\times2\times9\times9$};
 \node[keybox] (A) at (5.4,-3.9) {7 deconvolution solvers};
 \foreach \n in {P,V,C,R} \draw[edge] (\n.south) -- (S.north);
@@ -111,7 +111,7 @@ flowchart TB
 # Generative model {#sec-bivariate-toy}
 
 With $p_1+p_2=1$, only one free ILR coordinate is estimated (see
-[derivatives under simplex transforms](theory-population-generative-optimisation.html)).
+[derivatives under simplex transforms](01-1-population-generative-optimisation.html)).
 Even when mean profiles are similar, gene–gene correlation can degrade
 mean-only solvers, and is partly recovered once
 $\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j$
@@ -139,8 +139,8 @@ the bivariate toy. {#fig-toy-design}
 |---|---|
 | Composition $\boldsymbol{p}$ | balanced $(1/2,\,1/2)$; moderately unbalanced $(17/20,\,3/20)$; highly unbalanced $(99/100,\,1/100)$ |
 | Mean separation (CLD) | small: $\boldsymbol{\mu}_{\cdot 1}=(20,22)$, $\boldsymbol{\mu}_{\cdot 2}=(22,20)$; large: $(20,40)$, $(40,20)$ |
-| Gene–gene corr. CT 1 ($\rho_1$) | $\{-0.8,\,-0.6,\,\ldots,\,0.8\}$ — 9 levels |
-| Gene–gene corr. CT 2 ($\rho_2$) | $\{-0.8,\,-0.6,\,\ldots,\,0.8\}$ — 9 levels |
+| Gene–gene corr. CT 1 ($\varrho_1$) | $\{-0.8,\,-0.6,\,\ldots,\,0.8\}$ — 9 levels |
+| Gene–gene corr. CT 2 ($\varrho_2$) | $\{-0.8,\,-0.6,\,\ldots,\,0.8\}$ — 9 levels |
 | Variance structure | homoscedastic $\sigma^2 = (1,1)$; heteroscedastic $\sigma^2 = (1,2)$ |
 | **Total scenarios** | $3 \times 2 \times 9 \times 9 \times 2 = \mathbf{972}$ |
 
@@ -149,7 +149,7 @@ $N = 500$ Monte Carlo replicates per scenario.
 **CLD** is centroid (mean-profile) Euclidean separation
 $\lVert\boldsymbol{\mu}_{\cdot 1}-\boldsymbol{\mu}_{\cdot 2}\rVert_2$,
 not an Aitchison distance; see
-[the descriptor notes](theory-synthetic-scenarios-mean-covariance.html#nte-desc-cld).
+[the descriptor notes](04-1-synthetic-scenarios.html#nte-desc-cld).
 Small CLD uses $\boldsymbol{\mu}_{\cdot 1}=(20,22)$,
 $\boldsymbol{\mu}_{\cdot 2}=(22,20)$ ($d=2\sqrt{2}\approx 2.83$,
 cosine $\approx 0.995$). Large CLD uses $(20,40)$ and $(40,20)$
@@ -200,8 +200,8 @@ nrow(bivariate_config)
 #|   Two-gene mixture densities at fixed means
 #|   $\boldsymbol{\mu}_{\cdot 1}=(20,22)$, $\boldsymbol{\mu}_{\cdot 2}=(22,20)$,
 #|   $\boldsymbol{p}=(1/2,1/2)$ and unit diagonals. Only the common
-#|   gene–gene correlation $\rho$ changes. Labels report MixSim
-#|   $\overline{\omega}$ (`compute_average_overlap()`).
+#|   gene–gene correlation $\varrho$ changes. Labels report MixSim
+#|   $\bar\varpi$ (`compute_average_overlap()`).
 #| fig-width: 8.4
 #| fig-height: 4.4
 #| echo: false
@@ -342,7 +342,7 @@ Five methods are evaluated on each scenario:
   robust linear model is not run on two genes.
 
 The interval constructions are those of
-[population inference](theory-population-inference.html): `wald` (delta
+[population inference](01-2-population-inference.html): `wald` (delta
 method on $\boldsymbol p$), `ilr` (Wald in ILR coordinates mapped back),
 `profile` (likelihood-ratio inversion) and `oracle` ($\hat p_j$ plus or
 minus the Wald half-width at $\boldsymbol p^{\star}$). The parametric
@@ -393,7 +393,7 @@ render_figure_from_data("heatmap_rmse", plot_data, "output/fig02")
 ```
 
 Density and performance books share the four correlation corners
-$(\rho_1,\rho_2)\in\{(0,0),(-0.8,-0.8),(0.8,0.8),(-0.8,0.8)\}$ and the
+$(\varrho_1,\varrho_2)\in\{(0,0),(-0.8,-0.8),(0.8,0.8),(-0.8,0.8)\}$ and the
 twelve meta-scenarios (CLD $\times$ variance $\times$ composition).
 Every log-likelihood panel uses the same axes and the same fill,
 $\log_{10}(L/\max L)$ on $[-10,0]$, with one legend per page: white
@@ -409,7 +409,7 @@ information inequality).
 | `density_visualisations/loglik_surface_p.pdf`, `loglik_ilr_profile.pdf` | Log-likelihood of one bulk on $p_1$ and on the ILR coordinate |
 | `density_visualisations/loglik_expected_surface_p.pdf`, `loglik_expected_ilr_profile.pdf` | Expected log-likelihood and Monte Carlo mean of $\hat{\boldsymbol p}$ |
 | `density_visualisations/loglik_rgl.pdf` | 3D relative likelihood (`rgl`) |
-| `performance_visualisations/heatmap_rmse.pdf`, `heatmap_aitchison.pdf` | Tiles on $(\rho_1,\rho_2)$, one page per meta-scenario; grey = no finite estimate |
+| `performance_visualisations/heatmap_rmse.pdf`, `heatmap_aitchison.pdf` | Tiles on $(\varrho_1,\varrho_2)$, one page per meta-scenario; grey = no finite estimate |
 | `performance_visualisations/ci_width_forest.pdf` | Mean interval, coverage [Wilson interval] and width per method and construction |
 | `performance_visualisations/p_hat_monte_carlo_raincloud.pdf` | Monte Carlo law of $\hat p$, including pile-up at 0 and 1 |
 | `performance_visualisations/p_hat_monte_carlo_quantile_dots.pdf` | The same law as quantile dots |
@@ -450,7 +450,7 @@ books). Useful alternatives, left as outlook:
 - Hold $\boldsymbol{p}^{\star}$ fixed and vary one column of $\boldsymbol{\mu}$
   (a mean-shift slice) to show how centroid collision flattens $\ell$.
 - Hold $\boldsymbol{p}^{\star}$ and $\boldsymbol{\mu}$ fixed and vary one
-  correlation $\rho_j$, so the surface is a covariance diagnostic
+  correlation $\varrho_j$, so the surface is a covariance diagnostic
   rather than a mixing-weight diagnostic.
 - Overlay several independent bulk draws as translucent surfaces to
   display sampling variability of $\ell(\boldsymbol{p};\boldsymbol{y})$.
@@ -468,9 +468,9 @@ solver list.
 :::
 
 The factorial heatmaps remain the right *design* summary: large CLD and
-$\rho_j=0$ make the mean map injective, so every solver is accurate;
+$\varrho_j=0$ make the mean map injective, so every solver is accurate;
 small CLD plus aligned correlations flatten the mean residual and raise
-RMSE off the diagonal $\rho_1=\rho_2$. That saddle is a statement about
+RMSE off the diagonal $\varrho_1=\varrho_2$. That saddle is a statement about
 **identifiability of $\boldsymbol{\mu}\boldsymbol{p}$**, not about which
 numerical method is used. The pack in `output/fig02/mle_explanation/`
 (scenario descriptors, ILR profiles evaluated at
@@ -502,7 +502,7 @@ so it is a robustness check, not an MLE.
 
 The convolution solvers maximise the Gaussian-convolution log-likelihood
 of the
-[MLE properties article](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html)
+[MLE properties article](https://bastienchassagnol.github.io/DeCovarT/articles/01-2-population-inference.html)
 (that article is pkgdown-only; this vignette is the CRAN-shipped
 companion). None of them inherits Boyd's global certificate, because
 that likelihood is not concave. They differ in **coordinates and
@@ -512,7 +512,7 @@ damping**:
   chart $\boldsymbol p=\boldsymbol w/\mathbf 1^{\top}\boldsymbol w$ with the
   box $\boldsymbol w\ge0$
   [@byrdLimitedMemoryAlgorithm1995; @zhuAlgorithm778LBFGSB1997]
-  ([closure chart](theory-population-generative-optimisation.html#sec-closure-box)).
+  ([closure chart](01-1-population-generative-optimisation.html#sec-closure-box)).
   The objective is the convolution log-likelihood itself, the box KKT
   points are exactly the simplex KKT points, and exact zeros are
   reachable. The archived version instead fitted a box-constrained
@@ -543,7 +543,7 @@ profiles are not.
 
 Every Monte Carlo replicate here is a **single** $G=2$ bulk. The MLE is
 therefore the $N=1$ estimator of
-[the finite-sample section](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html#sec-finite-sample):
+[the finite-sample section](https://bastienchassagnol.github.io/DeCovarT/articles/01-2-population-inference.html#sec-finite-sample):
 biased at $O(1)$, with Wald SEs that describe the Monte Carlo spread of
 that one-observation maximiser, not a sampling experiment with growing
 $N$. Pooling $N$ i.i.d. columns with a shared $\boldsymbol{p}^{\star}$ is
@@ -559,7 +559,7 @@ Numbers below are from `forest_newton_marquardt.csv`,
 `theoretical_wald_se.csv`, and the range of `ilr_loglik_profiles.csv`
 (max minus min of $\ell(\rho)$ on the plotting grid).
 
-**Large CLD, balanced, $\rho_j=0$ (`B567`).** The mean map is well
+**Large CLD, balanced, $\varrho_j=0$ (`B567`).** The mean map is well
 conditioned. The ILR profile spans about $101$ nats and
 $\mathrm{SE}_{\rho}=0.071$. Newton and Marquardt agree to numerical
 noise: bias of $p_1$ about $0$, RMSE $0.024$, coverage $0.96$, and the
@@ -567,7 +567,7 @@ empirical SD matches the expected-Fisher SE ($0.025$). This is the
 textbook interior MLE: strongly concave locally, RDM and Newton stop at
 the same point.
 
-**Large CLD, balanced, $\rho_j=-0.8$ (`B487`).** Equal negative
+**Large CLD, balanced, $\varrho_j=-0.8$ (`B487`).** Equal negative
 correlation inflates variance along the anti-diagonal of gene space but
 does not destroy the mean contrast. Profile range $56$,
 $\mathrm{SE}_{\rho}=0.095$, RMSE $0.033$ for both second-order solvers.
@@ -575,8 +575,8 @@ Covariance-aware curvature is still enough.
 
 **Small CLD, balanced (`B1`, `B81`).** Means $(20,22)$ versus $(22,20)$
 almost collinear. Profile range drops to $1.2$--$1.7$ nats;
-$\mathrm{SE}_{\rho}$ is $0.95$ (both $\rho=-0.8$) or $0.71$
-($\rho=0$). RMSE of $p_1$ is $0.19$--$0.23$ and Wald coverage is
+$\mathrm{SE}_{\rho}$ is $0.95$ (both $\varrho=-0.8$) or $0.71$
+($\varrho=0$). RMSE of $p_1$ is $0.19$--$0.23$ and Wald coverage is
 conservative ($0.98$--$1$). Marquardt is slightly *less* variable than
 Newton here (RMSE $0.192$ versus $0.234$ on `B1`): damping and RDM cut
 walks along the ridge, which for a *balanced* truth is a small bias
@@ -585,15 +585,15 @@ flatter residual and are the ones that snap to vertices.
 
 **Highly unbalanced, small CLD (`B325`, `B405`, $p^{\star}=(0.99,0.01)$).**
 The ILR chart sends the rare type to $\rho\to+\infty$. Fisher curvature
-in $\rho$ collapses: $\mathrm{SE}_{\rho}$ is $24$ (both $\rho=-0.8$) or
-$20$ ($\rho=0$), while the profile range on a finite grid is only
+in $\rho$ collapses: $\mathrm{SE}_{\rho}$ is $24$ (both $\varrho=-0.8$) or
+$20$ ($\varrho=0$), while the profile range on a finite grid is only
 $2.4$--$4.1$ nats — a plateau, not a peak. Newton bias for $p_1$ is
 $-0.22$ and $-0.18$; Marquardt bias is $-0.40$ and $-0.38$. Both
 shrink toward the barycentre, Marquardt more so, exactly as RDM
 predicts on a flat tail. Coverage stays near $0.92$--$0.94$ because the
 Wald interval is already huge. This is the geometry behind
 chi-bar-square calibration on a face
-([boundary LRTs](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html#sec-boundary)):
+([boundary LRTs](https://bastienchassagnol.github.io/DeCovarT/articles/01-2-population-inference.html#sec-boundary)):
 the tangent cone is a half-line, Wilks does not apply, and a Wald SE in
 ILR is not a calibrated rare-type interval.
 
@@ -617,9 +617,9 @@ about $0.03$--$0.04$ with the two second-order solvers aligned.
 
 ### What the heatmaps still add
 
-The $9\times 9$ $(\rho_1,\rho_2)$ tiles, which are **not** in the
+The $9\times 9$ $(\varrho_1,\varrho_2)$ tiles, which are **not** in the
 twelve-row explanation pack, remain the place to see mean-only methods
-lose first as $|\rho|$ grows at small CLD, and to see DeCovarT retain
+lose first as $|\varrho|$ grows at small CLD, and to see DeCovarT retain
 the diagonal saddle. The pack's message is narrower and sharper: with
 $N=1$, a plateau in ILR makes every interior solver noisy; Marquardt's
 RDM is the right stop on a balanced ridge and the wrong stop on a rare
@@ -630,10 +630,10 @@ that problem's unique minimiser.
 ## See also
 
 - Variance-driven hybrid ($G=20$, $J=3$):
-  [§2.2](fig03-covariance-driven.html)
+  [§2.3](R2-covariance-driven.html)
 - Moment generator and ADEMP reporting:
-  [How to build synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html)
+  [How to build synthetic scenarios](04-1-synthetic-scenarios.html)
 - Regular-case MLE checks:
-  [Appendix S1](supp-S1-identifiability.html)
+  [Appendix S1](S1-identifiability.html)
 
 ## References

@@ -1,9 +1,9 @@
 ---
-title: "Population-level DeCovarT: generative model, derivatives and optimisation on the simplex"
+title: "1.1 Population-level DeCovarT: generative model, derivatives and optimisation on the simplex"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
 vignette: >
-  %\VignetteIndexEntry{Population-level DeCovarT: generative model and optimisation}
+  %\VignetteIndexEntry{1.1 Population-level DeCovarT: generative model and optimisation}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 knitr:
@@ -85,26 +85,27 @@ Inference has its own vignette. The expected Fisher information, the
 ILR delta-method covariance behind
 [`vcov.decovart_fit()`](../reference/fit_decovart.html), and the Wald,
 profile, Firth and bootstrap intervals are in the
-[population inference vignette](theory-population-inference.html).
+[population inference vignette](01-2-population-inference.html).
 Single-cell references follow the same split:
-[generative model and optimisation](theory-single-cell-generative-optimisation.html)
-and [inference](theory-single-cell-inference.html).
+[generative model and optimisation](02-1-single-cell-generative-optimisation.html)
+and [inference](02-2-single-cell-inference.html).
 
-::: {#nte-notation .callout-note}
-## Notation
+{{< include _notation.qmd >}}
 
-- Indices: gene $g$; cell types $j,\ell\in\{1,\ldots,J\}$; one bulk
-  sample is fixed, so the sample index $i$ is dropped; $a,b$ index ILR
-  coordinates.
-- $\boldsymbol{\mu}\in\mathbb{R}^{G\times J}$: mean signature.
-- $\boldsymbol{\Sigma}_j\in\mathrm{SPD}(G)$: cell-type covariance;
-  $\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}\boldsymbol{\Sigma}_j$
+::: {#nte-notation .callout-note collapse="true"}
+## Notation specific to this vignette
+
+- One bulk sample is fixed, so the sample index $i$ is dropped;
+  $a,b$ index ILR coordinates.
+- $\boldsymbol{\mu}\in\mathbb{R}^{G\times J}$: mean signature, with
+  columns $\boldsymbol{\mu}_{\cdot j}$.
+- $\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^{2}\boldsymbol{\Sigma}_j$
   and
   $\boldsymbol{\Omega}(\boldsymbol{p})=\boldsymbol{\Sigma}(\boldsymbol{p})^{-1}$.
 - $\boldsymbol{p}$: proportions on the open simplex (ambient score
   equations treat them as free coordinates in $(0,1)^{J}$).
-- $\boldsymbol{\rho}\in\mathbb{R}^{J-1}$: unconstrained log-ratio
-  coordinates (ILR / Helmert chart $\mathbf{V}$);
+- $\boldsymbol{\rho}\in\mathbb{R}^{J-1}$: ILR coordinates (Helmert
+  chart $\mathbf{V}$),
   $\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho})$.
   The manuscript DAG uses the same letter for the ALR chart; here
   $\boldsymbol{\rho}$ denotes the ILR coordinates used by the solvers,
@@ -116,7 +117,7 @@ and [inference](theory-single-cell-inference.html).
 The released model treats the reference moments
 $\boldsymbol{\zeta}=(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_j\})$ as known and
 ignores every technical scale of single-cell data (the
-[single-cell generative and optimisation vignette](theory-single-cell-generative-optimisation.html)
+[single-cell generative and optimisation vignette](02-1-single-cell-generative-optimisation.html)
 adds them).
 The simplex is handled by a chart, not by constraints:
 
@@ -147,7 +148,7 @@ Two readings of @eq-ilr-chart are useful later.
   is needed, and @eq-ilr-chart is a reparametrisation, so the MLE in
   $\boldsymbol{\rho}$ is the MLE in $\boldsymbol{p}$. The price is the same as
   for the softplus near zero: a proportion that is truly zero sits at
-  $\lVert\boldsymbol{\rho}\rVert=\infty$ ([boundary inference](theory-population-inference.html#sec-boundary)).
+  $\lVert\boldsymbol{\rho}\rVert=\infty$ ([boundary inference](01-2-population-inference.html#sec-boundary)).
 
 
 # Matrix calculus reminders {#sec-matrix-calculus}
@@ -319,13 +320,13 @@ releases before 2.3.0 implemented
 $-\log\det\boldsymbol{\Sigma}(\boldsymbol{p})$, which doubled the
 determinant contribution. The objective was then *not* the stated
 Gaussian model, and it disagreed with the
-[expected Fisher information](theory-population-inference.html#sec-fisher-wald), which had always been the one implied by the correct
+[expected Fisher information](01-2-population-inference.html#sec-fisher-wald), which had always been the one implied by the correct
 density. With the factor restored,
 `loglik_multivariate()` matches `mvtnorm::dmvnorm(..., log = TRUE)` up to
 the constant $\tfrac{G}{2}\log(2\pi)$, and
 $\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})$ holds exactly
 (see
-[observed versus expected information](theory-population-inference.html#nte-obs-vs-exp)). Point estimates move only slightly, because the
+[observed versus expected information](01-2-population-inference.html#nte-obs-vs-exp)). Point estimates move only slightly, because the
 two terms trade off differently, but likelihood **values**, AIC,
 likelihood-ratio statistics, and any curvature-based standard error do
 change.
@@ -881,7 +882,7 @@ proceeds as follows.
    $\mathbf{V}\boldsymbol{\rho}$.
 4. Push the covariance of $\hat{\boldsymbol{\rho}}$ to
    $\hat{\boldsymbol{p}}$ with the Jacobian $\mathbf{S}(\boldsymbol{p})\mathbf{V}$
-   ([ILR delta method](theory-population-inference.html#sec-fisher-rho)).
+   ([ILR delta method](01-2-population-inference.html#sec-fisher-rho)).
 
 The order of the cell types fixes which balances are reported, not the
 estimate. Both helpers accept another basis through their `V` argument:
@@ -1448,7 +1449,7 @@ Gaussian bulk likelihood then combines with standard tools
 - The experimental MAP `CTS` path
   (`scripts/experimental/03_04_DeCovarT_estimate_CTS_MAP_Bayesian.R`,
   derived in the
-  [perspectives](theory-decovart-bayesian-wiener.html#sec-map-blup)
+  [perspectives](05-2-bayesian-wiener.html#sec-map-blup)
   vignette) is one starting point.
 
 **Estimates on the boundary.** Several routes go beyond the active-set
@@ -1583,7 +1584,7 @@ every iterate.
 
 The analytic maps above are only half of a usable optimiser. Practical
 bottlenecks that showed up on the hybrid scenario in
-[Covariance-driven hybrid scenario](fig03-covariance-driven.html#sec-hybrid-deconvolution)
+[Covariance-driven hybrid scenario](R2-covariance-driven.html#sec-hybrid-deconvolution)
 live in `R/02_02_population_decovart_estimate_ratios.R`.
 
 ---
@@ -1592,18 +1593,18 @@ live in `R/02_02_population_decovart_estimate_ratios.R`.
 
 Within one iteration, objective / gradient / Hessian callbacks hit the
 same trial $\boldsymbol{p}$. The helper `.sigma_p_factorisation()` caches
-a single Cholesky factor
-$\boldsymbol{R}$ with
-$\boldsymbol{\Sigma}(\boldsymbol{p})=\boldsymbol{R}^{\mathsf{T}}\boldsymbol{R}$
+a single lower-triangular Cholesky factor
+$\boldsymbol{L}$ with
+$\boldsymbol{\Sigma}(\boldsymbol{p})=\boldsymbol{L}\boldsymbol{L}^{\mathsf{T}}$
 and returns
-$\log\det\boldsymbol{\Sigma}(\boldsymbol{p})=2\sum_g\log R_{gg}$
+$\log\det\boldsymbol{\Sigma}(\boldsymbol{p})=2\sum_g\log L_{gg}$
 together with the precision
-$\boldsymbol{\Omega}(\boldsymbol{p})=\boldsymbol{R}^{-1}\boldsymbol{R}^{-\mathsf{T}}$
+$\boldsymbol{\Omega}(\boldsymbol{p})=\boldsymbol{L}^{-\mathsf{T}}\boldsymbol{L}^{-1}$
 (via `chol2inv`) without repeating an $O(G^{3})$ factorisation.
 
 [`loglik_multivariate()`](../reference/loglik_multivariate.html) then
 evaluates the Mahalanobis term exactly as `mvtnorm::dmvnorm`
-[@R-mvtnorm]: it solves $\boldsymbol{R}^{\mathsf{T}}\boldsymbol{z}
+[@R-mvtnorm]: it solves $\boldsymbol{L}\boldsymbol{z}
 =\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}$ by
 `backsolve(..., transpose = TRUE)` and takes
 $\lVert\boldsymbol{z}\rVert^{2}$, rather than forming
@@ -1822,7 +1823,7 @@ three-gene toy; that is the same tolerance used in the test suite.
 
 Matching `numDeriv` shows that the derivatives belong to the implemented
 objective. Matching the *expected* Fisher information
-[the expected information](theory-population-inference.html#eq-fisher-p) to a Monte Carlo average of \(-\mathbf{H}(\boldsymbol{p};
+[the expected information](01-2-population-inference.html#eq-fisher-p) to a Monte Carlo average of \(-\mathbf{H}(\boldsymbol{p};
 \boldsymbol{Y})\) shows that the objective is the Gaussian whose
 information matrix we use for Wald intervals. Draw
 \(\boldsymbol{Y}^{(b)}\sim\mathcal{N}_G(\boldsymbol{\mu}\boldsymbol{p},
@@ -1863,7 +1864,7 @@ A related, weaker check compares the empirical covariance of
 parametric-bootstrap MLEs to the Cramér–Rao map
 [`vcov_ilr_delta()`](../reference/vcov_ilr_delta.html). That comparison
 is noisy at small replication (see
-[MLE properties](theory-population-inference.html#sec-replication)
+[MLE properties](01-2-population-inference.html#sec-replication)
 for why one bulk column is not an asymptotic sample) and is therefore
 left to the inference vignette and to
 [`bootstrap_decovart()`](../reference/bootstrap_decovart.html).
@@ -1882,7 +1883,7 @@ structure explicit for DeCovarT.
 
 These backends are **experimental** and are not exported by the package:
 they live in `scripts/experimental/covariance_backends.R`, sourced by the
-[S2 appendix](supp-S2-covariance-inversion.html) after
+[S2 appendix](S2-covariance-inversion.html) after
 `devtools::load_all()`. The package fit keeps the dense Cholesky, because
 more cell types bring more gene--gene correlations and a declared sparsity
 pattern then rarely survives in $\boldsymbol{\Sigma}(\boldsymbol{p})$.

@@ -33,29 +33,27 @@
 # CRAN tarball ships two Quarto vignettes: methods core plus bivariate toy.
 # Other articles stay on the pkgdown site, linked with absolute URLs,
 # to keep rebuild time and Suggests surface small.
-^vignettes/deconvolution-seminar-slides\.qmd$
 ^vignettes/decovart-paper-slides\.qmd$
-^vignettes/decovart-paper-slides\.pdf$
-^vignettes/decovart-manuscript\.qmd$
 ^vignettes/decovart-manuscript\.pdf$
-^vignettes/theory-population-inference\.qmd$
-^vignettes/supp-S6-feature-selection\.qmd$
-^vignettes/theory-network-inference\.qmd$
-^vignettes/theory-synthetic-scenarios-mean-covariance\.qmd$
-^vignettes/theory-distance-covariance\.qmd$
-^vignettes/fig03-covariance-driven\.qmd$
-^vignettes/fig05-single-cell-hierarchical\.qmd$
-^vignettes/supp-S1-identifiability\.qmd$
-^vignettes/supp-S2-covariance-inversion\.qmd$
-^vignettes/supp-S3-scaling\.qmd$
-^vignettes/supp-S4-covariance-modeling\.qmd$
-^vignettes/supp-S5-misspecification\.qmd$
-^vignettes/theory-review-distribution-aware-deconvolution\.qmd$
-^vignettes/theory-single-cell-generative-optimisation\.qmd$
-^vignettes/theory-single-cell-inference\.qmd$
-^vignettes/theory-decovart-extensions-roadmap\.qmd$
-^vignettes/theory-decovart-bayesian-wiener\.qmd$
-^vignettes/theory-mixture-regression-applications\.qmd$
+^vignettes/01-2-population-inference\.qmd$
+^vignettes/02-1-single-cell-generative-optimisation\.qmd$
+^vignettes/02-2-single-cell-inference\.qmd$
+^vignettes/03-1-feature-selection\.qmd$
+^vignettes/03-2-covariance-network-estimation\.qmd$
+^vignettes/04-1-synthetic-scenarios\.qmd$
+^vignettes/04-2-distances-overlap-metrics\.qmd$
+^vignettes/05-1-review-distribution-aware\.qmd$
+^vignettes/05-2-bayesian-wiener\.qmd$
+^vignettes/05-3-extensions-roadmap\.qmd$
+^vignettes/05-4-mixture-experiments\.qmd$
+^vignettes/R2-covariance-driven\.qmd$
+^vignettes/R3-single-cell-hierarchical\.qmd$
+^vignettes/S1-identifiability\.qmd$
+^vignettes/S2-covariance-inversion\.qmd$
+^vignettes/S3-scaling\.qmd$
+^vignettes/S4-covariance-modeling\.qmd$
+^vignettes/S5-misspecification\.qmd$
+^vignettes/S6-feature-screening-scenario\.qmd$
 # Quarto extensions used only by pkgdown-only articles. pandoc-ext/diagram
 # is kept: vignettes/_quarto.yml loads it for every article, and the
 # committed vignettes/_diagram-cache/ lets it render without TeX.
@@ -147,3 +145,12 @@
 ^factorial analysis\.bib$
 ^vignettes/burakov-logistic-regression\.pdf$
 ^Rplots\.pdf$
+^answer-cardamomOT$
+^docs$
+^review_second_generation_deconvolution_algorithms$
+^infer_networks$
+^expression_models$
+^correlated_observations$
+^derive_confidence_intervals$
+^temp_
+^temp_prompt

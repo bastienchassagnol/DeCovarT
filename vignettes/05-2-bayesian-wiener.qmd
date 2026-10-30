@@ -1,9 +1,9 @@
 ---
-title: "A Bayesian DeCovarT: latent purified profiles, the Wiener filter and variational EM"
+title: "5.2 A Bayesian DeCovarT: latent purified profiles, the Wiener filter and variational EM"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
 vignette: >
-  %\VignetteIndexEntry{A Bayesian DeCovarT: latent profiles and the Wiener filter}
+  %\VignetteIndexEntry{5.2 A Bayesian DeCovarT: latent profiles and the Wiener filter}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 knitr:
@@ -29,14 +29,14 @@ format:
 
 Released DeCovarT integrates the purified profiles out and maximises
 the marginal likelihood of the bulk in the proportions
-([population generative vignette](theory-population-generative-optimisation.html#sec-unconstrained)).
+([population generative vignette](01-1-population-generative-optimisation.html#sec-unconstrained)).
 This vignette keeps the profiles as latent variables. That gives three
 things the marginal likelihood hides: a closed-form estimate of each
 sample's purified profiles once the proportions are known (the Wiener
 filter), an EM algorithm for the same maximum-likelihood estimate, and
 a Bayesian version with a prior on the proportions. The Bayesian
 methods already published for this task are reviewed in the
-[distribution-aware deconvolution review](theory-review-distribution-aware-deconvolution.html#sec-bayesian).
+[distribution-aware deconvolution review](05-1-review-distribution-aware.html#sec-bayesian).
 Nothing here is implemented in `fit_decovart()`.
 :::
 
@@ -126,6 +126,17 @@ classical criteria coincide:
 - the **Wiener filter**, the linear minimum mean-square estimator of
   $\boldsymbol{x}_{\cdot j,i}$ from $\boldsymbol{y}_{\cdot i}$.
 
+## Linear mixed-model reading {#sec-bw-lmm}
+
+The same convolution is a linear mixed model with known variance
+components. The random effect is the purified profile
+$\boldsymbol{x}_{\cdot j,i}$; the fixed design is the composition
+$\boldsymbol{p}_{\cdot i}$. Henderson's BLUP, the Wiener filter and the
+conditional mean
+$E(\boldsymbol{x}_{\cdot j,i}\mid\boldsymbol{y}_{\cdot i},\boldsymbol{p}_{\cdot i})$
+are the same vector. This is rung 7 of the
+[noise-model ladder](05-1-review-distribution-aware.html#sec-ladder).
+
 All three equal the posterior mean
 
 $$
@@ -213,7 +224,7 @@ limits apply.
 
 - EM converges to a stationary point, not to the global maximum: the
   non-concavity of the DeCovarT likelihood
-  ([MLE properties](theory-population-inference.html#sec-uniqueness))
+  ([MLE properties](01-2-population-inference.html#sec-uniqueness))
   is unchanged by the algorithm.
 - EM converges slowly when the latent profiles carry most of the
   uncertainty, that is when $\boldsymbol{D}$ is small relative to
@@ -265,7 +276,7 @@ networks, to be checked against the exact EM on a subset of genes.
 # Priors on the composition {#sec-bw-priors}
 
 The prior can be written on the simplex or on the ILR chart used by the
-solvers ([population generative vignette](theory-population-generative-optimisation.html#sec-ilr)),
+solvers ([population generative vignette](01-1-population-generative-optimisation.html#sec-ilr)),
 and the two give different maximum a posteriori estimates.
 
 - **Dirichlet on $\boldsymbol{p}$.** In $\boldsymbol{p}$, the log-prior
@@ -289,7 +300,7 @@ Either prior regularises the boundary: where the Wald interval of a
 proportion near zero degenerates, the posterior stays proper. A credible
 interval is not a frequentist confidence interval, and the prior has to
 be defended on biological grounds
-([population inference vignette](theory-population-inference.html#sec-intervals)).
+([population inference vignette](01-2-population-inference.html#sec-intervals)).
 
 # Full posterior {#sec-bw-posterior}
 
@@ -314,6 +325,6 @@ Three routes go beyond the MAP, in increasing cost.
 The Bayesian methods that already use this latent structure, `bMIND`,
 `BLADE`, `BayesPrism` and others, differ in the likelihood scale, the
 prior on the covariance and the inference algorithm; they are compared
-in the [review](theory-review-distribution-aware-deconvolution.html#sec-bayesian).
+in the [review](05-1-review-distribution-aware.html#sec-bayesian).
 
 # References

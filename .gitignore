@@ -110,6 +110,10 @@ output/random_markov_network/
 /doc/
 /Meta/
 
+# Local RAG extracts and scratch drafts (kept on disk, not in the package)
+/temp_*/
+/temp_prompt*
+
 # Ad-hoc Zotero collection exports and RAG source material used to draft
 # the inference vignette (merge into inst/REFERENCES.bib, then delete).
 Optimisation approaches.bib
@@ -147,3 +151,24 @@ vignettes/burakov-logistic-regression.pdf
 
 # Document extractions (document-extraction rule)
 .firecrawl/
+
+# Local literature PDFs used for reviews (copyrighted; not redistributed).
+# The LaTeX sources and verification scripts in answer-cardamomOT/ are tracked.
+# Nested copies (resources/, report/) also exceed the 2000 KB hook.
+answer-cardamomOT/**/*.pdf
+review_second_generation_deconvolution_algorithms/*.pdf
+infer_networks/*.pdf
+expression_models/*.pdf
+correlated_observations/*.pdf
+derive_confidence_intervals/*.pdf
+answer-cardamomOT/report/*.pdf
+answer-cardamomOT/report/*.aux
+answer-cardamomOT/report/*.bbl
+answer-cardamomOT/report/*.bcf
+answer-cardamomOT/report/*.blg
+answer-cardamomOT/report/*.fdb_latexmk
+answer-cardamomOT/report/*.fls
+answer-cardamomOT/report/*.log
+answer-cardamomOT/report/*.out
+answer-cardamomOT/report/*.run.xml
+answer-cardamomOT/report/_minted*/

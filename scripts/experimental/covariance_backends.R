@@ -12,7 +12,7 @@
 # It relies on the internal helpers .compute_global_variance(),
 # .ensure_spd() and .match_arg_case_insensitive(), and on the Matrix package
 # (sparse / band backends). Consumer: scripts/supp_S2_covariance_inversion.R
-# and vignettes/supp-S2-covariance-inversion.qmd.
+# and vignettes/S2-covariance-inversion.qmd.
 #
 # Design: expose OPERATORS (logdet, solve, quadform, trace of precision times
 # a matrix) rather than a materialised precision, so a sparse or Woodbury

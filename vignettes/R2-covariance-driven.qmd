@@ -1,10 +1,10 @@
 ---
-title: "2.2 Covariance-driven scenario (G = 20, J = 3)"
+title: "§2.3 Covariance-driven scenario (G = 20, J = 3)"
 subtitle: "Full script: `scripts/fig03_variance_covariance_driven.R`"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
 vignette: >
-  %\VignetteIndexEntry{§2.2 Covariance-driven scenario}
+  %\VignetteIndexEntry{§2.3 Covariance-driven scenario}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 knitr:
@@ -56,7 +56,7 @@ network figure live in a **single** script,
 \node[box, text width=3.1cm] (P) at (0,0) {3 compositions\\ $H^{\star}=1,\ 0.5,\ 0.1$};
 \node[box, text width=3.1cm] (G) at (3.6,0) {$2\times 2$ graph assignments\\ CT1, CT2: scale-free or cluster SBM};
 \node[box, text width=3.1cm] (C) at (7.2,0) {CT3 graph held at scale-free};
-\node[box, text width=3.1cm] (K) at (10.8,0) {3 target \texttt{BarOmega} levels $\bar\omega$\\ low, moderate, high};
+\node[box, text width=3.1cm] (K) at (10.8,0) {3 target \texttt{BarOmega} levels $\bar\varpi$\\ low, moderate, high};
 \node[keybox] (S) at (5.4,-2.2) {36 scenarios\\ $4\times3\times3$};
 \node[keybox] (A) at (5.4,-3.9) {8 methods, 5 interval constructions};
 \foreach \n in {P,G,C,K} \draw[edge] (\n.south) -- (S.north);
@@ -98,12 +98,12 @@ flowchart TB
 One fixed mean signature $\boldsymbol{\mu}\in\mathbb{R}^{G\times J}$ is
 built with `generate_mean_signature_matrix()` and an explicit Gram
 `target_gram` ([mean signature
-construction](theory-synthetic-scenarios-mean-covariance.html#sec-lr-block-mu)).
+construction](04-1-synthetic-scenarios.html#sec-lr-block-mu)).
 There is no marker block and no null (`equal_all`) block: uninformative
 genes would be removed before deconvolution.
 
 $$
-R
+\mathbf{K}
 =
 \begin{pmatrix}
 1 & 0.9 & 0.1 \\
@@ -113,15 +113,15 @@ R
 \qquad
 \boldsymbol{\mu}
 =
-s\mathbf{Q}R^{1/2},
+s\mathbf{Q}\mathbf{K}^{1/2},
 \quad s=10.
 $$ {#eq-fig03-gram}
 
 Because $\mathbf{Q}^{\mathsf{T}}\mathbf{Q}=\mathbf{I}_J$, the pairwise
-cosines of the columns of $\boldsymbol{\mu}$ equal $R$ exactly (up to
+cosines of the columns of $\boldsymbol{\mu}$ equal $\mathbf{K}$ exactly (up to
 rounding). Euclidean gaps follow
 $\lVert\boldsymbol{\mu}_{\cdot j}-\boldsymbol{\mu}_{\cdot k}\rVert
-=s\sqrt{2(1-R_{jk})}$. The call uses `nonnegative = TRUE` (disjoint
+=s\sqrt{2(1-K_{jk})}$. The call uses `nonnegative = TRUE` (disjoint
 gene-block frame) so that $\boldsymbol{\mu}\ge 0$, as required by
 `deconvolute_ratios()`.
 
@@ -137,19 +137,19 @@ Each of the mean-collinear types (CT1, CT2) independently draws an
 undirected skeleton from one of two generators, then completes a signed
 precision with
 `build_normalised_precision()`
-([GGM networks](theory-synthetic-scenarios-mean-covariance.html#sec-ggm-networks);
+([GGM networks](04-1-synthetic-scenarios.html#sec-ggm-networks);
 topology families in
-[the topology table](theory-synthetic-scenarios-mean-covariance.html#tbl-topologies)):
+[the topology table](04-1-synthetic-scenarios.html#tbl-topologies)):
 
 - **Scale-free** (`graph_model = "scale_free"`): Barabási–Albert
   preferential attachment (`power = 1`, `edges_per_node = 1`).
 - **Cluster / stochastic block model**
   (`graph_model = "stochastic_block_model"`): three blocks with
-  probabilities $(0.5,0.25,0.25)$, $p_{\mathrm{within}}=0.25$,
-  $p_{\mathrm{between}}=0.01$.
+  probabilities $(0.5,0.25,0.25)$, $\pi_{\mathrm{within}}=0.25$,
+  $\pi_{\mathrm{between}}=0.01$.
 
 Erdős–Rényi is not used. Type 3, already separated by the Gram
-($R_{13}=R_{23}=0.1$), is held at scale-free, so the topology factorial
+($K_{13}=K_{23}=0.1$), is held at scale-free, so the topology factorial
 is $2^{2}=4$ assignments on CT1 and CT2. Those generator names and
 parameter lists are stored on every row of the `config` element of
 `output/fig03/fig03_benchmark.rds` as `graph_ct1` / `graph_ct2` /
@@ -165,7 +165,7 @@ $\boldsymbol{\Omega}_j(s)=\boldsymbol{\Omega}_j/s$.
 `scale_covariances_to_overlap()` searches $s$ so that MixSim
 `BarOmega` matches a target in $\{0.02,0.08,0.20\}$ (low / moderate /
 high), using Sobol Monte Carlo for $G=20$
-([overlap note](theory-distance-covariance.html#sec-fig03-scale)).
+([overlap note](04-2-distances-overlap-metrics.html#sec-fig03-scale)).
 This is the graph-constrained analogue of MixSim / FSDA average-overlap
 simulation
 ([CRAN MixSim](https://cran.r-project.org/web/packages/MixSim/refman/MixSim.html#MixSim);
@@ -176,7 +176,7 @@ a precision support as input.
 Larger $s$ also raises the covariance-information fraction
 $f_{\mathrm{cov}}$ (mean Fisher scales as $1/s$; the covariance block
 is scale-invariant). See the
-[tangent-Fisher callout](theory-synthetic-scenarios-mean-covariance.html#nte-desc-fisher).
+[tangent-Fisher callout](04-1-synthetic-scenarios.html#nte-desc-fisher).
 
 | Factor | Levels |
 |---|---|
@@ -270,7 +270,7 @@ is switched off everywhere: all $G=20$ genes enter every fit.
   $0.19$.
 - **L-BFGS-B** runs on the closure chart $\boldsymbol p=\boldsymbol w/\mathbf
   1^{\top}\boldsymbol w$ with the box $\boldsymbol w\ge 0$
-  ([closure chart](theory-population-generative-optimisation.html#sec-closure-box)):
+  ([closure chart](01-1-population-generative-optimisation.html#sec-closure-box)):
   it maximises the convolution likelihood itself, reaches exact zeros,
   and its box KKT points are the simplex KKT points.
   A boundary estimate (one, two or up to $J-1$ zero proportions: a face,
@@ -321,7 +321,7 @@ is switched off everywhere: all $G=20$ genes enter every fit.
 | `profile` | likelihood-ratio inversion; chart-invariant, inside $[0,1]$ |
 | `oracle` | $\hat p_j\pm$ the Wald half-width at $\boldsymbol p^{\star}$ (Fisher at the truth) |
 
-: Interval menu ([population inference](theory-population-inference.html)). {#tbl-interval-menu}
+: Interval menu ([population inference](01-2-population-inference.html)). {#tbl-interval-menu}
 
 Coverage is reported with a Wilson Monte Carlo interval
 [@morrisUsingSimulationStudies2019]; the interval table also gives the
@@ -453,7 +453,7 @@ run; the mechanisms they illustrate do not depend on the solver list.
 Cell types 1 and 2 share cosine $0.9$, so the mean map
 $\boldsymbol{\mu}\boldsymbol{p}$ is close to singular in the
 $(p_1,p_2)$ plane: type 3 is the only well-separated mean. MixSim
-$\bar\omega$ then sets how much of the remaining signal lives in
+$\bar\varpi$ then sets how much of the remaining signal lives in
 $\{\boldsymbol{\Sigma}_j\}$. The pack in
 `output/fig03/mle_explanation/` (descriptors, ILR slices of $\ell$ at
 $\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}^{\star}$, expected-Fisher SEs,
@@ -492,13 +492,13 @@ uses a limited-memory inverse Hessian on the closure chart
 $\boldsymbol p=\boldsymbol w/\mathbf 1^{\top}\boldsymbol w$, $\boldsymbol w\ge0$
 [@byrdLimitedMemoryAlgorithm1995; @zhuAlgorithm778LBFGSB1997]. The
 same caveats as in
-[the bivariate interpretation](fig02-bivariate-toy.html#sec-bivariate-findings)
+[the bivariate interpretation](R1-bivariate-toy.html#sec-bivariate-findings)
 apply: Boyd's local-quadratic Newton rate needs a locally strongly
 concave $\ell$; RDM stops when further ILR steps are smaller than
 statistical error; the archived box-constrained BFGS, which
 renormalised a free-scale fit, could sit on a face that is not a
 stationary point of $\ell$ (the closure chart now used cannot). All of this is still $N=1$ per bulk
-([finite-sample MLE](theory-population-inference.html#sec-finite-sample)).
+([finite-sample MLE](01-2-population-inference.html#sec-finite-sample)).
 
 ### Balanced compositions (forest + Fisher)
 
@@ -508,7 +508,7 @@ second-order solvers are interchangeable. At low overlap (`V1`, both
 graphs scale-free) RMSE for $p_1$ is $0.113$, bias $0.012$, empirical
 SD $0.113$, coverage $0.99$. At high overlap (`V7`) RMSE rises only to
 $0.124$ and coverage stays $0.99$. Median RMSE for $p_1$ across the
-four graph assignments is $0.122$ (low $\bar\omega$), $0.134$
+four graph assignments is $0.122$ (low $\bar\varpi$), $0.134$
 (moderate), $0.147$ (high); type 3, whose mean is not collinear, stays
 easier at low overlap (median RMSE $0.064$) and catches up as overlap
 grows ($0.130$). Expected-Fisher ILR standard errors in
@@ -518,7 +518,7 @@ the condition number of the ILR information drops from $6.8$ to $1.7$
 — not because the problem becomes better posed, but because *both*
 eigenvalues shrink and the ellipsoid becomes a large, round disk.
 Graph assignment (scale-free versus cluster SBM) moves those SEs by a
-smaller amount than $\bar\omega$ does. Topology is visible;
+smaller amount than $\bar\varpi$ does. Topology is visible;
 **average overlap is the dominant knob**, matching the design claim,
 for *balanced* $p^{\star}$ and for *second-order convolution MLEs*.
 
@@ -552,12 +552,12 @@ solver actually follows the convolution ridge to the rare-type
 coordinate. A mean-only vertex can beat a damped interior MLE on raw
 $p_1$ error when the truth is already a vertex; it will still report
 $\hat p_3=0$ and cannot support a chi-bar-square test that the type is
-absent ([boundary inference](theory-population-inference.html#sec-boundary)).
+absent ([boundary inference](01-2-population-inference.html#sec-boundary)).
 
 ### Ridges in the ILR slices
 
 `ilr_loglik_profiles.csv` slices $\ell(\rho_1,\rho_2)$ at
-$\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}^{\star}$. High $\bar\omega$
+$\boldsymbol{y}=\boldsymbol{\mu}\boldsymbol{p}^{\star}$. High $\bar\varpi$
 produces ridges along the type-1/type-2 contrast (the collinear mean
 direction): many $(\rho_1,\rho_2)$ give almost the same convolution
 Gaussian. Newton follows the ridge until the Hessian in the remaining
@@ -568,20 +568,20 @@ search and land near a face after $p/\sum p$, which is the raincloud's
 $26\%$ bound rate. None of these paths is the Godambe sandwich or a
 Firth penalty [@firthBiasReductionMaximum1993]; the Firth fit is now
 benchmarked as its own method
-([Firth](theory-population-inference.html#sec-firth)).
+([Firth](01-2-population-inference.html#sec-firth)).
 With $N=1$, the honest frequentist statement for a rare type is still
 the restricted LRT / parametric bootstrap of the MLE article, not a
 Wald ellipse from `vcov_ilr_delta()`.
 
 ## See also
 
-- Bivariate toy: [§2.1](fig02-bivariate-toy.html)
+- Bivariate toy: [§2.2](R1-bivariate-toy.html)
 - Moment generator:
-  [How to build synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html)
+  [How to build synthetic scenarios](04-1-synthetic-scenarios.html)
 - Overlap and SPD distances:
-  [Distances, overlap, and covariance information](theory-distance-covariance.html)
-- Feature-selection on this design: [Appendix S6](supp-S6-feature-selection.html)
+  [Distances, overlap, and covariance information](04-2-distances-overlap-metrics.html)
+- Feature-selection on this design: [Appendix S6](03-1-feature-selection.html)
 - Identifiability of collinear means:
-  [Appendix S1](supp-S1-identifiability.html)
+  [Appendix S1](S1-identifiability.html)
 
 ## References

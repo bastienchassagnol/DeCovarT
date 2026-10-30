@@ -17,7 +17,7 @@
 #     > "logs/supp_S2_$(date +%F)_covariance_inversion.log" 2>&1 &
 #
 # Article:  DeCovarT – Supplementary S2: covariance backends
-# Vignette: vignettes/supp-S2-covariance-inversion.qmd
+# Vignette: vignettes/S2-covariance-inversion.qmd
 # Backends: new_decovart_covariance() + sigma_solve() / sigma_logdet(),
 #           sourced from scripts/experimental/covariance_backends.R (not
 #           exported by the package, which assumes a dense Sigma(p))

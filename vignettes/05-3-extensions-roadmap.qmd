@@ -1,9 +1,9 @@
 ---
-title: "DeCovarT extensions roadmap: lineages, covariates, modalities and beyond"
+title: "5.3 DeCovarT extensions roadmap: lineages, covariates, modalities and beyond"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
 vignette: >
-  %\VignetteIndexEntry{DeCovarT extensions roadmap}
+  %\VignetteIndexEntry{5.3 DeCovarT extensions roadmap}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 knitr:
@@ -32,16 +32,16 @@ $\boldsymbol{y}_{\cdot i}\mid\boldsymbol{p}_{\cdot i}\sim
 \mathcal{N}_G(\boldsymbol{\mu}\boldsymbol{p}_{\cdot i},
 \boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i}))$ with
 $\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_jp_j^{2}\boldsymbol{\Sigma}_j$
-([population generative vignette](theory-population-generative-optimisation.html#sec-unconstrained)).
+([population generative vignette](01-1-population-generative-optimisation.html#sec-unconstrained)).
 The same catalogue is tracked in
 [GitHub issue 5](https://github.com/bastienchassagnol/DeCovarT/issues/5).
 The single-cell-specific model (scales, within- and between-replicate
 covariance) is in the
-[single-cell generative vignette](theory-single-cell-generative-optimisation.html); the
+[single-cell generative vignette](02-1-single-cell-generative-optimisation.html); the
 Bayesian purification of sample-level profiles is in the
-[Bayesian Wiener-filter vignette](theory-decovart-bayesian-wiener.html);
+[Bayesian Wiener-filter vignette](05-2-bayesian-wiener.html);
 inference is in the
-[population inference vignette](theory-population-inference.html).
+[population inference vignette](01-2-population-inference.html).
 :::
 
 | Extension | What changes in DeCovarT | Section |
@@ -54,10 +54,37 @@ inference is in the
 | Time-resolved composition | $\boldsymbol{p}$ evolves along time | @sec-dynamics |
 | Continuous states | archetypes instead of discrete types | @sec-archetypes |
 | Ensembles | combine several estimators | @sec-ensembles |
+| Three covariance layers | within-donor, between-donor, measurement noise | @sec-tracks |
+| Gene-wise platform scale | $\tilde b_g$ fitted off the sample being deconvolved | @sec-platform-scale |
 | Weights and robust losses | GLS, gene weights, robust regression | @sec-robust-gls |
 | Gene compositions | a second simplex for genes | @sec-logit-normal-compositional |
 
 : Extensions and the part of the model each one changes. {#tbl-roadmap}
+
+# Three covariance layers {#sec-tracks}
+
+With $R\ge 2$ reference donors the single-cell model separates three
+covariance layers that one donor cannot
+([reference moments](02-1-single-cell-generative-optimisation.html#sec-reference)).
+Independent cells add, so the within-donor covariance is linear in
+$\boldsymbol{p}$. One population profile per type is shared by its
+cells, so the between-donor covariance is quadratic in
+$\boldsymbol{p}$. A third term is the diagonal measurement noise
+$\boldsymbol{D}_i$. The population plug-in keeps the quadratic layer.
+The released single-cell fit keeps the linear layer. Mean-only and
+weighted least-squares engines share the linear mean and the simplex,
+not this covariance.
+
+## Gene-wise platform scale {#sec-platform-scale}
+
+A protocol shift can be gene-specific,
+$y_{gi}\approx\tilde b_g\, a_i n_i\sum_j p_{ji}\tilde\mu_{gj}$.
+Fitting $\tilde{\boldsymbol{b}}$ on the bulk sample being deconvolved
+lets the scale absorb the residual, and $\boldsymbol{p}_{\cdot i}$ is
+then unidentified. The ratio is estimated on an external paired cohort,
+or it is not estimated. The argument is in the
+[single-cell generative vignette](02-1-single-cell-generative-optimisation.html)
+(gene-wise platform ratio).
 
 Notation: gene $g$, cell type $j$, bulk sample $i$;
 $\boldsymbol{y}_{\cdot i}$ the bulk profile; $\boldsymbol{p}_{\cdot i}$
@@ -257,9 +284,9 @@ subtypes when the tree is credible. **Node-local gene reweighting** (`MuSiC`,
 signatures** (`SCDC`, `Kassandra`) trade flexibility for simpler reference
 construction.
 
-A natural DeCovarT extension would combine [the Gaussian convolution](theory-mixture-regression-applications.html#eq-gaussian-convolution) with
+A natural DeCovarT extension would combine [the Gaussian convolution](05-4-mixture-experiments.html#eq-gaussian-convolution) with
 either @eq-hard-child-split or @eq-soft-penalty, node-local marker panels,
-and [ALR optimisation](theory-population-generative-optimisation.html#sec-alr)
+and [ALR optimisation](01-1-population-generative-optimisation.html#sec-alr)
 when a curated lineage tree is
 supplied—benchmarked at broad, intermediate, and terminal resolutions against
 `HiDecon`, `HIDE`, tree-guided `MuSiC`, and `Rectangle`. Spatial
@@ -287,7 +314,7 @@ $$
 $$ {#eq-covariate-state}
 
 for example $\boldsymbol{\mu}_{j}(\boldsymbol{z}_{i})=\boldsymbol{\mu}_{j}+B_{j}\boldsymbol{z}_{i}$.
-The bulk law is then [the Gaussian convolution](theory-mixture-regression-applications.html#eq-gaussian-convolution) with those
+The bulk law is then [the Gaussian convolution](05-4-mixture-experiments.html#eq-gaussian-convolution) with those
 condition-dependent moments. `MuSiC2` addresses the same mismatch by
 iteratively dropping cell-type-specific DE genes between the bulk
 condition and the scRNA-seq reference; it remains closed-reference and
@@ -303,7 +330,7 @@ $$
 $$ {#eq-covariate-composition}
 
 with $\psi$ the
-[additive logistic map](theory-population-generative-optimisation.html#eq-alr-maps).
+[additive logistic map](01-1-population-generative-optimisation.html#eq-alr-maps).
 This is the
 setting in which a future `predict()` method on new $\boldsymbol{z}$ would be
 meaningful.
@@ -311,7 +338,7 @@ meaningful.
 A known sequencing exposure $s_{i}$ is a **multiplicative** scale,
 $\boldsymbol{y}_{\cdot i}\sim\mathcal{N}_G(s_{i}\boldsymbol{\mu}\boldsymbol{p}_{\cdot i},s_{i}^{2}\Sigma(\boldsymbol{p}_{\cdot i}))$,
 not an additive `lm` offset. Cell-type transcriptome size $r_{j}$ is a
-different parameter ([RNA versus cell fractions](theory-single-cell-generative-optimisation.html#sec-uncoupling)). A gene-wise affine
+different parameter ([RNA versus cell fractions](02-1-single-cell-generative-optimisation.html#sec-uncoupling)). A gene-wise affine
 standardisation applied identically to $\boldsymbol{y}$, $\boldsymbol{\mu}$ and every
 $\boldsymbol{\Sigma}_{j}$ leaves $\hat{\boldsymbol{p}}$ unchanged in exact
 arithmetic; column-wise `scale()` on $\boldsymbol{\mu}$ does not.
@@ -385,8 +412,8 @@ Each spot (or pixel) $s$ is a local mixture $\boldsymbol{y}(s)$ with its own
 $\boldsymbol{p}(s)\in\Delta^{J-1}$. The Gaussian convolution still applies
 per location; space enters as dependence among neighbouring
 $\boldsymbol{p}(s)$. `RCTD` does **not** use that dependence: each pixel is
-an independent count mixture ([the `RCTD` Poisson--log-normal law](theory-review-distribution-aware-deconvolution.html#eq-rctd-pln)), so the statistical
-comparison belongs in [the `RCTD` comparison](theory-review-distribution-aware-deconvolution.html#sec-rctd)
+an independent count mixture ([the `RCTD` Poisson--log-normal law](05-1-review-distribution-aware.html#eq-rctd-pln)), so the statistical
+comparison belongs in [the `RCTD` comparison](05-1-review-distribution-aware.html#sec-rctd)
 [@cableRobustDecompositionCell2022a]. Sequencing-based surveys classify probabilistic
 assumptions and provide practical benchmarks
 [@saqibPixelsCellTypes2025; @gaspard-boulincCelltypeDeconvolutionMethods2025; @liComprehensiveBenchmarkingPractical2023].
@@ -508,7 +535,7 @@ gene/sample covariance rather than $\boldsymbol{\Sigma}_{j}$
 bulk matrix into a 3-D sample $\times$ feature $\times$ cell-type tensor
 and explicitly models cell-type-level covariances, including on
 methylation [@chenUnicoUnifiedModelCell2025]. Interaction monomials
-$p_{j}p_{k}$ in the mean ([the interaction mean](theory-mixture-regression-applications.html#eq-interaction-mean)) are the Scheffé /
+$p_{j}p_{k}$ in the mean ([the interaction mean](05-4-mixture-experiments.html#eq-interaction-mean)) are the Scheffé /
 general-linear-model route; `DecOT` instead changes the discrepancy to
 an optimal-transport loss [@liuDecotBulkDeconvolutionOptimal2022].
 
@@ -555,7 +582,7 @@ proportionality ($\phi$, $\rho$, log-ratio variances) on the latent
 $\boldsymbol{\pi}_i$, because empirical log-ratios of raw counts are
 biased by variation in $n_i$.
 
-This is **not** DeCovarT's convolution ([the Gaussian convolution](theory-mixture-regression-applications.html#eq-gaussian-convolution)). There
+This is **not** DeCovarT's convolution ([the Gaussian convolution](05-4-mixture-experiments.html#eq-gaussian-convolution)). There
 is no mixing $\sum_j p_j\boldsymbol{\mu}_j$ of purified profiles, and no
 $\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_j p_j^2\boldsymbol{\Sigma}_j$. Current
 DeCovarT treats $\boldsymbol{y}_{\cdot i}$ as an unbounded continuous

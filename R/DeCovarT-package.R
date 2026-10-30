@@ -10,7 +10,7 @@
 #' \eqn{\boldsymbol{\Sigma}_j}/\eqn{\boldsymbol{\Omega}_j}. Proportions live on
 #' the open simplex and are optimised in unconstrained ILR coordinates
 #' \eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}}
-#' (`vignette("theory-population-generative-optimisation", package = "DeCovarT")`).
+#' (`vignette("01-1-population-generative-optimisation", package = "DeCovarT")`).
 #'
 #' The frequentist API plugs in \eqn{\boldsymbol{\mu}} for unobserved latent
 #' profiles \eqn{\boldsymbol{x}_{\cdot j}}; MAP recovery of those latents is

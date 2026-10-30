@@ -1,9 +1,9 @@
 ---
-title: "Single-cell DeCovarT inference: profile information, intervals and the REML calibration"
+title: "2.2 Single-cell DeCovarT inference: profile information, intervals and the REML calibration"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
 vignette: >
-  %\VignetteIndexEntry{Single-cell DeCovarT inference: profile information and intervals}
+  %\VignetteIndexEntry{2.2 Single-cell DeCovarT inference: profile information and intervals}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 knitr:
@@ -34,11 +34,11 @@ mixture fitted by
 one bulk sample, one single-cell reference, a composition on the
 simplex and two technical scales estimated with it. The model, the
 closed-form scales and the profile Newton fit are in the
-[single-cell generative and optimisation vignette](theory-single-cell-generative-optimisation.html#sec-profile-newton).
+[single-cell generative and optimisation vignette](02-1-single-cell-generative-optimisation.html#sec-profile-newton).
 The population-level counterpart, with the regularity conditions, the
 three first-order tests and the boundary theory that this vignette
 reuses, is the
-[population inference vignette](theory-population-inference.html).
+[population inference vignette](01-2-population-inference.html).
 
 1. @sec-sc-setting states the model and its scale equivariance.
 2. @sec-sc-information gives the information matrix and the Schur
@@ -52,6 +52,8 @@ reuses, is the
    @sec-sc-tests the likelihood-ratio tests and the boundary, and
    @sec-sc-limits what none of these intervals covers.
 :::
+
+{{< include _notation.qmd >}}
 
 # Model and scale equivariance {#sec-sc-setting}
 
@@ -72,7 +74,7 @@ counts and $\boldsymbol{\Sigma}_{W,j}$ its within-type covariance. The
 composition is charted by
 $\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho})$
 with a Helmert basis $\mathbf{V}$
-([ILR chart](theory-population-generative-optimisation.html#sec-ilr)).
+([ILR chart](01-1-population-generative-optimisation.html#sec-ilr)).
 Concentrating the scales out gives the profile log-likelihood
 
 $$
@@ -85,7 +87,7 @@ $$ {#eq-sc-profile-recap}
 
 with $\hat{\boldsymbol{r}}=\boldsymbol{y}-\hat c(\boldsymbol{p})\tilde{\boldsymbol{\mu}}\boldsymbol{p}$ the
 generalised least-squares residual
-([closed-form scales](theory-single-cell-generative-optimisation.html#sec-profile-scales)).
+([closed-form scales](02-1-single-cell-generative-optimisation.html#sec-profile-scales)).
 
 **Scale equivariance.** Multiply the bulk by $k>0$. The closed forms
 give $\hat c(k\boldsymbol{y})=k\hat c(\boldsymbol{y})$, $\hat{\boldsymbol{r}}$ scales by $k$,
@@ -141,7 +143,7 @@ The fit uses the observed counterpart. By the envelope theorem the
 negative Hessian of the profile log-likelihood @eq-sc-profile-recap is
 the Schur complement of the observed information at the closed-form
 scales
-([profile Hessian](theory-single-cell-generative-optimisation.html#sec-profile-derivatives)),
+([profile Hessian](02-1-single-cell-generative-optimisation.html#sec-profile-derivatives)),
 so profile-based and joint Wald intervals coincide.
 [`vcov_single_cell()`](../reference/vcov_single_cell.html) and the fit
 return
@@ -154,7 +156,7 @@ $$
 $$ {#eq-sc-vcov}
 
 as `vcov_rho` and `vcov`, with $\mathbf{J}_{\boldsymbol{\psi}}$ the
-[ILR Jacobian](theory-population-generative-optimisation.html#sec-ilr-deriv).
+[ILR Jacobian](01-1-population-generative-optimisation.html#sec-ilr-deriv).
 The complementary Schur complement, which removes $\boldsymbol{\rho}$ from
 the scale block, gives `vcov_nuisance` for $(c,\phi)$.
 
@@ -236,7 +238,7 @@ tends to $-\infty$ there and the penalised estimate is always interior.
 Firth's exact removal of the first-order bias holds for the canonical
 parameter of an exponential family; this curved Gaussian family needs a
 simulation check
-([Firth penalisation](theory-population-inference.html#sec-firth)).
+([Firth penalisation](01-2-population-inference.html#sec-firth)).
 
 **Parametric bootstrap.** The `"bootstrap"` interval
 ([`bootstrap_single_cell()`](../reference/bootstrap_single_cell.html))
@@ -333,7 +335,7 @@ fit on a face,
 uses the same trust-region Newton driver on the remaining coordinates,
 with the scales concentrated out. The theory and the chi-bar-square
 weights are in the
-[population inference vignette](theory-population-inference.html#sec-boundary).
+[population inference vignette](01-2-population-inference.html#sec-boundary).
 
 The L-BFGS-B branch of `deconvolute_single_cell()` can return an exact
 zero. There the ILR coordinates, the Wald covariances and the Wald and
@@ -353,7 +355,7 @@ boundary test are the procedures that remain valid.
 - **The variance function must be right.** The determinant term of the
   likelihood adds information only if $\phi\,\boldsymbol{S}_W(\boldsymbol{p})$ is the
   true covariance. Otherwise the quasi-score of the
-  [generalised linear model view](theory-population-inference.html#sec-glm)
+  [generalised linear model view](01-2-population-inference.html#sec-glm)
   is the safer estimator.
 - **Gaussian cells.** The sum of Gaussian cells is exactly Gaussian. For
   count data, @eq-sc-per-cell is a central-limit approximation that needs

@@ -2,7 +2,7 @@
 # intervals, and Monte Carlo calibration of boundary likelihood-ratio tests),
 # the reference-sample bootstrap that propagates uncertainty in the plug-in
 # moments, and the label-equivariance check of the estimator.
-# See vignette("theory-population-inference").
+# See vignette("01-2-population-inference").
 
 # Parametric bootstrap -----------------------------------------------------
 
@@ -284,7 +284,7 @@ bootstrap_decovart <- function(
 #' gene-wise pairing of bulk and reference, and the second is algebraic
 #' equivariance rather than a source of uncertainty (see
 #' [equivariance_check_decovart()] and
-#' `vignette("theory-population-inference")`). The two `method` options
+#' `vignette("01-2-population-inference")`). The two `method` options
 #' instead resample, with replacement, units that actually vary.
 #'
 #' \describe{
@@ -520,7 +520,7 @@ reference_bootstrap_decovart <- function(
 #' Columns of \eqn{\boldsymbol{\mu}} and matching slices of
 #' \eqn{\boldsymbol{\Sigma}_j} are reordered by `perm` while the *names*
 #' stay in the original order, matching the convention of
-#' `vignette("theory-population-inference")`. The labelled MLE on the
+#' `vignette("01-2-population-inference")`. The labelled MLE on the
 #' relabelled reference is then compared with
 #' \eqn{\hat{\boldsymbol{p}}_{\mathrm{perm}}}.
 #'

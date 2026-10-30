@@ -1,9 +1,9 @@
 ---
-title: "DeCovarT as a mixture model: links with designed mixture experiments"
+title: "5.4 DeCovarT as a mixture model: links with designed mixture experiments"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
 vignette: >
-  %\VignetteIndexEntry{DeCovarT as a mixture model: links with designed mixture experiments}
+  %\VignetteIndexEntry{5.4 DeCovarT as a mixture model: links with designed mixture experiments}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 knitr:
@@ -23,6 +23,8 @@ format:
     toc: true
 ---
 
+{{< include _notation.qmd >}}
+
 ::: callout-note
 ## Scope
 
@@ -33,7 +35,7 @@ proportions are regressors on the simplex, and lists the modelling
 devices of that field (Scheffé polynomials, interaction terms, designed
 mixture points) that could be borrowed. Extensions specific to
 transcriptomics are in the
-[extensions roadmap](theory-decovart-extensions-roadmap.html).
+[extensions roadmap](05-3-extensions-roadmap.html).
 :::
 
 Write $g=1,\ldots,G$ for the measured features (genes),

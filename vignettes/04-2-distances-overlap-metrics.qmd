@@ -1,9 +1,9 @@
 ---
-title: "Distances, overlap, and covariance information"
+title: "4.2 Distances, overlap, and covariance information"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
 vignette: >
-  %\VignetteIndexEntry{Distances, overlap, and covariance information}
+  %\VignetteIndexEntry{4.2 Distances, overlap, and covariance information}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 knitr:
@@ -37,12 +37,14 @@ library(DeCovarT)
 ```
 
 This note collects the **component-separation** scores used in
-[synthetic scenario descriptors](theory-synthetic-scenarios-mean-covariance.html#sec-scenario-descriptors)
+[synthetic scenario descriptors](04-1-synthetic-scenarios.html#sec-scenario-descriptors)
 and the **covariance-driven** factorial
-([§2.2](fig03-covariance-driven.html)). The scores describe the $J$
+([§2.3](R2-covariance-driven.html)). The scores describe the $J$
 purified Gaussians
 $\mathcal{N}(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_j)$ that enter
 the convolution, not the deconvolution estimator.
+
+{{< include _notation.qmd >}}
 
 # Overlap, total variation, and MixSim {#sec-overlap-tv}
 
@@ -53,16 +55,16 @@ For components $j\neq\ell$ with weights $\pi_j,\pi_\ell$ and densities
 $f_j,f_\ell$,
 
 $$
-\Omega_{j\ell}
+\varpi_{\ell\mid j}
 =
 \Pr_{X\sim f_j}\bigl(\pi_\ell f_\ell(X)>\pi_j f_j(X)\bigr),
 \qquad
-\omega_{j\ell}
+\varpi_{j\ell}
 =
-\Omega_{j\ell}+\Omega_{\ell j}.
+\varpi_{\ell\mid j}+\varpi_{j\mid\ell}.
 $$ {#eq-mixsim-omega}
 
-`BarOmega` is the unweighted mean of $\omega_{j\ell}$ over $j<\ell$.
+`BarOmega`, written $\bar\varpi$, is the unweighted mean of $\varpi_{j\ell}$ over $j<\ell$.
 The FSDA implementation of the same construction
 ([MixSim help](https://rosa.unipr.it/FSDA/MixSim.html);
 [source pointer](https://github.com/UniprJRC/FSDA/blob/ccc82f8ee453b4cd9e3818512e8ea220b94564b3/toolbox/helpfiles/pointersHTML/MixSim.html);
@@ -75,15 +77,15 @@ The **histogram similarity** (density overlap) of two laws $P,Q$ is
 $$
 \operatorname{OVL}(P,Q)
 =
-\int \min\{p,q\}\,\mathrm{d}\mu
+\int \min\{f_P,f_Q\}\,\mathrm{d}\nu
 =
 1-\operatorname{TV}(P,Q),
 $$ {#eq-ovl-tv}
 
 with total variation
-$\operatorname{TV}=\tfrac12\int\lvert p-q\rvert$
+$\operatorname{TV}=\tfrac12\int\lvert f_P-f_Q\rvert\,\mathrm{d}\nu$
 [@nielsenGuaranteedDeterministicBounds2018]. For **two equal-weight**
-Gaussians the MixSim pairwise overlap $\omega$ equals $\operatorname{OVL}$
+Gaussians the MixSim pairwise overlap $\varpi_{j\ell}$ equals $\operatorname{OVL}$
 and therefore $1-\operatorname{TV}$. Unequal $\boldsymbol{\pi}$ replace
 $f_j$ by $\pi_j f_j$ in the MAP rule, so the identity is then
 approximate.
@@ -171,7 +173,7 @@ Davies for $G<4$ and stratified Sobol Monte Carlo otherwise.
 
 For $G\in\{1,2,3\}$ DeCovarT calls `MixSim::overlap()` and returns
 `BarOmega` (the unweighted mean of the $J(J-1)/2$ pairwise overlaps
-$\omega_{j\ell}$). The MixSim **generator** `MixSim()` can simulate
+$\varpi_{j\ell}$). The MixSim **generator** `MixSim()` can simulate
 mixtures with a prescribed *average* overlap
 ([CRAN MixSim](https://cran.r-project.org/web/packages/MixSim/refman/MixSim.html#MixSim))
 but it draws unconstrained means and covariances. It cannot keep the
@@ -181,8 +183,8 @@ does **not** call `MixSim()` as a generator; it only matches
 
 ## Stratified Sobol Monte Carlo ($G\ge 4$)
 
-`overlap_gaussian_mc()` estimates $\Omega_{j\ell}$ by drawing $n$
-points **from each component** (default $n=10\,000$), then comparing
+`overlap_gaussian_mc()` estimates $\varpi_{\ell\mid j}$ by drawing $B$
+points **from each component** (default $B=10\,000$), then comparing
 log-densities under the two-class MAP rule. Two devices are stacked,
 and they do different jobs:
 
@@ -222,7 +224,7 @@ closed-form *descriptor*, not a MixSim `BarOmega` substitute.
 # Fig03: topology fixed, overlap as the knob {#sec-fig03-scale}
 
 The covariance-driven script
-`scripts/fig03_variance_driven.R` still draws one sparse graph per
+`scripts/fig03_variance_covariance_driven.R` still draws one sparse graph per
 cell type (scale-free or cluster SBM on the mean-collinear types;
 type 3 held at scale-free). After SPD completion, each
 $\Sigma_j$ is replaced by $s\Sigma_j$. Then
@@ -231,7 +233,7 @@ Larger $s$ inflates the Gaussians, raises MixSim `BarOmega`, and
 raises the covariance-information fraction $f_{\mathrm{cov}}$
 (mean Fisher scales as $1/s$; the whitened Frobenius covariance block
 is scale-invariant). See the tangent-Fisher callout in
-[scenario descriptors](theory-synthetic-scenarios-mean-covariance.html#nte-desc-fisher).
+[scenario descriptors](04-1-synthetic-scenarios.html#nte-desc-fisher).
 
 `scale_covariances_to_overlap()` binary-searches $s$ so that
 `BarOmega` at the balanced composition matches a target in
@@ -243,8 +245,8 @@ stronger predictor of deconvolution error when means are collinear.
 ## See also
 
 - Scenario descriptors:
-  [How to build synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html#sec-scenario-descriptors)
-- Covariance-driven factorial: [§2.2](fig03-covariance-driven.html)
-- Feature-selection overlap monitors: [Appendix S6](supp-S6-feature-selection.html)
+  [How to build synthetic scenarios](04-1-synthetic-scenarios.html#sec-scenario-descriptors)
+- Covariance-driven factorial: [§2.3](R2-covariance-driven.html)
+- Feature-selection overlap monitors: [Appendix S6](03-1-feature-selection.html)
 
 ## References

@@ -1,0 +1,47 @@
+::: {.callout-note collapse="true"}
+## Notation (shared by all vignettes; aligned with the article)
+
+Gene $g=1,\ldots,G$; cell type $j=1,\ldots,J$ (a second type is
+$\ell$); bulk sample $i=1,\ldots,N$; reference donor (replicate)
+$r=1,\ldots,R$; cell $c$, with $C_j$ reference cells of type $j$. The
+index $i$ is dropped inside a derivation and restored in the model
+statements.
+
+| Symbol | Meaning |
+|---|---|
+| $y_{gi}$, $\boldsymbol{y}_{\cdot i}$ | Bulk expression on a linear scale |
+| $m_{ji}$, $n_i=\sum_jm_{ji}$ | Cells of type $j$ in bulk sample $i$, and their total |
+| $\tilde{\boldsymbol{y}}_{\cdot i}=\boldsymbol{y}_{\cdot i}/n_i$ | Bulk expression per cell |
+| $\boldsymbol{p}_{\cdot i}\in\Delta^{J-1}$ | Cell fractions, $p_{ji}=m_{ji}/n_i$ |
+| $\boldsymbol{\rho}_{i}\in\mathbb{R}^{J-1}$ | Isometric log-ratio (ILR) coordinates of $\boldsymbol{p}_{\cdot i}$, $\boldsymbol{p}_{\cdot i}=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho}_i)$ with a Helmert basis $\mathbf{V}$ |
+| $\boldsymbol{q}_{\cdot i}$ | Transcript fractions, $q_{ji}=p_{ji}S_j/\sum_\ell p_{\ell i}S_\ell$ |
+| $\boldsymbol{\mu}_{\cdot j}$, $\boldsymbol{\Sigma}_j$ | Mean and $G\times G$ gene–gene covariance of a type-$j$ population profile |
+| $\boldsymbol{\Omega}_j=\boldsymbol{\Sigma}_j^{-1}$ | Precision matrix of type $j$ |
+| $\boldsymbol{\Gamma}_g$ | $J\times J$ covariance across cell types for gene $g$ (`bMIND`, `EPIC-unmix`, `Unico`) |
+| $\boldsymbol{x}_{\cdot j,i}$ | Purified profile of type $j$ in sample $i$ |
+| $x_{gc}$, $\boldsymbol{x}_{\cdot c}$, $s_c$ | Raw UMI count of gene $g$ in reference cell $c$, and the size factor of cell $c$ |
+| $\boldsymbol{\lambda}_{\cdot c}$, $\boldsymbol{z}_{\cdot c}$ | Size-free expression of cell $c$; its latent log-expression in the Poisson log-normal (PLN) model |
+| $\tilde{\boldsymbol{\mu}}_{\cdot j}=C_j^{-1}\sum_{c\in j}\boldsymbol{x}_{\cdot c}=S_j\boldsymbol{\theta}_{\cdot j}$ | Per-cell mean of the raw UMI counts of the $C_j$ reference cells of type $j$ |
+| $\boldsymbol{\theta}_{\cdot j}$, $S_j=\mathbf{1}^{\top}\tilde{\boldsymbol{\mu}}_{\cdot j}$ | Relative abundance ($\mathbf{1}^{\top}\boldsymbol{\theta}_{\cdot j}=1$) and mean transcriptome size of a type-$j$ cell |
+| $\boldsymbol{\Sigma}_{W,j}$, $\boldsymbol{\Sigma}_{B,j}$ | Within-donor cell-to-cell covariance of type $j$ (one single-cell sample); between-donor covariance of type $j$ (needs $R\ge2$ donors) |
+| $\boldsymbol{S}_W(\boldsymbol{v})=\sum_jv_j\boldsymbol{\Sigma}_{W,j}$, $\boldsymbol{S}_B(\boldsymbol{v})=\sum_jv_j^2\boldsymbol{\Sigma}_{B,j}$ | Linear and quadratic covariance mixtures with weights $\boldsymbol{v}$ |
+| $\boldsymbol{V}_j$ | Empirical covariance of type $j$, computed from its reference profiles or cells |
+| $\boldsymbol{R}_j$ | Empirical correlation matrix of type $j$ (bold; the scalar $R$ is the number of donors) |
+| $\boldsymbol{\Delta}_j=\operatorname{diag}(\boldsymbol{V}_j)$ | Diagonal matrix of the empirical variances of type $j$ |
+| $\lambda$ | Penalty of a regularised covariance or precision estimator |
+| $\psi_g$, $\mathcal{D}_g$ | Negative binomial dispersion of gene $g$; deviance of gene $g$ in a count model |
+| $\delta_{gj}$ | Detection rate of gene $g$ in type $j$ (fraction of cells with a non-zero count) |
+| $\varpi_{\ell\mid j}$, $\varpi_{j\ell}$, $\bar\varpi$ | MixSim overlap: probability of misclassifying a draw of $j$ into $\ell$, pairwise overlap $\varpi_{j\ell}=\varpi_{\ell\mid j}+\varpi_{j\mid\ell}$, and its average over pairs (`BarOmega`) |
+| $\boldsymbol{T}_{ji}=\sum_{c=1}^{m_{ji}}\boldsymbol{X}_{jic}$ | Total expression contributed by type $j$ to sample $i$ |
+| $a_i$ | Sample-wide scale between the reference and the bulk library |
+| $c_i=a_in_i$, $\phi_i=a_i^2n_i$ | Mean scale and variance scale of the single-cell model |
+| $b_g$, $\tilde b_g=b_g^{\mathrm{bulk}}/b_g^{\mathrm{ref}}$ | Capture efficiency of gene $g$ in one protocol, and the gene-wise platform ratio; $\tilde{\boldsymbol{B}}=\operatorname{diag}(\tilde{\boldsymbol{b}})$ |
+| $\boldsymbol{D}_i$ | Diagonal, heteroscedastic bulk measurement noise |
+
+A tilde marks a quantity rescaled to a reference unit: per cell
+($\tilde{\boldsymbol{y}}$, $\tilde{\boldsymbol{\mu}}$) or relative to the
+reference protocol ($\tilde{\boldsymbol{b}}$). $\boldsymbol{\Sigma}_j$
+couples **genes** within one cell type; $\boldsymbol{\Gamma}_g$ couples
+**cell types** within one gene. A symbol absent from this table is
+defined in the vignette that uses it, with one meaning there.
+:::

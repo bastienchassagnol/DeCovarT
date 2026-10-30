@@ -82,7 +82,7 @@ NULL
 #'   choice documented in the vignettes.
 #'
 #' @srrstats {G3.1a} Covariance estimation strategies documented with worked
-#'   examples in the `theory-synthetic-scenarios-mean-covariance` vignette.
+#'   examples in the `04-1-synthetic-scenarios` vignette.
 #'
 #' G5 - Testing
 #'
@@ -152,7 +152,7 @@ NULL
 #' RE2 - Regression: pre-processing
 #'
 #' @srrstats {RE2.0} ILR reparametrisation documented in `?fit_decovart`,
-#'   `?isometric_logistic`, and `vignette("theory-population-generative-optimisation")`.
+#'   `?isometric_logistic`, and `vignette("01-1-population-generative-optimisation")`.
 #'
 #' @srrstats {RE2.1} Missing values in `y` or the signature raise an error
 #'   in `.prepare_deconvolution_inputs()`; no silent imputation.
@@ -363,7 +363,7 @@ NULL
 #'   Gaussian-convolution regression (G1.1). Mean-only and second-generation
 #'   single-cell deconvolution tools are related but not alternative
 #'   implementations of the same estimator; the statistical contrast is
-#'   in `vignettes/theory-review-distribution-aware-deconvolution.qmd`, and the
+#'   in `vignettes/05-1-review-distribution-aware.qmd`, and the
 #'   gastruloid pipeline comparison is in the companion repository.
 #' @srrstatsNA {G5.7} Runtime scaling of the *solvers* versus \(G\) and
 #'   \(J\) is not a claim of this package release. The rOpenSci editors

@@ -4,9 +4,9 @@
 # the ILR coordinate to the simplex is the same inverse chart as
 # confint_decovart(). Higher-order and sandwich corrections for a
 # plug-in covariance are not implemented.
-# See vignette("theory-population-inference") and
-# vignette("theory-single-cell-generative-optimisation") and
-# vignette("theory-single-cell-inference").
+# See vignette("01-2-population-inference") and
+# vignette("02-1-single-cell-generative-optimisation") and
+# vignette("02-2-single-cell-inference").
 
 #' @noRd
 .single_cell_profile_value <- function(p, y, mean_signature_matrix, Sigma) {

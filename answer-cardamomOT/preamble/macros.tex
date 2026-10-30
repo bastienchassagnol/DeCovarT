@@ -1,0 +1,79 @@
+% ===================================================================== macros
+\definecolor{mainblue}{HTML}{1D4E89}
+\definecolor{chkgrey}{HTML}{747B86}
+\definecolor{specorange}{HTML}{C45C26}
+\definecolor{ink}{HTML}{1F2937}
+\definecolor{latfill}{HTML}{DAE9FB}
+\definecolor{latdraw}{HTML}{4477B5}
+\definecolor{obsfill}{HTML}{C9CDD3}
+\definecolor{obsdraw}{HTML}{747B86}
+\definecolor{platedraw}{HTML}{98A2B3}
+
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\tr}{tr}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\NB}{NB}
+\DeclareMathOperator{\Pois}{Poisson}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\T}{^{\mkern-1.5mu\mathsf{T}}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\bmu}{\bm{\mu}}
+\newcommand{\bSigma}{\bm{\Sigma}}
+\newcommand{\bOmega}{\bm{\Omega}}
+\newcommand{\SW}{\bSigma_{W,j}}
+
+% ledger identifier of the machine check behind a statement (Appendix B);
+% TODO-Vn markers are replaced by ledger IDs in the last wave
+\newcommand{\chk}[1]{\textsf{\scriptsize\color{chkgrey}[#1]}}
+% reference not yet in Zotero: printed as plain text in brackets, never a .bib entry
+\newcommand{\citeTODO}[1]{\textcolor{chkgrey}{[#1]}}
+% link to a DeCovarT vignette (pkgdown site)
+\newcommand{\vignette}[2]{\href{https://bastienchassagnol.github.io/DeCovarT/articles/#1}{#2}}
+% CardamomOT source file at the pinned commit
+\newcommand{\cmfile}[1]{\texttt{\detokenize{#1}}}
+
+\newtcolorbox{answerbox}[1][]{
+  colback=mainblue!4!white, colframe=mainblue!75!black, fonttitle=\bfseries\small,
+  coltitle=white, colbacktitle=mainblue!90!black, enhanced, fontupper=\small,
+  attach boxed title to top left={yshift=-2mm, xshift=5mm}, boxed title style={sharp corners},
+  left=4pt, right=4pt, top=4pt, bottom=2pt, #1}
+\newtcolorbox{specbox}[1][]{
+  colback=specorange!5!white, colframe=specorange!80!black, fonttitle=\bfseries\small,
+  coltitle=white, colbacktitle=specorange!90!black, enhanced, fontupper=\small,
+  attach boxed title to top left={yshift=-2mm, xshift=5mm}, boxed title style={sharp corners},
+  left=4pt, right=4pt, top=4pt, bottom=2pt, title={Speculative}, #1}
+
+\titleformat{\section}{\large\bfseries\color{mainblue}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.5em}{}
+\titlespacing*{\section}{0pt}{1.6ex plus .4ex}{0.8ex}
+\titlespacing*{\subsection}{0pt}{1.2ex plus .3ex}{0.5ex}
+\setlength{\parskip}{0.45ex}
+\setlength{\parindent}{0pt}
+\setlist{itemsep=1pt,topsep=2pt,leftmargin=1.4em}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{chkgrey}DeCovarT and CardamomOT}
+\fancyhead[R]{\small\color{chkgrey}\nouppercase{\leftmark}}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+% graphical-model styles (RevBayes convention), defined once
+\tikzset{
+  every node/.style={text=ink},
+  const/.style={rectangle, draw=ink, fill=white, minimum size=9mm, line width=0.8pt},
+  stoch/.style={circle, draw=latdraw, fill=latfill, minimum size=11mm, line width=0.9pt},
+  obs/.style={circle, draw=obsdraw, fill=obsfill, minimum size=11mm, line width=0.9pt},
+  det/.style={circle, draw=ink, densely dotted, fill=white, minimum size=11mm, line width=0.9pt},
+  var/.style={ellipse, draw=obsdraw, fill=obsfill, minimum height=9mm, inner xsep=2mm, line width=0.9pt},
+  plate/.style={draw=platedraw, dashed, rounded corners=5pt, inner sep=4mm, line width=0.8pt},
+  platelabel/.style={anchor=north east, font=\small\itshape, text=obsdraw, inner sep=1mm},
+  note/.style={font=\small, text=ink!80},
+  edge/.style={-{Stealth[length=2.6mm]}, line width=0.8pt, draw=ink}
+}
+\newcommand{\plate}[3]{%
+  \begin{scope}[on background layer]
+    \node[plate, fit=#2] (#1) {};
+  \end{scope}
+  \node[platelabel] (#1-lab) at (#1.south east) {#3};}

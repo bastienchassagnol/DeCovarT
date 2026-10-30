@@ -22,11 +22,13 @@ link-citations: true
 ## Overview
 
 The DeCovarT model assumes that bulk expression arises from a Gaussian
-mixture:
+convolution: one latent profile per cell type,
+$\boldsymbol{x}_{\cdot j}\sim\mathcal{N}_G(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_j)$,
+weighted by $p_j$ and summed, so that
 
 $$
-\boldsymbol{y} \sim \sum_{j=1}^{J} p_j \,
-  \mathcal{N}(\boldsymbol{\mu}_j,\, \boldsymbol{\Sigma}_j).
+\boldsymbol{y} \sim \mathcal{N}_G\Bigl(\sum_{j=1}^{J} p_j\boldsymbol{\mu}_{\cdot j},\;
+  \sum_{j=1}^{J} p_j^{2}\boldsymbol{\Sigma}_j\Bigr).
 $$
 
 Real bulk RNA-seq violates this assumption in at least five ways:
@@ -133,8 +135,8 @@ We may also consider an alternative model using a linear mixed model to add corr
 
 ## See also
 
-- [Appendix S1 — Identifiability](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S1-identifiability.html)
-- [Appendix S4 — Covariance Modelling](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S4-covariance-modeling.html)
-- [How to build synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html)
+- [Appendix S1 — Identifiability](https://bastienchassagnol.github.io/DeCovarT/articles/S1-identifiability.html)
+- [Appendix S4 — Covariance Modelling](https://bastienchassagnol.github.io/DeCovarT/articles/S4-covariance-modeling.html)
+- [How to build synthetic scenarios](04-1-synthetic-scenarios.html)
 
 ## References

@@ -1,9 +1,9 @@
 ---
-title: "Simulating synthetic pseudo-bulk mixtures for benchmarking"
+title: "4.1 Simulating synthetic pseudo-bulk mixtures for benchmarking"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
 vignette: >
-  %\VignetteIndexEntry{Simulating synthetic pseudo-bulk mixtures for benchmarking}
+  %\VignetteIndexEntry{4.1 Simulating synthetic pseudo-bulk mixtures for benchmarking}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 knitr:
@@ -48,28 +48,30 @@ knitr::opts_chunk$set(
 )
 ```
 
+{{< include _notation.qmd >}}
+
 # Overview
 
-This vignette documents the synthetic first- and second-order moment generator `simulate_hierarchical_grn_moments()` and how its outputs feed bulk mixture simulation. Mean profiles realise a target Gram matrix of pairwise cosines through the **symmetric square root** \(\boldsymbol{\mu}=s\mathbf{Q}R^{1/2}\). The default \(R\) is equicorrelation at level \(\rho\) (`target_cosine`); `target_gram` sets unequal pairs. The scale \(s\) (`mean_scale`) sets column norms without changing angles. Prefer varying the Gram across scenarios when precision weights already control second-order dependence.
+This vignette documents the synthetic first- and second-order moment generator `simulate_hierarchical_grn_moments()` and how its outputs feed bulk mixture simulation. Mean profiles realise a target Gram matrix of pairwise cosines through the **symmetric square root** \(\boldsymbol{\mu}=s\mathbf{Q}K^{1/2}\). The default \(K\) is equicorrelation at level \(\gamma\) (`target_cosine`; not an ILR coordinate \(\boldsymbol{\rho}\)); `target_gram` sets unequal pairs. The scale \(s\) (`mean_scale`) sets column norms without changing angles. Prefer varying the Gram across scenarios when precision weights already control second-order dependence.
 
-Each cell type carries its own graph-constrained signed precision $\boldsymbol{\Omega}_j$, mapped to $\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1}$. An undirected Gaussian Markov simulation separates four layers (@eq-ggm-pipeline): graph $G_j$, signed weights $W(G_j)$, SPD precision $\Omega_j$, and latent Gaussians (an optional observation layer can add Poisson–log-normal or zero-inflated counts). The **graph** and the **precision** must not be conflated: a binary adjacency is almost never itself positive definite. DeCovarT draws $G_j$ via `generate_random_network_skeleton()`, completes $\Omega_j\succ 0$ with `build_normalised_precision()`, and stacks the inverted slices with `build_covariance_array_from_precision()`. @sec-ggm-networks develops the topology, weight, and SPD design in detail.
+Each cell type carries its own graph-constrained signed precision $\boldsymbol{\Omega}_j$, mapped to $\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1}$. An undirected Gaussian Markov simulation separates four layers (@eq-ggm-pipeline): graph $\mathcal{G}_j$, signed weights $W(\mathcal{G}_j)$, SPD precision $\Omega_j$, and latent Gaussians (an optional observation layer can add Poisson–log-normal or zero-inflated counts). The **graph** and the **precision** must not be conflated: a binary adjacency is almost never itself positive definite. DeCovarT draws $\mathcal{G}_j$ via `generate_random_network_skeleton()`, completes $\Omega_j\succ 0$ with `build_normalised_precision()`, and stacks the inverted slices with `build_covariance_array_from_precision()`. @sec-ggm-networks develops the topology, weight, and SPD design in detail.
 
 # Pipeline API
 
-The exported entry point orchestrates internal helpers and returns moments that can be passed to `simulate_bulk_mixture()`. For end-to-end benchmarking, see the [bivariate toy](fig02-bivariate-toy.html) and [covariance-driven hybrid](fig03-covariance-driven.html); scenario grids live in `scripts/fig02_bivariate_toy.R`. Direct solver calls use `deconvolute_ratios()`.
+The exported entry point orchestrates internal helpers and returns moments that can be passed to `simulate_bulk_mixture()`. For end-to-end benchmarking, see the [bivariate toy](R1-bivariate-toy.html) and [covariance-driven hybrid](R2-covariance-driven.html); scenario grids live in `scripts/fig02_bivariate_toy.R`. Direct solver calls use `deconvolute_ratios()`.
 
 ```{.tikz}
 %%| label: fig-pipeline-api
 %%| fig-cap: Pipeline from synthetic moment generation to deconvolution.
 %%| filename: fig-pipeline-api
-%%| alt: Pipeline. A graph G_j gives signed weights W(G_j), then a positive-definite precision Omega_j, then the covariance Sigma_j as its inverse. Sigma_j and the means mu = s Q R to the one half feed simulate_hierarchical_grn_moments, whose output goes to simulate_bulk_mixture and then deconvolute_ratios.
+%%| alt: Pipeline. A graph script-G_j gives signed weights W(script-G_j), then a positive-definite precision Omega_j, then the covariance Sigma_j as its inverse. Sigma_j and the means mu = s Q K to the one half feed simulate_hierarchical_grn_moments, whose output goes to simulate_bulk_mixture and then deconvolute_ratios.
 \begin{tikzpicture}[node distance=6mm and 7mm]
-\node[box] (A) {Graph $G_j$};
-\node[box, right=of A] (B) {Weights $W(G_j)$};
+\node[box] (A) {Graph $\mathcal{G}_j$};
+\node[box, right=of A] (B) {Weights $W(\mathcal{G}_j)$};
 \node[box, right=of B] (C) {Precision $\boldsymbol{\Omega}_j\succ 0$};
 \node[box, right=of C] (D) {$\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1}$};
 \node[keybox, below=9mm of D] (F) {\texttt{simulate\_hierarchical\_grn\_moments()}};
-\node[box, left=12mm of F] (E) {Means $\boldsymbol{\mu}=s\mathbf{Q}R^{1/2}$\\ (target Gram $R$)};
+\node[box, left=12mm of F] (E) {Means $\boldsymbol{\mu}=s\mathbf{Q}K^{1/2}$\\ (target Gram $K$)};
 \node[keybox, below=of F] (G) {\texttt{simulate\_bulk\_mixture()}};
 \node[keybox, below=of G] (H) {\texttt{deconvolute\_ratios()}};
 \draw[edge] (A) -- (B); \draw[edge] (B) -- (C); \draw[edge] (C) -- (D);
@@ -114,40 +116,40 @@ The construction uses one symbol per quantity:
 - $J$: number of cell types, indexed by $j=1,\ldots,J$
 - $\boldsymbol{\mu}_{\cdot j}\in\mathbb{R}^{G}$: column $j$ of the mean signature
 - $s$: column Euclidean scale (`mean_scale`; default $10$)
-- $R\in\mathbb{R}^{J\times J}$: target Gram of the *unit* directions (pairwise cosines)
+- $K\in\mathbb{R}^{J\times J}$: target Gram of the *unit* directions (pairwise cosines). Not the donor count $R$
 - $\mathbf{Q}\in\mathbb{R}^{G\times J}$: thin orthonormal frame,
   $\mathbf{Q}^{\mathsf{T}}\mathbf{Q}=\mathbf{I}_{J}$
 
-The default Gram is equicorrelation at level $\rho$ (`target_cosine`),
+The default Gram is equicorrelation at level $\gamma$ (`target_cosine`; not an ILR coordinate),
 
 $$
-R_{J}(\rho)
+K_{J}(\gamma)
 =
-(1-\rho)\mathbf{I}_{J}
+(1-\gamma)\mathbf{I}_{J}
 +
-\rho\,\mathbf{1}\mathbf{1}^{\mathsf{T}},
+\gamma\,\mathbf{1}\mathbf{1}^{\mathsf{T}},
 $$ {#eq-equicorr-gram}
 
 which is positive semidefinite for
-$\rho\in[-1/(J-1),1]$ and strictly definite on the open interval.
-A full `target_gram` replaces $R_{J}(\rho)$ when some pairs should be
+$\gamma\in[-1/(J-1),1]$ and strictly definite on the open interval.
+A full `target_gram` replaces $K_{J}(\gamma)$ when some pairs should be
 closer than others (for example two related types at cosine $0.98$ and a
 background at $0.2$), provided the chosen matrix is symmetric and
 nonnegative-definite.
 
 Columns are obtained from the **symmetric** (spectral) square root
-$R^{1/2}=U\operatorname{diag}(\sqrt{\lambda})U^{\mathsf{T}}$,
+$K^{1/2}=U\operatorname{diag}(\sqrt{\lambda})U^{\mathsf{T}}$,
 
 $$
 \boldsymbol{\mu}
 =
 s\,
 \mathbf{Q}
-R^{1/2}.
+K^{1/2}.
 $$ {#eq-mean-gram}
 
-Then $\boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu}=s^{2}R$ exactly (up to
-rounding), so pairwise cosines match $R$ and every column has Euclidean
+Then $\boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu}=s^{2}K$ exactly (up to
+rounding), so pairwise cosines match $K$ and every column has Euclidean
 norm $s$. No cell type is a privileged reference; changing $\mathbf{Q}$
 by an orthogonal factor in $\mathbb{R}^{J}$ does not change the Gram
 (see @thm-gram-q and the uniqueness of vector realisations of a Gram
@@ -157,15 +159,15 @@ matrix).
 ## Role of each factor in the equicorrelation Gram
 
 - $\mathbf{I}_{J}$ is the unique-variance (cosine-one) part: without it,
-  $R$ would be rank one.
+  $K$ would be rank one.
 - $\mathbf{1}\mathbf{1}^{\mathsf{T}}$ is the rank-one all-ones matrix;
   it is the shared direction that makes every pair equally correlated.
-- $\rho$ scales that shared direction (the target pairwise cosine).
-- $1-\rho$ is the residual uniqueness: as $\rho\to 1$, $R$ collapses to
-  rank one (identical columns); as $\rho\to 0$, $R=\mathbf{I}_{J}$
+- $\gamma$ scales that shared direction (the target pairwise cosine).
+- $1-\gamma$ is the residual uniqueness: as $\gamma\to 1$, $K$ collapses to
+  rank one (identical columns); as $\gamma\to 0$, $K=\mathbf{I}_{J}$
   (orthogonal columns).
 - $s$ multiplies all columns after the unit embedding, so Euclidean
-  gaps scale with $s$ while angles stay those of $R$.
+  gaps scale with $s$ while angles stay those of $K$.
 :::
 
 ::: {#thm-gram-q}
@@ -173,30 +175,30 @@ matrix).
 
 Any thin $\mathbf{Q}$ with
 $\mathbf{Q}^{\mathsf{T}}\mathbf{Q}=\mathbf{I}_{J}$ yields a valid
-embedding of $R$ into $\mathbb{R}^{G}$ ($G\ge J$). If
+embedding of $K$ into $\mathbb{R}^{G}$ ($G\ge J$). If
 $\mathbf{Q}_{\star}=\mathbf{Q}U$ with $U^{\mathsf{T}}U=\mathbf{I}_{J}$,
 then
-$(\mathbf{Q}_{\star}R^{1/2})^{\mathsf{T}}
-(\mathbf{Q}_{\star}R^{1/2})=R$ still holds. The package default is a
+$(\mathbf{Q}_{\star}K^{1/2})^{\mathsf{T}}
+(\mathbf{Q}_{\star}K^{1/2})=K$ still holds. The package default is a
 deterministic QR frame; passing `seed` draws a Gaussian QR (Haar-like)
 frame instead.
 :::
 
 @fig-cholesky-vs-spectral compares the symmetric square root used here
-with the lower-triangular Cholesky factor of the same $R$. Both are
+with the lower-triangular Cholesky factor of the same $K$. Both are
 matrix square roots; they differ by an orthogonal transformation of the
 coordinate axes, which is exactly the Gram uniqueness (realisations
 are unique up to orthogonal maps of the ambient space).
 
-![Symmetric (spectral) square root versus Cholesky factor of a target Gram. Left: $R^{1/2}$ is symmetric and rotates the standard basis into an eigenframe. Right: the Cholesky factor $L$ with $R=LL^{\mathsf{T}}$ is lower triangular, so the first coordinate is aligned with the first cell type and later types pick up successive residuals. The two embeddings differ by an orthogonal transformation and realise the same pairwise cosines.](figures/cholesky_vs_spectral_decomposition.svg){#fig-cholesky-vs-spectral width=90%}
+![Symmetric (spectral) square root versus Cholesky factor of a target Gram. Left: $K^{1/2}$ is symmetric and rotates the standard basis into an eigenframe. Right: the Cholesky factor $L$ with $K=LL^{\mathsf{T}}$ is lower triangular, so the first coordinate is aligned with the first cell type and later types pick up successive residuals. The two embeddings differ by an orthogonal transformation and realise the same pairwise cosines.](figures/cholesky_vs_spectral_decomposition.svg){#fig-cholesky-vs-spectral width=90%}
 
 The common-factor blend of a shared unit $\boldsymbol{u}$ with private
 marker blocks (the previous default, closest to `AutoGeneS`
 [@alieeAutoGeneSAutomaticGene2021]) is recorded in @sec-common-factor.
-It does **not** hit $\rho$ exactly at finite $J$. Cholesky as a Monte
+It does **not** hit $\gamma$ exactly at finite $J$. Cholesky as a Monte
 Carlo device is in @sec-chol-mc.
 
-@fig-cosine-geometry visualises three operating points ($\rho\in\{0,\,0.3,\,1\}$) for $G=2$ genes and $J=2$ cell types. Cell type 1 is fixed along the positive gene-1 axis; only the **angular** position of cell type 2 is varied so that $\rho=0$ is exactly orthogonal. Independent Gaussian noise is added *only in this vignette chunk* around each centroid ($N=20$ i.i.d. draws per population) to emulate within-type dispersion under an independence assumption, without altering the Gram-matrix generator. Coloured arrows mark each type's mean direction; the shaded wedge is the angle between the two means.
+@fig-cosine-geometry visualises three operating points ($\gamma\in\{0,\,0.3,\,1\}$) for $G=2$ genes and $J=2$ cell types. Cell type 1 is fixed along the positive gene-1 axis; only the **angular** position of cell type 2 is varied so that $\gamma=0$ is exactly orthogonal. Independent Gaussian noise is added *only in this vignette chunk* around each centroid ($N=20$ i.i.d. draws per population) to emulate within-type dispersion under an independence assumption, without altering the Gram-matrix generator. Coloured arrows mark each type's mean direction; the shaded wedge is the angle between the two means.
 
 This illustration is inspired by panel B in the AutoGeneS paper [@alieeAutoGeneSAutomaticGene2021]. It is a geometric toy for the target *angle*, not a plot of @eq-mean-gram: with $G=J=2$ the symmetric root and the polar construction coincide up to a rotation.
 
@@ -205,7 +207,7 @@ This illustration is inspired by panel B in the AutoGeneS paper [@alieeAutoGeneS
 #| fig-cap: >-
 #|   Cosine-control toy for $J=2$ cell types and $G=2$ genes.
 #|   Cell type 1 is fixed on the positive gene-1 axis; only the angular
-#|   position of cell type 2 varies (so $\rho=0$ is orthogonal).
+#|   position of cell type 2 varies (so $\gamma=0$ is orthogonal).
 #|   Coloured arrows: mean directions; shaded wedge: angle between means.
 #|   Labels report the realised cosine. Points are $N=20$ i.i.d. Gaussian
 #|   draws around each centroid (stars). Styling inspired by panel B of
@@ -410,7 +412,7 @@ ggplot2::ggplot() +
 
 Blending a common baseline with type-specific markers is standard in deconvolution benchmarking. **`AutoGeneS`** [@alieeAutoGeneSAutomaticGene2021] selects genes by jointly minimising inter-type correlation and maximising centroid distance; its simulations use a similar shared-plus-private logic to control signature geometry. Schelker and colleagues [@schelkerEstimationImmuneCell2017] build tumour-derived reference gene expression profiles from single-cell RNA-seq clusters and marker genes, then simulate bulk mixtures by combining those columns—empirically a shared baseline plus distinct marker programmes per immune cell type.
 
-The **`DICEPro`** framework [@baWhenLessNot2026] targets incomplete reference matrices in supervised deconvolution. Its simulation engine generates synthetic signature matrices from multivariate Gaussian (or Poisson) models with a prescribed correlation structure; a **`bloc=TRUE`** option enforces **block sparsity** by zeroing expression outside type-specific gene blocks—the common-factor construction of @sec-common-factor. DICEPro then optimises reference signatures when cell types are missing from the matrix, complementing the Gram $R$ we use here for method comparison under known ground truth.
+The **`DICEPro`** framework [@baWhenLessNot2026] targets incomplete reference matrices in supervised deconvolution. Its simulation engine generates synthetic signature matrices from multivariate Gaussian (or Poisson) models with a prescribed correlation structure; a **`bloc=TRUE`** option enforces **block sparsity** by zeroing expression outside type-specific gene blocks—the common-factor construction of @sec-common-factor. DICEPro then optimises reference signatures when cell types are missing from the matrix, complementing the Gram $K$ we use here for method comparison under known ground truth.
 :::
 
 ## Objectives: `compute_mean_profile_objectives()`
@@ -476,13 +478,13 @@ A practical next step is to expose an optional `mean_objective = c("autogenes", 
 
 ## Appendix: Cholesky, uniqueness, and the common-factor blend {#sec-chol-mc}
 
-Cholesky's factor $R=LL^{\mathsf{T}}$ is the classical Monte Carlo square
+Cholesky's factor $K=LL^{\mathsf{T}}$ is the classical Monte Carlo square
 root: if $\boldsymbol{z}$ is standard normal, $L\boldsymbol{z}$ has
-covariance $R$ [@madarDirectFormulationCholesky2015].
+covariance $K$ [@madarDirectFormulationCholesky2015].
 The same factor embeds $J$ unit vectors as the *rows* of
 $L$ (padded by zeros in $\mathbb{R}^{G}$). The first type is aligned
 with the first coordinate; later types pick up successive residuals, so
-the embedding is order-dependent. The symmetric root $R^{1/2}$ has no
+the embedding is order-dependent. The symmetric root $K^{1/2}$ has no
 preferred axis. @fig-cholesky-vs-spectral is that distinction. Vector
 realisations of a Gram matrix are unique only up to an orthogonal map of
 the ambient space: if $\boldsymbol{\mu}^{\mathsf{T}}\boldsymbol{\mu}=s^{2}R$,
@@ -504,33 +506,33 @@ $\boldsymbol{v}_{j}$,
 $$
 \tilde{\boldsymbol{\mu}}_{\cdot j}
 =
-\sqrt{\rho}\,\boldsymbol{u}
-+\sqrt{1-\rho}\,\boldsymbol{v}_{j},
+\sqrt{\gamma}\,\boldsymbol{u}
++\sqrt{1-\gamma}\,\boldsymbol{v}_{j},
 $$ {#eq-common-factor}
 
 then column-normalised. Because $\boldsymbol{u}$ is not orthogonal to the
-blocks, the realised cosine exceeds $\rho$ at finite $J$. That
+blocks, the realised cosine exceeds $\gamma$ at finite $J$. That
 construction remains the closest analogue of `AutoGeneS` shared-plus-private
 geometry [@alieeAutoGeneSAutomaticGene2021]; the default generator is now
-@eq-mean-gram, which hits $R$ exactly.
+@eq-mean-gram, which hits $K$ exactly.
 
 # Undirected Gaussian Markov network generation {#sec-ggm-networks}
 
 $$
-G \longrightarrow W(G) \longrightarrow \Omega \succ 0
-\longrightarrow X_i \sim \mathcal{N}_p(\mu_i,\Omega^{-1})
+\mathcal{G} \longrightarrow W(\mathcal{G}) \longrightarrow \Omega \succ 0
+\longrightarrow \boldsymbol{x}_{\cdot c} \sim \mathcal{N}_G(\boldsymbol{\mu}_{\cdot j},\Omega^{-1})
 $$ {#eq-ggm-pipeline}
 
-Here $G$ is an **undirected** graph, $W(G)$ a symmetric weighted matrix with the same off-diagonal support, $\Omega$ a strictly positive-definite precision, and $X_i$ an expression profile. This section covers **undirected** Gaussian Markov / precision-graph simulation only. `generate_random_network_skeleton()` draws $G$; `build_normalised_precision()` completes it to $\Omega\succ 0$ by an affine spectral shift; `build_covariance_array_from_precision()` maps each slice $\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1}$ (cell types need not share one network).
+Here $\mathcal{G}$ is an **undirected** graph on the $G$ genes, not the gene count. $W(\mathcal{G})$ is a symmetric weighted matrix with the same off-diagonal support, $\Omega$ a strictly positive-definite precision, and $\boldsymbol{x}_{\cdot c}$ a cell profile. This section covers **undirected** Gaussian Markov / precision-graph simulation only. `generate_random_network_skeleton()` draws $\mathcal{G}$; `build_normalised_precision()` completes it to $\Omega\succ 0$ by an affine spectral shift; `build_covariance_array_from_precision()` maps each slice $\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1}$ (cell types need not share one network).
 
 ```{.tikz}
 %%| label: fig-ggm-pipeline
 %%| fig-cap: Undirected simulation pipeline from topology to observations (optional observation layer dashed).
 %%| filename: fig-ggm-pipeline
-%%| alt: Graphical model. A fixed graph G determines signed weights W(G), which determine the positive-definite precision Omega. Inside a plate over i = 1 to n, Omega and a fixed mean mu_i generate the latent Gaussian profile X_i, which optionally generates observed counts Y_i through a dashed arrow.
+%%| alt: Graphical model. A fixed graph script-G determines signed weights W(script-G), which determine the positive-definite precision Omega. Inside a plate over i = 1 to n, Omega and a fixed mean mu_i generate the latent Gaussian profile X_i, which optionally generates observed counts Y_i through a dashed arrow.
 \begin{tikzpicture}[node distance=14mm]
-\node[const] (G) {$G$};
-\node[det, right=of G] (W) {$W(G)$};
+\node[const] (G) {$\mathcal{G}$};
+\node[det, right=of G] (W) {$W(\mathcal{G})$};
 \node[det, right=of W] (O) {$\boldsymbol{\Omega}$};
 \node[stoch, right=of O] (X) {$\boldsymbol{X}_i$};
 \node[const, above=10mm of X] (mu) {$\boldsymbol{\mu}_i$};
@@ -549,9 +551,9 @@ Here $G$ is an **undirected** graph, $W(G)$ a symmetric weighted matrix with the
 ## Graph structure generators
 
 $$
-\rho_{jk\mid -\{j,k\}}
+\varrho_{gh\mid -\{g,h\}}
 =
--\frac{\Omega_{jk}}{\sqrt{\Omega_{jj}\Omega_{kk}}}
+-\frac{\Omega_{gh}}{\sqrt{\Omega_{gg}\Omega_{hh}}}
 $$ {#eq-partial-cor}
 
 @tbl-topologies compares the main **undirected** topology families used in GGM benchmarks, with R entry points. @fig-topologies sketches the six families most often used in random-like network structure generation.
@@ -599,7 +601,7 @@ A broader test of 928 real-world network data sets reached a more cautious concl
 
 | Source | Graph structures | Precision construction | Mean / observation | Purpose |
 |---------------|---------------|---------------|---------------|---------------|
-| PLNnetwork [@chiquetVariationalInferenceSparse2018] | Erdős–Rényi, preferential attachment, affiliation | $\Omega = vG + \operatorname{diag}(\lvert\lambda_{\min}(vG)\rvert + u)$ | Latent log-abundance $XB$; compositional / multinomial counts | Count-network estimators under compositionality |
+| PLNnetwork [@chiquetVariationalInferenceSparse2018] | Erdős–Rényi, preferential attachment, affiliation | $\Omega = v\mathbf{A}_{\mathcal{G}} + \operatorname{diag}(\lvert\lambda_{\min}(v\mathbf{A}_{\mathcal{G}})\rvert + u)$ (their paper writes $vG$ for the adjacency) | Latent log-abundance $XB$; compositional / multinomial counts | Count-network estimators under compositionality |
 | SILGGM [@zhangSILGGMExtensivePackage2018] | Band, hub, Erdős–Rényi, scale-free via `huge` | Package covariance / precision simulation | Centred Gaussian; focus on precision entries | Large-$p$ inferential and computational stress tests |
 | BLGGM [@wuEstimatingHeterogeneousGene2022] | Block mixtures of dense, circle, star, signed modules | Module matrices with structured signed off-diagonals | Cell-type-specific $\mu_k$, $\Omega_k$; expression-dependent dropout | Joint clustering, heterogeneous networks, zero inflation |
 
@@ -620,10 +622,10 @@ Several conclusions follow.
 
 ## Weight design and random signs
 
-Topology generators return a binary undirected support $E$. **Signs and magnitudes** are a separate design layer $W(G)$ in @eq-ggm-pipeline: they are assigned *after* (or jointly with) the skeleton, then completed to an SPD precision. Remember that
+Topology generators return a binary undirected support $E$. **Signs and magnitudes** are a separate design layer $W(\mathcal{G})$ in @eq-ggm-pipeline: they are assigned *after* (or jointly with) the skeleton, then completed to an SPD precision. Remember that
 
 $$
-\operatorname{sign}(\rho_{jk\mid -\{j,k\}})
+\operatorname{sign}(\varrho_{gh\mid -\{g,h\}})
 =
 -\operatorname{sign}(\Omega_{jk})
 $$ {#eq-sign-flip}
@@ -633,14 +635,14 @@ see @eq-partial-cor, so a positive precision weight is an inhibitory partial cor
 | Approach | What is randomised | How $\Omega$ is obtained | When to use |
 |------------------|------------------|------------------|------------------|
 | **i.i.d. edge signs** | For each $\{j,k\}\in E$, draw $s_{jk}\in\{-1,+1\}$ (e.g. fair coin or $\mathbb{P}(+)=\pi$) and magnitude $m_{jk}>0$; set $W_{jk}=W_{kj}=s_{jk}m_{jk}$ | Support-preserving SPD map of $W$ (spectral shift, diagonal dominance, …) | Simple signed ER / hub / SBM benchmarks; explicit control of the inhibitory fraction |
-| **Partial-correlation scaling** | Fill a symmetric matrix $R$ with $R_{jk}=0$ off $E$ and $R_{jk}\in(-1,1)$ (signed) on $E$; ensure $\rho(R)<1$ | $\Omega = D^{1/2}(I-R)D^{1/2}$ (@eq-partial-scale) | Direct control of partial-correlation signs and strengths |
-| **G-Wishart** (`BDgraph::rgwish()`) | Continuous random $\Omega$ on the fixed graph zeros | $\Omega\sim W_G(b,D)$ already SPD [@R-BDgraph; @BDgraph2019] | Heterogeneous random weights without hand-tuned magnitudes; Bayesian-style replicates |
+| **Partial-correlation scaling** | Fill a symmetric matrix $P$ with $P_{gh}=0$ off $E$ and $P_{gh}\in(-1,1)$ (signed) on $E$; ensure $\operatorname{sr}(P)<1$ | $\Omega = A^{1/2}(I-P)A^{1/2}$ (@eq-partial-scale) | Direct control of partial-correlation signs and strengths |
+| **G-Wishart** (`BDgraph::rgwish()`) | Continuous random $\Omega$ on the fixed graph zeros | $\Omega\sim W_{\mathcal{G}}(b,D)$ already SPD [@R-BDgraph; @BDgraph2019] | Heterogeneous random weights without hand-tuned magnitudes; Bayesian-style replicates |
 
 : Three undirected strategies for signed / random edge weights after a fixed skeleton. {#tbl-weights}
 
 ### i.i.d. signs on a fixed skeleton
 
-Draw $G$ (ER, band, hub, …). Independently for each undirected edge,
+Draw $\mathcal{G}$ (ER, band, hub, …). Independently for each undirected edge,
 
 $$
 W_{jk}=W_{kj}=s_{jk}\,m_{jk},
@@ -649,36 +651,36 @@ s_{jk}\in\{-1,+1\},
 \quad m_{jk}>0,
 $$ {#eq-iid-signs}
 
-then apply a support-preserving SPD completion (next section). Uniform positive loadings $W=vG$ are the special case $s_{jk}\equiv +1$ used by PLN-style and many `huge` simulations [@chiquetVariationalInferenceSparse2018]—all partial correlations then share the same sign. DeCovarT uses i.i.d. signs with inhibitory fraction `prop_inhibitory` and magnitude $v$ (`precision_scale`) baked into $\boldsymbol{W}$ before the spectral SPD completion.
+then apply a support-preserving SPD completion (next section). Uniform positive loadings $W=v\mathbf{A}_{\mathcal{G}}$ (adjacency of $\mathcal{G}$) are the special case $s_{jk}\equiv +1$ used by PLN-style and many `huge` simulations [@chiquetVariationalInferenceSparse2018]—all partial correlations then share the same sign. DeCovarT uses i.i.d. signs with inhibitory fraction `prop_inhibitory` and magnitude $v$ (`precision_scale`) baked into $\boldsymbol{W}$ before the spectral SPD completion.
 
-### Partial-correlation scaling and why $I-R$
+### Partial-correlation scaling and why $I-P$
 
-In a Gaussian Markov model the **matrix of partial correlations** (with ones on the diagonal) relates to the precision by a diagonal congruence. Write the off-diagonal partial correlations as a symmetric matrix $R$ with
+In a Gaussian Markov model the **matrix of partial correlations** (with ones on the diagonal) relates to the precision by a diagonal congruence. Write the off-diagonal partial correlations as a symmetric matrix $P$ with
 
 $$
-R_{jj}=0,
+P_{gg}=0,
 \qquad
-R_{jk}
+P_{gh}
 =
 \begin{cases}
-\rho_{jk\mid -\{j,k\}} & \{j,k\}\in E,\\
-0 & \{j,k\}\notin E,
+\varrho_{gh\mid -\{g,h\}} & \{g,h\}\in E,\\
+0 & \{g,h\}\notin E,
 \end{cases}
 $$ {#eq-R-support}
 
-and choose magnitudes so that the spectral radius satisfies $\rho(R)<1$. Then
+and choose magnitudes so that the spectral radius satisfies $\operatorname{sr}(P)<1$. Then
 
 $$
 \Omega
 =
-D^{1/2}(I-R)D^{1/2}
+A^{1/2}(I-P)A^{1/2}
 $$ {#eq-partial-scale}
 
-for a positive diagonal $D$ (often $D=I$ after standardising margins).
+for a positive diagonal $A$ (often $A=I$ after standardising margins). $P$ is this partial-correlation matrix, not a donor count, and $\varrho$ is a partial correlation, not an ILR coordinate.
 
 ### G-Wishart draws on a fixed graph
 
-Given adjacency $G$, `BDgraph::rgwish()` samples $\Omega\sim W_G(b,D)$ already positive definite and with $\Omega_{jk}=0$ whenever $(j,k)\notin E$ [@R-BDgraph; @BDgraph2019]. Signs and magnitudes arise from the continuous distribution rather than from an explicit coin-flip layer. This is the most “automatic” signed-weight generator once the skeleton is fixed; the trade-off is less direct control of the inhibitory fraction than @eq-iid-signs or @eq-partial-scale.
+Given adjacency $\mathcal{G}$, `BDgraph::rgwish()` samples $\Omega\sim W_{\mathcal{G}}(b,D)$ already positive definite and with $\Omega_{jk}=0$ whenever $(j,k)\notin E$ [@R-BDgraph; @BDgraph2019]. Signs and magnitudes arise from the continuous distribution rather than from an explicit coin-flip layer. This is the most “automatic” signed-weight generator once the skeleton is fixed; the trade-off is less direct control of the inhibitory fraction than @eq-iid-signs or @eq-partial-scale.
 
 ## Positive-definiteness strategies
 
@@ -698,9 +700,9 @@ $$
 | Construction | Formula | Support preserved? | Role |
 |---------------|---------------|:--------------:|---------------|
 | Spectral / PLN loading | $\Omega=W+(\lvert\lambda_{\min}(W)\rvert+u)I$ | Yes | DeCovarT default; same affine shift as `huge` / PLN [@chiquetVariationalInferenceSparse2018] |
-| Partial-correlation scaling | $\Omega=D^{1/2}(I-R)D^{1/2}$, $\rho(R)<1$ | Yes | Signs and strengths set on the partial-correlation scale (@eq-partial-scale) |
-| Graph Laplacian / M-matrix | $\Omega=L_G+\varepsilon I$ | Yes | Off-diagonals non-positive ⇒ all edgewise partial correlations positive |
-| G-Wishart | $\Omega\sim W_G(b,D)$ | Yes | Heterogeneous random weights; `BDgraph::rgwish()` [@R-BDgraph] |
+| Partial-correlation scaling | $\Omega=A^{1/2}(I-P)A^{1/2}$, $\operatorname{sr}(P)<1$ | Yes | Signs and strengths set on the partial-correlation scale (@eq-partial-scale) |
+| Graph Laplacian / M-matrix | $\Omega=L_{\mathcal{G}}+\varepsilon I$ | Yes | Off-diagonals non-positive ⇒ all edgewise partial correlations positive |
+| G-Wishart | $\Omega\sim W_{\mathcal{G}}(b,D)$ | Yes | Heterogeneous random weights; `BDgraph::rgwish()` [@R-BDgraph] |
 
 : Support-preserving maps from a weighted graph to $\Omega\succ 0$. Eigenvalue clipping (reconstruct $Q\Lambda_{\mathrm{clip}}Q^{\top}$) fills structural zeros, so it is omitted from the generative truth; nearest-PD projections are repair tools, not support-preserving simulators. {#tbl-pd}
 
@@ -802,7 +804,7 @@ sample-wise ratios) to `simulate_bulk_mixture()`, and report $H^{\star}$
 alongside overlap or condition-number diagnostics. The hybrid $J=3$
 manuscript scenario uses `composition_from_entropy()` at
 $H^{\star}\in\{1,0.5,0.1\}$
-([covariance-driven hybrid](fig03-covariance-driven.html#sec-scenario-grid)).
+([covariance-driven hybrid](R2-covariance-driven.html#sec-scenario-grid)).
 
 ```{r}
 #| label: fig-simbu-entropy
@@ -1258,7 +1260,7 @@ Elliptical (Student) bulk would only rescale these terms
 When an adjacency array is supplied, density uses that support;
 otherwise the off-diagonal pattern of each $\boldsymbol{\Omega}_j$ is
 used. Magnitude sparsity is summarised on the bulk correlation matrix
-$R=\mathrm{corr}\{\boldsymbol{\Sigma}(\boldsymbol{p})\}$, not on the
+$\boldsymbol{R}_{\mathrm{bulk}}=\mathrm{corr}\{\boldsymbol{\Sigma}(\boldsymbol{p})\}$, not on the
 binary graph.
 
 - Edge density $2\lvert E\rvert/(G(G-1))$ (undirected, no loops) and
@@ -1292,7 +1294,7 @@ the convolution, not the estimator.
   Full definitions, Hellinger--TV inequalities, affine-invariant
   Riemannian distance on SPD matrices, and the Sobol Monte Carlo
   overlap for $G\ge 4$ are in
-  [distances, overlap, and covariance information](theory-distance-covariance.html).
+  [distances, overlap, and covariance information](04-2-distances-overlap-metrics.html).
 - Averaged pairwise Hellinger distance (Bhattacharyya coefficient).
   The primary column `hellinger` is the unweighted mean over pairs
   $j<k$.
@@ -1720,7 +1722,7 @@ mc_other <- data.frame(
     "Requires a designed alternative (out of scope).",
     "Needs multi-start logging (`multistart_decovart()`), not default.",
     "Solvers already repair onto the simplex (`repair_simplex()`).",
-    "[Appendix S2](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S2-covariance-inversion.html); declare the covariance structure."
+    "[Appendix S2](https://bastienchassagnol.github.io/DeCovarT/articles/S2-covariance-inversion.html); declare the covariance structure."
   ),
   stringsAsFactors = FALSE
 )
@@ -1938,7 +1940,7 @@ score is below `score_tol` **and** the Hessian is negative definite
 $\lambda_{\min}<0<\lambda_{\max}$ is a saddle. None of these
 diagnostics implies a unique global mode; the DeCovarT likelihood for
 one bulk sample is not concave in general
-([MLE properties](theory-population-inference.html)).
+([MLE properties](01-2-population-inference.html)).
 :::
 
 ::: {#nte-metric-choice .callout-note}
@@ -2014,7 +2016,7 @@ strategies are in common use
 - **Optimisation-based calibration.** Because the binomial sampling
   distribution is discrete, no interval attains exact nominal coverage
   uniformly in $\pi\in(0,1)$. Numerical level adjustment treats the
-  critical value or tail probability as a scalar $\gamma$ and retunes
+  critical value or tail probability as a scalar $\xi$ and retunes
   a *fixed* analytical form.
   @konietschkeExactAsymptoticOptimizationbased2026 minimise a risk
   functional of the exact coverage curve (for example
@@ -2028,7 +2030,7 @@ Carlo replicates $N$ can be increased arbitrarily, so the small-sample
 discreteness problem that motivates optimisation-based tuning is not
 the operating regime. Report ordinary Wilson (or Agresti--Coull)
 intervals on $\hat\pi$, together with `mcse_coverage` and bias, rather
-than a small-sample recalibration of $\gamma$.
+than a small-sample recalibration of $\xi$.
 :::
 
 ## Asymptotic normality of $\hat{\boldsymbol{p}}$ {#sec-mc-qq}
@@ -2108,7 +2110,7 @@ interval, `mcse_coverage`, and bias side by side instead.
 A reproducible synthetic study should keep three design layers separate,
 then score both the reference geometry and the mixture composition:
 
-1. **Mean signatures.** Build $\boldsymbol{\mu}$ with `generate_mean_signature_matrix()`: hold `mean_scale` $s$ fixed and dial the Gram $R$ (`target_cosine` or `target_gram`). Report the realised pairwise cosine (it equals $R$ up to rounding), Euclidean separation, and optionally $\kappa_2(\boldsymbol{\mu})$.
+1. **Mean signatures.** Build $\boldsymbol{\mu}$ with `generate_mean_signature_matrix()`: hold `mean_scale` $s$ fixed and dial the Gram $K$ (`target_cosine` or `target_gram`). Report the realised pairwise cosine (it equals $K$ up to rounding), Euclidean separation, and optionally $\kappa_2(\boldsymbol{\mu})$.
 2. **Precision graphs.** Draw an undirected skeleton (`scale_free`, `stochastic_block_model`, or `small_world`), assign i.i.d. signed weights (`prop_inhibitory`), and complete $\Omega\succ 0$ by the uniform spectral shift. Report $\kappa(\Omega)$ and the partial-correlation sign mix.
 3. **Cellular compositions.** Choose $\boldsymbol{p}$ on a Shannon grid from uniform ($H^{\star}=1$) to near-pure ($H^{\star}\approx 0$), matching the `SimBu` fraction vocabulary when comparing to pseudo-bulk tools (@fig-simbu-entropy).
 
@@ -2281,7 +2283,7 @@ used at NeurIPS is five items.
 | Fitting (“training”) code | `fit_decovart()`, `deconvolute_ratios()` |
 | Evaluation code | `compute_benchmark_metrics()`, `run_simulation_benchmark()` |
 | Pre-trained models | Not applicable: DeCovarT is an estimator, not a stored neural net. Toy convolution fixtures live in `inst/extdata/` |
-| README table of results plus commands | README / vignette chunks (this article; [§2.1](fig02-bivariate-toy.html), [§2.2](fig03-covariance-driven.html)) |
+| README table of results plus commands | README / vignette chunks (this article; [§2.2](R1-bivariate-toy.html), [§2.3](R2-covariance-driven.html)) |
 
 : NeurIPS / Papers with Code completeness mapped onto the package. {#tbl-neurips}
 
@@ -2309,10 +2311,10 @@ this section.
 
 - Cholesky fill-in or sparse-solver speed diagnostics (the user must
   declare the covariance structure; otherwise the dense Cholesky factor
-  of $\Sigma(p)$ is used). See [Appendix S2](supp-S2-covariance-inversion.html).
+  of $\Sigma(p)$ is used). See [Appendix S2](S2-covariance-inversion.html).
 - Type I error and power as default columns (the target is an estimand,
   not a null hypothesis). Boundary tests live in
-  [Appendix S1](supp-S1-identifiability.html) and
-  [MLE properties](theory-population-inference.html#sec-boundary).
+  [Appendix S1](S1-identifiability.html) and
+  [MLE properties](01-2-population-inference.html#sec-boundary).
 
 # References

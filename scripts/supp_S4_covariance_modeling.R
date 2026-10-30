@@ -17,7 +17,7 @@
 #     > "logs/supp_S4_$(date +%F)_covariance_modeling.log" 2>&1 &
 #
 # Article:  DeCovarT – Supplementary: covariance modelling comparison
-# Vignette: vignettes/supp-S4-covariance-modeling.qmd
+# Vignette: vignettes/S4-covariance-modeling.qmd
 #           {#sec-perturb} extends the two-covariance comparison to a
 #           fuller three-way grid.
 #

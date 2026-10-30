@@ -54,7 +54,7 @@ is known.
 | Factor | Levels |
 |---|---|
 | Inference model | True full, cell-type diagonal, global weighted diagonal, identity |
-| Mean cosine $\rho_\mu$ | 0, 0.5, 0.9 |
+| Mean cosine $\gamma_\mu$ | 0, 0.5, 0.9 |
 | **Total** | $4 \times 3 = \mathbf{12}$ scenarios |
 
 $G = 50$ genes, $J = 3$ cell types; $N = 200$ Monte Carlo replicates
@@ -212,7 +212,7 @@ if (N_REPLICATES >= 10) {
 - **Identity** (mean-only) should perform comparably to NNLS, confirming
   that ignoring second-order structure removes the DeCovarT advantage.
 - The **RMSE gap** (true full minus alternatives) should increase with
-  cosine $\rho_\mu$, because near-collinear means force greater reliance on
+  cosine $\gamma_\mu$, because near-collinear means force greater reliance on
   the covariance for discrimination.
 
 
@@ -220,8 +220,8 @@ if (N_REPLICATES >= 10) {
 
 ## See also
 
-- [Appendix S1 — Identifiability](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S1-identifiability.html)
-- [Appendix S3 — Scaling](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S3-scaling.html)
-- [Appendix S5 — Model Mis-specification](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S5-misspecification.html)
+- [Appendix S1 — Identifiability](https://bastienchassagnol.github.io/DeCovarT/articles/S1-identifiability.html)
+- [Appendix S3 — Scaling](https://bastienchassagnol.github.io/DeCovarT/articles/S3-scaling.html)
+- [Appendix S5 — Model Mis-specification](https://bastienchassagnol.github.io/DeCovarT/articles/S5-misspecification.html)
 
 ## References

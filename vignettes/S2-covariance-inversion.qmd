@@ -185,7 +185,7 @@ Each likelihood, score, and Hessian evaluation factorises the mixture
 covariance
 $\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_{j}p_{j}^{2}\boldsymbol{\Sigma}_{j}$
 once and then solves against one or more right-hand sides
-([generative model](theory-population-generative-optimisation.html#sec-numerical-speedups)).
+([generative model](01-1-population-generative-optimisation.html#sec-numerical-speedups)).
 Assembling $\boldsymbol{\Sigma}(\boldsymbol{p})$ costs $O(J G^{2})$. A dense
 Cholesky factorisation of the $G\times G$ result costs $O(G^{3})$ and
 dominates when $G$ is large. Structured backends (banded, block-diagonal,
@@ -294,15 +294,15 @@ checks, combining DICEPro Figure S5 (unit-sum / reconstruction trade-off)
 with their Figure S2A (analytical versus finite-difference gradients).
 
 The ILR / softmax chart is a $C^{2}$ diffeomorphism onto the open simplex
-([constrained optimisation](theory-population-generative-optimisation.html#sec-constrained)),
+([constrained optimisation](01-1-population-generative-optimisation.html#sec-constrained)),
 so Marquardt, Newton, and the projected gradient keep
 $\sum_{j}\hat p_{j}=1$ by construction. L-BFGS-B only boxes
 $[0,1]^{J}$ and renormalises after `optim()`; during the line search
 $\lvert 1-\sum_{j}p_{j}\rvert$ can leave zero, which is why that path
 needs the guarded objective in
-[solver safeguards](theory-population-generative-optimisation.html#sec-numerical-speedups).
+[solver safeguards](01-1-population-generative-optimisation.html#sec-numerical-speedups).
 The ADEMP field `optimisation$kkt_residual`
-([synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html#sec-ademp))
+([synthetic scenarios](04-1-synthetic-scenarios.html#sec-ademp))
 is the projected-score residual
 $\lVert\Pi_{\Delta}(\hat{\boldsymbol{p}}+\alpha\nabla\ell)-\hat{\boldsymbol{p}}\rVert_{2}/\alpha$.
 It is the right analogue of DICEPro's unit-sum violation for an
@@ -314,7 +314,7 @@ outline only if a penalty-weight grid is actually run.
 The companion scatter is analytic $\nabla\ell$ (and, where stored, the
 Hessian) against Richardson extrapolation in `numDeriv` [@R-numDeriv],
 as already used in
-[the generative-model vignette](theory-population-generative-optimisation.html)
+[the generative-model vignette](01-1-population-generative-optimisation.html)
 and in `tests/testthat/test-02_02_population_decovart_estimate_ratios.R`. DICEPro reported relative
 errors below $6\times 10^{-6}$ with central differences
 $\varepsilon=10^{-5}$. DeCovarT prefers Richardson's tableau rather than
@@ -394,10 +394,10 @@ are noted here but not yet implemented:
 
 ## See also
 
-- [Appendix S3 — Scaling](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S3-scaling.html)
+- [Appendix S3 — Scaling](https://bastienchassagnol.github.io/DeCovarT/articles/S3-scaling.html)
   (RMSE and difficulty axes; this appendix is inversion and solver cost)
-- [How to build synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html#sec-ademp)
+- [How to build synthetic scenarios](04-1-synthetic-scenarios.html#sec-ademp)
 - Structure-aware operators and solver safeguards:
-  [generative model](theory-population-generative-optimisation.html#sec-numerical-speedups)
+  [generative model](01-1-population-generative-optimisation.html#sec-numerical-speedups)
 
 ## References

@@ -40,7 +40,7 @@ statistical difficulty axes identified in the full factorial plan
 |---|---|
 | Cell types $J$ | 2, 4, 8 |
 | Genes $G$ | 20, 50, 100, 250 |
-| Mean cosine $\rho_\mu$ | 0, 0.5, 0.9 |
+| Mean cosine $\gamma_\mu$ | 0, 0.5, 0.9 |
 | Precision condition $\kappa$ | 3, 10, 100 |
 | Composition entropy $H / \log J$ | $\approx 1.0,\, 0.75,\, 0.40$ |
 
@@ -60,7 +60,7 @@ analysis (see `detailled_siulation_code.md` §Difficulty descriptors):
 | Descriptor | Formula |
 |---|---|
 | Normalised Shannon entropy | $H/\log J$ |
-| Mean pairwise cosine | $\bar{\rho}_\mu$ |
+| Mean pairwise cosine | $\bar{\gamma}_\mu$ |
 | Contrast smallest singular value | $\sigma_{\min}(\boldsymbol{M})$ |
 | Pairwise Bhattacharyya distance | closed-form Gaussian |
 | Covariance heterogeneity | $\operatorname{mean}_F$ distance |
@@ -196,7 +196,7 @@ substantial wall-clock time:
 
 ## See also
 
-- [Appendix S2 — Covariance Inversion](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S2-covariance-inversion.html)
-- [Appendix S4 — Covariance Modelling](https://bastienchassagnol.github.io/DeCovarT/articles/supp-S4-covariance-modeling.html)
+- [Appendix S2 — Covariance Inversion](https://bastienchassagnol.github.io/DeCovarT/articles/S2-covariance-inversion.html)
+- [Appendix S4 — Covariance Modelling](https://bastienchassagnol.github.io/DeCovarT/articles/S4-covariance-modeling.html)
 
 ## References

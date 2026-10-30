@@ -1,9 +1,9 @@
 ---
-title: "Single-cell DeCovarT: reference moments, alignment strategies and the profile fit"
+title: "2.1 Single-cell DeCovarT: reference moments, alignment strategies and the profile fit"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
 vignette: >
-  %\VignetteIndexEntry{Single-cell DeCovarT: generative model and optimisation}
+  %\VignetteIndexEntry{2.1 Single-cell DeCovarT: generative model and optimisation}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 knitr:
@@ -23,6 +23,15 @@ format:
   html:
     embed-resources: true
     toc: true
+filters:
+  - callouty-theorem
+callouty-theorem:
+  thm:
+    override-title: false
+    callout:
+      type: important
+      appearance: default
+      icon: true
 ---
 
 ::: callout-note
@@ -32,7 +41,7 @@ Population-level DeCovarT fits the convolution
 $\boldsymbol{y}_{\cdot i}\mid\boldsymbol{p}_{\cdot i}
 \sim\mathcal{N}_G(\boldsymbol{\mu}\boldsymbol{p}_{\cdot i},
 \sum_j p_{ji}^{2}\boldsymbol{\Sigma}_j)$
-of the [population generative and optimisation vignette](theory-population-generative-optimisation.html#sec-unconstrained).
+of the [population generative and optimisation vignette](01-1-population-generative-optimisation.html#sec-unconstrained).
 That law is exact when each reference column is one random
 **population profile**, as for the FACS-sorted references it was
 designed for. A single-cell reference supplies a different object:
@@ -44,7 +53,7 @@ This vignette rebuilds DeCovarT for that reference: the generative
 model and its optimisation. The measurement and expression models of
 UMI counts, and the published methods that use second-order moments,
 are reviewed in the
-[distribution-aware deconvolution review](theory-review-distribution-aware-deconvolution.html);
+[distribution-aware deconvolution review](05-1-review-distribution-aware.html);
 this vignette uses their conclusions.
 
 1. @sec-reference builds the mean and the covariance layers of a
@@ -66,10 +75,10 @@ this vignette uses their conclusions.
 
 The intervals for that fit, with the technical scales concentrated out,
 are derived in the
-[single-cell inference vignette](theory-single-cell-inference.html).
+[single-cell inference vignette](02-2-single-cell-inference.html).
 The final model for real data, written as a generalised linear model,
 is in the
-[population inference vignette](theory-population-inference.html#sec-final-choice).
+[population inference vignette](01-2-population-inference.html#sec-final-choice).
 The simplex charts of the population vignette apply unchanged to the
 proportion block of every formulation.
 [`deconvolute_single_cell()`](../reference/deconvolute_single_cell.html)
@@ -77,62 +86,44 @@ implements the linear layer of Strategy 2; the other strategies and
 layers are specifications.
 :::
 
-::: {#nte-notation .callout-note collapse="true"}
-## Notation
+{{< include _notation.qmd >}}
 
-Indices: gene $g=1,\ldots,G$; cell type $j=1,\ldots,J$ (a second type
-is $\ell$); bulk sample $i=1,\ldots,N$; independent biological
-replicate (donor) of the single-cell reference $r=1,\ldots,R$; cell
-$c$, with $C_{jr}$ cells of type $j$ in replicate $r$ and $C_j$ in
-total.
+::: {#nte-notation .callout-note collapse="true"}
+## Notation specific to this vignette
+
+The donor index $r=1,\ldots,R$ counts independent biological
+replicates of the single-cell reference; $C_{jr}$ cells of type $j$
+come from replicate $r$, $C_j$ in total.
 
 | Symbol | Meaning |
 |---|---|
-| $x_{gc}$, $\boldsymbol{x}_{\cdot c}$ | Observed UMI count of gene $g$ in cell $c$ |
-| $\boldsymbol{m}_{\cdot c}$ | True molecule content of cell $c$ |
+| $\boldsymbol{\kappa}_{\cdot c}$ | True molecule content of cell $c$ |
 | $s_c=s^{\mathrm{bio}}_cs^{\mathrm{tech}}_c$ | Cell size factor: biological (cell volume, cycle) times technical (capture, depth); $\mathbb{E}[s_c]=1$ |
 | $\nu=\operatorname{CV}^{2}(s_c)$ | Extrinsic noise, $1+\nu=(1+\nu^{\mathrm{bio}})(1+\nu^{\mathrm{tech}})$ |
-| $b_g$ | Capture efficiency of gene $g$ in one protocol |
-| $\tilde b_g=b_g^{\mathrm{bulk}}/b_g^{\mathrm{ref}}$, $\tilde{\mathbf{B}}=\operatorname{diag}(\tilde{\boldsymbol{b}})$ | Gene-wise platform ratio between the bulk and the reference protocols |
-| $\boldsymbol{\lambda}_{\cdot c}$, $\boldsymbol{\Sigma}^{\lambda}_j$ | Size-free expression of cell $c$ and its covariance inside type $j$ |
-| $\boldsymbol{y}_{\cdot i}\in\mathbb{R}^{G}$ | Raw bulk profile of sample $i$ |
-| $m_{ji}\in\mathbb{N}$, $n_i=\sum_j m_{ji}$ | Cells of type $j$ in bulk sample $i$, total cells (`MuSiC` writes $m_j^{k}$, `RNA-Sieve` $n$) |
-| $\tilde{\boldsymbol{y}}_{\cdot i}=\boldsymbol{y}_{\cdot i}/n_i$ | Bulk profile per cell |
-| $\boldsymbol{p}_{\cdot i}=\boldsymbol{m}_{\cdot i}/n_i\in\Delta^{J-1}$ | Cell-number fractions |
-| $\boldsymbol{q}_{\cdot i}$, $q_{ji}=p_{ji}S_j/\sum_\ell p_{\ell i}S_\ell$ | RNA (transcript) fractions |
-| $\tilde{\boldsymbol{\mu}}_{\cdot j}=C_j^{-1}\sum_{c\in j}\boldsymbol{x}_{\cdot c}=S_j\boldsymbol{\theta}_{\cdot j}$ | Per-cell mean of type $j$ on raw UMI counts, without library normalisation: cell size times relative abundance, $\mathbf{1}^{\top}\boldsymbol{\theta}_{\cdot j}=1$; $\tilde{\boldsymbol{\mu}}$ is the $G\times J$ matrix of these columns |
-| $\boldsymbol{\mu}_{\cdot j}$ | Mean of one sorted population profile, as in released DeCovarT |
-| $S_j=\mathbf{1}^{\top}\tilde{\boldsymbol{\mu}}_{\cdot j}$ | Mean transcriptome size (RNA content) of one cell of type $j$ |
-| $\boldsymbol{\Sigma}_{W,j}$ | Within-replicate cell-to-cell covariance of type $j$ |
-| $\boldsymbol{\Sigma}_{B,j}$ | Between-replicate covariance of the type-$j$ population mean |
+| $\boldsymbol{\Sigma}^{\lambda}_j$ | Covariance of the size-free expression $\boldsymbol{\lambda}_{\cdot c}$ inside type $j$ |
+| $\tilde{\boldsymbol{\mu}}$ | $G\times J$ matrix of the per-cell means $\tilde{\boldsymbol{\mu}}_{\cdot j}$, computed on raw UMI counts without library normalisation |
 | $\boldsymbol{M}_{jr}$, $\boldsymbol{B}_{jr}$ | Replicate population mean and its deviation $\boldsymbol{M}_{jr}-\tilde{\boldsymbol{\mu}}_{\cdot j}$ |
-| $a_i>0$ | Capture ratio between the bulk library and the reference cells (depth, capture), shared by all genes |
-| $c_i=a_in_i$, $\phi_i=a_i^{2}n_i$ | Mean scale and covariance scale of bulk sample $i$ (@sec-av-scale) |
 | $\boldsymbol{D}_i=\boldsymbol{\Sigma}_{\mathrm{obs},i}$ | Diagonal bulk measurement noise, $\operatorname{diag}(\tau_{1i}^{2},\ldots,\tau_{Gi}^{2})$ |
-| $\boldsymbol{T}_{ji}=\sum_{c=1}^{m_{ji}}\boldsymbol{X}_{jic}$ | Total expression contributed by type $j$ to sample $i$ |
-| $\boldsymbol{S}_W(\boldsymbol{v})=\sum_jv_j\boldsymbol{\Sigma}_{W,j}$, $\boldsymbol{S}_B(\boldsymbol{v})=\sum_jv_j^{2}\boldsymbol{\Sigma}_{B,j}$ | Linear and quadratic covariance mixtures |
 | $\varrho_j$ | Cell-to-cell correlation inside type $j$; $\boldsymbol{\rho}$ stays the ILR coordinate |
 | $\boldsymbol{\vartheta}$, $\boldsymbol{\eta}$ | Generic parameter vector; nuisance scales of @sec-strategy-plugin |
 | $\boldsymbol{\mu}_k,\boldsymbol{\Sigma}_k,\boldsymbol{\mu}_{kl},\boldsymbol{\Sigma}_{kl}$ | First and second partial derivatives of the mean and covariance in $\vartheta_k,\vartheta_l$ |
 
-A tilde marks a quantity rescaled to a reference unit: per cell for
-expression ($\tilde{\boldsymbol{y}}_{\cdot i}$, $\tilde{\boldsymbol{\mu}}_{\cdot j}$), or relative
-to the reference protocol for capture ($\tilde{\boldsymbol{b}}$). The capture
-efficiency $b_g$ of one protocol multiplies every cell measured with
-it, so it cancels from any contrast inside that protocol; between a
-single-cell reference and a bulk library only the ratio $\tilde b_g$
-survives. That ratio is the gene-wise platform effect: `RCTD`
-estimates it on a pseudo-bulk of all spots as $e^{\hat\gamma_g}$, with
+`MuSiC` writes $m_j^{k}$ for $m_{ji}$ and `RNA-Sieve` writes $n$ for
+$n_i$. The capture efficiency $b_g$ of one protocol multiplies every
+cell measured with it, so it cancels from any contrast inside that
+protocol; between a single-cell reference and a bulk library only the
+ratio $\tilde b_g$ survives. That ratio is the gene-wise platform
+effect: `RCTD` estimates it on a pseudo-bulk of all spots as
+$e^{\hat\gamma_g}$, with
 $\hat\gamma_g=\log\bar Y_g-\log\sum_j\mu_{gj}\hat W_j$ for the pooled
 count $\bar Y_g$ and average type weights $\hat W_j$, then renormalises
 the reference means to $\bar\mu_{gj}=\mu_{gj}e^{\hat\gamma_g}$
 [@cableRobustDecompositionCell2022a]. The ratio $\lambda_g$ of `MEAD`
 and the gene-wise slope of `Bisque` are the same nuisance.
 
-When one bulk sample is fixed, the index $i$ is dropped inside
-derivations and restored in the model statements. The single-cell
-papers use $j$ for the gene (Sarkar and Stephens; Fang and Pachter;
-`DECALS`; `Bisque`) or for the subject (`MuSiC`); [the notation map of the review](theory-review-distribution-aware-deconvolution.html#tbl-notation-map)
+The single-cell papers use $j$ for the gene (Sarkar and Stephens; Fang
+and Pachter; `DECALS`; `Bisque`) or for the subject (`MuSiC`);
+[the notation map of the review](05-1-review-distribution-aware.html#tbl-notation-map)
 translates every reviewed method.
 
 All plate diagrams follow one symbol key: white squares are fixed
@@ -170,7 +161,7 @@ right.
 
 # From cells to reference moments {#sec-reference}
 
-The signature that enters [the released convolution](theory-review-distribution-aware-deconvolution.html#eq-gaussian-convolution) is a **population profile**: one mean vector and one covariance per cell type. Single-cell counts are not that object. This section states how to build the mean and how the covariance splits, then how to place the resulting profiles on the same scale as bulk sample $i$.
+The signature that enters [the released convolution](05-1-review-distribution-aware.html#eq-gaussian-convolution) is a **population profile**: one mean vector and one covariance per cell type. Single-cell counts are not that object. This section states how to build the mean and how the covariance splits, then how to place the resulting profiles on the same scale as bulk sample $i$.
 
 ![Within-sample cell noise, between-replicate biological covariance, and residual bulk noise.](images/covariance_three_variability_factors.png){#fig-three-variability fig-alt="Schematic of three covariance layers: linear within-cell variability, quadratic between-sample variability, and diagonal bulk measurement noise."}
 
@@ -192,7 +183,7 @@ $$
 \frac{1}{R}\sum_{r=1}^{R}\bar{\boldsymbol{X}}_{jr}.
 $$ {#eq-mean-two-stage}
 
-Divide by the **cell count** $C_{jr}$, not by the library size. Library-size weights $w_c=L_c/\sum_d L_d$ are functions of $\boldsymbol{X}_c$ itself. Their probability limit is $\tilde{\boldsymbol{\mu}}_{\cdot j}+\boldsymbol{\Sigma}_{W,j}\mathbf{1}/S_j$, so they target an RNA-weighted cell and destroy the exact Gaussian scale that leaves the precision graph unchanged. Under i.i.d. cells the arithmetic mean also has the largest effective sample size among deterministic convex weights.
+Divide by the **cell count** $C_{jr}$, not by the library size. Library-size weights $w_c=s_c/\sum_{c^{\prime}}s_{c^{\prime}}$ are functions of $\boldsymbol{X}_c$ itself. Their probability limit is $\tilde{\boldsymbol{\mu}}_{\cdot j}+\boldsymbol{\Sigma}_{W,j}\mathbf{1}/S_j$, so they target an RNA-weighted cell and destroy the exact Gaussian scale that leaves the precision graph unchanged. Under i.i.d. cells the arithmetic mean also has the largest effective sample size among deterministic convex weights.
 
 Pool cells across replicates only after the within-replicate mean. A replicate with $10\,000$ cells must not outweigh a replicate with $500$ cells. `MuSiC` is built on that multi-subject split: cross-subject means and variances, with genes weighted by cross-subject and cross-cell consistency [@wangBulkTissueCell2019].
 
@@ -240,7 +231,7 @@ $$
 \sum_j p_{ji}^{2}\,\boldsymbol{\Sigma}_{B,j}.
 $$ {#eq-facs-quadratic}
 
-The square appears because one random profile is multiplied by $p_{ji}$, not because $p_{ji}$ cells were added. This is the covariance in [the released convolution](theory-review-distribution-aware-deconvolution.html#eq-gaussian-convolution). If several types are sorted from the same donors, cross-type blocks $\boldsymbol{\Sigma}_{B,j\ell}$ add terms $p_{ji}p_{\ell i}$. Before droplet scRNA-seq, such population profiles came from FACS- or MACS-purified bulk libraries, already with coexpression among the genes of a purified type [@szaniszloGettingRightCells; @novershternDenselyInterconnectedTranscriptional2011].
+The square appears because one random profile is multiplied by $p_{ji}$, not because $p_{ji}$ cells were added. This is the covariance in [the released convolution](05-1-review-distribution-aware.html#eq-gaussian-convolution). If several types are sorted from the same donors, cross-type blocks $\boldsymbol{\Sigma}_{B,j\ell}$ add terms $p_{ji}p_{\ell i}$. Before droplet scRNA-seq, such population profiles came from FACS- or MACS-purified bulk libraries, already with coexpression among the genes of a purified type [@szaniszloGettingRightCells; @novershternDenselyInterconnectedTranscriptional2011].
 
 ### One single-cell replicate ($R=1$) {#sec-one-replicate}
 
@@ -254,7 +245,7 @@ $$
 \boldsymbol{\Sigma}_{\mathrm{obs},i}.
 $$ {#eq-linear-within}
 
-Here $n_i$ is the number of cells behind the bulk library, in practice an effective number (@sec-av-scale). The number of reference cells $C_{j1}$ is not $n_i$. A finite-cell reference mean adds a separate quadratic term $\sum_j p_{ji}^{2}\boldsymbol{\Sigma}_{W,j}/C_{j1}$. That term is Monte Carlo error of $\hat{\tilde{\boldsymbol{\mu}}}_{\cdot j}$, not biological between-donor covariance. Do not drop $\boldsymbol{\Sigma}_{W,j}$ into the $p_{ji}^{2}$ slot of [the released convolution](theory-review-distribution-aware-deconvolution.html#eq-gaussian-convolution).
+Here $n_i$ is the number of cells behind the bulk library, in practice an effective number (@sec-av-scale). The number of reference cells $C_{j1}$ is not $n_i$. A finite-cell reference mean adds a separate quadratic term $\sum_j p_{ji}^{2}\boldsymbol{\Sigma}_{W,j}/C_{j1}$. That term is Monte Carlo error of $\hat{\tilde{\boldsymbol{\mu}}}_{\cdot j}$, not biological between-donor covariance. Do not drop $\boldsymbol{\Sigma}_{W,j}$ into the $p_{ji}^{2}$ slot of [the released convolution](05-1-review-distribution-aware.html#eq-gaussian-convolution).
 
 For a rare type, $p_{ji}=0.01$ makes $p_{ji}^{2}$ a hundred times smaller than $p_{ji}$. A within-cell covariance placed in the quadratic slot is almost silenced.
 
@@ -373,44 +364,44 @@ Let $\boldsymbol{X}\sim\mathcal{N}_G(\boldsymbol{\mu},\boldsymbol{\Sigma})$.
 Two statements look contradictory,
 
 $$
-\operatorname{Cov}(a\boldsymbol{X})=a^{2}\boldsymbol{\Sigma}
+\operatorname{Cov}(K\boldsymbol{X})=K^{2}\boldsymbol{\Sigma}
 \qquad\text{versus}\qquad
-\operatorname{Cov}\Bigl(\sum_{r=1}^{a}\boldsymbol{X}_r\Bigr)=a\boldsymbol{\Sigma},
+\operatorname{Cov}\Bigl(\sum_{u=1}^{K}\boldsymbol{X}_u\Bigr)=K\boldsymbol{\Sigma},
 $$ {#eq-two-faces}
 
 and both are correct. The difference lies entirely in the dependence
-between the $a$ summands, not in two rules for Gaussian vectors.
+between the $K$ summands, not in two rules for Gaussian vectors.
 
 ## Characteristic-function proof {#sec-cf-proof}
 
 The characteristic function of $\boldsymbol{X}$ is
-$\phi_{\boldsymbol{X}}(\boldsymbol{t})
+$\varphi_{\boldsymbol{X}}(\boldsymbol{t})
 =\exp(i\boldsymbol{t}^{\top}\boldsymbol{\mu}
 -\tfrac12\boldsymbol{t}^{\top}\boldsymbol{\Sigma}\boldsymbol{t})$.
 
-**Scaling** substitutes $a\boldsymbol{t}$ for $\boldsymbol{t}$:
+**Scaling** substitutes $K\boldsymbol{t}$ for $\boldsymbol{t}$:
 
 $$
-\phi_{a\boldsymbol{X}}(\boldsymbol{t})
-=\phi_{\boldsymbol{X}}(a\boldsymbol{t})
-=\exp\bigl(i\boldsymbol{t}^{\top}(a\boldsymbol{\mu})
--\tfrac12\boldsymbol{t}^{\top}(a^{2}\boldsymbol{\Sigma})\boldsymbol{t}\bigr),
+\varphi_{K\boldsymbol{X}}(\boldsymbol{t})
+=\varphi_{\boldsymbol{X}}(K\boldsymbol{t})
+=\exp\bigl(i\boldsymbol{t}^{\top}(K\boldsymbol{\mu})
+-\tfrac12\boldsymbol{t}^{\top}(K^{2}\boldsymbol{\Sigma})\boldsymbol{t}\bigr),
 \qquad
-a\boldsymbol{X}\sim\mathcal{N}_G(a\boldsymbol{\mu},a^{2}\boldsymbol{\Sigma}).
+K\boldsymbol{X}\sim\mathcal{N}_G(K\boldsymbol{\mu},K^{2}\boldsymbol{\Sigma}).
 $$ {#eq-cf-scaling}
 
-**Independent convolution** multiplies $a$ identical factors:
+**Independent convolution** multiplies $K$ identical factors:
 
 $$
-\phi_{\boldsymbol{X}_1+\cdots+\boldsymbol{X}_a}(\boldsymbol{t})
-=\phi_{\boldsymbol{X}}(\boldsymbol{t})^{a}
-=\exp\bigl(i\boldsymbol{t}^{\top}(a\boldsymbol{\mu})
--\tfrac12\boldsymbol{t}^{\top}(a\boldsymbol{\Sigma})\boldsymbol{t}\bigr),
+\varphi_{\boldsymbol{X}_1+\cdots+\boldsymbol{X}_K}(\boldsymbol{t})
+=\varphi_{\boldsymbol{X}}(\boldsymbol{t})^{K}
+=\exp\bigl(i\boldsymbol{t}^{\top}(K\boldsymbol{\mu})
+-\tfrac12\boldsymbol{t}^{\top}(K\boldsymbol{\Sigma})\boldsymbol{t}\bigr),
 \qquad
-\sum_{r}\boldsymbol{X}_r\sim\mathcal{N}_G(a\boldsymbol{\mu},a\boldsymbol{\Sigma}).
+\sum_{u}\boldsymbol{X}_u\sim\mathcal{N}_G(K\boldsymbol{\mu},K\boldsymbol{\Sigma}).
 $$ {#eq-cf-convolution}
 
-The first route squares the quadratic exponent; the second adds $a$
+The first route squares the quadratic exponent; the second adds $K$
 copies of it. The density convolution
 $(f*f)(\boldsymbol{s})=\int f(\boldsymbol{x})f(\boldsymbol{s}-\boldsymbol{x})\,d\boldsymbol{x}$
 is the law of $\boldsymbol{X}_1+\boldsymbol{X}_2$ only when the two
@@ -420,43 +411,43 @@ already asserts independent summands.
 ## The master identity and its two endpoints {#sec-master-identity}
 
 For arbitrary random vectors with
-$\operatorname{Cov}(\boldsymbol{X}_r)=\boldsymbol{\Sigma}$ and
+$\operatorname{Cov}(\boldsymbol{X}_u)=\boldsymbol{\Sigma}$ and
 cross-covariances
-$\boldsymbol{C}_{rs}=\operatorname{Cov}(\boldsymbol{X}_r,\boldsymbol{X}_s)$,
+$\boldsymbol{C}_{uu^{\prime}}=\operatorname{Cov}(\boldsymbol{X}_u,\boldsymbol{X}_{u^{\prime}})$,
 
 $$
-\operatorname{Cov}\Bigl(\sum_{r=1}^{a}\boldsymbol{X}_r\Bigr)
-=\sum_{r,s}\operatorname{Cov}(\boldsymbol{X}_r,\boldsymbol{X}_s)
-=a\boldsymbol{\Sigma}+\sum_{r\neq s}\boldsymbol{C}_{rs}.
+\operatorname{Cov}\Bigl(\sum_{u=1}^{K}\boldsymbol{X}_u\Bigr)
+=\sum_{u,u^{\prime}}\operatorname{Cov}(\boldsymbol{X}_u,\boldsymbol{X}_{u^{\prime}})
+=K\boldsymbol{\Sigma}+\sum_{u\neq u^{\prime}}\boldsymbol{C}_{uu^{\prime}}.
 $$ {#eq-master-identity}
 
-Under **equicorrelation**, $\boldsymbol{C}_{rs}=\varrho\boldsymbol{\Sigma}$
-for $r\neq s$, the $a(a-1)$ off-diagonal blocks collapse to
+Under **equicorrelation**, $\boldsymbol{C}_{uu^{\prime}}=\varrho\boldsymbol{\Sigma}$
+for $u\neq u^{\prime}$, the $K(K-1)$ off-diagonal blocks collapse to
 
 $$
-\operatorname{Cov}\Bigl(\sum_{r=1}^{a}\boldsymbol{X}_r\Bigr)
-=a\bigl[1+(a-1)\varrho\bigr]\boldsymbol{\Sigma},
+\operatorname{Cov}\Bigl(\sum_{u=1}^{K}\boldsymbol{X}_u\Bigr)
+=K\bigl[1+(K-1)\varrho\bigr]\boldsymbol{\Sigma},
 \qquad
--\frac{1}{a-1}\le\varrho\le 1 .
+-\frac{1}{K-1}\le\varrho\le 1 .
 $$ {#eq-equicorrelation}
 
-Setting $\varrho=1$ (the same realised vector reused $a$ times) gives
-$a^{2}\boldsymbol{\Sigma}$; setting $\varrho=0$ (fresh independent
-draws) gives $a\boldsymbol{\Sigma}$. @tbl-dependence-regimes lists the
+Setting $\varrho=1$ (the same realised vector reused $K$ times) gives
+$K^{2}\boldsymbol{\Sigma}$; setting $\varrho=0$ (fresh independent
+draws) gives $K\boldsymbol{\Sigma}$. @tbl-dependence-regimes lists the
 cases. A sum of merely *marginally* Gaussian vectors need not be
 Gaussian; @eq-equicorrelation is a Gaussian law only when the stacked
-vector $(\boldsymbol{X}_1^{\top},\ldots,\boldsymbol{X}_a^{\top})^{\top}$
+vector $(\boldsymbol{X}_1^{\top},\ldots,\boldsymbol{X}_K^{\top})^{\top}$
 is **jointly** Gaussian, which is the assumption made whenever an
 intermediate $\varrho$ is used below.
 
 | Construction | Dependence | Mean | Covariance | Law |
 |---|---|---|---|---|
-| Same $\boldsymbol{X}$ repeated | $\varrho=1$ | $a\boldsymbol{\mu}$ | $a^{2}\boldsymbol{\Sigma}$ | $\mathcal{N}_G$ |
-| $a$ i.i.d. copies | $\varrho=0$ | $a\boldsymbol{\mu}$ | $a\boldsymbol{\Sigma}$ | $\mathcal{N}_G$ |
-| Correlated copies | general $\boldsymbol{C}_{rs}$ | $a\boldsymbol{\mu}$ | $a\boldsymbol{\Sigma}+\sum_{r\neq s}\boldsymbol{C}_{rs}$ | Gaussian if jointly Gaussian |
-| Equicorrelated copies | $\boldsymbol{C}_{rs}=\varrho\boldsymbol{\Sigma}$ | $a\boldsymbol{\mu}$ | $a[1+(a-1)\varrho]\boldsymbol{\Sigma}$ | Gaussian if jointly Gaussian |
+| Same $\boldsymbol{X}$ repeated | $\varrho=1$ | $K\boldsymbol{\mu}$ | $K^{2}\boldsymbol{\Sigma}$ | $\mathcal{N}_G$ |
+| $K$ i.i.d. copies | $\varrho=0$ | $K\boldsymbol{\mu}$ | $K\boldsymbol{\Sigma}$ | $\mathcal{N}_G$ |
+| Correlated copies | general $\boldsymbol{C}_{uu^{\prime}}$ | $K\boldsymbol{\mu}$ | $K\boldsymbol{\Sigma}+\sum_{u\neq u^{\prime}}\boldsymbol{C}_{uu^{\prime}}$ | Gaussian if jointly Gaussian |
+| Equicorrelated copies | $\boldsymbol{C}_{uu^{\prime}}=\varrho\boldsymbol{\Sigma}$ | $K\boldsymbol{\mu}$ | $K[1+(K-1)\varrho]\boldsymbol{\Sigma}$ | Gaussian if jointly Gaussian |
 
-: Dependence regimes for a sum of $a$ Gaussian vectors with common marginal covariance. The first two rows are the endpoints $\varrho=1$ and $\varrho=0$ of the last. {#tbl-dependence-regimes}
+: Dependence regimes for a sum of $K$ Gaussian vectors with common marginal covariance. The first two rows are the endpoints $\varrho=1$ and $\varrho=0$ of the last. {#tbl-dependence-regimes}
 
 The biological reading is the one that matters for a single-cell
 reference. If $\boldsymbol{\Sigma}_j$ is the covariance **between
@@ -564,7 +555,7 @@ $$ {#eq-mixture-cell}
 by the law of total covariance. The sum of $n$ independent such cells
 has $n$ times that covariance and is Gaussian only in the central-limit
 sense. This is the `RNA-Sieve` likelihood, written gene by gene
-([`RNA-Sieve`](theory-review-distribution-aware-deconvolution.html#sec-rnasieve)). The second term is the spread of the type means; it is
+([`RNA-Sieve`](05-1-review-distribution-aware.html#sec-rnasieve)). The second term is the spread of the type means; it is
 present because the labels are random, and it disappears once the
 counts $\boldsymbol{m}$ are conditioned on.
 
@@ -630,7 +621,7 @@ $$
 $$ {#eq-loglik-general}
 
 The identities of the population generative vignette
-([matrix calculus](theory-population-generative-optimisation.html#sec-matrix-calculus))
+([matrix calculus](01-1-population-generative-optimisation.html#sec-matrix-calculus))
 give the following.
 
 ::: {#thm-score-general}
@@ -706,10 +697,10 @@ type covariance, $\boldsymbol{\Sigma}_{p_jp_j}=2\boldsymbol{\Sigma}_j$ and
 $\boldsymbol{\Sigma}_{p_jp_\ell}=\boldsymbol{0}$ for $j\neq\ell$. Substituting into
 @eq-score-general to
 @eq-fisher-general recovers the
-[unconstrained gradient](theory-population-generative-optimisation.html#thm-score-unconstrained),
-[Hessian](theory-population-generative-optimisation.html#thm-hess-unconstrained)
+[unconstrained gradient](01-1-population-generative-optimisation.html#thm-score-unconstrained),
+[Hessian](01-1-population-generative-optimisation.html#thm-hess-unconstrained)
 and
-[expected Fisher information](theory-population-inference.html#sec-fisher-p)
+[expected Fisher information](01-2-population-inference.html#sec-fisher-p)
 of the population generative vignette term by term, including the factor
 $2p_jp_\ell$ in front of the covariance trace.
 :::
@@ -717,7 +708,7 @@ $2p_jp_\ell$ in front of the covariance trace.
 Every model below is therefore specified by its tuple
 $(\boldsymbol{\mu}_k,\boldsymbol{\Sigma}_k,\boldsymbol{\mu}_{kl},\boldsymbol{\Sigma}_{kl})$.
 When a parameter block lives on the simplex, the ILR chain rule
-([constrained score and Hessian](theory-population-generative-optimisation.html#thm-chain-rule))
+([constrained score and Hessian](01-1-population-generative-optimisation.html#thm-chain-rule))
 is applied to that block only; the Jacobian of the full map is block
 diagonal with identity blocks for the scalar parameters ($c_i$,
 $\phi_i$, $\tau_{gi}^{2}$). Positivity of a scalar $s>0$ is handled by
@@ -817,7 +808,7 @@ $$
 =\sum_{j=1}^{J}\sum_{c=1}^{m_{ji}}\boldsymbol{X}_{jic}.
 $$ {#eq-cc-sum}
 
-Applying @eq-master-identity with $\boldsymbol{C}_{rs}=\boldsymbol{0}$
+Applying @eq-master-identity with $\boldsymbol{C}_{uu^{\prime}}=\boldsymbol{0}$
 inside each type and independence across types,
 
 $$
@@ -888,7 +879,7 @@ there is no $\mathrm{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}_{kl})$ and no
 second residual quadratic. The covariance derivative is a constant
 matrix, so one Cholesky factorisation of $\boldsymbol{S}_W(\boldsymbol{m})$
 per iteration serves objective, score and Hessian, as in
-[`.sigma_p_factorisation()`](theory-population-generative-optimisation.html#sec-numerical-speedups).
+[`.sigma_p_factorisation()`](01-1-population-generative-optimisation.html#sec-numerical-speedups).
 
 Proportions and their uncertainty follow by the delta method. With
 $\hat n=\mathbf{1}^{\top}\hat{\boldsymbol{m}}$ and
@@ -909,7 +900,7 @@ That covariance is singular along $\mathbf{1}$, as it must be for a
 composition, without any log-ratio chart. A type with $\hat m_{ji}=0$
 is an ordinary point of the parameter space, not a boundary of a
 logarithm; the structural-zero machinery of the
-[population generative vignette](theory-population-generative-optimisation.html#sec-structural-zeros)
+[population generative vignette](01-1-population-generative-optimisation.html#sec-structural-zeros)
 is not needed here.
 
 ::: {#nte-sparse-precision-slot .callout-important}
@@ -1104,9 +1095,9 @@ $\boldsymbol{\Sigma}_{W,j}$.
 ### Strategy 1 and the reviewed methods {#sec-cc-compare}
 
 Three reviewed methods sit on this branch; their models are in the
-review ([`MuSiC`](theory-review-distribution-aware-deconvolution.html#sec-music),
-[`RNA-Sieve`](theory-review-distribution-aware-deconvolution.html#sec-rnasieve),
-[`DWLS`](theory-review-distribution-aware-deconvolution.html#sec-dwls)).
+review ([`MuSiC`](05-1-review-distribution-aware.html#sec-music),
+[`RNA-Sieve`](05-1-review-distribution-aware.html#sec-rnasieve),
+[`DWLS`](05-1-review-distribution-aware.html#sec-dwls)).
 Only the contrast with @eq-cc-five-layer is kept here.
 
 - **`MuSiC`** has the mean of @eq-cc-law before division by the
@@ -1199,7 +1190,7 @@ $\boldsymbol{p}$ block by the ILR chart,
 $\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho})$, with
 Jacobian $\mathbf{J}_\psi=\mathbf{S}(\boldsymbol{p})\mathbf{V}$ and the
 score contraction of the map Hessian exactly as in the
-[chain rule](theory-population-generative-optimisation.html#sec-chain-rule); the
+[chain rule](01-1-population-generative-optimisation.html#sec-chain-rule); the
 $\log n$ row is untouched. In particular the stationarity condition
 $\mathbf{V}^{\top}\mathbf{S}(\boldsymbol{p})\nabla_{\boldsymbol{p}}\ell=\boldsymbol{0}$
 is the same equation with $\nabla_{\boldsymbol{p}}\ell$ taken from
@@ -1256,7 +1247,7 @@ two scales, $\phi_i=ac_i$, and the pooled log-likelihood
 $\sum_i\ell_i$ couples all samples through the $a$ row of a block
 arrow-shaped Hessian. This pooling is what `MuSiC` achieves with its
 sample-level normalising constant and `RCTD` with a known depth
-offset ([`RCTD`](theory-review-distribution-aware-deconvolution.html#sec-rctd)).
+offset ([`RCTD`](05-1-review-distribution-aware.html#sec-rctd)).
 
 **A Poisson reading of the scales (our remark).** The mean
 $a_in_i\sum_jp_{ji}S_j\boldsymbol{\theta}_{\cdot j}$ has the multiplicative
@@ -1292,7 +1283,7 @@ diagonal excess identifies $\boldsymbol{D}_i$. If the reference network
 is weak, a free $\boldsymbol{D}_i$ absorbs $\phi_i$, and $n_i$ becomes
 unidentifiable; constrain $\boldsymbol{D}_i$ as in @sec-cc-noise, fix
 $n_i$ externally, or drop $\boldsymbol{D}_i$, as the
-[final model](theory-population-inference.html#sec-final-choice) does.
+[final model](01-2-population-inference.html#sec-final-choice) does.
 
 ### Layer 4: within and between covariance from $R$ replicates {#sec-av-replicates}
 
@@ -1338,8 +1329,8 @@ only the structure of $\boldsymbol{\Sigma}$.
 ### Strategy 2, DECALS and MEAD {#sec-av-decals}
 
 `DECALS` and `MEAD` sit on this branch; their models are in the
-review ([`DECALS`](theory-review-distribution-aware-deconvolution.html#sec-decals),
-[`MEAD`](theory-review-distribution-aware-deconvolution.html#sec-mead)).
+review ([`DECALS`](05-1-review-distribution-aware.html#sec-decals),
+[`MEAD`](05-1-review-distribution-aware.html#sec-mead)).
 In our indices the `DECALS` bulk covariance is
 $\operatorname{Cov}(\boldsymbol{y}_{\cdot i})=\sum_jp_{ji}^{2}\boldsymbol{\Sigma}_j$
 (their Section 2.3), the quadratic layer $\boldsymbol{S}_B(\boldsymbol{p})$ and
@@ -1355,10 +1346,10 @@ with @eq-av-four-layer remain.
   $\hat{\boldsymbol{p}}$ and uses $\boldsymbol{\Sigma}_j$ only in a sandwich
   variance; DeCovarT maximises the Gaussian likelihood, whose
   determinant and covariance-quadratic terms no least-squares criterion
-  has ([GLS competitor](theory-decovart-extensions-roadmap.html#sec-robust-gls)).
+  has ([GLS competitor](05-3-extensions-roadmap.html#sec-robust-gls)).
 - **Finite-sample correction.** The `DECALS` correction targets its
   covariance estimator, not $\hat{\boldsymbol{p}}$
-  ([Firth penalisation](theory-population-inference.html#sec-firth)).
+  ([Firth penalisation](01-2-population-inference.html#sec-firth)).
 
 `MEAD` estimates $\boldsymbol{\beta}_i=\gamma_i\boldsymbol{p}_{\cdot i}$, the
 $(c_i,\boldsymbol{p}_{\cdot i})$ pair of @eq-av-scale-law, and normalises at
@@ -1506,7 +1497,7 @@ practice, usually without saying so.
 
 | Scale | Plug-in estimator | Source | Methods |
 |---|---|---|---|
-| Technical size factor $s^{\mathrm{tech}}_c$, extrinsic noise $\nu^{\mathrm{tech}}$ | [the Poisson-gene size factor](theory-review-distribution-aware-deconvolution.html#eq-poisson-size-factor) on Poisson genes; spike-ins | reference cells | Fang and Pachter; [the denoised within-type covariance](theory-review-distribution-aware-deconvolution.html#eq-denoised-within) |
+| Technical size factor $s^{\mathrm{tech}}_c$, extrinsic noise $\nu^{\mathrm{tech}}$ | [the Poisson-gene size factor](05-1-review-distribution-aware.html#eq-poisson-size-factor) on Poisson genes; spike-ins | reference cells | Fang and Pachter; [the denoised within-type covariance](05-1-review-distribution-aware.html#eq-denoised-within) |
 | Cell size $S_j$ | mean UMI total per type; CLTS; RNA-content assay | reference, or external assay | `MuSiC`, `ReDeconv`, `EPIC`, `quanTIseq` |
 | Reference scale $a^{\mathrm{ref}}_r$ | grand mean of the reference matrix | reference alone | `MEAD` ($\hat\gamma_j$) |
 | Gene-wise platform ratio $\tilde{\boldsymbol{b}}$ | regression on paired samples; moment matching; pseudo-bulk MLE | paired cohort, or all bulks | `Bisque`, `RCTD` stage 1 |
@@ -1527,7 +1518,7 @@ $$ {#eq-plugin-law}
 
 with $\hat{\tilde{\mathbf{B}}}=\operatorname{diag}(\hat{\tilde{\boldsymbol{b}}})$, plugged-in
 sizes $\hat S_j$ and relative abundances $\hat{\boldsymbol{\theta}}_{\cdot j}$, and
-$\boldsymbol{S}_W$ built from [the denoised within-type covariance](theory-review-distribution-aware-deconvolution.html#eq-denoised-within). The tuple of
+$\boldsymbol{S}_W$ built from [the denoised within-type covariance](05-1-review-distribution-aware.html#eq-denoised-within). The tuple of
 @thm-score-general is that of @sec-av-replicates with
 $\tilde{\boldsymbol{\mu}}_{\cdot j}$ replaced by $\hat c_i\hat{\tilde{\mathbf{B}}}\hat S_j\hat{\boldsymbol{\theta}}_{\cdot j}$
 and every covariance block sandwiched by $\hat{\tilde{\mathbf{B}}}$;
@@ -1681,7 +1672,7 @@ those totals inside type $j$. A single mean capture efficiency scales
 every cell, so it cancels in the ratios of @eq-rna-to-cell; the
 absolute molecule number still needs an external anchor (the paper uses
 smFISH for that check). `Sanity` is the expression-model counterpart
-of the split in [measurement and expression models](theory-review-distribution-aware-deconvolution.html#sec-measurement): a Poisson measurement
+of the split in [measurement and expression models](05-1-review-distribution-aware.html#sec-measurement): a Poisson measurement
 model and a prior on the expression state, with the posterior reported as a
 denoised activity and an error bar, not as a molecule count
 [@bredaBayesianInferenceGene2021]. Use the `bayNorm` total as $S_j$.
@@ -1737,7 +1728,7 @@ Two consequences follow.
 - **Types of equal size overlap as their relative profiles do.** The map
   $\boldsymbol{x}\mapsto\boldsymbol{x}/S$ is affine, and the overlap of two
   Gaussians does not change under a common affine map
-  ([overlap and total variation](theory-distance-covariance.html#sec-overlap-tv)).
+  ([overlap and total variation](04-2-distances-overlap-metrics.html#sec-overlap-tv)).
   Two types with the same size $S$ therefore overlap exactly as
   $\mathcal{N}(\boldsymbol{\theta}_{\cdot j},\boldsymbol{\Sigma}^{\theta}_j)$ and
   $\mathcal{N}(\boldsymbol{\theta}_{\cdot\ell},\boldsymbol{\Sigma}^{\theta}_\ell)$ do. When
@@ -1773,11 +1764,11 @@ profiled and no $\boldsymbol{S}_B$ or $\boldsymbol{D}_i$ layer: $\boldsymbol{S}_
 $R\ge 2$ donors, and a bulk residual cannot be separated from the
 scales without further assumptions. Its quasi-likelihood form and
 inference are the
-[final choice](theory-population-inference.html#sec-final-choice) of
+[final choice](01-2-population-inference.html#sec-final-choice) of
 the inference vignette. With $R\ge 2$ donors the four layers of
 @sec-av-replicates apply, with $S_j$ and $\tilde{\boldsymbol{b}}$ plugged in as
 in Strategy 4 and the within-type covariance cleaned as in
-[the denoised within-type covariance](theory-review-distribution-aware-deconvolution.html#eq-denoised-within).
+[the denoised within-type covariance](05-1-review-distribution-aware.html#eq-denoised-within).
 Four further alternatives stay inside the multivariate Gaussian regime
 and deserve a place in a simulation study before any is implemented.
 
@@ -1810,7 +1801,7 @@ and deserve a place in a simulation study before any is implemented.
    @thm-score-general still applies but $\boldsymbol{\mu}_{kl}\neq\boldsymbol{0}$.
 
 Outside the Gaussian regime, a Poisson–log-normal read-level mixture
-(`RCTD`, [`RCTD`](theory-review-distribution-aware-deconvolution.html#sec-rctd)) is the natural competitor.
+(`RCTD`, [`RCTD`](05-1-review-distribution-aware.html#sec-rctd)) is the natural competitor.
 
 Strategy 4 is orthogonal to that choice: any of the laws above can be
 fitted with plug-in scales. The rule that follows from
@@ -1825,7 +1816,7 @@ report @eq-plugin-variance rather than the naive $I_{pp}^{-1}$.
 fits the linear layer of Strategy 2, @eq-av-scale-law, to one bulk
 sample and estimates both scales. Intervals for the composition and for
 the scales are derived in the
-[single-cell inference vignette](theory-single-cell-inference.html).
+[single-cell inference vignette](02-2-single-cell-inference.html).
 
 ## Closed-form scales and the profile log-likelihood {#sec-profile-scales}
 
@@ -1912,7 +1903,7 @@ $H_{c\phi}=-\boldsymbol{m}^{\top}\boldsymbol{w}/\phi^{2}$ and
 $H_{\phi\phi}=G/(2\phi^{2})-\hat{\boldsymbol{r}}^{\top}\boldsymbol{w}/\phi^{3}$
 take these values only at $\hat c$ and $\hat\phi$. $\boldsymbol{H}_{pp}$ is
 the Hessian in $\boldsymbol{p}$ at fixed scales. The ILR
-[chain rule](theory-population-generative-optimisation.html#sec-chain-rule)
+[chain rule](01-1-population-generative-optimisation.html#sec-chain-rule)
 then adds the curvature of the chart. Score and Hessian
 (`gradient_profile_loglik_single_cell_ilr()`,
 `hessian_profile_loglik_single_cell_ilr()`) were checked against
@@ -1953,7 +1944,7 @@ $G>J$. The maximum-likelihood divisor $G$ biases $\hat\phi$ downwards by
 about $(G-J)/G$, so $\hat n=\hat c^{2}/\hat\phi$ is biased upwards; $\hat n$
 and $\hat a=\hat\phi/\hat c$ are descriptors, not inputs of the fit. The
 REML calibration of the intervals is in the
-[single-cell inference vignette](theory-single-cell-inference.html#sec-sc-reml).
+[single-cell inference vignette](02-2-single-cell-inference.html#sec-sc-reml).
 `profile = FALSE` keeps the scales at their start values. That
 two-stage fit is not the joint maximum; it is kept for comparison, and
 its variance needs the plug-in correction of @sec-plugin-uncertainty.
@@ -1964,7 +1955,7 @@ its variance needs the plug-in correction of @sec-plugin-uncertainty.
 profile log-likelihood on the closure chart
 $\boldsymbol{p}=\boldsymbol{w}/\mathbf{1}^{\top}\boldsymbol{w}$, $\boldsymbol{w}\ge\boldsymbol{0}$,
 of the
-[population vignette](theory-population-generative-optimisation.html#sec-closure-box).
+[population vignette](01-1-population-generative-optimisation.html#sec-closure-box).
 The profile score @eq-sc-profile-score is mapped to $\boldsymbol{w}$ by the
 closure gradient, and the scales stay concentrated out at every
 iterate. Every KKT point of the box in $\boldsymbol{w}$ is a KKT point of

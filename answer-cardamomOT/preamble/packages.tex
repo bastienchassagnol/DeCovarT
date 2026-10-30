@@ -1,0 +1,27 @@
+% ===================================================================== packages
+\usepackage{iftex}
+\ifPDFTeX
+  \PackageError{report}{Compile with LuaLaTeX or XeLaTeX}{}
+\fi
+\usepackage{fontspec}
+\setmonofont{DejaVu Sans Mono}[Scale=MatchLowercase]
+\usepackage[british]{babel}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage[a4paper,margin=2.1cm,headheight=14pt]{geometry}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{microtype}
+\usepackage{csquotes}
+\usepackage{booktabs,tabularx,array}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage[font=small,labelfont=bf,singlelinecheck=off]{caption}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage[most]{tcolorbox}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds,calc,shapes.geometric}
+\usepackage[backend=biber,style=authoryear,maxcitenames=2,uniquelist=false,uniquename=false,
+            giveninits=true,dashed=false,doi=true,url=false,isbn=false,eprint=false]{biblatex}
+\addbibresource{references.bib}
+\usepackage[hidelinks]{hyperref}
+\usepackage[capitalise,noabbrev]{cleveref}

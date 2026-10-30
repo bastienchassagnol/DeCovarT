@@ -32,7 +32,7 @@ options(tinytable_html_mathjax = TRUE)
 ```
 
 This appendix is the numerical counterpart of
-[population inference](theory-population-inference.html).
+[population inference](01-2-population-inference.html).
 That article states what the Gaussian-convolution MLE is entitled to
 claim. The chunks here check those claims on small, fully specified
 scenarios.
@@ -43,13 +43,13 @@ Two regimes are kept distinct:
    simplex. Affine equivariance, small bulk perturbations, and random
    ILR starts probe estimator invariance and solver stability when the
    Wilks $\chi^2$ calibration of
-   [interior inference](theory-population-inference.html#sec-interior)
+   [interior inference](01-2-population-inference.html#sec-interior)
    applies.
 2. **Identifiability edge cases.** Collinear or identical means,
    boundary zeros, and near-flat likelihood ridges, matching
-   [identifiability](theory-population-inference.html#sec-identifiability)
+   [identifiability](01-2-population-inference.html#sec-identifiability)
    and
-   [boundary calibration](theory-population-inference.html#sec-boundary).
+   [boundary calibration](01-2-population-inference.html#sec-boundary).
 
 Heavy Monte Carlo factorial runs live in
 `scripts/supp_S1_identifiability.R` (`N_REPLICATES=2` for a smoke test;
@@ -85,7 +85,7 @@ y <- matrix(
 The generating composition below is strictly positive. That is the
 setting in which `fit_decovart()` Wald intervals are defined and the
 score equations of
-[the convolution log-likelihood](theory-population-inference.html#eq-loglik)
+[the convolution log-likelihood](01-2-population-inference.html#eq-loglik)
 are regular.
 
 ## Gene-wise affine equivariance {#sec-affine}
@@ -111,7 +111,7 @@ $\hat{\boldsymbol{p}}(\boldsymbol{Y},\boldsymbol{\mu},\boldsymbol{\Sigma})
 \boldsymbol{\Sigma}^\star)$ in exact arithmetic. A z-score computed
 **once per gene from $\boldsymbol{\mu}$** (not per cell type, not per bulk
 sample) is that map; see
-[equivariance in the MLE article](theory-population-inference.html#sec-mle-properties).
+[equivariance in the MLE article](01-2-population-inference.html#sec-mle-properties).
 
 A logarithm is not affine. It is concave, so Jensen's inequality
 changes first and second moments, and
@@ -270,7 +270,7 @@ list(
 
 A fuller comparison of normalisation (CPM, log2), tolerance, and
 dimension $(G,J)$ belongs in
-[Appendix S3](supp-S3-scaling.html).
+[Appendix S3](S3-scaling.html).
 
 # Identifiability edge cases {#sec-identifiability-edges}
 
@@ -279,7 +279,7 @@ $\boldsymbol{\mu}$ has full column rank. That is **sufficient** for
 identifiability of $\boldsymbol{p}$ but **not necessary**: the
 convolution law also depends on
 $\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_{j}p_{j}^{2}\boldsymbol{\Sigma}_{j}$
-([proposition](theory-population-inference.html#prp-identifiability)).
+([proposition](01-2-population-inference.html#prp-identifiability)).
 Identical means with distinct covariances remain identifiable; the
 negative control is identical means *and* proportional covariances.
 
@@ -350,8 +350,8 @@ Run `Rscript scripts/supp_S1_identifiability.R` (or
 | Sub-scenario | Factor | Levels |
 |---|---|---|
 | **S1a** Boundary | $p_3 = 0$ | Wald / profile / bootstrap CI on $J=3$, $G=10$ |
-| **S1b** Same means | Covariance separation $\rho_{12}$ | $0$, $0.5$, $0.9$ ($J=2$, $G=5$) |
-| **S1c** Multimodal | Gene–gene correlation $\rho$ | $-0.8$, $0$, $0.8$ (low CLD, $J=2$, $G=2$) |
+| **S1b** Same means | Covariance separation $\varrho_{12}$ | $0$, $0.5$, $0.9$ ($J=2$, $G=5$) |
+| **S1c** Multimodal | Gene–gene correlation $\varrho$ | $-0.8$, $0$, $0.8$ (low CLD, $J=2$, $G=2$) |
 
 $N = 1000$ Monte Carlo replicates per sub-scenario in a full run
 (smoke test: $n = 2$). Solvers: Marquardt--Levenberg for S1b/S1c;
@@ -372,9 +372,9 @@ N_REPLICATES <- as.integer(Sys.getenv("N_REPLICATES", unset = "1000"))
   [`lrt_decovart()`](../reference/lrt_decovart.html) /
   [`confint_profile_decovart()`](../reference/confint_profile_decovart.html)
   with chi-bar-square calibration
-  ([boundary nulls](theory-population-inference.html#sec-boundary)).
+  ([boundary nulls](01-2-population-inference.html#sec-boundary)).
 - **S1b (same means):** RMSE decreases as covariance separation grows.
-  Below $\rho_{12}=0$ (identical diagonal $\boldsymbol{\Sigma}_j$) the
+  Below $\varrho_{12}=0$ (identical diagonal $\boldsymbol{\Sigma}_j$) the
   pair is a negative control. DeCovarT's advantage is largest when
   means are uninformative.
 - **S1c (multimodal):** The fraction of multistarts recovering the
@@ -384,9 +384,9 @@ N_REPLICATES <- as.integer(Sys.getenv("N_REPLICATES", unset = "1000"))
 
 ## See also
 
-- [MLE properties](theory-population-inference.html)
-- [Appendix S2 — Covariance inversion](supp-S2-covariance-inversion.html)
-- [Appendix S3 — Solver scalability](supp-S3-scaling.html)
-- [How to build synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html)
+- [MLE properties](01-2-population-inference.html)
+- [Appendix S2 — Covariance inversion](S2-covariance-inversion.html)
+- [Appendix S3 — Solver scalability](S3-scaling.html)
+- [How to build synthetic scenarios](04-1-synthetic-scenarios.html)
 
 ## References

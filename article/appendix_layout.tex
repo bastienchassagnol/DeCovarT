@@ -1,7 +1,7 @@
 \section{Regularised estimation of sparse networks and covariances}
 \label{app:networks}
 
-Detailed review in the \vignette{theory-network-inference.html}{network-inference vignette}.
+Detailed review in the \vignette{03-2-covariance-network-estimation.html}{network-inference vignette}.
 
 \begin{itemize}
   \item estimand: the precision \(\boldsymbol{\Omega}_{j}\) of the within-type Gaussian; zeros are conditional
@@ -111,7 +111,7 @@ transformation]
 \section{Review of deconvolution algorithms leveraging cell-type-specific variances}
 \label{app:review}
 
-Detailed review in the \vignette{theory-review-distribution-aware-deconvolution.html}{review vignette}.
+Detailed review in the \vignette{05-1-review-distribution-aware.html}{review vignette}.
 
 \subsection{Measurement versus expression models}
 
@@ -460,7 +460,7 @@ Differentiating \eqref{eq-derivative-log-likelihood-unconstrained} once more giv
 
 Every in silico scenario is reported with the descriptors of Table~\ref{tab:descriptors}, computed from
 \((\boldsymbol{p},\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})\) by \texttt{describe\_simulation\_scenario()}
-(\vignette{theory-synthetic-scenarios-mean-covariance.html\#sec-scenario-descriptors}{synthetic-scenarios vignette}). Each
+(\vignette{04-1-synthetic-scenarios.html\#sec-scenario-descriptors}{synthetic-scenarios vignette}). Each
 column answers its own question, so no composite score is formed.
 
 \begin{table}[ht]
@@ -509,7 +509,7 @@ Model \eqref{eq:sc-model} of Section~\ref{sec:sc-tailored}.
 \label{app:sc-derivation}
 
 Model \eqref{eq:sc-model} of Section~\ref{sec:sc-tailored}, derived under (B1)--(B3); derivations in the
-\vignette{theory-single-cell-generative-optimisation.html\#sec-general}{single-cell generative and optimisation vignette}. In
+\vignette{02-1-single-cell-generative-optimisation.html\#sec-general}{single-cell generative and optimisation vignette}. In
 \eqref{eq:sc-derivation}, \textcolor{scalecol}{technical scales} and the \textcolor{compcol}{composition} are coloured.
 
 \begin{subequations}
@@ -683,7 +683,7 @@ Our derivation, for UMI-like counts; it is not implemented yet.
 \subsubsection{Alternative alignment strategies}
 \label{app:alignment}
 
-Derivations in the \vignette{theory-single-cell-generative-optimisation.html}{single-cell generative and optimisation vignette}.
+Derivations in the \vignette{02-1-single-cell-generative-optimisation.html}{single-cell generative and optimisation vignette}.
 
 \begin{itemize}
   \item reference regimes
@@ -898,7 +898,7 @@ Derivations in the \vignette{theory-single-cell-generative-optimisation.html}{si
         \(I_{\rho\rho}-I_{\rho\eta}I_{\eta\eta}^{-1}I_{\eta\rho}\), \(\boldsymbol{\eta}=(c,\phi)\), so estimating the scales
         widens the intervals automatically
   \item joint versus plug-in nuisance scales
-        (\vignette{theory-single-cell-generative-optimisation.html\#sec-strategy-plugin}{plug-in strategy})
+        (\vignette{02-1-single-cell-generative-optimisation.html\#sec-strategy-plugin}{plug-in strategy})
   \begin{itemize}
     \item with one bulk sample and no external data there is no genuine plug-in: a two-step moment
           estimate of \(c\) and \(\phi\) from the same bulk is possible, but the variance of
@@ -936,7 +936,7 @@ Derivations in the \vignette{theory-single-cell-generative-optimisation.html}{si
 This section and the next two apply to both models.
 
 Full derivations, worked examples and a figure in the
-\vignette{theory-population-generative-optimisation.html\#sec-constrained}{population generative and optimisation vignette}.
+\vignette{01-1-population-generative-optimisation.html\#sec-constrained}{population generative and optimisation vignette}.
 
 \subsubsection{Four charts of the simplex}
 \label{app:charts}
@@ -1415,7 +1415,7 @@ The argument follows maximum likelihood as iteratively reweighted least squares 
 \subsection{Maximum-likelihood properties and confidence intervals}
 \label{app:mle}
 
-Proofs and simulations in the \vignette{theory-population-inference.html}{population inference vignette}.
+Proofs and simulations in the \vignette{01-2-population-inference.html}{population inference vignette}.
 
 \subsubsection{Existence, uniqueness and identifiability}
 
@@ -1551,7 +1551,7 @@ Intervals in this appendix follow the generalised-linear-model treatment of like
         where the interval is wide and the inversion of \(\boldsymbol{j}\) loses accuracy; \(\kappa\) alone misses a flat but
         round peak: in the archived run of the covariance-driven scenario (\(N=50\)), \(\kappa\) of the ILR information
         fell from \(6.8\) to \(1.7\) as the overlap grew, because both eigenvalues shrank
-        (\vignette{fig03-covariance-driven.html\#sec-hybrid-findings}{covariance-driven vignette}), so
+        (\vignette{R2-covariance-driven.html\#sec-hybrid-findings}{covariance-driven vignette}), so
         \(\lambda_{\min}\) is read together with \(\kappa\)
   \item Gaussian response, identity link, known covariance: \(\ell\) is exactly quadratic in the coefficients,
         the Wald, likelihood-ratio and score statistics are equal, their \(\chi^{2}\) law is exact, and the
@@ -1564,7 +1564,7 @@ Intervals in this appendix follow the generalised-linear-model treatment of like
     \item near a face, \(p_{j}\to0\) sends \(\rho\) to infinity and \(\ell\) flattens; with few replicates, an
           unbalanced composition or overlapping types, the profile is skewed and the plateau is wide; the
           ILR slices of the covariance-driven scenario show these ridges
-          (\vignette{fig03-covariance-driven.html\#sec-hybrid-findings}{covariance-driven vignette})
+          (\vignette{R2-covariance-driven.html\#sec-hybrid-findings}{covariance-driven vignette})
   \end{itemize}
   \item diagnostic: compare the Wald, score and likelihood-ratio intervals for the same estimate; plot
         the signed root \(r(\psi)\) of Appendix~\ref{app:mle-inversion} against the Wald pivot
@@ -1690,7 +1690,7 @@ Intervals in this appendix follow the generalised-linear-model treatment of like
         \(\boldsymbol{\eta}\), as restricted maximum likelihood does for a variance
         \cite{coxParameterOrthogonalityApproximate1987}
   \item the same block structure of the expected information is derived for every alignment strategy in the
-        \vignette{theory-single-cell-generative-optimisation.html\#sec-compound}{single-cell generative and optimisation vignette}
+        \vignette{02-1-single-cell-generative-optimisation.html\#sec-compound}{single-cell generative and optimisation vignette}
 \end{itemize}
 
 \subsubsection{Higher-order and finite-sample corrections}
@@ -1771,7 +1771,7 @@ Intervals in this appendix follow the generalised-linear-model treatment of like
 \label{app:metrics}
 
 Formulas and simulations in the
-\vignette{theory-synthetic-scenarios-mean-covariance.html\#sec-performance-metrics}{synthetic-scenarios vignette}.
+\vignette{04-1-synthetic-scenarios.html\#sec-performance-metrics}{synthetic-scenarios vignette}.
 Notation: \(\boldsymbol{e}=\hat{\boldsymbol{p}}-\boldsymbol{p}^{\star}\).
 
 \begin{itemize}
@@ -1983,7 +1983,7 @@ The designs below are specified in the supplementary vignettes; none reports res
         \(\rho\in\{-0.8,0,0.8\}\), 1000 replicates; expected: the fraction of starts that reach the global mode falls as
         the mean columns approach each other
   \item remedy: several Dirichlet starts or a quadratic-programming warm start
-        (\vignette{supp-S1-identifiability.html}{identifiability vignette})
+        (\vignette{S1-identifiability.html}{identifiability vignette})
 \end{itemize}
 
 \subsection{Active null proportions}
@@ -1998,7 +1998,7 @@ The designs below are specified in the supplementary vignettes; none reports res
         signal need bootstrap-calibrated weights
   \item covariance input, at \(\boldsymbol{p}=\mathbf{1}/J\): true full \(\boldsymbol{\Sigma}_{j}\), cell-type diagonal, global weighted
         diagonal, identity; mean cosine \(\{0,0.5,0.9\}\), \(G=50\), \(J=3\), 200 replicates; expected: the gap to the
-        oracle grows with the mean cosine (\vignette{supp-S4-covariance-modeling.html}{covariance-modelling vignette})
+        oracle grows with the mean cosine (\vignette{S4-covariance-modeling.html}{covariance-modelling vignette})
 \end{itemize}
 
 \subsection{Model robustness}

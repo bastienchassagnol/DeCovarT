@@ -16,7 +16,7 @@
 #     > "logs/supp_S3_$(date +%F)_scaling.log" 2>&1 &
 #
 # Article:  DeCovarT – Supplementary: scalability
-# Vignette: vignettes/fig03-covariance-driven.qmd  {#sec-scenario-grid}
+# Vignette: vignettes/R2-covariance-driven.qmd  {#sec-scenario-grid}
 #           (pilot subset; full grid on HPC)
 #
 # ── Factorial design ─────────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 ---
-title: "2.4 Single-cell scenario: four cell types in two lineages (G = 20 or 200, J = 4)"
+title: "§2.4 Single-cell scenario: four cell types in two lineages (G = 20 or 200, J = 4)"
 subtitle: "Full script: `scripts/fig05_single_cell_hierarchical.R`"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
@@ -42,7 +42,7 @@ reference: every cell type is one purified Gaussian profile, and the bulk
 is their convolution. This scenario uses a **single-cell** reference:
 the bulk is the sum of $n_i$ cells, each drawn from the law of its type,
 and DeCovarT fits the single-cell model with its two scales profiled out
-([single-cell model](theory-single-cell-generative-optimisation.html#sec-profile-newton)).
+([single-cell model](02-1-single-cell-generative-optimisation.html#sec-profile-newton)).
 The $J=4$ cell types form two lineages, types 1–2 and types 3–4, so
 every type has a close sibling and a distant cousin. Construction,
 benchmark and plot books live in one script,
@@ -100,7 +100,7 @@ benchmark and plot books live in one script,
 # Generative model {#sec-sc-generative}
 
 The generator is the single-cell model itself
-([cell size in the covariance](theory-single-cell-generative-optimisation.html#sec-cell-size-covariance)).
+([cell size in the covariance](02-1-single-cell-generative-optimisation.html#sec-cell-size-covariance)).
 For bulk $i$,
 
 $$
@@ -135,7 +135,7 @@ known cell sizes and raw covariances.
 
 One mean signature per gene count $G\in\{20,200\}$ is built by
 `generate_mean_signature_matrix(target_gram = R, nonnegative = TRUE)`
-([mean signature construction](theory-synthetic-scenarios-mean-covariance.html#sec-lr-block-mu)),
+([mean signature construction](04-1-synthetic-scenarios.html#sec-lr-block-mu)),
 with mean scale $10$ and the target Gram
 
 $$
@@ -177,7 +177,7 @@ sibling covariances differ so much at $G=200$ that a sibling overlap of
 $0.08$ cannot be reached (at most $0.013$; $0.030$ with $20\%$ flips).
 Precisions are completed by `build_normalised_precision()` with a fixed
 spectral shift of $0.2$
-([GGM networks](theory-synthetic-scenarios-mean-covariance.html#sec-ggm-networks)).
+([GGM networks](04-1-synthetic-scenarios.html#sec-ggm-networks)).
 
 ## Sibling overlap
 
@@ -214,11 +214,11 @@ estimates, $10^4$ draws per type).
 - **Genes.** The maximum-likelihood variance scale $\hat\phi$ is biased
   down by about $(G-J)/G$, that is $0.8$ at $G=20$ and $0.98$ at $G=200$;
   the REML calibration corrects it
-  ([REML](theory-single-cell-inference.html#sec-sc-reml)).
+  ([REML](02-2-single-cell-inference.html#sec-sc-reml)).
 - **Platform scale.** Rescaling the bulk by $a$ rescales $\hat c$ by $a$
   and $\hat\phi$ by $a^{2}$, leaves $\hat{\boldsymbol p}$ unchanged, and
   shifts the profile log-likelihood by $-G\log a$
-  ([scale equivariance](theory-single-cell-inference.html#sec-sc-setting)),
+  ([scale equivariance](02-2-single-cell-inference.html#sec-sc-setting)),
   so the estimates of $\boldsymbol p$ should agree between $a=1$ and
   $a=5$, which the crossed $a=1$ half checks numerically. It also tests
   RNA-Sieve, whose mean and variance share one scale.
@@ -268,7 +268,7 @@ feature selection).
 - **DeCovarT.** Newton–Raphson and L-BFGS-B maximise the same profile
   log-likelihood; L-BFGS-B works on the closure chart
   $\boldsymbol p=\boldsymbol w/\mathbf1^{\top}\boldsymbol w$, $\boldsymbol w\ge0$
-  ([L-BFGS-B](theory-single-cell-generative-optimisation.html#sec-profile-lbfgsb)).
+  ([L-BFGS-B](02-1-single-cell-generative-optimisation.html#sec-profile-lbfgsb)).
   Bootstraps refit with the optimiser of the estimate.
   A boundary estimate (one, two or up to $J-1$ zero proportions: a face,
   an edge or a vertex) has no Wald or ILR interval, for
@@ -277,7 +277,7 @@ feature selection).
   Profile intervals refit from the bulk and are reported under
   Newton–Raphson only.
 - **Second-generation methods** follow the protocol of the
-  [covariance-driven scenario](fig03-covariance-driven.html#sec-hybrid-methods).
+  [covariance-driven scenario](R2-covariance-driven.html#sec-hybrid-methods).
   MEAD and RNA-Sieve read a reference panel of $R$ individuals and $20$
   cells per type and individual, drawn by `simulate_reference_replicates()`
   with its own seed, independent of the bulks.
@@ -302,7 +302,7 @@ feature selection).
 ## Interval constructions {#sec-fig05-intervals}
 
 The menu is that of the
-[single-cell inference article](theory-single-cell-inference.html#sec-sc-intervals):
+[single-cell inference article](02-2-single-cell-inference.html#sec-sc-intervals):
 
 | Interval | Construction |
 |:---------|:-------------|
@@ -366,7 +366,7 @@ render_figure_from_data("ci_width_forest", plot_data, "output/fig05")
 ```
 
 The books follow those of the
-[covariance-driven scenario](fig03-covariance-driven.html#sec-hybrid-viz),
+[covariance-driven scenario](R2-covariance-driven.html#sec-hybrid-viz),
 with these changes:
 
 - pages follow @fig-single-cell-hierarchy: $G$, then $n_i$, the
@@ -399,12 +399,12 @@ with these changes:
 
 ## See also
 
-- [Covariance-driven scenario](fig03-covariance-driven.html)
+- [Covariance-driven scenario](R2-covariance-driven.html)
 - Single-cell model and its fit:
-  [generative model and optimisation](theory-single-cell-generative-optimisation.html)
+  [generative model and optimisation](02-1-single-cell-generative-optimisation.html)
 - Single-cell intervals and tests:
-  [inference](theory-single-cell-inference.html)
+  [inference](02-2-single-cell-inference.html)
 - Moment generator:
-  [How to build synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html)
+  [How to build synthetic scenarios](04-1-synthetic-scenarios.html)
 
 ## References

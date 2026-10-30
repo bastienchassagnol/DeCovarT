@@ -16,8 +16,8 @@
 #     > "logs/supp_S1_$(date +%F)_identifiability.log" 2>&1 &
 #
 # Article:  DeCovarT – Appendix S1 (regular-case MLE + identifiability)
-# Vignette: vignettes/supp-S1-identifiability.qmd
-# Theory:   vignettes/theory-population-inference.qmd
+# Vignette: vignettes/S1-identifiability.qmd
+# Theory:   vignettes/01-2-population-inference.qmd
 #
 # ── Design ──────────────────────────────────────────────────────────────────
 #  Regular interior (vignette-parity check)

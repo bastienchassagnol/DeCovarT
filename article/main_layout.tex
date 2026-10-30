@@ -606,7 +606,7 @@ estimate some of these terms from the bulk cohort, DeCovarT plugs in
           \(10^{-14}\), where the same intervals are defined numerically and unreliable statistically
   \end{itemize}
   \item code and outputs: \repo{blob/main/scripts/fig02_bivariate_toy.R}{script},
-        \vignette{fig02-bivariate-toy.html}{vignette},
+        \vignette{R1-bivariate-toy.html}{vignette},
         \repo{tree/main/output/fig02}{plot books};
         \texttt{fig02\_benchmark.rds} holds the settings, the design, the truth and every metric table, and
         \texttt{fig02\_plot\_data.rds} the data behind each figure, keyed by its file name;
@@ -690,7 +690,7 @@ $\boldsymbol{\Sigma}_{j}$ carries the remaining discriminative signal.
         type drawn independently of the bulks (reusing the profiles that built a bulk would leak its composition) and
         are fitted on the cohort of the \(N\) bulks of a scenario, whereas DeCovarT fits one bulk at a time
   \item code and outputs: \repo{blob/main/scripts/fig03_variance_covariance_driven.R}{script},
-        \vignette{fig03-covariance-driven.html}{vignette}, \repo{tree/main/output/fig03}{plot books}
+        \vignette{R2-covariance-driven.html}{vignette}, \repo{tree/main/output/fig03}{plot books}
 \end{itemize}
 
 \begin{figure}[ht]
@@ -727,7 +727,7 @@ $\boldsymbol{\Sigma}_{j}$ carries the remaining discriminative signal.
         number of cells here only because \(a\) is known to the generator; at a boundary estimate of L-BFGS-B, the
         intervals of the scales are not reported either (Section~\ref{sec:bivariate})
   \item code and outputs: \repo{blob/main/scripts/fig05_single_cell_hierarchical.R}{script},
-        \vignette{fig05-single-cell-hierarchical.html}{vignette}, \repo{tree/main/output/fig05}{plot books}
+        \vignette{R3-single-cell-hierarchical.html}{vignette}, \repo{tree/main/output/fig05}{plot books}
 \end{itemize}
 
 \begin{figure}[ht]
@@ -797,7 +797,7 @@ The index \(i\) is restored in the model statements.
 Base indices used throughout: gene \(g=1,\ldots,G\), cell type \(j,\ell=1,\ldots,J\),
 sample \(i=1,\ldots,N\), reference donor \(r\), cell \(c\).
 Table~\ref{tab:notation} is the alignment layer used in the
-\vignette{theory-single-cell-generative-optimisation.html}{single-cell generative and optimisation vignette}.
+\vignette{02-1-single-cell-generative-optimisation.html}{single-cell generative and optimisation vignette}.
 
 \begin{table}[ht]
   \centering
@@ -884,7 +884,7 @@ Each is tailored to its own scope; neither is better in every deconvolution task
         \cite{erkkilaProbabilisticAnalysisGene2010,ahnDeMixDeconvolutionMixed2013,wangTranscriptomeDeconvolutionHeterogeneous2018}
   \item a pooled profile averages its cells, so only its fluctuation across specimens is observed: within-type
         cell-to-cell variability and between-specimen variability are confounded in \(\boldsymbol{\Sigma}_{j}\)
-        (\vignette{theory-single-cell-generative-optimisation.html\#sec-facs}{single-cell generative and optimisation vignette})
+        (\vignette{02-1-single-cell-generative-optimisation.html\#sec-facs}{single-cell generative and optimisation vignette})
 \end{itemize}
 
 \subsubsection{Generative model and core assumptions}
@@ -929,7 +929,7 @@ Each is tailored to its own scope; neither is better in every deconvolution task
 \end{enumerate}
 Under (A1)--(A4), the implied law is the estimating equation of DeCovarT; derivatives, the ILR
 chain rule and the Fisher information are in Appendix~\ref{app:derivation} and the
-\vignette{theory-population-generative-optimisation.html}{population generative and optimisation vignette}.
+\vignette{01-1-population-generative-optimisation.html}{population generative and optimisation vignette}.
 
 \begin{equation}
   \boldsymbol{y}_{\cdot i}
@@ -1005,7 +1005,7 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
   \item purified profiles \(\boldsymbol{x}_{\cdot j}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j})\)
         are combined by the convolution \eqref{eq:convolution}, not drawn from a finite mixture;
         five layers are generated separately (pipeline in the
-        \vignette{theory-synthetic-scenarios-mean-covariance.html}{synthetic-scenarios vignette})
+        \vignette{04-1-synthetic-scenarios.html}{synthetic-scenarios vignette})
   \item mean signature with a target Gram matrix (Figure~\ref{fig:scenarios}A)
   \begin{itemize}
     \item target cosines in \(R\), by default equicorrelation \(R_{J}(\rho)=(1-\rho)\mathbf{I}_{J}+\rho\mathbf{1}\mathbf{1}^{\top}\)
@@ -1045,7 +1045,7 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
     \item exact route for \(G<4\) (\texttt{MixSim::overlap()}); for \(G\ge4\), our Monte Carlo route draws
           \(n\) points per component from a scrambled Sobol sequence mapped through \(\Phi^{-1}\) and the
           Cholesky factor of \(\boldsymbol{\Sigma}_{j}\), and counts Bayes-rule misassignments
-          (\vignette{theory-distance-covariance.html}{distance vignette})
+          (\vignette{04-2-distances-overlap-metrics.html}{distance vignette})
     \item Monte Carlo error is close to the binomial \(\sqrt{\omega(1-\omega)/n}\): standard deviations of
           \(0.0008\) to \(0.0032\) with \(n=4000\) over the three fig03 targets, and agreement with the
           exact route to within one standard deviation on a three-gene block
@@ -1138,7 +1138,7 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
   \item one bulk column is an \(N=1\) fit: the interval describes that maximiser, and the
         maximum-likelihood bias is of order \(N^{-1}\)
   \item full argument: Appendix~\ref{app:mle} and the
-        \vignette{theory-population-inference.html}{population inference vignette}
+        \vignette{01-2-population-inference.html}{population inference vignette}
 \end{itemize}
 
 \subsection{Single-cell references: DeCovarT as a mixture of independent cells}
@@ -1585,7 +1585,7 @@ either side identifies variance terms that one sample cannot separate.
 
 \begin{itemize}
   \item \(R\ge2\) single-cell replicates separate three layers
-        (\vignette{theory-single-cell-generative-optimisation.html\#sec-reference}{single-cell generative and optimisation vignette}):
+        (\vignette{02-1-single-cell-generative-optimisation.html\#sec-reference}{single-cell generative and optimisation vignette}):
         the within-donor cell-to-cell covariance, linear in the composition because independent cells add;
         the between-donor biological covariance, quadratic because one population profile per type is shared
         by all its cells; and the diagonal measurement noise \(\boldsymbol{D}_{i}\)
@@ -1616,7 +1616,7 @@ either side identifies variance terms that one sample cannot separate.
         \(\boldsymbol{D}=c\,\tilde{\boldsymbol{\mu}}\mathbf{J}_{\psi}\); it is unbiased whenever the mean is right, its information
         \(\phi^{-1}\boldsymbol{D}^{\top}\boldsymbol{V}_{0}^{-1}\boldsymbol{D}\) is the mean part of the Fisher information, and the dispersion follows
         from the Pearson statistic on \(G-J\) degrees of freedom
-        (\vignette{theory-population-inference.html\#sec-decovart-glm}{GLM view})
+        (\vignette{01-2-population-inference.html\#sec-decovart-glm}{GLM view})
   \item composition model across samples: \(\boldsymbol{\rho}_{i}=\boldsymbol{B}\boldsymbol{z}_{i}+\boldsymbol{u}_{i}\), with \(\boldsymbol{z}_{i}\) a design row (time
         point, condition, batch), \(\boldsymbol{B}\) a \((J-1)\times K\) coefficient matrix and \(\boldsymbol{u}_{i}\) a sample effect;
         shared technical scales are then estimated jointly over samples, and contrasts on \(\boldsymbol{B}\) test
@@ -1826,7 +1826,7 @@ and solves the mixture there.
         on the closed-form marginal likelihood, or stochastic variational inference
   \item open problems: none of these algorithms is implemented; EM stalls as \(\boldsymbol{D}\to\boldsymbol{0}\);
         plugging in \(\hat{\boldsymbol{p}}\) ignores its uncertainty
-        (\vignette{theory-decovart-bayesian-wiener.html}{Wiener-filter vignette})
+        (\vignette{05-2-bayesian-wiener.html}{Wiener-filter vignette})
 \end{itemize}
 
 \subsubsection{Alternative strategies for cell-type-specific covariances}
@@ -1909,7 +1909,7 @@ the fit, intermediate integration couples them inside one model, and late integr
 \label{sec:roadmap}
 
 Each extension keeps one of the two generative models and changes one part of it; none is implemented
-(\vignette{theory-decovart-extensions-roadmap.html}{roadmap vignette}).
+(\vignette{05-3-extensions-roadmap.html}{roadmap vignette}).
 
 \begin{itemize}
   \item composition structure: sample covariates in a composition model on the log-ratio chart

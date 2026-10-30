@@ -732,7 +732,7 @@ multistart_decovart <- function(
 #' \eqn{\boldsymbol{z}\in\mathbb{R}^{J-1}} via
 #' \eqn{\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{z})}
 #' (Marquardt–Levenberg default; see other methods below and
-#' `vignette("theory-population-generative-optimisation", package = "DeCovarT")`).
+#' `vignette("01-1-population-generative-optimisation", package = "DeCovarT")`).
 #'
 #' @details
 #' **Plug-in signature.** Argument `mean_signature_matrix` is the mean

@@ -1,9 +1,9 @@
 ---
-title: "Population-level DeCovarT inference: MLE properties, confidence intervals and a GLM formulation"
+title: "1.2 Population-level DeCovarT inference: MLE properties, confidence intervals and a GLM formulation"
 author: "Bastien Chassagnol"
 date: "`r Sys.Date()`"
 vignette: >
-  %\VignetteIndexEntry{Population-level DeCovarT inference: MLE properties and confidence intervals}
+  %\VignetteIndexEntry{1.2 Population-level DeCovarT inference: MLE properties and confidence intervals}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 knitr:
@@ -24,6 +24,27 @@ format:
   html:
     embed-resources: true
     toc: true
+filters:
+  - callouty-theorem
+callouty-theorem:
+  thm:
+    override-title: false
+    callout:
+      type: important
+      appearance: default
+      icon: true
+  prp:
+    override-title: false
+    callout:
+      type: note
+      appearance: default
+      icon: true
+  def:
+    override-title: false
+    callout:
+      type: note
+      appearance: default
+      icon: true
 ---
 
 ```{r}
@@ -56,14 +77,14 @@ $$ {#eq-loglik}
 
 The model, its ILR parametrisation and the derivatives of @eq-loglik
 are in the
-[population generative and optimisation vignette](theory-population-generative-optimisation.html).
+[population generative and optimisation vignette](01-1-population-generative-optimisation.html).
 The single-cell counterpart of this vignette, with the two technical
 scales profiled out, is the
-[single-cell inference vignette](theory-single-cell-inference.html).
+[single-cell inference vignette](02-2-single-cell-inference.html).
 This vignette asks three questions.
 
 1. **What is the estimator entitled to claim?** The
-   [generative vignette](theory-population-generative-optimisation.html#sec-naive-model)
+   [generative vignette](01-1-population-generative-optimisation.html#sec-naive-model)
    fixes the parametrisation; @sec-mle-properties gives identifiability,
    existence, the failure of concavity and the finite-sample bias, and
    @sec-fisher-wald the expected Fisher information that every Wald
@@ -91,6 +112,8 @@ implemented in [`lrt_decovart()`](../reference/lrt_decovart.html),
 [`confint_profile_decovart()`](../reference/confint_profile_decovart.html),
 [`bootstrap_decovart()`](../reference/bootstrap_decovart.html) and
 [`reference_bootstrap_decovart()`](../reference/reference_bootstrap_decovart.html).
+
+{{< include _notation.qmd >}}
 
 # Theoretical properties of the DeCovarT MLE {#sec-mle-properties}
 
@@ -132,12 +155,12 @@ no amount of sequencing rescues a pair of types that agree in both mean
 and covariance. The mean-based condition number $\kappa(\boldsymbol{\mu})$
 is therefore a misleading diagnostic in the covariance-only regime
 DeCovarT targets (see the
-[feature-selection vignette](supp-S6-feature-selection.html#sec-weighted-kappa)).
+[feature-selection vignette](03-1-feature-selection.html#sec-weighted-kappa)).
 Near-collinear *means* are still reported as a warning by
 [`fit_decovart()`](../reference/fit_decovart.html); that warning does not
 by itself imply that $\boldsymbol{p}$ is unidentifiable. Numerical
 illustrations live in the
-[appendix simulations](supp-S1-identifiability.html).
+[appendix simulations](S1-identifiability.html).
 
 
 ## Existence {#sec-existence}
@@ -445,8 +468,8 @@ amplified when @eq-loglik is nearly flat along a simplex face. The
 bivariate and covariance-driven Monte Carlo packs in
 `output/fig02/mle_explanation/` and `output/fig03/mle_explanation/`
 quantify that geometry for $N=1$ (see
-[the bivariate toy](fig02-bivariate-toy.html#sec-bivariate-findings) and
-[the covariance-driven scenario](fig03-covariance-driven.html#sec-hybrid-findings)).
+[the bivariate toy](R1-bivariate-toy.html#sec-bivariate-findings) and
+[the covariance-driven scenario](R2-covariance-driven.html#sec-hybrid-findings)).
 A Jeffreys / Firth adjustment of $\ell$
 [@firthBiasReductionMaximum1993] shrinks the $O(N^{-1})$ term when
 replicates are scarce (@sec-firth).
@@ -456,17 +479,17 @@ replicates are scarce (@sec-firth).
 ::: {#prp-equivariance}
 ## Gene-wise affine equivariance
 
-Let $D=\operatorname{diag}(s_1,\ldots,s_G)$ with $s_g\neq 0$ and
-$\boldsymbol{m}\in\mathbb{R}^{G}$. Applying the **same** gene-wise map to
+Let $\boldsymbol{\Lambda}=\operatorname{diag}(\varsigma_1,\ldots,\varsigma_G)$ with $\varsigma_g\neq 0$ and
+$\boldsymbol{t}\in\mathbb{R}^{G}$. Applying the **same** gene-wise map to
 all three inputs,
 
 $$
-\boldsymbol{y}^{\star}=D^{-1}(\boldsymbol{y}-\boldsymbol{m}),
+\boldsymbol{y}^{\star}=\boldsymbol{\Lambda}^{-1}(\boldsymbol{y}-\boldsymbol{t}),
 \quad
 \boldsymbol{\mu}^{\star}
-=D^{-1}(\boldsymbol{\mu}-\boldsymbol{m}\mathbf{1}_J^{\top}),
+=\boldsymbol{\Lambda}^{-1}(\boldsymbol{\mu}-\boldsymbol{t}\mathbf{1}_J^{\top}),
 \quad
-\boldsymbol{\Sigma}_j^{\star}=D^{-1}\boldsymbol{\Sigma}_j D^{-1},
+\boldsymbol{\Sigma}_j^{\star}=\boldsymbol{\Lambda}^{-1}\boldsymbol{\Sigma}_j \boldsymbol{\Lambda}^{-1},
 $$
 
 leaves the MLE unchanged, because $\mathbf{1}_J^{\top}\boldsymbol{p}=1$
@@ -484,7 +507,7 @@ therefore expects a non-log linear scale
 normalisation such as CPM/TPM) rather than $\log_2$ values. Monotonicity
 of $\log$ preserves gene-wise rankings, but not the convolution MLE. The
 numerical demonstration lives in the
-[appendix simulations](supp-S1-identifiability.html#sec-affine).
+[appendix simulations](S1-identifiability.html#sec-affine).
 
 # Expected Fisher information and Wald inference {#sec-fisher-wald}
 
@@ -528,7 +551,7 @@ implements @eq-fisher-p.
 ## Observed versus expected information
 
 The analytic Hessian of the
-[unconstrained score and Hessian](theory-population-generative-optimisation.html#sec-unconstrained) is the *observed* information
+[unconstrained score and Hessian](01-1-population-generative-optimisation.html#sec-unconstrained) is the *observed* information
 (up to sign). Wald intervals in `decovart_fit` use the *expected*
 information @eq-fisher-p, which does not depend on the residual
 $\boldsymbol{y}-\boldsymbol{\mu}\boldsymbol{p}$ and is positive definite under
@@ -538,20 +561,20 @@ The two are consistent by construction. Substituting
 $\mathbb{E}[\boldsymbol{r}]=\boldsymbol{0}$ and
 $\mathbb{E}[\boldsymbol{r}\boldsymbol{r}^{\top}]
 =\boldsymbol{\Sigma}(\boldsymbol{p})$ into the
-[diagonal](theory-population-generative-optimisation.html#eq-hess-diag) and
-[off-diagonal](theory-population-generative-optimisation.html#eq-hess-off)
+[diagonal](01-1-population-generative-optimisation.html#eq-hess-diag) and
+[off-diagonal](01-1-population-generative-optimisation.html#eq-hess-off)
 Hessian entries cancels the determinant traces against the residual
 traces and returns @eq-fisher-p exactly, i.e.
 $\mathbb{E}[-\mathbf{H}]=I(\boldsymbol{p})$. That identity only holds with
 the factor $\tfrac{1}{2}$ on the
-[determinant term](theory-population-generative-optimisation.html#nte-halfdet) in place.
+[determinant term](01-1-population-generative-optimisation.html#nte-halfdet) in place.
 :::
 
 ## Constrained case: ILR delta method {#sec-fisher-rho}
 
 Fisher information transforms as a covariant quadratic form under the
 ILR chart. With the
-[ILR Jacobian](theory-population-generative-optimisation.html#sec-ilr-deriv)
+[ILR Jacobian](01-1-population-generative-optimisation.html#sec-ilr-deriv)
 $\mathbf{J}_{\boldsymbol{\psi}}=\mathbf{S}(\boldsymbol{p})\mathbf{V}$,
 
 $$
@@ -700,12 +723,12 @@ n_i^{-1}\boldsymbol{S}_W(\boldsymbol{p}_{\cdot i})\bigr),
 $$ {#eq-small-dispersion}
 
 so the number of cells $n_i$ plays the role of the index parameter
-$\lambda$ of a dispersion model, and $1/n_i$ that of the dispersion.
+of a dispersion model, and $1/n_i$ that of the dispersion.
 For a **single** observation from a dispersion model,
 @jørgensenSmallDispersionAsymptotics1987 proves consistency, the limit
-$\lambda^{1/2}(\hat{\boldsymbol{\beta}}-\boldsymbol{\beta}_0)\rightsquigarrow
+$n_i^{1/2}(\hat{\boldsymbol{\beta}}-\boldsymbol{\beta}_0)\rightsquigarrow
 \mathcal{N}(\boldsymbol{0},i(\boldsymbol{\beta}_0)^{-1})$, and $\chi^{2}$ limits
-for differences of deviances, as $\lambda\to\infty$ with the sample size
+for differences of deviances, as the index $n_i\to\infty$ with the sample size
 fixed (his Theorems 4.1--4.3). His conditions mirror (R2), (R4) and
 (R5): an open parameter set, a full-rank local design matrix and a
 positive-definite information. Large expected counts in contingency
@@ -774,43 +797,43 @@ from that case in three ways.
   and $\ell$ levels off along that direction. With few replicates, an
   unbalanced composition or overlapping types, the profile is skewed and
   its plateau wide. The ILR slices of the
-  [covariance-driven scenario](fig03-covariance-driven.html#sec-hybrid-findings)
+  [covariance-driven scenario](R2-covariance-driven.html#sec-hybrid-findings)
   show these ridges along the contrast of the two mean-collinear types.
 
 The geometry is also a diagnostic of non-normality. Compare the Wald,
 score and likelihood-ratio intervals for the same estimate, and plot the
-signed root $r(\psi)$ of @eq-signed-root against the Wald pivot
-$(\hat\psi-\psi)/\mathrm{SE}$: the two curves coincide when $\ell$ is
-quadratic, and a curved $r(\psi)$ or a large gap between the three
+signed root $r(\tau)$ of @eq-signed-root against the Wald pivot
+$(\hat\tau-\tau)/\mathrm{SE}$: the two curves coincide when $\ell$ is
+quadratic, and a curved $r(\tau)$ or a large gap between the three
 intervals flags a non-Gaussian geometry. Ratios of the three statistics
 also detect the Hauck--Donner effect [@yeeHauckDonnerEffectWald2022].
 
 ## Wald, likelihood-ratio and score tests {#sec-three-tests}
 
-Partition $\boldsymbol{\theta}=(\boldsymbol{\psi},\boldsymbol{\lambda})$ into $k$
+Partition $\boldsymbol{\vartheta}=(\boldsymbol{\tau},\boldsymbol{\eta})$ into $k$
 parameters of interest and nuisance parameters (other proportions,
-scales), test $H_0:\boldsymbol{\psi}=\boldsymbol{\psi}_0$, write
-$\tilde{\boldsymbol{\theta}}_0=(\boldsymbol{\psi}_0,\hat{\boldsymbol{\lambda}}_{\boldsymbol{\psi}_0})$
-for the restricted estimate, and $I^{\psi\psi}$ for the $\boldsymbol{\psi}$
+scales), test $H_0:\boldsymbol{\tau}=\boldsymbol{\tau}_0$, write
+$\tilde{\boldsymbol{\vartheta}}_0=(\boldsymbol{\tau}_0,\hat{\boldsymbol{\eta}}_{\boldsymbol{\tau}_0})$
+for the restricted estimate, and $I^{\tau\tau}$ for the $\boldsymbol{\tau}$
 block of $I^{-1}$ [@coxTheoreticalStatistics1979, Sect. 9.3;
 @agrestiFoundationsLinearGeneralized2015, Sect. 4.3]:
 
 $$
-W=(\hat{\boldsymbol{\psi}}-\boldsymbol{\psi}_0)^{\top}
-\{I^{\psi\psi}(\hat{\boldsymbol{\theta}})\}^{-1}
-(\hat{\boldsymbol{\psi}}-\boldsymbol{\psi}_0),
+W=(\hat{\boldsymbol{\tau}}-\boldsymbol{\tau}_0)^{\top}
+\{I^{\tau\tau}(\hat{\boldsymbol{\vartheta}})\}^{-1}
+(\hat{\boldsymbol{\tau}}-\boldsymbol{\tau}_0),
 \quad
-D=2\{\ell(\hat{\boldsymbol{\theta}})-\ell(\tilde{\boldsymbol{\theta}}_0)\},
+\mathcal{D}=2\{\ell(\hat{\boldsymbol{\vartheta}})-\ell(\tilde{\boldsymbol{\vartheta}}_0)\},
 \quad
-S=\boldsymbol{U}_{\psi}(\tilde{\boldsymbol{\theta}}_0)^{\top}
-I^{\psi\psi}(\tilde{\boldsymbol{\theta}}_0)
-\boldsymbol{U}_{\psi}(\tilde{\boldsymbol{\theta}}_0).
+S=\boldsymbol{U}_{\tau}(\tilde{\boldsymbol{\vartheta}}_0)^{\top}
+I^{\tau\tau}(\tilde{\boldsymbol{\vartheta}}_0)
+\boldsymbol{U}_{\tau}(\tilde{\boldsymbol{\vartheta}}_0).
 $$ {#eq-three-tests}
 
-| | Wald $W$ | Likelihood ratio $D$ | Score $S$ |
+| | Wald $W$ | Likelihood ratio $\mathcal{D}$ | Score $S$ |
 |:--|:--|:--|:--|
 | Fits needed | unrestricted | both | restricted |
-| Evaluated at | $\hat{\boldsymbol{\theta}}$ (curvature) | both (height) | $\tilde{\boldsymbol{\theta}}_0$ (slope) |
+| Evaluated at | $\hat{\boldsymbol{\vartheta}}$ (curvature) | both (height) | $\tilde{\boldsymbol{\vartheta}}_0$ (slope) |
 | Smooth reparametrisation | changes it | invariant | invariant (expected information) |
 | Simplex face | undefined | chi-bar-square (@sec-boundary) | defined in $\boldsymbol{p}$ coordinates |
 | Interval shape | symmetric | asymmetric | asymmetric |
@@ -819,12 +842,12 @@ $$ {#eq-three-tests}
 
 - **Rao's score test is the Lagrange-multiplier test.** At the
   restricted maximum, the multiplier of the constraint
-  $\boldsymbol{\psi}=\boldsymbol{\psi}_0$ equals the score
-  $\boldsymbol{U}_{\psi}(\tilde{\boldsymbol{\theta}}_0)$, so the two names
+  $\boldsymbol{\tau}=\boldsymbol{\tau}_0$ equals the score
+  $\boldsymbol{U}_{\tau}(\tilde{\boldsymbol{\vartheta}}_0)$, so the two names
   describe one statistic.
 - **Linear constraints.** The likelihood ratio tests any nested
   hypothesis, including $k$ linear constraints
-  $\boldsymbol{C}\boldsymbol{p}=\boldsymbol{d}$, with $D\rightsquigarrow\chi^{2}_k$.
+  $\boldsymbol{C}\boldsymbol{p}=\boldsymbol{d}$, with $\mathcal{D}\rightsquigarrow\chi^{2}_k$.
   In a lineage-aware fit, the hypothesis that two child lines occur in
   the ratio $w_0$ measured in their parental line is
   $p_{c_1}-w_0(p_{c_1}+p_{c_2})=0$, one linear constraint. The
@@ -836,11 +859,11 @@ $$ {#eq-three-tests}
   @sec-geometry is not quadratic.
 - **The relative distance to the maximum is a score statistic.** The
   stopping rule of the Marquardt--Levenberg solver is
-  $\mathrm{RDM}=m^{-1}\boldsymbol{U}(\boldsymbol{\theta}_k)^{\top}\boldsymbol{G}(\boldsymbol{\theta}_k)^{-1}\boldsymbol{U}(\boldsymbol{\theta}_k)$,
+  $\mathrm{RDM}=m^{-1}\boldsymbol{U}(\boldsymbol{\vartheta}_k)^{\top}\boldsymbol{G}(\boldsymbol{\vartheta}_k)^{-1}\boldsymbol{U}(\boldsymbol{\vartheta}_k)$,
   with $\boldsymbol{G}$ an estimate of the variance of the score (outer
   products of individual scores in the robust-variance scoring
   algorithm, the Hessian in `marqLevAlg`). It is a score statistic for
-  the null "the iterate $\boldsymbol{\theta}_k$ is the maximiser", divided by
+  the null "the iterate $\boldsymbol{\vartheta}_k$ is the maximiser", divided by
   the number $m$ of parameters, and Commenges et al. note that inverting
   $\boldsymbol{U}^{\top}\boldsymbol{G}^{-1}\boldsymbol{U}\le\chi^{2}_{m,1-\alpha}$
   gives a confidence region
@@ -852,34 +875,34 @@ $$ {#eq-three-tests}
 
 A $(1-\alpha)$ confidence set is the set of null values that a
 level-$\alpha$ test does not reject,
-$\{\psi_0:T(\psi_0)\le\chi^{2}_{1,1-\alpha}\}$ for each statistic of
+$\{\tau_0:T(\tau_0)\le\chi^{2}_{1,1-\alpha}\}$ for each statistic of
 @eq-three-tests [@agrestiFoundationsLinearGeneralized2015, Sect. 4.3].
 
-- **Wald.** The information is evaluated once, at $\hat\psi$, so the
+- **Wald.** The information is evaluated once, at $\hat\tau$, so the
   set is the symmetric interval
-  $\hat\psi\pm z_{1-\alpha/2}\mathrm{SE}(\hat\psi)$.
-- **Score.** The information is re-evaluated at each candidate $\psi_0$,
+  $\hat\tau\pm z_{1-\alpha/2}\mathrm{SE}(\hat\tau)$.
+- **Score.** The information is re-evaluated at each candidate $\tau_0$,
   so the interval is asymmetric. For a binomial proportion it is the
   Wilson interval [@wilsonProbableInferenceLaw1927]. The score is
   computed at the restricted fit only, which on the simplex can sit on a
   face.
-- **Likelihood ratio.** $D(\psi_0)$ is zero at $\hat\psi$ and grows on both
-  sides, so $\{\psi_0:D(\psi_0)\le\chi^{2}_{1,1-\alpha}\}$ has a lower and an
+- **Likelihood ratio.** $\mathcal{D}(\tau_0)$ is zero at $\hat\tau$ and grows on both
+  sides, so $\{\tau_0:\mathcal{D}(\tau_0)\le\chi^{2}_{1,1-\alpha}\}$ has a lower and an
   upper endpoint, where the profile deviance crosses the cut-off on each
-  side of $\hat\psi$. The $\chi^{2}_1$ test is two-sided because it squares
+  side of $\hat\tau$. The $\chi^{2}_1$ test is two-sided because it squares
   the signed likelihood root
 
   $$
-  r(\psi_0)=\operatorname{sign}(\hat\psi-\psi_0)\sqrt{D(\psi_0)}
+  r(\tau_0)=\operatorname{sign}(\hat\tau-\tau_0)\sqrt{\mathcal{D}(\tau_0)}
   \ \rightsquigarrow\ \mathcal{N}(0,1).
   $$ {#eq-signed-root}
 
-  The lower limit solves $r(\psi_L)=z_{1-\alpha/2}$, the upper limit
-  $r(\psi_U)=-z_{1-\alpha/2}$, and $z_{1-\alpha}$ gives one-sided limits. If
-  $D$ stays below the cut-off all the way to the face $p_j=0$, the lower
+  The lower limit solves $r(\tau_L)=z_{1-\alpha/2}$, the upper limit
+  $r(\tau_U)=-z_{1-\alpha/2}$, and $z_{1-\alpha}$ gives one-sided limits. If
+  $\mathcal{D}$ stays below the cut-off all the way to the face $p_j=0$, the lower
   limit is $0$.
 - **Several parameters.** The joint region
-  $\{\boldsymbol{\psi}_0:D(\boldsymbol{\psi}_0)\le\chi^{2}_{k,1-\alpha}\}$, with the
+  $\{\boldsymbol{\tau}_0:\mathcal{D}(\boldsymbol{\tau}_0)\le\chi^{2}_{k,1-\alpha}\}$, with the
   remaining proportions and the scales profiled out as nuisance
   parameters (@sec-nuisance), has simultaneous coverage.
 
@@ -935,7 +958,7 @@ considered and are not kept.
   a linear transform of the ILR chart, so it gives the same estimate, the
   same likelihood ratio, the same delta-method covariance of
   $\hat{\boldsymbol{p}}$ and the same back-transformed regions
-  ([chart invariance](theory-population-generative-optimisation.html#sec-chart-choice)).
+  ([chart invariance](01-1-population-generative-optimisation.html#sec-chart-choice)).
   The ILR chart is kept for its numerical invariance: gradient norms,
   damping and conditioning do not depend on a reference type.
 - *A component-wise logit interval*, the delta method applied to
@@ -1082,7 +1105,7 @@ $$ {#eq-profile-schur}
 
 so profile and joint Wald intervals for $\boldsymbol{\rho}$ agree, and
 estimating the scales widens them by the loss of
-[the Schur-complement information](theory-single-cell-generative-optimisation.html#eq-schur-information).
+[the Schur-complement information](02-1-single-cell-generative-optimisation.html#eq-schur-information).
 
 **Orthogonality.** @coxParameterOrthogonalityApproximate1987 call
 $\boldsymbol{\rho}$ and $\boldsymbol{\eta}$ orthogonal when the cross block of the
@@ -1090,8 +1113,8 @@ expected information vanishes, $I_{\rho\eta}=\boldsymbol{0}$, so that the
 information is block diagonal. Orthogonality implies that
 $\hat{\boldsymbol{\rho}}$ and $\hat{\boldsymbol{\eta}}$ are asymptotically independent,
 that the standard error of $\hat{\boldsymbol{\rho}}$ is the same whether
-$\boldsymbol{\eta}$ is known or estimated, and that $\hat{\boldsymbol{\eta}}_{\psi}$
-varies only by $O_P(N^{-1})$ with $\psi$ (their Sect. 2.2). In a
+$\boldsymbol{\eta}$ is known or estimated, and that $\hat{\boldsymbol{\eta}}_{\tau}$
+varies only by $O_P(N^{-1})$ with $\tau$ (their Sect. 2.2). In a
 generalised linear model the dispersion is orthogonal to the mean
 parameters (their Sect. 3.2), which is why a GLM interval for the
 coefficients does not depend on how the dispersion is estimated.
@@ -1101,7 +1124,7 @@ $I_{p_jc}=c\,\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top}\boldsymbol{W}\tilde{\bold
 and $I_{p_j\phi}=\operatorname{tr}(\boldsymbol{W}\boldsymbol{\Sigma}_{W,j})/(2\phi)\neq0$,
 with $\boldsymbol{W}=\boldsymbol{S}_W(\boldsymbol{p})^{-1}$. The block structure is
 derived for every alignment strategy in the
-[single-cell vignette](theory-single-cell-generative-optimisation.html#sec-compound).
+[single-cell vignette](02-1-single-cell-generative-optimisation.html#sec-compound).
 A scalar interest parameter can always be made orthogonal to the
 nuisance by solving a system of partial differential equations, whereas
 a vector one in general cannot (their Sect. 2.3), so orthogonalising
@@ -1110,20 +1133,20 @@ orthogonal nuisance parameters, the Cox--Reid adjusted profile
 log-likelihood
 
 $$
-\ell_{\mathrm{CR}}(\psi)=\ell^{\ast}(\psi)
--\tfrac12\log\det\boldsymbol{j}_{\eta\eta}(\psi,\hat{\boldsymbol{\eta}}_{\psi})
+\ell_{\mathrm{CR}}(\tau)=\ell^{\ast}(\tau)
+-\tfrac12\log\det\boldsymbol{j}_{\eta\eta}(\tau,\hat{\boldsymbol{\eta}}_{\tau})
 $$ {#eq-cox-reid}
 
 corrects the profile for the estimation of $\boldsymbol{\eta}$, as restricted
 maximum likelihood does for a variance. The
-[plug-in strategy](theory-single-cell-generative-optimisation.html#sec-strategy-plugin)
+[plug-in strategy](02-1-single-cell-generative-optimisation.html#sec-strategy-plugin)
 is the opposite choice: fix the scales from external data and accept the
 variance correction that propagating their uncertainty requires.
 
 ## Higher-order likelihood asymptotics {#sec-higher-order}
 
 The first-order statistics have errors $r\sim\mathcal{N}(0,1)+O(n^{-1/2})$
-and $D\sim\chi^{2}_k+O(n^{-1})$. Here $n$ is not necessarily a sample
+and $\mathcal{D}\sim\chi^{2}_k+O(n^{-1})$. Here $n$ is not necessarily a sample
 size: "it can also be another parameter of the likelihood that controls
 the convergence of the likelihood to the asymptotic limit"
 [@canoneroHigherorderAsymptoticCorrections2023, p. 3], which for
@@ -1131,16 +1154,16 @@ DeCovarT is the number of replicates $N$ or the number of cells $n_i$
 (@sec-regularity). Two corrections reduce the error when $n$ is small or
 the log-likelihood is far from quadratic.
 
-- **Modified likelihood root.** $r^{\ast}=r+r^{-1}\log(q/r)\sim\mathcal{N}(0,1)+O(n^{-3/2})$,
-  where $q$ is built from sample-space derivatives of $\ell$ at the
+- **Modified likelihood root.** $r^{\ast}=r+r^{-1}\log(\upsilon/r)\sim\mathcal{N}(0,1)+O(n^{-3/2})$,
+  where $\upsilon$ is built from sample-space derivatives of $\ell$ at the
   unrestricted and restricted estimates, with a nuisance adjustment
-  $\{\det\boldsymbol{j}_{\psi\psi}(\hat{\boldsymbol{\theta}})/\det\boldsymbol{j}_{\lambda\lambda}(\tilde{\boldsymbol{\theta}}_0)\}^{1/2}$,
+  $\{\det\boldsymbol{j}_{\tau\tau}(\hat{\boldsymbol{\vartheta}})/\det\boldsymbol{j}_{\eta\eta}(\tilde{\boldsymbol{\vartheta}}_0)\}^{1/2}$,
   or from a tangent exponential model when $\ell$ cannot be written as a
   function of the estimates. It needs a scalar interest parameter and,
   like $r$, keeps a sign, so it gives lower and upper limits.
-- **Bartlett correction.** $D^{\ast}=kD/\mathbb{E}(D)$ matches the mean of
+- **Bartlett correction.** $\mathcal{D}^{\ast}=k\mathcal{D}/\mathbb{E}(\mathcal{D})$ matches the mean of
   $\chi^{2}_k$, and the error of the $\chi^{2}_k$ approximation falls to
-  $O(n^{-2})$. $\mathbb{E}(D)$ comes from Lawley's expansion or from a
+  $O(n^{-2})$. $\mathbb{E}(\mathcal{D})$ comes from Lawley's expansion or from a
   parametric bootstrap at the restricted estimate.
 
 Both corrections give intervals by the inversion of @sec-test-inversion.
@@ -1149,7 +1172,7 @@ Bartlett correction was the more reliable: $r^{\ast}$ became numerically
 unstable when the log-likelihood was strongly non-Gaussian (their pp. 11
 and 17). For DeCovarT, the restricted simulations of
 [`bootstrap_decovart()`](../reference/bootstrap_decovart.html) already
-estimate $\mathbb{E}(D)$, so the Bartlett factor costs no extra fit, and
+estimate $\mathbb{E}(\mathcal{D})$, so the Bartlett factor costs no extra fit, and
 `likelihoodAsy::rstar()` needs only the log-likelihood and
 `simulate_bulk_mixture()`. Neither correction applies at a face, where
 the problem is not regular (@sec-boundary). The Cox--Reid adjustment of
@@ -1164,7 +1187,7 @@ likelihood is flat there. Firth's adjustment addresses both. It
 maximises
 
 $\ell_{\mathrm{F}}(\boldsymbol{\vartheta})=\ell(\boldsymbol{\vartheta})+\tfrac12\log\det I(\boldsymbol{\vartheta})$
-[@firthBiasReductionMaximum1993]. With [the general Fisher information](theory-single-cell-generative-optimisation.html#eq-fisher-general) the
+[@firthBiasReductionMaximum1993]. With [the general Fisher information](02-1-single-cell-generative-optimisation.html#eq-fisher-general) the
 adjusted score is
 
 $$
@@ -1173,7 +1196,7 @@ $$
 +\tfrac12\,\mathrm{tr}\Bigl(I(\boldsymbol{\vartheta})^{-1}\frac{\partial I(\boldsymbol{\vartheta})}{\partial\vartheta_q}\Bigr).
 $$ {#eq-persp-firth-score}
 
-For the cell-count model of [independent cells, linear covariance](theory-single-cell-generative-optimisation.html#sec-cc-linear) the information depends on
+For the cell-count model of [independent cells, linear covariance](02-1-single-cell-generative-optimisation.html#sec-cc-linear) the information depends on
 $\boldsymbol{m}$ only through $\boldsymbol{\Omega}$, and
 $\partial\boldsymbol{\Omega}/\partial m_q=-\boldsymbol{\Omega}\boldsymbol{\Sigma}_{W,q}\boldsymbol{\Omega}$,
 so
@@ -1201,7 +1224,7 @@ derivative applies to the $\boldsymbol{p}$ block with the scales $c_i$ and $\phi
 the collapse of $\det I$ near faces and under collinear signatures is
 the regularising effect already argued in the perspectives vignette.
 A simulation under the ADEMP template of the
-[synthetic-scenarios vignette](theory-synthetic-scenarios-mean-covariance.html)
+[synthetic-scenarios vignette](04-1-synthetic-scenarios.html)
 is the only way to decide whether the pull is a correction or a bias.
 
 `DECALS` corrects a different estimator. Its moment regression
@@ -1240,7 +1263,7 @@ $\boldsymbol{\rho}$, and Wald-type intervals around it are always defined
 (our remark; the effect on coverage has to be checked by simulation).
 The penalty is the log of the Jeffreys prior, so the penalised estimate
 is also a posterior mode
-([Bayesian vignette](theory-decovart-bayesian-wiener.html#sec-bw-priors)).
+([Bayesian vignette](05-2-bayesian-wiener.html#sec-bw-priors)).
 
 Both models implement the penalty.
 [`fit_firth_decovart()`](../reference/fit_firth_decovart.html) adds
@@ -1450,25 +1473,25 @@ half-line rather than a vector space, and Wilks' theorem does not apply.
 ::: {#thm-chibar}
 ## Boundary calibration
 
-With $q$ constraints active on the boundary and $s$ interior constraints
+With $q$ constraints active on the boundary and $t$ interior constraints
 tested simultaneously, and the corresponding information block
 orthogonal to the nuisance block,
 
 $$
-D
+\mathcal{D}
 \ \rightsquigarrow\
 \bar{\chi}^{2}
 =
-\sum_{i=0}^{q}
-\binom{q}{i}2^{-q}\,
-\chi^{2}_{s+i},
+\sum_{u=0}^{q}
+\binom{q}{u}2^{-q}\,
+\chi^{2}_{t+u},
 $$ {#eq-chibar}
 
 where $\chi^{2}_{0}$ denotes a point mass at zero
 [@selfAsymptoticPropertiesMaximum1987, Case 9]. For a single active
 constraint this is the $\tfrac{1}{2}\chi^{2}_{0}+\tfrac{1}{2}\chi^{2}_{1}$
 law of @hermanDistributionLikelihoodRatio1954, so the correct one-sided
-p-value is $\tfrac{1}{2}\Pr(\chi^{2}_{1}>D)$ — **half** the naive value.
+p-value is $\tfrac{1}{2}\Pr(\chi^{2}_{1}>\mathcal{D})$ — **half** the naive value.
 :::
 
 [`chi_bar_square_pvalue()`](../reference/chi_bar_square_pvalue.html)
@@ -1570,7 +1593,7 @@ $50{:}50$ weights [@rochModernDiscreteProbability2024 reviews the
 concentration tools behind such Monte Carlo guarantees].
 
 The atom at zero is directly observable: under a true boundary null,
-about half of the replicates should return $D=0$, because the
+about half of the replicates should return $\mathcal{D}=0$, because the
 unrestricted MLE itself falls on the face.
 
 ```{r}
@@ -1710,49 +1733,11 @@ c(
 
 ## RNA-Sieve: CLT likelihood, Fisher and Godambe {#sec-rna-sieve}
 
-Align notation with @eq-loglik. `RNA-Sieve` writes $M$, $\alpha$ and $b$
-for DeCovarT's $\boldsymbol{\mu}$, $\boldsymbol{p}$ and
-$\boldsymbol{y}$ [@erdmann-phamLikelihoodbasedDeconvolutionBulk2021].
-The bulk is the sum of $n$ independent cells. A gene-wise central-limit
-theorem then supplies a Gaussian likelihood whose variance
-$s_{g}^{2}(M,\alpha,S)$ depends on $\alpha$. The estimated mean matrix
-is itself noisy,
-$\varepsilon_{M,gk}\sim\mathcal{N}(0,s_{gk}/c_{k})$, so the design is
-an errors-in-variables (total-least-squares) problem, not a convolution
-of $J$ latent type profiles. Genes are treated as independent;
-coexpression is left for later work.
-
-DeCovarT draws one latent profile per cell type, $\boldsymbol{x}_{\cdot j}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},
-\boldsymbol{\Sigma}_{j})$, and observes the weighted sum
-$\boldsymbol{y}=\sum_{j}p_{j}\boldsymbol{x}_{\cdot j}$, hence
-$\boldsymbol{y}\sim\mathcal{N}_{G}(\boldsymbol{\mu}\boldsymbol{p},
-\sum_{j}p_{j}^{2}\boldsymbol{\Sigma}_{j})$ with a *full* gene--gene
-covariance. The plug-in $(\boldsymbol{\mu},\{\boldsymbol{\Sigma}_{j}\})$ is
-treated as known in the likelihood. RNA-Sieve's $n$-cell average is a
-univariate CLT on each gene; DeCovarT's $p_{j}^{2}\boldsymbol{\Sigma}_{j}$
-term is a finite-$J$ multivariate convolution.
-
-The interval constructions differ in the same way. When the CLT model
-holds, RNA-Sieve uses the inverse Fisher information of
-$(\hat\alpha,\hat n)$ after a simplex reparametrisation, and reports
-$\chi^{2}_{K-1}$ ellipsoids. When protocol shift takes the truth
-outside the model family, they replace Fisher by the **Godambe**
-sandwich, which describes Gaussian fluctuations around the
-Kullback--Leibler projection onto the fitted family. In the correctly
-specified case the two matrices coincide. Near-collinear cell types
-make the information nearly singular; RNA-Sieve then subsamples genes.
-
-DeCovarT already has the Fisher analogue: the expected information of
-the convolution mapped through the ILR (@sec-interior; the derivatives
-vignette). That Wald interval is the cheap interior tool, and it is
-**undefined** on a simplex face (@sec-boundary). The Godambe sandwich
-would be relevant *if* the multivariate Gaussian convolution is
-misspecified (counts, protocol shift, omitted types). It does not
-replace the chi-bar-square LRT or the restricted parametric bootstrap
-on the boundary, and it does not replace
-`reference_bootstrap_decovart()`, which is the resampling counterpart of
-RNA-Sieve's noisy-$M$ term. Implementing a Godambe correction for
-DeCovarT is an outlook item, not a present interval.
+`RNA-Sieve` [@erdmann-phamLikelihoodbasedDeconvolutionBulk2021], with
+its gene-wise central-limit likelihood, its errors-in-variables
+reference and its Fisher and Godambe intervals, is compared with
+DeCovarT in the
+[distribution-aware deconvolution review](05-1-review-distribution-aware.html#sec-rnasieve).
 
 # Convergence and boundary diagnostics {#sec-diagnostics}
 
@@ -1878,7 +1863,7 @@ Sec. 1.1.6]. Read for deconvolution, the contrast has five parts.
 DeCovarT already follows the GLM pattern in one respect: the link on
 the mixing scale is the identity, because the physics is additive, and
 the constraint is handled by an inverse link on the **parameter**,
-$\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})$ ([parametrisation](theory-population-generative-optimisation.html#sec-naive-model)). What the
+$\boldsymbol{p}=\boldsymbol{\psi}(\boldsymbol{\rho})$ ([parametrisation](01-1-population-generative-optimisation.html#sec-naive-model)). What the
 released model lacks is the variance function of the measurement
 (@sec-decovart-glm).
 
@@ -1920,15 +1905,15 @@ comes with inference.
 ## DeCovarT as a multivariate quasi-likelihood model {#sec-decovart-glm}
 
 Write the single-cell-tailored DeCovarT
-([single-cell generative vignette](theory-single-cell-generative-optimisation.html#sec-strategies))
+([single-cell generative vignette](02-1-single-cell-generative-optimisation.html#sec-strategies))
 in GLM terms, for one bulk sample with mean scale $c=a n$, covariance
 scale $\phi=a^{2}n$ and raw per-cell means $\tilde{\boldsymbol{\mu}}$:
 
 $$
-\mathbb{E}(\boldsymbol{y}\mid\boldsymbol{\rho})=\boldsymbol{m}(\boldsymbol{\rho})=c\,\tilde{\boldsymbol{\mu}}\,\boldsymbol{\psi}(\boldsymbol{\rho}),
+\mathbb{E}(\boldsymbol{y}\mid\boldsymbol{\rho})=\boldsymbol{\mu}_{y}(\boldsymbol{\rho})=c\,\tilde{\boldsymbol{\mu}}\,\boldsymbol{\psi}(\boldsymbol{\rho}),
 \qquad
-\operatorname{Cov}(\boldsymbol{y}\mid\boldsymbol{\rho})=\boldsymbol{V}(\boldsymbol{\rho})
-=\phi\,\boldsymbol{S}_W(\boldsymbol{p})+c^{2}\boldsymbol{S}_B(\boldsymbol{p})+\omega\operatorname{diag}\{\boldsymbol{m}(\boldsymbol{\rho})\}.
+\operatorname{Cov}(\boldsymbol{y}\mid\boldsymbol{\rho})=\boldsymbol{\Sigma}_{y}(\boldsymbol{\rho})
+=\phi\,\boldsymbol{S}_W(\boldsymbol{p})+c^{2}\boldsymbol{S}_B(\boldsymbol{p})+\omega\operatorname{diag}\{\boldsymbol{\mu}_{y}(\boldsymbol{\rho})\}.
 $$ {#eq-decovart-glm}
 
 The mean is the systematic component: identity on the mixing scale,
@@ -1940,7 +1925,7 @@ measurement of the bulk with a dispersion $\omega$ (variance equal to
 the mean when $\omega=1$). Separating $\omega$ from $\phi$ and from the cell-to-cell covariance
 needs technical replicates or several bulk samples; it is left to the
 perspectives of the article. The final model of @sec-final-choice keeps
-only the first term, $\boldsymbol{V}(\boldsymbol{\rho})=\phi\boldsymbol{S}_W(\boldsymbol{\psi}(\boldsymbol{\rho}))$:
+only the first term, $\boldsymbol{\Sigma}_{y}(\boldsymbol{\rho})=\phi\boldsymbol{S}_W(\boldsymbol{\psi}(\boldsymbol{\rho}))$:
 a known variance function times a dispersion, as in a quasi-likelihood
 GLM.
 
@@ -1948,17 +1933,17 @@ Two estimators share @eq-decovart-glm.
 
 - **Gaussian likelihood** with this mean and covariance, as released
   DeCovarT does for its own covariance. It uses the dependence of
-  $\boldsymbol{V}$ on $\boldsymbol{\rho}$ (the determinant and covariance terms
+  $\boldsymbol{\Sigma}_{y}$ on $\boldsymbol{\rho}$ (the determinant and covariance terms
   of the score), which adds information when the Gaussian shape holds.
-- **Quasi-score**, $\boldsymbol{D}^{\top}\boldsymbol{V}^{-1}\{\boldsymbol{y}-\boldsymbol{m}(\boldsymbol{\rho})\}=\boldsymbol{0}$
-  with $\boldsymbol{D}=\partial\boldsymbol{m}/\partial\boldsymbol{\rho}^{\top}=c\tilde{\boldsymbol{\mu}}\mathbf{J}_{\boldsymbol{\psi}}$.
+- **Quasi-score**, $\mathbf{J}_{\boldsymbol{\mu}_y}^{\top}\boldsymbol{\Sigma}_{y}^{-1}\{\boldsymbol{y}-\boldsymbol{\mu}_{y}(\boldsymbol{\rho})\}=\boldsymbol{0}$
+  with $\mathbf{J}_{\boldsymbol{\mu}_y}=\partial\boldsymbol{\mu}_{y}/\partial\boldsymbol{\rho}^{\top}=c\tilde{\boldsymbol{\mu}}\mathbf{J}_{\boldsymbol{\psi}}$.
   It needs only the first two moments, its information is
-  $\boldsymbol{D}^{\top}\boldsymbol{V}^{-1}\boldsymbol{D}$ (the mean part of the
+  $\mathbf{J}_{\boldsymbol{\mu}_y}^{\top}\boldsymbol{\Sigma}_{y}^{-1}\mathbf{J}_{\boldsymbol{\mu}_y}$ (the mean part of the
   Fisher information), and the sandwich of @sec-sandwich keeps it valid
-  when $\boldsymbol{V}$ is misspecified. With $\boldsymbol{V}=\phi\boldsymbol{S}_W$, the
+  when $\boldsymbol{\Sigma}_{y}$ is misspecified. With $\boldsymbol{\Sigma}_{y}=\phi\boldsymbol{S}_W$, the
   dispersion cancels from the quasi-score and is estimated after the
   fit from the Pearson statistic,
-  $\hat\phi=\lVert\boldsymbol{L}^{-1}(\boldsymbol{y}-\hat{\boldsymbol{m}})\rVert^{2}/(G-J)$,
+  $\hat\phi=\lVert\boldsymbol{L}^{-1}(\boldsymbol{y}-\hat{\boldsymbol{\mu}}_{y})\rVert^{2}/(G-J)$,
   with $\boldsymbol{L}$ the Cholesky factor of $\boldsymbol{S}_W(\hat{\boldsymbol{p}})$ and
   $J$ free mean parameters ($J-1$ ILR coordinates and $c$).
 
@@ -2006,14 +1991,14 @@ Each term is a choice with a reason.
    size $S_j$ stays in the mean and the fit returns cell fractions
    $\boldsymbol{p}_{\cdot i}$. Transcript fractions follow as
    $q_{ji}=p_{ji}S_j/\sum_\ell p_{\ell i}S_\ell$
-   ([RNA versus cell fractions](theory-single-cell-generative-optimisation.html#sec-uncoupling)).
+   ([RNA versus cell fractions](02-1-single-cell-generative-optimisation.html#sec-uncoupling)).
    A library-normalised signature $\boldsymbol{\theta}_{\cdot j}$ would return
    $\boldsymbol{q}_{\cdot i}$ and need the conversion; use one route, never
    both.
 2. **Two scales, not three.** The capture ratio $a_i$ and the number of
    cells $n_i$ enter only through the mean scale $c_i=a_in_i$ and the
    covariance scale $\phi_i=a_i^{2}n_i$
-   ([global scale](theory-single-cell-generative-optimisation.html#sec-av-scale)).
+   ([global scale](02-1-single-cell-generative-optimisation.html#sec-av-scale)).
    At fixed $\boldsymbol{\rho}_i$, $\hat c_i$ is the generalised least-squares
    coefficient of $\boldsymbol{y}_{\cdot i}$ on $\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i}$
    and $\hat\phi_i$ the mean squared Mahalanobis residual, so both are
@@ -2022,10 +2007,10 @@ Each term is a choice with a reason.
    share the platform.
 3. **Only the within-type covariance.** One donor identifies the
    cell-to-cell covariance, not the between-donor one
-   ([three reference regimes](theory-single-cell-generative-optimisation.html#sec-three-regimes)).
+   ([three reference regimes](02-1-single-cell-generative-optimisation.html#sec-three-regimes)).
    Estimate it from cells after removing the Poisson diagonal and the
    technical size-factor term
-   ([denoised covariance](theory-review-distribution-aware-deconvolution.html#eq-denoised-within)),
+   ([denoised covariance](05-1-review-distribution-aware.html#eq-denoised-within)),
    with a sparse precision from the graphical lasso. *Our remark:*
    independent cells add with cell-count weights $m_{ji}=n_ip_{ji}$, so
    this linear covariance layer is weighted by $\boldsymbol{p}_{\cdot i}$, not
@@ -2037,7 +2022,7 @@ Each term is a choice with a reason.
    variance is handled by the sandwich of @sec-sandwich instead.
 5. **No gene-wise platform ratio.** With UMIs it cancels within the
    reference platform; between platforms it is not identified from one
-   sample ([`MEAD`](theory-review-distribution-aware-deconvolution.html#sec-mead)),
+   sample ([`MEAD`](05-1-review-distribution-aware.html#sec-mead)),
    so it is handled by gene selection, keeping genes detected
    consistently in both assays, not by estimation.
 6. **Inference.** Report the ILR back-transformation of
@@ -2056,11 +2041,11 @@ covariance assembler changes, from $\sum_jp_j^{2}\boldsymbol{\Sigma}_j$ to the
 linear form of @eq-final-model, whose derivative in $p_j$ is the
 constant matrix $\phi_i\boldsymbol{\Sigma}_{W,j}$; second derivatives of the
 covariance vanish, so the Hessian is simpler than the released one
-([general score and Hessian](theory-single-cell-generative-optimisation.html#sec-general)).
+([general score and Hessian](02-1-single-cell-generative-optimisation.html#sec-general)).
 No replicate, no paired cohort and no second bulk sample is needed. The
 model still has to pass a simulation study under the ADEMP template
 before it is used for claims
-([synthetic scenarios](theory-synthetic-scenarios-mean-covariance.html)).
+([synthetic scenarios](04-1-synthetic-scenarios.html)).
 
 # Recap: which interval or test to report {#sec-recap}
 
@@ -2078,7 +2063,7 @@ that the geometry of the estimate actually supports.
 | Firth-penalised Wald | per-sample CI, estimate always interior | Jeffreys-penalised likelihood (@sec-firth) | defined | exact bias removal only for canonical exponential families; simulation check needed here | `fit_firth_decovart()`, `fit_firth_single_cell()` |
 | Sandwich (Godambe) | per-sample CI robust to a wrong variance | sequential score contributions (@sec-sandwich) | interior only | few genes make it noisy | not implemented |
 | Profile likelihood | CI in $[0,1]$, lower and upper limits from the signed root | Wilks $\chi^2_1$ on the deviance (@wilksLargeSampleDistributionLikelihood1938), nuisance scales profiled out (@sec-nuisance) | stays inside the simplex; endpoints on a face need the boundary LRT | pooled replicates, or many cells per type (@sec-regularity) | `confint_profile_decovart()` |
-| $r^{\ast}$ or Bartlett-corrected LRT | CI with $O(n^{-3/2})$ or $O(n^{-2})$ error | modified likelihood root, or $D$ rescaled by its bootstrap mean (@sec-higher-order) | not regular on a face | small $N$ or few cells | not implemented (`likelihoodAsy` for $r^{\ast}$) |
+| $r^{\ast}$ or Bartlett-corrected LRT | CI with $O(n^{-3/2})$ or $O(n^{-2})$ error | modified likelihood root, or $\mathcal{D}$ rescaled by its bootstrap mean (@sec-higher-order) | not regular on a face | small $N$ or few cells | not implemented (`likelihoodAsy` for $r^{\ast}$) |
 | Interior LRT | test of $p_j=c\in(0,1)$ | $\chi^2_1$ | not for $c=0$ or $c=1$ | same as profile | `lrt_decovart()` |
 | Boundary LRT | test of $p_j=0$ | chi-bar-square $\tfrac12\chi^2_0+\tfrac12\chi^2_1$ [@hermanDistributionLikelihoodRatio1954; @selfAsymptoticPropertiesMaximum1987] | designed for this | same as profile | `lrt_decovart()` (automatic) |
 | Parametric bootstrap | percentile CI and Monte Carlo $p$-value | $\boldsymbol{Y}^{(b)}\sim\mathcal{N}_G(\boldsymbol{\mu}\boldsymbol{p},\boldsymbol{\Sigma}(\boldsymbol{p}))$ at the MLE or restricted MLE | automatic (the $\tfrac12\chi^2_0$ atom is visible) | known plug-in $(\boldsymbol{\mu},\boldsymbol{\Sigma}_j,\boldsymbol{p})$ | `bootstrap_decovart()` |
@@ -2111,7 +2096,7 @@ The single-cell mixture uses the same menu through
 profile information, the Schur complement that removes the scales
 $(c,\phi)$. Intervals for those two scales use the complementary Schur
 complement. Neither interval corrects the plug-in reference covariance.
-The [single-cell inference vignette](theory-single-cell-inference.html)
+The [single-cell inference vignette](02-2-single-cell-inference.html)
 derives that menu, with its REML calibration for few genes.
 
 # Outlook: beyond first-order asymptotics {#sec-beyond-asymptotics}
