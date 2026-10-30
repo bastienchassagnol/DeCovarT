@@ -153,9 +153,9 @@ vignettes/burakov-logistic-regression.pdf
 .firecrawl/
 
 # Local literature PDFs used for reviews (copyrighted; not redistributed).
-# The LaTeX sources and verification scripts in answer-cardamomOT/ are tracked.
-# Nested copies (resources/, report/) also exceed the 2000 KB hook.
-answer-cardamomOT/**/*.pdf
+# The comparison note and its PDF stay tracked. Only source copies under
+# resources/ stay out of Git (several exceed the 2000 KB hook).
+answer-cardamomOT/resources/
 review_second_generation_deconvolution_algorithms/*.pdf
 infer_networks/*.pdf
 expression_models/*.pdf

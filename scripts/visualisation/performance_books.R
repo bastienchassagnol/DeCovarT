@@ -70,9 +70,16 @@
   )
 }
 
-plot_metric_tiles <- function(data, metric, exclude = character()) {
+# Drop excluded methods and their factor levels, so the facet grid
+# closes up and the colour scale is computed from the methods that remain.
+.drop_algorithms <- function(data, exclude) {
   data <- data[!data$algorithm %in% exclude, ]
-  data$algorithm <- droplevels(data$algorithm)
+  data$algorithm <- forcats::fct_drop(factor(data$algorithm))
+  data
+}
+
+plot_metric_tiles <- function(data, metric, exclude = character()) {
+  data <- .drop_algorithms(data, exclude)
   limits <- range(data[[metric]], finite = TRUE)
   lapply(levels(droplevels(data$page)), function(page) {
     df <- data[data$page == page, ]
@@ -149,8 +156,7 @@ plot_metric_tiles <- function(data, metric, exclude = character()) {
 }
 
 plot_rmse_aitchison_dots <- function(data, exclude = character()) {
-  data <- data[!data$algorithm %in% exclude, ]
-  data$algorithm <- droplevels(data$algorithm)
+  data <- .drop_algorithms(data, exclude)
   rmse_limits <- range(data$rmse, finite = TRUE)
   size_limits <- range(data$aitchison, finite = TRUE)
   lapply(levels(droplevels(data$page)), function(page) {
