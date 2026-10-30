@@ -241,8 +241,8 @@ deconvolute_ratios(
 #> # A tibble: 2 × 15
 #>   sample_id algorithm elapsed_sec memory_bytes kkt_residual numerical_converged
 #>   <chr>     <chr>           <dbl>        <dbl>        <dbl> <lgl>              
-#> 1 sample_1  nnls                0    521321472       0.0352 TRUE               
-#> 2 sample_2  nnls                0    522361856       0.974  TRUE               
+#> 1 sample_1  nnls         0.001000    535018496       0.0352 TRUE               
+#> 2 sample_2  nnls         0           535018496       0.974  TRUE               
 #> # ℹ 9 more variables: theoretical_converged <lgl>, n_zero <int>,
 #> #   loglik_regret <dbl>, local_maximum <lgl>, min_eigenvalue <dbl>,
 #> #   max_eigenvalue <dbl>, converged <list>, ct1 <dbl>, ct2 <dbl>
