@@ -12,8 +12,9 @@ the Gaussian convolution model \$\$
 \\\boldsymbol{p}\ge\mathbf{0}\\. Optimisation is performed in
 unconstrained ILR coordinates \\\boldsymbol{z}\in\mathbb{R}^{J-1}\\ via
 \\\boldsymbol{p}=\operatorname{softmax}(\mathbf{V}\boldsymbol{z})\\
-(Marquardt–Levenberg default; see other methods below and
-[`vignette("theory-population-generative-optimisation", package = "DeCovarT")`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.md)).
+(Marquardt–Levenberg default; see other methods below and the
+[population generative
+model](https://bastienchassagnol.github.io/DeCovarT/articles/01-1-population-generative-optimisation.html)).
 
 ## Usage
 

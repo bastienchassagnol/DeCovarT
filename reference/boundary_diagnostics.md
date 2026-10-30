@@ -5,7 +5,7 @@ solver stopped, the iterate is genuinely stationary with the right local
 curvature, and the estimate sits close to a simplex face. None of them
 implies global uniqueness, which the DeCovarT log-likelihood does not
 have for a single observed sample (see
-[`vignette("theory-population-inference")`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.md)).
+[`vignette("01-2-population-inference")`](https://bastienchassagnol.github.io/DeCovarT/articles/01-2-population-inference.md)).
 
 ## Usage
 

@@ -188,7 +188,7 @@ linear variances), MEAD (errors-in-variables, gene–gene correlation),
 DECALS (subject-specific (*i), constrained least squares), and ReDeconv
 (univariate variances linear in (p*{ji}), CLTS scale). The statistical
 contrast is written out in the pkgdown article [Tracks for a three-layer
-DeCovarT](https://bastienchassagnol.github.io/DeCovarT/articles/theory-decovart-statistical-perspectives.html#sec-tracks).
+DeCovarT](https://bastienchassagnol.github.io/DeCovarT/articles/05-3-extensions-roadmap.html#sec-tracks).
 
 Since [\#798](https://github.com/ropensci/software-review/issues/798),
 the package has also gained:

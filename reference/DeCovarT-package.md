@@ -8,8 +8,8 @@ cell types \\j=1,\ldots,J\\, samples \\i=1,\ldots,N\\; bulk
 \\\boldsymbol{p}\\, covariances / precisions
 \\\boldsymbol{\Sigma}\_j\\/\\\boldsymbol{\Omega}\_j\\. Proportions live
 on the open simplex and are optimised in unconstrained ILR coordinates
-\\\boldsymbol{z}\in\mathbb{R}^{J-1}\\
-([`vignette("theory-population-generative-optimisation", package = "DeCovarT")`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.md)).
+\\\boldsymbol{z}\in\mathbb{R}^{J-1}\\ (see the [population generative
+model](https://bastienchassagnol.github.io/DeCovarT/articles/01-1-population-generative-optimisation.html)).
 
 The frequentist API plugs in \\\boldsymbol{\mu}\\ for unobserved latent
 profiles \\\boldsymbol{x}\_{\cdot j}\\; MAP recovery of those latents is

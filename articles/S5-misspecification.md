@@ -1,0 +1,132 @@
+# Appendix S5 — Model Mis-specification (Description Only)
+
+## Overview
+
+The DeCovarT model assumes that bulk expression arises from a Gaussian
+convolution: one latent profile per cell type, \boldsymbol{x}\_{\cdot
+j}\sim\mathcal{N}\_G(\boldsymbol{\mu}\_{\cdot
+j},\boldsymbol{\Sigma}\_j), weighted by p_j and summed, so that
+
+\boldsymbol{y} \sim \mathcal{N}\_G\Bigl(\sum\_{j=1}^{J}
+p_j\boldsymbol{\mu}\_{\cdot j},\\ \sum\_{j=1}^{J}
+p_j^{2}\boldsymbol{\Sigma}\_j\Bigr).
+
+Real bulk RNA-seq violates this assumption in at least five ways:
+
+1.  **Observation noise model**: counts follow a negative binomial (NB)
+    or Poisson-log-normal (PLN) distribution rather than Gaussian.
+2.  **Heavy-tailed or contaminated bulk**: outlier samples (technical
+    artefacts, cell doublets) inflate tails.
+3.  **Missing reference component**: an unmodelled cell type contributes
+    to the bulk; all estimated proportions are redistributed.
+4.  **Inter-sample (copula) correlations**: genes share latent batch
+    structure, inducing correlation across observations.
+5.  **Wrong covariance reference**: the within-cell-type covariance
+    \boldsymbol{\Sigma}\_j is estimated from a different cohort or
+    technology, introducing systematic bias.
+
+------------------------------------------------------------------------
+
+## Planned experiments
+
+### S5a — Observation noise model
+
+| Factor | Levels |
+|----|----|
+| Data-generating law | Gaussian (baseline); t\_\nu (\nu = 3); log-normal/PLN; contaminated Gaussian (\varepsilon = 0.05) |
+| Algorithm | NNLS, DeconRNASeq, Marquardt–Levenberg (full \boldsymbol{\Sigma}) |
+| G, J | 50 genes, 3 cell types |
+
+**Hypothesis:** DeCovarT should retain lower bias under log-normal noise
+than NNLS because the covariance captures more of the signal geometry,
+but may be more sensitive than NNLS to heavy-tail contamination.
+
+Connection to HADACA3 ([Barbot and Richard
+2026](#ref-barbotPromisesLimitsMultimodal2026)): the `SDC5` dataset uses
+a copula + NB noise model; `SDE5` uses an EM-based noise model. These
+represent the practical domain of mis-specification most relevant to
+pancreatic tumour deconvolution.
+
+see also use of a multivariate Student t\_\nu or simple Gaussian noise.
+
+### S5b — Missing reference component
+
+| Factor                | Levels                                          |
+|-----------------------|-------------------------------------------------|
+| Missing-type fraction | None (0%); rare (2%); moderate (10%)            |
+| Detection strategy    | None (ignore); re-normalise; add null cell type |
+| Metric                | RMSE of remaining types; false inclusion rate   |
+
+**Hypothesis:** closure forces the missing mass onto the J modelled cell
+types; the distribution of the error across types depends on the
+mean-collinearity structure. DeCovarT may exhibit a different
+redistribution pattern than NNLS because the second-order term couples
+the proportions estimation.
+
+### S5c — Model complex dependencies
+
+#### Copula-correlated NB samples
+
+| Factor               | Levels                                       |
+|----------------------|----------------------------------------------|
+| Copula family        | Gaussian; Clayton (positive tail dependence) |
+| Marginal             | NB (r = 5, \mu = \bar{\mu}\_g)               |
+| Correlation strength | \tau_K \in \\0, 0.2, 0.5\\                   |
+
+This directly mirrors the `SDC5` HADACA3 scenario ([Barbot and Richard
+2026](#ref-barbotPromisesLimitsMultimodal2026)).
+
+#### Poisson-log-normal samples
+
+| Factor               | Levels                     |
+|----------------------|----------------------------|
+| Marginal             | PLN (\mu = \bar{\mu}\_g)   |
+| Correlation strength | \tau_K \in \\0, 0.2, 0.5\\ |
+
+------------------------------------------------------------------------
+
+Can be simulated with `splatter` ([Zappia et al.
+2017](#ref-zappiaSplatterSimulationSinglecell2017a)) or `SymSim`).
+
+### S5d : Spillover effect and missing reference component
+
+The full factorial plan (`detailled_siulation_code.md`) includes these
+additional factors that touch on mis-specification and are also out of
+scope:
+
+| Factor | Planned levels | Notes |
+|----|----|----|
+| spillover strength | \alpha \in \\0, 0.2, 0.5\\ |  |
+| Missing-reference component | None; 2%; 10% | S5b above |
+| Reference covariance sample size | Oracle; 20; 50; 200 donors | See Appendix S4 |
+
+We may also consider an alternative model using a linear mixed model to
+add correlations between cell types.
+
+### S5e : Add outlier genes to test the robustness of the estimation
+
+| Factor           | Planned levels                           | Notes |
+|------------------|------------------------------------------|-------|
+| Outlier genes    | 10% of genes; 20% of genes; 30% of genes |       |
+| Outlier strength | \sigma \in \\0, 0.2, 0.5\\               |       |
+
+------------------------------------------------------------------------
+
+## See also
+
+- [Appendix S1 —
+  Identifiability](https://bastienchassagnol.github.io/DeCovarT/articles/S1-identifiability.html)
+- [Appendix S4 — Covariance
+  Modelling](https://bastienchassagnol.github.io/DeCovarT/articles/S4-covariance-modeling.html)
+- [How to build synthetic
+  scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/04-1-synthetic-scenarios.md)
+
+## References
+
+Barbot, Hugo, and Magali Richard. 2026. ‘On the Promises and Limits of
+Multimodal Integration for Deconvolution: The HADACA3 Benchmark’.
+*NeurIPS*.
+
+Zappia, Luke, Belinda Phipson, and Alicia Oshlack. 2017. ‘Splatter:
+Simulation of Single-Cell RNA Sequencing Data’. *Genome Biology* 18:
+174. <https://doi.org/10.1186/s13059-017-1305-0>.

@@ -62,7 +62,7 @@ A list with `perm`, `p_hat`, `p_star` (fit on the relabelled reference),
 Columns of \\\boldsymbol{\mu}\\ and matching slices of
 \\\boldsymbol{\Sigma}\_j\\ are reordered by `perm` while the *names*
 stay in the original order, matching the convention of
-[`vignette("theory-population-inference")`](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.md).
+[`vignette("01-2-population-inference")`](https://bastienchassagnol.github.io/DeCovarT/articles/01-2-population-inference.md).
 The labelled MLE on the relabelled reference is then compared with
 \\\hat{\boldsymbol{p}}\_{\mathrm{perm}}\\.
 

@@ -40,39 +40,38 @@ computes, so it is not the matrix passed to the solver."><meta property="og:imag
   <ul class="dropdown-menu" aria-labelledby="dropdown-vignettes"><li><h6 class="dropdown-header" data-toc-skip>External resources</h6></li>
     <li><a class="dropdown-item" href="../articles/decovart-paper-slides.html"><span class="fa fa-book-open"></span> Manuscript, preprint &amp; seminar slides</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Prepare inputs</h6></li>
-    <li><a class="dropdown-item" href="../articles/theory-network-inference.html"><span class="fa fa-project-diagram"></span> In silico GRN inference</a></li>
-    <li><a class="dropdown-item" href="../articles/supp-S6-feature-selection.html"><span class="fa fa-filter"></span> Feature selection for reference-based deconvolution</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Theory</h6></li>
+    <li><h6 class="dropdown-header" data-toc-skip>1 · Population-level references</h6></li>
+    <li><a class="dropdown-item" href="../articles/01-1-population-generative-optimisation.html"><span class="fa fa-square-root-variable"></span> 1.1 · Generative model, derivatives and optimisation</a></li>
+    <li><a class="dropdown-item" href="../articles/01-2-population-inference.html"><span class="fa fa-chart-area"></span> 1.2 · MLE properties and confidence intervals</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>2 · Single-cell references</h6></li>
+    <li><a class="dropdown-item" href="../articles/02-1-single-cell-generative-optimisation.html"><span class="fa fa-align-left"></span> 2.1 · Reference moments, alignment strategies and the profile fit</a></li>
+    <li><a class="dropdown-item" href="../articles/02-2-single-cell-inference.html"><span class="fa fa-chart-line"></span> 2.2 · Profile information, intervals and the REML calibration</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>3 · Estimating the reference: genes and covariances</h6></li>
+    <li><a class="dropdown-item" href="../articles/03-1-feature-selection.html"><span class="fa fa-filter"></span> 3.1 · Gene selection for reference-based deconvolution</a></li>
+    <li><a class="dropdown-item" href="../articles/03-2-covariance-network-estimation.html"><span class="fa fa-project-diagram"></span> 3.2 · Cell-type covariance for the plug-in</a></li>
+    <li><a class="dropdown-item" href="../articles/03-3-precision-networks.html"><span class="fa fa-share-alt"></span> 3.3 · Precision networks (not the plug-in)</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>4 · Benchmark design</h6></li>
+    <li><a class="dropdown-item" href="../articles/04-1-synthetic-scenarios.html"><span class="fa fa-flask"></span> 4.1 · Synthetic scenarios (means, covariance, ADEMP)</a></li>
+    <li><a class="dropdown-item" href="../articles/04-2-distances-overlap-metrics.html"><span class="fa fa-ruler"></span> 4.2 · Distances, overlap, and covariance information</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>5 · Review and perspectives</h6></li>
+    <li><a class="dropdown-item" href="../articles/05-1-review-distribution-aware.html"><span class="fa fa-book"></span> 5.1 · Review: deconvolution with reference distributions</a></li>
+    <li><a class="dropdown-item" href="../articles/05-2-bayesian-wiener.html"><span class="fa fa-wave-square"></span> 5.2 · Bayesian DeCovarT: latent profiles and the Wiener filter</a></li>
+    <li><a class="dropdown-item" href="../articles/05-3-extensions-roadmap.html"><span class="fa fa-compass"></span> 5.3 · Extensions roadmap: lineages, covariates, modalities</a></li>
+    <li><a class="dropdown-item" href="../articles/05-4-mixture-experiments.html"><span class="fa fa-flask-vial"></span> 5.4 · DeCovarT as a mixture model: designed mixture experiments</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Theory: population-level references</h6></li>
-    <li><a class="dropdown-item" href="../articles/theory-population-generative-optimisation.html"><span class="fa fa-square-root-variable"></span> Generative model, derivatives and optimisation</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-population-inference.html"><span class="fa fa-chart-area"></span> MLE properties and confidence intervals</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Simulation study (article §2)</h6></li>
+    <li><a class="dropdown-item" href="../articles/R1-bivariate-toy.html"><span class="fa fa-chart-bar"></span> §2.2 · Bivariate toy (J = 2, G = 2)</a></li>
+    <li><a class="dropdown-item" href="../articles/R2-covariance-driven.html"><span class="fa fa-network-wired"></span> §2.3 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
+    <li><a class="dropdown-item" href="../articles/R3-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> §2.4 · Single-cell, two lineages (J = 4)</a></li>
     <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Theory: single-cell references</h6></li>
-    <li><a class="dropdown-item" href="../articles/theory-single-cell-generative-optimisation.html"><span class="fa fa-align-left"></span> Reference moments, alignment strategies and the profile fit</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-single-cell-inference.html"><span class="fa fa-chart-line"></span> Profile information, intervals and the REML calibration</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Synthetic scenarios</h6></li>
-    <li><a class="dropdown-item" href="../articles/theory-synthetic-scenarios-mean-covariance.html"><span class="fa fa-flask"></span> How to build synthetic scenarios (means, covariance, ADEMP)</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-distance-covariance.html"><span class="fa fa-ruler"></span> Distances, overlap, and covariance information</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Paper: numerical simulation study</h6></li>
-    <li><a class="dropdown-item" href="../articles/fig02-bivariate-toy.html"><span class="fa fa-chart-bar"></span> § 2.1 · Bivariate toy (J = 2, G = 2)</a></li>
-    <li><a class="dropdown-item" href="../articles/fig03-covariance-driven.html"><span class="fa fa-network-wired"></span> § 2.2 · Covariance-driven hybrid (J = 3, G = 20)</a></li>
-    <li><a class="dropdown-item" href="../articles/fig05-single-cell-hierarchical.html"><span class="fa fa-sitemap"></span> § 2.4 · Single-cell, two lineages (J = 4, G = 20 or 200)</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>DeCovarT mathematical appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/theory-review-distribution-aware-deconvolution.html"><span class="fa fa-book"></span> Review: deconvolution with reference distributions</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-bayesian-wiener.html"><span class="fa fa-wave-square"></span> Bayesian DeCovarT: latent profiles and the Wiener filter</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-decovart-extensions-roadmap.html"><span class="fa fa-compass"></span> Extensions roadmap: lineages, covariates, modalities</a></li>
-    <li><a class="dropdown-item" href="../articles/theory-mixture-regression-applications.html"><span class="fa fa-flask-vial"></span> DeCovarT as a mixture model: designed mixture experiments</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><h6 class="dropdown-header" data-toc-skip>Supplementary simulation appendix</h6></li>
-    <li><a class="dropdown-item" href="../articles/supp-S1-identifiability.html"><span class="fa fa-vial"></span> App. S1 · Regular-case MLE and identifiability</a></li>
-    <li><a class="dropdown-item" href="../articles/supp-S2-covariance-inversion.html"><span class="fa fa-calculator"></span> App. S2 · Covariance inversion strategies</a></li>
-    <li><a class="dropdown-item" href="../articles/supp-S3-scaling.html"><span class="fa fa-gauge-high"></span> App. S3 · Solver scalability</a></li>
-    <li><a class="dropdown-item" href="../articles/supp-S4-covariance-modeling.html"><span class="fa fa-layer-group"></span> App. S4 · Covariance modelling assumptions</a></li>
-    <li><a class="dropdown-item" href="../articles/supp-S5-misspecification.html"><span class="fa fa-triangle-exclamation"></span> App. S5 · Model mis-specification (outlook)</a></li>
+    <li><h6 class="dropdown-header" data-toc-skip>Supplementary appendix</h6></li>
+    <li><a class="dropdown-item" href="../articles/S1-identifiability.html"><span class="fa fa-vial"></span> S1 · Identifiability (ch. 1)</a></li>
+    <li><a class="dropdown-item" href="../articles/S2-covariance-inversion.html"><span class="fa fa-calculator"></span> S2 · Covariance inversion (ch. 1)</a></li>
+    <li><a class="dropdown-item" href="../articles/S3-scaling.html"><span class="fa fa-gauge-high"></span> S3 · Solver scalability (ch. 1)</a></li>
+    <li><a class="dropdown-item" href="../articles/S4-covariance-modeling.html"><span class="fa fa-layer-group"></span> S4 · Covariance modelling assumptions (ch. 1)</a></li>
+    <li><a class="dropdown-item" href="../articles/S5-misspecification.html"><span class="fa fa-triangle-exclamation"></span> S5 · Model misspecification (ch. 4)</a></li>
+    <li><a class="dropdown-item" href="../articles/S6-feature-screening-scenario.html"><span class="fa fa-dna"></span> S6 · Gene-screening scenario (ch. 3)</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html"><span class="fa fa-newspaper"></span> News</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">

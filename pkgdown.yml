@@ -2,28 +2,30 @@ pandoc: 3.8.3
 pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
+  01-1-population-generative-optimisation: 01-1-population-generative-optimisation.html
+  01-2-population-inference: 01-2-population-inference.html
+  02-1-single-cell-generative-optimisation: 02-1-single-cell-generative-optimisation.html
+  02-2-single-cell-inference: 02-2-single-cell-inference.html
+  03-1-feature-selection: 03-1-feature-selection.html
+  03-2-covariance-network-estimation: 03-2-covariance-network-estimation.html
+  03-3-precision-networks: 03-3-precision-networks.html
+  04-1-synthetic-scenarios: 04-1-synthetic-scenarios.html
+  04-2-distances-overlap-metrics: 04-2-distances-overlap-metrics.html
+  05-1-review-distribution-aware: 05-1-review-distribution-aware.html
+  05-2-bayesian-wiener: 05-2-bayesian-wiener.html
+  05-3-extensions-roadmap: 05-3-extensions-roadmap.html
+  05-4-mixture-experiments: 05-4-mixture-experiments.html
   decovart-paper-slides: decovart-paper-slides.html
-  fig02-bivariate-toy: fig02-bivariate-toy.html
-  fig03-covariance-driven: fig03-covariance-driven.html
-  fig05-single-cell-hierarchical: fig05-single-cell-hierarchical.html
-  supp-S1-identifiability: supp-S1-identifiability.html
-  supp-S2-covariance-inversion: supp-S2-covariance-inversion.html
-  supp-S3-scaling: supp-S3-scaling.html
-  supp-S4-covariance-modeling: supp-S4-covariance-modeling.html
-  supp-S5-misspecification: supp-S5-misspecification.html
-  supp-S6-feature-selection: supp-S6-feature-selection.html
-  theory-decovart-bayesian-wiener: theory-decovart-bayesian-wiener.html
-  theory-decovart-extensions-roadmap: theory-decovart-extensions-roadmap.html
-  theory-distance-covariance: theory-distance-covariance.html
-  theory-mixture-regression-applications: theory-mixture-regression-applications.html
-  theory-network-inference: theory-network-inference.html
-  theory-population-generative-optimisation: theory-population-generative-optimisation.html
-  theory-population-inference: theory-population-inference.html
-  theory-review-distribution-aware-deconvolution: theory-review-distribution-aware-deconvolution.html
-  theory-single-cell-generative-optimisation: theory-single-cell-generative-optimisation.html
-  theory-single-cell-inference: theory-single-cell-inference.html
-  theory-synthetic-scenarios-mean-covariance: theory-synthetic-scenarios-mean-covariance.html
-last_built: 2026-10-30T10:15Z
+  R1-bivariate-toy: R1-bivariate-toy.html
+  R2-covariance-driven: R2-covariance-driven.html
+  R3-single-cell-hierarchical: R3-single-cell-hierarchical.html
+  S1-identifiability: S1-identifiability.html
+  S2-covariance-inversion: S2-covariance-inversion.html
+  S3-scaling: S3-scaling.html
+  S4-covariance-modeling: S4-covariance-modeling.html
+  S5-misspecification: S5-misspecification.html
+  S6-feature-screening-scenario: S6-feature-screening-scenario.html
+last_built: 2026-10-30T11:20Z
 urls:
   reference: https://bastienchassagnol.github.io/DeCovarT/reference
   article: https://bastienchassagnol.github.io/DeCovarT/articles

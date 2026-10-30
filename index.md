@@ -559,19 +559,19 @@ Package website: <https://bastienchassagnol.github.io/DeCovarT/>
 **Vignettes**
 
 - [How to build synthetic
-  scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/theory-synthetic-scenarios-mean-covariance.html)
-- [§2.1 Bivariate
-  toy](https://bastienchassagnol.github.io/DeCovarT/articles/fig02-bivariate-toy.html)
-- [§2.2 Covariance-driven
-  hybrid](https://bastienchassagnol.github.io/DeCovarT/articles/fig03-covariance-driven.html)
+  scenarios](https://bastienchassagnol.github.io/DeCovarT/articles/04-1-synthetic-scenarios.html)
+- [§2.2 Bivariate
+  toy](https://bastienchassagnol.github.io/DeCovarT/articles/R1-bivariate-toy.html)
+- [§2.3 Covariance-driven
+  hybrid](https://bastienchassagnol.github.io/DeCovarT/articles/R2-covariance-driven.html)
 - [Population references: generative model and
-  optimisation](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-generative-optimisation.html)
+  optimisation](https://bastienchassagnol.github.io/DeCovarT/articles/01-1-population-generative-optimisation.html)
 - [Population references: MLE properties and confidence
-  intervals](https://bastienchassagnol.github.io/DeCovarT/articles/theory-population-inference.html)
+  intervals](https://bastienchassagnol.github.io/DeCovarT/articles/01-2-population-inference.html)
 - [Single-cell references: reference moments and the profile
-  fit](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-generative-optimisation.html)
+  fit](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html)
 - [Single-cell references: intervals and the REML
-  calibration](https://bastienchassagnol.github.io/DeCovarT/articles/theory-single-cell-inference.html)
+  calibration](https://bastienchassagnol.github.io/DeCovarT/articles/02-2-single-cell-inference.html)
 
 In an R session, use
 [`?DeCovarT::deconvolute_ratios`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_ratios.md)
