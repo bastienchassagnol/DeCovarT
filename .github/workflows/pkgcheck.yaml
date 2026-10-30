@@ -11,7 +11,8 @@ concurrency:
 on:
   # Manually trigger the Action under Actions/pkgcheck
   workflow_dispatch:
-  # Run on every push to main
+  # A push to main starts the workflow; the job runs only when the
+  # commit message contains "run pkgcheck" (see the job `if` below).
   push:
     branches:
       - main
@@ -22,6 +23,13 @@ on:
 jobs:
   pkgcheck:
     runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'pull_request' ||
+      (
+        github.event_name == 'push' &&
+        contains(github.event.head_commit.message, 'run pkgcheck')
+      )
     permissions:
       issues: write
     steps:
