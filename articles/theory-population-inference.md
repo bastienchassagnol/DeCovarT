@@ -949,25 +949,25 @@ knitr::kable(route_summary, digits = 3)
 
 | route            | cell_type | coverage | outside_unit_interval | median_width |
 |:-----------------|:----------|---------:|----------------------:|-------------:|
-| delta            | ct1       |    0.950 |                 0.097 |        0.174 |
-| delta            | ct2       |    0.970 |                 0.363 |        0.209 |
-| delta            | ct3       |    0.980 |                 0.770 |        0.090 |
-| back_transformed | ct1       |    0.897 |                 0.000 |        0.226 |
-| back_transformed | ct2       |    0.973 |                 0.000 |        0.230 |
-| back_transformed | ct3       |    0.963 |                 0.000 |        0.126 |
+| delta            | ct1       |    0.963 |                 0.083 |        0.174 |
+| delta            | ct2       |    0.953 |                 0.353 |        0.209 |
+| delta            | ct3       |    0.970 |                 0.733 |        0.090 |
+| back_transformed | ct1       |    0.890 |                 0.000 |        0.215 |
+| back_transformed | ct2       |    0.987 |                 0.000 |        0.231 |
+| back_transformed | ct3       |    0.953 |                 0.000 |        0.120 |
 
 Out of 300 fits, 0 returned an estimate on a simplex face, where neither
 route is defined; the table is computed on the 300 interior fits. Three
 readings follow.
 
-- The delta method places 77% of the intervals for the rare type partly
+- The delta method places 73% of the intervals for the rare type partly
   below zero. Truncating them at zero would hide, not fix, the problem.
 - The back-transformed intervals never leave (0,1) and are wider for the
   rare type, as an asymmetric interval should be.
 - Neither route is calibrated for every type, and they miss in opposite
   directions. The delta method reaches its nominal coverage only by
   spending most of the rare-type interval on negative proportions; the
-  back-transformed route covers the abundant type in 90% of the fits.
+  back-transformed route covers the abundant type in 89% of the fits.
   The normal approximation of \hat{\boldsymbol{\rho}} is the weak link,
   and the routes only change how its error is mapped to the simplex.
 
@@ -1380,9 +1380,9 @@ round(
   4
 )
 #>     estimate  lower  upper
-#> ct1   0.4546 0.4347 0.4749
-#> ct2   0.3559 0.3339 0.3785
-#> ct3   0.1895 0.1598 0.2182
+#> ct1   0.4531 0.4333 0.4733
+#> ct2   0.3525 0.3306 0.3751
+#> ct3   0.1943 0.1647 0.2229
 ```
 
 ``` r
@@ -1394,7 +1394,7 @@ lrt_decovart(
   null_value = c(ct1 = 0.30)
 )
 #>     statistic n_boundary df_interior      p_value loglik_full loglik_null
-#> ct1  235.2243          0           1 4.325696e-53  -0.7007644   -118.3129
+#> ct1  231.2985          0           1 3.105728e-52  -0.8767418    -116.526
 #>            calibration
 #> ct1 chi-square (Wilks)
 ```
@@ -1443,7 +1443,7 @@ lrt_decovart(
   null_value = c(ct3 = 0)
 )
 #>     statistic n_boundary df_interior p_value loglik_full loglik_null
-#> ct3         0          1           0     0.5   -5.922388   -5.922388
+#> ct3         0          1           0     0.5    -5.88388    -5.88388
 #>                     calibration
 #> ct3 chi-bar-square (Self-Liang)
 ```
@@ -1648,9 +1648,9 @@ ref_boot <- reference_bootstrap_decovart(
 )
 ref_boot$interval
 #>          2.5%     97.5%
-#> ct1 0.4384732 0.4621236
-#> ct2 0.3369248 0.3646381
-#> ct3 0.1827913 0.2184093
+#> ct1 0.4368080 0.4605851
+#> ct2 0.3336731 0.3614464
+#> ct3 0.1866613 0.2235220
 ```
 
 [`equivariance_check_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/equivariance_check_decovart.md)
@@ -1671,8 +1671,8 @@ c(
   max_abs_diff = eq_check$max_abs_diff,
   loglik_diff = eq_check$loglik_diff
 )
-#>  max_abs_diff   loglik_diff 
-#>  2.775558e-16 -2.886580e-15
+#> max_abs_diff  loglik_diff 
+#> 1.110223e-16 2.220446e-16
 ```
 
 ### RNA-Sieve: CLT likelihood, Fisher and Godambe
@@ -1755,13 +1755,13 @@ fit <- fit_decovart(
 )
 do.call(rbind, fit$diagnostics)
 #>          boundary_distance near_boundary   score_norm min_eigenvalue
-#> sample_1         0.2159583         FALSE 1.026516e-09      -160.1989
-#> sample_2         0.1832317         FALSE 3.836661e-05      -167.0961
-#> sample_3         0.1682215         FALSE 4.077976e-08      -171.3536
+#> sample_1         0.1667117         FALSE 6.028243e-06      -170.4695
+#> sample_2         0.2410455         FALSE 6.294137e-05      -154.9372
+#> sample_3         0.2110584         FALSE 1.500411e-04      -162.5574
 #>          max_eigenvalue local_maximum
-#> sample_1      -24.48051          TRUE
-#> sample_2      -18.72240          TRUE
-#> sample_3      -16.19907          TRUE
+#> sample_1      -15.95316          TRUE
+#> sample_2      -29.56308          TRUE
+#> sample_3      -23.72404         FALSE
 ```
 
 Every sample above converged and every curvature is negative, yet
@@ -1809,7 +1809,7 @@ c(
   multimodal = restarts$multimodal
 )
 #> loglik_range   multimodal 
-#> 1.038287e-09 0.000000e+00
+#>  2.37166e-09  0.00000e+00
 ```
 
 A small range is reassuring but not a proof: a converged code, a tiny

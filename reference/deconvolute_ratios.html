@@ -29,7 +29,7 @@ is provided, DeCovarT methods maximise
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -130,7 +130,8 @@ is provided, DeCovarT methods maximise
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  progress_every <span class="op">=</span> <span class="fl">10L</span>,</span>
 <span>  likelihood <span class="op">=</span> <span class="fu"><a href="population_likelihood.html">population_likelihood</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  nuisance_true <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  nuisance_true <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  label <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -222,6 +223,12 @@ diagnostics, the Wald standard errors and the interval menu.</p></dd>
 <dd><p>Optional \(2\times N\) matrix of the true scales
 \((c,\phi)\) of the single-cell model, for the coverage of their
 intervals.</p></dd>
+
+
+<dt id="arg-label">label<a class="anchor" aria-label="anchor" href="#arg-label"></a></dt>
+<dd><p>Optional scenario label. When given, one line per solver
+reports the label, the solver, the number of bulks, the elapsed time
+and the number of fits with no finite estimate.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -324,10 +331,10 @@ Newman A, Liu C, Green M, Gentles A, Feng W, Xu Y, Hoang C, Diehn M, Alizadeh A 
 <span class="r-out co"><span class="r-pr">#&gt;</span> $regression</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $regression$global</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 9</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   sample_id algorithm     tv   rmse angular  sdid  maxae reconstitution_mae</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> sample_1  nnls      0.080<span style="text-decoration: underline;">6</span> 0.080<span style="text-decoration: underline;">6</span>   0.102 0.399 0.080<span style="text-decoration: underline;">6</span>                 <span style="color: #BB0000;">NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> sample_2  nnls      0.220  0.220    0.264 0.634 0.220                  <span style="color: #BB0000;">NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   sample_id algorithm      tv    rmse angular  sdid   maxae reconstitution_mae</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> sample_1  nnls      0.006<span style="text-decoration: underline;">46</span> 0.006<span style="text-decoration: underline;">46</span> 0.008<span style="text-decoration: underline;">22</span> 0.114 0.006<span style="text-decoration: underline;">46</span>                 <span style="color: #BB0000;">NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> sample_2  nnls      0.364   0.364   0.401   0.767 0.364                   <span style="color: #BB0000;">NA</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 1 more variable: reconstitution_cor &lt;dbl&gt;</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $regression$cell_type</span>
@@ -340,10 +347,10 @@ Newman A, Liu C, Green M, Gentles A, Feng W, Xu Y, Hoang C, Diehn M, Alizadeh A 
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $monte_carlo</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 15</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   algorithm cell_type    bias empirical_sd mean_model_sd mean_model_se</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> nnls      ct1        0.069<span style="text-decoration: underline;">6</span>        0.212            <span style="color: #BB0000;">NA</span>            <span style="color: #BB0000;">NA</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> nnls      ct2       -<span style="color: #BB0000;">0.069</span><span style="color: #BB0000; text-decoration: underline;">6</span>        0.212            <span style="color: #BB0000;">NA</span>            <span style="color: #BB0000;">NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   algorithm cell_type   bias empirical_sd mean_model_sd mean_model_se</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> nnls      ct1        0.179        0.262            <span style="color: #BB0000;">NA</span>            <span style="color: #BB0000;">NA</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> nnls      ct2       -<span style="color: #BB0000;">0.179</span>        0.262            <span style="color: #BB0000;">NA</span>            <span style="color: #BB0000;">NA</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 9 more variables: se_sd_ratio &lt;dbl&gt;, theoretical_se &lt;dbl&gt;, rmse &lt;dbl&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   coverage &lt;dbl&gt;, coverage_lower &lt;dbl&gt;, coverage_upper &lt;dbl&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   coverage_interval &lt;chr&gt;, mean_interval_width &lt;dbl&gt;, mcse_coverage &lt;dbl&gt;</span></span>
@@ -352,8 +359,8 @@ Newman A, Liu C, Green M, Gentles A, Feng W, Xu Y, Hoang C, Diehn M, Alizadeh A 
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 15</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   sample_id algorithm elapsed_sec memory_bytes kkt_residual numerical_converged</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>              </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> sample_1  nnls                0    520<span style="text-decoration: underline;">993</span>792        0.444 TRUE               </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> sample_2  nnls                0    522<span style="text-decoration: underline;">034</span>176        0.152 TRUE               </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> sample_1  nnls                0    521<span style="text-decoration: underline;">321</span>472       0.035<span style="text-decoration: underline;">2</span> TRUE               </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> sample_2  nnls                0    522<span style="text-decoration: underline;">361</span>856       0.974  TRUE               </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 9 more variables: theoretical_converged &lt;lgl&gt;, n_zero &lt;int&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   loglik_regret &lt;dbl&gt;, local_maximum &lt;lgl&gt;, min_eigenvalue &lt;dbl&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   max_eigenvalue &lt;dbl&gt;, converged &lt;list&gt;, ct1 &lt;dbl&gt;, ct2 &lt;dbl&gt;</span></span>

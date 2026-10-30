@@ -155,5 +155,5 @@ sim <- simulate_bulk_from_cells(
 fit <- deconvolute_single_cell(sim$Y[, 1], mu, sigma)
 round(fit$p, 3)
 #>   ct1   ct2 
-#> 0.801 0.199 
+#> 0.798 0.202 
 ```

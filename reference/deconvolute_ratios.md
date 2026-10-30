@@ -27,7 +27,8 @@ deconvolute_ratios(
   verbose = FALSE,
   progress_every = 10L,
   likelihood = population_likelihood(),
-  nuisance_true = NULL
+  nuisance_true = NULL,
+  label = NULL
 )
 ```
 
@@ -119,6 +120,12 @@ deconvolute_ratios(
   Optional \\2\times N\\ matrix of the true scales \\(c,\phi)\\ of the
   single-cell model, for the coverage of their intervals.
 
+- label:
+
+  Optional scenario label. When given, one line per solver reports the
+  label, the solver, the number of bulks, the elapsed time and the
+  number of fits with no finite estimate.
+
 ## Value
 
 A named list from
@@ -206,10 +213,10 @@ deconvolute_ratios(
 #> $regression
 #> $regression$global
 #> # A tibble: 2 × 9
-#>   sample_id algorithm     tv   rmse angular  sdid  maxae reconstitution_mae
-#>   <chr>     <chr>      <dbl>  <dbl>   <dbl> <dbl>  <dbl>              <dbl>
-#> 1 sample_1  nnls      0.0806 0.0806   0.102 0.399 0.0806                 NA
-#> 2 sample_2  nnls      0.220  0.220    0.264 0.634 0.220                  NA
+#>   sample_id algorithm      tv    rmse angular  sdid   maxae reconstitution_mae
+#>   <chr>     <chr>       <dbl>   <dbl>   <dbl> <dbl>   <dbl>              <dbl>
+#> 1 sample_1  nnls      0.00646 0.00646 0.00822 0.114 0.00646                 NA
+#> 2 sample_2  nnls      0.364   0.364   0.401   0.767 0.364                   NA
 #> # ℹ 1 more variable: reconstitution_cor <dbl>
 #> 
 #> $regression$cell_type
@@ -222,10 +229,10 @@ deconvolute_ratios(
 #> 
 #> $monte_carlo
 #> # A tibble: 2 × 15
-#>   algorithm cell_type    bias empirical_sd mean_model_sd mean_model_se
-#>   <chr>     <chr>       <dbl>        <dbl>         <dbl>         <dbl>
-#> 1 nnls      ct1        0.0696        0.212            NA            NA
-#> 2 nnls      ct2       -0.0696        0.212            NA            NA
+#>   algorithm cell_type   bias empirical_sd mean_model_sd mean_model_se
+#>   <chr>     <chr>      <dbl>        <dbl>         <dbl>         <dbl>
+#> 1 nnls      ct1        0.179        0.262            NA            NA
+#> 2 nnls      ct2       -0.179        0.262            NA            NA
 #> # ℹ 9 more variables: se_sd_ratio <dbl>, theoretical_se <dbl>, rmse <dbl>,
 #> #   coverage <dbl>, coverage_lower <dbl>, coverage_upper <dbl>,
 #> #   coverage_interval <chr>, mean_interval_width <dbl>, mcse_coverage <dbl>
@@ -234,8 +241,8 @@ deconvolute_ratios(
 #> # A tibble: 2 × 15
 #>   sample_id algorithm elapsed_sec memory_bytes kkt_residual numerical_converged
 #>   <chr>     <chr>           <dbl>        <dbl>        <dbl> <lgl>              
-#> 1 sample_1  nnls                0    520993792        0.444 TRUE               
-#> 2 sample_2  nnls                0    522034176        0.152 TRUE               
+#> 1 sample_1  nnls                0    521321472       0.0352 TRUE               
+#> 2 sample_2  nnls                0    522361856       0.974  TRUE               
 #> # ℹ 9 more variables: theoretical_converged <lgl>, n_zero <int>,
 #> #   loglik_regret <dbl>, local_maximum <lgl>, min_eigenvalue <dbl>,
 #> #   max_eigenvalue <dbl>, converged <list>, ct1 <dbl>, ct2 <dbl>

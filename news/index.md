@@ -1,5 +1,38 @@
 # Changelog
 
+## DeCovarT 2.6.0
+
+### Gaussian draws from Cholesky factors
+
+- [`simulate_bulk_from_cells()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_from_cells.md),
+  [`simulate_bulk_mixture()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_bulk_mixture.md),
+  [`simulate_reference_replicates()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_reference_replicates.md)
+  and the population and single-cell parametric bootstraps draw from the
+  upper Cholesky factor of the covariance (`mu + Z R`), computed once
+  per cell type, in place of
+  [`MASS::mvrnorm()`](https://rdrr.io/pkg/MASS/man/mvrnorm.html). The
+  law is the same; the numbers for a given seed differ from 2.5.0.
+- Cause: [`MASS::mvrnorm()`](https://rdrr.io/pkg/MASS/man/mvrnorm.html)
+  takes a full eigendecomposition (LAPACK `dsyevr`). Under OpenBLAS
+  0.3.20 (Ubuntu 22.04) on an Intel Xeon w9-3575X, `dsyevr` stopped with
+  “error code 1” on well-conditioned G = 200 covariances of figure 5: 6
+  failures in 1,004 calls with the SkylakeX kernel, 13 in 502 with
+  Nehalem, 2 with Sandybridge or Prescott, none with Haswell. With the
+  reference LAPACK on the OpenBLAS kernels the same six calls failed;
+  with the reference BLAS none did. The fault is in the OpenBLAS BLAS
+  kernels, not in R, MASS or LAPACK. Draft reports are in
+  `scripts/reports/`.
+
+### Reproducible scenarios
+
+- [`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.md)
+  gains `seed` (scenario `i` runs under `withr::with_seed(seed + i)`)
+  and `scenarios` (run a subset of rows, keeping their index for the
+  seed). A failed scenario is reproduced exactly with `scenarios = i`.
+- `deconvolute_ratios(label =)` logs one line per solver: the scenario
+  label, the solver, the number of bulks, the elapsed time and the fits
+  with no estimate. `run_simulation_benchmark(verbose = TRUE)` sets it.
+
 ## DeCovarT 2.5.0
 
 ### Breaking changes
@@ -78,8 +111,10 @@
 
 - New test `test-linear-algebra.R` fails when BLAS / LAPACK return wrong
   Cholesky factors or inverses. This happens with OpenBLAS 0.3.20 on
-  Intel Xeon w9-3575X (set `OPENBLAS_CORETYPE=SkylakeX` before R
-  starts); it was the cause of the fig05 failure at G = 200.
+  Intel Xeon w9-3575X (set `OPENBLAS_CORETYPE=Haswell` before R starts).
+  SkylakeX repairs [`chol()`](https://rdrr.io/r/base/chol.html) and
+  [`solve()`](https://rdrr.io/r/base/solve.html) but not every `dsyevr`
+  call; Haswell is the kernel for which both were correct.
 
 - **Simulation benchmarks rebuilt (figures 2, 3 and the new figure 5).**
 

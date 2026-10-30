@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -78,6 +78,22 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.6.0" id="decovart-260">DeCovarT 2.6.0<a class="anchor" aria-label="anchor" href="#decovart-260"></a></h2>
+<div class="section level3">
+<h3 id="gaussian-draws-from-cholesky-factors-2-6-0">Gaussian draws from Cholesky factors<a class="anchor" aria-label="anchor" href="#gaussian-draws-from-cholesky-factors-2-6-0"></a></h3>
+<ul><li>
+<code><a href="../reference/simulate_bulk_from_cells.html">simulate_bulk_from_cells()</a></code>, <code><a href="../reference/simulate_bulk_mixture.html">simulate_bulk_mixture()</a></code>, <code><a href="../reference/simulate_reference_replicates.html">simulate_reference_replicates()</a></code> and the population and single-cell parametric bootstraps draw from the upper Cholesky factor of the covariance (<code>mu + Z R</code>), computed once per cell type, in place of <code><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html" class="external-link">MASS::mvrnorm()</a></code>. The law is the same; the numbers for a given seed differ from 2.5.0.</li>
+<li>Cause: <code><a href="https://rdrr.io/pkg/MASS/man/mvrnorm.html" class="external-link">MASS::mvrnorm()</a></code> takes a full eigendecomposition (LAPACK <code>dsyevr</code>). Under OpenBLAS 0.3.20 (Ubuntu 22.04) on an Intel Xeon w9-3575X, <code>dsyevr</code> stopped with “error code 1” on well-conditioned G = 200 covariances of figure 5: 6 failures in 1,004 calls with the SkylakeX kernel, 13 in 502 with Nehalem, 2 with Sandybridge or Prescott, none with Haswell. With the reference LAPACK on the OpenBLAS kernels the same six calls failed; with the reference BLAS none did. The fault is in the OpenBLAS BLAS kernels, not in R, MASS or LAPACK. Draft reports are in <code>scripts/reports/</code>.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="reproducible-scenarios-2-6-0">Reproducible scenarios<a class="anchor" aria-label="anchor" href="#reproducible-scenarios-2-6-0"></a></h3>
+<ul><li>
+<code><a href="../reference/run_simulation_benchmark.html">run_simulation_benchmark()</a></code> gains <code>seed</code> (scenario <code>i</code> runs under <code>withr::with_seed(seed + i)</code>) and <code>scenarios</code> (run a subset of rows, keeping their index for the seed). A failed scenario is reproduced exactly with <code>scenarios = i</code>.</li>
+<li>
+<code>deconvolute_ratios(label =)</code> logs one line per solver: the scenario label, the solver, the number of bulks, the elapsed time and the fits with no estimate. <code>run_simulation_benchmark(verbose = TRUE)</code> sets it.</li>
+</ul></div>
+</div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.5.0" id="decovart-250">DeCovarT 2.5.0<a class="anchor" aria-label="anchor" href="#decovart-250"></a></h2>
 <div class="section level3">
 <h3 id="breaking-changes-2-5-0">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-2-5-0"></a></h3>
@@ -100,7 +116,7 @@
 <ul><li><p><strong>Benchmark interval tables tolerate a missing parameter row.</strong> When one bulk’s interval omitted a parameter (seen with L-BFGS-B at G = 200 in figure 5), <code><a href="../reference/compute_benchmark_metrics.html">compute_benchmark_metrics()</a></code> stopped with a subscript error. That bulk now counts as having no interval for the parameter. A sample whose optimiser returns no finite estimate is counted separately in <code>n_numerical_failures</code>, and its convergence record is <code>"numerical failure"</code>.</p></li>
 <li><p><strong>Exported for scripts, so none needs <code>:::</code> or <code><a href="https://rdrr.io/r/base/get.html" class="external-link">get()</a></code>.</strong> <code><a href="../reference/scale_covariances_to_overlap.html">scale_covariances_to_overlap()</a></code>, <code><a href="../reference/hellinger_gaussian.html">hellinger_gaussian()</a></code> (formerly <code>.hellinger_gaussian()</code>), <code><a href="../reference/kkt_residual.html">kkt_residual()</a></code> (formerly <code>.kkt_residual()</code>) and <code>benchmark_likelihood()</code> (formerly <code>.benchmark_model()</code>).</p></li>
 <li><p><strong>No package-level mutable state.</strong> <code>cli</code> and <code>withr</code> move to Imports. The plain-text fallback of the <code>.ui_*</code> wrappers is removed and the package calls <code>cli</code> directly. The single-slot Cholesky cache of the covariance mixture is removed. Estimates are unchanged. Newton fits take 1.1 to 1.4 times as long at G = 20 (about 0.1 s per 200 fits); at G = 200 repeated timings ranged from 0.6 to 1.5 times, because the identity check on the covariance array costs about as much as the factorisation it saves. The qrng-missing note is shown once through <code>cli</code>’s own frequency control; its <code><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif()</a></code> fallback no longer changes the caller’s random state. <code>.with_seed()</code> delegates to <code><a href="https://withr.r-lib.org/reference/with_seed.html" class="external-link">withr::with_seed()</a></code>.</p></li>
-<li><p>New test <code>test-linear-algebra.R</code> fails when BLAS / LAPACK return wrong Cholesky factors or inverses. This happens with OpenBLAS 0.3.20 on Intel Xeon w9-3575X (set <code>OPENBLAS_CORETYPE=SkylakeX</code> before R starts); it was the cause of the fig05 failure at G = 200.</p></li>
+<li><p>New test <code>test-linear-algebra.R</code> fails when BLAS / LAPACK return wrong Cholesky factors or inverses. This happens with OpenBLAS 0.3.20 on Intel Xeon w9-3575X (set <code>OPENBLAS_CORETYPE=Haswell</code> before R starts). SkylakeX repairs <code><a href="https://rdrr.io/r/base/chol.html" class="external-link">chol()</a></code> and <code><a href="https://rdrr.io/r/base/solve.html" class="external-link">solve()</a></code> but not every <code>dsyevr</code> call; Haswell is the kernel for which both were correct.</p></li>
 <li>
 <p><strong>Simulation benchmarks rebuilt (figures 2, 3 and the new figure 5).</strong></p>
 <ul><li>

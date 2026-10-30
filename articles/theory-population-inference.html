@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -109,7 +109,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Population-level DeCovarT inference: MLE properties, confidence intervals and a GLM formulation</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-10-28</p>
+      <p class="date">2026-10-30</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/theory-population-inference.qmd" class="external-link"><code>vignettes/theory-population-inference.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -721,44 +721,44 @@ r(\psi_0)=\operatorname{sign}(\hat\psi-\psi_0)\sqrt{D(\psi_0)}
 <tr class="odd">
 <td style="text-align: left;">delta</td>
 <td style="text-align: left;">ct1</td>
-<td style="text-align: right;">0.950</td>
-<td style="text-align: right;">0.097</td>
+<td style="text-align: right;">0.963</td>
+<td style="text-align: right;">0.083</td>
 <td style="text-align: right;">0.174</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">delta</td>
 <td style="text-align: left;">ct2</td>
-<td style="text-align: right;">0.970</td>
-<td style="text-align: right;">0.363</td>
+<td style="text-align: right;">0.953</td>
+<td style="text-align: right;">0.353</td>
 <td style="text-align: right;">0.209</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">delta</td>
 <td style="text-align: left;">ct3</td>
-<td style="text-align: right;">0.980</td>
-<td style="text-align: right;">0.770</td>
+<td style="text-align: right;">0.970</td>
+<td style="text-align: right;">0.733</td>
 <td style="text-align: right;">0.090</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">back_transformed</td>
 <td style="text-align: left;">ct1</td>
-<td style="text-align: right;">0.897</td>
+<td style="text-align: right;">0.890</td>
 <td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.226</td>
+<td style="text-align: right;">0.215</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">back_transformed</td>
 <td style="text-align: left;">ct2</td>
-<td style="text-align: right;">0.973</td>
+<td style="text-align: right;">0.987</td>
 <td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.230</td>
+<td style="text-align: right;">0.231</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">back_transformed</td>
 <td style="text-align: left;">ct3</td>
-<td style="text-align: right;">0.963</td>
+<td style="text-align: right;">0.953</td>
 <td style="text-align: right;">0.000</td>
-<td style="text-align: right;">0.126</td>
+<td style="text-align: right;">0.120</td>
 </tr>
 </tbody>
 </table>
@@ -766,9 +766,9 @@ r(\psi_0)=\operatorname{sign}(\hat\psi-\psi_0)\sqrt{D(\psi_0)}
 </div>
 <p>Out of 300 fits, 0 returned an estimate on a simplex face, where neither route is defined; the table is computed on the 300 interior fits. Three readings follow.</p>
 <ul>
-<li>The delta method places 77% of the intervals for the rare type partly below zero. Truncating them at zero would hide, not fix, the problem.</li>
+<li>The delta method places 73% of the intervals for the rare type partly below zero. Truncating them at zero would hide, not fix, the problem.</li>
 <li>The back-transformed intervals never leave <span class="math inline">(0,1)</span> and are wider for the rare type, as an asymmetric interval should be.</li>
-<li>Neither route is calibrated for every type, and they miss in opposite directions. The delta method reaches its nominal coverage only by spending most of the rare-type interval on negative proportions; the back-transformed route covers the abundant type in 90% of the fits. The normal approximation of <span class="math inline">\hat{\boldsymbol{\rho}}</span> is the weak link, and the routes only change how its error is mapped to the simplex.</li>
+<li>Neither route is calibrated for every type, and they miss in opposite directions. The delta method reaches its nominal coverage only by spending most of the rare-type interval on negative proportions; the back-transformed route covers the abundant type in 89% of the fits. The normal approximation of <span class="math inline">\hat{\boldsymbol{\rho}}</span> is the weak link, and the routes only change how its error is mapped to the simplex.</li>
 </ul>
 <p>The delta method on <span class="math inline">\boldsymbol{p}</span> is therefore defensible only for balanced mixtures with few types, where every <span class="math inline">\hat p_j</span> is far from zero. Otherwise report the back-transformed interval, or the profile interval of <a href="#sec-interior" class="quarto-xref">Sec. 4.2</a>, which needs no normal approximation of <span class="math inline">\hat{\boldsymbol{\rho}}</span> at all.</p>
 </section><section class="level2"><h3 id="sec-nuisance">Nuisance scales: profile likelihood and orthogonality<a class="anchor" aria-label="anchor" href="#sec-nuisance"></a>
@@ -914,9 +914,9 @@ D_j(c)
 <span>  <span class="fl">4</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;     estimate  lower  upper</span></span>
-<span><span class="co">#&gt; ct1   0.4546 0.4347 0.4749</span></span>
-<span><span class="co">#&gt; ct2   0.3559 0.3339 0.3785</span></span>
-<span><span class="co">#&gt; ct3   0.1895 0.1598 0.2182</span></span></code></pre></div>
+<span><span class="co">#&gt; ct1   0.4531 0.4333 0.4733</span></span>
+<span><span class="co">#&gt; ct2   0.3525 0.3306 0.3751</span></span>
+<span><span class="co">#&gt; ct3   0.1943 0.1647 0.2229</span></span></code></pre></div>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
@@ -927,7 +927,7 @@ D_j(c)
 <span>  null_value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>ct1 <span class="op">=</span> <span class="fl">0.30</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;     statistic n_boundary df_interior      p_value loglik_full loglik_null</span></span>
-<span><span class="co">#&gt; ct1  235.2243          0           1 4.325696e-53  -0.7007644   -118.3129</span></span>
+<span><span class="co">#&gt; ct1  231.2985          0           1 3.105728e-52  -0.8767418    -116.526</span></span>
 <span><span class="co">#&gt;            calibration</span></span>
 <span><span class="co">#&gt; ct1 chi-square (Wilks)</span></span></code></pre></div>
 </div>
@@ -965,7 +965,7 @@ D
 <span>  null_value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>ct3 <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt;     statistic n_boundary df_interior p_value loglik_full loglik_null</span></span>
-<span><span class="co">#&gt; ct3         0          1           0     0.5   -5.922388   -5.922388</span></span>
+<span><span class="co">#&gt; ct3         0          1           0     0.5    -5.88388    -5.88388</span></span>
 <span><span class="co">#&gt;                     calibration</span></span>
 <span><span class="co">#&gt; ct3 chi-bar-square (Self-Liang)</span></span></code></pre></div>
 </div>
@@ -1075,9 +1075,9 @@ D
 <span><span class="op">)</span></span>
 <span><span class="va">ref_boot</span><span class="op">$</span><span class="va">interval</span></span>
 <span><span class="co">#&gt;          2.5%     97.5%</span></span>
-<span><span class="co">#&gt; ct1 0.4384732 0.4621236</span></span>
-<span><span class="co">#&gt; ct2 0.3369248 0.3646381</span></span>
-<span><span class="co">#&gt; ct3 0.1827913 0.2184093</span></span></code></pre></div>
+<span><span class="co">#&gt; ct1 0.4368080 0.4605851</span></span>
+<span><span class="co">#&gt; ct2 0.3336731 0.3614464</span></span>
+<span><span class="co">#&gt; ct3 0.1866613 0.2235220</span></span></code></pre></div>
 </div>
 <p><a href="../reference/equivariance_check_decovart.html"><code>equivariance_check_decovart()</code></a> is a software check of label equivariance: permute the signature columns, refit, and confirm that <span class="math inline">\hat{\boldsymbol{p}}</span> merely relabels. It is not the distribution used for confidence intervals.</p>
 <div class="cell">
@@ -1093,8 +1093,8 @@ D
 <span>  max_abs_diff <span class="op">=</span> <span class="va">eq_check</span><span class="op">$</span><span class="va">max_abs_diff</span>,</span>
 <span>  loglik_diff <span class="op">=</span> <span class="va">eq_check</span><span class="op">$</span><span class="va">loglik_diff</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt;  max_abs_diff   loglik_diff </span></span>
-<span><span class="co">#&gt;  2.775558e-16 -2.886580e-15</span></span></code></pre></div>
+<span><span class="co">#&gt; max_abs_diff  loglik_diff </span></span>
+<span><span class="co">#&gt; 1.110223e-16 2.220446e-16</span></span></code></pre></div>
 </div>
 </section><section class="level2"><h3 id="sec-rna-sieve">RNA-Sieve: CLT likelihood, Fisher and Godambe<a class="anchor" aria-label="anchor" href="#sec-rna-sieve"></a>
 </h3>
@@ -1163,13 +1163,13 @@ Table 2: What each DeCovarT convergence field does and does not certify.
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/do.call.html" class="external-link">do.call</a></span><span class="op">(</span><span class="va">rbind</span>, <span class="va">fit</span><span class="op">$</span><span class="va">diagnostics</span><span class="op">)</span></span>
 <span><span class="co">#&gt;          boundary_distance near_boundary   score_norm min_eigenvalue</span></span>
-<span><span class="co">#&gt; sample_1         0.2159583         FALSE 1.026516e-09      -160.1989</span></span>
-<span><span class="co">#&gt; sample_2         0.1832317         FALSE 3.836661e-05      -167.0961</span></span>
-<span><span class="co">#&gt; sample_3         0.1682215         FALSE 4.077976e-08      -171.3536</span></span>
+<span><span class="co">#&gt; sample_1         0.1667117         FALSE 6.028243e-06      -170.4695</span></span>
+<span><span class="co">#&gt; sample_2         0.2410455         FALSE 6.294137e-05      -154.9372</span></span>
+<span><span class="co">#&gt; sample_3         0.2110584         FALSE 1.500411e-04      -162.5574</span></span>
 <span><span class="co">#&gt;          max_eigenvalue local_maximum</span></span>
-<span><span class="co">#&gt; sample_1      -24.48051          TRUE</span></span>
-<span><span class="co">#&gt; sample_2      -18.72240          TRUE</span></span>
-<span><span class="co">#&gt; sample_3      -16.19907          TRUE</span></span></code></pre></div>
+<span><span class="co">#&gt; sample_1      -15.95316          TRUE</span></span>
+<span><span class="co">#&gt; sample_2      -29.56308          TRUE</span></span>
+<span><span class="co">#&gt; sample_3      -23.72404         FALSE</span></span></code></pre></div>
 </div>
 <p>Every sample above converged and every curvature is negative, yet <code>local_maximum</code> is not uniformly <code>TRUE</code>: one iterate stopped with an ILR score norm just above the default <code>score_tol = 1e-4</code>. That is the distinction of <a href="#tbl-diagnostics" class="quarto-xref">Table 2</a> doing its job rather than a failure — <code>score_tol</code> bounds the <em>score</em>, whereas the solver’s <code>epsilon</code> bounds the <em>objective</em>, so the two should be tightened together.</p>
 <div id="nte-boundary-wording">
@@ -1200,7 +1200,7 @@ Table 2: What each DeCovarT convergence field does and does not certify.
 <span>  multimodal <span class="op">=</span> <span class="va">restarts</span><span class="op">$</span><span class="va">multimodal</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; loglik_range   multimodal </span></span>
-<span><span class="co">#&gt; 1.038287e-09 0.000000e+00</span></span></code></pre></div>
+<span><span class="co">#&gt;  2.37166e-09  0.00000e+00</span></span></code></pre></div>
 </div>
 <p>A small range is reassuring but not a proof: a converged code, a tiny relative-distance-to-minimum and a negative-definite local Hessian together support a <strong>local</strong> maximum, and none of them rules out a second, equally good or better mode elsewhere on the simplex.</p>
 </section><section class="section level2"><h2 id="sec-glm">A generalised linear model view of DeCovarT<a class="anchor" aria-label="anchor" href="#sec-glm"></a>

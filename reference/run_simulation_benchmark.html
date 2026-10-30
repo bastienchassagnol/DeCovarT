@@ -25,7 +25,7 @@ scripts/fig02_bivariate_toy.R and the paper-scenario vignettes."><meta property=
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -123,7 +123,9 @@ summaries, etc.) should live in analysis scripts; see
 <span>  progress_every <span class="op">=</span> <span class="fl">10L</span>,</span>
 <span>  likelihood <span class="op">=</span> <span class="fu"><a href="population_likelihood.html">population_likelihood</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  return_data <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  reference <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  reference <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  seed <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  scenarios <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -198,6 +200,20 @@ function can be scored on the same samples.</p></dd>
 panel is drawn per scenario by <code><a href="simulate_reference_replicates.html">simulate_reference_replicates()</a></code>, with
 seed <code>reference$seed</code> plus the scenario index, for methods that
 estimate the reference moments themselves.</p></dd>
+
+
+<dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
+<dd><p>Optional integer. Scenario <code>i</code> then runs under
+<code>withr::with_seed(seed + i)</code>, so its draws depend only on its index:
+a scenario run alone (<code>scenarios = i</code>) reproduces the uninterrupted
+run. <code>NULL</code> (default) keeps the current random stream across
+scenarios.</p></dd>
+
+
+<dt id="arg-scenarios">scenarios<a class="anchor" aria-label="anchor" href="#arg-scenarios"></a></dt>
+<dd><p>Optional indices of the rows of <code>scenario_config</code> to
+run; the others are skipped. With <code>seed</code>, <code>scenarios = i</code> reproduces
+scenario <code>i</code> of the full run.</p></dd>
 
 </dl></div>
     <div class="section level2">

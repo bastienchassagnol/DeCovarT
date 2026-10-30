@@ -32,7 +32,9 @@ run_simulation_benchmark(
   progress_every = 10L,
   likelihood = population_likelihood(),
   return_data = FALSE,
-  reference = NULL
+  reference = NULL,
+  seed = NULL,
+  scenarios = NULL
 )
 ```
 
@@ -113,6 +115,19 @@ run_simulation_benchmark(
   [`simulate_reference_replicates()`](https://bastienchassagnol.github.io/DeCovarT/reference/simulate_reference_replicates.md),
   with seed `reference$seed` plus the scenario index, for methods that
   estimate the reference moments themselves.
+
+- seed:
+
+  Optional integer. Scenario `i` then runs under
+  `withr::with_seed(seed + i)`, so its draws depend only on its index: a
+  scenario run alone (`scenarios = i`) reproduces the uninterrupted run.
+  `NULL` (default) keeps the current random stream across scenarios.
+
+- scenarios:
+
+  Optional indices of the rows of `scenario_config` to run; the others
+  are skipped. With `seed`, `scenarios = i` reproduces scenario `i` of
+  the full run.
 
 ## Value
 
