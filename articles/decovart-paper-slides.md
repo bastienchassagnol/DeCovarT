@@ -266,8 +266,7 @@ Figure 10: Toy bivariate setup.
 Figure 11: Toy estimation results.
 
 Package vignettes: [synthetic
-scenarios](../vignettes/theory-synthetic-scenarios-mean-covariance.qmd)
-and
+scenarios](../vignettes/04-1-synthetic-scenarios.qmd) and
 [`run_simulation_benchmark()`](https://bastienchassagnol.github.io/DeCovarT/reference/run_simulation_benchmark.html)
 with scenario grids from `scripts/fig02_bivariate_toy.R`.
 
