@@ -15,6 +15,8 @@
 - V25b (exact): with c_i = a_i n_i and phi_i = a_i^2 n_i, a_i = phi_i / c_i
   and n_i = c_i^2 / phi_i: depth and cell number are separately identified
   from the mean and variance scales.
+- V25d (exact): two genes, symmetric A and Q = q I: closed-form Sigma and
+  correlation b/a; one-way regulation or Q = diag(q1, q2) break Omega ~ A.
 - V25c (exact): one proportion, two genes with the same signature entry m
   and within-type correlation rho, working independence W = I: the true
   (sandwich) variance (M'M)^-1 M'VM (M'M)^-1 = (1 + rho)/(2 m^2) equals the
@@ -112,6 +114,54 @@ def run() -> list[dict]:
             "pass" if ok_c else "fail",
             r"Sandwich, GLS and naive variances computed symbolically",
             "",
+        )
+    )
+
+    # ---- V25d ----------------------------------------------------------
+    # Two genes, symmetric regulation, isotropic noise: closed form and
+    # correlation b/a; then the two counter-examples (one-way regulation,
+    # gene-specific noise) where Omega is not proportional to A.
+    a_, b_, q_ = sp.symbols("a b q", positive=True)
+    s11, s12, s22 = sp.symbols("s11 s12 s22", real=True)
+    S = sp.Matrix([[s11, s12], [s12, s22]])
+
+    def lyap_solve(A2, Q2):
+        eqs = list(A2 * S + S * A2.T + Q2)
+        sol = sp.solve(eqs, [s11, s12, s22], dict=True)[0]
+        return S.subs(sol).applyfunc(sp.simplify)
+
+    A_sym = sp.Matrix([[-a_, b_], [b_, -a_]])
+    Sig2 = lyap_solve(A_sym, q_ * sp.eye(2))
+    target2 = q_ / (2 * (a_**2 - b_**2)) * sp.Matrix([[a_, b_], [b_, a_]])
+    corr = sp.simplify(Sig2[0, 1] / sp.sqrt(Sig2[0, 0] * Sig2[1, 1]))
+    # Sig2[0,0] > 0 requires a > b; check corr on that branch
+    ok_d1 = (Sig2 - target2).applyfunc(sp.simplify) == sp.zeros(2, 2) and zero(
+        corr.subs(a_, a_ + b_) - b_ / (a_ + b_)
+    )
+    # one-way regulation 1 -> 2, isotropic noise: Omega symmetric, A not
+    A_one = sp.Matrix([[-a_, 0], [b_, -a_]])
+    Om_one = lyap_solve(A_one, q_ * sp.eye(2)).inv().applyfunc(sp.simplify)
+    ok_d2 = not zero(Om_one[0, 1] - (-2 / q_) * A_one[0, 1]) or not zero(Om_one[1, 0] - (-2 / q_) * A_one[1, 0])
+    # symmetric A, gene-specific noise diag(q1, q2): Omega != c A for any c
+    q1, q2, cc = sp.symbols("q1 q2 c", positive=True)
+    Om_an = lyap_solve(A_sym, sp.diag(q1, q2)).inv().applyfunc(sp.simplify)
+    sol_c = sp.solve(list(Om_an - cc * A_sym), cc, dict=True)
+    ok_d3 = len(sol_c) == 0 and zero(
+        (Om_an.subs(q2, q1) + (2 / q1) * A_sym).applyfunc(sp.simplify).norm()
+    )
+    ok_d = ok_d1 and ok_d2 and ok_d3
+    out.append(
+        _rec(
+            "V25d",
+            r"Two genes, symmetric $\bm A$ (decay $a$, mutual effect $b$), $\bm Q=q\mathbf I$: "
+            r"$\bm\Sigma=\tfrac{q}{2(a^2-b^2)}\bigl(\begin{smallmatrix}a&b\\b&a\end{smallmatrix}\bigr)$, "
+            r"correlation $b/a$; one-way regulation or gene-specific noise break $\bm\Omega\propto\bm A$",
+            "exact",
+            "pass" if ok_d else "fail",
+            r"Lyapunov equation solved symbolically for $G=2$; proportionality constant solved for and absent "
+            r"when $q_1\neq q_2$",
+            "",
+            detail_full=f"closed form and corr {ok_d1}; one-way {ok_d2}; anisotropic {ok_d3}",
         )
     )
     return out
