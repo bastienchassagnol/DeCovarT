@@ -52,6 +52,9 @@
 > theory behind each strategy (tests, effect sizes, Fisher information,
 > condition number, selection effect) is in [3.1 Gene selection for the
 > reference](https://bastienchassagnol.github.io/DeCovarT/articles/03-1-feature-selection.md).
+> Strategies that use the estimated covariances (E, F) are post hoc and
+> subject to the circularity warning of
+> [3.1](https://bastienchassagnol.github.io/DeCovarT/articles/03-1-feature-selection.html#wrn-fs-circularity).
 > Separation measures (overlap, Hellinger, Jeffreys) are defined in
 > [4.2](https://bastienchassagnol.github.io/DeCovarT/articles/04-2-distances-overlap-metrics.md).
 > No chunk is executed and no result is reported here: the page is a
@@ -62,7 +65,7 @@
 The simulation answers three questions.
 
 1.  Does the omnibus gate with an effect-size rank
-    ([3.1](https://bastienchassagnol.github.io/DeCovarT/articles/03-1-feature-selection.html#sec-fs-effect-size))
+    ([3.1](https://bastienchassagnol.github.io/DeCovarT/articles/03-1-feature-selection.html#sec-fs-omnibus))
     recover the genes that carry information about \boldsymbol{p} better
     than a top-k ratio or a concatenation of one-versus-rest markers?
 2.  When two types differ in covariance only, does a covariance-aware
@@ -86,7 +89,7 @@ classes:
 | mean marker | type means differ, \boldsymbol{\Sigma}\_{W,j} shared | kept by every screen |
 | covariance-only gene | equal means, type-specific correlations | dropped by univariate screens |
 | perfect marker | expressed in one type only | removed by the presence gate |
-| platform-discordant gene | gene-wise ratio \tilde b_g\neq1 in the bulk only | flagged by the range bound |
+| platform-discordant gene | gene-wise ratio \tilde b_g\neq1 in the bulk only | flagged by the range bound ([3.1](https://bastienchassagnol.github.io/DeCovarT/articles/03-1-feature-selection.html#sec-fs-cross-platform)) |
 | noise gene | no type effect | removed by the gate |
 
 Table 1: Gene classes of the synthetic reference.
@@ -108,8 +111,8 @@ fixed before any run, following the ADEMP structure of
 | B | presence gate, omnibus quasi-likelihood F as an FDR gate, rank by effect size | [3.1](https://bastienchassagnol.github.io/DeCovarT/articles/03-1-feature-selection.html#sec-fs-omnibus) |
 | C | one-versus-rest markers per type, concatenated, then the candidate with the smallest \kappa_2 (CIBERSORT, DWLS) | [3.1](https://bastienchassagnol.github.io/DeCovarT/articles/03-1-feature-selection.html#sec-kappa-limits) |
 | D | union of four scores ([Section 3.1](#sec-four-scores)) | this page |
-| E | shortlist of B, then NSGA-II on \kappa_2 and overlap ([Section 3.3](#sec-pareto-nsga2)) | [3.1](https://bastienchassagnol.github.io/DeCovarT/articles/03-1-feature-selection.html#sec-pareto-panel) |
-| F | shortlist of B, then greedy robust D-optimal search ([Section 3.4](#sec-s6-dopt)) | [3.1](https://bastienchassagnol.github.io/DeCovarT/articles/03-1-feature-selection.html#sec-optimal-design) |
+| E | shortlist of B, then NSGA-II on \kappa_2 and overlap ([Section 3.3](#sec-pareto-nsga2)); post hoc | [3.1](https://bastienchassagnol.github.io/DeCovarT/articles/03-1-feature-selection.html#sec-pareto-panel) |
+| F | shortlist of B, then greedy robust D-optimal search ([Section 3.4](#sec-s6-dopt)); post hoc | [3.1](https://bastienchassagnol.github.io/DeCovarT/articles/03-1-feature-selection.html#sec-optimal-design) |
 | G | no selection: every gene that passes the presence gate | [3.1](https://bastienchassagnol.github.io/DeCovarT/articles/03-1-feature-selection.html#sec-fs-weighting) |
 
 Table 2: Screening strategies compared.
@@ -121,7 +124,7 @@ Strategy D unites four screens, two label-aware and two distributional:
 1.  `DESeq2` contrasts on donor-level pseudo-bulks ([Love et al.
     2014](#ref-loveModeratedEstimationFold2014a)). They need biological
     replicates, so D applies only to multi-donor references
-    ([3.1](https://bastienchassagnol.github.io/DeCovarT/articles/03-1-feature-selection.html#sec-fs-estimand)).
+    ([3.1](https://bastienchassagnol.github.io/DeCovarT/articles/03-1-feature-selection.html#sec-fs-cross-sample)).
 2.  A multinomial elastic net on the type labels
     ([Section 3.2](#sec-sparse-classifiers)).
 3.  The Jeffreys divergence between type laws.
@@ -323,10 +326,9 @@ of deconvolution error.
 ### 4.2 A pipeline for multi-donor references
 
 With several donors per type, strategies D and E combine into the
-pipeline of [Figure 2](#fig-recommended-pipeline). With one specimen, as
-for the Suppinger reference, the `DESeq2` step does not apply and
-strategy B replaces the shortlist
-([3.1](https://bastienchassagnol.github.io/DeCovarT/articles/03-1-feature-selection.html#sec-fs-estimand)).
+pipeline of [Figure 2](#fig-recommended-pipeline). With one specimen,
+the `DESeq2` step does not apply and strategy B replaces the shortlist
+([3.1](https://bastienchassagnol.github.io/DeCovarT/articles/03-1-feature-selection.html#wrn-fs-estimand)).
 
 ![](S6-feature-screening-scenario_files/mediabag/fig-recommended-pipeline.svg)
 

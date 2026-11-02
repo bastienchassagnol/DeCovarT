@@ -236,17 +236,17 @@ the package.
 3.  **Generality.** The shipped API is any bulk matrix plus type-level
     means and covariances, not one tissue atlas. How those Gaussians are
     *lifted* from labelled cells is assay- and design-specific, and
-    lives in the companion chapter [From single cells to type-level
-    Gaussians](https://github.com/bastienchassagnol/DeCovarT_reproducibility/blob/main/docs/06-population-alignment.qmd):
+    lives in the vignette [2.1, from cells to reference
+    moments](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#sec-reference):
     FACS- or MACS-purified bulk libraries already match DeCovarT’s
     quadratic convolution; a single-cell reference with **one**
     biological replicate identifies only the within-cell covariance
     (\_{W,j}) (a linear mixture, not (\_j p_j^2*j)); **two or more**
     replicates identify a between-replicate (*{B,j}) and the three-layer
-    bulk covariance. Affine aggregation and cell-level resampling
-    (bootstrap / `scDesign2`) are the two lifts used there. The
-    gastruloid pipeline is one worked example of that fork, not the only
-    supported workflow.
+    bulk covariance. DeCovarT estimates the sample scales inside the
+    likelihood; `scDesign3` serves only as a calibration simulator
+    (Appendix S5). The gastruloid pipeline is one worked example of that
+    fork, not the only supported workflow.
 
 ## Technical checks
 
@@ -304,9 +304,9 @@ Do you intend for this package to go on CRAN?
 
 Do you intend for this package to go on Bioconductor?
 
-I’m still balancing between Bioconductor and CRAN: indeed, the companion
-chapter [From single cells to type-level
-Gaussians](https://github.com/bastienchassagnol/DeCovarT_reproducibility/blob/main/docs/06-population-alignment.qmd)
+I’m still balancing between Bioconductor and CRAN: indeed, the vignette
+[2.1, from cells to reference
+moments](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#sec-reference)
 discusses parameterisations that are quite specific to single-cell and
 bulk RNA-seq technical modalities (multiplicative rather than additive
 noise, library-depth normalisation, and related assay structure).

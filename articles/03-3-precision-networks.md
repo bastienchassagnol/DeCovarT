@@ -284,12 +284,11 @@ plug-in for **?@eq-grn-convolution**.
 With one experiment, the honest uncertainty is **conditional on this
 atlas**:
 
-- **Technical cell bootstrap** within type, labels fixed
-  (**?@sec-align-bootstrap**). Re-estimate \boldsymbol{\Omega}\_{j};
-  record edge inclusion frequencies (stability selection in the sense of
-  Meinshausen and Bühlmann ([Meinshausen and Bühlmann
-  2010](#ref-meinshausenStabilitySelection2010))) and the Frobenius /
-  Bures spread of \widehat{\boldsymbol{\Sigma}}\_{j}.
+- **Technical cell bootstrap** within type, labels fixed. Re-estimate
+  \boldsymbol{\Omega}\_{j}; record edge inclusion frequencies (stability
+  selection in the sense of Meinshausen and Bühlmann ([Meinshausen and
+  Bühlmann 2010](#ref-meinshausenStabilitySelection2010))) and the
+  Frobenius / Bures spread of \widehat{\boldsymbol{\Sigma}}\_{j}.
 - **Gene or cell downsampling** as a coverage check. GRETA found that TF
   and gene *sets* can look stable while **edges** collapse under
   downsampling — a warning we should expect for glasso supports as well.
@@ -368,9 +367,10 @@ are the right “can DeCovarT tell these types apart?” scores. They are
 superscript \mathrm{MS} avoids clashing with precision entries
 \omega\_{gg'}.)
 
-**Bures–Wasserstein** (**?@sec-align-ot**) is a perspective metric. It
-splits mean displacement from covariance geometry when an external
-population Gaussian is available.
+**Bures–Wasserstein** ([5.1, two-scale
+transport](https://bastienchassagnol.github.io/DeCovarT/articles/05-1-review-distribution-aware.html#sec-bisque-ot))
+is a perspective metric. It splits mean displacement from covariance
+geometry when an external population Gaussian is available.
 
 > **Warning 2: ℹ️ Compare laws on the DeCovarT scale**
 >
@@ -460,9 +460,10 @@ structures](https://www.bnlearn.com/examples/compare-dags/)):
 
 > **Note 4: ℹ️ When a ground truth skeleton is available**
 >
-> On a simulator whose GRN we supplied (**?@sec-align-mc**), or on a
-> curated Boolean skeleton used only as a **reference**, the usual
-> ranking scores apply to the **undirected** adjacency:
+> On a simulator whose dependence we supplied ([S5,
+> simulator](https://bastienchassagnol.github.io/DeCovarT/articles/S5-misspecification.html#sec-s5-simulator)),
+> or on a curated Boolean skeleton used only as a **reference**, the
+> usual ranking scores apply to the **undirected** adjacency:
 >
 > | Score | Definition on skeletons | Caveat |
 > |----|----|----|
@@ -684,7 +685,8 @@ correction; a smaller penalty is not.
   linear-scale moments of a copula model need Monte Carlo or a moment
   map like [Eq. 5](#eq-pln-linear). The empirical Gaussian copula is
   singular when C_j\<G; a sparse precision or a vine copula is then
-  needed.
+  needed. Appendix S5 uses this model as a calibration simulator ([S5,
+  simulator](https://bastienchassagnol.github.io/DeCovarT/articles/S5-misspecification.html#sec-s5-simulator)).
 - **Factor and sparse-plus-low-rank models.** A few unmeasured
   programmes make the marginal precision dense. Writing
   \boldsymbol{\Omega}\_{\mathrm{marg}}=\boldsymbol{\Omega}\_{\mathrm{sparse}}-\boldsymbol{L},
