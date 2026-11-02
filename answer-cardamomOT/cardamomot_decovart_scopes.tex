@@ -4,11 +4,12 @@
 
 \input{preamble/packages.tex}
 \input{preamble/macros.tex}
+\input{preamble/glossary.tex}
 
 \title{\bfseries DeCovarT and CardamomOT:\\ gene selection, noise layers and what a network means}
-\author{Bastien Chassagnol\thanks{INSERM. First draft, written with Claude Code (Anthropic). Statements
-marked \chk{TODO-Vn} wait for the SymPy ledger of \cref{app:ledger}; none of them is called verified
-yet.}}
+\author{Bastien Chassagnol\thanks{INSERM. First draft, written with Claude Code (Anthropic). A grey bracketed
+identifier (V1a, V2b, \dots) points to a SymPy check in the ledger of \cref{app:ledger}; a probabilistic
+statement is verified only under the assumptions stated with it.}}
 \date{30 October 2026 (draft)}
 
 \begin{document}
@@ -17,43 +18,145 @@ yet.}}
 
 \begin{abstract}
 \noindent DeCovarT \parencite{chassagnolDeCovarTMultidimensionalProbalistic2023} estimates cell-type
-fractions from bulk RNA-seq, and models each type by a mean and a gene--gene covariance. CardamomOT
-\citeTODO{Maugé \& Ventre 2026, doi:10.1371/journal.pcbi.1014838} infers a signed, directed gene
-regulatory network from time-stamped single-cell snapshots, through a mechanistic bursting model. Both
-pick a small gene panel from a whole transcriptome, and both estimate a gene--gene structure, but for
-opposite reasons: in DeCovarT the covariance is a nuisance that weights genes, in CardamomOT the network
-is the estimand. We compare the two along five axes: (i)~gene selection, (ii)~expression versus
-measurement model, (iii)~a speculative side axis (convolution, Wiener filter, mean-field ansatz),
-(iv)~the diagonal of a network and self-regulation, (v)~how many genes the data can support. The
-CardamomOT code at commit \texttt{4a6305c} adds a per-cell depth layer that the paper does not describe,
-and its diagnostic is the main item DeCovarT could borrow. CardamomOT could borrow a cell-quality tier,
-a held-out likelihood for its penalty, and a within-basin covariance.
+fractions from bulk \gls{rnaseq}, and models each type by a mean and a gene--gene covariance. CardamomOT
+\parencite{maugeCardamomOTMechanisticOptimal2026} infers a signed, directed \gls{grn}
+from time-stamped single-cell snapshots, through a mechanistic bursting model. Both pick a small gene
+panel from a whole transcriptome, and both estimate a gene--gene structure, but for opposite reasons: in
+DeCovarT the covariance is a nuisance that weights genes, in CardamomOT the network is the estimand. We
+compare the two along five axes: (i)~gene selection, (ii)~expression versus measurement model, (iii)~a
+speculative side axis (convolution, Wiener filter, mean-field ansatz), (iv)~the diagonal of a network and
+self-regulation, (v)~how many genes the data can support. On axis (v), DeCovarT needs a covariance,
+which shrinkage provides from two cells per type; reading a network requires the support of the
+precision, for which the number of cells per type must grow with the square of the largest number of
+neighbours of a gene. The code of CardamomOT~2.0.0 (repository state of 26 October 2026) adds a
+per-cell depth layer that the paper does not describe, and its diagnostic is the main item DeCovarT could
+borrow. CardamomOT could borrow a held-out likelihood for its penalty and a within-basin covariance. An appendix sketches a purely statistical counterpart: a mixture of dynamic Gaussian Bayesian
+networks, in which time carries self-regulation and feedback loops.
 \end{abstract}
+
+% =====================================================================
+\section{Notation, definitions and abbreviations}\label{sec:notation}
+
+\textbf{Sources.} CardamomOT is read from its paper (PDF pages cited as \enquote{p.}) and from
+CardamomOT~2.0.0 (repository state of 26 October 2026).\footnote{\url{https://github.com/eliasventre/CardamomOT}.
+Files read: \cmfile{estimate_cell_depth.py}, \cmfile{inference/depth.py}, \cmfile{inference/depth_model.py},
+\cmfile{inference/gene_selection.py}, \cmfile{inference/gandrillon.py}, \cmfile{inference/network.py}. The
+repository ships no \texttt{CITATION.cff}.} All PDFs were read with local tools only. DeCovarT's symbols
+follow the notation section of the DeCovarT article. A bulk sample $i$ is fixed inside a derivation, and
+its index returns in model statements. \Cref{tab:notation} lists the symbols, the Definitions box gives
+the technical terms with their formulas, and the abbreviations follow. A term or an abbreviation links to
+its entry at first use.
+
+\begingroup\small
+\setlength{\LTpre}{4pt}\setlength{\LTpost}{6pt}
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.25\linewidth}
+  >{\raggedright\arraybackslash}p{\dimexpr0.75\linewidth-2\tabcolsep\relax}@{}}
+\caption{Symbols. \enquote{Article} is the DeCovarT article; \enquote{paper} and \enquote{code} are
+CardamomOT's.}\label{tab:notation}\\
+\toprule
+Symbol & Meaning \\
+\midrule
+\endfirsthead
+\toprule
+Symbol & Meaning \\
+\midrule
+\endhead
+\midrule
+\multicolumn{2}{r@{}}{\textit{continued on the next page}} \\
+\endfoot
+\bottomrule
+\endlastfoot
+\multicolumn{2}{@{}l}{\textit{Indices and counts}} \\*
+$g,h=1,\dots,G$ & genes of the panel (signature); $G$ is the number of genes kept for estimation. The
+  CardamomOT paper writes $n$ for this number (p.~27). \\
+$j,\ell=1,\dots,J$ & cell types. \\
+$c$, $z_c$ & a reference cell, and its label: a cell type in DeCovarT, a promoter basin in CardamomOT. \\
+$C_j$ & number of reference cells of type $j$. Their profiles, conditional on the type, are the i.i.d.\
+  sample from which $\bmu_j$, $\SW$ and $\bOmega_j$ are estimated. Each type is estimated on its own,
+  with no structure shared across types; joint estimation is discussed in \cref{sec:joint}. \\
+$t$ & a time point (CardamomOT's snapshots). \\
+$i$, $n_i$ & a bulk sample, and its number of cells. \\
+$m_{ji}$, $\bm p_{\cdot i}$ & number of cells of type $j$ in sample $i$, and the cell fractions
+  $p_{ji}=m_{ji}/n_i$; $\bm p$ when $i$ is fixed, $p=p_1$ when $J=2$. \\
+\addlinespace[3pt]
+\multicolumn{2}{@{}l}{\textit{Counts and noise layers}} \\*
+$x_{gc}$, $\bm x_{\cdot c}$ & \gls{umi} count of gene $g$ in cell $c$, and the vector over genes. \\
+$s_c$ & per-cell depth (size) factor: the measurement layer. Fang \& Pachter's cell-wide factor
+  $c_{\mathrm{tech}}c_{\mathrm{bio}}$ plays this role. \\
+$\lambda_{gc}$; $\bmu^\lambda_j$, $\bSigma^\lambda_j$ & expression level of gene $g$ in cell $c$, and its
+  mean and covariance within type $j$: the expression layer. \\
+$\bm y_{\cdot i}$ & bulk expression vector of sample $i$. \\
+\addlinespace[3pt]
+\multicolumn{2}{@{}l}{\textit{DeCovarT moments and scales}} \\*
+$\bmu_j$; $\bmu$ & mean profile of type $j$ on the linear \glsxtrshort{umi} scale: per cell in the
+  single-cell model (the article's $\tilde{\bmu}_{\cdot j}$), per population profile in the population
+  model; $\bmu=(\bmu_1,\dots,\bmu_J)$ is $G\times J$. \\
+$\bm\Delta$, $\Delta_g$; $\sigma_g^2$ & $\bm\Delta=\bmu_1-\bmu_2$ when $J=2$, and its entry for gene $g$; a
+  within-type variance of gene $g$ common to the two types. \\
+$\SW$; $\bSigma_W$ & within-type cell-to-cell covariance of type $j$ on the linear scale, from the cells
+  of one specimen; $\bSigma_W$ when it is common to all types. \\
+$\bSigma_j$ & covariance of the type-$j$ population profile (population references). \\
+$\bOmega_j=(\omega_{gh})$ & precision matrix $\SW^{-1}$; $\omega_{gg}$ is the conditional precision of
+  gene $g$ (Definitions box). \\
+$\bm V_j$; $\bm V$ & empirical covariance of the $C_j$ cells of type $j$, of rank at most $C_j-1$; without
+  an index, the marginal covariance of the mixed model of \cref{app:blup}. \\
+$S_j$ & mean transcriptome size of a type-$j$ cell, $\bm 1\T\bmu_j$. \\
+$a_i$; $c_i$, $\phi_i$ & sample-wide scale between the reference and the bulk library; the bulk mean and
+  variance scales $c_i=a_in_i$ and $\phi_i=a_i^2n_i$. A sum of $n_i$ independent cells, each scaled by
+  $a_i$, has mean $a_i\sum_jm_{ji}\bmu_j=c_i\sum_jp_{ji}\bmu_j$ and covariance
+  $a_i^2\sum_jm_{ji}\SW=\phi_i\sum_jp_{ji}\SW$. \\
+$\bm D$ & diagonal bulk measurement noise (a nugget), absent from DeCovarT's model. \\
+$\varphi_{\bm z}(\bm t)$ & characteristic function $\E\exp(\mathrm i\,\bm t\T\bm z)$ of a random vector
+  $\bm z$: $\varphi_j$ for one type-$j$ cell, $\varphi^{\mathrm{pop}}_j$ for the type-$j$ population
+  profile, $\varphi_{\mathrm{mix}}=\sum_jp_j\varphi_j$ for one cell drawn from the type mixture. Not the
+  bulk scale $\phi_i$. \\
+\addlinespace[3pt]
+\multicolumn{2}{@{}l}{\textit{Networks}} \\*
+$\mathcal G=(\mathcal V,\mathcal E)$ & conditional-independence graph on the $G$ genes: $gh\in\mathcal E$
+  if and only if $\omega_{gh}\neq0$, $g\neq h$. \\
+$\deg(g)$; $\degmax$ & degree of gene $g$, $\deg(g)=\lvert\{h\neq g:\omega_{gh}\neq0\}\rvert$, its number
+  of neighbours; the maximum degree $\degmax=\max_g\deg(g)$. \\
+$\cl(\mathcal G)$, $\tw(\mathcal G)$, $\mlt(\mathcal G)$ & clique number, treewidth, and maximum-likelihood
+  threshold of $\mathcal G$ (\cref{sec:ceiling}). \\
+$\lambda$, $\bm\Lambda$; $\lambda_1$, $\lambda_2$ & graphical-lasso penalty and penalty matrix; the two
+  penalties of the joint graphical lasso (\cref{sec:joint}). Not the expression level $\lambda_{gc}$. \\
+$k=1,\dots,K$; $C_k$, $\bm V^{(k)}$, $\bOmega^{(k)}$ & classes of a joint estimation (cell types, time
+  points or batches), with their numbers of cells, empirical covariances and precision matrices. \\
+\addlinespace[3pt]
+\multicolumn{2}{@{}l}{\textit{CardamomOT}} \\*
+$\bm\theta=(\theta_{gh})$; $\theta_{gg}$ & interaction matrix, the influence of gene $h$ on gene $g$
+  (p.~6); its diagonal, directed self-regulation. \\
+$\bm\theta_0$ & prior network towards which $\bm\theta$ is penalised (Eq.~10, p.~9). \\
+$\beta_g$ & basal parameter of gene $g$ (the paper's $\beta_i$, p.~28). \\
+$B$ & number of promoter basins in the mixture of Eq.~4 (p.~7). \\
+$N_c$ & number of cells in a CardamomOT fit (p.~9); the paper's $N_g$ is our $G$. \\
+$R$; $R_1$, $R_0$; $\alpha$ & candidate regulators of one target gene; true and null ones, $R=R_1+R_0$;
+  level of the quantile universal threshold (\cref{sec:lambda}). \\
+$\NB(\kappa,r)$ & \gls{nb} law with shape $\kappa$ and rate $r$, mean $\kappa/r$. The paper writes
+  $\NB(a,b)$, the code $\NB(k,c)$; that $k$ is not a class and that $c$ is not a cell. \\
+\addlinespace[3pt]
+\multicolumn{2}{@{}l}{\textit{Linearised dynamics (\cref{sec:diag})}} \\*
+$\bm A$; $a_g=\gamma_g-\varsigma_g$ & drift matrix; net decay of gene $g$, its degradation rate $\gamma_g$
+  minus its linearised self-activation $\varsigma_g$. Not the platform scale $a_i$. \\
+$b$, $c$; $\bm Q=\diag(q_g)$ & strengths of the edges $1\to2$ and $1\to3$; noise intensities. \\
+\end{longtable}
+\endgroup
+
+\begin{defbox}
+\renewcommand{\glossarysection}[2][]{}%
+\printunsrtglossary[type=main,style=list]
+\end{defbox}
+
+\printunsrtglossary[type=\glsxtrabbrvtype,title={Abbreviations},style=mcolindex]
 
 % =====================================================================
 \section{Aims, estimands and the two models side by side}\label{sec:aims}
 
-\textbf{Sources.} CardamomOT: the published paper (PDF pages cited as \enquote{p.}) and the repository
-at a fixed commit.\footnote{\url{https://github.com/eliasventre/CardamomOT}, commit
-\texttt{4a6305cd3699be7a10d8da97b9ad892e41c90adc}. Files read: \cmfile{estimate_cell_depth.py},
-\cmfile{inference/depth.py}, \cmfile{inference/depth_model.py}, \cmfile{inference/gene_selection.py},
-\cmfile{inference/gandrillon.py}, \cmfile{inference/network.py}. The repository ships no
-\texttt{CITATION.cff}.} Gandrillon's sympathoadrenal study \citeTODO{Gandrillon 2025,
-doi:10.1101/2025.03.21.644507} supplies CardamomOT's gene-selection rule. All PDFs were read with local
-tools only.
-
-\textbf{Notation.} Genes $g=1,\dots,G$; cell types $j=1,\dots,J$ with $C_j$ reference cells; cells $c$;
-bulk samples $i$ with $n_i$ cells; reference UMI counts $x_{gc}$ with size factor $s_c$; fractions
-$\bm p_{\cdot i}$. DeCovarT's within-type covariance on the linear count scale is $\SW$, its precision
-$\bOmega_j=\SW^{-1}$, the empirical covariance $\bm V_j$. CardamomOT's interaction matrix is
-$\bm\theta=(\theta_{gh})$, the influence of gene $h$ on gene $g$ (p.~6). We write the negative binomial
-as $\NB(a,r)$, shape $a$ and rate $r$ (the paper writes $\NB(a,b)$, the code $\NB(k,c)$), so that the
-mean is $a/r$.
-
-\begin{table}[tbp]
+% [ht] (project rule): here, after the abbreviation list, rather than above it
+\begin{table}[ht]
 \centering
 \caption{The two methods side by side. Page numbers refer to the CardamomOT paper unless a file name is
-given; \enquote{code} means the repository at commit \texttt{4a6305c}.}
+given; \enquote{code} means CardamomOT~2.0.0 (repository state of 26 October 2026).}
 \label{tab:side}
 \footnotesize
 \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.13\textwidth}
@@ -61,29 +164,30 @@ given; \enquote{code} means the repository at commit \texttt{4a6305c}.}
 \toprule
  & DeCovarT & CardamomOT \\
 \midrule
-Data & bulk RNA-seq samples and one reference: sorted populations, or the cells of one specimen
-  (Suppinger: single-cell GSE229513, bulk GSE229386, matched at 48\,h) &
-  scRNA-seq snapshots at successive time points, raw counts; optional prior network $\bm\theta_0$ and
-  degradation rates (p.~8) \\
+Data & bulk \glsxtrshort{rnaseq} samples and one reference: sorted populations, or the cells of one
+  specimen (Suppinger: single-cell GSE229513, bulk GSE229386, matched at 48\,h) &
+  \glsxtrshort{scrnaseq} snapshots at successive time points, raw counts; optional prior network
+  $\bm\theta_0$ and degradation rates (p.~8) \\
 Estimand & fractions $\bm p_{\cdot i}$ of each bulk sample, with Wald intervals &
   signed directed $\bm\theta$, burst parameters, protein trajectories (pp.~6, 8) \\
-Cell-level law & first two moments $(\bmu_j,\SW)$ per type on the linear UMI scale &
+Cell-level law & first two moments $(\bmu_j,\SW)$ per type on the linear \glsxtrshort{umi} scale &
   $M_g\mid\bm P\sim\NB$ from promoter bursting; a mixture over promoter basins, genes independent given
   the basin (Eq.~4, p.~7) \\
 Aggregate & sum of $n_i$ cells: $\bm y_{\cdot i}\sim\mathcal N\bigl(c_i\sum_jp_{ji}\bmu_j,\;
   \phi_i\sum_jp_{ji}\SW\bigr)$, linear in $\bm p$; population references give
-  $\sum_jp_{ji}^2\bSigma_j$, quadratic \chk{TODO-V6} &
+  $\sum_jp_{ji}^2\bSigma_j$, quadratic \chk{V6a,V6c} &
   none (no bulk); the population marginal is the basin mixture \\
 Noise layers & expression and measurement mixed in $\SW$; bulk scales $c_i$, $\phi_i$ &
   paper: expression (bursting) only; code: per-cell depth factor $s_c$ (\cref{sec:noise}) \\
-Gene selection & QC, presence in every type, consistency screen, optional Fisher-information refinement
-  (\cref{sec:genes}) & paper: core set plus databases (p.~28); code: entropy and Wasserstein terminals,
-  basin separability, coarse network, Steiner closure \\
-Role of the network & nuisance plug-in that weights genes (generalised least squares) &
+Gene selection & detection, presence in every type, consistency screen, optional Fisher-information
+  refinement (\cref{sec:genes}) & paper: core set plus databases (p.~28); code: entropy and Wasserstein
+  terminals, basin separability, coarse network, Steiner closure \\
+Role of the network & nuisance plug-in that weights genes (\glsxtrshort{gls}) &
   the object of inference \\
 Sparsity & dense shrinkage $\hat\bSigma$ by default; graphical lasso with cross-validated $\lambda$ as
-  an alternative & $\ell_1$ towards $\bm\theta_0$ (Eq.~10, p.~9); code: quantile universal threshold
-  per target gene, then an adaptive-lasso refinement (\cmfile{network.py}) \\
+  an alternative & $\ell_1$ towards $\bm\theta_0$ with $\lambda=0.05N_c/\sqrt{G}$ (Eq.~10, p.~9);
+  code: quantile universal threshold at level 0.5 per target gene, then an adaptive-lasso refinement
+  (\cmfile{network.py}; \cref{sec:lambda}) \\
 Diagonal & $\omega_{gg}=1/\Var(x_g\mid\bm x_{-g})$, never penalised &
   $\theta_{gg}$, directed self-regulation; \enquote{no specific penalty} (p.~28) \\
 Inference & maximum likelihood, profile likelihood, Wald intervals for $\bm p$ &
@@ -94,14 +198,14 @@ Inference & maximum likelihood, profile likelihood, Wald intervals for $\bm p$ &
 
 The two models answer different questions (\cref{tab:side}). DeCovarT is a multivariate regression in
 the strict sense: several correlated responses (the genes) share one design (the fractions). Its gene
-covariance matters because it weights genes, as in generalised least squares. CardamomOT is a
-mechanistic model of the cell, and its network is what the user reads. A good covariance for DeCovarT
-need not be a good network for CardamomOT, and the converse also holds (\cref{sec:diag}).
+covariance matters because it weights genes, as in \gls{gls}. CardamomOT is a mechanistic model of the
+cell, and its network is what the user reads. A good covariance for DeCovarT need not be a good network
+for CardamomOT, and the converse also holds (\cref{sec:diag}).
 
 % =====================================================================
-\section{Gene selection (axes i and v)}\label{sec:genes}
+\section{Derivation of regularised covariance or regulatory networks(axes i and v)}\label{sec:genes}
 
-\subsection{CardamomOT: paper and code}
+\subsection{CardamomOT}
 
 The paper treats the panel as prior information. \enquote{All experimental applications presented here
 operate on gene subsets rather than the full transcriptome (Appendix C), which is not a neutral choice}
@@ -111,40 +215,30 @@ databases and a coarse genome-wide network, and calls the automation \enquote{on
 Semrau and Kameneva, the applications use gene lists from earlier work; for Schiebinger, markers plus
 \enquote{dynamically variable genes} ranked by entropy and Wasserstein distances (p.~32).
 
-The code at \texttt{4a6305c} automates that recommendation (\cmfile{inference/gene_selection.py},
-module docstring):
+The code of CardamomOT~2.0.0 automates that recommendation (module docstring of
+\cmfile{inference/gene_selection.py}):
 \begin{itemize}
   \item \textbf{gene universe:} mitochondrial, ribosomal-protein and non-coding genes are excluded by name
         or biotype;
-  \item \textbf{terminal genes} from Gandrillon's workflow (\cmfile{inference/gandrillon.py}): \enquote{KD}
-        is the one-dimensional Wasserstein distance between the counts of a gene at two consecutive time
-        points, divided by the gene's standard deviation over the pair; \enquote{MDE} is the absolute
-        change of a discrete entropy estimated by the BUB estimator \citeTODO{Paninski 2003, Neural
-        Computation, doi to verify}; terminals are then chosen by a round robin over cell types, each
-        tested against the rest by a Wilcoxon test on log-normalised counts (Scanpy
-        \cmfile{rank_genes_groups}) \citeTODO{Wolf et al.\ 2018, Scanpy, doi to verify};
-  \item \textbf{basin separability:} genes whose negative-binomial modes are well separated
-        (\cmfile{nb_init_separation});
+  \item \textbf{terminal genes} (\cmfile{inference/gandrillon.py}), from Gandrillon's workflow.
+        \enquote{KD} is the one-dimensional \glslink{def-wasserstein}{Wasserstein distance} between the
+        counts of a gene at two consecutive time points, divided by the gene's standard deviation over
+        the pair. \enquote{MDE} is the absolute change of a discrete
+        \glslink{def-entropy}{Shannon entropy} estimated by the \gls{bub} estimator \parencite{paninskiEstimationEntropyMutual2003}. Terminals are then chosen by a round robin over cell
+        types, each tested against the rest by a Wilcoxon test on log-normalised counts (Scanpy's
+        \cmfile{rank_genes_groups}) \parencite{wolfSCANPYLargescaleSinglecell2018};
+  \item \textbf{basin separability} (\cmfile{nb_init_separation}): genes whose negative-binomial modes
+        are well separated;
   \item \textbf{a coarse network} on highly variable genes (OTVelo-Corr);
   \item \textbf{closure:} a budgeted prize-collecting Steiner selection that anchors the terminals to the
         stimuli.
 \end{itemize}
 
 \textbf{Gandrillon's criteria.} The \enquote{Kantorovich distance} cited by Gandrillon (p.~7, to Vershik
-2006) is the Wasserstein-1 distance, and the code computes it with \cmfile{scipy.stats.wasserstein_distance}.
-\enquote{Delta-entropy} is a change of entropy between consecutive time points; the preprint gives no
-formula, and the code uses the BUB estimate of the Shannon entropy of the counts. Gandrillon's Figure~3
-caption reads: \enquote{The union of those two lists gave us a list of 97 genes}, the two lists having
-200 and 376 genes. A union of these lists has at least 376 genes, so the operation that yields 97 genes
-is an intersection. The CardamomOT port states it as such: \enquote{union over transitions of the top\_n
-KD genes, intersected with the union over transitions of the top\_n MDE genes}. A second count does not
-add up either: with five transitions, a union of the top 50 entropy genes per transition has at most
-250 genes, not 376. Neither point changes the method; both concern its description. The 97-gene panel
-contains ten ribosomal-protein genes and \textit{MT-CYB} (Gandrillon, Table~1), which the current
-universe filter would exclude; the CardamomOT paper notes housekeeping genes such as \textit{RPL30} among
-the top Kameneva regulators (p.~18).
+2006) is the Wasserstein-1 distance $W_1$, and the code computes it with
+\cmfile{scipy.stats.wasserstein_distance}.
 
-\subsection{DeCovarT}
+\subsection{DeCovarT}\label{sec:decovart-genes}
 
 The estimand is a gene panel that makes $(\bmu_j,\SW)$ estimable and informative about $\bm p$, not
 population-level differential expression. With one specimen, cells are not replicates, so a $p$-value
@@ -152,25 +246,34 @@ describes a screen inside that specimen \parencite{zimmermanPracticalSolutionPse
 squairConfrontingFalseDiscoveries2021}. The tiers are written in the
 \vignette{03-1-feature-selection.html}{feature-selection vignette}:
 \begin{itemize}
-  \item \textbf{QC:} cells by library size, detected genes and mitochondrial fraction; genes by detection;
-  \item \textbf{presence in every type}, so that each $\SW$ is non-singular; this also removes perfect
+  \item \textbf{detection:} genes detected in too few reference cells are removed;
+  \item \textbf{presence in every type}, so that no within-type variance $V_{gg}$ is zero: necessary for a
+        non-singular estimate of $\SW$, not sufficient (\cref{sec:ceiling}); this also removes perfect
         markers, for which proportions are not identified once gene-wise platform ratios are allowed
         \parencite[p.~7]{xieStatisticalInferenceCell2026};
   \item \textbf{consistency screen} (\enquote{marker gene consistency},
-        \textcite[p.~2]{wangBulkTissueCell2019}): the between/within ratio on Pearson residuals, or its
-        count-scale versions, the analysis-of-deviance and quasi-likelihood $F$ tests
-        \parencite{lundDetectingDifferentialExpression2012}; the test is a gate, and genes are ranked by
-        effect size;
-  \item \textbf{optional refinement} by the Fisher information for $\bm p$, which needs $\SW$.
+        \textcite[p.~2]{wangBulkTissueCell2019}): the between/within ratio on
+        \glslink{def-pearson}{Pearson residuals}, or its count-scale versions, the analysis-of-deviance
+        and \glslink{def-qlf}{quasi-likelihood $F$ tests} \parencite{lundDetectingDifferentialExpression2012};
+        the test is a gate, and genes are ranked by effect size;
+  \item \textbf{optional refinement} by the \glslink{def-fisher}{Fisher information for $\bm p$}, which
+        needs $\SW$.
 \end{itemize}
 For two types and one gene, under the single-cell model with equal within-type variances $\sigma_g^2$,
 the Fisher information for $p$ is $n_i\Delta_g^2/\sigma_g^2$, with $\Delta_g=\mu_{g1}-\mu_{g2}$
-(\cref{app:fisher}) \chk{TODO-V4}. The ANOVA ratio on $C$ cells per type estimates $(C/2)\Delta_g^2/\sigma_g^2$,
-so both rank genes alike. With unequal variances or correlated genes they do not: the multivariate
-information with a common $\bSigma_W$ is $n_i\bm\Delta\T\bSigma_W^{-1}\bm\Delta$, a Mahalanobis distance.
-The Hellinger distance between the two type laws is monotone in that distance; the 2-Wasserstein distance
-is not, since for equal covariances it reduces to $\lVert\bm\Delta\rVert$. This links the screen to the
-overlap criteria of the \vignette{S6-feature-screening-scenario.html}{screening scenario}.
+(\cref{app:fisher}) \chk{V4a}. The \gls{anova} ratio on $C_1=C_2=C$ cells per type is the plug-in
+estimate of $(C/2)\Delta_g^2/\sigma_g^2$, so both rank genes alike; its mean is close to
+$1+(C/2)\Delta_g^2/\sigma_g^2$ \chk{V4b}. With unequal variances or correlated genes they do not: the
+multivariate information with a common $\bSigma_W$ is $n_i\bm\Delta\T\bSigma_W^{-1}\bm\Delta$, a squared
+\glslink{def-mahalanobis}{Mahalanobis distance} \chk{V4d}.
+With a common $\bSigma_W$, the squared \glslink{def-hellinger}{Hellinger distance} between the two type
+laws is $1-\exp(-\tfrac18\bm\Delta\T\bSigma_W^{-1}\bm\Delta)$, increasing in that distance \chk{V8a}; the
+2-Wasserstein distance is not, since for equal covariances it reduces to $\lVert\bm\Delta\rVert$
+\chk{V8b}, and the two can rank candidate panels in opposite orders \chk{V8c}. This links the screen to the
+overlap criteria of the \vignette{S6-feature-screening-scenario.html}{screening scenario}. The one-gene view
+is the screen, not the objective: with type-specific covariances, both the Fisher information for $p$ and the
+overlap of the two Gaussian type laws add a covariance-difference term to the Mahalanobis separation of the
+means (\cref{app:fisher}, \cref{eq:fisher-multi,eq:bhattacharyya}).
 
 The two methods push the within-group variance in opposite directions. CardamomOT keeps genes whose
 distribution changes in time and splits into separable basins, so multimodality is wanted. DeCovarT
@@ -178,51 +281,371 @@ wants a unimodal law within each type, with a covariance it can estimate.
 
 \subsection{How many genes can the data support?}\label{sec:ceiling}
 
-Three thresholds, from the weakest to the strongest:
-\begin{itemize}
-  \item \textbf{existence:} the graphical lasso with $\lambda>0$, positive empirical variances and an
-        unpenalised diagonal has a unique positive-definite solution for any $n\ge2$
-        \parencite{carterExistencePenalisedLikelihood2025}; convergence says nothing about the graph;
-  \item \textbf{maximum-likelihood threshold} $\mathrm{mlt}(G)$: the smallest $n$ for which the
-        unpenalised MLE on a given graph exists almost surely; it equals the largest clique for chordal
-        graphs \citeTODO{Uhler 2012, arXiv:1012.2643; Gross \& Sullivant, arXiv:1404.6989}. On graphs
-        selected by the graphical lasso with $p\le9$, the MLE never existed at $n=1$, and the probability
-        that it exists grows with $n$ and with the penalty \citeTODO{Bernstein \& Outlaw 2023,
-        arXiv:2312.03145};
-  \item \textbf{support recovery:} $n\gtrsim d^2\log G$, with $d$ the maximum degree, under incoherence
-        and minimum-signal conditions \citeTODO{Ravikumar et al.\ 2011, arXiv:0811.3628}.
-\end{itemize}
-CardamomOT has $G^2$ interaction parameters (\enquote{$10^4$ for $n=100$}, p.~27) and recommends
-\enquote{not exceeding of the order of 100 genes in the fully unconstrained setting} (p.~28), with more
-genes allowed when $\bm\theta_0$ fixes more entries. DeCovarT faces the same trade-off per type: several
-Suppinger types have $C_j<G$, which rules out the unpenalised covariance and puts support recovery out
-of reach for all but very sparse graphs. Its plug-in only needs a good $\hat\bSigma$, not the right
-graph, which is why dense shrinkage \parencite{schäferShrinkageApproachLargescale2005} is the default.
+The answer depends on what is estimated from the $C_j$ cells of each type. The box below separates the
+two goals; the symbols are those of \cref{tab:notation}.
 
-\textbf{Scalable alternatives.} An edge-weighted graphical lasso takes a penalty matrix
+\begin{idbox}[title={Identifiability: covariance versus network}]
+\textbf{(a) The covariance $\SW$: DeCovarT's plug-in.} $\SW$ holds every association between two genes,
+direct or through other genes. DeCovarT's likelihood needs a positive-definite estimate close to $\SW$
+in a covariance loss, such as the expected Gaussian log-score of \cref{sec:borrow} or a Frobenius norm.
+Whether the zeros of $\hat\bOmega_j$ are the true ones does not enter. What matters is that the estimate
+is well defined (finite, positive definite and unique), not that some algorithm returns a matrix.
+\begin{itemize}
+  \item \textbf{The unconstrained \gls{mle}.} With the mean estimated, it is the empirical
+        covariance $\bm V_j=\bm X_c\T\bm X_c/C_j$, where $\bm X_c$ is the centred $C_j\times G$ matrix of the
+        type-$j$ cells. Its rank is that of $\bm X_c$, at most $\min(C_j-1,G)$, with equality for data in
+        general position, which holds almost surely for Gaussian cells: $C_j\bm V_j\sim W_G(C_j-1,\SW)$
+        \parencite[ch.~3]{muirheadAspectsMultivariateStatistical1982} \chk{V10a}. $\bm V_j$ is
+        positive definite if and only if $\operatorname{rank}\bm X_c=G$. This needs $C_j\ge G+1$
+        \emph{and} no exact linear or affine relation between genes; such a relation lowers the rank
+        further \chk{V10b}, and with $C_j\le G$ the centred profiles always satisfy one. When $\bm V_j$ is
+        singular, the Gaussian log-likelihood is unbounded above along its null directions, and the
+        \glsxtrshort{mle} does not exist \chk{V10c}.
+  \item \textbf{The presence gate is necessary, not sufficient.} A gene constant within type $j$ has
+        $V_{gg}=0$, the simplest exact relation; the gate of \cref{sec:decovart-genes} removes it, and it
+        keeps the diagonal shrinkage target of \cref{tab:covexist} positive definite. With $C_j\le G$, or another exact relation,
+        $\bm V_j$ stays singular after the gate \chk{V10b}.
+  \item \textbf{Relaxing the requirement} (\cref{tab:covexist}). The penalty, the constraint or the
+        structure, not the data, makes the estimate exist when $C_j\le G$.
+\end{itemize}
+\begin{center}
+\footnotesize
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.17\linewidth}
+  >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{0.27\linewidth}@{}}
+\toprule
+Estimator & Formula & Unique positive-definite estimate when \\
+\midrule
+Unconstrained \glsxtrshort{mle} & $\bm V_j=\bm X_c\T\bm X_c/C_j$ & $C_j\ge G+1$ and
+  $\operatorname{rank}\bm X_c=G$ \chk{V10a,V10b,V10c} \\ \addlinespace[2pt]
+Linear shrinkage & $(1-\rho)\bm V_j+\rho\bm T$, $\rho\in(0,1]$; Ledoit--Wolf $\bm T=(\tr\bm V_j/G)\bm I$,
+  Schäfer--Strimmer $\bm T=\diag(\bm V_j)$ & $C_j\ge2$, $\bm T\succ0$ and $\hat\rho>0$ \chk{V11a,V11b,V11c} \\
+\addlinespace[2pt]
+Condition-number constraint & $\max\ell(\bSigma)$ subject to $\lambda_{\max}(\bSigma)/\lambda_{\min}(\bSigma)
+  \le\kappa_{\max}$; eigenvalues of $\bm V_j$ truncated to $[\tau^\star,\kappa_{\max}\tau^\star]$ &
+  $C_j\ge2$, $\bm V_j\neq\bm 0$ (our reading for an estimated mean) \\ \addlinespace[2pt]
+Structured $\bSigma$ & factor $\bm B\bm B\T+\bm\Psi$ ($\bm B$ of size $G\times r$, $\bm\Psi$ diagonal),
+  banded, or linear $\bm G_0+\sum_kv_k\bm G_k$ & $\operatorname{rank}\bm V_j=G$ in the result we read;
+  below that, to be shown per structure \\ \addlinespace[2pt]
+Graphical lasso & $\max_{\bOmega\succ0}\log\det\bOmega-\tr(\bm V_j\bOmega)-\lambda\sum_{g\neq h}
+  \lvert\omega_{gh}\rvert$ & $C_j\ge2$, $V_{gg}>0$, $\lambda>0$ \\
+\bottomrule
+\end{tabularx}
+\captionsetup{hypcap=false}% no float here: the link target is the caption itself
+\captionof{table}{When each covariance estimator of type $j$ is well defined. $\ell$ is the Gaussian
+log-likelihood, $\lambda_{\max}$ and $\lambda_{\min}$ the extreme eigenvalues.}\label{tab:covexist}
+\end{center}
+\begin{itemize}
+  \item \textbf{Shrinkage} \parencite{schäferShrinkageApproachLargescale2005}
+        \parencite{ledoitWellconditionedEstimatorLargedimensional2004}\footnote{Overview:
+        \href{https://en.wikipedia.org/wiki/Estimation_of_covariance_matrices\#Shrinkage_estimation}{Wikipedia,
+        \enquote{Estimation of covariance matrices}, shrinkage estimation}.}: $\lambda_{\min}\{(1-\rho)\bm V_j+
+        \rho\bm T\}\ge\rho\,\lambda_{\min}(\bm T)$, whatever the rank of $\bm V_j$ \chk{V11b}. The
+        estimated intensity $\hat\rho$ is truncated to $[0,1]$, and $\hat\rho=0$ returns $\bm V_j$. The
+        diagonal target needs every $V_{gg}>0$, hence the presence gate; the scaled identity needs only
+        $\bm V_j\neq\bm 0$.
+  \item \textbf{Condition number} \parencite{wonConditionnumberregularizedCovarianceEstimation2013}: they maximise the Gaussian log-likelihood under
+        $\operatorname{cond}(\bSigma)\le\kappa_{\max}$ (eq.~6, p.~4). The solution keeps the eigenvectors of
+        $\bm V_j$ and replaces each eigenvalue $l_g$ by $\min\{\max(\tau^\star,l_g),\kappa_{\max}\tau^\star\}$
+        (eq.~7, p.~5), with $\tau^\star$ in closed form and found in $O(G)$ operations (eqs~11--12, p.~7). The
+        solution is unique when $\kappa_{\max}\le\operatorname{cond}(\bm V_j)$ (Theorem~1, pp.~6--7), which
+        always holds for a singular $\bm V_j$, and it is well conditioned \enquote{even when $n<p$} (p.~5).
+        $\kappa_{\max}$ is chosen by predictive likelihood (Section~3, p.~9). Their model has a known zero
+        mean; with an estimated mean we read the condition as $\bm V_j\neq\bm 0$, i.e.\ $C_j\ge2$ with one
+        non-constant gene. No sparsity is assumed.
+  \item \textbf{Structure on $\bSigma$.} A factor, low-rank-plus-diagonal, banded or linear model has fewer
+        parameters than $G(G+1)/2$. \parencite{zwiernikMaximumLikelihoodEstimation2017} study the linear models $\bSigma_v=\bm G_0+\sum_kv_k\bm G_k$, which include
+        correlation matrices and prescribed zeros in $\bSigma$ (pp.~1269--1270). The likelihood is not
+        concave there; it is strictly concave on $\{\bSigma:\bm 0\prec\bSigma\prec2\bm V_j\}$ (their
+        Proposition~1, p.~1273), and for $C_j\gtrsim14G$ hill climbing from the least-squares estimate reaches
+        the global maximum with high probability (p.~1269). Their existence result assumes a full-rank sample
+        covariance (Proposition~5, p.~1278), so it does not relax $C_j\ge G+1$; their \enquote{with probability
+        1 when $n\geqslant p$} should read $n\ge p+1$ when the mean is estimated \chk{V10d}. Below full rank,
+        existence depends on the structure; for a factor model a variance $\psi_g\to0$ (a Heywood case) can
+        make the likelihood unbounded (our reading, not checked).
+  \item \textbf{Graphical lasso}: with $\lambda>0$, positive $V_{gg}$ and an unpenalised diagonal, it has a
+        unique positive-definite solution for any $C_j\ge2$, even when $C_j<G$
+        \parencite{carterExistencePenalisedLikelihood2025}. The penalty, not the data, makes the estimate
+        exist below $C_j=G+1$.
+\end{itemize}
+None of these estimators needs a sparse truth.
+
+\medskip
+\textbf{(b) The support of $\bOmega_j$: the network.} This is CardamomOT's kind of estimand: its
+$\bm\theta$ is directed, but it is read through its non-zero entries. On the graph $\mathcal G$ of
+$\bOmega_j$:
+\begin{itemize}
+  \item a \emph{clique} is a set of genes pairwise joined by edges; the clique number $\cl(\mathcal G)$
+        is the size of the largest clique;
+  \item a graph is \emph{chordal} if every cycle through four or more genes has a chord, an edge between
+        two genes that are not consecutive on the cycle. The treewidth plus one, $\tw(\mathcal G)+1$, is
+        \enquote{the clique number of a minimal chordal cover}, the smallest clique number of a chordal
+        graph that contains $\mathcal G$ \parencite{bernsteinMaximumLikelihoodThresholds2023} (p.~2);
+  \item the degree $\deg(g)$ counts the neighbours of gene $g$, and $\degmax$ is its maximum over genes.
+\end{itemize}
+The requirements, from the weakest to the strongest:
+\begin{enumerate}[leftmargin=1.6em]
+  \item \textbf{Existence} of the penalised estimate, as in (a). The graphical lasso estimator
+        \enquote{always exists} (Bernstein \& Outlaw, p.~2); its convergence says nothing about the graph.
+  \item \textbf{Existence of the \gls{mle} on a fixed graph}, i.e.\ of the refit under the selected
+        zeros. For a Gaussian model $\mathcal M$ with mean zero, \enquote{the minimum $n$ such that the MLE
+        exists for almost every $X\in\mathbb R^{p\times n}$ is called the maximum likelihood threshold
+        (MLT) of $\mathcal M$}, and the model of a graph with edge set $E$ is
+        $\mathcal M_{\mathcal G}=\{K\succ0:K_{ij}=0\text{ whenever }ij\notin E\}$ (Bernstein \& Outlaw,
+        p.~2); their $n$ and $p$ are our $C_j$ and $G$, and we write $\mlt(\mathcal G)$ for the
+        \gls{mltabbr}. They state these bounds:
+        \begin{itemize}
+          \item $\mlt(\mathcal G)\le G$, from Dempster (p.~2);
+          \item $\cl(\mathcal G)\le\mlt(\mathcal G)\le\tw(\mathcal G)+1$, from Buhl (p.~2); a chordal
+                graph is its own minimal chordal cover, so $\mlt=\cl$ for chordal graphs
+                \parencite{uhlerGeometryMaximumLikelihood2012,grossMaximumLikelihoodThreshold2018};
+          \item $\mlt(\mathcal G)$ is at most the generic completion rank of $\mathcal G$, with equality
+                for nine or fewer vertices (their Theorem~2.2, p.~3);
+          \item the $k$-core of $\mathcal G$ is what remains after repeatedly deleting genes of degree
+                less than $k$, and the smallest $k$ with an empty $k$-core bounds $\mlt(\mathcal G)$ from
+                above (p.~5, after Gross \& Sullivant); sparse graphs have small bounds.
+        \end{itemize}
+        Their model has a known zero mean. With the mean estimated from the $C_j$ cells, the centred
+        sample has rank $C_j-1$, so the requirement reads $C_j-1\ge\mlt(\mathcal G)$ (our reading). In
+        their simulations (at most nine variables, independent Gaussian data), the probability that the
+        graph selected by the graphical lasso has an \glsxtrshort{mltabbr} within the sample size rises
+        with the penalty and with the sample size; with one observation, the graphical lasso
+        \enquote{never selected the graphical model with no edges, the only model with MLT 1}
+        (pp.~4--5).
+  \item \textbf{Support recovery}: $C_j\gtrsim\degmax^2\log G$ for the graphical lasso, against
+        $C_j\gtrsim\degmax\log G$ for neighbourhood selection
+        \parencite[p.~41]{chiquetContributionsSparseMethods2015}, under incoherence (irrepresentability),
+        bounded eigenvalues and a minimum $\lvert\omega_{gh}\rvert$ \parencite{ravikumarHighdimensionalCovarianceEstimation2011}. These conditions involve the unknown $\SW$, and \enquote{we can never verify
+        them on real data} \parencite[p.~77]{chiquetContributionsSparseMethods2015}. With $G=500$ and
+        $\degmax=10$, $\degmax^2\log G\approx620$ before constants, and hubs raise $\degmax$.
+\end{enumerate}
+DeCovarT's plug-in needs (a) only. Reading $\hat\bOmega_j$, or CardamomOT's $\hat{\bm\theta}$, as a
+network needs (b).
+\end{idbox}
+
+CardamomOT has $G^2$ interaction parameters (\enquote{$10^4$ for $n=100$}, p.~27, where $n$ is our $G$)
+and recommends \enquote{not exceeding of the order of 100 genes in the fully unconstrained setting}
+(p.~28), with more genes allowed when $\bm\theta_0$ fixes more entries. DeCovarT faces the same trade-off
+per type: several Suppinger types have $C_j\le G$, which rules out the unpenalised covariance and puts
+support recovery out of reach for all but very sparse graphs. Its plug-in only needs goal (a), which is
+why dense shrinkage \parencite{schäferShrinkageApproachLargescale2005} is the default.
+
+\textbf{Selection removes what it should estimate.} A panel chosen for small within-type variance, such
+as ReDeconv's smallest \glspl{cv} \parencite[p.~14]{luTranscriptomeSizeMatters2025} or MuSiC's
+\enquote{cross-cell consistent genes} \parencite[p.~3]{wangBulkTissueCell2019}, leaves covariances
+dominated by Poisson sampling. Their correlations are then attenuated (\cref{sec:noise}), and the
+estimated precision looks diagonal for reasons that have nothing to do with regulation.
+
+\subsection{Penalties across gene pairs and across classes}\label{sec:joint}
+
+\textbf{Prior structure.} An edge-weighted graphical lasso takes a penalty matrix
 $\bm\Lambda=(\lambda_{gh})$: small weights for whitelisted pairs, zero constraints for blacklisted ones
 \parencite{friedmanSparseInverseCovariance2008}. CardamomOT's prior network, or an OmniPath prior as in
 its repository (p.~27), can enter DeCovarT this way. Neighbourhood selection fits $G$ lasso regressions
-\citeTODO{Meinshausen \& Bühlmann 2006, doi:10.1214/009053606000000281}; it scales well but returns a
-graph, not a positive-definite $\hat\bSigma$, so a refit under the selected zeros is needed. A penalty
-chosen for prediction does not select the true neighbourhood (their Proposition~1, p.~5), which matters
-for CardamomOT, not for DeCovarT's plug-in.
+\parencite{meinshausenHighdimensionalGraphsVariable2006}; it scales well but returns a
+graph, not a positive-definite $\hat\bSigma$, so a refit under the selected zeros is needed, which is
+requirement (b)2 of \cref{sec:ceiling}. A penalty chosen for prediction does not select the true
+neighbourhood (their Proposition~1, p.~5), which matters for CardamomOT, not for DeCovarT's plug-in.
 
-\textbf{Selection removes what it should estimate.} A panel chosen for small within-type variance, such
-as ReDeconv's smallest coefficients of variation \parencite[p.~14]{luTranscriptomeSizeMatters2025} or
-MuSiC's \enquote{cross-cell consistent genes} \parencite[p.~3]{wangBulkTissueCell2019}, leaves
-covariances dominated by Poisson sampling. Their correlations are then attenuated (\cref{sec:noise}),
-and the estimated precision looks diagonal for reasons that have nothing to do with regulation.
+\textbf{Several classes at once.} DeCovarT estimates each $\SW$ from the cells of type $j$ alone. Joint
+estimation couples $K$ precision matrices $\bOmega^{(1)},\dots,\bOmega^{(K)}$, whose classes can be cell
+types, time points or batches. The methods differ in what the classes share.
+\begin{itemize}
+  \item \textbf{The support only.} The graphical group lasso of
+        \textcite{chiquetInferringMultipleGraphical2011} groups the $K$ partial correlations of each gene
+        pair, so that edges are \enquote{present or absent together across the conditions}, \enquote{not
+        necessarily with the same strength}; an edge present in one class and absent in another then has
+        probability zero \parencite[p.~51]{chiquetContributionsSparseMethods2015}. The cooperative lasso
+        splits each group into its positive and negative parts: an edge may vanish in some classes, but
+        it keeps one sign where it is present, since \enquote{sign swaps are very unlikely} (p.~51). The
+        \gls{ggl} in the box below is of the same kind.
+  \item \textbf{The weights as well.} The \gls{fgl} \parencite{danaherJointGraphicalLasso2012} also
+        penalises differences between edge values (box below). PLNFGL
+        \parencite{zhaiPLNFGLJointEstimation2026} estimates each class covariance under a \gls{pln} model
+        by moments and embeds it into the fused graphical lasso (their eq.~6, p.~3); its authors note that
+        this step \enquote{may face computational challenges when applied to large gene sets or to
+        datasets involving more than five conditions} (p.~10). The \gls{jgcgm} \parencite{wuJointLearningMultiple2020} assumes a nonparanormal law (a Gaussian copula) in each class and
+        writes each precision as a common part plus a class-specific part,
+        $\bOmega^{(k)}=\bm M+\bm H^{(k)}$, with $\ell_1$ penalties weighted by $aK$ on $\bm M$ and by
+        $1-a$ on each $\bm H^{(k)}$, $0<a<1$ (p.~4).
+  \item \textbf{The difference only.} For two classes, the lasso-penalised D-trace loss
+        \parencite{yuanDifferentialNetworkAnalysis2017} estimates $\bOmega^{(2)}-\bOmega^{(1)}$
+        \enquote{without attempting to estimate precision matrices} (p.~2): the loss has its unique
+        minimiser at the difference of the two inverse covariances (p.~5). Only the difference needs to be
+        sparse.
+\end{itemize}
+These penalties serve goal (b). For DeCovarT's plug-in, a joint penalty helps only if it lowers the
+covariance loss of every type, and the weighting caveat in the box below makes that doubtful for rare
+types (our reading, not tested).
+
+\begin{methodbox}[title={Joint graphical lasso: group versus fused penalty}]
+\textcite{danaherJointGraphicalLasso2012} estimate $K$ precision matrices from classes of $C_k$ cells with
+empirical covariances $\bm V^{(k)}$. In our notation, they maximise (their eq.~2.4, p.~3)
+\begin{equation}\label{eq:jgl}
+\sum_{k=1}^KC_k\bigl\{\log\det\bOmega^{(k)}-\tr\bigl(\bm V^{(k)}\bOmega^{(k)}\bigr)\bigr\}
+-P\bigl(\bOmega^{(1)},\dots,\bOmega^{(K)}\bigr)
+\end{equation}
+over positive-definite $\bOmega^{(1)},\dots,\bOmega^{(K)}$, with one of two penalties (eqs~2.5 and 2.6,
+p.~4):
+\begin{align}
+P_{\mathrm{FGL}}&=\lambda_1\sum_{k=1}^K\sum_{g\neq h}\bigl\lvert\omega^{(k)}_{gh}\bigr\rvert
+  +\lambda_2\sum_{k<k'}\sum_{g,h}\bigl\lvert\omega^{(k)}_{gh}-\omega^{(k')}_{gh}\bigr\rvert,
+  \label{eq:fgl}\\
+P_{\mathrm{GGL}}&=\lambda_1\sum_{k=1}^K\sum_{g\neq h}\bigl\lvert\omega^{(k)}_{gh}\bigr\rvert
+  +\lambda_2\sum_{g\neq h}\Bigl\{\sum_{k=1}^K\bigl(\omega^{(k)}_{gh}\bigr)^2\Bigr\}^{1/2}.
+  \label{eq:ggl}
+\end{align}
+\begin{itemize}
+  \item \textbf{Fused versus group.} A large $\lambda_2$ in \eqref{eq:fgl} makes many entries identical
+        across classes. With $\lambda_1=0$ and $\lambda_2>0$, \eqref{eq:ggl} gives every
+        $\hat\bOmega^{(k)}$ the same pattern of non-zero entries. \enquote{GGL encourages a weaker form of
+        similarity across the K precision matrices than does FGL: the latter encourages shared edge values
+        across the K matrices, whereas the former encourages only a shared pattern of sparsity} (p.~4).
+  \item \textbf{Classes.} Cell types, time points or batches. For one cell type followed over ordered
+        time points $k=1,\dots,K$, the fused sum can be restricted to consecutive times,
+        $\lambda_2\sum_{k=1}^{K-1}\sum_{g,h}\lvert\omega^{(k+1)}_{gh}-\omega^{(k)}_{gh}\rvert$: the
+        network may drift, but each change between neighbouring times is penalised. This is our
+        adaptation; \eqref{eq:fgl} fuses every pair of classes, and Danaher et al.\ point to time-varying
+        network methods for ordered classes (p.~8).
+  \item \textbf{Weighting caveat.} In \eqref{eq:jgl}, \enquote{the contribution of each class to the
+        penalized log likelihood is weighted by its size; consequently, the largest class can have outsize
+        influence on the estimated networks} (p.~13); in their lung application they weighted the classes
+        equally (p.~12). \textcite[p.~49]{chiquetContributionsSparseMethods2015} sets the same condition
+        for one penalty shared by all classes: it is sensible \enquote{provided that the C samples have
+        similar sizes}. The \glsxtrshort{jgcgm} objective is weighted by the class sizes in the same way
+        (eq.~2, p.~3). With Suppinger's types, the edges of a rare type with a small $C_k$ would be fused
+        towards, or grouped with, those of the abundant types, and edges specific to the rare type could
+        be set to zero.
+\end{itemize}
+\end{methodbox}
+
+\subsection{CardamomOT's \texorpdfstring{$\ell_1$}{l1} penalty: its level, an error-rate reading, alternatives}\label{sec:lambda}
+
+\textbf{Paper.} Step~2 of the inference updates the network by (Eq.~10, p.~9)
+\begin{equation}\label{eq:cardamom-l1}
+\hat{\bm\theta}=\arg\min_{\bm\theta}\sum_c\operatorname{loss}\bigl\{k^{\bm\theta}_{\mathrm{on}}(\bm P_c),
+\bm k_{z_c}\bigr\}+\lambda\lVert\bm\theta-\bm\theta_0\rVert_1,
+\end{equation}
+a cross-entropy between the predicted burst rates and the basin modes, summed over the cells $c$. The paper
+sets \enquote{$\lambda=0.05\cdot N_c/\sqrt{N_g}$, where $N_c$ is the number of cells, reflecting the
+heuristic that the number of active regulators per gene scales at most as $\sqrt{N_g}$, and that a per-gene
+basin label attribution error of 5\,\% is a reasonable target for reliable inference} (p.~9); $N_g$ is our
+$G$.
+
+\textbf{Code (version 2.0.0).} This formula does not appear. \cmfile{inference/network.py} fits one target
+gene $g$ at a time, with one level $\lambda_g$ for the row $\bm\theta_{g\cdot}$. The function
+\cmfile{qut_penalty} returns the \gls{qut} \parencite{giacobinoQuantileUniversalThreshold2017}: the \cmfile{level}-quantile of $\max_h\lvert\partial L/\partial
+\theta_{gh}\rvert$ at the null fit (no interaction, per-sample basal parameters fitted), over permutations
+of the target within each sample. The pipeline passes \cmfile{qut_level=0.5} and \cmfile{qut_n_perm=20}
+(\cmfile{model/base.py}), which override the function's own default level of 0.95. The adaptive-lasso
+refinement has its own threshold at the same level (\cmfile{qut_garrote}). The $\ell_1$ norm is smoothed,
+quadratic for $\lvert x\rvert<10^{-3}$.
+
+\begin{methodbox}[title={Where the two levels come from, and what they control (our reading)}]
+\begin{itemize}
+  \item \textbf{The paper's $\lambda$ as a loss budget.} For one target gene, $\sqrt G$ edges of unit size
+        $\lvert\theta_{gh}-\theta_{0,gh}\rvert=1$ cost $\lambda\sqrt G=0.05N_c$ \chk{V12d}: the loss of
+        mislabelling 5\,\% of the $N_c$ cells if a wrong basin costs about one unit of cross-entropy. Edges
+        enter only if they buy more than that. The paper gives no derivation; this is our reconstruction.
+  \item \textbf{Its scale.} $\lambda/N_c=0.05/\sqrt G$ is fixed, so $\lambda$ is a floor on the mean
+        per-cell score of an edge, not a significance level. The null score, a sum of $N_c$ independent
+        per-cell terms, has a standard deviation of order $\sqrt{N_c}$, so $\lambda$ over the noise grows as
+        $\sqrt{N_c}$ \chk{V12d}: few false edges in large data sets, but weak true edges never enter.
+  \item \textbf{The \glsxtrshort{qut}.} By the Karush--Kuhn--Tucker conditions, the fit of target $g$ has no
+        edge if and only if $\lambda_g\ge\max_h\lvert s_h\rvert$, with $s_h=\partial L/\partial\theta_{gh}$ at
+        the null fit. $\lambda_{\mathrm{QUT}}$ is the $(1-\alpha)$ quantile of $\max_h\lvert s_h\rvert$ under the
+        null: the smallest $\lambda$ that returns the empty model with probability $1-\alpha$. The code takes
+        the null by permutation and $\alpha=1-\texttt{qut\_level}=0.5$, estimated from 20 permutations.
+\end{itemize}
+Assumptions for the next items: target $g$ has $R$ candidate regulators, $R_1$ true and $R_0=R-R_1$ null;
+the null scores are independent and Gaussian (orthogonal design) and do not depend on the true edges; the
+true scores lie far above the threshold. The ledger writes $m$ for $R$ and $k$ for $R_1$.
+\begin{itemize}
+  \item \textbf{\gls{fwer}.} $\lambda_{\mathrm{QUT}}$ controls the probability of at least one false edge
+        into $g$ at $\alpha$ under the global null of $g$. With $R_1$ true regulators, the per-target
+        \glsxtrshort{fwer} is $1-(1-\alpha)^{R_0/R}\le\alpha$ \chk{V12c}. The control is per target gene: over
+        $G$ independent fits, the network-wide \glsxtrshort{fwer} is close to 1 at $\alpha=0.5$.
+  \item \textbf{Bonferroni.} By the union bound, $\lambda_{\mathrm{QUT}}$ is never above the Bonferroni
+        threshold $\sigma\Phi^{-1}\{1-\alpha/(2R)\}$, whatever the dependence between scores. Under
+        independence it is the Šidák threshold, with per-test level $1-(1-\alpha)^{1/R}\ge\alpha/R$
+        \chk{V12a}. Both thresholds grow as $\sigma\sqrt{2\log R}$ and their ratio tends to 1 \chk{V12b}: at
+        $R=100$ it is 0.998 for $\alpha=0.05$ and 0.962 for $\alpha=0.5$. The per-test levels differ by the
+        factor $-\log(1-\alpha)/\alpha$, 1.03 at $\alpha=0.05$ and 1.39 at $\alpha=0.5$ \chk{V12a}.
+  \item \textbf{False edges and an \glsxtrshort{fdr}-type level.} The expected number of false edges into
+        $g$ tends to $-\log(1-\alpha)$ when $R_1=\sqrt R$ and $R\to\infty$ \chk{V12c}: 0.69 at $\alpha=0.5$,
+        about $0.7G$ false edges in the network. With $R=100$ and $R_1=10$ (the paper's $\sqrt G$), the
+        false-edge share $\E V/(\E V+R_1)$ is 0.059 at $\alpha=0.5$ and 0.005 at $\alpha=0.05$ \chk{V12c}; a
+        ratio of expectations, not the \glsxtrshort{fdr} itself. A share $q$ needs the per-test level
+        $t=qR_1/\{(1-q)R_0\}$, about $qR_1/\{(1-q)\alpha\}$ times the Bonferroni level $\alpha/R$ \chk{V12c}:
+        an \glsxtrshort{fdr}-type target is about $R_1$ times more permissive than a \glsxtrshort{fwer} one.
+  \item \textbf{Dependence.} Regulator proteins are correlated, so the scores are not independent. The
+        within-sample permutation keeps that dependence: the \glsxtrshort{qut} still controls the per-target
+        \glsxtrshort{fwer} under the permutation null, and stays below the Bonferroni threshold by the union
+        bound. The expected counts and shares above assume independence. With 20 permutations the median
+        itself is uncertain.
+\end{itemize}
+\end{methodbox}
+
+\textbf{Alternatives to the element-wise $\ell_1$ on $\bm\theta$.} $\bm\theta$ is directed
+($\theta_{gh}\neq\theta_{hg}$) and enters a logistic burst rate, so its likelihood is not a function of a
+covariance.
+\begin{itemize}
+  \item \textbf{D-trace loss.} \textcite{yuanDifferentialNetworkAnalysis2017} minimise
+        $L_D(\bm\Delta)=\tfrac14(\langle\bSigma_X\bm\Delta,\bm\Delta\bSigma_Y\rangle+\langle\bSigma_Y\bm\Delta,
+        \bm\Delta\bSigma_X\rangle)-\langle\bm\Delta,\bSigma_X-\bSigma_Y\rangle$, convex with unique minimiser
+        $\bSigma_Y^{-1}-\bSigma_X^{-1}$ (eq.~1, p.~5), a generalisation of the D-trace loss of
+        \textcite{zhangSparsePrecisionMatrix2014} (p.~4). It needs a symmetric parameter and second-moment
+        matrices as data; neither holds for $\bm\theta$. Two ideas carry over: a loss whose minimiser is the
+        target without a log-determinant, and a penalty on a difference only. The code already does the
+        second across conditions, $\bm\theta_c=\bm\theta_{\mathrm{shared}}+\bm\delta_c$ with an $\ell_1$ on
+        $\bm\delta_c$ (\cmfile{core_inference_conditions}). A directed analogue of the D-trace loss would be a
+        squared residual of the Lyapunov equation of \cref{sec:diag}, $\lVert\bm A\bm V_b+\bm V_b\bm A\T+\bm
+        Q\rVert_F^2$ per basin $b$, with an $\ell_1$ on the off-diagonal of $\bm A$ (speculative: it rests on
+        the linearisation).
+  \item \textbf{Log-determinant loss} (graphical lasso). It needs a symmetric $\bOmega\succ0$ and a Gaussian
+        likelihood, so it does not apply to $\bm\theta$. Its existence argument does carry over: the
+        penalty makes the estimate exist. An unpenalised logistic fit diverges for a separable target, and
+        the code bounds those edges with a Gaussian prior (\cmfile{ridge_coefficients}, \enquote{bounds the
+        edges of nearly separable targets}). The graphical lasso would fit the within-basin covariance that
+        CardamomOT lacks (\cref{sec:borrow}), as an undirected layer next to $\bm\theta$.
+  \item \textbf{Group or cooperative lasso.} Chiquet's eqs~2.20--2.21 group the partial correlations of a
+        gene pair across conditions; the cooperative version splits each group into positive and negative
+        parts, so an edge may vanish in some classes but keeps one sign
+        \parencite[p.~51]{chiquetContributionsSparseMethods2015}
+        \parencite{chiquetSparsitySigncoherentGroups2012}. For $\bm\theta$ the classes can be conditions or
+        cell types (the code fuses edge values; a group penalty would share only the support), time
+        intervals (fused between consecutive times, as in the box of \cref{sec:joint}, or grouped), or the
+        $B$ basins of the target. With basin-specific interactions $\bm\theta_{gh}=(\theta^{(1)}_{gh},\dots,
+        \theta^{(B)}_{gh})$ and prior weights $w_h$, the cooperative penalty reads
+        \begin{equation}\label{eq:coop-basin}
+        P(\bm\theta_{g\cdot})=\lambda\sum_{h}w_h\bigl\{\lVert(\bm\theta_{gh}-\theta_{0,gh}\bm 1)_+\rVert_2
+        +\lVert(\bm\theta_{gh}-\theta_{0,gh}\bm 1)_-\rVert_2\bigr\},
+        \end{equation}
+        with $u_+=\max(0,u)$ and $u_-=\max(0,-u)$ entrywise. A regulator then enters for all basins of $g$
+        or for none (group lasso, \textcite{yuanModelSelectionEstimation2006}), with one sign across basins
+        (cooperative lasso): an activator stays an activator, and the $B$ estimates of one edge share
+        strength. The \glsxtrshort{qut} carries over through the dual norm: with $\bm s_h$ the vector of the
+        $B$ null scores of edge $h\to g$, it is a quantile of
+        $\max_h\max(\lVert\bm s_h^+\rVert_2,\lVert\bm s_h^-\rVert_2)/w_h$ for \eqref{eq:coop-basin}
+        (Chiquet, p.~80; our reading). Speculative: CardamomOT's $\bm\theta$ is shared across basins by
+        construction (Eq.~1, p.~6), and basin-specific interactions need about $B$ times more cells per edge.
+\end{itemize}
 
 \begin{answerbox}[title=In short: gene selection]
 \begin{itemize}
   \item CardamomOT selects for change in time and multimodality, and treats the panel as prior
         information. DeCovarT selects for between-type separation with an estimable unimodal within-type
         law. The criteria are not interchangeable.
-  \item The univariate ANOVA ratio is a screen; the Fisher information for $\bm p$ is the objective.
-        They agree for two types only with equal variances and independent genes \chk{TODO-V4}.
-  \item Both methods meet the same ceiling: $G^2$ parameters against $C_j$ cells. Prior structure (a
-        whitelist, $\bm\theta_0$) is the way to more genes.
+  \item The univariate \glsxtrshort{anova} ratio is a screen; the Fisher information for $\bm p$ is the
+        objective. For two types they agree, for every $p$, only with equal variances \chk{V4c}; summing
+        them over genes needs independent genes, except on a measure-zero set of correlations \chk{V4e}.
+  \item DeCovarT's plug-in needs a well-defined covariance: the empirical one only from $C_j\ge G+1$ with
+        no exact relation between genes \chk{V10a,V10b}, shrinkage for any $C_j\ge2$ \chk{V11b}. A network reading
+        needs the support of the precision, with $C_j-1\ge\mlt(\mathcal G)$ for a refit and
+        $C_j\gtrsim\degmax^2\log G$ for recovery. Prior structure (a whitelist, $\bm\theta_0$) or a joint
+        penalty across classes borrows strength, the latter at the expense of rare types.
+  \item CardamomOT's paper sets $\lambda=0.05N_c/\sqrt G$, a per-cell effect floor; its code uses a
+        \glsxtrshort{qut} at level 0.5 per target gene, a per-target \glsxtrshort{fwer} of 0.5 that, with
+        about $\sqrt G$ regulators per gene, leaves a false-edge share near 6\,\% \chk{V12c}.
 \end{itemize}
 \end{answerbox}
 
@@ -231,19 +654,20 @@ and the estimated precision looks diagonal for reasons that have nothing to do w
 
 \textcite[p.~3]{sarkarSeparatingMeasurementExpression2021} separate \enquote{a measurement model
 [\ldots] the conditional distribution $p(X\mid\Lambda)$} from \enquote{a model for the expression levels
-$p(\Lambda)$}. For UMI data, Poisson measurement suffices: $x_{gc}\mid\lambda_{gc}\sim
+$p(\Lambda)$}. For \glsxtrshort{umi} data, Poisson measurement suffices: $x_{gc}\mid\lambda_{gc}\sim
 \Pois(x_{c+}\lambda_{gc})$, and gene--gene correlation belongs to the expression model.
-\textcite{fangExtrinsicBiologicalStochasticity2025} add a cell-wide factor $c=c_{\mathrm{tech}}c_{\mathrm{bio}}$
-that multiplies the mean of every gene (their eqs~1--2, pp.~3--4). For intrinsically uncorrelated genes,
-the normalised covariance $\Cov(X_a,X_b)/(\E X_a\E X_b)$ then equals the extrinsic noise
-$\Var c/(\E c)^2$ (eq.~5, p.~5). They estimate it by the mode of the normalised covariances, call
-\enquote{Poisson genes} those whose bootstrap interval of normalised variance contains it, and take the
-Poisson MLE of the size factor on those genes (p.~16). Normalising by size factors \enquote{can eliminate
-biological stochasticity present in extrinsic \enquote{noise}} (p.~2).
+\textcite{fangExtrinsicBiologicalStochasticity2025} add a cell-wide factor
+$c_{\mathrm{tech}}c_{\mathrm{bio}}$, our $s_c$, that multiplies the mean of every gene (their eqs~1--2,
+pp.~3--4). For intrinsically uncorrelated genes, the normalised covariance $\Cov(X_a,X_b)/(\E X_a\E X_b)$
+then equals the extrinsic noise $\Var s/(\E s)^2$ (eq.~5, p.~5) \chk{V9b}. They estimate it by the mode of
+the normalised covariances, call \enquote{Poisson genes} those whose bootstrap interval of normalised
+variance contains it, and take the Poisson \glsxtrshort{mle} of the size factor on those genes (p.~16).
+Normalising by size factors \enquote{can eliminate biological stochasticity present in extrinsic
+\enquote{noise}} (p.~2).
 
 \begin{figure}[tbp]
 \centering
-\begin{tikzpicture}[node distance=9mm and 16mm]
+\begin{tikzpicture}[node distance=9mm and 24mm]
   \node[stoch] (z) {$z_c$};
   \node[stoch, right=of z] (lam) {$\bm\lambda_{\cdot c}$};
   \node[const, above=8mm of lam] (par) {$\vartheta$};
@@ -256,7 +680,7 @@ biological stochasticity present in extrinsic \enquote{noise}} (p.~2).
   \draw[edge] (lam) -- (x);
   \draw[edge] (s) -- (x);
   \plate{genes}{(x)(nmeas)}{$g=1,\ldots,G$}
-  \plate{cells}{(z)(lam)(s)(genes)(nexp)}{cells $c$}
+  \plate{cells}{(z)(lam)(s)(genes)(genes-lab)(nexp)}{cells $c$}
 \end{tikzpicture}
 \caption{The two noise layers for one reference cell. $z_c$ is the label (cell type $j$ in DeCovarT,
 promoter basin in CardamomOT), $\vartheta$ the parameters ($\bmu_j,\SW$ in DeCovarT; NB shapes and rates
@@ -266,11 +690,11 @@ directly, so both layers enter $\SW$.}
 \label{fig:layers}
 \end{figure}
 
-\textbf{CardamomOT, paper.} The negative binomial comes from bursting and is an expression model
-(p.~6). No size factor, library size or capture term appears in Eqs~3--4; technical noise is examined
-only as a robustness test with simulated binomial dropout of 5--90\,\% (p.~17).
+\textbf{CardamomOT, paper.} The \gls{nb} comes from bursting and is an expression model (p.~6). No size
+factor, library size or capture term appears in Eqs~3--4; technical noise is examined only as a
+robustness test with simulated binomial dropout of 5--90\,\% (p.~17).
 
-\textbf{CardamomOT, code at \texttt{4a6305c}.} The measurement layer is a per-cell depth factor $s_c$
+\textbf{CardamomOT, code (version 2.0.0).} The measurement layer is a per-cell depth factor $s_c$
 (\cmfile{estimate_cell_depth.py}, \cmfile{inference/depth.py}, \cmfile{inference/depth_model.py}).
 \begin{itemize}
   \item \textbf{Rationale} (script docstring): a depth common to all genes of a cell \enquote{acts like a
@@ -278,30 +702,27 @@ only as a robustness test with simulated binomial dropout of 5--90\,\% (p.~17).
   \item \textbf{Estimation} within homogeneous groups (sample, time, cell type), on the whole transcriptome
         (at least 10{,}000 genes, otherwise nothing is estimated); the library size leaves out the 50 most
         expressed genes. The default method, \texttt{poissonian}, follows Fang \& Pachter: extrinsic noise
-        as the mode of normalised covariances, iterated Poisson genes, $s_c$ as the Poisson MLE on those
-        genes, then a pairwise least-squares rescaling between groups. The alternative,
-        \texttt{group\_median}, divides the library size by the group median.
-  \item \textbf{How it enters:} with the default \texttt{depth\_model = 'mean'}, counts are
-        $\NB(a,r/s_c)$ (code: $\NB(k,c/s_i)$): depth multiplies the mean and leaves the shape $a$
-        unchanged, as in scVI. The option \texttt{'burst\_frequency'} uses $\NB(a s_c,r)$. Counts stay
-        integers; $s_c$ is stored in \texttt{obs['depth\_factor']} and \texttt{X} is untouched.
+        as the mode of normalised covariances, iterated Poisson genes, $s_c$ as the Poisson
+        \glsxtrshort{mle} on those genes, then a pairwise least-squares rescaling between groups. The
+        alternative, \cmfile{group_median}, divides the library size by the group median.
+  \item \textbf{How it enters:} with the default \cmfile{depth_model='mean'}, counts are
+        $\NB(\kappa,r/s_c)$ (code: $\NB(k,c/s_i)$): depth multiplies the mean and leaves the shape
+        $\kappa$ unchanged, as in scVI. The option \cmfile{'burst_frequency'} uses $\NB(\kappa s_c,r)$.
+        Counts stay integers; $s_c$ is stored in \cmfile{obs['depth_factor']} and \texttt{X} is untouched.
   \item \textbf{When it is applied:} the diagnostic recommends the correction if the depth share of the
         mean within-group pairwise correlation exceeds 0.5, or if more than half of the genes have NB modes
         closer than the depth spread. The correlation share is computed on the log1p counts of 1{,}000
         reference genes (the most variable among genes detected in more than 5\,\% of cells), with and
         without the log library size regressed out. The depth spread is the median over groups of
         $q_{0.95}/q_{0.05}$ of $s_c$. The correction is written only if the user allows it.
-  \item \textbf{No cell or gene is removed for abnormal depth.} There is no MAD or quantile filter. Cells
-        flagged as doublets are counted and reported, never filtered; a warning recommends upstream
-        removal when depth correlates with the doublet score above 0.3.
 \end{itemize}
 
-\textbf{DeCovarT.} $\SW$ estimated from raw UMI counts mixes both layers. If
+\textbf{DeCovarT.} $\SW$ estimated from raw \glsxtrshort{umi} counts mixes both layers. If
 $x_{gc}\mid\bm\lambda_{\cdot c},s_c\sim\Pois(s_c\lambda_{gc})$ with $s_c$ independent of $\bm\lambda_{\cdot c}$
 within type $j$, the law of total covariance gives (\cref{app:depth})
 \begin{equation}\label{eq:depth}
 \Cov(\bm x_{\cdot c})=\E(s^2)\,\bSigma^{\lambda}_j+\Var(s)\,\bmu^{\lambda}_j\bmu^{\lambda\mathsf T}_j
-+\E(s)\diag(\bmu^{\lambda}_j).
++\E(s)\diag(\bmu^{\lambda}_j)\quad\chk{V9a}.
 \end{equation}
 \begin{itemize}
   \item \textbf{Depth} adds a rank-one term along the mean $\bmu^{\lambda}_j$, common to all gene pairs.
@@ -315,63 +736,165 @@ within type $j$, the law of total covariance gives (\cref{app:depth})
         lowly expressed panels look independent.
   \item \textbf{Bulk scales} $c_i=a_in_i$ and $\phi_i=a_i^2n_i$ absorb a platform scale per bulk sample;
         they do not remove the cell-level depth variance from $\SW$.
-  \item \textbf{A model that separates the layers:} the Poisson log-normal, $x_{gc}\sim\Pois(s_c
+  \item \textbf{Raw or denoised in the bulk.} Let $\bSigma^{\mathrm{bio}}_j$ be the covariance of the latent
+        expression on the reference scale, so that the raw covariance is
+        $\bSigma^{\mathrm{bio}}_j+\diag(\bmu_j)$. If the bulk counts the pooled transcripts of its cells once, at
+        depth $a_i$ per reference unit, then
+        $\Cov\bm y_{\cdot i}=\phi_i\sum_jp_{ji}\bSigma^{\mathrm{bio}}_j+c_i\diag(\sum_jp_{ji}\bmu_j)$; binomial
+        thinning of the reference counts gives the same law \chk{V13a}. The reference Poisson diagonal is
+        replaced by the bulk's own, of weight $a_i^{-1}$ per unit of $\phi_i$. The raw $\SW$ is therefore exact
+        only at $a_i=1$, and the Poisson-denoised one only as $a_i\to\infty$. At any depth the plug-in is the
+        denoised covariance plus $c_i\diag(\sum_jp_{ji}\bmu_j)$, which adds no parameter for UMI-like bulk
+        counts \chk{V13b,V13c}. The article reaches the same conclusion in its appendix on the within-type
+        covariance that enters the bulk.
+  \item \textbf{A model that separates the layers:} the \gls{pln} model, $x_{gc}\sim\Pois(s_c
         e^{z_{gc}})$ with $\bm z_{\cdot c}\sim\mathcal N(\bmu_z,\bSigma_z)$
         \parencite{chiquetPoissonLognormalModelVersatile2021}. Its offset is the measurement layer and
         $\bSigma_z$ the expression layer. Mapped back to the linear scale,
         $\E\bm x=s\,e^{\bmu_z+\diag(\bSigma_z)/2}$ and $\Cov\bm x=\diag(\E\bm x)+(\E\bm x\,\E\bm x\T)\circ
-        (e^{\bSigma_z}-1)$ for fixed $s$ \chk{TODO-V3}.
+        (e^{\bSigma_z}-1)$, with the exponential taken entrywise, for fixed $s$ \chk{V3a,V3b,V3c}.
+\end{itemize}
+
+\textbf{CardamomOT's $s_c$ against $\nu^{\mathrm{tech}}$.} CardamomOT's default depth estimator is Fang and
+Pachter's size factor on Poisson genes. It estimates the total factor $s_c=s^{\mathrm{bio}}_cs^{\mathrm{tech}}_c$,
+and the mode of normalised covariances estimates the total $\nu=\Var s$ (with $\E s=1$), where
+$1+\nu=(1+\nu^{\mathrm{bio}})(1+\nu^{\mathrm{tech}})$ \chk{V14a}. DeCovarT's denoised covariance (vignette 05-1,
+\texttt{eq-denoised-within}) needs $\nu^{\mathrm{tech}}$ alone. Given $\nu^{\mathrm{tech}}$, it is unbiased once
+$\bar{\bm x}\bar{\bm x}\T$ is replaced by $\bar{\bm x}\bar{\bm x}\T-\bm V_j/C_j$ \chk{V14b,V14c,V14e}. Fed with the
+total $\nu$, it returns $\bSigma^{\lambda}_j$ and drops
+$\nu^{\mathrm{bio}}(\bSigma^{\lambda}_j+\bmu^{\lambda}_j\bmu^{\lambda\mathsf T}_j)$, the cell-size share that a bulk sums
+\chk{V14d}. CardamomOT's correction, which divides $s_c$ out of the NB mean, is the count analogue of that
+total-$\nu$ plug-in. It suits a network of size-free expression; it does not suit a covariance that must reach
+a bulk (our reading).
+
+\textbf{Alternatives to the depth correction.}
+\begin{itemize}
+  \item \textbf{scVI} draws a library factor $\ell_n\sim\mathrm{LogNormal}$ whose prior is the empirical mean and
+        variance of the log library size in each batch, frequencies $\bm\rho_n$ that sum to one over genes, and
+        counts $\Pois(\ell_nw_{ng})$ with $w_{ng}\sim\mathrm{Gamma}(\rho_{gn},\theta_g)$, plus zero inflation
+        \parencite[author manuscript, pp.~8--9]{lopezDeepGenerativeModeling2018}. $\ell_n$ \enquote{represents nuisance variation due to differences in capture
+        efficiency and sequencing depth} (p.~3). It is the object $s_c$ estimated inside a likelihood rather than
+        on Poisson genes, and it also carries cell size because $\bm\rho_n$ sums to one. Genes are independent
+        given a 10-dimensional latent (pp.~3, 8), so regulation would be read from that latent, not from a
+        precision matrix (our reading).
+  \item \textbf{scANVI} adds a cell-type label with a uniform prior, keeping the scVI library factor and count
+        model \parencite[eqs~1--8, p.~15]{xuProbabilisticHarmonizationAnnotation2021}.
+        For CardamomOT the label could be a type or a basin.
+  \item \textbf{ComBat} corrects \enquote{both additive and multiplicative batch effects} by empirical Bayes,
+        per gene and batch \parencite{johnsonAdjustingBatchEffects2007}. Its count
+        version ComBat-ref fits $\log\mu_{gij}=\alpha_g+\gamma_{gi}+\beta_{g,\mathrm{cond}(j)}+\log N_j$ (gene $g$, batch $i$, sample $j$) and maps each count to a
+        reference batch by matching negative binomial distribution functions
+        \parencite[p.~2]{zhangHighlyEffectiveBatch2025}.
+        It acts on samples, not cells. It could therefore replace CardamomOT's pairwise rescaling between groups,
+        not $s_c$. With time points as batches it removes the time effect unless time enters the model as the
+        biological condition.
 \end{itemize}
 
 \begin{answerbox}[title=In short: noise layers]
 \begin{itemize}
-  \item In the paper, CardamomOT's NB is an expression model with no measurement layer. The code at
-        \texttt{4a6305c} adds one: a per-cell depth $s_c$ that multiplies the NB mean, applied only when
-        depth explains more than half of the within-group correlation or blurs the NB basins. It removes
-        no cell and no gene; doublets are only flagged.
+  \item In the paper, CardamomOT's \glsxtrshort{nb} is an expression model with no measurement layer.
+        The code of version 2.0.0 adds one: a per-cell depth $s_c$ that multiplies the NB mean, applied
+        only when depth explains more than half of the within-group correlation or blurs the NB basins.
   \item DeCovarT's $\SW$ contains a rank-one depth term and a Poisson diagonal. The biological share of
-        depth should stay, the technical share should not.
-  \item DeCovarT can run the depth-share diagnostic on Suppinger before estimating $\SW$. Cell QC stays a
-        separate tier, which CardamomOT does not perform.
+        depth should stay, the technical share should not. CardamomOT's $s_c$ is the total factor, so it cannot
+        stand in for $\nu^{\mathrm{tech}}$ \chk{V14d}.
+  \item The raw $\SW$ suits a bulk counted at the reference depth per cell ($a_i=1$). Otherwise the bulk needs the
+        denoised covariance plus its own Poisson term \chk{V13b}.
+  \item DeCovarT can run the depth-share diagnostic on Suppinger before estimating $\SW$.
 \end{itemize}
 \end{answerbox}
 
 % =====================================================================
 \section{The diagonal and self-regulation (axis iv)}\label{sec:diag}
 
-\textbf{Two different objects.} In a Gaussian graphical model, $\omega_{gg}=1/\Var(x_g\mid\bm x_{-g})$ is a
-conditional precision, and an edge is a non-zero partial correlation $-\omega_{gh}/\sqrt{\omega_{gg}
-\omega_{hh}}$. The diagonal is never an edge. In CardamomOT, $\theta_{gg}$ enters the activation rate of
-gene $g$ through its own protein (Eq.~1, p.~6): a directed self-loop.
+\textbf{Two different objects.} In a \gls{ggm}, $\omega_{gg}=1/\Var(x_g\mid\bm x_{-g})$ is a
+\glslink{def-partial}{conditional precision}, and an edge is a non-zero partial correlation
+$-\omega_{gh}/\sqrt{\omega_{gg}\omega_{hh}}$. The diagonal is never an edge. In CardamomOT, $\theta_{gg}$
+enters the activation rate of gene $g$ through its own protein (Eq.~1, p.~6): a directed self-loop.
 
 \textbf{Self-activation and bistability.} \enquote{The combination of a positive auto-activation with a
 negative basal parameter $\beta_i$ is the most parsimonious way to produce bistability for an isolated
-gene} (p.~28). This is the autocatalytic case of \citeTODO{Ferrell 2002,
-doi:10.1016/S0955-0674(02)00314-9}: bistability needs feedback, \enquote{some type of non-linearity
+gene} (p.~28). This is the autocatalytic case of \parencite{ferrellSelfperpetuatingStatesSignal2002}: bistability needs feedback, \enquote{some type of non-linearity
 within the feedback circuit}, and balanced legs (p.~3 of that review). CardamomOT reports diagonal
 coefficients \enquote{systematically non-negligible across all three datasets} (p.~18).
 
 \textbf{Linking the two through the stationary covariance.} Around one basin, linearise the dynamics as
 an Ornstein--Uhlenbeck process $\dd\bm x=\bm A(\bm x-\bm x^\ast)\dd t+\bm B\,\dd\bm W$. The stationary
-covariance solves the Lyapunov equation $\bm A\bSigma+\bSigma\bm A\T+\bm Q=\bm 0$, $\bm Q=\bm B\bm B\T$.
-Write $a_g=d_g-\varsigma_g>0$ for the net decay of gene $g$: degradation minus linearised
-self-activation. For two genes with $1\to2$ of strength $b$ (\cref{app:lyap}),
+covariance solves the \glslink{def-lyapunov}{Lyapunov equation} $\bm A\bSigma+\bSigma\bm A\T+\bm Q=\bm 0$,
+$\bm Q=\bm B\bm B\T$. Write $a_g=\gamma_g-\varsigma_g>0$ for the net decay of gene $g$: its degradation
+rate $\gamma_g$ minus its linearised self-activation $\varsigma_g$. For two genes with $1\to2$ of strength
+$b$ (\cref{app:lyap}),
 \begin{equation}\label{eq:lyap2}
 \sigma_{11}=\frac{q_1}{2a_1},\qquad \sigma_{12}=\frac{b\,q_1}{2a_1(a_1+a_2)},\qquad
-\omega_{12}=-\frac{2a_2(a_1+a_2)\,b}{(a_1+a_2)^2q_2+b^2q_1}\quad\chk{TODO-V5}.
+\omega_{12}=-\frac{2a_2(a_1+a_2)\,b}{(a_1+a_2)^2q_2+b^2q_1}\quad\chk{V5a,V5b}.
 \end{equation}
 \begin{itemize}
   \item Self-activation acts only through $a_g$: a larger $\varsigma_g$ inflates $\sigma_{gg}$ and the
         conditional variance, so it lowers $\omega_{gg}$. It appears nowhere as a \enquote{self-edge}.
   \item $\omega_{12}\neq0$ if and only if $b\neq0$, but its sign and size mix $b$ with the decays and noise
-        intensities, and the direction is lost.
+        intensities, and the direction is lost \chk{V5c}.
   \item With three genes, a fork $1\to2$, $1\to3$ gives $\omega_{23}\propto-b_{21}b_{31}\neq0$: two
         co-regulated targets are linked in the precision although neither regulates the other
-        \chk{TODO-V5}. A static structural equation model with the same fork would give $\omega_{23}=0$.
+        \chk{V5e}. A static \gls{sem} with the same fork would give $\omega_{23}=0$ \chk{V5f}.
   \item The linear model has one basin. Bistability requires the non-linearity that the linearisation
         removes, and produces a bimodal law within a cell type, which a Gaussian within-type law cannot
         represent. DeCovarT's counterpart of a basin is a subtype: more components in the convolution.
 \end{itemize}
+
+\textbf{What the Lyapunov equation is for.} A snapshot shows cells, not trajectories: it estimates the
+stationary law of the dynamics, never the dynamics themselves. Around one basin, $\bm A$ is the Jacobian of
+the regulation (off-diagonal: how gene $h$ moves gene $g$; diagonal: minus the net decay $a_g$) and $\bm Q$
+the intensity of the intrinsic noise (bursting, molecular noise). The Lyapunov equation is the map from
+these dynamic parameters to the second moment that a snapshot estimates, $(\bm A,\bm Q)\mapsto\bSigma$. It
+is the bridge between the two estimands: CardamomOT's directed $\bm\theta$ lives in $\bm A$, DeCovarT's
+plug-in is $\bSigma$. The map is not invertible: $\bSigma$ has $G(G+1)/2$ free entries, $(\bm A,\bm Q)$ up to
+$G^2+G$, so many directed networks share one stationary covariance (our remark).
+
+\textbf{Lyapunov covariance against DeCovarT's denoised covariance.} Add Poisson measurement at a fixed
+depth $s$, $x_{gc}\mid\bm\lambda_{\cdot c}\sim\Pois(s\lambda_{gc})$, with $\bm\lambda_{\cdot c}$ drawn from the
+stationary law of the basin. By \cref{eq:depth} with $\Var s=0$,
+\begin{equation}\label{eq:lyap-measure}
+\Cov(\bm x_{\cdot c})=s^2\bSigma_{\mathrm{Lyap}}(\bm A,\bm Q)+s\diag(\bmu^{\lambda}),
+\end{equation}
+so DeCovarT's denoised covariance $\bSigma^{\mathrm{bio}}_j$ estimates $s^2\bSigma_{\mathrm{Lyap}}$, the
+stationary covariance, not $\bm A$. Both terms of \cref{eq:lyap-measure} have the form \enquote{structured part
+plus diagonal}, but the two diagonals act differently. The intrinsic noise $\bm Q$ enters the dynamics and is
+propagated by the network: a noise on gene 1 reaches gene 2 through $b$, which creates $\sigma_{12}$ in
+\cref{eq:lyap2}. The measurement diagonal is added after the dynamics and propagates nowhere. Reading $\bm A$
+as the biological correlation and the measurement variance as $\bm Q$ would therefore conflate the two
+layers of \cref{sec:noise} (our remark). One special case links the precision to the network directly: if
+$\bm A$ is symmetric and stable and $\bm Q=q\bm I$, then $\bSigma_{\mathrm{Lyap}}=-\tfrac q2\bm A^{-1}$ and
+$\bOmega=-\tfrac2q\bm A$ \chk{V24a}. The off-diagonal of the precision is then the regulation up to sign
+and scale, and its diagonal is the net decay, $\omega_{gg}=2a_g/q$. A symmetric $\bm A$ means reciprocal
+regulation of equal strength, a gradient system, which a gene regulatory network is in general not.
+
+\textbf{Why $\omega_{gg}$ is not a self-loop.} For any positive-definite $\bOmega$,
+$\omega_{gg}=1/\Var(x_g\mid\bm x_{-g})=1/\{\sigma_{gg}(1-R^2_g)\}>0$, where $R^2_g$ is the squared multiple
+correlation of gene $g$ on all the other genes \chk{V24c}. The diagonal is always positive, so it cannot carry
+the sign of a self-loop (activation or repression). A large $\omega_{gg}$ says that gene $g$ varies little
+once the other genes are known: either it is well predicted by them ($R^2_g$ close to one) or its own
+variance is small (strong decay, little noise). A small $\omega_{gg}$ says that gene $g$ varies on its own.
+Self-activation enters only through that variance: it lowers $a_g$, raises $\sigma_{gg}$ and lowers
+$\omega_{gg}$ \chk{V5d}. CardamomOT's \enquote{systematically non-negligible} self-loops (p.~18) and a
+large diagonal of $\hat\bOmega_j$ are therefore not the same finding.
+
+\textbf{A directed acyclic graph has a triangular factor.} In a Gaussian Bayesian network, a linear
+\gls{sem} $\bm x=\bm B\bm x+\bm e$ with $\bm e\sim\mathcal N(\bm 0,\bm D)$, $\bm D$ diagonal, and an acyclic
+graph, ordering the genes so that parents come first makes $\bm B$ strictly lower triangular, and
+\begin{equation}\label{eq:dag-chol}
+\bOmega=(\bm I-\bm B)\T\bm D^{-1}(\bm I-\bm B),\qquad
+\omega_{gg}=\frac1{d_g}+\sum_{h:\,g\to h}\frac{b_{hg}^2}{d_h},
+\end{equation}
+the modified Cholesky (LDL) factorisation of $\bOmega$, with a unit triangular factor $\bm I-\bm B$
+\chk{V24b} \parencite{pourahmadiJointMeancovarianceModels1999}. Acyclicity forces $b_{gg}=0$: a static
+directed acyclic graph has no self-loop, and its $\omega_{gg}$ is the noise precision of gene $g$ plus what its
+children reveal about it. Every ordering of the genes gives such a factor, so the order, hence the
+direction of the edges, is not identified from $\bOmega$ alone (Markov equivalence); external information,
+such as CardamomOT's time points, has to supply it. A self-loop needs time: in a dynamic Bayesian network,
+$\bm x_{t}=\bm A\bm x_{t-1}+\bm e_{t}$, the entry $A_{gg}$ is a lag-one effect of gene $g$ on itself, and the
+graph unrolled over time stays acyclic. CardamomOT's snapshots are not time series of the same cells, so
+such a model would need its couplings between time points, as CardamomOT's transport supplies (our remark). \Cref{app:stat-dag} develops this statistical route: dynamic and mixed Gaussian Bayesian networks,
+structure learning and interventions.
 
 \textbf{Penalising the diagonal.} When the graphical lasso penalises every entry, its covariance estimate
 has $\hat W_{gg}=V_{gg}+\lambda$ \parencite{friedmanSparseInverseCovariance2008}: every variance is biased
@@ -388,10 +911,16 @@ that two-stage rule in the paper would remove an ambiguity.
 \begin{itemize}
   \item $\omega_{gg}$ is a conditional precision; $\theta_{gg}$ is a directed self-loop. They are related
         only through the stationary covariance of a linearised model, where self-activation lowers
-        $\omega_{gg}$ \chk{TODO-V5}.
+        $\omega_{gg}$ \chk{V5d}.
   \item A precision edge is not a regulatory edge: a fork creates one without a direct link.
-  \item Never penalise the GGM diagonal in DeCovarT. In CardamomOT the self-loop penalty is a prior
-        choice, which the code makes differently in its two stages.
+  \item The Lyapunov equation maps the dynamics $(\bm A,\bm Q)$ to the stationary covariance a snapshot
+        estimates; DeCovarT's denoised covariance estimates that covariance, not $\bm A$, and the measurement
+        diagonal is added after the dynamics, whereas $\bm Q$ is propagated by them.
+  \item $\omega_{gg}=1/\{\sigma_{gg}(1-R^2_g)\}$ is always positive: a large diagonal means a gene well
+        predicted by the others, not a self-loop \chk{V24c}. A static \glsxtrshort{sem} has a triangular factor
+        and no self-loop \chk{V24b}; self-regulation needs a dynamic model.
+  \item Never penalise the \glsxtrshort{ggm} diagonal in DeCovarT. In CardamomOT the self-loop penalty is
+        a prior choice, which the code makes differently in its two stages.
 \end{itemize}
 \end{answerbox}
 
@@ -399,24 +928,35 @@ that two-stage rule in the paper would remove an ambiguity.
 \section{A side axis (iii): convolution, Wiener filter, mean field}\label{sec:side}
 
 \begin{specbox}
-These are analogies to explore, not results. Only the Wiener--BLUP identity is a derivation.
+These are analogies to explore, not results. One item is a derivation: the Wiener filter is the
+\gls{blup} of a mixed model.
 \begin{itemize}
   \item \textbf{Convolution and characteristic functions.} The bulk is a sum of independent cell
         profiles, so its density is a convolution, and its characteristic function is a product:
-        $\varphi_{\bm y}(\bm t)=\prod_j\varphi_{\bm x_j}(p_j\bm t)$ for population references, or
-        $\varphi_{\mathrm{cell}}(\bm t)^{n_i}$ given a mixture over types for single-cell references
-        (\cref{app:conv}). DeCovarT's Gaussian is the central-limit form of that product. For a
-        non-Gaussian cell law, such as a fitted CardamomOT NB mixture, the bulk law of one gene could be
-        computed by FFT on the count lattice \citeTODO{Cooley \& Tukey 1965, doi to verify}. In several
-        dimensions the lattice grows exponentially, so this stays a check for a few genes.
-  \item \textbf{Wiener filter as BLUP.} Writing $\bm x_{\cdot j,i}=\bmu_j+\bm\varepsilon_{j}$ with
-        $\bm\varepsilon_j\sim\mathcal N(\bm 0,\bSigma_j)$ makes $\bm y=\bmu\bm p+\sum_jp_j\bm\varepsilon_j+\bm e$
-        a linear mixed model whose random-effect design depends on $\bm p$. Its marginal covariance is
-        $\sum_jp_j^2\bSigma_j+\bm D$, the best linear unbiased predictor of $\bm\varepsilon_j$ is the
-        Wiener filter of the DeCovarT article, and maximum likelihood is DeCovarT's fit
-        (\cref{app:blup}) \chk{TODO-V1}. REML is then an option, and no full Bayesian treatment is needed.
+        $\varphi_{\bm y}(\bm t)=\prod_j\varphi^{\mathrm{pop}}_j(p_j\bm t)$ for population references. For
+        single-cell references, with $\varphi_j$ the characteristic function of one type-$j$ cell, two
+        models differ. Given the counts $m_j$ of cells per type, $\varphi_{\bm y}(\bm t)=
+        \prod_j\varphi_j(a_i\bm t)^{m_j}$, and the covariance $\phi_i\sum_jp_j\SW$, with $p_j=m_j/n_i$, is
+        linear in $\bm p$: this is DeCovarT's single-cell model \chk{V6b}. If each cell is instead drawn
+        independently from the type mixture, $\varphi_{\bm y}(\bm t)=\varphi_{\mathrm{mix}}(a_i\bm t)^{n_i}$
+        with $\varphi_{\mathrm{mix}}=\sum_jp_j\varphi_j$, and the covariance gains a between-type term
+        that is quadratic in $\bm p$ \chk{V6d,V6e} (\cref{app:conv}). DeCovarT's Gaussian is the
+        central-limit form of that product. For a non-Gaussian cell law, such as a fitted CardamomOT NB
+        mixture, the bulk law of one gene could be computed by \gls{fft} on the count lattice
+        \parencite{cooleyAlgorithmMachineCalculation1965}. In several dimensions the lattice grows
+        exponentially, so this stays a check for a few genes.
+  \item \textbf{Wiener filter as BLUP.} Writing the type-$j$ population profile of the sample as
+        $\bmu_j+\bm\varepsilon_{j}$, with $\bm\varepsilon_j\sim\mathcal N(\bm 0,\bSigma_j)$, makes
+        $\bm y=\bmu\bm p+\sum_jp_j\bm\varepsilon_j+\bm e$ a \gls{lmm} whose random-effect design depends on
+        $\bm p$. Its marginal covariance is $\sum_jp_j^2\bSigma_j+\bm D$ \chk{V1a}, and the
+        \glslink{def-blup}{BLUP} of $\bm\varepsilon_j$ (Definitions box) is the Wiener filter of the DeCovarT article \chk{V1b}. With
+        $\bm D=\bm 0$, maximum likelihood in $\bm p$, with the $\bSigma_j$ plugged in, is DeCovarT's fit
+        \chk{V7a}; a nugget $\bm D\neq\bm 0$, which DeCovarT leaves out (no extra measurement noise),
+        changes the likelihood and moves $\hat{\bm p}$ \chk{V7b} (\cref{app:blup}). \Gls{reml} does not
+        carry over directly: error contrasts remove $\bm p$ from the mean but not from $\bm V$, which
+        depends on $\bm p$ \chk{V7c}. No full Bayesian treatment is needed.
   \item \textbf{Mean field.} Hartree's ansatz writes a many-particle wave function as a product of
-        one-particle functions, each in the average field of the others \citeTODO{Hartree 1928; Fock 1930}.
+        one-particle functions, each in the average field of the others \parencite{hartreeWaveMechanicsAtom1928,fockNaherungsmethodeZurLosung1930}.
         CardamomOT's product over genes given the basin is of that kind: genes interact only through the
         basin label and the protein field. DeCovarT's independent cells are another product ansatz. In
         both, the neglected correlation (Fock's exchange term in physics) is the within-basin covariance
@@ -442,18 +982,16 @@ These are analogies to explore, not results. Only the Wiener--BLUP identity is a
 
 \textbf{CardamomOT from DeCovarT.}
 \begin{itemize}
-  \item \textbf{A cell-quality tier} separate from the depth model: the code removes no cell, and
-        Gandrillon's only cell filter was a Scrublet score below 0.2 (his p.~4).
   \item \textbf{A within-basin covariance.} The basin mixture implies a gene covariance that is diagonal
-        plus a between-basin term of rank at most $K-1$ for $K$ basins, by the law of total covariance;
+        plus a between-basin term of rank at most $B-1$ for $B$ basins, by the law of total covariance;
         the attenuation of the strongest correlations (p.~12) is the missing within-basin part. A Gaussian
-        copula or a Poisson log-normal layer within each basin would restore it.
+        copula or a \glsxtrshort{pln} layer within each basin would restore it.
   \item \textbf{A held-out likelihood for the penalty}, next to the quantile universal threshold. The
         expected Gaussian negative log-score $\tfrac12\{\log\det\bSigma+\tr(\bSigma^{-1}\bSigma_{\mathrm{true}})\}$
-        is minimised at $\bSigma=\bSigma_{\mathrm{true}}$ whatever the law of the cells \chk{TODO-V2}, and
+        is minimised at $\bSigma=\bSigma_{\mathrm{true}}$ whatever the law of the cells, provided its
+        second moments are finite and its mean is known \chk{V2a,V2b,V2c,V2d}, and
         cross-validation estimates the Kullback--Leibler risk for penalised estimators as well
-        \parencite{commengesDynamicalBiostatisticalModels2015}; \citeTODO{Commenges et al.\ 2012,
-        arXiv:1206.1753} give a fast approximation.
+        \parencite{commengesDynamicalBiostatisticalModels2015}; \parencite{commengesUniversalApproximateCrossvalidation2012} give a fast approximation.
   \item \textbf{An information criterion for the panel}, aimed at the estimand $\bm\theta$ rather than at
         marginal change in time.
   \item \textbf{Uncertainty for $\bm\theta$} beyond seed-to-seed variability, for instance a bootstrap
@@ -466,6 +1004,7 @@ These are analogies to explore, not results. Only the Wiener--BLUP identity is a
 \clearpage
 \appendix
 \section{Derivations}\label{app:derivations}
+\enlargethispage{\baselineskip}% keeps A.5 on the page; Appendix B starts on a new page
 
 \paragraph{A.1 Two-gene Lyapunov equation.}\label{app:lyap} With $\bm A=\begin{psmallmatrix}-a_1&0\\
 b&-a_2\end{psmallmatrix}$ and $\bm Q=\diag(q_1,q_2)$, the three distinct entries of $\bm A\bSigma+\bSigma
@@ -478,103 +1017,432 @@ $\sigma_{22}=\{a_1(a_1+a_2)q_2+b^2q_1\}/\{2a_1a_2(a_1+a_2)\}$. Inverting gives
 \]
 and $\omega_{12}$ of \cref{eq:lyap2}. For the fork $1\to2$ (strength $b$), $1\to3$ (strength $c$),
 $\omega_{23}=-4a_2a_3bc\,q_1(a_1+a_2)(a_1+a_3)(a_2+a_3)/\mathcal D$ with $\mathcal D>0$ a polynomial in the
-rates and noise intensities \chk{TODO-V5}. These forms come from an exploratory SymPy run, not yet from the
-ledger.
+rates and noise intensities \chk{V5e}: $\mathcal D$ is $b^2c^2q_1^2(a_2-a_3)^2$ plus a polynomial with
+positive coefficients. The ledger derives all these forms from the Lyapunov equation \chk{V5a,V5b}.
 
-\paragraph{A.2 Gaussian convolution.}\label{app:conv} Population references: $\bm y=\sum_jp_j\bm x_j$ with
-independent $\bm x_j\sim\mathcal N(\bmu_j,\bSigma_j)$ gives $\varphi_{\bm y}(\bm t)=\prod_j\varphi_{\bm
-x_j}(p_j\bm t)=\exp\{i\bm t\T\sum_jp_j\bmu_j-\tfrac12\bm t\T(\sum_jp_j^2\bSigma_j)\bm t\}$, hence the
-quadratic covariance. Single-cell references: given $m_j$ cells of type $j$, the sum has mean
-$\sum_jm_j\bmu_j$ and covariance $\sum_jm_j\SW$; with $m_j\approx n_ip_j$ and the platform scale $a_i$,
-the covariance is $\phi_i\sum_jp_j\SW$, linear in $\bm p$ \chk{TODO-V6}.
+\paragraph{A.2 Gaussian convolution.}\label{app:conv} Population references: with independent type-$j$
+population profiles $\bm x^{\mathrm{pop}}_j\sim\mathcal N(\bmu_j,\bSigma_j)$, the bulk
+$\bm y=\sum_jp_j\bm x^{\mathrm{pop}}_j$ has $\varphi_{\bm y}(\bm t)=\prod_j\varphi^{\mathrm{pop}}_j(p_j\bm t)
+=\exp\{\mathrm i\,\bm t\T\sum_jp_j\bmu_j-\tfrac12\bm t\T(\sum_jp_j^2\bSigma_j)\bm t\}$, hence the
+quadratic covariance. Single-cell references (one type-$j$ cell: mean $\bmu_j$, covariance $\SW$,
+characteristic function $\varphi_j$) admit two models. (a) Given $m_j$ cells of type $j$, the bulk has characteristic function $\prod_j\varphi_j(a_i\bm t)^{m_j}$, mean
+$a_i\sum_jm_j\bmu_j=c_i\sum_jp_j\bmu_j$ and covariance $a_i^2\sum_jm_j\SW=\phi_i\sum_jp_j\SW$, with the
+realised fractions $p_j=m_j/n_i$; it is linear in $\bm p$ \chk{V6b}. This conditional model is
+DeCovarT's. (b) If each of the $n_i$ cells is drawn independently from the type mixture, one cell has
+characteristic function $\varphi_{\mathrm{mix}}=\sum_jp_j\varphi_j$ and the bulk has
+$\varphi_{\mathrm{mix}}(a_i\bm t)^{n_i}$, the average of the product in (a) over
+$\bm m\sim\mathrm{Multinomial}(n_i,\bm p)$. The law of total covariance then adds
+$a_i^2n_i\bmu\{\diag(\bm p)-\bm p\bm p\T\}\bmu\T$ to the covariance of (a); at $J=2$ this is
+$\phi_ip(1-p)\bm\Delta\bm\Delta\T$, quadratic in $p$ \chk{V6d,V6e}.
 
-\paragraph{A.3 Wiener filter as BLUP.}\label{app:blup} Stack $\bm u=(\bm\varepsilon_1,\dots,\bm\varepsilon_J)$
-with $\bm G=\operatorname{blockdiag}(\bSigma_j)$ and $\bm Z=(p_1\bm I_G,\dots,p_J\bm I_G)$. Then
-$\bm y=\bmu\bm p+\bm Z\bm u+\bm e$, $\bm e\sim\mathcal N(\bm 0,\bm D)$, and $\bm V=\Var\bm y=\bm Z\bm G\bm
-Z\T+\bm D=\sum_jp_j^2\bSigma_j+\bm D$. The BLUP is $\hat{\bm u}=\bm G\bm Z\T\bm V^{-1}(\bm y-\bmu\bm p)$,
-whose block $j$ is $p_j\bSigma_j\bm V^{-1}(\bm y-\bmu\bm p)$: the Wiener filter of the DeCovarT article
-(\S\,Wiener filter), equal to the posterior mean in the Gaussian model \chk{TODO-V1}.
+\paragraph{A.3 Wiener filter as BLUP.}\label{app:blup} Stack $\bm u=(\bm\varepsilon_1,\dots,\bm\varepsilon_J)$,
+with covariance $\bm\Gamma=\operatorname{blockdiag}(\bSigma_j)$, and let $\bm Z=(p_1\bm I_G,\dots,p_J\bm I_G)$.
+Then
+$\bm y=\bmu\bm p+\bm Z\bm u+\bm e$, $\bm e\sim\mathcal N(\bm 0,\bm D)$, and $\bm V=\Var\bm y=\bm Z\bm\Gamma
+\bm Z\T+\bm D=\sum_jp_j^2\bSigma_j+\bm D$. The \glsxtrshort{blup} is
+$\hat{\bm u}=\bm\Gamma\bm Z\T\bm V^{-1}(\bm y-\bmu\bm p)$, whose block $j$ is
+$p_j\bSigma_j\bm V^{-1}(\bm y-\bmu\bm p)$: the Wiener filter of the DeCovarT article (\S\,Wiener filter),
+equal to the posterior mean in the Gaussian model \chk{V1b,V1c}. Integrating $\bm u$ out gives
+$\bm y\sim\mathcal N(\bmu\bm p,\bm V)$. At $\bm D=\bm 0$ its log-likelihood in $\bm p$ is DeCovarT's
+Gaussian log-likelihood \chk{V7a}; with $\bm D\neq\bm 0$ the maximiser moves, from $0.747$ to $0.749$ in
+a one-gene example with unit nugget \chk{V7b}. For $J=2$, the error contrasts $\bm K\T\bm y$ with
+$\bm K\T(\bmu_1-\bmu_2)=\bm 0$ have covariance $\bm K\T\bm V(\bm p)\bm K$, which still depends on $\bm p$,
+so \glsxtrshort{reml} does not separate the fixed effect from the variance here \chk{V7c}.
 
 \paragraph{A.4 ANOVA ratio and Fisher information, $J=2$.}\label{app:fisher} One gene, single-cell model:
-$y\sim\mathcal N(c\{p\mu_1+(1-p)\mu_2\},\,\phi\{p\sigma_1^2+(1-p)\sigma_2^2\})$. For $\mathcal N(m(p),v(p))$,
-$I(p)=m'(p)^2/v+\tfrac12\{v'(p)/v\}^2$, so $I(p)=c^2\Delta^2/v+\tfrac12\{(\sigma_1^2-\sigma_2^2)/
-(p\sigma_1^2+(1-p)\sigma_2^2)\}^2$. If $\sigma_1^2=\sigma_2^2=\sigma^2$, the second term vanishes and
-$I(p)=(c^2/\phi)\Delta^2/\sigma^2=n_i\Delta^2/\sigma^2$, since $c^2/\phi=n_i$. With $C$ reference cells per
-type, the ANOVA ratio estimates $(C/2)\Delta^2/\sigma^2$, so $I(p)\approx(2n_i/C)\,F$. Over independent genes
-the informations add; with correlated genes they do not \chk{TODO-V4}. Under the population model, $v(p)=
-p^2\sigma_1^2+(1-p)^2\sigma_2^2$ depends on $p$ even when $\sigma_1=\sigma_2$, and the proportionality fails.
+$y\sim\mathcal N(c\{p\mu_1+(1-p)\mu_2\},\,\phi\{p\sigma_1^2+(1-p)\sigma_2^2\})$, with $c=c_i$ and
+$\phi=\phi_i$. For $\mathcal N(m(p),v(p))$, $I(p)=m'(p)^2/v+\tfrac12\{v'(p)/v\}^2$, so
+$I(p)=c^2\Delta^2/v+\tfrac12\{(\sigma_1^2-\sigma_2^2)/(p\sigma_1^2+(1-p)\sigma_2^2)\}^2$. If
+$\sigma_1^2=\sigma_2^2=\sigma^2$, the second term vanishes and $I(p)=(c^2/\phi)\Delta^2/\sigma^2=
+n_i\Delta^2/\sigma^2$, since $c^2/\phi=n_i$. With $C_1=C_2=C$ reference cells per type, the
+\glsxtrshort{anova} ratio is the plug-in estimate of $(C/2)\Delta^2/\sigma^2$, but its mean is
+$\{\nu/(\nu-2)\}\{1+(C/2)\Delta^2/\sigma^2\}$ with $\nu=2C-2$, so $I(p)\approx(2n_i/C)(F-1)$ for large $C$
+\chk{V4b}. Over independent genes the Fisher information terms add; with correlated genes they do not in general: for
+two genes with correlation $\rho$ they add only at $\rho=0$ or $\rho=2d_1d_2/(d_1^2+d_2^2)$, with
+$d_g=\Delta_g/\sigma_g$ \chk{V4e}. Under the population model, $v(p)=
+p^2\sigma_1^2+(1-p)^2\sigma_2^2$ depends on $p$ even when $\sigma_1=\sigma_2$, and the proportionality fails:
+$I(p)$ becomes affine in $\Delta^2/\sigma^2$, with an offset common to all genes \chk{V4f}.
+
+\textit{Why one gene first, and what changes with several.} The \glsxtrshort{anova} screen ranks genes one
+at a time, so the comparison above is made gene by gene. DeCovarT's objective is multivariate. For a panel of
+$G$ genes with type covariances $\bSigma_{W,1}$ and $\bSigma_{W,2}$, the single-cell model reads
+$\bm y\sim\mathcal N\{c\,\bm m(p),\,\phi\bm S(p)\}$ with $\bm S(p)=p\bSigma_{W,1}+(1-p)\bSigma_{W,2}$, and the
+Gaussian Fisher information $\dot{\bm m}\T\bm V^{-1}\dot{\bm m}+\tfrac12\tr\{(\bm V^{-1}\dot{\bm V})^2\}$ (dots for derivatives in $p$) gives
+\begin{equation}\label{eq:fisher-multi}
+I(p)=n_i\,\bm\Delta\T\bm S(p)^{-1}\bm\Delta+\tfrac12\tr\Bigl[\bigl\{\bm S(p)^{-1}(\bSigma_{W,1}-\bSigma_{W,2})\bigr\}^2\Bigr]
+\quad\chk{V23a}.
+\end{equation}
+The first term is the squared Mahalanobis distance between the type means in the metric of the mixed
+covariance; with a common $\bSigma_W$ it is V4d. Correlations change it in either direction: two genes with the
+same $\Delta_g/\sigma_g$ and a positive within-type correlation carry less than twice the information of one
+(V4e). The second term rewards covariances that differ between the types, whatever the means. It does not grow
+with $n_i$, so in a bulk of many cells the covariance acts mainly through the metric $\bm S(p)^{-1}$, as a
+\glsxtrshort{gls} weight, and only marginally as a separate source of information (our remark).
+
+The same two ingredients define the overlap of the two type laws, the criterion of the
+\vignette{S6-feature-screening-scenario.html}{screening scenario}. The Bhattacharyya coefficient
+$\int\sqrt{f_1f_2}=e^{-D_B}=1-H^2$, with $H$ the Hellinger distance, has
+\begin{equation}\label{eq:bhattacharyya}
+D_B=\tfrac18\bm\Delta\T\bar\bSigma^{-1}\bm\Delta+\tfrac12\log\frac{\det\bar\bSigma}
+{\sqrt{\det\bSigma_{W,1}\det\bSigma_{W,2}}},\qquad\bar\bSigma=\tfrac12(\bSigma_{W,1}+\bSigma_{W,2})
+\quad\chk{V23b},
+\end{equation}
+which reduces to V8a when the covariances are equal. Minimising the overlap therefore maximises a mean
+separation in a covariance metric plus a covariance-difference term, the multivariate counterpart of the
+one-gene ratio. The two criteria differ in their object: the overlap is a property of the type laws in the
+reference, \cref{eq:fisher-multi} of the composition of a bulk of $n_i$ cells.
 
 \paragraph{A.5 Depth and sampling in the within-type covariance.}\label{app:depth} Conditionally on
 $(\bm\lambda,s)$, counts are independent Poisson with means $s\bm\lambda$. Then $\E\bm x=\E(s)\bmu^\lambda$
 and $\Cov\bm x=\E\{\Cov(\bm x\mid\bm\lambda,s)\}+\Cov\{\E(\bm x\mid\bm\lambda,s)\}=\E(s)\diag(\bmu^\lambda)+
 \Cov(s\bm\lambda)$, with $\Cov(s\bm\lambda)=\E(s^2)\bSigma^\lambda+\Var(s)\bmu^\lambda\bmu^{\lambda\mathsf T}$
-when $s$ and $\bm\lambda$ are independent; this is \cref{eq:depth}. Dividing the off-diagonal terms by
-the means recovers Fang \& Pachter's normalised covariance $\Var(s)/(\E s)^2$ for genes with
-$\Sigma^\lambda_{gh}=0$, up to the normalisation $\E s=1$.
+when $s$ and $\bm\lambda$ are independent; this is \cref{eq:depth} \chk{V9a}. Dividing an off-diagonal
+term by the product of the two means gives Fang \& Pachter's normalised covariance $\Var(s)/(\E s)^2$
+for genes with $\Sigma^\lambda_{gh}=0$, whatever the scale of $s$; the same ratio is the normalised
+variance $\{\Var(x_g)-\E x_g\}/(\E x_g)^2$ of a gene with $\Sigma^\lambda_{gg}=0$, one of their Poisson
+genes (their eq.~5) \chk{V9b}.
 
 % =====================================================================
+\clearpage
 \section{Verification ledger}\label{app:ledger}
 
-The SymPy checks V1--V6 are written last, after every other task of the plan. Until then each statement
-that depends on one carries a \chk{TODO-Vn} marker. V1: LMM covariance and BLUP $=$ Wiener filter; V2:
-Stein's loss minimised at the true covariance; V3: Poisson log-normal moment map; V4: Fisher information
-against the ANOVA ratio for $J=2$; V5: two-gene Lyapunov covariance and precision, fork precision; V6:
-single-cell linear against population quadratic covariance at $J=2$.
+Each statement checked by SymPy carries its ledger identifier. The scripts are in
+\texttt{verification/sympy/}; \texttt{verification/run\_all.py} runs them and writes the table below. V1: LMM
+covariance and BLUP $=$ Wiener filter; V2: Stein's loss minimised at the true covariance; V3: Poisson
+log-normal moment map; V4: Fisher information against the ANOVA ratio for $J=2$; V5: two-gene Lyapunov
+covariance and precision, fork precision; V6: single-cell linear against population quadratic covariance
+at $J=2$, and the two single-cell models (given counts, or i.i.d.\ draws); V7: maximum likelihood of the
+mixed model against DeCovarT's fit, and REML; V8: Hellinger and 2-Wasserstein distances against the
+Mahalanobis distance; V9: depth and Poisson sampling in the within-type covariance (\cref{eq:depth}) and
+the normalised covariance. Each check derives the result (Gaussian conditioning and integration, cumulant
+generating functions, score and Fisher information, the Lyapunov equation, couplings, the law of total
+covariance) and compares it with the printed formula. Probabilistic statements hold under the stated
+assumptions: Gaussian laws (V1, V4, V6, V7, V8), finite second moments and a known mean (V2), a fixed
+offset $s$ (V3), linearised dynamics around one basin (V5), given cell counts (V6b) or i.i.d.\ draws from
+the type mixture (V6d, V6e), and Poisson counts with $s$ independent of $\bm\lambda$ and finite second
+moments (V9). Six entries are flags, each corrected in the text: the entrywise exponential (V3b), the mean
+of the ANOVA ratio (V4b), the exceptional correlations at which per-gene information adds up (V4e), the
+nugget $\bm D$ under which maximum likelihood is no longer DeCovarT's fit (V7b), REML (V7c), and the
+needless normalisation $\E s=1$ (V9b). The ledger writes $n$ for the number $n_i$ of cells in a bulk
+sample, $a$ for $a_i$, and $C$ for the common number of reference cells per type in V4.
+
+V10: rank of the empirical covariance $\bm V_j$ (symbolic and rational data), rank loss under exact
+relations, and the unbounded likelihood when $\bm V_j$ is singular; V11: positive definiteness of linear
+shrinkage ($2\times2$ polynomial identity, quadratic-form argument for any $G$, a numeric check at
+$G=40$, $C=2$); V12: the quantile universal threshold against the Bonferroni and Šidák thresholds, the
+per-target \glsxtrshort{fwer}, the expected false edges and the false-edge share, and the scaling of
+CardamomOT's $\lambda$. V12 assumes independent Gaussian null scores and true scores far above the
+threshold, and writes $m$ for $R$ and $k$ for $R_1$; V10 writes $C$ and $G$ for $C_j$ and the panel size.
+One more entry is a flag: the off-by-one sample-size condition of Zwiernik et al.\ (V10d).
+
+V13: bulk covariance under three sampling models (cell-depth counts scaled by $a$, bulk-depth Poisson
+sampling, binomial thinning), from a generic third-order cumulant generating function per type, and the toy
+example of vignette 02-1; V14: the denoised within-type covariance of vignette 05-1 under Poisson counts with
+independent size factors of mean one, $s^{\mathrm{bio}}\perp s^{\mathrm{tech}}\perp\bm\lambda$, and i.i.d.\ cells, with a
+Monte Carlo confirmation; V15: the Gaussian transport map of vignette 05-1 (Brenier's optimality theorem is
+quoted, not checked). One more flag: the finite-sample bias of the denoised estimator as first printed (V14c),
+corrected in vignette 05-1. Vignettes cite identifiers in HTML comments; the table writes \texttt{qmd} for an
+identifier cited only there, and \texttt{ledger.json} lists the vignette lines (key \texttt{qmd\_lines}).
+
+V16: identifiability of the bulk sampling diagonal against the variance scale, cited in vignette 01-2.
+V17--V19 are cited in the feature-selection vignette 03-1. V17: what the presence gate excludes, from symbolic
+counts: a gene with no count in one type gives a zero row of $\bm V_j$, a zero determinant and a $0/0$
+correlation; a gene detected in one cell only has a correlation set by that cell, equal to one for two such
+genes. V18: the D-, E- and A-criteria of gene-panel selection under the single-cell model with a common
+within-type covariance, where the information is $n_i\bm K\T\bm M\T\bSigma_W^{-1}\bm M\bm K$ (for $J=2$ this
+is V4d); the Gram volume and $\kappa(\bm I)=\kappa(\bm M\bm K)^2$ when $\bSigma_W=\bm I$; the dependence of E
+and A on the simplex basis; and a two-panel example in which a within-type correlation makes D and E disagree.
+V19: an explicit tail bound for RNA-Sieve's range filter. RNA-Sieve states only that the tail is
+sub-Gaussian; the bound, from Hoeffding's inequality (quoted, not checked) and a union bound for expression in
+$[0,B]$, is ours, with a Monte Carlo confirmation.
+
+V20--V22 are cited in vignettes 03-1 and S5: sub-exponential negative-binomial counts and Chernoff and Bernstein
+versions of the range bound (V20), Unico's confounded variance components and the spectral entropy of a
+correlation matrix (V21), and the moments of CSNet's shared-gamma negative-binomial simulator with the Woodbury
+form of a factor precision (V22). V23: the multivariate Fisher information for $p$ at $J=2$, derived from the
+Gaussian log-likelihood, and the Bhattacharyya distance between two Gaussian type laws, checked against numerical
+integration. V24: the symmetric case of the Lyapunov equation, the modified Cholesky factor of the precision of a
+linear \glsxtrshort{sem} on a directed acyclic graph, and the conditional precision as $1/\{\sigma_{gg}(1-R^2_g)\}$. V25 is cited in the French summary of this note (intrinsic noise, bulk scales, naive intervals). V26: the
+discrete Lyapunov equation of a linear Gaussian \glsxtrshort{dbn} with a feedback loop, the rotation that leaves
+the moments of two snapshots unchanged, the covariance of a mixture of classes, two I-equivalent networks that
+differ under intervention, and the precision of a v-structure (\cref{app:stat-dag}).
 
 \IfFileExists{verification-ledger.tex}{\input{verification-ledger.tex}}{\textit{Ledger pending.}}
 
 % =====================================================================
+\clearpage
 \section{Gene selection in second-generation deconvolution methods}\label{app:review}
 
-\Cref{tab:review} summarises the review behind \cref{sec:genes}. Pages are PDF pages of the local files
-(main text unless \enquote{S} for the supplement); a dash means not reported in the parts we extracted.
+\Cref{tab:review} summarises the review behind \cref{sec:genes}, in the order of the tiers of the
+\vignette{03-1-feature-selection.html}{feature-selection vignette}, whose comparison table holds the same
+methods and facts. Tiers (i) and (ii) are filters, tier (iii) is the weighting in the likelihood, and
+cross-platform consistency is a perspective there, since it needs a bulk matched to the reference. Pages are
+PDF pages of the local files (main text unless \enquote{S} for the supplement); a dash means not reported in
+the parts we extracted.
 
 \begin{table}[htbp]
 \centering
-\caption{Gene and cell selection in deconvolution methods, and CardamomOT for comparison. QC: quality
-control; WLS: weighted least squares; GLS: generalised least squares.}
+\caption{Gene selection in deconvolution methods by tier, with CardamomOT for comparison. Abbreviations are
+listed in \cref{sec:notation}.}
 \label{tab:review}
 \scriptsize
-\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.11\textwidth}
-  >{\raggedright\arraybackslash}p{0.12\textwidth} >{\raggedright\arraybackslash}X
-  >{\raggedright\arraybackslash}p{0.15\textwidth} >{\raggedright\arraybackslash}p{0.14\textwidth}
-  >{\raggedright\arraybackslash}p{0.12\textwidth}@{}}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.10\textwidth}
+  *{5}{>{\raggedright\arraybackslash}X}@{}}
 \toprule
-Method & Cell QC & Gene filter and marker rule & Cross-platform & Weighting & Gene correlation \\
+Method & Cell QC (tier i) & Gene filter (tier i) & Marker rule (tier ii) & Weighting (tier iii) &
+  Cross-platform (perspective) \\
 \midrule
-RNA-Sieve \parencite{erdmann-phamLikelihoodbasedDeconvolutionBulk2021} & optional: library size
-  $\ge3$ MAD from the median (S p.~3) & $\ge20\,\%$ non-zero in one type (S p.~3); bulk outside a
-  sub-Gaussian range, MAD outliers on four statistics (eqs~12--13, p.~11) & range bound on the bulk &
-  asymptotic Gaussian composite likelihood & ignored \\
-DECALS \parencite{caiStatisticalInferenceCelltype2024} & -- & CIBERSORTx S-mode genes $\cap$ Fisher-exact
-  markers (p.~13; S pp.~18--19) & -- & constrained OLS/GLS & type covariances, least squares and SCAD
-  thresholding (p.~9) \\
-MEAD \parencite{xieStatisticalInferenceCell2026} & -- & --; \enquote{not identified if all genes are
-  perfect marker genes} (p.~7) & gene-specific platform ratios with mean 1 (pp.~5--6) & diagonal weights,
-  sandwich & dependence set by multiple testing \\
-ReDeconv \parencite{luTranscriptomeSizeMatters2025} & -- & $t$-test $p<0.05$ against every other type,
-  no FDR; fold change $\ge2$; smallest CV; about 100 genes per type (p.~14) & TPM/FPKM on bulk only
-  (p.~2) & Gaussian (CLT), heteroscedastic & independent genes \\
-MuSiC \parencite{wangBulkTissueCell2019} & -- & all genes by default (p.~7); low within-cluster
-  variance in tree-guided stages (pp.~3, 8) & gene- and subject-specific intercept (p.~7) & W-NNLS,
-  cross-subject variance (Eq.~10, p.~7) & diagonal \\
-deMixSC \parencite{guoDeMixSCDeconvolutionFramework2023} & $<500$ UMI, $<200$ genes, $>50\,\%$
-  mitochondrial (p.~11) & bulk vs pseudo-bulk paired $t$-test, BH (pp.~4, 12) & discrepant genes
-  down-weighted by $a=1000$ (p.~12) & WLS & diagonal \\
-BayesPrism \parencite{chuCellTypeGeneExpression2022} & -- & ribosomal, mitochondrial (pp.~14, 19) and
-  chrX/Y genes removed (p.~14); optional scran markers (p.~14) & weak fold-change prior & Bayesian
-  multinomial & sum constraint only (our reading) \\
-DWLS \parencite{tsoucasAccurateEstimationCelltype2019} & -- & MAST hurdle FDR $<0.01$, log2 FC $>0.5$;
-  smallest condition number (p.~7) & -- & WLS, dampening constant by cross-validation (p.~7) & diagonal \\
-SCDC \parencite{dongSCDCBulkGene2021} & -- & -- & several references & maximal-variance weights, clipped
-  at the 15th/85th percentiles (p.~10) & diagonal \\
-RCTD \parencite{cableRobustDecompositionCell2022a} & -- & -- & gene-wise platform random effect (pp.~3, 6)
-  & Poisson--lognormal GLMM & -- \\
-CardamomOT (code) & none removed; doublets flagged & mitochondrial, ribosomal, non-coding excluded; W1
-  and entropy terminals; Wilcoxon round robin; NB separability; Steiner closure & not applicable (no
-  bulk) & NB-mixture likelihood & none within a basin (p.~12) \\
+RNA-Sieve \parencite{erdmann-phamLikelihoodbasedDeconvolutionBulk2021} & optional: library size or pairwise
+  distance $\ge3$ \glsxtrshort{mad} from the type median (S p.~3) & non-zero in $\ge20\,\%$ of the cells of
+  $\ge1$ type (S p.~3) & none & Gaussian composite likelihood from the \glsxtrshort{clt} (eq.~10, p.~10) &
+  range bound and \glsxtrshort{mad} outliers on four statistics (eqs~12--13, p.~11) \\
+DECALS \parencite{caiStatisticalInferenceCelltype2024} & -- & CIBERSORTx S-mode candidate genes (p.~13) &
+  $\cap$ markers of Mathys et al.\ (Fisher's exact test, \glsxtrshort{fdr}): 159 genes (p.~13; S
+  pp.~18--19) & constrained \glsxtrshort{ols}; \glsxtrshort{gls} biased in practice (pp.~6, 9) & S-mode
+  batch correction (p.~13) \\
+MEAD \parencite{xieStatisticalInferenceCell2026} & -- & -- & none; removing genes gains nothing unless noise
+  differs (p.~17) & \glsxtrshort{wls} from the reference variance (pp.~17--18); sandwich (p.~13) &
+  gene-wise ratios with mean 1 (pp.~5, 8) \\
+ReDeconv \parencite{luTranscriptomeSizeMatters2025} & -- & -- & $t$-test $p<0.05$ against every other type,
+  no \glsxtrshort{fdr}; \glsxtrshort{fc} $\ge2$; smallest \glsxtrshort{cv}, about 100 per type (p.~14) &
+  Gaussian, composition-dependent variance (eq.~5, p.~14) & length normalisation of the bulk only (p.~2) \\
+MuSiC \parencite{wangBulkTissueCell2019} & -- & all shared genes (p.~7) & none; small within-cluster
+  variance in the tree-guided stage (pp.~3, 8) & \glsxtrshort{nnls}, weights from cross-subject
+  variance (eq.~10, p.~7) & optional gene- and subject-specific intercept (p.~7) \\
+deMixSC \parencite{guoDeMixSCDeconvolutionFramework2023} & $<500$ \glsxtrshortpl{umi}, $<200$ genes,
+  $>50\,\%$ mitochondrial (p.~11) & detected in $<5\,\%$ of cells removed (p.~11) & none & weighted
+  \glsxtrshort{nnls}, iterated weights (p.~12) & paired $t$-test bulk vs pseudo-bulk, \glsxtrshort{bh};
+  5,000 genes down-weighted by $a=1000$ (p.~12) \\
+BayesPrism \parencite{chuCellTypeGeneExpression2022} & types with $<20$ cells excluded in one benchmark
+  (S p.~15) & ribosomal, mitochondrial, X and Y genes (S pp.~14, 19) & optional scran markers, $t$-tests,
+  up-regulated only (S pp.~14--15) & Bayesian multinomial (S pp.~3--6) & bulk-specific profiles;
+  log-normal fold-change prior (S pp.~5--6) \\
+DWLS \parencite{tsoucasAccurateEstimationCelltype2019} & -- & -- & MAST hurdle, \glsxtrshort{fdr} $<0.01$,
+  $\log_2$\glsxtrshort{fc} $>0.5$; 50--200 per type; smallest condition number (p.~7) & dampened
+  \glsxtrshort{wls} (pp.~2, 7) & none \\
+SCDC \parencite{dongSCDCBulkGene2021} & cells with a questionable type or low quality removed (p.~9) &
+  genes with zero counts in every sample (p.~9) & none & \glsxtrshort{nnls}, maximal-variance
+  weights clipped at the 15th/85th percentiles (p.~10) & ENSEMBLE over references (p.~3) \\
+RCTD \parencite{cableRobustDecompositionCell2022a} & spots $\ge100$ \glsxtrshortpl{umi} (p.~9) & mean above
+  0.0625 counts per 500 (p.~7) & log-fold change $\ge0.5$ against the other types, no test (p.~7) &
+  Poisson--lognormal \glsxtrshort{glmm} (p.~6) & gene-wise platform random effect (pp.~3, 6) \\
+CardamomOT 2.0.0 & paper: --; code: per-cell depth factor, no cell removed & paper: gene sets of earlier
+  studies (p.~32); code: no mitochondrial, ribosomal or non-coding genes & code: $W_1$ and entropy
+  terminals, round robin of per-type Wilcoxon tests, \glsxtrshort{nb} separability, Steiner closure &
+  \glsxtrshort{nb}-mixture likelihood, $\ell_1$ towards a prior network (eq.~10, p.~9) & not applicable
+  (no bulk) \\
+DeCovarT & authors' QC; \glsxtrshort{mad} rules optional & presence gate in every type & omnibus
+  \glsxtrshort{nb} or quasi-likelihood $F$ test as an \glsxtrshort{fdr} gate, effect-size rank &
+  \glsxtrshort{gls} with $\hat{\bm\Sigma}_{W,j}$ & none: one reference specimen \\
 \bottomrule
 \end{tabularx}
 \end{table}
+
+% =====================================================================
+\clearpage
+\section{Purely statistical approaches to directed networks}\label{app:stat-dag}
+
+This appendix sketches a statistical counterpart to CardamomOT: a directed, signed network with a
+likelihood, but without a mechanistic bursting model. The candidate is a mixture of linear Gaussian
+\glspl{dbn}. Nothing here is implemented; the aim is to name the tools and the research tracks, with their
+conditions. Book pages refer to the printed pages of \textcite{kollerProbabilisticGraphicalModels2009} (KF below).
+
+\subsection{Gaussian Bayesian networks}\label{app:gbn}
+
+\begin{itemize}
+  \item \textbf{Linear Gaussian conditional laws.} Each gene given its parents is
+        $x_g\mid\bm x_{\mathrm{pa}(g)}\sim\mathcal N(\beta_{g0}+\bm\beta_g\T\bm x_{\mathrm{pa}(g)},\sigma_g^2)$ (KF Def.~5.14,
+        p.~187). A \gls{dag} of such laws defines a joint Gaussian, and conversely every Gaussian is a linear
+        Gaussian network for any ordering of the genes (KF Thms~7.3--7.5, pp.~251--253); the network is
+        \enquote{not unique}, so its direction is not read from the joint law. In matrix form this is the
+        \glsxtrshort{sem} of \cref{eq:dag-chol}.
+  \item \textbf{What the precision encodes.} A zero of $\bm J=\bSigma^{-1}$ is a conditional independence given
+        all other genes (KF Thm~7.2, p.~251): the edges of the precision are those of the moral graph, not of the
+        \glsxtrshort{dag}. Two independent parents of one gene have $\Sigma_{xy}=0$ but $J_{xy}\neq0$ (KF Ex.~7.5,
+        p.~254) \chk{V26e}. A sparse \glsxtrshort{dag} can therefore have a dense precision, and a graphical lasso
+        returns the moral graph at best.
+  \item \textbf{Fitting.} Gaussian laws form an exponential family, and the maximum-likelihood fit of a network
+        is the moment-matching projection $\prod_gP(x_g\mid\bm x_{\mathrm{pa}(g)})$ (KF Thms~8.6--8.7,
+        pp.~278--281): one regression per gene on its parents.
+\end{itemize}
+
+\subsection{Dynamic Bayesian networks: self-regulation and feedback through time}\label{app:dbn}
+
+\begin{itemize}
+  \item \textbf{Two-slice template.} A \glsxtrshort{dbn} assumes a Markov transition, stationary in time, and
+        describes it by a two-slice network over $(\bm x^{(t)},\bm x^{(t+1)})$, unrolled over any horizon (KF
+        Defs~6.1--6.4, pp.~201--204). Edges inside a slice must form a \glsxtrshort{dag}; edges between slices
+        include persistence edges $x_g^{(t)}\to x_g^{(t+1)}$ (p.~204). The linear Gaussian case is
+        \begin{equation}\label{eq:dbn}
+        \bm x^{(t+1)}=\bm A\bm x^{(t)}+\bm e^{(t+1)},\qquad\bm e^{(t+1)}\sim\mathcal N(\bm 0,\bm Q)
+        \end{equation}
+        (KF eqs~6.3--6.4, pp.~211--212), with $A_{gh}\neq0$ an edge $h^{(t)}\to g^{(t+1)}$.
+  \item \textbf{Loops without cycles.} The diagonal $A_{gg}$ is a persistence edge: the lag-one effect of a gene
+        on itself, the dynamic counterpart of self-regulation. Two edges of opposite direction between slices,
+        $h^{(t)}\to g^{(t+1)}$ and $g^{(t)}\to h^{(t+1)}$, form a feedback loop. The unrolled network stays
+        acyclic; the loops live in the influence graph, which KF define as cyclic (\enquote{a persistence arc
+        $X\to X'$ induces a self-cycle}, Def.~15.2, p.~658). Time also orients these edges: \enquote{In DBNs, we
+        cannot reverse an edge $A\to A'$} (p.~837), so the direction that a static network cannot identify
+        (\cref{app:gbn}) is fixed between slices.
+  \item \textbf{Stationary covariance.} A stable \eqref{eq:dbn} has a stationary covariance that solves the
+        discrete Lyapunov (Stein) equation, the counterpart of the continuous equation of \cref{sec:diag},
+        \begin{equation}\label{eq:stein}
+        \bSigma=\bm A\bSigma\bm A\T+\bm Q,\qquad(\bm I-\bm A\otimes\bm A)\operatorname{vec}\bSigma=\operatorname{vec}\bm Q
+        \quad\chk{V26a}.
+        \end{equation}
+        A symmetric negative loop between two genes (one activates, the other represses, with equal rates)
+        gives $\sigma_{12}=0$ but a non-zero lag-one cross-covariance $(\bm A\bSigma)_{12}$ \chk{V26a}: the loop is
+        invisible in one snapshot and visible across time (our remark).
+  \item \textbf{Inference over time.} The Kalman filter propagates $\bmu^{(t+1)}=\bm A\bmu^{(t)}$ and
+        $\bSigma^{(t+1)}=\bm A\bSigma^{(t)}\bm A\T+\bm Q$ (KF eqs~15.4--15.5, pp.~676--677). Over time, every pair of
+        state variables becomes dependent (entanglement, Thm~15.1, p.~658), and with switching regimes the exact
+        belief state is a Gaussian mixture whose size grows exponentially in $t$ (pp.~683--685).
+  \item \textbf{The snapshot problem.} Sequencing destroys the cell, so no cell is observed at $t$ and at
+        $t+1$. If only the moments of consecutive snapshots are used, $\bm A$ and
+        $\bm A'=\bm A\bm M\bm U\bm M^{-1}$, with $\bm M=\bSigma_t^{1/2}$ and $\bm U$ an orthogonal matrix that fixes
+        $\bm M^{-1}\bmu_t$, give the same $\bmu_{t+1}$ and $\bSigma_{t+1}$ \chk{V26b}: two snapshots do not identify
+        the network (our remark). Couplings between time points are needed: optimal transport, as in
+        CardamomOT; a pseudotime; RNA velocity or metabolic labelling, which measure a time derivative within one
+        cell \parencite{lamannoRNAVelocitySingle2018}; or interventions (\cref{app:causal}).
+\end{itemize}
+
+\subsection{Structure learning}\label{app:structure}
+
+\begin{itemize}
+  \item \textbf{Constraint-based} methods (PC type) test conditional independences and return an
+        I-equivalence class, drawn as a partially directed graph. They need bounded in-degree, faithfulness and
+        a reliable test, and are \enquote{sensitive to failures in individual independence tests} (KF
+        pp.~785--790).
+  \item \textbf{Score-based} methods maximise a penalised likelihood. The likelihood alone favours the complete
+        graph (Prop.~18.1, pp.~792--794); BIC, $\ell(\hat\theta_{\mathcal G})-\tfrac12\log M\dim\mathcal G$, is
+        consistent (Thm~18.2, pp.~802--803) and decomposes over genes (Def.~18.2, p.~805). The Bayesian score
+        with a BDe prior is score-equivalent (Thm~18.4, p.~807), and BGe, its Gaussian counterpart with a
+        normal--Wishart prior, is cited only (p.~840). Finding the best graph is NP-hard for in-degree two or more
+        (Thm~18.5, p.~811); search uses greedy edge moves, GES, which is consistent under faithfulness
+        (pp.~821--822), or MCMC over structures or orders (pp.~829--832).
+  \item \textbf{A known order helps.} With the order of the genes known, the best parents of each gene are
+        chosen independently (Prop.~18.4, p.~810), polynomial for bounded in-degree. In a \glsxtrshort{dbn}, time
+        supplies that order for the edges between slices; with hundreds of genes, a node-wise sparse regression
+        (lasso on $\bm A_{g\cdot}$) is the scalable version of the same idea (research track).
+\end{itemize}
+
+\subsection{Mixtures of (dynamic) Bayesian networks}\label{app:bn-mixture}
+
+\begin{itemize}
+  \item \textbf{Model.} Each cell $c$ carries a latent regime $z_c$ (a type, a basin), with its own transition
+        (\cref{fig:mix-dbn}):
+        \begin{equation}\label{eq:mix-dbn}
+        z_c\sim\operatorname{Cat}(\bm\pi),\qquad
+        \bm x^{(t+1)}_c\mid\bm x^{(t)}_c,z_c=k\sim\mathcal N\bigl(\bm A_k\bm x^{(t)}_c,\bm Q_k\bigr).
+        \end{equation}
+  \item \textbf{Estimation.} The \gls{em} algorithm increases the likelihood at every step and converges to a
+        stationary point only (KF Thms~19.3--19.4, pp.~874--875); with Gaussian classes its E-step is a soft
+        classification (pp.~875--877). Structural \glsxtrshort{em} also searches the graph of each class: the
+        score gain on the completed data bounds the true gain from below (Thm~19.10), but the result is not proved
+        to be a local maximum (Algorithm~19.3, p.~922). With missing data, BIC \enquote{tends to underfit badly}
+        (p.~915).
+  \item \textbf{Mixtures mimic feedback.} If two classes orient one edge in opposite directions, the network
+        induced by the mixture is cyclic, \enquote{nevertheless … it specifies a coherent distribution} (KF Box~5.B,
+        multinets, pp.~170--171).
+  \item \textbf{Pooling creates edges.} A mixture of classes with independent genes is correlated:
+        $\Cov(\bm x)=\sum_k\pi_k\bSigma_k+\sum_k\pi_k(\bmu_k-\bar\bmu)(\bmu_k-\bar\bmu)\T$ \chk{V26c}. A network fitted
+        on pooled types, time points or basins shows edges that no class has; this is why the basin label matters
+        in CardamomOT.
+  \item \textbf{Research tracks.} None of the verified methods is both dynamic and built for counts; the switching linear
+        dynamical system is the closest dynamic form (KF pp.~683--685).
+        \begin{itemize}
+          \item \emph{clustNet} clusters samples by a mixture of \glsxtrshortpl{dag}, each component learnt with the
+                MCMC samplers of \emph{BiDAG}; the data must be binary or categorical
+                \parencite{bayerNetworkbasedClusteringUnveils2025,kuipersEfficientSamplingStructure2022}.
+          \item VaMSL learns a mixture of causal \glsxtrshortpl{dag} by variational inference, extending DiBS, with expert
+                knowledge as a prior \parencite{bjorkmanIncorporatingExpertKnowledge2026};
+                a covariate-dependent mixture lets covariates set the membership probabilities
+                \parencite{marchantCovariateDependentMixture2025}.
+          \item Identifiability: what can be learnt from data generated by a mixture of \glsxtrshortpl{dag}
+                \parencite{saeedCausalStructureDiscovery2020}, and which edges interventions
+                identify in such a mixture \parencite{variciInterventionalCausalDiscovery2024}.
+          \item pyAgrum's \texttt{BNMixture} is not a latent-class model: it is a list of discrete networks learnt
+                separately, with weights set by the user, or a Bayesian bootstrap of one network
+                (\texttt{BootstrapMixture}); its use here is to measure the stability of each arc
+                \parencite{pyagrumBNMixture2026}.
+        \end{itemize}
+\end{itemize}
+
+\begin{figure}[tbp]
+\centering
+\begin{tikzpicture}
+  \node[const] (pi) at (0,0) {$\bm\pi$};
+  \node[stoch] (z) at (2.2,0) {$z_c$};
+  \node[obs] (x0) at (2.2,-2.4) {$\bm x^{(t)}_c$};
+  \node[obs] (x1) at (5.2,-2.4) {$\bm x^{(t+1)}_c$};
+  \node[note, below=2mm of x1, align=center] (nx) {$\mathcal N\bigl(\bm A_{z_c}\bm x^{(t)}_c,\bm Q_{z_c}\bigr)$};
+  \node[stoch] (A) at (8.4,-0.6) {$\bm A_k$};
+  \node[stoch] (Q) at (8.4,-2.4) {$\bm Q_k$};
+  \node[note, right=2mm of A, align=left] (nA) {diagonal: persistence\\off-diagonal: edges $t\to t+1$};
+  \draw[edge] (pi) -- (z);
+  \draw[edge] (z) -- (x1);
+  \draw[edge] (x0) -- (x1);
+  \draw[edge] (A) -- (x1);
+  \draw[edge] (Q) -- (x1);
+  \plate{cells}{(z)(x0)(x1)(nx)}{cells $c$}
+  \plate{comp}{(A)(Q)(nA)}{components $k=1,\ldots,K$}
+\end{tikzpicture}
+
+\caption{A mixture of linear Gaussian \glsxtrshortpl{dbn}, \cref{eq:mix-dbn}. Each cell $c$ has a latent regime
+$z_c$ with prior weights $\bm\pi$; given $z_c=k$, its profile at $t+1$ is Gaussian around $\bm A_k\bm x^{(t)}_c$.
+The diagonal of $\bm A_k$ holds the persistence edges, its off-diagonal the edges between slices. With snapshot
+data, the pair $(\bm x^{(t)}_c,\bm x^{(t+1)}_c)$ comes from a coupling between time points, not from one cell.
+Blue: latent; grey: observed; square: fixed.}
+\label{fig:mix-dbn}
+\end{figure}
+
+\subsection{Interventions and causality}\label{app:causal}
+
+\begin{itemize}
+  \item \textbf{Intervention queries.} A causal model is a \glsxtrshort{dag} whose do-operator cuts the edges into
+        the intervened genes (KF Def.~21.1, pp.~1014--1015). Observational data identify at best the
+        I-equivalence class (pp.~1041--1043); $X\to Y$ and $Y\to X$ can share one Gaussian law and differ under
+        $\mathrm{do}(X=x_0)$ \chk{V26d}.
+  \item \textbf{Interventional likelihood.} With the genes $Z$ fixed in a sample, the likelihood keeps the
+        conditional laws of the other genes only, $\prod_{g\notin Z}P(x_g\mid\bm x_{\mathrm{pa}(g)})$ (KF p.~1044), and
+        \enquote{we can now distinguish between I-equivalent models}. With latent confounders the target becomes a
+        partial ancestral graph (pp.~1048--1050).
+  \item \textbf{A worked method.} \textcite{rauJointEstimationCausal2013} fit one linear Gaussian causal network to observational and knock-out data
+        together: each sample $k$ has its own intervention set $J_k$, whose equations drop out of the likelihood
+        (their eq.~2, p.~4); Metropolis--Hastings runs over gene orderings with a Mallows proposal, and the
+        parameters of each ordering have a closed form. In simulation (10 genes) the AUROC of total effects rose from
+        0.749 with observational data alone to 0.948 with one knock-out per gene (their Table~1, p.~6). The method
+        has no sparsity, costs $O(p^6)$, and \enquote{feedback loops … cannot be modeled} (pp.~10--11).
+  \item \textbf{Relevance to single cells.} A Perturb-seq design gives each cell its own target set $J_c$, which
+        is exactly this likelihood. Three gaps remain: CRISPR interference lowers expression rather than fixing
+        it (a soft intervention), counts need a count emission, and cell types need the mixture of
+        \cref{app:bn-mixture}. KF note the same limit for signalling networks: \enquote{the assumption of
+        acyclicity … does not hold for cellular networks} (Box~21.D, pp.~1046--1047), which the dynamic model of
+        \cref{app:dbn} relaxes.
+\end{itemize}
+
+\subsection{Undirected models, briefly}\label{app:undirected}
+
+A \gls{ggm} estimates the moral graph, not the regulatory one (\cref{app:gbn}), but it is the better-understood
+route in high dimension: joint graphical lassos with group or cooperative penalties share structure across
+conditions \parencite{chiquetInferringMultipleGraphical2011,chiquetSparsitySigncoherentGroups2012}, the
+\gls{pln} network adds the count layer \parencite{chiquetPoissonLognormalModelVersatile2021}, and the conditions
+for support recovery are those of \cref{sec:ceiling} \parencite{chiquetContributionsSparseMethods2015}. Mixtures of \glsxtrshortpl{ggm} estimate the
+clusters and their networks together: SCAN \parencite{haoSimultaneousClusteringEstimation2018}, multiple networks in a Gaussian
+mixture \parencite{gaoEstimationMultipleNetworks2016}, AJGM, with a network shared across
+clusters \parencite{yangAJGMJointLearning2025}, and BLGGM for
+zero-inflated single-cell data \parencite{wuEstimatingHeterogeneousGene2022}; PLNmodels offers mixtures and networks of the \glsxtrshort{pln} model as separate model
+variants. A survey of joint estimation is \textcite{tsaiJointGaussianGraphical2022}.
+
+\subsection{What it would give CardamomOT, and open problems}\label{app:stat-open}
+
+\begin{itemize}
+  \item \textbf{Gains:} signed, directed edges with a likelihood, hence held-out scores to set the penalty
+        (\cref{sec:borrow}), intervals, likelihood-ratio tests, and a direct use of perturbation data.
+  \item \textbf{Open problems:} a count emission (Poisson--log-normal rather than Gaussian), sparsity with
+        hundreds of genes, the identifiability of a mixture of networks (label switching, classes that differ by
+        their means rather than their graphs), and couplings between snapshots, without which the transition is
+        not identified \chk{V26b}.
+\end{itemize}
 
 \end{document}

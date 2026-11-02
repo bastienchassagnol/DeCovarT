@@ -21,8 +21,6 @@ Detailed review in the \vignette{03-2-covariance-network-estimation.html}{networ
   \end{itemize}
   \item estimators
   \begin{itemize}
-    \item partial correlations by inversion, \(\hat{\boldsymbol{\Omega}}=S^{-1}\), with \(t\) tests and a positive-definite
-          refit on the selected support; limited to \(n>G\) \cite{R-ppcor}
     \item graphical lasso \cite{friedmanSparseInverseCovariance2008,mazumderGraphicalLassoNew2011}: with a penalised
           diagonal the fitted variances become \(S_{gg}+\lambda\), which biases the precision and the partial
           correlations without moving the empty-graph threshold \(\max_{g\neq g'}|R_{gg'}|\); our pipeline fits the
@@ -40,7 +38,8 @@ Detailed review in the \vignette{03-2-covariance-network-estimation.html}{networ
     \item Poisson--log-normal network: the precision of a latent Gaussian behind Poisson counts, free of the
           sampling noise that attenuates count correlations \cite{chiquetVariationalInferenceSparse2018}
     \item dense shrinkage: correlations shrunk towards zero with a closed-form intensity, variances kept;
-          positive definite for any \(n\) and \(G\) \cite{schäferShrinkageApproachLargescale2005}
+          positive definite for any \(n\ge2\) and any \(G\) once every variance and the intensity are positive
+          \cite{schäferShrinkageApproachLargescale2005}
   \end{itemize}
   \item several cell types
   \begin{itemize}
@@ -147,6 +146,12 @@ Detailed review in the \vignette{05-1-review-distribution-aware.html}{review vig
   \item weighted NNLS (\emph{MuSiC}, \emph{DWLS}, \emph{deMixSC}) and \emph{Unico} are generalised-method-of-moments
         estimators: point estimates, and no interval without a variance model, a sandwich or a resampling unit
         \cite{wangBulkTissueCell2019,tsoucasAccurateEstimationCelltype2019,chenUnicoUnifiedModelCell2025}
+  \item \emph{Unico}'s conditions are per bulk sample, because each sample has its own law: the first matches the model
+        mean \(\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\mu}_{g\cdot}\) with \(y_{gi}\), the second the model variance
+        \(\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\Gamma}_{g}\boldsymbol{p}_{\cdot i}+\tau_{g}^{2}\) with the squared residual; the estimate minimises the
+        quadratic form of these \(2N\) conditions in the inverse of their covariance, diagonal for independent samples,
+        hence weighted least squares \cite[pp.~13--14]{chenUnicoUnifiedModelCell2025}; see \cite{hansenLargeSampleProperties1982}
+        for the general estimator
   \item \emph{deMixSC} \cite{guoDeMixSCDeconvolutionFramework2023}: weighted NNLS with weight
         \(w_{gi}^{-1}=\hat y_{gi}^{2}+(y_{gi}-\hat y_{gi})^{2}+2\), combining the \emph{DWLS} relative-error term and
         \emph{MuSiC}'s residual variance; genes discordant between matched bulk and pseudo-bulk are down-weighted by
@@ -168,6 +173,34 @@ Detailed review in the \vignette{05-1-review-distribution-aware.html}{review vig
   \item \emph{Unico}: proportions given, \(\operatorname{Var}(y_{gi})=\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\Gamma}_{g}\boldsymbol{p}_{\cdot i}+\tau_{g}^{2}\) with a
         \(J\times J\) covariance \(\boldsymbol{\Gamma}_{g}\) across cell types, fitted by moments; sample-level profiles by a
         conditional expectation \cite{chenUnicoUnifiedModelCell2025}
+  \begin{itemize}
+    \item inputs are the bulk matrix and proportions estimated beforehand; single cells serve only to build benchmark
+          pseudo-bulks with known profiles \cite[pp.~11 and~17]{chenUnicoUnifiedModelCell2025}; \emph{Bisque}'s unpaired
+          mode, by contrast, matches the mean and variance of each bulk gene across samples with those of single-cell
+          pseudo-bulks \cite[p.~10]{jewAccurateEstimationCell2020}
+    \item fit: non-negative means by the constrained least-squares solver \texttt{pcls}, variances and covariances by
+          COBYLA with a small \(L_{2}\) penalty, samples beyond two standard deviations dropped, weights updated over two
+          (means) and three ((co)variances) iterations \cite[p.~14]{chenUnicoUnifiedModelCell2025}
+    \item our remark: since \(\mathbf{1}^{\top}\boldsymbol{p}_{\cdot i}=1\),
+          \(\boldsymbol{p}_{\cdot i}^{\top}(\boldsymbol{\Gamma}_{g}+c\mathbf{1}\mathbf{1}^{\top})\boldsymbol{p}_{\cdot i}=\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\Gamma}_{g}\boldsymbol{p}_{\cdot i}+c\), so the constant
+          part of \(\boldsymbol{\Gamma}_{g}\) and \(\tau_{g}^{2}\) are identified only together; the choice still moves the
+          profiles of Theorem~1 and the cross-type correlations
+    \item the von Neumann entropy of the cross-type correlation only stratifies genes at the median for evaluation; it
+          does not filter them \cite[pp.~19--20]{chenUnicoUnifiedModelCell2025}
+  \end{itemize}
+  \item \emph{imply}: repeated bulk samples of one subject share one reference; stage I estimates proportions by
+        \(\nu\)-support vector regression on a population signature, stage II fits per gene the linear mixed model
+        \(\mathbb{E}(y_{g,ni})=\sum_{j}(m_{gj}+\beta_{gj}z_{n}+u_{gjn})\hat\theta_{j,ni}\) by REML, with a subject random effect
+        \(u_{gjn}\), and predicts the subject reference \(r_{gjn}=\hat m_{gj}+z_{n}\hat\beta_{gj}+\hat u_{gjn}\); stage III refits
+        the proportions by non-negative least squares with that reference \cite[pp.~4--5]{mengImplyImprovingCelltype2024}
+  \begin{itemize}
+    \item our remarks: stage II is the gene-wise BLUP of the linear-mixed-model reading of Section~\ref{sec:wiener}, with
+          one random effect per subject; the joint stage-III objective separates into one NNLS per sample; the same
+          samples build the reference and are deconvolved with it, and no interval is returned
+    \item our perspective: a negative-binomial mixed model with an identity link on the mixture mean would carry the
+          same structure to counts
+          % TODO-cite: Brooks et al. 2017, glmmTMB, The R Journal 9(2):378-400, doi:10.32614/RJ-2017-066 (not in decovart_library.bib)
+  \end{itemize}
   \item a \(J\times J\) covariance within a gene and DeCovarT's \(G\times G\) covariance within a type answer different
         questions; no reviewed method fits both
 \end{itemize}
@@ -185,6 +218,22 @@ Detailed review in the \vignette{05-1-review-distribution-aware.html}{review vig
         proportions \cite{erkkilaProbabilisticAnalysisGene2010}
   \item \emph{gnSPADE}: reference-free topic model whose network prior acts on labels, not on expression
         \cite{xieGnSPADEIncorporatingGene2026}
+  \item \emph{DeconV}: zero-inflated Poisson or negative-binomial counts fitted to the single-cell reference, then a bulk
+        \(y_{gi}\sim\mathrm{Poisson}(K_{i}\sum_{j}p_{ji}\theta_{gj})\) with \(\theta_{gj}\sim\mathrm{Gamma}(\hat\alpha_{gj},\hat\beta_{gj})\), or
+        \(\mathrm{NB}(K_{i}\sum_{j}p_{ji}r_{gj},P_{g})\), and \(\boldsymbol{p}_{\cdot i}\sim\mathrm{Dirichlet}(\boldsymbol{N})\); intervals read from the fitted
+        Dirichlet \cite[pp.~6--7]{gynterDeconvProbabilisticCellType2023}
+  \begin{itemize}
+    \item our remark: a sum of Poisson cells is Poisson, and a sum of negative binomials is negative binomial only because
+          \(P_{g}\) is shared across types; with a type-specific \(P_{gj}\) the bulk law is a finite convolution, as in
+          \emph{DeMixNB}; the Gamma rate, drawn once per bulk, adds a variance term quadratic in \(p_{ji}\)
+    \item \emph{deMixSC} writes the bulk as the same sum over cells but with an additive noise of unspecified law, fitted by
+          weighted NNLS \cite{guoDeMixSCDeconvolutionFramework2023}; it is not a negative-binomial convolution
+  \end{itemize}
+  \item \emph{BLEND}: multinomial reads whose type-\(j\) profile in sample \(i\) is the convex combination
+        \(\sum_{m}\psi_{j,i,m}\boldsymbol{\Phi}_{j,m}\) of \(M_{j}\) observed references, Dirichlet priors on the fractions and the
+        weights, Gibbs sampling or EM for the posterior mode; the fractions are RNA fractions, converted with cell sizes
+        \cite[pp.~8--10]{huangBLENDProbabilisticCellular2024}; compared with the Wiener filter in
+        Appendix~\ref{app:wiener-blend}
 \end{itemize}
 
 \subsection{Semi-reference and reference-free methods}
@@ -295,6 +344,10 @@ Detailed review in the \vignette{05-1-review-distribution-aware.html}{review vig
     DeMixT & log-normal convolution, single or double numerical integral & iterated conditional modes, golden section and parabolic interpolation & box bounds \\
     DeMixNB & exact negative-binomial convolution sum & iterated conditional modes, L-BFGS-B & box \([0.05,0.95]\) \\
     ISOpureR & multinomial with Dirichlet priors & block coordinate descent, Polak--Ribi\`ere conjugate gradient & log domain \\
+    Unico & none: first two moments of each bulk sample, proportions given & \texttt{pcls} for the means; COBYLA with an \(L_{2}\) penalty for the (co)variances; diagonal weights updated over two and three iterations & non-negative means; samples beyond two standard deviations dropped \\
+    DeconV & Poisson or negative binomial given Gamma or log-normal rates, Dirichlet proportions & stochastic gradient in Pyro, clipped Adam with learning-rate decay; only the Dirichlet concentration is fitted on the bulk & Dirichlet support \\
+    imply & Gaussian linear mixed model for the subject references; none for the proportions & REML penalised least squares, then non-negative least squares by quadratic programming & non-negativity \\
+    BLEND & multinomial given latent fractions and reference weights & Gibbs sampling, or EM for the posterior mode & simplex constraints in the M-step \\
     DeCovarT & explicit Gaussian & trust-region Newton on the ILR chart, or L-BFGS-B on the closure chart & ILR chart and
       restricted fits on faces, or the box \(\boldsymbol{w}\ge\mathbf{0}\) \\
     \bottomrule
@@ -1378,6 +1431,64 @@ The argument follows maximum likelihood as iteratively reweighted least squares 
         \cite{dempsterMaximumLikelihoodIncomplete1977}
 \end{itemize}
 
+\subsubsection{Latent profiles: the Wiener filter and BLEND}
+\label{app:wiener-blend}
+
+\begin{itemize}
+  \item latent form of DeCovarT (Section~\ref{sec:wiener}): \(\boldsymbol{x}_{\cdot j,i}\sim\mathcal{N}_{G}(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_{j})\), independent
+        across types, and \(\boldsymbol{y}_{\cdot i}\mid\boldsymbol{p}_{\cdot i},\{\boldsymbol{x}_{\cdot j,i}\}\sim\mathcal{N}_{G}(\sum_{j}p_{ji}\boldsymbol{x}_{\cdot j,i},\boldsymbol{D})\); given
+        \(\boldsymbol{p}_{\cdot i}\), the posterior mean, the best linear unbiased predictor and the Wiener filter coincide,
+        \(\hat{\boldsymbol{x}}_{\cdot j,i}=\boldsymbol{\mu}_{\cdot j}+p_{ji}\boldsymbol{\Sigma}_{j}\boldsymbol{W}(\boldsymbol{y}_{\cdot i}-\boldsymbol{\mu}\boldsymbol{p}_{\cdot i})\) with
+        \(\boldsymbol{W}=\{\boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i})+\boldsymbol{D}\}^{-1}\), and the posterior covariance is
+        \(\operatorname{Cov}(\boldsymbol{x}_{\cdot j,i},\boldsymbol{x}_{\cdot k,i}\mid\boldsymbol{y}_{\cdot i},\boldsymbol{p}_{\cdot i})=\delta_{jk}\boldsymbol{\Sigma}_{j}-p_{ji}p_{ki}\boldsymbol{\Sigma}_{j}\boldsymbol{W}\boldsymbol{\Sigma}_{k}\);
+        its negative cross-type blocks record that two types compete for the same residual
+  \item EM: the E-step computes these means and covariances from one Cholesky factor of
+        \(\boldsymbol{\Sigma}(\boldsymbol{p})+\boldsymbol{D}\); the M-step maximises a concave quadratic in \(\boldsymbol{p}\) on the simplex,
+        so each iteration increases the marginal likelihood, slowly when \(\boldsymbol{D}\) is small
+        (\vignette{05-2-bayesian-wiener.html}{Wiener-filter vignette})
+  \item \emph{Unico}'s Theorem~1 is the gene-wise analogue with the roles of genes and types exchanged: for gene \(g\), the
+        vector across types has covariance \(\boldsymbol{\Gamma}_{g}\) (\(J\times J\)) and
+        \(\hat{\boldsymbol{x}}_{g\cdot,i}=\boldsymbol{\mu}_{g\cdot}+\boldsymbol{\Gamma}_{g}\boldsymbol{p}_{\cdot i}(y_{gi}-\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\mu}_{g\cdot})/(\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\Gamma}_{g}\boldsymbol{p}_{\cdot i}+\tau_{g}^{2})\)
+        \cite[p.~12]{chenUnicoUnifiedModelCell2025}; with one gene and a diagonal \(\boldsymbol{\Gamma}_{g}\) it is the formula above
+  \item \emph{BLEND} \cite{huangBLENDProbabilisticCellular2024} also returns a profile per type and per sample, by a different
+        route (Table~\ref{tab:wiener-blend})
+  \begin{itemize}
+    \item model (p.~8): \(\boldsymbol{q}_{\cdot i}\sim\mathrm{Dir}(\boldsymbol{\alpha})\), \(\boldsymbol{\psi}_{j,i}\sim\mathrm{Dir}(\boldsymbol{\beta}_{j})\), and the reads of sample \(i\)
+          are multinomial with gene probabilities \(\sum_{j}q_{ji}\boldsymbol{\Phi}^{\mathrm{B}}_{j,i}\), where
+          \(\boldsymbol{\Phi}^{\mathrm{B}}_{j,i}=\sum_{m}\psi_{j,i,m}\boldsymbol{\Phi}_{j,m}\) is a convex combination of the \(M_{j}\) observed references of type \(j\)
+    \item inference (pp.~9--10): Gibbs sampling with each read's reference source as a latent label, or EM for the
+          posterior mode; Dirichlet concentrations of \(0.01\), which favour sparse weights (our remark)
+    \item stated limits (p.~7): gene--gene correlation is ignored, and the authors judge inference on the fractions
+          inappropriate although the posterior is available
+    \item our remarks: the hull restricts each sample's profile to \(M_{j}-1\) free weights, so a deviation that no reference
+          shows cannot be expressed, whereas the Wiener filter shrinks continuously along \(\boldsymbol{\Sigma}_{j}\); across samples
+          the hull implies
+          \(\operatorname{Cov}(\boldsymbol{\Phi}^{\mathrm{B}}_{j,i})=\boldsymbol{\Phi}_{j}\operatorname{Cov}(\boldsymbol{\psi}_{j,i})\boldsymbol{\Phi}_{j}^{\top}\), a gene covariance of rank at most
+          \(M_{j}-1\); a sample covariance of the \(M_{j}\) references used as \(\boldsymbol{\Sigma}_{j}\) would make the Wiener filter
+          the continuous, Gaussian counterpart of that hull
+  \end{itemize}
+\end{itemize}
+
+\begin{table}[ht]
+  \centering
+  \small
+  \caption{Sample-specific profiles in DeCovarT's latent form (Wiener filter) and in \emph{BLEND}.}
+  \label{tab:wiener-blend}
+  \begin{tabularx}{\textwidth}{@{}lYY@{}}
+    \toprule
+     & DeCovarT, Wiener filter & \emph{BLEND} \\
+    \midrule
+    Likelihood scale & Gaussian on a linear scale, diagonal residual \(\boldsymbol{D}\) & multinomial read counts \\
+    Reference(s) & one mean \(\boldsymbol{\mu}_{\cdot j}\) and covariance \(\boldsymbol{\Sigma}_{j}\) per type & \(M_{j}\) observed references per type, each a distribution over genes \\
+    Per-sample profile & \(\boldsymbol{\mu}_{\cdot j}+p_{ji}\boldsymbol{\Sigma}_{j}\boldsymbol{W}(\boldsymbol{y}_{\cdot i}-\boldsymbol{\mu}\boldsymbol{p}_{\cdot i})\), any vector in \(\mathbb{R}^{G}\) & \(\sum_{m}\psi_{j,i,m}\boldsymbol{\Phi}_{j,m}\), in the convex hull of the references \\
+    Gene--gene covariance & full \(\boldsymbol{\Sigma}_{j}\), from a sparse precision & none stated; rank at most \(M_{j}-1\), implied by the hull (our remark) \\
+    Inference & closed form given \(\boldsymbol{p}_{\cdot i}\); EM or Newton for \(\boldsymbol{p}_{\cdot i}\) & Gibbs sampling, or EM for the posterior mode \\
+    Uncertainty on \(\boldsymbol{p}_{\cdot i}\) & Wald or bootstrap intervals; the profile posterior plugs in \(\hat{\boldsymbol{p}}_{\cdot i}\) & posterior available, not used for inference by the authors \\
+    Cell size & cell fractions when the reference keeps \(S_{j}\) & RNA fractions, divided by \(S_{j}\) afterwards \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
 \subsubsection{Structured factorisations of the mixture covariance}
 \label{app:optim-structured}
 
@@ -2020,9 +2131,8 @@ The designs below are specified in the supplementary vignettes; none reports res
           \emph{GRNBoost2} \cite{moermanGRNBoost2ArboretoEfficient2019}; and highly variable genes as a
           baseline \cite{hafemeisterNormalizationVarianceStabilization2019}
     \item gene-selection stringency: nested panels of increasing size
-    \item covariance-structure inference: the graphical lasso; a direct, dense covariance estimate
-          that is not sparse \cite{schäferShrinkageApproachLargescale2005}; and partial correlations as a
-          basic baseline (Section~\ref{sec:cov-estimation})
+    \item covariance-structure inference: the graphical lasso, and a direct, dense covariance estimate
+          that is not sparse \cite{schäferShrinkageApproachLargescale2005} (Section~\ref{sec:cov-estimation})
   \end{enumerate}
   \item expected result: a calibration curve, analogous to the bias--variance trade-off, with an optimum
         for a parsimonious number of genes; as the number of genes grows, performance stabilises or

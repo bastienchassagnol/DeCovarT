@@ -1,0 +1,101 @@
+% ===================================================================== glossary
+% Printed with \printunsrtglossary (no indexing run). Abbreviations print in the order defined
+% (alphabetical); definitions print in the Definitions box, also alphabetical.
+% Use \gls{} at first use in running text; use \glsxtrshort{} in tables, captions and boxes.
+\setabbreviationstyle{long-short}
+\renewcommand*{\glsnamefont}[1]{\textbf{#1}}
+% keep the running head on the enclosing section, not on the glossary title
+\renewcommand*{\glsglossarymark}[1]{}
+
+% ----------------------------------------------------------------- abbreviations
+\newabbreviation{anova}{ANOVA}{analysis of variance}
+\newabbreviation{bh}{BH}{Benjamini--Hochberg}
+\newabbreviation{blup}{BLUP}{best linear unbiased predictor}
+\newabbreviation{bub}{BUB}{best upper bound}
+\newabbreviation{clt}{CLT}{central limit theorem}
+\newabbreviation[longplural={coefficients of variation}]{cv}{CV}{coefficient of variation}
+\newabbreviation{dag}{DAG}{directed acyclic graph}
+\newabbreviation{dbn}{DBN}{dynamic Bayesian network}
+\newabbreviation{em}{EM}{expectation--maximisation}
+\newabbreviation{fc}{FC}{fold change}
+\newabbreviation{fdr}{FDR}{false discovery rate}
+\newabbreviation{fft}{FFT}{fast Fourier transform}
+\newabbreviation{fgl}{FGL}{fused graphical lasso}
+\newabbreviation{fpkm}{FPKM}{fragments per kilobase of transcript per million mapped reads}
+\newabbreviation{fwer}{FWER}{family-wise error rate}
+\newabbreviation{ggl}{GGL}{group graphical lasso}
+\newabbreviation{ggm}{GGM}{Gaussian graphical model}
+\newabbreviation{glmm}{GLMM}{generalised linear mixed model}
+\newabbreviation{gls}{GLS}{generalised least squares}
+\newabbreviation{grn}{GRN}{gene regulatory network}
+\newabbreviation{jgcgm}{JGCGM}{joint Gaussian copula graphical model}
+\newabbreviation{lmm}{LMM}{linear mixed model}
+\newabbreviation{mad}{MAD}{median absolute deviation}
+\newabbreviation{mle}{MLE}{maximum-likelihood estimate}
+\newabbreviation{mltabbr}{mlt}{maximum-likelihood threshold}
+\newabbreviation{nb}{NB}{negative binomial}
+\newabbreviation{nnls}{W-NNLS}{weighted non-negative least squares}
+\newabbreviation{ols}{OLS}{ordinary least squares}
+\newabbreviation{pln}{PLN}{Poisson log-normal}
+\newabbreviation{qut}{QUT}{quantile universal threshold}
+\newabbreviation{reml}{REML}{restricted maximum likelihood}
+\newabbreviation{rnaseq}{RNA-seq}{RNA sequencing}
+\newabbreviation{scad}{SCAD}{smoothly clipped absolute deviation}
+\newabbreviation{scrnaseq}{scRNA-seq}{single-cell RNA sequencing}
+\newabbreviation{sem}{SEM}{structural equation model}
+\newabbreviation{tpm}{TPM}{transcripts per million}
+\newabbreviation{umi}{UMI}{unique molecular identifier}
+\newabbreviation{wls}{WLS}{weighted least squares}
+
+% ----------------------------------------------------------------- definitions
+\newglossaryentry{def-blup}{name={Best linear unbiased predictor},
+  description={In $\bm y=\bm m+\bm Z\bm u+\bm e$, with random effects $\bm u\sim(\bm 0,\bm\Gamma)$
+  independent of $\bm e\sim(\bm 0,\bm D)$ and $\bm V=\bm Z\bm\Gamma\bm Z\T+\bm D$, the predictor of
+  $\bm u$ that is linear in $\bm y$, unbiased, and of smallest mean squared error:
+  $\hat{\bm u}=\bm\Gamma\bm Z\T\bm V^{-1}(\bm y-\bm m)$, with the fixed part $\bm m$ replaced by its
+  \glsxtrshort{gls} estimate when it is unknown (\cref{app:blup})}}
+\newglossaryentry{def-entropy}{name={Shannon entropy, delta-entropy},
+  description={For a count $X$, $\mathcal H(X)=-\sum_{k\ge0}\Pr(X=k)\log\Pr(X=k)$. Delta-entropy is a
+  change of $\mathcal H$ for one gene between consecutive time points; the CardamomOT code uses
+  $\lvert\mathcal H(X_{g,t+1})-\mathcal H(X_{g,t})\rvert$, with $\mathcal H$ estimated by the
+  \glsxtrshort{bub} estimator}}
+\newglossaryentry{def-fisher}{name={Fisher information for $\bm p$},
+  description={$\bm I(\bm p)=\E\{-\partial^2\ell(\bm p)/\partial\bm p\,\partial\bm p\T\}$, on the $J-1$
+  free coordinates of the simplex. For $\bm y\sim\mathcal N\{\bm m(\bm p),\bSigma(\bm p)\}$,
+  $I_{kl}=\partial_k\bm m\T\bSigma^{-1}\partial_l\bm m+\tfrac12\tr(\bSigma^{-1}\partial_k\bSigma\,
+  \bSigma^{-1}\partial_l\bSigma)$. As a gene-selection objective, a panel $\mathcal S$ is scored by
+  $\min_{\bm p\in\mathcal P}\log\det\bm I_{\mathcal S}(\bm p)$ over a grid $\mathcal P$ of compositions
+  (robust D-optimality, \vignette{03-1-feature-selection.html}{feature-selection vignette})}}
+\newglossaryentry{def-hellinger}{name={Hellinger distance},
+  description={$H(P,Q)\in[0,1]$ with $H^2(P,Q)=1-\int\sqrt{f_Pf_Q}$, for laws $P$ and $Q$ with densities
+  $f_P$ and $f_Q$}}
+\newglossaryentry{def-lyapunov}{name={Lyapunov equation},
+  description={For linear (Ornstein--Uhlenbeck) dynamics $\dd\bm x=\bm A(\bm x-\bm x^\ast)\dd t+\bm B\,
+  \dd\bm W$ with every eigenvalue of $\bm A$ of negative real part, the stationary covariance $\bSigma$
+  solves $\bm A\bSigma+\bSigma\bm A\T+\bm Q=\bm 0$, with $\bm Q=\bm B\bm B\T$}}
+\newglossaryentry{def-mahalanobis}{name={Mahalanobis distance},
+  description={$\{(\bm u-\bm v)\T\bSigma^{-1}(\bm u-\bm v)\}^{1/2}$ between two points $\bm u$ and
+  $\bm v$ for a covariance $\bSigma$. Between two type means with a common $\bSigma_W$, its square is
+  $\bm\Delta\T\bSigma_W^{-1}\bm\Delta$}}
+\newglossaryentry{def-partial}{name={Partial correlation, conditional precision},
+  description={For a Gaussian vector with precision $\bOmega=(\omega_{gh})$,
+  $\rho_{gh\mid\mathrm{rest}}=-\omega_{gh}/(\omega_{gg}\omega_{hh})^{1/2}$ is the correlation of genes
+  $g$ and $h$ given all other genes, and $\omega_{gg}=1/\Var(x_g\mid\bm x_{-g})$ is the conditional
+  precision of gene $g$. An edge of a \glsxtrshort{ggm} is a non-zero $\omega_{gh}$, $g\neq h$}}
+\newglossaryentry{def-pearson}{name={Pearson residual},
+  description={$r_{gc}=(x_{gc}-\hat\mu_{gc})/v(\hat\mu_{gc})^{1/2}$ for a fitted mean $\hat\mu_{gc}$ and
+  a variance function $v$; for an \glsxtrshort{nb} law with shape $\kappa_g$,
+  $v(\mu)=\mu+\mu^2/\kappa_g$}}
+\newglossaryentry{def-qlf}{name={Quasi-likelihood $F$ test},
+  description={For a model with variance $\Phi_g v(\mu)$, two nested fits with deviances
+  $\mathcal D_0\ge\mathcal D_1$ that differ by $q$ parameters give
+  $F=\{(\mathcal D_0-\mathcal D_1)/q\}/\hat\Phi_g$, compared with an $F_{q,\nu}$ law, $\nu$ the
+  residual degrees of freedom. In the screen of \cref{sec:genes}, the null fit has one mean for all
+  types and the alternative one mean per type, so $q=J-1$; \textcite{lundDetectingDifferentialExpression2012}
+  shrink $\hat\Phi_g$ across genes}}
+\newglossaryentry{def-wasserstein}{name={Wasserstein (Kantorovich) distance},
+  description={$W_r(P,Q)=\{\inf_\pi\E_\pi\lVert\bm X-\bm Y\rVert^r\}^{1/r}$, the infimum over couplings
+  $\pi$, i.e.\ joint laws of $(\bm X,\bm Y)$ with margins $P$ and $Q$. On the real line,
+  $W_1(P,Q)=\int\lvert F_P(t)-F_Q(t)\rvert\,\dd t$ with $F$ the distribution functions; this is the
+  Kantorovich distance, and what \texttt{scipy.stats.wasserstein\_distance} computes. For two Gaussian
+  laws with a common covariance, $W_2=\lVert\bm\Delta\rVert$}}

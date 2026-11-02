@@ -1,0 +1,605 @@
+---
+title: "DeCovarT × CardamomOT : résumé de la note de comparaison"
+subtitle: "Message d'accompagnement de `cardamomot_decovart_scopes.pdf`"
+author: "Bastien Chassagnol"
+date: 2026-11-02
+lang: fr
+bibliography: references.bib
+link-citations: true
+number-sections: true
+crossref:
+  tbl-title: "Tableau"
+  tbl-prefix: "tableau"
+  eq-prefix: "équation"
+  sec-prefix: "section"
+format:
+  pdf:
+    pdf-engine: lualatex
+    documentclass: article
+    papersize: a4
+    geometry: margin=2.3cm
+    fontsize: 11pt
+    colorlinks: true
+    toc: false
+    include-in-header:
+      text: |
+        % LuaLaTeX loads unicode-math: bold italic symbols, Latin and Greek
+        \AtBeginDocument{\renewcommand{\boldsymbol}[1]{\symbfit{#1}}}
+---
+
+
+Ce document est une comparaison succincte des deux approches, pour voir ce que chacune peut emprunter à l'autre.
+
+# Pourquoi cette note {#sec-pourquoi}
+
+Les échanges avec Elias et les premiers résultats de simulations ont fait
+évoluer deux points.
+
+1. **Pour DeCovarT, la priorité est un estimateur robuste de la
+   covariance, plutôt que de la matrice de précision.** Les deux restent
+   possibles dans le modèle, puisque la précision est l'inverse de la
+   covariance, $\boldsymbol{\Omega}_j=\boldsymbol{\Sigma}_j^{-1}$. Mais une
+   covariance bien estimée ne demande pas de retrouver les « vraies »
+   arêtes d'un réseau (@sec-genes-max). Les scénarios synthétiques déjà
+   simulés gardent leur intérêt : on simule un réseau réaliste, on
+   l'inverse, et l'on obtient une covariance plus dense, mais plus proche
+   des forces d'interaction biologiques qu'une matrice de Toeplitz.
+2. **Dans les deux projets, l'apport principal, et la principale
+   difficulté, est de séparer la variabilité biologique de l'erreur de
+   mesure.** La variabilité biologique est multiplicative, d'où les lois
+   de Poisson, log-normale ou Poisson-log-normale. Le séquençage ajoute
+   son propre bruit [@sarkarSeparatingMeasurementExpression2021]. Un
+   modèle Poisson-log-normal multivarié, où la profondeur de séquençage
+   entre comme un *offset* (un terme de coefficient fixé à 1), réunit les
+   deux couches dans un même modèle
+   [@chiquetPoissonLognormalModelVersatile2021].
+
+Toutes les affirmations mathématiques de la note, et les équations de ce
+message, sont vérifiées par calcul formel ou numérique dans un registre
+SymPy (*ledger*) ; les identifiants entre crochets (V23a, …) y renvoient.
+Les sources et les scripts sont sur GitHub, dans le dossier
+`answer-cardamomOT/` de <https://github.com/bastienchassagnol/DeCovarT>.
+
+## Deux objectifs généraux {#sec-objectifs}
+
+### Une théorie unificatrice : une échelle de modèles de bruit {#sec-echelle}
+
+Les méthodes de déconvolution forment un continuum. Elles partent de
+modèles de régression qui ne cherchent pas à quantifier les sources de
+variabilité, comme les moindres carrés pondérés de DWLS
+[@tsoucasAccurateEstimationCelltype2019] ou de MuSiC
+[@wangBulkTissueCell2019], et vont vers des modèles probabilistes qui
+séparent l'erreur de mesure de la variabilité biologique. Toutes
+résolvent le même problème d'erreurs sur les variables : le bulk mélange
+des profils purifiés latents $\boldsymbol{x}_{\cdot j,i}$, dont la
+référence ne fournit qu'une estimation de la moyenne,
+
+$$
+\boldsymbol{y}_{\cdot i}=\sum_jp_{ji}\boldsymbol{x}_{\cdot j,i}+\boldsymbol{\epsilon}_i,
+\qquad
+\boldsymbol{x}_{\cdot j,i}=\boldsymbol{\mu}_{\cdot j}+\boldsymbol{u}_{\cdot j,i},
+\qquad
+\hat{\boldsymbol{\mu}}_{\cdot j}=\boldsymbol{\mu}_{\cdot j}+\boldsymbol{v}_{\cdot j},
+$$ {#eq-eiv}
+
+avec trois erreurs centrées : la variabilité biologique
+$\boldsymbol{u}$ de l'échantillon autour de la moyenne de son type, le
+bruit de mesure $\boldsymbol{\epsilon}$ du bulk, et l'erreur
+d'estimation $\boldsymbol{v}$ d'une référence construite sur un nombre
+fini de cellules. En substituant la référence, toutes les méthodes
+ajustent
+$\boldsymbol{y}_{\cdot i}=\hat{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i}+\boldsymbol{e}_i$,
+avec $\boldsymbol{e}_i=\sum_jp_{ji}(\boldsymbol{u}_{\cdot j,i}-\boldsymbol{v}_{\cdot j})+\boldsymbol{\epsilon}_i$.
+Elles diffèrent par ce qu'elles supposent de
+$\operatorname{Cov}(\boldsymbol{e}_i\mid\boldsymbol{p}_{\cdot i})$, ce qui
+les ordonne sur une échelle (@tbl-echelle), détaillée dans la vignette
+de revue de DeCovarT (*05-1, a ladder of noise models*).
+
+| Échelon | $\operatorname{Cov}(\boldsymbol{e}_i\mid\boldsymbol{p}_{\cdot i})$ | Exemples |
+|---|---|---|
+| 1. Moindres carrés (non négatifs) | $\sigma^2\mathbf{I}_G$ | Bisque (après sa transformation) |
+| 2. Moindres carrés pondérés | diagonale, poids tirés de la référence ou des résidus | MuSiC, SCDC, DWLS, deMixSC |
+| 3. GLM moyenne–variance | $\varphi V(\text{moyenne})$, diagonale | DeconV (Poisson), DeMixNB |
+| 4. Quasi-vraisemblance, gaussienne asymptotique | fonction de $\boldsymbol{p}$, diagonale ou dense | RNA-Sieve, ReDeconv, DeCovarT cellule unique |
+| 5. Moindres carrés généralisés, covariance pleine | $\sum_jp_{ji}^2\boldsymbol{\Sigma}_j$ | DeCovarT (références de populations) |
+| 6. Sandwich, équations d'estimation généralisées | covariance de travail, plus un sandwich | DECALS, MEAD |
+| 7. Modèle linéaire généralisé mixte | induite par des effets aléatoires | RCTD, BayesPrism, DeCovarT lu comme un modèle mixte |
+
+: Échelle des modèles de bruit, du moins au plus structuré. L'erreur sur la référence $\boldsymbol{v}$ peut s'ajouter à n'importe quel échelon : RNA-Sieve, MEAD et BEDwARS la modélisent [@erdmann-phamLikelihoodbasedDeconvolutionBulk2021; @xieStatisticalInferenceCell2026; @caiStatisticalInferenceCelltype2024; @cableRobustDecompositionCell2022a; @chuCellTypeGeneExpression2022]. {#tbl-echelle}
+
+Deux familles fournissent une loi jointe pour les $G$ gènes d'un
+échantillon, ce qu'exigent les échelons 5 à 7:
+- Les **modèles
+marginaux** spécifient directement la moyenne et la dépendance entre
+gènes (gaussienne asymptotique, moments seuls, ou copule).
+- Les **modèles
+conditionnels** spécifient la loi sachant des effets latents, dont le
+partage induit la corrélation (modèles mixtes, Poisson-log-normal).
+
+
+Pour une réponse gaussienne (dont la fonction de lien est l'identité), les deux familles se rejoignent : c'est exactement la position de DeCovarT, modèle marginal qui se lit aussi comme un modèle linéaire mixte.
+L'objectif est d'écrire cette continuité comme une théorie : chaque échelon ajoute une source de variabilité identifiable, et l'on choisit l'échelon que les données permettent d'estimer.
+
+### Un modèle multivarié pour l'inférence plus que pour la précision {#sec-inference}
+
+Un modèle probabiliste réellement multivarié ne devrait guère améliorer
+l'estimation ponctuelle des proportions par rapport à un modèle robuste
+qui pondère chaque gène par sa variance résiduelle (WLS) ou, en version
+multivariée, par une covariance pleine (GLS). Nous attendons une erreur
+quadratique moyenne comparable ; c'est une hypothèse à tester, pas un
+résultat. Le gain est ailleurs : contrairement à une régression sans
+vraisemblance, ou à une vraisemblance univariée, le modèle donne la
+variance théorique de l'estimateur, donc des intervalles de confiance
+non biaisés. Le modèle cellule unique de DeCovarT s'écrit
+
+$$
+\boldsymbol{y}_{\cdot i}\mid\boldsymbol{p}_{\cdot i}\sim
+\mathcal{N}_G\Bigl(c_i\,\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i},\;
+\phi_i\sum_jp_{ji}\boldsymbol{\Sigma}_{W,j}\Bigr),
+\qquad c_i=a_in_i,\qquad \phi_i=a_i^2n_i,
+$$ {#eq-sc-model}
+
+où $a_i$ est l'échelle globale de l'échantillon (sa profondeur par
+rapport à la référence) et $n_i$ son nombre de cellules. L'information
+de Fisher $I(\boldsymbol{p})$ de cette vraisemblance donne
+$\operatorname{Var}(\hat{\boldsymbol{p}})\approx I(\boldsymbol{p})^{-1}$.
+
+Ignorer les corrélations entre gènes ne biaise pas forcément le point
+estimé, mais rend l'intervalle trop optimiste. Exemple minimal : une
+proportion, deux gènes de même valeur de signature $m$ et de corrélation
+intra-type $\rho$. Les moindres carrés ordinaires et généralisés ont
+alors la même variance, mais la formule naïve, qui suppose les gènes
+indépendants, la sous-estime [V25c] :
+
+$$
+\operatorname{Var}(\hat p)=\frac{1+\rho}{2m^2}
+\qquad\text{contre}\qquad
+\operatorname{Var}_{\text{naïve}}(\hat p)=\frac{1}{2m^2}.
+$$ {#eq-naive}
+
+<!-- chk: V25c -->
+
+
+Avec $\rho=0{,}5$, l'intervalle naïf est trop étroit d'un facteur
+$\sqrt{1{,}5}\approx1{,}22$, et la détection d'un type rare en devient
+trop confiante.
+
+Une approche de type GLM permet ensuite de quantifier le rôle des
+facteurs techniques (de nuisance) face aux facteurs biologiques, et de
+les tester. Dans @eq-sc-model, la moyenne et la variance identifient
+séparément la profondeur et le nombre de cellules [V25b] :
+
+$$
+a_i=\frac{\phi_i}{c_i},\qquad n_i=\frac{c_i^2}{\phi_i}.
+$$ {#eq-scales}
+
+<!-- chk: V25b -->
+
+
+
+**Exemple concret, les gastruloïdes de Suppinger.** Le livre de
+reproductibilité compare un pulse de Wnt standard à 48 h à un pulse
+précoce à 24 h, aux temps 48, 72 et 96 h (chapitre *Early versus
+standard Wnt*). La différence entre les deux bras s'explique-t-elle par
+une profondeur de séquençage différente ($a_i$), par un nombre total de
+cellules différent ($n_i$), ou par un vrai changement de composition
+($\boldsymbol{p}_{\cdot i}$) ? On l'écrit comme une comparaison de
+modèles emboîtés. En coordonnées ILR, qui respectent le simplexe,
+$\boldsymbol{\rho}_i=\operatorname{ilr}(\boldsymbol{p}_{\cdot i})$, et
+
+$$
+\boldsymbol{\rho}_i=\boldsymbol{\rho}_0+\boldsymbol{\beta}\,\mathbb{1}\{i\in\text{précoce}\},
+\qquad
+\log a_i=\alpha_0+\alpha_1\mathbb{1}\{i\in\text{précoce}\},
+\qquad
+\log n_i=\nu_0+\nu_1\mathbb{1}\{i\in\text{précoce}\}.
+$$ {#eq-test}
+
+L'hypothèse « technique seule » est $\boldsymbol{\beta}=\boldsymbol{0}$ ;
+le rapport de vraisemblance contre le modèle complet suit
+asymptotiquement un $\chi^2_{J-1}$. Les tests de $\alpha_1=0$ et
+$\nu_1=0$ disent quelle part de l'écart vient de la profondeur ou du
+nombre de cellules. Trois réserves. Avec trois réplicats par bras et par
+temps, l'asymptotique est fragile, et un bootstrap paramétrique du
+rapport de vraisemblance est préférable. Le REML ne se transpose pas
+directement, car la covariance dépend de $\boldsymbol{p}$ (V7c de la
+note) : une version approchée reste à construire. Enfin, le bras précoce
+n'a pas de référence cellule unique appariée, si bien qu'un état propre à
+ce bras serait projeté sur les types les plus proches.
+
+# Les axes de comparaison {#sec-axes}
+
+## Sélection des gènes : des filtres communs, des objectifs opposés {#sec-selection}
+
+Les deux méthodes commencent par les mêmes filtres de qualité, qui sont
+des conditions nécessaires mais non suffisantes : cellules dégradées
+(forte part de lectures mitochondriales) ou doublets écartés ; gènes
+mitochondriaux, de protéines ribosomiques et non codants écartés du
+panel ; gènes constants ou nuls dans un type cellulaire écartés (notre
+*presence gate*, car un tel gène rend la covariance de ce type
+singulière). Ensuite, DeCovarT cherche des gènes qui distinguent les
+types, CardamomOT des gènes qui changent d'état au cours du temps.
+
+- **DeCovarT** classe les gènes par le rapport entre la variabilité entre
+  types et la variabilité au sein d'un type, l'équivalent d'une ANOVA ou,
+  pour des comptes, d'une analyse de la déviance
+  [@lundDetectingDifferentialExpression2012]. Il veut aussi une loi
+  unimodale au sein de chaque type : la somme de milliers de cellules
+  dans un bulk rend alors le profil approximativement gaussien
+  (théorème central limite), ce sur quoi repose @eq-sc-model.
+- **CardamomOT** veut au contraire des gènes à distribution multimodale :
+  plusieurs « bassins » correspondent à plusieurs niveaux d'activité du
+  promoteur, et la distribution doit évoluer dans le temps. Le code
+  utilise une distance de Wasserstein entre temps successifs et la
+  séparation des modes de lois binomiales négatives.
+- **Un piège commun : la variance brute mélange deux sources.**
+  L'échantillonnage Poisson du séquençage (variance égale à la moyenne)
+  et la variation de profondeur entre cellules sont techniques ; la
+  surdispersion d'une binomiale négative est biologique
+  [@fangExtrinsicBiologicalStochasticity2025]. Sans correction, un
+  classement par variance favorise les gènes très exprimés pour une
+  raison purement technique, d'où notre covariance « débruitée » et les
+  résidus de Pearson d'un modèle binomial négatif.
+- **Une perspective peu étudiée : un critère multivarié** (une MANOVA,
+  sous des hypothèses fortes). Pour deux types, l'information de Fisher
+  sur la proportion combine deux termes [V23a] :
+
+  $$
+  I(p)=n_i\,\boldsymbol{\Delta}^{\top}\boldsymbol{S}(p)^{-1}\boldsymbol{\Delta}
+  +\tfrac12\operatorname{tr}\Bigl[\bigl\{\boldsymbol{S}(p)^{-1}(\boldsymbol{\Sigma}_{W,1}-\boldsymbol{\Sigma}_{W,2})\bigr\}^2\Bigr],
+  \qquad
+  \boldsymbol{S}(p)=p\boldsymbol{\Sigma}_{W,1}+(1-p)\boldsymbol{\Sigma}_{W,2},
+  $$ {#eq-fisher}
+
+  <!-- chk: V23a -->
+
+  un écart entre moyennes $\boldsymbol{\Delta}=\boldsymbol{\mu}_1-\boldsymbol{\mu}_2$
+  mesuré dans la métrique de la covariance (distance de Mahalanobis), et
+  un terme qui récompense des covariances différentes d'un type à
+  l'autre. Le recouvrement (*overlap*) entre les deux lois gaussiennes
+  des types combine les deux mêmes ingrédients (annexe A.4 de la note).
+
+## Existence d'une covariance contre recouvrement d'un réseau {#sec-genes-max}
+
+Combien de gènes les données peuvent-elles soutenir par type cellulaire ?
+Il faut distinguer deux questions.
+
+**Existence.** Sans contrainte, la covariance empirique d'un type n'est
+inversible que s'il y a strictement plus de cellules que de gènes dans ce
+type :
+
+$$
+C_j\ge G+1,
+$$ {#eq-exist}
+
+<!-- chk: V10a -->
+
+le « $+1$ » venant de l'estimation de la moyenne. En deçà, une contrainte
+est nécessaire : un *shrinkage* (Ledoit–Wolf
+[@ledoitWellconditionedEstimatorLargedimensional2004], ou Schäfer–Strimmer
+[@schäferShrinkageApproachLargescale2005]), combinaison convexe entre la
+covariance empirique et une cible simple, qui existe dès deux cellules ;
+une borne sur le nombre de conditionnement
+$\kappa=\lambda_{\max}/\lambda_{\min}$, qui mesure aussi la difficulté
+numérique ; une structure imposée (Toeplitz, facteurs latents, ou une
+matrice diagonale, le cas univarié) ; ou, côté précision, le *graphical
+lasso* [@friedmanSparseInverseCovariance2008], qui pénalise les termes
+hors diagonale et existe pour toute taille d'échantillon
+[@carterExistencePenalisedLikelihood2025]. Dans CardamomOT, ce rôle est
+joué par la pénalité $\ell_1$ vers le réseau a priori
+$\boldsymbol{\theta}_0$.
+
+**Retrouver le vrai réseau** est beaucoup plus exigeant. Le *degré* d'un
+gène est son nombre de voisins dans le graphe de la précision, et $d$ le
+degré maximal, celui du plus gros *hub* :
+
+$$
+\deg(g)=\bigl\lvert\{h\neq g:\ \omega_{gh}\neq0\}\bigr\rvert,
+\qquad
+d=\max_g\deg(g).
+$$ {#eq-degree}
+
+Pour le graphical lasso, retrouver le support demande de l'ordre de
+
+$$
+C_j\gtrsim d^2\log G
+$$ {#eq-recovery}
+
+cellules par type [@ravikumarHighdimensionalCovarianceEstimation2011 ; synthèse dans
+@chiquetContributionsSparseMethods2015, p. 41], sous deux conditions
+invérifiables sur données réelles
+[@chiquetContributionsSparseMethods2015, p. 77] :
+
+- **l'irreprésentabilité (ou incohérence).** Soit $S$ le support de la
+  vraie précision (diagonale comprise), $S^c$ son complémentaire, et
+  $\boldsymbol{\Gamma}=\boldsymbol{\Sigma}\otimes\boldsymbol{\Sigma}$ la
+  hessienne du log-déterminant. Il faut, pour un $\alpha\in(0,1]$,
+
+  $$
+  \max_{e\in S^c}\bigl\lVert\boldsymbol{\Gamma}_{eS}\,\boldsymbol{\Gamma}_{SS}^{-1}\bigr\rVert_1\le1-\alpha :
+  $$ {#eq-irrep}
+
+  les paires de gènes non reliées ne doivent pas être trop corrélées aux
+  vraies arêtes, faute de quoi le lasso confond une arête absente avec
+  ses voisines ;
+- **des valeurs propres bornées**,
+  $0<\lambda_{\min}(\boldsymbol{\Sigma})\le\lambda_{\max}(\boldsymbol{\Sigma})<\infty$ :
+  aucune direction de variance nulle ou infinie. Notre *presence gate*
+  en supprime une cause, un gène constant dans un type, mais pas toutes :
+  une relation linéaire entre gènes ou un gène très faiblement exprimé
+  rapproche aussi $\lambda_{\min}$ de zéro.
+
+Pour fixer les idées, $G=500$ et $d=10$ donnent
+$d^2\log G\approx620$ cellules par type, avant les constantes.
+
+**Comparaison avec la borne empirique de CardamomOT.** Sans contrainte,
+CardamomOT recommande de ne pas dépasser une centaine de gènes (p. 28),
+parce que le nombre d'interactions croît comme $G^2$, soit $10^4$ pour
+$G=100$ (p. 27). @Eq-recovery dit la même chose : un réseau sans
+contrainte peut être dense, $d=G-1$, et il faut alors
+$C_j\gtrsim G^2\log G\approx4{,}6\times10^4$ cellules pour $G=100$ ; un
+réseau creux ($d=10$) n'en demande qu'environ 460. Cette borne vaut pour
+un modèle graphique non dirigé à cellules gaussiennes indépendantes ;
+retrouver un réseau dirigé à partir d'instantanés, dont les couplages
+entre temps ne sont pas observés, est plus difficile (notre remarque).
+
+**L'article de CardamomOT évalue-t-il le nombre maximal de gènes ?** En
+partie. Les simulations (HARISSA, section 3.1, p. 11) incluent des
+réseaux en arbre de 5, 10, 20, 50 et 100 gènes. Sur la figure 3A (p. 15),
+l'AUPR dirigé de CardamomOT passe d'environ 0,97 à 5 gènes à environ 0,6
+à 20 gènes, 0,33 à 50 gènes et 0,2 à 100 gènes (lecture graphique),
+au-dessus des méthodes concurrentes mais loin de 1. Le tableau S2 donne
+les temps de calcul pour 1 000 cellules. Le « plafond d'identifiabilité »
+est discuté qualitativement (pp. 14, 27 et 28), et l'exploration
+systématique de l'identifiabilité en fonction de la taille du réseau et
+de la richesse des données est présentée comme un travail futur (p. 27).
+Il n'y a donc pas d'étude du nombre maximal de gènes en fonction du
+nombre de cellules et du degré.
+
+## La pénalité de CardamomOT et ses alternatives {#sec-penalite}
+
+- La pénalité $\ell_1$ traite de la même façon tous les écarts au réseau
+  a priori $\boldsymbol{\theta}_0$, diagonale comprise. L'article fixe
+  $\lambda=0{,}05\,N_c/\sqrt{G}$ (p. 9) ; le code (version 2.0.0)
+  utilise un seuil universel par quantile au niveau 0,5 par gène cible.
+  La note traduit ce seuil en taux d'erreur : environ 6 % d'arêtes
+  fausses parmi les arêtes retenues, dans un cas idéalisé.
+- **Pertes trace et log-déterminant**
+  [@zhangSparsePrecisionMatrix2014; @yuanDifferentialNetworkAnalysis2017].
+  Elles supposent une matrice symétrique, donc un réseau non dirigé, et
+  ne s'appliquent pas directement à $\boldsymbol{\theta}$.
+- **Lasso de groupe ou coopératif**
+  [@chiquetInferringMultipleGraphical2011; @chiquetSparsitySigncoherentGroups2012],
+  l'alternative la plus prometteuse : une arête est retenue ou rejetée
+  d'un bloc à travers plusieurs bassins ou conditions, avec un signe
+  cohérent (un activateur reste un activateur). Une variante modulaire,
+  qui pénaliserait davantage les arêtes entre modules qu'au sein d'un
+  module, reste à formaliser.
+
+## Modèle d'expression contre modèle de mesure {#sec-mesure}
+
+Les deux méthodes ont d'abord ignoré le bruit de séquençage ; la nouvelle
+version de DeCovarT le modélise explicitement.
+
+- Au départ, seul le **modèle d'expression** était décrit : binomiale
+  négative issue des bouffées de transcription dans CardamomOT, moments
+  gaussiens dans DeCovarT.
+- Le **modèle de mesure** est le séquençage lui-même. Le code de
+  CardamomOT ajoute déjà un facteur de profondeur par cellule, avec un
+  diagnostic qui indique quand le corriger : c'est l'élément que DeCovarT
+  a le plus intérêt à emprunter.
+- Dans la nouvelle version de DeCovarT, trois facteurs techniques
+  séparent la référence cellule unique du bulk :
+  1. l'**échelle globale par échantillon** $a_i$ ; elle entre par
+     $c_i=a_in_i$ dans la moyenne et par $\phi_i=a_i^2n_i$ dans la
+     variance (@eq-sc-model). $\phi_i$ est une échelle de variance, non
+     un paramètre de surdispersion ;
+  2. le **nombre de cellules** $n_i$ de l'échantillon, identifié avec
+     $a_i$ par @eq-scales ;
+  3. une **taille de transcriptome propre à chaque type** $S_j$ : certains
+     types contiennent plus d'ARN, ou en libèrent plus facilement. Ce
+     facteur sépare fractions de cellules $p_{ji}$ et fractions de
+     transcrits,
+
+     $$
+     q_{ji}=\frac{p_{ji}S_j}{\sum_\ell p_{\ell i}S_\ell}.
+     $$ {#eq-transcript}
+
+     Seuls les rapports $S_j/S_\ell$ comptent. Pour que le problème reste
+     identifiable, mieux vaut disposer de mesures extérieures et
+     indépendantes : des *spike-ins* ou de l'ARN ambiant pour la part
+     technique de la capture, un dosage du contenu en ARN pour la taille
+     biologique (vignette 02-1 de DeCovarT, *What is plugged in*).
+- **En perspective seulement :** un **biais propre à chaque gène** entre
+  plateformes. Un bulk « pleine longueur » compte plus de lectures pour
+  les gènes longs, alors que les protocoles à UMI comptent les molécules
+  à une extrémité et éliminent les doublons de PCR
+  [@luTranscriptomeSizeMatters2025]. Ce biais est faible pour des
+  aliquotes appariées séquencées sur la même plateforme
+  [@guoDeMixSCDeconvolutionFramework2023], fort sinon.
+
+## La diagonale du réseau et l'autorégulation {#sec-diagonale}
+
+- Dans CardamomOT, $\theta_{gg}$ est une vraie boucle d'autorégulation,
+  dirigée. Le modèle comporte deux couches par gène, l'ARNm et la
+  protéine, et les interactions vont des protéines vers les promoteurs :
+  un même gène est représenté par deux nœuds.
+- Dans un modèle graphique gaussien, le terme diagonal est toujours
+  positif [V24c] :
+
+  $$
+  \omega_{gg}=\frac{1}{\operatorname{Var}(x_g\mid\boldsymbol{x}_{-g})}
+  =\frac{1}{\sigma_{gg}\,(1-R_g^2)}>0,
+  $$ {#eq-omega-diag}
+
+  <!-- chk: V24c -->
+
+  où $R_g^2$ est le carré de la corrélation multiple du gène $g$ sur
+  tous les autres. Il ne peut donc pas porter le signe d'une
+  auto-activation ou d'une auto-répression. Un $\omega_{gg}$ élevé
+  signifie que le gène est bien prédit par les autres, ou que sa variance
+  propre est faible (dégradation rapide, peu de bruit).
+
+**Une précision presque diagonale indique-t-elle une autorégulation ?**
+Non. Si l'estimation ne retient que des termes diagonaux et des termes
+hors diagonale très faibles, on peut seulement conclure que les gènes du
+panel sont presque conditionnellement indépendants. Cela peut venir de
+quatre causes, sans autorégulation :
+
+- une absence de régulation directe entre les gènes du panel ;
+- des régulateurs hors du panel, dont l'effet se répartit sur chaque gène ;
+- une atténuation par le bruit de mesure Poisson, qui gonfle la diagonale
+  de la covariance des gènes peu exprimés et efface leurs corrélations ;
+- une pénalité trop forte : au-delà de la plus grande corrélation
+  observée, le graphical lasso renvoie une précision diagonale.
+
+Dans le cas linéaire symétrique, l'autorégulation agit même en sens
+inverse : l'auto-activation $\varsigma_g$ réduit la décroissance nette
+$a_g=\gamma_g-\varsigma_g$, augmente la variance et *diminue*
+$\omega_{gg}$ (V5d et V24a de la note). Enfin, dans un modèle
+stationnaire, l'auto-activation et la dégradation ne sont pas séparables,
+puisque seule leur différence $a_g$ intervient. CardamomOT les sépare
+parce qu'il reçoit les taux de dégradation en entrée et qu'il modélise
+la bistabilité (deux bassins), signature non linéaire d'une
+auto-activation.
+
+**À quoi sert l'équation de Lyapunov.** Un instantané ne montre que la
+loi stationnaire des cellules, pas leur dynamique. Autour d'un bassin, la
+dynamique linéarisée
+$\mathrm{d}\boldsymbol{x}=\boldsymbol{A}(\boldsymbol{x}-\boldsymbol{x}^\ast)\,\mathrm{d}t+\boldsymbol{B}\,\mathrm{d}\boldsymbol{W}$
+a pour covariance stationnaire la solution de
+
+$$
+\boldsymbol{A}\boldsymbol{\Sigma}+\boldsymbol{\Sigma}\boldsymbol{A}^{\top}+\boldsymbol{Q}=\boldsymbol{0},
+\qquad\boldsymbol{Q}=\boldsymbol{B}\boldsymbol{B}^{\top}.
+$$ {#eq-lyap}
+
+Les deux ingrédients jouent des rôles distincts.
+
+- $\boldsymbol{A}$ est la **matrice de régulation**, la jacobienne de la
+  dynamique : hors diagonale, l'effet du gène $h$ sur le gène $g$ ; sur
+  la diagonale, moins la décroissance nette $a_g$. Elle fixe comment les
+  fluctuations sont amorties et transmises d'un gène à l'autre.
+- $\boldsymbol{Q}$ est le **bruit intrinsèque** : la variance injectée par
+  unité de temps par les événements moléculaires aléatoires (bouffées de
+  transcription, dégradations). Ce n'est pas la variabilité marginale de
+  chaque gène ; celle-ci est $\sigma_{gg}$, le *résultat* du filtrage de
+  $\boldsymbol{Q}$ par $\boldsymbol{A}$. Pour un gène seul, @eq-lyap
+  donne $\sigma=q/(2a)$. Un processus naissance–mort (production $k$,
+  dégradation $\gamma$) a $q=2k$ à l'équilibre et un facteur de Fano de
+  1 ; des bouffées de taille géométrique de moyenne $b$ portent ce
+  facteur à $1+b$ [V25a]. Le bruit intrinsèque engendre donc à lui seul
+  la surdispersion de type binomiale négative.
+
+  <!-- chk: V25a -->
+
+L'équation fait le pont entre les deux méthodes : le
+$\boldsymbol{\theta}$ de CardamomOT vit dans $\boldsymbol{A}$, la
+covariance de DeCovarT est $\boldsymbol{\Sigma}$. Deux précisions par
+rapport à nos discussions :
+
+- la covariance « débruitée » de DeCovarT correspond à
+  $\boldsymbol{\Sigma}$, pas à $\boldsymbol{A}$ ; plusieurs réseaux
+  dirigés donnent la même covariance stationnaire ;
+- le bruit de mesure Poisson s'ajoute *après* la dynamique et ne se
+  propage pas dans le réseau, alors que $\boldsymbol{Q}$, lui, se propage :
+  à profondeur fixe $s$, la covariance observée vaut
+  $s^2\boldsymbol{\Sigma}+s\operatorname{diag}(\boldsymbol{\mu})$. Le
+  bruit extrinsèque (taille, cycle cellulaire), commun à tous les gènes
+  d'une cellule, est encore autre chose : un facteur partagé, que la note
+  traite comme le terme de rang un de la profondeur.
+
+Dans le seul cas d'une régulation symétrique avec un bruit isotrope,
+$\boldsymbol{\Omega}=-\tfrac{2}{q}\boldsymbol{A}$ : la précision est
+proportionnelle à la matrice de régulation (V24a de la note). Pour un
+**réseau dirigé acyclique** (réseau bayésien gaussien), une fois les gènes
+ordonnés des parents vers les enfants, la précision se factorise par une
+matrice triangulaire (décomposition de Cholesky modifiée, V24b).
+L'acyclicité interdit toute boucle d'autorégulation, qui n'apparaît
+qu'avec le temps, dans un réseau bayésien dynamique où un gène agit sur
+lui-même au pas de temps suivant.
+
+## Un axe annexe : convolution, filtre de Wiener, modèle mixte {#sec-wiener}
+
+Un bulk est une somme de profils cellulaires indépendants, donc une
+convolution. Si l'on garde ces profils comme variables latentes, leur
+meilleure reconstruction pour un échantillon, sachant ses proportions,
+est un filtre de Wiener. Avec des lois gaussiennes, ce filtre coïncide
+avec le meilleur prédicteur linéaire sans biais (BLUP) d'un modèle
+linéaire mixte, et avec le maximum a posteriori. C'est la lecture
+« modèle mixte » de DeCovarT, à l'échelon 7 de @tbl-echelle.
+
+# Conclusion: les pistes d'emprunts entre les deux papiers {#sec-emprunts}
+
+- **DeCovarT ← CardamomOT :** le diagnostic de la part de profondeur, à
+  appliquer avant d'estimer les covariances (@sec-mesure) ; les réseaux a
+  priori (OmniPath) comme poids de pénalité ; un contrôle de séparation
+  en bassins au sein d'un type, qui signalerait un sous-type.
+- **CardamomOT ← DeCovarT :** une covariance au sein de chaque bassin,
+  celle qui manque quand les plus fortes corrélations sont atténuées ;
+  une vraisemblance sur données mises de côté pour choisir la pénalité
+  [@commengesDynamicalBiostatisticalModels2015] ; une mesure d'incertitude
+  sur $\boldsymbol{\theta}$ au-delà de la variabilité entre graines, par
+  exemple un bootstrap des cellules au sein de chaque temps.
+
+# Perspectives : un mélange de réseaux bayésiens dynamiques {#sec-perspectives}
+
+Une contrepartie purement statistique de CardamomOT remplacerait le
+modèle mécaniste par un **réseau bayésien gaussien**, dont les liens sont
+dirigés (@sec-diagonale), dans sa version **dynamique**, puisque les
+données couvrent plusieurs temps, et en **mélange**, puisque chaque
+cellule relève d'un régime (type, bassin) que l'on ne connaît pas :
+
+$$
+z_c\sim\mathrm{Cat}(\boldsymbol{\pi}),
+\qquad
+\boldsymbol{x}_c^{(t+1)}\mid\boldsymbol{x}_c^{(t)},\,z_c=k
+\sim\mathcal{N}\bigl(\boldsymbol{A}_k\boldsymbol{x}_c^{(t)},\,\boldsymbol{Q}_k\bigr).
+$$ {#eq-mix-dbn}
+
+Le temps lève la principale limite d'un graphe acyclique statique.
+L'arête d'un gène vers lui-même au temps suivant (arête de persistance,
+$g_t\to g_{t+1}$) représente l'autorégulation. Deux arêtes de sens
+opposés entre temps successifs, $g_t\to h_{t+1}$ et $h_t\to g_{t+1}$,
+représentent une boucle de rétroaction. Le graphe déroulé dans le temps
+reste acyclique ; seules les arêtes au sein d'un même temps doivent
+l'être. Le temps oriente aussi ces arêtes, ce que les données d'un seul
+instantané ne permettent pas. Une boucle négative symétrique peut même
+avoir une covariance instantanée nulle, et ne se voir que dans la
+covariance décalée d'un pas de temps [V26a].
+
+<!-- chk: V26a -->
+
+Deux obstacles demeurent. D'abord, le séquençage détruit les cellules :
+aucune cellule n'est observée à $t$ et à $t+1$. Les seules moyennes et
+covariances de deux instantanés successifs laissent $\boldsymbol{A}$
+indéterminée à une rotation près [V26b] ; il faut des couplages entre
+temps (le transport optimal de CardamomOT, un pseudotemps, un marquage
+métabolique) ou des perturbations.
+
+<!-- chk: V26b -->
+
+Ensuite, sans intervention, des graphes d'orientations différentes
+donnent la même loi [V26d]. Des données interventionnelles, où chaque
+cellule porte sa propre perturbation comme dans un Perturb-seq,
+distinguent ces graphes : la vraisemblance retire simplement l'équation
+des gènes perturbés [@rauJointEstimationCausal2013].
+
+<!-- chk: V26c -->
+
+# Détection d'un bug technique critique de librairies scientifiques {#sec-annexe}
+
+En passant de 20 à 200 gènes dans les simulations, la simulation de lois
+gaussiennes multivariées par `MASS::mvrnorm()`, qui passe par une
+décomposition complète en valeurs et vecteurs propres (routine LAPACK
+`dsyevr`), s'est arrêtée sur des covariances pourtant bien conditionnées
+(6 échecs sur 1 004 appels avec le noyau SkylakeX). La faute vient des
+noyaux BLAS d'OpenBLAS 0.3.20, non de R, de MASS ni de LAPACK. DeCovarT
+2.6.0 tire désormais les vecteurs gaussiens à partir du facteur de
+Cholesky de la covariance, et un rapport de bogue a été rédigé (fichier
+`NEWS.md` du dépôt DeCovarT, section 2.6.0).
+
+# Références {.unnumbered}
+
+::: {#refs}
+:::

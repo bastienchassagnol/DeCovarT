@@ -69,7 +69,7 @@
 ^tests/manual/
 # pkgdown-only vignette figures (CRAN vignettes use the two kept below)
 ^vignettes/figures/condition_number_poor_performance_correlated_cell_types\.png$
-^vignettes/figures/dea_optimal_design_comparison\.png$
+^vignettes/figures/fig_03_1_dea_design\.(svg|png)$
 ^vignettes/figures/decovart_leakage_free_validation\.png$
 ^vignettes/figures/fig_mean_signature_shared_private\.png$
 ^vignettes/figures/cholesky_vs_spectral_decomposition\.svg$
@@ -81,7 +81,7 @@
 ^vignettes/figures/INDEED_pipeline\.png$
 ^vignettes/figures/markov_boundary_vs_dseparation\.png$
 ^vignettes/figures/overlap_univariate_vs_multivariate\.png$
-^vignettes/figures/sc_transform\.png$
+^vignettes/figures/fig_03_1_sctransform\.(svg|png)$
 ^vignettes/figures/synthetic_grn_pipeline\.mmd$
 ^vignettes/figures/fig_dd_taxonomy_ee_de_dm\.png$
 ^vignettes/figures/fig_blggm_two_pronged\.png$
@@ -158,3 +158,4 @@
 ^derive_confidence_intervals$
 ^temp_
 ^temp_prompt
+^vignettes/figures/src$

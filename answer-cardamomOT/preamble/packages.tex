@@ -11,7 +11,7 @@
 \usepackage[dvipsnames]{xcolor}
 \usepackage{microtype}
 \usepackage{csquotes}
-\usepackage{booktabs,tabularx,array}
+\usepackage{booktabs,tabularx,array,longtable}
 \usepackage{graphicx}
 \usepackage{enumitem}
 \usepackage[font=small,labelfont=bf,singlelinecheck=off]{caption}
@@ -24,4 +24,10 @@
             giveninits=true,dashed=false,doi=true,url=false,isbn=false,eprint=false]{biblatex}
 \addbibresource{references.bib}
 \usepackage[hidelinks]{hyperref}
+% file names and URLs (\cmfile, \url) may break after / . _ -, never inside a word
+\renewcommand{\UrlBreaks}{\do\/\do\.\do\_\do\-}
 \usepackage[capitalise,noabbrev]{cleveref}
+% glossary and abbreviations: \printunsrtglossary needs no makeglossaries or bib2gls run,
+% so latexmk is unchanged; entries are in preamble/glossary.tex
+\usepackage[abbreviations,stylemods={mcols,list},nogroupskip,section=subsection,nopostdot=false]
+           {glossaries-extra}

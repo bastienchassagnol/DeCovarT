@@ -1922,12 +1922,18 @@ variance function, and each term comes from a model rather than from a
 transformation: independent cells (linear weight), shared population
 fluctuations (quadratic weight, needs replicates), and the Poisson
 measurement of the bulk with a dispersion $\omega$ (variance equal to
-the mean when $\omega=1$). Separating $\omega$ from $\phi$ and from the cell-to-cell covariance
-needs technical replicates or several bulk samples; it is left to the
-perspectives of the article. The final model of @sec-final-choice keeps
+the mean when $\omega=1$). Without $\boldsymbol{S}_B$ and given
+$\boldsymbol{p}$, the mean fixes $c$, so the Poisson term adds no
+parameter; a free $\omega$ is identified from one bulk sample if and
+only if the denoised $\boldsymbol{S}_W(\boldsymbol{p})$ is not a multiple of
+$\operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p})$.
+<!-- chk: V16a, V16b -->
+The final model of @sec-final-choice keeps
 only the first term, $\boldsymbol{\Sigma}_{y}(\boldsymbol{\rho})=\phi\boldsymbol{S}_W(\boldsymbol{\psi}(\boldsymbol{\rho}))$:
 a known variance function times a dispersion, as in a quasi-likelihood
-GLM.
+GLM. With a raw $\boldsymbol{S}_W$ this term contains the bulk Poisson
+diagonal exactly when $a=\phi/c=1$.
+<!-- chk: V13b -->
 
 Two estimators share @eq-decovart-glm.
 
@@ -2011,15 +2017,31 @@ Each term is a choice with a reason.
    Estimate it from cells after removing the Poisson diagonal and the
    technical size-factor term
    ([denoised covariance](05-1-review-distribution-aware.html#eq-denoised-within)),
-   with a sparse precision from the graphical lasso. *Our remark:*
+   with a sparse precision from the graphical lasso. The bulk adds its
+   own sampling diagonal $c_i\operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i})$;
+   the raw covariance reproduces it only when the bulk depth per
+   reference unit is $a_i=1$
+   ([raw or denoised](02-1-single-cell-generative-optimisation.html#sec-raw-vs-denoised)).
+   <!-- chk: V13a, V13b -->
+   *Our remark:*
    independent cells add with cell-count weights $m_{ji}=n_ip_{ji}$, so
    this linear covariance layer is weighted by $\boldsymbol{p}_{\cdot i}$, not
    by the transcript fractions $\boldsymbol{q}_{\cdot i}$.
-4. **No extra bulk noise term.** A Poisson or negative-binomial
-   diagonal for the bulk measurement is not added: without further
-   assumptions it cannot be separated from the scale $\phi_i$ and the
-   cell-to-cell covariance on one sample. Misspecification of the
-   variance is handled by the sandwich of @sec-sandwich instead.
+4. **No extra bulk noise parameter.** For UMI-like bulk counts the
+   Poisson diagonal $c_i\operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i})$
+   adds no parameter: the mean fixes $c_i$, so $(c_i,\phi_i)$ stays
+   identified given $\boldsymbol{p}_{\cdot i}$ whenever
+   $\boldsymbol{S}_W(\boldsymbol{p}_{\cdot i})\neq\boldsymbol{0}$. The covariance is then
+   no longer proportional to $\phi_i$: for fixed $a_i=\phi_i/c_i$,
+   $\hat c_i$ is the positive root of a quadratic, and $a_i$ is profiled
+   numerically in one dimension. This term is not implemented; with a
+   raw $\boldsymbol{S}_W$, `deconvolute_single_cell()` assumes $a_i=1$. A
+   negative-binomial dispersion in front of the term is not added; one
+   sample identifies it only if $\boldsymbol{S}_W(\boldsymbol{p}_{\cdot i})$ is not
+   a multiple of $\operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i})$.
+   <!-- chk: V16a, V16b, V16c -->
+   Misspecification of the variance is handled by the sandwich of
+   @sec-sandwich instead.
 5. **No gene-wise platform ratio.** With UMIs it cancels within the
    reference platform; between platforms it is not identified from one
    sample ([`MEAD`](05-1-review-distribution-aware.html#sec-mead)),
@@ -2033,19 +2055,6 @@ Each term is a choice with a reason.
    approaches zero, and to the boundary likelihood-ratio test when
    absence is the question (@sec-boundary). With one donor, the reference uncertainty comes from
    `reference_bootstrap_decovart(method = "cells")`.
-
-**Why this is the fastest valid route from the existing code.** The ILR
-chart, the analytic score and the default Newton–Raphson optimiser are
-kept, with $c_i$ and $\phi_i$ profiled out at each iteration. Only the
-covariance assembler changes, from $\sum_jp_j^{2}\boldsymbol{\Sigma}_j$ to the
-linear form of @eq-final-model, whose derivative in $p_j$ is the
-constant matrix $\phi_i\boldsymbol{\Sigma}_{W,j}$; second derivatives of the
-covariance vanish, so the Hessian is simpler than the released one
-([general score and Hessian](02-1-single-cell-generative-optimisation.html#sec-general)).
-No replicate, no paired cohort and no second bulk sample is needed. The
-model still has to pass a simulation study under the ADEMP template
-before it is used for claims
-([synthetic scenarios](04-1-synthetic-scenarios.html)).
 
 # Recap: which interval or test to report {#sec-recap}
 

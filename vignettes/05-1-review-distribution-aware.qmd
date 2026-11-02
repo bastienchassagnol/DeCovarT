@@ -72,10 +72,10 @@ flowchart TD
   root --> bay["Bayesian reference-based"]
   root --> semi["Semi-reference: one unknown component"]
   root --> free["Reference-free"]
-  ref --> uni["Genes independent: MuSiC, SCDC, RNA-Sieve, DWLS, deMixSC, Bisque, RCTD, ReDeconv"]
+  ref --> uni["Genes independent: MuSiC, SCDC, RNA-Sieve, DWLS, deMixSC, Bisque, RCTD, DeconV, ReDeconv"]
   ref --> multi["Gene-gene covariance: DECALS, MEAD, DeCovarT"]
-  cts --> csnet["CSNet, Unico"]
-  bay --> bcts["Profiles: bMIND, EPIC-unmix, BLADE, BEDwARS, BayesPrism"]
+  cts --> csnet["CSNet, Unico, imply"]
+  bay --> bcts["Profiles: bMIND, EPIC-unmix, BLADE, BEDwARS, BayesPrism, BLEND"]
   bay --> bprop["Proportions: DSection, gnSPADE"]
   semi --> dem["DeMix, DeMixT, DeMixNB, BayICE, ISOpureR"]
   free --> nmf["DSSC, GSNMF+, swCAM"]
@@ -298,23 +298,111 @@ objects. Only part of it belongs in the bulk law.
    accumulates.
 
 The corresponding moment estimator, with $\hat\nu^{\mathrm{tech}}$ from
-spike-ins or Poisson genes, is
+spike-ins and $\hat\kappa=\hat\nu^{\mathrm{tech}}/(1+\hat\nu^{\mathrm{tech}})$, is
 
 $$
 \hat{\boldsymbol{\Sigma}}_{W,j}
 =\boldsymbol{V}_j-\operatorname{diag}(\bar{\boldsymbol{x}}_j)
--\frac{\hat\nu^{\mathrm{tech}}}{1+\hat\nu^{\mathrm{tech}}}\,
-\bigl[\boldsymbol{V}_j-\operatorname{diag}(\bar{\boldsymbol{x}}_j)+\bar{\boldsymbol{x}}_j\bar{\boldsymbol{x}}_j^{\top}\bigr],
+-\hat\kappa\,
+\Bigl[\boldsymbol{V}_j-\operatorname{diag}(\bar{\boldsymbol{x}}_j)+\bar{\boldsymbol{x}}_j\bar{\boldsymbol{x}}_j^{\top}-\frac{\boldsymbol{V}_j}{C_j}\Bigr],
 $$ {#eq-denoised-within}
 
-where $\boldsymbol{V}_j$ is the sample covariance of the type-$j$
-counts and $\bar{\boldsymbol{x}}_j$ their mean. It is the
+where $\boldsymbol{V}_j$ is the unbiased sample covariance of the $C_j$
+type-$j$ cells and $\bar{\boldsymbol{x}}_j$ their mean. It estimates the
 $s^{\mathrm{tech}}$-free covariance of
-$\boldsymbol{\mathcal{B}}\boldsymbol{m}_{\cdot c}$ obtained by solving
-@eq-count-covariance with $1+\nu=(1+\nu^{\mathrm{bio}})(1+\nu^{\mathrm{tech}})$
-(our derivation, to be checked by simulation before use). Estimating
-$\nu^{\mathrm{tech}}$ before the deconvolution is the first plug-in of
-Strategy 4 ([plug-in scales (Strategy 4)](02-1-single-cell-generative-optimisation.html#sec-strategy-plugin)).
+$\boldsymbol{\mathcal{B}}\boldsymbol{m}_{\cdot c}$,
+$\boldsymbol{\mathcal{B}}[(1+\nu^{\mathrm{bio}})\boldsymbol{\Sigma}^{\lambda}_j+\nu^{\mathrm{bio}}\tilde{\boldsymbol{\mu}}_{\cdot j}\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top}]\boldsymbol{\mathcal{B}}$,
+obtained by solving @eq-count-covariance with
+$1+\nu=(1+\nu^{\mathrm{bio}})(1+\nu^{\mathrm{tech}})$ (our derivation).
+Given $\nu^{\mathrm{tech}}$ it is unbiased. The term $-\boldsymbol{V}_j/C_j$
+is needed because $\bar{\boldsymbol{x}}_j\bar{\boldsymbol{x}}_j^{\top}$
+overestimates the outer product of the means by
+$\operatorname{Cov}(\boldsymbol{x})/C_j$; without it the estimator is biased
+by $-\kappa\operatorname{Cov}(\boldsymbol{x})/C_j$, which a simulation with
+$C_j=10$ cells detects.
+<!-- chk: V14a, V14b, V14c, V14e -->
+The error of an estimated $\hat\nu^{\mathrm{tech}}$ is not covered by this
+statement. Plugging in the total extrinsic noise $\nu$, which a size
+factor fitted on Poisson genes estimates (@sec-extrinsic-noise), returns
+$\boldsymbol{\mathcal{B}}\boldsymbol{\Sigma}^{\lambda}_j\boldsymbol{\mathcal{B}}$:
+it removes the biological share
+$\nu^{\mathrm{bio}}\boldsymbol{\mathcal{B}}(\boldsymbol{\Sigma}^{\lambda}_j+\tilde{\boldsymbol{\mu}}_{\cdot j}\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top})\boldsymbol{\mathcal{B}}$
+with the technical one.
+<!-- chk: V14d -->
+Whether this denoised covariance enters the bulk alone or with the
+bulk's own sampling term depends on the bulk depth per cell
+([raw or denoised](02-1-single-cell-generative-optimisation.html#sec-raw-vs-denoised)).
+Estimating $\nu^{\mathrm{tech}}$ before the deconvolution is the first
+plug-in of Strategy 4
+([plug-in scales (Strategy 4)](02-1-single-cell-generative-optimisation.html#sec-strategy-plugin)).
+
+### ComBat, scVI and scANVI: what they remove {#sec-batch-methods}
+
+Three families of correction are often proposed for the same job.
+Each removes a different quantity, on a different unit.
+
+- **ComBat** corrects "both additive and multiplicative batch effects"
+  in an empirical-Bayes framework (Johnson, Li and Rabinovic 2007, as
+  summarised by Zhang 2025, p. 1): a location and a scale per gene and
+  batch, shrunk across genes.
+  <!-- TODO-cite: Johnson, Li & Rabinovic 2007, Biostatistics 8(1):118-127, doi:10.1093/biostatistics/kxj037; Zhang, Parmigiani & Johnson 2020, ComBat-seq, NAR Genom Bioinform 2(3), doi:10.1093/nargab/lqaa078; Zhang 2025, ComBat-ref, Comput Struct Biotechnol J 27:58-64, doi:10.1016/j.csbj.2024.12.010. None is in inst/REFERENCES.bib. -->
+  Its count version, ComBat-ref, fits
+  $\log\mu_{gij}=\alpha_g+\gamma_{gi}+\beta_{g,\mathrm{cond}(j)}+\log N_j$ for gene $g$,
+  batch $i$ and sample $j$ with a pooled negative binomial dispersion per
+  batch, keeps the batch of smallest dispersion as reference, sets
+  $\log\tilde\mu_{gij}=\log\mu_{gij}+\gamma_{g1}-\gamma_{gi}$, and maps
+  each count by matching negative binomial distribution functions, zeros
+  to zeros (Zhang 2025, p. 2). The unit is a bulk sample inside a batch;
+  the biological condition is a term of the model, and single-cell data
+  are left to future work (p. 6).
+- **scVI** draws, for cell $n$, a latent $\boldsymbol{z}_n\sim\mathcal{N}(\boldsymbol{0},\mathbf{I})$,
+  a library factor $\ell_n\sim\mathrm{LogNormal}$ whose prior is the
+  empirical mean and variance of the log library size of its batch,
+  frequencies $\boldsymbol{\rho}_n=f_w(\boldsymbol{z}_n,s_n)$ that sum to one
+  over genes, and counts $\mathrm{Poisson}(\ell_nw_{ng})$ with
+  $w_{ng}\sim\mathrm{Gamma}(\rho_{gn},\theta_g)$, plus zero inflation
+  (Lopez et al. 2018, author manuscript pp. 8--9). $\ell_n$
+  "represents nuisance variation due to differences in capture
+  efficiency and sequencing depth", and the batch $s_n$ enters the
+  decoder, so $\rho_{ng}$ is "a batch-corrected, normalized estimate of
+  the percentage of transcripts" (p. 3). Genes are independent given
+  $(\boldsymbol{z}_n,\ell_n)$ (p. 8), so gene–gene covariance passes through
+  the 10-dimensional $\boldsymbol{z}_n$ only (p. 3). No reference is used.
+  <!-- TODO-cite: Lopez, Regier, Cole, Jordan & Yosef 2018, Nat Methods 15(12):1053-1058, doi:10.1038/s41592-018-0229-2; not in inst/REFERENCES.bib. -->
+- **scANVI** adds a cell-type label $c_n$ with a uniform prior, a
+  within-type latent $\boldsymbol{u}_n$ and
+  $\boldsymbol{z}_n\sim\mathcal{N}(f_\mu(\boldsymbol{u}_n,c_n),f_\sigma(\boldsymbol{u}_n,c_n))$,
+  with the scVI library factor and count model unchanged (Xu et al.
+  2021, equations 1--8, p. 15). Labels of an annotated reference are
+  transferred to the cells of other datasets (pp. 2--3).
+  <!-- TODO-cite: Xu, Lopez, Mehlman, Regier, Jordan & Yosef 2021, Mol Syst Biol 17:e9620, doi:10.15252/msb.20209620; not in inst/REFERENCES.bib. -->
+
+Our setting differs on three points (our reading).
+
+1. **One reference specimen.** There is no second batch for $\gamma_{gi}$
+   or for the batch covariate $s_n$. With one specimen only the
+   cell-wide factor ($s_c$, or scVI's $\ell_n$) can be estimated.
+2. **The target is the bulk, at its own depth.** The question is which
+   part of the reference second moments a deeper bulk inherits, not how
+   to map one dataset onto another. @eq-denoised-within removes the
+   Poisson and technical size-factor shares from the covariance; it
+   changes no count and aligns no batch.
+3. **The biological size factor must stay.** scVI's frequencies sum to
+   one, so $\ell_n$ absorbs the whole cell-wide factor, cell size
+   included: the moment analogue is the total-$\nu$ plug-in above, which
+   drops $\nu^{\mathrm{bio}}$. Its gene–gene covariance is also of rank at
+   most the latent dimension, whereas $\boldsymbol{S}_W$ needs a full-rank
+   $\boldsymbol{\Sigma}_{W,j}$.
+
+What carries over is the empirical-Bayes pooling. $\nu^{\mathrm{tech}}$ is
+a property of the protocol, shared by genes and cell types, so per-pair
+estimates from normalised covariances can be shrunk towards one common
+value instead of taking their mode; with several specimens, ComBat's
+gene-wise location shrinkage is the model for a pooled platform ratio
+$\tilde b_g$. What does not carry over is the mapping of counts: a
+quantile map of each count, like a logarithm, is non-linear and breaks
+the additive mixture of the bulk
+([normalisation that preserves the linear mixture](02-1-single-cell-generative-optimisation.html#sec-norm-linear)).
 
 ## Before single cells: measurement models for sorted population profiles {#sec-population-era}
 
@@ -376,7 +464,7 @@ of mixed tumour profiles [@anghelISOpureRImplementationComputational2015].
 (@sec-bayes-cts). `DeconV` instead uses Poisson aggregation from single-cell to bulk
 (sums of independent Poissons remain Poisson) and returns interval
 estimates of $\boldsymbol{p}_{\cdot i}$
-[@gynterDeconvProbabilisticCellType2023].
+[@gynterDeconvProbabilisticCellType2023] (@sec-deconv).
 `RCTD` is a Poisson–log-normal **mixture** of reads (@sec-rctd).
 
 Over-dispersed, correlated counts are the domain of the multivariate
@@ -417,6 +505,7 @@ flowchart TD
   ureg --> bisque["Bisque: gene-wise affine map, NNLS"]
   ulik --> sieve["RNA-Sieve: CLT Gaussian, noisy reference"]
   ulik --> rctd["RCTD: Poisson-log-normal mixture"]
+  ulik --> deconv["DeconV: Poisson or NB aggregation of single-cell rates"]
   ulik --> redeconv["ReDeconv: variance-aware, CLTS"]
   multi --> mmom["Moment equations, no density"]
   multi --> mlik["Full Gaussian likelihood"]
@@ -555,8 +644,11 @@ interval [@agrestiFoundationsLinearGeneralized2015, ch. 2, 4, 8 and 9].
    the [population inference vignette](01-2-population-inference.html#sec-glm).
 4. **Quasi-likelihood or asymptotic Gaussian.** Only the first two
    moments are specified, and the variance may depend on
-   $\boldsymbol{p}_{\cdot i}$ through more than the mean, for instance
-   $\sum_jp_{ji}\operatorname{Var}(x_{gc}\mid c\in j)$. Over the $n_i$
+   $\boldsymbol{p}_{\cdot i}$ through more than the mean, linearly, as in
+   $\sum_jp_{ji}\operatorname{Var}(x_{gc}\mid c\in j)$, or quadratically, as
+   in `Unico`'s
+   $\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\Gamma}_g\boldsymbol{p}_{\cdot i}+\tau_g^{2}$
+   (@sec-unico). Over the $n_i$
    cells of a bulk sample the central limit theorem turns these moments
    into a Gaussian working likelihood. When genes are still treated as
    independent, the product over genes is a composite likelihood, and
@@ -588,6 +680,52 @@ interval [@agrestiFoundationsLinearGeneralized2015, ch. 2, 4, 8 and 9].
    correlation, and the law of $\boldsymbol{y}_{\cdot i}$ is obtained by
    integrating them out [@agrestiFoundationsLinearGeneralized2015, ch. 9].
 
+@fig-ladder draws the seven rungs, with the methods of this review placed
+on each, including `Unico` (@sec-unico), `DeconV` (@sec-deconv), `imply`
+(@sec-imply) and `BLEND` (@sec-blend).
+
+```{.tikz}
+%%| label: fig-ladder
+%%| fig-cap: The ladder of noise models for the bulk error $\boldsymbol{e}_i$ of @eq-eiv, from the least structured covariance (rung 1, bottom) to the most structured (rung 7, top). Beside each rung, the working $\operatorname{Cov}(\boldsymbol{e}_i\mid\boldsymbol{p}_{\cdot i})$ and the reviewed methods. `Unico` (highlighted) sits on rung 4 with a variance quadratic in $\boldsymbol{p}_{\cdot i}$, through a $J\times J$ covariance across cell types, fitted by a two-moment generalised method of moments. `DeconV` sits on rung 3; `imply` (subject random effect) and `BLEND` (random reference-mixing weights) on rung 7, `imply` also on rung 1 for its final proportions. The bracket on the left marks the errors-in-variables layer, which can be added on any rung.
+%%| filename: fig-ladder
+%%| alt: A ladder with two vertical rails and seven rungs, numbered from the bottom. Rung 1, OLS or NNLS, sigma squared times the identity: Bisque, CSNet, BEDwARS, DSSC, GSNMF+, swCAM, imply stage III. Rung 2, weighted least squares, diagonal: MuSiC, SCDC, DWLS, deMixSC, MEAD weights, DSection, BayICE. Rung 3, mean-variance GLM: DeconV, DeMixNB, ISOpureR, gnSPADE. Rung 4, quasi-likelihood or asymptotic Gaussian, variance a function of p: linear for RNA-Sieve, ReDeconv and DeCovarT single-cell; a highlighted box gives Unico's quadratic variance p transpose Gamma_g p plus tau_g squared, with a J by J covariance across types and a two-moment GMM. Rung 5, GLS with a dense G by G covariance: DeCovarT and the DECALS GLS variant. Rung 6, sandwich or GEE: DECALS and MEAD. Rung 7, GLMM: RCTD, BayesPrism, bMIND, EPIC-unmix, BLADE, DeMixT, DeCovarT read as an LMM, imply and BLEND. A bracket on the left spans rungs 1 to 6, with ticks at BEDwARS (rung 1), RNA-Sieve (rung 4) and MEAD (rung 6), labelled errors in variables.
+\begin{tikzpicture}[
+  rung/.style={const, minimum width=40mm, minimum height=8mm, font=\small, align=center},
+  rnote/.style={note, anchor=west, align=left, text width=114mm},
+  eivtick/.style={draw=ink, line width=0.8pt}]
+\def\dy{1.5}
+% rungs, bottom (least structured) to top (most structured)
+\node[rung] (r1) at (2.0,{0*\dy}) {1. OLS / NNLS};
+\node[rung] (r2) at (2.0,{1*\dy}) {2. Weighted LS};
+\node[rung] (r3) at (2.0,{2*\dy}) {3. Mean--variance GLM};
+\node[rung] (r4) at (2.0,{3*\dy}) {4. Quasi-likelihood /\\ asymptotic Gaussian};
+\node[rung] (r5) at (2.0,{4*\dy}) {5. GLS, dense $G\times G$};
+\node[rung] (r6) at (2.0,{5*\dy}) {6. Sandwich / GEE};
+\node[rung] (r7) at (2.0,{6*\dy}) {7. GLMM};
+% covariance model and methods beside each rung
+\node[rnote] (n1) at (4.4,{0*\dy}) {$\operatorname{Cov}(\boldsymbol{e}_i\mid\boldsymbol{p}_{\cdot i})=\sigma^{2}\mathbf{I}_G$\\ Bisque (after its map), CSNet, BEDwARS, DSSC, GSNMF+,\\ swCAM, imply (stage III)};
+\node[rnote] (n2) at (4.4,{1*\dy}) {$\operatorname{diag}(\sigma^{2}_{gi})$, from the reference, the fit or the residuals\\ MuSiC, SCDC, DWLS, deMixSC, MEAD (weights), DSection, BayICE};
+\node[rnote] (n3) at (4.4,{2*\dy}) {$\varphi\,V(\text{mean})$, diagonal\\ DeconV (Poisson; NB with shared $P_g$), DeMixNB, ISOpureR, gnSPADE};
+\node[rnote, text width=64mm] (n4) at (4.4,{3*\dy}) {a function of $\boldsymbol{p}_{\cdot i}$, diagonal or dense\\ linear: RNA-Sieve, ReDeconv,\\ DeCovarT single-cell};
+\node[rnote, text width=46mm, draw=latdraw, fill=latfill, rounded corners=3pt, inner sep=1.6mm, line width=0.9pt] (u4) at (11.3,{3*\dy}) {Unico: $\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\Gamma}_g\boldsymbol{p}_{\cdot i}+\tau_g^{2}$,\\ quadratic, $J\times J$ across types;\\ two-moment GMM per gene};
+\node[rnote] (n5) at (4.4,{4*\dy}) {$\sum_jp_{ji}^{2}\boldsymbol{\Sigma}_j$, full $G\times G$\\ DeCovarT (Gaussian likelihood), DECALS (GLS variant, set aside)};
+\node[rnote] (n6) at (4.4,{5*\dy}) {working covariance, plus a sandwich over genes\\ DECALS (OLS + sandwich), MEAD};
+\node[rnote] (n7) at (4.4,{6*\dy}) {induced by random effects\\ RCTD, BayesPrism, bMIND, EPIC-unmix, BLADE, DeMixT;\\ DeCovarT read as an LMM; imply (subject random effect);\\ BLEND (reference-mixing weights)};
+% rails
+\draw[ink, line width=1.6pt] (0,-0.7) -- (0,{6*\dy+0.7});
+\draw[ink, line width=1.6pt] (4.0,-0.7) -- (4.0,{6*\dy+0.7});
+% errors-in-variables bracket on the left
+\draw[ink, line width=0.9pt] (-0.6,{0*\dy}) -- (-0.8,{0*\dy}) -- (-0.8,{5*\dy}) -- (-0.6,{5*\dy});
+\foreach \k/\lab in {0/{BEDwARS: prior on $\boldsymbol{\mu}$}, 3/{RNA-Sieve: joint likelihood}, 5/{MEAD: bias-corrected EE}} {
+  \draw[eivtick] (-0.8,{\k*\dy}) -- (-0.95,{\k*\dy});
+  \node[note, anchor=east, align=right, text width=30mm] at (-1.0,{\k*\dy}) {\lab};
+}
+\node[note, rotate=90, anchor=south, align=center] at (-4.2,{2.5*\dy}) {errors in variables: reference error $\boldsymbol{v}$, on any rung};
+% direction of the ladder
+\draw[edge] (2.0,{6*\dy+0.55}) -- (2.0,{6*\dy+1.15}) node[note, above] {more of $\operatorname{Cov}(\boldsymbol{e}_i\mid\boldsymbol{p}_{\cdot i})$ modelled};
+\end{tikzpicture}
+```
+
 Errors in variables cuts across the ladder: the regressor error
 $\boldsymbol{v}$ of @eq-eiv can be added on any rung, as a joint
 likelihood (`RNA-Sieve`, rung 4), a bias-corrected estimating equation
@@ -595,13 +733,13 @@ likelihood (`RNA-Sieve`, rung 4), a bias-corrected estimating equation
 
 | Rung | $\operatorname{Cov}(\boldsymbol{e}_i\mid\boldsymbol{p}_{\cdot i})$ | Reviewed methods | Interval for $\boldsymbol{p}_{\cdot i}$ |
 |---|---|---|---|
-| 1. OLS / NNLS | $\sigma^{2}\mathbf{I}_G$ | `Bisque` (after its gene-wise map), `CSNet` (both moment regressions), `BEDwARS`, `DSSC`, `GSNMF+`, `swCAM` | none, or posterior (`BEDwARS`) |
+| 1. OLS / NNLS | $\sigma^{2}\mathbf{I}_G$ | `Bisque` (after its gene-wise map), `CSNet` (both moment regressions), `BEDwARS`, `DSSC`, `GSNMF+`, `swCAM`, `imply` (stage III, with subject references) | none, or posterior (`BEDwARS`) |
 | 2. WLS | diagonal | `MuSiC`, `SCDC`, `DWLS`, `deMixSC`, `MEAD` (weights), `DSection`, `BayICE` | none when the weights are re-estimated from residuals |
-| 3. Mean–variance GLM | $\varphi V(\text{mean})$, diagonal | `DeconV` (Poisson), `DeMixNB` (negative binomial), `ISOpureR`, `gnSPADE` (multinomial) | Fisher information or posterior |
-| 4. QL / asymptotic Gaussian | linear in $\boldsymbol{p}_{\cdot i}$ | `RNA-Sieve` (composite), `ReDeconv`, `Unico` (moments), DeCovarT single-cell (dense, linear in $\boldsymbol{p}_{\cdot i}$) | Fisher or Godambe |
+| 3. Mean–variance GLM | $\varphi V(\text{mean})$, diagonal | `DeconV` (Poisson, or negative binomial with a shared $P_g$), `DeMixNB` (negative binomial), `ISOpureR`, `gnSPADE` (multinomial) | Fisher information or posterior |
+| 4. QL / asymptotic Gaussian | function of $\boldsymbol{p}_{\cdot i}$ (linear: `RNA-Sieve`, `ReDeconv`, DeCovarT single-cell; quadratic: `Unico`) | `RNA-Sieve` (composite), `ReDeconv`, `Unico` (moments, $J\times J$ across types), DeCovarT single-cell (dense, linear in $\boldsymbol{p}_{\cdot i}$) | Fisher or Godambe; not applicable for `Unico`, whose $\boldsymbol{p}_{\cdot i}$ is given |
 | 5. GLS, dense | full $G\times G$ | `DECALS` (GLS variant, set aside by its authors), DeCovarT ($\sum_jp_{ji}^{2}\boldsymbol{\Sigma}_j$, Gaussian likelihood) | Wald from the Fisher information, bootstrap |
 | 6. Sandwich / GEE | working, plus sandwich | `DECALS` (OLS + sandwich), `MEAD` | sandwich, $G\to\infty$ |
-| 7. GLMM | induced by random effects | `RCTD`, `BayesPrism`, `bMIND`, `EPIC-unmix`, `BLADE`, `DeMixT`; DeCovarT read as a linear mixed model ([LMM reading](05-2-bayesian-wiener.html#sec-bw-lmm)) | likelihood or posterior |
+| 7. GLMM | induced by random effects | `RCTD`, `BayesPrism`, `bMIND`, `EPIC-unmix`, `BLADE`, `DeMixT`, `imply` (subject random effect, stage II), `BLEND` (random reference-mixing weights); DeCovarT read as a linear mixed model ([LMM reading](05-2-bayesian-wiener.html#sec-bw-lmm)) | likelihood or posterior |
 
 : A ladder of noise models for the bulk error, from the least to the most structured covariance. A method appears on more than one rung when its point estimate and its interval use different covariance models. {#tbl-ladder}
 
@@ -1053,6 +1191,137 @@ single-cell individuals.
 platform error is removed by a learned map, then a homoscedastic moment
 estimator; no interval.
 
+#### Perspective: two-scale transport beyond the gene-wise map {#sec-bisque-ot}
+
+::: callout-note
+## Perspective
+
+Not implemented. DeCovarT learns its sample scales inside the
+likelihood
+([2.1, alignment](02-1-single-cell-generative-optimisation.html#sec-alignment);
+[2.1, profile Newton](02-1-single-cell-generative-optimisation.html#sec-profile-newton)).
+This subsection says what a richer alignment would add.
+:::
+
+`Bisque` states its goal per gene: "For each gene j, our goal is to
+transform the observed bulk expression across all n bulk samples
+$X_j\in\mathbb{R}^n$ to match the mean and variance of
+$Y_j\in\mathbb{R}^{n'}$; hence, the transformation of $X_j$ will be a
+linear transformation" [@jewAccurateEstimationCell2020, p. 10]. Here
+$Y_j$ is the pseudo-bulk of the $n'$ single-cell individuals. Without
+pairs, the map is
+$X_{j,\mathrm{transformed}}=(X_j-\bar X_j)\,\hat\sigma_j/\sigma_{X_j}+\bar Y_j$,
+with $\hat\sigma_j^{2}$ a shrunk variance of $Y_j$ (equations 2–3,
+p. 10). The authors name the price: "a key assumption of our
+transformation framework is that single-cell-based estimates of cell
+proportions accurately reflect the true proportions we wish to
+estimate" (p. 9).
+
+Our reading, not the authors': equation 3 is, gene by gene, the
+optimal transport map between two univariate Gaussians. Between
+$\mathcal{N}(\boldsymbol{m}_1,\boldsymbol{\Sigma}_1)$ and
+$\mathcal{N}(\boldsymbol{m}_2,\boldsymbol{\Sigma}_2)$ the quadratic-cost
+map is affine,
+
+$$
+T(\boldsymbol{x})=\boldsymbol{m}_2+\boldsymbol{A}(\boldsymbol{x}-\boldsymbol{m}_1),
+\qquad
+\boldsymbol{A}=\boldsymbol{\Sigma}_1^{-1/2}\bigl(\boldsymbol{\Sigma}_1^{1/2}\boldsymbol{\Sigma}_2\boldsymbol{\Sigma}_1^{1/2}\bigr)^{1/2}\boldsymbol{\Sigma}_1^{-1/2},
+$$ {#eq-bures-map}
+
+with cost
+$W_2^2=\lVert\boldsymbol{m}_1-\boldsymbol{m}_2\rVert^2+\operatorname{tr}\{\boldsymbol{\Sigma}_1+\boldsymbol{\Sigma}_2-2(\boldsymbol{\Sigma}_1^{1/2}\boldsymbol{\Sigma}_2\boldsymbol{\Sigma}_1^{1/2})^{1/2}\}$
+(Knott and Smith 1984; Dowson and Landau 1982).
+<!-- chk: V15a, V15b -->
+<!-- TODO-cite: Knott & Smith 1984, On the optimal mapping of distributions, J. Optim. Theory Appl. 43:39-49; Dowson & Landau 1982, The Frechet distance between multivariate normal distributions, J. Multivariate Anal. 12:450-455. Neither is in inst/REFERENCES.bib. -->
+For diagonal covariances $\boldsymbol{A}$ is diagonal with entries
+$\sigma_{2g}/\sigma_{1g}$, which is `Bisque`'s map.
+<!-- chk: V15c -->
+`Bisque` is thus
+Gaussian transport with genes independent, applied to the law of the
+**mixed** bulk across samples. That law depends on the composition of
+each cohort, hence the assumption quoted above.
+
+Transport of type-level laws avoids the composition. With the
+hierarchy of
+[2.1, three regimes](02-1-single-cell-generative-optimisation.html#sec-three-regimes)
+there are two laws per type, and so two scales (@fig-two-scale-ot):
+
+- **cell scale**: cells of type $j$ in specimen $r$,
+  $\mathcal{N}(\boldsymbol{M}_{jr},\boldsymbol{\Sigma}_{W,j})$. A map
+  $S_j$ aligns them across single-cell platforms, for example nuclei
+  against whole cells;
+- **type scale**: type-level profiles across specimens,
+  $\mathcal{N}(\tilde{\boldsymbol{\mu}}_{\cdot j},\boldsymbol{\Sigma}_{B,j})$.
+  A map $T_j$ carries this law to the bulk platform, against an
+  external population Gaussian such as sorted profiles or a
+  many-donor pseudo-bulk atlas.
+
+The mean of $C$ cells has covariance
+$\boldsymbol{\Sigma}_{B,j}+\boldsymbol{\Sigma}_{W,j}/C$, so $S_j$ and $T_j$
+differ even when the two covariances share structure; one transport
+does not serve both. The three maps form a ladder:
+
+| Map of a type-level law | Free parameters | Where |
+|---|---|---|
+| Scalar, $\boldsymbol{x}\mapsto a\boldsymbol{x}$ | 1 per bulk sample | DeCovarT, inside the likelihood ([2.1](02-1-single-cell-generative-optimisation.html#sec-av-scale)) |
+| Diagonal, gene-wise affine | $2G$ | `Bisque`, on the mixed bulk; platform ratio $\tilde{\boldsymbol{b}}$ of [2.1](02-1-single-cell-generative-optimisation.html#sec-alignment) |
+| Full affine, @eq-bures-map | $G+G(G+1)/2$ | This perspective |
+
+: Restrictions of an affine platform map, from the one DeCovarT fits to full Gaussian transport. {#tbl-transport-ladder}
+
+Any map richer than a scalar absorbs $\boldsymbol{p}_{\cdot i}$ if it is
+fitted on the bulk sample being deconvolved
+([2.1, alignment](02-1-single-cell-generative-optimisation.html#sec-alignment)).
+It needs paired samples, an external cohort or an external population
+law. With one reference specimen $\boldsymbol{\Sigma}_{B,j}$ is not
+identified
+([2.1, one replicate](02-1-single-cell-generative-optimisation.html#sec-one-replicate)),
+so $T_j$ needs that external law. `DecOT` uses transport differently,
+as a loss between count histograms for the composition
+[@liuDecotBulkDeconvolutionOptimal2022].
+
+```{.tikz}
+%%| label: fig-two-scale-ot
+%%| fig-cap: Two-scale transport for one cell type $j$ (perspective). Each specimen $r$ draws a type-level profile $\boldsymbol{M}_{jr}$ from $\mathcal{N}(\tilde{\boldsymbol{\mu}}_{\cdot j},\boldsymbol{\Sigma}_{B,j})$ (type scale); its cells scatter around it with $\boldsymbol{\Sigma}_{W,j}$ (cell scale). The map $S_j$ carries latent cells to the reference platform. The map $T_j$ pushes the type-level law to the bulk platform, where bulk sample $i$ mixes the transported profiles; $\boldsymbol{\epsilon}_i$ collects within-type cell noise and bulk measurement noise. `Bisque` instead applies a diagonal map to the mixed bulk.
+%%| filename: fig-two-scale-ot
+%%| alt: Generative model in plate notation for one cell type j. Fixed mean mu j and between-specimen covariance Sigma B j generate, inside a specimen plate, the latent type-level profile M j r. Inside a nested cell plate, M j r and the fixed within-type covariance Sigma W j generate the latent cell Z j r c, which the fixed cell-scale map S j turns into the observed reference cell X j r c. On the right, inside a bulk-sample plate, mu j, Sigma B j and the fixed type-scale map T j generate the latent bulk-platform profile M b j i, which with the fixed proportions p i generates the observed bulk y i.
+\begin{tikzpicture}
+\node[const] (mu) at (0,0) {$\tilde{\boldsymbol{\mu}}_{\cdot j}$};
+\node[const] (SB) at (2.4,0) {$\boldsymbol{\Sigma}_{B,j}$};
+\node[stoch] (M) at (1.2,-2.4) {$\boldsymbol{M}_{jr}$};
+\node[note, right=2mm of M] (nM) {$\mathcal{N}(\tilde{\boldsymbol{\mu}}_{\cdot j},\boldsymbol{\Sigma}_{B,j})$};
+\node[stoch] (Z) at (1.2,-4.6) {$\boldsymbol{Z}_{jrc}$};
+\node[note, right=2mm of Z] (nZ) {$\mathcal{N}(\boldsymbol{M}_{jr},\boldsymbol{\Sigma}_{W,j})$};
+\node[obs] (X) at (1.2,-6.8) {$\boldsymbol{X}_{jrc}$};
+\node[note, right=2mm of X] (nX) {$\boldsymbol{X}_{jrc}=S_j(\boldsymbol{Z}_{jrc})$};
+\node[const] (SW) at (-2.4,-4.6) {$\boldsymbol{\Sigma}_{W,j}$};
+\node[const] (S) at (-2.4,-6.8) {$S_j$};
+\node[note, below=1mm of S, align=center] {cell scale};
+\draw[edge] (mu) -- (M);
+\draw[edge] (SB) -- (M);
+\draw[edge] (M) -- (Z);
+\draw[edge] (SW) -- (Z);
+\draw[edge] (Z) -- (X);
+\draw[edge] (S) -- (X);
+\plate{cells}{(Z)(nZ)(X)(nX)}{cells $c$}
+\plate{spec}{(M)(nM)(cells)(cells-lab)}{specimens $r$}
+\node[const] (T) at (9.6,0) {$T_j$};
+\node[note, right=1mm of T] {type scale};
+\node[stoch] (Mb) at (9.6,-2.4) {$\boldsymbol{M}^{\mathrm{b}}_{ji}$};
+\node[note, right=2mm of Mb] (nMb) {$T_{j\#}\,\mathcal{N}(\tilde{\boldsymbol{\mu}}_{\cdot j},\boldsymbol{\Sigma}_{B,j})$};
+\node[obs] (y) at (9.6,-4.8) {$\boldsymbol{y}_{\cdot i}$};
+\node[const] (p) at (12.2,-4.8) {$\boldsymbol{p}_{\cdot i}$};
+\node[note, below=2mm of y] (ny) {$\boldsymbol{y}_{\cdot i}=a_i\sum_{j}p_{ji}\boldsymbol{M}^{\mathrm{b}}_{ji}+\boldsymbol{\epsilon}_i$};
+\draw[edge] (mu) to[out=25, in=150] (Mb);
+\draw[edge] (SB) -- (Mb);
+\draw[edge] (T) -- (Mb);
+\draw[edge] (Mb) -- (y);
+\draw[edge] (p) -- (y);
+\plate{bulk}{(Mb)(nMb)(y)(p)(ny)}{bulk samples $i$}
+\end{tikzpicture}
+```
+
 ### RCTD {#sec-rctd}
 
 ```{.tikz}
@@ -1156,6 +1425,112 @@ Gaussian law.
 Poisson–log-normal GLMM; response error only; the reference means are
 plugged in and the platform effect is predicted in stage 1, then held
 fixed.
+
+### DeconV {#sec-deconv}
+
+```{.tikz}
+%%| label: fig-dag-deconv
+%%| fig-cap: `DeconV` [@gynterDeconvProbabilisticCellType2023] in this vignette's notation, Poisson ("gamma") variant. Left, the reference model, fitted first: the counts of cell $c$ of type $j$ are zero-inflated Poisson with a Gamma-distributed rate and a type-specific dropout $d_j$. Right, the bulk model: the fitted hyperparameters give a Gamma rate $\theta_{gj}$ per type, the proportions follow a Dirichlet whose concentration $\boldsymbol{N}$ is fitted, and the bulk count is Poisson with a mean linear in $\boldsymbol{p}_{\cdot i}$. The negative-binomial variant replaces $\theta_{gj}$ by a log-normal $r_{gj}$ and adds a gene-wise $P_g$ shared by all types.
+%%| filename: fig-dag-deconv
+%%| alt: Two-part plate diagram. Left, inside a cell-type plate, fixed hyperparameters alpha and beta generate a latent Gamma rate lambda g j; inside a nested cell plate, lambda and a fixed dropout d j generate the observed count x g c through a zero-inflated Poisson. An arrow leaves the reference and gives the deterministic fitted hyperparameters alpha hat and beta hat. Right, inside a bulk-sample plate, the fitted hyperparameters generate a latent Gamma rate theta g j; a fixed concentration N generates latent Dirichlet proportions p i; with a fixed scale K i they generate the observed bulk count y g i, Poisson with mean K i times the sum over types of p j i theta g j, or negative binomial with a shared P g.
+\begin{tikzpicture}
+% reference model, fitted first
+\node[const] (ab) at (0,0) {$\alpha_{gj},\beta_{gj}$};
+\node[const] (d) at (2.4,0) {$d_j$};
+\node[stoch] (lam) at (0,-2.0) {$\lambda_{gj}$};
+\node[obs] (x) at (1.2,-4.0) {$x_{gc}$};
+\node[note, left=1mm of lam] (nlam) {$\mathrm{Gamma}(\alpha_{gj},\beta_{gj})$};
+\node[note, below=2mm of x] (nx) {$\mathrm{ZIPoisson}(\lambda_{gj},d_j)$};
+\draw[edge] (ab) -- (lam); \draw[edge] (lam) -- (x); \draw[edge] (d) -- (x);
+\plate{cells}{(x)(nx)}{cells $c\in\mathcal{C}_j$}
+\plate{refj}{(lam)(nlam)(cells)(cells-lab)}{$j=1,\ldots,J$}
+% deconvolution model
+\node[det] (hat) at (5.2,0) {$\hat\alpha_{gj},\hat\beta_{gj}$};
+\node[note, above=1mm of hat] {fitted on the reference};
+\node[stoch] (th) at (5.2,-2.0) {$\theta_{gj}$};
+\node[note, right=1mm of th] (nth) {$\mathrm{Gamma}(\hat\alpha_{gj},\hat\beta_{gj})$};
+\node[const] (N) at (9.4,0) {$\boldsymbol{N}$};
+\node[stoch] (p) at (9.4,-2.0) {$\boldsymbol{p}_{\cdot i}$};
+\node[note, right=1mm of p] (np) {$\mathrm{Dir}(\boldsymbol{N})$};
+\node[const] (K) at (11.0,-4.0) {$K_i$};
+\node[obs] (y) at (7.4,-4.0) {$y_{gi}$};
+\node[note, below=2mm of y, align=center] (ny) {$\mathrm{Poisson}\bigl(K_i\sum_jp_{ji}\theta_{gj}\bigr)$\\ or $\mathrm{NB}\bigl(K_i\sum_jp_{ji}r_{gj},P_g\bigr)$};
+\draw[edge] (x.east) -- ++(1.4,0) |- (hat.west);
+\draw[edge] (hat) -- (th); \draw[edge] (th) -- (y); \draw[edge] (N) -- (p);
+\draw[edge] (p) -- (y); \draw[edge] (K) -- (y);
+\plate{bulk}{(th)(nth)(p)(np)(y)(ny)(K)}{bulk sample $i$}
+\end{tikzpicture}
+```
+
+`DeconV` fits a count model to the single-cell reference, then
+aggregates it to the bulk [@gynterDeconvProbabilisticCellType2023]. The
+reference model (equations 1–2, p. 6) takes the counts of a cell $c$ of
+type $j$ as zero-inflated Poisson, $x_{gc}\sim\mathrm{ZIPoisson}(\lambda_{gj},d_j)$,
+or zero-inflated negative binomial, $\mathrm{ZINB}(r_{gj},P_g,d_j)$,
+with priors $\lambda_{gj}\sim\mathrm{Gamma}(\alpha_{gj},\beta_{gj})$,
+$r_{gj}\sim\mathrm{LogNormal}(\mu_{gj},\sigma_{gj})$ and
+$P_g\sim\mathrm{Beta}(\alpha_g,\beta_g)$. The hyperparameters and the
+dropout are fitted by maximum likelihood on mini-batches of cells. The
+bulk model (equations 3–5, pp. 6–7) is
+
+$$
+\theta_{gj}\sim\mathrm{Gamma}(\hat\alpha_{gj},\hat\beta_{gj}),
+\qquad
+y_{gi}\sim\mathrm{Poisson}\Bigl(K_i\sum_jp_{ji}\theta_{gj}\Bigr),
+\qquad
+\boldsymbol{p}_{\cdot i}\sim\mathrm{Dirichlet}(\boldsymbol{N}),
+$$ {#eq-deconv}
+
+or $y_{gi}\sim\mathrm{NB}\bigl(K_i\sum_jp_{ji}r_{gj},P_g\bigr)$ with
+$r_{gj}$ and $P_g$ drawn from their fitted priors. $K_i$ is "proportional
+to the number of cells sequenced and the sequencing depth of the bulk
+sample" (p. 6). Five dropout configurations, with or without zero
+inflation of the bulk, are offered (Table S1, p. 14); the bulk dropout,
+when kept, is $d_g=\sum_jp_{ji}d_{gj}$ (equation 6, p. 7). Only the
+Dirichlet concentration $\boldsymbol{N}$ is fitted on the bulk; the
+reference hyperparameters stay fixed (p. 7). Both stages run in Pyro
+with Adam, clipped gradients and learning-rate decay (pp. 7–8). The
+95% intervals of Fig. 3 (p. 11) are read from $\mathrm{Dir}(\hat{\boldsymbol{N}})$,
+"the distribution for bulk cell type proportions" (p. 7). The paper
+describes that fit as gradient steps on the log-likelihood under draws
+from the Dirichlet and states no variational objective, so the
+calibration of these intervals cannot be judged from the text (our
+remark). Genes are independent, and no covariance is modelled.
+
+**Aggregation, and when it is exact.** The Poisson bulk rests on "the
+sum of two (or more) Poisson random variables has also a Poisson
+distribution" (p. 6). If a bulk holds $m_{ji}$ cells of type $j$ whose
+counts of gene $g$ are independent $\mathrm{Poisson}(\theta_{gj})$, the
+total is $\mathrm{Poisson}(\sum_jm_{ji}\theta_{gj})$, which is
+@eq-deconv with $K_i\propto n_i$: an exact convolution of univariate
+Poissons. The negative-binomial bulk is exact only because $P_g$ is
+shared by all types: a sum of independent $\mathrm{NB}(r_c,P)$ variables
+is $\mathrm{NB}(\sum_cr_c,P)$, so $m_{ji}$ cells of type $j$ add up to
+$\mathrm{NB}(\sum_jm_{ji}r_{gj},P_g)$. With a type-specific $P_{gj}$ the
+sum is no longer negative binomial, and its law is a finite convolution
+of the kind `DeMixNB` evaluates (@sec-semi-reference-methods) (our
+remark). In the Poisson variant, $\theta_{gj}$ is drawn once per bulk, so every cell of a
+type shares one rate: the Gamma layer is a random population profile,
+and $\operatorname{Var}(y_{gi})=K_i\sum_jp_{ji}\mathbb{E}\theta_{gj}+K_i^{2}\sum_jp_{ji}^{2}\operatorname{Var}\theta_{gj}$
+adds a term quadratic in $p_{ji}$ to the Poisson term, gene by gene
+(our reading).
+
+**Relation to `deMixSC`, `DeMixNB` and DeCovarT.** `deMixSC` writes the
+bulk the same way, as a sum over the cells of each type (supplementary
+note, equations S.1–S.2, pp. 1–2; @eq-demixsc-model), but adds a
+mean-zero bulk noise with no law and fits weighted NNLS: it uses the
+sum for the mean only, and it is not a negative-binomial convolution.
+`DeMixNB` is the exact convolution of two negative binomials with their
+own dispersions [@montierthDeconvolutionSparsecountRNA2025]. DeCovarT
+convolves Gaussian population profiles and keeps their gene–gene
+covariance. In that order the variance model grows from a weight
+(`deMixSC`, rung 2) to a count law per gene (`DeconV`, `DeMixNB`,
+rung 3) to a dense covariance (DeCovarT, rung 5).
+
+*Ladder and errors in variables (@sec-ladder, @sec-eiv):* rung 3, a
+Poisson or negative-binomial GLM per gene, with a random Gamma rate or
+log-normal size; response error only, the reference law is plugged in
+through its fitted hyperparameters; interval from the fitted Dirichlet.
 
 ### ReDeconv {#sec-redeconv}
 
@@ -1516,7 +1891,7 @@ $$
 $$ {#eq-gaussian-convolution}
 
 which is the released DeCovarT law when the profiles are Gaussian.
-Three families use these identities.
+Four families use these identities.
 
 - **Type-level gene networks across a cohort.** `CSNet` regresses the
   outer products of bulk residuals on the squared proportions to
@@ -1535,6 +1910,10 @@ Three families use these identities.
   @eq-gaussian-convolution is read as a linear mixed model; both are
   derived in the
   [Wiener-filter vignette](05-2-bayesian-wiener.html#sec-map-blup).
+- **Subject-level references from repeated bulks.** `imply` predicts a
+  profile per subject, shared by that subject's repeated samples, with
+  a gene-wise linear mixed model, then re-estimates the proportions
+  with it (@sec-imply).
 
 On the measurement side, these methods need the bulk on a linear scale
 (FPKM for `CSNet`). When the bulk is normalised by its own library size,
@@ -1668,15 +2047,45 @@ $$ {#eq-unico}
 
 so that $\operatorname{Var}(y_{gi})=\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\Gamma}_g\boldsymbol{p}_{\cdot i}+\tau_g^{2}$.
 
-- **Estimator.** A generalised method of moments per gene (equations
-  9--12, pp. 13--14): one first-moment condition,
-  $y_{gi}-\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\mu}_{g\cdot}$, and one
-  second-moment condition,
-  $(y_{gi}-\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\mu}_{g\cdot})^{2}-\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\Gamma}_g\boldsymbol{p}_{\cdot i}-\tau_g^{2}$,
-  per sample, combined with a diagonal weight matrix; that is iterated
-  weighted least squares, with non-negative means, a small ridge on
-  $\boldsymbol{\Gamma}_g$ and samples beyond two standard deviations
-  dropped (p. 14).
+- **Estimator: the model moments of each bulk sample.** Each bulk
+  sample has its own law, set by its proportions $\boldsymbol{p}_{\cdot i}$
+  and the gene parameters
+  $\theta_g=\{\boldsymbol{\mu}_{g\cdot},\boldsymbol{\Gamma}_g,\tau_g^{2}\}$.
+  `Unico` therefore does not pool the samples into one empirical moment:
+  each sample contributes one condition per moment, which matches a
+  model moment with that sample's observation and has mean zero under
+  the model (equations 9–11, p. 13),
+
+  $$
+  f_{1i}(\theta_g)=\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\mu}_{g\cdot}-y_{gi},
+  \qquad
+  f_{2i}(\theta_g)=\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\Gamma}_g\boldsymbol{p}_{\cdot i}+\tau_g^{2}-\bigl(y_{gi}-\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\mu}_{g\cdot}\bigr)^{2}.
+  $$ {#eq-unico-gmm}
+
+  The $N$ conditions per moment outnumber the $J+J(J+1)/2+1$ parameters,
+  so the estimate minimises $\boldsymbol{f}^{\top}\hat{\boldsymbol{U}}\boldsymbol{f}$,
+  with $\hat{\boldsymbol{U}}$ the inverse covariance of the conditions
+  (equation 12, pp. 13–14) [@hansenLargeSampleProperties1982].
+  Independent samples make $\hat{\boldsymbol{U}}$ diagonal and the
+  problem weighted least squares; in practice $\hat{\boldsymbol{U}}$ only
+  down-weights samples with large condition values (p. 14).
+- **Implementation** (p. 14). The means are fitted under non-negativity
+  by the constrained least-squares solver `pcls` of `mgcv`; the
+  variances and covariances by COBYLA (`nloptr`), with a small $L_2$
+  penalty against the collinearity of the proportions. Samples more than
+  two standard deviations from the gene mean are dropped. The weights
+  are updated after each iteration: two iterations for the means, three
+  for the (co)variances.
+- **What the moments are taken from.** The inputs are the bulk matrix
+  and proportions estimated beforehand (p. 11); `Unico` needs no
+  single-cell reference. Single cells enter the paper only to build
+  benchmark pseudo-bulks: the type-level pseudo-bulk profiles of one
+  randomly drawn donor are mixed with the proportions of another
+  randomly drawn donor (p. 17), so that the true sample-level profiles
+  are known. `Bisque`'s unpaired mode (@sec-bisque-ot) is different: it
+  matches the mean and variance of each gene across bulk samples with
+  those of single-cell pseudo-bulks, two empirical laws. `Unico` matches
+  the model moments of each bulk sample with that sample's observation.
 - **Profiles.** The conditional expectation under a Gaussian working
   law (Theorem 1, p. 12),
   $\hat{\boldsymbol{x}}_{g\cdot,i}=\boldsymbol{\mu}_{g\cdot}+\boldsymbol{\Gamma}_g\boldsymbol{p}_{\cdot i}(y_{gi}-\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\mu}_{g\cdot})/(\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\Gamma}_g\boldsymbol{p}_{\cdot i}+\tau_g^{2})$,
@@ -1696,9 +2105,132 @@ is the variance of gene $g$ under DeCovarT. The off-diagonal of
 $\boldsymbol{\Gamma}_g$ is what DeCovarT drops by assuming independent
 types; the gene–gene couplings are what `Unico` drops (our remark).
 
+**A confounding between $\boldsymbol{\Gamma}_g$ and $\tau_g^{2}$ (our
+remark).** Because $\mathbf{1}^{\top}\boldsymbol{p}_{\cdot i}=1$,
+$\boldsymbol{p}_{\cdot i}^{\top}(\boldsymbol{\Gamma}_g+c\mathbf{1}\mathbf{1}^{\top})\boldsymbol{p}_{\cdot i}=\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\Gamma}_g\boldsymbol{p}_{\cdot i}+c$
+for every sample. Adding $c$ to every entry of $\boldsymbol{\Gamma}_g$
+and subtracting $c$ from $\tau_g^{2}$ leaves every condition of
+@eq-unico-gmm unchanged, so the bulk moments identify the constant part
+of $\boldsymbol{\Gamma}_g$ and $\tau_g^{2}$ only together, within the
+range allowed by $\tau_g^{2}\ge0$ and
+$\boldsymbol{\Gamma}_g+c\mathbf{1}\mathbf{1}^{\top}\succeq0$. The $L_2$
+penalty picks one point of that range.
+<!-- chk: V21a -->
+The choice is not neutral downstream. In Theorem 1 the denominator is
+unchanged, but the numerator gains $c\mathbf{1}$, so every type's profile
+in sample $i$ moves by the same amount
+$c\,(y_{gi}-\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\mu}_{g\cdot})/(\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\Gamma}_g\boldsymbol{p}_{\cdot i}+\tau_g^{2})$,
+and the cross-type correlations of $\boldsymbol{\Gamma}_g$ change with
+$c$.
+
+**Entropy as a stratifier.** `Unico` summarises $\boldsymbol{\Gamma}_g$
+by the von Neumann entropy of the $J\times J$ cross-type correlation:
+the entropy of its normalised eigenvalues, scaled to $[0,1]$ (pp. 19–20).
+The entropy only splits genes at the median for evaluation; it does
+not filter them. Low-entropy genes, with strong cross-type correlation,
+gain most from modelling $\boldsymbol{\Gamma}_g$ (average correlation
+improvement 20.0% against 14.9%, p. 6). By the remark above, the entropy
+of an estimated $\boldsymbol{\Gamma}_g$ inherits the $c\mathbf{1}\mathbf{1}^{\top}$
+shift (our remark). The analogue for DeCovarT's $G\times G$ covariance is
+in the
+[feature-selection vignette](03-1-feature-selection.html#sec-fs-vn-entropy).
+
 *Ladder and errors in variables (@sec-ladder, @sec-eiv):* the reverse
-problem again, rung 4, with two-moment conditions solved by a
-generalised method of moments.
+problem again, rung 4, with a variance quadratic in
+$\boldsymbol{p}_{\cdot i}$ through a $J\times J$ covariance across types,
+and two-moment conditions per bulk sample solved by a generalised
+method of moments; the proportions are plugged in as exact.
+
+## Subject-specific references from repeated bulks (imply) {#sec-imply}
+
+```{.tikz}
+%%| label: fig-dag-imply
+%%| fig-cap: Stage II of `imply` [@mengImplyImprovingCelltype2024] in this vignette's notation. Subjects $n$ are the independent units; their $t_n$ repeated bulk samples $i$ are correlated replicates. For gene $g$ and type $j$, the subject reference $r_{gjn}$ is a fixed group mean plus a subject random effect; the bulk mean mixes the subject references with the stage-I proportions $\hat\theta_{j,ni}$, held fixed. Stage III re-estimates the proportions by non-negative least squares with $\boldsymbol{R}_n=[r_{gjn}]$.
+%%| filename: fig-dag-imply
+%%| alt: Nested plate diagram. Outside the plates, fixed effects m g j and beta g j. Inside a subject plate, a fixed group label z n and a latent subject random effect u g j n combine with the fixed effects into the deterministic subject reference r g j n, equal to m plus beta times z plus u. Inside a nested plate of repeated samples, the fixed stage-I proportions theta hat and the subject reference generate the observed bulk y g n i, whose expectation is the sum over types of r g j n times theta hat j n i.
+\begin{tikzpicture}
+\node[const] (m) at (0,0) {$m_{gj},\beta_{gj}$};
+\node[note, above=1mm of m] {fixed effects (REML)};
+\node[const] (z) at (-2.4,-2.0) {$z_n$};
+\node[note, left=1mm of z] {group};
+\node[stoch] (u) at (2.4,-2.0) {$u_{gjn}$};
+\node[note, right=1mm of u] (nu) {subject effect};
+\node[det] (r) at (0,-3.8) {$r_{gjn}$};
+\node[note, right=1mm of r] (nr) {$=m_{gj}+\beta_{gj}z_n+u_{gjn}$};
+\node[const] (th) at (-2.4,-5.8) {$\hat\theta_{j,ni}$};
+\node[note, left=1mm of th, align=right] (nth) {stage I\\ ($\nu$-SVR)};
+\node[obs] (y) at (0,-5.8) {$y_{g,ni}$};
+\node[note, below=2mm of y] (ny) {$\mathbb{E}\,y_{g,ni}=\sum_jr_{gjn}\hat\theta_{j,ni}$};
+\draw[edge] (m) -- (r); \draw[edge] (z) -- (r); \draw[edge] (u) -- (r);
+\draw[edge] (r) -- (y); \draw[edge] (th) -- (y);
+\plate{reps}{(th)(nth)(y)(ny)}{repeated samples $i\le t_n$}
+\plate{subj}{(z)(u)(nu)(r)(nr)(reps)(reps-lab)}{subjects $n=1,\ldots,N$}
+\end{tikzpicture}
+```
+
+`imply` estimates a reference per **subject** from that subject's
+repeated bulk samples, then deconvolves those samples again with it
+[@mengImplyImprovingCelltype2024]. It assumes that the repeated samples
+of one subject, for example several brain regions or longitudinal
+draws, share one cell-type-specific profile and differ only in
+composition (p. 4). Single cells, or cell lines, enter only through the
+population signature of stage I. Below, $n$ is the subject, $i$ one of
+its $t_n$ repeated samples, $j$ the type and $g$ the gene (the paper
+uses $k$ for the type).
+
+1. **Stage I** (p. 4). $\nu$-support vector regression of each sample on
+   a population signature; negative estimates are set to zero and the
+   rest renormalised, which gives $\hat\theta_{j,ni}$.
+2. **Stage II** (pp. 4–5). For each gene, a linear mixed model with the
+   stage-I proportions as covariates,
+
+   $$
+   \mathbb{E}(y_{g,ni})=\sum_j\bigl(m_{gj}+\beta_{gj}z_n+u_{gjn}\bigr)\hat\theta_{j,ni},
+   $$ {#eq-imply-lmm}
+
+   with $z_n$ a binary group label, fixed effects $m_{gj}$ (control mean)
+   and $\beta_{gj}$ (group difference), and a subject random effect
+   $u_{gjn}$. It is fitted by penalised least squares with restricted
+   maximum likelihood (REML), and the subject reference is
+   $r_{gjn}=\hat m_{gj}+z_n\hat\beta_{gj}+\hat u_{gjn}$ (p. 5): the best
+   linear unbiased predictor of the subject's profile. The covariance of
+   $u_{gjn}$ across types is not stated in the main text.
+3. **Stage III** (p. 5). Non-negative least squares jointly over the
+   samples of subject $n$,
+   $\min_{\boldsymbol{\Theta}_n\ge0}\lVert(\boldsymbol{R}_n\otimes\mathbf{I}_{t_n})\operatorname{vec}(\boldsymbol{\Theta}_n^{\top})-\operatorname{vec}(\boldsymbol{y}_n^{\top})\rVert_2$,
+   by quadratic programming.
+
+**Reading.** Stage II is the reverse problem of @sec-cts-given-p at the
+subject level: the composition is known, the profiles are random, and
+the BLUP returns them. It is the gene-wise analogue of DeCovarT's Wiener
+filter read as a linear mixed model
+([LMM reading](05-2-bayesian-wiener.html#sec-bw-lmm)), with one random
+effect shared by the $t_n$ repeated samples of a subject instead of one
+profile per bulk sample, and no gene–gene covariance. The stage-III
+objective equals $\sum_i\lVert\boldsymbol{R}_n\boldsymbol{\theta}_{\cdot ni}-\boldsymbol{y}_{\cdot ni}\rVert^{2}$
+under element-wise non-negativity, so the joint fit separates into one
+NNLS per sample with a shared $\boldsymbol{R}_n$ (our remark). The same
+samples build $\boldsymbol{R}_n$ and are deconvolved with it, and the
+stage-I proportions enter stage II as exact covariates: the data are
+used twice, and no interval is returned (our remark).
+
+**Perspective: a count mixed model (ours).** The linear mixed model is
+the Gaussian member of rung 7. On counts, the natural extension is a
+negative-binomial mixed model with an identity link on the mixture
+mean,
+$\mathbb{E}(y_{g,ni}\mid u)=s_{ni}\sum_j(m_{gj}+\beta_{gj}z_n+u_{gjn})\hat\theta_{j,ni}$
+and $\operatorname{Var}(y_{g,ni}\mid u)=\mathbb{E}+\mathbb{E}^{2}/\phi_g$, with
+$s_{ni}$ a library size, fitted by Laplace approximation as in
+`glmmTMB`-type software.
+<!-- TODO-cite: Brooks et al. 2017, glmmTMB balances speed and flexibility among packages for zero-inflated generalized linear mixed modeling, The R Journal 9(2):378-400, doi:10.32614/RJ-2017-066; not in inst/REFERENCES.bib or inst/packages.bib. -->
+The identity link keeps the physical sum of cells; a log link would mix
+logarithms (caveat 1 of @sec-synthesis). The mean must then stay
+positive, a constraint the solver has to enforce.
+
+*Ladder and errors in variables (@sec-ladder, @sec-eiv):* rung 7 for the
+subject references (a Gaussian linear mixed model), rung 1 for the final
+proportions (NNLS with $\boldsymbol{R}_n$ plugged in); the stage-I
+proportions are treated as exact; no interval.
 
 # Bayesian reference-based deconvolution {#sec-bayesian}
 
@@ -1845,6 +2377,7 @@ total.
 | `BLADE` | linear (TPM) | log-normal, normal-gamma | none | Dirichlet | collapsed VI | proportions, sample-level profiles |
 | `BEDwARS` | linear (RPKM) | log-normal around the reference | none | Dirichlet | MH chains | proportions, cohort signature |
 | `BayesPrism` | counts | from single cells | none | Dirichlet | Gibbs | proportions, sample-level profiles |
+| `BLEND` | counts | convex mixture of $M_j$ observed references, Dirichlet weights | none stated; rank $\le M_j-1$ implied (our remark) | Dirichlet | Gibbs or EM-MAP | RNA fractions, per-sample references |
 
 : Bayesian methods for cell-type-specific profiles. None models a $G\times G$ gene–gene covariance. {#tbl-bayes-cts}
 
@@ -1855,6 +2388,97 @@ separable covariance
 $\operatorname{Cov}(\operatorname{vec}\boldsymbol{X}_i)=\boldsymbol{\Gamma}\otimes\boldsymbol{\Sigma}$
 for the $G\times J$ matrix of purified profiles would contain both as
 special cases (our remark); no reviewed method fits it.
+
+### BLEND: a per-sample mixture of references {#sec-blend}
+
+```{.tikz}
+%%| label: fig-dag-blend
+%%| fig-cap: `BLEND` [@huangBLENDProbabilisticCellular2024] in this vignette's notation. Each bulk sample $i$ draws RNA fractions $\boldsymbol{q}_{\cdot i}$ and, for each type $j$, weights $\boldsymbol{\psi}_{j,i}$ over the $M_j$ observed references $\boldsymbol{\Phi}_{j,m}$; the sample's reference for type $j$ is their convex combination. Each read draws a type, then a gene from that type's sample reference, so the gene counts are multinomial.
+%%| filename: fig-dag-blend
+%%| alt: Plate diagram. A fixed alpha generates the latent RNA fractions q i inside a bulk-sample plate. A fixed beta j generates the latent reference weights psi j i inside a nested type plate; with the fixed observed references Phi j m outside the sample plate they give the deterministic sample reference Phi B j i, the weighted sum of the references. Inside a read plate, a latent type label Y i r drawn from q i and the sample reference of that type generate the observed gene identity X tilde i r, categorical.
+\begin{tikzpicture}
+\node[const] (al) at (-3.4,0) {$\boldsymbol{\alpha}$};
+\node[stoch] (q) at (-3.4,-2.2) {$\boldsymbol{q}_{\cdot i}$};
+\node[note, left=1mm of q] (nq) {$\mathrm{Dir}(\boldsymbol{\alpha})$};
+\node[const] (be) at (1.6,0) {$\boldsymbol{\beta}_j$};
+\node[stoch] (psi) at (1.6,-2.2) {$\boldsymbol{\psi}_{j,i}$};
+\node[note, right=1mm of psi] (npsi) {$\mathrm{Dir}(\boldsymbol{\beta}_j)$};
+\node[det] (Phb) at (1.6,-4.4) {$\boldsymbol{\Phi}^{\mathrm{B}}_{j,i}$};
+\node[note, left=1mm of Phb] (nPhb) {$=\sum_m\psi_{j,i,m}\boldsymbol{\Phi}_{j,m}$};
+\node[const] (Ph) at (6.6,-4.4) {$\boldsymbol{\Phi}_{j,m}$};
+\node[note, above=1mm of Ph, align=center] (nPh) {observed references\\ $m\le M_j$};
+\node[stoch] (Y) at (-3.4,-6.6) {$Y_{i,r}$};
+\node[note, left=1mm of Y] (nY) {$\mathrm{Cat}(\boldsymbol{q}_{\cdot i})$};
+\node[obs] (X) at (1.6,-6.6) {$\tilde X_{i,r}$};
+\node[note, right=1mm of X] (nX) {$\mathrm{Cat}\bigl(\boldsymbol{\Phi}^{\mathrm{B}}_{Y_{i,r},i}\bigr)$};
+\draw[edge] (al) -- (q); \draw[edge] (be) -- (psi); \draw[edge] (psi) -- (Phb);
+\draw[edge] (Ph) -- (Phb); \draw[edge] (q) -- (Y); \draw[edge] (Y) -- (X); \draw[edge] (Phb) -- (X);
+\plate{types}{(psi)(npsi)(Phb)(nPhb)}{types $j$}
+\plate{reads}{(Y)(nY)(X)(nX)}{reads $r\le R_i$}
+\plate{samples}{(q)(nq)(types)(types-lab)(reads)(reads-lab)}{bulk sample $i$}
+\end{tikzpicture}
+```
+
+`BLEND` is the count member of this family with several references per
+type [@huangBLENDProbabilisticCellular2024]. Its generative model
+(p. 8) is latent Dirichlet allocation with per-sample topics. For bulk
+sample $i$ with read depth $R_i$,
+
+$$
+\boldsymbol{q}_{\cdot i}\sim\mathrm{Dir}(\boldsymbol{\alpha}),
+\qquad
+\boldsymbol{\psi}_{j,i}\sim\mathrm{Dir}(\boldsymbol{\beta}_j),
+\qquad
+\boldsymbol{y}_{\cdot i}\mid\boldsymbol{q}_{\cdot i},\{\boldsymbol{\psi}_{j,i}\}
+\sim\mathrm{Mult}\Bigl(R_i,\ \sum_jq_{ji}\,\boldsymbol{\Phi}^{\mathrm{B}}_{j,i}\Bigr),
+\qquad
+\boldsymbol{\Phi}^{\mathrm{B}}_{j,i}=\sum_{m=1}^{M_j}\psi_{j,i,m}\boldsymbol{\Phi}_{j,m},
+$$ {#eq-blend}
+
+where the $\boldsymbol{\Phi}_{j,m}$ are the observed references of type
+$j$, each a distribution over genes. The reference of type $j$ in sample
+$i$ thus lies in the convex hull of the observed references (p. 8). The
+multinomial collects the reads of steps (iii)–(v) of the paper, each
+drawn independently given the fractions and the weights (our
+rewriting).
+
+- **Inference** (pp. 9–10). Gibbs sampling, after each read is given
+  its reference source as an extra latent label, with all entries of
+  $\boldsymbol{\alpha}$ and $\boldsymbol{\beta}_j$ set to $0.01$; or EM for
+  the maximum a posteriori estimate under the simplex constraints. On
+  one bulk sample of 6,388 genes with nine references, the Gibbs sampler
+  takes 36 minutes and EM-MAP 1.5 minutes (p. 10). The authors call
+  these priors non-informative; a Dirichlet with concentrations $0.01$
+  favours sparse weights, near the vertices of the simplex (our remark).
+- **Cell size** (p. 10). $\boldsymbol{q}_{\cdot i}$ are RNA fractions;
+  cell fractions are $p_{ji}=(q_{ji}/S_j)/\sum_{j'}(q_{j'i}/S_{j'})$, with
+  $S_j$ given or estimated by average library sizes.
+- **Stated limits** (p. 7). "Gene-gene correlation is ignored in BLEND
+  for model simplicity", and, although the posterior is available,
+  "statistical inference for cellular fractions is not appropriate".
+
+**Comparison with the Wiener filter.** Both `BLEND` and DeCovarT's
+latent-profile form ([Wiener filter](05-2-bayesian-wiener.html#sec-map-blup))
+return a profile per type and per bulk sample. `BLEND` restricts it to
+the hull of the observed references: at most $M_j-1$ free weights per
+type, on the scale of relative abundances, so a deviation that no
+reference shows cannot be expressed. The Wiener filter shrinks the bulk
+residual continuously onto each type along $\boldsymbol{\Sigma}_j$, can
+return any vector in $\mathbb{R}^{G}$, and has a closed-form posterior
+covariance ([posterior covariance](05-2-bayesian-wiener.html#eq-bw-postcov)).
+Gene dependence is not absent from `BLEND`: across samples,
+$\operatorname{Cov}(\boldsymbol{\Phi}^{\mathrm{B}}_{j,i})=\boldsymbol{\Phi}_j\operatorname{Cov}(\boldsymbol{\psi}_{j,i})\boldsymbol{\Phi}_j^{\top}$,
+with $\boldsymbol{\Phi}_j=[\boldsymbol{\Phi}_{j,1},\ldots,\boldsymbol{\Phi}_{j,M_j}]$,
+a gene–gene covariance of rank at most $M_j-1$ carried by the
+references (our remark). With a sample covariance of the $M_j$
+references plugged in as $\boldsymbol{\Sigma}_j$, the Wiener filter would
+be the Gaussian, continuous counterpart of that hull (our remark).
+
+*Ladder and errors in variables (@sec-ladder, @sec-eiv):* rung 7, a
+multinomial given latent fractions and reference weights; the reference
+error is modelled only as a choice within the hull of the observed
+references; posterior summaries, which the authors do not use for
+inference.
 
 ## Proportions {#sec-bayes-prop}
 
@@ -2157,14 +2781,17 @@ mean–variance relationship of counts (@sec-poisson-measurement).
 | `DWLS` | linear | implied quadratic in the mean | no | no | no | 2 | weighted LS |
 | `deMixSC` | relative abundance | fitted mean squared plus residual squared | no | no | no | 2 | iterated weighted NNLS |
 | `RCTD` | counts | Poisson–log-normal | no | no | no | 7 | two-stage MLE |
+| `DeconV` | counts | Poisson or negative binomial, plus a term quadratic in $p_{ji}$ from the Gamma rate (our reading) | no | no | fitted prior | 3 | stochastic gradient (Pyro, clipped Adam) |
 | `DECALS` | FPKM | quadratic | yes (moments) | no | no | 6 (5 set aside) | OLS + sandwich |
 | `MEAD` | linear | sandwich over dependent genes | yes (global) | no | yes | 2 inside 6 | estimating equations |
 | DeCovarT | linear | quadratic | yes (plug-in, sparse) | no | bootstrap | 5 | MLE |
 | `CSNet` | FPKM | quadratic | yes (estimand) | no | no | 1 (reverse problem) | moments + thresholding |
 | `Unico` | linear | $\boldsymbol{p}^{\top}\boldsymbol{\Gamma}_g\boldsymbol{p}+\tau_g^{2}$ | no | yes ($J\times J$) | no | 4 (reverse problem) | generalised method of moments |
+| `imply` | not stated | through a subject random effect | no | not stated in the main text | subject-level BLUP | 7, then 1 | REML linear mixed model, then NNLS |
 | `bMIND`, `EPIC-unmix` | linear / $\log_2$ | $\boldsymbol{p}^{\top}\boldsymbol{\Gamma}_g\boldsymbol{p}+\sigma_g^{2}$ | no | yes ($J\times J$) | prior | 7 | MCMC |
 | `BLADE` | linear | quadratic, log-normal profiles | no | no | prior | 7 | collapsed VI |
 | `BayesPrism` | counts | multinomial given latent profiles | no | no | prior | 7 | Gibbs |
+| `BLEND` | counts | multinomial given latent reference weights | rank $\le M_j-1$, implicit (our remark) | no | convex hull of references | 7 | Gibbs or EM-MAP |
 | `BEDwARS` | linear | constant | no | no | noisy reference prior | 1 | MH |
 | `DSection` | linear | gene-wise, free of $\boldsymbol{p}$ | no | no | prior | 2 | Gibbs–MH |
 | `DeMixT` | raw | quadratic, log-normal components | no | no | plug-in | 7 | ICM |
@@ -2173,7 +2800,8 @@ mean–variance relationship of counts (@sec-poisson-measurement).
 
 : Where second-order information enters each method. "Quadratic" and "linear" refer to the weight of a type's variance in the bulk variance ($p_{ji}^{2}$ for a random population profile, $p_{ji}$ for independent cells). {#tbl-synthesis}
 
-## Caveats and defaults {#sec-caveats}
+::: {#caveats-and-defaults .callout-warning}
+## Caveats and defaults
 
 1. **Scale.** Mixing is additive only on a linear scale. Methods that
    mix logarithms (`BayICE`, `EPIC-unmix`) estimate weights of a
@@ -2210,17 +2838,6 @@ mean–variance relationship of counts (@sec-poisson-measurement).
    collinear reference means (`DeMixT`), and reference-free
    factorisations without separability (`GSNMF+`) all leave the
    proportions unidentified, whatever the sample size.
-
-## Methods to add to this review {#sec-candidates}
-
-Already in the bibliography and worth a section: `BLEND`, probabilistic
-deconvolution with automated reference selection
-[@huangBLENDProbabilisticCellular2024]; `DeconV`, a Poisson model
-aggregated from single cells [@gynterDeconvProbabilisticCellType2023];
-`Imply`, personalised reference
-profiles [@mengImplyImprovingCelltype2024]; and `DecOT`, an optimal
-transport loss [@liuDecotBulkDeconvolutionOptimal2022]. CIBERSORTx
-[@newmanDeterminingCellType2019] extends the signature approach to
-high-resolution, sample-level profiles.
+:::
 
 # References

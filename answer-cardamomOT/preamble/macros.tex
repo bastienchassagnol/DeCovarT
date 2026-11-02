@@ -22,6 +22,11 @@
 \newcommand{\bSigma}{\bm{\Sigma}}
 \newcommand{\bOmega}{\bm{\Omega}}
 \newcommand{\SW}{\bSigma_{W,j}}
+% maximum degree of the conditional-independence graph (not a number of genes)
+\newcommand{\degmax}{\deg_{\max}}
+\DeclareMathOperator{\mlt}{mlt}
+\DeclareMathOperator{\cl}{cl}
+\DeclareMathOperator{\tw}{tw}
 
 % ledger identifier of the machine check behind a statement (Appendix B);
 % TODO-Vn markers are replaced by ledger IDs in the last wave
@@ -30,8 +35,8 @@
 \newcommand{\citeTODO}[1]{\textcolor{chkgrey}{[#1]}}
 % link to a DeCovarT vignette (pkgdown site)
 \newcommand{\vignette}[2]{\href{https://bastienchassagnol.github.io/DeCovarT/articles/#1}{#2}}
-% CardamomOT source file at the pinned commit
-\newcommand{\cmfile}[1]{\texttt{\detokenize{#1}}}
+% CardamomOT source file (CardamomOT 2.0.0); breaks after / . _ - (\UrlBreaks, packages.tex)
+\newcommand{\cmfile}[1]{\nolinkurl{#1}}
 
 \newtcolorbox{answerbox}[1][]{
   colback=mainblue!4!white, colframe=mainblue!75!black, fonttitle=\bfseries\small,
@@ -43,6 +48,24 @@
   coltitle=white, colbacktitle=specorange!90!black, enhanced, fontupper=\small,
   attach boxed title to top left={yshift=-2mm, xshift=5mm}, boxed title style={sharp corners},
   left=4pt, right=4pt, top=4pt, bottom=2pt, title={Speculative}, #1}
+% identifiability thresholds (latent-node palette)
+\newtcolorbox{idbox}[1][]{breakable,
+  colback=latfill!45!white, colframe=latdraw!85!black, fonttitle=\bfseries\small,
+  coltitle=white, colbacktitle=latdraw!85!black, enhanced, fontupper=\small,
+  attach boxed title to top left={yshift=-2mm, xshift=5mm}, boxed title style={sharp corners},
+  left=4pt, right=4pt, top=6pt, bottom=2pt, #1}
+% methods box: joint network estimation (observed-node palette)
+\newtcolorbox{methodbox}[1][]{breakable,
+  colback=obsfill!30!white, colframe=obsdraw!85!black, fonttitle=\bfseries\small,
+  coltitle=white, colbacktitle=obsdraw!85!black, enhanced, fontupper=\small,
+  attach boxed title to top left={yshift=-2mm, xshift=5mm}, boxed title style={sharp corners},
+  left=4pt, right=4pt, top=6pt, bottom=2pt, #1}
+% definitions box: holds the main glossary, printed without its own heading
+\newtcolorbox{defbox}[1][]{breakable,
+  colback=white, colframe=ink!70, fonttitle=\bfseries\small,
+  coltitle=white, colbacktitle=ink!80, enhanced, fontupper=\small,
+  attach boxed title to top left={yshift=-2mm, xshift=5mm}, boxed title style={sharp corners},
+  left=4pt, right=4pt, top=6pt, bottom=2pt, title={Definitions}, #1}
 
 \titleformat{\section}{\large\bfseries\color{mainblue}}{\thesection}{0.6em}{}
 \titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.5em}{}

@@ -1,0 +1,1069 @@
+{
+  "meta": {
+    "date": "2026-11-02",
+    "sympy": "1.14.0",
+    "numpy": "2.5.4",
+    "python": "3.14.3"
+  },
+  "records": [
+    {
+      "id": "V1a",
+      "claim": "Marginal covariance of the mixed model: $\\operatorname{Var}\\bm y=\\sum_j p_j^2\\bm\\Sigma_j+\\bm D$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$\\bm y-\\bm\\mu\\bm p=\\bm M\\bm w$ with $\\bm w$ standard normal; $\\bm M\\bm M^{\\mathsf T}$ equals the printed form entrywise ($G=J=2$, symbolic Cholesky factors)",
+      "detail_full": "y - mu p written as M w with w standard normal (eps_j = L_j w_j, e = D^1/2 w_e); M M^T equals the note's form entrywise (G = J = 2, symbolic Cholesky factors)",
+      "tex_line": "951",
+      "script": "verification/sympy/check_V1_lmm_blup.py"
+    },
+    {
+      "id": "V1b",
+      "claim": "BLUP (= MAP of $\\bm\\varepsilon_j$ given $\\bm p$) is $p_j\\bm\\Sigma_j\\bm V^{-1}(\\bm y-\\bm\\mu\\bm p)$, the Wiener filter",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "the printed predictor solves Henderson's mixed-model equations identically; their matrix is positive definite, so it is the unique BLUP and MAP",
+      "detail_full": "the note's predictor (with r = V s) satisfies Henderson's equations (Z'D^-1 Z + G^-1) u = Z'D^-1 r identically; the system matrix is positive definite, so it is the unique BLUP/MAP; same formula as the article's Wiener filter (sec:wiener)",
+      "tex_line": "952, 1045",
+      "script": "verification/sympy/check_V1_lmm_blup.py"
+    },
+    {
+      "id": "V1c",
+      "claim": "Posterior mean $\\mathbb E(\\bm\\varepsilon_j\\mid\\bm y,\\bm p)$ equals the BLUP in the Gaussian model",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$\\operatorname{Cov}(\\bm u,\\bm y)$ from the linear map has blocks $p_j\\bm\\Sigma_j$; Gaussian conditioning returns the predictor of V1b",
+      "detail_full": "Cov(u, y) = Mu M^T derived from the linear map has blocks p_j Sigma_j; E(u | y) = Cov(u, y) V^-1 r therefore equals the predictor of V1b",
+      "tex_line": "1045",
+      "script": "verification/sympy/check_V1_lmm_blup.py"
+    },
+    {
+      "id": "V2a",
+      "claim": "Scalar case: $L(s)=\\tfrac12(\\log s+t/s)$ has its unique minimum at $s=t$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$L'(s)=0$ only at $s=t$; $L''(t)=\\frac{1}{2 t^{2}}$ $>0$; $L(s)-L(t)=\\tfrac12(x-1-\\log x)\\ge0$ with $x=t/s$",
+      "detail_full": "L'(s) = 0 only at s = [t]; L''(t) = 1/(2*t**2) > 0; L(s) - L(t) = (x - 1 - log x)/2 with x = t/s, convex with minimum 0 at x = 1, so the minimum is global",
+      "tex_line": "992",
+      "script": "verification/sympy/check_V2_stein_loss.py"
+    },
+    {
+      "id": "V2b",
+      "claim": "$2\\times2$: the gradient of $L$ vanishes at $\\bm\\Sigma=\\bm\\Sigma_{\\mathrm{true}}$ and the Hessian is positive definite there",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "gradient zero at $\\bm\\Sigma_{\\mathrm{true}}=\\bm L\\bm L^{\\mathsf T}$ (symbolic Cholesky factor); leading principal minors of the Hessian $\\frac{\\left(l_{21}^{2} + l_{22}^{2}\\right)^{2}}{2 l_{11}^{4} l_{22}^{4}}$, $\\frac{\\left(l_{21}^{2} + l_{22}^{2}\\right)^{2}}{2 l_{11}^{6} l_{22}^{6}}$, $\\frac{1}{4 l_{11}^{6} l_{22}^{6}}$, all positive",
+      "detail_full": "Sigma_true = L L^T (symbolic Cholesky factor); gradient in (s11, s12, s22) at Sigma_true = [0, 0, 0]; leading principal minors of the Hessian: ['(l21**2 + l22**2)**2/(2*l11**4*l22**4)', '(l21**2 + l22**2)**2/(2*l11**6*l22**6)', '1/(4*l11**6*l22**6)'], all > 0",
+      "tex_line": "992",
+      "script": "verification/sympy/check_V2_stein_loss.py"
+    },
+    {
+      "id": "V2c",
+      "claim": "Numeric: $L(\\bm\\Sigma)>L(\\bm\\Sigma_{\\mathrm{true}})$ at random SPD $\\bm\\Sigma$",
+      "kind": "numeric",
+      "status": "pass",
+      "detail": "mpmath at 40 digits, seed 20261030, $d=4$, 20 true matrices with 50 random competitors each; smallest gap 0.93808",
+      "detail_full": "mpmath, 40 digits, seed 20261030, d = 4, 20 true matrices x 50 random SPD competitors; smallest L(Sigma) - L(Sigma_true) = 0.93808 (> 0)",
+      "tex_line": "992",
+      "script": "verification/sympy/check_V2_stein_loss.py"
+    },
+    {
+      "id": "V2d",
+      "claim": "The expected Gaussian log-score depends on the cell law only through its covariance, so the minimiser is $\\bm\\Sigma_{\\mathrm{true}}$ for any law with finite second moments",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "centred 4-point non-Gaussian law: expected score $=\\log 2\\pi+L(\\bm\\Sigma)$; gradient zero at its covariance $\\left[\\begin{matrix}\\frac{49}{18} & \\frac{31}{36}\\\\\\frac{31}{36} & \\frac{395}{144}\\end{matrix}\\right]$; the mean is taken as known",
+      "detail_full": "4-point non-Gaussian law (rational weights, centred): expected score equals log(2 pi) + L(Sigma) with Sigma_true = its covariance Matrix([\n[49/18,   31/36],\n[31/36, 395/144]]); gradient at that covariance = [0, 0, 0]. Conditional on a known (or separately estimated) mean",
+      "tex_line": "992",
+      "script": "verification/sympy/check_V2_stein_loss.py"
+    },
+    {
+      "id": "V3a",
+      "claim": "Poisson log-normal moments for fixed $s$: $\\mathbb E\\bm x=s\\,e^{\\bm\\mu+\\operatorname{diag}(\\bm\\Sigma)/2}$, $\\operatorname{Cov}\\bm x=\\operatorname{diag}(\\mathbb E\\bm x)+(\\mathbb E\\bm x\\,\\mathbb E\\bm x^{\\mathsf T})\\circ(e^{\\bm\\Sigma}-1)$, exponential entrywise",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Poisson moments summed from the pmf ($\\mathbb E X=\\lambda$, $\\mathbb E X(X-1)=\\lambda^{2}$); normal MGF $e^{t \\left(m + \\frac{t v}{2}\\right)}$ integrated from the density; tower rule, $G=2$",
+      "detail_full": "Poisson moments summed from the pmf (E X = lam, E X(X-1) = lam**2); normal MGF integrated from the density: exp(t*(m + t*v/2)); tower rule gives mean and covariance equal to the note's forms (G = 2, symbolic mu, Sigma)",
+      "tex_line": "755",
+      "script": "verification/sympy/check_V3_pln_moments.py"
+    },
+    {
+      "id": "V3b",
+      "claim": "$e^{\\bm\\Sigma_z}$ in the covariance is the entrywise exponential, not the matrix exponential",
+      "kind": "numeric",
+      "status": "flag",
+      "detail": "for $\\bm\\Sigma=\\left(\\begin{smallmatrix}0.5&0.2\\\\0.2&0.3\\end{smallmatrix}\\right)$, entrywise minus matrix exponential $=\\left[\\begin{matrix}-0.031 & 0.921\\\\0.921 & -0.029\\end{matrix}\\right]$; the derivation uses $e^{\\Sigma_{gh}}$ entry by entry",
+      "detail_full": "for Sigma = [[0.5, 0.2], [0.2, 0.3]], entrywise exp minus matrix exp = [[-0.031, 0.9205], [0.9205, -0.029]]; the derived covariance uses exp(Sigma_gh) entry by entry. The note's text now says entrywise",
+      "tex_line": "755",
+      "script": "verification/sympy/check_V3_pln_moments.py"
+    },
+    {
+      "id": "V3c",
+      "claim": "Monte Carlo confirmation of the Poisson log-normal moments ($G=3$, fixed $s$)",
+      "kind": "numeric",
+      "status": "pass",
+      "detail": "NumPy seed 20261030, $n=2{,}000{,}000$, $s=0.8$; largest $|z|$ over 3 means and 6 covariances $=0.99$ (tolerance 4.5)",
+      "detail_full": "numpy default_rng seed 20261030, n = 2,000,000, s = 0.8; 3 means and 6 covariances; largest |MC - formula| / MC standard error = 0.99 (tolerance 4.5)",
+      "tex_line": "755",
+      "script": "verification/sympy/check_V3_pln_moments.py"
+    },
+    {
+      "id": "V4a",
+      "claim": "Single-cell model, $J=2$, one gene: $I(p)=c^2\\Delta^2/v+\\tfrac12\\{(\\sigma_1^2-\\sigma_2^2)/v\\}^2$, and $I(p)=n_i\\Delta^2/\\sigma^2$ when $\\sigma_1=\\sigma_2$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$-\\mathbb E\\,\\partial_p^2\\ell$ with $y=m+\\sqrt v\\,z$ equals the printed form; with equal variances, $c=an$ and $\\phi=a^2n$: $I=\\frac{n \\left(\\mu_{1} - \\mu_{2}\\right)^{2}}{\\sigma^{2}}$",
+      "detail_full": "information derived as -E d2/dp2 log-likelihood with y = m + sqrt(v) z; equals the note's form; with equal variances and c = a n, phi = a^2 n: I = n*(mu1**2 - 2*mu1*mu2 + mu2**2)/sigma**2",
+      "tex_line": "264",
+      "script": "verification/sympy/check_V4_fisher_anova.py"
+    },
+    {
+      "id": "V4b",
+      "claim": "ANOVA ratio, $C$ cells per type: $F$ is the plug-in of $(C/2)\\Delta^2/\\sigma^2$, but $\\mathbb E F=\\frac{\\nu}{\\nu-2}\\{1+(C/2)\\Delta^2/\\sigma^2\\}$",
+      "kind": "exact",
+      "status": "flag",
+      "detail": "$\\mathrm{MS}_B=C(\\bar y_1-\\bar y_2)^2/2$ on symbolic data; $\\mathbb E(1/\\chi^2_4)=\\frac{1}{2}$; at $C=3$, $\\mathbb E F=\\frac{3 \\mu_{1}^{2} - 6 \\mu_{1} \\mu_{2} + 3 \\mu_{2}^{2} + 2 \\sigma^{2}}{\\sigma^{2}}$. Deviation: $I(p)\\approx(2n_i/C)(F-1)$, not $(2n_i/C)F$",
+      "detail_full": "MS_between = C (ybar1 - ybar2)^2 / 2 exactly (symbolic data, C = 3); E MS_between = C*mu1**2/2 - C*mu1*mu2 + C*mu2**2/2 + sigma**2; E 1/chi2_4 = 1/2; E F = (3*mu1**2 - 6*mu1*mu2 + 3*mu2**2 + 2*sigma**2)/sigma**2 at C = 3. Deviation from the note: F estimates 1 + (C/2) Delta^2/sigma^2 up to nu/(nu-2), so I(p) ~ (2 n_i/C)(F - 1), not (2 n_i/C) F; rankings by F are unaffected",
+      "tex_line": "266, 1060",
+      "script": "verification/sympy/check_V4_fisher_anova.py",
+      "qmd_lines": [
+        "03-1:1053"
+      ]
+    },
+    {
+      "id": "V4c",
+      "claim": "Fisher information and ANOVA ratio agree for every $p$ ($J=2$) only with equal within-type variances",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$I(p)-n\\Delta^2/\\bar s^2$ is a polynomial in $p$ whose coefficients all vanish only at $S_{2}=S_{1}$ ($\\Delta\\neq0$)",
+      "detail_full": "I(p) - n Delta^2/sbar^2 written as a polynomial in p; its coefficients vanish together only for [{S2: S1}] (Delta != 0); at p = 1/2 with S1 != S2 the gap is the positive term (1/2){(S1 - S2)/sbar^2}^2",
+      "tex_line": "639",
+      "script": "verification/sympy/check_V4_fisher_anova.py"
+    },
+    {
+      "id": "V4d",
+      "claim": "Multivariate information with a common $\\bm\\Sigma_W$ is $n_i\\bm\\Delta^{\\mathsf T}\\bm\\Sigma_W^{-1}\\bm\\Delta$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "bivariate $-\\mathbb E\\,\\partial_p^2\\ell$, expectation over $\\bm y=\\bm m+\\sqrt\\phi\\,\\bm L\\bm z$, equals $n\\bm\\Delta^{\\mathsf T}\\bm\\Sigma_W^{-1}\\bm\\Delta$",
+      "detail_full": "bivariate Gaussian log-likelihood differentiated twice in p, expectation over y = m + sqrt(phi) L z; equals n Delta' Sigma_W^-1 Delta",
+      "tex_line": "268",
+      "script": "verification/sympy/check_V4_fisher_anova.py",
+      "qmd_lines": [
+        "03-1:1260"
+      ]
+    },
+    {
+      "id": "V4e",
+      "claim": "Per-gene informations add for independent genes; with correlated genes, only at isolated values of $\\rho$",
+      "kind": "exact",
+      "status": "flag",
+      "detail": "$n^{-1}$(multivariate $-$ sum of per-gene) $=- \\frac{\\rho \\left(d_{1}^{2} \\rho - 2 d_{1} d_{2} + d_{2}^{2} \\rho\\right)}{\\left(\\rho - 1\\right) \\left(\\rho + 1\\right)}$, zero at $\\rho\\in\\{0, \\frac{2 d_{1} d_{2}}{d_{1}^{2} + d_{2}^{2}}\\}$. Deviation: additivity also holds at the second root, a measure-zero set",
+      "detail_full": "n^-1 (multivariate - sum of per-gene) = -rho*(d1**2*rho - 2*d1*d2 + d2**2*rho)/((rho - 1)*(rho + 1)); zero for rho in ['0', '2*d1*d2/(d1**2 + d2**2)']. Deviation: additivity also holds at rho = 2 d1 d2/(d1^2 + d2^2) (d_g = Delta_g/sigma_g), a measure-zero set; the note now says 'in general'",
+      "tex_line": "640, 1062",
+      "script": "verification/sympy/check_V4_fisher_anova.py",
+      "qmd_lines": [
+        "03-1:1053"
+      ]
+    },
+    {
+      "id": "V4f",
+      "claim": "Population model, equal variances: $v(p)$ depends on $p$, and $I(p)$ is not proportional to the ANOVA ratio",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$I(p)=\\frac{\\Delta^2}{\\sigma^2}\\cdot\\frac{1}{2 p^{2} - 2 p + 1}+\\frac{2 \\left(2 p - 1\\right)^{2}}{\\left(2 p^{2} - 2 p + 1\\right)^{2}}$; the offset is free of $\\Delta$ and $\\sigma$, so the ranking at fixed $p$ is kept",
+      "detail_full": "I(p) = Delta^2/sigma^2 * 1/(2*p**2 - 2*p + 1) + 2*(2*p - 1)**2/(2*p**2 - 2*p + 1)**2; the offset is non-zero for p != 1/2, so I is affine, not proportional, in Delta^2/sigma^2; the offset is free of sigma and Delta (common to all genes), so the ranking of genes at fixed p is unchanged",
+      "tex_line": "1064",
+      "script": "verification/sympy/check_V4_fisher_anova.py",
+      "qmd_lines": [
+        "03-1:1053"
+      ]
+    },
+    {
+      "id": "V5a",
+      "claim": "Two-gene Lyapunov solution: $\\sigma_{11}$, $\\sigma_{12}$ (eq:lyap2) and $\\sigma_{22}$ (A.1)",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$\\bm A\\bm S+\\bm S\\bm A^{\\mathsf T}+\\bm Q=\\bm 0$ solved as a linear system: $\\sigma_{12}=\\frac{b q_{1}}{2 a_{1} \\left(a_{1} + a_{2}\\right)}$, $\\sigma_{22}=\\frac{a_{1}^{2} q_{2} + a_{1} a_{2} q_{2} + b^{2} q_{1}}{2 a_{1} a_{2} \\left(a_{1} + a_{2}\\right)}$; equal to the printed forms",
+      "detail_full": "A S + S A^T + Q = 0 solved as a linear system in (s11, s12, s22); engine: s12 = b*q1/(2*a1*(a1 + a2)), s22 = (a1**2*q2 + a1*a2*q2 + b**2*q1)/(2*a1*a2*(a1 + a2)); differences with the note cancel to 0",
+      "tex_line": "829, 1021",
+      "script": "verification/sympy/check_V5_lyapunov.py"
+    },
+    {
+      "id": "V5b",
+      "claim": "Two-gene precision: $\\omega_{12}$ (eq:lyap2), $\\omega_{11}$ and $\\omega_{22}$ (A.1)",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$\\bm S^{-1}$ from the engine's $\\bm S$: $\\omega_{12}=- \\frac{2 a_{2} b \\left(a_{1} + a_{2}\\right)}{a_{1}^{2} q_{2} + 2 a_{1} a_{2} q_{2} + a_{2}^{2} q_{2} + b^{2} q_{1}}$; all three equal the printed forms",
+      "detail_full": "S^-1 from the engine's S; omega12 = -2*a2*b*(a1 + a2)/(a1**2*q2 + 2*a1*a2*q2 + a2**2*q2 + b**2*q1); omega11, omega12, omega22 equal the note's forms",
+      "tex_line": "829, 1021",
+      "script": "verification/sympy/check_V5_lyapunov.py"
+    },
+    {
+      "id": "V5c",
+      "claim": "$\\omega_{12}\\neq0$ if and only if $b\\neq0$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "numerator of $\\omega_{12}$: $- 2 a_{2} b \\left(a_{1} + a_{2}\\right)$, only root in $b$: $0$; denominator $(a_1+a_2)^2q_2+b^2q_1>0$",
+      "detail_full": "numerator of omega12 = -2*a2*b*(a1 + a2), only root in b: [0]; denominator (a1+a2)^2 q2 + b^2 q1 > 0",
+      "tex_line": "835",
+      "script": "verification/sympy/check_V5_lyapunov.py"
+    },
+    {
+      "id": "V5d",
+      "claim": "$\\omega_{gg}$ falls as self-activation rises ($a_g$ falls), and depends on the edge and on the other gene",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$\\partial\\omega_{11}/\\partial a_1$ and $\\partial\\omega_{22}/\\partial a_2$ have numerators and denominators with positive coefficients; $\\partial\\omega_{22}/\\partial a_1=\\frac{4 a_{2} b^{2} q_{1} \\left(a_{1} + a_{2}\\right)}{\\left(a_{1}^{2} q_{2} + 2 a_{1} a_{2} q_{2} + a_{2}^{2} q_{2} + b^{2} q_{1}\\right)^{2}}$",
+      "detail_full": "d omega11/d a1 and d omega22/d a2 have numerator and denominator with positive coefficients (b in even powers), so both are > 0; sigma11 and sigma22 decrease in their own a_g; omega11 depends on b, a2, q2, and d omega22/d a1 = 4*a2*b**2*q1*(a1 + a2)/(a1**2*q2 + 2*a1*a2*q2 + a2**2*q2 + b**2*q1)**2",
+      "tex_line": "878, 914",
+      "script": "verification/sympy/check_V5_lyapunov.py"
+    },
+    {
+      "id": "V5e",
+      "claim": "Fork $1\\to2$ ($b$), $1\\to3$ ($c$): $\\omega_{23}=-4a_2a_3bc\\,q_1(a_1+a_2)(a_1+a_3)(a_2+a_3)/\\mathcal D$ with $\\mathcal D>0$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "six-unknown Lyapunov system solved exactly; $\\mathcal D=b^2c^2q_1^2(a_2-a_3)^2$ plus a polynomial with positive coefficients, so $\\mathcal D>0$",
+      "detail_full": "6-unknown Lyapunov system solved exactly; omega23 = L adj(P)_23 / det P with P = L S polynomial; note numerator / omega23 is a polynomial D; D = b^2 c^2 q1^2 (a2-a3)^2 + (polynomial with positive coefficients), hence D > 0",
+      "tex_line": "838, 1020",
+      "script": "verification/sympy/check_V5_lyapunov.py"
+    },
+    {
+      "id": "V5f",
+      "claim": "Static structural equation model with the same fork: $\\omega_{23}=0$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$(\\bm I-\\bm B)^{-1}\\bm D(\\bm I-\\bm B)^{-\\mathsf T}$ inverted exactly: $\\omega_{23}=0$, $\\omega_{12}=- \\frac{b}{d_{2}}$",
+      "detail_full": "x = Bx + e, e ~ (0, diag(d1,d2,d3)); covariance (I-B)^-1 D (I-B)^-T inverted exactly: omega23 = 0, omega12 = -b/d2",
+      "tex_line": "838",
+      "script": "verification/sympy/check_V5_lyapunov.py"
+    },
+    {
+      "id": "V6a",
+      "claim": "Population references: $\\operatorname{Cov}\\bm y=\\sum_j p_j^2\\bm\\Sigma_j$, quadratic in $\\bm p$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Hessian at $\\bm 0$ of $K_{\\bm y}(\\bm t)=\\sum_j K_j(p_j\\bm t)$ is $p^2\\bm\\Sigma_1+(1-p)^2\\bm\\Sigma_2$; $\\partial_p^2=2(\\bm\\Sigma_1+\\bm\\Sigma_2)\\succ0$",
+      "detail_full": "Hessian at 0 of K_y(t) = sum_j K_j(p_j t) (independent profiles) equals p^2 Sigma_1 + (1-p)^2 Sigma_2; d2/dp2 = 2 (Sigma_1 + Sigma_2), positive definite",
+      "tex_line": "178",
+      "script": "verification/sympy/check_V6_sc_vs_population.py"
+    },
+    {
+      "id": "V6b",
+      "claim": "Single-cell references, given $m_j=n_ip_j$ cells per type: $\\operatorname{Cov}\\bm y=\\phi_i\\sum_j p_j\\bm\\Sigma_{W,j}$, linear in $\\bm p$, $\\phi_i=a_i^2n_i$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Hessian at $\\bm 0$ of $\\sum_j m_jK_j(a\\bm t)$ is $a^2n\\{p\\bm\\Sigma_1+(1-p)\\bm\\Sigma_2\\}$; $\\partial_p^2=\\bm 0$; conditional on the counts $m_j$",
+      "detail_full": "Hessian at 0 of K_y(t) = sum_j m_j K_j(a t) equals a^2 n {p Sigma_1 + (1-p) Sigma_2}; d2/dp2 = 0. Holds conditional on the composition m_j = n p_j",
+      "tex_line": "940, 1030",
+      "script": "verification/sympy/check_V6_sc_vs_population.py"
+    },
+    {
+      "id": "V6c",
+      "claim": "At $J=2$ the quadratic and the linear covariance differ for any common scale $k$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "the $p^2$ coefficient of $\\sum_jp_j^2\\bm\\Sigma_j-k\\sum_jp_j\\bm\\Sigma_j$ is $\\bm\\Sigma_1+\\bm\\Sigma_2$, with a positive diagonal; equality only at isolated $p$",
+      "detail_full": "p^2 coefficient of sum p_j^2 Sigma_j - k sum p_j Sigma_j is Sigma_1 + Sigma_2, whose diagonal is positive, so no k makes them equal for all p; they meet only at isolated p",
+      "tex_line": "178",
+      "script": "verification/sympy/check_V6_sc_vs_population.py"
+    },
+    {
+      "id": "V6d",
+      "claim": "Cells drawn i.i.d. from the type mixture: $\\operatorname{Cov}\\bm y$ gains $a^2np(1-p)\\bm\\Delta\\bm\\Delta^{\\mathsf T}$, quadratic in $p$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Hessian at $\\bm 0$ of $n\\log\\sum_jp_je^{K_j(a\\bm t)}$ minus the fixed-count covariance equals $a^2np(1-p)(\\bm\\mu_1-\\bm\\mu_2)(\\bm\\mu_1-\\bm\\mu_2)^{\\mathsf T}$",
+      "detail_full": "Hessian at 0 of n log sum_j p_j exp K_j(a t) minus the fixed-composition covariance = a^2 n p (1-p) (mu_1 - mu_2)(mu_1 - mu_2)^T; linearity in p is verified only given the cell counts m_j",
+      "tex_line": "943, 1036",
+      "script": "verification/sympy/check_V6_sc_vs_population.py"
+    },
+    {
+      "id": "V6e",
+      "claim": "With i.i.d. draws, the bulk characteristic function is $\\varphi_{\\mathrm{mix}}(\\bm t)^{n}$, $\\varphi_{\\mathrm{mix}}=\\sum_jp_j\\varphi_j$, and the covariance is $a^2n\\sum_jp_j\\bm\\Sigma_{W,j}+a^2np(1-p)\\bm\\Delta\\bm\\Delta^{\\mathsf T}$ at $J=2$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "averaging $\\prod_j\\varphi_j^{m_j}$ over $\\bm m\\sim\\mathrm{Mult}(n,\\bm p)$ gives $\\varphi_{\\mathrm{mix}}^{\\,n}$ ($n\\le8$ at $J=2$, $n\\le5$ at $J=3$); law of total covariance with $\\operatorname{Cov}\\bm m=n\\{\\operatorname{diag}(\\bm p)-\\bm p\\bm p^{\\mathsf T}\\}$ returns the printed term; $\\partial_p^2=-2a^2n\\bm\\Delta\\bm\\Delta^{\\mathsf T}\\neq\\bm 0$",
+      "detail_full": "c.f. average over the multinomial equals phi_mix^n: True (J = 2, n = 1..8; J = 3, n = 1..5). E m = [n*p, n*(1 - p)], Cov m = Matrix([\n[-n*p*(p - 1),  n*p*(p - 1)],\n[ n*p*(p - 1), -n*p*(p - 1)]]). Total covariance minus printed form = Matrix([\n[0, 0],\n[0, 0]]); d2/dp2 + 2 a^2 n Delta Delta^T = Matrix([\n[0, 0],\n[0, 0]])",
+      "tex_line": "943, 1036",
+      "script": "verification/sympy/check_V6_sc_vs_population.py"
+    },
+    {
+      "id": "V7a",
+      "claim": "The mixed model's marginal log-likelihood in $\\bm p$ equals DeCovarT's Gaussian log-likelihood, $\\bm y\\sim\\mathcal N(\\bm\\mu\\bm p,\\sum_jp_j^2\\bm\\Sigma_j)$, when $\\bm D=\\bm 0$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$G=1$, $J=2$: integrating $x_1,x_2$ out of the joint density gives $\\mathcal N(y;\\,m(p),\\,p^2s_1+(1-p)^2s_2+d)$, whose limit at $d=0$ is DeCovarT's density; $G=J=2$, general $2\\times2$ $\\bm\\Sigma_j$: the cumulant generating function gives $\\bm V=\\sum_jp_j^2\\bm\\Sigma_j+\\bm D$ and the two log-likelihoods agree at $\\bm D=\\bm 0$",
+      "detail_full": "Gaussian lemma from sympy.integrate: True; G = 1 marginal after two integrations = N(y; p m1 + (1-p) m2, d + p**2*s1 + s2*(1 - p)**2): True; limit d -> 0 equals DeCovarT l(p): True. G = 2: mean Matrix([[mu1_1*p + mu2_1*(1 - p), mu1_2*p + mu2_2*(1 - p)]]), covariance Matrix([\n[S1_11*p**2 + S2_11*(1 - p)**2 + d1,      S1_12*p**2 + S2_12*(1 - p)**2],\n[     S1_12*p**2 + S2_12*(1 - p)**2, S1_22*p**2 + S2_22*(1 - p)**2 + d2]]); third cumulants zero: True; mean = mu p: True; cov = sum p_j^2 Sigma_j + D: True; l_LMM(D = 0) - l_DeCovarT = 0: True",
+      "tex_line": "954, 1047",
+      "script": "verification/sympy/check_V7_lmm_ml.py"
+    },
+    {
+      "id": "V7b",
+      "claim": "With a nugget $\\bm D\\neq\\bm 0$ the maximum-likelihood estimate of $\\bm p$ differs from DeCovarT's in general",
+      "kind": "exact",
+      "status": "flag",
+      "detail": "one gene, $\\mu_1=0$, $\\mu_2=1$, $\\sigma_1^2=1$, $\\sigma_2^2=4$, $y=1/2$: $\\hat p=0.746679$ at $d=0$ (DeCovarT) and $\\hat p=0.748539$ at $d=1$ (exact real roots of the score). Deviation: the note's claim holds only at $\\bm D=\\bm 0$, which is DeCovarT's assumption (A5)",
+      "detail_full": "stationary points in (0,1): d = 0 -> [0.746679212918], d = 1 -> [0.748539067430]; maximisers 0.746679212917539 and 0.748539067429563. The LMM with D != 0 is N(mu p, sum p_j^2 Sigma_j + D), not DeCovarT's eq:convolution; its ML fit coincides with DeCovarT's only at D = 0",
+      "tex_line": "955, 1048",
+      "script": "verification/sympy/check_V7_lmm_ml.py"
+    },
+    {
+      "id": "V7c",
+      "claim": "Restricted maximum likelihood does not separate $\\bm p$ from the variance: the error contrasts' covariance $\\bm K^{\\mathsf T}\\bm V(\\bm p)\\bm K$ depends on $\\bm p$",
+      "kind": "exact",
+      "status": "flag",
+      "detail": "$G=3$, $J=2$, $\\bm K^{\\mathsf T}\\bm\\Delta=\\bm 0$, diagonal $\\bm\\Sigma_1=\\operatorname{diag}(a_g)$, $\\bm\\Sigma_2=\\operatorname{diag}(b_g)$; for $\\bm\\Delta\\propto\\bm e_1$, $\\partial_p(\\bm K^{\\mathsf T}\\bm V\\bm K)=\\left[\\begin{matrix}2 \\left(a_{2} p + b_{2} p - b_{2}\\right) & 0\\\\0 & 2 \\left(a_{3} p + b_{3} p - b_{3}\\right)\\end{matrix}\\right]$, not identically $\\bm 0$. Deviation: the note's `REML is then an option' assumed a variance free of the fixed effect",
+      "detail_full": "K = Matrix([\n[-delta2/delta1, -delta3/delta1],\n[             1,              0],\n[             0,              1]]); d/dp (K' V(p) K) = Matrix([\n[2*(delta1**2*(a2*p + b2*(p - 1)) + delta2**2*(a1*p + b1*(p - 1)))/delta1**2,                               2*delta2*delta3*(a1*p + b1*(p - 1))/delta1**2],\n[                              2*delta2*delta3*(a1*p + b1*(p - 1))/delta1**2, 2*(delta1**2*(a3*p + b3*(p - 1)) + delta3**2*(a1*p + b1*(p - 1)))/delta1**2]]); standard REML needs the law of K'y to be free of the fixed effects, which fails here because the random-effect design Z = (p_1 I, ..., p_J I) depends on p",
+      "tex_line": "957, 1050",
+      "script": "verification/sympy/check_V7_lmm_ml.py"
+    },
+    {
+      "id": "V8a",
+      "claim": "Common $\\bm\\Sigma$: $H^2=1-\\exp(-\\tfrac18\\bm\\Delta^{\\mathsf T}\\bm\\Sigma^{-1}\\bm\\Delta)$, increasing in the Mahalanobis distance",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "completing the square: $\\sqrt{f_1f_2}=e^{-M/8}\\,\\mathcal N(\\bm x;\\bar{\\bm\\mu},\\bm\\Sigma)$ (polynomial identity, general $2\\times2$ $\\bm\\Sigma$); one-dimensional integral $=e^{- \\frac{\\left(a - b\\right)^{2}}{8 s}}$; $\\mathrm dH^2/\\mathrm dM=\\frac{e^{- \\frac{M}{8}}}{8}>0$",
+      "detail_full": "square-completion identity: True; 1-D Bhattacharyya integral = exp((-a**2 + 2*a*b - b**2)/(8*s)) (matches exp(-(a-b)^2/(8 s)): True); dH2/dM = exp(-M/8)/8",
+      "tex_line": "270",
+      "script": "verification/sympy/check_V8_hellinger_w2.py"
+    },
+    {
+      "id": "V8b",
+      "claim": "Common $\\bm\\Sigma$: $W_2=\\lVert\\bm\\Delta\\rVert$, which does not depend on $\\bm\\Sigma$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "for any coupling, $\\mathbb E\\lVert\\bm X-\\bm Y\\rVert^2=\\lVert\\bm\\Delta\\rVert^2+\\operatorname{tr}\\operatorname{Cov}(\\bm X-\\bm Y)\\ge\\lVert\\bm\\Delta\\rVert^2$ (exact identity, symbolic cross-covariance); the translation $\\bm Y=\\bm X-\\bm\\Delta$ attains it",
+      "detail_full": "E||X-Y||^2 = -2*c11 - 2*c22 + m1_1**2 - 2*m1_1*m2_1 + m1_2**2 - 2*m1_2*m2_2 + m2_1**2 + m2_2**2 + 2*s11 + 2*s22; identity with ||Delta||^2 + tr Cov(X-Y): True; translation coupling gives ||Delta||^2: True",
+      "tex_line": "272",
+      "script": "verification/sympy/check_V8_hellinger_w2.py"
+    },
+    {
+      "id": "V8c",
+      "claim": "Counter-example: $W_2$ and the Mahalanobis distance can rank two pairs of type laws in opposite orders",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$\\bm\\Sigma=\\left[\\begin{matrix}1 & 0\\\\0 & 100\\end{matrix}\\right]$; $\\bm\\Delta_A=(1,0)$: $W_2=1$, $M=1$; $\\bm\\Delta_B=(0,3)$: $W_2=3$, $M=\\frac{9}{100}$. $W_2$ prefers $B$; $M$ and $H$ prefer $A$",
+      "detail_full": "W2: {'A': 1, 'B': 3}; Mahalanobis^2: {'A': 1, 'B': 9/100}; H^2: {'A': 0.11750310, 'B': 0.011186955}",
+      "tex_line": "272",
+      "script": "verification/sympy/check_V8_hellinger_w2.py"
+    },
+    {
+      "id": "V9a",
+      "claim": "eq:depth: $\\operatorname{Cov}\\bm x=\\mathbb E(s^2)\\bm\\Sigma^\\lambda+\\operatorname{Var}(s)\\,\\bm\\mu^\\lambda\\bm\\mu^{\\lambda\\mathsf T}+\\mathbb E(s)\\operatorname{diag}(\\bm\\mu^\\lambda)$, for Poisson counts given $(\\bm\\lambda,s)$ and $s\\perp\\bm\\lambda$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Poisson moments from the pmf; conditional moments given $(\\bm\\lambda,s)$; tower rule with only the first two moments of $s$ and $\\bm\\lambda$ ($G=2$); the within term is $\\mathbb E(s)\\operatorname{diag}(\\bm\\mu^\\lambda)$ and the between term $\\operatorname{Cov}(s\\bm\\lambda)$, as in A.5",
+      "detail_full": "Poisson pmf moments E X = m, E X(X-1) = m**2: True; E x = Matrix([[Es1*mu1, Es1*mu2]]); Cov x = Matrix([\n[-Es1**2*mu1**2 + Es1*mu1 + Es2*S11 + Es2*mu1**2,         -Es1**2*mu1*mu2 + Es2*S12 + Es2*mu1*mu2],\n[        -Es1**2*mu1*mu2 + Es2*S12 + Es2*mu1*mu2, -Es1**2*mu2**2 + Es1*mu2 + Es2*S22 + Es2*mu2**2]]); equal to eq:depth: True; within term = E(s) diag(mu): True; between term = E(s^2) Sigma + Var(s) mu mu': True",
+      "tex_line": "725, 1099",
+      "script": "verification/sympy/check_V9_depth_covariance.py"
+    },
+    {
+      "id": "V9b",
+      "claim": "Fang & Pachter's eq. 5: for $\\Sigma^\\lambda_{ab}=0$, $\\operatorname{Cov}(x_a,x_b)/(\\mathbb E x_a\\,\\mathbb E x_b)=\\operatorname{Var}(s)/(\\mathbb E s)^2$, which also equals the normalised variance of a gene with $\\Sigma^\\lambda_{gg}=0$",
+      "kind": "exact",
+      "status": "flag",
+      "detail": "normalised covariance $=\\frac{- (\\mathbb E s)^{2} + \\mathbb E(s^2)}{(\\mathbb E s)^{2}}$ and normalised variance $=\\frac{- (\\mathbb E s)^{2} + \\mathbb E(s^2)}{(\\mathbb E s)^{2}}$, with $\\mathbb E s$ free; both are invariant to $s\\mapsto cs$. Deviation: the note's `up to the normalisation $\\mathbb E s=1$' is not needed",
+      "detail_full": "normalised covariance at S12 = 0: -1 + Es2/Es1**2; normalised variance at S11 = 0: -1 + Es2/Es1**2; target Var(s)/(E s)^2 = (-Es1**2 + Es2)/Es1**2; scale invariant: True",
+      "tex_line": "662, 1103",
+      "script": "verification/sympy/check_V9_depth_covariance.py"
+    },
+    {
+      "id": "V10a",
+      "claim": "With the mean estimated, $\\operatorname{rank}\\bm V=\\operatorname{rank}\\bm X_c\\le\\min(C-1,G)$, with equality for data in general position; $\\bm V\\succ0$ needs $C\\ge G+1$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$G=3$, symbolic data: $\\det\\bm V\\equiv0$ at $C=3$; at $C=4$, $\\det\\bm V$ is a non-zero polynomial (value $\\frac{4330561}{82944}$ at a rational point); exact ranks at rational points for $C=2,\\dots,6$: 1, 2, 3, 3, 3",
+      "detail_full": "det V (G=3, C=3, symbolic) == 0: True; det V (G=3, C=4) at a rational point = 4330561/82944; rank(I - 11'/5) = 4: True; ranks of V (= ranks of X_c) for C=2..6: {2: 1, 3: 2, 4: 3, 5: 3, 6: 3}",
+      "tex_line": "298, 319, 642",
+      "script": "verification/sympy/check_V10_empirical_covariance_rank.py",
+      "qmd_lines": [
+        "03-1:355",
+        "summary_side_comparison:275"
+      ]
+    },
+    {
+      "id": "V10b",
+      "claim": "An exact linear or affine relation between genes, or a constant gene, lowers the rank below $\\min(C-1,G)$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$G=3$, $x_3=2x_1-x_2+5$: $\\bm V(2,-1,-1)^{\\mathsf T}=\\bm 0$; rank (affine, constant gene) $=(2,2)$ at $C=4$ and $(2,2)$ at $C=10$, against $\\min(C-1,G)=3$",
+      "detail_full": "ranks (affine relation, constant gene) by C: {4: (2, 2), 10: (2, 2)}; null vector checked: True",
+      "tex_line": "301, 307, 319, 642",
+      "script": "verification/sympy/check_V10_empirical_covariance_rank.py"
+    },
+    {
+      "id": "V10c",
+      "claim": "If $\\bm V$ is singular, the Gaussian log-likelihood is unbounded above: the MLE does not exist",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$C=G=3$; $\\bm\\Sigma_\\varepsilon=\\bm V+\\varepsilon\\bm u\\bm u^{\\mathsf T}$, $\\bm V\\bm u=\\bm 0$: $\\operatorname{tr}(\\bm V\\bm\\Sigma_\\varepsilon^{-1})=2$ for every $\\varepsilon$, $\\det\\bm\\Sigma_\\varepsilon\\propto\\varepsilon$, and $\\ell(\\bm\\Sigma_\\varepsilon)\\to\\infty$ as $\\varepsilon\\to0^+$",
+      "detail_full": "V = Matrix([\n[  379/6, -251/12,    787/9],\n[-251/12, 1807/18,  2507/27],\n[  787/9, 2507/27, 22664/81]]); nullity 1; tr(V Sigma_eps^-1) = 2; det Sigma_eps = 137631217*epsilon/3888; limit of l = oo; Sigma_eps PD at eps=1e-6: True",
+      "tex_line": "303, 319",
+      "script": "verification/sympy/check_V10_empirical_covariance_rank.py",
+      "qmd_lines": [
+        "03-1:355"
+      ]
+    },
+    {
+      "id": "V10d",
+      "claim": "Zwiernik et al. (2017, pp. 1270, 1278): with the sample mean, $S_n\\succ0$ almost surely ``when $n\\geqslant p$''; the condition is $n\\geqslant p+1$",
+      "kind": "exact",
+      "status": "flag",
+      "detail": "$n=p=3$: $\\det S_n\\equiv0$ and rank $2=p-1$ (V10a); their own $nS_n\\sim W_p(n-1,\\bm\\Sigma)$ (p. 1274) is singular at $n=p$",
+      "detail_full": "det V identically 0 at n = p = 3: True; rank at a rational point: 2",
+      "tex_line": "362",
+      "script": "verification/sympy/check_V10_empirical_covariance_rank.py"
+    },
+    {
+      "id": "V11a",
+      "claim": "$2\\times2$: $(1-\\rho)\\bm V+\\rho\\bm T\\succ0$ for $\\bm V\\succeq0$, $\\bm T\\succ0$, $\\rho\\in(0,1]$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$\\bm V=\\bm L\\bm L^{\\mathsf T}$, $\\bm T=\\bm M\\bm M^{\\mathsf T}$: $\\det=(1-\\rho)^2\\det\\bm V+\\rho^2\\det\\bm T+\\rho(1-\\rho)\\lVert\\operatorname{adj}(\\bm L)\\bm M\\rVert_F^2\\ge\\rho^2\\det\\bm T>0$ (polynomial identity); trace $(1-\\rho)\\operatorname{tr}\\bm V+\\rho\\operatorname{tr}\\bm T>0$",
+      "detail_full": "determinant identity: True; tr(adj(V) T) = ||adj(L) M||_F^2: True; trace identity: True; ||adj(L) M||_F^2 = l1**2*m2**2 + l1**2*m3**2 - 2*l1*l2*m1*m2 + l2**2*m1**2 + l3**2*m1**2",
+      "tex_line": "321",
+      "script": "verification/sympy/check_V11_shrinkage_pd.py"
+    },
+    {
+      "id": "V11b",
+      "claim": "Any $G$: $\\lambda_{\\min}\\{(1-\\rho)\\bm V+\\rho\\bm T\\}\\ge\\rho\\,\\lambda_{\\min}(\\bm T)$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$\\bm x^{\\mathsf T}\\bm V\\bm x=\\lVert\\bm X_c\\bm x\\rVert^2/C\\ge0$ (identity with symbolic data, $G=3$, $C=2$, $\\operatorname{rank}\\bm V=1$), so $\\bm x^{\\mathsf T}\\hat{\\bm\\Sigma}\\bm x\\ge\\rho\\,\\bm x^{\\mathsf T}\\bm T\\bm x\\ge\\rho\\,\\lambda_{\\min}(\\bm T)\\lVert\\bm x\\rVert^2$",
+      "detail_full": "x'Vx = ||X_c x||^2 / C: True; rank V = 1 at an integer point: True",
+      "tex_line": "321, 342, 642",
+      "script": "verification/sympy/check_V11_shrinkage_pd.py"
+    },
+    {
+      "id": "V11c",
+      "claim": "Numeric check of V11b at $G=40$, $C=2$, with the diagonal and the scaled-identity targets",
+      "kind": "numeric",
+      "status": "pass",
+      "detail": "mpmath, 40 digits, seed 20261030; $\\operatorname{rank}\\bm V=1$; for $\\rho\\in\\{0.01,0.5,1\\}$ and both targets, $\\lambda_{\\min}(\\hat{\\bm\\Sigma})\\ge\\rho\\,\\lambda_{\\min}(\\bm T)>0$ (smallest gap $0$ to 30 digits, attained at $\\rho=1$)",
+      "detail_full": "numerical rank of V: 1; (target, rho, lambda_min, rho*lambda_min(T)): [('diag', 0.01, '6.49659e-5', '6.345e-5'), ('diag', 0.5, '0.00324655', '0.0031725'), ('diag', 1.0, '0.006345', '0.006345'), ('scaled identity', 0.01, '0.0644275', '0.0644275'), ('scaled identity', 0.5, '3.22137', '3.22137'), ('scaled identity', 1.0, '6.44275', '6.44275')]",
+      "tex_line": "321",
+      "script": "verification/sympy/check_V11_shrinkage_pd.py"
+    },
+    {
+      "id": "V12a",
+      "claim": "QUT $\\le$ Bonferroni quantile for any dependence; under independence the QUT is the Sidak quantile, with per-test level $1-(1-\\alpha)^{1/m}\\ge\\alpha/m$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "union bound; $\\tfrac{\\mathrm d}{\\mathrm d\\alpha}\\{(1-\\alpha/m)^m-(1-\\alpha)\\}=1 - \\left(- \\frac{\\alpha}{m} + 1\\right)^{m - 1}\\ge0$, zero at $\\alpha=0$; $\\lim_{m\\to\\infty}m\\{1-(1-\\alpha)^{1/m}\\}=- \\log{\\left(1 - \\alpha \\right)}$, so the per-test levels differ by the factor $-\\log(1-\\alpha)/\\alpha$: $1.026$ at $\\alpha=0.05$, $1.386$ at $\\alpha=0.5$",
+      "detail_full": "f'(alpha) identity: True; f(0) = 0: True; lim m a_S = -log(1 - alpha); spot checks: True; ratio limits 1.026 (alpha=0.05), 1.386 (alpha=0.5)",
+      "tex_line": "570, 572",
+      "script": "verification/sympy/check_V12_qut_fwer.py"
+    },
+    {
+      "id": "V12b",
+      "claim": "For independent Gaussian scores the QUT and the Bonferroni quantile agree asymptotically: ratio $\\to1$, difference $\\to0$",
+      "kind": "numeric",
+      "status": "pass",
+      "detail": "mpmath, 50 digits; $q_{\\mathrm{QUT}}/q_{\\mathrm B}$ at $m=100$: $0.998053$ ($\\alpha=0.05$), $0.962322$ ($\\alpha=0.5$); at $m=10^6$: $0.999167$, $0.987458$; the ratio increases in $m$ and the gap $q_{\\mathrm B}-q_{\\mathrm{QUT}}$ shrinks as $\\log\\{-\\log(1-\\alpha)/\\alpha\\}/q_{\\mathrm B}$ (within 10\\,\\% at $m=10^6$)",
+      "detail_full": "(alpha, m, q_QUT, q_Bonferroni, ratio, sqrt(2 log m)): [(0.05, 10, '2.79963', '2.80703', '0.997361', '2.14597'), (0.05, 100, '3.47398', '3.48076', '0.998053', '3.03485'), (0.05, 1000, '4.04966', '4.05563', '0.998529', '3.71692'), (0.05, 10000, '4.55943', '4.56479', '0.998826', '4.29193'), (0.05, 1000000, '5.44677', '5.45131', '0.999167', '5.25652'), (0.5, 10, '1.8319', '1.95996', '0.934658', '2.14597'), (0.5, 100, '2.70127', '2.80703', '0.962322', '3.03485'), (0.5, 1000, '3.39237', '3.48076', '0.974607', '3.71692'), (0.5, 10000, '3.97863', '4.05563', '0.981016', '4.29193'), (0.5, 1000000, '4.96327', '5.02631', '0.987458', '5.25652')]",
+      "tex_line": "570",
+      "script": "verification/sympy/check_V12_qut_fwer.py"
+    },
+    {
+      "id": "V12c",
+      "claim": "With $k$ true and $m-k$ null regulators, the QUT controls the per-target FWER at $\\le\\alpha$; expected false edges $\\to-\\log(1-\\alpha)$ per target",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "FWER $=1-(1-\\alpha)^{(m-k)/m}$; $\\lim_{m\\to\\infty}\\mathbb E V\\,(k=\\sqrt m)=- \\log{\\left(1 - \\alpha \\right)}$; $m=100$, $k=10$: $\\mathbb E V=0.6217$, share $\\mathbb E V/(\\mathbb E V+k)=0.0585$ at $\\alpha=0.5$; $0.04615$ and $0.00459$ at $\\alpha=0.05$; share $q$ needs per-test level $t=\\frac{k q}{\\left(1 - q\\right) \\left(- k + m\\right)}$ (solved exactly)",
+      "detail_full": "FWER identity: True; t for share q: [k*q/(k*q - k - m*q + m)] (True); lim E V = -log(1 - alpha); (E V, share, FWER) at m=100, k=10: {'1/20': (0.04615, 0.00459, 0.0451), '1/2': (0.6217, 0.0585, 0.464)}",
+      "tex_line": "565, 574, 576, 578, 648",
+      "script": "verification/sympy/check_V12_qut_fwer.py"
+    },
+    {
+      "id": "V12d",
+      "claim": "The paper's $\\lambda=0.05N_c/\\sqrt{N_g}$ grows as $N_c$, the null score as $\\sqrt{N_c}$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$\\lambda/(\\sigma\\sqrt{N_c}\\,q)=\\frac{\\sqrt{N_{c}}}{20 \\sqrt{N_{g}} q \\sigma}\\to\\infty$ as $N_c\\to\\infty$; $\\lambda\\sqrt{N_g}=0.05N_c$",
+      "detail_full": "ratio = sqrt(N_c)/(20*sqrt(N_g)*q*sigma); diverges: True; lambda sqrt(N_g) = 0.05 N_c: True",
+      "tex_line": "546, 552",
+      "script": "verification/sympy/check_V12_qut_fwer.py"
+    },
+    {
+      "id": "V13a",
+      "claim": "Bulk covariance under cell-depth sampling then scaling, $a^2\\sum_j m_j(\\bm\\Sigma^{\\mathrm{bio}}_j+\\operatorname{diag}\\bm\\mu_j)$, against bulk-depth sampling, $a^2\\sum_j m_j\\bm\\Sigma^{\\mathrm{bio}}_j+a\\operatorname{diag}(\\sum_j m_j\\bm\\mu_j)$; binomial thinning equals bulk-depth sampling",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Poisson and binomial MGFs summed from the pmf; generic third-order CGF per type, $G=J=2$; Hessian of the pooled CGF at $0$; thinning and bulk-depth sampling have the same CGF",
+      "detail_full": "Poisson MGF: True; binomial MGF x<=6: True; CGF(B) == CGF(C): True; means a*sum m_j mu_j: True; Cov(A) = a^2 sum m_j (Sigma_j + diag mu_j): True; Cov(B) = a^2 sum m_j Sigma_j + a diag(sum m_j mu_j): True; Cov(A) = Matrix([\n[a**2*(m1*(S1_11 + mu1_1) + m2*(S2_11 + mu2_1)),                     a**2*(S1_12*m1 + S2_12*m2)],\n[                    a**2*(S1_12*m1 + S2_12*m2), a**2*(m1*(S1_22 + mu1_2) + m2*(S2_22 + mu2_2))]]); Cov(B) = Matrix([\n[a*(m1*(S1_11*a + mu1_1) + m2*(S2_11*a + mu2_1)),                      a**2*(S1_12*m1 + S2_12*m2)],\n[                     a**2*(S1_12*m1 + S2_12*m2), a*(m1*(S1_22*a + mu1_2) + m2*(S2_22*a + mu2_2))]])",
+      "tex_line": "744",
+      "script": "verification/sympy/check_V13_bulk_sampling.py",
+      "qmd_lines": [
+        "01-2:2025",
+        "02-1:1298"
+      ]
+    },
+    {
+      "id": "V13b",
+      "claim": "With $m_j=np_j$: $\\operatorname{Cov}\\bm y=\\phi\\,\\bm S^{\\mathrm{bio}}(\\bm p)+c\\operatorname{diag}(\\tilde{\\bm\\mu}\\bm p)=\\phi\\{\\bm S^{\\mathrm{bio}}(\\bm p)+a^{-1}\\operatorname{diag}(\\tilde{\\bm\\mu}\\bm p)\\}$; the raw plug-in $\\phi\\,\\bm S^{\\mathrm{raw}}(\\bm p)$ is exact iff $a=1$; the denoised one only as $a\\to\\infty$; sampling exceeds biology for gene $g$ iff $\\tilde\\mu_g(\\bm p)>a S^{\\mathrm{bio}}_{gg}(\\bm p)$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "raw minus bulk-depth covariance: $an(a-1)(\\tilde{\\bm\\mu}\\bm p)_g$ on the diagonal, $0$ off it; its root in $a$ is $1$; limit of $\\operatorname{Cov}\\bm y/\\phi-\\bm S^{\\mathrm{bio}}$ as $a\\to\\infty$ is $0$",
+      "detail_full": "scales: True; raw - bulk (1,1) = a*n*(a - 1)*(mu1_1*p - mu2_1*p + mu2_1); roots in a: [1]; off-diagonal equal: True; a->oo limits [0, 0, 0, 0]: True; crossover: True",
+      "tex_line": "748, 802",
+      "script": "verification/sympy/check_V13_bulk_sampling.py",
+      "qmd_lines": [
+        "01-2:1936",
+        "01-2:2025",
+        "02-1:1310"
+      ]
+    },
+    {
+      "id": "V13c",
+      "claim": "Toy example: $\\tilde{\\bm\\mu}=(10,1)$, $\\bm\\Sigma^{\\mathrm{bio}}=\\begin{pmatrix}40&2\\\\2&1\\end{pmatrix}$; $\\operatorname{Cov}\\bm y/\\phi$ at $a=\\tfrac14,1,4$; gene-2 variance ratios raw/true and denoised/true; crossover depths $\\tfrac14$ and $1$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$a=\\tfrac14$: $\\begin{pmatrix}80&2\\\\2&5\\end{pmatrix}$, correlation $\\tfrac1{10}$, ratios $\\tfrac25$, $\\tfrac15$; $a=1$: raw, correlation $\\tfrac15$, ratios $1$, $\\tfrac12$; $a=4$: $\\begin{pmatrix}42.5&2\\\\2&1.25\\end{pmatrix}$, correlation $0.2744$, ratios $\\tfrac85$, $\\tfrac45$",
+      "detail_full": "a=1/4: Cov/phi=Matrix([\n[80, 2],\n[ 2, 5]]), corr=1/10 (0.100000), raw/true=2/5, denoised/true=1/5; a=1: Cov/phi=Matrix([\n[50, 2],\n[ 2, 2]]), corr=1/5 (0.200000), raw/true=1, denoised/true=1/2; a=4: Cov/phi=Matrix([\n[85/2,   2],\n[   2, 5/4]]), corr=4*sqrt(34)/85 (0.274398), raw/true=8/5, denoised/true=4/5; crossover depths mu_g/S_gg = [1/4, 1]",
+      "tex_line": "748",
+      "script": "verification/sympy/check_V13_bulk_sampling.py",
+      "qmd_lines": [
+        "02-1:1349"
+      ]
+    },
+    {
+      "id": "V14a",
+      "claim": "$1+\\nu=(1+\\nu^{\\mathrm{bio}})(1+\\nu^{\\mathrm{tech}})$ for $s=s^{\\mathrm{bio}}s^{\\mathrm{tech}}$, independent factors of mean $1$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$\\mathbb E s=1$ and $\\operatorname{Var}s=\\nu^{\\mathrm{bio}} \\nu^{\\mathrm{tech}} + \\nu^{\\mathrm{bio}} + \\nu^{\\mathrm{tech}}$ from the product of moments",
+      "detail_full": "E s = 1; Var s = nu_b*nu_t + nu_b + nu_t",
+      "tex_line": "761",
+      "script": "verification/sympy/check_V14_denoised_within.py",
+      "qmd_lines": [
+        "05-1:323"
+      ]
+    },
+    {
+      "id": "V14b",
+      "claim": "eq-count-covariance, and the population version of eq-denoised-within equals the target $\\operatorname{Cov}(\\bm B s^{\\mathrm{bio}}\\bm\\lambda)=\\bm B[(1+\\nu^{\\mathrm{bio}})\\bm\\Sigma^\\lambda+\\nu^{\\mathrm{bio}}\\bm\\mu\\bm\\mu^{\\mathsf T}]\\bm B$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Poisson moments from the pmf; tower rule over $(s,\\bm\\lambda)$, $G=2$, gene-wise capture $\\bm B$; $\\bm V\\to\\operatorname{Cov}\\bm x$, $\\bar{\\bm x}\\to\\mathbb E\\bm x$ gives the target exactly",
+      "detail_full": "Cov x = eq-count-covariance and E x = B mu: True; target T = B[(1+nu_b)Sigma + nu_b mu mu']B: True; population estimator = T: True",
+      "tex_line": "763",
+      "script": "verification/sympy/check_V14_denoised_within.py",
+      "qmd_lines": [
+        "05-1:323"
+      ]
+    },
+    {
+      "id": "V14c",
+      "claim": "eq-denoised-within as first printed is biased: $\\mathbb E\\hat{\\bm\\Sigma}-\\text{target}=-\\kappa\\operatorname{Cov}\\bm x/C_j$, $\\kappa=\\nu^{\\mathrm{tech}}/(1+\\nu^{\\mathrm{tech}})$; replacing $\\bar{\\bm x}\\bar{\\bm x}^{\\mathsf T}$ by $\\bar{\\bm x}\\bar{\\bm x}^{\\mathsf T}-\\bm V/C_j$ makes it unbiased",
+      "kind": "exact",
+      "status": "flag",
+      "detail": "$\\mathbb E\\bar{\\bm x}\\bar{\\bm x}^{\\mathsf T}=\\mathbb E\\bm x\\,\\mathbb E\\bm x^{\\mathsf T}+\\operatorname{Cov}\\bm x/C$ and $\\mathbb E\\bm V=\\operatorname{Cov}\\bm x$ from the double sum over cells, symbolic $C$. Deviation: the printed form is consistent, biased at order $1/C_j$; corrected in 05-1",
+      "detail_full": "E xbar xbar' and E V: True; bias of printed estimator = -kappa Cov x / C: True; bias non-zero at a test point: True; corrected estimator unbiased: True; bias(1,2) = -b1*b2*nu_t*(S12*nu_b*nu_t + S12*nu_b + S12*nu_t + S12 + mu1*mu2*nu_b*nu_t + mu1*mu2*nu_b + mu1*mu2*nu_t)/(C*(nu_t + 1))",
+      "tex_line": "763",
+      "script": "verification/sympy/check_V14_denoised_within.py",
+      "qmd_lines": [
+        "05-1:323"
+      ]
+    },
+    {
+      "id": "V14d",
+      "claim": "Plugging the total extrinsic noise $\\nu$ (a size factor carrying $s^{\\mathrm{bio}}$ and $s^{\\mathrm{tech}}$) for $\\nu^{\\mathrm{tech}}$ returns $\\bm B\\bm\\Sigma^\\lambda\\bm B$ and drops $\\nu^{\\mathrm{bio}}\\bm B(\\bm\\Sigma^\\lambda+\\bm\\mu\\bm\\mu^{\\mathsf T})\\bm B$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "population estimator with $\\kappa=\\nu/(1+\\nu)$, $\\nu$ from V14a; difference from the target factorised",
+      "detail_full": "estimate with total nu = B Sigma B: True; lost share: Matrix([\n[ b1**2*nu_b*(S11 + mu1**2), b1*b2*nu_b*(S12 + mu1*mu2)],\n[b1*b2*nu_b*(S12 + mu1*mu2),  b2**2*nu_b*(S22 + mu2**2)]])",
+      "tex_line": "766, 800",
+      "script": "verification/sympy/check_V14_denoised_within.py",
+      "qmd_lines": [
+        "05-1:331"
+      ]
+    },
+    {
+      "id": "V14e",
+      "claim": "Monte Carlo of V14c: gamma size factors ($\\nu^{\\mathrm{bio}}=0.3$, $\\nu^{\\mathrm{tech}}=0.5$), log-normal $\\bm\\lambda$ with correlated genes, $C_j=10$ cells",
+      "kind": "numeric",
+      "status": "pass",
+      "detail": "numpy seed 20261031, $2\\times10^5$ replicates; largest $|z|$: printed form against target minus bias 1.40, corrected form against target 1.41 (tolerance 4.5); printed form against target 11.7",
+      "detail_full": "T = [[219.984, 23.699], [23.699, 7.734]]; mean printed = [[204.367, 21.837], [21.837, 7.165]]; mean corrected = [[221.538, 23.941], [23.941, 7.805]]; |z| printed vs T - kappa Cov/C = [[1.1, 1.4], [1.4, 1.24]]; |z| corrected vs T = [[1.1, 1.41], [1.41, 1.25]]; |z| printed vs T = [[11.7, 11.4], [11.4, 10.6]]",
+      "tex_line": "763",
+      "script": "verification/sympy/check_V14_denoised_within.py",
+      "qmd_lines": [
+        "05-1:323"
+      ]
+    },
+    {
+      "id": "V15a",
+      "claim": "eq-bures-map: $\\bm A$ symmetric positive definite, $\\bm A\\bm\\Sigma_1\\bm A=\\bm\\Sigma_2$, and the displacement cost equals $\\lVert\\bm m_1-\\bm m_2\\rVert^2+\\operatorname{tr}\\{\\bm\\Sigma_1+\\bm\\Sigma_2-2(\\bm\\Sigma_1^{1/2}\\bm\\Sigma_2\\bm\\Sigma_1^{1/2})^{1/2}\\}$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$\\bm\\Sigma_1=\\operatorname{diag}(1,4)$, $\\bm\\Sigma_2=\\begin{pmatrix}2&1\\\\1&2\\end{pmatrix}$; closed-form $2\\times2$ square root checked by squaring; both costs equal exactly ($\\approx10.7712$)",
+      "detail_full": "sqrt(S1): True; sqrt(M): True; A = Matrix([\n[(sqrt(2) + sqrt(6))/sqrt(2*sqrt(3) + 5),               sqrt(2)/(2*sqrt(2*sqrt(3) + 5))],\n[        sqrt(2)/(2*sqrt(2*sqrt(3) + 5)), sqrt(2)*(sqrt(3) + 4)/(4*sqrt(2*sqrt(3) + 5))]]); A S1 A = S2: True; symmetric: True; PD: True; cost by the map = -50*sqrt(4*sqrt(3) + 10)/13 - 20*sqrt(12*sqrt(3) + 30)/13 + 8*sqrt(3)*sqrt(12*sqrt(3) + 30)/13 + 20*sqrt(3)*sqrt(4*sqrt(3) + 10)/13 + 19; formula = (-10*sqrt(2) - 4*sqrt(6) + 19*sqrt(2*sqrt(3) + 5))/sqrt(2*sqrt(3) + 5); equal: True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V15_bures_map.py",
+      "qmd_lines": [
+        "05-1:1235"
+      ]
+    },
+    {
+      "id": "V15b",
+      "claim": "Same identities for $G=4$",
+      "kind": "numeric",
+      "status": "pass",
+      "detail": "mpmath at 40 digits, 20 random SPD pairs (seed 20261031); largest residual $6.4\\times10^{-40}$, tolerance $10^{-30}$; all eigenvalues of $\\bm A$ positive",
+      "detail_full": "max residual (pushforward, symmetry, cost) = 6.4285e-40",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V15_bures_map.py",
+      "qmd_lines": [
+        "05-1:1235"
+      ]
+    },
+    {
+      "id": "V15c",
+      "claim": "Diagonal covariances: $\\bm A=\\operatorname{diag}(\\sigma_{2g}/\\sigma_{1g})$, Bisque's gene-wise map; one dimension: $W_2^2=(m_1-m_2)^2+(\\sigma_1-\\sigma_2)^2$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "entrywise square roots of diagonal matrices, symbolic",
+      "detail_full": "diagonal entry = s2/s1: True; 1-D cost: True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V15_bures_map.py",
+      "qmd_lines": [
+        "05-1:1239"
+      ]
+    },
+    {
+      "id": "V16a",
+      "claim": "Covariance alone, given $\\bm p$: $(\\phi,k)\\mapsto\\phi\\,\\bm S^{\\mathrm{bio}}(\\bm p)+k\\operatorname{diag}(\\tilde{\\bm\\mu}\\bm p)$ is identifiable iff $\\bm S^{\\mathrm{bio}}(\\bm p)$ is not a multiple of $\\operatorname{diag}(\\tilde{\\bm\\mu}\\bm p)$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Jacobian $[\\operatorname{vec}\\bm S,\\operatorname{vec}\\bm D]$: all $2\\times2$ minors vanish iff $\\bm S=\\kappa\\bm D$ ($G=2,3$, generic symmetric $\\bm S$); $\\bm S=\\bm D/2$, $\\bm m=(2,3)$: $(\\phi,k)=(4,6)$ and $(8,4)$ give $\\operatorname{diag}(16,24)$; Fisher determinant $0$ there, $\\frac{7}{678976}$ for a non-proportional $\\bm S$",
+      "detail_full": "G=2: minors vanish iff [{s12: 0, s22: m2*s11/m1}]; G=3: minors vanish iff [{s12: 0, s13: 0, s22: m2*s11/m1, s23: 0, s33: m3*s11/m1}]; counter-example equal: True; Fisher (phi,k) at S = D/2: Matrix([\n[1/(4*k**2 + 4*k*phi + phi**2), 2/(4*k**2 + 4*k*phi + phi**2)],\n[2/(4*k**2 + 4*k*phi + phi**2), 4/(4*k**2 + 4*k*phi + phi**2)]]), det 0; derived = textbook form: True; det at S = [[1,1/2],[1/2,2]], (phi,k) = (4,6): 7/678976",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V16_bulk_diagonal_identifiability.py",
+      "qmd_lines": [
+        "01-2:1930",
+        "01-2:2042"
+      ]
+    },
+    {
+      "id": "V16b",
+      "claim": "With the mean $c\\,\\tilde{\\bm\\mu}\\bm p$ of the article and $\\operatorname{Cov}\\bm y=\\phi\\,\\bm S^{\\mathrm{bio}}(\\bm p)+c\\operatorname{diag}(\\tilde{\\bm\\mu}\\bm p)$, $(c,\\phi)$, and so $(\\phi,a)$, is identified whenever $\\bm S^{\\mathrm{bio}}(\\bm p)\\neq\\bm 0$, also when it is a multiple of the diagonal",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Fisher information of $(c,\\phi)$ from the expected Hessian, $G=2$: $\\bm I=\\bm I_{\\mathrm{cov}}+\\operatorname{diag}(\\bm m^\\top\\bm\\Sigma^{-1}\\bm m,0)$, $\\det\\bm I=(\\bm m^\\top\\bm\\Sigma^{-1}\\bm m)I_{\\phi\\phi}+\\det\\bm I_{\\mathrm{cov}}$; at $\\bm S=\\kappa\\bm D$: $\\det\\bm I_{\\mathrm{cov}}=0$, $\\det\\bm I=\\frac{\\kappa^{2} \\left(m_{1} + m_{2}\\right)}{\\left(c + \\kappa \\phi\\right)^{3}}$; $\\partial(c,\\phi)/\\partial(\\phi,a)$ has determinant $\\phi/a^2$",
+      "detail_full": "derived = textbook form: True; split I = I_cov + diag(m'Sigma^-1 m, 0): True; det identity: True; S = kappa D: det I_cov = 0, det I = kappa**2*(m1 + m2)/(c + kappa*phi)**3; Jacobian determinant (phi, a) -> (c, phi): phi/a**2",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V16_bulk_diagonal_identifiability.py",
+      "qmd_lines": [
+        "01-2:1930",
+        "01-2:2042"
+      ]
+    },
+    {
+      "id": "V16c",
+      "claim": "Cost: with $\\phi=ac$ and $\\bm M=a\\bm S^{\\mathrm{bio}}(\\bm p)+\\operatorname{diag}(\\tilde{\\bm\\mu}\\bm p)$, $\\hat c$ for fixed $(\\bm p,a)$ is the positive root of $Cc^2+Gc-A=0$; $a$ needs a one-dimensional numerical profile; without the diagonal, $\\hat c$ is the GLS scale and $\\hat\\phi=Q/G$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$2c^2\\,\\partial_c\\ell=A-Gc-Cc^2$, $A=\\bm y^\\top\\bm M^{-1}\\bm y$, $C=\\bm m^\\top\\bm M^{-1}\\bm m$ ($G=2$, generic $\\bm M$); one positive root; $\\partial_c^2\\ell=-G/(2c^2)-C/c<0$ there",
+      "detail_full": "score identity: True; positive root [(-G + sqrt(4*A*C + G**2))/(2*C)]: True; second derivative at root (-C*cc - G/2)/cc**2: True; D = 0: GLS scale True, phi-hat [Q/2]",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V16_bulk_diagonal_identifiability.py",
+      "qmd_lines": [
+        "01-2:2042"
+      ]
+    },
+    {
+      "id": "V17a",
+      "claim": "A gene with zero counts in every cell of type $j$ gives a zero row and column of $\\bm V_j$, $\\det\\bm V_j=0$, and an undefined ($0/0$) correlation with every other gene",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Symbolic counts, $C=4$, $G=3$: $v_{1h}=0$ for all $h$, $\\det\\bm V_j=0$, rank $\\le2$; $v_{12}=0$ and $v_{11}v_{22}=0$",
+      "detail_full": "row zero True, det True, corr 0/0 True, rank<=2 True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V17_presence_gate.py",
+      "qmd_lines": [
+        "03-1:339"
+      ]
+    },
+    {
+      "id": "V17b",
+      "claim": "A gene detected in one cell $c$ only has correlation $\\tilde h_c/(\\sqrt{1-1/C_j}\\,\\lVert\\tilde{\\bm h}\\rVert)$ with gene $h$; two genes detected only in the same cell have correlation $1$ and a singular covariance",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Symbolic counts, $C=4$: formula holds; counts $(a,0,0,0)$, $(b,0,0,0)$: $r=1$, $\\det=0$",
+      "detail_full": "Symbolic counts, $C=4$: formula holds; counts $(a,0,0,0)$, $(b,0,0,0)$: $r=1$, $\\det=0$",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V17_presence_gate.py",
+      "qmd_lines": [
+        "03-1:339"
+      ]
+    },
+    {
+      "id": "V17c",
+      "claim": "If $\\delta_{\\min}C_j\\ge2$, a gene that passes $\\delta_{gj}\\ge\\delta_{\\min}$ is non-zero in at least two cells of type $j$, so the cases of V17a and V17b are excluded",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Linear certificate $n_z-2=C_j(n_z/C_j-\\delta_{\\min})+(\\delta_{\\min}C_j-2)$, both terms $\\ge0$ ($n_z$ non-zero cells)",
+      "detail_full": "Linear certificate $n_z-2=C_j(n_z/C_j-\\delta_{\\min})+(\\delta_{\\min}C_j-2)$, both terms $\\ge0$ ($n_z$ non-zero cells)",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V17_presence_gate.py",
+      "qmd_lines": [
+        "03-1:355"
+      ]
+    },
+    {
+      "id": "V18a",
+      "claim": "With a common within-type covariance, $\\bm S_W(\\bm p)=\\bSigma_W$ and the information for the free coordinates $\\bm\\theta$ ($\\bm p=\\bm p_0+\\bm K\\bm\\theta$) is $n_i\\bm K\\T\\bm M\\T\\bSigma_W^{-1}\\bm M\\bm K$; for $J=2$ it is $n_i\\bm\\Delta\\T\\bSigma_W^{-1}\\bm\\Delta$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Expected negative Hessian of the Gaussian log-likelihood, $G=2$, $J=3$, generic $\\bm M$ and $\\bSigma_W$; Hessian free of $\\bm y$; $n_i=c^2/\\phi$",
+      "detail_full": "S_W=Sigma True; free of y True; info True; J=2 True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V18_optimal_design.py",
+      "qmd_lines": [
+        "03-1:1314"
+      ]
+    },
+    {
+      "id": "V18b",
+      "claim": "With $\\bSigma_W=\\bm I$ the information is $n_i\\bm A\\T\\bm A$, $\\bm A=\\bm M\\bm K$: its determinant is the squared Gram volume of the contrasted mean columns and $\\kappa(\\bm I)=\\kappa(\\bm A)^2$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Lagrange identity $\\det\\bm A\\T\\bm A=\\lVert\\bm a_1\\rVert^2\\lVert\\bm a_2\\rVert^2-(\\bm a_1\\T\\bm a_2)^2$ for generic $3\\times2$ $\\bm A$; $\\kappa(\\bm A)$ = 1.954 (A), 2.136 (B)",
+      "detail_full": "Lagrange identity $\\det\\bm A\\T\\bm A=\\lVert\\bm a_1\\rVert^2\\lVert\\bm a_2\\rVert^2-(\\bm a_1\\T\\bm a_2)^2$ for generic $3\\times2$ $\\bm A$; $\\kappa(\\bm A)$ = 1.954 (A), 2.136 (B)",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V18_optimal_design.py",
+      "qmd_lines": [
+        "03-1:1314"
+      ]
+    },
+    {
+      "id": "V18c",
+      "claim": "$\\operatorname{Cov}\\hat{\\bm p}=\\bm K\\bm I_{\\bm K}^{-1}\\bm K\\T$ does not depend on the basis $\\bm K$ and $\\det\\bm I_{\\bm K\\bm B}=(\\det\\bm B)^2\\det\\bm I_{\\bm K}$; E and A computed in the raw coordinates $(p_1,p_2)$ are basis-dependent",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Generic $\\bm K$, $\\bm B$, $\\bm I_{\\bm K}$; counter-example: $\\lambda_{\\min}$ of two panels 4.50 vs 6.84 in $(p_1,p_2)$, 3.05 vs 2.30 with orthonormal $\\bm K$",
+      "detail_full": "Generic $\\bm K$, $\\bm B$, $\\bm I_{\\bm K}$; counter-example: $\\lambda_{\\min}$ of two panels 4.50 vs 6.84 in $(p_1,p_2)$, 3.05 vs 2.30 with orthonormal $\\bm K$",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V18_optimal_design.py",
+      "qmd_lines": [
+        "03-1:1294"
+      ]
+    },
+    {
+      "id": "V18d",
+      "claim": "Example ($J=3$, $G=3$): with $\\bSigma_W=\\bm I$ panel A beats panel B on D, E and A; with correlation $4/5$ between genes 1 and 3 of panel A, D still prefers A while E and A prefer B",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Orthonormal $\\bm K$, $n_i=1$. A, $\\rho=0$: D $\\frac{116}{3}$, E $\\frac{23}{3} - \\frac{\\sqrt{181}}{3}$, A $\\frac{23}{58}$; B: D $\\frac{104}{3}$, E $\\frac{23}{3} - \\frac{\\sqrt{217}}{3}$, A $\\frac{23}{52}$; A, $\\rho=4/5$: D $60$, E $\\frac{47}{3} - \\frac{\\sqrt{1669}}{3}$, A $\\frac{47}{90}$",
+      "detail_full": "{\"A0\": \"{'D': 116/3, 'E': 23/3 - sqrt(181)/3, 'A': 23/58, 'kappa': 23*sqrt(181)/174 + 355/174}\", \"B0\": \"{'D': 104/3, 'E': 23/3 - sqrt(217)/3, 'A': 23/52, 'kappa': 23*sqrt(217)/156 + 373/156}\", \"A1\": \"{'D': 60, 'E': 47/3 - sqrt(1669)/3, 'A': 47/90, 'kappa': 47*sqrt(1669)/270 + 1939/270}\"}",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V18_optimal_design.py",
+      "qmd_lines": [
+        "03-1:1323"
+      ]
+    },
+    {
+      "id": "V19a",
+      "claim": "The bulk mean $b_g=\\sum_k\\alpha_km_{gk}$ lies in $[\\min_km_{gk},\\max_km_{gk}]$, and $\\delta(\\hat b_g,[\\min_k\\tilde m_{gk},\\max_k\\tilde m_{gk}])\\ge t$ implies $|\\hat b_g-b_g|\\ge t/2$ or $\\max_k|\\tilde m_{gk}-m_{gk}|\\ge t/2$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Linear certificates: $t-(L-\\hat b)$ and $t-(\\hat b-U)$ written as sums of terms positive under the hypotheses, checked by expansion",
+      "detail_full": "convexity True; lower True; upper True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V19_range_bound.py",
+      "qmd_lines": [
+        "03-1:733"
+      ]
+    },
+    {
+      "id": "V19b",
+      "claim": "With expression in $[0,B]$, Hoeffding and the union bound give $P(\\delta\\ge t)\\le2e^{-nt^2/(2B^2)}+2\\sum_ke^{-c_kt^2/(2B^2)}$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Hoeffding $2e^{-2Nu^2/B^2}$ at $u=t/2$ equals $2e^{-Nt^2/(2B^2)}$; Hoeffding itself quoted",
+      "detail_full": "Hoeffding $2e^{-2Nu^2/B^2}$ at $u=t/2$ equals $2e^{-Nt^2/(2B^2)}$; Hoeffding itself quoted",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V19_range_bound.py",
+      "qmd_lines": [
+        "03-1:733"
+      ]
+    },
+    {
+      "id": "V19c",
+      "claim": "Monte Carlo: the empirical tail of $\\delta$ stays below the bound of V19b",
+      "kind": "numeric",
+      "status": "pass",
+      "detail": "Binomial counts, $B=2$, $K=3$, $n=c_k=100$, $\\bm\\alpha=(0.98,0.01,0.01)$, seed 20261101, $2\\times10^4$ replicates, 40 values of $t$; tail 0.215 at $t=0.06$; first bound below 1 at $t=0.42$: 0.882 against 0.0000 (conservative)",
+      "detail_full": "Binomial counts, $B=2$, $K=3$, $n=c_k=100$, $\\bm\\alpha=(0.98,0.01,0.01)$, seed 20261101, $2\\times10^4$ replicates, 40 values of $t$; tail 0.215 at $t=0.06$; first bound below 1 at $t=0.42$: 0.882 against 0.0000 (conservative)",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V19_range_bound.py",
+      "qmd_lines": [
+        "03-1:733"
+      ]
+    },
+    {
+      "id": "V20a",
+      "claim": "For $X\\sim\\mathrm{NB}(r,\\pi)$, $M(\\lambda)=\\{(1-\\pi)/(1-\\pi e^\\lambda)\\}^r$, finite exactly for $\\lambda<-\\log\\pi$, with mean $\\mu=r\\pi/(1-\\pi)$ and variance $\\mu+\\mu^2/r$: the NB is sub-exponential",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Coefficients of $(1-z)^{-r}$ to $z^9$ equal $(r)_x/x!$ (symbolic $r$); $M'(0)$, $M''(0)-M'(0)^2$ simplify; ratio test limit $\\pi e^\\lambda$",
+      "detail_full": "series True; mean True; var True; domain True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V20_subexponential_nb.py",
+      "qmd_lines": [
+        "03-1:783"
+      ]
+    },
+    {
+      "id": "V20b",
+      "claim": "Moment growth of Prop. 2.8.1(ii) for the centred NB: $(\\mathbb E|X-\\mu|^p)^{1/p}/p$ stays bounded in $p$",
+      "kind": "numeric",
+      "status": "pass",
+      "detail": "$r\\in\\{0.5,2,10\\}$, $\\pi\\in\\{0.3,0.6,0.9\\}$, $p=1,\\ldots,60$, log-space sums in float64; largest ratio 23.74 at $(r,\\pi)=(10.0,0.9)$; ratios for $p>30$ never exceed those for $p\\le30$",
+      "detail_full": "[[0.5, 0.3, 0.3586, 0.3046], [0.5, 0.6, 0.9487, 0.7182], [0.5, 0.9, 4.5953, 3.4824], [2.0, 0.3, 0.84, 0.3321], [2.0, 0.6, 2.0736, 0.7839], [2.0, 0.9, 10.2665, 3.802], [10.0, 0.3, 1.9631, 0.4159], [10.0, 0.6, 4.8347, 0.9863], [10.0, 0.9, 23.7358, 4.7885]]",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V20_subexponential_nb.py",
+      "qmd_lines": [
+        "03-1:820"
+      ]
+    },
+    {
+      "id": "V20c",
+      "claim": "Cram\u00e9r--Chernoff rate of the NB, $I(a)=a\\log\\frac{a(\\mu+r)}{\\mu(a+r)}+r\\log\\frac{\\mu+r}{a+r}$, with $I(\\mu)=0$, $I(0)=r\\log(1+\\mu/r)$ and the Poisson limit; Monte Carlo tails of the mean and of the range distance $\\delta$ stay below the Chernoff bounds",
+      "kind": "numeric",
+      "status": "pass",
+      "detail": "Stationary point and closed form symbolic; MC seed 20261101: mean of $n=50$ NB($\\mu=3,r=2$), $2\\times10^5$ replicates, at $u=1$ tail 0.0080 vs bound 0.0584; range filter $K=3$, $\\mu_k=(1,3,6)$, $r=2$, $\\bm\\alpha=(0.98,0.01,0.01)$, $n=c_k=100$, $2\\times10^4$ replicates; first bound below 1 at $t=1.3$: 0.950 vs 0.0000",
+      "detail_full": "stationary True; value True; I(mu)=0 True; I(0) True; Poisson True; mc mean True; mc range True; rows1 [(np.float64(0.25), np.float64(0.250755), 0.8191222798121917), (np.float64(0.5), np.float64(0.104585), 0.46483651141055676), (np.float64(0.75), np.float64(0.031525), 0.19054680128421148), (np.float64(1.0), np.float64(0.008), 0.058428736187140666), (np.float64(1.25), np.float64(0.001495), 0.013803780896935488), (np.float64(1.5), np.float64(0.00023), 0.0025766546404857892), (np.float64(1.75), np.float64(1.5e-05), 0.00038834040310004795), (np.float64(2.0), np.float64(5e-06), 4.815319224121735e-05)]; rows2 [(np.float64(0.1), np.float64(0.1841), 7.679298686113857), (np.float64(0.2), np.float64(0.0742), 6.832060069075939), (np.float64(0.3), np.float64(0.02225), 5.732183646870965), (np.float64(0.4), np.float64(0.00515), 4.658039569254736), (np.float64(0.5), np.float64(0.0011), 3.771385390272215), (np.float64(0.6), np.float64(0.0001), 3.0993283428761904), (np.float64(0.7), np.float64(0.0), 2.5932749625084637), (np.float64(0.7999999999999999), np.float64(0.0), 2.1942241653636816), (np.float64(0.8999999999999999), np.float64(0.0), 1.8630035956471986), (np.float64(0.9999999999999999), np.float64(0.0), 1.580289412662661), (np.float64(1.0999999999999999), np.float64(0.0), 1.3372227524636773), (np.float64(1.2), np.float64(0.0), 1.1285832532401443), (np.float64(1.3), np.float64(0.0), 0.9500266175550489), (np.float64(1.4), np.float64(0.0), 0.797470414266428), (np.float64(1.5), np.float64(0.0), 0.66715993174676), (np.float64(1.5999999999999999), np.float64(0.0), 0.5558157697059918), (np.float64(1.7), np.float64(0.0), 0.4606969080901964), (np.float64(1.8), np.float64(0.0), 0.37956817477025473), (np.float64(1.9), np.float64(0.0), 0.310608812975563), (np.float64(2.0), np.float64(0.0), 0.25230407293654583), (np.float64(2.0999999999999996), np.float64(0.0), 0.20334961727953843), (np.float64(2.1999999999999997), np.float64(0.0), 0.16258260245300055), (np.float64(2.3), np.float64(0.0), 0.128940700529097), (np.float64(2.4), np.float64(0.0), 0.10144328196760943), (np.float64(2.5), np.float64(0.0), 0.07918677133646959)]",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V20_subexponential_nb.py",
+      "qmd_lines": [
+        "03-1:915",
+        "03-1:954",
+        "03-1:964",
+        "03-1:977"
+      ]
+    },
+    {
+      "id": "V21a",
+      "claim": "If $\\mathbf{1}^\\top\\bm w=1$, then $\\bm w^\\top(\\bm\\Sigma_g+c\\mathbf{1}\\mathbf{1}^\\top)\\bm w=\\bm w^\\top\\bm\\Sigma_g\\bm w+c$: a constant shift of Unico's cross-type covariance is confounded with $\\tau_g^2$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Symbolic $4\\times4$ symmetric $\\bm\\Sigma$, $w_4=1-w_1-w_2-w_3$; difference expands to 0",
+      "detail_full": "Symbolic $4\\times4$ symmetric $\\bm\\Sigma$, $w_4=1-w_1-w_2-w_3$; difference expands to 0",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V21_unico.py",
+      "qmd_lines": [
+        "05-1:2118"
+      ]
+    },
+    {
+      "id": "V21b",
+      "claim": "Spectral entropy of a $k\\times k$ correlation matrix: $0\\le H\\le\\log k$, $H=\\log k$ at $\\bm R=\\mathbf I$, $H=0$ at $\\bm R=\\mathbf{1}\\mathbf{1}^\\top$, and the R\u00e9nyi-2 bound $H\\ge\\log[k/\\{1+(k-1)\\overline{\\rho^2}\\}]$",
+      "kind": "numeric",
+      "status": "pass",
+      "detail": "$k\\in\\{2,3,5,10,50\\}$, 200 random correlation matrices each, seed 20261101; smallest $H$ 0.002, largest $H/\\log k$ 1.000; tolerance $10^{-12}$",
+      "detail_full": "$k\\in\\{2,3,5,10,50\\}$, 200 random correlation matrices each, seed 20261101; smallest $H$ 0.002, largest $H/\\log k$ 1.000; tolerance $10^{-12}$",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V21_unico.py",
+      "qmd_lines": [
+        "03-1:1167",
+        "03-1:1191"
+      ]
+    },
+    {
+      "id": "V22a",
+      "claim": "CSNet's Algorithm 1: $\\mathbb{E}x=sT\\phi$, $\\operatorname{Var}x=s^2T\\phi^2+sT\\phi$, $\\operatorname{Cov}(x_g,x_{g'})=s^2\\phi^2T_{gg'}$, $\\operatorname{Cor}=(T_{gg'}/T)\\,s\\phi/(1+s\\phi)$; $\\operatorname{Var}x=\\sigma^2$ gives $s\\phi=\\sqrt{\\sigma^2/T+1/4}-1/2$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Law of total (co)variance with a shared $\\mathrm{Gamma}(T_{gg'},1)$ component; positive root of $Tu^2+Tu=\\sigma^2$",
+      "detail_full": "moments True; correlation True; phi True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V22_csnet_factor.py",
+      "qmd_lines": [
+        "S5-misspecification:460"
+      ]
+    },
+    {
+      "id": "V22b",
+      "claim": "CSNet constants and simulation: $b=0.77$ and $\\mathbb{E}x\\approx678$ at $s=6\\times10^7$, $\\sigma^2=e^8$, $T=200$; Monte Carlo of Algorithm 1 matches the moments; an AR-type block violates $\\sum_{g'}T_{gg'}\\le T$",
+      "kind": "numeric",
+      "status": "pass",
+      "detail": "$b=0.7724$, $\\mathbb{E}x=678.6$; MC MA(1), $\\rho=0.5$, $G=6$, $s=1$, $\\phi=2$, $2\\times10^5$ draws, seed 20261101: mean 400.0 (exact 400), variance 1202 (exact 1200), lag-one correlation 0.334 (exact 0.333), lag two -0.000; AR-type row sum 14.7",
+      "detail_full": "$b=0.7724$, $\\mathbb{E}x=678.6$; MC MA(1), $\\rho=0.5$, $G=6$, $s=1$, $\\phi=2$, $2\\times10^5$ draws, seed 20261101: mean 400.0 (exact 400), variance 1202 (exact 1200), lag-one correlation 0.334 (exact 0.333), lag two -0.000; AR-type row sum 14.7",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V22_csnet_factor.py",
+      "qmd_lines": [
+        "S5-misspecification:460",
+        "S5-misspecification:496"
+      ]
+    },
+    {
+      "id": "V22c",
+      "claim": "Woodbury: $(\\bm\\Psi+\\bm B\\bm B^\\top)^{-1}=\\bm\\Psi^{-1}-\\bm\\Psi^{-1}\\bm B(\\mathbf I_q+\\bm B^\\top\\bm\\Psi^{-1}\\bm B)^{-1}\\bm B^\\top\\bm\\Psi^{-1}$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$G=4$, $q=2$, symbolic loadings and diagonal $\\bm\\Psi$; every entry of the difference cancels",
+      "detail_full": "$G=4$, $q=2$, symbolic loadings and diagonal $\\bm\\Psi$; every entry of the difference cancels",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V22_csnet_factor.py",
+      "qmd_lines": [
+        "S5-misspecification:685"
+      ]
+    },
+    {
+      "id": "V23a",
+      "claim": "Multivariate Fisher information for $p$, $J=2$: $I(p)=n_i\\bm\\Delta^\\top\\bm S(p)^{-1}\\bm\\Delta+\\tfrac12\\operatorname{tr}[\\{\\bm S(p)^{-1}(\\bm\\Sigma_{W,1}-\\bm\\Sigma_{W,2})\\}^2]$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$-\\mathbb E\\,\\partial^2\\ell/\\partial p^2$ from the Gaussian log-likelihood, $G=2$, rational covariances, symbolic $p$, $c$, $\\phi$ with $n_i=c^2/\\phi$",
+      "detail_full": "$-\\mathbb E\\,\\partial^2\\ell/\\partial p^2$ from the Gaussian log-likelihood, $G=2$, rational covariances, symbolic $p$, $c$, $\\phi$ with $n_i=c^2/\\phi$",
+      "tex_line": "1073",
+      "script": "verification/sympy/check_V23_multivariate_fisher_overlap.py",
+      "qmd_lines": [
+        "summary_side_comparison:254"
+      ]
+    },
+    {
+      "id": "V23b",
+      "claim": "Bhattacharyya distance of two Gaussian laws: $D_B=\\tfrac18\\bm\\Delta^\\top\\bar{\\bm\\Sigma}^{-1}\\bm\\Delta+\\tfrac12\\log\\{\\det\\bar{\\bm\\Sigma}/(\\det\\bm\\Sigma_1\\det\\bm\\Sigma_2)^{1/2}\\}$; equal covariances give $\\bm\\Delta^\\top\\bm\\Sigma^{-1}\\bm\\Delta/8$",
+      "kind": "numeric",
+      "status": "pass",
+      "detail": "$-\\log\\int\\sqrt{f_1f_2}$ by quadrature ($G=1$, three cases, 30 digits) and on a $1201^2$ grid ($G=2$); largest difference 7.6e-14",
+      "detail_full": "$-\\log\\int\\sqrt{f_1f_2}$ by quadrature ($G=1$, three cases, 30 digits) and on a $1201^2$ grid ($G=2$); largest difference 7.6e-14",
+      "tex_line": "1088",
+      "script": "verification/sympy/check_V23_multivariate_fisher_overlap.py"
+    },
+    {
+      "id": "V24a",
+      "claim": "Symmetric $\\bm A$ and $\\bm Q=q\\mathbf I$: $\\bm\\Sigma=-\\tfrac q2\\bm A^{-1}$ solves the Lyapunov equation, so $\\bm\\Omega=-\\tfrac2q\\bm A$ and $\\omega_{gg}=2a_g/q$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$G=3$, symbolic symmetric $\\bm A$; residual of the Lyapunov equation and $\\bm\\Omega+\\tfrac2q\\bm A$ simplify to zero",
+      "detail_full": "$G=3$, symbolic symmetric $\\bm A$; residual of the Lyapunov equation and $\\bm\\Omega+\\tfrac2q\\bm A$ simplify to zero",
+      "tex_line": "867",
+      "script": "verification/sympy/check_V24_lyapunov_precision_dag.py"
+    },
+    {
+      "id": "V24b",
+      "claim": "Linear SEM on a directed acyclic graph, parents first: $\\bm\\Omega=(\\mathbf I-\\bm B)^\\top\\bm D^{-1}(\\mathbf I-\\bm B)$ and $\\omega_{gg}=1/d_g+\\sum_{g\\to h}b_{hg}^2/d_h$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$G=3$, symbolic strictly lower triangular $\\bm B$ and diagonal $\\bm D$; inverse of $(\\mathbf I-\\bm B)^{-1}\\bm D(\\mathbf I-\\bm B)^{-\\top}$",
+      "detail_full": "$G=3$, symbolic strictly lower triangular $\\bm B$ and diagonal $\\bm D$; inverse of $(\\mathbf I-\\bm B)^{-1}\\bm D(\\mathbf I-\\bm B)^{-\\top}$",
+      "tex_line": "889, 921",
+      "script": "verification/sympy/check_V24_lyapunov_precision_dag.py"
+    },
+    {
+      "id": "V24c",
+      "claim": "$\\omega_{gg}=1/\\operatorname{Var}(x_g\\mid\\bm x_{-g})=1/\\{\\sigma_{gg}(1-R^2_g)\\}>0$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$G=3$, covariance with one symbolic entry $t$; Schur complement against the multiple correlation, every gene",
+      "detail_full": "$G=3$, covariance with one symbolic entry $t$; Schur complement against the multiple correlation, every gene",
+      "tex_line": "873, 920",
+      "script": "verification/sympy/check_V24_lyapunov_precision_dag.py",
+      "qmd_lines": [
+        "summary_side_comparison:435"
+      ]
+    },
+    {
+      "id": "V25a",
+      "claim": "Linear-noise approximation of one gene: Fano factor 1 for birth--death, $1+b$ for geometric bursts of mean size $b$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Fixed point, noise intensity $q$ and the one-gene Lyapunov equation $-2a\\sigma+q=0$; geometric moments from the generating function",
+      "detail_full": "birth-death True; geometric moments True; bursts True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V25_noise_scales_sandwich.py",
+      "qmd_lines": [
+        "summary_side_comparison:494"
+      ]
+    },
+    {
+      "id": "V25b",
+      "claim": "With $c_i=a_in_i$ and $\\phi_i=a_i^2n_i$: $a_i=\\phi_i/c_i$ and $n_i=c_i^2/\\phi_i$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Direct substitution",
+      "detail_full": "Direct substitution",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V25_noise_scales_sandwich.py",
+      "qmd_lines": [
+        "summary_side_comparison:176"
+      ]
+    },
+    {
+      "id": "V25c",
+      "claim": "Two genes, correlation $\\rho$, same signature entry: OLS and GLS share the variance $(1+\\rho)/(2m^2)$, the naive independence variance is $1/(2m^2)$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Sandwich, GLS and naive variances computed symbolically",
+      "detail_full": "Sandwich, GLS and naive variances computed symbolically",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V25_noise_scales_sandwich.py",
+      "qmd_lines": [
+        "summary_side_comparison:160"
+      ]
+    },
+    {
+      "id": "V26a",
+      "claim": "Linear Gaussian DBN: the stationary covariance solves $\\bm\\Sigma=\\bm A\\bm\\Sigma\\bm A^\\top+\\bm Q$, $(\\mathbf I-\\bm A\\otimes\\bm A)\\operatorname{vec}\\bm\\Sigma=\\operatorname{vec}\\bm Q$; a positive two-gene loop between slices gives $\\sigma_{12}\\neq0$, a symmetric negative loop gives $\\sigma_{12}=0$ but a non-zero lag-one cross-covariance $(\\bm A\\bm\\Sigma)_{12}$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Symbolic $2\\times2$ $\\bm A$ with persistence $1/2$ and cross edges $\\pm1/4$, $\\bm Q=\\mathbf I$; residuals vanish; positive loop $\\sigma_{12}=64/105$; negative loop $\\sigma_{12}=0$, $(\\bm A\\bm\\Sigma)_{12}=-4/11$; spectral radii 0.750, 0.559",
+      "detail_full": "Symbolic $2\\times2$ $\\bm A$ with persistence $1/2$ and cross edges $\\pm1/4$, $\\bm Q=\\mathbf I$; residuals vanish; positive loop $\\sigma_{12}=64/105$; negative loop $\\sigma_{12}=0$, $(\\bm A\\bm\\Sigma)_{12}=-4/11$; spectral radii 0.750, 0.559",
+      "tex_line": "1291, 1294",
+      "script": "verification/sympy/check_V26_dynamic_bn.py",
+      "qmd_lines": [
+        "summary_side_comparison:571"
+      ]
+    },
+    {
+      "id": "V26b",
+      "claim": "Without couplings, $\\bm A'=\\bm A\\bm M\\bm U\\bm M^{-1}$ ($\\bm M=\\bm\\Sigma_t^{1/2}$, $\\bm U$ orthogonal fixing $\\bm M^{-1}\\bm\\mu_t$) gives the same $\\bm\\mu_{t+1}$ and $\\bm\\Sigma_{t+1}$ as $\\bm A$",
+      "kind": "numeric",
+      "status": "pass",
+      "detail": "$G=3$, seed 20261102: mean error 2.2e-16, covariance error 1.8e-15, $\\max|\\bm A'-\\bm A|=0.45$",
+      "detail_full": "$G=3$, seed 20261102: mean error 2.2e-16, covariance error 1.8e-15, $\\max|\\bm A'-\\bm A|=0.45$",
+      "tex_line": "1303, 1445",
+      "script": "verification/sympy/check_V26_dynamic_bn.py",
+      "qmd_lines": [
+        "summary_side_comparison:580"
+      ]
+    },
+    {
+      "id": "V26c",
+      "claim": "Mixture covariance $\\sum_k\\pi_k\\bm\\Sigma_k+\\sum_k\\pi_k(\\bm\\mu_k-\\bar{\\bm\\mu})(\\bm\\mu_k-\\bar{\\bm\\mu})^\\top$: diagonal classes give the off-diagonal $\\pi_1\\pi_2(\\mu_{11}-\\mu_{21})(\\mu_{12}-\\mu_{22})$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Second moments of a two-class mixture, $G=2$, symbolic",
+      "detail_full": "Second moments of a two-class mixture, $G=2$, symbolic",
+      "tex_line": "1348",
+      "script": "verification/sympy/check_V26_dynamic_bn.py",
+      "qmd_lines": [
+        "summary_side_comparison:588"
+      ]
+    },
+    {
+      "id": "V26d",
+      "claim": "$X\\to Y$ and $Y\\to X$ with matched parameters have the same observational law but differ under $\\mathrm{do}(X=x_0)$: $Y\\sim\\mathcal N(bx_0,s_e^2)$ against $\\mathcal N(0,b^2s_x^2+s_e^2)$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Covariances of the two SEMs equal symbolically; interventional means and variances differ for $b\\neq0$",
+      "detail_full": "Covariances of the two SEMs equal symbolically; interventional means and variances differ for $b\\neq0$",
+      "tex_line": "1405",
+      "script": "verification/sympy/check_V26_dynamic_bn.py"
+    },
+    {
+      "id": "V26e",
+      "claim": "v-structure $X\\to Z\\leftarrow Y$: $\\Sigma_{xy}=0$ but $J_{xy}=1/d\\neq0$ (moralisation in the precision)",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$Z=X+Y+e$, $e\\sim\\mathcal N(0,d)$; covariance and precision computed symbolically",
+      "detail_full": "$Z=X+Y+e$, $e\\sim\\mathcal N(0,d)$; covariance and precision computed symbolically",
+      "tex_line": "1262",
+      "script": "verification/sympy/check_V26_dynamic_bn.py"
+    }
+  ]
+}

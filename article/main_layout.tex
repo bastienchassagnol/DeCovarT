@@ -355,6 +355,11 @@ semi-reference and reference-free methods, are reviewed in Appendix~\ref{app:rev
     \item all these weighted least-squares fits are generalised-method-of-moments estimators: they solve sample
           moment conditions and return a point estimate, with no interval unless a variance model, a sandwich or a
           resampling unit is added
+    \item \emph{Unico} applies the same principle to the reverse problem: with the proportions given, it matches the
+          model mean \(\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\mu}_{g\cdot}\) and variance
+          \(\boldsymbol{p}_{\cdot i}^{\top}\boldsymbol{\Gamma}_{g}\boldsymbol{p}_{\cdot i}+\tau_{g}^{2}\) of each bulk sample with its observation, gene by gene,
+          where \(\boldsymbol{\Gamma}_{g}\) is a \(J\times J\) covariance across cell types; it needs no single-cell reference
+          \cite{chenUnicoUnifiedModelCell2025} (Appendix~\ref{app:cts})
     \item no measurement model: least squares on intensities, often after TPM or CPM normalisation
     \item that normalisation is a \gls{closure}: the profile is divided by its own total, so the
           expression of the last gene is fixed by the others, the covariance becomes singular, and
@@ -387,7 +392,9 @@ semi-reference and reference-free methods, are reviewed in Appendix~\ref{app:rev
     \item \emph{RNA-Sieve} and \emph{ReDeconv} use a central-limit Gaussian per gene;
           \emph{RCTD}, designed for spatial spots, a Poisson law with log-normal overdispersion and a
           gene-wise platform ratio \(\tilde b_{g}=e^{\gamma_{g}}\) estimated in a first stage
-          \cite{cableRobustDecompositionCell2022a}; \emph{DeconV} a Poisson bulk
+          \cite{cableRobustDecompositionCell2022a}; \emph{DeconV} a Poisson or negative-binomial bulk obtained by
+          summing the count laws fitted to single cells, a sum that stays negative binomial only because the
+          probability parameter is shared by all cell types \cite{gynterDeconvProbabilisticCellType2023}
     \item \emph{RNA-Sieve} models noisy reference means across several bulks and returns
           Fisher or Godambe confidence regions; \emph{RCTD} and \emph{ReDeconv} return
           point estimates
@@ -417,6 +424,18 @@ semi-reference and reference-free methods, are reviewed in Appendix~\ref{app:rev
           the reference (Gaussian, log-normal or a single-cell prior)
     \item posterior summaries by Gibbs, Metropolis--Hastings or variational inference;
           none models a \(G\times G\) gene covariance
+  \end{itemize}
+  \item sample- or subject-specific references:
+        \emph{imply} \cite{mengImplyImprovingCelltype2024},
+        \emph{BLEND} \cite{huangBLENDProbabilisticCellular2024}
+  \begin{itemize}
+    \item \emph{imply} predicts one reference per subject from that subject's repeated bulk samples, with a
+          gene-wise linear mixed model and a subject random effect, then refits the proportions by non-negative
+          least squares
+    \item \emph{BLEND} places each sample's reference in the convex hull of several observed references, inside a
+          multinomial model fitted by Gibbs sampling or EM
+    \item both return a profile per sample or subject, without a gene covariance and without intervals
+          (Appendices~\ref{app:cts} and~\ref{app:wiener-blend})
   \end{itemize}
 
   \end{itemize}
@@ -454,9 +473,9 @@ estimate some of these terms from the bulk cohort, DeCovarT plugs in
         (a gene-regulatory network), and the bulk is their weighted convolution, itself a
         multivariate Gaussian with an explicit likelihood
         \cite{chassagnolDeCovarTMultidimensionalProbalistic2023}
-  \item reference second moments: five estimators of the cell-type-specific covariance are
-        compared on a single-cell reference (Section~\ref{sec:cov-estimation}): partial
-        correlations, the graphical lasso with an unpenalised diagonal, a de-sparsified
+  \item reference second moments: four estimators of the cell-type-specific covariance are
+        compared on a single-cell reference (Section~\ref{sec:cov-estimation}): the graphical
+        lasso with an unpenalised diagonal, a de-sparsified
         graphical lasso with false discovery rate control, a Poisson--log-normal network,
         and a dense shrinkage covariance
   \item estimation: constrained maximum likelihood on the isometric log-ratio (ILR) chart
@@ -768,8 +787,8 @@ $\boldsymbol{\Sigma}_{j}$ carries the remaining discriminative signal.
     \item gene-selection stringency: the presence filter plus the cell-type main-effect test of
           Section~\ref{sec:feature-selection}, at increasing effect-size thresholds that yield
           nested panels from a few dozen to several thousand genes
-    \item covariance or precision estimator: the five strategies of
-          Section~\ref{sec:cov-estimation} (partial correlations, graphical lasso with an
+    \item covariance or precision estimator: the four strategies of
+          Section~\ref{sec:cov-estimation} (graphical lasso with an
           unpenalised diagonal, de-sparsified graphical lasso, Poisson--log-normal network,
           dense shrinkage), plus the diagonal as a mean-only control
     \item single-cell to bulk alignment: the model of Section~\ref{sec:sc-tailored} against the
@@ -1240,13 +1259,13 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
 \begin{itemize}
   \item target: one precision \(\boldsymbol{\Omega}_{j,t}\) per type and time point; with one specimen, the
         estimand is the within-type cell-to-cell covariance of the expression on the count scale, the raw
-        covariance minus its Poisson sampling diagonal; whether the denoised or the raw covariance should enter the
-        bulk depends on the sequencing depth per cell of the bulk (Appendix~\ref{app:which-covariance}); Pearson
+        covariance minus its Poisson sampling diagonal, and minus a rank-one size-factor term when capture varies
+        between cells; the bulk adds its own sampling diagonal \(c_{i}\operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i})\),
+        so the raw covariance is the right plug-in only when the bulk is sequenced at the per-cell depth of the
+        reference, \(a_{i}=1\) (Appendix~\ref{app:which-covariance}); Pearson
         residuals serve gene selection (Section~\ref{sec:feature-selection}), not this plug-in
-  \item five estimators, compared in the gastruloid ablation
+  \item four estimators, compared in the gastruloid ablation
   \begin{itemize}
-    \item partial correlations by inversion with Benjamini--Hochberg edges and a positive-definite refit on the
-          support \cite{R-ppcor}; valid only when \(n_{j}>G\)
     \item graphical lasso \cite{friedmanSparseInverseCovariance2008} on the correlation matrix, with an
           unpenalised diagonal and a per-type extended BIC \cite{foygelExtendedBayesianInformation2010}, then
           rescaled to the data
@@ -1260,8 +1279,8 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
   \item sparsity is secondary for DeCovarT: the likelihood needs \(\boldsymbol{\Sigma}_{j}\), and the mixture covariance,
         \(\sum_{j}p_{j}\boldsymbol{\Sigma}_{W,j}\) here or \(\sum_{j}p_{j}^{2}\boldsymbol{\Sigma}_{j}\) for population references, has no
         sparse precision even when every \(\boldsymbol{\Omega}_{j}\) is sparse
-  \item from precision to covariance: an estimator that returns \(\hat{\boldsymbol{\Omega}}_{j}\) (partial correlations, the
-        de-sparsified graphical lasso) is inverted once per type, before any fit, through its Cholesky factor
+  \item from precision to covariance: an estimator that returns \(\hat{\boldsymbol{\Omega}}_{j}\) (the de-sparsified graphical
+        lasso) is inverted once per type, before any fit, through its Cholesky factor
         \cite{golubMatrixComputations2013}: the factorisation certifies that \(\hat{\boldsymbol{\Omega}}_{j}\) is positive definite,
         the inverse is exactly symmetric, at least as accurate as a QR inverse and three to five times faster for
         \(G=200\) to \(800\); if the factorisation fails, the diagonal of \(\hat{\boldsymbol{\Omega}}_{j}\) is shifted uniformly, which
@@ -1273,6 +1292,24 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
         \cite{chiquetContributionsSparseMethods2015,heinävaaraInconsistencyℓ1penalisedSparse2016};
         the dense shrinkage estimate is the fallback plug-in
   \item review of the estimators and their conditions: Appendix~\ref{app:networks}
+\end{itemize}
+
+\paragraph{Extension, not implemented: the bulk sampling term.}
+
+\begin{itemize}
+  \item plug-in: a bulk of UMI-like counts at depth \(a_{i}\) per reference unit has covariance
+        \(\phi_{i}\{\boldsymbol{S}^{\mathrm{bio}}(\boldsymbol{p}_{\cdot i})+a_{i}^{-1}\operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i})\}\)
+        \eqref{eq:bulk-poisson-layer}, with \(\boldsymbol{S}^{\mathrm{bio}}(\boldsymbol{p})=\sum_{j}p_{j}\boldsymbol{\Sigma}^{\mathrm{bio}}_{j}\) built
+        from denoised covariances; the plug-in for every depth is \(\boldsymbol{S}^{\mathrm{bio}}\) plus
+        \(c_{i}\operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i})\), with no new parameter
+  \item identifiability, given \(\boldsymbol{p}_{\cdot i}\): the mean fixes \(c_{i}\), so \((c_{i},\phi_{i})\), equivalently
+        \((\phi_{i},a_{i})\), is identified whenever \(\boldsymbol{S}^{\mathrm{bio}}(\boldsymbol{p}_{\cdot i})\neq\boldsymbol{0}\); a free
+        coefficient on the diagonal, such as a read-count dispersion, is identified only if
+        \(\boldsymbol{S}^{\mathrm{bio}}(\boldsymbol{p}_{\cdot i})\) is not a multiple of \(\operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i})\)
+  \item cost: the covariance is no longer proportional to \(\phi_{i}\), so \(\hat\phi_{i}=\boldsymbol{r}^{\top}\boldsymbol{W}\boldsymbol{r}/G\) is
+        lost; for fixed \(a_{i}=\phi_{i}/c_{i}\), \(\hat c_{i}\) is the positive root of a quadratic, and \(a_{i}\) is
+        profiled numerically in one dimension; \texttt{deconvolute\_single\_cell()} with a raw
+        \(\boldsymbol{\Sigma}_{W,j}\) assumes \(a_{i}=1\)
 \end{itemize}
 
 
@@ -1749,6 +1786,13 @@ and solves the mixture there.
           nuclear norm and solved by ADMM, to recover subtype-specific expression in each sample; recovery is
           good for abundant subtypes and poor for rare ones (estimate--truth correlation from 0.20 to 0.71
           across abundance quartiles in its realistic simulation) \cite{chenSwCAMEstimationSubtypespecific2022}
+    \item factor analysis models the gene correlation in a latent space: \(\boldsymbol{\Sigma}=\boldsymbol{B}\boldsymbol{B}^{\top}+\boldsymbol{\Psi}\),
+          with \(q\) factors as loadings \(\boldsymbol{B}\) and a diagonal \(\boldsymbol{\Psi}\), fitted by EM
+          (Friguet, Kloareg and Causeur, 2009); % TODO-cite: Friguet, Kloareg & Causeur 2009, JASA 104(488):1406-1415
+          \emph{HADACA3} uses it to simulate correlated noise on the bulk from the residuals of mixtures of
+          known composition \cite{barbotPromisesLimitsMultimodal2026}; as a generator of \(\boldsymbol{\Sigma}_{j}\), its precision is a
+          diagonal minus a rank-\(q\) term, dense, so it tests the sparse precision of DeCovarT outside its family
+          (\vignette{S5-misspecification.html}{misspecification vignette})
   \end{itemize}
   \item non-linear embeddings learn the latent space
   \begin{itemize}
@@ -1797,7 +1841,8 @@ and solves the mixture there.
 \begin{itemize}
   \item keeping the profiles as latent variables, with a diagonal residual \(\boldsymbol{D}\),
         \(\boldsymbol{y}_{\cdot i}\mid\boldsymbol{p}_{\cdot i},\{\boldsymbol{x}_{\cdot j,i}\}\sim\mathcal{N}_{G}(\sum_{j}p_{ji}\boldsymbol{x}_{\cdot j,i},\boldsymbol{D})\),
-        returns the DeCovarT likelihood after integration; \(\boldsymbol{D}\) is a nugget variance, the geostatistical term for
+        integrates to \(\mathcal{N}_{G}\{\boldsymbol{\mu}\boldsymbol{p}_{\cdot i},\boldsymbol{\Sigma}(\boldsymbol{p}_{\cdot i})+\boldsymbol{D}\}\), the DeCovarT likelihood only when
+        \(\boldsymbol{D}=\boldsymbol{0}\); with \(\boldsymbol{D}\neq\boldsymbol{0}\) the likelihood and \(\hat{\boldsymbol{p}}\) change; \(\boldsymbol{D}\) is a nugget variance, the geostatistical term for
         variation left at zero distance: here measurement error of the bulk, independent across genes and not explained
         by the cell-type profiles; \(\boldsymbol{D}\neq\boldsymbol{0}\) is needed for a non-degenerate posterior, because without
         it the bulk is an exact linear function of the latent profiles
@@ -1807,6 +1852,9 @@ and solves the mixture there.
         the cell-type covariance then shapes the purified profiles as well as \(\hat{\boldsymbol{p}}\)
   \item the posterior covariance gives per-sample uncertainty on cell-type-specific profiles, which
         \emph{bMIND} obtains with a gene-wise single-cell prior \cite{wangBayesianEstimationCelltypespecific2020}
+  \item \emph{BLEND} also returns sample-specific profiles, but as convex mixtures of several observed references in a
+        multinomial model, with no gene covariance and, in its authors' words, no inference on the fractions
+        \cite{huangBLENDProbabilisticCellular2024}; Appendix~\ref{app:wiener-blend} compares the two models
   \item the latent form yields an EM algorithm \cite{dempsterMaximumLikelihoodIncomplete1977} whose iterations
         increase the marginal likelihood, and a mean-field variant that keeps the sparse precisions
   \item single-cell references (Section~\ref{sec:sc-tailored}): the latent variable belongs to the cells, not to the genes;
