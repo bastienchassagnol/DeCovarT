@@ -373,13 +373,13 @@
       "claim": "With the mean estimated, $\\operatorname{rank}\\bm V=\\operatorname{rank}\\bm X_c\\le\\min(C-1,G)$, with equality for data in general position; $\\bm V\\succ0$ needs $C\\ge G+1$",
       "kind": "exact",
       "status": "pass",
-      "detail": "$G=3$, symbolic data: $\\det\\bm V\\equiv0$ at $C=3$; at $C=4$, $\\det\\bm V$ is a non-zero polynomial (value $\\frac{4330561}{82944}$ at a rational point); exact ranks at rational points for $C=2,\\dots,6$: 1, 2, 3, 3, 3",
-      "detail_full": "det V (G=3, C=3, symbolic) == 0: True; det V (G=3, C=4) at a rational point = 4330561/82944; rank(I - 11'/5) = 4: True; ranks of V (= ranks of X_c) for C=2..6: {2: 1, 3: 2, 4: 3, 5: 3, 6: 3}",
+      "detail": "$G=3$, symbolic data: $\\det\\bm V\\equiv0$ at $C=3$; at $C=4$, $\\det\\bm V$ is a non-zero polynomial (value $\\frac{3845364121}{331776}$ at a rational point); exact ranks at rational points for $C=2,\\dots,6$: 1, 2, 3, 3, 3",
+      "detail_full": "det V (G=3, C=3, symbolic) == 0: True; det V (G=3, C=4) at a rational point = 3845364121/331776; rank(I - 11'/5) = 4: True; ranks of V (= ranks of X_c) for C=2..6: {2: 1, 3: 2, 4: 3, 5: 3, 6: 3}",
       "tex_line": "298, 319, 642",
       "script": "verification/sympy/check_V10_empirical_covariance_rank.py",
       "qmd_lines": [
         "03-1:355",
-        "summary_side_comparison:275"
+        "summary_side_comparison:263"
       ]
     },
     {
@@ -921,7 +921,7 @@
       "tex_line": "1073",
       "script": "verification/sympy/check_V23_multivariate_fisher_overlap.py",
       "qmd_lines": [
-        "summary_side_comparison:254"
+        "summary_side_comparison:241"
       ]
     },
     {
@@ -942,7 +942,10 @@
       "detail": "$G=3$, symbolic symmetric $\\bm A$; residual of the Lyapunov equation and $\\bm\\Omega+\\tfrac2q\\bm A$ simplify to zero",
       "detail_full": "$G=3$, symbolic symmetric $\\bm A$; residual of the Lyapunov equation and $\\bm\\Omega+\\tfrac2q\\bm A$ simplify to zero",
       "tex_line": "867",
-      "script": "verification/sympy/check_V24_lyapunov_precision_dag.py"
+      "script": "verification/sympy/check_V24_lyapunov_precision_dag.py",
+      "qmd_lines": [
+        "summary_side_comparison:509"
+      ]
     },
     {
       "id": "V24b",
@@ -964,7 +967,7 @@
       "tex_line": "873, 920",
       "script": "verification/sympy/check_V24_lyapunov_precision_dag.py",
       "qmd_lines": [
-        "summary_side_comparison:435"
+        "summary_side_comparison:415"
       ]
     },
     {
@@ -977,7 +980,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V25_noise_scales_sandwich.py",
       "qmd_lines": [
-        "summary_side_comparison:494"
+        "summary_side_comparison:471"
       ]
     },
     {
@@ -990,7 +993,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V25_noise_scales_sandwich.py",
       "qmd_lines": [
-        "summary_side_comparison:176"
+        "summary_side_comparison:164"
       ]
     },
     {
@@ -1003,7 +1006,20 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V25_noise_scales_sandwich.py",
       "qmd_lines": [
-        "summary_side_comparison:160"
+        "summary_side_comparison:149"
+      ]
+    },
+    {
+      "id": "V25d",
+      "claim": "Two genes, symmetric $\\bm A$ (decay $a$, mutual effect $b$), $\\bm Q=q\\mathbf I$: $\\bm\\Sigma=\\tfrac{q}{2(a^2-b^2)}\\bigl(\\begin{smallmatrix}a&b\\\\b&a\\end{smallmatrix}\\bigr)$, correlation $b/a$; one-way regulation or gene-specific noise break $\\bm\\Omega\\propto\\bm A$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Lyapunov equation solved symbolically for $G=2$; proportionality constant solved for and absent when $q_1\\neq q_2$",
+      "detail_full": "closed form and corr True; one-way True; anisotropic True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V25_noise_scales_sandwich.py",
+      "qmd_lines": [
+        "summary_side_comparison:543"
       ]
     },
     {
@@ -1016,7 +1032,7 @@
       "tex_line": "1291, 1294",
       "script": "verification/sympy/check_V26_dynamic_bn.py",
       "qmd_lines": [
-        "summary_side_comparison:571"
+        "summary_side_comparison:651"
       ]
     },
     {
@@ -1029,7 +1045,7 @@
       "tex_line": "1303, 1445",
       "script": "verification/sympy/check_V26_dynamic_bn.py",
       "qmd_lines": [
-        "summary_side_comparison:580"
+        "summary_side_comparison:660"
       ]
     },
     {
@@ -1042,7 +1058,7 @@
       "tex_line": "1348",
       "script": "verification/sympy/check_V26_dynamic_bn.py",
       "qmd_lines": [
-        "summary_side_comparison:588"
+        "summary_side_comparison:668"
       ]
     },
     {
