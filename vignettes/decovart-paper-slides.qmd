@@ -11,7 +11,7 @@ bibliography:
   - ../inst/REFERENCES.bib
 link-citations: true
 resources:
-  - decovart-manuscript.pdf
+  - ../article/main_layout.pdf
 format:
   html:
     embed-resources: false
@@ -43,25 +43,25 @@ template).
 Open
 [full screen](https://bastienchassagnol.github.io/DeCovarT/article/main.pdf)
 or
-[download a copy](decovart-manuscript.pdf).
+[download a copy](main_layout.pdf).
 
 ```{=html}
 <div class="decovart-fullwidth">
   <object
     class="decovart-pdf-embed"
-    data="../article/main_layout.pdf"
+    data="main_layout.pdf"
     type="application/pdf"
     width="100%"
     height="1400">
     <object
       class="decovart-pdf-embed"
-      data="decovart-manuscript.pdf"
+      data="main_layout.pdf"
       type="application/pdf"
       width="100%"
       height="1400">
       <iframe
         class="decovart-pdf-embed"
-        src="decovart-manuscript.pdf"
+        src="main_layout.pdf"
         title="DeCovarT working manuscript"
         width="100%"
         height="1400"></iframe>
