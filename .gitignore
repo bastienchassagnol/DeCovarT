@@ -60,6 +60,8 @@ tests/testthat/simulations/
 .Renviron.local
 
 # my folders
+# Retired notes and figures. Ignore the whole directory.
+/archives/
 # Track Quarto slide sources; ignore bulky legacy decks and render output
 slides/**/*.pdf
 slides/**/*.pptx

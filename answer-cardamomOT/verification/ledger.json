@@ -1,6 +1,6 @@
 {
   "meta": {
-    "date": "2026-11-02",
+    "date": "2026-11-04",
     "sympy": "1.14.0",
     "numpy": "2.5.4",
     "python": "3.14.3"
@@ -126,7 +126,7 @@
       "tex_line": "266, 1060",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:1053"
+        "03-1:1725"
       ]
     },
     {
@@ -149,7 +149,7 @@
       "tex_line": "268",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:1260"
+        "03-1:1934"
       ]
     },
     {
@@ -162,7 +162,7 @@
       "tex_line": "640, 1062",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:1053"
+        "03-1:1725"
       ]
     },
     {
@@ -175,7 +175,7 @@
       "tex_line": "1064",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:1053"
+        "03-1:1725"
       ]
     },
     {
@@ -373,13 +373,13 @@
       "claim": "With the mean estimated, $\\operatorname{rank}\\bm V=\\operatorname{rank}\\bm X_c\\le\\min(C-1,G)$, with equality for data in general position; $\\bm V\\succ0$ needs $C\\ge G+1$",
       "kind": "exact",
       "status": "pass",
-      "detail": "$G=3$, symbolic data: $\\det\\bm V\\equiv0$ at $C=3$; at $C=4$, $\\det\\bm V$ is a non-zero polynomial (value $\\frac{3845364121}{331776}$ at a rational point); exact ranks at rational points for $C=2,\\dots,6$: 1, 2, 3, 3, 3",
-      "detail_full": "det V (G=3, C=3, symbolic) == 0: True; det V (G=3, C=4) at a rational point = 3845364121/331776; rank(I - 11'/5) = 4: True; ranks of V (= ranks of X_c) for C=2..6: {2: 1, 3: 2, 4: 3, 5: 3, 6: 3}",
+      "detail": "$G=3$, symbolic data: $\\det\\bm V\\equiv0$ at $C=3$; at $C=4$, $\\det\\bm V$ is a non-zero polynomial (value $\\frac{4455696001}{331776}$ at a rational point); exact ranks at rational points for $C=2,\\dots,6$: 1, 2, 3, 3, 3",
+      "detail_full": "det V (G=3, C=3, symbolic) == 0: True; det V (G=3, C=4) at a rational point = 4455696001/331776; rank(I - 11'/5) = 4: True; ranks of V (= ranks of X_c) for C=2..6: {2: 1, 3: 2, 4: 3, 5: 3, 6: 3}",
       "tex_line": "298, 319, 642",
       "script": "verification/sympy/check_V10_empirical_covariance_rank.py",
       "qmd_lines": [
-        "03-1:355",
-        "summary_side_comparison:263"
+        "03-1:443",
+        "summary_side_comparison:304"
       ]
     },
     {
@@ -402,7 +402,7 @@
       "tex_line": "303, 319",
       "script": "verification/sympy/check_V10_empirical_covariance_rank.py",
       "qmd_lines": [
-        "03-1:355"
+        "03-1:443"
       ]
     },
     {
@@ -682,7 +682,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V17_presence_gate.py",
       "qmd_lines": [
-        "03-1:339"
+        "03-1:427"
       ]
     },
     {
@@ -695,7 +695,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V17_presence_gate.py",
       "qmd_lines": [
-        "03-1:339"
+        "03-1:427"
       ]
     },
     {
@@ -708,7 +708,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V17_presence_gate.py",
       "qmd_lines": [
-        "03-1:355"
+        "03-1:443"
       ]
     },
     {
@@ -721,7 +721,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:1314"
+        "03-1:1988"
       ]
     },
     {
@@ -734,7 +734,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:1314"
+        "03-1:1988"
       ]
     },
     {
@@ -747,7 +747,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:1294"
+        "03-1:1968"
       ]
     },
     {
@@ -760,7 +760,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:1323"
+        "03-1:1997"
       ]
     },
     {
@@ -773,7 +773,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V19_range_bound.py",
       "qmd_lines": [
-        "03-1:733"
+        "03-1:1013"
       ]
     },
     {
@@ -786,7 +786,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V19_range_bound.py",
       "qmd_lines": [
-        "03-1:733"
+        "03-1:1013"
       ]
     },
     {
@@ -799,7 +799,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V19_range_bound.py",
       "qmd_lines": [
-        "03-1:733"
+        "03-1:1013"
       ]
     },
     {
@@ -812,7 +812,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V20_subexponential_nb.py",
       "qmd_lines": [
-        "03-1:783"
+        "03-1:972"
       ]
     },
     {
@@ -825,7 +825,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V20_subexponential_nb.py",
       "qmd_lines": [
-        "03-1:820"
+        "03-1:940"
       ]
     },
     {
@@ -838,10 +838,10 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V20_subexponential_nb.py",
       "qmd_lines": [
-        "03-1:915",
-        "03-1:954",
-        "03-1:964",
-        "03-1:977"
+        "03-1:1060",
+        "03-1:1085",
+        "03-1:1095",
+        "03-1:1111"
       ]
     },
     {
@@ -867,8 +867,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V21_unico.py",
       "qmd_lines": [
-        "03-1:1167",
-        "03-1:1191"
+        "03-1:1841",
+        "03-1:1865"
       ]
     },
     {
@@ -921,7 +921,7 @@
       "tex_line": "1073",
       "script": "verification/sympy/check_V23_multivariate_fisher_overlap.py",
       "qmd_lines": [
-        "summary_side_comparison:241"
+        "summary_side_comparison:273"
       ]
     },
     {
@@ -944,7 +944,8 @@
       "tex_line": "867",
       "script": "verification/sympy/check_V24_lyapunov_precision_dag.py",
       "qmd_lines": [
-        "summary_side_comparison:509"
+        "summary_side_comparison:610",
+        "summary_side_comparison:679"
       ]
     },
     {
@@ -967,7 +968,7 @@
       "tex_line": "873, 920",
       "script": "verification/sympy/check_V24_lyapunov_precision_dag.py",
       "qmd_lines": [
-        "summary_side_comparison:415"
+        "summary_side_comparison:500"
       ]
     },
     {
@@ -980,7 +981,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V25_noise_scales_sandwich.py",
       "qmd_lines": [
-        "summary_side_comparison:471"
+        "summary_side_comparison:566"
       ]
     },
     {
@@ -993,7 +994,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V25_noise_scales_sandwich.py",
       "qmd_lines": [
-        "summary_side_comparison:164"
+        "summary_side_comparison:187"
       ]
     },
     {
@@ -1006,7 +1007,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V25_noise_scales_sandwich.py",
       "qmd_lines": [
-        "summary_side_comparison:149"
+        "summary_side_comparison:171"
       ]
     },
     {
@@ -1019,7 +1020,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V25_noise_scales_sandwich.py",
       "qmd_lines": [
-        "summary_side_comparison:543"
+        "summary_side_comparison:644",
+        "summary_side_comparison:713"
       ]
     },
     {
@@ -1032,7 +1034,7 @@
       "tex_line": "1291, 1294",
       "script": "verification/sympy/check_V26_dynamic_bn.py",
       "qmd_lines": [
-        "summary_side_comparison:651"
+        "summary_side_comparison:879"
       ]
     },
     {
@@ -1045,7 +1047,7 @@
       "tex_line": "1303, 1445",
       "script": "verification/sympy/check_V26_dynamic_bn.py",
       "qmd_lines": [
-        "summary_side_comparison:660"
+        "summary_side_comparison:889"
       ]
     },
     {
@@ -1058,7 +1060,7 @@
       "tex_line": "1348",
       "script": "verification/sympy/check_V26_dynamic_bn.py",
       "qmd_lines": [
-        "summary_side_comparison:668"
+        "summary_side_comparison:897"
       ]
     },
     {
@@ -1080,6 +1082,175 @@
       "detail_full": "$Z=X+Y+e$, $e\\sim\\mathcal N(0,d)$; covariance and precision computed symbolically",
       "tex_line": "1262",
       "script": "verification/sympy/check_V26_dynamic_bn.py"
+    },
+    {
+      "id": "V27a",
+      "claim": "Gini of the type shares: pairwise form $=$ sorted form $=$ mean absolute difference of the means over $2\\bar\\mu_g$; net weight $2k-J-1$; maximum $(J-1)/J$ at one expressing type; $J\\,\\mathrm{Gini}_g/(J-1)\\in[0,1]$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Sorted means as cumulative sums of positive symbols, $J=2,\\ldots,10$: the three forms agree; $\\#\\{\\text{smaller}\\}-\\#\\{\\text{larger}\\}=2k-J-1$ for symbolic $J,k$; value $(J-1)/J$ at $u=e_J$; vertices of the ordered simplex give corrected range $[0,1]$",
+      "detail_full": "forms True; weight True; max True; correction True; range True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V27_gini.py",
+      "qmd_lines": [
+        "03-1:239"
+      ]
+    },
+    {
+      "id": "V27b",
+      "claim": "Genes of the Gini figure: $\\mathrm{Gini}_g=21/200$ and $77/100$, corrected $3/25$ and $22/25$; a gene expressed in one type has $(J-1)/J$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Exact rationals: Gini $\\frac{21}{200}$ and $\\frac{77}{100}$, corrected $\\frac{3}{25}$ and $\\frac{22}{25}$, $\\Delta_g=\\frac{21}{8}$ and $\\frac{77}{4}$, $\\bar\\mu_g=\\frac{25}{2}$, $J^2\\bar\\mu_g=800$; one type: $\\frac{7}{8}$; all four forms agree",
+      "detail_full": "{\"low\": {\"gini\": \"21/200\", \"pair\": \"21/200\", \"sorted\": \"21/200\", \"corr\": \"3/25\", \"delta\": \"21/8\", \"mbar\": \"25/2\", \"wsum_over_J2mbar\": \"21/200\", \"min\": \"9\"}, \"high\": {\"gini\": \"77/100\", \"pair\": \"77/100\", \"sorted\": \"77/100\", \"corr\": \"22/25\", \"delta\": \"77/4\", \"mbar\": \"25/2\", \"wsum_over_J2mbar\": \"77/100\", \"min\": \"1\"}}",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V27_gini.py",
+      "qmd_lines": [
+        "03-1:256"
+      ]
+    },
+    {
+      "id": "V28a",
+      "claim": "One-way log-link GLM $M_1$: $h_{gc}=w_{gc}/\\sum_{c':j(c')=j(c)}w_{gc'}$ with $w_{gc}=\\hat m_{gc}^2/V(\\hat m_{gc})$; the hat values of a type sum to 1 and grow with the fitted mean",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "IRLS weight $(d\\mu/d\\eta)^2/V$ at $\\mu=e^\\eta$ equals $m^2/V(m)$, $\\partial_m\\{m^2/V(m)\\}=\\frac{\\psi^{2}}{\\left(m + \\psi\\right)^{2}}>0$; $\\bm H$ from the design (types of 3, 2, 2 cells, symbolic weights): diagonal as printed, trace $J=3$, $\\bm H^2=\\bm H$",
+      "detail_full": "weight True; increasing True; diag True; trace True; idempotent True; type sums True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V28_leverage.py",
+      "qmd_lines": [
+        "03-1:826"
+      ]
+    },
+    {
+      "id": "V28b",
+      "claim": "Cook's distance of a cell: $\\mathrm{Cook}_{gc}=(r^{\\mathrm{SP}}_{gc})^2h_{gc}/\\{J(1-h_{gc})\\}=r_{gc}^2h_{gc}/\\{J\\hat\\phi_g(1-h_{gc})^2\\}$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Exact one-step deletion refit at fixed IRLS weights (symbolic weights and working responses, cells of a 3-cell and a 2-cell type): $(\\bm b-\\bm b_{(c)})^\\top\\bm X^\\top\\bm W\\bm X(\\bm b-\\bm b_{(c)})/(J\\phi)$ equals both printed forms; $w\\,e^2=r^2$ for the log link",
+      "detail_full": "deletion True; working vs Pearson residual True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V28_leverage.py",
+      "qmd_lines": [
+        "03-1:826"
+      ]
+    },
+    {
+      "id": "V28c",
+      "claim": "Weighted bulk-on-reference regression: $h_g=\\hat{\\tilde{\\bm\\mu}}_{g\\cdot}^\\top(\\bm X^\\top\\bm W\\bm X)^{-1}\\hat{\\tilde{\\bm\\mu}}_{g\\cdot}/\\tau_g^2$, $\\sum_gh_g=J$, $\\bm H^2=\\bm H$, $h_g$ unchanged when $\\tau_g$ scales with the level; $\\mathrm{Cook}_g=r_g^2h_g/\\{J(1-h_g)\\}$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$\\bm H=\\bm W^{1/2}\\bm X(\\bm X^\\top\\bm W\\bm X)^{-1}\\bm X^\\top\\bm W^{1/2}$ with symbolic $G=4$, $J=2$: diagonal as printed, trace 2, idempotent, scale-invariant; rational $G=7$, $J=3$ (seed 20261101): trace 3, idempotent, Cook equals the exact deletion distance for every gene",
+      "detail_full": "diag True; trace True; idempotent True; scale True; rational True; cook True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V28_leverage.py",
+      "qmd_lines": [
+        "03-1:856"
+      ]
+    },
+    {
+      "id": "V29a",
+      "claim": "$K_D(u)=\\sum_jm_jK_{gj}(u/n)+\\sum_jC_jK_{gj}(-up_j/C_j)$ with $K_{gj}(u)=-\\psi_g\\log\\{1-\\tilde\\mu_{gj}(e^u-1)/\\psi_g\\}$ for $u<-\\log\\pi_{gj}$; $K_D$ convex, $K_D(0)=K_D'(0)=0$, $K_D''(0)=\\operatorname{Var}D$, $K_D'''(0)=\\kappa_3(D)$; $D$ left-skewed in the simulation",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Per-cell MGF from the series of $(1-z)^{-\\psi}$; printed form and domain recovered; symbolic $J=3$ derivatives match $\\operatorname{Var}D$ and $\\kappa_3(D)$ (per-cell cumulants from $M$); $K_{gj}''>0$. Numeric cross-check: toy $J=2$, $E e^{uD}$ from convolved pmfs, largest log error 6.3e-35 (40 digits); skewness at the script parameters -0.079 and -0.061",
+      "detail_full": "series True; form True; domain True; cell cumulants True; derivatives True; convex True; toy True errs ['1.1479e-41', '7.1746e-41', '3.7308e-41', '6.347e-35']; skew {'low': -0.07939622950968021, 'high': -0.060828099534722256}",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V29_discrepancy_cgf.py",
+      "qmd_lines": [
+        "03-1:1162"
+      ]
+    },
+    {
+      "id": "V29b",
+      "claim": "Legendre transforms $K_D^{\\pm}$: supremum at the root of $K_D'(u)=\\pm t$ inside $(0,u_+)$ or $(u_-,0)$, $u_+=n\\min_j(-\\log\\pi_{gj})$, $u_-=\\max_jC_j\\log\\pi_{gj}/p_j$; for a single sum of $n$ cells the rate is $nK^\\ast(m\\pm t)$ of the NB rate; $K_D^{\\pm}=\\log100$ gives the $0.01$ bound",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$K_{gj}'(v)\\to\\infty$ as $v\\uparrow-\\log\\pi_{gj}$; endpoints solved from the arguments $u/n$ and $-up_j/C_j$; single sum: root $u^\\ast=n\\log\\frac{a(m+\\psi)}{m(a+\\psi)}$ and value $nK^\\ast(a)$ symbolic; mpmath root-finding on the grid $a\\in m\\{0.3,0.7,1.4,3\\}$, $m\\in\\{0.2,20\\}$, largest relative error 5.0e-39",
+      "detail_full": "limit True; u- True; u+ True; value True; root sign True; numeric True (5.028e-39); threshold True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V29_discrepancy_cgf.py",
+      "qmd_lines": [
+        "03-1:1175"
+      ]
+    },
+    {
+      "id": "V29c",
+      "claim": "Poisson CGF $\\tilde\\mu_{gj}(e^u-1)$ and $K^{\\mathrm{Pois}}_D$; single-sum rate $n\\{\\bar x\\log(\\bar x/m)-\\bar x+m\\}$; the Poisson model understates the per-cell variance by $1+\\tilde\\mu_{gj}/\\psi_g$; NB CGF and rate tend to the Poisson ones as $\\psi_g\\to\\infty$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Poisson series summed to $e^{- m \\left(1 - e^{v}\\right)}$; $K^{\\mathrm{Pois}}_D(0)=K'(0)=0$; rate solved at the root of $K'(u)=\\bar x-m$; NB/Poisson variance ratio $\\frac{m + \\psi}{\\psi}$; limits $\\psi\\to\\infty$ of the per-cell CGF and of the NB rate symbolic",
+      "detail_full": "mgf True; K(0),K'(0) True; K''(0) True; rate True; ratio True; cgf limit True; rate limit True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V29_discrepancy_cgf.py",
+      "qmd_lines": [
+        "03-1:1312"
+      ]
+    },
+    {
+      "id": "V29d",
+      "claim": "Module T3 and T4 add $K_{D_g}(u/\\operatorname{sd}D_g)$ over genes as if independent; with NB standard deviations the summed NB CGF has variance $\\lvert M\\rvert$ and the summed Poisson CGF less",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Two genes, symbolic $J=3$: second derivative at 0 of the summed NB CGF is 2; of the summed Poisson CGF $\\sum_g\\operatorname{Var}^{\\mathrm{Pois}}D_g/\\operatorname{Var}D_g$, with $\\operatorname{Var}D_g-\\operatorname{Var}^{\\mathrm{Pois}}D_g=\\sum_j(p_j/n+p_j^2/C_j)\\tilde\\mu_{gj}^2/\\psi>0$",
+      "detail_full": "NB True; Poisson True; gap True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V29_discrepancy_cgf.py",
+      "qmd_lines": [
+        "03-1:1324"
+      ]
+    },
+    {
+      "id": "V30a",
+      "claim": "Jensen step of T5: $\\operatorname{E}e^{uS_M}\\le k_G^{-1}\\sum_c\\prod_{g\\in\\mathcal M_c}\\operatorname{E}e^{k_GuZ_g}=\\exp\\bar K_S(u)$; $\\bar K_S(0)=\\bar K_S'(0)=0$ and $\\bar K_S''(0)=k_G\\lvert M\\rvert$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Symbolic $k$: $\\sum_c(y_c-\\bar y)=0$, $e^x-1-x\\ge0$ (single critical point 0, $f''=e^x$), termwise identity gives $\\sum_ce^{y_c}-ke^{\\bar y}=e^{\\bar y}\\sum_cf(y_c-\\bar y)\\ge0$ with $\\bar y=uS$; generic CGFs: $\\bar K_S''(0)=60$ for classes 8, 7, 5. Gaussian toy, 14 genes, 18 edges, $k_G=3$: inequality holds for $u=0.01,\\ldots,1$ (smallest ratio 1.001); pointwise on 2000 draws",
+      "detail_full": "centre True; tangent True; termwise True; mean True; L derivs {'(3, 2, 2)': ['0', '0', '21'], '(8, 7, 5)': ['0', '0', '60']}; proper True; pd True; gauss True; pointwise True; class sizes [5, 7, 2]",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V30_janson_colouring.py",
+      "qmd_lines": [
+        "03-1:1376"
+      ]
+    },
+    {
+      "id": "V30b",
+      "claim": "$k_G\\le\\min\\{d_{\\max}+1,(1+\\sqrt{8\\lvert\\mathcal E\\rvert+1})/2\\}$: a graph of chromatic number $\\chi$ has at least $\\chi(\\chi-1)/2$ edges; the Welsh--Powell colouring attains both bounds; $8.26$ and $7$ for 30 edges and $d_{\\max}=6$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$\\chi^2-\\chi-2m=(\\chi-r_+)(\\chi-r_-)$ with $r_+=\\frac{\\sqrt{8 m + 1}}{2} + \\frac{1}{2}$, $r_-\\le0$; all 33867 labelled graphs on at most 6 vertices: $m\\ge\\chi(\\chi-1)/2$, and the greedy count $k$ satisfies $k\\le d_{\\max}+1$ and $m\\ge k(k-1)/2$; $r_+(30)=8.2621$",
+      "detail_full": "roots True; factor True; r- True; enumeration True; numbers True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V30_janson_colouring.py",
+      "qmd_lines": [
+        "03-1:1364"
+      ]
+    },
+    {
+      "id": "V31a",
+      "claim": "$\\operatorname{E}D=0$ and $\\operatorname{Var}D=\\sum_jp_j\\sigma_{gj}^2/n+\\sum_jp_j^2\\sigma_{gj}^2/C_j$ with the per-cell NB variance $\\sigma_{gj}^2=\\tilde\\mu_{gj}+\\tilde\\mu_{gj}^2/\\psi_g$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Per-cell moments from the NB MGF; $D$ as a linear form over cells (toy $m=(2,3)$, $C=(2,3)$) and with symbolic $J=3$, $m_j=p_jn$: both match the printed sums; $\\operatorname{sd}D/\\bar\\mu_g=0.06003$ for the low-expression gene (printed 0.0600)",
+      "detail_full": "moments True; toy True; symbolic True; sd ratio 0.060025142148156116 (True)",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V31_discrepancy_variance.py",
+      "qmd_lines": [
+        "03-1:1151"
+      ]
+    },
+    {
+      "id": "V31b",
+      "claim": "$\\operatorname{Cov}(D_g,D_h)=\\sum_jp_jc_{ghj}/n+\\sum_jp_j^2c_{ghj}/C_j$, $\\operatorname{Var}S_M=\\lvert M\\rvert+2\\sum_{(g,h)\\in\\mathcal E}\\operatorname{Corr}(D_g,D_h)$, and $\\operatorname{Corr}(D_g,D_h)\\le\\varrho$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Covariance of two linear forms with equal cell coefficients (toy and symbolic $J=3$); $\\bm 1^\\top\\bm R\\bm 1$ on a 5-gene graph with symbolic edge correlations; Lagrange's identity $(\\sum w a^2)(\\sum w b^2)-(\\sum wab)^2=\\sum_{j<l}w_jw_l(a_jb_l-a_lb_j)^2$ with $w_j=p_j/n+p_j^2/C_j$, zero iff $\\sigma_{h\\cdot}\\propto\\sigma_{g\\cdot}$",
+      "detail_full": "cov True; varS True; lagrange True; equality True; corr form True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V31_discrepancy_variance.py",
+      "qmd_lines": [
+        "03-1:1206"
+      ]
     }
   ]
 }

@@ -24,6 +24,7 @@
 ^pkgdown$
 ^\.github$
 ^\.firecrawl$
+^archives$
 ^F-submit-statistical-software-for-review\.md$
 ^vignettes/\.quarto$
 ^vignettes/.*_files$
@@ -74,7 +75,10 @@
 ^vignettes/figures/fig_mean_signature_shared_private\.png$
 ^vignettes/figures/cholesky_vs_spectral_decomposition\.svg$
 ^vignettes/figures/fig_network_topologies_six\.png$
-^vignettes/figures/gini_coefficient_derivation\.png$
+^vignettes/figures/fig_03_1_gini\.(svg|png)$
+^vignettes/figures/fig_03_1_influence_(cells|genes)\.(svg|png)$
+^vignettes/figures/fig_03_1_type_tests\.(svg|png)$
+^vignettes/figures/fig_03_1_tail_bounds_(gene|module)\.(svg|png)$
 ^vignettes/figures/simplex_boundary_tangent_cones\.png$
 ^vignettes/figures/gini_vs_entropy_specificity\.png$
 ^vignettes/figures/INDEED_graphical_abstract\.png$

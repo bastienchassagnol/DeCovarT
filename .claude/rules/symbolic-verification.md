@@ -24,6 +24,9 @@ before `lake build`.
 
 ## Workflow
 
+0. Before writing a check, compare the equation's symbols against the shared
+   notation file (`vignettes/_notation.qmd` in DeCovarT). A check is written
+   in that notation, so a symbol clash is caught before the ledger runs.
 1. Give every display equation a `\label{eq:...}`. Each claim gets a ledger id
    (`T1a`, `O2e`, ...) and a check in `verification/sympy/check_<group>_*.py`.
 2. Derive, do not copy. Recompute the quantity from first principles (a CGF,

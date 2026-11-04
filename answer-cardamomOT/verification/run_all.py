@@ -126,6 +126,11 @@ GROUPS = {
     "V24": "Lyapunov covariance, conditional precision and the triangular factor of a DAG",
     "V25": "Intrinsic noise, bulk scales and naive intervals",
     "V26": "Dynamic and mixed Gaussian Bayesian networks",
+    "V27": "Gini coefficient: pairwise, rank and share forms",
+    "V28": "Leverage and Cook's distance for cells and genes",
+    "V29": "Cumulant generating functions and Chernoff rates of the bulk discrepancy",
+    "V30": "Colouring bound for dependent gene modules",
+    "V31": "Variance of the bulk discrepancy and of module sums",
 }
 
 

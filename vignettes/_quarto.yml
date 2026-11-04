@@ -9,6 +9,14 @@ project:
   render: ["*.qmd"]
 from: markdown+emoji
 
+# Standalone renders (quarto render): TOC and section numbers to level 4,
+# the deepest heading level allowed in vignettes. On the pkgdown site the
+# sidebar is built by pkgdown instead (see _pkgdown.yml, after_body).
+format:
+  html:
+    toc-depth: 4
+    number-depth: 4
+
 filters:
   # pre-ast so Quarto's cross-referencing sees the #fig- labels.
   - at: pre-ast

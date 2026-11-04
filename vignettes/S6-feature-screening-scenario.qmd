@@ -67,7 +67,7 @@ factors $s_c$. Genes belong to five known classes:
 | mean marker | type means differ, $\boldsymbol{\Sigma}_{W,j}$ shared | kept by every screen |
 | covariance-only gene | equal means, type-specific correlations | dropped by univariate screens |
 | perfect marker | expressed in one type only | removed by the presence gate |
-| platform-discordant gene | gene-wise ratio $\tilde b_g\neq1$ in the bulk only | flagged by the range bound ([3.1](03-1-feature-selection.html#sec-fs-cross-platform)) |
+| platform-discordant gene | gene-wise ratio $\tilde b_g\neq1$ in the bulk only | flagged by the bulk filter of tier (iii) ([3.1](03-1-feature-selection.html#sec-fs-cross-platform)) |
 | noise gene | no type effect | removed by the gate |
 
 : Gene classes of the synthetic reference. {#tbl-s6-classes}
@@ -85,7 +85,7 @@ fixed before any run, following the ADEMP structure of
 
 | ID | Strategy | Theory |
 |---|---|---|
-| A | top-$k$ genes by the between/within ratio of Pearson residuals, equal-cell or equal-type weights | [3.1](03-1-feature-selection.html#sec-sctransform) |
+| A | top-$k$ genes by the between/within ratio of the Pearson residuals of the count null model | [3.1](03-1-feature-selection.html#sec-sctransform) |
 | B | presence gate, omnibus quasi-likelihood $F$ as an FDR gate, rank by effect size | [3.1](03-1-feature-selection.html#sec-fs-omnibus) |
 | C | one-versus-rest markers per type, concatenated, then the candidate with the smallest $\kappa_2$ (CIBERSORT, DWLS) | [3.1](03-1-feature-selection.html#sec-kappa-limits) |
 | D | union of four scores (@sec-four-scores) | this page |

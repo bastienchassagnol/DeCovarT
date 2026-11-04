@@ -23,9 +23,49 @@ template:
     # Inline scripts (file includes have previously been written as a
     # literal path string into index.html on this site). Assets under
     # pkgdown/assets/ are still copied to the site root.
+    #
+    # "On this page" to heading level 4. pkgdown (BS5) builds the sidebar
+    # with bootstrap-toc 1.0.1, which keeps only the top level and the next
+    # one (h2, h3). Quarto's `toc-depth` does not reach it: pkgdown renders
+    # articles with `toc: false`, and shifts Quarto `#`..`####` to h2..h5.
+    # The script below runs before pkgdown's ready handler calls Toc.init()
+    # and makes it nest h2..h5. Nested levels stay hidden until their parent
+    # is active (pkgdown.scss `a.active + .nav`; Bootstrap 5.3 scrollspy marks
+    # every ancestor link), so they open as the reader scrolls. Inline, not a
+    # pkgdown/assets file: a relative src would not resolve from articles/.
+    # Rule: no level-5 headings in vignettes (pre-commit no-level5-headings).
     after_body: |
       <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
       <script src="mermaid-init.js"></script>
+      <script>
+      (function () {
+        var TOC_LEVELS = 4;
+        if (!window.Toc || !window.Toc.helpers) return;
+        var h = window.Toc.helpers;
+        h.getHeadings = function ($scope, topLevel) {
+          var sel = [];
+          for (var l = topLevel; l < topLevel + TOC_LEVELS && l <= 6; l++) sel.push("h" + l);
+          return this.findOrFilter($scope, sel.join(","));
+        };
+        h.populateNav = function ($topContext, topLevel, $headings) {
+          var helpers = this, stack = [];
+          $headings.each(function (i, el) {
+            var level = helpers.getNavLevel(el);
+            var $item = helpers.generateNavItem(el);
+            while (stack.length && stack[stack.length - 1].level >= level) stack.pop();
+            if (!stack.length) {
+              $topContext.append($item);
+            } else {
+              var $parent = stack[stack.length - 1].$item;
+              var $list = $parent.children("ul").last();
+              if (!$list.length) $list = helpers.createChildNavList($parent);
+              $list.append($item);
+            }
+            stack.push({ level: level, $item: $item });
+          });
+        };
+      })();
+      </script>
   # KaTeX supports the AMS-style maths used throughout the vignettes,
   # including \boldsymbol, without additional runtime macro configuration.
   math-rendering: katex

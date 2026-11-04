@@ -52,6 +52,16 @@ repos:
         language: pygrep
         files: '^(scripts|vignettes)/.*\.(R|r|qmd|Rmd)$'
 
+  # Vignette headings stop at level 4: the pkgdown sidebar lists levels 1-4
+  # (pkgdown/assets/toc-depth.js).
+  - repo: local
+    hooks:
+      - id: no-level5-headings
+        name: no level-5 headings in vignettes
+        entry: '^#{5,} '
+        language: pygrep
+        files: '^vignettes/.*\.qmd$'
+
   # Generic hygiene hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
