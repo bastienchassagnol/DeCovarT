@@ -1835,6 +1835,22 @@ and solves the mixture there.
         than as the space of the likelihood
 \end{itemize}
 
+Deep networks place the non-linearity at one of three levels (Appendix~\ref{app:review-deep}): between the
+proportions and the bulk, in the projection of the profiles onto a latent space, or in the technical map
+\(\mathcal{T}\) from transcript counts to measured expression.
+On raw counts the transcripts of individual cells add up, so we would keep the mixture linear and spend the
+non-linearity on the technical layer, \(\boldsymbol{y}=\mathcal{T}(\boldsymbol{\mu}\boldsymbol{p})+\boldsymbol{e}\), of which the gene-wise
+platform ratio \(\tilde b_{g}\) is the linear, diagonal case.
+\emph{DECIPHER} (Lai et al., 2026) comes close to that division: a non-linear encoder separates a domain-constant from a
+domain-specific representation, and non-negative least squares on cell-type prototypes in the first returns the
+proportions.
+% TODO-cite: Lai et al. 2026, DECIPHER, bioRxiv, doi:10.64898/2026.09.24.753940
+Latent coordinates learnt without constraint, as in \emph{DECODE} \cite{zhaoDecodeDeepLearningBased2026}, are
+not tied to cell populations and may capture batch or other biological variation (our remark); \emph{iDCF} (Guo et al., 2026) masks part of its network with pathways and
+protein interactions, a step towards the gene modules on which we would expect gene-level technical noise to
+average out.
+% TODO-cite: Guo et al. 2026, iDCF, PLoS Comput Biol 22(8):e1014727, doi:10.1371/journal.pcbi.1014727
+
 \subsubsection{A Bayesian framework: the Wiener filter}
 \label{sec:wiener}
 

@@ -354,6 +354,93 @@ Detailed review in the \vignette{05-1-review-distribution-aware.html}{review vig
   \end{tabularx}
 \end{table}
 
+\subsection{Deep-learning deconvolution: where the non-linearity sits}
+\label{app:review-deep}
+
+\begin{itemize}
+  \item motivation (our perspective): a latent space indexed by pathways, modules or sets of strongly co-expressed
+        genes would average out technical effects that act gene by gene, such as transcript length or capture; the
+        linear projections of Section~\ref{sec:latent-space} keep the mixture exact, deep networks drop the linearity
+        of the projection
+  \item a PRISMA systematic review retains 13 deep-learning tools out of 171 records (searched February 2025)
+        (Lomas Redondo et al., 2025, pp.~2550--2551)
+        % TODO-cite: Lomas Redondo et al. 2025, Comput Struct Biotechnol J 27:2544-2565, doi:10.1016/j.csbj.2025.05.038
+  \begin{itemize}
+    \item 11 of the 13 are multilayer perceptrons; \emph{Autoptcr} is convolutional, \emph{TAPE} an autoencoder,
+          \emph{CONVdeconv} a hybrid with attention (Sect.~3.2.6); 10 of the 12 tools analysed for their data train
+          on pseudo-bulks simulated from scRNA-seq
+    \item comparisons are mostly against \emph{CIBERSORTx} and \emph{MuSiC} (8 of 13 papers), and only 7 of 13 compare
+          with \emph{Scaden}; the gain of \emph{DAISM-DNN} over \emph{Scaden} disappears when both are trained on the
+          same calibration data (Sect.~3.2.7)
+    \item gaps stated by the authors: limited interpretability, a SoftMax output with a regression loss, transfer of
+          one architecture across tissues, dominance of PBMC data, and pseudo-bulk generation that differs between
+          studies (Sect.~4)
+    \item our remark: a network trained on sums of single cells learns a non-linear inverse of a linear forward
+          model, not a non-linear mixture
+  \end{itemize}
+  \item level 1, between proportions and bulk: \(\hat{\boldsymbol{p}}=f(\boldsymbol{y})\) directly, as in \emph{Scaden}
+        \cite{mendenDeepLearningBased2020} and most perceptron-based tools; additivity is no longer modelled, and the
+        drawbacks listed in Section~\ref{sec:latent-space} apply
+  \item level 2, non-linear projection and linear unmixing in the latent space: \emph{DECIPHER} (Lai et al., 2026) learns a
+        domain-constant representation \(\boldsymbol{Z}_{c}\), aligned between simulated and real samples by maximum mean
+        discrepancy, and a domain-specific representation \(\boldsymbol{Z}_{s}\), supervised by a domain classifier;
+        differentiable non-negative least squares writes \(\boldsymbol{Z}_{c}\) as a combination of cell-type prototypes,
+        and the weights are closed to sum to one (Methods, eqs~4--5); replacing this step by a perceptron lowered the
+        concordance in its ablation
+        % TODO-cite: Lai et al. 2026, DECIPHER, bioRxiv, doi:10.64898/2026.09.24.753940
+  \begin{itemize}
+    \item our remark: linearity in \(\boldsymbol{Z}_{c}\) is imposed by training on simulated mixtures, not derived, since
+          \(f(\sum_{j}p_{j}\boldsymbol{x}_{\cdot j})\neq\sum_{j}p_{j}f(\boldsymbol{x}_{\cdot j})\); its input is log1p-CPM, not counts;
+          \emph{DECONVersation} is the analogue with a frozen foundation-model encoder
+          \cite{okuDECONVersationSingleCell2026}
+  \end{itemize}
+  \item level 3, a non-linear technical layer \(\boldsymbol{y}=\mathcal{T}(\boldsymbol{\mu}\boldsymbol{p})+\boldsymbol{e}\), with
+        \(\mathcal{T}\) covering capture bias, RNA content, normalisation and the log transform
+  \begin{itemize}
+    \item \emph{DECODE} removes batch effects by adversarial training between pseudo-bulk and target tissue, then an
+          attention-based denoiser trained by contrastive learning on noisy and clean pseudo-bulk pairs separates
+          noise features from tissue features before deconvolution \cite{zhaoDecodeDeepLearningBased2026}
+    \item \emph{DISSECT} (Khatri et al., 2024) regularises two networks for consistency between the simulated training domain and the
+          real target domain
+          % TODO-cite: Khatri, Machart & Bonn 2024, Genome Biol 25:112, doi:10.1186/s13059-024-03251-5
+    \item our view: this is the level where non-linearity is justified; on counts, with technical bias accounted
+          for, the cells add up and the mixture should stay linear
+  \end{itemize}
+  \item continuous populations (our perspective): \emph{DECODE} deconvolves cell states as well as types
+        \cite{zhaoDecodeDeepLearningBased2026}; a latent space could index a continuum of states, and the composition
+        of a sample would become a distribution over that space rather than a vector over \(J\) labels; identifiability
+        would then need anchors such as reference types, sparsity or pathway constraints
+  \item interpretability: unconstrained latent dimensions are not identified with populations and may encode batch,
+        donor or other biological axes (our remark); two methods constrain them with prior knowledge
+  \begin{itemize}
+    \item \emph{DeSide} (Xiong et al., 2024) integrates biological pathways and estimates the non-cancer cell types first, for 16 cell types
+          and subtypes in solid tumours; by the account of \emph{iDCF}, pathways enter by element-wise multiplication
+          of the expression with pathway annotations
+          % TODO-cite: Xiong et al. 2024, DeSide, PNAS 121:e2407096121, doi:10.1073/pnas.2407096121
+    \item \emph{iDCF} (Guo et al., 2026) pairs a standard network with a knowledge-based sparse network whose connections are masked by
+          pathway definitions (MSigDB) and protein--protein interactions (STRING), and explains each proportion by
+          SHAP attributions
+          % TODO-cite: Guo et al. 2026, iDCF, PLoS Comput Biol 22(8):e1014727, doi:10.1371/journal.pcbi.1014727
+    \item our perspective: such masks are the closest deep-learning counterpart of a module-level likelihood, whose
+          covariance would be block-structured by pathways
+  \end{itemize}
+  \item outside our scope
+  \begin{itemize}
+    \item \emph{TAPE} (Chen et al., 2022) and \emph{BLUE} also estimate cell-type-specific expression; \emph{DAISM-DNN} and other
+          augmentation schemes enlarge the training set
+          % TODO-cite: Chen et al. 2022, TAPE, Nat Commun 13:6735, doi:10.1038/s41467-022-34550-9
+    \item \emph{scpDeconv} aligns reference and target domains adversarially; our remark: no alignment predicts how
+          a disease changes expression or composition, so a reference matched to the condition of the bulk is
+          preferable to a broad atlas of conditions
+          % TODO-cite: scpDeconv original paper (not retrieved)
+    \item benchmarks disagree: with matched, mismatched and mixed lupus and healthy references, the choice of method
+          mattered more than reference matching, \emph{DISSECT} performed best, and matching mattered most for
+          regression-based methods \cite{zhaoEvaluatingReferencemixtureMatching2026}; in a ten-method benchmark (Malik et al., 2026),
+          \emph{MuSiC}, \emph{DWLS} and \emph{BayesPrism} were strongest at baseline, and deep-learning methods varied more
+          % TODO-cite: Malik et al. 2026, Comput Biol Chem 126:109370, doi:10.1016/j.compbiolchem.2026.109370
+  \end{itemize}
+\end{itemize}
+
 \subsection{Caveats shared across methods}
 
 \begin{itemize}
