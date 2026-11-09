@@ -358,8 +358,8 @@ Newman A, Liu C, Green M, Gentles A, Feng W, Xu Y, Hoang C, Diehn M, Alizadeh A 
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 15</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   sample_id algorithm elapsed_sec memory_bytes kkt_residual numerical_converged</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>              </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> sample_1  nnls                0    488<span style="text-decoration: underline;">309</span>760       0.035<span style="text-decoration: underline;">2</span> TRUE               </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> sample_2  nnls                0    488<span style="text-decoration: underline;">309</span>760       0.974  TRUE               </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> sample_1  nnls         0.001<span style="text-decoration: underline;">000</span>    537<span style="text-decoration: underline;">446</span>400       0.035<span style="text-decoration: underline;">2</span> TRUE               </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> sample_2  nnls         0           537<span style="text-decoration: underline;">446</span>400       0.974  TRUE               </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 9 more variables: theoretical_converged &lt;lgl&gt;, n_zero &lt;int&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   loglik_regret &lt;dbl&gt;, local_maximum &lt;lgl&gt;, min_eigenvalue &lt;dbl&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   max_eigenvalue &lt;dbl&gt;, converged &lt;list&gt;, ct1 &lt;dbl&gt;, ct2 &lt;dbl&gt;</span></span>
@@ -385,5 +385,33 @@ Newman A, Liu C, Green M, Gentles A, Feng W, Xu Y, Hoang C, Diehn M, Alizadeh A 
 
 
 
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script src="mermaid-init.js"></script></body></html>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script src="mermaid-init.js"></script><script>
+(function () {
+  var TOC_LEVELS = 4;
+  if (!window.Toc || !window.Toc.helpers) return;
+  var h = window.Toc.helpers;
+  h.getHeadings = function ($scope, topLevel) {
+    var sel = [];
+    for (var l = topLevel; l < topLevel + TOC_LEVELS && l <= 6; l++) sel.push("h" + l);
+    return this.findOrFilter($scope, sel.join(","));
+  };
+  h.populateNav = function ($topContext, topLevel, $headings) {
+    var helpers = this, stack = [];
+    $headings.each(function (i, el) {
+      var level = helpers.getNavLevel(el);
+      var $item = helpers.generateNavItem(el);
+      while (stack.length && stack[stack.length - 1].level >= level) stack.pop();
+      if (!stack.length) {
+        $topContext.append($item);
+      } else {
+        var $parent = stack[stack.length - 1].$item;
+        var $list = $parent.children("ul").last();
+        if (!$list.length) $list = helpers.createChildNavList($parent);
+        $list.append($item);
+      }
+      stack.push({ level: level, $item: $item });
+    });
+  };
+})();
+</script></body></html>
 

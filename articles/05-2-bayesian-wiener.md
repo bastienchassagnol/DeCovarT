@@ -2,9 +2,9 @@
 
 > **Scope**
 >
-> Released DeCovarT integrates the purified profiles out and maximises
-> the marginal likelihood of the bulk in the proportions ([population
-> generative
+> The purified-profile convolution integrates the purified profiles out
+> and maximises the marginal likelihood of the bulk in the proportions
+> ([population generative
 > vignette](https://bastienchassagnol.github.io/DeCovarT/articles/01-1-population-generative-optimisation.html#sec-unconstrained)).
 > This vignette keeps the profiles as latent variables. That gives three
 > things the marginal likelihood hides: a closed-form estimate of each
@@ -54,14 +54,15 @@ Figure 1: The latent-profile form of DeCovarT. A Dirichlet prior
 generates the proportions of sample i; each cell type contributes one
 latent purified profile drawn from its reference Gaussian; the bulk is
 their proportion-weighted sum plus a diagonal measurement noise.
-Integrating the profiles out returns the released DeCovarT likelihood.
+Integrating the profiles out returns the purified-profile likelihood.
 
 ## Profiles given the composition: MAP, BLUP and the Wiener filter
 
-Released DeCovarT estimates \boldsymbol{p}\_{\cdot i} after plugging
-\boldsymbol{x}\_{\cdot j,i} by \boldsymbol{\mu}\_{\cdot j}. The latent
-profiles themselves remain recoverable once \boldsymbol{p}\_{\cdot i} is
-treated as known. Write the convolution explicitly,
+The purified-profile convolution estimates \boldsymbol{p}\_{\cdot i}
+after plugging \boldsymbol{x}\_{\cdot j,i} by \boldsymbol{\mu}\_{\cdot
+j}. The latent profiles themselves remain recoverable once
+\boldsymbol{p}\_{\cdot i} is treated as known. Write the convolution
+explicitly,
 
 \boldsymbol{x}\_{\cdot j,i} \sim \mathcal{N}(\boldsymbol{\mu}\_{\cdot
 j},\boldsymbol{\Sigma}\_j), \qquad \boldsymbol{y}\_{\cdot i} = \sum_j

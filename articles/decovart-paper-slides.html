@@ -19,6 +19,7 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="decovart-paper-slides_files/libs/quarto-html/popper.min.js"></script><script src="decovart-paper-slides_files/libs/quarto-html/tippy.umd.min.js"></script><link href="decovart-paper-slides_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="decovart-paper-slides_files/libs/quarto-html/light-border.css" rel="stylesheet">
+<link rel="stylesheet" href="decovart-html.css">
 <!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="External resources: manuscript, presentations, and preprints">
 <meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg">
 </head>
@@ -107,7 +108,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>External resources: manuscript, presentations, and preprints</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-11-02</p>
+      <p class="date">9 Nov 2026</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/decovart-paper-slides.qmd" class="external-link"><code>vignettes/decovart-paper-slides.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -147,15 +148,16 @@
 </table>
 <section class="section level2"><h2 id="sec-manuscript-pdf">Methods manuscript<a class="anchor" aria-label="anchor" href="#sec-manuscript-pdf"></a>
 </h2>
-<p>The manuscript describes covariance-aware deconvolution of bulk transcriptomes as a multivariate Gaussian convolution. Cell-type proportions lie on the simplex; they are recovered by constrained maximum likelihood with analytic gradients and Hessians. The PDF below is the working build of <code>article/main.pdf</code> (Springer Nature <code>sn-jnl</code> template).</p>
-<p>Open <a href="https://bastienchassagnol.github.io/DeCovarT/article/main.pdf">full screen</a> or <a href="decovart-manuscript.pdf">download a copy</a>.</p>
+<p>The manuscript describes covariance-aware deconvolution of bulk transcriptomes as a multivariate Gaussian convolution. Cell-type proportions lie on the simplex; they are recovered by constrained maximum likelihood with analytic gradients and Hessians. The PDF below is the working build of <code>article/main_layout.pdf</code> (Springer Nature <code>sn-jnl</code> template).</p>
+<p>Open <a href="https://bastienchassagnol.github.io/DeCovarT/article/main.pdf">full screen</a> or <a href="main_layout.pdf">download a copy</a>.</p>
 <div class="decovart-fullwidth">
-  <object class="decovart-pdf-embed" data="../article/main.pdf" type="application/pdf" width="100%" height="1400">
-    <object class="decovart-pdf-embed" data="decovart-manuscript.pdf" type="application/pdf" width="100%" height="1400">
-      <iframe class="decovart-pdf-embed" src="decovart-manuscript.pdf" title="DeCovarT working manuscript" width="100%" height="1400"></iframe>
+  <object class="decovart-pdf-embed" data="main_layout.pdf" type="application/pdf" width="100%" height="1400">
+    <object class="decovart-pdf-embed" data="main_layout.pdf" type="application/pdf" width="100%" height="1400">
+      <iframe class="decovart-pdf-embed" src="main_layout.pdf" title="DeCovarT working manuscript" width="100%" height="1400"></iframe>
     </object>
   </object>
 </div>
+<div style="page-break-after: always;"></div>
 </section><section class="section level2"><h2 id="sec-seminar-slides">Doctorants seminar slides<a class="anchor" aria-label="anchor" href="#sec-seminar-slides"></a>
 </h2>
 <p>This embeds the Quarto reveal.js deck from the doctorants deconvolution seminar (sources under <code>slides/</code> in the repository). Pattern inspired by <a href="https://github.com/bastienchassagnol/COPASI_Team216_Lo2016/blob/master/vignettes/GTBioSS_slides.qmd" class="external-link">GTBioSS_slides.qmd</a> and the <a href="https://quarto-webr.thecoatlessprofessor.com/examples/book/slide-embed.html#presentation" class="external-link">quarto-webr slide-embed example</a>.</p>
@@ -166,7 +168,9 @@ iframe.slides {
   aspect-ratio: 16 / 9;
   min-height: 480px;
 }
-</style></section><section class="section level2"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
+</style>
+<div style="page-break-after: always;"></div>
+</section><section class="section level2"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
 <div id="ref-chassagnolDeCovarTMultidimensionalProbalistic2023" class="csl-entry" role="listitem">
@@ -336,6 +340,34 @@ Chassagnol, Bastien, Grégory Nuel, and Etienne Becht. 2023. <em><span>DeCovarT<
 
 
 
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script src="mermaid-init.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script src="mermaid-init.js"></script><script>
+(function () {
+  var TOC_LEVELS = 4;
+  if (!window.Toc || !window.Toc.helpers) return;
+  var h = window.Toc.helpers;
+  h.getHeadings = function ($scope, topLevel) {
+    var sel = [];
+    for (var l = topLevel; l < topLevel + TOC_LEVELS && l <= 6; l++) sel.push("h" + l);
+    return this.findOrFilter($scope, sel.join(","));
+  };
+  h.populateNav = function ($topContext, topLevel, $headings) {
+    var helpers = this, stack = [];
+    $headings.each(function (i, el) {
+      var level = helpers.getNavLevel(el);
+      var $item = helpers.generateNavItem(el);
+      while (stack.length && stack[stack.length - 1].level >= level) stack.pop();
+      if (!stack.length) {
+        $topContext.append($item);
+      } else {
+        var $parent = stack[stack.length - 1].$item;
+        var $list = $parent.children("ul").last();
+        if (!$list.length) $list = helpers.createChildNavList($parent);
+        $list.append($item);
+      }
+      stack.push({ level: level, $item: $item });
+    });
+  };
+})();
+</script>
 </body>
 </html>

@@ -54,50 +54,105 @@
 > implements the linear layer of Strategy 2; the other strategies and
 > layers are specifications.
 
-> **Notation (shared by all vignettes; aligned with the article)**
+> **Notation used in this vignette**
 >
-> Gene g=1,\ldots,G; cell type j=1,\ldots,J (a second type is \ell);
-> bulk sample i=1,\ldots,N; reference donor (replicate) r=1,\ldots,R;
-> cell c, with C_j reference cells of type j. The index i is dropped
-> inside a derivation and restored in the model statements.
+> A symbol absent from these groups is defined in this vignette, with
+> one meaning. The full table is the [notation
+> article](https://bastienchassagnol.github.io/DeCovarT/articles/notation.md).
 >
 > | Symbol | Meaning |
 > |----|----|
-> | y\_{gi}, \boldsymbol{y}\_{\cdot i} | Bulk expression on a linear scale |
-> | m\_{ji}, n_i=\sum_jm\_{ji} | Cells of type j in bulk sample i, and their total |
-> | \tilde{\boldsymbol{y}}\_{\cdot i}=\boldsymbol{y}\_{\cdot i}/n_i | Bulk expression per cell |
-> | \boldsymbol{p}\_{\cdot i}\in\Delta^{J-1} | Cell fractions, p\_{ji}=m\_{ji}/n_i |
-> | \boldsymbol{\rho}\_{i}\in\mathbb{R}^{J-1} | Isometric log-ratio (ILR) coordinates of \boldsymbol{p}\_{\cdot i}, \boldsymbol{p}\_{\cdot i}=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho}\_i) with a Helmert basis \mathbf{V} |
-> | \boldsymbol{q}\_{\cdot i} | Transcript fractions, q\_{ji}=p\_{ji}S_j/\sum\_\ell p\_{\ell i}S\_\ell |
-> | \boldsymbol{\mu}\_{\cdot j}, \boldsymbol{\Sigma}\_j | Mean and G\times G gene–gene covariance of a type-j population profile |
-> | \boldsymbol{\Omega}\_j=\boldsymbol{\Sigma}\_j^{-1} | Precision matrix of type j |
-> | \boldsymbol{\Gamma}\_g | J\times J covariance across cell types for gene g (`bMIND`, `EPIC-unmix`, `Unico`) |
-> | \boldsymbol{x}\_{\cdot j,i} | Purified profile of type j in sample i |
-> | x\_{gc}, \boldsymbol{x}\_{\cdot c}, s_c | Raw UMI count of gene g in reference cell c, and the size factor of cell c |
-> | \boldsymbol{\lambda}\_{\cdot c}, \boldsymbol{z}\_{\cdot c} | Size-free expression of cell c; its latent log-expression in the Poisson log-normal (PLN) model |
-> | \tilde{\boldsymbol{\mu}}\_{\cdot j}=C_j^{-1}\sum\_{c\in j}\boldsymbol{x}\_{\cdot c}=S_j\boldsymbol{\theta}\_{\cdot j} | Per-cell mean of the raw UMI counts of the C_j reference cells of type j |
-> | \boldsymbol{\theta}\_{\cdot j}, S_j=\mathbf{1}^{\top}\tilde{\boldsymbol{\mu}}\_{\cdot j} | Relative abundance (\mathbf{1}^{\top}\boldsymbol{\theta}\_{\cdot j}=1) and mean transcriptome size of a type-j cell |
-> | \boldsymbol{\Sigma}\_{W,j}, \boldsymbol{\Sigma}\_{B,j} | Within-donor cell-to-cell covariance of type j (one single-cell sample); between-donor covariance of type j (needs R\ge2 donors) |
-> | \boldsymbol{S}\_W(\boldsymbol{v})=\sum_jv_j\boldsymbol{\Sigma}\_{W,j}, \boldsymbol{S}\_B(\boldsymbol{v})=\sum_jv_j^2\boldsymbol{\Sigma}\_{B,j} | Linear and quadratic covariance mixtures with weights \boldsymbol{v} |
-> | \boldsymbol{V}\_j | Empirical covariance of type j, computed from its reference profiles or cells |
-> | \boldsymbol{R}\_j | Empirical correlation matrix of type j (bold; the scalar R is the number of donors) |
-> | \boldsymbol{\Delta}\_j=\operatorname{diag}(\boldsymbol{V}\_j) | Diagonal matrix of the empirical variances of type j |
-> | \lambda | Penalty of a regularised covariance or precision estimator |
-> | \psi_g, \mathcal{D}\_g | Negative binomial dispersion of gene g; deviance of gene g in a count model |
-> | \delta\_{gj} | Detection rate of gene g in type j (fraction of cells with a non-zero count) |
-> | \varpi\_{\ell\mid j}, \varpi\_{j\ell}, \bar\varpi | MixSim overlap: probability of misclassifying a draw of j into \ell, pairwise overlap \varpi\_{j\ell}=\varpi\_{\ell\mid j}+\varpi\_{j\mid\ell}, and its average over pairs (`BarOmega`) |
-> | \boldsymbol{T}\_{ji}=\sum\_{c=1}^{m\_{ji}}\boldsymbol{X}\_{jic} | Total expression contributed by type j to sample i |
-> | a_i | Sample-wide scale between the reference and the bulk library |
-> | c_i=a_in_i, \phi_i=a_i^2n_i | Mean scale and variance scale of the single-cell model |
-> | b_g, \tilde b_g=b_g^{\mathrm{bulk}}/b_g^{\mathrm{ref}} | Capture efficiency of gene g in one protocol, and the gene-wise platform ratio; \tilde{\boldsymbol{B}}=\operatorname{diag}(\tilde{\boldsymbol{b}}) |
-> | \boldsymbol{D}\_i | Diagonal, heteroscedastic bulk measurement noise |
+> | **Indices** |  |
+> | g = 1, \ldots, G | Gene. |
+> | j = 1, \ldots, J; \ell | Cell type, and a second cell type. |
+> | i = 1, \ldots, N | Bulk sample. The index is dropped inside a derivation and restored in the model statements. |
+> | r = 1, \ldots, R | Reference donor (replicate). |
+> | c; C_j | Cell, and the number of reference cells of type j. |
 >
-> A tilde marks a quantity rescaled to a reference unit: per cell
-> (\tilde{\boldsymbol{y}}, \tilde{\boldsymbol{\mu}}) or relative to the
-> reference protocol (\tilde{\boldsymbol{b}}). \boldsymbol{\Sigma}\_j
-> couples **genes** within one cell type; \boldsymbol{\Gamma}\_g couples
-> **cell types** within one gene. A symbol absent from this table is
-> defined in the vignette that uses it, with one meaning there.
+> Indices. The scalar R is the number of reference donors. {.table
+> .caption-top}
+>
+> | Symbol | Meaning |
+> |----|----|
+> | **Cell fractions** |  |
+> | m\_{ji}, n_i = \sum_j m\_{ji} | Cells of type j in bulk sample i, and their total. |
+> | \boldsymbol{p}\_{\cdot i} \in \Delta^{J-1} | Cell fractions, p\_{ji} = m\_{ji} / n_i. |
+> | \boldsymbol{\rho}\_i \in \mathbb{R}^{J-1}^(a) | Isometric log-ratio coordinates of \boldsymbol{p}\_{\cdot i}, \boldsymbol{p}\_{\cdot i} = \operatorname{softmax}(\mathbf{V}\boldsymbol{\rho}\_i) with a Helmert basis \mathbf{V}. |
+> | **Transcript content** |  |
+> | \boldsymbol{q}\_{\cdot i}^(b) | Transcript fractions, q\_{ji} = p\_{ji} S_j / \sum\_\ell p\_{\ell i} S\_\ell. |
+> | ^(a) An isometric log-ratio coordinate of the cell fractions. Not a correlation. |  |
+> | ^(b) Content weight used when a method normalises by transcriptome size. Not the cell-fraction estimand, which remains \boldsymbol{p}. Dividing counts by library size is not an observation model: genes that share a divisor become correlated. |  |
+>
+> Cell fractions and transcript fractions. {.table .caption-top}
+>
+> | Symbol | Meaning |
+> |----|----|
+> | **Reference means** |  |
+> | \boldsymbol{x}\_{\cdot j,i} | Purified profile of type j in sample i. |
+> | x\_{gc}, \boldsymbol{x}\_{\cdot c} | Raw UMI count of gene g in reference cell c, and that cell’s count vector. |
+> | \tilde{\boldsymbol{\mu}}\_{\cdot j} = C_j^{-1} \sum\_{c \in j} \boldsymbol{x}\_{\cdot c}^(a) | Per-cell mean of the raw UMI counts of the C_j reference cells of type j. |
+> | S_j = \mathbf{1}^{\top} \tilde{\boldsymbol{\mu}}\_{\cdot j}^(b) | Mean transcriptome size of a type-j cell. |
+> | ^(a) A tilde marks a quantity rescaled to a reference unit: per cell, or relative to the reference protocol. This mean is a mean of raw counts. It is not a library-size proportion. |  |
+> | ^(b)S_j summarises the raw-count mean. It is not a divisor applied to the counts. \boldsymbol{\theta} is not used for this split. |  |
+>
+> Purified profiles and per-cell means of raw counts. {.table
+> .caption-top}
+>
+> | Symbol | Meaning |
+> |----|----|
+> | **Within one reference** |  |
+> | \boldsymbol{\mu}\_{\cdot j}, \boldsymbol{\Sigma}\_j^(a) | Mean and G \times G gene–gene covariance of a type-j profile. |
+> | \boldsymbol{\Omega}\_j = \boldsymbol{\Sigma}\_j^{-1} | Precision matrix of type j. |
+> | \boldsymbol{\Sigma}\_{W,j} | Within-donor cell-to-cell covariance of type j (one single-cell sample). |
+> | \boldsymbol{V}\_j | Empirical covariance of type j, from its reference profiles or cells. |
+> | \boldsymbol{R}\_j | Empirical correlation matrix of type j. Bold: the scalar R is the number of donors. |
+> | \boldsymbol{\Delta}\_j = \operatorname{diag}(\boldsymbol{V}\_j) | Diagonal matrix of the empirical variances of type j. |
+> | \lambda^(b) | Penalty of a regularised covariance or precision estimator. |
+> | **Across donors or types** |  |
+> | \boldsymbol{\Sigma}\_{B,j} | Between-donor covariance of type j (needs R \ge 2 donors). |
+> | \boldsymbol{\Gamma}\_g^(c) | J \times J covariance across cell types for gene g. |
+> | \boldsymbol{S}\_W(\boldsymbol{v}) = \sum_j v_j \boldsymbol{\Sigma}\_{W,j} | Linear covariance mixture with weights \boldsymbol{v}. |
+> | \boldsymbol{S}\_B(\boldsymbol{v}) = \sum_j v_j^2 \boldsymbol{\Sigma}\_{B,j} | Quadratic covariance mixture with weights \boldsymbol{v}. |
+> | ^(a)\boldsymbol{\Sigma}\_j couples genes within one cell type. |  |
+> | ^(b) A penalty. The size-free expression of a cell is \boldsymbol{\lambda}\_{\cdot c}, in the technical-scale table. |  |
+> | ^(c)\boldsymbol{\Gamma}\_g couples cell types within one gene. The opposite orientation from \boldsymbol{\Sigma}\_j. |  |
+>
+> Gene–gene covariance within a type, and variation across donors or
+> types. {.table .caption-top}
+>
+> | Symbol | Meaning |
+> |----|----|
+> | **Technical scales** |  |
+> | s_c | Size factor of reference cell c. |
+> | \boldsymbol{\lambda}\_{\cdot c} | Size-free expression of cell c. |
+> | \boldsymbol{z}\_{\cdot c} | Latent log-expression of cell c in the Poisson log-normal model. |
+> | a_i | Sample-wide scale between the reference and the bulk library. |
+> | c_i = a_i n_i, \phi_i = a_i^2 n_i | Mean scale and variance scale of the single-cell model. |
+> | b_g | Capture efficiency of gene g in one protocol. |
+> | \tilde{b}\_g = b_g^{\mathrm{bulk}} / b_g^{\mathrm{ref}}^(a) | Gene-wise platform ratio. \tilde{\boldsymbol{B}} = \operatorname{diag}(\tilde{\boldsymbol{b}}). |
+> | \boldsymbol{D}\_i^(b) | Diagonal, heteroscedastic bulk measurement noise. |
+> | ^(a) A tilde: relative to the reference protocol, not per cell. |  |
+> | ^(b) Measurement noise. Not the deviance \mathcal{D}\_g of a count model. |  |
+>
+> Size factors, capture efficiencies, and measurement noise. {.table
+> .caption-top}
+>
+> | Symbol | Meaning |
+> |----|----|
+> | **Observation** |  |
+> | y\_{gi}, \boldsymbol{y}\_{\cdot i} | Bulk expression on a linear scale. |
+> | \tilde{\boldsymbol{y}}\_{\cdot i} = \boldsymbol{y}\_{\cdot i} / n_i^(a) | Bulk expression per cell. |
+> | \boldsymbol{T}\_{ji} = \sum\_{c=1}^{m\_{ji}} \boldsymbol{X}\_{jic} | Total expression contributed by type j to sample i. |
+> | **Single-cell signatures** |  |
+> | \sum_j m_j \boldsymbol{\Sigma}\_j^(b) | Covariance when counts are fixed and cells of a type are independent. |
+> | **Purified profiles** |  |
+> | \sum_j p_j^2 \boldsymbol{\Sigma}\_j^(c) | Covariance when each type contributes one population profile, as in a FACS or cytometry reference. |
+> | ^(a) Per cell, by the number of cells. Not a division of each gene by the library total: that division induces a spurious correlation between genes. |  |
+> | ^(b) Single-cell signature paradigm: the reference is the cells. |  |
+> | ^(c) Purified-profile paradigm: one profile per type. The likelihood in the package fits this covariance. It is not a preferred reference over the single-cell signatures. |  |
+>
+> The bulk profile and the two reference paradigms. Neither is a
+> gold-standard reference. {.table .caption-top}
 
 > **Note 1: Notation specific to this vignette**
 >
@@ -558,8 +613,10 @@ reference. If \boldsymbol{\Sigma}\_j is the covariance **between cells**
 of type j, summing m_j independent cells yields
 m_j\boldsymbol{\Sigma}\_j. If \boldsymbol{\Sigma}\_j is the covariance
 of **one latent type-level profile** that is multiplied by a weight, the
-contribution is p_j^{2}\boldsymbol{\Sigma}\_j. Released DeCovarT is the
-second case. The random-effects decomposition of
+contribution is p_j^{2}\boldsymbol{\Sigma}\_j. The second case is the
+purified-profile paradigm: one profile per type, as in a FACS or
+cytometry reference. The first is the single-cell signature paradigm.
+Neither is a preferred reference. The random-effects decomposition of
 [Sec. 1.2](#sec-three-regimes),
 
 \boldsymbol{X}\_{jc}=\boldsymbol{M}\_j+\boldsymbol{\varepsilon}\_{jc},
@@ -731,7 +788,7 @@ the \boldsymbol{\Sigma}\_{kl} traces cancel and
 \mathbb{E}\[\boldsymbol{r}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_k\boldsymbol{\Omega}\boldsymbol{\Sigma}\_l\boldsymbol{\Omega}\boldsymbol{r}\]
 =\mathrm{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}\_k\boldsymbol{\Omega}\boldsymbol{\Sigma}\_l).
 
-> **Tip 4: Check against released DeCovarT**
+> **Tip 4: Check against the purified-profile convolution**
 >
 > Take \boldsymbol{\vartheta}=\boldsymbol{p},
 > \boldsymbol{\mu}(\boldsymbol{p})=\boldsymbol{\mu}\boldsymbol{p} and
@@ -900,13 +957,13 @@ moment. The tuple of [Theorem 1](#thm-score-general) is
 > +\tfrac12\\\mathrm{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,j}\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{W,\ell}).
 > \tag{31}
 
-Compared with released DeCovarT the Hessian loses two terms, because
-\boldsymbol{\Sigma}(\boldsymbol{m}) is **linear** in the parameter:
-there is no \mathrm{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{kl})
-and no second residual quadratic. The covariance derivative is a
-constant matrix, so one Cholesky factorisation of
-\boldsymbol{S}\_W(\boldsymbol{m}) per iteration serves objective, score
-and Hessian, as in
+Compared with the purified-profile convolution the Hessian loses two
+terms, because \boldsymbol{\Sigma}(\boldsymbol{m}) is **linear** in the
+parameter: there is no
+\mathrm{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}\_{kl}) and no second
+residual quadratic. The covariance derivative is a constant matrix, so
+one Cholesky factorisation of \boldsymbol{S}\_W(\boldsymbol{m}) per
+iteration serves objective, score and Hessian, as in
 [`.sigma_p_factorisation()`](https://bastienchassagnol.github.io/DeCovarT/articles/01-1-population-generative-optimisation.html#sec-numerical-speedups).
 
 Proportions and their uncertainty follow by the delta method. With \hat
@@ -1377,13 +1434,13 @@ and the covariance derivatives in \boldsymbol{p} are
 \tag{50}
 
 Setting n_i\to\infty at fixed c_i=1 (so \phi_i\to 0),
-\boldsymbol{D}\_i=\boldsymbol{0}, returns the released DeCovarT
+\boldsymbol{D}\_i=\boldsymbol{0}, returns the purified-profile
 derivatives with \boldsymbol{\mu}=\tilde{\boldsymbol{\mu}} on the bulk
-scale and \boldsymbol{\Sigma}\_j=\boldsymbol{\Sigma}\_{B,j}. Released
-DeCovarT is therefore the large-n_i, noise-free limit of this
-formulation, which is why its \boldsymbol{\Sigma}\_j must be a
-between-replicate covariance to carry a sampling interpretation. The
-diagonal-\boldsymbol{\Sigma}\_{B,j} remark of
+scale and \boldsymbol{\Sigma}\_j=\boldsymbol{\Sigma}\_{B,j}. The
+purified-profile convolution is therefore the large-n_i, noise-free
+limit of this formulation, which is why its \boldsymbol{\Sigma}\_j must
+be a between-replicate covariance to carry a sampling interpretation.
+The diagonal-\boldsymbol{\Sigma}\_{B,j} remark of
 [Sec. 4.1.4](#sec-cc-replicates) applies.
 
 #### Strategy 2, DECALS and MEAD
@@ -1757,17 +1814,17 @@ Two consequences follow.
 
 ## Summary and critical comparison
 
-|  | Strategy 1: cell counts | Strategy 2: averaged mixture | Strategy 3: compositional | Strategy 4: plug-in scales | Released DeCovarT |
+|  | Strategy 1: cell counts | Strategy 2: averaged mixture | Strategy 3: compositional | Strategy 4: plug-in scales | Purified profiles |
 |----|----|----|----|----|----|
 | Target | \boldsymbol{m}\_{\cdot i}\in\mathbb{N}^{J}, then \boldsymbol{p}=\boldsymbol{m}/n | \boldsymbol{p}\_{\cdot i}\in\Delta^{J-1}, n_i nuisance | RNA fractions \boldsymbol{q}\_{\cdot i} | \boldsymbol{p}\_{\cdot i} given \hat{\boldsymbol{\eta}} | \boldsymbol{p}\_{\cdot i}\in\Delta^{J-1} |
 | Covariance weights | linear m\_{ji} in \boldsymbol{\Sigma}\_{W,j}; quadratic m\_{ji}^{2} in \boldsymbol{\Sigma}\_{B,j} | linear \phi_ip\_{ji}; quadratic c_i^{2}p\_{ji}^{2} | delta-method image of either | as Strategy 2, rescaled by \hat{\tilde{\boldsymbol{b}}}, \hat c_i | quadratic p\_{ji}^{2} only |
 | Constraint | none; lattice | simplex via ILR | closure, singular | simplex via ILR | simplex via ILR |
 | Scale identification | mean fixes a\boldsymbol{m}; covariance fixes a | mean fixes c; covariance fixes \phi | scale removed | from auxiliary data | c_i=1 |
 | Reviewed methods | `RNA-Sieve`, `DWLS`, `MuSiC` eq. (2) | `DECALS`, `MEAD`, DeCovarT | `MuSiC`, `Bisque`, `DECALS` | `MuSiC` (S_j), `RCTD`, `Bisque`, `MEAD` (\hat\gamma) | – |
-| Advantages | counts are the physical quantity; zeros are ordinary points; linear covariance, one Cholesky per iteration | DeCovarT is its noise-free limit; simplex identifies a; direct comparison with `DECALS`, `MEAD` | matches CPM/TPM pipelines; no scale to estimate | breaks non-identifiability of S_j and \tilde{\boldsymbol{b}}; uses external information | implemented; exact Gaussian; sparse \boldsymbol{\Omega}\_j as declared input |
+| Advantages | counts are the physical quantity; zeros are ordinary points; linear covariance, one Cholesky per iteration | the purified-profile convolution is its noise-free limit; simplex identifies a; direct comparison with `DECALS`, `MEAD` | matches CPM/TPM pipelines; no scale to estimate | breaks non-identifiability of S_j and \tilde{\boldsymbol{b}}; uses external information | implemented; exact Gaussian; sparse \boldsymbol{\Omega}\_j as declared input |
 | Drawbacks | a needs \boldsymbol{\Sigma}\_{W,j} on the reference molecule scale; integer search for rare types | \phi and \boldsymbol{D} separated only through off-diagonal structure | induced correlations; \boldsymbol{q}\neq\boldsymbol{p} unless S_j constant | biased if the auxiliary scale differs; variance needs [Eq. 56](#eq-plugin-variance) | \boldsymbol{\Sigma}\_j must be a between-replicate covariance; silences \boldsymbol{\Sigma}\_{W,j} for rare types |
 
-Table 5: The four formulations and the released model.
+Table 5: The four formulations and the purified-profile convolution.
 
 [Table 5](#tbl-strategies) points to Strategy 2, with Strategy 1 as its
 count-scale chart. For one UMI donor, one bulk sample and no covariates,

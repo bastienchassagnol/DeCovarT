@@ -16,6 +16,7 @@ articles:
   05-3-extensions-roadmap: 05-3-extensions-roadmap.html
   05-4-mixture-experiments: 05-4-mixture-experiments.html
   decovart-paper-slides: decovart-paper-slides.html
+  notation: notation.html
   R1-bivariate-toy: R1-bivariate-toy.html
   R2-covariance-driven: R2-covariance-driven.html
   R3-single-cell-hierarchical: R3-single-cell-hierarchical.html
@@ -25,7 +26,7 @@ articles:
   S4-covariance-modeling: S4-covariance-modeling.html
   S5-misspecification: S5-misspecification.html
   S6-feature-screening-scenario: S6-feature-screening-scenario.html
-last_built: 2026-11-02T21:48Z
+last_built: 2026-11-09T14:18Z
 urls:
   reference: https://bastienchassagnol.github.io/DeCovarT/reference
   article: https://bastienchassagnol.github.io/DeCovarT/articles

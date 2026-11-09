@@ -166,10 +166,11 @@ What the design cannot test for DeCovarT:
 
 ### deMixSC: matched aliquots, no synthetic stress test
 
-`deMixSC` (preprint Guo et al.
-([2023](#ref-guoDeMixSCDeconvolutionFramework2023))) reports no purely
-synthetic sensitivity analysis. Its benchmark is real: 24 retinas in two
-batches, with bulk and snRNA-seq libraries made from the same
+`deMixSC` TODO-cite: Guo et al. 2025, Genome Research 35:147-161,
+doi:10.1101/gr.278822.123; page numbers below refer to it (preprint Guo
+et al. ([2023](#ref-guoDeMixSCDeconvolutionFramework2023))) reports no
+purely synthetic sensitivity analysis. Its benchmark is real: 24 retinas
+in two batches, with bulk and snRNA-seq libraries made from the same
 single-nucleus suspension aliquot (p. 148). The pseudo-bulk is the sum
 of UMI counts over nuclei. Between matched real bulk and pseudo-bulk the
 mean Spearman correlation is 0.31 and 0.41 for the two batches, and more
@@ -244,7 +245,9 @@ What the design cannot test for DeCovarT:
   no zero-generating measurement component ([Sarkar and Stephens
   2021](#ref-sarkarSeparatingMeasurementExpression2021)), and droplet
   UMI counts show no zero inflation beyond the negative binomial
-  (Svensson 2020) ; see [5.1, Poisson
+  (Svensson 2020) TODO-cite: Svensson 2020, Droplet scRNA-seq is not
+  zero-inflated, Nat. Biotechnol., doi:10.1038/s41587-019-0379-5; see
+  [5.1, Poisson
   measurement](https://bastienchassagnol.github.io/DeCovarT/articles/05-1-review-distribution-aware.html#sec-poisson-measurement)
   and [5.1, measurement
   models](https://bastienchassagnol.github.io/DeCovarT/articles/05-1-review-distribution-aware.html#sec-measurement).
@@ -310,9 +313,11 @@ but shared by the 100 mixtures (E), or random per mixture (F); no
 Dirichlet law is named. The issues are induced by feeding different
 input formats (CP10K or raw single-cell data; TPM or raw bulk) to each
 method (pp. 7–9). The real-data truth is 18 mixtures of six cell lines
-with cell counts and a matched scRNA-seq reference (Cobos et al. 2023) ,
-plus sorted PBMC bulks whose dominant type is known (p. 7). The model is
-in [5.1,
+with cell counts and a matched scRNA-seq reference (Cobos et al. 2023)
+TODO-cite: Avila Cobos et al. 2023, Effective methods for bulk RNA-seq
+deconvolution using scnRNA-seq transcriptomes, Genome Biol. 24:177 (ref.
+32 of ReDeconv), plus sorted PBMC bulks whose dominant type is known
+(p. 7). The model is in [5.1,
 ReDeconv](https://bastienchassagnol.github.io/DeCovarT/articles/05-1-review-distribution-aware.html#sec-redeconv).
 
 What the design cannot test for DeCovarT:
@@ -445,11 +450,15 @@ What the construction offers DeCovarT, and its limits (our remarks):
 `CSNet` is a Poisson mixture whose mixing law is a common-shock
 multivariate gamma: the bivariate case is Olkin’s example of a Poisson
 pair mixed over a trivariate-reduction gamma (Olkin 1994, §6, pp. 45–46)
-. The common-shock device explains its sign restriction: the same
-construction applied to Poisson variables gives the multivariate
-Poisson, which “only permits positive dependencies” and needs up to
-2^{G}-1 parameters (Inouye et al. 2017, p. 4; Olkin 1994, p. 43) . A
-mixture as such is not restricted: with a Gaussian log-rate the signs
+TODO-cite: Olkin 1994, Multivariate non-normal distributions and models
+of dependency, IMS Lecture Notes-Monograph Series 24, pp. 37-53. The
+common-shock device explains its sign restriction: the same construction
+applied to Poisson variables gives the multivariate Poisson, which “only
+permits positive dependencies” and needs up to 2^{G}-1 parameters
+(Inouye et al. 2017, p. 4; Olkin 1994, p. 43) TODO-cite: Inouye, Yang,
+Allen & Ravikumar 2017, A review of multivariate distributions for count
+data derived from the Poisson distribution, WIREs Comput. Stat. 9:e1398.
+A mixture as such is not restricted: with a Gaussian log-rate the signs
 are free ([Table 1](#tbl-s5-mvcount)).
 
 | Construction | Dependence enters through | Signs | Count covariance | Used by |
@@ -465,6 +474,13 @@ Table 1: Multivariate count constructions. Sources: Olkin 1994
 (pp. 42–46); Inouye et al. 2017 (pp. 4, 6, 8–9, 12); Subedi and Dang
 2025 (pp. 1257–1258); Cheng and Demirtas 2026 (pp. 3–6).
 
+TODO-cite: Subedi & Dang 2025, Multivariate Poisson lognormal
+distribution for modeling counts from modern biological data: an
+overview, Comput. Struct. Biotechnol. J. 27:1255-1264 TODO-cite: Cheng &
+Demirtas 2026, Generation of multivariate discrete data with generalized
+Poisson, negative binomial and binomial marginal distributions,
+arXiv:2602.07707; R package MultiDiscreteRNG
+
 The Poisson–log-normal covariance is attenuated relative to the latent
 one,
 \lvert\operatorname{Cov}(x_g,x\_{g'})\rvert\<\lvert\operatorname{Cov}(z_g,z\_{g'})\rvert,
@@ -478,7 +494,9 @@ calibration per gene pair, which is heavy for hundreds of genes
 (pp. 5–6, 17).
 
 Fang, Lin and Deng review the construction of multivariate laws (section
-4, pp. 20–32) . The entries that could serve S5 are:
+4, pp. 20–32) TODO-cite: Fang, Lin & Deng 2025, A review: construction
+of statistical distributions, Entropy 27:1188, doi:10.3390/e27121188.
+The entries that could serve S5 are:
 
 - **Discrete laws** (pp. 20–21): the multinomial, which is independent
   Poisson counts conditioned on their total, the library-size closure of
@@ -567,8 +585,11 @@ are centred and scaled (p. 17).
 - **`SDE5`, low-rank factor noise.** The correlation matrix of the
   residuals is “approximated with a low-rank factor decomposition based
   on an Expectation-Maximisation procedure”, that of Friguet, Kloareg
-  and Causeur (2009) . Each simulated noise row is then multiplied by
-  the residual standard deviation of its gene. The factor model is
+  and Causeur (2009) TODO-cite: Friguet, Kloareg & Causeur 2009, A
+  factor model approach to multiple testing under dependence, J. Am.
+  Stat. Assoc. 104(488):1406-1415. Each simulated noise row is then
+  multiplied by the residual standard deviation of its gene. The factor
+  model is
   \boldsymbol{\varepsilon}=\boldsymbol{B}\boldsymbol{z}+\boldsymbol{e},
   \qquad \boldsymbol{z}\sim\mathcal{N}(\boldsymbol{0},\mathbf{I}\_q),
   \qquad
@@ -895,9 +916,12 @@ cells from it ([Song et al.
 margin, a generalised additive model for location, scale and shape
 (GAMLSS) in the cell covariates, and a copula joins the genes. With cell
 type as the only covariate the model reduces to `scDesign2`: one margin
-per gene and type, one Gaussian copula per type (Sun et al. 2021). The
-trajectory, spatial and multi-omic options of `scDesign3` are not used:
-the DeCovarT reference is a static set of labelled types.
+per gene and type, one Gaussian copula per type (Sun et al. 2021).
+TODO-cite: Sun et al. 2021, scDesign2, Genome Biol. 22:163,
+doi:10.1186/s13059-021-02367-2; key sunScDesign2TransparentSimulator2021
+is in the book bib only The trajectory, spatial and multi-omic options
+of `scDesign3` are not used: the DeCovarT reference is a static set of
+labelled types.
 
 ### What the simulator is for
 
@@ -947,17 +971,20 @@ without trajectories:
   from the synthetic cells.
 
 A GAMLSS assumes independent observations, so dependence between genes
-needs the copula (Stasinopoulos and Rigby 2007). Zero-inflated margins
-are not used for droplet UMI counts.
+needs the copula (Stasinopoulos and Rigby 2007). TODO-cite:
+Stasinopoulos & Rigby 2007, J. Stat. Softw. 23(7),
+doi:10.18637/jss.v023.i07 Zero-inflated margins are not used for droplet
+UMI counts.
 
 ### Copula choice with fixed margins
 
 Sklar’s theorem: a G-dimensional cdf F with margins F_1,\ldots,F_G can
 be written F(x_1,\ldots,x_G)=C\\F_1(x_1),\ldots,F_G(x_G)\\ for a copula
 C:\[0,1\]^G\to\[0,1\], unique when every F_g is continuous and unique
-only on the product of the ranges of the F_g otherwise (Sklar 1959). The
-margins are fitted first and held fixed; the copula changes only the
-dependence.
+only on the product of the ranges of the F_g otherwise (Sklar 1959).
+TODO-cite: Sklar 1959, Fonctions de répartition à n dimensions et leurs
+marges, Publ. Inst. Statist. Univ. Paris 8:229-231 The margins are
+fitted first and held fixed; the copula changes only the dependence.
 
 | Copula | Dependence parameters per type | Likelihood when G\>C_j |
 |----|----|----|
@@ -994,9 +1021,11 @@ u\_{gc}=(1-v\_{gc})\\F\_{gc}(x\_{gc}-1)+v\_{gc}\\F\_{gc}(x\_{gc}),
 
 then take z\_{gc}=\Phi^{-1}(u\_{gc}). Under the true margin u\_{gc} is
 exactly uniform, so z\_{gc} is the randomised quantile residual of Dunn
-and Smyth (1996): standard normal when the margin is right. A normal QQ
-plot of z\_{gc} per gene and type checks [Equation 5](#eq-s5-nb-gamlss);
-the same z\_{gc} feed the copula. Generation runs the other way: draw
+and Smyth (1996): standard normal when the margin is right. TODO-cite:
+Dunn & Smyth 1996, Randomized quantile residuals, J. Comput. Graph.
+Stat. 5(3):236-244, doi:10.1080/10618600.1996.10474708 A normal QQ plot
+of z\_{gc} per gene and type checks [Equation 5](#eq-s5-nb-gamlss); the
+same z\_{gc} feed the copula. Generation runs the other way: draw
 \boldsymbol{z}\_c\sim\mathcal{N}(\boldsymbol{0},\boldsymbol{R}\_{j(c)})
 and set x\_{gc}=F\_{gc}^{-1}\\\Phi(z\_{gc})\\.
 

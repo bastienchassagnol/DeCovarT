@@ -19,6 +19,7 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="03-2-covariance-network-estimation_files/libs/quarto-html/popper.min.js"></script><script src="03-2-covariance-network-estimation_files/libs/quarto-html/tippy.umd.min.js"></script><link href="03-2-covariance-network-estimation_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="03-2-covariance-network-estimation_files/libs/quarto-html/light-border.css" rel="stylesheet">
+<link rel="stylesheet" href="decovart-html.css">
 <!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="3.2 Cell-type covariance for the DeCovarT plug-in">
 <meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg">
 </head>
@@ -107,7 +108,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>3.2 Cell-type covariance for the DeCovarT plug-in</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-11-02</p>
+      <p class="date">9 Nov 2026</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/03-2-covariance-network-estimation.qmd" class="external-link"><code>vignettes/03-2-covariance-network-estimation.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -121,12 +122,16 @@
     <div>
 <div class="decovart-callout callout-note">
 <blockquote>
-<p><strong>Notation (shared by all vignettes; aligned with the article)</strong></p>
-<p>Gene <span class="math inline">g=1,\ldots,G</span>; cell type <span class="math inline">j=1,\ldots,J</span> (a second type is <span class="math inline">\ell</span>); bulk sample <span class="math inline">i=1,\ldots,N</span>; reference donor (replicate) <span class="math inline">r=1,\ldots,R</span>; cell <span class="math inline">c</span>, with <span class="math inline">C_j</span> reference cells of type <span class="math inline">j</span>. The index <span class="math inline">i</span> is dropped inside a derivation and restored in the model statements.</p>
+<p><strong>Notation used in this vignette</strong></p>
+<p>A symbol absent from these groups is defined in this vignette, with one meaning. The full table is the <a href="notation.html">notation article</a>.</p>
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="fb3781f9-aa36-4ecc-a086-628344c3ba61">
+<div id="fb3781f9-aa36-4ecc-a086-628344c3ba61" class="cell" data-tags="[&quot;notation-indices&quot;,&quot;embed&quot;]">
+<div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
+<caption>Indices. The scalar <span class="math inline">R</span> is the number of reference donors.</caption>
 <colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
+<col style="width: 40%">
+<col style="width: 59%">
 </colgroup>
 <thead><tr class="header">
 <th>Symbol</th>
@@ -134,156 +139,245 @@
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td>
-<span class="math inline">y_{gi}</span>, <span class="math inline">\boldsymbol{y}_{\cdot i}</span>
-</td>
-<td>Bulk expression on a linear scale</td>
+<td colspan="2"><strong>Indices</strong></td>
 </tr>
 <tr class="even">
-<td>
-<span class="math inline">m_{ji}</span>, <span class="math inline">n_i=\sum_jm_{ji}</span>
-</td>
-<td>Cells of type <span class="math inline">j</span> in bulk sample <span class="math inline">i</span>, and their total</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\tilde{\boldsymbol{y}}_{\cdot i}=\boldsymbol{y}_{\cdot i}/n_i</span></td>
-<td>Bulk expression per cell</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\boldsymbol{p}_{\cdot i}\in\Delta^{J-1}</span></td>
-<td>Cell fractions, <span class="math inline">p_{ji}=m_{ji}/n_i</span>
-</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\boldsymbol{\rho}_{i}\in\mathbb{R}^{J-1}</span></td>
-<td>Isometric log-ratio (ILR) coordinates of <span class="math inline">\boldsymbol{p}_{\cdot i}</span>, <span class="math inline">\boldsymbol{p}_{\cdot i}=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho}_i)</span> with a Helmert basis <span class="math inline">\mathbf{V}</span>
-</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\boldsymbol{q}_{\cdot i}</span></td>
-<td>Transcript fractions, <span class="math inline">q_{ji}=p_{ji}S_j/\sum_\ell p_{\ell i}S_\ell</span>
-</td>
+<td><span class="math inline">g = 1, \ldots, G</span></td>
+<td>Gene.</td>
 </tr>
 <tr class="odd">
 <td>
-<span class="math inline">\boldsymbol{\mu}_{\cdot j}</span>, <span class="math inline">\boldsymbol{\Sigma}_j</span>
+<span class="math inline">j = 1, \ldots, J</span>; <span class="math inline">\ell</span>
 </td>
-<td>Mean and <span class="math inline">G\times G</span> gene–gene covariance of a type-<span class="math inline">j</span> population profile</td>
+<td>Cell type, and a second cell type.</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\boldsymbol{\Omega}_j=\boldsymbol{\Sigma}_j^{-1}</span></td>
-<td>Precision matrix of type <span class="math inline">j</span>
-</td>
+<td><span class="math inline">i = 1, \ldots, N</span></td>
+<td>Bulk sample. The index is dropped inside a derivation and restored in the model statements.</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\boldsymbol{\Gamma}_g</span></td>
-<td>
-<span class="math inline">J\times J</span> covariance across cell types for gene <span class="math inline">g</span> (<code>bMIND</code>, <code>EPIC-unmix</code>, <code>Unico</code>)</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\boldsymbol{x}_{\cdot j,i}</span></td>
-<td>Purified profile of type <span class="math inline">j</span> in sample <span class="math inline">i</span>
-</td>
-</tr>
-<tr class="odd">
-<td>
-<span class="math inline">x_{gc}</span>, <span class="math inline">\boldsymbol{x}_{\cdot c}</span>, <span class="math inline">s_c</span>
-</td>
-<td>Raw UMI count of gene <span class="math inline">g</span> in reference cell <span class="math inline">c</span>, and the size factor of cell <span class="math inline">c</span>
-</td>
+<td><span class="math inline">r = 1, \ldots, R</span></td>
+<td>Reference donor (replicate).</td>
 </tr>
 <tr class="even">
 <td>
-<span class="math inline">\boldsymbol{\lambda}_{\cdot c}</span>, <span class="math inline">\boldsymbol{z}_{\cdot c}</span>
+<span class="math inline">c</span>; <span class="math inline">C_j</span>
 </td>
-<td>Size-free expression of cell <span class="math inline">c</span>; its latent log-expression in the Poisson log-normal (PLN) model</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\tilde{\boldsymbol{\mu}}_{\cdot j}=C_j^{-1}\sum_{c\in j}\boldsymbol{x}_{\cdot c}=S_j\boldsymbol{\theta}_{\cdot j}</span></td>
-<td>Per-cell mean of the raw UMI counts of the <span class="math inline">C_j</span> reference cells of type <span class="math inline">j</span>
-</td>
-</tr>
-<tr class="even">
-<td>
-<span class="math inline">\boldsymbol{\theta}_{\cdot j}</span>, <span class="math inline">S_j=\mathbf{1}^{\top}\tilde{\boldsymbol{\mu}}_{\cdot j}</span>
-</td>
-<td>Relative abundance (<span class="math inline">\mathbf{1}^{\top}\boldsymbol{\theta}_{\cdot j}=1</span>) and mean transcriptome size of a type-<span class="math inline">j</span> cell</td>
-</tr>
-<tr class="odd">
-<td>
-<span class="math inline">\boldsymbol{\Sigma}_{W,j}</span>, <span class="math inline">\boldsymbol{\Sigma}_{B,j}</span>
-</td>
-<td>Within-donor cell-to-cell covariance of type <span class="math inline">j</span> (one single-cell sample); between-donor covariance of type <span class="math inline">j</span> (needs <span class="math inline">R\ge2</span> donors)</td>
-</tr>
-<tr class="even">
-<td>
-<span class="math inline">\boldsymbol{S}_W(\boldsymbol{v})=\sum_jv_j\boldsymbol{\Sigma}_{W,j}</span>, <span class="math inline">\boldsymbol{S}_B(\boldsymbol{v})=\sum_jv_j^2\boldsymbol{\Sigma}_{B,j}</span>
-</td>
-<td>Linear and quadratic covariance mixtures with weights <span class="math inline">\boldsymbol{v}</span>
-</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\boldsymbol{V}_j</span></td>
-<td>Empirical covariance of type <span class="math inline">j</span>, computed from its reference profiles or cells</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\boldsymbol{R}_j</span></td>
-<td>Empirical correlation matrix of type <span class="math inline">j</span> (bold; the scalar <span class="math inline">R</span> is the number of donors)</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\boldsymbol{\Delta}_j=\operatorname{diag}(\boldsymbol{V}_j)</span></td>
-<td>Diagonal matrix of the empirical variances of type <span class="math inline">j</span>
-</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\lambda</span></td>
-<td>Penalty of a regularised covariance or precision estimator</td>
-</tr>
-<tr class="odd">
-<td>
-<span class="math inline">\psi_g</span>, <span class="math inline">\mathcal{D}_g</span>
-</td>
-<td>Negative binomial dispersion of gene <span class="math inline">g</span>; deviance of gene <span class="math inline">g</span> in a count model</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\delta_{gj}</span></td>
-<td>Detection rate of gene <span class="math inline">g</span> in type <span class="math inline">j</span> (fraction of cells with a non-zero count)</td>
-</tr>
-<tr class="odd">
-<td>
-<span class="math inline">\varpi_{\ell\mid j}</span>, <span class="math inline">\varpi_{j\ell}</span>, <span class="math inline">\bar\varpi</span>
-</td>
-<td>MixSim overlap: probability of misclassifying a draw of <span class="math inline">j</span> into <span class="math inline">\ell</span>, pairwise overlap <span class="math inline">\varpi_{j\ell}=\varpi_{\ell\mid j}+\varpi_{j\mid\ell}</span>, and its average over pairs (<code>BarOmega</code>)</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\boldsymbol{T}_{ji}=\sum_{c=1}^{m_{ji}}\boldsymbol{X}_{jic}</span></td>
-<td>Total expression contributed by type <span class="math inline">j</span> to sample <span class="math inline">i</span>
-</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">a_i</span></td>
-<td>Sample-wide scale between the reference and the bulk library</td>
-</tr>
-<tr class="even">
-<td>
-<span class="math inline">c_i=a_in_i</span>, <span class="math inline">\phi_i=a_i^2n_i</span>
-</td>
-<td>Mean scale and variance scale of the single-cell model</td>
-</tr>
-<tr class="odd">
-<td>
-<span class="math inline">b_g</span>, <span class="math inline">\tilde b_g=b_g^{\mathrm{bulk}}/b_g^{\mathrm{ref}}</span>
-</td>
-<td>Capture efficiency of gene <span class="math inline">g</span> in one protocol, and the gene-wise platform ratio; <span class="math inline">\tilde{\boldsymbol{B}}=\operatorname{diag}(\tilde{\boldsymbol{b}})</span>
-</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\boldsymbol{D}_i</span></td>
-<td>Diagonal, heteroscedastic bulk measurement noise</td>
+<td>Cell, and the number of reference cells of type <span class="math inline">j</span>.</td>
 </tr>
 </tbody>
 </table>
-<p>A tilde marks a quantity rescaled to a reference unit: per cell (<span class="math inline">\tilde{\boldsymbol{y}}</span>, <span class="math inline">\tilde{\boldsymbol{\mu}}</span>) or relative to the reference protocol (<span class="math inline">\tilde{\boldsymbol{b}}</span>). <span class="math inline">\boldsymbol{\Sigma}_j</span> couples <strong>genes</strong> within one cell type; <span class="math inline">\boldsymbol{\Gamma}_g</span> couples <strong>cell types</strong> within one gene. A symbol absent from this table is defined in the vignette that uses it, with one meaning there.</p>
+</div>
+</div>
+</div>
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="3ad0c0b3-fbbb-4d96-90c5-f648cb0a5c74">
+<div id="3ad0c0b3-fbbb-4d96-90c5-f648cb0a5c74" class="cell" data-tags="[&quot;notation-means&quot;,&quot;embed&quot;]">
+<div class="cell-output cell-output-display cell-output-markdown">
+<table class="table caption-top">
+<caption>Purified profiles and per-cell means of raw counts.</caption>
+<colgroup>
+<col style="width: 70%">
+<col style="width: 29%">
+</colgroup>
+<thead><tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td colspan="2"><strong>Reference means</strong></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\boldsymbol{x}_{\cdot j,i}</span></td>
+<td>Purified profile of type <span class="math inline">j</span> in sample <span class="math inline">i</span>.</td>
+</tr>
+<tr class="odd">
+<td>
+<span class="math inline">x_{gc}</span>, <span class="math inline">\boldsymbol{x}_{\cdot c}</span>
+</td>
+<td>Raw UMI count of gene <span class="math inline">g</span> in reference cell <span class="math inline">c</span>, and that cell’s count vector.</td>
+</tr>
+<tr class="even">
+<td>
+<span class="math inline">\tilde{\boldsymbol{\mu}}_{\cdot j} = C_j^{-1} \sum_{c \in j} \boldsymbol{x}_{\cdot c}</span><sup>a</sup>
+</td>
+<td>Per-cell mean of the raw UMI counts of the <span class="math inline">C_j</span> reference cells of type <span class="math inline">j</span>.</td>
+</tr>
+<tr class="odd">
+<td>
+<span class="math inline">S_j = \mathbf{1}^{\top} \tilde{\boldsymbol{\mu}}_{\cdot j}</span><sup>b</sup>
+</td>
+<td>Mean transcriptome size of a type-<span class="math inline">j</span> cell.</td>
+</tr>
+<tr class="even">
+<td colspan="2">
+<sup>a</sup> A tilde marks a quantity rescaled to a reference unit: per cell, or relative to the reference protocol. This mean is a mean of raw counts. It is not a library-size proportion.</td>
+</tr>
+</tbody>
+<tfoot><tr class="odd">
+<td colspan="2">
+<sup>b</sup><span class="math inline">S_j</span> summarises the raw-count mean. It is not a divisor applied to the counts. <span class="math inline">\boldsymbol{\theta}</span> is not used for this split.</td>
+</tr></tfoot>
+</table>
+</div>
+</div>
+</div>
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="b0f67e6a-fa2a-4974-8405-fa8f74830de6">
+<div id="b0f67e6a-fa2a-4974-8405-fa8f74830de6" class="cell" data-tags="[&quot;notation-biological&quot;,&quot;embed&quot;]">
+<div class="cell-output cell-output-display cell-output-markdown">
+<table class="table caption-top">
+<caption>Gene–gene covariance within a type, and variation across donors or types.</caption>
+<colgroup>
+<col style="width: 67%">
+<col style="width: 32%">
+</colgroup>
+<thead><tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td colspan="2"><strong>Within one reference</strong></td>
+</tr>
+<tr class="even">
+<td>
+<span class="math inline">\boldsymbol{\mu}_{\cdot j}</span>, <span class="math inline">\boldsymbol{\Sigma}_j</span><sup>a</sup>
+</td>
+<td>Mean and <span class="math inline">G \times G</span> gene–gene covariance of a type-<span class="math inline">j</span> profile.</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\boldsymbol{\Omega}_j = \boldsymbol{\Sigma}_j^{-1}</span></td>
+<td>Precision matrix of type <span class="math inline">j</span>.</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\boldsymbol{\Sigma}_{W,j}</span></td>
+<td>Within-donor cell-to-cell covariance of type <span class="math inline">j</span> (one single-cell sample).</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\boldsymbol{V}_j</span></td>
+<td>Empirical covariance of type <span class="math inline">j</span>, from its reference profiles or cells.</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\boldsymbol{R}_j</span></td>
+<td>Empirical correlation matrix of type <span class="math inline">j</span>. Bold: the scalar <span class="math inline">R</span> is the number of donors.</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\boldsymbol{\Delta}_j = \operatorname{diag}(\boldsymbol{V}_j)</span></td>
+<td>Diagonal matrix of the empirical variances of type <span class="math inline">j</span>.</td>
+</tr>
+<tr class="even">
+<td>
+<span class="math inline">\lambda</span><sup>b</sup>
+</td>
+<td>Penalty of a regularised covariance or precision estimator.</td>
+</tr>
+<tr class="odd">
+<td colspan="2"><strong>Across donors or types</strong></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\boldsymbol{\Sigma}_{B,j}</span></td>
+<td>Between-donor covariance of type <span class="math inline">j</span> (needs <span class="math inline">R \ge 2</span> donors).</td>
+</tr>
+<tr class="odd">
+<td>
+<span class="math inline">\boldsymbol{\Gamma}_g</span><sup>c</sup>
+</td>
+<td>
+<span class="math inline">J \times J</span> covariance across cell types for gene <span class="math inline">g</span>.</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\boldsymbol{S}_W(\boldsymbol{v}) = \sum_j v_j \boldsymbol{\Sigma}_{W,j}</span></td>
+<td>Linear covariance mixture with weights <span class="math inline">\boldsymbol{v}</span>.</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\boldsymbol{S}_B(\boldsymbol{v}) = \sum_j v_j^2 \boldsymbol{\Sigma}_{B,j}</span></td>
+<td>Quadratic covariance mixture with weights <span class="math inline">\boldsymbol{v}</span>.</td>
+</tr>
+<tr class="even">
+<td colspan="2">
+<sup>a</sup><span class="math inline">\boldsymbol{\Sigma}_j</span> couples genes within one cell type.</td>
+</tr>
+<tr class="odd">
+<td colspan="2">
+<sup>b</sup> A penalty. The size-free expression of a cell is <span class="math inline">\boldsymbol{\lambda}_{\cdot c}</span>, in the technical-scale table.</td>
+</tr>
+</tbody>
+<tfoot><tr class="odd">
+<td colspan="2">
+<sup>c</sup><span class="math inline">\boldsymbol{\Gamma}_g</span> couples cell types within one gene. The opposite orientation from <span class="math inline">\boldsymbol{\Sigma}_j</span>.</td>
+</tr></tfoot>
+</table>
+</div>
+</div>
+</div>
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="d5c8ac7e-4bf3-4e5e-aca9-8d1d34b9a042">
+<div id="d5c8ac7e-4bf3-4e5e-aca9-8d1d34b9a042" class="cell" data-tags="[&quot;notation-technical&quot;,&quot;embed&quot;]">
+<div class="cell-output cell-output-display cell-output-markdown">
+<table class="table caption-top">
+<caption>Size factors, capture efficiencies, and measurement noise.</caption>
+<colgroup>
+<col style="width: 45%">
+<col style="width: 54%">
+</colgroup>
+<thead><tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td colspan="2"><strong>Technical scales</strong></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">s_c</span></td>
+<td>Size factor of reference cell <span class="math inline">c</span>.</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\boldsymbol{\lambda}_{\cdot c}</span></td>
+<td>Size-free expression of cell <span class="math inline">c</span>.</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\boldsymbol{z}_{\cdot c}</span></td>
+<td>Latent log-expression of cell <span class="math inline">c</span> in the Poisson log-normal model.</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">a_i</span></td>
+<td>Sample-wide scale between the reference and the bulk library.</td>
+</tr>
+<tr class="even">
+<td>
+<span class="math inline">c_i = a_i n_i</span>, <span class="math inline">\phi_i = a_i^2 n_i</span>
+</td>
+<td>Mean scale and variance scale of the single-cell model.</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">b_g</span></td>
+<td>Capture efficiency of gene <span class="math inline">g</span> in one protocol.</td>
+</tr>
+<tr class="even">
+<td>
+<span class="math inline">\tilde{b}_g = b_g^{\mathrm{bulk}} / b_g^{\mathrm{ref}}</span><sup>a</sup>
+</td>
+<td>Gene-wise platform ratio. <span class="math inline">\tilde{\boldsymbol{B}} = \operatorname{diag}(\tilde{\boldsymbol{b}})</span>.</td>
+</tr>
+<tr class="odd">
+<td>
+<span class="math inline">\boldsymbol{D}_i</span><sup>b</sup>
+</td>
+<td>Diagonal, heteroscedastic bulk measurement noise.</td>
+</tr>
+<tr class="even">
+<td colspan="2">
+<sup>a</sup> A tilde: relative to the reference protocol, not per cell.</td>
+</tr>
+</tbody>
+<tfoot><tr class="odd">
+<td colspan="2">
+<sup>b</sup> Measurement noise. Not the deviance <span class="math inline">\mathcal{D}_g</span> of a count model.</td>
+</tr></tfoot>
+</table>
+</div>
+</div>
+</div>
 </blockquote>
 </div>
 </div>
@@ -359,6 +453,7 @@ Table 1: Four covariance estimators. Each has one tuning parameter, chosen by t
 </div>
 </figure>
 </div>
+<div style="page-break-after: always;"></div>
 </section><section class="section level2"><h2 id="sec-cov-regimes">Sample-size regimes<a class="anchor" aria-label="anchor" href="#sec-cov-regimes"></a>
 </h2>
 <p>Report <span class="math inline">C_j</span> against <span class="math inline">G</span> for every type (and time point) before reading any estimate. In the Suppinger reference several types have <span class="math inline">C_j&lt;G</span>, so the sample covariance <span class="math inline">\boldsymbol{V}_j</span> has rank at most <span class="math inline">C_j-1</span> and no unpenalised estimator exists for them. Three thresholds are often conflated.</p>
@@ -373,11 +468,12 @@ Table 1: Four covariance estimators. Each has one tuning parameter, chosen by t
 \quad\text{s.t.}\quad
 \omega_{gg'}=0\ \ \forall\,(g,g')\notin E,
 \tag{1}</span></span></p>
-<p>exists for almost every sample once <span class="math inline">C_j</span> reaches the maximum-likelihood threshold <span class="math inline">\operatorname{mlt}(E)</span>. That threshold lies between the clique number and the treewidth plus one, and equals the clique number for chordal graphs (Uhler 2012; Bernstein &amp; Outlaw 2023). <!-- TODO-cite: Uhler 2012, doi:10.1214/11-AOS957 --> <!-- TODO-cite: Bernstein & Outlaw 2023, arXiv:2312.03145 --> Bernstein and Outlaw simulate graphs selected by the graphical lasso from independent Gaussian data (<span class="math inline">G\le9</span>): the probability that <span class="math inline">C_j\ge\operatorname{mlt}</span> of the selected graph rises with <span class="math inline">\lambda</span> and with <span class="math inline">C_j</span>; with a single observation the graphical lasso never returned the empty graph, the only graph whose estimate then exists (pp. 4–5).</p>
+<p>exists for almost every sample once <span class="math inline">C_j</span> reaches the maximum-likelihood threshold <span class="math inline">\operatorname{mlt}(E)</span>. That threshold lies between the clique number and the treewidth plus one, and equals the clique number for chordal graphs (Uhler 2012; Bernstein &amp; Outlaw 2023). <span class="light-content" style="color: #7a1f1f;border-radius: 0.2rem; padding: 0 0.2rem 0 0.2rem;background-color: #f4c7c3;">TODO-cite: Uhler 2012, doi:10.1214/11-AOS957</span> <span class="light-content" style="color: #7a1f1f;border-radius: 0.2rem; padding: 0 0.2rem 0 0.2rem;background-color: #f4c7c3;">TODO-cite: Bernstein &amp; Outlaw 2023, arXiv:2312.03145</span> Bernstein and Outlaw simulate graphs selected by the graphical lasso from independent Gaussian data (<span class="math inline">G\le9</span>): the probability that <span class="math inline">C_j\ge\operatorname{mlt}</span> of the selected graph rises with <span class="math inline">\lambda</span> and with <span class="math inline">C_j</span>; with a single observation the graphical lasso never returned the empty graph, the only graph whose estimate then exists (pp. 4–5).</p>
 </li>
-<li><p><strong>The graph is recovered.</strong> Support recovery by the graphical lasso needs <span class="math inline">C_j\gtrsim d^{2}\log G</span>, an irrepresentability condition, bounded eigenvalues and a minimum <span class="math inline">|\omega_{gg'}|</span> (Ravikumar et al. 2011). <!-- TODO-cite: Ravikumar, Wainwright, Raskutti & Yu 2011, doi:10.1214/11-EJS631 --> Neighbourhood selection needs <span class="math inline">d\log G</span> <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 41</a>)</span>, under its own neighbourhood stability condition (Meinshausen &amp; Bühlmann 2006, assumption 6). <!-- TODO-cite: Meinshausen & Bühlmann 2006, doi:10.1214/009053606000000281 --> With <span class="math inline">G=500</span> and <span class="math inline">d=10</span>, <span class="math inline">d^{2}\log G\approx620</span> before constants, and hubs raise <span class="math inline">d</span>. On models derived from gene expression the irrepresentability conditions never held <span class="citation" data-cites="heinävaaraInconsistencyℓ1penalisedSparse2016">(<a href="#ref-hein%C3%A4vaaraInconsistency%E2%84%931penalisedSparse2016" role="doc-biblioref">Heinävaara et al. 2016</a>)</span>, and they involve the unknown <span class="math inline">\boldsymbol{\Sigma}_j</span>: “we can never verify them on real data” <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 77</a>)</span>.</p></li>
+<li><p><strong>The graph is recovered.</strong> Support recovery by the graphical lasso needs <span class="math inline">C_j\gtrsim d^{2}\log G</span>, an irrepresentability condition, bounded eigenvalues and a minimum <span class="math inline">|\omega_{gg'}|</span> (Ravikumar et al. 2011). <span class="light-content" style="color: #7a1f1f;border-radius: 0.2rem; padding: 0 0.2rem 0 0.2rem;background-color: #f4c7c3;">TODO-cite: Ravikumar, Wainwright, Raskutti &amp; Yu 2011, doi:10.1214/11-EJS631</span> Neighbourhood selection needs <span class="math inline">d\log G</span> <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 41</a>)</span>, under its own neighbourhood stability condition (Meinshausen &amp; Bühlmann 2006, assumption 6). <span class="light-content" style="color: #7a1f1f;border-radius: 0.2rem; padding: 0 0.2rem 0 0.2rem;background-color: #f4c7c3;">TODO-cite: Meinshausen &amp; Bühlmann 2006, doi:10.1214/009053606000000281</span> With <span class="math inline">G=500</span> and <span class="math inline">d=10</span>, <span class="math inline">d^{2}\log G\approx620</span> before constants, and hubs raise <span class="math inline">d</span>. On models derived from gene expression the irrepresentability conditions never held <span class="citation" data-cites="heinävaaraInconsistencyℓ1penalisedSparse2016">(<a href="#ref-hein%C3%A4vaaraInconsistency%E2%84%931penalisedSparse2016" role="doc-biblioref">Heinävaara et al. 2016</a>)</span>, and they involve the unknown <span class="math inline">\boldsymbol{\Sigma}_j</span>: “we can never verify them on real data” <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 77</a>)</span>.</p></li>
 </ol>
 <p>The consequence for DeCovarT: threshold 1 is all the plug-in needs. Threshold 2 governs the refits used by <code>SILGGM</code> (<a href="03-3-precision-networks.html#sec-cov-npn">nonparanormal</a>). Threshold 3 governs any biological reading of the zeros, which is out of scope here; it can be probed by simulating precisions at the observed <span class="math inline">C_j</span> with <code><a href="../reference/simulate_hierarchical_grn_moments.html">simulate_hierarchical_grn_moments()</a></code> and measuring recovery.</p>
+<div style="page-break-after: always;"></div>
 </section><section class="section level2"><h2 id="sec-cov-estimators">Estimators<a class="anchor" aria-label="anchor" href="#sec-cov-estimators"></a>
 </h2>
 <section class="level2"><h3 id="sec-cov-shrinkage">Linear shrinkage (default)<a class="anchor" aria-label="anchor" href="#sec-cov-shrinkage"></a>
@@ -392,9 +488,10 @@ Table 1: Four covariance estimators. Each has one tuning parameter, chosen by t
 =\frac{\sum_{g\neq g'}\widehat{\operatorname{Var}}(R_{j,gg'})}
       {\sum_{g\neq g'}R_{j,gg'}^{2}},
 \tag{2}</span></span></p>
-<p>with <span class="math inline">\hat\lambda^{\ast}</span> truncated to <span class="math inline">[0,1]</span>. The closed form minimises the Frobenius risk (Ledoit–Wolf lemma; Ledoit &amp; Wolf 2004). <!-- TODO-cite: Ledoit & Wolf 2004, doi:10.1016/S0047-259X(03)00096-4 --> The estimate is positive definite for any <span class="math inline">C_j</span> and <span class="math inline">G</span>, invariant to the scale of each gene, and costs about two sample covariances. Its precision is dense; partial correlations and a local-FDR graph can be read from it if wanted (eqs. 11–15).</p>
+<p>with <span class="math inline">\hat\lambda^{\ast}</span> truncated to <span class="math inline">[0,1]</span>. The closed form minimises the Frobenius risk (Ledoit–Wolf lemma; Ledoit &amp; Wolf 2004). <span class="light-content" style="color: #7a1f1f;border-radius: 0.2rem; padding: 0 0.2rem 0 0.2rem;background-color: #f4c7c3;">TODO-cite: Ledoit &amp; Wolf 2004, doi:10.1016/S0047-259X(03)00096-4</span> The estimate is positive definite for any <span class="math inline">C_j</span> and <span class="math inline">G</span>, invariant to the scale of each gene, and costs about two sample covariances. Its precision is dense; partial correlations and a local-FDR graph can be read from it if wanted (eqs. 11–15).</p>
 <p>The Frobenius risk is not the Gaussian likelihood that DeCovarT evaluates. <span class="math inline">\hat\lambda^{\ast}</span> is therefore only the starting point of the cross-validated search of <a href="#sec-cov-cv" class="quarto-xref">Sec. 4</a>. In <code>corpcor::cov.shrink()</code>, <code>lambda.var = 0</code> reproduces target D; the default also shrinks the variances towards their median.</p>
 <p>Sparse precisions are not the default plug-in. The graphical lasso, the nonparanormal <code>SILGGM</code> estimator and <code>PLNnetwork</code> are derived in <a href="03-3-precision-networks.html">3.3 Precision networks</a>. Each still exports a covariance on the linear scale, and each is scored by the same held-out criterion as shrinkage (<a href="#sec-cov-cv" class="quarto-xref">Sec. 4</a>).</p>
+<div style="page-break-after: always;"></div>
 </section></section><section class="section level2"><h2 id="sec-cov-cv">One criterion for all four: cross-validated Gaussian log-score<a class="anchor" aria-label="anchor" href="#sec-cov-cv"></a>
 </h2>
 <p>Each estimator of <a href="#tbl-cov-estimators" class="quarto-xref">Table 1</a> has one tuning parameter: <span class="math inline">\lambda</span> for shrinkage (searched around <span class="math inline">\hat\lambda^{\ast}</span>), <span class="math inline">\lambda</span> for the graphical lasso, <span class="math inline">\alpha</span> for <code>SILGGM</code>, <span class="math inline">\lambda</span> for <code>PLNnetwork</code>. All four are tuned by the same score.</p>
@@ -421,13 +518,14 @@ Table 1: Four covariance estimators. Each has one tuning parameter, chosen by t
 <p><span id="eq-uacv"><span class="math display">
 \mathrm{UACV}=\Psi(\hat{\boldsymbol{\theta}})+\operatorname{tr}\bigl(\boldsymbol{H}_{\Phi}^{-1}\boldsymbol{U}\bigr),
 \tag{5}</span></span></p>
-<p>where <span class="math inline">\Psi</span> is the mean assessment loss (here minus the log-score), <span class="math inline">\boldsymbol{H}_{\Phi}</span> the Hessian of the estimating function and <span class="math inline">\boldsymbol{U}</span> (their <span class="math inline">\boldsymbol{K}</span>) the mean cross-product of the per-cell assessment and estimating scores; the error is <span class="math inline">O_p(C_j^{-2})</span> (Commenges et al. 2012, eqs. 6–7). <!-- TODO-cite: Commenges, Proust-Lima, Samieri & Liquet 2012, arXiv:1206.1753 --> For a maximum-likelihood fit assessed by its own log-likelihood it is the Takeuchi information criterion divided by <span class="math inline">2C_j</span> (p. 7). A smooth penalty enters <span class="math inline">\boldsymbol{H}_{\Phi}</span> and lowers the correction (p. 8). An <span class="math inline">\ell_1</span> penalty is not differentiable at zero, so for the graphical lasso and <code>PLNnetwork</code> the formula is applied on the active set, with the support held fixed; that restriction is our reading, not the paper’s.</p>
+<p>where <span class="math inline">\Psi</span> is the mean assessment loss (here minus the log-score), <span class="math inline">\boldsymbol{H}_{\Phi}</span> the Hessian of the estimating function and <span class="math inline">\boldsymbol{U}</span> (their <span class="math inline">\boldsymbol{K}</span>) the mean cross-product of the per-cell assessment and estimating scores; the error is <span class="math inline">O_p(C_j^{-2})</span> (Commenges et al. 2012, eqs. 6–7). <span class="light-content" style="color: #7a1f1f;border-radius: 0.2rem; padding: 0 0.2rem 0 0.2rem;background-color: #f4c7c3;">TODO-cite: Commenges, Proust-Lima, Samieri &amp; Liquet 2012, arXiv:1206.1753</span> For a maximum-likelihood fit assessed by its own log-likelihood it is the Takeuchi information criterion divided by <span class="math inline">2C_j</span> (p. 7). A smooth penalty enters <span class="math inline">\boldsymbol{H}_{\Phi}</span> and lowers the correction (p. 8). An <span class="math inline">\ell_1</span> penalty is not differentiable at zero, so for the graphical lasso and <code>PLNnetwork</code> the formula is applied on the active set, with the support held fixed; that restriction is our reading, not the paper’s.</p>
 <p><strong>Diagnostics, not selectors.</strong> EBIC <span class="citation" data-cites="foygelExtendedBayesianInformation2010">(<a href="#ref-foygelExtendedBayesianInformation2010" role="doc-biblioref">Foygel and Drton 2010</a>)</span> charges <span class="math inline">\log C_j+4\gamma\log G</span> per edge and relies on the maximum-likelihood degrees of freedom; at small <span class="math inline">C_j</span> it returns empty graphs (<a href="03-3-precision-networks.html#sec-grn-screening">screening threshold</a>). StARS <span class="citation" data-cites="liuStabilityApproachRegularization2010">(<a href="#ref-liuStabilityApproachRegularization2010" role="doc-biblioref">Liu et al. 2010</a>)</span> chooses the least regularised graph whose edge instability across subsamples stays below a threshold. It costs <span class="math inline">B\times L</span> fits for <span class="math inline">B</span> subsamples and <span class="math inline">L</span> penalties, targets the support rather than the covariance, and tends to select too many edges in Gaussian graphical models. Thresholded adaptive validation targets the support as well <span class="citation" data-cites="laszkiewiczThresholdedAdaptiveValidation2021">(<a href="#ref-laszkiewiczThresholdedAdaptiveValidation2021" role="doc-biblioref">Laszkiewicz et al. 2021</a>)</span>. All three are reported beside the cross-validated choice, not instead of it.</p>
+<div style="page-break-after: always;"></div>
 </section><section class="section level2"><h2 id="sec-cov-diagonal">The diagonal: conditional variance, not self-regulation<a class="anchor" aria-label="anchor" href="#sec-cov-diagonal"></a>
 </h2>
 <p>In a Gaussian graphical model, <span class="math inline">\omega_{gg}=1/\operatorname{Var}(x_g\mid\boldsymbol{x}_{-g})</span>: the part of gene <span class="math inline">g</span>’s variance that the other panel genes do not explain. On counts it mixes transcriptional bursting and auto-regulation, regulators outside the panel, and Poisson sampling, and <span class="math inline">\boldsymbol{V}_j</span> alone cannot separate them; at droplet depths sampling is the largest share for most genes <span class="citation" data-cites="sarkarSeparatingMeasurementExpression2021">(<a href="#ref-sarkarSeparatingMeasurementExpression2021" role="doc-biblioref">Sarkar and Stephens 2021</a>)</span>. By marginalisation (<a href="#sec-cov-target" class="quarto-xref">Sec. 1</a>) <span class="math inline">\omega_{gg}</span> also changes with the panel.</p>
 <p><strong>Penalising the diagonal biases the variances.</strong> With a penalised diagonal the KKT conditions give <span class="math inline">\hat\Sigma_{gg}=V_{gg}+\lambda</span> <span class="citation" data-cites="friedmanSparseInverseCovariance2008 mazumderGraphicalLassoNew2011">(<a href="#ref-friedmanSparseInverseCovariance2008" role="doc-biblioref">Friedman et al. 2008</a>; <a href="#ref-mazumderGraphicalLassoNew2011" role="doc-biblioref">Mazumder and Hastie 2011</a>)</span>. On the correlation scale every implied correlation shrinks by about <span class="math inline">1/(1+\lambda)</span>, in the same direction as Poisson attenuation (<a href="03-3-precision-networks.html#sec-grn-attenuation">count attenuation</a>). The penalty does not move the empty-graph threshold of <a href="03-3-precision-networks.html#sec-grn-screening">screening threshold</a>. DeCovarT’s likelihood uses the variances directly, so this bias enters the deconvolution.</p>
-<p><strong>Self-regulation belongs to directed dynamic models.</strong> CardamomOT estimates a directed self-interaction <span class="math inline">\theta_{ii}</span> for each gene and gives it no specific penalty beyond its common <span class="math inline">\ell_1</span> term towards a prior network; a positive auto-activation with a negative basal term is “the most parsimonious way to produce bistability for an isolated gene” (Maugé &amp; Ventre 2026, p. 28, citing Ferrell 2002). <!-- TODO-cite: Maugé & Ventre 2026, doi:10.1371/journal.pcbi.1014838 --> <!-- TODO-cite: Ferrell 2002, doi:10.1016/S0955-0674(02)00314-9 (journal line on p. 1 disagrees with the DOI; verify on Crossref) --> Such a parameter is linked to a precision only through the stationary covariance of a linearised model. For <span class="math inline">\mathrm{d}\boldsymbol{x}=\boldsymbol{A}(\boldsymbol{x}-\boldsymbol{\mu})\,\mathrm{d}t+\mathrm{d}\boldsymbol{w}</span> with noise covariance <span class="math inline">\boldsymbol{Q}</span>, the stationary covariance solves the Lyapunov equation <span class="math inline">\boldsymbol{A}\boldsymbol{\Sigma}+\boldsymbol{\Sigma}\boldsymbol{A}^{\top}+\boldsymbol{Q}=\boldsymbol{0}</span>. For two genes with self-loops <span class="math inline">-a_1,-a_2</span>, an edge <span class="math inline">1\to2</span> of weight <span class="math inline">k</span> and <span class="math inline">\boldsymbol{Q}=\operatorname{diag}(q_1,q_2)</span>, writing <span class="math inline">\kappa=(a_1+a_2)^{2}q_2+k^{2}q_1</span>,</p>
+<p><strong>Self-regulation belongs to directed dynamic models.</strong> CardamomOT estimates a directed self-interaction <span class="math inline">\theta_{ii}</span> for each gene and gives it no specific penalty beyond its common <span class="math inline">\ell_1</span> term towards a prior network; a positive auto-activation with a negative basal term is “the most parsimonious way to produce bistability for an isolated gene” (Maugé &amp; Ventre 2026, p. 28, citing Ferrell 2002). <span class="light-content" style="color: #7a1f1f;border-radius: 0.2rem; padding: 0 0.2rem 0 0.2rem;background-color: #f4c7c3;">TODO-cite: Maugé &amp; Ventre 2026, doi:10.1371/journal.pcbi.1014838</span> <span class="light-content" style="color: #7a1f1f;border-radius: 0.2rem; padding: 0 0.2rem 0 0.2rem;background-color: #f4c7c3;">TODO-cite: Ferrell 2002, doi:10.1016/S0955-0674(02)00314-9 (journal line on p. 1 disagrees with the DOI; verify on Crossref)</span> Such a parameter is linked to a precision only through the stationary covariance of a linearised model. For <span class="math inline">\mathrm{d}\boldsymbol{x}=\boldsymbol{A}(\boldsymbol{x}-\boldsymbol{\mu})\,\mathrm{d}t+\mathrm{d}\boldsymbol{w}</span> with noise covariance <span class="math inline">\boldsymbol{Q}</span>, the stationary covariance solves the Lyapunov equation <span class="math inline">\boldsymbol{A}\boldsymbol{\Sigma}+\boldsymbol{\Sigma}\boldsymbol{A}^{\top}+\boldsymbol{Q}=\boldsymbol{0}</span>. For two genes with self-loops <span class="math inline">-a_1,-a_2</span>, an edge <span class="math inline">1\to2</span> of weight <span class="math inline">k</span> and <span class="math inline">\boldsymbol{Q}=\operatorname{diag}(q_1,q_2)</span>, writing <span class="math inline">\kappa=(a_1+a_2)^{2}q_2+k^{2}q_1</span>,</p>
 <p><span id="eq-lyapunov-two-gene"><span class="math display">
 \omega_{11}=\frac{2(a_1+a_2)\{a_1(a_1+a_2)q_2+k^{2}q_1\}}{q_1\,\kappa},
 \qquad
@@ -446,6 +544,7 @@ Table 1: Four covariance estimators. Each has one tuning parameter, chosen by t
 </div>
 </div>
 <p>A near-diagonal precision is not, by itself, evidence that genes are independent. The five competing explanations, the screening threshold and the count attenuation are in <a href="03-3-precision-networks.html#sec-grn-diagonal">3.3 Precision networks</a>. Directed Gaussian networks and joint estimation across types are in the same vignette. Graph scores (Hamming distance, structural Hamming distance, BEELINE, stability selection used as a graph rule) do not choose <span class="math inline">\widehat{\boldsymbol{\Sigma}}_j</span>. The plug-in is the covariance with the best held-out Gaussian log-score (<a href="#sec-cov-cv" class="quarto-xref">Sec. 4</a>). Those score definitions stay in the reproducibility file <code>docs/05-grn-metrics.qmd</code>, which is not a listed chapter.</p>
+<div style="page-break-after: always;"></div>
 </section><section class="section level2"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
@@ -658,6 +757,34 @@ Zimmerman, Kip D., Mark A. Espeland, and Carl D. Langefeld. 2021. <span>‘A Pra
 
 
 
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script src="mermaid-init.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script src="mermaid-init.js"></script><script>
+(function () {
+  var TOC_LEVELS = 4;
+  if (!window.Toc || !window.Toc.helpers) return;
+  var h = window.Toc.helpers;
+  h.getHeadings = function ($scope, topLevel) {
+    var sel = [];
+    for (var l = topLevel; l < topLevel + TOC_LEVELS && l <= 6; l++) sel.push("h" + l);
+    return this.findOrFilter($scope, sel.join(","));
+  };
+  h.populateNav = function ($topContext, topLevel, $headings) {
+    var helpers = this, stack = [];
+    $headings.each(function (i, el) {
+      var level = helpers.getNavLevel(el);
+      var $item = helpers.generateNavItem(el);
+      while (stack.length && stack[stack.length - 1].level >= level) stack.pop();
+      if (!stack.length) {
+        $topContext.append($item);
+      } else {
+        var $parent = stack[stack.length - 1].$item;
+        var $list = $parent.children("ul").last();
+        if (!$list.length) $list = helpers.createChildNavList($parent);
+        $list.append($item);
+      }
+      stack.push({ level: level, $item: $item });
+    });
+  };
+})();
+</script>
 </body>
 </html>

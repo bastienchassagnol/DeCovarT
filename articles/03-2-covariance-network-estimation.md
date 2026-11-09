@@ -1,49 +1,74 @@
 # 3.2 Cell-type covariance for the DeCovarT plug-in
 
-> **Notation (shared by all vignettes; aligned with the article)**
+> **Notation used in this vignette**
 >
-> Gene g=1,\ldots,G; cell type j=1,\ldots,J (a second type is \ell);
-> bulk sample i=1,\ldots,N; reference donor (replicate) r=1,\ldots,R;
-> cell c, with C_j reference cells of type j. The index i is dropped
-> inside a derivation and restored in the model statements.
+> A symbol absent from these groups is defined in this vignette, with
+> one meaning. The full table is the [notation
+> article](https://bastienchassagnol.github.io/DeCovarT/articles/notation.md).
 >
 > | Symbol | Meaning |
 > |----|----|
-> | y\_{gi}, \boldsymbol{y}\_{\cdot i} | Bulk expression on a linear scale |
-> | m\_{ji}, n_i=\sum_jm\_{ji} | Cells of type j in bulk sample i, and their total |
-> | \tilde{\boldsymbol{y}}\_{\cdot i}=\boldsymbol{y}\_{\cdot i}/n_i | Bulk expression per cell |
-> | \boldsymbol{p}\_{\cdot i}\in\Delta^{J-1} | Cell fractions, p\_{ji}=m\_{ji}/n_i |
-> | \boldsymbol{\rho}\_{i}\in\mathbb{R}^{J-1} | Isometric log-ratio (ILR) coordinates of \boldsymbol{p}\_{\cdot i}, \boldsymbol{p}\_{\cdot i}=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho}\_i) with a Helmert basis \mathbf{V} |
-> | \boldsymbol{q}\_{\cdot i} | Transcript fractions, q\_{ji}=p\_{ji}S_j/\sum\_\ell p\_{\ell i}S\_\ell |
-> | \boldsymbol{\mu}\_{\cdot j}, \boldsymbol{\Sigma}\_j | Mean and G\times G gene–gene covariance of a type-j population profile |
-> | \boldsymbol{\Omega}\_j=\boldsymbol{\Sigma}\_j^{-1} | Precision matrix of type j |
-> | \boldsymbol{\Gamma}\_g | J\times J covariance across cell types for gene g (`bMIND`, `EPIC-unmix`, `Unico`) |
-> | \boldsymbol{x}\_{\cdot j,i} | Purified profile of type j in sample i |
-> | x\_{gc}, \boldsymbol{x}\_{\cdot c}, s_c | Raw UMI count of gene g in reference cell c, and the size factor of cell c |
-> | \boldsymbol{\lambda}\_{\cdot c}, \boldsymbol{z}\_{\cdot c} | Size-free expression of cell c; its latent log-expression in the Poisson log-normal (PLN) model |
-> | \tilde{\boldsymbol{\mu}}\_{\cdot j}=C_j^{-1}\sum\_{c\in j}\boldsymbol{x}\_{\cdot c}=S_j\boldsymbol{\theta}\_{\cdot j} | Per-cell mean of the raw UMI counts of the C_j reference cells of type j |
-> | \boldsymbol{\theta}\_{\cdot j}, S_j=\mathbf{1}^{\top}\tilde{\boldsymbol{\mu}}\_{\cdot j} | Relative abundance (\mathbf{1}^{\top}\boldsymbol{\theta}\_{\cdot j}=1) and mean transcriptome size of a type-j cell |
-> | \boldsymbol{\Sigma}\_{W,j}, \boldsymbol{\Sigma}\_{B,j} | Within-donor cell-to-cell covariance of type j (one single-cell sample); between-donor covariance of type j (needs R\ge2 donors) |
-> | \boldsymbol{S}\_W(\boldsymbol{v})=\sum_jv_j\boldsymbol{\Sigma}\_{W,j}, \boldsymbol{S}\_B(\boldsymbol{v})=\sum_jv_j^2\boldsymbol{\Sigma}\_{B,j} | Linear and quadratic covariance mixtures with weights \boldsymbol{v} |
-> | \boldsymbol{V}\_j | Empirical covariance of type j, computed from its reference profiles or cells |
-> | \boldsymbol{R}\_j | Empirical correlation matrix of type j (bold; the scalar R is the number of donors) |
-> | \boldsymbol{\Delta}\_j=\operatorname{diag}(\boldsymbol{V}\_j) | Diagonal matrix of the empirical variances of type j |
-> | \lambda | Penalty of a regularised covariance or precision estimator |
-> | \psi_g, \mathcal{D}\_g | Negative binomial dispersion of gene g; deviance of gene g in a count model |
-> | \delta\_{gj} | Detection rate of gene g in type j (fraction of cells with a non-zero count) |
-> | \varpi\_{\ell\mid j}, \varpi\_{j\ell}, \bar\varpi | MixSim overlap: probability of misclassifying a draw of j into \ell, pairwise overlap \varpi\_{j\ell}=\varpi\_{\ell\mid j}+\varpi\_{j\mid\ell}, and its average over pairs (`BarOmega`) |
-> | \boldsymbol{T}\_{ji}=\sum\_{c=1}^{m\_{ji}}\boldsymbol{X}\_{jic} | Total expression contributed by type j to sample i |
-> | a_i | Sample-wide scale between the reference and the bulk library |
-> | c_i=a_in_i, \phi_i=a_i^2n_i | Mean scale and variance scale of the single-cell model |
-> | b_g, \tilde b_g=b_g^{\mathrm{bulk}}/b_g^{\mathrm{ref}} | Capture efficiency of gene g in one protocol, and the gene-wise platform ratio; \tilde{\boldsymbol{B}}=\operatorname{diag}(\tilde{\boldsymbol{b}}) |
-> | \boldsymbol{D}\_i | Diagonal, heteroscedastic bulk measurement noise |
+> | **Indices** |  |
+> | g = 1, \ldots, G | Gene. |
+> | j = 1, \ldots, J; \ell | Cell type, and a second cell type. |
+> | i = 1, \ldots, N | Bulk sample. The index is dropped inside a derivation and restored in the model statements. |
+> | r = 1, \ldots, R | Reference donor (replicate). |
+> | c; C_j | Cell, and the number of reference cells of type j. |
 >
-> A tilde marks a quantity rescaled to a reference unit: per cell
-> (\tilde{\boldsymbol{y}}, \tilde{\boldsymbol{\mu}}) or relative to the
-> reference protocol (\tilde{\boldsymbol{b}}). \boldsymbol{\Sigma}\_j
-> couples **genes** within one cell type; \boldsymbol{\Gamma}\_g couples
-> **cell types** within one gene. A symbol absent from this table is
-> defined in the vignette that uses it, with one meaning there.
+> Indices. The scalar R is the number of reference donors. {.table
+> .caption-top}
+>
+> | Symbol | Meaning |
+> |----|----|
+> | **Reference means** |  |
+> | \boldsymbol{x}\_{\cdot j,i} | Purified profile of type j in sample i. |
+> | x\_{gc}, \boldsymbol{x}\_{\cdot c} | Raw UMI count of gene g in reference cell c, and that cell’s count vector. |
+> | \tilde{\boldsymbol{\mu}}\_{\cdot j} = C_j^{-1} \sum\_{c \in j} \boldsymbol{x}\_{\cdot c}^(a) | Per-cell mean of the raw UMI counts of the C_j reference cells of type j. |
+> | S_j = \mathbf{1}^{\top} \tilde{\boldsymbol{\mu}}\_{\cdot j}^(b) | Mean transcriptome size of a type-j cell. |
+> | ^(a) A tilde marks a quantity rescaled to a reference unit: per cell, or relative to the reference protocol. This mean is a mean of raw counts. It is not a library-size proportion. |  |
+> | ^(b)S_j summarises the raw-count mean. It is not a divisor applied to the counts. \boldsymbol{\theta} is not used for this split. |  |
+>
+> Purified profiles and per-cell means of raw counts. {.table
+> .caption-top}
+>
+> | Symbol | Meaning |
+> |----|----|
+> | **Within one reference** |  |
+> | \boldsymbol{\mu}\_{\cdot j}, \boldsymbol{\Sigma}\_j^(a) | Mean and G \times G gene–gene covariance of a type-j profile. |
+> | \boldsymbol{\Omega}\_j = \boldsymbol{\Sigma}\_j^{-1} | Precision matrix of type j. |
+> | \boldsymbol{\Sigma}\_{W,j} | Within-donor cell-to-cell covariance of type j (one single-cell sample). |
+> | \boldsymbol{V}\_j | Empirical covariance of type j, from its reference profiles or cells. |
+> | \boldsymbol{R}\_j | Empirical correlation matrix of type j. Bold: the scalar R is the number of donors. |
+> | \boldsymbol{\Delta}\_j = \operatorname{diag}(\boldsymbol{V}\_j) | Diagonal matrix of the empirical variances of type j. |
+> | \lambda^(b) | Penalty of a regularised covariance or precision estimator. |
+> | **Across donors or types** |  |
+> | \boldsymbol{\Sigma}\_{B,j} | Between-donor covariance of type j (needs R \ge 2 donors). |
+> | \boldsymbol{\Gamma}\_g^(c) | J \times J covariance across cell types for gene g. |
+> | \boldsymbol{S}\_W(\boldsymbol{v}) = \sum_j v_j \boldsymbol{\Sigma}\_{W,j} | Linear covariance mixture with weights \boldsymbol{v}. |
+> | \boldsymbol{S}\_B(\boldsymbol{v}) = \sum_j v_j^2 \boldsymbol{\Sigma}\_{B,j} | Quadratic covariance mixture with weights \boldsymbol{v}. |
+> | ^(a)\boldsymbol{\Sigma}\_j couples genes within one cell type. |  |
+> | ^(b) A penalty. The size-free expression of a cell is \boldsymbol{\lambda}\_{\cdot c}, in the technical-scale table. |  |
+> | ^(c)\boldsymbol{\Gamma}\_g couples cell types within one gene. The opposite orientation from \boldsymbol{\Sigma}\_j. |  |
+>
+> Gene–gene covariance within a type, and variation across donors or
+> types. {.table .caption-top}
+>
+> | Symbol | Meaning |
+> |----|----|
+> | **Technical scales** |  |
+> | s_c | Size factor of reference cell c. |
+> | \boldsymbol{\lambda}\_{\cdot c} | Size-free expression of cell c. |
+> | \boldsymbol{z}\_{\cdot c} | Latent log-expression of cell c in the Poisson log-normal model. |
+> | a_i | Sample-wide scale between the reference and the bulk library. |
+> | c_i = a_i n_i, \phi_i = a_i^2 n_i | Mean scale and variance scale of the single-cell model. |
+> | b_g | Capture efficiency of gene g in one protocol. |
+> | \tilde{b}\_g = b_g^{\mathrm{bulk}} / b_g^{\mathrm{ref}}^(a) | Gene-wise platform ratio. \tilde{\boldsymbol{B}} = \operatorname{diag}(\tilde{\boldsymbol{b}}). |
+> | \boldsymbol{D}\_i^(b) | Diagonal, heteroscedastic bulk measurement noise. |
+> | ^(a) A tilde: relative to the reference protocol, not per cell. |  |
+> | ^(b) Measurement noise. Not the deviance \mathcal{D}\_g of a count model. |  |
+>
+> Size factors, capture efficiencies, and measurement noise. {.table
+> .caption-top}
 
 > **Scope**
 >
@@ -153,22 +178,27 @@ conflated.
     maximum-likelihood threshold \operatorname{mlt}(E). That threshold
     lies between the clique number and the treewidth plus one, and
     equals the clique number for chordal graphs (Uhler 2012; Bernstein &
-    Outlaw 2023). Bernstein and Outlaw simulate graphs selected by the
-    graphical lasso from independent Gaussian data (G\le9): the
-    probability that C_j\ge\operatorname{mlt} of the selected graph
-    rises with \lambda and with C_j; with a single observation the
-    graphical lasso never returned the empty graph, the only graph whose
-    estimate then exists (pp. 4–5).
+    Outlaw 2023). TODO-cite: Uhler 2012, doi:10.1214/11-AOS957
+    TODO-cite: Bernstein & Outlaw 2023, arXiv:2312.03145 Bernstein and
+    Outlaw simulate graphs selected by the graphical lasso from
+    independent Gaussian data (G\le9): the probability that
+    C_j\ge\operatorname{mlt} of the selected graph rises with \lambda
+    and with C_j; with a single observation the graphical lasso never
+    returned the empty graph, the only graph whose estimate then exists
+    (pp. 4–5).
 
 3.  **The graph is recovered.** Support recovery by the graphical lasso
     needs C_j\gtrsim d^{2}\log G, an irrepresentability condition,
     bounded eigenvalues and a minimum \|\omega\_{gg'}\| (Ravikumar et
-    al. 2011). Neighbourhood selection needs d\log G ([Chiquet 2015,
-    41](#ref-chiquetContributionsSparseMethods2015)), under its own
-    neighbourhood stability condition (Meinshausen & Bühlmann 2006,
-    assumption 6). With G=500 and d=10, d^{2}\log G\approx620 before
-    constants, and hubs raise d. On models derived from gene expression
-    the irrepresentability conditions never held ([Heinävaara et al.
+    al. 2011). TODO-cite: Ravikumar, Wainwright, Raskutti & Yu 2011,
+    doi:10.1214/11-EJS631 Neighbourhood selection needs d\log G
+    ([Chiquet 2015, 41](#ref-chiquetContributionsSparseMethods2015)),
+    under its own neighbourhood stability condition (Meinshausen &
+    Bühlmann 2006, assumption 6). TODO-cite: Meinshausen & Bühlmann
+    2006, doi:10.1214/009053606000000281 With G=500 and d=10, d^{2}\log
+    G\approx620 before constants, and hubs raise d. On models derived
+    from gene expression the irrepresentability conditions never held
+    ([Heinävaara et al.
     2016](#ref-hein%C3%A4vaaraInconsistency%E2%84%931penalisedSparse2016)),
     and they involve the unknown \boldsymbol{\Sigma}\_j: “we can never
     verify them on real data” ([Chiquet 2015,
@@ -202,8 +232,9 @@ g'}\widehat{\operatorname{Var}}(R\_{j,gg'})} {\sum\_{g\neq
 g'}R\_{j,gg'}^{2}}, \tag{2}
 
 with \hat\lambda^{\ast} truncated to \[0,1\]. The closed form minimises
-the Frobenius risk (Ledoit–Wolf lemma; Ledoit & Wolf 2004). The estimate
-is positive definite for any C_j and G, invariant to the scale of each
+the Frobenius risk (Ledoit–Wolf lemma; Ledoit & Wolf 2004). TODO-cite:
+Ledoit & Wolf 2004, doi:10.1016/S0047-259X(03)00096-4 The estimate is
+positive definite for any C_j and G, invariant to the scale of each
 gene, and costs about two sample covariances. Its precision is dense;
 partial correlations and a local-FDR graph can be read from it if wanted
 (eqs. 11–15).
@@ -296,13 +327,14 @@ where \Psi is the mean assessment loss (here minus the log-score),
 \boldsymbol{H}\_{\Phi} the Hessian of the estimating function and
 \boldsymbol{U} (their \boldsymbol{K}) the mean cross-product of the
 per-cell assessment and estimating scores; the error is O_p(C_j^{-2})
-(Commenges et al. 2012, eqs. 6–7). For a maximum-likelihood fit assessed
-by its own log-likelihood it is the Takeuchi information criterion
-divided by 2C_j (p. 7). A smooth penalty enters \boldsymbol{H}\_{\Phi}
-and lowers the correction (p. 8). An \ell_1 penalty is not
-differentiable at zero, so for the graphical lasso and `PLNnetwork` the
-formula is applied on the active set, with the support held fixed; that
-restriction is our reading, not the paper’s.
+(Commenges et al. 2012, eqs. 6–7). TODO-cite: Commenges, Proust-Lima,
+Samieri & Liquet 2012, arXiv:1206.1753 For a maximum-likelihood fit
+assessed by its own log-likelihood it is the Takeuchi information
+criterion divided by 2C_j (p. 7). A smooth penalty enters
+\boldsymbol{H}\_{\Phi} and lowers the correction (p. 8). An \ell_1
+penalty is not differentiable at zero, so for the graphical lasso and
+`PLNnetwork` the formula is applied on the active set, with the support
+held fixed; that restriction is our reading, not the paper’s.
 
 **Diagnostics, not selectors.** EBIC ([Foygel and Drton
 2010](#ref-foygelExtendedBayesianInformation2010)) charges \log
@@ -349,9 +381,11 @@ estimates a directed self-interaction \theta\_{ii} for each gene and
 gives it no specific penalty beyond its common \ell_1 term towards a
 prior network; a positive auto-activation with a negative basal term is
 “the most parsimonious way to produce bistability for an isolated gene”
-(Maugé & Ventre 2026, p. 28, citing Ferrell 2002). Such a parameter is
-linked to a precision only through the stationary covariance of a
-linearised model. For
+(Maugé & Ventre 2026, p. 28, citing Ferrell 2002). TODO-cite: Maugé &
+Ventre 2026, doi:10.1371/journal.pcbi.1014838 TODO-cite: Ferrell 2002,
+doi:10.1016/S0955-0674(02)00314-9 (journal line on p. 1 disagrees with
+the DOI; verify on Crossref) Such a parameter is linked to a precision
+only through the stationary covariance of a linearised model. For
 \mathrm{d}\boldsymbol{x}=\boldsymbol{A}(\boldsymbol{x}-\boldsymbol{\mu})\\\mathrm{d}t+\mathrm{d}\boldsymbol{w}
 with noise covariance \boldsymbol{Q}, the stationary covariance solves
 the Lyapunov equation

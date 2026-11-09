@@ -19,6 +19,7 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="S1-identifiability_files/libs/quarto-html/popper.min.js"></script><script src="S1-identifiability_files/libs/quarto-html/tippy.umd.min.js"></script><link href="S1-identifiability_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="S1-identifiability_files/libs/quarto-html/light-border.css" rel="stylesheet">
+<link rel="stylesheet" href="decovart-html.css">
 <!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Appendix S1 — Regular-case MLE properties and identifiability">
 <meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg">
 </head>
@@ -107,7 +108,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Appendix S1 — Regular-case MLE properties and identifiability</h1>
       <p class="subtitle">Full script: <code>scripts/supp_S1_identifiability.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-11-02</p>
+      <p class="date">9 Nov 2026</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/S1-identifiability.qmd" class="external-link"><code>vignettes/S1-identifiability.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -323,6 +324,7 @@
 <span><span class="co">#&gt; ct2 0.388754 0.388754 0.388754</span></span></code></pre></div>
 </div>
 <p>A fuller comparison of normalisation (CPM, log2), tolerance, and dimension <span class="math inline">(G,J)</span> belongs in <a href="S3-scaling.html">Appendix S3</a>.</p>
+<div style="page-break-after: always;"></div>
 </section></section><section class="section level2"><h2 id="sec-identifiability-edges">Identifiability edge cases<a class="anchor" aria-label="anchor" href="#sec-identifiability-edges"></a>
 </h2>
 <p>Standard deconvolution theory assumes that the mean signature <span class="math inline">\boldsymbol{\mu}</span> has full column rank. That is <strong>sufficient</strong> for identifiability of <span class="math inline">\boldsymbol{p}</span> but <strong>not necessary</strong>: the convolution law also depends on <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_{j}p_{j}^{2}\boldsymbol{\Sigma}_{j}</span> (<a href="01-2-population-inference.html#prp-identifiability">proposition</a>). Identical means with distinct covariances remain identifiable; the negative control is identical means <em>and</em> proportional covariances.</p>
@@ -612,6 +614,34 @@ Newman, Aaron, Chih Liu, Michael Green, et al. 2015. <span>‘Robust Enumeration
 
 
 
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script src="mermaid-init.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script src="mermaid-init.js"></script><script>
+(function () {
+  var TOC_LEVELS = 4;
+  if (!window.Toc || !window.Toc.helpers) return;
+  var h = window.Toc.helpers;
+  h.getHeadings = function ($scope, topLevel) {
+    var sel = [];
+    for (var l = topLevel; l < topLevel + TOC_LEVELS && l <= 6; l++) sel.push("h" + l);
+    return this.findOrFilter($scope, sel.join(","));
+  };
+  h.populateNav = function ($topContext, topLevel, $headings) {
+    var helpers = this, stack = [];
+    $headings.each(function (i, el) {
+      var level = helpers.getNavLevel(el);
+      var $item = helpers.generateNavItem(el);
+      while (stack.length && stack[stack.length - 1].level >= level) stack.pop();
+      if (!stack.length) {
+        $topContext.append($item);
+      } else {
+        var $parent = stack[stack.length - 1].$item;
+        var $list = $parent.children("ul").last();
+        if (!$list.length) $list = helpers.createChildNavList($parent);
+        $list.append($item);
+      }
+      stack.push({ level: level, $item: $item });
+    });
+  };
+})();
+</script>
 </body>
 </html>

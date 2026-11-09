@@ -19,6 +19,7 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="R1-bivariate-toy_files/libs/quarto-html/popper.min.js"></script><script src="R1-bivariate-toy_files/libs/quarto-html/tippy.umd.min.js"></script><link href="R1-bivariate-toy_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="R1-bivariate-toy_files/libs/quarto-html/light-border.css" rel="stylesheet">
+<link rel="stylesheet" href="decovart-html.css">
 <script src="R1-bivariate-toy_files/libs/quarto-diagram/mermaid.min.js"></script><script src="R1-bivariate-toy_files/libs/quarto-diagram/mermaid-init.js"></script><link href="R1-bivariate-toy_files/libs/quarto-diagram/mermaid.css" rel="stylesheet">
 <!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="§2.2 Bivariate toy model (G = 2 genes, J = 2 cell types)">
 <meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg">
@@ -108,7 +109,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>§2.2 Bivariate toy model (G = 2 genes, J = 2 cell types)</h1>
       <p class="subtitle">Full script: <code>scripts/fig02_bivariate_toy.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-11-02</p>
+      <p class="date">9 Nov 2026</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/R1-bivariate-toy.qmd" class="external-link"><code>vignettes/R1-bivariate-toy.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -367,6 +368,7 @@ Figure 3: Factorial design (left) and correlation-only 2D densities (right) for
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span></span></code></pre></div>
 </div>
+<div style="page-break-after: always;"></div>
 </section></section><section class="section level2"><h2 id="sec-bivariate-inference">Inference<a class="anchor" aria-label="anchor" href="#sec-bivariate-inference"></a>
 </h2>
 <p>Five methods are evaluated on each scenario:</p>
@@ -444,6 +446,7 @@ Table 1: Methods of the bivariate benchmark.
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <p><code>config</code> on the in-memory benchmark still carries Shannon entropy of <span class="math inline">\boldsymbol{p}</span> and MixSim overlap for tests.</p>
+<div style="page-break-after: always;"></div>
 </section><section class="section level2"><h2 id="sec-bivariate-viz">Visualisations<a class="anchor" aria-label="anchor" href="#sec-bivariate-viz"></a>
 </h2>
 <p>Figures are drawn from <code>output/fig02/fig02_plot_data.rds</code>, a list keyed by figure file stem that holds the data handed to each plot function, so any figure can be redrawn without the benchmark:</p>
@@ -819,6 +822,34 @@ Zhu, Ciyou, Richard H. Byrd, Peihuang Lu, and Jorge Nocedal. 1997. <span>‘Algo
 
 
 
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script src="mermaid-init.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script src="mermaid-init.js"></script><script>
+(function () {
+  var TOC_LEVELS = 4;
+  if (!window.Toc || !window.Toc.helpers) return;
+  var h = window.Toc.helpers;
+  h.getHeadings = function ($scope, topLevel) {
+    var sel = [];
+    for (var l = topLevel; l < topLevel + TOC_LEVELS && l <= 6; l++) sel.push("h" + l);
+    return this.findOrFilter($scope, sel.join(","));
+  };
+  h.populateNav = function ($topContext, topLevel, $headings) {
+    var helpers = this, stack = [];
+    $headings.each(function (i, el) {
+      var level = helpers.getNavLevel(el);
+      var $item = helpers.generateNavItem(el);
+      while (stack.length && stack[stack.length - 1].level >= level) stack.pop();
+      if (!stack.length) {
+        $topContext.append($item);
+      } else {
+        var $parent = stack[stack.length - 1].$item;
+        var $list = $parent.children("ul").last();
+        if (!$list.length) $list = helpers.createChildNavList($parent);
+        $list.append($item);
+      }
+      stack.push({ level: level, $item: $item });
+    });
+  };
+})();
+</script>
 </body>
 </html>

@@ -19,6 +19,7 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="05-2-bayesian-wiener_files/libs/quarto-html/popper.min.js"></script><script src="05-2-bayesian-wiener_files/libs/quarto-html/tippy.umd.min.js"></script><link href="05-2-bayesian-wiener_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="05-2-bayesian-wiener_files/libs/quarto-html/light-border.css" rel="stylesheet">
+<link rel="stylesheet" href="decovart-html.css">
 <!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="5.2 A Bayesian DeCovarT: latent purified profiles, the Wiener filter and variational EM">
 <meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg">
 </head>
@@ -107,7 +108,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>5.2 A Bayesian DeCovarT: latent purified profiles, the Wiener filter and variational EM</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-11-02</p>
+      <p class="date">9 Nov 2026</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/05-2-bayesian-wiener.qmd" class="external-link"><code>vignettes/05-2-bayesian-wiener.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -122,7 +123,7 @@
 <div class="decovart-callout callout-note">
 <blockquote>
 <p><strong>Scope</strong></p>
-<p>Released DeCovarT integrates the purified profiles out and maximises the marginal likelihood of the bulk in the proportions (<a href="01-1-population-generative-optimisation.html#sec-unconstrained">population generative vignette</a>). This vignette keeps the profiles as latent variables. That gives three things the marginal likelihood hides: a closed-form estimate of each sample’s purified profiles once the proportions are known (the Wiener filter), an EM algorithm for the same maximum-likelihood estimate, and a Bayesian version with a prior on the proportions. The Bayesian methods already published for this task are reviewed in the <a href="05-1-review-distribution-aware.html#sec-bayesian">distribution-aware deconvolution review</a>. Nothing here is implemented in <code><a href="../reference/fit_decovart.html">fit_decovart()</a></code>.</p>
+<p>The purified-profile convolution integrates the purified profiles out and maximises the marginal likelihood of the bulk in the proportions (<a href="01-1-population-generative-optimisation.html#sec-unconstrained">population generative vignette</a>). This vignette keeps the profiles as latent variables. That gives three things the marginal likelihood hides: a closed-form estimate of each sample’s purified profiles once the proportions are known (the Wiener filter), an EM algorithm for the same maximum-likelihood estimate, and a Bayesian version with a prior on the proportions. The Bayesian methods already published for this task are reviewed in the <a href="05-1-review-distribution-aware.html#sec-bayesian">distribution-aware deconvolution review</a>. Nothing here is implemented in <code><a href="../reference/fit_decovart.html">fit_decovart()</a></code>.</p>
 </blockquote>
 </div>
 </div>
@@ -150,12 +151,13 @@
 <figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-bw-dag-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <img src="05-2-bayesian-wiener_files/mediabag/fig-bw-dag.svg">
 </div>
-<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-bw-dag-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca"><p>Figure 1: The latent-profile form of DeCovarT. A Dirichlet prior generates the proportions of sample <span class="math inline">i</span>; each cell type contributes one latent purified profile drawn from its reference Gaussian; the bulk is their proportion-weighted sum plus a diagonal measurement noise. Integrating the profiles out returns the released DeCovarT likelihood.</p>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-bw-dag-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca"><p>Figure 1: The latent-profile form of DeCovarT. A Dirichlet prior generates the proportions of sample <span class="math inline">i</span>; each cell type contributes one latent purified profile drawn from its reference Gaussian; the bulk is their proportion-weighted sum plus a diagonal measurement noise. Integrating the profiles out returns the purified-profile likelihood.</p>
 </figcaption></figure>
 </div>
+<div style="page-break-after: always;"></div>
 </section><section class="section level2"><h2 id="sec-map-blup">Profiles given the composition: MAP, BLUP and the Wiener filter<a class="anchor" aria-label="anchor" href="#sec-map-blup"></a>
 </h2>
-<p>Released DeCovarT estimates <span class="math inline">\boldsymbol{p}_{\cdot i}</span> after plugging <span class="math inline">\boldsymbol{x}_{\cdot j,i}</span> by <span class="math inline">\boldsymbol{\mu}_{\cdot j}</span>. The latent profiles themselves remain recoverable once <span class="math inline">\boldsymbol{p}_{\cdot i}</span> is treated as known. Write the convolution explicitly,</p>
+<p>The purified-profile convolution estimates <span class="math inline">\boldsymbol{p}_{\cdot i}</span> after plugging <span class="math inline">\boldsymbol{x}_{\cdot j,i}</span> by <span class="math inline">\boldsymbol{\mu}_{\cdot j}</span>. The latent profiles themselves remain recoverable once <span class="math inline">\boldsymbol{p}_{\cdot i}</span> is treated as known. Write the convolution explicitly,</p>
 <p><span id="eq-latent-convolution"><span class="math display">
 \boldsymbol{x}_{\cdot j,i}
 \sim
@@ -192,6 +194,7 @@ p_{ji}\,\boldsymbol{\Sigma}_j\,
 =\delta_{jk}\boldsymbol{\Sigma}_j-p_{ji}p_{ki}\,\boldsymbol{\Sigma}_j\boldsymbol{W}\boldsymbol{\Sigma}_k .
 \tag{5}</span></span></p>
 <p>The cross-type blocks (<span class="math inline">j\neq k</span>) are negative definite contributions: two types compete to explain the same residual, so overestimating one profile forces the other down. Any approximation that drops those blocks will be overconfident about each profile.</p>
+<div style="page-break-after: always;"></div>
 </section></section><section class="section level2"><h2 id="sec-bw-em">Expectation–maximisation for the DeCovarT estimate<a class="anchor" aria-label="anchor" href="#sec-bw-em"></a>
 </h2>
 <p>The latent form gives an EM algorithm for the maximum of the marginal likelihood <a href="#eq-gaussian-convolution" class="quarto-xref">Eq. 2</a>, with or without a prior on <span class="math inline">\boldsymbol{p}</span>.</p>
@@ -211,7 +214,9 @@ T_{jk}=\operatorname{tr}\bigl(\boldsymbol{D}^{-1}\boldsymbol{C}_{jk}\bigr),
 <ul>
 <li>EM converges to a stationary point, not to the global maximum: the non-concavity of the DeCovarT likelihood (<a href="01-2-population-inference.html#sec-uniqueness">MLE properties</a>) is unchanged by the algorithm.</li>
 <li>EM converges slowly when the latent profiles carry most of the uncertainty, that is when <span class="math inline">\boldsymbol{D}</span> is small relative to <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})</span>. As <span class="math inline">\boldsymbol{D}\to\boldsymbol{0}</span> the fraction of missing information tends to one and EM stalls. The analytic score and Hessian of the derivatives vignette are then the faster route.</li>
-</ul></section><section class="section level2"><h2 id="sec-bw-vb">Mean-field variational EM with sparse precisions<a class="anchor" aria-label="anchor" href="#sec-bw-vb"></a>
+</ul>
+<div style="page-break-after: always;"></div>
+</section><section class="section level2"><h2 id="sec-bw-vb">Mean-field variational EM with sparse precisions<a class="anchor" aria-label="anchor" href="#sec-bw-vb"></a>
 </h2>
 <p>The E-step above inverts a dense <span class="math inline">G\times G</span> matrix even when every <span class="math inline">\boldsymbol{\Lambda}_j</span> is sparse, because <span class="math inline">\boldsymbol{\Sigma}(\boldsymbol{p})=\sum_jp_j^{2}\boldsymbol{\Lambda}_j^{-1}</span> is dense. A mean-field approximation <span class="math inline">q(\boldsymbol{p}_{\cdot i},\{\boldsymbol{x}_{\cdot j,i}\})
 =q(\boldsymbol{p}_{\cdot i})\prod_jq(\boldsymbol{x}_{\cdot j,i})</span> avoids that inverse. Coordinate ascent on the evidence lower bound gives Gaussian factors <span class="math inline">q(\boldsymbol{x}_{\cdot j,i})=\mathcal{N}(\boldsymbol{m}_j,\boldsymbol{S}_j)</span> with</p>
@@ -229,6 +234,7 @@ T_{jk}=\operatorname{tr}\bigl(\boldsymbol{D}^{-1}\boldsymbol{C}_{jk}\bigr),
 +\sum_j(\alpha_j-1)\log p_j ,
 \tag{8}</span></span></p>
 <p>a quadratic program with a logarithmic barrier and no closed form. Compared with <a href="#eq-bw-mstep" class="quarto-xref">Eq. 6</a>, the cross-type terms <span class="math inline">T_{jk}</span>, <span class="math inline">j\neq k</span>, are gone, because the mean-field factors are independent. The variational fixed point is therefore <strong>not</strong> the maximum-likelihood estimate: it inherits the overconfidence of a factorisation that ignores the negative posterior correlation between types (<a href="#eq-bw-postcov" class="quarto-xref">Eq. 5</a>). It is a fast approximation for large sparse networks, to be checked against the exact EM on a subset of genes.</p>
+<div style="page-break-after: always;"></div>
 </section><section class="section level2"><h2 id="sec-bw-priors">Priors on the composition<a class="anchor" aria-label="anchor" href="#sec-bw-priors"></a>
 </h2>
 <p>The prior can be written on the simplex or on the ILR chart used by the solvers (<a href="01-1-population-generative-optimisation.html#sec-ilr">population generative vignette</a>), and the two give different maximum a posteriori estimates.</p>
@@ -239,6 +245,7 @@ T_{jk}=\operatorname{tr}\bigl(\boldsymbol{D}^{-1}\boldsymbol{C}_{jk}\bigr),
 <strong>Logistic-normal on <span class="math inline">\boldsymbol{\rho}</span>.</strong> A Gaussian prior <span class="math inline">\boldsymbol{\rho}\sim\mathcal{N}(\boldsymbol{m},\boldsymbol{V}_{\rho})</span> adds <span class="math inline">-\boldsymbol{V}_{\rho}^{-1}</span> to the Hessian of the released solver and leaves its Newton–Raphson machinery unchanged. It is the natural prior when compositions of related samples are expected to be correlated, which a Dirichlet cannot express.</li>
 </ul>
 <p>Either prior regularises the boundary: where the Wald interval of a proportion near zero degenerates, the posterior stays proper. A credible interval is not a frequentist confidence interval, and the prior has to be defended on biological grounds (<a href="01-2-population-inference.html#sec-intervals">population inference vignette</a>).</p>
+<div style="page-break-after: always;"></div>
 </section><section class="section level2"><h2 id="sec-bw-posterior">Full posterior<a class="anchor" aria-label="anchor" href="#sec-bw-posterior"></a>
 </h2>
 <p>Three routes go beyond the MAP, in increasing cost.</p>
@@ -251,6 +258,7 @@ T_{jk}=\operatorname{tr}\bigl(\boldsymbol{D}^{-1}\boldsymbol{C}_{jk}\bigr),
 <strong>Stochastic variational inference.</strong> A Gaussian <span class="math inline">q(\boldsymbol{\rho})</span> is reparametrisable, <span class="math inline">\boldsymbol{\rho}=\boldsymbol{m}+\boldsymbol{L}\boldsymbol{\varepsilon}</span>, so low-variance gradients of the ELBO are available. The score-function (REINFORCE) estimator is the fallback for factors that cannot be reparametrised, at a higher variance.</li>
 </ol>
 <p>The Bayesian methods that already use this latent structure, <code>bMIND</code>, <code>BLADE</code>, <code>BayesPrism</code> and others, differ in the likelihood scale, the prior on the covariance and the inference algorithm; they are compared in the <a href="05-1-review-distribution-aware.html#sec-bayesian">review</a>.</p>
+<div style="page-break-after: always;"></div>
 </section><section class="section level2"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
@@ -424,6 +432,34 @@ Wang, Jiebiao, Kathryn Roeder, and Bernie Devlin. 2020. <em>Bayesian Estimation 
 
 
 
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script src="mermaid-init.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script src="mermaid-init.js"></script><script>
+(function () {
+  var TOC_LEVELS = 4;
+  if (!window.Toc || !window.Toc.helpers) return;
+  var h = window.Toc.helpers;
+  h.getHeadings = function ($scope, topLevel) {
+    var sel = [];
+    for (var l = topLevel; l < topLevel + TOC_LEVELS && l <= 6; l++) sel.push("h" + l);
+    return this.findOrFilter($scope, sel.join(","));
+  };
+  h.populateNav = function ($topContext, topLevel, $headings) {
+    var helpers = this, stack = [];
+    $headings.each(function (i, el) {
+      var level = helpers.getNavLevel(el);
+      var $item = helpers.generateNavItem(el);
+      while (stack.length && stack[stack.length - 1].level >= level) stack.pop();
+      if (!stack.length) {
+        $topContext.append($item);
+      } else {
+        var $parent = stack[stack.length - 1].$item;
+        var $list = $parent.children("ul").last();
+        if (!$list.length) $list = helpers.createChildNavList($parent);
+        $list.append($item);
+      }
+      stack.push({ level: level, $item: $item });
+    });
+  };
+})();
+</script>
 </body>
 </html>

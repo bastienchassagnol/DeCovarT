@@ -19,6 +19,7 @@
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><script src="03-3-precision-networks_files/libs/quarto-html/popper.min.js"></script><script src="03-3-precision-networks_files/libs/quarto-html/tippy.umd.min.js"></script><link href="03-3-precision-networks_files/libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="03-3-precision-networks_files/libs/quarto-html/light-border.css" rel="stylesheet">
+<link rel="stylesheet" href="decovart-html.css">
 <script src="03-3-precision-networks_files/libs/quarto-diagram/mermaid.min.js"></script><script src="03-3-precision-networks_files/libs/quarto-diagram/mermaid-init.js"></script><link href="03-3-precision-networks_files/libs/quarto-diagram/mermaid.css" rel="stylesheet">
 <!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="3.3 Precision networks: alternatives to the covariance plug-in">
 <meta property="og:image" content="https://bastienchassagnol.github.io/DeCovarT/logo.svg">
@@ -108,7 +109,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>3.3 Precision networks: alternatives to the covariance plug-in</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">2026-11-02</p>
+      <p class="date">9 Nov 2026</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/03-3-precision-networks.qmd" class="external-link"><code>vignettes/03-3-precision-networks.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -122,12 +123,16 @@
     <div>
 <div class="decovart-callout callout-note">
 <blockquote>
-<p><strong>Notation (shared by all vignettes; aligned with the article)</strong></p>
-<p>Gene <span class="math inline">g=1,\ldots,G</span>; cell type <span class="math inline">j=1,\ldots,J</span> (a second type is <span class="math inline">\ell</span>); bulk sample <span class="math inline">i=1,\ldots,N</span>; reference donor (replicate) <span class="math inline">r=1,\ldots,R</span>; cell <span class="math inline">c</span>, with <span class="math inline">C_j</span> reference cells of type <span class="math inline">j</span>. The index <span class="math inline">i</span> is dropped inside a derivation and restored in the model statements.</p>
+<p><strong>Notation used in this vignette</strong></p>
+<p>A symbol absent from these groups is defined in this vignette, with one meaning. The full table is the <a href="notation.html">notation article</a>.</p>
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="fb3781f9-aa36-4ecc-a086-628344c3ba61">
+<div id="fb3781f9-aa36-4ecc-a086-628344c3ba61" class="cell" data-tags="[&quot;notation-indices&quot;,&quot;embed&quot;]">
+<div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
+<caption>Indices. The scalar <span class="math inline">R</span> is the number of reference donors.</caption>
 <colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
+<col style="width: 40%">
+<col style="width: 59%">
 </colgroup>
 <thead><tr class="header">
 <th>Symbol</th>
@@ -135,156 +140,273 @@
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td>
-<span class="math inline">y_{gi}</span>, <span class="math inline">\boldsymbol{y}_{\cdot i}</span>
-</td>
-<td>Bulk expression on a linear scale</td>
+<td colspan="2"><strong>Indices</strong></td>
 </tr>
 <tr class="even">
-<td>
-<span class="math inline">m_{ji}</span>, <span class="math inline">n_i=\sum_jm_{ji}</span>
-</td>
-<td>Cells of type <span class="math inline">j</span> in bulk sample <span class="math inline">i</span>, and their total</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\tilde{\boldsymbol{y}}_{\cdot i}=\boldsymbol{y}_{\cdot i}/n_i</span></td>
-<td>Bulk expression per cell</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\boldsymbol{p}_{\cdot i}\in\Delta^{J-1}</span></td>
-<td>Cell fractions, <span class="math inline">p_{ji}=m_{ji}/n_i</span>
-</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\boldsymbol{\rho}_{i}\in\mathbb{R}^{J-1}</span></td>
-<td>Isometric log-ratio (ILR) coordinates of <span class="math inline">\boldsymbol{p}_{\cdot i}</span>, <span class="math inline">\boldsymbol{p}_{\cdot i}=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho}_i)</span> with a Helmert basis <span class="math inline">\mathbf{V}</span>
-</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\boldsymbol{q}_{\cdot i}</span></td>
-<td>Transcript fractions, <span class="math inline">q_{ji}=p_{ji}S_j/\sum_\ell p_{\ell i}S_\ell</span>
-</td>
+<td><span class="math inline">g = 1, \ldots, G</span></td>
+<td>Gene.</td>
 </tr>
 <tr class="odd">
 <td>
-<span class="math inline">\boldsymbol{\mu}_{\cdot j}</span>, <span class="math inline">\boldsymbol{\Sigma}_j</span>
+<span class="math inline">j = 1, \ldots, J</span>; <span class="math inline">\ell</span>
 </td>
-<td>Mean and <span class="math inline">G\times G</span> gene–gene covariance of a type-<span class="math inline">j</span> population profile</td>
+<td>Cell type, and a second cell type.</td>
 </tr>
 <tr class="even">
-<td><span class="math inline">\boldsymbol{\Omega}_j=\boldsymbol{\Sigma}_j^{-1}</span></td>
-<td>Precision matrix of type <span class="math inline">j</span>
-</td>
+<td><span class="math inline">i = 1, \ldots, N</span></td>
+<td>Bulk sample. The index is dropped inside a derivation and restored in the model statements.</td>
 </tr>
 <tr class="odd">
-<td><span class="math inline">\boldsymbol{\Gamma}_g</span></td>
-<td>
-<span class="math inline">J\times J</span> covariance across cell types for gene <span class="math inline">g</span> (<code>bMIND</code>, <code>EPIC-unmix</code>, <code>Unico</code>)</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\boldsymbol{x}_{\cdot j,i}</span></td>
-<td>Purified profile of type <span class="math inline">j</span> in sample <span class="math inline">i</span>
-</td>
-</tr>
-<tr class="odd">
-<td>
-<span class="math inline">x_{gc}</span>, <span class="math inline">\boldsymbol{x}_{\cdot c}</span>, <span class="math inline">s_c</span>
-</td>
-<td>Raw UMI count of gene <span class="math inline">g</span> in reference cell <span class="math inline">c</span>, and the size factor of cell <span class="math inline">c</span>
-</td>
+<td><span class="math inline">r = 1, \ldots, R</span></td>
+<td>Reference donor (replicate).</td>
 </tr>
 <tr class="even">
 <td>
-<span class="math inline">\boldsymbol{\lambda}_{\cdot c}</span>, <span class="math inline">\boldsymbol{z}_{\cdot c}</span>
+<span class="math inline">c</span>; <span class="math inline">C_j</span>
 </td>
-<td>Size-free expression of cell <span class="math inline">c</span>; its latent log-expression in the Poisson log-normal (PLN) model</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\tilde{\boldsymbol{\mu}}_{\cdot j}=C_j^{-1}\sum_{c\in j}\boldsymbol{x}_{\cdot c}=S_j\boldsymbol{\theta}_{\cdot j}</span></td>
-<td>Per-cell mean of the raw UMI counts of the <span class="math inline">C_j</span> reference cells of type <span class="math inline">j</span>
-</td>
-</tr>
-<tr class="even">
-<td>
-<span class="math inline">\boldsymbol{\theta}_{\cdot j}</span>, <span class="math inline">S_j=\mathbf{1}^{\top}\tilde{\boldsymbol{\mu}}_{\cdot j}</span>
-</td>
-<td>Relative abundance (<span class="math inline">\mathbf{1}^{\top}\boldsymbol{\theta}_{\cdot j}=1</span>) and mean transcriptome size of a type-<span class="math inline">j</span> cell</td>
-</tr>
-<tr class="odd">
-<td>
-<span class="math inline">\boldsymbol{\Sigma}_{W,j}</span>, <span class="math inline">\boldsymbol{\Sigma}_{B,j}</span>
-</td>
-<td>Within-donor cell-to-cell covariance of type <span class="math inline">j</span> (one single-cell sample); between-donor covariance of type <span class="math inline">j</span> (needs <span class="math inline">R\ge2</span> donors)</td>
-</tr>
-<tr class="even">
-<td>
-<span class="math inline">\boldsymbol{S}_W(\boldsymbol{v})=\sum_jv_j\boldsymbol{\Sigma}_{W,j}</span>, <span class="math inline">\boldsymbol{S}_B(\boldsymbol{v})=\sum_jv_j^2\boldsymbol{\Sigma}_{B,j}</span>
-</td>
-<td>Linear and quadratic covariance mixtures with weights <span class="math inline">\boldsymbol{v}</span>
-</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\boldsymbol{V}_j</span></td>
-<td>Empirical covariance of type <span class="math inline">j</span>, computed from its reference profiles or cells</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\boldsymbol{R}_j</span></td>
-<td>Empirical correlation matrix of type <span class="math inline">j</span> (bold; the scalar <span class="math inline">R</span> is the number of donors)</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\boldsymbol{\Delta}_j=\operatorname{diag}(\boldsymbol{V}_j)</span></td>
-<td>Diagonal matrix of the empirical variances of type <span class="math inline">j</span>
-</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\lambda</span></td>
-<td>Penalty of a regularised covariance or precision estimator</td>
-</tr>
-<tr class="odd">
-<td>
-<span class="math inline">\psi_g</span>, <span class="math inline">\mathcal{D}_g</span>
-</td>
-<td>Negative binomial dispersion of gene <span class="math inline">g</span>; deviance of gene <span class="math inline">g</span> in a count model</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\delta_{gj}</span></td>
-<td>Detection rate of gene <span class="math inline">g</span> in type <span class="math inline">j</span> (fraction of cells with a non-zero count)</td>
-</tr>
-<tr class="odd">
-<td>
-<span class="math inline">\varpi_{\ell\mid j}</span>, <span class="math inline">\varpi_{j\ell}</span>, <span class="math inline">\bar\varpi</span>
-</td>
-<td>MixSim overlap: probability of misclassifying a draw of <span class="math inline">j</span> into <span class="math inline">\ell</span>, pairwise overlap <span class="math inline">\varpi_{j\ell}=\varpi_{\ell\mid j}+\varpi_{j\mid\ell}</span>, and its average over pairs (<code>BarOmega</code>)</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\boldsymbol{T}_{ji}=\sum_{c=1}^{m_{ji}}\boldsymbol{X}_{jic}</span></td>
-<td>Total expression contributed by type <span class="math inline">j</span> to sample <span class="math inline">i</span>
-</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">a_i</span></td>
-<td>Sample-wide scale between the reference and the bulk library</td>
-</tr>
-<tr class="even">
-<td>
-<span class="math inline">c_i=a_in_i</span>, <span class="math inline">\phi_i=a_i^2n_i</span>
-</td>
-<td>Mean scale and variance scale of the single-cell model</td>
-</tr>
-<tr class="odd">
-<td>
-<span class="math inline">b_g</span>, <span class="math inline">\tilde b_g=b_g^{\mathrm{bulk}}/b_g^{\mathrm{ref}}</span>
-</td>
-<td>Capture efficiency of gene <span class="math inline">g</span> in one protocol, and the gene-wise platform ratio; <span class="math inline">\tilde{\boldsymbol{B}}=\operatorname{diag}(\tilde{\boldsymbol{b}})</span>
-</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\boldsymbol{D}_i</span></td>
-<td>Diagonal, heteroscedastic bulk measurement noise</td>
+<td>Cell, and the number of reference cells of type <span class="math inline">j</span>.</td>
 </tr>
 </tbody>
 </table>
-<p>A tilde marks a quantity rescaled to a reference unit: per cell (<span class="math inline">\tilde{\boldsymbol{y}}</span>, <span class="math inline">\tilde{\boldsymbol{\mu}}</span>) or relative to the reference protocol (<span class="math inline">\tilde{\boldsymbol{b}}</span>). <span class="math inline">\boldsymbol{\Sigma}_j</span> couples <strong>genes</strong> within one cell type; <span class="math inline">\boldsymbol{\Gamma}_g</span> couples <strong>cell types</strong> within one gene. A symbol absent from this table is defined in the vignette that uses it, with one meaning there.</p>
+</div>
+</div>
+</div>
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="3ad0c0b3-fbbb-4d96-90c5-f648cb0a5c74">
+<div id="3ad0c0b3-fbbb-4d96-90c5-f648cb0a5c74" class="cell" data-tags="[&quot;notation-means&quot;,&quot;embed&quot;]">
+<div class="cell-output cell-output-display cell-output-markdown">
+<table class="table caption-top">
+<caption>Purified profiles and per-cell means of raw counts.</caption>
+<colgroup>
+<col style="width: 70%">
+<col style="width: 29%">
+</colgroup>
+<thead><tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td colspan="2"><strong>Reference means</strong></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\boldsymbol{x}_{\cdot j,i}</span></td>
+<td>Purified profile of type <span class="math inline">j</span> in sample <span class="math inline">i</span>.</td>
+</tr>
+<tr class="odd">
+<td>
+<span class="math inline">x_{gc}</span>, <span class="math inline">\boldsymbol{x}_{\cdot c}</span>
+</td>
+<td>Raw UMI count of gene <span class="math inline">g</span> in reference cell <span class="math inline">c</span>, and that cell’s count vector.</td>
+</tr>
+<tr class="even">
+<td>
+<span class="math inline">\tilde{\boldsymbol{\mu}}_{\cdot j} = C_j^{-1} \sum_{c \in j} \boldsymbol{x}_{\cdot c}</span><sup>a</sup>
+</td>
+<td>Per-cell mean of the raw UMI counts of the <span class="math inline">C_j</span> reference cells of type <span class="math inline">j</span>.</td>
+</tr>
+<tr class="odd">
+<td>
+<span class="math inline">S_j = \mathbf{1}^{\top} \tilde{\boldsymbol{\mu}}_{\cdot j}</span><sup>b</sup>
+</td>
+<td>Mean transcriptome size of a type-<span class="math inline">j</span> cell.</td>
+</tr>
+<tr class="even">
+<td colspan="2">
+<sup>a</sup> A tilde marks a quantity rescaled to a reference unit: per cell, or relative to the reference protocol. This mean is a mean of raw counts. It is not a library-size proportion.</td>
+</tr>
+</tbody>
+<tfoot><tr class="odd">
+<td colspan="2">
+<sup>b</sup><span class="math inline">S_j</span> summarises the raw-count mean. It is not a divisor applied to the counts. <span class="math inline">\boldsymbol{\theta}</span> is not used for this split.</td>
+</tr></tfoot>
+</table>
+</div>
+</div>
+</div>
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="b0f67e6a-fa2a-4974-8405-fa8f74830de6">
+<div id="b0f67e6a-fa2a-4974-8405-fa8f74830de6" class="cell" data-tags="[&quot;notation-biological&quot;,&quot;embed&quot;]">
+<div class="cell-output cell-output-display cell-output-markdown">
+<table class="table caption-top">
+<caption>Gene–gene covariance within a type, and variation across donors or types.</caption>
+<colgroup>
+<col style="width: 67%">
+<col style="width: 32%">
+</colgroup>
+<thead><tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td colspan="2"><strong>Within one reference</strong></td>
+</tr>
+<tr class="even">
+<td>
+<span class="math inline">\boldsymbol{\mu}_{\cdot j}</span>, <span class="math inline">\boldsymbol{\Sigma}_j</span><sup>a</sup>
+</td>
+<td>Mean and <span class="math inline">G \times G</span> gene–gene covariance of a type-<span class="math inline">j</span> profile.</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\boldsymbol{\Omega}_j = \boldsymbol{\Sigma}_j^{-1}</span></td>
+<td>Precision matrix of type <span class="math inline">j</span>.</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\boldsymbol{\Sigma}_{W,j}</span></td>
+<td>Within-donor cell-to-cell covariance of type <span class="math inline">j</span> (one single-cell sample).</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\boldsymbol{V}_j</span></td>
+<td>Empirical covariance of type <span class="math inline">j</span>, from its reference profiles or cells.</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\boldsymbol{R}_j</span></td>
+<td>Empirical correlation matrix of type <span class="math inline">j</span>. Bold: the scalar <span class="math inline">R</span> is the number of donors.</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\boldsymbol{\Delta}_j = \operatorname{diag}(\boldsymbol{V}_j)</span></td>
+<td>Diagonal matrix of the empirical variances of type <span class="math inline">j</span>.</td>
+</tr>
+<tr class="even">
+<td>
+<span class="math inline">\lambda</span><sup>b</sup>
+</td>
+<td>Penalty of a regularised covariance or precision estimator.</td>
+</tr>
+<tr class="odd">
+<td colspan="2"><strong>Across donors or types</strong></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\boldsymbol{\Sigma}_{B,j}</span></td>
+<td>Between-donor covariance of type <span class="math inline">j</span> (needs <span class="math inline">R \ge 2</span> donors).</td>
+</tr>
+<tr class="odd">
+<td>
+<span class="math inline">\boldsymbol{\Gamma}_g</span><sup>c</sup>
+</td>
+<td>
+<span class="math inline">J \times J</span> covariance across cell types for gene <span class="math inline">g</span>.</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\boldsymbol{S}_W(\boldsymbol{v}) = \sum_j v_j \boldsymbol{\Sigma}_{W,j}</span></td>
+<td>Linear covariance mixture with weights <span class="math inline">\boldsymbol{v}</span>.</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\boldsymbol{S}_B(\boldsymbol{v}) = \sum_j v_j^2 \boldsymbol{\Sigma}_{B,j}</span></td>
+<td>Quadratic covariance mixture with weights <span class="math inline">\boldsymbol{v}</span>.</td>
+</tr>
+<tr class="even">
+<td colspan="2">
+<sup>a</sup><span class="math inline">\boldsymbol{\Sigma}_j</span> couples genes within one cell type.</td>
+</tr>
+<tr class="odd">
+<td colspan="2">
+<sup>b</sup> A penalty. The size-free expression of a cell is <span class="math inline">\boldsymbol{\lambda}_{\cdot c}</span>, in the technical-scale table.</td>
+</tr>
+</tbody>
+<tfoot><tr class="odd">
+<td colspan="2">
+<sup>c</sup><span class="math inline">\boldsymbol{\Gamma}_g</span> couples cell types within one gene. The opposite orientation from <span class="math inline">\boldsymbol{\Sigma}_j</span>.</td>
+</tr></tfoot>
+</table>
+</div>
+</div>
+</div>
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="d5c8ac7e-4bf3-4e5e-aca9-8d1d34b9a042">
+<div id="d5c8ac7e-4bf3-4e5e-aca9-8d1d34b9a042" class="cell" data-tags="[&quot;notation-technical&quot;,&quot;embed&quot;]">
+<div class="cell-output cell-output-display cell-output-markdown">
+<table class="table caption-top">
+<caption>Size factors, capture efficiencies, and measurement noise.</caption>
+<colgroup>
+<col style="width: 45%">
+<col style="width: 54%">
+</colgroup>
+<thead><tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td colspan="2"><strong>Technical scales</strong></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">s_c</span></td>
+<td>Size factor of reference cell <span class="math inline">c</span>.</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\boldsymbol{\lambda}_{\cdot c}</span></td>
+<td>Size-free expression of cell <span class="math inline">c</span>.</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\boldsymbol{z}_{\cdot c}</span></td>
+<td>Latent log-expression of cell <span class="math inline">c</span> in the Poisson log-normal model.</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">a_i</span></td>
+<td>Sample-wide scale between the reference and the bulk library.</td>
+</tr>
+<tr class="even">
+<td>
+<span class="math inline">c_i = a_i n_i</span>, <span class="math inline">\phi_i = a_i^2 n_i</span>
+</td>
+<td>Mean scale and variance scale of the single-cell model.</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">b_g</span></td>
+<td>Capture efficiency of gene <span class="math inline">g</span> in one protocol.</td>
+</tr>
+<tr class="even">
+<td>
+<span class="math inline">\tilde{b}_g = b_g^{\mathrm{bulk}} / b_g^{\mathrm{ref}}</span><sup>a</sup>
+</td>
+<td>Gene-wise platform ratio. <span class="math inline">\tilde{\boldsymbol{B}} = \operatorname{diag}(\tilde{\boldsymbol{b}})</span>.</td>
+</tr>
+<tr class="odd">
+<td>
+<span class="math inline">\boldsymbol{D}_i</span><sup>b</sup>
+</td>
+<td>Diagonal, heteroscedastic bulk measurement noise.</td>
+</tr>
+<tr class="even">
+<td colspan="2">
+<sup>a</sup> A tilde: relative to the reference protocol, not per cell.</td>
+</tr>
+</tbody>
+<tfoot><tr class="odd">
+<td colspan="2">
+<sup>b</sup> Measurement noise. Not the deviance <span class="math inline">\mathcal{D}_g</span> of a count model.</td>
+</tr></tfoot>
+</table>
+</div>
+</div>
+</div>
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="d17f53f8-51bb-469c-8176-1c06641dcf1d">
+<div id="d17f53f8-51bb-469c-8176-1c06641dcf1d" class="cell" data-tags="[&quot;notation-overlap&quot;,&quot;embed&quot;]">
+<div class="cell-output cell-output-display cell-output-markdown">
+<table class="table caption-top">
+<caption>MixSim overlap between cell types.</caption>
+<colgroup>
+<col style="width: 36%">
+<col style="width: 63%">
+</colgroup>
+<thead><tr class="header">
+<th>Symbol</th>
+<th>Meaning</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td colspan="2"><strong>Overlap</strong></td>
+</tr>
+<tr class="even">
+<td>
+<span class="math inline">\varpi_{\ell \mid j}</span>, <span class="math inline">\varpi_{j\ell}</span>, <span class="math inline">\bar{\varpi}</span>
+</td>
+<td>Probability of misclassifying a draw of type <span class="math inline">j</span> into type <span class="math inline">\ell</span>; pairwise overlap <span class="math inline">\varpi_{j\ell} = \varpi_{\ell \mid j} + \varpi_{j \mid \ell}</span>; and its average over pairs.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
 </blockquote>
 </div>
 </div>
@@ -580,6 +702,7 @@ D_{\mathrm{KL}}(P_{j}\parallel P_{\ell})
 </section><section class="level3"><h4 id="sec-metrics-perturb">Perturbation and interventional datasets<a class="anchor" aria-label="anchor" href="#sec-metrics-perturb"></a>
 </h4>
 <p><strong>CORNETO</strong> <span class="citation" data-cites="rodriguez-mierUnifyingMultisampleNetwork2025">(<a href="#ref-rodriguez-mierUnifyingMultisampleNetwork2025" role="doc-biblioref"><strong>rodriguez-mierUnifyingMultisampleNetwork2025?</strong></a>)</span> reformulates knowledge-driven network inference as a joint constrained optimisation problem (LP / MILP) over prior knowledge networks. It is <strong>not</strong> a GGM. As a perspective scorer, it can take our data-driven support and ask whether a sparse subnetwork of a PKN explains the omics under flow / Steiner / CARNIVAL constraints. That tests <strong>mechanistic plausibility</strong>, not Gaussian fit.</p>
+<div style="page-break-after: always;"></div>
 </section></section></section><section class="section level2"><h2 id="sec-grn-diagonal">Why near-diagonal precisions appear<a class="anchor" aria-label="anchor" href="#sec-grn-diagonal"></a>
 </h2>
 <p>On Suppinger, an earlier pipeline (<code>huge</code>, EBIC) returned mostly diagonal <span class="math inline">\widehat{\boldsymbol{\Omega}}_j</span>. Five causes compete with “no dependence”, and the first three are checkable.</p>
@@ -587,7 +710,7 @@ D_{\mathrm{KL}}(P_{j}\parallel P_{\ell})
 <li>
 <strong>(i) Pipeline fallbacks.</strong> A gene constant within a type made the earlier script return a diagonal covariance for the whole type; failed solves were replaced by a diagonal that EBIC could select; and EBIC mixed a correlation-scale fit with a covariance-scale likelihood. These are fixed in the reproducibility code, and the presence gate of the feature-selection chapter (<a href="03-1-feature-selection.html#sec-fs-presence">presence</a>) prevents the first upstream.</li>
 <li>
-<strong>(ii) A transformation that ignores the count law.</strong> Rank scores give all zeros of a sparse gene one tied value, and standardising by the marginal variance treats a Poisson-dominated gene and an overdispersed gene alike. Both flatten correlations before any penalty acts (Wu et al. 2020 warn against a naive nonparanormal map on counts). <!-- TODO-cite: Wu et al. 2020, joint Gaussian copula graphical models (JGCGM); key wuJointLearningMultiple2020 is in the book bib only -->
+<strong>(ii) A transformation that ignores the count law.</strong> Rank scores give all zeros of a sparse gene one tied value, and standardising by the marginal variance treats a Poisson-dominated gene and an overdispersed gene alike. Both flatten correlations before any penalty acts (Wu et al. 2020 warn against a naive nonparanormal map on counts). <span class="light-content" style="color: #7a1f1f;border-radius: 0.2rem; padding: 0 0.2rem 0 0.2rem;background-color: #f4c7c3;">TODO-cite: Wu et al. 2020, joint Gaussian copula graphical models (JGCGM); key wuJointLearningMultiple2020 is in the book bib only</span>
 </li>
 <li>
 <strong>(iii) A panel built against within-type covariance.</strong> Genes chosen for a large between- to within-type ratio have small within-type variance, where sampling noise dominates. Such a panel removes the covariance DeCovarT is meant to model (<a href="03-1-feature-selection.html#sec-fs-selection-effect">selection effect</a>). If the discriminative genes are close to conditionally independent within each type, the covariance adds little to the mean signature, which is itself a result.</li>
@@ -633,6 +756,7 @@ D_{\mathrm{KL}}(P_{j}\parallel P_{\ell})
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <p>The Poisson term is a property of the measurement, not of the cells. Modelling it (<code>PLNnetwork</code>, <a href="#sec-cov-pln" class="quarto-xref">Sec. 1.3</a>) is the principled correction; a smaller penalty is not.</p>
+<div style="page-break-after: always;"></div>
 </section></section><section class="section level2"><h2 id="sec-cov-perspectives">Perspectives<a class="anchor" aria-label="anchor" href="#sec-cov-perspectives"></a>
 </h2>
 <div id="nte-separation">
@@ -659,13 +783,13 @@ D_{\mathrm{KL}}(P_{j}\parallel P_{\ell})
 </h3>
 <ul>
 <li>
-<strong>Copulas with GAMLSS margins.</strong> <code>scDesign3</code> fits each gene by a generalised additive model for location, scale and shape (GAMLSS), for example a negative binomial whose mean and dispersion depend on the type with the library size as offset, and joins the genes by a copula <span class="citation" data-cites="songScDesign3GeneratesRealistic2024">(<a href="#ref-songScDesign3GeneratesRealistic2024" role="doc-biblioref">Song et al. 2024</a>)</span>. A GAMLSS relaxes the exponential family and models every distribution parameter, but assumes independent observations (Stasinopoulos &amp; Rigby 2007, p. 2), so dependence needs the copula. <!-- TODO-cite: Stasinopoulos & Rigby 2007, J. Stat. Softw. 23(7); DOI not printed in the PDF, take it from JSS/Zotero --> By Sklar’s theorem <span class="math inline">F(\boldsymbol{x})=C\{F_1(x_1),\ldots,F_G(x_G)\}</span>, with <span class="math inline">C</span> unique when the margins are continuous; for counts it is unique only on the ranges of the margins, so <code>scDesign2</code>/<code>scDesign3</code> randomise the quantile, <span class="math inline">u_{gc}=(1-v_{gc})F_{gc}(x_{gc}-1)+v_{gc}F_{gc}(x_{gc})</span> with <span class="math inline">v_{gc}\sim\mathcal{U}(0,1)</span> (Sun et al. 2021). <!-- TODO-cite: Sun et al. 2021, scDesign2, doi:10.1186/s13059-021-02367-2 --> The likelihood splits into a marginal and a copula part, so the two can be selected separately. The copula correlation is not <span class="math inline">\boldsymbol{\Sigma}_{W,j}</span>: linear-scale moments of a copula model need Monte Carlo or a moment map like <a href="#eq-pln-linear" class="quarto-xref">Eq. 5</a>. The empirical Gaussian copula is singular when <span class="math inline">C_j&lt;G</span>; a sparse precision or a vine copula is then needed. Appendix S5 uses this model as a calibration simulator (<a href="S5-misspecification.html#sec-s5-simulator">S5, simulator</a>).</li>
+<strong>Copulas with GAMLSS margins.</strong> <code>scDesign3</code> fits each gene by a generalised additive model for location, scale and shape (GAMLSS), for example a negative binomial whose mean and dispersion depend on the type with the library size as offset, and joins the genes by a copula <span class="citation" data-cites="songScDesign3GeneratesRealistic2024">(<a href="#ref-songScDesign3GeneratesRealistic2024" role="doc-biblioref">Song et al. 2024</a>)</span>. A GAMLSS relaxes the exponential family and models every distribution parameter, but assumes independent observations (Stasinopoulos &amp; Rigby 2007, p. 2), so dependence needs the copula. <span class="light-content" style="color: #7a1f1f;border-radius: 0.2rem; padding: 0 0.2rem 0 0.2rem;background-color: #f4c7c3;">TODO-cite: Stasinopoulos &amp; Rigby 2007, J. Stat. Softw. 23(7); DOI not printed in the PDF, take it from JSS/Zotero</span> By Sklar’s theorem <span class="math inline">F(\boldsymbol{x})=C\{F_1(x_1),\ldots,F_G(x_G)\}</span>, with <span class="math inline">C</span> unique when the margins are continuous; for counts it is unique only on the ranges of the margins, so <code>scDesign2</code>/<code>scDesign3</code> randomise the quantile, <span class="math inline">u_{gc}=(1-v_{gc})F_{gc}(x_{gc}-1)+v_{gc}F_{gc}(x_{gc})</span> with <span class="math inline">v_{gc}\sim\mathcal{U}(0,1)</span> (Sun et al. 2021). <span class="light-content" style="color: #7a1f1f;border-radius: 0.2rem; padding: 0 0.2rem 0 0.2rem;background-color: #f4c7c3;">TODO-cite: Sun et al. 2021, scDesign2, doi:10.1186/s13059-021-02367-2</span> The likelihood splits into a marginal and a copula part, so the two can be selected separately. The copula correlation is not <span class="math inline">\boldsymbol{\Sigma}_{W,j}</span>: linear-scale moments of a copula model need Monte Carlo or a moment map like <a href="#eq-pln-linear" class="quarto-xref">Eq. 5</a>. The empirical Gaussian copula is singular when <span class="math inline">C_j&lt;G</span>; a sparse precision or a vine copula is then needed. Appendix S5 uses this model as a calibration simulator (<a href="S5-misspecification.html#sec-s5-simulator">S5, simulator</a>).</li>
 <li>
-<strong>Factor and sparse-plus-low-rank models.</strong> A few unmeasured programmes make the marginal precision dense. Writing <span class="math inline">\boldsymbol{\Omega}_{\mathrm{marg}}=\boldsymbol{\Omega}_{\mathrm{sparse}}-\boldsymbol{L}</span>, <span class="math inline">\boldsymbol{L}\succeq0</span> of low rank (Chandrasekaran et al. 2012), <!-- TODO-cite: Chandrasekaran, Parrilo & Willsky 2012, doi:10.1214/11-AOS949 --> or a factor-plus-diagonal covariance, gives a dense plug-in with few parameters. Depth variation is one such rank-one factor (<a href="#eq-pln-linear-avg" class="quarto-xref">Eq. 6</a>).</li>
+<strong>Factor and sparse-plus-low-rank models.</strong> A few unmeasured programmes make the marginal precision dense. Writing <span class="math inline">\boldsymbol{\Omega}_{\mathrm{marg}}=\boldsymbol{\Omega}_{\mathrm{sparse}}-\boldsymbol{L}</span>, <span class="math inline">\boldsymbol{L}\succeq0</span> of low rank (Chandrasekaran et al. 2012), <span class="light-content" style="color: #7a1f1f;border-radius: 0.2rem; padding: 0 0.2rem 0 0.2rem;background-color: #f4c7c3;">TODO-cite: Chandrasekaran, Parrilo &amp; Willsky 2012, doi:10.1214/11-AOS949</span> or a factor-plus-diagonal covariance, gives a dense plug-in with few parameters. Depth variation is one such rank-one factor (<a href="#eq-pln-linear-avg" class="quarto-xref">Eq. 6</a>).</li>
 <li>
 <strong>Other estimators of the same Gaussian graph.</strong> Neighbourhood selection regresses each gene on the others, <span class="math inline">\theta^{g}_{g'}=-\omega_{gg'}/\omega_{gg}</span>, and combines neighbourhoods by an AND or an OR rule; it is parallel, needs <span class="math inline">d\log G</span> cells, but gives a support, not a precision. SPACE makes the regressions joint and recovers hubs better <span class="citation" data-cites="pengPartialCorrelationEstimation2009">(<a href="#ref-pengPartialCorrelationEstimation2009" role="doc-biblioref">Peng et al. 2009</a>)</span>. CLIME needs no irrepresentability condition <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 42</a>)</span>. The D-trace loss <span class="math inline">\tfrac12\langle\boldsymbol{\Omega}^{2},\boldsymbol{V}_j\rangle-\operatorname{tr}\boldsymbol{\Omega}</span> has a weaker irrepresentability condition than the graphical lasso in Zhang and Zou’s AR examples <span class="citation" data-cites="zhangSparsePrecisionMatrix2014">(<a href="#ref-zhangSparsePrecisionMatrix2014" role="doc-biblioref">Zhang and Zou 2014</a>)</span>. A graphical horseshoe replaces the penalty path by global–local shrinkage <span class="citation" data-cites="liGraphicalHorseshoeEstimator2019">(<a href="#ref-liGraphicalHorseshoeEstimator2019" role="doc-biblioref">Li et al. 2019</a>)</span>. These change the bias and the assumptions, not the detection limit of <a href="#sec-grn-screening" class="quarto-xref">Sec. 2.1</a>.</li>
 <li>
-<strong>Matrix-variate models.</strong> <code>GmGM</code> models dependence between genes and between cells through a Kronecker sum of two precisions; the sum cannot separate regulation inside a cell from dependence across cells (Andrew et al. 2026). <!-- TODO-cite: Andrew et al. 2026, GmGM; key andrewMakingMultiaxisGaussian2026 is in the book bib only -->
+<strong>Matrix-variate models.</strong> <code>GmGM</code> models dependence between genes and between cells through a Kronecker sum of two precisions; the sum cannot separate regulation inside a cell from dependence across cells (Andrew et al. 2026). <span class="light-content" style="color: #7a1f1f;border-radius: 0.2rem; padding: 0 0.2rem 0 0.2rem;background-color: #f4c7c3;">TODO-cite: Andrew et al. 2026, GmGM; key andrewMakingMultiaxisGaussian2026 is in the book bib only</span>
 </li>
 <li>
 <strong>Algorithm unrolling.</strong> Iterative sparse-precision solvers become trainable layers (<a href="https://doi.org/10.1109/MSP.2020.3016905" class="external-link">Monga et al. 2021</a>; <a href="https://arxiv.org/abs/1906.00271" class="external-link">GLAD</a>); PLN-Tree adds a tree of modules to the PLN (<a href="https://hal.science/hal-04622671v1" class="external-link">Chaussard et al. 2024</a>).</li>
@@ -709,6 +833,7 @@ x_g=\mu_g+\sum_{g'\in\mathrm{Pa}(g)}\Lambda_{gg'}x_{g'}+\varepsilon_g,
 <strong>The difference itself.</strong> A D-trace loss on <span class="math inline">\boldsymbol{\Omega}_1-\boldsymbol{\Omega}_2</span> estimates the rewiring without either network, and only the difference must be sparse <span class="citation" data-cites="yuanDifferentialNetworkAnalysis2017 plaksienkoMethodsDifferentialNetwork2025">(<a href="#ref-yuanDifferentialNetworkAnalysis2017" role="doc-biblioref">Yuan et al. 2017</a>; <a href="#ref-plaksienkoMethodsDifferentialNetwork2025" role="doc-biblioref">Plaksienko et al. 2025</a>)</span>.</li>
 </ul>
 <p><strong>Sign-coherent penalties are preferred.</strong> The joint graphical lasso weights each type’s log-likelihood by its cell count <span class="math inline">C_j</span>, and the intertwined lasso pools covariances with the same weights. With one dominant population, a shared or fused penalty then lets the abundant type erase edges that only the rare types carry, and pulls the rare-type weights towards the dominant network. The argument concerns losses weighted by <span class="math inline">C_j</span>; the single-precision D-trace loss of <span class="citation" data-cites="zhangSparsePrecisionMatrix2014">Zhang and Zou (<a href="#ref-zhangSparsePrecisionMatrix2014" role="doc-biblioref">2014</a>)</span> has no such weighting, and its differential extension targets the difference rather than a shared network. DeCovarT also separates types partly through their covariance differences, which fusion shrinks. A shared support with sign coherence keeps the magnitudes free. Whatever the penalty, check by the nested score of <a href="03-2-covariance-network-estimation.html#sec-cov-cv">held-out score</a>, per type, that the rare types do not lose held-out likelihood. Separate fits, as in the current pipeline, need one penalty per type: a common <span class="math inline">\lambda</span> is sensible only for samples “of similar sizes” <span class="citation" data-cites="chiquetContributionsSparseMethods2015">(<a href="#ref-chiquetContributionsSparseMethods2015" role="doc-biblioref">Chiquet 2015, 49</a>)</span>.</p>
+<div style="page-break-after: always;"></div>
 </section></section><section class="section level2"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <div id="refs" class="references csl-bib-body hanging-indent" role="list">
@@ -967,6 +1092,34 @@ Zhao, Tuo, Han Liu, Kathryn Roeder, John Lafferty, and Larry Wasserman. 2012. <s
 
 
 
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script src="mermaid-init.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script src="mermaid-init.js"></script><script>
+(function () {
+  var TOC_LEVELS = 4;
+  if (!window.Toc || !window.Toc.helpers) return;
+  var h = window.Toc.helpers;
+  h.getHeadings = function ($scope, topLevel) {
+    var sel = [];
+    for (var l = topLevel; l < topLevel + TOC_LEVELS && l <= 6; l++) sel.push("h" + l);
+    return this.findOrFilter($scope, sel.join(","));
+  };
+  h.populateNav = function ($topContext, topLevel, $headings) {
+    var helpers = this, stack = [];
+    $headings.each(function (i, el) {
+      var level = helpers.getNavLevel(el);
+      var $item = helpers.generateNavItem(el);
+      while (stack.length && stack[stack.length - 1].level >= level) stack.pop();
+      if (!stack.length) {
+        $topContext.append($item);
+      } else {
+        var $parent = stack[stack.length - 1].$item;
+        var $list = $parent.children("ul").last();
+        if (!$list.length) $list = helpers.createChildNavList($parent);
+        $list.append($item);
+      }
+      stack.push({ level: level, $item: $item });
+    });
+  };
+})();
+</script>
 </body>
 </html>

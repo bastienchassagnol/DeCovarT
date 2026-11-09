@@ -1,90 +1,183 @@
 # 3.1 Gene selection for the reference
 
-> **Notation (shared by all vignettes; aligned with the article)**
+> **Notation used in this vignette**
 >
-> Gene g=1,\ldots,G; cell type j=1,\ldots,J (a second type is \ell);
-> bulk sample i=1,\ldots,N; reference donor (replicate) r=1,\ldots,R;
-> cell c, with C_j reference cells of type j. The index i is dropped
-> inside a derivation and restored in the model statements.
+> A symbol absent from these groups is defined in this vignette, with
+> one meaning. The full table is the [notation
+> article](https://bastienchassagnol.github.io/DeCovarT/articles/notation.md).
 >
 > | Symbol | Meaning |
 > |----|----|
-> | y\_{gi}, \boldsymbol{y}\_{\cdot i} | Bulk expression on a linear scale |
-> | m\_{ji}, n_i=\sum_jm\_{ji} | Cells of type j in bulk sample i, and their total |
-> | \tilde{\boldsymbol{y}}\_{\cdot i}=\boldsymbol{y}\_{\cdot i}/n_i | Bulk expression per cell |
-> | \boldsymbol{p}\_{\cdot i}\in\Delta^{J-1} | Cell fractions, p\_{ji}=m\_{ji}/n_i |
-> | \boldsymbol{\rho}\_{i}\in\mathbb{R}^{J-1} | Isometric log-ratio (ILR) coordinates of \boldsymbol{p}\_{\cdot i}, \boldsymbol{p}\_{\cdot i}=\operatorname{softmax}(\mathbf{V}\boldsymbol{\rho}\_i) with a Helmert basis \mathbf{V} |
-> | \boldsymbol{q}\_{\cdot i} | Transcript fractions, q\_{ji}=p\_{ji}S_j/\sum\_\ell p\_{\ell i}S\_\ell |
-> | \boldsymbol{\mu}\_{\cdot j}, \boldsymbol{\Sigma}\_j | Mean and G\times G gene–gene covariance of a type-j population profile |
-> | \boldsymbol{\Omega}\_j=\boldsymbol{\Sigma}\_j^{-1} | Precision matrix of type j |
-> | \boldsymbol{\Gamma}\_g | J\times J covariance across cell types for gene g (`bMIND`, `EPIC-unmix`, `Unico`) |
-> | \boldsymbol{x}\_{\cdot j,i} | Purified profile of type j in sample i |
-> | x\_{gc}, \boldsymbol{x}\_{\cdot c}, s_c | Raw UMI count of gene g in reference cell c, and the size factor of cell c |
-> | \boldsymbol{\lambda}\_{\cdot c}, \boldsymbol{z}\_{\cdot c} | Size-free expression of cell c; its latent log-expression in the Poisson log-normal (PLN) model |
-> | \tilde{\boldsymbol{\mu}}\_{\cdot j}=C_j^{-1}\sum\_{c\in j}\boldsymbol{x}\_{\cdot c}=S_j\boldsymbol{\theta}\_{\cdot j} | Per-cell mean of the raw UMI counts of the C_j reference cells of type j |
-> | \boldsymbol{\theta}\_{\cdot j}, S_j=\mathbf{1}^{\top}\tilde{\boldsymbol{\mu}}\_{\cdot j} | Relative abundance (\mathbf{1}^{\top}\boldsymbol{\theta}\_{\cdot j}=1) and mean transcriptome size of a type-j cell |
-> | \boldsymbol{\Sigma}\_{W,j}, \boldsymbol{\Sigma}\_{B,j} | Within-donor cell-to-cell covariance of type j (one single-cell sample); between-donor covariance of type j (needs R\ge2 donors) |
-> | \boldsymbol{S}\_W(\boldsymbol{v})=\sum_jv_j\boldsymbol{\Sigma}\_{W,j}, \boldsymbol{S}\_B(\boldsymbol{v})=\sum_jv_j^2\boldsymbol{\Sigma}\_{B,j} | Linear and quadratic covariance mixtures with weights \boldsymbol{v} |
-> | \boldsymbol{V}\_j | Empirical covariance of type j, computed from its reference profiles or cells |
-> | \boldsymbol{R}\_j | Empirical correlation matrix of type j (bold; the scalar R is the number of donors) |
-> | \boldsymbol{\Delta}\_j=\operatorname{diag}(\boldsymbol{V}\_j) | Diagonal matrix of the empirical variances of type j |
-> | \lambda | Penalty of a regularised covariance or precision estimator |
-> | \psi_g, \mathcal{D}\_g | Negative binomial dispersion of gene g; deviance of gene g in a count model |
-> | \delta\_{gj} | Detection rate of gene g in type j (fraction of cells with a non-zero count) |
-> | \varpi\_{\ell\mid j}, \varpi\_{j\ell}, \bar\varpi | MixSim overlap: probability of misclassifying a draw of j into \ell, pairwise overlap \varpi\_{j\ell}=\varpi\_{\ell\mid j}+\varpi\_{j\mid\ell}, and its average over pairs (`BarOmega`) |
-> | \boldsymbol{T}\_{ji}=\sum\_{c=1}^{m\_{ji}}\boldsymbol{X}\_{jic} | Total expression contributed by type j to sample i |
-> | a_i | Sample-wide scale between the reference and the bulk library |
-> | c_i=a_in_i, \phi_i=a_i^2n_i | Mean scale and variance scale of the single-cell model |
-> | b_g, \tilde b_g=b_g^{\mathrm{bulk}}/b_g^{\mathrm{ref}} | Capture efficiency of gene g in one protocol, and the gene-wise platform ratio; \tilde{\boldsymbol{B}}=\operatorname{diag}(\tilde{\boldsymbol{b}}) |
-> | \boldsymbol{D}\_i | Diagonal, heteroscedastic bulk measurement noise |
+> | **Indices** |  |
+> | g = 1, \ldots, G | Gene. |
+> | j = 1, \ldots, J; \ell | Cell type, and a second cell type. |
+> | i = 1, \ldots, N | Bulk sample. The index is dropped inside a derivation and restored in the model statements. |
+> | r = 1, \ldots, R | Reference donor (replicate). |
+> | c; C_j | Cell, and the number of reference cells of type j. |
 >
-> A tilde marks a quantity rescaled to a reference unit: per cell
-> (\tilde{\boldsymbol{y}}, \tilde{\boldsymbol{\mu}}) or relative to the
-> reference protocol (\tilde{\boldsymbol{b}}). \boldsymbol{\Sigma}\_j
-> couples **genes** within one cell type; \boldsymbol{\Gamma}\_g couples
-> **cell types** within one gene. A symbol absent from this table is
-> defined in the vignette that uses it, with one meaning there.
+> Indices. The scalar R is the number of reference donors. {.table
+> .caption-top}
+>
+> | Symbol | Meaning |
+> |----|----|
+> | **Cell fractions** |  |
+> | m\_{ji}, n_i = \sum_j m\_{ji} | Cells of type j in bulk sample i, and their total. |
+> | \boldsymbol{p}\_{\cdot i} \in \Delta^{J-1} | Cell fractions, p\_{ji} = m\_{ji} / n_i. |
+> | \boldsymbol{\rho}\_i \in \mathbb{R}^{J-1}^(a) | Isometric log-ratio coordinates of \boldsymbol{p}\_{\cdot i}, \boldsymbol{p}\_{\cdot i} = \operatorname{softmax}(\mathbf{V}\boldsymbol{\rho}\_i) with a Helmert basis \mathbf{V}. |
+> | **Transcript content** |  |
+> | \boldsymbol{q}\_{\cdot i}^(b) | Transcript fractions, q\_{ji} = p\_{ji} S_j / \sum\_\ell p\_{\ell i} S\_\ell. |
+> | ^(a) An isometric log-ratio coordinate of the cell fractions. Not a correlation. |  |
+> | ^(b) Content weight used when a method normalises by transcriptome size. Not the cell-fraction estimand, which remains \boldsymbol{p}. Dividing counts by library size is not an observation model: genes that share a divisor become correlated. |  |
+>
+> Cell fractions and transcript fractions. {.table .caption-top}
+>
+> | Symbol | Meaning |
+> |----|----|
+> | **Reference means** |  |
+> | \boldsymbol{x}\_{\cdot j,i} | Purified profile of type j in sample i. |
+> | x\_{gc}, \boldsymbol{x}\_{\cdot c} | Raw UMI count of gene g in reference cell c, and that cell’s count vector. |
+> | \tilde{\boldsymbol{\mu}}\_{\cdot j} = C_j^{-1} \sum\_{c \in j} \boldsymbol{x}\_{\cdot c}^(a) | Per-cell mean of the raw UMI counts of the C_j reference cells of type j. |
+> | S_j = \mathbf{1}^{\top} \tilde{\boldsymbol{\mu}}\_{\cdot j}^(b) | Mean transcriptome size of a type-j cell. |
+> | ^(a) A tilde marks a quantity rescaled to a reference unit: per cell, or relative to the reference protocol. This mean is a mean of raw counts. It is not a library-size proportion. |  |
+> | ^(b)S_j summarises the raw-count mean. It is not a divisor applied to the counts. \boldsymbol{\theta} is not used for this split. |  |
+>
+> Purified profiles and per-cell means of raw counts. {.table
+> .caption-top}
+>
+> | Symbol | Meaning |
+> |----|----|
+> | **Within one reference** |  |
+> | \boldsymbol{\mu}\_{\cdot j}, \boldsymbol{\Sigma}\_j^(a) | Mean and G \times G gene–gene covariance of a type-j profile. |
+> | \boldsymbol{\Omega}\_j = \boldsymbol{\Sigma}\_j^{-1} | Precision matrix of type j. |
+> | \boldsymbol{\Sigma}\_{W,j} | Within-donor cell-to-cell covariance of type j (one single-cell sample). |
+> | \boldsymbol{V}\_j | Empirical covariance of type j, from its reference profiles or cells. |
+> | \boldsymbol{R}\_j | Empirical correlation matrix of type j. Bold: the scalar R is the number of donors. |
+> | \boldsymbol{\Delta}\_j = \operatorname{diag}(\boldsymbol{V}\_j) | Diagonal matrix of the empirical variances of type j. |
+> | \lambda^(b) | Penalty of a regularised covariance or precision estimator. |
+> | **Across donors or types** |  |
+> | \boldsymbol{\Sigma}\_{B,j} | Between-donor covariance of type j (needs R \ge 2 donors). |
+> | \boldsymbol{\Gamma}\_g^(c) | J \times J covariance across cell types for gene g. |
+> | \boldsymbol{S}\_W(\boldsymbol{v}) = \sum_j v_j \boldsymbol{\Sigma}\_{W,j} | Linear covariance mixture with weights \boldsymbol{v}. |
+> | \boldsymbol{S}\_B(\boldsymbol{v}) = \sum_j v_j^2 \boldsymbol{\Sigma}\_{B,j} | Quadratic covariance mixture with weights \boldsymbol{v}. |
+> | ^(a)\boldsymbol{\Sigma}\_j couples genes within one cell type. |  |
+> | ^(b) A penalty. The size-free expression of a cell is \boldsymbol{\lambda}\_{\cdot c}, in the technical-scale table. |  |
+> | ^(c)\boldsymbol{\Gamma}\_g couples cell types within one gene. The opposite orientation from \boldsymbol{\Sigma}\_j. |  |
+>
+> Gene–gene covariance within a type, and variation across donors or
+> types. {.table .caption-top}
+>
+> | Symbol | Meaning |
+> |----|----|
+> | **Technical scales** |  |
+> | s_c | Size factor of reference cell c. |
+> | \boldsymbol{\lambda}\_{\cdot c} | Size-free expression of cell c. |
+> | \boldsymbol{z}\_{\cdot c} | Latent log-expression of cell c in the Poisson log-normal model. |
+> | a_i | Sample-wide scale between the reference and the bulk library. |
+> | c_i = a_i n_i, \phi_i = a_i^2 n_i | Mean scale and variance scale of the single-cell model. |
+> | b_g | Capture efficiency of gene g in one protocol. |
+> | \tilde{b}\_g = b_g^{\mathrm{bulk}} / b_g^{\mathrm{ref}}^(a) | Gene-wise platform ratio. \tilde{\boldsymbol{B}} = \operatorname{diag}(\tilde{\boldsymbol{b}}). |
+> | \boldsymbol{D}\_i^(b) | Diagonal, heteroscedastic bulk measurement noise. |
+> | ^(a) A tilde: relative to the reference protocol, not per cell. |  |
+> | ^(b) Measurement noise. Not the deviance \mathcal{D}\_g of a count model. |  |
+>
+> Size factors, capture efficiencies, and measurement noise. {.table
+> .caption-top}
+>
+> | Symbol | Meaning |
+> |----|----|
+> | **Observation** |  |
+> | y\_{gi}, \boldsymbol{y}\_{\cdot i} | Bulk expression on a linear scale. |
+> | \tilde{\boldsymbol{y}}\_{\cdot i} = \boldsymbol{y}\_{\cdot i} / n_i^(a) | Bulk expression per cell. |
+> | \boldsymbol{T}\_{ji} = \sum\_{c=1}^{m\_{ji}} \boldsymbol{X}\_{jic} | Total expression contributed by type j to sample i. |
+> | **Single-cell signatures** |  |
+> | \sum_j m_j \boldsymbol{\Sigma}\_j^(b) | Covariance when counts are fixed and cells of a type are independent. |
+> | **Purified profiles** |  |
+> | \sum_j p_j^2 \boldsymbol{\Sigma}\_j^(c) | Covariance when each type contributes one population profile, as in a FACS or cytometry reference. |
+> | ^(a) Per cell, by the number of cells. Not a division of each gene by the library total: that division induces a spurious correlation between genes. |  |
+> | ^(b) Single-cell signature paradigm: the reference is the cells. |  |
+> | ^(c) Purified-profile paradigm: one profile per type. The likelihood in the package fits this covariance. It is not a preferred reference over the single-cell signatures. |  |
+>
+> The bulk profile and the two reference paradigms. Neither is a
+> gold-standard reference. {.table .caption-top}
+>
+> | Symbol | Meaning |
+> |----|----|
+> | **Gene screens** |  |
+> | \psi_g | Negative binomial dispersion of gene g. |
+> | \mathcal{D}\_g | Deviance of gene g in a count model. |
+> | \delta\_{gj} | Detection rate of gene g in type j: the fraction of cells with a non-zero count. |
+>
+> Dispersion, deviance, and detection rate. {.table .caption-top}
+>
+> | Symbol | Meaning |
+> |----|----|
+> | **Overlap** |  |
+> | \varpi\_{\ell \mid j}, \varpi\_{j\ell}, \bar{\varpi} | Probability of misclassifying a draw of type j into type \ell; pairwise overlap \varpi\_{j\ell} = \varpi\_{\ell \mid j} + \varpi\_{j \mid \ell}; and its average over pairs. |
+>
+> MixSim overlap between cell types. {.table .caption-top}
 
 > **Scope**
 >
 > This chapter states which genes should enter a DeCovarT reference
 > built from single-cell data, and why. It holds the theory: what the
-> genes are for, the selection strategies of the literature, three tiers
-> of selection, and the statistical tests behind them ([Gaspard-Boulinc
-> et al. 2025](#ref-gaspard-boulincCelltypeDeconvolutionMethods2025);
-> [Avila Cobos et al.
+> genes are for, the selection strategies of the literature, four tiers
+> of selection, and the statistical tests and tail bounds behind them
+> ([Gaspard-Boulinc et al.
+> 2025](#ref-gaspard-boulincCelltypeDeconvolutionMethods2025); [Avila
+> Cobos et al.
 > 2018](#ref-avilacobosComputationalDeconvolutionTranscriptomics2018)).
 > The reference considered here is a single-cell experiment on one
-> specimen, so only cross-cell consistency can be assessed
-> ([Section 3](#sec-fs-consistency)); cross-sample consistency and
-> covariance-driven selection are perspectives
-> ([Section 6](#sec-perspectives)). The application to a real reference
-> (filters as applied, settings, rank tables, code) is in the
-> feature-selection chapter of the reproducibility book. Strategies
+> specimen. Cross-cell consistency (tier ii,
+> [Section 3](#sec-fs-consistency)) uses that reference alone;
+> cross-platform consistency (tier iii,
+> [Section 4](#sec-fs-cross-platform)) also needs a bulk sample that
+> matches it. Cross-sample consistency, references from other
+> technologies, dependent cells and covariance-driven selection are
+> perspectives ([Section 7](#sec-perspectives)). The application to a
+> real reference (filters as applied, settings, rank tables, code) is in
+> the feature-selection chapter of the reproducibility book. Strategies
 > compared on simulated references are in [Appendix
 > S6](https://bastienchassagnol.github.io/DeCovarT/articles/S6-feature-screening-scenario.md).
 > Marker-based abundance scores (enrichment modules) are out of scope
 > ([Aran et al. 2017](#ref-aranXCellDigitallyPortraying2017)).
 
 **Local symbols.** C=\sum_jC_j is the number of reference cells in one
-time slot; j(c) is the label of cell c.
-\delta\_{gj}=C_j^{-1}\sum\_{c:j(c)=j}\mathbb{1}(x\_{gc}\>0) is the
-detection rate of gene g in type j, and v\_{gj} is the g-th diagonal
-entry of \boldsymbol{V}\_j. In a negative-binomial (NB) model \psi_g is
-the dispersion, so that
-\operatorname{Var}(x\_{gc})=m\_{gc}+m\_{gc}^2/\psi_g with
-m\_{gc}=\operatorname{E}(x\_{gc}); \mathcal{D}\_g(M) is the deviance of
-model M for gene g; r\_{gc} is a Pearson residual. A gene panel is
-written \mathcal{G}\subseteq\\1,\ldots,G\\.
+time slot, and j(c) is the label of cell c. v\_{gj} is the g-th diagonal
+entry of \boldsymbol{V}\_j. A gene panel is written
+\mathcal{G}\subseteq\\1,\ldots,G\\. In the review, \mu\_{gj} is the mean
+of gene g in type j on the scale of the method at hand, u\_{gj} its type
+share and k a rank ([Equation 1](#eq-gini)). In the count models,
+m\_{gc}=\operatorname{E}(x\_{gc}) is the mean of gene g in cell c,
+V(m)=m+m^{2}/\psi_g the negative-binomial (NB) variance function,
+\mathcal{D}\_g(M) the deviance of model M, \Lambda_g the
+likelihood-ratio statistic, R^{2}\_{D,g} the deviance explained, r\_{gc}
+the raw Pearson residual, r^{\mathrm{SP}}\_{gc} the standardised one,
+\hat\phi_g the Pearson dispersion and h\_{gc} the leverage of cell c
+([Section 3.1](#sec-sctransform), [Section 4.1](#sec-fs-leverage)). For
+the bulk filter, \tilde\mu\_{gj} is the expected count of gene g in one
+cell of type j, \hat{\tilde\mu}\_{gj} its average over the C_j reference
+cells, \sigma^{2}\_{gj}=\tilde\mu\_{gj}+\tilde\mu\_{gj}^{2}/\psi_g the
+per-cell NB variance, \delta^{\mathrm{R}}\_g the distance of the bulk to
+the range of the reference means, D\_{gi} the plug-in discrepancy, h_g
+the leverage of gene g and \tau_g^{2} its residual variance, S_M the
+standardised sum over a gene module M, K_D(u) the cumulant generating
+function of D with argument u, and \chi_G the number of classes of a
+colouring of a gene graph ([Section 4.2](#sec-fs-range-tail)).
+\eta_1,\dots,\eta_4 are the parameters of the sub-exponential
+properties, and \gamma,\gamma' absolute constants
+([Note 1](#nte-fs-subexp), [Note 3](#nte-fs-bernstein)). B is the number
+of permutations ([Section 3.2.1](#sec-fs-calibration)).
 
 ![](03-1-feature-selection_files/mediabag/fig-fs-tiers.svg)
 
-Figure 1: “Three tiers of gene selection for a DeCovarT reference from
-one specimen. Tiers (i) and (ii) remove genes; tier (iii) keeps the
-remaining genes and lets the fitted covariance down-weight them. Dashed
-boxes are perspectives: cross-sample consistency needs several specimens
-or a matched bulk, and covariance-driven selection needs the estimated
-within-type covariances.”
+Figure 1: “Four tiers of gene selection for a DeCovarT reference from
+one specimen. Tiers (i) to (iii) remove or flag genes; tier (iv) keeps
+the remaining genes and lets the fitted covariance down-weight them.
+Tier (iii) needs a bulk sample matched to the reference. Dashed boxes
+are perspectives: cross-sample consistency needs several specimens,
+cross-technology references need a second reference, dependent cells
+need a tissue neighbourhood graph, and covariance-driven selection needs
+the estimated within-type covariances.”
 
 > **Warning 1: What the genes are for**
 >
@@ -107,26 +200,47 @@ within-type covariances.”
 > - **Labels are given.** A test of the type effect is valid only if the
 >   labels were fixed before the statistic is computed. Labels obtained
 >   by clustering the same matrix make the test anti-conservative
->   (post-clustering inference, González-Delgado et al. 2025) .
+>   (post-clustering inference, González-Delgado et al. 2025) TODO-cite:
+>   González-Delgado et al. 2025, post-clustering inference; key
+>   gonzalezDelgadoPostclusteringInference2025 exists in the book bib
+>   only.
 >
-> Selection proceeds in three tiers ([Figure 1](#fig-fs-tiers)): (i)
-> quality control and a presence gate; (ii) cross-cell consistency, an
-> omnibus test used as a gate and an effect-size rank; (iii)
-> down-weighting by the model instead of removal. Tiers (i) and (ii) are
-> filters; tier (iii) is part of the likelihood. Feature selection as a
-> pre-modelling filter has the usual caveats ([Guyon and Elisseeff
+> Selection proceeds in four tiers ([Figure 1](#fig-fs-tiers)):
+>
+> 1.  quality control, prior-knowledge markers and a presence gate
+>     ([Section 2](#sec-fs-qc));
+> 2.  cross-cell consistency: tests of the type effect used as a gate,
+>     then an effect-size rank ([Section 3](#sec-fs-consistency));
+> 3.  cross-platform consistency between the reference and a matched
+>     bulk: influence diagnostics and a bulk filter
+>     ([Section 4](#sec-fs-cross-platform));
+> 4.  down-weighting by the model instead of removal
+>     ([Section 5](#sec-fs-weighting)).
+>
+> Tiers (i) to (iii) are filters; tier (iv) is part of the likelihood.
+> Feature selection as a pre-modelling filter has the usual caveats
+> ([Guyon and Elisseeff
 > 2003](#ref-guyonIntroductionVariableFeature2003)): it is a proposal,
 > to be checked by out-of-sample deconvolution error
 > ([S6](https://bastienchassagnol.github.io/DeCovarT/articles/S6-feature-screening-scenario.html#sec-cv-selection)).
 
-## 1 Gene-selection strategies in the literature
+## 1 Review of gene-selection strategies used by deconvolution algorithms
 
-Deconvolution methods choose genes in three ways: univariate
-one-versus-others screens, searches over the whole signature, or no
-selection at all, with gene weights doing the work. This section reviews
-them, states where they depart from the count model used here, and
-compares second-generation methods in [Table 1](#tbl-fs-review). Each
-method’s likelihood is reviewed in
+Deconvolution methods choose genes in three ways:
+
+- univariate one-versus-others screens
+  ([Section 1.1](#sec-fs-univariate)): differential-expression and
+  fold-change ranks ([Section 1.1.1](#sec-fs-de-rank)), the ANOVA F
+  statistic ([Section 1.1.2](#sec-fs-anova-rank)) and specificity scores
+  ([Section 1.1.3](#sec-gini-entropy));
+- searches over the whole signature ([Section 1.2](#sec-fs-all-vs-all));
+- no selection, with gene weights doing the work
+  ([Section 5](#sec-fs-weighting)).
+
+This section reviews them, states where they depart from the count model
+used here ([Section 1.3](#sec-fs-critiques)), and compares
+second-generation methods in [Table 1](#tbl-fs-review). Each method’s
+likelihood is reviewed in
 [5.1](https://bastienchassagnol.github.io/DeCovarT/articles/05-1-review-distribution-aware.html#sec-methods).
 
 ### 1.1 Univariate screens, one versus others
@@ -137,52 +251,102 @@ remaining types, then concatenate the per-type shortlists ([Abbas et al.
 2015](#ref-newmanRobustEnumerationCell2015); [Finotello et al.
 2019](#ref-finotello_etal19)).
 
-- **Differential expression and fold-change ranks.** `limma`–voom,
-  `edgeR` and `DESeq2` are the usual tools for one-versus-rest contrasts
-  ([Ritchie et al. 2015](#ref-ritchieLimmaPowersDifferential2015a);
-  [Robinson et al. 2010](#ref-robinsonEdgeRBioconductorPackage2010);
-  [Love et al. 2014](#ref-loveModeratedEstimationFold2014a)). CIBERSORT
-  keeps genes with adjusted p\le0.3, orders them by fold change and
-  prunes the panel by its condition number ([Newman et al.
-  2015](#ref-newmanRobustEnumerationCell2015)); Abbas et al. keep genes
-  whose expression in the target type exceeds that of the second- and
-  third-ranked types, then choose the panel with the smallest condition
-  number ([Abbas et al.
-  2009](#ref-abbasDeconvolutionBloodMicroarray2009)). On cells of one
-  specimen these tests treat cells as replicates
-  ([Warning 1](#wrn-fs-estimand)); their pseudo-bulk versions need
-  donors ([Section 6.1](#sec-fs-cross-sample)).
-- **ANOVA F test.** Wang et al. rank genes by the F statistic of a type
-  factor against an intercept-only model ([Wang et al.
-  2010](#ref-wangSilicoEstimatesTissue2010)). Its count-model version,
-  with its calibration, is the omnibus test of tier (ii)
-  ([Section 3.2](#sec-fs-omnibus)).
+#### 1.1.1 Differential-expression and fold-change ranks
 
-#### 1.1.1 Specificity scores
+`limma`–voom, `edgeR` and `DESeq2` are the usual tools for
+one-versus-rest contrasts ([Ritchie et al.
+2015](#ref-ritchieLimmaPowersDifferential2015a); [Robinson et al.
+2010](#ref-robinsonEdgeRBioconductorPackage2010); [Love et al.
+2014](#ref-loveModeratedEstimationFold2014a)). CIBERSORT keeps genes
+with adjusted p\le0.3, orders them by fold change and prunes the panel
+by its condition number ([Newman et al.
+2015](#ref-newmanRobustEnumerationCell2015)). Abbas et al. keep genes
+whose expression in the target type exceeds that of the second- and
+third-ranked types, then choose the panel with the smallest condition
+number ([Abbas et al.
+2009](#ref-abbasDeconvolutionBloodMicroarray2009)). On cells of one
+specimen these tests treat cells as replicates
+([Warning 1](#wrn-fs-estimand)); their pseudo-bulk versions need donors
+([Section 7.1](#sec-fs-cross-sample)).
 
-Long one-versus-rest lists are often compacted with the entropy or the
-Gini coefficient of the type shares
+#### 1.1.2 ANOVA F statistic
+
+Wang et al. rank genes by the F statistic of a type factor against an
+intercept-only model ([Wang et al.
+2010](#ref-wangSilicoEstimatesTissue2010)). This is one omnibus test per
+gene instead of one test per type. Its count-model versions, and their
+calibration, are the tests of tier (ii)
+([Section 3.2](#sec-fs-omnibus)).
+
+#### 1.1.3 Specificity scores
+
+Long one-versus-rest lists are often compacted with the Shannon entropy
+or the Gini coefficient of the type shares
 u\_{gj}=\mu\_{gj}/\sum\_{\ell}\mu\_{g\ell}, as in `BioQC` ([Zhang et al.
 2017](#ref-zhang_etal17)):
 
 H_g=-\sum\_{j=1}^{J}u\_{gj}\log u\_{gj}, \qquad \mathrm{Gini}\_g =
 \frac{1}{2J}\sum\_{j=1}^{J}\sum\_{\ell=1}^{J}\lvert
-u\_{gj}-u\_{g\ell}\rvert = \frac1J\sum\_{k=1}^{J}(2k-J-1)\\u\_{g(k)},
-\tag{1}
+u\_{gj}-u\_{g\ell}\rvert =
+\frac1J\sum\_{j=1}^{J}(2R\_{gj}-J-1)\\u\_{gj}, \tag{1}
 
-with 0\log0=0 and u\_{g(1)}\le\cdots\le u\_{g(J)}. H_g/\log J and
+with 0\log0=0; R\_{gj}=R(u\_{gj}) is the rank of u\_{gj} among the J
+shares of gene g, and u\_{g(1)}\le\cdots\le u\_{g(J)} are its order
+statistics, so that u\_{g(R\_{gj})}=u\_{gj} (rank-based notation of
+Jaeckel and of Hettmansperger and McKean). H_g/\log J and
 J\\\mathrm{Gini}\_g/(J-1) lie in \[0,1\]; low entropy and high Gini mean
-that few types carry the mass. Both scores reward exclusive expression,
-which the presence gate ([Section 2.1](#sec-fs-presence)) excludes, and
-neither sees redundancy between genes.
+that few types carry the mass. [Figure 2](#fig-gini-derivation) derives
+the Gini coefficient in five steps, from the mean absolute difference of
+the type means to the share form of [Equation 1](#eq-gini). The pairwise
+and sorted forms agree because, the share of rank R\_{gj} is larger than
+R\_{gj}-1 shares and smaller than J-R\_{gj} shares, so it enters the
+double sum with the net weight 2R\_{gj}-J-1. Both scores reward
+exclusive expression, which the presence gate
+([Section 2.2](#sec-fs-presence)) excludes, and neither sees redundancy
+between genes.
 
-![](figures/gini_coefficient_derivation.png)
+![Five rows joined by arrows on the left. Each row has a box with a step
+title, a formula and one sentence, and a chart for two genes on the
+right: blue for a gene with similar means in all eight types, orange for
+a gene with most of its counts in type 8. Row A shows two eight-by-eight
+heat maps of absolute differences between type means; the orange map is
+dark only in the row and column of type 8. Mean differences are 2.625
+and 19.25. Row B shows bar charts of means divided by the gene mean:
+blue bars stay near 1, one orange bar reaches about 6.9. Gini values are
+0.105 and 0.770. Row C plots sorted means against rank with the weights
+minus 7 to 7 on the top axis; the orange curve stays near 0 then jumps
+to 86 at rank 8. Row D plots each Gini value with an arrow to its
+corrected value: 0.105 to 0.120, 0.770 to 0.880, and 0.875 to 1 for a
+gene expressed in one type only, against a dashed line at 0.875. Row E
+shows bar charts of type shares with a dashed line at one eighth and
+repeats the values.](figures/fig_03_1_gini.svg)
 
-Figure 2: Derivation of the Gini coefficient: pairwise absolute
-differences, scale-free normalisation by the mean, sorted-data formula,
-finite-sample correction to \[0,1\].
+Figure 2: Gini coefficient of one gene g across J=8 cell types, from
+pairwise differences of the type means to the share form of
+[Equation 1](#eq-gini). Left, boxes A to E: one formula per step; right,
+the same step for two genes with integer type means, a low-Gini gene
+(12,15,9,14,11,13,10,16) (blue) and a high-Gini gene (1,2,1,3,1,2,4,86)
+(orange), both with mean \bar\mu_g=12.5 and every \mu\_{gj}\ge1. (A)
+Heat maps of \lvert\mu\_{gj}-\mu\_{g\ell}\rvert (shade on a square-root
+scale) and their mean, written \Delta_g in this figure only, in counts.
+(B) Type means relative to the gene mean, with the line at 1;
+\mathrm{Gini}\_g=\Delta_g/(2\bar\mu_g). (C) Order statistics
+\mu\_{g(1)}\le\cdots\le\mu\_{g(J)} against the rank R\_{gj}, with the
+weights 2R\_{gj}-J-1 on the top axis (dashed line: the sign change at
+rank (J+1)/2); the weighted sum divided by J^2\bar\mu_g=800 gives the
+same value. (D) Raw (open) and corrected (filled) coefficient, with the
+maximum (J-1)/J=0.875 (dashed) reached by a gene expressed in one type
+only (grey). (E) Type shares u\_{gj} with the line 1/J;
+[Equation 1](#eq-gini) gives the same values. Code:
+`scripts/figures/fig_03_1_gini.R`.
 
-Concatenation does not control that redundancy. Two specific markers of
+For the two genes of [Figure 2](#fig-gini-derivation) the Gini
+coefficients are 21/200=0.105 and 77/100=0.770, and the corrected values
+J\\\mathrm{Gini}\_g/(J-1) are 3/25 and 22/25. A gene expressed in one
+type only has u\_{g(J)}=1, so [Equation 1](#eq-gini) gives (J-1)/J, the
+maximum.
+
+Concatenation does not control redundancy. Two specific markers of
 different types can still be nearly collinear rows of \boldsymbol{\mu}
 when the types share a programme (a lineage, an activation axis), so the
 union of per-type lists inflates \|\mathcal{G}\| while
@@ -212,7 +376,7 @@ criterion on the whole signature is then needed.
 
 Both criteria see the means only. Criteria that also use the within-type
 covariance need \widehat{\boldsymbol{\Sigma}}\_{W,j}, so they come after
-the omnibus gate ([Section 6.2](#sec-fs-multivariate)).
+tier (ii) ([Section 7.4](#sec-fs-multivariate)).
 
 ### 1.3 Critiques of current marker rules
 
@@ -222,12 +386,15 @@ count model of tier (ii) in five ways.
 - **Hurdle models on droplet counts.** DWLS defines markers with the
   `MAST` hurdle model ([Tsoucas et al. 2019,
   7](#ref-tsoucasAccurateEstimationCelltype2019)). Droplet UMI counts
-  show no zero inflation beyond what the NB predicts (Svensson 2020) ,
-  and current data do not support zero-inflated *measurement* models
-  ([Sarkar and Stephens 2021,
+  show no zero inflation beyond what the NB predicts (Svensson 2020)
+  TODO-cite: Svensson 2020, Droplet scRNA-seq is not zero-inflated, Nat.
+  Biotechnol., doi:10.1038/s41587-019-0379-5, and current data do not
+  support zero-inflated *measurement* models ([Sarkar and Stephens 2021,
   5](#ref-sarkarSeparatingMeasurementExpression2021)). The hurdle splits
   one count into a detection and a magnitude test (Finak et al. 2015)
-  where one NB test of [Equation 6](#eq-fs-nb-main) suffices.
+  TODO-cite: Finak et al. 2015, MAST, Genome Biol.,
+  doi:10.1186/s13059-015-0844-5 where one NB test of
+  [Equation 6](#eq-fs-nb-main) suffices.
 - **Gaussian t-tests on counts.** ReDeconv uses a two-sample t-test
   between cells ([Lu et al. 2025,
   14](#ref-luTranscriptomeSizeMatters2025)); deMixSC uses a paired
@@ -238,43 +405,45 @@ count model of tier (ii) in five ways.
   replicates of a population contrast ([Warning 1](#wrn-fs-estimand)).
   Pseudo-bulk `DESeq2`, `edgeR` or `limma`–voom avoid this only with
   biological replicates at the level of the contrast
-  ([Section 6.1](#sec-fs-cross-sample)).
+  ([Section 7.1](#sec-fs-cross-sample)).
 - **No multiplicity control.** ReDeconv keeps genes with p\<0.05 in each
   comparison against every other type, with no FDR correction ([Lu et
   al. 2025, 14](#ref-luTranscriptomeSizeMatters2025)).
 - **Graph-based screens before the graph is estimated.**
   Differential-network screens (`INDEED`, D-trace) and Markov-boundary
   growth of marker seeds need fitted graphs; here they are post hoc
-  ([Section 6.2.7](#sec-markov-seeds)).
+  ([Section 7.4.6](#sec-markov-seeds)).
 
 ### 1.4 Comparison of second-generation methods
 
 [Table 1](#tbl-fs-review) summarises, method by method, the facts found
-in the papers, in the order of the tiers. Page numbers refer to the PDF
-pages of the local extractions (“supp.” marks a supplement). A dash
-means that the item was not found in the extracted text; it does not
-mean that the method has no such step. The same table, with the same
-facts, is Appendix C of the CardamomOT comparison note.
+in the papers, with the columns in the order of the tiers. Page numbers
+refer to the PDF pages of the local extractions (“supp.” marks a
+supplement). A dash means that the item was not found in the extracted
+text; it does not mean that the method has no such step. The same facts
+are in Appendix C of the CardamomOT comparison note.
 
-| Method | Cell QC (tier i) | Gene filter (tier i) | Marker rule (tier ii) | Weighting (tier iii) | Cross-platform (perspective) |
+| Method | Cell QC (i) | Gene filter (i) | Marker rule (ii) | Cross-platform (iii) | Weighting (iv) |
 |----|----|----|----|----|----|
-| RNA-Sieve ([Erdmann-Pham et al. 2021](#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021)) | optional: library size or pairwise distance ≥ 3 MAD from the type median (supp. p. 3) | non-zero in ≥ 20 % of the cells of ≥ 1 type (supp. p. 3) | none | Gaussian composite likelihood from the CLT (Eq. 10, p. 10) | range bound and MAD outliers on four statistics (Eqs 12–13, p. 11) |
-| DECALS ([Cai et al. 2024](#ref-caiStatisticalInferenceCelltype2024)) | — | CIBERSORTx S-mode candidate genes (p. 13) | ∩ markers of Mathys et al. ([2019](#ref-mathysSinglecellTranscriptomicAnalysis2019)) (Fisher’s exact test, FDR): 159 genes (p. 13; supp. pp. 18–19) | constrained OLS; GLS biased in practice (pp. 6, 9) | S-mode batch correction (p. 13) |
-| MEAD ([Xie et al. 2026](#ref-xieStatisticalInferenceCell2026)) | — | — | none; removing genes gains nothing unless noise differs (p. 17) | WLS from the reference variance (pp. 17–18); sandwich (p. 13) | gene-wise ratios with mean 1 (pp. 5, 8) |
-| ReDeconv ([Lu et al. 2025](#ref-luTranscriptomeSizeMatters2025)) | — | — | t-test p\<0.05 against every other type, no FDR; fold change ≥ 2; smallest SD/mean, about 100 per type (p. 14) | Gaussian, composition-dependent variance (Eq. 5, p. 14) | length normalisation of the bulk only (p. 2) |
-| MuSiC ([Wang et al. 2019](#ref-wangBulkTissueCell2019)) | — | all shared genes (p. 7) | none; small within-cluster variance in the tree-guided stage (pp. 3, 8) | W-NNLS, weights from cross-subject variance (Eq. 10, p. 7) | optional gene- and subject-specific intercept (p. 7) |
-| deMixSC ([Guo et al. 2023](#ref-guoDeMixSCDeconvolutionFramework2023)) | \< 500 UMI, \< 200 genes, \> 50 % mitochondrial (p. 11) | detected in \< 5 % of cells removed (p. 11) | none | W-NNLS, iterated weights (p. 12) | paired t-test bulk vs pseudo-bulk, BH; 5,000 genes down-weighted by a=1000 (p. 12) |
-| BayesPrism ([Chu et al. 2022](#ref-chuCellTypeGeneExpression2022)) | types with \< 20 cells excluded in one benchmark (supp. p. 15) | ribosomal, mitochondrial, X and Y genes (supp. pp. 14, 19) | optional scran markers, t-tests, up-regulated only (supp. pp. 14–15) | Bayesian multinomial (supp. pp. 3–6) | bulk-specific profiles; log-normal fold-change prior (supp. pp. 5–6) |
-| DWLS ([Tsoucas et al. 2019](#ref-tsoucasAccurateEstimationCelltype2019)) | — | — | `MAST` hurdle, FDR \< 0.01, \log_2FC \> 0.5; 50–200 per type; smallest \kappa (p. 7) | dampened WLS (pp. 2, 7) | none |
-| SCDC ([Dong et al. 2021](#ref-dongSCDCBulkGene2021)) | cells with a questionable type or low quality removed (p. 9) | genes with zero counts in every sample (p. 9) | none | W-NNLS, maximal-variance weights clipped at the 15th/85th percentiles (p. 10) | ENSEMBLE over references (p. 3) |
-| RCTD ([Cable et al. 2022](#ref-cableRobustDecompositionCell2022a)) | spots ≥ 100 UMI (p. 9) | mean above 0.0625 counts per 500 (p. 7) | log-fold change ≥ 0.5 against the other types, no test (p. 7) | Poisson–lognormal GLMM (p. 6) | gene-wise platform random effect (pp. 3, 6) |
-| CardamomOT 2.0.0 (Maugé & Ventre 2026) | paper: —; code: per-cell depth factor, no cell removed | paper: gene sets of earlier studies (p. 32); code: no mitochondrial, ribosomal or non-coding genes | code: W_1 and entropy terminals, round robin of per-type Wilcoxon tests, NB separability, Steiner closure | NB-mixture likelihood, \ell_1 towards a prior network (Eq. 10, p. 9) | not applicable (no bulk) |
-| DeCovarT (this chapter) | authors’ QC; MAD rules optional | presence gate in every type ([Equation 2](#eq-fs-presence)) | omnibus NB / QL F test as an FDR gate, effect-size rank | GLS with \widehat{\boldsymbol{\Sigma}}\_{W,j} | none: one reference specimen ([Section 6.1.1](#sec-fs-cross-platform)) |
+| RNA-Sieve ([Erdmann-Pham et al. 2021](#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021)) | optional: library size or pairwise distance ≥ 3 MAD from the type median (supp. p. 3) | non-zero in ≥ 20 % of the cells of ≥ 1 type (supp. p. 3) | none | range bound and MAD outliers on four statistics (Eqs 12–13, p. 11) | Gaussian composite likelihood from the CLT (Eq. 10, p. 10) |
+| DECALS ([Cai et al. 2024](#ref-caiStatisticalInferenceCelltype2024)) | — | CIBERSORTx S-mode candidate genes (p. 13) | ∩ markers of Mathys et al. ([2019](#ref-mathysSinglecellTranscriptomicAnalysis2019)) (Fisher’s exact test, FDR): 159 genes (p. 13; supp. pp. 18–19) | S-mode batch correction (p. 13) | constrained OLS; GLS biased in practice (pp. 6, 9) |
+| MEAD ([Xie et al. 2026](#ref-xieStatisticalInferenceCell2026)) | — | — | none; removing genes gains nothing unless noise differs (p. 17) | gene-wise ratios with mean 1 (pp. 5, 8) | WLS from the reference variance (pp. 17–18); sandwich (p. 13) |
+| ReDeconv ([Lu et al. 2025](#ref-luTranscriptomeSizeMatters2025)) | — | — | t-test p\<0.05 against every other type, no FDR; fold change ≥ 2; smallest SD/mean, about 100 per type (p. 14) | length normalisation of the bulk only (p. 2) | Gaussian, composition-dependent variance (Eq. 5, p. 14) |
+| MuSiC ([Wang et al. 2019](#ref-wangBulkTissueCell2019)) | — | all shared genes (p. 7) | none; small within-cluster variance in the tree-guided stage (pp. 3, 8) | optional gene- and subject-specific intercept (p. 7) | W-NNLS, weights from cross-subject variance (Eq. 10, p. 7) |
+| deMixSC ([Guo et al. 2023](#ref-guoDeMixSCDeconvolutionFramework2023)) | \< 500 UMI, \< 200 genes, \> 50 % mitochondrial (p. 11) | detected in \< 5 % of cells removed (p. 11) | none | paired t-test bulk vs pseudo-bulk, BH; 5,000 genes down-weighted by a factor of 1,000 (p. 12) | W-NNLS, iterated weights (p. 12) |
+| BayesPrism ([Chu et al. 2022](#ref-chuCellTypeGeneExpression2022)) | types with \< 20 cells excluded in one benchmark (supp. p. 15) | ribosomal, mitochondrial, X and Y genes (supp. pp. 14, 19) | optional scran markers, t-tests, up-regulated only (supp. pp. 14–15) | bulk-specific profiles; log-normal fold-change prior (supp. pp. 5–6) | Bayesian multinomial (supp. pp. 3–6) |
+| DWLS ([Tsoucas et al. 2019](#ref-tsoucasAccurateEstimationCelltype2019)) | — | — | `MAST` hurdle, FDR \< 0.01, \log_2FC \> 0.5; 50–200 per type; smallest \kappa (p. 7) | none | dampened WLS (pp. 2, 7) |
+| SCDC ([Dong et al. 2021](#ref-dongSCDCBulkGene2021)) | cells with a questionable type or low quality removed (p. 9) | genes with zero counts in every sample (p. 9) | none | ENSEMBLE over references (p. 3) | W-NNLS, maximal-variance weights clipped at the 15th/85th percentiles (p. 10) |
+| RCTD ([Cable et al. 2022](#ref-cableRobustDecompositionCell2022a)) | spots ≥ 100 UMI (p. 9) | mean above 0.0625 counts per 500 (p. 7) | log-fold change ≥ 0.5 against the other types, no test (p. 7) | gene-wise platform random effect (pp. 3, 6) | Poisson–lognormal GLMM (p. 6) |
+| CardamomOT 2.0.0 (Maugé & Ventre 2026) | paper: —; code: per-cell depth factor, no cell removed | paper: gene sets of earlier studies (p. 32); code: no mitochondrial, ribosomal or non-coding genes | code: W_1 and entropy terminals, round robin of per-type Wilcoxon tests, NB separability, Steiner closure | not applicable (no bulk) | NB-mixture likelihood, \ell_1 towards a prior network (Eq. 10, p. 9) |
 
 Table 1: Gene selection in second-generation deconvolution methods, by
 tier. CardamomOT is a network-inference method, included for its gene
 selection; its code facts are from release 2.0.0
 (<https://github.com/eliasventre/CardamomOT>).
+
+TODO-cite: Maugé & Ventre 2026, CardamomOT, PLoS Comput. Biol.
+22(10):e1014838, doi:10.1371/journal.pcbi.1014838
 
 DeCovarT builds on these methods in three ways.
 
@@ -283,22 +452,23 @@ DeCovarT builds on these methods in three ways.
   and MEAD use it only for the variance of their estimators. The other
   methods treat genes as independent, the setting in which a univariate
   screen is also the objective
-  ([Section 6.2.1](#sec-fs-screen-objective)). DeCovarT keeps the
+  ([Section 7.4.1](#sec-fs-screen-objective)). DeCovarT keeps the
   univariate screen as a gate (tier ii) and leaves the weighting to the
-  covariance (tier iii).
+  covariance (tier iv).
 - **One count test per gene.** The tests that select genes run on cells,
   mostly with Gaussian or hurdle models, and only DWLS (markers) and
   deMixSC (platform discrepancy) report a multiplicity correction.
-  DeCovarT uses one NB omnibus test per gene, a Benjamini–Hochberg gate
-  and a permutation calibration ([Section 3.2](#sec-fs-omnibus)).
+  DeCovarT uses one test of the type effect per gene, chosen among four
+  with known assumptions, and a Benjamini–Hochberg gate
+  ([Section 3.2](#sec-fs-omnibus)).
 - **No perfect markers.** MuSiC and MEAD argue against marker
   pre-selection when the genes are weighted, and MEAD shows that perfect
   markers break identifiability under gene-wise platform ratios
-  ([Section 6.1.1](#sec-fs-cross-platform)); DWLS and DECALS still build
+  ([Section 4](#sec-fs-cross-platform)); DWLS and DECALS still build
   marker-only signatures. DeCovarT removes perfect markers with the
   presence gate and weights the remaining genes.
 
-## 2 Tier (i): quality control
+## 2 Tier (i): quality control and prior knowledge
 
 QC removes cells and genes that lie outside the support of any
 expression model. The thresholds below are examples from the reviewed
@@ -318,7 +488,20 @@ methods ([Table 1](#tbl-fs-review)), not defaults of DeCovarT.
   pp. 14, 19). Genes detected in fewer than 20 % of the cells of every
   type (RNA-Sieve, supplement p. 3).
 
-### 2.1 Presence gate in every type
+### 2.1 Prior-knowledge markers
+
+A short curated list of markers (lineage or signalling genes named by
+the biology of the tissue) enters as hard prior knowledge. These genes
+are kept whatever their rank in tier (ii), provided they pass the
+presence gate, and they are reported as a separate group. Two rules keep
+the list honest. It is fixed before the data-driven ranks are seen. It
+is never used to score the data-driven panel, since a panel judged by
+its overlap with the markers that were forced into it is judged by
+construction. The overlap between the curated list and the genes that
+the data-driven tiers keep can be reported as a description, for example
+with a hypergeometric tail, as the reproducibility book does.
+
+### 2.2 Presence gate in every type
 
 > **Necessary, not sufficient**
 >
@@ -359,7 +542,7 @@ methods ([Table 1](#tbl-fs-review)), not defaults of DeCovarT.
 > non-singular Fisher information for \boldsymbol{p}
 > ([1.2](https://bastienchassagnol.github.io/DeCovarT/articles/01-2-population-inference.html#sec-identifiability)).
 > The gate also removes perfect markers, whose effect under gene-wise
-> platform ratios is in [Section 6.1.1](#sec-fs-cross-platform).
+> platform ratios is in [Section 4](#sec-fs-cross-platform).
 
 ## 3 Tier (ii): cross-cell consistency
 
@@ -371,37 +554,64 @@ have a low within-cluster variance ([Wang et al. 2019,
 3](#ref-wangBulkTissueCell2019)). Cross-sample consistency asks whether
 a gene’s type mean is stable across specimens (MuSiC’s cross-subject
 consistency), and needs at least two of them. With a reference from one
-specimen only cross-cell consistency can be assessed; cross-sample
-consistency is a perspective ([Section 6.1](#sec-fs-cross-sample)). The
-natural statistic for cross-cell consistency is the split of a gene’s
-variation into between-type and within-type parts.
+specimen only cross-cell consistency can be assessed from the reference
+alone; cross-sample consistency is a perspective
+([Section 7.1](#sec-fs-cross-sample)), and consistency with a matched
+bulk is tier (iii) ([Section 4](#sec-fs-cross-platform)). The natural
+statistic for cross-cell consistency splits a gene’s variation into
+between-type and within-type parts.
 
-### 3.1 Pearson residuals and the between/within split
+### 3.1 Count null model and Pearson residuals
 
 The technical null fits each gene with library size as the only
 covariate,
 
 M\_{0}:\\ \log m\_{gc}=\beta\_{0g}+\log s\_{c}, \qquad
-x\_{gc}\sim\mathrm{NB}(m\_{gc},\psi\_{g}), \tag{3}
+x\_{gc}\sim\mathrm{NB}(m\_{gc},\psi\_{g}), \qquad
+\operatorname{Var}(x\_{gc})=V(m\_{gc})=m\_{gc}+\frac{m\_{gc}^{2}}{\psi_g}.
+\tag{3}
 
-which is the model of `SCTransform` with `vst.flavor = "v2"`, where the
-depth slope is fixed and library size is an offset ([Hafemeister and
-Satija 2019](#ref-hafemeisterNormalizationVarianceStabilization2019);
-[Lause et al. 2021](#ref-lauseAnalyticPearsonResiduals2021)). Cell type
-is deliberately absent: putting j in the null would remove the signal to
-be ranked. The Pearson residuals r\_{gc}=(x\_{gc}-\hat
-m\_{gc})/\sqrt{\hat m\_{gc}+\hat m\_{gc}^{2}/\hat\psi\_{g}} split as
+M_0 is fitted gene by gene with our own NB GLM, with \psi_g estimated
+per gene by maximum likelihood (for example with `glmGamPoi`
+([Ahlmann-Eltze and Huber 2020](#ref-glmGamPoi2020)) or
+[`MASS::glm.nb()`](https://rdrr.io/pkg/MASS/man/glm.nb.html)), and its
+residuals are not clipped[^1]
+
+The raw Pearson residual is
+
+r\_{gc}=\frac{x\_{gc}-\hat m\_{gc}}{\sqrt{V(\hat m\_{gc})}}, \qquad
+r^{\mathrm{SP}}\_{gc}=\frac{r\_{gc}}{\sqrt{\hat\phi_g\\(1-h\_{gc})}},
+\tag{4}
+
+and r^{\mathrm{SP}}\_{gc} is the standardised Pearson residual ([Agresti
+2015](#ref-agrestiFoundationsLinearGeneralized2015)). \hat\phi_g is the
+Pearson dispersion (the sum of squared r\_{gc} divided by the residual
+degrees of freedom), and h\_{gc} the leverage of cell c in the weighted
+hat matrix of the final IRLS step. The factor 1-h\_{gc} corrects for a
+fitted value that a high-leverage cell partly sets itself. `SCTransform`
+residuals are raw residuals: they carry neither \hat\phi_g nor
+1-h\_{gc}, and they are clipped. Standardised does not mean Gaussian: at
+low means Pearson residuals stay discrete and skewed, and randomised
+quantile residuals (Dunn & Smyth 1996) TODO-cite: Dunn & Smyth 1996,
+Randomized quantile residuals, J. Comput. Graph. Stat. 5(3):236-244,
+doi:10.1080/10618600.1996.10474708 are the residuals to compare with a
+normal reference.
+
+The raw residuals of M_0 split as
 
 \mathrm{SS}\_{\mathrm{B},g} = \sum\_{j=1}^{J}C\_{j}\bigl(\bar
 r\_{gj}-\bar r\_{g}\bigr)^{2}, \qquad \mathrm{SS}\_{\mathrm{W},g} =
 \sum\_{j=1}^{J}\sum\_{c:j(c)=j}\bigl(r\_{gc}-\bar r\_{gj}\bigr)^{2},
-\tag{4}
+\tag{5}
 
 with \bar r\_{gj} the mean residual in type j and \bar r\_{g} the
 overall mean (\approx0). A lineage marker has a large between-type and a
 small within-type part; a stress-response gene can have a large total
-residual variance and still a small between-type part.
-[Figure 3](#fig-sc-transform) shows the four steps on simulated counts.
+residual variance and still a small between-type part. The sums weight
+every cell equally, so the abundant types dominate them; tests that
+allow a different variance per type are in
+[Section 3.2.1](#sec-fs-calibration). [Figure 3](#fig-sc-transform)
+shows the steps of the null model on simulated counts.
 
 ![Four scatter panels joined by arrows and labelled with formulas. Panel
 a: gene variance against gene mean on log scales, points above the
@@ -413,26 +623,19 @@ smooth curve. Panel d: Pearson residuals of the same gene against the
 size factor, centred on zero with no depth trend, the two cell types at
 different levels.](figures/fig_03_1_sctransform.svg)
 
-Figure 3: `SCTransform` (v2) workflow on simulated counts (2,000 genes,
-2,000 cells of two types, seed 20261101). (a) Gene variance against gene
-mean: NB variance with the smoothed dispersion (solid) and the Poisson
-line (dashed). (b) Counts of one marker gene against the size factor,
-with the fitted mean of M_0 (library size as offset, no cell type). (c)
-Per-gene dispersion estimates against the gene mean, and their smooth
-across genes, the empirical-Bayes regularisation. (d) Pearson residuals
-of the same gene: no trend with depth, the type difference kept. Code:
+Figure 3: Count null model M_0 on simulated counts (2,000 genes, 2,000
+cells of two types, seed 20261101), drawn with the `SCTransform` (v2)
+workflow. (a) Gene variance against gene mean: NB variance with the
+smoothed dispersion (solid) and the Poisson line (dashed). (b) Counts of
+one marker gene against the size factor, with the fitted mean of M_0
+(library size as offset, no cell type). (c) Per-gene dispersion
+estimates against the gene mean, which M_0 uses here, and their smooth
+across genes, the empirical-Bayes regularisation that `SCTransform` uses
+instead. (d) Raw Pearson residuals of the same gene: no trend with
+depth, the type difference kept. Code:
 `scripts/figures/fig_03_1_sctransform.R`.
 
-The sums in [Equation 4](#eq-fs-ss) weight every cell equally, so the
-most abundant type dominates them. The equal-type version gives each
-type weight 1/J:
-
-\mathrm{MS}^{\mathrm{eq}}\_{\mathrm{B},g} =
-\frac1J\sum\_{j=1}^{J}\Bigl(\bar r\_{gj}-\frac1J\sum\_{\ell=1}^{J}\bar
-r\_{g\ell}\Bigr)^{2}, \qquad \mathrm{MS}^{\mathrm{eq}}\_{\mathrm{W},g} =
-\frac1J\sum\_{j=1}^{J}\operatorname{var}\_{c:j(c)=j}(r\_{gc}). \tag{5}
-
-### 3.2 Omnibus test: deviance and quasi-likelihood F
+### 3.2 Four tests of the type effect
 
 Add the type main effect to [Equation 3](#eq-fs-nb-null):
 
@@ -442,48 +645,48 @@ M\_{1}:\\ \log m\_{gc}=\beta\_{0g}+\beta\_{g,j(c)}+\log s\_{c}, \qquad
 The joint null has J-1 degrees of freedom ([Agresti
 2015](#ref-agrestiFoundationsLinearGeneralized2015)). One omnibus test
 per gene replaces \binom{J}{2} pairwise or J one-versus-rest tests, and
-a single Benjamini–Hochberg correction across genes follows.
+a single Benjamini–Hochberg correction across genes follows. Four tests
+of H\_{0g} are compared ([Table 2](#tbl-fs-tests)). The presence gate
+removes the all-zero types near which the Wald test fails (Hauck–Donner
+effect; Yee ([2022](#ref-yeeHauckDonnerEffectWald2022))), so the Wald
+test is not used.
 
 - **Likelihood ratio (analysis of deviance).**
-  \Lambda_g=\mathcal{D}\_g(M_0)-\mathcal{D}\_g(M_1), referred to
-  \chi^2\_{J-1} when \psi_g is known. It needs one M_1 fit per gene, a
-  one-way GLM with J coefficients.
-- **Wald.** It needs M_1 only and fails near the boundary: with an
-  all-zero type the NB estimate \hat\beta\_{gj}\to-\infty, its standard
-  error grows faster, and the statistic shrinks as the effect grows
-  (Hauck–Donner effect) ([Yee 2022](#ref-yeeHauckDonnerEffectWald2022)).
-  The presence gate removes that case.
+  \Lambda_g=\mathcal{D}\_g(M_0)-\mathcal{D}\_g(M_1), with both models
+  fitted at the \hat\psi_g of M_1, referred to \chi^2\_{J-1}. It needs
+  one M_1 fit per gene, a one-way GLM with J coefficients.
+- **One-way ANOVA F on variance-stabilised counts.** The shifted
+  logarithm \log(x\_{gc}/s_c+y_0), with y_0=\psi_0/4 for a typical
+  dispersion \psi_0, stabilises the NB variance and performs as well as
+  more elaborate transformations in a published benchmark (Ahlmann-Eltze
+  & Huber 2023) TODO-cite: Ahlmann-Eltze & Huber 2023, Comparison of
+  transformations for single-cell RNA-seq data, Nat. Methods 20,
+  doi:10.1038/s41592-023-01814-1. The F statistic of the type factor on
+  these values is referred to F\_{J-1,C-J} ([Wang et al.
+  2010](#ref-wangSilicoEstimatesTissue2010)). When the variance on the
+  transformed scale still differs between types, Welch’s heteroscedastic
+  one-way test (Welch 1951) TODO-cite: Welch 1951, On the comparison of
+  several mean values: an alternative approach, Biometrika 38:330-336 is
+  the fallback.
+- **Quasi-likelihood F.** Defined below ([Equation 7](#eq-fs-qlf)).
+- **Permutation calibration.** Welch’s statistic on the residuals of
+  M_0, referred to a permutation distribution
+  ([Section 3.2.1](#sec-fs-calibration)).
 
-The score (Rao) test needs only the M_0 fit that `SCTransform` already
-computes. Up to the variation of the IRLS weights within a type, its
-statistic for the type effect is the between-type sum of squares of the
-Pearson residuals,
+**Quasi-likelihood F.** Dividing \Lambda_g/(J-1) by the Pearson
+dispersion of M_1 gives
 
-T_g\approx\sum\_{j=1}^{J}C_j\\\bar
-r\_{gj}^{2}\approx\mathrm{SS}\_{\mathrm{B},g}, \tag{7}
+F\_{g} = \frac{\Lambda_g/(J-1)}{\hat\phi_g}, \qquad
+\hat\phi_g=\frac{1}{C-J}\sum\_{c}\frac{(x\_{gc}-\hat
+m^{(1)}\_{gc})^{2}}{V(\hat m^{(1)}\_{gc})}, \tag{7}
 
-exactly Pearson’s \chi^2 on the type totals under a Poisson null. This
-identity is what makes the ratio below a test computed from
-`SCTransform` output without refitting. As a separate test the score
-adds nothing here: the boundary case, where it and the likelihood ratio
-stay finite while the Wald test fails, is removed by the presence gate,
-and the M_1 fit it saves is a small one-way GLM.
-
-**Quasi-likelihood F.** Dividing T_g/(J-1) by the within-type Pearson
-dispersion \hat\phi_g=\mathrm{SS}\_{\mathrm{W},g}/(C-J) gives
-
-F\_{g} =
-\frac{\mathrm{SS}\_{\mathrm{B},g}/(J-1)}{\mathrm{SS}\_{\mathrm{W},g}/(C-J)},
-\tag{8}
-
-the one-way ANOVA ratio ([Wang et al.
-2010](#ref-wangSilicoEstimatesTissue2010)). In GLM terms it is a
-quasi-likelihood F test: the mean model [Equation 6](#eq-fs-nb-main) and
-the variance function V(m)=m+m^2/\psi_g are kept, and a scalar \phi_g
-absorbs a variance larger or smaller than V predicts. The reference
-F\_{J-1,C-J} accounts for estimating \phi_g, as in the edgeR
-quasi-likelihood pipeline and in `glmGamPoi::test_de()`, which use the
-deviance in the numerator ([Lund et al.
+with \hat m^{(1)}\_{gc} the fitted means of M_1, referred to
+F\_{J-1,C-J}. The mean model [Equation 6](#eq-fs-nb-main) and the
+variance function V(m)=m+m^2/\psi_g are kept, and a scalar \phi_g
+absorbs a variance larger or smaller than V predicts. This is the
+quasi-likelihood F test of the edgeR pipeline and of
+`glmGamPoi::test_de()`, which use the deviance in the numerator and also
+shrink \hat\phi_g across genes ([Lund et al.
 2012](#ref-lundDetectingDifferentialExpression2012); [Ahlmann-Eltze and
 Huber 2020](#ref-glmGamPoi2020)). Three consequences follow.
 
@@ -494,15 +697,28 @@ Huber 2020](#ref-glmGamPoi2020)). Three consequences follow.
 - **A scalar \phi_g cannot absorb a wrong variance function.** Under a
   Poisson null it cannot absorb the quadratic NB term, whose share grows
   with the type mean; the pooled \hat\phi_g is then wrong for every
-  type. Use the NB variance, so that \phi_g\approx1 in every type; if
-  between-type heteroscedasticity remains, use a Welch-type statistic or
-  the equal-type mean squares of [Equation 5](#eq-fs-equal-type).
-- **Gate, then rank by effect size.** J and C are shared by all genes of
-  a slot, so F_g is a monotone function of
-  \mathrm{SS}\_{\mathrm{B},g}/\mathrm{SS}\_{\mathrm{W},g}; the analytic
-  F adds a threshold, not a new ranking. Genes that pass the FDR gate
-  are ranked by that ratio, or by its equal-type version, not by
-  p-value.
+  type. Use the NB variance, so that \phi_g\approx1 in every type. If
+  the dispersion still differs between types, \hat\phi_g is an average
+  dominated by the large types, and a statistic with one variance per
+  type, Welch’s G referred to permutations, is needed
+  ([Section 3.2.1](#sec-fs-calibration)).
+- **Gate, then rank by effect size.** F_g grows with the counts of a
+  gene as well as with its effect, so it serves as a gate, not as a
+  rank. Genes that pass the FDR gate are ranked by an effect size, the
+  deviance explained
+  R^{2}\_{D,g}=1-\mathcal{D}\_g(M_1)/\mathcal{D}\_g(M_0) or the ratio
+  \mathrm{SS}\_{\mathrm{B},g}/\mathrm{SS}\_{\mathrm{W},g} of
+  [Equation 5](#eq-fs-ss), not by p-value.
+
+| Test | Statistic | Reference law | Assumptions | R function |
+|----|----|----|----|----|
+| Analysis of deviance (LR) | \Lambda_g=\mathcal{D}\_g(M_0)-\mathcal{D}\_g(M_1) | \chi^2\_{J-1} | NB mean and variance correct; \psi_g treated as known; enough counts per type | [`MASS::glm.nb()`](https://rdrr.io/pkg/MASS/man/glm.nb.html) for both models, [`stats::pchisq()`](https://rdrr.io/r/stats/Chisquare.html) |
+| One-way ANOVA F on the shifted logarithm | between/within mean squares of \log(x\_{gc}/s_c+y_0) | F\_{J-1,C-J} | equal variance across types on the transformed scale; approximately normal type means | `stats::oneway.test(var.equal = TRUE)`; Welch: `var.equal = FALSE` |
+| Quasi-likelihood F | [Equation 7](#eq-fs-qlf) | F\_{J-1,C-J} | NB mean model and variance function up to one scalar \phi_g for all types | `glmGamPoi::test_de()`, `edgeR::glmQLFTest()` |
+| Permuted Welch G | Welch’s G on the Pearson residuals of M_0 | permutation distribution, B label permutations shared by all genes | labels fixed in advance; residuals of M_0 exchangeable across cells under H\_{0g}; type-specific variances allowed | `permuco::aovperm()` (Freedman–Lane, linear models, permutes F); `flipscores::flipscores()` (GLMs) |
+
+Table 2: Four tests of the type effect for one gene. C is the number of
+cells and J the number of types.
 
 When the NB variance function itself fails, quasi-likelihood with an
 empirical variance function is the fallback ([Agresti
@@ -512,70 +728,1007 @@ dispersion), a location–scale model with type-specific \psi\_{gj} tests
 both, on 2(J-1) degrees of freedom; this is the GAMLSS margin used by
 scDesign3 ([Song et al.
 2024](#ref-songScDesign3GeneratesRealistic2024)), Stasinopoulos & Rigby
-(2007) .
+(2007) TODO-cite: Stasinopoulos & Rigby 2007, GAMLSS in R, J. Stat.
+Softw. 23(7), doi:10.18637/jss.v023.i07. Whether a dispersion difference
+should count as a type effect depends on the use: for a gate on mean
+effects it is a false discovery, while for DeCovarT, which models the
+within-type covariance, such a gene can still carry information.
 
-#### 3.2.1 Calibration: permutation, Freedman–Lane, bootstrap
+#### 3.2.1 Permutation calibration
 
-The nominal F\_{J-1,C-J} tail is optimistic on `SCTransform` output for
-three reasons: residuals are clipped at \pm\sqrt{C/30}, \psi_g is
-regularised across genes and so is misspecified for any one gene, and
-residuals at low means are discrete and skewed ([Hafemeister and Satija
-2019](#ref-hafemeisterNormalizationVarianceStabilization2019); [Lause et
-al. 2021](#ref-lauseAnalyticPearsonResiduals2021)). A permutation null
-keeps F_g and replaces its reference distribution.
+A permutation null keeps a statistic and replaces its reference
+distribution by the distribution under random relabelling of the cells.
 
-- **Permute labels, not genes.** One permutation of the cell labels is
-  applied to all genes at once. Each gene keeps its marginal
+- **Freedman–Lane.** With nuisance covariates (batch, cell line, cell
+  cycle), a global label shuffle creates impossible combinations. The
+  Freedman–Lane scheme fits the reduced model without type, permutes its
+  residuals, adds them back to the reduced fit, refits the full model
+  and recomputes the statistic ([Freedman and Lane
+  1983](#ref-freedmanNonstochasticInterpretation1983)). In a comparison
+  of permutation strategies for the general linear model, Winkler et al.
+  2014. write “we recommend the Freedman–Lane and the Smith methods”
+        (p. 393) TODO-cite: Winkler, Ridgway, Webster, Smith & Nichols
+        2014, Permutation inference for the general linear model,
+        NeuroImage 92:381-397, doi:10.1016/j.neuroimage.2014.01.060.
+        Here the nuisance part of M_0 is an intercept and the depth
+        offset, so the reduced residuals are the label-free Pearson
+        residuals of M_0, and Freedman–Lane reduces to permuting the
+        labels against them.
+- **Welch’s G, not F.** Welch’s statistic weights each type mean by C_j
+  over its own within-type variance and corrects the denominator for the
+  estimated variances (Winkler et al. 2014, Eqs 6–7). With one variance
+  group G=F. Under heteroscedasticity F is not pivotal (p. 386): its
+  null distribution then depends on the unknown type-specific variances,
+  and a label permutation does not reproduce them. G stays approximately
+  pivotal, so its permutation p-value remains close to its nominal
+  level.
+- **One permutation for all genes.** The same B permutations of the cell
+  labels are applied to every gene. Each gene keeps its marginal
   distribution and its dependence on the other genes; only the link with
   the label is broken. Shuffling genes, or shuffling within cells, does
   not produce that null.
-- **Nuisance covariates.** With covariates (batch, cell line, cell
-  cycle), a global label shuffle creates impossible combinations. The
-  Freedman–Lane scheme fits the reduced model without type, permutes its
-  residuals with one row permutation shared by all genes, adds them back
-  to the reduced fit, refits the full model and recomputes F_g
-  ([Freedman and Lane
-  1983](#ref-freedmanNonstochasticInterpretation1983)).
+- **Smallest p-value.** With p_g=(1+\\\\G^{\*}\_g\ge G_g\\)/(B+1), the
+  smallest attainable value is 1/(B+1). For smaller p-values, a
+  generalised Pareto fit to the upper tail of the permutation
+  distribution gives an approximation (Knijnenburg et al. 2009; Winkler
+  et al. 2016) TODO-cite: Knijnenburg, Wessels, Reinders & Shmulevich
+  2009, Fewer permutations, more accurate P-values, Bioinformatics
+  25(12):i161-i168, doi:10.1093/bioinformatics/btp211 TODO-cite:
+  Winkler, Ridgway, Douaud, Nichols & Smith 2016, Faster permutation
+  inference in brain imaging, NeuroImage 141:502-516,
+  doi:10.1016/j.neuroimage.2016.05.068.
 
-### 3.3 Leverage is not influence
+`permuco` implements Freedman–Lane for linear models and ANOVA (Frossard
+& Renaud 2021) TODO-cite: Frossard & Renaud 2021, Permutation tests for
+regression, ANOVA, and comparison of signals: the permuco package, J.
+Stat. Softw. 99(15), doi:10.18637/jss.v099.i15. For GLMs, `flipscores`
+flips the signs of the score contributions instead of permuting, and
+stays valid when the variance is misspecified (Hemerik, Goeman & Finos
+2020; De Santis et al. 2025) TODO-cite: Hemerik, Goeman & Finos 2020,
+Robust testing in generalized linear models by sign flipping score
+contributions, J. R. Stat. Soc. B 82(3), doi:10.1111/rssb.12369
+TODO-cite: De Santis et al. 2025, J. Am. Stat. Assoc.,
+doi:10.1080/01621459.2025.2491775. Neither package computes Welch’s G;
+the figure script below permutes it directly. PERMANOVA is the
+multivariate sum-of-squares version of the same permutation test
+(Anderson 2001; `vegan::adonis2()`) TODO-cite: Anderson 2001, A new
+method for non-parametric multivariate analysis of variance, Austral
+Ecol. 26(1):32-46, doi:10.1111/j.1442-9993.2001.01070.pp.x; a
+module-level version is a perspective
+([Section 7.4.2](#sec-fs-multivariate-tests)).
+
+#### 3.2.2 The four tests on simulated counts
+
+The tests rank genes by the same type effect, so their gene orders
+should agree; [Figure 4](#fig-fs-type-tests) measures how far they do.
+The simulation has J=4 types of 2,000, 300, 60 and 25 cells and 1,000
+genes: 600 nulls with one dispersion per gene, 300 nulls with the same
+mean in every type but \psi\_{gj}=20 in the two large types and 1 in the
+two small ones, and 100 genes with a type effect.
+
+- **Gene order.** Over all genes, Kendall’s \tau_b is 0.98 between the
+  LR and QL F rankings, 0.67 between LR and ANOVA, and 0.73 between LR
+  and the permuted Welch G. Among the 100 alternatives, LR and ANOVA
+  agree more (0.90) and the permuted G less (0.53 to 0.58).
+- **Type I error.** Under the homoscedastic null all tests reject at
+  most 4.8 % of the genes at 0.05. Under type-specific dispersion, LR,
+  QL F and ANOVA reject 15 % to 19 % of the nulls, and the permuted F on
+  the same residuals 18 %; the permuted G rejects 6 %. QL F behaves like
+  LR because the median \hat\phi_g is 0.999 in both nulls: the pooled
+  dispersion is set by the 2,300 cells of the large types.
+- **Power.** The permuted G pays for its calibration. With
+  Benjamini–Hochberg at 0.05 it makes 43 discoveries, with an empirical
+  FDR of 0.05 and a power of 0.41; LR makes 105, with an FDR of 0.19 and
+  a power of 0.85. 35 of the 100 alternatives reach the permutation
+  floor 1/(B+1) with B=2{,}000, where the generalised Pareto tail would
+  separate them. Welch’s G referred to its analytic F approximation
+  instead of permutations (not drawn) rejects 11 % of the homoscedastic
+  nulls; the skewness of the residuals of the 25-cell type is a likely
+  cause (not checked).
+
+![Three panels. Panel a: two quantile-quantile plots of null p-values on
+a minus log10 scale. For the homoscedastic null all five curves follow
+the diagonal inside the grey band. For the heteroscedastic null the
+likelihood-ratio, quasi-likelihood F, shifted-log ANOVA and permuted F
+curves rise above the band, to observed values between 3 and 7 at an
+expected value of 2.8, while the permuted Welch curve stays close to the
+band. Panel b: two four-by-four tile grids of Kendall's tau; the
+likelihood-ratio and quasi-likelihood F rankings agree almost perfectly
+(0.98 and 0.99) and the other pairs agree less (0.53 to 0.90). Panel c:
+three dot plots; the likelihood-ratio, quasi-likelihood F, ANOVA and
+permuted F tests give 91 to 107 discoveries with an empirical false
+discovery rate of 0.16 to 0.21 and a power of 0.76 to 0.85, and the
+permuted Welch test gives 43 discoveries, a false discovery rate of 0.05
+and a power of 0.41.](figures/fig_03_1_type_tests.svg)
+
+Figure 4: Four tests of the cell-type effect on simulated counts (J=4
+types of 2,000, 300, 60 and 25 cells; 1,000 genes; log-normal size
+factors with standard deviation 0.5; seed 20261101). Counts are negative
+binomial with the size factor as offset. In 600 null genes one
+dispersion \psi_g holds in every type (homoscedastic null). In 300 null
+genes the mean is the same in every type, but \psi\_{gj}=20 in the two
+large types and 1 in the two small ones (heteroscedastic null). The
+remaining 100 genes have a log fold change of 0.5 to 1.5 in absolute
+value in one or two types. Tests: the likelihood ratio of
+[Equation 6](#eq-fs-nb-main) against [Equation 3](#eq-fs-nb-null) at the
+\hat\psi_g of M_1 (LR, blue solid); the quasi-likelihood F of
+[Equation 7](#eq-fs-qlf) (QL F, blue dashed; it overlaps LR); the
+one-way ANOVA F on \log(x\_{gc}/s_c+5), the shifted logarithm for
+\psi_0=20 (orange); Welch’s G on the Pearson residuals of M_0, referred
+to B=2{,}000 permutations of the cell labels shared by all genes
+(near-black solid); and the plain F on the same residuals and
+permutations (near-black dashed). (a) Observed against expected
+-\log\_{10}p for the null genes. The grey line is the identity and the
+grey band the pointwise 95 % interval of uniform order statistics; a
+curve above the band is anti-conservative. (b) Kendall’s \tau_b between
+the p-value rankings of the four tests, over all genes and over the 100
+alternatives. (c) Benjamini–Hochberg at 0.05 over the 1,000 genes:
+discoveries (dotted line, the 100 true alternatives), empirical false
+discovery rate (dotted line, 0.05) and power. Code:
+`scripts/figures/fig_03_1_type_tests.R`.
+
+The trade-off is between a gate that is calibrated when dispersion
+differs between types (permuted G) and a gate with more power when the
+NB variance function holds (LR, QL F). Under type-specific dispersion
+the GAMLSS test above answers a different question, a change in the
+count law rather than in its mean.
+
+## 4 Tier (iii): cross-platform consistency
+
+A gene can be a perfect cross-cell marker and still be measured
+differently by the reference and the bulk protocol. Cross-platform
+consistency compares the bulk with the single-cell reference, and needs
+a bulk sample that matches the reference (same tissue, ideally the same
+specimen). The reviewed methods handle it in four ways.
+
+- **Range bound (RNA-Sieve).** Per cell, the expected bulk is a convex
+  combination of the type means, so on a common scale
+
+  \min\_{j}\tilde\mu\_{gj}\\\le\\\operatorname{E}\tilde
+  y\_{g}\\\le\\\max\_{j}\tilde\mu\_{gj}. \tag{8}
+
+  RNA-Sieve removes genes whose bulk value falls outside this range by
+  more than a sub-Gaussian tail allows
+  ([Section 4.2](#sec-fs-range-tail)), and genes that are MAD outliers
+  on four summary statistics (largest type mean, largest type standard
+  deviation, largest coefficient of variation, and a bulk-to-reference
+  ratio) ([Erdmann-Pham et al. 2021,
+  11](#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021), Eqs.
+  12–13). The bound holds for any weights on the simplex, so it does not
+  depend on whether \boldsymbol{p} or \boldsymbol{q} is the target. A
+  gene-wise platform ratio \tilde b_g far from 1 moves the bulk outside
+  the range; the filter detects that case.
+
+- **Test against a matched benchmark (deMixSC).** A paired t-test of
+  real bulk against pseudo-bulk of the same aliquots, with BH at 0.05;
+  the discrepant genes are kept and down-weighted by a fixed factor of
+  1,000 ([Guo et al. 2023,
+  12](#ref-guoDeMixSCDeconvolutionFramework2023)).
+
+- **Gene-wise platform ratios in the model.** MEAD lets the ratios vary
+  by gene with mean 1 ([Xie et al. 2026, 5,
+  8](#ref-xieStatisticalInferenceCell2026)); RCTD uses a gene-wise
+  platform random effect, estimated once from a pooled pseudo-bulk and
+  then fixed ([Cable et al. 2022, 3,
+  6–7](#ref-cableRobustDecompositionCell2022a)); MuSiC allows a gene-
+  and subject-specific intercept ([Wang et al. 2019,
+  7](#ref-wangBulkTissueCell2019)).
+
+- **Normalisation only.** ReDeconv applies gene-length normalisation to
+  the bulk only ([Lu et al. 2025,
+  2](#ref-luTranscriptomeSizeMatters2025)).
+
+Gene-wise ratios have a price. MEAD shows that the proportions are not
+identifiable when all genes are perfect markers and gene-wise ratios are
+allowed: rescaling the ratios of the markers of type j by a common
+factor is absorbed by the proportions ([Xie et al. 2026,
+7](#ref-xieStatisticalInferenceCell2026)). The presence gate
+([Section 2.2](#sec-fs-presence)) excludes these genes. Modelling a
+gene-wise or module-wise scale \tilde b_g inside DeCovarT is a
+perspective of
+[5.3](https://bastienchassagnol.github.io/DeCovarT/articles/05-3-extensions-roadmap.md).
+
+DeCovarT’s tier (iii) has two parts: influence diagnostics for cells and
+genes ([Section 4.1](#sec-fs-leverage)), and a bulk filter whose
+thresholds come from tail statements for a discrepancy between the bulk
+and the reference ([Section 4.2](#sec-fs-range-tail)).
+
+### 4.1 Outlier cells and genes: leverage and influence
 
 Residual size, leverage and influence are three different quantities
-([Agresti 2015](#ref-agrestiFoundationsLinearGeneralized2015)). In a
-gene-wise GLM, leverage belongs to the *observations* (cells, or
-pseudo-bulk samples), not to the gene. For the one-way design of
-[Equation 6](#eq-fs-nb-main) the hat value of cell c is
-h\_{gc}=w\_{gc}/\sum\_{c':j(c')=j(c)}w\_{gc'}, with IRLS weight
-w\_{gc}=\hat m\_{gc}^2/V(\hat m\_{gc}): every cell of a rare type, and
-every cell with a large fitted mean, has high leverage. Influence
-combines the two; Cook’s distance is
+([Agresti 2015](#ref-agrestiFoundationsLinearGeneralized2015)). Leverage
+measures how unusual an observation is in the design, the residual how
+badly the model predicts its response, and influence how much the fit
+changes when the observation is removed. Influence needs both.
 
+|  | Large standardised residual | Small standardised residual |
+|----|----|----|
+| **High leverage** | potentially influential: inspect | extreme design point, often benign |
+| **Low leverage** | response outlier, limited influence | ordinary observation |
+
+Table 3: Leverage and residual size combine into influence.
+
+**Cells.** In the gene-wise GLM M_1 of [Equation 6](#eq-fs-nb-main),
+leverage belongs to the cells, not to the gene. For a one-way design
+with a log link the hat value of cell c is
+
+h\_{gc}=\frac{w\_{gc}}{\sum\_{c':\\j(c')=j(c)}w\_{gc'}}, \qquad
+w\_{gc}=\frac{\hat m\_{gc}^{2}}{V(\hat m\_{gc})}, \qquad
 \mathrm{Cook}\_{gc} =
-\frac{r\_{gc}^{2}\\h\_{gc}}{J\\\hat\phi_g\\(1-h\_{gc})^{2}} .
+\frac{(r^{\mathrm{SP}}\_{gc})^{2}}{J}\\\frac{h\_{gc}}{1-h\_{gc}} =
+\frac{r\_{gc}^{2}\\h\_{gc}}{J\\\hat\phi_g\\(1-h\_{gc})^{2}}, \tag{9}
 
-A high-expression marker in a small type sits at an extreme fitted mean
-and has high leverage, yet it agrees with the type effect: it is
-informative, not an outlier. Rules that clip by size alone, such as
-residual clipping or SCDC’s clipping of variance weights at the 15th and
-85th percentiles ([Dong et al. 2021, 10](#ref-dongSCDCBulkGene2021)),
-shrink these observations with the harmful ones. An observation is a
-candidate outlier only when both its leverage and its standardised
-residual are large.
+with w\_{gc} the IRLS weight. The hat values of each type sum to 1, so a
+cell of a type with C_j cells has h\_{gc}\approx1/C_j, and within a type
+h\_{gc} grows with the fitted mean. Every cell of a rare type, and every
+cell with a large fitted mean, has high leverage.
+[Figure 5](#fig-fs-influence-cells) shows the consequence. The 25 cells
+of the rare high-expression type have leverage near 0.04; the 23
+consistent ones have small residuals and a Cook’s distance of at most
+0.025. Two doublet-like cells of that type combine that leverage with a
+residual near 6 and have the largest Cook’s distances, 0.36 and 0.34.
+Three outliers of the 2,000-cell type have larger residuals, 6.1 to 7.3,
+but a leverage below 10^{-3}, and their Cook’s distances stay below
+0.01. No cell passes the conventional cut of 0.5, and the cut 4/C flags
+12 of the 23 consistent rare-type cells on leverage alone.
 
-## 4 Tier (iii): down-weighting by the model
+![Four scatter panels of 2,385 simulated cells coloured by four cell
+types. Panel a: randomised quantile residuals against the fitted mean on
+a log scale; the rare orange type sits at fitted means near 30 to 100,
+the other types near 1; five labelled injected cells lie above 3. Panel
+b: a normal QQ plot on which the points follow the identity line except
+the five injected cells at the top. Panel c: standardised Pearson
+residual against leverage on a log scale; each type forms its own band,
+from leverage near 0.0005 for the largest type to near 0.04 for the rare
+type; the two rare-type doublets sit at high leverage with residuals
+near 6, just inside the dashed Cook 0.5 contour, while three large-type
+outliers have residuals of 6 to 7 at leverage below 0.001, far from the
+contours. Panel d: Cook's distance against leverage ratio on log-log
+axes with dotted lines of equal residual; the doublets and the
+large-type outliers lie near the same residual line of 6, and the
+doublets have a Cook's distance 40 to 80 times
+larger.](figures/fig_03_1_influence_cells.svg)
+
+Figure 5: Leverage and influence of cells in the one-way
+negative-binomial GLM M_1 of [Equation 6](#eq-fs-nb-main), simulated for
+one gene (J=4 types of 2,000, 300, 60 and 25 cells; log-normal size
+factors, standard deviation 0.5 on the log scale; \psi_g=5; type means
+per unit depth 1, 2, 0.5 and 30; seed 20261101). Colours: type 1 grey,
+type 2 green, type 3 blue, type 4 (rare, high-expression marker) orange.
+Triangles D1 and D2: doublet-like type-4 cells with counts four times
+their fitted mean; squares O1–O3: type-1 cells with counts eight times
+theirs. (a) Randomised quantile residual (Dunn & Smyth 1996) against the
+fitted mean \hat m\_{gc} (log scale); dotted lines at \pm3. (b) Normal
+QQ plot of the randomised quantile residuals, with the line y=x. (c)
+Standardised Pearson residual against the leverage h\_{gc} (log scale),
+with the Cook’s-distance contours
+r^{\mathrm{SP}}=\pm\sqrt{0.5\\J(1-h)/h} (dashed) and \pm\sqrt{J(1-h)/h}
+(solid). (d) Cook’s distance against h/(1-h), both on log scales; dotted
+lines of equal \|r^{\mathrm{SP}}\| (1, 2, 3, 6); dashed line at 4/C;
+values below 10^{-6} are drawn on the lower edge. Cook’s distance uses
+\phi=1, as
+[`cooks.distance()`](https://rdrr.io/r/stats/influence.measures.html)
+does for a [`MASS::glm.nb`](https://rdrr.io/pkg/MASS/man/glm.nb.html)
+fit; the Pearson estimate \hat\phi=1.007 changes it by under 1 %. Code:
+`scripts/figures/fig_03_1_influence.R`.
+
+**Genes.** At the level of the bulk, the observations are genes: regress
+the bulk per cell \tilde y\_{gi} on the reference signature, the row
+\hat{\tilde{\boldsymbol\mu}}\_{g\cdot}, by weighted least squares with
+weights 1/\tau_g^{2}, \tau_g^{2} the variance of the bulk residual of
+gene g. With \boldsymbol{X} the G\times J matrix of reference means and
+\boldsymbol{W}=\operatorname{diag}(1/\tau_g^{2}),
+
+h_g=\frac{\hat{\tilde{\boldsymbol\mu}}\_{g\cdot}^{\top}\bigl(\boldsymbol{X}^{\top}\boldsymbol{W}\boldsymbol{X}\bigr)^{-1}\hat{\tilde{\boldsymbol\mu}}\_{g\cdot}}{\tau_g^{2}},
+\qquad \mathrm{Cook}\_g=\frac{r_g^{2}}{J}\\\frac{h_g}{1-h_g}, \tag{10}
+
+with r_g the standardised residual of gene g. h_g depends on the scaled
+row \hat{\tilde{\boldsymbol\mu}}\_{g\cdot}/\tau_g. When \tau_g grows in
+proportion to the level of the gene, the level cancels and the leverage
+follows the direction of the gene’s profile across types, not its level.
+In [Figure 6](#fig-fs-influence-genes) the markers of the rarest type
+and a high-mean gene with a rare-type profile have the highest leverage,
+0.024 to 0.044. A gene with a mean 50 times the median and an ordinary
+profile has a leverage of 0.017, against 0.70 in an unweighted fit. All
+of these genes have small residuals and a Cook’s distance below 0.021.
+The ten platform-discordant genes (\tilde b_g=4) have residuals of 2.9
+to 10.3; the largest Cook’s distances, 0.48 and 0.33, combine a residual
+near 10 with a leverage near 0.02. The discordant genes also inflate the
+residual variance of the fit, from 0.96 to 3.35, which shrinks every
+standardised residual.
+
+![Four scatter panels of 500 simulated genes. Panel a: standardised
+residuals against the fitted bulk value on a log scale; most genes sit
+in a band around zero, ten orange discordant genes lie between 3 and 10,
+and two blue high-mean genes sit at the far right with small negative
+residuals. Panel b: a normal QQ plot in which the bulk of genes follows
+a solid quartile line flatter than the dotted identity line, and the ten
+discordant genes rise far above both at the top right. Panel c:
+standardised residual against leverage on a log scale; green rare-type
+markers and the blue rare-type gene E2 have the highest leverage, near
+0.03 to 0.04, with residuals near zero; the discordant genes span
+leverages from 0.0015 to 0.018, and d9, with the largest residual, sits
+just inside the dashed Cook 0.5 contour. Panel d: Cook's distance
+against leverage ratio on log-log axes with dotted lines of equal
+residual; the discordant genes lie above the 4/G line except one, the
+high-leverage consistent genes lie below
+it.](figures/fig_03_1_influence_genes.svg)
+
+Figure 6: Leverage and influence of genes in the weighted least-squares
+regression of a bulk profile on the reference signature (G=500 genes,
+J=4 types, log-normal signature means with standard deviation 1.2 on the
+log scale, composition \boldsymbol p=(0.5,0.3,0.15,0.05); seed
+20261101). The bulk per cell is \tilde b_g\sum_jp_j\tilde\mu\_{gj} plus
+Gaussian noise of variance \tau_g^2, which is 100 times the variance of
+the mean of a negative-binomial cell mixture over n=10^4 cells plus the
+sampling variance of reference means from C_j=2000,300,60,25 cells. The
+fit uses weights 1/\tau_g^2, no intercept and no constraint;
+\hat{\boldsymbol p} is interior, so non-negative least squares gives the
+same fit. Orange triangles d1–d10: platform-discordant genes with \tilde
+b_g=4. Blue squares: two consistent genes whose mean over types is 50
+times the median, E1 with an ordinary profile and E2 with a type-4
+profile. Green: consistent genes with at least 80 % of their signature
+in type 4. Grey: other genes. (a) Standardised residual against the
+fitted bulk value (log scale); dotted lines at \pm3. (b) Normal QQ plot
+of the standardised residuals, with the quartile line (solid) and y=x
+(dotted); the discordant genes raise the residual variance to 3.35, so
+the other genes follow a line of slope below 1. (c) Standardised
+residual against the leverage h_g (log scale), with Cook’s-distance
+contours 0.5 (dashed) and 1 (solid). (d) Cook’s distance against
+h/(1-h), both on log scales; dotted lines of equal \|r\| (1, 2, 3, 6);
+dashed line at 4/G; values below 10^{-7} are drawn on the lower edge.
+Code: `scripts/figures/fig_03_1_influence.R`.
+
+Two rules follow from [Table 3](#tbl-fs-leverage-residual) and the two
+figures. A cell or a gene is flagged only when both its leverage and its
+standardised residual are large; neither a fixed Cook cut (0.5 or 1
+flags nothing in either figure) nor 4/C or 4/G alone separates the
+injected outliers from consistent high-leverage observations. Rules that
+shrink by size alone, such as residual clipping or SCDC’s clipping of
+variance weights at the 15th and 85th percentiles ([Dong et al. 2021,
+10](#ref-dongSCDCBulkGene2021)), shrink the informative high-leverage
+observations together with the harmful ones.
+
+### 4.2 Bulk consistency filter
+
+Two statistics compare one bulk sample i with the reference. The first
+does not need the composition. RNA-Sieve writes its range filter as a
+probability ([Erdmann-Pham et al.
+2021](#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021), Eq. 12,
+PDF p. 11, Genome Res. p. 1804):
+
+\mathbb{P}\bigl(\delta^{\mathrm{R}}\_g\ge t\bigr), \qquad
+\delta^{\mathrm{R}}\_g =\inf\Bigl\\\lvert\tilde y\_{gi}-a\rvert:\\
+\min\_{j}\hat{\tilde\mu}\_{gj}\le
+a\le\max\_{j}\hat{\tilde\mu}\_{gj}\Bigr\\, \tag{11}
+
+the distance of the bulk per cell to the range of the reference means.
+The paper states only that this probability “decays in t with
+sub-Gaussian tails”, with constants that depend on the type variances,
+and that computing “the precise tail bounds” requires the true
+composition; it prints no constant. The second statistic uses a
+composition \hat{\boldsymbol p}\_{\cdot i} and the scale a_i:
+
+D\_{gi}=\frac{\tilde y\_{gi}}{a_i}-\sum\_{j=1}^{J}\hat
+p\_{ji}\\\hat{\tilde\mu}\_{gj}, \qquad S_M=\sum\_{g\in
+M}\frac{D\_{gi}}{\operatorname{sd}D\_{gi}}, \tag{12}
+
+with S_M its standardised sum over a gene module M. Under a consistent
+platform D\_{gi} is centred at 0; a gene-wise ratio \tilde b_g\neq1
+shifts it by (\tilde b_g-1)\sum_jp\_{ji}\tilde\mu\_{gj}. A gene is
+flagged when \lvert D\_{gi}\rvert exceeds a threshold t\_{\alpha} that a
+consistent gene exceeds with probability at most \alpha. The thresholds
+come from concentration inequalities, recalled without proof in three
+notes, and from five tail statements
+([Section 4.2.1](#sec-fs-five-bounds)).
+
+> **Note 1: Sub-exponential variables**
+>
+> Vershynin’s Proposition 2.8.1 (2nd ed., p. 44) states that, for a
+> random variable X, the following properties are equivalent, with
+> parameters \eta_i\>0 that differ by at most an absolute constant
+> factor TODO-cite: Vershynin, High-Dimensional Probability, 2nd ed.,
+> Cambridge University Press:
+>
+> - **(i) Tails.** \mathbb{P}\\\lvert X\rvert\ge t\\\le2\exp(-t/\eta_1)
+>   for all t\ge0.
+> - **(ii) Moments.** (\operatorname{E}\lvert
+>   X\rvert^{\nu})^{1/\nu}\le\eta_2\\\nu for every moment order \nu\ge1.
+> - **(iii) MGF of \lvert X\rvert.** \operatorname{E}\exp(\lvert
+>   X\rvert/\eta_3)\le2.
+> - **(iv) MGF.** If \operatorname{E}X=0, (i)–(iii) are also equivalent
+>   to \operatorname{E}\exp(uX)\le\exp(\eta_4^{2}u^{2}) for all \lvert
+>   u\rvert\le1/\eta_4.
+>
+> Property i implies property j with \eta_j\le\gamma'\eta_i for an
+> absolute constant \gamma' (footnote 7). The sub-exponential norm is
+> the smallest \eta_3 in (iii) (Definition 2.8.4, Eq. 2.25, p. 45):
+>
+> \lVert X\rVert\_{\psi_1}=\inf\bigl\\\eta\>0:\\
+> \operatorname{E}\exp(\lvert X\rvert/\eta)\le2\bigr\\. \tag{13}
+>
+> Centring costs an absolute constant, \lVert
+> X-\operatorname{E}X\rVert\_{\psi_1}\le\gamma'\lVert X\rVert\_{\psi_1}
+> (Eq. 2.26, p. 46). Bounded variables are sub-Gaussian, and
+> sub-Gaussian variables are sub-exponential (Remark 2.8.8, p. 46). A
+> product of two sub-Gaussian variables is sub-exponential (Lemma
+> 2.8.6), so sample variances and covariances, the inputs of
+> [3.2](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.md),
+> concentrate as Bernstein’s inequality describes, not Hoeffding’s (our
+> remark).
+>
+> **NB counts.** Let X follow an NB law with mean m and size \psi,
+> \mathbb{P}(X=x)=\binom{x+\psi-1}{x}\pi^{x}(1-\pi)^{\psi} for
+> x\in\\0,1,\dots\\, \pi=m/(m+\psi) and variance m+m^{2}/\psi (the law
+> of [Equation 3](#eq-fs-nb-null) with m=m\_{gc}, \psi=\psi_g). Its
+> moment generating function is (our derivation)
+>
+> M(u) =\operatorname{E}e^{uX} =\Bigl(\frac{1-\pi}{1-\pi
+> e^{u}}\Bigr)^{\psi}, \qquad u\<-\log\pi , \tag{14}
+>
+> and it is infinite for u\ge-\log\pi. Finite in an open interval around
+> 0, it gives property (iii) for the centred NB, which is therefore
+> sub-exponential (our derivation). It is not sub-Gaussian: a
+> sub-Gaussian variable has a finite moment generating function at every
+> u, and [Equation 14](#eq-fs-nb-mgf) diverges at -\log\pi. On the log
+> scale the tail \mathbb{P}(X\ge x) is linear in x, not quadratic.
+> Vershynin’s list of sub-exponential laws contains the Poisson and the
+> geometric but not the NB (Example 2.8.7, p. 46). For an integer \psi
+> the NB is a sum of \psi geometric variables;
+> [Equation 14](#eq-fs-nb-mgf) covers every \psi\>0.
+
+> **Note 2: Hoeffding’s inequality**
+>
+> Let X_1,\dots,X_n be independent, and let X\_\nu take its values in an
+> interval of length A\_\nu. Then, for every t\>0,
+> \mathbb{P}\\\sum\_{\nu}(X\_\nu-\operatorname{E}X\_\nu)\ge
+> t\\\le\exp(-2t^{2}/\sum\_{\nu}A\_\nu^{2}), and the same bound holds
+> for the lower tail (Vershynin, Theorem 2.2.6, p. 30; Mohri,
+> Rostamizadeh & Talwalkar 2012, Theorem D.1, p. 370) TODO-cite: Mohri,
+> Rostamizadeh & Talwalkar 2012, Foundations of Machine Learning, MIT
+> Press, Appendix D (book pp. 369-378). The variables must be bounded
+> and independent. The bound uses the ranges, not the variances.
+
+RNA-Sieve’s likelihood rests on “the classical CLT … as long as
+\operatorname{Var}(\nu\_{g,k})\<\infty, which is true because gene
+expression profiles are necessarily bounded” (PDF p. 10, Genome Res.
+p. 1803). A central limit theorem gives no tail bound at finite sample
+size; the sub-Gaussian claim follows from boundedness. With the
+expression of gene g in one cell in \[0,A_g\], Hoeffding’s inequality
+for the means of the n_i bulk cells and of the C_j reference cells, and
+a union bound, give (our derivation)
+
+\mathbb{P}\bigl(\delta^{\mathrm{R}}\_g\ge t\bigr) \\\le\\
+2\exp\Bigl(-\frac{n_i\\t^2}{2A_g^2}\Bigr)
++2\sum\_{j=1}^{J}\exp\Bigl(-\frac{C_j\\t^2}{2A_g^2}\Bigr), \tag{15}
+
+because the expected bulk lies in the range of the expected type means
+([Equation 8](#eq-fs-range)), so \delta^{\mathrm{R}}\_g\ge t requires a
+deviation of at least t/2 of the bulk mean or of one reference mean.
+Like the paper’s model, the bound treats the bulk as n_i independent
+cells; it is conservative. Counts have no bound A_g.
+
+> **Note 3: Bernstein’s inequality**
+>
+> **Sub-exponential form** (Vershynin, Theorem 2.9.1, p. 47). Let
+> X_1,\dots,X_n be independent, mean-zero, sub-exponential. Then, for
+> every t\ge0,
+>
+> \mathbb{P}\Bigl\\\Bigl\lvert\sum\_{\nu=1}^{n}X\_\nu\Bigr\rvert\ge
+> t\Bigr\\ \le
+> 2\exp\Bigl\[-\gamma\min\Bigl(\frac{t^{2}}{\sum\_{\nu}\lVert
+> X\_\nu\rVert\_{\psi_1}^{2}},\\ \frac{t}{\max\_\nu\lVert
+> X\_\nu\rVert\_{\psi_1}}\Bigr)\Bigr\], \tag{16}
+>
+> where \gamma\>0 is an absolute constant that the theorem does not
+> give. The bound “has *two tails* – gaussian and exponential” (Remark
+> 2.9.3, p. 48): Gaussian for small deviations and exponential for large
+> ones, where a single dominant term drives the tail (Remark 2.9.4,
+> p. 48).
+>
+> **Bounded form, explicit constants** (Vershynin, Theorem 2.9.5,
+> p. 49). If moreover \lvert X\_\nu\rvert\le A for all \nu, then
+> \mathbb{P}\\\lvert\sum\_\nu X\_\nu\rvert\ge
+> t\\\le2\exp\bigl(-\tfrac{t^{2}/2}{\operatorname{Var}(\sum\_\nu
+> X\_\nu)+At/3}\bigr). Mohri et al. state the one-sided version for the
+> mean, with X\_\nu\le A from above only (Exercise D.4, Eq. D.25,
+> p. 378); with t equal to n times the deviation of the mean, it is the
+> same bound. Unlike Hoeffding’s, this bound uses the variance.
+
+Apply [Equation 16](#eq-fs-bernstein) to the centred cell counts. Let
+L_0 be the \psi_1 norm of the centred count of gene g in one bulk cell,
+and L_j that of one reference cell of type j. The union bound behind
+[Equation 15](#eq-fs-range-tail) then gives (our derivation)
+
+\mathbb{P}\bigl(\delta^{\mathrm{R}}\_g\ge t\bigr) \le
+2\exp\Bigl\[-\gamma\\n_i\min\Bigl(\frac{t^{2}}{4L_0^{2}},\frac{t}{2L_0}\Bigr)\Bigr\]
++2\sum\_{j=1}^{J}\exp\Bigl\[-\gamma\\C_j\min\Bigl(\frac{t^{2}}{4L_j^{2}},\frac{t}{2L_j}\Bigr)\Bigr\].
+\tag{17}
+
+For t\le2L each term is a Gaussian tail, the shape of
+[Equation 15](#eq-fs-range-tail) with the range A_g replaced by the
+\psi_1 norm and an unknown constant; for t\ge2L it is an exponential
+tail, linear in t. Under NB counts the tail of
+[Equation 11](#eq-fs-rnasieve-12) is therefore sub-exponential in t, and
+the sub-Gaussian decay that RNA-Sieve states holds only for small t (our
+remark). A bulk cell is a mixture of types; its uncentred \psi_1 norm is
+at most the largest norm of the types, so L_0 is finite for NB types
+whatever the composition (our remark).
+
+**An explicit bound for NB cells.** The constant \gamma is unknown, so
+[Equation 17](#eq-fs-range-subexp) gives the shape of the tail but no
+threshold. For the mean \bar X of n independent NB cells with mean m and
+size \psi, Markov’s inequality applied to e^{un\bar X} and the exact
+[Equation 14](#eq-fs-nb-mgf) give the Cramér–Chernoff bounds (our
+derivation)
+
+\mathbb{P}(\bar X-m\ge t)\le e^{-nK^{\ast}(m+t)}, \qquad \mathbb{P}(\bar
+X-m\le-t)\le e^{-nK^{\ast}(m-t)}, \qquad K^{\ast}(\bar
+x)=\sup\_{u\<-\log\pi}\bigl\[u\bar x-\log M(u)\bigr\], \tag{18}
+
+for t\>0. The supremum is attained at e^{u^{\ast}}=\bar
+x(m+\psi)/\\m(\bar x+\psi)\\ and has the closed form (our derivation)
+
+K^{\ast}(\bar x)=\bar x\log\frac{\bar x(m+\psi)}{m(\bar
+x+\psi)}+\psi\log\frac{m+\psi}{\bar x+\psi}, \qquad \bar x\ge0, \tag{19}
+
+with 0\log0=0 and K^{\ast}(\bar x)=+\infty for \bar x\<0. K^{\ast} is
+convex, with K^{\ast}(m)=0 and
+K^{\ast}(0)=\psi\log(1+m/\psi)=-\log\mathbb{P}(X=0). As \psi\to\infty,
+K^{\ast}(\bar x)\to\bar x\log(\bar x/m)-\bar x+m, the Poisson rate. The
+union bound applied to \delta^{\mathrm{R}}\_g then gives, with
+K^{\ast}\_j the rate of type j and K^{\ast}\_0 that of a bulk cell,
+
+\mathbb{P}\bigl(\delta^{\mathrm{R}}\_g\ge t\bigr) \le
+\sum\_{\pm}e^{-n_iK^{\ast}\_0(\operatorname{E}\tilde y\_{g}\pm t/2)}
++\sum\_{j=1}^{J}\sum\_{\pm}e^{-C_jK^{\ast}\_j(\tilde\mu\_{gj}\pm t/2)}.
+\tag{20}
+
+For the bulk mixture, K^{\ast}\_0 has no closed form and is a
+one-dimensional numerical maximisation. Like the precise tail bounds
+RNA-Sieve mentions, [Equation 20](#eq-fs-range-chernoff) needs the true
+parameters (composition, means and sizes).
+
+#### 4.2.1 Five tail statements for the discrepancy
+
+The range distance [Equation 11](#eq-fs-rnasieve-12) does not use the
+composition and loses power through the union bound. The discrepancy
+[Equation 12](#eq-fs-discrepancy) uses it, and its law has an exact
+cumulant generating function under NB counts. The five statements below
+are exactly those implemented in
+`scripts/figures/fig_03_1_tail_bounds.R`; they are ordered by increasing
+complexity and labelled T1 to T5 as in the figures. They hold under four
+assumptions, for one gene g and one bulk sample i (index i dropped,
+D=D\_{gi}).
+
+- **(A1) Cells.** Counts of different cells are independent. A cell of
+  type j has an NB count with mean \tilde\mu\_{gj} and size \psi_g,
+  \pi\_{gj}=\tilde\mu\_{gj}/(\tilde\mu\_{gj}+\psi_g)
+  ([Equation 14](#eq-fs-nb-mgf)).
+- **(A2) Composition.** The bulk contains exactly m\_{j}=p_jn cells of
+  type j (fixed integers).
+- **(A3) Platforms.** Bulk and reference cells of type j have the same
+  law: a_i=1, no gene-wise platform ratio, no extra overdispersion. Bulk
+  and reference are independent.
+- **(A4) Known parameters.** \boldsymbol p, \tilde\mu\_{g\cdot} and
+  \psi_g are known, so \hat p_j=p_j in
+  [Equation 12](#eq-fs-discrepancy). No statement below accounts for
+  estimated parameters ([Section 4.2.3](#sec-fs-plugin)).
+
+Under (A1)–(A4), D=\tilde y\_{g}-\sum_jp_j\hat{\tilde\mu}\_{gj} is a sum
+of n independent bulk terms and C_j independent reference terms per
+type, with
+
+\operatorname{E}D=0, \qquad
+\operatorname{Var}D=\sum\_{j=1}^{J}\frac{p_j\sigma\_{gj}^2}{n}+\sum\_{j=1}^{J}\frac{p_j^2\sigma\_{gj}^2}{C_j},
+\tag{21}
+
+and cumulant generating function
+
+K_D(u)=\log\operatorname{E}e^{uD}
+=\sum\_{j=1}^{J}m\_{j}K\_{gj}\Bigl(\frac{u}{n}\Bigr)
++\sum\_{j=1}^{J}C_jK\_{gj}\Bigl(-\frac{u\\p_j}{C_j}\Bigr), \qquad
+K\_{gj}(u)=-\psi_g\log\Bigl(1-\frac{\tilde\mu\_{gj}}{\psi_g}\bigl(e^{u}-1\bigr)\Bigr),
+\tag{22}
+
+K\_{gj} the per-cell cumulant generating function of type j
+([Equation 14](#eq-fs-nb-mgf)), defined for u\_-\<u\<u\_+ with
+u\_+=n\min_j(-\log\pi\_{gj}) and u\_-=\max_jC_j\log\pi\_{gj}/p_j\<0. K_D
+is convex with K_D(0)=K_D'(0)=0. Its Legendre transforms
+
+K_D^{+}(t)=\sup\_{0\<u\<u\_+}\bigl\[ut-K_D(u)\bigr\], \qquad
+K_D^{-}(t)=\sup\_{u\_-\<u\<0}\bigl\[-ut-K_D(u)\bigr\], \qquad t\>0,
+\tag{23}
+
+are computed at the root of K_D'(u)=\pm t. The threshold t\_{0.01} of a
+statement is the smallest t at which its tail probability, or its bound,
+equals \alpha/2=0.01; for a Chernoff bound this means
+K_D^{\pm}(t\_{0.01})=\log100. The reference means are averages over few
+cells, so the reference term dominates the third cumulant of D and D is
+left-skewed in the simulation (skewness -0.08 and -0.06): its lower tail
+is the heavier one.
+
+**Modules.** For a module M of \lvert M\rvert genes, two further
+assumptions describe the dependence between genes. Let
+\mathcal{H}=(M,\mathcal{E}) be a gene graph with maximal degree
+d\_{\max} and mean degree \bar d=2\lvert\mathcal{E}\rvert/\lvert
+M\rvert.
+
+- **(A5) Within-cell correlation.** In one cell of any type, the counts
+  of genes g and h have correlation \varrho when (g,h)\in\mathcal{E} and
+  0 otherwise; different cells are independent.
+- **(A6) Dependency graph.** Sets of genes with no edge between them
+  have independent counts in every cell. Genes of an independent set of
+  \mathcal{H} are then mutually independent.
+
+With c\_{ghj}=\varrho\\\sigma\_{gj}\sigma\_{hj} on an edge, and since
+bulk and reference are independent,
+
+\operatorname{Cov}(D_g,D_h)=\sum\_{j=1}^{J}\frac{p_j\\c\_{ghj}}{n}+\sum\_{j=1}^{J}\frac{p_j^2\\c\_{ghj}}{C_j},
+\qquad \operatorname{Var}S_M=\lvert
+M\rvert+2\sum\_{(g,h)\in\mathcal{E}}\operatorname{Corr}(D_g,D_h),
+\tag{24}
+
+with S_M=\sum\_{g\in M}Z_g, Z_g=D_g/\operatorname{sd}D_g and
+\operatorname{Corr}(D_g,D_h)\le\varrho by Cauchy–Schwarz. In the
+simulation (\lvert M\rvert=20 genes, 30 edges, d\_{\max}=6, \bar d=3,
+\varrho=0.3), \operatorname{Var}S_M=37.2 against 20 for independent
+genes. The statements below were written for graphs with d\_{\max}\le10
+and \bar d\le3.
+
+> **Theorem 1 (T1, Lindeberg–Feller Gaussian approximation)**
+>
+> Under (A1)–(A4), D is a sum of independent terms that are identically
+> distributed within each of 2J groups, with finite variances, and a
+> term of type j carries at most a fraction 1/m_j (bulk) or 1/C_j
+> (reference) of \operatorname{Var}D. As every m_j and every C_j grow
+> with \boldsymbol p fixed, Lindeberg’s condition holds and
+> D/\operatorname{sd}D converges in law to \mathcal{N}(0,1). The
+> approximation used is
+>
+> \mathbb{P}(D\ge
+> t)\approx1-\Phi\Bigl(\frac{t}{\operatorname{sd}D}\Bigr), \qquad
+> \mathbb{P}(D\le-t)\approx\Phi\Bigl(-\frac{t}{\operatorname{sd}D}\Bigr),
+> \qquad t\_{0.01}=z\_{0.99}\operatorname{sd}D, \tag{25}
+>
+> with z\_{0.99}=2.326 and \operatorname{sd}D from
+> [Equation 21](#eq-fs-var-d). It is an approximation, not a bound: no
+> error term is evaluated, and it is symmetric in the two tails.
+
+RNA-Sieve’s likelihood rests on this Gaussian approximation
+([Erdmann-Pham et al.
+2021](#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021), Eqs 5, 7,
+9). The Lindeberg argument above is ours and is not machine-checked.
+
+> **Corollary 1 (T1-log, log-normal approximation of the ratio)**
+>
+> Let R=\tilde y\_{g}\big/\sum_jp_j\hat{\tilde\mu}\_{gj} and
+> \bar\mu_g=\sum_jp_j\tilde\mu\_{gj}, with \tilde y_g\>0. To first order
+> (delta method), \log R\approx D/\bar\mu_g and \operatorname{Var}\log
+> R\approx\operatorname{Var}D/\bar\mu_g^{2}. Taking \log R Gaussian and
+> centred at 0, and replacing the random denominator by \bar\mu_g, gives
+> the thresholds
+>
+> t\_{0.01}^{+}=\bar\mu_g\bigl(e^{z\_{0.99}\operatorname{sd}D/\bar\mu_g}-1\bigr),
+> \qquad
+> t\_{0.01}^{-}=\bar\mu_g\bigl(1-e^{-z\_{0.99}\operatorname{sd}D/\bar\mu_g}\bigr).
+> \tag{26}
+>
+> It is an approximation in three steps (delta method, normality of \log
+> R without the -\operatorname{Var}\log R/2 shift, fixed denominator),
+> not a bound.
+
+The log-ratio form matches RNA-Sieve’s bulk-to-reference ratio, one of
+its four MAD statistics; RNA-Sieve itself prints no log-scale central
+limit theorem. Gibrat’s law does not apply: it gives a log-normal limit
+for a *product* of many independent factors, and a bulk is a *sum* of
+cells. The log-normal shape here comes only from the delta method. In
+the simulation the variance step is accurate (Monte Carlo
+\operatorname{sd}\log R=0.0601 against 0.0600 from the formula for the
+low-expression gene), but the shape is not: the approximation implies a
+right-skewed ratio, whereas D is left-skewed, so T1-log errs on the
+anti-conservative side in the lower tail.
+
+> **Theorem 2 (T2, Gaussian approximation on a dependency graph)**
+>
+> Under (A1)–(A6), \mathcal{H} is a dependency graph for (Z_g)\_{g\in
+> M}, and the approximation used is
+>
+> \mathbb{P}(S_M\ge t)\approx1-\Phi\Bigl(\frac{t}{\sigma_S}\Bigr),
+> \qquad \mathbb{P}(S_M\le-t)\approx\Phi\Bigl(-\frac{t}{\sigma_S}\Bigr),
+> \tag{27}
+>
+> with \sigma_S^2=\operatorname{Var}S_M of
+> [Equation 24](#eq-fs-module-var).
+>
+> Baldi & Rinott (1989) and Chen & Shao (2004, Theorem 2.7) bound the
+> error of this normal approximation in terms of the maximal degree and
+> of moments above the second. That error bound is not evaluated here.
+
+TODO-cite: Baldi & Rinott 1989, On normal approximations of
+distributions in terms of dependency graphs, Ann. Probab. 17(4)
+TODO-cite: Chen & Shao 2004, Normal approximation under local
+dependence, Ann. Probab. 32(3A):1985-2028,
+doi:10.1214/009117904000000450 The Gaussian approximation with
+\operatorname{Var}S_M=\lvert M\rvert, which ignores the edges, is T1 for
+the module. The bound of Chen & Shao is the result that MEAD uses for
+its central limit theorem across genes ([Section 8](#sec-fs-appendix)).
+
+> **Theorem 3 (T3, Chernoff bound with Poisson cumulant generating
+> functions)**
+>
+> Replace each K\_{gj} in [Equation 22](#eq-fs-cgf-d) by the Poisson
+> cumulant generating function \tilde\mu\_{gj}(e^{u}-1):
+>
+> K^{\mathrm{Pois}}\_D(u)=\sum\_{j=1}^{J}m\_{j}\tilde\mu\_{gj}\bigl(e^{u/n}-1\bigr)
+> +\sum\_{j=1}^{J}C_j\tilde\mu\_{gj}\bigl(e^{-up_j/C_j}-1\bigr), \qquad
+> u\in\mathbb{R}. \tag{28}
+>
+> If the counts are Poisson (\psi_g=\infty) and (A1)–(A4) hold, then for
+> t\>0, with the transforms [Equation 23](#eq-fs-legendre) of
+> K^{\mathrm{Pois}}\_D, \mathbb{P}(D\ge
+> t)\le\exp\\-K^{\mathrm{Pois},+}\_D(t)\\ and
+> \mathbb{P}(D\le-t)\le\exp\\-K^{\mathrm{Pois},-}\_D(t)\\. For a single
+> sum of n cells with mean m (no reference term), the rate has the
+> closed form n\\\bar x\log(\bar x/m)-\bar x+m\\ at \bar x=m\pm t. Under
+> NB counts the statement is not a bound: the Poisson model understates
+> the per-cell variance by the factor 1+\tilde\mu\_{gj}/\psi_g.
+
+For the module, T3 adds the transforms over genes as if they were
+independent, with the NB standard deviations in Z_g; it is then
+misspecified twice (Poisson margins, independence).
+
+> **Theorem 4 (T4, Chernoff bound with the exact NB cumulant generating
+> function)**
+>
+> Under (A1)–(A4), for every t\>0 and every n, C_j,
+>
+> \mathbb{P}(D\ge t)\le\exp\bigl\\-K_D^{+}(t)\bigr\\, \qquad
+> \mathbb{P}(D\le-t)\le\exp\bigl\\-K_D^{-}(t)\bigr\\, \tag{29}
+>
+> with K_D^{\pm} the transforms [Equation 23](#eq-fs-legendre) of the
+> exact [Equation 22](#eq-fs-cgf-d). The bound follows from Markov’s
+> inequality applied to e^{uD}; its prefactor is 1 and it has no unknown
+> constant, unlike [Equation 16](#eq-fs-bernstein) and
+> [Equation 17](#eq-fs-range-subexp).
+
+With J=1 and no reference noise (C_1=\infty), T4 reduces to
+[Equation 18](#eq-fs-nb-chernoff) with n bulk cells. For the module, T4
+sums the cumulant generating functions K\_{D_g}(u/\operatorname{sd}D_g)
+over genes: it is a finite-sample bound if the genes are independent,
+and it is not under (A5) with \varrho\>0.
+
+> **Theorem 5 (T5, NB Chernoff bound after a proper colouring, after
+> Janson)**
+>
+> Under (A1)–(A4) for every gene and (A6), let
+> \mathcal{M}\_1,\dots,\mathcal{M}\_{\chi_G} be a proper colouring of
+> \mathcal{H}, that is a partition of M into \chi_G classes with no edge
+> inside a class. One exists with
+>
+> \chi_G\le\bar\chi_G=\min\Bigl(d\_{\max}+1,\\
+> \frac{1+\sqrt{8\lvert\mathcal{E}\rvert+1}}{2}\Bigr). \tag{30}
+>
+> By convexity of the exponential and independence within each class,
+> for every u in the domain,
+>
+> \operatorname{E}e^{uS_M}
+> \le\frac{1}{\chi_G}\sum\_{c=1}^{\chi_G}\prod\_{g\in\mathcal{M}\_c}\operatorname{E}e^{\chi_GuZ_g}
+> =\exp\bar K_S(u), \qquad \bar
+> K_S(u)=\log\Bigl(\frac{1}{\chi_G}\sum\_{c=1}^{\chi_G}\exp\sum\_{g\in\mathcal{M}\_c}K\_{D_g}\Bigl(\frac{\chi_Gu}{\operatorname{sd}D_g}\Bigr)\Bigr),
+> \tag{31}
+>
+> and therefore, for t\>0,
+>
+> \mathbb{P}(S_M\ge t)\le\inf\_{u\>0}\exp\\-ut+\bar K_S(u)\\, \qquad
+> \mathbb{P}(S_M\le-t)\le\inf\_{u\<0}\exp\\ut+\bar K_S(u)\\, \tag{32}
+>
+> with \chi_Gu/\operatorname{sd}D_g inside the domain of every K\_{D_g}.
+> The bound holds for any dependence between colour classes, does not
+> use \varrho, and has no unknown constant.
+
+TODO-cite: Janson 2004, Large deviations for sums of partly dependent
+random variables, Random Struct. Algorithms 24(3), doi:10.1002/rsa.20008
+Both degree conditions enter through \chi_G: the maximal degree through
+d\_{\max}+1, the number of edges, hence the mean degree, through the
+second term of [Equation 30](#eq-fs-colouring). The greedy colouring
+with vertices in decreasing degree order (Welsh & Powell 1967)
+TODO-cite: Welsh & Powell 1967, An upper bound for the chromatic number
+of a graph, Comput. J. 10(1) attains both bounds (our remark); in the
+simulation it uses \chi_G=3 classes of 8, 7 and 5 genes, against
+\bar\chi_G=7. The price of the colouring is the factor \chi_G inside the
+argument: near u=0, \bar K_S(u)\approx \chi_G\lvert M\rvert u^{2}/2, an
+effective variance of 60 against \operatorname{Var}S_M=37.2. Janson
+(2004) states the bound for fractional covers by independent sets with
+weights; the equal-weight proper colouring is the special case used here
+(this remark is not checked against the paper). The dependent Bernstein
+inequality of Zhang & Li, used by DECALS, has a constant equal to
+\bar\chi_G and an unknown absolute constant in the exponent
+([Equation 39](#eq-fs-bernstein-dep), [Section 8](#sec-fs-appendix)).
+
+#### 4.2.2 Comparing the statements
+
+[Figure 7](#fig-fs-bounds-gene) and [Figure 8](#fig-fs-bounds-module)
+compare the statements with Monte Carlo tails for a bulk of n=10^4 cells
+with \boldsymbol p=(0.6,0.3,0.1), a reference with C_j=2000,300,30 cells
+and NB counts with \psi_g=2, all parameters known.
+[Table 4](#tbl-fs-thresholds) reads the thresholds at the common level
+\alpha/2=0.01 per side.
+
+![Four panels of tail probability on a log scale, from 1 down to 10 to
+the minus 5, against the deviation t. Top row: low-expression gene, t
+from 0 to about 0.09. Bottom row: high-expression gene, t from 0 to
+about 4. Left column: lower tail; right column: upper tail. A thick grey
+Monte Carlo curve falls from 0.5. The dark blue Gaussian curve and the
+dashed light blue log-normal curve run close to it; in the lower-tail
+panels both lie slightly to the left of the grey curve, in the
+upper-tail panels to its right. The green negative-binomial Chernoff
+curve starts at 1 and stays to the right of the grey curve in all
+panels. The orange Poisson Chernoff curve lies between the grey and
+green curves for the low-expression gene, approaching the grey one in
+the far upper tail, and drops steeply far to the left of all others for
+the high-expression gene. A dotted horizontal line at 0.01 carries one
+dot per curve at its threshold and a black diamond at the Monte Carlo
+threshold.](figures/fig_03_1_tail_bounds_gene.svg)
+
+Figure 7: Tail probabilities of the discrepancy D\_{gi} of
+[Equation 12](#eq-fs-discrepancy) for one gene, under (A1)–(A4):
+n_i=10^4 bulk cells of fixed composition \boldsymbol p=(0.6,0.3,0.1),
+reference with C_j=2000,300,30 cells, NB counts with size \psi_g=2.
+Rows: low expression, \tilde\mu\_{g\cdot}=(0.2,0.6,0.1), and high
+expression, (20,60,10); the t axes differ between rows. Columns: lower
+tail \mathbb P(D\le-t) and upper tail \mathbb P(D\ge t), log scale. Grey
+band: Monte Carlo with exact NB sums (4\times10^6 replicates). T1,
+Gaussian approximation ([Theorem 1](#thm-fs-clt), dark blue); T1-log,
+log-normal approximation of the ratio ([Corollary 1](#cor-fs-clt-log),
+light blue, dashed); T3, Poisson Chernoff ([Theorem 3](#thm-fs-poisson),
+orange); T4, NB Chernoff ([Theorem 4](#thm-fs-nb), green). Dotted line:
+\alpha/2=0.01; dots mark each statement’s threshold t\_{0.01}, the
+diamond the Monte Carlo threshold. Code:
+`scripts/figures/fig_03_1_tail_bounds.R`.
+
+![Two panels of tail probability on a log scale, from 1 down to 10 to
+the minus 4, against the deviation t of the module sum, from 0 to about
+35. Left: lower tail; right: upper tail; the two panels look almost the
+same. A thick grey Monte Carlo curve falls from 0.5 and is overlaid by
+the solid blue dependent Gaussian curve. Below 0.01 the three dashed
+curves for independent genes lie to the left of the grey curve: blue
+Gaussian, orange Poisson Chernoff, and green negative-binomial Chernoff,
+which starts at 1 and crosses the grey curve just above 0.01. The solid
+green colouring bound lies far to the right of all other curves. A
+dotted horizontal line at 0.01 carries one dot per curve at its
+threshold and a black diamond at the Monte Carlo threshold, at t about
+14.](figures/fig_03_1_tail_bounds_module.svg)
+
+Figure 8: Tail probabilities of the module sum S_M of
+[Equation 12](#eq-fs-discrepancy) for \lvert M\rvert=20 genes, with the
+setting of [Figure 7](#fig-fs-bounds-gene). Type means are log-normal
+around the two genes of [Figure 7](#fig-fs-bounds-gene) (ten genes each,
+log-scale standard deviation 0.5). Counts of two genes in one cell have
+correlation \varrho=0.3 when the genes share an edge of a random gene
+graph (30 edges, maximal degree 6, mean degree 3), and zero otherwise.
+Left: lower tail; right: upper tail, log scale. Grey band: Monte Carlo
+(5\times10^5 replicates) with a Gaussian copula on the NB totals of each
+type, drawn independently for the bulk and the reference; the margins
+are exact, but the copula on the totals only approximates the joint law
+of the sums. Dashed curves assume independent genes: T1, Gaussian with
+\operatorname{Var}S_M=20 (blue); T3, Poisson Chernoff (orange); T4, NB
+Chernoff (green). Solid curves account for the dependence: T2, Gaussian
+with \operatorname{Var}S_M=37.2 of [Equation 24](#eq-fs-module-var)
+([Theorem 2](#thm-fs-dep-clt), blue; Monte Carlo variance 37.2); T5, NB
+Chernoff bound after a colouring into \chi_G=3 classes
+([Theorem 5](#thm-fs-nb-dep), green). Dotted line: 0.01; dots:
+thresholds t\_{0.01}; diamond: Monte Carlo threshold. Code:
+`scripts/figures/fig_03_1_tail_bounds.R`.
+
+| Unit, tail | T1 | T1-log | T2 | T3 | T4 | T5 | Monte Carlo \[95 % interval\] |
+|----|----|----|----|----|----|----|----|
+| low gene, lower | 0.0433 (0.98) | 0.0404 (0.91) | — | 0.0525 (1.19) | 0.0588 (1.33) | — | 0.0443 \[0.0442, 0.0444\] |
+| low gene, upper | 0.0433 (1.03) | 0.0465 (1.10) | — | 0.0492 (1.17) | 0.0543 (1.29) | — | 0.0422 \[0.0421, 0.0422\] |
+| high gene, lower | 1.928 (0.98) | 1.870 (0.95) | — | 0.510 (0.26) | 2.595 (1.32) | — | 1.964 \[1.961, 1.967\] |
+| high gene, upper | 1.928 (1.02) | 1.990 (1.05) | — | 0.507 (0.27) | 2.440 (1.29) | — | 1.892 \[1.889, 1.894\] |
+| module, lower | 10.40 (0.73) | — | 14.19 (0.99) | 8.84 (0.62) | 13.68 (0.96) | 24.54 (1.72) | 14.30 \[14.24, 14.37\] |
+| module, upper | 10.40 (0.74) | — | 14.19 (1.01) | 8.67 (0.62) | 13.47 (0.96) | 23.92 (1.70) | 14.04 \[13.99, 14.11\] |
+
+Table 4: Thresholds t\_{0.01} of the tail statements, with the ratio to
+the Monte Carlo threshold in brackets. Low gene:
+\operatorname{sd}D=0.0186; high gene: \operatorname{sd}D=0.829. The
+Monte Carlo interval is the 95 % order-statistic interval of the
+empirical quantile. A dash means that the statement does not apply to
+that unit. Seed 20261101.
+
+Read from [Table 4](#tbl-fs-thresholds):
+
+- **Most conservative.** Per gene, T4 has the largest threshold in all
+  four panels, 1.29 to 1.33 times the Monte Carlo one. Per module, T5
+  has the largest, 1.70 to 1.72 times.
+- **Least conservative.** T3 has the smallest threshold for the
+  high-expression gene (a quarter of the Monte Carlo one) and for the
+  module. For the low-expression gene, whose variance factor
+  1+\tilde\mu\_{gj}/\psi_g is at most 1.3, T3 is the second most
+  conservative statement.
+- **Under-coverage.** A threshold below the Monte Carlo interval rejects
+  more than 1 % of consistent genes in that tail. This happens for T1
+  and T1-log in the lower tail of both genes, for T3 in both tails of
+  the high-expression gene, for T1, T3 and T4 in both tails of the
+  module, and for T2 in the lower tail of the module (0.8 % below Monte
+  Carlo). Only the two finite-sample bounds whose assumptions hold, T4
+  for one gene and T5 for a module, never under-cover.
+- **Far tail.** In a separate run with the same seed, the T4 to Monte
+  Carlo ratio falls from 1.29–1.33 at 0.01 to 1.11–1.14 at 10^{-5}, and
+  the lower-tail T1 ratio from 0.98 to 0.94–0.95: the Gaussian
+  under-coverage grows further out.
+
+**Multiplicity.** The level \alpha/2=0.01 per side is per gene. Over
+about 3,000 genes a correctly calibrated filter flags about 60
+consistent genes at this level. A Bonferroni or Benjamini–Hochberg
+correction moves the threshold into the far tail, where the Gaussian
+statements under-cover more and the Chernoff bounds come closer to the
+truth.
+
+> **Note 4: Link with non-parametric quantile regression**
+>
+> Each statement bounds or approximates the (1-\alpha/2) quantile of
+> \lvert D_g\rvert under a count model, gene by gene. Quantile
+> regression (Koenker & Bassett 1978) TODO-cite: Koenker & Bassett 1978,
+> Regression quantiles, Econometrica 46(1):33-50, doi:10.2307/1913643
+> estimates the conditional quantile Q\_{1-\alpha/2}(\tilde
+> y\_{gi}\mid\hat y\_{gi}) of the bulk given the fitted bulk \hat
+> y\_{gi}=\sum_j\hat p\_{ji}\hat{\tilde\mu}\_{gj}, pooled across genes
+> and without a count model. Conformalised quantile regression (Romano,
+> Patterson & Candès 2019) TODO-cite: Romano, Patterson & Candès 2019,
+> Conformalized quantile regression, Advances in Neural Information
+> Processing Systems 32, arXiv:1905.03222 adds a finite-sample coverage
+> guarantee under exchangeability of the genes. Genes differ in mean and
+> are correlated, so that guarantee is marginal over genes, not per
+> gene. The two approaches answer the same question with different
+> assumptions: the bounds need a correct model and known parameters, the
+> band needs exchangeable genes. The reproducibility book compares the
+> flags of all five statements with such a band on the Suppinger data.
+
+#### 4.2.3 Plug-in parameters
+
+Assumption (A4) never holds in practice. The application plugs in the
+following estimates.
+
+- **Composition.** \hat{\boldsymbol p}\_{\cdot i} comes from
+  deMixSC-style iterated weighted NNLS of \tilde y\_{gi} on the
+  reference means, with weights w\_{gi}^{-1}=\hat y\_{gi}^{2}+(\tilde
+  y\_{gi}-\hat y\_{gi})^{2}+c_w, c_w=2 ([Guo et al.
+  2023](#ref-guoDeMixSCDeconvolutionFramework2023), Eq. 4, PDF p. 12).
+  deMixSC also splits the genes into a low-discrepancy set and a
+  high-discrepancy set \mathcal{G}\_2 whose residuals are down-weighted.
+  \mathcal{G}\_2 is empty here: deMixSC builds it from a benchmark of
+  bulk and single-nucleus data from the same aliquots (PDF p. 11), which
+  a one-specimen reference lacks.
+- **Scale.** a_i is the sum of the NNLS coefficients, which estimate
+  a_ip\_{ji}; \hat{\boldsymbol p}\_{\cdot i} is the normalised
+  coefficient vector.
+- **Dispersion.** \psi_g comes from the reference fit of tier (ii), and
+  the extra overdispersion between platforms is fixed at 1 (none).
+
+With these plug-ins every statement is approximate, including T4 and T5:
+they are exact only at the true parameters. Because \hat{\boldsymbol
+p}\_{\cdot i} is fitted to the same bulk, the fitted discrepancies are
+expected to be smaller than under the true composition, so the plug-in
+thresholds should err on the conservative side for genes that do not
+drive the fit (our remark, not checked by simulation).
+
+## 5 Tier (iv): down-weighting by the model
 
 Filters remove genes; a weighted likelihood keeps them and lets their
 variance decide their influence. The reviewed methods sit on a ladder of
-noise models ([Table 2](#tbl-fs-ladder); full ladder in
+noise models ([Table 5](#tbl-fs-ladder); full ladder in
 [5.1](https://bastienchassagnol.github.io/DeCovarT/articles/05-1-review-distribution-aware.md)).
 
 | Rung | Variance of the bulk residual | Methods (anchors) |
 |----|----|----|
 | Weighted least squares | diagonal, gene-wise weights | MuSiC: bulk noise plus cross-subject variance, Eq. 10, p. 7; DWLS: fitted values, capped by a dampening constant, pp. 2, 7; SCDC: maximal-variance weights, clipped, pp. 5, 10; deMixSC: \hat y^2 plus squared residual plus a constant, p. 12; MEAD: reference variance with empirical-Bayes shrinkage, pp. 17–18 |
-| Generalised least squares | full gene–gene covariance, depends on \boldsymbol{p} | DeCovarT: \sum_jp_j^2\boldsymbol{\Sigma}\_j (population) or \sum_jp_j\boldsymbol{\Sigma}\_{W,j} (single cell); DECALS: \sum_k\pi\_{ik}^2\boldsymbol{\Sigma}\_k for inference, pp. 7, 9 |
+| Generalised least squares | full gene–gene covariance, depends on \boldsymbol{p} | DeCovarT: \sum_jp_j^2\boldsymbol{\Sigma}\_j (population) or \sum_jp_j\boldsymbol{\Sigma}\_{W,j} (single cell); DECALS: \sum_jp\_{ji}^2\boldsymbol{\Sigma}\_j for inference, pp. 7, 9 |
 | Feasible GLS | covariance estimated, then iterated with \hat{\boldsymbol{p}} | DECALS Algorithm 1, p. 9; DeCovarT plug-in \widehat{\boldsymbol{\Sigma}}\_{W,j} |
 | Sandwich / GEE | working covariance, robust variance | MEAD: sandwich over a dependence set, pp. 13, 18 |
 
-Table 2: Down-weighting classes in the reviewed methods. Page anchors
+Table 5: Down-weighting classes in the reviewed methods. Page anchors
 refer to the PDFs extracted for this review.
 
 Two observations follow.
@@ -592,16 +1745,17 @@ Two observations follow.
   noise levels differ ([Xie et al. 2026,
   17](#ref-xieStatisticalInferenceCell2026)). Once the covariance is in
   the model, hard filtering is needed only for genes outside the model’s
-  support: the presence gate ([Section 2.1](#sec-fs-presence)) and, when
-  a matched bulk exists, cross-platform outliers
-  ([Section 6.1.1](#sec-fs-cross-platform)).
+  support: the presence gate ([Section 2.2](#sec-fs-presence)) and, when
+  a matched bulk exists, the cross-platform outliers of tier
+  3.  ([Section 4](#sec-fs-cross-platform)).
 
-## 5 Selection effect on the covariance
+## 6 Selection effect on the covariance
 
 Selecting genes changes the covariance that is then estimated on them.
 
 - **Small within-type variance by construction.** A ratio such as
-  [Equation 8](#eq-fs-qlf) rewards a small within-type part. ReDeconv
+  \mathrm{SS}\_{\mathrm{B},g}/\mathrm{SS}\_{\mathrm{W},g} of
+  [Equation 5](#eq-fs-ss) rewards a small within-type part. ReDeconv
   goes further and keeps the genes with the smallest coefficient of
   variation ([Lu et al. 2025, 14](#ref-luTranscriptomeSizeMatters2025));
   MuSiC’s tree-guided stage keeps genes with small intra-cluster
@@ -615,20 +1769,81 @@ Selecting genes changes the covariance that is then estimated on them.
   effects are dropped by every univariate screen, and gene pairs whose
   signal lies in their covariance, not in their means, are then never
   examined. Covariance-aware criteria
-  ([Section 6.2.5](#sec-optimal-design),
+  ([Section 7.4.4](#sec-optimal-design),
   2.  can recover them only from a shortlist that still contains them.
+
+Screening on marginal effects first is the practice that the design of
+experiments justifies with three principles (Wu & Hamada 2021, §4.6)
+TODO-cite: Wu & Hamada 2021, Experiments: Planning, Analysis, and
+Optimization, 3rd ed., Wiley, Section 4.6 (no DOI). Effect sparsity says
+that few effects are active (Box & Meyer 1986) TODO-cite: Box & Meyer
+1986, An analysis for unreplicated fractional factorials, Technometrics
+28(1), doi:10.1080/00401706.1986.10488093. Effect hierarchy says that
+main effects are more likely to be active than two-factor interactions,
+and these more than higher-order ones. Effect heredity says that an
+interaction is active only if one (weak heredity) or both (strong
+heredity) of its parent main effects are active; it guides the analysis
+of designs with complex aliasing (Hamada & Wu 1992) and the priors of
+Bayesian variable selection with related predictors (Chipman 1996)
+TODO-cite: Hamada & Wu 1992, Analysis of designed experiments with
+complex aliasing, J. Qual. Technol. 24(3),
+doi:10.1080/00224065.1992.11979383 TODO-cite: Chipman 1996, Bayesian
+variable selection with related predictors, Can. J. Stat. 24(1),
+doi:10.2307/3315687. The marginality principle of linear models, that a
+model with an interaction should contain the main effects it involves,
+is the model-building counterpart (Nelder 1977) TODO-cite: Nelder 1977,
+A reformulation of linear models, J. R. Stat. Soc. A 140(1),
+doi:10.2307/2344517.
+
+- **Empirical support.** The principles were checked on published
+  experiments: a meta-analysis of 113 factorial data sets (Li,
+  Sudarsanam & Frey 2006) and a meta-analysis of response-surface
+  experiments (Ockuly et al. 2017) TODO-cite: Li, Sudarsanam & Frey
+  2006, Regularities in data from factorial experiments, Complexity
+  11(5), doi:10.1002/cplx.20123 TODO-cite: Ockuly et al. 2017, Response
+  surface experiments: a meta-analysis, Chemometr. Intell. Lab. Syst.
+  164, doi:10.1016/j.chemolab.2017.03.009. Their estimated frequencies
+  are not quoted here; they are to be read from the papers.
+- **Methods built on heredity.** The lasso for hierarchical interactions
+  enforces heredity as a constraint (Bien, Taylor & Tibshirani 2013),
+  and interaction screening for ultrahigh-dimensional data searches
+  interactions among the variables kept by a marginal screen (Hao &
+  Zhang 2014) TODO-cite: Bien, Taylor & Tibshirani 2013, A lasso for
+  hierarchical interactions, Ann. Stat. 41(3), doi:10.1214/13-AOS1096
+  TODO-cite: Hao & Zhang 2014, Interaction screening for
+  ultrahigh-dimensional data, J. Am. Stat. Assoc. 109,
+  doi:10.1080/01621459.2014.881741.
+- **Counter-examples.** Sure independence screening misses variables
+  that are marginally uncorrelated with the response but jointly
+  important, which motivated its iterated version (Fan & Lv 2008).
+  Genetic models can show epistasis with no main effect at all
+  (Culverhouse et al. 2002). Differential networking describes genes
+  whose connections change between conditions while their expression
+  level does not (de la Fuente 2010) TODO-cite: Fan & Lv 2008, Sure
+  independence screening for ultrahigh dimensional feature space, J. R.
+  Stat. Soc. B 70(5), doi:10.1111/j.1467-9868.2008.00674.x TODO-cite:
+  Culverhouse, Suarez, Lin & Reich 2002, A perspective on epistasis:
+  limits of models displaying no main effect, Am. J. Hum. Genet. 70(2),
+  doi:10.1086/338759 TODO-cite: de la Fuente 2010, From ‘differential
+  expression’ to ‘differential networking’, Trends Genet. 26(7),
+  doi:10.1016/j.tig.2010.05.001.
+
+Heredity is an empirical regularity, a default assumption rather than a
+theorem, and it fails precisely for covariance-only signal. A gene pair
+whose types differ only in their correlation has no parent main effect,
+so a marginal screen followed by a heredity-constrained search cannot
+find it.
 
 A practical check is to compare the distribution of v\_{gj}, and of the
 off-diagonal entries of \boldsymbol{V}\_j, between the selected panel
 and the genes that pass the presence gate.
 
-## 6 Perspectives
+## 7 Perspectives
 
-### 6.1 Cross-sample consistency
+### 7.1 Cross-sample consistency
 
-Cross-sample consistency compares a gene across specimens: subjects or
-donors of the reference, or the reference and the bulk. It needs at
-least two specimens, or a reference and a matched bulk, so a
+Cross-sample consistency compares a gene across specimens, the subjects
+or donors of the reference. It needs at least two specimens, so a
 one-specimen reference cannot assess it.
 
 - **Cross-subject variance (MuSiC).** MuSiC’s cross-subject consistency
@@ -647,333 +1862,44 @@ one-specimen reference cannot assess it.
   S6 uses them only for multi-donor references
   ([S6](https://bastienchassagnol.github.io/DeCovarT/articles/S6-feature-screening-scenario.html#sec-four-scores)).
 
-#### 6.1.1 Cross-platform consistency
+Two cell lines profiled in one experiment are the closest available
+analogue of two specimens; the reproducibility book has a sensitivity
+analysis on the two cell lines at 48 h.
 
-A gene can be a perfect cross-cell marker and still be measured
-differently by the reference and the bulk protocol. Cross-platform
-consistency is cross-sample consistency between the reference and the
-bulk, and needs a bulk that matches the reference. The reviewed methods
-handle it in four ways.
+### 7.2 Cross-technology references
 
-- **Range bound (RNA-Sieve).** Per cell, the bulk is a convex
-  combination of the type means, so on a common scale
+Two single-cell references of the same tissue from different
+technologies (droplet against plate-based, single-cell against
+single-nucleus) measure the same types with different gene-wise capture
+efficiencies b_g. Their comparison needs no composition: the type means
+can be compared type by type, so the range and discrepancy statistics of
+[Section 4.2](#sec-fs-range-tail) reduce to differences
+\hat{\tilde\mu}^{(1)}\_{gj}-\hat{\tilde\mu}^{(2)}\_{gj}, with both sides
+estimated from cells. Genes whose ratio
+\hat{\tilde\mu}^{(1)}\_{gj}/\hat{\tilde\mu}^{(2)}\_{gj} varies across
+types are inconsistent between technologies whatever the scale; a ratio
+constant across types is a gene-wise capture ratio, which MEAD’s model
+absorbs. This needs a common annotation of the types in both references.
 
-  \min\_{j}\tilde\mu\_{gj}\\\le\\\tilde
-  y\_{g}\\\le\\\max\_{j}\tilde\mu\_{gj} \tag{9}
+### 7.3 Dependent cells in a tissue
 
-  up to sampling error. RNA-Sieve removes genes whose bulk value falls
-  outside this range by more than a sub-Gaussian tail allows
-  ([Section 6.1.1.1](#sec-fs-range-tail)), and genes that are MAD
-  outliers on four summary statistics (largest type mean, largest type
-  standard deviation, largest coefficient of variation, and a
-  bulk-to-reference ratio) ([Erdmann-Pham et al. 2021,
-  11](#ref-erdmann-phamLikelihoodbasedDeconvolutionBulk2021), Eqs.
-  12–13). The bound holds for any weights on the simplex, so it does not
-  depend on whether \boldsymbol{p} or \boldsymbol{q} is the target. A
-  gene-wise platform ratio \tilde b_g far from 1 moves the bulk outside
-  the range; the filter detects that case.
+Assumption (A1) treats the cells of one bulk as independent. In a
+tissue, neighbouring cells share a microenvironment, so the counts of a
+gene in two neighbouring cells can be correlated. A neighbourhood graph
+on the cells of a bulk, gene by gene, would then play the role of the
+gene graph \mathcal{H} of [Section 4.2.1](#sec-fs-five-bounds). The
+colouring argument of [Theorem 5](#thm-fs-nb-dep) applies unchanged to
+the sum over cells: with the cells coloured into \chi_G classes of
+mutually independent cells, the moment generating function of the bulk
+total is bounded by the average over classes of products of per-cell
+terms evaluated at \chi_Gu. The dependency-graph central limit theorem
+of [Theorem 2](#thm-fs-dep-clt) applies in the same way. Spatial
+transcriptomics would supply the graph; its maximal degree sets \chi_G.
 
-- **Test against a matched benchmark (deMixSC).** A paired t-test of
-  real bulk against pseudo-bulk of the same aliquots, with BH at 0.05;
-  the discrepant genes are kept and down-weighted by a fixed factor
-  a=1000 ([Guo et al. 2023,
-  12](#ref-guoDeMixSCDeconvolutionFramework2023)).
+### 7.4 Covariance-driven (post hoc) feature selection
 
-- **Gene-wise platform ratios in the model.** MEAD lets the ratios vary
-  by gene with mean 1 ([Xie et al. 2026, 5,
-  8](#ref-xieStatisticalInferenceCell2026)); RCTD uses a gene-wise
-  platform random effect, estimated once from a pooled pseudo-bulk and
-  then fixed ([Cable et al. 2022, 3,
-  6–7](#ref-cableRobustDecompositionCell2022a)); MuSiC allows a gene-
-  and subject-specific intercept ([Wang et al. 2019,
-  7](#ref-wangBulkTissueCell2019)).
-
-- **Normalisation only.** ReDeconv applies gene-length normalisation to
-  the bulk only ([Lu et al. 2025,
-  2](#ref-luTranscriptomeSizeMatters2025)).
-
-Gene-wise ratios have a price. MEAD shows that \boldsymbol{P} is not
-identifiable when all genes are perfect markers and gene-wise ratios are
-allowed: rescaling the ratios of the markers of type j by \delta_j is
-absorbed by the proportions ([Xie et al. 2026,
-7](#ref-xieStatisticalInferenceCell2026)). The presence gate
-([Section 2.1](#sec-fs-presence)) excludes these genes. Modelling a
-gene-wise or module-wise scale \tilde b_g inside DeCovarT is a
-perspective of
-[5.3](https://bastienchassagnol.github.io/DeCovarT/articles/05-3-extensions-roadmap.md).
-
-##### 6.1.1.1 The tail bound behind the range filter
-
-RNA-Sieve writes its range filter as a probability (their Eq. 12, PDF
-p. 11, Genome Res. p. 1804), in their notation (K types, proportions
-\boldsymbol\alpha, \hat b_g the bulk expression of gene g per cell,
-\tilde m\_{g,k} the mean of the c_k reference cells of type k):
-
-\mathbb{P}^{\boldsymbol\alpha,n,c}\_{M,S}\Bigl\[\delta\Bigl(\hat
-b_g,\Bigl\[\min\_{k\in\[K\]}\tilde m\_{g,k},\\\max\_{k\in\[K\]}\tilde
-m\_{g,k}\Bigr\]\Bigr)\ge t\Bigr\], \qquad \delta(p,A)=\inf\_{a\in
-A}\lvert p-a\rvert . \tag{10}
-
-The paper states only that this probability “decays in t with
-sub-Gaussian tails (with constants depending on
-\\\sigma\_{g,k}\\\_{k\in\[K\]})”, and that computing “the precise tail
-bounds” requires the true \boldsymbol\alpha; it prints no constant. Its
-likelihood rests on “the classical CLT … as long as
-\operatorname{Var}(\nu\_{g,k})\<\infty, which is true because gene
-expression profiles are necessarily bounded” (PDF p. 10, Genome Res.
-p. 1803). A central limit theorem gives no tail bound at finite n; the
-sub-Gaussian claim follows from the boundedness. With the expression of
-gene g in \[0,B_g\], Hoeffding’s inequality and a union bound give (our
-derivation, not the paper’s)
-
-\mathbb{P}(\delta\ge t) \\\le\\ 2\exp\Bigl(-\frac{n\\t^2}{2B_g^2}\Bigr)
-+2\sum\_{k=1}^{K}\exp\Bigl(-\frac{c_k\\t^2}{2B_g^2}\Bigr), \tag{11}
-
-because b_g=\sum_k\alpha_km\_{g,k} lies in
-\[\min_km\_{g,k},\max_km\_{g,k}\], so \delta\ge t requires \lvert\hat
-b_g-b_g\rvert\ge t/2 or \lvert\tilde m\_{g,k}-m\_{g,k}\rvert\ge t/2 for
-some k. Like the paper’s model, the bound treats the bulk as n
-independent cells; it is conservative.
-
-MEAD’s asymptotics are of another kind. Its central limit theorem runs
-across genes (G\to\infty), not across cells, under local dependence: the
-noise of most genes forms a dependency graph of bounded degree
-(Assumption 4, PDF p. 11). The normal approximation is “Theorem 2.7 of
-Chen and Shao” (Lemma S4, supplement pp. S16–S17, PDF pp. 46–47),
-printed as \sum_z\lVert\mathbb{P}(W\le
-z)-\Phi(z)\rVert\le75D^{5(p-1)}\lvert V\rvert\theta^p for W=\sum\_{i\in
-V}X_i with \operatorname{E}W^2=1, \operatorname{E}X_i=0,
-\operatorname{E}\lvert X_i\rvert^p\le\theta^p and D the maximal degree.
-As printed, the range of p is not stated, and a supremum over z is
-presumably meant (Chen & Shao 2004) . Assumption 5b (PDF p. 11) asks for
-uniformly bounded moments of order 4+\delta of the bulk data, the
-reference data and the platform ratios. Fourth moments are more than a
-central limit theorem for a mean needs: MEAD’s estimator and its
-sandwich variance contain products of noise terms, and the proof bounds
-their covariances (PDF p. 40), which takes fourth moments. Bounded
-fourth moments control the variance of the quadratic terms, not only
-their mean. RNA-Sieve, by contrast, needs a finite per-cell variance for
-its CLT across cells, and boundedness for its tail.
-
-###### 6.1.1.1.1 Unbounded counts: sub-exponential tails and Bernstein’s inequality
-
-Hoeffding’s inequality in [Equation 11](#eq-fs-range-tail) needs a bound
-B_g on the expression of gene g in one cell. Counts under the negative
-binomial (NB) model of [Equation 3](#eq-fs-nb-null) have no such bound.
-Write X\sim\mathrm{NB}(r,\pi) for the number of failures before the r-th
-success, \mathbb{P}(X=x)=\binom{x+r-1}{x}\pi^{x}(1-\pi)^{r} for
-x\in\\0,1,\dots\\, with size r\>0 and \pi\in(0,1). Its mean is
-\mu=r\pi/(1-\pi) and its variance \mu+\mu^{2}/r. In the mean–dispersion
-form of [Equation 3](#eq-fs-nb-null), \mu=m\_{gc}, r=\psi_g and
-\pi=\mu/(\mu+r). The moment generating function is (our derivation)
-
-M(\lambda) =\operatorname{E}e^{\lambda X} =\Bigl(\frac{1-\pi}{1-\pi
-e^{\lambda}}\Bigr)^{r}, \qquad \lambda\<-\log\pi , \tag{12}
-
-and it is infinite for \lambda\ge-\log\pi. The domain contains an open
-interval around 0. Hence \operatorname{E}\exp(\lvert X-\mu\rvert/K)\le
-e^{-\mu/K}M(1/K)+e^{\mu/K}M(-1/K) is finite for every K\>1/(-\log\pi).
-By dominated convergence it decreases to 1 as K\to\infty, so it drops
-below 2 at some finite K. The centred NB therefore satisfies property
-(iii) below and is sub-exponential (our derivation). It is not
-sub-Gaussian: a sub-Gaussian variable has a finite moment generating
-function at every \lambda, and [Equation 12](#eq-fs-nb-mgf) diverges at
--\log\pi. Equivalently, the tail \mathbb{P}(X\ge x) decays like \pi^{x}
-up to a polynomial factor, which is linear in x on the log scale, not
-quadratic. Vershynin’s list of sub-exponential laws contains the Poisson
-and the geometric but not the NB (Example 2.8.7, p. 46) . For an integer
-r the NB is a sum of r geometric variables; [Equation 12](#eq-fs-nb-mgf)
-covers every r\>0.
-
-**Sub-exponential properties.** Vershynin’s Proposition 2.8.1 (2nd ed.,
-p. 44) reads: “Let X be a random variable. The following properties are
-equivalent, with the parameters K_i\>0 differing by at most an absolute
-constant factor.” (K_1,\dots,K_4 are his constants, not numbers of
-types; p is a moment order.)
-
-- **(i) Tails.** \mathbb{P}\\\lvert X\rvert\ge t\\\le2\exp(-t/K_1) for
-  all t\ge0.
-- **(ii) Moments.** \lVert X\rVert\_{L^p}=(\operatorname{E}\lvert
-  X\rvert^{p})^{1/p}\le K_2\\p for all p\ge1.
-- **(iii) MGF of \lvert X\rvert.** \operatorname{E}\exp(\lvert
-  X\rvert/K_3)\le2.
-- **(iv) MGF.** “Moreover, if \operatorname{E}X=0 then properties
-  (i)–(iii) are equivalent to the following one”:
-  \operatorname{E}\exp(\lambda X)\le\exp(K_4^{2}\lambda^{2}) for all
-  \lambda such that \lvert\lambda\rvert\le1/K_4.
-
-His footnote 7 states the precise meaning: “There exists an absolute
-constant C such that property i implies property j with parameter K_j\le
-CK_i”. DECALS cites the same result as “Proposition 2.7.1 in Vershynin
-(2018)”, the first edition. The numbering here follows the second
-edition. The printed proof (pp. 44–45) leaves the equivalence of
-(i)–(iii) to Exercise 2.41 and proves two implications:
-
-- **(iii)⇒(iv).** With K_3=1 and \lvert\lambda\rvert\le1/2, the
-  inequality e^{x}\le1+x+\frac{x^{2}}{2}e^{\lvert x\rvert} (Taylor’s
-  theorem with the Lagrange remainder) and \operatorname{E}X=0 give
-  \operatorname{E}e^{\lambda
-  X}\le1+\frac{\lambda^{2}}{2}\operatorname{E}X^{2}e^{\lvert\lambda
-  X\rvert} \le1+2\lambda^{2}\operatorname{E}e^{\lvert
-  X\rvert}\le1+4\lambda^{2}\le e^{4\lambda^{2}}, using
-  x^{2}\le4e^{\lvert x\rvert/2} and e^{\lvert\lambda x\rvert}\le
-  e^{\lvert x\rvert/2}. “This yields property (iv) with K_4=2.”
-- **(iv)⇒(i).** With K_4=1, Markov’s inequality at \lambda=1 gives
-  \mathbb{P}\\X\ge t\\\le e^{-t}\operatorname{E}e^{X}\le e^{1-t}, and
-  the same for -X. The union bound gives \mathbb{P}\\\lvert X\rvert\ge
-  t\\\le2e^{1-t}\le2e^{-t/3} for t\ge3/2; for t\<3/2 the right-hand side
-  exceeds 1. This “establishes property (i) with K_1=3.”
-
-The sub-exponential norm is “the smallest K_3 in property (iii)”
-(Definition 2.8.4, Eq. 2.25, p. 45):
-
-\lVert X\rVert\_{\psi_1}=\inf\bigl\\K\>0:\\ \operatorname{E}\exp(\lvert
-X\rvert/K)\le2\bigr\\. \tag{13}
-
-Two further facts are used below. Lemma 2.8.5 (p. 45): “X is subgaussian
-if and only if X^{2} is subexponential, and \lVert
-X^{2}\rVert\_{\psi_1}=\lVert X\rVert\_{\psi_2}^{2}”; more generally
-\lVert XY\rVert\_{\psi_1}\le\lVert X\rVert\_{\psi_2}\lVert
-Y\rVert\_{\psi_2} (Lemma 2.8.6). Centring costs an absolute constant,
-\lVert X-\operatorname{E}X\rVert\_{\psi_1}\le C\lVert X\rVert\_{\psi_1}
-(Eq. 2.26, p. 46). Remark 2.8.8 (p. 46) orders the classes: “X is
-bounded a.s. \Rightarrow X is subgaussian \Rightarrow X is
-subexponential”. The bounded expression assumed by RNA-Sieve and by
-[Equation 11](#eq-fs-range-tail) is therefore a special case. Sample
-variances and covariances, the inputs of
-[3.2](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.md),
-are averages of products of centred variables. By Lemmas 2.8.5–2.8.6
-these products are sub-exponential even when the variables are
-sub-Gaussian, so their concentration is a matter for Bernstein’s
-inequality, not Hoeffding’s (our remark).
-
-**DECALS.** Theorem 1 of DECALS assumes that the noise terms
-“\epsilon\_{ij}’s are sub-exponential random variables” and states that
-this “includes the negative binomial distribution that is often used to
-model read counts from RNA-seq data” ([Cai et al.
-2024](#ref-caiStatisticalInferenceCelltype2024), supplement p. 22). The
-paper gives no derivation; [Equation 12](#eq-fs-nb-mgf) supplies one.
-Its Lemma S3 (supplement p. 23) is property (ii): “For a mean zero
-sub-exponential random variable X, its moments satisfy (\mathbb{E}\lvert
-X\rvert^{p})^{1/p}\le c_1p, for all p\ge1 and some positive constant
-c_1.” In their notation p is also the number of signature genes, and
-w\_{kj} the reference mean of gene j in type k. Eq. S15 (supplement
-p. 26) applies Lemma S3 to Z\_{kj}=w\_{kj}\epsilon\_{ij}/\sqrt{p}:
-\mathbb{E}\lvert
-Z\_{kj}\rvert^{2+\sigma}\le\bigl(c_1w\_{kj}(2+\sigma)/\sqrt{p}\bigr)^{2+\sigma}
-for any \sigma\ge0. This moment bound feeds their central limit theorem
-across genes, Lemma S4, the same theorem of Chen & Shao as MEAD’s Lemma
-S4 above. DECALS’s norm in Lemma S2 is the moment form \lVert
-X\rVert\_{\psi_1}=\sup\_{p\ge1}p^{-1}(\mathbb{E}\lvert
-X\rvert^{p})^{1/p}, the smallest K_2 of property (ii). It equals
-[Equation 13](#eq-fs-psi1) up to an absolute factor.
-
-**Bernstein’s inequality.** Theorem 2.9.1 (p. 47): “Let X_1,\dots,X_N be
-independent, mean-zero, subexponential random variables. Then, for every
-t\ge0, we have”
-
-\mathbb{P}\Bigl\\\Bigl\lvert\sum\_{i=1}^{N}X_i\Bigr\rvert\ge t\Bigr\\
-\le 2\exp\Bigl\[-c\min\Bigl(\frac{t^{2}}{\sum\_{i=1}^{N}\lVert
-X_i\rVert\_{\psi_1}^{2}},\\ \frac{t}{\max_i\lVert
-X_i\rVert\_{\psi_1}}\Bigr)\Bigr\], \tag{14}
-
-“where c\>0 is an absolute constant”. Unlike Hoeffding’s inequality, it
-“has *two tails* – gaussian and exponential” (Remark 2.9.3, p. 48).
-Apply it to X_i-\mu for the mean \bar X of N=n i.i.d. cells, with
-L=\lVert X-\mu\rVert\_{\psi_1}: \mathbb{P}(\lvert\bar X-\mu\rvert\ge
-u)\le2\exp\[-c\\n\min(u^{2}/L^{2},\\u/L)\]. Let L_0 be the \psi_1 norm
-of the centred expression of gene g in one bulk cell, and L_k that of
-one reference cell of type k. The union bound and the argument with
-u=t/2 behind [Equation 11](#eq-fs-range-tail) then give (our derivation)
-
-\mathbb{P}(\delta\ge t) \le
-2\exp\Bigl\[-c\\n\min\Bigl(\frac{t^{2}}{4L_0^{2}},\frac{t}{2L_0}\Bigr)\Bigr\]
-+2\sum\_{k=1}^{K}\exp\Bigl\[-c\\c_k\min\Bigl(\frac{t^{2}}{4L_k^{2}},\frac{t}{2L_k}\Bigr)\Bigr\].
-\tag{15}
-
-The bound has two regimes; L stands for L_0 or L_k and n for n or c_k.
-For t\le2L the quadratic term is the minimum, and each term is a
-Gaussian tail \exp(-c\\n\\t^{2}/(4L^{2})): the shape of
-[Equation 11](#eq-fs-range-tail), with the range B_g replaced by the
-\psi_1 norm and an unknown constant. For t\ge2L each term is an
-exponential tail \exp(-c\\n\\t/(2L)), linear in t. In this
-large-deviation range the tail is “driven by a single dominant term”
-(Remark 2.9.4, p. 48), here one cell with a large count. Both exponents
-still grow linearly in n and c_k. Under NB counts the tail of
-[Equation 10](#eq-fs-rnasieve-12) is therefore sub-exponential in t, and
-the sub-Gaussian decay that RNA-Sieve states holds only in the small-t
-range (our remark).
-
-The bulk cell is a mixture: with probability \alpha_k it is a cell of
-type k. With uncentred norms \tilde L_k=\lVert X^{(k)}\rVert\_{\psi_1}
-and \tilde L=\max_k\tilde L_k, \operatorname{E}\exp(\lvert
-X\rvert/\tilde L)=\sum_k\alpha_k\operatorname{E}\exp(\lvert
-X^{(k)}\rvert/\tilde L)\le2, so \lVert X\rVert\_{\psi_1}\le\max_k\tilde
-L_k exactly. Centring (Eq. 2.26) then gives L_0\le C\max_k\tilde L_k,
-finite for NB types whatever \boldsymbol\alpha (our remark).
-
-**An explicit bound for NB cells.** The constant c is unspecified, so
-[Equation 15](#eq-fs-range-subexp) gives the shape of the tail but no
-threshold. For NB cells the exact moment generating function
-[Equation 12](#eq-fs-nb-mgf) gives a bound without unknown constants.
-Markov’s inequality applied to e^{\lambda n\bar X} gives the
-Cramér–Chernoff bounds (our derivation)
-
-\begin{aligned} \mathbb{P}(\bar X-\mu\ge u)
-&\le\exp\Bigl\\-n\sup\_{0\<\lambda\<-\log\pi}\Bigl\[\lambda(\mu+u)-r\log\frac{1-\pi}{1-\pi
-e^{\lambda}}\Bigr\]\Bigr\\ =e^{-nI(\mu+u)},\\ \mathbb{P}(\bar
-X-\mu\le-u)
-&\le\exp\Bigl\\-n\sup\_{\lambda\<0}\Bigl\[\lambda(\mu-u)-r\log\frac{1-\pi}{1-\pi
-e^{\lambda}}\Bigr\]\Bigr\\ =e^{-nI(\mu-u)}, \end{aligned} \tag{16}
-
-for u\>0. The supremum is attained at
-e^{\lambda^{\*}}=a(\mu+r)/\\\mu(a+r)\\ and has the closed form (our
-derivation)
-
-I(a)=a\log\frac{a(\mu+r)}{\mu(a+r)}+r\log\frac{\mu+r}{a+r}, \qquad
-a\ge0, \tag{17}
-
-with 0\log0=0 and I(a)=+\infty for a\<0. I is convex, with I(\mu)=0 and
-I(0)=r\log(1+\mu/r)=-\log\mathbb{P}(X=0). As r\to\infty, I(a)\to
-a\log(a/\mu)-a+\mu, the Poisson rate function. The same union bound
-gives
-
-\mathbb{P}(\delta\ge t) \le e^{-nI_0(b_g+t/2)}+e^{-nI_0(b_g-t/2)}
-+\sum\_{k=1}^{K}\Bigl\[e^{-c_kI_k(m\_{g,k}+t/2)}+e^{-c_kI_k(m\_{g,k}-t/2)}\Bigr\],
-\tag{18}
-
-where I_k is [Equation 17](#eq-fs-nb-rate) with the parameters of type
-k. For the bulk mixture, I_0(a)=\sup\_\lambda\\\lambda
-a-\log\sum_k\alpha_kM_k(\lambda)\\, with \lambda\<\min_k(-\log\pi_k). It
-has no closed form and is a one-dimensional numerical maximisation (our
-derivation). Like the precise tail bounds RNA-Sieve mentions,
-[Equation 18](#eq-fs-range-chernoff) needs the true parameters
-(\boldsymbol\alpha, means and sizes). With estimates plugged in it is
-approximate.
-
-**Dependent genes.** The bounds above are per gene. A statistic summed
-over the genes of a panel, such as the score in DECALS’s central limit
-theorem, needs a form for dependent terms. DECALS’s Lemma S2 (supplement
-p. 23) is Theorem 1 of Zhang and Li (2022) : for N dependent mean-zero
-sub-exponential Y_j with dependency network G(V,E),
-E=\\(j,k):Y_j\not\perp Y_k\\, maximal degree d\_{\max} and
-c_G=\min\bigl(d\_{\max}+1,\\(1+\sqrt{8\lvert E\rvert+1})/2\bigr),
-
-\mathbb{P}\Bigl(\sum\_{j=1}^{N}Y_j\ge t\Bigr) \le
-c_G\exp\Bigl\[-c\min\Bigl\\\frac{t^{2}}{c_G^{2}\sum\_{j=1}^{N}\lVert
-Y_j\rVert\_{\psi_1}^{2}},\\ \frac{t}{c_G\max_j\lVert
-Y_j\rVert\_{\psi_1}}\Bigr\\\Bigr\]. \tag{19}
-
-With no edge, d\_{\max}=0, \lvert E\rvert=0 and c_G=1: the one-sided
-form of [Equation 14](#eq-fs-bernstein) (our remark). A gene network of
-bounded degree, as DECALS assumes (\lVert\boldsymbol G_i\rVert\_{1,0}\<c
-in their Theorem 1), costs a constant factor in the prefactor and in the
-exponent.
-
-### 6.2 Covariance-driven (post hoc) feature selection
-
-The omnibus gate of tier (ii) runs before any covariance is estimated,
-gene by gene, and uses no per-type characteristic beyond the labels. The
+The gate of tier (ii) runs before any covariance is estimated, gene by
+gene, and uses no per-type characteristic beyond the labels. The
 criteria below treat the panel \mathcal{G} as a subset-selection problem
 on the full J-column signature and use the within-type covariance or
 precision matrices, so they can run only after
@@ -995,7 +1921,7 @@ also why the stage is post hoc.
 > inside the training folds
 > ([S6](https://bastienchassagnol.github.io/DeCovarT/articles/S6-feature-screening-scenario.html#sec-cv-selection)).
 
-#### 6.2.1 The ANOVA ratio is a screen, not the objective
+#### 7.4.1 The ANOVA ratio is a screen, not the objective
 
 Take J=2, one gene, the population model of DeCovarT
 ([1.2](https://bastienchassagnol.github.io/DeCovarT/articles/01-2-population-inference.html#sec-fisher-p))
@@ -1005,16 +1931,18 @@ s(p)\bigr) with s(p)=p^2+(1-p)^2, and the Fisher information for p is
 
 I_g(p) = \frac{\Delta_g^{2}}{s(p)} +
 \frac12\Bigl(\frac{s'(p)}{s(p)}\Bigr)^{2}, \qquad
-\Delta_g=\frac{\mu\_{g1}-\mu\_{g2}}{\sigma_g}. \tag{20}
+\Delta_g=\frac{\mu\_{g1}-\mu\_{g2}}{\sigma_g}. \tag{33}
 
 The second term is the same for every gene, so I_g(p) is affine in
 \Delta_g^2 with a positive slope. Computed on the scale of the model,
-the ratio [Equation 8](#eq-fs-qlf) estimates \Delta_g^2: F_g is
-non-central F\_{1,C-2} with non-centrality \tilde C\Delta_g^{2}, \tilde
-C=C_1C_2/C, so \operatorname{E}F_g\approx1+\tilde C\Delta_g^2 (exactly,
-a factor \nu/(\nu-2) with \nu=C-2 multiplies this). Ranking genes by F_g
+the one-way ANOVA ratio
+F_g=\\\mathrm{SS}\_{\mathrm{B},g}/(J-1)\\/\\\mathrm{SS}\_{\mathrm{W},g}/(C-J)\\
+estimates \Delta_g^2: F_g is non-central F\_{1,C-2} with non-centrality
+\tilde C\Delta_g^{2}, \tilde C=C_1C_2/C, so
+\operatorname{E}F_g\approx1+\tilde C\Delta_g^2 (exactly, a factor
+\nu/(\nu-2) with \nu=C-2 multiplies this). Ranking genes by F_g
 therefore ranks them by I_g(p) at every p, and with independent genes,
-whose informations add, the top-k genes by F_g maximise the total
+whose informations add, the top-ranked genes by F_g maximise the total
 information \sum\_{g\in\mathcal{G}}I_g(p). The univariate ratio is a
 screen; the objective for a panel is the Fisher information for
 \boldsymbol{p} of the whole panel. The ratio ignores:
@@ -1031,53 +1959,30 @@ screen; the objective for a panel is the Fisher information for
   residuals of a model with the right variance function
   ([Section 3.2](#sec-fs-omnibus)).
 
-#### 6.2.2 Multivariate tests
+#### 7.4.2 Multivariate tests
 
 A multivariate test would replace the G gene-wise nulls by one null on
 the vector \boldsymbol{x}\_{\cdot c}. Two routes are often confused.
 
 - **Gene-wise GEE is still gene-wise.** GEE extends the quasi-score to a
   vector of correlated observations, with a working covariance (Liang &
-  Zeger 1986) . Fitted once per gene, it still returns G p-values and
-  still needs FDR control: correlation-aware inference does not remove
-  multiplicity.
+  Zeger 1986) TODO-cite: Liang & Zeger 1986, Longitudinal data analysis
+  using generalized linear models, Biometrika 73:13-22,
+  doi:10.1093/biomet/73.1.13. Fitted once per gene, it still returns G
+  p-values and still needs FDR control: correlation-aware inference does
+  not remove multiplicity.
 - **A joint test needs \boldsymbol{\Sigma}\_j.** A Hotelling or MANOVA
   test of equal type means on the panel uses the within-type covariance,
   which is high-dimensional when C_j is not much larger than
   \|\mathcal{G}\|, as for rare types
   ([3.2](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.md)).
   With a regularised \widehat{\boldsymbol{\Sigma}}\_{W,j} such a test is
-  possible on a shortlist, but its calibration is open.
+  possible on a shortlist, but its calibration is open. PERMANOVA
+  ([Section 3.2.1](#sec-fs-calibration)) avoids the inverse covariance
+  by permuting a sum of squared distances, and a module-level version of
+  the label permutation is a candidate.
 
-#### 6.2.3 Condition number and its limits
-
-The 2-norm condition number of a design matrix,
-
-\kappa_2(\boldsymbol{X})=\frac{\sigma\_{\max}(\boldsymbol{X})}{\sigma\_{\min}(\boldsymbol{X})},
-\tag{21}
-
-is the classical panel criterion ([Section 1.2](#sec-fs-all-vs-all)).
-Note that
-\kappa_2(\boldsymbol{X}^{\top}\boldsymbol{X})=\kappa_2(\boldsymbol{X})^2.
-The criterion sees the means only.
-
-In a continuum (gastruloids, differentiation trajectories) neighbouring
-types have nearly collinear means by construction, so \kappa_2 is large
-whatever the panel, and minimising it keeps a few dominant lineages and
-drops the genes that separate neighbours through their covariance
-([Figure 4](#fig-kappa-gastruloid)). Use \kappa_2 as a diagnostic of the
-mean geometry, next to the information criteria of
-[Section 6.2.5](#sec-optimal-design). Mean-only pruning under-represents
-adjacent or low-abundance states, which are the types whose rewiring
-DeCovarT is meant to exploit.
-
-![](figures/condition_number_poor_performance_correlated_cell_types.png)
-
-Figure 4: Condition-number pruning on correlated developmental cell
-types (gastruloid continuum). Mean-only \kappa filtering can concentrate
-signal in dominant collinear lineages and shrink closely related states.
-
-##### 6.2.3.1 Variance-weighted condition number
+##### 7.4.2.1 Variance-weighted condition number
 
 With gene-wise uncertainties \tau_g^2 (biological, sampling and optional
 reference-to-bulk discrepancy), standardise the rows and evaluate the
@@ -1087,46 +1992,46 @@ conditioning in the (J-1)-dimensional contrast space induced by
 \kappa_2\bigl(\boldsymbol{T}\_{\mathcal{G}}^{-1/2}\boldsymbol{\mu}\_{\mathcal{G}}\boldsymbol{K}\bigr),
 \qquad
 \boldsymbol{T}\_{\mathcal{G}}=\operatorname{diag}(\tau_g^2)\_{g\in\mathcal{G}},
-\tag{22}
+\tag{34}
 
 where the J\times(J-1) matrix \boldsymbol{K} has orthonormal columns
 orthogonal to \mathbf{1}. Unweighted \kappa_2 can favour quiet but
-biased genes. [Equation 22](#eq-weighted-kappa) is the square root of
+biased genes. [Equation 34](#eq-weighted-kappa) is the square root of
 the condition number of the information of
-[Section 6.2.5](#sec-optimal-design) with a diagonal covariance, so it
+[Section 7.4.4](#sec-optimal-design) with a diagonal covariance, so it
 still misses the covariance-only regime in which DeCovarT identifies
 types whose means agree
 ([1.2](https://bastienchassagnol.github.io/DeCovarT/articles/01-2-population-inference.html#sec-identifiability)).
 
-#### 6.2.4 Spectral entropy of a covariance (Unico)
+#### 7.4.3 Spectral entropy of a covariance (Unico)
 
 Unico quantifies “the amount of signal coming from the covariance
-structure of a given gene” by the von Neumann entropy of “the normalized
-cell-type covariance matrix of the gene (i.e., a k\times k matrix of
-correlations between cell types)” \[Chen et al.
-([2025](#ref-chenUnicoUnifiedModelCell2025)), pp. 19–20; review in
+structure of a given gene” by the von Neumann entropy of the normalised
+J\times J matrix of correlations between cell types of that gene \[Chen
+et al. ([2025](#ref-chenUnicoUnifiedModelCell2025)), pp. 19–20; review
+in
 [5.1](https://bastienchassagnol.github.io/DeCovarT/articles/05-1-review-distribution-aware.html#sec-unico)\].
-Here k=J, and the covariance is taken across samples of the
-cell-type-specific levels of the gene. The paper prints no formula. Let
-\boldsymbol{R}\_g be that correlation matrix, with eigenvalues
-\lambda_1,\dots,\lambda_k. A von Neumann entropy needs a matrix of unit
-trace, and \operatorname{tr}\boldsymbol{R}\_g=k, so we read the
-definition as (our reading)
+The covariance is taken across samples of the cell-type-specific levels
+of the gene. The paper prints no formula. Let \boldsymbol{R}\_g be that
+correlation matrix, with eigenvalues \lambda_1,\dots,\lambda_J. A von
+Neumann entropy needs a matrix of unit trace, and
+\operatorname{tr}\boldsymbol{R}\_g=J, so we read the definition as (our
+reading)
 
-H^{\mathrm{vN}}\_g =-\sum\_{h=1}^{k}\tilde\lambda_h\log\tilde\lambda_h
-=\log k-\frac1k\sum\_{h=1}^{k}\lambda_h\log\lambda_h, \qquad
-\tilde\lambda_h=\frac{\lambda_h}{\operatorname{tr}\boldsymbol{R}\_g}=\frac{\lambda_h}{k},
-\tag{23}
+H^{\mathrm{vN}}\_g =-\sum\_{h=1}^{J}\tilde\lambda_h\log\tilde\lambda_h
+=\log J-\frac1J\sum\_{h=1}^{J}\lambda_h\log\lambda_h, \qquad
+\tilde\lambda_h=\frac{\lambda_h}{\operatorname{tr}\boldsymbol{R}\_g}=\frac{\lambda_h}{J},
+\tag{35}
 
 with 0\log0=0. The superscript separates it from the specificity entropy
 H_g of [Equation 1](#eq-gini). The \tilde\lambda_h form a probability
-vector, so 0\le H^{\mathrm{vN}}\_g\le\log k. The maximum \log k is
+vector, so 0\le H^{\mathrm{vN}}\_g\le\log J. The maximum \log J is
 reached if and only if every \lambda_h=1, that is
 \boldsymbol{R}\_g=\boldsymbol{I}. The minimum 0 is reached if and only
 if \boldsymbol{R}\_g has rank one, that is all cross-type correlations
 equal \pm1. The paper scales the values “to the range \[0,1\]” because
-the entropy “is bounded by a number that depends on the number of cell
-types k” (p. 20); dividing by \log k does this.
+the entropy is bounded by a number that depends on the number of cell
+types (p. 20); dividing by \log J does this.
 
 Unico states that “High entropy corresponds to cases where no
 substantial cell-type covariance structure exists, and low entropy
@@ -1134,11 +2039,11 @@ indicates strong positive or negative correlations between cell types”
 (p. 20). A bound makes this precise (our remark). The Shannon entropy is
 at least the Rényi entropy of order 2, -\log\sum_h\tilde\lambda_h^{2},
 and
-\sum_h\tilde\lambda_h^{2}=\operatorname{tr}(\boldsymbol{R}\_g^{2})/k^{2}.
+\sum_h\tilde\lambda_h^{2}=\operatorname{tr}(\boldsymbol{R}\_g^{2})/J^{2}.
 With \overline{\rho^{2}}\_g the mean squared off-diagonal correlation,
 
-H^{\mathrm{vN}}\_g\\\ge\\\log\frac{k}{1+(k-1)\\\overline{\rho^{2}}\_g}.
-\tag{24}
+H^{\mathrm{vN}}\_g\\\ge\\\log\frac{J}{1+(J-1)\\\overline{\rho^{2}}\_g}.
+\tag{36}
 
 Small correlations force a high entropy. A low entropy therefore
 requires large correlations on average.
@@ -1165,15 +2070,16 @@ between-donor covariance \boldsymbol{\Sigma}\_{B,j} of
 [2.1](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#sec-one-replicate),
 extended across types (our remark). The covariance DeCovarT does model
 is the within-type covariance across genes. The analogue is then the
-entropy [Equation 23](#eq-fs-vn-entropy) of the
+entropy [Equation 35](#eq-fs-vn-entropy) of the
 \|\mathcal{G}\|\times\|\mathcal{G}\| within-type correlation
 \boldsymbol{R}\_j of \widehat{\boldsymbol{\Sigma}}\_{W,j} restricted to
-the panel, with k replaced by \|\mathcal{G}\| (our remark). Its
+the panel, with J replaced by \|\mathcal{G}\| (our remark). Its
 exponential \exp H^{\mathrm{vN}}(\boldsymbol{R}\_j) is the effective
-rank of \boldsymbol{R}\_j : it equals \|\mathcal{G}\| for independent
-genes and 1 for a single module of perfectly correlated genes. A low
-entropy means a few strong shared modules, hence few effective
-directions in type j.
+rank of \boldsymbol{R}\_j TODO-cite: Roy & Vetterli 2007, The effective
+rank: a measure of effective dimensionality, EUSIPCO 2007; no key in the
+bibs: it equals \|\mathcal{G}\| for independent genes and 1 for a single
+module of perfectly correlated genes. A low entropy means a few strong
+shared modules, hence few effective directions in type j.
 
 - **Against \kappa_2.** The condition number of 1 uses the two extreme
   singular values of the mean matrix. The entropy uses the whole
@@ -1186,9 +2092,9 @@ directions in type j.
   \log\det and the entropy are largest at
   \boldsymbol{R}\_j=\boldsymbol{I} and decrease as the spectrum spreads
   (our remark). This does not make a low entropy bad for DeCovarT. The
-  criteria of [Section 6.2.5](#sec-optimal-design) score the information
+  criteria of [Section 7.4.4](#sec-optimal-design) score the information
   for \boldsymbol{p}, not \boldsymbol{R}\_j, and in the example of
-  [Figure 5](#fig-dea-design) a correlation of 0.8 raises \det I. What
+  [Figure 9](#fig-dea-design) a correlation of 0.8 raises \det I. What
   separates types is the difference between \boldsymbol{R}\_j and
   \boldsymbol{R}\_\ell, which the overlap \bar\varpi of 2 measures; a
   low entropy in each type is not enough.
@@ -1198,7 +2104,7 @@ The entropy uses no deconvolution fit, so the circularity of
 still needs \widehat{\boldsymbol{\Sigma}}\_{W,j} on a shortlist, so it
 is post hoc like the other criteria of this section.
 
-#### 6.2.5 Fisher information for \boldsymbol{p}: D-, E- and A-optimality
+#### 7.4.4 Fisher information for \boldsymbol{p}: D-, E- and A-optimality
 
 For a panel \mathcal{G}, restrict the rows of \boldsymbol{\mu} and the
 rows and columns of \boldsymbol{\Sigma}\_j to \mathcal{G} and compute
@@ -1229,7 +2135,7 @@ I\_{\mathcal{G}}(\boldsymbol{p}) \\ \text{(robust D)}, \qquad
 \text{(E)}, \qquad
 \min\_{\mathcal{G}}\max\_{\boldsymbol{p}\in\mathcal{P}}
 \operatorname{tr}I\_{\mathcal{G}}(\boldsymbol{p})^{-1} \\ \text{(A)}.
-\tag{25}
+\tag{37}
 
 D-optimality shrinks the volume of the confidence ellipsoid for
 \hat{\boldsymbol{p}} and can leave one weak contrast; E-optimality
@@ -1253,7 +2159,7 @@ depend on \boldsymbol{p} and
 
 I\_{\mathcal{G}} =
 n_i\\\boldsymbol{K}^{\top}\boldsymbol{M}\_{\mathcal{G}}^{\top}\boldsymbol{\Sigma}\_W^{-1}\boldsymbol{M}\_{\mathcal{G}}\boldsymbol{K},
-\tag{26}
+\tag{38}
 
 with \boldsymbol{M}\_{\mathcal{G}} the \|\mathcal{G}\|\times J matrix of
 type means. If \boldsymbol{\Sigma}\_W=\boldsymbol{I},
@@ -1261,10 +2167,10 @@ I\_{\mathcal{G}}=n_i\boldsymbol{A}^{\top}\boldsymbol{A} with
 \boldsymbol{A}=\boldsymbol{M}\_{\mathcal{G}}\boldsymbol{K}: D-optimality
 maximises the squared Gram volume of the contrasted mean columns, and
 \kappa_2(I\_{\mathcal{G}})=\kappa_2(\boldsymbol{A})^2, the criterion of
-[Section 6.2.3.1](#sec-weighted-kappa).
+[Section 7.4.2.1](#sec-weighted-kappa).
 
 **Example.** Take J=3 types and two candidate panels of three genes with
-unit variances ([Figure 5](#fig-dea-design)). In panel A the three genes
+unit variances ([Figure 9](#fig-dea-design)). In panel A the three genes
 have type means (4,2,2), (4,2,0) and (2,1,4); in panel B, (2,4,2),
 (0,2,4) and (0,2,3). With independent genes, panel A wins on the three
 criteria (n_i=1, orthonormal \boldsymbol{K}: \det I=116/3 against 104/3,
@@ -1285,7 +2191,7 @@ genes the three criteria D, E and A all favour panel A; with correlated
 genes D favours A while E and A favour
 B.](figures/fig_03_1_dea_design.svg)
 
-Figure 5: D-, E- and A-optimal choice between two gene panels (J=3
+Figure 9: D-, E- and A-optimal choice between two gene panels (J=3
 types, three genes each, unit variances, n_i=25). (a) 95 % confidence
 ellipses of \hat{\boldsymbol{p}} on the simplex plane at
 \boldsymbol{p}=(1/3,1/3,1/3) with independent genes: panel A (blue)
@@ -1302,7 +2208,7 @@ on a shortlist that tier (ii) has already produced. The search itself
 (greedy exchange, NSGA-II) and its settings are in
 [S6](https://bastienchassagnol.github.io/DeCovarT/articles/S6-feature-screening-scenario.html#sec-pareto-nsga2).
 
-#### 6.2.6 Pareto search
+#### 7.4.5 Pareto search
 
 `AutoGeneS` optimises two mean-only objectives with a genetic algorithm
 ([Section 1.2](#sec-fs-all-vs-all)). For DeCovarT the objectives are
@@ -1320,9 +2226,9 @@ score ([Mersmann 2024](#ref-R-mco)); the planned optimiser is NSGA-II
 via `mco::nsga2()`, with genes encoded as a mask in
 \[0,1\]^{\|\mathcal{G}\_0\|} and thresholded to a target size.
 
-> **Note 1: A third objective specific to DeCovarT (proposal)**
+> **Note 5: A third objective specific to DeCovarT (proposal)**
 >
-> The robust D- or E-criterion of [Equation 25](#eq-optimal-design) is a
+> The robust D- or E-criterion of [Equation 37](#eq-optimal-design) is a
 > third objective, best used to choose among non-dominated panels. The
 > two kinds of criteria need not agree: overlap measures how well the
 > type laws can be told apart, Fisher information how well
@@ -1330,7 +2236,7 @@ via `mco::nsga2()`, with genes encoded as a mask in
 > information for \boldsymbol{p} to choose genes
 > ([Table 1](#tbl-fs-review)).
 
-#### 6.2.7 Seeds and Markov boundaries
+#### 7.4.6 Seeds and Markov boundaries
 
 A panel can also grow from a few seeds (strong markers, genes with a
 large contribution to I\_{\mathcal{G}}) by their neighbours in a fitted
@@ -1345,13 +2251,13 @@ in \boldsymbol{\Omega}\_j ([Bolin et al.
 2026](#ref-bolinExplicitLinkGraphical2026)), *if* the fitted graph is
 taken as the minimal I-map. The construction uses undirected separation;
 directed d-separation, with its colliders, belongs to DAGs and is a
-different operation ([Figure 6](#fig-u-vs-dsep)). Boundary expansion can
-reintroduce collinear means, so the expanded set returns to the Pareto
-stage.
+different operation ([Figure 10](#fig-u-vs-dsep)). Boundary expansion
+can reintroduce collinear means, so the expanded set returns to the
+Pareto stage.
 
 ![](figures/markov_boundary_vs_dseparation.png)
 
-Figure 6: Undirected Markov boundary versus directed Markov blanket:
+Figure 10: Undirected Markov boundary versus directed Markov blanket:
 left, neighbours of target g in a GGM; right, parents, children and
 spouses in a DAG under d-separation.
 
@@ -1362,7 +2268,7 @@ networks](https://bastienchassagnol.github.io/DeCovarT/articles/03-3-precision-n
 on one specimen their permutation nulls are technical nulls
 ([Warning 1](#wrn-fs-estimand)).
 
-### 6.3 Continuous states
+### 7.5 Continuous states
 
 Many tissues, gastruloids included, are continua rather than discrete
 types. A J-column signature is then a piecewise approximation of an
@@ -1375,7 +2281,7 @@ continuous components, are open directions; hierarchical panels
 (lineage, then subtype) remain the pragmatic choice ([Wang et al.
 2019](#ref-wangBulkTissueCell2019)).
 
-### 6.4 Mechanistic priors
+### 7.6 Mechanistic priors
 
 Prior-knowledge networks can annotate a statistically chosen panel or
 add soft coverage constraints. `CARNIVAL` contextualises a prior network
@@ -1384,9 +2290,95 @@ from expression footprints by integer programming ([Liu et al.
 shared backbone plus type-specific edges across samples ([Rodriguez-Mier
 et al. 2025](#ref-rodriguezMierUnifyingMultisample2025)). Their outputs
 depend on the prior network and are hypotheses; they do not replace the
-criteria of [Section 6.2](#sec-fs-multivariate). CardamomOT makes the
+criteria of [Section 7.4](#sec-fs-multivariate). CardamomOT makes the
 same point about its own input: the selected gene set acts as prior
 information (Maugé & Ventre 2026, p. 27).
+
+## 8 Appendix: concentration results in MEAD and DECALS
+
+**MEAD.** MEAD’s asymptotics are of another kind than those of
+[Section 4.2.1](#sec-fs-five-bounds). Its central limit theorem runs
+across genes (G\to\infty), not across cells, under local dependence: the
+noise of most genes forms a dependency graph of bounded degree
+(Assumption 4, PDF p. 11) ([Xie et al.
+2026](#ref-xieStatisticalInferenceCell2026)). The normal approximation
+is “Theorem 2.7 of Chen and Shao” (Lemma S4, supplement pp. S16–S17, PDF
+pp. 46–47) (Chen & Shao 2004) TODO-cite: Chen & Shao 2004, Normal
+approximation under local dependence, Ann. Probab. 32(3A):1985-2028; no
+key in the bibs.
+
+> **Lemma 1 (Normal approximation under local dependence)**
+>
+> For W=\sum\_{g\in M}Z_g with \operatorname{E}W^2=1,
+> \operatorname{E}Z_g=0, \operatorname{E}\lvert
+> Z_g\rvert^{\nu}\le\vartheta^{\nu} and maximal degree d\_{\max}, MEAD
+> prints \sum_z\lVert\mathbb{P}(W\le
+> z)-\Phi(z)\rVert\le75\\d\_{\max}^{5(\nu-1)}\lvert
+> M\rvert\\\vartheta^{\nu}. As printed, the range of \nu is not stated,
+> and a supremum over z is presumably meant.
+
+Assumption 5b (PDF p. 11) asks for uniformly bounded moments of order
+above 4 of the bulk data, the reference data and the platform ratios.
+Fourth moments are more than a central limit theorem for a mean needs:
+MEAD’s estimator and its sandwich variance contain products of noise
+terms, and the proof bounds their covariances (PDF p. 40), which takes
+fourth moments. RNA-Sieve, by contrast, needs a finite per-cell variance
+for its central limit theorem across cells, and boundedness for its
+tail.
+
+**DECALS.** Theorem 1 of DECALS assumes that the noise terms of the bulk
+“are sub-exponential random variables” and states that this “includes
+the negative binomial distribution that is often used to model read
+counts from RNA-seq data” ([Cai et al.
+2024](#ref-caiStatisticalInferenceCelltype2024), supplement p. 22). The
+paper gives no derivation; [Equation 14](#eq-fs-nb-mgf) supplies one.
+Its Lemma S3 (supplement p. 23) is property (ii) of
+[Note 1](#nte-fs-subexp): the moments of a mean-zero sub-exponential
+variable satisfy (\operatorname{E}\lvert
+X\rvert^{\nu})^{1/\nu}\le\eta_2\nu for all \nu\ge1. Eq. S15 (supplement
+p. 26) applies Lemma S3 to the scaled noise
+Z\_{gj}=\tilde\mu\_{gj}\xi\_{gi}/\sqrt{\lvert\mathcal{G}\rvert}, with
+\xi\_{gi} the noise of gene g in bulk i and \lvert\mathcal{G}\rvert the
+number of signature genes: \operatorname{E}\lvert
+Z\_{gj}\rvert^{\nu}\le\bigl(\eta_2\tilde\mu\_{gj}\\\nu/\sqrt{\lvert\mathcal{G}\rvert}\bigr)^{\nu}
+for every \nu\ge2. This moment bound feeds their central limit theorem
+across genes, Lemma S4, the same result as [Lemma 1](#lem-fs-chen-shao).
+DECALS’s norm in Lemma S2 is the moment form
+\sup\_{\nu\ge1}\nu^{-1}(\operatorname{E}\lvert X\rvert^{\nu})^{1/\nu},
+the smallest \eta_2 of property (ii). It equals
+[Equation 13](#eq-fs-psi1) up to an absolute factor. DECALS cites the
+equivalences as “Proposition 2.7.1 in Vershynin (2018)”, the first
+edition; the numbering in [Note 1](#nte-fs-subexp) follows the second
+edition.
+
+**Dependent genes (Zhang & Li).** DECALS’s Lemma S2 (supplement p. 23)
+is Theorem 1 of Zhang & Li, cited as a 2022 preprint TODO-cite: Zhang &
+Li, Bernstein inequality for dependent sub-exponential variables on a
+dependency network, J. Comput. Graph. Stat.,
+doi:10.1080/10618600.2024.2421246 (cited by DECALS as the 2022 preprint
+arXiv:2205.10672); the theorem number in the published version is still
+to be checked.
+
+> **Theorem 6 (Bernstein inequality on a dependency graph)**
+>
+> For \lvert M\rvert dependent mean-zero sub-exponential Y_g with
+> dependency graph \mathcal{H}=(M,\mathcal{E}), an edge joining two
+> dependent variables, maximal degree d\_{\max} and \bar\chi_G of
+> [Equation 30](#eq-fs-colouring),
+>
+> \mathbb{P}\Bigl(\sum\_{g\in M}Y_g\ge t\Bigr) \le
+> \bar\chi_G\exp\Bigl\[-\gamma\min\Bigl\\\frac{t^{2}}{\bar\chi_G^{2}\sum\_{g}\lVert
+> Y_g\rVert\_{\psi_1}^{2}},\\ \frac{t}{\bar\chi_G\max_g\lVert
+> Y_g\rVert\_{\psi_1}}\Bigr\\\Bigr\]. \tag{39}
+>
+> With no edge, d\_{\max}=0, \lvert\mathcal{E}\rvert=0 and \bar\chi_G=1:
+> the one-sided form of [Equation 16](#eq-fs-bernstein) (our remark). A
+> gene network of bounded degree, as DECALS assumes in its Theorem 1,
+> costs a constant factor in the prefactor and in the exponent. In the
+> module of [Section 4.2.1](#sec-fs-five-bounds),
+> \bar\chi_G=\min(7,8.26)=7. Unlike [Theorem 5](#thm-fs-nb-dep), this
+> bound keeps the unknown absolute constant \gamma, so it gives the
+> shape of the module tail but no threshold.
 
 Abbas, Alexander R., Kristen Wolslegel, Dhaya Seshasayee, Zora Modrusan,
 and Hilary F. Clark. 2009. ‘Deconvolution of Blood Microarray Data
@@ -1626,3 +2618,15 @@ Zimmerman, Kip D., Mark A. Espeland, and Carl D. Langefeld. 2021. ‘A
 Practical Solution to Pseudoreplication Bias in Single-Cell Studies’.
 *Nature Communications* 12 (1): 738.
 <https://doi.org/10.1038/s41467-021-21038-1>.
+
+[^1]: `SCTransform` with `vst.flavor = "v2"` fits the same model, with
+    the depth slope fixed and library size as an offset, but it
+    regularises \psi_g across genes and clips the residuals at
+    \pm\sqrt{C/30} ([Hafemeister and Satija
+    2019](#ref-hafemeisterNormalizationVarianceStabilization2019);
+    [Lause et al. 2021](#ref-lauseAnalyticPearsonResiduals2021)).
+    Clipping is harmful for gene selection: it shrinks exactly the cells
+    with large residuals and large fitted means, which include the
+    informative high-leverage cells of a rare type and of highly
+    expressed genes, such as haemoglobins or master regulators
+    ([Section 4.1](#sec-fs-leverage)).

@@ -1,7 +1,7 @@
 # Bulk mixture covariance \\\boldsymbol{\Sigma}(\boldsymbol{p})\\
 
-Assembles the conditional covariance of the Gaussian convolution \$\$
-\boldsymbol{\Sigma}(\boldsymbol{p})
+Assembles the conditional covariance of the purified-profile convolution
+\$\$ \boldsymbol{\Sigma}(\boldsymbol{p})
 =\sum\_{j=1}^{J}p_j^{2}\\\boldsymbol{\Sigma}\_j, \$\$ stored as slices
 of the array `Sigma`.
 

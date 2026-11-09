@@ -19,13 +19,13 @@ The manuscript describes covariance-aware deconvolution of bulk
 transcriptomes as a multivariate Gaussian convolution. Cell-type
 proportions lie on the simplex; they are recovered by constrained
 maximum likelihood with analytic gradients and Hessians. The PDF below
-is the working build of `article/main.pdf` (Springer Nature `sn-jnl`
-template).
+is the working build of `article/main_layout.pdf` (Springer Nature
+`sn-jnl` template).
 
 Open [full
 screen](https://bastienchassagnol.github.io/DeCovarT/article/main.pdf)
 or [download a
-copy](https://bastienchassagnol.github.io/DeCovarT/articles/decovart-manuscript.pdf).
+copy](https://bastienchassagnol.github.io/DeCovarT/articles/main_layout.pdf).
 
 ## Doctorants seminar slides
 

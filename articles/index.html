@@ -76,90 +76,97 @@
     </div>
 
     <div class="section ">
+      <h3>Notation</h3>
+      <div class="section-desc"><p>Symbols shared by the vignettes. An article embeds only the groups it uses; this page is the full table.</p></div>
+
+      <dl><dt><a href="notation.html">Notation</a></dt>
+        <dd><p>Symbols shared by the vignettes, grouped by role.</p>
+      </dd></dl></div>
+    <div class="section ">
       <h3>External resources</h3>
       <div class="section-desc"></div>
 
       <dl><dt><a href="decovart-paper-slides.html">External resources: manuscript, presentations, and preprints</a></dt>
-        <dd>
+        <dd><p>Manuscript, slide decks, and preprints linked from the package site.</p>
       </dd></dl></div>
     <div class="section ">
       <h3>Theory 1 · Population-level references</h3>
       <div class="section-desc"><p>Gaussian convolution of population profiles: the generative model, its derivatives and the two solvers, then the MLE properties and the confidence intervals.</p></div>
 
       <dl><dt><a href="01-1-population-generative-optimisation.html">1.1 Population-level DeCovarT: generative model, derivatives and optimisation on the simplex</a></dt>
-        <dd>
+        <dd><p>The population model, its derivatives, and optimisation on the simplex.</p>
         </dd><dt><a href="01-2-population-inference.html">1.2 Population-level DeCovarT inference: MLE properties, confidence intervals and a GLM formulation</a></dt>
-        <dd>
+        <dd><p>Sampling properties, intervals, and a GLM form of the population fit.</p>
       </dd></dl></div>
     <div class="section ">
       <h3>Theory 2 · Single-cell references</h3>
       <div class="section-desc"><p>Mixture of independent cells with two technical scales: reference moments, alignment strategies and the profile fit, then the profile information, the intervals and the REML calibration.</p></div>
 
       <dl><dt><a href="02-1-single-cell-generative-optimisation.html">2.1 Single-cell DeCovarT: reference moments, alignment strategies and the profile fit</a></dt>
-        <dd>
+        <dd><p>How a single-cell reference is aligned with a bulk sample.</p>
         </dd><dt><a href="02-2-single-cell-inference.html">2.2 Single-cell DeCovarT inference: profile information, intervals and the REML calibration</a></dt>
-        <dd>
+        <dd><p>Profile information, intervals, and the REML scale calibration.</p>
       </dd></dl></div>
     <div class="section ">
       <h3>Theory 3 · Estimating the reference: genes and covariances</h3>
       <div class="section-desc"><p>Which genes enter the reference, and how each cell type’s covariance is estimated before it is plugged into the likelihood.</p></div>
 
       <dl><dt><a href="03-1-feature-selection.html">3.1 Gene selection for the reference</a></dt>
-        <dd>
+        <dd><p>Which genes should enter a single-cell reference, and why.</p>
         </dd><dt><a href="03-2-covariance-network-estimation.html">3.2 Cell-type covariance for the DeCovarT plug-in</a></dt>
-        <dd>
+        <dd><p>How each cell type’s covariance is estimated before the fit.</p>
         </dd><dt><a href="03-3-precision-networks.html">3.3 Precision networks: alternatives to the covariance plug-in</a></dt>
-        <dd>
+        <dd><p>Precision-matrix estimators as alternatives to a covariance plug-in.</p>
       </dd></dl></div>
     <div class="section ">
       <h3>Theory 4 · Benchmark design</h3>
       <div class="section-desc"><p>Synthetic mean and covariance scenarios (ADEMP), and the distances and overlap scores that describe them.</p></div>
 
       <dl><dt><a href="04-1-synthetic-scenarios.html">4.1 Simulating synthetic pseudo-bulk mixtures for benchmarking</a></dt>
-        <dd>
+        <dd><p>How synthetic pseudo-bulk mixtures are built for the benchmark.</p>
         </dd><dt><a href="04-2-distances-overlap-metrics.html">4.2 Distances, overlap, and covariance information</a></dt>
-        <dd>
+        <dd><p>Distances and overlap scores for the synthetic scenarios.</p>
       </dd></dl></div>
     <div class="section ">
       <h3>Theory 5 · Review and perspectives</h3>
       <div class="section-desc"></div>
 
       <dl><dt><a href="05-1-review-distribution-aware.html">5.1 Deconvolution with reference distributions: a review of methods that use more than the mean</a></dt>
-        <dd>
+        <dd><p>Methods that deconvolve a bulk using more than the mean.</p>
         </dd><dt><a href="05-2-bayesian-wiener.html">5.2 A Bayesian DeCovarT: latent purified profiles, the Wiener filter and variational EM</a></dt>
-        <dd>
+        <dd><p>Latent purified profiles, a Wiener filter, and a Bayesian fit.</p>
         </dd><dt><a href="05-3-extensions-roadmap.html">5.3 DeCovarT extensions roadmap: lineages, covariates, modalities and beyond</a></dt>
-        <dd>
+        <dd><p>Planned extensions: lineages, covariates, and further modalities.</p>
         </dd><dt><a href="05-4-mixture-experiments.html">5.4 DeCovarT as a mixture model: links with designed mixture experiments</a></dt>
-        <dd>
+        <dd><p>Links between the convolution and designed mixture experiments.</p>
       </dd></dl></div>
     <div class="section ">
       <h3>Simulation study (article §2)</h3>
       <div class="section-desc"><p>The three simulation scenarios of the DeCovarT article. <strong>§2.2</strong> Bivariate toy (J = 2, G = 2): factorial sweep of gene–gene correlation, mean distance, and composition. <strong>§2.3</strong> Covariance-driven hybrid (J = 3, G = 20): fixed Gram (cosines 0.9 / 0.1), <span class="math inline">2^2</span> scale-free / cluster-SBM assignments on the mean-collinear types <span class="math inline">\times</span> three target MixSim average overlaps (precision zeros kept), Shannon <span class="math inline">H^{\star}</span> compositions. <strong>§2.4</strong> Single-cell reference, two lineages (J = 4): sibling cosine 0.8, lineage stochastic block models with scale-free or hub children, <span class="math inline">2^6 = 64</span> crossed scenarios (composition, sibling overlap, cells per bulk, cell sizes, genes, platform scale 1 or 5).</p></div>
 
       <dl><dt><a href="R1-bivariate-toy.html">§2.2 Bivariate toy model (G = 2 genes, J = 2 cell types)</a></dt>
-        <dd>
+        <dd><p>A two-gene, two-type simulation used as a toy benchmark.</p>
         </dd><dt><a href="R2-covariance-driven.html">§2.3 Covariance-driven scenario (G = 20, J = 3)</a></dt>
-        <dd>
+        <dd><p>A twenty-gene simulation driven by covariance, not only the mean.</p>
         </dd><dt><a href="R3-single-cell-hierarchical.html">§2.4 Single-cell scenario: four cell types in two lineages (G = 20 or 200, J = 4)</a></dt>
-        <dd>
+        <dd><p>A four-type simulation with two lineages of single cells.</p>
       </dd></dl></div>
     <div class="section ">
       <h3>Supplementary appendix</h3>
       <div class="section-desc"><p>Regular-case MLE checks in the open simplex, identifiability edge cases, covariance / scaling / misspecification studies, and a synthetic scenario for comparing gene-screening strategies.</p></div>
 
       <dl><dt><a href="S1-identifiability.html">Appendix S1 — Regular-case MLE properties and identifiability</a></dt>
-        <dd>
+        <dd><p>Regular-case properties of the estimator, and when it is identified.</p>
         </dd><dt><a href="S2-covariance-inversion.html">Appendix S2 — Covariance Inversion Strategies</a></dt>
-        <dd>
+        <dd><p>Ways to invert a cell-type covariance inside the likelihood.</p>
         </dd><dt><a href="S3-scaling.html">Appendix S3 — Solver Scalability</a></dt>
-        <dd>
+        <dd><p>How the solver scales as genes, types, and samples grow.</p>
         </dd><dt><a href="S4-covariance-modeling.html">Appendix S4 — Covariance Modelling Assumptions</a></dt>
-        <dd>
+        <dd><p>Assumptions used when the cell-type covariances are modelled.</p>
         </dd><dt><a href="S5-misspecification.html">Appendix S5 — Model Mis-specification (Description Only)</a></dt>
-        <dd>
+        <dd><p>Planned checks of what happens when the model is wrong.</p>
         </dd><dt><a href="S6-feature-screening-scenario.html">Appendix S6 — Synthetic scenario for comparing gene-screening strategies</a></dt>
-        <dd>
+        <dd><p>A simulation design for comparing gene-screening strategies.</p>
       </dd></dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
@@ -177,5 +184,33 @@
 
 
 
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script src="mermaid-init.js"></script></body></html>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script src="mermaid-init.js"></script><script>
+(function () {
+  var TOC_LEVELS = 4;
+  if (!window.Toc || !window.Toc.helpers) return;
+  var h = window.Toc.helpers;
+  h.getHeadings = function ($scope, topLevel) {
+    var sel = [];
+    for (var l = topLevel; l < topLevel + TOC_LEVELS && l <= 6; l++) sel.push("h" + l);
+    return this.findOrFilter($scope, sel.join(","));
+  };
+  h.populateNav = function ($topContext, topLevel, $headings) {
+    var helpers = this, stack = [];
+    $headings.each(function (i, el) {
+      var level = helpers.getNavLevel(el);
+      var $item = helpers.generateNavItem(el);
+      while (stack.length && stack[stack.length - 1].level >= level) stack.pop();
+      if (!stack.length) {
+        $topContext.append($item);
+      } else {
+        var $parent = stack[stack.length - 1].$item;
+        var $list = $parent.children("ul").last();
+        if (!$list.length) $list = helpers.createChildNavList($parent);
+        $list.append($item);
+      }
+      stack.push({ level: level, $item: $item });
+    });
+  };
+})();
+</script></body></html>
 
