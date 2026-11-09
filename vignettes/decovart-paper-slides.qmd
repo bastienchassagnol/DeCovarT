@@ -1,7 +1,9 @@
 ---
 title: "External resources: manuscript, presentations, and preprints"
+description: "Manuscript, slide decks, and preprints linked from the package site."
 author: "Bastien Chassagnol"
-date: today
+date: last-modified
+date-format: "D MMM YYYY"
 vignette: >
   %\VignetteIndexEntry{External resources: manuscript, presentations, and preprints}
   %\VignetteEngine{quarto::html}
@@ -70,6 +72,9 @@ or
 </div>
 ```
 
+
+{{< pagebreak >}}
+
 # Doctorants seminar slides {#sec-seminar-slides}
 
 This embeds the Quarto reveal.js deck from the doctorants deconvolution
@@ -100,5 +105,8 @@ iframe.slides {
 }
 </style>
 ```
+
+
+{{< pagebreak >}}
 
 # References

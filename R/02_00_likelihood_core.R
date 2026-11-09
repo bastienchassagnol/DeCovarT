@@ -1,10 +1,11 @@
-# Covariance factorisation and Newton driver shared by the population
-# convolution (weights p_j^2) and the single-cell mixture (weights p_j).
+# Covariance factorisation and Newton driver shared by the purified-profile
+# convolution (weights p_j^2) and the single-cell signature mixture
+# (weights p_j).
 
 #' Weighted sum of cell-type covariances
 #'
-#' \eqn{\sum_j w_j\boldsymbol{\Sigma}_j}, symmetrised. The population
-#' convolution uses \eqn{w_j=p_j^2}, the single-cell mixture
+#' \eqn{\sum_j w_j\boldsymbol{\Sigma}_j}, symmetrised. The purified-profile
+#' convolution uses \eqn{w_j=p_j^2}, the single-cell signature mixture
 #' \eqn{w_j=p_j}.
 #'
 #' @noRd

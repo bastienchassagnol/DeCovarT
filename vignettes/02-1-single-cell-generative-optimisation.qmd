@@ -1,7 +1,9 @@
 ---
 title: "2.1 Single-cell DeCovarT: reference moments, alignment strategies and the profile fit"
+description: "How a single-cell reference is aligned with a bulk sample."
 author: "Bastien Chassagnol"
-date: "`r Sys.Date()`"
+date: last-modified
+date-format: "D MMM YYYY"
 vignette: >
   %\VignetteIndexEntry{2.1 Single-cell DeCovarT: generative model and optimisation}
   %\VignetteEngine{quarto::html}
@@ -87,7 +89,25 @@ implements the linear layer of Strategy 2; the other strategies and
 layers are specifications.
 :::
 
-{{< include _notation.qmd >}}
+::: {.callout-note collapse="true"}
+## Notation used in this vignette
+
+A symbol absent from these groups is defined in this vignette, with one
+meaning. The full table is the [notation article](notation.html).
+
+{{< embed notation.qmd#notation-indices >}}
+
+{{< embed notation.qmd#notation-ratios >}}
+
+{{< embed notation.qmd#notation-means >}}
+
+{{< embed notation.qmd#notation-biological >}}
+
+{{< embed notation.qmd#notation-technical >}}
+
+{{< embed notation.qmd#notation-bulk >}}
+:::
+
 
 ::: {#nte-notation .callout-note collapse="true"}
 ## Notation specific to this vignette
@@ -155,7 +175,7 @@ this vignette derives it and its relaxations.
 %%| label: fig-four-strategies
 %%| fig-cap: Four strategies to align a single-cell reference with a bulk sample. Strategies 1--3 differ by the scale on which the bulk is observed and estimate the scales jointly with the composition; Strategy 4 estimates the technical and biological scales first and plugs them into the regression or likelihood. Italic lines name the reviewed methods that already sit on each branch.
 %%| filename: fig-four-strategies
-%%| alt: Flowchart. A single-cell reference leads to a question about the bulk scale and where scales are estimated. Four boxes follow: cell-count convolution targeting integer counts; averaged mixture targeting proportions on the simplex with the number of cells as a nuisance; compositional bulk targeting RNA fractions; plug-in scales estimated beforehand. Each box lists its covariance and the methods that use it, and ends in a note: proportions by division; released DeCovarT as a limit; RNA fractions differ from cell fractions unless cell sizes are equal; plug-in uncertainty must be propagated.
+%%| alt: Flowchart. A single-cell reference leads to a question about the bulk scale and where scales are estimated. Four boxes follow: cell-count convolution targeting integer counts; averaged mixture targeting proportions on the simplex with the number of cells as a nuisance; compositional bulk targeting RNA fractions; plug-in scales estimated beforehand. Each box lists its covariance and the methods that use it, and ends in a note: proportions by division; the purified-profile convolution as a limit; RNA fractions differ from cell fractions unless cell sizes are equal; plug-in uncertainty must be propagated.
 \begin{tikzpicture}[every node/.append style={}]
 \node[keybox, text width=9cm] (ref) at (0,0) {Single-cell reference: $\tilde{\boldsymbol{\mu}}_{\cdot j}$ and $\boldsymbol{\Sigma}_{W,j}$ from $R=1$;\ $\boldsymbol{\Sigma}_{B,j}$ needs $R\ge 2$};
 \node[choice] (q) at (0,-1.8) {Bulk scale, and where\\ are the scales estimated?};
@@ -164,7 +184,7 @@ this vignette derives it and its relaxations.
 \node[box, anchor=north, text width=3.6cm] (s3) at (2.1,-3.4) {\textbf{3. Compositional bulk}\\ \textit{bulk: library-normalised}\\[2pt] target RNA fractions $\boldsymbol{q}_{\cdot i}$\\[2pt] closure $\boldsymbol{T}_i/\mathbf{1}^{\top}\boldsymbol{T}_i$, delta method\\[3pt] \textit{MuSiC ($C_i$), Bisque (CPM), DECALS (FPKM)}};
 \node[box, anchor=north, text width=3.6cm] (s4) at (6.3,-3.4) {\textbf{4. Plug-in scales}\\ \textit{bulk: scales estimated beforehand}\\[2pt] estimate $s_c$, $S_j$, $\tilde{\boldsymbol{b}}$, $c_i$ first, then fit $\boldsymbol{p}_{\cdot i}$ with the scales fixed\\[3pt] \textit{MuSiC ($S_j$), RCTD ($\tilde{\boldsymbol{b}}$, $N_i$), Bisque, MEAD ($a^{\mathrm{ref}}_r$), EPIC}};
 \node[note, text width=3.6cm, align=flush center] (o1) at ([yshift=-7mm]s1.south) {$p_{ji}=m_{ji}/n_i$ by division};
-\node[note, text width=3.6cm, align=flush center] (o2) at ([yshift=-7mm]s2.south) {released DeCovarT: $n_i\to\infty$, $c_i=1$};
+\node[note, text width=3.6cm, align=flush center] (o2) at ([yshift=-7mm]s2.south) {purified profiles: $n_i\to\infty$, $c_i=1$};
 \node[note, text width=3.6cm, align=flush center] (o3) at ([yshift=-7mm]s3.south) {$\boldsymbol{q}_{\cdot i}\neq\boldsymbol{p}_{\cdot i}$ unless $S_j$ constant};
 \node[note, text width=3.6cm, align=flush center] (o4) at ([yshift=-7mm]s4.south) {plug-in uncertainty must be propagated};
 \draw[edge] (ref) -- (q);
@@ -375,6 +395,8 @@ The comparison DeCovarT needs is the **same gene on two technologies**, not two 
 
 TMM and the `DESeq2` size factor assume that most genes are stable between samples, a hypothesis made for differential expression, not for a mixture [@robinsonEdgeRBioconductorPackage2010; @loveModeratedEstimationFold2014a].
 
+{{< pagebreak >}}
+
 # Convolution, mixture and correlated cells {#sec-one-formula}
 
 Let $\boldsymbol{X}\sim\mathcal{N}_G(\boldsymbol{\mu},\boldsymbol{\Sigma})$.
@@ -471,8 +493,10 @@ reference. If $\boldsymbol{\Sigma}_j$ is the covariance **between
 cells** of type $j$, summing $m_j$ independent cells yields
 $m_j\boldsymbol{\Sigma}_j$. If $\boldsymbol{\Sigma}_j$ is the covariance
 of **one latent type-level profile** that is multiplied by a weight,
-the contribution is $p_j^{2}\boldsymbol{\Sigma}_j$. Released DeCovarT is
-the second case. The random-effects decomposition of
+the contribution is $p_j^{2}\boldsymbol{\Sigma}_j$. The second case is
+the purified-profile paradigm: one profile per type, as in a FACS or
+cytometry reference. The first is the single-cell signature paradigm.
+Neither is a preferred reference. The random-effects decomposition of
 @sec-three-regimes,
 
 $$
@@ -621,6 +645,8 @@ phenomenon only. The claim that a sum of equicorrelated cells is
 Gaussian rests on **joint** Gaussianity of the stacked cells, which
 is an assumption and not a consequence of Gaussian marginals.
 
+{{< pagebreak >}}
+
 # One score and Hessian for every formulation {#sec-general}
 
 All models below are Gaussian with a parametrised mean and
@@ -702,7 +728,7 @@ $\mathbb{E}[\boldsymbol{r}^{\top}\boldsymbol{\Omega}\boldsymbol{\Sigma}_k\boldsy
 :::
 
 ::: {#nte-check-decovart .callout-tip}
-## Check against released DeCovarT
+## Check against the purified-profile convolution
 
 Take $\boldsymbol{\vartheta}=\boldsymbol{p}$,
 $\boldsymbol{\mu}(\boldsymbol{p})=\boldsymbol{\mu}\boldsymbol{p}$ and
@@ -779,6 +805,8 @@ for example when a scale enters the covariance only and its trace term
 is orthogonal to those of $\boldsymbol{p}$. @sec-strategy-plugin uses
 @eq-schur-information to compare joint and plug-in estimation of the
 scales.
+
+{{< pagebreak >}}
 
 # Four strategies to align a single-cell reference with bulk {#sec-strategies}
 
@@ -884,7 +912,7 @@ I(\boldsymbol{m})_{j\ell}
 $$ {#eq-cc-fisher}
 :::
 
-Compared with released DeCovarT the Hessian loses two terms, because
+Compared with the purified-profile convolution the Hessian loses two terms, because
 $\boldsymbol{\Sigma}(\boldsymbol{m})$ is **linear** in the parameter:
 there is no $\mathrm{tr}(\boldsymbol{\Omega}\boldsymbol{\Sigma}_{kl})$ and no
 second residual quadratic. The covariance derivative is a constant
@@ -1391,10 +1419,10 @@ $$
 $$ {#eq-av-four-tuple}
 
 Setting $n_i\to\infty$ at fixed $c_i=1$ (so $\phi_i\to 0$),
-$\boldsymbol{D}_i=\boldsymbol{0}$, returns the released DeCovarT derivatives
+$\boldsymbol{D}_i=\boldsymbol{0}$, returns the purified-profile derivatives
 with $\boldsymbol{\mu}=\tilde{\boldsymbol{\mu}}$ on the bulk scale and
-$\boldsymbol{\Sigma}_j=\boldsymbol{\Sigma}_{B,j}$. Released
-DeCovarT is therefore the large-$n_i$, noise-free limit of this
+$\boldsymbol{\Sigma}_j=\boldsymbol{\Sigma}_{B,j}$. The purified-profile
+convolution is therefore the large-$n_i$, noise-free limit of this
 formulation, which is why its $\boldsymbol{\Sigma}_j$ must be a
 between-replicate covariance to carry a sampling interpretation. The
 diagonal-$\boldsymbol{\Sigma}_{B,j}$ remark of @sec-cc-replicates applies.
@@ -1675,6 +1703,8 @@ type $j$ on the bulk platform. A full affine map between type-level
 laws is the transport perspective of the
 [review](05-1-review-distribution-aware.html#sec-bisque-ot).
 
+{{< pagebreak >}}
+
 # RNA fraction versus cell fraction {#sec-uncoupling}
 
 A linear engine fitted on a library-normalised signature
@@ -1731,6 +1761,8 @@ denoised activity and an error bar, not as a molecule count
 Use `Sanity` when $\boldsymbol{\theta}_{\cdot j}$ itself must be corrected
 for sampling noise before it enters the `MuSiC` mean, @eq-music-mean. The observed
 library size is a capture total, not this $S_j$.
+
+{{< pagebreak >}}
 
 # Cell size in the mean and in the covariance {#sec-cell-size-covariance}
 
@@ -1794,19 +1826,21 @@ Two consequences follow.
   @eq-cell-size-moments, so a simulated cell keeps its relative noise when
   its size changes.
 
+{{< pagebreak >}}
+
 # Summary and critical comparison {#sec-summary}
 
-| | Strategy 1: cell counts | Strategy 2: averaged mixture | Strategy 3: compositional | Strategy 4: plug-in scales | Released DeCovarT |
+| | Strategy 1: cell counts | Strategy 2: averaged mixture | Strategy 3: compositional | Strategy 4: plug-in scales | Purified profiles |
 |---|---|---|---|---|---|
 | Target | $\boldsymbol{m}_{\cdot i}\in\mathbb{N}^{J}$, then $\boldsymbol{p}=\boldsymbol{m}/n$ | $\boldsymbol{p}_{\cdot i}\in\Delta^{J-1}$, $n_i$ nuisance | RNA fractions $\boldsymbol{q}_{\cdot i}$ | $\boldsymbol{p}_{\cdot i}$ given $\hat{\boldsymbol{\eta}}$ | $\boldsymbol{p}_{\cdot i}\in\Delta^{J-1}$ |
 | Covariance weights | linear $m_{ji}$ in $\boldsymbol{\Sigma}_{W,j}$; quadratic $m_{ji}^{2}$ in $\boldsymbol{\Sigma}_{B,j}$ | linear $\phi_ip_{ji}$; quadratic $c_i^{2}p_{ji}^{2}$ | delta-method image of either | as Strategy 2, rescaled by $\hat{\tilde{\boldsymbol{b}}}$, $\hat c_i$ | quadratic $p_{ji}^{2}$ only |
 | Constraint | none; lattice | simplex via ILR | closure, singular | simplex via ILR | simplex via ILR |
 | Scale identification | mean fixes $a\boldsymbol{m}$; covariance fixes $a$ | mean fixes $c$; covariance fixes $\phi$ | scale removed | from auxiliary data | $c_i=1$ |
 | Reviewed methods | `RNA-Sieve`, `DWLS`, `MuSiC` eq. (2) | `DECALS`, `MEAD`, DeCovarT | `MuSiC`, `Bisque`, `DECALS` | `MuSiC` ($S_j$), `RCTD`, `Bisque`, `MEAD` ($\hat\gamma$) | -- |
-| Advantages | counts are the physical quantity; zeros are ordinary points; linear covariance, one Cholesky per iteration | DeCovarT is its noise-free limit; simplex identifies $a$; direct comparison with `DECALS`, `MEAD` | matches CPM/TPM pipelines; no scale to estimate | breaks non-identifiability of $S_j$ and $\tilde{\boldsymbol{b}}$; uses external information | implemented; exact Gaussian; sparse $\boldsymbol{\Omega}_j$ as declared input |
+| Advantages | counts are the physical quantity; zeros are ordinary points; linear covariance, one Cholesky per iteration | the purified-profile convolution is its noise-free limit; simplex identifies $a$; direct comparison with `DECALS`, `MEAD` | matches CPM/TPM pipelines; no scale to estimate | breaks non-identifiability of $S_j$ and $\tilde{\boldsymbol{b}}$; uses external information | implemented; exact Gaussian; sparse $\boldsymbol{\Omega}_j$ as declared input |
 | Drawbacks | $a$ needs $\boldsymbol{\Sigma}_{W,j}$ on the reference molecule scale; integer search for rare types | $\phi$ and $\boldsymbol{D}$ separated only through off-diagonal structure | induced correlations; $\boldsymbol{q}\neq\boldsymbol{p}$ unless $S_j$ constant | biased if the auxiliary scale differs; variance needs @eq-plugin-variance | $\boldsymbol{\Sigma}_j$ must be a between-replicate covariance; silences $\boldsymbol{\Sigma}_{W,j}$ for rare types |
 
-: The four formulations and the released model. {#tbl-strategies}
+: The four formulations and the purified-profile convolution. {#tbl-strategies}
 
 @tbl-strategies points to Strategy 2, with Strategy 1 as its
 count-scale chart. For one UMI donor, one bulk sample and no
@@ -1863,6 +1897,8 @@ fitted with plug-in scales. The rule that follows from
 ($S_j$, $\tilde{\boldsymbol{b}}$, $s^{\mathrm{tech}}_c$), to estimate jointly what
 it identifies well ($c_i$ and $\phi_i$ on the simplex chart), and in both cases to
 report @eq-plugin-variance rather than the naive $I_{pp}^{-1}$.
+
+{{< pagebreak >}}
 
 # The implemented fit: profile Newton {#sec-profile-newton}
 
@@ -2014,5 +2050,7 @@ coordinates and the Wald covariances are undefined and returned as
 `NA`; the profile interval and the boundary likelihood-ratio test remain
 available. Newton–Raphson on ILR stays the default; both solvers return
 the same estimate when the maximum is interior.
+
+{{< pagebreak >}}
 
 # References

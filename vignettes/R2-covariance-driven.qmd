@@ -1,8 +1,10 @@
 ---
 title: "§2.3 Covariance-driven scenario (G = 20, J = 3)"
+description: "A twenty-gene simulation driven by covariance, not only the mean."
 subtitle: "Full script: `scripts/fig03_variance_covariance_driven.R`"
 author: "Bastien Chassagnol"
-date: "`r Sys.Date()`"
+date: last-modified
+date-format: "D MMM YYYY"
 vignette: >
   %\VignetteIndexEntry{§2.3 Covariance-driven scenario}
   %\VignetteEngine{quarto::html}
@@ -209,6 +211,9 @@ Two generators were considered but not adopted:
   precision input. DeCovarT keeps the graphs and matches `BarOmega`
   by scaling $\boldsymbol{\Sigma}_j$ instead.
 
+
+{{< pagebreak >}}
+
 # Inference {#sec-hybrid-deconvolution}
 
 Compositions are one-dominant vectors from
@@ -336,6 +341,9 @@ names(benchmark)
 dplyr::filter(benchmark$intervals, is_composition) |>
   dplyr::select(ID, algorithm, ci_method, parameter, coverage, mean_width)
 ```
+
+
+{{< pagebreak >}}
 
 # Visualisations {#sec-hybrid-viz}
 

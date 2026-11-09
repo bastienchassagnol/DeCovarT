@@ -17,7 +17,7 @@ Symmetric matrix
 \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})\in\mathcal{M}_{G\times G}}.
 }
 \description{
-Assembles the conditional covariance of the Gaussian convolution
+Assembles the conditional covariance of the purified-profile convolution
 \deqn{
   \boldsymbol{\Sigma}(\boldsymbol{p})
   =\sum_{j=1}^{J}p_j^{2}\,\boldsymbol{\Sigma}_j,

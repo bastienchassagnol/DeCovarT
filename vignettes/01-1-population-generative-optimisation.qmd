@@ -1,7 +1,9 @@
 ---
 title: "1.1 Population-level DeCovarT: generative model, derivatives and optimisation on the simplex"
+description: "The population model, its derivatives, and optimisation on the simplex."
 author: "Bastien Chassagnol"
-date: "`r Sys.Date()`"
+date: last-modified
+date-format: "D MMM YYYY"
 vignette: >
   %\VignetteIndexEntry{1.1 Population-level DeCovarT: generative model and optimisation}
   %\VignetteEngine{quarto::html}
@@ -90,7 +92,23 @@ Single-cell references follow the same split:
 [generative model and optimisation](02-1-single-cell-generative-optimisation.html)
 and [inference](02-2-single-cell-inference.html).
 
-{{< include _notation.qmd >}}
+::: {.callout-note collapse="true"}
+## Notation used in this vignette
+
+A symbol absent from these groups is defined in this vignette, with one
+meaning. The full table is the [notation article](notation.html).
+
+{{< embed notation.qmd#notation-indices >}}
+
+{{< embed notation.qmd#notation-ratios >}}
+
+{{< embed notation.qmd#notation-means >}}
+
+{{< embed notation.qmd#notation-biological >}}
+
+{{< embed notation.qmd#notation-bulk >}}
+:::
+
 
 ::: {#nte-notation .callout-note collapse="true"}
 ## Notation specific to this vignette
@@ -150,6 +168,9 @@ Two readings of @eq-ilr-chart are useful later.
   for the softplus near zero: a proportion that is truly zero sits at
   $\lVert\boldsymbol{\rho}\rVert=\infty$ ([boundary inference](01-2-population-inference.html#sec-boundary)).
 
+
+
+{{< pagebreak >}}
 
 # Matrix calculus reminders {#sec-matrix-calculus}
 
@@ -287,6 +308,9 @@ The package evaluates them in one matrix product,
 $\boldsymbol{\mu}^{\top}\boldsymbol{\Omega}\boldsymbol{\mu}$, shared by the
 Hessian and the expected Fisher information.
 :::
+
+
+{{< pagebreak >}}
 
 # Unconstrained score and Hessian {#sec-unconstrained}
 
@@ -494,6 +518,9 @@ The stationary equation $\nabla\ell(\boldsymbol{p})=\boldsymbol{0}$ has
 no closed root, so DeCovarT uses iterative solvers. Analytic gradients
 and Hessians are checked against Richardson extrapolation in
 `numDeriv` [@R-numDeriv].
+
+
+{{< pagebreak >}}
 
 # Constrained optimisation on the simplex {#sec-constrained}
 
@@ -1475,6 +1502,9 @@ or KKT problem, not by substituting a small positive constant into
 @eq-ilr-maps.
 :::
 
+
+{{< pagebreak >}}
+
 # L-BFGS-B on the closure of the non-negative orthant {#sec-closure-box}
 
 The ILR chart maps the open simplex onto $\mathbb{R}^{J-1}$, so a
@@ -1654,6 +1684,9 @@ upstream as
 [VivianePhilipps/marqLevAlgParallel#3](https://github.com/VivianePhilipps/marqLevAlgParallel/issues/3).
 :::
 
+
+{{< pagebreak >}}
+
 # Model objects and S3 accessors {#sec-s3}
 
 [`fit_decovart()`](../reference/fit_decovart.html) returns a `decovart_fit`
@@ -1701,6 +1734,9 @@ vcov(fit)
 
 `formula()` and `predict()` are not implemented: DeCovarT does not
 forecast bulk expression.
+
+
+{{< pagebreak >}}
 
 # Numerical consistency of the likelihood and its derivatives {#sec-numerical-consistency}
 
@@ -1869,6 +1905,9 @@ for why one bulk column is not an asymptotic sample) and is therefore
 left to the inference vignette and to
 [`bootstrap_decovart()`](../reference/bootstrap_decovart.html).
 
+
+{{< pagebreak >}}
+
 # Structure-aware covariance backends {#sec-structure-backends}
 
 Every solver call factorises
@@ -1989,5 +2028,8 @@ the dense path to machine precision. Approximate sparse Cholesky of
 otherwise dense kernel covariances is a separate research line
 [@schäferCompressionInversionApproximate2020]; the `"sparse"` backend here
 is exact for a declared sparse pattern, not that approximation.
+
+
+{{< pagebreak >}}
 
 # References

@@ -1,0 +1,451 @@
+---
+title: "Notation"
+description: "Symbols shared by the vignettes, grouped by role."
+date: last-modified
+date-format: "D MMM YYYY"
+---
+
+A symbol absent from these tables is defined in the vignette that uses
+it, with one meaning there. An article embeds only the groups it uses.
+$\boldsymbol{\theta}$ is not a relative-abundance symbol: it is the
+parameter of interest in a profile likelihood. Other methods may still
+write a per-cell mean as $S_j\boldsymbol{\theta}_{\cdot j}$; that is
+their split, quoted when a method is reviewed.
+
+```{r}
+#| label: setup
+#| include: false
+
+options(tinytable_html_mathjax = TRUE)
+
+# Each table chunk carries two tags. Quarto's notebook embed finds a
+# cell by its tag, and a one-element tag is written into the embed
+# notebook as a string, which the lookup cannot search. The second
+# tag, "embed", keeps the list an array. Do not drop it.
+
+notation_table <- function(symbol, meaning, group, fill, caption, notes = NULL) {
+  stopifnot(length(symbol) == length(meaning), length(symbol) == length(group))
+  df_rows <- data.frame(Symbol = symbol, Meaning = meaning)
+  starts <- which(!duplicated(group))
+  group_spec <- stats::setNames(as.list(starts), group[starts])
+  n_before <- vapply(seq_along(group), function(k) sum(starts <= k), 1L)
+  final_row <- seq_along(group) + n_before
+  note_list <- NULL
+  if (!is.null(notes)) {
+    note_list <- lapply(notes, function(note) {
+      list(i = final_row[[note$row]], j = 1L, text = note$text)
+    })
+    names(note_list) <- letters[seq_along(note_list)]
+  }
+  tab <- tinytable::tt(
+    df_rows,
+    notes = note_list,
+    width = 1,
+    caption = caption
+  )
+  tab <- tinytable::group_tt(tab, i = group_spec)
+  header_rows <- starts + seq_along(starts) - 1L
+  tab <- tinytable::style_tt(
+    tab,
+    i = header_rows,
+    background = fill$header,
+    bold = TRUE
+  )
+  blocks <- unique(group)
+  for (block in blocks) {
+    rows <- which(group == block)
+    tab <- tinytable::style_tt(
+      tab,
+      i = final_row[rows],
+      background = fill$data
+    )
+  }
+  tab
+}
+```
+
+## Indices {#sec-notation-indices}
+
+```{r}
+#| label: notation-indices
+#| echo: false
+#| tags: [notation-indices, embed]
+notation_table(
+  symbol = c(
+    "$g = 1, \\ldots, G$",
+    "$j = 1, \\ldots, J$; $\\ell$",
+    "$i = 1, \\ldots, N$",
+    "$r = 1, \\ldots, R$",
+    "$c$; $C_j$"
+  ),
+  meaning = c(
+    "Gene.",
+    "Cell type, and a second cell type.",
+    paste0(
+      "Bulk sample. The index is dropped inside a derivation and ",
+      "restored in the model statements."
+    ),
+    "Reference donor (replicate).",
+    "Cell, and the number of reference cells of type $j$."
+  ),
+  group = rep("Indices", 5L),
+  fill = list(header = "#d5dee6", data = "#eef2f5"),
+  caption = "Indices. The scalar $R$ is the number of reference donors."
+)
+
+```
+
+## Cellular ratios {#sec-notation-ratios}
+
+```{r}
+#| label: notation-ratios
+#| echo: false
+#| tags: [notation-ratios, embed]
+notation_table(
+  symbol = c(
+    "$m_{ji}$, $n_i = \\sum_j m_{ji}$",
+    "$\\boldsymbol{p}_{\\cdot i} \\in \\Delta^{J-1}$",
+    "$\\boldsymbol{\\rho}_i \\in \\mathbb{R}^{J-1}$",
+    "$\\boldsymbol{q}_{\\cdot i}$"
+  ),
+  meaning = c(
+    "Cells of type $j$ in bulk sample $i$, and their total.",
+    "Cell fractions, $p_{ji} = m_{ji} / n_i$.",
+    paste0(
+      "Isometric log-ratio coordinates of $\\boldsymbol{p}_{\\cdot i}$, ",
+      "$\\boldsymbol{p}_{\\cdot i} = \\operatorname{softmax}",
+      "(\\mathbf{V}\\boldsymbol{\\rho}_i)$ with a Helmert basis $\\mathbf{V}$."
+    ),
+    paste0(
+      "Transcript fractions, ",
+      "$q_{ji} = p_{ji} S_j / \\sum_\\ell p_{\\ell i} S_\\ell$."
+    )
+  ),
+  group = c(
+    "Cell fractions", "Cell fractions", "Cell fractions",
+    "Transcript content"
+  ),
+  fill = list(header = "#d3e4d8", data = "#e7f0ea"),
+  notes = list(
+    list(
+      row = 3L,
+      text = paste0(
+        "An isometric log-ratio coordinate of the cell fractions. ",
+        "Not a correlation."
+      )
+    ),
+    list(
+      row = 4L,
+      text = paste0(
+        "Content weight used when a method normalises by transcriptome ",
+        "size. Not the cell-fraction estimand, which remains ",
+        "$\\boldsymbol{p}$. Dividing counts by library size is not an ",
+        "observation model: genes that share a divisor become correlated."
+      )
+    )
+  ),
+  caption = "Cell fractions and transcript fractions."
+)
+
+```
+
+## Reference means {#sec-notation-means}
+
+```{r}
+#| label: notation-means
+#| echo: false
+#| tags: [notation-means, embed]
+notation_table(
+  symbol = c(
+    "$\\boldsymbol{x}_{\\cdot j,i}$",
+    "$x_{gc}$, $\\boldsymbol{x}_{\\cdot c}$",
+    paste0(
+      "$\\tilde{\\boldsymbol{\\mu}}_{\\cdot j} = ",
+      "C_j^{-1} \\sum_{c \\in j} \\boldsymbol{x}_{\\cdot c}$"
+    ),
+    "$S_j = \\mathbf{1}^{\\top} \\tilde{\\boldsymbol{\\mu}}_{\\cdot j}$"
+  ),
+  meaning = c(
+    "Purified profile of type $j$ in sample $i$.",
+    paste0(
+      "Raw UMI count of gene $g$ in reference cell $c$, and that ",
+      "cell's count vector."
+    ),
+    paste0(
+      "Per-cell mean of the raw UMI counts of the $C_j$ reference ",
+      "cells of type $j$."
+    ),
+    "Mean transcriptome size of a type-$j$ cell."
+  ),
+  group = rep("Reference means", 4L),
+  fill = list(header = "#d4e0f0", data = "#e8eef6"),
+  notes = list(
+    list(
+      row = 3L,
+      text = paste0(
+        "A tilde marks a quantity rescaled to a reference unit: per ",
+        "cell, or relative to the reference protocol. This mean is a ",
+        "mean of raw counts. It is not a library-size proportion."
+      )
+    ),
+    list(
+      row = 4L,
+      text = paste0(
+        "$S_j$ summarises the raw-count mean. It is not a divisor ",
+        "applied to the counts. $\\boldsymbol{\\theta}$ is not used ",
+        "for this split."
+      )
+    )
+  ),
+  caption = "Purified profiles and per-cell means of raw counts."
+)
+
+```
+
+## Biological variability {#sec-notation-biological}
+
+```{r}
+#| label: notation-biological
+#| echo: false
+#| tags: [notation-biological, embed]
+notation_table(
+  symbol = c(
+    "$\\boldsymbol{\\mu}_{\\cdot j}$, $\\boldsymbol{\\Sigma}_j$",
+    "$\\boldsymbol{\\Omega}_j = \\boldsymbol{\\Sigma}_j^{-1}$",
+    "$\\boldsymbol{\\Sigma}_{W,j}$",
+    "$\\boldsymbol{V}_j$",
+    "$\\boldsymbol{R}_j$",
+    "$\\boldsymbol{\\Delta}_j = \\operatorname{diag}(\\boldsymbol{V}_j)$",
+    "$\\lambda$",
+    "$\\boldsymbol{\\Sigma}_{B,j}$",
+    "$\\boldsymbol{\\Gamma}_g$",
+    "$\\boldsymbol{S}_W(\\boldsymbol{v}) = \\sum_j v_j \\boldsymbol{\\Sigma}_{W,j}$",
+    "$\\boldsymbol{S}_B(\\boldsymbol{v}) = \\sum_j v_j^2 \\boldsymbol{\\Sigma}_{B,j}$"
+  ),
+  meaning = c(
+    paste0(
+      "Mean and $G \\times G$ gene–gene covariance of a type-$j$ ",
+      "profile."
+    ),
+    "Precision matrix of type $j$.",
+    paste0(
+      "Within-donor cell-to-cell covariance of type $j$ (one ",
+      "single-cell sample)."
+    ),
+    paste0(
+      "Empirical covariance of type $j$, from its reference profiles ",
+      "or cells."
+    ),
+    paste0(
+      "Empirical correlation matrix of type $j$. Bold: the scalar ",
+      "$R$ is the number of donors."
+    ),
+    "Diagonal matrix of the empirical variances of type $j$.",
+    "Penalty of a regularised covariance or precision estimator.",
+    "Between-donor covariance of type $j$ (needs $R \\ge 2$ donors).",
+    "$J \\times J$ covariance across cell types for gene $g$.",
+    "Linear covariance mixture with weights $\\boldsymbol{v}$.",
+    "Quadratic covariance mixture with weights $\\boldsymbol{v}$."
+  ),
+  group = c(
+    rep("Within one reference", 7L),
+    rep("Across donors or types", 4L)
+  ),
+  fill = list(header = "#e6ddd0", data = "#f3eee6"),
+  notes = list(
+    list(
+      row = 1L,
+      text = paste0(
+        "$\\boldsymbol{\\Sigma}_j$ couples genes within one cell ",
+        "type."
+      )
+    ),
+    list(
+      row = 7L,
+      text = paste0(
+        "A penalty. The size-free expression of a cell is ",
+        "$\\boldsymbol{\\lambda}_{\\cdot c}$, in the technical-scale table."
+      )
+    ),
+    list(
+      row = 9L,
+      text = paste0(
+        "$\\boldsymbol{\\Gamma}_g$ couples cell types within one ",
+        "gene. The opposite orientation from $\\boldsymbol{\\Sigma}_j$."
+      )
+    )
+  ),
+  caption = "Gene–gene covariance within a type, and variation across donors or types."
+)
+
+```
+
+## Technical scales {#sec-notation-technical}
+
+```{r}
+#| label: notation-technical
+#| echo: false
+#| tags: [notation-technical, embed]
+notation_table(
+  symbol = c(
+    "$s_c$",
+    "$\\boldsymbol{\\lambda}_{\\cdot c}$",
+    "$\\boldsymbol{z}_{\\cdot c}$",
+    "$a_i$",
+    "$c_i = a_i n_i$, $\\phi_i = a_i^2 n_i$",
+    "$b_g$",
+    "$\\tilde{b}_g = b_g^{\\mathrm{bulk}} / b_g^{\\mathrm{ref}}$",
+    "$\\boldsymbol{D}_i$"
+  ),
+  meaning = c(
+    "Size factor of reference cell $c$.",
+    "Size-free expression of cell $c$.",
+    paste0(
+      "Latent log-expression of cell $c$ in the Poisson log-normal ",
+      "model."
+    ),
+    "Sample-wide scale between the reference and the bulk library.",
+    "Mean scale and variance scale of the single-cell model.",
+    "Capture efficiency of gene $g$ in one protocol.",
+    paste0(
+      "Gene-wise platform ratio. ",
+      "$\\tilde{\\boldsymbol{B}} = ",
+      "\\operatorname{diag}(\\tilde{\\boldsymbol{b}})$."
+    ),
+    "Diagonal, heteroscedastic bulk measurement noise."
+  ),
+  group = rep("Technical scales", 8L),
+  fill = list(header = "#eadfd4", data = "#f6eee8"),
+  notes = list(
+    list(
+      row = 7L,
+      text = paste0(
+        "A tilde: relative to the reference protocol, not per cell."
+      )
+    ),
+    list(
+      row = 8L,
+      text = paste0(
+        "Measurement noise. Not the deviance $\\mathcal{D}_g$ of a ",
+        "count model."
+      )
+    )
+  ),
+  caption = "Size factors, capture efficiencies, and measurement noise."
+)
+
+```
+
+## Bulk observation {#sec-notation-bulk}
+
+```{r}
+#| label: notation-bulk
+#| echo: false
+#| tags: [notation-bulk, embed]
+notation_table(
+  symbol = c(
+    "$y_{gi}$, $\\boldsymbol{y}_{\\cdot i}$",
+    "$\\tilde{\\boldsymbol{y}}_{\\cdot i} = \\boldsymbol{y}_{\\cdot i} / n_i$",
+    "$\\boldsymbol{T}_{ji} = \\sum_{c=1}^{m_{ji}} \\boldsymbol{X}_{jic}$",
+    "$\\sum_j m_j \\boldsymbol{\\Sigma}_j$",
+    "$\\sum_j p_j^2 \\boldsymbol{\\Sigma}_j$"
+  ),
+  meaning = c(
+    "Bulk expression on a linear scale.",
+    "Bulk expression per cell.",
+    "Total expression contributed by type $j$ to sample $i$.",
+    paste0(
+      "Covariance when counts are fixed and cells of a type are ",
+      "independent."
+    ),
+    paste0(
+      "Covariance when each type contributes one population profile, ",
+      "as in a FACS or cytometry reference."
+    )
+  ),
+  group = c(
+    "Observation", "Observation", "Observation",
+    "Single-cell signatures",
+    "Purified profiles"
+  ),
+  fill = list(header = "#dddbea", data = "#eceaf4"),
+  notes = list(
+    list(
+      row = 2L,
+      text = paste0(
+        "Per cell, by the number of cells. Not a division of each ",
+        "gene by the library total: that division induces a spurious ",
+        "correlation between genes."
+      )
+    ),
+    list(
+      row = 4L,
+      text = paste0(
+        "Single-cell signature paradigm: the reference is the cells."
+      )
+    ),
+    list(
+      row = 5L,
+      text = paste0(
+        "Purified-profile paradigm: one profile per type. The ",
+        "likelihood in the package fits this covariance. It is not a ",
+        "preferred reference over the single-cell signatures."
+      )
+    )
+  ),
+  caption = "The bulk profile and the two reference paradigms. Neither is a gold-standard reference."
+)
+
+```
+
+## Feature selection {#sec-notation-feature}
+
+```{r}
+#| label: notation-feature
+#| echo: false
+#| tags: [notation-feature, embed]
+notation_table(
+  symbol = c(
+    "$\\psi_g$",
+    "$\\mathcal{D}_g$",
+    "$\\delta_{gj}$"
+  ),
+  meaning = c(
+    "Negative binomial dispersion of gene $g$.",
+    "Deviance of gene $g$ in a count model.",
+    paste0(
+      "Detection rate of gene $g$ in type $j$: the fraction of cells ",
+      "with a non-zero count."
+    )
+  ),
+  group = rep("Gene screens", 3L),
+  fill = list(header = "#eadfce", data = "#f7f1e8"),
+  caption = "Dispersion, deviance, and detection rate."
+)
+
+```
+
+## Overlap {#sec-notation-overlap}
+
+```{r}
+#| label: notation-overlap
+#| echo: false
+#| tags: [notation-overlap, embed]
+notation_table(
+  symbol = c(
+    "$\\varpi_{\\ell \\mid j}$, $\\varpi_{j\\ell}$, $\\bar{\\varpi}$"
+  ),
+  meaning = c(
+    paste0(
+      "Probability of misclassifying a draw of type $j$ into type ",
+      "$\\ell$; pairwise overlap ",
+      "$\\varpi_{j\\ell} = \\varpi_{\\ell \\mid j} + ",
+      "\\varpi_{j \\mid \\ell}$; and its average over pairs."
+    )
+  ),
+  group = "Overlap",
+  fill = list(header = "#ddd8d0", data = "#f0ece6"),
+  caption = "MixSim overlap between cell types."
+)
+
+```

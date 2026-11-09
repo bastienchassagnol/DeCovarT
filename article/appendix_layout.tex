@@ -455,6 +455,570 @@ Detailed review in the \vignette{05-1-review-distribution-aware.html}{review vig
         leave proportions unidentified at any sample size
 \end{itemize}
 
+\subsection{Dynamic and mechanistic models of single-cell expression}
+\label{app:dynamic}
+
+This subsection expands Section~\ref{sec:dynamic-inference}. Its symbols are local and aligned with the three
+main sources in Table~\ref{tab:dynamic-notation}; DeCovarT symbols keep their meaning.
+% TODO-cite: Gorin, Vastola, Fang & Pachter 2022, Nat Commun 13:7620, doi:10.1038/s41467-022-34857-7
+% TODO-cite: Maugé & Ventre 2026, CardamomOT, PLoS Comput Biol 22(10), doi:10.1371/journal.pcbi.1014838
+% TODO-cite: Tang, Jørgensen, Marguerat, Thomas & Shahrezaei 2023, Bioinformatics 39(7):btad395, doi:10.1093/bioinformatics/btad395
+% TODO-cite: Sukys & Grima 2025, Nucleic Acids Res 53(7), doi:10.1093/nar/gkaf295
+
+\begin{table}[ht]
+  \centering
+  \small
+  \caption{Symbols of Appendix~\ref{app:dynamic} and their names in the sources. A dash: the quantity is absent.
+    Rates are written \(k^{\mathrm{label}}\), indexed by gene \(g\) and, when they vary, by cell \(c\).}
+  \label{tab:dynamic-notation}
+  \begin{tabularx}{\textwidth}{@{}lYlll@{}}
+    \toprule
+    Here & Meaning & Gorin et al. & CardamomOT & Tang et al. \\
+    \midrule
+    \(x^{\mathrm{mol}}_{gc}\); \(x^{\mathrm{N}}_{gc}\), \(x^{\mathrm{M}}_{gc}\) & molecules in cell \(c\) before capture; nascent
+      and mature & \(x_{N}\), \(x_{M}\) & \(M_{i}\) (total) & \(X_{ij}\) \\
+    \(x_{gc}\) & observed UMI count (article notation) & -- & \(M_{i}\) & \(x_{ij}\) \\
+    \(k^{\mathrm{tx}}_{gc}(t)\) & effective transcription rate & \(K(t)\) & -- & -- \\
+    \(k^{\mathrm{on}}_{g}\), \(k^{\mathrm{off}}_{g}\), \(k^{\mathrm{syn}}_{g}\) & promoter activation, inactivation;
+      synthesis while active & -- & \(k_{\mathrm{on}}\), \(k_{\mathrm{off}}\), \(s_{0}\) & \(k_{\mathrm{on}}\), \(k_{\mathrm{off}}\),
+      \(k_{\mathrm{syn}}\) \\
+    \(k^{\mathrm{spl}}_{g}\), \(k^{\mathrm{deg}}_{g}\) & splicing; mRNA degradation & \(\beta\), \(\gamma\) & --, \(d_{0}\) &
+      --, \(\phi_{i}\) (plus growth) \\
+    \(k^{\mathrm{rev}}_{g}\), \(k^{\mathrm{arr}}_{g}\), \(\varsigma_{g}\) & mean reversion, arrival rate and gain of the
+      rate process & \(\kappa\), \(a\), \(\theta\) & -- & -- \\
+    \(x^{\mathrm{prot}}_{gc}\); \(k^{\mathrm{tl}}_{g}\), \(k^{\mathrm{pdeg}}_{g}\) & protein level; translation, protein
+      degradation & -- & \(P_{i}\); \(s_{1}\), \(d_{1}\) & -- \\
+    \(\boldsymbol{\Xi}=(\Xi_{gh})\) & regulatory interactions, effect of gene \(h\) on gene \(g\) & -- & \(\theta_{ij}\) & -- \\
+    \(\zeta_{c}\) & cell state: type, cycle phase, promoter basin, condition & -- & \(z\) (basin) & -- \\
+    \(\upsilon_{c}\) & relative cell size & -- & -- & \(s_{j}\) \\
+    \(b_{c}\), \(b_{g}\) & capture efficiency of cell \(c\); of gene \(g\) (article notation) & -- & -- (code: depth
+      \(s_{c}\)) & \(b_{j}\) \\
+    \(\psi_{g}\) & negative-binomial size, variance \(m+m^{2}/\psi_{g}\) (article notation) & \(\alpha\) (mixture) &
+      \(a\) & -- \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{itemize}
+  \item the question: between two conditions or time points, a gene may change because of technical factors
+        (capture, depth), the composition \(\boldsymbol{p}(t)\), a new kinetic regime inside a cell type, or a
+        combination; the first is a measurement effect, the second the target of deconvolution, the third the target of
+        mechanistic models; telling them apart needs several time points and several independent replicates, the
+        donors, which form the outer plate of Figure~\ref{fig:dyn-layers}
+  \item interpretable and tractable models (Gorin et al., 2022): a model is \emph{tractable} when its count
+        distribution, moments or generating function can be computed exactly or at a small numerical cost, and
+        \emph{interpretable} when each parameter has a mechanistic meaning, such as a burst frequency, a burst size, a
+        degradation rate or a gain; competing hypotheses are written as such models, the experiment that best
+        separates their predictions is chosen, and the data refine or reject them (their Fig.~1a)
+  \item their model class: a continuous transcription rate \(k^{\mathrm{tx}}_{gc}(t)\) follows a stochastic differential equation,
+        mean reversion plus noise, and drives nascent RNA, spliced at rate \(k^{\mathrm{spl}}_{g}\) into mature RNA degraded
+        at rate \(k^{\mathrm{deg}}_{g}\); in both cases below the stationary rate is
+        \(\mathrm{Gamma}(k^{\mathrm{arr}}_{g}/k^{\mathrm{rev}}_{g},\ \text{scale }\varsigma_{g})\), with mean
+        \(\langle k^{\mathrm{tx}}_{g}\rangle=k^{\mathrm{arr}}_{g}\varsigma_{g}/k^{\mathrm{rev}}_{g}\)
+  \begin{itemize}
+    \item gamma Ornstein--Uhlenbeck (\(\Gamma\)-OU), DNA mechanics: transcription twists the DNA and lowers the rate at the
+          first-order rate \(k^{\mathrm{rev}}_{g}\); topoisomerases arrive at rate \(k^{\mathrm{arr}}_{g}\) and raise it by exponential jumps of
+          mean \(\varsigma_{g}\)
+    \item Cox--Ingersoll--Ross (CIR), regulation: an abundant regulator produced at rate \(k^{\mathrm{arr}}_{g}\) and degraded at
+          rate \(k^{\mathrm{rev}}_{g}\); \(k^{\mathrm{tx}}=\varsigma_{g}\times\)(regulator count), with a noise that grows with the rate
+  \end{itemize}
+  \item four limits (their Fig.~2) on two axes, \(k^{\mathrm{rev}}/(k^{\mathrm{rev}}+k^{\mathrm{spl}}+k^{\mathrm{deg}})\) and the gain ratio
+        \(\varsigma/(\varsigma+k^{\mathrm{arr}})\)
+  \begin{itemize}
+    \item fast reversion or low gain: a rate constant in time and across cells, the constitutive model; nascent and
+          mature counts are independent Poisson with means \(k^{\mathrm{tx}}/k^{\mathrm{spl}}\) and \(k^{\mathrm{tx}}/k^{\mathrm{deg}}\)
+    \item slow reversion: a rate frozen in each cell but different between cells, the mixture model; mature counts are
+          negative binomial with size \(\psi_{g}=k^{\mathrm{arr}}_{g}/k^{\mathrm{rev}}_{g}\)
+          % chk: V34b
+    \item high gain: the two models part; \(\Gamma\)-OU gives geometric bursts, the usual bursty model, whose mean size we
+          read as \(\varsigma_{g}/k^{\mathrm{rev}}_{g}\) at frequency \(k^{\mathrm{arr}}_{g}\); CIR gives an inverse-Gaussian-driven family with
+          heavier tails
+  \end{itemize}
+  \item the two models have the same means, variances, covariances and autocorrelation functions (their Table~1), so no
+        summary of the first two moments, and no measurement that averages cells, can separate them; whole joint
+        distributions can, and fitting nascent and mature counts together beats either species alone, usually by an
+        order of magnitude in Bayes factor (their Fig.~3b); in real data the differences lie near the peaks and in the
+        tails of the distributions; DeCovarT, built on two moments per type, sits on the wrong side of this limit for
+        mechanism; the limit does not concern composition, which DeCovarT estimates from these two moments
+  \item \emph{CardamomOT} (Maugé and Ventre, 2026), a mechanistic model of a regulatory network
+  \begin{itemize}
+    \item each gene has a two-state promoter in the bursty regime \(k^{\mathrm{on}}\ll k^{\mathrm{off}}\); proteins set the activation rate,
+          \(k^{\mathrm{on}}_{g}(\boldsymbol{x}^{\mathrm{prot}})\), through a sigmoid of \(\sum_{h}\Xi_{gh}x^{\mathrm{prot}}_{h}\), and \(k^{\mathrm{off}}_{g}\) is fixed
+    \item given proteins, the mRNA count is negative binomial with shape \(k^{\mathrm{on}}_{g}/k^{\mathrm{deg}}_{g}\) and rate
+          \(k^{\mathrm{off}}_{g}/k^{\mathrm{syn}}_{g}\): mean \(k^{\mathrm{on}}_{g}k^{\mathrm{syn}}_{g}/(k^{\mathrm{deg}}_{g}k^{\mathrm{off}}_{g})\), Fano factor
+          \(1+k^{\mathrm{syn}}_{g}/k^{\mathrm{off}}_{g}\), and \(\psi_{g}=k^{\mathrm{on}}_{g}/k^{\mathrm{deg}}_{g}\), the burst frequency in units of mRNA
+          lifetime (their Eq.~3)
+          % chk: V34a
+    \item over promoter basins the population law is a negative-binomial mixture (their Eq.~4), so multimodality comes
+          from regulation; proteins are slow and deterministic, a piecewise-deterministic Markov process, and are
+          reconstructed between snapshots by optimal transport with a cost set by the network; the fit needs exact
+          time labels and protein degradation rates
+    \item inputs are raw total counts, with no nascent--mature split; cells neither proliferate nor die between
+          snapshots, so the transport is balanced (their p.~28); network identifiability limits a fit without prior
+          structure to about 100 genes (p.~27)
+  \end{itemize}
+\end{itemize}
+
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[>=stealth, font=\small]
+    % (a) Gorin et al.: one gene, nascent and mature RNA
+    \begin{scope}
+      \node[fixedpar] (drv) at (0,0) {\(k^{\mathrm{arr}}_{g},\varsigma_{g},k^{\mathrm{rev}}_{g}\)};
+      \node[fixedpar] (rna) at (2.5,0) {\(k^{\mathrm{spl}}_{g},k^{\mathrm{deg}}_{g}\)};
+      \node[latent, minimum size=26pt] (ktx) at (0,-1.8) {\(k^{\mathrm{tx}}_{gc}\)};
+      \node[obs, minimum size=26pt] (xn) at (0,-3.6) {\(x^{\mathrm{N}}_{gc}\)};
+      \node[obs, minimum size=26pt] (xm) at (2.0,-3.6) {\(x^{\mathrm{M}}_{gc}\)};
+      \node[eqnote, left=2pt of ktx] (nk) {SDE:\\reversion\\+ noise};
+      \node[eqnote, below=3pt of xm] (nm) {Poisson given\\the rate history};
+      \draw[->] (drv) -- (ktx);
+      \draw[->] (ktx) -- (xn);
+      \draw[->] (xn) -- node[eqnote, above] {splicing} (xm);
+      \draw[->] (rna) -- (xn);
+      \draw[->] (rna) -- (xm);
+      \plate[inner sep=6pt]{cellsA}{(nk)(ktx)(xn)(xm)(nm)}{cells \(c\)};
+      \plate[inner sep=6pt]{genesA}{(drv)(rna)(cellsA)(cellsA-caption)}{one gene \(g\), steady state};
+      \node[panellabel] at ([yshift=2pt]genesA.north west) {(a) Gorin et al.};
+    \end{scope}
+    % (b) CardamomOT: regulatory network through proteins, total mRNA, snapshots
+    \begin{scope}[xshift=6.3cm]
+      \node[fixedpar] (xi) at (0,0) {\(\boldsymbol{\Xi}\)};
+      \node[fixedpar] (kin) at (2.7,0) {\(k^{\mathrm{off}}_{g},k^{\mathrm{syn}}_{g},k^{\mathrm{deg}}_{g}\)};
+      \node[latent, minimum size=26pt] (prot) at (-0.4,-3.6) {\(\boldsymbol{x}^{\mathrm{prot}}_{c}\)};
+      \node[det, minimum size=30pt, inner sep=0pt] (kon) at (1.2,-1.8) {\(k^{\mathrm{on}}_{gc}\)};
+      \node[obs, minimum size=26pt] (x) at (2.0,-3.6) {\(x_{gc}\)};
+      \node[eqnote, right=2pt of x] (nx) {negative\\binomial};
+      \draw[->] (xi) -- (kon);
+      \draw[->] (prot) -- (kon);
+      \draw[->] (kon) -- (x);
+      \draw[->] (kin) -- (x);
+      \draw[->, dashed] (x) to[bend left=30] node[eqnote, below] {translation} (prot);
+      \plate[inner sep=5pt]{genesB}{(kon)(x)(nx)}{genes \(g\)};
+      \plate[inner sep=5pt]{cellsB}{(prot)(genesB)(genesB-caption)}{cells \(c\)};
+      \plate[inner sep=5pt]{timeB}{(xi)(kin)(cellsB)(cellsB-caption)}{snapshots \(t_{1}<t_{2}<\cdots\), OT coupling};
+      \node[panellabel] at ([yshift=2pt]timeB.north west) {(b) \emph{CardamomOT}};
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Two mechanistic models of the same counts. Squares: fixed parameters; white circles: latent variables;
+    grey circles: observed counts; diamond: a deterministic function; dashed edge: the slow, deterministic protein
+    dynamics. (a) Gorin et al.\ (2022): for one gene, a stochastic transcription rate \(k^{\mathrm{tx}}_{gc}(t)\)
+    (\(\Gamma\)-OU or CIR) drives nascent and mature RNA, observed separately; genes are fitted one at a time, at steady
+    state, with no technical layer. (b) \emph{CardamomOT} (Maugé and Ventre, 2026): the activation rate of each gene is a
+    sigmoid of the proteins of the other genes, weighted by the network \(\boldsymbol{\Xi}\); only total mRNA is observed,
+    at several snapshots linked by optimal transport (OT). Panel (a) resolves the mechanism of one gene; panel (b)
+    couples the genes but stops at total counts.}
+  \label{fig:dyn-models}
+\end{figure}
+
+\begin{table}[ht]
+  \centering
+  \footnotesize
+  \caption{Models of single-cell transcription reviewed here, and DeCovarT for comparison.}
+  \label{tab:dynamic-classes}
+  \begin{tabularx}{\textwidth}{@{}lYYYYY@{}}
+    \toprule
+    Model & Driver of transcription & RNA species & Technical layer & Coupling of genes & Time \\
+    \midrule
+    Gorin et al.\ 2022 & rate process, \(\Gamma\)-OU or CIR & nascent and mature & none (extensions discussed) & none, genes
+      fitted one by one & steady state \\
+    \emph{CardamomOT} 2026 & bursts, activation set by proteins & total & none in the paper; per-cell depth in the
+      code & network \(\boldsymbol{\Xi}\) through proteins & snapshots, exact labels \\
+    Tang et al.\ 2023 & telegraph, rate proportional to cell size & total & binomial capture \(b_{c}\), cell size
+      \(\upsilon_{c}\) & none & steady state of a growing population \\
+    Sukys and Grima 2025 & bursts per allele, by cycle phase & total & binomial capture & none & G1 versus G2/M \\
+    \emph{bayNorm} \cite{tangBayNormBayesianGene2020} & none: negative-binomial prior & total & binomial capture \(b_{c}\) &
+      none & none \\
+    DeCovarT & none: two moments per type & total & bulk scales \(c_{i}\), \(\phi_{i}\) & Gaussian covariance
+      \(\boldsymbol{\Sigma}_{W,j}\) & none \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{itemize}
+  \item two partitions organise Table~\ref{tab:dynamic-classes}: the models that write a technical layer (Tang et al.,
+        \emph{bayNorm}, Sukys and Grima) and those that do not (Gorin et al., \emph{CardamomOT}); and the models that
+        need nascent and mature counts (Gorin et al.) and those that use total counts; nascent and mature counts need the
+        reads (FASTQ or BAM files) and a spliced--unspliced quantification, as for RNA velocity (La Manno et al., 2018)
+        % TODO-cite: La Manno et al. 2018, Nature 560:494-498, doi:10.1038/s41586-018-0414-6 (Zotero: lamannoRNAVelocitySingle2018)
+  \item intrinsic and extrinsic noise: promoter switching and bursting are not two mechanisms; the telegraph model,
+        a promoter switching on and off, has a Beta--Poisson steady state, and bursting is its regime
+        \(k^{\mathrm{on}}\ll k^{\mathrm{off}}\) with a large \(k^{\mathrm{syn}}\), where the law tends to a negative binomial; the useful partition is
+  \begin{itemize}
+    \item intrinsic: the random timing of promoter switches, synthesis, splicing and degradation in one cell
+    \item extrinsic: variation of the rates themselves, from cell size and age, cell-cycle phase and gene copy number,
+          or regulators and proteins; a fluctuating \(k^{\mathrm{tx}}(t)\) is its dynamic form
+    \item Tang et al.\ write transcription proportional to cell size,
+          \(x^{\mathrm{mol}}_{gc}\sim\mathrm{Poisson}(\upsilon_{c}k^{\mathrm{syn}}_{g}U_{g}/k^{\mathrm{deg}}_{g})\),
+          \(U_{g}\sim\mathrm{Beta}(k^{\mathrm{on}}_{g}/k^{\mathrm{deg}}_{g},k^{\mathrm{off}}_{g}/k^{\mathrm{deg}}_{g})\), with growth added to degradation
+          (their Eq.~1)
+    \item Sukys and Grima find that, per allele, the median burst frequency roughly halves after DNA replication
+          while the burst size changes little; estimates of these changes need gene copy number and the coupling of
+          transcription to cell age, whereas a capture correction matters less
+  \end{itemize}
+  \item technical layer: each molecule is captured with probability \(b_{c}b_{g}\),
+        \(x_{gc}\mid x^{\mathrm{mol}}_{gc}\sim\mathrm{Binomial}(x^{\mathrm{mol}}_{gc},b_{c}b_{g})\) (\emph{bayNorm}, Tang et al.); \(b_{g}\) gathers
+        gene-specific biases such as transcript length in full-length protocols; in every model above the molecule
+        count is Poisson given a random mean \(\Lambda\), which carries all upstream variation (\(\upsilon_{c}k^{\mathrm{syn}}_{g}U_{g}/k^{\mathrm{deg}}_{g}\) for the
+        telegraph model, a Gamma variable for the negative binomial, the integrated rate history for a rate process);
+        binomial capture of a Poisson count with mean \(\Lambda\) is Poisson with mean \(b\Lambda\), \(b=b_{c}b_{g}\); for \(b\)
+        independent of \(\Lambda\), the law of total variance gives
+        % chk: V32a, V32b
+        \begin{equation}
+          \begin{aligned}
+            \operatorname{Var}x_{gc}
+            &=\underbrace{\mathbb{E}b\,\mathbb{E}\Lambda}_{\text{Poisson capture}}
+            +\underbrace{\mathbb{E}b^{2}\operatorname{Var}\Lambda}_{\text{upstream biology}}
+            +\underbrace{\operatorname{Var}b\,(\mathbb{E}\Lambda)^{2}}_{\text{capture variability}},\\
+            \operatorname{Var}\Lambda
+            &=\mathbb{E}_{\zeta}\operatorname{Var}(\Lambda\mid\zeta)+\operatorname{Var}_{\zeta}\mathbb{E}(\Lambda\mid\zeta),
+          \end{aligned}
+          \label{eq:dyn-variance-split}
+        \end{equation}
+        % chk: V32c
+        where the second identity splits the biological term within and between cell states \(\zeta\): cell type, cycle
+        phase, condition or time point
+  \begin{itemize}
+    \item capture and size enter the mean only through \(b_{c}\upsilon_{c}k^{\mathrm{syn}}_{g}\) (Tang et al., Eq.~2): from counts alone
+          they are not separated, and the size factor \(s_{c}\) of the reference cells confounds \(b_{c}\) and \(\upsilon_{c}\);
+          \emph{bayNorm} fits the capture model with an empirical-Bayes negative-binomial prior, and its posterior cell totals
+          give the plug-in \(S_{j}\) of the
+          \vignette{02-1-single-cell-generative-optimisation.html\#sec-uncoupling}{single-cell vignette}
+    \item limiting capture: binomial capture of a negative binomial with mean \(\mu_{g}\) and size \(\psi_{g}\) is negative
+          binomial with mean \(b\mu_{g}\) and the same size, of variance \(b\mu_{g}+b^{2}\mu_{g}^{2}/\psi_{g}\); the Poisson term is the
+          larger when
+          % chk: V33a, V33b
+          \begin{equation}
+            b<\frac{\psi_{g}}{\mu_{g}}=\frac{k^{\mathrm{off}}_{g}}{k^{\mathrm{syn}}_{g}},
+            \label{eq:dyn-limiting-capture}
+          \end{equation}
+          the inverse of the mean burst size in the model of \emph{CardamomOT}; at a capture of 0.1, the overdispersion of genes
+          whose bursts carry fewer than ten molecules on average is smaller than the Poisson noise, which agrees with Tang
+          et al.'s finding that weakly expressed genes are better fitted by Poisson or negative-binomial laws than by the
+          telegraph law; the bulk depth \(a_{i}\) plays the role of \(b\) in the inequality of
+          Appendix~\ref{app:which-covariance}
+  \end{itemize}
+\end{itemize}
+
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[>=stealth, font=\small]
+    \node[latent, minimum size=26pt] (z) at (0,0) {\(\zeta_{c}\)};
+    \node[latent, minimum size=26pt] (u) at (2.4,0) {\(\upsilon_{c}\)};
+    \node[det, minimum size=32pt, inner sep=0pt] (k) at (0,-1.9) {\(\boldsymbol{k}_{gc}\)};
+    \node[latent, minimum size=26pt] (xn) at (-1.0,-3.8) {\(x^{\mathrm{N}}_{gc}\)};
+    \node[latent, minimum size=26pt] (xm) at (1.0,-3.8) {\(x^{\mathrm{M}}_{gc}\)};
+    \node[techobs, minimum size=26pt] (x) at (0,-5.7) {\(x_{gc}\)};
+    \node[latent, minimum size=26pt] (bc) at (2.4,-5.7) {\(b_{c}\)};
+    \node[fixedpar] (bg) at (-2.2,-5.7) {\(b_{g}\)};
+    \draw[->] (z) -- (k);
+    \draw[->] (u) -- (k);
+    \draw[->] (k) -- (xn);
+    \draw[->] (k) -- (xm);
+    \draw[->] (xn) -- (xm);
+    \draw[->] (xn) -- (x);
+    \draw[->] (xm) -- (x);
+    \draw[->, draw=scalecol] (bc) -- (x);
+    \draw[->, draw=scalecol] (bg) -- (x);
+    \node[eqnote, right=2pt of k] (nk) {\(k^{\mathrm{on}},k^{\mathrm{off}},k^{\mathrm{syn}}\) or \(k^{\mathrm{tx}}(t)\),\\
+      \(k^{\mathrm{spl}},k^{\mathrm{deg}}\)};
+    \plate[inner sep=6pt]{genes}{(k)(nk)(xn)(xm)(x)(bg)}{genes \(g\)};
+    \plate[inner sep=6pt]{cells}{(z)(u)(genes)(genes-caption)(bc)}{cells \(c\)};
+    \plate[inner sep=6pt]{units}{(cells)(cells-caption)}{donors \(r\), time points \(t\)};
+    % levels of variation, right margin
+    \node[eqnote, anchor=west, align=left] at (5.1,0) {cell state: type, cycle, condition\\(extrinsic, between states)};
+    \node[eqnote, anchor=west, align=left] at (5.1,-1.9) {kinetics and cell size\\(extrinsic, within a state)};
+    \node[eqnote, anchor=west, align=left] at (5.1,-3.8) {molecules in the cell\\(intrinsic)};
+    \node[eqnote, anchor=west, align=left, text=scalecol] at (5.1,-5.7) {observed counts: capture \(b_{c}b_{g}\)\\(technical)};
+  \end{tikzpicture}
+  \caption{Sources of variation of one count, from cell state to measurement. The state \(\zeta_{c}\) and the size
+    \(\upsilon_{c}\) set the kinetic rates \(\boldsymbol{k}_{gc}\) (diamond, a deterministic function); the rates generate nascent
+    and mature molecules \(x^{\mathrm{N}}_{gc}\), \(x^{\mathrm{M}}_{gc}\) by intrinsic noise; capture, with efficiencies
+    \(b_{c}\) and \(b_{g}\), gives the observed count \(x_{gc}\) (orange, technical layer), the total of the two species
+    unless the reads are quantified as spliced and unspliced. The outer plate, donors and time points, is the
+    independent unit; cells and genes are replicates within it. Equation~\eqref{eq:dyn-variance-split} splits the
+    variance of \(x_{gc}\) along these layers.}
+  \label{fig:dyn-layers}
+\end{figure}
+
+\begin{remark}[Identifiability]
+  \label{rem:dyn-identifiability}
+  What can be estimated depends on the species observed, the number of time points and the replication.
+  \begin{itemize}
+    \item total counts at one time point identify a negative binomial per gene and state, that is \(\psi_{g}\) and
+          the mean burst size, not \(k^{\mathrm{on}}\), \(k^{\mathrm{off}}\) and \(k^{\mathrm{syn}}\) separately: Tang et al.\ find \(k^{\mathrm{off}}\) the least
+          identifiable of the telegraph rates, and Gorin et al.\ find \(k^{\mathrm{rev}}\) unidentifiable for Poisson-like
+          data (their Fig.~3e); capture and cell size stay confounded without an anchor such as spike-ins, smFISH or a
+          prior
+    \item nascent and mature counts identify splicing against degradation and separate the \(\Gamma\)-OU and CIR mechanisms,
+          which share their first two moments
+    \item time points: three at least for dynamic interactions between genes; \emph{CardamomOT} also needs exact time
+          labels and protein degradation rates, and a change of composition between snapshots is outside its model
+    \item replicates: a condition effect is separated from donor-to-donor variation, the between-donor covariance
+          \(\boldsymbol{\Sigma}_{B,j}\) of model~\eqref{eq:four-layer}, only with several donors per condition
+    \item the aim decides the data: explaining one gene across cells, down to promoter switching or a rate process,
+          needs nascent and mature counts and whole distributions; explaining the joint variation of many genes needs
+          the extrinsic layers of Figure~\ref{fig:dyn-layers}, state, cycle phase and condition, and less the intrinsic
+          mechanism of each gene, which is the level of DeCovarT's covariance
+    \item ordering states: an order of cells along a process needs a root from domain knowledge (pseudotime) or nascent
+          and mature counts (RNA velocity); potency scores have no unit, so they identify an order, not rates
+          (Appendix~\ref{app:dynamic-potency})
+  \end{itemize}
+\end{remark}
+
+\begin{itemize}
+  \item a perspective we suggest: \emph{CardamomOT} keeps cell numbers fixed between snapshots and names unbalanced
+        transport and external growth rates as future work; bulk samples matched to each time point and deconvolved
+        by DeCovarT would give \(\boldsymbol{p}(t)\), with intervals, as marginals for that transport, smoothed by the
+        random-walk prior on log-ratio coordinates of Section~\ref{sec:dynamic-inference}
+\end{itemize}
+
+\subsubsection{Population-level dynamics: pseudotime, RNA velocity and cell potency}
+\label{app:dynamic-potency}
+
+The models above describe one gene inside a cell state. The methods below order the states themselves: they model
+the between-state layer \(\zeta_{c}\) of Figure~\ref{fig:dyn-layers}, the term \(\operatorname{Var}_{\zeta}\mathbb{E}(\Lambda\mid\zeta)\) of
+Equation~\eqref{eq:dyn-variance-split}. The classification follows the review of Wang et al.\ (2026); the
+mathematical reading follows Teschendorff and Feinberg (2021). Local symbols: \(x^{\log}_{gc}\) is the
+log-normalised expression of gene \(g\) in cell \(c\), \(\boldsymbol{A}^{\mathrm{PPI}}\) the binary adjacency of a
+protein--protein interaction (PPI) network, \(\mathrm{ne}(g)\) the neighbours of \(g\) in it, \(\theta_{gc}\) the relative
+expression of \(g\) in \(c\) (the cell-level analogue of \(\boldsymbol{\theta}_{\cdot j}\)), \(\iota_{g}\) a gene importance score;
+\(\nu_{t}\), \(\mathcal{F}\), \(\mathcal{V}\), \(\mathcal{U}\), \(D_{\mathrm{diff}}\) and \(k^{\mathrm{net}}\) are defined in
+Equation~\eqref{eq:dyn-fokker-planck}.
+% TODO-cite: Wang, Zhai, Lian, Song & Li 2026, Cell Syst 17:101762, doi:10.1016/j.cels.2026.101762
+% TODO-cite: Teschendorff & Feinberg 2021, Nat Rev Genet 22:459-476, doi:10.1038/s41576-021-00341-z
+
+\begin{table}[ht]
+  \centering
+  \footnotesize
+  \caption{Three paradigms for reading dynamics from single-cell snapshots, after Table~1 of Wang et al.\ (2026); the
+    last column is the model behind each paradigm (Teschendorff and Feinberg, 2021, and Appendix~\ref{app:dynamic}).}
+  \label{tab:dyn-paradigms}
+  \begin{tabularx}{\textwidth}{@{}lYYYlY@{}}
+    \toprule
+    Paradigm & Quantity & Input & Output & Root & Model behind it \\
+    \midrule
+    Pseudotime & progress of a cell along a process & low-dimensional embedding, cluster labels, a root cell &
+      cell \(\times\) trajectory matrix & needed & a Markov chain on a nearest-neighbour graph of cells, or the
+      drift--diffusion equation~\eqref{eq:dyn-fokker-planck} \\
+    RNA velocity & time derivative of the expression state & spliced and unspliced count matrices &
+      cell \(\times\) gene matrix & not needed & per-gene ODE: the mean of the nascent--mature model of Gorin et al. \\
+    Potency & capacity to adopt several fates & gene \(\times\) cell matrix; optionally a PPI network, gene similarities,
+      clusters & one score per cell & not needed & the potency gradient \(\mathcal{V}\) of
+      Equation~\eqref{eq:dyn-fokker-planck}, or an entropy \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\begin{itemize}
+  \item scope: pseudotime and RNA velocity apply to any dynamic process (an immune response, development); potency
+        applies to differentiation only; the cores differ, a minimum spanning tree through clusters for most pseudotime
+        methods (Trapnell et al., 2014; Saelens et al., 2019), ordinary differential equations fitted per gene for RNA velocity, and anything from a summary statistic
+        to a trained classifier for potency (Wang et al., 2026); the three outputs of Figure~\ref{fig:dyn-paradigms}
+        can order the same cells differently, because only pseudotime is anchored by a root chosen by the user
+        % TODO-cite: Trapnell et al. 2014, Nat Biotechnol 32:381-386, doi:10.1038/nbt.2859 (Zotero: trapnellDynamicsRegulatorsCell2014)
+        % TODO-cite: Saelens et al. 2019, Nat Biotechnol 37:547-554, doi:10.1038/s41587-019-0071-9 (Zotero: saelensComparisonSinglecellTrajectory2019)
+  \item three processes that a dynamic description must cover: differentiation, from immature to mature and functional
+        cells; reprogramming, the conversion of one type into another by external factors; and pathological fate
+        changes, such as dedifferentiation in disease and the stem-like states of cancer cells; the atavistic theory
+        reads the latter as the reactivation of an ancestral programme of loosely differentiated cells (Davies and
+        Lineweaver, 2011), and Teschendorff and Feinberg describe cancer onset as a saddle-node bifurcation, in which
+        differentiated attractors flatten and the diversity of epigenetic states rises before a clone is selected
+        % TODO-cite: Davies & Lineweaver 2011, Phys Biol 8:015001, doi:10.1088/1478-3975/8/1/015001
+  \item RNA velocity in the notation of the kinetic models (our remark): for a constant transcription rate, the
+        nascent--mature model of Gorin et al.\ has mean
+        \(\mathrm{d}\langle x^{\mathrm{M}}_{gc}\rangle/\mathrm{d}t=k^{\mathrm{spl}}_{g}\langle x^{\mathrm{N}}_{gc}\rangle-k^{\mathrm{deg}}_{g}\langle x^{\mathrm{M}}_{gc}\rangle\),
+        % chk: V35e
+        which is the velocity of La Manno et al.\ (2018); velocity thus uses the first moment of a model whose full
+        distribution is needed to separate mechanisms (the two-moment limit above); its estimation needs a fraction of
+        cells at steady state (relaxed by \emph{scVelo}), a sampling matched to mRNA half-lives, and it can follow the
+        cell cycle rather than differentiation (Teschendorff and Feinberg, 2021)
+        % TODO-cite: La Manno et al. 2018, Nature 560:494-498, doi:10.1038/s41586-018-0414-6 (Zotero: lamannoRNAVelocitySingle2018)
+  \item pseudotime as a drift--diffusion process: the density \(\nu_{t}(\boldsymbol{\zeta})\) of cells in a continuous state space
+        follows (their Box~1)
+        \begin{equation}
+          \partial_{t}\nu_{t}=\nabla\cdot(\nu_{t}\nabla\mathcal{F})+D_{\mathrm{diff}}\nabla^{2}\nu_{t}+k^{\mathrm{net}}(\boldsymbol{\zeta})\,\nu_{t},
+          \qquad \mathcal{F}=\mathcal{V}+\mathcal{U},
+          \label{eq:dyn-fokker-planck}
+        \end{equation}
+        % chk: V35d
+        with \(\mathcal{V}\) the potential of the potency gradient, \(\mathcal{U}=-D_{\mathrm{diff}}\log\nu\) a containment
+        potential, \(D_{\mathrm{diff}}\) a diffusion coefficient and \(k^{\mathrm{net}}\) the net birth rate (birth minus death);
+        population balance analysis solves it at steady state, given \(D_{\mathrm{diff}}\) and \(k^{\mathrm{net}}\), on a
+        nearest-neighbour graph of cells, where \(\mathcal{V}\) follows from the graph Laplacian and transitions between
+        neighbours have Arrhenius weights \(\exp[\{\mathcal{V}(\boldsymbol{\zeta}_{c})-\mathcal{V}(\boldsymbol{\zeta}_{c'})\}/D_{\mathrm{diff}}]\); given a root, the
+        chain returns pseudotime and fate probabilities
+  \begin{itemize}
+    \item our remark: the composition is the mass of each type's region, \(p_{j}(t)=\int_{\Omega_{j}}\nu_{t}/\int\nu_{t}\); with
+          \(k^{\mathrm{net}}=0\), as in \emph{CardamomOT}, the total mass is constant and \(p_{j}(t)\) changes only by the flux across
+          the boundary of \(\Omega_{j}\), that is by transitions between types; a type that grows faster than its neighbours
+          needs \(k^{\mathrm{net}}\neq0\), which deconvolved bulk time courses can inform
+  \end{itemize}
+  \item potency: 16 methods in three families (Figure~\ref{fig:dyn-potency}): 3 average-based, 9 entropy-based and 4
+        knowledge-based; all but \emph{stemID} score single cells, and none needs a root
+  \begin{itemize}
+    \item the families disagree on what marks potency: average- and knowledge-based methods weight genes by an
+          importance \(\iota_{g}\), learnt or taken from a network; entropy-based methods take expression spread evenly
+          over genes as the mark of a potent cell, with no gene importance (Wang et al., 2026, Discussion)
+    \item the signalling entropy of \emph{SCENT} is the entropy rate of a random walk on the PPI network weighted by the
+          expression of cell \(c\),
+          \begin{equation}
+            \begin{aligned}
+              \mathcal{E}_{c}&=-\sum_{g}\Pi_{gc}\sum_{h\in\mathrm{ne}(g)}P_{c}(g\to h)\log P_{c}(g\to h),\\
+              P_{c}(g\to h)&=\frac{x^{\log}_{hc}}{\sum_{h'\in\mathrm{ne}(g)}x^{\log}_{h'c}},\qquad
+              \Pi_{gc}=\frac{x^{\log}_{gc}(\boldsymbol{A}^{\mathrm{PPI}}\boldsymbol{x}^{\log}_{\cdot c})_{g}}{\boldsymbol{x}^{\log\top}_{\cdot c}\boldsymbol{A}^{\mathrm{PPI}}\boldsymbol{x}^{\log}_{\cdot c}},
+            \end{aligned}
+            \label{eq:dyn-scent}
+          \end{equation}
+          % chk: V35a, V35b
+          where \(\Pi_{\cdot c}\) is the stationary law of \(P_{c}\); the potency is \(\mathcal{E}_{c}/\log\lambda_{\max}(\boldsymbol{A}^{\mathrm{PPI}})\), since
+          \(\log\lambda_{\max}\) is the largest entropy rate of a walk on that graph; the Shannon entropy
+          \(-\sum_{g}\theta_{gc}\log\theta_{gc}\) of the relative expression is the network-free version
+    \item the Gaussian covariance entropy \(\tfrac12\log\det(2\pi e\boldsymbol{\Sigma})\) measures the spread of a population in
+          gene space (their Box~2); our remark: with DeCovarT's within-type covariance, \(\tfrac12\log\det\boldsymbol{\Sigma}_{W,j}\)
+          % chk: V35c
+          comes with the reference fit; it summarises one type, not one cell, and its link to potency is untested
+    \item gene count, the basis of \emph{CytoTRACE}, cannot be separated from library size; in DeCovarT's terms, a
+          transcriptome size \(S_{j}\) that changes along a differentiation axis makes transcript fractions and cell
+          fractions diverge along that axis (Table~\ref{tab:notation}); potency methods also fix their own
+          normalisation, so a potency score inherits the technical layer that Tang et al.\ and \emph{bayNorm} model
+  \end{itemize}
+  \item critical transitions (their Box~3): near a fate bifurcation, the variance and covariance of the genes that specify
+        the downstream fates rise while the correlation between cells falls; a criticality index for a gene module
+        \(\mathcal{G}\) at time \(t\) is \(\overline{\mathrm{SD}}_{\mathcal{G},t}\,\overline{|\mathrm{cor}|}_{\mathcal{G},t}/\overline{|\mathrm{cor}|}_{\mathrm{o},t}\), the averages
+        taken over the genes of \(\mathcal{G}\), the pairs inside \(\mathcal{G}\), and the pairs with one gene outside; our
+        perspective: this is a summary of DeCovarT's within-type covariance \(\boldsymbol{\Sigma}_{W,j}(t)\) followed over time
+        points, estimable only with the replication of Remark~\ref{rem:dyn-identifiability}
+  \item comparison with the kinetic models: Gorin et al.\ and Sukys and Grima explain the law of one gene within a state
+        and do not order states; \emph{CardamomOT} orders states by real time and a regulatory network, with
+        \(k^{\mathrm{net}}=0\); pseudotime and potency order states without kinetics; RNA velocity alone shares the
+        nascent and mature input of Gorin et al.
+\end{itemize}
+
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[font=\scriptsize,
+      ct/.style={rectangle, rounded corners=2pt, draw=black!60, fill=white, inner sep=1.5pt, minimum height=9pt},
+      hl/.style={ct, draw=scalecol, thick},
+      lin/.style={line width=1.1pt},
+      val/.style={font=\tiny, inner sep=0.5pt}]
+    % (B) pseudotime
+    \begin{scope}
+      \node[ct] (csc) at (1.6,0) {CSC};
+      \node[ct] (ta) at (0.4,-1.3) {TA};
+      \node[hl] (pro) at (1.65,-1.3) {proCSC};
+      \node[ct] (rev) at (3.05,-1.3) {revCSC};
+      \node[ct] (ee) at (0,-2.6) {EE};
+      \node[ct] (gd) at (1.2,-2.6) {GD};
+      \node[ct] (er) at (3.05,-2.6) {ER};
+      \node[ct] (le) at (0,-3.9) {LE};
+      \draw[lin, compcol] (csc) -- (ta) -- (ee) -- (le);
+      \draw[lin, scalecol] (ta) -- (gd);
+      \draw[lin, compcol, dashed] (csc) -- (pro);
+      \draw[lin, black!45] (csc) -- (rev) -- (er);
+      \node[val, above=1pt of csc] {0};
+      \node[val, left=1pt of ta] {0.33};
+      \node[val, below=1pt of pro] {0.5};
+      \node[val, right=1pt of rev] {0.5};
+      \node[val, left=1pt of ee] {0.67};
+      \node[val, below=1pt of gd] {1};
+      \node[val, right=1pt of er] {1};
+      \node[val, below=1pt of le] {1};
+      \node[panellabel] at (-0.3,0.45) {(a) pseudotime};
+    \end{scope}
+    % (C) RNA velocity
+    \begin{scope}[xshift=5.1cm]
+      \node[hl] (pro) at (1.4,0) {proCSC};
+      \node[ct] (csc) at (0.6,-1.0) {CSC};
+      \node[ct] (rev) at (2.3,-1.0) {revCSC};
+      \node[ct] (ta) at (0.6,-2.0) {TA};
+      \node[ct] (er) at (2.3,-2.0) {ER};
+      \node[ct] (ee) at (0.1,-3.0) {EE};
+      \node[ct] (gd) at (1.2,-3.0) {GD};
+      \node[ct] (le) at (0.1,-3.9) {LE};
+      \draw[->] (pro) -- (csc);
+      \draw[->] (pro) -- (rev);
+      \draw[->, thick] (csc) -- (ta);
+      \draw[->] (rev) -- (er);
+      \draw[->] (ta) -- (ee);
+      \draw[->] (ta) -- (gd);
+      \draw[->] (ee) -- (le);
+      \node[panellabel] at (-0.3,0.45) {(b) RNA velocity};
+    \end{scope}
+    % (D) potency
+    \begin{scope}[xshift=9.3cm]
+      \draw[->] (0,-4.1) -- (0,0.2);
+      \node[val, left=2pt] at (0,0) {max};
+      \node[val, left=2pt] at (0,-3.9) {0};
+      \node[hl, fill=compcol!60] at (1.0,0) {proCSC};
+      \node[ct, fill=compcol!50] at (1.0,-0.6) {CSC};
+      \node[ct, fill=compcol!40] at (1.0,-1.2) {revCSC};
+      \node[ct, fill=compcol!30] at (1.0,-1.8) {TA};
+      \node[ct, fill=compcol!20] at (1.0,-2.4) {ER};
+      \node[ct, fill=compcol!11] at (1.0,-3.0) {EE};
+      \node[ct, fill=compcol!4] at (0.65,-3.9) {LE};
+      \node[ct, fill=compcol!4] at (1.4,-3.9) {GD};
+      \node[panellabel] at (-0.6,0.45) {(c) potency};
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Three outputs for the same cells, adapted from Wang et al.\ (2026), Fig.~1B--D (CC BY-NC 4.0). (a)
+    Pseudotime: lineages from a root chosen by the user (CSC), with a value between 0 and 1 along each lineage; line
+    colour and style mark the four lineages. (b) RNA velocity: arrows give the direction of change, inferred without
+    a root. (c) Potency: one score per cell type, which ranks the types; darker is more potent. The orders differ
+    (proCSC, outlined in orange, comes first in (b) and (c) but not in (a)) because only pseudotime is anchored by a
+    root. Types: colonic stem cells (CSC) and two variants, transit-amplifying cells (TA), cells under
+    endoplasmic-reticulum stress (ER), early and late enterocytes (EE, LE), goblet and deep crypt secretory cells (GD).}
+  \label{fig:dyn-paradigms}
+\end{figure}
+
+\begin{figure}[ht]
+  \centering
+  \begin{tikzpicture}[font=\scriptsize,
+      band/.style={rectangle, minimum height=11pt, inner sep=2pt, font=\small\bfseries, text width=\linewidth-4pt, align=center},
+      mb/.style={rectangle, draw=black!50, inner sep=3pt, align=left, anchor=north west},
+      nm/.style={font=\scriptsize\bfseries}]
+    % (A) average-based
+    \node[band, fill=compcol!15, anchor=north west] (bA) at (0,0) {(a) average-based};
+    \node[mb, text width={(\linewidth-8pt)/3-7pt}, minimum height=2.5cm] (a1) at ([yshift=-3pt]bA.south west)
+      {{\bfseries CytoTRACE}\\ in: expression\\[1pt]
+       geometric mean of the 200 genes most correlated with the gene count, the number of genes with \(x_{gc}>0\); smoothed, ranked};
+    \node[mb, text width={(\linewidth-8pt)/3-7pt}, minimum height=2.5cm, right=4pt of a1.north east, anchor=north west] (a2)
+      {{\bfseries ORIGINS}\\ in: expression, PPI\\[1pt]
+       \(\sum_{g}\sum_{h\neq g}A^{\mathrm{PPI}}_{gh}x^{\log}_{gc}x^{\log}_{hc}\), scaled to \([0,1]\)};
+    \node[mb, text width={(\linewidth-8pt)/3-7pt}, minimum height=2.5cm, right=4pt of a2.north east, anchor=north west] (a3)
+      {{\bfseries NCG}\\ in: expression, PPI, GO similarity\\[1pt]
+       \(\sum_{g}\iota_{g}x^{\log}_{gc}\), with \(\iota_{g}\) from the PPI network and GO terms};
+    % (B) entropy-based
+    \node[band, fill=scalecol!15, anchor=north west] (bB) at ([yshift=-6pt]a1.south west -| bA.west) {(b) entropy-based};
+    \node[mb, text width={(\linewidth-12pt)/4-7pt}, minimum height=3.4cm] (b1) at ([yshift=-3pt]bB.south west)
+      {{\bfseries stemID}\\ in: expression, clusters\\ out: one score per cluster\\[1pt]
+       \(\Delta\)entropy of the cluster \(\times\) its significant links to other clusters};
+    \node[mb, text width={(\linewidth-12pt)/4-7pt}, minimum height=3.4cm, right=4pt of b1.north east, anchor=north west] (b2)
+      {{\bfseries SLICE, dpath, scEnergy, cmEntropy}\\ in: expression (+ gene similarity)\\[1pt]
+       \(-\sum_{g}\theta_{gc}\log\theta_{gc}\), over genes or gene groups};
+    \node[mb, text width={(\linewidth-12pt)/4-7pt}, minimum height=3.4cm, right=4pt of b2.north east, anchor=north west] (b3)
+      {{\bfseries SCENT, MCE, SPIDE}\\ in: expression, PPI\\[1pt]
+       entropy rate of a walk on the network, Equation~\eqref{eq:dyn-scent}};
+    \node[mb, text width={(\linewidth-12pt)/4-7pt}, minimum height=3.4cm, right=4pt of b3.north east, anchor=north west] (b4)
+      {{\bfseries stemFinder}\\ in: expression, cell-cycle genes \(\mathcal{C}\)\\[1pt]
+       \(\sum_{g\in\mathcal{C}}q_{gc}(1-q_{gc})\), \(q_{gc}\) the share of the \(k\) nearest cells in the binarised state of \(c\)};
+    % (C) knowledge-based
+    \node[band, fill=black!8, anchor=north west] (bC) at ([yshift=-6pt]b4.south west -| bA.west) {(c) knowledge-based};
+    \node[mb, text width={(\linewidth-4pt)/2-7pt}, minimum height=1.95cm] (c1) at ([yshift=-3pt]bC.south west)
+      {{\bfseries mRNAsi, CCAT, FitDevo}\\ in: expression (+ PPI for CCAT)\\[1pt]
+       \(\operatorname{cor}(\boldsymbol{x}^{\log}_{\cdot c},\boldsymbol{\iota})\), with \(\boldsymbol{\iota}\) from a stemness classifier, PPI degrees, or pre-trained
+       and sample-specific weights};
+    \node[mb, text width={(\linewidth-4pt)/2-7pt}, minimum height=1.95cm, right=4pt of c1.north east, anchor=north west] (c2)
+      {{\bfseries CytoTRACE2}\\ in: expression\\[1pt]
+       a neural network on predefined gene sets returns a potency category and a score};
+  \end{tikzpicture}
+  \caption{Three families of potency estimators, adapted from Wang et al.\ (2026), Fig.~2 (CC BY-NC 4.0), in the
+    notation of Appendix~\ref{app:dynamic-potency}. Each box gives the method, its inputs and the score of cell \(c\).
+    All methods score single cells except \emph{stemID}, which scores clusters; \emph{stemFinder}'s final score,
+    \(1-\mathcal{H}_{c}/\max_{c'}\mathcal{H}_{c'}\) with \(\mathcal{H}_{c}\) the sum shown, runs from stem-like (0) to
+    differentiated (1), opposite to the others.}
+  \label{fig:dyn-potency}
+\end{figure}
+
 \section{Methodological details on DeCovarT}
 \label{app:methods}
 
@@ -481,6 +1045,9 @@ Table~\ref{tab:notation}.
       \eqref{eq:sc-model-transcript}. \\
     \(\boldsymbol{\Sigma}^{\mathrm{bio}}_{j}\), \(\boldsymbol{\Sigma}^{\theta}_{j}\) &
       Biological within-type covariance on the count scale; covariance of library-normalised cells. \\
+    \(k^{\mathrm{label}}_{g}\), \(x^{\mathrm{N}}_{gc}\), \(x^{\mathrm{M}}_{gc}\), \(\zeta_{c}\), \(\upsilon_{c}\), \(b_{c}\) &
+      Kinetic rates, nascent and mature molecules, cell state, cell size and cell capture of the mechanistic models
+      (Appendix~\ref{app:dynamic}, Table~\ref{tab:dynamic-notation}). \\
     \bottomrule
   \end{tabularx}
 \end{table}

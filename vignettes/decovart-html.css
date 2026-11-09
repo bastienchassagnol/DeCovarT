@@ -1,0 +1,20 @@
+/* Screen rule for the pagebreak shortcode, and a logo that stays
+   a logo in the title banner. Print still breaks on the shortcode. */
+
+.page-break {
+  break-before: page;
+  border-top: 1px solid #e6e1d8;
+  margin: 2.5rem 0 1.5rem;
+  height: 0;
+}
+
+.quarto-title-block.banner {
+  padding-right: 11rem;
+}
+
+.quarto-title-block .quarto-title-banner {
+  background-color: #f7f4ef !important;
+  background-size: 148px auto !important;
+  background-repeat: no-repeat !important;
+  background-position: right 1.75rem center !important;
+}

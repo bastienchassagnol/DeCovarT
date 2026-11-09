@@ -1,5 +1,8 @@
 ---
 title: "Appendix S2 — Covariance Inversion Strategies"
+date: last-modified
+date-format: "D MMM YYYY"
+description: "Ways to invert a cell-type covariance inside the likelihood."
 subtitle: "Full script: `scripts/supp_S2_covariance_inversion.R`"
 vignette: >
   %\VignetteIndexEntry{Appendix S2 — Covariance Inversion Strategies}

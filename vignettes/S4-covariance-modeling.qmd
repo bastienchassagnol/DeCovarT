@@ -1,5 +1,8 @@
 ---
 title: "Appendix S4 — Covariance Modelling Assumptions"
+date: last-modified
+date-format: "D MMM YYYY"
+description: "Assumptions used when the cell-type covariances are modelled."
 subtitle: "Full script: `scripts/supp_S4_covariance_modeling.R`"
 vignette: >
   %\VignetteIndexEntry{Appendix S4 — Covariance Modelling Assumptions}

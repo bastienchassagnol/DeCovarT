@@ -1618,6 +1618,11 @@ with log-likelihood, for one sample and \(\boldsymbol{\Sigma}(\boldsymbol{p})=\s
   \item continuous states can replace discrete types through archetypes
         \cite{hartInferringBiologicalTasks2015,wangNonLinearArchetypalAnalysis2022}, which suits the potency
         gradient of gastruloids
+  \item potency scores rank single cells along a differentiation hierarchy without a root cell; they summarise expression
+        by an average, an entropy or a match to predefined stemness genes (Wang et al., 2026;
+        Appendix~\ref{app:dynamic-potency}); such a score is the continuous axis that a lineage tree or a set of
+        archetypes discretises
+        % TODO-cite: Wang, Zhai, Lian, Song & Li 2026, Cell Syst 17:101762, doi:10.1016/j.cels.2026.101762
 \end{itemize}
 
 \subsubsection{Modelling: replicated references and several bulk samples}
@@ -1990,10 +1995,49 @@ Each extension keeps one of the two generative models and changes one part of it
   \item observation space: isoforms \cite{heilingEstimatingCellTypeComposition2023}, stacked multi-omics with a
         block covariance \cite{chenUnicoUnifiedModelCell2025,barbotPromisesLimitsMultimodal2026}, and spatial spots
         whose compositions depend on their neighbours \cite{cableRobustDecompositionCell2022a}
-  \item time\label{sec:dynamic-inference}: at least three time points are needed to recover dynamic interactions
-        between genes; without prior knowledge or perturbation data, temporal ordering is the main route to directed
-        interactions and sparser, contextualised networks; time-resolved compositions can carry a random-walk prior on
-        log-ratio coordinates \cite{kimLongitudinalProfilingLowAbundance2025}
+\end{itemize}
+
+\subsection{Time courses and mechanistic models of the cell-type profiles}
+\label{sec:dynamic-inference}
+
+\begin{itemize}
+  \item the question: a difference between two conditions or time points may be technical (capture, depth), a change
+        of composition \(\boldsymbol{p}_{\cdot i}(t)\), a new kinetic regime inside a cell type (burst frequency, burst size,
+        degradation), or a combination; separating them needs several time points and independent replicates (donors,
+        not cells)
+  \item DeCovarT summarises each type by two moments; mechanistic models derive the law of a cell from transcription
+        kinetics: a stochastic transcription rate driving nascent and mature RNA (Gorin et al., 2022), or bursts whose
+        frequency is set by proteins of a regulatory network, fitted to time-stamped snapshots (\emph{CardamomOT}, Maugé and
+        Ventre, 2026)
+        % TODO-cite: Gorin, Vastola, Fang & Pachter 2022, Nat Commun 13:7620, doi:10.1038/s41467-022-34857-7
+        % TODO-cite: Maugé & Ventre 2026, CardamomOT, PLoS Comput Biol 22(10), doi:10.1371/journal.pcbi.1014838
+  \item a limit of two-moment models: two transcription mechanisms can share their means, variances, covariances and
+        autocorrelations, so a likelihood built on the first two moments cannot tell them apart; full count distributions,
+        and joint nascent and mature counts, can (Appendix~\ref{app:dynamic})
+  \item at least three time points are needed to recover dynamic interactions between genes; without prior knowledge
+        or perturbation data, temporal ordering is the main route to directed interactions and sparser, contextualised
+        networks; time-resolved compositions can carry a random-walk prior on log-ratio coordinates
+        \cite{kimLongitudinalProfilingLowAbundance2025}
+  \item a bridge we suggest: \emph{CardamomOT} assumes that cells neither proliferate nor die between snapshots, so a change of
+        composition is not modelled; deconvolving bulk samples matched to each time point would give
+        \(\boldsymbol{p}(t)\) as external marginals for its transport step
+  \item between cell types, three paradigms read population-level dynamics from snapshots: pseudotime, RNA velocity and
+        potency (Table~\ref{tab:dyn-paradigms}); they answer different questions, and only pseudotime is anchored by a
+        root cell chosen by the user (Wang et al., 2026)
+        % TODO-cite: Wang, Zhai, Lian, Song & Li 2026, Cell Syst 17:101762, doi:10.1016/j.cels.2026.101762
+  \item the extrinsic dynamics worth capturing are differentiation, reprogramming, and pathological fate changes such as
+        the stem-like states of cancer cells, which the atavistic theory reads as a return to an ancestral programme
+        (Davies and Lineweaver, 2011); in a drift--diffusion model of the state density with a net birth rate
+        (Teschendorff and Feinberg, 2021), the composition \(\boldsymbol{p}(t)\) is the mass of each type's region of state
+        space, the quantity DeCovarT estimates from bulk; \emph{CardamomOT} sets that birth rate to zero
+        % TODO-cite: Davies & Lineweaver 2011, Phys Biol 8:015001, doi:10.1088/1478-3975/8/1/015001
+        % TODO-cite: Teschendorff & Feinberg 2021, Nat Rev Genet 22:459-476, doi:10.1038/s41576-021-00341-z
+  \item our perspective: the covariance between the genes that specify a fate rises as a fate transition approaches, the
+        basis of criticality indices; a within-type covariance \(\boldsymbol{\Sigma}_{W,j}(t)\) estimated at each time point then
+        carries information on the transition rather than only on nuisance, and \(\tfrac12\log\det\boldsymbol{\Sigma}_{W,j}\) is a
+        per-type covariance entropy available from the reference (Appendix~\ref{app:dynamic-potency})
+  \item Figures~\ref{fig:dyn-models} and~\ref{fig:dyn-layers} compare the two models and order the sources of variation,
+        from cell state to kinetics, molecule counts and the technical layer
 \end{itemize}
 
 \backmatter

@@ -1,8 +1,10 @@
 ---
 title: "§2.4 Single-cell scenario: four cell types in two lineages (G = 20 or 200, J = 4)"
+description: "A four-type simulation with two lineages of single cells."
 subtitle: "Full script: `scripts/fig05_single_cell_hierarchical.R`"
 author: "Bastien Chassagnol"
-date: "`r Sys.Date()`"
+date: last-modified
+date-format: "D MMM YYYY"
 vignette: >
   %\VignetteIndexEntry{§2.4 Single-cell scenario with two lineages}
   %\VignetteEngine{quarto::html}
@@ -239,6 +241,9 @@ benchmark$config |>
   )
 ```
 
+
+{{< pagebreak >}}
+
 # Inference {#sec-sc-inference-benchmark}
 
 Every method is scored on the same simulated bulks, with all genes (no
@@ -350,6 +355,9 @@ dplyr::select(
 )
 ```
 
+
+{{< pagebreak >}}
+
 # Visualisations {#sec-fig05-viz}
 
 `output/fig05/fig05_benchmark.rds` holds the run settings, the design,
@@ -384,6 +392,9 @@ with these changes:
 - `performance_visualisations/nuisance_scale_ratio.pdf` shows
   $\hat c/c$ and $\hat\phi/\phi$ against the number of genes and of
   cells, with the REML-rescaled $\hat\phi\,G/(G-J)$.
+
+
+{{< pagebreak >}}
 
 # Caveats {#sec-fig05-caveats}
 

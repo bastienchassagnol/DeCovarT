@@ -1,8 +1,10 @@
 ---
 title: "§2.2 Bivariate toy model (G = 2 genes, J = 2 cell types)"
+description: "A two-gene, two-type simulation used as a toy benchmark."
 subtitle: "Full script: `scripts/fig02_bivariate_toy.R`"
 author: "Bastien Chassagnol"
-date: "`r Sys.Date()`"
+date: last-modified
+date-format: "D MMM YYYY"
 vignette: >
   %\VignetteIndexEntry{§2.2 Bivariate toy model}
   %\VignetteEngine{quarto::html}
@@ -309,6 +311,9 @@ ggplot2::ggplot(ll_df, ggplot2::aes(x = p1, y = loglik)) +
   ggplot2::theme_bw(base_size = 11)
 ```
 
+
+{{< pagebreak >}}
+
 # Inference {#sec-bivariate-inference}
 
 Five methods are evaluated on each scenario:
@@ -378,6 +383,9 @@ bivariate <- run_simulation_benchmark(
 
 `config` on the in-memory benchmark still carries Shannon entropy of
 $\boldsymbol{p}$ and MixSim overlap for tests.
+
+
+{{< pagebreak >}}
 
 # Visualisations {#sec-bivariate-viz}
 

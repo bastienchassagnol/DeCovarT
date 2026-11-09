@@ -1,7 +1,9 @@
 ---
 title: "3.2 Cell-type covariance for the DeCovarT plug-in"
+description: "How each cell type's covariance is estimated before the fit."
 author: "Bastien Chassagnol"
-date: "`r Sys.Date()`"
+date: last-modified
+date-format: "D MMM YYYY"
 vignette: >
   %\VignetteIndexEntry{3.2 Cell-type covariance for the DeCovarT plug-in}
   %\VignetteEngine{quarto::html}
@@ -32,7 +34,21 @@ knitr::opts_chunk$set(
 )
 ```
 
-{{< include _notation.qmd >}}
+::: {.callout-note collapse="true"}
+## Notation used in this vignette
+
+A symbol absent from these groups is defined in this vignette, with one
+meaning. The full table is the [notation article](notation.html).
+
+{{< embed notation.qmd#notation-indices >}}
+
+{{< embed notation.qmd#notation-means >}}
+
+{{< embed notation.qmd#notation-biological >}}
+
+{{< embed notation.qmd#notation-technical >}}
+:::
+
 
 ::: callout-note
 ## Scope
@@ -112,6 +128,9 @@ convolution ([CSNet](05-1-review-distribution-aware.html#sec-csnet))
 
 : Four covariance estimators. Each has one tuning parameter, chosen by the criterion of @sec-cov-cv. {#tbl-cov-estimators}
 
+
+{{< pagebreak >}}
+
 # Sample-size regimes {#sec-cov-regimes}
 
 Report $C_j$ against $G$ for every type (and time point) before
@@ -142,8 +161,8 @@ are often conflated.
    lies between the clique number and the treewidth plus one, and
    equals the clique number for chordal graphs (Uhler 2012; Bernstein
    & Outlaw 2023).
-   <!-- TODO-cite: Uhler 2012, doi:10.1214/11-AOS957 -->
-   <!-- TODO-cite: Bernstein & Outlaw 2023, arXiv:2312.03145 -->
+   [TODO-cite: Uhler 2012, doi:10.1214/11-AOS957]{.highlight}
+   [TODO-cite: Bernstein & Outlaw 2023, arXiv:2312.03145]{.highlight}
    Bernstein and Outlaw simulate graphs selected by the graphical lasso
    from independent Gaussian data ($G\le9$): the probability that
    $C_j\ge\operatorname{mlt}$ of the selected graph rises with $\lambda$
@@ -153,12 +172,12 @@ are often conflated.
 3. **The graph is recovered.** Support recovery by the graphical lasso
    needs $C_j\gtrsim d^{2}\log G$, an irrepresentability condition,
    bounded eigenvalues and a minimum $|\omega_{gg'}|$ (Ravikumar et al.
-   2011). <!-- TODO-cite: Ravikumar, Wainwright, Raskutti & Yu 2011, doi:10.1214/11-EJS631 -->
+   2011). [TODO-cite: Ravikumar, Wainwright, Raskutti & Yu 2011, doi:10.1214/11-EJS631]{.highlight}
    Neighbourhood selection needs $d\log G$
    [@chiquetContributionsSparseMethods2015, p. 41], under its own
    neighbourhood stability condition (Meinshausen & Bühlmann 2006,
    assumption 6).
-   <!-- TODO-cite: Meinshausen & Bühlmann 2006, doi:10.1214/009053606000000281 -->
+   [TODO-cite: Meinshausen & Bühlmann 2006, doi:10.1214/009053606000000281]{.highlight}
    With $G=500$ and $d=10$, $d^{2}\log G\approx620$ before constants,
    and hubs raise $d$. On models derived from gene expression the
    irrepresentability conditions never held
@@ -172,6 +191,9 @@ Threshold 3 governs any biological reading of the zeros, which is out
 of scope here; it can be probed by simulating precisions at the
 observed $C_j$ with `simulate_hierarchical_grn_moments()` and measuring
 recovery.
+
+
+{{< pagebreak >}}
 
 # Estimators {#sec-cov-estimators}
 
@@ -195,7 +217,7 @@ $$ {#eq-shrink-target-d}
 
 with $\hat\lambda^{\ast}$ truncated to $[0,1]$. The closed form
 minimises the Frobenius risk (Ledoit–Wolf lemma; Ledoit & Wolf 2004).
-<!-- TODO-cite: Ledoit & Wolf 2004, doi:10.1016/S0047-259X(03)00096-4 -->
+[TODO-cite: Ledoit & Wolf 2004, doi:10.1016/S0047-259X(03)00096-4]{.highlight}
 The estimate is positive definite for any $C_j$ and $G$, invariant to
 the scale of each gene, and costs about two sample covariances. Its
 precision is dense; partial correlations and a local-FDR graph can be
@@ -213,6 +235,9 @@ the nonparanormal `SILGGM` estimator and `PLNnetwork` are derived in
 [3.3 Precision networks](03-3-precision-networks.html). Each still
 exports a covariance on the linear scale, and each is scored by the
 same held-out criterion as shrinkage (@sec-cov-cv).
+
+
+{{< pagebreak >}}
 
 # One criterion for all four: cross-validated Gaussian log-score {#sec-cov-cv}
 
@@ -293,7 +318,7 @@ where $\Psi$ is the mean assessment loss (here minus the log-score),
 $\boldsymbol{H}_{\Phi}$ the Hessian of the estimating function and
 $\boldsymbol{U}$ (their $\boldsymbol{K}$) the mean cross-product of the
 per-cell assessment and estimating scores; the error is $O_p(C_j^{-2})$ (Commenges et al. 2012,
-eqs. 6–7). <!-- TODO-cite: Commenges, Proust-Lima, Samieri & Liquet 2012, arXiv:1206.1753 -->
+eqs. 6–7). [TODO-cite: Commenges, Proust-Lima, Samieri & Liquet 2012, arXiv:1206.1753]{.highlight}
 For a maximum-likelihood fit assessed by its own log-likelihood it is
 the Takeuchi information criterion divided by $2C_j$ (p. 7). A smooth
 penalty enters $\boldsymbol{H}_{\Phi}$ and lowers the correction
@@ -314,6 +339,9 @@ covariance, and tends to select too many edges in Gaussian graphical
 models. Thresholded adaptive validation targets the support as well
 [@laszkiewiczThresholdedAdaptiveValidation2021]. All three are
 reported beside the cross-validated choice, not instead of it.
+
+
+{{< pagebreak >}}
 
 # The diagonal: conditional variance, not self-regulation {#sec-cov-diagonal}
 
@@ -342,8 +370,8 @@ gives it no specific penalty beyond its common $\ell_1$ term towards a
 prior network; a positive auto-activation with a negative basal term is
 "the most parsimonious way to produce bistability for an isolated gene"
 (Maugé & Ventre 2026, p. 28, citing Ferrell 2002).
-<!-- TODO-cite: Maugé & Ventre 2026, doi:10.1371/journal.pcbi.1014838 -->
-<!-- TODO-cite: Ferrell 2002, doi:10.1016/S0955-0674(02)00314-9 (journal line on p. 1 disagrees with the DOI; verify on Crossref) -->
+[TODO-cite: Maugé & Ventre 2026, doi:10.1371/journal.pcbi.1014838]{.highlight}
+[TODO-cite: Ferrell 2002, doi:10.1016/S0955-0674(02)00314-9 (journal line on p. 1 disagrees with the DOI; verify on Crossref)]{.highlight}
 Such a parameter is linked to a precision only through the stationary
 covariance of a linearised model. For
 $\mathrm{d}\boldsymbol{x}=\boldsymbol{A}(\boldsymbol{x}-\boldsymbol{\mu})\,\mathrm{d}t+\mathrm{d}\boldsymbol{w}$
@@ -402,5 +430,8 @@ covariance with the best held-out Gaussian log-score (@sec-cov-cv).
 Those score definitions stay in the reproducibility file
 `docs/05-grn-metrics.qmd`, which is not a listed chapter.
 
+
+
+{{< pagebreak >}}
 
 # References

@@ -43,3 +43,12 @@
 % Colours of the single-cell derivation (Appendix): technical scales and composition.
 \definecolor{scalecol}{HTML}{C45C26}
 \definecolor{compcol}{HTML}{1D4E89}
+
+% Graphical models: TikZ bayesnet library (latent, obs, det, const, \plate[...]{name}{fit}{label}).
+% Shared additions only; bayesnet styles are not redefined. Edges are drawn with \draw[->].
+\tikzset{
+  fixedpar/.style={const, draw, minimum size=16pt, inner sep=2pt, font=\small},
+  techobs/.style={obs, draw=scalecol, fill=scalecol!20, thick},
+  eqnote/.style={font=\scriptsize, align=center, inner sep=1pt},
+  panellabel/.style={font=\small\bfseries, anchor=south west, align=left}
+}

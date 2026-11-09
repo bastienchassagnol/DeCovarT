@@ -8,16 +8,30 @@
 project:
   render: ["*.qmd"]
 from: markdown+emoji
+date-format: "D MMM YYYY"
+
+extensions:
+  highlight-text:
+    styles:
+      highlight:
+        colour: "#7a1f1f"
+        bg-colour: "#f4c7c3"
 
 # Standalone renders (quarto render): TOC and section numbers to level 4,
 # the deepest heading level allowed in vignettes. On the pkgdown site the
 # sidebar is built by pkgdown instead (see _pkgdown.yml, after_body).
 format:
   html:
+    title-block-banner: ../man/figures/logo.svg
+    css: decovart-html.css
     toc-depth: 4
     number-depth: 4
+    # Embedded cells from notation.qmd link the full table in the margin.
+    # https://quarto.org/docs/authoring/notebook-embed.html#linked-source-notebooks
+    notebook-links: true
 
 filters:
+  - highlight-text
   # pre-ast so Quarto's cross-referencing sees the #fig- labels.
   - at: pre-ast
     path: _extensions/pandoc-ext/diagram/diagram.lua

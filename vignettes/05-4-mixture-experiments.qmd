@@ -1,7 +1,9 @@
 ---
 title: "5.4 DeCovarT as a mixture model: links with designed mixture experiments"
+description: "Links between the convolution and designed mixture experiments."
 author: "Bastien Chassagnol"
-date: "`r Sys.Date()`"
+date: last-modified
+date-format: "D MMM YYYY"
 vignette: >
   %\VignetteIndexEntry{5.4 DeCovarT as a mixture model: links with designed mixture experiments}
   %\VignetteEngine{quarto::html}
@@ -23,7 +25,23 @@ format:
     toc: true
 ---
 
-{{< include _notation.qmd >}}
+::: {.callout-note collapse="true"}
+## Notation used in this vignette
+
+A symbol absent from these groups is defined in this vignette, with one
+meaning. The full table is the [notation article](notation.html).
+
+{{< embed notation.qmd#notation-indices >}}
+
+{{< embed notation.qmd#notation-ratios >}}
+
+{{< embed notation.qmd#notation-means >}}
+
+{{< embed notation.qmd#notation-biological >}}
+
+{{< embed notation.qmd#notation-bulk >}}
+:::
+
 
 ::: callout-note
 ## Scope
@@ -107,6 +125,9 @@ $\alpha$-distributions on the simplex
 [@tsagrisFoldedModelCompositional2020] are a natural outlook; they are
 not used in the current convolution.
 
+
+{{< pagebreak >}}
+
 # Other mixture inverse problems {#sec-other-fields}
 
 The same structure, a signal equal to a proportion-weighted sum of
@@ -128,5 +149,8 @@ profiles are themselves uncertain, a weighted least-squares fit should
 weight each feature by the variance the profiles induce at the current
 proportions, $\sum_jp_j^{2}\boldsymbol{\Sigma}_j$ for independent
 components, rather than by a fixed residual variance.
+
+
+{{< pagebreak >}}
 
 # References

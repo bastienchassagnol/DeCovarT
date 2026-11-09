@@ -1,7 +1,9 @@
 ---
 title: "4.1 Simulating synthetic pseudo-bulk mixtures for benchmarking"
+description: "How synthetic pseudo-bulk mixtures are built for the benchmark."
 author: "Bastien Chassagnol"
-date: "`r Sys.Date()`"
+date: last-modified
+date-format: "D MMM YYYY"
 vignette: >
   %\VignetteIndexEntry{4.1 Simulating synthetic pseudo-bulk mixtures for benchmarking}
   %\VignetteEngine{quarto::html}
@@ -48,13 +50,34 @@ knitr::opts_chunk$set(
 )
 ```
 
-{{< include _notation.qmd >}}
+::: {.callout-note collapse="true"}
+## Notation used in this vignette
+
+A symbol absent from these groups is defined in this vignette, with one
+meaning. The full table is the [notation article](notation.html).
+
+{{< embed notation.qmd#notation-indices >}}
+
+{{< embed notation.qmd#notation-ratios >}}
+
+{{< embed notation.qmd#notation-means >}}
+
+{{< embed notation.qmd#notation-biological >}}
+
+{{< embed notation.qmd#notation-bulk >}}
+
+{{< embed notation.qmd#notation-overlap >}}
+:::
+
 
 # Overview
 
 This vignette documents the synthetic first- and second-order moment generator `simulate_hierarchical_grn_moments()` and how its outputs feed bulk mixture simulation. Mean profiles realise a target Gram matrix of pairwise cosines through the **symmetric square root** \(\boldsymbol{\mu}=s\mathbf{Q}K^{1/2}\). The default \(K\) is equicorrelation at level \(\gamma\) (`target_cosine`; not an ILR coordinate \(\boldsymbol{\rho}\)); `target_gram` sets unequal pairs. The scale \(s\) (`mean_scale`) sets column norms without changing angles. Prefer varying the Gram across scenarios when precision weights already control second-order dependence.
 
 Each cell type carries its own graph-constrained signed precision $\boldsymbol{\Omega}_j$, mapped to $\boldsymbol{\Sigma}_j=\boldsymbol{\Omega}_j^{-1}$. An undirected Gaussian Markov simulation separates four layers (@eq-ggm-pipeline): graph $\mathcal{G}_j$, signed weights $W(\mathcal{G}_j)$, SPD precision $\Omega_j$, and latent Gaussians (an optional observation layer can add Poisson–log-normal or zero-inflated counts). The **graph** and the **precision** must not be conflated: a binary adjacency is almost never itself positive definite. DeCovarT draws $\mathcal{G}_j$ via `generate_random_network_skeleton()`, completes $\Omega_j\succ 0$ with `build_normalised_precision()`, and stacks the inverted slices with `build_covariance_array_from_precision()`. @sec-ggm-networks develops the topology, weight, and SPD design in detail.
+
+
+{{< pagebreak >}}
 
 # Pipeline API
 
@@ -105,6 +128,9 @@ bulk <- simulate_bulk_mixture(
 dim(bulk$Y)
 dim(bulk$latent_profiles) # G x J x N latent draws; input mu is shared
 ```
+
+
+{{< pagebreak >}}
 
 # Generate mean expression profiles
 
@@ -516,6 +542,9 @@ construction remains the closest analogue of `AutoGeneS` shared-plus-private
 geometry [@alieeAutoGeneSAutomaticGene2021]; the default generator is now
 @eq-mean-gram, which hits $K$ exactly.
 
+
+{{< pagebreak >}}
+
 # Undirected Gaussian Markov network generation {#sec-ggm-networks}
 
 $$
@@ -871,6 +900,9 @@ ggplot2::ggplot(comp_df, ggplot2::aes(x = design, y = p, fill = celltype)) +
   ggplot2::theme_bw(base_size = 11) +
   ggplot2::theme(legend.position = "bottom")
 ```
+
+
+{{< pagebreak >}}
 
 # Scenario descriptors collected with the bulk draw {#sec-scenario-descriptors}
 
@@ -1307,6 +1339,9 @@ timings are *not* reported: the caller must declare the covariance
 structure used at fit time; otherwise the dense Cholesky factor of
 $\Sigma(p)$ is the default.
 
+
+
+{{< pagebreak >}}
 
 # Performance metrics {#sec-performance-metrics}
 
@@ -2105,6 +2140,9 @@ interval, `mcse_coverage`, and bias side by side instead.
 
 
 
+
+{{< pagebreak >}}
+
 # Conclusions
 
 A reproducible synthetic study should keep three design layers separate,
@@ -2164,6 +2202,9 @@ dispatch) is reserved for APIs that need a fast interactive response,
 not for the published Monte Carlo protocol.
 :::
 
+
+{{< pagebreak >}}
+
 # Perspectives on high-dimensional or more biologically realistic designs
 
 Beyond the families in @tbl-topologies:
@@ -2180,6 +2221,9 @@ Beyond the families in @tbl-topologies:
   - **Nonparanormal / Gaussian-copula** margins on a latent Gaussian graph.
   - **Poisson–log-normal / compositional** observation layers on latent log-abundances [@chiquetVariationalInferenceSparse2018].
   - **Zero-inflated mixture GGMs** with cell-type-specific $(\mu_k,\Omega_k)$ and expression-dependent dropout [@wuEstimatingHeterogeneousGene2022].
+
+
+{{< pagebreak >}}
 
 # Simulation reporting: ADEMP and Nature Methods {#sec-ademp}
 
@@ -2316,5 +2360,8 @@ this section.
   not a null hypothesis). Boundary tests live in
   [Appendix S1](S1-identifiability.html) and
   [MLE properties](01-2-population-inference.html#sec-boundary).
+
+
+{{< pagebreak >}}
 
 # References

@@ -75,59 +75,18 @@ Profile first; vectorise; `data.table` or DuckDB when scale demands it.
 Record seeds and `sessioninfo` for scientific outputs; `renv` when the repo uses
 it; `targets` for heavy pipelines when justified.
 
-## Visualisation (`ggplot2`)
+## Visualisation
 
-Before custom hacks: [R Graphics Cookbook](https://r-graphics.org/),
-[ggplot2 book](https://ggplot2-book.org/), then current package docs.
+Follow the data-visualisation rule (`~/.claude/rules/data-visualisation.md`;
+Cursor: `~/.cursor/rules/data-visualisation.mdc`): house theme `theme_slide()`,
+colour roles, export, and the caveats checklist. When the repository defines a
+theme, use it.
 
-Question-first plots; explicit `ggsave()` size/dpi; PDF/SVG for vector output.
-When the repository already defines a ggplot theme, use that theme.
-
-Otherwise use `theme_slide()` on every ggplot. It is `theme_minimal()` with the
-grid, type, and background fixed:
-
-```r
-theme_slide <- function() {
-  ggplot2::theme_minimal(base_size = 18) +
-    ggplot2::theme(
-      panel.grid.minor = ggplot2::element_blank(),
-      panel.grid.major = ggplot2::element_line(colour = "#e6e1d8"),
-      plot.title = ggplot2::element_text(
-        face = "bold", colour = "#0e4d3a", size = 18
-      ),
-      plot.subtitle = ggplot2::element_text(colour = "#3d4a42", size = 13),
-      axis.title = ggplot2::element_text(colour = "#1c2b24"),
-      strip.text = ggplot2::element_text(face = "bold", colour = "#0e4d3a"),
-      legend.position = "bottom",
-      plot.background = ggplot2::element_rect(fill = "white", colour = NA),
-      panel.background = ggplot2::element_rect(fill = "white", colour = NA)
-    )
-}
-```
-
-Colour roles, unless the repository already assigns them:
-
-- Series and density curves: `#1d4e89`
-- Second series or a marked point: `#c45c26`
-- Histogram bars: `#d9d3c7` with white bin outlines
-- Guides, reference lines, and annotation text: `#1c2b24`
-
-A multi-panel figure keeps `theme_slide()` and shrinks type so each panel stays
-readable (titles about 15, subtitles about 11, axis titles about 12, axis text
-about 10). Place the panels with `grid::grid.layout()`, not a new theme. Write
-the file with `ragg::agg_png()` (or `ggsave(..., device = ragg::agg_png)`), on a
-white background, and state width, height, and resolution in the call.
-
-**Distributions:** `ggdist` rainclouds when shape matters; report binning rule
-for histograms.
-
-**Benchmarks:** forest/dot-whisker for summaries; facet metrics — do not map two
-primary metrics to colour and size.
-
-**Heatmaps:** `geom_tile()` default; `ComplexHeatmap` only for rich annotations.
-
-**Interactive:** prefer **`ggiraph`** (scales better in HTML than Plotly for many
-points). Keep a static archival figure.
+R packages: `ggplot2` for every static figure; `ragg` for PNG export; `scales`
+(axis labels, rounding); `forcats` (ordering); `ggrepel` (direct labels);
+`ggdist` (distributions, rainclouds); `ggiraph` (interactive, linked hover);
+`ComplexHeatmap` only for richly annotated heatmaps; `grid` for multi-panel
+layout.
 
 ## Parallelism and Shiny
 

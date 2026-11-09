@@ -1,7 +1,9 @@
 ---
 title: "5.1 Deconvolution with reference distributions: a review of methods that use more than the mean"
+description: "Methods that deconvolve a bulk using more than the mean."
 author: "Bastien Chassagnol"
-date: "`r Sys.Date()`"
+date: last-modified
+date-format: "D MMM YYYY"
 vignette: >
   %\VignetteIndexEntry{5.1 Deconvolution with reference distributions: a review}
   %\VignetteEngine{quarto::html}
@@ -82,7 +84,25 @@ flowchart TD
 ```
 
 ::: {#nte-notation}
-{{< include _notation.qmd >}}
+::: {.callout-note collapse="true"}
+## Notation used in this vignette
+
+A symbol absent from these groups is defined in this vignette, with one
+meaning. The full table is the [notation article](notation.html).
+
+{{< embed notation.qmd#notation-indices >}}
+
+{{< embed notation.qmd#notation-ratios >}}
+
+{{< embed notation.qmd#notation-means >}}
+
+{{< embed notation.qmd#notation-biological >}}
+
+{{< embed notation.qmd#notation-technical >}}
+
+{{< embed notation.qmd#notation-bulk >}}
+:::
+
 :::
 
 Equations quoted from a paper are translated into these indices; only
@@ -345,7 +365,7 @@ Each removes a different quantity, on a different unit.
   in an empirical-Bayes framework (Johnson, Li and Rabinovic 2007, as
   summarised by Zhang 2025, p. 1): a location and a scale per gene and
   batch, shrunk across genes.
-  <!-- TODO-cite: Johnson, Li & Rabinovic 2007, Biostatistics 8(1):118-127, doi:10.1093/biostatistics/kxj037; Zhang, Parmigiani & Johnson 2020, ComBat-seq, NAR Genom Bioinform 2(3), doi:10.1093/nargab/lqaa078; Zhang 2025, ComBat-ref, Comput Struct Biotechnol J 27:58-64, doi:10.1016/j.csbj.2024.12.010. None is in inst/REFERENCES.bib. -->
+  [TODO-cite: Johnson, Li & Rabinovic 2007, Biostatistics 8(1):118-127, doi:10.1093/biostatistics/kxj037; Zhang, Parmigiani & Johnson 2020, ComBat-seq, NAR Genom Bioinform 2(3), doi:10.1093/nargab/lqaa078; Zhang 2025, ComBat-ref, Comput Struct Biotechnol J 27:58-64, doi:10.1016/j.csbj.2024.12.010. None is in inst/REFERENCES.bib.]{.highlight}
   Its count version, ComBat-ref, fits
   $\log\mu_{gij}=\alpha_g+\gamma_{gi}+\beta_{g,\mathrm{cond}(j)}+\log N_j$ for gene $g$,
   batch $i$ and sample $j$ with a pooled negative binomial dispersion per
@@ -368,14 +388,14 @@ Each removes a different quantity, on a different unit.
   the percentage of transcripts" (p. 3). Genes are independent given
   $(\boldsymbol{z}_n,\ell_n)$ (p. 8), so gene–gene covariance passes through
   the 10-dimensional $\boldsymbol{z}_n$ only (p. 3). No reference is used.
-  <!-- TODO-cite: Lopez, Regier, Cole, Jordan & Yosef 2018, Nat Methods 15(12):1053-1058, doi:10.1038/s41592-018-0229-2; not in inst/REFERENCES.bib. -->
+  [TODO-cite: Lopez, Regier, Cole, Jordan & Yosef 2018, Nat Methods 15(12):1053-1058, doi:10.1038/s41592-018-0229-2; not in inst/REFERENCES.bib.]{.highlight}
 - **scANVI** adds a cell-type label $c_n$ with a uniform prior, a
   within-type latent $\boldsymbol{u}_n$ and
   $\boldsymbol{z}_n\sim\mathcal{N}(f_\mu(\boldsymbol{u}_n,c_n),f_\sigma(\boldsymbol{u}_n,c_n))$,
   with the scVI library factor and count model unchanged (Xu et al.
   2021, equations 1--8, p. 15). Labels of an annotated reference are
   transferred to the cells of other datasets (pp. 2--3).
-  <!-- TODO-cite: Xu, Lopez, Mehlman, Regier, Jordan & Yosef 2021, Mol Syst Biol 17:e9620, doi:10.15252/msb.20209620; not in inst/REFERENCES.bib. -->
+  [TODO-cite: Xu, Lopez, Mehlman, Regier, Jordan & Yosef 2021, Mol Syst Biol 17:e9620, doi:10.15252/msb.20209620; not in inst/REFERENCES.bib.]{.highlight}
 
 Our setting differs on three points (our reading).
 
@@ -433,7 +453,7 @@ the one of the platform, applied to a pool of many cells.
   was a between-replicate variance of the population mean. That is the
   quadratic layer $\sum_jp_j^{2}\boldsymbol{\Sigma}_{B,j}$ of the
   [single-cell generative vignette](02-1-single-cell-generative-optimisation.html#sec-facs),
-  and the object released DeCovarT was designed for. A within-type,
+  and the covariance of the purified-profile paradigm. A within-type,
   cell-to-cell covariance did not exist in that design.
 
 Two biases of sorted references have no single-cell analogue: sorting
@@ -478,6 +498,9 @@ convolution on the latent log-abundance scale, keeping the ILR chart on
 $\boldsymbol{p}$. A multinomial **logit-normal** on the *gene* simplex
 is a different discrete model: it is compositional association, not a
 cell-type convolution ([two simplices without convolution](05-3-extensions-roadmap.html#sec-logit-normal-compositional)).
+
+
+{{< pagebreak >}}
 
 # Second-generation deconvolution: univariate versus multivariate {#sec-methods}
 
@@ -527,13 +550,13 @@ arithmetic alone.
 | reference unit | replicate $r$ | subject $j$ | cell $i$ | cell | subject $j$ | individual $i'$ | cell | -- | individual $j$ | -- |
 | target | $\boldsymbol{p}_{\cdot i}$ | $\mathbf{p}_j$ | $\boldsymbol{\alpha}$ | $\mathbf{x}/\mathbf{1}^{\top}\mathbf{x}$ | $\mathbf{p}_j$ | $\mathbf{p}_i$ | $\boldsymbol{\beta}_i$ normalised | $\boldsymbol{\pi}_i$ | $\mathbf{p}_i$ | $\mathbf{Z}_{ij}$ ($\mathbf{w}_i$ given) |
 | cell counts | $m_{ji}$, $n_i$ | $m_j^{k}$, $m_j$ | --, $n$ | $\mathbf{x}$ | $n^{k}_j$, $n_j$ | -- | -- | -- | -- | -- |
-| per-cell mean | $\tilde{\boldsymbol{\mu}}_{\cdot j}=S_j\boldsymbol{\theta}_{\cdot j}$ | $S^{k}\boldsymbol{\theta}^{k}$ | $\mathbf{M}_{\cdot k}$ | $\mathbf{S}_{\cdot j}$ | $r^{k}_{jg}=\theta^{k}_{jg}s^{k}_j$ | $\mathbf{Z}_{\cdot k}\approx\boldsymbol{\theta}_{\cdot j}$ | normalised mean | $\mathbf{w}_k$ (FPKM) | $\mathbf{U}_{\cdot k}$ | $\boldsymbol{\mu}_j$ |
+| per-cell mean | $\tilde{\boldsymbol{\mu}}_{\cdot j}$ | $S^{k}\boldsymbol{\theta}^{k}$ | $\mathbf{M}_{\cdot k}$ | $\mathbf{S}_{\cdot j}$ | $r^{k}_{jg}=\theta^{k}_{jg}s^{k}_j$ | $\mathbf{Z}_{\cdot k}\approx\boldsymbol{\theta}_{\cdot j}$ | normalised mean | $\mathbf{w}_k$ (FPKM) | $\mathbf{U}_{\cdot k}$ | $\boldsymbol{\mu}_j$ |
 | cell size | $S_j$ | $S^{k}$ (mean library size) | $\mathbf{1}^{\top}\mathbf{M}_{\cdot k}$ | assumed equal | $s^{k}_j$ | removed by CPM | removed | removed by FPKM | kept in $\mathbf{U}$ | -- |
 | sample scale | $a_i$ | $C_j^{-1}$ | $n$ | $\mathbf{1}^{\top}\mathbf{x}$ | $n_j$ | -- | $N_ie^{\alpha_i}$ | absorbed | $\gamma_i$ | -- |
 | gene platform | $\tilde{\boldsymbol{b}}$ | intercept $\alpha_{jg}$ | none | none | set $G_2$ down-weighted by $a$ | $(\beta_{0g},\beta_g)$ | $e^{\gamma_j}$ | none | $\lambda_g=\alpha_g/\alpha^{r}_g$ | none |
 | type variability | $\boldsymbol{\Sigma}_{W,j}$, $\boldsymbol{\Sigma}_{B,j}$, $\boldsymbol{\Gamma}_g$ | $\sigma^{2}_{gk}$ (between, diagonal) | $s_{g,k}$ (within, diagonal) | -- | -- | -- | -- | $\boldsymbol{\Sigma}^{(k)}$ (between, full) | $\mathbf{V}_g$ (reference noise) | $\boldsymbol{\Sigma}_j$ ($J\times J$) |
 
-: Notation of the reviewed methods mapped to this vignette. "Removed" means the normalisation divides each cell or column by its total, so that $S_j$ no longer enters the mean. {#tbl-notation-map}
+: Notation of the reviewed methods mapped to this vignette. "Removed" means the normalisation divides each cell or column by its total, so that $S_j$ no longer enters the mean. This vignette's per-cell mean is the raw-count mean, not $S_j\boldsymbol{\theta}$. {#tbl-notation-map}
 
 Three reparametrisations recur.
 
@@ -667,7 +690,7 @@ interval [@agrestiFoundationsLinearGeneralized2015, ch. 2, 4, 8 and 9].
    fitted under a working covariance (identity or diagonal), and the
    dependence the working model omits enters only the sandwich variance
    (Liang and Zeger 1986
-   <!-- TODO-cite: Liang and Zeger 1986, doi:10.1093/biomet/73.1.13 -->).
+   [TODO-cite: Liang and Zeger 1986, doi:10.1093/biomet/73.1.13]{.highlight}).
    The point estimate stays consistent when the mean is right; the
    interval is valid only when the units summed in the "meat" of the
    sandwich are numerous and nearly independent. Classical GEE takes
@@ -775,7 +798,7 @@ one [@agrestiFoundationsLinearGeneralized2015, sec. 9.1].
   canonical, and the number of parameters grows quickly: a trivariate
   Poisson built from sums of independent Poisson variables already needs
   seven of them (Olkin 1994, pp. 37 and 42–43
-  <!-- TODO-cite: Olkin 1994, IMS Lecture Notes-Monograph Series 24, pp. 37-53, no DOI (JSTOR 4355792) -->).
+  [TODO-cite: Olkin 1994, IMS Lecture Notes-Monograph Series 24, pp. 37-53, no DOI (JSTOR 4355792)]{.highlight}).
   A marginal model of bulk expression therefore takes one of three
   routes: an asymptotic Gaussian (`RNA-Sieve`, `ReDeconv`, DeCovarT
   single-cell); moments only, through quasi-likelihood or GEE
@@ -1083,7 +1106,7 @@ estimator with no interval.
 `DWLS` and adds a small **benchmark** data set: bulk and single-nucleus
 libraries prepared from the same nucleus aliquot, so that the real bulk
 and the pseudo-bulk share the composition (Guo et al. 2025, p. 149
-<!-- TODO-cite: Guo et al. 2025, Genome Research, doi:10.1101/gr.278822.123; page numbers below refer to it -->;
+[TODO-cite: Guo et al. 2025, Genome Research, doi:10.1101/gr.278822.123; page numbers below refer to it]{.highlight};
 preprint @guoDeMixSCDeconvolutionFramework2023). In
 the 24 benchmark retinas, more than 5000 genes differ between the two
 platforms in each batch, and TPM normalisation does not remove the
@@ -1233,7 +1256,7 @@ with cost
 $W_2^2=\lVert\boldsymbol{m}_1-\boldsymbol{m}_2\rVert^2+\operatorname{tr}\{\boldsymbol{\Sigma}_1+\boldsymbol{\Sigma}_2-2(\boldsymbol{\Sigma}_1^{1/2}\boldsymbol{\Sigma}_2\boldsymbol{\Sigma}_1^{1/2})^{1/2}\}$
 (Knott and Smith 1984; Dowson and Landau 1982).
 <!-- chk: V15a, V15b -->
-<!-- TODO-cite: Knott & Smith 1984, On the optimal mapping of distributions, J. Optim. Theory Appl. 43:39-49; Dowson & Landau 1982, The Frechet distance between multivariate normal distributions, J. Multivariate Anal. 12:450-455. Neither is in inst/REFERENCES.bib. -->
+[TODO-cite: Knott & Smith 1984, On the optimal mapping of distributions, J. Optim. Theory Appl. 43:39-49; Dowson & Landau 1982, The Frechet distance between multivariate normal distributions, J. Multivariate Anal. 12:450-455. Neither is in inst/REFERENCES.bib.]{.highlight}
 For diagonal covariances $\boldsymbol{A}$ is diagonal with entries
 $\sigma_{2g}/\sigma_{1g}$, which is `Bisque`'s map.
 <!-- chk: V15c -->
@@ -1647,7 +1670,7 @@ $$ {#eq-decals-model}
 
 with subject-level type profiles $\boldsymbol{x}^{(j)}_i$ independent
 across types: exactly the quadratic layer $\boldsymbol{S}_B(\boldsymbol{p})$
-and released DeCovarT's covariance, without a density. The three panels
+and the purified-profile covariance, without a density. The three panels
 of @fig-dag-decals are the paper's three estimators.
 
 1. **Constrained OLS** (equation 3) is the point estimator. For a large
@@ -1839,7 +1862,7 @@ ratio a multiplicative response error; the law is asymptotic in $G$.
 
 ## Where DeCovarT sits {#sec-decovart-dag}
 
-Released DeCovarT plugs in the mean and gene–gene covariance of each
+The purified-profile fit plugs in the mean and gene–gene covariance of each
 type and fits the Gaussian convolution of @eq-gaussian-convolution, one
 bulk sample at a time: rung 5 of @tbl-ladder, with a covariance that
 depends on $\boldsymbol{p}_{\cdot i}$ and a full Gaussian likelihood.
@@ -1867,6 +1890,9 @@ are in the
 the model retained for real data is in the
 [MLE vignette](01-2-population-inference.html#sec-final-choice).
 
+
+{{< pagebreak >}}
+
 # Cell-type-specific moments when the composition is known {#sec-cts-given-p}
 
 The methods of @sec-methods estimate the composition from known
@@ -1890,7 +1916,7 @@ $$
 \operatorname{Cov}(\boldsymbol{y}_{\cdot i})=\sum_jp_{ji}^{2}\boldsymbol{\Sigma}_j ,
 $$ {#eq-gaussian-convolution}
 
-which is the released DeCovarT law when the profiles are Gaussian.
+which is the purified-profile law when the profiles are Gaussian.
 Four families use these identities.
 
 - **Type-level gene networks across a cohort.** `CSNet` regresses the
@@ -2222,7 +2248,7 @@ $\mathbb{E}(y_{g,ni}\mid u)=s_{ni}\sum_j(m_{gj}+\beta_{gj}z_n+u_{gjn})\hat\theta
 and $\operatorname{Var}(y_{g,ni}\mid u)=\mathbb{E}+\mathbb{E}^{2}/\phi_g$, with
 $s_{ni}$ a library size, fitted by Laplace approximation as in
 `glmmTMB`-type software.
-<!-- TODO-cite: Brooks et al. 2017, glmmTMB balances speed and flexibility among packages for zero-inflated generalized linear mixed modeling, The R Journal 9(2):378-400, doi:10.32614/RJ-2017-066; not in inst/REFERENCES.bib or inst/packages.bib. -->
+[TODO-cite: Brooks et al. 2017, glmmTMB balances speed and flexibility among packages for zero-inflated generalized linear mixed modeling, The R Journal 9(2):378-400, doi:10.32614/RJ-2017-066; not in inst/REFERENCES.bib or inst/packages.bib.]{.highlight}
 The identity link keeps the physical sum of cells; a log link would mix
 logarithms (caveat 1 of @sec-synthesis). The mean must then stay
 positive, a constraint the solver has to enforce.
@@ -2231,6 +2257,9 @@ positive, a constraint the solver has to enforce.
 subject references (a Gaussian linear mixed model), rung 1 for the final
 proportions (NNLS with $\boldsymbol{R}_n$ plugged in); the stage-I
 proportions are treated as exact; no interval.
+
+
+{{< pagebreak >}}
 
 # Bayesian reference-based deconvolution {#sec-bayesian}
 
@@ -2559,6 +2588,9 @@ The two differ where the measurement model of @sec-measurement bites.
   gene–gene covariance. The gene network of `gnSPADE` acts on labels,
   not on expression.
 
+
+{{< pagebreak >}}
+
 # Semi-reference deconvolution: one unknown component {#sec-semi-reference-methods}
 
 Semi-reference methods have references for $J-1$ types and estimate an
@@ -2670,6 +2702,9 @@ overdispersion. Its $\alpha_i$ is a fraction of transcripts.
 
 : Semi-reference methods. The extension of DeCovarT to one unknown component is outlined in the [extensions roadmap](05-3-extensions-roadmap.html#sec-semi-reference). {#tbl-semi-reference}
 
+
+{{< pagebreak >}}
+
 # Reference-free deconvolution with co-expression structure {#sec-reference-free}
 
 Without a reference, deconvolution is a non-negative matrix
@@ -2770,6 +2805,9 @@ All three reference-free methods use a squared Frobenius loss, that is
 a homoscedastic Gaussian likelihood, and therefore ignore the
 mean–variance relationship of counts (@sec-poisson-measurement).
 
+
+{{< pagebreak >}}
+
 # Synthesis {#sec-synthesis}
 
 | Method | Bulk scale | Bulk variance as a function of $\boldsymbol{p}$ | Gene–gene covariance | Type–type covariance | Reference uncertainty | Rung (@tbl-ladder) | Estimator |
@@ -2839,5 +2877,8 @@ mean–variance relationship of counts (@sec-poisson-measurement).
    factorisations without separability (`GSNMF+`) all leave the
    proportions unidentified, whatever the sample size.
 :::
+
+
+{{< pagebreak >}}
 
 # References

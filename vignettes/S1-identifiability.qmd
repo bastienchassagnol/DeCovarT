@@ -1,8 +1,10 @@
 ---
 title: "Appendix S1 — Regular-case MLE properties and identifiability"
+description: "Regular-case properties of the estimator, and when it is identified."
 subtitle: "Full script: `scripts/supp_S1_identifiability.R`"
 author: "Bastien Chassagnol"
-date: "`r Sys.Date()`"
+date: last-modified
+date-format: "D MMM YYYY"
 vignette: >
   %\VignetteIndexEntry{Appendix S1 — Regular-case MLE properties and identifiability}
   %\VignetteEngine{quarto::html}
@@ -271,6 +273,9 @@ list(
 A fuller comparison of normalisation (CPM, log2), tolerance, and
 dimension $(G,J)$ belongs in
 [Appendix S3](S3-scaling.html).
+
+
+{{< pagebreak >}}
 
 # Identifiability edge cases {#sec-identifiability-edges}
 

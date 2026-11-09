@@ -1,7 +1,9 @@
 ---
 title: "3.1 Gene selection for the reference"
+description: "Which genes should enter a single-cell reference, and why."
 author: "Bastien Chassagnol"
-date: "`r Sys.Date()`"
+date: last-modified
+date-format: "D MMM YYYY"
 vignette: >
   %\VignetteIndexEntry{3.1 Gene selection for the reference}
   %\VignetteEngine{quarto::html}
@@ -38,6 +40,12 @@ callouty-theorem:
       type: note
       appearance: default
       icon: true
+  lem:
+    override-title: false
+    callout:
+      type: note
+      appearance: default
+      icon: true
 ---
 
 ```{r setup, include=FALSE}
@@ -51,7 +59,29 @@ knitr::opts_chunk$set(
 )
 ```
 
-{{< include _notation.qmd >}}
+::: {.callout-note collapse="true"}
+## Notation used in this vignette
+
+A symbol absent from these groups is defined in this vignette, with one
+meaning. The full table is the [notation article](notation.html).
+
+{{< embed notation.qmd#notation-indices >}}
+
+{{< embed notation.qmd#notation-ratios >}}
+
+{{< embed notation.qmd#notation-means >}}
+
+{{< embed notation.qmd#notation-biological >}}
+
+{{< embed notation.qmd#notation-technical >}}
+
+{{< embed notation.qmd#notation-bulk >}}
+
+{{< embed notation.qmd#notation-feature >}}
+
+{{< embed notation.qmd#notation-overlap >}}
+:::
+
 
 ::: callout-note
 ## Scope
@@ -153,7 +183,7 @@ differential expression, for two reasons.
   labels were fixed before the statistic is computed. Labels obtained by
   clustering the same matrix make the test anti-conservative
   (post-clustering inference, González-Delgado et al. 2025)
-  <!-- TODO-cite: González-Delgado et al. 2025, post-clustering inference; key gonzalezDelgadoPostclusteringInference2025 exists in the book bib only -->.
+  [TODO-cite: González-Delgado et al. 2025, post-clustering inference; key gonzalezDelgadoPostclusteringInference2025 exists in the book bib only]{.highlight}.
 
 Selection proceeds in four tiers (@fig-fs-tiers):
 
@@ -300,11 +330,11 @@ of tier (ii) in five ways.
   `MAST` hurdle model [@tsoucasAccurateEstimationCelltype2019, p. 7].
   Droplet UMI counts show no zero inflation beyond what the NB predicts
   (Svensson 2020)
-  <!-- TODO-cite: Svensson 2020, Droplet scRNA-seq is not zero-inflated, Nat. Biotechnol., doi:10.1038/s41587-019-0379-5 -->,
+  [TODO-cite: Svensson 2020, Droplet scRNA-seq is not zero-inflated, Nat. Biotechnol., doi:10.1038/s41587-019-0379-5]{.highlight},
   and current data do not support zero-inflated *measurement* models
   [@sarkarSeparatingMeasurementExpression2021, p. 5]. The hurdle splits
   one count into a detection and a magnitude test (Finak et al. 2015)
-  <!-- TODO-cite: Finak et al. 2015, MAST, Genome Biol., doi:10.1186/s13059-015-0844-5 -->
+  [TODO-cite: Finak et al. 2015, MAST, Genome Biol., doi:10.1186/s13059-015-0844-5]{.highlight}
   where one NB test of @eq-fs-nb-main suffices.
 - **Gaussian $t$-tests on counts.** ReDeconv uses a two-sample $t$-test
   between cells [@luTranscriptomeSizeMatters2025, p. 14]; deMixSC uses a
@@ -345,11 +375,10 @@ Appendix C of the CardamomOT comparison note.
 | SCDC [@dongSCDCBulkGene2021] | cells with a questionable type or low quality removed (p. 9) | genes with zero counts in every sample (p. 9) | none | ENSEMBLE over references (p. 3) | W-NNLS, maximal-variance weights clipped at the 15th/85th percentiles (p. 10) |
 | RCTD [@cableRobustDecompositionCell2022a] | spots ≥ 100 UMI (p. 9) | mean above 0.0625 counts per 500 (p. 7) | log-fold change ≥ 0.5 against the other types, no test (p. 7) | gene-wise platform random effect (pp. 3, 6) | Poisson–lognormal GLMM (p. 6) |
 | CardamomOT 2.0.0 (Maugé & Ventre 2026) | paper: —; code: per-cell depth factor, no cell removed | paper: gene sets of earlier studies (p. 32); code: no mitochondrial, ribosomal or non-coding genes | code: $W_1$ and entropy terminals, round robin of per-type Wilcoxon tests, NB separability, Steiner closure | not applicable (no bulk) | NB-mixture likelihood, $\ell_1$ towards a prior network (Eq. 10, p. 9) |
-| DeCovarT (this chapter) | authors' QC; MAD rules optional | presence gate in every type (@eq-fs-presence); curated markers kept | four tests of the type effect, FDR gate, effect-size rank (@sec-fs-omnibus) | Cook's distance; bulk filter with five tail statements and a plug-in $\hat{\boldsymbol{p}}$ (@sec-fs-cross-platform) | GLS with $\widehat{\boldsymbol{\Sigma}}_{W,j}$ |
 
 : Gene selection in second-generation deconvolution methods, by tier. CardamomOT is a network-inference method, included for its gene selection; its code facts are from release 2.0.0 (<https://github.com/eliasventre/CardamomOT>). {#tbl-fs-review}
 
-<!-- TODO-cite: Maugé & Ventre 2026, CardamomOT, PLoS Comput. Biol. 22(10):e1014838, doi:10.1371/journal.pcbi.1014838 -->
+[TODO-cite: Maugé & Ventre 2026, CardamomOT, PLoS Comput. Biol. 22(10):e1014838, doi:10.1371/journal.pcbi.1014838]{.highlight}
 
 DeCovarT builds on these methods in three ways.
 
@@ -372,6 +401,9 @@ DeCovarT builds on these methods in three ways.
   (@sec-fs-cross-platform); DWLS and DECALS still build marker-only
   signatures. DeCovarT removes perfect markers with the presence gate
   and weights the remaining genes.
+
+
+{{< pagebreak >}}
 
 # Tier (i): quality control and prior knowledge {#sec-fs-qc}
 
@@ -454,6 +486,9 @@ also removes perfect markers, whose effect under gene-wise platform
 ratios is in @sec-fs-cross-platform.
 :::
 
+
+{{< pagebreak >}}
+
 # Tier (ii): cross-cell consistency {#sec-fs-consistency}
 
 MuSiC introduced "marker gene consistency" with two parts
@@ -485,21 +520,18 @@ x_{gc}\sim\mathrm{NB}(m_{gc},\psi_{g}),
 \operatorname{Var}(x_{gc})=V(m_{gc})=m_{gc}+\frac{m_{gc}^{2}}{\psi_g}.
 $$ {#eq-fs-nb-null}
 
-Cell type is deliberately absent: putting $j$ in the null would remove
-the signal to be ranked. $M_0$ is fitted gene by gene with our own NB
+$M_0$ is fitted gene by gene with our own NB
 GLM, with $\psi_g$ estimated per gene by maximum likelihood (for
 example with `glmGamPoi` [@glmGamPoi2020] or `MASS::glm.nb()`), and its
-residuals are not clipped. `SCTransform` with `vst.flavor = "v2"` fits
+residuals are not clipped^[`SCTransform` with `vst.flavor = "v2"` fits
 the same model, with the depth slope fixed and library size as an
 offset, but it regularises $\psi_g$ across genes and clips the residuals
 at $\pm\sqrt{C/30}$ [@hafemeisterNormalizationVarianceStabilization2019;
-@lauseAnalyticPearsonResiduals2021]. Neither step is needed here. The
-regularisation stabilises $\hat\psi_g$ for genes with few counts, and
-the presence gate has already removed most of them. Clipping is harmful
+@lauseAnalyticPearsonResiduals2021]. Clipping is harmful
 for gene selection: it shrinks exactly the cells with large residuals
 and large fitted means, which include the informative high-leverage
 cells of a rare type and of highly expressed genes, such as
-haemoglobins or master regulators (@sec-fs-leverage).
+haemoglobins or master regulators (@sec-fs-leverage).]
 
 The raw Pearson residual is
 
@@ -519,7 +551,7 @@ fitted value that a high-leverage cell partly sets itself.
 $\hat\phi_g$ nor $1-h_{gc}$, and they are clipped. Standardised does
 not mean Gaussian: at low means Pearson residuals stay discrete and
 skewed, and randomised quantile residuals (Dunn & Smyth 1996)
-<!-- TODO-cite: Dunn & Smyth 1996, Randomized quantile residuals, J. Comput. Graph. Stat. 5(3):236-244, doi:10.1080/10618600.1996.10474708 -->
+[TODO-cite: Dunn & Smyth 1996, Randomized quantile residuals, J. Comput. Graph. Stat. 5(3):236-244, doi:10.1080/10618600.1996.10474708]{.highlight}
 are the residuals to compare with a normal reference.
 
 The raw residuals of $M_0$ split as
@@ -575,12 +607,12 @@ all-zero types near which the Wald test fails (Hauck–Donner effect;
   dispersion $\psi_0$, stabilises the NB variance and performs as well
   as more elaborate transformations in a published benchmark
   (Ahlmann-Eltze & Huber 2023)
-  <!-- TODO-cite: Ahlmann-Eltze & Huber 2023, Comparison of transformations for single-cell RNA-seq data, Nat. Methods 20, doi:10.1038/s41592-023-01814-1 -->.
+  [TODO-cite: Ahlmann-Eltze & Huber 2023, Comparison of transformations for single-cell RNA-seq data, Nat. Methods 20, doi:10.1038/s41592-023-01814-1]{.highlight}.
   The $F$ statistic of the type factor on these values is referred to
   $F_{J-1,C-J}$ [@wangSilicoEstimatesTissue2010]. When the variance on
   the transformed scale still differs between types, Welch's
   heteroscedastic one-way test (Welch 1951)
-  <!-- TODO-cite: Welch 1951, On the comparison of several mean values: an alternative approach, Biometrika 38:330-336 -->
+  [TODO-cite: Welch 1951, On the comparison of several mean values: an alternative approach, Biometrika 38:330-336]{.highlight}
   is the fallback.
 - **Quasi-likelihood $F$.** Defined below (@eq-fs-qlf).
 - **Permutation calibration.** Welch's statistic on the residuals of
@@ -641,7 +673,7 @@ between types (types that share a mean but differ in dispersion), a
 location–scale model with type-specific $\psi_{gj}$ tests both, on
 $2(J-1)$ degrees of freedom; this is the GAMLSS margin used by scDesign3
 [@songScDesign3GeneratesRealistic2024], Stasinopoulos & Rigby (2007)
-<!-- TODO-cite: Stasinopoulos & Rigby 2007, GAMLSS in R, J. Stat. Softw. 23(7), doi:10.18637/jss.v023.i07 -->.
+[TODO-cite: Stasinopoulos & Rigby 2007, GAMLSS in R, J. Stat. Softw. 23(7), doi:10.18637/jss.v023.i07]{.highlight}.
 Whether a dispersion difference should count as a type effect depends
 on the use: for a gate on mean effects it is a false discovery, while
 for DeCovarT, which models the within-type covariance, such a gene can
@@ -662,7 +694,7 @@ cells.
   permutation strategies for the general linear model, Winkler et al.
   (2014) write "we recommend the Freedman–Lane and the Smith methods"
   (p. 393)
-  <!-- TODO-cite: Winkler, Ridgway, Webster, Smith & Nichols 2014, Permutation inference for the general linear model, NeuroImage 92:381-397, doi:10.1016/j.neuroimage.2014.01.060 -->.
+  [TODO-cite: Winkler, Ridgway, Webster, Smith & Nichols 2014, Permutation inference for the general linear model, NeuroImage 92:381-397, doi:10.1016/j.neuroimage.2014.01.060]{.highlight}.
   Here the nuisance part of $M_0$ is an intercept and the depth
   offset, so the reduced residuals are the label-free Pearson residuals
   of $M_0$, and Freedman–Lane reduces to permuting the labels against
@@ -685,21 +717,21 @@ cells.
   is $1/(B+1)$. For smaller $p$-values, a generalised Pareto fit to the
   upper tail of the permutation distribution gives an approximation
   (Knijnenburg et al. 2009; Winkler et al. 2016)
-  <!-- TODO-cite: Knijnenburg, Wessels, Reinders & Shmulevich 2009, Fewer permutations, more accurate P-values, Bioinformatics 25(12):i161-i168, doi:10.1093/bioinformatics/btp211 -->
-  <!-- TODO-cite: Winkler, Ridgway, Douaud, Nichols & Smith 2016, Faster permutation inference in brain imaging, NeuroImage 141:502-516, doi:10.1016/j.neuroimage.2016.05.068 -->.
+  [TODO-cite: Knijnenburg, Wessels, Reinders & Shmulevich 2009, Fewer permutations, more accurate P-values, Bioinformatics 25(12):i161-i168, doi:10.1093/bioinformatics/btp211]{.highlight}
+  [TODO-cite: Winkler, Ridgway, Douaud, Nichols & Smith 2016, Faster permutation inference in brain imaging, NeuroImage 141:502-516, doi:10.1016/j.neuroimage.2016.05.068]{.highlight}.
 
 `permuco` implements Freedman–Lane for linear models and ANOVA
 (Frossard & Renaud 2021)
-<!-- TODO-cite: Frossard & Renaud 2021, Permutation tests for regression, ANOVA, and comparison of signals: the permuco package, J. Stat. Softw. 99(15), doi:10.18637/jss.v099.i15 -->.
+[TODO-cite: Frossard & Renaud 2021, Permutation tests for regression, ANOVA, and comparison of signals: the permuco package, J. Stat. Softw. 99(15), doi:10.18637/jss.v099.i15]{.highlight}.
 For GLMs, `flipscores` flips the signs of the score contributions
 instead of permuting, and stays valid when the variance is
 misspecified (Hemerik, Goeman & Finos 2020; De Santis et al. 2025)
-<!-- TODO-cite: Hemerik, Goeman & Finos 2020, Robust testing in generalized linear models by sign flipping score contributions, J. R. Stat. Soc. B 82(3), doi:10.1111/rssb.12369 -->
-<!-- TODO-cite: De Santis et al. 2025, J. Am. Stat. Assoc., doi:10.1080/01621459.2025.2491775 -->.
+[TODO-cite: Hemerik, Goeman & Finos 2020, Robust testing in generalized linear models by sign flipping score contributions, J. R. Stat. Soc. B 82(3), doi:10.1111/rssb.12369]{.highlight}
+[TODO-cite: De Santis et al. 2025, J. Am. Stat. Assoc., doi:10.1080/01621459.2025.2491775]{.highlight}.
 Neither package computes Welch's $G$; the figure script below permutes
 it directly. PERMANOVA is the multivariate sum-of-squares version of the
 same permutation test (Anderson 2001; `vegan::adonis2()`)
-<!-- TODO-cite: Anderson 2001, A new method for non-parametric multivariate analysis of variance, Austral Ecol. 26(1):32-46, doi:10.1111/j.1442-9993.2001.01070.pp.x -->;
+[TODO-cite: Anderson 2001, A new method for non-parametric multivariate analysis of variance, Austral Ecol. 26(1):32-46, doi:10.1111/j.1442-9993.2001.01070.pp.x]{.highlight};
 a module-level version is a perspective (@sec-fs-multivariate-tests).
 
 ### The four tests on simulated counts {#sec-fs-tests-simulation}
@@ -739,6 +771,9 @@ differs between types (permuted $G$) and a gate with more power when
 the NB variance function holds (LR, QL $F$). Under type-specific
 dispersion the GAMLSS test above answers a different question, a change
 in the count law rather than in its mean.
+
+
+{{< pagebreak >}}
 
 # Tier (iii): cross-platform consistency {#sec-fs-cross-platform}
 
@@ -924,7 +959,7 @@ Vershynin's Proposition 2.8.1 (2nd ed., p. 44) states that, for a
 random variable $X$, the following properties are equivalent, with
 parameters $\eta_i>0$ that differ by at most an absolute constant
 factor
-<!-- TODO-cite: Vershynin, High-Dimensional Probability, 2nd ed., Cambridge University Press -->:
+[TODO-cite: Vershynin, High-Dimensional Probability, 2nd ed., Cambridge University Press]{.highlight}:
 
 - **(i) Tails.** $\mathbb{P}\{\lvert X\rvert\ge t\}\le2\exp(-t/\eta_1)$
   for all $t\ge0$.
@@ -989,7 +1024,7 @@ an interval of length $A_\nu$. Then, for every $t>0$,
 $\mathbb{P}\{\sum_{\nu}(X_\nu-\operatorname{E}X_\nu)\ge t\}\le\exp(-2t^{2}/\sum_{\nu}A_\nu^{2})$,
 and the same bound holds for the lower tail (Vershynin, Theorem 2.2.6,
 p. 30; Mohri, Rostamizadeh & Talwalkar 2012, Theorem D.1, p. 370)
-<!-- TODO-cite: Mohri, Rostamizadeh & Talwalkar 2012, Foundations of Machine Learning, MIT Press, Appendix D (book pp. 369-378) -->.
+[TODO-cite: Mohri, Rostamizadeh & Talwalkar 2012, Foundations of Machine Learning, MIT Press, Appendix D (book pp. 369-378)]{.highlight}.
 The variables must be bounded and independent. The bound uses the
 ranges, not the variances.
 :::
@@ -1290,8 +1325,8 @@ error of this normal approximation in terms of the maximal degree and
 of moments above the second. That error bound is not evaluated here.
 :::
 
-<!-- TODO-cite: Baldi & Rinott 1989, On normal approximations of distributions in terms of dependency graphs, Ann. Probab. 17(4) -->
-<!-- TODO-cite: Chen & Shao 2004, Normal approximation under local dependence, Ann. Probab. 32(3A):1985-2028, doi:10.1214/009117904000000450 -->
+[TODO-cite: Baldi & Rinott 1989, On normal approximations of distributions in terms of dependency graphs, Ann. Probab. 17(4)]{.highlight}
+[TODO-cite: Chen & Shao 2004, Normal approximation under local dependence, Ann. Probab. 32(3A):1985-2028, doi:10.1214/009117904000000450]{.highlight}
 The Gaussian approximation with $\operatorname{Var}S_M=\lvert M\rvert$,
 which ignores the edges, is T1 for the module. The bound of Chen & Shao
 is the result that MEAD uses for its central limit theorem across genes
@@ -1387,12 +1422,12 @@ $K_{D_g}$. The bound holds for any dependence between colour classes,
 does not use $\varrho$, and has no unknown constant.
 :::
 
-<!-- TODO-cite: Janson 2004, Large deviations for sums of partly dependent random variables, Random Struct. Algorithms 24(3), doi:10.1002/rsa.20008 -->
+[TODO-cite: Janson 2004, Large deviations for sums of partly dependent random variables, Random Struct. Algorithms 24(3), doi:10.1002/rsa.20008]{.highlight}
 Both degree conditions enter through $\chi_G$: the maximal degree through
 $d_{\max}+1$, the number of edges, hence the mean degree, through the
 second term of @eq-fs-colouring. The greedy colouring with vertices in
 decreasing degree order (Welsh & Powell 1967)
-<!-- TODO-cite: Welsh & Powell 1967, An upper bound for the chromatic number of a graph, Comput. J. 10(1) -->
+[TODO-cite: Welsh & Powell 1967, An upper bound for the chromatic number of a graph, Comput. J. 10(1)]{.highlight}
 attains both bounds (our remark); in the simulation it uses
 $\chi_G=3$ classes of 8, 7 and 5 genes, against $\bar\chi_G=7$. The price of
 the colouring is the factor $\chi_G$ inside the argument: near $u=0$,
@@ -1464,13 +1499,13 @@ truth.
 Each statement bounds or approximates the $(1-\alpha/2)$ quantile of
 $\lvert D_g\rvert$ under a count model, gene by gene. Quantile
 regression (Koenker & Bassett 1978)
-<!-- TODO-cite: Koenker & Bassett 1978, Regression quantiles, Econometrica 46(1):33-50, doi:10.2307/1913643 -->
+[TODO-cite: Koenker & Bassett 1978, Regression quantiles, Econometrica 46(1):33-50, doi:10.2307/1913643]{.highlight}
 estimates the conditional quantile $Q_{1-\alpha/2}(\tilde y_{gi}\mid\hat y_{gi})$
 of the bulk given the fitted bulk
 $\hat y_{gi}=\sum_j\hat p_{ji}\hat{\tilde\mu}_{gj}$, pooled across genes
 and without a count model. Conformalised quantile regression (Romano,
 Patterson & Candès 2019)
-<!-- TODO-cite: Romano, Patterson & Candès 2019, Conformalized quantile regression, Advances in Neural Information Processing Systems 32, arXiv:1905.03222 -->
+[TODO-cite: Romano, Patterson & Candès 2019, Conformalized quantile regression, Advances in Neural Information Processing Systems 32, arXiv:1905.03222]{.highlight}
 adds a finite-sample coverage guarantee under exchangeability of the
 genes. Genes differ in mean and are correlated, so that guarantee is
 marginal over genes, not per gene. The two approaches answer the same
@@ -1500,9 +1535,6 @@ following estimates.
   coefficient vector.
 - **Dispersion.** $\psi_g$ comes from the reference fit of tier (ii),
   and the extra overdispersion between platforms is fixed at 1 (none).
-- **Not MuSiC.** MuSiC's weights need the cross-subject variance of a
-  multi-subject reference [@wangBulkTissueCell2019, p. 2; Eq. 10, p. 7];
-  the paper says nothing about a reference from one subject.
 
 With these plug-ins every statement is approximate, including T4 and
 T5: they are exact only at the true parameters. Because
@@ -1511,6 +1543,9 @@ discrepancies are expected to be smaller than under the true
 composition, so the plug-in thresholds should err on the conservative
 side for genes that do not drive the fit (our remark, not checked by
 simulation).
+
+
+{{< pagebreak >}}
 
 # Tier (iv): down-weighting by the model {#sec-fs-weighting}
 
@@ -1544,6 +1579,9 @@ Two observations follow.
   and, when a matched bulk exists, the cross-platform outliers of tier
   (iii) (@sec-fs-cross-platform).
 
+
+{{< pagebreak >}}
+
 # Selection effect on the covariance {#sec-fs-selection-effect}
 
 Selecting genes changes the covariance that is then estimated on them.
@@ -1568,9 +1606,9 @@ Selecting genes changes the covariance that is then estimated on them.
 
 Screening on marginal effects first is the practice that the design of
 experiments justifies with three principles (Wu & Hamada 2021, §4.6)
-<!-- TODO-cite: Wu & Hamada 2021, Experiments: Planning, Analysis, and Optimization, 3rd ed., Wiley, Section 4.6 (no DOI) -->.
+[TODO-cite: Wu & Hamada 2021, Experiments: Planning, Analysis, and Optimization, 3rd ed., Wiley, Section 4.6 (no DOI)]{.highlight}.
 Effect sparsity says that few effects are active (Box & Meyer 1986)
-<!-- TODO-cite: Box & Meyer 1986, An analysis for unreplicated fractional factorials, Technometrics 28(1), doi:10.1080/00401706.1986.10488093 -->.
+[TODO-cite: Box & Meyer 1986, An analysis for unreplicated fractional factorials, Technometrics 28(1), doi:10.1080/00401706.1986.10488093]{.highlight}.
 Effect hierarchy says that main effects are more likely to be active
 than two-factor interactions, and these more than higher-order ones.
 Effect heredity says that an interaction is active only if one (weak
@@ -1578,19 +1616,19 @@ heredity) or both (strong heredity) of its parent main effects are
 active; it guides the analysis of designs with complex aliasing
 (Hamada & Wu 1992) and the priors of Bayesian variable selection with
 related predictors (Chipman 1996)
-<!-- TODO-cite: Hamada & Wu 1992, Analysis of designed experiments with complex aliasing, J. Qual. Technol. 24(3), doi:10.1080/00224065.1992.11979383 -->
-<!-- TODO-cite: Chipman 1996, Bayesian variable selection with related predictors, Can. J. Stat. 24(1), doi:10.2307/3315687 -->.
+[TODO-cite: Hamada & Wu 1992, Analysis of designed experiments with complex aliasing, J. Qual. Technol. 24(3), doi:10.1080/00224065.1992.11979383]{.highlight}
+[TODO-cite: Chipman 1996, Bayesian variable selection with related predictors, Can. J. Stat. 24(1), doi:10.2307/3315687]{.highlight}.
 The marginality principle of linear models, that a model with an
 interaction should contain the main effects it involves, is the
 model-building counterpart (Nelder 1977)
-<!-- TODO-cite: Nelder 1977, A reformulation of linear models, J. R. Stat. Soc. A 140(1), doi:10.2307/2344517 -->.
+[TODO-cite: Nelder 1977, A reformulation of linear models, J. R. Stat. Soc. A 140(1), doi:10.2307/2344517]{.highlight}.
 
 - **Empirical support.** The principles were checked on published
   experiments: a meta-analysis of 113 factorial data sets (Li,
   Sudarsanam & Frey 2006) and a meta-analysis of response-surface
   experiments (Ockuly et al. 2017)
-  <!-- TODO-cite: Li, Sudarsanam & Frey 2006, Regularities in data from factorial experiments, Complexity 11(5), doi:10.1002/cplx.20123 -->
-  <!-- TODO-cite: Ockuly et al. 2017, Response surface experiments: a meta-analysis, Chemometr. Intell. Lab. Syst. 164, doi:10.1016/j.chemolab.2017.03.009 -->.
+  [TODO-cite: Li, Sudarsanam & Frey 2006, Regularities in data from factorial experiments, Complexity 11(5), doi:10.1002/cplx.20123]{.highlight}
+  [TODO-cite: Ockuly et al. 2017, Response surface experiments: a meta-analysis, Chemometr. Intell. Lab. Syst. 164, doi:10.1016/j.chemolab.2017.03.009]{.highlight}.
   Their estimated frequencies are not quoted here; they are to be read
   from the papers.
 - **Methods built on heredity.** The lasso for hierarchical
@@ -1598,8 +1636,8 @@ model-building counterpart (Nelder 1977)
   Tibshirani 2013), and interaction screening for ultrahigh-dimensional
   data searches interactions among the variables kept by a marginal
   screen (Hao & Zhang 2014)
-  <!-- TODO-cite: Bien, Taylor & Tibshirani 2013, A lasso for hierarchical interactions, Ann. Stat. 41(3), doi:10.1214/13-AOS1096 -->
-  <!-- TODO-cite: Hao & Zhang 2014, Interaction screening for ultrahigh-dimensional data, J. Am. Stat. Assoc. 109, doi:10.1080/01621459.2014.881741 -->.
+  [TODO-cite: Bien, Taylor & Tibshirani 2013, A lasso for hierarchical interactions, Ann. Stat. 41(3), doi:10.1214/13-AOS1096]{.highlight}
+  [TODO-cite: Hao & Zhang 2014, Interaction screening for ultrahigh-dimensional data, J. Am. Stat. Assoc. 109, doi:10.1080/01621459.2014.881741]{.highlight}.
 - **Counter-examples.** Sure independence screening misses variables
   that are marginally uncorrelated with the response but jointly
   important, which motivated its iterated version (Fan & Lv 2008).
@@ -1607,9 +1645,9 @@ model-building counterpart (Nelder 1977)
   (Culverhouse et al. 2002). Differential networking describes genes
   whose connections change between conditions while their expression
   level does not (de la Fuente 2010)
-  <!-- TODO-cite: Fan & Lv 2008, Sure independence screening for ultrahigh dimensional feature space, J. R. Stat. Soc. B 70(5), doi:10.1111/j.1467-9868.2008.00674.x -->
-  <!-- TODO-cite: Culverhouse, Suarez, Lin & Reich 2002, A perspective on epistasis: limits of models displaying no main effect, Am. J. Hum. Genet. 70(2), doi:10.1086/338759 -->
-  <!-- TODO-cite: de la Fuente 2010, From 'differential expression' to 'differential networking', Trends Genet. 26(7), doi:10.1016/j.tig.2010.05.001 -->.
+  [TODO-cite: Fan & Lv 2008, Sure independence screening for ultrahigh dimensional feature space, J. R. Stat. Soc. B 70(5), doi:10.1111/j.1467-9868.2008.00674.x]{.highlight}
+  [TODO-cite: Culverhouse, Suarez, Lin & Reich 2002, A perspective on epistasis: limits of models displaying no main effect, Am. J. Hum. Genet. 70(2), doi:10.1086/338759]{.highlight}
+  [TODO-cite: de la Fuente 2010, From 'differential expression' to 'differential networking', Trends Genet. 26(7), doi:10.1016/j.tig.2010.05.001]{.highlight}.
 
 [Heredity is an empirical regularity, a default assumption rather than
 a theorem, and it fails precisely for covariance-only
@@ -1620,6 +1658,9 @@ a heredity-constrained search cannot find it.
 A practical check is to compare the distribution of $v_{gj}$, and of the
 off-diagonal entries of $\boldsymbol{V}_j$, between the selected panel
 and the genes that pass the presence gate.
+
+
+{{< pagebreak >}}
 
 # Perspectives {#sec-perspectives}
 
@@ -1757,7 +1798,7 @@ the vector $\boldsymbol{x}_{\cdot c}$. Two routes are often confused.
 - **Gene-wise GEE is still gene-wise.** GEE extends the quasi-score to a
   vector of correlated observations, with a working covariance
   (Liang & Zeger 1986)
-  <!-- TODO-cite: Liang & Zeger 1986, Longitudinal data analysis using generalized linear models, Biometrika 73:13-22, doi:10.1093/biomet/73.1.13 -->.
+  [TODO-cite: Liang & Zeger 1986, Longitudinal data analysis using generalized linear models, Biometrika 73:13-22, doi:10.1093/biomet/73.1.13]{.highlight}.
   Fitted once per gene, it still returns $G$ $p$-values and still needs
   FDR control: correlation-aware inference does not remove
   multiplicity.
@@ -1870,7 +1911,7 @@ $\widehat{\boldsymbol{\Sigma}}_{W,j}$ restricted to the panel, with $J$
 replaced by $|\mathcal{G}|$ (our remark). Its exponential
 $\exp H^{\mathrm{vN}}(\boldsymbol{R}_j)$ is the effective rank of
 $\boldsymbol{R}_j$
-<!-- TODO-cite: Roy & Vetterli 2007, The effective rank: a measure of effective dimensionality, EUSIPCO 2007; no key in the bibs -->:
+[TODO-cite: Roy & Vetterli 2007, The effective rank: a measure of effective dimensionality, EUSIPCO 2007; no key in the bibs]{.highlight}:
 it equals $|\mathcal{G}|$ for independent genes and 1 for a single
 module of perfectly correlated genes. A low entropy means a few strong
 shared modules, hence few effective directions in type $j$.
@@ -2073,6 +2114,9 @@ prior network and are hypotheses; they do not replace the criteria of
 input: the selected gene set acts as prior information (Maugé & Ventre
 2026, p. 27).
 
+
+{{< pagebreak >}}
+
 # Appendix: concentration results in MEAD and DECALS {#sec-fs-appendix .appendix}
 
 **MEAD.** MEAD's asymptotics are of another kind than those of
@@ -2082,13 +2126,20 @@ most genes forms a dependency graph of bounded degree (Assumption 4,
 PDF p. 11) [@xieStatisticalInferenceCell2026]. The normal approximation
 is "Theorem 2.7 of Chen and Shao" (Lemma S4, supplement pp. S16–S17,
 PDF pp. 46–47) (Chen & Shao 2004)
-<!-- TODO-cite: Chen & Shao 2004, Normal approximation under local dependence, Ann. Probab. 32(3A):1985-2028; no key in the bibs -->.
+[TODO-cite: Chen & Shao 2004, Normal approximation under local dependence, Ann. Probab. 32(3A):1985-2028; no key in the bibs]{.highlight}.
+
+::: {#lem-fs-chen-shao}
+## Normal approximation under local dependence
+
 For $W=\sum_{g\in M}Z_g$ with $\operatorname{E}W^2=1$,
 $\operatorname{E}Z_g=0$, $\operatorname{E}\lvert Z_g\rvert^{\nu}\le\vartheta^{\nu}$
-and maximal degree $d_{\max}$, it is printed as
+and maximal degree $d_{\max}$, MEAD prints
 $\sum_z\lVert\mathbb{P}(W\le z)-\Phi(z)\rVert\le75\,d_{\max}^{5(\nu-1)}\lvert M\rvert\,\vartheta^{\nu}$.
 As printed, the range of $\nu$ is not stated, and a supremum over $z$
-is presumably meant. Assumption 5b (PDF p. 11) asks for uniformly
+is presumably meant.
+:::
+
+Assumption 5b (PDF p. 11) asks for uniformly
 bounded moments of order above 4 of the bulk data, the reference data
 and the platform ratios. Fourth moments are more than a central limit
 theorem for a mean needs: MEAD's estimator and its sandwich variance
@@ -2111,8 +2162,8 @@ with $\xi_{gi}$ the noise of gene $g$ in bulk $i$ and
 $\lvert\mathcal{G}\rvert$ the number of signature genes:
 $\operatorname{E}\lvert Z_{gj}\rvert^{\nu}\le\bigl(\eta_2\tilde\mu_{gj}\,\nu/\sqrt{\lvert\mathcal{G}\rvert}\bigr)^{\nu}$
 for every $\nu\ge2$. This moment bound feeds their central limit
-theorem across genes, Lemma S4, the same theorem of Chen & Shao as
-MEAD's Lemma S4 above. DECALS's norm in Lemma S2 is the moment form
+theorem across genes, Lemma S4, the same result as
+@lem-fs-chen-shao. DECALS's norm in Lemma S2 is the moment form
 $\sup_{\nu\ge1}\nu^{-1}(\operatorname{E}\lvert X\rvert^{\nu})^{1/\nu}$,
 the smallest $\eta_2$ of property (ii). It equals @eq-fs-psi1 up to an
 absolute factor. DECALS cites the equivalences as "Proposition 2.7.1 in
@@ -2121,7 +2172,11 @@ follows the second edition.
 
 **Dependent genes (Zhang & Li).** DECALS's Lemma S2 (supplement p. 23)
 is Theorem 1 of Zhang & Li, cited as a 2022 preprint
-<!-- TODO-cite: Zhang & Li, Bernstein inequality for dependent sub-exponential variables on a dependency network, J. Comput. Graph. Stat., doi:10.1080/10618600.2024.2421246 (cited by DECALS as the 2022 preprint arXiv:2205.10672); the theorem number in the published version is still to be checked -->.
+[TODO-cite: Zhang & Li, Bernstein inequality for dependent sub-exponential variables on a dependency network, J. Comput. Graph. Stat., doi:10.1080/10618600.2024.2421246 (cited by DECALS as the 2022 preprint arXiv:2205.10672); the theorem number in the published version is still to be checked]{.highlight}.
+
+::: {#thm-fs-zhang-li}
+## Bernstein inequality on a dependency graph
+
 For $\lvert M\rvert$ dependent mean-zero sub-exponential $Y_g$ with
 dependency graph $\mathcal{H}=(M,\mathcal{E})$, an edge joining two
 dependent variables, maximal degree $d_{\max}$ and $\bar\chi_G$ of
@@ -2138,6 +2193,6 @@ $\bar\chi_G=1$: the one-sided form of @eq-fs-bernstein (our remark). A
 gene network of bounded degree, as DECALS assumes in its Theorem 1,
 costs a constant factor in the prefactor and in the exponent. In the
 module of @sec-fs-five-bounds, $\bar\chi_G=\min(7,8.26)=7$. Unlike
-@thm-fs-nb-dep, @eq-fs-bernstein-dep keeps the unknown absolute
-constant $\gamma$, so it gives the shape of the module tail but no
-threshold.
+@thm-fs-nb-dep, this bound keeps the unknown absolute constant
+$\gamma$, so it gives the shape of the module tail but no threshold.
+:::

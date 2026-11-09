@@ -1,7 +1,9 @@
 ---
 title: "3.3 Precision networks: alternatives to the covariance plug-in"
+description: "Precision-matrix estimators as alternatives to a covariance plug-in."
 author: "Bastien Chassagnol"
-date: "`r Sys.Date()`"
+date: last-modified
+date-format: "D MMM YYYY"
 vignette: >
   %\VignetteIndexEntry{3.3 Precision networks: alternatives to the covariance plug-in}
   %\VignetteEngine{quarto::html}
@@ -32,7 +34,23 @@ knitr::opts_chunk$set(
 )
 ```
 
-{{< include _notation.qmd >}}
+::: {.callout-note collapse="true"}
+## Notation used in this vignette
+
+A symbol absent from these groups is defined in this vignette, with one
+meaning. The full table is the [notation article](notation.html).
+
+{{< embed notation.qmd#notation-indices >}}
+
+{{< embed notation.qmd#notation-means >}}
+
+{{< embed notation.qmd#notation-biological >}}
+
+{{< embed notation.qmd#notation-technical >}}
+
+{{< embed notation.qmd#notation-overlap >}}
+:::
+
 
 ::: callout-note
 ## Scope
@@ -551,6 +569,9 @@ plausibility**, not Gaussian fit.
 
 
 
+
+{{< pagebreak >}}
+
 # Why near-diagonal precisions appear {#sec-grn-diagonal}
 
 On Suppinger, an earlier pipeline (`huge`, EBIC) returned mostly
@@ -570,7 +591,7 @@ diagonal $\widehat{\boldsymbol{\Omega}}_j$. Five causes compete with
   marginal variance treats a Poisson-dominated gene and an
   overdispersed gene alike. Both flatten correlations before any
   penalty acts (Wu et al. 2020 warn against a naive nonparanormal map
-  on counts). <!-- TODO-cite: Wu et al. 2020, joint Gaussian copula graphical models (JGCGM); key wuJointLearningMultiple2020 is in the book bib only -->
+  on counts). [TODO-cite: Wu et al. 2020, joint Gaussian copula graphical models (JGCGM); key wuJointLearningMultiple2020 is in the book bib only]{.highlight}
 - **(iii) A panel built against within-type covariance.** Genes chosen for
   a large between- to within-type ratio have small within-type
   variance, where sampling noise dominates. Such a panel removes the
@@ -651,6 +672,9 @@ round(
 The Poisson term is a property of the measurement, not of the cells.
 Modelling it (`PLNnetwork`, @sec-cov-pln) is the principled correction;
 a smaller penalty is not.
+
+
+{{< pagebreak >}}
 
 # Perspectives {#sec-cov-perspectives}
 
@@ -736,14 +760,14 @@ C).
   exponential family and models every distribution parameter, but
   assumes independent observations (Stasinopoulos & Rigby 2007, p. 2),
   so dependence needs the copula.
-  <!-- TODO-cite: Stasinopoulos & Rigby 2007, J. Stat. Softw. 23(7); DOI not printed in the PDF, take it from JSS/Zotero -->
+  [TODO-cite: Stasinopoulos & Rigby 2007, J. Stat. Softw. 23(7); DOI not printed in the PDF, take it from JSS/Zotero]{.highlight}
   By Sklar's theorem
   $F(\boldsymbol{x})=C\{F_1(x_1),\ldots,F_G(x_G)\}$, with $C$ unique
   when the margins are continuous; for counts it is unique only on the
   ranges of the margins, so `scDesign2`/`scDesign3` randomise the
   quantile, $u_{gc}=(1-v_{gc})F_{gc}(x_{gc}-1)+v_{gc}F_{gc}(x_{gc})$
   with $v_{gc}\sim\mathcal{U}(0,1)$ (Sun et al. 2021).
-  <!-- TODO-cite: Sun et al. 2021, scDesign2, doi:10.1186/s13059-021-02367-2 -->
+  [TODO-cite: Sun et al. 2021, scDesign2, doi:10.1186/s13059-021-02367-2]{.highlight}
   The likelihood splits into a marginal and a copula part, so the two
   can be selected separately. The copula correlation is not
   $\boldsymbol{\Sigma}_{W,j}$: linear-scale moments of a copula model
@@ -755,7 +779,7 @@ C).
   programmes make the marginal precision dense. Writing
   $\boldsymbol{\Omega}_{\mathrm{marg}}=\boldsymbol{\Omega}_{\mathrm{sparse}}-\boldsymbol{L}$,
   $\boldsymbol{L}\succeq0$ of low rank (Chandrasekaran et al. 2012),
-  <!-- TODO-cite: Chandrasekaran, Parrilo & Willsky 2012, doi:10.1214/11-AOS949 -->
+  [TODO-cite: Chandrasekaran, Parrilo & Willsky 2012, doi:10.1214/11-AOS949]{.highlight}
   or a factor-plus-diagonal covariance, gives a dense plug-in with few
   parameters. Depth variation is one such rank-one factor
   (@eq-pln-linear-avg).
@@ -777,7 +801,7 @@ C).
   between cells through a Kronecker sum of two precisions; the sum
   cannot separate regulation inside a cell from dependence across cells
   (Andrew et al. 2026).
-  <!-- TODO-cite: Andrew et al. 2026, GmGM; key andrewMakingMultiaxisGaussian2026 is in the book bib only -->
+  [TODO-cite: Andrew et al. 2026, GmGM; key andrewMakingMultiaxisGaussian2026 is in the book bib only]{.highlight}
 - **Algorithm unrolling.** Iterative sparse-precision solvers become
   trainable layers ([Monga et al. 2021](https://doi.org/10.1109/MSP.2020.3016905);
   [GLAD](https://arxiv.org/abs/1906.00271)); PLN-Tree adds a tree of
@@ -877,5 +901,8 @@ per type, that the rare types do not lose held-out likelihood. Separate
 fits, as in the current pipeline, need one penalty per type: a common
 $\lambda$ is sensible only for samples "of similar sizes"
 [@chiquetContributionsSparseMethods2015, p. 49].
+
+
+{{< pagebreak >}}
 
 # References

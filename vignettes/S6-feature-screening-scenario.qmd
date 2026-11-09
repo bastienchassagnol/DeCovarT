@@ -1,5 +1,8 @@
 ---
 title: "Appendix S6 — Synthetic scenario for comparing gene-screening strategies"
+date: last-modified
+date-format: "D MMM YYYY"
+description: "A simulation design for comparing gene-screening strategies."
 author: "Bastien Chassagnol"
 vignette: >
   %\VignetteIndexEntry{Appendix S6 — Synthetic scenario for comparing gene-screening strategies}
@@ -21,7 +24,23 @@ bibliography:
 link-citations: true
 ---
 
-{{< include _notation.qmd >}}
+::: {.callout-note collapse="true"}
+## Notation used in this vignette
+
+A symbol absent from these groups is defined in this vignette, with one
+meaning. The full table is the [notation article](notation.html).
+
+{{< embed notation.qmd#notation-indices >}}
+
+{{< embed notation.qmd#notation-ratios >}}
+
+{{< embed notation.qmd#notation-biological >}}
+
+{{< embed notation.qmd#notation-technical >}}
+
+{{< embed notation.qmd#notation-overlap >}}
+:::
+
 
 ::: callout-note
 ## Scope
@@ -56,6 +75,9 @@ The simulation answers three questions.
    letting the covariance weight them
    ([3.1](03-1-feature-selection.html#sec-fs-weighting))?
 
+
+{{< pagebreak >}}
+
 # Data-generating mechanism {#sec-s6-dgm}
 
 References are simulated from the mean and covariance scenarios of
@@ -80,6 +102,9 @@ or covariance-only) and the share of platform-discordant genes. Their
 values, the number of replications and the random-number streams are
 fixed before any run, following the ADEMP structure of
 [4.1](04-1-synthetic-scenarios.html#sec-ademp).
+
+
+{{< pagebreak >}}
 
 # Strategies compared {#sec-s6-strategies}
 
@@ -248,6 +273,9 @@ greedy_d <- function(candidates, information_by_gene, size) {
   selected
 }
 ```
+
+
+{{< pagebreak >}}
 
 # Performance measures and validation {#sec-caveats}
 

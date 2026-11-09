@@ -118,7 +118,30 @@ delete the cache directory and render again.
 
 ## LaTeX articles
 
-Use the same node styles and the same `\plate` macro. The picture is a
-`tikzpicture` in the article, compiled by LuaLaTeX (XeLaTeX acceptable), so it
-stays a vector in the PDF. The Ghostscript outline step is only for the Quarto
-SVG path.
+The picture is a `tikzpicture` in the article, compiled by LuaLaTeX (XeLaTeX
+acceptable), so it stays a vector in the PDF. The Ghostscript outline step is
+only for the Quarto SVG path.
+
+### DeCovarT article: use bayesnet, not the RevBayes styles
+
+`article/main_layout.tex` loads the TikZ `bayesnet` library
+(`\usetikzlibrary{bayesnet,positioning,fit,calc}`). Draw the article's DAGs
+with it, not with the RevBayes styles above. The two cannot be loaded
+together: both define `\plate` and `obs`.
+
+| bayesnet | Use |
+| --- | --- |
+| `latent` | latent random variable (white circle) |
+| `obs` | observed random variable (grey circle) |
+| `det` | deterministic quantity (diamond) |
+| `const` | fixed quantity; add `draw` for a framed square (`fixedpar`) |
+| `\plate[opts]{name}{(fit)(list)}{label}` | repeated subgraph; the caption sits at the bottom right |
+
+- Draw edges with `\draw[->]`, not `\edge`: `\edge` raises nullfont `;`
+  warnings in this class.
+- Shared additions live once in `article/macros.tex` (`fixedpar`, `techobs`,
+  `eqnote`, `panellabel`). Do not redefine a bayesnet style.
+- Equations go in `eqnote` labels beside nodes, never inside a node.
+- A technical (measurement) layer is drawn in the article's existing orange,
+  `scalecol` (`techobs`); do not add another palette.
+- The RevBayes styles stay the convention for Quarto vignettes and slides.

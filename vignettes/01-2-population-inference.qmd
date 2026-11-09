@@ -1,7 +1,9 @@
 ---
 title: "1.2 Population-level DeCovarT inference: MLE properties, confidence intervals and a GLM formulation"
+description: "Sampling properties, intervals, and a GLM form of the population fit."
 author: "Bastien Chassagnol"
-date: "`r Sys.Date()`"
+date: last-modified
+date-format: "D MMM YYYY"
 vignette: >
   %\VignetteIndexEntry{1.2 Population-level DeCovarT inference: MLE properties and confidence intervals}
   %\VignetteEngine{quarto::html}
@@ -113,7 +115,27 @@ implemented in [`lrt_decovart()`](../reference/lrt_decovart.html),
 [`bootstrap_decovart()`](../reference/bootstrap_decovart.html) and
 [`reference_bootstrap_decovart()`](../reference/reference_bootstrap_decovart.html).
 
-{{< include _notation.qmd >}}
+::: {.callout-note collapse="true"}
+## Notation used in this vignette
+
+A symbol absent from these groups is defined in this vignette, with one
+meaning. The full table is the [notation article](notation.html).
+
+{{< embed notation.qmd#notation-indices >}}
+
+{{< embed notation.qmd#notation-ratios >}}
+
+{{< embed notation.qmd#notation-means >}}
+
+{{< embed notation.qmd#notation-biological >}}
+
+{{< embed notation.qmd#notation-technical >}}
+
+{{< embed notation.qmd#notation-bulk >}}
+
+{{< embed notation.qmd#notation-feature >}}
+:::
+
 
 # Theoretical properties of the DeCovarT MLE {#sec-mle-properties}
 
@@ -509,6 +531,9 @@ of $\log$ preserves gene-wise rankings, but not the convolution MLE. The
 numerical demonstration lives in the
 [appendix simulations](S1-identifiability.html#sec-affine).
 
+
+{{< pagebreak >}}
+
 # Expected Fisher information and Wald inference {#sec-fisher-wald}
 
 Point estimation alone does not report uncertainty. Under a regular
@@ -635,6 +660,9 @@ these limits need replicate samples that share one composition.
 Shuffling genes or cell-type names of an averaged signature is not a
 bootstrap: the maximised likelihood is equivariant under relabelling.
 :::
+
+
+{{< pagebreak >}}
 
 # Confidence intervals for the proportions {#sec-intervals}
 
@@ -1344,6 +1372,9 @@ DeCovarT, whose target is a parameter, $\boldsymbol{p}$, not a prediction.
   samples that the generator does not mimic, which cannot be checked
   because real bulk samples have no labels.
 
+
+{{< pagebreak >}}
+
 # Likelihood-ratio, boundary and resampling inference {#sec-inference}
 
 ## Where the estimate sits decides the null distribution {#sec-strata}
@@ -1739,6 +1770,9 @@ reference and its Fisher and Godambe intervals, is compared with
 DeCovarT in the
 [distribution-aware deconvolution review](05-1-review-distribution-aware.html#sec-rnasieve).
 
+
+{{< pagebreak >}}
+
 # Convergence and boundary diagnostics {#sec-diagnostics}
 
 Because @nte-nonconcave rules out global guarantees, a single optimiser
@@ -1822,6 +1856,9 @@ A small range is reassuring but not a proof: a converged code, a tiny
 relative-distance-to-minimum and a negative-definite local Hessian
 together support a **local** maximum, and none of them rules out a
 second, equally good or better mode elsewhere on the simplex.
+
+
+{{< pagebreak >}}
 
 # A generalised linear model view of DeCovarT {#sec-glm}
 
@@ -2056,6 +2093,9 @@ Each term is a choice with a reason.
    absence is the question (@sec-boundary). With one donor, the reference uncertainty comes from
    `reference_bootstrap_decovart(method = "cells")`.
 
+
+{{< pagebreak >}}
+
 # Recap: which interval or test to report {#sec-recap}
 
 The procedures below all target the same composition
@@ -2108,6 +2148,9 @@ complement. Neither interval corrects the plug-in reference covariance.
 The [single-cell inference vignette](02-2-single-cell-inference.html)
 derives that menu, with its REML calibration for few genes.
 
+
+{{< pagebreak >}}
+
 # Outlook: beyond first-order asymptotics {#sec-beyond-asymptotics}
 
 ::: {#nte-perspectives .callout-tip}
@@ -2140,5 +2183,8 @@ implementation cost.
   is not an exact frequentist interval, and the prior must be
   defensible scientifically.
 :::
+
+
+{{< pagebreak >}}
 
 # References

@@ -1,7 +1,9 @@
 ---
 title: "2.2 Single-cell DeCovarT inference: profile information, intervals and the REML calibration"
+description: "Profile information, intervals, and the REML scale calibration."
 author: "Bastien Chassagnol"
-date: "`r Sys.Date()`"
+date: last-modified
+date-format: "D MMM YYYY"
 vignette: >
   %\VignetteIndexEntry{2.2 Single-cell DeCovarT inference: profile information and intervals}
   %\VignetteEngine{quarto::html}
@@ -53,7 +55,25 @@ reuses, is the
    @sec-sc-limits what none of these intervals covers.
 :::
 
-{{< include _notation.qmd >}}
+::: {.callout-note collapse="true"}
+## Notation used in this vignette
+
+A symbol absent from these groups is defined in this vignette, with one
+meaning. The full table is the [notation article](notation.html).
+
+{{< embed notation.qmd#notation-indices >}}
+
+{{< embed notation.qmd#notation-ratios >}}
+
+{{< embed notation.qmd#notation-means >}}
+
+{{< embed notation.qmd#notation-biological >}}
+
+{{< embed notation.qmd#notation-technical >}}
+
+{{< embed notation.qmd#notation-bulk >}}
+:::
+
 
 # Model and scale equivariance {#sec-sc-setting}
 
@@ -104,6 +124,9 @@ $(k\hat c,k^{2}\hat\phi)$. The capture ratio and the number of cells enter
 only through $c$ and $\phi$. A fixed capture ratio is therefore a
 relabelling of the scales and cannot change the composition, which is
 why a simulation study need not cross it with the other factors.
+
+
+{{< pagebreak >}}
 
 # Information and the Schur complement {#sec-sc-information}
 
@@ -160,6 +183,9 @@ as `vcov_rho` and `vcov`, with $\mathbf{J}_{\boldsymbol{\psi}}$ the
 The complementary Schur complement, which removes $\boldsymbol{\rho}$ from
 the scale block, gives `vcov_nuisance` for $(c,\phi)$.
 
+
+{{< pagebreak >}}
+
 # Small-dispersion asymptotics in the number of cells {#sec-sc-small-dispersion}
 
 One bulk sample has no replicate, so the usual limit in the number of
@@ -183,6 +209,9 @@ of genes enters through the residual degrees of freedom of the
 covariance scale (@sec-sc-reml). With Gaussian cells the sum is exactly
 Gaussian at any $n$; with counts, @eq-sc-per-cell is a central-limit
 approximation that needs every $m_j$ to be large.
+
+
+{{< pagebreak >}}
 
 # Intervals for the composition {#sec-sc-intervals}
 
@@ -298,6 +327,9 @@ replicate. The Monte Carlo check of these calibrations is
 the maximum-likelihood intervals under-cover with $G=10$ genes, and the
 REML calibration brings them back to the nominal level.
 
+
+{{< pagebreak >}}
+
 # Intervals for the two scales {#sec-sc-nuisance}
 
 `confint_single_cell()` also returns `nuisance`, intervals for $c$ and
@@ -316,6 +348,9 @@ inherit the downward bias of $\hat\phi$, so $\hat n$ is biased upwards.
 They describe the sample; $\hat n$ is a number of cells only when the
 capture ratio is known, from the same platform or from paired samples
 [@erdmann-phamLikelihoodbasedDeconvolutionBulk2021].
+
+
+{{< pagebreak >}}
 
 # Likelihood-ratio tests and the boundary {#sec-sc-tests}
 
@@ -341,6 +376,9 @@ The L-BFGS-B branch of `deconvolute_single_cell()` can return an exact
 zero. There the ILR coordinates, the Wald covariances and the Wald and
 ILR intervals are undefined (`NA`); the profile interval and the
 boundary test are the procedures that remain valid.
+
+
+{{< pagebreak >}}
 
 # What these intervals do not cover {#sec-sc-limits}
 
@@ -372,5 +410,8 @@ boundary test are the procedures that remain valid.
 | capture ratio and number of cells | log-scale Wald or REML chi-square | `confint_single_cell()$nuisance` |
 
 : Which single-cell procedure answers which question. {#tbl-sc-recap}
+
+
+{{< pagebreak >}}
 
 # References

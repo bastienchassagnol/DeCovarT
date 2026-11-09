@@ -383,6 +383,12 @@ reference:
       - theme_decovart_facets
 
 articles:
+  - title: Notation
+    desc: |
+      Symbols shared by the vignettes. An article embeds only the
+      groups it uses; this page is the full table.
+    contents:
+      - notation
   - title: External resources
     contents:
       - decovart-paper-slides

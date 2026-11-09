@@ -1,7 +1,9 @@
 ---
 title: "4.2 Distances, overlap, and covariance information"
+description: "Distances and overlap scores for the synthetic scenarios."
 author: "Bastien Chassagnol"
-date: "`r Sys.Date()`"
+date: last-modified
+date-format: "D MMM YYYY"
 vignette: >
   %\VignetteIndexEntry{4.2 Distances, overlap, and covariance information}
   %\VignetteEngine{quarto::html}
@@ -44,7 +46,19 @@ purified Gaussians
 $\mathcal{N}(\boldsymbol{\mu}_{\cdot j},\boldsymbol{\Sigma}_j)$ that enter
 the convolution, not the deconvolution estimator.
 
-{{< include _notation.qmd >}}
+::: {.callout-note collapse="true"}
+## Notation used in this vignette
+
+A symbol absent from these groups is defined in this vignette, with one
+meaning. The full table is the [notation article](notation.html).
+
+{{< embed notation.qmd#notation-indices >}}
+
+{{< embed notation.qmd#notation-biological >}}
+
+{{< embed notation.qmd#notation-overlap >}}
+:::
+
 
 # Overlap, total variation, and MixSim {#sec-overlap-tv}
 
@@ -93,6 +107,9 @@ approximate.
 Bayes error in the equal-prior two-class problem is
 $P_e=\tfrac12(1-\operatorname{TV})=\tfrac12\operatorname{OVL}$.
 
+
+{{< pagebreak >}}
+
 # Hellinger, Bhattacharyya, and Fisher--Rao {#sec-hellinger}
 
 Hellinger distance $H_2(f,g)=H_2(g,f)$ is a **metric** on densities.
@@ -128,6 +145,9 @@ with the affine-invariant Riemannian metric of @sec-airm.
 Jeffreys (symmetrised KL) remains a supplementary descriptor
 (`compute_average_jeffreys()`): it is not bounded and is not a metric.
 
+
+{{< pagebreak >}}
+
 # Affine-invariant Riemannian distance {#sec-airm}
 
 The space of symmetric positive-definite (SPD) matrices is a curved
@@ -160,6 +180,9 @@ $d_R(\Sigma_j,\Sigma_\ell)$ over $j<\ell$. The distance is
 *scale-invariant*: $d_R(sA,sB)=d_R(A,B)$. In fig03 it therefore
 tracks the **shape** of the completed graphs, not the overlap knob
 $s$.
+
+
+{{< pagebreak >}}
 
 # Computing overlap in moderate dimension {#sec-compute-overlap}
 
@@ -220,6 +243,9 @@ closed-form *descriptor*, not a MixSim `BarOmega` substitute.
 \draw[edge] (B) -| node[elabel, pos=0.25] {no} (D);
 \end{tikzpicture}
 ```
+
+
+{{< pagebreak >}}
 
 # Fig03: topology fixed, overlap as the knob {#sec-fig03-scale}
 

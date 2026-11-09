@@ -1,5 +1,8 @@
 ---
 title: "Appendix S3 — Solver Scalability"
+date: last-modified
+date-format: "D MMM YYYY"
+description: "How the solver scales as genes, types, and samples grow."
 subtitle: "Full script: `scripts/supp_S3_scaling.R`"
 vignette: >
   %\VignetteIndexEntry{Appendix S3 — Solver Scalability}

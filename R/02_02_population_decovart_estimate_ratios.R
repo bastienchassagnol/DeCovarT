@@ -1,11 +1,12 @@
-# Population-level convolution: Sigma(p) = sum_j p_j^2 Sigma_j.
+# Purified-profile paradigm: Sigma(p) = sum_j p_j^2 Sigma_j.
+# One profile per type (FACS or cytometry), not a single-cell signature.
 # The single-cell model is linear in p_j and lives in
 # R/02_02_single_cell_decovart_estimate_ratios.R.
 
 #' Bulk mixture covariance \eqn{\boldsymbol{\Sigma}(\boldsymbol{p})}
 #'
 #' @description
-#' Assembles the conditional covariance of the Gaussian convolution
+#' Assembles the conditional covariance of the purified-profile convolution
 #' \deqn{
 #'   \boldsymbol{\Sigma}(\boldsymbol{p})
 #'   =\sum_{j=1}^{J}p_j^{2}\,\boldsymbol{\Sigma}_j,

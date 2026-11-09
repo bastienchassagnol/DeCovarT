@@ -1,7 +1,9 @@
 ---
 title: "5.3 DeCovarT extensions roadmap: lineages, covariates, modalities and beyond"
+description: "Planned extensions: lineages, covariates, and further modalities."
 author: "Bastien Chassagnol"
-date: "`r Sys.Date()`"
+date: last-modified
+date-format: "D MMM YYYY"
 vignette: >
   %\VignetteIndexEntry{5.3 DeCovarT extensions roadmap}
   %\VignetteEngine{quarto::html}
@@ -92,6 +94,9 @@ the cell fractions; $\boldsymbol{\mu}_{\cdot j}$ and
 $\boldsymbol{\Sigma}_j$ the reference moments;
 $\boldsymbol{x}_{\cdot j,i}$ the purified profile of type $j$ in
 sample $i$.
+
+
+{{< pagebreak >}}
 
 # Lineage-aware hierarchical deconvolution {#sec-hierarchical-deconvolution}
 
@@ -297,6 +302,9 @@ for differential expression rather than for $\boldsymbol{p}$
 (type versus shared gene-expression programmes) are taken up in
 @sec-archetypes.
 
+
+{{< pagebreak >}}
+
 # Sample-level covariates {#sec-covariates}
 
 A condition, tissue, batch, sex or age vector $\boldsymbol{z}_{i}$ is indexed
@@ -343,6 +351,9 @@ standardisation applied identically to $\boldsymbol{y}$, $\boldsymbol{\mu}$ and 
 $\boldsymbol{\Sigma}_{j}$ leaves $\hat{\boldsymbol{p}}$ unchanged in exact
 arithmetic; column-wise `scale()` on $\boldsymbol{\mu}$ does not.
 
+
+{{< pagebreak >}}
+
 # Incomplete references {#sec-semi-reference}
 
 Closed-reference DeCovarT assumes every abundant type appears as a
@@ -376,6 +387,9 @@ information [@dongSemiCAMSemisupervisedDeconvolution2020]; `BLEND`
 automates reference-panel selection
 [@huangBLENDProbabilisticCellular2024].
 
+
+{{< pagebreak >}}
+
 # Isoform-level observations {#sec-isoforms}
 
 Gene-level $\boldsymbol{y}\in\mathbb{R}_{+}^{G}$ discards differential isoform
@@ -387,6 +401,9 @@ from a single gene, by exploiting differential isoform usage rather than
 gene-level DE; full-length long-read or spatial RNA-seq are the natural
 sources of cell-type- and isoform-specific references when droplet
 scRNA-seq misses isoforms [@heilingEstimatingCellTypeComposition2023].
+
+
+{{< pagebreak >}}
 
 # Multi-modal and multi-omics {#sec-multiomics}
 
@@ -405,6 +422,9 @@ treats expression and DNA methylation under one tensor model
 [@chenUnicoUnifiedModelCell2025]. The HADACA3 community benchmark
 stresses the limits of naive multimodal concatenation
 [@barbotPromisesLimitsMultimodal2026].
+
+
+{{< pagebreak >}}
 
 # Spatial transcriptomics {#sec-spatial}
 
@@ -431,6 +451,9 @@ column of $\boldsymbol{\mu}$
 [@mahamuneSystematicEvaluationRobustnessDeconvolution2025] — the spatial
 counterpart of @sec-semi-reference.
 
+
+{{< pagebreak >}}
+
 # Time-resolved composition {#sec-dynamics}
 
 When $J>G$ the linear map is under-determined. Elastic-net methods such
@@ -452,6 +475,9 @@ courses [@yukiSctrendAnnotationFreeSingle2026]. `SpaDecoder` adds
 space–time kernels on spots
 [@loboSpatiotemporalCellTypeDeconvolution2026].
 
+
+{{< pagebreak >}}
+
 # Archetypes, states, and potency {#sec-archetypes}
 
 A finite $J$-column signature is a piecewise approximation of within-type
@@ -472,6 +498,9 @@ discrete labels by a continuous axis
 standard biological example of a microenvironment-dependent continuum
 rather than two extra columns of $\boldsymbol{\mu}$.
 
+
+{{< pagebreak >}}
+
 # Ensembles {#sec-ensembles}
 
 Two operations are easily confused. **Several references, one
@@ -485,6 +514,9 @@ fractions [@caiRobustAccurateEstimation2022]. `EnDecon` runs 14 spatial
 discordant engines [@tuEndeconCellTypeDeconvolution2023]. The DREAM
 community assessment found that a mean-rank ensemble beat every
 individual method [@whiteCommunityAssessmentMethodsDeconvolve2024].
+
+
+{{< pagebreak >}}
 
 # Robust regression, GLS, and gene weights {#sec-robust-gls}
 
@@ -538,6 +570,9 @@ methylation [@chenUnicoUnifiedModelCell2025]. Interaction monomials
 $p_{j}p_{k}$ in the mean ([the interaction mean](05-4-mixture-experiments.html#eq-interaction-mean)) are the Scheffé /
 general-linear-model route; `DecOT` instead changes the discrepancy to
 an optimal-transport loss [@liuDecotBulkDeconvolutionOptimal2022].
+
+
+{{< pagebreak >}}
 
 # Two simplices without convolution {#sec-logit-normal-compositional}
 
@@ -632,5 +667,8 @@ circles deterministic, squares fixed.
 \plate{samples}{(rho)(p)(muw)(nmw)(w)(pi)(y)(n)(nr)(np)(nw)(npi)(ny)}{$i=1,\ldots,N$}
 \end{tikzpicture}
 ```
+
+
+{{< pagebreak >}}
 
 # References
