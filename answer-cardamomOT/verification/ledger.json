@@ -1,9 +1,9 @@
 {
   "meta": {
-    "date": "2026-11-09",
+    "date": "2026-11-10",
     "sympy": "1.14.0",
     "numpy": "2.5.4",
-    "python": "3.13.12"
+    "python": "3.14.3"
   },
   "records": [
     {
@@ -126,7 +126,7 @@
       "tex_line": "266, 1060",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:1898"
+        "03-1:1892"
       ]
     },
     {
@@ -149,7 +149,7 @@
       "tex_line": "268",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:2083"
+        "03-1:2077"
       ]
     },
     {
@@ -162,7 +162,7 @@
       "tex_line": "640, 1062",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:1898"
+        "03-1:1892"
       ]
     },
     {
@@ -175,7 +175,7 @@
       "tex_line": "1064",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:1898"
+        "03-1:1892"
       ]
     },
     {
@@ -373,12 +373,14 @@
       "claim": "With the mean estimated, $\\operatorname{rank}\\bm V=\\operatorname{rank}\\bm X_c\\le\\min(C-1,G)$, with equality for data in general position; $\\bm V\\succ0$ needs $C\\ge G+1$",
       "kind": "exact",
       "status": "pass",
-      "detail": "$G=3$, symbolic data: $\\det\\bm V\\equiv0$ at $C=3$; at $C=4$, $\\det\\bm V$ is a non-zero polynomial (value $\\frac{1225}{4}$ at a rational point); exact ranks at rational points for $C=2,\\dots,6$: 1, 2, 3, 3, 3",
-      "detail_full": "det V (G=3, C=3, symbolic) == 0: True; det V (G=3, C=4) at a rational point = 1225/4; rank(I - 11'/5) = 4: True; ranks of V (= ranks of X_c) for C=2..6: {2: 1, 3: 2, 4: 3, 5: 3, 6: 3}",
+      "detail": "$G=3$, symbolic data: $\\det\\bm V\\equiv0$ at $C=3$; at $C=4$, $\\det\\bm V$ is a non-zero polynomial (value $\\frac{125641681}{36864}$ at a rational point); exact ranks at rational points for $C=2,\\dots,6$: 1, 2, 3, 3, 3",
+      "detail_full": "det V (G=3, C=3, symbolic) == 0: True; det V (G=3, C=4) at a rational point = 125641681/36864; rank(I - 11'/5) = 4: True; ranks of V (= ranks of X_c) for C=2..6: {2: 1, 3: 2, 4: 3, 5: 3, 6: 3}",
       "tex_line": "298, 319, 642",
       "script": "verification/sympy/check_V10_empirical_covariance_rank.py",
       "qmd_lines": [
         "03-1:478",
+        "03-2:564",
+        "03-2:607",
         "summary_side_comparison:304"
       ]
     },
@@ -390,7 +392,11 @@
       "detail": "$G=3$, $x_3=2x_1-x_2+5$: $\\bm V(2,-1,-1)^{\\mathsf T}=\\bm 0$; rank (affine, constant gene) $=(2,2)$ at $C=4$ and $(2,2)$ at $C=10$, against $\\min(C-1,G)=3$",
       "detail_full": "ranks (affine relation, constant gene) by C: {4: (2, 2), 10: (2, 2)}; null vector checked: True",
       "tex_line": "301, 307, 319, 642",
-      "script": "verification/sympy/check_V10_empirical_covariance_rank.py"
+      "script": "verification/sympy/check_V10_empirical_covariance_rank.py",
+      "qmd_lines": [
+        "03-2:564",
+        "03-2:607"
+      ]
     },
     {
       "id": "V10c",
@@ -402,7 +408,9 @@
       "tex_line": "303, 319",
       "script": "verification/sympy/check_V10_empirical_covariance_rank.py",
       "qmd_lines": [
-        "03-1:478"
+        "03-1:478",
+        "03-2:564",
+        "03-2:607"
       ]
     },
     {
@@ -423,7 +431,10 @@
       "detail": "$\\bm V=\\bm L\\bm L^{\\mathsf T}$, $\\bm T=\\bm M\\bm M^{\\mathsf T}$: $\\det=(1-\\rho)^2\\det\\bm V+\\rho^2\\det\\bm T+\\rho(1-\\rho)\\lVert\\operatorname{adj}(\\bm L)\\bm M\\rVert_F^2\\ge\\rho^2\\det\\bm T>0$ (polynomial identity); trace $(1-\\rho)\\operatorname{tr}\\bm V+\\rho\\operatorname{tr}\\bm T>0$",
       "detail_full": "determinant identity: True; tr(adj(V) T) = ||adj(L) M||_F^2: True; trace identity: True; ||adj(L) M||_F^2 = l1**2*m2**2 + l1**2*m3**2 - 2*l1*l2*m1*m2 + l2**2*m1**2 + l3**2*m1**2",
       "tex_line": "321",
-      "script": "verification/sympy/check_V11_shrinkage_pd.py"
+      "script": "verification/sympy/check_V11_shrinkage_pd.py",
+      "qmd_lines": [
+        "03-2:564"
+      ]
     },
     {
       "id": "V11b",
@@ -433,7 +444,11 @@
       "detail": "$\\bm x^{\\mathsf T}\\bm V\\bm x=\\lVert\\bm X_c\\bm x\\rVert^2/C\\ge0$ (identity with symbolic data, $G=3$, $C=2$, $\\operatorname{rank}\\bm V=1$), so $\\bm x^{\\mathsf T}\\hat{\\bm\\Sigma}\\bm x\\ge\\rho\\,\\bm x^{\\mathsf T}\\bm T\\bm x\\ge\\rho\\,\\lambda_{\\min}(\\bm T)\\lVert\\bm x\\rVert^2$",
       "detail_full": "x'Vx = ||X_c x||^2 / C: True; rank V = 1 at an integer point: True",
       "tex_line": "321, 342, 642",
-      "script": "verification/sympy/check_V11_shrinkage_pd.py"
+      "script": "verification/sympy/check_V11_shrinkage_pd.py",
+      "qmd_lines": [
+        "03-2:564",
+        "03-2:570"
+      ]
     },
     {
       "id": "V11c",
@@ -443,7 +458,10 @@
       "detail": "mpmath, 40 digits, seed 20261030; $\\operatorname{rank}\\bm V=1$; for $\\rho\\in\\{0.01,0.5,1\\}$ and both targets, $\\lambda_{\\min}(\\hat{\\bm\\Sigma})\\ge\\rho\\,\\lambda_{\\min}(\\bm T)>0$ (smallest gap $0$ to 30 digits, attained at $\\rho=1$)",
       "detail_full": "numerical rank of V: 1; (target, rho, lambda_min, rho*lambda_min(T)): [('diag', 0.01, '6.49659e-5', '6.345e-5'), ('diag', 0.5, '0.00324655', '0.0031725'), ('diag', 1.0, '0.006345', '0.006345'), ('scaled identity', 0.01, '0.0644275', '0.0644275'), ('scaled identity', 0.5, '3.22137', '3.22137'), ('scaled identity', 1.0, '6.44275', '6.44275')]",
       "tex_line": "321",
-      "script": "verification/sympy/check_V11_shrinkage_pd.py"
+      "script": "verification/sympy/check_V11_shrinkage_pd.py",
+      "qmd_lines": [
+        "03-2:564"
+      ]
     },
     {
       "id": "V12a",
@@ -496,7 +514,7 @@
       "script": "verification/sympy/check_V13_bulk_sampling.py",
       "qmd_lines": [
         "01-2:2062",
-        "02-1:1326"
+        "03-2:376"
       ]
     },
     {
@@ -511,7 +529,7 @@
       "qmd_lines": [
         "01-2:1973",
         "01-2:2062",
-        "02-1:1338"
+        "03-2:392"
       ]
     },
     {
@@ -522,10 +540,7 @@
       "detail": "$a=\\tfrac14$: $\\begin{pmatrix}80&2\\\\2&5\\end{pmatrix}$, correlation $\\tfrac1{10}$, ratios $\\tfrac25$, $\\tfrac15$; $a=1$: raw, correlation $\\tfrac15$, ratios $1$, $\\tfrac12$; $a=4$: $\\begin{pmatrix}42.5&2\\\\2&1.25\\end{pmatrix}$, correlation $0.2744$, ratios $\\tfrac85$, $\\tfrac45$",
       "detail_full": "a=1/4: Cov/phi=Matrix([\n[80, 2],\n[ 2, 5]]), corr=1/10 (0.100000), raw/true=2/5, denoised/true=1/5; a=1: Cov/phi=Matrix([\n[50, 2],\n[ 2, 2]]), corr=1/5 (0.200000), raw/true=1, denoised/true=1/2; a=4: Cov/phi=Matrix([\n[85/2,   2],\n[   2, 5/4]]), corr=4*sqrt(34)/85 (0.274398), raw/true=8/5, denoised/true=4/5; crossover depths mu_g/S_gg = [1/4, 1]",
       "tex_line": "748",
-      "script": "verification/sympy/check_V13_bulk_sampling.py",
-      "qmd_lines": [
-        "02-1:1377"
-      ]
+      "script": "verification/sympy/check_V13_bulk_sampling.py"
     },
     {
       "id": "V14a",
@@ -537,6 +552,7 @@
       "tex_line": "761",
       "script": "verification/sympy/check_V14_denoised_within.py",
       "qmd_lines": [
+        "03-2:357",
         "05-1:343"
       ]
     },
@@ -550,6 +566,7 @@
       "tex_line": "763",
       "script": "verification/sympy/check_V14_denoised_within.py",
       "qmd_lines": [
+        "03-2:357",
         "05-1:343"
       ]
     },
@@ -563,6 +580,7 @@
       "tex_line": "763",
       "script": "verification/sympy/check_V14_denoised_within.py",
       "qmd_lines": [
+        "03-2:357",
         "05-1:343"
       ]
     },
@@ -576,6 +594,7 @@
       "tex_line": "766, 800",
       "script": "verification/sympy/check_V14_denoised_within.py",
       "qmd_lines": [
+        "03-2:475",
         "05-1:351"
       ]
     },
@@ -589,6 +608,7 @@
       "tex_line": "763",
       "script": "verification/sympy/check_V14_denoised_within.py",
       "qmd_lines": [
+        "03-2:357",
         "05-1:343"
       ]
     },
@@ -721,7 +741,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:2137"
+        "03-1:2131"
       ]
     },
     {
@@ -734,7 +754,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:2137"
+        "03-1:2131"
       ]
     },
     {
@@ -747,7 +767,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:2117"
+        "03-1:2111"
       ]
     },
     {
@@ -760,7 +780,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:2146"
+        "03-1:2140"
       ]
     },
     {
@@ -834,7 +854,7 @@
       "kind": "numeric",
       "status": "pass",
       "detail": "Stationary point and closed form symbolic; MC seed 20261101: mean of $n=50$ NB($\\mu=3,r=2$), $2\\times10^5$ replicates, at $u=1$ tail 0.0080 vs bound 0.0584; range filter $K=3$, $\\mu_k=(1,3,6)$, $r=2$, $\\bm\\alpha=(0.98,0.01,0.01)$, $n=c_k=100$, $2\\times10^4$ replicates; first bound below 1 at $t=1.3$: 0.950 vs 0.0000",
-      "detail_full": "stationary True; value True; I(mu)=0 True; I(0) True; Poisson True; mc mean True; mc range True; rows1 [(np.float64(0.25), np.float64(0.250755), 0.8191222798121917), (np.float64(0.5), np.float64(0.104585), 0.46483651141055676), (np.float64(0.75), np.float64(0.031525), 0.19054680128421148), (np.float64(1.0), np.float64(0.008), 0.058428736187140666), (np.float64(1.25), np.float64(0.001495), 0.013803780896935488), (np.float64(1.5), np.float64(0.00023), 0.0025766546404857892), (np.float64(1.75), np.float64(1.5e-05), 0.00038834040310004795), (np.float64(2.0), np.float64(5e-06), 4.815319224121735e-05)]; rows2 [(np.float64(0.1), np.float64(0.1841), 7.6792986861138575), (np.float64(0.2), np.float64(0.0742), 6.832060069075939), (np.float64(0.3), np.float64(0.02225), 5.732183646870965), (np.float64(0.4), np.float64(0.00515), 4.658039569254735), (np.float64(0.5), np.float64(0.0011), 3.771385390272215), (np.float64(0.6), np.float64(0.0001), 3.099328342876186), (np.float64(0.7), np.float64(0.0), 2.5932749625084637), (np.float64(0.7999999999999999), np.float64(0.0), 2.1942241653636816), (np.float64(0.8999999999999999), np.float64(0.0), 1.8630035956471986), (np.float64(0.9999999999999999), np.float64(0.0), 1.580289412662661), (np.float64(1.0999999999999999), np.float64(0.0), 1.3372227524636773), (np.float64(1.2), np.float64(0.0), 1.1285832532401443), (np.float64(1.3), np.float64(0.0), 0.9500266175550489), (np.float64(1.4), np.float64(0.0), 0.797470414266428), (np.float64(1.5), np.float64(0.0), 0.66715993174676), (np.float64(1.5999999999999999), np.float64(0.0), 0.5558157697059918), (np.float64(1.7), np.float64(0.0), 0.4606969080901964), (np.float64(1.8), np.float64(0.0), 0.37956817477025473), (np.float64(1.9), np.float64(0.0), 0.3106088129755633), (np.float64(2.0), np.float64(0.0), 0.25230407293654583), (np.float64(2.0999999999999996), np.float64(0.0), 0.20334961727953843), (np.float64(2.1999999999999997), np.float64(0.0), 0.16258260245300055), (np.float64(2.3), np.float64(0.0), 0.128940700529097), (np.float64(2.4), np.float64(0.0), 0.10144328196760943), (np.float64(2.5), np.float64(0.0), 0.07918677133646959)]",
+      "detail_full": "stationary True; value True; I(mu)=0 True; I(0) True; Poisson True; mc mean True; mc range True; rows1 [(np.float64(0.25), np.float64(0.250755), 0.8191222798121917), (np.float64(0.5), np.float64(0.104585), 0.46483651141055676), (np.float64(0.75), np.float64(0.031525), 0.19054680128421148), (np.float64(1.0), np.float64(0.008), 0.058428736187140666), (np.float64(1.25), np.float64(0.001495), 0.013803780896935488), (np.float64(1.5), np.float64(0.00023), 0.0025766546404857892), (np.float64(1.75), np.float64(1.5e-05), 0.00038834040310004795), (np.float64(2.0), np.float64(5e-06), 4.815319224121735e-05)]; rows2 [(np.float64(0.1), np.float64(0.1841), 7.679298686113857), (np.float64(0.2), np.float64(0.0742), 6.832060069075939), (np.float64(0.3), np.float64(0.02225), 5.732183646870965), (np.float64(0.4), np.float64(0.00515), 4.658039569254736), (np.float64(0.5), np.float64(0.0011), 3.771385390272215), (np.float64(0.6), np.float64(0.0001), 3.0993283428761904), (np.float64(0.7), np.float64(0.0), 2.5932749625084637), (np.float64(0.7999999999999999), np.float64(0.0), 2.1942241653636816), (np.float64(0.8999999999999999), np.float64(0.0), 1.8630035956471986), (np.float64(0.9999999999999999), np.float64(0.0), 1.580289412662661), (np.float64(1.0999999999999999), np.float64(0.0), 1.3372227524636773), (np.float64(1.2), np.float64(0.0), 1.1285832532401443), (np.float64(1.3), np.float64(0.0), 0.9500266175550489), (np.float64(1.4), np.float64(0.0), 0.797470414266428), (np.float64(1.5), np.float64(0.0), 0.66715993174676), (np.float64(1.5999999999999999), np.float64(0.0), 0.5558157697059918), (np.float64(1.7), np.float64(0.0), 0.4606969080901964), (np.float64(1.8), np.float64(0.0), 0.37956817477025473), (np.float64(1.9), np.float64(0.0), 0.310608812975563), (np.float64(2.0), np.float64(0.0), 0.25230407293654583), (np.float64(2.0999999999999996), np.float64(0.0), 0.20334961727953843), (np.float64(2.1999999999999997), np.float64(0.0), 0.16258260245300055), (np.float64(2.3), np.float64(0.0), 0.128940700529097), (np.float64(2.4), np.float64(0.0), 0.10144328196760943), (np.float64(2.5), np.float64(0.0), 0.07918677133646959)]",
       "tex_line": "qmd",
       "script": "verification/sympy/check_V20_subexponential_nb.py",
       "qmd_lines": [
@@ -867,8 +887,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V21_unico.py",
       "qmd_lines": [
-        "03-1:1990",
-        "03-1:2014"
+        "03-1:1984",
+        "03-1:2008"
       ]
     },
     {
@@ -1419,6 +1439,175 @@
       "script": "verification/sympy/check_V36_platform_ratio.py",
       "qmd_lines": [
         "03-1:1614"
+      ]
+    },
+    {
+      "id": "V37a",
+      "claim": "The Poisson mean $s_cb_g\\lambda_{gc}$ is invariant under $(s_c,\\boldsymbol\\lambda_{\\cdot c})\\mapsto(ks_c,\\boldsymbol\\lambda_{\\cdot c}/k)$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$(ks)\\,b\\,(\\lambda/k)-s\\,b\\,\\lambda=0$",
+      "detail_full": "$(ks)\\,b\\,(\\lambda/k)-s\\,b\\,\\lambda=0$",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V37_size_factors.py",
+      "qmd_lines": [
+        "03-2:292"
+      ]
+    },
+    {
+      "id": "V37b",
+      "claim": "With $\\mathbb E[s^{\\mathrm{bio}}]=\\mathbb E[s^{\\mathrm{tech}}]=1$: $\\mathbb E[s_c]=1$, $\\mathbb E\\boldsymbol x_{\\cdot c}=\\boldsymbol{\\mathcal B}\\mathbb E\\boldsymbol\\lambda_{\\cdot c}$, $\\mathbb E[x_{+c}\\mid s_c]=s_cS_j$, and $\\hat s_c$ averages one",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "two-point laws for $s^{\\mathrm{bio}}$, $s^{\\mathrm{tech}}$ and $\\boldsymbol\\lambda$ ($G=2$); four cells for $\\hat s_c$",
+      "detail_full": "two-point laws for $s^{\\mathrm{bio}}$, $s^{\\mathrm{tech}}$ and $\\boldsymbol\\lambda$ ($G=2$); four cells for $\\hat s_c$",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V37_size_factors.py",
+      "qmd_lines": [
+        "03-2:292"
+      ]
+    },
+    {
+      "id": "V37c",
+      "claim": "$1+\\nu=(1+\\nu^{\\mathrm{bio}})(1+\\nu^{\\mathrm{tech}})$ for independent factors with mean one; not for $s^{\\mathrm{tech}}=s^{\\mathrm{bio}}$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "independent: residual $0$; dependent: $1+\\nu-(1+\\nu^{\\mathrm{bio}})^2=\\frac{d_{1}^{2} \\left(- d_{1}^{6} - 4 d_{1}^{4} - 5 d_{1}^{2} + 2\\right)}{d_{1}^{4} + 2 d_{1}^{2} + 1}$",
+      "detail_full": "independent: residual $0$; dependent: $1+\\nu-(1+\\nu^{\\mathrm{bio}})^2=\\frac{d_{1}^{2} \\left(- d_{1}^{6} - 4 d_{1}^{4} - 5 d_{1}^{2} + 2\\right)}{d_{1}^{4} + 2 d_{1}^{2} + 1}$",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V37_size_factors.py",
+      "qmd_lines": [
+        "03-2:306"
+      ]
+    },
+    {
+      "id": "V38a",
+      "claim": "$\\boldsymbol\\Sigma^{\\mathrm{raw}}_j=\\operatorname{diag}(\\tilde{\\boldsymbol\\mu}_{\\cdot j})+(1+\\nu^{\\mathrm{tech}})\\boldsymbol\\Sigma^{\\mathrm{bio}}_j+\\nu^{\\mathrm{tech}}\\tilde{\\boldsymbol\\mu}_{\\cdot j}\\tilde{\\boldsymbol\\mu}_{\\cdot j}^{\\top}$, with $\\boldsymbol\\Sigma^{\\mathrm{bio}}_j=(1+\\nu^{\\mathrm{bio}})\\boldsymbol{\\mathcal B}\\boldsymbol\\Sigma^{\\lambda}_j\\boldsymbol{\\mathcal B}+\\nu^{\\mathrm{bio}}\\tilde{\\boldsymbol\\mu}_{\\cdot j}\\tilde{\\boldsymbol\\mu}_{\\cdot j}^{\\top}$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "two-point laws, $G=2$; residual matrices $\\bm 0$",
+      "detail_full": "two-point laws, $G=2$; residual matrices $\\bm 0$",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V38_raw_decomposition.py",
+      "qmd_lines": [
+        "03-2:348"
+      ]
+    },
+    {
+      "id": "V38b",
+      "claim": "Inversion with $\\kappa=\\nu^{\\mathrm{tech}}/(1+\\nu^{\\mathrm{tech}})$ returns $\\boldsymbol\\Sigma^{\\mathrm{bio}}_j$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "residual $\\bm 0$",
+      "detail_full": "residual $\\bm 0$",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V38_raw_decomposition.py",
+      "qmd_lines": [
+        "03-2:357"
+      ]
+    },
+    {
+      "id": "V38c",
+      "claim": "Scoring reconstruction $\\boldsymbol\\Sigma^{\\mathrm{bio}}+\\operatorname{diag}(\\tilde{\\boldsymbol\\mu})+\\tfrac{\\kappa}{1-\\kappa}(\\boldsymbol\\Sigma^{\\mathrm{bio}}+\\tilde{\\boldsymbol\\mu}\\tilde{\\boldsymbol\\mu}^{\\top})=\\boldsymbol\\Sigma^{\\mathrm{raw}}$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "residual $\\bm 0$",
+      "detail_full": "residual $\\bm 0$",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V38_raw_decomposition.py",
+      "qmd_lines": [
+        "03-2:965"
+      ]
+    },
+    {
+      "id": "V39",
+      "claim": "Panel precision after removing gene $u$: $\\omega'_{gg'}=\\omega_{gg'}-\\omega_{gu}\\omega_{g'u}/\\omega_{uu}$; entries of a non-neighbour of $u$ are unchanged",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "generic symmetric $3\\times3$ precision; residual $\\bm 0$; $\\omega_{gu}=0$ leaves row $g$ unchanged",
+      "tex_line": "qmd",
+      "detail_full": "generic symmetric $3\\times3$ precision; residual $\\bm 0$; $\\omega_{gu}=0$ leaves row $g$ unchanged",
+      "script": "verification/sympy/check_V39_schur_update.py",
+      "qmd_lines": [
+        "03-2:146"
+      ]
+    },
+    {
+      "id": "V40",
+      "claim": "$\\mathbb E[\\boldsymbol V_j^{-1}]=\\tfrac{C_j}{C_j-G-2}\\boldsymbol\\Omega_j$ for $C_j\\boldsymbol V_j\\sim W_G(C_j-1,\\boldsymbol\\Sigma)$; factor $\\to2$ at $C_j=2G$",
+      "kind": "numeric",
+      "status": "pass",
+      "detail": "$G=1$ exact from the $\\chi^2$ density; $G=3$, $C_j=15$, 40000 draws: max relative error 0.0012 (tolerance 0.03)",
+      "tex_line": "qmd",
+      "detail_full": "$G=1$ exact from the $\\chi^2$ density; $G=3$, $C_j=15$, 40000 draws: max relative error 0.0012 (tolerance 0.03)",
+      "script": "verification/sympy/check_V40_inverse_wishart.py",
+      "qmd_lines": [
+        "03-2:620"
+      ]
+    },
+    {
+      "id": "V41",
+      "claim": "Attenuation example: mean count $0.82$, raw correlation $0.28$, denoised $(e^{0.6}-1)/(e-1)\\approx0.48$",
+      "kind": "numeric",
+      "status": "pass",
+      "detail": "values 0.8244, 0.2805, 0.4785 (rounded to 2 decimals)",
+      "tex_line": "qmd",
+      "detail_full": "values 0.8244, 0.2805, 0.4785 (rounded to 2 decimals)",
+      "script": "verification/sympy/check_V41_covariance_plugin_numbers.py",
+      "qmd_lines": [
+        "03-2:1224"
+      ]
+    },
+    {
+      "id": "V42",
+      "claim": "Support-recovery orders with $d=10$: $d^2\\log G$ and $d\\log G$ at $G=1417,3420,5821$",
+      "kind": "numeric",
+      "status": "pass",
+      "detail": "G=1417: 725.6, 72.56; G=3420: 813.7, 81.37; G=5821: 866.9, 86.69",
+      "tex_line": "qmd",
+      "detail_full": "G=1417: 725.6, 72.56; G=3420: 813.7, 81.37; G=5821: 866.9, 86.69",
+      "script": "verification/sympy/check_V41_covariance_plugin_numbers.py",
+      "qmd_lines": [
+        "03-2:677"
+      ]
+    },
+    {
+      "id": "V43",
+      "claim": "PLN export brackets: averaged map without the Poisson term $=(1+\\nu)\\boldsymbol C+\\nu\\boldsymbol m\\boldsymbol m^{\\top}$ ($\\kappa=0$); $s$ fixed gives $\\boldsymbol C$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$G=2$; residual $\\bm 0$",
+      "tex_line": "qmd",
+      "detail_full": "$G=2$; residual $\\bm 0$",
+      "script": "verification/sympy/check_V41_covariance_plugin_numbers.py",
+      "qmd_lines": [
+        "03-2:531"
+      ]
+    },
+    {
+      "id": "V44",
+      "claim": "Library-normalised signatures turn cell proportions into $q_j=p_jS_j/\\sum_\\ell p_\\ell S_\\ell$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$G=3$, $J=2$; residual $\\bm 0$",
+      "tex_line": "qmd",
+      "detail_full": "$G=3$, $J=2$; residual $\\bm 0$",
+      "script": "verification/sympy/check_V41_covariance_plugin_numbers.py",
+      "qmd_lines": [
+        "03-2:461"
+      ]
+    },
+    {
+      "id": "V45",
+      "claim": "$a_i=\\mathbb E\\,y_{+i}/(n_i\\sum_jp_{ji}S_j)$; illustration $a_i=0.04$, Fano threshold $25$",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$2\\times10^7/(10^5\\cdot5\\times10^3)=1/25$",
+      "tex_line": "qmd",
+      "detail_full": "$2\\times10^7/(10^5\\cdot5\\times10^3)=1/25$",
+      "script": "verification/sympy/check_V41_covariance_plugin_numbers.py",
+      "qmd_lines": [
+        "03-2:432"
       ]
     }
   ]

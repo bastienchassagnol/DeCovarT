@@ -351,7 +351,7 @@ with the technical one.
 <!-- chk: V14d -->
 Whether this denoised covariance enters the bulk alone or with the
 bulk's own sampling term depends on the bulk depth per cell
-([raw or denoised](02-1-single-cell-generative-optimisation.html#sec-raw-vs-denoised)).
+([raw or denoised](03-2-covariance-network-estimation.html#sec-raw-vs-denoised)).
 Estimating $\nu^{\mathrm{tech}}$ before the deconvolution is the first
 plug-in of Strategy 4
 ([plug-in scales (Strategy 4)](02-1-single-cell-generative-optimisation.html#sec-strategy-plugin)).

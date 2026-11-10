@@ -131,6 +131,15 @@ GROUPS = {
     "V29": "Cumulant generating functions and Chernoff rates of the bulk discrepancy",
     "V30": "Colouring bound for dependent gene modules",
     "V31": "Variance of the bulk discrepancy and of module sums",
+    "V37": "Size factors: scale constraint and the product rule for extrinsic noise",
+    "V38": "Raw within-type covariance: Poisson, biological and technical-size terms",
+    "V39": "Panel precision after removing a gene (Schur complement)",
+    "V40": "Mean of the inverse empirical covariance (inverse Wishart)",
+    "V41": "Attenuation of correlations by the Poisson diagonal",
+    "V42": "Orders of the support-recovery thresholds",
+    "V43": "PLN linear-moment export at the two ends of the size bracket",
+    "V44": "Library-normalised signatures estimate transcript fractions",
+    "V45": "Bulk depth per cell",
 }
 
 

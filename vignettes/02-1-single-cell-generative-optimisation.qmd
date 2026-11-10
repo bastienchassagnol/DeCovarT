@@ -1290,104 +1290,16 @@ bulk's own Poisson sampling, $\boldsymbol{D}_i=c_i\operatorname{diag}(\tilde{\bo
 
 ### Raw or denoised within-type covariance {#sec-raw-vs-denoised}
 
-A reference cell of type $j$ has a latent expression
-$\boldsymbol{\lambda}_{\cdot c}$ on the reference capture scale, with
-mean $\tilde{\boldsymbol{\mu}}_{\cdot j}$ and covariance
-$\boldsymbol{\Sigma}^{\mathrm{bio}}_j$, and is counted as
-$\boldsymbol{x}_{\cdot c}\mid\boldsymbol{\lambda}_{\cdot c}\sim\mathrm{Poisson}(\boldsymbol{\lambda}_{\cdot c})$.
-Its raw covariance is
-$\boldsymbol{\Sigma}^{\mathrm{raw}}_j=\boldsymbol{\Sigma}^{\mathrm{bio}}_j+\operatorname{diag}(\tilde{\boldsymbol{\mu}}_{\cdot j})$.
-A cell-to-cell technical size factor adds a rank-one term, which
-[the denoised within-type covariance](05-1-review-distribution-aware.html#eq-denoised-within)
-removes with the Poisson diagonal; here the technical factor is taken
-as constant. The question is which matrix belongs in
-$\boldsymbol{S}_W$ of @eq-av-scale-law. Two models of how the bulk is
-counted give, with
-$\boldsymbol{S}^{\mathrm{bio}}(\boldsymbol{p})=\sum_jp_j\boldsymbol{\Sigma}^{\mathrm{bio}}_j$,
-
-$$
-\begin{aligned}
-\boldsymbol{y}_{\cdot i}=a_i\sum_c\boldsymbol{x}_{\cdot c}
-&:\quad
-\operatorname{Cov}\boldsymbol{y}_{\cdot i}
-=\phi_i\bigl\{\boldsymbol{S}^{\mathrm{bio}}(\boldsymbol{p}_{\cdot i})+\operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i})\bigr\},\\
-\boldsymbol{y}_{\cdot i}\mid\{\boldsymbol{\lambda}_{\cdot c}\}\sim\mathrm{Poisson}\Bigl(a_i\sum_c\boldsymbol{\lambda}_{\cdot c}\Bigr)
-&:\quad
-\operatorname{Cov}\boldsymbol{y}_{\cdot i}
-=\phi_i\boldsymbol{S}^{\mathrm{bio}}(\boldsymbol{p}_{\cdot i})+c_i\operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i}).
-\end{aligned}
-$$ {#eq-bulk-sampling}
-
-The first line counts each cell at the reference depth and multiplies
-the counts by $a_i$, which no library preparation does. The second
-draws the bulk counts once, at the bulk depth, from the pooled
-transcripts. Keeping each reference-counted molecule with probability
-$a_i\le1$ (binomial thinning) gives the same law as the second line.
-<!-- chk: V13a -->
-The per-cell Poisson diagonal therefore enters the bulk once, as the
-bulk's own sampling noise; the sampling noise of the reference does not
-enter. In units of $\phi_i$,
-
-$$
-\operatorname{Cov}\boldsymbol{y}_{\cdot i}
-=\phi_i\bigl\{\boldsymbol{S}^{\mathrm{bio}}(\boldsymbol{p}_{\cdot i})
-+a_i^{-1}\operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i})\bigr\},
-\qquad a_i=\phi_i/c_i,
-$$ {#eq-bulk-plugin}
-
-<!-- chk: V13b -->
-so the right plug-in depends on the bulk depth per cell $a_i$:
-
-- $a_i=1$, the bulk counted at the per-cell depth of the reference: the
-  raw covariance is exact;
-- $a_i>1$: the raw covariance over-weights the sampling diagonal by the
-  factor $a_i$; the denoised covariance alone is the limit
-  $a_i\to\infty$;
-- $a_i<1$: the raw covariance under-weights the diagonal by the factor
-  $a_i$, and the denoised one drops it;
-- in every case the off-diagonal entries are those of
-  $\phi_i\boldsymbol{S}^{\mathrm{bio}}$; the choice moves the gene weights
-  and the correlations, not the network. Gene $g$ is dominated by
-  sampling noise when $\tilde\mu_g(\boldsymbol{p})>a_iS^{\mathrm{bio}}_{gg}(\boldsymbol{p})$.
-
-The plug-in that holds at every depth is the denoised covariance plus
-the bulk sampling term $c_i\operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i})$.
-For UMI-like bulk counts it adds no parameter, since $c_i$ and $\phi_i$
-are already estimated; read counts need a dispersion $\omega_i\ge1$ in
-front of the term, which one sample identifies weakly. The covariance is
-then no longer proportional to $\phi_i$, so the closed form
-$\hat\phi=Q/G$ of @eq-sc-closed-scales is lost and $\phi_i$ is profiled
-numerically, in one dimension. This variant is not implemented:
-[`deconvolute_single_cell()`](../reference/deconvolute_single_cell.html)
-uses one matrix, and with a raw $\boldsymbol{\Sigma}_{W,j}$ it assumes
-$a_i=1$.
-
-The depth per cell of a bulk is usually below that of a droplet
-reference. For illustration (our numbers, not a measurement), a bulk
-library of $2\times10^{7}$ counts from $10^{5}$ cells against a reference
-with $5\times10^{3}$ UMIs per cell gives $a_i=0.04$; if those counts
-behave as UMIs, a gene is then dominated by bulk sampling noise unless
-its biological Fano factor $S^{\mathrm{bio}}_{gg}/\tilde\mu_g$ exceeds 25.
-
-**Toy example.** One type, $G=2$, $\tilde{\boldsymbol{\mu}}=(10,1)$ and
-$\boldsymbol{\Sigma}^{\mathrm{bio}}=\bigl(\begin{smallmatrix}40&2\\2&1\end{smallmatrix}\bigr)$,
-so $\boldsymbol{\Sigma}^{\mathrm{raw}}=\bigl(\begin{smallmatrix}50&2\\2&2\end{smallmatrix}\bigr)$
-and the denoised correlation is $2/\sqrt{40}=0.32$. Gene 1 is
-sampling-dominated below $a_i=10/40=1/4$, gene 2 below $a_i=1$.
-<!-- chk: V13c -->
-
-| $a_i$ | $\operatorname{Cov}\boldsymbol{y}_{\cdot i}/\phi_i$ | Correlation | Gene 2 variance, raw / true | Gene 2 variance, denoised / true |
-|---|---|---|---|---|
-| $1/4$ | $\bigl(\begin{smallmatrix}80&2\\2&5\end{smallmatrix}\bigr)$ | 0.10 | 0.4 | 0.2 |
-| $1$ | $\bigl(\begin{smallmatrix}50&2\\2&2\end{smallmatrix}\bigr)$, the raw covariance | 0.20 | 1 | 0.5 |
-| $4$ | $\bigl(\begin{smallmatrix}42.5&2\\2&1.25\end{smallmatrix}\bigr)$ | 0.27 | 1.6 | 0.8 |
-
-: Bulk covariance per unit of $\phi_i$ in the toy example, from @eq-bulk-plugin, against the raw and the denoised plug-ins. {#tbl-raw-vs-denoised}
-
-The article reaches the same conclusion in its appendix on which
-within-type covariance enters the bulk. The identities above are
-checked symbolically in the SymPy ledger of the CardamomOT comparison
-note (`answer-cardamomOT/verification/`, entries V13a–c).
+The raw covariance of the reference counts contains the reference's
+Poisson sampling noise and its technical size-factor term, neither of
+which the bulk inherits. The bulk adds its own sampling term,
+$c_i\operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i})$,
+at its own depth per cell $a_i=\phi_i/c_i$. The raw covariance is
+therefore exact only when $a_i=1$; at every depth, the plug-in is the
+denoised covariance plus that bulk term. The derivation, the size
+factors, the library-normalisation decision and the preprocessing
+shared by all covariance estimators are in
+[3.2, raw or denoised](03-2-covariance-network-estimation.html#sec-raw-vs-denoised).
 
 ### Layer 4: within and between covariance from $R$ replicates {#sec-av-replicates}
 

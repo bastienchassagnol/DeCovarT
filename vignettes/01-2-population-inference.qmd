@@ -2058,7 +2058,7 @@ Each term is a choice with a reason.
    own sampling diagonal $c_i\operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p}_{\cdot i})$;
    the raw covariance reproduces it only when the bulk depth per
    reference unit is $a_i=1$
-   ([raw or denoised](02-1-single-cell-generative-optimisation.html#sec-raw-vs-denoised)).
+   ([raw or denoised](03-2-covariance-network-estimation.html#sec-raw-vs-denoised)).
    <!-- chk: V13a, V13b -->
    *Our remark:*
    independent cells add with cell-count weights $m_{ji}=n_ip_{ji}$, so

@@ -155,9 +155,6 @@ navbar:
         - text: "3.2 · Cell-type covariance for the plug-in"
           icon: fa-project-diagram
           href: articles/03-2-covariance-network-estimation.html
-        - text: "3.3 · Precision networks (not the plug-in)"
-          icon: fa-share-alt
-          href: articles/03-3-precision-networks.html
         - text: "4 · Benchmark design"
         - text: "4.1 · Synthetic scenarios (means, covariance, ADEMP)"
           icon: fa-flask
@@ -415,7 +412,6 @@ articles:
     contents:
       - 03-1-feature-selection
       - 03-2-covariance-network-estimation
-      - 03-3-precision-networks
   - title: "Theory 4 · Benchmark design"
     desc: |
       Synthetic mean and covariance scenarios (ADEMP), and the distances
@@ -485,6 +481,7 @@ redirects:
   - ["articles/theory-single-cell-inference.html", "articles/02-2-single-cell-inference.html"]
   - ["articles/supp-S6-feature-selection.html", "articles/03-1-feature-selection.html"]
   - ["articles/theory-network-inference.html", "articles/03-2-covariance-network-estimation.html"]
+  - ["articles/03-3-precision-networks.html", "articles/03-2-covariance-network-estimation.html"]
   - ["articles/theory-synthetic-scenarios-mean-covariance.html", "articles/04-1-synthetic-scenarios.html"]
   - ["articles/theory-distance-covariance.html", "articles/04-2-distances-overlap-metrics.html"]
   - ["articles/theory-review-distribution-aware-deconvolution.html", "articles/05-1-review-distribution-aware.html"]

@@ -1854,8 +1854,7 @@ problem on the full $J$-column signature and use the within-type
 covariance or precision matrices, so they can run only after
 $\widehat{\boldsymbol{\Sigma}}_{W,j}$ (or $\widehat{\boldsymbol{\Omega}}_j$)
 has been estimated on a shortlist
-([3.2](03-2-covariance-network-estimation.html),
-[3.3](03-3-precision-networks.html)). The likelihood of DeCovarT
+([3.2](03-2-covariance-network-estimation.html)). The likelihood of DeCovarT
 depends on $\boldsymbol{\mu}\boldsymbol{p}$ and on the covariance
 mixture, so this is the geometry of the model; it is also why the stage
 is post hoc.
@@ -2212,7 +2211,7 @@ means, so the expanded set returns to the Pareto stage.
 Genes that change neighbourhood between types (differential networks,
 `INDEED`, D-trace, cooperative penalties) are a further source of
 candidates. Their theory is in
-[3.3, joint and differential networks](03-3-precision-networks.html#sec-grn-joint);
+[3.2, joint and differential networks](03-2-covariance-network-estimation.html#nte-cov-joint);
 on one specimen their permutation nulls are technical nulls
 (@wrn-fs-estimand).
 
