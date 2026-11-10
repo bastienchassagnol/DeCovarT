@@ -3,7 +3,7 @@
     "date": "2026-11-09",
     "sympy": "1.14.0",
     "numpy": "2.5.4",
-    "python": "3.14.3"
+    "python": "3.13.12"
   },
   "records": [
     {
@@ -126,7 +126,7 @@
       "tex_line": "266, 1060",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:1725"
+        "03-1:1898"
       ]
     },
     {
@@ -149,7 +149,7 @@
       "tex_line": "268",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:1910"
+        "03-1:2083"
       ]
     },
     {
@@ -162,7 +162,7 @@
       "tex_line": "640, 1062",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:1725"
+        "03-1:1898"
       ]
     },
     {
@@ -175,7 +175,7 @@
       "tex_line": "1064",
       "script": "verification/sympy/check_V4_fisher_anova.py",
       "qmd_lines": [
-        "03-1:1725"
+        "03-1:1898"
       ]
     },
     {
@@ -373,12 +373,12 @@
       "claim": "With the mean estimated, $\\operatorname{rank}\\bm V=\\operatorname{rank}\\bm X_c\\le\\min(C-1,G)$, with equality for data in general position; $\\bm V\\succ0$ needs $C\\ge G+1$",
       "kind": "exact",
       "status": "pass",
-      "detail": "$G=3$, symbolic data: $\\det\\bm V\\equiv0$ at $C=3$; at $C=4$, $\\det\\bm V$ is a non-zero polynomial (value $\\frac{87179569}{82944}$ at a rational point); exact ranks at rational points for $C=2,\\dots,6$: 1, 2, 3, 3, 3",
-      "detail_full": "det V (G=3, C=3, symbolic) == 0: True; det V (G=3, C=4) at a rational point = 87179569/82944; rank(I - 11'/5) = 4: True; ranks of V (= ranks of X_c) for C=2..6: {2: 1, 3: 2, 4: 3, 5: 3, 6: 3}",
+      "detail": "$G=3$, symbolic data: $\\det\\bm V\\equiv0$ at $C=3$; at $C=4$, $\\det\\bm V$ is a non-zero polynomial (value $\\frac{1225}{4}$ at a rational point); exact ranks at rational points for $C=2,\\dots,6$: 1, 2, 3, 3, 3",
+      "detail_full": "det V (G=3, C=3, symbolic) == 0: True; det V (G=3, C=4) at a rational point = 1225/4; rank(I - 11'/5) = 4: True; ranks of V (= ranks of X_c) for C=2..6: {2: 1, 3: 2, 4: 3, 5: 3, 6: 3}",
       "tex_line": "298, 319, 642",
       "script": "verification/sympy/check_V10_empirical_covariance_rank.py",
       "qmd_lines": [
-        "03-1:443",
+        "03-1:478",
         "summary_side_comparison:304"
       ]
     },
@@ -402,7 +402,7 @@
       "tex_line": "303, 319",
       "script": "verification/sympy/check_V10_empirical_covariance_rank.py",
       "qmd_lines": [
-        "03-1:443"
+        "03-1:478"
       ]
     },
     {
@@ -495,8 +495,8 @@
       "tex_line": "744",
       "script": "verification/sympy/check_V13_bulk_sampling.py",
       "qmd_lines": [
-        "01-2:2025",
-        "02-1:1298"
+        "01-2:2062",
+        "02-1:1326"
       ]
     },
     {
@@ -509,9 +509,9 @@
       "tex_line": "748, 802",
       "script": "verification/sympy/check_V13_bulk_sampling.py",
       "qmd_lines": [
-        "01-2:1936",
-        "01-2:2025",
-        "02-1:1310"
+        "01-2:1973",
+        "01-2:2062",
+        "02-1:1338"
       ]
     },
     {
@@ -524,7 +524,7 @@
       "tex_line": "748",
       "script": "verification/sympy/check_V13_bulk_sampling.py",
       "qmd_lines": [
-        "02-1:1349"
+        "02-1:1377"
       ]
     },
     {
@@ -537,7 +537,7 @@
       "tex_line": "761",
       "script": "verification/sympy/check_V14_denoised_within.py",
       "qmd_lines": [
-        "05-1:323"
+        "05-1:343"
       ]
     },
     {
@@ -550,7 +550,7 @@
       "tex_line": "763",
       "script": "verification/sympy/check_V14_denoised_within.py",
       "qmd_lines": [
-        "05-1:323"
+        "05-1:343"
       ]
     },
     {
@@ -563,7 +563,7 @@
       "tex_line": "763",
       "script": "verification/sympy/check_V14_denoised_within.py",
       "qmd_lines": [
-        "05-1:323"
+        "05-1:343"
       ]
     },
     {
@@ -576,7 +576,7 @@
       "tex_line": "766, 800",
       "script": "verification/sympy/check_V14_denoised_within.py",
       "qmd_lines": [
-        "05-1:331"
+        "05-1:351"
       ]
     },
     {
@@ -589,7 +589,7 @@
       "tex_line": "763",
       "script": "verification/sympy/check_V14_denoised_within.py",
       "qmd_lines": [
-        "05-1:323"
+        "05-1:343"
       ]
     },
     {
@@ -602,7 +602,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V15_bures_map.py",
       "qmd_lines": [
-        "05-1:1235"
+        "05-1:1258"
       ]
     },
     {
@@ -615,7 +615,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V15_bures_map.py",
       "qmd_lines": [
-        "05-1:1235"
+        "05-1:1258"
       ]
     },
     {
@@ -628,7 +628,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V15_bures_map.py",
       "qmd_lines": [
-        "05-1:1239"
+        "05-1:1262"
       ]
     },
     {
@@ -641,8 +641,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V16_bulk_diagonal_identifiability.py",
       "qmd_lines": [
-        "01-2:1930",
-        "01-2:2042"
+        "01-2:1967",
+        "01-2:2079"
       ]
     },
     {
@@ -655,8 +655,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V16_bulk_diagonal_identifiability.py",
       "qmd_lines": [
-        "01-2:1930",
-        "01-2:2042"
+        "01-2:1967",
+        "01-2:2079"
       ]
     },
     {
@@ -669,7 +669,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V16_bulk_diagonal_identifiability.py",
       "qmd_lines": [
-        "01-2:2042"
+        "01-2:2079"
       ]
     },
     {
@@ -682,7 +682,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V17_presence_gate.py",
       "qmd_lines": [
-        "03-1:427"
+        "03-1:462"
       ]
     },
     {
@@ -695,7 +695,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V17_presence_gate.py",
       "qmd_lines": [
-        "03-1:427"
+        "03-1:462"
       ]
     },
     {
@@ -708,7 +708,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V17_presence_gate.py",
       "qmd_lines": [
-        "03-1:443"
+        "03-1:478"
       ]
     },
     {
@@ -721,7 +721,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:1964"
+        "03-1:2137"
       ]
     },
     {
@@ -734,7 +734,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:1964"
+        "03-1:2137"
       ]
     },
     {
@@ -747,7 +747,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:1944"
+        "03-1:2117"
       ]
     },
     {
@@ -760,7 +760,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V18_optimal_design.py",
       "qmd_lines": [
-        "03-1:1973"
+        "03-1:2146"
       ]
     },
     {
@@ -773,7 +773,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V19_range_bound.py",
       "qmd_lines": [
-        "03-1:1013"
+        "03-1:1053"
       ]
     },
     {
@@ -786,7 +786,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V19_range_bound.py",
       "qmd_lines": [
-        "03-1:1013"
+        "03-1:1053"
       ]
     },
     {
@@ -799,7 +799,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V19_range_bound.py",
       "qmd_lines": [
-        "03-1:1013"
+        "03-1:1053"
       ]
     },
     {
@@ -812,7 +812,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V20_subexponential_nb.py",
       "qmd_lines": [
-        "03-1:972"
+        "03-1:1012"
       ]
     },
     {
@@ -825,7 +825,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V20_subexponential_nb.py",
       "qmd_lines": [
-        "03-1:940"
+        "03-1:980"
       ]
     },
     {
@@ -834,14 +834,14 @@
       "kind": "numeric",
       "status": "pass",
       "detail": "Stationary point and closed form symbolic; MC seed 20261101: mean of $n=50$ NB($\\mu=3,r=2$), $2\\times10^5$ replicates, at $u=1$ tail 0.0080 vs bound 0.0584; range filter $K=3$, $\\mu_k=(1,3,6)$, $r=2$, $\\bm\\alpha=(0.98,0.01,0.01)$, $n=c_k=100$, $2\\times10^4$ replicates; first bound below 1 at $t=1.3$: 0.950 vs 0.0000",
-      "detail_full": "stationary True; value True; I(mu)=0 True; I(0) True; Poisson True; mc mean True; mc range True; rows1 [(np.float64(0.25), np.float64(0.250755), 0.8191222798121917), (np.float64(0.5), np.float64(0.104585), 0.46483651141055676), (np.float64(0.75), np.float64(0.031525), 0.19054680128421148), (np.float64(1.0), np.float64(0.008), 0.058428736187140666), (np.float64(1.25), np.float64(0.001495), 0.013803780896935488), (np.float64(1.5), np.float64(0.00023), 0.0025766546404857892), (np.float64(1.75), np.float64(1.5e-05), 0.00038834040310004795), (np.float64(2.0), np.float64(5e-06), 4.815319224121735e-05)]; rows2 [(np.float64(0.1), np.float64(0.1841), 7.679298686113857), (np.float64(0.2), np.float64(0.0742), 6.832060069075939), (np.float64(0.3), np.float64(0.02225), 5.732183646870965), (np.float64(0.4), np.float64(0.00515), 4.658039569254736), (np.float64(0.5), np.float64(0.0011), 3.771385390272215), (np.float64(0.6), np.float64(0.0001), 3.0993283428761904), (np.float64(0.7), np.float64(0.0), 2.5932749625084637), (np.float64(0.7999999999999999), np.float64(0.0), 2.1942241653636816), (np.float64(0.8999999999999999), np.float64(0.0), 1.8630035956471986), (np.float64(0.9999999999999999), np.float64(0.0), 1.580289412662661), (np.float64(1.0999999999999999), np.float64(0.0), 1.3372227524636773), (np.float64(1.2), np.float64(0.0), 1.1285832532401443), (np.float64(1.3), np.float64(0.0), 0.9500266175550489), (np.float64(1.4), np.float64(0.0), 0.797470414266428), (np.float64(1.5), np.float64(0.0), 0.66715993174676), (np.float64(1.5999999999999999), np.float64(0.0), 0.5558157697059918), (np.float64(1.7), np.float64(0.0), 0.4606969080901964), (np.float64(1.8), np.float64(0.0), 0.37956817477025473), (np.float64(1.9), np.float64(0.0), 0.310608812975563), (np.float64(2.0), np.float64(0.0), 0.25230407293654583), (np.float64(2.0999999999999996), np.float64(0.0), 0.20334961727953843), (np.float64(2.1999999999999997), np.float64(0.0), 0.16258260245300055), (np.float64(2.3), np.float64(0.0), 0.128940700529097), (np.float64(2.4), np.float64(0.0), 0.10144328196760943), (np.float64(2.5), np.float64(0.0), 0.07918677133646959)]",
+      "detail_full": "stationary True; value True; I(mu)=0 True; I(0) True; Poisson True; mc mean True; mc range True; rows1 [(np.float64(0.25), np.float64(0.250755), 0.8191222798121917), (np.float64(0.5), np.float64(0.104585), 0.46483651141055676), (np.float64(0.75), np.float64(0.031525), 0.19054680128421148), (np.float64(1.0), np.float64(0.008), 0.058428736187140666), (np.float64(1.25), np.float64(0.001495), 0.013803780896935488), (np.float64(1.5), np.float64(0.00023), 0.0025766546404857892), (np.float64(1.75), np.float64(1.5e-05), 0.00038834040310004795), (np.float64(2.0), np.float64(5e-06), 4.815319224121735e-05)]; rows2 [(np.float64(0.1), np.float64(0.1841), 7.6792986861138575), (np.float64(0.2), np.float64(0.0742), 6.832060069075939), (np.float64(0.3), np.float64(0.02225), 5.732183646870965), (np.float64(0.4), np.float64(0.00515), 4.658039569254735), (np.float64(0.5), np.float64(0.0011), 3.771385390272215), (np.float64(0.6), np.float64(0.0001), 3.099328342876186), (np.float64(0.7), np.float64(0.0), 2.5932749625084637), (np.float64(0.7999999999999999), np.float64(0.0), 2.1942241653636816), (np.float64(0.8999999999999999), np.float64(0.0), 1.8630035956471986), (np.float64(0.9999999999999999), np.float64(0.0), 1.580289412662661), (np.float64(1.0999999999999999), np.float64(0.0), 1.3372227524636773), (np.float64(1.2), np.float64(0.0), 1.1285832532401443), (np.float64(1.3), np.float64(0.0), 0.9500266175550489), (np.float64(1.4), np.float64(0.0), 0.797470414266428), (np.float64(1.5), np.float64(0.0), 0.66715993174676), (np.float64(1.5999999999999999), np.float64(0.0), 0.5558157697059918), (np.float64(1.7), np.float64(0.0), 0.4606969080901964), (np.float64(1.8), np.float64(0.0), 0.37956817477025473), (np.float64(1.9), np.float64(0.0), 0.3106088129755633), (np.float64(2.0), np.float64(0.0), 0.25230407293654583), (np.float64(2.0999999999999996), np.float64(0.0), 0.20334961727953843), (np.float64(2.1999999999999997), np.float64(0.0), 0.16258260245300055), (np.float64(2.3), np.float64(0.0), 0.128940700529097), (np.float64(2.4), np.float64(0.0), 0.10144328196760943), (np.float64(2.5), np.float64(0.0), 0.07918677133646959)]",
       "tex_line": "qmd",
       "script": "verification/sympy/check_V20_subexponential_nb.py",
       "qmd_lines": [
-        "03-1:1060",
-        "03-1:1085",
-        "03-1:1095",
-        "03-1:1111"
+        "03-1:1100",
+        "03-1:1125",
+        "03-1:1135",
+        "03-1:1151"
       ]
     },
     {
@@ -854,7 +854,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V21_unico.py",
       "qmd_lines": [
-        "05-1:2118"
+        "05-1:2144"
       ]
     },
     {
@@ -867,8 +867,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V21_unico.py",
       "qmd_lines": [
-        "03-1:1817",
-        "03-1:1841"
+        "03-1:1990",
+        "03-1:2014"
       ]
     },
     {
@@ -881,7 +881,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V22_csnet_factor.py",
       "qmd_lines": [
-        "S5-misspecification:460"
+        "S5-misspecification:463"
       ]
     },
     {
@@ -894,8 +894,8 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V22_csnet_factor.py",
       "qmd_lines": [
-        "S5-misspecification:460",
-        "S5-misspecification:496"
+        "S5-misspecification:463",
+        "S5-misspecification:499"
       ]
     },
     {
@@ -908,7 +908,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V22_csnet_factor.py",
       "qmd_lines": [
-        "S5-misspecification:685"
+        "S5-misspecification:688"
       ]
     },
     {
@@ -1093,7 +1093,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V27_gini.py",
       "qmd_lines": [
-        "03-1:239"
+        "03-1:272"
       ]
     },
     {
@@ -1106,7 +1106,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V27_gini.py",
       "qmd_lines": [
-        "03-1:256"
+        "03-1:289"
       ]
     },
     {
@@ -1119,7 +1119,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V28_leverage.py",
       "qmd_lines": [
-        "03-1:826"
+        "03-1:864"
       ]
     },
     {
@@ -1132,7 +1132,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V28_leverage.py",
       "qmd_lines": [
-        "03-1:826"
+        "03-1:864"
       ]
     },
     {
@@ -1145,7 +1145,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V28_leverage.py",
       "qmd_lines": [
-        "03-1:856"
+        "03-1:894"
       ]
     },
     {
@@ -1158,7 +1158,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V29_discrepancy_cgf.py",
       "qmd_lines": [
-        "03-1:1162"
+        "03-1:1202"
       ]
     },
     {
@@ -1171,7 +1171,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V29_discrepancy_cgf.py",
       "qmd_lines": [
-        "03-1:1175"
+        "03-1:1215"
       ]
     },
     {
@@ -1184,7 +1184,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V29_discrepancy_cgf.py",
       "qmd_lines": [
-        "03-1:1312"
+        "03-1:1352"
       ]
     },
     {
@@ -1197,7 +1197,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V29_discrepancy_cgf.py",
       "qmd_lines": [
-        "03-1:1324"
+        "03-1:1364"
       ]
     },
     {
@@ -1210,7 +1210,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V30_janson_colouring.py",
       "qmd_lines": [
-        "03-1:1376"
+        "03-1:1416"
       ]
     },
     {
@@ -1223,7 +1223,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V30_janson_colouring.py",
       "qmd_lines": [
-        "03-1:1364"
+        "03-1:1404"
       ]
     },
     {
@@ -1236,7 +1236,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V31_discrepancy_variance.py",
       "qmd_lines": [
-        "03-1:1151"
+        "03-1:1191"
       ]
     },
     {
@@ -1249,7 +1249,7 @@
       "tex_line": "qmd",
       "script": "verification/sympy/check_V31_discrepancy_variance.py",
       "qmd_lines": [
-        "03-1:1206"
+        "03-1:1246"
       ]
     },
     {
@@ -1381,6 +1381,45 @@
       "detail_full": "$\\mathcal{L}M=- M k_{deg} + N k_{spl}$, $\\mathcal{L}N=- N k_{spl} + k_{tx}$",
       "tex_line": "article app:dynamic-potency (not cited)",
       "script": "verification/sympy/check_V35_potency_entropy.py"
+    },
+    {
+      "id": "V36a",
+      "claim": "With the ratio known, $D^{b}_{gi}$ has the cumulant generating function of $D_{gi}$ under A3, so the thresholds of T1 to T5 are unchanged",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "$K_{y}(t)=\\sum_j p_ja\\,K_{gj}(\\tilde b_g t)$ evaluated at $t=u/(a\\tilde b_g)$, plus the reference term, equals @eq-fs-cgf-d with $n=a$ (NB per-cell CGF, symbolic $J=3$)",
+      "detail_full": "K_Db - K_D == 0: True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V36_platform_ratio.py",
+      "qmd_lines": [
+        "03-1:1588"
+      ]
+    },
+    {
+      "id": "V36b",
+      "claim": "With a cross-fitted plug-in $\\hat b_g=\\tilde b_g e^{\\varepsilon_g}$, $\\operatorname{Var}D^{b}_{gi}\\approx\\operatorname{Var}D_{gi}+(\\sum_jp_{ji}\\tilde\\mu_{gj})^{2}v_g$",
+      "kind": "series",
+      "status": "pass",
+      "detail": "Expansion in $\\varepsilon=s\\eta$ to order $s^{2}$: $\\operatorname{Var}=\\operatorname{Var}X+v\\,(\\operatorname{E}X)^{2}+2v\\operatorname{Var}X+O(s^{3})$ and bias $v\\operatorname{E}X/2$; the term $2v\\operatorname{Var}X$ is dropped (relative order $2v$); Gaussian $\\varepsilon$: log-normal moments agree to order $v$",
+      "detail_full": "variance True; bias True; log-normal True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V36_platform_ratio.py",
+      "qmd_lines": [
+        "03-1:1594"
+      ]
+    },
+    {
+      "id": "V36c",
+      "claim": "A diagonal ratio $\\tilde{\\mathbf B}$ is identified only up to a common factor (absorbed by $a_i$), is not identified together with $\\boldsymbol p$ from one sample, and cancels from the ratio of two samples",
+      "kind": "exact",
+      "status": "pass",
+      "detail": "Three genes, $J=3$: $(c\\tilde b_g)(a/c)=\\tilde b_ga$; $\\tilde b'_g=\\tilde b_g\\sum_jp_j\\tilde\\mu_{gj}/\\sum_jp'_j\\tilde\\mu_{gj}$ reproduces every mean; $\\tilde b_g$ is absent from the ratio of the means of two samples",
+      "detail_full": "scale True; single sample True; pair True",
+      "tex_line": "qmd",
+      "script": "verification/sympy/check_V36_platform_ratio.py",
+      "qmd_lines": [
+        "03-1:1614"
+      ]
     }
   ]
 }
