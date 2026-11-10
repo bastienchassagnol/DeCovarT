@@ -158,7 +158,10 @@ the bulk filter, \tilde\mu\_{gj} is the expected count of gene g in one
 cell of type j, \hat{\tilde\mu}\_{gj} its average over the C_j reference
 cells, \sigma^{2}\_{gj}=\tilde\mu\_{gj}+\tilde\mu\_{gj}^{2}/\psi_g the
 per-cell NB variance, \delta^{\mathrm{R}}\_g the distance of the bulk to
-the range of the reference means, D\_{gi} the plug-in discrepancy, h_g
+the range of the reference means, D\_{gi} the plug-in discrepancy,
+D^{b}\_{gi} the discrepancy after dividing the bulk by a plug-in
+platform ratio \hat b_g=\tilde b_ge^{\varepsilon_g} with
+v_g=\operatorname{Var}\varepsilon_g, L_g the mean transcript length, h_g
 the leverage of gene g and \tau_g^{2} its residual variance, S_M the
 standardised sum over a gene module M, K_D(u) the cumulant generating
 function of D with argument u, and \chi_G the number of classes of a
@@ -1115,12 +1118,13 @@ M}\frac{D\_{gi}}{\operatorname{sd}D\_{gi}}, \tag{12}
 
 with S_M its standardised sum over a gene module M. Under a consistent
 platform D\_{gi} is centred at 0; a gene-wise ratio \tilde b_g\neq1
-shifts it by (\tilde b_g-1)\sum_jp\_{ji}\tilde\mu\_{gj}. A gene is
-flagged when \lvert D\_{gi}\rvert exceeds a threshold t\_{\alpha} that a
-consistent gene exceeds with probability at most \alpha. The thresholds
-come from concentration inequalities, recalled without proof in three
-notes, and from five tail statements
-([Section 4.2.1](#sec-fs-five-bounds)).
+shifts it by (\tilde b_g-1)\sum_jp\_{ji}\tilde\mu\_{gj};
+[Section 4.2.4](#sec-fs-platform-ratio) divides a plug-in ratio out of
+the bulk before D\_{gi} is formed. A gene is flagged when \lvert
+D\_{gi}\rvert exceeds a threshold t\_{\alpha} that a consistent gene
+exceeds with probability at most \alpha. The thresholds come from
+concentration inequalities, recalled without proof in three notes, and
+from five tail statements ([Section 4.2.1](#sec-fs-five-bounds)).
 
 > **Note 1: Sub-exponential variables**
 >
@@ -1544,7 +1548,7 @@ weights; the equal-weight proper colouring is the special case used here
 (this remark is not checked against the paper). The dependent Bernstein
 inequality of Zhang & Li, used by DECALS, has a constant equal to
 \bar\chi_G and an unknown absolute constant in the exponent
-([Equation 39](#eq-fs-bernstein-dep), [Section 8](#sec-fs-appendix)).
+([Equation 42](#eq-fs-bernstein-dep), [Section 8](#sec-fs-appendix)).
 
 #### 4.2.2 Comparing the statements
 
@@ -1706,6 +1710,9 @@ following estimates.
   coefficient vector.
 - **Dispersion.** \psi_g comes from the reference fit of tier (ii), and
   the extra overdispersion between platforms is fixed at 1 (none).
+- **Platform ratio.** \tilde b_g=1 for every gene (assumption A3).
+  [Section 4.2.4](#sec-fs-platform-ratio) replaces it by a plug-in
+  estimate.
 
 With these plug-ins every statement is approximate, including T4 and T5:
 they are exact only at the true parameters. Because \hat{\boldsymbol
@@ -1713,6 +1720,119 @@ p}\_{\cdot i} is fitted to the same bulk, the fitted discrepancies are
 expected to be smaller than under the true composition, so the plug-in
 thresholds should err on the conservative side for genes that do not
 drive the fit (our remark, not checked by simulation).
+
+#### 4.2.4 Plug-in gene-wise platform ratio
+
+Every statement above tests D\_{gi} against the spread allowed by A3:
+the same per-cell mean on both platforms. A full-length bulk library
+yields reads in proportion to the number of molecules times the
+transcript length, whereas a 3′ UMI library counts molecules TODO-cite:
+Oshlack & Wakefield 2009, Transcript length bias in RNA-seq data
+confounds systems biology, Biology Direct 4:14,
+doi:10.1186/1745-6150-4-14. Full-length single-cell protocols show the
+same length bias as bulk RNA-seq, and UMI protocols do not TODO-cite:
+Phipson, Zappia & Oshlack 2017, Gene length and detection bias in single
+cell RNA sequencing protocols, F1000Research 6:595,
+doi:10.12688/f1000research.11290.1. Between such a bulk and a 3′
+reference, A3 therefore fails gene by gene, and so do the tail
+statements. The relaxed mean is
+
+\operatorname{E}\Bigl(\frac{\tilde y\_{gi}}{a_i}\Bigr) =\tilde
+b_g\sum\_{j=1}^{J}p\_{ji}\tilde\mu\_{gj}, \tag{33}
+
+with one ratio \tilde b_g per gene (notation of [2.1,
+alignment](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#sec-alignment)).
+Length predicts \log_2\tilde b_g=\log_2L_g+\text{const}, with L_g the
+mean transcript length: a slope of 1. With a plug-in \hat b_g the
+discrepancy and the range statistic become
+
+D^{b}\_{gi}=\frac{\tilde y\_{gi}}{a_i\hat b_g}-\sum\_{j=1}^{J}\hat
+p\_{ji}\hat{\tilde\mu}\_{gj}, \qquad \delta^{\mathrm{R},b}\_g
+=\inf\Bigl\\\bigl\lvert\tilde y\_{gi}/\hat b_g-a\bigr\rvert:\\
+\min\_{j}\hat{\tilde\mu}\_{gj}\le
+a\le\max\_{j}\hat{\tilde\mu}\_{gj}\Bigr\\, \tag{34}
+
+and (a_i,\hat{\boldsymbol p}\_{\cdot i}) are fitted on \tilde
+y\_{gi}/\hat b_g.
+
+**Ratio known.** If \hat b_g=\tilde b_g, then \tilde y\_{gi}/\tilde b_g
+is a sum of a_i cells of the reference law, so D^{b}\_{gi} has the
+cumulant generating function [Equation 22](#eq-fs-cgf-d) with n=a_i. The
+thresholds of T1 to T5 are unchanged.
+
+**Ratio estimated.** Write \hat b_g=\tilde b_ge^{\varepsilon_g} with
+\operatorname{E}\varepsilon_g=0 and \operatorname{Var}\varepsilon_g=v_g,
+and let \varepsilon_g be independent of the bulk sample under test.
+Then, to first order in v_g,
+
+\operatorname{Var}D^{b}\_{gi} \approx\operatorname{Var}D\_{gi}
++\Bigl(\sum\_{j=1}^{J}p\_{ji}\tilde\mu\_{gj}\Bigr)^{2}v_g . \tag{35}
+
+The expansion also has a term 2v_g\operatorname{Var}D\_{gi}, small
+relative to \operatorname{Var}D\_{gi} when v_g is small, and a bias
+v_g\sum_jp\_{ji}\tilde\mu\_{gj}/2. Both are dropped. The extra term of
+[Equation 35](#eq-fs-var-b) enters the standardised discrepancy and the
+Gaussian statement T1. The Chernoff statements T3 to T5 are then
+conditional on \hat b_g: they treat it as known.
+
+**Identifiability.** The plug-in is defined only under four conditions.
+
+- **Diagonal.** One scale per gene, \tilde{\mathbf
+  B}=\operatorname{diag}(\tilde{\boldsymbol b}): length and capture act
+  on each gene separately. The competition between genes for reads
+  within a library is a common factor, which a_i absorbs.
+- **Up to a common factor.** Multiplying every \tilde b_g by c and a_i
+  by 1/c leaves [Equation 33](#eq-fs-platform-mean) unchanged, so a
+  normalisation is needed, for example \operatorname{median}\_g\log\hat
+  b_g=0.
+- **Not from the sample under test.** With one sample and free
+  \tilde{\boldsymbol b}, any composition \boldsymbol p' fits every mean
+  with \tilde b'\_g=\tilde
+  b_g\sum_jp\_{ji}\tilde\mu\_{gj}/\sum_jp'\_j\tilde\mu\_{gj}: the ratio
+  absorbs the residual ([2.1,
+  identifiability](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#sec-plugin-identifiability);
+  MEAD, Theorem 1).
+- **From samples whose compositions differ.** \tilde b_g cancels from
+  the ratio of the means of one gene in two samples, so a pool of bulk
+  samples of different compositions carries the information on
+  \boldsymbol p. Cross-fitting uses this: the ratio applied to one
+  sample is estimated on the other samples only. This also makes
+  \varepsilon_g independent of that sample, as
+  [Equation 35](#eq-fs-var-b) requires.
+
+A ratio that depends on both the gene and the type, \tilde b\_{gj}, is
+confounded with \tilde\mu\_{gj} and is not identified without paired
+measurements of each type on both platforms.
+
+**Estimators.** Three routes give \hat b_g under these conditions.
+
+- **Moment ratio on a pool.** Alternate the deMixSC plug-in on \tilde
+  y\_{gi}/\hat b_g with \log\hat
+  b_g=\operatorname{median}\_i\log\\(\tilde y\_{gi}/a_i)/\sum_j\hat
+  p\_{ji}\hat{\tilde\mu}\_{gj}\\ over the pooled samples. This is the
+  first stage of `RCTD`, which fits a gene-wise platform effect on a
+  pseudo-bulk of all spots and then holds it fixed ([Cable et al. 2022,
+  3, 6–7](#ref-cableRobustDecompositionCell2022a)). v_g is the variance
+  of the log ratios over the pooled samples, divided by their number.
+- **Length model.** \log\hat b_g=f(\log_2L_g), with f a smooth function
+  fitted on the pool. It has few parameters, so it is identified from
+  fewer samples, but it leaves every effect other than length in the
+  residual.
+- **Transport between pseudo-bulk and bulk.** With paired pseudo-bulk
+  and bulk samples, a gene-wise affine map is the `Bisque` estimator
+  ([Jew et al. 2020](#ref-jewAccurateEstimationCell2020)). Its
+  multivariate version is a Gaussian transport map ([2.1, pairing
+  route](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#sec-av-linear);
+  [5.1, two-scale
+  transport](https://bastienchassagnol.github.io/DeCovarT/articles/05-1-review-distribution-aware.html#sec-bisque-ot)).
+  Restricted to a diagonal, the map reduces to one scale per gene, the
+  moment ratio above. It needs several pairs per gene.
+
+The filter applies only if the residual discrepancy remains after
+dividing by a cross-fitted \hat b_g: a gene whose ratio is stable across
+samples is a platform effect to model, not a defect. The reproducibility
+book compares, on the Suppinger data, no ratio, a length model and a
+gene-wise ratio, all cross-fitted over three matched times.
 
 ## 5 Tier (iv): down-weighting by the model
 
@@ -1931,7 +2051,7 @@ s(p)\bigr) with s(p)=p^2+(1-p)^2, and the Fisher information for p is
 
 I_g(p) = \frac{\Delta_g^{2}}{s(p)} +
 \frac12\Bigl(\frac{s'(p)}{s(p)}\Bigr)^{2}, \qquad
-\Delta_g=\frac{\mu\_{g1}-\mu\_{g2}}{\sigma_g}. \tag{33}
+\Delta_g=\frac{\mu\_{g1}-\mu\_{g2}}{\sigma_g}. \tag{36}
 
 The second term is the same for every gene, so I_g(p) is affine in
 \Delta_g^2 with a positive slope. Computed on the scale of the model,
@@ -1992,11 +2112,11 @@ conditioning in the (J-1)-dimensional contrast space induced by
 \kappa_2\bigl(\boldsymbol{T}\_{\mathcal{G}}^{-1/2}\boldsymbol{\mu}\_{\mathcal{G}}\boldsymbol{K}\bigr),
 \qquad
 \boldsymbol{T}\_{\mathcal{G}}=\operatorname{diag}(\tau_g^2)\_{g\in\mathcal{G}},
-\tag{34}
+\tag{37}
 
 where the J\times(J-1) matrix \boldsymbol{K} has orthonormal columns
 orthogonal to \mathbf{1}. Unweighted \kappa_2 can favour quiet but
-biased genes. [Equation 34](#eq-weighted-kappa) is the square root of
+biased genes. [Equation 37](#eq-weighted-kappa) is the square root of
 the condition number of the information of
 [Section 7.4.4](#sec-optimal-design) with a diagonal covariance, so it
 still misses the covariance-only regime in which DeCovarT identifies
@@ -2021,7 +2141,7 @@ reading)
 H^{\mathrm{vN}}\_g =-\sum\_{h=1}^{J}\tilde\lambda_h\log\tilde\lambda_h
 =\log J-\frac1J\sum\_{h=1}^{J}\lambda_h\log\lambda_h, \qquad
 \tilde\lambda_h=\frac{\lambda_h}{\operatorname{tr}\boldsymbol{R}\_g}=\frac{\lambda_h}{J},
-\tag{35}
+\tag{38}
 
 with 0\log0=0. The superscript separates it from the specificity entropy
 H_g of [Equation 1](#eq-gini). The \tilde\lambda_h form a probability
@@ -2043,7 +2163,7 @@ and
 With \overline{\rho^{2}}\_g the mean squared off-diagonal correlation,
 
 H^{\mathrm{vN}}\_g\\\ge\\\log\frac{J}{1+(J-1)\\\overline{\rho^{2}}\_g}.
-\tag{36}
+\tag{39}
 
 Small correlations force a high entropy. A low entropy therefore
 requires large correlations on average.
@@ -2070,7 +2190,7 @@ between-donor covariance \boldsymbol{\Sigma}\_{B,j} of
 [2.1](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#sec-one-replicate),
 extended across types (our remark). The covariance DeCovarT does model
 is the within-type covariance across genes. The analogue is then the
-entropy [Equation 35](#eq-fs-vn-entropy) of the
+entropy [Equation 38](#eq-fs-vn-entropy) of the
 \|\mathcal{G}\|\times\|\mathcal{G}\| within-type correlation
 \boldsymbol{R}\_j of \widehat{\boldsymbol{\Sigma}}\_{W,j} restricted to
 the panel, with J replaced by \|\mathcal{G}\| (our remark). Its
@@ -2135,7 +2255,7 @@ I\_{\mathcal{G}}(\boldsymbol{p}) \\ \text{(robust D)}, \qquad
 \text{(E)}, \qquad
 \min\_{\mathcal{G}}\max\_{\boldsymbol{p}\in\mathcal{P}}
 \operatorname{tr}I\_{\mathcal{G}}(\boldsymbol{p})^{-1} \\ \text{(A)}.
-\tag{37}
+\tag{40}
 
 D-optimality shrinks the volume of the confidence ellipsoid for
 \hat{\boldsymbol{p}} and can leave one weak contrast; E-optimality
@@ -2159,7 +2279,7 @@ depend on \boldsymbol{p} and
 
 I\_{\mathcal{G}} =
 n_i\\\boldsymbol{K}^{\top}\boldsymbol{M}\_{\mathcal{G}}^{\top}\boldsymbol{\Sigma}\_W^{-1}\boldsymbol{M}\_{\mathcal{G}}\boldsymbol{K},
-\tag{38}
+\tag{41}
 
 with \boldsymbol{M}\_{\mathcal{G}} the \|\mathcal{G}\|\times J matrix of
 type means. If \boldsymbol{\Sigma}\_W=\boldsymbol{I},
@@ -2228,7 +2348,7 @@ via `mco::nsga2()`, with genes encoded as a mask in
 
 > **Note 5: A third objective specific to DeCovarT (proposal)**
 >
-> The robust D- or E-criterion of [Equation 37](#eq-optimal-design) is a
+> The robust D- or E-criterion of [Equation 40](#eq-optimal-design) is a
 > third objective, best used to choose among non-dominated panels. The
 > two kinds of criteria need not agree: overlap measures how well the
 > type laws can be told apart, Fisher information how well
@@ -2369,7 +2489,7 @@ to be checked.
 > \mathbb{P}\Bigl(\sum\_{g\in M}Y_g\ge t\Bigr) \le
 > \bar\chi_G\exp\Bigl\[-\gamma\min\Bigl\\\frac{t^{2}}{\bar\chi_G^{2}\sum\_{g}\lVert
 > Y_g\rVert\_{\psi_1}^{2}},\\ \frac{t}{\bar\chi_G\max_g\lVert
-> Y_g\rVert\_{\psi_1}}\Bigr\\\Bigr\]. \tag{39}
+> Y_g\rVert\_{\psi_1}}\Bigr\\\Bigr\]. \tag{42}
 >
 > With no edge, d\_{\max}=0, \lvert\mathcal{E}\rvert=0 and \bar\chi_G=1:
 > the one-sided form of [Equation 16](#eq-fs-bernstein) (our remark). A
@@ -2495,6 +2615,11 @@ Negative Binomial Regression’. *Genome Biology* 20 (1): 296.
 Hart, Yuval, Hila Sheftel, Jean Hausser, et al. 2015. ‘Inferring
 Biological Tasks Using Pareto Analysis of High-Dimensional Data’.
 *Nature Methods* 12 (3): 233–35. <https://doi.org/10.1038/nmeth.3254>.
+
+Jew, Brandon, Marcus Alvarez, Elior Rahmani, et al. 2020. ‘Accurate
+Estimation of Cell Composition in Bulk Expression Through Robust
+Integration of Single-Cell Information’. *Nature Communications* 11.
+<https://doi.org/10.1038/s41467-020-15816-6>.
 
 Koller, Daphne, and Nir Friedman. 2009. *Probabilistic Graphical Models:
 Principles and Techniques*. MIT Press.
