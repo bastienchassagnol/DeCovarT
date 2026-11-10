@@ -8,7 +8,6 @@ articles:
   02-2-single-cell-inference: 02-2-single-cell-inference.html
   03-1-feature-selection: 03-1-feature-selection.html
   03-2-covariance-network-estimation: 03-2-covariance-network-estimation.html
-  03-3-precision-networks: 03-3-precision-networks.html
   04-1-synthetic-scenarios: 04-1-synthetic-scenarios.html
   04-2-distances-overlap-metrics: 04-2-distances-overlap-metrics.html
   05-1-review-distribution-aware: 05-1-review-distribution-aware.html
@@ -26,7 +25,7 @@ articles:
   S4-covariance-modeling: S4-covariance-modeling.html
   S5-misspecification: S5-misspecification.html
   S6-feature-screening-scenario: S6-feature-screening-scenario.html
-last_built: 2026-11-10T11:21Z
+last_built: 2026-11-10T20:23Z
 urls:
   reference: https://bastienchassagnol.github.io/DeCovarT/reference
   article: https://bastienchassagnol.github.io/DeCovarT/articles

@@ -2116,7 +2116,7 @@ is a choice with a reason.
     c_i\operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot
     i}); the raw covariance reproduces it only when the bulk depth per
     reference unit is a_i=1 ([raw or
-    denoised](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#sec-raw-vs-denoised)).
+    denoised](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.html#sec-raw-vs-denoised)).
     *Our remark:* independent cells add with cell-count weights
     m\_{ji}=n_ip\_{ji}, so this linear covariance layer is weighted by
     \boldsymbol{p}\_{\cdot i}, not by the transcript fractions

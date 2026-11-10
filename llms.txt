@@ -995,12 +995,8 @@ estimated before it is plugged into the likelihood.
 - [3.2 Cell-type covariance for the DeCovarT
   plug-in](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.md):
 
-  How each cell type’s covariance is estimated before the fit.
-
-- [3.3 Precision networks: alternatives to the covariance
-  plug-in](https://bastienchassagnol.github.io/DeCovarT/articles/03-3-precision-networks.md):
-
-  Precision-matrix estimators as alternatives to a covariance plug-in.
+  Which within-type covariance DeCovarT needs, how it is estimated, and
+  how the choice is checked.
 
 ### Theory 4 · Benchmark design
 

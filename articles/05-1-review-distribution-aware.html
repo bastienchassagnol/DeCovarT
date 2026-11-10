@@ -59,7 +59,6 @@
     <li><h6 class="dropdown-header" data-toc-skip>3 · Estimating the reference: genes and covariances</h6></li>
     <li><a class="dropdown-item" href="../articles/03-1-feature-selection.html"><span class="fa fa-filter"></span> 3.1 · Gene selection for reference-based deconvolution</a></li>
     <li><a class="dropdown-item" href="../articles/03-2-covariance-network-estimation.html"><span class="fa fa-project-diagram"></span> 3.2 · Cell-type covariance for the plug-in</a></li>
-    <li><a class="dropdown-item" href="../articles/03-3-precision-networks.html"><span class="fa fa-share-alt"></span> 3.3 · Precision networks (not the plug-in)</a></li>
     <li><h6 class="dropdown-header" data-toc-skip>4 · Benchmark design</h6></li>
     <li><a class="dropdown-item" href="../articles/04-1-synthetic-scenarios.html"><span class="fa fa-flask"></span> 4.1 · Synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><a class="dropdown-item" href="../articles/04-2-distances-overlap-metrics.html"><span class="fa fa-ruler"></span> 4.2 · Distances, overlap, and covariance information</a></li>
@@ -173,8 +172,8 @@ Figure 1: Deconvolution methods that use more than the reference mean, grouped 
 <blockquote>
 <p><strong>Notation used in this vignette</strong></p>
 <p>A symbol absent from these groups is defined in this vignette, with one meaning. The full table is the <a href="notation.html">notation article</a>.</p>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="789edcc6-164d-4ae7-b229-ab6b67c89183">
-<div id="789edcc6-164d-4ae7-b229-ab6b67c89183" class="cell" data-tags="[&quot;notation-indices&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="45756336-cc82-48d6-94c3-aa9f9de2aefb">
+<div id="45756336-cc82-48d6-94c3-aa9f9de2aefb" class="cell" data-tags="[&quot;notation-indices&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Indices. The scalar <span class="math inline">R</span> is the number of reference donors.</caption>
@@ -219,8 +218,8 @@ Figure 1: Deconvolution methods that use more than the reference mean, grouped 
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="ebc28bbc-f642-4afe-a4c0-c2333cc81d38">
-<div id="ebc28bbc-f642-4afe-a4c0-c2333cc81d38" class="cell" data-tags="[&quot;notation-ratios&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="68901a03-9d58-4d90-924f-0fd8504fd0db">
+<div id="68901a03-9d58-4d90-924f-0fd8504fd0db" class="cell" data-tags="[&quot;notation-ratios&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Cell fractions and transcript fractions.</caption>
@@ -274,8 +273,8 @@ Figure 1: Deconvolution methods that use more than the reference mean, grouped 
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="537bd00f-93dc-4c6b-acc9-c52ab653b516">
-<div id="537bd00f-93dc-4c6b-acc9-c52ab653b516" class="cell" data-tags="[&quot;notation-means&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="c0bdee88-3bff-4d1e-a2a5-d49986118671">
+<div id="c0bdee88-3bff-4d1e-a2a5-d49986118671" class="cell" data-tags="[&quot;notation-means&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Purified profiles and per-cell means of raw counts.</caption>
@@ -326,8 +325,8 @@ Figure 1: Deconvolution methods that use more than the reference mean, grouped 
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="d12fd278-4334-43ff-88be-528708fc8038">
-<div id="d12fd278-4334-43ff-88be-528708fc8038" class="cell" data-tags="[&quot;notation-biological&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="066f2046-c7a4-4249-88d5-cedaabe3619a">
+<div id="066f2046-c7a4-4249-88d5-cedaabe3619a" class="cell" data-tags="[&quot;notation-biological&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Gene–gene covariance within a type, and variation across donors or types.</caption>
@@ -414,8 +413,8 @@ Figure 1: Deconvolution methods that use more than the reference mean, grouped 
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="763241e6-040b-45a3-ad8f-740b71d61dde">
-<div id="763241e6-040b-45a3-ad8f-740b71d61dde" class="cell" data-tags="[&quot;notation-technical&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="d5b41b98-63f6-4c8a-a6c9-2960af722e86">
+<div id="d5b41b98-63f6-4c8a-a6c9-2960af722e86" class="cell" data-tags="[&quot;notation-technical&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Size factors, capture efficiencies, and measurement noise.</caption>
@@ -482,8 +481,8 @@ Figure 1: Deconvolution methods that use more than the reference mean, grouped 
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="2ee3e7d8-f513-4d81-bb2c-9aaf9e745c04">
-<div id="2ee3e7d8-f513-4d81-bb2c-9aaf9e745c04" class="cell" data-tags="[&quot;notation-bulk&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="0c8f0e42-cec8-4378-81ec-02ec302c4882">
+<div id="0c8f0e42-cec8-4378-81ec-02ec302c4882" class="cell" data-tags="[&quot;notation-bulk&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>The bulk profile and the two reference paradigms. Neither is a gold-standard reference.</caption>
@@ -686,7 +685,7 @@ Table 1: Expression and observation models for UMI counts, after Sarkar and Ste
 -\hat\kappa\,
 \Bigl[\boldsymbol{V}_j-\operatorname{diag}(\bar{\boldsymbol{x}}_j)+\bar{\boldsymbol{x}}_j\bar{\boldsymbol{x}}_j^{\top}-\frac{\boldsymbol{V}_j}{C_j}\Bigr],
 \tag{5}</span></span></p>
-<p>where <span class="math inline">\boldsymbol{V}_j</span> is the unbiased sample covariance of the <span class="math inline">C_j</span> type-<span class="math inline">j</span> cells and <span class="math inline">\bar{\boldsymbol{x}}_j</span> their mean. It estimates the <span class="math inline">s^{\mathrm{tech}}</span>-free covariance of <span class="math inline">\boldsymbol{\mathcal{B}}\boldsymbol{m}_{\cdot c}</span>, <span class="math inline">\boldsymbol{\mathcal{B}}[(1+\nu^{\mathrm{bio}})\boldsymbol{\Sigma}^{\lambda}_j+\nu^{\mathrm{bio}}\tilde{\boldsymbol{\mu}}_{\cdot j}\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top}]\boldsymbol{\mathcal{B}}</span>, obtained by solving <a href="#eq-count-covariance" class="quarto-xref">Eq. 4</a> with <span class="math inline">1+\nu=(1+\nu^{\mathrm{bio}})(1+\nu^{\mathrm{tech}})</span> (our derivation). Given <span class="math inline">\nu^{\mathrm{tech}}</span> it is unbiased. The term <span class="math inline">-\boldsymbol{V}_j/C_j</span> is needed because <span class="math inline">\bar{\boldsymbol{x}}_j\bar{\boldsymbol{x}}_j^{\top}</span> overestimates the outer product of the means by <span class="math inline">\operatorname{Cov}(\boldsymbol{x})/C_j</span>; without it the estimator is biased by <span class="math inline">-\kappa\operatorname{Cov}(\boldsymbol{x})/C_j</span>, which a simulation with <span class="math inline">C_j=10</span> cells detects. <!-- chk: V14a, V14b, V14c, V14e --> The error of an estimated <span class="math inline">\hat\nu^{\mathrm{tech}}</span> is not covered by this statement. Plugging in the total extrinsic noise <span class="math inline">\nu</span>, which a size factor fitted on Poisson genes estimates (<a href="#sec-extrinsic-noise" class="quarto-xref">Sec. 1.3</a>), returns <span class="math inline">\boldsymbol{\mathcal{B}}\boldsymbol{\Sigma}^{\lambda}_j\boldsymbol{\mathcal{B}}</span>: it removes the biological share <span class="math inline">\nu^{\mathrm{bio}}\boldsymbol{\mathcal{B}}(\boldsymbol{\Sigma}^{\lambda}_j+\tilde{\boldsymbol{\mu}}_{\cdot j}\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top})\boldsymbol{\mathcal{B}}</span> with the technical one. <!-- chk: V14d --> Whether this denoised covariance enters the bulk alone or with the bulk’s own sampling term depends on the bulk depth per cell (<a href="02-1-single-cell-generative-optimisation.html#sec-raw-vs-denoised">raw or denoised</a>). Estimating <span class="math inline">\nu^{\mathrm{tech}}</span> before the deconvolution is the first plug-in of Strategy 4 (<a href="02-1-single-cell-generative-optimisation.html#sec-strategy-plugin">plug-in scales (Strategy 4)</a>).</p>
+<p>where <span class="math inline">\boldsymbol{V}_j</span> is the unbiased sample covariance of the <span class="math inline">C_j</span> type-<span class="math inline">j</span> cells and <span class="math inline">\bar{\boldsymbol{x}}_j</span> their mean. It estimates the <span class="math inline">s^{\mathrm{tech}}</span>-free covariance of <span class="math inline">\boldsymbol{\mathcal{B}}\boldsymbol{m}_{\cdot c}</span>, <span class="math inline">\boldsymbol{\mathcal{B}}[(1+\nu^{\mathrm{bio}})\boldsymbol{\Sigma}^{\lambda}_j+\nu^{\mathrm{bio}}\tilde{\boldsymbol{\mu}}_{\cdot j}\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top}]\boldsymbol{\mathcal{B}}</span>, obtained by solving <a href="#eq-count-covariance" class="quarto-xref">Eq. 4</a> with <span class="math inline">1+\nu=(1+\nu^{\mathrm{bio}})(1+\nu^{\mathrm{tech}})</span> (our derivation). Given <span class="math inline">\nu^{\mathrm{tech}}</span> it is unbiased. The term <span class="math inline">-\boldsymbol{V}_j/C_j</span> is needed because <span class="math inline">\bar{\boldsymbol{x}}_j\bar{\boldsymbol{x}}_j^{\top}</span> overestimates the outer product of the means by <span class="math inline">\operatorname{Cov}(\boldsymbol{x})/C_j</span>; without it the estimator is biased by <span class="math inline">-\kappa\operatorname{Cov}(\boldsymbol{x})/C_j</span>, which a simulation with <span class="math inline">C_j=10</span> cells detects. <!-- chk: V14a, V14b, V14c, V14e --> The error of an estimated <span class="math inline">\hat\nu^{\mathrm{tech}}</span> is not covered by this statement. Plugging in the total extrinsic noise <span class="math inline">\nu</span>, which a size factor fitted on Poisson genes estimates (<a href="#sec-extrinsic-noise" class="quarto-xref">Sec. 1.3</a>), returns <span class="math inline">\boldsymbol{\mathcal{B}}\boldsymbol{\Sigma}^{\lambda}_j\boldsymbol{\mathcal{B}}</span>: it removes the biological share <span class="math inline">\nu^{\mathrm{bio}}\boldsymbol{\mathcal{B}}(\boldsymbol{\Sigma}^{\lambda}_j+\tilde{\boldsymbol{\mu}}_{\cdot j}\tilde{\boldsymbol{\mu}}_{\cdot j}^{\top})\boldsymbol{\mathcal{B}}</span> with the technical one. <!-- chk: V14d --> Whether this denoised covariance enters the bulk alone or with the bulk’s own sampling term depends on the bulk depth per cell (<a href="03-2-covariance-network-estimation.html#sec-raw-vs-denoised">raw or denoised</a>). Estimating <span class="math inline">\nu^{\mathrm{tech}}</span> before the deconvolution is the first plug-in of Strategy 4 (<a href="02-1-single-cell-generative-optimisation.html#sec-strategy-plugin">plug-in scales (Strategy 4)</a>).</p>
 <section class="level3"><h4 id="sec-batch-methods">ComBat, scVI and scANVI: what they remove<a class="anchor" aria-label="anchor" href="#sec-batch-methods"></a>
 </h4>
 <p>Three families of correction are often proposed for the same job. Each removes a different quantity, on a different unit.</p>

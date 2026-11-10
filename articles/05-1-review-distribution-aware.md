@@ -394,7 +394,7 @@ j}\tilde{\boldsymbol{\mu}}\_{\cdot j}^{\top})\boldsymbol{\mathcal{B}}
 with the technical one. Whether this denoised covariance enters the bulk
 alone or with the bulk’s own sampling term depends on the bulk depth per
 cell ([raw or
-denoised](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#sec-raw-vs-denoised)).
+denoised](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.html#sec-raw-vs-denoised)).
 Estimating \nu^{\mathrm{tech}} before the deconvolution is the first
 plug-in of Strategy 4 ([plug-in scales (Strategy
 4)](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#sec-strategy-plugin)).

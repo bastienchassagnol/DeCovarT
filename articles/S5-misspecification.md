@@ -421,8 +421,8 @@ What the construction offers DeCovarT, and its limits (our remarks):
 - **A count-scale truth in closed form.**
   [Equation 2](#eq-s5-csnet-moments) gives the covariance of the counts
   and of the rates exactly, so both the raw and the denoised within-type
-  covariance ([2.1, raw or
-  denoised](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#sec-raw-vs-denoised))
+  covariance ([3.2, raw or
+  denoised](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.html#sec-raw-vs-denoised))
   can be scored without the Monte Carlo truth that the copula simulator
   needs ([Section 4.3](#sec-s5-copula)).
 - **Non-negative correlations only, in steps of 1/T.** A sum of shared
@@ -625,8 +625,8 @@ What the design offers DeCovarT, and its limits (our remarks):
   DeCovarT estimates dependence after removing the Poisson diagonal, on
   Pearson residuals of a negative-binomial null ([3.1, Pearson
   residuals](https://bastienchassagnol.github.io/DeCovarT/articles/03-1-feature-selection.html#sec-sctransform);
-  [2.1, raw or
-  denoised](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#sec-raw-vs-denoised)).
+  [3.2, raw or
+  denoised](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.html#sec-raw-vs-denoised)).
 - **Empirical copula against `scDesign3`.** The `SDC5` copula is the
   empirical copula of a few in vitro mixtures: it resamples observed
   rank patterns and cannot produce dependence absent from them.

@@ -2025,8 +2025,7 @@ on the full J-column signature and use the within-type covariance or
 precision matrices, so they can run only after
 \widehat{\boldsymbol{\Sigma}}\_{W,j} (or
 \widehat{\boldsymbol{\Omega}}\_j) has been estimated on a shortlist
-([3.2](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.md),
-[3.3](https://bastienchassagnol.github.io/DeCovarT/articles/03-3-precision-networks.md)).
+([3.2](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.md)).
 The likelihood of DeCovarT depends on \boldsymbol{\mu}\boldsymbol{p} and
 on the covariance mixture, so this is the geometry of the model; it is
 also why the stage is post hoc.
@@ -2383,8 +2382,8 @@ spouses in a DAG under d-separation.
 
 Genes that change neighbourhood between types (differential networks,
 `INDEED`, D-trace, cooperative penalties) are a further source of
-candidates. Their theory is in [3.3, joint and differential
-networks](https://bastienchassagnol.github.io/DeCovarT/articles/03-3-precision-networks.html#sec-grn-joint);
+candidates. Their theory is in [3.2, joint and differential
+networks](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.html#nte-cov-joint);
 on one specimen their permutation nulls are technical nulls
 ([Warning 1](#wrn-fs-estimand)).
 

@@ -54,7 +54,6 @@ is provided, DeCovarT methods maximise
     <li><h6 class="dropdown-header" data-toc-skip>3 · Estimating the reference: genes and covariances</h6></li>
     <li><a class="dropdown-item" href="../articles/03-1-feature-selection.html"><span class="fa fa-filter"></span> 3.1 · Gene selection for reference-based deconvolution</a></li>
     <li><a class="dropdown-item" href="../articles/03-2-covariance-network-estimation.html"><span class="fa fa-project-diagram"></span> 3.2 · Cell-type covariance for the plug-in</a></li>
-    <li><a class="dropdown-item" href="../articles/03-3-precision-networks.html"><span class="fa fa-share-alt"></span> 3.3 · Precision networks (not the plug-in)</a></li>
     <li><h6 class="dropdown-header" data-toc-skip>4 · Benchmark design</h6></li>
     <li><a class="dropdown-item" href="../articles/04-1-synthetic-scenarios.html"><span class="fa fa-flask"></span> 4.1 · Synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><a class="dropdown-item" href="../articles/04-2-distances-overlap-metrics.html"><span class="fa fa-ruler"></span> 4.2 · Distances, overlap, and covariance information</a></li>
@@ -358,8 +357,8 @@ Newman A, Liu C, Green M, Gentles A, Feng W, Xu Y, Hoang C, Diehn M, Alizadeh A 
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 15</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   sample_id algorithm elapsed_sec memory_bytes kkt_residual numerical_converged</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>              </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> sample_1  nnls                0    537<span style="text-decoration: underline;">573</span>376       0.035<span style="text-decoration: underline;">2</span> TRUE               </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> sample_2  nnls                0    537<span style="text-decoration: underline;">573</span>376       0.974  TRUE               </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> sample_1  nnls          0          536<span style="text-decoration: underline;">553</span>472       0.035<span style="text-decoration: underline;">2</span> TRUE               </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> sample_2  nnls          0.001<span style="text-decoration: underline;">00</span>    536<span style="text-decoration: underline;">553</span>472       0.974  TRUE               </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 9 more variables: theoretical_converged &lt;lgl&gt;, n_zero &lt;int&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   loglik_regret &lt;dbl&gt;, local_maximum &lt;lgl&gt;, min_eigenvalue &lt;dbl&gt;,</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   max_eigenvalue &lt;dbl&gt;, converged &lt;list&gt;, ct1 &lt;dbl&gt;, ct2 &lt;dbl&gt;</span></span>

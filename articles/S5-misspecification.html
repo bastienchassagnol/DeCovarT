@@ -58,7 +58,6 @@
     <li><h6 class="dropdown-header" data-toc-skip>3 · Estimating the reference: genes and covariances</h6></li>
     <li><a class="dropdown-item" href="../articles/03-1-feature-selection.html"><span class="fa fa-filter"></span> 3.1 · Gene selection for reference-based deconvolution</a></li>
     <li><a class="dropdown-item" href="../articles/03-2-covariance-network-estimation.html"><span class="fa fa-project-diagram"></span> 3.2 · Cell-type covariance for the plug-in</a></li>
-    <li><a class="dropdown-item" href="../articles/03-3-precision-networks.html"><span class="fa fa-share-alt"></span> 3.3 · Precision networks (not the plug-in)</a></li>
     <li><h6 class="dropdown-header" data-toc-skip>4 · Benchmark design</h6></li>
     <li><a class="dropdown-item" href="../articles/04-1-synthetic-scenarios.html"><span class="fa fa-flask"></span> 4.1 · Synthetic scenarios (means, covariance, ADEMP)</a></li>
     <li><a class="dropdown-item" href="../articles/04-2-distances-overlap-metrics.html"><span class="fa fa-ruler"></span> 4.2 · Distances, overlap, and covariance information</a></li>
@@ -282,7 +281,7 @@ b_j=\frac{s\phi_j}{1+s\phi_j}.
 <p>What the construction offers DeCovarT, and its limits (our remarks):</p>
 <ul>
 <li>
-<strong>A count-scale truth in closed form.</strong> <a href="#eq-s5-csnet-moments" class="quarto-xref">Equation 2</a> gives the covariance of the counts and of the rates exactly, so both the raw and the denoised within-type covariance (<a href="02-1-single-cell-generative-optimisation.html#sec-raw-vs-denoised">2.1, raw or denoised</a>) can be scored without the Monte Carlo truth that the copula simulator needs (<a href="#sec-s5-copula" class="quarto-xref">Section 4.3</a>).</li>
+<strong>A count-scale truth in closed form.</strong> <a href="#eq-s5-csnet-moments" class="quarto-xref">Equation 2</a> gives the covariance of the counts and of the rates exactly, so both the raw and the denoised within-type covariance (<a href="03-2-covariance-network-estimation.html#sec-raw-vs-denoised">3.2, raw or denoised</a>) can be scored without the Monte Carlo truth that the copula simulator needs (<a href="#sec-s5-copula" class="quarto-xref">Section 4.3</a>).</li>
 <li>
 <strong>Non-negative correlations only, in steps of <span class="math inline">1/T</span>.</strong> A sum of shared shocks cannot make two genes vary in opposite directions. The networks of <a href="04-1-synthetic-scenarios.html#sec-ggm-networks">4.1</a> carry random signs and are out of reach.</li>
 <li>
@@ -412,7 +411,7 @@ Table 1: Multivariate count constructions. Sources: Olkin 1994 (pp. 42–46); 
 <li>
 <strong>A composition-free correlated residual.</strong> The noise is added to the bulk and does not depend on <span class="math inline">\boldsymbol{p}_{\cdot i}</span>, whereas DeCovarT’s residual covariance is <span class="math inline">\sum_jp_{ji}^{2}\boldsymbol{\Sigma}_j</span>. For DeCovarT it is a dense version of the nugget <span class="math inline">\boldsymbol{D}</span> of <a href="05-2-bayesian-wiener.html#sec-bw-model">5.2</a>: a misspecification that S5j adopts.</li>
 <li>
-<strong>Ordinary, not Pearson, residuals.</strong> <span class="math inline">\boldsymbol{Y}-\boldsymbol{X}\boldsymbol{P}</span> is scaled gene by gene, but its variance still follows the mean through the Poisson part, so the estimated correlation mixes technical and biological dependence. DeCovarT estimates dependence after removing the Poisson diagonal, on Pearson residuals of a negative-binomial null (<a href="03-1-feature-selection.html#sec-sctransform">3.1, Pearson residuals</a>; <a href="02-1-single-cell-generative-optimisation.html#sec-raw-vs-denoised">2.1, raw or denoised</a>).</li>
+<strong>Ordinary, not Pearson, residuals.</strong> <span class="math inline">\boldsymbol{Y}-\boldsymbol{X}\boldsymbol{P}</span> is scaled gene by gene, but its variance still follows the mean through the Poisson part, so the estimated correlation mixes technical and biological dependence. DeCovarT estimates dependence after removing the Poisson diagonal, on Pearson residuals of a negative-binomial null (<a href="03-1-feature-selection.html#sec-sctransform">3.1, Pearson residuals</a>; <a href="03-2-covariance-network-estimation.html#sec-raw-vs-denoised">3.2, raw or denoised</a>).</li>
 <li>
 <strong>Empirical copula against <code>scDesign3</code>.</strong> The <code>SDC5</code> copula is the empirical copula of a few in vitro mixtures: it resamples observed rank patterns and cannot produce dependence absent from them. <code>scDesign3</code> fits a parametric copula per cell type on many cells (<a href="#sec-s5-copula" class="quarto-xref">Section 4.3</a>), the level at which <span class="math inline">\boldsymbol{\Sigma}_j</span> lives. The two answer different questions, dependence of the bulk noise against dependence within a type, and can be combined: <code>scDesign3</code> for the purified profiles, a factor or copula noise on the mixed bulk.</li>
 <li>
