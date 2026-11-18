@@ -1,4 +1,28 @@
+---
+description: R packages, CRAN hygiene, style, testing, ggplot2 (see data-visualisation rule), parallelism
+globs: "**/*.{R,r},**/DESCRIPTION,**/NAMESPACE,**/tests/**/*,**/R/**/*"
+alwaysApply: false
+paths:
+  - "**/*.{R,r}"
+  - "**/DESCRIPTION"
+  - "**/NAMESPACE"
+  - "**/tests/**/*"
+  - "**/R/**/*"
+---
 # R and statistical computing
+
+## Local R layout
+
+This laptop runs Ubuntu 26.04 (Resolute). The system interpreter is the official CRAN apt build, not the Ubuntu archive package and not a copy under `/usr/local`.
+
+- Repository: `resolute-cran40` from `https://cloud.r-project.org/bin/linux/ubuntu`, signed with the Michael Rutter key (`E298A3A825C0D65DFD57CBB651716619E084DAB9`).
+- Binary: `/usr/bin/R` and `/usr/bin/Rscript` (R 4.6). Cursor `r.rpath.linux` stays on that binary so the language server uses GNU R.
+
+`rig` is installed in user mode (`~/.local/bin/rig`) for extra R versions. It does not replace `/usr/bin/R`. Use `rig add` and `R-x.y.z` when an `renv.lock` records another R version. Do not run `rig default` over the apt R.
+
+`renv` freezes the package list. Switch to the intended R version before `renv::init()` or `renv::snapshot()`. After a minor-version upgrade, do not reuse the previous user library (for example `~/R/x86_64-pc-linux-gnu-library/4.5`).
+
+The local Cursor terminal is radian at `~/.local/bin/radian`, installed with `uv tool` for this user. Remote SSH sessions keep their own R terminal. On the system R, the editor packages are `languageserver`, `httpgd`, and `jsonlite`.
 
 When R is primary, follow the repository first. Defaults below apply when the repo
 is silent.
@@ -21,29 +45,14 @@ devtools::test()
 devtools::check()
 ```
 
-Run `pkgcheck::pkgcheck()` locally and enforce it in CI with
-[pkgcheck-action](https://github.com/ropensci-review-tools/pkgcheck-action)
-(`.github/workflows/pkgcheck.yaml`, from `pkgcheck::use_github_action_pkgcheck()`).
-Add `--as-cran` checks when the package targets CRAN. pkgcheck does not see
-directories in `.Rbuildignore` (such as `scripts/`); guard those with a
-pre-commit `pygrep` hook on `pkg:::` and `asNamespace("pkg")`.
+Use `pkgcheck::pkgcheck()` and `--as-cran` checks when the package targets CRAN.
 
 ### CRAN-quality hygiene (summary)
 
 - `Suggests` + `requireNamespace()` for optional deps; no `install.packages()` in
   examples/tests/vignettes.
 - No writes to home, package dir, or `getwd()` by default; `withr` temp files.
-- Restore `options()`, `par()`, wd; no `<<-`, no `.GlobalEnv` mutation, no
-  package-level mutable environments (caches, flags): compute statelessly or
-  pass values explicitly (`withr::with_seed()`, `withr::with_output_sink()`,
-  `cli`/`rlang` `.frequency = "once"`).
-- Never reach a package's internals with `:::`, `get()` or `asNamespace()`,
-  from scripts, vignettes or another package. A function needed outside the
-  package is documented and exported (`@export`, with `@examples`). Scripts
-  run against the installed package (`library()`), where internals are not
-  visible, unlike `devtools::load_all()`
-  ([load_all](https://r-pkgs.org/workflow101.html#benefits-of-load_all),
-  [R CMD check: R code](https://r-pkgs.org/R-CMD-check.html#r-code)).
+- Restore `options()`, `par()`, wd; no `<<-` / `.GlobalEnv` mutation.
 - `TRUE`/`FALSE`; seeds only when caller supplies; ≤2 cores in check-time code.
 - ASCII-only `R/` strings when required for portability.
 

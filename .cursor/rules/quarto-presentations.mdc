@@ -2,11 +2,19 @@
 description: Quarto authoring, Mermaid, tables, reveal.js slides
 globs: "**/*.{qmd,Rmd},**/slides/**/*,_quarto.yml,_publish.yml"
 alwaysApply: false
+paths:
+  - "**/*.{qmd,Rmd}"
+  - "**/_quarto.yml"
+  - "**/_publish.yml"
 ---
-
-# Quarto and reveal.js
+# Quarto: documents, websites and reveal.js
 
 British English; reproducible execution; cite at point of use.
+
+For slides, websites and interactive OJS/D3, use the `quarto` skill
+(`~/.claude/skills/quarto/SKILL.md`): it routes to one reference per task
+(deck setup, themes, layout, fragments, auto-animate, full-width figures,
+session info, OJS, D3, React). Read it before major deck or site edits.
 
 ## Markdown and cross-references
 
@@ -38,29 +46,10 @@ flowchart TD
 ````
 
 `eval: true` in site config or chunk. Inspect `pre.mermaid` + quarto-diagram JS
-before client-side fallbacks.
+before client-side fallbacks. Theme **sandstone** unless the deck defines
+otherwise.
 
-## reveal.js slides
+## Pages that run R
 
-Read `~/.cursor/skills/quarto-revealjs/SKILL.md` (Slidecrafting) before major
-deck edits. Official docs: https://quarto.org/docs/presentations/revealjs/
-
-- One headline claim per slide; preview after edits (overflow is the main failure).
-- Hierarchy: title → content → detail → attribution.
-- `echo: false` by default; preserve citations when converting legacy decks.
-- Optional: `quarto-revealjs-editable` in project `slides/` when already installed.
-- Mermaid theme **sandstone** unless the deck defines otherwise.
-
-## Slide design (dense decks)
-
-| Element | Target size |
-|---------|-------------|
-| Diagram labels | 18–20px |
-| Section headers | 14–16px |
-| Body bullets | 12–13px |
-| Metadata | 10–11px |
-
-Below 10px: split the slide. Reuse backbone diagrams at section transitions.
-
-Attribution plugin when configured: compact right-edge credits, not duplicate
-HTML footers.
+End each page with `sessionInfo()` in a collapsed callout (`web-layout.md` in
+the `quarto` skill).

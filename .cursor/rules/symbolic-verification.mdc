@@ -2,24 +2,17 @@
 description: Verify new or rearranged equations with SymPy and Lean before calling them verified
 globs: "**/*.{tex,qmd},**/verification/**/*.{py,lean,json}"
 alwaysApply: false
+paths:
+  - "**/*.{tex,qmd}"
+  - "**/verification/**"
 ---
-
 # Symbolic verification of equations (SymPy + Lean)
 
 Use this rule whenever a report, article, or derivation states an equation that
-is new, rearranged, or copied from a source and then used. The agent writes the
+is new, rearranged, or copied from a source and then used. The model writes the
 check; the engine decides. This is the neuro-symbolic loop of SymCode
 ([arXiv:2510.25975](https://arxiv.org/abs/2510.25975)): no equation enters the
-text as "verified" on the agent's say-so.
-
-## This repository
-
-DeCovarT does not yet contain a `verification/` tree. Do not write checks into
-`~/lean-projects/dynamic_pdes_verification` or `TEOU/Lemmas.lean`; that tree
-belongs to another project. When an equation in `article/` or a vignette needs
-a ledger, add `verification/sympy/check_<group>_*.py` here. Keep any Lean
-build outside OneDrive. Until a check in this repository has status `pass` or
-`flag`, do not call the equation verified.
+text as "verified" on the model's say-so.
 
 ## Engines and versions
 
@@ -39,36 +32,32 @@ before `lake build`.
 
 ## Workflow
 
-0. Before writing a check, compare the equation's symbols against the shared
-   notation file (`vignettes/_notation.qmd` in DeCovarT). A check is written
-   in that notation, so a symbol clash is caught before the ledger runs.
 1. Give every display equation a `\label{eq:...}`. Each claim gets a ledger id
    (`T1a`, `O2e`, ...) and a check in `verification/sympy/check_<group>_*.py`.
 2. Derive, do not copy. Recompute the quantity from first principles (a CGF,
    a generator, a Jacobian) and compare it with the printed formula. A check
    that only re-types the paper's formula proves nothing.
 3. Test in this order, and record which one passed (`kind`):
-   - `exact`: `sympy.simplify(lhs - rhs) == 0`, else
-     `cancel(together(expand(...)))`;
+   - `exact`: `sympy.simplify(lhs - rhs) == 0`, else `cancel(together(expand(...)))`;
    - `series`: for "approximately" claims, expand in a bookkeeping parameter
      (`u -> eps*u`) and compare the stated order only;
-   - `rational-sampling`: random positive rationals, 25 points, fixed seed.
-     This is a fallback, never reported as a proof;
-   - `numeric`: mpmath at the stated precision, with the tolerance in `detail`.
+   - `rational-sampling`: random positive rationals, 25 points, fixed seed —
+     a fallback, never reported as a proof;
+   - `numeric`: mpmath at stated precision, with the tolerance in `detail`.
 4. Status is `pass`, `fail`, or `flag`. Use `flag` when the engine confirms a
    **deviation from the source** (a dropped term, a typo). Report the deviation
    in the text with the source page; never silently "fix" the source.
 5. Formalise in Lean only statements that are pure algebra or arithmetic
    (closed forms, Schur complements, polynomial identities after clearing
    denominators, `norm_num` facts). Prefer `linear_combination` for "these
-   equations imply that one". Prefer `rw [div_eq_iff h]; ring` over
-   `field_simp` when denominators are compound, because the current
-   `field_simp` can leave unreduced inverses.
+   equations imply that one". Prefer `rw [div_eq_iff h]; ring` over `field_simp`
+   when denominators are compound, because the current `field_simp` can leave
+   unreduced inverses.
 6. Lean acceptance: `lake build` succeeds; `rg -w sorry verification/lean` is
    empty; `#print axioms` (in `verification/lean/Axioms.lean`) lists only
    `propext`, `Classical.choice`, `Quot.sound`.
 7. Run `python3 verification/run_all.py`. It writes `verification/ledger.json`
-   and `report/verification-ledger.tex`. Exit status 0 means no `fail` and a
+   and `report/verification-ledger.tex`; exit status 0 means no `fail` and a
    clean Lean build. Re-run after every change to an equation.
 
 ## Writing about results
@@ -81,13 +70,11 @@ before `lake build`.
   returned, and rewrite the claim. One precedent: a trajectory rank came out
   4, where the draft said 5.
 
-## Optional tooling
+## Optional tooling for later sessions
 
-- `lean-lsp-mcp` (MIT): register an MCP server in Cursor that runs
-  `uvx lean-lsp-mcp`, with `LEAN_PROJECT_PATH` set to that repository's Lean
-  build project. It exposes goal states and Mathlib search. Do not run
-  `claude mcp add`; that command is Claude Code only.
-- Lean prove, review, and golf skills, if you install them, belong under
-  `~/.cursor/skills/`. The Claude marketplace command
-  `/plugin marketplace add cameronfreer/lean4-skills` does not apply here.
-- Avoid `sympy-mcp`: it is unmaintained and evaluates input with `eval`.
+- `lean-lsp-mcp` (MIT): `claude mcp add lean-lsp -s project uvx lean-lsp-mcp`
+  with `LEAN_PROJECT_PATH` set to the build project; gives goal states and
+  Mathlib search to the agent.
+- `cameronfreer/lean4-skills` (MIT): `/plugin marketplace add cameronfreer/lean4-skills`
+  then `/plugin install lean4`; prove/review/golf workflows.
+- Avoid `sympy-mcp`: unmaintained and evaluates input with `eval`.

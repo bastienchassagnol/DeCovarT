@@ -1,3 +1,7 @@
+---
+description: Quarto docs hygiene, Zotero bibliography, software citations, document intake
+alwaysApply: true
+---
 # Documentation and bibliography
 
 ## Quarto and long-form docs (general)
@@ -12,17 +16,6 @@ For `.qmd`, `.Rmd`, scientific Markdown:
 - Static tables for print/PDF; **`reactable`** only when HTML interactivity helps.
 - Mermaid: native `{mermaid}` chunks with `eval: true`; inspect HTML before JS
   fallbacks.
-- Headings stop at level 4 (`####`). No level-5 heading in `vignettes/*.qmd`:
-  the pkgdown "On this page" sidebar lists levels 1 to 4 only. The pre-commit
-  hook `no-level5-headings` enforces it.
-
-- One detached notation file is the reference for all documents of a
-  repository: `vignettes/_notation.qmd` in DeCovarT (included by every
-  vignette), and the same file linked from the book. Before and after writing
-  a section, compare every symbol against it: reuse its symbols, never give a
-  symbol a second meaning, and list a symbol absent from it in the document's
-  local-symbols paragraph. Do not mention another paper's notation; translate
-  it. Add a symbol to the shared file only when two documents need it.
 
 When a repo defines stricter Quarto rules (tinytable, pkgdown links, etc.),
 those **project rules override** this file.
@@ -67,8 +60,7 @@ do not duplicate parent+child.
 without review):
 
 ```bash
-uv run --project scripts/curate_bibliography \
-  python scripts/curate_bibliography/bib_enrich.py PATH.bib --write --backup \
+python3 scripts/curate_bibliography/bib_enrich.py PATH.bib --write --backup \
   --min-score 92 --report scripts/curate_bibliography/bib-enrichment.json
 ```
 

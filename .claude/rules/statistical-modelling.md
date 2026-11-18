@@ -1,3 +1,7 @@
+---
+description: Statistical modelling, resampling, bootstrap, permutation, and model review
+alwaysApply: true
+---
 # Statistical modelling and LLM review
 
 Statistical correctness takes priority over framework convenience.

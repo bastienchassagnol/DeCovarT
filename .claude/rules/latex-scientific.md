@@ -1,3 +1,11 @@
+---
+description: LuaLaTeX, preamble layout, maths, floats, TikZ, curve2e, minted
+globs: "**/*.{tex,cls,sty,bib},**/article/**/*"
+alwaysApply: false
+paths:
+  - "**/*.{tex,cls,sty,bib}"
+  - "**/article/**"
+---
 # Modern LaTeX (scientific articles)
 
 Semantic markup, modular sources, maintainable packages. References:
@@ -61,7 +69,7 @@ project/
 
 ## Figures and tables
 
-- Float specifier **`[ht]`**. A lone `[h]` is rewritten to `[ht]` and warns.
+- Float specifier **`[tbp]`**; avoid habitual `[H]`.
 - Inside floats: **`\centering`**, not `center` environment.
 - **`caption`** with `singlelinecheck=off` when captions contain lists.
 - Tables: `booktabs`, `longtable`, `tabularx`.

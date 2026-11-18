@@ -1,10 +1,28 @@
 ---
-description: R packages, CRAN hygiene, style, testing, ggplot2, parallelism
+description: R packages, CRAN hygiene, style, testing, ggplot2 (see data-visualisation rule), parallelism
 globs: "**/*.{R,r},**/DESCRIPTION,**/NAMESPACE,**/tests/**/*,**/R/**/*"
 alwaysApply: false
+paths:
+  - "**/*.{R,r}"
+  - "**/DESCRIPTION"
+  - "**/NAMESPACE"
+  - "**/tests/**/*"
+  - "**/R/**/*"
 ---
-
 # R and statistical computing
+
+## Local R layout
+
+This laptop runs Ubuntu 26.04 (Resolute). The system interpreter is the official CRAN apt build, not the Ubuntu archive package and not a copy under `/usr/local`.
+
+- Repository: `resolute-cran40` from `https://cloud.r-project.org/bin/linux/ubuntu`, signed with the Michael Rutter key (`E298A3A825C0D65DFD57CBB651716619E084DAB9`).
+- Binary: `/usr/bin/R` and `/usr/bin/Rscript` (R 4.6). Cursor `r.rpath.linux` stays on that binary so the language server uses GNU R.
+
+`rig` is installed in user mode (`~/.local/bin/rig`) for extra R versions. It does not replace `/usr/bin/R`. Use `rig add` and `R-x.y.z` when an `renv.lock` records another R version. Do not run `rig default` over the apt R.
+
+`renv` freezes the package list. Switch to the intended R version before `renv::init()` or `renv::snapshot()`. After a minor-version upgrade, do not reuse the previous user library (for example `~/R/x86_64-pc-linux-gnu-library/4.5`).
+
+The local Cursor terminal is radian at `~/.local/bin/radian`, installed with `uv tool` for this user. Remote SSH sessions keep their own R terminal. On the system R, the editor packages are `languageserver`, `httpgd`, and `jsonlite`.
 
 When R is primary, follow the repository first. Defaults below apply when the repo
 is silent.
@@ -66,24 +84,18 @@ Profile first; vectorise; `data.table` or DuckDB when scale demands it.
 Record seeds and `sessioninfo` for scientific outputs; `renv` when the repo uses
 it; `targets` for heavy pipelines when justified.
 
-## Visualisation (`ggplot2`)
+## Visualisation
 
-Before custom hacks: [R Graphics Cookbook](https://r-graphics.org/),
-[ggplot2 book](https://ggplot2-book.org/), then current package docs.
+Follow the data-visualisation rule (`~/.claude/rules/data-visualisation.md`;
+Cursor: `~/.cursor/rules/data-visualisation.mdc`): house theme `theme_slide()`,
+colour roles, export, and the caveats checklist. When the repository defines a
+theme, use it.
 
-Question-first plots; reusable theme helper; explicit `ggsave()` size/dpi;
-PDF/SVG for vector output.
-
-**Distributions:** `ggdist` rainclouds when shape matters; report binning rule
-for histograms.
-
-**Benchmarks:** forest/dot-whisker for summaries; facet metrics — do not map two
-primary metrics to colour and size.
-
-**Heatmaps:** `geom_tile()` default; `ComplexHeatmap` only for rich annotations.
-
-**Interactive:** prefer **`ggiraph`** (scales better in HTML than Plotly for many
-points). Keep a static archival figure.
+R packages: `ggplot2` for every static figure; `ragg` for PNG export; `scales`
+(axis labels, rounding); `forcats` (ordering); `ggrepel` (direct labels);
+`ggdist` (distributions, rainclouds); `ggiraph` (interactive, linked hover);
+`ComplexHeatmap` only for richly annotated heatmaps; `grid` for multi-panel
+layout.
 
 ## Parallelism and Shiny
 

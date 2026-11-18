@@ -2,8 +2,10 @@
 description: LuaLaTeX, preamble layout, maths, floats, TikZ, curve2e, minted
 globs: "**/*.{tex,cls,sty,bib},**/article/**/*"
 alwaysApply: false
+paths:
+  - "**/*.{tex,cls,sty,bib}"
+  - "**/article/**"
 ---
-
 # Modern LaTeX (scientific articles)
 
 Semantic markup, modular sources, maintainable packages. References:

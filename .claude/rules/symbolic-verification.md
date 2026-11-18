@@ -1,3 +1,11 @@
+---
+description: Verify new or rearranged equations with SymPy and Lean before calling them verified
+globs: "**/*.{tex,qmd},**/verification/**/*.{py,lean,json}"
+alwaysApply: false
+paths:
+  - "**/*.{tex,qmd}"
+  - "**/verification/**"
+---
 # Symbolic verification of equations (SymPy + Lean)
 
 Use this rule whenever a report, article, or derivation states an equation that
@@ -24,9 +32,6 @@ before `lake build`.
 
 ## Workflow
 
-0. Before writing a check, compare the equation's symbols against the shared
-   notation file (`vignettes/_notation.qmd` in DeCovarT). A check is written
-   in that notation, so a symbol clash is caught before the ledger runs.
 1. Give every display equation a `\label{eq:...}`. Each claim gets a ledger id
    (`T1a`, `O2e`, ...) and a check in `verification/sympy/check_<group>_*.py`.
 2. Derive, do not copy. Recompute the quantity from first principles (a CGF,

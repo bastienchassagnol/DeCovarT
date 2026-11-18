@@ -1,3 +1,11 @@
+---
+description: Plate notation for probabilistic models in Quarto TikZ and LaTeX
+globs: "**/*.{qmd,Rmd,tex},**/_quarto.yml"
+alwaysApply: false
+paths:
+  - "**/*.{qmd,Rmd,tex}"
+  - "**/_quarto.yml"
+---
 # Probabilistic graphical models
 
 Draw a DAG or a generative model in TikZ, with plate notation. A workflow that
@@ -116,32 +124,31 @@ Set `TIKZ_BIN` to the wrapper's absolute path in `_environment.local`. The
 diagram cache key is the picture source only. After editing the shared styles,
 delete the cache directory and render again.
 
-## LaTeX articles
+## LaTeX articles: prefer bayesnet
 
 The picture is a `tikzpicture` in the article, compiled by LuaLaTeX (XeLaTeX
 acceptable), so it stays a vector in the PDF. The Ghostscript outline step is
 only for the Quarto SVG path.
 
-### DeCovarT article: use bayesnet, not the RevBayes styles
-
-`article/main_layout.tex` loads the TikZ `bayesnet` library
-(`\usetikzlibrary{bayesnet,positioning,fit,calc}`). Draw the article's DAGs
-with it, not with the RevBayes styles above. The two cannot be loaded
-together: both define `\plate` and `obs`.
+In a LaTeX article, draw DAGs with the TikZ `bayesnet` library
+(`\usetikzlibrary{bayesnet,positioning,fit,calc}`) rather than the RevBayes
+styles above. Do not load both: each defines `\plate` and `obs`.
 
 | bayesnet | Use |
 | --- | --- |
 | `latent` | latent random variable (white circle) |
 | `obs` | observed random variable (grey circle) |
 | `det` | deterministic quantity (diamond) |
-| `const` | fixed quantity; add `draw` for a framed square (`fixedpar`) |
-| `\plate[opts]{name}{(fit)(list)}{label}` | repeated subgraph; the caption sits at the bottom right |
+| `const` | fixed quantity; add `draw` for a framed square |
+| `\plate[opts]{name}{(fit)(list)}{label}` | repeated subgraph; caption at the bottom right |
 
-- Draw edges with `\draw[->]`, not `\edge`: `\edge` raises nullfont `;`
-  warnings in this class.
-- Shared additions live once in `article/macros.tex` (`fixedpar`, `techobs`,
-  `eqnote`, `panellabel`). Do not redefine a bayesnet style.
-- Equations go in `eqnote` labels beside nodes, never inside a node.
-- A technical (measurement) layer is drawn in the article's existing orange,
-  `scalecol` (`techobs`); do not add another palette.
-- The RevBayes styles stay the convention for Quarto vignettes and slides.
+- Draw edges with `\draw[->]`, not `\edge`, which can raise nullfont `;`
+  warnings.
+- Put shared additions (a framed-parameter style, a note style, a coloured
+  measurement-layer style) once in the article's macros file; do not redefine a
+  bayesnet style.
+- Equations go in small note labels beside nodes, never inside a node.
+- Reuse a colour the article already defines for a highlighted layer; do not
+  add a palette.
+- The RevBayes styles above stay the convention for Quarto documents and
+  slides.

@@ -1,3 +1,7 @@
+---
+description: Scientific writing voice, structure, figures, integrity, and review
+alwaysApply: true
+---
 # Scientific writing
 
 Write as a careful methods reviewer would expect.

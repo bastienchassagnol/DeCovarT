@@ -108,6 +108,7 @@
 ^\.quarto$
 ^\.cursor$
 ^\.claude$
+^AGENTS\.md$
 ^\.nojekyll$
 ^\.lintr$
 ^\.ruff_cache$
