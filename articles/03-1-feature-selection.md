@@ -1120,7 +1120,11 @@ with S_M its standardised sum over a gene module M. Under a consistent
 platform D\_{gi} is centred at 0; a gene-wise ratio \tilde b_g\neq1
 shifts it by (\tilde b_g-1)\sum_jp\_{ji}\tilde\mu\_{gj};
 [Section 4.2.4](#sec-fs-platform-ratio) divides a plug-in ratio out of
-the bulk before D\_{gi} is formed. A gene is flagged when \lvert
+the bulk before D\_{gi} is formed;
+[Section 4.2.5](#sec-fs-effective-cells) replaces the bulk cell count by
+an estimated effective count, and
+[Section 4.2.6](#sec-fs-multivariate-discrepancy) tests the genes
+jointly under the deconvolution model. A gene is flagged when \lvert
 D\_{gi}\rvert exceeds a threshold t\_{\alpha} that a consistent gene
 exceeds with probability at most \alpha. The thresholds come from
 concentration inequalities, recalled without proof in three notes, and
@@ -1456,7 +1460,8 @@ dependence, Ann. Probab. 32(3A):1985-2028,
 doi:10.1214/009117904000000450 The Gaussian approximation with
 \operatorname{Var}S_M=\lvert M\rvert, which ignores the edges, is T1 for
 the module. The bound of Chen & Shao is the result that MEAD uses for
-its central limit theorem across genes ([Section 8](#sec-fs-appendix)).
+its central limit theorem across genes
+([Section 8.1](#sec-fs-appendix)).
 
 > **Theorem 3 (T3, Chernoff bound with Poisson cumulant generating
 > functions)**
@@ -1548,7 +1553,7 @@ weights; the equal-weight proper colouring is the special case used here
 (this remark is not checked against the paper). The dependent Bernstein
 inequality of Zhang & Li, used by DECALS, has a constant equal to
 \bar\chi_G and an unknown absolute constant in the exponent
-([Equation 42](#eq-fs-bernstein-dep), [Section 8](#sec-fs-appendix)).
+([Equation 47](#eq-fs-bernstein-dep), [Section 8.1](#sec-fs-appendix)).
 
 #### 4.2.2 Comparing the statements
 
@@ -1708,8 +1713,10 @@ following estimates.
 - **Scale.** a_i is the sum of the NNLS coefficients, which estimate
   a_ip\_{ji}; \hat{\boldsymbol p}\_{\cdot i} is the normalised
   coefficient vector.
-- **Dispersion.** \psi_g comes from the reference fit of tier (ii), and
-  the extra overdispersion between platforms is fixed at 1 (none).
+- **Dispersion.** \psi_g comes from the reference fit of tier (ii). The
+  extra overdispersion between platforms is fixed at 1 (none), or
+  estimated as one factor per sample through the effective cell count of
+  [Section 4.2.5](#sec-fs-effective-cells).
 - **Platform ratio.** \tilde b_g=1 for every gene (assumption A3).
   [Section 4.2.4](#sec-fs-platform-ratio) replaces it by a plug-in
   estimate.
@@ -1833,6 +1840,163 @@ dividing by a cross-fitted \hat b_g: a gene whose ratio is stable across
 samples is a platform effect to model, not a defect. The reproducibility
 book compares, on the Suppinger data, no ratio, a length model and a
 gene-wise ratio, all cross-fitted over three matched times.
+
+#### 4.2.5 Effective cell count
+
+Every statement of [Section 4.2.1](#sec-fs-five-bounds) depends on the
+bulk sample through its number of cells n, and the application sets
+n=a_i, the plug-in scale ([Section 4.2.3](#sec-fs-plugin)). That choice
+is A3 again. In the deconvolution model of [1.2, final
+model](https://bastienchassagnol.github.io/DeCovarT/articles/01-2-population-inference.html#sec-final-choice),
+the mean scale is c_i=a_in_i and the variance scale \phi_i=a_i^{2}n_i,
+with a_i a platform scale and n_i the number of cells, so
+
+n_i=\frac{c_i^{2}}{\phi_i}. \tag{36}
+
+The plug-in a_i of the filter estimates c_i, not n_i: setting n=a_i
+assumes a platform scale of 1 and no variation between platforms beyond
+the sampling of cells. Any remaining variation, for example what a
+gene-wise ratio leaves ([Section 4.2.4](#sec-fs-platform-ratio)), widens
+D\_{gi} beyond [Equation 21](#eq-fs-var-d).
+
+**Model.** One factor \kappa_i\ge1 per sample multiplies the bulk term
+of [Equation 21](#eq-fs-var-d). This is the same as a bulk of
+n\_{\mathrm{eff},i}=a_i/\kappa_i cells of the reference law:
+
+\operatorname{Var}D\_{gi}
+=\sum\_{j=1}^{J}\frac{p\_{ji}\sigma\_{gj}^{2}}{n\_{\mathrm{eff},i}}
++\sum\_{j=1}^{J}\frac{p\_{ji}^{2}\sigma\_{gj}^{2}}{C_j}. \tag{37}
+
+The statements T1 to T5 then apply with n=n\_{\mathrm{eff},i}. For T1
+and T2 this only rescales the variance. For the Chernoff statements T3
+to T5 it treats the overdispersion as a smaller number of independent
+cells. That is a working model, not a property of the platforms (our
+choice).
+
+**Estimating equation.** With
+z\_{gi}(n)=D\_{gi}/\operatorname{sd}D\_{gi} computed at n cells,
+n\_{\mathrm{eff},i} solves
+
+\operatorname\*{median}\_{g}\\z\_{gi}^{2}(n)=q\_{0.5}, \qquad
+q\_{0.5}=0.455, \tag{38}
+
+the median of a \chi^2_1 variable. The left side increases with n, so
+the root is unique when it lies below a_i; otherwise
+n\_{\mathrm{eff},i}=a_i, no extra dispersion. When the reference term is
+negligible, z^{2}\_{gi}(n)=z^{2}\_{gi}(a_i)\\n/a_i and
+n\_{\mathrm{eff},i}=a_i\\q\_{0.5}/\operatorname{median}\_gz^{2}\_{gi}(a_i).
+
+- **Why the median.** The median of G values does not move while fewer
+  than half the genes are inconsistent, so the genes under test do not
+  set their own scale. The maximum-likelihood \hat\phi_i of DeCovarT is
+  a mean of a quadratic form and has no such protection.
+- **What a flag then means.** The scale is set by the typical gene of
+  the sample. A flag says that \lvert D\_{gi}\rvert lies in a heavier
+  tail than that of the typical gene. It no longer says that the gene is
+  inconsistent under A3. Under the model, a share 2\alpha of the genes
+  is flagged whatever \kappa_i; an excess over 2\alpha measures tails
+  heavier than the model’s, not a platform shift.
+- **What is ignored.** \hat n\_{\mathrm{eff},i} is a sample median over
+  G genes, with relative error of order G^{-1/2}. The statements treat
+  it as known (our remark, not checked by simulation).
+- **Check against the multivariate fit.**
+  [Equation 36](#eq-fs-n-from-scales) applied to the fitted \hat c_i and
+  \hat\phi_i of the deconvolution model gives a second estimate of the
+  cell count. The two estimates share no formula: one comes from
+  univariate residuals of the deMixSC plug-in, the other from the
+  multivariate likelihood.
+
+#### 4.2.6 Multivariate discrepancy under the deconvolution model
+
+The statistics of [Section 4.2.1](#sec-fs-five-bounds) standardise each
+gene by its own variance. The modules alone use correlations, and only
+through a dependency graph. The deconvolution model of [1.2, final
+model](https://bastienchassagnol.github.io/DeCovarT/articles/01-2-population-inference.html#sec-final-choice)
+gives the joint law of all genes in one bulk sample:
+
+\boldsymbol y_i\sim\mathcal N\bigl(c_i\boldsymbol\mu\boldsymbol p_i,\\
+\phi_i\mathbf S(\boldsymbol p_i)\bigr), \qquad \mathbf S(\boldsymbol
+p)=\sum\_{j=1}^{J}p_j\boldsymbol\Sigma_j, \tag{39}
+
+with \boldsymbol\Sigma_j the regularised covariance of type j
+([3.2](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.md)).
+Plug in the fitted \hat{\boldsymbol p}\_i, \hat c_i and \hat\phi_i. Let
+\boldsymbol r=\boldsymbol y_i-\hat c_i\boldsymbol\mu\hat{\boldsymbol
+p}\_i, \mathbf V=\hat\phi_i\mathbf S(\hat{\boldsymbol p}\_i) and \mathbf
+W=\mathbf V^{-1}.
+
+**Gene statistic.** For gene g,
+
+z_g=\frac{(\mathbf W\boldsymbol r)\_g}{\sqrt{W\_{gg}}}, \qquad
+\frac{(\mathbf W\boldsymbol r)\_g}{W\_{gg}} =r_g-\mathbf
+V\_{g,-g}\mathbf V\_{-g,-g}^{-1}\boldsymbol r\_{-g}, \qquad
+\frac{1}{W\_{gg}}=\operatorname{Var}(y_g\mid\boldsymbol y\_{-g}).
+\tag{40}
+
+- **What it measures.** (\mathbf W\boldsymbol r)\_g/W\_{gg} is the
+  residual of gene g after its regression on all other genes, and
+  1/W\_{gg} is the variance of that residual (Schur complement). The
+  part of a discrepancy that gene g shares with correlated genes is
+  removed.
+- **Its law.** \operatorname{Var}\mathbf W\boldsymbol r=\mathbf W, so
+  z_g\sim\mathcal N(0,1) under [Equation 39](#eq-fs-mv-model) with known
+  parameters.
+- **Module statistic.** S_M=\sum\_{g\in M}z_g has the exact variance
+  \mathbf 1^\top\mathbf C_M\mathbf 1, with \mathbf C=\mathbf
+  D^{-1/2}\mathbf W\mathbf D^{-1/2} and \mathbf
+  D=\operatorname{diag}\mathbf W. No dependency graph and no colouring
+  are needed.
+- **Thresholds.** Gaussian thresholds, \pm z\_{1-\alpha/2}. The NB
+  Chernoff statements do not carry over, because the model is Gaussian.
+- **Robust scale.** As in [Equation 38](#eq-fs-neff), z_g is divided by
+  \sqrt{\hat\kappa}, with
+  \hat\kappa=\operatorname{median}\_gz_g^{2}/q\_{0.5}. This is a
+  median-based \hat\phi_i, which the genes under test do not set.
+
+**Power against the diagonal statistic.** The diagonal statistic
+r_g/\sqrt{V\_{gg}} ignores the other genes.
+
+- **A defect in one gene.** Shift gene g by k marginal standard
+  deviations. The conditional statistic moves by k\sqrt{V\_{gg}W\_{gg}},
+  the diagonal one by k. Always V\_{gg}W\_{gg}=1/(1-R_g^{2})\ge1, with
+  R_g^{2} the squared multiple correlation of gene g on the other genes;
+  equality holds only for a gene uncorrelated with all others. So
+  against a defect of one gene, the conditional test is at least as
+  powerful whatever the sign of the correlations. The gain grows with
+  R_g^{2}.
+- **A defect shared by correlated genes.** Shift two genes of
+  correlation \rho\>0 (unit variances) by k each. Each conditional
+  statistic moves by k\sqrt{(1-\rho)/(1+\rho)}\<k: the shift is
+  explained by the neighbour and partly removed. The two module sums
+  move by the same \sqrt2\\k/\sqrt{1+\rho}.
+- **Consequence.** The gene statistic of [Equation 40](#eq-fs-mv-gene)
+  targets defects specific to a gene. A shift common to a correlated
+  module, such as a platform effect shared by a pathway, is better seen
+  in the module sum or in the diagonal statistic.
+
+**No gene-wise ratio.** [Equation 39](#eq-fs-mv-model) has no gene-wise
+platform ratio, and the test uses none.
+
+- A ratio \tilde b_g\ne1 is a mean shift of one gene, which this test
+  sees at full power.
+- \phi_i absorbs only a dispersion common to all genes.
+- With one sample, a free gene-wise ratio is not identified
+  ([Section 4.2.4](#sec-fs-platform-ratio), identifiability).
+
+The test therefore asks whether a gene departs from the deconvolution
+model as fitted, platform effects included. It does not ask whether the
+gene departs after a platform correction.
+
+**What is ignored.**
+
+- \hat{\boldsymbol p}\_i, \hat c_i and \hat\phi_i are fitted to the same
+  sample.
+- \boldsymbol\Sigma_j is a regularised estimate.
+- The Gaussian law of \boldsymbol y_i is an approximation for a sum of
+  many cells.
+
+As in [Section 4.2.3](#sec-fs-plugin), every threshold is conditional on
+these plug-ins.
 
 ## 5 Tier (iv): down-weighting by the model
 
@@ -2050,7 +2214,7 @@ s(p)\bigr) with s(p)=p^2+(1-p)^2, and the Fisher information for p is
 
 I_g(p) = \frac{\Delta_g^{2}}{s(p)} +
 \frac12\Bigl(\frac{s'(p)}{s(p)}\Bigr)^{2}, \qquad
-\Delta_g=\frac{\mu\_{g1}-\mu\_{g2}}{\sigma_g}. \tag{36}
+\Delta_g=\frac{\mu\_{g1}-\mu\_{g2}}{\sigma_g}. \tag{41}
 
 The second term is the same for every gene, so I_g(p) is affine in
 \Delta_g^2 with a positive slope. Computed on the scale of the model,
@@ -2111,11 +2275,11 @@ conditioning in the (J-1)-dimensional contrast space induced by
 \kappa_2\bigl(\boldsymbol{T}\_{\mathcal{G}}^{-1/2}\boldsymbol{\mu}\_{\mathcal{G}}\boldsymbol{K}\bigr),
 \qquad
 \boldsymbol{T}\_{\mathcal{G}}=\operatorname{diag}(\tau_g^2)\_{g\in\mathcal{G}},
-\tag{37}
+\tag{42}
 
 where the J\times(J-1) matrix \boldsymbol{K} has orthonormal columns
 orthogonal to \mathbf{1}. Unweighted \kappa_2 can favour quiet but
-biased genes. [Equation 37](#eq-weighted-kappa) is the square root of
+biased genes. [Equation 42](#eq-weighted-kappa) is the square root of
 the condition number of the information of
 [Section 7.4.4](#sec-optimal-design) with a diagonal covariance, so it
 still misses the covariance-only regime in which DeCovarT identifies
@@ -2140,7 +2304,7 @@ reading)
 H^{\mathrm{vN}}\_g =-\sum\_{h=1}^{J}\tilde\lambda_h\log\tilde\lambda_h
 =\log J-\frac1J\sum\_{h=1}^{J}\lambda_h\log\lambda_h, \qquad
 \tilde\lambda_h=\frac{\lambda_h}{\operatorname{tr}\boldsymbol{R}\_g}=\frac{\lambda_h}{J},
-\tag{38}
+\tag{43}
 
 with 0\log0=0. The superscript separates it from the specificity entropy
 H_g of [Equation 1](#eq-gini). The \tilde\lambda_h form a probability
@@ -2162,7 +2326,7 @@ and
 With \overline{\rho^{2}}\_g the mean squared off-diagonal correlation,
 
 H^{\mathrm{vN}}\_g\\\ge\\\log\frac{J}{1+(J-1)\\\overline{\rho^{2}}\_g}.
-\tag{39}
+\tag{44}
 
 Small correlations force a high entropy. A low entropy therefore
 requires large correlations on average.
@@ -2189,7 +2353,7 @@ between-donor covariance \boldsymbol{\Sigma}\_{B,j} of
 [2.1](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#sec-one-replicate),
 extended across types (our remark). The covariance DeCovarT does model
 is the within-type covariance across genes. The analogue is then the
-entropy [Equation 38](#eq-fs-vn-entropy) of the
+entropy [Equation 43](#eq-fs-vn-entropy) of the
 \|\mathcal{G}\|\times\|\mathcal{G}\| within-type correlation
 \boldsymbol{R}\_j of \widehat{\boldsymbol{\Sigma}}\_{W,j} restricted to
 the panel, with J replaced by \|\mathcal{G}\| (our remark). Its
@@ -2254,7 +2418,7 @@ I\_{\mathcal{G}}(\boldsymbol{p}) \\ \text{(robust D)}, \qquad
 \text{(E)}, \qquad
 \min\_{\mathcal{G}}\max\_{\boldsymbol{p}\in\mathcal{P}}
 \operatorname{tr}I\_{\mathcal{G}}(\boldsymbol{p})^{-1} \\ \text{(A)}.
-\tag{40}
+\tag{45}
 
 D-optimality shrinks the volume of the confidence ellipsoid for
 \hat{\boldsymbol{p}} and can leave one weak contrast; E-optimality
@@ -2278,7 +2442,7 @@ depend on \boldsymbol{p} and
 
 I\_{\mathcal{G}} =
 n_i\\\boldsymbol{K}^{\top}\boldsymbol{M}\_{\mathcal{G}}^{\top}\boldsymbol{\Sigma}\_W^{-1}\boldsymbol{M}\_{\mathcal{G}}\boldsymbol{K},
-\tag{41}
+\tag{46}
 
 with \boldsymbol{M}\_{\mathcal{G}} the \|\mathcal{G}\|\times J matrix of
 type means. If \boldsymbol{\Sigma}\_W=\boldsymbol{I},
@@ -2347,7 +2511,7 @@ via `mco::nsga2()`, with genes encoded as a mask in
 
 > **Note 5: A third objective specific to DeCovarT (proposal)**
 >
-> The robust D- or E-criterion of [Equation 40](#eq-optimal-design) is a
+> The robust D- or E-criterion of [Equation 45](#eq-optimal-design) is a
 > third objective, best used to choose among non-dominated panels. The
 > two kinds of criteria need not agree: overlap measures how well the
 > type laws can be told apart, Fisher information how well
@@ -2413,7 +2577,9 @@ criteria of [Section 7.4](#sec-fs-multivariate). CardamomOT makes the
 same point about its own input: the selected gene set acts as prior
 information (Maugé & Ventre 2026, p. 27).
 
-## 8 Appendix: concentration results in MEAD and DECALS
+## 8 Appendix
+
+### 8.1 Concentration results in MEAD and DECALS
 
 **MEAD.** MEAD’s asymptotics are of another kind than those of
 [Section 4.2.1](#sec-fs-five-bounds). Its central limit theorem runs
@@ -2425,6 +2591,23 @@ is “Theorem 2.7 of Chen and Shao” (Lemma S4, supplement pp. S16–S17, PDF
 pp. 46–47) (Chen & Shao 2004) TODO-cite: Chen & Shao 2004, Normal
 approximation under local dependence, Ann. Probab. 32(3A):1985-2028; no
 key in the bibs.
+
+**deMixSC and ReDeconv.** Neither paper gives an interval or a tail
+result for its composition estimate.
+
+- deMixSC fits iterated weighted NNLS ([Guo et al.
+  2023](#ref-guoDeMixSCDeconvolutionFramework2023), Eq. 4, PDF p. 12).
+- ReDeconv maximises a Gaussian likelihood with mean \sum_tf_t\mu\_{it}
+  and variance c\sum_tf_t\sigma^{2}\_{it}, where f_t=ck_t ([Lu et al.
+  2025](#ref-luTranscriptomeSizeMatters2025), Eq. 5, p. 14). This is the
+  diagonal of [Equation 39](#eq-fs-mv-model), with the variance scale
+  tied to the mean scale.
+
+A filter that uses either one as a plug-in therefore conditions on
+\hat{oldsymbol p} ([Section 4.2.3](#sec-fs-plugin)). DECALS’s sandwich
+is the available route to a variance of \hat{oldsymbol p} ([Cai et al.
+2024](#ref-caiStatisticalInferenceCelltype2024), Theorem 1, supplement
+p. 22), but it is written for its unweighted least-squares estimator.
 
 > **Lemma 1 (Normal approximation under local dependence)**
 >
@@ -2488,7 +2671,7 @@ to be checked.
 > \mathbb{P}\Bigl(\sum\_{g\in M}Y_g\ge t\Bigr) \le
 > \bar\chi_G\exp\Bigl\[-\gamma\min\Bigl\\\frac{t^{2}}{\bar\chi_G^{2}\sum\_{g}\lVert
 > Y_g\rVert\_{\psi_1}^{2}},\\ \frac{t}{\bar\chi_G\max_g\lVert
-> Y_g\rVert\_{\psi_1}}\Bigr\\\Bigr\]. \tag{42}
+> Y_g\rVert\_{\psi_1}}\Bigr\\\Bigr\]. \tag{47}
 >
 > With no edge, d\_{\max}=0, \lvert\mathcal{E}\rvert=0 and \bar\chi_G=1:
 > the one-sided form of [Equation 16](#eq-fs-bernstein) (our remark). A

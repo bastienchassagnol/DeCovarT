@@ -107,7 +107,21 @@
 > graph \mathcal{G} with edge set E; d is its maximum degree. K is the
 > number of cross-validation folds; \alpha an FDR level; \gamma the EBIC
 > parameter. \circ is the elementwise product and e^{\boldsymbol{A}} an
-> elementwise exponential.
+> elementwise exponential. In the factor model, H_j is the number of
+> factors of type j (H when shared), \boldsymbol{B}\_j the G\times H_j
+> loadings (not the platform ratio \tilde{\boldsymbol{B}}),
+> \boldsymbol{B}(\boldsymbol{p}) their mixture, \boldsymbol{\Psi}\_j the
+> diagonal uniquenesses (not the dispersion \psi_g nor the loss \Psi of
+> [Theorem 1](#thm-uacv)), \boldsymbol{f}\_c the factor scores of cell
+> c, \boldsymbol{e}\_c a standardised cell,
+> \boldsymbol{M}\_j=\mathbf{I}+\boldsymbol{B}\_j^{\top}\boldsymbol{\Psi}\_j^{-1}\boldsymbol{B}\_j
+> and \boldsymbol{O} an orthogonal matrix. \boldsymbol{E}\_j,
+> \boldsymbol{E}(\boldsymbol{p}) and \zeta are defined in
+> [Eq. 17](#eq-cov-size-axis). \bar{\boldsymbol{R}} is the pooled
+> within-type correlation of one time and \beta its weight; \mathcal{I}
+> the bulk replicates of one time × condition; \ell^{\mathrm{bulk}}\_i
+> the profile log-likelihood of bulk i. \boldsymbol{Y} and
+> \boldsymbol{P} stack the bulks and their compositions.
 
 ## Introduction
 
@@ -116,16 +130,20 @@ reference, and how it is estimated. The target is the within-type
 covariance \boldsymbol{\Sigma}\_{W,j} that enters the likelihood, not a
 biologically interpretable gene regulatory network. The plug-in is the
 linear shrinkage of the empirical covariance
-([Sec. 2.1](#sec-cov-shrinkage)). Four alternatives are kept as
+([Sec. 2.1](#sec-cov-shrinkage)). Seven alternatives are kept as
 **sensitivity analyses** of that choice: three sparse-precision
 estimators (graphical lasso, `SILGGM` support with a refit,
-`PLNnetwork`) and a denoised version of the shrinkage
-([Sec. 1.1](#sec-raw-vs-denoised)). All five are scored by the same
-nested cross-validation ([Sec. 4.1](#sec-cov-cv)), and their effect on
-the proportions is measured in the misspecification sweep of the
-reproducibility book. The application to the Suppinger gastruloid
-reference (gene panel, cell counts, solver settings, outputs) is in the
-[covariance chapter of the reproducibility
+`PLNnetwork`), a denoised version of the shrinkage
+([Sec. 1.1](#sec-raw-vs-denoised)), a two-parameter shrinkage towards
+the pooled within-type correlation
+([Sec. 4.1.1](#sec-cov-bulk-selection)) and Gaussian factor analysis per
+type or with shared loadings ([Sec. 2.2](#sec-cov-factor)). All eight
+are scored by the same nested cross-validation
+([Sec. 4.1](#sec-cov-cv)), and their effect on the proportions is
+measured in the misspecification sweep of the reproducibility book. The
+application to the Suppinger gastruloid reference (gene panel, cell
+counts, solver settings, outputs) is in the [covariance chapter of the
+reproducibility
 book](https://github.com/bastienchassagnol/DeCovarT_reproducibility/blob/main/docs/03-covariance-estimation.qmd).
 
 > **Note 1: Why a regularised covariance rather than a sparse
@@ -211,15 +229,21 @@ book](https://github.com/bastienchassagnol/DeCovarT_reproducibility/blob/main/do
 |----|----|----|----|----|----|
 | Shrinkage, target D ([Sec. 2.1](#sec-cov-shrinkage)) | plug-in | raw per-cell counts | \lambda\in\[0,1\]; closed-form \hat\lambda^{\ast} as start | dense \widehat{\boldsymbol{\Sigma}}\_j, variances kept | none |
 | Denoised shrinkage ([Sec. 1.1](#sec-raw-vs-denoised)) | sensitivity | raw counts, moment-corrected | \lambda; \kappa bracketed, not tuned | dense \widehat{\boldsymbol{\Sigma}}^{\mathrm{bio}}\_j | none |
+| Two-parameter shrinkage ([Sec. 4.1.1](#sec-cov-bulk-selection)) | sensitivity | correlation \boldsymbol{R}\_j of the raw counts and the pooled within-type correlation \bar{\boldsymbol{R}} of the time | pooling weight \beta and level \lambda | dense \boldsymbol{\Delta}\_j^{1/2}\bigl\[(1-\lambda)\\(1-\beta)\boldsymbol{R}\_j+\beta\bar{\boldsymbol{R}}\\+\lambda\mathbf{I}\bigr\]\boldsymbol{\Delta}\_j^{1/2} | none |
+| Gaussian factor analysis, per type ([Sec. 2.2](#sec-cov-factor)) | sensitivity | correlation \boldsymbol{R}\_j of the raw counts | rank H_j | \boldsymbol{\Delta}\_j^{1/2}(\boldsymbol{B}\_j\boldsymbol{B}\_j^{\top}+\boldsymbol{\Psi}\_j)\boldsymbol{\Delta}\_j^{1/2} ([Eq. 13](#eq-cov-fa-model)) | none |
+| Gaussian factor analysis, shared loadings ([Sec. 2.2](#sec-cov-factor)) | sensitivity | correlations \boldsymbol{R}\_1,\dots,\boldsymbol{R}\_J of one time | rank H, one per time | \boldsymbol{\Delta}\_j^{1/2}(\boldsymbol{B}\boldsymbol{B}^{\top}+\boldsymbol{\Psi}\_j)\boldsymbol{\Delta}\_j^{1/2} | none |
 | Graphical lasso, unpenalised diagonal ([Sec. 3.1](#sec-cov-glasso)) | sensitivity | correlation \boldsymbol{R}\_j of the counts | \lambda | \boldsymbol{\Delta}\_j^{1/2}\widehat{\boldsymbol{\Sigma}}\_{R}\boldsymbol{\Delta}\_j^{1/2} | support of \widehat{\boldsymbol{\Omega}}\_j |
 | `SILGGM` after the nonparanormal map ([Sec. 3.2](#sec-cov-npn)) | sensitivity | nonparanormal scores | FDR level \alpha | linear-scale refit under the zeros of the support | FDR-controlled support |
-| `PLNnetwork` ([Sec. 3.3](#sec-cov-pln)) | sensitivity | raw UMIs, offset \log s_c | \lambda | linear moments of the latent (\boldsymbol{\mu}\_z,\boldsymbol{\Sigma}\_z) ([Eq. 17](#eq-pln-linear)) | support of the latent precision |
+| `PLNnetwork` ([Sec. 3.3](#sec-cov-pln)) | sensitivity | raw UMIs, offset \log s_c | \lambda | linear moments of the latent (\boldsymbol{\mu}\_z,\boldsymbol{\Sigma}\_z) ([Eq. 22](#eq-pln-linear)) | support of the latent precision |
 
-Table 1: Five estimators of the within-type covariance. The three sparse
-estimators target *direct* interactions (non-zero partial correlations);
-the two shrinkage estimators keep direct and indirect associations. Each
-has one tuned parameter, chosen by the criterion of
-[Sec. 4.1](#sec-cov-cv).
+Table 1: Eight estimators of the within-type covariance. The three
+sparse estimators target *direct* interactions (non-zero partial
+correlations); the three shrinkage estimators keep direct and indirect
+associations; the two factor models keep a few shared directions of
+correlation and set the rest to zero. The two-parameter shrinkage has
+two tuned parameters, every other estimator one, chosen on held-out
+cells ([Sec. 4.1](#sec-cov-cv)) or by the bulk likelihood
+([Sec. 4.1.1](#sec-cov-bulk-selection)).
 
 ### Which covariance: raw or denoised
 
@@ -546,7 +570,7 @@ all cell-level size variation, biological size included, as scVI’s
 library factor does
 ([scVI](https://bastienchassagnol.github.io/DeCovarT/articles/05-1-review-distribution-aware.html#sec-batch-methods)).
 The linear-moment map decides what is put back.
-[Eq. 18](#eq-pln-linear-avg) without its Poisson term \bar
+[Eq. 23](#eq-pln-linear-avg) without its Poisson term \bar
 s\operatorname{diag}(\boldsymbol{m}) is the \kappa=0 end; holding s_c at
 \bar s is the other end. The correspondence is approximate, because the
 offset is the observed library, which carries Poisson noise and the
@@ -571,7 +595,7 @@ estimate exist when C_j\le G ([Table 3](#tbl-cov-existence)).
 | Linear shrinkage | (1-\lambda)\boldsymbol{V}\_j+\lambda\boldsymbol{T}, \lambda\in(0,1\]; Ledoit–Wolf \boldsymbol{T}=(\operatorname{tr}\boldsymbol{V}\_j/G)\mathbf{I}, Schäfer–Strimmer \boldsymbol{T}=\boldsymbol{\Delta}\_j | C_j\ge2, \boldsymbol{T}\succ0 and \lambda\>0 |
 | Condition-number constraint | maximum likelihood subject to \operatorname{cond}(\boldsymbol{\Sigma})\le a bound; the eigenvalues of \boldsymbol{V}\_j are clipped to an interval with that ratio | C_j\ge2, \boldsymbol{V}\_j\neq\boldsymbol{0} (our reading for an estimated mean) |
 | Structured \boldsymbol{\Sigma} | factor plus diagonal, banded, or linear in known matrices | \operatorname{rank}\boldsymbol{V}\_j=G in the result we read; below that, per structure |
-| Graphical lasso | [Eq. 13](#eq-glasso) | C_j\ge2, V\_{gg}\>0, \lambda\>0, unpenalised diagonal |
+| Graphical lasso | [Eq. 18](#eq-glasso) | C_j\ge2, V\_{gg}\>0, \lambda\>0, unpenalised diagonal |
 
 Table 3: When each covariance estimator of type j is well defined.
 
@@ -741,6 +765,185 @@ uses raw per-cell counts ([Sec. 1.1.5](#sec-cov-normalisation)); the
 denoised arm applies the same target to the projected denoised matrix
 ([Sec. 1.1.6](#sec-cov-preprocessing)).
 
+### Gaussian factor analysis
+
+Target D multiplies every correlation by the same 1-\lambda. A factor
+model keeps a few directions of shared variation and sets the rest of
+the correlation to zero. It is fitted on the correlation scale, so it
+keeps the sample variances, as target D does. The runs, grids and
+results are in the [reproducibility book, covariance
+estimation](https://github.com/bastienchassagnol/DeCovarT_reproducibility/blob/main/docs/03-covariance-estimation.qmd).
+
+#### Model and marginal covariance
+
+Standardise cell c of type j by the sample mean and variances,
+\boldsymbol{e}\_c=\boldsymbol{\Delta}\_j^{-1/2}(\boldsymbol{x}\_{\cdot
+c}-\tilde{\boldsymbol{\mu}}\_{\cdot j}). With H_j factors,
+
+\boldsymbol{f}\_c\sim\mathcal{N}\_{H_j}(\mathbf{0},\mathbf{I}), \qquad
+\boldsymbol{e}\_c\mid\boldsymbol{f}\_c\sim\mathcal{N}\_G(\boldsymbol{B}\_j\boldsymbol{f}\_c,\boldsymbol{\Psi}\_j)
+\quad\Longrightarrow\quad \widehat{\boldsymbol{\Sigma}}\_j
+=\boldsymbol{\Delta}\_j^{1/2}\bigl(\boldsymbol{B}\_j\boldsymbol{B}\_j^{\top}+\boldsymbol{\Psi}\_j\bigr)\boldsymbol{\Delta}\_j^{1/2},
+\tag{13}
+
+with \boldsymbol{B}\_j the G\times H_j loadings and \boldsymbol{\Psi}\_j
+the diagonal matrix of uniquenesses. The factor scores \boldsymbol{f}\_c
+are integrated out: DeCovarT uses only the marginal covariance. H_j=0
+gives the diagonal model \boldsymbol{\Delta}\_j; isotropic uniquenesses
+give probabilistic PCA TODO-cite: Murphy 2012, Machine Learning: A
+Probabilistic Perspective, MIT Press; ch. 12, sec. 12.1, eqs. 12.1–12.4,
+p. 381.
+
+#### Fit by EM
+
+Write
+\boldsymbol{M}\_j=\mathbf{I}\_{H_j}+\boldsymbol{B}\_j^{\top}\boldsymbol{\Psi}\_j^{-1}\boldsymbol{B}\_j.
+The E step gives the posterior of each score,
+\boldsymbol{f}\_c\mid\boldsymbol{e}\_c\sim\mathcal{N}\_{H_j}(\hat{\boldsymbol{f}}\_c,\boldsymbol{M}\_j^{-1})
+with
+\hat{\boldsymbol{f}}\_c=\boldsymbol{M}\_j^{-1}\boldsymbol{B}\_j^{\top}\boldsymbol{\Psi}\_j^{-1}\boldsymbol{e}\_c.
+The M step is
+
+\boldsymbol{B}\_j\leftarrow
+\Bigl(\sum\_{c}\boldsymbol{e}\_c\hat{\boldsymbol{f}}\_c^{\top}\Bigr)
+\Bigl\\(C_j-1)\boldsymbol{M}\_j^{-1}+\sum\_{c}\hat{\boldsymbol{f}}\_c\hat{\boldsymbol{f}}\_c^{\top}\Bigr\\^{-1},
+\qquad \boldsymbol{\Psi}\_j\leftarrow
+\frac{1}{C_j-1}\operatorname{diag}\Bigl\\\sum\_{c}\bigl(\boldsymbol{e}\_c-\boldsymbol{B}\_j\hat{\boldsymbol{f}}\_c\bigr)\boldsymbol{e}\_c^{\top}\Bigr\\,
+\tag{14}
+
+the second with the updated \boldsymbol{B}\_j; the sums run over the C_j
+cells. Since
+\sum_c\boldsymbol{e}\_c\boldsymbol{e}\_c^{\top}=(C_j-1)\boldsymbol{R}\_j,
+these are the EM updates of a single factor analyser fitted to
+\boldsymbol{R}\_j, with the mean held at the sample mean TODO-cite:
+Murphy 2012, Machine Learning: A Probabilistic Perspective, MIT Press;
+ch. 12, sec. 12.1.5, eqs. 12.19–12.20, p. 386, and eqs. 12.23–12.24,
+p. 387. Only C_j\times H_j and G\times H_j products enter, so the
+G\times G correlation is never formed.
+
+At a fixed point with no uniqueness at its floor, the braced matrix
+equals (C_j-1)\mathbf{I} and
+\boldsymbol{\Psi}\_j=\operatorname{diag}(\boldsymbol{R}\_j-\boldsymbol{B}\_j\boldsymbol{B}\_j^{\top}):
+multiply the first update on the left by
+\boldsymbol{M}\_j^{-1}\boldsymbol{B}\_j^{\top}\boldsymbol{\Psi}\_j^{-1}
+and use
+\boldsymbol{M}\_j^{-1}\boldsymbol{B}\_j^{\top}\boldsymbol{\Psi}\_j^{-1}\boldsymbol{B}\_j=\mathbf{I}-\boldsymbol{M}\_j^{-1}.
+The diagonal of
+\boldsymbol{B}\_j\boldsymbol{B}\_j^{\top}+\boldsymbol{\Psi}\_j is then
+one, and \widehat{\boldsymbol{\Sigma}}\_j keeps the sample variances. In
+the reproducibility runs EM starts from the probabilistic PCA solution,
+stops after 200 steps, and floors the uniquenesses at 0.01.
+
+#### Held-out score through the Woodbury identity
+
+The Woodbury identity and the matrix determinant lemma,
+
+(\boldsymbol{B}\_j\boldsymbol{B}\_j^{\top}+\boldsymbol{\Psi}\_j)^{-1}
+=\boldsymbol{\Psi}\_j^{-1}-\boldsymbol{\Psi}\_j^{-1}\boldsymbol{B}\_j\boldsymbol{M}\_j^{-1}\boldsymbol{B}\_j^{\top}\boldsymbol{\Psi}\_j^{-1},
+\qquad
+\det(\boldsymbol{B}\_j\boldsymbol{B}\_j^{\top}+\boldsymbol{\Psi}\_j)=\det\boldsymbol{\Psi}\_j\\\det\boldsymbol{M}\_j,
+\tag{15}
+
+give the log-density of a cell without a G\times G matrix. For a
+held-out cell, standardised with the training means and variances,
+
+\log\phi_G\bigl(\boldsymbol{x}\_{\cdot
+c};\tilde{\boldsymbol{\mu}}\_{\cdot
+j},\widehat{\boldsymbol{\Sigma}}\_j\bigr)
+=-\frac12\Bigl\[G\log2\pi+\log\det\boldsymbol{\Delta}\_j+\log\det\boldsymbol{\Psi}\_j+\log\det\boldsymbol{M}\_j
++\boldsymbol{e}\_c^{\top}\boldsymbol{\Psi}\_j^{-1}\boldsymbol{e}\_c
+-\hat{\boldsymbol{f}}\_c^{\top}\boldsymbol{M}\_j\hat{\boldsymbol{f}}\_c\Bigr\],
+\tag{16}
+
+the term of [Eq. 24](#eq-heldout-loglik). A fit costs O(GH_j^2+H_j^3)
+operations and each held-out cell O(GH_j).
+
+#### Number of parameters
+
+A factor model on G genes has G+H_jG-H_j(H_j-1)/2 free covariance
+parameters: the G uniquenesses, equivalently the variances, and the
+loadings up to rotation, since \boldsymbol{B}\_j\boldsymbol{O} gives the
+same covariance for every orthogonal \boldsymbol{O} TODO-cite: Murphy
+2012, Machine Learning: A Probabilistic Perspective, MIT Press; ch. 12,
+sec. 12.1.3, eqs. 12.10–12.12, pp. 383–384. The count must not exceed
+the G(G+1)/2 entries of a covariance. In the runs a rank is fitted only
+if it meets that bound, H_j\le C_j-2, and H_j is at most the rank of the
+training correlation. The grid is H_j\in\\0,1,2,3,5,8,12,20,30\\.
+
+#### Per-type or shared loadings
+
+The per-type model fits [Eq. 13](#eq-cov-fa-model) to each type. The
+shared model fits
+\boldsymbol{R}\_j\approx\boldsymbol{B}\boldsymbol{B}^{\top}+\boldsymbol{\Psi}\_j:
+the J types of one time share the loadings and keep their own
+uniquenesses, with JG+HG-H(H-1)/2 free parameters. Its M step is solved
+gene by gene: row g of \boldsymbol{B} is a least-squares fit pooled over
+the types, each weighted by 1/(\boldsymbol{\Psi}\_j)\_{gg}; the runs
+stop after 100 steps. The loadings are shared on the correlation scale
+only. On counts they are \boldsymbol{\Delta}\_j^{1/2}\boldsymbol{B}, so
+the types still differ through their variances. Shared loadings lend the
+axes of abundant types to rare ones, as the pooled correlation
+\bar{\boldsymbol{R}} does for the two-parameter shrinkage
+([Sec. 4.1.1](#sec-cov-bulk-selection)). Their rank is one per time,
+H\in\\0,1,2,3,5,8,12,20\\.
+
+#### The first factor on raw counts is the cell-size axis
+
+On raw counts the leading factor need not be a programme of co-regulated
+genes. [Eq. 6](#eq-raw-decomposition) carries the technical size term
+\nu^{\mathrm{tech}}\tilde{\boldsymbol{\mu}}\_{\cdot
+j}\tilde{\boldsymbol{\mu}}\_{\cdot j}^{\top}, and a biological cell size
+adds a term in the same direction. On the correlation scale this term
+has rank one, along the standardised mean
+\boldsymbol{\Delta}\_j^{-1/2}\tilde{\boldsymbol{\mu}}\_{\cdot j}. When
+it dominates the shared variation, a rank-1 fit puts its loading there.
+In the gastruloid atlas, on raw counts, the leading loading of the 48 h
+epiblast has a cosine of 0.99 with its standardised mean profile
+([reproducibility book, factor
+arm](https://github.com/bastienchassagnol/DeCovarT_reproducibility/blob/main/docs/04-deconvolution-pipeline.qmd)).
+
+That direction is the one that informs the bulk mean scale c_i. Suppose
+every type has
+\boldsymbol{\Sigma}\_{W,j}=\boldsymbol{E}\_j+\nu\\\tilde{\boldsymbol{\mu}}\_{\cdot
+j}\tilde{\boldsymbol{\mu}}\_{\cdot j}^{\top}, with \boldsymbol{E}\_j
+positive definite and \nu, the squared coefficient of variation of the
+size factor, common to the types. At a composition \boldsymbol{p} the
+mixture keeps the rank-one term, and the Sherman–Morrison identity gives
+its weight:
+
+\begin{aligned} \boldsymbol{S}\_W(\boldsymbol{p})
+&=\boldsymbol{E}(\boldsymbol{p})+\nu\\(\tilde{\boldsymbol{\mu}}\boldsymbol{p})(\tilde{\boldsymbol{\mu}}\boldsymbol{p})^{\top},
+\qquad
+\boldsymbol{E}(\boldsymbol{p})=\sum_jp_j\bigl\\\boldsymbol{E}\_j+\nu(\tilde{\boldsymbol{\mu}}\_{\cdot
+j}-\tilde{\boldsymbol{\mu}}\boldsymbol{p})(\tilde{\boldsymbol{\mu}}\_{\cdot
+j}-\tilde{\boldsymbol{\mu}}\boldsymbol{p})^{\top}\bigr\\,\\
+(\tilde{\boldsymbol{\mu}}\boldsymbol{p})^{\top}\boldsymbol{S}\_W(\boldsymbol{p})^{-1}\tilde{\boldsymbol{\mu}}\boldsymbol{p}
+&=\frac{\zeta}{1+\nu\zeta}, \qquad
+\zeta=(\tilde{\boldsymbol{\mu}}\boldsymbol{p})^{\top}\boldsymbol{E}(\boldsymbol{p})^{-1}\tilde{\boldsymbol{\mu}}\boldsymbol{p}.
+\end{aligned} \tag{17}
+
+At a fixed composition, the generalised least-squares scale \hat c_i of
+the [closed-form
+scales](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#eq-sc-closed-scales)
+has variance \phi_i(1+\nu\zeta)/\zeta=\phi_i(\nu+1/\zeta) under the
+model. More genes raise \zeta, but the variance never falls below
+\phi_i\nu. The covariance declares the overall amplitude of expression a
+direction of large variance, so the likelihood almost ignores the bulk
+along it. The sign of \hat c_i is then set by the part of the bulk
+residual orthogonal to that direction. In the slot examined in the
+reproducibility run, the squared whitened norm of the mixture mean falls
+from 1,735 with the variances alone to 36 with the factor covariance. A
+per-type rank-5 model gives the lowest error of any method at 48 h (RMSE
+0.014) and 72 h (0.010) on the Welch panel, but 0.15 to 0.18 at every
+rank at 96 h, and 29 of 1,044 fits stop with a negative mean scale, all
+in the factor arm (same link). These figures diagnose one slot; the
+other failed slots were not examined.
+
+Shrinkage multiplies the off-diagonal part of the size term by
+1-\lambda; a factor model of rank one or more keeps it whole. Its
+technical part does not reach the bulk, which has no droplets
+([Sec. 1.1.4](#sec-cov-bulk-inherits)).
+
 ## Sparse precision estimators: sensitivity analyses
 
 The three estimators below test the plug-in against the assumption that
@@ -759,7 +962,7 @@ On the correlation \boldsymbol{R}\_j, with
 +\operatorname{tr}(\boldsymbol{R}\_j\boldsymbol{\Omega})
 +\lambda\sum\_{g\neq g'}\|\omega\_{gg'}\|\Bigr\], \qquad
 \widehat{\boldsymbol{\Omega}}\_j=\boldsymbol{\Delta}\_j^{-1/2}\widehat{\boldsymbol{\Omega}}\_{R}\boldsymbol{\Delta}\_j^{-1/2}
-\tag{13}
+\tag{18}
 
 ([Friedman et al. 2008](#ref-friedmanSparseInverseCovariance2008);
 [Mazumder and Hastie 2011](#ref-mazumderGraphicalLassoNew2011)). Working
@@ -771,7 +974,7 @@ has unit diagonal, so the exported
 \widehat{\boldsymbol{\Sigma}}\_j=\boldsymbol{\Delta}\_j^{1/2}\widehat{\boldsymbol{\Sigma}}\_{R}\boldsymbol{\Delta}\_j^{1/2}
 keeps the sample variances exactly. On the selected edges,
 \hat\Sigma\_{R,gg'}=R\_{j,gg'}+\lambda\operatorname{sign}(\hat\omega\_{gg'})
-in the sign convention of [Eq. 13](#eq-glasso); off them,
+in the sign convention of [Eq. 18](#eq-glasso); off them,
 \|\hat\Sigma\_{R,gg'}-R\_{j,gg'}\|\le\lambda.
 
 **Why `glasso` rather than `huge`:** `huge.glasso()` always penalises
@@ -801,7 +1004,7 @@ z\_{gc}=\Phi^{-1}\\\Bigl(\frac{r\_{cg}}{C_j+1}\Bigr),\\
 \text{truncation:}&\quad \tilde
 z\_{gc}=\Phi^{-1}\\\Bigl\[\min\bigl\\1-\delta\_{C_j},\max(\delta\_{C_j},r\_{cg}/C_j)\bigr\\\Bigr\],
 \qquad \delta\_{n}=\frac{1}{4n^{1/4}\sqrt{\pi\log n}} . \end{aligned}
-\tag{14}
+\tag{19}
 
 Shrinkage is preferred. It moves each probability by at most 1/(C_j+1)
 and keeps every rank distinct. Truncation gives all ranks beyond
@@ -823,7 +1026,7 @@ step on the unpenalised score removes that bias,
 \check{\boldsymbol{\Omega}}
 =2\widehat{\boldsymbol{\Omega}}-\widehat{\boldsymbol{\Omega}}\boldsymbol{R}\_j^{\mathrm{npn}}\widehat{\boldsymbol{\Omega}}
 =\widehat{\boldsymbol{\Omega}}+\lambda\widehat{\boldsymbol{\Omega}}\widehat{\boldsymbol{Z}}\widehat{\boldsymbol{\Omega}},
-\tag{15}
+\tag{20}
 
 and \sqrt{C_j}(\check\omega\_{gg'}-\omega\_{gg'}) is asymptotically
 \mathcal{N}(0,\omega\_{gg}\omega\_{g'g'}+\omega\_{gg'}^{2}) under
@@ -858,7 +1061,7 @@ covariance ([Chiquet et al.
 \boldsymbol{z}\_{\cdot
 c}\sim\mathcal{N}\_G(\boldsymbol{\mu}\_z,\boldsymbol{\Sigma}\_z), \qquad
 x\_{gc}\mid\boldsymbol{z}\_{\cdot
-c}\sim\mathcal{P}\bigl(s_c\\e^{z\_{gc}}\bigr), \tag{16}
+c}\sim\mathcal{P}\bigl(s_c\\e^{z\_{gc}}\bigr), \tag{21}
 
 with an \ell_1 penalty on the off-diagonal entries of
 \boldsymbol{\Omega}\_z=\boldsymbol{\Sigma}\_z^{-1} (diagonal
@@ -887,7 +1090,7 @@ al. 2018](#ref-chiquetVariationalInferenceSparse2018)).
 \operatorname{Cov}(\boldsymbol{x}\_{\cdot c}\mid s_c)
 =s_c\operatorname{diag}(\boldsymbol{m})
 +s_c^{2}\\(\boldsymbol{m}\boldsymbol{m}^{\top})\circ\bigl(e^{\boldsymbol{\Sigma}\_z}-\mathbf{1}\mathbf{1}^{\top}\bigr),
-\tag{17}
+\tag{22}
 
 and, averaged over the size factors of the scored cells, with \bar s and
 \overline{s^{2}} their first two moments,
@@ -896,7 +1099,7 @@ and, averaged over the size factors of the scored cells, with \bar s and
 \operatorname{Cov}\boldsymbol{x} =\bar
 s\operatorname{diag}(\boldsymbol{m})
 +(\boldsymbol{m}\boldsymbol{m}^{\top})\circ\bigl(\overline{s^{2}}\\e^{\boldsymbol{\Sigma}\_z}-\bar
-s^{2}\\\mathbf{1}\mathbf{1}^{\top}\bigr). \tag{18}
+s^{2}\\\mathbf{1}\mathbf{1}^{\top}\bigr). \tag{23}
 
 The variance of s_c adds the rank-one term
 \operatorname{Var}(s)\\\boldsymbol{m}\boldsymbol{m}^{\top}: depth
@@ -920,10 +1123,12 @@ from the spread of s_c); the Poisson term adds to the diagonal only.
 ### Cross-validation of the Gaussian log-score
 
 Each estimator of [Table 1](#tbl-cov-estimators) has one tuned
-parameter: \lambda for both shrinkages (searched around
-\hat\lambda^{\ast}), \lambda for the graphical lasso, \alpha for
-`SILGGM`, \lambda for `PLNnetwork`. All five are tuned by the same
-score.
+parameter, except the two-parameter shrinkage: \lambda for the shrinkage
+and the denoised shrinkage (searched around \hat\lambda^{\ast}), the
+pair (\beta,\lambda) for the two-parameter shrinkage, the rank H_j for
+per-type factor analysis and H for shared loadings, \lambda for the
+graphical lasso, \alpha for `SILGGM`, \lambda for `PLNnetwork`. All
+eight are tuned by the same score.
 
 **Score.** Split the C_j cells of type j into K folds. Fit
 (\widehat{\boldsymbol{\mu}}^{(-k)},\widehat{\boldsymbol{\Sigma}}^{(-k)})
@@ -932,7 +1137,7 @@ held-out cells by their mean Gaussian log-density,
 
 \ell^{(k)} =-\frac12\Bigl\[\log\det\widehat{\boldsymbol{\Sigma}}^{(-k)}
 +\operatorname{tr}\bigl\\(\widehat{\boldsymbol{\Sigma}}^{(-k)})^{-1}\boldsymbol{V}\_{j,k}\bigr\\
-+G\log2\pi\Bigr\], \tag{19}
++G\log2\pi\Bigr\], \tag{24}
 
 with \boldsymbol{V}\_{j,k}=C\_{j,k}^{-1}\sum\_{c\in
 k}(\boldsymbol{x}\_{\cdot
@@ -970,7 +1175,7 @@ the same raw moments up to regularisation; \kappa stays a bracket.
 > =\tfrac12\bigl\\\log\det\boldsymbol{\Sigma}
 > +\operatorname{tr}(\boldsymbol{\Sigma}^{-1}\boldsymbol{\Sigma}^{\ast})
 > +(\boldsymbol{\mu}-\boldsymbol{\mu}^{\ast})^{\top}\boldsymbol{\Sigma}^{-1}(\boldsymbol{\mu}-\boldsymbol{\mu}^{\ast})
-> +G\log2\pi\bigr\\. \tag{20}
+> +G\log2\pi\bigr\\. \tag{25}
 >
 > It is minimised over (\boldsymbol{\mu},\boldsymbol{\Sigma}), uniquely,
 > at (\boldsymbol{\mu}^{\ast},\boldsymbol{\Sigma}^{\ast}).
@@ -1004,11 +1209,11 @@ their paired outer-fold differences, with the diagonal covariance
 >
 > Let \hat{\boldsymbol{\theta}} solve an estimating equation with mean
 > estimating function \Phi, and let \Psi be a mean assessment loss (here
-> minus the log-score of [Eq. 19](#eq-heldout-loglik)). Then the
+> minus the log-score of [Eq. 24](#eq-heldout-loglik)). Then the
 > leave-one-out loss is approximated from the single fit by
 >
 > \mathrm{UACV}=\Psi(\hat{\boldsymbol{\theta}})+\operatorname{tr}\bigl(\boldsymbol{H}\_{\Phi}^{-1}\boldsymbol{U}\bigr),
-> \tag{21}
+> \tag{26}
 >
 > where \boldsymbol{H}\_{\Phi} is the Hessian of the estimating function
 > and \boldsymbol{U} (their \boldsymbol{K}) the mean cross-product of
@@ -1020,8 +1225,77 @@ their paired outer-fold differences, with the diagonal covariance
 > Commenges, Proust-Lima, Samieri & Liquet 2012, arXiv:1206.1753
 
 An \ell_1 penalty is not differentiable at zero. For the graphical lasso
-and `PLNnetwork` we apply [Eq. 21](#eq-uacv) on the active set, with the
+and `PLNnetwork` we apply [Eq. 26](#eq-uacv) on the active set, with the
 support held fixed; that restriction is our reading, not the paper’s.
+
+#### Bulk likelihood or held-out cells
+
+The reproducibility runs compare two selectors of the level. Neither
+reads the observed composition. Below, \lambda stands for the level of
+any arm: \lambda, the pair (\beta,\lambda) or the rank H_j.
+
+**Held-out cells.** The score of [Eq. 24](#eq-heldout-loglik) on the
+cells of one type, with leave-one-out under 100 cells and 5 folds
+otherwise; nested cross-validation compares the arms. The bulks are
+never read.
+
+**Bulk likelihood.** For one time, one condition and one gene panel, the
+level that maximises DeCovarT’s profile log-likelihood summed over the
+three bulk replicates \mathcal{I} of that time × condition,
+
+\hat\lambda=\arg\max\_{\lambda}\sum\_{i\in\mathcal{I}}\max\_{\boldsymbol{p}\_{\cdot
+i}} \ell^{\mathrm{bulk}}\_i(\boldsymbol{p}\_{\cdot i};\lambda), \qquad
+\ell^{\mathrm{bulk}}\_i
+=-\frac{G}{2}\log\hat\phi_i(\boldsymbol{p}\_{\cdot i})
+-\frac12\log\det\boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot i}), \tag{27}
+
+up to a constant, with \boldsymbol{S}\_W built from the level-\lambda
+estimates and \hat c_i, \hat\phi_i profiled in closed form ([closed-form
+scales](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#eq-sc-closed-scales)).
+This selector is the default for the deconvolution. The bulks never
+enter the cell moments \tilde{\boldsymbol{\mu}}\_{\cdot j},
+\boldsymbol{\Delta}\_j and \boldsymbol{R}\_j, so
+[Eq. 27](#eq-cov-bulk-selection) scores each
+\widehat{\boldsymbol{\Sigma}}\_j out of sample: on other specimens,
+another library preparation, and through the convolution that DeCovarT
+evaluates. It is not out of sample for the level itself: one or two
+scalars per time × condition × panel are chosen on the three bulks that
+are then deconvolved, and that selection is not corrected for.
+
+**Why the two disagree.** Held-out cells measure the prediction of new
+cells of the reference specimen ([Sec. 4.1](#sec-cov-cv)). The bulk
+likelihood measures the convolution at the bulk’s own depth, which
+inherits neither the reference sampling noise nor the technical size
+term ([Sec. 1.1.4](#sec-cov-bulk-inherits)). In the gastruloid run,
+held-out cells choose shrinkage levels of 0.84 to 0.97 for every type
+but the 48 h epiblast (0.47). The bulk likelihood chooses 0.5 at 72 h
+and 96 h on the Welch panel; at 96 h the RMSE of the proportions is
+0.034 there, against 0.098 with the per-type held-out levels
+([reproducibility book,
+selection](https://github.com/bastienchassagnol/DeCovarT_reproducibility/blob/main/docs/04-deconvolution-pipeline.qmd)).
+The bulk likelihood ranks the levels of one arm, not the arms: at 96 h
+the two-parameter arm has a higher bulk likelihood than the best
+shrinkage level, and four times its error.
+
+**A grid search.** Each selector evaluates a grid: one-dimensional for
+\lambda or H_j, two-dimensional for the two-parameter arm
+(1-\lambda)\\(1-\beta)\boldsymbol{R}\_j+\beta\bar{\boldsymbol{R}}\\+\lambda\mathbf{I}.
+That arm first moves \boldsymbol{R}\_j towards the pooled within-type
+correlation \bar{\boldsymbol{R}} of the time, then towards \mathbf{I}:
+the regularised discriminant analysis family on the correlation scale
+TODO-cite: Hastie, Tibshirani & Friedman 2009, The Elements of
+Statistical Learning, 2nd ed., Springer; ch. 4, sec. 4.3.1, eqs.
+4.13–4.14, p. 112 TODO-cite: Friedman 1989, Regularized discriminant
+analysis, J. Am. Stat. Assoc. 84:165–175; page to check. Grid search is
+reliable in spaces of one or two dimensions TODO-cite: Bergstra & Bengio
+2012, Random search for hyper-parameter optimization, J. Mach. Learn.
+Res. 13:281–305; p. 283. Held-out cells use 43 shrinkage levels in
+\[10^{-3},1\], \beta\in\\0.25,0.5,0.75\\ and the ranks of
+[Sec. 2.2](#sec-cov-factor). The bulk sweep uses eight shrinkage levels,
+a 3\times3 grid in (\beta,\lambda) and six ranks. For shrinkage, the
+eigenvectors of (1-\lambda)\boldsymbol{R}\_j+\lambda\mathbf{I} do not
+depend on \lambda, so one eigendecomposition of the training correlation
+scores every held-out level.
 
 ### Other criteria and diagnostics
 
@@ -1039,7 +1313,7 @@ selected fit; they need no true graph.
 >
 > | Diagnostic | Question it answers | Computation |
 > |----|----|----|
-> | Held-out log-score; TIC and UACV ([Theorem 1](#thm-uacv)) | Does the fit predict new cells of the specimen? | [Eq. 19](#eq-heldout-loglik) on outer folds; [Eq. 21](#eq-uacv) from one fit |
+> | Held-out log-score; TIC and UACV ([Theorem 1](#thm-uacv)) | Does the fit predict new cells of the specimen? | [Eq. 24](#eq-heldout-loglik) on outer folds; [Eq. 26](#eq-uacv) from one fit |
 > | Condition number and spectrum | How far does the regulariser move the extreme eigenvalues? | eigenvalues of \widehat{\boldsymbol{\Sigma}}\_j against the Marchenko–Pastur band of \boldsymbol{V}\_j ([Eq. 10](#eq-inverse-wishart-bias)) |
 > | Technical stability | Is the estimate reproducible within this specimen? | within-type cell bootstrap, labels fixed: Frobenius and Bures spread of \widehat{\boldsymbol{\Sigma}}\_j, spread of the selected tuning value |
 > | Separation of types | Can DeCovarT tell two types apart? | Kullback–Leibler, Jeffreys, Hellinger and `MixSim` overlap between the exported Gaussians ([Melnykov et al. 2012](#ref-melnykovMixSimPackageSimulating2012), [2024](#ref-R-MixSim)); Bures–Wasserstein ([two-scale transport](https://bastienchassagnol.github.io/DeCovarT/articles/05-1-review-distribution-aware.html#sec-bisque-ot)) |
@@ -1056,7 +1330,7 @@ selected fit; they need no true graph.
 > \boldsymbol{\Sigma}\_{\ell}^{-1}
 > (\boldsymbol{\mu}\_{\cdot\ell}-\boldsymbol{\mu}\_{\cdot j}) -G
 > +\ln\frac{\det\boldsymbol{\Sigma}\_{\ell}}{\det\boldsymbol{\Sigma}\_{j}}
-> \Bigr\], \tag{22}
+> \Bigr\], \tag{28}
 >
 > and Jeffreys’ divergence is its symmetrisation. The bootstrap interval
 > is conditional on this atlas: a biological (multi-organoid) bootstrap
@@ -1190,14 +1464,14 @@ threshold: shrinkage keeps every correlation, damped by 1-\lambda.
 
 On UMI counts the observed covariance is the latent covariance plus a
 diagonal sampling term ([Eq. 6](#eq-raw-decomposition),
-[Eq. 17](#eq-pln-linear)). Every correlation is attenuated, most for
+[Eq. 22](#eq-pln-linear)). Every correlation is attenuated, most for
 lowly expressed genes ([Sarkar and Stephens
 2021](#ref-sarkarSeparatingMeasurementExpression2021); [Chiquet et al.
 2021](#ref-chiquetPoissonLognormalModelVersatile2021)), which pushes
 \max\|R\_{j,gg'}\| under the threshold of
 [Sec. 5.1.4](#sec-grn-screening). For two genes with latent log-scale
 correlation 0.6, latent variances 1 and e^{\mu_z}=0.5 at s_c=1,
-[Eq. 17](#eq-pln-linear) gives a mean count of 0.82 and a raw
+[Eq. 22](#eq-pln-linear) gives a mean count of 0.82 and a raw
 linear-scale correlation of about 0.28. Removing the Poisson diagonal
 ([Sec. 1.1.6](#sec-cov-preprocessing), \kappa=0) raises it to
 (e^{0.6}-1)/(e-1)\approx0.48, the correlation of the log-normal
@@ -1254,7 +1528,7 @@ round(
 >
 > \omega\_{11}=\frac{2(\tau_1+\tau_2)\\\tau_1(\tau_1+\tau_2)q_2+k^{2}q_1\\}{q_1\\\chi},
 > \qquad \omega\_{22}=\frac{2\tau_2(\tau_1+\tau_2)^{2}}{\chi}, \qquad
-> \omega\_{12}=-\frac{2\tau_2(\tau_1+\tau_2)k}{\chi}. \tag{23}
+> \omega\_{12}=-\frac{2\tau_2(\tau_1+\tau_2)k}{\chi}. \tag{29}
 >
 > Each diagonal entry depends on both self-loops, the edge and both
 > noise levels; only for k=0 does it reduce to 2\tau_g/q_g, which still
@@ -1291,7 +1565,7 @@ round(
   splits into a marginal and a copula part, so the two can be selected
   separately. The copula correlation is not \boldsymbol{\Sigma}\_{W,j}:
   linear-scale moments of a copula model need Monte Carlo or a moment
-  map like [Eq. 17](#eq-pln-linear). The empirical Gaussian copula is
+  map like [Eq. 22](#eq-pln-linear). The empirical Gaussian copula is
   singular when C_j\<G; a sparse precision or a vine copula is then
   needed. Appendix S5 uses this model as a calibration simulator ([S5,
   simulator](https://bastienchassagnol.github.io/DeCovarT/articles/S5-misspecification.html#sec-s5-simulator)).
@@ -1302,7 +1576,7 @@ round(
   TODO-cite: Chandrasekaran, Parrilo & Willsky 2012,
   doi:10.1214/11-AOS949 or a factor-plus-diagonal covariance, gives a
   dense plug-in with few parameters. Depth variation is one such
-  rank-one factor ([Eq. 18](#eq-pln-linear-avg)).
+  rank-one factor ([Eq. 23](#eq-pln-linear-avg)).
 - **Other estimators of the same Gaussian graph.** Neighbourhood
   selection regresses each gene on the others,
   \theta^{g}\_{g'}=-\omega\_{gg'}/\omega\_{gg}, and combines
@@ -1444,7 +1718,7 @@ generate a \boldsymbol{\Sigma}\_j for DeCovarT.
 > writes
 >
 > x_g=\mu_g+\sum\_{g'\in\mathrm{Pa}(g)}\Lambda\_{gg'}x\_{g'}+\varepsilon_g,
-> \qquad \varepsilon_g\sim\mathcal{N}(0,q_g), \tag{24}
+> \qquad \varepsilon_g\sim\mathcal{N}(0,q_g), \tag{30}
 >
 > with \Lambda\_{gg'}=0 unless g' is a parent of g. In matrix form
 > (\mathbf{I}\_G-\boldsymbol{\Lambda})\boldsymbol{x}=\boldsymbol{\mu}+\boldsymbol{\varepsilon}
@@ -1454,7 +1728,7 @@ generate a \boldsymbol{\Sigma}\_j for DeCovarT.
 > \boldsymbol{\Sigma}=(\mathbf{I}\_G-\boldsymbol{\Lambda})^{-1}\boldsymbol{Q}(\mathbf{I}\_G-\boldsymbol{\Lambda})^{-\top},
 > \qquad
 > \boldsymbol{\Omega}=(\mathbf{I}\_G-\boldsymbol{\Lambda})^{\top}\boldsymbol{Q}^{-1}(\mathbf{I}\_G-\boldsymbol{\Lambda}).
-> \tag{25}
+> \tag{31}
 >
 > The precision has an edge between two parents of a common child
 > (moralisation), so a sparse DAG can give a denser \boldsymbol{\Omega}.
@@ -1605,6 +1879,168 @@ whether a sparse subnetwork of a PKN explains the omics under flow /
 Steiner / CARNIVAL constraints. That tests **mechanistic plausibility**,
 not Gaussian fit.
 
+## Appendix
+
+### Matrix factorisation, MOFA and the factor covariance
+
+Probabilistic matrix factorisation (PMF), non-negative matrix
+factorisation (NMF) and MOFA are latent factor models, like
+[Eq. 13](#eq-cov-fa-model). Each factorises a different object. This
+appendix places them against the two factorisations inside DeCovarT.
+
+#### Two factorisations in DeCovarT
+
+Stack the N bulks in the G\times N matrix \boldsymbol{Y} and their
+compositions in the J\times N matrix \boldsymbol{P}. The mean of
+DeCovarT is
+
+\mathbb{E}\\\boldsymbol{Y}=\tilde{\boldsymbol{\mu}}\\\boldsymbol{P}\operatorname{diag}(c_1,\ldots,c_N),
+\tag{32}
+
+a rank-J product of two non-negative factors: the signature matrix of
+per-cell mean counts and the scaled compositions. The covariance is a
+second factorisation, signed and within one type
+([Eq. 13](#eq-cov-fa-model)). The first runs across bulk samples, the
+second across the cells of one type.
+
+#### The factor covariance is the marginal of a linear latent model
+
+[Eq. 13](#eq-cov-fa-model) integrates the factor scores out. A bulk sums
+its cells, so the scores of its cells add too, and the mixture
+covariance keeps the form low rank plus diagonal. With the factor
+estimate
+\boldsymbol{\Sigma}\_{W,j}=\boldsymbol{\Delta}\_j^{1/2}(\boldsymbol{B}\_j\boldsymbol{B}\_j^{\top}+\boldsymbol{\Psi}\_j)\boldsymbol{\Delta}\_j^{1/2}
+for each type,
+
+\boldsymbol{S}\_W(\boldsymbol{p})
+=\boldsymbol{B}(\boldsymbol{p})\boldsymbol{B}(\boldsymbol{p})^{\top}
++\sum_jp_j\boldsymbol{\Delta}\_j^{1/2}\boldsymbol{\Psi}\_j\boldsymbol{\Delta}\_j^{1/2},
+\qquad \boldsymbol{B}(\boldsymbol{p})
+=\bigl\[\sqrt{p_1}\\\boldsymbol{\Delta}\_1^{1/2}\boldsymbol{B}\_1,\ldots,\sqrt{p_J}\\\boldsymbol{\Delta}\_J^{1/2}\boldsymbol{B}\_J\bigr\].
+\tag{33}
+
+\boldsymbol{B}(\boldsymbol{p}) has \sum_jH_j columns, so
+[Eq. 15](#eq-cov-woodbury) evaluates the bulk likelihood with a
+(\sum_jH_j)\times(\sum_jH_j) matrix in place of a G\times G one. Shared
+loadings do not lower that count in general: the blocks
+\boldsymbol{\Delta}\_j^{1/2}\boldsymbol{B} differ through the variances
+of each type.
+
+#### Probabilistic and non-negative matrix factorisation
+
+PMF writes a data matrix as the product of a row-factor matrix and a
+column-factor matrix, both signed, with zero-mean Gaussian priors and
+Gaussian noise TODO-cite: Salakhutdinov & Mnih 2008, Probabilistic
+matrix factorization, Advances in Neural Information Processing Systems
+20:1257–1264; page to check. Integrating the column factors out gives
+every column the covariance of probabilistic PCA, low rank plus
+isotropic noise. Factor analysis replaces the isotropic noise by the
+diagonal \boldsymbol{\Psi}\_j TODO-cite: Murphy 2012, Machine Learning:
+A Probabilistic Perspective, MIT Press; ch. 12, sec. 12.1, p. 381.
+[Eq. 13](#eq-cov-fa-model) is that marginal, fitted to the cells of one
+type.
+
+NMF writes a non-negative matrix as the product of two non-negative
+matrices, a basis and its coefficients ([Hoyer 2004,
+1458](#ref-hoyerNonnegativeMatrixFactorization2004)) TODO-cite: Lee &
+Seung 1999, Learning the parts of objects by non-negative matrix
+factorization, Nature 401:788–791; page to check. The squared error, the
+most common objective ([Hoyer 2004,
+1458–59](#ref-hoyerNonnegativeMatrixFactorization2004)), is the Gaussian
+likelihood with equal variances. The generalised Kullback–Leibler
+divergence is the Poisson likelihood. Applied to
+[Eq. 32](#eq-cov-mean-factorisation),
+
+\sum\_{g,i}\Bigl\\y\_{gi}\log\frac{y\_{gi}}{c_i(\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot
+i})\_g}-y\_{gi}+c_i(\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot
+i})\_g\Bigr\\
+=-\sum\_{g,i}\log\mathcal{P}\bigl\\y\_{gi};\\c_i(\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot
+i})\_g\bigr\\+\text{const}, \tag{34}
+
+with 0\log0=0 and a constant free of c_i and \boldsymbol{p}\_{\cdot i}.
+NMF with its basis fixed at \tilde{\boldsymbol{\mu}} is therefore a
+Poisson deconvolution with independent genes. NMF learns the basis from
+the bulks; DeCovarT takes it from the cells and adds the gene–gene
+covariance.
+
+**Where non-negativity belongs.** In DeCovarT it acts on the mean
+factorisation: \tilde{\boldsymbol{\mu}} is a matrix of counts and
+\boldsymbol{p}\_{\cdot i} lies on the simplex, so
+\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot i}\ge0 without a link.
+The covariance loadings stay signed. If \boldsymbol{B}\_j\ge0 entrywise,
+every (\boldsymbol{B}\_j\boldsymbol{B}\_j^{\top})\_{gg'}\ge0 and the
+common part cannot carry a negative correlation. Because
+\boldsymbol{B}\_j\boldsymbol{O} gives the same covariance for every
+orthogonal \boldsymbol{O} TODO-cite: Murphy 2012, Machine Learning: A
+Probabilistic Perspective, MIT Press; ch. 12, sec. 12.1.3, eq. 12.11,
+p. 384, a sign constraint restricts the model; it does not pick one of
+several equivalent loadings. Nor does it fix the sign of \hat c_i. Its
+numerator (\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot
+i})^{\top}\boldsymbol{S}\_W^{-1}\boldsymbol{y}\_{\cdot i} is an inner
+product in the metric \boldsymbol{S}\_W^{-1}, and a positive-definite
+metric does not make the inner product of two non-negative vectors
+positive. The only parameter that needs a positivity constraint is c_i.
+
+#### MOFA without the multi-view layer
+
+MOFA decomposes several data matrices, the views, into factors common to
+all views times view-specific weights, plus view-specific noise
+TODO-cite: Argelaguet et al. 2018, Multi-Omics Factor Analysis—a
+framework for unsupervised integration of multi-omics data sets, Mol.
+Syst. Biol. 14:e8124; Materials and Methods, “Multi-Omics Factor
+Analysis model”, eq. 1; page to check. Drop the views and take the cells
+of one type as the samples. Three parts remain.
+
+- **The factor model.** Standard normal factors and heteroscedastic
+  Gaussian noise, one precision per feature. Its marginal covariance is
+  [Eq. 13](#eq-cov-fa-model), with the weights in place of
+  \boldsymbol{\Delta}\_j^{1/2}\boldsymbol{B}\_j and the noise variances
+  in place of
+  \boldsymbol{\Delta}\_j^{1/2}\boldsymbol{\Psi}\_j\boldsymbol{\Delta}\_j^{1/2}.
+  MOFA fits it by variational Bayes; [Sec. 2.2](#sec-cov-factor) by
+  maximum likelihood.
+- **Priors on the weights.** An automatic relevance determination (ARD)
+  prior gives each factor a precision learnt from the data and switches
+  unused factors off. A spike-and-slab prior multiplies each weight by a
+  Bernoulli indicator TODO-cite: Argelaguet et al. 2018, Mol. Syst.
+  Biol. 14:e8124; Materials and Methods, “Model regularization”; page to
+  check TODO-cite: Argelaguet et al. 2020, MOFA+: a statistical
+  framework for comprehensive integration of multi-modal single-cell
+  data, Genome Biol. 21:111; Methods, “Model regularization”; page to
+  check. ARD replaces the rank grid of [Sec. 2.2](#sec-cov-factor): the
+  number of active factors is inferred, not chosen on held-out cells or
+  by the bulk likelihood. A spike-and-slab prior makes the low-rank part
+  of \boldsymbol{\Sigma}\_j sparse, not the precision
+  \boldsymbol{\Omega}\_j.
+- **Likelihood-specific observation maps.** The identity for Gaussian
+  data; for counts, a Poisson likelihood whose mean is the softplus of
+  the linear predictor, the logarithm of one plus its exponential; a
+  logistic map for binary data TODO-cite: Argelaguet et al. 2018, Mol.
+  Syst. Biol. 14:e8124; Materials and Methods, “Noise model”; page to
+  check. MOFA+ advises size-factor normalisation, a variance-stabilising
+  transformation and the Gaussian likelihood where possible, and
+  regressing technical factors such as the number of expressed genes out
+  beforehand TODO-cite: Argelaguet et al. 2020, Genome Biol. 21:111;
+  Methods, “Non-Gaussian likelihoods” and “Guidelines for data
+  processing”; page to check.
+
+**Where MOFA’s positive link departs from DeCovarT.** A bulk is the sum
+of its cells, so DeCovarT’s mean and covariance are linear in the cell
+moments on the count scale ([Eq. 7](#eq-bulk-sampling)). A positive link
+applied to each cell does not commute with that sum: the bulk mean is
+the sum of the cells’ softplus means, not the softplus of their summed
+predictors. Once the factors are integrated out, a Poisson factor model
+of the cells gives no closed-form law for the bulk; its linear-scale
+moments would have to be computed and convolved, as for the
+Poisson–lognormal model ([Eq. 22](#eq-pln-linear)). A positive link
+applied after mixing, to \tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot
+i}, would break the additivity that the mixture encodes; positivity
+belongs on c_i alone. Last, MOFA+ advises removing the size axis before
+fitting, whereas DeCovarT keeps raw per-cell counts
+([Sec. 1.1.5](#sec-cov-normalisation)). DeCovarT’s covariance therefore
+keeps that axis, and the warning at the end of
+[Sec. 2.2](#sec-cov-factor) applies.
+
 Badia-i-Mompel, Pau, Roger Casals-Franch, Lorna Wessels, et al. 2025.
 *Comparison and Evaluation of Methods to Infer Gene Regulatory Networks
 from Multimodal Single-Cell Data*. bioRxiv.
@@ -1673,6 +2109,10 @@ Estimation’. *BMC Bioinformatics* 17 (Suppl 16): 448.
 Holland, Paul W., Kathryn Blackmond Laskey, and Samuel Leinhardt. 1983.
 ‘Stochastic Blockmodels: First Steps’. *Social Networks* 5.
 <https://doi.org/10.1016/0378-8733(83)90021-7>.
+
+Hoyer, Patrik O. 2004. ‘Non-Negative Matrix Factorization with
+Sparseness Constraints’. *The Journal of Machine Learning Research* 5:
+1457–69. <https://www.jmlr.org/papers/v5/hoyer04a.html>.
 
 Jankova, Jana, and Sara van de Geer. 2015. ‘Confidence Intervals for
 High-Dimensional Inverse Covariance Estimation’. *Electronic Journal of

@@ -2064,21 +2064,31 @@ linearly on \boldsymbol{f}\_i targets
 ### The final choice for real data
 
 The constraints of the intended application are: one single-cell
-reference from one donor (R=1) counted with UMIs; one bulk sample at a
-time, with no covariates and no paired cohort; and no gene-wise platform
-ratio within the UMI platform. Under them, the recommended model is
-[Eq. 22](#eq-decovart-glm) reduced to what one donor and one bulk sample
-identify:
+reference specimen per time (R=1), counted with UMIs; three bulk
+replicates per time × condition, with no covariates and no paired
+cohort; raw counts on both sides. The model below is the one fitted to
+the Suppinger gastruloid bulks in the [reproducibility book,
+deconvolution
+pipeline](https://github.com/bastienchassagnol/DeCovarT_reproducibility/blob/main/docs/04-deconvolution-pipeline.qmd).
+It is [Eq. 22](#eq-decovart-glm) reduced to what one reference specimen
+and one bulk sample identify: the linear layer of Strategy 2
+([single-cell
+law](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#eq-av-scale-law))
+with a regularised within-type covariance,
 
 \boldsymbol{y}\_{\cdot i}\mid\boldsymbol{p}\_{\cdot i}
 \sim\mathcal{N}\_G\Bigl(
-a_in_i\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot i},\\
-a_i^{2}n_i\sum_jp\_{ji}\boldsymbol{\Sigma}\_{W,j} \Bigr), \qquad
-\boldsymbol{p}\_{\cdot i}=\boldsymbol{\psi}(\boldsymbol{\rho}\_i).
-\tag{23}
+c_i\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot i},\\
+\phi_i\sum_jp\_{ji}\widehat{\boldsymbol{\Sigma}}\_{W,j} \Bigr), \qquad
+\widehat{\boldsymbol{\Sigma}}\_{W,j}
+=\boldsymbol{\Delta}\_j^{1/2}\bigl\\(1-\lambda)\boldsymbol{R}\_j+\lambda\mathbf{I}\bigr\\\boldsymbol{\Delta}\_j^{1/2},
+\qquad \boldsymbol{p}\_{\cdot
+i}=\boldsymbol{\psi}(\boldsymbol{\rho}\_i), \tag{23}
 
-Equivalently \boldsymbol{y}\_{\cdot
-i}=a_in_i\tilde{\boldsymbol{y}}\_{\cdot i} with
+with c_i=a_in_i and \phi_i=a_i^{2}n_i. The mean and the covariance
+\phi_i\boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot i}) are both linear in
+\boldsymbol{p}\_{\cdot i}. Equivalently \boldsymbol{y}\_{\cdot
+i}=c_i\tilde{\boldsymbol{y}}\_{\cdot i} with
 \tilde{\boldsymbol{y}}\_{\cdot
 i}\sim\mathcal{N}\_G\bigl(\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot
 i},n_i^{-1}\boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot i})\bigr). Each term
@@ -2091,59 +2101,156 @@ is a choice with a reason.
     fractions \boldsymbol{p}\_{\cdot i}. Transcript fractions follow as
     q\_{ji}=p\_{ji}S_j/\sum\_\ell p\_{\ell i}S\_\ell ([RNA versus cell
     fractions](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#sec-uncoupling)).
-    A library-normalised signature \boldsymbol{\theta}\_{\cdot j} would
-    return \boldsymbol{q}\_{\cdot i} and need the conversion; use one
-    route, never both.
-2.  **Two scales, not three.** The capture ratio a_i and the number of
-    cells n_i enter only through the mean scale c_i=a_in_i and the
-    covariance scale \phi_i=a_i^{2}n_i ([global
+    The bulk is not library-normalised either. A library-normalised
+    signature \boldsymbol{\theta}\_{\cdot j} would return
+    \boldsymbol{q}\_{\cdot i} and need the conversion; use one route,
+    never both.
+
+2.  **Two scales, profiled in closed form.** The capture ratio a_i and
+    the number of cells n_i enter only through the mean scale c_i and
+    the covariance scale \phi_i ([global
     scale](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#sec-av-scale)).
-    At fixed \boldsymbol{\rho}\_i, \hat c_i is the generalised
+    At fixed \boldsymbol{p}\_{\cdot i}, \hat c_i is the generalised
     least-squares coefficient of \boldsymbol{y}\_{\cdot i} on
     \tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot i} and \hat\phi_i the
-    mean squared Mahalanobis residual, so both are profiled out;
-    a_i=\phi_i/c_i and n_i=c_i^{2}/\phi_i are read afterwards and are
+    mean squared Mahalanobis residual ([closed-form
+    scales](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#eq-sc-closed-scales)).
+    L-BFGS-B maximises the profile log-likelihood left in
+    \boldsymbol{p}\_{\cdot i} on the closure chart,
+    `deconvolute_single_cell(optimiser = "lbfgsb")` ([L-BFGS-B on the
+    closure
+    chart](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#sec-profile-lbfgsb));
+    the ILR coordinates \boldsymbol{\rho}\_i serve the intervals of
+    item 6. With a_i free per sample, (a_i,n_i)\mapsto(c_i,\phi_i) is a
+    bijection, so (a_i,n_i) is only a reparametrisation of (c_i,\phi_i):
+    a_i=\phi_i/c_i and n_i=c_i^{2}/\phi_i are read afterwards, and are
     interpretable only when the bulk and the reference share the
-    platform.
-3.  **Only the within-type covariance.** One donor identifies the
-    cell-to-cell covariance, not the between-donor one ([three reference
+    platform. The number of cells n_i is not known for the gastruloid
+    bulks, so it cannot fix either scale; the derived \hat n_i falls
+    below one cell at 96 h.
+
+3.  **Only the within-type covariance, shrunk on the correlation
+    scale.** One reference specimen identifies the cell-to-cell
+    covariance, not the between-specimen one ([three reference
     regimes](https://bastienchassagnol.github.io/DeCovarT/articles/02-1-single-cell-generative-optimisation.html#sec-three-regimes)).
-    Estimate it from cells after removing the Poisson diagonal and the
-    technical size-factor term ([denoised
-    covariance](https://bastienchassagnol.github.io/DeCovarT/articles/05-1-review-distribution-aware.html#eq-denoised-within)),
-    with a sparse precision from the graphical lasso. The bulk adds its
-    own sampling diagonal
+    \widehat{\boldsymbol{\Sigma}}\_{W,j} keeps the sample variances
+    \boldsymbol{\Delta}\_j of the raw counts of type j and shrinks their
+    correlation \boldsymbol{R}\_j towards \mathbf{I}, the target D of
+    the [linear
+    shrinkage](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.html#sec-cov-shrinkage),
+    with one level \lambda for all types of a time. The level is chosen
+    without the observed composition: it maximises the profile
+    log-likelihood summed over the three bulk replicates of one time ×
+    condition ([bulk
+    likelihood](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.html#sec-cov-bulk-selection)).
+    The bulks never enter the cell moments, so this criterion scores
+    \widehat{\boldsymbol{\Sigma}}\_{W,j} out of sample; the level itself
+    is chosen on the bulks that are then deconvolved. On the Welch
+    panel, over eight levels in \[0.1,1\], the chosen level is
+    \lambda=0.1 at 48 h, the smallest level of the grid, and \lambda=0.5
+    at 72 h and 96 h, in both conditions. In the standard-Wnt condition,
+    which has an observed composition, the mean RMSE of the proportions
+    at these levels is 0.021, 0.043 and 0.034
+    (`output/deconvolution/lambda_selection.csv` of the reproducibility
+    repository). The other covariance arms, the two-parameter shrinkage
+    towards the pooled within-type correlation and Gaussian factor
+    analysis per type or with shared loadings, and the levels chosen on
+    held-out cells are described in [Gaussian factor
+    analysis](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.html#sec-cov-factor)
+    and [bulk likelihood or held-out
+    cells](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.html#sec-cov-bulk-selection).
+    The raw covariance carries the reference’s Poisson diagonal; the
+    bulk’s own sampling diagonal
     c_i\operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot
-    i}); the raw covariance reproduces it only when the bulk depth per
-    reference unit is a_i=1 ([raw or
+    i}) is reproduced only when the bulk depth per reference unit is
+    a_i=1 ([raw or
     denoised](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.html#sec-raw-vs-denoised)).
     *Our remark:* independent cells add with cell-count weights
     m\_{ji}=n_ip\_{ji}, so this linear covariance layer is weighted by
     \boldsymbol{p}\_{\cdot i}, not by the transcript fractions
     \boldsymbol{q}\_{\cdot i}.
-4.  **No extra bulk noise parameter.** For UMI-like bulk counts the
-    Poisson diagonal
-    c_i\operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot
-    i}) adds no parameter: the mean fixes c_i, so (c_i,\phi_i) stays
-    identified given \boldsymbol{p}\_{\cdot i} whenever
-    \boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot i})\neq\boldsymbol{0}. The
-    covariance is then no longer proportional to \phi_i: for fixed
-    a_i=\phi_i/c_i, \hat c_i is the positive root of a quadratic, and
-    a_i is profiled numerically in one dimension. This term is not
-    implemented; with a raw \boldsymbol{S}\_W,
-    [`deconvolute_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_single_cell.md)
-    assumes a_i=1. A negative-binomial dispersion in front of the term
-    is not added; one sample identifies it only if
-    \boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot i}) is not a multiple of
-    \operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot
-    i}). Misspecification of the variance is handled by the sandwich of
-    [Sec. 3.9](#sec-sandwich) instead.
-5.  **No gene-wise platform ratio.** With UMIs it cancels within the
-    reference platform; between platforms it is not identified from one
-    sample
-    ([`MEAD`](https://bastienchassagnol.github.io/DeCovarT/articles/05-1-review-distribution-aware.html#sec-mead)),
-    so it is handled by gene selection, keeping genes detected
-    consistently in both assays, not by estimation.
+
+4.  **Free scales with this covariance, linked scales with a factor
+    covariance.** A screen on pseudo-bulks compared four scale models
+    (`scripts/04_04_stats_scale_screen.R` and
+    `output/deconvolution/scale_screen_summary.csv` of the
+    reproducibility repository). Triplets of pseudo-bulks of 300, 500
+    and 800 cells were drawn from the 20% of cells held out of the
+    reference moments, at 72 h and 96 h, on 1,000 Welch genes. The four
+    models are:
+
+    - free c_i and \phi_i per sample, the profile of item 2;
+    - c_i\ge c\_{\min}, with c\_{\min} one thousandth of the total-count
+      scale;
+    - linked scales, \phi_i=ac_i, that is a_i=a shared by the replicates
+      and n_i free per replicate;
+    - one c shared by the replicates after scaling them to a common
+      depth, with \phi_i free.
+
+    For linked scales at fixed a, write
+    \boldsymbol{W}\_i=\boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot i})^{-1},
+    u_i=(\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot
+    i})^{\top}\boldsymbol{W}\_i\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot
+    i} and v_i=\boldsymbol{y}\_{\cdot
+    i}^{\top}\boldsymbol{W}\_i\boldsymbol{y}\_{\cdot i}. The score
+    equation of c_i is u_ic_i^{2}+Gac_i-v_i=0: the cross term
+    \boldsymbol{y}\_{\cdot
+    i}^{\top}\boldsymbol{W}\_i\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot
+    i} drops out, and the root
+
+    \hat c_i(a)=\frac{-Ga+\sqrt{G^{2}a^{2}+4u_iv_i}}{2u_i}
+
+    is always positive. The shared ratio a then maximises the profile
+    log-likelihood summed over the replicates, a one-dimensional search
+    on \log a. The free profile has no such guarantee: its generalised
+    least-squares \hat c_i can be negative.
+
+    With the shrinkage covariance the four models give the same error, a
+    mean RMSE of 0.032 each. The positivity of c_i matters only for the
+    factor-analysis covariance, whose leading loading on raw counts
+    aligns with the cell-size direction ([Gaussian factor
+    analysis](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.html#sec-cov-factor)).
+    With that covariance, free scales fail on 27 of 60 fits at 96 h;
+    c_i\ge c\_{\min}, linked scales and one shared c remove the
+    failures, the bound being active in 9 and 6 of the 60 fits for
+    c\_{\min} and the shared c. The final choice therefore keeps free
+    c_i and \phi_i with the shrinkage covariance. Linked scales are the
+    model to use when the covariance is a factor model.
+
+5.  **Three terms tried and set aside.** The reproducibility runs fitted
+    three further terms of [Eq. 22](#eq-decovart-glm) and left them out
+    of the final fit.
+
+    - The between-type covariance
+      \boldsymbol{S}\_B(\boldsymbol{p}\_{\cdot i}): one reference
+      specimen does not identify it, and its plug-in had no consistent
+      effect on the proportions.
+    - The bulk Poisson diagonal
+      c_i\operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot
+      i}), added to the denoised covariance. It adds no parameter: the
+      mean fixes c_i, so (c_i,\phi_i) stays identified given
+      \boldsymbol{p}\_{\cdot i} whenever
+      \boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot i})\neq\boldsymbol{0}.
+      The covariance is then no longer proportional to \phi_i: for fixed
+      a_i=\phi_i/c_i, \hat c_i is the positive root of a quadratic, and
+      a_i is profiled numerically in one dimension.
+      [`deconvolute_single_cell()`](https://bastienchassagnol.github.io/DeCovarT/reference/deconvolute_single_cell.md)
+      does not implement the term; with a raw \boldsymbol{S}\_W it
+      assumes a_i=1. A negative-binomial dispersion in front of the term
+      is not added; one sample identifies it only if
+      \boldsymbol{S}\_W(\boldsymbol{p}\_{\cdot i}) is not a multiple of
+      \operatorname{diag}(\tilde{\boldsymbol{\mu}}\boldsymbol{p}\_{\cdot
+      i}). Misspecification of the variance is handled by the sandwich
+      of [Sec. 3.9](#sec-sandwich) instead.
+    - A gene-wise platform ratio. With UMIs it cancels within the
+      reference platform; between platforms it is not identified from
+      one sample
+      ([`MEAD`](https://bastienchassagnol.github.io/DeCovarT/articles/05-1-review-distribution-aware.html#sec-mead)).
+      In the gastruloid runs it helped on the small gene panels and hurt
+      on the Welch panel at 96 h, so platform differences are handled by
+      gene selection, keeping genes detected consistently in both
+      assays, not by estimation.
+
 6.  **Inference.** Report the ILR back-transformation of
     [Sec. 3.5](#sec-wald-routes), or the profile interval, with c_i and
     \phi_i profiled out ([Sec. 3.6](#sec-nuisance)); the limit that
@@ -2151,8 +2258,8 @@ is a choice with a reason.
     the number of cells ([Sec. 3.1](#sec-regularity)). Switch to Firth’s
     penalty when a proportion approaches zero, and to the boundary
     likelihood-ratio test when absence is the question
-    ([Sec. 4.3](#sec-boundary)). With one donor, the reference
-    uncertainty comes from
+    ([Sec. 4.3](#sec-boundary)). With one reference specimen, the
+    reference uncertainty comes from
     `reference_bootstrap_decovart(method = "cells")`.
 
 ## Recap: which interval or test to report
