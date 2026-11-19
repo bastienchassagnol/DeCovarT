@@ -425,7 +425,42 @@ methods (@tbl-fs-review), not defaults of DeCovarT.
   reflect cell survival and donor sex rather than type
   (BayesPrism; @chuCellTypeGeneExpression2022, supplement pp. 14, 19).
   Genes detected in fewer than 20 % of the cells of every type
-  (RNA-Sieve, supplement p. 3).
+  (RNA-Sieve, supplement p. 3). Genes detected in fewer cells than the
+  smallest cluster of interest, for example 20
+  [@lueckenCurrentBestPractices2019]; the threshold should scale with the
+  number of cells and the downstream analysis. A data-driven rule,
+  `edgeR::filterByExpr()`, sets the threshold from the smallest group
+  size [@chenReadsGenesPathways2016]. A filter is safe for a later test
+  only if it is independent of the test statistic under the null
+  [TODO-cite: Bourgon, Gentleman & Huber 2010, PNAS, doi:10.1073/pnas.0914005107; not in Zotero]{.highlight};
+  a filter computed on all cells without labels meets this condition,
+  a filter computed per type does not.
+
+## Multi-mapping (fractional) counts {#sec-fs-fractional}
+
+Salmon/Alevin and alevin-fry resolve a UMI compatible with several genes
+by expectation-maximisation, so part of the counts are fractions (1/2,
+1/3, ...). Discarding multi-mapping reads instead biases the counts of
+the genes that share sequence with others, most strongly multi-copy
+loci
+[TODO-cite: Srivastava et al. 2019, Alevin, Genome Biology, doi:10.1186/s13059-019-1670-y; not in Zotero]{.highlight}.
+The genes are therefore kept, with their fractional counts.
+
+- **Models that accept fractions** take the counts as they are.
+  `glmGamPoi` fits non-integer counts, and DESeq2 skips its integer
+  check when it uses that fitter (`skipIntegerMode`)
+  [@loveModeratedEstimationFold2014a]. edgeR 4 replaces the binomial
+  coefficients of the negative-binomial likelihood by gamma functions,
+  "to handle fractional data without the need for rounding"
+  [TODO-cite: Chen, Chen, Lun, Baldoni & Smyth 2025, edgeR v4, Nucleic Acids Research, doi:10.1093/nar/gkaf018; not in Zotero]{.highlight}.
+  `sctransform` [@hafemeisterNormalizationVarianceStabilization2019]
+  runs on non-integer counts, more slowly (author's reply in
+  [sctransform issue #28](https://github.com/satijalab/sctransform/issues/28)).
+- **Methods that need integers** get the counts rounded to the nearest
+  integer, as `DESeq2::DESeqDataSetFromTximport()` does for
+  `tximport` estimates, which are "possibly fractional"
+  [TODO-cite: Soneson, Love & Robinson 2015, F1000Research, doi:10.12688/f1000research.7563.2; not in Zotero]{.highlight}.
+  No reference recommends rounding up.
 
 ## Prior-knowledge markers {#sec-fs-prior-markers}
 
@@ -446,18 +481,26 @@ does.
 ::: callout-note
 ## Necessary, not sufficient
 
-A gene enters tier (ii) only if
+With $n_{gj}$ the number of cells of type $j$ in which gene $g$ is
+non-zero, a gene enters tier (ii) only if
 
 $$
-\min_{j}\delta_{gj}\ge\delta_{\min}
+\sum_{j}n_{gj}\ge N_{\min},
+\qquad
+\min_{j}n_{gj}\ge n_{\min}
 \quad\text{and}\quad
 \min_{j}v_{gj}>0,
 $$ {#eq-fs-presence}
 
-with $\delta_{\min}$ a few per cent (for example $0.05$), fixed before
-the ranks are seen. [These are necessary conditions for a non-singular
+with $N_{\min}$ the size of the smallest type of interest (for example
+20, the rule of @lueckenCurrentBestPractices2019, computed without
+labels) and $n_{\min}=2$, both fixed before the ranks are seen. The
+first condition is the usual single-cell gene filter. [The two per-type
+conditions are necessary conditions for a non-singular
 within-type covariance and for an identifiable $\boldsymbol{p}$; they
-are not sufficient.]{.mark} Two cases show what the gate excludes.
+are not sufficient.]{.mark} They use the labels, so they are not
+independent of a later test of the type effect (@sec-fs-qc). Two cases
+show what the gate excludes.
 
 <!-- chk: V17a, V17b -->
 - **Zero in every cell of type $j$.** Then $v_{gj}=0$ and the whole row
@@ -476,8 +519,8 @@ are not sufficient.]{.mark} Two cases show what the gate excludes.
   singular.
 
 <!-- chk: V17c, V10a, V10c -->
-With $\delta_{\min}C_j\ge2$ the gate keeps only genes with at least two
-non-zero cells in every type, which excludes both cases. It does not
+With $n_{\min}=2$ the gate keeps only genes with at least two non-zero
+cells in every type, which excludes both cases. It does not
 make $\boldsymbol{V}_j$ invertible: $\operatorname{rank}\boldsymbol{V}_j\le
 \min(C_j-1,G)$, so $\boldsymbol{V}_j$ is singular whenever $G\ge C_j$ or
 genes satisfy an exact linear relation, and shrinkage is still needed
