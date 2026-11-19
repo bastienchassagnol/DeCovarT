@@ -305,7 +305,7 @@ and sorted forms agree because, the share of rank R\_{gj} is larger than
 R\_{gj}-1 shares and smaller than J-R\_{gj} shares, so it enters the
 double sum with the net weight 2R\_{gj}-J-1. Both scores reward
 exclusive expression, which the presence gate
-([Section 2.2](#sec-fs-presence)) excludes, and neither sees redundancy
+([Section 2.3](#sec-fs-presence)) excludes, and neither sees redundancy
 between genes.
 
 ![Five rows joined by arrows on the left. Each row has a box with a step
@@ -489,9 +489,48 @@ methods ([Table 1](#tbl-fs-review)), not defaults of DeCovarT.
   reflect cell survival and donor sex rather than type (BayesPrism; Chu
   et al. ([2022](#ref-chuCellTypeGeneExpression2022)), supplement
   pp. 14, 19). Genes detected in fewer than 20 % of the cells of every
-  type (RNA-Sieve, supplement p. 3).
+  type (RNA-Sieve, supplement p. 3). Genes detected in fewer cells than
+  the smallest cluster of interest, for example 20
+  ([**lueckenCurrentBestPractices2019?**](#ref-lueckenCurrentBestPractices2019));
+  the threshold should scale with the number of cells and the downstream
+  analysis. A data-driven rule, `edgeR::filterByExpr()`, sets the
+  threshold from the smallest group size
+  ([**chenReadsGenesPathways2016?**](#ref-chenReadsGenesPathways2016)).
+  A filter is safe for a later test only if it is independent of the
+  test statistic under the null TODO-cite: Bourgon, Gentleman & Huber
+  2010, PNAS, doi:10.1073/pnas.0914005107; not in Zotero; a filter
+  computed on all cells without labels meets this condition, a filter
+  computed per type does not.
 
-### 2.1 Prior-knowledge markers
+### 2.1 Multi-mapping (fractional) counts
+
+Salmon/Alevin and alevin-fry resolve a UMI compatible with several genes
+by expectation-maximisation, so part of the counts are fractions (1/2,
+1/3, …). Discarding multi-mapping reads instead biases the counts of the
+genes that share sequence with others, most strongly multi-copy loci
+TODO-cite: Srivastava et al. 2019, Alevin, Genome Biology,
+doi:10.1186/s13059-019-1670-y; not in Zotero. The genes are therefore
+kept, with their fractional counts.
+
+- **Models that accept fractions** take the counts as they are.
+  `glmGamPoi` fits non-integer counts, and DESeq2 skips its integer
+  check when it uses that fitter (`skipIntegerMode`) ([Love et al.
+  2014](#ref-loveModeratedEstimationFold2014a)). edgeR 4 replaces the
+  binomial coefficients of the negative-binomial likelihood by gamma
+  functions, “to handle fractional data without the need for rounding”
+  TODO-cite: Chen, Chen, Lun, Baldoni & Smyth 2025, edgeR v4, Nucleic
+  Acids Research, doi:10.1093/nar/gkaf018; not in Zotero. `sctransform`
+  ([Hafemeister and Satija
+  2019](#ref-hafemeisterNormalizationVarianceStabilization2019)) runs on
+  non-integer counts, more slowly (author’s reply in [sctransform issue
+  \#28](https://github.com/satijalab/sctransform/issues/28)).
+- **Methods that need integers** get the counts rounded to the nearest
+  integer, as `DESeq2::DESeqDataSetFromTximport()` does for `tximport`
+  estimates, which are “possibly fractional” TODO-cite: Soneson, Love &
+  Robinson 2015, F1000Research, doi:10.12688/f1000research.7563.2; not
+  in Zotero. No reference recommends rounding up.
+
+### 2.2 Prior-knowledge markers
 
 A short curated list of markers (lineage or signalling genes named by
 the biology of the tissue) enters as hard prior knowledge. These genes
@@ -504,19 +543,26 @@ construction. The overlap between the curated list and the genes that
 the data-driven tiers keep can be reported as a description, for example
 with a hypergeometric tail, as the reproducibility book does.
 
-### 2.2 Presence gate in every type
+### 2.3 Presence gate in every type
 
 > **Necessary, not sufficient**
 >
-> A gene enters tier (ii) only if
+> With n\_{gj} the number of cells of type j in which gene g is
+> non-zero, a gene enters tier (ii) only if
 >
-> \min\_{j}\delta\_{gj}\ge\delta\_{\min} \quad\text{and}\quad
-> \min\_{j}v\_{gj}\>0, \tag{2}
+> \sum\_{j}n\_{gj}\ge N\_{\min}, \qquad \min\_{j}n\_{gj}\ge n\_{\min}
+> \quad\text{and}\quad \min\_{j}v\_{gj}\>0, \tag{2}
 >
-> with \delta\_{\min} a few per cent (for example 0.05), fixed before
-> the ranks are seen. These are necessary conditions for a non-singular
-> within-type covariance and for an identifiable \boldsymbol{p}; they
-> are not sufficient. Two cases show what the gate excludes.
+> with N\_{\min} the size of the smallest type of interest (for example
+> 20, the rule of
+> ([**lueckenCurrentBestPractices2019?**](#ref-lueckenCurrentBestPractices2019)),
+> computed without labels) and n\_{\min}=2, both fixed before the ranks
+> are seen. The first condition is the usual single-cell gene filter.
+> The two per-type conditions are necessary conditions for a
+> non-singular within-type covariance and for an identifiable
+> \boldsymbol{p}; they are not sufficient. They use the labels, so they
+> are not independent of a later test of the type effect
+> ([Section 2](#sec-fs-qc)). Two cases show what the gate excludes.
 >
 > - **Zero in every cell of type j.** Then v\_{gj}=0 and the whole row
 >   and column g of \boldsymbol{V}\_j are zero: \boldsymbol{V}\_j is
@@ -534,12 +580,11 @@ with a hypergeometric tail, as the reproducibility book does.
 >   perfect and degenerate correlation, and \boldsymbol{V}\_j is again
 >   singular.
 >
-> With \delta\_{\min}C_j\ge2 the gate keeps only genes with at least two
-> non-zero cells in every type, which excludes both cases. It does not
-> make \boldsymbol{V}\_j invertible:
-> \operatorname{rank}\boldsymbol{V}\_j\le \min(C_j-1,G), so
-> \boldsymbol{V}\_j is singular whenever G\ge C_j or genes satisfy an
-> exact linear relation, and shrinkage is still needed
+> With n\_{\min}=2 the gate keeps only genes with at least two non-zero
+> cells in every type, which excludes both cases. It does not make
+> \boldsymbol{V}\_j invertible: \operatorname{rank}\boldsymbol{V}\_j\le
+> \min(C_j-1,G), so \boldsymbol{V}\_j is singular whenever G\ge C_j or
+> genes satisfy an exact linear relation, and shrinkage is still needed
 > ([3.2](https://bastienchassagnol.github.io/DeCovarT/articles/03-2-covariance-network-estimation.md)).
 > Nor does it make \boldsymbol{p} identifiable, which requires a
 > non-singular Fisher information for \boldsymbol{p}
@@ -926,7 +971,7 @@ identifiable when all genes are perfect markers and gene-wise ratios are
 allowed: rescaling the ratios of the markers of type j by a common
 factor is absorbed by the proportions ([Xie et al. 2026,
 7](#ref-xieStatisticalInferenceCell2026)). The presence gate
-([Section 2.2](#sec-fs-presence)) excludes these genes. Modelling a
+([Section 2.3](#sec-fs-presence)) excludes these genes. Modelling a
 gene-wise or module-wise scale \tilde b_g inside DeCovarT is a
 perspective of
 [5.3](https://bastienchassagnol.github.io/DeCovarT/articles/05-3-extensions-roadmap.md).
@@ -2029,7 +2074,7 @@ Two observations follow.
   noise levels differ ([Xie et al. 2026,
   17](#ref-xieStatisticalInferenceCell2026)). Once the covariance is in
   the model, hard filtering is needed only for genes outside the model’s
-  support: the presence gate ([Section 2.2](#sec-fs-presence)) and, when
+  support: the presence gate ([Section 2.3](#sec-fs-presence)) and, when
   a matched bulk exists, the cross-platform outliers of tier
   3.  ([Section 4](#sec-fs-cross-platform)).
 

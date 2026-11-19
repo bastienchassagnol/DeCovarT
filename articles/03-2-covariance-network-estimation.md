@@ -2056,7 +2056,7 @@ arXiv:2510.25712. arXiv. <https://doi.org/10.48550/arxiv.2510.25712>.
 
 Chandrasekaran, Venkat, Pablo A. Parrilo, and Alan S. Willsky. 2012.
 ‘Latent Variable Graphical Model Selection via Convex Optimization’.
-*The Annals of Statistics* 40 (4). <https://doi.org/10.1214/11-AOS949>.
+*The Annals of Statistics* 40 (4). <https://doi.org/10.1214/11-aos949>.
 
 Chiquet, Julien. 2015. ‘Contributions to Sparse Methods for Complex Data
 Analysis’. PhD thesis, Université Paris-Saclay / AgroParisTech.
