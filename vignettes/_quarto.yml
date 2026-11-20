@@ -26,6 +26,10 @@ format:
     css: decovart-html.css
     toc-depth: 4
     number-depth: 4
+    # Code chunks folded by default, with a page-level Code menu.
+    code-fold: true
+    code-summary: "Show the code"
+    code-tools: true
     # Embedded cells from notation.qmd link the full table in the margin.
     # https://quarto.org/docs/authoring/notebook-embed.html#linked-source-notebooks
     notebook-links: true
