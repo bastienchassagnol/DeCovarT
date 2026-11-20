@@ -1,4 +1,4 @@
-# Graphify extraction scope for DeCovarT (see .cursorrules).
+# Graphify extraction scope for DeCovarT (see AGENTS.md).
 # Merged with .gitignore; patterns here only exclude more.
 
 # Reveal.js deck + vendored JS (dominated past graphs)

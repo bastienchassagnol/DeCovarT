@@ -2,6 +2,18 @@
 
 Standing guidance is `.cursor/rules/` (Cursor) and `.claude/rules/` (Claude Code). The shared rules are also deployed from the ubuntu-genesis bundle at the user level; the levels below explain which copy applies.
 
+## Package conventions (DeCovarT)
+
+Scope: do not add tasks (tests, docs, commits, refactors) unless asked; ask first. British English in prose. The deprecated `.cursorrules` was removed; its repository-specific, rarely needed material is in `dev/package-dev-notes.md` (CRAN incoming lessons, CRAN Cookbook, GitHub Actions, pkgdown, load hooks, Roxygen, testing, plotting, bibliography streams, Nature Methods limits, scientific review). Read the relevant section on demand. Generic R, Python, Quarto and writing guidance comes from the bundle rules.
+
+- **Layout.** `R/` (package API, numeric prefixes `02_01_…`, keep the convention), `scripts/` (one-off analyses), `tests/testthat/` (`R/foo.R` maps to `test-foo.R`), `vignettes/` (Quarto), `inst/` (assets, `CITATION`, bib), `article/` (LaTeX and TikZ manuscript), `data/` (`raw/` immutable, DVC pointers only), `output/`, `docs/` (pkgdown build, gitignored).
+- **Package code.** R only in `R/`; Python only in `scripts/`. `R/` and `NAMESPACE` stay ASCII. Document with roxygen2 (`devtools::document()`); a documented function carries `@export`, and `@noRd` only on undocumented helpers.
+- **Checks before a push** touching package code: `devtools::check()` and `pkgcheck::pkgcheck()`, warnings included; a local `pkgdown::build_site()` when exports, `_pkgdown.yml`, vignettes or docs workflows change. Before a CRAN submission follow `dev/package-dev-notes.md` (CRAN incoming section).
+- **pre-commit.** `pre-commit clean`, stage everything, `pre-commit run`, re-stage autofixes, commit. Autofix hooks fail once by design. No `--no-verify` unless asked. The project does not use `renv`; lintr hooks set `RENV_CONFIG_AUTOLOADER_ENABLED=FALSE`. `slides/_extensions/` is excluded from the whitespace hooks.
+- **Plots.** Faceted `ggplot2` figures use `theme_decovart_facets()`.
+- **Two citation streams, never mixed.** Literature: Zotero export into `inst/REFERENCES.bib` and `article/decovart_library.bib`, checked with `scripts/curate_bibliography/check_bibliography.py --clean`. Software: `packages.bib` from `scripts/curate_bibliography/generate_packages_bib.R`. Never invent citekeys, DOIs or BibTeX.
+- **Manuscript (`article/`)**: Nature Methods Article: abstract at most 150 words and unreferenced, main text about 3,000 words, no footnotes, at most 50 references, at most 6 display items. Details in `dev/package-dev-notes.md`.
+
 ## Skills and rules: where they live, which one wins
 
 Source of truth: `Config/.cursor/` in
@@ -49,6 +61,10 @@ repository. Do not add a project skill whose name the bundle already uses.
   to `~/.zshrc`: that file uses zsh-only syntax (`setopt`, `typeset -g`).
 - Audit of `dtoo_project/` on 2026-11-18: this repository tracks no symlink.
 
-## Code graph (graphify)
+## Code graph (CodeGraph first, Graphify second)
 
-The `graphify` rule applies only where `graphify-out/` exists, and the folder is not committed. If `graphify-out/graph.json` is missing, tell the user to run the `/graphify` skill from the repository root before exploring the code, and wait for the build. Do not substitute a long manual exploration. `.graphifyignore` already excludes generated and vendored paths (`renv/`, rendered output, vendored extensions).
+CodeGraph is the default for code. Graphify is secondary and applies to mixed material. Where this section and the `graphify` rule (Cursor `.cursor/rules/graphify.mdc`, Claude Code `~/.claude/rules/graphify.md`) disagree about a code question, this section applies.
+
+- **Code questions** (`R/`, `tests/testthat/`, `scripts/`, `answer-cardamomOT/verification/`: callers, callees, impact, how a call path reaches a function): where `.codegraph/` exists at the repository root, call `codegraph_explore` (MCP) or `codegraph explore "<question>"` before Grep, Glob or Read. Treat the returned source as already read. The index auto-syncs while the MCP server runs. `.codegraph/` is not committed; build it once per checkout with `codegraph init`. `codegraph.json` excludes `slides/_extensions/`, `vignettes/_extensions/` and `revdep/`.
+- **Cross-document questions** (links across vignettes, `article/`, papers and design notes): use `/graphify query` only where `graphify-out/graph.json` exists. The folder is not committed and is rebuilt at milestones (annotated tag or version bump, via `Config/.cursor/code-knowledge/scripts/graphify-milestone.sh` in the ubuntu-genesis bundle), not on every commit. Do not run `graphify hook install` for code sync: CodeGraph covers it. `.graphifyignore` already excludes generated and vendored paths (rendered output, vendored extensions).
+- **Neither index exists**: for a code question, tell the user to run `codegraph init` and wait; for a cross-document question, tell them to run the `/graphify` skill from the repository root. Do not substitute a long manual exploration.

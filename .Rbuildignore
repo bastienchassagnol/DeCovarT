@@ -166,3 +166,4 @@
 ^temp_
 ^temp_prompt
 ^vignettes/figures/src$
+^dev$

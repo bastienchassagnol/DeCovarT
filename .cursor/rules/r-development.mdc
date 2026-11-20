@@ -56,6 +56,22 @@ Use `pkgcheck::pkgcheck()` and `--as-cran` checks when the package targets CRAN.
 - `TRUE`/`FALSE`; seeds only when caller supplies; ≤2 cores in check-time code.
 - ASCII-only `R/` strings when required for portability.
 
+### Project root
+
+Non-package repositories (Quarto books, analysis projects, scripts that are
+not part of an R package) anchor paths with `here::here()`. `here` wraps
+`rprojroot`, caches the root (`.here`, an RStudio project, `DESCRIPTION`, or
+the VCS root), and is the function to call from scripts and reports.
+
+`fromhere` (`from_rproj()`, `from_git()`) is for a nested layout where several
+markers exist and the root has to be named, such as a package inside a
+monorepo. `fs` does not search for a root: use it to list, copy, and create
+files (`fs::path()`, `fs::dir_create()`, `fs::dir_ls()`) on a path from `here`.
+
+`rprojroot` criteria (`is_r_package`, `has_file()`) belong in package code
+that implements its own root detection. Analysis scripts, including scripts
+in a Quarto book, stay on `here`.
+
 ### Formatting and pre-commit
 
 - **Air** for R formatting (line width 80, 2 spaces) when configured.

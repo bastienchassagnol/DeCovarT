@@ -1,0 +1,7 @@
+{
+  "exclude": [
+    "slides/_extensions/",
+    "vignettes/_extensions/",
+    "revdep/"
+  ]
+}

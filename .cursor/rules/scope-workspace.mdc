@@ -50,8 +50,10 @@ Inspired by
 
 ## Code discovery
 
-- Prefer semantic/code-intelligence tools when configured (e.g. Graphify in
-  repos that use it: chat `/graphify query`, not shell).
+- With a `.codegraph/` index: prefer CodeGraph (`codegraph_explore` / the
+  **codegraph** skill) for structure, callers, and cross-file flows.
+- With `graphify-out/graph.json`: use `/graphify query` for corpus-wide or
+  doc-heavy questions (see **code-intelligence** rule).
 - Fall back to targeted search, language-server navigation, and reading callers,
   tests, and docs before changing public interfaces.
 

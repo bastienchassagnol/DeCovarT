@@ -16,6 +16,13 @@ For slides, websites and interactive OJS/D3, use the `quarto` skill
 (deck setup, themes, layout, fragments, auto-animate, full-width figures,
 session info, OJS, D3, React). Read it before major deck or site edits.
 
+## Code display
+
+- Documents, books and vignettes fold code by default: `code-fold: true`,
+  `code-summary: "Show the code"` and `code-tools: true` under
+  `format: html:` in `_quarto.yml` (once per project). A chunk that must
+  stay open sets `#| code-fold: false`. Slides are not folded.
+
 ## Markdown and cross-references
 
 - Labels: `#fig-…`, `#tbl-…`, `#eq-…`, `{#sec-…}`; cite mid-sentence (`@fig-…`).

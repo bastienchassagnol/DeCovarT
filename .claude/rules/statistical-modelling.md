@@ -99,6 +99,20 @@ Do not conflate bootstrap with permutation.
 - PCA/components: stability or predictive criteria; do not claim `clav` selects
   PCA unless current docs say so.
 
+## Calibration plots
+
+- QQ plots use **`qqplotr`** (`stat_qq_band()`, `stat_qq_line()`,
+  `stat_qq_point()`): `bandType = "ts"` for normal residuals; for
+  p-values, `-log10 p` against `distribution = "exp"`,
+  `dparams = list(rate = log(10))`, `bandType = "pointwise"`. Say that the
+  band assumes independent units.
+- Draw the histogram of the **unadjusted** p-values (bins of 0.05, line at
+  pi0 m / 20) before any multiplicity correction; split it by a
+  power covariate (mean expression) when power varies.
+- A null calibration on real data permutes labels within the design's
+  strata; one permutation is one draw.
+- Details: `data-visualisation` skill, `references/differential-expression.md`.
+
 ## Model-review checklist
 
 Estimand, design, sampling unit, link/distribution, interactions, confounding,

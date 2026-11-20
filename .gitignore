@@ -142,3 +142,6 @@ answer-cardamomOT/report/*.out
 answer-cardamomOT/report/*.run.xml
 answer-cardamomOT/report/_minted*/
 suppinger_complete.pdf
+
+# CodeGraph local index
+.codegraph/

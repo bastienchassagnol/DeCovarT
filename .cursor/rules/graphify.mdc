@@ -1,21 +1,28 @@
 ---
-description: graphify knowledge graph context
+description: Graphify applies to cross-document questions only; CodeGraph is the default for code
 alwaysApply: true
 ---
+# graphify
 
-This project has a graphify knowledge graph at graphify-out/.
+Applies only to cross-document questions (Quarto chapters, vignettes, papers,
+PDFs, design notes) in a repository that has `graphify-out/graph.json`.
+Otherwise ignore this rule.
 
-**MANDATORY: Before using Read, Grep, Glob, or Bash to explore the codebase, you MUST run graphify first:**
-- `graphify query "<question>"` — scoped subgraph for any codebase or architecture question
-- `graphify path "<A>" "<B>"` — dependency path between two symbols
-- `graphify explain "<concept>"` — all nodes related to a concept
+**Code questions go to CodeGraph first** (`code-intelligence` rule): where
+`.codegraph/` exists, use `codegraph_explore` or `codegraph explore` before
+Grep, Glob or Read. Do not run graphify for callers, callees or impact in
+source files, and do not rebuild the graph for a code-only question.
 
-This applies to YOU and to every subagent you spawn. Include this rule explicitly in every subagent prompt that involves code exploration. Do not skip graphify because files are "already known" or because you are executing a plan — the graph surfaces cross-file dependencies and INFERRED edges that grep and Read cannot find.
+For a cross-document question, query the graph before reading raw files:
 
-Only use Read/Grep/Glob directly when:
-1. graphify has already oriented you and you need to modify or debug specific lines
-2. `graphify-out/graph.json` does not exist yet
+- `graphify query "<question>"`: scoped subgraph
+- `graphify path "<A>" "<B>"`: dependency path between two nodes
+- `graphify explain "<concept>"`: all nodes related to a concept
 
-- If `graphify-out/wiki/index.md` exists, navigate it instead of reading raw files
-- Read `graphify-out/GRAPH_REPORT.md` only for broad architecture review when query/path/explain do not surface enough context
-- After modifying code files, run `graphify update .` to keep the graph current (AST-only, no API cost)
+- If `graphify-out/wiki/index.md` exists, navigate it instead of raw files.
+- Read `graphify-out/GRAPH_REPORT.md` only for broad architecture review.
+- The graph is built at milestones (annotated tag, version bump) with the
+  scripts in `Config/.cursor/code-knowledge/`. Do not install
+  `graphify hook install` for always-on rebuilds. Run `graphify update .`
+  (AST only, no API cost) only when the user asks.
+- Include this routing in every subagent prompt that explores the repository.
