@@ -1,5 +1,7 @@
 # Appendix S3 — Solver Scalability
 
+Show the code
+
 ``` r
 
 library(DeCovarT)
@@ -47,6 +49,8 @@ analysis (see `detailled_siulation_code.md` §Difficulty descriptors):
 | Precision average degree         | 2\|E\|/G                        |
 | \kappa(\boldsymbol{\Sigma}\_j)   | spectral condition number       |
 
+Show the code
+
 ``` r
 
 # -----------------------------------------------------------------
@@ -92,6 +96,8 @@ scaling_grid <- tidyr::expand_grid(
 
 ## 2️⃣ Inference
 
+Show the code
+
 ``` r
 
 # -----------------------------------------------------------------
@@ -128,6 +134,8 @@ saveRDS(scaling_grid,    "output/supp_S3/scaling_grid.rds")
 | `output/supp_S3/s3_rmse_by_G.pdf` | RMSE vs G per cosine × kappa |
 | `output/supp_S3/s3_rmse_by_J.pdf` | RMSE vs J per entropy level |
 | `output/supp_S3/s3_convergence_rate.pdf` | Optimiser convergence rate heatmap |
+
+Show the code
 
 ``` r
 

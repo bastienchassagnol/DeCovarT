@@ -32,7 +32,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -108,7 +108,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>§2.2 Bivariate toy model (G = 2 genes, J = 2 cell types)</h1>
       <p class="subtitle">Full script: <code>scripts/fig02_bivariate_toy.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">19 Nov 2026</p>
+      <p class="date">20 Nov 2026</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/R1-bivariate-toy.qmd" class="external-link"><code>vignettes/R1-bivariate-toy.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -129,7 +129,7 @@
 </figcaption></figure>
 </div>
 <div class="cell" data-eval="true" data-layout-align="default">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>---</span>
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>---</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>config:</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  layout: elk</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  theme: sandstone</span>
@@ -154,7 +154,7 @@
 <span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  LgHe --&gt; LgHeBa["Balanced"]</span>
 <span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  LgHe --&gt; LgHeMo["Moderately unbalanced"]</span>
 <span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>  LgHe --&gt; LgHeHi["Highly unbalanced"]</span></code></pre></div>
-<div class="cell-output-display">
+</details><div class="cell-output-display">
 <div id="fig-bivariate-design-tree" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-bivariate-design-tree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div>
@@ -318,18 +318,19 @@ Figure 3: Factorial design (left) and correlation-only 2D densities (right) for
 <p>Every result of the run is in <code>output/fig02/fig02_benchmark.rds</code>, a list keyed by the scenario <code>ID</code>: <code>meta</code> (seed, <span class="math inline">N</span>, <span class="math inline">B</span>, date, git commit, session), <code>config</code> (the design grid without the true moments), <code>theta_true</code> (convolution parameters per <code>ID</code>), <code>descriptors</code> (geometry, MixSim <code>BarOmega</code>, Hellinger, Jeffreys), <code>regression</code> and <code>monte_carlo</code> (composition and ADEMP blocks of <code><a href="../reference/compute_benchmark_metrics.html">compute_benchmark_metrics()</a></code>), <code>optimisation</code> (one row per replicate <span class="math inline">\times</span> algorithm <span class="math inline">\times</span> scenario, with the estimates, convergence, KKT residual, elapsed time and memory), <code>intervals</code> (coverage and width of every interval construction) and <code>data</code> (the simulated bulks and their targets).</p>
 <p>Mean-only <code>lsei</code> and NNLS do not maximise the convolution likelihood, so no interval is computed for them.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">DeCovarT</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"scripts/fig02_bivariate_toy.R"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">bivariate_config</span> <span class="op">&lt;-</span> <span class="fu">build_bivariate_scenario_config</span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">bivariate_config</span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 </section></section><section class="level2"><h3 id="log-likelihood-along-the-simplex">Log-likelihood along the simplex<a class="anchor" aria-label="anchor" href="#log-likelihood-along-the-simplex"></a>
 </h3>
 <p>For <span class="math inline">J=2</span> the free coordinate is <span class="math inline">p_1\in(0,1)</span>. The listing below evaluates <span class="math inline">\ell_{\boldsymbol{y}\mid\boldsymbol{\zeta}}(p_1,1-p_1)</span> on one bulk draw. It is not executed during <code>R CMD build</code>: Quarto’s Windows CLI starts a new R process that cannot see the temporary library (<a href="https://github.com/quarto-dev/quarto-r/issues/217" class="external-link">quarto-r#217</a>). The same likelihood path is checked in <code>tests/testthat/</code>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">20260828</span><span class="op">)</span></span>
 <span><span class="va">rho</span> <span class="op">&lt;-</span> <span class="fl">0.6</span></span>
 <span><span class="va">R</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">rho</span>, <span class="va">rho</span>, <span class="fl">1</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
@@ -366,6 +367,7 @@ Figure 3: Factorial design (left) and correlation-only 2D densities (right) for
 <span>    y <span class="op">=</span> <span class="st">"Log-likelihood"</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">11</span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <div style="page-break-after: always;"></div>
 </section></section><section class="section level2"><h2 id="sec-bivariate-inference">Inference<a class="anchor" aria-label="anchor" href="#sec-bivariate-inference"></a>
@@ -430,7 +432,7 @@ Table 1: Methods of the bivariate benchmark.
 <p>The interval constructions are those of <a href="01-2-population-inference.html">population inference</a>: <code>wald</code> (delta method on <span class="math inline">\boldsymbol p</span>), <code>ilr</code> (Wald in ILR coordinates mapped back), <code>profile</code> (likelihood-ratio inversion) and <code>oracle</code> (<span class="math inline">\hat p_j</span> plus or minus the Wald half-width at <span class="math inline">\boldsymbol p^{\star}</span>). The parametric bootstrap (<code><a href="../reference/bootstrap_decovart.html">bootstrap_decovart()</a></code>) is not run here: the moments of a scenario are fixed, so coverage is measured over its <span class="math inline">N</span> bulks, and <span class="math inline">N\times B</span> refits per solver dominated the run time. Performance is summarised with the ADEMP framework <span class="citation" data-cites="morrisUsingSimulationStudies2019">(<a href="#ref-morrisUsingSimulationStudies2019" role="doc-biblioref">Morris et al. 2019</a>)</span>: <strong>bias</strong>, <strong>RMSE</strong>, <strong>coverage</strong> of each interval construction (Wilson intervals on the coverage <em>rate</em>), <strong>width</strong>, <strong>SE/SD</strong>, and optimiser <strong>failure rate</strong>.</p>
 <p>The run size is hard-coded at the top of the script: <code>N_REPLICATES</code> (<span class="math inline">N=200</span>), <code>CORES</code> (workers for the <span class="math inline">N</span> bulks of a scenario: a third of half the cores, 14 of 88, since the three figure scripts run at the same time; parallel workers load the installed package) and <code>POSTPROCESS_ONLY</code> (<code>TRUE</code> redraws only).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">deconvolution_functions</span> <span class="op">&lt;-</span> <span class="fu">bivariate_toy_deconvolution_functions</span><span class="op">(</span></span>
 <span>  itmax <span class="op">=</span> <span class="fl">200L</span>,</span>
 <span>  epsilon <span class="op">=</span> <span class="fl">1e-4</span>,</span>
@@ -443,6 +445,7 @@ Table 1: Methods of the bivariate benchmark.
 <span>  cores <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  return_data <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <p><code>config</code> on the in-memory benchmark still carries Shannon entropy of <span class="math inline">\boldsymbol{p}</span> and MixSim overlap for tests.</p>
 <div style="page-break-after: always;"></div>
@@ -450,10 +453,11 @@ Table 1: Methods of the bivariate benchmark.
 </h2>
 <p>Figures are drawn from <code>output/fig02/fig02_plot_data.rds</code>, a list keyed by figure file stem that holds the data handed to each plot function, so any figure can be redrawn without the benchmark:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"scripts/visualisation/load_visualisation.R"</span><span class="op">)</span></span>
 <span><span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/fig02/fig02_plot_data.rds"</span><span class="op">)</span></span>
 <span><span class="fu">render_figure_from_data</span><span class="op">(</span><span class="st">"heatmap_rmse"</span>, <span class="va">plot_data</span>, <span class="st">"output/fig02"</span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <p>Density and performance books share the four correlation corners <span class="math inline">(\varrho_1,\varrho_2)\in\{(0,0),(-0.8,-0.8),(0.8,0.8),(-0.8,0.8)\}</span> and the twelve meta-scenarios (CLD <span class="math inline">\times</span> variance <span class="math inline">\times</span> composition). Every log-likelihood panel uses the same axes and the same fill, <span class="math inline">\log_{10}(L/\max L)</span> on <span class="math inline">[-10,0]</span>, with one legend per page: white diamond at <span class="math inline">\boldsymbol p^{\star}</span>, red point at the MLE (observed surface) or at the Monte Carlo mean of <span class="math inline">\hat{\boldsymbol p}</span> (expected surface, whose maximiser is <span class="math inline">\boldsymbol p^{\star}</span> exactly by the information inequality).</p>
 <div id="tbl-fig02-books" class="quarto-float quarto-figure quarto-figure-center">

@@ -845,7 +845,61 @@ Ecol. 26(1):32-46, doi:10.1111/j.1442-9993.2001.01070.pp.x; a
 module-level version is a perspective
 ([Section 7.4.2](#sec-fs-multivariate-tests)).
 
-#### 3.2.2 The four tests on simulated counts
+#### 3.2.2 Reading a null calibration
+
+A calibration asks whether a test rejects at its nominal rate when the
+null is true. On real data the null is built by permuting the labels.
+
+- **How the null is simulated.** The cell labels are permuted once,
+  within strata (for example within batch), and every test is rerun on
+  the permuted labels. Within a stratum the labels are exchangeable
+  under H\_{0g}, so each gene keeps its counts, its size factors and its
+  dependence on the other genes; only the link with the label is broken.
+  A within-stratum permutation keeps the number of cells of each type in
+  each stratum, and so it keeps any association between type and
+  stratum. A test that ignores the stratum then reads a stratum effect
+  as a type effect, and is anti-conservative even on permuted labels. A
+  test that permutes within the same strata is not.
+- **One permutation is one draw.** The m null p-values of one permuted
+  dataset are dependent (same cells, correlated genes), so the curve is
+  one realisation; a second permutation gives a slightly different
+  curve.
+- **The uniform QQ plot.** Under the null a p-value is uniform, so
+  -\log\_{10}p is exponential with rate \log 10. Plotting the observed
+  -\log\_{10}p\_{(i)} against the expected -\log\_{10}\\i/(m+1)\\ puts a
+  calibrated test on the identity line. Points above the line are more
+  small p-values than expected (anti-conservative), points below are
+  fewer (conservative). The pointwise band holds the i-th order
+  statistic of m independent uniforms with 95 % probability: its
+  quantiles are those of \mathrm{Beta}(i,m-i+1). A simultaneous band
+  (Kolmogorov–Smirnov, or the tail-sensitive band of Aldor-Noiman et al.
+  2013. covers the whole curve at once and is wider TODO-cite:
+        Aldor-Noiman, Brown, Buja, Rolke & Stine 2013, The power to see:
+        a new graphical test of normality, Am. Stat. 67(4):249-260,
+        doi:10.1080/00031305.2013.847865. Both assume independent genes,
+        so they are too narrow when genes are correlated: a curve just
+        outside the band is weak evidence, a curve far above it is not.
+        `qqplotr` draws the points, the line and the band for any
+        reference distribution TODO-cite: Almeida, Loy & Hofmann 2018,
+        ggplot2 compatible quantile-quantile plots in R, R Journal
+        10(2):248-261, doi:10.32614/RJ-2018-051.
+- **The p-value histogram before any adjustment.** With bins of 0.05, a
+  null test gives a flat histogram of height m/20. A peak near 0 over a
+  flat remainder is the expected shape when some genes are non-null; the
+  height of the flat part estimates \pi_0 m/20, with \pi_0 the share of
+  null genes (Storey 2002). A remainder that rises towards 1 signals a
+  conservative or discrete test; gaps and spikes signal discreteness (a
+  permutation p-value takes the values k/(B+1)); a bump in the middle
+  signals a wrong reference law (Breheny, Stromberg & Lambert 2018)
+  TODO-cite: Breheny, Stromberg & Lambert 2018, p-value histograms:
+  inference and diagnostics, High-Throughput 7(3):23,
+  doi:10.3390/ht7030023 TODO-cite: Storey 2002, A direct approach to
+  false discovery rates, J. R. Stat. Soc. B 64(3):479-498,
+  doi:10.1111/1467-9868.00346. Splitting the histogram by mean
+  expression shows where the power is: low-count genes have flatter
+  histograms.
+
+#### 3.2.3 The four tests on simulated counts
 
 The tests rank genes by the same type effect, so their gene orders
 should agree; [Figure 4](#fig-fs-type-tests) measures how far they do.
@@ -1506,7 +1560,7 @@ doi:10.1214/009117904000000450 The Gaussian approximation with
 \operatorname{Var}S_M=\lvert M\rvert, which ignores the edges, is T1 for
 the module. The bound of Chen & Shao is the result that MEAD uses for
 its central limit theorem across genes
-([Section 8.1](#sec-fs-appendix)).
+([Section 8.2](#sec-fs-appendix)).
 
 > **Theorem 3 (T3, Chernoff bound with Poisson cumulant generating
 > functions)**
@@ -1598,7 +1652,7 @@ weights; the equal-weight proper colouring is the special case used here
 (this remark is not checked against the paper). The dependent Bernstein
 inequality of Zhang & Li, used by DECALS, has a constant equal to
 \bar\chi_G and an unknown absolute constant in the exponent
-([Equation 47](#eq-fs-bernstein-dep), [Section 8.1](#sec-fs-appendix)).
+([Equation 51](#eq-fs-bernstein-dep), [Section 8.2](#sec-fs-appendix)).
 
 #### 4.2.2 Comparing the statements
 
@@ -2624,7 +2678,158 @@ information (Maugé & Ventre 2026, p. 27).
 
 ## 8 Appendix
 
-### 8.1 Concentration results in MEAD and DECALS
+### 8.1 Which type drives the effect: post hoc inference
+
+The omnibus tests of [Section 3.2](#sec-fs-omnibus) ask whether gene g
+varies across the J types of one slot. They do not say which type
+carries the difference. This section defines the follow-up hypotheses,
+the error rate controlled, and the procedures dropped. The application
+to the Suppinger reference is in the appendix of the feature-selection
+chapter of the reproducibility book.
+
+**Two hypotheses per gene and type.** With \eta\_{gj}=\log\mu\_{gj} the
+log-mean of type j (the coefficient of a cell-means NB model,
+[Equation 6](#eq-fs-nb-main) without intercept),
+
+\Delta\_{gj}=\eta\_{gj}-\frac{1}{J-1}\sum\_{k\neq j}\eta\_{gk}, \qquad
+A\_{gj}:\\ \Delta\_{gj}\>0, \qquad B\_{gj}:\\ \eta\_{gj}-\eta\_{gk}\>0\\
+\\ \forall k\neq j . \tag{47}
+
+- A\_{gj} (enrichment) compares type j with the equal-weighted average
+  of the other types on the log scale, that is with their geometric
+  mean. Equal weights make the contrast a property of the types, not of
+  how many cells of each type were captured; a cell-weighted average
+  would change with the composition of the slot.
+- B\_{gj} (unique superiority) is the stronger claim. It implies
+  A\_{gj}, since the average of the J-1 positive differences is
+  positive; the converse fails (means 10, 8, 1, 1 make both of the first
+  two types enriched, and only the first one superior).
+- With threshold \delta=0, the intersection of the J nulls
+  \Delta\_{gj}\le0 is the omnibus null \eta\_{g1}=\cdots=\eta\_{gJ} (the
+  \Delta\_{gj} sum to zero), so the omnibus test is the natural screen.
+  With \delta\>0 that is no longer true, and the screen must be built
+  from the directional p-values themselves, for example \min(1,J\min_j
+  p\_{gj}).
+
+**p-values.** For a fixed j, the intersection–union p-value of B\_{gj}
+is the largest of the one-sided pairwise p-values, with no correction
+across the competitors k (Berger 1982) TODO-cite: Berger 1982,
+Multiparameter hypothesis testing and acceptance sampling, Technometrics
+24(4):295-300, doi:10.1080/00401706.1982.10487790:
+
+p^{B}\_{gj}=\max\_{k\neq j}p\_{gjk}, \qquad p\_{gjk}\\ \text{one-sided
+for}\\ \eta\_{gj}-\eta\_{gk}\>0 . \tag{48}
+
+Each omnibus test has its own post hoc family:
+
+| Omnibus test | Contrast statistic | Reference |
+|----|----|----|
+| Likelihood ratio | Wald z on the NB coefficients; for a one-way design \operatorname{Var}\hat\eta\_{gj}=1/\sum\_{c\in j}w\_{gc} with w\_{gc}=m\_{gc}/(1+\phi_g m\_{gc}), \phi_g=1/\psi_g ([Equation 49](#eq-fs-nb-fisher)) | normal |
+| Quasi-likelihood F | contrast F with the shrunk dispersion (`glmGamPoi::test_de(contrast =)`) | F\_{1,\\\cdot}, one-sided by sign |
+| ANOVA, shifted log | t with the pooled residual variance; Tukey’s HSD for all pairs | t\_{C-J} |
+| Permuted Welch G | Welch t per contrast on the Pearson residuals of M_0 (the Games–Howell statistic) | the same B label permutations |
+
+Table 6: Post hoc families of the four omnibus tests.
+
+For the NB fit with offset \log s_c and cell-means design, the Fisher
+information of \eta\_{gj} is diagonal across types:
+
+\mathcal{I}(\eta\_{gj})=\sum\_{c\in j}\frac{m\_{gc}}{1+\phi_g m\_{gc}},
+\qquad m\_{gc}=s_c\\e^{\eta\_{gj}} . \tag{49}
+
+`emmeans` gives the same contrasts from these coefficients and this
+covariance: `contrast(method = "del.eff", side = ">")` for A and
+`"pairwise"` for B TODO-cite: Lenth, emmeans: Estimated Marginal Means,
+R package; use citation(“emmeans”).
+
+**Error rate: stage-wise, gene first.** The reporting unit is the gene.
+Stage 1 screens genes with the omnibus test at Benjamini–Hochberg level
+q; R of the G tested genes pass. Stage 2 tests the 2J hypotheses of each
+screened gene with a family-wise procedure at
+
+\alpha_I=q\\\frac{R}{G}. \tag{50}
+
+This controls the overall false discovery rate over genes, the expected
+share of reported genes for which at least one claim (screen or
+confirmation) is false (Heller et al. 2009; Van den Berge et al. 2017,
+`stageR`) TODO-cite: Heller, Manduchi, Grant & Ewens 2009, A flexible
+two-stage procedure for identifying gene sets that are differentially
+expressed, Bioinformatics 25(8):1019-1025,
+doi:10.1093/bioinformatics/btp076 TODO-cite: Van den Berge, Soneson,
+Robinson & Clement 2017, stageR: a general stage-wise method for
+controlling the gene-level false discovery rate in differential
+expression and differential transcript usage, Genome Biol. 18:151,
+doi:10.1186/s13059-017-1277-0. It is a false discovery rate over genes;
+within a gene the error is family-wise. Two simpler designs are reported
+beside it: Holm on the J enrichment hypotheses only (`stageR`’s Holm
+adjustment), and one Benjamini–Hochberg over all gene \times type
+enrichment p-values, which controls the share of false (gene, type)
+pairs instead.
+
+**Within a gene: a graphical procedure.** Bretz et al. (2009) write a
+family-wise procedure as a graph: each hypothesis has a weight, a
+rejected hypothesis passes its weight along the edges, and the procedure
+is a shortcut of a closed test TODO-cite: Bretz, Maurer, Brannath &
+Posch 2009, A graphical approach to sequentially rejective multiple test
+procedures, Stat. Med. 28(4):586-604, doi:10.1002/sim.3495. Here
+(**?@fig-fs-posthoc-graph**) each A\_{gj} starts with weight 1/J and
+passes all of it to B\_{gj} (a fixed sequence, logical because B implies
+A), and each B\_{gj} passes its weight equally to the other enrichment
+hypotheses. With no edge into the B layer the procedure is Holm on the A
+family. `graphicalMCP::graph_test_shortcut()` runs it TODO-cite:
+graphicalMCP R package; use citation(“graphicalMCP”).
+
+``` tikz
+%%| label: fig-fs-posthoc-graph
+%%| fig-cap: "Within-gene graph for $J=3$ types. Enrichment hypotheses $A_j$ (blue, initial weight $1/3$) pass their weight to the unique-superiority hypothesis $B_j$ of the same type (weight 1, a fixed sequence); each $B_j$ passes its weight to the two other enrichment hypotheses (weight $1/2$). The graph is tested at the stage-wise level $\\alpha_I$ of @eq-fs-alpha-stage."
+%%| filename: fig-fs-posthoc-graph
+%%| alt: Graph with three blue boxes A1, A2, A3 in a top row, each labelled with weight one third, and three grey boxes B1, B2, B3 below, each with weight zero. A solid arrow of weight one goes from each A down to the B of the same type. Dashed arrows of weight one half go from each B up to the two other A boxes.
+\begin{tikzpicture}[every node/.append style={text width=1.6cm}]
+\node[keybox] (A1) at (0,1.8) {$A_1$\\ $1/3$};
+\node[keybox] (A2) at (3.2,1.8) {$A_2$\\ $1/3$};
+\node[keybox] (A3) at (6.4,1.8) {$A_3$\\ $1/3$};
+\node[dimbox] (B1) at (0,-1) {$B_1$\\ $0$};
+\node[dimbox] (B2) at (3.2,-1) {$B_2$\\ $0$};
+\node[dimbox] (B3) at (6.4,-1) {$B_3$\\ $0$};
+\draw[edge] (A1) -- node[elabel, left] {1} (B1);
+\draw[edge] (A2) -- node[elabel, left] {1} (B2);
+\draw[edge] (A3) -- node[elabel, right] {1} (B3);
+\draw[dashededge] (B1) -- node[elabel, pos=0.25] {1/2} (A2);
+\draw[dashededge] (B2) -- node[elabel, pos=0.25] {1/2} (A1);
+\draw[dashededge] (B2) -- node[elabel, pos=0.25] {1/2} (A3);
+\draw[dashededge] (B3) -- node[elabel, pos=0.25] {1/2} (A2);
+\draw[dashededge] (B1) to[bend right=12] node[elabel, pos=0.15] {1/2} (A3);
+\draw[dashededge] (B3) to[bend left=12] node[elabel, pos=0.15] {1/2} (A1);
+\end{tikzpicture}
+```
+
+**Scope of the guarantee.** Cells of one specimen are not independent
+biological replicates; the tests generalise to new cells of that
+specimen, not to new specimens ([Zimmerman et al.
+2021](#ref-zimmermanPracticalSolutionPseudoreplication2021); [Squair et
+al. 2021](#ref-squairConfrontingFalseDiscoveries2021)). Labels must be
+fixed before the counts are tested
+([Section 3.2.1](#sec-fs-calibration)). At 48 h the analytic tests are
+anti-conservative under permuted labels because the type mix differs
+between the two cell lines; only the permutation family is calibrated
+there.
+
+**Strategies considered and dropped.**
+
+| Strategy | Why it is not used |
+|----|----|
+| Tukey’s HSD on counts or on Pearson residuals | Tukey assumes normal errors with one common variance; counts are NB with a mean-dependent variance. Kept only for the ANOVA family, on the shifted log. |
+| BH within each contrast, then BH again across contrasts | Adjusts twice and leaves no stated error rate; adjust the raw p-values once, over a family named in advance. |
+| “Top type against runner-up” with an ordinary one-sided p | The two types are chosen on the same data; the p-value ignores the selection and is anti-conservative. B\_{gj} for every j replaces it. |
+| \delta\>0 with the equality omnibus as screen | The omnibus null is then no longer the intersection of the directional nulls; use a screen built from the directional p-values. |
+| Selective FDR over families (Benjamini & Bogomolov 2014) | Controls an average error over selected families, a different criterion from the gene-level OFDR; kept as a comparison only TODO-cite: Benjamini & Bogomolov 2014, Selective inference on multiple families of hypotheses, J. R. Stat. Soc. B 76(1):297-318, doi:10.1111/rssb.12028. |
+| IHW, AdaPT (covariate-weighted FDR) | Gain power from a covariate independent of the null p-value; with one mean-expression covariate shared by the J correlated contrasts of a gene the condition needs checking TODO-cite: Ignatiadis, Klaus, Zaugg & Huber 2016, Nat. Methods 13:577-580, doi:10.1038/nmeth.3885. |
+| Local fdr, Kerfdr, `ashr` | Posterior quantities for ranking and shrinkage, not a frequentist FDR on the claims; `ashr`’s local false sign rate is an option for effect reporting TODO-cite: Stephens 2017, False discovery rates: a new deal, Biostatistics 18(2):275-294, doi:10.1093/biostatistics/kxw041. |
+| Knockoffs | Select genes that predict the type given the other genes, a conditional question, not a marginal type effect per gene. A group version on gene modules or enriched gene sets is a perspective TODO-cite: Barber & Candès 2015, Controlling the false discovery rate via knockoffs, Ann. Stat. 43(5):2055-2085, doi:10.1214/15-AOS1336. |
+
+Table 7: Post hoc strategies considered and dropped.
+
+### 8.2 Concentration results in MEAD and DECALS
 
 **MEAD.** MEAD’s asymptotics are of another kind than those of
 [Section 4.2.1](#sec-fs-five-bounds). Its central limit theorem runs
@@ -2716,7 +2921,7 @@ to be checked.
 > \mathbb{P}\Bigl(\sum\_{g\in M}Y_g\ge t\Bigr) \le
 > \bar\chi_G\exp\Bigl\[-\gamma\min\Bigl\\\frac{t^{2}}{\bar\chi_G^{2}\sum\_{g}\lVert
 > Y_g\rVert\_{\psi_1}^{2}},\\ \frac{t}{\bar\chi_G\max_g\lVert
-> Y_g\rVert\_{\psi_1}}\Bigr\\\Bigr\]. \tag{47}
+> Y_g\rVert\_{\psi_1}}\Bigr\\\Bigr\]. \tag{51}
 >
 > With no edge, d\_{\max}=0, \lvert\mathcal{E}\rvert=0 and \bar\chi_G=1:
 > the one-sided form of [Equation 16](#eq-fs-bernstein) (our remark). A

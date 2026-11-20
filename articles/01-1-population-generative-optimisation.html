@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -107,7 +107,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>1.1 Population-level DeCovarT: generative model, derivatives and optimisation on the simplex</h1>
 
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">19 Nov 2026</p>
+      <p class="date">20 Nov 2026</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/01-1-population-generative-optimisation.qmd" class="external-link"><code>vignettes/01-1-population-generative-optimisation.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -125,8 +125,8 @@
 <blockquote>
 <p><strong>Notation used in this vignette</strong></p>
 <p>A symbol absent from these groups is defined in this vignette, with one meaning. The full table is the <a href="notation.html">notation article</a>.</p>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="ef22e2e5-8920-4d39-af2d-eb495c6f83d6">
-<div id="ef22e2e5-8920-4d39-af2d-eb495c6f83d6" class="cell" data-tags="[&quot;notation-indices&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="7ed6ed32-3828-482d-9725-7f4a4627ced2">
+<div id="7ed6ed32-3828-482d-9725-7f4a4627ced2" class="cell" data-tags="[&quot;notation-indices&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Indices. The scalar <span class="math inline">R</span> is the number of reference donors.</caption>
@@ -171,8 +171,8 @@
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="be671869-46e5-4267-9bec-77ef968609da">
-<div id="be671869-46e5-4267-9bec-77ef968609da" class="cell" data-tags="[&quot;notation-ratios&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="7d2251ab-9296-4437-9c7c-11d7494d1d10">
+<div id="7d2251ab-9296-4437-9c7c-11d7494d1d10" class="cell" data-tags="[&quot;notation-ratios&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Cell fractions and transcript fractions.</caption>
@@ -226,8 +226,8 @@
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="148ce264-251e-40f4-8d1f-48c2a247c324">
-<div id="148ce264-251e-40f4-8d1f-48c2a247c324" class="cell" data-tags="[&quot;notation-means&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="58b1ee84-e821-4365-b76b-a01405c1cd61">
+<div id="58b1ee84-e821-4365-b76b-a01405c1cd61" class="cell" data-tags="[&quot;notation-means&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Purified profiles and per-cell means of raw counts.</caption>
@@ -278,8 +278,8 @@
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="c8c44929-fa02-4045-bdff-1cb5aa915849">
-<div id="c8c44929-fa02-4045-bdff-1cb5aa915849" class="cell" data-tags="[&quot;notation-biological&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="01956ebf-551d-40a3-9bea-f05db11495f4">
+<div id="01956ebf-551d-40a3-9bea-f05db11495f4" class="cell" data-tags="[&quot;notation-biological&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>Gene–gene covariance within a type, and variation across donors or types.</caption>
@@ -366,8 +366,8 @@
 </div>
 </div>
 </div>
-<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="1a31aae2-e61b-41ef-a1ec-a2d600af9b1c">
-<div id="1a31aae2-e61b-41ef-a1ec-a2d600af9b1c" class="cell" data-tags="[&quot;notation-bulk&quot;,&quot;embed&quot;]">
+<div class="quarto-embed-nb-cell" data-notebook="/home/runner/work/DeCovarT/DeCovarT/vignettes/notation.qmd" data-notebook-title="Notation" data-notebook-cellid="0f2c74bb-3f6b-4b68-82e3-790386dec706">
+<div id="0f2c74bb-3f6b-4b68-82e3-790386dec706" class="cell" data-tags="[&quot;notation-bulk&quot;,&quot;embed&quot;]">
 <div class="cell-output cell-output-display cell-output-markdown">
 <table class="table caption-top">
 <caption>The bulk profile and the two reference paradigms. Neither is a gold-standard reference.</caption>
@@ -1644,7 +1644,7 @@ p_{j}\bigl(
 </h2>
 <p><a href="../reference/fit_decovart.html"><code>fit_decovart()</code></a> returns a <code>decovart_fit</code> object with standard S3 methods for coefficients, fitted values, residuals, and (under regularity) a delta-method covariance. The chunk below mirrors the appendix equivariance setup:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">DeCovarT</a></span><span class="op">)</span></span>
 <span><span class="va">genes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"g"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">cts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"ct"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span></span>
@@ -1678,6 +1678,7 @@ p_{j}\bigl(
 <span><span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/vcov.html" class="external-link">vcov</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <p><code><a href="https://rdrr.io/r/stats/formula.html" class="external-link">formula()</a></code> and <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> are not implemented: DeCovarT does not forecast bulk expression.</p>
 <div style="page-break-after: always;"></div>
@@ -1689,7 +1690,7 @@ p_{j}\bigl(
 </h3>
 <p>The first check is against an independent implementation of the multivariate Gaussian log-density, not against our own inverse. With the <span class="math inline">\tfrac{1}{2}\log\det</span> factor restored, DeCovarT and <code><a href="https://rdrr.io/pkg/mvtnorm/man/Mvnorm.html" class="external-link">mvtnorm::dmvnorm</a></code> <span class="citation" data-cites="R-mvtnorm">(<a href="#ref-R-mvtnorm" role="doc-biblioref">Genz et al. 2026</a>)</span> differ by exactly <span class="math inline">\tfrac{G}{2}\log(2\pi)</span> (DeCovarT omits the negative constant):</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n_genes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">y_chk</span><span class="op">)</span></span>
 <span><span class="va">ours</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/loglik_multivariate.html">loglik_multivariate</a></span><span class="op">(</span><span class="va">p_chk</span>, <span class="va">y_chk</span>, <span class="va">mu_chk</span>, <span class="va">Sigma_chk</span><span class="op">)</span></span>
 <span><span class="va">reference</span> <span class="op">&lt;-</span> <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"mvtnorm"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
@@ -1712,13 +1713,14 @@ p_{j}\bigl(
 <span>  dmvnorm <span class="op">=</span> <span class="va">reference</span>,</span>
 <span>  difference <span class="op">=</span> <span class="va">ours</span> <span class="op">-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="va">n_genes</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">pi</span><span class="op">)</span> <span class="op">-</span> <span class="va">reference</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <p>A finite-difference check of the <em>same</em> objective cannot detect a shared factor-of-two error in the log-likelihood and its derivatives. That is why this density comparison is independent of <code>numDeriv</code>.</p>
 </section><section class="level2"><h3 id="richardson-extrapolation-of-the-score-and-hessian">Richardson extrapolation of the score and Hessian<a class="anchor" aria-label="anchor" href="#richardson-extrapolation-of-the-score-and-hessian"></a>
 </h3>
 <p>Once the objective is the intended Gaussian, the analytic score and Hessian are checked against Richardson extrapolation in <code>numDeriv</code> <span class="citation" data-cites="R-numDeriv">(<a href="#ref-R-numDeriv" role="doc-biblioref">Gilbert and Varadhan 2019</a>)</span>. Richardson’s tableau extrapolates central differences to cancel successive even powers of the step size, which is more accurate than a single two-point stencil at the same <span class="math inline">O(\varepsilon^{-1})</span> cost in function evaluations.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"numDeriv"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">numderiv_report</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>gradient_rel <span class="op">=</span> <span class="cn">NA_real_</span>, hessian_rel <span class="op">=</span> <span class="cn">NA_real_</span><span class="op">)</span></span>
 <span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
@@ -1752,13 +1754,14 @@ p_{j}\bigl(
 <span>  <span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="va">numderiv_report</span></span></code></pre></div>
+</details>
 </div>
 <p>Relative discrepancies of order (10^{-8}) are typical on this three-gene toy; that is the same tolerance used in the test suite.</p>
 </section><section class="level2"><h3 id="expected-information-versus-monte-carlo--">Expected information versus Monte Carlo ([-])<a class="anchor" aria-label="anchor" href="#expected-information-versus-monte-carlo--"></a>
 </h3>
 <p>Matching <code>numDeriv</code> shows that the derivatives belong to the implemented objective. Matching the <em>expected</em> Fisher information <a href="01-2-population-inference.html#eq-fisher-p">the expected information</a> to a Monte Carlo average of (-(; )) shows that the objective is the Gaussian whose information matrix we use for Wald intervals. Draw (^{(b)}_G(, ())) at the <em>true</em> () (the parametric bootstrap of <a href="../reference/bootstrap_decovart.html"><code>bootstrap_decovart()</code></a>, used here as a diagnostic rather than as an inferential procedure):</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
 <span><span class="va">n_mc</span> <span class="op">&lt;-</span> <span class="fl">40L</span></span>
 <span><span class="va">info</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/expected_fisher_unconstrained.html">expected_fisher_unconstrained</a></span><span class="op">(</span><span class="va">p_chk</span>, <span class="va">mu_chk</span>, <span class="va">Sigma_chk</span><span class="op">)</span></span>
@@ -1777,6 +1780,7 @@ p_{j}\bigl(
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>  rel_frobenius <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="op">(</span><span class="va">mc_info</span> <span class="op">-</span> <span class="va">info</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">info</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <p>The same identity is what closed the factor-of-two inconsistency: with the old (-) objective, ([-]) could not equal (I()). A few dozen draws already bring the relative Frobenius gap below (10^{-2}) on this toy; the test suite uses a tighter Monte Carlo.</p>
 <p>A related, weaker check compares the empirical covariance of parametric-bootstrap MLEs to the Cramér–Rao map <a href="../reference/vcov_ilr_delta.html"><code>vcov_ilr_delta()</code></a>. That comparison is noisy at small replication (see <a href="01-2-population-inference.html#sec-replication">MLE properties</a> for why one bulk column is not an asymptotic sample) and is therefore left to the inference vignette and to <a href="../reference/bootstrap_decovart.html"><code>bootstrap_decovart()</code></a>.</p>
@@ -1808,7 +1812,7 @@ p_{j}\bigl(
 \mathbf{U}^{\mathsf{T}}</span> — the factor-analysis form <span class="math inline">\boldsymbol{\Sigma}=\mathbf{W}\mathbf{W}^{\mathsf{T}}+\boldsymbol{\Psi}</span>. The Woodbury identity and the matrix-determinant lemma <span class="citation" data-cites="hagerUpdatingInverseMatrix1989">(<a href="#ref-hagerUpdatingInverseMatrix1989" role="doc-biblioref">Hager 1989</a>)</span> move the <span class="math inline">O(G^{3})</span> cost to the low rank <span class="math inline">r</span>. A few bridge / housekeeping hub genes give the arrow-matrix special case handled by the same Schur-complement algebra.</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Experimental: source the backends after loading the package.</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"scripts/experimental/covariance_backends.R"</span><span class="op">)</span></span>
 <span><span class="co"># Declare structure explicitly, then use the operator interface.</span></span>
@@ -1817,6 +1821,7 @@ p_{j}\bigl(
 <span><span class="va">ld</span> <span class="op">&lt;-</span> <span class="fu">sigma_logdet</span><span class="op">(</span><span class="va">cov</span>, <span class="va">p</span><span class="op">)</span>            <span class="co"># log det Sigma(p)</span></span>
 <span><span class="va">z</span>  <span class="op">&lt;-</span> <span class="fu">sigma_solve</span><span class="op">(</span><span class="va">cov</span>, <span class="va">p</span>, <span class="va">residual</span><span class="op">)</span>   <span class="co"># Sigma(p)^{-1} r, no dense inverse</span></span>
 <span><span class="va">q</span>  <span class="op">&lt;-</span> <span class="fu">sigma_quadform</span><span class="op">(</span><span class="va">cov</span>, <span class="va">p</span>, <span class="va">residual</span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 </section><section class="level2"><h3 id="sec-backend-complexity">Computational complexity<a class="anchor" aria-label="anchor" href="#sec-backend-complexity"></a>
 </h3>

@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -107,7 +107,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Appendix S1 — Regular-case MLE properties and identifiability</h1>
       <p class="subtitle">Full script: <code>scripts/supp_S1_identifiability.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">19 Nov 2026</p>
+      <p class="date">20 Nov 2026</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/S1-identifiability.qmd" class="external-link"><code>vignettes/S1-identifiability.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -128,7 +128,7 @@
 </ol>
 <p>Heavy Monte Carlo factorial runs live in <code>scripts/supp_S1_identifiability.R</code> (<code>N_REPLICATES=2</code> for a smoke test; outputs in <code>output/supp_S1/</code>). The live chunks below use <span class="math inline">G\le 3</span> and are meant to be rebuilt with the vignette.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">DeCovarT</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
@@ -148,6 +148,7 @@
 <span>  ncol <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">genes</span>, <span class="st">"s1"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <section class="section level2"><h2 id="sec-interior-regular">Regular case: interior of the simplex<a class="anchor" aria-label="anchor" href="#sec-interior-regular"></a>
 </h2>
@@ -168,7 +169,7 @@
 \boldsymbol{\Sigma}^\star)</span> in exact arithmetic. A z-score computed <strong>once per gene from <span class="math inline">\boldsymbol{\mu}</span></strong> (not per cell type, not per bulk sample) is that map; see <a href="01-2-population-inference.html#sec-mle-properties">equivariance in the MLE article</a>.</p>
 <p>A logarithm is not affine. It is concave, so Jensen’s inequality changes first and second moments, and <span class="math inline">\log(\boldsymbol{\mu}\boldsymbol{p})\neq(\log\boldsymbol{\mu})\boldsymbol{p}</span>. <code>CIBERSORT</code> therefore requires non-negative expression, no missing values, and a non-log linear scale <span class="citation" data-cites="newmanRobustEnumerationCell2015">(<a href="#ref-newmanRobustEnumerationCell2015" role="doc-biblioref">Newman et al. 2015</a>)</span>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_raw</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fit_decovart.html">fit_decovart</a></span><span class="op">(</span></span>
 <span>  <span class="va">mu</span>,</span>
 <span>  <span class="va">y</span>,</span>
@@ -210,6 +211,7 @@
 <span><span class="co">#&gt; raw            0.6489623 0.3510377</span></span>
 <span><span class="co">#&gt; general_affine 0.6489623 0.3510377</span></span>
 <span><span class="co">#&gt; gene_wise_z    0.6489623 0.3510377</span></span></code></pre></div>
+</details>
 </div>
 <p>The two rows should agree up to optimiser noise: <code>standardise = TRUE</code> is a gene-wise affine map. Cell-type-wise <code><a href="https://rdrr.io/r/base/scale.html" class="external-link">scale()</a></code> of <span class="math inline">\boldsymbol{\mu}</span> would estimate a different <span class="math inline">D</span> per column and is not supported.</p>
 </section><section class="level2"><h3 id="sec-perturb">Small perturbations of the bulk<a class="anchor" aria-label="anchor" href="#sec-perturb"></a>
@@ -222,7 +224,7 @@
 \boldsymbol{\mu}^{\top}W^{-1}\boldsymbol{y}</span> and projected on the simplex. Do <strong>not</strong> copy that <span class="math inline">W</span> into every tensor slice: <span class="math inline">\sum_j p_j^2 W=\|p\|_2^2 W</span> still depends on <span class="math inline">p</span>.</li>
 </ol>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
 <span><span class="va">p_true</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="fl">0.4</span><span class="op">)</span></span>
 <span><span class="va">y0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="va">mu</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="va">p_true</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">1</span>, dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">genes</span>, <span class="st">"s1"</span><span class="op">)</span><span class="op">)</span></span>
@@ -266,12 +268,13 @@
 <span><span class="co">#&gt; $rmse_to_truth</span></span>
 <span><span class="co">#&gt;              full celltype_diagonal         gls_fixed </span></span>
 <span><span class="co">#&gt;        0.01124588        0.01124588        0.01215877</span></span></code></pre></div>
+</details>
 </div>
 </section><section class="level2"><h3 id="sec-init-seeds">Random ILR starts<a class="anchor" aria-label="anchor" href="#sec-init-seeds"></a>
 </h3>
 <p>Marquardt–Levenberg and Newton–Raphson maximise the convolution log-likelihood with analytic Hessians. That is cheaper per step than a first-order quasi-Newton map, but a start near a simplex face can stall on a plateau. Three Dirichlet<span class="math inline">(1,1)</span> draws (<code>starting_simplex(..., "dirichlet")</code>, seeds 11, 22 and 33) are passed as <code>initial_p</code> on the same perturbed bulk. Concentration <span class="math inline">\alpha=1</span> is uniform on the simplex; <span class="math inline">\alpha&gt;1</span> is centre-biased and <span class="math inline">\alpha&lt;1</span> is face-biased. Sequence several draws (or <a href="../reference/multistart_decovart.html"><code>multistart_decovart()</code></a>) rather than a single random start. A QP warm start is <code>initial_p = "qp"</code>. On this well-conditioned interior toy the second-order estimates should agree; a spread of several percentage points is a warning that the start has trapped the solver.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">seeds</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">11L</span>, <span class="fl">22L</span>, <span class="fl">33L</span><span class="op">)</span></span>
 <span><span class="va">starts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">seeds</span>, <span class="kw">function</span><span class="op">(</span><span class="va">s</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="va">s</span><span class="op">)</span></span>
@@ -321,6 +324,7 @@
 <span><span class="co">#&gt;      seed_11  seed_22  seed_33</span></span>
 <span><span class="co">#&gt; ct1 0.611246 0.611246 0.611246</span></span>
 <span><span class="co">#&gt; ct2 0.388754 0.388754 0.388754</span></span></code></pre></div>
+</details>
 </div>
 <p>A fuller comparison of normalisation (CPM, log2), tolerance, and dimension <span class="math inline">(G,J)</span> belongs in <a href="S3-scaling.html">Appendix S3</a>.</p>
 <div style="page-break-after: always;"></div>
@@ -331,7 +335,7 @@
 </h3>
 <p><code><a href="../reference/fit_decovart.html">fit_decovart()</a></code> flags collinear mean columns as a numerical hazard even when the covariance tensor separates the types.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mu2</span> <span class="op">&lt;-</span> <span class="va">mu</span></span>
 <span><span class="va">mu2</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">mu2</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span>
@@ -346,9 +350,10 @@
 <span>  error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">conditionMessage</a></span><span class="op">(</span><span class="va">e</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "Signature columns are collinear.\n✖ rank 1 &lt; J = 2; mixture proportions are not identifiable."</span></span></code></pre></div>
+</details>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">genes3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"g"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">cts3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"child_1"</span>, <span class="st">"child_2"</span>, <span class="st">"parent"</span><span class="op">)</span></span>
 <span><span class="va">mu3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span></span>
@@ -377,6 +382,7 @@
 <span>  error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">conditionMessage</a></span><span class="op">(</span><span class="va">e</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "Signature columns are collinear.\n✖ rank 2 &lt; J = 3; mixture proportions are not identifiable."</span></span></code></pre></div>
+</details>
 </div>
 <p>Missing values are not a separate predictor / response policy (RE2.2): quantified bulk RNA-seq matrices are complete, and the API errors on <code>NA</code> / <code>NaN</code> / <code>Inf</code>.</p>
 </section><section class="level2"><h3 id="sec-s1-factorial">Factorial Monte Carlo (script)<a class="anchor" aria-label="anchor" href="#sec-s1-factorial"></a>
@@ -421,10 +427,11 @@
 </table>
 <p><span class="math inline">N = 1000</span> Monte Carlo replicates per sub-scenario in a full run (smoke test: <span class="math inline">n = 2</span>). Solvers: Marquardt–Levenberg for S1b/S1c; S1a also records interval coverage near a simplex face.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">N_REPLICATES</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"N_REPLICATES"</span>, unset <span class="op">=</span> <span class="st">"1000"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co"># See scripts/supp_S1_identifiability.R for config_1a / config_1b /</span></span>
 <span><span class="co"># config_1c and the run_simulation_benchmark() calls.</span></span></code></pre></div>
+</details>
 </div>
 <section class="level3"><h4 id="expected-findings">Expected findings<a class="anchor" aria-label="anchor" href="#expected-findings"></a>
 </h4>

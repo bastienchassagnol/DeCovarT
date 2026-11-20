@@ -25,6 +25,8 @@ Heavy Monte Carlo factorial runs live in
 outputs in `output/supp_S1/`). The live chunks below use G\le 3 and are
 meant to be rebuilt with the vignette.
 
+Show the code
+
 ``` r
 
 library(DeCovarT)
@@ -82,6 +84,8 @@ first and second moments, and
 `CIBERSORT` therefore requires non-negative expression, no missing
 values, and a non-log linear scale ([Newman et al.
 2015](#ref-newmanRobustEnumerationCell2015)).
+
+Show the code
 
 ``` r
 
@@ -150,6 +154,8 @@ slightly. Three covariance *models* are compared:
     simplex. Do **not** copy that W into every tensor slice: \sum_j
     p_j^2 W=\\p\\\_2^2 W still depends on p.
 
+Show the code
+
 ``` r
 
 set.seed(2)
@@ -212,6 +218,8 @@ rather than a single random start. A QP warm start is
 `initial_p = "qp"`. On this well-conditioned interior toy the
 second-order estimates should agree; a spread of several percentage
 points is a warning that the start has trapped the solver.
+
+Show the code
 
 ``` r
 
@@ -287,6 +295,8 @@ negative control is identical means *and* proportional covariances.
 flags collinear mean columns as a numerical hazard even when the
 covariance tensor separates the types.
 
+Show the code
+
 ``` r
 
 mu2 <- mu
@@ -304,6 +314,8 @@ tryCatch(
 )
 #> [1] "Signature columns are collinear.\n✖ rank 1 < J = 2; mixture proportions are not identifiable."
 ```
+
+Show the code
 
 ``` r
 
@@ -356,6 +368,8 @@ a smoke test).
 N = 1000 Monte Carlo replicates per sub-scenario in a full run (smoke
 test: n = 2). Solvers: Marquardt–Levenberg for S1b/S1c; S1a also records
 interval coverage near a simplex face.
+
+Show the code
 
 ``` r
 

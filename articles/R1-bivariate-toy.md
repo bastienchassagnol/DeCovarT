@@ -27,6 +27,8 @@ Figure 1: Bivariate toy factorial design: three compositions, two
 variance structures, two CLD mean separations, a 9-by-9 gene-gene
 correlation grid, and seven solvers (3 x 2 x 2 x 9 x 9 = 972 scenarios).
 
+Show the code
+
 ``` default
 ---
 config:
@@ -167,6 +169,8 @@ with the estimates, convergence, KKT residual, elapsed time and memory),
 Mean-only `lsei` and NNLS do not maximise the convolution likelihood, so
 no interval is computed for them.
 
+Show the code
+
 ``` r
 
 library(DeCovarT)
@@ -184,6 +188,8 @@ draw. It is not executed during `R CMD build`: Quarto’s Windows CLI
 starts a new R process that cannot see the temporary library
 ([quarto-r#217](https://github.com/quarto-dev/quarto-r/issues/217)). The
 same likelihood path is checked in `tests/testthat/`.
+
+Show the code
 
 ``` r
 
@@ -277,6 +283,8 @@ the cores, 14 of 88, since the three figure scripts run at the same
 time; parallel workers load the installed package) and
 `POSTPROCESS_ONLY` (`TRUE` redraws only).
 
+Show the code
+
 ``` r
 
 deconvolution_functions <- bivariate_toy_deconvolution_functions(
@@ -301,6 +309,8 @@ bivariate <- run_simulation_benchmark(
 Figures are drawn from `output/fig02/fig02_plot_data.rds`, a list keyed
 by figure file stem that holds the data handed to each plot function, so
 any figure can be redrawn without the benchmark:
+
+Show the code
 
 ``` r
 

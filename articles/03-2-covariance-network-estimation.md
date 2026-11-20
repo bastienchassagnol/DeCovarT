@@ -1478,6 +1478,8 @@ linear-scale correlation of about 0.28. Removing the Poisson diagonal
 expression itself; the remaining gap to 0.6 is the log-to-linear map,
 not noise. The chunk below checks these values by simulation.
 
+Show the code
+
 ``` r
 
 set.seed(20261015)

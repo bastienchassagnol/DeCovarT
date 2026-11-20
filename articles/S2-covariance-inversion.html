@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -107,7 +107,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Appendix S2 — Covariance Inversion Strategies</h1>
       <p class="subtitle">Full script: <code>scripts/supp_S2_covariance_inversion.R</code></p>
 
-      <p class="date">19 Nov 2026</p>
+      <p class="date">20 Nov 2026</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/S2-covariance-inversion.qmd" class="external-link"><code>vignettes/S2-covariance-inversion.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -119,8 +119,9 @@
 
 
     <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">DeCovarT</a></span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <blockquote>
 <p><strong>Script:</strong> <code>scripts/supp_S2_covariance_inversion.R</code> — benchmarks matrix inversion strategies. Outputs in <code>output/supp_S2/</code>.</p>
@@ -209,7 +210,7 @@
 </table>
 <p><span class="math inline">N_{\text{timing}} = 50</span> repeated solves per condition (median reported).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># -----------------------------------------------------------------</span></span>
 <span><span class="co"># SECTION 1: GENERATIVE MODEL</span></span>
 <span><span class="co"># Build precision matrices for each (G, structure) combination</span></span>
@@ -254,6 +255,7 @@
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
 <span>    Omega <span class="op">=</span> <span class="fu">purrr</span><span class="fu">::</span><span class="fu"><a href="https://purrr.tidyverse.org/reference/map2.html" class="external-link">map2</a></span><span class="op">(</span><span class="va">G</span>, <span class="va">structure</span>, <span class="va">build_precision</span><span class="op">)</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <hr></section></section><section class="level2"><h2 id="inference">
 <span class="emoji" data-emoji="two">2️⃣</span> Inference<a class="anchor" aria-label="anchor" href="#inference"></a>
@@ -261,7 +263,7 @@
 <section class="level3"><h3 id="timing-benchmark">Timing benchmark<a class="anchor" aria-label="anchor" href="#timing-benchmark"></a>
 </h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># -----------------------------------------------------------------</span></span>
 <span><span class="co"># SECTION 2: INFERENCE / TIMING</span></span>
 <span><span class="co"># Compare solve(Omega, v) using different backends</span></span>
@@ -287,6 +289,7 @@
 <span>  <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/unnest.html" class="external-link">unnest</a></span><span class="op">(</span><span class="va">timing</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">benchmark_results</span>, <span class="st">"output/supp_S2/inversion_timing.rds"</span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <hr></section></section><section class="level2"><h2 id="visualisations">
 <span class="emoji" data-emoji="three">3️⃣</span> Visualisations<a class="anchor" aria-label="anchor" href="#visualisations"></a>
@@ -327,7 +330,7 @@
 <p><strong>Panel A (running time).</strong> Plot median wall-clock time per <code>sigma_solve()</code> against <span class="math inline">G</span> on <strong>log–log</strong> axes, with one colour per backend and one linetype per network structure. The log scale is the same device as DICEPro Figure S1A: early-<span class="math inline">G</span> cache effects stay visible while the <span class="math inline">G=500</span>–<span class="math inline">1000</span> regime does not collapse the faster solvers onto the axis. A dense Cholesky should approach slope <span class="math inline">3</span> on this plot. Banded and block-diagonal backends should peel away below that line as soon as fill-in stays cheaper than a full <span class="math inline">G^{3}</span> factorisation. Ribbons are Monte Carlo SD across the <span class="math inline">N_{\text{timing}}</span> repeated solves in Section 2, not confidence intervals for a statistical estimand.</p>
 <p><strong>Panel B (complexity and memory).</strong> Following VIMixR Figure S4, treat sparsity as a second experimental factor rather than a colour annotation. Facet or group by edge density (or bandwidth / number of blocks) and show both <strong>seconds per solve</strong> and <strong>peak RSS</strong>. The intended reading is a three-way relationship: larger <span class="math inline">G</span> inflates time cubically for dense <span class="math inline">\boldsymbol{\Sigma}_{j}</span>; a sparser Markov network reduces fill-in and peak memory; the structured backend only pays off once that fill-in advantage exceeds the overhead of the specialised kernel. At small <span class="math inline">G</span> (<span class="math inline">G\le 50</span>) dense Cholesky can still win because of cache locality, as in the expected findings below.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># -----------------------------------------------------------------</span></span>
 <span><span class="co"># SECTION 3a: INVERSION PANELS (A, B)</span></span>
 <span><span class="co"># -----------------------------------------------------------------</span></span>
@@ -358,6 +361,7 @@
 <span>  width <span class="op">=</span> <span class="fl">8</span>,</span>
 <span>  height <span class="op">=</span> <span class="fl">5</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <div id="fig-s2-inversion" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-s2-inversion-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -396,7 +400,7 @@ Figure 1: Wall-clock cost of <span class="math inline">\boldsymbol{\Sigma}(\bol
 <p>The ILR / softmax chart is a <span class="math inline">C^{2}</span> diffeomorphism onto the open simplex (<a href="01-1-population-generative-optimisation.html#sec-constrained">constrained optimisation</a>), so Marquardt, Newton, and the projected gradient keep <span class="math inline">\sum_{j}\hat p_{j}=1</span> by construction. L-BFGS-B only boxes <span class="math inline">[0,1]^{J}</span> and renormalises after <code><a href="https://rdrr.io/r/stats/optim.html" class="external-link">optim()</a></code>; during the line search <span class="math inline">\lvert 1-\sum_{j}p_{j}\rvert</span> can leave zero, which is why that path needs the guarded objective in <a href="01-1-population-generative-optimisation.html#sec-numerical-speedups">solver safeguards</a>. The ADEMP field <code>optimisation$kkt_residual</code> (<a href="04-1-synthetic-scenarios.html#sec-ademp">synthetic scenarios</a>) is the projected-score residual <span class="math inline">\lVert\Pi_{\Delta}(\hat{\boldsymbol{p}}+\alpha\nabla\ell)-\hat{\boldsymbol{p}}\rVert_{2}/\alpha</span>. It is the right analogue of DICEPro’s unit-sum violation for an interior (or bound-constrained) stationary point: small residual means the score has no feasible first-order improvement. Plot it on a log scale against iteration or against reconstruction error, with a Pareto outline only if a penalty-weight grid is actually run.</p>
 <p>The companion scatter is analytic <span class="math inline">\nabla\ell</span> (and, where stored, the Hessian) against Richardson extrapolation in <code>numDeriv</code> <span class="citation" data-cites="R-numDeriv">(<a href="#ref-R-numDeriv" role="doc-biblioref">Gilbert and Varadhan 2019</a>)</span>, as already used in <a href="01-1-population-generative-optimisation.html">the generative-model vignette</a> and in <code>tests/testthat/test-02_02_population_decovart_estimate_ratios.R</code>. DICEPro reported relative errors below <span class="math inline">6\times 10^{-6}</span> with central differences <span class="math inline">\varepsilon=10^{-5}</span>. DeCovarT prefers Richardson’s tableau rather than a single-step central difference, because the score mixes traces of <span class="math inline">\boldsymbol{\Omega}(\boldsymbol{p})</span> with quadratic forms that have a wide dynamic range. Points should fall on the identity; stratify by parameter block (ILR coordinates versus unconstrained <span class="math inline">\boldsymbol{p}</span> on the L-BFGS-B path).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># -----------------------------------------------------------------</span></span>
 <span><span class="co"># SECTION 3b: SOLVER PANELS (C, D)</span></span>
 <span><span class="co"># -----------------------------------------------------------------</span></span>
@@ -423,6 +427,7 @@ Figure 1: Wall-clock cost of <span class="math inline">\boldsymbol{\Sigma}(\bol
 <span>  width <span class="op">=</span> <span class="fl">9</span>,</span>
 <span>  height <span class="op">=</span> <span class="fl">6</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <div id="fig-s2-solvers" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-s2-solvers-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">

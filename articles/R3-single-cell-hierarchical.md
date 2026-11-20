@@ -1,5 +1,7 @@
 # §2.4 Single-cell scenario: four cell types in two lineages (G = 20 or 200, J = 4)
 
+Show the code
+
 ``` r
 
 library(DeCovarT)
@@ -157,6 +159,8 @@ Scenario identifiers read
 `S{row}_{Ba|Un}_{O1|O8}_n{1e3|1e5}_{Se|Sl}_G{20|200}_a{1|5}`, for
 example `S1_Ba_O1_n1e3_Se_G20_a1`.
 
+Show the code
+
 ``` r
 
 # The design takes about a minute (overlap calibration by Sobol Monte
@@ -270,6 +274,8 @@ fixed, so coverage is measured over its N bulks. Parallel workers load
 the **installed** DeCovarT, so run `devtools::install()` before a
 parallel run.
 
+Show the code
+
 ``` r
 
 benchmark <- readRDS("output/fig05/fig05_benchmark.rds")
@@ -287,6 +293,8 @@ dplyr::select(
 the true moments (`theta_true`) and every metric table;
 `output/fig05/fig05_plot_data.rds` holds, for each figure file stem, the
 data handed to its plot function.
+
+Show the code
 
 ``` r
 

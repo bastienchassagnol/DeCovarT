@@ -1,5 +1,7 @@
 # Appendix S2 — Covariance Inversion Strategies
 
+Show the code
+
 ``` r
 
 library(DeCovarT)
@@ -55,6 +57,8 @@ against a dense Cholesky to machine precision on a small G.
 
 N\_{\text{timing}} = 50 repeated solves per condition (median reported).
 
+Show the code
+
 ``` r
 
 # -----------------------------------------------------------------
@@ -108,6 +112,8 @@ precision_grids <- tidyr::expand_grid(G = G_grid, structure = structures) |>
 ## 2️⃣ Inference
 
 ### Timing benchmark
+
+Show the code
 
 ``` r
 
@@ -199,6 +205,8 @@ reduces fill-in and peak memory; the structured backend only pays off
 once that fill-in advantage exceeds the overhead of the specialised
 kernel. At small G (G\le 50) dense Cholesky can still win because of
 cache locality, as in the expected findings below.
+
+Show the code
 
 ``` r
 
@@ -325,6 +333,8 @@ traces of \boldsymbol{\Omega}(\boldsymbol{p}) with quadratic forms that
 have a wide dynamic range. Points should fall on the identity; stratify
 by parameter block (ILR coordinates versus unconstrained \boldsymbol{p}
 on the L-BFGS-B path).
+
+Show the code
 
 ``` r
 

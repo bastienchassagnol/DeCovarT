@@ -32,7 +32,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -108,7 +108,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>§2.3 Covariance-driven scenario (G = 20, J = 3)</h1>
       <p class="subtitle">Full script: <code>scripts/fig03_variance_covariance_driven.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">19 Nov 2026</p>
+      <p class="date">20 Nov 2026</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/R2-covariance-driven.qmd" class="external-link"><code>vignettes/R2-covariance-driven.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -120,8 +120,9 @@
 
 
     <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">DeCovarT</a></span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <p>The bivariate toy confirms the theoretical benefit of covariance modelling in a transparent setting but cannot demonstrate realistic gene-regulatory network (GRN) topology. This scenario uses <span class="math inline">G = 20</span> genes and <span class="math inline">J = 3</span> cell types in which types 1 and 2 are <strong>mean-collinear</strong> (<span class="math inline">\cos(\boldsymbol{\mu}_{\cdot 1},\boldsymbol{\mu}_{\cdot 2})=0.9</span>): the network topology encoded in <span class="math inline">\boldsymbol{\Sigma}_j</span> is the remaining discriminative signal. Construction, ADEMP benchmark, and the static network figure live in a <strong>single</strong> script, <code>scripts/fig03_variance_covariance_driven.R</code> (seed <code>20260807</code>).</p>
 <div id="fig-covariance-design" class="quarto-float quarto-figure quarto-figure-center">
@@ -132,7 +133,7 @@
 </figcaption></figure>
 </div>
 <div class="cell" data-eval="true" data-layout-align="default">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>---</span>
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode default"><code class="sourceCode default"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>---</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>config:</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  layout: elk</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  theme: sandstone</span>
@@ -155,7 +156,7 @@
 <span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbLo["Low overlap"]</span>
 <span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbMo["Moderate overlap"]</span>
 <span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  SbSb --&gt; SbSbHi["High overlap"]</span></code></pre></div>
-<div class="cell-output-display">
+</details><div class="cell-output-display">
 <div id="fig-covariance-design-tree" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-fig"><div aria-describedby="fig-covariance-design-tree-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div>
@@ -530,24 +531,26 @@ Table 6: Interval menu (<a href="01-2-population-inference.html">population inf
 </div>
 <p>Coverage is reported with a Wilson Monte Carlo interval <span class="citation" data-cites="morrisUsingSimulationStudies2019">(<a href="#ref-morrisUsingSimulationStudies2019" role="doc-biblioref">Morris et al. 2019</a>)</span>; the interval table also gives the mean and median width and the share of intervals leaving <span class="math inline">[0,1]</span>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">benchmark</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/fig03/fig03_benchmark.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">benchmark</span><span class="op">)</span></span>
 <span><span class="co">#&gt; meta config theta_true descriptors supplementary regression</span></span>
 <span><span class="co">#&gt; monte_carlo optimisation intervals data</span></span>
 <span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">benchmark</span><span class="op">$</span><span class="va">intervals</span>, <span class="va">is_composition</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">ID</span>, <span class="va">algorithm</span>, <span class="va">ci_method</span>, <span class="va">parameter</span>, <span class="va">coverage</span>, <span class="va">mean_width</span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <div style="page-break-after: always;"></div>
 </section></section><section class="section level2"><h2 id="sec-hybrid-viz">Visualisations<a class="anchor" aria-label="anchor" href="#sec-hybrid-viz"></a>
 </h2>
 <p>Every figure is redrawn from two files in <code>output/fig03/</code>: <code>fig03_benchmark.rds</code> (run settings, design, true parameters and every metric table) and <code>fig03_plot_data.rds</code>, a list keyed by figure file stem that holds the data handed to each plot function.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"scripts/visualisation/load_visualisation.R"</span><span class="op">)</span></span>
 <span><span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/fig03/fig03_plot_data.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">plot_data</span><span class="op">)</span></span>
 <span><span class="fu">render_figure_from_data</span><span class="op">(</span><span class="st">"ci_width_forest"</span>, <span class="va">plot_data</span>, <span class="st">"output/fig03"</span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <div id="tbl-fig03-books" class="quarto-float quarto-figure quarto-figure-center">
 <figure class="quarto-float quarto-float-tbl"><figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-fig03-books-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">

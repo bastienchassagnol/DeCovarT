@@ -208,6 +208,8 @@ Weighted scalar objectives in `GA` or `GenSA` remain an auditable
 alternative ([Scrucca 2026](#ref-R-GA); [Gubian et al.
 2025](#ref-R-GenSA)).
 
+Show the code
+
 ``` r
 
 # Fitness of a soft gene mask: condition number of the mean signature
@@ -252,6 +254,8 @@ implements the composition-dependent information of DeCovarT, so F uses
 a custom objective with a greedy or exchange search. The two package
 calls below illustrate standard D-optimal designs only.
 
+Show the code
+
 ``` r
 
 candidates <- expand.grid(
@@ -268,6 +272,8 @@ design <- skpr::gen_design(
 skpr::get_optimality(design, "D")
 ```
 
+Show the code
+
 ``` r
 
 result <- AlgDesign::optFederov(
@@ -279,6 +285,8 @@ result <- AlgDesign::optFederov(
 )
 result$D
 ```
+
+Show the code
 
 ``` r
 

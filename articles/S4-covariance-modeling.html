@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -107,7 +107,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>Appendix S4 — Covariance Modelling Assumptions</h1>
       <p class="subtitle">Full script: <code>scripts/supp_S4_covariance_modeling.R</code></p>
 
-      <p class="date">19 Nov 2026</p>
+      <p class="date">20 Nov 2026</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/S4-covariance-modeling.qmd" class="external-link"><code>vignettes/S4-covariance-modeling.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -119,8 +119,9 @@
 
 
     <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">DeCovarT</a></span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <blockquote>
 <p><strong>Script:</strong> <code>scripts/supp_S4_covariance_modeling.R</code> — compares covariance modelling assumptions. Outputs in <code>output/supp_S4/</code>.</p>
@@ -200,7 +201,7 @@
 </table>
 <p><span class="math inline">G = 50</span> genes, <span class="math inline">J = 3</span> cell types; <span class="math inline">N = 200</span> Monte Carlo replicates (smoke test: <span class="math inline">n = 2</span>).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># -----------------------------------------------------------------</span></span>
 <span><span class="co"># SECTION 1: GENERATIVE MODEL</span></span>
 <span><span class="co"># Build true Sigma matrices and compute mis-specified alternatives</span></span>
@@ -243,12 +244,13 @@
 <span>  global_diagonal <span class="op">=</span> <span class="va">global_diag_covs</span>,</span>
 <span>  identity        <span class="op">=</span> <span class="va">identity_covs</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <hr></section></section><section class="level2"><h2 id="inference">
 <span class="emoji" data-emoji="two">2️⃣</span> Inference<a class="anchor" aria-label="anchor" href="#inference"></a>
 </h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># -----------------------------------------------------------------</span></span>
 <span><span class="co"># SECTION 2: INFERENCE</span></span>
 <span><span class="co"># -----------------------------------------------------------------</span></span>
@@ -279,6 +281,7 @@
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">s4_results</span>, <span class="st">"output/supp_S4/cov_model_benchmark.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">saveRDS</a></span><span class="op">(</span><span class="va">cov_models_grid</span>, <span class="st">"output/supp_S4/cov_models_grid.rds"</span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <p>See details of the gls competitor in <a href="#nte-gls-solver" class="quarto-xref">Note 1</a>.</p>
 <div id="nte-gls-solver">
@@ -317,7 +320,7 @@
 </tbody>
 </table>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># -----------------------------------------------------------------</span></span>
 <span><span class="co"># SECTION 3: VISUALISATIONS</span></span>
 <span><span class="co"># -----------------------------------------------------------------</span></span>
@@ -345,6 +348,7 @@
 <span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="st">"output/supp_S4/s4_rmse_by_model.pdf"</span>, <span class="va">p_rmse</span>, width <span class="op">=</span> <span class="fl">8</span>, height <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="op">}</span></span></code></pre></div>
+</details>
 </div>
 <section class="level3"><h3 id="expected-findings">Expected findings<a class="anchor" aria-label="anchor" href="#expected-findings"></a>
 </h3>

@@ -237,6 +237,8 @@ without the simplex constraint,
 whose variance term moves with the coefficients. A single evaluation of
 the analytic Hessian settles the question.
 
+Show the code
+
 ``` r
 
 mean_signature <- matrix(c(2, 1, 1, 1, 2, 6 / 5), nrow = 3)
@@ -333,6 +335,8 @@ the Gaussian case is treated in information-geometric terms by Malago
 and Pistone ([2015](#ref-malagoInformationGeometryGaussian2015)). The
 identity is worth checking numerically, since it ties the plug-in `vcov`
 of a DeCovarT fit to the divergence that makes the MLE consistent.
+
+Show the code
 
 ``` r
 
@@ -446,6 +450,8 @@ uniqueness and not unbiasedness. What *is* uniquely maximised is Q, and
 only after N\to\infty (or after pooling genuine replicates;
 [Sec. 4.4](#sec-replication)) does \hat{\boldsymbol{p}}\_N concentrate
 there.
+
+Show the code
 
 ``` r
 
@@ -1001,6 +1007,8 @@ The simulation below checks both on an unbalanced three-type mixture
 with a rare type (p_3=0.03), refitting DeCovarT on independent bulk
 draws of one composition.
 
+Show the code
+
 ``` r
 
 set.seed(2026)
@@ -1469,6 +1477,8 @@ bijection leaves likelihood ratios unchanged, [Eq. 20](#eq-lrt) needs
 gives the asymmetric intervals of
 [`confint_profile_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/confint_profile_decovart.md).
 
+Show the code
+
 ``` r
 
 signature <- matrix(
@@ -1513,6 +1523,8 @@ round(
 #> ct3   0.1943 0.1647 0.2229
 ```
 
+Show the code
+
 ``` r
 
 lrt_decovart(
@@ -1555,6 +1567,8 @@ than a vector space, and Wilks’ theorem does not apply.
 evaluates [Eq. 21](#eq-chibar), and
 [`lrt_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/lrt_decovart.md)
 selects it automatically when a tested value reaches 0 or 1.
+
+Show the code
 
 ``` r
 
@@ -1664,6 +1678,8 @@ The atom at zero is directly observable: under a true boundary null,
 about half of the replicates should return \mathcal{D}=0, because the
 unrestricted MLE itself falls on the face.
 
+Show the code
+
 ``` r
 
 set.seed(5)
@@ -1751,6 +1767,8 @@ et al. 2024](#ref-mengImplyImprovingCelltype2024)). That is distinct
 from DeCovarT’s Gaussian convolution of the *bulk*; it is a design for
 how to build a labelled S and a synthetic Y with known p.
 
+Show the code
+
 ``` r
 
 set.seed(9)
@@ -1787,6 +1805,8 @@ ref_boot$interval
 is a software check of label equivariance: permute the signature
 columns, refit, and confirm that \hat{\boldsymbol{p}} merely relabels.
 It is not the distribution used for confidence intervals.
+
+Show the code
 
 ``` r
 
@@ -1834,6 +1854,8 @@ Table 2: What each DeCovarT convergence field does and does not certify.
 [`boundary_diagnostics()`](https://bastienchassagnol.github.io/DeCovarT/reference/boundary_diagnostics.md)
 computes the first three per sample; they are stored in
 `fit$diagnostics`.
+
+Show the code
 
 ``` r
 
@@ -1883,6 +1905,8 @@ Multimodality is the one property that restarts address directly.
 refits from independent Dirichlet(1,\ldots,1) starts and reports the
 spread of attained optima; `fit_decovart(n_starts = )` wires it into the
 S3 workflow and keeps the best mode.
+
+Show the code
 
 ``` r
 

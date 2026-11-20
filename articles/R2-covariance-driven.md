@@ -1,5 +1,7 @@
 # §2.3 Covariance-driven scenario (G = 20, J = 3)
 
+Show the code
+
 ``` r
 
 library(DeCovarT)
@@ -22,6 +24,8 @@ Figure 1: Covariance-driven factorial: one fixed Gram (cosines 0.9 /
 versus cluster SBM; type 3 held at scale-free), three target MixSim
 average overlaps, three Shannon compositions (4 x 3 x 3 = 36 scenarios),
 analysed by eight methods.
+
+Show the code
 
 ``` default
 ---
@@ -314,6 +318,8 @@ Coverage is reported with a Wilson Monte Carlo interval ([Morris et al.
 gives the mean and median width and the share of intervals leaving
 \[0,1\].
 
+Show the code
+
 ``` r
 
 benchmark <- readRDS("output/fig03/fig03_benchmark.rds")
@@ -330,6 +336,8 @@ Every figure is redrawn from two files in `output/fig03/`:
 `fig03_benchmark.rds` (run settings, design, true parameters and every
 metric table) and `fig03_plot_data.rds`, a list keyed by figure file
 stem that holds the data handed to each plot function.
+
+Show the code
 
 ``` r
 

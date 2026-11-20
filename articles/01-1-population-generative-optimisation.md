@@ -1418,6 +1418,8 @@ coefficients, fitted values, residuals, and (under regularity) a
 delta-method covariance. The chunk below mirrors the appendix
 equivariance setup:
 
+Show the code
+
 ``` r
 
 library(DeCovarT)
@@ -1477,6 +1479,8 @@ multivariate Gaussian log-density, not against our own inverse. With the
 et al. 2026](#ref-R-mvtnorm)) differ by exactly \tfrac{G}{2}\log(2\pi)
 (DeCovarT omits the negative constant):
 
+Show the code
+
 ``` r
 
 n_genes <- length(y_chk)
@@ -1515,6 +1519,8 @@ Hessian are checked against Richardson extrapolation in `numDeriv`
 extrapolates central differences to cancel successive even powers of the
 step size, which is more accurate than a single two-point stencil at the
 same O(\varepsilon^{-1}) cost in function evaluations.
+
+Show the code
 
 ``` r
 
@@ -1566,6 +1572,8 @@ Gaussian whose information matrix we use for Wald intervals. Draw
 (^{(b)}\_G(, ())) at the *true* () (the parametric bootstrap of
 [`bootstrap_decovart()`](https://bastienchassagnol.github.io/DeCovarT/reference/bootstrap_decovart.md),
 used here as a diagnostic rather than as an inferential procedure):
+
+Show the code
 
 ``` r
 
@@ -1674,6 +1682,8 @@ Each refinement is exact, not approximate:
   the low rank r. A few bridge / housekeeping hub genes give the
   arrow-matrix special case handled by the same Schur-complement
   algebra.
+
+Show the code
 
 ``` r
 

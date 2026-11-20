@@ -138,6 +138,8 @@ calls use
 
 Figure 1: Pipeline from synthetic moment generation to deconvolution.
 
+Show the code
+
 ``` r
 
 library(DeCovarT)

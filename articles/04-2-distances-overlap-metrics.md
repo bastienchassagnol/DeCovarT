@@ -1,5 +1,7 @@
 # 4.2 Distances, overlap, and covariance information
 
+Show the code
+
 ``` r
 
 library(DeCovarT)

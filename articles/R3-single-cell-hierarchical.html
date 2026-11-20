@@ -31,7 +31,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DeCovarT</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">2.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -107,7 +107,7 @@
       <img src="../logo.svg" class="logo" alt=""><h1>§2.4 Single-cell scenario: four cell types in two lineages (G = 20 or 200, J = 4)</h1>
       <p class="subtitle">Full script: <code>scripts/fig05_single_cell_hierarchical.R</code></p>
       <p class="author">Bastien Chassagnol</p>
-      <p class="date">19 Nov 2026</p>
+      <p class="date">20 Nov 2026</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bastienchassagnol/DeCovarT/blob/main/vignettes/R3-single-cell-hierarchical.qmd" class="external-link"><code>vignettes/R3-single-cell-hierarchical.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -119,8 +119,9 @@
 
 
     <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bastienchassagnol/DeCovarT" class="external-link">DeCovarT</a></span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <p>The bivariate toy and the covariance-driven scenario use a population reference: every cell type is one purified Gaussian profile, and the bulk is their convolution. This scenario uses a <strong>single-cell</strong> reference: the bulk is the sum of <span class="math inline">n_i</span> cells, each drawn from the law of its type, and DeCovarT fits the single-cell model with its two scales profiled out (<a href="02-1-single-cell-generative-optimisation.html#sec-profile-newton">single-cell model</a>). The <span class="math inline">J=4</span> cell types form two lineages, types 1–2 and types 3–4, so every type has a close sibling and a distant cousin. Construction, benchmark and plot books live in one script, <code>scripts/fig05_single_cell_hierarchical.R</code> (seed <code>20261024</code>).</p>
 <div id="fig-single-cell-design" class="quarto-float quarto-figure quarto-figure-center">
@@ -286,7 +287,7 @@ Table 2: Single-cell factorial (64 scenarios).
 </ul>
 <p>Scenario identifiers read <code>S{row}_{Ba|Un}_{O1|O8}_n{1e3|1e5}_{Se|Sl}_G{20|200}_a{1|5}</code>, for example <code>S1_Ba_O1_n1e3_Se_G20_a1</code>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># The design takes about a minute (overlap calibration by Sobol Monte</span></span>
 <span><span class="co"># Carlo for each gene count and target).</span></span>
 <span><span class="va">benchmark</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/fig05/fig05_benchmark.rds"</span><span class="op">)</span></span>
@@ -295,6 +296,7 @@ Table 2: Single-cell factorial (64 scenarios).
 <span>    <span class="va">ID</span>, <span class="va">proportions</span>, <span class="va">overlap_target</span>, <span class="va">sibling_overlap</span>, <span class="va">n_cells</span>,</span>
 <span>    <span class="va">cell_size_label</span>, <span class="va">n_genes</span>, <span class="va">platform_scale</span></span>
 <span>  <span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <div style="page-break-after: always;"></div>
 </section></section><section class="section level2"><h2 id="sec-sc-inference-benchmark">Inference<a class="anchor" aria-label="anchor" href="#sec-sc-inference-benchmark"></a>
@@ -492,7 +494,7 @@ Table 5: Run-size constants at the top of <code>scripts/fig05_single_cell_hiera
 </div>
 <p>The parametric bootstrap is not run: the moments of a scenario are fixed, so coverage is measured over its <span class="math inline">N</span> bulks. Parallel workers load the <strong>installed</strong> DeCovarT, so run <code>devtools::install()</code> before a parallel run.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">benchmark</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/fig05/fig05_benchmark.rds"</span><span class="op">)</span></span>
 <span><span class="co"># Coverage of the composition and of the two scales.</span></span>
 <span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span></span>
@@ -500,17 +502,19 @@ Table 5: Run-size constants at the top of <code>scripts/fig05_single_cell_hiera
 <span>  <span class="va">ID</span>, <span class="va">algorithm</span>, <span class="va">ci_method</span>, <span class="va">parameter</span>, <span class="va">coverage</span>, <span class="va">coverage_lower</span>,</span>
 <span>  <span class="va">coverage_upper</span>, <span class="va">mean_width</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <div style="page-break-after: always;"></div>
 </section></section><section class="section level2"><h2 id="sec-fig05-viz">Visualisations<a class="anchor" aria-label="anchor" href="#sec-fig05-viz"></a>
 </h2>
 <p><code>output/fig05/fig05_benchmark.rds</code> holds the run settings, the design, the true moments (<code>theta_true</code>) and every metric table; <code>output/fig05/fig05_plot_data.rds</code> holds, for each figure file stem, the data handed to its plot function.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
+<details class="code-fold"><summary>Show the code</summary><div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/source.html" class="external-link">source</a></span><span class="op">(</span><span class="st">"scripts/visualisation/load_visualisation.R"</span><span class="op">)</span></span>
 <span><span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="st">"output/fig05/fig05_plot_data.rds"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">plot_data</span><span class="op">)</span></span>
 <span><span class="fu">render_figure_from_data</span><span class="op">(</span><span class="st">"ci_width_forest"</span>, <span class="va">plot_data</span>, <span class="st">"output/fig05"</span><span class="op">)</span></span></code></pre></div>
+</details>
 </div>
 <p>The books follow those of the <a href="R2-covariance-driven.html#sec-hybrid-viz">covariance-driven scenario</a>, with these changes:</p>
 <ul>

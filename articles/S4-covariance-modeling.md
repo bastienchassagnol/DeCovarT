@@ -1,5 +1,7 @@
 # Appendix S4 — Covariance Modelling Assumptions
 
+Show the code
+
 ``` r
 
 library(DeCovarT)
@@ -41,6 +43,8 @@ variability is known.
 
 G = 50 genes, J = 3 cell types; N = 200 Monte Carlo replicates (smoke
 test: n = 2).
+
+Show the code
 
 ``` r
 
@@ -91,6 +95,8 @@ cov_specs <- list(
 ------------------------------------------------------------------------
 
 ## 2️⃣ Inference
+
+Show the code
 
 ``` r
 
@@ -152,6 +158,8 @@ See details of the gls competitor in [Note 1](#nte-gls-solver).
 | `output/supp_S4/s4_rmse_by_model.pdf` | RMSE by covariance model and mean cosine |
 | `output/supp_S4/s4_bias_by_model.pdf` | Bias comparison across models |
 | `output/supp_S4/s4_delta_vs_truefull.pdf` | RMSE gap vs. true-full oracle |
+
+Show the code
 
 ``` r
 
