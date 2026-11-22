@@ -2644,6 +2644,30 @@ Holm on the $A$ family. `graphicalMCP::graph_test_shortcut()` runs it
 \end{tikzpicture}
 ```
 
+**Two-sided variant.** $A_{gj}$ and $B_{gj}$ look for genes *above*
+the other types only; a type marked by the loss of a gene is missed. The
+two-sided hypotheses keep the same contrasts:
+
+$$
+A^{(2)}_{gj}:\ \Delta_{gj}\neq0,
+\qquad
+B^{(2)}_{gj}:\ \operatorname{sign}(\eta_{gj}-\eta_{gk})=\operatorname{sign}(\Delta_{gj})\neq0\ \ \forall k\neq j ,
+$$ {#eq-fs-posthoc-twosided}
+
+that is, type $j$ is above every other type or below every other type.
+$p^{A(2)}_{gj}$ is the two-sided $p$-value of the contrast;
+$p^{B(2)}_{gj}=\max_{k\neq j}p^{(2)}_{gjk}$ over the two-sided pairwise
+$p$-values, set to 1 when a pairwise estimate has the other sign. Since
+$\Delta_{gj}$ is the mean of the $J-1$ differences, $B^{(2)}_{gj}$
+implies $A^{(2)}_{gj}$ with the same sign, so the graph of
+@fig-fs-posthoc-graph and the level $\alpha_I$ carry over unchanged; the
+sign of a rejected two-sided hypothesis is read from the estimate. No
+fold-change threshold enters the tests ($\delta=0$, so the omnibus
+screen stays valid); a threshold such as $|\log_2\mathrm{FC}|\ge1$ is
+applied afterwards to report a panel and is drawn on the volcano plots
+only. For the permutation family, $|t^{*}|\ge|t|$ is counted on the
+same label permutations as the one-sided test.
+
 **Scope of the guarantee.** Cells of one specimen are not independent
 biological replicates; the tests generalise to new cells of that
 specimen, not to new specimens
@@ -2668,6 +2692,131 @@ calibrated there.
 | Knockoffs | Select genes that predict the type given the other genes, a conditional question, not a marginal type effect per gene. A group version on gene modules or enriched gene sets is a perspective [TODO-cite: Barber & Candès 2015, Controlling the false discovery rate via knockoffs, Ann. Stat. 43(5):2055-2085, doi:10.1214/15-AOS1336]{.highlight}. |
 
 : Post hoc strategies considered and dropped. {#tbl-fs-posthoc-dropped}
+
+## Classifier-based marker selection: choices {#sec-fs-classifier-theory .appendix}
+
+The marginal two-stage selection (omnibus gate, then the post hoc
+contrasts of @sec-fs-deg-posthoc) asks whether each gene, on its own,
+differs between types. Sparse classifiers ask a joint question: which
+set of genes predicts the type. The two are compared on the same slots
+in the reproducibility book; this section states why each classifier
+was chosen and what was left out. The comparison is about the genes
+selected, not about DE discoveries: a gene can differ between types and
+be redundant for prediction.
+
+::: {#nte-fs-counts-predictors .callout-note}
+## Counts are predictors, the type is the outcome
+
+In a classifier the response is the categorical type and the counts are
+predictors, so the likelihood is multinomial, not negative binomial;
+the count model belongs to the normalisation step ($\log(1+x/s)$ or
+Pearson residuals), fitted on training cells only. PLN-LDA is the
+exception that models the counts themselves: a Poisson log-normal law
+per type, with the library size as an explicit offset, and Bayes' rule
+for the type [@chiquetPoissonLognormalModelVersatile2021]
+[TODO-cite: PLN-LDA, Chiquet, Mariadassou & Robin, PLNmodels vignette "PLNLDA"; page to check]{.highlight}.
+:::
+
+::: {#nte-fs-glmnet-ungrouped .callout-note}
+## Multinomial elastic net: ungrouped, symmetric, no $p$-values
+
+`glmnet` fits $P(Y=k\mid x)\propto\exp(\beta_{0k}+x^\top\beta_k)$ with
+the penalty $\lambda\{\alpha\|\beta\|_1+(1-\alpha)\|\beta\|_2^2/2\}$
+[TODO-cite: Friedman, Hastie & Tibshirani 2010, J. Stat. Softw. 33(1), key glmnet2010; page to check]{.highlight}.
+`type.multinomial = "ungrouped"` gives each type its own sparse
+coefficient vector (type-specific markers); `"grouped"` keeps or drops a
+gene in all $K$ equations at once. "Grouped" groups the $K$
+coefficients of one gene, not co-expressed genes. The parameterisation
+is symmetric (no reference type), so only differences
+$\beta_k-\beta_\ell$ have a log-odds meaning. Penalised coefficients
+have no valid naive standard errors; the classifier is judged on
+held-out prediction and selection stability, and formal inference stays
+with the post hoc contrasts.
+:::
+
+::: {#nte-fs-msgl .callout-note}
+## Sparse-group lasso on co-expression modules
+
+`msgl` adds a group penalty $(1-\alpha)\sum_m\gamma_m\|\beta_{G_m}\|_2$
+to the lasso term, so whole modules enter or leave while genes inside a
+selected module can still be zero
+[TODO-cite: Vincent & Hansen 2014, Sparse group lasso and high dimensional multinomial classification, Comput. Stat. Data Anal. 71:771-786, doi:10.1016/j.csda.2013.06.004; page to check]{.highlight}.
+Groups cannot overlap, so each gene belongs to one module (Ward
+clustering of $1-|r|$ on training cells). Overlapping groups
+(`grpregOverlap`) and `gglasso`, `SGL`, `grpreg` are not multinomial;
+`grpnet` (group elastic net) is left for later.
+
+`msgl` has no slot for external covariates: its design matrix holds the
+penalised features only. A cell line could enter only as an extra group
+with zero penalty weight, a workaround rather than a covariate in the
+model, so `msgl` is not used for the cell-line sensitivity. Its cost
+also grows quickly with the number of cells: with 2,000 genes, a
+48 h fold of about 8,700 cells took 38.6 h in the reproducibility book.
+:::
+
+::: {#nte-fs-tree-importance .callout-note}
+## Trees predict well; their importances are fragile
+
+Random forests and boosted trees capture interactions and non-linear
+effects without a link function
+[TODO-cite: Breiman 2001, Random forests, Mach. Learn. 45:5-32, doi:10.1023/A:1010933404324; page to check]{.highlight}
+[TODO-cite: Chen & Guestrin 2016, XGBoost, KDD, doi:10.1145/2939672.2939785; page to check]{.highlight}.
+Impurity importance is biased towards variables with many split points,
+and permutation importance spreads over correlated genes
+[TODO-cite: Strobl, Boulesteix, Zeileis & Hothorn 2007, BMC Bioinformatics 8:25, doi:10.1186/1471-2105-8-25; page to check]{.highlight}.
+They are used first as predictive comparators; their gene lists are read
+through stability across resamples, not as independent effects.
+
+With strongly unbalanced types, class weights may not stop a forest
+from predicting the majority type everywhere. A balanced random forest
+bootstraps the same number of cells from every type for each tree
+[TODO-cite: Chen, Liaw & Breiman 2004, Using random forest to learn imbalanced data, Tech. Rep. 666, Dept. Statistics, UC Berkeley; page to check]{.highlight}:
+each tree sees few cells, but every type in equal shares.
+:::
+
+::: {#wrn-fs-no-time-splines .callout-warning}
+## Why not time splines
+
+Spline models of time-course omics (linear mixed-model splines, and the
+time-series extensions of sPLS-DA built on them) assume repeated
+measures of the same subject over time
+[TODO-cite: Straube et al. 2015, A linear mixed model spline framework for analysing time course 'omics' data, PLoS ONE 10(8):e0134540, doi:10.1371/journal.pone.0134540; page to check]{.highlight}.
+Single-cell sequencing destroys the cell: a cell seen at 48 h is not the
+cell seen at 72 h, and no individual trajectory is observed. Claims can
+only be about populations at each time, so each time point is analysed
+on its own, and temporal generalisation, if wanted, is tested by
+holding out a time, not by a smooth within-cell curve.
+:::
+
+::: {#wrn-fs-no-mint .callout-warning}
+## Why not MINT sPLS-DA
+
+MINT integrates independent studies that measure the same features and
+the same outcome categories, with study-specific shifts
+[TODO-cite: Rohart et al. 2017, MINT, BMC Bioinformatics 18:128, doi:10.1186/s12859-017-1553-8; page to check]{.highlight}.
+The two cell lines of the Suppinger reference are not such studies: they
+are confounded with time (one line at 72 h, the other at 96 h) and, at
+48 h, with the type mix (one type is sampled in one line only), so a
+study-specific centring would remove type signal. `multilevel` designs
+fail for the same reason: destructive sampling gives no repeated cell.
+:::
+
+::: {#nte-fs-batch-48h .callout-note}
+## Cell line at 48 h: covariate or ComBat
+
+Two corrections are compared with the uncorrected fit. An unpenalised
+cell-line covariate keeps the correction inside the model and is
+estimated on training cells only; it applies to methods whose design
+admits one (penalty factor 0 in `glmnet`, a fixed effect in PLN-LDA, a
+plain predictor for trees and sPLS-DA). The highly variable genes are
+chosen once per time point on the unadjusted counts of all cells,
+without the cell line, so the three fits share one gene list. ComBat-seq adjusts the counts with an
+NB model per gene and batch
+[TODO-cite: Zhang, Parmigiani & Johnson 2020, ComBat-seq, NAR Genom. Bioinform. 2(3):lqaa078, doi:10.1093/nargab/lqaa078; page to check]{.highlight};
+run without the type labels, it uses no outcome, but where a type is
+sampled in one line only it removes type signal with the batch. Giving
+the labels to ComBat-seq would leak the outcome into the predictors.
+:::
 
 ## Concentration results in MEAD and DECALS {#sec-fs-appendix .appendix}
 
